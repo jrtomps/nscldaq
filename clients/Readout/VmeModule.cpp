@@ -313,16 +313,20 @@ CVmeModule::CVmeModule(Space space, UInt_t base, UInt_t length, int nCrate)
   try {
     switch(space) {
     case a16d16:
-      m_CVME = CVME<UShort_t>(CVME<UShort_t>::a16d16, base, length);
+      m_CVME = CVME<UShort_t>(CVME<UShort_t>::a16d16, base, length,
+			      nCrate);
       break;
     case a24d16:
-      m_CVME = CVME<UShort_t>(CVME<UShort_t>::a24d16, base, length);
+      m_CVME = CVME<UShort_t>(CVME<UShort_t>::a24d16, base, length,
+			      nCrate);
       break;
     case a24d32:
-      m_CVME = CVME<UShort_t>(CVME<UShort_t>::a24d32, base, length);
+      m_CVME = CVME<UShort_t>(CVME<UShort_t>::a24d32, base, length,
+			      nCrate);
       break;
     case a32d32:
-      m_CVME = CVME<UShort_t>(CVME<UShort_t>::a32d32, base, length);
+      m_CVME = CVME<UShort_t>(CVME<UShort_t>::a32d32, base, length,
+			      nCrate);
     }
   }
   catch (CMmapError& me) {
