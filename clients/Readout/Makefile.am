@@ -18,7 +18,7 @@ include_HEADERS = Active.h Busy.h CAENcard.h CAENchain.h CAMACBusy.h \
 	VMEBusy.h VMETrigger.h VmeModule.h  \
 	cmdio.h daqerrno.h daqinterface.h  CAENcard_767.h  \
 	 sis3300.h \
-	skeleton.h  vme.h cesmacros.h wienermacros.h \
+	skeleton.h  vme.h cesmacros.h wienermacros.h macros.h \
 	cescamac.h wienercamac.h camac.h
 
 
