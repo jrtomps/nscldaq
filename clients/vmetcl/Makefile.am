@@ -23,6 +23,8 @@ install-exec-local:
 	$(mkinstalldirs) $(prefix)/Scripts
 	$(mkinstalldirs) $(prefix)/TclLibs
 	$(INSTALL_DATA) caennet.tcl $(prefix)/Scripts
+	export LD_LIBRARY_PATH=$(prefix)/lib
+	export TCLLIBPATH="$(prefix)/lib $(prefix)/Scripts"
 	tclsh mkpackage.tcl $(prefix)/Scripts
 	rm -f $(prefix)/TclLibs/libVme.so
 	$(LN_S) $(prefix)/lib/libVme.so $(prefix)/TclLibs/libVme.so
