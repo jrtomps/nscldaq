@@ -273,7 +273,7 @@ THIRD PARTIES OR A FAILURE OF THE PROGRAM TO OPERATE WITH ANY OTHER PROGRAMS),
 EVEN IF SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH 
 DAMAGES.
 
-		     END OF TERMS AND CONDITIONS
+		     END OF TERMS AND CONDITIONS '
 */
 /*
 ** histotypes.h:
@@ -293,10 +293,12 @@ DAMAGES.
 #ifndef __HISTOTYPES_H
 #define __HISTOTYPES_H
 
-#ifndef __CPP_IOSTREAM_H
-#include <iostream.h>
-#define __CPP_IOSTREAM_H
+// Requires include for <config.h>
+
+#ifndef __IOSTREAM_DAQH
+#include <Iostream.h>
 #endif
+
 
 #ifndef __CPP_STRING_H
 #include <string.h>
@@ -367,8 +369,8 @@ typedef enum _Datatype_t {
   keUnknown_dt
 } DataType_t;
 
-inline ostream&
-operator<<(ostream& out, DataType_t t)
+inline STD(ostream)&
+operator<<(STD(ostream)& out, DataType_t t)
 {
   switch(t) {
   case keByte:
@@ -394,8 +396,8 @@ operator<<(ostream& out, DataType_t t)
   return out;
 }
 #ifndef WIN32                // KLUDGE KLUDGE KLUDGE
-inline istream&
-operator>>(istream& in, DataType_t& t)
+inline STD(istream)&
+operator>>(STD(istream)& in, DataType_t& t)
 {
   std::string value;
   t = keUnknown_dt;
@@ -440,8 +442,8 @@ typedef enum _SpectrumType_t {
 
 // I/O for spectrum types.
 
-inline ostream& 
-operator<<(ostream& out, SpectrumType_t t)
+inline STD(ostream)& 
+operator<<(STD(ostream)& out, SpectrumType_t t)
 {
   switch(t) {
   case ke1D:
@@ -465,8 +467,8 @@ operator<<(ostream& out, SpectrumType_t t)
   return out;
 }
 
-inline istream& 
-operator>>(istream& in, SpectrumType_t& t)
+inline STD(istream)& 
+operator>>(STD(istream)& in, SpectrumType_t& t)
 {
   char c;
   in >> c;
