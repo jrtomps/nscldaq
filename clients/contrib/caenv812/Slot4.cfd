@@ -1,6 +1,7 @@
 # CFD configuration file written Wed Jun 04 11:42:37 EDT 2003
 set Name "Crate 0 slot4"
 set ModuleBase 0x40000
+set Crate     0
 set Thresholds(0) -1
 set Thresholds(1) -5
 set Thresholds(2) -5

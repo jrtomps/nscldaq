@@ -1,5 +1,6 @@
 # CFD configuration file written Tue Oct 07 14:09:47 EDT 2003
-set Name SEE V812 VME Cfd
+set Name {SEE V812 VME Cfd}
+set Crate 0
 set ModuleBase 0x10000000
 set Thresholds(0) -5
 set Thresholds(1) -5

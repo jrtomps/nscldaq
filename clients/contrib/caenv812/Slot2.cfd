@@ -1,5 +1,5 @@
 # CFD configuration file written Wed Jun 04 11:42:37 EDT 2003
-set Name Test_Module
+set Name "Test_Module"
 set ModuleBase 0x20000
 set Crate      1
 set Thresholds(0) -1
