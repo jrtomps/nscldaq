@@ -28,4 +28,5 @@ nscldaq         nscldaq/clients
 ScalerDisplay   clients/ScalerDisplay
 vhqpanel        clients/contrib/vhqpanel
 wienerdriver    clients/wienerdriver
+btdriver2.6     clients/btdriver2.6
 
