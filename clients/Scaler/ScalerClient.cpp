@@ -295,6 +295,14 @@ static const char* Copyright= "(C) Copyright Michigan State University 2002, All
 /*
   Modification history:
     $Log$
+    Revision 3.4  2003/09/03 12:35:31  ron-fox
+    Escape quotes in the title. This deals with two cases:
+    - If the user is not using the production readout system, then
+      quotes will be inserted in the title due to the compatibility kludges needed in
+      readoutgui.tcl
+    - Regardless, if the user is pathalogical enough to put quotes in their titles this
+      will now work as well.
+
     Revision 3.3  2003/08/14 18:32:51  ron-fox
     Quote the title.
 
@@ -390,6 +398,31 @@ static int mygetopt(int argc, char** argv, char* pSwitch)
   return -1;
 }
 
+/*!
+   escape quotes in a const char* returning a string result.
+   quotes are escaped to \" and \'
+   \param pString (const char* [in]):
+      The input string that will be stripped.
+   \return string
+      The stripped string.
+*/
+static string EscapeQuotes(const char* pString)
+{
+  string result;
+
+  while(*pString != 0) {
+    if(*pString == '\'') {
+      result += "\\'";
+    }
+    else if (*pString == '"') {
+      result += "\\\"";
+    } else {
+      result += *pString;
+    }
+    pString++;
+  }
+  return result;
+}
 // Functions for class CScalerClient
 
 
@@ -797,15 +830,11 @@ CScalerClient::UpdateRunState(DAQRunState eNewRunState)
 void
 CScalerClient::UpdateRunTitle(const char* pNewTitle)
 {
-  string cmd("set RunTitle ");
+  string cmd("set RunTitle \"");
+  string title(EscapeQuotes(pNewTitle)); // else  embedded quotes are killers.
+  cmd += title;
+  cmd += "\"";
 
-  if(pNewTitle[0] != '\"') {
-    cmd += '"';
-  }
-  cmd += pNewTitle;
-  if(pNewTitle[0] != '\"') {
-    cmd += '"';
-  }
 
 
   m_Connection->SendCommand(cmd);
