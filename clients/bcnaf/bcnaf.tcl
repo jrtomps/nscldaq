@@ -1,3 +1,6 @@
+#!/bin/sh
+# Start Wish. \
+exec tclsh ${0} ${@}
 # /*
 # 		    GNU GENERAL PUBLIC LICENSE
 # 		       Version 2, June 1991
@@ -275,9 +278,7 @@
 # 
 # 		     END OF TERMS AND CONDITIONS
 # */
-#!/bin/sh
-# Start Wish. \
-exec wish ${0} ${@}
+
 
 # (C) Copyright Michigan State University 1938, All rights reserved 
 
@@ -313,8 +314,8 @@ if {($f > 15) && ($f < 24)} {
 set module [camac::cdreg $b $c $n]
 set output [camac::cfsa $module  $f $a $d]
 set data [lindex $output 0]
-set x    [lindex $output 1]
-set q    [lindex $output 2]
+set q    [lindex $output 1]
+set x    [lindex $output 2]
 
 set dataout [format "Data = %d(10), %x(16), %o(8)" $data $data $data]
 puts "$dataout X=$x Q=$q"
