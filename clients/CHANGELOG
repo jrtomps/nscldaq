@@ -345,3 +345,4 @@ February 3, 2005
 February 7, 2005
        - Added high performance Readout classic dir:
          HPReadout.
+       - Added ability to read an SIS 3300 to an 'ordinary memory buffer'.
