@@ -316,7 +316,12 @@ namespace eval ReadoutControl {
 	    set name $path
 	    append name "/" $file
 	    if {[file exists $name] } {
-		return $name
+		set here [pwd]
+		cd $path
+		set abspath [pwd]
+		cd $here
+		append abspath "/" $file
+		return $abspath
 	    }
 	}
 	return ""
@@ -491,10 +496,10 @@ namespace eval ReadoutControl {
 	#  Now do the rsh.
 
 	if {$script == ""} {	;# Run directly.
-	    puts "Running $ReadoutProgram directly"
+#	    puts "Running $ReadoutProgram directly"
 	    set fd [rsh::rshpipe $ReadoutHost $Executable r+]
 	} else {		;# Run via env setup script. 
-	    puts "Running readout program via wrapper: $script $path $name"
+#	    puts "Running readout program via wrapper: $script $path $name"
 	    set fd [rsh::rshpipe $ReadoutHost "$script $path $Executable" r+]
 	}
 	if {![eof $fd]} {
@@ -645,5 +650,4 @@ namespace eval ReadoutControl {
     namespace export isTapeOn
     namespace export Begin End Pause Resume
     namespace export ReadoutHost ReadoutProgram
-    namespace export RunTitle RunNumber Taping Scalers ScalerPeriod
-}
+    namespace export RunTitle RunNumber Taping Scalers ScalerPeriod}

@@ -287,6 +287,15 @@
 # Revision History:
 #
 # $Log$
+# Revision 3.2  2003/08/14 19:01:55  ron-fox
+# Multiple changes:
+# 1. Fix support of segmented event files.
+# 2. Fix small nigglling errors in the tape number/file numbering.
+# 3. Ensure only one instance of Stager is running per user per
+#    instance of a shared filesystem (.lock files).
+# 4. Do tar I/O via file events so the user interface is fully live
+#    (needed for large event files).
+#
 # Revision 3.1  2003/03/22 04:03:57  ron-fox
 # Added SBS/Bit3 device driver.
 #
@@ -331,10 +340,14 @@ package provide  Stager 1.0
 package require  ExpFileSystem
 package require  rsh
 package require  RunRetension
+package require  Wait
 namespace eval   Stager {
     variable RemoteHost
     variable RemoteDrive
     variable ArchiveCommand "tar chvf "
+    variable Tardone 0
+    variable SerialNo 0          ;# Keep track of command file
+				 ;# Need to do this to avoid stale files. 
     
     #  Make a list of the top level directories to send to tape.
     #
@@ -353,6 +366,27 @@ namespace eval   Stager {
 	return $nonlinks
     }
     #
+    #  Event processor for input data from tar pipeline:
+    #
+    proc TarLogInput {fd callback} {
+	variable Tardone
+	if {[eof $fd]} {
+	    while {1} {
+		set line [read $fd 1000] 
+		if {[string length $line] == 0 } {
+		    incr Stager::Tardone
+		    catch "close $fd"
+		    return
+		} else {
+		    $callback $line
+		}
+	    }
+	} else {
+	    set line [read $fd 1000]  ;# Get some data...
+	    $callback $line
+	}
+    }
+    #
     #  Writes a list of files in the 'ROOT' directory to tape.
     #  
     #   The callback script is called each time a line comes in from
@@ -363,23 +397,53 @@ namespace eval   Stager {
 	variable ArchiveCommand
 	variable RemoteDrive
 	variable RemoteHost
+	variable Tardone
+	variable SerialNo
 	set ftails ""
+#	puts "Writing $files"
 	foreach file $files {
 	    lappend ftails [file tail $file]
 	}
-
 	set Root [ExpFileSystem::GetRoot]
-	set    cmd "cd $Root"
-	set semi " \";\" "
-	append cmd  $semi
-	append cmd  $ArchiveCommand
-	append cmd  $RemoteDrive " " $ftails
-	set tarout [rsh::rshpipe $RemoteHost $cmd "r"]
-	fconfigure $tarout -buffering line
-	while {! [eof $tarout]} {
-	    set line [gets $tarout]
-	    $callback "$line\n"
+	while {[file exists $Root/.stagecommand$SerialNo]} {
+	    incr SerialNo
 	}
+	set oldfiles [glob -nocomplain $Root/.stagecommand*]
+	foreach file $oldfiles {
+	    	file delete $file
+	}
+	incr SerialNo
+	set stagescript [open $Root/.stagecommand$SerialNo {WRONLY CREAT} \
+		0775]
+#	puts "Stagerscript cd $Root"
+	puts $stagescript "cd $Root"
+
+	set    cmd $ArchiveCommand
+	append cmd  $RemoteDrive " " $ftails
+
+#	puts "Stagerscript $cmd"
+	puts $stagescript $cmd
+	close $stagescript
+#	puts "Stagerscript closed:"
+#	exec cat $Root/.stagecommand
+	
+
+	set info [rsh::rshpid $RemoteHost $Root/.stagecommand$SerialNo]
+	set tarpid [lindex $info 0]
+	set tarin  [lindex $info 2]
+	close $tarin
+	set mytarout [lindex $info 1]
+
+
+	fconfigure $mytarout -buffering line -blocking 0
+	fileevent $mytarout readable \
+		"Stager::TarLogInput $mytarout $callback"
+	vwait Stager::Tardone
+	flush stdout
+	set status [Wait -pid $tarpid]  ;# Reap status.
+	flush stdout
+	return [lindex $status 1]
+
     }
     #
     #  Delete event data
@@ -392,10 +456,13 @@ namespace eval   Stager {
 	set retained ""
 	foreach file $files {
 	    if {![ExpRunRetension::isPending $file]} {
-		set evtfile [glob -nocomplain $file/*.evt]
-		if {$evtfile != ""} {
-		    if {![catch {set Realevfile [file readlink $evtfile]}]} {
-			catch {file delete -force $Realevfile}
+		set evtfiles [glob -nocomplain $file/*.evt]
+		if {$evtfiles != ""} {
+		    foreach evtfile $evtfiles {
+			if {![catch {set Realevfile [file readlink $evtfile]}]} {
+			    catch {file delete -force $Realevfile}
+			    catch {file delete -force $evtfile}
+			}
 		    }
 		}
 	    } else {
@@ -412,40 +479,41 @@ namespace eval   Stager {
     #
     proc MoveRetainedData {files} {
 	foreach file $files {
-	    set evtfile [glob -nocomplain $file/*.evt]
-	    if {$evtfile != "" } {
-		if {![catch {set RealEvFile [file readlink $evtfile]}]} {
-
-		    set NewEvFile [ExpFileSystem::WhereareRetainedEventFiles]
-		    set evfilename [file tail $RealEvFile]
-		    append NewEvFile "/" $evfilename
-		    catch {file rename -force $RealEvFile $NewEvFile }
-
-		    set    link ""     ;# Start with an emtpy 'link' var.
-		    append link $file "/" $evfilename
-		    puts  "Deleting $link"
-		    set error [catch {file delete -force $link} ermsg]
-		    if {$error != 0} {
-			tk_dialog .deletefailed \
-				  "rm failed" \
-				  "file delete -force $link failed $ermsg" \
-				  "error" \
-				  0 \
-				  "Ok"
+	    set evtfiles [glob -nocomplain $file/*.evt]
+	    if {$evtfiles != "" } {
+		foreach evtfile $evtfiles {
+		    if {![catch {set RealEvFile [file readlink $evtfile]}]} {
+			set NewEvFile [ExpFileSystem::WhereareRetainedEventFiles]
+			set evfilename [file tail $RealEvFile]
+			append NewEvFile "/" $evfilename
+#			puts "Moving $RealEvFile $NewEvFile"
+			catch {file rename -force $RealEvFile $NewEvFile }
+			
+			set    link ""     ;# Start with an emtpy 'link' var.
+			append link $file "/" $evfilename
+#			puts "Relinking $link to $NewEvFile from $RealEvFile"
+			set error [catch {file delete -force $link} ermsg]
+			if {$error != 0} {
+			    tk_dialog .deletefailed \
+				    "rm failed" \
+				    "file delete -force $link failed $ermsg" \
+				    "error" \
+				    0 \
+				    "Ok"
+			}
+			set error [catch {exec ln -s $NewEvFile $link} ermsg]
+			if {$error != 0} {
+			    tk_dialog .linkfailed \
+				    "ln failed" \
+				    "ln -s $NewEvFile $link failed: $ermsg" \
+				    "error" \
+				    0 \
+				    "Ok"
+			}
 		    }
-		    puts "Making new link: $NewEvFile $link"
-		    set error [catch {exec ln -s $NewEvFile $link} ermsg]
-		    if {$error != 0} {
-			tk_dialog .linkfailed \
-				  "ln failed" \
-				  "ln -s $NewEvFile $link failed: $ermsg" \
-				  "error" \
-				  0 \
-				  "Ok"
-		    }
-		    ExpRunRetension::MoveToRetained $file
 		}
 	    }
+	    ExpRunRetension::MoveToRetained $file
 	}
     }
     # MoveMetaData dirs
@@ -488,19 +556,12 @@ namespace eval   Stager {
 	#
 	set StageFiles [GenerateStageList]
 	if {[llength $StageFiles] == 0} {
-	    puts "Stager found nothing to stage. You may need to manually"
-	    puts "Clean up the staging area."
 	    return
 	}
-	puts "writing $StageFiles to tape"
 	WriteToTape      $StageFiles
-	puts "Processing retension list"
 	set Retained [DeleteEventData  $StageFiles]
-	puts "Moving retained data"
 	MoveRetainedData $Retained
-	puts "Moving staged metadata"
 	MoveMetaData     $StageFiles
-	puts "Staging done"
     }
     namespace export SetHost SetDrive Initialize Stage
     namespace export WriteToTape

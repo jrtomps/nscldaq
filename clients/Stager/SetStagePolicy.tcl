@@ -290,11 +290,6 @@ namespace eval SelectStagePolicy {
     proc StagePolicyOk {top callback texts policies} {
 	variable StagePolicy
 	set i 0
-	foreach policy $texts {
-	    destroy $top.pol$i
-	    incr i
-	}
-	destroy $top.ok
 	$callback $StagePolicy
     }
     

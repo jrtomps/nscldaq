@@ -394,7 +394,7 @@ namespace eval  Experiment {
     proc RunEnded {} {
 	variable EventlogPid
 
-	puts "RunEnded: [pwd]"
+#	puts "RunEnded: [pwd]"
 	set nrun [ReadoutControl::GetRun]
 	# IF OnEnd is defined, call it:
 	#
@@ -408,9 +408,19 @@ namespace eval  Experiment {
 	    #
 	    set EventFile [ExpFileSystem::WhereisCurrentEventData]
 	    append EventFile "/" [ExpFileSystem::GenRunFile $nrun]
+	    #
+	    #  If the run file is on an NFS mount the first time it
+	    #  appears to take some time to get the cache flushed out but
+	    #  the following probably will take care of that:
+	    #
+	    
+	    after 1000		# Probably it's ready by now.
+	    catch "exec ls $EventFile"
+	    #
+#	    puts "Waiting for .done and $EventFile"
 	    while {![file exists .done] || ![file exists $EventFile]} {
 		after 1000
-		puts "Wait .done"
+#		puts "Wait .done"
 		update idle
 		update idle
 		update idle
@@ -426,15 +436,23 @@ namespace eval  Experiment {
 	    set root    [ExpFileSystem::GetRoot]
 	    set current [ExpFileSystem::WhereisCurrentData]
 	    set rundir  $root/run$nrun
-	    set rfile   [ExpFileSystem::GenRunFile $nrun]
-	    file delete -force $current/$rfile
+	    set rfile   [ExpFileSystem::GenRunFileBase $nrun]
+	    append rfile "*.evt"         ;# There can be several segments.
+	    
+	    set links [glob $current/$rfile]
+	    set files [glob [ExpFileSystem::WhereisCurrentEventData]/$rfile]
+
 	    #
-	    # Move the event data to complete dir.
+	    #  Now delete the links:
 	    #
-	    catch { 
-		exec mv  [ExpFileSystem::WhereisCurrentEventData]/$rfile \
-			[ExpFileSystem::WhereareCompleteEventFiles]/$rfile
+	    foreach link $links {file delete -force $link}
+	    
+	    #  Move the event data:
+	    
+	    foreach file $files {
+		file rename $file [ExpFileSystem::WhereareCompleteEventFiles]
 	    }
+
 	    #
 	    # Copy 'current' dir.
 	    #
@@ -445,13 +463,17 @@ namespace eval  Experiment {
    	       sh << "(cd $current; tar chf - .)|(cd $root/run$nrun; tar xf -)"
 	    }
 	    #
-	    # Create a new link to the event data in the runnum dir.
+	    # Create a new links to the event data in the runnum dir.
 	    #
-	     catch {
-		 exec ln -s \
-			 [ExpFileSystem::WhereareCompleteEventFiles]/$rfile \
-			 $root/run$nrun/$rfile
-	     }
+	    foreach segment $files {
+		set name [file tail $segment]
+		set target [ExpFileSystem::WhereareCompleteEventFiles]/$name
+		set source $root/run$nrun/$name
+		catch {
+		    exec ln -s $target $source
+		}
+	    }
+	    
 	    #
 	    # Update last taped run.
 	    #
@@ -558,7 +580,7 @@ namespace eval  Experiment {
 	foreach file $orphanfiles {
 	    set name [file tail $file]
 	    if {[scan $name "run%d-%d.evt" run size] == 2} {
-		puts "Decoded $name"
+#		puts "Decoded $name"
 		#
 		# Note, non event files are considered to belong
 		# in the current dir.  This file, however is an
@@ -590,7 +612,6 @@ namespace eval  Experiment {
 		}
 	    }
 	}
-	puts "Returning from clean orphans."
 
     }
     #

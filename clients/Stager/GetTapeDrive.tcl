@@ -302,9 +302,12 @@ namespace eval  GetTape {
 	set sellist [$widget.listframe.drivelist curselection]
 	if {[llength $sellist] > 0} {
 	    set drive [$widget.listframe.drivelist get [lindex $sellist 0]]
+	    set oldbind [bind $widget <Destroy>]
+	    bind $widget <Destroy> {}
 	    destroy $widget.listframe
 	    destroy $widget.ok
 	    destroy $widget.back
+	    bind $widget <Destroy> $oldbind
 	    $Callback $host $password $drive $TapeDensity
 	}
     }
@@ -314,11 +317,14 @@ namespace eval  GetTape {
 #  to re-fetch a hostname.
 #
     proc GetTapeBack {widget Callback} {
+	set oldbind [bind $widget <Destroy>]
+	bind $widget <Destroy> {}
 	destroy $widget.listframe
 	destroy $widget.ok
 	destroy $widget.back
 	destroy $widget.capframe
 
+	bind $widget <Destroy> $oldbind
 	GetTape::GetTapeDrive $widget $Callback
     }
 #
@@ -340,15 +346,16 @@ namespace eval  GetTape {
 	set hostname [$widget.textframe.entry get]
 	set password [$widget.pwframe.entry get]
 
+	set oldbind [bind $widget <Destroy>]
+	bind $widget <Destroy> {}
 
 	destroy $widget.textframe
 	destroy $widget.pwframe
 	destroy $widget.button
+	bind $widget <Destroy> $oldbind
 	set drivelist ""
 	
 	catch {set drivelist [RemoteInfo::GetTapeDrives $hostname]} output
-	puts $drivelist
-	puts $output
 	frame $widget.listframe
 	listbox $widget.listframe.drivelist -relief raised -borderwidth 2 \
 		-yscrollcommand "$widget.listframe.scroller set" \

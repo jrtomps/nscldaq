@@ -1,4 +1,4 @@
-# /*
+#/*
 # 		    GNU GENERAL PUBLIC LICENSE
 # 		       Version 2, June 1991
 # 
@@ -288,6 +288,15 @@
 #   Change log:
 #
 # $Log$
+# Revision 3.2  2003/08/14 19:01:55  ron-fox
+# Multiple changes:
+# 1. Fix support of segmented event files.
+# 2. Fix small nigglling errors in the tape number/file numbering.
+# 3. Ensure only one instance of Stager is running per user per
+#    instance of a shared filesystem (.lock files).
+# 4. Do tar I/O via file events so the user interface is fully live
+#    (needed for large event files).
+#
 # Revision 3.1  2003/03/22 04:03:55  ron-fox
 # Added SBS/Bit3 device driver.
 #
@@ -314,6 +323,21 @@ namespace eval ReadoutGui {
     variable BeginButton
     variable PauseButton
     proc NoOp {} {}
+
+    # Update links: called to update the
+    # event file links in the current directory.
+    # the parameter is the set of event file segments.
+    proc UpdateLinks {segments} {
+	set ExpCurrent [ExpFileSystem::WhereisCurrentData]
+	foreach segment $segments {
+	    set basename [file tail $segment]
+	    set linktarget $ExpCurrent/$basename
+	    if {![file exists $linktarget] } {
+		catch "exec ln -s $segment $linktarget"
+	    }
+	}
+    }
+
     #
     # Save Readout Settings:
 
@@ -326,6 +350,29 @@ namespace eval ReadoutGui {
 	puts $fd "set period  $ReadoutControl::ScalerPeriod"
 
 	close $fd
+    }
+    #
+    #   Proc to source a file into the readout program.
+    #   The file contains arbitrary readout program commands.
+    #   this is especially intended for production readout.
+    #
+    proc SourceFile {} {
+	#
+	#  Accept the file:
+	#
+	set script [tk_getOpenFile -defaultextension .tcl \
+		                  -title "Source file: " \
+				  -filetypes {
+			      {{Tcl Scripts} {.tcl}}
+			      {{Tk Scripts}  {.tk}}
+			      {{All Files}   {*}}
+			  }]
+	if {$script != ""} {
+	    set sfd [open $script r]
+	    set contents [read $sfd]
+	    ReadoutControl::SendCommand $contents
+	}
+	
     }
     #
     #  Utility function to see if the requested duration is valid.
@@ -410,17 +457,39 @@ namespace eval ReadoutGui {
 	set ElapsedTime [format "%d-%02d:%02d:%02d" $Days $Hrs $Min $Sec]
 	#
 	#  Update the status line for the event file:
+	#  We need to sum all the sizes for all the segments.
+	#  summing is done in Kbyte units in order to prevent overflows.
+	#  We also invoke UpdateLinks to ensure that all event file links
+	#  are valid.
 	#
 	set EventFile $Experiment::EventFilePath
-	set status [catch {set size [file size $EventFile]}]
+	set EventDir  [file dirname $EventFile]
+	set filepat $EventDir
+	append filepat "/" \
+		[::ExpFileSystem::GenRunFileBase $ReadoutControl::RunNumber] \
+		 *
+	set segments [glob -nocomplain $filepat]
+	set nsegments [llength $segments]
+	set size     0.0
+	foreach segment $segments {
+	    set status [catch {set segmentsize [file size $segment]}]
+	    if {$status == 0} {
+		set size [expr $size + $segmentsize/1024.0]
+	    }
+	}
+	
+	#  Now compute size in megabytes:
 
-	if {$status == 0} {
-	    set size [expr $size/(1024.0*1024.0)]
+	set size [expr $size/1024.0]
+	if {$nsegments > 0} {
+	    UpdateLinks $segments
 	    set EventFileStatusLine \
-		    [format "Event File %s is %6.2f Mbytes" $EventFile $size]
+		    [format "Run %d recorded in %d segments totalling %9.2f Mbytes" \
+		             $ReadoutControl::RunNumber $nsegments $size]
 	} else {
 	    set EventFileStatusLine \
-		    [format "Event File %s does not exist" $EventFile]
+		    [format "No run file segments for run %d yet" \
+		            $ReadoutControl::RunNumber]
 	}
 	#
 	# Repropagate self:
@@ -586,7 +655,7 @@ namespace eval ReadoutGui {
 	# If is not ended, need to do emergency end run.
 	#
 	if {$State != "NotRunning"} {
-	    puts "Forcing an emergency end run...."
+#	    puts "Forcing an emergency end run...."
 	    Experiment::EmergencyEnd
 	    if {[ReadoutControl::isTapeOn]} {
 		set nrun [ReadoutControl::GetRun]
@@ -876,13 +945,15 @@ namespace eval ReadoutGui {
 	     [frame $toplevelname.controlframe -relief groove -borderwidth 2]
 	set titleframe [frame $ctlframe.title]
 	label $titleframe.title -text "Title: "
-	entry $titleframe.titlestring -textvariable ReadoutControl::RunTitle \
+	entry $titleframe.titlestring \
+		-textvariable ReadoutControl::RunTitle \
 		-width 50
 	set rnotape [frame $ctlframe.rnotape]
 	checkbutton $rnotape.taping -text "Record Events" \
 		-variable ReadoutControl::Taping
 	label $rnotape.run -text "Run number"
-	entry $rnotape.runnumber -textvariable ReadoutControl::RunNumber
+	entry $rnotape.runnumber \
+		-textvariable ReadoutControl::RunNumber
 
 	set buttonframe \
 		[frame $ctlframe.buttonframe  -relief groove -borderwidth 2]
@@ -941,6 +1012,10 @@ namespace eval ReadoutGui {
 	$filemenu add command -label Start    \
 		-command \
  	                    "ReadoutGui::Start $filemenu $buttonframe.startstop $buttonframe.pauseres"
+	$filemenu add separator
+	$filemenu add command -label Source -command \
+		ReadoutGui::SourceFile
+
 	$filemenu add separator
 	$filemenu add command -label Exit -command ReadoutGui::Exit
 

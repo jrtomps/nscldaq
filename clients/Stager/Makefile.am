@@ -4,6 +4,7 @@ install-exec-local:
 	./installpkg $(prefix)
 	rm -f $(bindir)/Stager
 	$(LN_S) $(prefix)/Scripts/StagerGui.tcl $(bindir)/Stager
+	./installpkg $(prefix)
 
 EXTRA_DIST =  Experiment.tcl \
 	GetTapeDrive.tcl \
@@ -25,3 +26,19 @@ EXTRA_DIST =  Experiment.tcl \
 	rsh.tcl \
 	warning.tcl \
 	installpkg
+
+lib_LTLIBRARIES = libWait.la
+libWait_la_SOURCES = WaitPackage.cpp
+
+libWait_la_LDFLAGS =   -L@top_srcdir@/TCL \
+	-version-info 1:0:0
+
+	  
+libWait_la_LIBADD =  -lTclPlus -lException  \
+	$(TCL_LDFLAGS)	$(X11LIBS)  -lLicense  \
+	-lm -lstdc++ -lgcc -lc
+
+INCLUDES = -I@top_srcdir@/Headers \
+	-I@top_srcdir@/TCL \
+	-I@top_srcdir@/CopyrightTools \
+	$(TCL_FLAGS) -DHOME=\"$(prefix)\"

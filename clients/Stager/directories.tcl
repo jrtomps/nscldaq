@@ -285,6 +285,15 @@
 #      ExpFileSystem
 #
 # $Log$
+# Revision 3.2  2003/08/14 19:01:55  ron-fox
+# Multiple changes:
+# 1. Fix support of segmented event files.
+# 2. Fix small nigglling errors in the tape number/file numbering.
+# 3. Ensure only one instance of Stager is running per user per
+#    instance of a shared filesystem (.lock files).
+# 4. Do tar I/O via file events so the user interface is fully live
+#    (needed for large event files).
+#
 # Revision 3.1  2003/03/22 04:03:57  ron-fox
 # Added SBS/Bit3 device driver.
 #
@@ -308,11 +317,11 @@ namespace eval ExpFileSystem {
     variable StageArea "Unknown"
     variable Buffersize 4096
     
-    puts "In directories.tcl"
+#    puts "In directories.tcl"
     if {[array names env BUFFERSIZE] != ""} { 
-       puts "env(BUFFERSIZE) exists!"
+#       puts "env(BUFFERSIZE) exists!"
        scan $env(BUFFERSIZE) %d Buffersize ;# initialization :-(.
-       puts "New value for Buffersize = $env(BUFFERSIZE)"
+#       puts "New value for Buffersize = $env(BUFFERSIZE)"
     }
 
 #
@@ -361,9 +370,14 @@ namespace eval ExpFileSystem {
 	variable Root
 	return $Root/run$num
     }
+    proc GenRunFileBase {num} {
+	return run$num
+    }
     proc GenRunFile {num} {
 	variable Buffersize
-	return run$num-$Buffersize.evt
+	set fname [GenRunFileBase $num]
+	append fname "-" $Buffersize.evt
+	return $fname
     }
     proc WhereisRunFile {num} {
 	variable Root
@@ -388,7 +402,7 @@ namespace eval ExpFileSystem {
     }
     namespace export WhereareRetainedEventFiles
     namespace export WhereareCompleteEventFiles
-    namespace export WhereisCurrentEventData
+    namespace export WhereisCurrentEventData GenRunFileBase
     namespace export WhereisRunFile GenRunFile WhereisRun
     namespace export WhereisCurrentData GetStage GetRoot
     namespace export CreateHierarchy

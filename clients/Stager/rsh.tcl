@@ -282,6 +282,7 @@
 # command on a system with shared filesystem.
 #
 package provide rsh 1.0
+package require Wait
 namespace eval  rsh {
     #
     # Allows access to the current user/node on remote nodes in the 'cluster'
@@ -309,5 +310,30 @@ namespace eval  rsh {
 #	return [open "|rsh $host $command  " $access]
 	return [open "|rsh $host $command '2>&1'  " $access]
     }
-    namespace export rsh rshpipe
+
+    #
+    #   rshpid - Uses the Pipe command to open a pipe to the
+    #            command.  The pipe has an input and an output end.
+    #            The command runs asynchronously.
+    #   Parameters:
+    #       host   command
+    #   Returns:
+    #     list containing in order:
+    #        pid    - Process ID of the rsh shell.
+    #        inpipe - Pipe to read from to get output/error from process.
+    #        outpipe- Pipe to write to to send data to the process.
+    #
+    #
+    proc rshpid {host command} {
+	AllowMe
+	set pipes [Pipe]
+	set rpipe [lindex $pipes 0]
+	set wpipe [lindex $pipes 1]
+#	puts "rshpid 'rsh $command'"
+	set pid [exec rsh $host $command >&@ $wpipe <@ $rpipe &]
+
+	return "$pid $rpipe $wpipe"
+    }
+
+    namespace export rsh rshpipe rshpid
 }

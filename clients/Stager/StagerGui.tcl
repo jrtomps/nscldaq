@@ -287,6 +287,15 @@ exec wish ${0} ${@}
 #
 # Revision History:
 #  $Log$
+#  Revision 3.2  2003/08/14 19:01:55  ron-fox
+#  Multiple changes:
+#  1. Fix support of segmented event files.
+#  2. Fix small nigglling errors in the tape number/file numbering.
+#  3. Ensure only one instance of Stager is running per user per
+#     instance of a shared filesystem (.lock files).
+#  4. Do tar I/O via file events so the user interface is fully live
+#     (needed for large event files).
+#
 #  Revision 3.1  2003/03/22 04:03:57  ron-fox
 #  Added SBS/Bit3 device driver.
 #
@@ -349,6 +358,8 @@ package require ReadoutGui
 package require ReadoutControl
 package require Experiment
 package require ExpFileSystem
+package require UniqueInstance
+package require Wait
 #
 #   Functional procs.
 #
@@ -364,8 +375,8 @@ set Password ""
 set TapeCapacity Unknown
 set TapeMounted  0
 set TapeUsed     0
-set TapeNumber   0
-set TarFileNum   0
+set TapeNumber   1
+set TarFileNum   1
 set TapeLogFile [ExpFileSystem::GetRoot]/TapeIndex.txt
 set StageStrategy "Not Set"
 set TapeDrive   "Not Set"
@@ -381,6 +392,7 @@ proc NonModalConfirm {top title text OkValue CancelValue} {
     # A bottom frame with ok and cancel buttons.
     #
     toplevel $top
+    
     wm title $top $title
     set query  [frame $top.query]
     set action [frame $top.action]
@@ -407,7 +419,7 @@ proc ConfirmExit {} {
 	    "Are you sure you want to exit the stager?" \
 	    questhead 1 Ok Cancel]
     if {$answer == 0} {
-	exit
+	UniqueInstance::Exit Stager ConfirmExit
     }
 }
 #
@@ -546,7 +558,7 @@ proc ReadSettings {name} {
 
     source $name
 
-    # The global will have been set. This leaves only:
+    # The globals will have been set. This leaves only:
     #    StageThreshold: - The staging threshold
     #    HashedPassword  - The hased password.  
 
@@ -596,7 +608,7 @@ proc StartReadout {SourceHost ReadoutPath ftphost Password} {
     }
     update idletasks; update idletasks; update idletasks
     if {!$found} {
-	puts "Could not find ReadoutShell.tcl in any of $Path"
+#	puts "Could not find ReadoutShell.tcl in any of $Path"
 	exit
     }
 }
@@ -722,8 +734,6 @@ proc Stage {} {
 	    set TapeMounted 0
 	    incr TapeNumber
 	    set TarFileNum 1
-	} else {
-	    incr TarFileNum
 	}
 
 	set tapeinset 1
@@ -742,7 +752,7 @@ proc Stage {} {
 
 	    PutTextToWindow \
              "Staging $Size Gbytes of data to tape #  $TapeNumber\n"
-	    StageATape $Files
+	    set status [StageATape $Files]
 	    update idletasks
 	    update idletasks
 	    update idletasks
@@ -752,9 +762,13 @@ proc Stage {} {
 	    . config -cursor $oldcursor
 
 	    set message "Tape $tapeinset of $tapestodo written\n"
+	    if {$status != 0 } {
+		set emsg $status
+		append message \
+                     "Note: tar returned abnormal status: $emsg \n"
+	    }
 	    append message \
 		"If the tar of the data succeeded, click Ok, else Cancel";
-
 	    .buttons.stage config -state disabled
 	    set answer [NonModalConfirm .confirm "Confirmation" \
 		    $message \
@@ -763,13 +777,14 @@ proc Stage {} {
 	    if {$answer == 0} {
 		LogStage $Files
 		set Retained [Stager::DeleteEventData $Files]
+#		puts "Retaining $Retained"
 		Stager::MoveRetainedData $Retained
 		Stager::MoveMetaData $Files
 	    } else {
 		Diagnostics::Info "Stager cleanup of event data refused"
 		break
 	    }
-
+	    incr TarFileNum
 	    set TapeMounted 0
 	    set TapeUsed $Size
 	    incr tapeinset
@@ -868,10 +883,7 @@ proc RetainDlg {} {
 	}
     }
 }
-#
-#  Start out with toplevel hidden.
 
-wm withdraw .
 
 proc MainGui {} {
     global TapeNumber
@@ -963,9 +975,12 @@ proc PolicyGotten {Policy} {
     global   Password
     global   env
 
+#    puts "In Policy"
     StartStager $Policy
-
+    bind    .getpolicy <Destroy> {}
+#    puts "Destroy for .getpolicy rebound to empty"
     destroy .getpolicy
+#    puts ".getpolicy destroyed"
 
     set StageStrategy   $Policy
     MainGui
@@ -987,8 +1002,11 @@ proc ReadoutGotten {toplevel host path} {
 
 
     Experiment::Register
+    bind    $toplevel <Destroy> {}
     destroy $toplevel
     toplevel .getpolicy
+    bind .getpolicy <Destroy> "UniqueInstance::Exit Stager ReadoutGotten"
+
     wm title .getpolicy "Select stage policy"
     SelectStagePolicy::SetStagePolicy .getpolicy PolicyGotten \
 	    {{Used space on Stage disk >  Threshold} 
@@ -1002,6 +1020,8 @@ proc ReadoutGotten {toplevel host path} {
 #
 proc GetReadoutspec {} {
     toplevel .readoutdialog
+    bind .readoutdialog <Destroy> "UniqueInstance::Exit Stager GetReadoutspec"
+
     wm title .readoutdialog "Select Readout and host"
     ReadoutGui::GetReadoutSpec .readoutdialog ReadoutGotten
     
@@ -1020,7 +1040,7 @@ proc TapeGotten {host password drive capacity} {
     set ftphost  $host
     set TapeDrive $drive
 
-
+    bind    .getdevice <Destroy> {}
     destroy .getdevice
     Stager::SetHost  $host
     Stager::SetDrive $drive
@@ -1038,6 +1058,8 @@ proc GuiGetSettings {} {
     #  Init to select tape drive.
     #
     toplevel .getdevice
+    bind .getdevice <Destroy> "UniqueInstance::Exit Stager GuiGetSettings"
+
     wm title .getdevice "Select Taping host and drive."
     GetTape::GetTapeDrive .getdevice TapeGotten
 }
@@ -1058,6 +1080,8 @@ proc GuiConfirmSettings {threshold} {
 
 
     toplevel .settings 
+    bind .settings <Destroy> "UniqueInstance::Exit Stager GuiConfirmSettings"
+
     wm title .settings "Confirm Settings"
     frame    .settings.top
     frame    .settings.bottom -relief groove -borderwidth 3
@@ -1084,6 +1108,7 @@ proc GuiConfirmSettings {threshold} {
     }
  
     button .settings.bottom.ok -text Accept -command "
+    bind .settings <Destroy> {}
 	destroy .settings
 
 	Stager::SetHost  $ftphost
@@ -1100,6 +1125,7 @@ proc GuiConfirmSettings {threshold} {
 	MainGui
     "
     button .settings.bottom.no -text Reject -command {
+	bind .settings <Destroy> {}
 	destroy .settings
 	GuiGetSettings
     }
@@ -1108,9 +1134,27 @@ proc GuiConfirmSettings {threshold} {
 
    
 }
+#  Ensure we are a unique instance.  If not then we emit an error dialog
+#  and exit Multiple instances of stager for the same user can cause data
+#  loss!!!
 #
-#  Clean up any orphaned event file.
+if {![UniqueInstance::Unique Stager]} {
+    toplevel .error
+    set other [UniqueInstance::WhoElse Stager]
+    append message "Another instance of stager pid@host = $other "
+    append message "appears to be running.  "
+    append message "If you are sure this is not the case, delete the file "
+    append message "~/.Stager.lock and run this program again."
+    tk_dialog .error "Duplicate Stager" \
+	    $message error 0 "Dismiss"
+    exit
+}
 #
+#  Start out with toplevel hidden.
+wm withdraw .
+
+
+bind . <Destroy> "UniqueInstance::Exit Stager Main"
 
 #  Try to recover settings from the configuration file
 #
@@ -1125,6 +1169,8 @@ if {[file exists $file]} {
 } else {
     GuiGetSettings
 }
+ChangeTape
+
 
 Experiment::CleanOrphans
 

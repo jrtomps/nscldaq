@@ -331,6 +331,7 @@ namespace eval ExpRunRetension {
     proc MoveToRetained {run} {
 	variable PendingRetensions
 	variable RetainedRuns
+#	puts "Moving $run to retained pending are $PendingRetensions"
 	if {![isPending $run]} {
 	    error "$run is not in the pending list"
 	}
