@@ -191,12 +191,12 @@ fi
 if test $tcl_headers_found == "no"; then
    AC_CHECK_FILE([/usr/local/include/tcl.h],
 	[tcl_header_dir="/usr/local/include/tcl"
-1	tcl_headers_found="yes"])
+	tcl_headers_found="yes"])
 fi
 
 
 if test $tcl_headers_found == "yes"; then
-   TCL_FLAGS="-I${tcl_header_dir} 
+   TCL_FLAGS="-I${tcl_header_dir}"
    AC_MSG_RESULT([found in $tcl_header_dir])
 else
    AC_MSG_ERROR([can't find tcl.h try using --with-tcl-header-dir to help me])
