@@ -387,3 +387,5 @@ March 9, 2005
        formatting assumed integers.  %f formatting works for both so used
        % 10.0f  %d fails explicitly on reals.
 
+march 10, 2005
+     - Scaler.tcl - turn off sort by column on the scaler table widget.

@@ -992,8 +992,7 @@ proc page {name title} {
                           0 "Rate(s)"
 	                  0 "Total(s)"
                           0 "Ratio \[rate total\]"} \
-		-labelcommand tablelist::sortByColumn \
-		-xscrollcommand [list $hsb set]       \
+	        -xscrollcommand [list $hsb set]       \
 		-yscrollcommand [list $vsb set]       \
 		-height 15 -width 95                  \
 		-setgrid yes -stretch all \
