@@ -419,6 +419,8 @@ int CVMEMapCommand::Get(CTCLInterpreter& rInterp, CTCLResult& rResult,
   }
   // Everything's fine now:  do the read:
 
+  CVMEInterface::Lock();
+
   ULong_t nValue;
   switch(nSize) {
   case SZ_LONG:
@@ -431,8 +433,10 @@ int CVMEMapCommand::Get(CTCLInterpreter& rInterp, CTCLResult& rResult,
     nValue = *(UChar_t*)pVa;
     break;
   default:
+    CVMEInterface::Unlock();
     return Usage(rResult);
   }
+  CVMEInterface::Unlock();
   // nValue must be turned into a result string:
   //
 
@@ -494,6 +498,7 @@ int CVMEMapCommand::Set(CTCLInterpreter& rInterp, CTCLResult& rResult,
     return TCL_ERROR;
   }
 
+  CVMEInterface::Lock();
   switch(nSize) {
   case SZ_LONG:
     *(ULong_t*)pVa = (ULong_t)nValue;
@@ -505,9 +510,10 @@ int CVMEMapCommand::Set(CTCLInterpreter& rInterp, CTCLResult& rResult,
     *(UChar_t*)pVa  = (UChar_t)nValue;
     break;
   default:
+    CVMEInterface::Unlock();
     return Usage(rResult);
   }
-
+  CVMEInterface::Unlock();
   return TCL_OK;
   
 

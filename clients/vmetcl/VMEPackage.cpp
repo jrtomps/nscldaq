@@ -293,7 +293,7 @@ DAMAGES.
 static const char* pInstdir=HOME;
 static const char* pScriptSubdir="/Scripts"; // Where scripts may live.
 
-static char* version="1.0";
+static char* version="1.1";
 extern "C" {
 int Vme_Init(Tcl_Interp* pInterp)
 {
