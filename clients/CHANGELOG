@@ -329,3 +329,6 @@ January 14, 2005
          of CAMAC controller.
 January 17, 2005
        - Fix typo in macro name in the skeleton makefile of production readout.
+January 24, 2005 
+       - Fix typos in goshaper, goshaper16 as well as document the need to
+         run this in a spdaq system.
