@@ -283,6 +283,9 @@ static const char* Copyright = "(C) Copyright Michigan State University 2002, Al
    
    Modification History:
    $Log$
+   Revision 3.2  2003/08/22 18:40:58  ron-fox
+   Scaler buffer times should be in seconds not in 10'ths of secionds (Part of bug 71).
+
    Revision 3.1  2003/03/22 04:03:04  ron-fox
    Added SBS/Bit3 device driver.
 
@@ -652,21 +655,23 @@ CExperiment::Start(CStateTransitionCommand& rCommand)
 
   // Prepare the hardware for readout:
 
-  m_Scalers.Clear();
   m_EventReadout.Initialize();	// Initialize the event readout...
+  m_Scalers.Clear();
   m_EventReadout.Clear();	// Clear digitizers prior to start.
+
 
   // Start the trigger process and clock.
 
   StartTrigger();
   m_pScalerTrigger->SetInterval(MyApp.getScalerPeriod() * 1000);
-  MyApp.getClock().Start(msPerClockTick, nTriggerDwellTime);
-
+  MyApp.getClock().Start(msPerClockTick, nTriggerDwellTime/2);
+  ClearBusy();
 
 
 
   //<----------- At this point we can potentially take data.
   // Execute post-actions:
+
 
   rCommand.ExecutePostFunction();
 }  
@@ -922,14 +927,15 @@ CExperiment::TriggerScalerReadout()
   // Format the buffer and adjust the times:
   //
 
+  int now = GetElapsedTime()/10;
   buffer.PutScalerVector(scalers);
   buffer.SetStartTime(m_LastScalerTime);
-  buffer.SetEndTime(m_LastScalerTime = GetElapsedTime());
+  buffer.SetEndTime(now);
   buffer.SetRun(GetRunNumber());
   buffer.Route(false);		// No sequence increment for scalers.
 
   m_LastSnapTime = 0;
-  m_LastScalerTime = GetElapsedTime();
+  m_LastScalerTime = now;
 
  
 }  
@@ -1009,7 +1015,7 @@ CExperiment::TriggerSnapshotScaler()
   buffer.PutScalerVector(scalers);
   buffer.SetType(SNAPSCBF);
   buffer.SetStartTime(m_LastSnapTime);
-  buffer.SetEndTime(m_LastSnapTime = GetElapsedTime());
+  buffer.SetEndTime(m_LastSnapTime = GetElapsedTime()/10);
 
   buffer.SetRun(GetRunNumber());
   buffer.Route(false);
