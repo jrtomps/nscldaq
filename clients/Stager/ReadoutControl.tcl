@@ -381,11 +381,11 @@ namespace eval ReadoutControl {
 	variable ScalerPeriod
 
 	catch {
-	    SendCommand "Set Run $RunNumber"
-	    SendCommand "Set Title $RunTitle"
+	    SendCommand "set run $RunNumber"
+	    SendCommand "set title \"$RunTitle\""
 
-	    SendCommand "Set Scaler $Scalers"
-	    SendCommand "Set Frequency $ScalerPeriod"
+	    SendCommand "set scaler $Scalers"
+	    SendCommand "set frequency $ScalerPeriod"
 	    flush $PipeFd
 	}
     }
@@ -451,7 +451,7 @@ namespace eval ReadoutControl {
 	if {$State == "NotLoaded"} return
 	if {$State != "NotRunning"} End
 	catch {
-	    SendCommand  Exit
+	    SendCommand  exit
 	}
 	set State NotLoaded
 	$ExitCallback
@@ -573,7 +573,7 @@ namespace eval ReadoutControl {
 	    $BeginCallback
 
 	    catch {
-		SendCommand "Begin"
+		SendCommand "begin"
 		flush $PipeFd
 	    }
 	    set State "Active"
@@ -588,7 +588,7 @@ namespace eval ReadoutControl {
 	    error "Run is already halted"
 	} else {
 	    catch {
-		SendCommand "End"
+		SendCommand "end"
 		flush $PipeFd
 	    }
 	    set State "NotRunning"
@@ -604,7 +604,7 @@ namespace eval ReadoutControl {
 	    error "Run is not active"
 	} else {
 	    catch { 
-		SendCommand "Pause"
+		SendCommand "pause"
 		flush $PipeFd
 	    }
 	    set State "Paused"
@@ -620,7 +620,7 @@ namespace eval ReadoutControl {
 	} else {
 	    $ResumeCallback
 	    catch {
-		SendCommand "Resume"
+		SendCommand "resume"
 		flush $PipeFd
 	    }
 	    set State "Active"
@@ -632,7 +632,7 @@ namespace eval ReadoutControl {
 	variable PipeFd
 	if {$State != "NotLoaded" } {
 	    catch {
-		SendCommand "Show All"
+#		SendCommand "show All"
 		flush $PipeFd
 	    }
 	} 
