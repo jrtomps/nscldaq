@@ -425,7 +425,7 @@ AC_OUTPUT(Makefile Headers/Makefile CopyrightTools/Makefile \
 	EventLog/Makefile  Scaler/Makefile contrib/Makefile \
 	contrib/lecroy/Makefile contrib/whedco/Makefile \
 	contrib/caenv812/Makefile contrib/scriptedReadout/Makefile \
-	 vmetcl/Makefile \
+	contrib/scalerdisplay/Makefile vmetcl/Makefile \
 	vmetcl/camactcl/Makefile vmetcl/vhq202m/Makefile bufdump/Makefile \
 	TclServer/Makefile bcnaf/Makefile TcpHoister/Makefile Stager/Makefile \
 	Scripts/Makefile framework/Makefile AlarmDisplay/Makefile \

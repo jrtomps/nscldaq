@@ -34,6 +34,7 @@ libScriptedRdo_la_SOURCES = CBoolConfigParam.cpp \
 	CStringConfigParam.cpp \
 	CTriggerCommand.cpp 
 
+libScriptedRdo_la_LDFLAGS = -version-info 1:0:0
 
 noinst_HEADERS=CBoolConfigParam.h \
 	CCAENModule.h \
@@ -76,6 +77,7 @@ INCLUDES=  $(VMEBUILDEADERS) \
 
 CXXFLAGS=-g
 CCFLAGS=-g
+
 
 
 ScriptedReadout_LDADD = -L@top_srcdir@/contrib/scriptedReadout -lScriptedRdo  \
