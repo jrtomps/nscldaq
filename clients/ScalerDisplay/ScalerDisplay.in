@@ -1,4 +1,4 @@
 #!/bin/bash
 
 prefix=@prefix@
-tclserver $prefix/Scripts/ScalerDisplay.tcl $1 -p2700
+tclserver $ -pManaged -a"Scaler Display" <$prefix/Scripts/ScalerDisplay.tcl

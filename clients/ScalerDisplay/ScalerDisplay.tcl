@@ -1,11 +1,12 @@
 # Meant to be run on Tclserver.
-#
+# 
 
-puts "---------------------------------"
+puts  "---------------------------------"
 
 
-puts $argc
-puts $argv
+puts  $argc
+puts  $argv
+
 
 #  We require DAQHOST to be an environment
 #  variable that is the name of the spdaq system.
@@ -25,7 +26,7 @@ set spdaqurl tcp://$spdaq:2602/
 #  which is the name of their setup file.
 #
 
-if {[llength $argv] != 2} {
+if {[llength $argv] < 2} {
    tk_dialog .failure "No setup file" \
    "You must supply a command argument that is your scaler config file" \
    error 0 Dismiss
@@ -55,23 +56,15 @@ set bindir     $mydirectory/../bin
 set scriptdir  $mydirectory/../Scripts
 source $scriptdir/scaler.tcl
 
-#
-#  Source the user's setup file:
-#
-
-if {[catch "source $file" msg]} {
-   tk_dialog .failure "Setup file failure" \
-   "There is an error in the setup file $argv : $msg" \
-   error 0 Dismiss
-   exit -1
-}
 
 #
 #   Now the setup file is sourced we can start the scalerclient
 #   and set things up so that we will kill it on our exit:
 #
+
+puts "exec $bindir/sclclient -p $TclServerPort  -s $spdaqurl "
  
-set clientpid [exec $bindir/sclclient -s $spdaqurl & ]
+set clientpid [exec $bindir/sclclient -p $TclServerPort  -s $spdaqurl & ]
 
 proc Cleanup {widget pid} {
     if {$widget != "."} return
@@ -82,3 +75,13 @@ bind . <Destroy> "Cleanup %W $clientpid"
 
 
 
+#
+#  Source the user's setup file:
+#
+
+if {[catch "source $file" msg]} {
+   tk_dialog .failure "Setup file failure" \
+   "There is an error in the setup file $argv : $msg" \
+   error 0 Dismiss
+   exit -1
+}

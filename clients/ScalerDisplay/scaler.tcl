@@ -1,7 +1,7 @@
 #!/bin/sh
 #   NOTE:: tclserver must live in the path.
 #   start tclserver on us. \
-exec tclserver  -p2700  ${0} ${@}
+exec tclserver  -pManaged -a"Scaler Display"  ${0} ${@}
 
 
 #
