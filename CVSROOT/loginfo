@@ -27,4 +27,4 @@
 # Log the commit to a mailing list along with the id of the committer,
 # The file, old and new version number
 
-DEFAULT mailx -s"nsclDAQ `whoami` cvs commit: %{sVV}" fox@nscl.msu.edu 
+DEFAULT mailx -s"nsclDAQ $(whoami) cvs commit: %s  %V to  %v" fox@nscl.msu.edu 
