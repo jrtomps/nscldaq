@@ -334,7 +334,7 @@ AttachSemaphore()
     // Try to get the id of an existing semaphore:
 
     semid = semget(semkey, 0, 0777); // Try to map:
-    if(semid > 0) break;	     // Previously existing!!
+    if(semid >= 0) break;	     // Previously existing!!
     if(errno != ENOENT) {
       throw 
 	CErrnoException("AttachSemaphore - semget error unexpected");
@@ -343,7 +343,7 @@ AttachSemaphore()
     // create it:
 
     semid = semget(semkey, 1, 0777 | IPC_CREAT | IPC_EXCL);
-    if(semid > 0) {
+    if(semid >= 0) {
       // We're the creator... initialize the sempahore, and return.
 
       union semun data;
