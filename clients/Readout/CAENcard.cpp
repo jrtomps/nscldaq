@@ -279,6 +279,9 @@ DAMAGES.
 /*
   Change Log:
   $Log$
+  Revision 3.4  2003/06/06 11:40:11  ron-fox
+  Remove some debug output now that everything works.
+
   Revision 3.3  2003/06/02 14:37:33  ron-fox
   Support multiple crates correctly.
 
@@ -1052,7 +1055,7 @@ CAENcard::readEvent(void* buf)
       n++;
       datum = (datum >> 24) & 7;
     } while ( datum == 0);
-    if(datum != 4) {
+    if(datum != 4) {		// The trailer should be of type 4.
       cerr << " Data type in terminating long wrong: " << hex 
 	   <<datum << dec << endl;
     }
@@ -1061,7 +1064,7 @@ CAENcard::readEvent(void* buf)
     *pHeader = swaplong(Header);
     return n * sizeof(long);			// Rely on the trailer!!
   } else {
-    cerr << "Readout called but no data present\n";
+    // cerr << "Readout called but no data present\n";
     return 0;
   }
 };
