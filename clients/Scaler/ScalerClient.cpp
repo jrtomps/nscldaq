@@ -273,7 +273,7 @@ THIRD PARTIES OR A FAILURE OF THE PROGRAM TO OPERATE WITH ANY OTHER PROGRAMS),
 EVEN IF SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH 
 DAMAGES.
 
-		     END OF TERMS AND CONDITIONS
+		     END OF TERMS AND CONDITIONS '
 */
 static const char* Copyright= "(C) Copyright Michigan State University 2002, All rights reserved";// Class: CScalerClient
 
@@ -295,6 +295,9 @@ static const char* Copyright= "(C) Copyright Michigan State University 2002, All
 /*
   Modification history:
     $Log$
+    Revision 4.2  2004/11/19 18:56:26  ron-fox
+    Port scaler -> 3.x
+
     Revision 4.1  2004/11/08 17:37:42  ron-fox
     bring to mainline
 
@@ -342,18 +345,21 @@ static const char* Copyright= "(C) Copyright Michigan State University 2002, All
 // Output license and copyright msg to stderr
 //
 */
-
+#include <config.h>
 #include "ScalerClient.h"
 #include "NSCLScalerBuffer.h"
 #include "NSCLStateChangeBuffer.h"
 #include <Consumer.h>
 #include <stdio.h>
 #include  <unistd.h>
-#include <iostream.h>   				
+#include <Iostream.h>   				
 #include <CopyrightNotice.h>
 
 #include <stdlib.h>
 
+#ifdef HAVE_STD_NAMESPACE
+using namespace std;
+#endif
 
 #ifndef FALSE
 #define FALSE 0
@@ -373,7 +379,7 @@ static const string kDefaultURL  = string("TCP://localhost:2602/");
 // The following are TCl script fragments we feed into the server:
 //
 static const string kZeroScript = 
-           string(" eval { \n
+           string(" eval { \n\
                      if {[info exists Scaler_Totals]} {              \n\
                      foreach element [array names Scaler_Totals] { \n\
                         set Scaler_Totals($element) 0              \n\

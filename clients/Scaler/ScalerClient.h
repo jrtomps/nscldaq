@@ -273,7 +273,7 @@ THIRD PARTIES OR A FAILURE OF THE PROGRAM TO OPERATE WITH ANY OTHER PROGRAMS),
 EVEN IF SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH 
 DAMAGES.
 
-		     END OF TERMS AND CONDITIONS
+		     END OF TERMS AND CONDITIONS '
 */
 // Class: CScalerClient                     //ANSI C++
 //
@@ -320,8 +320,8 @@ class CScalerClient  : public CConsumer
 			
   int m_eConnectionState; //        
   TclServerConnection* m_Connection; //1:1 association object data member      
-  vector<long> m_vTotals;	// Run totals for scalers.
-  vector<long> m_vIncrements;	// Run increments for scalers.
+  STD(vector)<long> m_vTotals;	// Run totals for scalers.
+  STD(vector)<long> m_vIncrements;	// Run increments for scalers.
   bool         m_fDefaultSource; // True if the data source is default.
 							       
 
@@ -375,13 +375,13 @@ protected:
   void  UpdateRunState(DAQRunState eNewState);
   void  UpdateRunTitle(const char* pNewTitle);
   void  UpdateRunNumber(int        nNewRun);
-  void  UpdateScalers(vector<ULong_t>& rScalers, Bool_t isSnapshot);
+  void  UpdateScalers(STD(vector)<ULong_t>& rScalers, Bool_t isSnapshot);
   void  CreateArrays(int nScalers);
 private:
-  static string GetRemoteHost(int nArgs, char** pArgs);
+  static STD(string) GetRemoteHost(int nArgs, char** pArgs);
   static int    GetRemotePort(int nArgs, char** pArgs);
-  string GetDataSourceURL(int nargs, char** pargs);
-  static Bool_t GetSwitchParameter(string& rValue,
+  STD(string) GetDataSourceURL(int nargs, char** pargs);
+  static Bool_t GetSwitchParameter(STD(string)& rValue,
 				   char* pSwitch, int nArgs, char** pArgs);
   static void Usage();
   static void WarnDefaultSource();

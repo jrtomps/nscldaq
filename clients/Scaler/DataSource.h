@@ -273,7 +273,7 @@ THIRD PARTIES OR A FAILURE OF THE PROGRAM TO OPERATE WITH ANY OTHER PROGRAMS),
 EVEN IF SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH 
 DAMAGES.
 
-		     END OF TERMS AND CONDITIONS
+		     END OF TERMS AND CONDITIONS '
 */
 // Class: CDataSource                     //ANSI C++
 //
@@ -301,6 +301,10 @@ DAMAGES.
 #endif
 
 #ifndef __SPECTRODAQ_H
+
+#ifdef HAVE_STD_NAMESPACE
+using namespace std;
+#endif
 #include <spectrodaq.h>
 #define __SPECTRODAQ_H
 #endif
@@ -326,7 +330,7 @@ public:
 
    // Constructors and other cannonical operations:
 
-  CDataSource (const string& rURL, int nTag = 0, 
+  CDataSource (const STD(string)& rURL, int nTag = 0, 
 	       int nMask = ALLBITS_MASK, int nDelivery=COS_RELIABLE) :
     m_lSinkId(0),
     m_sURL(DAQURL(rURL.c_str())),

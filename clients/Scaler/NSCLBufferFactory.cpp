@@ -286,6 +286,7 @@ static const char* Copyright= "(C) Copyright Michigan State University 2002, All
 //
 //
 //////////////////////////.cpp file/////////////////////////////////////////////////////
+#include <config.h>
 #include "NSCLBufferFactory.h"    				
 #include "NSCLDaqBuffer.h"
 static char* pCopyrightNotice = 

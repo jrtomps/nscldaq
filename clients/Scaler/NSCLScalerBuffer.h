@@ -273,7 +273,7 @@ THIRD PARTIES OR A FAILURE OF THE PROGRAM TO OPERATE WITH ANY OTHER PROGRAMS),
 EVEN IF SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH 
 DAMAGES.
 
-		     END OF TERMS AND CONDITIONS
+		     END OF TERMS AND CONDITIONS '
 */
 
  
@@ -352,7 +352,7 @@ public:
    float getEndIntervalTime ()    ;
    int getScalerCount ()    ;
    ULong_t getScaler (UInt_t nNumber)    ;
-   vector<ULong_t> getAllScalers ()    ;
+   STD(vector)<ULong_t> getAllScalers ()    ;
    Bool_t isSnapshot ()    ;
  
 protected:

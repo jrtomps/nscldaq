@@ -273,7 +273,7 @@ THIRD PARTIES OR A FAILURE OF THE PROGRAM TO OPERATE WITH ANY OTHER PROGRAMS),
 EVEN IF SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH 
 DAMAGES.
 
-		     END OF TERMS AND CONDITIONS
+		     END OF TERMS AND CONDITIONS '
 */
 // Class: CNSCLDaqBuffer                     //ANSI C++
 //
@@ -298,6 +298,10 @@ DAMAGES.
 #endif
                                //Required for 1:1 association classes
 #ifndef __SPECTRODAQ_H
+
+#ifdef HAVE_STD_NAMESPACE
+using namespace std;
+#endif
 #include <spectrodaq.h>
 #define __SPECTRODAQ_H
 #endif
@@ -330,7 +334,7 @@ DAMAGES.
 #endif
 
 #ifndef __CPP_IOSTREAM_H
-#include <iostream.h>
+#include <Iostream.h>
 #define __CPP_IOSTREAM_H
 #endif
                                                                
@@ -395,7 +399,7 @@ public:
    UShort_t operator[] (int nOffset)    ;
    ULong_t getLong (int nOffset)    ;
    int getByteString (int nWordOffset, void* pBuffer, size_t nBytes)    ;
-   int getCString (int nOffset, string& rBuffer)    ;
+   int getCString (int nOffset, STD(string)& rBuffer)    ;
    int getType ()    ;
    int getRunNumber ()    ;
    Long_t getSequence ()    ;
@@ -408,8 +412,8 @@ public:
    void CopyOut(void* pData, UInt_t nOffset, UInt_t nWords) {
    getByteString(nOffset, pData, nWords*sizeof(UShort_t));
   }
-  virtual void Dump(ostream& str=cout); // Raw buffer dump.
-  virtual void DumpHeader(ostream& str=cout); // Dump buffer header.
+  virtual void Dump(STD(ostream)& str=cout); // Raw buffer dump.
+  virtual void DumpHeader(STD(ostream)& str=cout); // Dump buffer header.
 private:
 
 };

@@ -110,6 +110,15 @@ AC_CHECK_FUNCS(strtoul)
 
 AC_LANG_PUSH(C++)
 AC_CHECK_HEADER(iostream,[AC_DEFINE([HAVE_HLESS_HEADERS],1,[<iostream> exists])],[])
+
+#  Specific headers needed by fdstream:
+
+AC_CHECK_HEADER(istream,  [AC_DEFINE([HAVE_HLESS_ISTREAM],1,[<istream> exists])],[])
+AC_CHECK_HEADER(ostream,  [AC_DEFINE([HAVE_HLESS_OSTREAM],1,[<ostream> exists])],[])
+AC_CHECK_HEADER(streambuf,[AC_DEFINE([HAVE_HLESS_STREAMBUF],1,[<streambuf> exists])],[])
+
+#   Is there an std namespace to import from?
+
 AC_COMPILE_IFELSE([using namespace std;], [AC_DEFINE([HAVE_STD_NAMESPACE],[1],[1 if std namespace defined])])
 AH_VERBATIM([VHAVE_STD_NAMESPACE],[
 /* Define STD macro according to HAVE_STD_NAMESPACE value */
@@ -365,6 +374,7 @@ case "$vmeinterface" in
 
 	VMELIBRARYHEADERS="-I$prefix/include"
 	VMELIBRARY="-L$prefix/lib -lbtp"
+	AC_DEFINE(HAVE_SBSVME_INTERFACE,"1",[VME interface is sbs/bit3])
 	
      ;;
      wiener) 
@@ -380,6 +390,8 @@ case "$vmeinterface" in
 	VMELIBRARYHEADERS="-I$prefix/include"
 	VMELIBRARY="-L$prefix/lib -lpcivme"
 
+	AC_DEFINE(HAVE_WIENERVME_INTERFACE,"1",[VME Interface is Wiener])
+
      ;;
      none)
 	VMEDEVICE="NULL"
@@ -391,6 +403,8 @@ case "$vmeinterface" in
 
 	VMELIBRARYHEADERS=""
 	VMELIBRARY=""
+
+	AC_DEFINE(HAVE_NOVME_INTERFACE, "1",[No VME interface selected])
 
      ;;
      *)

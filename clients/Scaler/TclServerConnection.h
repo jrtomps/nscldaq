@@ -273,7 +273,7 @@ THIRD PARTIES OR A FAILURE OF THE PROGRAM TO OPERATE WITH ANY OTHER PROGRAMS),
 EVEN IF SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH 
 DAMAGES.
 
-		     END OF TERMS AND CONDITIONS
+		     END OF TERMS AND CONDITIONS '
 */
 
  
@@ -298,10 +298,18 @@ DAMAGES.
 #include "TcpClient.h"
 #endif
                                
+#ifndef __STL_STRING
+#include <string>
+#ifndef __STL_STRING
+#define __STL_STRING
+#endif
+#endif
+
+
 class TclServerConnection  : public TcpClientConnection        
 {                       
 			
-   string m_Response; //Response from last tcl command        
+   STD(string) m_Response; //Response from last tcl command        
 
 protected:
 
@@ -309,10 +317,10 @@ public:
 
    // Constructors and other cannonical operations:
 
-  TclServerConnection (const string& RemoteHost=string("localhost"), 
+  TclServerConnection (const STD(string)& RemoteHost=STD(string)("localhost"), 
 		       int nPort=2700)    : 
     TcpClientConnection(RemoteHost, nPort),
-    m_Response(string("")) 
+    m_Response(STD(string)("")) 
   {}
   virtual ~TclServerConnection ( )  // Destructor 
   { }  
@@ -323,8 +331,8 @@ private:
   int operator== (const TclServerConnection& aTclServerConnection) const;
 public:	
 
-   int SendCommand (const string& rData)    ;
-   string GetLastResponse ()    ;
+   int SendCommand (const STD(string)& rData)    ;
+   STD(string) GetLastResponse ()    ;
  
 protected:
 

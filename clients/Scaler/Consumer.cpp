@@ -273,7 +273,7 @@ THIRD PARTIES OR A FAILURE OF THE PROGRAM TO OPERATE WITH ANY OTHER PROGRAMS),
 EVEN IF SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH 
 DAMAGES.
 
-		     END OF TERMS AND CONDITIONS
+		     END OF TERMS AND CONDITIONS '
 */
 static const char* Copyright= "(C) Copyright Michigan State University 2002, All rights reserved";// Class: CConsumer
 // Base class for a data acquisition system 
@@ -289,8 +289,10 @@ static const char* Copyright= "(C) Copyright Michigan State University 2002, All
 // RF  - Modified to report to cerr sinks which could not be added to the
 //       link manager.
 //////////////////////////.cpp file/////////////////////////////////////////////////////
+
+#include <config.h>
 #include "Consumer.h"    				
-#include <iostream.h>
+#include <Iostream.h>
 #include <NSCLBufferFactory.h>
 #include <NSCLDaqBuffer.h>
 #include <NSCLBufferCreator.h>
@@ -302,6 +304,10 @@ static const char* Copyright= "(C) Copyright Michigan State University 2002, All
 #include <NSCLStateChangeBuffer.h>
 #include <NSCLScalerBuffer.h>
 #include <NSCLEventBuffer.h>
+
+#ifdef HAVE_STD_NAMESPACE
+using namespace std;
+#endif
 
 static char* pCopyrightNotice = 
 "(C) Copyright 1999 NSCL, All rights reserved Consumer.cpp \n";
@@ -340,7 +346,7 @@ CConsumer::~CConsumer()
     if(!pSource->Disconnect()) {
       DAQURL srcurl(pSource->getURL());
       cerr << "Unable to form connection for Data source: " << endl;
-      cerr << " URL - " << srcurl  << endl;
+      cerr << " URL - " << srcurl.Get().str()  << endl;
     }
     delete pSource;
   }

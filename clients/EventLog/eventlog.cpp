@@ -273,7 +273,7 @@ THIRD PARTIES OR A FAILURE OF THE PROGRAM TO OPERATE WITH ANY OTHER PROGRAMS),
 EVEN IF SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH 
 DAMAGES.
 
-		     END OF TERMS AND CONDITIONS
+		     END OF TERMS AND CONDITIONS '
 */
 static const char* Copyright= "(C) Copyright Michigan State University 2002, All rights reserved";//
 //   Event logger: Responsible for logging event files in the
@@ -303,12 +303,12 @@ static const char* Copyright= "(C) Copyright Michigan State University 2002, All
 //    March, April 2001:
 //       Allow saving data across ftp link.
 //
-
+#include <config.h>
 #include <stdlib.h>
 #include <stdio.h>
-#include <iostream.h>
-#include <fstream.h>
-#include <iomanip.h>
+#include <Iostream.h>
+#include <Fstream.h>
+#include <Iomanip.h>
 #include <buftypes.h>
 #include <buffer.h>
 #include <assert.h>
@@ -319,6 +319,10 @@ static const char* Copyright= "(C) Copyright Michigan State University 2002, All
 #include <ftplib.h>
 #include <string.h>		// C run time library string(3) functions.
 #include <string>		// STL C++ string class.
+
+#ifdef HAVE_STD_NAMESPACE
+using namespace std;
+#endif
 
 #include <CopyrightNotice.h>
 #ifndef SPECTRODAQ_H

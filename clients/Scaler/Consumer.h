@@ -273,7 +273,7 @@ THIRD PARTIES OR A FAILURE OF THE PROGRAM TO OPERATE WITH ANY OTHER PROGRAMS),
 EVEN IF SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH 
 DAMAGES.
 
-		     END OF TERMS AND CONDITIONS
+		     END OF TERMS AND CONDITIONS '
 */
 // Class: CConsumer                     //ANSI C++
 //
@@ -294,7 +294,11 @@ DAMAGES.
 #ifndef __CONSUMER_H  //Required for current class
 #define __CONSUMER_H
 
-                               //Required for base classes
+
+#ifdef HAVE_STD_NAMESPACE
+using namespace std;
+#endif
+                            //Required for base classes
 #ifndef __SPECTRODAQ_H
 #include <spectrodaq.h>
 #define __SPECTRODAQ_H
@@ -319,7 +323,7 @@ class CNSCLStateChangeBuffer;
 class CNSCLScalerBuffer;
 class CNSCLEventBuffer;
 
-typedef map<string, CDataSource*> DataSourceList;
+typedef STD(map)<STD(string), CDataSource*> DataSourceList;
 typedef enum {
   RSUnknown,
   RSActive,
@@ -333,7 +337,7 @@ class CConsumer  : public DAQROCNode
   DAQWordBuffer m_DaqBuffer;	// Buffer into which to receive data.
   DAQRunState m_eRunState;	// Current run state
   int m_nRunNumber;		// Current Run number.
-  string m_sTitle;		// Current run title.        
+  STD(string) m_sTitle;		// Current run title.        
   DataSourceList m_DataSources;	// Current set of data sources.
 
 
@@ -356,7 +360,7 @@ public:
   int getRunNumber() const
   { return m_nRunNumber;
   }
-  string getTitle() const
+  STD(string) getTitle() const
   { return m_sTitle;
   }
                        
@@ -368,16 +372,16 @@ protected:
   void setRunNumber (const int am_nRunNumber)
   { m_nRunNumber = am_nRunNumber;
   }
-  void setTitle (const string am_sTitle)
+  void setTitle (const STD(string) am_sTitle)
   { m_sTitle = am_sTitle;
   }
 
 public:
 
   
-  Bool_t AddDataSource (const string& LinkDesignator, int nTag, 
+  Bool_t AddDataSource (const STD(string)& LinkDesignator, int nTag, 
 			int nMask=ALLBITS_MASK, int nDelivery=COS_RELIABLE);
-  Bool_t DeleteDataSource (const string& LinkDesignator)    ;
+  Bool_t DeleteDataSource (const STD(string)& LinkDesignator)    ;
 
   void EnableDataTaking();
   void DisableDataTaking();
