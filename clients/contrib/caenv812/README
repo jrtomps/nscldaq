@@ -1,0 +1,160 @@
+Welcome to the CAEN V812 control panel GUI directory.  Acknowledgements 
+to Anton Zalessov and Mike Famiano without whome this GUI would be
+incomplete.
+
+This directory contains Tcl/Tk scripts that produce a GUI to control
+the CAENV812 VME constant fraction discriminator.  The software is
+driven by configuration files.  It is possible to run more than one
+discriminator by starting the gui several times, each time with a
+different configuration file.
+
+
+The software has been installed so that you can run it directly from
+this directory, you don't need to and SHOULD NOT copy it locally as
+then you won't get updates/bugfixes as they come out.
+
+The Files:
+
+cfd.tcl   - The gui file.  Invoke it as follows:
+            $daqroot/config/caenv812/cfd.tcl configfile
+            where $daqroot points to the root of the 
+            NSCL DAQ installation (e.g. /usr/opt/daq at NSCL),
+            and configfile is a configuration file that describes
+            the cfd and optionally provides initial settings.
+CFD812.tcl - A loadable TCL package that supports the CAENV812
+            from tcl.  If you want to roll your own GUI, feel free
+            to use this to control the module itself.
+CFDState.tcl - The CFD consists primarily of write only registers,
+            CFDState.tcl contains a loadable TCL Package that
+            makes remembering what you programmed into the module
+            easier.  Feel free to use this package if you want to roll
+            your own GUI.  
+loadcfd.tcl - Is a simple script that takes the contents of a configuration
+            file and loads it into the CFD.  You can use this e.g. from
+            within your readout applications to ensure the cfd is set up
+            the way you want it to be setup at the beginning of a run.
+            Invoke by:
+              $daqroot/config/caenv812/loacdfd.tcl configfile
+README     - You're reading it.
+
+
+If you roll your own GUI, please consider contributing it back to us.
+contact fox@nscl.msu.edu for information about how to do this.
+
+Examples:
+   *.cfd are sample configuration files.
+
+Configuration files:
+
+  Let's pick apart a fully featured configuration file,
+  This file was written by the GUI as a result of the Save
+  button being clicked.  My comments will be inside of
+  pipe symbols e.g. | this is a comment |
+
+
+
+
+
+# CFD configuration file written Fri Dec 05 12:23:05 EST 2003
+
+|  The first section describes the hardware and gives it |
+|  a name.  The key variables are:                       |
+|    Name  - Descriptive name appears on the control panel |
+|            so that you know which panel controls which |
+|            device if you have several panels active    |
+|            used as a handle to the device internally   |
+|    ModuleBase - The base address of the module         |
+|                 setvia the module's rotary switches    |
+|    Crate      - Number of the VME crate in which the   |
+|                 module is installed, if you have more  |
+|                 than one crate, use cratelocator.tcl   |
+|                 to figure out which is which.          |
+
+set Name "RPI_Cfd"
+set ModuleBase 0x20000
+set Crate      0
+
+
+|  The Thresholds array can be optionally defined.        |
+|  Each element of the array contains a channel threshold |
+|  in millivolts. Note that the module accepts negative   |
+|  going pulses.. hence these are negative values         |
+
+set Thresholds(0) -20
+set Thresholds(1) -20
+set Thresholds(2) -20
+set Thresholds(3) -20
+set Thresholds(4) -20
+set Thresholds(5) -255
+set Thresholds(6) -255
+set Thresholds(7) -255
+set Thresholds(8) -20
+set Thresholds(9) -20
+set Thresholds(10) -20
+set Thresholds(11) -20
+set Thresholds(12) -255
+set Thresholds(13) -255
+set Thresholds(14) -255
+set Thresholds(15) -255
+
+|   The CAENV812 allows you to control the output widths |
+|   of groups of 8 channels.  The WidthLow variable sets |
+|   the width of channels 0-7 and the WidthHigh variable |
+|   sets the width of channels 8-15. Note that these     |
+|   values are arbitrary non-linearly scaling units or   |
+|   so the manual says.                                  |
+
+set WidthLow  128
+set WidthHigh 158
+
+|   In a similar manner, DeadTimeLow and DeadTimeHigh   | 
+|   control the dead times of channels 0-7 and 8-15     |
+|   respectively.  These are also arbitrary units       |
+
+set DeadTimeLow  200
+set DeadTimeHigh 200
+
+|  Majority controls the majority logic in the module   |
+
+set Majority  1
+
+|  The mask_arr array allows you to disable the outputs |
+|  of selected channels   If not defined, an element is |
+|  assumed to be 1 (enabled).  If defined and 1 the     |
+|  corresponding channel is enabled.  If defined and 0  |
+|  The corresponding channel is disabled.               |
+
+set mask_arr(0) 1
+set mask_arr(1) 1
+set mask_arr(2) 1
+set mask_arr(3) 1
+set mask_arr(4) 1
+set mask_arr(5) 1
+set mask_arr(6) 1
+set mask_arr(7) 1
+set mask_arr(8) 1
+set mask_arr(9) 1
+set mask_arr(10) 1
+set mask_arr(11) 1
+set mask_arr(12) 1
+set mask_arr(13) 1
+set mask_arr(14) 1
+set mask_arr(15) 1
+
+
+|  End of the config file. |
+
+Note the config file is a TCL Script.  e.g. you can do things
+like:
+
+for {set i 0} {$i < 16} {incr i} {
+   set mask_arr($i) 1
+}
+
+The  following is a minimal cfd configuration file
+|  Begins here                                     |
+set Name "SEE V812 VME Cfd"
+set ModuleBase 0x10000000
+set Crate 0
+|   ends here                                      |
+

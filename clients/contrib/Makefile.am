@@ -1,1 +1,2 @@
-SUBDIRS = lecroy whedco
+SUBDIRS = lecroy whedco caenv812
+

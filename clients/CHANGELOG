@@ -67,3 +67,8 @@
    - Stager: At install time create a package InstallRoot that allows
      us to figure out where we're installed (needed to reliably locate
      eventlog e.g.).
+
+7.3    12/05/03
+    - Incorporate the CAEN V812 CFD GUI developed by Ron Fox,
+      Mike Famiano, and Anton Zalessov:
+       $(prefix)/contrib/caenv812.
