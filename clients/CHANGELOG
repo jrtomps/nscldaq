@@ -57,5 +57,4 @@
 7.2    ??/??/??
     - Support multi-crate configurations of the CAENCard and CAENChain
       modules.
-
-
+    - Support for the CAEN V890 multihit tdc.
