@@ -277,20 +277,7 @@ DAMAGES.
 */
 
 
-//  ReadoutStateMachine.cpp
-// Specialization of StateMachine to handle
-// a data acquisition run.  The constructor of
-// this statemachine sets up the states and
-// reads in the transition diagram from file.
-//
-//
-//   Author:
-//      Ron Fox
-//      NSCL
-//      Michigan State University
-//      East Lansing, MI 48824-1321
-//      mailto:fox@nscl.msu.edu
-//
+
 //////////////////////////.cpp file///////////////////////////////////////////
 //
 // Header Files:
@@ -366,7 +353,9 @@ CopyIn(DAQWordBufferPtr& p, void* src, unsigned nWords)
 //   Default Constructor
 //
 ReadoutStateMachine::ReadoutStateMachine() :
-    m_PriorState(0),  
+    m_PriorState(0), 
+    m_nSegmentStart(0),
+    m_nPriorDuration(0),
     m_nElapsedTime(0),  
     m_nLastScalerRead(0),
     m_nLastSnapShot(0),
@@ -525,8 +514,9 @@ ReadoutStateMachine::EmitResume()
 
   // Must maintain run elapsed times, but snapshots etc. get cleared.
 
+  UpdateRunTime();
   unsigned nElapsed = m_nElapsedTime;
-  ClearRunTime();
+
   m_nElapsedTime = m_nLastScalerRead = m_nLastSnapShot = nElapsed;
   EmitControlBuffer(RESUMEBF);
 
@@ -667,12 +657,39 @@ ReadoutStateMachine::RouteBuffer(DAQWordBuffer* pBuffer)
 unsigned 
 ReadoutStateMachine::GetRunTime() 
 {
-// Returns the number of seconds since the 
+// Returns the number of seconds since the <
 // start of the run.
 //
 // Exceptions:  
 
   return m_nElapsedTime;
+}
+/*!
+   Computes the current elapsed run time and stores it in m_nElapsedTime
+   This is done by figuring out how long this segment has been running and
+   adding it to the elapsed time of all prior segments.  
+
+   A segment is defined as a period of active running in the run (e.g. a 
+   begin to pause time period).
+   
+   Key member variables are:
+   - m_nElapsedTime  [out]  Total length of run.
+   - m_nPriorDuration [in]  Sum of the length of all active periods of this
+                            run.
+   - m_nSegmentStart  [in]  When the current segment started.
+
+   Assumptions:
+      time_t is equivalent to unsigned. 
+
+*/
+void
+ReadoutStateMachine::UpdateRunTime() 
+{
+  time_t tNow;
+  time(&tNow);			// This is the current time.
+  unsigned nSegmentLength = tNow - m_nSegmentStart;
+  m_nElapsedTime          = m_nPriorDuration + nSegmentLength;
+  
 }
 //////////////////////////////////////////////////////////////////////////
 //
@@ -687,7 +704,11 @@ ReadoutStateMachine::ClearRunTime()
 // Reset the elapsed time in the run to 0.
 //
 // Exceptions:  
+  time_t Now;
+  time(&Now);
 
+  m_nSegmentStart   = Now;
+  m_nPriorDuration  = 0;
   m_nElapsedTime    = 0;
   m_nLastScalerRead = 0;
   m_nLastSnapShot   = 0;
@@ -697,6 +718,29 @@ ReadoutStateMachine::ClearRunTime()
     }
   }
 }
+/*!
+  Does the time book keeping necessary to begin a new run segment.
+  This is called on a resume or a begin.  (Begin just does a ClearRunTime()
+  first).
+  
+  Actions:
+  - m_nSegmentStart gets set to now.
+  - m_nPriorDuration gets set to m_nElapsedTime
+
+  Assumptions:
+    m_nElapsedTime was brought up to date when the run was paused or is 
+                   0 because a ClearRunTime was just done.
+ */
+void
+ReadoutStateMachine::NewRunSegment()
+{
+  time_t Now;
+  time(&Now);
+
+  m_nPriorDuration = m_nElapsedTime;
+  m_nSegmentStart  = Now;
+  
+}
 //////////////////////////////////////////////////////////////////////////
 //
 //  Function:   
@@ -704,18 +748,22 @@ ReadoutStateMachine::ClearRunTime()
 //  Operation Type:
 //     Mutator.
 //
+/*!
+   Indicates the passage of active run time to the
+   state machine.
+    
+   Formal Parameters:
+   \param nTicks = 1:
+            Number of ticks to signal. In fact this parameter is now 
+	    obsolete.
+*/
 void 
 ReadoutStateMachine::DeclareTick(unsigned  nTicks) 
 {
-// Indicates the passage of active run time to the
-// state machine.
-//  
-// Formal Parameters:
-//      unsigned nTicks = 1:
-//          Number of ticks to signal.
-// Exceptions:  
 
-  m_nElapsedTime += nTicks;
+
+  UpdateRunTime();  		// This is more accurate than incrementally
+                                // accumulating time and errors.
 }
 //////////////////////////////////////////////////////////////////////////
 //
@@ -739,6 +787,8 @@ ReadoutStateMachine::OnInitialize()
   // initialize the states.
 
   StateMachine::OnInitialize();
+  ClearRunTime();
+
   prompt(stdout, "RunCtl> ");
 }
 //////////////////////////////////////////////////////////////////////////
@@ -880,6 +930,8 @@ ReadoutStateMachine::EmitControlBuffer(INT16 nBufferType)
 
   // Preconditions:
   // nBufferType is in the set of legal control buffer types.
+  
+  UpdateRunTime();
 
   assert(IsControlBufferType(nBufferType));
 
@@ -923,6 +975,7 @@ ReadoutStateMachine::EmitScalerBuffer(INT16 nBufferType, unsigned nLastTime)
   //          unsigned nLastTime:
   //                Time of the last readout.
   //
+  UpdateRunTime();
   int nScalers = (int)daq_GetScalerCount();
 
   if(m_nLastSnapShot == 0) {	        // First readout...

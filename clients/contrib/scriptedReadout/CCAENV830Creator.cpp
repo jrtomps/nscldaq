@@ -1,6 +1,7 @@
 ////////////////////////// FILE_NAME.cpp /////////////////////////////////////////////////////
 #include "CCAENV830Creator.h"    				
 #include "CCAENV830Module.h"
+#include "CReadableObject.h"
 #include <TCLInterpreter.h>
 #include <TCLResult.h>
 
@@ -88,7 +89,7 @@ CScalerModule*
       are considrered to be configuration parameters and are parsed by the object
       once created.
       
-      \return CDigitizerModule*  A pointer to the resulting module.
+      \return CReadableObject*  A pointer to the resulting module.
    
    The configuration command will be of the form:
    \verbatim
@@ -106,7 +107,7 @@ CScalerModule*
 	 are acceptable to name config.
 
 */
-CDigitizerModule* 
+CReadableObject* 
 CCAENV830Creator::Create(CTCLInterpreter& rInterp, CTCLResult& rResult, 
 				    int nArgs, char** pArgs)  
 { 
@@ -118,9 +119,14 @@ CCAENV830Creator::Create(CTCLInterpreter& rInterp, CTCLResult& rResult,
    nArgs--;
    pArgs++;
    
-   CDigitizerModule* pModule = new CCAENV830Module(sName, rInterp);
-   pModule->Configure(rInterp, rResult, nArgs, pArgs);
-   
+   CReadableObject* pModule = new CCAENV830Module(sName, rInterp);
+   if(nArgs) {
+     int status = pModule->Configure(rInterp, rResult, nArgs, pArgs);
+     if(status != TCL_OK) {	// If configure fails, it will fill in 
+       delete pModule;		// rResult, but we must delete and return null.
+       pModule = (CReadableObject*)NULL;
+     }
+   }   
    return pModule;
    
 }  

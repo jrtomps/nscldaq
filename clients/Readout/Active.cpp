@@ -299,6 +299,13 @@ DAMAGES.
 /*
   Modification History:
   $Log$
+  Revision 3.4  2004/06/18 12:11:00  ron-fox
+  Merge 7.4 development into 8.0 main line.
+
+  Revision 3.3.4.1  2004/02/09 17:49:44  ron-fox
+  Bugzilla 76: Improve accuracy of the elpased run time by doing differences of absolute times
+  rather than summing incremental times.
+
   Revision 3.3  2003/08/14 17:59:22  ron-fox
   Add functions to allow programmatic replacement of trigger and busy modules.
 
@@ -428,14 +435,15 @@ Active::Enter(StateMachine& rStateMachine)
   //
   if(Prior == Inactive) {
     rRun.ClearRunTime();		// Run starts from t= 0.
+    rRun.NewRunSegment();
     rRun.EmitStart();
     daq_StartRun();
   }
   if(Prior == Paused) {
+    rRun.NewRunSegment();
     daq_ResumeRun();
     rRun.EmitResume();
   }
-
   m_pTrigger->Initialize();
 
   // We keep internal timing information to know when to readout scalers.
@@ -451,6 +459,9 @@ Active::Enter(StateMachine& rStateMachine)
   ::clrscl();			// device clears and
   FrontPanelClear();		// NIMOUT clear before
   m_pBusy->ScalerClear();
+  if(Prior == Inactive) {
+    rRun.ClearRunTime();	// Allow for long initialization sequences!
+  }
   ClearBusy();			// Dropping the computer busy.
 
 }
@@ -518,6 +529,7 @@ Active::Run(StateMachine& rMachine)
     if(CheckScalerTrigger(rRun)) {
       m_pBusy->ScalerSet();	// Hold computer busy while scalers are read.
       m_pReader->FlushBuffer();
+      rRun.UpdateRunTime();
       rRun.EmitScaler();
       ClearScalerTrigger();
       m_pBusy->ScalerClear();  // busy, otherwise, the event will do it.
@@ -530,6 +542,7 @@ Active::Run(StateMachine& rMachine)
       m_pReader->FlushBuffer();
       m_pBusy->Set();
       m_pBusy->ScalerSet();
+      rRun.UpdateRunTime();
       return rRun.NameToEventId("END");
     }
   }

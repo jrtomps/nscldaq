@@ -235,7 +235,10 @@ those countries, so that distribution is permitted only in or among
 countries not thus excluded.  In such case, this License incorporates
 the limitation as if written in the body of this License.
 
-  9. The Free Software Foundation may publish revised and/or new versions of the General Public License from time to time.  Such new versions will be similar in spirit to the present version, but may differ in detail to address new problems or concerns.
+  9. The Free Software Foundation may publish revised and/or new versions 
+of the General Public License from time to time.  Such new versions will be
+ similar in spirit to the present version, but may differ in detail to address 
+new problems or concerns.
 
 Each version is given a distinguishing version number.  If the Program
 specifies a version number of this License which applies to it and "any
@@ -273,7 +276,7 @@ THIRD PARTIES OR A FAILURE OF THE PROGRAM TO OPERATE WITH ANY OTHER PROGRAMS),
 EVEN IF SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH 
 DAMAGES.
 
-		     END OF TERMS AND CONDITIONS
+		     END OF TERMS AND CONDITIONS '
 */
 static const char* Copyright = "(C) Copyright Michigan State University 1977, All rights reserved";
 /*! \class CCAENV785Creator   
@@ -282,7 +285,7 @@ static const char* Copyright = "(C) Copyright Michigan State University 1977, Al
 
 ////////////////////////// FILE_NAME.cpp ////////////////////////////////////////
 #include "CCAENV785Creator.h"   
-#include "CDigitizerModule.h"
+#include "CReadableObject.h"
 #include "CCAENV785.h"
 
 
@@ -346,13 +349,24 @@ CCAENV785Creator::operator== (const CCAENV785Creator& rhs) const
 { 
    return (CModuleCreator::operator==(rhs));
 }
+/*! 
+   Inequality comparison.
+   Equality comparison of this to rhs.
+   \param rhs const CCAENV785Creator& [in]  The item to compare this to.
+   \return int:
+      - 0  If this is  equal to rhs.
+      - nonzero If this is not equal to rhs.
+      
+*/
+int
+CCAENV785Creator::operator!=(const CCAENV785Creator& rhs) const
+{
+  return !(operator==(rhs));
+}
 
 // Functions for class CCAENV785Creator
 
-/*!  Function: 	
- 
-    
-Purpose: 	
+/*!
 
 Returns a new instance of the digitizer module 
 creaetd by this creator.  The mdule is new'd into
@@ -374,26 +388,32 @@ module name caenv785 ?cfgopt? ...
 \endverbatim
 The caller has eaten up the module command, but left us the rest.  There should therefore be at least 2 parameters (all configuration parameters are optional).
 
-\return CDigitizerModule*   A pointer to the newly created module.  Note that if a
+\return CReadableObject*   A pointer to the newly created module.  Note that if a
    failure occurs, the function will either assert, or return a null pointer depending on
    the error.
 
 */
-CDigitizerModule* 
+CReadableObject* 
 CCAENV785Creator::Create(CTCLInterpreter& rInterp, 
 				     CTCLResult& rResult, 
 				     int nArgs, char** pArgs)  
 { 
    assert(nArgs >= 2);     // need name and type at least.
    
-   CDigitizerModule* pModule = new CCAENV785(string(*pArgs), rInterp);
+   CReadableObject* pModule = new CCAENV785(string(*pArgs), rInterp);
    nArgs -= 2;
    pArgs += 2;
    
    // If necessary, configure the module:
    
-   if(nArgs) pModule->Configure(rInterp, rResult, 
-				 nArgs, pArgs); 
+   if(nArgs) {
+     int status = pModule->Configure(rInterp, rResult, 
+				     nArgs, pArgs); 
+     if(status != TCL_OK) {	// When configure fails,
+       delete pModule;		// It fills in the result string.
+       pModule= (CCAENV785*)NULL;
+     }
+   }
 				 
    return pModule;
 }  

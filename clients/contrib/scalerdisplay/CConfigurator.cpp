@@ -6,6 +6,7 @@
 #include "CCAENV785Creator.h"
 #include "CCAENV792Creator.h"
 #include "CCAENV830Creator.h"
+#include "CPacketCreator.h"
 
 /*!
    Setup the structure needed to parse the
@@ -28,6 +29,7 @@ void SetupConfigurator(Tcl_Interp* interp)
   pModule->AddCreator(new CCAENV775Creator);
   pModule->AddCreator(new CCAENV785Creator);
   pModule->AddCreator(new CCAENV792Creator);
+  pModule->AddCreator(new CPacketCreator);
 
   // Create a parallel infrastructure for the scaler module
   // configuration (that's what we're interested in.

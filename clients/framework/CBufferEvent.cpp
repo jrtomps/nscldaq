@@ -281,7 +281,7 @@ DAMAGES.
 #define __CBUFFEREVENT_CPP
 /*!
    \file  CBufferEvent.cpp 
-   \class CBufferEvent  abstract template
+
            Provides an ABC for building
            application level objects to react to
            SpectroDaq Buffers.  This is an abstract,

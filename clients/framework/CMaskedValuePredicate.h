@@ -277,7 +277,7 @@ DAMAGES.
 */
 /*!
    \file  CMaskedValuePredicate.cpp 
-   \class CMaskedValuePredicate   template
+
            Does a comparison with a value given a set of
            significant bits.  Note that one of the constructors makes
            all bits significant, effectively making this a match of value.

@@ -283,6 +283,14 @@ static const char* Copyright = "(C) Copyright Michigan State University 2002, Al
       
       Modification History:
       $Log$
+      Revision 3.5  2004/06/18 12:10:59  ron-fox
+      Merge 7.4 development into 8.0 main line.
+
+      Revision 3.4.4.1  2004/03/10 12:59:35  ron-fox
+      If necessary truncate strings to a maximum size.. this was not done correctly
+      and could lead to bad titles in control buffers.
+      (issue 116)
+
       Revision 3.4  2003/12/05 17:38:06  ron-fox
       1. Fix issues in Route that affected the
          sequencing badly.
@@ -630,13 +638,13 @@ CNSCLOutputBuffer::PutString(const char*  pData, int nMaxSize=-1)
   if(nMaxSize > 0) {
     if(nMaxSize & 1) nMaxSize++; // nMaxSize must be even.
 
-    if(data.size() < (nMaxSize - 1)) { // Allow for null terminator.
-      int nPad = (nMaxSize-1) - data.size(); // Pad count.
-      while(nPad) {
-	data+= '\0';		// Null pad.
-	nPad--;
-      }
+    if(data.size() >= nMaxSize) { // Need to truncate the data
+      data = data.substr(0, nMaxSize-1); // Allow a space for the null.
     }
+    while(data.size() < nMaxSize-1) {
+      data += '\0';	// If too short, fill with nulls.
+    }
+
   }
   // If the string is an even number of bytes it must be padded by one
   // ' '.  Note that if nMaxSize was supplied, the string is already
@@ -655,7 +663,7 @@ CNSCLOutputBuffer::PutString(const char*  pData, int nMaxSize=-1)
     char c[2];
     unsigned short w;
   } d;				// Ensure endianness is not an issue.
-  int nChars = data.size();
+  int nChars =  data.size();
   int i;			// Want loop index after loop.
   for(i = 0; i < nChars - 1; i+=2) {
     d.c[0] = data[i];

@@ -324,7 +324,7 @@ public:
 	// Class operations:
 
 public:
-     string FormatForBuffer ()  ; //!< Stringify name:value...
+     string FormatForBuffer (int nMaxchars=-1)  ; //!< Stringify name:value...
 
  
 };

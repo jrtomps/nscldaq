@@ -273,8 +273,9 @@ THIRD PARTIES OR A FAILURE OF THE PROGRAM TO OPERATE WITH ANY OTHER PROGRAMS),
 EVEN IF SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH 
 DAMAGES.
 
-		     END OF TERMS AND CONDITIONS
+'		     END OF TERMS AND CONDITIONS 
 */
+
 // Author:
 //   Ron Fox
 //   NSCL
@@ -291,7 +292,8 @@ DAMAGES.
 // Include files:
 //
 
-                               //Required for base classes
+//Required for base classes
+
 #ifndef __CMODULECREATOR_H     //CModuleCreator
 #include "CModuleCreator.h"
 #endif
@@ -302,35 +304,35 @@ DAMAGES.
 #endif
 
 
- 
+
 /*!
-	Creational class for CAEN V775 module adc.  This class
-	gets registered with the Module command object to 
-	allow it to respond to commands to generate readout objects
-	for the CAEN V775 module.  Our module type string is 
-	caenv775.
+  Creational class for CAEN V775 module adc.  This class
+  gets registered with the Module command object to 
+  allow it to respond to commands to generate readout objects
+  for the CAEN V775 module.  Our module type string is 
+  caenv775. 
 */
 class CCAENV775Creator  : public CModuleCreator        
 {
 public:
-	//   Constructors and other cannonical operations.
-	
+  //   Constructors and other cannonical operations.
+  
   CCAENV775Creator ();
   ~CCAENV775Creator ( );
   CCAENV775Creator (const CCAENV775Creator& aCCAENV775Creator );
   CCAENV775Creator& operator= (const CCAENV775Creator& aCCAENV775Creator);
   int operator== (const CCAENV775Creator& aCCAENV775Creator) const;
-
-
+  
+  
   // Class operations:
-
+  
 public:
-
-   virtual   CDigitizerModule* Create (CTCLInterpreter& rInterp, 
-						   CTCLResult& rResult, 
-						   int nArgs, char** pArgs)   ; 
-   virtual   string  Help (); 
-
+  
+  virtual   CReadableObject* Create (CTCLInterpreter& rInterp, 
+				      CTCLResult& rResult, 
+				      int nArgs, char** pArgs)   ; 
+  virtual   string  Help (); 
+  
 };
 
 #endif

@@ -335,7 +335,7 @@ public:
 
 
 public:
-  string   FormatForBuffer() ; //!< Format for output.
+  string   FormatForBuffer(int nMaxchars = -1) ; //!< Format for output.
   virtual   char* operator() (char* pName, 
 			      char* pIndex, 
 			      int flags)  ; //!< trace writes.

@@ -316,6 +316,7 @@ CCAENModule::CCAENModule(const string & rName,
   AddIntArrayParam(string("enable"), CHANNELS, 1);
   AddIntParam(string("base"), 0);
   AddBoolParam(string("multievent"), false);
+  AddIntParam(string("waitloops"), 20);
 
   // This parameter is added to allow us to source in 
   // SpecTcl configuration scripts too!!

@@ -410,10 +410,11 @@ CTCLList::Split(StringArray& rElements)
     for(int i = 0; i < nElements; i++) {
       rElements.push_back(pElements[i]);
     }
-#ifdef WIN32
+#if defined(WIN32) || (TCL_MAJOR_VERSION > 8) || \
+                ((TCL_MAJOR_VERSION ==8) && (TCL_MINOR_VERSION > 3))
 	Tcl_Free((char*)pElements);
 #else
-    free(pElements);
+    free(pElements);		// Early versions of Tcl_Free on unix failed.
 #endif
   }
   return result;
@@ -489,7 +490,8 @@ CTCLList::Merge(int n, char** pElements)
 {
   char* pList = Tcl_Merge(n, pElements);
   setList(pList);
-#ifdef WIN32
+#if defined(WIN32) || (TCL_MAJOR_VERSION > 8) || \
+                ((TCL_MAJOR_VERSION ==8) && (TCL_MINORO_VERSION > 3))
   Tcl_Free(pList);
 #else
   free(pList);             // Documented to work this way in books but win32??

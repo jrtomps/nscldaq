@@ -303,7 +303,7 @@ int CFileEvent::readable   = 1;
 int CFileEvent::writeable  = 2; 
 int CFileEvent::exceptions = 4;
 /*! 
-  \class CFileEvent::CFileEventReactor
+
    This is an internal class which is automatically used as the 
    Reactor for File events.  About the only thing it does is call
    back to the file event.
@@ -686,7 +686,7 @@ CFileEvent::OnException(iostream& rStream)
 /*!
      Calle dwhen a wait times out, and the caller has
      idicated that they want to pay attention to timeouts.
-     \params str - reference to stream open on file.
+     \param str - reference to stream open on file.
      */
 void
 CFileEvent::OnTimeout(iostream& rStream)

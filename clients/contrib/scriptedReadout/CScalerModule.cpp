@@ -14,7 +14,7 @@
 */
 CScalerModule::CScalerModule (const string& rName, 
 			      CTCLInterpreter& rInterp) :
-   CDigitizerModule(rName, rInterp)
+   CReadableObject(rName, rInterp)
 {   
     
 } 

@@ -1,3 +1,9 @@
+/*!
+Encapsulates a set of modules that are managed by a
+CModuleCommand and can be inserted into a CReadOrder
+objects.  This is really a small wrapper for 
+a map<string, CReadableObject*>
+*/
 // Author:
 //   Ron Fox
 //   NSCL
@@ -25,17 +31,17 @@
 #define __STL_MAP
 #endif
 
-class CDigitizerModule;
-/*!
-Encapsulates a set of modules that are managed by a
-CModuleCommand and can be inserted into a CReadOrder
-objects.  This is really a small wrapper for 
-a map<string, CDigitizerModule*>
-*/
+
+// forward class definitions
+
+class CReadableObject;
+
+//
+
 class CDigitizerDictionary      
 {
 public:
-   typedef map<string, CDigitizerModule*> DigitizerMap;
+   typedef map<string, CReadableObject*> DigitizerMap;
    typedef DigitizerMap::iterator ModuleIterator;
 private:
 	DigitizerMap m_Modules;
@@ -68,7 +74,7 @@ public:
    ModuleIterator DigitizerBegin ()   ; // 
    ModuleIterator DigitizerEnd ()   ; // 
    int DigitizerSize ()   ; // 
-   void DigitizerAdd (CDigitizerModule* pDigitizer)   ; // 
+   void DigitizerAdd (CReadableObject* pDigitizer)   ; // 
    ModuleIterator DigitizerFind (const string& rName)   ; // 
    void Remove(ModuleIterator p) {
       m_Modules.erase(p);

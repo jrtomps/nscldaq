@@ -277,7 +277,7 @@ DAMAGES.
 */
 static const char* Copyright= "(C) Copyright Michigan State University 2002, All rights reserved";/*!
    \file  CEventLoop.cpp 
-   \class CEventLoop  abstract 
+
            Encapsulates within a thread an application library which 
            runs it's own event loop.  Examples are Xt and Tcl/Tk.
            These systems include their own mechanisms for detecting and

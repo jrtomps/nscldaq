@@ -273,13 +273,16 @@ THIRD PARTIES OR A FAILURE OF THE PROGRAM TO OPERATE WITH ANY OTHER PROGRAMS),
 EVEN IF SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH 
 DAMAGES.
 
-		     END OF TERMS AND CONDITIONS
+		     END OF TERMS AND CONDITIONS '
 */
 static const char* Copyright = "(C) Copyright Michigan State University 2002, All rights reserved";   
 //////////////////////////CTimer.cpp file////////////////////////////////////
 
 #include "CTimer.h"                  
 #include "CTimedEvent.h"
+
+#include <time.h>
+
 
 /*!
    Default constructor.  This is called when declarations of the form e.g.:
@@ -289,7 +292,8 @@ static const char* Copyright = "(C) Copyright Michigan State University 2002, Al
 CTimer::CTimer () :
   CTimerEvent(0L, true),	// Repeating...set the time later.
   m_nIntervalms(0),  
-  m_nElapsedms(0),
+  m_nAccumulatedMs(0),
+  m_nStartTimeMs(0),
   m_nLatency(0)
 {
 
@@ -309,7 +313,7 @@ CTimer::CTimer () :
 	      in the timer.  The timer will call Tick for each event
 	      in its list once per ms milliseconds.
 	\param doReset=false - If TRUE, the timed events are all reset
-	      prior to starting the clock, and m_nElapsedms is cleared.
+	      prior to starting the clock, and the elapsed time is cleared.
 
 */
 void 
@@ -327,30 +331,53 @@ CTimer::Start(unsigned int ms, unsigned int latency, bool doReset=false)
     Reset();
   }
   Enable();
+
+  // Record the time the interval started:
+  
+  timespec now;
+  clock_gettime(CLOCK_REALTIME, &now);
+
+  m_nStartTimeMs = now.tv_sec*1000 + now.tv_nsec/1000000;
+  m_nLastTick    = m_nStartTimeMs;
+
 }  
 
 /*!
     Stop the timer.  The thread is stopped at the next 
     'tick' dispatch.
-
+    The Elapsed time of this segment is added to the
+    accumulated time.
 
 */
 void 
 CTimer::Stop()  
 {
   Disable();			// Disable the timer thread.
+  
+  // Figure out how long this run segment was and add it to the
+  // accumulated time:
+
+  timespec  now;
+  clock_gettime(CLOCK_REALTIME, &now);
+  int ms = now.tv_sec*1000 + now.tv_nsec/1000000; // Time since epoch in ms.
+  if(m_nStartTimeMs) {		// In case its already stopped.
+    m_nAccumulatedMs += (ms - m_nStartTimeMs);         // ms in the segment.
+  }
+  m_nStartTimeMs  = 0;
+
 }  
 
-/*!
+/*!<
     Resets the elapsed time to zero, and resets all of the timer
     events in our list.
 
-
+    
 */
 void 
 CTimer::Reset()  
 {
- m_nElapsedms = 0;
+  m_nAccumulatedMs = 0;
+  m_nStartTimeMs   = 0;
  TimerListIterator i = begin();
  while(i != end()) {
    (*i)->Reset();
@@ -367,13 +394,25 @@ CTimer::Reset()
     during which the run elapsed time is frozen but clock time
     continues to run.
 
+    This is computed by determining the time since the last
+    start and adding it to the accumulated time in all intervals
+    prior to the last start.
 
+    Note that if m_nStartTimeMS is zero then the timer is halted,
+    and the accumulated time is correct.
 */
 unsigned int 
 CTimer::GetElapsedTime()  
 {
- return m_nElapsedms;
-}  
+  int nms = m_nAccumulatedMs;
+  if(m_nStartTimeMs) {
+    timespec now;
+    clock_gettime(CLOCK_REALTIME, &now);
+    int ms = now.tv_sec*1000 + now.tv_nsec/1000000;
+    nms += (ms - m_nStartTimeMs);
+  }  
+  return nms;
+}
 
 /*!
     Adds an event handler which will be called periodically.
@@ -402,9 +441,17 @@ void
 CTimer::OnTimer()  
 {
   TimerListIterator i = begin();
+
+  // compute how long we were really sleeping:
+  
+  timespec now;
+  clock_gettime(CLOCK_REALTIME, &now);
+  unsigned  ms  = now.tv_sec*1000 + now.tv_nsec/1000000;
+  unsigned  elapsedms = ms - m_nLastTick;
+  m_nLastTick   = ms;
+
   while(i != end()) {
-    (*i)->Tick(m_nIntervalms+m_nLatency);
+    (*i)->Tick(elapsedms);
     i++;
   }
-  m_nElapsedms += m_nIntervalms + m_nLatency;
 }

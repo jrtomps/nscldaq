@@ -277,7 +277,7 @@ DAMAGES.
 */
 static const char* Copyright= "(C) Copyright Michigan State University 2002, All rights reserved";/*!
    \file  CTimerMonitor.cpp 
-   \class CTimerMonitor
+
 
    Encapsulates an event monitor for timers.
    Timers can be either repeating or oneshot.

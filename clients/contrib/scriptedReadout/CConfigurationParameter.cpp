@@ -289,6 +289,12 @@ static const char* Copyright = "(C) Copyright Michigan State University 1977, Al
             (c) 2002, All rights reserved.
     Revision History:
       $Log$
+      Revision 1.2  2004/06/18 12:11:07  ron-fox
+      Merge 7.4 development into 8.0 main line.
+
+      Revision 1.1.4.1  2004/04/12 17:33:03  ron-fox
+      - Packet creation added.
+
       Revision 1.1  2003/12/09 21:16:27  ron-fox
       Incorporated ScriptedReadout software into the build.
 
@@ -433,10 +439,9 @@ CConfigurationParameter::operator()(CTCLInterpreter& rInterp,
                                     CTCLResult& rResult, 
                                     const char* parameter)  
 { 
-  setValue(parameter);
   int status = SetValue(rInterp, rResult, parameter);
   if(status == TCL_OK) {
-    m_sValue = string(parameter);
+    setValue(parameter);
   }
   return status;
 }  

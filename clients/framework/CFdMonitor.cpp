@@ -277,7 +277,7 @@ DAMAGES.
 */
 static const char* Copyright= "(C) Copyright Michigan State University 2002, All rights reserved";/*!
    \file  CFdMonitor.cpp 
-   \class CFdMonitor
+
            Monitors activity on a file descriptor.
            A file descriptior can be monitored for the logical
            or of any of the following conditions:

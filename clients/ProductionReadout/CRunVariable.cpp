@@ -279,6 +279,8 @@ static const char* Copyright = "(C) Copyright Michigan State University 2002, Al
 //////////////////////////CRunVariable.cpp file////////////////////////////////////
 
 #include "CRunVariable.h"                  
+#include "CStrings.h"
+
 
 /*!
   Construct a run variable.  Run Variables may be modified 
@@ -353,6 +355,12 @@ CRunVariable::operator==(const CRunVariable& rhs) const
     This format allows the variable to be recovered into a Tcl interpreter
     environment by executing it's formatted string as a script (pretty
     cool!).
+    \param nMaxchars (int)
+       If > 0 this is the maximum number of characters we are allowed to 
+       generate.  If this is <=0 the output string will never be truncated.
+       
+   \note   If truncation is required, the resulting string will still
+           be a valid set command (have close quote and \n).
 
     \note  If the variable has become undefined, the string:
            catch {unset variablename}  will be created... which will
@@ -360,28 +368,47 @@ CRunVariable::operator==(const CRunVariable& rhs) const
 
     \note At this level of consciousness, there's no possibility to self
           destruct if the variable has been destroyed.
-
+    \note If nMaxchars is really too small, the set command can be illegal.
+          I at least need to fit "set variablname \"\"\n" I don't know
+          how to fix this.  In that case I just return an empty string.
 
 */
 string 
-CRunVariable::FormatForBuffer()  
+CRunVariable::FormatForBuffer(int nMaxchars)  
 {
   const char* pValue = Get(TCL_GLOBAL_ONLY);
   string result;
+  int    minlen;
 
   if(pValue) {			// Variable is still defined.
     result  = "set ";
-    result += getVariableName();
+    result += CStrings::EscapeString(getVariableName().c_str(), 
+				     "\"[$#;", "\\");
     result += " \"";
-    result += pValue;
-    result += '"';
-    result += '\n';
+    result += CStrings::EscapeString(pValue, "\"[$#;", "\\");
+    minlen = result.size();
+
   } 
-  else {			// Varible has become undefined:
+  else {			// Variable has become undefined:
     result = "# ";
-    result += getVariableName();
-    result += " \"--not set--\"\n";
+    result += CStrings::EscapeString(getVariableName().c_str(), "\"[$#;", "\\");
+    result += " \"--not set--";
+    minlen = 3;			// #\"\n
   }
+  // If necessary truncate prior to closing the string: 
+
+  if(nMaxchars > 0) {
+    nMaxchars -= 2; 		// need room for \"\n.
+    if(nMaxchars <= minlen) {	// This is stupid I can't make a string so
+      return string("");	// return an empty one.
+    } 
+    else {
+      if(result.size() > nMaxchars) {
+	result = result.substr(0, nMaxchars-1);
+      }
+    }
+  }
+  result += "\"\n";
   return result;
 }
 

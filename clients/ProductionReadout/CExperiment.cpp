@@ -283,6 +283,21 @@ static const char* Copyright = "(C) Copyright Michigan State University 2002, Al
    
    Modification History:
    $Log$
+   Revision 3.5  2004/06/18 12:10:59  ron-fox
+   Merge 7.4 development into 8.0 main line.
+
+   Revision 3.4.4.3  2004/05/17 17:12:32  ron-fox
+   Bracket call outs to user code with design by contract exception handling
+   code.
+
+   Revision 3.4.4.2  2004/03/24 14:45:00  ron-fox
+   Get the pause logic correct
+
+   Revision 3.4.4.1  2004/03/10 13:01:23  ron-fox
+   - Ensure that all buffer types are created with m_nBufferSize words of size.
+   - (issue116): Ensure that runvariables and statevariables get truncated so that
+     at worst case a single scriptlet will fit in a whole buffer.
+
    Revision 3.4  2003/12/05 17:35:42  ron-fox
    Fix sloppy handling of the buffer
    sequence number that was throwing off
@@ -364,6 +379,7 @@ static const char* Copyright = "(C) Copyright Michigan State University 2002, Al
 #include "buftypes.h"
 #include "buffer.h"
 
+#include <DesignByContract.h>
 #include <spectrodaq.h>
 #include <time.h>
 #include <sys/time.h>
@@ -373,6 +389,8 @@ static const char* Copyright = "(C) Copyright Michigan State University 2002, Al
 #include <iostream.h>
 #include <algorithm>
 #include <tcl.h>
+
+using namespace DesignByContract;
 
 extern CReadoutMain MyApp;
 
@@ -653,7 +671,7 @@ CExperiment::Start(CStateTransitionCommand& rCommand)
     
   }
   catch (bad_cast& rbad) {
-    m_LastScalerTime = 0;	// Snaps will not have been read out at resume.
+    m_LastSnapTime = 0;	// Snaps will not have been read out at resume.
     EmitResume();		// Emit a resume without zeroing the run elapsed time.
   }
 
@@ -665,9 +683,17 @@ CExperiment::Start(CStateTransitionCommand& rCommand)
 
   // Prepare the hardware for readout:
 
-  m_EventReadout.Initialize();	// Initialize the event readout...
-  m_Scalers.Clear();
-  m_EventReadout.Clear();	// Clear digitizers prior to start.
+  try {
+    m_EventReadout.Initialize();	// Initialize the event readout...
+    m_Scalers.Clear();
+    m_EventReadout.Clear();	// Clear digitizers prior to start.
+  }
+  catch (DesignByContractException& rContractViolation) {
+    string msg(rContractViolation);
+
+    cerr << "Interface contract violation: " << msg << endl;
+    cerr << "Detected in user's code called by CExperiment::Start" << endl;
+  }
 
 
   // Start the trigger process and clock.
@@ -758,8 +784,15 @@ CExperiment::ReadEvent()
   DAQWordBufferPtr hdr = ptr;
    
   CVMEInterface::Lock();
-  ptr = m_EventReadout.Read(ptr);
-  m_EventReadout.Clear();
+  try {
+    ptr = m_EventReadout.Read(ptr);
+    m_EventReadout.Clear();
+  }
+  catch (DesignByContractException& rContractViolation) {
+    string msg(rContractViolation);
+    cerr << "Interface contract violation: " << msg << endl;
+    cerr << "Detected in CExperiment::ReadEvent" << endl;
+  }
   PostEvent();
   CVMEInterface::Unlock();
 
@@ -923,8 +956,16 @@ CExperiment::TriggerScalerReadout()
   }
 
   //
-  vector<unsigned long> scalers = m_Scalers.Read();
-  m_Scalers.Clear();
+  vector<unsigned long> scalers;
+  try {
+    scalers = m_Scalers.Read();
+    m_Scalers.Clear();
+  }
+  catch (DesignByContractException& rViolation) {
+    string msg(rViolation);
+    cerr << "Interface contract violation: " << msg << endl;
+    cerr << "Detected in user code called by CExperiment::TriggerScalerReadout\n";
+  }
   CNSCLScalerBuffer buffer(m_nBufferSize);
 
   // If a snapshot scaler has been readout, the values
@@ -974,7 +1015,7 @@ CExperiment::TriggerRunVariableBuffer()
   // Multiple buffers may be required:
 
   while(i != Vars->end()) {
-    CRunVariableBuffer buf;
+    CRunVariableBuffer buf(m_nBufferSize);
     i = EmitRunVariableBuffer(buf, i, Vars->end());
     buf.SetRun(GetRunNumber());
     buf.Route();		// Increment else SpecTcl's eff is wrong.
@@ -1010,8 +1051,16 @@ CExperiment::TriggerSnapshotScaler()
 {
   
   CNSCLScalerBuffer buffer(m_nBufferSize);
-  vector<unsigned long> scalers = m_Scalers.Read();
-  m_Scalers.Clear();
+  vector<unsigned long> scalers;
+  try {
+    scalers = m_Scalers.Read();
+    m_Scalers.Clear();
+  }
+  catch( DesignByContractException& rContractViolation) {
+    string msg(rContractViolation);
+    cerr << "Interface contract violation: " << msg << endl;
+    cerr << "Detected in user code called by CExperiment::TriggerSnapshotScaler\n";
+  }
   
   // Sum the scalers into the snapshot scaler totals vector.
   // If necessary, the scaler vector is extended.
@@ -1224,7 +1273,9 @@ CExperiment::EmitRunVariableBuffer(CRunVariableBuffer& rBuffer,
 				   RunVariableIterator end)
 {
   while(start != end) {
-    string item = (start->second)->FormatForBuffer();
+    string item = 
+      (start->second)->FormatForBuffer(m_nBufferSize*sizeof(short) - 
+				       sizeof(bheader)-2);
     if(!rBuffer.PutEntityString(item)) break; // Won't fit if break.
     start++;
   }
@@ -1252,7 +1303,8 @@ CExperiment::EmitStateVariableBuffer(CStateVariableBuffer& rBuffer,
   while(start != end) {
     CStateVariable* pv = start->second;
 
-    string item = pv->FormatForBuffer();
+    string item = pv->FormatForBuffer((m_nBufferSize*sizeof(short) - 
+				       sizeof(bheader)-2));
     if(!rBuffer.PutEntityString(item)) break;
     start++;
   }

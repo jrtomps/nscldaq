@@ -350,6 +350,7 @@ INCLUDE FILES
 #include "CCAENV785Creator.h"
 #include "CCAENV792Creator.h"
 #include "CCAENV775Creator.h"
+#include "CPacketCreator.h"
 #include "CAENcard.h"
 
 #include "CCAENV830.h"
@@ -401,7 +402,6 @@ INCLUDE FILES
 #include <iostream.h>
 #include <CAENcard.h>
 
-#define SEE_PACKETID   0x8000     // SEE Packet id from Bazin.
 
 
 /*
@@ -616,6 +616,7 @@ CModuleCommand*       pCreator(0);      // Module creational.
 CCAENV775Creator*     p775(0);	        // Creator for V775.
 CCAENV785Creator*     p785(0);          // Creator for V785.
 CCAENV792Creator*     p792(0);	        // Creator for V792.
+CPacketCreator*       pPacket(0);       // Creator for subpackets.
 
 // The following constitute the configurable scaler readout engine.
 
@@ -652,6 +653,7 @@ void DestroyConfigurator()
   p775        = 0;
   p785        = 0;
   p792        = 0;
+  pPacket     = 0;
 
 
   // The Scaler readout infrastructure
@@ -694,15 +696,14 @@ void InitializeConfigurator()
   pDictionary = new CDigitizerDictionary;
   pReader     = new CReadOrder(pInterp, pDictionary);
   pCreator    = new CModuleCommand(pInterp,
-				   pDictionary,
-				   pReader);
+				   pDictionary);
 
   // Register the event module creators with the module command:
 
   pCreator->AddCreator(p775 = new CCAENV775Creator);
   pCreator->AddCreator(p785 = new CCAENV785Creator);
   pCreator->AddCreator(p792 = new CCAENV792Creator);
-  
+  pCreator->AddCreator(pPacket = new CPacketCreator("packet",pDictionary));
 
   // Create the scaler module creation/readout infrastructure:
 
@@ -711,7 +712,6 @@ void InitializeConfigurator()
 				  string("scalerbank"));
   pScalerCreator = new CModuleCommand(pInterp,
 				      pScalers,
-				      pScalerRead,
 				      string("scaler"));
 
   // Register the scaler modules with the scaler command.
@@ -1107,9 +1107,10 @@ readevt (WORD* bufpt)
 **  End of instructions for now...				*/
 
       if(pReader) {
-	VPacket(SEE_PACKETID);
-	bufpt = pReader->Read(bufpt);
-	EndVPacket;
+
+	// If he wants to he can turn on packetization in the reader!!
+
+	pReader->Read(bufpt);
       }
 
 

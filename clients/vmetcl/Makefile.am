@@ -7,12 +7,12 @@ libVme_la_SOURCES = VMECommand.cpp VMEMapCommand.cpp VMEPackage.cpp
 libVme_la_LDFLAGS =  -L@top_srcdir@/VMEApi \
 	 -L@top_srcdir@/TCL -L@top_srcdir@/Exception  \
 	-L@top_srcdir@/CopyrightTools\
-	-version-info $(SOVERSION):0
+	-version-info $(SOVERSION):0 -Wl,"-rpath=$(libdir)"
 
-	  
 libVme_la_LIBADD =  -lTclPlus -lException  \
 	$(TCL_LDFLAGS)	$(X11LIBS) -lVmeAPI $(VMELIBRARY) -lLicense -lpthread \
-	-lm -lstdc++ -lgcc -lc
+	-lm -lstdc++ -lgcc -lc 
+
 
 INCLUDES = -I@top_srcdir@/Headers -I@top_srcdir@/Exception \
 	-I@top_srcdir@/VMEApi -I@top_srcdir@/TCL \

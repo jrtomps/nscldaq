@@ -235,7 +235,10 @@ those countries, so that distribution is permitted only in or among
 countries not thus excluded.  In such case, this License incorporates
 the limitation as if written in the body of this License.
 
-  9. The Free Software Foundation may publish revised and/or new versions of the General Public License from time to time.  Such new versions will be similar in spirit to the present version, but may differ in detail to address new problems or concerns.
+  9. The Free Software Foundation may publish revised and/or new versions 
+of the General Public License from time to time.  Such new versions will be 
+similar in spirit to the present version, but may differ in detail to address
+ new problems or concerns.
 
 Each version is given a distinguishing version number.  If the Program
 specifies a version number of this License which applies to it and "any
@@ -273,7 +276,22 @@ THIRD PARTIES OR A FAILURE OF THE PROGRAM TO OPERATE WITH ANY OTHER PROGRAMS),
 EVEN IF SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH 
 DAMAGES.
 
-		     END OF TERMS AND CONDITIONS
+		     END OF TERMS AND CONDITIONS '
+*/
+/*!
+Executes the module command.  The module command has the following form:
+module newname type ?configuration data?
+module -list ?pattern
+module -delete name
+module -types
+
+The module command relies on the recognizer pattern.
+m_Creators is a list of module type creators.  The creational
+form of the module command iterates through the set of
+creators looking for one that matches the type keword.
+When one is found it is used to create the actual module.
+
+ This object is a singleton object.
 */
 // Author:
 //   Ron Fox
@@ -312,29 +330,19 @@ DAMAGES.
 #define __STL_MAP
 #endif
 
+#ifndef __CRTL_ASSERT_H
+#include <assert.h>
+#define __CRTL_ASSERT_H
+#endif
+
 // forward class definitions:
 
 class CModuleCreator;
-class CDigitizerModule;
 class CTCLInterpreter;
 class CTCLResult;
 class CReadOrder;
  
-/*!
-Executes the module command.  The module command has the following form:
-module newname type ?configuration data?
-module -list ?pattern
-module -delete name
-module -types
 
-The module command relies on the recognizer pattern.
-m_Creators is a list of module type creators.  The creational
-form of the module command iterates through the set of
-creators looking for one that matches the type keword.
-When one is found it is used to create the actual module.
-
- This object is a singleton object.
-*/
 class CModuleCommand  : public CTCLProcessor
 {
 	// Type definitions:
@@ -348,29 +356,45 @@ private:
   // Private Member data:
    CDigitizerDictionary*           m_pModules;  //!< Created module lookup. 
    CreatorList                     m_Creators; //!< List of Creators.
-   CReadOrder*                     m_pReader;  //!< Reader.
 
 
-protected:
-      // Protected functions: these will be called from
-      // within the comand parser:
+private:
+// Helper classes.
 
-   int Create (CTCLInterpreter& rInterp, CTCLResult& rResult,
-	       int  nArgs, char** pArgs);
-   int List (CTCLInterpreter& rInterp, CTCLResult& rResult, 
-	     int nArgs, char** pArgs);
-   int Delete (CTCLInterpreter& rInterp, CTCLResult& rResult, 
-	       int nArgs, char** pArgs);
-   int ListTypes (CTCLInterpreter& rinterp, 
-		  CTCLResult& rResult, 
-		  int nArgs, char** pArgs); 
+// Function class to build up the output of module -list:
+  
+  class ListGatherer
+  {
+  private:
+    CTCLResult& m_rResult;
+    char*       m_pMatch;
+  public:
+    ListGatherer(CTCLResult& rResult, char* pMatch) :
+      m_rResult(rResult),
+      m_pMatch(pMatch)
+    {}
+    void operator()(pair<string, CReadableObject*> p);
+
+  };
+  // Function class to build up the output of module -types:
+  class TypesGatherer
+  {
+  private:
+    CTCLResult& m_rResult;
+  public:
+    TypesGatherer(CTCLResult& rResult) :
+      m_rResult(rResult)
+    {}
+    void operator()(CModuleCreator* pModule);
+
+  };
+  
 
 public:
      // Constructors and other canonical functions:
      
    CModuleCommand (CTCLInterpreter* pInterp,
 		   CDigitizerDictionary* pDictionary,
-		   CReadOrder* pReader,
 		   const string& command = string("module"));
    virtual ~CModuleCommand ( ); 
 private:
@@ -420,6 +444,22 @@ public:
 	return m_pModules->DigitizerFind(rName);
    }
    string            Usage();
+
+ protected:
+      // Protected functions: these will be called from
+      // within the comand parser:
+
+   int Create (CTCLInterpreter& rInterp, CTCLResult& rResult,
+	       int  nArgs, char** pArgs);
+   int List (CTCLInterpreter& rInterp, CTCLResult& rResult, 
+	     int nArgs, char** pArgs);
+   int Delete (CTCLInterpreter& rInterp, CTCLResult& rResult, 
+	       int nArgs, char** pArgs);
+   int ListTypes (CTCLInterpreter& rinterp, 
+		  CTCLResult& rResult, 
+		  int nArgs, char** pArgs); 
+
+  CreatorIterator FindCreator(const string& ModuleType);
 };
 
 #endif

@@ -5,10 +5,12 @@ SUBDIRS = btdriver \
 	vmetcl  \
 	bufdump TclServer bcnaf TcpHoister Stager Scripts framework \
 	AlarmDisplay LogDisplay ProductionReadout  \
-	contrib
+	contrib dvdburn $(EPICSSOFTWARE)
 
 EXTRA_DIST =  config/install-sh config/config.sub config/config.guess \
-	config/ltmain.sh config/missing config/mkinstalldirs  CHANGELOG
+	config/ltmain.sh config/missing config/mkinstalldirs  \
+	Directories.include CompilationRules.include \
+	CHANGELOG
 
 install-data-local:
 	rm -f $(prefix)/Bin
@@ -19,3 +21,19 @@ install-data-local:
 	$(LN_S) $(prefix)/lib $(prefix)/Lib
 	$(LN_S) $(prefix)/include $(prefix)/Include
 	$(LN_S) $(prefix)/etc     $(prefix)/Etc
+	echo CXX=$(CXX)                 > CompilationRules.include.final
+	echo CC=$(CC)                  >> CompilationRules.include.final
+	echo CXXLD=$(CXX)              >> CompilationRules.include.final
+	echo CCLD=$(CC)                >> CompilationRules.include.final
+	cat CompilationRules.include   >> CompilationRules.include.final
+	$(INSTALL_DATA)  CompilationRules.include.final $(prefix)/etc/CompilationRules.include
+	echo TCLHEADERS=$(TCL_FLAGS) > Directories.include.final
+	echo TCLLIBS=$(TCL_LDFLAGS)  >>Directories.include.final
+	echo SPECTRODAQBINDIR=$(spectrodaq_conf_dir) >> Directories.include.final
+	echo VMEHEADERS=$(VMELIBRARYHEADERS) >> Directories.include.final
+	echo VMELIBRARY=$(VMELIBRARY) >> Directories.include.final
+	echo X11LIBS=$(X11LIBS)       >> Directories.include.final
+	cat Directories.include       >> Directories.include.final
+	$(INSTALL_DATA) Directories.include.final $(prefix)/etc/Directories.include
+ 
+	echo "Version: " $(VERSION) build on `hostname` `date` > $(prefix)/VERSION

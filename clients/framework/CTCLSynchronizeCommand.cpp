@@ -277,7 +277,7 @@ DAMAGES.
 */
 static const char* Copyright= "(C) Copyright Michigan State University 2002, All rights reserved";/*!
    \file  CTCLSynchronizeCommand.cpp 
-   \class CTCLSynchronizeCommand   CTCLSynchronizeCommand.h
+
            Implements a Tcl command extension
            sync {script}
            

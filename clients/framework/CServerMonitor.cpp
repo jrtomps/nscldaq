@@ -279,7 +279,7 @@ static const char* Copyright= "(C) Copyright Michigan State University 2002, All
 
 /*!
    \file  CServerMonitor.cpp 
-   \class CServerMonitor   
+
            Monitors a TCP/IP socket for connection
            requests.  When a connection request is
            available, returns.  Note that it is up to

@@ -305,8 +305,8 @@ static const char* Copyright= "(C) Copyright Michigan State University 2002, All
 
   \param facility - the name of the facility doing the logging
   \param expid    - the name of the running experiment.
-  \param host="localhost"     - the host on which the logger is running.
-  \param port="daqalarm"    - port on which the alarm logger is listening 
+  \param host  default: "localhost"     - the host on which the logger is running.
+  \param port  default: "daqalarm"    - port on which the alarm logger is listening 
       for connections.
 */
 CAlarmLogger::CAlarmLogger(string facility, 

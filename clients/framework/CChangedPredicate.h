@@ -276,7 +276,7 @@ DAMAGES.
 		     END OF TERMS AND CONDITIONS
 */
 /*!
-  \class: CChangedPredicate
+
 
 
   Defines a pointer predicate which is satisfied whenever

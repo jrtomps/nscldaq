@@ -273,11 +273,12 @@ THIRD PARTIES OR A FAILURE OF THE PROGRAM TO OPERATE WITH ANY OTHER PROGRAMS),
 EVEN IF SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH 
 DAMAGES.
 
-		     END OF TERMS AND CONDITIONS
+		     END OF TERMS AND CONDITIONS '
 */
 static const char* Copyright = "(C) Ron Fox 2002, All rights reserved";
 ////////////////////////// FILE_NAME.cpp /////////////////////////////////////////////////////
 #include "CCAENV775Creator.h"    	
+#include "CReadableObject.h"
 #include "CCAENV775.h"	
 #include <assert.h>
 #include <string>		
@@ -325,8 +326,8 @@ CCAENV775Creator::operator= (const CCAENV775Creator& rhs)
 
       //Operator== Equality Operator 
 int CCAENV775Creator::operator== (const CCAENV775Creator& aCCAENV775Creator) const
-{ return 
-    (CModuleCreator::operator== (aCCAENV775Creator));
+{ 
+  return(CModuleCreator::operator== (aCCAENV775Creator));
 }
 
 // Functions for class CCAENV775Creator
@@ -345,7 +346,7 @@ to the module's configuration function.
 \param nArgs   int [in]   Number of parameters left on the line.
 \param pArgs   char** [in] The parameter strings.
 
-\return CDigitizerModule*  The resulting module.
+\return CReadableObject*  The resulting module.
 
 The command line invoking is is of the form:
 \verbatim
@@ -357,7 +358,7 @@ The command line invoking is is of the form:
   - The remaining parameters are passed to the instantiated module's 
      configuration member.
 */
-CDigitizerModule* 
+CReadableObject* 
 CCAENV775Creator::Create(CTCLInterpreter& rInterp, CTCLResult& rResult,
 					int nArgs, char** pArgs)  
 { 
@@ -370,16 +371,19 @@ CCAENV775Creator::Create(CTCLInterpreter& rInterp, CTCLResult& rResult,
 	pArgs++;
 	
 	CCAENV775* pModule= new CCAENV775(mName, rInterp);
-	pModule->Configure(rInterp, rResult, nArgs, pArgs);
+	if(nArgs) {
+	  int status = pModule->Configure(rInterp, rResult, nArgs, pArgs);
+	  if(status != TCL_OK) { // Configure failed..
+	    delete pModule;	 //  Configure filled in result. 
+	    pModule = (CCAENV775*) NULL; 
+	  }
+	}
 	return pModule;
 	
 }  
 
-/*!  Function: 	
-   string  Help() 
- Operation Type:
-    
-Purpose: 	
+/*!  
+
 
 Returns a string describing the module type and
 whatever else the module driver author wants to display

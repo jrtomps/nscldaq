@@ -276,7 +276,7 @@ DAMAGES.
 		     END OF TERMS AND CONDITIONS
 */
 /*!
-  \class: CPointerPredicate
+
 
 
   Encapsulates standard predicates for location monitors.

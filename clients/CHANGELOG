@@ -1,0 +1,61 @@
+
+7.4
+
+- Added program controlpush to push EPICS controls data into tcl server
+  programs (e.g. ProductionReadout too).
+- Fixed several issues with Production Reaodut's tcl server:
+  o Added tcl command error reporting.
+  o Correctly handled the case where multiple lines are available on the
+    socket.
+- ProductionReadout - quote and escape the contents of runvariables and
+  statevariables so that arbitrary characters like [ can appear in the
+  variable values.
+- Framework CSocket::Bind - prior to bind(), enable 
+   SO_REUSEADDR to deal with lingering sockets if e.g. readout exits and then
+   restarts soon.
+- Fix incorrect base address of VME trigger/status module was 0xf000 s.b.
+  0x444400 (production readout)
+- Fix issue 076: Elapsed time from readout classic is not correct.
+- Fix issue 116: Titles, runvars and statevars that don't fit can cause
+  a great deal of grief.
+- Fix issue 106: Elapsed time from runs is not correct for production rdo.
+- Added -rpath on Makefiles for scripted readout and scaler server so user
+  does not need to worry about the location of shared libs. Stabilized
+  the actual timer trigger so that the latency is unimportant.
+- Fix issue 108: Event data files can be overwritten without any prompts.
+                 Added to this fix for disabled entry widget poor contrast.
+- Put -rpaths in all the Makefiles so we don't need LD_LIBRARY_PATH
+  and we always get the right directory.
+- Use includes in skeleton makefiles to try to isolate stuff we might modify
+  from stuff the user might modify.
+- Add a build stamp to the installation procedure.
+- Fix incompatibility (bug 121) with Tcl 8.4 for cratelocator.tcl
+- Allow plc channels longer to connect in controlpush, and the heck
+  with looking for units for them.
+- In both controlpush and production readout, add # to the set of 
+  characters escaped when writing TCL scripts.
+- Added dvdburn product shamelessly stolen from what I did for SEE.
+- Support writing tape on a different host than ftp'd to.
+- Add design by contract headers (Headers/DesignByContract.h).
+  In readout software catch DesignByContractException s that may be thrown
+  as a result of user code.
+- Issue 112: If sclclient is started with a local data source. Warn using
+  X11 if possible or stderr if not.
+- VMEPtr.cpp -was ignoring the crate parameter.
+- For TCL 8.4 and later it's not so safe to call free(), for stuff
+  that came from Tcl_SplitList, better to call Tcl_Free, otherwise I have
+  seen segfaults.
+- Fix some doxygen errors in Framework.
+- CIntConfigParam.cpp - suport unsigned 32 bits as well as signed.
+- CCAENModule.cpp - make "waitloops" for data ready adjustable.
+- Fix DiskRun stack clobber problem.
+- Add -p to tar in Experiment.tcl that creates the ~/experiment/runn dirs.
+  otherwise user's umask can modify the output permissions.
+- Issue 115: do non-blocked writes to spectcldaq's output pipe, and \
+  analyze the returns thoroughly to try to remove the occaisional hung
+  spectcldaq process.
+- Issue 109 Provide mechanism to hide ReadoutShell's parameters.
+- Added support for CAENV1190/1290 TDC module.
+
+
+8.0

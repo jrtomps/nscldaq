@@ -1,7 +1,7 @@
 
 ////////////////////////// FILE_NAME.cpp /////////////////////////////////////////////////////
 #include "CDigitizerDictionary.h"    				
-#include "CDigitizerModule.h"
+#include "CReadableObject.h"
 
 /*!
  Constructor: since maps know how to do their thing, this
@@ -67,9 +67,11 @@ the same name as an existing one the existing one is replaced.
 
 */
 void 
-CDigitizerDictionary::DigitizerAdd(CDigitizerModule* pDigitizer)  
+CDigitizerDictionary::DigitizerAdd(CReadableObject* pDigitizer)  
 {
-   m_Modules[pDigitizer->getName()] = pDigitizer;
+  if(pDigitizer) {
+    m_Modules[pDigitizer->getName()] = pDigitizer;
+  }
 }  
 
 /*!
@@ -85,12 +87,16 @@ CDigitizerDictionary::DigitizerFind(const string& rName)
 }
 /*!
    Destroy the modules that are now in the map:
+   NOTE: It's the caller's resonsibility to ensure that the map
+         itself is emptied.  All we do is iterate the map doing deletes
+	 on each of the modules.
 */
 void
 CDigitizerDictionary::DestroyMap()
 {
   CDigitizerDictionary::ModuleIterator p = DigitizerBegin();
   while(p != DigitizerEnd()) {
+    (p->second)->OnDelete();
     delete p->second;
     p++;
   }

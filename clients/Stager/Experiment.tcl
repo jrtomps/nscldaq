@@ -462,7 +462,7 @@ namespace eval  Experiment {
 
 	    catch {
 		 exec \
-   	       sh << "(cd $current; tar chf - .)|(cd $root/run$nrun; tar xf -)"
+   	       sh << "(cd $current; tar chf - .)|(cd $root/run$nrun; tar xpf -)"
 	    }
 	    #
 	    # Create a new links to the event data in the runnum dir.
@@ -626,13 +626,33 @@ namespace eval  Experiment {
 	ReadoutControl::SetOnPause  Experiment::RunPaused
 	ReadoutControl::SetOnResume Experiment::RunResuming
 	ReadoutControl::SetOnLoad   Experiment::ReadoutStarting
-   }
+    }
 
-   namespace export Register 
-   namespace export SetFtpLogInfo
-   namespace export SetSourceHost
-   namespace export BiggestRun
-   namespace export EventFilePath
-   namespace export EmergencyEnd
-   namespace export CleanOrphans
+    #   Check to see if an event file already exists for a
+    #   specific run.
+    # Parameters:
+    #     run   - Number of the run to check.
+    # Returns:
+    #     1     - the file exists.
+    #     0     - the file does not exist.
+    #
+    proc RunFileExists {run} {
+	set dir [ExpFileSystem::WhereareCompleteEventFiles]
+	set name [ExpFileSystem::GenRunFile $run]
+	set fullname $dir/$name
+
+	return [file exists $fullname]
+	
+    }
+
+    #  Define exports:
+
+    namespace export Register 
+    namespace export SetFtpLogInfo
+    namespace export SetSourceHost
+    namespace export BiggestRun
+    namespace export EventFilePath
+    namespace export EmergencyEnd
+    namespace export CleanOrphans
+    namespace export RunFileExists
 }

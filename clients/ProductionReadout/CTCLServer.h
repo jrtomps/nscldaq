@@ -342,6 +342,7 @@ protected:
 			                const char* pReason,
 					const char* pSuffix);
 
+	string GetChunk();	// Get next chunk of input from socket.
 };
 
 #endif

@@ -304,7 +304,10 @@ static const int WAITLOOPS(10);
   necessary because one of the key confuration parameters is
   the slot. 
      In addition to constructing our base class, it is
-  necessary to register our configuration parameters.
+  necessary to register our configuration parameters:
+  - range       - The Full scale range in ns.
+  - commonstart - true if the module should be in common start mode, false for
+                  common stop.
   
   \param rName const string& [in]  The name ofthis module.
 */
@@ -317,6 +320,7 @@ CCAENV775::CCAENV775 (const string& rName, CTCLInterpreter& rInterp)
   
 
   AddIntParam(string("range"), DEFAULTRANGE);
+  AddBoolParam(string("commonstart"), true);
   
   // For all the int params and intarray params, we need
   // to set valid ranges.  This  must be done by locating the
@@ -365,7 +369,15 @@ CCAENV775::Initialize()
 
   CCAENModule::Initialize();
 
-  // Now only have to do the range.
+  // Set the ragne value according to the linear
+  // relationship I calculated from the fact that:
+  //  0x1e -> 1200ns
+  //  0xff -> 140ns
+  //  And that since the LSB are inversely proportional to the register value,
+  //  The range is linearly proportional:
+  //    range = 1341 - register*(1060/225)
+  //    so:
+  //      register =   - 225/1060(range-1341)
 
   ParameterIterator  i;
   CIntConfigParam*   pInt;
@@ -374,9 +386,23 @@ CCAENV775::Initialize()
   assert(i != end());
   pInt = (CIntConfigParam*) *i;
   int nRange = pInt->getOptionValue();  // ns.
-  float rangeval = ((float)nRange)*RANGECHANPERNS;
-  int   nRangeVal = (int)(rangeval + 0.5);
-  getCard()->setRange(nRangeVal);
+  float rRange   = (float)nRange;
+  float Register = 36040/(rRange + 1.3333);
+  getCard()->setRange(Register);
+
+  // Set the module into common start or stop  mode depending on the mode setting.
+
+  CBoolConfigParam* pBool;
+  i = Find(string("commonstart"));
+  assert(i != end());
+  pBool = (CBoolConfigParam*)(*i);
+  if(pBool->getOptionValue()) {	// Common start...
+    getCard()->commonStart();
+  } 
+  else {			// Common stop
+    getCard()->commonStop();
+  }
+
   
 }  
 

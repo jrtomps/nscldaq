@@ -235,7 +235,10 @@ those countries, so that distribution is permitted only in or among
 countries not thus excluded.  In such case, this License incorporates
 the limitation as if written in the body of this License.
 
-  9. The Free Software Foundation may publish revised and/or new versions of the General Public License from time to time.  Such new versions will be similar in spirit to the present version, but may differ in detail to address new problems or concerns.
+  9. The Free Software Foundation may publish revised and/or new versions 
+of the General Public License from time to time.  Such new versions will
+ be similar in spirit to the present version, but may differ in detail to 
+address new problems or concerns.
 
 Each version is given a distinguishing version number.  If the Program
 specifies a version number of this License which applies to it and "any
@@ -273,11 +276,12 @@ THIRD PARTIES OR A FAILURE OF THE PROGRAM TO OPERATE WITH ANY OTHER PROGRAMS),
 EVEN IF SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH 
 DAMAGES.
 
-		     END OF TERMS AND CONDITIONS
+		     END OF TERMS AND CONDITIONS '
 */
 static const char* Copyright = "(C) Ron Fox 2002, All rights reserved";
 ////////////////////////// FILE_NAME.cpp /////////////////////////////////////////////////////
-#include "CCAENV792Creator.h"    	
+#include "CCAENV792Creator.h" 
+#include "CReadableObject.h"   	
 #include "CCAENV792.h"	
 #include <assert.h>
 #include <string>		
@@ -345,7 +349,7 @@ to the module's configuration function.
 \param nArgs   int [in]   Number of parameters left on the line.
 \param pArgs   char** [in] The parameter strings.
 
-\return CDigitizerModule*  The resulting module.
+\return CReadableObject*  The resulting module.
 
 The command line invoking is is of the form:
 \verbatim
@@ -357,7 +361,7 @@ The command line invoking is is of the form:
   - The remaining parameters are passed to the instantiated module's 
      configuration member.
 */
-CDigitizerModule* 
+CReadableObject* 
 CCAENV792Creator::Create(CTCLInterpreter& rInterp, CTCLResult& rResult,
 					int nArgs, char** pArgs)  
 { 
@@ -370,7 +374,13 @@ CCAENV792Creator::Create(CTCLInterpreter& rInterp, CTCLResult& rResult,
 	pArgs++;
 	
 	CCAENV792* pModule= new CCAENV792(mName, rInterp);
-	pModule->Configure(rInterp, rResult, nArgs, pArgs);
+	if(nArgs) {
+	  int status = pModule->Configure(rInterp, rResult, nArgs, pArgs);
+	  if(status != TCL_OK) { // If configure fails it will fill in rResult
+	    delete pModule;	 // but we need to return an error. 
+	    pModule = (CCAENV792*)NULL;
+	  }
+	}
 	return pModule;
 	
 }  

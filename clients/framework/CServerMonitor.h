@@ -277,7 +277,7 @@ DAMAGES.
 */
 
 
-//! \class: CServerMonitor           
+
 //! \file:  CServerMonitor.h
 // Author:
 //   Ron Fox

@@ -320,6 +320,7 @@ CTCLServer::operator==(const CTCLServer& rhs) const
 } 
 // Functions for class CTCLServer
 
+
 /*!
     Called each time data is readable on a server. 
     -  Read the data append it to the tcl command being built.  
@@ -336,65 +337,66 @@ CTCLServer::operator==(const CTCLServer& rhs) const
 void 
 CTCLServer::OnRequest(CSocket* pPeer)  
 {
-	try {
-		CSocket* pSocket(getSocket());
-		char Buffer[MAXLINE];
-		int nChars = pSocket->Read(Buffer, MAXLINE-1);  
-		Buffer[nChars] ='\0';        // Make input a cstring.
-		m_Command += Buffer;
-		if(isComplete()) {
-			CTCLInterpreter* pInterp = getInterpreter();
-			string result;
-			try {
-				result = pInterp->GlobalEval(m_Command);
-			}
-			catch(...) {                      // Probably a CTCLException.
-				result = pInterp->GetResultString();
-			}
-			// Clean up from command execution:
-			
-			m_Command = "";              // Empty the command string.
-			result         += '\n';          // Make result a 'line'.
-			try {
-				pSocket->Write((char*)result.c_str(), 
-					       result.size());
-			}
-			catch(...) {
-				// If disconnected, the next read will catch that immediately.
-			}
-		}
-		
-	}
-	// Deal with common exception types.
-	//
-	catch (CTCPConnectionLost& rExcept) {
-		string prefix("Lost tcl client connection ");
-		prefix += m_Peer;
-		string suffix(" Shutting down server instance");
-		ReadException(prefix.c_str(), rExcept.ReasonText(),
-				    suffix.c_str());		
-	}
-	catch (CException& rExcept) {
-		ReadException("NSCL Exception caught in TCLserver read",
-				    rExcept.ReasonText(),
-				    "Shutting down server instance");
-	}
-	catch (string& rExcept) {
-		ReadException("TCLServer read: string exception in read",
-			      rExcept.c_str(),
-			      "Shutting down server instance");
-	}
-	catch (char* pExcept) {
-		ReadException("TCLServer read: char* exception in read",
-			      pExcept,
-			      "Shutting down server instance");
-				  
-	}
-	catch (...) {
-	  ReadException("TCLServer: Unanticipated exception in read",
-			"- unknown reason -",
-			"Shutting down server instance");
-	}
+  try {
+    string  chunk = GetChunk();
+    m_Command += chunk;
+    if(isComplete()) {
+      CTCLInterpreter* pInterp = getInterpreter();
+      string result;
+      try {
+	result = pInterp->GlobalEval(m_Command);
+      }
+      catch(...) {                      // Probably a CTCLException.
+	result = pInterp->GetResultString();
+	cerr << "Error on TCL server received Command: " 
+	     << m_Command
+	     << " " << result << endl;
+      }
+      // Clean up from command execution:
+      
+      m_Command = "";              // Empty the command string.
+      result         += '\n';          // Make result a 'line'.
+      try {
+	CSocket* pSocket = getSocket();
+	pSocket->Write((char*)result.c_str(), 
+		       result.size());
+      }
+      catch(...) {
+	// If disconnected, the next read will catch that immediately.
+      }
+    }
+    
+  }
+  // Deal with common exception types.
+  //
+  catch (CTCPConnectionLost& rExcept) {
+    string prefix("Lost tcl client connection ");
+    prefix += m_Peer;
+    string suffix(" Shutting down server instance");
+    ReadException(prefix.c_str(), rExcept.ReasonText(),
+		  suffix.c_str());		
+  }
+  catch (CException& rExcept) {
+    ReadException("NSCL Exception caught in TCLserver read",
+		  rExcept.ReasonText(),
+		  "Shutting down server instance");
+  }
+  catch (string& rExcept) {
+    ReadException("TCLServer read: string exception in read",
+		  rExcept.c_str(),
+		  "Shutting down server instance");
+  }
+  catch (char* pExcept) {
+    ReadException("TCLServer read: char* exception in read",
+		  pExcept,
+		  "Shutting down server instance");
+    
+  }
+  catch (...) {
+    ReadException("TCLServer: Unanticipated exception in read",
+		  "- unknown reason -",
+		  "Shutting down server instance");
+  }
 }  
 
 /*!
@@ -490,3 +492,36 @@ CTCLServer::ReadException(const char* pPrefix,
   setEnable(false);
 }
 	                        
+/*!
+   Utility function to get a chunk of data from the socket.
+   We will read from the socket until either:
+   - We received a newline (\n) (which is appended to the string).
+   - We understand there is no more data waiting for us.
+   When either of these two conditions is met, the string retrieved from
+   the socket up until then is returned.
+   \return string
+      data gotten from socket.
+*/
+string
+CTCLServer::GetChunk()
+{
+  CSocket*      pSocket(getSocket());
+  int           fd = pSocket->getSocketFd(); // For poll..
+  struct pollfd pollinfo;	        // Struct in poll.
+  string        result;		        // Result is built up here.
+  char          c;		        // Characters are read into this.
+
+  pollinfo.fd    = fd;
+  pollinfo.events= POLLIN;	// Only interested in readability.
+  while(poll(&pollinfo, 1, 1) == 1) { // as long as pollable.
+    if(pollinfo.revents & POLLIN) {
+      pSocket->Read(&c, 1);	// Exceptions are handled by our caller.
+      result += c;
+    }
+    else {			// Not readable.
+      break;
+    }
+  }
+  return result;
+  
+}

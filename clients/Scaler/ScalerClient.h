@@ -322,6 +322,7 @@ class CScalerClient  : public CConsumer
   TclServerConnection* m_Connection; //1:1 association object data member      
   vector<long> m_vTotals;	// Run totals for scalers.
   vector<long> m_vIncrements;	// Run increments for scalers.
+  bool         m_fDefaultSource; // True if the data source is default.
 							       
 
 public:
@@ -330,7 +331,8 @@ public:
 
   CScalerClient ()    : 
     m_eConnectionState(0),
-    m_Connection(0)
+    m_Connection(0),
+    m_fDefaultSource(true)
   { 
   } 
   ~ CScalerClient ( )  // Destructor 
@@ -378,11 +380,11 @@ protected:
 private:
   static string GetRemoteHost(int nArgs, char** pArgs);
   static int    GetRemotePort(int nArgs, char** pArgs);
-  static string GetDataSourceURL(int nargs, char** pargs);
+  string GetDataSourceURL(int nargs, char** pargs);
   static Bool_t GetSwitchParameter(string& rValue,
 				   char* pSwitch, int nArgs, char** pArgs);
   static void Usage();
-
+  static void WarnDefaultSource();
 };
 
 #endif

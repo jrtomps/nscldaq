@@ -339,8 +339,17 @@ class CVMEptr
   UInt_t             m_nBase;    // The base address in the crate
 
  public:
+  typedef enum _Space {
+    a16 = 0,
+    a24 = 1,
+    a32 = 3,
+    geo = 4
+  } Space;
+
+ public:
   // Default constructor and Copy Constructor 
   CVMEptr<T>(UInt_t space, UInt_t base, UInt_t length, UInt_t crate=0);
+  CVMEptr<T>(Space space, UInt_t base, UInt_t length, UInt_t crate=0);
   CVMEptr<T>(const CVMEptr& aCVMEptr);
   CVMEptr<T>();
 
@@ -458,6 +467,20 @@ CVMEptr<T>::CVMEptr<T>(UInt_t space, UInt_t base, UInt_t length,
 {
   CreateMap(space, base, length, crate);
 }
+/*
+  Same as above, but use Space instead of int:
+*/
+template<class T>
+CVMEptr<T>::CVMEptr<T>(Space space, UInt_t base, UInt_t length,
+		       UInt_t crate) :
+  m_nOffset(0),
+  m_nLength(length),
+  m_nSpace(space),
+  m_nBase(base)
+{
+  CreateMap((int)space, base, length, crate);
+}
+
 
 /*
   \fn CVMEptr<T>::CVMEptr<T>()
@@ -555,9 +578,7 @@ CVMEptr<T>::CreateMap(UInt_t space, UInt_t base, UInt_t length, UInt_t crate)
     case 0:
       m_pHandle = CVMEInterface::Open(CVMEInterface::A16, crate);
       break;
-    case 1:
-      m_pHandle = CVMEInterface::Open(CVMEInterface::A24, crate);
-      break;
+    case 1:			// No difference between d16, d32.
     case 2:
       m_pHandle = CVMEInterface::Open(CVMEInterface::A24, crate);
       break;

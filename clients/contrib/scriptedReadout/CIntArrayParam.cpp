@@ -562,7 +562,7 @@ string
 CIntArrayParam::GetParameterFormat()
 {
   char   result[100];
-  sprintf(result, "{int[%d]}", m_nSize);
+  sprintf(result, "int[%d]", m_nSize);
   
   return string(result);
 }

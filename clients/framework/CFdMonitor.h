@@ -276,7 +276,7 @@ DAMAGES.
 		     END OF TERMS AND CONDITIONS
 */
 /*!
-  \class: CFdMonitor.h
+
 
   
   This file defines the CFdMonitor class.

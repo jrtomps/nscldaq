@@ -13,7 +13,8 @@ INCLUDES=-I@top_srcdir@/Headers -I@top_srcdir@/Exception \
 AlarmServerApp_LDADD= -L@top_srcdir@/framework -L@top_srcdir@/Exception \
 	-L@top_srcdir@/TCL -lTclPlus \
 	-lEventFramework -lException $(SPECTRODAQ_LDFLAGS)  \
-	$(TCL_LDFLAGS) $(X11LIBS) -lm
+	$(TCL_LDFLAGS) $(X11LIBS) -lm 
+AlarmServerApp_LDFLAGS=-Wl,"-rpath=$(libdir)"
 #
 #  Scripts (and their associated gifs:
 #
@@ -33,7 +34,7 @@ EXTRA_DIST= CAlarmServer.h CAlarmServerException.h CGDBMException.h \
 	tablelistSortByColumn.tcl \
 	tablelistWidget.tcl \
 	installpkg
-	
+
 install-exec-local:
 	$(mkinstalldirs) $(prefix)/Scripts
 	$(mkinstalldirs) $(prefix)/Images

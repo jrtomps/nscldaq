@@ -1,0 +1,18 @@
+#!/bin/sh
+#
+# Start Wish. \
+exec wish ${0} ${@}
+
+
+wm withdraw .;				# Remove root distraction.
+
+set msg "sclclient is starting up with the data source set to the "
+append msg "localhost.  Please be sure this is what you intended. "
+append msg " In other words,  be sure the Readout program is running"
+append msg " on this box, or else modify your scaler startup script so"
+append msg " that you use the -s switch to specify the real data source"
+
+tk_dialog .local "Data source is local" \
+    $msg questhead 0 "Dismiss"
+
+exit 0

@@ -287,6 +287,13 @@ exec wish ${0} ${@}
 #
 # Revision History:
 #  $Log$
+#  Revision 3.4  2004/06/18 12:11:03  ron-fox
+#  Merge 7.4 development into 8.0 main line.
+#
+#  Revision 3.3.4.1  2004/05/12 19:38:10  ron-fox
+#  differentiate between tape and ftp hosts so that they can be different
+#  boxes.
+#
 #  Revision 3.3  2003/08/28 18:46:51  ron-fox
 #  Put the
 #  #!/bin/bash back up at the beginning of the file since the copyright notice wound up before it.
@@ -375,6 +382,7 @@ package require Wait
 set SourceHost ""
 set ReadoutPath ""
 set ftphost ""
+set tapehost "";			# This will default to the ftp host.
 set Password ""
 set TapeCapacity Unknown
 set TapeMounted  0
@@ -509,6 +517,7 @@ proc SaveSettings {} {
     global SourceHost
     global ReadoutPath
     global ftphost
+    global tapehost
     global Password
     global TapeCapacity
     global TapeNumber
@@ -522,8 +531,8 @@ proc SaveSettings {} {
 
     # Save the items which can be restored via simple set var value:
 
-    foreach var {SourceHost ReadoutPath ftphost TapeCapacity TapeNumber 
-      StageStrategy TapeDrive} {
+    foreach var {SourceHost ReadoutPath ftphost tapehost 
+	TapeCapacity TapeNumber StageStrategy TapeDrive} {
 	  eval set value $$var
 	  puts $fd "set $var $value"
     }
@@ -553,6 +562,7 @@ proc ReadSettings {name} {
     global SourceHost
     global ReadoutPath
     global ftphost
+    global tapehost
     global Password
     global TapeCapacity
     global StageStrategy
@@ -968,14 +978,13 @@ proc MainGui {} {
 }
 
 #
-#  Got the staging olicy selected, register it
+#  Got the staging policy selected, register it
 #  and initialize the stager before setting up the main gui.
 #
 proc PolicyGotten {Policy} {
     global   StageStrategy
     global   SourceHost
     global   ReadoutPath
-    global   ftphost
     global   Password
     global   env
 
@@ -1034,15 +1043,22 @@ proc GetReadoutspec {} {
 #  Called when we have a valid tapedrive and host.
 #  set it in the stager and setup the stage policy selection gui.
 #
-proc TapeGotten {host password drive capacity} {
+proc TapeGotten {host ftp password drive capacity} {
+    global tapehost
     global ftphost
     global Password
     global TapeCapacity
     global TapeDrive
 
     set Password $password
-    set ftphost  $host
+    set tapehost  $host
+    set ftphost   $ftp
     set TapeDrive $drive
+
+    puts "Tapehost = $tapehost"
+    puts "drive    = $TapeDrive"
+    puts "FTPhost  = $ftphost"
+
 
     bind    .getdevice <Destroy> {}
     destroy .getdevice
@@ -1050,7 +1066,7 @@ proc TapeGotten {host password drive capacity} {
     Stager::SetDrive $drive
     set TapeCapacity $capacity
 
-    Experiment::SetFtpLogInfo $host $password
+    Experiment::SetFtpLogInfo $host t$password
     GetReadoutspec
 
 }
@@ -1074,6 +1090,7 @@ ExpFileSystem::CreateHierarchy
 #
 proc GuiConfirmSettings {threshold} {
     global ftphost
+    global tapehost
     global Password
     global SourceHost
     global ReadoutPath
@@ -1082,6 +1099,16 @@ proc GuiConfirmSettings {threshold} {
     global StageStrategy
     global TapeNumber
 
+    # If tapehost is null then we have an old
+    # config file and need to re-prompt.
+
+    if {$tapehost == ""} {
+	GuiGetSettings
+	return;	
+    }
+    #  Otherwise list the settings:
+    #  and ask for confirmation.
+    #
 
     toplevel .settings 
     bind .settings <Destroy> "UniqueInstance::Exit Stager GuiConfirmSettings"
@@ -1092,6 +1119,7 @@ proc GuiConfirmSettings {threshold} {
 
     set labellist { 
 	{"FTP destination :"  $ftphost}
+	{"Tape drive host :"  $tapehost}
 	{"Staging Tape   :"  $TapeDrive}
 	{"Tape Capacity   :"  $TapeCapacity}
 	{"Stage Method    :"  $StageStrategy}
@@ -1115,7 +1143,7 @@ proc GuiConfirmSettings {threshold} {
     bind .settings <Destroy> {}
 	destroy .settings
 
-	Stager::SetHost  $ftphost
+	Stager::SetHost  $tapehost
 	Stager::SetDrive $TapeDrive
 	set TapeCapacity $TapeCapacity	
 	Experiment::SetFtpLogInfo $ftphost $Password

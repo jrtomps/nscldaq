@@ -274,7 +274,7 @@ EVEN IF SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH
 DAMAGES.
 
 		     END OF TERMS AND CONDITIONS
-*/
+' */
 static const char* Copyright= "(C) Copyright Michigan State University 2002, All rights reserved";
 
 #include <stdlib.h>
@@ -288,6 +288,7 @@ static const char* Copyright= "(C) Copyright Michigan State University 2002, All
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
+#include <unistd.h>
 #include <CopyrightNotice.h>
 
 
@@ -308,14 +309,28 @@ int Write(int fd, void* pBuffer, size_t nLength)
   while(nBytes != nLength){
     int nWritten = write(fd, p, nResid);
     if(nWritten < 0) {
-      return nWritten;		// Failed write.
+      if(errno == EAGAIN) {	// Blocked.
+	if(nBytes == 0) {	// Nothing written yet
+	  return nLength;	// Don't transfer to client.
+	} else {		// Something written
+	                        // so write the rest. 
+    
+	}
+      }
+      else {			// Not due to blocking...
+	return -1;		// Real errors -> exit.
+      }
     }
-    if(nWritten == 0) {
-      return 0;			// Pipe closed likely.
+    else if(nWritten == 0) {
+      return -1;		// should not happen!
     }
-    nBytes += nWritten;
-    p      += nWritten;
-    nResid -= nWritten;
+    else {
+      // If control is here, nBytes > 1
+      
+      nBytes += nWritten;
+      p      += nWritten;
+      nResid -= nWritten;
+    }
   }
   return nBytes;		// All bytes written.
 }
@@ -326,11 +341,7 @@ int Write(int fd, void* pBuffer, size_t nLength)
 //
 void CopyOut(void* pDest, DAQWordBufferPtr pSrc, unsigned int nWds)
 {
-  short* pWDest = (short*)pDest;
-  for(int i = 0; i < nWds; i++) {
-    *pWDest++ = *pSrc;
-    ++pSrc;			// With objects ++pre is faster than post++
-  }
+  pSrc.CopyOut(pDest, 0, nWds);	//  This should be more efficient...
 }
 
 
@@ -380,6 +391,22 @@ class DAQBuff : public DAQROCNode {
     // receive buffers and put them out to stdout (normally a pipe to
     // SpecTcl.
     // 
+
+    // Set stdout to non blocking mode:
+
+    int fd = fileno(stdout);
+    int flags = fcntl(fd, F_GETFL, 0);
+    if(flags == -1) {
+      cerr << "Failed to read initial stdout flag set " << strerror(errno) << endl;
+      exit(-1);
+    }
+
+    flags |= O_NONBLOCK;
+    int stat = fcntl(fd, F_SETFL, flags);
+    if(stat == -1) {
+      cerr << "Failed to set stdout to nonblocking mode " << strerror(errno) << endl;
+    }
+
     while(1) {
 
 

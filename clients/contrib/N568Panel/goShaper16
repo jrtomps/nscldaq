@@ -1,0 +1,12 @@
+#!/bin/bash
+# 
+#  DISTDIR must be e.g. /usr/opt/daq/7.4/contrib
+#  in your bashrc
+#  CONFIGDIR is whatever directory has your shaper configuration file.
+#
+
+. ~/.bashrc                 # This does not get sourced by kde shortcuts.
+
+cd $ConfigDir
+$DISTDIR/N568panel/shaperapp16.tcl $ConfigDir/shaper.cfg 2>&1
+

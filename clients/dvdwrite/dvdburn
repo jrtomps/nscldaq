@@ -1,0 +1,50 @@
+#!/bin/sh
+#   start tclsh \
+exec tclsh ${0} ${@}
+
+
+proc Usage {} {
+    puts  "Usage: "
+    puts  {   dvdburn [firstrun [lastrun]]}
+    puts  "      firstrun - An optional lowest run number to burn."
+    puts  "      lastrun  - An optional last run number to burn.  "
+    puts  "    If neither firstrun nor lastrun is present, all runs "
+    puts  "    will be burned.  If only firstrun is present, then "
+    puts  "    all runs from firstrun on will be burned"
+    puts  " Examples: "
+    puts  "    seeburn               \# burn all runs"
+    puts  "    seeburn 100           \# Burn from run 100 on."
+    puts  "    seeburn 100 200       \# burn runs 100 through 200"
+}
+#  set up to locate and load burnpackage.tcl
+
+set me     $argv0
+set mypath [file dirname $me]
+
+source $mypath/burnpackage.tcl
+
+package require DvdBurn
+
+namespace import DvdBurn::CreateDvds
+
+set range "";				# Assume there's no range information.
+
+if {[llength $argv] > 2} {
+    Usage
+    exit -1
+}
+foreach element $argv {
+    if {[scan $element "%d" dummy] != 1}  {
+	Usage
+	exit -2
+    }
+    lappend range $element
+}
+
+
+if {[catch "CreateDvds {$range}" msg]} {
+	puts $msg
+	exit -3
+}
+
+exit 0

@@ -321,12 +321,28 @@ DAMAGES.
 #ifndef __DAQTYPES_H
 #include <daqdatatypes.h>
 #endif
-                                                               
+
+#ifndef __CRT_TIME_H
+#include <time.h>
+#ifndef __CRT_TIME_H         // In case time.h has this gaurd too.
+#define __CRT_TIME_H
+#endif
+#endif
+
+/*!
+ Specialization of StateMachine to handle
+ a data acquisition run.  The constructor of
+ this statemachine sets up the states and
+ reads in the transition diagram from file.
+
+*/
 class ReadoutStateMachine  : public StateMachine        
 {
 private:
   unsigned            m_PriorState;	 // Previous state.
-  unsigned            m_nElapsedTime;	 // Number of ms into the run
+  time_t              m_nSegmentStart;   // When this run segment started. 
+  unsigned            m_nPriorDuration;  // How long all prior run have run.
+  unsigned            m_nElapsedTime;	 // Total   seconds  into the run
   unsigned            m_nLastScalerRead; // Last time scaler readout done.
   unsigned            m_nLastSnapShot;   // List time snapshot scalers read.
   unsigned long       m_nSequenceNumber; // Buffer sequence number.
@@ -428,6 +444,8 @@ public:
   DAQWordBufferPtr GetBody(DAQWordBuffer* pBuffer); // Returns ptr to body.
   void FormatHeader(DAQWordBuffer* pBuffer, 
 		    UINT16 nWords, UINT16 nType, UINT16 nEntities);
+  void UpdateRunTime();
+  void     NewRunSegment();	//!< Diddle clock for Begin or Resume.
 
   // Internal members:
 

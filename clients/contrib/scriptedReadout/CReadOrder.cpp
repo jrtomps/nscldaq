@@ -235,7 +235,10 @@ those countries, so that distribution is permitted only in or among
 countries not thus excluded.  In such case, this License incorporates
 the limitation as if written in the body of this License.
 
-  9. The Free Software Foundation may publish revised and/or new versions of the General Public License from time to time.  Such new versions will be similar in spirit to the present version, but may differ in detail to address new problems or concerns.
+  9. The Free Software Foundation may publish revised and/or new versions 
+of the General Public License from time to time.  Such new versions will
+be similar in spirit to the present version, but may differ in detail to
+address new problems or concerns.
 
 Each version is given a distinguishing version number.  If the Program
 specifies a version number of this License which applies to it and "any
@@ -273,7 +276,7 @@ THIRD PARTIES OR A FAILURE OF THE PROGRAM TO OPERATE WITH ANY OTHER PROGRAMS),
 EVEN IF SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH 
 DAMAGES.
 
-		     END OF TERMS AND CONDITIONS
+		     END OF TERMS AND CONDITIONS '
 */
 static const char* Copyright = "(C) Copyright Michigan State University 1977, All rights reserved";
 
@@ -286,9 +289,12 @@ static const char* Copyright = "(C) Copyright Michigan State University 1977, Al
 #include <TCLResult.h>
 #include <vector>
 #include "CModuleCommand.h"
-#include "CDigitizerModule.h"
+#include "CReadableObject.h"
 #include "CDigitizerDictionary.h"
-
+#include "CReadException.h"
+#include "CConfigurationParameter.h"
+#include "CIntConfigParam.h"
+#include "CBoolConfigParam.h"
 
 /*!
 	Constructor: Creates an instance of a CReadOrder class.
@@ -298,19 +304,30 @@ static const char* Copyright = "(C) Copyright Michigan State University 1977, Al
 CReadOrder::CReadOrder (CTCLInterpreter* pInterp,
 			CDigitizerDictionary* pDict,
 			const string& rCommand)  :
-	CTCLProcessor(rCommand, pInterp),
-	m_pModules(pDict)
+	CReadableObject(rCommand, *pInterp),
+	m_pModules(pDict),
+	m_nPacketId(-1),
+	m_fPacketize(false),
+	m_pPacketIdParam(0),
+	m_pPacketizeParam(0)
 {  
-   Register();
+  CConfigurableObject::ParameterIterator p;
+  p                 = AddBoolParam("packetize", false);
+  m_pPacketizeParam = (CBoolConfigParam*)(*p);
+  p                 = AddIntParam("id",-1); // Start with illegal id.
+  m_pPacketIdParam  = (CIntConfigParam*)(*p);
+  m_pPacketIdParam->setRange(0, 0xffff);    // The id  must fit in a word. 
+
+  
 } 
 /*!
-Destructor: Destroys an instance of the CReadOrder class.  This is a no-op
-because the list destroys itself, and we assume that the creators of the
-modules will appropriately destroy then at some point.  It's also allowed for
-the modules to be statically defined.
+    If we are destroyed, then all the modules we are reading get unlinked   
+    from us.
+
 */
 CReadOrder::~CReadOrder ( )  //Destructor - Delete dynamic objects
 {
+  OnDelete();
 }
 
 
@@ -319,13 +336,19 @@ CReadOrder::~CReadOrder ( )  //Destructor - Delete dynamic objects
 
 /*!
 Adds a module to the end of the readout list.
-\param pModule  CDigitizerModule* [in] The module to add.
+\param pModule  CReadableObject* [in] The module to add.
 
 */
 void 
-CReadOrder::Add(CDigitizerModule* pModule)  
+CReadOrder::Add(CReadableObject* pModule)  
 { 
-   m_ReadoutList.push_back(pModule);
+  if(pModule) {
+    pModule->Link(this);	// Link the module to us...
+    m_ReadoutList.push_back(pModule);
+  }
+  else {
+    throw string("CReadOrderAdd:: pModule is a null pointer!");
+  }
 }  
 
 /*!  
@@ -339,21 +362,44 @@ CReadOrder::Add(CDigitizerModule* pModule)
 void 
 CReadOrder::Remove(ModuleIterator p)  
 { 
-   if(p != end()) {
-      m_ReadoutList.erase(p);
+   if(p != readerend()) {
+     (*p)->Unlink();
+     m_ReadoutList.erase(p);
+   }
+   else {
+     throw string("CReadOrder::Remove - ModuleIterator p == readerend()!");
    }
 }  
+void
+CReadOrder::Remove(CReadableObject* pModule) 
+{
+  if(pModule) {
+    ModuleIterator p = find(readerbegin(), readerend(), pModule);
+    Remove(p);
+  }
+  else {
+    throw string("CReadOrder::Remove - pModule is a null pointer!");
+  }
+
+}
 
 /*!  Function: 	
- 
-Inititializes the modules in the reaout chain.
+
+- Update the configuration parameters from our configuration:
+- Inititializes the modules in the reaout chain
 
 */
 void 
 CReadOrder::Initialize()  
 {
-    ModuleInitialize init;
-    for_each(begin(), end(), init);
+  
+  m_fPacketize = m_pPacketizeParam->getOptionValue();
+  m_nPacketId  = m_pPacketIdParam->getOptionValue();
+  if(m_fPacketize && (m_nPacketId < 0)) {
+    throw string("CReadorder::Initialize- packetization enabled, but no id set");
+  }
+  ModuleInitialize init;
+  for_each(readerbegin(), readerend(), init);
 }  
 
 /*!  Function: 	
@@ -365,7 +411,7 @@ void
 CReadOrder::Prepare()  
 {
     ModulePrepare prepare;
-    for_each(begin(), end(), prepare);
+    for_each(readerbegin(), readerend(), prepare);
 }  
 
 /*!
@@ -376,16 +422,42 @@ Reads out the event.
 \return DAQWordBufferPtr - Points past the end of the stuff that was just
       read out.
 */
-DAQWordBufferPtr 
+void 
 CReadOrder::Read(DAQWordBufferPtr& p)  
 { 
-   ModuleIterator pM = begin();
-   while( pM != end()) {
-     CDigitizerModule* pModule = *pM;
-     pModule->Read(p);
-     pM++;
-   }
-   return p;
+  DAQWordBufferPtr size = p;
+  CReadException   except;
+
+  if(m_fPacketize) {
+    ++p;
+    *p = m_nPacketId;
+    ++p;
+  }
+  try {
+    ModuleIterator pM = readerbegin();
+    while( pM != readerend()) {
+      CReadableObject* pModule = *pM;
+      pModule->Read(p);
+      pM++;
+    }
+  }
+  catch (string msg) {
+    except.Add(msg, p.GetIndex() - size.GetIndex());
+  }
+  catch (CReadException e) {
+    except.Add(e.GetString(), e.GetCount());
+  }
+  catch (...) {
+    except.Add("Unexpected exception",
+	       p.GetIndex()- size.GetIndex());
+  }
+  if(m_fPacketize) {
+    *size = (p.GetIndex() - size.GetIndex());
+  }
+  if(except.GetCount()) {	// If anyone added an exception throw this.
+    throw except;
+  }
+
 }  
 /*!
   Reads an event into an ordinary buffer.
@@ -394,18 +466,47 @@ CReadOrder::Read(DAQWordBufferPtr& p)
 int
 CReadOrder::Read(void* pBuf)
 {
-  ModuleIterator pM = begin();
-  char*          p((char*)pBuf);
+  ModuleIterator pM = readerbegin();
+  short*         p((short*)pBuf);
+  short*         pwords((short*)pBuf);
   int            nRead(0);
+  CReadException except;
+  
 
-  while(pM != end()) {
-    CDigitizerModule* pModule = *pM;
-    int nThisRead = pModule->Read(p);
-    p            += nThisRead;
-    nRead        += nThisRead/sizeof(short);
-    pM++;
+  if(m_fPacketize) {
+    p++;
+    *p++ = m_nPacketId;
+    nRead = 2;			// Packet overhead is 2 words.
+  }
+
+  try {
+    while(pM != readerend()) {
+      CReadableObject* pModule = *pM;
+      int nThisRead            = pModule->Read(p);
+      nRead                   += nThisRead;
+      p                       += nThisRead;
+      pM++;
+    }
+  }
+  catch (CReadException e) {
+    except.Add(e.GetString(), e.GetCount());
+  }
+  catch (string msg) {
+    except.Add(msg, nRead);
+  }
+  catch (...) {
+    except.Add(string("Unanticipated exception"),
+		      nRead);
+  }
+
+  if(m_fPacketize) {
+    *pwords = nRead;		// Fill in size.
+  }
+  if(except.GetCount()) {
+    throw except;
   }
   return nRead;
+
 }
 /*!  
 Clears the modules in the readout list.
@@ -415,7 +516,7 @@ void
 CReadOrder::Clear()  
 { 
    ModuleClear clear;
-   for_each(begin(), end(), clear);
+   for_each(readerbegin(), readerend(), clear);
 }  
 
 /*!  
@@ -425,7 +526,7 @@ Returns the number of modules in the readout chain.
 
 */
 int 
-CReadOrder::size()  
+CReadOrder::readersize()  
 { 
    return m_ReadoutList.size();
 }  
@@ -437,7 +538,7 @@ Returns a begin iterator for the module list.
 
 */
 CReadOrder::ModuleIterator 
-CReadOrder::begin()  
+CReadOrder::readerbegin()  
 { 
    return m_ReadoutList.begin();
 }  
@@ -449,7 +550,7 @@ digitizers in the digitizer list.
 
 */
 CReadOrder::ModuleIterator 
-CReadOrder::end()  
+CReadOrder::readerend()  
 { 
    return m_ReadoutList.end();
 }
@@ -459,10 +560,10 @@ CReadOrder::end()
     \return An iterator to the module else end() if the module does not exist.
 */
 CReadOrder::ModuleIterator
-CReadOrder::find(const string& rName)
+CReadOrder::readerfind(const string& rName)
 {
    CompareName cname(rName);
-   return find_if(begin(), end(), cname);
+   return find_if(readerbegin(), readerend(), cname);
 }
 
 /*!
@@ -489,9 +590,11 @@ CReadOrder::find(const string& rName)
 int
 CReadOrder::operator()(CTCLInterpreter& rInterp,
 		       CTCLResult&        rResult,
-		       int nArgc, char** pArgv)
+		       int nargc, char** pargv)
 {
-   int nStatus = TCL_OK;
+  int     nArgc(nargc);		// Use copies so the originals can be
+  char**  pArgv(pargv);		// passed unmodified to base class operator()
+  int nStatus = TCL_OK;
    
    // Skip the command keyword:
    
@@ -505,24 +608,31 @@ CReadOrder::operator()(CTCLInterpreter& rInterp,
       rResult = Usage();
    }
    else {
-      // Dispatch to appropriate function:
-      
-      string SubCommand(*pArgv);
-      if(SubCommand == string("add")) {
-	 nStatus = AddCommand(rInterp, rResult, nArgc, pArgv);
-      }
-      else if (SubCommand == string("list")) {
-	 nStatus = ListCommand(rInterp, rResult, nArgc, pArgv);
-      }
-      else if (SubCommand == string("remove")) {
-	 nStatus = RemoveCommand(rInterp, rResult, nArgc, pArgv);
-      }
-      else {
-	 rResult = Usage();
-	 nStatus = TCL_ERROR;
-      }
+     // Dispatch to appropriate function:
+     
+     string SubCommand(*pArgv);
+     if(SubCommand == string("add")) {
+       nStatus = AddCommand(rInterp, rResult, nArgc, pArgv);
+     }
+     else if (SubCommand == string("list")) {
+       nStatus = ListCommand(rInterp, rResult, nArgc, pArgv);
+     }
+     else if (SubCommand == string("remove")) {
+       nStatus = RemoveCommand(rInterp, rResult, nArgc, pArgv);
+     }
+     else {
+       // Could be processed by base classes:
+       
+       nStatus  = CReadableObject::operator()(rInterp, rResult,
+					      nargc, pargv);
+       if(nStatus != TCL_OK) {
+	 rResult += Usage();	// Append our usage.
+       }
+     }
    }
+   return nStatus;
 }
+   
 /*!
     processes subcommand to add a set of modules to the
     readout list.  The modules to add are specified by name
@@ -559,7 +669,7 @@ CReadOrder::AddCommand(CTCLInterpreter& rInterp,
    // Build vectors of good and bad modules (those that
    // exist and those that don't.
    //
-   vector<CDigitizerModule*> good;
+   vector<CReadableObject*> good;
    vector<string> bad;
    
    while (nArgc) {
@@ -630,8 +740,8 @@ CReadOrder::RemoveCommand(CTCLInterpreter& rInterp,
    }
    else {
 	string Module(*pArgv);
-	ModuleIterator p = find(Module);
-	if(p != end()) {
+	ModuleIterator p = readerfind(Module);
+	if(p != readerend()) {
 	   Remove(p);
 	}
 	else {
@@ -644,7 +754,7 @@ CReadOrder::RemoveCommand(CTCLInterpreter& rInterp,
    return nStatus;
 }
 /*!
-   List the modules that are in the resout list that match an optional pattern.
+   List the modules that are in the readout list that match an optional pattern.
    If the pattern is omitted, then it is assumed to be *.
    \param rInterp CTCLInterpreter& [in] TCL interpreter that
 	  excecuted this command.
@@ -696,7 +806,7 @@ CReadOrder::ListCommand(CTCLInterpreter& rInterp,
 	 pattern = *pArgv;
       }
       Lister visitor(rResult, pattern);
-      for_each(begin(), end(), visitor);
+      for_each(readerbegin(), readerend(), visitor);
      
    }
    return nStatus;
@@ -709,17 +819,43 @@ string
 CReadOrder::Usage()
 {
 
-   string result("Usage: \n");
-   string cmd = getCommandName();
-   result     +="\t";
-   result     +=  cmd;
-   result     += " add module1 ?module2...?\n";
-   result     +="\t";
-   result     += cmd;
-   result     += " list ?glob-pattern?\n";
-   result     +="\t";
-   result     += cmd;
-   result     += " remove module\n";   
+  string   result;
+  string  cmd = getCommandName();
+  result      = CReadableObject::Usage(); // Base class usage too!!
+  result     +="\t";
+  result     +=  cmd;
+  result     += " add module1 ?module2...?\n";
+  result     +="\t";
+  result     += cmd;
+  result     += " list ?glob-pattern?\n";
+  result     +="\t";
+  result     += cmd;
+  result     += " remove module\n";   
 
    return result;
+}
+/*!
+   Called prior to delete: unlink everyone from us.  It's harmless to call
+   this multiple times.
+*/
+void
+CReadOrder::OnDelete()
+{
+  ModuleIterator p = readerbegin();
+  for(; p != readerend(); p++) {
+    (*p)->Unlink();		// They must be linked or they would not be in
+  }                             // our module list! 
+  // Empty the list.
+
+  m_ReadoutList.erase(readerbegin(), readerend());
+
+}
+/*!
+  Return the  type of the module this is (packetizer).
+
+*/
+string
+CReadOrder::getType() const
+{
+  return string("packet-container");
 }

@@ -1787,10 +1787,8 @@ void XMCustomDialogBox::InitializeHelp()
   help_info.text   = custom_help;
 }
 
-/*
-** Functional Description:
-**   XMCustomDialogBox::SetCallbacks:
-**     This function registers the callback methods.
+/*!
+
 */
 
 void 

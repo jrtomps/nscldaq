@@ -480,11 +480,17 @@ namespace eval ReadoutControl {
 	# user while we run it, copy the user's readout program to
 	# ~/stagearea/.readout
 	
-	set DestDir [ExpFileSystem::GetStage]
+	set cwd [pwd]
+        cd ~
+	set home [pwd]
+	cd $cwd
+	
+	set DestDir $home/.readout
+	file mkdir $DestDir
 
-	file copy -force $ReadoutProgram $DestDir/.readout
+	file copy -force $ReadoutProgram $DestDir
 	set Executable ""
-	append Executable $DestDir/.readout/ [file tail $ReadoutProgram]
+	append Executable $DestDir/ [file tail $ReadoutProgram]
 	exec chmod a+x $Executable
 
 	#

@@ -2,4 +2,4 @@ lib_LTLIBRARIES   = libcvt.la
 libcvt_la_SOURCES = daqcvt.c
 include_HEADERS   = daqcvt.h
 libcvt_MANS       = libcvt.ps
-libcvt_la_LDFLAGS = -version-info $(SOVERSION):0
+libcvt_la_LDFLAGS = -version-info $(SOVERSION):0 -Wl,"-rpath-link=$(libdir)"

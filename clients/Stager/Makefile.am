@@ -17,6 +17,7 @@ install-exec-local:
 	$(LN_S) $(prefix)/Scripts/StagerGui.tcl $(bindir)/Stager
 	./installpkg $(prefix)
 
+
 EXTRA_DIST =  Experiment.tcl \
 	GetTapeDrive.tcl \
 	KeeplistGui.tcl \
@@ -38,6 +39,13 @@ EXTRA_DIST =  Experiment.tcl \
 	rsh.tcl \
 	warning.tcl \
 	installpkg
+
+bin_PROGRAMS =  SecretTk
+
+SecretTk_SOURCES = SecretTk.c
+
+SecretTk_LDFLAGS= $(TCL_LDFLAGS) $(X11LIBS)
+
 
 lib_LTLIBRARIES = libWait.la
 libWait_la_SOURCES = WaitPackage.cpp

@@ -288,6 +288,7 @@ static const char* Copyright= "(C) Copyright Michigan State University 2002, All
 #include <sys/types.h>
 #include <errno.h>
 #include <assert.h>
+#include <stdio.h>
 
 static const string aSubCommands[] = {
   string("create"),
@@ -469,8 +470,8 @@ int CVmeCommand::AddMap(CTCLInterpreter& rInterp,
 
   string devname("standard"); // Default map is A24 D32
   long    nCrate(0);		// Default crate is 0
-  long    nBase;	// VME base address of map.
-  long    nSize;	// Size of vme map in bytes.
+  unsigned long    nBase;	// VME base address of map.
+  unsigned long    nSize;	// Size of vme map in bytes.
 
 
   // Process all switches:
@@ -492,16 +493,16 @@ int CVmeCommand::AddMap(CTCLInterpreter& rInterp,
 	
       }
       catch(...) {
-	rResult += "Failed to convert crate as integer expression\n";
+	rResult += " Failed to convert crate as integer expression\n";
 	return Usage(rResult);
       }
       break;
     case unknown:		// This had better be the base:
       try {
-	nBase = rInterp.ExprLong(*pArgs);
+	nBase = strtoul(*pArgs, NULL, 0);
       }
       catch (...) {
-	rResult += "Failed to convert base address to integer";
+	rResult += "Failed to convert base address to integer\n";
 	return Usage(rResult);
       }
       break;
@@ -520,7 +521,7 @@ int CVmeCommand::AddMap(CTCLInterpreter& rInterp,
   // Decode the area size:
 
   try {
-    nSize = rInterp.ExprLong(*pArgs);
+    nSize = (unsigned long)rInterp.ExprLong(*pArgs);
   }
   catch(...) {
     rResult += "Failed to convert map size to integer";

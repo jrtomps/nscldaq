@@ -277,7 +277,7 @@ DAMAGES.
 */
 static const char* Copyright= "(C) Copyright Michigan State University 2002, All rights reserved";/*!
    \file  CEvent.cpp 
-   \class CEvent   
+
            Encapsulates event handling.  Events consist of an
            event monitor which is responsible for determining when
            an event fires and a reactor which provides application

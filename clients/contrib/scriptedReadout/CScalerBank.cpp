@@ -64,8 +64,8 @@ into the buffer passed in.
 ULong_t* 
 CScalerBank::Read(ULong_t* pBuffer)  
 { 
-   CReadOrder::ModuleIterator p = begin();
-   while(p != end()) {
+   CReadOrder::ModuleIterator  p = readerbegin();
+   while(p != readerend()) {
       CScalerModule* pScaler = dynamic_cast<CScalerModule*>(*p);
       pBuffer = pScaler->Read(pBuffer);
      p++;

@@ -277,7 +277,7 @@ DAMAGES.
 */
 /*!
    \file  CLocationMonitor.cpp 
-   \class CLocationMonitor
+
    Encapsulates a location monitor.  
    The location monitor watches a volatile memory location 
    to satisfy some predicate function object.  Predicates are

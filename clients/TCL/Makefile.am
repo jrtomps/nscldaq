@@ -5,7 +5,8 @@ libTclPlus_la_SOURCES = TCLApplication.cpp TCLCommandPackage.cpp \
 	TCLObject.cpp TCLProcessor.cpp TCLResult.cpp TCLString.cpp \
 	TCLTimer.cpp TCLVariable.cpp
 
-libTclPlus_la_LDFLAGS = -version-info $(SOVERSION):0
+libTclPlus_la_LDFLAGS = -version-info $(SOVERSION):0 \
+	-Wl,"-rpath-link=$(libdir)"
 
 include_HEADERS = TCLApplication.h TCLCommandPackage.h TCLException.h \
 	TCLFileHandler.h TCLHashTable.h TCLHashTableItem.h \

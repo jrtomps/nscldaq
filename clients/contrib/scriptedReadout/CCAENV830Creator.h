@@ -1,24 +1,3 @@
-#ifndef __CCAENV830CREATOR_H  //Required for current class
-#define __CCAENV830CREATOR_H
-
-//
-// Include files:
-//
-
-                               //Required for base classes
-#ifndef __CMODULECREATOR_H     //CModuleCreator
-#include "CModuleCreator.h"
-#endif
- 
-#ifndef __STL_STRING
-#include <string>
-#define __STL_STRING
-#endif
-
-class CTCLInterpreter;
-class CTCLResult;
-class CDigitizerModule;
-
 /*!
   Creates a CCAENV830 readout module.   This module is suitable for use
   in the main readout section for systems that require e.g. precise absolute
@@ -48,6 +27,28 @@ class CDigitizerModule;
   through TCL scripting.
 
 */
+#ifndef __CCAENV830CREATOR_H  //Required for current class
+#define __CCAENV830CREATOR_H
+
+//
+// Include files:
+//
+
+                               //Required for base classes
+#ifndef __CMODULECREATOR_H     //CModuleCreator
+#include "CModuleCreator.h"
+#endif
+ 
+#ifndef __STL_STRING
+#include <string>
+#define __STL_STRING
+#endif
+
+class CTCLInterpreter;
+class CTCLResult;
+class CReadableObject;
+
+
 class CCAENV830Creator  : public CModuleCreator        
 {
 private:
@@ -68,7 +69,7 @@ public:
 
 public:
 
-   virtual   CDigitizerModule* Create (CTCLInterpreter& rInterp, 
+   virtual   CReadableObject* Create (CTCLInterpreter& rInterp, 
 				       CTCLResult& rResult, 
 				       int nArgs, char** pArgs)   ; // 
    virtual   string  Help (); // 

@@ -10,18 +10,18 @@ for {set i 0} {$i < 32} {incr i} {
 
 module adc caenv785 slot 9  
 adc config threshold $thrlist multievent true
+adc config fastclearwindow 100
 readout add adc
 
 module tdc caenv775 slot 10
 tdc  config threshold $thrlist multievent true
 tdc  config  keepoverflow true
+tdc  config commonstart false
+tdc  config range 600      ;# ns. 
 
 readout add tdc
 
-module scaler caenv830 slot 12 trigger 1 header true autoreset false
-scaler config fpclearmeb false id 0x100 geo true
 
-readout add scaler
 
 
 
@@ -62,7 +62,6 @@ DumpConfig [module -list]
 puts "Module readout order: "
 ReadOrder [readout list]
 
-trigger adc
 
 
 

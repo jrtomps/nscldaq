@@ -1,0 +1,19 @@
+This directory contains unit tests for the redesign of the scripted readout 
+to support:
+
+- packet module
+- configuration of packetization on readout command.
+- While the Makefile is generated from Makefile.am, these tests are not
+  built by the product installation.  Run the tests as follows:
+
+o At top level of the system (if you want the device drivers installed,
+  do this as root):
+   ./configure --prefix=<installation-directory>
+   make
+   make -k install
+
+o cd contrib/scriptedReadout
+  make clean                  # Get rid of any old objects I forgot about.
+  make                        # build the test code requires cppunit.
+  make test		      # run the tests.
+

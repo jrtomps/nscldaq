@@ -135,7 +135,8 @@ EXTRA_DIST=Doxyfile BufferEvent.oxy \
 	docexamples/TkExample.mak   docexamples/configtest.cpp  \
 	docexamples/minimal.mak     docexamples/subclass.cpp
 
-libEventFramework_la_LDFLAGS = -version-info $(SOVERSION):0
+libEventFramework_la_LDFLAGS = -version-info $(SOVERSION):0 \
+	-Wl,"-rpath-link=$(libdir)"
 #
 # Doxygen documentation.
 #
@@ -149,4 +150,4 @@ install-data-local:
 	do \
 	  $(INSTALL_DATA) $$f $(prefix)/Docs/Framework; \
         done) \
- 	fi
+	fi

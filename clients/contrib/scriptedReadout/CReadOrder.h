@@ -235,7 +235,10 @@ those countries, so that distribution is permitted only in or among
 countries not thus excluded.  In such case, this License incorporates
 the limitation as if written in the body of this License.
 
-  9. The Free Software Foundation may publish revised and/or new versions of the General Public License from time to time.  Such new versions will be similar in spirit to the present version, but may differ in detail to address new problems or concerns.
+  9. The Free Software Foundation may publish revised and/or new versions 
+of the General Public License from time to time.  Such new versions will be 
+similar in spirit to the present version, but may differ in detail to address 
+new problems or concerns.
 
 Each version is given a distinguishing version number.  If the Program
 specifies a version number of this License which applies to it and "any
@@ -273,45 +276,8 @@ THIRD PARTIES OR A FAILURE OF THE PROGRAM TO OPERATE WITH ANY OTHER PROGRAMS),
 EVEN IF SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH 
 DAMAGES.
 
-		     END OF TERMS AND CONDITIONS
+		     END OF TERMS AND CONDITIONS '
 */
-
-#ifndef __CREADORDER_H  //Required for current class
-#define __CREADORDER_H
-
-//
-// Include files:
-//
-
-#ifndef __TCLPROCESSOR_H
-#include <TCLProcessor.h>
-#endif
-
-                               //Required for 1:1 association classes
-#ifndef __CDIGITIZERMODULE_H    //CDigitizerModule
-#include "CDigitizerModule.h"
-#endif 
-
-#ifndef __STL_LIST
-#include <list>
-#define __STL_LIST
-#endif
-
-#ifndef __STL_STRING
-#include <string>
-#define __STL_STRING
-#endif
-
-#ifndef __TCL_H
-#include <tcl.h>
-#define __TCL_H
-#endif
-
-// Forward Definitions:
-class CTCLInterpreter;
-class CTCLResult;
-class CDigitizerDictionary;
-
 /*!
   Encapsulates the order in which modules are read out.
   CReadOrder maintains an ordered list of modules to read.
@@ -329,17 +295,62 @@ class CDigitizerDictionary;
   
 
 */
-class CReadOrder    : public CTCLProcessor
+#ifndef __CREADORDER_H  //Required for current class
+#define __CREADORDER_H
+
+#ifndef _CREADABLEOBJECT_H
+#include "CReadableObject.h"
+#endif
+
+
+
+#ifndef __SPECTRODAQ_H
+#include <spectrodaq.h>
+#ifndef __SPECTRODAQ_H
+#define __SPECTRODAQ_H
+#endif
+#endif
+
+
+#ifndef __STL_LIST
+#include <list>
+#define __STL_LIST
+#endif
+
+#ifndef __STL_STRING
+#include <string>
+#define __STL_STRING
+#endif
+
+#ifndef __TCL_H
+#include <tcl.h>
+#define __TCL_H
+#endif
+
+// Forward Definitions:
+
+class CTCLInterpreter;
+class CTCLResult;
+class CDigitizerDictionary;
+class CBoolConfigParam;
+class CIntConfigParam;
+
+
+class CReadOrder    : public CReadableObject
 {
 public:                           // Data types:
-  typedef list<CDigitizerModule*> ModuleList;
-  typedef ModuleList::iterator   ModuleIterator;
+  typedef list<CReadableObject*> ModuleList;     //!< Ordered list of modules.
+  typedef ModuleList::iterator    ModuleIterator; //!< Iterator for list of modules
 private:
   
   // Private Member data:
   
-   ModuleList          m_ReadoutList;
-   CDigitizerDictionary* m_pModules;
+  ModuleList            m_ReadoutList;           //!< What we read 
+  CDigitizerDictionary* m_pModules;              //!< Known modules we could read. 
+  int                   m_nPacketId;             //!< Our id if packetizing. 
+  bool                  m_fPacketize;            //!< true if packetizing. 
+  CIntConfigParam*      m_pPacketIdParam;        //!< Ptr to packet parameter 
+  CBoolConfigParam*     m_pPacketizeParam;       //!< Ptr to packetizer parameter. 
    
 private:
   // Nested helper classes.
@@ -354,28 +365,28 @@ private:
   public:
     ModuleRead(DAQWordBufferPtr& pBuf) :
       m_pBuffer(pBuf) {}
-    void operator()(CDigitizerModule*  p) {
+    void operator()(CReadableObject*  p) {
       p->Read(m_pBuffer);
     }
   };
   class ModuleInitialize
   {
     public:
-      void operator()(CDigitizerModule* p) {
+      void operator()(CReadableObject* p) {
         p->Initialize();
       }
   };
   class ModulePrepare
   {
     public:
-      void operator()(CDigitizerModule* p) {
+      void operator()(CReadableObject* p) {
         p->Prepare();
       }
   };
   class ModuleClear
   {
     public:
-      void operator()(CDigitizerModule* p) {
+      void operator()(CReadableObject* p) {
         p->Clear();
       }
   };
@@ -386,7 +397,7 @@ private:
          CompareName(const string& rName) :
             m_Name(rName)
          {}
-         int operator()(CDigitizerModule* p) {
+         int operator()(CReadableObject* p) {
             return (m_Name == p->getName());
          }
    };
@@ -399,7 +410,7 @@ private:
 	 m_rResult(rResult),
 	 m_sPattern(rPattern)
       {}
-      void operator()(CDigitizerModule* pModule)
+      void operator()(CReadableObject* pModule)
       {
 	 if(Tcl_StringMatch(pModule->getName().c_str(),
 				   m_sPattern.c_str())) {
@@ -415,7 +426,7 @@ public:
    
   CReadOrder (CTCLInterpreter* pInterp,
 	      CDigitizerDictionary* pDictionary,
-		const string& rCommand=string("readout"));
+	      const string& rCommand=string("readout"));
   virtual ~CReadOrder ( ); 
 private:
   CReadOrder (const CReadOrder& aCReadOrder );
@@ -429,45 +440,63 @@ public:
 public:
    ModuleList getReadoutList() const
    {
-      return m_ReadoutList;
+     return m_ReadoutList;
    }
-
-// Attribute mutators:
-
+  
+  // Attribute mutators:
+  
 protected:
-   void setReadoutList(const ModuleList& rReadoutlist) 
-   {
-      m_ReadoutList = rReadoutlist;
-   }
-
+  void setReadoutList(const ModuleList& rReadoutlist) 
+  {
+    m_ReadoutList = rReadoutlist;
+  }
+  
   // Class operations:
-
+  
 public:
-   int operator()(CTCLInterpreter& rInterp,
-		  CTCLResult&        rResult,
-		  int nArgc, char** pArgv);
-   int AddCommand(CTCLInterpreter& rInterp,
+
+  // Command processors:
+
+  int operator()(CTCLInterpreter& rInterp,
+		 CTCLResult&        rResult,
+		 int nArgc, char** pArgv);    //!< Command processing operator.
+  int AddCommand(CTCLInterpreter& rInterp,
+		 CTCLResult&       rResult,
+		 int nArgc, char** pArgv);    //!< Add a module to our readout list
+  int RemoveCommand(CTCLInterpreter& rInterp,
+		    CTCLResult&       rResult,
+		    int nArgc, char** pArgv); //!< Remove a module from our readout list
+  int ListCommand(CTCLInterpreter& rInterp,
 		  CTCLResult&       rResult,
-		  int nArgc, char** pArgv);
-   int RemoveCommand(CTCLInterpreter& rInterp,
-		     CTCLResult&       rResult,
-		     int nArgc, char** pArgv);
-   int ListCommand(CTCLInterpreter& rInterp,
-		   CTCLResult&       rResult,
-		   int nArgc, char** pArgv);
-		   
-   void Add (CDigitizerModule* pModule)   ; // 
-   void Remove (ModuleIterator p)   ; // 
-   virtual void Initialize ()   ; // 
-   virtual void Prepare ()   ; // 
-   virtual DAQWordBufferPtr Read (DAQWordBufferPtr& p)   ; // 
-   virtual int              Read(void* pBuffer);
-   virtual void Clear ()   ; // 
-   int size ()   ; // 
-   ModuleIterator begin ()   ; // 
-   ModuleIterator end ()   ; //
-   ModuleIterator find(const string& rName);
-   string Usage();
+		  int nArgc, char** pArgv);   //!< List modules in our list.
+  
+
+
+  // Overridables and overrides:
+
+  virtual void   Initialize ()   ;            //!< 1-time Initialize our modules.
+  virtual void   Prepare ()   ;               //!< Prepare modules for readout.  
+  virtual void   Read (DAQWordBufferPtr& p) ; //!< Read -> spectrodaq 
+  virtual int    Read(void* pBuffer);         //!< Read to ordinary buffer. 
+  virtual void   Clear ()   ;                 //!< Clear after read & @ Run start. 
+  virtual string getType() const;	              //!< Return module type information. 
+
+  // Iteration through the module list.
+
+  int            readersize ()   ;                  //!< # modules in the list. 
+  ModuleIterator readerbegin ()   ;                 //!< Start iterator.
+  ModuleIterator readerend ()   ;                   //!< End iterator.
+  ModuleIterator readerfind(const string& rName);   //!< Find module by name.
+  string         Usage();                     //!< Command usage.
+
+  // External removal.
+
+  void           Add    (CReadableObject* pModule)   ; //!< Add a module.
+  void           Remove (ModuleIterator p)   ; //!< Remove module.
+  void           Remove (CReadableObject* pModule); //!< Remove module
+  
+  virtual void   OnDelete();	              //!< Just prior to deletion.
+
 };
 
 #endif

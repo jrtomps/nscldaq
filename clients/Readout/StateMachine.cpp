@@ -729,6 +729,7 @@ StateMachine::ReadTransitionTable(istream& fStream)
     string Event;
     fStream >> OldState >> Event >> NewState;
 
+    if(OldState == string("")) continue;
     if(strlen(OldState.data())) {
       if(NameToEventId(Event) == -1) { // Add the event:
 	AddEvent(Event);

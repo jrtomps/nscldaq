@@ -288,6 +288,16 @@
 #   Change log:
 #
 # $Log$
+# Revision 3.3  2004/06/18 12:11:03  ron-fox
+# Merge 7.4 development into 8.0 main line.
+#
+# Revision 3.2.4.2  2004/04/06 13:18:13  ron-fox
+# fix for issue 108 GUI allows overwrite of event file without prompt
+#
+# Revision 3.2.4.1  2004/03/31 18:30:10  ron-fox
+# Address issue 108 - Event files can be ovewritten without any prompts.
+#                     added issue - contrast of disabled entries is bad.
+#
 # Revision 3.2  2003/08/14 19:01:55  ron-fox
 # Multiple changes:
 # 1. Fix support of segmented event files.
@@ -322,6 +332,99 @@ namespace eval ReadoutGui {
     variable FileMenu
     variable BeginButton
     variable PauseButton
+    variable RecordToggle
+
+
+    #  Improve the contrast of a disabled entry widget by
+    #  setting its disabled foreground color to the normal foreground
+    #  color.  Entry widgets have a disbled background color which provides
+    #  sufficient contrast.
+    proc ImproveEntryContrast {widget} {
+	global tk_version
+	scan $tk_version "%d.%d" major minor
+	# Ensure we have the functionality we need for this...
+
+	if { ($major > 8) || (($major == 8) && ($minor >= 4)) } {
+	    $widget config -disabledforeground [$widget cget -foreground]
+	}
+    }
+
+    #  When called, this proc:
+    #  - turns off event recording.
+    #  - ghosts the event recording toggle button.
+    #  - Removes the event recording toggle from the 
+    #    ActiveGhostedWidgets list.
+    # Note that it is the caller's responsibility to invoke this
+    # only if the run is halted.
+    #
+    proc DisableEventRecording {} {
+	variable RecordToggle
+	variable ActiveGhostedWidgets
+
+	ReadoutControl::DisableTape;	# Turn off event recording.
+	$RecordToggle config -state disabled
+	set listposition \
+	    [lsearch -exact $ActiveGhostedWidgets $RecordToggle]
+	if {$listposition != -1} {
+	    set ActiveGhostedWidgets [lreplace $ActiveGhostedWidgets \
+					  $listposition $listposition]
+	}
+    }
+    #  When called this proc:
+    #  - Unghosts the event recording toggle button.
+    #  - If necessary adds the recording toggle button to the
+    #    ActiveGhostedWidgets list.
+    # NOTE: It is the caller's responsibility to invoke this only 
+    #     when the run is halted.
+    #
+    proc EnableEventRecording {} {
+	variable RecordToggle
+	variable ActiveGhostedWidgets
+
+	$RecordToggle config -state normal
+	set position \
+	    [lsearch -exact $ActiveGhostedWidgets $RecordToggle]
+	if {$position == -1} {
+	    lappend ActiveGhostedWidgets $RecordToggle
+	}
+
+    }
+    #  Display a dialog that asks what to do if we would
+    #  otherwise overwrite event data?
+    # Returns:
+    #     0    - Don't start the run.
+    #     1    - Start the run but don't record data.
+    #     2    - Start the run and overwrite the data.
+    #
+    proc OverwriteCheck {} {
+	set run [ReadoutControl::GetRun]
+	if {[Experiment::RunFileExists $run]} {
+	    set testrun $run
+	    incr testrun
+	    while {[Experiment::RunFileExists $testrun]} {
+		incr testrun
+	    }
+	    set message \
+		"WARNING: Event data for run $run already exists! "
+	    append message \
+		" If you continue to start this run with event "
+	    append message "recording enabled, you will overwrite "
+	    append message "this file. "
+	    append message "Note that the next run number without "
+	    append message "recorded event data is $testrun. "
+	    append message  "Please select an "
+	    append message "appropriate action:"
+	    return [tk_dialog .ovewrite "!!Overwrite!!" $message \
+			warning 0 \
+			"Don't start" \
+			"Start without recording" \
+			"Start and overwrite"]
+
+	} else {
+	    return 2;			# No problems starting run.
+	}
+	    
+    }
     proc NoOp {} {}
 
     # Update links: called to update the
@@ -812,6 +915,20 @@ namespace eval ReadoutGui {
     }
     proc Begin {beginbutton pausebutton} {
 	variable RequestedDuration
+	#  If necessary, check to see what to do
+	#  if the user is ovewriting:
+	#
+	if {[ReadoutControl::isTapeOn]} {
+	    after 1000
+	    set action [OverwriteCheck]
+	    if {$action == 0} {;	# Run aborted.
+		return
+	    }
+	    if {$action == 1} {;	# Turn of tape.. but run.
+		ReadoutControl::DisableTape
+	    }
+	    #  2 overwrite if needed.
+	}
 	#
 	#  If it's a timed run, validate the time:
 	#
@@ -898,6 +1015,7 @@ namespace eval ReadoutGui {
 	variable BeginButton
 	variable PauseButton
 	variable EventStatusLineWidget
+	variable RecordToggle
 
 	package require ReadoutControl
 	package require Diagnostics
@@ -949,8 +1067,9 @@ namespace eval ReadoutGui {
 		-textvariable ReadoutControl::RunTitle \
 		-width 50
 	set rnotape [frame $ctlframe.rnotape]
-	checkbutton $rnotape.taping -text "Record Events" \
-		-variable ReadoutControl::Taping
+	set RecordToggle [checkbutton $rnotape.taping \
+			      -text "Record Events" \
+			      -variable ReadoutControl::Taping]
 	label $rnotape.run -text "Run number"
 	entry $rnotape.runnumber \
 		-textvariable ReadoutControl::RunNumber
@@ -1035,6 +1154,16 @@ namespace eval ReadoutGui {
 		                   "$scalermenu Parameters..."
 
 	
+	# The contrast of ghosted entry widgets (titlestring, runnumber
+	# and reqtime is not good.  We improve this by setting the
+	# disabled foreground color of these widges to be the same as
+	# their normal foreground.
+
+	ImproveEntryContrast $titleframe.titlestring
+	ImproveEntryContrast $rnotape.runnumber
+	ImproveEntryContrast $timeframe.reqtime
+
+
 	if {[HaveReadout]} {
 	    Start $filemenu $buttonframe.startstop $buttonframe.pauseres
 	}
@@ -1060,11 +1189,19 @@ namespace eval ReadoutGui {
 	#
 	ReadoutControl::SetOnExit "ReadoutGui::ReadoutExited"
 	ReadoutControl::SetOnCommand "ReadoutGui::RdoCommand"
+
+
+
+
     }
     
+    # Exported functions:
+
     namespace export GetReadoutSpec 
     namespace export ReadoutController
     namespace export  ReadoutInput
+    namespace export DisableEventRecording
+    namespace export EnableEventRecording
 }
 
 

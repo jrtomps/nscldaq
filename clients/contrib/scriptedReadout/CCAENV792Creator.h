@@ -235,7 +235,10 @@ those countries, so that distribution is permitted only in or among
 countries not thus excluded.  In such case, this License incorporates
 the limitation as if written in the body of this License.
 
-  9. The Free Software Foundation may publish revised and/or new versions of the General Public License from time to time.  Such new versions will be similar in spirit to the present version, but may differ in detail to address new problems or concerns.
+  9. The Free Software Foundation may publish revised and/or new 
+versions of the General Public License from time to time.  Such new
+ versions will be similar in spirit to the present version, but may 
+differ in detail to address new problems or concerns.
 
 Each version is given a distinguishing version number.  If the Program
 specifies a version number of this License which applies to it and "any
@@ -273,7 +276,7 @@ THIRD PARTIES OR A FAILURE OF THE PROGRAM TO OPERATE WITH ANY OTHER PROGRAMS),
 EVEN IF SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH 
 DAMAGES.
 
-		     END OF TERMS AND CONDITIONS
+		     END OF TERMS AND CONDITIONS '
 */
 
 #ifndef __CCAENV792CREATOR_H  //Required for current class
@@ -312,7 +315,7 @@ public:
 
 public:
 
-   virtual   CDigitizerModule* 
+   virtual   CReadableObject* 
 		  Create (CTCLInterpreter& rInterp, CTCLResult& rResult, 
 			     int nArgs, char** pArgs)   ; // 
    virtual   string  Help ()   ; 

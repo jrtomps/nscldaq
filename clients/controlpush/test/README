@@ -1,0 +1,5 @@
+This directory contains tests for the controlpush software.
+You will need to modify Makefile to point to your installation of EPICS.
+You will need to modify Channels.dat to contain channel names from your
+control system.
+You will need to modify channel names in the tests appropriately as well.

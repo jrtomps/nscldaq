@@ -392,7 +392,7 @@ DAQBuff::operator()(int argc, char** argv)
 
   // Get the filename and decode it into it's components.
 
-  m_pFilename = new char[strlen(argv[1]+1)];
+  m_pFilename = new char[strlen(argv[1])+1];
   strcpy(m_pFilename, argv[1]);
   
   int   nPathels    = strsplit(argv[1], NULL, 0, "/");

@@ -275,7 +275,7 @@ DAMAGES.
 
 		     END OF TERMS AND CONDITIONS
 */
-//! \class: CFileEvent           
+
 //! \file:  CFileEvent.h
 // Author:
 //   Ron Fox

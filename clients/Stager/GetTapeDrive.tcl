@@ -291,13 +291,14 @@ package provide GetTape 1.0
 package require RemoteInfo 
 namespace eval  GetTape {
     variable TapeDensity
+    variable DefaultFtp "daq1ide.nscl.msu.edu"
 #
 #  Called when the Ok button is pressed on the listbox hierarchy.
 #  If no item is selected, this is a no-op.
 #  Otherwise, the entry is gotten, the listbox hierarchy is torn down and
 #  the user callback is called.
 #
-    proc GetTapeOk {widget host password Callback} {
+    proc GetTapeOk {widget ftphost tapehost password Callback} {
 	variable TapeDensity
 	set sellist [$widget.listframe.drivelist curselection]
 	if {[llength $sellist] > 0} {
@@ -308,7 +309,7 @@ namespace eval  GetTape {
 	    destroy $widget.ok
 	    destroy $widget.back
 	    bind $widget <Destroy> $oldbind
-	    $Callback $host $password $drive $TapeDensity
+	    $Callback $tapehost $ftphost $password $drive $TapeDensity
 	}
     }
 #
@@ -340,10 +341,12 @@ namespace eval  GetTape {
     proc HostGotten   {widget Callback} {
 	variable TapeDensity
 
-	set DensityList {2.0 2.6 6.0 10.0 15.0 20.0 35.0 70.0}
+	set DensityList {2.0 2.6 6.0 10.0 15.0 20.0 35.0 70.0 100.0}
 	set TapeDensity 35.0
 
-	set hostname [$widget.textframe.entry get]
+	set tapehostname [$widget.textframe.entry get]
+	set ftphostname  [$widget.ftpframe.entry get]
+
 	set password [$widget.pwframe.entry get]
 
 	set oldbind [bind $widget <Destroy>]
@@ -355,7 +358,7 @@ namespace eval  GetTape {
 	bind $widget <Destroy> $oldbind
 	set drivelist ""
 	
-	catch {set drivelist [RemoteInfo::GetTapeDrives $hostname]} output
+	catch {set drivelist [RemoteInfo::GetTapeDrives $tapehostname]} output
 	frame $widget.listframe
 	listbox $widget.listframe.drivelist -relief raised -borderwidth 2 \
 		-yscrollcommand "$widget.listframe.scroller set" \
@@ -385,7 +388,7 @@ namespace eval  GetTape {
 	}
 
 	button $widget.ok   -text Ok \
-	    -command "GetTape::GetTapeOk $widget $hostname $password $Callback"
+	    -command "GetTape::GetTapeOk $widget $ftphostname $tapehostname $password $Callback"
 	button $widget.back -text Back \
 		-command "GetTape::GetTapeBack $widget $Callback"
 	pack $widget.ok $widget.back
@@ -402,9 +405,15 @@ namespace eval  GetTape {
 #
 
     proc GetTapeDrive {widget CallBack} {
+	variable DefaultFtp
 
+	frame $widget.ftpframe
 	frame $widget.textframe
 	frame $widget.pwframe
+
+	label $widget.ftpframe.label -text "Ftp host: "
+	entry $widget.ftpframe.entry 
+	$widget.ftpframe.entry insert end $DefaultFtp
 
 	label $widget.textframe.label -text "Host with tapedrive: "
 	entry $widget.textframe.entry
@@ -415,6 +424,11 @@ namespace eval  GetTape {
 
 	button $widget.button -text "Ok" \
 		-command "GetTape::HostGotten $widget $CallBack"
+
+	#  Set up the widget layouts:
+	
+	pack $widget.ftpframe
+	pack $widget.ftpframe.label $widget.ftpframe.entry -side left
 	pack $widget.textframe
 	pack $widget.textframe.label $widget.textframe.entry -side left
 	pack $widget.pwframe

@@ -275,6 +275,9 @@ DAMAGES.
 
 		     END OF TERMS AND CONDITIONS
 */
+#ifndef VMEMODULE_H
+#define VMEMODULE_H
+
 static const char* Copyright= "(C) Copyright Michigan State University 2002, All rights reserved";/*
   \class CVmeModule
   \file CVmeModule.cpp
@@ -352,16 +355,16 @@ CVmeModule::CVmeModule(Space space, UInt_t base, UInt_t length, int nCrate)
   try {
     switch(space) {
     case a16d16:
-      m_CVME = CVME<UShort_t>(CVME<UShort_t>::a16d16, base, length);
+      m_CVME = CVME<UShort_t>(CVME<UShort_t>::a16d16, base, length, nCrate);
       break;
     case a24d16:
-      m_CVME = CVME<UShort_t>(CVME<UShort_t>::a24d16, base, length);
+      m_CVME = CVME<UShort_t>(CVME<UShort_t>::a24d16, base, length, nCrate);
       break;
     case a24d32:
-      m_CVME = CVME<UShort_t>(CVME<UShort_t>::a24d32, base, length);
+      m_CVME = CVME<UShort_t>(CVME<UShort_t>::a24d32, base, length, nCrate);
       break;
     case a32d32:
-      m_CVME = CVME<UShort_t>(CVME<UShort_t>::a32d32, base, length);
+      m_CVME = CVME<UShort_t>(CVME<UShort_t>::a32d32, base, length, nCrate);
       break;
     case geo:
       m_CVME =  CVME<UShort_t>(CVME<UShort_t>::geo, base, length);
@@ -370,7 +373,7 @@ CVmeModule::CVmeModule(Space space, UInt_t base, UInt_t length, int nCrate)
       throw 1;			// Force the catch below to complain.
     }
   }
-  catch(...) {
+  catch(int i) {
     throw string("Invalid address space in CVMEModule constructor");
   }
 #endif
@@ -610,3 +613,5 @@ CVmeModule::CopyToMe(const CVmeModule& rModule)
   m_CVME = rModule.m_CVME;
 #endif
 }
+
+#endif

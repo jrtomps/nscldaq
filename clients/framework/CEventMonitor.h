@@ -313,7 +313,7 @@ static const int FOREVER = INT_MAX;
 static const int COS_ALLBITS   = 0xffffffff;
 static const int COS_MAXBUFTAG = 0x00ffffff;
 /*!
-  \class: CEventMonitor
+
 
 
   This file defines the CEventMonitor class.

@@ -275,7 +275,7 @@ DAMAGES.
 
 		     END OF TERMS AND CONDITIONS
 */
-//! \class: CServerConnectionEvent           
+
 //! \file:  CServerConnectionEvent.h
 // Author:
 //   Ron Fox

@@ -291,6 +291,13 @@ static const char* Copyright= "(C) Copyright Michigan State University 2002, All
 //
 /* Change log:
       $Log$
+      Revision 3.2  2004/06/18 12:11:01  ron-fox
+      Merge 7.4 development into 8.0 main line.
+
+      Revision 3.1.4.1  2004/02/09 17:49:45  ron-fox
+      Bugzilla 76: Improve accuracy of the elpased run time by doing differences of absolute times
+      rather than summing incremental times.
+
       Revision 3.1  2003/03/22 04:03:46  ron-fox
       Added SBS/Bit3 device driver.
 
@@ -377,7 +384,7 @@ bool
 CVMETrigger::Check()
 {
   volatile register UShort_t* pTriggerRegister(m_pTriggerRegister);
-  for(int i =0; i < 10; i++) {  // unroll loop:
+  //  for(int i =0; i < 10; i++) {  // unroll loop:
     if(*pTriggerRegister & 1) return true;
     if(*pTriggerRegister & 1) return true;
     if(*pTriggerRegister & 1) return true;
@@ -389,7 +396,7 @@ CVMETrigger::Check()
     if(*pTriggerRegister & 1) return true;
     if(*pTriggerRegister & 1) return true;
     if(*pTriggerRegister & 1) return true;
-  }
+    // }
   return false;
 }
 

@@ -235,7 +235,10 @@ those countries, so that distribution is permitted only in or among
 countries not thus excluded.  In such case, this License incorporates
 the limitation as if written in the body of this License.
 
-  9. The Free Software Foundation may publish revised and/or new versions of the General Public License from time to time.  Such new versions will be similar in spirit to the present version, but may differ in detail to address new problems or concerns.
+  9. The Free Software Foundation may publish revised and/or new versions 
+of the General Public License from time to time.  Such new versions will 
+be similar in spirit to the present version, but may differ in detail to
+ address new problems or concerns.
 
 Each version is given a distinguishing version number.  If the Program
 specifies a version number of this License which applies to it and "any
@@ -273,7 +276,7 @@ THIRD PARTIES OR A FAILURE OF THE PROGRAM TO OPERATE WITH ANY OTHER PROGRAMS),
 EVEN IF SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH 
 DAMAGES.
 
-		     END OF TERMS AND CONDITIONS
+		     END OF TERMS AND CONDITIONS '
 */
 static const char* Copyright = "(C) Copyright Ron Fox 2002, All rights reserved";
 /*! 
@@ -295,7 +298,7 @@ static const char* Copyright = "(C) Copyright Ron Fox 2002, All rights reserved"
 ////////////////////////// FILE_NAME.cpp /////////////////////////////////////////////////////
 #include "CModuleCommand.h"  
 #include "CModuleCreator.h"
-#include "CDigitizerModule.h"
+#include "CReadableObject.h"
 #include "CReadOrder.h"
 #include <tcl.h>
 #include <algorithm>
@@ -304,59 +307,15 @@ static const char* Copyright = "(C) Copyright Ron Fox 2002, All rights reserved"
 #include <TCLResult.h>
 
 
-// Helper classes.
-
-// Function class to build up the output of module -list:
-
-class ListGatherer
-{
-private:
-   CTCLResult& m_rResult;
-   char*       m_pMatch;
-public:
-   ListGatherer(CTCLResult& rResult, char* pMatch) :
-      m_rResult(rResult),
-      m_pMatch(pMatch)
-   {}
-   void operator()(pair<string, CDigitizerModule*> p)
-   {
-      string name((p.first));
-      string type((p.second)->getType());
-      if(Tcl_StringMatch(name.c_str(), m_pMatch)) {
-	 string element(name);
-	 element += " ";
-	 element += type;
-	 m_rResult.AppendElement(element.c_str());
-      }
-   }
-};
-// Function class to build up the output of module -types:
-class TypesGatherer
-{
-private:
-   CTCLResult& m_rResult;
-public:
-   TypesGatherer(CTCLResult& rResult) :
-      m_rResult(rResult)
-   {}
-   void operator()(CModuleCreator* pModule) {
-      m_rResult += pModule->getModuleType();
-      m_rResult += "\t-\t";
-      m_rResult += pModule->Help();
-      m_rResult += "\n";
-   }
-};
 
 /*!  Constructor.  This is essentially a no-op since STL
   containers are capable of default initialization.
 */
 CModuleCommand::CModuleCommand (CTCLInterpreter* pInterp,
 				CDigitizerDictionary* pDictionary,
-				CReadOrder*           pReader,
 				const string&         rCommand) :
   CTCLProcessor(rCommand, pInterp),
-  m_pModules(pDictionary),
-  m_pReader(pReader)
+  m_pModules(pDictionary)
 {
    Register();
 } 
@@ -490,7 +449,7 @@ CModuleCommand::Create(CTCLInterpreter& rInterp,
    
    if(nArgs < 2) {
       rResult = Usage();
-      status = TCL_ERROR;
+      status  = TCL_ERROR;
    }
    else {
       string ModuleName(pArgs[0]);
@@ -505,33 +464,27 @@ CModuleCommand::Create(CTCLInterpreter& rInterp,
       }
       else {
 	 // Locate the matching Creator:
-	 
-	 CreatorIterator i = CreatorBegin();
-	 while (i != CreatorEnd()) {
-	    if((*i)->getModuleType() == Moduletype) {
-	       break;
-	    }
-	    i++;
-	 }
-	 if(i == CreatorEnd()) {
-	    rResult  = "Unable create module type: ";
-	    rResult += Moduletype;
-	    rResult += " does not have an associated creator";
+	
+	CreatorIterator i = FindCreator(Moduletype);
+	if(i == CreatorEnd()) {
+	  rResult  = "Unable create module type: ";
+	  rResult += Moduletype;
+	  rResult += " does not have an associated creator";
+	  status = TCL_ERROR;
+	}
+	else {
+	  CReadableObject* pModule = (*i)->Create(rInterp,
+						  rResult,
+						  nArgs,
+						  pArgs);
+	  if(! pModule) {
+	    rResult += "Unable to create module";
 	    status = TCL_ERROR;
-	 }
-	 else {
-	    CDigitizerModule* pModule = (*i)->Create(rInterp,
-						     rResult,
-						     nArgs,
-						     pArgs);
-	    if(! pModule) {
-	       rResult = "Unable to create module";
-	       status = TCL_ERROR;
-	    }
-	    else {
-	       m_pModules->DigitizerAdd(pModule);
-	    }
-	 }
+	  }
+	  else {
+	    m_pModules->DigitizerAdd(pModule);
+	  }
+	}
       }
    }
    return status;
@@ -577,7 +530,7 @@ CModuleCommand::List(CTCLInterpreter& rInterp,
 		     int nArgs, char** pArgs)  
 { 
    int nStatus = TCL_OK;
-   // Skip over the leading parameter and, figure out the match
+   // Figure out the match
    // pattern.  If none is supplied, it's *.
    
    char* pPattern = "*";
@@ -586,8 +539,10 @@ CModuleCommand::List(CTCLInterpreter& rInterp,
       rResult += Usage();
       nStatus = TCL_ERROR;
    }
-   else {
-      if(nArgs) pPattern = *pArgs;    // Update the pattern.
+   else {		       
+      if(nArgs) {	      // This is really exactly one parameter : pattern.
+	pPattern = *pArgs;    // Update the pattern.
+      }
 	 
       // Next iterate through the modules in the map
       // adding appropriate modules to the list>
@@ -643,26 +598,25 @@ CModuleCommand::Delete(CTCLInterpreter& rInterp,
   if(nArgs != 1)  {
       rResult  = "Extra parameters following module -delete \n";
       rResult += Usage();
-      nStatus = TCL_ERROR;
+      nStatus  = TCL_ERROR;
    }
    else {
       string sName(*pArgs);            // Name to delete.
       CDigitizerDictionary::ModuleIterator p = DigitizerFind(sName);
       if(p == DigitizerEnd()) {
-	 nStatus = TCL_ERROR;
+	 nStatus  = TCL_ERROR;
 	 rResult  = sName;
 	 rResult += ": Module does not exist";
       }
       else {
-	 CReadOrder::ModuleIterator rp = m_pReader->find(sName);
-	 if(rp != m_pReader->end()) {     // If the module is in
-	    m_pReader->Remove(rp);        // the readout list, remove
-	 }
+
 	 // Remove the module from the map and...
-	 
-	 CDigitizerModule* pModule = p->second;
+
+	 CReadableObject* pModule = p->second;
+	 assert(pModule);	// Better be non-null!!
 	 m_pModules->Remove(p);
-	 delete pModule;     // Destroy it.
+	 pModule->OnDelete();	// This unlinks it from any reader.
+	 delete pModule;	// Destroy it.
       }
    }
    return nStatus;
@@ -730,8 +684,10 @@ command.
 */
 void 
 CModuleCommand::AddCreator(CModuleCreator* pCreator)  
-{ 
-   m_Creators.push_back(pCreator);
+{
+  if(pCreator) {
+    m_Creators.push_back(pCreator);
+  }
 }
 /*!
   Returns an iterator to the front  of the creator list:
@@ -811,3 +767,54 @@ CModuleCommand::Usage()
    return usage;
 }
 
+/*!
+   Locate a module creator that matches the creation name.
+   \param ModuleName (const string&)
+       Name of the module type to locate.
+   \return CreatorIterator
+      end() if not found otherwise an iterator 'pointing' to the
+      creator.
+*/
+CModuleCommand::CreatorIterator
+CModuleCommand::FindCreator(const string& ModuleType)
+{
+  CreatorIterator i = CreatorBegin();
+  while (i != CreatorEnd()) {
+    if((*i)->getModuleType() == ModuleType) {
+      break;
+    }
+    i++;
+  }
+  return i;
+
+}
+//  Implementation of local classes:
+
+
+// ListGatherer:
+
+void 
+CModuleCommand::ListGatherer::operator()(pair<string,CReadableObject*>p)
+{
+  string name((p.first));
+  CReadableObject* pModule = p.second;
+  assert(pModule);
+  string type(pModule->getType());
+  if(Tcl_StringMatch(name.c_str(), m_pMatch)) {
+    string element(name);
+    element += " ";
+    element += type;
+    m_rResult.AppendElement(element.c_str());
+  }
+}
+//   TypesGatherer:
+
+void
+CModuleCommand::TypesGatherer::operator()(CModuleCreator* pModule)
+{
+  assert(pModule);
+  m_rResult += pModule->getModuleType();
+  m_rResult += "\t-\t";
+  m_rResult += pModule->Help();
+  m_rResult += "\n";
+}

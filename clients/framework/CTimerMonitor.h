@@ -276,7 +276,7 @@ DAMAGES.
 		     END OF TERMS AND CONDITIONS
 */
 /*! 
-  \class: CTimerMonitor
+
   \file:  CTimerMonitor.h
 
   Author:

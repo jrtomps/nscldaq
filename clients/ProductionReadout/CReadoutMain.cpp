@@ -274,7 +274,7 @@ EVEN IF SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH
 DAMAGES.
 
 		     END OF TERMS AND CONDITIONS
-*/
+' */
 static const char* Copyright = "(C) Copyright Michigan State University 2002, All rights reserved";/////////////////////////CReadoutMain.cpp file////////////////////////////////////
 
 /*
@@ -282,6 +282,13 @@ static const char* Copyright = "(C) Copyright Michigan State University 2002, Al
   
   Change Log:
    $Log$
+   Revision 3.3  2004/06/18 12:10:59  ron-fox
+   Merge 7.4 development into 8.0 main line.
+
+   Revision 3.2.4.1  2004/03/04 13:53:48  ron-fox
+   Correct the base address of the VME trigger module to 0x444400 and encapsulate
+   it in a static const long: VMETRIGGERBASE
+
    Revision 3.2  2003/08/22 18:42:54  ron-fox
    Correct the location of the CAMAC NIM status output module.  Change period variable name to frequency for compatibility with existing stuff (too bad about that since it really is a period).
 
@@ -339,6 +346,8 @@ static const char* Copyright = "(C) Copyright Michigan State University 2002, Al
 #include <string.h>
 #include <iostream.h>
 #include <unistd.h>
+
+static const long VMETRIGGERBASE(0x444400);
 
 
 extern CReadoutMain MyApp;
@@ -489,8 +498,8 @@ void
 CReadoutMain::CreateExperiment()  
 {
   if(m_fVmeTrigger) {
-    m_Experiment.EstablishTrigger(new CVMETrigger(0xf000));
-    m_Experiment.EstablishBusy(new CVMEStatusModule(0xf000));
+    m_Experiment.EstablishTrigger(new CVMETrigger(VMETRIGGERBASE));
+    m_Experiment.EstablishBusy(new CVMEStatusModule(VMETRIGGERBASE));
   } 
   else {
     m_Experiment.EstablishTrigger(new CCAMACTrigger(0));

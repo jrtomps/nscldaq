@@ -277,7 +277,7 @@ DAMAGES.
 */
 static const char* Copyright= "(C) Copyright Michigan State University 2002, All rights reserved";/*!
    \file  CXtEventLoop.cpp 
-   \class CXtEventLoop   
+
            Encapsulates an occurance of an Xt event loop.  
            The main loop synchronizes the event loop thread
            with the application each pass through the 

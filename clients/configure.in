@@ -5,14 +5,14 @@ AM_CONFIG_HEADER(config.h)
 
 #    Separate device libraries.
 
-AM_INIT_AUTOMAKE(nscldaq, 7.4)  
+AM_INIT_AUTOMAKE(nscldaq, 8.0)  
 
 #
 #   The variable below should track the
 #   version number above to ensure that
 #   all the .so's get appropriately versioned:
 #
-SOVERSION="7:4"
+SOVERSION="8:0"
 
 
 #  Checks for parameters:
@@ -374,7 +374,81 @@ else
   AC_MSG_RESULT([System is not running an SMP kernel])
 fi
 
+#
+#   Look for epics in:
+#    /usr/local/epics
+#    /opt/epics
+#    /soft/intel/epics   [nscl].
+#    --with-epics-rootdir=
+# Underneath that we have (we require intel linux remember):
+#    include                  - the include directory
+#    include/os/linux-x86     - os specific includes.
+#    lib/linux-x86            - libs
+#    bin/linux-x86/caRepeater - The caRepeater program.
+#
+
+epicstestdirs="/usr/local/epics /opt/epics /soft/intel/epics"
+haveepics="no"
+
+AC_MSG_CHECKING([ for epics includes, libs and binaries])
+
+#  Check for --with-epics-rootdir....
+
+AC_ARG_WITH(epics-rootdir,
+	[  --with-epics-rootdir=top level directory of EPICS install],
+	[haveepics="yes"
+	 epicsroot="$withval"],
+	[haveepics="no"])
+
+
+
+if test $haveepics == "no"
+then
+   for dir in $epicstestdirs
+   do
+      if test $haveepics == "no"
+      then
+        AC_CHECK_FILE([${dir}/include/cadef.h],
+	              [haveepics="yes"
+                       epicsroot=$dir])
+      fi
+   done
+fi
+
+#  If we found epics we can build the software that needs it.
+#  otherwise it's optional.
+
+if test $haveepics == "yes"
+then
+	# Have epics:
+
+   EPICSSOFTWARE="controlpush" # Add this directory to build.
+   EPICS_INCLUDES="-I$epicsroot/include -I$epicsroot/include/os/Linux"
+   EPICS_LDFLAGS="-L$epicsroot/lib/linux-x86 -lca -Wl,\"-rpath=$epicsroot/lib/linux-x86\""
+   EPICS_BIN="-DEPICS_BIN=\"\\\"$epicsroot/bin/linux-x86\\\"\""
+else
+	# No epics.. provide blank variables:
+
+   EPICSSOFTWARE=""	# no directories to add to make.
+   EPICS_LDFLAGS=""	# No ldflags.	
+   EPICS_INCLUDES=""	# No includes.
+   EPICS_BIN=""
+fi
+
 # define substitutions:
+
+#  Go for a strict linguistic interpretation:
+
+#       CXXFLAGS="-std=c++98 -pedantic"
+
+#   someday:   AC_SUBST(CXXFLAGS)
+
+	# EPICS if it exists.
+
+AC_SUBST(EPICSSOFTWARE)
+AC_SUBST(EPICS_LDFLAGS)
+AC_SUBST(EPICS_INCLUDES)
+AC_SUBST(EPICS_BIN)
 
 	# Spectrodaq:
 
@@ -429,7 +503,7 @@ AC_SUBST(SOVERSION)
 
 #  Create output files:
 
-AC_OUTPUT(Makefile Headers/Makefile CopyrightTools/Makefile \
+AC_OUTPUT( Makefile Headers/Makefile CopyrightTools/Makefile \
 	Exception/Makefile  TCL/Makefile Security/Makefile Ftp/Makefile \
 	VMEApi/Makefile cvt/Makefile \
 	SpecTclOnline/Makefile DeviceSupport/Makefile \
@@ -437,11 +511,12 @@ AC_OUTPUT(Makefile Headers/Makefile CopyrightTools/Makefile \
 	EventLog/Makefile  Scaler/Makefile contrib/Makefile \
 	contrib/lecroy/Makefile contrib/whedco/Makefile \
 	contrib/caenv812/Makefile contrib/scriptedReadout/Makefile \
-	contrib/scalerdisplay/Makefile vmetcl/Makefile \
+	contrib/scalerdisplay/Makefile contrib/N568Panel/Makefile \
+	vmetcl/Makefile \
 	vmetcl/camactcl/Makefile vmetcl/vhq202m/Makefile bufdump/Makefile \
 	TclServer/Makefile bcnaf/Makefile TcpHoister/Makefile Stager/Makefile \
 	Scripts/Makefile framework/Makefile AlarmDisplay/Makefile \
 	LogDisplay/Makefile ProductionReadout/Makefile \
 	ProductionReadout/hyperlatex/Makefile \
 	btdriver/Makefile btdriver/dd/Makefile btdriver/lib/Makefile \
-	btdriver/include/Makefile)
+	btdriver/include/Makefile  controlpush/Makefile dvdburn/Makefile )

@@ -24,6 +24,7 @@
 #                   clean up the lockfile.
 #
 package provide UniqueInstance 1.0
+package require Wait
 namespace eval UniqueInstance {
     variable home
     #   Constructs the lock file name:
@@ -82,9 +83,11 @@ namespace eval UniqueInstance {
     #  exits.
 
     proc Exit {App {from "unknown"}} {
-#	puts "UniqueInstance::Exit $App at $from"
+	puts "UniqueInstance::Exit $App at $from"
 	set lockfile [LockFile $App]
 	file delete $lockfile
+	puts "Exiting"
+	# catch Wait
 	exit
     }
 
@@ -98,4 +101,4 @@ set UniqueInstance::home $env(HOME)
 
 
 
-
+ 

@@ -565,6 +565,14 @@ CSocket::Bind(const string& service)
   allowedStates.push_back(Disconnected);
   if(m_State != Disconnected) throw CTCPBadSocketState(m_State, allowedStates,
 						       "CSocket::Bind");
+  // Allow bind to re-use an existing address.. otherwise there are
+  // terrible problems with servers that exit and then restart.
+
+  int reuse=TRUE;
+  if(setsockopt(m_Fd, SOL_SOCKET,
+		SO_REUSEADDR,  &reuse, sizeof(int)) < 0) {
+    throw CErrnoException("CSocket::Bind - setsockopt92) for re-use failed");
+  }
 
   // Determine the service in network byte order.
 

@@ -5,7 +5,6 @@ install-exec-local:
 	for f in *.gif; do $(INSTALL_DATA) $$f $(prefix)/Images; done
 	for f in *.tcl; do $(INSTALL_DATA) $$f $(prefix)/Scripts; done
 	./installpkg $(prefix)
-		
 
 EXTRA_DIST = AddButton.gif \
 	CancelButton.gif \
@@ -26,4 +25,3 @@ EXTRA_DIST = AddButton.gif \
 	tablelistWidget.tcl \
 	installpkg \
 	LogDisplay
-	

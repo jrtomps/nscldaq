@@ -288,6 +288,13 @@ exec wish ${0} ${@}
 #
 #  Change Log:
 #  $Log$
+#  Revision 3.2  2004/06/18 12:11:02  ron-fox
+#  Merge 7.4 development into 8.0 main line.
+#
+#  Revision 3.1.4.1  2004/04/19 13:13:11  ron-fox
+#  - BUG 121 - Fix incompatibility with TCL 8.4 in crateloator.tcl nested error's
+#  no longer get caught by catch.
+#
 #  Revision 3.1  2003/03/22 04:03:51  ron-fox
 #  Added SBS/Bit3 device driver.
 #
@@ -318,13 +325,22 @@ set devicename /dev/btp                ;# Sbs device name.
 proc GetUnitList {} { 
    global devicename
    set units ""
-   for {set i 0} {$i < 16} {incr i} {
-      if {[catch "set type [file type $devicename$i]"] == 0} {
+   set devlist ""
+ 
+    #   Tcl 8.4 apparently won't catch the nested failures, so first
+    #  enumerate the devices that exist:
+
+    append devlist [glob -nocomplain /dev/btp\[0-9\]] \
+                   [glob -nocomplain /dev/btp1\[0-5\]]
+
+    foreach device $devlist {
+      if {[catch "set type [file type $device]"] == 0} {
 	 if {$type == "characterSpecial"} {
-	    lappend units $i
+	     scan $device "/dev/btp%d" unit
+	     lappend units $unit
 	 }
       }
-   }	
+   }
    return $units
 }
 

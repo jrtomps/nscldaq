@@ -235,7 +235,10 @@ those countries, so that distribution is permitted only in or among
 countries not thus excluded.  In such case, this License incorporates
 the limitation as if written in the body of this License.
 
-  9. The Free Software Foundation may publish revised and/or new versions of the General Public License from time to time.  Such new versions will be similar in spirit to the present version, but may differ in detail to address new problems or concerns.
+  9. The Free Software Foundation may publish revised and/or new 
+versions of the General Public License from time to time.  Such 
+new versions will be similar in spirit to the present version, 
+but may differ in detail to address new problems or concerns.
 
 Each version is given a distinguishing version number.  If the Program
 specifies a version number of this License which applies to it and "any
@@ -273,7 +276,14 @@ THIRD PARTIES OR A FAILURE OF THE PROGRAM TO OPERATE WITH ANY OTHER PROGRAMS),
 EVEN IF SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH 
 DAMAGES.
 
-		     END OF TERMS AND CONDITIONS
+END OF TERMS AND CONDITIONS'
+*/
+
+/*!
+  This class is largely obsoleted by CReadableObject. From now on
+  derive directly from CReadable object.
+  This class is provided for compatibility with the prior structure of the
+  framework.
 */
 // Author:
 //   Ron Fox
@@ -287,70 +297,21 @@ DAMAGES.
 #ifndef __CDIGITIZERMODULE_H  //Required for current class
 #define __CDIGITIZERMODULE_H
 
-//
-// Include files:
-//
-#ifndef __TCLPROCESSOR_H
-#include <TCLProcessor.h>
-#endif
-                               //Required for 1:1 association classes
-#ifndef __CCONFIGURATIONPARAMETER_H
-#include "CConfigurationParameter.h"
-#endif
- 
-#ifndef __STL_LIST
-#include <list>
-#define __STL_LIST
+#ifndef __CREADABLEOBJECT_H
+#include "CReadableObject.h"
 #endif
 
-#ifndef __STL_STRING
-#include <string>
-#define __STL_STRING
-#endif
+class CTCLInterpreter;
 
-#ifndef __SPECTRODAQ_H
-#include <spectrodaq.h>
-#define __SPECTRODAQ_H
-#endif
+
+
 
 // Forward class definitions:
 
 
 
-/*!
-Encapsulates a digitizer module.  This function has two roles.
-- Configuration management
-- Data Acquisition
-
-Configuration management is handled by
-deriving from CTCLProcessor.  The object represents
-a new TCL command m_sName.  The default parser
-for this command is able to handle three subcommands:
-- config  Sets up the module dependent configuration.
-- cget     Shows the module dependent configuration, or
-              a subset thereof.
-- help     Shows the module's command help.
-
-Data acquisition is done via the member functions called
-by the readout harness of the software:
-- Initialize: performs one-time beginning of run initialization
-  from the configuration parameters set by the config command.
-- Prepare does preparation required +to enable a device to be triggered
-  and readout.  This is done prior to each trigger.
-- Read reads the digitizer's contribution to the event.
-- Clear does any post readout module cleanup.
-*/
-class CDigitizerModule : public CTCLProcessor     
+class CDigitizerModule : public CReadableObject    
 {
-  // Class specific types: for the arrays of parameters.
-public:  
-  typedef list<CConfigurationParameter*> ConfigArray;
-  typedef ConfigArray::iterator          ParameterIterator;
- 
-private:
-  
-  string      m_sName;           //!< name of module.  
-  ConfigArray m_Configuration;   //!< Boolean flags.
  
 public:
 
@@ -359,95 +320,14 @@ public:
   CDigitizerModule (const string& rName,
                     CTCLInterpreter& rInterp); 
   virtual ~CDigitizerModule ( );
-  // Copy like operations are illegal, and therefore
-  // so is equality testing.  This requirement comes from
-  // our base class.
+
 private:
   CDigitizerModule (const CDigitizerModule& rhs );
   CDigitizerModule& operator= (const CDigitizerModule& rhs);
   int operator== (const CDigitizerModule& rhs) const;
   int operator!= (const CDigitizerModule& rhs) const;
 public:
-// Selectors:
 
-public:
-
-          //Get accessor function for non-static attribute data member
-  string getName() const
-  { return m_sName;
-  }   
-
-  const ConfigArray& getConfiguration() const 
-  {
-    return m_Configuration;
-  }
-  
-  // Attribute mutators:
-
-protected:
-
-          //Set accessor function for non-static attribute data member
-  void setName (const string am_sName)
-  {
-    m_sName = am_sName;
-  }   
-
-
-
-  // Class operations:
-
-public:
-
-  virtual   int operator() (CTCLInterpreter& rInterp, 
-                            CTCLResult&      rResult, 
-                            int nArgs, char** pArgs)   ; 
-  virtual   int Configure (CTCLInterpreter& rInterp, 
-                           CTCLResult&      rResult, 
-                           int nArgs, char** pArgs)   ;  
-  virtual   int ListConfiguration (CTCLInterpreter& rInterp, 
-                                   CTCLResult&      rResult, 
-                                   int nArgs, char** pArgs);
-  virtual   string Usage (); 
-  virtual   void Initialize ()   = 0;
-  virtual   void Prepare ()   = 0; 
-  virtual   void Read (DAQWordBufferPtr& rBuffer)   = 0; //!< Read to DAQ buf.
-  virtual   int  Read(void* pBuffer) = 0;                //!< Read to ordinary buf.
-  virtual   void Clear ()   = 0; 
-  void AddIntParam (const string& sParamName,
-                    int nDefault = 0);
-  void AddIntArrayParam (const string& rParamName, 
-                         int nArraySize,
-                         int nDefault = 0);
-  void AddBoolParam (const string& rName,
-                     bool fDefault = false); 
-
-  void AddStringParam(const string& rName);
-
-  void AddStringArrayParam(const string& rName,
-			   int nArraySize);
-
-  ParameterIterator begin() {
-    return m_Configuration.begin();
-  }
-  ParameterIterator end() {
-    return m_Configuration.end();
-  }
-  ParameterIterator Find(const string& rKeyword);
-  ParameterIterator Find(const char*   pKeyword) {
-    return Find(string(pKeyword));
-  }
-  
-  virtual string getType() const = 0;
-
-
-// private utility functions.
-  
-private:
-  void DeleteParameters();
-protected:
-  string ListParameters(CTCLInterpreter& rInterp,
-                      const string& rPattern);
-  string ListKeywords();
 
 };
 

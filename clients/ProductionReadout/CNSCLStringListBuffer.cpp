@@ -322,7 +322,7 @@ CNSCLStringListBuffer::CNSCLStringListBuffer (unsigned nWords) :
 bool 
 CNSCLStringListBuffer::PutEntityString(const string& rString)  
 {
-  if(!EntityFits(rString.size() + 2)) {	// Check worst case entity size.
+  if(!EntityFits((rString.size() + 2)/sizeof(short))) {	// Check worst case entity size.
     return false;
   }
   StartEntity();

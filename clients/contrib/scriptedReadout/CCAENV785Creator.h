@@ -235,7 +235,10 @@ those countries, so that distribution is permitted only in or among
 countries not thus excluded.  In such case, this License incorporates
 the limitation as if written in the body of this License.
 
-  9. The Free Software Foundation may publish revised and/or new versions of the General Public License from time to time.  Such new versions will be similar in spirit to the present version, but may differ in detail to address new problems or concerns.
+  9. The Free Software Foundation may publish revised and/or new
+ versions of the General Public License from time to time.  Such 
+new versions will be similar in spirit to the present version, but
+ may differ in detail to address new problems or concerns.
 
 Each version is given a distinguishing version number.  If the Program
 specifies a version number of this License which applies to it and "any
@@ -273,7 +276,14 @@ THIRD PARTIES OR A FAILURE OF THE PROGRAM TO OPERATE WITH ANY OTHER PROGRAMS),
 EVEN IF SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH 
 DAMAGES.
 
-		     END OF TERMS AND CONDITIONS
+		     END OF TERMS AND CONDITIONS '
+*/
+/*!
+	Creational class for CAEN V785 module adc.  This class
+	gets registered with the Module command object to 
+	allow it to respond to commands to generate readout objects
+	for the CAEN V785 module.  Our module type string is 
+	caenv785.
 */
 // Author:
 //   Ron Fox
@@ -303,13 +313,7 @@ DAMAGES.
 
 
  
-/*!
-	Creational class for CAEN V785 module adc.  This class
-	gets registered with the Module command object to 
-	allow it to respond to commands to generate readout objects
-	for the CAEN V785 module.  Our module type string is 
-	caenv785.
-*/
+
 class CCAENV785Creator  : public CModuleCreator        
 {
 public:
@@ -319,14 +323,14 @@ public:
   ~CCAENV785Creator ( );
   CCAENV785Creator (const CCAENV785Creator& aCCAENV785Creator );
   CCAENV785Creator& operator= (const CCAENV785Creator& aCCAENV785Creator);
-  int operator== (const CCAENV785Creator& aCCAENV785Creator) const;
-
+  int operator== (const CCAENV785Creator& rhs) const;
+  int operator!= (const CCAENV785Creator& rhs) const;
 
   // Class operations:
 
 public:
 
-   virtual   CDigitizerModule* Create (CTCLInterpreter& rInterp, 
+   virtual   CReadableObject* Create (CTCLInterpreter& rInterp, 
 						   CTCLResult& rResult, 
 						   int nArgs, char** pArgs)   ; 
    virtual   string  Help (); 

@@ -275,8 +275,7 @@ DAMAGES.
 
 		     END OF TERMS AND CONDITIONS
 */
-static const char* Copyright= "(C) Copyright Michigan State University 2002, All rights reserved";//!   \file  CInterpreterStartup.cpp 
-//!   \class CInterpreterStartup  CInterpreterStartup.h
+static const char* Copyright= "(C) Copyright Michigan State University 2002, All rights reserved";
 /*!  Encapsulates interfaces for starting up 
   TCL based interpreter event loops.  The
   TCL interpreter executes within a thread.

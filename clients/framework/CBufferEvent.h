@@ -275,7 +275,6 @@ DAMAGES.
 
 		     END OF TERMS AND CONDITIONS
 */
-//! \class: CBufferEvent           
 //! \file:  CBufferEvent.h
 // Author:
 //   Ron Fox

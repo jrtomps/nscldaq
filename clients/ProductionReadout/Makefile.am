@@ -63,7 +63,8 @@ libPReadout_la_SOURCES = AccessListCheck.cpp \
 	TclAuthorizer.cpp \
 	UnixUserCheck.cpp \
 	cmdline.c \
-	CTKListener.cpp CTKServerInstance.cpp
+	CTKListener.cpp CTKServerInstance.cpp \
+	CStrings.cpp
 
 include_HEADERS = AccessListCheck.h \
 	AuthTokenCheck.h \
@@ -129,15 +130,15 @@ include_HEADERS = AccessListCheck.h \
 	UnixUserCheck.h \
 	cmdline.h  \
 	CTKServerInstance.h \
-	CTKListener.h 
+	CTKListener.h  CStrings.h
 
 
 libPReadout_la_LDFLAGS = -g -version-info $(SOVERSION):0 \
 	-L@top_srcdir@/framework \
 	-L@top_srcdir@/VMEApi \
 	-L@top_srcdir@/Exception \
-	-lEventFramework -lVmeAPI -lException  $(SPECTRODAQ_LDFLAGS) \
-	$(TCL_LDFLAGS) $(X11LIBS) 
+	-lEventFramework -lVmeAPI -lException -lrt  $(SPECTRODAQ_LDFLAGS) \
+	$(TCL_LDFLAGS) $(X11LIBS) -Wl,"-rpath-link=$(libdir)"
 
 INCLUDES =  $(CAMAC) -I@top_srcdir@/Headers \
 	$(VMEBUILDHEADERS)        \
@@ -152,7 +153,7 @@ INCLUDES =  $(CAMAC) -I@top_srcdir@/Headers \
 EXTRA_DIST = 	MyExperiment.cpp \
 	CTraditionalScalerReadout.cpp \
 	CTraditionalEventSegment.cpp  \
-	Makefile.skel
+	Makefile.skel ProductionReadout_Makefile.include
 
 
 install-data-local:
@@ -161,15 +162,9 @@ install-data-local:
 	chmod a+rx $(prefix)/pReadoutSkeleton
 	$(INSTALL_DATA) MyExperiment.cpp $(prefix)/pReadoutSkeleton/Skeleton.cpp
 	echo INSTDIR=$(prefix) > Makefile.user
-	echo BINDIR=$(prefix)/bin                        >> Makefile.user
-	echo LIBDIR=$(prefix)/lib                        >> Makefile.user
-	echo INCLUDEDIR=$(prefix)/include                >> Makefile.user
-	echo VMELIBRARY="$(VMELIBRARY)"                  >> Makefile.user
-	echo VMELIBRARYHEADERS="$(VMELIBRARYHEADERS)"    >> Makefile.user
-	echo spectrodaq_conf_dir=$(spectrodaq_conf_dir)  >> Makefile.user
-	echo CAMAC=$(CAMAC)                              >> Makefile.user
 	cat  Makefile.skel    >> Makefile.user
 	$(INSTALL_DATA) Makefile.user $(prefix)/pReadoutSkeleton/Makefile
+	$(INSTALL_DATA) ProductionReadout_Makefile.include $(prefix)/etc
 	$(INSTALL_DATA) CTraditionalEventSegment.cpp \
 		$(prefix)/pReadoutSkeleton/CTraditionalEventSegment.cpp
 	$(INSTALL_DATA) CTraditionalScalerReadout.cpp \

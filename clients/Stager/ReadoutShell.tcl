@@ -289,6 +289,10 @@ exec wish ${0} ${@}
 package require ReadoutGui
 package require Experiment
 package require ExpFileSystem
+
+
+set CanWrite 1;				# By default events can be recorded. 
+
 proc Usage {} {
     puts "Usage:"
     puts "   ReadoutShell.tcl host path ftphost passwd"
@@ -305,6 +309,162 @@ proc ExactPath {path} {
     cd $dir
     return $exact
 }
+
+#-------------------------- Dialogs: ------------------------------
+#
+#   Output a dialog to figure out what to do if there is no
+#   stage are link.
+# Returns:
+#   0   - Run with event recording disabled.
+#   1   - Exit (default).
+#
+proc NoStageArea {} {
+    set message \
+	"There is no link named ~/stagearea "
+    append message \
+	"The event recording software relies on this link to "
+    append message \
+	"tell it where to record data.  When this account was set up "
+    append message \
+	"you should have received an 'event area'.  "
+    append message \
+	"Until you have created a link to this event aread named "
+    append message "~/stagearea, you will not "
+    append message \
+	"be able to record event data. "
+    append message \
+	" If you need help setting up this link please contact a "
+    append message \
+	"computer group staff member for assistance."
+    
+    return [tk_dialog .stagearea "No stagearea" \
+		$message warning 1 Continue Exit]
+
+}
+#
+#   Output a dialog to figure out what to do if stagarea is not a 
+#   link or does not point to an existing directory:
+# Returns:
+#    0  - Keep running but disable event recording.
+#    1  - Exit (default).
+#
+proc NoStageAreaDirectory {} {
+    set message \
+	"I have found  ~/stagearea, however it is either not a "
+    append message " symbolic link or does not "
+    append message "point to a valid directory."
+    append message \
+	"The event recording software relies on this link to "
+    append message \
+	"tell it where to record data.  When this account was set up "
+    append message \
+	"you should have received an 'event area'.  "
+     append message \
+	"Until you have created a link to this event aread named "
+    append message "~/stagearea, you will not "
+    append message \
+	"be able to record event data."
+    append message \
+	" If you need help setting up this link please contact a "
+    append message \
+	"computer group staff member for assistance."
+    return [tk_dialog .stagearea "No stagearea directory" \
+		$message warning 1 Continue Exit]
+    
+
+}
+#
+#  Output a dialog to figure out what to do if stageare is a link
+#  to a directory to which we don't have write access.
+# Returns:
+#   0   - Keep running but diable event recording.
+#   1   - Exit (default).
+#
+proc NoStageAreaWriteAccess {} {
+    set message \
+	"There is a  ~/stagearea link, however the directory it "
+    append message \
+	"points to is one in which you will not be able to create files."
+    append message \
+	"The event recording software relies on this link to "
+    append message \
+	"tell it where to record data.  When this account was set up "
+    append message \
+	"you should have received an 'event area'.  "
+    append message \
+	"Until you have created a link to this event aread named "
+    append message "~/stagearea, you will not "
+    append message \
+	"be able to record event data."
+    append message \
+	" If you need help setting up this link please contact a "
+    append message \
+	"computer group staff member for assistance."
+    return [tk_dialog .stagearea "No stagearea write access" \
+		$message warning 1 Continue Exit]
+
+}
+
+#
+#   Check the stagearea for various pathalogical conditions.
+#   This function will either:
+#   - Exit if there are problems with the stage area and 
+#     that's the user's choice.
+#   - Set CanWrite to 0 if there are problems with the
+#     stage area and the user chooses to continue.
+#   - Return with no action if the stage area is fine.
+#
+proc CheckStageArea {} {
+    global CanWrite
+    set    salink "~/stagearea";	# Name of link file.
+
+    #  Need a stage area:
+
+    set type 0
+    catch {set type [file type $salink]}
+
+    if {![file exists $salink] && ($type == 0)} {
+	if {[NoStageArea]} {
+	    exit;			# User's choice.
+	} else {
+	    set CanWrite 0
+	    return
+	}
+    }
+    # The stage area exists.. but is it a link
+    # that points to a directory?
+
+    set target      0
+    set targettype  0
+    set type [file type $salink]
+    if {$type == "link"} {
+	set target [file readlink $salink]
+    }
+    if {$target != 0} {
+	catch {set targettype [file type $target]}
+    }
+    if {$type != "link" || $targettype != "directory"} {
+	if {[NoStageAreaDirectory]} {
+	    exit 
+	} else {
+	    set CanWrite 0
+	    return
+	}
+    }
+    # The directory the stage area points to must also
+    # be writable:
+
+    if {![file writable $target]} {
+	if {[NoStageAreaWriteAccess]} {
+	    exit
+	} else {
+	    set CanWrite 0
+	    return
+	}
+    }
+    # Everything is ok!!!
+}
+
 #
 #  Experiment specific files are sourced from:
 #    ~/ReadoutCallouts.tcl
@@ -343,18 +503,39 @@ proc SourceExperimentFiles {} {
     }
 }
 
-if {$argc != 4} Usage
+if {$argc < 3} Usage
 
 set host [lindex $argv 0]
 set path [lindex $argv 1]
 set ftphost [lindex $argv 2]
 set pass [lindex $argv 3]
 
+# modification to avoid password display on command line
+# 2004-02-17 09:53 AS
+if {$pass == ""} {
+ set passwordfile $env(HOME)/.password
+ if {[file exist $passwordfile]} {
+  set fd [open $passwordfile]
+  set pass [gets $fd]
+  close $fd
+ }
+}
+
 SourceExperimentFiles
 
-ExpFileSystem::CreateHierarchy
+CheckStageArea
+
+if {$CanWrite} {
+    ExpFileSystem::CreateHierarchy
+    Experiment::CleanOrphans
+}
+
 Experiment::SetSourceHost $host
 Experiment::SetFtpLogInfo $ftphost $pass
 ReadoutControl::SetReadoutProgram $host $path
 Experiment::Register
 ReadoutGui::ReadoutController .
+
+if {!$CanWrite} {
+    ReadoutGui::DisableEventRecording
+}
