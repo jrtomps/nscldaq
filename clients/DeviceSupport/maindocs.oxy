@@ -1,0 +1,10 @@
+/*!
+	\mainpage NSCL Device support software
+
+	Documented device software support software consists of:
+
+	- \ref caen32main  CAEN 32 channel digitizer support.
+	- \ref caenv1x90main CAEN V1190/1290 TDC support.
+	- \ref sis3600main   Struck SIS 3600 Coincidence register/latch
+	- \ref sis3820 Struck SIS 3820 scaler module.
+*/
