@@ -334,3 +334,6 @@ January 24, 2005
          run this in a spdaq system.
        - Fix up the .cfd sample config files so that they are right
          some needed quoted names others needed crate numbers.
+
+    Run up to first release
+8.0-001
