@@ -1,9 +1,9 @@
-cmd_/root/btdriver/dd/btp_ioctl.o := gcc -Wp,-MD,/root/btdriver/dd/.btp_ioctl.o.d -nostdinc -iwithprefix include -D__KERNEL__ -Iinclude  -Wall -Wstrict-prototypes -Wno-trigraphs -fno-strict-aliasing -fno-common -pipe -msoft-float -mpreferred-stack-boundary=2  -march=i686 -Iinclude/asm-i386/mach-default -O2 -fomit-frame-pointer  -g -DDEBUG  -DBT1003 -I/root/btdriver/dd -I/root/btdriver/include -fno-strength-reduce -Wall -Wstrict-prototypes -fno-common  -DMODULE -DKBUILD_BASENAME=btp_ioctl -DKBUILD_MODNAME=btp -c -o /root/btdriver/dd/.tmp_btp_ioctl.o /root/btdriver/dd/btp_ioctl.c
+cmd_/daq/clients/btdriver2.6/dd/btp_ioctl.o := gcc -Wp,-MD,/daq/clients/btdriver2.6/dd/.btp_ioctl.o.d -nostdinc -iwithprefix include -D__KERNEL__ -Iinclude  -Wall -Wstrict-prototypes -Wno-trigraphs -fno-strict-aliasing -fno-common -pipe -msoft-float -mpreferred-stack-boundary=2  -march=i686 -Iinclude/asm-i386/mach-default -O2 -fomit-frame-pointer  -g -DDEBUG  -DBT1003 -I/daq/clients/btdriver2.6/dd -I/daq/clients/btdriver2.6/include -fno-strength-reduce -Wall -Wstrict-prototypes -fno-common  -DMODULE -DKBUILD_BASENAME=btp_ioctl -DKBUILD_MODNAME=btp -c -o /daq/clients/btdriver2.6/dd/.tmp_btp_ioctl.o /daq/clients/btdriver2.6/dd/btp_ioctl.c
 
-deps_/root/btdriver/dd/btp_ioctl.o := \
-  /root/btdriver/dd/btp_ioctl.c \
-  /root/btdriver/dd/btdd.h \
-  /usr/lib/gcc-lib/i486-linux/3.3.4/include/stddef.h \
+deps_/daq/clients/btdriver2.6/dd/btp_ioctl.o := \
+  /daq/clients/btdriver2.6/dd/btp_ioctl.c \
+  /daq/clients/btdriver2.6/dd/btdd.h \
+  /usr/lib/gcc-lib/i386-linux/2.95.4/include/stddef.h \
   include/linux/types.h \
     $(wildcard include/config/uid16.h) \
   include/linux/config.h \
@@ -24,9 +24,9 @@ deps_/root/btdriver/dd/btp_ioctl.o := \
     $(wildcard include/config/smp.h) \
   include/linux/kernel.h \
     $(wildcard include/config/debug/spinlock/sleep.h) \
-  /usr/lib/gcc-lib/i486-linux/3.3.4/include/stdarg.h \
+  /usr/lib/gcc-lib/i386-linux/2.95.4/include/stdarg.h \
   include/linux/compiler.h \
-  include/linux/compiler-gcc3.h \
+  include/linux/compiler-gcc2.h \
   include/linux/compiler-gcc.h \
   include/asm/byteorder.h \
     $(wildcard include/config/x86/bswap.h) \
@@ -78,7 +78,7 @@ deps_/root/btdriver/dd/btp_ioctl.o := \
   include/asm/rwsem.h \
   include/linux/timer.h \
   include/linux/version.h \
-  /root/btdriver/dd/btpdd.h \
+  /daq/clients/btdriver2.6/dd/btpdd.h \
   include/linux/errno.h \
   include/asm/errno.h \
   include/asm-generic/errno.h \
@@ -261,16 +261,16 @@ deps_/root/btdriver/dd/btp_ioctl.o := \
   include/linux/dma-mapping.h \
   include/asm/dma-mapping.h \
   include/asm-generic/pci.h \
-  /root/btdriver/include/btio.h \
-  /root/btdriver/include/btdef.h \
-  /root/btdriver/include/btpio.h \
-  /root/btdriver/include/btpdef.h \
-  /root/btdriver/include/btngpci.h \
+  /daq/clients/btdriver2.6/include/btio.h \
+  /daq/clients/btdriver2.6/include/btdef.h \
+  /daq/clients/btdriver2.6/include/btpio.h \
+  /daq/clients/btdriver2.6/include/btpdef.h \
+  /daq/clients/btdriver2.6/include/btngpci.h \
     $(wildcard include/config/ctrl.h) \
   include/asm/uaccess.h \
     $(wildcard include/config/x86/intel/usercopy.h) \
     $(wildcard include/config/x86/wp/works/ok.h) \
 
-/root/btdriver/dd/btp_ioctl.o: $(deps_/root/btdriver/dd/btp_ioctl.o)
+/daq/clients/btdriver2.6/dd/btp_ioctl.o: $(deps_/daq/clients/btdriver2.6/dd/btp_ioctl.o)
 
-$(deps_/root/btdriver/dd/btp_ioctl.o):
+$(deps_/daq/clients/btdriver2.6/dd/btp_ioctl.o):

@@ -118,6 +118,7 @@ loff_t btp_llseek(
             end_pos = 192 * SIZE_1KB;
         }
         break;
+    case BT_DEV_GEO:
       case BT_DEV_A24:
         /* 24 address bits */
         end_pos = 16 * SIZE_1MB;
@@ -127,8 +128,9 @@ loff_t btp_llseek(
         /* 16 address bits */
         end_pos = 64 * SIZE_1KB;
         break;
-
-      case BT_DEV_A32:
+    case BT_DEV_A32:
+    case BT_DEV_MCCTL:  
+    case BT_DEV_CBLT:
         /* 32 address bits */
         end_pos = ((loff_t) 1)<<32;
         break;

@@ -86,6 +86,13 @@
 #define BT_AMOD_A16_SD      (0x2D)  /* A16 Short Supervisory Data Access    */
 #define BT_AMOD_A16_ND      (0x29)  /* A16 Short Non-Privileged Data Access */
 
+/*  NSCL Specific additions. */
+
+#define BT_AMOD_GEO         (0x2F)  /* Geographical addressing per CERN     */
+#define BT_AMOD_MCCTL       (0x09)  /* CAEN Multicast control transfers.    */
+#define BT_AMOD_CBLT        (0x0B)  /* CAEN CBLT transfer.                  */
+
+
 #define BT_AMOD_A16     BT_AMOD_A16_SD
 #define BT_AMOD_A16_MAX (0x10000)
 #define BT_AMOD_DP_MAX  (0x800000)

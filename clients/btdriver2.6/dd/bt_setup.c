@@ -261,6 +261,19 @@ void btk_setup(
         unit_p->kern_addr[BT_AXSRE] = NULL;
         unit_p->kern_length[BT_AXSRE] = 0;
         unit_p->logstat[BT_AXSRE] = STAT_ONLINE;
+				/* VME-P Geographical addressing. */
+        unit_p->kern_addr[BT_AXSGEO] = NULL;
+        unit_p->kern_length[BT_AXSGEO] = 0;
+        unit_p->logstat[BT_AXSGEO] = STAT_ONLINE;
+				/* VME-P Multicast control addressing */
+	unit_p->kern_addr[BT_AXSMCCTL]   = NULL;
+	unit_p->kern_length[BT_AXSMCCTL] = 0;
+	unit_p->logstat[BT_AXSMCCTL]     = STAT_ONLINE;
+				/* VME-P Chained block transfer. */
+	unit_p->kern_addr[BT_AXSCBLT]    = NULL;
+	unit_p->kern_length[BT_AXSCBLT]  = 0;
+	unit_p->logstat[BT_AXSCBLT]      = STAT_ONLINE;
+
         
     } else if (IS_SET(unit_p->bt_status, BT_PCI2PCI) &&
                IS_SET(unit_p->bt_status, BT_NEXT_GEN)) {
@@ -285,6 +298,21 @@ void btk_setup(
         unit_p->kern_length[BT_AXSRE] = 0;
         unit_p->logstat[BT_AXSRE] = STAT_ONLINE | STAT_READ | STAT_WRITE | STAT_DMA | STAT_BIND | STAT_MMAP;
 
+
+				/* VME-P Geographical addressing */
+        unit_p->kern_addr[BT_AXSGEO] = NULL;
+        unit_p->kern_length[BT_AXSGEO] = 0;
+        unit_p->logstat[BT_AXSGEO] = STAT_ONLINE;
+				/* VME-P multicast control addressing */
+	unit_p->kern_addr[BT_AXSMCCTL]   = NULL;
+	unit_p->kern_length[BT_AXSMCCTL] = 0;
+	unit_p->logstat[BT_AXSMCCTL]     = STAT_ONLINE;
+				/* VME-P Chained block transfer */
+	unit_p->kern_addr[BT_AXSCBLT]    = NULL;
+	unit_p->kern_length[BT_AXSCBLT]  = 0;
+	unit_p->kern_length[BT_AXSCBLT]  = STAT_ONLINE;
+ 
+
         btk_mutex_enter(unit_p, &(unit_p->mreg_mutex));
         btk_map_half(unit_p, unit_p->mmap_aval_p);
         btk_mutex_exit(unit_p, &(unit_p->mreg_mutex));
@@ -308,6 +336,19 @@ void btk_setup(
         unit_p->kern_addr[BT_AXSRE] = unit_p->rmem_p;
         unit_p->kern_length[BT_AXSRE] = 0;
         unit_p->logstat[BT_AXSRE] = STAT_ONLINE | STAT_READ | STAT_WRITE | STAT_DMA | STAT_BIND | STAT_MMAP;
+				/* VME-P Geographical addressing. */
+        unit_p->kern_addr[BT_AXSGEO] = NULL;
+        unit_p->kern_length[BT_AXSGEO] = 0;
+        unit_p->logstat[BT_AXSGEO] = STAT_ONLINE;
+				/* VME-P Multicast control addressing. */
+        unit_p->kern_addr[BT_AXSMCCTL] = NULL;
+        unit_p->kern_length[BT_AXSMCCTL] = 0;
+        unit_p->logstat[BT_AXSMCCTL] = STAT_ONLINE;
+ 				/* VME-P Chained block transfer. */
+        unit_p->kern_addr[BT_AXSCBLT] = NULL;
+        unit_p->kern_length[BT_AXSCBLT] = 0;
+        unit_p->logstat[BT_AXSCBLT] = STAT_ONLINE;
+
         btk_mutex_enter(unit_p, &(unit_p->mreg_mutex));
         btk_map_half(unit_p, unit_p->mmap_aval_p);
         btk_mutex_exit(unit_p, &(unit_p->mreg_mutex));
@@ -333,6 +374,21 @@ void btk_setup(
         unit_p->kern_addr[BT_AXSRE] = unit_p->rmem_p;
         unit_p->kern_length[BT_AXSRE] = 0;
         unit_p->logstat[BT_AXSRE] = STAT_ONLINE | STAT_READ | STAT_WRITE | STAT_DMA | STAT_BIND | STAT_MMAP;
+
+				/* VME-P Geographical addressing. */
+        unit_p->kern_addr[BT_AXSGEO] = unit_p->rmem_p;
+        unit_p->kern_length[BT_AXSGEO] = 0;
+        unit_p->logstat[BT_AXSGEO] = STAT_ONLINE | STAT_READ | STAT_WRITE | STAT_DMA | STAT_BIND | STAT_MMAP;
+				/* VME-P Multicast control addressing. */
+        unit_p->kern_addr[BT_AXSMCCTL] = unit_p->rmem_p;
+        unit_p->kern_length[BT_AXSMCCTL] = 0;
+        unit_p->logstat[BT_AXSMCCTL] = STAT_ONLINE | STAT_READ | STAT_WRITE | STAT_DMA | STAT_BIND | STAT_MMAP;
+				/* VME-P Chained block transfer addressing. */
+        unit_p->kern_addr[BT_AXSCBLT] = unit_p->rmem_p;
+        unit_p->kern_length[BT_AXSCBLT] = 0;
+        unit_p->logstat[BT_AXSCBLT] = STAT_ONLINE | STAT_READ | STAT_WRITE | STAT_DMA | STAT_BIND | STAT_MMAP;
+
+ 
         btk_mutex_enter(unit_p, &(unit_p->mreg_mutex));
         btk_map_restore(unit_p, unit_p->mmap_aval_p);
         btk_mutex_exit(unit_p, &(unit_p->mreg_mutex));
@@ -356,6 +412,20 @@ void btk_setup(
         unit_p->kern_addr[BT_AXSRE] = unit_p->rmem_p;
         unit_p->kern_length[BT_AXSRE] = 0;
         unit_p->logstat[BT_AXSRE] = STAT_ONLINE | STAT_READ | STAT_WRITE | STAT_DMA | STAT_BIND | STAT_MMAP;
+				/* VME-P Geographical addressing */
+        unit_p->kern_addr[BT_AXSGEO] = unit_p->rmem_p;
+        unit_p->kern_length[BT_AXSGEO] = 0;
+        unit_p->logstat[BT_AXSGEO] = STAT_ONLINE | STAT_READ | STAT_WRITE | STAT_DMA | STAT_BIND | STAT_MMAP;
+				/* VME-P Multicast control  addressing */
+        unit_p->kern_addr[BT_AXSMCCTL] = unit_p->rmem_p;
+        unit_p->kern_length[BT_AXSMCCTL] = 0;
+        unit_p->logstat[BT_AXSMCCTL] = STAT_ONLINE | STAT_READ | STAT_WRITE | STAT_DMA | STAT_BIND | STAT_MMAP;
+				/* VME-P Chained block transfer addressing */
+        unit_p->kern_addr[BT_AXSCBLT] = unit_p->rmem_p;
+        unit_p->kern_length[BT_AXSCBLT] = 0;
+        unit_p->logstat[BT_AXSCBLT] = STAT_ONLINE | STAT_READ | STAT_WRITE | STAT_DMA | STAT_BIND | STAT_MMAP;
+
+
         btk_mutex_enter(unit_p, &(unit_p->mreg_mutex));
         btk_map_restore(unit_p, unit_p->mmap_aval_p);
         btk_mutex_exit(unit_p, &(unit_p->mreg_mutex));
@@ -685,9 +755,13 @@ bool_t btk_invalid_offset(
       case BT_DEV_A16:
         max_off = BT_AMOD_A16_MAX;
         break;
+    case BT_DEV_GEO:
       case BT_DEV_A24:
         max_off = BT_AMOD_A24_MAX;
         break;
+
+    case BT_DEV_MCCTL:
+    case BT_DEV_CBLT:
       case BT_DEV_A32:
       case BT_AXSRE:
 #if defined(__vxworks)

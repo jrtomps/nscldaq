@@ -23,6 +23,8 @@
 static const char revcntrl[] = "@(#)"__FILE__"  $Revision$" __DATE__;
 #endif /* LINT */
 
+#include <stdio.h>
+
 #include  <string.h>   /* for strncp call */
 #include "btapi.h"
 #include "btio.h"

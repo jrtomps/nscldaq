@@ -60,6 +60,9 @@ typedef enum BT_AXSTYPS {
     BT_AXS24,                   /* Access Remote RAM 24-bit space */
     BT_AXSLM,                   /* Access Local Memory (remote window) */
     BT_AXSLDP,                  /* Access Local Dual Port RAM */
+    BT_AXSGEO,			/* CERN Geographical */
+    BT_AXSMCCTL,		/* CAEN Multicast control. */
+    BT_AXSCBLT,			/* CAEN Chained block transfer.  */
     BT_MAX_AXSTYPS,             /* Maximum number of defined access types */
 
     /* 
@@ -77,6 +80,9 @@ typedef enum BT_AXSTYPS {
     BT_DEV_A24 = BT_AXS24,	/* Remote bus A24 (short) space */
     BT_DEV_RR = BT_AXSRR,	/* Remote bus A32 (standard) space */
     BT_DEV_LM = BT_AXSLM,	/* Local Memory device */
+    BT_DEV_GEO = BT_AXSGEO,	/* CERN Geo */
+    BT_DEV_MCCTL=BT_AXSMCCTL,	/* CERN multicast */
+    BT_DEV_CBLT = BT_AXSCBLT,	/* CERN Chain block xfer. */
     BT_DEV_NIO = BT_AXSIO,	/* Adapter Node I/O registers */
     BT_DEV_DIAG = BT_AXSIO,	/* For Internal Use Only! */
     
@@ -1365,14 +1371,14 @@ typedef unsigned long  data32_t;
 */
 #define BT_MOCK_UNIT   99               /* When real physical unit is unknown */
 
-#define	BT_DEV_SHFT	(5)
+#define	BT_DEV_SHFT	(4)	/* MOre minor devs for each dev. */
 #define	BT_AXS_SHFT	BT_DEV_SHFT	/* Older name */
 
 /*
 ** Linux requires that BT_MAX_UNITS be a simple integer with no parathesis
 ** or operators. It MUST NOT be an expression.
 */
-#define	BT_MAX_UNITS	31	/* Don't change or you will break Linux */
+#define	BT_MAX_UNITS	15	/* Don't change or you will break Linux */
 #if	BT_MAX_UNITS != ((1 << BT_DEV_SHFT) - 1)
 #error	"Shift and maximum values out of sync."
 #endif	/* BT_MAX_UNITS */

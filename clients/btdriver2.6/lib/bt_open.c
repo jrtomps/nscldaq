@@ -31,7 +31,7 @@ static const char revcntrl[] = "@(#)"__FILE__"  $Revision$" __DATE__;
 #include <fcntl.h>
 #include <sys/ipc.h>
 #include <sys/sem.h>
-#include <semaphore.h>
+/* #include <semaphore.h> */
 
 #include "btapi.h"
 #include "btio.h"

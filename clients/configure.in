@@ -18,6 +18,24 @@ SOVERSION="8:0"
 
 #  Checks for parameters:
 
+#  Compute the system type:
+#  We can only build on linux-gnu  
+#  We also have restrictions  on the versions for the drivers.
+#
+
+
+AC_MSG_CHECKING([operating system ])
+
+AC_CANONICAL_HOST
+
+if test "$host_os" == "linux-gnu"
+then
+   kernel_full_version="$(uname -r)"
+   kernel_version="$(echo $kernel_full_version | cut -f1,2 -d.)"
+   AC_MSG_RESULT([Building on $host_os kernel $kernel_version])   
+else
+   AC_MSG_ERROR([This software can only be built on linux-gnu not $host_os])
+fi
 
 
 
@@ -366,22 +384,45 @@ AC_ARG_WITH(vme-interface,
 
 case "$vmeinterface" in
      sbs)
-	VMEDEVICE="SBSBIT3"
-	    # Definitions require to build us:
-
-	VME_DRIVERDIR="btdriver"
-	VMEBUILDHEADERS="-I$(pwd)/btdriver/include"
-	VMEBUILDLIBS="-L$(pwd)/btdriver/lib -lbtp"
-	AC_DEFINE(HAVE_VME_MAPPING, "1",[VME interface capable of mmap(2)])
-	   
+	#  We can support 2.4 and 2.6 kernel builds but they're done
+	#  differently:
+	#
+	   VMEDEVICE="SBSBIT3"
 	   # definitions written into user skeleton makefiles:
 
 	VMELIBRARYHEADERS="-I\$(prefix)/include"
 	VMELIBRARY="-L\$(prefix)/lib -lbtp"
 	AC_DEFINE(HAVE_SBSVME_INTERFACE,"1",[VME interface is sbs/bit3])
-	
+	AC_DEFINE(HAVE_VME_MAPPING, "1",[VME interface capable of mmap(2)])
+
+	case  $kernel_version in 
+	 2.4)
+ 
+	    # Definitions require to build us:
+
+	    VME_DRIVERDIR="btdriver"
+	    VMEBUILDHEADERS="-I$(pwd)/btdriver/include"
+	    VMEBUILDLIBS="-L$(pwd)/btdriver/lib -lbtp -lpthread"
+	   
+	    ;;
+	 2.6)
+	    VME_DRIVERDIR="btdriver2.6"
+	    VMEBUILDHEADERS=-I$(pwd)/btdriver2.6/include
+	    VMEBUILDLIBS="-L$(pwd)/btdriver2.6/lib -lbtp -lpthread"
+	    ;;
+	*)
+	    AC_MSG_ERROR([SBS bit3 driver can only be built on 2.4 or 2.6 kernel this is $kernel_version])
+	    ;;
+        esac
      ;;
      wiener) 
+	#  Can only build on 2.4 kernel at this time:
+
+	if test "$kernel_version" != "2.4"
+        then
+	   AC_MSG_ERROR([Wiener support can only be built on the 2.4 kernel this is $kernel_version])
+        fi
+
 	VMEDEVICE="WIENER"
 	    # Definitions for the build: Static link and driver has no mmap support.
 
@@ -691,7 +732,9 @@ AC_OUTPUT( Makefile Headers/Makefile CopyrightTools/Makefile \
 	LogDisplay/Makefile ProductionReadout/Makefile \
 	ProductionReadout/hyperlatex/Makefile \
 	btdriver/Makefile btdriver/dd/Makefile btdriver/lib/Makefile \
-	btdriver/include/Makefile  controlpush/Makefile dvdburn/Makefile \
+	btdriver/include/Makefile  \
+	btdriver2.6/Makefile btdriver2.6/lib/Makefile btdriver2.6/include/Makefile \
+	controlpush/Makefile dvdburn/Makefile \
 	daqstart/Makefile ScalerDisplay/Makefile ScalerDisplay/ScalerDisplay \
 	wienerdriver/Makefile wienerdriver/driver/Makefile \
 	wienerdriver/lib/Makefile)

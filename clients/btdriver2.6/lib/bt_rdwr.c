@@ -27,7 +27,7 @@ static const char revcntrl[] = "@(#)"__FILE__"  $Revision$" __DATE__;
 #include <unistd.h>
 #include <sys/ipc.h>
 #include <sys/sem.h>
-#include <semaphore.h>
+/* #include <semaphore.h> */
 
 #include "btio.h"
 #include "btapi.h"

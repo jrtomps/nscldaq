@@ -73,10 +73,7 @@ bt_unit_t *bt_unit_array_gp[BT_MAX_UNITS+1] = {
     NULL, NULL, NULL, NULL,
     NULL, NULL, NULL, NULL,
 
-    NULL, NULL, NULL, NULL,
-    NULL, NULL, NULL, NULL,
-    NULL, NULL, NULL, NULL,
-    NULL, NULL, NULL, NULL,
+
 };
 
 /* default File operations structure */
@@ -141,11 +138,7 @@ unsigned int icbr_q_size[BT_MAX_UNITS+1] = {
     DEFAULT_Q_SIZE, DEFAULT_Q_SIZE, DEFAULT_Q_SIZE, DEFAULT_Q_SIZE,
     DEFAULT_Q_SIZE, DEFAULT_Q_SIZE, DEFAULT_Q_SIZE, DEFAULT_Q_SIZE,
     DEFAULT_Q_SIZE, DEFAULT_Q_SIZE, DEFAULT_Q_SIZE, DEFAULT_Q_SIZE,
-    
-    DEFAULT_Q_SIZE, DEFAULT_Q_SIZE, DEFAULT_Q_SIZE, DEFAULT_Q_SIZE,
-    DEFAULT_Q_SIZE, DEFAULT_Q_SIZE, DEFAULT_Q_SIZE, DEFAULT_Q_SIZE,
-    DEFAULT_Q_SIZE, DEFAULT_Q_SIZE, DEFAULT_Q_SIZE, DEFAULT_Q_SIZE,
-    DEFAULT_Q_SIZE, DEFAULT_Q_SIZE, DEFAULT_Q_SIZE, DEFAULT_Q_SIZE
+
 };
 MODULE_PARM(icbr_q_size, "i");
 MODULE_PARM_DESC(icbr_q_size, "Number of entries to create in the interrupt callback routine (ICBR) queue.");
@@ -156,10 +149,6 @@ unsigned long lm_size[BT_MAX_UNITS+1] = {
     DEFAULT_LMEM_SIZE, DEFAULT_LMEM_SIZE, DEFAULT_LMEM_SIZE, DEFAULT_LMEM_SIZE,
     DEFAULT_LMEM_SIZE, DEFAULT_LMEM_SIZE, DEFAULT_LMEM_SIZE, DEFAULT_LMEM_SIZE,
     
-    DEFAULT_LMEM_SIZE, DEFAULT_LMEM_SIZE, DEFAULT_LMEM_SIZE, DEFAULT_LMEM_SIZE,
-    DEFAULT_LMEM_SIZE, DEFAULT_LMEM_SIZE, DEFAULT_LMEM_SIZE, DEFAULT_LMEM_SIZE,
-    DEFAULT_LMEM_SIZE, DEFAULT_LMEM_SIZE, DEFAULT_LMEM_SIZE, DEFAULT_LMEM_SIZE,
-    DEFAULT_LMEM_SIZE, DEFAULT_LMEM_SIZE, DEFAULT_LMEM_SIZE, DEFAULT_LMEM_SIZE
 };
 
 MODULE_PARM(lm_size,"0-" __MODULE_STRING(BT_MAX_UNITS) "l");
@@ -2175,6 +2164,39 @@ static int init_ldev (
     unit_p->dma_addr_mod[BT_AXSRE] = BT_AMOD_A32;
     unit_p->mmap_addr_mod[BT_AXSRE] = BT_AMOD_A32;
     unit_p->data_size[BT_AXSRE] = BT_WIDTH_ANY;
+    /*
+    ** setup logical unit_p->dev_vertex information for geographical
+    ** addressing
+    */
+
+    unit_p->kern_addr[BT_AXSGEO]   = unit_p->rmem_p;
+    unit_p->kern_length[BT_AXSGEO] =  0;
+    unit_p->pio_addr_mod[BT_AXSGEO] = BT_AMOD_GEO;
+    unit_p->dma_addr_mod[BT_AXSGEO] = BT_AMOD_GEO;
+    unit_p->mmap_addr_mod[BT_AXSGEO]= BT_AMOD_GEO;
+    unit_p->data_size[BT_AXSGEO]    = BT_WIDTH_D32;
+    /*
+    ** setup logical unit_p->dev_vertex information for multicast control
+    ** addressing
+    */
+
+    unit_p->kern_addr[BT_AXSMCCTL]   = unit_p->rmem_p;
+    unit_p->kern_length[BT_AXSMCCTL] =  0;
+    unit_p->pio_addr_mod[BT_AXSMCCTL] = BT_AMOD_MCCTL;
+    unit_p->dma_addr_mod[BT_AXSMCCTL] = BT_AMOD_MCCTL;
+    unit_p->mmap_addr_mod[BT_AXSMCCTL]= BT_AMOD_MCCTL;
+    unit_p->data_size[BT_AXSMCCTL]    = BT_WIDTH_D32;
+    /*
+    ** setup logical unit_p->dev_vertex information for chained block transfer
+    ** addressing
+    */
+
+    unit_p->kern_addr[BT_AXSCBLT]   = unit_p->rmem_p;
+    unit_p->kern_length[BT_AXSCBLT] =  0;
+    unit_p->pio_addr_mod[BT_AXSCBLT] = BT_AMOD_CBLT;
+    unit_p->dma_addr_mod[BT_AXSCBLT] = BT_AMOD_CBLT;
+    unit_p->mmap_addr_mod[BT_AXSCBLT]= BT_AMOD_CBLT;
+    unit_p->data_size[BT_AXSCBLT]    = BT_WIDTH_D32;
 
     /*
     **  Setup logical unit_p->dev_vertex information for local dual port
