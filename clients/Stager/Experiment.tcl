@@ -520,6 +520,7 @@ namespace eval  Experiment {
 	RunEnded
 	set nrun [ReadoutControl::GetRun]
 	set rundir [ExpFileSystem::GetRoot]/run$nrun
+	file mkdir  $rundir
 	exec touch $rundir/000RunAbnormallyEnded
     }
     #  Clean up orphaned event files in the stage area's current 
