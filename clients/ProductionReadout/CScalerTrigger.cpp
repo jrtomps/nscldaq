@@ -311,5 +311,6 @@ CScalerTrigger::CScalerTrigger(const CScalerTrigger& rhs) :
 void 
 CScalerTrigger::operator()()  
 {
+  m_rExperiment.TriggerRunVariableBuffer();
   m_rExperiment.TriggerScalerReadout();
 }
