@@ -273,18 +273,19 @@ THIRD PARTIES OR A FAILURE OF THE PROGRAM TO OPERATE WITH ANY OTHER PROGRAMS),
 EVEN IF SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH 
 DAMAGES.
 
-		     END OF TERMS AND CONDITIONS
+		     END OF TERMS AND CONDITIONS '
 */
 static const char* Copyright= "(C) Copyright Michigan State University 2002, All rights reserved";// Assumptions:
 //   Buffers tagged type 2 are event buffers.
 //   Buffers tagged type 3 are control buffers.
 //   We want them all.. unsampled for now.
 //
+#include <config.h>
 
 #include <stdlib.h>
 #include <stdio.h>
-#include <iostream.h>
-#include <iomanip.h>
+#include <Iostream.h>
+#include <Iomanip.h>
 #include <buftypes.h>
 #include <buffer.h>
 #include <assert.h>
@@ -298,6 +299,11 @@ static const char* Copyright= "(C) Copyright Michigan State University 2002, All
 #include "TcpClient.h"
 
 // #include <buffer.h>
+
+#ifdef HAVE_STD_NAMESPACE
+using namespace std;
+#endif
+
 
 #ifndef SPECTRODAQ_H
 #include <spectrodaq.h>
@@ -549,10 +555,11 @@ DAQBuff::GetBuffer(TcpClientConnection& C,
 
   while(nbytes) {		// Loop until all bytes read.
     nread = C.Receive(pB, nbytes);
-    if(nread < 0) return nread;	// Error.
+    if(nread <= 0) {
+      return nread;	// Error.
+    }
     pB     += nread;
     nbytes -= nread;
-  
     totalread += nread;
   }
   return totalread;
@@ -586,7 +593,10 @@ DAQBuff::operator()(int argc, char** argv)
 
   while(1) {
     DAQWordBuffer buffer(m_nBufferSize/sizeof(short));
-    GetBuffer(Connection, RawBuffer, m_nBufferSize);
+    if(GetBuffer(Connection, RawBuffer, m_nBufferSize) <= 0) {
+      cerr << "TcpHoist: Lost link to partner\n";
+      exit(-1);
+    }
     RawBuffer[1] = abs(RawBuffer[1]);
 #ifdef DEBUG
     cerr << "Got buffer type = " << RawBuffer[1] << endl;

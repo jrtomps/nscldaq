@@ -273,7 +273,7 @@ THIRD PARTIES OR A FAILURE OF THE PROGRAM TO OPERATE WITH ANY OTHER PROGRAMS),
 EVEN IF SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH 
 DAMAGES.
 
-		     END OF TERMS AND CONDITIONS
+		     END OF TERMS AND CONDITIONS '
 */
 static const char* Copyright= "(C) Copyright Michigan State University 2002, All rights reserved";// Class: TcpClientConnection
 // Represents a client connection to a Tcp/Ip socket.  These connections
@@ -291,8 +291,10 @@ static const char* Copyright= "(C) Copyright Michigan State University 2002, All
 //    Michigan State University
 //    East Lansing, MI 48824-1321
 //
-//
+// 
 //////////////////////////.cpp file/////////////////////////////////////////////////////
+#include <config.h>
+
 #include "TcpClient.h"    				
 
 #include <sys/poll.h>
@@ -303,6 +305,10 @@ static const char* Copyright= "(C) Copyright Michigan State University 2002, All
 #include <arpa/inet.h>
 #include <netdb.h>
 #include <histotypes.h>
+
+#ifdef HAVE_STD_NAMESPACE
+using namespace std;
+#endif
 
 static char* pCopyrightNotice = 
 "(C) Copyright 1999 NSCL, All rights reserved TcpClient.cpp \n";

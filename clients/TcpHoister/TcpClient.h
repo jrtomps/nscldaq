@@ -350,7 +350,7 @@ class TcpClientConnection
 				// the peer is lost.  If Null, there is 
 				// no callback.
    void* m_DisconnectCbData;	//Disconnect callback client data.
-   string m_sRemoteHost;	//Textual address of host with which we 
+   STD(string) m_sRemoteHost;	//Textual address of host with which we 
 				// are connecting.
    unsigned int m_nRemotePort; //Remote port within the remote host at 
 				// which the server is listening.
@@ -373,14 +373,14 @@ public:
     m_ConnectionCbData(0),  
     m_DisconnectCallback(0),   
     m_DisconnectCbData(0),   
-    m_sRemoteHost(string("localhost")),   
+    m_sRemoteHost(STD(string)("localhost")),   
     m_nRemotePort(1024),   
     m_nFd(0),   
     m_eConnectionState(Disconnected) 
   { 
     
   } 
-  TcpClientConnection(const string& rHost, int nPort=1024) : 
+  TcpClientConnection(const STD(string)& rHost, int nPort=1024) : 
     m_ConnectionCallback(0),
     m_ConnectionCbData(0),
     m_DisconnectCallback(0),
@@ -422,7 +422,7 @@ public:
   void* getDisconnecctCbData() const
   { return m_DisconnectCbData;
   }
-  string getRemoteHost() const
+  STD(string) getRemoteHost() const
   { return m_sRemoteHost;
   }
   unsigned int getRemotePort() const
@@ -448,7 +448,7 @@ protected:
   void setDisconnectCallback (TCPClientCbProc* am_DisconnectCallback)
   { m_DisconnectCallback = am_DisconnectCallback;
   }
-  void setRemoteHost (const string am_sRemoteHost)
+  void setRemoteHost (const STD(string) am_sRemoteHost)
   { m_sRemoteHost = am_sRemoteHost;
   }
   void setRemotePort (const unsigned int am_nRemotePort)
@@ -464,7 +464,7 @@ protected:
 public:
 
    Bool_t Connect ()    ;
-  Bool_t Connect (const string& sRemoteHost, unsigned port) {
+  Bool_t Connect (const STD(string)& sRemoteHost, unsigned port) {
     m_sRemoteHost = sRemoteHost;
     m_nRemotePort = port;
     return Connect();
@@ -472,7 +472,7 @@ public:
    void Disconnect ()    ;
    int Send (void* pData, int nBytes)    ;
    int Receive (void* pData, int nBufferSize)    ;
-   int GetLine (string& rBuffer)    ;
+   int GetLine (STD(string)& rBuffer)    ;
    int Poll ()    ;
    void Flush();		// Flush all pending input.
    TCPConnectionState GetConnectionState ()    const;
@@ -493,7 +493,7 @@ private:
     m_eConnectionState = Disconnected;
   }
   sockaddr_in MakeSocketAddress();
-  static void AppendString(string& rDest, char* pStart, char* pEnd);
+  static void AppendString(STD(string)& rDest, char* pStart, char* pEnd);
   void DisconnectSensed();
 };
 
