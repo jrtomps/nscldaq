@@ -295,6 +295,9 @@ static const char* Copyright= "(C) Copyright Michigan State University 2002, All
 /*
   Modification history:
     $Log$
+    Revision 3.3  2003/08/14 18:32:51  ron-fox
+    Quote the title.
+
     Revision 3.2  2003/05/16 17:33:04  ron-fox
     Support V862 board.
 
@@ -424,10 +427,12 @@ void CScalerClient::OnScalerBuffer(CNSCLScalerBuffer& rScalerBuffer)
   UpdateRunNumber(rScalerBuffer.getRunNumber());
   UpdateRunState(RSActive);
   vector<ULong_t> scalers = rScalerBuffer.getAllScalers();
-  UpdateScalers(scalers, rScalerBuffer.isSnapshot());
-  sCommand=cmd;
-  m_Connection->SendCommand(sCommand);
-  m_Connection->SendCommand(string("Update"));
+  if(scalers.size()) {
+    UpdateScalers(scalers, rScalerBuffer.isSnapshot());
+    sCommand=cmd;
+    m_Connection->SendCommand(sCommand);
+    m_Connection->SendCommand(string("Update"));
+  }
 }
 //////////////////////////////////////////////////////////////////////////////
 //
@@ -794,9 +799,13 @@ CScalerClient::UpdateRunTitle(const char* pNewTitle)
 {
   string cmd("set RunTitle ");
 
-  cmd += '"';
+  if(pNewTitle[0] != '\"') {
+    cmd += '"';
+  }
   cmd += pNewTitle;
-  cmd += '"';
+  if(pNewTitle[0] != '\"') {
+    cmd += '"';
+  }
 
 
   m_Connection->SendCommand(cmd);
