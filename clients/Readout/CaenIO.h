@@ -300,6 +300,9 @@ DAMAGES.
 /*  
    Change log:
     $Log$
+    Revision 3.2  2003/09/10 11:09:43  ron-fox
+    Provide support for VME interfaces without mmap capability (e.g. Wiener).
+
     Revision 3.1  2003/03/22 04:03:28  ron-fox
     Added SBS/Bit3 device driver.
 
@@ -339,8 +342,9 @@ class CCaenIO : public CVmeModule
 
   // Default constructor
   CCaenIO(UInt_t base, int nCrate = 0);
+#ifndef WienerVME
   CCaenIO(CVME<UShort_t>& am_CVME);
-
+#endif
   // Copy constructor
   CCaenIO(const CCaenIO& aCCaenIO);
 
@@ -368,11 +372,12 @@ class CCaenIO : public CVmeModule
   // Writing to ECL outputs
   void SetECL(UShort_t value);
   void ClearECL();
+#ifndef WienerVME
   short* getInputPointer() const;
   short* getPulsedOutputPointer() const;
   short* getLatchedOutputPointer() const;
   short* getECLOutputPointer() const;
-
+#endif
 };
 
 #endif

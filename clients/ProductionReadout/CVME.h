@@ -319,7 +319,8 @@ class CVME
     a16d16,
     a24d16,
     a24d32,
-    a32d32
+    a32d32,
+    geo
   };
 
   // Default constructor

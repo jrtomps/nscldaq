@@ -303,19 +303,28 @@ class CVmeModule
 {
  public:
   enum Space {
-    a16d16,
-    a24d16,
-    a24d32,
-    a32d32
+    a16d16 = 0,
+    a24d16 = 1,
+    a24d32 = 2,
+    a32d32 = 3,
+    geo    = 4
   };
 
- private:
+private:
+#ifdef WienerVME
+   Space  m_nSpace;
+   UInt_t m_nBase;
+   UInt_t m_nLength;
+   Int_t  m_nCrate;
+   void*  m_pDriver;
+#else
   CVME<UShort_t> m_CVME;  // the CVME map to the module
+#endif
 
  public:
   // Default constructors
   CVmeModule(Space space, UInt_t base, UInt_t length, int nCrate = 0);
-  CVmeModule(CVME<UShort_t>& am_CVME);
+  // CVmeModule(CVME<UShort_t>& am_CVME);
   
   // Copy Constructor
   CVmeModule(const CVmeModule& aCVmeModule);
@@ -330,6 +339,8 @@ class CVmeModule
   int operator== (const CVmeModule& aCVmeModule);
 
   // Mutator function
+
+#ifndef WienerVME
  protected:
   void setCVME(CVME<UShort_t> aCVME)
     {
@@ -342,6 +353,16 @@ class CVmeModule
     {
       return m_CVME;
     }
+#else
+ protected:
+  void setDriver(void* pDriver) {
+    m_pDriver = pDriver;
+  }
+ public:
+  void* getDriver() {
+    return m_pDriver;
+  }
+#endif
 
   // Public member functions
  public:
@@ -351,6 +372,19 @@ class CVmeModule
   virtual void pokeb(UChar_t byte, UInt_t nOffset);
   virtual void pokew(UShort_t word, UInt_t nOffset);
   virtual void pokel(ULong_t lword, UInt_t nOffset);
+ 
+ // Utility:
+protected:
+   void CopyToMe(const CVmeModule& rModule);
 };
 
 #endif
+
+
+
+
+
+
+
+
+

@@ -325,8 +325,16 @@ CVmeModule::CVmeModule(Space space, UInt_t base, UInt_t length, int nCrate)
 			      nCrate);
       break;
     case a32d32:
-      m_CVME = CVME<UShort_t>(CVME<UShort_t>::a32d32, base, length);
+      m_CVME = CVME<UShort_t>(CVME<UShort_t>::a32d32, base, length,
+			      nCrate);
+    case geo:
+      m_CVME = CVME<UShort_t>(CVME<UShort_t>::geo, base, length, nCrate);
+      break;
+    default:
+      cerr << "CVmeModule::CVmeModule bad address mode!!\n";
+      exit(-1);
     }
+
   }
   catch (CMmapError& me) {
     cerr << me.ReasonText() << endl;

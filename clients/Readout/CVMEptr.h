@@ -564,6 +564,9 @@ CVMEptr<T>::CreateMap(UInt_t space, UInt_t base, UInt_t length, UInt_t crate)
     case 3:
       m_pHandle = CVMEInterface::Open(CVMEInterface::A32, crate);
       break;
+    case 4:
+      m_pHandle = CVMEInterface::Open(CVMEInterface::GEO , crate);
+      break;
     default:
       cerr << "Default condition in CVMEptr<T> CreateMap switch " << space 
 	   << endl;
