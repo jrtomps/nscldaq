@@ -1,0 +1,828 @@
+/*=========================================================================*/
+// Buffer.h:
+//
+// Template class definition for basic buffer type object.                 
+//
+// To correctly instantiate a Buffer object you need to:
+//
+//    1. class A_Block : public Block<BTYPE> {...}
+//    2. class A_BufferAllocator : public BufferAllocator<A_Block> {...}
+//    3. class A_Buffer : public Buffer<A_BufferAllocator,A_Block,
+//                                              BTYPE> {...}
+//
+// Author:
+//		Eric Kasten
+//		NSCL
+//		Michigan State University
+//		East Lansing, MI 48824-1321
+//		mailto:kasten@nscl.msu.edu
+//
+// Copyright NSCL 1998, All rights reserved.
+
+#ifndef DAQ_BUFFER_H
+#define DAQ_BUFFER_H 
+
+#ifndef DAQCONFIG_H
+#include <daqconfig.h>
+#endif
+
+#ifndef MAINDEFS_H
+#include <maindefs.h>
+#endif
+
+#include <stdlib.h>
+#include <stdio.h>
+#include <sys/time.h>
+#include <sys/types.h>
+#include <unistd.h>
+#include <string.h>
+
+#ifndef BUFFERALLOCATOR_H
+#include <BufferAllocator.h> 
+#endif
+
+#ifndef POINTER_H
+#include <Pointer.h> 
+#endif
+
+#ifndef POINTERBAG_H
+#include <PointerBag.h> 
+#endif
+
+#ifndef PRINTABLE_H
+#include <Printable.h> 
+#endif
+
+#ifndef DAQTHREADMUTEX_H
+#include <DAQThreadMutex.h> 
+#endif
+
+
+/* For convenience, classes that inherit may want to forward define:
+    Buffer(const Buffer<BTYPE>& s);
+    Buffer(int);
+    Buffer(const BTYPE *,int);
+    void Set(const Buffer<BTYPE>& s);
+    void operator=(const Buffer<BTYPE>& s);
+    void Append(const Buffer<BTYPE>& s);
+    void operator+=(const Buffer<BTYPE>& s);
+    int operator== (const Buffer<BTYPE>& s) const;
+*/
+
+#define BUFFER_DUMP_CHARCOUNT 29
+
+/*=====================================================================*/
+template <class ALLOC,class BLKTYPE,class BTYPE>
+class Buffer : public ALLOC, public Printable {
+  public:
+    /*==============================================================*/
+    // Buffer                                                         
+    //                                                             
+    // Constructor.                                                
+    //                                                             
+    Buffer() {
+      Init(0);
+    }; 
+
+    /*==============================================================*/
+    // Buffer                                                         
+    //                                                             
+    // Constructor (with size, don't wait).
+    //                                                             
+    Buffer(int l) {
+      Init(l);
+    }; 
+
+    /*==============================================================*/
+    // ~Buffer                                                        
+    //                                                             
+    // Destructor.                                                 
+    //                                                             
+    ~Buffer() {
+       Release();
+    };
+
+    /*==============================================================*/
+    // DumpBag
+    //                                                             
+    // Dump the reference pointer bag
+    //                                                             
+    void DumpBag(ostream& aStream)
+    {
+      bag.Dump(aStream);
+    }
+
+    /*==============================================================*/
+    // ReferenceBy
+    //                                                             
+    // Add a pointer to the reference bag.
+    //                                                             
+    void ReferenceBy(BasicPointer *p)
+    {
+      bag.Add(p);
+    }
+
+    /*==============================================================*/
+    // DereferenceBy 
+    //                                                             
+    // Remove a pointer from the reference bag.
+    //                                                             
+    void DereferenceBy(BasicPointer *p)
+    {
+      bag.Delete(p);
+    }
+
+    /*==============================================================*/
+    // Print
+    //                                                             
+    // Virtual print function for this object
+    //                                                             
+    ostream& Print(ostream& aStream) {
+       Dump(aStream); 
+       return(aStream);
+    } 
+
+    /*==============================================================*/
+    // Release
+    //                                                             
+    // Release this buffer
+    //                                                             
+    void Release() {
+       unsigned int tmptag = 0;
+       BLKTYPE *bw = NULL;  
+
+       tmptag = routetag;
+       routetag = BUFFER_TAG_BITBUCKET;
+       cmax = CountList(blocks);
+
+       bw = blocks.GetFirst();
+       if (bw != NULL) {
+         bw->SetReqLen(rlen);
+         bw->SetByteLen(rlen*sizeof(BTYPE));
+         bw->SetUsedLen(scnt);
+         bw->SetModified();
+       }
+
+       Nullify();
+       cmax = 0;
+       rlen = 0;
+       scnt = 0;
+       lastidx = -1;
+       lastblk = NULL;
+       ALLOC::Release(&blocks);
+       blocks.Empty();
+       routetag = tmptag;
+    } 
+
+    /*==============================================================*/
+    // Route
+    //                                                             
+    // Route this buffer (and release the buffer)
+    //                                                             
+    void Route() {
+       BLKTYPE *bw = NULL;  
+
+       bw = blocks.GetFirst();
+       if (bw != NULL) {
+         bw->SetReqLen(rlen);
+         bw->SetByteLen(rlen*sizeof(BTYPE));
+         bw->SetUsedLen(scnt);
+         bw->SetModified();
+       }
+
+       Nullify();
+       cmax = 0;
+       rlen = 0;
+       scnt = 0;
+       lastidx = -1;
+       lastblk = NULL;
+       ALLOC::Route(&blocks);
+       blocks.Empty();
+    } 
+
+    /*==============================================================*/
+    // Accept
+    //                                                             
+    // Accept a list of blocks from else where 
+    //                                                             
+    bool Accept(struct timeval *pTO = NULL) {
+       LinkedList<BLKTYPE,NullMutex> *lst = NULL;
+       BLKTYPE *bw = NULL;  
+
+       Release();
+
+       lst = ALLOC::Accept(routetag,routemask,pTO);
+
+       if (lst != NULL) {
+         blocks.Append(*lst);
+         cmax = 0;
+         delete lst;
+
+         bw = blocks.GetFirst();
+
+         if (bw != NULL) { // Only the first block has this data set
+            routetag = bw->GetTag();
+            cmax = CountList(blocks);
+            rlen = bw->GetReqLen();
+            scnt = bw->GetUsedLen();
+         } 
+
+         return(true);
+       } 
+
+       return(false);
+    } 
+
+    /*==============================================================*/
+    // Resize
+    //                                                             
+    // Resize the buffer
+    //                                                             
+    bool Resize(int siz,bool w) {
+      LinkedList<BLKTYPE,NullMutex> *lst = NULL;
+
+      if (siz <= cmax) {
+         if (rlen < siz) {
+           rlen = siz;
+           return(true);
+         } else {
+           return(false);
+         }
+      } 
+
+      if (w) lst = Request(siz - cmax);
+      else lst = Try(siz - cmax);
+
+      if (lst != NULL) {
+        blocks.Append(*lst);
+        cmax = CountList(blocks);
+        rlen = siz;
+        delete lst;
+        return(true);
+      } 
+
+      return(false);
+    }
+
+    /*==============================================================*/
+    // operator& (prefix)
+    //                                                             
+    // Get pointer of
+    //                                                             
+    Pointer<Buffer<ALLOC,BLKTYPE,BTYPE>,BTYPE>& operator&() {
+      ptr.Init(this);
+      return(ptr);
+    };
+
+    /*==============================================================*/
+    // operator[]
+    //                                                             
+    // Subscripting
+    //                                                             
+    inline BTYPE& operator[] (const int& idx) {
+      int s,l; 
+      BLKTYPE *bw;  
+      BTYPE *d; 
+      static BTYPE garbage;
+
+      if ((idx < 0)||(idx >= rlen)) {
+        LOG_AND_THROW(daq_exception_factory.CreateException(DAQCSTR("Buffer::operator[]() Buffer index out of bounds"),DAQEXCPID(DAQOutOfBounds)));
+        return(garbage); 
+      } 
+
+      s = idx;
+      bw = blocks.GetFirst();
+      if (idx >= scnt) {
+        scnt = idx+1;  // scnt is a count not an index
+        bw->SetUsedLen(scnt);  // Set the meta information
+      }
+ 
+      while (!blocks.Bottom()) {
+        l = bw->GetLen();
+        if (s < l) { 
+          if (lastblk != NULL) { // Ok, was the block modified?
+            d = lastblk->Get();  
+            if (lastval != d[lastidx]) lastblk->SetModified();
+
+            if (bw != lastblk) { // Should we mark the block dirty?
+              lastblk->SetDirty();
+              lastblk = NULL;
+            }
+          }
+
+          d = bw->Get();
+
+          if (!bw->IsReadOnly()) {
+            lastblk = bw;
+            lastidx = s;
+            lastval = d[s];  
+            return(d[s]); // !ReadOnly -> Return the real thing
+          } else {
+            garbage = d[s];
+            return(garbage);  // ReadOnly -> return a copy
+          }
+        }
+        s -= l;
+        bw = blocks.GetNext();
+      }
+
+      LOG(("Buffer::operator[]() Buffer is corrupt idx=%d, pos=%d %s",idx,s,DAQCSTR("")));
+      LOG_AND_THROW(daq_exception_factory.CreateException(DAQCSTR("Buffer::operator[]() Buffer is corrupt"),DAQEXCPID(DAQCorrupt)));
+      return(garbage);
+    }
+
+    /*==============================================================*/
+    // GetLen                                                      
+    //                                                             
+    // Return the number of slots in the buffer.
+    //                                                             
+    int GetLen() {return(rlen);};
+
+    /*==============================================================*/
+    // FreeSpace
+    //                                                             
+    // Return the free space in the buffer as calcluated as the
+    // difference between the pointer index and requested length.
+    //                                                             
+    int FreeSpace(BasicPointer& p) {
+      int idx;
+
+      idx = p.GetIndex();
+
+      // If the pointer has a negative index... 
+      if (idx < 0) {
+        LOG_AND_THROW(daq_exception_factory.CreateException(DAQCSTR("Buffer::FreeSpace() pointer index is out of bounds"),DAQEXCPID(DAQOutOfBounds)));
+      }
+
+      // If the pointer index is greater than the buffer length...
+      if (idx >= (rlen-1)) return(0);
+
+      // (rlen-1) is the index of the end of the buffer.  Subtracting
+      // the pointer index gives us the difference.  Note that this
+      // assumes that the current pointer index is considered to be
+      // the last used by this calculation.
+      return(rlen - idx); 
+    }
+
+    /*==============================================================*/
+    // FreeSpace
+    //                                                             
+    // Return the free space in the buffer. 
+    //                                                             
+    int FreeSpace() {
+      return(rlen - scnt);
+    }
+
+    /*==============================================================*/
+    // Write
+    //                                                             
+    // Write a buffer to a file descriptor.
+    //                                                             
+    size_t Write(int aFd,size_t aStart,size_t aLen) {
+      BLKTYPE *bw = NULL;  
+      int bsiz = 0;
+      unsigned char *p = NULL;
+      int sc = 0,lc = 0, c = 0, rc = 0, soff = 0;
+
+      if (rlen < aLen) {
+        LOG_AND_THROW(daq_exception_factory.CreateException(DAQCSTR("Buffer::Write() requested write exceeds buffer length"),DAQEXCPID(DAQOutOfBounds)));
+        return(-DAQEXCPID(DAQOutOfBounds));
+      }
+
+      bw = blocks.GetFirst();
+      if (bw == NULL) {
+        LOG_AND_THROW(daq_exception_factory.CreateException(DAQCSTR("Buffer::Write() Attempting to write a buffer of zero length"),DAQEXCPID(DAQOutOfBounds)));
+        return(-DAQEXCPID(DAQOutOfBounds));
+      }
+
+      // Find the starting block
+      sc = 0; 
+      bsiz = bw->GetLen();  
+      while ((bw != NULL)&&((sc+bsiz) < aStart)) {
+        sc += bsiz;
+        bw = blocks.GetNext();
+        if (bw != NULL) bsiz = bw->GetLen(); 
+      }
+
+      // Starting byte intrablock offset
+      soff = (aStart - sc) * sizeof(BTYPE);
+      soff = (soff < 0) ? 0 : soff;
+
+      if (bw == NULL) {
+        LOG_AND_THROW(daq_exception_factory.CreateException(DAQCSTR("Buffer::Write() ran out of page blocks???"),DAQEXCPID(DAQOutOfBounds)));
+        return(-DAQEXCPID(DAQOutOfBounds));
+      } 
+      lc = 0;
+      bsiz = bw->GetLen() * sizeof(BTYPE);
+      p = (unsigned char *)bw->Get();
+      p += soff;    // Adjust for the offset
+      bsiz -= soff; // Adjust for the offset
+      c = 0; 
+
+      while (lc < aLen) {
+        if ((bsiz-c) <= 0) {
+          bw = blocks.GetNext();
+          if (bw != NULL) {
+            bsiz = bw->GetLen();
+            if ((bsiz + lc) > aLen) {
+              bsiz = (aLen - lc) * sizeof(BTYPE);
+            } else {
+              bsiz *= sizeof(BTYPE);
+            }
+            p = (unsigned char *)bw->Get();
+            c = 0;
+          } else {
+            LOG_AND_THROW(daq_exception_factory.CreateException(DAQCSTR("Buffer::Write() ran out of page blocks???"),DAQEXCPID(DAQOutOfBounds)));
+            return(-DAQEXCPID(DAQOutOfBounds));
+          }
+        }
+
+        rc = write(aFd,p+c,bsiz-c);
+        if (rc > 0) {  /* Write ok */
+          c += rc;
+          lc += (rc / sizeof(BTYPE));
+        } else if ((rc == 0)&&(errno != EINTR)) { /* EOF or EINTR ??? */
+          return(lc);
+        } else if (rc < 0) {
+          switch(errno) {
+            case EINTR:   // Posix interrupt
+              break;
+            case EAGAIN:  // Nonblocking and no data
+            case EPIPE:   // EOF ???
+              return(lc);
+              break;
+            default:      // Error
+              LOG_AND_THROW(os_exception_factory.CreateBaseSystemException(DAQCSTR("Buffer::Write() error encountered while writing buffer")));
+              if (errno) return(-errno);
+              else return(rc);
+              break;
+          }
+        } 
+      }
+
+      return(lc);
+    }
+
+    /*==============================================================*/
+    // Read
+    //                                                             
+    // Read a buffer from a file descriptor.
+    //                                                             
+    size_t Read(int aFd,size_t aStart,size_t aLen) {
+      BLKTYPE *bw = NULL;  
+      int bsiz = 0;
+      unsigned char *p = NULL;
+      int sc = 0, lc = 0, c = 0, rc = 0, soff = 0;
+
+      if (rlen < aLen) {
+        LOG_AND_THROW(daq_exception_factory.CreateException(DAQCSTR("Buffer::Read() buffer is too short read request"),DAQEXCPID(DAQOutOfBounds)));
+        return(-DAQEXCPID(DAQOutOfBounds));
+      }
+
+      bw = blocks.GetFirst();
+      if (bw != NULL) {
+        if (bw->IsReadOnly()) {
+          LOG_AND_THROW(daq_exception_factory.CreateException(DAQCSTR("Buffer::Read() Attempting to read into readonly buffer"),DAQEXCPID(DAQBadOp)));
+          return(-DAQEXCPID(DAQBadOp));
+        }
+      } else {
+        LOG_AND_THROW(daq_exception_factory.CreateException(DAQCSTR("Buffer::Read() Attempting to read into buffer of zero length"),DAQEXCPID(DAQOutOfBounds)));
+        return(-DAQEXCPID(DAQOutOfBounds));
+      }
+
+      // Find the starting block
+      sc = 0; 
+      bsiz = bw->GetLen();  
+      while ((bw != NULL)&&((sc+bsiz) < aStart)) {
+        sc += bsiz;
+        bw = blocks.GetNext();
+        if (bw != NULL) bsiz = bw->GetLen(); 
+      }
+
+      // Starting byte intrablock offset
+      soff = (aStart - sc) * sizeof(BTYPE);
+      soff = (soff < 0) ? 0 : soff;
+
+      if (bw == NULL) {
+        LOG_AND_THROW(daq_exception_factory.CreateException(DAQCSTR("Buffer::Read() ran out of page blocks???"),DAQEXCPID(DAQOutOfBounds)));
+        return(-DAQEXCPID(DAQOutOfBounds));
+      } 
+
+      lc = 0;
+      bsiz = bw->GetLen() * sizeof(BTYPE);
+      p = (unsigned char *)bw->Get();
+      p += soff;    // Adjust for the offset
+      bsiz -= soff; // Adjust for the offset
+      c = 0; 
+
+      while (lc < aLen) { 
+        if ((bsiz-c) <= 0) {
+          bw = blocks.GetNext();
+          if (bw != NULL) {
+            bsiz = bw->GetLen();
+            if ((bsiz + lc) > aLen) {
+              bsiz = (aLen - lc) * sizeof(BTYPE);
+            } else {
+              bsiz *= sizeof(BTYPE);
+            }
+            p = (unsigned char *)bw->Get();
+            c = 0;
+          } else {
+            LOG_AND_THROW(daq_exception_factory.CreateException(DAQCSTR("Buffer::Read() ran out of page blocks???"),DAQEXCPID(DAQOutOfBounds)));
+            return(-DAQEXCPID(DAQOutOfBounds));
+          }
+        }
+  
+        rc = read(aFd,p+c,bsiz-c);
+        if (rc > 0) {  /* Read ok */
+          c += rc;
+          lc += (rc / sizeof(BTYPE));
+        } else if ((rc == 0)&&(errno != EINTR)) { /* EOF or EINTR ??? */
+          return(lc);
+        } else if (rc < 0) {
+          switch(errno) {
+            case EINTR:   // Posix interrupt
+              break;
+            case EAGAIN:  // Nonblocking and no data
+            case EPIPE:   // EOF ???
+              return(lc);
+              break;
+            default:
+              LOG_AND_THROW(os_exception_factory.CreateBaseSystemException(DAQCSTR("Buffer::Read() error encountered while reading into buffer")));
+              if (errno) return(-errno);
+              else return(rc);
+              break;
+          } 
+        } 
+      }
+
+      return(lc);
+    }
+
+    /*==============================================================*/
+    // DumpNative
+    //                                                             
+    // Dump the buffer in its native tongue with length.
+    //                                                             
+    virtual void DumpNative(ostream& aStream,int aCnt)
+    {
+      ios::fmtflags flags;
+      int i,len;
+   
+      flags = aStream.flags();
+      len = aCnt < rlen ? aCnt : rlen;
+
+      for (i = 0; i < len; i++) {
+        aStream << endl << dec << setw(10) << setfill('0') << i << ": ";
+        aStream << (*this)[i];
+      }
+    
+      aStream << endl;
+      aStream.flags(flags);
+      aStream.flush();
+    }
+
+    /*==============================================================*/
+    // DumpNative
+    //                                                             
+    // Dump the entire buffer in its native tongue.
+    //                                                             
+    void DumpNative(ostream& aStream)
+    {
+      DumpNative(aStream,rlen);
+    }
+
+    /*==============================================================*/
+    // Dump
+    //                                                             
+    // Dump the buffer in hex and char with length.
+    //                                                             
+    void Dump(ostream& aStream,int aCnt)
+    {
+      BLKTYPE *bw;  
+      ios::fmtflags flags;
+      unsigned char ch;
+      unsigned short v;
+      int i,j,cnt = 0,bsiz,bcnt,len;
+      unsigned char *p = NULL,tmp[BUFFER_DUMP_CHARCOUNT+1];
+   
+      flags = aStream.flags();
+      len = aCnt < rlen ? aCnt : rlen;
+
+      bw = blocks.GetFirst();
+      if (!blocks.Bottom()) {
+        bsiz = bw->GetLen() * sizeof(BTYPE);
+        bcnt = 0;
+        p = (unsigned char *)bw->Get();
+      }
+
+      aStream << hex << setw(8) << setfill('0') << 0 << ": ";
+    
+      for (i = 0; (i < len)&&(!blocks.Bottom()); i++) {
+        if (cnt > ARRAY_DUMP_CHARCOUNT) {
+          aStream << endl << "          ";
+    
+          for (j = 0; j < cnt; j++) {
+            ch = tmp[j];
+    
+            if (isprint(ch)&&(!iscntrl(ch))) aStream << " " << ch;
+            else aStream << "  ";
+          }
+   
+          aStream << endl << hex << setw(8) << setfill('0') << i << ": ";
+          cnt = 0;
+        }
+  
+        v = (*p);  
+        aStream << hex << setw(2) << setfill('0') << v;
+        tmp[cnt] = (*p);
+        cnt++; p++; bcnt++;
+
+        if (bcnt >= bsiz) {
+          bw = blocks.GetNext();
+          if (!blocks.Bottom()) {
+            bsiz = bw->GetLen() * sizeof(BTYPE);
+            bcnt = 0;
+            p = (unsigned char *)bw->Get();
+          }
+        }
+      }
+    
+      if (cnt > 0) aStream << endl << "          ";
+
+      for (j = 0; j < cnt; j++) {
+        ch = tmp[j];
+    
+        if (isprint(ch)&&(!iscntrl(ch))) aStream << " " << ch;
+        else aStream << "  ";
+      }
+   
+      aStream << endl;
+      aStream.flags(flags);
+      aStream.flush();
+    }
+
+    /*==============================================================*/
+    // Dump
+    //                                                             
+    // Dump the entire buffer in hex and char.
+    //                                                             
+    void Dump(ostream& aStream)
+    {
+      Dump(aStream,rlen);
+    }
+
+    /*==============================================================*/
+    // SetTag
+    //                                                             
+    // Set the buffer routing tag.
+    //                                                             
+    void SetTag(unsigned int aTag) {
+      routetag = aTag;
+      cmax = CountList(blocks);
+    }
+
+    /*==============================================================*/
+    // GetTag
+    //                                                             
+    // Get the buffer routing tag.
+    //                                                             
+    unsigned int GetTag() {
+      return(routetag);
+    }
+
+    /*==============================================================*/
+    // SetMask
+    //                                                             
+    // Set the buffer routing mask.
+    //                                                             
+    void SetMask(unsigned int aMask) {
+      routemask = aMask;
+    }
+
+    /*==============================================================*/
+    // GetMask
+    //                                                             
+    // Get the buffer routing mask.
+    //                                                             
+    unsigned int GetMask() {
+      return(routemask);
+    }
+
+    /*==============================================================*/
+  protected:
+    /*==============================================================*/
+    // Init
+    //                                                             
+    // Initialize this object
+    //                                                             
+    void Init(int l) {
+      LinkedList<BLKTYPE,NullMutex> *lst = NULL;
+
+      routetag = 0;
+      routemask = ALLBITS_MASK;
+      cmax = 0;
+      rlen = 0;
+      scnt = 0;
+      lastidx = -1; 
+      lastblk = NULL;
+
+      if (l > 0) {
+        lst = Request(l); 
+        if (lst != NULL) {
+          blocks.Append(*lst);
+          cmax = CountList(blocks);
+          if (cmax < l) rlen = cmax;
+          else rlen = l;
+          delete lst;
+        }
+      }
+    }
+
+    /*==============================================================*/
+    // ExpandToPageSize 
+    //                                                             
+    // Expand rlen to cmax.  Returns cmax.
+    //                                                             
+    int ExpandToPageSize() {
+      rlen = cmax;
+      return(rlen);
+    }
+
+    /*==============================================================*/
+    // Nullify
+    //                                                             
+    // Nullify all pointers to this array.
+    //                                                             
+    void Nullify() {
+//      Pointer<Buffer<ALLOC,BLKTYPE,BTYPE>,BTYPE> *p;
+      BasicPointer *p;
+
+      p = bag.GetFirst();
+      while(!bag.Bottom()) {
+        p->Nullify(); 
+        p = bag.GetNext();
+      }
+ 
+      bag.Empty();
+    }
+
+    /*==============================================================*/
+    // CountList
+    //                                                             
+    // Calculate the length of a list of blocks, and set the block
+    // Position.
+    //                                                             
+    int CountList(LinkedList<BLKTYPE,NullMutex>& lst) {
+      int s; 
+      int cnt;
+      unsigned int thisid;
+      BLKTYPE *bwpre = NULL,*bw = NULL;  
+
+      s = 0; cnt = 0;
+      bw = lst.GetFirst();
+      bwpre = NULL;
+      if (bw != NULL) thisid = bw->GetObjId();
+
+      while (!lst.Bottom()) {
+        s += bw->GetLen();
+        bw->SetNeverDirty();  // Change for PAGEPHASE
+        bw->SetObjId(thisid);
+        bw->SetPos(cnt);
+        bw->SetInUse();
+        bw->SetTag(routetag);
+        if (bwpre != NULL) bwpre->ResetLastPage();
+        cnt++;
+        bwpre = bw;
+        bw = lst.GetNext();
+      }
+
+      if (bwpre != NULL) bwpre->SetLastPage();
+
+      return(s);
+    }
+
+    /*==============================================================*/
+    unsigned int routetag; // Page Routing tag
+    unsigned int routemask; // Page Routing mask
+    int rlen;              // Request length of buffer
+    int cmax;              // Total length of buffer
+    int scnt;              // Spaces used
+
+    BLKTYPE *lastblk;      // Last block for checking Dirty
+    int lastidx;           // Last block index for checking Dirty
+    BTYPE lastval;         // Last used value for checking Dirty
+
+    LinkedList<BLKTYPE,NullMutex> blocks;
+                           // The list of blocks
+
+    PointerBag<BasicPointer> bag; 
+                           // Kind of morbid, eh.  Just a bag to keep track
+                           // pointer references to this array.
+
+    /*==============================================================*/
+  private:
+      Pointer<Buffer<ALLOC,BLKTYPE,BTYPE>,BTYPE> ptr;
+};
+
+#endif

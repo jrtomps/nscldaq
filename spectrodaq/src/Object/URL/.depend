@@ -1,0 +1,23 @@
+# DO NOT DELETE
+
+DAQURL.o: /usr/include/stdlib.h /usr/include/features.h
+DAQURL.o: /usr/include/sys/cdefs.h /usr/include/gnu/stubs.h
+DAQURL.o: /usr/include/stdio.h /usr/include/bits/types.h /usr/include/libio.h
+DAQURL.o: /usr/include/_G_config.h /usr/include/wchar.h
+DAQURL.o: /usr/include/bits/wchar.h /usr/include/gconv.h
+DAQURL.o: /usr/include/bits/stdio_lim.h /usr/include/bits/sys_errlist.h
+DAQURL.o: /usr/include/setjmp.h /usr/include/bits/setjmp.h
+DAQURL.o: /usr/include/bits/sigset.h /usr/include/sys/time.h
+DAQURL.o: /usr/include/time.h /usr/include/bits/time.h
+DAQURL.o: /usr/include/sys/select.h /usr/include/bits/select.h
+DAQURL.o: /usr/include/unistd.h /usr/include/bits/posix_opt.h
+DAQURL.o: /usr/include/bits/confname.h /usr/include/string.h
+DAQURL.o: /usr/include/ctype.h /usr/include/endian.h
+DAQURL.o: /usr/include/bits/endian.h /usr/include/sys/socket.h
+DAQURL.o: /usr/include/sys/uio.h /usr/include/sys/types.h
+DAQURL.o: /usr/include/bits/uio.h /usr/include/bits/socket.h
+DAQURL.o: /usr/include/limits.h /usr/include/bits/sockaddr.h
+DAQURL.o: /usr/include/asm/socket.h /usr/include/asm/sockios.h
+DAQURL.o: /usr/include/netinet/in.h /usr/include/stdint.h
+DAQURL.o: /usr/include/bits/wordsize.h /usr/include/bits/in.h
+DAQURL.o: /usr/include/bits/byteswap.h /usr/include/arpa/inet.h

@@ -1,0 +1,24 @@
+# DO NOT DELETE
+
+daqthreadjoin.o: /usr/include/stdlib.h /usr/include/features.h
+daqthreadjoin.o: /usr/include/sys/cdefs.h /usr/include/gnu/stubs.h
+daqthreadjoin.o: /usr/include/stdio.h /usr/include/bits/types.h
+daqthreadjoin.o: /usr/include/libio.h /usr/include/_G_config.h
+daqthreadjoin.o: /usr/include/wchar.h /usr/include/bits/wchar.h
+daqthreadjoin.o: /usr/include/gconv.h /usr/include/bits/stdio_lim.h
+daqthreadjoin.o: /usr/include/bits/sys_errlist.h /usr/include/setjmp.h
+daqthreadjoin.o: /usr/include/bits/setjmp.h /usr/include/bits/sigset.h
+daqthreadjoin.o: /usr/include/sys/time.h /usr/include/time.h
+daqthreadjoin.o: /usr/include/bits/time.h /usr/include/sys/select.h
+daqthreadjoin.o: /usr/include/bits/select.h /usr/include/unistd.h
+daqthreadjoin.o: /usr/include/bits/posix_opt.h /usr/include/bits/confname.h
+daqthreadjoin.o: /usr/include/netdb.h /usr/include/netinet/in.h
+daqthreadjoin.o: /usr/include/stdint.h /usr/include/bits/wordsize.h
+daqthreadjoin.o: /usr/include/bits/socket.h /usr/include/limits.h
+daqthreadjoin.o: /usr/include/sys/types.h /usr/include/bits/sockaddr.h
+daqthreadjoin.o: /usr/include/asm/socket.h /usr/include/asm/sockios.h
+daqthreadjoin.o: /usr/include/bits/in.h /usr/include/endian.h
+daqthreadjoin.o: /usr/include/bits/endian.h /usr/include/bits/byteswap.h
+daqthreadjoin.o: /usr/include/bits/netdb.h /usr/include/errno.h
+daqthreadjoin.o: /usr/include/bits/errno.h /usr/include/linux/errno.h
+daqthreadjoin.o: /usr/include/asm/errno.h

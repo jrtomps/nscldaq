@@ -1,0 +1,16 @@
+# DO NOT DELETE
+
+DAQAuthToken.o: /usr/include/stdlib.h /usr/include/features.h
+DAQAuthToken.o: /usr/include/sys/cdefs.h /usr/include/gnu/stubs.h
+DAQAuthToken.o: /usr/include/stdio.h /usr/include/bits/types.h
+DAQAuthToken.o: /usr/include/libio.h /usr/include/_G_config.h
+DAQAuthToken.o: /usr/include/wchar.h /usr/include/bits/wchar.h
+DAQAuthToken.o: /usr/include/gconv.h /usr/include/bits/stdio_lim.h
+DAQAuthToken.o: /usr/include/bits/sys_errlist.h /usr/include/setjmp.h
+DAQAuthToken.o: /usr/include/bits/setjmp.h /usr/include/bits/sigset.h
+DAQAuthToken.o: /usr/include/sys/time.h /usr/include/time.h
+DAQAuthToken.o: /usr/include/bits/time.h /usr/include/sys/select.h
+DAQAuthToken.o: /usr/include/bits/select.h /usr/include/unistd.h
+DAQAuthToken.o: /usr/include/bits/posix_opt.h /usr/include/bits/confname.h
+DAQAuthToken.o: /usr/include/string.h /usr/include/ctype.h
+DAQAuthToken.o: /usr/include/endian.h /usr/include/bits/endian.h

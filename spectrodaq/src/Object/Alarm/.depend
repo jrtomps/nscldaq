@@ -1,0 +1,44 @@
+# DO NOT DELETE
+
+DAQAlarmMsg.o: /usr/include/stdlib.h /usr/include/features.h
+DAQAlarmMsg.o: /usr/include/sys/cdefs.h /usr/include/gnu/stubs.h
+DAQAlarmMsg.o: /usr/include/stdio.h /usr/include/bits/types.h
+DAQAlarmMsg.o: /usr/include/libio.h /usr/include/_G_config.h
+DAQAlarmMsg.o: /usr/include/wchar.h /usr/include/bits/wchar.h
+DAQAlarmMsg.o: /usr/include/gconv.h /usr/include/bits/stdio_lim.h
+DAQAlarmMsg.o: /usr/include/bits/sys_errlist.h /usr/include/setjmp.h
+DAQAlarmMsg.o: /usr/include/bits/setjmp.h /usr/include/bits/sigset.h
+DAQAlarmMsg.o: /usr/include/sys/time.h /usr/include/time.h
+DAQAlarmMsg.o: /usr/include/bits/time.h /usr/include/sys/select.h
+DAQAlarmMsg.o: /usr/include/bits/select.h /usr/include/unistd.h
+DAQAlarmMsg.o: /usr/include/bits/posix_opt.h /usr/include/bits/confname.h
+DAQAlarmMsg.o: /usr/include/string.h /usr/include/ctype.h
+DAQAlarmMsg.o: /usr/include/endian.h /usr/include/bits/endian.h
+DAQAlarm.o: /usr/include/stdlib.h /usr/include/features.h
+DAQAlarm.o: /usr/include/sys/cdefs.h /usr/include/gnu/stubs.h
+DAQAlarm.o: /usr/include/stdio.h /usr/include/bits/types.h
+DAQAlarm.o: /usr/include/libio.h /usr/include/_G_config.h
+DAQAlarm.o: /usr/include/wchar.h /usr/include/bits/wchar.h
+DAQAlarm.o: /usr/include/gconv.h /usr/include/bits/stdio_lim.h
+DAQAlarm.o: /usr/include/bits/sys_errlist.h /usr/include/setjmp.h
+DAQAlarm.o: /usr/include/bits/setjmp.h /usr/include/bits/sigset.h
+DAQAlarm.o: /usr/include/sys/time.h /usr/include/time.h
+DAQAlarm.o: /usr/include/bits/time.h /usr/include/sys/select.h
+DAQAlarm.o: /usr/include/bits/select.h /usr/include/unistd.h
+DAQAlarm.o: /usr/include/bits/posix_opt.h /usr/include/bits/confname.h
+DAQAlarm.o: /usr/include/string.h /usr/include/ctype.h /usr/include/endian.h
+DAQAlarm.o: /usr/include/bits/endian.h
+DAQTrap.o: /usr/include/stdlib.h /usr/include/features.h
+DAQTrap.o: /usr/include/sys/cdefs.h /usr/include/gnu/stubs.h
+DAQTrap.o: /usr/include/stdio.h /usr/include/bits/types.h
+DAQTrap.o: /usr/include/libio.h /usr/include/_G_config.h /usr/include/wchar.h
+DAQTrap.o: /usr/include/bits/wchar.h /usr/include/gconv.h
+DAQTrap.o: /usr/include/bits/stdio_lim.h /usr/include/bits/sys_errlist.h
+DAQTrap.o: /usr/include/setjmp.h /usr/include/bits/setjmp.h
+DAQTrap.o: /usr/include/bits/sigset.h /usr/include/sys/time.h
+DAQTrap.o: /usr/include/time.h /usr/include/bits/time.h
+DAQTrap.o: /usr/include/sys/select.h /usr/include/bits/select.h
+DAQTrap.o: /usr/include/unistd.h /usr/include/bits/posix_opt.h
+DAQTrap.o: /usr/include/bits/confname.h /usr/include/string.h
+DAQTrap.o: /usr/include/ctype.h /usr/include/endian.h
+DAQTrap.o: /usr/include/bits/endian.h

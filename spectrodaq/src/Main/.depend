@@ -1,0 +1,93 @@
+# DO NOT DELETE
+
+DAQAlloc.o: /usr/include/stdlib.h /usr/include/features.h
+DAQAlloc.o: /usr/include/sys/cdefs.h /usr/include/gnu/stubs.h
+DAQAlloc.o: /usr/include/stdio.h /usr/include/bits/types.h
+DAQAlloc.o: /usr/include/libio.h /usr/include/_G_config.h
+DAQAlloc.o: /usr/include/wchar.h /usr/include/bits/wchar.h
+DAQAlloc.o: /usr/include/gconv.h /usr/include/bits/stdio_lim.h
+DAQAlloc.o: /usr/include/bits/sys_errlist.h /usr/include/setjmp.h
+DAQAlloc.o: /usr/include/bits/setjmp.h /usr/include/bits/sigset.h
+DAQAlloc.o: /usr/include/sys/time.h /usr/include/time.h
+DAQAlloc.o: /usr/include/bits/time.h /usr/include/sys/select.h
+DAQAlloc.o: /usr/include/bits/select.h /usr/include/unistd.h
+DAQAlloc.o: /usr/include/bits/posix_opt.h /usr/include/bits/confname.h
+DAQAlloc.o: /usr/include/g++-3/strstream.h /usr/include/g++-3/iostream.h
+DAQAlloc.o: /usr/include/g++-3/streambuf.h /usr/include/g++-3/strfile.h
+DAQLogger.o: /usr/include/stdlib.h /usr/include/features.h
+DAQLogger.o: /usr/include/sys/cdefs.h /usr/include/gnu/stubs.h
+DAQLogger.o: /usr/include/stdio.h /usr/include/bits/types.h
+DAQLogger.o: /usr/include/libio.h /usr/include/_G_config.h
+DAQLogger.o: /usr/include/wchar.h /usr/include/bits/wchar.h
+DAQLogger.o: /usr/include/gconv.h /usr/include/bits/stdio_lim.h
+DAQLogger.o: /usr/include/bits/sys_errlist.h /usr/include/setjmp.h
+DAQLogger.o: /usr/include/bits/setjmp.h /usr/include/bits/sigset.h
+DAQLogger.o: /usr/include/sys/time.h /usr/include/time.h
+DAQLogger.o: /usr/include/bits/time.h /usr/include/sys/select.h
+DAQLogger.o: /usr/include/bits/select.h /usr/include/unistd.h
+DAQLogger.o: /usr/include/bits/posix_opt.h /usr/include/bits/confname.h
+DAQLogger.o: /usr/include/string.h /usr/include/errno.h
+DAQLogger.o: /usr/include/bits/errno.h /usr/include/linux/errno.h
+DAQLogger.o: /usr/include/asm/errno.h
+DAQMain.o: /usr/include/stdlib.h /usr/include/features.h
+DAQMain.o: /usr/include/sys/cdefs.h /usr/include/gnu/stubs.h
+DAQMain.o: /usr/include/stdio.h /usr/include/bits/types.h
+DAQMain.o: /usr/include/libio.h /usr/include/_G_config.h /usr/include/wchar.h
+DAQMain.o: /usr/include/bits/wchar.h /usr/include/gconv.h
+DAQMain.o: /usr/include/bits/stdio_lim.h /usr/include/bits/sys_errlist.h
+DAQMain.o: /usr/include/setjmp.h /usr/include/bits/setjmp.h
+DAQMain.o: /usr/include/bits/sigset.h /usr/include/sys/time.h
+DAQMain.o: /usr/include/time.h /usr/include/bits/time.h
+DAQMain.o: /usr/include/sys/select.h /usr/include/bits/select.h
+DAQMain.o: /usr/include/unistd.h /usr/include/bits/posix_opt.h
+DAQMain.o: /usr/include/bits/confname.h /usr/include/g++-3/iostream
+DAQMain.o: /usr/include/g++-3/iostream.h /usr/include/g++-3/streambuf.h
+DAQMain.o: /usr/include/g++-3/iomanip /usr/include/g++-3/iomanip.h
+DAQMain.o: /usr/include/g++-3/fstream.h
+DAQTrackMemory.o: /usr/include/stdlib.h /usr/include/features.h
+DAQTrackMemory.o: /usr/include/sys/cdefs.h /usr/include/gnu/stubs.h
+DAQTrackMemory.o: /usr/include/stdio.h /usr/include/bits/types.h
+DAQTrackMemory.o: /usr/include/libio.h /usr/include/_G_config.h
+DAQTrackMemory.o: /usr/include/wchar.h /usr/include/bits/wchar.h
+DAQTrackMemory.o: /usr/include/gconv.h /usr/include/bits/stdio_lim.h
+DAQTrackMemory.o: /usr/include/bits/sys_errlist.h /usr/include/setjmp.h
+DAQTrackMemory.o: /usr/include/bits/setjmp.h /usr/include/bits/sigset.h
+DAQTrackMemory.o: /usr/include/sys/time.h /usr/include/time.h
+DAQTrackMemory.o: /usr/include/bits/time.h /usr/include/sys/select.h
+DAQTrackMemory.o: /usr/include/bits/select.h /usr/include/unistd.h
+DAQTrackMemory.o: /usr/include/bits/posix_opt.h /usr/include/bits/confname.h
+DAQTrackMemory.o: /usr/include/string.h /usr/include/errno.h
+DAQTrackMemory.o: /usr/include/bits/errno.h /usr/include/linux/errno.h
+DAQTrackMemory.o: /usr/include/asm/errno.h /usr/include/ctype.h
+DAQTrackMemory.o: /usr/include/endian.h /usr/include/bits/endian.h
+DAQTrackMemory.o: /usr/include/g++-3/iostream /usr/include/g++-3/iostream.h
+DAQTrackMemory.o: /usr/include/g++-3/streambuf.h /usr/include/g++-3/iomanip
+DAQTrackMemory.o: /usr/include/g++-3/iomanip.h /usr/include/g++-3/strstream.h
+DAQTrackMemory.o: /usr/include/g++-3/strfile.h
+DAQTrackMap.o: /usr/include/stdlib.h /usr/include/features.h
+DAQTrackMap.o: /usr/include/sys/cdefs.h /usr/include/gnu/stubs.h
+DAQTrackMap.o: /usr/include/stdio.h /usr/include/bits/types.h
+DAQTrackMap.o: /usr/include/libio.h /usr/include/_G_config.h
+DAQTrackMap.o: /usr/include/wchar.h /usr/include/bits/wchar.h
+DAQTrackMap.o: /usr/include/gconv.h /usr/include/bits/stdio_lim.h
+DAQTrackMap.o: /usr/include/bits/sys_errlist.h /usr/include/setjmp.h
+DAQTrackMap.o: /usr/include/bits/setjmp.h /usr/include/bits/sigset.h
+DAQTrackMap.o: /usr/include/sys/time.h /usr/include/time.h
+DAQTrackMap.o: /usr/include/bits/time.h /usr/include/sys/select.h
+DAQTrackMap.o: /usr/include/bits/select.h /usr/include/unistd.h
+DAQTrackMap.o: /usr/include/bits/posix_opt.h /usr/include/bits/confname.h
+DAQTrackMap.o: /usr/include/string.h /usr/include/errno.h
+DAQTrackMap.o: /usr/include/bits/errno.h /usr/include/linux/errno.h
+DAQTrackMap.o: /usr/include/asm/errno.h /usr/include/ctype.h
+DAQTrackMap.o: /usr/include/endian.h /usr/include/bits/endian.h
+DAQTrackMap.o: /usr/include/g++-3/iostream /usr/include/g++-3/iostream.h
+DAQTrackMap.o: /usr/include/g++-3/streambuf.h /usr/include/g++-3/strstream.h
+DAQTrackMap.o: /usr/include/g++-3/strfile.h
+main.o: /usr/include/stdlib.h /usr/include/features.h
+main.o: /usr/include/sys/cdefs.h /usr/include/gnu/stubs.h
+main.o: /usr/include/stdio.h /usr/include/bits/types.h /usr/include/libio.h
+main.o: /usr/include/_G_config.h /usr/include/wchar.h
+main.o: /usr/include/bits/wchar.h /usr/include/gconv.h
+main.o: /usr/include/bits/stdio_lim.h /usr/include/bits/sys_errlist.h
+main.o: /usr/include/g++-3/iostream /usr/include/g++-3/iostream.h
+main.o: /usr/include/g++-3/streambuf.h

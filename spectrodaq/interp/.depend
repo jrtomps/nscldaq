@@ -1,0 +1,110 @@
+# DO NOT DELETE
+
+DAQInterp.o: /usr/include/stdlib.h /usr/include/features.h
+DAQInterp.o: /usr/include/sys/cdefs.h /usr/include/gnu/stubs.h
+DAQInterp.o: /usr/include/stdio.h /usr/include/bits/types.h
+DAQInterp.o: /usr/include/libio.h /usr/include/_G_config.h
+DAQInterp.o: /usr/include/wchar.h /usr/include/bits/wchar.h
+DAQInterp.o: /usr/include/gconv.h /usr/include/bits/stdio_lim.h
+DAQInterp.o: /usr/include/bits/sys_errlist.h /usr/include/setjmp.h
+DAQInterp.o: /usr/include/bits/setjmp.h /usr/include/bits/sigset.h
+DAQInterp.o: /usr/include/sys/time.h /usr/include/time.h
+DAQInterp.o: /usr/include/bits/time.h /usr/include/sys/select.h
+DAQInterp.o: /usr/include/bits/select.h /usr/include/unistd.h
+DAQInterp.o: /usr/include/bits/posix_opt.h /usr/include/bits/confname.h
+DAQInterp.o: /usr/include/string.h /usr/include/ctype.h /usr/include/endian.h
+DAQInterp.o: /usr/include/bits/endian.h /usr/include/netinet/in.h
+DAQInterp.o: /usr/include/stdint.h /usr/include/bits/wordsize.h
+DAQInterp.o: /usr/include/bits/socket.h /usr/include/limits.h
+DAQInterp.o: /usr/include/sys/types.h /usr/include/bits/sockaddr.h
+DAQInterp.o: /usr/include/asm/socket.h /usr/include/asm/sockios.h
+DAQInterp.o: /usr/include/bits/in.h /usr/include/bits/byteswap.h DAQInterp.h
+DAQInterp.o: /usr/include/tcl8.3/tcl.h /usr/include/tcl8.3/tclDecls.h
+DAQInterpChannel.o: /usr/include/stdlib.h /usr/include/features.h
+DAQInterpChannel.o: /usr/include/sys/cdefs.h /usr/include/gnu/stubs.h
+DAQInterpChannel.o: /usr/include/stdio.h /usr/include/bits/types.h
+DAQInterpChannel.o: /usr/include/libio.h /usr/include/_G_config.h
+DAQInterpChannel.o: /usr/include/wchar.h /usr/include/bits/wchar.h
+DAQInterpChannel.o: /usr/include/gconv.h /usr/include/bits/stdio_lim.h
+DAQInterpChannel.o: /usr/include/bits/sys_errlist.h /usr/include/setjmp.h
+DAQInterpChannel.o: /usr/include/bits/setjmp.h /usr/include/bits/sigset.h
+DAQInterpChannel.o: /usr/include/sys/time.h /usr/include/time.h
+DAQInterpChannel.o: /usr/include/bits/time.h /usr/include/sys/select.h
+DAQInterpChannel.o: /usr/include/bits/select.h /usr/include/unistd.h
+DAQInterpChannel.o: /usr/include/bits/posix_opt.h
+DAQInterpChannel.o: /usr/include/bits/confname.h /usr/include/string.h
+DAQInterpChannel.o: /usr/include/ctype.h /usr/include/endian.h
+DAQInterpChannel.o: /usr/include/bits/endian.h /usr/include/netinet/in.h
+DAQInterpChannel.o: /usr/include/stdint.h /usr/include/bits/wordsize.h
+DAQInterpChannel.o: /usr/include/bits/socket.h /usr/include/limits.h
+DAQInterpChannel.o: /usr/include/sys/types.h /usr/include/bits/sockaddr.h
+DAQInterpChannel.o: /usr/include/asm/socket.h /usr/include/asm/sockios.h
+DAQInterpChannel.o: /usr/include/bits/in.h /usr/include/bits/byteswap.h
+DAQInterpChannel.o: DAQInterpChannel.h /usr/include/tcl8.3/tcl.h
+DAQInterpChannel.o: /usr/include/tcl8.3/tclDecls.h
+DAQCommOutChannel.o: /usr/include/stdlib.h /usr/include/features.h
+DAQCommOutChannel.o: /usr/include/sys/cdefs.h /usr/include/gnu/stubs.h
+DAQCommOutChannel.o: /usr/include/stdio.h /usr/include/bits/types.h
+DAQCommOutChannel.o: /usr/include/libio.h /usr/include/_G_config.h
+DAQCommOutChannel.o: /usr/include/wchar.h /usr/include/bits/wchar.h
+DAQCommOutChannel.o: /usr/include/gconv.h /usr/include/bits/stdio_lim.h
+DAQCommOutChannel.o: /usr/include/bits/sys_errlist.h /usr/include/setjmp.h
+DAQCommOutChannel.o: /usr/include/bits/setjmp.h /usr/include/bits/sigset.h
+DAQCommOutChannel.o: /usr/include/sys/time.h /usr/include/time.h
+DAQCommOutChannel.o: /usr/include/bits/time.h /usr/include/sys/select.h
+DAQCommOutChannel.o: /usr/include/bits/select.h /usr/include/unistd.h
+DAQCommOutChannel.o: /usr/include/bits/posix_opt.h
+DAQCommOutChannel.o: /usr/include/bits/confname.h /usr/include/string.h
+DAQCommOutChannel.o: /usr/include/ctype.h /usr/include/endian.h
+DAQCommOutChannel.o: /usr/include/bits/endian.h /usr/include/netinet/in.h
+DAQCommOutChannel.o: /usr/include/stdint.h /usr/include/bits/wordsize.h
+DAQCommOutChannel.o: /usr/include/bits/socket.h /usr/include/limits.h
+DAQCommOutChannel.o: /usr/include/sys/types.h /usr/include/bits/sockaddr.h
+DAQCommOutChannel.o: /usr/include/asm/socket.h /usr/include/asm/sockios.h
+DAQCommOutChannel.o: /usr/include/bits/in.h /usr/include/bits/byteswap.h
+DAQCommOutChannel.o: DAQCommOutChannel.h /usr/include/tcl8.3/tcl.h
+DAQCommOutChannel.o: /usr/include/tcl8.3/tclDecls.h DAQInterpChannel.h
+DAQInterpCommand.o: /usr/include/stdlib.h /usr/include/features.h
+DAQInterpCommand.o: /usr/include/sys/cdefs.h /usr/include/gnu/stubs.h
+DAQInterpCommand.o: /usr/include/stdio.h /usr/include/bits/types.h
+DAQInterpCommand.o: /usr/include/libio.h /usr/include/_G_config.h
+DAQInterpCommand.o: /usr/include/wchar.h /usr/include/bits/wchar.h
+DAQInterpCommand.o: /usr/include/gconv.h /usr/include/bits/stdio_lim.h
+DAQInterpCommand.o: /usr/include/bits/sys_errlist.h /usr/include/setjmp.h
+DAQInterpCommand.o: /usr/include/bits/setjmp.h /usr/include/bits/sigset.h
+DAQInterpCommand.o: /usr/include/sys/time.h /usr/include/time.h
+DAQInterpCommand.o: /usr/include/bits/time.h /usr/include/sys/select.h
+DAQInterpCommand.o: /usr/include/bits/select.h /usr/include/unistd.h
+DAQInterpCommand.o: /usr/include/bits/posix_opt.h
+DAQInterpCommand.o: /usr/include/bits/confname.h /usr/include/string.h
+DAQInterpCommand.o: /usr/include/ctype.h /usr/include/endian.h
+DAQInterpCommand.o: /usr/include/bits/endian.h /usr/include/netinet/in.h
+DAQInterpCommand.o: /usr/include/stdint.h /usr/include/bits/wordsize.h
+DAQInterpCommand.o: /usr/include/bits/socket.h /usr/include/limits.h
+DAQInterpCommand.o: /usr/include/sys/types.h /usr/include/bits/sockaddr.h
+DAQInterpCommand.o: /usr/include/asm/socket.h /usr/include/asm/sockios.h
+DAQInterpCommand.o: /usr/include/bits/in.h /usr/include/bits/byteswap.h
+DAQInterpCommand.o: DAQInterpCommand.h /usr/include/tcl8.3/tcl.h
+DAQInterpCommand.o: /usr/include/tcl8.3/tclDecls.h
+DAQDisplayOutChannel.o: /usr/include/stdlib.h /usr/include/features.h
+DAQDisplayOutChannel.o: /usr/include/sys/cdefs.h /usr/include/gnu/stubs.h
+DAQDisplayOutChannel.o: /usr/include/stdio.h /usr/include/bits/types.h
+DAQDisplayOutChannel.o: /usr/include/libio.h /usr/include/_G_config.h
+DAQDisplayOutChannel.o: /usr/include/wchar.h /usr/include/bits/wchar.h
+DAQDisplayOutChannel.o: /usr/include/gconv.h /usr/include/bits/stdio_lim.h
+DAQDisplayOutChannel.o: /usr/include/bits/sys_errlist.h /usr/include/setjmp.h
+DAQDisplayOutChannel.o: /usr/include/bits/setjmp.h /usr/include/bits/sigset.h
+DAQDisplayOutChannel.o: /usr/include/sys/time.h /usr/include/time.h
+DAQDisplayOutChannel.o: /usr/include/bits/time.h /usr/include/sys/select.h
+DAQDisplayOutChannel.o: /usr/include/bits/select.h /usr/include/unistd.h
+DAQDisplayOutChannel.o: /usr/include/bits/posix_opt.h
+DAQDisplayOutChannel.o: /usr/include/bits/confname.h /usr/include/string.h
+DAQDisplayOutChannel.o: /usr/include/ctype.h /usr/include/endian.h
+DAQDisplayOutChannel.o: /usr/include/bits/endian.h /usr/include/netinet/in.h
+DAQDisplayOutChannel.o: /usr/include/stdint.h /usr/include/bits/wordsize.h
+DAQDisplayOutChannel.o: /usr/include/bits/socket.h /usr/include/limits.h
+DAQDisplayOutChannel.o: /usr/include/sys/types.h /usr/include/bits/sockaddr.h
+DAQDisplayOutChannel.o: /usr/include/asm/socket.h /usr/include/asm/sockios.h
+DAQDisplayOutChannel.o: /usr/include/bits/in.h /usr/include/bits/byteswap.h
+DAQDisplayOutChannel.o: DAQDisplayOutChannel.h /usr/include/tcl8.3/tcl.h
+DAQDisplayOutChannel.o: /usr/include/tcl8.3/tclDecls.h DAQInterpChannel.h
