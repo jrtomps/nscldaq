@@ -450,7 +450,7 @@ namespace eval  Experiment {
 	    #  Move the event data:
 	    
 	    foreach file $files {
-		file rename $file [ExpFileSystem::WhereareCompleteEventFiles]
+		file rename -force $file [ExpFileSystem::WhereareCompleteEventFiles]
 	    }
 
 	    #
