@@ -310,6 +310,6 @@ DAMAGES.
 #define ENDRUNBF       12
 #define PAUSEBF        13
 #define RESUMEBF       14
-
+#define PARAMDESCRIP   30
 #endif
 
