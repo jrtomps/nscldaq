@@ -45,3 +45,4 @@ cpptest_LDADD= -L. -lPortManager -L@top_srcdir@/Exception -lException
 check-TESTS: cpptest
 	unittests $(TCLSH_CMD)
 	cpptest
+man_MANS = DaqPortManager.8 portAllocator.3tcl CPortManager.3 CPortManagerException.3

@@ -1,0 +1,123 @@
+.TH DaqPortManager 8 "January 2005" nscldaq-8.0 "ADMINISTRATIVE COMMANDS"
+
+.SH NAME
+
+/usr/opt/daq/current/bin/DaqPortManager \- Persistent server to manage TCP/IP
+server listen ports.
+
+.SH SYNOPSIS
+
+tclsh8.4 DaqPortManager [-ports range] [-listen port] [-log file] [-usagefile file] &
+
+
+.SH DESCRIPTION
+.PP
+DaqPortManager is a persistent server that should be run at system startup
+time.  The program manages a block of TCP/IP ports.   Clients connect to the
+server to request ports as well as to ask the server to return the current port
+assignments. 
+.PP
+Command options (see OPTIONS) describe how th eprogram starts up.  The command
+options allow the user to define the block of ports that will be managed, to
+determine which port the port manager itself will listen on for connections and
+to define where the software will writ its log file.  Several other files are
+maintained by the program (see FILES).
+
+.SH OPTIONS
+.TP
+\-ports \fIrange\fR
+The \-ports switch is followed by a port range in the form of a pair of numbers
+separated by a dash (\-).  The pair of numbers defines a contiguous range of
+TCP/IP ports that will be managed by the server.   If this switch and its
+parameter are omitted, the server, by default, will manage the range 30001-31000
+
+.TP
+\-listen \fIport\fR
+The \-listen switch is followed by a single numeric parameter that defines the
+port on which the server will listen for client connections.  If this is not
+supplied, the server will listen for connections on port 30000.
+.TP
+\-log \fIfile\fR
+The \-log switch is followed by a path to a file that will be used to log the
+server's actions.  The server logs connections, port allocations, port
+allocation failures, port releases and
+illegal requests by clients.  The default log file is
+/var/log/nscldaq/portmanager.log 
+.TP
+\-usagefile \fIfile\fR
+The \-usagefile switch is followed by a path to a file that will be used to
+hold the instantaneous port usage.  This file can be examined to show the
+current port usage. Each line in this file is a three element TCL list of port,
+application and user for an allocated port.   If the \-usagefile switch is not
+provided, the server defaults to /var/tmp/daqportmgr/ports.txt
+
+.SH PROTOCOL
+The server protocol is quite simple. Once connected, two transactions are
+recognized.  Each transaction is requested by the client and fulfilled by the
+server.   The requests are:
+.TP
+GIMME \fIappname user\fR
+GIMME requests the server allocate a port.  When allocated, the server will
+believe that the port is allocated to the application named \fIappname\fR run by
+the user \fIuser\fR. If successful, the server replies:
+.TP
+OK \fIportnum\fR
+Where the OK indicates success and the \fIportnum\fR is the number of the port
+allocated.   If the server cannot allocate a port it will reply:
+.TP
+FAIL \fIreason\fR
+where \fIreason\fR is a TCL quoted item describing why the port could not be
+allocated.  
+.PP
+Once a client has allocated a port it must hold a persistent connection to the
+server.  When a client owning ports drops this connection its ports are freed
+by the server. While possibly inconvenient, this protocol prevents clients from
+accidently holding on to ports past exit.
+.TP
+LIST
+Requests that the server list port usage.  The server will issue a multiline
+reply to this request.  The first line will be of the form:
+.TP
+OK \fIn\fR
+Where \fIn\fR is the number of ports that are currently allocated.   The \fIn\fR
+lines that follow each consists of a 3 element TCL list containing in order,
+the port number, the application name and the name of the user that is running
+the application.  Note that if there are multiple instances of the same
+application run by the same user,
+They will be qualified by appending an underscore and an application instance number.
+
+.SH EXAMPLES
+.nf
+tclsh8.4 /usr/opt/daq/current/bin/DaqPortManager -ports 31000-40000 &
+.fi
+
+Starts the port manager listening on port 30000 managing ports in the range
+31000 through 40000.
+
+.SH FILES
+The server maintains:
+
+.nf
+/var/run/nscldaq/daqportmgr.pid  - contains the port manager's process id.
+/var/log/nscldaq/portmanager.log - Default logfile
+/var/tmp/daqportmgr/listen.port  - Contains the listen port for the server.
+/var/tmp/daqportmgr/ports.txt    - Default port usage file.
+.fi
+
+.SH BUGS
+.PP
+The server should be able to default to listen on the service daqportmgr in
+/etc/services if present before falling back on port 30000
+.PP
+The 'uniquification' of the application name for the LIST command may vary from
+query to query as applications drop out.
+.PP
+Only connections to/from "localhost" are considered local.  The server does not
+bother to determine if any other sources are local even though they may be.
+.PP
+If multiple instances of the port manager are run, only last one started will be
+listed in /var/run/nscldaq/daqportmgr.pid
+
+.SH "SEE ALSO"
+
+CPortManager(3), CPortManagerException(3), portAllocator(3tcl)
