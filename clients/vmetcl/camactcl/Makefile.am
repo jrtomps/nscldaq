@@ -1,8 +1,9 @@
 install-exec-local:
 	$(mkinstalldirs) $(prefix)/Scripts
 	$(INSTALL_DATA)  camac.tcl $(prefix)/Scripts
+	$(INSTALL_DATA)  wienercamac.tcl $(prefix)/Scripts
 install-exec-local:
-EXTRA_DIST = camac.tcl AAReadme.txt
+EXTRA_DIST = camac.tcl AAReadme.txt wienercamac.tcl
 
 
 install-data-local:
