@@ -327,3 +327,5 @@ January 11, 2005
 January 14, 2005
        - Fix documentation error in skeleton makefiles - how to get each type
          of CAMAC controller.
+January 17, 2005
+       - Fix typo in macro name in the skeleton makefile of production readout.

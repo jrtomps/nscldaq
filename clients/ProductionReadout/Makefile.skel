@@ -44,7 +44,7 @@ Readout: $(Objects)
 	$(CXXLD) -o Readout  $(Objects) $(USERLDFLAGS) $(LDFLAGS)
 
 clean:
-	rm -f $(Ojbects) Readout
+	rm -f $(Objects) Readout
 
 depend:
 	makedepend $(USERCXXFLAGS) *.cpp
