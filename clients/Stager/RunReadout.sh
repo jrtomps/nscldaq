@@ -11,6 +11,10 @@ if [ -e .bashrc ]; then
   . .bashrc
 fi
 
+
+
 cd $RUNREADOUTdir 
 
-./$RUNREADOUTexec 2>&1
+echo Running $RUNREADOUTexec with cwd $RUNREADOUTdir
+
+$RUNREADOUTexec 2>&1

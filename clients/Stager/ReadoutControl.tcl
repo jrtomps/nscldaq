@@ -485,7 +485,7 @@ namespace eval ReadoutControl {
 	#
 	#   Break the readout file apart into it's path and name.
 
-	set path [file dirname $Executable]
+	set path [file dirname $ReadoutProgram]
 	set name [file tail    $Executable]
 	
 	#  Now do the rsh.
@@ -495,7 +495,7 @@ namespace eval ReadoutControl {
 	    set fd [rsh::rshpipe $ReadoutHost $Executable r+]
 	} else {		;# Run via env setup script. 
 	    puts "Running readout program via wrapper: $script $path $name"
-	    set fd [rsh::rshpipe $ReadoutHost "$script $path $name" r+]
+	    set fd [rsh::rshpipe $ReadoutHost "$script $path $Executable" r+]
 	}
 	if {![eof $fd]} {
 	    set PipeFd $fd
