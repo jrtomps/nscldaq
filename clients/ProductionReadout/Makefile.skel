@@ -1,0 +1,38 @@
+#
+#  Makefile for the user's additions to the production readout system.
+#
+
+SPECTRO_FLAGS=$(shell /opt/spectrodaq/bin/spectrodaq-conf --cflags)
+SPECTRO_LDFLAGS=$(shell /opt/spectrodaq/bin/spectrodaq-conf --libs)
+VME=$(shell $(INSTDIR)/Bin/VmeDevice)
+OS=$(shell uname | sed s/-//)
+LD=g++
+LDFLAGS=-g 
+
+
+NSCLBIT3LIB=-lVmeAPI
+SBSBIT3LIB  = -lVmeAPI -lbtp
+
+LIBFLAGS=-L. -L$(INSTDIR)/Lib  -L/usr/X11R6/lib -lPReadout \
+	-lEventFramework -lException $($(VME)LIB) -lTclPlus  -lException  \
+	$(SPECTRO_LDFLAGS) -ltk -ltcl -lXm -lXt -lX11 -lm -lLicense
+
+COMPILEFLAGS= $(SPECTRO_FLAGS) -c -ggdb -I. -I$(INSTDIR)/Include  \
+	-D$(OS) -I/usr/include/tcl 
+
+CPP=g++ $(COMPILEFLAGS)
+CC=gcc $(COMPILEFLAGS)
+
+.cpp.o:
+	$(CPP) $<
+
+.c.o:
+	$(CC) $<
+
+
+Objects=Skeleton.o
+
+
+Readout: $(Objects)
+	$(LD) -o Readout $(LDFLAGS) $(Objects)  $(LIBFLAGS) $(LIBFLAGS)
+
