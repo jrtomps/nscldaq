@@ -399,7 +399,7 @@ int CNSCLDaqBuffer::getByteString(int nWordOffset,
   int ActualSize;
   if(m_ConvertReady) {		// Unable to bounds check if we can't
     int Buffersize = getUsedSize()*sizeof(UShort_t);
-    if(nEndsAt >= Buffersize) { // convert the buffer size.
+    if(nEndsAt > Buffersize) { // convert the buffer size.
       nEndsAt = Buffersize-1;
     }
   }

@@ -281,7 +281,7 @@
 #  VHQ 202M vme high voltage controller module driver package.
 #   Top level procedures added:
 #
-#    vhq::create  base                            - Create a new module.
+#    vhq::create  base ?crate?                      - Create a new module.
 #    vhq::id      module                          - Get serial no of module
 #    vhq::stat1   module                          - Return status reg 1.
 #    vhq::stat2   module                          - Return status reg 2.
@@ -351,15 +351,15 @@ namespace eval vhq {
 #   base is the base address of the device in short I/O space
 #    /dev/vme16d16  note that all registers are byte wide.
 #
-proc vhq::create {base} {
+proc vhq::create {base {crate 0}} {
     set name vhq202m_
-    append name $base
+    append name $crate _ $base
 
     if {[vhq::isController $name] != -1} {
 	error "There's already a controller mapped to that address"
     }
 
-    vme create $name -device /dev/vme16d16 $base 0x50
+    vme create $name -device /dev/vme16d16 -crate $crate $base 0x50
     vhq::AddController $name
 
     return $name

@@ -288,9 +288,10 @@
 #   Change log:
 #
 # $Log$
-# Revision 3.4  2004/08/06 13:26:02  ron-fox
-# Merge prior to begining kernel 2.6/gcc 3.x port
+# Revision 3.5  2004/10/29 20:32:57  ron-fox
+# Merge the 7.4 development into the main line
 #
+
 # Revision 3.2.4.3  2004/07/22 14:05:10  ron-fox
 # Add a validator to ensure that run numbers are actually numbers
 # otherwise the status line can blow up trying to format a textual

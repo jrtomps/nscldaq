@@ -278,12 +278,14 @@ DAMAGES.
 static const char* Copyright = "(C) Copyright Michigan State University 2002, All rights reserved";/////////////////////////CReadoutMain.cpp file////////////////////////////////////
 
 /*
+
   $Header$
   
   Change Log:
    $Log$
-   Revision 3.4  2004/08/06 13:26:00  ron-fox
-   Merge prior to begining kernel 2.6/gcc 3.x port
+   Revision 3.5  2004/10/29 20:32:55  ron-fox
+   Merge the 7.4 development into the main line
+
 
    Revision 3.2.4.1  2004/03/04 13:53:48  ron-fox
    Correct the base address of the VME trigger module to 0x444400 and encapsulate
@@ -304,21 +306,21 @@ static const char* Copyright = "(C) Copyright Michigan State University 2002, Al
    Revision 1.5  2002/10/22 12:38:20  fox
    Straighten out dates in internal copyright notices.
 
-// Revision 1.4  2002/10/16  14:22:21  fox
-// Change some runvars into consts:
-// - state -- the run state is now a const maintained by the program.
-// - starttime - the time at which the run started.
-//
-// Link in libraries from . before $(INSTDIR)
-//
-// Revision 1.3  2002/10/15  12:48:26  fox
-// 1. Initial testing
-// 2. Add const variable and make tkloaded const.
-// 3. Add TclServer functionality.
-//
-// Revision 1.2  2002/10/09  11:22:31  fox
-// Stamp with copyright/gpl license notice
-//
+ Revision 1.4  2002/10/16  14:22:21  fox
+ Change some runvars into consts:
+ - state -- the run state is now a const maintained by the program.
+ - starttime - the time at which the run started.
+
+ Link in libraries from . before $(INSTDIR)
+
+ Revision 1.3  2002/10/15  12:48:26  fox
+ 1. Initial testing
+ 2. Add const variable and make tkloaded const.
+ 3. Add TclServer functionality.
+
+ Revision 1.2  2002/10/09  11:22:31  fox
+ Stamp with copyright/gpl license notice
+
    */
 
 #include <spectrodaq.h>

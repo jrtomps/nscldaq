@@ -90,7 +90,6 @@ include_HEADERS= CAlarmLogger.h \
 	CTypeFreeBinding.h \
 	CVariableBinding.h \
 	CXtEventLoop.h \
-	ClocationMonitor.h \
 	SpectroFramework.h \
 	XMCallback.h \
 	XMDialogs.h \

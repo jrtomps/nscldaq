@@ -37,4 +37,7 @@ install-exec-local:
 	$(INSTALL_SCRIPT) scalerlocal.tk $(bindir)
 
 
-EXTRA_DIST = scalerlocal.tk
+EXTRA_DIST = scalerlocal.tk sclclient.1
+
+man_MANS = sclclient.1
+

@@ -1,0 +1,95 @@
+.TH eventlog 1 "September 2004" eventlog-1.0 "USER COMMANDS"
+.SH NAME
+
+eventlog \- Create logs of data taking runs.
+.SH SYNOPSIS
+
+.B eventlog [OPTIONS]
+
+.SH DESCRIPTION
+.PP
+Eventlog creates event-by-event log files for data taking runs in the NSCL Data 
+acquisition system.   For each run, eventlog will create a new file named 
+runxx-s.evt where x is the run number and s is the buffer size of the run. 
+
+.PP
+Depending on the command line options (see OPTIONS below), eventlog will either 
+write its logs to the current working directory, or to an FTP url.  Since NFS 
+writes can be comparitively slow, if the data are to be written to a remote disk, 
+ftp mode is preferred. 
+
+.SH OPTIONS
+.TP 
+\-help
+ Prints out a mesage briefly describing the usage of the program.
+
+.TP
+\-source
+   The next command line word will be taken as the URL of the event source.  
+Data recorded to the event log will be data that were submitted to the 
+spectrodaq buffer routing system on that system.  See LINK SPECIFICATIONS below 
+for more information about the format of this parameter.  By default, data are 
+taken from the localhost.
+.TP
+\-ftp
+   If \-ftp is specified, data will be written via an ftp link rather than via 
+UNIX open/write/close system calls.  If the target disk is remote, \-ftp will,
+in general, give better performance than open/write/close because NFS writes are 
+comparitively slower.   In order to establish the ftp session correctly, a username
+and password must be supplied.  See the \-user and \-pass options for
+more information.
+
+.TP
+\-user
+   This option is valid if \-ftp was specified.  The next command word is the
+username supplied when setting up the ftp connection.  See also \-ftp, and \-pass.
+
+.TP
+\-pass
+   This option is valid if \-ftp was specified.  The next command word is the
+password supplied when setting up the ftp connection.  See also \-ftp and
+\-user.  Note that the command line is re-written to hide this.  If you are 
+concerned about transient visibility of the password, you can store it in
+a file only readable by the owner and specify e.g. -pass \`cat ~/.password`
+
+.TP
+\-one
+   If this option is present, only one run is recorded. If not, all runs are 
+recorded until the program is terminetaed via e.g. SIGTERM.  \-one is especially
+useful for GUI control panels where it can be used to implement selective
+recorded and non-recorded runs.
+
+.SH "LINK SPECIFICATIONS"
+.PP
+Link specifications are in the form of a URL.  The URL type is tcp.  The host 
+part of the URL determines which host the data are taken from.  The port must 
+be supplied and is the the spectrodaq link port (in NSCL standard implementations,
+this is 2602).  For example,
+to record data from dizzy.dean.net:
+
+.nf
+tcp://dizzy.dean.net:2602/
+.fi
+
+.SH EXAMPLES
+.PP
+   The first example shows how to record data from the local host to the cwd.
+Runs will be recorded until event log is terminated:
+.nf
+eventlog
+.fi
+.PP
+The next example records runs to files in the directory /home/unreal/events
+on an ftp server on the system dizzy.dean.net.  The username is 'unreal', the 
+password is 'recording'.
+
+.nf
+eventlog -ftp tcp://dizzy.dean.net:ftp/home/unreal/events \\
+         -user unreal -pass recording
+.fi
+.PP
+Finally, events are recorded locally, but after the first run is recorded, 
+the event logger will exit.
+.nf
+eventlog -one
+.fi

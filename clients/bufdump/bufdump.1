@@ -1,0 +1,52 @@
+.TH bufdump 1 "August 2004" bufdump-1.0 "USER COMMANDS"
+
+.SH NAME
+
+bufdump \- Dump useful pieces of daq buffers to a terminal
+
+.SH SYNOPSIS
+
+.B daqstart [URL]
+
+.SH DESCRIPTION
+.PP
+bufdump produces a partial dump of buffers that have been submitted to 
+the data acquisition system.  If no parameter is specified, buffers 
+submitted to the local host are displayed.  If supplied, the parameter
+is the URL of the spectrodaq server from which buffers should be dumped.
+Typically this is of the form:
+
+.nf
+tcp://hostname:2602/
+.fi
+
+Where 
+.I hostname
+is the name of the system from which you want to receive buffers.
+
+
+.SH "SAMPLE OUTPUT"
+.PP
+The following outut shows a scaler buffer.
+.nf
+---------------------- Non event --------------
+Buffer size is: 26
+26 2 0 0 1 0 0 1 
+1 1 4 258 772 258 0 0 
+
+.fi
+
+.PP
+The following output shows an event buffer where the first event 
+is a ten word counting pattern.
+
+.nf
+-------------------------- Event (first Event) -------------------
+ Header: 
+4086 1 0 0 1 0 370 1 1 1 4 258 772 258 0 0 
+Event: 
+11(10) words of data
+b 0 1 2 3 4 5 6 
+7 8 9 
+
+.fi

@@ -1,0 +1,4 @@
+#!/bin/bash
+
+prefix=@prefix@
+tclserver $prefix/Scripts/ScalerDisplay.tcl $1 -p2700

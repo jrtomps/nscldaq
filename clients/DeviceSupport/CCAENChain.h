@@ -281,6 +281,9 @@ DAMAGES.
 /*
    Revision history:
    $Log$
+   Revision 1.2  2004/10/29 20:32:54  ron-fox
+   Merge the 7.4 development into the main line
+
    Revision 1.1  2003/12/03 18:45:45  ron-fox
    Update 767 documentation
 
@@ -304,7 +307,7 @@ DAMAGES.
 #endif
 
 #ifndef __CRANGEERROR_H
-#include <RangeError.h>
+#include <CRangeError.h>
 #endif
 
 // Forward class definitions:

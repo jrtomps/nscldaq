@@ -309,7 +309,7 @@ DAMAGES.
 #include <CNoSuchObjectException.h>
 #include <CObjectRegistry.h>
 #include <CPointerPredicate.h>
-#include <RangeError.h>
+#include <CRangeError.h>
 #include <CReactor.h>
 #include <CRefptr.h>
 #include <CRegisteredObject.h>
@@ -329,7 +329,6 @@ DAMAGES.
 #include <CTimerEvent.h>
 #include <CTimerMonitor.h>
 #include <CXtEventLoop.h>
-#include <ClocationMonitor.h>
 #include <SpectroFramework.h>
 #include <TCLApplication.h>
 #include <TCLCommandPackage.h>

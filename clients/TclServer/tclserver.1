@@ -1,0 +1,110 @@
+.TH tclserver 1 "August  2004" nscldaq-7.4 "USER COMMANDS"
+
+.SH NAME
+
+/usr/opt/daq/bin/tclserver \- Provide a Tcp/IP server of TCL/Tk commands.
+
+.SH SYNOPSIS
+
+.B tclserver [OPTIONS] [SCRIPT]
+
+.SH DESCRIPTION
+.PP
+tclserver is a TCP/IP server for Tcl/Tk commands.  It is a modfied
+wish shell that listens on a designated port.  Clients connected to those
+ports can poke arbitrary Tcl/Tk commands across the link. Those commands
+will then be executed by the server.
+
+.PP
+Initially, the tclserver will only accept connections from the localhost.
+Tcl/Tk in the tclserver is extended to include a 
+.I serverauth
+command.  The serverauth command allows the user to manipulate and display
+the set of hosts authorized to connect to the server.  Only trusted hosts
+should be allowed to connect as tcl allows arbitrary shell commands to be
+executed as well via the exec command.
+
+.PP
+Applications of tclserver include distributed displays, and associative 
+online databases.   To implement a distributed display, each 
+tclserver would source in a presentation GUI script. Clients would poke
+commands at the server that describe the state of the system being
+displayed.  The scaler display subsystem (see ScalerDisplay(1)) is an
+example of this scheme.  Distributed databases would use clients to set
+and query values of array elements, making use of Tcl's associative
+arrays to hold the database information.  A script could be sourced in
+to trace write accesses to the database array, forcing updates to e.g.
+a gdbm database file whenever the database array is modified.
+
+.PP
+By setting the port options appropriately, an arbitrary number of 
+tclserver daemons can be run on the same system.  Note that it is
+typically unwise to run tclserver from inetd or other superservers
+because (among other reasons):
+.TP 
+1.
+You will typically only want a single tclserver active on a given port 
+so that all clients will share the same interpreter objects.
+.TP
+2. 
+inetd daemons won't usually have access the X11 display.
+
+
+.SH OPTIONS
+.PP
+In addtion to the options desceribed below, tclserver accepts all
+options that wish(1) accepts.  See the man page for wish for information
+about these options.
+
+.TP
+\-p port
+Specifies the port on which the server listens for connections. By 
+default this will be port 2048.  Scaler tclserver, for example, usually 
+listen on port 2700.
+.TP
+\-display disp
+Specifies an X11 display identifier on which to project the GUI. Note
+this option is not relevant for the windows version of tclserver
+
+
+.SH COMMANDS
+.PP
+tclserver extends Tcl/Tk by adding the command
+.I serverauth.
+serverauth is used to manipulate the host authorization list. serverauth 
+has the following forms:
+.TP
+severauth add hostorip
+Adds the host specified after the add subcommand to the set of hosts 
+that may form connections to this tclserver instance.  hostorip can
+be either a DNS hostname or an IP address in dotted form.  Note that if
+a dotted IP address is requested, no attempt is made to reverse DNS 
+look up the hostname.  The hostname of the system is listed as the
+IP address.
+.TP
+serverauth remove hostorip
+Removes the designated host from the list of authorized hosts.  If
+a DNS name is specified it is translated to the host's IP and that
+host the host matching that ip is removed from the list.
+.TP
+serverauth list
+lists the set of currently authorized hosts.  This list is a properly
+TCL list.  Each element of the list has two subelements, the 
+hostname, and the IP address. 
+
+.SH "DEFECTS AND RESTRICTIONS"
+.TP
+1. 
+No session encryption is performed.
+.TP
+2.
+No protection against IP spoofing is performed.
+.TP
+3. 
+Hosts added to the authorized list by IP don't have this IP reverse
+translated back to a DNS name.  Listing authorized hosts will show
+their "DNS name" as the IP address entered.
+
+.SH SEE ALSO
+.PP
+ScalerDisplay(1), sclclient(1), wish(1)

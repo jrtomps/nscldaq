@@ -280,7 +280,7 @@ static const char* Copyright = "(C) Copyright Michigan State University 2002, Al
 //   See the CCamac.h file for more information.
 //
 #include "CCamac.h"
-#include <RangeError.h>
+#include <CRangeError.h>
 #include <ErrnoException.h>
 #include <CVMEInterface.h>
 

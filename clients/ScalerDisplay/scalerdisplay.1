@@ -1,0 +1,271 @@
+.TH ScalerDisplay 1 "August 2004" ScalerDisplay-1.0 "USER COMMANDS"
+
+.SH NAME
+ScalerDisplay \- NSCL Supported Scaler Display program for NSCLDAQ.
+
+.SH SYNOPSIS
+.PP
+.B export DAQHOST=datasourcecomputer
+.PP
+.B ScalerDisplay configurationfile
+
+.SH DESCRIPTION
+.PP
+   This script provides a configurable scaler display for the NSCL Data
+Acquisition system.  The script requires that:
+
+.TP 
+\-
+An environment variable named DAQHOST be defined to be the name of the
+computer that is taking data.  At the NSCL this will usually be a system
+named spdaqnn where nn is a two digit number.
+
+.TP 
+\-
+A single command parameter provides the name of a TCL script that is used
+to configure the display.  The full range of TCL functionality may be used 
+by this configuration script.  The display script, in addition defines several
+commands that are used to configure the display (See CONFIGURATION COMMANDS
+below). 
+
+.PP
+In addition to configuring the display itself, ScalerDisplay supports the
+invocation of user written code at well defined points of operations.  For more
+information about that see CALLOUTS below.
+
+.SH "CONFIGURATION COMMANDS"
+
+.PP
+The ScalerDisplay program recognizes three types of items:
+
+.TP 
+channels \- 
+A channel is a scaler channel.  It has a name and an index.  The name is used
+to refer to and label the channel. The index is the offset into the set of
+scalers (numbered from 0) that contains that channel.
+
+.TP 
+pages \-
+A page is a set of scalers grouped together on one display page.  Pages have a
+title, which is an arbitrary text string that is displayed at the top of the
+page when the page is active, and a Tabname which is used to select the page
+from the tabbed notebook widget that displays them.
+
+.TP
+lines \-
+A line is  a single scaler or a pair of scalers  or blank displayed on a line of
+the scaler display.
+
+Channels are defined using the 
+.I channel 
+command.  The format of this command is:
+.nf
+
+channel name index
+
+.fi
+
+Pages are defined via the 
+.I page
+command.  The format of this command is:
+.nf
+
+page Tabname "Some meaningful title string"
+
+.fi
+Note that the title string must be enclosed in quotes if it contains whitespace
+or other TCL word-separators.
+
+Single scaler lines are defined via the
+.I display_single
+
+command. The format of this command is:
+.nf
+
+display_single Tabname channelname
+
+.fi
+
+Where 
+.I Tabname
+is the Tab name of a scaler page and 
+.I channelname
+is the name of a scaler channel.
+
+
+Ratio lines are defined via the
+.I display_ratio 
+command:
+
+.nf
+
+display_ratio  Tabname numerator_chanel denominator_channel
+
+.fi
+
+Blank lines are defined via the
+.I blank
+command:
+
+.nf
+
+blank Tabname
+
+.fi
+
+.SH CALLOUTS
+.PP
+The scaler script will invoke user written procedures defined in the
+configuration script (or scripts sourced by it) at well defined points of the
+run.  These callouts can be used to provide functionality not originally
+foreseen by the program.
+
+.TP
+UserUpdate \-
+UserUpdate, if defined, is called by the script whenever it has updated the
+displays.  No parameters are passed in to the procedure but several global variables
+are useful (see GLOBAL VARIABLES below).
+
+.TP
+UserBeginRun \-
+UserBeginRun is called at the beginning of a run, if it has been defined. No
+parameters are passed.
+
+.TP
+UserEndRun \-
+UserEndRun, if defined, is called at the end of a run. No parameters are
+passed.
+
+
+
+.SH "GLOBAL VARIABLES"
+
+The following global variables are useful within user callouts.
+
+.TP
+RunNumber \-
+   The number of the current run.
+
+.TP
+RunTitle \-
+   A string contaning the title of the current run.
+
+.TP
+Scaler_Totals \-
+   An array indexed by scaler channel number containing the
+total number of counts in each channel.
+
+.TP
+Scaler_Increments \-
+   An array indexed by scaler channel number containing the number of counts in
+the last time increment (see also ScalerDeltaTime)
+
+.TP
+ScalerDletaTime \-
+   The number of seconds of counts represented by the Scaler_Increments array
+elements.
+
+.TP
+ScalerMap
+  An array indexed by scaler names.  Each element of this array is the index of
+the corresponding scaler.  For example, if you have defined a channel named 
+.I george,
+ScalerMap(george) will be the scaler channel index associated with george.
+
+
+.SH EXAMPLE(S)
+.nf
+#
+#   Define the scaler channels:
+#
+#   These can be in any order, I'm just copying the order from the original
+#   file.  my preference in fact would be to go in channel order.
+#   This is a TCL script with 
+#    commands 'channel'  - to define a chanel name/buffer position correspondence
+#             'page'     - To define a scaler page.
+#             'display_single' - To define a single scaler line in a page.
+#        
+
+#
+channel gas.PIN.cfd       0
+channel gas.qA.cfd       16
+channel gas.qB.cfd       17
+channel gas.gC.cfd       18;              # is this a typo in the original file?
+channel gas.qD.cfd       19
+channel gas.de.cfd        1
+channel gas.Ge.cfd        2
+channel gas.Ge.cfd_B-OFF 12
+channel gas.PS.cfd        5
+channel gas.PS.cfd_B-OFF 13
+channel I2.SCI.N          3
+channel I2.SCI.S          4
+channel TA.BaF2           6
+channel master.gated     11
+channel master.free      10
+channel cpu.lam.TO        7
+channel clock.gated       9
+channel clock.free        8
+channel beam.cycle.on    14
+channel beam.cycle.off   15
+
+#
+#  Next define the pages, their long titles and the tab name
+#  and their contents.
+#  I've defined the page ALL to be the original page
+#  as well as some additional pages so that you can get the
+#  idea of how you can use this to organize the display if you want to.
+#  If you don't, you can rip out the extra pages.
+#
+#  
+
+page ALL  "Gas Cell DAQ All Scalers"
+display_single ALL gas.PIN.cfd
+display_ratio  ALL gas.qA.cfd      gas.qB.cfd
+display_ratio  ALL gas.gC.cfd      gas.qD.cfd
+display_single ALL gas.Ge.cfd
+display_ratio  ALL gas.Ge.cfd      gas.Ge.cfd_B-OFF
+display_ratio  ALL gas.PS.cfd      gas.PS.cfd_B-OFF
+display_ratio  ALL I2.SCI.N        I2.SCI.S
+display_single ALL TA.BaF2
+display_ratio  ALL master.gated        master.free
+display_ratio  ALL cpu.lam.TO          master.gated
+display_ratio  ALL clock.gated         clock.free
+display_ratio  ALL gasN4.dE.cfd        gasN4.PIN.cfd
+display_ratio  ALL beam.cycle.on       beam.cycle.off
+
+
+# If you only want the first page, then remove all lines
+# below here:
+#------------------------- cut below here -------------------
+
+#  A second page:
+#   Just showing the livetime information  mostly.
+
+page Livetime "Live time information"
+display_ratio Livetime  master.gated master.free
+display_ratio Livetime  clock.gated  clock.free
+display_ratio Livetime  cop.lam.TO   master.gated
+
+
+#  A third page showing only the gas cell:
+
+page GasCell "Gas cell scalers"
+
+
+display_single GasCell gas.PIN.cfd
+display_ratio  GasCell gas.qA.cfd      gas.qB.cfd
+display_ratio  GasCell gas.gC.cfd      gas.qD.cfd
+display_single GasCell gas.Ge.cfd
+display_ratio  GasCell gas.Ge.cfd      gas.Ge.cfd_B-OFF
+display_ratio  GasCell gas.PS.cfd      gas.PS.cfd_B-OFF
+
+.fi
+
+
+.SH "BUGS AND RESTRICTIONS"
+.TP
+\-
+   There is currently no way to place blank lines on a display page.
+.TP
+\-
+   This software only available with release 7.4 and later of nscldaq.

@@ -1,0 +1,977 @@
+WidGet file, version 1.1, created:  Thu Sep 02 11:39:05  2004
+Widget checkbutton#21
+	configure variable checkbutton21
+	configure state disabled
+	other error {}
+	other tags {}
+	other level {}
+	other help {}
+	other master .frame#6
+	other pathname checkbutton#21
+	other tabbing {}
+	other item_name chbilimit
+	geometry row 2
+	other type checkbutton
+	configure text {I limit}
+	geometry column 2
+	other comments {}
+Widget entry#3
+	geometry row 10
+	other error {}
+	other type entry
+	other master {}
+	other pathname entry#3
+	other tags {}
+	other level {}
+	other help {}
+	other comments {}
+	configure cursor {}
+	geometry column 1
+	other item_name chasetpoint
+	other tabbing {}
+Widget button#10
+	geometry row 8
+	other error {}
+	other type button
+	other master {}
+	configure text Set
+	other pathname button#10
+	other tags {}
+	other level {}
+	other help {}
+	other comments {}
+	geometry column 4
+	configure command {SetRampSpeed %W b}
+	other tabbing {}
+	other item_name chbsetspeed
+Widget checkbutton#22
+	configure variable checkbutton22
+	configure state disabled
+	other error {}
+	other tags {}
+	other level {}
+	other help {}
+	other master .frame#6
+	other pathname checkbutton#22
+	other tabbing {}
+	other item_name chbstable
+	geometry row 2
+	other type checkbutton
+	configure text {stable }
+	geometry column 4
+	other comments {}
+Widget entry#4
+	geometry row 10
+	configure state disabled
+	other error {}
+	other type entry
+	other master {}
+	other pathname entry#4
+	other tags {}
+	other level {}
+	other help {}
+	other comments {}
+	configure cursor {}
+	geometry column 2
+	other item_name chavactual
+	other tabbing {}
+Widget button#11
+	geometry row 12
+	other error {}
+	other type button
+	other master {}
+	configure text Reset
+	other pathname button#11
+	other tags {}
+	other level {}
+	other help {}
+	other comments {}
+	geometry column 3
+	configure command {after 2000}
+	other tabbing {}
+	other item_name button#11
+Widget entry#5
+	geometry row 5
+	configure state disabled
+	other error {}
+	other type entry
+	other master {}
+	other pathname entry#5
+	other tags {}
+	other level {}
+	other help {}
+	configure cursor {}
+	other comments {}
+	geometry column 1
+	other item_name chavlimitvalue
+	other tabbing {}
+Widget checkbutton#23
+	configure variable checkbutton23
+	configure state disabled
+	other error {}
+	other tags {}
+	other level {}
+	other help {}
+	other master .frame#6
+	other pathname checkbutton#23
+	other tabbing {}
+	other item_name chbramp
+	geometry row 1
+	other type checkbutton
+	configure text ramp
+	geometry column 2
+	other comments {}
+Widget button#12
+	geometry row 12
+	other error {}
+	other type button
+	other master {}
+	configure text Lock
+	other pathname button#12
+	other tags {}
+	other level {}
+	other help {}
+	other comments {}
+	geometry column 5
+	configure command {ToggleLock %W}
+	other tabbing {}
+	other item_name lock
+Widget button#13
+	geometry row 11
+	other error {}
+	other type button
+	other master {}
+	configure text Off
+	other pathname button#13
+	other tags {}
+	other level {}
+	other help {}
+	other comments {}
+	geometry column 2
+	other item_name button#13
+	other tabbing {}
+	configure command {TurnOff %W a}
+Widget entry#6
+	geometry row 10
+	other error {}
+	other type entry
+	other master {}
+	other pathname entry#6
+	other tags {}
+	other level {}
+	other help {}
+	configure cursor {}
+	other comments {}
+	geometry column 5
+	other tabbing {}
+	other item_name chbvactual
+Widget checkbutton#24
+	geometry columnspan 2
+	configure variable checkbutton24
+	configure state disabled
+	other error {}
+	other tags {}
+	other level {}
+	other help {}
+	other master .frame#6
+	other pathname checkbutton#24
+	other tabbing {}
+	other item_name chbkill
+	geometry row 1
+	other type checkbutton
+	configure text {kill en}
+	geometry column 5
+	other comments {}
+Widget button#14
+	geometry row 11
+	other error {}
+	other type button
+	other master {}
+	configure text Off
+	other pathname button#14
+	other tags {}
+	other level {}
+	other help {}
+	other comments {}
+	geometry column 5
+	other item_name button#14
+	other tabbing {}
+	configure command {TurnOff %W b}
+Widget entry#7
+	geometry row 10
+	other error {}
+	other type entry
+	other master {}
+	other pathname entry#7
+	other tags {}
+	other level {}
+	other help {}
+	configure cursor {}
+	other comments {}
+	geometry column 4
+	other tabbing {}
+	other item_name chbsetpoint
+Widget checkbutton#25
+	configure variable checkbutton25
+	configure state disabled
+	other error {}
+	other tags {}
+	other level {}
+	other help {}
+	other master .frame#6
+	other pathname checkbutton#25
+	geometry sticky w
+	other tabbing {}
+	other item_name chbon
+	geometry row 1
+	other type checkbutton
+	configure text on
+	geometry column 4
+	other comments {}
+Widget button#15
+	geometry row 12
+	other error {}
+	other type button
+	other master {}
+	configure text Restore...
+	other pathname button#15
+	other tags {}
+	other level {}
+	other help {}
+	other comments {}
+	geometry column 2
+	configure command {RestoreSettings %W}
+	other tabbing {}
+	other item_name button#15
+Widget entry#8
+	geometry row 7
+	other error {}
+	other type entry
+	other master {}
+	other pathname entry#8
+	other tags {}
+	other level {}
+	other help {}
+	other comments {}
+	configure cursor {}
+	geometry column 5
+	other item_name chbilimitvalue
+	other tabbing {}
+Widget entry#9
+	geometry row 5
+	configure state disabled
+	other error {}
+	other type entry
+	other master {}
+	other pathname entry#9
+	other tags {}
+	other level {}
+	other help {}
+	configure cursor {}
+	other comments {}
+	geometry column 4
+	other tabbing {}
+	other item_name chbvlimitvalue
+Widget checkbutton#27
+	configure variable checkbutton27
+	configure state disabled
+	other error {}
+	other tags {}
+	other level {}
+	other help {}
+	other master .frame#6
+	other pathname checkbutton#27
+	other tabbing {}
+	other item_name chbmanual
+	geometry row 1
+	other type checkbutton
+	configure text {man.  }
+	geometry column 3
+	other comments {}
+Widget checkbutton#28
+	configure variable checkbutton28
+	configure state disabled
+	other error {}
+	other tags {}
+	other level {}
+	other help {}
+	other master .frame#6
+	other pathname checkbutton#28
+	geometry sticky w
+	other tabbing {}
+	other item_name chbzero
+	geometry row 2
+	other type checkbutton
+	configure text 0
+	geometry column 5
+	other comments {}
+Widget label#1
+	geometry row 1
+	other error {}
+	other type label
+	other master .frame#1
+	configure text {VHQ 204x Power supply Controller}
+	other pathname label#1
+	other tags {}
+	other level {}
+	other help {}
+	other comments {}
+	geometry column 1
+	other tabbing {}
+	other item_name label1
+Widget label#3
+	geometry row 1
+	other error {}
+	other type label
+	other master {}
+	configure text SerialNumber
+	other pathname label#3
+	other tags {}
+	other level {}
+	other help {}
+	other comments {}
+	geometry column 4
+	other tabbing {}
+	other item_name label3
+Widget frame#1
+	other panel {}
+	geometry columnspan 2
+	geometry row 1
+	other resize_row 0
+	other type frame
+	other min_row 30
+	other master {}
+	other pathname frame#1
+	other tags {}
+	other resize_column 0
+	other level 1
+	other help {}
+	other min_column 51
+	other comments {}
+	geometry column 1
+	other tabbing {}
+	other item_name frame#1
+Widget label#4
+	geometry row 1
+	other error {}
+	other type label
+	other master {}
+	other pathname label#4
+	other tags {}
+	other level {}
+	other help {}
+	other comments {}
+	geometry column 5
+	other tabbing {}
+	other item_name serialno
+Widget button#1
+	other {} {}
+	other error {}
+	other tags {}
+	other level {}
+	other help {}
+	configure command {StartRamp %W a}
+	other master {}
+	other pathname button#1
+	other tabbing {}
+	other item_name chastartramp
+	geometry row 11
+	other type button
+	configure text Ramp
+	geometry column 1
+	other comments {}
+Widget button#2
+	geometry row 8
+	other error {}
+	other type button
+	other master {}
+	configure text Set
+	other pathname button#2
+	other tags {}
+	other level {}
+	other help {}
+	other comments {}
+	geometry column 2
+	other tabbing {}
+	other item_name chasetilimit
+	configure command {SetIlimit %W a}
+Widget label#7
+	geometry columnspan 2
+	geometry row 2
+	other error {}
+	other type label
+	other master {}
+	configure text {Channel A}
+	other pathname label#7
+	other tags {}
+	other level {}
+	other help {}
+	other comments {}
+	geometry column 1
+	other tabbing {}
+	other item_name label7
+Widget button#4
+	other {} {}
+	other error {}
+	other tags {}
+	other level {}
+	other help {}
+	configure command {StartRamp %W b}
+	other master {}
+	other pathname button#4
+	other tabbing {}
+	other item_name chbstartramp
+	geometry row 11
+	other type button
+	configure text Ramp
+	geometry column 4
+	other comments {}
+Widget label#8
+	geometry row 4
+	other error {}
+	other type label
+	other master {}
+	configure text {Current uA}
+	other pathname label#8
+	other tags {}
+	other level {}
+	other help {}
+	other comments {}
+	geometry column 2
+	other tabbing {}
+	other item_name label8
+Widget frame#5
+	other panel {}
+	geometry columnspan 2
+	geometry row 3
+	other resize_row {0 0 0}
+	other type frame
+	other error {}
+	other min_row {30 30 2}
+	other master {}
+	other pathname frame#5
+	other tags {}
+	other resize_column {0 0 0 0 0 0}
+	other level 1
+	other help {}
+	other min_column {30 30 30 30 19 2}
+	other comments {}
+	geometry column 1
+	other tabbing {}
+	other item_name frame#5
+Widget button#5
+	geometry row 8
+	other error {}
+	other type button
+	other master {}
+	configure text Set
+	other pathname button#5
+	other tags {}
+	other level {}
+	other help {}
+	other comments {}
+	geometry column 5
+	other item_name chbsetilimit
+	other tabbing {}
+	configure command {SetIlimit %W b}
+Widget frame#6
+	other panel {}
+	geometry columnspan 2
+	geometry row 3
+	other resize_row {0 0 0}
+	other error {}
+	other type frame
+	other min_row {30 30 2}
+	other master {}
+	other pathname frame#6
+	other resize_column {0 0 0 0 0 0 0}
+	other tags {}
+	other level 1
+	other min_column {2 30 30 30 30 2 2}
+	other help {}
+	other comments {}
+	geometry column 4
+	other item_name frame#6
+	other tabbing {}
+	geometry sticky n
+Widget button#7
+	geometry row 12
+	other error {}
+	other type button
+	other master {}
+	configure text Save...
+	other pathname button#7
+	other tags {}
+	other level {}
+	other help {}
+	other comments {}
+	geometry column 1
+	other item_name save
+	other tabbing {}
+	configure command {SaveSettings %W}
+Widget button#8
+	geometry row 12
+	other error {}
+	other type button
+	other master {}
+	configure text Exit
+	other pathname button#8
+	other tags {}
+	other level {}
+	other help {}
+	other comments {}
+	geometry column 4
+	other item_name exit
+	other tabbing {}
+	configure command Exit
+Widget button#9
+	geometry row 8
+	other error {}
+	other type button
+	other master {}
+	configure text Set
+	other pathname button#9
+	other tags {}
+	other level {}
+	other help {}
+	other comments {}
+	geometry column 1
+	other tabbing {}
+	other item_name chasetspeed
+	configure command {SetRampSpeed  %W a}
+Widget label#11
+	geometry row 6
+	other error {}
+	other type label
+	other master {}
+	configure text {I limit set (uA)}
+	other pathname label#11
+	other tags {}
+	other level {}
+	other help {}
+	other comments {}
+	geometry column 2
+	other tabbing {}
+	other item_name label11
+Widget label#12
+	geometry row 4
+	other error {}
+	other type label
+	other master {}
+	configure text {V limit (V)}
+	other pathname label#12
+	other tags {}
+	other level {}
+	other help {}
+	other comments {}
+	geometry column 1
+	other item_name label12
+	other tabbing {}
+Widget entry#10
+	geometry row 5
+	configure state disabled
+	other error {}
+	other type entry
+	other master {}
+	other pathname entry#10
+	other tags {}
+	other level {}
+	other help {}
+	other comments {}
+	configure cursor {}
+	geometry column 2
+	other tabbing {}
+	other item_name chacurrent
+Widget label#13
+	geometry columnspan 2
+	geometry row 2
+	other error {}
+	other type label
+	other master {}
+	configure text {Channel B}
+	other pathname label#13
+	other tags {}
+	other level {}
+	other help {}
+	other comments {}
+	geometry column 4
+	other item_name label#13
+	other tabbing {}
+Widget entry#11
+	geometry row 5
+	other error {}
+	other type entry
+	other master {}
+	other pathname entry#11
+	other tags {}
+	other level {}
+	other help {}
+	other comments {}
+	configure cursor {}
+	geometry column 5
+	other tabbing {}
+	other item_name chbcurrent
+Widget entry#12
+	geometry row 7
+	other error {}
+	other type entry
+	other master {}
+	other pathname entry#12
+	other tags {}
+	other level {}
+	other help {}
+	configure cursor {}
+	other comments {}
+	geometry column 1
+	other tabbing {}
+	other item_name chaspeed
+Widget label#14
+	geometry row 4
+	other error {}
+	other type label
+	other master {}
+	configure text {Current (uA)}
+	other pathname label#14
+	other tags {}
+	other level {}
+	other help {}
+	other comments {}
+	geometry column 5
+	other item_name label#14
+	other tabbing {}
+Widget entry#13
+	geometry row 7
+	other error {}
+	other type entry
+	other master {}
+	other pathname entry#13
+	other tags {}
+	other level {}
+	other help {}
+	configure cursor {}
+	other comments {}
+	geometry column 4
+	other tabbing {}
+	other item_name chbspeed
+Widget label#15
+	geometry row 6
+	other error {}
+	other type label
+	other master {}
+	configure text {I limit set (uA)}
+	other pathname label#15
+	other tags {}
+	other level {}
+	other help {}
+	other comments {}
+	geometry column 5
+	other item_name label#15
+	other tabbing {}
+Widget entry#14
+	geometry row 7
+	other error {}
+	other type entry
+	configure textvariable entry
+	other master {}
+	other pathname entry#14
+	other tags {}
+	other level {}
+	other help {}
+	configure cursor {}
+	other comments {}
+	geometry column 2
+	other item_name chailimitvalue
+	other tabbing {}
+Widget label#16
+	geometry row 4
+	other error {}
+	other type label
+	other master {}
+	configure text {V limit (V)}
+	other pathname label#16
+	other tags {}
+	other level {}
+	other help {}
+	other comments {}
+	geometry column 4
+	other tabbing {}
+	other item_name label#16
+Widget label#17
+	geometry row 9
+	other error {}
+	other type label
+	other master {}
+	configure text {Set Point}
+	other pathname label#17
+	other tags {}
+	other level {}
+	other help {}
+	other comments {}
+	geometry column 1
+	other item_name label#17
+	other tabbing {}
+Widget label#18
+	geometry row 9
+	other error {}
+	other type label
+	other master {}
+	configure text {Set Point}
+	other pathname label#18
+	other tags {}
+	other level {}
+	other help {}
+	other comments {}
+	geometry column 4
+	other item_name label#18
+	other tabbing {}
+Widget label#19
+	geometry row 6
+	other error {}
+	other type label
+	other master {}
+	configure text {Ramp Speed (V/sec)}
+	other pathname label#19
+	other tags {}
+	other level {}
+	other help {}
+	other comments {}
+	geometry column 1
+	other tabbing {}
+	other item_name label#19
+Widget label#20
+	geometry row 6
+	other error {}
+	other type label
+	other master {}
+	configure text {Ramp Speed (V/sec)}
+	other pathname label#20
+	other tags {}
+	other level {}
+	other help {}
+	other comments {}
+	geometry column 4
+	other item_name label#20
+	other tabbing {}
+Widget f
+	other generic_options {button {
+		} canvas {
+		} checkbutton {
+		} entry {
+		} frame {
+		} label {
+		} listbox {
+		} menubutton {
+		} message {
+		} radiobutton {
+		} scale {
+		} scrollbar {
+		} text {
+		}
+	}
+	other panel {}
+	other resize_row {0 0 2 0 0 0 0 0 0 0 0 0}
+	other type frame
+	other code \ package\ require\ vhq\n\ package\ require\ vhq\n\nproc\ min\ \{a\ b\}\ \{\n\ \ return\ \[expr\ \$a\ <\ \$b\ ?\ \$a\ :\ \$b\]\n\}\n#\n#\ \ Procedure\ to\ modify\ the\ state\ of\ a\ 'disabled'\ checkbox\n#\ \ disabled\ checkboxes\ are\ used\ to\ reflect\ the\ status\ of\n#\ \ the\ module.\ \ To\ modify\ them\ they\ must\ be\ enabled,\n#\ \ set\ and\ disabled.\n#\ \ Parameters:\n#\ \ \ \ \ \ widget\ \ \ -\ Widget\ to\ modify.\n#\ \ \ \ \ \ state\ \ \ \ -\ New\ value\ of\ checkbox\ 1\ -\ on\ 0\ -\ off.\n#\n#\nproc\ SetCheckBox\ \{widget\ state\}\ \{\n\n\t\n\ \ \ \$widget\ configure\ -state\ normal\ \n\ \ \ if\ \{\$state\}\ \{\n\t\$widget\ select\n\ \ \ \}\ else\ \{\n\t\$widget\ deselect\n\ \ \ \}\n\ \ \ \$widget\ configure\ -state\ disabled\n\}\n#\n#\ \ \ Sets\ the\ text\ of\ a\ readonly\ \ entry\ widget\n#\nproc\ SetEntry\ \{widget\ value\}\ \{\n\ \ \ \$widget\ configure\ -state\ normal\n\n\ \ \ \$widget\ delete\ 0\ end\n\ \ \ \$widget\ insert\ end\ \$value\ \ \n\n\ \ \ \$widget\ configure\ -state\ disabled\n\}\n#\n#\ \ Get\ the\ description\ for\ a\ module.\n#\nproc\ GetDescription\ \{name\}\ \{\n\ \ \ global\ VhqDevices\n\ \ \ return\ \$VhqDevices(\$name)\n\}\n#\ \n#\ \ \ Given\ \ a\ widget\ name\ returns\ the\ device\ name.\n#\nproc\ DevNameFromWidget\ \{w\}\ \{\n\ \ \ return\ \[lindex\ \[split\ \$w\ .\]\ 1\]\n\}\n#\n#\ \ Given\ a\ widget\ name,\ returns\ the\ device\ \n#\nproc\ DevFromWidget\ \{w\}\ \{\n\ \ \ set\ name\ \[DevNameFromWidget\ \$w\]\n\ \ \ set\ desc\ \[GetDescription\ \$name\]\n\ \ \ return\ \[lindex\ \$desc\ 4\]\n\}\n#\n#\ \ Set\ the\ serialno\ widget\ for\ a\ named\ device.\n#\nproc\ SetSerial\ \{name\}\ \{\n\ \ \ set\ description\ \[GetDescription\ \$name\]\n\ \ \ set\ device\ \[lindex\ \$description\ 4\]\n\ \ \ set\ serial\ \[vhq::id\ \$device\]\n\n\ \ \ .\$name.serialno\ configure\ -text\ \[format\ %x\ \$serial\]\ \;#\ Bcd.\n\}\n#\n#\ \ Set\ the\ module\ textual\ label/name.\n#\nproc\ SetLabel\ \{name\}\ \{\n\ \ \ set\ description\ \[GetDescription\ \$name\]\n\ \ \ set\ label\ \[lindex\ \$description\ 3\]\n\n\ \ \ \ wm\ title\ .\$name\ \$label\n\ \ #\ \ .\$name.psname\ configure\ -text\ \$label\n\}\n\n#\n#\ \ \ Update\ status\ indicators\ for\ a\ device's\n#\ \ \ status1\ list.\n#\nproc\ UpdateStat1\ \{name\ chan\ status\}\ \ \{\n\ \ \ append\ zero\ .\$name.\ ch\ \$chan\ zero\n\ \ \ SetCheckBox\ \$zero\ \[lindex\ \[lindex\ \$status\ 0\]\ 1\]\n\n\ \ \ append\ manual\ .\$name.\ ch\ \$chan\ manual\n\ \ \ SetCheckBox\ \$manual\ \[lindex\ \[lindex\ \$status\ 1\]\ 1\]\n\n\ \ \ #\ append\ plus\ .\$name.\ ch\ \$chan\ plus\n\ \ \ #\ SetCheckBox\ \$plus\ \[lindex\ \[lindex\ \$status\ 2\]\ 1\]\n\n\ \ \ append\ on\ \ .\$name.\ ch\ \$chan\ on\n\ \ \ SetCheckBox\ \$on\ \[expr\ !(\[lindex\ \[lindex\ \$status\ 3\]\ 1\])\]\n\n\ \ \ append\ kill\ .\$name.\ ch\ \$chan\ kill\n\ \ \ SetCheckBox\ \$kill\ \[lindex\ \[lindex\ \$status\ 4\]\ 1\]\n\n\ \ \ append\ ramp\ .\$name.\ ch\ \$chan\ ramp\n\ \ \ SetCheckBox\ \$ramp\ \[lindex\ \[lindex\ \$status\ 5\]\ 1\]\n\n\ \ \ append\ stable\ .\$name.\ ch\ \$chan\ stable\n\ \ \ SetCheckBox\ \$stable\ \[expr\ !(\[lindex\ \[lindex\ \$status\ 6\]\ 1\])\]\n\n\}\n\n#\n#\ \ Udate\ the\ indicators\ (I\ limit\ and\ V\ limit)\ from\ the\n#\ \ stat2\ register:\n#\nproc\ UpdateStat2\ \{name\ chan\ status\}\ \{\n\ \ append\ ilimit\ .\$name.\ ch\ \$chan\ ilimit\n\ \ SetCheckBox\ \$ilimit\ \[lindex\ \[lindex\ \$status\ 0\]\ 1\]\n\n\ \ append\ vlimit\ .\$name.\ ch\ \$chan\ vlimit\n\ \ SetCheckBox\ \$vlimit\ \[lindex\ \[lindex\ \$status\ 3\]\ 1\]\n\}\n#\n#\ \ \ Update\ the\ actual\ voltage/current\ indicators.\n#\nproc\ UpdateActual\ \{name\ chan\ values\}\ \{\n\ \ \ set\ Description\ \[GetDescription\ \$name\]\n\ \ \ set\ ires\ \[lindex\ \$Description\ 5\]\n\n\ \ \ set\ voltage\ \[lindex\ \$values\ 0\]\n\ \ \ set\ current\ \[lindex\ \$values\ 1\]\n\n\ \ \n\n\ \ \ append\ vwidget\ .\$name.\ ch\ \$chan\ vactual\n\ \ \ SetEntry\ \$vwidget\ \$voltage\n\n\ \ \ \ #\ current\ must\ be\ converted\ to\ uA\n\n\ \ \ set\ current\ \[expr\ \$current*\$ires\]\n\n\ \ \ append\ iwidget\ .\$name.\ ch\ \$chan\ current\n\ \ \ SetEntry\ \$iwidget\ \$current\n\ \ \n\}\n\n#\n#\ \ \ Monitor\ the\ device\ status\ information\ for\ a\ module\n#\nproc\ MonitorModule\ \{name\}\ \{\n\ \ \ set\ description\ \[GetDescription\ \$name\]\n\ \ \ set\ device\ \[lindex\ \$description\ 4\]\n\ \ \n\ \ \ #\ Update\ the\ status\ indicators.\n\ \ \n\ \ \ set\ stat1\ \[vhq::stat1\ \$device\]\n\ \ \ UpdateStat1\ \$name\ a\ \[lindex\ \$stat1\ 0\]\n\ \ \ UpdateStat1\ \$name\ b\ \[lindex\ \$stat1\ 1\]\n\n\ \ \ set\ stat2\ \[vhq::stat2\ \$device\]\n\ \ \ UpdateStat2\ \$name\ a\ \[lindex\ \$stat2\ 1\]\n\ \ \ UpdateStat2\ \$name\ b\ \[lindex\ \$stat2\ 2\]\n\n\ \ \ #\ Update\ current/voltage\ indicators.\n\n\ \ \ set\ avi\ \[vhq::actual\ \$device\ a\]\ \n\ \ \ set\ bvi\ \[vhq::actual\ \$device\ b\]\n\ \ \ UpdateActual\ \$name\ a\ \$avi\n\ \ \ UpdateActual\ \$name\ b\ \$bvi\n\n\ \ \ after\ 300\ \"MonitorModule\ \$name\"\n\}\n#\n#\ \ \ Set\ the\ value\ of\ the\ ramp\ speed\ widget\ with\n#\ \ The\ requested\ value\n#\nproc\ RampSpeed\ \{name\ channel\ value\}\ \{\n\ \ \ append\ entry\ .\$name.\ ch\$channel\ speed\n\ \ \ \n\ \ \$entry\ delete\ 0\ end\n\ \ \$entry\ insert\ end\ \$value\n\n\ \ \ SetRampSpeed\ \$entry\ \$channel\n\}\n#\n#\ \ \ Sets\ the\ ramp\ speed\ entry\ with\ the\ current\n#\ \ \ value\ of\ the\ channel's\ ramp\ speed.\n#\nproc\ DisplayRampSpeed\ \{name\ channel\}\ \{\n\ \ \ set\ description\ \[GetDescription\ \$name\]\n\ \ \ set\ device\ \ \ \ \ \ \[lindex\ \$description\ 4\]\n\n\n\ \ \ set\ speed\ \[vhq::rampspeed\ \$device\ \$channel\]\n\ \ \ \n\ \ \ append\ entry\ .\$name.\ ch\$channel\ speed\n\ \ \ \$entry\ delete\ 0\ end\n\ \ \ \$entry\ insert\ end\ \$speed\n\}\n#\n#\ \ \ Sets\ the\ setpoint\ widget\ of\ a\ channel\ as\n#\ \ desired\ by\ the\ paramters\n#\nproc\ SetPoint\ \{name\ channel\ value\}\ \{\n\ \ \ append\ entry\ .\$name.ch\$channel\ setpoint\n\ \ \ \$entry\ delete\ 0\ end\n\ \ \ \$entry\ insert\ end\ \$value\n\}\n#\n#\ \ Sets\ the\ set\ point\ widget\ with\ the\ value\ of\ the\n#\ \ current\ set\ point\ as\ read\ from\ the\ module.\n#\nproc\ DisplaySetPoint\ \{name\ channel\}\ \{\n\ \ \ set\ description\ \[GetDescription\ \$name\]\n\ \ \ set\ device\ \ \ \ \ \ \[lindex\ \$description\ 4\]\n\ \ \ set\ v\ \ \ \ \ \ \ \ \[vhq::setv\ \$device\ \$channel\]\n\n\ \ \ SetPoint\ \$name\ \$channel\ \$v\n\ \ \ \n\}\n#\n#\ \ \ Displays\ the\ current\ and\ voltage\ limit\n#\ \ \ set\ in\ the\ specified\ channel\n#\ \ \ Note\ that\ the\ hard\ limits\ are\ stored\ in\ the\ module\n#\ \ \ in\ units\ of\ 10%\ of\ full\ scale,\ but\ are\n#\ \ \ displayed/entered\ in\ V\ and\ uA\n#\ \ \ The\ soft\ limits\ are\ stored\ and\ displayed\ in\ uA.\n#\n\nproc\ DisplayLimits\ \{name\ channel\}\ \{\n\ \ \ set\ Description\ \[GetDescription\ \$name\]\n\ \ \ set\ maxv\ \ \ \ \ \ \ \ \[lindex\ \$Description\ 1\]\n\ \ \ set\ maxi\ \ \ \ \ \ \ \ \[lindex\ \$Description\ 2\]\n\ \ \ set\ device\ \ \ \ \ \ \[lindex\ \$Description\ 4\]\n\ \ \ set\ ires\ \ \ \ \ \ \ \ \[lindex\ \$Description\ 5\]\n\n\ \ \ set\ vlimit\ \[vhq::limit\ \ \$device\ v\ \$channel\]\n\ \ \ set\ ilimit\ \[vhq::limit\ \ \$device\ i\ \$channel\]\n\n\ \ \ #\ I\ Limit\ is\ the\ min\ of\ the\ hardware/software\ limit.\n\ \ \ #\ unless\ the\ soft\ limit\ is\ 0\ in\ which\ case\ it's\ the\n\ \ \ #\ hard\ limit.\n\n\ \ \ set\ slimit\ \[lindex\ \$ilimit\ 0\]\n\ \ \ set\ hlimit\ \[lindex\ \$ilimit\ 1\]\n\n\ \ \ #\ conver\ the\ current\ limits\ to\ \ physical\ units\ (uA).\n\ \n\ \ \ set\ slimit\ \[expr\ \$slimit*\$ires\]\n\ \ \ set\ hlimit\ \[expr\ \$hlimit\ *\ (0.1*\$maxi)\]\n\n\ \ \ if\ \{\$slimit\ !=\ 0\}\ \{\n\ \ \ \ \ \ set\ ilimit\ \[min\ \$slimit\ \$hlimit\]\n\ \ \ \}\ else\ \{\n\ \ \ \ \ \ set\ ilimit\ \$hlimit\n\ \ \ \}\n\ \n\ \ \ #\ Convert\ V\ to\ physical\ units.\n\n\ \ \ set\ vlimit\ \[expr\ \$vlimit\ *\ (0.1*\$maxv)\]\n\n\ \ \ #\ Last\ figure\ out\ which\ entries\ to\ put\ them\ in\ and\n\ \ \ #\ set\ the\ values..\n\n\ \ \ append\ ientry\ .\$name.\ ch\$channel\ ilimitvalue\n\ \ \ append\ ventry\ .\$name.\ ch\$channel\ vlimitvalue\n\n\ \ \ \$ientry\ delete\ 0\ end\n\ \ \ \$ientry\ insert\ end\ \$ilimit\n\ \ \ \n\ \ \ SetEntry\ \$ventry\ \$vlimit\n\ \ \ \n\}\n#\n#\ \ Set\ the\ software\ current\ limit\n#\ \ Since\ the\ current\ limit\ set\ by\ the\ software\n#\ \ can\ be\ overridden\ by\ the\ hardware\ limit\n#\ \ we\ need\ to\ do\ a\ bit\ of\ work.\n#\ \ \ Cases:\n#\ \ \ \ \ -\ I\ limit\ is\ set\ to\ 0:\ the\ hard\ limit\ is\ unconditionally\n#\ \ \ \ \ \ \ used.\n#\ \ \ \ \ -\ I\ limit\ >\ hardware\ limit,\ the\ hardware\ limit\ is\ used.\n#\ \ \ \ \ -\ ILimit\ <\ hardware\ limit,\ the\ soft\ limit\ is\ used.\n#\n#\ \ Note\ as\ well\ that\ he\ hardware\ registers\ are\ programmed\n#\ \ in\ 10%\ of\ full\ scale\ units,\ but\ we\ accept\ the\ input\n#\ \ values\ as\ uAmps.\n#\ \ Parameters:\n#\ \ \ \ \ \ Widget\ \ -\ The\ widget\ that's\ requesting\ the\ change.\n#\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ (this\ will\ give\ us\ the\ power\ supply\ name).\n#\ \ \ \ \ \ channel\ \ -\ a|b\ the\ channel\ to\ set.\n#\nproc\ SetIlimit\ \{widget\ channel\}\ \{\n\ \ \ set\ name\ \ \ \ \ \ \ \ \[DevNameFromWidget\ \$widget\]\n\ \ \ set\ Description\ \[GetDescription\ \$name\]\n\ \ \ set\ maxi\ \ \ \ \ \ \ \ \[lindex\ \$Description\ 2\]\n\ \ \ set\ device\ \ \ \ \ \ \[lindex\ \$Description\ 4\]\n\ \ \ set\ ires\ \ \ \ \ \ \ \ \[lindex\ \$Description\ 5\]\n\n\ \ \ \ #\ get\ the\ hardware\ limit\ now.\n\n\ \ \ set\ now\ \[vhq::limit\ \$device\ i\ \$channel\]\n\ \ \ set\ ihard\ \[lindex\ \$now\ 1\]\ \ \n\ \ \ set\ ihard\ \[expr\ \$ihard\ *\ (0.1*\$maxi)\]\n\n\ \ \ \ #\ get\ the\ requested\ current\ limit:\n\ \ \ \ #\ and\ convert\ it\ to\ register\ values.\n\n\n\n\ \ \ \ append\ ientry\ .\$name.\ ch\$channel\ ilimitvalue\n\ \ \ \ set\ requested\ \[\$ientry\ get\]\n\ \ \ \ if\ \{\$requested\ ==\ \"\"\}\ \{\n\ \ \ \ \ \ set\ requested\ 0\n\ \ \ \ \}\n\n\ \ \ \ #\ Inform\ the\ user\ if\ they're\ shooting\ too\ high:\n\n\ \ \ \ if\ \{\$requested\ >\ \$ihard\}\ \{\n\ \ \ \ \ \ \ tk_dialog\ .ilimit\ \"Ilimit\ too\ big\"\ \\\n\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \"Software\ limit\ overridden\ by\ hardware\ limit\"\ \\\n\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ info\ 0\ Dismiss\n\ \ \ \ \ \ \ set\ requested\ 0\n\ \ \ \ \ \ \ \n\ \ \ \ \}\ \n\ \ \ \ set\ requested\ \[expr\ int(\$requested/\$ires)\]\n\ \ \ \ \n\ \ \ \ vhq::limit\ \$device\ i\ \$channel\ \$requested\n\n\ \ \ \ DisplayLimits\ \$name\ \$channel\n\ \ \ \n\}\n#\n#\ \ \ Set\ the\ ilimit\ from\ a\ particular\ value\n#\nproc\ Ilimit\ \{name\ channel\ value\}\ \ \{\n\t\n\ \ \ append\ entry\ .\$name.\ ch\$channel\ ilimitvalue\n\ \ \ \$entry\ delete\ 0\ end\n\ \ \ \$entry\ insert\ end\ \$value\n\ \ \ \n\ \ \ SetIlimit\ \$entry\ \$channel\n\}\n#\n#\ \ \ Set\ the\ ramp\ speed\ for\ a\ channel\ in\ the\ module.\n#\ \ \ Parameters:\n#\ \ \ \ \ \ Widget\ -\ name\ of\ the\ widget\ requesting\ this.\n#\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ this\ is\ required\ to\ be\ able\ to\ get\ the\ name\ of\ the\n#\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ Power\ supply\ since\ the\ widget\ is\ named\ .\$name.yada...\n#\ \ \ \ \ \ channel\ -\ a\ or\ b\ the\ channel\ name.\n#\nproc\ SetRampSpeed\ \{Widget\ channel\}\ \{\n\ \ \ set\ device\ \[DevFromWidget\ \$Widget\]\n\ \ \ set\ name\ \ \ \[DevNameFromWidget\ \$Widget\]\n\n\ \ \ append\ entry\ .\$name.\ ch\$channel\ speed\n\ \ \ set\ speed\ \[\$entry\ get\]\n\ \ \ if\ \{\$speed\ ==\ \"\"\}\ \{\n\ \ \ \ set\ speed\ 0\n\ \ \ \}\n\ \ \ vhq::rampspeed\ \$device\ \$channel\ \$speed\n\ \ \ \n\}\n#\n#\ \ \ Start\ a\ ramp.\n#\ \ \ Parameters:\n#\ \ \ \ \ \ Widget\ \ -\ name\ of\ the\ button\ starting\ the\ ramp.\ \ This\ is\ used\n#\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ to\ get\ the\ device\ name,\ and\ widget\ name\ of\ the\ \n#\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ setpoint\ value.\n#\ \ \ \ \ \ channel\ -\ a/b\ the\ name\ of\ the\ channel\ to\ ramp.\n#\nproc\ StartRamp\ \{Widget\ channel\}\ \{\n\ \ \ set\ device\ \[DevFromWidget\ \$Widget\]\n\ \ \ set\ name\ \ \ \[DevNameFromWidget\ \$Widget\]\n\n\ \ \ append\ entry\ .\$name.\ ch\$channel\ setpoint\n\ \ \ set\ target\ \[\$entry\ get\]\n\ \ \ if\ \{\$target\ ==\ \"\"\}\ \{\n\ \ \ \ \ set\ target\ 0\n\ \ \ \}\ \ \n\n\ \ \ vhq::setv\ \$device\ \$channel\ \$target\n\}\nset\ VhqDevices(\"\")\ \"\"\n\n#\n#\ \ Saves\ the\ values\ for\ a\ channel.\ \ These\ include:\n#\ \ \ -\ Channel\ setpoint\n#\ \ \ -\ Channel\ Ramp\ speed\n#\ \ \ -\ Channel\ Current\ limit.\n#\nproc\ SaveValues\ \{fd\ name\ chan\}\ \{\n\tappend\ rampentry\ .\$name.\ ch\$chan\ speed\n\tset\ speed\ \[\$rampentry\ get\]\n\t\n\tappend\ limitentry\ .\$name.\ ch\$chan\ ilimitvalue\n\tset\ ilimit\ \[\$limitentry\ get\]\n\t\n\tappend\ setpointentry\ .\$name.\ ch\$chan\ setpoint\n\tset\ setpoint\ \[\$setpointentry\ get\]\n\t\n\tputs\ \$fd\ \"set\ SetPoint(\$chan)\ \ \ \ \ \ \$setpoint\ \ \;#\ \$chan\ setpoint\ (V)\"\n\tputs\ \$fd\ \"set\ RampSpeed(\$chan)\ \ \$speed\ \ \ \ \ \;#\ \$chan\ Ramp\ speed\ (10V/s)\"\n\tputs\ \$fd\ \"set\ ILimit(\$chan)\ \ \ \ \ \ \ \ \ \ \$ilimit\ \ \ \ \ \ \ \;#\ \$chan\ Current\ limit\ (uA)\"\n\}\n#\n#\ \ Saves\ the\ settings\ for\ the\ supplied\ device\ name\ to\n#\ \ the\ file\ supplied.\n#\nproc\ SaveSettingsTo\ \{name\ \ file\}\ \{\n\ \ \ if\ \{\[catch\ \"open\ \$file\ w\"\ fd\]\ \ !=\ 0\ \}\ \{\n\ \ \ \ \ \ \ tk_dialog\ .fopenerror\ \"File\ open\ error\"\ \\\n\ \ \ \ \ \ \ \ \ \ \ \ \"Unable\ to\ open\ \$name\ :\ \$fd\"\ \ \ \ \ \ \ \ \\\n\t\ \ \ \ error\ 0\ Dismiss\n\ \ \ \}\ else\ \{\n\ \ \ \ \ \ set\ d\ \[GetDescription\ \$name\]\n\ \ \ \ \ \ \n\ \ \ \ \ \ puts\ \$fd\ \"#\ Configuration\ file\ saved:\ \[exec\ date\]\ \"\n\ \ \ \ \ \ puts\ \$fd\ \"#\ \ \ VHQ\ power\ supply:\ \[lindex\ \$d\ 3\]\ \\n\"\n\ \ \ \ \ \ puts\ \$fd\ \"#\ \ \ \ \ \ Device\ configuration\ was\\n#\"\n\ \ \ \ \ \ puts\ \$fd\ \"#\ \ Short\ name:\ \ \ \ \$name\ \"\n\ \ \ \ \ \ puts\ \$fd\ \"#\ \ VME\ Crate:\ \ \ \ \ \ \[lindex\ \$d\ 6\]\"\n\ \ \ \ \ \ puts\ \$fd\ \"#\ \ Base\ Address:\ \ \[lindex\ \$d\ 0\]\"\n\ \ \ \ \ \ puts\ \$fd\ \"#\ \ Max\ Voltage:\ \ \ \[lindex\ \$d\ 1\]\ \ V\"\n\ \ \ \ \ \ puts\ \$fd\ \"#\ \ Max\ Current\ \ \ \ \[lindex\ \$d\ 2\]\ uA\"\n\ \ \ \ \ \ puts\ \$fd\ \"#\ \ Description\ \ \ \ \ \[lindex\ \$d\ 3\]\"\n\ \ \ \ \ \ puts\ \$fd\ \"#\ \ Current\ Res.\ \ \ \[lindex\ \$d\ 5\]\ uA\"\n\ \ \ \ \ \ puts\ \$fd\ \"\"\n\ \ \ \ \ \ \n\ \ \ \ \ \ puts\ \$fd\ \"set\ name\ \$name\"\n\ \ \ \ \ \ puts\ \$fd\ \"set\ crate\ \[lindex\ \$d\ 6\]\"\n\ \ \ \ \ \ puts\ \$fd\ \"set\ base\ \[lindex\ \$d\ 0\]\"\n\ \ \ \ \ \ puts\ \$fd\ \"set\ maxv\ \[lindex\ \$d\ 1\]\"\n\ \ \ \ \ \ puts\ \$fd\ \"set\ maxi\ \[lindex\ \$d\ 2\]\"\n\ \ \ \ \ \ puts\ \$fd\ \"set\ description\ \\\"\[lindex\ \$d\ 3\]\\\"\"\n\ \ \ \ \ \ puts\ \$fd\ \"set\ resi\ \[lindex\ \$d\ 5\]\"\n\ \ \ \ \ \ \n\ \ \ \ \ \ SaveValues\ \$fd\ \$name\ a\ \ \ \ \ \ \ \ \ \ \;#\ Save\ channel\ A\ values\n\ \ \ \ \ \ SaveValues\ \$fd\ \$name\ b\ \ \ \ \ \ \ \ \ \ \;#\ Save\ channel\ B\ values.\n\ \ \ \ \ \ \n\ \ \ \ \ \ close\ \$fd\n\ \ \ \}\n\n\}\n\n#\ \ Prompts\ for\ a\ filename\ and\ saved\ the\ settings\ for\ this\ control\ panel\n#\ \ into\ this\ file.\n#\ \ Note\ that\ the\ actual\ save\ is\ done\ with\ a\ different\ function\n#\ \ in\ order\ to\ support\ automated\ timed\ saves.\n#\nproc\ SaveSettings\ \{widget\}\ \{\n\ \ \ set\ name\ \ \ \ \ \ \ \ \[DevNameFromWidget\ \$widget\]\n\ \ \ set\ description\ \[GetDescription\ \$name\]\n\ \ \ set\ comment\ \ \ \ \ \[lindex\ \$description\ 3\]\n\ \ \ \n\ \ \ set\ filename\ \[tk_getSaveFile\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \\\n\t\t\t\ \ \ \ -defaultextension\ \ .hv_settings\ \ \ \ \\\n\t\t\t\ \ \ \ -initialfile\ \$name.hv_settings\ \ \ \ \ \ \ \ \\\n\t\t\t\ \ \ \ -title\ \"Save\ file\ for\ \$comment\"\ \\\n\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ -filetypes\ \{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \\\n\t\t\t\t\t\{\{HV\ Settings\}\ \ \{.hv_settings\}\ \}\ \ \\\n\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \{\{All\ Files\}\ \ \ \ \ *\ \ \ \ \ \ \}\ \ \ \ \ \ \\\n\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \}\ \ \]\n\ \n\ \ \ if\ \{\$filename\ !=\ \"\"\}\ \{\n\ \ \ \ \ \ SaveSettingsTo\ \$name\ \$filename\n\ \ \ \}\n\ \ \ \n\}\n#\n#\ \ Evidently,\ checkuttons\ always\ have\ variables\ associated\ with\ them\n#\ \ even\ if\ you\ tell\ them\ not\ to.\ \ The\ procedure\ below\n#\ \ uniquifies\ the\ names\ of\ these\ variables\ by\ programming\ them\ to\n#\ \ \$name_\$widgetname\n#\nproc\ AdjustCheckboxVariables\ name\ \{\n\ \ \ \ foreach\ channel\ \{a\ b\}\ \{\n\ \ \ \ \ \ \ foreach\ box\ \{zero\ \ manual\ kill\ ramp\ stable\ on\ \\\n\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ilimit\ vlimit\}\ \{\n\t\ \ \ \ set\ widget\ .\$name.ch\n\t\ \ \ \ append\ widget\ \$channel\ \$box\n\t\ \ \ \ set\ var\ \$name\n\t\ \ \ \ append\ var\ _ch\ \$channel\ \$box\n\t\ \ \ \ \$widget\ configure\ -variable\ \$var\n\ \ \ \ \ \ \ \ \}\n\ \ \ \ \ \}\n\}\ \ \ \ \ \n\nproc\ DefineVhq\ \{name\}\ \{\n\ \ \ global\ VhqDevices\n\ \ \ global\ \$name\n\n\ \ \ \ #\ A\ VHQ\ device\ will\ be\ represented\n\ \ \ \ #\ by\ a\ list\ of\ its\ characteristics.\n\ \ \ \ #\ in\ addition,\ a\ vhq\ device\ gets\ made.\n\n\n\ \ \ \ lappend\ VhqDevices(\$name)\ \[eval\ \{set\ \$name\\(base)\}\]\n\ \ \ \ lappend\ VhqDevices(\$name)\ \[eval\ \{set\ \$name\\(maxv)\}\]\n\ \ \ \ lappend\ VhqDevices(\$name)\ \[eval\ \{set\ \$name\\(maxi)\}\]\n\ \ \ \ lappend\ VhqDevices(\$name)\ \[eval\ \{set\ \$name\\(name)\}\]\n\ \ \n\ \ \ \ lappend\ VhqDevices(\$name)\ \[vhq::create\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \\\n\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \[lindex\ \$VhqDevices(\$name)\ 0\]\ \\\n\t\t\t\ \ \ \ \ \ \ \$name(crate)\]\n\ \ \ \ lappend\ VhqDevices(\$name)\ \[eval\ \{set\ \$name\\(resi)\}\]\n\ \ \ \ lappend\ VhqDevices(\$name)\ \[eval\ \{set\ \$name\\(crate)\}\]\n\ \ \ \ \n\ \ \ \ SetSerial\ \$name\n\ \ \ \ SetLabel\ \ \$name\n\ \ \ \ MonitorModule\ \$name\n\n\ \ \ \ #\ Read\ and\ display\ values\ of\ programmable\ settings/\n\n\ \ \ \ DisplayRampSpeed\ \$name\ a\n\ \ \ \ DisplayRampSpeed\ \$name\ b\n\ \ \ \ DisplaySetPoint\ \ \$name\ a\n\ \ \ \ DisplaySetPoint\ \ \$name\ b\n\ \ \ \ DisplayLimits\ \ \ \ \$name\ a\n\ \ \ \ DisplayLimits\ \ \ \ \$name\ b\n\n\ \ \ \ AdjustCheckboxVariables\ \$name\n\ \ \ \ \n\ \ \ \ MaintainFailsafe\ \$name\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \;#\ Keep\ failsafe\ file\ periodically.\n\}\n#\n#\ \ Exit\ if\ confirmed...\n#\nproc\ Exit\ \{\}\ \{\n\ \ \ set\ ok\ \[tk_dialog\ .confirm\ \"Ok\ to\ exit\"\ \ \\\n\t\"Are\ you\ sure\ you\ want\ to\ exit?\"\ \ \ \ \\\n\tquesthead\ 1\ Yes\ No\]\n\ \ \ if\ \{\$ok\ ==\ 0\}\ exit\n\}\n#\n#\n#\ \ Set\ the\ lock\ state.\n#\nproc\ SetLockState\ \{name\ state\ text\}\ \{\n\t.\$name.lock\ configure\ -text\ \$text\n\t\n\tforeach\ channel\ \{a\ b\}\ \{\n\t\ \ \ foreach\ item\ \{speed\ setspeed\ ilimitvalue\ setilimit\ setpoint\ startramp\}\ \{\n\t\ \ \ \ \ \ set\ widget\ .\$name.ch\$channel\n\t\ \ \ \ \ \ append\ widget\ \$item\n\t\ \ \ \ \ \ \$widget\ configure\ -state\ \$state\n\ \ \ \ \ \ \ \ \ \ \ \}\n\ \ \ \ \ \ \ \ \}\n\}\n#\n#\ \ \ Toggle\ the\ lock\ state\ from\ what\ it\ is\ now.\n#\nproc\ ToggleLock\ \{widget\}\ \{\n\ \ \ set\ name\ \[lindex\ \[split\ \$widget\ .\]\ 1\]\n\ \ \ \n\ \ \ set\ state\ \[.\$name.lock\ cget\ -text\]\n\ \ \ \n\ \ \ if\ \{\$state\ ==\ \"Lock\"\}\ \{\n\ \ \ \ \ \ SetLockState\ \$name\ disabled\ Unlock\n\ \ \ \ \ \ .\$name.lockstate\ configure\ -text\ \"Locked!!\"\ -fg\ red\n\ \ \ \}\ else\ \{\n\ \ \ \ \ \ SetLockState\ \$name\ normal\ Lock\n\ \ \ \ \ \ .\$name.lockstate\ configure\ -text\ \"\"\n\ \ \ \}\n\ \ \ \n\}\n#\n#\ \ Used\ to\ restore\ the\ ramp\ speed\ when\ the\ channel\ goes\ to\ zero.\n#\nproc\ RestoreRamp\ \{dev\ channel\ speed\}\ \{\n\n\tset\ status\ \[vhq::stat1\ \$dev\]\n\tif\ \{\$channel\ ==\ \"a\"\ \}\ \{\n\t\ \ \ set\ idx\ 0\n\ \ \ \ \ \ \ \ \}\ else\ \{\n\ \ \ \ \ \ \ \ \ \ \ set\ idx\ 1\n\ \ \ \ \ \ \ \ \}\n\tset\ chanstat\ \[lindex\ \$status\ \$idx\]\n\tset\ zstat\ \[lindex\ \$chanstat\ 0\]\n\tset\ stat\ \[lindex\ \$zstat\ 1\]\n\t\n\tif\ \{\$stat\ ==\ 1\}\ \{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \;#\ Reached\ zero\n\t\ \ \ \ vhq::rampspeed\ \$dev\ \$channel\ \$speed\n\ \ \ \ \ \ \ \ \}\ else\ \{\n\ \ \ \ \ \ \ \ \ \ \ \ after\ 500\ \"RestoreRamp\ \$dev\ \$channel\ \$speed\"\n\ \ \ \ \ \ \}\t\ \ \ \ \n\n\}\n#\n#\ \ Turn\ off\ a\ channel.\ This\ is\ done\ by:\n#\ \ -\ saving\ the\ current\ ramp\ speed.\n#\ \ -\ Setting\ a\ ramp\ speed\ of\ 255\n#\ \ -\ Starting\ a\ ramp\ ->\ 0.\n#\ \ \n#\ \ when\ zero\ is\ reached\ the\ ramp\ speed\ is\ set\ back\ the\ way\ it\ was.\n#\ \ Parameters:\ \n#\ \ \ widget\ \ -\ widget\ requesting\ the\ ramp.\n#\ \ \ channel\ -\ a\ or\ b.\n#\nproc\ TurnOff\ \{widget\ channel\}\ \{\n\ \ \ \ set\ dev\ \[DevFromWidget\ \$widget\]\n\ \ \ \ \n\ \ \ \ set\ oldspeed\ \[vhq::rampspeed\ \$dev\ \$channel\]\n\ \ \ \ vhq::rampspeed\ \$dev\ \$channel\ 255\n\ \ \ \ \n\ \ \ \ vhq::setv\ \$dev\ \$channel\ 0\n\ \ \ \ \n\ \ \ \ RestoreRamp\ \$dev\ \$channel\ \$oldspeed\n\}\n#\n#\ \ \ Maintain\ a\ failsafe\ settings\ file\ for\ a\ module\n#\ \ \ Every\ 10\ seconds\ or\ so\ the\ settings\ for\ the\ channel\ get\ written\n#\ \ \ to\ the\ file\ \$name_hv_failsafe.hv_settings.\n#\nproc\ MaintainFailsafe\ \{name\}\ \{\n\tappend\ filename\ \$name\ _hv_failsafe.hv_settings\n\tSaveSettingsTo\ \$name\ \$filename\n\n\t\ #\ reschedule\ myself.\n\n\tafter\ 10000\ \"MaintainFailsafe\ \$name\"\n\}\n\n#\n#\ \ \ Procedure\ to\ restore\ the\ settings\ associated\ with\ a\n#\ \ \ widget\ from\ a\ given\ file.\n#\nproc\ ReadSettings\ \{name\ filename\}\ \{\n\t#\ \ Set\ the\ defaults\ for\ the\ various\ values.\n\t#\ \ from\ the\ current\ configuration.\n\t\n\tforeach\ channel\ \{a\ b\}\ \{\n\t#\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ widget\ \ \ arrayname\n\t\ \ \ \ foreach\ pair\ \{\ \{setpoint\ SetPoint\}\ \{speed\ RampSpeed\}\ \\\n\t\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \{ilimitvalue\ Ilimit\}\}\ \{\n\t\tset\ widget\ .\$name.ch\$channel\n\t\tappend\ widget\ \[lindex\ \$pair\ 0\]\n\t\tset\ value\ \[\$widget\ get\]\n\t\tset\ \[lindex\ \$pair\ 1\](\$channel)\ \$value\n\t\ \ \ \ \ \}\n\ \ \ \ \ \ \ \ \}\n\t\n\t#\ Source\ the\ file\n\t\n\tset\ status\ \[catch\ \"source\ \$filename\"\ fd\]\n\tif\ \{\$status\ ==\ 1\}\ \{\n\t\ \ \ tk_dialog\ .sourcefailed\ \"source\ failure\"\ \\\n\t\t\ \ \ \"Unable\ to\ source\ \$filename\ :\ \$fd\"\ \\\n\t\t\ \ \ error\ 0\ \"Dismiss\"\n\t\t\ \ \ return\n\t\}\n\t#\ \ We\ should\ have\ SetPoint(a|b)\n\t#\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ RampSpeed(a|b)\n\t#\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ILimit(a|b).\n\t#\n\tforeach\ channel\ \{a\ b\}\ \{\n\t\ \ \ \ \ SetPoint\ \ \ \ \ \$name\ \$channel\ \$SetPoint(\$channel)\n\t\ \ \ \ \ RampSpeed\ \$name\ \$channel\ \$RampSpeed(\$channel)\n\t\ \ \ \ \ Ilimit\ \ \ \ \ \ \ \ \ \$name\ \$channel\ \$Ilimit(\$channel)\n\t\ \ \ \ \ \n\ \ \ \ \ \ \ \ \}\n\t\n\t\t\n\}\n#\n#\ \ Procedure\ to\ restore\ the\ settings\ associated\ with\ a\ \n#\ \ widget\ (the\ restore\ button).\n#\nproc\ RestoreSettings\ \{widget\}\ \{\n\tset\ name\ \ \ \[DevNameFromWidget\ \$widget\]\n\ \ \ \ \ \ \ \ set\ description\ \[GetDescription\ \$name\]\n\ \ \ \ \ \ \ \ set\ comment\ \ \ \ \ \[lindex\ \$description\ 3\]\n\n\tset\ filename\ \[tk_getOpenFile\ \ \\\n\t\t\t\ \ \ \ -defaultextension\ \ .hv_settings\ \ \ \ \\\n\t\t\t\ \ \ \ -initialfile\ \$name.hv_settings\ \ \ \ \ \ \ \ \\\n\t\t\t\ \ \ \ -title\ \"Read\ settings\ file\ for\ \$comment\"\ \\\n\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ -filetypes\ \{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \\\n\t\t\t\t\t\{\{HV\ Settings\}\ \ \{.hv_settings\}\ \}\ \ \\\n\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \{\{All\ Files\}\ \ \ \ \ *\ \ \ \ \ \ \}\ \ \ \ \ \ \\\n\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \}\ \ \]\n\t\t\t\t\ \n\tif\ \{\$filename\ !=\ \"\"\}\ \{\n\t\ \ \ \ \ ReadSettings\ \$name\ \$filename\n\ \ \ \ \ \}\n\t\n\}\n
+	other min_row {2 30 2 30 30 30 30 30 30 30 30 30}
+	other master {}
+	other pathname f
+	other tags {}
+	other resize_column {0 0 1 0 0}
+	other level 0
+	configure background #e9e9e9
+	other help {}
+	other min_column {30 2 2 51 2}
+	other Colors {black white bisque grey red green blue magenta yellow SystemButtonFace}
+	other comments {}
+	other item_name f
+	other tabbing {}
+Widget label#21
+	geometry row 2
+	other error {}
+	other type label
+	other master {}
+	other pathname label#21
+	other tags {}
+	other level {}
+	other help {}
+	other comments {}
+	geometry column 3
+	other tabbing {}
+	other item_name lockstate
+Widget label#22
+	geometry row 9
+	other error {}
+	other type label
+	other master {}
+	configure text {Actual (V)}
+	other pathname label#22
+	other tags {}
+	other level {}
+	other help {}
+	other comments {}
+	geometry column 2
+	other tabbing {}
+	other item_name label#22
+Widget label#23
+	geometry row 9
+	other error {}
+	other type label
+	other master {}
+	configure text {Actual (V)}
+	other pathname label#23
+	other tags {}
+	other level {}
+	other help {}
+	other comments {}
+	geometry column 5
+	other tabbing {}
+	other item_name label#23
+Widget checkbutton#10
+	configure variable checkbutton10
+	configure state disabled
+	other error {}
+	other tags {}
+	other level {}
+	other help {}
+	other master .frame#5
+	other pathname checkbutton#10
+	geometry sticky w
+	other tabbing {}
+	other item_name chazero
+	geometry row 2
+	other type checkbutton
+	configure text 0
+	geometry column 4
+	other comments {}
+Widget checkbutton#11
+	configure variable checkbutton11
+	configure state disabled
+	other error {}
+	other tags {}
+	other level {}
+	other help {}
+	other master .frame#5
+	other pathname checkbutton#11
+	other tabbing {}
+	other item_name chamanual
+	geometry row 1
+	other type checkbutton
+	configure text {man.  }
+	geometry column 2
+	other comments {}
+Widget checkbutton#13
+	configure variable checkbutton13
+	configure state disabled
+	other error {}
+	other tags {}
+	other level {}
+	other help {}
+	other master .frame#5
+	other pathname checkbutton#13
+	geometry sticky w
+	other tabbing {}
+	other item_name chaon
+	geometry row 1
+	other type checkbutton
+	configure text on
+	geometry column 3
+	other comments {}
+Widget checkbutton#14
+	geometry columnspan 2
+	configure variable checkbutton14
+	configure state disabled
+	other error {}
+	other tags {}
+	other level {}
+	other help {}
+	other master .frame#5
+	other pathname checkbutton#14
+	other tabbing {}
+	other item_name chakill
+	geometry row 1
+	other type checkbutton
+	configure text {kill en}
+	geometry column 4
+	other comments {}
+Widget checkbutton#15
+	configure variable checkbutton15
+	configure state disabled
+	other error {}
+	other tags {}
+	other level {}
+	other help {}
+	other master .frame#5
+	other pathname checkbutton#15
+	other tabbing {}
+	other item_name charamp
+	geometry row 1
+	other type checkbutton
+	configure text ramp
+	geometry column 1
+	other comments {}
+Widget checkbutton#16
+	configure variable checkbutton16
+	configure state disabled
+	other error {}
+	other tags {}
+	other level {}
+	other help {}
+	other master .frame#5
+	other pathname checkbutton#16
+	other tabbing {}
+	other item_name chastable
+	geometry row 2
+	other type checkbutton
+	configure text {stable }
+	geometry column 3
+	other comments {}
+Widget checkbutton#18
+	configure variable checkbutton18
+	configure state disabled
+	other error {}
+	other tags {}
+	other level {}
+	other help {}
+	other master .frame#5
+	other pathname checkbutton#18
+	other tabbing {}
+	other item_name chailimit
+	geometry row 2
+	other type checkbutton
+	configure text {I limit}
+	geometry column 1
+	other comments {}
+Widget checkbutton#20
+	configure variable checkbutton20
+	configure state disabled
+	other error {}
+	other tags {}
+	other level {}
+	other help {}
+	other master .frame#6
+	other pathname checkbutton#20
+	geometry sticky n
+	other tabbing {}
+	other item_name chbvlimit
+	geometry row 2
+	other type checkbutton
+	configure text {V Limit}
+	geometry column 3
+	other comments {}
+Widget checkbutton#19
+	configure variable checkbutton19
+	configure state disabled
+	other error {}
+	other tags {}
+	other level {}
+	other help {}
+	other master .frame#5
+	other pathname checkbutton#19
+	other tabbing {}
+	other item_name chavlimit
+	geometry row 2
+	other type checkbutton
+	configure text {V Limit}
+	geometry column 2
+	other comments {}
+

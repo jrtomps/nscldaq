@@ -289,8 +289,8 @@ static const char* Copyright = "(C) Copyright Michigan State University 1977, Al
             (c) 2002, All rights reserved.
     Revision History:
       $Log$
-      Revision 1.3  2004/08/06 13:26:03  ron-fox
-      Merge prior to begining kernel 2.6/gcc 3.x port
+      Revision 1.4  2004/10/29 20:33:00  ron-fox
+      Merge the 7.4 development into the main line
 
       Revision 1.1.4.1  2004/04/12 17:33:03  ron-fox
       - Packet creation added.

@@ -280,7 +280,7 @@ static const char* Copyright = "(C) Copyright Michigan State University 2002, Al
 
 #include "CNSCLPhysicsBuffer.h"                  
 #include "buftypes.h"
-#include <RangeError.h>
+#include <CRangeError.h>
 #include <unistd.h>
 
 /*!

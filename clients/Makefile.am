@@ -5,7 +5,7 @@ SUBDIRS = btdriver \
 	vmetcl  \
 	bufdump TclServer bcnaf TcpHoister Stager Scripts framework \
 	AlarmDisplay LogDisplay ProductionReadout  \
-	contrib dvdburn daqstart $(EPICSSOFTWARE)
+	contrib dvdburn daqstart $(EPICSSOFTWARE) ScalerDisplay
 
 EXTRA_DIST =  config/install-sh config/config.sub config/config.guess \
 	config/ltmain.sh config/missing config/mkinstalldirs  \
@@ -36,5 +36,6 @@ install-data-local:
 	cat Directories.include       >> Directories.include.final
 	$(INSTALL_DATA) Directories.include.final $(prefix)/etc/Directories.include
 	$(INSTALL_PROGRAM)  daqman $(prefix)/bin
- 
 	echo "Version: " $(VERSION) build on `hostname` `date` > $(prefix)/VERSION
+	mandb $(prefix)/man
+

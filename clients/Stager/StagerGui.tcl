@@ -281,14 +281,15 @@
 # Start Wish. \
 exec wish ${0} ${@}
 
+
 # $Header$
 #    StagerGui.tcl
 #  Manages the GUI for the stager.
 #
 # Revision History:
 #  $Log$
-#  Revision 3.5  2004/08/06 13:26:03  ron-fox
-#  Merge prior to begining kernel 2.6/gcc 3.x port
+#  Revision 3.6  2004/10/29 20:32:57  ron-fox
+#  Merge the 7.4 development into the main line
 #
 #  Revision 3.3.4.1  2004/05/12 19:38:10  ron-fox
 #  differentiate between tape and ftp hosts so that they can be different

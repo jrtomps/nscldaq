@@ -311,7 +311,10 @@ static char* Copyright =
 #include <spectrodaq.h>
 #include <NSCLException.h>
 #include <string>
+
 #include <DesignByContract.h>
+using namespace DesignByContract;
+
 //
 //   Global Variables:
 //
@@ -364,7 +367,7 @@ DAQBuff::operator()(int argc, char**argv)
     }
     catch (DesignByContractException& rDesignViolation) {
       string message = string(rDesignViolation);
-      cerr << "Interface contract violation: " << message << endl;
+      cerr << "Interface contract violation: " << rDesignViolation << endl;
     }
     catch(char* pErrorMessage) {
       cerr << "Exception caught at main level: " << pErrorMessage << endl;

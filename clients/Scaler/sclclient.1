@@ -1,0 +1,125 @@
+.TH sclclient 1 "August 2004" nscldaq-7.4  "USER COMMANDS"
+
+.SH NAME
+
+/usr/opt/daq/bin/sclclient \- Send scaler information from the DAQ system to a tclserver.
+
+.SH SYNOPSIS
+
+.B sclclient [OPTIONS] 
+
+.SH DESCRIPTION
+
+.PP
+sclclient accepts scaler buffers from a DAQ systems (spdaq system at the NSCL),
+processes them and sends processed information to a tclserver program.  Given
+an appropriate setup script to describe a visual presentation of the scalers, 
+sclclient and tclserver together create a scaler display subsystem.
+.PP
+Command options (see OPTIONS below), describe how the program starts up.
+sclclient interacts with tclserver by sending it a set of tcl commands to
+maintain some global variables (see VARIABLES below).  In addition, at key
+points, procedures are called that are assume to be loaded into the tclserver
+program by its setup scripts (see PROCEDURES below).
+
+.SH OPTIONS
+.TP
+\-h tclserver_host
+Defines the system on which the tcl server is running.  It is possible for 
+sclclient to run in a system remote from tclserver.  By default, however
+the host connected to is localhost.
+   
+.TP
+\-p port_number
+Defines the number of the TCP/IP port on which tclserver is listening.  By 
+default and convention, scaler display tclservers listen on port 2700.
+.TP    
+\-s spectrodaq_url
+Defines the url of the spectrodaq buffer manager from which data will. be acquired.
+This is of the form tap://hostname:2602/.  By default this is tcp://localhost:2602/ 
+causing data to be taken from the system sclclient is running on.
+
+.SH VARIABLES
+.PP
+sclclient maintains several variables and arrays in the TCL server to which it is
+connected.   Scaler displays are therefore constructed by displaying the values of
+these variables and arrays as well as by providing procedures called by sclclient 
+(see PROCEDURES below).
+.PP
+The variables sclcient maintains are:
+.TP
+Scaler\_Totals \- 
+This is a TCL array indexed by scaler channel number (channels start at
+0.  Each element of the array is the total number of counts in that channel either
+since the scaler program started up or the run began, whichever happened latest.
+.TP
+Scaler\_Increments \- 
+This is a TCL array indexed by channel number. The value of each element is the number of
+counts in that channel since the latest of the beginning of the run, starting sclclient, and 
+the previous scaler buffer.
+.TP
+ScalerDeltaTime \-
+This variable maintains the number of seconds in the most recently received set of 
+scaler increments in seconds.  If no scaler increments have been received, this variable
+is 0.  ScalerDeltaTime can be used to calculate scaler rates.
+.TP
+ElapsedRunTime \-
+This variable contains the number of seconds since the start of run, or when the scaler 
+client program started, whichever is latest.
+.TP
+RunNumber \-
+This variable contains he number of the current run. If not yet known, it has the
+value >Unknown< instead.
+.TP
+RunState \-
+This variable has the known run state.  It is any of HALTED, ACTIVE, or PAUSED, or lastly
+>Unknown< if the run state is not yet known.
+.TP
+RunTitle \-
+Contains the title of the current run if known or the text ">Unknown<" if not.
+
+
+
+.SH PROCEDURES
+.PP
+In addition to maintaining the global variables described in VARIABLES above, sclclient 
+calls procedures at well defined points in time.  These procedures must be defined in the tclserver,
+even if only as empty procedures.
+.PP
+Procedures are not passed any parameters.
+The procedures sclclient requires are:
+.TP
+Update \-
+Called whenever variables have been updated.  The tclserver code here will
+usually refresh the display picture.
+.TP
+BeginRun \-
+Called when a begin run is detected.
+
+.TP
+EndRun \-
+Called when an end run is detected.
+.TP
+PauseRun \-
+Called when a pause run is detected.
+
+.TP 
+ResumeRun \-
+Called when a resume run is detected.
+
+.TP 
+RunInProgress \-
+Called when the first data to come in is not a begin run.  This indicates that sclclient
+started while a run is in progress.
+
+.SH EXAMPLES
+
+.PP
+The sample below starts out sclclient taking data from spdaq22 and feeding it to a tclserver on u6pc2
+at port 2700:
+.nf
+/usr/opt/daq/bin/sclstart -s tcp://spdaq22:2602/ -h u6pc2 -s 2700
+.fi
+.SH "SEE ALSO"
+
+ScalerDisplay(1), tclserver(1)

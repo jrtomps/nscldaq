@@ -811,8 +811,7 @@
 	 \end{tabular}
 	 \end{table}
 	 
-	 Given this set of signal specifications, the suggested CAMAC
-	trigger logic is shown in the figure below.
+	 Given this set of signal specifications, the suggested CAMAC	trigger logic is shown in the figure below.
 	 \begin{figure}[htb]
 	    \caption{CAMAC trigger electronics block diagram}
 	    \texorhtml{\scalebox{0.5}{\includegraphics{CAMACTriggerelec.eps}}}{\htmlimage{CAMACTriggerelec.gif}}
@@ -1607,7 +1606,6 @@ Usage: Readout [OPTIONS]...
 	    variables your application wants to maintain.
       \end{description}
       
-      
       Once all extensions have been initialized, if the {\dash\dash}port 
       switch specified a TclServer port, Readout will initiate a thread
       to listen for TclServer client connections.  This sequence of operations
@@ -1861,6 +1859,7 @@ Usage: Readout [OPTIONS]...
       }
       \end{example}
  
+
    \subs{Documenting event segment packet types}{Packetdocs}
       By convention, events consist of packets of the following
       form show in the figure 
@@ -2546,7 +2545,7 @@ Usage: Readout [OPTIONS]...
       \hline
       {\bf Buffer Word Offset} & {\bf Size} & {\bf Contents} \\
       \hline
-      16        & 80    & Null terminated run title string \\
+      16        & 80(bytes)    & Null terminated run title string \\
       56        &  2    & Time since start of run in \texorhtml{$\frac{1}{10}$}{1/10}'ths of a second \\
       58        &  1    & Numeric month buffer was created \\
       59        &  1    & Numeric day of month buffer was created \\
@@ -2574,6 +2573,7 @@ Usage: Readout [OPTIONS]...
       \end{itemize}
    \end{note}
   
+
    \subs{Event data buffers}{EventBufferFormat}
       Event data buffers contain the physics data read from the
    detector systems.  The format of these buffers is largely 
@@ -2622,6 +2622,7 @@ Usage: Readout [OPTIONS]...
          
          \ldots
       \}
+
    \end{example}
    \subs{Scaler data buffers}{ScalerBufferFormat}
    

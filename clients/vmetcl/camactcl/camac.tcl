@@ -412,23 +412,26 @@ namespace eval camac {
     #
     
     proc ExtractB {reg} {
-	set decoded [split [lindex $reg 0] "_"]
+		set decoded [split [lindex $reg 0] "_"]
 	
-	return  [lindex $decoded 2]
+		return  [lindex $decoded 2]
     }
     #  Extract the VME crate from a VME identifier
     #  VME Idents are of the form ces8210_vmme_branch
     proc ExtractC {reg} {
+
 	set decoded [split [lindex $reg 0]  "_"]
 	return [lindex $decoded 2]
     }
 
     proc ExtractN {reg} {
-	set base [lindex $reg 1]
 
+	set base [lindex $reg 1]
+	
 	return [expr ($base >> 11) & 0x1f]
     }
     proc IncN {reg} {
+
 	set b [ExtractB $reg]
 	set c [ExtractC $reg]
 	set n [ExtractN $reg]
@@ -436,9 +439,9 @@ namespace eval camac {
 	return [cdreg $b $c $n]   ;# Error if n now out of range!
     }
     proc ExtractVME {reg} {
-	set decoded [lindex $reg 0]
-	set splitdecoded [split $decoded "_"]
-	return [lindex $splitdecoded  1]
+		set decoded [lindex $reg 0]
+		set splitdecoded [split $decoded "_"]
+		return [lindex $splitdecoded  1]
     }
 
     #
@@ -555,7 +558,6 @@ namespace eval camac {
 	set offset [camac::Offset $a $f]
 	set address [expr $base + $offset +2 ]
        
-
 
 
 	if {[camac::isRead $f]} {		;# Read operation for 32 bits:

@@ -159,7 +159,7 @@ fi
 #        number specifiers.
 #
 
-tcl_versions="8.4 8.3 8.2 8.1 8.0"     # First match;  so order new -> old.
+tcl_versions="8.5 8.4 8.3 8.2 8.1 8.0"     # First match;  so order new -> old.
 tcl_header_dir=""
 AC_MSG_CHECKING([for tcl headers])
 
@@ -237,9 +237,11 @@ AC_ARG_WITH(tcl-libdir,
 tcl_libsearchpath="$tcl_libsearchpath /usr/lib /usr/local/lib"
 
 tcl_libfiles=libtcl.a
+
 for v in ${tcl_versions}
 do
    tcl_libfiles="$tcl_libfiles libtcl${v}.a"
+   tcl_libfiles="$tcl_libfiles libtcl${v}.so"
 done
 
 
@@ -269,9 +271,22 @@ then
   #
 
   tcl_libname=$(basename $(basename $tcl_libname .a) .so)
+  echo tcl libname $tcl_libname
+  tcl_stublibname=$(sed s/tcl/tclstub/ <<-ENDDATA
+$tcl_libname
+ENDDATA
+)
+echo tcl_stublibname $tcl_stublibname
+
   tk_libname=tk$(echo $tcl_libname|cut -c 4-)   # trim off tc...and use tk
+  tk_stublibname=$(sed s/tk/tkstub/ <<-ENDDATA
+$tk_libname
+ENDDATA
+)
+
   TCL_LDFLAGS="-L${tcl_libdir} -l${tk_libname}  -l${tcl_libname}"
-  
+  TCL_STUBFLAGS="-L${tcl_libdir} -l${tcl_stublibname}" 
+  TK_STUBFLAGS="-L${tcl_libdir}  -l${tk_stublibname}"
 else
   AC_MSG_ERROR([Unable to find the tcl library, help me out with --with-tcl-libdir])
 fi
@@ -460,6 +475,8 @@ AC_SUBST(SPECTRODAQ_LDFLAGS)
 
 AC_SUBST(TCL_FLAGS)
 AC_SUBST(TCL_LDFLAGS)
+AC_SUBST(TCL_STUBFLAGS)
+AC_SUBST(TK_STUBFLAGS)
 
 	# VME device:
 
@@ -512,6 +529,7 @@ AC_OUTPUT( Makefile Headers/Makefile CopyrightTools/Makefile \
 	contrib/lecroy/Makefile contrib/whedco/Makefile \
 	contrib/caenv812/Makefile contrib/scriptedReadout/Makefile \
 	contrib/scalerdisplay/Makefile contrib/N568Panel/Makefile \
+	contrib/vhqpanel/Makefile \
 	vmetcl/Makefile \
 	vmetcl/camactcl/Makefile vmetcl/vhq202m/Makefile bufdump/Makefile \
 	TclServer/Makefile bcnaf/Makefile TcpHoister/Makefile Stager/Makefile \
@@ -520,4 +538,4 @@ AC_OUTPUT( Makefile Headers/Makefile CopyrightTools/Makefile \
 	ProductionReadout/hyperlatex/Makefile \
 	btdriver/Makefile btdriver/dd/Makefile btdriver/lib/Makefile \
 	btdriver/include/Makefile  controlpush/Makefile dvdburn/Makefile \
-	daqstart/Makefile )
+	daqstart/Makefile ScalerDisplay/Makefile ScalerDisplay/ScalerDisplay)

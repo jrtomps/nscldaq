@@ -313,7 +313,7 @@ DAMAGES.
 #endif
 
 #ifndef __RANGEERROR_H
-#include <RangeError.h>
+#include <CRangeError.h>
 #endif
 
 #ifndef __CVMEINTERFACE_H
