@@ -3,20 +3,20 @@
 //
 
 /*!
-  \mainpage SIS3820 Scaler support software
+  \page sis3820 SIS3820 Scaler support software
 
 
   \author Ron Fox
 
-  \section Intro Introduction
+  \section sis3820Intro Introduction
  
 	This document describes software support for the SIS3820 VME scaler.
    Support for this module consists of a single C++ class: CSIS3820
 
    This document describes:
-  - The \ref Modes Supported module modes
-  - \ref SetupLatching 
-  - \ref Readout
+  - The \ref sis3820Modes Supported module modes
+  - \ref sis3820SetupLatching 
+  - \ref sis3820Readout
 
 
  */

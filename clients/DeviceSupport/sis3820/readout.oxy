@@ -1,18 +1,18 @@
 /*!
-	\page Readout  How to read the Module.
+	\page sis3820Readout  How to read the Module.
 
 	The SIS 3820 can be readout either as a latching scaler
 	or it can be read out on the fly.  This section 
 	describes:
-	- \ref Onthefly
-	- \ref LatchingReadout
+	- \ref sis3820Onthefly
+	- \ref sis3820LatchingReadout
 
-	\section Onthefly On the Fly Readout	
+	\section sis3820Onthefly On the Fly Readout	
 
 	Two functions CSIS3820::ReadChannel and CSIS3820::ReadAllChannels
 	can be used to read the module out `on the fly'.  On the fly readout is 
 	probably not suitable if a very precised synchronized readout of several
-	channels is desired.  In that case, it's better to use \ref LatchingReadout
+	channels is desired.  In that case, it's better to use \ref sis3820LatchingReadout
 
 	The code sample below shows a sample readscl() function that reads
 	out 32 channels of a scaler whose object is stored in pScaler.
@@ -23,7 +23,7 @@
 
 	\include readindividually.oxy
 
-	\section LatchingReadout Latching Readout.
+	\section sis3820LatchingReadout Latching Readout.
 
 	The scaler can be latched either programmatically,  via the
 	CSIS3820::Latch function, or via a hardware latch signal if 
@@ -32,7 +32,7 @@
 	- CSIS3820::InputLatchInhibitAllAndLatch
 	- CSIS3820::InputLatchInhibitAll
 
-	These modes are described in \ref InputModes.
+	These modes are described in \ref sis3820InputModes.
 
 	In either event, it is important \em not to use CSIS3820::ReadChannel or
 	CSIS3820::ReadAllChannels as these functions read the incrementing counter
@@ -42,9 +42,6 @@
 	function can be called.  If you want to latch and read all channels, the
 	convenience function CSIS3820::LatchAndRead is available.
 
-	The sample code below shows how to latch and read an entire scaler:
-
-	\include latchedread.oxy
 
 
 */

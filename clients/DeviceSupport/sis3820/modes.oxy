@@ -1,5 +1,5 @@
 /*!
-   \page Modes Supported operating modes.
+   \page sis3820Modes Supported operating modes.
 
 	Software support for the module is currently restricted to the latching 
 	scaler mode.  The hardware itself supports:
