@@ -321,3 +321,6 @@ January 5, 2005
           time, m_pTrigger was used where m_pBusy was intended.
        -  Add comments to the readout makefiles to describe how to select
           between CAMAC interfaces.
+January 11, 2005
+       - Remove reference to the nonexistent Preadout style guide in the 
+         Preadout docs.
