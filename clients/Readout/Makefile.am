@@ -6,7 +6,7 @@ libReadout_la_SOURCES = Active.cpp CAENcard.cpp  \
 	ReadoutStateMachine.cpp RecordingBufferPointer.cpp \
 	State.cpp StateMachine.cpp TestBusy.cpp TestTrigger.cpp VMEBusy.cpp \
 	VMETrigger.cpp VmeModule.cpp camacmap.cpp sis3300.cpp \
-	cmdio.c command.c diagnose.c docmd.c CAENcard_767.cpp
+	cmdio.c command.c diagnose.c docmd.c CAENcard_767.cpp v890.cpp
 
 #	CAENchain.cpp
 
@@ -20,7 +20,7 @@ include_HEADERS = Active.h Busy.h CAENcard.h CAENchain.h CAMACBusy.h \
 	cmdio.h daqerrno.h daqinterface.h  CAENcard_767.h  \
 	 sis3300.h \
 	skeleton.h  vme.h cesmacros.h wienermacros.h macros.h \
-	cescamac.h wienercamac.h camac.h
+	cescamac.h wienercamac.h camac.h v890.h
 
 
 sysconf_DATA = runstate.tran
@@ -46,7 +46,7 @@ install-data-local:
 	$(INSTALL_DATA) runstate.tran $(prefix)/Readout/etc
 	
 
-libReadout_la_LDFLAGS = -version-info 1:0:0  -L@top_srcdir@/VMEApi \
+libReadout_la_LDFLAGS = -version-info 2:0:0  -L@top_srcdir@/VMEApi \
 	-lVmeAPI $(SPECTRODAQ_LDFLAGS) -g
 
 INCLUDES = -I@top_srcdir@/Headers -I@top_srcdir@/VMEApi \
@@ -54,7 +54,8 @@ INCLUDES = -I@top_srcdir@/Headers -I@top_srcdir@/VMEApi \
 
 EXTRA_DIST = runstate.tran Makefile.skel ReadoutMain.cpp skeleton.cpp 
 
-
+CXXFLAGS=-g
+CCFLAGS=-g
 
 
 
