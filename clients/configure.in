@@ -154,7 +154,7 @@ AC_MSG_CHECKING([for tcl headers])
 
 AC_ARG_WITH(tcl-header-dir,
 	[  --with-tcl-header-dir=path Path to tcl headers],
-	[tcl_header_dir=$withval,
+	[tcl_header_dir=$withval
 	tcl_headers_found="yes"],[tcl_headers_found="no"])
 
 
@@ -253,7 +253,11 @@ then
   # Find the lib basename:
 
   tcl_libname=$(echo $tcl_libname|cut -c 4- )  # trim off lib 
-  tcl_libname=$(echo $tcl_libname|cut -c -$(expr length $tcl_libname - 2))
+  #
+  #  Use basename to trim of the .a or .so:
+  #
+
+  tcl_libname=$(basename $(basename $tcl_libname .a) .so)
   tk_libname=tk$(echo $tcl_libname|cut -c 4-)   # trim off tc...and use tk
   TCL_LDFLAGS="-L${tcl_libdir} -l${tk_libname}  -l${tcl_libname}"
   
