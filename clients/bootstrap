@@ -1,4 +1,5 @@
 #!/bin/sh
+find . -name .deps -exec rm {} \;
 set -x
 aclocal -I config
 libtoolize --force --copy
