@@ -314,21 +314,81 @@ AC_MSG_CHECKING([ for VME device ])
 #   VMEDEVICE  - The name of the selected api.
 #
 
+#  Default to SBSBit3 but allow
+#    --with-vme-interface={sbs|wiener|none}
+#
 
-VMEDEVICE="SBSBIT3"     # Support for Nikhef drv dropped
+# Default interface is sbs.
 
-if test $VMEDEVICE = "SBSBIT3" 
-then
-   VMEBUILDHEADERS="-I$(pwd)/btdriver/include"
-   VMEBUILDLIBS="-L$(pwd)/btdriver/lib -lbtp"
+vmeinterface="sbs"
+
+#  Process -with-vme-interface if there.
+
+AC_ARG_WITH(vme-interface,
+	[--with-vme-interface=sbs|wiener|none - Choose VME interface],
+	vmeinterface="$withval")
+
+case "$vmeinterface" in
+     sbs)
+	VMEDEVICE="SBSBIT3"
+	    # Definitions require to build us:
+
+	VME_DRIVERDIR="btdriver"
+	VMEBUILDHEADERS="-I$(pwd)/btdriver/include"
+	VMEBUILDLIBS="-L$(pwd)/btdriver/lib -lbtp"
+	AC_DEFINE(HAVE_VME_MAPPING, "1",[VME interface capable of mmap(2)])
+	   
+	   # definitions written into user skeleton makefiles:
+
+	VMELIBRARYHEADERS="-I$prefix/include"
+	VMELIBRARY="-L$prefix/lib -lbtp"
+	
+     ;;
+     wiener) 
+	VMEDEVICE="WIENER"
+	    # Definitions for the build: Static link and driver has no mmap support.
+
+	VME_DRIVERDIR="wienerdriver"
+	VMEBUILDHEADERS="-I$(pwd)/wienerdriver/lib"
+	VMEBUILDLIBS="-L$(pwd)/wienerdriver/lib -lpcivme"
+
+	# Definitions written into the user skeleton makefiles:
+
+	VMELIBRARYHEADERS="-I$prefix/include"
+	VMELIBRARY="-L$prefix/lib -lpcivme"
+
+     ;;
+     none)
+	VMEDEVICE="NULL"
+	VME_DRIVERDIR=""
+	VMEBUILDHEADERS=""
+	VMEBUILDLIBS=""
+
+	#  Definitions written into the user skeleton makefiles:
+
+	VMELIBRARYHEADERS=""
+	VMELIBRARY=""
+
+     ;;
+     *)
+     AC_MSG_ERROR([Invalid vme interface type $vmeinterface valid values are sbs, wiener or none])
+     ;;
+esac
+
+# VMEDEVICE="SBSBIT3"     # Support for Nikhef drv dropped
+
+# if test $VMEDEVICE = "SBSBIT3" 
+#then
+#   VMEBUILDHEADERS="-I$(pwd)/btdriver/include"
+#   VMEBUILDLIBS="-L$(pwd)/btdriver/lib -lbtp"
 
 #  Since the bt library is part of the build:
 
-   VMELIBRARYHEADERS="-I$prefix/include"
-   VMELIBRARY="-L$prefix/lib -lbtp"
-fi
+#   VMELIBRARYHEADERS="-I$prefix/include"
+#    VMELIBRARY="-L$prefix/lib -lbtp"
+# fi
 
-AC_MSG_RESULT([hard coded to SBSBIT3: BUILDHEADERS: $VMEBUILDHEADERS])
+AC_MSG_RESULT([$VMEDEVICE])
 
 #   CAMAC defaults to CESCAMAC but can be overidden via --with-camac=VC32CAMAC
 
@@ -523,7 +583,9 @@ AC_SUBST(TK_STUBFLAGS)
 
 	# VME device:
 
+
 AC_SUBST(VMEDEVICE)
+AC_SUBST(VME_DRIVERDIR)
 AC_SUBST(VMELIBRARY)
 AC_SUBST(VMELIBRARYHEADERS)
 AC_SUBST(VMEBUILDHEADERS)
@@ -581,4 +643,6 @@ AC_OUTPUT( Makefile Headers/Makefile CopyrightTools/Makefile \
 	ProductionReadout/hyperlatex/Makefile \
 	btdriver/Makefile btdriver/dd/Makefile btdriver/lib/Makefile \
 	btdriver/include/Makefile  controlpush/Makefile dvdburn/Makefile \
-	daqstart/Makefile ScalerDisplay/Makefile ScalerDisplay/ScalerDisplay)
+	daqstart/Makefile ScalerDisplay/Makefile ScalerDisplay/ScalerDisplay \
+	wienerdriver/Makefile wienerdriver/driver/Makefile \
+	wienerdriver/lib/Makefile)
