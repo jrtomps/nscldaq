@@ -297,9 +297,7 @@ DAMAGES.
 #include "XMWidget.h"
 #include "XMPushbutton.h"
 
-extern "C" {
-  void exit(int code);
-}
+#include <stdlib.h>
 
 /*
 ** Below is a generic list class which is used to construct the widget list
