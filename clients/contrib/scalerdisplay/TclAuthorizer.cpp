@@ -273,7 +273,7 @@ THIRD PARTIES OR A FAILURE OF THE PROGRAM TO OPERATE WITH ANY OTHER PROGRAMS),
 EVEN IF SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH 
 DAMAGES.
 
-		     END OF TERMS AND CONDITIONS
+		     END OF TERMS AND CONDITIONS '
 */
 
 // Class: CTclAuthorizer
@@ -288,6 +288,7 @@ DAMAGES.
 //
 //////////////////////////.cpp file/////////////////////////////////////////////////////
 
+#include <config.h>
 #include "TclAuthorizer.h"    				
 #include "TCLString.h"
 
@@ -309,6 +310,9 @@ DAMAGES.
 #define uint8_t     unsigned char
 #endif
 
+#ifdef HAVE_STD_NAMESPACE
+using namespace std;
+#endif
 static char* pCopyrightNotice = 
 "(C) Copyright 1999 NSCL, All rights reserved TclAuthorizer.cpp \n";
 

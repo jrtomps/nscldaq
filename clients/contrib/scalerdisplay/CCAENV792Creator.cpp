@@ -273,14 +273,19 @@ THIRD PARTIES OR A FAILURE OF THE PROGRAM TO OPERATE WITH ANY OTHER PROGRAMS),
 EVEN IF SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH 
 DAMAGES.
 
-		     END OF TERMS AND CONDITIONS
+		     END OF TERMS AND CONDITIONS '
 */
 static const char* Copyright = "(C) Ron Fox 2002, All rights reserved";
 ////////////////////////// FILE_NAME.cpp /////////////////////////////////////////////////////
+#include <config.h>
 #include "CCAENV792Creator.h"    	
 #include "CCAENV792.h"	
 #include <assert.h>
-#include <string>		
+#include <string>	
+
+#ifdef HAVE_STD_NAMESPACE
+using namespace std;
+#endif	
 /*!
    Construct an instance of a CAEN V 792 module creator.  The module
    creator can then be registered withy CModuleCommand::AddCreator.

@@ -1,10 +1,15 @@
 ////////////////////////// FILE_NAME.cpp /////////////////////////////////////////////////////
+#include <config.h>
 #include "CCAENV830Creator.h"    				
 #include "CCAENV830Module.h"
 #include <TCLInterpreter.h>
 #include <TCLResult.h>
 
 #include <assert.h>
+
+#ifdef HAVE_STD_NAMESPACE
+using namespace std;
+#endif
 /*!
    Creates a creational object for CAENV830 objects.
 

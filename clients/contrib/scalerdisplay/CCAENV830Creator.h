@@ -12,7 +12,9 @@
  
 #ifndef __STL_STRING
 #include <string>
+#ifndef __STL_STRING
 #define __STL_STRING
+#endif
 #endif
 
 class CTCLInterpreter;
@@ -71,7 +73,7 @@ public:
    virtual   CDigitizerModule* Create (CTCLInterpreter& rInterp, 
 				       CTCLResult& rResult, 
 				       int nArgs, char** pArgs)   ; // 
-   virtual   string  Help (); // 
+   virtual   STD(string)  Help (); // 
 
 };
 

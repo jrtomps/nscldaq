@@ -1,7 +1,12 @@
+#include <config.h>
 #include "CPacketCreator.h"    	
 #include "CPacket.h"	
 #include <assert.h>
-#include <string>		
+#include <string>	
+
+#ifdef HAVE_STD_NAMESPACE
+using namespace std;
+#endif	
 /*!
    Construct an instance of a Packet module creator.
  

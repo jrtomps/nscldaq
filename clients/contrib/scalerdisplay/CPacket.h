@@ -273,7 +273,7 @@ THIRD PARTIES OR A FAILURE OF THE PROGRAM TO OPERATE WITH ANY OTHER PROGRAMS),
 EVEN IF SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH 
 DAMAGES.
 
-		     END OF TERMS AND CONDITIONS '
+		     END OF TERMS AND CONDITIONS ' '
 */
 
 /*!
@@ -309,7 +309,9 @@ DAMAGES.
 
 #ifndef __STL_STRING
 #include <string>
+#ifndef __STL_STRING
 #define __STL_STRING
+#endif
 #endif
 
 // Forward class definitions.
@@ -322,7 +324,7 @@ private:
   
 public:
 // Constructors and other cannonical functions.
-CPacket(const string& rName, CTCLInterpreter& rInterp);
+CPacket(const STD(string)& rName, CTCLInterpreter& rInterp);
  virtual ~CPacket( );  
 private:
   CPacket (const CPacket& aCPacket );
@@ -335,8 +337,8 @@ public:
   virtual   int operator() (CTCLInterpreter& rInterp, 
                             CTCLResult&      rResult, 
                             int nArgs, char** pArgs)   ;   
-  virtual string getType() const {
-     return string("packet");
+  virtual STD(string) getType() const {
+     return STD(string)("packet");
   }
 
 };

@@ -1,9 +1,14 @@
+#include <config.h>
 #include "CPacket.h"    
 #include "CIntConfigParam.h"
 #include "CIntArrayParam.h"
 #include "CBoolConfigParam.h"
 #include <assert.h>
-#include <iostream.h>
+#include <Iostream.h>
+
+#ifdef HAVE_STD_NAMESPACE
+using namespace std;
+#endif
 
 // constants:
 

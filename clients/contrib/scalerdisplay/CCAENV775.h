@@ -273,7 +273,7 @@ THIRD PARTIES OR A FAILURE OF THE PROGRAM TO OPERATE WITH ANY OTHER PROGRAMS),
 EVEN IF SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH 
 DAMAGES.
 
-		     END OF TERMS AND CONDITIONS
+		     END OF TERMS AND CONDITIONS '
 */
 
 
@@ -307,7 +307,9 @@ DAMAGES.
 
 #ifndef __STL_STRING
 #include <string>
+#ifndef __STL_STRING
 #define __STL_STRING
+#endif
 #endif
 
 // Forward class definitions.
@@ -349,7 +351,7 @@ private:
   
 public:
 // Constructors and other cannonical functions.
-CCAENV775(const string& rName, CTCLInterpreter& rInterp);
+CCAENV775(const STD(string)& rName, CTCLInterpreter& rInterp);
  virtual ~CCAENV775( );  
 private:
   CCAENV775 (const CCAENV775& aCCAENV775 );
@@ -360,8 +362,8 @@ public:
 
   // Class operations:
 
-  virtual string getType() const {
-     return string("caenv775");
+  virtual STD(string) getType() const {
+     return STD(string)("caenv775");
   }
 
 };

@@ -273,7 +273,7 @@ THIRD PARTIES OR A FAILURE OF THE PROGRAM TO OPERATE WITH ANY OTHER PROGRAMS),
 EVEN IF SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH 
 DAMAGES.
 
-		     END OF TERMS AND CONDITIONS
+		     END OF TERMS AND CONDITIONS '
 */
 // Author:
 //   Ron Fox
@@ -298,6 +298,14 @@ DAMAGES.
 #ifndef __HISTOTYPES_H
 #include <histotypes.h>
 #endif
+
+#ifndef __STL_STRING
+#include <string>
+#ifndef __STL_STRING
+#define __STL_STRING
+#endif
+#endif
+
  
 /*!
 Encapsulates a boolean parameter. Bool parameters
@@ -325,7 +333,7 @@ private:
   bool m_fValue;            //!< Current boolean value. : 
   //  Constructors and other cannonical member functions:
 public:
-  CBoolConfigParam (const string& rName, 
+  CBoolConfigParam (const STD(string)& rName, 
                     bool fDefault = false); //!< Constructor
  ~ CBoolConfigParam ( );                    //!< Destructor
   CBoolConfigParam (const CBoolConfigParam& rhs); //!< copy constructor
@@ -356,7 +364,7 @@ public:
   virtual   int SetValue (CTCLInterpreter& rInterp, 
                           CTCLResult& rResult, 
                           const char* pFlag)   ; //!< Parse flag.
-  virtual string GetParameterFormat();
+  virtual STD(string) GetParameterFormat();
  protected:
   static Bool_t ParseFlag(const char* value);
 };

@@ -9,6 +9,9 @@
 
 #ifndef __STL_STRING
 #include <string>
+#ifndef __STL_STRING
+#define __STL_STRING
+#endif
 #endif
 
 // forward class definitions:
@@ -50,7 +53,7 @@ class CCAENModule : public CDigitizerModule
 private:
 public:
   // Constructors:
-  CCAENModule(const string& rCommand,
+  CCAENModule(const STD(string)& rCommand,
 	      CTCLInterpreter& rInterp);
   virtual ~CCAENModule();
 private:

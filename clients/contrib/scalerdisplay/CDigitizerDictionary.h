@@ -16,13 +16,17 @@
 
 #ifndef __STL_STRING
 #include <string>
+#ifndef __STL_STRING
 #define __STL_STRING
+#endif
 #endif
 
  
 #ifndef __STL_MAP
 #include <map>
+#ifndef __STL_MAP
 #define __STL_MAP
+#endif
 #endif
 
 class CDigitizerModule;
@@ -30,12 +34,12 @@ class CDigitizerModule;
 Encapsulates a set of modules that are managed by a
 CModuleCommand and can be inserted into a CReadOrder
 objects.  This is really a small wrapper for 
-a map<string, CDigitizerModule*>
+a map<STD(string), CDigitizerModule*>
 */
 class CDigitizerDictionary      
 {
 public:
-   typedef map<string, CDigitizerModule*> DigitizerMap;
+   typedef STD(map)<STD(string), CDigitizerModule*> DigitizerMap;
    typedef DigitizerMap::iterator ModuleIterator;
 private:
 	DigitizerMap m_Modules;
@@ -69,7 +73,7 @@ public:
    ModuleIterator DigitizerEnd ()   ; // 
    int DigitizerSize ()   ; // 
    void DigitizerAdd (CDigitizerModule* pDigitizer)   ; // 
-   ModuleIterator DigitizerFind (const string& rName)   ; // 
+   ModuleIterator DigitizerFind (const STD(string)& rName)   ; // 
    void Remove(ModuleIterator p) {
       m_Modules.erase(p);
    }

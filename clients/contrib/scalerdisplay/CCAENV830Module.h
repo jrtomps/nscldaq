@@ -276,12 +276,20 @@ THIRD PARTIES OR A FAILURE OF THE PROGRAM TO OPERATE WITH ANY OTHER PROGRAMS),
 EVEN IF SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH 
 DAMAGES.
 
-		     END OF TERMS AND CONDITIONS
+		     END OF TERMS AND CONDITIONS '
 */
 
 
 #ifndef __CDIGITIZERMODULE_H
 #include "CDigitizerModule.h"
+#endif
+
+
+#ifndef __STL_STRING
+#include <string>
+#ifndef __STL_STRING
+#define __STL_STRING
+#endif
 #endif
 
 
@@ -360,7 +368,7 @@ class CCAENV830Module : public  CDigitizerModule
 public:
   // Constructors and other canonicals:
 
-  CCAENV830Module(const string& rName, CTCLInterpreter& rInterp);
+  CCAENV830Module(const STD(string)& rName, CTCLInterpreter& rInterp);
   virtual ~CCAENV830Module();
 private:
   CCAENV830Module(const CCAENV830Module& rhs);
@@ -373,8 +381,8 @@ public:
 
 public:
 
-  virtual string getType() const {
-    return string("caenv830");
+  virtual STD(string) getType() const {
+    return STD(string)("caenv830");
   }
 
 };

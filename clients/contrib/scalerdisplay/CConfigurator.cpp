@@ -1,4 +1,4 @@
-
+#include <config.h>
 #include <TCLInterpreter.h>
 #include "CDigitizerDictionary.h"
 #include "CModuleCommand.h"
@@ -8,6 +8,9 @@
 #include "CCAENV830Creator.h"
 #include "CPacketCreator.h"
 
+#ifdef HAVE_STD_NAMESPACE
+using namespace std;
+#endif
 /*!
    Setup the structure needed to parse the
    hardware configuration commands.

@@ -273,7 +273,7 @@ THIRD PARTIES OR A FAILURE OF THE PROGRAM TO OPERATE WITH ANY OTHER PROGRAMS),
 EVEN IF SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH 
 DAMAGES.
 
-		     END OF TERMS AND CONDITIONS
+		     END OF TERMS AND CONDITIONS '
 */
 // Author:
 //   Ron Fox
@@ -300,12 +300,16 @@ DAMAGES.
  
 #ifndef __STL_LIST
 #include <list>
+#ifndef __STL_LIST
 #define __STL_LIST
+#endif
 #endif
 
 #ifndef __STL_STRING
 #include <string>
+#ifndef __STL_STRING
 #define __STL_STRING
+#endif
 #endif
 
 
@@ -341,19 +345,19 @@ class CDigitizerModule : public CTCLProcessor
 {
   // Class specific types: for the arrays of parameters.
 public:  
-  typedef list<CConfigurationParameter*> ConfigArray;
+  typedef STD(list)<CConfigurationParameter*> ConfigArray;
   typedef ConfigArray::iterator          ParameterIterator;
  
 private:
   
-  string      m_sName;           //!< name of module.  
+  STD(string)      m_sName;           //!< name of module.  
   ConfigArray m_Configuration;   //!< Boolean flags.
  
 public:
 
 //   Construtors and other canonical operations.
 
-  CDigitizerModule (const string& rName,
+  CDigitizerModule (const STD(string)& rName,
                     CTCLInterpreter& rInterp); 
   virtual ~CDigitizerModule ( );
   // Copy like operations are illegal, and therefore
@@ -370,7 +374,7 @@ public:
 public:
 
           //Get accessor function for non-static attribute data member
-  string getName() const
+  STD(string) getName() const
   { return m_sName;
   }   
 
@@ -384,7 +388,7 @@ public:
 protected:
 
           //Set accessor function for non-static attribute data member
-  void setName (const string am_sName)
+  void setName (const STD(string) am_sName)
   {
     m_sName = am_sName;
   }   
@@ -404,18 +408,18 @@ public:
   virtual   int ListConfiguration (CTCLInterpreter& rInterp, 
                                    CTCLResult&      rResult, 
                                    int nArgs, char** pArgs);
-  virtual   string Usage (); 
-  void AddIntParam (const string& sParamName,
+  virtual   STD(string) Usage (); 
+  void AddIntParam (const STD(string)& sParamName,
                     int nDefault = 0);
-  void AddIntArrayParam (const string& rParamName, 
+  void AddIntArrayParam (const STD(string)& rParamName, 
                          int nArraySize,
                          int nDefault = 0);
-  void AddBoolParam (const string& rName,
+  void AddBoolParam (const STD(string)& rName,
                      bool fDefault = false); 
 
-  void AddStringParam(const string& rName);
+  void AddStringParam(const STD(string)& rName);
 
-  void AddStringArrayParam(const string& rName,
+  void AddStringArrayParam(const STD(string)& rName,
 			   int nArraySize);
 
   ParameterIterator begin() {
@@ -424,12 +428,12 @@ public:
   ParameterIterator end() {
     return m_Configuration.end();
   }
-  ParameterIterator Find(const string& rKeyword);
+  ParameterIterator Find(const STD(string)& rKeyword);
   ParameterIterator Find(const char*   pKeyword) {
-    return Find(string(pKeyword));
+    return Find(STD(string)(pKeyword));
   }
   
-  virtual string getType() const = 0;
+  virtual STD(string) getType() const = 0;
 
 
 // private utility functions.
@@ -437,9 +441,9 @@ public:
 private:
   void DeleteParameters();
 protected:
-  string ListParameters(CTCLInterpreter& rInterp,
-                      const string& rPattern);
-  string ListKeywords();
+  STD(string) ListParameters(CTCLInterpreter& rInterp,
+                      const STD(string)& rPattern);
+  STD(string) ListKeywords();
 
 };
 

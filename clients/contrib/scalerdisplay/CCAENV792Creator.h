@@ -273,7 +273,7 @@ THIRD PARTIES OR A FAILURE OF THE PROGRAM TO OPERATE WITH ANY OTHER PROGRAMS),
 EVEN IF SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH 
 DAMAGES.
 
-		     END OF TERMS AND CONDITIONS
+		     END OF TERMS AND CONDITIONS '
 */
 
 #ifndef __CCAENV792CREATOR_H  //Required for current class
@@ -286,6 +286,13 @@ DAMAGES.
                                //Required for base classes
 #ifndef __CMODULECREATOR_H     //CModuleCreator
 #include "CModuleCreator.h"
+#endif
+
+#ifndef __STL_STRING
+#include <string>
+#ifndef __STL_STRING
+#define __STL_STRING
+#endif
 #endif
  
 /*!
@@ -315,7 +322,7 @@ public:
    virtual   CDigitizerModule* 
 		  Create (CTCLInterpreter& rInterp, CTCLResult& rResult, 
 			     int nArgs, char** pArgs)   ; // 
-   virtual   string  Help ()   ; 
+   virtual   STD(string)  Help ()   ; 
 
 };
 

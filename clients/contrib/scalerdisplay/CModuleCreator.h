@@ -273,7 +273,7 @@ THIRD PARTIES OR A FAILURE OF THE PROGRAM TO OPERATE WITH ANY OTHER PROGRAMS),
 EVEN IF SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH 
 DAMAGES.
 
-		     END OF TERMS AND CONDITIONS
+		     END OF TERMS AND CONDITIONS '
 */
 //! \class: CModuleCreator           
 // Author:
@@ -293,7 +293,9 @@ DAMAGES.
 
 #ifndef __STL_STRING
 #include <string>
+#ifndef __STL_STRING
 #define __STL_STRING
+#endif
 #endif
 
 // Forward class definitions:
@@ -305,10 +307,10 @@ class CTCLResult;
 /*!
 Abstract base class of a set of factory like (creational) modules
 that make data acquisition module classes.  Each of these has
-a string module type.  And the following key members:
-- Match - return true if an input string matches the module type.
+a STD(string) module type.  And the following key members:
+- Match - return true if an input STD(string) matches the module type.
 - Create - Returns a new module.
-- Help    - Returns stringified help about the type of module
+- Help    - Returns STD(string)ified help about the type of module
                created by this class.
 */
 class CModuleCreator      
@@ -316,12 +318,12 @@ class CModuleCreator
 private:
   
   // Private Member data:
-    string m_sModuleType;  //!  //!< Module type string.  
+    STD(string) m_sModuleType;  //!  //!< Module type STD(string).  
    
 public:
 	// Constructors and other cannonical operations:
 	
-   CModuleCreator (const string& rType);
+   CModuleCreator (const STD(string)& rType);
    virtual  ~ CModuleCreator ( );  
    CModuleCreator (const CModuleCreator& aCModuleCreator );
    CModuleCreator& operator= (const CModuleCreator& aCModuleCreator);
@@ -335,7 +337,7 @@ public:
 public:
 
           //Get accessor function for non-static attribute data member
-  string getModuleType() const
+  STD(string) getModuleType() const
   {
      return m_sModuleType;
   }   
@@ -345,7 +347,7 @@ public:
 protected:
 
           //Set accessor function for non-static attribute data member
-  void setModuleType (const string am_sModuleType)
+  void setModuleType (const STD(string) am_sModuleType)
   { 
      m_sModuleType = am_sModuleType;
   }   
@@ -354,13 +356,13 @@ protected:
 
 public:
 
-   bool    Match (const string& rType);
+   bool    Match (const STD(string)& rType);
    virtual CDigitizerModule* 
 	   Create (CTCLInterpreter& rInterp, 
 		   CTCLResult& rResult, 
 		   int nArgs, 
 		   char** pArgs)   = 0 ; 
-   virtual  string  Help ()   = 0 ; 
+   virtual  STD(string)  Help ()   = 0 ; 
 
 };
 

@@ -1,8 +1,12 @@
 
 ////////////////////////// FILE_NAME.cpp /////////////////////////////////////////////////////
+#include <config.h>
 #include "CDigitizerDictionary.h"    				
 #include "CDigitizerModule.h"
 
+#ifdef HAVE_STD_NAMESPACE
+using namespace std;
+#endif
 /*!
  Constructor: since maps know how to do their thing, this
  is just a no-op.

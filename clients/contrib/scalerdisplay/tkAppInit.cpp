@@ -289,8 +289,9 @@ static const char* Copyright= "(C) Copyright Michigan State University 2002, All
  *
  * RCS: @(#) $Id$
  */
+#include <config.h>
 #include <stdio.h>
-#include <iostream.h>
+#include <Iostream.h>
 #include "tk.h"
 
 #ifdef WIN32

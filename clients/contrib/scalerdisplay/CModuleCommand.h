@@ -273,7 +273,7 @@ THIRD PARTIES OR A FAILURE OF THE PROGRAM TO OPERATE WITH ANY OTHER PROGRAMS),
 EVEN IF SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH 
 DAMAGES.
 
-		     END OF TERMS AND CONDITIONS
+		     END OF TERMS AND CONDITIONS '
 */
 // Author:
 //   Ron Fox
@@ -299,17 +299,23 @@ DAMAGES.
 //
 #ifndef __STL_STRING
 #include <string>
+#ifndef __STL_STRING
 #define __STL_STRING
+#endif
 #endif
 
 #ifndef __STL_LIST   // we have a list of creators.
 #include <list>
+#ifndef __STL_LIST
 #define __STL_LIST
+#endif
 #endif
 
 #ifndef __STL_MAP    // and a map of modules.
 #include <map>
+#ifndef __STL_MAP
 #define __STL_MAP
+#endif
 #endif
 
 // forward class definitions:
@@ -338,7 +344,7 @@ class CModuleCommand  : public CTCLProcessor
 {
 	// Type definitions:
 public:
-typedef list<CModuleCreator*>  CreatorList;
+typedef STD(list)<CModuleCreator*>  CreatorList;
 typedef CreatorList::iterator  CreatorIterator;
 
 
@@ -369,7 +375,7 @@ public:
      
    CModuleCommand (CTCLInterpreter* pInterp,
 		   CDigitizerDictionary* pDictionary,
-		   const string& command = string("module"));
+		   const STD(string)& command = STD(string)("module"));
    virtual ~CModuleCommand ( ); 
 private:
    CModuleCommand (const CModuleCommand& aCModuleCommand );
@@ -413,11 +419,11 @@ public:
    CDigitizerDictionary::ModuleIterator DigitizerBegin();
    CDigitizerDictionary::ModuleIterator DigitizerEnd();
    int                                  DigitizerSize();
-   CDigitizerDictionary::ModuleIterator DigitizerFind(const string& rName)
+   CDigitizerDictionary::ModuleIterator DigitizerFind(const STD(string)& rName)
    {
 	return m_pModules->DigitizerFind(rName);
    }
-   string            Usage();
+   STD(string)            Usage();
 };
 
 #endif
