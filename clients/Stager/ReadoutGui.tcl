@@ -285,7 +285,13 @@
 #  o If readout program runs on a remote system, it completely shares
 #    the user's directory structure.
 #
-
+#   Change log:
+#
+# $Log$
+# Revision 2.2  2003/03/12 03:46:42  ron-fox
+#    Added an event binding to the <Destroy> Event  the binding calls a new procedure:  EmergencyExit that in turn forces the Readout program to exit.  The exit is done via the normal ReadoutControl::ExitReadoutProgram.  That ends the run if possible (which will allow the event file to properly close even if the directory manipulations don't happen). And if possible Readout is exited cleanly.  Regardless, the socket is actively shutdown, so Readout won't hang around until timeout, but will exit immediately.
+#
+#
 package provide ReadoutGui 1.0
 package require Diagnostics
 package require ExpFileSystem
@@ -546,6 +552,16 @@ namespace eval ReadoutGui {
 	    ReadoutControl::ExitReadoutProgram
 	    exit
 	}
+    }
+    #
+    # Called to do an emergency exit if the window is being destroyed.
+    # We don't get to confirm this alas.
+    #
+    proc EmergencyExit {} {
+	ReadoutControl::SetOnExit ReadoutGui::NoOp
+	ReadoutControl::ExitReadoutProgram
+
+	# Exit will happen automatically.
     }
     #
     # Processes new dialog box entry.
@@ -818,11 +834,20 @@ namespace eval ReadoutGui {
 
 	#   Build the window and menu structure.
 	#
+
+	# there are two possibilities.  The topname is . in which case
+	# the interface is built into the base tk window, or it isn't in 
+	# which case we'll pop up our own toplevel and build the gui into that.
+	# regardless, a destroy handler is established to ensure that 
+	# any readout program is killed off.
+	#
 	if {$topname != "."} {
 	    set toplevelname $topname
 	    toplevel $toplevelname
+	    bind $toplevelname <Destroy> EmergencyExit
 	} else {
 	    set toplevelname ""
+	    bind . <Destroy> EmergencyExit
 	}
 	wm title $topname "Run Control"
 
