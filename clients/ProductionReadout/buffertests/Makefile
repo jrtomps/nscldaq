@@ -6,7 +6,7 @@ OBJECTS=TestFixture.o OutputBuffer.o ControlBuffer.o \
 SPECCXX=$(shell /usr/opt/spectrodaq/bin/spectrodaq-conf --cflags)
 SPECLD=$(shell /usr/opt/spectrodaq/bin/spectrodaq-conf  --libs)
 
-CXX=g++
+CXX=c++
 CXXFLAGS= -c -ggdb  -I. -I/usr/include/tcl \
 	-I/usr/opt/daq/include $(SPECCXX)
 

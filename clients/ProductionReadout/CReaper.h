@@ -273,7 +273,7 @@ THIRD PARTIES OR A FAILURE OF THE PROGRAM TO OPERATE WITH ANY OTHER PROGRAMS),
 EVEN IF SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH 
 DAMAGES.
 
-		     END OF TERMS AND CONDITIONS
+		     END OF TERMS AND CONDITIONS '
 */
    
 //////////////////////////CReaper.h file//////////////////////////////////
@@ -287,7 +287,9 @@ DAMAGES.
 
 #ifndef __STL_LIST                              
 #include <list>        
+#ifndef __STL_LIST
 #define __STL_LIST
+#endif
 #endif
 
 
@@ -330,8 +332,8 @@ class CEvent;
 class CReaper : public  CTimerEvent     
 { 
 public:
-    typedef list<CEvent*>  CEventList;
-    typedef list<CEvent*>::iterator CEventListIterator;
+    typedef STD(list)<CEvent*>  CEventList;
+    typedef STD(list)<CEvent*>::iterator CEventListIterator;
 private:
     static  CEventList m_ThreadObjects; //!< //!< Threads being monitored.
     static CReaper* m_pInstance;

@@ -273,7 +273,7 @@ THIRD PARTIES OR A FAILURE OF THE PROGRAM TO OPERATE WITH ANY OTHER PROGRAMS),
 EVEN IF SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH 
 DAMAGES.
 
-		     END OF TERMS AND CONDITIONS
+		     END OF TERMS AND CONDITIONS '
 */
 //////////////////////////CConstVariableCommand.h file//////////////////////////////////
 
@@ -286,7 +286,16 @@ DAMAGES.
   
 #ifndef __STL_MAP
 #include <map>
+#ifndef __STL_MAP
 #define __STL_MAP
+#endif
+#endif
+
+#ifndef __STL_STRING
+#include <string>
+#ifndef __STL_STRING
+#define __STL_STRING
+#endif
 #endif
 
 #ifndef __CDAQTCLPROCESSOR_H
@@ -315,14 +324,14 @@ class CConstVariableCommand : public CDAQTCLProcessor
 { 
   // Data types:
 public:
-  typedef map<string,CConstVariable*> ConstVariableDictionary;
+  typedef STD(map)<STD(string),CConstVariable*> ConstVariableDictionary;
   typedef ConstVariableDictionary::iterator ConstVariableIterator;
 private:
   ConstVariableDictionary m_Dictionary;	//!<< Consts sorted by name.
 
   // Constructors and other canonical member functions:
 public:
-  CConstVariableCommand(const string& rCommand,
+  CConstVariableCommand(const STD(string)& rCommand,
 			CTCLInterpreter* pInterp=0);
   CConstVariableCommand(const char* pCommand = "const",
 			CTCLInterpreter* pInterp = 0);
@@ -353,7 +362,7 @@ public:
 		   char** pArgs, int nArgs)  ;
    ConstVariableIterator begin ()  ;
    ConstVariableIterator end ()  ;
-   ConstVariableIterator Find(const string& rName);
+   ConstVariableIterator Find(const STD(string)& rName);
    void    Enter(CConstVariable* pVar) {
      m_Dictionary[pVar->getVariableName()] = pVar;
    }
@@ -361,7 +370,7 @@ public:
    
    // Utility:
  protected:
-   static string Usage();
+   static STD(string) Usage();
 };
 
 #endif

@@ -273,7 +273,7 @@ THIRD PARTIES OR A FAILURE OF THE PROGRAM TO OPERATE WITH ANY OTHER PROGRAMS),
 EVEN IF SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH 
 DAMAGES.
 
-		     END OF TERMS AND CONDITIONS
+		     END OF TERMS AND CONDITIONS '
 */
 
 //////////////////////////CDocumentedPacketManager.h file//////////////////////////////////
@@ -284,17 +284,23 @@ DAMAGES.
 
 #ifndef __STL_LIST
 #include <list>
+#ifndef __STL_LIST
 #define __STL_LIST
+#endif
 #endif
 
 #ifndef __STL_VECTOR
 #include <vector>
+#ifndef __STL_VECTOR
 #define __STL_VECTOR
+#endif
 #endif
 
 #ifndef __STL_STRING
 #include <string>
+#ifndef __STL_STRING
 #define __STL_STRING
+#endif
 #endif
 
 /*!
@@ -309,6 +315,9 @@ DAMAGES.
    
    Modification History:
    $Log$
+   Revision 4.2  2004/11/22 19:26:08  ron-fox
+   Port to gcc/g++ 3.x
+
    Revision 4.1  2004/11/08 17:37:29  ron-fox
    bring to mainline
 
@@ -327,7 +336,7 @@ DAMAGES.
    */
 
 class CDocumentedPacket;
-typedef list<CDocumentedPacket*> DocumentationPacketList;
+typedef STD(list)<CDocumentedPacket*> DocumentationPacketList;
 typedef DocumentationPacketList::iterator DocumentationPacketIterator;
 
 class CDocumentedPacketManager      
@@ -368,11 +377,11 @@ protected:
 	// Class operations:
 public:
    void AddPacket (CDocumentedPacket& rPacket)  ;
-   void DeletePacket (const string& rName)  ;
+   void DeletePacket (const STD(string)& rName)  ;
    DocumentationPacketIterator begin ()  ;
    DocumentationPacketIterator end ()  ;
    unsigned int size ()  ;
-   vector<string> Format ()  ;
+   STD(vector)<STD(string)> Format ()  ;
  
 };
 

@@ -273,7 +273,7 @@ THIRD PARTIES OR A FAILURE OF THE PROGRAM TO OPERATE WITH ANY OTHER PROGRAMS),
 EVEN IF SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH 
 DAMAGES.
 
-		     END OF TERMS AND CONDITIONS
+		     END OF TERMS AND CONDITIONS '
 */
 static const char* Copyright = "(C) Copyright Michigan State University 2002, All rights reserved";/*!
    \file CRunVariableDumpTrigger.cpp
@@ -286,6 +286,9 @@ static const char* Copyright = "(C) Copyright Michigan State University 2002, Al
   
   Modification History:
   $Log$
+  Revision 4.2  2004/11/22 19:26:14  ron-fox
+  Port to gcc/g++ 3.x
+
   Revision 4.1  2004/11/08 17:37:30  ron-fox
   bring to mainline
 
@@ -311,10 +314,13 @@ static const char* Copyright = "(C) Copyright Michigan State University 2002, Al
 //
   */
 //////////////////////////CRunVariableDumpTrigger.cpp file////////////////////////////////////
-
+#include <config.h>
 #include "CRunVariableDumpTrigger.h"
 #include "CExperiment.h"
 
+#ifdef HAVE_STD_NAMESPACE
+using namespace std;
+#endif
 /*!
   Construct a trigger.
   \param rExperiment - A reference to the experiment object which will be triggered

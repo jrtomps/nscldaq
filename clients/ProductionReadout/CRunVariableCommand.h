@@ -273,7 +273,7 @@ THIRD PARTIES OR A FAILURE OF THE PROGRAM TO OPERATE WITH ANY OTHER PROGRAMS),
 EVEN IF SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH 
 DAMAGES.
 
-		     END OF TERMS AND CONDITIONS
+		     END OF TERMS AND CONDITIONS '
 */
 
 //////////////////////////CRunVariableCommand.h file//////////////////////////////////
@@ -291,12 +291,16 @@ DAMAGES.
  
 #ifndef __STL_MAP
 #include <map>
+#ifndef __STL_MAP
 #define __STL_MAP
+#endif
 #endif
           
 #ifndef __STL_STRING
 #include <string>
+#ifndef __STL_STRING
 #define __STL_STRING
+#endif
 #endif
 
 /*!
@@ -306,7 +310,7 @@ DAMAGES.
    the run.
  */	
 
-typedef map<string, CRunVariable*> RunVariableList;
+typedef STD(map)<STD(string), CRunVariable*> RunVariableList;
 typedef RunVariableList::iterator RunVariableIterator;
 	
 class CRunVariableCommand : public  CDAQTCLProcessor
@@ -344,9 +348,9 @@ public:
   
   // Programmatic interfaces to the database:
   
-  CRunVariable* Create(const string& rName, 
-	      const string& rInitialValue = string("-uninitialized"));
-  void Delete(const string& rName);
+  CRunVariable* Create(const STD(string)& rName, 
+	      const STD(string)& rInitialValue = STD(string)("-uninitialized"));
+  void Delete(const STD(string)& rName);
   void Delete(RunVariableIterator& rIter);
 
 
@@ -355,7 +359,7 @@ public:
   RunVariableIterator begin ()  ;
   RunVariableIterator end ()  ;
   size_t size ()  ;
-  RunVariableIterator find(const string& rName) {
+  RunVariableIterator find(const STD(string)& rName) {
     return m_RunVariables.find(rName);
   }
   

@@ -273,7 +273,7 @@ THIRD PARTIES OR A FAILURE OF THE PROGRAM TO OPERATE WITH ANY OTHER PROGRAMS),
 EVEN IF SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH 
 DAMAGES.
 
-		     END OF TERMS AND CONDITIONS
+		     END OF TERMS AND CONDITIONS '
 */
 
 //////////////////////////CStateVariableCommand.h file//////////////////////////////////
@@ -287,12 +287,16 @@ DAMAGES.
                                
 #ifndef __STL_MAP
 #include <map>
+#ifndef __STL_MAP
 #define __STL_MAP
+#endif
 #endif
 
 #ifndef __STL_STRING
 #include <string>
+#ifndef __STL_STRING
 #define __STL_STRING
+#endif
 #endif
                                                         
 /*!
@@ -308,7 +312,7 @@ DAMAGES.
 
 class CStateVariable;
 
-typedef map <string, CStateVariable*> StateVariableMap;
+typedef STD(map) <STD(string), CStateVariable*> StateVariableMap;
 typedef StateVariableMap::iterator  StateVariableIterator; 
 
 class CStateVariableCommand : public CDAQTCLProcessor     
@@ -346,8 +350,8 @@ public:
 
   // Programmatic interfaces to the database:
 
-  CStateVariable* Create(const string& rName);
-  void Delete(const string& rName);
+  CStateVariable* Create(const STD(string)& rName);
+  void Delete(const STD(string)& rName);
   void Delete(StateVariableIterator& rIter);
 
   // Iteration support.
@@ -355,7 +359,7 @@ public:
   StateVariableIterator begin ()  ;
   StateVariableIterator end ()  ;
   size_t size ()  ;
-  StateVariableIterator find(const string& rName);
+  StateVariableIterator find(const STD(string)& rName);
 
 protected:
   void Usage(CTCLResult& rResult);

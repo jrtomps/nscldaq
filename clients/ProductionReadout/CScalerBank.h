@@ -273,7 +273,7 @@ THIRD PARTIES OR A FAILURE OF THE PROGRAM TO OPERATE WITH ANY OTHER PROGRAMS),
 EVEN IF SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH 
 DAMAGES.
 
-		     END OF TERMS AND CONDITIONS
+		     END OF TERMS AND CONDITIONS '
 */
 
 //////////////////////////CScalerBank.h file//////////////////////////////////
@@ -287,7 +287,9 @@ DAMAGES.
 
 #ifndef __STL_LIST
 #include <list>
+#ifndef __STL_LIST
 #define __STL_LIST
+#endif
 #endif
                                                                
 /*!
@@ -304,8 +306,8 @@ DAMAGES.
  */		
 
 class CScalerBank;
-typedef list<CScaler*>           ScalerList; //!< List of scalers.
-typedef list<CScaler*>::iterator ScalerListIterator; //!< Scaler list iterator
+typedef STD(list)<CScaler*>           ScalerList; //!< List of scalers.
+typedef STD(list)<CScaler*>::iterator ScalerListIterator; //!< Scaler list iterator
 
 class CScalerBank      
 { 
@@ -340,7 +342,7 @@ protected:
   // Class operations:
 public:  
   void Initialize ()  ;
-  vector<unsigned long> Read ()  ;
+  STD(vector)<unsigned long> Read ()  ;
   void Clear ()  ;
   void AddScalerModule (CScaler* pScaler)  ;
   void DeleteScalerModule (CScaler* pModule)  ;

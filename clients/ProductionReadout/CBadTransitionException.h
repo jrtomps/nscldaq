@@ -273,7 +273,7 @@ THIRD PARTIES OR A FAILURE OF THE PROGRAM TO OPERATE WITH ANY OTHER PROGRAMS),
 EVEN IF SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH 
 DAMAGES.
 
-		     END OF TERMS AND CONDITIONS
+		     END OF TERMS AND CONDITIONS '
 */
 
 //////////////////////////CBadTransitionException.h file//////////////////////////////////
@@ -291,7 +291,9 @@ DAMAGES.
 
 #ifndef __STL_STRING
 #include <string>
+#ifndef __STL_STRING
 #define __STL_STRING
+#endif
 #endif
                                
 /*!
@@ -304,9 +306,9 @@ DAMAGES.
 class CBadTransitionException  : public CReadoutException        
 { 
 private:
-  string m_sOldState;		//!< Id of state we were in.
-  string m_sDestinationState;	//!< Name of state we tried to go to.
-  string m_sReasonText;		//!< Exception reason is built here. 
+  STD(string) m_sOldState;		//!< Id of state we were in.
+  STD(string) m_sDestinationState;	//!< Name of state we tried to go to.
+  STD(string) m_sReasonText;		//!< Exception reason is built here. 
  
 public:
   // Constructors, destructors and other cannonical operations: 
@@ -326,11 +328,11 @@ public:
 
 public:
   
-  string getOldState() const {
+  STD(string) getOldState() const {
     return m_sOldState;
   }
   
-  string getDestinationState() const {
+  STD(string) getDestinationState() const {
     return m_sDestinationState;
   }
   

@@ -273,7 +273,7 @@ THIRD PARTIES OR A FAILURE OF THE PROGRAM TO OPERATE WITH ANY OTHER PROGRAMS),
 EVEN IF SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH 
 DAMAGES.
 
-		     END OF TERMS AND CONDITIONS
+		     END OF TERMS AND CONDITIONS '
 */
 #ifndef _CTKSERVERINSTANCE_H
 #define _CTKSERVERINSTANCE_H
@@ -284,7 +284,9 @@ DAMAGES.
 
 #ifndef __STL_STRING
 #include <string>
+#ifndef __STL_STRING
 #define __STL_STRING
+#endif
 #endif
 
 
@@ -306,7 +308,7 @@ public:
 
   void ClearCommand();		// Empty the command string.
   void AppendChunk(const char* pChunk);	// Add a substring.
-  void AppendChunk(const std::string& rChunk) { 
+  void AppendChunk(const STD(string)& rChunk) { 
     AppendChunk(rChunk.c_str());
   }
   void AppendChunk(const Tcl_DString& str) {

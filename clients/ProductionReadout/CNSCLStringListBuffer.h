@@ -273,7 +273,7 @@ THIRD PARTIES OR A FAILURE OF THE PROGRAM TO OPERATE WITH ANY OTHER PROGRAMS),
 EVEN IF SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH 
 DAMAGES.
 
-		     END OF TERMS AND CONDITIONS
+		     END OF TERMS AND CONDITIONS '
 */
 
 //////////////////////////CNSCLStringListBuffer.h file//////////////////////////////////
@@ -287,12 +287,14 @@ DAMAGES.
 
 #ifndef __STL_STRING
 #include <string>
+#ifndef __STL_STRING
 #define __STL_STRING
+#endif
 #endif
                                
 /*!
    Encapsulates the formatting of any of a number of 
-   buffers which consist of lists of strings.
+   buffers which consist of lists of string.
    String list buffer bodies contain sequences of
    null terminated strings.  Each string begins on
    a word boundary and, if necessary, a pad blank
@@ -320,7 +322,7 @@ public:
 
 	// Class operations:
 public:
-     bool PutEntityString (const string& rString)  ;
+     bool PutEntityString (const STD(string)& rString)  ;
  
 };
 

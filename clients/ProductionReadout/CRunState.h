@@ -273,7 +273,7 @@ THIRD PARTIES OR A FAILURE OF THE PROGRAM TO OPERATE WITH ANY OTHER PROGRAMS),
 EVEN IF SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH 
 DAMAGES.
 
-		     END OF TERMS AND CONDITIONS
+		     END OF TERMS AND CONDITIONS '
 */
 //////////////////////////CRunState.h file//////////////////////////////////
 
@@ -282,17 +282,23 @@ DAMAGES.
 
 #ifndef __STL_STRING
 #include <string>
+#ifndef __STL_STRING
 #define __STL_STRING
+#endif
 #endif
 
 #ifndef __STL_SET
 #include <set>
+#ifndef __STL_SET
 #define __STL_SET
+#endif
 #endif
 
 #ifndef __STL_MAP
 #include <map>
+#ifndef __STL_MAP
 #define __STL_MAP
+#endif
 #endif
 
                                
@@ -314,11 +320,11 @@ public:
   } RunState;
 private:
   enum RunState m_eState; //!< Value of the state
-  map<enum RunState,string> 
+  STD(map)<enum RunState,STD(string)> 
          m_StatesByValue; //!< State names looked up by state value.
-  map<string,enum RunState> 
+  STD(map)<STD(string),enum RunState> 
          m_StatesByName; //!< State Values looked up by run state.
-  map<enum RunState, set<RunState> > 
+  STD(map)<enum RunState, STD(set)<RunState> > 
          m_Transitions; //!< For each state, allowed transitions.
   
 public:
@@ -341,15 +347,15 @@ public:
        return m_eState;
     }
 
-    map<enum RunState,string> getStatesByValue() const {
+    STD(map)<enum RunState,STD(string)> getStatesByValue() const {
        return m_StatesByValue;
     }
 
-    map<string,enum RunState> getStatesByName() const {
+    STD(map)<STD(string),enum RunState> getStatesByName() const {
        return m_StatesByName;
     }
 
-    map<enum RunState, set<RunState> > getTransitions() const {
+    STD(map)<enum RunState, STD(set)<RunState> > getTransitions() const {
        return m_Transitions;
     }
 
@@ -364,8 +370,8 @@ public:
   void Resume ()  ;
   bool Allowed(RunState newstate);
   
-  string getStateName ()  ;
-  string getStateName(enum RunState state);
+  STD(string) getStateName ()  ;
+  STD(string) getStateName(enum RunState state);
   void   SetStateVariable(enum RunState state);	
 };
 

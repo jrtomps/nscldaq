@@ -273,13 +273,15 @@ THIRD PARTIES OR A FAILURE OF THE PROGRAM TO OPERATE WITH ANY OTHER PROGRAMS),
 EVEN IF SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH 
 DAMAGES.
 
-		     END OF TERMS AND CONDITIONS
+		     END OF TERMS AND CONDITIONS '
 */
 static const char* Copyright = "(C) Copyright Michigan State University 2002, All rights reserved";//  This file contains a test readout system.
 //   It derives from the CReadoutMain class
 //   to setup our experiment specific requirements
 //   creates an instance of it and lets the base classes
 //  do most of the work:
+
+#include <config.h>
 #include <CReadoutMain.h>
 #include <CExperiment.h>
 #include <CInterpreterStartup.h>
@@ -294,6 +296,10 @@ static const char* Copyright = "(C) Copyright Michigan State University 2002, Al
 #include <CTraditionalEventSegment.h>
 #include <CTraditionalScalerReadout.h>
 #include <CEventSegment.h>
+
+#ifdef HAVE_STD_NAMESPACE
+using namespace std;
+#endif
 
 class MySegment : public CEventSegment
 {

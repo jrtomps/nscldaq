@@ -277,7 +277,12 @@ DAMAGES.
 */
 static const char* Copyright = "(C) Copyright Michigan State University 2002, All rights reserved";//////////////////////////CCAMACScalerLRS2551.cpp file////////////////////////////////////
 
+#include <config.h>
 #include "CCAMACScalerLRS2551.h"                  
+
+#ifdef HAVE_STD_NAMESPACE
+using namespace std;
+#endif
 
 static const unsigned int nChannels  = 12;
 

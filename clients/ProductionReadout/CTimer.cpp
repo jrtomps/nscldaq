@@ -273,16 +273,20 @@ THIRD PARTIES OR A FAILURE OF THE PROGRAM TO OPERATE WITH ANY OTHER PROGRAMS),
 EVEN IF SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH 
 DAMAGES.
 
-		     END OF TERMS AND CONDITIONS '
+		     END OF TERMS AND CONDITIONS ' 
 */
 static const char* Copyright = "(C) Copyright Michigan State University 2002, All rights reserved";   
 //////////////////////////CTimer.cpp file////////////////////////////////////
+#include <config.h>
 
 #include "CTimer.h"                  
 #include "CTimedEvent.h"
 
 #include <time.h>
 
+#ifdef HAVE_STD_NAMESPACE
+using namespace std;
+#endif
 
 /*!
    Default constructor.  This is called when declarations of the form e.g.:
@@ -317,7 +321,7 @@ CTimer::CTimer () :
 
 */
 void 
-CTimer::Start(unsigned int ms, unsigned int latency, bool doReset=false)  
+CTimer::Start(unsigned int ms, unsigned int latency, bool doReset)  
 {
   // Set the base class timer interval first:
 

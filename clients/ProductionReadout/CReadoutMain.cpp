@@ -273,7 +273,7 @@ THIRD PARTIES OR A FAILURE OF THE PROGRAM TO OPERATE WITH ANY OTHER PROGRAMS),
 EVEN IF SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH 
 DAMAGES.
 
-		     END OF TERMS AND CONDITIONS
+		     END OF TERMS AND CONDITIONS '
 ' */
 static const char* Copyright = "(C) Copyright Michigan State University 2002, All rights reserved";/////////////////////////CReadoutMain.cpp file////////////////////////////////////
 
@@ -282,6 +282,9 @@ static const char* Copyright = "(C) Copyright Michigan State University 2002, Al
   
   Change Log:
    $Log$
+   Revision 4.3  2004/11/22 19:26:12  ron-fox
+   Port to gcc/g++ 3.x
+
    Revision 4.2  2004/11/11 17:30:50  ron-fox
    Add feature test for spectrodaq_main() and use it to conditionally
    define a main() in ProductionReadout/CReadoutMain.cpp to deal with
@@ -330,6 +333,9 @@ static const char* Copyright = "(C) Copyright Michigan State University 2002, Al
    */
 
 #include <config.h>
+#ifdef HAVE_STD_NAMESPACE
+using namespace std;
+#endif
 #include <spectrodaq.h>
 #include "CReadoutMain.h"                  
 #include "cmdline.h"
@@ -353,7 +359,7 @@ static const char* Copyright = "(C) Copyright Michigan State University 2002, Al
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <iostream.h>
+#include <Iostream.h>
 #include <unistd.h>
 
 static const long VMETRIGGERBASE(0x444400);

@@ -273,7 +273,7 @@ THIRD PARTIES OR A FAILURE OF THE PROGRAM TO OPERATE WITH ANY OTHER PROGRAMS),
 EVEN IF SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH 
 DAMAGES.
 
-		     END OF TERMS AND CONDITIONS
+		     END OF TERMS AND CONDITIONS '
 */
 
 //////////////////////////CInvalidPacketStateException.h file//////////////////////////////////
@@ -293,7 +293,9 @@ DAMAGES.
 
 #ifndef __STL_STRING
 #include <string>
+#ifndef __STL_STRING
 #define __STL_STRING
+#endif
 #endif
                                
 /*!
@@ -305,7 +307,7 @@ class CInvalidPacketStateException  : public CReadoutException
 { 
 private:
   bool   m_nWasOpen;		//!< nonzero if packet was open.
-  string m_sReasonText;		//!< Reason for exception is built here.
+  STD(string) m_sReasonText;		//!< Reason for exception is built here.
  
 public:
 

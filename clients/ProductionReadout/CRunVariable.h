@@ -273,7 +273,7 @@ THIRD PARTIES OR A FAILURE OF THE PROGRAM TO OPERATE WITH ANY OTHER PROGRAMS),
 EVEN IF SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH 
 DAMAGES.
 
-		     END OF TERMS AND CONDITIONS
+		     END OF TERMS AND CONDITIONS '
 */
 
 //////////////////////////CRunVariable.h file//////////////////////////////////
@@ -287,7 +287,9 @@ DAMAGES.
 
 #ifndef __STL_STRING
 #include <string>
+#ifndef __STL_STRING
 #define __STL_STRING
+#endif
 #endif
 
 #ifndef __TCLINTERPRETER_H
@@ -311,7 +313,7 @@ public:
 	// Constructors, destructors and other cannonical operations: 
 
     CRunVariable (CTCLInterpreter* pInterp,
-		  string&          rName); //!< Constructor.
+		  STD(string)&          rName); //!< Constructor.
     CRunVariable(const CRunVariable& rhs); //!< Copy constructor.
      ~ CRunVariable ( ) { } //!< Destructor.
     CRunVariable& operator= (const CRunVariable& rhs); //!< Assignment
@@ -324,7 +326,7 @@ public:
 	// Class operations:
 
 public:
-     string FormatForBuffer (int nMaxchars=-1)  ; //!< Stringify name:value...
+     STD(string) FormatForBuffer (int nMaxchars=-1)  ; //!< Stringify name:value...
 
  
 };

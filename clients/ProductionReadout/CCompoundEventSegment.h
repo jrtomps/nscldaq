@@ -273,7 +273,7 @@ THIRD PARTIES OR A FAILURE OF THE PROGRAM TO OPERATE WITH ANY OTHER PROGRAMS),
 EVEN IF SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH 
 DAMAGES.
 
-		     END OF TERMS AND CONDITIONS
+		     END OF TERMS AND CONDITIONS '
 */
 
 //////////////////////////CCompoundEventSegment.h file//////////////////////////////////
@@ -291,7 +291,9 @@ DAMAGES.
     
 #ifndef __STL_LIST
 #include <list>
+#ifndef __STL_LIST
 #define __STL_LIST
+#endif
 #endif
                                                            
 /*!
@@ -306,7 +308,7 @@ DAMAGES.
 class CCompoundEventSegment  : public CEventSegment        
 { 
 public:
-typedef list<CEventSegment*> EventSegmentList;
+typedef STD(list)<CEventSegment*> EventSegmentList;
 
 private:
 	mutable EventSegmentList m_Segments;

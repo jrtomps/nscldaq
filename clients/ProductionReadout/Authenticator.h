@@ -273,7 +273,7 @@ THIRD PARTIES OR A FAILURE OF THE PROGRAM TO OPERATE WITH ANY OTHER PROGRAMS),
 EVEN IF SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH 
 DAMAGES.
 
-		     END OF TERMS AND CONDITIONS
+		     END OF TERMS AND CONDITIONS '
 */
 
  
@@ -307,7 +307,9 @@ DAMAGES.
 
 #ifndef __STL_STRING
 #include <string>
+#ifndef __STL_STRING
 #define __STL_STRING
+#endif
 #endif
 
 class CAuthenticator      
@@ -338,8 +340,8 @@ private:
 public:	
  virtual   Bool_t Authenticate (CInteractor& rInteractor)   = 0  ;
 protected:
-   std::string GetLine(CInteractor& rInteractor) {
-   std::string pwd;
+   STD(string) GetLine(CInteractor& rInteractor) {
+   STD(string) pwd;
    char   c;
    Bool_t done(kfFALSE);
    while(!done) {

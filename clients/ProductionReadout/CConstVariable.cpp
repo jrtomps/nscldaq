@@ -273,14 +273,18 @@ THIRD PARTIES OR A FAILURE OF THE PROGRAM TO OPERATE WITH ANY OTHER PROGRAMS),
 EVEN IF SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH 
 DAMAGES.
 
-		     END OF TERMS AND CONDITIONS
+		     END OF TERMS AND CONDITIONS '
 */
 static const char* Copyright = "(C) Copyright Michigan State University 2002, All rights reserved";   
 //////////////////////////CConstVariable.cpp file////////////////////////////////////
-
+#include <config.h>
 #include "CConstVariable.h"                  
 
 
+
+#ifdef HAVE_STD_NAMESPACE
+using namespace std;
+#endif
 /*!
   Construct a const variable when the interpreter is not yet known:
 
@@ -405,7 +409,7 @@ CConstVariable::operator()(char* pName, char* pIndex, int nFlags)
 
 */
 const char* 
-CConstVariable::Set(const char* pValue, int flags=TCL_LEAVE_ERR_MSG|TCL_GLOBAL_ONLY)
+CConstVariable::Set(const char* pValue, int flags)
 {
   m_Value = pValue;		// Update internal image of var.
   return CTCLVariable::Set(pValue, flags); // Update Tcl's value for var.
@@ -424,7 +428,7 @@ CConstVariable::Set(const char* pValue, int flags=TCL_LEAVE_ERR_MSG|TCL_GLOBAL_O
 */
 const char* 
 CConstVariable::Set(const char* pSubscript, const char* pValue, 
-		    int nFlags=TCL_LEAVE_ERR_MSG|TCL_GLOBAL_ONLY)  
+		    int nFlags)  
 {
   m_Value = pValue;		// Update our internal value.
   return CTCLVariable::Set(pSubscript, (char*)pValue, nFlags); // Update var.

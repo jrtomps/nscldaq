@@ -1,3 +1,4 @@
+#include <config.h>
 #include <v890.h>
 #include <string>
 #include <CVMEInterface.h>
@@ -5,6 +6,11 @@
 #include <unistd.h>
 #include <assert.h>
 #include <stdio.h>
+
+#ifdef HAVE_STD_NAMESPACE
+using namespace std;
+#endif
+
 
 static const unsigned int CAENPROMOffset(0x4000);
 static const unsigned int assinine_delay(10);

@@ -273,7 +273,7 @@ THIRD PARTIES OR A FAILURE OF THE PROGRAM TO OPERATE WITH ANY OTHER PROGRAMS),
 EVEN IF SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH 
 DAMAGES.
 
-		     END OF TERMS AND CONDITIONS
+		     END OF TERMS AND CONDITIONS '
 */
 
 //////////////////////////CStateVariable.h file//////////////////////////////////
@@ -287,12 +287,16 @@ DAMAGES.
 
 #ifndef __STL_STRING
 #include <string>
+#ifndef __STL_STRING
 #define __STL_STRING
+#endif
 #endif
 
 #ifndef __STL_MAP
 #include <map>
+#ifndef __STL_MAP
 #define __STL_MAP
+#endif
 #endif                   
             
 
@@ -302,14 +306,14 @@ class CStateVariable : public  CTCLVariable
 { 
 private:
   static  CRunState* m_pState; //!< Refers to the current run state.
-  string m_ScalarValue; //!< Holds the last value of the variable if it is a scalar.
-  map<string,string> m_ArrayValues; //!< Last value of indexed element of an array.
+  STD(string) m_ScalarValue; //!< Holds the last value of the variable if it is a scalar.
+  STD(map)<STD(string),STD(string)> m_ArrayValues; //!< Last value of indexed element of an array.
  
 public:
 	// Constructors, destructors and other cannonical operations: 
 
     CStateVariable (CTCLInterpreter* pInterp,
-		    const string& rName); //!<  constructor.
+		    const STD(string)& rName); //!<  constructor.
     CStateVariable(const CStateVariable& rhs); //!< Copy constructor.
      ~ CStateVariable ( ) { } //!< Destructor.
     CStateVariable& operator= (const CStateVariable& rhs); //!< Assignment
@@ -325,17 +329,17 @@ public:
        return m_pState;
     }
 
-    string getScalarValue() const {
+    STD(string) getScalarValue() const {
        return m_ScalarValue;
     }
 
-    map<string,string> getArrayValues() const {
+    STD(map)<STD(string), STD(string)> getArrayValues() const {
        return m_ArrayValues;
     }
 
 
 public:
-  string   FormatForBuffer(int nMaxchars = -1) ; //!< Format for output.
+  STD(string)   FormatForBuffer(int nMaxchars = -1) ; //!< Format for output.
   virtual   char* operator() (char* pName, 
 			      char* pIndex, 
 			      int flags)  ; //!< trace writes.

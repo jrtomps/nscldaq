@@ -273,7 +273,7 @@ THIRD PARTIES OR A FAILURE OF THE PROGRAM TO OPERATE WITH ANY OTHER PROGRAMS),
 EVEN IF SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH 
 DAMAGES.
 
-		     END OF TERMS AND CONDITIONS
+		     END OF TERMS AND CONDITIONS '
 */
 // Class: CAuthTokenCheck                     //ANSI C++
 //
@@ -300,9 +300,12 @@ DAMAGES.
 #endif
 
 
-#ifndef __CPP_IOSTREAM_H
-#include <iostream.h>
-#define __CPP_IOSTREAM_H
+#ifndef __IOSTREAM_DAQH
+#include <Iostream.h>
+#endif
+
+#ifdef HAVE_STD_NAMESPACE
+using namespace std;
 #endif
 
 #ifndef __SPECTRODAQ_H
@@ -345,12 +348,12 @@ public:
 public:
 
   virtual   void AddAclEntry (const string& rStringifiedToken) {
-    cerr << ">Warning called CAuthTokenCheck::AddAclEntry "
+    STD(cerr) << ">Warning called CAuthTokenCheck::AddAclEntry "
          << " use AddAuthToken instead please<\n";
     CAccessListCheck::AddAclEntry(rStringifiedToken);
   }
   virtual   void DeleteAclEntry (const string& rStringifiedToken) {
-    cerr << ">Warning, called CAuthTokenCheck::DeleteAclEntry "
+    STD(cerr) << ">Warning, called CAuthTokenCheck::DeleteAclEntry "
          << "use DeleteAuthToken instead please\n";
     CAccessListCheck::DeleteAclEntry(rStringifiedToken);
   }

@@ -273,7 +273,7 @@ THIRD PARTIES OR A FAILURE OF THE PROGRAM TO OPERATE WITH ANY OTHER PROGRAMS),
 EVEN IF SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH 
 DAMAGES.
 
-		     END OF TERMS AND CONDITIONS
+		     END OF TERMS AND CONDITIONS '
 */
 static const char* Copyright = "(C) Copyright Michigan State University 2002, All rights reserved";/*!
   \file CNSCLOutputBuffer.cpp
@@ -283,6 +283,9 @@ static const char* Copyright = "(C) Copyright Michigan State University 2002, Al
       
       Modification History:
       $Log$
+      Revision 4.2  2004/11/22 19:26:11  ron-fox
+      Port to gcc/g++ 3.x
+
       Revision 4.1  2004/11/08 17:37:30  ron-fox
       bring to mainline
 
@@ -331,11 +334,15 @@ static const char* Copyright = "(C) Copyright Michigan State University 2002, Al
 */
       
 //////////////////////////CNSCLOutputBuffer.cpp file////////////////////////////////////
-
+#include <config.h>
 #include "CNSCLOutputBuffer.h"                  
 #include <string>
 #include <unistd.h>
 #include <RangeError.h>
+
+#ifdef HAVE_STD_NAMESPACE
+using namespace std;
+#endif
 
 // Manifest constants:
 
@@ -507,7 +514,7 @@ CNSCLOutputBuffer::SetCpuNum(unsigned short nValue)
 
 */
 void 
-CNSCLOutputBuffer::SetNbitRegisters(unsigned  nBitReg=1)  
+CNSCLOutputBuffer::SetNbitRegisters(unsigned  nBitReg)  
 {
   m_Buffer[hdrWUNUSED2] = nBitReg;
 }  
@@ -526,7 +533,7 @@ CNSCLOutputBuffer::SetNbitRegisters(unsigned  nBitReg=1)
 
 */
 void 
-CNSCLOutputBuffer::SetLamRegisters(unsigned short nLams=0)  
+CNSCLOutputBuffer::SetLamRegisters(unsigned short nLams)  
 {
   m_Buffer[hdrWUNUSED1] = nLams;
 }  
@@ -632,7 +639,7 @@ CNSCLOutputBuffer::PutWords(const unsigned short* pWords, unsigned int nWords)
 	maximum field size even since this is a word buffer.
 */
 void 
-CNSCLOutputBuffer::PutString(const char*  pData, int nMaxSize=-1)  
+CNSCLOutputBuffer::PutString(const char*  pData, int nMaxSize)  
 {
   string data(pData);
 
@@ -757,7 +764,7 @@ CNSCLOutputBuffer::Route()
     an out of bounds condition.
 */
 void 
-CNSCLOutputBuffer::Seek(int nOffset, int  whence=SEEK_SET)  
+CNSCLOutputBuffer::Seek(int nOffset, int  whence)  
 {
   int nAbsOff;
   switch(whence) {

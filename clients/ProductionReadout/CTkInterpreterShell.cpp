@@ -273,7 +273,7 @@ THIRD PARTIES OR A FAILURE OF THE PROGRAM TO OPERATE WITH ANY OTHER PROGRAMS),
 EVEN IF SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH 
 DAMAGES.
 
-		     END OF TERMS AND CONDITIONS
+		     END OF TERMS AND CONDITIONS '
 */
 static const char* Copyright = "(C) Copyright Michigan State University 2002, All rights reserved";/*   
    Implements the CTkInterpreterShell class.
@@ -296,9 +296,13 @@ Change Log:
    5/10/02 - Initial version.
 
    */
+#include <config.h>
 #include "CTkInterpreterShell.h"                  
 #include "CInterpreterCore.h"
 #include <ErrnoException.h>
+#ifdef HAVE_STD_NAMESPACE
+using namespace std;
+#endif
 
 /*!
    Default constructor

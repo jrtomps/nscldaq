@@ -273,7 +273,7 @@ THIRD PARTIES OR A FAILURE OF THE PROGRAM TO OPERATE WITH ANY OTHER PROGRAMS),
 EVEN IF SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH 
 DAMAGES.
 
-		     END OF TERMS AND CONDITIONS
+		     END OF TERMS AND CONDITIONS '
 */
 
 //////////////////////////CInterpreterCore.h file//////////////////////////////////
@@ -311,6 +311,13 @@ DAMAGES.
 #endif
 #ifndef __CCONSTVARIABLECOMMAND_H
 #include "CConstVariableCommand.h"
+#endif
+
+#ifndef __STL_STRING
+#include <string>
+#ifndef __STL_STRING
+#define __STL_STRING
+#endif
 #endif
 
 // Forward class definitions:
@@ -409,10 +416,10 @@ public:
   }
   //  Mutators:
 
-  void setState(const string& rNewValue) {
+  void setState(const STD(string)& rNewValue) {
     m_pState->Set(rNewValue.c_str());
   }
-  void setStartTime(const string& rNewValue) {
+  void setStartTime(const STD(string)& rNewValue) {
     m_pStartTime->Set(rNewValue.c_str());
   }
   

@@ -273,7 +273,7 @@ THIRD PARTIES OR A FAILURE OF THE PROGRAM TO OPERATE WITH ANY OTHER PROGRAMS),
 EVEN IF SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH 
 DAMAGES.
 
-		     END OF TERMS AND CONDITIONS
+		     END OF TERMS AND CONDITIONS '
 */
 // Class: CDAQAuthTokenInteractor                     //ANSI C++
 //
@@ -300,12 +300,20 @@ DAMAGES.
 
 #ifndef __SPDAQ_DAQTYPES_H
 #include <daqtypes.h>
+#ifndef __SPDAQ_DAQTYPES_H
 #define __SPDAQ_DAQTYPES_H
+#endif
+#endif
+
+#ifdef HAVE_STD_NAMESPACE
+using namespace std;
 #endif
 
 #ifndef __SPDAQ_SPECTRODAQ_H
 #include <spectrodaq.h>
+#ifndef __SPDAQ_SPECTRODAQ_h
 #define __SPDAQ_SPECTRODAQ_H
+#endif
 #endif
                                
 class CDAQAuthTokenInteractor  : public CStringInteractor        

@@ -273,14 +273,19 @@ THIRD PARTIES OR A FAILURE OF THE PROGRAM TO OPERATE WITH ANY OTHER PROGRAMS),
 EVEN IF SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH 
 DAMAGES.
 
-		     END OF TERMS AND CONDITIONS
+		     END OF TERMS AND CONDITIONS '
 */
 static const char* Copyright = "(C) Copyright Michigan State University 2002, All rights reserved";//
 // Implementation of the LRS1151 VME scaler module code in the production
 // readout skeleton.  This module requires a VME mapping of 256 bytes in 
 // A24D32 mode.
 //
+#include <config.h>
 #include "CVMEScalerLRS1151.h"
+
+#ifdef HAVE_STD_NAMESPACE
+using namespace std;
+#endif
 
 // Manifest constants;
 

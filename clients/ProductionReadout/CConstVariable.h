@@ -273,7 +273,7 @@ THIRD PARTIES OR A FAILURE OF THE PROGRAM TO OPERATE WITH ANY OTHER PROGRAMS),
 EVEN IF SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH 
 DAMAGES.
 
-		     END OF TERMS AND CONDITIONS
+		     END OF TERMS AND CONDITIONS '
 */
 //////////////////////////CConstVariable.h file///////////////////////////////
 
@@ -286,7 +286,9 @@ DAMAGES.
 
 #ifndef __STL_STRING
 #include <string>
+#ifndef __STL_STRING
 #define __STL_STRING
+#endif
 #endif
 
 // Forward class definitions.
@@ -301,15 +303,15 @@ class CTCLInterpreter;
 class CConstVariable : public CTCLVariable
 { 
 private:
-      string m_Value; //!< Enforced value of the variable.
+      STD(string) m_Value; //!< Enforced value of the variable.
  
 public:
 	// Constructors, destructors and other cannonical operations: 
   
-  CConstVariable(std::string sName, std::string sValue);
+  CConstVariable(STD(string) sName, STD(string) sValue);
 
   CConstVariable(CTCLInterpreter* pInterp, 
-		 std::string sName, std::string sValue);
+		 STD(string) sName, STD(string) sValue);
 
   CConstVariable(const CConstVariable& rhs);
 
@@ -324,13 +326,13 @@ public:
   // Selectors for class attributes:
 public:
   
-  string getValue() const {
+  STD(string) getValue() const {
     return m_Value;
   }
   
   // Mutators:
 protected:  
-  string setValue(const string& sNewValue) {
+  STD(string) setValue(const STD(string)& sNewValue) {
     m_Value = sNewValue;
   }
 

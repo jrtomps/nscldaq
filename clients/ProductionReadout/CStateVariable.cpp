@@ -273,17 +273,20 @@ THIRD PARTIES OR A FAILURE OF THE PROGRAM TO OPERATE WITH ANY OTHER PROGRAMS),
 EVEN IF SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH 
 DAMAGES.
 
-		     END OF TERMS AND CONDITIONS
+		     END OF TERMS AND CONDITIONS '
 */
 static const char* Copyright = "(C) Copyright Michigan State University 2002, All rights reserved";   
 //////////////////////////CStateVariable.cpp file////////////////////////////////////
-
+#include <config.h>
 #include "CStateVariable.h"                  
 #include "CReadoutMain.h"
 #include "CRunState.h"
 #include <assert.h>
 #include <CStrings.h>
 
+#ifdef HAVE_STD_NAMESPACE
+using namespace std;
+#endif
 CRunState* CStateVariable::m_pState = 0; //Static data member initialization
 
 

@@ -273,7 +273,7 @@ THIRD PARTIES OR A FAILURE OF THE PROGRAM TO OPERATE WITH ANY OTHER PROGRAMS),
 EVEN IF SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH 
 DAMAGES.
 
-		     END OF TERMS AND CONDITIONS
+		     END OF TERMS AND CONDITIONS '
 */
 static const char* Copyright = "(C) Copyright Michigan State University 2002, All rights reserved";/*!   \file CExperiment.cpp
       Implementation of the CEXperiment class.  See CExperiment.h for detailes.
@@ -283,6 +283,9 @@ static const char* Copyright = "(C) Copyright Michigan State University 2002, Al
    
    Modification History:
    $Log$
+   Revision 4.2  2004/11/22 19:26:09  ron-fox
+   Port to gcc/g++ 3.x
+
    Revision 4.1  2004/11/08 17:37:29  ron-fox
    bring to mainline
 
@@ -350,6 +353,8 @@ static const char* Copyright = "(C) Copyright Michigan State University 2002, Al
    */
    
 //////////////////////////CExperiment.cpp file////////////////////////////////////
+
+#include <config.h>
 #include "CVMEInterface.h"
 #include "CExperiment.h"                  
 #include "CStateTransitionCommand.h"
@@ -385,6 +390,10 @@ static const char* Copyright = "(C) Copyright Michigan State University 2002, Al
 #include "buftypes.h"
 #include "buffer.h"
 
+#ifdef HAVE_STD_NAMESPACE
+using namespace std;		// need this here for spectrodaq.
+#endif
+
 #include <DesignByContract.h>
 #include <spectrodaq.h>
 #include <time.h>
@@ -392,9 +401,11 @@ static const char* Copyright = "(C) Copyright Michigan State University 2002, Al
 #include <unistd.h>
 #include <stdlib.h>
 #include <typeinfo>
-#include <iostream.h>
+#include <Iostream.h>
 #include <algorithm>
 #include <tcl.h>
+
+
 
 using namespace DesignByContract;
 
@@ -558,7 +569,7 @@ CTriggerThread::MainLoop()
    -  CExperiment  object;
    are performed.
 */
-CExperiment::CExperiment (unsigned nBufferSize = 4096) :
+CExperiment::CExperiment (unsigned nBufferSize) :
   m_EventBuffer(0),		// Spectrodaq might not be up yet.
   m_nBufferSize(nBufferSize),
   m_pStatusModule(0),

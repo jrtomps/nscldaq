@@ -273,7 +273,7 @@ THIRD PARTIES OR A FAILURE OF THE PROGRAM TO OPERATE WITH ANY OTHER PROGRAMS),
 EVEN IF SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH 
 DAMAGES.
 
-		     END OF TERMS AND CONDITIONS
+		     END OF TERMS AND CONDITIONS'
 */
 
 //////////////////////////CDocumentedPacket.h file//////////////////////////////////
@@ -283,7 +283,13 @@ DAMAGES.
                                
 #ifndef __STL_STRING
 #include <string>   
+#ifndef __STL_STRING
 #define __STL_STRING
+#endif
+#endif
+
+#ifdef HAVE_STD_NAMESPACE
+using namespace std;
 #endif
 
 #include <spectrodaq.h>
@@ -304,6 +310,9 @@ DAMAGES.
    Modification History:
    
      $Log$
+     Revision 4.2  2004/11/22 19:26:08  ron-fox
+     Port to gcc/g++ 3.x
+
      Revision 4.1  2004/11/08 17:37:29  ron-fox
      bring to mainline
 
@@ -325,10 +334,10 @@ class CDocumentedPacket
 { 
 private:
   unsigned short m_nTag;	//!< Tag identifying event in the buffer.
-  string m_sName;		//!< String name of tag.
-  string m_sDescription;	//!< Long description of tag.
-  string m_sVersion;		//!< Version of the packet.
-  string m_sInstantiationDate;	//!< Date/time object instantiated.
+  STD(string) m_sName;		//!< String name of tag.
+  STD(string) m_sDescription;	//!< Long description of tag.
+  STD(string) m_sVersion;		//!< Version of the packet.
+  STD(string) m_sInstantiationDate;	//!< Date/time object instantiated.
   DAQWordBufferPtr m_pHeaderPtr; //!< 'pointer' to header of current packet.
   bool m_fPacketInProgress;	//!< true if packet being built now.
  
@@ -336,9 +345,9 @@ public:
 	// Constructors, destructors and other cannonical operations: 
 
   CDocumentedPacket (unsigned short nTag,
-		     const string&  rName,
-		     const string&  rDescription,
-		     const string&  rVersion); //!<  Constructor
+		     const STD(string)&  rName,
+		     const STD(string)&  rDescription,
+		     const STD(string)&  rVersion); //!<  Constructor
    virtual ~CDocumentedPacket();
       
 private:  
@@ -349,7 +358,7 @@ public:
    {
       return (m_sName == rhs.m_sName);
    }
-   int         operator==(const string& rhs) const 
+   int         operator==(const STD(string)& rhs) const 
    {
       return m_sName == rhs;
    }
@@ -358,7 +367,7 @@ public:
       return !(operator==(rhs));
    }
 
-   int         operator!=(const string& rhs) const
+   int         operator!=(const STD(string)& rhs) const
    {
       return !(operator==(rhs));
    }
@@ -369,19 +378,19 @@ public:
     return m_nTag;
   }
   
-  string getName() const {
+  STD(string) getName() const {
     return m_sName;
   }
   
-  string getDescription() const {
+  STD(string) getDescription() const {
     return m_sDescription;
   }
   
-  string getVersion() const {
+  STD(string) getVersion() const {
     return m_sVersion;
   }
   
-  string getInstantiationDate() const {
+  STD(string) getInstantiationDate() const {
     return m_sInstantiationDate;
   }
   
@@ -393,7 +402,7 @@ public:
   
   // Class operations:
   
-  string Format ()  ;
+  STD(string) Format ()  ;
   DAQWordBufferPtr Begin (DAQWordBufferPtr& rPointer)  ;
   DAQWordBufferPtr End (DAQWordBufferPtr& rBuffer)  ;
   

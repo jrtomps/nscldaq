@@ -273,7 +273,7 @@ THIRD PARTIES OR A FAILURE OF THE PROGRAM TO OPERATE WITH ANY OTHER PROGRAMS),
 EVEN IF SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH 
 DAMAGES.
 
-		     END OF TERMS AND CONDITIONS
+		     END OF TERMS AND CONDITIONS '
 */
 
 #ifndef __CSTRINGS_H
@@ -281,7 +281,9 @@ DAMAGES.
 
 #ifndef __STL_STRING
 #include <string>
+#ifndef __STL_STRING
 #define __STL_STRING
+#endif
 #endif
 
 
@@ -292,9 +294,9 @@ DAMAGES.
 class CStrings
 {
 public:
-  static string EscapeString(const char* in, 
+  static STD(string) EscapeString(const char* in, 
 			     const char* charset, 
-			     const char* how) throw(string); //!< Escape charset from in.
+			     const char* how) throw(STD(string)); //!< Escape charset from in.
 };
 
 #endif

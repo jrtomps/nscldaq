@@ -273,13 +273,16 @@ THIRD PARTIES OR A FAILURE OF THE PROGRAM TO OPERATE WITH ANY OTHER PROGRAMS),
 EVEN IF SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH 
 DAMAGES.
 
-		     END OF TERMS AND CONDITIONS
+		     END OF TERMS AND CONDITIONS '
 */
 /*
    $Header$
    
 Modification History:
 $Log$
+Revision 4.2  2004/11/22 19:26:10  ron-fox
+Port to gcc/g++ 3.x
+
 Revision 4.1  2004/11/08 17:37:29  ron-fox
 bring to mainline
 
@@ -306,6 +309,10 @@ words acquired in current run.
 
 #ifndef __CEXPERIMENT_H  
 #define __CEXPERIMENT_H
+
+#ifdef HAVE_STD_NAMESPACE
+using namespace std;
+#endif
 
 #ifndef __SPECTRODAQ_H
 #include <spectrodaq.h>

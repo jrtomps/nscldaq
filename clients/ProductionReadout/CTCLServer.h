@@ -273,7 +273,7 @@ THIRD PARTIES OR A FAILURE OF THE PROGRAM TO OPERATE WITH ANY OTHER PROGRAMS),
 EVEN IF SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH 
 DAMAGES.
 
-		     END OF TERMS AND CONDITIONS
+		     END OF TERMS AND CONDITIONS '
 */
 
 //////////////////////////CTCLServer.h file//////////////////////////////////
@@ -289,7 +289,9 @@ DAMAGES.
 
 #ifndef __STL_STRING
 #include <string>
+#ifndef __STL_STRING
 #define __STL_STRING
+#endif
 #endif
 
 // Forward class definitions:
@@ -308,8 +310,8 @@ class CTCLInterpreter;
 class CTCLServer : public CServerInstance     
 { 
 private:
-	string m_Command;                  // TCL Command builds up here.
-	string m_Peer;		           // Who we're connected to.
+	STD(string) m_Command;                  // TCL Command builds up here.
+	STD(string) m_Peer;		           // Who we're connected to.
 public:
   // Constructors, destructors and other cannonical operations: 
   
@@ -339,10 +341,10 @@ protected:
 	bool isComplete();
 	CTCLInterpreter* getInterpreter();
 	void      ReadException(const char* pPrefix,
-			                const char* pReason,
-					const char* pSuffix);
-
-	string GetChunk();	// Get next chunk of input from socket.
+				const char* pReason,
+				const char* pSuffix);
+	
+	STD(string) GetChunk();	// Get next chunk of input from socket.
 };
 
 #endif

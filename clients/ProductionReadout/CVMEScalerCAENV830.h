@@ -273,7 +273,7 @@ THIRD PARTIES OR A FAILURE OF THE PROGRAM TO OPERATE WITH ANY OTHER PROGRAMS),
 EVEN IF SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH 
 DAMAGES.
 
-		     END OF TERMS AND CONDITIONS
+		     END OF TERMS AND CONDITIONS '
 */
 
 //////////////////////////CVMEScalerCAENV830.h file//////////////////////////////////
@@ -283,6 +283,13 @@ DAMAGES.
                                
 #ifndef __CSCALER_H
 #include "CScaler.h"
+#endif
+
+#ifndef __STL_VECTOR
+#include <vector>
+#ifndef __STL_VECTOR
+#define __STL_VECTOR
+#endif
 #endif
                                
 /*!
@@ -318,7 +325,7 @@ protected:
 	// Class operations:
 
    virtual   void Initialize ()   = 0;
-   virtual   void Read (vector<unsigned>& Scalers)   = 0;
+   virtual   void Read (STD(vector)<unsigned>& Scalers)   = 0;
    virtual   void Clear ()   = 0;
    virtual   unsigned int size ()   = 0;
  

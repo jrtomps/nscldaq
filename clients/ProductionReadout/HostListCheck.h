@@ -273,7 +273,7 @@ THIRD PARTIES OR A FAILURE OF THE PROGRAM TO OPERATE WITH ANY OTHER PROGRAMS),
 EVEN IF SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH 
 DAMAGES.
 
-		     END OF TERMS AND CONDITIONS
+		     END OF TERMS AND CONDITIONS '
 */
 // Class: CHostListCheck                     //ANSI C++
 //
@@ -319,7 +319,13 @@ DAMAGES.
 
 #ifndef __STL_STRING
 #include <string>
+#ifndef __STL_STRING
 #define __STL_STRING
+#endif
+#endif
+
+#ifndef __IOSTREAM_H
+#include <Iostream.h>
 #endif
                                
 class CHostListCheck  : public CAccessListCheck        
@@ -362,15 +368,15 @@ public:
   virtual Bool_t Authenticate(CInteractor& rInteractor) {
     return Authenticate(GetLine(rInteractor));
    } 
-  Bool_t Authenticate(const std::string& rHostname);
+  Bool_t Authenticate(const STD(string)& rHostname);
 
-  virtual   void AddAclEntry (const std::string& rHostname) {
-    cerr << ">Warning, CHostListCheck::AddAclEntry called "
+  virtual   void AddAclEntry (const STD(string)& rHostname) {
+    STD(cerr) << ">Warning, CHostListCheck::AddAclEntry called "
          << " Should call AddIpAddress\n";
     CAccessListCheck::AddAclEntry(rHostname);
   }
-  virtual   void DeleteAclEntry (const std::string& rHostname) {
-    cerr << ">Warning, CHostListCheck::DeleteAclEntry called "
+  virtual   void DeleteAclEntry (const STD(string)& rHostname) {
+    STD(cerr) << ">Warning, CHostListCheck::DeleteAclEntry called "
          << " Should call DeleteIpAddress\n";
     CAccessListCheck::DeleteAclEntry(rHostname);
   }
@@ -382,7 +388,7 @@ public:
   void DeleteIpAddress (in_addr address)    ;
   
 protected:
-	std::string EncodeAddress(in_addr Address);
+	STD(string) EncodeAddress(in_addr Address);
 
 };
 

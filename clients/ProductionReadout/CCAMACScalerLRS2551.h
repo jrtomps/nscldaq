@@ -273,7 +273,7 @@ THIRD PARTIES OR A FAILURE OF THE PROGRAM TO OPERATE WITH ANY OTHER PROGRAMS),
 EVEN IF SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH 
 DAMAGES.
 
-		     END OF TERMS AND CONDITIONS
+		     END OF TERMS AND CONDITIONS '
 */
 
 //////////////////////////CCAMACScalerLRS2551.h file//////////////////////////////////
@@ -288,7 +288,15 @@ DAMAGES.
 #ifndef __CCAMACMODULE_H
 #include <CCamacModule.h>
 #endif
-                               
+ 
+
+#ifndef __STL_VECTOR
+#include <vector>
+#ifndef __STL_VECTOR
+#define __STL_VECTOR
+#endif
+#endif
+                              
 /*!
    Encapsulates an LRS 2551
    CAMAC scaler.  This is a 12 channel
@@ -324,7 +332,7 @@ protected:
   // Class operations:
 public:
   virtual   void Initialize ()  ;
-  virtual   void Read (vector<unsigned int>& Scalers) ;
+  virtual   void Read (STD(vector)<unsigned int>& Scalers) ;
   virtual   void Clear ()  ;
   virtual   unsigned int size ()  ;
   

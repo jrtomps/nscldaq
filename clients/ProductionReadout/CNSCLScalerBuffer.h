@@ -273,7 +273,7 @@ THIRD PARTIES OR A FAILURE OF THE PROGRAM TO OPERATE WITH ANY OTHER PROGRAMS),
 EVEN IF SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH 
 DAMAGES.
 
-		     END OF TERMS AND CONDITIONS
+		     END OF TERMS AND CONDITIONS '
 */
    
 //////////////////////////CNSCLScalerBuffer.h file//////////////////////////////////
@@ -287,7 +287,9 @@ DAMAGES.
 
 #ifndef __STL_VECTOR
 #include <vector>
+#ifndef __STL_VECTOR
 #define __STL_VECTOR
+#endif
 #endif
 
 
@@ -331,7 +333,7 @@ protected:
   
   // Class operations:
 public:  
-  void PutScalerVector (vector<unsigned long> vScalers)  ;
+  void PutScalerVector (STD(vector)<unsigned long> vScalers)  ;
   void SetStartTime (unsigned long nStart)  ;
   void SetEndTime (unsigned long nEndTime)  ;
   
