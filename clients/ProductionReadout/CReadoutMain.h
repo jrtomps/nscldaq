@@ -332,9 +332,9 @@ private:
   bool m_fVmeTrigger;	//!< True if trigger is VME based.
  
   CInterpreterShell*       m_pInterpreter; //!< Command interpreter wrapper
-  CTimer                   m_TimerQueue;    //!< Managed queue of timed events. 
+  CTimer&                   m_TimerQueue;    //!< Managed queue of timed events. 
   CRunState                m_RunState;     //!< Run State Transition manager.. 
-  CExperiment              m_Experiment;   //!< Experiment specific code container.
+  CExperiment&              m_Experiment;   //!< Experiment specific code container.
 
   
 public:
@@ -412,7 +412,7 @@ public:
   virtual void AddUserCommands(CExperiment& rExperiment, 
 			       CInterpreterStartup&  rStartup,
 			       CInterpreterCore&     rCore);
-  void Exit() { m_fExit = true; }
+  void Exit();
 };
 
 #endif

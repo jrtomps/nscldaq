@@ -322,7 +322,10 @@ CReaper::CReaper () :
 /*!
    Destructor:
 */
-CReaper::~CReaper() {}
+CReaper::~CReaper() {
+  clear();
+
+}
 
 // Functions for class CReaper
 
@@ -413,4 +416,12 @@ CReaper::getInstance()
     m_pInstance = new CReaper();
   }
   return m_pInstance;
+}
+
+void
+CReaper::clear() {
+
+  while(!m_ThreadObjects.empty()) {
+    m_ThreadObjects.erase(begin());
+  }
 }

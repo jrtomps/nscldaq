@@ -62,8 +62,6 @@ libPReadout_la_SOURCES = AccessListCheck.cpp \
 	CTimedEvent.cpp \
 	CTimer.cpp \
 	CTkInterpreterShell.cpp \
-	CTraditionalEventSegment.cpp \
-	CTraditionalScalerReadout.cpp \
 	CTrigger.cpp \
 	CVMEScalerCAENV830.cpp \
 	CVMEScalerLRS1151.cpp \
@@ -83,7 +81,8 @@ libPReadout_la_SOURCES = AccessListCheck.cpp \
 	TclAccessListCheck.cpp \
 	TclAuthorizer.cpp \
 	UnixUserCheck.cpp \
-	VmeModule.cpp 
+	VmeModule.cpp  \
+	cmdline.c
 
 include_HEADERS = AccessListCheck.h \
 	AuthTokenCheck.h \
@@ -173,7 +172,7 @@ include_HEADERS = AccessListCheck.h \
 	buftypes.h \
 	cmdline.h 
 
-libPReadout_la_LDFLAGS = -version-info 1:0:0 \
+libPReadout_la_LDFLAGS = -g -version-info 1:0:0 \
 	-L@top_srcdir@/framework \
 	-L@top_srcdir@/VMEApi \
 	-L@top_srcdir@/Exception \
@@ -186,5 +185,20 @@ INCLUDES = -I@top_srcdir@/Headers \
 	-I@top_srcdir@/Exception \
 	$(TCL_FLAGS) $(SPECTRODAQ_FLAGS)
 
-EXTRA_DIST = 	MyExperiment.cpp
+EXTRA_DIST = 	MyExperiment.cpp \
+	CTraditionalScalerReadout.cpp \
+	CTraditionalEventSegment.cpp 
 
+
+install-data-local:
+	$(mkinstalldirs) $(prefix)/pReadoutSkeleton
+	chmod a+rx $(prefix)
+	chmod a+rx $(prefix)/pReadoutSkeleton
+	$(INSTALL_DATA) MyExperiment.cpp $(prefix)/pReadoutSkeleton/Skeleton.cpp
+	echo INSTDIR=$(prefix) > Makefile.user
+	cat  Makefile.skel    >> Makefile.user
+	$(INSTALL_DATA) Makefile.user $(prefix)/pReadoutSkeleton/Makefile
+	$(INSTALL_DATA) CTraditionalEventSegment.cpp \
+		$(prefix)/pReadoutSkeleton/CTraditionalEventSegment.cpp
+	$(INSTALL_DATA) CTraditionalScalerReadout.cpp \
+	        $(prefix)/pReadoutSkeleton/CTraditionalScalerReadout.cpp

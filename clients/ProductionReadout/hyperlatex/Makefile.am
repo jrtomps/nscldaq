@@ -10,10 +10,10 @@ install-data-local:
 	   (cd html; \
             for f in $$(ls); \
             do \
-              $(INSTALL_DATA) $$f $(prefix)/Docs/ProductionReadout/html; \
+              $(INSTALL_DATA)  $$f $(prefix)/Docs/ProductionReadout/html; \
 	    done); \
         fi
 	if [ -f Readout.ps ] ; \
         then \
-	   $(INSTALL_DATA) Readout.ps $(prefix)/Docs/ProductionReadout; \
+	   $(INSTALL_DATA)  Readout.ps $(prefix)/Docs/ProductionReadout; \
         fi

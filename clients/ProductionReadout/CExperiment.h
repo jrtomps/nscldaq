@@ -280,8 +280,11 @@ DAMAGES.
    
 Modification History:
 $Log$
-Revision 1.1  2003/03/12 04:17:37  ron-fox
-Initial revision
+Revision 1.2  2003/03/14 20:12:29  ron-fox
+Get the production readout program actually running as a shared library.
+
+Revision 1.1.1.1  2003/03/12 04:17:37  ron-fox
+Correct initial import this time.
 
 Revision 1.3  2002/10/16 16:16:09  fox
 Add events and words status consts: Number of events acquired and number of
@@ -391,10 +394,8 @@ public:
 	      unsigned nBufferSize = 4096);
 	      
 	      
-  ~ CExperiment ( ) { 
-    if(m_EventBuffer)    delete m_EventBuffer;
+  ~ CExperiment ( );		/* Inline destructor in shlib is bad!! */
 
-  } //!< Destructor.
   
   //! Copy construction is forbidden:
 private:
@@ -488,3 +489,5 @@ protected:
 };
 
 #endif
+
+

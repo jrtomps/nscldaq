@@ -354,10 +354,22 @@
 	 (See 
 	 \link{Modifying the Readout Skeleton}[
 	 Section \ref{ss:Modifying}]{ss:Modifying}).
+      \item{CTraditionalEventSegment.cpp}  The C$++$ source file that
+	  contains the traditional event segment implementation.  You will need
+	  to build and link this file if you are using traditional event
+	  segments (see  \link{Incorporating ``traditional'' readout software}[
+	Section {sss:traditional}]{sss:traditional} for more information
+	about traditional readout segments).
+      \item {CTraditionalScalerReadout.cpp}  The C$++$ source file that
+	  contains the traditional scaler readout implementation.  You
+	  will need to build and link this file if you are using traditional
+	  scaler readout (see \link{Traditional scaler readout}[
+	 Section \ref{sss:straditional}]{sss:straditional} for more 
+	information about traditional scaler readout).
       \item{Makefile}  An input file to the make utility that
 	 you may need to modify if you want make to compile
 	 additional C$++$ source modules and build them into
-	 your Readout program. (See:
+	 your Readout program.
 	 \link{Compiling your readout software}[
 	    Section \ref{ss:Compiling}]{ss:Compiling}
    \end{description}
@@ -655,15 +667,36 @@
       \end{itemize}
 
    \subs{Compiling your readout software}{Compiling}
-      The Readout software is distributed with a Makefile.  If you have not added any
-   new modules to the software, you can compile your tailored readout software by 
-   typing:
+      The Readout software is distributed with a Makefile. 
+
+	You will need to modify this Makefile if:
+	\begin{itemize}
+	    \item  You have added object source modules that need to be
+		   compiled and linked into the executable.  In this case,
+	           locate the definition of the Objects macro and add the
+                   names of the {\em object} modules you want built separated
+		   by whitespace.  If necessary, you can add continuation 
+	           lines by ending a line with the \\ character.
+	    \item  You are using traditional readout skeleton files.  
+	           in this case you need to locate and uncomment the line
+		   that reads:
+
+		\begin{verbatim}
+#Objects= \$(Objects) CTraditionalEventSegment.o CTraditionalScalerSegment.o
+		\end{verbatim}
+		Uncomment this line by removing the \# symbol at the 
+	        beginning of this line.
+	\end{itemize}
+
+	Once the Makefile has been modified as needed, you can compile your 
+   tailored readout software by typing:
    \begin{example}
    \it{ $<>$ } \bf{make}
    \end{example}
    
    If there are compilation errors, be sure to correct them before trying
    to run your readout program.
+
    \subs{Setting up the electronics}{Electronics}
    A detailed description of how to setup experimental electronics
    is well beyond the scope of this document.  This section describes
@@ -1655,8 +1688,9 @@ Usage: Readout [OPTIONS]...
     struct timezone tz;		// Unused but required for gettimeofday(2).
     int dwell;
     //
-    // Lock the mutex and process triggers for the dwell time.
-    // The trigger is checked several times to amortize gettimeofday().
+    // Lock the mutex and process triggers for the 
+    // dwell time. The trigger is checked several times 
+    // to amortize gettimeofday().
     //
     gettimeofday(&mutexstart, &tz);
     CApplicationSerializer::getInstance()->Lock();
@@ -1665,7 +1699,8 @@ Usage: Readout [OPTIONS]...
         int triggers=0;
         if((*m_pTrigger)()) \{	// Read an event...
             m_pExperiment->ReadEvent();
-            if((triggers++) >= m_nTriggerdwell) break; // Check elapsed time.
+            if((triggers++) >= m_nTriggerdwell) 
+		break; // Check elapsed time.
 	\}
       \}
       // If we've held the mutex for longer than m_msHoldTime,

@@ -282,8 +282,11 @@ static const char* Copyright = "(C) Copyright Michigan State University 2002, Al
   
   Change Log:
    $Log$
-   Revision 1.1  2003/03/12 04:17:38  ron-fox
-   Initial revision
+   Revision 1.2  2003/03/14 20:12:30  ron-fox
+   Get the production readout program actually running as a shared library.
+
+   Revision 1.1.1.1  2003/03/12 04:17:38  ron-fox
+   Correct initial import this time.
 
    Revision 1.5  2002/10/22 12:38:20  fox
    Straighten out dates in internal copyright notices.
@@ -348,7 +351,9 @@ CReadoutMain::CReadoutMain ()
      m_fExit(false),
      m_nPort(2701),   
      m_fVmeTrigger(true) ,
-     m_pInterpreter(0)
+     m_pInterpreter(0) ,
+     m_TimerQueue(*(new CTimer())),
+     m_Experiment(*(new CExperiment))
 {
 
 }
@@ -403,6 +408,7 @@ CReadoutMain::operator()(int argc , char** argv)
   while(!m_fExit) {
     sleep(1);			// Exit within a second of being asked.
   }
+  exit(0);
 }  
 
 /*!
@@ -665,4 +671,11 @@ CReadoutMain::getScalerPeriod() const
 CReadoutMain*
 CReadoutMain::getInstance() {
   return &MyApp;
+}
+
+void
+CReadoutMain::Exit()
+{
+  CReaper::getInstance()->clear(); // Don't reap threads that are being
+  m_fExit = true;		// destroyed.
 }

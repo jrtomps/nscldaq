@@ -336,7 +336,7 @@ CNSCLPhysicsBuffer::EndEvent(DAQWordBufferPtr& rPtr)
   unsigned nSize = rPtr.GetIndex() - m_EventStartPtr.GetIndex();
   *m_EventStartPtr = nSize;
 
-  Seek(nSize, SEEK_CUR);	// Update the buffer's pointer.
+  EndEntity(rPtr);		// Add to entity count and update ptr.
 }  
 
 /*!

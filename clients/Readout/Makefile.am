@@ -27,6 +27,7 @@ sysconf_DATA = runstate.tran
 install-data-local:
 	$(mkinstalldirs) $(prefix)/Readout/Skel
 	$(mkinstalldirs) $(prefix)/Readout/etc
+	rm -f $(prefix)/Readout/Etc
 	$(LN_S) $(prefix)/Readout/etc $(prefix)/Readout/Etc
 	$(INSTALL_DATA) $(srcdir)/ReadoutMain.cpp \
 		$(prefix)/Readout/Skel/ReadoutMain.cpp

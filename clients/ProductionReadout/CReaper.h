@@ -366,7 +366,7 @@ public:
     CEventListIterator begin();
     CEventListIterator end();
     int size();
-
+    void clear();
 };
 
 #endif

@@ -283,8 +283,11 @@ static const char* Copyright = "(C) Copyright Michigan State University 2002, Al
    
    Modification History:
    $Log$
-   Revision 1.1  2003/03/12 04:17:37  ron-fox
-   Initial revision
+   Revision 1.2  2003/03/14 20:12:29  ron-fox
+   Get the production readout program actually running as a shared library.
+
+   Revision 1.1.1.1  2003/03/12 04:17:37  ron-fox
+   Correct initial import this time.
 
    Revision 1.6  2002/10/22 12:38:16  fox
    Straighten out dates in internal copyright notices.
@@ -439,7 +442,17 @@ CTriggerThread::Stop()
 int
 CTriggerThread::operator()(int argc, char** argv)
 {
-  MainLoop();
+  try {
+    MainLoop();
+  } 
+  catch(string& rReason) {
+    cerr << "Main loop of trigger failed: " << rReason << endl;
+    CApplicationSerializer::getInstance()->UnLockCompletely();
+  }
+  catch(...) {
+    cerr << "Main loop of trigger caught an exception " << endl;
+    CApplicationSerializer::getInstance()->UnLockCompletely();
+  }
   return 0;
 }
 
@@ -464,7 +477,7 @@ CTriggerThread::operator()(int argc, char** argv)
   to our caller who is responsible for exiting our thread.
  */
 void
-CTriggerThread::MainLoop()
+CTriggerThread::MainLoop() 
 {
   while(!m_Exiting) {
     struct timeval mutexstart;
@@ -475,8 +488,9 @@ CTriggerThread::MainLoop()
     // Lock the mutex and process triggers for the dwell time.
     // The trigger is checked several times to amortize gettimeofday().
     //
-    gettimeofday(&mutexstart, &tz);
+    sched_yield();		// Let other threads run.
     CApplicationSerializer::getInstance()->Lock();
+    gettimeofday(&mutexstart, &tz);
     do {
       for(int i = 0; i < 500; i++) {
 	int triggers=0;
@@ -564,6 +578,11 @@ CExperiment::CExperiment(CTrigger*      pTriggerModule,
   m_EventReadout.AddSegment(pEventReadout);
   SetupTimedEvent();
 }
+
+/*! 
+   Destructor.
+*/
+CExperiment::~CExperiment() {}
 
 // Functions for class CExperiment
 
@@ -742,10 +761,6 @@ CExperiment::ReadEvent()
      m_EventBuffer->EndEvent(ptr);
   }
 
-  if(!m_EventBuffer->EntityFits(m_EventReadout.size())) {
-    m_EventBuffer->SetRun(GetRunNumber());
-    m_EventBuffer->Route();
-  }
 }  
 
 /*!
@@ -880,6 +895,8 @@ CExperiment::TriggerScalerReadout()
     if(m_EventBuffer->getEntityCount()) {
       m_EventBuffer->SetRun(GetRunNumber());
       m_EventBuffer->Route();
+      delete m_EventBuffer;
+      m_EventBuffer = new CNSCLPhysicsBuffer(m_nBufferSize*2);
     }
   }
 
