@@ -7,12 +7,13 @@
 
 // Include files required:
 
+#include <config.h>
 #include "CLocalMonitoredProgram.h" 
 
 #include <DesignByContract.h>
 #include <ErrnoException.h>
 
-#include <iostream>
+#include <Iostream.h>
 
 #include <fcntl.h>
 #include <unistd.h>   				
@@ -24,6 +25,10 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <sys/poll.h>
+
+#ifdef HAVE_STD_NAMESPACE
+using namespace std;
+#endif
 
 // Static attribute storage and initialization for CLocalMonitoredProgram
 

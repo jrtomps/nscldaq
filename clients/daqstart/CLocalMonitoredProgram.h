@@ -54,8 +54,8 @@ private:
   int    m_nStderr;      //!< Output end of program's stderr pipe.  
   bool   m_fRunning;	 //!< True if the process is running.
   pid_t  m_nPid;         //!<  PID of child process.  
-  string m_sStdoutLine;  //!<  The accumluating line for stdout.  
-  string m_sStderrLine;  //!<  The accumulating line for stderr.  
+  STD(string) m_sStdoutLine;  //!<  The accumluating line for stdout.  
+  STD(string) m_sStderrLine;  //!<  The accumulating line for stderr.  
   
 public:
   //  Constructors and other canonical operations.
@@ -94,7 +94,7 @@ public:
  private:
   static void BlockingOff(int nFd); //!< Turn off fd blocking.
   bool ProcessInputFd(int     nFd,
-		      string& sOutline,
+		      STD(string)& sOutline,
 		      short   nPollFlags); //!< Process input on an fd.
 };
 

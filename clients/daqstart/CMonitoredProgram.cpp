@@ -7,11 +7,17 @@
 
 // Include files required:
 
+#include <config.h>
+
 #include "CMonitoredProgram.h"    				
 #include "CSink.h"
 
 #include <unistd.h>
 #include <string.h>
+
+#ifdef HAVE_STD_NAMESPACE
+using namespace std;
+#endif
 
 // Static attribute storage and initialization for CMonitoredProgram
 

@@ -9,6 +9,8 @@
 
 // Headers:
 
+#include <config.h>
+
 #include <CSinkFactory.h>
 #include <CFileSinkCreator.h>
 #include <CDAQStart.h>
@@ -16,7 +18,13 @@
 #include <DesignByContract.h>
 #include <Exception.h>
 #include <string>
-#include <iostream>
+
+#include <Iostream.h>
+
+#ifdef HAVE_STD_NAMESPACE
+using namespace std;
+#endif
+
 
 
 int

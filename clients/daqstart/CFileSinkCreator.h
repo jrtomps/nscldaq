@@ -45,8 +45,8 @@ public:
 
 public:
 
-    virtual   bool isNameLegal (string Name)   ; 
-    virtual   CSink* Create (string sCommand, string sName)   ; 
+    virtual   bool isNameLegal (STD(string) Name)   ; 
+    virtual   CSink* Create (STD(string) sCommand, STD(string) sName)   ; 
     
 
 };

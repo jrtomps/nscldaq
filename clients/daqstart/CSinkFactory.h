@@ -55,7 +55,7 @@ class CSinkFactory
 {
   // Type definitions:
 public:
-  typedef map<string, CSinkCreator*> SinkCreatorDictionary;
+  typedef STD(map)<STD(string), CSinkCreator*> SinkCreatorDictionary;
   typedef SinkCreatorDictionary::iterator SinkIterator;
 private:
   
@@ -67,13 +67,13 @@ public:
 
 public:
 
-  static  CSink* Create (string  sType, 
-			 string sCommand, string  sName)   ; 
-  static  void AddCreator (string sType, CSinkCreator* pSink)   ; 
+  static  CSink* Create (STD(string)  sType, 
+			 STD(string) sCommand, STD(string)  sName)   ; 
+  static  void AddCreator (STD(string) sType, CSinkCreator* pSink)   ; 
   static  int  SplitName(char* sName, char** ppParts);
 
 protected:
-  static  CSinkCreator* LocateCreator (string sType)   ; 
+  static  CSinkCreator* LocateCreator (STD(string) sType)   ; 
   
 
 

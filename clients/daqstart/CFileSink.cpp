@@ -7,6 +7,8 @@
 
 // Include files required:
 
+#include <config.h>
+
 #include "CFileSink.h"    				
 #include <unistd.h>
 #include <sys/types.h>
@@ -15,6 +17,9 @@
 
 #include <ErrnoException.h>
 
+#ifdef HAVE_STD_NAMESPACE
+using namespace std;
+#endif
 
 // Static attribute storage and initialization for CFileSink
 
@@ -128,9 +133,9 @@ Parameters:
 
 */
 bool 
-CFileSink::Log(const string& Message)  
+CFileSink::Log(const STD(string)& Message)  
 {
-  string line = FormatLine(Message);
+  STD(string)line = FormatLine(Message);
   write(m_nFd, line.c_str(), line.size());
   
 }

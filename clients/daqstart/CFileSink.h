@@ -41,8 +41,8 @@ public:
     // implement assignment/copy construction.
     // safely.
 
-  CFileSink (string sCommand, 
-	     string sFilename);		//!< Constructor.
+  CFileSink (STD(string) sCommand, 
+	     STD(string) sFilename);		//!< Constructor.
   virtual  ~ CFileSink ( ); //!< Destructor.
   CFileSink (const CFileSink& rSource ); //!< Copy construction.
   CFileSink& operator= (const CFileSink& rhs); //!< Assignment.
@@ -56,7 +56,7 @@ public:
 public:
 
   virtual   CSink* clone();	//!< create duplicate of this.
-  virtual   bool Log (const string& Message)   ; 
+  virtual   bool Log (const STD(string)& Message)   ; 
 
 
 };

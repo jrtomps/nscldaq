@@ -44,7 +44,7 @@ private:
   // Private Member data:
 
     int    m_nExitStatus;   //!< Program final exit value.  
-    string m_sProgramName;  //!< Program name string.   
+    STD(string) m_sProgramName;  //!< Program name string.   
     int    m_nArgc;         //!< Number of command line parameters (including program name).  
     char** m_paArgv;        //!< The command line parameters.  
 
@@ -75,7 +75,7 @@ private:
 
     // Selectors (essentially):
  public:
-    string GetName        ()   const; 
+    STD(string) GetName        ()   const; 
     int    GetNargs       ()   const; 
     char** GetArgs        ()   const;
     int    GetFinalStatus ()   const; 
@@ -95,8 +95,8 @@ protected:
     virtual   void Start      ()          = 0 ; 
     virtual   void PollIO     (int nMs)   = 0 ; 
     virtual   bool PollStatus ()          = 0 ; 
-    void StdOut (string line)   ; 
-    void StdErr (string line)   ; 
+    void StdOut (STD(string) line)   ; 
+    void StdErr (STD(string) line)   ; 
 
 
     // Private utilities.
@@ -105,7 +105,7 @@ protected:
     void FreeArgv();
     void CopyIn(const CMonitoredProgram& rhs);
     bool ArgvSame(int argc, char**argv) const;
-    void Log(int fd, CSink* pSink, string sLine);
+    void Log(int fd, CSink* pSink, STD(string) sLine);
 
 };
 

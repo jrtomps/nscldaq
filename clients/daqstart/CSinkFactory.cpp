@@ -9,11 +9,18 @@
 
 // Include files required:
 
+#include <config.h>
+
 #include "CSinkFactory.h"    				
 #include "CSinkCreator.h"
 #include "CSink.h"
 
 #include <publib.h>
+
+#ifdef HAVE_STD_NAMESPACE
+using namespace std;
+#endif
+
 
 // Static attribute storage and initialization for CSinkFactory
 

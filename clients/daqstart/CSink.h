@@ -28,7 +28,7 @@ class CSink
 {
 private:
   
-    string m_sCommand;  //!< The command string to put in messages.  
+    STD(string) m_sCommand;  //!< The command string to put in messages.  
    
 protected:
 	// Protected member data.
@@ -38,7 +38,7 @@ public:
 
 public:
   
-  CSink (string sLine);	          //!< Constructor.
+  CSink (STD(string) sLine);	          //!< Constructor.
   virtual  ~ CSink ( );                 //!< Destructor.
   CSink (const CSink& rSource );        //!< Copy construction.
   CSink& operator= (const CSink& rhs);  //!< Assignment.
@@ -50,8 +50,8 @@ public:
 
 public:
   virtual CSink*  clone() = 0;	  //!< Return dup of this .
-  virtual   bool Log (const string& Message)   = 0 ; 
-  virtual   string FormatLine (string sMessage)   ; 
+  virtual   bool Log (const STD(string)& Message)   = 0 ; 
+  virtual   STD(string) FormatLine (STD(string) sMessage)   ; 
 
 
 };

@@ -15,10 +15,16 @@
 
 // Include files required:
 
+#include <config.h>
+
 #include "CSink.h"    				
 
 #include <time.h>
 #include <string.h>
+
+#ifdef HAVE_STD_NAMESPACE
+using namespace std;
+#endif
 
 /*!
     Create an object of type CSink

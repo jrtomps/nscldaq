@@ -1,8 +1,7 @@
+TESTABLEUNITS=CSink.cpp CFileSink.cpp CFileSinkCreator.cpp CSinkFactory.cpp \
+	CMonitoredProgram.cpp CLocalMonitoredProgram.cpp
 bin_PROGRAMS 	= daqstart
-daqstart_SOURCES= cmdline.c CDAQStart.cpp  CFileSinkCreator.cpp \
-	        CMonitoredProgram.cpp  CSinkFactory.cpp         \
-		CFileSink.cpp  CLocalMonitoredProgram.cpp  CSink.cpp \
-		daqstart.cpp
+daqstart_SOURCES= cmdline.c daqstart.cpp CDAQStart.cpp $(TESTABLEUNITS)
 
 include_HEADERS = cmdline.h CDAQStart.h  CFileSinkCreator.h \
 		CMonitoredProgram.h  CSinkCreator.h \
@@ -29,3 +28,16 @@ install-exec-local:
 	rm -f $(bindir)/PopUp
 	$(LN_S)  $(prefix)/Scripts/popup.tcl $(bindir)/PopUp
 
+
+if CPPUNIT
+noinst_PROGRAMS = unittests
+
+unittests_SOURCES = $(TESTABLEUNITS) CFileSinkTests.cpp SinkCreatorTests.cpp \
+	FactoryTests.cpp LocalMonitoredProgram.cpp  grep.cpp TestRunner.cpp
+
+unittests_LDADD = $(CPPUNIT_LDFLAGS) -L@top_srcdir@/Exception -lException -lpub
+
+
+TESTS = ./unittests
+
+endif

@@ -7,6 +7,9 @@
 
 // Include files required:
 
+
+#include <config.h>
+
 #include "CDAQStart.h"    				
 #include "CMonitoredProgram.h"
 #include "CLocalMonitoredProgram.h"
@@ -22,7 +25,9 @@
 
 #include "cmdline.h"
 
-
+#ifdef HAVE_STD_NAMESPACE
+using namespace std;
+#endif
 
 // Static attribute storage and initialization for CDAQStart
 
