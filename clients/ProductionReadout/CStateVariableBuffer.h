@@ -307,7 +307,7 @@ private:
 public:
 	// Constructors, destructors and other cannonical operations: 
 
-    CStateVariableBuffer (unsigned nWords); //!< Default constructor.
+    CStateVariableBuffer (unsigned nWords = 4096); //!< Default constructor.
      ~ CStateVariableBuffer ( ) { } //!< Destructor.
 private:
     CStateVariableBuffer(const CStateVariableBuffer& rhs); //!< Copy constructor.
