@@ -290,6 +290,13 @@ DAMAGES.
 #ifndef __CMODULECREATOR_H     //CModuleCreator
 #include "CModuleCreator.h"
 #endif
+
+#ifndef __STL_STRING
+#include <string>
+#ifndef __STL_STRING
+#define __STL_STRING
+#endif
+#endif
  
 /*!
   Objects of this class can be registered with the Module command to 
@@ -318,7 +325,7 @@ public:
    virtual   CReadableObject* 
 		  Create (CTCLInterpreter& rInterp, CTCLResult& rResult, 
 			     int nArgs, char** pArgs)   ; // 
-   virtual   string  Help ()   ; 
+   virtual   STD(string)  Help ()   ; 
 
 };
 

@@ -276,7 +276,7 @@ THIRD PARTIES OR A FAILURE OF THE PROGRAM TO OPERATE WITH ANY OTHER PROGRAMS),
 EVEN IF SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH 
 DAMAGES.
 
-		     END OF TERMS AND CONDITIONS '
+		     END OF TERMS AND CONDITIONS ' 
 */
 static const char* Copyright = "(C) Copyright Ron Fox 2002, All rights reserved";
 /*! 
@@ -296,6 +296,7 @@ static const char* Copyright = "(C) Copyright Ron Fox 2002, All rights reserved"
 */
 
 ////////////////////////// FILE_NAME.cpp /////////////////////////////////////////////////////
+#include <config.h>
 #include "CModuleCommand.h"  
 #include "CModuleCreator.h"
 #include "CReadableObject.h"
@@ -305,6 +306,9 @@ static const char* Copyright = "(C) Copyright Ron Fox 2002, All rights reserved"
 #include <assert.h>
 #include <TCLInterpreter.h>
 #include <TCLResult.h>
+#ifdef HAVE_STD_NAMESPACE
+using namespace std;
+#endif
 
 
 

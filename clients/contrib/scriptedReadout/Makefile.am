@@ -95,6 +95,7 @@ CCFLAGS=-g
 
 ScriptedReadout_LDADD = -L@top_srcdir@/contrib/scriptedReadout -lScriptedRdo  \
 	-L@top_srcdir@/Readout -lReadout \
+	-L@top_srcdir@/DeviceSupport -lDeviceSupport \
 	$(VMELIBRARY)            \
 	-L@top_srcdir@/TCL -lTclPlus	\
 	-L@top_srcdir@/Exception -lException \

@@ -277,11 +277,18 @@ DAMAGES.
 */
 static const char* Copyright = "(C) Ron Fox 2002, All rights reserved";
 ////////////////////////// FILE_NAME.cpp /////////////////////////////////////////////////////
+#include <config.h>
 #include "CCAENV775Creator.h"    	
 #include "CReadableObject.h"
 #include "CCAENV775.h"	
 #include <assert.h>
-#include <string>		
+#include <string>	
+
+#ifdef HAVE_STD_NAMESPACE
+using namespace std;
+#endif
+
+	
 /*!
    Construct an instance of a CAEN V 775 module creator.  The module
    creator can then be registered withy CModuleCommand::AddCreator.

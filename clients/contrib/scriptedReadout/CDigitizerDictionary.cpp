@@ -1,7 +1,12 @@
 
 ////////////////////////// FILE_NAME.cpp /////////////////////////////////////////////////////
+#include <config.h>
 #include "CDigitizerDictionary.h"    				
 #include "CReadableObject.h"
+
+#ifdef HAVE_STD_NAMESPACE
+using namespace std;
+#endif
 
 /*!
  Constructor: since maps know how to do their thing, this

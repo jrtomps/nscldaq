@@ -302,7 +302,9 @@ DAMAGES.
 #include "CReadableObject.h"
 #endif
 
-
+#ifdef HAVE_STD_NAMESPACE
+using namespace std;
+#endif
 
 #ifndef __SPECTRODAQ_H
 #include <spectrodaq.h>
@@ -314,12 +316,16 @@ DAMAGES.
 
 #ifndef __STL_LIST
 #include <list>
+#ifndef __STL_LIST
 #define __STL_LIST
+#endif
 #endif
 
 #ifndef __STL_STRING
 #include <string>
+#ifndef __STL_STRING
 #define __STL_STRING
+#endif
 #endif
 
 #ifndef __TCL_H
@@ -339,7 +345,7 @@ class CIntConfigParam;
 class CReadOrder    : public CReadableObject
 {
 public:                           // Data types:
-  typedef list<CReadableObject*> ModuleList;     //!< Ordered list of modules.
+  typedef STD(list)<CReadableObject*> ModuleList;     //!< Ordered list of modules.
   typedef ModuleList::iterator    ModuleIterator; //!< Iterator for list of modules
 private:
   
@@ -394,7 +400,7 @@ private:
       private:
          string m_Name;
       public:
-         CompareName(const string& rName) :
+         CompareName(const STD(string)& rName) :
             m_Name(rName)
          {}
          int operator()(CReadableObject* p) {
@@ -404,9 +410,9 @@ private:
    class Lister {
    private:
       CTCLResult& m_rResult;
-      string           m_sPattern;
+      STD(string)           m_sPattern;
    public:
-      Lister(CTCLResult& rResult, const string & rPattern) :
+      Lister(CTCLResult& rResult, const STD(string) & rPattern) :
 	 m_rResult(rResult),
 	 m_sPattern(rPattern)
       {}
@@ -414,7 +420,7 @@ private:
       {
 	 if(Tcl_StringMatch(pModule->getName().c_str(),
 				   m_sPattern.c_str())) {
-	    string element   = pModule->getName();
+	    STD(string) element   = pModule->getName();
 	    element         +=  " ";
 	    element         += pModule->getType();
 	    m_rResult.AppendElement(element);
@@ -426,7 +432,7 @@ public:
    
   CReadOrder (CTCLInterpreter* pInterp,
 	      CDigitizerDictionary* pDictionary,
-	      const string& rCommand=string("readout"));
+	      const STD(string)& rCommand=STD(string)("readout"));
   virtual ~CReadOrder ( ); 
 private:
   CReadOrder (const CReadOrder& aCReadOrder );
@@ -479,15 +485,15 @@ public:
   virtual void   Read (DAQWordBufferPtr& p) ; //!< Read -> spectrodaq 
   virtual int    Read(void* pBuffer);         //!< Read to ordinary buffer. 
   virtual void   Clear ()   ;                 //!< Clear after read & @ Run start. 
-  virtual string getType() const;	              //!< Return module type information. 
+  virtual STD(string) getType() const;	              //!< Return module type information. 
 
   // Iteration through the module list.
 
   int            readersize ()   ;                  //!< # modules in the list. 
   ModuleIterator readerbegin ()   ;                 //!< Start iterator.
   ModuleIterator readerend ()   ;                   //!< End iterator.
-  ModuleIterator readerfind(const string& rName);   //!< Find module by name.
-  string         Usage();                     //!< Command usage.
+  ModuleIterator readerfind(const STD(string)& rName);   //!< Find module by name.
+  STD(string)         Usage();                     //!< Command usage.
 
   // External removal.
 

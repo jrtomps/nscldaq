@@ -291,10 +291,15 @@ static const char* Copyright = "(C) Copyright Michigan State University 1977, Al
 */
 
 ////////////////////////// FILE_NAME.cpp /////////////////////////////////////////////////////
+#include <config.h>
 #include "CModuleCreator.h"    	
 #include "CReadableObject.h"
 #include <TCLInterpreter.h>
 #include <TCLResult.h>			
+#ifdef HAVE_STD_NAMESPACE
+using namespace std;
+#endif
+
 
 /*!
 	Constructor: The only thing we need to do is initialize

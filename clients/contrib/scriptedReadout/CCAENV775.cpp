@@ -273,18 +273,23 @@ THIRD PARTIES OR A FAILURE OF THE PROGRAM TO OPERATE WITH ANY OTHER PROGRAMS),
 EVEN IF SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH 
 DAMAGES.
 
-		     END OF TERMS AND CONDITIONS
+		     END OF TERMS AND CONDITIONS '
 */
 static const char* Copyright = "(C) Copyright Ron Fox 2002, All rights reserved";
 ////////////////////////// FILE_NAME.cpp /////////////////////////////////////////////////////
+#include <config.h>
 #include "CCAENV775.h"    
 #include "CIntConfigParam.h"
 #include "CIntArrayParam.h"
 #include "CBoolConfigParam.h"
 #include "CAENcard.h"
+#ifdef HAVE_STD_NAMESPACE
+using namespace std;		// spectrodaq needs it here.
+#endif
+
 #include <spectrodaq.h>
 #include <assert.h>
-#include <iostream.h>
+#include <Iostream.h>
 
 // constants:
 
@@ -388,7 +393,7 @@ CCAENV775::Initialize()
   int nRange = pInt->getOptionValue();  // ns.
   float rRange   = (float)nRange;
   float Register = 36040/(rRange + 1.3333);
-  getCard()->setRange(Register);
+  getCard()->setRange((int)Register);
 
   // Set the module into common start or stop  mode depending on the mode setting.
 

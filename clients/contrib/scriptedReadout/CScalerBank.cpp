@@ -9,11 +9,16 @@
 */
 
 ////////////////////////// FILE_NAME.cpp /////////////////////////////////////////////////////
+#include <config.h>
 #include "CScalerBank.h"    	
 #include "TCLInterpreter.h"
 #include "CDigitizerDictionary.h"
 #include "CScalerModule.h"			
 #include <typeinfo>
+#ifdef HAVE_STD_NAMESPACE
+using namespace std;
+#endif
+
 /*!
       Construct a scaler bank.  All the real work
       is done in the base class:

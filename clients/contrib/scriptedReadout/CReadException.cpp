@@ -301,9 +301,13 @@ DAMAGES.
 */
 
 ////////////////////////// FILE_NAME.cpp /////////////////////////////////////////////////////
+#include <config.h>
 #include "CReadException.h"    				
 #include <TCLString.h>
 
+#ifdef HAVE_STD_NAMESPACE
+using namespace std;
+#endif
 
     
  

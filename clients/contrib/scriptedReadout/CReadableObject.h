@@ -317,6 +317,9 @@ The ReadableObjerct class:
 #include "CConfigurableObject.h"
 #endif
 
+#ifdef HAVE_STD_NAMESPACE
+using namespace std;
+#endif
 
 #ifndef __SPECTRODAQ_H
 #include <spectrodaq.h>
@@ -327,7 +330,9 @@ The ReadableObjerct class:
  
 #ifndef __STL_STRING
 #include <string>        //Required for include files  
+#ifndef __STL_STRING
 #define __STL_STRING
+#endif
 #endif
 
 
@@ -349,7 +354,7 @@ public:
 
   // Constructors and other canonical objects:
   //
-  CReadableObject (const string& rName,
+  CReadableObject (const STD(string)& rName,
 		   CTCLInterpreter& rInterp); //!< constructor.
  ~ CReadableObject ( ); 	//!< Destructor...
 
@@ -374,7 +379,7 @@ public:
   void             Link (CReadOrder* pReader)   ; //!< Link to a reader/packet. 
   void             Unlink ()   ;         //!< Unlink from reader/packet.
   bool             isLinked ()   ;       //!< Query am I linked? 
-  virtual   string getType () const  = 0 ;    //!< Return module type string (pure virt).
+  virtual   STD(string) getType () const  = 0 ;    //!< Return module type string (pure virt).
 
   virtual   void   OnDelete ()   ; // 
 

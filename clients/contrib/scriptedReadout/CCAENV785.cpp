@@ -273,18 +273,24 @@ THIRD PARTIES OR A FAILURE OF THE PROGRAM TO OPERATE WITH ANY OTHER PROGRAMS),
 EVEN IF SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH 
 DAMAGES.
 
-		     END OF TERMS AND CONDITIONS '
+		     END OF TERMS AND CONDITIONS ' '
 */
 static const char* Copyright = "(C) Copyright Michigan State University 1977, All rights reserved";
 ////////////////////////// FILE_NAME.cpp /////////////////////////////////////////////////////
+#include <config.h>
 #include "CCAENV785.h" 
 #include "CAENcard.h"
 #include "CIntConfigParam.h"
 #include "CBoolConfigParam.h"
 #include "CIntArrayParam.h"
+
+#ifdef HAVE_STD_NAMESPACE
+using namespace std;
+#endif
+
 #include <spectrodaq.h>
 #include <assert.h>
-#include <iostream.h>
+#include <Iostream.h>
 
 static const int CHANNELS(32);
 static const int WAITLOOPS(10);

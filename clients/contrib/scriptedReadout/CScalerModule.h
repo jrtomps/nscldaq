@@ -305,7 +305,9 @@ pointed to by a long*
  
 #ifndef __STL_STRING
 #include <string>
+#ifndef __STL_STRING
 #define __STL_STRING
+#endif
 #endif
 
 // Forward class definitions:
@@ -319,7 +321,7 @@ class CScalerModule  : public CReadableObject
 public:
 	// Constructors and other cannonical member functions:
 
-  CScalerModule (const string& rName,
+  CScalerModule (const STD(string)& rName,
 		 CTCLInterpreter& rInterp);
  ~ CScalerModule ( );  
   

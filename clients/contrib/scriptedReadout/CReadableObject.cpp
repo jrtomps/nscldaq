@@ -280,9 +280,13 @@ DAMAGES.
 
 
 ////////////////////////// FILE_NAME.cpp /////////////////////////////////////////////////////
-
+#include <config.h>
 #include "CReadableObject.h"    				
 #include "CReadOrder.h"
+#ifdef HAVE_STD_NAMESPACE
+using namespace std;
+#endif
+
 #include <spectrodaq.h>
 #include <TCLInterpreter.h>
 

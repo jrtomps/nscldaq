@@ -1,7 +1,11 @@
-
 ////////////////////////// FILE_NAME.cpp /////////////////////////////////////////////////////
+#include <config.h>
 #include "CScalerModule.h"    				
 #include <TCLInterpreter.h>
+#ifdef HAVE_STD_NAMESPACE
+using namespace std;
+#endif
+
 /*!
    Construct a scaler module.
    All of the work is done by our base class:

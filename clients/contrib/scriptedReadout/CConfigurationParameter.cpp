@@ -273,7 +273,7 @@ THIRD PARTIES OR A FAILURE OF THE PROGRAM TO OPERATE WITH ANY OTHER PROGRAMS),
 EVEN IF SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH 
 DAMAGES.
 
-		     END OF TERMS AND CONDITIONS
+		     END OF TERMS AND CONDITIONS '
 */
 static const char* Copyright = "(C) Copyright Michigan State University 1977, All rights reserved";
   
@@ -289,6 +289,9 @@ static const char* Copyright = "(C) Copyright Michigan State University 1977, Al
             (c) 2002, All rights reserved.
     Revision History:
       $Log$
+      Revision 4.2  2004/11/23 15:01:00  ron-fox
+      Port to gcc/g++ 3.x
+
       Revision 4.1  2004/11/08 17:37:56  ron-fox
       bring to mainline
 
@@ -307,10 +310,16 @@ static const char* Copyright = "(C) Copyright Michigan State University 1977, Al
            
 */
 ////////////////////////// FILE_NAME.cpp /////////////////////////////////////////////////////
+#include <config.h>
 #include "CConfigurationParameter.h"    				
 #include <TCLInterpreter.h>
 #include <TCLResult.h>
 #include <string>
+
+#ifdef HAVE_STD_NAMESPACE
+using namespace std;
+#endif
+
 
 /*!
    Constructor.  The configuration parameter is constructed

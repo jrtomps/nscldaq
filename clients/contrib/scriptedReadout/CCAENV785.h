@@ -273,7 +273,7 @@ THIRD PARTIES OR A FAILURE OF THE PROGRAM TO OPERATE WITH ANY OTHER PROGRAMS),
 EVEN IF SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH 
 DAMAGES.
 
-		     END OF TERMS AND CONDITIONS
+		     END OF TERMS AND CONDITIONS '
 */
 #ifndef __CCAENV785_H  //Required for current class
 #define __CCAENV785_H
@@ -284,7 +284,13 @@ DAMAGES.
 
 #ifndef __STL_STRING
 #include <string>
+#ifndef __STL_STRING
 #define __STL_STRING
+#endif
+#endif
+
+#ifdef HAVE_STD_NAMESPACE
+using namespace std;
 #endif
 
 #ifndef __SPECTRODAQ_H
@@ -338,7 +344,7 @@ private:
 public:
   // Construtors and other cannonical functions:
 
-  CCAENV785(const string &rName, CTCLInterpreter& rInterp);
+  CCAENV785(const STD(string) &rName, CTCLInterpreter& rInterp);
  ~CCAENV785 ( );
 private:
   CCAENV785 (const CCAENV785& aCCAENV785 );
@@ -373,7 +379,7 @@ public:
   virtual   void Prepare (); // 
   virtual   void Read(DAQWordBufferPtr& rBuffer);
   virtual   void Clear ();
-  virtual   string getType() const {     return string("caenv785");
+  virtual   STD(string) getType() const {     return STD(string)("caenv785");
   }
 
 };

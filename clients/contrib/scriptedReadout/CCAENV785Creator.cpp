@@ -276,7 +276,7 @@ THIRD PARTIES OR A FAILURE OF THE PROGRAM TO OPERATE WITH ANY OTHER PROGRAMS),
 EVEN IF SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH 
 DAMAGES.
 
-		     END OF TERMS AND CONDITIONS '
+		     END OF TERMS AND CONDITIONS ' 
 */
 static const char* Copyright = "(C) Copyright Michigan State University 1977, All rights reserved";
 /*! \class CCAENV785Creator   
@@ -284,12 +284,17 @@ static const char* Copyright = "(C) Copyright Michigan State University 1977, Al
 */
 
 ////////////////////////// FILE_NAME.cpp ////////////////////////////////////////
+#include <config.h>
 #include "CCAENV785Creator.h"   
 #include "CReadableObject.h"
 #include "CCAENV785.h"
 
 
-#include <assert.h> 				
+#include <assert.h>
+#ifdef HAVE_STD_NAMESPACE
+using namespace std;
+#endif
+ 				
 /*!
     Constructor: Creates a module creator for CAEN v785 modules.  We just need
     to do base class construction, specifying our keyword as "caenv785"

@@ -318,7 +318,9 @@ is then thrown if any exceptions occured.
 
 #ifndef __STL_STRING
 #include <string>        //Required for include files  
+#ifndef __STL_STRING
 #define __STL_STRING
+#endif
 #endif
 
 
@@ -326,7 +328,7 @@ class CReadException : public CException
 {
 private:
   
-    string m_sAggregateException;  //!<  Aggregate of the exception strings.  
+    STD(string) m_sAggregateException;  //!<  Aggregate of the exception strings.  
     int    m_nWordsRead;	   //!<  Number of words successfully read.  
    
     
@@ -334,7 +336,7 @@ private:
     // Constructors etc. 
 public:
 
-  CReadException(const string& rInitialReason = string(""), 
+  CReadException(const STD(string)& rInitialReason = STD(string)(""), 
 		 int           nWordsRead = 0); //!< Parameterized construction
   virtual ~ CReadException ( ); //!< Destruction.
 
@@ -347,15 +349,15 @@ public:
 
 public:
   int    GetCount () const   ;              //!< Selector for m_nWordsRead. 
-  string GetString () const   ;             //!< Selectors for m_sAggregateException 
+  STD(string) GetString () const   ;             //!< Selectors for m_sAggregateException 
 
 
   // Class operations.
 public:
   
-  void AddItem (const string& rMessage)   ; //!< Append a string to the aggregate.
+  void AddItem (const STD(string)& rMessage)   ; //!< Append a STD(string) to the aggregate.
   void AddCount (int nWords)   ;            //!< Increment the count. 
-  void Add      (const string& rMessage, 
+  void Add      (const STD(string)& rMessage, 
 		 int           nwords);	    //!< AddItem and AddCount. 
 
   // Overrides of the base class functionality:

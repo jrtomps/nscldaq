@@ -6,12 +6,20 @@
 #include "CDigitizerModule.h"
 #endif
 
+#ifdef HAVE_STD_NAMESPACE
+using namespace std;
+#endif
+
+
 #ifndef __SPECTRODAQ_H
 #include <spectrodaq.h>
 #endif
 
 #ifndef __STL_STRING
 #include <string>
+#ifndef __STL_STRING
+#define __STL_STRING
+#endif
 #endif
 
 // forward class definitions:

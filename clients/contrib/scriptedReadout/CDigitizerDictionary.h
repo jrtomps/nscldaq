@@ -22,13 +22,17 @@ a map<string, CReadableObject*>
 
 #ifndef __STL_STRING
 #include <string>
+#ifndef __STL_STRING
 #define __STL_STRING
+#endif
 #endif
 
  
 #ifndef __STL_MAP
 #include <map>
+#ifndef __STL_MAP
 #define __STL_MAP
+#endif
 #endif
 
 
@@ -41,7 +45,7 @@ class CReadableObject;
 class CDigitizerDictionary      
 {
 public:
-   typedef map<string, CReadableObject*> DigitizerMap;
+   typedef STD(map)<STD(string), CReadableObject*> DigitizerMap;
    typedef DigitizerMap::iterator ModuleIterator;
 private:
 	DigitizerMap m_Modules;
@@ -75,7 +79,7 @@ public:
    ModuleIterator DigitizerEnd ()   ; // 
    int DigitizerSize ()   ; // 
    void DigitizerAdd (CReadableObject* pDigitizer)   ; // 
-   ModuleIterator DigitizerFind (const string& rName)   ; // 
+   ModuleIterator DigitizerFind (const STD(string)& rName)   ; // 
    void Remove(ModuleIterator p) {
       m_Modules.erase(p);
    }

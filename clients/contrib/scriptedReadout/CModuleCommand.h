@@ -317,22 +317,30 @@ When one is found it is used to create the actual module.
 //
 #ifndef __STL_STRING
 #include <string>
+#ifndef __STL_STRING
 #define __STL_STRING
+#endif
 #endif
 
 #ifndef __STL_LIST   // we have a list of creators.
 #include <list>
+#ifndef __STL_LIST
 #define __STL_LIST
+#endif
 #endif
 
 #ifndef __STL_MAP    // and a map of modules.
 #include <map>
+#ifndef __STL_MAP
 #define __STL_MAP
+#endif
 #endif
 
 #ifndef __CRTL_ASSERT_H
 #include <assert.h>
+#ifndef __CRTL_ASSERT_H
 #define __CRTL_ASSERT_H
+#endif
 #endif
 
 // forward class definitions:
@@ -347,7 +355,7 @@ class CModuleCommand  : public CTCLProcessor
 {
 	// Type definitions:
 public:
-typedef list<CModuleCreator*>  CreatorList;
+typedef STD(list)<CModuleCreator*>  CreatorList;
 typedef CreatorList::iterator  CreatorIterator;
 
 
@@ -373,7 +381,7 @@ private:
       m_rResult(rResult),
       m_pMatch(pMatch)
     {}
-    void operator()(pair<string, CReadableObject*> p);
+    void operator()(STD(pair)<STD(string), CReadableObject*> p);
 
   };
   // Function class to build up the output of module -types:
@@ -395,7 +403,7 @@ public:
      
    CModuleCommand (CTCLInterpreter* pInterp,
 		   CDigitizerDictionary* pDictionary,
-		   const string& command = string("module"));
+		   const STD(string)& command = STD(string)("module"));
    virtual ~CModuleCommand ( ); 
 private:
    CModuleCommand (const CModuleCommand& aCModuleCommand );
@@ -439,11 +447,11 @@ public:
    CDigitizerDictionary::ModuleIterator DigitizerBegin();
    CDigitizerDictionary::ModuleIterator DigitizerEnd();
    int                                  DigitizerSize();
-   CDigitizerDictionary::ModuleIterator DigitizerFind(const string& rName)
+   CDigitizerDictionary::ModuleIterator DigitizerFind(const STD(string)& rName)
    {
 	return m_pModules->DigitizerFind(rName);
    }
-   string            Usage();
+   STD(string)            Usage();
 
  protected:
       // Protected functions: these will be called from
@@ -459,7 +467,7 @@ public:
 		  CTCLResult& rResult, 
 		  int nArgs, char** pArgs); 
 
-  CreatorIterator FindCreator(const string& ModuleType);
+  CreatorIterator FindCreator(const STD(string)& ModuleType);
 };
 
 #endif

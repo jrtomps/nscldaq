@@ -308,7 +308,9 @@ DAMAGES.
 
 #ifndef __STL_STRING
 #include <string>
+#ifndef __STL_STRING
 #define __STL_STRING
+#endif
 #endif
 
 
@@ -333,7 +335,7 @@ public:
    virtual   CReadableObject* Create (CTCLInterpreter& rInterp, 
 						   CTCLResult& rResult, 
 						   int nArgs, char** pArgs)   ; 
-   virtual   string  Help (); 
+   virtual   STD(string)  Help (); 
 
 };
 
