@@ -369,6 +369,9 @@ DAQBuff::operator()(int argc, char**argv)
 	except.GetErrorString() << " " <<
 	except.GetContextString() << endl;
     }
+    catch (string& error) {
+      cerr << "A string exception was caught: " << error << endl;
+    }
     catch(...) {
       cerr << "Some other exception occured and was caught at main level" 
 	   << endl;
