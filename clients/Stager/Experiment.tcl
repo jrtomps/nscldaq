@@ -285,10 +285,12 @@
 package provide Experiment 1.0
 package require ExpFileSystem
 package require ReadoutControl
+package require InstallRoot
+
 namespace eval  Experiment {
     variable ftpLoghost
     variable ftpLogpasswd
-    variable Logrecorder "/opt/daq/Bin/eventlog"
+    variable Logrecorder "[InstallRoot::Where]/bin/eventlog"
     variable SourceURL
     variable EventFilePath
     variable EventlogPid 0
