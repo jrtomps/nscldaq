@@ -724,6 +724,12 @@
       about how to select between the available triggers.
       
       \subsubs{VME trigger requirements}{VMETrigger}
+	Production readout can take trigers via a CAEN V262 VME I/O module.
+	This module must have its base address switches all set to 4 (base
+	address of  0x444400).  The VME trigger is the default trigger.  To use
+	a CAMAC trigger (possible if you have a CES CBD8210 CAMAC Branch
+	highway driver) you must start readout with the --camac-trigger switch.
+
 	If you have selected a VME Trigger you must set
 	up two external latch channels. (NIM gate and delay
 	generators in latch mode work just fine).  Since
@@ -947,7 +953,7 @@
    The first form of the command \verb+ Readout --help + prints out
    a summary of the command options:
    \begin{example}
-   \human{Readout --version}
+   \human{Readout --help}
    \computer{
 Readout 1.0
 
@@ -2629,15 +2635,15 @@ Usage: Readout [OPTIONS]...
    
    The format of the scaler body is:
    
-   \begin{table}{htb}
+   \begin{table}[htb]
       \caption{Format of scaler buffer body}
       \begin{tabular}{|l|l|l|}
       \hline
       {\bf Buffer word offset} & {\bf words} & {\bf contents} \\
       \hline
-      17        & 2     & Interval end time in \texorhtml{$\frac{1}{10}$}{1/10}'ths of a second\\
+      17        & 2     & Interval end time in seconds\\
       19        & 3     & Unused words \\
-      21        & 2     & Interval start time in \texorhtml{$\frac{1}{10}$}{1/10}'ths of a second\\
+      21        & 2     & Interval start time in seconds\\
       23        & 3     & Unused words \\
       26        & varies & longword scaler values \\
       \hline
