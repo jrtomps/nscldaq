@@ -115,7 +115,7 @@ ControlBufferTests::testSysTime()
   time_t t = time(NULL);
   memcpy(&now, localtime(&t), sizeof(now));
   
-  AssertEQMsg("Month: ", now.tm_mon, body.tod.month);
+  AssertEQMsg("Month: ", now.tm_mon+1, body.tod.month);
   AssertEQMsg("Day: ",   now.tm_mday, body.tod.day);
   AssertEQMsg("Year:",   now.tm_year + 1900, body.tod.year);
 }

@@ -355,7 +355,7 @@ CNSCLControlBuffer::SetTime()
   st = *(localtime(&t));
   
   Seek(offSBFTIME);
-  PutWord(st.tm_mon);
+  PutWord(st.tm_mon+1);
   PutWord(st.tm_mday);
   PutWord(st.tm_year+1900);	// Unix years are relative to 1900.
   PutWord(st.tm_hour);
