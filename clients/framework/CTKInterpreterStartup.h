@@ -311,8 +311,8 @@ RegisterExtensions.
 class CTKInterpreterStartup  : public CInterpreterStartup       
 {
 public:
-  CTKInterpreterStartup () {}
-  virtual ~CTKInterpreterStartup ( ) {}
+  CTKInterpreterStartup ();
+  virtual ~CTKInterpreterStartup ( );
 private:
   //! Copy Constructor illegal, private, unimplemented.
   CTKInterpreterStartup (const CTKInterpreterStartup& aCTKInterpreterStartup );

@@ -288,6 +288,13 @@ static const char* Copyright= "(C) Copyright Michigan State University 2002, All
 #include <tk.h>
 #include <assert.h>
 
+// Constructors etc.
+
+CTKInterpreterStartup::CTKInterpreterStartup() {
+}
+CTKInterpreterStartup::~CTKInterpreterStartup() {
+}
+
 // Functions for class CTKInterpreterStartup
 
 /*!

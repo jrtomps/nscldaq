@@ -15,4 +15,4 @@ install-data-local:
 	$(LN_S) $(prefix)/bin $(prefix)/Bin
 	$(LN_S) $(prefix)/lib $(prefix)/Lib
 	$(LN_S) $(prefix)/include $(prefix)/Include
-	$(LN_S) $(prefix)/Etc     $(prefix)/Etc
+	$(LN_S) $(prefix)/etc     $(prefix)/Etc

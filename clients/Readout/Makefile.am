@@ -26,6 +26,8 @@ sysconf_DATA = runstate.tran
 
 install-data-local:
 	$(mkinstalldirs) $(prefix)/Readout/Skel
+	$(mkinstalldirs) $(prefix)/Readout/etc
+	$(LN_S) $(prefix)/Readout/etc $(prefix)/Readout/Etc
 	$(INSTALL_DATA) $(srcdir)/ReadoutMain.cpp \
 		$(prefix)/Readout/Skel/ReadoutMain.cpp
 	$(INSTALL_DATA) $(srcdir)/skeleton.cpp    \
@@ -39,10 +41,11 @@ install-data-local:
 	echo CAMAC=$(CAMAC)				>> Makefile.user
 	cat Makefile.skel                               >> Makefile.user
 	$(INSTALL_DATA) Makefile.user $(prefix)/Readout/Skel/Makefile
+	$(INSTALL_DATA) runstate.tran $(prefix)/Readout/etc
 	
 
 libReadout_la_LDFLAGS = -version-info 1:0:0  -L@top_srcdir@/VMEApi \
-	-lVmeApi $(SPECTRODAQ_LDFLAGS)
+	-lVmeAPI $(SPECTRODAQ_LDFLAGS)
 
 INCLUDES = -I@top_srcdir@/Headers -I@top_srcdir@/VMEApi \
 	$(SPECTRODAQ_FLAGS) -DINSTDIR=\"$(prefix)\" $(CAMAC)

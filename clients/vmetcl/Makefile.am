@@ -9,7 +9,7 @@ libVme_la_LDFLAGS =  -L@top_srcdir@/VMEApi \
 
 	  
 libVme_la_LIBADD =  -lTclPlus -lException  \
-	$(TCL_LDFLAGS)	$(X11LIBS) -lVmeApi $(VMELIBRARY) -lLicense -lpthread \
+	$(TCL_LDFLAGS)	$(X11LIBS) -lVmeAPI $(VMELIBRARY) -lLicense -lpthread \
 	-lm -lstdc++ -lgcc -lc
 
 INCLUDES = -I@top_srcdir@/Headers -I@top_srcdir@/Exception \

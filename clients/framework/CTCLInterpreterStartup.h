@@ -313,8 +313,8 @@ private:
      virtual   int operator()(int argc, char** argv);
 
 public:
-  CTCLInterpreterStartup () {}
-  virtual ~CTCLInterpreterStartup ( ) {} 
+  CTCLInterpreterStartup ();
+  virtual ~CTCLInterpreterStartup ( );
 private:  
   //! Copy Constructor Illegal private and unimplemented.
   CTCLInterpreterStartup

@@ -302,6 +302,12 @@ static inline void dbgmsg(const char* msg)
 #ifndef NULL
 #define NULL 0
 #endif
+// Constructors and destructors:
+CTCLInterpreterStartup::CTCLInterpreterStartup() {
+}
+CTCLInterpreterStartup::~CTCLInterpreterStartup() {
+}
+
 // Functions for class CTCLInterpreterStartup
 
 /*!
