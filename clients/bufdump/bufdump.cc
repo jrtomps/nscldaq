@@ -394,6 +394,11 @@ class DAQBuff : public DAQROCNode {
         if(pHeader->nevt != 0) {
 	   cout << "-------------------------- Event (first Event) -------------------\n";
 	   unsigned short size    = pLocalBuffer[16];
+	   cout << dec <<   " Header: \n";
+	   for(int i =0; i < 16; i ++) {
+	     cout << pLocalBuffer[i] << " "; 
+	   }
+	   cout << dec << endl  << "Event: \n";
 	   short *pEvent          = &(pLocalBuffer[16]);
 	   cout << size << "(10) words of data" << hex;
 	   for(int i = 0; i < size; i++) {
