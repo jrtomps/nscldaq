@@ -280,6 +280,14 @@ DAMAGES.
    
    Modification History:
    $Log$
+   Revision 3.3  2003/12/05 17:38:06  ron-fox
+   1. Fix issues in Route that affected the
+      sequencing badly.
+   2. Don't allow route to resize the buffer
+      after Route (can corrupt inflight).
+   3. Don't allow Route to re-init the header
+      after spectrodaq Route
+
    Revision 3.2  2003/10/31 17:45:38  ron-fox
    Add getBufferType()  member.
 
@@ -390,7 +398,7 @@ public:
      void PutString (const char*  pData, int nMaxSize=-1)  ;
      void SetRun (unsigned short nRun)  ;
      bool EntityFits (unsigned short  nWords)  ;
-     void Route (bool NextSequence = true)  ;
+     void Route ()  ;
      void Seek (int nOffset, int  whence=SEEK_SET)  ;
      void Seek(DAQWordBufferPtr& rPtr) {
        m_BufferPtr = rPtr;

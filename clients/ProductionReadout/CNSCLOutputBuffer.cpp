@@ -283,6 +283,14 @@ static const char* Copyright = "(C) Copyright Michigan State University 2002, Al
       
       Modification History:
       $Log$
+      Revision 3.4  2003/12/05 17:38:06  ron-fox
+      1. Fix issues in Route that affected the
+         sequencing badly.
+      2. Don't allow route to resize the buffer
+         after Route (can corrupt inflight).
+      3. Don't allow Route to re-init the header
+         after spectrodaq Route
+
       Revision 3.3  2003/10/31 17:45:38  ron-fox
       Add getBufferType()  member.
 
@@ -701,12 +709,7 @@ CNSCLOutputBuffer::EntityFits(unsigned short  nWords)
     it is recommended that this buffer be destroyed
     after a route.
 
-    \param NextSequence [true] - If set the sequence number is incremented
-    after the buffer is routed.  I most cases it is correct to do so, but
-    for some non-data buffers it's better to leave the sequence fixed
-    so that efficiency calculations are not spoiled by buffer sequences that
-    don't represent buffers with data.
-	
+
     Full set of actions:
     - The buffer size is computed
     - The buffer checksum is computed.
@@ -717,14 +720,13 @@ CNSCLOutputBuffer::EntityFits(unsigned short  nWords)
 
 */
 void 
-CNSCLOutputBuffer::Route(bool NextSequence)  
+CNSCLOutputBuffer::Route()  
 {
   ComputeSize();
   ComputeChecksum();
   m_Buffer.Route();
-  if(NextSequence) IncrementSequence();
-  m_Buffer.Resize(m_nWords, true);
-  InitializeHeader();
+
+
 }  
 
 /*!
@@ -848,6 +850,7 @@ void
 CNSCLOutputBuffer::Resize(int newsize)
 {
    m_Buffer.Resize(newsize, true);              // Wait for resize to finish.
+   m_nWords = newsize;		                // update the size word.
 }
 /*!
    Return the buffer type word (m_Buffer[1]):
