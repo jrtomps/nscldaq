@@ -10,29 +10,29 @@
 #   directory to the rear end of the Makefile.
 #
 #
-SPECTRO_FLAGS=$(shell /opt/spectrodaq/bin/spectrodaq-conf --cflags)
-SPECTRO_LDFLAGS=$(shell /opt/spectrodaq/bin/spectrodaq-conf --libs)
-VME=$(shell $(INSTDIR)/Bin/VmeDevice)
+SPECTRO_FLAGS=$(shell $(spectrodaq_conf_dir)/spectrodaq-conf --cflags)
+SPECTRO_LDFLAGS=$(shell $(spectrodaq_conf_dir)/spectrodaq-conf --libs)
+
+
+VME=$(shell $(BINDIR)/VmeDevice)
 OS=$(shell uname | sed s/-//)
 LD=g++
 LDFLAGS=-g 
 
 
-NSCLBIT3LIB=-lVmeAPI
-SBSBIT3LIB  = -lVmeAPI -lbtp
-
 #
 #  Add any additional linker flags you need here.
 #
-LIBFLAGS=-L. -L$(INSTDIR)/Lib  -L/usr/X11R6/lib -lPReadout \
-	-lEventFramework -lException $($(VME)LIB) -lTclPlus  -lException  \
+LIBFLAGS=-L. -L$(LIBDIR)  -L/usr/X11R6/lib -lPReadout \
+	-lEventFramework -lDeviceSupport -lVmeAPI $(VMELIBRARY) \
+	 -lTclPlus  -lException  \
 	$(SPECTRO_LDFLAGS) -ltk -ltcl -lXm -lXt -lX11 -lm -lLicense
 
 #
 #  Add any additional compiler flages you need here.
 #
-COMPILEFLAGS=  -c -ggdb -I. -I$(INSTDIR)/Include  \
-	-D$(OS) -I/usr/include/tcl  $(SPECTRO_FLAGS) -DCESCAMAC
+COMPILEFLAGS=  -c -ggdb -I. -I$(INCLUDEDIR) $(CAMAC) \
+	-D$(OS) -I/usr/include/tcl  $(SPECTRO_FLAGS) 
 
 CPP=g++ $(COMPILEFLAGS)
 CC=gcc $(COMPILEFLAGS)
