@@ -1,5 +1,5 @@
 /*!
-	\page Readout Reading out the CAEN 32 channel VME digitizers
+	\page caen32Readout Reading out the CAEN 32 channel VME digitizers
 
 	This section describes how to readout modules you have 
 	instantiated and initialized using CAENcard.  Note that the

@@ -1,5 +1,5 @@
 /*!
-	\page Constructing Constructing a module object
+	\page caen32Constructing Constructing a module object
 	
 	Each physical module is represented in the software by an object
 	constructed from the class CAENclass.   The CAENclass interface
@@ -35,10 +35,10 @@
 
 	See the sections below which show how to invoke CAENcard::CAENcard to
 	construct modules in:
-	- \ref Geomode
-	- \ref PhysicalBasemode
+	- \ref caen32Geomode
+	- \ref caen32PhysicalBasemode
 
-	\section Geomode Geographical adress mode.
+	\section caen32Geomode Geographical adress mode.
 
 	Modules are constructed in geographical address mode by setting the
 	\em Geo flag of the constructor (CAENcard::CAENcard) true, and specifying
@@ -61,7 +61,7 @@
 	note that the default value for the \em crateNum parameter is 0, and the
 	default value for the \em Geo parameter is true.
 
-	\section PhysicalBasemode Physical base address mode.
+	\section caen32PhysicalBasemode Physical base address mode.
 
 	When a module is constructed in Physical Base mode, the geographical
 	address in the data is actually a virtual slot number that is programmed

@@ -1,5 +1,5 @@
 /*!
-    \page cblt How to create Chained block transfer groups.
+    \page caen32cblt How to create Chained block transfer groups.
 
     The CAEN 32 channel digitization module supports a high performance
     readout mode called Chained Block Transfer (CBLT).  To use 

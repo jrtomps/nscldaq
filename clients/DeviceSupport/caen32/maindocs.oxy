@@ -1,8 +1,8 @@
 /*!
-    \mainpage CAEN 32 channel digitizer support.
+    \page   caen32main  CAEN 32 channel digitizer support.
     \author Chris Maurice, Ron Fox
     
-    \section Intro Introduction
+    \section caen32Intro Introduction
 
     This set of documentation pages describes software support for 
     the CAEN 32 channel VME digitizer family.  This family of modules
@@ -21,9 +21,9 @@
     described above.
 
     The remainder of this documentation describes:
-    - \ref Constructing
-    - \ref Initialization
-    - \ref Readout
-    - \ref cblt
+    - \ref caen32Constructing
+    - \ref caen32Initialization
+    - \ref caen32Readout
+    - \ref caen32cblt
 
 */

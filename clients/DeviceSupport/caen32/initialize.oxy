@@ -1,10 +1,10 @@
 /*!
-	\page Initialization Module initialization.
+	\page caen32Initialization Module initialization.
 
 	This page summarizes the most frequently used CAENcard initialization
 	member functions.  These functions are grouped as follows:
-	- \ref DeviceIndependent
-	- \ref DeviceDependent
+	- \ref caen32DeviceIndependent
+	- \ref caen32DeviceDependent
 
 	Device independent functions work on all module types, while Device 
 	dependent functions only work on specific module types (e.g. on 775
@@ -51,7 +51,7 @@
 	your application.
 
 
-	\section DeviceIndependent Device Independent Initialization Functions.
+	\section caen32DeviceIndependent Device Independent Initialization Functions.
 
 	This section is a list of the major initialization functions that
 	are device independent.  Device independent member functions can be called
@@ -92,7 +92,7 @@
 	   current firmware revision if desired/required.
 	
 
-	\section DeviceDependent Device Dependent Initialization functions.
+	\section caen32DeviceDependent Device Dependent Initialization functions.
 
 	The functions described in this section are only available on a subset
 	of the module types.  Each function is given a short description and 
@@ -103,7 +103,7 @@
 	calling one of the functions below with a module that is not of
 	the correct module type will in general cause a string exception to be
 	thrown.  The module type can be determined using the CAENcard::cardType
-	function.  See \ref Initialization for an example of how to catch
+	function.  See \ref caen32Initialization for an example of how to catch
 	string exceptions.
 
 	- CAENcard::keepInvalidData and CAENcard::discardInvalidData (V775)
