@@ -309,6 +309,7 @@ fi
 #  We'll look for  $(HEADERS)/linux/module.h  in the following spots:
 #  - /usr/src/kernel-headers-$(uname -r)/include  [debian]
 #  - /usr/src/linux-$(uname-r)/include            [redhat]
+#  - /usr/src/linux/include                       [old? redhat]
 #  -  Where the user tells us with --with-kernel-headers=value.
 
 AC_MSG_CHECKING([for kernel headers (.../linux/module.h)])
@@ -325,6 +326,15 @@ fi
 if test $KERNEL_INCS == "-" ; then
   AC_CHECK_FILE(/usr/src/linux-$(uname -r)/include/linux/module.h,
       [KERNEL_INCS="-I/usr/src/linux-$(uname -r)/include"])
+fi
+
+if test $KERNEL_INCS == "-" ; then
+  AC_CHECK_FILE(/usr/src/linux/include/linux/module.h,
+      [KERNEL_INCS="-I/usr/src/linux-$(uname -r)/include"])
+fi
+
+if test $KERNEL_INCS == "-"; then
+	AC_MSG_ERROR([Could not find kernel headers. Try the --with-kernel-headers switch])
 fi
 
 
