@@ -273,13 +273,14 @@ THIRD PARTIES OR A FAILURE OF THE PROGRAM TO OPERATE WITH ANY OTHER PROGRAMS),
 EVEN IF SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH 
 DAMAGES.
 
-		     END OF TERMS AND CONDITIONS
+		     END OF TERMS AND CONDITIONS '
 */
 static const char* Copyright= "(C) Copyright Michigan State University 1936, All rights reserved";//
 // TCLTest.cpp:
 //    Test of the TCL/TK object stuff:
 //
 // 
+#include <config.h>
 #include <tk.h>
 
 #include "TCLApplication.h"
@@ -292,6 +293,9 @@ static const char* Copyright= "(C) Copyright Michigan State University 1936, All
 #include <sys/stat.h>
 #include <sys/types.h>
 
+#ifdef HAVE_STD_NAMESPACE
+using namespace std;
+#endif
 
 extern "C" {
   char* tcl_RcFileName;
@@ -322,7 +326,7 @@ protected:
 MyApp app;
 CTCLApplication* gpTCLApplication = &app;
 
-CTCLVariable Rcfile(std::string("tcl_rcFileName"),
+CTCLVariable Rcfile(string("tcl_rcFileName"),
 		    kfFALSE);
 
 MyEcho echocmd;

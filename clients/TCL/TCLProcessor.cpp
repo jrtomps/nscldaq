@@ -273,7 +273,7 @@ THIRD PARTIES OR A FAILURE OF THE PROGRAM TO OPERATE WITH ANY OTHER PROGRAMS),
 EVEN IF SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH 
 DAMAGES.
 
-		     END OF TERMS AND CONDITIONS
+		     END OF TERMS AND CONDITIONS'
 */
 
 
@@ -305,6 +305,7 @@ DAMAGES.
 // Header Files:
 //
 
+#include <config.h>
 
 #include "TCLProcessor.h"                               
 #include "TCLException.h"
@@ -314,13 +315,16 @@ DAMAGES.
 #include <vector>
 #include <string>
 #include <string.h>
+#ifdef HAVE_STD_NAMESPACE
+using namespace std;
+#endif
 
 static const char* Copyright= 
 "CTCLProcessor.cpp: Copyright 1999 NSCL, All rights reserved\n";
 
 // Functions for class CTCLProcessor
 
-CTCLProcessor::CTCLProcessor(const std::string& sCommand, 
+CTCLProcessor::CTCLProcessor(const string& sCommand, 
 			     CTCLInterpreter* pInterp) :
   CTCLInterpreterObject(pInterp)
 {
@@ -338,11 +342,11 @@ CTCLProcessor::CTCLProcessor(const char* pCommand, CTCLInterpreter* pInterp) :
 //////////////////////////////////////////////////////////////////////////
 //
 //  Function:   
-//    std::string ConcatenateParameters ( int nArguments, char* pArguments[] )
+//    string ConcatenateParameters ( int nArguments, char* pArguments[] )
 //  Operation Type:
 //     Utility:
 //
-std::string 
+string 
 CTCLProcessor::ConcatenateParameters(int nArguments, char* pArguments[]) 
 {
 // Concatenates a parameter set into a single string.
@@ -366,7 +370,7 @@ CTCLProcessor::ConcatenateParameters(int nArguments, char* pArguments[])
 //     client really only wants the parameters, they should pass a pointer
 //     to argv[1]
 
-  std::string Result;
+  string Result;
 
   for(int i = 0; i < nArguments; i ++) {
     Result += pArguments[i];

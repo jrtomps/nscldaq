@@ -273,7 +273,7 @@ THIRD PARTIES OR A FAILURE OF THE PROGRAM TO OPERATE WITH ANY OTHER PROGRAMS),
 EVEN IF SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH 
 DAMAGES.
 
-		     END OF TERMS AND CONDITIONS
+		     END OF TERMS AND CONDITIONS '
 */
 static const char* Copyright= "(C) Copyright Michigan State University 1936, All rights reserved";// Class: CTCLObject
 
@@ -286,11 +286,15 @@ static const char* Copyright= "(C) Copyright Michigan State University 1936, All
 //
 //
 //////////////////////////.cpp file/////////////////////////////////////////////////////
+
+#include <config.h>
 #include "TCLObject.h"    				
 #include "TCLInterpreter.h"
 #include "TCLList.h"
 #include "TCLException.h"
-
+#ifdef HAVE_STD_NAMESPACE
+using namespace std;
+#endif
 #include <string.h>
 
 static char* pCopyrightNotice = 
@@ -344,7 +348,7 @@ CTCLObject::operator= (const CTCLObject& aCTCLObject)
 //     operator=(const string& rSource)
 //  Operation Type: 
 //     assignment
-CTCLObject& CTCLObject::operator=(const std::string& rSource)  
+CTCLObject& CTCLObject::operator=(const string& rSource)  
 {
   // Assigns a string to the object.
   //
@@ -429,12 +433,12 @@ CTCLObject& CTCLObject::operator=(double dSource)
 //     operator string()
 //  Operation Type: 
 //     Implicit conversion
-CTCLObject::operator std::string()  
+CTCLObject::operator string()  
 {
   // Converts object to string representation.
 
   int len;
-  return std::string(Tcl_GetStringFromObj(m_pObject, &len));
+  return string(Tcl_GetStringFromObj(m_pObject, &len));
 }
 //////////////////////////////////////////////////////////////////////////////
 //
@@ -537,7 +541,7 @@ CTCLObject& CTCLObject::operator+=(int nItem)
 //     operator+=(const string& rItem)
 //  Operation Type: 
 //     Append
-CTCLObject& CTCLObject::operator+=(const std::string& rItem)  
+CTCLObject& CTCLObject::operator+=(const string& rItem)  
 {
   //  Appends a string to this object as a list element.
   

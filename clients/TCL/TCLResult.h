@@ -273,7 +273,7 @@ THIRD PARTIES OR A FAILURE OF THE PROGRAM TO OPERATE WITH ANY OTHER PROGRAMS),
 EVEN IF SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH 
 DAMAGES.
 
-		     END OF TERMS AND CONDITIONS
+		     END OF TERMS AND CONDITIONS '
 */
 //  CTCLResult.h:
 //
@@ -352,25 +352,25 @@ public:
   //
 public:
   CTCLResult& operator= (const char* pString);
-  CTCLResult& operator= (const std::string& rString) {
+  CTCLResult& operator= (const STD(string)& rString) {
     return operator=(rString.c_str());
   }
 			 
   CTCLResult& operator+= (const char* pString);
-  CTCLResult& operator+= (const std::string& rString) {
+  CTCLResult& operator+= (const STD(string)& rString) {
     return operator+=(rString.c_str());
   }
   CTCLResult& operator+(const char* pString) {
     return operator+=(pString);
   }
-  CTCLResult& operator+(const std::string& rString) {
+  CTCLResult& operator+(const STD(string)& rString) {
     return operator+=(rString);
   }
   
   void Clear ()  ;
   
   void AppendElement (const char* pString)  ;
-  void AppendElement (const std::string& rString) {
+  void AppendElement (const STD(string)& rString) {
     AppendElement(rString.c_str());
   }
   //
@@ -378,7 +378,7 @@ public:
   //
 public:
   operator const char* ()  ;
-  operator std::string ()  ;
+  operator STD(string) ()  ;
   operator CTCLString ()  ;
 
 

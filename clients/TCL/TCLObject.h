@@ -273,7 +273,7 @@ THIRD PARTIES OR A FAILURE OF THE PROGRAM TO OPERATE WITH ANY OTHER PROGRAMS),
 EVEN IF SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH 
 DAMAGES.
 
-		     END OF TERMS AND CONDITIONS
+		     END OF TERMS AND CONDITIONS '
 */
 
  
@@ -392,7 +392,7 @@ public:
 
   // Assignments to this object 
 
-   CTCLObject& operator= (const std::string& rSource)    ;
+   CTCLObject& operator= (const STD(string)& rSource)    ;
    CTCLObject& operator= (const char* pSource)    ;
    CTCLObject& operator= (int nSource)    ;
    CTCLObject& operator= (const CTCLList& rList)    ;
@@ -400,7 +400,7 @@ public:
 
   // Implcit conversions which access the object's ports.
 
-  operator std::string ()    ;
+  operator STD(string) ()    ;
   operator int ()    ;
   operator CTCLList ()    ;
   operator double ()    ;
@@ -410,7 +410,7 @@ public:
 
   CTCLObject& operator+= (const CTCLObject& rObject)    ;
   CTCLObject& operator+= (int nItem)    ;
-  CTCLObject& operator+= (const std::string& rItem)    ;
+  CTCLObject& operator+= (const STD(string)& rItem)    ;
   CTCLObject& operator+= (const char* pItem)    ;
   CTCLObject& operator+= (double  Item)    ;
 

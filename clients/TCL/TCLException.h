@@ -273,7 +273,7 @@ THIRD PARTIES OR A FAILURE OF THE PROGRAM TO OPERATE WITH ANY OTHER PROGRAMS),
 EVEN IF SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH 
 DAMAGES.
 
-		     END OF TERMS AND CONDITIONS
+		     END OF TERMS AND CONDITIONS '
 */
 //  CTCLException.h:
 //
@@ -338,7 +338,7 @@ public:
   }
   CTCLException(CTCLInterpreter& am_rInterpreter,
 		Int_t am_nReason,
-		const std::string& rString) : 
+		const STD(string)& rString) : 
     CTCLInterpreterObject(&am_rInterpreter),
     CException(rString),
     m_nReason(am_nReason)
@@ -415,10 +415,10 @@ public:
 		     const char* pMnemonic="???", 
 		     const char* pFacility="TCL", 
 		     const char* pSeverity="FATAL")  ;
-  void SetErrorCode(const string rMessage,
-		    const string &rMnemonic=string("???"),
-		    const string &rFacility=string("TCL"),
-		    const string &rSeverity=string("FATAL")) {
+  void SetErrorCode(const STD(string) rMessage,
+		    const STD(string) &rMnemonic=STD(string)("???"),
+		    const STD(string) &rFacility=STD(string)("TCL"),
+		    const STD(string) &rSeverity=STD(string)("FATAL")) {
     SetErrorCode(rMessage.c_str(), rMnemonic.c_str(),
 		 rFacility.c_str(), rSeverity.c_str());
   }

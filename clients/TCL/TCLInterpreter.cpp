@@ -303,9 +303,13 @@ DAMAGES.
 //
 // Header Files:
 //
-
+#include <config.h>
 #include "TCLInterpreter.h"                               
 #include "TCLException.h"
+
+#ifdef HAVE_STD_NAMESPACE
+using namespace std;
+#endif
 
 static const char*  Copyright = 
 "CTCLInterpreter.cpp: Copyright 1999 NSCL, All rights reserved\n";
@@ -315,11 +319,11 @@ static const char*  Copyright =
 //////////////////////////////////////////////////////////////////////////
 //
 //  Function:   
-//    std::string Eval ( const char* pScript )
+//    string Eval ( const char* pScript )
 //  Operation Type:
 //     Script evaluation.
 //
-std::string 
+string 
 CTCLInterpreter::Eval(const char* pScript) 
 {
 // Evaluates a TCL script contained in any of several types
@@ -333,7 +337,7 @@ CTCLInterpreter::Eval(const char* pScript)
 //      script variable type:
 //          const char*            pScript
 //          const CTCLString& rScript
-//          const std::string&    rScript
+//          const string&    rScript
 //               String containing the script.
 // Returns:
 //    Result of the evaluation.
@@ -345,16 +349,16 @@ CTCLInterpreter::Eval(const char* pScript)
 			Status,
 			"CTCLInterpreter::Eval - Evaluating expression");
   }
-  return std::string(m_pInterpreter->result);
+  return string(m_pInterpreter->result);
 }
 //////////////////////////////////////////////////////////////////////////
 //
 //  Function:   
-//    std::string EvalFile ( const char* pFilename )
+//    string EvalFile ( const char* pFilename )
 //  Operation Type:
 //     Script Evaluation
 //
-std::string 
+string 
 CTCLInterpreter::EvalFile(const char* pFilename) 
 {
 // Evaluates the script contained in the file.
@@ -367,7 +371,7 @@ CTCLInterpreter::EvalFile(const char* pFilename)
 //
 //       const char*            pFilename
 //       const CTCLString& rFilename
-//       const std::string&    rFilename:
+//       const string&    rFilename:
 //            Name of the file contaning
 //            a script to evaluate.
 //  Returns:
@@ -380,16 +384,16 @@ CTCLInterpreter::EvalFile(const char* pFilename)
 			Status,
 			"CTCLInterpreter::EvalFile - Evaluating file script");;
   }
-  return std::string(m_pInterpreter->result);
+  return string(m_pInterpreter->result);
 }
 //////////////////////////////////////////////////////////////////////////
 //
 //  Function:   
-//    std::string GlobalEval ( const char* pScript )
+//    string GlobalEval ( const char* pScript )
 //  Operation Type:
 //     script evaluator
 //
-std::string 
+string 
 CTCLInterpreter::GlobalEval(const char* pScript) 
 {
 // Evaluates a script at the global level.
@@ -403,17 +407,17 @@ CTCLInterpreter::GlobalEval(const char* pScript)
 			"CTCLInterpreter::Eval - Evaluating expression");
     throw except;
   }
-  return std::string(m_pInterpreter->result);
+  return string(m_pInterpreter->result);
 
 }
 //////////////////////////////////////////////////////////////////////////
 //
 //  Function:   
-//    std::string RecordAndEval ( const char* pScript )
+//    string RecordAndEval ( const char* pScript )
 //  Operation Type:
 //     script evaluation
 //
-std::string 
+string 
 CTCLInterpreter::RecordAndEval(const char* pScript, Bool_t fEvaluate) 
 {
 // Records and optionally evaluates
@@ -437,17 +441,17 @@ CTCLInterpreter::RecordAndEval(const char* pScript, Bool_t fEvaluate)
     throw except;
   }
 
-  return std::string(m_pInterpreter->result);
+  return string(m_pInterpreter->result);
 
 }
 //////////////////////////////////////////////////////////////////////////
 //
 //  Function:   
-//    std::string ExprString ( const char* pExpression )
+//    string ExprString ( const char* pExpression )
 //  Operation Type:
 //     Expression evaluation
 //
-std::string 
+string 
 CTCLInterpreter::ExprString(const char* pExpression) 
 {
 // Evaluates an expression as a string.  The
@@ -467,7 +471,7 @@ CTCLInterpreter::ExprString(const char* pExpression)
 	  "CTCLInterpreter::ExprString - Evaluating string expression");
     throw e;
   }
-  return std::string(m_pInterpreter->result);
+  return string(m_pInterpreter->result);
 
 }
 //////////////////////////////////////////////////////////////////////////
@@ -577,11 +581,11 @@ CTCLInterpreter::ExprBoolean(const char*  pExpression)
 //////////////////////////////////////////////////////////////////////////
 //
 //  Function:   
-//    std:string TildeSubst ( const char* pFilename )
+//    string TildeSubst ( const char* pFilename )
 //  Operation Type:
 //     parse
 //
-std::string 
+string 
 CTCLInterpreter::TildeSubst(const char* pFilename) const 
 {
 // Provides support for filenames which begin with ~ 
@@ -593,25 +597,25 @@ CTCLInterpreter::TildeSubst(const char* pFilename) const
 //    The filename in any of the three acceptable
 //     string types.
 // Returns:
-//     std::string - filename with the name appropriately
+//     string - filename with the name appropriately
 //     substituted.
 
   Tcl_DString result;
   char*       pResult = Tcl_TildeSubst(m_pInterpreter,
 				       (char*)pFilename,
 				       &result);
-  std::string stdResult(pResult);
+  string stdResult(pResult);
   Tcl_DStringFree(&result);
   return stdResult;
 }
 //////////////////////////////////////////////////////////////////////////
 //
 //  Function:   
-//    std::string PosixError (  )
+//    string PosixError (  )
 //  Operation Type:
 //     POSIX interface
 //
-std::string 
+string 
 CTCLInterpreter::PosixError() const 
 {
 // Sets the interpreter error code with a string 
@@ -619,33 +623,33 @@ CTCLInterpreter::PosixError() const
 // errno, and returns a string identifying the
 // error (strerror()??).
 
-  return std::string(Tcl_PosixError(m_pInterpreter));
+  return string(Tcl_PosixError(m_pInterpreter));
 
 }
 //////////////////////////////////////////////////////////////////////////
 //
 //  Function:   
-//    std::string ErrnoId (  )
+//    string ErrnoId (  )
 //  Operation Type:
 //     POSIX interface
 //
-std::string 
+string 
 CTCLInterpreter::ErrnoId()  
 {
 // Returns a symbolic string identifying the
 // error currently stored in errno e.g. EBADF
 
-  return std::string(Tcl_ErrnoId());
+  return string(Tcl_ErrnoId());
 
 }
 //////////////////////////////////////////////////////////////////////////
 //
 //  Function:   
-//    std::string SignalId ( UInt_t nSignal )
+//    string SignalId ( UInt_t nSignal )
 //  Operation Type:
 //     POSIX interface
 //
-std::string 
+string 
 CTCLInterpreter::SignalId(UInt_t nSignal) 
 {
 // Returns a string identifying a signal
@@ -655,17 +659,17 @@ CTCLInterpreter::SignalId(UInt_t nSignal)
 //   UInt_t nSignal:
 //      The signal to lookup.
 
-  return std::string(Tcl_SignalId((Int_t)nSignal));
+  return string(Tcl_SignalId((Int_t)nSignal));
 
 }
 //////////////////////////////////////////////////////////////////////////
 //
 //  Function:   
-//    std::string SignalMsg ( UInt_t nSignal )
+//    string SignalMsg ( UInt_t nSignal )
 //  Operation Type:
 //     POSIX interface.
 //
-std::string 
+string 
 CTCLInterpreter::SignalMsg(UInt_t nSignal) 
 {
 // Returns a human readable message which
@@ -675,18 +679,18 @@ CTCLInterpreter::SignalMsg(UInt_t nSignal)
 //    UInt_t nSignal:
 //      Signal to identify
 
-  return std::string(Tcl_SignalMsg(nSignal));
+  return string(Tcl_SignalMsg(nSignal));
 
 }
 //////////////////////////////////////////////////////////////////////////
 //
 //  Function:   
-//    void DetachProcess ( const std::vector>UInt_t>& rPids )
+//    void DetachProcess ( const vector>UInt_t>& rPids )
 //  Operation Type:
 //     POSIX interface
 //
 void 
-CTCLInterpreter::DetachProcess(const std::vector<UInt_t>& rPids) const 
+CTCLInterpreter::DetachProcess(const vector<UInt_t>& rPids) const 
 {
 // Passes responsibility for a set of process ids to
 // TCL's zombie process reaper functions  On error
@@ -694,7 +698,7 @@ CTCLInterpreter::DetachProcess(const std::vector<UInt_t>& rPids) const
 //
 // Formal Parameters:
 //        one of the following:
-//          const std::vector<UInt_t>& rPids:
+//          const vector<UInt_t>& rPids:
 //          const UInt_t nPids, const UInt_t* pPids:
 //              where:
 //                      nPids is the number of Process id's
@@ -738,7 +742,7 @@ CTCLInterpreter::AddCommand(const char* pCommandName,
 // Formal Paramters:
 //     const char*            pCommandName
 //     const CTCLString& rCommandName
-//     const std::string&    rCommandName:
+//     const string&    rCommandName:
 //            Name of the command to register.
 //     Tcl_CmdProc* pCmdProcessor:
 //            Pointer to command processing function
@@ -775,7 +779,7 @@ CTCLInterpreter::UnregisterCommand(const char* pCommand) const
 // Formal Parameters:
 //       const char*             pCommand
 //       const CTCLString&  rCommand
-//       const std::string&     rCommand:
+//       const string&     rCommand:
 //             The command to delete.
 // NOTE:
 //    The command's deletion processor will
@@ -788,17 +792,17 @@ CTCLInterpreter::UnregisterCommand(const char* pCommand) const
 //////////////////////////////////////////////////////////////////////////
 //
 //  Function:   
-//    std::string GetResultString (  )
+//    string GetResultString (  )
 //  Operation Type:
 //     Selector
 //
-std::string 
+string 
 CTCLInterpreter::GetResultString() const 
 {
 // Returns a string containing the TCL result string
 // if no string has been set, an empty string is returned.
 
-  return std::string(m_pInterpreter->result);
+  return string(m_pInterpreter->result);
 
 }
 

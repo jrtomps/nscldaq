@@ -273,7 +273,7 @@ THIRD PARTIES OR A FAILURE OF THE PROGRAM TO OPERATE WITH ANY OTHER PROGRAMS),
 EVEN IF SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH 
 DAMAGES.
 
-		     END OF TERMS AND CONDITIONS
+		     END OF TERMS AND CONDITIONS '
 */
 //  CTCLList.h:
 //
@@ -307,7 +307,7 @@ DAMAGES.
 #define __STL_VECTOR
 #endif
 
-typedef std::vector<std::string> StringArray;
+typedef STD(vector)<STD(string)> StringArray;
 typedef StringArray::iterator StringArrayIterator;
 
 class CTCLList  : public CTCLInterpreterObject        
@@ -326,7 +326,7 @@ public:
 			//Constructors with arguments
 
   CTCLList (CTCLInterpreter* pInterp, const  char* am_pList  );       
-  CTCLList (CTCLInterpreter* pInterp, const std::string& rList);
+  CTCLList (CTCLInterpreter* pInterp, const STD(string)& rList);
 	
 			//Copy constructor
 

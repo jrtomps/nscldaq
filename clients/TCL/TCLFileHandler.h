@@ -273,7 +273,7 @@ THIRD PARTIES OR A FAILURE OF THE PROGRAM TO OPERATE WITH ANY OTHER PROGRAMS),
 EVEN IF SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH 
 DAMAGES.
 
-		     END OF TERMS AND CONDITIONS
+		     END OF TERMS AND CONDITIONS '
 */
 //  CTCLFileHandler.h:
 //
@@ -311,8 +311,8 @@ DAMAGES.
 #endif
   
 #ifndef __CXX_FSTREAM_H
-#include <fstream.h>   
-#define __CXX_FSTREAM_H
+#include <Fstream.h>   
+#define __CXX_STD(FSTREAM)_H
 #endif
 
                           
@@ -334,7 +334,7 @@ public:
     m_nFid(fileno(pFile))
   { }
   CTCLFileHandler(CTCLInterpreterObject* pInterp,
-		  fstream& rFile) :
+		  STD(fstream)& rFile) :
     CTCLInterpreterObject(*pInterp),
     m_nFid(rFile.rdbuf()->fd())
   { }
@@ -349,7 +349,7 @@ public:
     m_nFid(fileno(pFile))
   { }
   CTCLFileHandler(CTCLInterpreter* pInterp,
-		  fstream& rFile) :
+		  STD(fstream)& rFile) :
     CTCLInterpreterObject(pInterp),
     m_nFid(rFile.rdbuf()->fd())
   { }

@@ -273,7 +273,7 @@ THIRD PARTIES OR A FAILURE OF THE PROGRAM TO OPERATE WITH ANY OTHER PROGRAMS),
 EVEN IF SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH 
 DAMAGES.
 
-		     END OF TERMS AND CONDITIONS
+		     END OF TERMS AND CONDITIONS'
 */
 
 
@@ -296,12 +296,15 @@ DAMAGES.
 // Header Files:
 //
 
-
+#include <config.h>
 #include "TCLList.h"                               
 #include "TCLInterpreter.h"
 #include <string.h>
 #include <assert.h>
 #include <malloc.h>		// Since Tcl uses malloc/free
+#ifdef HAVE_STD_NAMESPACE
+using namespace std;
+#endif
 
 typedef char *pChar;
 
@@ -314,7 +317,7 @@ static const char* Copyright=
 //
 // Function:
 //    CTCLList(CTCLInterpreter* pInterp, const char* am_pList)
-//    CTCLList(CTCLInterpreter* pInterp, const std::string& rList)
+//    CTCLList(CTCLInterpreter* pInterp, const string& rList)
 //
 // Operation Type:
 //    Constructor
@@ -327,7 +330,7 @@ CTCLList::CTCLList(CTCLInterpreter* pInterp, const char* am_pList) :
   m_pList = new char[strlen(am_pList) + 1];
   strcpy(m_pList, am_pList);
 }
-CTCLList::CTCLList(CTCLInterpreter* pInterp, const std::string& rList) :
+CTCLList::CTCLList(CTCLInterpreter* pInterp, const string& rList) :
   CTCLInterpreterObject(pInterp),
   m_pList(0)
 {
@@ -388,7 +391,7 @@ CTCLList::setList(const char* pList)
 int 
 CTCLList::Split(StringArray& rElements) 
 {
-// Splits the list into an array of std::strings
+// Splits the list into an array of strings
 // Note that the array is initially cleared by this
 //  member.  The number of entries in the  array
 // reflects the numer of entries in the list.
@@ -397,7 +400,7 @@ CTCLList::Split(StringArray& rElements)
 //    appended to the end of the existing array.
 //
 // Formal Parameters:
-//      std::string& rElements
+//      string& rElements
 // Returns:
 //      TCL_OK  on success.
 //
@@ -460,7 +463,7 @@ CTCLList::Merge(const StringArray& rElements)
 // so the client should not delete the pointer.
 //
 // Formal Parameters:
-//    std::string&  rElements:
+//    string&  rElements:
 //        String array containing the elements to 
 //        insert in the string.
 //  Returns:

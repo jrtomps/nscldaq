@@ -322,12 +322,12 @@ DAMAGES.
 #endif
 
 
-typedef std::list<CTCLProcessor*>   CommandList;
+typedef STD(list)<CTCLProcessor*>   CommandList;
 typedef CommandList::iterator  CommandListIterator;
 
 class CTCLCommandPackage  : public CTCLInterpreterObject        
 {
-  std::string m_sSignon;    // Package signon message.  
+  STD(string) m_sSignon;    // Package signon message.  
   CommandList m_lCommands;  // List of references to command objects
                             // which implement package.
   
@@ -335,7 +335,7 @@ public:
   // Constructors with parameters:
   //
   CTCLCommandPackage (CTCLInterpreter* pInterp, 
-		      const std::string& rSignon=std::string("Unnamed pkg")) :
+		      const STD(string)& rSignon=STD(string)("Unnamed pkg")) :
     CTCLInterpreterObject(pInterp),
     m_sSignon(rSignon)
   {}
@@ -378,7 +378,7 @@ public:
   // Selectors:
 
 public:
-  std::string getSignon() const
+  STD(string) getSignon() const
   {
     return m_sSignon;
   }
@@ -389,7 +389,7 @@ public:
   // Mutators:
 
 protected:                    
-  void setSignon (std::string am_sSignon)
+  void setSignon (STD(string) am_sSignon)
   { 
     m_sSignon = am_sSignon;
   }

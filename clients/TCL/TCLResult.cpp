@@ -273,7 +273,7 @@ THIRD PARTIES OR A FAILURE OF THE PROGRAM TO OPERATE WITH ANY OTHER PROGRAMS),
 EVEN IF SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH 
 DAMAGES.
 
-		     END OF TERMS AND CONDITIONS
+		     END OF TERMS AND CONDITIONS '
 */
 
 //  CTCLResult.cpp
@@ -297,14 +297,16 @@ DAMAGES.
 // Header Files:
 //
 
-
+#include <config.h>
 #include "TCLResult.h"                               
 #include "TCLString.h"
 #include "TCLInterpreter.h"
 #include <tcl.h>
 #include <histotypes.h>
 #include <assert.h>
-
+#ifdef HAVE_STD_NAMESPACE
+using namespace std;
+#endif
 static const char* Copyright= 
 "CTCLResult.cpp: Copyright 1999 NSCL, All rights reserved\n";
 
@@ -324,7 +326,7 @@ CTCLResult::operator=(const char* pString)
 // 
 // Formal Parameters:
 //      const char*         pString,
-//      const std::string& rString
+//      const string& rString
 //          Ways to specify the new result string.
 // NOTE:
 //     Tcl_SetResult is called with a deletproc of TCL_VOLATILE
@@ -353,7 +355,7 @@ CTCLResult::operator+=(const char* pString)
 // 
 // Formal Parameters:
 //     const char*         pString,
-//     const std::string& rString:
+//     const string& rString:
 //        Different ways to pass the string.
 // Returns 
 //    Reference to self to support chaining.
@@ -397,7 +399,7 @@ CTCLResult::AppendElement(const char* pString)
 //
 // Formal Parameters:
 //      const char*         pString,
-//      const std::string& rString
+//      const string& rString
 //         Different ways to specify the input string.
 // 
 
@@ -426,17 +428,17 @@ CTCLResult::operator const char*()
 //////////////////////////////////////////////////////////////////////////
 //
 //  Function:   
-//      operator std::string (  )
+//      operator string (  )
 //  Operation Type:
 //     Type conversion
 //
   
-CTCLResult::operator std::string() 
+CTCLResult::operator string() 
 {
 // Returns an STL string containing a copy
 // of the result string.
 
-  return std::string(operator const char*());
+  return string(operator const char*());
 
 }
 //////////////////////////////////////////////////////////////////////////

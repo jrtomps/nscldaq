@@ -147,8 +147,7 @@ unsigned long lm_size[BT_MAX_UNITS+1] = {
 };
 
 MODULE_PARM(lm_size,"0-" __MODULE_STRING(BT_MAX_UNITS) "l");
-MODULE_PARM_DESC(lm_size, "Per unit array given the size of the local memory 
-device. Default " __MODULE_STRING(DEFAULT_LMEM_SIZE) ".");
+MODULE_PARM_DESC(lm_size, "Per unit array given the size of the local memory device. Default " __MODULE_STRING(DEFAULT_LMEM_SIZE) ".");
 
 MODULE_AUTHOR("SBS Technologies, Inc.");
 MODULE_DESCRIPTION("Device driver for SBS Technologies Connectivity Products PCI-VMEbus adapters.");

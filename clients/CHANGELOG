@@ -133,3 +133,4 @@ Week of November 8:
     - Incorporate Wiener driver into the build.
     - Port VMEApi        -> 3.x using feature variables to select which
                             interface gets built.
+    - Port libTCLPlus    - > 3.x using feature variables.

@@ -273,7 +273,7 @@ THIRD PARTIES OR A FAILURE OF THE PROGRAM TO OPERATE WITH ANY OTHER PROGRAMS),
 EVEN IF SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH 
 DAMAGES.
 
-		     END OF TERMS AND CONDITIONS
+		     END OF TERMS AND CONDITIONS '
 */
 static const char* Copyright= "(C) Copyright Michigan State University 1936, All rights reserved";//
 //  TCLApplication.cpp
@@ -301,6 +301,8 @@ static const char* Copyright= "(C) Copyright Michigan State University 1936, All
 //
 ///////////////////////////////////////////////////////////////////////////
 
+#include <config.h>
+
 #define TCLAPPLICATION_IMPL
 #include "TCLApplication.h"
 #include "TCLInterpreter.h"
@@ -308,6 +310,10 @@ static const char* Copyright= "(C) Copyright Michigan State University 1936, All
 #include <assert.h>
 #include <tcl.h>
 #include <tk.h>
+
+#ifdef HAVE_STD_NAMESPACE
+using namespace std;
+#endif
 
 static char* pCopyright =
 "TCLApplication.cpp - (c) Copyright NSCL 1999, all rights reserved\n";
