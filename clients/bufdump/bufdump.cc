@@ -273,7 +273,7 @@ THIRD PARTIES OR A FAILURE OF THE PROGRAM TO OPERATE WITH ANY OTHER PROGRAMS),
 EVEN IF SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH 
 DAMAGES.
 
-		     END OF TERMS AND CONDITIONS
+		     END OF TERMS AND CONDITIONS '
 */
 static const char* Copyright= "(C) Copyright Michigan State University 2002, All rights reserved";
 // Assumptions:
@@ -281,11 +281,11 @@ static const char* Copyright= "(C) Copyright Michigan State University 2002, All
 //   Buffers tagged type 3 are control buffers.
 //   We want them all.. unsampled for now.
 //
-
+#include <config.h>
 #include <stdlib.h>
 #include <stdio.h>
-#include <iostream.h>
-#include <iomanip.h>
+#include <Iostream.h>
+#include <Iomanip.h>
 #include <buftypes.h>
 #include <daqdatatypes.h>
 #include <buffer.h>
@@ -294,6 +294,11 @@ static const char* Copyright= "(C) Copyright Michigan State University 2002, All
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
+
+#ifdef HAVE_STD_NAMESPACE
+using namespace std;
+#endif
+
 
 #ifndef SPECTRODAQ_H
 #include <spectrodaq.h>
@@ -384,8 +389,11 @@ class DAQBuff : public DAQROCNode {
       // From now on we can operate on the local copy of the buffer.
       
       {
-	DAQString process;
-	process << "dumper - piping fd=" << fileno(stdout);
+	char titlestring[1000];
+	sprintf(titlestring, "dumper - piping fd=%d", fileno(stdout));
+	DAQString process(titlestring);
+
+
 	SetProcessTitle(process);
       }
       struct bheader* pHeader = (struct bheader*)pLocalBuffer;
