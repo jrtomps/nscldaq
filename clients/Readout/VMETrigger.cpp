@@ -291,6 +291,12 @@ static const char* Copyright= "(C) Copyright Michigan State University 2002, All
 //
 /* Change log:
       $Log$
+      Revision 4.3  2004/12/07 15:20:21  ron-fox
+      - Fix some CVS errors with the wiener driver.
+      - Re create the autotools based build for the wiener driver stuff.
+      - Actually check that we can compile the stuff selecting the wiener
+        vme device
+
       Revision 4.2  2004/11/16 18:51:37  ron-fox
       Port to gcc/g++ 3.x
 
@@ -355,8 +361,10 @@ using namespace std;
 CVMETrigger::CVMETrigger(CCaenIO* pTrigger) :
   m_rTriggerModule(*pTrigger)
 {
+#ifdef HAVE_VME_MAPPING
   m_pTriggerRegister = (volatile UShort_t*)m_rTriggerModule.getInputPointer();
   m_pPulseRegister   = (volatile UShort_t*)m_rTriggerModule.getPulsedOutputPointer();
+#endif
 }
 
 /*!
@@ -393,6 +401,7 @@ CVMETrigger::Disable()
 bool
 CVMETrigger::Check()
 {
+#ifdef HAVE_VME_MAPPING
   volatile register UShort_t* pTriggerRegister(m_pTriggerRegister);
   //  for(int i =0; i < 10; i++) {  // unroll loop:
     if(*pTriggerRegister & 1) return true;
@@ -406,6 +415,9 @@ CVMETrigger::Check()
     if(*pTriggerRegister & 1) return true;
     if(*pTriggerRegister & 1) return true;
     if(*pTriggerRegister & 1) return true;
+#else 
+    return m_rTriggerModule.ReadInput(0);
+#endif
     // }
   return false;
 }
@@ -417,6 +429,10 @@ indicate that the trigger has been accepted.
 void
 CVMETrigger::Clear()
 {
+#ifdef HAVE_VME_MAPPING
   *m_pPulseRegister = 4;
+#else
+  m_rTriggerModule.PulseOutput(3);
+#endif
 
 }

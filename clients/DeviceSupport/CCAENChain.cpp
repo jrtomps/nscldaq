@@ -280,6 +280,12 @@ DAMAGES.
 /*
   Revision history:
   $Log$
+  Revision 4.3  2004/12/07 15:20:21  ron-fox
+  - Fix some CVS errors with the wiener driver.
+  - Re create the autotools based build for the wiener driver stuff.
+  - Actually check that we can compile the stuff selecting the wiener
+    vme device
+
   Revision 4.2  2004/11/16 15:24:48  ron-fox
   - Port to the gnu 3.x compiler set.
   - Integrate buid of tests.
@@ -304,7 +310,9 @@ DAMAGES.
 #include "CCAENChain.h"
 #include "CAENcard.h"
 #include <CVMEInterface.h>
+#ifdef HAVE_SBSVME_INTERFACE
 #include <SBSBit3API.h>
+#endif
 
 #ifdef HAVE_STD_NAMESPACE
 using namespace std;
@@ -408,8 +416,10 @@ CCAENChain::CCAENChain(int nFirstSlot, int nLastSlot,
 
   try {
     m_pHandle = CVMEInterface::Open(CVMEInterface::CBLT, nCrate);
+#ifdef HAVE_SBSVME_INTERFACE
     CSBSBit3VmeInterface::SetDMABlockTransfer(m_pHandle, true);
     CSBSBit3VmeInterface::SetDMAThreshold(m_pHandle, DMA_THRESHOLD);
+#endif
   }
   catch (...) {
     FreeModules();
@@ -498,8 +508,10 @@ CCAENChain::ReadEvent(void* pBuffer)
     // See if reopening fixes this (ugghhh).
     CVMEInterface::Close(m_pHandle);
     m_pHandle = CVMEInterface::Open(CVMEInterface::CBLT, m_nCrate);
+#ifdef HAVE_SBSVME_INTERFACE
     CSBSBit3VmeInterface::SetDMABlockTransfer(m_pHandle, true);
     CSBSBit3VmeInterface::SetDMAThreshold(m_pHandle, DMA_THRESHOLD);    
+#endif
     throw;			// But re-report the error.
   }
 

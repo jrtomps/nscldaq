@@ -1,3 +1,4 @@
+o
 # Process this file with autoconf to produce a configure script.
 AC_INIT(CopyrightTools/CopyrightNotice.cpp)
 AC_CONFIG_AUX_DIR(config)
@@ -375,8 +376,8 @@ case "$vmeinterface" in
 	   
 	   # definitions written into user skeleton makefiles:
 
-	VMELIBRARYHEADERS="-I$prefix/include"
-	VMELIBRARY="-L$prefix/lib -lbtp"
+	VMELIBRARYHEADERS="-I\$(prefix)/include"
+	VMELIBRARY="-L\$(prefix)/lib -lbtp"
 	AC_DEFINE(HAVE_SBSVME_INTERFACE,"1",[VME interface is sbs/bit3])
 	
      ;;
@@ -390,8 +391,8 @@ case "$vmeinterface" in
 
 	# Definitions written into the user skeleton makefiles:
 
-	VMELIBRARYHEADERS="-I$prefix/include"
-	VMELIBRARY="-L$prefix/lib -lpcivme"
+	VMELIBRARYHEADERS="-I\$(prefix)/include"
+	VMELIBRARY="-L\$(prefix)/lib -lpcivme"
 
 	AC_DEFINE(HAVE_WIENERVME_INTERFACE,"1",[VME Interface is Wiener])
 

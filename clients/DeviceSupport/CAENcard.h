@@ -278,6 +278,12 @@ DAMAGES.
 /*
   Change Log:
   $Log$
+  Revision 4.3  2004/12/07 15:20:21  ron-fox
+  - Fix some CVS errors with the wiener driver.
+  - Re create the autotools based build for the wiener driver stuff.
+  - Actually check that we can compile the stuff selecting the wiener
+    vme device
+
   Revision 4.2  2004/11/16 15:24:48  ron-fox
   - Port to the gnu 3.x compiler set.
   - Integrate buid of tests.
@@ -383,7 +389,7 @@ class CAENcard {
 #ifdef HAVE_VME_MAPPING
   volatile unsigned short* m_pModule;	//!< Pointer to module data (not prom).
 #else
-  CVMEModule* m_pModule;
+  CVmeModule* m_pModule;
 #endif
   long   m_nCardType;          //!< Type of card (filled in at MapCard)
   void*  m_nFd;			//!< File desc. open on VME.

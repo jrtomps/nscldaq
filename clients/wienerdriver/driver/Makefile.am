@@ -29,3 +29,4 @@ install-data-local:
 	echo Redistributed under their GPL license.
 	install -m 0744 pcivme.o \
 	         /lib/modules
+	install -m 0744 pcivme_load /lib/modules

@@ -16,7 +16,7 @@ SHELL = /bin/sh
 srcdir = .
 top_srcdir = ../..
 
-prefix = /scratch/fox/daq/8.0
+prefix = /usr/local
 exec_prefix = ${prefix}
 
 bindir = ${exec_prefix}/bin
@@ -63,12 +63,12 @@ AR = ar
 AS = @AS@
 AWK = gawk
 CAMAC = -DCESCAMAC
-CC = cc
-CPP = cc -E
+CC = gcc
+CPP = gcc -E
 CPPUNIT_INCLUDES = 
-CPPUNIT_LDFLAGS = -lcppunit
-CXX = c++
-CXXCPP = c++ -E
+CPPUNIT_LDFLAGS = 
+CXX = g++
+CXXCPP = g++ -E
 DLLTOOL = @DLLTOOL@
 DOXYGEN = /usr/bin/doxygen
 DVIPS = /usr/bin/dvips
@@ -101,31 +101,32 @@ RANLIB = ranlib
 RC = @RC@
 SMP_FLAG = -D__SMP__
 SOVERSION = 8:0
-SPECTRODAQ_FLAGS = -D_REENTRANT=1 -I/scratch/fox/spectrodaq/test/include -I/scratch/fox/spectrodaq/test/include/nscl -I/scratch/fox/spectrodaq/test/include/xmloop
-SPECTRODAQ_LDFLAGS = -lpthread -L/scratch/fox/spectrodaq/test/lib -lnetio -ldaqclient -lspectrodaq -ldaqthreads -lxmloop -lxmlparse -lxmltok -lpthread -lcrypt -L/scratch/fox/spectrodaq/test/lib -lNSCLException
+SPECTRODAQ_FLAGS = -D_REENTRANT=1 -I/usr/opt/spectrodaq/include -I/usr/opt/spectrodaq/include/nscl -I/usr/opt/spectrodaq/include/xmloop
+SPECTRODAQ_LDFLAGS = -lpthread -L/usr/opt/spectrodaq/lib -lnetio -ldaqclient -lspectrodaq -ldaqthreads -lxmloop -lxmlparse -lxmltok -lpthread -lcrypt -L/usr/opt/spectrodaq/lib -lNSCLException
 STRIP = strip
-TCL_FLAGS = -I/usr/include/tcl8.4
+TCL_FLAGS = -I/usr/include/tcl8.4/
 TCL_LDFLAGS = -L/usr/lib -ltk  -ltcl
 TCL_STUBFLAGS = -L/usr/lib -ltclstub
 TK_STUBFLAGS = -L/usr/lib  -ltkstub
 VERSION = 8.0
-VMEBUILDHEADERS = -I/scratch/fox/daq/8.0/btdriver/include
-VMEBUILDLIBS = -L/scratch/fox/daq/8.0/btdriver/lib -lbtp
-VMEDEVICE = SBSBIT3
-VMELIBRARY = -L/scratch/fox/daq/8.0/lib -lbtp
-VMELIBRARYHEADERS = -I/scratch/fox/daq/8.0/include
-VME_DRIVERDIR = btdriver
+VMEBUILDHEADERS = -I/scratch/fox/daq/8.0/wienerdriver/lib
+VMEBUILDLIBS = -L/scratch/fox/daq/8.0/wienerdriver/lib -lpcivme
+VMEDEVICE = WIENER
+VMELIBRARY = -L$(prefix)/lib -lpcivme
+VMELIBRARYHEADERS = -I$(prefix)/include
+VME_DRIVERDIR = wienerdriver
 X11INCS =  -I/usr/X11R6/include
 X11LIBS =  -L/usr/X11R6/lib  -lXm -lXt -lX11
-spectrodaq_conf_dir = /scratch/fox/spectrodaq/test//bin
+spectrodaq_conf_dir = /usr/opt/spectrodaq/bin
 
 lib_LTLIBRARIES = libpcivme.la
+
 libpcivme_la_SOURCES = pcivme_ni.c
 
-libpcivme_la_LDFLAGS = -version-info $(SOVERSION):0
-INCLUDES = -I. -pedantic -Wall -Wstrict-prototypes
-
 include_HEADERS = pcivme_ni.h
+
+libpcivme_la_LDFLAGS = -version-info $(SOVERSION):0
+INCLUDES = -I.
 mkinstalldirs = $(SHELL) $(top_srcdir)/config/mkinstalldirs
 CONFIG_HEADER = ../../config.h
 CONFIG_CLEAN_FILES = 

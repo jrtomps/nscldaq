@@ -313,10 +313,12 @@ CNimout::CNimout(UInt_t base) :
   CVmeModule(CVmeModule::a16d16, base, LENGTH),
   m_pStrobeRegister(0)
 {
+#ifdef HAVE_VME_MAPPING
   CVME<UShort_t> space = getCVME();    // Get address space
   m_pBase            = (UShort_t*)space.getgenptr(0);
   m_pStrobeRegister  = &(m_pBase[STROBE]);
   m_pControlRegister =  &(m_pBase[CONTROL]);
+#endif
 }
 
 

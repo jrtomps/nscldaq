@@ -279,6 +279,12 @@ DAMAGES.
 /*
   Change Log:
   $Log$
+  Revision 4.3  2004/12/07 15:20:21  ron-fox
+  - Fix some CVS errors with the wiener driver.
+  - Re create the autotools based build for the wiener driver stuff.
+  - Actually check that we can compile the stuff selecting the wiener
+    vme device
+
   Revision 4.2  2004/11/16 15:24:48  ron-fox
   - Port to the gnu 3.x compiler set.
   - Integrate buid of tests.
@@ -1528,7 +1534,7 @@ void CAENcard::MapCard()
    if(m_fGeo) {                              // Transition to A32...
      // Set the address registers of the module so that it will
      // recognize at m_nSlot << 24:
-#ifdef WienerVME
+#ifndef HAVE_VME_MAPPING
       m_pModule->pokew(m_nSlot, ShortOffset(Registers, HighAddress));
       m_pModule->pokew(0,       ShortOffset(Registers, LowAddress));
 #else
@@ -1543,7 +1549,7 @@ void CAENcard::MapCard()
      //destroy GEO24 mmap and file descriptor
      // Now remap using A32 addressing:
 
-#ifdef WienerVME
+#ifndef HAVE_VME_MAPPING
      delete m_pModule;
      m_pModule = new CVmeModule(CVmeModule::a32d32, (long)m_nSlot << 24,
 			      CAEN_REGISTERSIZE);
@@ -1691,7 +1697,7 @@ CAENcard::SetCBLTChainMembership(int cbltaddr,
 #else
   m_pModule->pokew(mask,       ShortOffset(Registers, MCSTControl));
   m_pModule->pokew(cbltaddr,   ShortOffset(Registers, MCSTAddress));
-  m_pModule->pokew(CTLBERRENA, ShortOffset(Registers, Control1);
+  m_pModule->pokew(CTL1BERRENA, ShortOffset(Registers, Control1));
 #endif
 }
 /*!
@@ -1719,7 +1725,7 @@ CAENcard::Busy()
   volatile Registers* pReg = (volatile Registers*)m_pModule;
   return ((pReg->Status1 & BUSY) != 0);
 #else
-  short mask = m_pModule-peekw(ShortOffset(Registers, Status1));
+  short mask = m_pModule->peekw(ShortOffset(Registers, Status1));
   return ((mask & BUSY) != 0);
 #endif
 }

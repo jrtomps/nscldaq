@@ -279,9 +279,15 @@ DAMAGES.
 #include "CCAENV830.h"
 #include "CCAENV820Registers.h"
 #include <CVMEInterface.h>
+
+#ifdef HAVE_WIENERVME_INTERFACE
+#include <WienerAPI.h>
+#endif
+
 #include <string>
 #include <stdio.h>
 #include <string.h>
+
 
 #ifdef HAVE_STD_NAMESPACE
 using namespace std;

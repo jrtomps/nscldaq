@@ -19,6 +19,7 @@
 
 extern "C" {
 
+
 #ifndef __SBS_BTDEF_H
 #include <btdef.h>
 #define __SBS_BTDEF_H
