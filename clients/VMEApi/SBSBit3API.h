@@ -69,7 +69,7 @@ public:
 
   // Direct interfaces to the bt interface:
 
-  static void         ResetVme(void* pHandle);
+  static void         ResetVme(void* pHandle); //!< Reset VME bus.
 };
 
 

@@ -293,6 +293,9 @@ static const char* Copyright= "(C) Copyright Michigan State University 2002, All
 
      Change Log:
      $Log$
+     Revision 3.2  2003/09/16 12:57:45  ron-fox
+     Inconsequential change (comment).
+
      Revision 3.1  2003/03/22 04:04:04  ron-fox
      Added SBS/Bit3 device driver.
 
@@ -1264,7 +1267,7 @@ CSBSBit3VmeInterface::GetTraceMask(void* pHandle)
   CheckError(p, err, "CSBSBit3VmeInterface::GetTraceMask Failed");
   return Result;
 }
-/* 
+/*! 
 
     Does a sysreset on the VME bus.  This can be done to return devices
     on the VME bus to a known state.  Note that this function has \em very 
