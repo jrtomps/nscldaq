@@ -295,7 +295,7 @@ private:
 public:
 	// Constructors, destructors and other cannonical operations: 
 
-    CNSCLResumeBuffer (unsigned nWords); //!< Default constructor.
+    CNSCLResumeBuffer (unsigned nWords = 4096); //!< Default constructor.
      ~ CNSCLResumeBuffer ( ) { } //!< Destructor.
 private:
     CNSCLResumeBuffer(const CNSCLResumeBuffer& rhs); //!< Copy constructor.

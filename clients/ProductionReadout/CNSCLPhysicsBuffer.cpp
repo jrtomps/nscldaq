@@ -306,7 +306,11 @@ DAQWordBufferPtr
 CNSCLPhysicsBuffer::StartEvent()  
 {
   m_EventStartPtr = StartEntity(); // Start the buffer entity.
-  return m_EventStartPtr + 1;	// Reserve space for the event counter.
+  DAQWordBufferPtr p = m_EventStartPtr;
+  p++;
+  return p;
+  
+  //  return m_EventStartPtr + 1;	// Reserve space for the event counter.
 
 }  
 

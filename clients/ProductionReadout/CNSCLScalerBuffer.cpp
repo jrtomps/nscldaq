@@ -283,8 +283,8 @@ static const char* Copyright = "(C) Copyright Michigan State University 2002, Al
 
 // Manifest constants:
 
-static const int offLENDTIME = 17; // End of interval rel to run start.
-static const int offUNUSED1  = 19; // 3 words unused
+static const int offLENDTIME = 16; // End of interval rel to run start.
+static const int offUNUSED1  = 18; // 3 words unused
 static const int offLBEGTIME = 21; // Begin of interval rel to run start.
 static const int offUNUSED2  = 23; // 3 more unused words.
 static const int offSCALERS  = 26; // Where the scalers start.

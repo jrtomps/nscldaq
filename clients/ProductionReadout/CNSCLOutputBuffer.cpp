@@ -283,6 +283,9 @@ static const char* Copyright = "(C) Copyright Michigan State University 2002, Al
       
       Modification History:
       $Log$
+      Revision 3.2  2003/08/22 18:38:43  ron-fox
+      Fix errors in buffer formatting (bug 71)
+
       Revision 3.1  2003/03/22 04:03:05  ron-fox
       Added SBS/Bit3 device driver.
 
@@ -804,26 +807,23 @@ CNSCLOutputBuffer::InitializeHeader()
   // Initialize the header to known and where possible sensible
   // initial values:
 
-  m_Buffer[hdrWSIZE]   = 0;
-  m_Buffer[hdrWTYPE]   = 0;
-  m_Buffer[hdrWCKS]    = 0;
+  // Take unused and unknown and set them to zero
+
+  for(int i =0; i < BODYOFFSET; i++) {
+    m_Buffer[i] = 0;
+  }
+
+  // initialize the words we know.
+
   longbuffer.l         = m_nSequence;
   m_Buffer[hdrLSEQ]    = longbuffer.w[0];
   m_Buffer[hdrLSEQ+1]  = longbuffer.w[1];
-  m_Buffer[hdrWENTITY] = 0;
-  m_Buffer[hdrWUNUSED1]= 0;
   m_Buffer[hdrWBUFFMT] = REVLEVEL;
   m_Buffer[hdrWSIG]    = SSIGNATURE;
   longbuffer.l         = LSIGNATURE;
   m_Buffer[hdrLSIG]    = longbuffer.w[0];
   m_Buffer[hdrLSIG+1]  = longbuffer.w[1];
 
-  // Zero the unused fields of the header only.
-
-  m_Buffer[hdrWUNUSED1] = 0;  
-  m_Buffer[hdrWUNUSED2] = 0;
-  m_Buffer[hdrWUNUSED3] = 0;
-  m_Buffer[hdrWUNUSED3+1] = 0;
 
 
 }

@@ -280,6 +280,9 @@ DAMAGES.
 
 Modification History:
 $Log$
+Revision 3.2  2003/08/22 18:38:43  ron-fox
+Fix errors in buffer formatting (bug 71)
+
 Revision 3.1  2003/03/22 04:03:07  ron-fox
 Added SBS/Bit3 device driver.
 
@@ -301,6 +304,11 @@ Misc. stuff
                                
 #ifndef __CNSCLOUTPUTBUFFER_H
 #include "CNSCLOutputBuffer.h"
+#endif
+
+
+#ifndef __SPECTRODAQ_H
+#include <spectrodaq.h>
 #endif
                                
 /*!
@@ -328,7 +336,7 @@ public:
 	// Constructors, destructors and other cannonical operations: 
 
     CNSCLPhysicsBuffer (unsigned nWords = 4096); //!< Default constructor.
-     ~ CNSCLPhysicsBuffer ( ) { } //!< Destructor.
+    virtual ~ CNSCLPhysicsBuffer ( ) { } //!< Destructor.
 private:
     CNSCLPhysicsBuffer& operator= (const CNSCLPhysicsBuffer& rhs); //!< Assignment
     int         operator==(const CNSCLPhysicsBuffer& rhs) const; //!< Comparison for equality.

@@ -286,7 +286,7 @@ static const char* Copyright = "(C) Copyright Michigan State University 2002, Al
 static unsigned int offBTITLE = 16;
 static unsigned int offLTIME  = 56;
 static unsigned int offSBFTIME= 58;
-
+static unsigned int BufferSize(offSBFTIME + 8);
 /*!
    Default constructor.  This is called when declarations of the form e.g.:
    -  CNSCLControlBuffer  object;
@@ -305,7 +305,7 @@ CNSCLControlBuffer::CNSCLControlBuffer (unsigned int nWords=4096) :
 /*!
     Puts the title string in the buffer:
     - If the title string is less than 79 characters
-      it is null padded.
+      it is blank padded.
     - If the  title string is more than 79 characters
       it is truncated.
     - The 80'th character of the title string will always
@@ -320,6 +320,8 @@ CNSCLControlBuffer::PutTitle(const string& rTitle)
 {
   Seek(offBTITLE);
   PutString(rTitle.c_str(), 80); // Insert the title string.
+  Seek(BufferSize);
+
 }  
 
 /*!
@@ -335,6 +337,7 @@ CNSCLControlBuffer::PutTimeOffset(unsigned long nTime)
 {
   Seek(offLTIME);
   PutLong(nTime);
+  Seek(BufferSize);
 }
 /*!
   Put the current time in the buffer in NSCL DAQ format.
@@ -355,5 +358,5 @@ CNSCLControlBuffer::SetTime()
   PutWord(st.tm_min);
   PutWord(st.tm_sec);
   PutWord(0);			// Unix doesnt' give up 1/10'ths.
-
+  Seek(BufferSize);
 }
