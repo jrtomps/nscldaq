@@ -1,7 +1,7 @@
 SUBDIRS = $(VME_DRIVERDIR) \
 	Headers CopyrightTools Exception PortManager TCL Security Ftp \
 	VMEApi cvt SpecTclOnline DeviceSupport\
-	Readout diskrun EventLog Scaler  \
+	Readout HPReadout diskrun EventLog Scaler  \
 	vmetcl  \
 	bufdump TclServer bcnaf TcpHoister Stager Scripts framework \
 	AlarmDisplay LogDisplay ProductionReadout  \
