@@ -294,6 +294,11 @@ static const char* Copyright= "(C) Copyright Michigan State University 2002, All
 //
 /* Change log:
       $Log$
+      Revision 2.2  2003/02/26 13:46:29  ron-fox
+      Actually the only real change is to CAMACBusy.cpp which has been modified
+      to not set the readout busy during scaler readouts.  Triggers will come
+      in normally, during scaler readout and latch the busy at that time.
+
       Revision 2.1  2003/02/11 16:44:10  ron-fox
       Retag to version 2.1 to remove the weird branch I accidently made.
 
@@ -419,7 +424,7 @@ CCAMACBusy::ModuleClear()
 void
 CCAMACBusy::ScalerSet()
 {
-  Set();			// Takes care of chan a and nimout.
+  //  Set();			// Takes care of chan a and nimout.
   camctl(nBranch, nCrate, nGateSlot, 1, 25);
 
 }
