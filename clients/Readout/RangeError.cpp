@@ -273,7 +273,7 @@ THIRD PARTIES OR A FAILURE OF THE PROGRAM TO OPERATE WITH ANY OTHER PROGRAMS),
 EVEN IF SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH 
 DAMAGES.
 
-		     END OF TERMS AND CONDITIONS
+		     END OF TERMS AND CONDITIONS '
 */
 
 
@@ -295,10 +295,20 @@ DAMAGES.
 //
 // Header Files:
 //
-
+#include <config.h>
 
 #include "RangeError.h"                               
 #include <stdio.h>
+#ifdef HAVE_STD_NAMESPACE
+using namespace std;
+#endif
+
+#ifndef __STDC_ASSERT_H
+#include <assert.h>
+#ifndef __STDC_ASSERT_H
+#define __STDC_ASSERT_H
+#endif
+#endif
 
 static const char* Copyright = 
 "CRangeError.cpp: Copyright 1999 NSCL, All rights reserved\n";

@@ -273,7 +273,7 @@ THIRD PARTIES OR A FAILURE OF THE PROGRAM TO OPERATE WITH ANY OTHER PROGRAMS),
 EVEN IF SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH 
 DAMAGES.
 
-		     END OF TERMS AND CONDITIONS
+		     END OF TERMS AND CONDITIONS '
 */
 //  DebugState.h:
 //
@@ -298,19 +298,19 @@ DAMAGES.
 #endif                          // a class. 
                                
 #ifndef _CRTL_IOSTREAM_H
-#include <iostream.h>		//Required for include files, eg <CList.h>
+#include <Iostream.h>		//Required for include files, eg <CList.h>
 #define _CRTL_IOSTREAM_H
 #endif
                                                                
 class DebugState  : public State        
 {
 private:
-  ostream& m_Stream;		// Stream to which logs go.
+  STD(ostream)& m_Stream;		// Stream to which logs go.
   State&   m_State;		// State we encapsulate.
   
 public:
 
-  DebugState (State& rState,  ostream& rStream = cerr )       
+  DebugState (State& rState,  STD(ostream)& rStream = STD(cerr) )       
   :   m_Stream (rStream),
       m_State(rState) 
   {}
@@ -331,7 +331,7 @@ public:
   //Get accessor function for attribute
 
 protected:
-  ostream& getStream()
+  STD(ostream)& getStream()
   {
     return m_Stream;
   }

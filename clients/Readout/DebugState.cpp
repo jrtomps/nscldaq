@@ -273,7 +273,7 @@ THIRD PARTIES OR A FAILURE OF THE PROGRAM TO OPERATE WITH ANY OTHER PROGRAMS),
 EVEN IF SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH 
 DAMAGES.
 
-		     END OF TERMS AND CONDITIONS
+		     END OF TERMS AND CONDITIONS '
 */
 
 //  DebugState.cpp
@@ -296,9 +296,13 @@ DAMAGES.
 // Header Files:
 //
 
+#include <config.h>
 #include "DebugState.h"                               
 #include "StateMachine.h"	// Since header only defines fw class ref.
 #include <string>		// Need string STL class too.
+#ifdef HAVE_STD_NAMESPACE
+using namespace std;
+#endif
 
 static const char* Copyright= 
 "DebugState.cpp: Copyright 1999 NSCL, All rights reserved\n";

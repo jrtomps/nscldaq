@@ -14,6 +14,9 @@
 //
 /* Change log:
       $Log$
+      Revision 4.2  2004/11/16 18:51:37  ron-fox
+      Port to gcc/g++ 3.x
+
       Revision 4.1  2004/11/08 17:37:40  ron-fox
       bring to mainline
 
@@ -48,7 +51,12 @@
 //
 
 */
+#include <config.h>
 #include "VMEBusy.h"
+#ifdef HAVE_STD_NAMESPACE
+using namespace std;
+#endif
+
 
 /*!
   Construct an object;  The NIMOUT and CAENIO module are saved

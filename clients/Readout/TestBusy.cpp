@@ -273,7 +273,7 @@ THIRD PARTIES OR A FAILURE OF THE PROGRAM TO OPERATE WITH ANY OTHER PROGRAMS),
 EVEN IF SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH 
 DAMAGES.
 
-		     END OF TERMS AND CONDITIONS
+		     END OF TERMS AND CONDITIONS '
 */
 static const char* Copyright= "(C) Copyright Michigan State University 2002, All rights reserved";/*!
    \file TestBusy.cpp
@@ -293,6 +293,9 @@ static const char* Copyright= "(C) Copyright Michigan State University 2002, All
 //
 /* Change log:
       $Log$
+      Revision 4.2  2004/11/16 18:51:37  ron-fox
+      Port to gcc/g++ 3.x
+
       Revision 4.1  2004/11/08 17:37:40  ron-fox
       bring to mainline
 
@@ -327,7 +330,12 @@ static const char* Copyright= "(C) Copyright Michigan State University 2002, All
 //
 
 */
+#include <config.h>
 #include "TestBusy.h"
+
+#ifdef HAVE_STD_NAMESPACE
+using namespace std;
+#endif
 
 /*!
    Initialize the busy subsystem

@@ -273,7 +273,7 @@ THIRD PARTIES OR A FAILURE OF THE PROGRAM TO OPERATE WITH ANY OTHER PROGRAMS),
 EVEN IF SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH 
 DAMAGES.
 
-		     END OF TERMS AND CONDITIONS
+		     END OF TERMS AND CONDITIONS '
 */
 
 //  RecordingBufferPointer.cpp
@@ -299,7 +299,7 @@ DAMAGES.
 // Header Files:
 //
 
-
+#include <config.h>
 #include "RecordingBufferPointer.h"                               
 #include <string>
 #include <sys/types.h>
@@ -308,6 +308,9 @@ DAMAGES.
 #include <fcntl.h>
 #include <unistd.h>
 #include <errno.h>
+#ifdef HAVE_STD_NAMESPACE
+using namespace std;
+#endif
 
 #ifndef TRUE
 #define TRUE -1

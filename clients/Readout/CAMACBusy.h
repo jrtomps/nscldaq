@@ -273,7 +273,7 @@ THIRD PARTIES OR A FAILURE OF THE PROGRAM TO OPERATE WITH ANY OTHER PROGRAMS),
 EVEN IF SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH 
 DAMAGES.
 
-		     END OF TERMS AND CONDITIONS
+		     END OF TERMS AND CONDITIONS '
 */
 /*!
   Defines the CAMACBusy class.  This class manages the computer busy and
@@ -307,6 +307,9 @@ DAMAGES.
 //
 /* Change log:
       $Log$
+      Revision 4.2  2004/11/16 18:51:36  ron-fox
+      Port to gcc/g++ 3.x
+
       Revision 4.1  2004/11/08 17:37:39  ron-fox
       bring to mainline
 

@@ -273,7 +273,7 @@ THIRD PARTIES OR A FAILURE OF THE PROGRAM TO OPERATE WITH ANY OTHER PROGRAMS),
 EVEN IF SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH 
 DAMAGES.
 
-		     END OF TERMS AND CONDITIONS
+		     END OF TERMS AND CONDITIONS '
 */
 //
 //
@@ -313,7 +313,7 @@ DAMAGES.
 #endif
 
 #ifndef _CPP_IOSTREAM_H
-#include <iostream>
+#include <Iostream.h>
 #define _CPP_IOSTREAM_H
 #endif
 
@@ -336,8 +336,8 @@ class StateMachine
 {
 				// Class attributes.
 public:
-  typedef map<string, unsigned, less<string> > IdDictionary;
-  typedef map<unsigned, Transition*, less<unsigned> > TransitionList;
+  typedef STD(map)<STD(string), unsigned, STD(less)<STD(string)> > IdDictionary;
+  typedef STD(map)<unsigned, Transition*, STD(less)<unsigned> > TransitionList;
 private:
   IdDictionary m_StateDictionary;  // Lookup dictionary of state names 
 				   // to state ID's.			    
@@ -347,8 +347,8 @@ private:
 				// from zero.
   unsigned      m_nNextStateId;	// Next state id (number from zero).
   State* m_CurrentState;
-  vector<State*>          m_StateList;    // List of state objects.
-  vector<TransitionList>  m_aTransitions; // List of transitions for each state
+  STD(vector)<State*>          m_StateList;    // List of state objects.
+  STD(vector)<TransitionList>  m_aTransitions; // List of transitions for each state
   
 public:
 			//Default constructor
@@ -400,25 +400,25 @@ protected:
 public:
   State*      GetCurrentStatePtr() { return m_CurrentState; }
   unsigned    GetCurrentState ()  ;
-  string      StateToName (unsigned nStateId)  const;
-  int         NameToState (const string& rName)  const;
-  string      EventIdToName (unsigned nEvent)  const;
-  int         NameToEventId (const string& rName)  const;
+  STD(string) StateToName (unsigned nStateId)  const;
+  int         NameToState (const STD(string)& rName)  const;
+  STD(string) EventIdToName (unsigned nEvent)  const;
+  int         NameToEventId (const STD(string)& rName)  const;
 
 				// Operations:
 public:
 
   State* Stimulate (unsigned nEventId)  ;
-  bool AddState (State* pNewState, const string& rStateName)  ;
-  bool AddEvent (const string& rEventName)  ;
+  bool AddState (State* pNewState, const STD(string)& rStateName)  ;
+  bool AddEvent (const STD(string)& rEventName)  ;
   bool DefineTransition (unsigned nOldStateId, // Define transition using
 			   unsigned nEventId,    // IDs.
 			   unsigned nNewStateId)  ;
-  bool DefineTransition(const string& OldStateName,	 // Def Transitions 
-			  const string& EventName,     //  using Names.
-			  const string& NewStateName);
-  bool ReadTransitionTable (istream& fStream=cin)  ;
-  void DumpTransitionTable   (ostream& fOutput=cout);
+  bool DefineTransition(const STD(string)& OldStateName,	 // Def Transitions 
+			  const STD(string)& EventName,     //  using Names.
+			  const STD(string)& NewStateName);
+  bool ReadTransitionTable (STD(istream)& fStream=STD(cin))  ;
+  void DumpTransitionTable   (STD(ostream)& fOutput=STD(cout));
 
   //
   //  Overridable members:

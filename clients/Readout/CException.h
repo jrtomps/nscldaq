@@ -273,7 +273,7 @@ THIRD PARTIES OR A FAILURE OF THE PROGRAM TO OPERATE WITH ANY OTHER PROGRAMS),
 EVEN IF SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH 
 DAMAGES.
 
-		     END OF TERMS AND CONDITIONS
+		     END OF TERMS AND CONDITIONS '
 */
 //  CException.h:
 //
@@ -318,7 +318,7 @@ public:
 			//Constructors with arguments
 
   CException (const char* pszAction  );
-  CException (const std::string& rsAction);
+  CException (const STD(string)& rsAction);
   
 			//Copy constructor
 
@@ -347,7 +347,7 @@ public:
 
 protected:
   void setAction (const char* pszAction);
-  void setAction (const std::string& rsAction);
+  void setAction (const STD(string)& rsAction);
 
   // Selectors which depend on the actual exception type:
 
