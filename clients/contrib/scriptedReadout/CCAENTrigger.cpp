@@ -275,154 +275,54 @@ DAMAGES.
 
 		     END OF TERMS AND CONDITIONS
 */
-//  CRangeError.h:
-//
-//    This file defines the CRangeError class.
-//
-// Author:
-//    Ron Fox
-//    NSCL
-//    Michigan State University
-//    East Lansing, MI 48824-1321
-//    mailto:fox@nscl.msu.edu
-//
-//  Copyright 1999 NSCL, All Rights Reserved.
-//
-/////////////////////////////////////////////////////////////
+#include "CCAENTrigger.h"
+#include <CAENcard.h>
 
-/********************** WARNING - this file is obsolete, include 
-                        CrangeError.h from now on
+/*!
+   Construct a CCAENTrigger module. The only thing
+   needed here is to initialize our member data:
+   \param pTrigger (CAENcard* [in]):
+       pointer to the CAENcard to use as the trigger.
+       The trigger happens when the card's DReady
+       is true, indicating at least on event in the MEB.
 */
-
-
-#ifndef __CRANGEERROR_H  //Required for current class
-#define __CRANGEERROR_H
-                               //Required for base classes
-#ifndef __CEXCEPTION_H
-#include "Exception.h"
-#endif                             
-#ifndef __STL_STRING
-#include <string>
-#define __STL_STRING
-#endif  
-                               
-class CRangeError  : public CException        
+CCAENTrigger::CCAENTrigger(CAENcard* pTrigger) :
+  m_pTriggerModule(pTrigger)
 {
-  Int_t m_nLow;			// Lowest allowed value for range (inclusive).
-  Int_t m_nHigh;		// Highest allowed value for range.
-  Int_t m_nRequested;		// Actual requested value which is outside
-				// of the range.
-  std::string m_ReasonText;            // Reason text will be built up  here.
-public:
-  //   The type below is intended to allow the client to categorize the
-  //   exception:
-
-  enum {
-    knTooLow,			// CRangeError::knTooLow  - below m_nLow
-    knTooHigh			// CRangeError::knTooHigh - above m_nHigh
-  };
-			//Constructors with arguments
-
-  CRangeError (  Int_t nLow,  Int_t nHigh,  Int_t nRequested,
-		 const char* pDoing) :       
-    CException(pDoing),
-    m_nLow (nLow),  
-    m_nHigh (nHigh),  
-    m_nRequested (nRequested)
-  { UpdateReason(); }
-  CRangeError(Int_t nLow, Int_t nHigh, Int_t nRequested,
-	  const std::string& rDoing) :
-    CException(rDoing),
-    m_nLow(nLow),
-    m_nHigh(nHigh),
-    m_nRequested(nRequested)
-  { UpdateReason(); }
-  virtual ~ CRangeError ( ) { }       //Destructor
-
-			//Copy constructor
-
-  CRangeError (const CRangeError& aCRangeError )   : 
-    CException (aCRangeError) 
-  {
-    m_nLow = aCRangeError.m_nLow;
-    m_nHigh = aCRangeError.m_nHigh;
-    m_nRequested = aCRangeError.m_nRequested;
-    UpdateReason();
-  }                                     
-
-			//Operator= Assignment Operator
-
-  CRangeError operator= (const CRangeError& aCRangeError)
-  { 
-    if (this != &aCRangeError) {
-      CException::operator= (aCRangeError);
-      m_nLow = aCRangeError.m_nLow;
-      m_nHigh = aCRangeError.m_nHigh;
-      m_nRequested = aCRangeError.m_nRequested;
-      UpdateReason();
-    }
-
-    return *this;
-  }                                     
-
-			//Operator== Equality Operator
-
-  int operator== (const CRangeError& aCRangeError)
-  { 
-    return (
-	    (CException::operator== (aCRangeError)) &&
-	    (m_nLow == aCRangeError.m_nLow) &&
-	    (m_nHigh == aCRangeError.m_nHigh) &&
-	    (m_nRequested == aCRangeError.m_nRequested) 
-	    );
-  }
-  // Selectors - Don't use these unless you're a derived class
-  //             or you need some special exception type specific
-  //             data.  Generic handling should be based on the interface
-  //             for CException.
-public:                             
-
-  Int_t getLow() const
-  {
-    return m_nLow;
-  }
-  Int_t getHigh() const
-  {
-    return m_nHigh;
-  }
-  Int_t getRequested() const
-  {
-    return m_nRequested;
-  }
-  // Mutators - These can only be used by derived classes:
-
-protected:
-  void setLow (Int_t am_nLow)
-  { 
-    m_nLow = am_nLow;
-    UpdateReason();
-  }
-  void setHigh (Int_t am_nHigh)
-  { 
-    m_nHigh = am_nHigh;
-    UpdateReason();
-  }
-  void setRequested (Int_t am_nRequested)
-  { 
-    m_nRequested = am_nRequested;
-    UpdateReason();
-  }
-  //
-  //  Interfaces implemented from the CException class.
-  //
-public:                    
-  virtual   const char* ReasonText () const  ;
-  virtual   Int_t ReasonCode () const  ;
- 
-  // Protected utilities:
-  //
-protected:
-  void UpdateReason();
-};
-
-#endif
+}
+/*!
+  Initialize the trigger (A no-op for us):
+*/
+void
+CCAENTrigger::Initialize() {}
+/*!
+   Enable the trigger to accept events a no-op for
+   us as we assume the module will be enabled to take
+   data anyway by other parts of the system.
+*/
+void 
+CCAENTrigger::Enable()
+{}
+/*!
+  Disable the trigger from accepting data.
+  This is a no-op since the assumption is that
+  other parts of the code will be disabling the module
+  as a matter of course.
+*/
+void
+CCAENTrigger::Disable() {}
+/*!
+  Check the trigger for data.
+  \return true if a trigger has occured.
+*/
+bool
+CCAENTrigger::Check()
+{
+  return m_pTriggerModule->dataPresent();
+}
+/*!
+   Clear a trigger also a no-op as the process of reading
+   this module out will do any necessary clearing.
+*/
+void
+CCAENTrigger::Clear() {}

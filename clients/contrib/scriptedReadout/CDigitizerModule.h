@@ -275,154 +275,180 @@ DAMAGES.
 
 		     END OF TERMS AND CONDITIONS
 */
-//  CRangeError.h:
-//
-//    This file defines the CRangeError class.
-//
 // Author:
-//    Ron Fox
-//    NSCL
-//    Michigan State University
-//    East Lansing, MI 48824-1321
-//    mailto:fox@nscl.msu.edu
+//   Ron Fox
+//   NSCL
+//   Michigan State University
+//   East Lansing, MI 48824-1321
+//   mailto:fox@nscl.msu.edu
 //
-//  Copyright 1999 NSCL, All Rights Reserved.
+// Copyright 
+
+#ifndef __CDIGITIZERMODULE_H  //Required for current class
+#define __CDIGITIZERMODULE_H
+
 //
-/////////////////////////////////////////////////////////////
+// Include files:
+//
+#ifndef __TCLPROCESSOR_H
+#include <TCLProcessor.h>
+#endif
+                               //Required for 1:1 association classes
+#ifndef __CCONFIGURATIONPARAMETER_H
+#include "CConfigurationParameter.h"
+#endif
+ 
+#ifndef __STL_LIST
+#include <list>
+#define __STL_LIST
+#endif
 
-/********************** WARNING - this file is obsolete, include 
-                        CrangeError.h from now on
-*/
-
-
-#ifndef __CRANGEERROR_H  //Required for current class
-#define __CRANGEERROR_H
-                               //Required for base classes
-#ifndef __CEXCEPTION_H
-#include "Exception.h"
-#endif                             
 #ifndef __STL_STRING
 #include <string>
 #define __STL_STRING
-#endif  
-                               
-class CRangeError  : public CException        
+#endif
+
+#ifndef __SPECTRODAQ_H
+#include <spectrodaq.h>
+#define __SPECTRODAQ_H
+#endif
+
+// Forward class definitions:
+
+
+
+/*!
+Encapsulates a digitizer module.  This function has two roles.
+- Configuration management
+- Data Acquisition
+
+Configuration management is handled by
+deriving from CTCLProcessor.  The object represents
+a new TCL command m_sName.  The default parser
+for this command is able to handle three subcommands:
+- config  Sets up the module dependent configuration.
+- cget     Shows the module dependent configuration, or
+              a subset thereof.
+- help     Shows the module's command help.
+
+Data acquisition is done via the member functions called
+by the readout harness of the software:
+- Initialize: performs one-time beginning of run initialization
+  from the configuration parameters set by the config command.
+- Prepare does preparation required +to enable a device to be triggered
+  and readout.  This is done prior to each trigger.
+- Read reads the digitizer's contribution to the event.
+- Clear does any post readout module cleanup.
+*/
+class CDigitizerModule : public CTCLProcessor     
 {
-  Int_t m_nLow;			// Lowest allowed value for range (inclusive).
-  Int_t m_nHigh;		// Highest allowed value for range.
-  Int_t m_nRequested;		// Actual requested value which is outside
-				// of the range.
-  std::string m_ReasonText;            // Reason text will be built up  here.
-public:
-  //   The type below is intended to allow the client to categorize the
-  //   exception:
-
-  enum {
-    knTooLow,			// CRangeError::knTooLow  - below m_nLow
-    knTooHigh			// CRangeError::knTooHigh - above m_nHigh
-  };
-			//Constructors with arguments
-
-  CRangeError (  Int_t nLow,  Int_t nHigh,  Int_t nRequested,
-		 const char* pDoing) :       
-    CException(pDoing),
-    m_nLow (nLow),  
-    m_nHigh (nHigh),  
-    m_nRequested (nRequested)
-  { UpdateReason(); }
-  CRangeError(Int_t nLow, Int_t nHigh, Int_t nRequested,
-	  const std::string& rDoing) :
-    CException(rDoing),
-    m_nLow(nLow),
-    m_nHigh(nHigh),
-    m_nRequested(nRequested)
-  { UpdateReason(); }
-  virtual ~ CRangeError ( ) { }       //Destructor
-
-			//Copy constructor
-
-  CRangeError (const CRangeError& aCRangeError )   : 
-    CException (aCRangeError) 
-  {
-    m_nLow = aCRangeError.m_nLow;
-    m_nHigh = aCRangeError.m_nHigh;
-    m_nRequested = aCRangeError.m_nRequested;
-    UpdateReason();
-  }                                     
-
-			//Operator= Assignment Operator
-
-  CRangeError operator= (const CRangeError& aCRangeError)
-  { 
-    if (this != &aCRangeError) {
-      CException::operator= (aCRangeError);
-      m_nLow = aCRangeError.m_nLow;
-      m_nHigh = aCRangeError.m_nHigh;
-      m_nRequested = aCRangeError.m_nRequested;
-      UpdateReason();
-    }
-
-    return *this;
-  }                                     
-
-			//Operator== Equality Operator
-
-  int operator== (const CRangeError& aCRangeError)
-  { 
-    return (
-	    (CException::operator== (aCRangeError)) &&
-	    (m_nLow == aCRangeError.m_nLow) &&
-	    (m_nHigh == aCRangeError.m_nHigh) &&
-	    (m_nRequested == aCRangeError.m_nRequested) 
-	    );
-  }
-  // Selectors - Don't use these unless you're a derived class
-  //             or you need some special exception type specific
-  //             data.  Generic handling should be based on the interface
-  //             for CException.
-public:                             
-
-  Int_t getLow() const
-  {
-    return m_nLow;
-  }
-  Int_t getHigh() const
-  {
-    return m_nHigh;
-  }
-  Int_t getRequested() const
-  {
-    return m_nRequested;
-  }
-  // Mutators - These can only be used by derived classes:
-
-protected:
-  void setLow (Int_t am_nLow)
-  { 
-    m_nLow = am_nLow;
-    UpdateReason();
-  }
-  void setHigh (Int_t am_nHigh)
-  { 
-    m_nHigh = am_nHigh;
-    UpdateReason();
-  }
-  void setRequested (Int_t am_nRequested)
-  { 
-    m_nRequested = am_nRequested;
-    UpdateReason();
-  }
-  //
-  //  Interfaces implemented from the CException class.
-  //
-public:                    
-  virtual   const char* ReasonText () const  ;
-  virtual   Int_t ReasonCode () const  ;
+  // Class specific types: for the arrays of parameters.
+public:  
+  typedef list<CConfigurationParameter*> ConfigArray;
+  typedef ConfigArray::iterator          ParameterIterator;
  
-  // Protected utilities:
-  //
+private:
+  
+  string      m_sName;           //!< name of module.  
+  ConfigArray m_Configuration;   //!< Boolean flags.
+ 
+public:
+
+//   Construtors and other canonical operations.
+
+  CDigitizerModule (const string& rName,
+                    CTCLInterpreter& rInterp); 
+  virtual ~CDigitizerModule ( );
+  // Copy like operations are illegal, and therefore
+  // so is equality testing.  This requirement comes from
+  // our base class.
+private:
+  CDigitizerModule (const CDigitizerModule& rhs );
+  CDigitizerModule& operator= (const CDigitizerModule& rhs);
+  int operator== (const CDigitizerModule& rhs) const;
+  int operator!= (const CDigitizerModule& rhs) const;
+public:
+// Selectors:
+
+public:
+
+          //Get accessor function for non-static attribute data member
+  string getName() const
+  { return m_sName;
+  }   
+
+  const ConfigArray& getConfiguration() const 
+  {
+    return m_Configuration;
+  }
+  
+  // Attribute mutators:
+
 protected:
-  void UpdateReason();
+
+          //Set accessor function for non-static attribute data member
+  void setName (const string am_sName)
+  {
+    m_sName = am_sName;
+  }   
+
+
+
+  // Class operations:
+
+public:
+
+  virtual   int operator() (CTCLInterpreter& rInterp, 
+                            CTCLResult&      rResult, 
+                            int nArgs, char** pArgs)   ; 
+  virtual   int Configure (CTCLInterpreter& rInterp, 
+                           CTCLResult&      rResult, 
+                           int nArgs, char** pArgs)   ;  
+  virtual   int ListConfiguration (CTCLInterpreter& rInterp, 
+                                   CTCLResult&      rResult, 
+                                   int nArgs, char** pArgs);
+  virtual   string Usage (); 
+  virtual   void Initialize ()   = 0;
+  virtual   void Prepare ()   = 0; 
+  virtual   void Read (DAQWordBufferPtr& rBuffer)   = 0; //!< Read to DAQ buf.
+  virtual   int  Read(void* pBuffer) = 0;                //!< Read to ordinary buf.
+  virtual   void Clear ()   = 0; 
+  void AddIntParam (const string& sParamName,
+                    int nDefault = 0);
+  void AddIntArrayParam (const string& rParamName, 
+                         int nArraySize,
+                         int nDefault = 0);
+  void AddBoolParam (const string& rName,
+                     bool fDefault = false); 
+
+  void AddStringParam(const string& rName);
+
+  void AddStringArrayParam(const string& rName,
+			   int nArraySize);
+
+  ParameterIterator begin() {
+    return m_Configuration.begin();
+  }
+  ParameterIterator end() {
+    return m_Configuration.end();
+  }
+  ParameterIterator Find(const string& rKeyword);
+  ParameterIterator Find(const char*   pKeyword) {
+    return Find(string(pKeyword));
+  }
+  
+  virtual string getType() const = 0;
+
+
+// private utility functions.
+  
+private:
+  void DeleteParameters();
+protected:
+  string ListParameters(CTCLInterpreter& rInterp,
+                      const string& rPattern);
+  string ListKeywords();
+
 };
 
 #endif

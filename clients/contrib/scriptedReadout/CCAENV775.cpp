@@ -275,154 +275,152 @@ DAMAGES.
 
 		     END OF TERMS AND CONDITIONS
 */
-//  CRangeError.h:
-//
-//    This file defines the CRangeError class.
-//
-// Author:
-//    Ron Fox
-//    NSCL
-//    Michigan State University
-//    East Lansing, MI 48824-1321
-//    mailto:fox@nscl.msu.edu
-//
-//  Copyright 1999 NSCL, All Rights Reserved.
-//
-/////////////////////////////////////////////////////////////
+static const char* Copyright = "(C) Copyright Ron Fox 2002, All rights reserved";
+////////////////////////// FILE_NAME.cpp /////////////////////////////////////////////////////
+#include "CCAENV775.h"    
+#include "CIntConfigParam.h"
+#include "CIntArrayParam.h"
+#include "CBoolConfigParam.h"
+#include "CAENcard.h"
+#include <spectrodaq.h>
+#include <assert.h>
+#include <iostream.h>
 
-/********************** WARNING - this file is obsolete, include 
-                        CrangeError.h from now on
+// constants:
+
+static const int CHANNELS(32);
+static const int DEFAULTRANGE(500);
+static const float RANGELOW(140.0);
+static const float RANGEHIGH(1200.0);
+static const float RANGERES(256.0);
+static const float RANGECHANPERNS(RANGERES/(RANGEHIGH-RANGELOW));
+
+static const int WAITLOOPS(10);
+
+/*!
+  Construct a CAEN V775 multievent TDC module.  The underlying card is not
+  constructed until initialization time... in order to give
+  the user a chance to configure the module first. This is 
+  necessary because one of the key confuration parameters is
+  the slot. 
+     In addition to constructing our base class, it is
+  necessary to register our configuration parameters.
+  
+  \param rName const string& [in]  The name ofthis module.
 */
+CCAENV775::CCAENV775 (const string& rName, CTCLInterpreter& rInterp)
 
-
-#ifndef __CRANGEERROR_H  //Required for current class
-#define __CRANGEERROR_H
-                               //Required for base classes
-#ifndef __CEXCEPTION_H
-#include "Exception.h"
-#endif                             
-#ifndef __STL_STRING
-#include <string>
-#define __STL_STRING
-#endif  
-                               
-class CRangeError  : public CException        
-{
-  Int_t m_nLow;			// Lowest allowed value for range (inclusive).
-  Int_t m_nHigh;		// Highest allowed value for range.
-  Int_t m_nRequested;		// Actual requested value which is outside
-				// of the range.
-  std::string m_ReasonText;            // Reason text will be built up  here.
-public:
-  //   The type below is intended to allow the client to categorize the
-  //   exception:
-
-  enum {
-    knTooLow,			// CRangeError::knTooLow  - below m_nLow
-    knTooHigh			// CRangeError::knTooHigh - above m_nHigh
-  };
-			//Constructors with arguments
-
-  CRangeError (  Int_t nLow,  Int_t nHigh,  Int_t nRequested,
-		 const char* pDoing) :       
-    CException(pDoing),
-    m_nLow (nLow),  
-    m_nHigh (nHigh),  
-    m_nRequested (nRequested)
-  { UpdateReason(); }
-  CRangeError(Int_t nLow, Int_t nHigh, Int_t nRequested,
-	  const std::string& rDoing) :
-    CException(rDoing),
-    m_nLow(nLow),
-    m_nHigh(nHigh),
-    m_nRequested(nRequested)
-  { UpdateReason(); }
-  virtual ~ CRangeError ( ) { }       //Destructor
-
-			//Copy constructor
-
-  CRangeError (const CRangeError& aCRangeError )   : 
-    CException (aCRangeError) 
-  {
-    m_nLow = aCRangeError.m_nLow;
-    m_nHigh = aCRangeError.m_nHigh;
-    m_nRequested = aCRangeError.m_nRequested;
-    UpdateReason();
-  }                                     
-
-			//Operator= Assignment Operator
-
-  CRangeError operator= (const CRangeError& aCRangeError)
-  { 
-    if (this != &aCRangeError) {
-      CException::operator= (aCRangeError);
-      m_nLow = aCRangeError.m_nLow;
-      m_nHigh = aCRangeError.m_nHigh;
-      m_nRequested = aCRangeError.m_nRequested;
-      UpdateReason();
-    }
-
-    return *this;
-  }                                     
-
-			//Operator== Equality Operator
-
-  int operator== (const CRangeError& aCRangeError)
-  { 
-    return (
-	    (CException::operator== (aCRangeError)) &&
-	    (m_nLow == aCRangeError.m_nLow) &&
-	    (m_nHigh == aCRangeError.m_nHigh) &&
-	    (m_nRequested == aCRangeError.m_nRequested) 
-	    );
-  }
-  // Selectors - Don't use these unless you're a derived class
-  //             or you need some special exception type specific
-  //             data.  Generic handling should be based on the interface
-  //             for CException.
-public:                             
-
-  Int_t getLow() const
-  {
-    return m_nLow;
-  }
-  Int_t getHigh() const
-  {
-    return m_nHigh;
-  }
-  Int_t getRequested() const
-  {
-    return m_nRequested;
-  }
-  // Mutators - These can only be used by derived classes:
-
-protected:
-  void setLow (Int_t am_nLow)
-  { 
-    m_nLow = am_nLow;
-    UpdateReason();
-  }
-  void setHigh (Int_t am_nHigh)
-  { 
-    m_nHigh = am_nHigh;
-    UpdateReason();
-  }
-  void setRequested (Int_t am_nRequested)
-  { 
-    m_nRequested = am_nRequested;
-    UpdateReason();
-  }
-  //
-  //  Interfaces implemented from the CException class.
-  //
-public:                    
-  virtual   const char* ReasonText () const  ;
-  virtual   Int_t ReasonCode () const  ;
+  : CCAENModule(rName, rInterp)
  
-  // Protected utilities:
-  //
-protected:
-  void UpdateReason();
-};
+{   
+  // Setup our configuration parameters:
+  
 
-#endif
+  AddIntParam(string("range"), DEFAULTRANGE);
+  
+  // For all the int params and intarray params, we need
+  // to set valid ranges.  This  must be done by locating the
+  // parameters and calling setRange.  Since we have just
+  // inserted all these parameters, for Find not to locate
+  // them is fatal and signalled via an assert.
+  
+  ParameterIterator i;
+  CIntConfigParam*  pInt;
+  CIntArrayParam*   pArray;
+  
+  // The full scale range must be  in the range [140,1200]
+  
+  i = Find("range");
+  assert(i != end());
+  pInt = (CIntConfigParam*)*i;
+  pInt->setRange(140, 1200);
+  
+
+} 
+
+/*!
+  Destructor, destroys the underlying card.   Note that
+  to delete a null pointer is a no-op so we can 
+  safely delete the pointer whether it exists or not.
+*/
+ CCAENV775::~CCAENV775 ( )  //Destructor - Delete dynamic objects
+{
+
+}
+
+/*!
+  Performs module dependent initialization. 
+  - If the module exists, delete it and remake it.
+    This allows a module's slot to be reconfigured.
+  - The module is configured according to the parameters.
+    that have been set.
+  Not being able to locate a configuration parameter 
+  considered a fatal error since we put those parameters 
+  in in the constructor.  This error will be signalled via
+  a failed assertion.
+*/
+void 
+CCAENV775::Initialize()   
+{ 
+
+  CCAENModule::Initialize();
+
+  // Now only have to do the range.
+
+  ParameterIterator  i;
+  CIntConfigParam*   pInt;
+  
+  i = Find(string("range"));
+  assert(i != end());
+  pInt = (CIntConfigParam*) *i;
+  int nRange = pInt->getOptionValue();  // ns.
+  float rangeval = ((float)nRange)*RANGECHANPERNS;
+  int   nRangeVal = (int)(rangeval + 0.5);
+  getCard()->setRange(nRangeVal);
+  
+}  
+
+/*!
+   This function is called on a per event basis to prepare
+  the module to accept the next trigger. For the CAEN 
+  modules, no action is required.
+*/
+void 
+CCAENV775::Prepare()  
+{ 
+  CCAENModule::Prepare();
+}  
+
+/*!
+
+Reads out the section of the event
+that is contributed by this module.
+
+\param rBuffer CWordBufferptr& [modified]
+          Pointer like object to the buffer.
+          Data is read to where rBuffer 'points'.
+\return CWordBufferptr The buffer pointer after the
+          readout is complete.
+
+\note it's vaguely possible that this module
+    has not been instantiated (e.g. no slot).  In that
+    case, we silently ignore the readout.
+*/
+void
+CCAENV775::Read(DAQWordBufferPtr& rBuffer)  
+{ 
+  CCAENModule::Read(rBuffer);
+}  
+
+/*!  
+
+  Called to clear data in the module prior to the
+  first readout.
+
+*/
+void 
+CCAENV775::Clear()  
+{ 
+  CCAENModule::Clear();
+}
+

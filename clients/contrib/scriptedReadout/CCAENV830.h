@@ -275,154 +275,158 @@ DAMAGES.
 
 		     END OF TERMS AND CONDITIONS
 */
-//  CRangeError.h:
-//
-//    This file defines the CRangeError class.
-//
-// Author:
-//    Ron Fox
-//    NSCL
-//    Michigan State University
-//    East Lansing, MI 48824-1321
-//    mailto:fox@nscl.msu.edu
-//
-//  Copyright 1999 NSCL, All Rights Reserved.
-//
-/////////////////////////////////////////////////////////////
 
-/********************** WARNING - this file is obsolete, include 
-                        CrangeError.h from now on
-*/
+#ifndef __CCAENV820_H
+#define __CCAENV820_H
 
-
-#ifndef __CRANGEERROR_H  //Required for current class
-#define __CRANGEERROR_H
-                               //Required for base classes
-#ifndef __CEXCEPTION_H
-#include "Exception.h"
-#endif                             
 #ifndef __STL_STRING
 #include <string>
 #define __STL_STRING
-#endif  
-                               
-class CRangeError  : public CException        
+#endif
+
+#ifndef __SPECTRODAQ_H
+#include <spectrodaq.h>
+#endif
+
+#ifndef __VMEMODULE_H
+#include <VmeModule.h>
+#endif
+
+#ifndef CCAENV820
+#define CCAENV820 CCAENV830	// V820/V830 -- same class.
+#endif
+
+// Forward definitions:
+
+
+
+/*!
+   Encapsulates the readout driver for a CCAENV820 scaler.
+   In this case the scaler is intended to be readout as part of an
+
+
+*/
+
+class CCAENV830
 {
-  Int_t m_nLow;			// Lowest allowed value for range (inclusive).
-  Int_t m_nHigh;		// Highest allowed value for range.
-  Int_t m_nRequested;		// Actual requested value which is outside
-				// of the range.
-  std::string m_ReasonText;            // Reason text will be built up  here.
+  // Class types:
 public:
-  //   The type below is intended to allow the client to categorize the
-  //   exception:
+  typedef enum _TriggerMode {
+    Disabled,
+    Random,
+    Periodic
+  } TriggerMode;
 
-  enum {
-    knTooLow,			// CRangeError::knTooLow  - below m_nLow
-    knTooHigh			// CRangeError::knTooHigh - above m_nHigh
-  };
-			//Constructors with arguments
+  // Class data.
+private:
+  int                m_nCrate;
+  int                m_nSlot;
+  int                m_nEventLength; // Computed from settings.
+  int                m_nBase;	     // Module base address.  
+  CVmeModule*        m_pModule;
+  int                m_nModuleType;
+  int                m_nSerialno;
+  int                m_nFirmware;
+  bool               m_fGeo;
+  
+  // Constructors and other canonical operations:
 
-  CRangeError (  Int_t nLow,  Int_t nHigh,  Int_t nRequested,
-		 const char* pDoing) :       
-    CException(pDoing),
-    m_nLow (nLow),  
-    m_nHigh (nHigh),  
-    m_nRequested (nRequested)
-  { UpdateReason(); }
-  CRangeError(Int_t nLow, Int_t nHigh, Int_t nRequested,
-	  const std::string& rDoing) :
-    CException(rDoing),
-    m_nLow(nLow),
-    m_nHigh(nHigh),
-    m_nRequested(nRequested)
-  { UpdateReason(); }
-  virtual ~ CRangeError ( ) { }       //Destructor
+public:
+  CCAENV830(int slot,
+	    int crate = 0,
+	    bool geo = true,
+	    unsigned long base = 0) throw (string);
 
-			//Copy constructor
+  ~CCAENV830();
 
-  CRangeError (const CRangeError& aCRangeError )   : 
-    CException (aCRangeError) 
-  {
-    m_nLow = aCRangeError.m_nLow;
-    m_nHigh = aCRangeError.m_nHigh;
-    m_nRequested = aCRangeError.m_nRequested;
-    UpdateReason();
-  }                                     
+  // Outlawed functions:
+private:
+  CCAENV830 (const CCAENV830& rhs );
+  CCAENV830& operator= (const CCAENV830& rhs);
+  int operator== (const CCAENV830& rhs) const;
+  int operator!= (const CCAENV830& rhs) const;
+public:
 
-			//Operator= Assignment Operator
 
-  CRangeError operator= (const CRangeError& aCRangeError)
-  { 
-    if (this != &aCRangeError) {
-      CException::operator= (aCRangeError);
-      m_nLow = aCRangeError.m_nLow;
-      m_nHigh = aCRangeError.m_nHigh;
-      m_nRequested = aCRangeError.m_nRequested;
-      UpdateReason();
-    }
+  // Selectors:
 
-    return *this;
-  }                                     
+public:
 
-			//Operator== Equality Operator
-
-  int operator== (const CRangeError& aCRangeError)
-  { 
-    return (
-	    (CException::operator== (aCRangeError)) &&
-	    (m_nLow == aCRangeError.m_nLow) &&
-	    (m_nHigh == aCRangeError.m_nHigh) &&
-	    (m_nRequested == aCRangeError.m_nRequested) 
-	    );
+  int getCrate() const {
+    return m_nCrate;
   }
-  // Selectors - Don't use these unless you're a derived class
-  //             or you need some special exception type specific
-  //             data.  Generic handling should be based on the interface
-  //             for CException.
-public:                             
+  int getSlot() const {
+    return m_nSlot;
+  }
+  int getModuleType() const {
+    return m_nModuleType;
+  }
+  int getFirmware() const {
+    return m_nFirmware;
+  }
 
-  Int_t getLow() const
-  {
-    return m_nLow;
+  int getSerial() const {
+    return m_nSerialno;
   }
-  Int_t getHigh() const
-  {
-    return m_nHigh;
-  }
-  Int_t getRequested() const
-  {
-    return m_nRequested;
-  }
-  // Mutators - These can only be used by derived classes:
 
+  // mutators:
+
+  void setCrate(int crate) {
+    m_nCrate = crate;
+  }
+  void setSlot(int slot) {
+    m_nSlot = slot;
+  }
+  void setModuleType(int type) {
+    m_nModuleType = type;
+  }
+  void setFirmware(int fwRev) {
+    m_nFirmware = fwRev;
+  }
+
+
+  // Class operations.
+
+public:
+  void Enable(int nChannel) throw (string);
+  void Disable(int nChannel) throw (string);
+  void SetEnableMask(int nMask);
+  void SetDwellTime(int n400ns);
+  void SetTriggerMode(TriggerMode mode) throw (string);
+  void SetWide();
+  void SetNarrow();
+  void EnableHeader();
+  void DisableHeader();
+  void FPClearsMEB(bool state);
+  void EnableAutoReset();
+  void DisableAutoReset();
+  bool isDataReady();
+  bool isAlmostFull();
+  bool isFull();
+  bool isGlobalDready();
+  bool isGlobalBusy();
+  void Reset();
+  void Clear();
+  void Trigger();
+  void SetTriggerCounter(int n);
+  void SetAlmostFullLevel(int n);
+  int GetMEBEventCount();
+
+  int  ReadEvent(void* pBuffer);
+  int  ReadEvent(DAQWordBufferPtr& rBufferPtr);
+  int  ReadEvent(DAQWordBuffer&    rBuffer,
+		 int               nOffset);
+
+  int  ReadCounter(int nChannel);
+
+  // Utility functions:
 protected:
-  void setLow (Int_t am_nLow)
-  { 
-    m_nLow = am_nLow;
-    UpdateReason();
-  }
-  void setHigh (Int_t am_nHigh)
-  { 
-    m_nHigh = am_nHigh;
-    UpdateReason();
-  }
-  void setRequested (Int_t am_nRequested)
-  { 
-    m_nRequested = am_nRequested;
-    UpdateReason();
-  }
-  //
-  //  Interfaces implemented from the CException class.
-  //
-public:                    
-  virtual   const char* ReasonText () const  ;
-  virtual   Int_t ReasonCode () const  ;
- 
-  // Protected utilities:
-  //
-protected:
-  void UpdateReason();
+  void ComputeEventSize();
+  void MapModule() throw (string);
+  void InitModule();
+  void UnmapModule();
 };
+   
+
 
 #endif

@@ -275,154 +275,107 @@ DAMAGES.
 
 		     END OF TERMS AND CONDITIONS
 */
-//  CRangeError.h:
-//
-//    This file defines the CRangeError class.
-//
-// Author:
-//    Ron Fox
-//    NSCL
-//    Michigan State University
-//    East Lansing, MI 48824-1321
-//    mailto:fox@nscl.msu.edu
-//
-//  Copyright 1999 NSCL, All Rights Reserved.
-//
-/////////////////////////////////////////////////////////////
+#ifndef __CCAENV785_H  //Required for current class
+#define __CCAENV785_H
 
-/********************** WARNING - this file is obsolete, include 
-                        CrangeError.h from now on
-*/
+#ifndef __CDIGITIZERMODULE_H     //CDigitizerModule
+#include "CDigitizerModule.h"
+#endif
 
-
-#ifndef __CRANGEERROR_H  //Required for current class
-#define __CRANGEERROR_H
-                               //Required for base classes
-#ifndef __CEXCEPTION_H
-#include "Exception.h"
-#endif                             
 #ifndef __STL_STRING
 #include <string>
 #define __STL_STRING
-#endif  
-                               
-class CRangeError  : public CException        
+#endif
+
+#ifndef __SPECTRODAQ_H
+#include <spectrodaq.h>
+#define __SPECTRODAQ_H
+#endif
+
+#ifndef __CCAENMODULE_H
+#include "CCAENModule.h"
+#endif
+
+// Forward definitions:
+
+class CAENcard;
+
+  
+
+/*!
+  Encapsulates the CAEN 785 peak sensing adc. 
+this class is layered on top of Chris Maurice's 
+CAENcard class.  This  class supports the following 
+configuration keywords:
+  - slot      n  - n is the VME slot number holding the 
+                   VME card.
+  - threshold t[32]  - t are the 32 thresholds in mv. Value 
+                    will be computed taking into account 
+                    the full scale selection.
+  - keepunder b  - b is "on" or "off" depending on whether or not to keep
+                  data that does not make threshold.
+  - keepoverflow b - b is "on" or "off" depending on whether 
+                  or not to keep overflow data.
+  - keepinvalid b - b is "on" or "off" depending on whether 
+                  or not to keep data that is strobed in 
+                  when the module is busy resetting.
+  - card  b   - "on" to enable the card "off" to disable it.
+  - enable i[32] - 32 channel enables.  Nonzero is enabled, 
+                  zero disabled.
+  - multievent b - True to run the module in multievent mode.
+  in multievent mode, the module is note cleared after each readout 
+  in Prepare()
+*/
+class CCAENV785  : public CCAENModule
 {
-  Int_t m_nLow;			// Lowest allowed value for range (inclusive).
-  Int_t m_nHigh;		// Highest allowed value for range.
-  Int_t m_nRequested;		// Actual requested value which is outside
-				// of the range.
-  std::string m_ReasonText;            // Reason text will be built up  here.
+private:
+  
+  // Private Member data:
+
+  CAENcard* m_pCAENcard;  //!< Pointer to module driver.
+  bool      m_fMultiEvent; //!< true if multievent mode.
+
 public:
-  //   The type below is intended to allow the client to categorize the
-  //   exception:
+  // Construtors and other cannonical functions:
 
-  enum {
-    knTooLow,			// CRangeError::knTooLow  - below m_nLow
-    knTooHigh			// CRangeError::knTooHigh - above m_nHigh
-  };
-			//Constructors with arguments
+  CCAENV785(const string &rName, CTCLInterpreter& rInterp);
+ ~CCAENV785 ( );
+private:
+  CCAENV785 (const CCAENV785& aCCAENV785 );
+  CCAENV785& operator= (const CCAENV785& aCCAENV785);
+  int operator== (const CCAENV785& aCCAENV785) const;
+  int operator!=(const CCAENV785& rhs) const;
+public:
 
-  CRangeError (  Int_t nLow,  Int_t nHigh,  Int_t nRequested,
-		 const char* pDoing) :       
-    CException(pDoing),
-    m_nLow (nLow),  
-    m_nHigh (nHigh),  
-    m_nRequested (nRequested)
-  { UpdateReason(); }
-  CRangeError(Int_t nLow, Int_t nHigh, Int_t nRequested,
-	  const std::string& rDoing) :
-    CException(rDoing),
-    m_nLow(nLow),
-    m_nHigh(nHigh),
-    m_nRequested(nRequested)
-  { UpdateReason(); }
-  virtual ~ CRangeError ( ) { }       //Destructor
+// Selectors:
 
-			//Copy constructor
+public:
 
-  CRangeError (const CRangeError& aCRangeError )   : 
-    CException (aCRangeError) 
+CAENcard* getCard() 
   {
-    m_nLow = aCRangeError.m_nLow;
-    m_nHigh = aCRangeError.m_nHigh;
-    m_nRequested = aCRangeError.m_nRequested;
-    UpdateReason();
-  }                                     
+    return m_pCAENcard;
+  }   
 
-			//Operator= Assignment Operator
 
-  CRangeError operator= (const CRangeError& aCRangeError)
-  { 
-    if (this != &aCRangeError) {
-      CException::operator= (aCRangeError);
-      m_nLow = aCRangeError.m_nLow;
-      m_nHigh = aCRangeError.m_nHigh;
-      m_nRequested = aCRangeError.m_nRequested;
-      UpdateReason();
-    }
-
-    return *this;
-  }                                     
-
-			//Operator== Equality Operator
-
-  int operator== (const CRangeError& aCRangeError)
-  { 
-    return (
-	    (CException::operator== (aCRangeError)) &&
-	    (m_nLow == aCRangeError.m_nLow) &&
-	    (m_nHigh == aCRangeError.m_nHigh) &&
-	    (m_nRequested == aCRangeError.m_nRequested) 
-	    );
-  }
-  // Selectors - Don't use these unless you're a derived class
-  //             or you need some special exception type specific
-  //             data.  Generic handling should be based on the interface
-  //             for CException.
-public:                             
-
-  Int_t getLow() const
-  {
-    return m_nLow;
-  }
-  Int_t getHigh() const
-  {
-    return m_nHigh;
-  }
-  Int_t getRequested() const
-  {
-    return m_nRequested;
-  }
-  // Mutators - These can only be used by derived classes:
+  // Attribute mutators:
 
 protected:
-  void setLow (Int_t am_nLow)
-  { 
-    m_nLow = am_nLow;
-    UpdateReason();
+  void setCard (CAENcard* am_pCAENcard)
+  {
+    m_pCAENcard = am_pCAENcard;
+  }   
+
+  // Class operations:
+
+public:
+
+  virtual   void Initialize (); // 
+  virtual   void Prepare (); // 
+  virtual   void Read(DAQWordBufferPtr& rBuffer);
+  virtual   void Clear ();
+  virtual   string getType() const {     return string("caenv785");
   }
-  void setHigh (Int_t am_nHigh)
-  { 
-    m_nHigh = am_nHigh;
-    UpdateReason();
-  }
-  void setRequested (Int_t am_nRequested)
-  { 
-    m_nRequested = am_nRequested;
-    UpdateReason();
-  }
-  //
-  //  Interfaces implemented from the CException class.
-  //
-public:                    
-  virtual   const char* ReasonText () const  ;
-  virtual   Int_t ReasonCode () const  ;
- 
-  // Protected utilities:
-  //
-protected:
-  void UpdateReason();
+
 };
 
 #endif

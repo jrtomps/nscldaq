@@ -275,154 +275,451 @@ DAMAGES.
 
 		     END OF TERMS AND CONDITIONS
 */
-//  CRangeError.h:
-//
-//    This file defines the CRangeError class.
-//
-// Author:
-//    Ron Fox
-//    NSCL
-//    Michigan State University
-//    East Lansing, MI 48824-1321
-//    mailto:fox@nscl.msu.edu
-//
-//  Copyright 1999 NSCL, All Rights Reserved.
-//
-/////////////////////////////////////////////////////////////
+static const char* Copyright = "(C) Copyright Michigan State University 1977, All rights reserved";
 
-/********************** WARNING - this file is obsolete, include 
-                        CrangeError.h from now on
-*/
-
-
-#ifndef __CRANGEERROR_H  //Required for current class
-#define __CRANGEERROR_H
-                               //Required for base classes
-#ifndef __CEXCEPTION_H
-#include "Exception.h"
-#endif                             
-#ifndef __STL_STRING
+////////////////////////// FILE_NAME.cpp /////////////////////////////////////////////////////
+#include "CReadOrder.h"    				
+#include <spectrodaq.h>
 #include <string>
-#define __STL_STRING
-#endif  
-                               
-class CRangeError  : public CException        
+#include <algorithm>
+#include <TCLInterpreter.h>
+#include <TCLResult.h>
+#include <vector>
+#include "CModuleCommand.h"
+#include "CDigitizerModule.h"
+#include "CDigitizerDictionary.h"
+
+
+/*!
+	Constructor: Creates an instance of a CReadOrder class.
+	The constructor is a no-op as we are not descended from a base class
+	and STL takes care of intiailizing oure single attribute.
+*/
+CReadOrder::CReadOrder (CTCLInterpreter* pInterp,
+			CDigitizerDictionary* pDict,
+			const string& rCommand)  :
+	CTCLProcessor(rCommand, pInterp),
+	m_pModules(pDict)
+{  
+   Register();
+} 
+/*!
+Destructor: Destroys an instance of the CReadOrder class.  This is a no-op
+because the list destroys itself, and we assume that the creators of the
+modules will appropriately destroy then at some point.  It's also allowed for
+the modules to be statically defined.
+*/
+CReadOrder::~CReadOrder ( )  //Destructor - Delete dynamic objects
 {
-  Int_t m_nLow;			// Lowest allowed value for range (inclusive).
-  Int_t m_nHigh;		// Highest allowed value for range.
-  Int_t m_nRequested;		// Actual requested value which is outside
-				// of the range.
-  std::string m_ReasonText;            // Reason text will be built up  here.
-public:
-  //   The type below is intended to allow the client to categorize the
-  //   exception:
+}
 
-  enum {
-    knTooLow,			// CRangeError::knTooLow  - below m_nLow
-    knTooHigh			// CRangeError::knTooHigh - above m_nHigh
-  };
-			//Constructors with arguments
 
-  CRangeError (  Int_t nLow,  Int_t nHigh,  Int_t nRequested,
-		 const char* pDoing) :       
-    CException(pDoing),
-    m_nLow (nLow),  
-    m_nHigh (nHigh),  
-    m_nRequested (nRequested)
-  { UpdateReason(); }
-  CRangeError(Int_t nLow, Int_t nHigh, Int_t nRequested,
-	  const std::string& rDoing) :
-    CException(rDoing),
-    m_nLow(nLow),
-    m_nHigh(nHigh),
-    m_nRequested(nRequested)
-  { UpdateReason(); }
-  virtual ~ CRangeError ( ) { }       //Destructor
 
-			//Copy constructor
+// Functions for class CReadOrder
 
-  CRangeError (const CRangeError& aCRangeError )   : 
-    CException (aCRangeError) 
-  {
-    m_nLow = aCRangeError.m_nLow;
-    m_nHigh = aCRangeError.m_nHigh;
-    m_nRequested = aCRangeError.m_nRequested;
-    UpdateReason();
-  }                                     
+/*!
+Adds a module to the end of the readout list.
+\param pModule  CDigitizerModule* [in] The module to add.
 
-			//Operator= Assignment Operator
+*/
+void 
+CReadOrder::Add(CDigitizerModule* pModule)  
+{ 
+   m_ReadoutList.push_back(pModule);
+}  
 
-  CRangeError operator= (const CRangeError& aCRangeError)
-  { 
-    if (this != &aCRangeError) {
-      CException::operator= (aCRangeError);
-      m_nLow = aCRangeError.m_nLow;
-      m_nHigh = aCRangeError.m_nHigh;
-      m_nRequested = aCRangeError.m_nRequested;
-      UpdateReason();
-    }
+/*!  
+   Removes a module from the 
+   readout list.  The module is selected by an iterator:
+   
+   \param p  ModuleIterator [in]  'points' to the module to delete.  If end(),
+	    this function is a noop.
 
-    return *this;
-  }                                     
+*/
+void 
+CReadOrder::Remove(ModuleIterator p)  
+{ 
+   if(p != end()) {
+      m_ReadoutList.erase(p);
+   }
+}  
 
-			//Operator== Equality Operator
-
-  int operator== (const CRangeError& aCRangeError)
-  { 
-    return (
-	    (CException::operator== (aCRangeError)) &&
-	    (m_nLow == aCRangeError.m_nLow) &&
-	    (m_nHigh == aCRangeError.m_nHigh) &&
-	    (m_nRequested == aCRangeError.m_nRequested) 
-	    );
-  }
-  // Selectors - Don't use these unless you're a derived class
-  //             or you need some special exception type specific
-  //             data.  Generic handling should be based on the interface
-  //             for CException.
-public:                             
-
-  Int_t getLow() const
-  {
-    return m_nLow;
-  }
-  Int_t getHigh() const
-  {
-    return m_nHigh;
-  }
-  Int_t getRequested() const
-  {
-    return m_nRequested;
-  }
-  // Mutators - These can only be used by derived classes:
-
-protected:
-  void setLow (Int_t am_nLow)
-  { 
-    m_nLow = am_nLow;
-    UpdateReason();
-  }
-  void setHigh (Int_t am_nHigh)
-  { 
-    m_nHigh = am_nHigh;
-    UpdateReason();
-  }
-  void setRequested (Int_t am_nRequested)
-  { 
-    m_nRequested = am_nRequested;
-    UpdateReason();
-  }
-  //
-  //  Interfaces implemented from the CException class.
-  //
-public:                    
-  virtual   const char* ReasonText () const  ;
-  virtual   Int_t ReasonCode () const  ;
+/*!  Function: 	
  
-  // Protected utilities:
-  //
-protected:
-  void UpdateReason();
-};
+Inititializes the modules in the reaout chain.
 
-#endif
+*/
+void 
+CReadOrder::Initialize()  
+{
+    ModuleInitialize init;
+    for_each(begin(), end(), init);
+}  
+
+/*!  Function: 	
+  
+Prepares the modules in the readout chain.
+
+*/
+void 
+CReadOrder::Prepare()  
+{
+    ModulePrepare prepare;
+    for_each(begin(), end(), prepare);
+}  
+
+/*!
+Reads out the event.
+\param p  DAQWordBufferptr& [modified] Refers to the pointer to the buffer 
+      where the data will be stored.
+      
+\return DAQWordBufferPtr - Points past the end of the stuff that was just
+      read out.
+*/
+DAQWordBufferPtr 
+CReadOrder::Read(DAQWordBufferPtr& p)  
+{ 
+   ModuleIterator pM = begin();
+   while( pM != end()) {
+     CDigitizerModule* pModule = *pM;
+     pModule->Read(p);
+     pM++;
+   }
+   return p;
+}  
+/*!
+  Reads an event into an ordinary buffer.
+  \return the number of words read.
+*/
+int
+CReadOrder::Read(void* pBuf)
+{
+  ModuleIterator pM = begin();
+  char*          p((char*)pBuf);
+  int            nRead(0);
+
+  while(pM != end()) {
+    CDigitizerModule* pModule = *pM;
+    int nThisRead = pModule->Read(p);
+    p            += nThisRead;
+    nRead        += nThisRead/sizeof(short);
+    pM++;
+  }
+  return nRead;
+}
+/*!  
+Clears the modules in the readout list.
+
+*/
+void 
+CReadOrder::Clear()  
+{ 
+   ModuleClear clear;
+   for_each(begin(), end(), clear);
+}  
+
+/*!  
+
+Returns the number of modules in the readout chain.
+
+
+*/
+int 
+CReadOrder::size()  
+{ 
+   return m_ReadoutList.size();
+}  
+
+/*!  
+
+Returns a begin iterator for the module list.
+
+
+*/
+CReadOrder::ModuleIterator 
+CReadOrder::begin()  
+{ 
+   return m_ReadoutList.begin();
+}  
+
+/*!  
+Returns an end of iteration iterator for the
+digitizers in the digitizer list.
+
+
+*/
+CReadOrder::ModuleIterator 
+CReadOrder::end()  
+{ 
+   return m_ReadoutList.end();
+}
+/*!
+    Locates a module by name.
+    \param rName  const string& [in] Name of the module to locate.
+    \return An iterator to the module else end() if the module does not exist.
+*/
+CReadOrder::ModuleIterator
+CReadOrder::find(const string& rName)
+{
+   CompareName cname(rName);
+   return find_if(begin(), end(), cname);
+}
+
+/*!
+  Executes the readout command. This entry point just
+  figures out if the subcommand is:
+  - add - Dispatches to AddCommand
+  - remove - Dispatches to RemoveCommand.
+  - list - Dispatches to ListCommand.
+  
+  \param rInterp CTCLInterpreter& [in]  The interpreter that
+	is running this command.
+  \param rResult CTCLResult [ou] The result string that is
+	filled in by this command.
+   \param nArgc int [in] Number of command parameters,
+	 note that the 0'th is the command itsef.
+   \param pArgv char** [in] the parameters passed to the
+	    command. Note that pArgv[0] == "readout".
+   
+   \return int one of:
+   - TCL_OK - if everything worked ok.
+   - TCL_ERROR - If there was an error.  More than likely,
+     rResult will have error information.
+*/
+int
+CReadOrder::operator()(CTCLInterpreter& rInterp,
+		       CTCLResult&        rResult,
+		       int nArgc, char** pArgv)
+{
+   int nStatus = TCL_OK;
+   
+   // Skip the command keyword:
+   
+   nArgc--;
+   pArgv++;
+   
+   // All commands require at least one additional parameter:
+   
+   if(nArgc < 1) {
+      nStatus = TCL_ERROR;
+      rResult = Usage();
+   }
+   else {
+      // Dispatch to appropriate function:
+      
+      string SubCommand(*pArgv);
+      if(SubCommand == string("add")) {
+	 nStatus = AddCommand(rInterp, rResult, nArgc, pArgv);
+      }
+      else if (SubCommand == string("list")) {
+	 nStatus = ListCommand(rInterp, rResult, nArgc, pArgv);
+      }
+      else if (SubCommand == string("remove")) {
+	 nStatus = RemoveCommand(rInterp, rResult, nArgc, pArgv);
+      }
+      else {
+	 rResult = Usage();
+	 nStatus = TCL_ERROR;
+      }
+   }
+}
+/*!
+    processes subcommand to add a set of modules to the
+    readout list.  The modules to add are specified by name
+    on the command line. Adding the module list is an all or 
+    nothing proposotion.  Either all are aded or none.
+    \param rInterp CTCLInterpreter& [in] TCL interpreter that
+	  excecuted this command.
+    \param rResult CTCLResult& [out] The result string showing
+	  the final status of the command.
+    \param nArgc int [in] The number of parameters remaining
+	  on the command line.  The main command has been
+	 stripped off, but the subcommand is still in the
+	 list.
+    \param pArgv char** [in] The command parameters including the
+       subcommand keyword.
+   \return int status of the command:
+      - TCL_OK - The command worked fine.
+      - TCL_ERROR - There was a problem executing the command
+	    the reason for the error will be returned in 
+	    rResult.
+*/
+int 
+CReadOrder::AddCommand(CTCLInterpreter& rInterp,
+			   CTCLResult&       rResult,
+			   int nArgc, char** pArgv)
+{
+   int nStatus = TCL_OK;
+   
+   // Skip command keyword:
+   
+   nArgc--;
+   pArgv++;
+   
+   // Build vectors of good and bad modules (those that
+   // exist and those that don't.
+   //
+   vector<CDigitizerModule*> good;
+   vector<string> bad;
+   
+   while (nArgc) {
+      CDigitizerDictionary::ModuleIterator p = m_pModules->DigitizerFind(string(*pArgv));
+      if(p == m_pModules->DigitizerEnd()) {
+	 nStatus = TCL_ERROR;
+	 bad.push_back(string(*pArgv));
+      }
+      else {
+	 good.push_back((p->second));
+      }
+      nArgc--;
+      pArgv++;
+   }
+   if(nStatus == TCL_OK) {	// All modules are ok.
+      for(int i =0; i < good.size(); i++) {
+	 Add(good[i]);
+      }
+   }
+   else {                      // Some modules don't exist.
+      rResult = "The following modules do not exist: ";
+      for(int i =0; i < bad.size(); i++) {
+	 rResult += bad[i];
+	 rResult += " ";
+      }
+      rResult += "\nNo modules added to readout";
+   }
+
+   return nStatus;
+}
+/*!
+   Removes a module from the readout list.
+   The module still exists and can be added back to the
+   list at any time in the future.
+    \param rInterp CTCLInterpreter& [in] TCL interpreter that
+	  excecuted this command.
+    \param rResult CTCLResult& [out] The result string showing
+	  the final status of the command.
+    \param nArgc int [in] The number of parameters remaining
+	  on the command line.  The main command has been
+	 stripped off, but the subcommand is still in the
+	 list.
+   \return int status of the command:
+      - TCL_OK - The command worked fine.
+      - TCL_ERROR - There was a problem executing the command
+	    the reason for the error will be returned in 
+	    rResult.
+
+*/
+int 
+CReadOrder::RemoveCommand(CTCLInterpreter& rInterp,
+			     CTCLResult&       rResult,
+			     int nArgc, char** pArgv)
+{
+   int nStatus = TCL_OK;
+   
+   // Skip past the subcommand parameter:
+   
+   nArgc--;
+   pArgv++;
+   
+   // The next parameter is a single module that will be deleted:
+   
+   if(nArgc != 1) {
+      nStatus = TCL_ERROR;
+      rResult = "Too many parameters after module remove\n";
+      rResult += Usage();
+   }
+   else {
+	string Module(*pArgv);
+	ModuleIterator p = find(Module);
+	if(p != end()) {
+	   Remove(p);
+	}
+	else {
+	   nStatus = TCL_ERROR;
+	   rResult = "Module ";
+	   rResult += Module;
+	   rResult += " not in the readout list";
+	}
+   }
+   return nStatus;
+}
+/*!
+   List the modules that are in the resout list that match an optional pattern.
+   If the pattern is omitted, then it is assumed to be *.
+   \param rInterp CTCLInterpreter& [in] TCL interpreter that
+	  excecuted this command.
+    \param rResult CTCLResult& [out] The result string showing
+	  the final status of the command.
+    \param nArgc int [in] The number of parameters remaining
+	  on the command line.  The main command has been
+	 stripped off, but the subcommand is still in the
+	 list.
+   \param pArgv char** [in] the command parameters including the 
+      subcommand.  There should be at most two:
+	 - The subcommand
+	 - The optional match pattern.
+   \return int status of the command:
+      - TCL_OK - The command worked fine.
+      - TCL_ERROR - There was a problem executing the command
+	    the reason for the error will be returned in 
+	    rResult.
+
+   \note We use the for_each generic algorithm which a function object
+   that matches the pattern and conditionally adds the listing to a reference to
+   the result string.  Each entry in the string is a sublist containing:
+      module_name module_type
+
+*/
+int 
+CReadOrder::ListCommand(CTCLInterpreter& rInterp,
+			   CTCLResult&       rResult,
+			   int nArgc, char** pArgv)
+{
+   int nStatus = TCL_OK;
+   
+   // Skip the subcommand parameter:
+   
+   nArgc--;
+   pArgv++;
+   
+   // Validate the command parameter count and figure out 
+   // the match pattern.
+   
+   if(nArgc > 1) {
+      nStatus = TCL_ERROR;
+      rResult   = "Extra parameters following 'readout list' command\n";
+      rResult += Usage();
+   }
+   else {
+      string pattern("*");
+      if(nArgc) {
+	 pattern = *pArgv;
+      }
+      Lister visitor(rResult, pattern);
+      for_each(begin(), end(), visitor);
+     
+   }
+   return nStatus;
+}
+/*!
+    Return a string that provides helpful usage information.
+    
+*/
+string
+CReadOrder::Usage()
+{
+
+   string result("Usage: \n");
+   string cmd = getCommandName();
+   result     +="\t";
+   result     +=  cmd;
+   result     += " add module1 ?module2...?\n";
+   result     +="\t";
+   result     += cmd;
+   result     += " list ?glob-pattern?\n";
+   result     +="\t";
+   result     += cmd;
+   result     += " remove module\n";   
+
+   return result;
+}

@@ -72,3 +72,5 @@
     - Incorporate the CAEN V812 CFD GUI developed by Ron Fox,
       Mike Famiano, and Anton Zalessov:
        $(prefix)/contrib/caenv812.
+    - Incorporate scripted readout engine developed initially for
+      LLNL, LBL then SEE and RPI by Ron Fox.

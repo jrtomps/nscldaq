@@ -1,2 +1,2 @@
-SUBDIRS = lecroy whedco caenv812
+SUBDIRS = lecroy whedco caenv812 scriptedReadout
 

@@ -275,154 +275,139 @@ DAMAGES.
 
 		     END OF TERMS AND CONDITIONS
 */
-//  CRangeError.h:
-//
-//    This file defines the CRangeError class.
-//
-// Author:
-//    Ron Fox
-//    NSCL
-//    Michigan State University
-//    East Lansing, MI 48824-1321
-//    mailto:fox@nscl.msu.edu
-//
-//  Copyright 1999 NSCL, All Rights Reserved.
-//
-/////////////////////////////////////////////////////////////
-
-/********************** WARNING - this file is obsolete, include 
-                        CrangeError.h from now on
+static const char* Copyright = "(C) Copyright Michigan State University 1977, All rights reserved";
+/*! \class CCAENV785Creator   
+	Implementation of CCAENV785Creator.  See the .h file for more information.
 */
 
+////////////////////////// FILE_NAME.cpp ////////////////////////////////////////
+#include "CCAENV785Creator.h"   
+#include "CDigitizerModule.h"
+#include "CCAENV785.h"
 
-#ifndef __CRANGEERROR_H  //Required for current class
-#define __CRANGEERROR_H
-                               //Required for base classes
-#ifndef __CEXCEPTION_H
-#include "Exception.h"
-#endif                             
-#ifndef __STL_STRING
-#include <string>
-#define __STL_STRING
-#endif  
-                               
-class CRangeError  : public CException        
+
+#include <assert.h> 				
+/*!
+    Constructor: Creates a module creator for CAEN v785 modules.  We just need
+    to do base class construction, specifying our keyword as "caenv785"
+    
+*/
+CCAENV785Creator::CCAENV785Creator () :
+	CModuleCreator("caenv785")
+{   
+    
+} 
+
+/*!
+	Destructor: Nothing needs ot be done for this class.
+*/
+ CCAENV785Creator::~CCAENV785Creator ( )  
 {
-  Int_t m_nLow;			// Lowest allowed value for range (inclusive).
-  Int_t m_nHigh;		// Highest allowed value for range.
-  Int_t m_nRequested;		// Actual requested value which is outside
-				// of the range.
-  std::string m_ReasonText;            // Reason text will be built up  here.
-public:
-  //   The type below is intended to allow the client to categorize the
-  //   exception:
+}
+/*!
+   Copy constructor used to create temporaries, e.g. for pass by value parameters.
+   \param rhs const CCAEN785Creator& [in] 
+	   reference to the object to copy construct into this.
+*/   
+CCAENV785Creator::CCAENV785Creator (const CCAENV785Creator& rhs) 
+  : CModuleCreator(rhs) 
+{
+  
+} 
 
-  enum {
-    knTooLow,			// CRangeError::knTooLow  - below m_nLow
-    knTooHigh			// CRangeError::knTooHigh - above m_nHigh
-  };
-			//Constructors with arguments
+ /*!
+   Assignment operator.  This member handles a = b operations where a is this and b is 
+   another  CCAENV785Creator object.
+   \param rhs  const CCAENV785creator& [in]
+	   the right hand object of the assignment.
+   \return Reference to this.
+ */
+CCAENV785Creator& 
+CCAENV785Creator::operator= (const CCAENV785Creator& rhs)
+{ 
 
-  CRangeError (  Int_t nLow,  Int_t nHigh,  Int_t nRequested,
-		 const char* pDoing) :       
-    CException(pDoing),
-    m_nLow (nLow),  
-    m_nHigh (nHigh),  
-    m_nRequested (nRequested)
-  { UpdateReason(); }
-  CRangeError(Int_t nLow, Int_t nHigh, Int_t nRequested,
-	  const std::string& rDoing) :
-    CException(rDoing),
-    m_nLow(nLow),
-    m_nHigh(nHigh),
-    m_nRequested(nRequested)
-  { UpdateReason(); }
-  virtual ~ CRangeError ( ) { }       //Destructor
+   if(this != &rhs) {
+      CModuleCreator::operator=(rhs);
+   }
+   return *this;
+}
 
-			//Copy constructor
-
-  CRangeError (const CRangeError& aCRangeError )   : 
-    CException (aCRangeError) 
-  {
-    m_nLow = aCRangeError.m_nLow;
-    m_nHigh = aCRangeError.m_nHigh;
-    m_nRequested = aCRangeError.m_nRequested;
-    UpdateReason();
-  }                                     
-
-			//Operator= Assignment Operator
-
-  CRangeError operator= (const CRangeError& aCRangeError)
-  { 
-    if (this != &aCRangeError) {
-      CException::operator= (aCRangeError);
-      m_nLow = aCRangeError.m_nLow;
-      m_nHigh = aCRangeError.m_nHigh;
-      m_nRequested = aCRangeError.m_nRequested;
-      UpdateReason();
-    }
-
-    return *this;
-  }                                     
-
-			//Operator== Equality Operator
-
-  int operator== (const CRangeError& aCRangeError)
-  { 
-    return (
-	    (CException::operator== (aCRangeError)) &&
-	    (m_nLow == aCRangeError.m_nLow) &&
-	    (m_nHigh == aCRangeError.m_nHigh) &&
-	    (m_nRequested == aCRangeError.m_nRequested) 
-	    );
-  }
-  // Selectors - Don't use these unless you're a derived class
-  //             or you need some special exception type specific
-  //             data.  Generic handling should be based on the interface
-  //             for CException.
-public:                             
-
-  Int_t getLow() const
-  {
-    return m_nLow;
-  }
-  Int_t getHigh() const
-  {
-    return m_nHigh;
-  }
-  Int_t getRequested() const
-  {
-    return m_nRequested;
-  }
-  // Mutators - These can only be used by derived classes:
-
-protected:
-  void setLow (Int_t am_nLow)
-  { 
-    m_nLow = am_nLow;
-    UpdateReason();
-  }
-  void setHigh (Int_t am_nHigh)
-  { 
-    m_nHigh = am_nHigh;
-    UpdateReason();
-  }
-  void setRequested (Int_t am_nRequested)
-  { 
-    m_nRequested = am_nRequested;
-    UpdateReason();
-  }
-  //
-  //  Interfaces implemented from the CException class.
-  //
-public:                    
-  virtual   const char* ReasonText () const  ;
-  virtual   Int_t ReasonCode () const  ;
  
-  // Protected utilities:
-  //
-protected:
-  void UpdateReason();
-};
+/*!
+   Equality comparison of this to rhs.
+   \param rhs const CCAENV785Creator& [in]  The item to compare this to.
+   \return int:
+      - 0  If this is not equal to rhs.
+      - nonzero If this is equal to rhs.
+      
+*/
+int 
+CCAENV785Creator::operator== (const CCAENV785Creator& rhs) const
+{ 
+   return (CModuleCreator::operator==(rhs));
+}
 
-#endif
+// Functions for class CCAENV785Creator
+
+/*!  Function: 	
+ 
+    
+Purpose: 	
+
+Returns a new instance of the digitizer module 
+creaetd by this creator.  The mdule is new'd into
+being and therefore must be deleted by the ultimate
+user.  The parameters passed in are also passed
+to the module's configuration function.
+
+\param rinterp CTCLInterpreter& [in] 
+	 The interpreter on which the creation command is being run.
+\param rResult CTCLResult& [in]
+	 The result string in which any error message will be returned.
+\param nArgs  int [in] The number of parameters remaining on the command line.
+\param pArgs  char** [in] The parameters themselves (text strings).
+
+\note
+The form of the command is :
+\verbatim
+module name caenv785 ?cfgopt? ...
+\endverbatim
+The caller has eaten up the module command, but left us the rest.  There should therefore be at least 2 parameters (all configuration parameters are optional).
+
+\return CDigitizerModule*   A pointer to the newly created module.  Note that if a
+   failure occurs, the function will either assert, or return a null pointer depending on
+   the error.
+
+*/
+CDigitizerModule* 
+CCAENV785Creator::Create(CTCLInterpreter& rInterp, 
+				     CTCLResult& rResult, 
+				     int nArgs, char** pArgs)  
+{ 
+   assert(nArgs >= 2);     // need name and type at least.
+   
+   CDigitizerModule* pModule = new CCAENV785(string(*pArgs), rInterp);
+   nArgs -= 2;
+   pArgs += 2;
+   
+   // If necessary, configure the module:
+   
+   if(nArgs) pModule->Configure(rInterp, rResult, 
+				 nArgs, pArgs); 
+				 
+   return pModule;
+}  
+
+/*!
+
+Returns a string describing the module type and
+whatever else the module driver author wants to display
+about that module type in response to the module -help
+command.
+
+*/
+string  
+CCAENV785Creator::Help()  
+{ 
+   return string("Creates a CAEN V 785 module.");
+}

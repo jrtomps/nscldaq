@@ -275,154 +275,182 @@ DAMAGES.
 
 		     END OF TERMS AND CONDITIONS
 */
-//  CRangeError.h:
-//
-//    This file defines the CRangeError class.
-//
-// Author:
-//    Ron Fox
-//    NSCL
-//    Michigan State University
-//    East Lansing, MI 48824-1321
-//    mailto:fox@nscl.msu.edu
-//
-//  Copyright 1999 NSCL, All Rights Reserved.
-//
-/////////////////////////////////////////////////////////////
+static const char* Copyright = "(C) Copyright Michigan State University 1977, All rights reserved";
+  
+/*! \class CConfigurationParameter  abstract 
+           This is the base class for all configuration parameter parsers.
+           Configuration parameter parsers accept pair of 
+           - keyword int
+           - keyword arrays of ints.
+           - keyword bool
+           
+    Author: Ron Fox
+            Ron's DAQ software.
+            (c) 2002, All rights reserved.
+    Revision History:
+      $Log$
+      Revision 1.1  2003/12/09 21:16:27  ron-fox
+      Incorporated ScriptedReadout software into the build.
 
-/********************** WARNING - this file is obsolete, include 
-                        CrangeError.h from now on
+      Revision 1.1.1.1  2003/10/23 11:59:16  see
+      Initial CVS repository import
+
+           
 */
-
-
-#ifndef __CRANGEERROR_H  //Required for current class
-#define __CRANGEERROR_H
-                               //Required for base classes
-#ifndef __CEXCEPTION_H
-#include "Exception.h"
-#endif                             
-#ifndef __STL_STRING
+////////////////////////// FILE_NAME.cpp /////////////////////////////////////////////////////
+#include "CConfigurationParameter.h"    				
+#include <TCLInterpreter.h>
+#include <TCLResult.h>
 #include <string>
-#define __STL_STRING
-#endif  
-                               
-class CRangeError  : public CException        
+
+/*!
+   Constructor.  The configuration parameter is constructed
+   by assigning a keyword to the object. This keyword will
+   be recognized by the Match member function.  At this time
+   we cannot define a default for the value since that needs
+   to be correlated with any internal representation maintained
+   by the derive classes, and virtual functions essentially
+   don't work virtually in constructors.
+*/   
+CConfigurationParameter::CConfigurationParameter (const string& keyword)
+   : m_sSwitch(keyword)
+{   
+    
+         //Initialization of array of 1:M association objects to null association objects
+    
+} 
+
+/*!
+    Destructor.  No action is required. Since derived classes
+    may need class specific destruction, we provide a virtual
+    base class destructor as a placeholder to support 
+    destructor virtualization.
+*/
+ CConfigurationParameter::~CConfigurationParameter ( ) 
 {
-  Int_t m_nLow;			// Lowest allowed value for range (inclusive).
-  Int_t m_nHigh;		// Highest allowed value for range.
-  Int_t m_nRequested;		// Actual requested value which is outside
-				// of the range.
-  std::string m_ReasonText;            // Reason text will be built up  here.
-public:
-  //   The type below is intended to allow the client to categorize the
-  //   exception:
+}
 
-  enum {
-    knTooLow,			// CRangeError::knTooLow  - below m_nLow
-    knTooHigh			// CRangeError::knTooHigh - above m_nHigh
-  };
-			//Constructors with arguments
 
-  CRangeError (  Int_t nLow,  Int_t nHigh,  Int_t nRequested,
-		 const char* pDoing) :       
-    CException(pDoing),
-    m_nLow (nLow),  
-    m_nHigh (nHigh),  
-    m_nRequested (nRequested)
-  { UpdateReason(); }
-  CRangeError(Int_t nLow, Int_t nHigh, Int_t nRequested,
-	  const std::string& rDoing) :
-    CException(rDoing),
-    m_nLow(nLow),
-    m_nHigh(nHigh),
-    m_nRequested(nRequested)
-  { UpdateReason(); }
-  virtual ~ CRangeError ( ) { }       //Destructor
+/*!
+   Copy constructor.  This constructor is used by the compiler
+  to create temporaries (e.g. in pass by value to function
+  situtations.
 
-			//Copy constructor
-
-  CRangeError (const CRangeError& aCRangeError )   : 
-    CException (aCRangeError) 
-  {
-    m_nLow = aCRangeError.m_nLow;
-    m_nHigh = aCRangeError.m_nHigh;
-    m_nRequested = aCRangeError.m_nRequested;
-    UpdateReason();
-  }                                     
-
-			//Operator= Assignment Operator
-
-  CRangeError operator= (const CRangeError& aCRangeError)
-  { 
-    if (this != &aCRangeError) {
-      CException::operator= (aCRangeError);
-      m_nLow = aCRangeError.m_nLow;
-      m_nHigh = aCRangeError.m_nHigh;
-      m_nRequested = aCRangeError.m_nRequested;
-      UpdateReason();
-    }
-
-    return *this;
-  }                                     
-
-			//Operator== Equality Operator
-
-  int operator== (const CRangeError& aCRangeError)
-  { 
-    return (
-	    (CException::operator== (aCRangeError)) &&
-	    (m_nLow == aCRangeError.m_nLow) &&
-	    (m_nHigh == aCRangeError.m_nHigh) &&
-	    (m_nRequested == aCRangeError.m_nRequested) 
-	    );
-  }
-  // Selectors - Don't use these unless you're a derived class
-  //             or you need some special exception type specific
-  //             data.  Generic handling should be based on the interface
-  //             for CException.
-public:                             
-
-  Int_t getLow() const
-  {
-    return m_nLow;
-  }
-  Int_t getHigh() const
-  {
-    return m_nHigh;
-  }
-  Int_t getRequested() const
-  {
-    return m_nRequested;
-  }
-  // Mutators - These can only be used by derived classes:
-
-protected:
-  void setLow (Int_t am_nLow)
-  { 
-    m_nLow = am_nLow;
-    UpdateReason();
-  }
-  void setHigh (Int_t am_nHigh)
-  { 
-    m_nHigh = am_nHigh;
-    UpdateReason();
-  }
-  void setRequested (Int_t am_nRequested)
-  { 
-    m_nRequested = am_nRequested;
-    UpdateReason();
-  }
-  //
-  //  Interfaces implemented from the CException class.
-  //
-public:                    
-  virtual   const char* ReasonText () const  ;
-  virtual   Int_t ReasonCode () const  ;
+  \param rhs const CConfigurationParameter& [in]
+            the object that will be cloned into us.
+*/
+CConfigurationParameter::CConfigurationParameter (const CConfigurationParameter& rhs ) :
+  m_sSwitch(rhs.m_sSwitch),
+  m_sValue(rhs.m_sValue)
+{
  
-  // Protected utilities:
-  //
-protected:
-  void UpdateReason();
-};
+} 
 
-#endif
+/*
+   Assignment.  'this' will be made into a copy of the
+  \em rhs parameter.  This function differs from copy 
+  construction in that it is invoked in expressions of the
+  form
+  \verbatim
+  lhs = rhs;
+  \endverbatim
+
+  \param rhs const CConfigurationParameter& rhs [in]
+          The object that will be copied to this.
+
+  \return *this.
+*/
+CConfigurationParameter& 
+CConfigurationParameter::operator= (const CConfigurationParameter& rhs)
+{ 
+  if(this != &rhs) {
+    m_sSwitch = rhs.m_sSwitch;
+    m_sValue  = rhs.m_sValue;
+  }
+  return *this;
+}
+
+/*!
+   Determins if this is functionally equivalent to the \em rhs
+  parameter. This will be true if all member data are equal.
+
+  \param rhs const CConfigurationParameter& rhs [in]
+              The object to be compared with *this.
+
+  \return Either of:
+  - true if there is functional equivalence.
+  - false if there is not functional equivalence.
+*/
+int 
+CConfigurationParameter::operator== (const CConfigurationParameter& rhs) const
+{ 
+  return ( (m_sSwitch == rhs.m_sSwitch)    &&
+           (m_sValue  == rhs.m_sValue));
+
+}
+
+// Functions for class CConfigurationParameter
+
+/*!  Function: 	
+  Returns true if the input string matches m_sSwitch.
+  typically intended to be used in detecting which of
+  several configuration parameters should be parsed.
+
+  \param rSwitch - const string& [in]
+          The string to match against m_sSwitch.
+
+*/
+bool 
+CConfigurationParameter::Match(const string & rSwitch)  
+{ 
+  return (m_sSwitch == rSwitch);
+}  
+
+/*!  Function: 	
+
+Called when our keyword matches an option keyword. 
+The new value of the parameter is saved.  This is a virtual
+member function.  The action is as follows:
+- Call SetValue
+- If SetValue returned TCL_OK, update the stringified value.
+- If SetValue failed, return to the caller without update.
+
+\param rInterp CTCLInterpreter& [in] Interpreter that is runinng
+              this command.
+\param rResult CTCLResult& [in] The result object that will
+              hold any error string if there is a problem.
+\param parameter const char* [in] the string containing the
+            candidate new value.
+
+\return This function can return:
+      TCL_OK - if SetValue claims the parameter string was 
+                properl parsed.
+      TCL_ERROR - if not.
+
+*/
+int 
+CConfigurationParameter::operator()(CTCLInterpreter& rInterp,
+                                    CTCLResult& rResult, 
+                                    const char* parameter)  
+{ 
+  setValue(parameter);
+  int status = SetValue(rInterp, rResult, parameter);
+  if(status == TCL_OK) {
+    m_sValue = string(parameter);
+  }
+  return status;
+}  
+
+/*!  Function: 	
+
+Returns the current value of the
+parameter value as a string.  We delegate to 
+getValue.
+
+*/
+string 
+CConfigurationParameter::getOptionString() const  
+{ 
+  return getValue();
+}  
+

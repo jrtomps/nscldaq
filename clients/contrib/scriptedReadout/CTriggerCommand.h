@@ -275,154 +275,100 @@ DAMAGES.
 
 		     END OF TERMS AND CONDITIONS
 */
-//  CRangeError.h:
-//
-//    This file defines the CRangeError class.
-//
-// Author:
-//    Ron Fox
-//    NSCL
-//    Michigan State University
-//    East Lansing, MI 48824-1321
-//    mailto:fox@nscl.msu.edu
-//
-//  Copyright 1999 NSCL, All Rights Reserved.
-//
-/////////////////////////////////////////////////////////////
+#ifndef __CTRIGGERCOMMAND_H
+#define __CTRIGGERCOMMAND_H
 
-/********************** WARNING - this file is obsolete, include 
-                        CrangeError.h from now on
-*/
+#ifndef __TCLPROCESSOR_H
+#include <TCLProcessor.h>
+#endif
 
 
-#ifndef __CRANGEERROR_H  //Required for current class
-#define __CRANGEERROR_H
-                               //Required for base classes
-#ifndef __CEXCEPTION_H
-#include "Exception.h"
-#endif                             
 #ifndef __STL_STRING
 #include <string>
 #define __STL_STRING
-#endif  
-                               
-class CRangeError  : public CException        
+#endif
+
+// Forward class definitions.
+
+class CCAENModule;
+class CCAENTrigger;
+class CTCLInterpreter;
+class CTCLResult;
+class CDigitizerDictionary;
+
+/*!
+   This module provides a tcl command that allows us to 
+   select a trigger.  The trigger module operates at define time
+   as well as at run initiation time:
+   - At define time the user issues a command like
+
+      trigger modulename 
+
+     where modulename is the name of a module in the module dictionary.
+     At this point, the only thing he trigger module does is locate this
+     module or complain if it does not exist.
+
+  - At run initiation time, the trigger module locates the underlying
+    CCAEN card module driver and instantiates a CCAENTrigger object,
+    and uses it to substitute for the Readout's normal trigger system.
+    If the CAEN card module driver has not been instantiated yetm, this
+    is also an error.
+
+*/
+class CTriggerCommand : public CTCLProcessor
 {
-  Int_t m_nLow;			// Lowest allowed value for range (inclusive).
-  Int_t m_nHigh;		// Highest allowed value for range.
-  Int_t m_nRequested;		// Actual requested value which is outside
-				// of the range.
-  std::string m_ReasonText;            // Reason text will be built up  here.
+private:
+  CDigitizerDictionary* m_pDictionary;
+  CCAENModule*       m_pModule;
+  CCAENTrigger*      m_pTrigger;
 public:
-  //   The type below is intended to allow the client to categorize the
-  //   exception:
+  CTriggerCommand(const string&      rCommand, 
+		  CTCLInterpreter&   rInterp,
+		  CDigitizerDictionary* pDictionary);
+  virtual ~CTriggerCommand();
+private:
+  CTriggerCommand(const CTriggerCommand& rhs);
+  CTriggerCommand& operator= (const CTriggerCommand& rhs);
+  int              operator==(const CTriggerCommand& rhs);
+  int              operator!=(const CTriggerCommand& rhs);
+public:
 
-  enum {
-    knTooLow,			// CRangeError::knTooLow  - below m_nLow
-    knTooHigh			// CRangeError::knTooHigh - above m_nHigh
-  };
-			//Constructors with arguments
+  // Selectors:
 
-  CRangeError (  Int_t nLow,  Int_t nHigh,  Int_t nRequested,
-		 const char* pDoing) :       
-    CException(pDoing),
-    m_nLow (nLow),  
-    m_nHigh (nHigh),  
-    m_nRequested (nRequested)
-  { UpdateReason(); }
-  CRangeError(Int_t nLow, Int_t nHigh, Int_t nRequested,
-	  const std::string& rDoing) :
-    CException(rDoing),
-    m_nLow(nLow),
-    m_nHigh(nHigh),
-    m_nRequested(nRequested)
-  { UpdateReason(); }
-  virtual ~ CRangeError ( ) { }       //Destructor
-
-			//Copy constructor
-
-  CRangeError (const CRangeError& aCRangeError )   : 
-    CException (aCRangeError) 
-  {
-    m_nLow = aCRangeError.m_nLow;
-    m_nHigh = aCRangeError.m_nHigh;
-    m_nRequested = aCRangeError.m_nRequested;
-    UpdateReason();
-  }                                     
-
-			//Operator= Assignment Operator
-
-  CRangeError operator= (const CRangeError& aCRangeError)
-  { 
-    if (this != &aCRangeError) {
-      CException::operator= (aCRangeError);
-      m_nLow = aCRangeError.m_nLow;
-      m_nHigh = aCRangeError.m_nHigh;
-      m_nRequested = aCRangeError.m_nRequested;
-      UpdateReason();
-    }
-
-    return *this;
-  }                                     
-
-			//Operator== Equality Operator
-
-  int operator== (const CRangeError& aCRangeError)
-  { 
-    return (
-	    (CException::operator== (aCRangeError)) &&
-	    (m_nLow == aCRangeError.m_nLow) &&
-	    (m_nHigh == aCRangeError.m_nHigh) &&
-	    (m_nRequested == aCRangeError.m_nRequested) 
-	    );
+  CCAENModule* getModule() {
+    return m_pModule;
   }
-  // Selectors - Don't use these unless you're a derived class
-  //             or you need some special exception type specific
-  //             data.  Generic handling should be based on the interface
-  //             for CException.
-public:                             
+  CCAENTrigger* getTrigger() {
+    return m_pTrigger;
+  }
+  CDigitizerDictionary* getDictionary() {
+    return m_pDictionary;
+  }
 
-  Int_t getLow() const
-  {
-    return m_nLow;
-  }
-  Int_t getHigh() const
-  {
-    return m_nHigh;
-  }
-  Int_t getRequested() const
-  {
-    return m_nRequested;
-  }
-  // Mutators - These can only be used by derived classes:
-
+  // Mutators:
 protected:
-  void setLow (Int_t am_nLow)
-  { 
-    m_nLow = am_nLow;
-    UpdateReason();
+  void setModule(CCAENModule* pModule) {
+    m_pModule = pModule;
   }
-  void setHigh (Int_t am_nHigh)
-  { 
-    m_nHigh = am_nHigh;
-    UpdateReason();
+  void setTrigger(CCAENTrigger* pTrigger) {
+    m_pTrigger = pTrigger;
   }
-  void setRequested (Int_t am_nRequested)
-  { 
-    m_nRequested = am_nRequested;
-    UpdateReason();
+  void setDictionary(CDigitizerDictionary* pDict) {
+    m_pDictionary = pDict;
   }
-  //
-  //  Interfaces implemented from the CException class.
-  //
-public:                    
-  virtual   const char* ReasonText () const  ;
-  virtual   Int_t ReasonCode () const  ;
- 
-  // Protected utilities:
-  //
-protected:
-  void UpdateReason();
+
+  // class operations:
+
+public:
+  int operator()(CTCLInterpreter& rInterp, 
+		 CTCLResult&      rResult,
+		 int argc, char** argv);
+  void Initialize();
+
+private:
+  void Usage(CTCLResult& rResult);
+
 };
+
 
 #endif

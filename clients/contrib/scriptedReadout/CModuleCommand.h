@@ -275,154 +275,151 @@ DAMAGES.
 
 		     END OF TERMS AND CONDITIONS
 */
-//  CRangeError.h:
-//
-//    This file defines the CRangeError class.
-//
 // Author:
-//    Ron Fox
-//    NSCL
-//    Michigan State University
-//    East Lansing, MI 48824-1321
-//    mailto:fox@nscl.msu.edu
+//   Ron Fox
+//   NSCL
+//   Michigan State University
+//   East Lansing, MI 48824-1321
+//   mailto:fox@nscl.msu.edu
+
+#ifndef __CMODULECOMMAND_H  //Required for current class
+#define __CMODULECOMMAND_H
+
+
+#ifndef __CDigitizerDictionary_H
+#include <CDigitizerDictionary.h>
+#endif
+
+#ifndef __TCLPROCESSOR_H
+#include <TCLProcessor.h>
+#endif
+
 //
-//  Copyright 1999 NSCL, All Rights Reserved.
+// Include files:
 //
-/////////////////////////////////////////////////////////////
-
-/********************** WARNING - this file is obsolete, include 
-                        CrangeError.h from now on
-*/
-
-
-#ifndef __CRANGEERROR_H  //Required for current class
-#define __CRANGEERROR_H
-                               //Required for base classes
-#ifndef __CEXCEPTION_H
-#include "Exception.h"
-#endif                             
 #ifndef __STL_STRING
 #include <string>
 #define __STL_STRING
-#endif  
-                               
-class CRangeError  : public CException        
-{
-  Int_t m_nLow;			// Lowest allowed value for range (inclusive).
-  Int_t m_nHigh;		// Highest allowed value for range.
-  Int_t m_nRequested;		// Actual requested value which is outside
-				// of the range.
-  std::string m_ReasonText;            // Reason text will be built up  here.
-public:
-  //   The type below is intended to allow the client to categorize the
-  //   exception:
+#endif
 
-  enum {
-    knTooLow,			// CRangeError::knTooLow  - below m_nLow
-    knTooHigh			// CRangeError::knTooHigh - above m_nHigh
-  };
-			//Constructors with arguments
+#ifndef __STL_LIST   // we have a list of creators.
+#include <list>
+#define __STL_LIST
+#endif
 
-  CRangeError (  Int_t nLow,  Int_t nHigh,  Int_t nRequested,
-		 const char* pDoing) :       
-    CException(pDoing),
-    m_nLow (nLow),  
-    m_nHigh (nHigh),  
-    m_nRequested (nRequested)
-  { UpdateReason(); }
-  CRangeError(Int_t nLow, Int_t nHigh, Int_t nRequested,
-	  const std::string& rDoing) :
-    CException(rDoing),
-    m_nLow(nLow),
-    m_nHigh(nHigh),
-    m_nRequested(nRequested)
-  { UpdateReason(); }
-  virtual ~ CRangeError ( ) { }       //Destructor
+#ifndef __STL_MAP    // and a map of modules.
+#include <map>
+#define __STL_MAP
+#endif
 
-			//Copy constructor
+// forward class definitions:
 
-  CRangeError (const CRangeError& aCRangeError )   : 
-    CException (aCRangeError) 
-  {
-    m_nLow = aCRangeError.m_nLow;
-    m_nHigh = aCRangeError.m_nHigh;
-    m_nRequested = aCRangeError.m_nRequested;
-    UpdateReason();
-  }                                     
-
-			//Operator= Assignment Operator
-
-  CRangeError operator= (const CRangeError& aCRangeError)
-  { 
-    if (this != &aCRangeError) {
-      CException::operator= (aCRangeError);
-      m_nLow = aCRangeError.m_nLow;
-      m_nHigh = aCRangeError.m_nHigh;
-      m_nRequested = aCRangeError.m_nRequested;
-      UpdateReason();
-    }
-
-    return *this;
-  }                                     
-
-			//Operator== Equality Operator
-
-  int operator== (const CRangeError& aCRangeError)
-  { 
-    return (
-	    (CException::operator== (aCRangeError)) &&
-	    (m_nLow == aCRangeError.m_nLow) &&
-	    (m_nHigh == aCRangeError.m_nHigh) &&
-	    (m_nRequested == aCRangeError.m_nRequested) 
-	    );
-  }
-  // Selectors - Don't use these unless you're a derived class
-  //             or you need some special exception type specific
-  //             data.  Generic handling should be based on the interface
-  //             for CException.
-public:                             
-
-  Int_t getLow() const
-  {
-    return m_nLow;
-  }
-  Int_t getHigh() const
-  {
-    return m_nHigh;
-  }
-  Int_t getRequested() const
-  {
-    return m_nRequested;
-  }
-  // Mutators - These can only be used by derived classes:
-
-protected:
-  void setLow (Int_t am_nLow)
-  { 
-    m_nLow = am_nLow;
-    UpdateReason();
-  }
-  void setHigh (Int_t am_nHigh)
-  { 
-    m_nHigh = am_nHigh;
-    UpdateReason();
-  }
-  void setRequested (Int_t am_nRequested)
-  { 
-    m_nRequested = am_nRequested;
-    UpdateReason();
-  }
-  //
-  //  Interfaces implemented from the CException class.
-  //
-public:                    
-  virtual   const char* ReasonText () const  ;
-  virtual   Int_t ReasonCode () const  ;
+class CModuleCreator;
+class CDigitizerModule;
+class CTCLInterpreter;
+class CTCLResult;
+class CReadOrder;
  
-  // Protected utilities:
-  //
+/*!
+Executes the module command.  The module command has the following form:
+module newname type ?configuration data?
+module -list ?pattern
+module -delete name
+module -types
+
+The module command relies on the recognizer pattern.
+m_Creators is a list of module type creators.  The creational
+form of the module command iterates through the set of
+creators looking for one that matches the type keword.
+When one is found it is used to create the actual module.
+
+ This object is a singleton object.
+*/
+class CModuleCommand  : public CTCLProcessor
+{
+	// Type definitions:
+public:
+typedef list<CModuleCreator*>  CreatorList;
+typedef CreatorList::iterator  CreatorIterator;
+
+
+private:
+  
+  // Private Member data:
+   CDigitizerDictionary*           m_pModules;  //!< Created module lookup. 
+   CreatorList                     m_Creators; //!< List of Creators.
+   CReadOrder*                     m_pReader;  //!< Reader.
+
+
 protected:
-  void UpdateReason();
+      // Protected functions: these will be called from
+      // within the comand parser:
+
+   int Create (CTCLInterpreter& rInterp, CTCLResult& rResult,
+	       int  nArgs, char** pArgs);
+   int List (CTCLInterpreter& rInterp, CTCLResult& rResult, 
+	     int nArgs, char** pArgs);
+   int Delete (CTCLInterpreter& rInterp, CTCLResult& rResult, 
+	       int nArgs, char** pArgs);
+   int ListTypes (CTCLInterpreter& rinterp, 
+		  CTCLResult& rResult, 
+		  int nArgs, char** pArgs); 
+
+public:
+     // Constructors and other canonical functions:
+     
+   CModuleCommand (CTCLInterpreter* pInterp,
+		   CDigitizerDictionary* pDictionary,
+		   CReadOrder* pReader,
+		   const string& command = string("module"));
+   virtual ~CModuleCommand ( ); 
+private:
+   CModuleCommand (const CModuleCommand& aCModuleCommand );
+   CModuleCommand& operator= (const CModuleCommand& rhs);
+   int operator== (const CModuleCommand& rhs) const;
+   int operator!= (const CModuleCommand& rhs) const;
+public:
+
+public:
+// Selectors:
+   CDigitizerDictionary& getModules()
+   { 
+     return *m_pModules;
+   }
+   CreatorList getCreators() const
+   {
+      return m_Creators;
+   }
+
+protected:
+   // Mutators:
+
+   void setModules(CDigitizerDictionary* pModules)
+   {
+      m_pModules = pModules;
+   }
+   void setCreators(const CreatorList& creators)
+   {
+      m_Creators = creators;
+   }
+public:
+
+   virtual int operator() (CTCLInterpreter& rInterp, 
+			   CTCLResult& rResult, 
+			   int nArgs, char** pArgs); 
+   void AddCreator (CModuleCreator* pCreator);
+   CreatorIterator CreatorBegin();
+   CreatorIterator CreatorEnd();
+   int             CreatorSize();
+   
+   CDigitizerDictionary::ModuleIterator DigitizerBegin();
+   CDigitizerDictionary::ModuleIterator DigitizerEnd();
+   int                                  DigitizerSize();
+   CDigitizerDictionary::ModuleIterator DigitizerFind(const string& rName)
+   {
+	return m_pModules->DigitizerFind(rName);
+   }
+   string            Usage();
 };
 
 #endif

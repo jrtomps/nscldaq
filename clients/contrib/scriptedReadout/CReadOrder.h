@@ -275,154 +275,200 @@ DAMAGES.
 
 		     END OF TERMS AND CONDITIONS
 */
-//  CRangeError.h:
-//
-//    This file defines the CRangeError class.
-//
-// Author:
-//    Ron Fox
-//    NSCL
-//    Michigan State University
-//    East Lansing, MI 48824-1321
-//    mailto:fox@nscl.msu.edu
-//
-//  Copyright 1999 NSCL, All Rights Reserved.
-//
-/////////////////////////////////////////////////////////////
 
-/********************** WARNING - this file is obsolete, include 
-                        CrangeError.h from now on
-*/
+#ifndef __CREADORDER_H  //Required for current class
+#define __CREADORDER_H
 
+//
+// Include files:
+//
 
-#ifndef __CRANGEERROR_H  //Required for current class
-#define __CRANGEERROR_H
-                               //Required for base classes
-#ifndef __CEXCEPTION_H
-#include "Exception.h"
-#endif                             
+#ifndef __TCLPROCESSOR_H
+#include <TCLProcessor.h>
+#endif
+
+                               //Required for 1:1 association classes
+#ifndef __CDIGITIZERMODULE_H    //CDigitizerModule
+#include "CDigitizerModule.h"
+#endif 
+
+#ifndef __STL_LIST
+#include <list>
+#define __STL_LIST
+#endif
+
 #ifndef __STL_STRING
 #include <string>
 #define __STL_STRING
-#endif  
-                               
-class CRangeError  : public CException        
+#endif
+
+#ifndef __TCL_H
+#include <tcl.h>
+#define __TCL_H
+#endif
+
+// Forward Definitions:
+class CTCLInterpreter;
+class CTCLResult;
+class CDigitizerDictionary;
+
+/*!
+  Encapsulates the order in which modules are read out.
+  CReadOrder maintains an ordered list of modules to read.
+  There is normally only one CReadorder object, but that's not
+  necessary.  At each key point in the skeleton the read order
+  object is invoked to iterate through the set of active modules
+  via its entry points:
+  - Initialize
+  - Prepare
+  - Read
+  - Clear
+  These simply iterate and delegate to the modules in the list.
+  For now iteration is done via the STL for_each generic 
+  fuctions and the helper classes:
+  
+
+*/
+class CReadOrder    : public CTCLProcessor
 {
-  Int_t m_nLow;			// Lowest allowed value for range (inclusive).
-  Int_t m_nHigh;		// Highest allowed value for range.
-  Int_t m_nRequested;		// Actual requested value which is outside
-				// of the range.
-  std::string m_ReasonText;            // Reason text will be built up  here.
-public:
-  //   The type below is intended to allow the client to categorize the
-  //   exception:
-
-  enum {
-    knTooLow,			// CRangeError::knTooLow  - below m_nLow
-    knTooHigh			// CRangeError::knTooHigh - above m_nHigh
-  };
-			//Constructors with arguments
-
-  CRangeError (  Int_t nLow,  Int_t nHigh,  Int_t nRequested,
-		 const char* pDoing) :       
-    CException(pDoing),
-    m_nLow (nLow),  
-    m_nHigh (nHigh),  
-    m_nRequested (nRequested)
-  { UpdateReason(); }
-  CRangeError(Int_t nLow, Int_t nHigh, Int_t nRequested,
-	  const std::string& rDoing) :
-    CException(rDoing),
-    m_nLow(nLow),
-    m_nHigh(nHigh),
-    m_nRequested(nRequested)
-  { UpdateReason(); }
-  virtual ~ CRangeError ( ) { }       //Destructor
-
-			//Copy constructor
-
-  CRangeError (const CRangeError& aCRangeError )   : 
-    CException (aCRangeError) 
+public:                           // Data types:
+  typedef list<CDigitizerModule*> ModuleList;
+  typedef ModuleList::iterator   ModuleIterator;
+private:
+  
+  // Private Member data:
+  
+   ModuleList          m_ReadoutList;
+   CDigitizerDictionary* m_pModules;
+   
+private:
+  // Nested helper classes.
+/*
+  Helper classes used during for_each iterations through
+ the module list.s
+*/
+  class ModuleRead 
   {
-    m_nLow = aCRangeError.m_nLow;
-    m_nHigh = aCRangeError.m_nHigh;
-    m_nRequested = aCRangeError.m_nRequested;
-    UpdateReason();
-  }                                     
-
-			//Operator= Assignment Operator
-
-  CRangeError operator= (const CRangeError& aCRangeError)
-  { 
-    if (this != &aCRangeError) {
-      CException::operator= (aCRangeError);
-      m_nLow = aCRangeError.m_nLow;
-      m_nHigh = aCRangeError.m_nHigh;
-      m_nRequested = aCRangeError.m_nRequested;
-      UpdateReason();
+  private:
+    DAQWordBufferPtr& m_pBuffer;
+  public:
+    ModuleRead(DAQWordBufferPtr& pBuf) :
+      m_pBuffer(pBuf) {}
+    void operator()(CDigitizerModule*  p) {
+      p->Read(m_pBuffer);
     }
-
-    return *this;
-  }                                     
-
-			//Operator== Equality Operator
-
-  int operator== (const CRangeError& aCRangeError)
-  { 
-    return (
-	    (CException::operator== (aCRangeError)) &&
-	    (m_nLow == aCRangeError.m_nLow) &&
-	    (m_nHigh == aCRangeError.m_nHigh) &&
-	    (m_nRequested == aCRangeError.m_nRequested) 
-	    );
-  }
-  // Selectors - Don't use these unless you're a derived class
-  //             or you need some special exception type specific
-  //             data.  Generic handling should be based on the interface
-  //             for CException.
-public:                             
-
-  Int_t getLow() const
+  };
+  class ModuleInitialize
   {
-    return m_nLow;
-  }
-  Int_t getHigh() const
+    public:
+      void operator()(CDigitizerModule* p) {
+        p->Initialize();
+      }
+  };
+  class ModulePrepare
   {
-    return m_nHigh;
-  }
-  Int_t getRequested() const
+    public:
+      void operator()(CDigitizerModule* p) {
+        p->Prepare();
+      }
+  };
+  class ModuleClear
   {
-    return m_nRequested;
-  }
-  // Mutators - These can only be used by derived classes:
+    public:
+      void operator()(CDigitizerModule* p) {
+        p->Clear();
+      }
+  };
+   class CompareName {
+      private:
+         string m_Name;
+      public:
+         CompareName(const string& rName) :
+            m_Name(rName)
+         {}
+         int operator()(CDigitizerModule* p) {
+            return (m_Name == p->getName());
+         }
+   };
+   class Lister {
+   private:
+      CTCLResult& m_rResult;
+      string           m_sPattern;
+   public:
+      Lister(CTCLResult& rResult, const string & rPattern) :
+	 m_rResult(rResult),
+	 m_sPattern(rPattern)
+      {}
+      void operator()(CDigitizerModule* pModule)
+      {
+	 if(Tcl_StringMatch(pModule->getName().c_str(),
+				   m_sPattern.c_str())) {
+	    string element   = pModule->getName();
+	    element         +=  " ";
+	    element         += pModule->getType();
+	    m_rResult.AppendElement(element);
+	 }
+      }
+   };
+public:
+   // Constructors and other cannonical functions.
+   
+  CReadOrder (CTCLInterpreter* pInterp,
+	      CDigitizerDictionary* pDictionary,
+		const string& rCommand=string("readout"));
+  virtual ~CReadOrder ( ); 
+private:
+  CReadOrder (const CReadOrder& aCReadOrder );
+  CReadOrder& operator= (const CReadOrder& aCReadOrder);
+  int operator== (const CReadOrder& aCReadOrder) const;
+  int operator!= (const CReadOrder& rhs) const;
+public:
+
+// Selectors:
+
+public:
+   ModuleList getReadoutList() const
+   {
+      return m_ReadoutList;
+   }
+
+// Attribute mutators:
 
 protected:
-  void setLow (Int_t am_nLow)
-  { 
-    m_nLow = am_nLow;
-    UpdateReason();
-  }
-  void setHigh (Int_t am_nHigh)
-  { 
-    m_nHigh = am_nHigh;
-    UpdateReason();
-  }
-  void setRequested (Int_t am_nRequested)
-  { 
-    m_nRequested = am_nRequested;
-    UpdateReason();
-  }
-  //
-  //  Interfaces implemented from the CException class.
-  //
-public:                    
-  virtual   const char* ReasonText () const  ;
-  virtual   Int_t ReasonCode () const  ;
- 
-  // Protected utilities:
-  //
-protected:
-  void UpdateReason();
+   void setReadoutList(const ModuleList& rReadoutlist) 
+   {
+      m_ReadoutList = rReadoutlist;
+   }
+
+  // Class operations:
+
+public:
+   int operator()(CTCLInterpreter& rInterp,
+		  CTCLResult&        rResult,
+		  int nArgc, char** pArgv);
+   int AddCommand(CTCLInterpreter& rInterp,
+		  CTCLResult&       rResult,
+		  int nArgc, char** pArgv);
+   int RemoveCommand(CTCLInterpreter& rInterp,
+		     CTCLResult&       rResult,
+		     int nArgc, char** pArgv);
+   int ListCommand(CTCLInterpreter& rInterp,
+		   CTCLResult&       rResult,
+		   int nArgc, char** pArgv);
+		   
+   void Add (CDigitizerModule* pModule)   ; // 
+   void Remove (ModuleIterator p)   ; // 
+   virtual void Initialize ()   ; // 
+   virtual void Prepare ()   ; // 
+   virtual DAQWordBufferPtr Read (DAQWordBufferPtr& p)   ; // 
+   virtual int              Read(void* pBuffer);
+   virtual void Clear ()   ; // 
+   int size ()   ; // 
+   ModuleIterator begin ()   ; // 
+   ModuleIterator end ()   ; //
+   ModuleIterator find(const string& rName);
+   string Usage();
 };
 
 #endif
+

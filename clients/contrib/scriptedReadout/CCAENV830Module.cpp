@@ -275,154 +275,342 @@ DAMAGES.
 
 		     END OF TERMS AND CONDITIONS
 */
-//  CRangeError.h:
-//
-//    This file defines the CRangeError class.
-//
-// Author:
-//    Ron Fox
-//    NSCL
-//    Michigan State University
-//    East Lansing, MI 48824-1321
-//    mailto:fox@nscl.msu.edu
-//
-//  Copyright 1999 NSCL, All Rights Reserved.
-//
-/////////////////////////////////////////////////////////////
 
-/********************** WARNING - this file is obsolete, include 
-                        CrangeError.h from now on
+#include "CCAENV830Module.h"
+#include "CCAENV830.h"
+#include "CBoolConfigParam.h"
+#include "CIntConfigParam.h"
+#include "CIntArrayParam.h"
+
+#include <TCLInterpreter.h>
+#include <assert.h>
+/*!
+    Construct a scaler module reader.  This does not actually
+    construct the underlying CCAENV830 module.  Instead it
+    constructs the configuration parameters for the module
+    and defines them to the base class.  The module driver  itself
+    will be constructed as a result of the Initialize() call.  
+
+    \param rName (const string& [in]):
+        Name to give to this module.  This name will be
+	registered to the interpreter as a command that can be
+	used to configure the module. 
+    \param rInterp (CTCLInterpreter& rInterp [in]):
+       The interpreter on which this module will be registered as a
+       command
 */
-
-
-#ifndef __CRANGEERROR_H  //Required for current class
-#define __CRANGEERROR_H
-                               //Required for base classes
-#ifndef __CEXCEPTION_H
-#include "Exception.h"
-#endif                             
-#ifndef __STL_STRING
-#include <string>
-#define __STL_STRING
-#endif  
-                               
-class CRangeError  : public CException        
+CCAENV830Module::CCAENV830Module(const string& rName, CTCLInterpreter& rInterp) :
+  CDigitizerModule(rName, rInterp),
+  m_pModule(0),
+  m_nId(0),
+  m_fHeader(true),
+  m_fWide(false),
+  m_fManualClear(false),
+  m_fPacketize(false),
+  m_fVmeTrigger(false),
+  m_lEnables(0xffffffff),
+  m_nCrate(0)
 {
-  Int_t m_nLow;			// Lowest allowed value for range (inclusive).
-  Int_t m_nHigh;		// Highest allowed value for range.
-  Int_t m_nRequested;		// Actual requested value which is outside
-				// of the range.
-  std::string m_ReasonText;            // Reason text will be built up  here.
-public:
-  //   The type below is intended to allow the client to categorize the
-  //   exception:
+  ParameterIterator i;
+  CBoolConfigParam* pb;      
+  CIntArrayParam*   pa;
+  CIntConfigParam*  pi;
 
-  enum {
-    knTooLow,			// CRangeError::knTooLow  - below m_nLow
-    knTooHigh			// CRangeError::knTooHigh - above m_nHigh
-  };
-			//Constructors with arguments
+  
 
-  CRangeError (  Int_t nLow,  Int_t nHigh,  Int_t nRequested,
-		 const char* pDoing) :       
-    CException(pDoing),
-    m_nLow (nLow),  
-    m_nHigh (nHigh),  
-    m_nRequested (nRequested)
-  { UpdateReason(); }
-  CRangeError(Int_t nLow, Int_t nHigh, Int_t nRequested,
-	  const std::string& rDoing) :
-    CException(rDoing),
-    m_nLow(nLow),
-    m_nHigh(nHigh),
-    m_nRequested(nRequested)
-  { UpdateReason(); }
-  virtual ~ CRangeError ( ) { }       //Destructor
+  // Register the parameters, set their limits anbd default values.
 
-			//Copy constructor
+  AddIntParam(string("base"),0); // Base address.
 
-  CRangeError (const CRangeError& aCRangeError )   : 
-    CException (aCRangeError) 
-  {
-    m_nLow = aCRangeError.m_nLow;
-    m_nHigh = aCRangeError.m_nHigh;
-    m_nRequested = aCRangeError.m_nRequested;
-    UpdateReason();
-  }                                     
+  AddIntParam(string("slot"),2); // Geo address:
+  i = Find(string("slot"));	// Set limits on geo:
+  assert(i != end());
+  pi = (CIntConfigParam*)(*i);
+  pi->setRange(2, 25);		// Slot1 is arbiter!!.
 
-			//Operator= Assignment Operator
+  AddIntParam(string("crate"), 0);
+  i = Find(string("crate"));	// Set limits on the crate.
+  assert(i != end());
+  pi= (CIntConfigParam*)(*i);
+  pi->setRange(0, 255);
 
-  CRangeError operator= (const CRangeError& aCRangeError)
-  { 
-    if (this != &aCRangeError) {
-      CException::operator= (aCRangeError);
-      m_nLow = aCRangeError.m_nLow;
-      m_nHigh = aCRangeError.m_nHigh;
-      m_nRequested = aCRangeError.m_nRequested;
-      UpdateReason();
-    }
+  AddBoolParam(string("geo"), true); // Default to geo addressing.
 
-    return *this;
-  }                                     
+  AddIntArrayParam(string("enables"), 32, 1);
+  i = Find(string("enables"));
+  assert(i != end());
+  pa= (CIntArrayParam*)(*i);
+  pa->setRange(0, 1);		// It's really a set of flags.
 
-			//Operator== Equality Operator
+  AddIntParam(string("trigger"),1); // Random trigger most usual.
+  i = Find(string("trigger"));
+  assert(i != end());
+  pi = (CIntConfigParam*)(*i);
+  pi->setRange(0,2);		// Encoded value.
 
-  int operator== (const CRangeError& aCRangeError)
-  { 
-    return (
-	    (CException::operator== (aCRangeError)) &&
-	    (m_nLow == aCRangeError.m_nLow) &&
-	    (m_nHigh == aCRangeError.m_nHigh) &&
-	    (m_nRequested == aCRangeError.m_nRequested) 
-	    );
-  }
-  // Selectors - Don't use these unless you're a derived class
-  //             or you need some special exception type specific
-  //             data.  Generic handling should be based on the interface
-  //             for CException.
-public:                             
+  AddBoolParam(string("wide"), false); // Wide or narrow read.
+  AddBoolParam(string("header"), true);	// Include header in output.
+  AddBoolParam(string("autoreset"),true); // Reset on trigger?
+  AddBoolParam(string("fpclearmeb"), false); // MEB Cleared by FP?
+  AddBoolParam(string("manualclear"), false); // Clear after read.
+  AddBoolParam(string("packetize"), false); // Prepend packet info
+  AddBoolParam(string("vmetrigger"), false);
+  AddStringArrayParam(string("parameters"), 32); // For scaler disp.
 
-  Int_t getLow() const
-  {
-    return m_nLow;
-  }
-  Int_t getHigh() const
-  {
-    return m_nHigh;
-  }
-  Int_t getRequested() const
-  {
-    return m_nRequested;
-  }
-  // Mutators - These can only be used by derived classes:
+  
+  AddIntParam(string("id"));	// Id of VPacket created.
+  i = Find(string("id"));
+  assert(i != end());
+  pi = (CIntConfigParam*)(*i);
+  pi->setRange(0, 65535);	// id fits in a word.
+  
+}
+/*!
+  Destruction of the module implies destruction of the card driver.
+*/
+CCAENV830Module::~CCAENV830Module()
+{
+  delete m_pModule;
+}
+/*!
+  Initialize the module.
+  This means:
+  - Destroying any existing module driver.
+  - Recovering and processing the configuration so that we
+    now how to build and configure a new module driver.
+  - constructing a new module driver.
 
-protected:
-  void setLow (Int_t am_nLow)
-  { 
-    m_nLow = am_nLow;
-    UpdateReason();
-  }
-  void setHigh (Int_t am_nHigh)
-  { 
-    m_nHigh = am_nHigh;
-    UpdateReason();
-  }
-  void setRequested (Int_t am_nRequested)
-  { 
-    m_nRequested = am_nRequested;
-    UpdateReason();
-  }
-  //
-  //  Interfaces implemented from the CException class.
-  //
-public:                    
-  virtual   const char* ReasonText () const  ;
-  virtual   Int_t ReasonCode () const  ;
+*/
+void
+CCAENV830Module::Initialize()
+{
+  // We'll need these to manipulate the module.
+
+  ParameterIterator i;
+  CBoolConfigParam* pb;      
+  CIntArrayParam*   pa;
+  CIntConfigParam*  pi;
+  int base;
+  bool geo;
+  CCAENV830::TriggerMode  trigger;
+  bool autoreset;
+  bool fpclearmeb;
+
  
-  // Protected utilities:
-  //
-protected:
-  void UpdateReason();
-};
+  
 
+  delete m_pModule;		// Get rid of the old module.
+  m_pModule = 0;
+
+  // Recover the configuration.
+
+  
+  i    = Find("base");
+  pi   = (CIntConfigParam*)(*i); // Assume construction assured existence.
+  base = pi->getOptionValue();
+
+  i    = Find("slot");
+  pi   = (CIntConfigParam*)(*i);
+  m_nSlot = pi->getOptionValue();
+
+  i    = Find("geo");
+  pb   = (CBoolConfigParam*)(*i);
+  geo  = pb->getOptionValue();
+
+
+  i    = Find("crate");
+  pi   = (CIntConfigParam*)(*i);
+  m_nCrate = pi->getOptionValue();
+
+  i    = Find("enables");
+  pa   = (CIntArrayParam*)(*i);
+  m_lEnables = 0;
+  for(int i =0; i < 32; i++) {
+    if ((*pa)[i]) {
+      m_lEnables |= (1 << i);
+    }
+  }
+
+  i       = Find("trigger");
+  pi      = (CIntConfigParam*)(*i);
+  switch(pi->getOptionValue()) {
+  case 0:
+    trigger = CCAENV830::Disabled;
+    break;
+  case 1:
+    trigger = CCAENV830::Random;
+    break;
+  case 2:
+    trigger = CCAENV830::Periodic;
+    break;
+  default:
+    throw string("Invalid trigger mode in CCAENV830 module config");
+    
+  }
+
+  i       = Find("wide");
+  pb      = (CBoolConfigParam*)(*i);
+  m_fWide = pb->getOptionValue();
+
+  i       = Find("header");
+  pb      = (CBoolConfigParam*)(*i);
+  m_fHeader = pb->getOptionValue();
+
+  i       = Find("autoreset");
+  pb      = (CBoolConfigParam*)(*i);
+  autoreset = pb->getOptionValue();
+
+  i       = Find("fpclearmeb");
+  pb      = (CBoolConfigParam*)(*i);
+  fpclearmeb = pb->getOptionValue();
+
+  i       = Find("id");
+  pi      = (CIntConfigParam*)(*i);
+  m_nId   = pi->getOptionValue();
+
+
+  i       = Find("manualclear");
+  pb      = (CBoolConfigParam*)(*i);
+  m_fManualClear = pb->getOptionValue();
+
+  i       = Find("packetize");
+  pb      = (CBoolConfigParam*)(*i);
+  m_fPacketize = pb->getOptionValue();
+
+  i       = Find("vmetrigger");
+  pb      = (CBoolConfigParam*)(*i);
+  m_fVmeTrigger = pb->getOptionValue();
+
+
+  // construct/configure the new module.
+
+  m_pModule = new CCAENV830(m_nSlot, m_nCrate, geo, 
+			    (unsigned long)base);
+
+  m_pModule->SetEnableMask(m_lEnables);
+  m_pModule->SetTriggerMode(trigger);
+  if(m_fWide) {
+    m_pModule->SetWide();
+  } 
+  else {
+    m_pModule->SetNarrow();
+  }
+  if(m_fHeader) {
+    m_pModule->EnableHeader();
+  } 
+  else {
+    m_pModule->DisableHeader();
+  }
+  if(autoreset) {
+    m_pModule->EnableAutoReset();
+  } 
+  else {
+    m_pModule->DisableAutoReset();
+  }
+  m_pModule->FPClearsMEB(fpclearmeb);
+
+
+  // Clear the MEB:
+
+  m_pModule->Clear();
+}
+/*!
+   Prepare to read an event (first or after the prior one).
+   This is a NO-OP as the module does not need any resetting etc.
+*/
+void
+CCAENV830Module::Prepare()
+{}
+/*!
+   Read an Event from the module.  See the class documentation
+   for the data format.
+   
+   \param  rBuffer (DAQWordBufferPtr& [out]):
+      'pointer' to the buffer to fill with data.
+
+   \note
+       The buffer pointer is advanced beyond the data event to
+       point to the next free word.
+*/
+void
+CCAENV830Module::Read(DAQWordBufferPtr& rBuffer)
+{
+  // Maximum buffer is 32 channels (longs) 
+  //                 + 1  Their header (long)
+  //                 + 5  My max header size (words).
+
+  short Buffer[ 32+1*sizeof(long)/sizeof(short) + 5];
+
+  int nBytes = Read(Buffer);
+  int nWords = nBytes/sizeof(short);
+#ifdef CLIENT_HAS_POINTER_COPYIN
+  rBuffer.CopyIn(Buffer, nWords);
+  wp += nWords;
+#else
+  for(int i =0; i < nWords; i++) {
+    *rBuffer = Buffer[i];
+    ++rBuffer;
+  }
 #endif
+
+}
+/*!
+   Read the module into an ordinary buffer.
+*/
+int
+CCAENV830Module::Read(void* pBuffer)
+{
+
+  short*  p((short*)pBuffer);
+  int nHeaderWords = 0;
+
+  // Fill in what we can of the event header:
+
+  short*  pwc = p;
+  if(m_fPacketize) {		// Put in packet header...
+    ++p;			// Leave room for word count.
+    *p = m_nId;		// Id of the packet.
+    ++p;
+    UShort_t hdr = 0;
+    if(m_fHeader) hdr |= 0x8000;
+    if(m_fWide)   hdr |= 0x4000;
+    hdr |= (m_nSlot << 9);
+    hdr |= m_nCrate;
+    *p = hdr;
+    ++p;
+    nHeaderWords+= 3;		// size, id, description.
+    if(m_fWide) {			// If wide, put enables:
+      *p = (UShort_t)(m_lEnables & 0xffff);
+      ++p;
+      *p = (UShort_t)((m_lEnables >> 16) & 0xffff);
+      ++p;
+      nHeaderWords+= 2;		// Enables mask.
+    }
+  }
+  if(m_fVmeTrigger) {
+    m_pModule->Trigger();
+  }
+  for(int i =0; i < 100; i++) {
+    if(m_pModule->isDataReady()) 
+      break;
+  }
+  int nWords = m_pModule->ReadEvent(p);
+  if(m_fManualClear) {
+    m_pModule->Clear();		// If desired, manually clear mod.
+  }
+
+
+  if(m_fPacketize) {		// Wordcount if packetizing.
+    *pwc = nWords + nHeaderWords;
+  }
+  return (nWords + nHeaderWords )*sizeof(short);
+    
+}
+/*!
+   Clear is not required on an event by event basis since it's
+   done in read to minimize dropped counts.
+*/
+void
+CCAENV830Module::Clear() {
+}
+

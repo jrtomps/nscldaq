@@ -275,154 +275,93 @@ DAMAGES.
 
 		     END OF TERMS AND CONDITIONS
 */
-//  CRangeError.h:
-//
-//    This file defines the CRangeError class.
-//
+//! \class: CModuleCreator           
 // Author:
-//    Ron Fox
-//    NSCL
-//    Michigan State University
-//    East Lansing, MI 48824-1321
-//    mailto:fox@nscl.msu.edu
+//   Ron Fox
+//   NSCL
+//   Michigan State University
+//   East Lansing, MI 48824-1321
+//   mailto:fox@nscl.msu.edu
 //
-//  Copyright 1999 NSCL, All Rights Reserved.
+
+#ifndef __CMODULECREATOR_H  //Required for current class
+#define __CMODULECREATOR_H
+
 //
-/////////////////////////////////////////////////////////////
+// Include files:
+//
 
-/********************** WARNING - this file is obsolete, include 
-                        CrangeError.h from now on
-*/
-
-
-#ifndef __CRANGEERROR_H  //Required for current class
-#define __CRANGEERROR_H
-                               //Required for base classes
-#ifndef __CEXCEPTION_H
-#include "Exception.h"
-#endif                             
 #ifndef __STL_STRING
 #include <string>
 #define __STL_STRING
-#endif  
-                               
-class CRangeError  : public CException        
+#endif
+
+// Forward class definitions:
+
+class CDigitizerModule;
+class CTCLInterpreter;
+class CTCLResult;
+
+/*!
+Abstract base class of a set of factory like (creational) modules
+that make data acquisition module classes.  Each of these has
+a string module type.  And the following key members:
+- Match - return true if an input string matches the module type.
+- Create - Returns a new module.
+- Help    - Returns stringified help about the type of module
+               created by this class.
+*/
+class CModuleCreator      
 {
-  Int_t m_nLow;			// Lowest allowed value for range (inclusive).
-  Int_t m_nHigh;		// Highest allowed value for range.
-  Int_t m_nRequested;		// Actual requested value which is outside
-				// of the range.
-  std::string m_ReasonText;            // Reason text will be built up  here.
+private:
+  
+  // Private Member data:
+    string m_sModuleType;  //!  //!< Module type string.  
+   
 public:
-  //   The type below is intended to allow the client to categorize the
-  //   exception:
+	// Constructors and other cannonical operations:
+	
+   CModuleCreator (const string& rType);
+   virtual  ~ CModuleCreator ( );  
+   CModuleCreator (const CModuleCreator& aCModuleCreator );
+   CModuleCreator& operator= (const CModuleCreator& aCModuleCreator);
+   int operator== (const CModuleCreator& aCModuleCreator) const;
+   int operator!=  (const CModuleCreator& rhs) const {
+      return !(operator==(rhs));
+   }
+   
+// Selectors:
 
-  enum {
-    knTooLow,			// CRangeError::knTooLow  - below m_nLow
-    knTooHigh			// CRangeError::knTooHigh - above m_nHigh
-  };
-			//Constructors with arguments
+public:
 
-  CRangeError (  Int_t nLow,  Int_t nHigh,  Int_t nRequested,
-		 const char* pDoing) :       
-    CException(pDoing),
-    m_nLow (nLow),  
-    m_nHigh (nHigh),  
-    m_nRequested (nRequested)
-  { UpdateReason(); }
-  CRangeError(Int_t nLow, Int_t nHigh, Int_t nRequested,
-	  const std::string& rDoing) :
-    CException(rDoing),
-    m_nLow(nLow),
-    m_nHigh(nHigh),
-    m_nRequested(nRequested)
-  { UpdateReason(); }
-  virtual ~ CRangeError ( ) { }       //Destructor
-
-			//Copy constructor
-
-  CRangeError (const CRangeError& aCRangeError )   : 
-    CException (aCRangeError) 
+          //Get accessor function for non-static attribute data member
+  string getModuleType() const
   {
-    m_nLow = aCRangeError.m_nLow;
-    m_nHigh = aCRangeError.m_nHigh;
-    m_nRequested = aCRangeError.m_nRequested;
-    UpdateReason();
-  }                                     
+     return m_sModuleType;
+  }   
 
-			//Operator= Assignment Operator
-
-  CRangeError operator= (const CRangeError& aCRangeError)
-  { 
-    if (this != &aCRangeError) {
-      CException::operator= (aCRangeError);
-      m_nLow = aCRangeError.m_nLow;
-      m_nHigh = aCRangeError.m_nHigh;
-      m_nRequested = aCRangeError.m_nRequested;
-      UpdateReason();
-    }
-
-    return *this;
-  }                                     
-
-			//Operator== Equality Operator
-
-  int operator== (const CRangeError& aCRangeError)
-  { 
-    return (
-	    (CException::operator== (aCRangeError)) &&
-	    (m_nLow == aCRangeError.m_nLow) &&
-	    (m_nHigh == aCRangeError.m_nHigh) &&
-	    (m_nRequested == aCRangeError.m_nRequested) 
-	    );
-  }
-  // Selectors - Don't use these unless you're a derived class
-  //             or you need some special exception type specific
-  //             data.  Generic handling should be based on the interface
-  //             for CException.
-public:                             
-
-  Int_t getLow() const
-  {
-    return m_nLow;
-  }
-  Int_t getHigh() const
-  {
-    return m_nHigh;
-  }
-  Int_t getRequested() const
-  {
-    return m_nRequested;
-  }
-  // Mutators - These can only be used by derived classes:
+// Attribute mutators:
 
 protected:
-  void setLow (Int_t am_nLow)
+
+          //Set accessor function for non-static attribute data member
+  void setModuleType (const string am_sModuleType)
   { 
-    m_nLow = am_nLow;
-    UpdateReason();
-  }
-  void setHigh (Int_t am_nHigh)
-  { 
-    m_nHigh = am_nHigh;
-    UpdateReason();
-  }
-  void setRequested (Int_t am_nRequested)
-  { 
-    m_nRequested = am_nRequested;
-    UpdateReason();
-  }
-  //
-  //  Interfaces implemented from the CException class.
-  //
-public:                    
-  virtual   const char* ReasonText () const  ;
-  virtual   Int_t ReasonCode () const  ;
- 
-  // Protected utilities:
-  //
-protected:
-  void UpdateReason();
+     m_sModuleType = am_sModuleType;
+  }   
+
+  // Class operations:
+
+public:
+
+   bool    Match (const string& rType);
+   virtual CDigitizerModule* 
+	   Create (CTCLInterpreter& rInterp, 
+		   CTCLResult& rResult, 
+		   int nArgs, 
+		   char** pArgs)   = 0 ; 
+   virtual  string  Help ()   = 0 ; 
+
 };
 
 #endif

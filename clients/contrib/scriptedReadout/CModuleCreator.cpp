@@ -275,154 +275,106 @@ DAMAGES.
 
 		     END OF TERMS AND CONDITIONS
 */
-//  CRangeError.h:
-//
-//    This file defines the CRangeError class.
-//
-// Author:
-//    Ron Fox
-//    NSCL
-//    Michigan State University
-//    East Lansing, MI 48824-1321
-//    mailto:fox@nscl.msu.edu
-//
-//  Copyright 1999 NSCL, All Rights Reserved.
-//
-/////////////////////////////////////////////////////////////
-
-/********************** WARNING - this file is obsolete, include 
-                        CrangeError.h from now on
+static const char* Copyright = "(C) Copyright Michigan State University 1977, All rights reserved";
+/*! \class CModuleCreator  abstract 
+           CLASS_PACKAGE
+           Abstract base class of a set of factory like (creational) modules
+           that make data acquisition module classes.  Each of these has
+           a string module type.  And the following key members:
+           - Match - return true if an input string matches the module type.
+           - Create - Returns a new module.
+           - Help    - Returns stringified help about the type of module
+                          created by this class.
 */
 
+////////////////////////// FILE_NAME.cpp /////////////////////////////////////////////////////
+#include "CModuleCreator.h"    	
+#include "CDigitizerModule.h"
+#include <TCLInterpreter.h>
+#include <TCLResult.h>			
 
-#ifndef __CRANGEERROR_H  //Required for current class
-#define __CRANGEERROR_H
-                               //Required for base classes
-#ifndef __CEXCEPTION_H
-#include "Exception.h"
-#endif                             
-#ifndef __STL_STRING
-#include <string>
-#define __STL_STRING
-#endif  
-                               
-class CRangeError  : public CException        
-{
-  Int_t m_nLow;			// Lowest allowed value for range (inclusive).
-  Int_t m_nHigh;		// Highest allowed value for range.
-  Int_t m_nRequested;		// Actual requested value which is outside
-				// of the range.
-  std::string m_ReasonText;            // Reason text will be built up  here.
-public:
-  //   The type below is intended to allow the client to categorize the
-  //   exception:
-
-  enum {
-    knTooLow,			// CRangeError::knTooLow  - below m_nLow
-    knTooHigh			// CRangeError::knTooHigh - above m_nHigh
-  };
-			//Constructors with arguments
-
-  CRangeError (  Int_t nLow,  Int_t nHigh,  Int_t nRequested,
-		 const char* pDoing) :       
-    CException(pDoing),
-    m_nLow (nLow),  
-    m_nHigh (nHigh),  
-    m_nRequested (nRequested)
-  { UpdateReason(); }
-  CRangeError(Int_t nLow, Int_t nHigh, Int_t nRequested,
-	  const std::string& rDoing) :
-    CException(rDoing),
-    m_nLow(nLow),
-    m_nHigh(nHigh),
-    m_nRequested(nRequested)
-  { UpdateReason(); }
-  virtual ~ CRangeError ( ) { }       //Destructor
-
-			//Copy constructor
-
-  CRangeError (const CRangeError& aCRangeError )   : 
-    CException (aCRangeError) 
-  {
-    m_nLow = aCRangeError.m_nLow;
-    m_nHigh = aCRangeError.m_nHigh;
-    m_nRequested = aCRangeError.m_nRequested;
-    UpdateReason();
-  }                                     
-
-			//Operator= Assignment Operator
-
-  CRangeError operator= (const CRangeError& aCRangeError)
-  { 
-    if (this != &aCRangeError) {
-      CException::operator= (aCRangeError);
-      m_nLow = aCRangeError.m_nLow;
-      m_nHigh = aCRangeError.m_nHigh;
-      m_nRequested = aCRangeError.m_nRequested;
-      UpdateReason();
-    }
-
-    return *this;
-  }                                     
-
-			//Operator== Equality Operator
-
-  int operator== (const CRangeError& aCRangeError)
-  { 
-    return (
-	    (CException::operator== (aCRangeError)) &&
-	    (m_nLow == aCRangeError.m_nLow) &&
-	    (m_nHigh == aCRangeError.m_nHigh) &&
-	    (m_nRequested == aCRangeError.m_nRequested) 
-	    );
-  }
-  // Selectors - Don't use these unless you're a derived class
-  //             or you need some special exception type specific
-  //             data.  Generic handling should be based on the interface
-  //             for CException.
-public:                             
-
-  Int_t getLow() const
-  {
-    return m_nLow;
-  }
-  Int_t getHigh() const
-  {
-    return m_nHigh;
-  }
-  Int_t getRequested() const
-  {
-    return m_nRequested;
-  }
-  // Mutators - These can only be used by derived classes:
-
-protected:
-  void setLow (Int_t am_nLow)
-  { 
-    m_nLow = am_nLow;
-    UpdateReason();
-  }
-  void setHigh (Int_t am_nHigh)
-  { 
-    m_nHigh = am_nHigh;
-    UpdateReason();
-  }
-  void setRequested (Int_t am_nRequested)
-  { 
-    m_nRequested = am_nRequested;
-    UpdateReason();
-  }
-  //
-  //  Interfaces implemented from the CException class.
-  //
-public:                    
-  virtual   const char* ReasonText () const  ;
-  virtual   Int_t ReasonCode () const  ;
+/*!
+	Constructor: The only thing we need to do is initialize
+	the module type field:
+	
+	\param rType const string& [in]
+				Type name of the parameter.  This turns out to be the
+				module_type for tcl commands of the form:
+			module create module_type
+*/
+CModuleCreator::CModuleCreator (const string& rType)
+   : m_sModuleType(rType)
  
-  // Protected utilities:
-  //
-protected:
-  void UpdateReason();
-};
+{   
+} 
 
-#endif
+/*!
+    There is nothing interesting to do for the destructor.
+*/    
+ CModuleCreator::~CModuleCreator ( )  //Destructor - Delete dynamic objects
+{
+}
+
+/*!
+    Copy construction. We are constructed as an exact copy of the parameter
+*/
+CModuleCreator::CModuleCreator (const CModuleCreator& rhs) :
+	m_sModuleType(rhs.m_sModuleType)
+{
+
+} 
+
+/*!
+	Assignment.  rhs is copied into this.  The only difference
+	between assignment and copy construction is that copy constructed
+	objects are being created, and assignment objects have longer duration.
+	
+	\param rhs ConstCModuleCreator& [in]
+		 The rhs of the assignment operation.
+		 
+	 \return a new object that can be put into the readout
+	 subsystem.
+
+*/
+CModuleCreator& 
+CModuleCreator::operator= (const CModuleCreator& rhs)
+{ 
+   if(this != &rhs) {
+      m_sModuleType = rhs.m_sModuleType;
+   }
+
+  return *this;
+}
+
+/*!
+   Test for equality.  The assumption is that there cannot be
+   two modules with the same mdule name.
+   
+   \param rhs  CModuleCreator& [in] rhs of the == operator.
+*/
+int 
+CModuleCreator::operator== (const CModuleCreator& rhs) const
+{ 
+   return (m_sModuleType == rhs.m_sModuleType);
+}
+
+// Functions for class CModuleCreator
+
+/*!  Function: 	
+ 
+
+Returns true if the input string 
+matches the module type.
+	\param rType const string& [in]  The type of module being searched
+			for.
+	\return  One of:
+		- true - If rType == m_sModuleType
+		-false - if not.
+
+*/
+bool
+CModuleCreator::Match(const string& rType)  
+{ 
+   return (rType == m_sModuleType);
+}  
+

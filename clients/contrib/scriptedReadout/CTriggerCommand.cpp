@@ -275,154 +275,120 @@ DAMAGES.
 
 		     END OF TERMS AND CONDITIONS
 */
-//  CRangeError.h:
-//
-//    This file defines the CRangeError class.
-//
-// Author:
-//    Ron Fox
-//    NSCL
-//    Michigan State University
-//    East Lansing, MI 48824-1321
-//    mailto:fox@nscl.msu.edu
-//
-//  Copyright 1999 NSCL, All Rights Reserved.
-//
-/////////////////////////////////////////////////////////////
 
-/********************** WARNING - this file is obsolete, include 
-                        CrangeError.h from now on
-*/
-
-
-#ifndef __CRANGEERROR_H  //Required for current class
-#define __CRANGEERROR_H
-                               //Required for base classes
-#ifndef __CEXCEPTION_H
-#include "Exception.h"
-#endif                             
-#ifndef __STL_STRING
+#include "CTriggerCommand.h"
+#include "CCAENModule.h"
 #include <string>
-#define __STL_STRING
-#endif  
-                               
-class CRangeError  : public CException        
+#include "CCAENTrigger.h"
+#include <TCLInterpreter.h>
+#include <TCLResult.h>
+#include "CDigitizerDictionary.h"
+#include <Active.h>
+#include <StateMachine.h>
+
+
+extern StateMachine* gpStateMachine;
+/*!
+
+   Construct a trigger command object.  The trigger
+   command object responds to the \em trigger
+   command which is used to select a module to
+   serve as the event trigger.
+
+   \param rCommand (const string& [in]):
+       Name of the command ... "trigger" usually.
+   \param rInterp (CTCLInterpreter& [in]):
+       The interpreter on which this command will
+       be entered.
+   \param pDictionary (CModuleDictionary* [in]):
+       Pointer to the module dictionary that will
+       have information about modules that are
+       elligible to be triggers.
+*/
+CTriggerCommand::CTriggerCommand(const string& rCommand,
+				 CTCLInterpreter& rInterp,
+				 CDigitizerDictionary* pDictionary) :
+  CTCLProcessor(rCommand, &rInterp),
+  m_pDictionary(pDictionary),
+  m_pModule(0),
+  m_pTrigger(0)
 {
-  Int_t m_nLow;			// Lowest allowed value for range (inclusive).
-  Int_t m_nHigh;		// Highest allowed value for range.
-  Int_t m_nRequested;		// Actual requested value which is outside
-				// of the range.
-  std::string m_ReasonText;            // Reason text will be built up  here.
-public:
-  //   The type below is intended to allow the client to categorize the
-  //   exception:
-
-  enum {
-    knTooLow,			// CRangeError::knTooLow  - below m_nLow
-    knTooHigh			// CRangeError::knTooHigh - above m_nHigh
-  };
-			//Constructors with arguments
-
-  CRangeError (  Int_t nLow,  Int_t nHigh,  Int_t nRequested,
-		 const char* pDoing) :       
-    CException(pDoing),
-    m_nLow (nLow),  
-    m_nHigh (nHigh),  
-    m_nRequested (nRequested)
-  { UpdateReason(); }
-  CRangeError(Int_t nLow, Int_t nHigh, Int_t nRequested,
-	  const std::string& rDoing) :
-    CException(rDoing),
-    m_nLow(nLow),
-    m_nHigh(nHigh),
-    m_nRequested(nRequested)
-  { UpdateReason(); }
-  virtual ~ CRangeError ( ) { }       //Destructor
-
-			//Copy constructor
-
-  CRangeError (const CRangeError& aCRangeError )   : 
-    CException (aCRangeError) 
-  {
-    m_nLow = aCRangeError.m_nLow;
-    m_nHigh = aCRangeError.m_nHigh;
-    m_nRequested = aCRangeError.m_nRequested;
-    UpdateReason();
-  }                                     
-
-			//Operator= Assignment Operator
-
-  CRangeError operator= (const CRangeError& aCRangeError)
-  { 
-    if (this != &aCRangeError) {
-      CException::operator= (aCRangeError);
-      m_nLow = aCRangeError.m_nLow;
-      m_nHigh = aCRangeError.m_nHigh;
-      m_nRequested = aCRangeError.m_nRequested;
-      UpdateReason();
-    }
-
-    return *this;
-  }                                     
-
-			//Operator== Equality Operator
-
-  int operator== (const CRangeError& aCRangeError)
-  { 
-    return (
-	    (CException::operator== (aCRangeError)) &&
-	    (m_nLow == aCRangeError.m_nLow) &&
-	    (m_nHigh == aCRangeError.m_nHigh) &&
-	    (m_nRequested == aCRangeError.m_nRequested) 
-	    );
-  }
-  // Selectors - Don't use these unless you're a derived class
-  //             or you need some special exception type specific
-  //             data.  Generic handling should be based on the interface
-  //             for CException.
-public:                             
-
-  Int_t getLow() const
-  {
-    return m_nLow;
-  }
-  Int_t getHigh() const
-  {
-    return m_nHigh;
-  }
-  Int_t getRequested() const
-  {
-    return m_nRequested;
-  }
-  // Mutators - These can only be used by derived classes:
-
-protected:
-  void setLow (Int_t am_nLow)
-  { 
-    m_nLow = am_nLow;
-    UpdateReason();
-  }
-  void setHigh (Int_t am_nHigh)
-  { 
-    m_nHigh = am_nHigh;
-    UpdateReason();
-  }
-  void setRequested (Int_t am_nRequested)
-  { 
-    m_nRequested = am_nRequested;
-    UpdateReason();
-  }
-  //
-  //  Interfaces implemented from the CException class.
-  //
-public:                    
-  virtual   const char* ReasonText () const  ;
-  virtual   Int_t ReasonCode () const  ;
+  Register();
+}
+/*!
+  Destroy the command processor.  This involves 
+  deleting the  trigger.. note that the
+  dictionary and trigger belong to external clients. 
+*/
+CTriggerCommand::~CTriggerCommand()
+{
+  delete m_pTrigger;
+}
+/*!
+  Process the trigger command.  The trigger command
+  expects a sigle parameter, the name of a digitizer module
+  that will be used to trigger the readout.
+  At the time of this command, the dictionary must have
+  an entry for this digiitzer.
+  \param rInterp (CTCLINterpreter& rInterp[in]):
+     The interpreter that's executing this command. // 
+  \param rResult (CTCLResult& rResult [out]):  
+     The result of the command for successs, this is
+     just the name of the trigger module.  For failure,
+     a reason for the failure.
+  \param int argc, char**argv:
+     The parameters (argv[0] is our command name.
  
-  // Protected utilities:
-  //
-protected:
-  void UpdateReason();
-};
-
-#endif
+   \return One of:
+   - TCL_OK    - If success.
+   - TCL_ERROR - If failure.
+*/
+int
+CTriggerCommand::operator()(CTCLInterpreter& rInterp,
+			    CTCLResult&      rResult,
+			    int argc, char** argv)
+{
+  argc--; argv++;		// Ignore the command name.
+  if(argc != 1) {		// Need exactly 1 parameter.
+    Usage(rResult);
+    return TCL_ERROR;
+  }
+  char* pTriggerName = *argv;	// And that's the tyrigger.
+  CDigitizerDictionary::ModuleIterator i = 
+    m_pDictionary->DigitizerFind(string(pTriggerName));
+  if(i == m_pDictionary->DigitizerEnd()) {
+    rResult = "Module not found: ";
+    rResult+= pTriggerName;
+    return TCL_ERROR;
+  }
+  m_pModule = dynamic_cast<CCAENModule*>(i->second);
+  rResult   = pTriggerName;
+  return TCL_OK;
+}
+/*!
+  Initialize the trigger module.  This involves
+  creating a CAENTrigger from the trigger module.
+*/
+void
+CTriggerCommand::Initialize()
+{
+  m_pTrigger = new CCAENTrigger(m_pModule->getCard());
+  Active* pActive = (Active*)gpStateMachine->GetCurrentStatePtr();
+  pActive->SetTrigger(m_pTrigger);
+  
+}
+/*!
+   Put the command usage into a result string.
+*/
+void
+CTriggerCommand::Usage(CTCLResult& rResult)
+{
+  string cmd = getCommandName();
+  rResult += "Usage: \n";
+  rResult += "   ";
+  rResult += cmd;
+  rResult += " trigger module\n";
+  rResult += "Where:\n";
+  rResult += "   module is the name of the trigger module\n";
+    
+}

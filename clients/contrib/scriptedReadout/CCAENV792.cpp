@@ -275,154 +275,129 @@ DAMAGES.
 
 		     END OF TERMS AND CONDITIONS
 */
-//  CRangeError.h:
-//
-//    This file defines the CRangeError class.
-//
-// Author:
-//    Ron Fox
-//    NSCL
-//    Michigan State University
-//    East Lansing, MI 48824-1321
-//    mailto:fox@nscl.msu.edu
-//
-//  Copyright 1999 NSCL, All Rights Reserved.
-//
-/////////////////////////////////////////////////////////////
+static const char* Copyright = "(C) Copyright Michigan State University 1977, All rights reserved";
+////////////////////////// FILE_NAME.cpp /////////////////////////////////////////////////////
+#include "CCAENV792.h" 
+#include "CAENcard.h"
+#include "CIntConfigParam.h"
+#include "CBoolConfigParam.h"
+#include "CIntArrayParam.h"
+#include <spectrodaq.h>
+#include <assert.h>
+#include <iostream.h>
 
-/********************** WARNING - this file is obsolete, include 
-                        CrangeError.h from now on
+static const int CHANNELS(32);
+static const int WAITLOOPS(10);
+/*!
+  Constructs a CAEN V792 readout object.
+  The constructor does not actually create a CAENcard
+  object.  This is left to the Initialize member.
+  Doing this two phase creation allows the user a chance
+  to fully set the configuration parameters of the module 
+  before creating the module.  This is actually necessary
+  sinced the ADC slot is one of the configuration parameters.
+  
+  The main purpose of this function is to register the
+  configuration parsing objects.
+
+  We need to register the Iped parameter and set its range:
 */
-
-
-#ifndef __CRANGEERROR_H  //Required for current class
-#define __CRANGEERROR_H
-                               //Required for base classes
-#ifndef __CEXCEPTION_H
-#include "Exception.h"
-#endif                             
-#ifndef __STL_STRING
-#include <string>
-#define __STL_STRING
-#endif  
-                               
-class CRangeError  : public CException        
+CCAENV792::CCAENV792 (const string & rName, CTCLInterpreter& rInterp)
+  : CCAENModule(rName, rInterp)
 {
-  Int_t m_nLow;			// Lowest allowed value for range (inclusive).
-  Int_t m_nHigh;		// Highest allowed value for range.
-  Int_t m_nRequested;		// Actual requested value which is outside
-				// of the range.
-  std::string m_ReasonText;            // Reason text will be built up  here.
-public:
-  //   The type below is intended to allow the client to categorize the
-  //   exception:
+  AddIntParam(string("Iped"), 0);
+  ParameterIterator i; 
+  CIntConfigParam* pInt;
 
-  enum {
-    knTooLow,			// CRangeError::knTooLow  - below m_nLow
-    knTooHigh			// CRangeError::knTooHigh - above m_nHigh
-  };
-			//Constructors with arguments
+  i = Find(string("Iped"));
+  assert(i != end());
 
-  CRangeError (  Int_t nLow,  Int_t nHigh,  Int_t nRequested,
-		 const char* pDoing) :       
-    CException(pDoing),
-    m_nLow (nLow),  
-    m_nHigh (nHigh),  
-    m_nRequested (nRequested)
-  { UpdateReason(); }
-  CRangeError(Int_t nLow, Int_t nHigh, Int_t nRequested,
-	  const std::string& rDoing) :
-    CException(rDoing),
-    m_nLow(nLow),
-    m_nHigh(nHigh),
-    m_nRequested(nRequested)
-  { UpdateReason(); }
-  virtual ~ CRangeError ( ) { }       //Destructor
+  pInt = (CIntConfigParam*)*i;
+  pInt->setRange(0,255);		// One byte worth of data.
+} 
 
-			//Copy constructor
+/*!
+   Destroys the module.  We delete CCAENcard object.
+  If the card object has not yet been created, it will be
+  null and the deletion will be a no-op.
+*/
+CCAENV792::~CCAENV792 ( )  //Destructor - Delete dynamic objects
+{
 
-  CRangeError (const CRangeError& aCRangeError )   : 
-    CException (aCRangeError) 
-  {
-    m_nLow = aCRangeError.m_nLow;
-    m_nHigh = aCRangeError.m_nHigh;
-    m_nRequested = aCRangeError.m_nRequested;
-    UpdateReason();
-  }                                     
+}
 
-			//Operator= Assignment Operator
 
-  CRangeError operator= (const CRangeError& aCRangeError)
-  { 
-    if (this != &aCRangeError) {
-      CException::operator= (aCRangeError);
-      m_nLow = aCRangeError.m_nLow;
-      m_nHigh = aCRangeError.m_nHigh;
-      m_nRequested = aCRangeError.m_nRequested;
-      UpdateReason();
-    }
+// Functions for class CCAENV792
 
-    return *this;
-  }                                     
+/*! 
+  Called once when data acquisition starts for a run.
+This function deletes any existing CAENcard object and
+creates a new one.  The card object is then configured
+according the the parameters maintained by the configuration
+subsystem.
 
-			//Operator== Equality Operator
+  Any failure to find a configuration parameter is
+considered fatal and is signalled via a failed assertion.
+*/
+void 
+CCAENV792::Initialize()  
+{
+  CCAENModule::Initialize();	// Delegate to the base class.
+				// Later if we have card specific
+				// parameter we can process them
+				// here too.
+  ParameterIterator i; 
+  CIntConfigParam* pInt;
 
-  int operator== (const CRangeError& aCRangeError)
-  { 
-    return (
-	    (CException::operator== (aCRangeError)) &&
-	    (m_nLow == aCRangeError.m_nLow) &&
-	    (m_nHigh == aCRangeError.m_nHigh) &&
-	    (m_nRequested == aCRangeError.m_nRequested) 
-	    );
-  }
-  // Selectors - Don't use these unless you're a derived class
-  //             or you need some special exception type specific
-  //             data.  Generic handling should be based on the interface
-  //             for CException.
-public:                             
+  i = Find(string("Iped"));	// We know this can't fail.
+  pInt = (CIntConfigParam*)*i;
+  CAENcard* pCard = getCard();
+  pCard->setIped(pInt->getOptionValue());
 
-  Int_t getLow() const
-  {
-    return m_nLow;
-  }
-  Int_t getHigh() const
-  {
-    return m_nHigh;
-  }
-  Int_t getRequested() const
-  {
-    return m_nRequested;
-  }
-  // Mutators - These can only be used by derived classes:
+  
 
-protected:
-  void setLow (Int_t am_nLow)
-  { 
-    m_nLow = am_nLow;
-    UpdateReason();
-  }
-  void setHigh (Int_t am_nHigh)
-  { 
-    m_nHigh = am_nHigh;
-    UpdateReason();
-  }
-  void setRequested (Int_t am_nRequested)
-  { 
-    m_nRequested = am_nRequested;
-    UpdateReason();
-  }
-  //
-  //  Interfaces implemented from the CException class.
-  //
-public:                    
-  virtual   const char* ReasonText () const  ;
-  virtual   Int_t ReasonCode () const  ;
- 
-  // Protected utilities:
-  //
-protected:
-  void UpdateReason();
-};
+} 
 
-#endif
+/*! 
+  Called on a per event basis to prepare the card to
+accept the next trigger.  For the CAEN V792, this is a
+no-op.
+
+*/
+void 
+CCAENV792::Prepare()  
+{
+  CCAENModule::Prepare();
+}  
+
+/*!  Function: 	
+
+  Reads an event from the card.  
+\param rBuffer DAQWordBufferPtr& [modified]
+    Pointer like object to the target data buffer.
+    data will be read from the ADC to the location
+  'pointed to' rBuffer.
+
+\return DAQWordBufferptr updated buffer pointer
+    after the read.
+
+\note  The module is silently ignored if the card
+    has not been instantiated yet.
+*/
+void
+CCAENV792::Read(DAQWordBufferPtr& rBuffer)  
+{ 
+  CCAENModule::Read(rBuffer);
+}  
+
+/*! 
+  Called on a per event basis to clear the module after reading
+an event. Probably nothing has to be done here, but 
+to be safe, we clear any pending data.
+
+*/
+void 
+CCAENV792::Clear()  
+{ 
+  CCAENModule::Clear();
+}

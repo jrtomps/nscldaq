@@ -275,154 +275,279 @@ DAMAGES.
 
 		     END OF TERMS AND CONDITIONS
 */
-//  CRangeError.h:
-//
-//    This file defines the CRangeError class.
-//
-// Author:
-//    Ron Fox
-//    NSCL
-//    Michigan State University
-//    East Lansing, MI 48824-1321
-//    mailto:fox@nscl.msu.edu
-//
-//  Copyright 1999 NSCL, All Rights Reserved.
-//
-/////////////////////////////////////////////////////////////
 
-/********************** WARNING - this file is obsolete, include 
-                        CrangeError.h from now on
+#include "CCAENModule.h"
+#include "CAENcard.h"
+#include "TCLInterpreter.h"
+#include "CIntConfigParam.h"
+#include "CBoolConfigParam.h"
+#include "CIntArrayParam.h"
+#include <assert.h>
+#include <iostream.h>
+
+static const int CHANNELS(32);
+static const int WAITLOOPS(20);
+/*!
+  Constructs a CAEN module object.  The constructor
+creates the common set of configuration options that
+are recognized by all types of modules.
+
+\param rName (const string& [in]):
+   Command name that will be associated with this module.
+   note that CCAENModules never get built by themselves,
+   only their concrete model specific sub-clases.
+
+\param rInterpeter (CTCLInterpreter& [in]):
+   The interpreter on which this object's manipulating
+   command will be registered.
 */
-
-
-#ifndef __CRANGEERROR_H  //Required for current class
-#define __CRANGEERROR_H
-                               //Required for base classes
-#ifndef __CEXCEPTION_H
-#include "Exception.h"
-#endif                             
-#ifndef __STL_STRING
-#include <string>
-#define __STL_STRING
-#endif  
-                               
-class CRangeError  : public CException        
+CCAENModule::CCAENModule(const string & rName,
+			CTCLInterpreter& rInterpreter) :
+  CDigitizerModule(rName, rInterpreter),
+  m_pCAENcard(0),
+  m_fMultiEvent(false)
 {
-  Int_t m_nLow;			// Lowest allowed value for range (inclusive).
-  Int_t m_nHigh;		// Highest allowed value for range.
-  Int_t m_nRequested;		// Actual requested value which is outside
-				// of the range.
-  std::string m_ReasonText;            // Reason text will be built up  here.
-public:
-  //   The type below is intended to allow the client to categorize the
-  //   exception:
+  // Setup our configuration parameters:
+  
+  AddIntParam(string("crate"), 0);
+  AddIntParam(string("slot"), -1);   // Force legal config.
+  AddIntArrayParam(string("threshold"), CHANNELS, 0);
+  AddBoolParam(string("keepunder"), false);
+  AddBoolParam(string("keepoverflow"), false);
+  AddBoolParam(string("card"), true);
+  AddBoolParam(string("geo"),  true);    // Geographical addressing.
+  AddIntArrayParam(string("enable"), CHANNELS, 1);
+  AddIntParam(string("base"), 0);
+  AddBoolParam(string("multievent"), false);
 
-  enum {
-    knTooLow,			// CRangeError::knTooLow  - below m_nLow
-    knTooHigh			// CRangeError::knTooHigh - above m_nHigh
-  };
-			//Constructors with arguments
+  // This parameter is added to allow us to source in 
+  // SpecTcl configuration scripts too!!
 
-  CRangeError (  Int_t nLow,  Int_t nHigh,  Int_t nRequested,
-		 const char* pDoing) :       
-    CException(pDoing),
-    m_nLow (nLow),  
-    m_nHigh (nHigh),  
-    m_nRequested (nRequested)
-  { UpdateReason(); }
-  CRangeError(Int_t nLow, Int_t nHigh, Int_t nRequested,
-	  const std::string& rDoing) :
-    CException(rDoing),
-    m_nLow(nLow),
-    m_nHigh(nHigh),
-    m_nRequested(nRequested)
-  { UpdateReason(); }
-  virtual ~ CRangeError ( ) { }       //Destructor
+  AddStringArrayParam(string("parameters"), 32);
+  
+  // Now set the appropriate ranges for the integer parameters.
+  // This is a two step process for each parameter (or array).
+  // - use Find to locate the parameter and 
+  // - Invoke the found object's setRange member.
+  // 
+  // Since we have just entered these objects in the 
+  // parser's configuration list, failing to find them
+  // is considered a fatal error signalled via a failed
+  // assert.
+  
+  ParameterIterator i;
+  CIntConfigParam*  pInt;
+  CIntArrayParam*   pArray;
 
-			//Copy constructor
+  // Crate numbers are in the range [0-7]:
 
-  CRangeError (const CRangeError& aCRangeError )   : 
-    CException (aCRangeError) 
-  {
-    m_nLow = aCRangeError.m_nLow;
-    m_nHigh = aCRangeError.m_nHigh;
-    m_nRequested = aCRangeError.m_nRequested;
-    UpdateReason();
-  }                                     
+  i = Find(string("crate"));
+  assert(i != end());
+  pInt = (CIntConfigParam*)*i;
+  pInt->setRange(0,7);
 
-			//Operator= Assignment Operator
+  // Slot numbers range from 2 to 21 since
+  // since slot 1 is a system controller.
+  
+  i    = Find(string("slot"));
+  assert(i != end());
+  pInt = (CIntConfigParam*)*i;
+  pInt->setRange(1, 21);
+   
+  // Thresholds have the range 0 - 4000mV.
+  
+  i      = Find(string("threshold"));
+  assert(i != end());
+  pArray = (CIntArrayParam*)*i;
+  pArray->setRange(0, 4000);
+  
+  // Ranges have values 0 or 1 (really flags).
+  
+  i      = Find(string("enable"));
+  assert(i != end());
+  pArray = (CIntArrayParam*)*i;
+  pArray->setRange(0,1);
+  
+}
+/*!
+   Initializes a module.  This is the function that will actually
+   create the underlying module driver object.   The parameters
+   are processed and used to configure it.
+*/
+void
+CCAENModule::Initialize()
+{
+  delete m_pCAENcard;    // Kill off the old card.
+  
+  // Figure out the card slot so that we can construct
+  // the new card.
+  
+  ParameterIterator     i;
+  CIntConfigParam*      pInt;
+  CIntArrayParam*       pArray;
+  CBoolConfigParam* pBool;
+  
+  i = Find("crate");
+  assert(i != end());
+  pInt = (CIntConfigParam*)*i;
+  int nCrate = pInt->getOptionValue();
 
-  CRangeError operator= (const CRangeError& aCRangeError)
-  { 
-    if (this != &aCRangeError) {
-      CException::operator= (aCRangeError);
-      m_nLow = aCRangeError.m_nLow;
-      m_nHigh = aCRangeError.m_nHigh;
-      m_nRequested = aCRangeError.m_nRequested;
-      UpdateReason();
+
+  bool fGeo;
+
+  i   = Find("slot");
+  assert(i != end());
+  pInt= (CIntConfigParam*)*i;
+  int nSlot = pInt->getOptionValue();
+  
+  // Could be set via base address with slot programmed:
+  
+  i = Find("base");
+  assert(i != end());
+  pInt = (CIntConfigParam*)*i;
+  int nBase = pInt->getOptionValue();
+
+  // Figure out which to use for the config:
+
+  i = Find("geo");
+  assert(i != end());
+  pBool = (CBoolConfigParam*)*i;
+  fGeo   = pBool->getOptionValue();
+
+  m_pCAENcard = new CAENcard(nSlot, nCrate, fGeo, nBase);
+  
+  // Now we can configure the new card according to the
+  // remaining parameters:
+  
+  // Set the thresholds: 1mv == 1 chan so no conversion
+  // is required;
+  
+    i   = Find("threshold");
+    assert(i != end());
+    pArray = (CIntArrayParam*)*i;
+    for(int c = 0; c < CHANNELS; c++) {
+      m_pCAENcard->setThreshold(c, (*pArray)[c]);
+    }
+  
+  // Determine which parameters will be excluded.
+  
+    i   = Find("keepunder");
+    assert(i != end());
+    pBool= (CBoolConfigParam*)*i;
+    if(pBool->getOptionValue()) {
+      m_pCAENcard->keepUnderThresholdData();
+    }
+    else {
+      m_pCAENcard->discardUnderThresholdData();
+    }
+    i   = Find("keepoverflow");
+    assert(i != end());
+    pBool = (CBoolConfigParam*)*i;
+    if(pBool->getOptionValue()) {
+      m_pCAENcard->keepOverflowData();
+    }
+    else {
+      m_pCAENcard->discardOverflowData();
     }
 
-    return *this;
-  }                                     
+  // Figure out if the card is enabled, and which
+  // individual channels are enabled.
+  
+    i = Find("card");
+    assert(i != end());
+    pBool = (CBoolConfigParam*)*i;
+    if(pBool->getOptionValue()) {
+      m_pCAENcard->cardOn();
+    }
+    else {
+      m_pCAENcard->cardOff();
+    }
+    i = Find("enable");
+    assert(i != end());
+    pArray = (CIntArrayParam*)*i;
+    for(int c = 0; c < CHANNELS; c++) {
+      if((*pArray)[c]) {
+        m_pCAENcard->channelOn(c);
+      }
+      else {
+        m_pCAENcard->channelOff(c);
+      }
+    }
+    // Multievent mode?
 
-			//Operator== Equality Operator
+    i = Find("multievent");
+    assert(i != end());
+    pBool = (CBoolConfigParam*)*i;
+    m_fMultiEvent = pBool->getOptionValue();
 
-  int operator== (const CRangeError& aCRangeError)
-  { 
-    return (
-	    (CException::operator== (aCRangeError)) &&
-	    (m_nLow == aCRangeError.m_nLow) &&
-	    (m_nHigh == aCRangeError.m_nHigh) &&
-	    (m_nRequested == aCRangeError.m_nRequested) 
-	    );
-  }
-  // Selectors - Don't use these unless you're a derived class
-  //             or you need some special exception type specific
-  //             data.  Generic handling should be based on the interface
-  //             for CException.
-public:                             
+    // Finally set the begin run state:
+    
+    m_pCAENcard->resetEventCounter();
+    m_pCAENcard->clearData();
+}
+/*!
+  Called on a per event basis to prepare the card to accept the next
+  trigger.  For the CAEN modules, this is a no-op, once initialized,
+  they're ready to go.
 
-  Int_t getLow() const
-  {
-    return m_nLow;
-  }
-  Int_t getHigh() const
-  {
-    return m_nHigh;
-  }
-  Int_t getRequested() const
-  {
-    return m_nRequested;
-  }
-  // Mutators - These can only be used by derived classes:
+*/
+void
+CCAENModule::Prepare()
+{
+  if(!m_fMultiEvent) 
+    m_pCAENcard->clearData();
+}
+/*!
+  Reads an event from the card into the current event
+  buffer
+  \param rBuffer (DAQWordBufferPtr& [modified]).
+    Pointer like object to the target datat buffer.
+    Data wil be read from the ADC to the location 
+    'pointed to by the pointer.
+  
+  \note  The module is silently ignored if it has
+  not yet caused a card to be instantiated.
+*/
+void CCAENModule::Read(DAQWordBufferPtr& rBuffer)
+{
 
-protected:
-  void setLow (Int_t am_nLow)
-  { 
-    m_nLow = am_nLow;
-    UpdateReason();
+  if(m_pCAENcard){
+    for(int i = 0; i < WAITLOOPS; i++) {
+      if(m_pCAENcard->dataPresent()) break;
+    }
+    if(m_pCAENcard->dataPresent()) 
+      m_pCAENcard->readEvent(rBuffer);
   }
-  void setHigh (Int_t am_nHigh)
-  { 
-    m_nHigh = am_nHigh;
-    UpdateReason();
+}
+/*!
+   Called to read an event into a nondaq buffer.
+   this can be used for testing, but is really there
+   to make the infrastructure of scaler and event reads
+   identical.
+   \return Number of words read.
+*/
+int
+CCAENModule::Read(void* pBuffer)
+{
+  if(m_pCAENcard) {
+    if(m_pCAENcard->dataPresent())
+      return (m_pCAENcard->readEvent(pBuffer)/sizeof(short));
+       
   }
-  void setRequested (Int_t am_nRequested)
-  { 
-    m_nRequested = am_nRequested;
-    UpdateReason();
+  else {
+    return 0;			// Nonexistent cards give no data.
   }
-  //
-  //  Interfaces implemented from the CException class.
-  //
-public:                    
-  virtual   const char* ReasonText () const  ;
-  virtual   Int_t ReasonCode () const  ;
- 
-  // Protected utilities:
-  //
-protected:
-  void UpdateReason();
-};
+}
+/*!
+   Called to clear any pending data from the module.
+*/
+void
+CCAENModule::Clear()
+{
+  if(m_pCAENcard) m_pCAENcard->clearData();
+}
 
-#endif
+
+CCAENModule::~CCAENModule() {
+  delete m_pCAENcard;
+}

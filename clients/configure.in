@@ -5,7 +5,7 @@ AM_CONFIG_HEADER(config.h)
 
 #    Separate device libraries.
 
-AM_INIT_AUTOMAKE(nscldaq, 7.3)  
+AM_INIT_AUTOMAKE(nscldaq, 7.3-001)  
 
 #  Checks for parameters:
 
@@ -424,7 +424,7 @@ AC_OUTPUT(Makefile Headers/Makefile CopyrightTools/Makefile \
 	Readout/Makefile diskrun/Makefile \
 	EventLog/Makefile  Scaler/Makefile contrib/Makefile \
 	contrib/lecroy/Makefile contrib/whedco/Makefile \
-	contrib/caenv812/Makefile \
+	contrib/caenv812/Makefile contrib/scriptedReadout/Makefile \
 	 vmetcl/Makefile \
 	vmetcl/camactcl/Makefile vmetcl/vhq202m/Makefile bufdump/Makefile \
 	TclServer/Makefile bcnaf/Makefile TcpHoister/Makefile Stager/Makefile \

@@ -290,11 +290,6 @@ DAMAGES.
 //
 /////////////////////////////////////////////////////////////
 
-/********************** WARNING - this file is obsolete, include 
-                        CrangeError.h from now on
-*/
-
-
 #ifndef __CRANGEERROR_H  //Required for current class
 #define __CRANGEERROR_H
                                //Required for base classes

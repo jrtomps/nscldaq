@@ -275,154 +275,161 @@ DAMAGES.
 
 		     END OF TERMS AND CONDITIONS
 */
-//  CRangeError.h:
-//
-//    This file defines the CRangeError class.
-//
-// Author:
-//    Ron Fox
-//    NSCL
-//    Michigan State University
-//    East Lansing, MI 48824-1321
-//    mailto:fox@nscl.msu.edu
-//
-//  Copyright 1999 NSCL, All Rights Reserved.
-//
-/////////////////////////////////////////////////////////////
-
-/********************** WARNING - this file is obsolete, include 
-                        CrangeError.h from now on
+static const char* Copyright = "(C) Copyright Michigan State University 1977, All rights reserved";
+/*! \class CBoolConfigParam   
+           CLASS_PACKAGE
+           Encapsulates a boolean parameter. 
 */
 
+#include "CBoolConfigParam.h"    		
+#include <TCLInterpreter.h>
+#include <TCLResult.h>
 
-#ifndef __CRANGEERROR_H  //Required for current class
-#define __CRANGEERROR_H
-                               //Required for base classes
-#ifndef __CEXCEPTION_H
-#include "Exception.h"
-#endif                             
-#ifndef __STL_STRING
-#include <string>
-#define __STL_STRING
-#endif  
-                               
-class CRangeError  : public CException        
+/*!
+  Constructor.
+  \param rName const string& [in]
+      Name of the parameter (keyword recognized by config).
+  \param fDefault bool [in]
+      Default (initial) value of the parameter.
+*/
+CBoolConfigParam::CBoolConfigParam (const string& rName,
+                                    bool          fDefault) :
+  CConfigurationParameter(rName),
+  m_fValue(fDefault)
 {
-  Int_t m_nLow;			// Lowest allowed value for range (inclusive).
-  Int_t m_nHigh;		// Highest allowed value for range.
-  Int_t m_nRequested;		// Actual requested value which is outside
-				// of the range.
-  std::string m_ReasonText;            // Reason text will be built up  here.
-public:
-  //   The type below is intended to allow the client to categorize the
-  //   exception:
+  setValue(fDefault ? "true" : "false");
+} 
 
-  enum {
-    knTooLow,			// CRangeError::knTooLow  - below m_nLow
-    knTooHigh			// CRangeError::knTooHigh - above m_nHigh
-  };
-			//Constructors with arguments
+/*!
+   Destructor
+*/
+CBoolConfigParam::~CBoolConfigParam ( )
+{
+}
+/*!
+   Copy constructor.  Used to create temproraries such as
+  for passing by value to functions.
+  \param rhs const CBoolConfigParam [in]
+        The reference object we are copying.
+*/
+CBoolConfigParam::CBoolConfigParam (const CBoolConfigParam& rhs) 
+  : CConfigurationParameter (rhs),
+    m_fValue(rhs.m_fValue)
+{
+} 
 
-  CRangeError (  Int_t nLow,  Int_t nHigh,  Int_t nRequested,
-		 const char* pDoing) :       
-    CException(pDoing),
-    m_nLow (nLow),  
-    m_nHigh (nHigh),  
-    m_nRequested (nRequested)
-  { UpdateReason(); }
-  CRangeError(Int_t nLow, Int_t nHigh, Int_t nRequested,
-	  const std::string& rDoing) :
-    CException(rDoing),
-    m_nLow(nLow),
-    m_nHigh(nHigh),
-    m_nRequested(nRequested)
-  { UpdateReason(); }
-  virtual ~ CRangeError ( ) { }       //Destructor
-
-			//Copy constructor
-
-  CRangeError (const CRangeError& aCRangeError )   : 
-    CException (aCRangeError) 
-  {
-    m_nLow = aCRangeError.m_nLow;
-    m_nHigh = aCRangeError.m_nHigh;
-    m_nRequested = aCRangeError.m_nRequested;
-    UpdateReason();
-  }                                     
-
-			//Operator= Assignment Operator
-
-  CRangeError operator= (const CRangeError& aCRangeError)
-  { 
-    if (this != &aCRangeError) {
-      CException::operator= (aCRangeError);
-      m_nLow = aCRangeError.m_nLow;
-      m_nHigh = aCRangeError.m_nHigh;
-      m_nRequested = aCRangeError.m_nRequested;
-      UpdateReason();
-    }
-
-    return *this;
-  }                                     
-
-			//Operator== Equality Operator
-
-  int operator== (const CRangeError& aCRangeError)
-  { 
-    return (
-	    (CException::operator== (aCRangeError)) &&
-	    (m_nLow == aCRangeError.m_nLow) &&
-	    (m_nHigh == aCRangeError.m_nHigh) &&
-	    (m_nRequested == aCRangeError.m_nRequested) 
-	    );
+/*!
+   Assignment
+  \param rhs const CBoolConfigParam& [in]
+      The right hand parameter of the = operator.
+  \return reference to *this.
+*/
+CBoolConfigParam& 
+CBoolConfigParam::operator= (const CBoolConfigParam& rhs)
+{ 
+  if(this != &rhs) {
+    CConfigurationParameter::operator=(rhs);
+    m_fValue = rhs.m_fValue;
   }
-  // Selectors - Don't use these unless you're a derived class
-  //             or you need some special exception type specific
-  //             data.  Generic handling should be based on the interface
-  //             for CException.
-public:                             
+  return *this;
+}
+/*!
+  Compare for functional equality.
+  \param rhs const CBoolConfigParam& [in]
+      Right hand operand of the == operator.
+  \return Any of:
+  - 0 For inequality.
+  - 1 for equality.
+*/
+int CBoolConfigParam::operator== (const CBoolConfigParam& rhs) const
+{ 
+  return ( CConfigurationParameter::operator==(rhs)  &&
+          (m_fValue == rhs.m_fValue));
+}
 
-  Int_t getLow() const
-  {
-    return m_nLow;
-  }
-  Int_t getHigh() const
-  {
-    return m_nHigh;
-  }
-  Int_t getRequested() const
-  {
-    return m_nRequested;
-  }
-  // Mutators - These can only be used by derived classes:
+// Functions for class CBoolConfigParam
 
-protected:
-  void setLow (Int_t am_nLow)
-  { 
-    m_nLow = am_nLow;
-    UpdateReason();
+/*!  
+Returns the value of the parameter.
+
+*/
+bool 
+CBoolConfigParam::getOptionValue()  
+{ 
+  return m_fValue;
+}  
+
+/*! 
+
+Parses the parameter value.
+This function can fail if:
+- The parameter is not avalid bool.
+
+\return One of:
+- TCL_OK - the parse worked.
+- TCL_ERROR - the pares failed.
+
+*/
+int 
+CBoolConfigParam::SetValue(CTCLInterpreter& rInterp, 
+                           CTCLResult& rResult, 
+                           const char* pFlag)  
+{ 
+  // First try to parse the flag.. It seems that ExprBoolean is busted.
+  // in some way, so we'll do a manual parse.. we want to expand the 
+  // acceptable bool values to enabled disable too so what the heck.
+  try {
+    Bool_t param;
+    param = ParseFlag(pFlag);
+    m_fValue = param;
   }
-  void setHigh (Int_t am_nHigh)
-  { 
-    m_nHigh = am_nHigh;
-    UpdateReason();
+  catch (...) {
+    string Result;
+    Result += "Boolean parameter: ";
+    Result += getSwitch();
+    Result += " value ";
+    Result += pFlag;
+    Result += " Cannot be parsed as a bool";
+    rResult.AppendElement(Result);
+    return TCL_ERROR;
   }
-  void setRequested (Int_t am_nRequested)
-  { 
-    m_nRequested = am_nRequested;
-    UpdateReason();
-  }
-  //
-  //  Interfaces implemented from the CException class.
-  //
-public:                    
-  virtual   const char* ReasonText () const  ;
-  virtual   Int_t ReasonCode () const  ;
+  return TCL_OK;
+}
+/*!
+   \return The format of the configuration parameter in this
+        case "on | off"
+*/
+string
+CBoolConfigParam::GetParameterFormat()
+{
+  return string("on | off");
+}
+/*!
+   Utility function to parse a boolean flag:
+   \param value const char* [in]   Character value of the flag. Legal 
+   values for true are:
+   - true
+   - on
+   - enable
+   Legal values for false are:
+   - false
+   - off
+   - disable
+
+   \return Bool_t kfTRUE if parses as true, kfFALSE if as false, and an
+   exception (char*) if no parse.
+*/
+Bool_t
+CBoolConfigParam::ParseFlag(const char* value)
+{
+  string sValue(value);
+  if(  (sValue == string("true"))     ||
+       (sValue == string("on"))       ||
+       (sValue == string("enable"))) return kfTRUE;
+  else if ( (sValue == string("false"))   ||
+	    (sValue == string("off"))     ||
+	    (sValue == string("disable"))) return kfFALSE;
+  else 
+    throw "Invalid boolean value.";
  
-  // Protected utilities:
-  //
-protected:
-  void UpdateReason();
-};
-
-#endif
+}
