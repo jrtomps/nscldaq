@@ -282,6 +282,9 @@ static const char* Copyright = "(C) Copyright Michigan State University 2002, Al
   
   Change Log:
    $Log$
+   Revision 3.2  2003/08/22 18:42:54  ron-fox
+   Correct the location of the CAMAC NIM status output module.  Change period variable name to frequency for compatibility with existing stuff (too bad about that since it really is a period).
+
    Revision 3.1  2003/03/22 04:03:08  ron-fox
    Added SBS/Bit3 device driver.
 
@@ -491,7 +494,7 @@ CReadoutMain::CreateExperiment()
   } 
   else {
     m_Experiment.EstablishTrigger(new CCAMACTrigger(0));
-    m_Experiment.EstablishBusy(new CCAMACStatusModule(0,1, 20));
+    m_Experiment.EstablishBusy(new CCAMACStatusModule(0,2, 19));
   }
 
   // Now invoke the experiment specific overrides:
@@ -640,7 +643,7 @@ CReadoutMain::getScalerPeriod() const
   // Try to locate the "period" variable.  If
   // not found return the default period.
 
-  StateVariableIterator i = rState.find("period");
+  StateVariableIterator i = rState.find("frequency");
   if(i == rState.end()) {
     return nDefaultPeriod;
   }
