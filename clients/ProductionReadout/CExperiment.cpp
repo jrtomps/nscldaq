@@ -283,6 +283,10 @@ static const char* Copyright = "(C) Copyright Michigan State University 2002, Al
    
    Modification History:
    $Log$
+   Revision 3.3  2003/10/31 17:42:13  ron-fox
+   Lock the VME prior to releasing control to the
+   experimental readout.
+
    Revision 3.2  2003/08/22 18:40:58  ron-fox
    Scaler buffer times should be in seconds not in 10'ths of secionds (Part of bug 71).
 
@@ -320,6 +324,7 @@ static const char* Copyright = "(C) Copyright Michigan State University 2002, Al
    */
    
 //////////////////////////CExperiment.cpp file////////////////////////////////////
+#include "CVMEInterface.h"
 #include "CExperiment.h"                  
 #include "CStateTransitionCommand.h"
 #include "CBeginCommand.h"
@@ -746,9 +751,11 @@ CExperiment::ReadEvent()
   DAQWordBufferPtr ptr(m_EventBuffer->StartEvent());
   DAQWordBufferPtr hdr = ptr;
    
+  CVMEInterface::Lock();
   ptr = m_EventReadout.Read(ptr);
   m_EventReadout.Clear();
   PostEvent();
+  CVMEInterface::Unlock();
 
   m_nEventsAcquired++;
   m_nWordsAcquired += ptr.GetIndex() - hdr.GetIndex();
@@ -963,7 +970,7 @@ CExperiment::TriggerRunVariableBuffer()
     CRunVariableBuffer buf;
     i = EmitRunVariableBuffer(buf, i, Vars->end());
     buf.SetRun(GetRunNumber());
-    buf.Route(false);		// No sequenc increment for run variable buffers.
+    buf.Route(true);		// Increment else SpecTcl's eff is wrong.
   }
   
 }  
@@ -980,7 +987,7 @@ CExperiment::TriggerStateVariableBuffer()
     CStateVariableBuffer buf(m_nBufferSize);
     i = EmitStateVariableBuffer(buf, i, e);
     buf.SetRun(GetRunNumber());
-    buf.Route(false);		// No sequenc increment for run variable buffers.
+    buf.Route(true);		//Increment else spectcl eff. is wrong
   }
 
 }
@@ -1040,7 +1047,7 @@ CExperiment::TriggerDocBuffer()
 
     i = EmitDocBuffer(i, pManager->end(), buf);
     buf.SetRun(GetRunNumber());
-    buf.Route(false);
+    buf.Route(true);		// Increment else spectcl's smapling eff. is wrong
   }
   
 }  
