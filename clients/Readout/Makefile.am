@@ -46,7 +46,7 @@ install-data-local:
 	$(INSTALL_DATA) runstate.tran $(prefix)/Readout/etc
 	
 
-libReadout_la_LDFLAGS = -version-info 2:0:0  -L@top_srcdir@/VMEApi \
+libReadout_la_LDFLAGS = -version-info 2:1:0  -L@top_srcdir@/VMEApi \
 	-lVmeAPI $(SPECTRODAQ_LDFLAGS) -g
 
 INCLUDES = -I@top_srcdir@/Headers -I@top_srcdir@/VMEApi \
