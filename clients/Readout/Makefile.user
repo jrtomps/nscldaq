@@ -1,8 +1,8 @@
-BINDIR=/usr/opt/daqtest/bin
-INCLUDEDIR=/usr/opt/daqtest/include
-LIBDIR=/usr/opt/daqtest/lib
-VMELIBRARY=-L/opt/daq/Lib -lbtp
-VMELIBRARYHEADERS=-I/usr/opt/daq/Include
+BINDIR=/usr/opt/daq/bin
+INCLUDEDIR=/usr/opt/daq/include
+LIBDIR=/usr/opt/daq/lib
+VMELIBRARY=-L/opt/daq/lib -lbtp
+VMELIBRARYHEADERS=-I/usr/opt/daq/include
 spectrodaq_conf_dir=/opt/spectrodaq/bin
 CAMAC=-DCESCAMAC
 #

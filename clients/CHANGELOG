@@ -1,0 +1,14 @@
+7.1-001  2/11/03: 
+  - ./configure.in  - Fix an error in the search for the SBS/Bit3 headers.
+    the script would fail if the initial set of directories did not contain
+    the headers...even if the secondary search set did.
+  - VMEApi/Makefile.am
+    VMEApi/SBSBIT3API.h  - this file was mis-named and should have been called
+	SBSBit3API.h  (note difference in capitalization).  The file has been
+        renamed and Makefile.am fixed up to produce an appropriate tarball.
+  - Stager/directories.tcl - Modified to support a BUFFERSIZE environment
+	variable that can be used to modify the behavior of 
+	ExpFileSystem::GenRunFile in the event the user has overidden the 
+	default daq buffersize.
+
+y

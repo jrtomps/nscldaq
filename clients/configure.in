@@ -2,7 +2,7 @@
 AC_INIT(CopyrightTools/CopyrightNotice.cpp)
 AC_CONFIG_AUX_DIR(config)
 AM_CONFIG_HEADER(config.h)
-AM_INIT_AUTOMAKE(nscldaq, 7.1)
+AM_INIT_AUTOMAKE(nscldaq, 7.1-001)
 
 #  Checks for parameters:
 

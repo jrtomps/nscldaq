@@ -883,7 +883,7 @@ fi
 
 PACKAGE=nscldaq
 
-VERSION=7.0
+VERSION=7.1-001
 
 if test "`cd $srcdir && pwd`" != "`pwd`" && test -f $srcdir/config.status; then
   { echo "configure: error: source directory already configured; run "make distclean" there first" 1>&2; exit 1; }
@@ -9167,16 +9167,16 @@ fi
    if test $foundsbs_headers == "false"
    then
       
-ac_safe=`echo "${includedir}/btapi.h" | sed 'y%./+-%__p_%'`
-echo $ac_n "checking for ${includedir}/btapi.h""... $ac_c" 1>&6
-echo "configure:9173: checking for ${includedir}/btapi.h" >&5
+ac_safe=`echo "$prefix/include/btapi.h" | sed 'y%./+-%__p_%'`
+echo $ac_n "checking for $prefix/include/btapi.h""... $ac_c" 1>&6
+echo "configure:9173: checking for $prefix/include/btapi.h" >&5
 if eval "test \"`echo '$''{'ac_cv_file_$ac_safe'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
 else
   if test "$cross_compiling" = yes; then
     { echo "configure: error: Cannot check for file existence when cross compiling" 1>&2; exit 1; }
 else
-  if test -r ${includedir}/btapi.h; then
+  if test -r $prefix/include/btapi.h; then
     eval "ac_cv_file_$ac_safe=yes"
   else
     eval "ac_cv_file_$ac_safe=no"
@@ -9185,11 +9185,10 @@ fi
 fi
 if eval "test \"`echo '$ac_cv_file_'$ac_safe`\" = yes"; then
   echo "$ac_t""yes" 1>&6
-  VMELIBRARYHEADERS=${includedir}
-	   foundsbs_headers="true"
+  VMELIBRARYHEADERS=$prefix/include
 else
   echo "$ac_t""no" 1>&6
-
+foundsbs_headers="true"]
 fi
 
    fi
@@ -9229,7 +9228,7 @@ fi
    # $libdir
    #  --with-sbsbit3-lib=path
    echo $ac_n "checking  Searching for libbtp.a...""... $ac_c" 1>&6
-echo "configure:9233: checking  Searching for libbtp.a..." >&5
+echo "configure:9232: checking  Searching for libbtp.a..." >&5
    foundsbs_libs="false"
    checkdirs="/usr/lib /usr/lib/sbsbit3 /usr/local/lib \
 	/usr/local/lib/sbsbit3 /opt/lib /opt/lib/sbsbit3 /opt/daq/lib \
@@ -9242,7 +9241,7 @@ echo "configure:9233: checking  Searching for libbtp.a..." >&5
         
 ac_safe=`echo "${directory}/libbtp.a" | sed 'y%./+-%__p_%'`
 echo $ac_n "checking for ${directory}/libbtp.a""... $ac_c" 1>&6
-echo "configure:9246: checking for ${directory}/libbtp.a" >&5
+echo "configure:9245: checking for ${directory}/libbtp.a" >&5
 if eval "test \"`echo '$''{'ac_cv_file_$ac_safe'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
 else
@@ -9275,7 +9274,7 @@ fi
       
 ac_safe=`echo "$libdir/libbtp.a" | sed 'y%./+-%__p_%'`
 echo $ac_n "checking for $libdir/libbtp.a""... $ac_c" 1>&6
-echo "configure:9279: checking for $libdir/libbtp.a" >&5
+echo "configure:9278: checking for $libdir/libbtp.a" >&5
 if eval "test \"`echo '$''{'ac_cv_file_$ac_safe'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
 else
