@@ -382,5 +382,8 @@ March 4, 2005
      - Update the scaler display man page to reflect the modifications since March 1
 March 8, 2005
      - Make the scaler.tcl script sourceable into SpecTcl's scaler analysis software.
-
+March 9, 2005
+     - Fix defect in scaler.tcl - SpecTcl makes floating point totals... the
+       formatting assumed integers.  %f formatting works for both so used
+       % 10.0f  %d fails explicitly on reals.
 

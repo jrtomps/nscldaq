@@ -998,7 +998,7 @@ proc page {name title} {
 	$table columnconfigure 2 -align right \
 		-formatcommand {FormatColumn "% 5.2f"}
 	$table columnconfigure 3 -align right \
-		-formatcommand {FormatColumn "% 10d"}
+		-formatcommand {FormatColumn "% 10.0f"}
 	$table columnconfigure 4 -align right \
 		-formatcommand {FormatColumn "% 10.3f"}
 	scrollbar $vsb -orient vertical   -command [list $table yview]
