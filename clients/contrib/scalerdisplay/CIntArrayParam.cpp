@@ -295,9 +295,14 @@ static const char* Copyright = "(C) Copyright Ron Fox 2002, All rights reserved"
 #include <assert.h>
 #include <vector>
 
+#include <errno.h>
+#include <stdlib.h>
+
+
 #ifdef HAVE_STD_NAMESPACE
 using namespace std;
 #endif
+
 
 /*!
    Constructor: Constructs an array that is not range checked.
@@ -511,8 +516,18 @@ CIntArrayParam::SetValue(CTCLInterpreter& rInterp,
   vector<Long_t> Values;
   Long_t nLong;
   for(int i = 0; i < values.size(); i++) {
-    try {
-      nLong = rInterp.ExprLong(values[i]);
+      nLong = strtoll(values[i].c_str(), (char**) NULL, 0);
+      if( (nLong == 0) && (errno == EINVAL)) {
+	char value[100];
+	sprintf(value, "%d", Values[i]);
+	rResult  += "Configuration parameter array : ";
+	rResult += getSwitch();
+	rResult += " element: ";
+	rResult += value;
+	rResult += " failed to parse as a long";
+	return TCL_ERROR;
+	
+      }
       if(m_fCheckRange) {
         if((nLong < m_nLow) || (nLong > m_nHigh)) {
 	  char value[100];
@@ -529,17 +544,6 @@ CIntArrayParam::SetValue(CTCLInterpreter& rInterp,
       Values.push_back(nLong);      // Save the elemnt.
 
     }
-    catch (...) {
-      char value[100];
-      sprintf(value, "%d", Values[i]);
-      rResult  += "Configuration parameter array : ";
-      rResult += getSwitch();
-      rResult += " element: ";
-      rResult += value;
-      rResult += " failed to parse as a long";
-      return TCL_ERROR;
-    }
-  }
   // Now we need to be sure the Values array has the proper
   // size:
   
@@ -567,7 +571,7 @@ string
 CIntArrayParam::GetParameterFormat()
 {
   char   result[100];
-  sprintf(result, "{int[%d]}", m_nSize);
+  sprintf(result, "int[%d]", m_nSize);
   
   return string(result);
 }
