@@ -19,8 +19,8 @@ extensions may be used to control other event threads executing in the
 framework.  Therefore, user command extensions should be implemented as 
 derived classes from CDAQTCLProcessor rather than from CTCLProcessor.  
 
-The CDAQTCLProcessor jackets the call to \link CDAQTCLProcessor::operator()
-operator() \endlink with a lock and unlock of the global serialization
+The CDAQTCLProcessor jackets the call to CDAQTCLProcessor::operator()
+ with a lock and unlock of the global serialization
 mutex.  This forces the command's execution to be synchronized to the 
 application.
 

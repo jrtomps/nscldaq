@@ -95,8 +95,8 @@ command parameters and places them in the result.
 
 \section TkExample example application
 
-This sample application is the same as the one shown in section \link 
-TclExample TclExample, \endlink however a Tk interpreter is started up rather 
+This sample application is the same as the one shown in section \ref 
+TclExample  however a Tk interpreter is started up rather 
 than a Tcl interpreter.  This provides the capability of a scripted GUI
 for the application.
 

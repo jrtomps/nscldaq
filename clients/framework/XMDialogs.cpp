@@ -372,7 +372,8 @@ static void SetupBorders(Widget id)
 **   char **selections:
 **      The set of selections to enter in the box.
 */
-void XMSelectionDialog::SetSelectionList(Cardinal list_count, 
+void 
+XMSelectionDialog::SetSelectionList(Cardinal list_count, 
 					 char **selections)
 {
   XmString *list;		/* The LtoR'd strings. */
@@ -420,7 +421,8 @@ void XMSelectionDialog::SetSelectionList(Cardinal list_count,
 **   string contains the ASCIZ directory path string.
 */
 
-char *XMFileListDialog::GetDirectory() {
+char*
+XMFileListDialog::GetDirectory() {
   XmString dir_compound;
   char     *directory;
 
@@ -437,7 +439,8 @@ char *XMFileListDialog::GetDirectory() {
 ** Returns:
 **  pointer to an XtMalloc'd ASCIZ string which must be released by the caller
 */
-char *XMFileListDialog::GetFileMask()
+char*
+XMFileListDialog::GetFileMask()
 {
   XmString mask_compound;
   char    *mask;
@@ -457,7 +460,8 @@ char *XMFileListDialog::GetFileMask()
 **   The string was XtMalloc'd and must therefore be XtFree'd by the caller
 **   after use.
 **/
-char *XMFileListDialog::GetFullSearchString()
+char*
+XMFileListDialog::GetFullSearchString()
 {
   XmString search_compound;
   char     *mask;
@@ -487,7 +491,8 @@ char *XMFileListDialog::GetFullSearchString()
 **   Cardinal num_args:
 **     Count of resource argumnts which will be applied to the shell.
 */
-void XMCustomDialog::CreateDialog(char *name, Widget parent, char *title,
+void 
+XMCustomDialog::CreateDialog(char *name, Widget parent, char *title,
 				  ArgList l, Cardinal num_args)
 {
 
@@ -558,7 +563,8 @@ void XMCustomDialog::CreateDialog(char *name, Widget parent, char *title,
 **      pane size, and then managing the form, the pane and popping up the
 **      shell.
 */
-void XMCustomDialog::Manage()
+void 
+XMCustomDialog::Manage()
 {
   XtWidgetGeometry size;
 
@@ -596,7 +602,8 @@ void XMCustomDialog::Manage()
 **       It does this by unmanaging the manager widgets and
 **       popping down the shell
 */
-void XMCustomDialog::UnManage()
+void 
+XMCustomDialog::UnManage()
 {
   shell_child->UnManage();
   XtPopdown(id);
@@ -1786,7 +1793,8 @@ void XMCustomDialogBox::InitializeHelp()
 **     This function registers the callback methods.
 */
 
-void XMCustomDialogBox::SetCallbacks()
+void 
+XMCustomDialogBox::SetCallbacks()
 {
   OkCb.Register(Ok, XmNactivateCallback, &XMCustomDialogBox::OkPressed, 
 		(XtPointer)XmCR_OK);

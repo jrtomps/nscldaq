@@ -507,7 +507,7 @@ CLogger::size()
      Adds a host to the list of hosts that we will attempt to form
      a connection with and log a message to.
 
-\param const string& newHost  The name of the new host to be 
+\param newHost  The name of the new host to be 
                               added to m_HostList
 
 \exception CDuplicateNameException  Thrown if the host already 
@@ -528,14 +528,10 @@ CLogger::AddHost(const string& newHost)
 }
 
 /*!
-  Operation Type:
-     Mutator
-
-  Purpose:
      Removes a host from the list of hosts that we will attempt to form
      a connection with and log a message to.
 
-\param const string& oldHost  The name of the old host to be 
+\param  oldHost  The name of the old host to be 
                               removed from m_HostList
 \exception CNoSuchObjectException  Thrown if the name supplied in the parameter
                                    is not in m_HostList.
@@ -565,7 +561,7 @@ CLogger::RemoveHost(const string& oldHost)
      Removes a host from the list of hosts that we will attempt to form
      a connection with and log a message to.
 
-\param HostListIterator It  An iterator which points to the host in
+\param It  An iterator which points to the host in
                             m_HostList that is to be removed.
 \exception CNoSuchObjectException  Thrown if the name supplied in the paramter
                                    is not in m_HostList.

@@ -384,7 +384,7 @@ CLocationEvent<T>::CLocationEvent<T>(const char* pName, volatile T* Location,
 {}
 /*!
   Constructs a CLocationEvent whose name is given by an STL String:
-  \param pName    - Pointer to name of location monitor.
+  \param rName    - Pointer to name of location monitor.
   \param Location - Pointer to the name string.
   \param pred     - Reference to the predicate which defines an eventworthy
                     change in *Location.

@@ -424,7 +424,7 @@ CConfigurationManager::ReadConfigFile(int fd)
   Executes the first configuration file which can be successfully opened
   from a list of configuration files.  Note that if none of the configuration
   files can be located or opened, this function is a silent no-op.
-  \param Names  - An STL vector of filenames to search.  Names are searched
+  \param rNames  - An STL vector of filenames to search.  Names are searched
                   for in vector order.
   
    \throw CTCLException   - if there was an error executing the script.

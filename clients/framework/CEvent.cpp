@@ -334,10 +334,6 @@ protected:
   \param InformTimeouts [false] - Optional parameter which, if true,
                         allows the Reactor to be called when the monitor
                         times out.
-  \param Enabled [true] - Optional parameter which when true indicates
-                        that the constructor should begin execution of the
-                        Event monitoring thread.  If false, a call to
-			the Enable member is required to start execution.
    \param nTimeoutMs  - The timeout in ms for the Event monitor. Timeouts are
                         an essential part of the event thread.  The thread
 			can only react to externally generated attempts
@@ -376,6 +372,12 @@ CEvent::CEvent(CEventMonitor& rMonitor, CReactor& rReactor,
   CEvent::CEvent for most of the descriptive information. However:
 
   \param pName - the name of the event object.
+  \param rMonitor - The event monitor that indicates the event condition
+      has occured.
+  \param rReactor - The object that will react to the event.
+  \param InformTimeouts - True if the event should have a timeout on its
+       wait, and if that timeout will be reported to the reactor.
+  \param nTimeoutMs - The number of milliseconds in the timeout.
 
 Throws:
 - CDuplicateNameException if there is already an Event derived object with
@@ -401,10 +403,15 @@ CEvent::CEvent(const char* pName,
   Construct a named event object.  See the previous overloads of 
 CEvent::CEvent, however:
 
-  \param rName - STL String name of event.
+  \param rName - the name of the event object.
+  \param rMonitor - The event monitor that indicates the event condition
+      has occured.
+  \param rReactor - The object that will react to the event.
+  \param InformTimeouts - True if the event should have a timeout on its
+       wait, and if that timeout will be reported to the reactor.
+  \param nTimeoutMs - The number of milliseconds in the timeout.
 
-Throws:
-- CDuplicateNameException if there is already an Event derived object with
+\throw  CDuplicateNameException if there is already an Event derived object with
   this name.
   */
 CEvent::CEvent(const string& rName,
@@ -609,7 +616,7 @@ CEvent::Schedule()
 
 
       \param nargs - Number of parameters.
-      \param ppargs - Pointer to the arguments.  In this case it's just
+      \param ppArgs - Pointer to the arguments.  In this case it's just
                       a pointer to the dispatching thread's object.
    */
 int

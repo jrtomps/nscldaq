@@ -1336,17 +1336,15 @@ CSocket::getSndBufSize()
 /*!
 
  
-Purpose: 	
 
 Sets the maximum number of bytes which can be received in a single
 read(2) operation.  Note that CTCPSocket::Read does >NOT< 
 automatically segment or else you may block when you'd like
 to believe that a message has been received.
 
-Throws:
-- CErrnoException if setsockopt(2) fails.
+\throw CErrnoException if setsockopt(2) fails.
 
-\param nBufferSize Number of bytes which can be sent in one write(2) call
+\param nBytes Number of bytes which can be sent in one write(2) call
 
 */
 void 

@@ -334,7 +334,7 @@ CFileEventReactor(const string& rName, CFileEvent& rOwner) :
       This all makes the Event seem like a monolithic unit to the user....
       They just subclass it, open a file in an appropriate way and poof.
       
-      \pararm rMonitor - Refers to the monitor on the file (unused).
+      \param rMonitor - Refers to the monitor on the file (unused).
       \param  fd       - File descriptor open on the file.
 
  */
@@ -648,7 +648,7 @@ CFileEvent::MonitorExceptions(bool fExcept)
   making this a pure virtual member), the programmer needs only to provide
   the members s/he's interested in.
 
-  \param rStream - Stream open on the file.
+  \param str - Stream open on the file.
   */
 void
 CFileEvent::OnReadable(istream& str)

@@ -427,7 +427,7 @@ CReactor::operator()(CEventMonitor& rMonitor, CEventMonitor::result Reason)
   may not care about the event themselves, we provide an empty implementation
   of this function, preventing us from being an ABC.
 
-  \param rMonitor - The monitor which detected the event.
+  \param rEvent - The monitor which detected the event.
   */
 void
 CReactor::OnEvent(CEventMonitor& rEvent)
@@ -441,7 +441,7 @@ CReactor::OnEvent(CEventMonitor& rEvent)
   we provide an empty implementation
   of this function, preventing us from being an ABC.
 
-  \param rMonitor - The monitor which detected the event.
+  \param rEvent - The monitor which detected the event.
   */
 void
 CReactor::OnError(CEventMonitor& rEvent)
@@ -455,7 +455,7 @@ CReactor::OnError(CEventMonitor& rEvent)
   we provide an empty implementation
   of this function, preventing us from being an ABC.
 
-  \param rMonitor - The monitor which detected the event.
+  \param rEvent - The monitor which detected the event.
   */
 void
 CReactor::OnTimeout(CEventMonitor& rEvent)

@@ -288,7 +288,7 @@ template <class T> unsigned int CPointerPredicate<T>::m_nAutoIndex = 0;
   \function string CPointerPredicate::GetAutoName(const string& rBaseName)
     Automatically names an object given its base class(es)
 
-  \param const string& rBaseName
+  \param  rBaseName
      The base name of the object being named
  */
 template<typename T>

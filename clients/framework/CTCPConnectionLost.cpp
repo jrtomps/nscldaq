@@ -304,6 +304,8 @@ static const char* Copyright= "(C) Copyright Michigan State University 2002, All
   socket.  The reason the connection was lost is currently in errno.
 
   \param pSocket - the socket which just lost connection.
+  \param pDoing -Describes what the socket was doing when the exceptional
+     condition occured.
   */
 CTCPConnectionLost::CTCPConnectionLost(CSocket* pSocket, const char* pDoing) :
   CErrnoException(pDoing)

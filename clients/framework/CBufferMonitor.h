@@ -277,7 +277,7 @@ DAMAGES.
 */
 /*!
   \class: CBufferMonitor
-  \file:  BufferMonitor.h
+
 
   Monitor to encapsulate a DAQ<type>Buffer.  The monitor can block 
   until the buffer receives data and indicates an event when this happens.

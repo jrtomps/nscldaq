@@ -36,8 +36,7 @@ classes descended from the CEvent class.  Thus events are handled as follows:
 - One or more instance's of this event handler are created (e.g. via
   new).
 - An Event handler's CEvent::Enable member function is called to start the
-  handlers private thread and event loop. See \link Concepts the general
-  concepts \endlink page for more information about the event classes.
+  handlers private thread and event loop. See \ref Concepts for more information about the event classes.
 - As the event thread detects events, the overridden handler function is 
   called triggering the application specific behavior.
 

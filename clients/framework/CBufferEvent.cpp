@@ -324,7 +324,7 @@ template <class T>
 template <class U>
 void
 CBufferEvent<T>::CGenericBufferReactor<U>::
-OnBuffer(CBufferMonitor<T>& rMOnitor,
+OnBuffer(CBufferMonitor<T>& rMonitor,
 	 Pointer<DAQBuffer<T>,T> pBuffer)
 {
   m_rOwner.OnBuffer(pBuffer);	// Relay to event.

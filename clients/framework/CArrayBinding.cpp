@@ -356,7 +356,7 @@ CArrayBinding<T>::InitBindings(CTCLInterpreter& rInterp)
   [m_nFirstIndex, m_nLastIndex).  For each succesful read of a variable and
   decode of an integer value from it, the corresponding configured array
   element is set.  Note that strings (T == char*  are handled specially.
-  \param CTCLInterpreter& rInterp - the interpreter which read in the
+  \param rInterp (CTCLInterpreter* [in])  the interpreter which read in the
          configuration file.
  */
 template <class T>

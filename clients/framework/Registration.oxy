@@ -8,9 +8,9 @@ determine what objects are instantiated, and for what types as well as
 to get descriptive information about each object.  For the spectrodaq client
 framework, introspection is achieved via:
 
-- \link registries Object registries (dictionaries of objects) \endlink
-- \link Hiearchyinfo Object class hierarchy positioning information \endlink
-- \link SelfDescription Object description member functions.
+- \ref registries Object registries (dictionaries of objects) 
+- \ref Hierarchyinfo Object class hierarchy positioning information
+- \ref SelfDescription Object description member functions.
 
 For a simple application example see \ref regExample "Registration Example"
 below.

@@ -299,7 +299,7 @@ static const char* Copyright= "(C) Copyright Michigan State University 2002, All
    In this case, it will not be necessary for the destructor to eliminate
    the socket.
 
-   \param sock - An existing socket, bound, listening and ready to accept
+   \param rSocket - An existing socket, bound, listening and ready to accept
                  when the fd becomes readable.
  */
 CServerConnectionEvent::CServerConnectionEvent(CSocket& rSocket) :
@@ -311,7 +311,7 @@ CServerConnectionEvent::CServerConnectionEvent(CSocket& rSocket) :
 /*!
   Construct a named connection listener from and existing socket object.
   
-  \param pName - char* pointer to the name of the event.
+  \param pname - char* pointer to the name of the event.
   \param rSocket - Reference to existing socket.
   */
 CServerConnectionEvent::CServerConnectionEvent(const char* pname, 

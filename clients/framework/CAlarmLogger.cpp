@@ -304,6 +304,10 @@ static const char* Copyright= "(C) Copyright Michigan State University 2002, All
   doing the logging.
 
   \param facility - the name of the facility doing the logging
+  \param expid    - the name of the running experiment.
+  \param host="localhost"     - the host on which the logger is running.
+  \param port="daqalarm"    - port on which the alarm logger is listening 
+      for connections.
 */
 CAlarmLogger::CAlarmLogger(string facility, 
 			   string expid,
@@ -375,8 +379,6 @@ CAlarmLogger::~CAlarmLogger()
 \exception CTCPConnectionFailed  - Connection refused by remote host
 \exception CTCPConnectionLost    - Connection terminated by remote host
 
-\param sev     - This is an enumerated value which represent the severity
-                 of the event.
 \param message - This is the message which the caller wants to log.
 */
 void

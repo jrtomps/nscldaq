@@ -346,11 +346,13 @@ public:
     For example, if Init mapped a C variable to a TCL variable, that mapping
     should be broken.
     \param rInterp - The interpreter about to be deleted.
+  */
   virtual void ShutdownBindings(CTCLInterpreter& rInterp)= 0;
   /*!
     This function is called to write the set of Tcl commands required to
     duplicate the current state.  Note that this may not be identical to
     the set of commands which produced the configuration.
+    \param fd (int [in]) The file descriptor on which the dump will be done.
     */
   virtual void Dump(int fd) = 0;
 
@@ -383,7 +385,7 @@ public:
   /*!
     Item to string conversion: Converts an item of type T to 
     its string representation.  
-    \param item - item to convert.
+    \param Item - item to convert.
     \throws CRangeError - no type match
     \bug    Should invent a bad type exception and throw it.
     */

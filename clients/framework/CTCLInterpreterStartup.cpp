@@ -365,7 +365,7 @@ This static member:
     application specific commands.
 -  Returns to allow Tcl to start it's main loop.
 
-\param Tcl_Interp* pInterp The interpreter created to run Tcl.
+\param pInterp The interpreter created to run Tcl.
 
 */
 int 

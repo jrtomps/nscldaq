@@ -287,19 +287,25 @@ static const char* Copyright= "(C) Copyright Michigan State University 2002, All
 
 
 // Implementation of the timer reactor: CTimerGenericReactor:
-
 /*!  Construct a generic reactor for the CTimerEvent class.  The
      reactor is a callback reactor which acts to make the event class
      appear monolithic to anyone who users it.
     
-     \param const char* pName   - Name of the reactor.
-     \param CTimerEvent& rOwner - The event to which I"ve been attached.
+     \param  rOwner - The event to which I"ve been attached.
 
 */
 CTimerEvent::CTimerGenericReactor::CTimerGenericReactor(CTimerEvent& rOwner) :
   m_rOwner(rOwner)
 {}
 
+/*!  Construct a generic reactor for the CTimerEvent class.  The
+     reactor is a callback reactor which acts to make the event class
+     appear monolithic to anyone who users it.
+    
+     \param  pName   - Name of the reactor.
+     \param  rOwner - The event to which I"ve been attached.
+
+*/
 CTimerEvent::CTimerGenericReactor::CTimerGenericReactor(const char* pName,
 							CTimerEvent& rOwner) :
   CReactor(pName),
