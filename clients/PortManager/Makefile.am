@@ -29,9 +29,12 @@ install-exec-local:
 #
 #  The distribution should contain the tcl files as well as their unit tests:
 #
-EXTRA_DIST = Application.tcl ConnectionManager.tcl Log.tcl PortManager.tcl \
-			portAllocator.tcl \
-			connectionmanager.test portallocator.test portmanager.test log.test
+EXTRA_DIST = Application.tcl ConnectionManager.tcl Log.tcl DaqPortManager.tcl \
+	portAllocator.tcl PortManager.tcl \
+	connectionmanager.test portallocator.test \
+	portmanager.test log.test \
+	DaqPortManager.8 portAllocator.3tcl CPortManager.3 \
+	CPortManagerException.3
 #
 #  The tests are all TCL tests and can be unconditionally run.
 #  We rely on the value of TCLSH_CMD from configure to know how to run the
