@@ -313,12 +313,13 @@ to start the application.
 
 #ifndef __STL_STRING
 #include <string>        //Required for include files 
+#ifndef __STL_STRING
 #define __STL_STRING
 #endif
+#endif
 
-#ifndef __CPPLIB_ISTREAM
-#include <istream.h>
-#define _CPPLIB_ISTREAM
+#ifndef __ISTREAM_DAQH
+#include <Istream.h>
 #endif
 
 #ifndef __CRT_TIME_H
@@ -337,9 +338,9 @@ class CApplication
 private:
   
 
-  string   m_sSetupFile;  //!<  Name of channel file '-' if stdin.  
+  STD(string)   m_sSetupFile;  //!<  Name of channel file '-' if stdin.  
   int      m_nPort;       //!<  TCP port of Tcl server we connect to.  
-  string   m_sHost;       //!<  TCP server we connect to.
+  STD(string)   m_sHost;       //!<  TCP server we connect to.
   int      m_nInterval;   //!<  Seconds between channel updates.
  
   // Class assocations.
@@ -369,7 +370,7 @@ public:
 public:
 
   int operator()       (gengetopt_args_info& Parameters)   ; //!< Entry point.
-  void ReadChannelFile (istream& Input)   ;                  //!< Create channel list.
+  void ReadChannelFile (STD(istream)& Input)   ;                  //!< Create channel list.
   void Update          ()   ;                                //!< Do an update. 
   void ChannelsToServer(CBuildChannelData& chans)   ;        //!< Send channel info -> server. 
   void ConnectToServer (int nRetryInterval, int nNumRetries)   ; //!< Connect with tcl server.
@@ -378,9 +379,9 @@ public:
 private:
   void ValidatePort(int port);	// Throw if port is not valid.
   void ValidateInterval(int interval);
-  string FormatTime(time_t t);
-  string GenerateSet(const string& arrayname, const string& index, 
-		     const string& value);
+  STD(string) FormatTime(time_t t);
+  STD(string) GenerateSet(const STD(string)& arrayname, const STD(string)& index, 
+		     const STD(string)& value);
   void   Delay(int seconds);
 };
 

@@ -293,8 +293,10 @@ units associated with a channel that has none.
 #endif
 
 #ifndef __STL_STRING
-#include <string.
+#include <string>
+#ifndef __STL_STRING
 #define __STL_STRING
+#endif
 #endif
 
  
@@ -303,9 +305,9 @@ class CNoUnitsException  : public CException
 {
 private:
 
-    string m_sChannelName;  //!  Name of the channel.  
+    STD(string) m_sChannelName;  //!  Name of the channel.  
 public:   
-  CNoUnitsException (const string& rName); //!< Construct
+  CNoUnitsException (const STD(string)& rName); //!< Construct
  ~ CNoUnitsException ( ) ;  	           //!< Destroy
 public:
 

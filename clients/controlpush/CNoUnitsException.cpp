@@ -275,9 +275,14 @@ DAMAGES.
  
                    END OF TERMS AND CONDITIONS '
 */
-
+#include <config.h>
 #include "CNoUnitsException.h"    				
 #include <errno.h>
+
+#ifdef HAVE_STD_NAMESPACE
+using namespace std;
+#endif
+
 
 /*!
   Construct a no-units exception.

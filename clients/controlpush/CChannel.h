@@ -273,7 +273,7 @@ THIRD PARTIES OR A FAILURE OF THE PROGRAM TO OPERATE WITH ANY OTHER PROGRAMS),
 EVEN IF SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH 
 DAMAGES.
 
-		     END OF TERMS AND CONDITIONS
+		     END OF TERMS AND CONDITIONS 
 ' */
 
 
@@ -312,7 +312,9 @@ again.
 
 #ifndef __STL_STRING
 #include <string>        //Required for include files 
+#ifndef __STL_STRING
 #define __STL_STRING
+#endif
 #endif
 
 #ifndef __CRTL_TIME_H
@@ -336,7 +338,7 @@ private:
 
   // Member data (private).
 
-  string       m_sName;           //!<  Channel name.  
+  STD(string)       m_sName;           //!<  Channel name.  
   ChannelState m_eState;          //!<  See ChannelState type.
   chid         m_nId;             //!<  Channel id of the control item.  
   bool         m_fHaveUnits;      //!<  True if a lookup succeeded for the associated units value.  
@@ -352,7 +354,7 @@ private:
   
 public:
 
-  CChannel (const string& rName,
+  CChannel (const STD(string)& rName,
 	    int   nRetries = 2);                    //!< Construct the channnel from its name.
   ~ CChannel ( );                                   //!< Destroy the channel.
 
@@ -369,11 +371,11 @@ public:
 
 public:
 
-  string       GetName();
+  STD(string)       GetName();
   ChannelState GetState ()   ;	             //!< Return current state.
   bool         HaveUnits ()   ;              //!< True if known to have units
-  string       GetValue ()   ;               //!< Get last known value
-  string       GetUnits ()   ;               //!< Get last known units.
+  STD(string)       GetValue ()   ;               //!< Get last known value
+  STD(string)       GetUnits ()   ;               //!< Get last known units.
   time_t       GetUpdateTime ()   ;          //!< Get time of lst known value
   void         FailUpdate ()   ;             //!< Inform of update failure
   void         Update ()   ;                 //!< Inform of update success

@@ -274,7 +274,7 @@ THIRD PARTIES OR A FAILURE OF THE PROGRAM TO OPERATE WITH ANY OTHER PROGRAMS),
 EVEN IF SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH 
 DAMAGES.
 
-		     END OF TERMS AND CONDITIONS '
+		     END OF TERMS AND CONDITIONS ' 
 */
 
 
@@ -314,12 +314,16 @@ second a struct containing:
  
 #ifndef __STL_STRING
 #include <string>
+#ifndef __STL_STRING
 #define __STL_STRING
+#endif
 #endif
 
 #ifndef __STL_LIST
 #include <list>
+#ifndef __STL_LIST
 #define __STL_LIST
+#endif
 #endif
 
 
@@ -339,8 +343,8 @@ public:
   // Data type definitions.
 
   typedef struct _ChannelData {
-    string m_sValue;
-    string m_sUnits;
+    STD(string) m_sValue;
+    STD(string) m_sUnits;
     time_t m_Updated;
     struct _ChannelData& operator=(const struct _ChannelData& rhs) {
       m_sValue = rhs.m_sValue;
@@ -349,8 +353,8 @@ public:
     }                           //!< Ensure strings are copied properly, not just bitwise.
   } ChannelData;		//!< Information about a channel.
 
-  typedef pair<string, ChannelData> ChannelItem;	//!< Info about a chan.
-  typedef list<ChannelItem>         ChannelItems;	//!< List of channel info.
+  typedef STD(pair)<STD(string), ChannelData> ChannelItem;	//!< Info about a chan.
+  typedef STD(list)<ChannelItem>         ChannelItems;	//!< List of channel info.
   typedef ChannelItems::iterator    ChannelItemIterator; //!< Iterator to list.
 private:
   // Member data

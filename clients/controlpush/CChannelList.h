@@ -273,7 +273,7 @@ THIRD PARTIES OR A FAILURE OF THE PROGRAM TO OPERATE WITH ANY OTHER PROGRAMS),
 EVEN IF SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH 
 DAMAGES.
 
-		     END OF TERMS AND CONDITIONS
+		     END OF TERMS AND CONDITIONS '
 ' */
 
 //! \class: CChannelList           
@@ -294,7 +294,9 @@ DAMAGES.
 //
 #ifndef __STL_LIST
 #include <list>        //Required for include files  
+#ifndef __STL_LIST
 #define __STL_LIST
+#endif
 #endif
 
 // Forward channel definitions.
@@ -321,7 +323,7 @@ class CChannelList
 public:
   // Data types:
 
-  typedef list<CChannel*> ChannelPointers;
+  typedef STD(list)<CChannel*> ChannelPointers;
   typedef ChannelPointers::iterator ChannelIterator;
 
 private:

@@ -284,9 +284,14 @@ DAMAGES.
 */
 
 // Headers:
-
+#include <config.h>
 #include "CBuildChannelData.h"    				
 #include "CChannel.h"
+
+#ifdef HAVE_STD_NAMESPACE
+using namespace std;
+#endif
+
 
 /*!
   The constructor creates a new visitor with an empty channel data list.

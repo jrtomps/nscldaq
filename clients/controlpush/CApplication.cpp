@@ -273,7 +273,7 @@ THIRD PARTIES OR A FAILURE OF THE PROGRAM TO OPERATE WITH ANY OTHER PROGRAMS),
 EVEN IF SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH 
 DAMAGES.
 
-		     END OF TERMS AND CONDITIONS '
+		     END OF TERMS AND CONDITIONS ' 
 */
 
 /*!
@@ -303,7 +303,7 @@ While true {
  */
 
 
-
+#include <config.h>
 #include "CApplication.h"    				
 #include "CSocket.h"
 #include "CChannel.h"
@@ -317,13 +317,17 @@ While true {
 
 
 #include <utility>
-#include <fstream>  
-#include <iostream> 
-#include <sstream>
+#include <Fstream.h>  
+#include <Iostream.h> 
+#include <Sstream.h>
 
 #include <errno.h>
 #include <string.h>
 #include <unistd.h>
+
+#ifdef HAVE_STD_NAMESPACE
+using namespace std;
+#endif
 
 static const int    YEARBASE(1900);           // Base year of struct tm.tm_year
 

@@ -276,13 +276,14 @@
 # 		     END OF TERMS AND CONDITIONS
 # */
 bin_PROGRAMS        = controlpush
-controlpush_SOURCES = cmdline.c CApplication.cpp CChannelList.cpp \
+APPITEMS= cmdline.c CApplication.cpp CChannelList.cpp \
 			CSocket.cpp CStrings.cpp CTCPBadSocketState.cpp \
 			CTCPConnectionFailed.cpp CTCPConnectionLost.cpp \
 			CTCPNoSuchHost.cpp CTCPNoSuchService.cpp \
 			CSGBuilder.cpp CSingleUpdater.cpp CAllOk.cpp \
 			CLookupVisitor.cpp CChannel.cpp CNoUnitsException.cpp \
-			Main.cpp CApplicationSerializer.cpp CBuildChannelData.cpp
+			CApplicationSerializer.cpp CBuildChannelData.cpp
+controlpush_SOURCES = Main.cpp $(APPITEMS)
 
 include_HEADERS= cmdline.h CApplication.h CChannelList.h \
 			CChannelVisitor.h CSocket.h CStrings.h \
@@ -306,4 +307,15 @@ INCLUDES            =   -I@top_srcdir@/Exception \
 cmdline.c: options.ggo
 	gengetopt --unamed-opts <options.ggo
 
-EXTRA_DIST=options.ggo Makefile.am
+EXTRA_DIST=options.ggo Makefile.am Channels.dat
+
+if CPPUNIT
+noinst_PROGRAMS = unittests
+unittests_SOURCES = TestRunner.cpp ChannelListTests.cpp ChannelTest.cpp \
+	VisitorTests.cpp ApplicationTests.cpp $(APPITEMS)
+
+unittests_LDADD = $(CPPUNIT_LDFLAGS) $(controlpush_LDADD)
+
+TESTS=./unittests
+
+endif

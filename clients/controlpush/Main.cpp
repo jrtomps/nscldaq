@@ -273,7 +273,7 @@ THIRD PARTIES OR A FAILURE OF THE PROGRAM TO OPERATE WITH ANY OTHER PROGRAMS),
 EVEN IF SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH 
 DAMAGES.
 
-'		     END OF TERMS AND CONDITIONS
+'		     END OF TERMS AND CONDITIONS '
 */
 /*!
   \file Main.cpp
@@ -286,7 +286,7 @@ DAMAGES.
                      scripts.
 */
 
-
+#include <config.h>
 #include "cmdline.h"
 #include "CApplication.h"
 #include <cadef.h>
@@ -296,10 +296,13 @@ DAMAGES.
 #include <unistd.h>
 #include <sys/types.h>
 #include <CopyrightNotice.h>
-#include <iostream>
+#include <Iostream.h>
 #include <string>
 #include <Exception.h>
 
+#ifdef HAVE_STD_NAMESPACE
+using namespace std;
+#endif
 
 
 /*!
