@@ -353,7 +353,11 @@ Tcl_AppInit(Tcl_Interp* interp)
 	/*
 	** Add my command extensions:
 	*/
+    
+    char PortBuf[1000];
+    sprintf(PortBuf, "%d", SERVERPORT);
 
+    Tcl_SetVar(interp, "TclServerPort", PortBuf, TCL_GLOBAL_ONLY);
     Server_Init(interp, SERVERPORT);
     fprintf(stderr, "Listening for connections on port %d\n", SERVERPORT);
 	/*

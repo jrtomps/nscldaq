@@ -295,6 +295,9 @@ static const char* Copyright= "(C) Copyright Michigan State University 2002, All
 #include <Iostream.h>
 #include "tk.h"
 
+#include <string>
+#include <CPortManager.h>
+
 #ifdef WIN32
 #include <winsock.h>
 #endif
@@ -345,18 +348,33 @@ int serverport=2048;		/* Default server port. */
 static void GetServerPort(int argc, char** argv)
 {
   argc--; argv++;
+  string AppName("TclServer");
+  for(int i =0; i < argc; i++) {
+    string param(argv[i]);
+    if( (param[0] == '-') && (param[1] == 'a')) {
+      AppName.assign(param, 2, param.size()-1);
+    }
+  }
   while(argc) {
     if(((*argv)[0] == '-') && ((*argv)[1] == 'p')) {
       int port;
-      if(sscanf(*argv, "-p%d", &port) != 1) {
-	fprintf(stderr, 
-		"Warning ignored improperly formatted port switch: '%s'\n",
-		*argv);
-      } else
-	serverport = port;
+      if(string(*argv) == string("-pManaged")) {
+	CPortManager manager("localhost");
+	serverport = manager.allocatePort(AppName);
+      } 
+      else {
+	if(sscanf(*argv, "-p%d", &port) != 1) {
+	  fprintf(stderr, 
+		  "Warning ignored improperly formatted port switch: '%s'\n",
+		  *argv);
+	} else
+	  serverport = port;
+      }
     }
     argc--; argv++;
   }
+
+
 }
 int
 main(int argc,char** argv)
