@@ -287,8 +287,8 @@ exec wish ${0} ${@}
 #
 # Revision History:
 #  $Log$
-#  Revision 3.4  2004/06/18 12:11:03  ron-fox
-#  Merge 7.4 development into 8.0 main line.
+#  Revision 3.5  2004/08/06 13:26:03  ron-fox
+#  Merge prior to begining kernel 2.6/gcc 3.x port
 #
 #  Revision 3.3.4.1  2004/05/12 19:38:10  ron-fox
 #  differentiate between tape and ftp hosts so that they can be different

@@ -491,7 +491,7 @@ CTCLList::Merge(int n, char** pElements)
   char* pList = Tcl_Merge(n, pElements);
   setList(pList);
 #if defined(WIN32) || (TCL_MAJOR_VERSION > 8) || \
-                ((TCL_MAJOR_VERSION ==8) && (TCL_MINORO_VERSION > 3))
+                ((TCL_MAJOR_VERSION ==8) && (TCL_MINOR_VERSION > 3))
   Tcl_Free(pList);
 #else
   free(pList);             // Documented to work this way in books but win32??

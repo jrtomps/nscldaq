@@ -637,13 +637,13 @@ void DestroyConfigurator()
   /// Can't get the delete go go quite right... for now put up with
   //  a minor memory leak so they can run.
 
-  // if(pInterp)     delete pInterp; // Causes deletion of objects too.
-  // if(pCreator)    delete pCreator;
-  // if(pReader)     delete pReader;
-  // if(pDictionary) delete pDictionary;
-  // if(p775)        delete p775;
-  // if(p785)        delete p785;
-  // if(p792)        delete p792;
+   if(pCreator)    delete pCreator;
+   if(pReader)     delete pReader;
+   if(pDictionary) delete pDictionary;
+   if(p775)        delete p775;
+   if(p785)        delete p785;
+   if(p792)        delete p792;
+   if(pInterp)     delete pInterp;
 
 
   pCreator    = 0;

@@ -43,7 +43,7 @@ namespace CCAENV1x90Data {
   static const unsigned long V1190CHANNEL_MASK(0x03f80000);
   static const unsigned long V1290CHANNEL_MASK(0x03e00000);
   static const unsigned int  V1190CHANNEL_RSHIFT(19);
-  static const unsigned int  V1290CHANNEL_RSHIFT(20);
+  static const unsigned int  V1290CHANNEL_RSHIFT(21);
   static const unsigned long V1190DATA_MASK     (0x0007ffff);
   static const unsigned long V1290DATA_MASK     (0x001fffff);
 

@@ -1,5 +1,5 @@
 
-7.4
+7.4:
 
 - Added program controlpush to push EPICS controls data into tcl server
   programs (e.g. ProductionReadout too).
@@ -56,6 +56,19 @@
   spectcldaq process.
 - Issue 109 Provide mechanism to hide ReadoutShell's parameters.
 - Added support for CAENV1190/1290 TDC module.
-
-
-8.0
+  o Correct the bad info about the leading/trailing edge detect Carlo gave me.
+- Repair defect 138: Scripted Readout leaks file descriptors.  I had
+  had problems getting rid of the old configuration at begin of run and
+  had decided to live with the memory leak, but it turns out that also
+  leaks file descriptors as module objects stay around and those run out
+  first.
+- Repair defect 139 - Non numerics in run number cause status line of
+  readout gui to blow up.
+- Added daqstart program... support starting a program with logging and
+  exit notification.
+Week of July 26, 2004:
+- Added man page for daqstart -> $prefix/man/man1.
+- Added daqman command to retrieve daq man-pages.
+- Support caennet controllers in any crate number.
+Week of August 2, 2004:
+- Added support for CES8210's in crates other than 0 for camac.tcl.

@@ -288,8 +288,13 @@
 #   Change log:
 #
 # $Log$
-# Revision 3.3  2004/06/18 12:11:03  ron-fox
-# Merge 7.4 development into 8.0 main line.
+# Revision 3.4  2004/08/06 13:26:02  ron-fox
+# Merge prior to begining kernel 2.6/gcc 3.x port
+#
+# Revision 3.2.4.3  2004/07/22 14:05:10  ron-fox
+# Add a validator to ensure that run numbers are actually numbers
+# otherwise the status line can blow up trying to format a textual
+# run number into the filenames it looks for.
 #
 # Revision 3.2.4.2  2004/04/06 13:18:13  ron-fox
 # fix for issue 108 GUI allows overwrite of event file without prompt
@@ -333,7 +338,21 @@ namespace eval ReadoutGui {
     variable BeginButton
     variable PauseButton
     variable RecordToggle
+    
+    # Run number entry edit validation proc.
+    # This procedure ensures that any edit string
+    # inserted will be entirely numeric.
+    #
+    #   final - The resulting contents of the entry.
 
+    #
+    proc ValidateRun {final} {
+	if {[regexp ^\[0-9\]+\$ $final]} {
+	    return 1
+	} else {
+	    return 0
+	}
+    }
 
     #  Improve the contrast of a disabled entry widget by
     #  setting its disabled foreground color to the normal foreground
@@ -1072,7 +1091,9 @@ namespace eval ReadoutGui {
 			      -variable ReadoutControl::Taping]
 	label $rnotape.run -text "Run number"
 	entry $rnotape.runnumber \
-		-textvariable ReadoutControl::RunNumber
+		-textvariable ReadoutControl::RunNumber \
+	    -validate key -validatecommand "ReadoutGui::ValidateRun %P" \
+	    -invalidcommand bell
 
 	set buttonframe \
 		[frame $ctlframe.buttonframe  -relief groove -borderwidth 2]

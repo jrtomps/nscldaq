@@ -1,0 +1,208 @@
+/*!
+
+\page Constructing Constructing a module.
+
+The CAENV1x90 module support comes in the form of a C++ class.
+In C++, classes can be thought of as data types and operations
+on variables (called objects) of that data type.  The life cycle of
+an object in C++ is usually:
+
+- Construction - A variable (object) of the type specified by the
+  class is created.  Creation may be parameterized as needed
+  by the class.
+- Manipulation - The object is manipulated through its
+  \em member functions.  Member functions are functions that
+  are defined by the class to operate on the data contained
+  in objects of the type specified by the class.
+- Destruction - After the object is no longer needed (at the 
+  latest when the program exits), it is destroyed and any
+  dynamic resources it used are reclaimed.
+
+This section describes how to construct an object of type 
+CCAENV1x90.  One of these must be constructed for each CAEN1x90 
+card you intend to use in your experiment. Two types of 
+construction are possible; static and dynamic.
+
+- Static constrution refers to the declaration of a simple
+  variable. 
+- Dynamic construction refres to the use of the \em new operator
+  to dynamically create an object and return a pointer to it.
+
+Dynamic construction, in general is more flexible since it allows
+the parameters of the constructor to be determined at run time
+(e.g. by reading an experiment configuration file).
+
+The constructor of an object is always a function named after the
+class of the object. For the CAENV1x90, the constructor is called
+CCAENV1x90::CCAENV1x90
+
+The constructor requires the following parameters:
+
+- unsigned int nSlot  - A virtual slot number that is assigned to the 
+  module.  The virtual slot number (GEO) is used to identify data 
+  from the module, and distinguish it from other, unrelated data.
+- unsigned int nCrate - The number of the VME crate in which the module
+  is installed.  If you have a system with a single crate, the
+  crate number is 0.  If you have multiple VME crates use the
+  cratelocator utility to determine which crates are which.
+- unsigned long nBase - The VME base address of the module. These are
+  determined by rotary switches located on the module.  You are
+  responsible for setting these switches in such a way that 
+  no modules have overlapping address spaces.  See the hardware manual
+  for the 1190 or 1290 for information about how to set this.
+
+The remainder of this page describes:
+
+- \ref TraditionalConstruction
+- \ref ProductionConstruction
+
+In all cases we assume the base address of the module is 0xee000000
+of crate 0, to be initialized as virtual module 3.
+
+\section TraditionalConstruction Constructing a module in traditional Readout
+
+In traditional readout, you should construct a module in the initevt 
+function.  Since initevt, clearevt and readevt are all likely to need
+access to the module, a pointer to modules you are going to create should
+be declared at file scope.  The sample below shows how to do this
+without re-creating the module object each time.
+
+At File scope, prior to the implementation of initevt, declare a CCAENV1x90 
+pointer initialized to 0:
+
+\code
+#include <CCAENV1x90.h>                 // (1)
+...
+
+static CCAENV1x90* pModule(0);          // (2)
+	
+\endcode
+
+-# The CCAENV1x90.h header file is located in the DAQ include directory.
+   This #include directive defines the class and other stuff you may need.
+-# This creates a pointer to a CCAENV1x90 and initializes the value
+   of the pointer to 0.  0 valued pointers are considered invalid 
+   (point to nothing).  Initializing the pointer to 0 will allow us
+   to determine in initevt() whether or not the module has been
+   created yet.
+   Up until now, no CCAENV1x90 objects have been  
+   created.
+
+Within initevt, we will create the module itself. Refer to \ref Initializing
+for information about how to initialize the module once its object
+has been created.
+
+\code
+
+void
+initevt ()
+{
+   ...
+   if(!pModule) {                           // (1)
+      pModule= new CCAENV1x90(3,
+                              0,
+                              0xee000000); // (2)
+   }
+   ...
+
+}
+\endcode
+
+-# If the module pointer still is zero valued the module has not
+   yet been constructed.
+-# Construct the module.  
+   The parameters in order are nSlot, nCrate, nBase as described previously.
+   The module object is dynamically created and a pointer to the module
+   stored in the pModule variable.
+
+
+Next \ref Initializing     Back \ref Intro
+
+\section ProductionConstruction Constructing a module in production readout
+
+The production readout software operates in a fundamentally different manner
+than the traditional readout.  With  production readout, you must generate
+Event Segments.  Event segments are themselves classes, with member data and
+member functions that operate on these data.  Each event segment is be
+responsible for managing some section of the readout of an experiment.  The
+organization of a large experiment into readout segments is left to the
+user/programmer. 
+
+Logically, event segments should carry the objects that represent the modules
+they will read as part of their member data.  Construction of the Event Segment
+can imply construction of these objects. 
+
+The following code example shows the class definition (header file) of an event
+segment that contains a single CCAENV1x90 TDC module object:
+
+\code
+
+#ifndef __v1x90segment_h
+#define __v1x90segment_h
+
+#include  <CEventSegment.h>
+#include <spectrodaq.h>
+#include  <CCAENV1x90.h>
+
+
+class v1x90segment : public CEventSegment      // (1)
+
+{
+ private:
+  CCAENV1x90  m_TDC;                          // (2)
+ public:
+  v1x90segment(unsigned int slot, unsigned int crate,
+	       unsigned long base);           // (3)
+  virtual   void Initialize ();
+  virtual   DAQWordBufferPtr& Read (DAQWordBufferPtr& rBuffer)   ;
+  virtual   void Clear ()   ;
+  virtual   unsigned int MaxSize ()   { return 100;} // for compatibility.
+  
+};
+
+
+#endif
+
+\endcode
+
+-#  All event segments must be declared to inherit from CEventSegment,
+    the base class for all event segments.
+-#  A CCAENV1x90 object is declared as member data for the class
+   v1x90segment.  The name of the object will be m_TDC.  By  making
+   this object private, only the member functions of v1x90segment
+   can operate on this module.  Additional member functions
+   could be defined to support controlled external access to this
+   object.
+-# The constructor of the segment is defined to include the 
+   parameters needed to construct the module (m_TDC).
+
+The implementation of the constructor creates the TDC module.  Recall that a
+class construtor is called each time an object of the class type has been
+created, either dynamically or statically.  The constructor code is shown
+below:
+
+\code
+v1x90segment::v1x90segment(unsigned int slot,
+			   unsigned int crate,
+			   unsigned long base) :  // (1)
+  m_TDC(slot, crate, base)                        // (2)
+{
+}
+
+\endcode
+
+-# The : here indicates that the construtor will have an initializer list. An
+   initializer list is a list of constructors either of the base class or of
+   member data.  Initializer lists are used to parameterize the constructors of
+   the base class or member data as needed.
+- The initializer list contains a single entry that constructs m_TDC
+  using the parameters passed in by the constructing code.
+
+Once a v1x90segment is constructed, it will also contain a member object named
+m_TDC that is a CCAENV1x90 TDC object.  The TDC can be controlled by 
+the class member functions through this object.
+
+Next \ref Initializing     Back \ref Intro
+
+
+*/

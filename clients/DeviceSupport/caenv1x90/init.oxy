@@ -1,0 +1,232 @@
+/*!
+\page Initializing Initializing the TDC
+
+The CAENV1x90 is a complex TDC, however very likely you will only need a few of
+its modes operation.  You will need to set the following parameters in a way
+that makes sense for your experiment:
+
+- Storage mode: Continuous or Trigger matched.  I believe that most NSCL
+  applications will use this module in Trigger matched mode.
+- Hit detection (can be leading, trailing, both and pair).
+- Resolution: The resolution is selectable from 800ps, 200ps, 100ps, and,
+  for the V1290 only 25ps.  
+- Double hit resolution (selectable between 5, 10, 30, 100ns).
+- Format of event data.
+
+In trigger matching mode, you will also need to set a few additional
+parameters:
+
+- Window width
+- Window offset (where the window starts relative to the trigger)
+- Extra search and reject margins provide a bit of slop on the
+  trigger match window.
+- Enable trigger time subtraction so that the times you get will
+  be relative to the window start time, rather than absolute times.
+- Maximum number of hits per channel group,
+
+
+The remainder of this page assumes that you are setting up the TDC in trigger
+matching mode.  In this mode, hits are reported if they occur within a
+programmable matching interval (window) of the trigger.  
+To set up the TDC properly, it is important to understand the trigger matching
+window parameters.  These are described in the TDC hardware manual on page
+15. They are summarized as well in the figure below:
+
+
+\image html  matchwin.gif
+
+
+
+\image latex matchwin.eps "Trigger matching parameters" width=10cm
+
+
+In our case, we will set up the TDC with a 2usec match window that ends exactly
+at the trigger time.
+
+We will set the other module parameters as follows:
+- Leading edges will be deteted.
+- 100ns resolution
+- Double hit determination at 5ns.
+- Event data will include TDC Header information (the data from each TDC chip will
+be encapsulated inside a pair of header/trailer longwords... note that a chip
+contains multiple channels).
+
+Setting up the TDC in this way will involve calling the following member
+functions on the TDC object:
+- CCAENV1x90::TriggerMatchMode - turns on trigger match mode.
+- CCAENV1x90::SetWindowWidth   - Sets the width of the matching window.
+- CCAENV1x90::SetWindowOffset  - Sets the position of the start of the window
+  relative to the trigger time.
+- CCAENV1x90::SetRejectMargin  - Sets the initial rejection margin.
+- CCAENV1x90::SetExtraSearchMargin - sets the extra search margin.
+- CCAENV1x90::EnableTriggerTimeSubtraction - ensures that the hit times
+   will be relative to the match window start.
+- CCAENV1x90::SetEdgeDetectMode - To set the module for leading edge 
+  detection.
+- CCAENV1x90::SetIndividualLSB - To set the meaning of the Least 
+   significant bit of the TDC.
+- CCAENV1x90::SetDoubleHitResolution - to set the double hit resolution.
+- CCAENV1x90::EnableTDCEncapsulation - to enable the hits from a single
+  chip to be encapsulated in chip header/trailers.
+- CCAENV1x90::SetMaxHitsPerEvent - to set the number of hits we allow
+  each chip to record.
+- CCAENV1x90::EnableErrorMark - to enable the production of error
+  information in the event buffer.
+- CCAENV1x90::SetErrorEnables - to determine the set of errors we want
+  the chip to produce.
+- CCAENV1x90::EnableAllChannels - to enable all channels in the module.
+
+
+See:
+- \ref Traditionalinit for how to do this in the traditional readout skeleton
+- \ref Productioninit for how to do this in the productino readout skeleton.
+
+\section Traditionalinit Initializing the module  in the traditional readout skeleton
+
+To initialize the module in the traditional readout skeleton, you must add code
+to the initevt() function.  This code is added after the module creation shown
+in \ref Constructing.  The code below shows the construction of the module
+along with the additional code needed to initialize the module as specified:
+
+\code
+void
+initevt ()
+{
+   ...
+   if(!pModule) {
+      pModule= new CCAENV1x90(3,
+                              0,
+                              0xee000000);
+   }
+
+   // Initialization takes place every time initevt is called:
+
+      // Set the trigger matching mode and associated parameters:
+
+   pModule->TriggerMatchMode();         // (1)
+   pModule->SetWindowWidth(2*40);       // (2)
+   pModule->SetWindowOffset(-2*40);     // (3)
+   pModule->SetExtraSearchMargin(1);    // (4)
+   pModule->SetRejectMargin(1);         // (5)
+   pModule->EnableTriggerTimeSubtraction(); // (6)
+
+      // Set detection and resolution stuff:
+
+   pModule->SetEdgeDetectMode(CCAENV1x90::EdgeMode_Leading); // (7)
+   pModule->SetIndividualLSB(CCAENV1x90::Res_100ps);         // (8)
+   pModule->SetDoubleHitResolution(CCAENV1x90::DT_5ns);      // (9)
+
+     // Manage the event format:
+
+   pModule->EnableTDCEncapsulation();                       // (10)
+   pModule->SetMaxHitsPerEvent(CCAENV1x90::HITS_UNLIMITED); // (11)
+   pModule->EnableErrorMark();                              // (12)
+   pModule->SetErrorEnables(CCAENV1x90::ERR_VERNIER     |
+                            CCAENV1x90::ERR_COARSE      |
+                            CCAENV1x90::ERR_SELECT      |
+                            CCAENV1x90::ERR_L1PARITY    |
+                            CCAENV1x90::ERR_TFIFOPARITY |
+                            CCAENV1x90::ERR_MATCHERROR  |
+                            CCAENV1x90::ERR_RFIFOPARITY |
+                            CCAENV1x90::ERR_RDOSTATE    |
+                            CCAENV1x90::ERR_SUPPARITY   |
+                            CCAENV1x90::ERR_CTLPARITY   |
+                            CCAENV1x90::ERR_JTAGPARITY);   // (13)
+   pModule->EnableAllChannels();                           // (14)
+
+\endcode 
+
+-# Sets the module into trigger match mode (as opposed to continuous
+   storage mode.
+-# Set the matching window width to 2*(40 ticks/microsecond) = 2usec wide.
+-# Set the window offset so that the match window starts -2usec relative
+   to the trigger, and therefore ends at the trigger.
+-# Adds a 25ns extra search margin to the window.
+-# Specifies the reject margin prior to the window to be 25ns.
+-# Specifies that all times will be relative to the window start.
+-# Tells the module to detect leading edges of pulses on the inputs.
+-# Tells the module that the LSB of each time represents 100ps.  This is
+   the best resolution possible for an 1190, the 1290 can go down to
+   CCAENV1x90::Res_25ps.
+-# Sets the peak to peak resolution at 5ns.  The best the module can do.
+-# Requests TDC Chip headers and trailers (See figures 6.2 and 6.4 in the
+   module manual.
+-# Requests no limit on the number of hits from each TDC chip.
+-# Requests the insertion of an error mark in the event in case an error
+   was detected (see figure 6.5 of the hardware manual).
+-# Enables all error reporting on the board.
+-# Enable all tdc channels.
+
+Back  \ref Constructing  Next \ref Reading  Top \ref Intro
+
+\section Productioninit Initializing the module  in the production readout
+skeleton 
+
+The production readout code to initialize the module will live in the
+EventSegment's Initialize  member function:
+
+\code
+void v1x90segment::Initialize()
+{
+      // Set the trigger matching mode and associated parameters:
+
+   m_TDC.TriggerMatchMode();         // (1)
+   m_TDC.SetWindowWidth(2*40);       // (2)
+   m_TDC.SetWindowOffset(-2*40);     // (3)
+   m_TDC.SetExtraSearchMargin(1);    // (4)
+   m_TDC.SetRejectMargin(1);         // (5)
+   m_TDC.EnableTriggerTimeSubtraction(); // (6)
+
+      // Set detection and resolution stuff:
+
+   m_TDC.SetEdgeDetectMode(CCAENV1x90::EdgeMode_Leading); // (7)
+   m_TDC.SetIndividualLSB(CCAENV1x90::Res_100ps);         // (8)
+   m_TDC.SetDoubleHitResolution(CCAENV1x90::DT_5ns);      // (9)
+
+     // Manage the event format:
+
+   m_TDC.EnableTDCEncapsulation();                       // (10)
+   m_TDC.SetMaxHitsPerEvent(CCAENV1x90::HITS_UNLIMITED); // (11)
+   m_TDC.EnableErrorMark();                              // (12)
+   m_TDC.SetErrorEnables(CCAENV1x90::ERR_VERNIER     |
+                            CCAENV1x90::ERR_COARSE      |
+                            CCAENV1x90::ERR_SELECT      |
+                            CCAENV1x90::ERR_L1PARITY    |
+                            CCAENV1x90::ERR_TFIFOPARITY |
+                            CCAENV1x90::ERR_MATCHERROR  |
+                            CCAENV1x90::ERR_RFIFOPARITY |
+                            CCAENV1x90::ERR_RDOSTATE    |
+                            CCAENV1x90::ERR_SUPPARITY   |
+                            CCAENV1x90::ERR_CTLPARITY   |
+                            CCAENV1x90::ERR_JTAGPARITY);   // (13)
+   m_TDC.EnableAllChannels();                           // (14)
+}
+
+\endcode
+
+
+-# Sets the module into trigger match mode (as opposed to continuous
+   storage mode.
+-# Set the matching window width to 2*(40 ticks/microsecond) = 2usec wide.
+-# Set the window offset so that the match window starts -2usec relative
+   to the trigger, and therefore ends at the trigger.
+-# Adds a 25ns extra search margin to the window.
+-# Specifies the reject margin prior to the window to be 25ns.
+-# Specifies that all times will be relative to the window start.
+-# Tells the module to detect leading edges of pulses on the inputs.
+-# Tells the module that the LSB of each time represents 100ps.  This is
+   the best resolution possible for an 1190, the 1290 can go down to
+   CCAENV1x90::Res_25ps.
+-# Sets the peak to peak resolution at 5ns.  The best the module can do.
+-# Requests TDC Chip headers and trailers (See figures 6.2 and 6.4 in the
+   module manual.
+-# Requests no limit on the number of hits from each TDC chip.
+-# Requests the insertion of an error mark in the event in case an error
+   was detected (see figure 6.5 of the hardware manual).
+-# Enables all error reporting on the board.
+-# Enable all tdc channels.
+
+
+Back  \ref Constructing  Next \ref Reading  Top \ref Intro
+
+*/

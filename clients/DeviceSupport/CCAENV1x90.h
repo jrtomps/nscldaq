@@ -45,11 +45,17 @@ software.
 Change Log:
 
 $Log$
-Revision 1.2  2004/06/18 12:10:57  ron-fox
-Merge 7.4 development into 8.0 main line.
+Revision 1.3  2004/08/06 13:26:00  ron-fox
+Merge prior to begining kernel 2.6/gcc 3.x port
 
-Revision 1.1.2.1  2004/06/18 11:17:41  ron-fox
-Add support for CAEN v1190/1290 TDC's.
+Revision 1.1.2.4  2004/07/06 13:39:08  ron-fox
+Fix the experimentally determined error in leading/trailing edge detection.
+
+Revision 1.1.2.3  2004/07/01 12:31:05  ron-fox
+Correct edge discrimination enum problems due to error in manual.
+
+Revision 1.1.2.2  2004/06/29 14:50:15  ron-fox
+Merge in development line for the CAENV1x90 module.
 
 */
 #ifndef __CCAENV1x90_H
@@ -112,8 +118,8 @@ public:
   };
   typedef enum _EdgeMode {
     EdgeMode_Pair       = 0 ,
-    EdgeMode_Trailing   = 1,
     EdgeMode_Leading    = 2,
+    EdgeMode_Trailing   = 1,
     EdgeMode_Both       = 3
 
   } EdgeMode;

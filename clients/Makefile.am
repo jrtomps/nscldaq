@@ -5,12 +5,12 @@ SUBDIRS = btdriver \
 	vmetcl  \
 	bufdump TclServer bcnaf TcpHoister Stager Scripts framework \
 	AlarmDisplay LogDisplay ProductionReadout  \
-	contrib dvdburn $(EPICSSOFTWARE)
+	contrib dvdburn daqstart $(EPICSSOFTWARE)
 
 EXTRA_DIST =  config/install-sh config/config.sub config/config.guess \
 	config/ltmain.sh config/missing config/mkinstalldirs  \
 	Directories.include CompilationRules.include \
-	CHANGELOG
+	CHANGELOG daqman
 
 install-data-local:
 	rm -f $(prefix)/Bin
@@ -35,5 +35,6 @@ install-data-local:
 	echo X11LIBS=$(X11LIBS)       >> Directories.include.final
 	cat Directories.include       >> Directories.include.final
 	$(INSTALL_DATA) Directories.include.final $(prefix)/etc/Directories.include
+	$(INSTALL_PROGRAM)  daqman $(prefix)/bin
  
 	echo "Version: " $(VERSION) build on `hostname` `date` > $(prefix)/VERSION

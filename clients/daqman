@@ -1,0 +1,8 @@
+#!/bin/bash
+
+daqmanpath=`dirname $0`/../man
+
+echo $daqmanpath
+
+
+man -M$daqmanpath $1 $2 $3 $4 $5 $6

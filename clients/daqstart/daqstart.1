@@ -1,0 +1,102 @@
+.TH daqstart 1 "July 2003" daqstart-1.0 "USER COMMANDS"
+
+.SH NAME
+daqstart \- start a program with stdout/stderr logging and exit notification
+
+.SH SYNOPSIS
+.B daqstart [OPTIONS]... command words...
+.SH DESCRIPTION
+.PP
+This utility facilitates the collection of logging/debugging information from
+programs that were not originally intended to produce logs.  daqstart runs a
+target program.  Stdout and stderr of the target program are initialized as
+pipes that are monitored by the daqstart program.  Output on each pipe is
+collected a line at a time and relayed to daqstarts stdout or stderr as
+appropriate.  If a logging sink has been attached to the standard file, lines
+are timestamped and logged to that sink as well.  This utility is also very
+useful for programs that are run from desktop shortcuts under window managers
+such as e.g. kde.
+.PP
+On target program exit, if an error sink is specified, an exit message is
+logged to the error sink.  The exit message contains such information about why
+the program exited as UNIX can provide (exit status and signal), and is also
+timestamped.   
+.PP
+If the \-\-notify option is specified, the exit message is also sent to
+daqstart's stderr. Additionally, if the DISPLAY environment variable is defined
+and the PopUp program is executable in the current path, it is invoked to pop
+up an Xwindows dialog with similar information.
+.SH OPTIONS
+.TP 
+\-h \-\-help
+Display short help and exit.
+.TP
+\-V \-\-version
+Print program version number and exit.
+.TP
+\-eSink \-\-error=Sink
+Specify a logging sink for the program's standard error output.  
+If specified, lines sent by the program to stderr are timestamped 
+and teed to this
+sink as well.  See SINK SPECIFICATIONS for more information about
+specifying sinks.
+.TP
+\-oSink \-\-output=Sink
+Specify a logging sink for the program's standard output output.  
+If specified, lines sent by the program to stdout are 
+timestamped and teed to this
+sink as well.  See SINK SPECIFICATIONS for more information about
+specifying sinks.
+.TP
+\-n \-\-notify
+Enables exit notification for the command.  If specified, the user is
+notified of command exit.  Commend exit is always logged to the error
+sink.  \-\-notify causes an message to be sent to stderr that includes the
+command name, the exit status and, if exit was due to an uncaught signal, the
+signal that caused the process to exit.  If the environment variable DISPLAY is
+defined and the program PopUp is in the path, it is run to produce an X11 pop
+up message as well.
+
+.SH SINK SPECFICATIONS
+   A sink is specified by a string containing two fields separated by a colon:
+sinktype:sinkname
+The left field is the sink type, while the right field is a sink name
+interpreted within the sink type.  For example, the sink specification:
+file:/user/fox/output.log specifies the sink is a file, and that the file is
+/user/fox/output.log. 
+.PP
+Sink types that are currently supporteed include:
+.TP
+file
+A file.  The sink name is the name of the file.
+.PP
+If all this seems like a bit much to specify a file, recall that this is
+version 1.0 of the program and future versions will probably support other sink
+types.
+
+.SH EXAMPLES
+.TP
+Log stderr for ls
+
+.nf
+daqstart --error=file:$HOME/error.log  ls
+.fi
+
+The ls command is started with its stderr logged to $HOME/error.log.  stderr
+output will also be visible on the controlling terminal.
+.TP Log stdout and stderr as well as notify on exit for ReadoutShell.tcl
+
+.nf
+daqstart --error=file:$HOME/error.log   \\
+         --output=file:$HOME/output.log \\
+         --notify /usr/opt/daq/Scripts/ReadoutShell.tcl spdaq20 \\
+                  $HOME/bin/RunReadout daq1ide
+.fi
+.PP
+Runs the ReadoutShell script.  If ReadoutShell exits, the user will be notified
+via an stderr message and a pop-up window on the X11 display.  All output from
+ReadoutShell.tcl will be timestamped and logged to $HOME/output.log  All error
+messages from ReadoutShell.tcl will be timestamped and logged to
+$HOME/error.log 
+.SH BUGS
+This program can only effectively monitor line oriented output.

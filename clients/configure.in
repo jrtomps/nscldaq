@@ -5,14 +5,14 @@ AM_CONFIG_HEADER(config.h)
 
 #    Separate device libraries.
 
-AM_INIT_AUTOMAKE(nscldaq, 8.0)  
+AM_INIT_AUTOMAKE(nscldaq, 7.4)  
 
 #
 #   The variable below should track the
 #   version number above to ensure that
 #   all the .so's get appropriately versioned:
 #
-SOVERSION="8:0"
+SOVERSION="7:4"
 
 
 #  Checks for parameters:
@@ -519,4 +519,5 @@ AC_OUTPUT( Makefile Headers/Makefile CopyrightTools/Makefile \
 	LogDisplay/Makefile ProductionReadout/Makefile \
 	ProductionReadout/hyperlatex/Makefile \
 	btdriver/Makefile btdriver/dd/Makefile btdriver/lib/Makefile \
-	btdriver/include/Makefile  controlpush/Makefile dvdburn/Makefile )
+	btdriver/include/Makefile  controlpush/Makefile dvdburn/Makefile \
+	daqstart/Makefile )

@@ -361,9 +361,9 @@ namespace eval caennet {
 #      set caennet1 [caennet::create 0x200000]
 #      caennet::reset $caennet1
 #
-proc caennet::create baseadd {
-    set memname caennet_$baseadd
-    vme create $memname -device /dev/vme24d16 $baseadd 10
+proc caennet::create {baseadd {crate 0}}  {
+    append memname caennet_ $baseadd _ $crate
+    vme create $memname -crate $crate -device /dev/vme24d16 $baseadd 10
     ::caennet::AddController $memname
     return $memname
 }

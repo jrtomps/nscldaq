@@ -1,0 +1,64 @@
+/*!
+\mainpage CAENV1190/CAENV1290 support software
+\author Ron Fox	
+
+\section Intro Introduction
+
+The CAENV1190 and CAENV1290 are high performance VME TDC
+modules.  These moudules are highly software compatible. 
+Therefore they share a single support class: CCAENV1x90.
+The TDC modules supported by this class include:
+
+- CAEN V 1190 A 128 channel ECL/LVDS input TDC
+- CAEN V 1190 B  64 channel ECL/LVDS input TDC
+- CAEN V 1290 A  64 channel ECL input high resolution TDC
+- CAEN V 1290 N  16 channel NIM input high resolution TDC.
+
+All modules are multi-hit TDC that support recording several times
+per event.  All modules can also operate in multi-event mode, 
+buffering several events for readout.  These modules will be
+collectively referred to as the CAEN V1x90 TDC, or the 
+CAENV1x90 for short.
+
+NSCL support is currently limited to base addressable modules as
+it appears that the Geographically addressed modules will not 
+be the mainstream production runs of this module.
+
+The CAENV1x90 is a complex module.  Before reading the software
+documentation you should be familiar with the module's modes
+of operation.
+
+Note that typical applications at the NSCL will run the module in trigger
+matching mode.  When this is done, it's important to understand that this mode
+is fundamentally different than that of a common stop or common start TDC.
+The gate, rather than providing a high precision time reference relative to
+which all channels are measured, instead establishes a time window during which
+hits are accepted and assigned absolute times realtive to an arbitrary time
+origin (the bunch count reset)..  
+The resolution of the gate position in time is only know by
+the module with a resolution of 25ns.  This means that in trigger matching mode
+with trigger subtraction enabled, the raw hit values are only good to 25ns.  In
+order to get the full resolution of the module, you must:
+-# Extend the trigger matching window to include the gate.
+-# Digitize the gate in one of the channels.
+-# Produce parameters that are the difference between the digitized trigger
+   time channel  and the raw hit time.
+
+<em> If you do not do this you will get flat-topped time peaks that have a 25ns width.</em>
+
+This document will describe:
+
+- \ref Constructing
+- \ref Initializing
+- \ref Reading
+- \ref Clearing
+- \ref Unpacking
+
+The documentation will be presented in the context of both the
+NSCL production and classic readout software skeletons.  Where
+available, working code samples will be provided.
+
+*/
+
+
+

@@ -282,8 +282,8 @@ static const char* Copyright = "(C) Copyright Michigan State University 2002, Al
   
   Change Log:
    $Log$
-   Revision 3.3  2004/06/18 12:10:59  ron-fox
-   Merge 7.4 development into 8.0 main line.
+   Revision 3.4  2004/08/06 13:26:00  ron-fox
+   Merge prior to begining kernel 2.6/gcc 3.x port
 
    Revision 3.2.4.1  2004/03/04 13:53:48  ron-fox
    Correct the base address of the VME trigger module to 0x444400 and encapsulate

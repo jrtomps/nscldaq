@@ -291,8 +291,8 @@ static const char* Copyright= "(C) Copyright Michigan State University 2002, All
 //
 /* Change log:
       $Log$
-      Revision 3.2  2004/06/18 12:11:01  ron-fox
-      Merge 7.4 development into 8.0 main line.
+      Revision 3.3  2004/08/06 13:26:01  ron-fox
+      Merge prior to begining kernel 2.6/gcc 3.x port
 
       Revision 3.1.4.1  2004/02/09 17:49:45  ron-fox
       Bugzilla 76: Improve accuracy of the elpased run time by doing differences of absolute times
