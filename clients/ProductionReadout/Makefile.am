@@ -113,6 +113,7 @@ include_HEADERS = AccessListCheck.h \
 	CExperiment.h \
 	CInterpreterCore.h \
 	CInterpreterShell.h \
+	CAENcard.h \
 	CInvalidPacketStateException.h \
 	CNSCLBeginBuffer.h \
 	CNSCLControlBuffer.h \
@@ -174,6 +175,7 @@ include_HEADERS = AccessListCheck.h \
 	VmeModule.h \
 	cmdline.h  \
 	v890.h \
+	CTKServerInstance.h \
 	CTKListener.h
 
 
