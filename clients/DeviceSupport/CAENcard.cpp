@@ -279,6 +279,9 @@ DAMAGES.
 /*
   Change Log:
   $Log$
+  Revision 1.2  2003/12/03 18:12:48  ron-fox
+  Fix stupid typo.
+
   Revision 1.1  2003/12/03 15:59:29  ron-fox
   Add CAENcard and associated documentation.
 
@@ -1422,7 +1425,7 @@ void CAENcard::MapCard()
      ((volatile Registers*)m_pModule)->BitSet1 = SELADDR;
      
      //destroy GEO24 mmap and file descriptor
-.     
+     
      CVMEInterface::Unmap(fd, (void*)m_pModule, CAEN_REGISTERSIZE);
      CVMEInterface::Close(fd);
 
