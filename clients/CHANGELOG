@@ -389,3 +389,7 @@ March 9, 2005
 
 march 10, 2005
      - Scaler.tcl - turn off sort by column on the scaler table widget.
+March 25, 2005
+     - spectcldaq - delay a bit between retries on a blocked write to the pipe
+       after data was already transferred...otherwise we get caught in a spin
+       making matters worse.

@@ -293,6 +293,11 @@ static const char* Copyright= "(C) Copyright Michigan State University 2002, All
 
      Change Log:
      $Log$
+     Revision 4.3  2005/03/25 18:56:02  ron-fox
+     Insert a 10ms delay before retrying a blocked buffer send from spectcldaq
+     across the pipe.  This prevents spectcldaq from going compute bound and
+     starving its client.
+
      Revision 4.2  2004/11/08 19:38:13  ron-fox
      Add the Wiener api to the build.
 
@@ -1292,4 +1297,37 @@ CSBSBit3VmeInterface::ResetVme(void* pHandle)
   bt_desc_t*    p      = (bt_desc_t*)pHandle;
   bt_error_t   err    = bt_reset(*p);
   CheckError(p, err ,"CSBSBit3VmeInterface::ResetVme failed");
+}
+
+/*!
+   Check for errors on the Bit3 device.  Errors must be reset with a call
+   to CheckErrors.
+
+   \return bt_error_t
+   \retval BT_SUCCESS - no errors.
+   \retval BT_ESTATUS - There are status errors.
+   \retval BT_ENOPWR  - VME crate is off.
+   \retval BT_EPWRCYC - Power just turned on.
+   \retval BT_IO      - driver could not be queried.
+
+*/
+bt_error_t
+CSBSBit3VmeInterface::CheckErrors(void* pHandle)
+{
+  bt_desc_t* p = (bt_desc_t*)pHandle;
+  return  bt_chkerr(*p);
+}
+/*!
+    Reset errors on the interface.
+    \return bt_error_t
+    \retval BT_SUCCESS - success.
+    \retval BT_ESTATUS - Status errors  persist.
+    \retval BT_ENOPWR  - Power is still off.
+    \retval BT_IO      - I/O failure.
+ */
+bt_error_t 
+CSBSBit3VmeInterface::ClearErrors(void*pHandle)
+{
+  bt_desc_t* p = (bt_desc_t*)pHandle;
+  return bt_clrerr(*p);
 }

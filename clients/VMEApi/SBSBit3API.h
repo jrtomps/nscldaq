@@ -71,6 +71,11 @@ public:
   // Direct interfaces to the bt interface:
 
   static void         ResetVme(void* pHandle); //!< Reset VME bus.
+
+  // Get/clear error status:
+
+  static  bt_error_t CheckErrors(void* pHandle);
+  static  bt_error_t ClearErrors(void* pHandle);
 };
 
 

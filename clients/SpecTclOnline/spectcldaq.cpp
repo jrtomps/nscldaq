@@ -301,6 +301,7 @@ using namespace std;
 #include <spectrodaq.h>
 #endif
 
+static const int NOTRANSFERDELAY(10*1000); // Delay time before write retry if EAGAIN.
 
 // How big a buffer do we want?
 
@@ -319,7 +320,7 @@ int Write(int fd, void* pBuffer, size_t nLength)
 	  return nLength;	// Don't transfer to client.
 	} else {		// Something written
 	                        // so write the rest. 
-    
+	  usleep(NOTRANSFERDELAY);
 	}
       }
       else {			// Not due to blocking...
