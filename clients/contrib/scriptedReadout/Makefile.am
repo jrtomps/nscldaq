@@ -82,11 +82,11 @@ CCFLAGS=-g
 
 ScriptedReadout_LDADD = -L@top_srcdir@/contrib/scriptedReadout -lScriptedRdo  \
 	-L@top_srcdir@/Readout -lReadout \
-	$(SPECTRODAQ_LDFLAGS)    \
 	$(VMELIBRARY)            \
 	-L@top_srcdir@/TCL -lTclPlus	\
 	-L@top_srcdir@/Exception -lException \
-	$(TCL_LDFLAGS) 
+ 	$(SPECTRODAQ_LDFLAGS)	$(TCL_LDFLAGS) 
+
 
 EXTRA_DIST=Makefile.skel
 
