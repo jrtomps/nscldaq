@@ -5,14 +5,14 @@ AM_CONFIG_HEADER(config.h)
 
 #    Separate device libraries.
 
-AM_INIT_AUTOMAKE(nscldaq, 7.4)  
+AM_INIT_AUTOMAKE(nscldaq, 8.0)  
 
 #
 #   The variable below should track the
 #   version number above to ensure that
 #   all the .so's get appropriately versioned:
 #
-SOVERSION="7:4"
+SOVERSION="8:0"
 
 
 #  Checks for parameters:
@@ -103,6 +103,25 @@ AC_CHECK_FUNCS(clock_gettime)
 AC_CHECK_FUNCS(strtol)
 AC_CHECK_FUNCS(strtoul)
 
+
+#  See if the C runtime libs have .h's on them or
+#  if the standard <iostream> e.g. can be used.
+#
+
+AC_LANG_PUSH(C++)
+AC_CHECK_HEADER(iostream,[AC_DEFINE([HAVE_HLESS_HEADERS],1,[<iostream> exists])],[])
+AC_COMPILE_IFELSE([using namespace std;], [AC_DEFINE([HAVE_STD_NAMESPACE],[1],[1 if std namespace defined])])
+AH_VERBATIM([VHAVE_STD_NAMESPACE],[
+/* Define STD macro according to HAVE_STD_NAMESPACE value */
+#ifdef HAVE_STD_NAMESPACE
+#define STD(name)  std::name
+#else
+#define STD(name) name
+#endif])
+
+
+
+AC_LANG_POP(C++)
 
 # NSCL DAQ specific checks:
 
@@ -449,6 +468,30 @@ else
    EPICS_INCLUDES=""	# No includes.
    EPICS_BIN=""
 fi
+
+
+#  We now look for cppunit.  This is needed to build c++ tests
+#  If it is available, we'll define the following:
+#  CPPUNIT   - Indicating to the Makefiles to enable building the tests.
+#  CPPUNIT_INCLUDES - Any switches needed at compile time for cppunit.
+#  CPPUNIT_LDFLAGS  - Any switches needed at link time for cppunit.
+#
+#
+
+AC_LANG_PUSH(C++)
+AC_MSG_CHECKING([for cppunit unit testing framework])
+
+AC_CHECK_HEADERS([cppunit/Test.h], [havecppunit="yes"], [havecppunit="no"])
+AC_MSG_RESULT([$havecppunit])
+if test "$havecppunit" == "yes"
+then
+	CPPUNIT_INCLUDES=""
+	CPPUNIT_LDFLAGS="-lcppunit"
+	AC_SUBST(CPPUNIT_INCLUDES)
+	AC_SUBST(CPPUNIT_LDFLAGS)
+fi
+AM_CONDITIONAL(CPPUNIT, test $havecppunit == "yes")
+AC_LANG_POP(C++)
 
 # define substitutions:
 
