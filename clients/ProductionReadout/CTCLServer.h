@@ -309,6 +309,7 @@ class CTCLServer : public CServerInstance
 { 
 private:
 	string m_Command;                  // TCL Command builds up here.
+	string m_Peer;		           // Who we're connected to.
 public:
   // Constructors, destructors and other cannonical operations: 
   

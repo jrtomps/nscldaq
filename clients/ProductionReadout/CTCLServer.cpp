@@ -368,9 +368,9 @@ CTCLServer::OnRequest(CSocket* pPeer)
 	// Deal with common exception types.
 	//
 	catch (CTCPConnectionLost& rExcept) {
-		string prefix("Lost tcl client connection to: ");
-		prefix += getPeername();
-		string suffix("Shutting down server instance");
+		string prefix("Lost tcl client connection ");
+		prefix += m_Peer;
+		string suffix(" Shutting down server instance");
 		ReadException(prefix.c_str(), rExcept.ReasonText(),
 				    suffix.c_str());		
 	}
@@ -414,9 +414,10 @@ CTCLServer::operator()(int nArgs, char** pArgs)
 	assert(pReaper);
 	
 	pReaper->Add(this);      // Add us as an instance.
-	
+	m_Peer = getPeername();
+
 	cout << "Accepted tcl client connection from " 
-	        << getPeername() << endl;
+	        << m_Peer << endl;
 		
 	// Delegate the main loop to our parent class. it does all the
 	// right stuff already.
@@ -480,8 +481,12 @@ CTCLServer::ReadException(const char* pPrefix,
 				      const char* pReason,
 				      const char* pSuffix)
 {
-	cerr << pPrefix << pReason << pSuffix << endl;
-	getSocket()->Shutdown();
-	setEnable(false);
+  cerr << pPrefix <<endl << pReason << endl << pSuffix << endl;
+  try {
+    getSocket()->Shutdown(); // This will throw if already shutdown...
+  }
+  catch(...) {		// So ignore the exception.
+  }
+  setEnable(false);
 }
 	                        
