@@ -279,6 +279,10 @@ DAMAGES.
 /*
   Change Log:
   $Log$
+  Revision 1.2  2004/01/14 17:45:38  ron-fox
+  Remove code for spectrodaq copyin that
+  crept back in by mistake.
+
   Revision 1.1  2003/12/03 15:58:48  ron-fox
   Provide complete documentation.
 
@@ -1153,14 +1157,10 @@ CAENcard::readEvent(DAQWordBuffer& wbuf, int offset)
 
     int n = readEvent(localBuffer);
     int nWords = n/sizeof(int);
-#ifdef CLIENT_HAS_BUFFER_COPYIN
-    wbuf.CopyIn(localBuffer, offset, nWords);
-#else
     for(int i = 0; i < nWords; i++) {
       wbuf[offset] = *pBuf++;
       offset++;
     }
-#endif
     return nWords;
   }
 

@@ -279,6 +279,10 @@ DAMAGES.
 /*
   Change Log:
   $Log$
+  Revision 1.3  2004/01/14 17:45:09  ron-fox
+  Remove code for spectrodaq copyin that
+  crept back in by mistake.
+
   Revision 1.2  2003/12/03 18:12:48  ron-fox
   Fix stupid typo.
 
@@ -1156,14 +1160,10 @@ CAENcard::readEvent(DAQWordBuffer& wbuf, int offset)
 
     int n = readEvent(localBuffer);
     int nWords = n/sizeof(int);
-#ifdef CLIENT_HAS_BUFFER_COPYIN
-    wbuf.CopyIn(localBuffer, offset, nWords);
-#else
     for(int i = 0; i < nWords; i++) {
       wbuf[offset] = *pBuf++;
       offset++;
     }
-#endif
     return nWords;
   }
 
@@ -1193,15 +1193,10 @@ int CAENcard::readEvent(DAQWordBufferPtr& wp)
     short *pBuf((short*)localBuffer);
     int nbytes = readEvent(localBuffer); // Read to temp buffer.
     int nWords = nbytes / sizeof(short);
-#ifdef CLIENT_HAS_POINTER_COPYIN
-    wp.CopyIn(localBuffer, 0,  nWords);
-    wp += nWords;
-#else
     for(int i = 0; i < nWords; i++) {
       *wp = *pBuf++;
       ++wp;
     }
-#endif
     return nWords;
   }
   return 0;
@@ -1227,15 +1222,11 @@ CAENcard::readEvent(DAQDWordBuffer& dwbuf, int offset)
     int localBuffer[32+2];	// 32 chans + header + trailer.
     int nbytes = readEvent(localBuffer);
     int nlongs = nbytes/sizeof(long);
-#ifdef CLIENT_HAS_BUFFER_COPYIN
-    dwbuf.CopyIn(localBuffer, offset, nlongs);
-#else
     int* pLocal(localBuffer);
     for(int i =0; i < nlongs; i++) {
       dwbuf[offset] = *pLocal++;
       offset++;
     }
-#endif
     return nlongs;
   }
   return 0;
@@ -1258,16 +1249,11 @@ int CAENcard::readEvent(DAQDWordBufferPtr& dwp)
     int localBuffer[32+2];	// 32 chans + header +trailer.
     int nbytes  = readEvent(localBuffer);
     int nlongs  = nbytes/sizeof(long);
-#ifdef CLIENT_HAS_POINTER_COPYIN
-    dwp.CopyIn(localBuffer, 0, nlongs);
-    dwp += nlongs;
-#else
     int* pLocal(localBuffer);
     for(int i =0; i < nlongs; i++) {
       *dwp = *pLocal++;
       ++dwp;
     }
-#endif
     return nlongs;
   }
   return 0;
