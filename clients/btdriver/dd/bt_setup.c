@@ -721,11 +721,14 @@ bool_t btk_invalid_offset(
       case BT_DEV_A16:
         max_off = BT_AMOD_A16_MAX;
         break;
+    case BT_DEV_GEO:
       case BT_DEV_A24:
         max_off = BT_AMOD_A24_MAX;
         break;
-      case BT_DEV_A32:
-      case BT_AXSRE:
+    case BT_DEV_MCCTL:
+    case BT_DEV_CBLT:
+    case BT_DEV_A32:
+    case BT_AXSRE:
 #if defined(__vxworks)
         max_off = 0x100000000ULL;
 #else /* __vxworks */

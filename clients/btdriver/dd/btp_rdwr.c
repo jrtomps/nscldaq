@@ -114,7 +114,8 @@ loff_t btp_llseek(
             end_pos = 192 * SIZE_1KB;
         }
         break;
-      case BT_DEV_A24:
+    case BT_DEV_GEO:
+    case BT_DEV_A24:
         /* 24 address bits */
         end_pos = 16 * SIZE_1MB;
         break;
@@ -124,12 +125,14 @@ loff_t btp_llseek(
         end_pos = 64 * SIZE_1KB;
         break;
 
-      case BT_DEV_A32:
-        /* 32 address bits */
-        end_pos = ((loff_t) 1)<<32;
-        break;
-
-      case BT_DEV_RE:
+    case BT_DEV_A32:
+    case BT_DEV_MCCTL:
+    case BT_DEV_CBLT:
+      /* 32 address bits */
+      end_pos = ((loff_t) 1)<<32;
+      break;
+      
+    case BT_DEV_RE:
         /* 31 address bits, only provided for compatibility */
         end_pos = ((loff_t) 1)<<31;
         break;
@@ -675,8 +678,9 @@ static int btp_xfer(
     unsigned int    inx;
     unsigned long   pci_addr;
     bt_data32_t     ldma_addr;
-
-
+    size_t          local_length;
+    unsigned        adjust;
+    int             done = 0;
     FENTRY;
 
     /* 
@@ -697,9 +701,13 @@ static int btp_xfer(
     ** Since both would require the same loop, I've decided to just put it
     ** in this routine instead.
     */
-    while ((length_remaining > 0) && (BT_SUCCESS == retval)) {
-        size_t local_length = length_remaining;
-        unsigned adjust = ((unsigned long) usr_data_p) % BT_WIDTH_D64;
+    /**** Make the user do this loop so we can finish I/O from 
+	  FIFO like data taking devices!!!
+    */
+    
+    while ((length_remaining > 0) && (!done)) { 
+        local_length = length_remaining;
+        adjust = ((unsigned long) usr_data_p) % BT_WIDTH_D64;
 
         /*
         ** Make sure we don't try to transfer more than fits in our
@@ -796,6 +804,7 @@ static int btp_xfer(
             */
             retval = btk_pio_xfer(unit_p, type, data_p, (unsigned long) dest_addr,
                                   &local_length, (dir == BT_RD) ? BT_READ : BT_WRITE);
+	    done = TRUE;	/* PIO only needs one shot. */
         }
   
         /*
@@ -803,16 +812,21 @@ static int btp_xfer(
         */
         if (retval != BT_SUCCESS) {
             /* INFO message should be printed by failing routine */
-            break;
-
+            goto btp_xfer_end;
+	    /* break */
         /*
         ** This part may not be necessary any more ???
         */
-        } else if (btk_get_io(unit_p, BT_LOC_STATUS) & LSR_CERROR_MASK) {
+        }
+#if 0
+	else if (btk_get_io(unit_p, BT_LOC_STATUS) & LSR_CERROR_MASK) {
             INFO_STR("Adaptor error during read/write operation");
             retval = BT_EIO;
-            break;
+	    goto btp_xfer_end;
+
+	    /*            break; */
         }
+#endif
 
         /* 
         ** If reading, move data from kernel to user space 
@@ -824,13 +838,15 @@ static int btp_xfer(
         usr_data_p += local_length;
         dest_addr += local_length;
         length_remaining -= local_length;
-    }
+
+    } /*    while.   */
 
     /* 
     ** Need to convert from bt_error_t to an error number 
     */
 btp_xfer_end:
     *xferred_bytes_p = length - length_remaining;
+    if(*xferred_bytes_p > 0) retval = BT_SUCCESS; /* Any transfer is success */
     switch (retval) {
       case BT_SUCCESS:
       case BT_EIO:

@@ -166,10 +166,12 @@ bt_error_t btk_pio_xfer(
     size_t            data_left = *xfer_length_p;
     caddr_t           kern_p = laddr_p;
     size_t            data_xferred = 0;
-    size_t            data_copied, length;
+    size_t            data_copied = 0;
+    size_t            length;
     int               data_width = (int) unit_p->data_size[ldev];
     caddr_t           bus_p;
     btk_page_t        page_info;
+    int               hardware_status= BT_SUCCESS; /* Status if no xfer  */
     BTK_LOCK_RETURN_T isr_pl;
     
     FUNCTION("btk_pio_xfer");
@@ -240,11 +242,7 @@ bt_error_t btk_pio_xfer(
             data_copied = btk_bcopy(unit_p, kern_p, bus_p, length, data_width,
                 FALSE);
         }
-        if (data_copied != length) {
-            INFO_STR("PIO error detected during transfer");
-            retval = BT_EIO;
-            break;
-        }
+
         
 
         /*
@@ -262,6 +260,21 @@ bt_error_t btk_pio_xfer(
             btk_pagecheck(unit_p, &page_info);
         }
 
+	/*  If the transfer didn't fully complete we want to
+	**  return the partial count to the user but initiate
+	**  device error recovery (this can happen if e.g. the
+	**  user reads a FIFO like device without knowing in advance
+	**  how much data to read:
+	*/
+        if (data_copied != length) {
+	  //	  INFO_STR("Marking hardware error - incomplete transfer");
+	  //	  INFO_MSG((LOG_FMT "Length = %d ",
+	  //	    LOG_ARG, length));
+	  //	  INFO_MSG((LOG_FMT " data copied = %d\n",
+	  //		    LOG_ARG, data_copied));
+	  hardware_status = BT_EIO; /* Flag error if nothing transferred. */
+	  break;
+        }
     }
 
     /*
@@ -273,13 +286,15 @@ bt_error_t btk_pio_xfer(
     ** and set the BT_ERROR bit
     */
     if (btk_get_io(unit_p, BT_LOC_STATUS) & LSR_CERROR_MASK) {
-        retval = BT_ESTATUS;
+      //      INFO_STR("Marking hardware error - LCS_CERROR_MASK");
+      hardware_status= BT_ESTATUS;
 
     /* 
     ** Now check if an error occurred on the final transfer 
     */
     } else if (IS_SET(unit_p->bt_status, BT_ERROR)) {
-            retval = BT_ESTATUS;
+      //      INFO_STR("Marking hardware error - bt_status == error");
+      hardware_status= BT_ESTATUS;
     }
     BTK_LOCK_ISR(unit_p, isr_pl);
     unit_p->pio_count--;
@@ -290,7 +305,8 @@ bt_error_t btk_pio_xfer(
     /*
     ** If we had an adapter error we need to clear it
     */
-    if (retval == BT_ESTATUS) {
+    if (hardware_status == BT_ESTATUS) {
+      // INFO_STR("Recovering from hardware error");
         btk_rwlock_wr_enter(unit_p, &unit_p->hw_rwlock);
         if (IS_SET(unit_p->bt_status, BT_ERROR)) {
             CLR_BIT(unit_p->bt_status, BT_ERROR);
@@ -308,7 +324,15 @@ bt_error_t btk_pio_xfer(
     }
     
 btk_pio_exit:
-    *xfer_length_p = (int) data_xferred;
+    if(data_xferred) {		/* If anyting transferred... */
+      // INFO_MSG((LOG_FMT  "btk_pio_exit: xferred = %d last copied %d\n",
+      //          LOG_ARG, data_xferred,  data_copied));
+
+      *xfer_length_p = (int) data_xferred;
+    } else {			/* If nothing transferred... */
+      INFO_STR("Nothing transferred, returning hardware_status");
+      retval = hardware_status;
+    }
     FEXIT(retval);
     return(retval);
 }
@@ -355,6 +379,8 @@ bt_error_t btk_dma_xfer(
     bt_data8_t          dma_cmd, tmp_reg, amod;
     int                 polled_dma = TRUE;
     int                 timeout_usec;
+    int                 remainder = 0; /* after xfer */
+    int                 blocks    = 0; /* after xfer */
 
     FUNCTION("btk_dma_xfer");
     LOG_UNIT(unit_p);
@@ -533,8 +559,22 @@ bt_error_t btk_dma_xfer(
         btk_dma_poll(unit_p, xfer_length, data_width, timeout_usec);
 
     }
+    /*
+      Get current values of local packet and remainder counts for now log them 
+    */
+    remainder = btk_get_io(unit_p, BT_LDMA_RMD_CNT);
+    blocks    = btk_get_io(unit_p, BT_LDMA_PKT_CNT);
+    INFO_MSG((LOG_FMT "Blocks left = %d remainder = %d\n",
+	      LOG_ARG, blocks, remainder));
+    remainder = btk_get_io(unit_p, BT_RDMA_RMD_CNT);
+    INFO_MSG((LOG_FMT "remote remainder = %d\n",
+	      LOG_ARG, remainder));
+
     btk_put_io(unit_p,BT_LDMA_CMD , 0);     /* ??? not sure why this is here */
     btk_put_io(unit_p, BT_REM_CMD2, 0);
+
+
+
     if (IS_SET(unit_p->bt_status, BT_DMA_ERROR)) {
         INFO_STR("DMA error detected during transfer");
         retval = BT_ESTATUS;
