@@ -297,9 +297,9 @@ static const char* Copyright = "(C) Copyright Michigan State University 1944, Al
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/socket.h>
-
+#include <errno.h>
 extern gdbm_error gdbm_errno;           // errno for gdbm
-extern int errno;                       // in case the server dies
+// extern int errno;                       // in case the server dies
 
 /*
   "int SortHistory"
