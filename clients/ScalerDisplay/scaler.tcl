@@ -99,7 +99,7 @@ set silentAlarms 0
 #    stripStyleIndex     - Index into dash style array.
 #
 #    timeVector          - Vector of elapsed run times at scaler readouts.
-#
+#    legendPosition      - Position of legend (top bottom, left or right).
 set stripchartChannels ""
 set stripchartRatios   ""
 set yAxisType          linear
@@ -110,6 +110,7 @@ set stripColors {black red green blue cyan magenta}
 set stripStyles { "" {5 5} {2 2} {5 5 2 2} {5 2} {5 5 2 5}}
 set stripColorIndex 0
 set stripStyleIndex 0
+set legendPosition top
 
 vector create timeVector
 
@@ -305,7 +306,9 @@ proc configureStripChart {} {
     global yAxisType
     global xAxisLength
     global logButton
+    global legendPosition
 
+    $stripchartWidget legend configure -position $legendPosition
     set shiftby [expr $xAxisLength * 0.1]
     $stripchartWidget axis configure x -autorange $xAxisLength \
                                        -shiftby $shiftby \
@@ -996,7 +999,7 @@ proc page {name title} {
 		-setgrid yes -stretch all \
 		-font -b&h-lucidatypewriter-bold-r-normal-sans-*-100-*-*-m-*
 	$table columnconfigure 2 -align right \
-		-formatcommand {FormatColumn "% 5.2f"}
+		-formatcommand {FormatColumn "% 8.1f"}
 	$table columnconfigure 3 -align right \
 		-formatcommand {FormatColumn "% 10.0f"}
 	$table columnconfigure 4 -align right \
