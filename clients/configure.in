@@ -757,6 +757,7 @@ AC_OUTPUT( Makefile Headers/Makefile CopyrightTools/Makefile \
 	TclServer/Makefile bcnaf/Makefile TcpHoister/Makefile Stager/Makefile \
 	Scripts/Makefile framework/Makefile AlarmDisplay/Makefile \
 	LogDisplay/Makefile ProductionReadout/Makefile \
+	HPProductionReadout/Makefile \
 	ProductionReadout/hyperlatex/Makefile \
 	btdriver/Makefile btdriver/dd/Makefile btdriver/lib/Makefile \
 	btdriver/include/Makefile  \

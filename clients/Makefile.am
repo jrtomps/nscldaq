@@ -4,7 +4,7 @@ SUBDIRS = $(VME_DRIVERDIR) \
 	Readout HPReadout diskrun EventLog Scaler  \
 	vmetcl  \
 	bufdump TclServer bcnaf TcpHoister Stager Scripts framework \
-	AlarmDisplay LogDisplay ProductionReadout  \
+	AlarmDisplay LogDisplay ProductionReadout  HPProductionReadout \
 	contrib dvdburn daqstart $(EPICSSOFTWARE) ScalerDisplay
 
 EXTRA_DIST =  config/install-sh config/config.sub config/config.guess \
