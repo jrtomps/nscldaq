@@ -337,3 +337,6 @@ January 24, 2005
 
     Run up to first release
 8.0-001
+February 3, 2005
+       - Added the port manager to the build/library.  All but the
+         C++ library is tested.

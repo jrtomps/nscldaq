@@ -278,6 +278,9 @@ DAMAGES.
 /*
   Change Log:
   $Log$
+  Revision 4.4  2005/02/03 18:15:36  ron-fox
+  Just adjustmets of newline conditions mostly after eclipse futz-up.
+
   Revision 4.3  2004/12/07 15:20:21  ron-fox
   - Fix some CVS errors with the wiener driver.
   - Re create the autotools based build for the wiener driver stuff.

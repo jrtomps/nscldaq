@@ -14,574 +14,309 @@ ClassID, Name, Description, Multiplicity, Concurrency, Visibility, Persistence, 
 41
 52CTCLProcessorpublicTCL0000
 53CDAQTCLProcessorProvides a synchronized TCL command.
-
 Inheriting from this class allows you to produce
-
 a TCL command which is synchronized to the
-
 application through the application mutex.
-
   This member essentially just replaces the
-
 TCLProcessor's registration procedures
-
 and static callback relay.  The static callback
-
 relay will now lock the application mutex prior
-
 to calling operator() and unlock on return
-
 (exception or normal).
-
 publicTCL0000
 55CThreadRecursiveMutexProvides a mutex which can be locked in a nested manner by a thread.
-
 The "nested ness'  is managed through the m_nLockLevel and the 
-
 m_OwningThread member.  Atomicity of the otherwise non-atomic 
-
 function is handled by bracketing calls with locks of the mutexe's
-
 own m_MonitorMutex
-
 publicUtilityDAQThreadMutex0010
 56CObjectRegistryEncapsulates a registry for a set of uniquely named
-
 objects.   Only the names of the objects are held. 
-
 These are held in an STL map.  The map is keyed by object name and contains a poniter 
-
 to the object. Any object derived from CNamedObject can be registred.  Normally
-
 Named objects which require registry will be derived from CRegisteredObject,
-
 that class' constructor will automatically register the object in the appropriate registry.
-
 publicUtility0000
 63CClassifiedObjectRegistryImplements a registry of object registries.  The registries are
-
 in a map which is keyed by the actual object type as determined 
-
 by RTTI.  Note that use of RTTI as well makes it unecessary for
-
 this object registry to be templatized.  Objects can be passed by
-
 reference of type CNamedObject.  No policy decisions are made
-
 as to the granullarity of the registry.  The client is responsible for
-
 making registries.  It wouild be possible to derive a class which
-
 had registration granularity to the type level as by deriving and
-
 wrapping the Add with a create if not yet created sort of 
-
 member.publicUtility0000
 64CNamedObjectBase class for all objects in the event management system.publicUtility0000
 65CRegisteredObjectEncapsulates objects which self register and 
-
 force name uniqueness.publicUtility0000
 67CEventMonitorABC for Event Monitors.  An event monitor provides event
-
 specific logic for waiting for external program events.
-
 oeprator() is expected to wait for an event to occur 
-
 and return to indicate if the event in fact did occur.publicMonitors1000
 68CReactorEncapsulates the base class for reactors.
-
 A reactor is an object which responds to an 
-
 event.  This class hierarchy is of necessity slightly
-
 parallel to the Monitor hierarchy.
-
 In additional to the Named Object standard functions,
-
 all monitors must implement:
-
 operator()  - called when the monitor fires.
-
 isMonitorCompatible - to determine if the reactor is
-
                                   being associated with a compatible
-
                                   monitor.publicReactors1100
 80CLocationMonitorEncapsulates a location monirtor.  
-
 The location monitor watches a volatile memory location 
-
 to satisfy some predicate function object.  Predicates are
-
 objects from classes which implement:
-
 bool operator()(T value)
-
 T is a templated variable of the class.
-
 Such objects are function objects.  The 
-
 Event is firfed when the predicate returns TRUE.
-
 publicMonitors0001
 81CPointerPredicateEncapsulates standard predicates for location monitors.
-
 Location monitor predicates are template classes on a type T
-
 They must implement the function:
-
-
 
 bool operator()(T nCurrent)
 
-
-
 The function returns TRUE if nCurrent satisfies whatever condition 
-
 the predicate is established on the location.
-
 publicMonitors0001
 82CFdMonitorMonitors activity on a file descriptor.
-
 A file descriptior can be monitored for the logical
-
 or of any of the following conditions:
-
 Readable
-
 Writable
-
 Exception
 
-
-
 Monitoring is done via the select(2) system service.
-
 Note that this can yield some unexpected
-
 results.  For example, in some operating systems,
-
 tape drives are never considered readable without
-
 blocking.publicMonitors0010
 83CBufferMonitorMonitor to encapsulate a DAQ<type>Buffer.  The monitor can block 
-
 until the buffer receives data and indicates an event when this happens.
-
 Timeouts are also allowed on the receipt.publicMonitors0011
 85CTimerMonitorEncapsulates an event monitor for timers.
-
 Timers can be either repeating or oneshot.
-
 A oneshot timer willl fire once after a delay and 
-
 then refuse to fire until it's time is reset.
 
-
-
 Repeating timers essentially reset their time after
-
 each instance of an event.publicMonitors0010
 86CLocationReactorReacts to location monitor events.  A location
-
 monitor monitors a Specific volatile object for
-
 various abstract conditions checked by a predicate.
-
 This is an abstract base class which must be derived
-
 for a particular applciation.  The purpose of this class
-
 is to provide a branch in the Reactor class hierarchy
-
 from which Location Monitors can determine comptibility
-
 of the reactor.
-
 publicReactors1000
 87CFdReactorBase class for file descriptor reactors:
-
 Fd reactors react to events on a file descriptor.
-
 This abstract base class must be subclassed by the
-
 programmer to provide application specific behavior.
-
 publicReactors1000
 88CBufferReactorBase class for SpectroDaq buffer receipt.
-
 This object must be subclassed to provide
-
 application specific processing.publicReactors1000
 111CEventEncapsulates event handling.  Events consist of an
-
 event monitor which is responsible for determining when
-
 an event fires and a reactor which provides application
-
 specific handling of the event.  
-
 When enabled, the event will schedule a thread m_EventThread
-
 to process the event.  The event thread contains code to
-
 repeatedly calll the monitor's operator(), lock the global mutex
-
 and call the reactor's operator().  The reactors provided with 
-
 classes derived from this are generally standardized to invoke
-
 Subclass virtual function which are specific to the event
-
 being managed..publicEvents0000
 112CEventContainerEncapsulates multiple events.
-
 This serves as a lightweight event manager
-
 for the application.
 
-
-
 Additional types:
-
 CEventContainer::iterator  - Iterates through the underlying 
-
                                            STL container m_Events
-
 EventMatchPredicate:
-
    Function objects which implement:
-
    bool operator()(CEvent& rEvent)
 
-
-
 Predefined Predicate:
-
     MatchAll - returns TRUE unconditionally
-
     MatchName(const string& rname)  - matches events of this name.
-
     MatchType(CEvent& rEvent)         - Match all events of same type as sample
-
                                                             IF sample is in the container matches it as well.publicEvents0010
 113CApplicationEncapsulates a user application.
-
 Entry is at operator()
-
 This object is a singleton object, however, 
-
 due to the way SpectroDaq works, it must
-
 be declared somewhere.  Note that multiple
-
 declarations will result in an exception.
-
 The static member function GetApplication
-
 can retrieve the application.
-
 The user builds a SpectroDaq client
-
 by subclassing this object. operator()
-
 in general will fill the event container with
-
 events and their application specific responses.
-
 The operator() then blocks.
-
 publicApplicationDAQRocNode1000
 114CLocationEventEncapsulates application level location monitor event
-
 processing. The CLocation event contains a special 
-
 CLocationReactor which understands that it lives
-
 inside a CLocation event.  It gathers typicallly needed
-
 information from the event monitor and passes it
-
 back to the location event's operator() member.
 
-
-
 This class must be subclassed with operator() filled in.
-
 Note that information sufficent to start a location monitor
-
 is passed in at construction time.. this is an abstract,templated
-
 class.publicEvents1001
 115CFileEventAbstract base class providing functionality for 
-
 file descriptor events.  Must be derived and 
-
 operator() implemented to provide application
-
 functionality.
-
 publicEvents1100
 116CBufferEventProvides an ABC for building
-
 application level objects to react to
-
 SpectroDaq Buffers.  This is an abstract,
-
 templated class which is templated by the
-
 type of buffer whch can be received.
-
 Note that depending on how this is constructed,,
-
 The object can handle alarm events instead
-
 of data buffers.
-
 publicEvents1101
 120CChangedPredicateDefines a pointer predicate which is satisfied 
-
 whenever the current value changes.publicMonitors0001
 121CMaskedValuePredicateDoes a comparison with a value given a set of
-
 significant bits.  Note that one of the constructors makes
-
 all bits signiificant, effectively making this a match of value.publicMonitors0011
 124CAlarmMonitorPerforms all of the operations which
-
 CBufferMonitor performs, however the
-
 links are programmed as alarm receivers.publicMonitors0000
 158CEventThreadEncapsulates a thread for monitoring events.
-
 Each Event thread instance contains an event monitor, and an
-
 event.
-
 When the thread is scheduled (via Start), it executes a
-
 loop which invokes the operator() function of the monitor.
-
 when the monitor indicates an event has fired, the Event's 
-
 OnEvent function is called.  OnEvent presumably
-
 Synchronizes with the application, invokes it's reactor
-
 and ends the synchronization pass.publicEvents0010
 254DAQThreadpublicSpectrodaq0000
 255CEventLoopEncapsulates within a thread an application library which 
-
 runs it's own event loop.  Examples are Xt and Tcl/Tk.
-
 These systems include their own mechanisms for detecting and
-
 dispatching events to application and framework specific code.
 
-
-
    Attempting to instantiate more than one instance of an event 
-
 loop derived object results in a CDuplicateSingelton
-
 exception.
-
 Event loop derived processes implement operator() to 
-
 initiate an event loop  how they are used depends on the
-
 iindividual framework.  Each of these event loops is
-
 supposed to ensure that event dispatching to application
-
 level code is synchronized through the application's mutex.
-
 It is legal to synchronize all such events or an "appropriate
-
 subset".publicVirtualEventLoops1000
 256CXtEventLoopEncapsulates an occurance of an Xt event loop.  
-
 The main loop synchronizes the event loop thread
-
 with the application each pass through the 
-
 xt event loop e.g. the event loop looks like:
 
-
-
 while(1) {
-
    XtGetEvent()
-
    LockMutex()
-
    XtDispatchEvent();
-
    UnlockMutex();
-
   yield();                         // Let someone else run.
-
 }
 
-
-
 This implies that work procedures and timer procs are
-
 also synchonrized to the application.
-
 Note that this synchronization can be costly if there
-
 are work procedures continuously active.publicVirtualEventLoops0000
 257CInterpreterStartupEncapsulates interfaces for starting up 
-
 TCL based interpreter event loops.  The
-
 TCL interpreter executes within a thread.
-
 Adding a command  to the interpreter should
-
 be done by subclassing  CDAQTCLProcessor,
-
 instantiating an object for that class, and registring
-
 it on the current interpreter.  It is important that DAQTCLProcessor
-
 objects be used rather than TCLProcessor objects since  DAQTCLProcessor
-
 is thread-aware and will therefore synchronize its action through the application's
-
 global mutex.
-
 publicVirtualEventLoops1000
 258CTCLInterpreterStartupStarts up a TCL interpreter.  This is suitable for applications
-
 which do not require or cannot use a GUI.
-
 publicVirtualEventLoops0000
 259CTKInterpeterStartupEncapsulates the startup of a Tk/wish interpreter.
-
 An application must subclass this, Implement
-
 RegisterExtensions.
-
 publicVirtualEventLoops0000
 469CTCLInterpreterpublicTCL0000
 470CTCLProcessorpublic1000
 518CTCLSynchronizeCommandImplements a Tcl command extension
-
 sync {script}
 
-
-
 The script parameter is simply evaluated.
-
 Since this class is derived from CDAQTCLProcessor, however
-
 the script is executed syncrhonized to the application's global mutex.publicTCL0010
 519CSocketEncapsulates a generalized TCP/IP SOCK_STREAM
-
 socket. 
-
   Note that TCP/IP Sockets can come in two flavors:
-
 Clients and Servers.  Clients must perform a connect,
-
 while servers perform a bind, listen and then serveral
-
 accepts to create 'server instances'.
-
 The state of a socket is maintained in the m_State
-
 variable and is from the enumerator:
-
 CSocket::State
 
-
-
 Disconnected  - The socket is not connected to anything.
-
 Bound              - The socket is a server socket which is
-
                            not connected, but has been bound to
-
                            a service port.
-
 Listening           - The socket is a server port which is
-
                             listening and can therefore accept
-
                             connections
-
 Connected        - The socket is either a client or a 
-
                             server instance and is connected
-
                             to it's counterpart.
-
 publicTCP0010
 520CServerConnectionEventEncapsulate a TCP/IP server accepting connections.
-
 Each connection accepted can be validated by the
-
 operator() member function.   If the connection is 
-
 validated a new CServerInstance is created to 
-
 process the conneciton.  The CServer Instance 
-
 is created by cloning a sample 'reference' instance
-
 provided at construction time.publicTCP0010
 522CServerInstanceEncapsulates an instance of a TCP/IP server
-
 connected to a client.
-
 The server has an FdMonitor watching for activity
-
 on the client's socket. It's reactor gathers information to pass to
-
 operator()
-
   Note that a 'reference' version of this object is handed to
-
 the ServerConnectionEvent representing the listening component
-
 of this server.  This instance is cloned onto the server socket.
-
 The serversocket is owned by the server instance and must
-
 be destroyed when it is.publicTCP1000
 670CClassifiedObjectRegistryImplements a registry of object registries.  The registries are
-
 in a map which is keyed by the actual object type as determined 
-
 by RTTI.  Note that use of RTTI as well makes it unecessary for
-
 this object registry to be templatized.  Objects can be passed by
-
 reference of type CNamedObject.  No policy decisions are made
-
 as to the granullarity of the registry.  The client is responsible for
-
 making registries.  It wouild be possible to derive a class which
-
 had registration granularity to the type level as by deriving and
-
 wrapping the Add with a create if not yet created sort of 
-
 member.public0000
 950CServerMonitorMonitors a TCP/IP socket for connection
-
 requests.  When a connection request is
-
 available, returns.  Note that it is up to
-
 the reactor to actually accept the connection
-
 request.  ServerMonitors can have
-
 monitors which are descended from CFdMoniitors
-
 publicMonitors0010
 ***END_TABLE***
 
@@ -648,201 +383,117 @@ Attributes
 ClassID, ClassName, AttrID, Name, Type, Length, IsStatic, Description, Visibility, MaxVal, MinVal, InitVal, Stereotype, Constraint, IsConstant, IsIndexed, IsUnique, IsNotNull, IsPrimaryKey, IsForeignKey, User1, User2, User3, IsArray, IsFinal, IsWriteProperty, IsReadProperty
 ***BEGIN_TABLE***
 55CThreadRecursiveMutex14m_MutexDAQThreadMutex0Mutex locked.private0000000This is the mutex which will be locked to produce the 
-
 thread synchronization at levels more global than the
-
 mutex operations itself... e.g. this is the mutex each thread
-
 is trying to lock.0000
 55CThreadRecursiveMutex71m_tOwningThreaddaqthread_t0Id of owning thread. private0if(m_LockLevel < 0) m_OwningThread = NULL;000000This value is only valid if m_LockLevel > 0.
-
 In that case it represents the owner of the
-
 mutex.  The owner of the mutex is used to
-
 determine if a lock should result in an 
-
 actual lock request or merely an increment
-
 of the locklevel.0000
 55CThreadRecursiveMutex72m_nLockLevelunsigned0Locking depth for owning thread.private0m_nLockLevel >= 0000000Each time a thread locks a mutex, the lock level increments actual final unlocking 
-
 only occurs when the m_nLockLevel goes to zero.0000
 55CThreadRecursiveMutex96m_MonitorMutexDAQThreadMutex0Atomicity Mutex.private0000000member is used to force otherwise non-atomic members to execute atomically
-
 with respect to the mutex represented by this object.0000
 64CNamedObject67m_sNamestring0Object name.private100000The name of this object, as assigned at creation time.0000
 64CNamedObject68m_sClassPathstring0Class derivation.private0000000Class derivation as determined by at
-
 construction time by recursing the
-
 typeinfo tree.0000
 67CEventMonitor109m_tvTimeouttimeval0Timeout lengthprivate0000000contains the timeout if timeouts are enabled else indeterminate.0000
 67CEventMonitor110m_fTimedWaitbool0Timed wait?private0000000if TRUE, waits for events are timed,
-
 else they are determined by the timeout.0000
 80CLocationMonitor74m_pTLocationvolatile T*0Location monitoredprivate0000000Points to the location monitored. This location is
-
 assumed to be changing asynchronously to the 
-
 execution of the thread which monitors the location.
-
 Note that the pointer can point to any type which can be
-
 accepted by the predicate.   For the predefined predicates:
-
 CChangedPredicate:        Requiires operator== be implemented fo rT
-
                                                         CopyConstruction
-
 CMaksedValuePredicate Requires:   operator&,
-
                                                           operator==
-
                                                           Copy construction:
-
 CisValuePredicate Require:     opreator==
-
                                                 CopyConstruction0000
 82CFdMonitor79m_nFdint0File descriptorprivate0000000File descriptor which will be monitored by the 
-
 monitor.0000
 82CFdMonitor80m_nConditionMaskUInt_t0Monitored conditions.private0000000Conditions which will be monitored by the 
-
 monitor for the file descriptor.  This will
-
 be a mask of the bits:
-
 FD_READABLE
-
 FD_WRITABLE
-
 FD_EXCEPTION
 
-
-
 These bits are defined
-
 as members of the public bit-field strructure:
-
 CFdMonitor::FdConditions
-
 0000
 82CFdMonitor100m_fLastEventMaskint0last set of file events.private0000000Mask of the last set of events to be detected on a 
-
 file.  This is calculated from the select() service, and
-
 does not necessarily reflect the actual state. e.g.
-
 if an fd is readable and writable, but only readability
-
 was monitored, this mask will contain FD_READABLE
-
 not FD_READABLE | FD_WRITABLE0000
 83CBufferMonitor106m_BufferDAQBuffer<T>0Encapsulated bufferprivate000000Contains the buffer which is to be managed by this 
-
 monitor.  All data received is received into this buffer.0000
 83CBufferMonitor108m_lLinkslist<CBufferMonitor::LinkInfo>0List of links.private0000000Contains a list of LinkInfo data structures 
-
 which describe the current set of links.
-
 For each link the following is maintained:
-
 int Tag      - The tag associated with the link.
-
 int Mask    - The mask associated with the link.
-
 string URL - The URL defining the source system.
-
 int linkid     - The id which identifies the link to the
-
                     spectrodaq link manager object.0000
 85CTimerMonitor84m_fOneShotbool0Oneshot flagprivate0000000This flags indicates whether or not the timer is a
-
 One-shot timer or a Recurring timer.0000
 85CTimerMonitor112m_fFiredbool0Fired flagprivate0000000If m_fOneShot is true, this flag is used
-
 to indicate whether or not the timer has fired
-
 already.0000
 111CEvent91m_fEnabledbool0Event enabled flag.privateFALSE000000TRUE if the event is enabled and actively monitoriing
-
 FALSE if the event is disabled or disable pending.0000
 113CApplication116m_InstanceCApplication*1Meprivate0000000Static member data:
-
 If an application instance has been created,
-
 this points to it, otherwise it is null.0000
 120CChangedPredicate75m_TOldValueT0Prior value.private00000000000
 121CMaskedValuePredicate76m_TMaskT0mask anded with value.private00000000000
 121CMaskedValuePredicate77m_TValueT0Value compared with.private00000000000
 158CEventThread90m_fStopSoonBOOL0Stop FlagprivateFALSE000000When set, at the next opportunity, the 
-
 event thread will exit.  Note that the
-
 thread object will not be destroyed.
-
 0000
 158CEventThread113m_fRunningBOOL0Thread active indicatorprivateFALSE000000TRUE if the thread is already running
-
 FALSE otherwise.0000
 255CEventLoop93m_pTheInstanceCEventLoop*1Singleton instanceprivate0000000Contains  a pointer to the single
-
 event loop instance allowed.  If
-
 there are no instances of the singleton,
-
 this pointer is null.  Note that GetInstance
-
 will not attempt to create a new instance
-
 since it does not know which element of the
-
 class hierarchy to create. 0000
 256CXtEventLoop118m_TopLevelWidget0Top level widgetprivate0000000Top level shell widget created
-
 by the InitializeApplication member.
-
 0000
 519CSocket94m_Fdint0Socketprivate0000000A CSocket is create by construction.
-
 This member variable contains the
-
 file descriptor associated with the socket.
-
 0000
 519CSocket95m_StateCSocket::State0State of socket.private0000000Describes the current state of the socket.
-
 This is taken from the enum:
-
 CSocket::State and can be:
-
 Disconnected  - The socket is not connected to anything.
-
 Bound              - The socket is a server socket which is
-
                            not connected, but has been bound to
-
                            a service port.
-
 Listening           - The socket is a server port which is
-
                             listening and can therefore accept
-
                             connections
-
 Connected        - The socket is either a client or a 
-
                             server instance and is connected
-
                             to it's counterpart.
-
 0000
 520CServerConnectionEvent115m_ReferenceInstanceCServerInstance0Reference Serverprivate0000000This member is cloned to produce a server instance
-
 executing on a connection.0000
 950CServerMonitor114m_SocketCSocket&0Associated Socketprivate0000000Socket object which represents the 
-
 server listen socket.0000
 ***END_TABLE***
 
@@ -854,409 +505,271 @@ BEGIN_CODE
 
 END_CODE
 53CDAQTCLProcessor455EvalRelayintpublicLocks the application mutex, calls
-
 operator() and the unlocks the resource.100010000000
 BEGIN_CODE
 
 END_CODE
 53CDAQTCLProcessor456DeleteRelayvoidpublicLocks the application mutex, call's
-
 the object's OnDelete member function
-
 (the object is pointed to by the client data
-
 parameter), and unlocks the mutex.100010000000
 BEGIN_CODE
 
 END_CODE
 55CThreadRecursiveMutex457LockintOverride.publicLocks the mutex.  Returns zero on success,
-
 otherwise, errno has the reason for the failure.
-
 Note that if we own the mutex the lock level is
-
 incremented, otherwise, this function may block.000010010000
 BEGIN_CODE
 
 END_CODE
 55CThreadRecursiveMutex458UnLockintOverridepublicUnlocks a locked mutex.  If the mutex is already locked by us,
-
 the lock level is decremented.  The mutex is not actually released
-
 until the lock level goes to zero.  If we don't own the mutex, and
-
 error results.
-
 Returns zero on success,
-
 otherwise, errno has the reason for the failure.000010010000
 BEGIN_CODE
 
 END_CODE
 55CThreadRecursiveMutex459TryLockintOverridepublicTries to lock the mutex. 
-
  If the mutex is owned by the running thread
-
 the lock succeeds and the lock level is incremented.
-
 If the lock level is zero, then trylock is done on the
-
 base class and the result is returned.  On success, the
-
 lock level is incremented.
-
 Returns 0 on success, otherwise, errno has reason for
-
 failure.000010010000
 BEGIN_CODE
 
 END_CODE
 55CThreadRecursiveMutex460isLockedintOverride.publicReturns non zero if someone, anyone (even self()) owns the mutex.
-
 Note that the mutex is considered owned if the lock level is 
-
 nonzero.  This should even be faster than the base class 
-
 implementation.000010010000
 BEGIN_CODE
 
 END_CODE
 55CThreadRecursiveMutex461UnLockCompletelyvoidpublicReleases all lock levels.  If we don't 
-
 already own the mutex, this call is a no-op,
-
 otherwise, the m_nLockLevel variable is set to
-
 zero and the underlying semaphore is unlocked.000010000000
 BEGIN_CODE
 
 END_CODE
 56CObjectRegistry462AddvoidMutatorpublicRegisters its parameter in the registry.
-
 If the name is already present in the map,
-
 CDuplicateNameException is thrown.000010001000
 BEGIN_CODE
 
 END_CODE
 56CObjectRegistry463RemovevoidMutatorpublicRemoves an object from the registry.
-
 This version locates an object by name
-
 and removes it from the registry.  If the object
-
 does not exist the CNoSuchObject exception
-
 is thrown.000010001000
 BEGIN_CODE
 
 END_CODE
 56CObjectRegistry464Remove$voidMutatorpublicRemoves an object from the registry.
-
 This version locates an object by a reference
-
 tot he object and removes it from the registry.  If the object
-
 does not exist the CNoSuchObject exception
-
 is thrown.000011001000
 BEGIN_CODE
 Remove(rObject.getName());
 END_CODE
 56CObjectRegistry465Findconst ObjectRegistryIteratorSelectorpublicLocates the object described by the input string.
-
 If there is no such object then CNoSuchObject is
-
 thrown.  Note that a const iterator is returned.
-
 To get a non-const iterator,  clients will need
-
 to use the STL find algorithm, with begin and end
-
 iterators produced by this class.010010001000
 BEGIN_CODE
 
 END_CODE
 56CObjectRegistry466beginObjectIteratorSelector/indirect mutatorpublicReturns an iterator which 'points' to the first object in the
-
 registry.  Traversing the registry through this iterator will
-
 visit all objects in name alphabetical order.
-
 ObjectIterator is a typedef for:
-
 map<string,CNamedObject*>::iterator000010001000
 BEGIN_CODE
 
 END_CODE
 56CObjectRegistry467endObjectIteratorSelector.publicReturns an iterator which 'points' off the end of
-
 the m_Registrants map.  Provided to allow
-
 clients to know when to terminate iteration through
-
 the objects.000010001000
 BEGIN_CODE
 
 END_CODE
 56CObjectRegistry468DescribeSelfstringSelectorpublicReturns a string which describes the registry.
-
 The string is of the form:
 
-
-
 CNamedObject::DescribSelf()
-
 Objects in the registry:
-
    <Each object is asked to describe itself>
-
 000110010000
 BEGIN_CODE
 
 END_CODE
 63CClassifiedObjectRegistry469CreateRegistryvoidMutatorpublicCreates a new registry. It is not an error
-
 to create a registry which already exists.
-
 If this is attempted, it is a no-op.000010001000
 BEGIN_CODE
 
 END_CODE
 63CClassifiedObjectRegistry470DeleteRegistryvoidMutatorpublicDelete an existing registry. Any registry entries
-
 are destroyed, however the objects they point to
-
 are not.
-
 Attempts to destroy an nonexsitent registry
-
 result in a NoSuchObject exception.000010001000
 BEGIN_CODE
 
 END_CODE
 63CClassifiedObjectRegistry471Addvoidbase class mutator.publicAdds an item to a registry.
-
 If the item already exists in that registry,
-
 a DuplicateName exception is thrown.
-
 If the registry does not exist a 
-
 NoSuchObject exception is thrown.000110000000
 BEGIN_CODE
 
 END_CODE
 63CClassifiedObjectRegistry472Removevoidbase class mutatorpublicThe named object is removed from the designated registry.
-
 If the object does not exist, or the registry does not exist,
-
 a NoSuchObject exception is thrown. The name embedded
-
 in the exception differentiates between these two cases.
-
 000110000000
 BEGIN_CODE
 
 END_CODE
 63CClassifiedObjectRegistry473FindObjectRegistryIteratorSelectorpublicLocates an object in a specific registry.
-
 If the registry or object don't exist a
-
 NoSuchObject exception is thrown.
-
 000010001000
 BEGIN_CODE
 
 END_CODE
 63CClassifiedObjectRegistry474Find$CRefcountedPtr<ObjectList>SellectorpublicReturns a referece counted pointer to
-
 a dynamically allocated list of Objects which
-
 match the name requested.
-
 ObjectList is a typedef for:
-
 list<CNamedObject*>
-
 The list is drawn from all of the registries.
-
 If no registries contain the requested name,
-
 an empty list is returned.000010000000
 BEGIN_CODE
 
 END_CODE
 63CClassifiedObjectRegistry475beginregistryRegistryIteratorSelectorpublicReturns an iterator into the registries which
-
 are contained by this object.  Note that iteratiing
-
 will return registries... that is RegistryIterator is a
-
 typedef for:
-
-
 
 map<string,CObjectRegistry>::iterator000010001000
 BEGIN_CODE
 
 END_CODE
 63CClassifiedObjectRegistry476endregistryRegistryIteratorSelectorpublicReturns a registry iterator suitable for determining
-
 when iteration has been completed
-
 (e.g. while(p != coreg.endregistry()) {...
-
   p++;
-
 }000010001000
 BEGIN_CODE
 
 END_CODE
 63CClassifiedObjectRegistry477DescribeSelfstringSelectorpublicDescirbes self.  This produces a string of the form:
 
-
-
 CNamedObject::DescibeSelf()
-
 "  Registries defined: "  List of registries
-
 "     Registry " <name>"  Contains:   <- for all registries.
-
           Registry::DescribeSelf000110000000
 BEGIN_CODE
 
 END_CODE
 64CNamedObject478DescribeSelfstringSelectorpublicReturns a string decribing what is known about 
-
 the object.  In this case, the string is of the
-
 form:
-
 >>>>>>>>>>>>>>>>>>><<<<<<<<<<<<<<<<<<<
-
 Object of type m_sClassPath named m_sName000110000000
 BEGIN_CODE
 
 END_CODE
 64CNamedObject479AppendClassInfovoidConstruction helperprotectedCalled down through the construction chain
-
 to build up the m_sClassPath string.000110001000
 BEGIN_CODE
 
 END_CODE
 65CRegisteredObject480RegisterSelfvoidInteractorpublicRegisters this object in the appropriate object
-
 registry.  Note: the object registry will throw
-
 a DuplicateName exception if there is already
-
 an object in our registry with that name.
-
 If necesary, the registry is created.
 
-
-
 Implicit parameters:
-
    m_Registry - a static member which is the collection
-
                        of object registries into which the object
-
                       will be registered.
-
    m_sName  - The name under which the object
-
                        will be registered.
-
 000010001000
 BEGIN_CODE
 
 END_CODE
 67CEventMonitor481operator()CEventMonitor::resultInterfacepublicMonitor for the occurance of an event.
-
 Concrete classes must implement this.
-
 Return values are from the enum:
-
-
 
 CEventMonitor::result:
 
-
-
 Occured   - The event happened.
-
 TimedOut -  The event monitor supports timeouts
-
                     and the timeout fired.
-
 Error         -  An error condition was encountered
-
                    waiting for the event.
-
 001110000000
 BEGIN_CODE
 
 END_CODE
 67CEventMonitor482isReactorCompatibleboolInterfacepublicDetermines if a reactor can be applied to
-
 an event monitor.  That is if a reactor is of
-
 a type which can successfully interact with
-
 an event monitor.  This must be implemented
-
 by the concrete classes themselves.001110000000
 BEGIN_CODE
 
 END_CODE
 67CEventMonitor483setTimeoutvoidmutatorpublicSets the timeout.  The length of the timeout is
-
 determined by the parameter in ms..  Special values:
 
-
-
 0   - Poll (return instantly).
-
 FOREVER - Block until event.
-
 000110000000
 BEGIN_CODE
 
 END_CODE
 68CReactor484operator()voidInterface DefinitionpublicThis method is called in response ot an event
-
 from an event monitor on which this reactor
-
 has been established.  The Reactor provides 
-
 application specific procesing of the event.001110000000
 BEGIN_CODE
 
 END_CODE
 68CReactor485isMonitorCompatibleBOOLinterface.publicDetermines if the monitor passed in
-
 is compatible with us.   Base class
-
 default functionality is to return TRUE.000110000000
 BEGIN_CODE
 
 END_CODE
 80CLocationMonitor486ChangePredicatevoidMutator.publicAssociates a new predicate with the 
-
 location monitor.000010000000
 BEGIN_CODE
 
 END_CODE
 80CLocationMonitor487operator()CEventMonitor::resultsbehavior override.publicReads the current value of the location and passes it to the predicate.
-
 Returns:
-
 1. Occured - if the predicate returned TRUE
-
 2. TimedOut - if the wait time for this event timedout.
-
 3. Error         - If the predicate threw an exception.000110000000
 BEGIN_CODE
 
@@ -1266,143 +779,93 @@ BEGIN_CODE
 
 END_CODE
 80CLocationMonitor489DescribeSelfstringSelectorpublicReturns a string which describes the monitor.  Inlcudes:
-
 1. CEventMonitor::DescribeSelf
-
 2. Dumps of thte pointer value,
-
 3.  m_Predicate.DescribeSelf()
-
 000110000000
 BEGIN_CODE
 
 END_CODE
 80CLocationMonitor490isReactorCompatibleboolOverride.publicReturns TRUE if the Reactor passed in is a 
-
 valid reactor for location monitors (is an object
-
 descended from CLocationReactor.000110000000
 BEGIN_CODE
 
 END_CODE
 81CPointerPredicate491operator()boolpublicCalled to evaluate a value by a 
-
 location  monitor.001110000000
 BEGIN_CODE
 
 END_CODE
 82CFdMonitor492MonitorReadablevoidMutatorpublicSets or clears the FD_READABLE bit in 
-
 m_nConditionMask.000010001000
 BEGIN_CODE
 
 END_CODE
 82CFdMonitor493MonitorWritablevoidMutatorpublicSets or clears the FD_WRITABLE bit in the
-
 m_nConditionMask attribute.000010001000
 BEGIN_CODE
 
 END_CODE
 82CFdMonitor494MonitorExceptionsvoidMutatorpublicSets or clears  the FD_EXCEPTION bit
-
 in m_nConditionMask.000010000000
 BEGIN_CODE
 
 END_CODE
 82CFdMonitor495operator()voidInterface ImplementationpublicImplements a wait for a single file descriptor event
-
 as described in the mask.  Returns one of:
-
 Occured   - one of the masked conditions occured.
-
 TimedOut - Timeout was enabled and none of the
-
                   conditions occured within the timeout.
-
 Error         - An error condition ocurred.
-
 000110010000
 BEGIN_CODE
 
 END_CODE
 82CFdMonitor496DescribeSelfstringBehavioral override.publicReturns a string which describes the state of the monitor:
 
-
-
 CEventMonitor::DescribeSlef()
-
     File descriptor = $m_nFd
-
     Conditions      = <Decoded condition>
-
     Timeout          = Enabled  at $m_tvTimeout ms | Disabled 
-
 000110010000
 BEGIN_CODE
 
 END_CODE
 82CFdMonitor497isReactorCompatibleboolinterface implementationpublicIndicates if the passed reactor is compatible with the monitor.  This will be the
-
 case if the reactor is dynamcially castable to a CLocationReactor type.000110010000
 BEGIN_CODE
 try {
-
    CFdReactor& r(dynamic_cast<CFdReactor&>(rReactor));
-
    return TRUE;
-
 }
-
 catch (...) {
-
    return FALSE;
-
 }
 END_CODE
 83CBufferMonitor498operator()CEventMonitor::resultoverride.publicWaits for a buffer to be recieved.  Returns 
-
 one of the following:
-
 Occured   - A buffer was received into m_Buffer.
-
 TimedOut - Timeouts were enabled and no buffer
-
                    was received during the timeout
-
                    interval (See m_fTimedWait and
-
                    m_tvTimeout in base class).
-
 000110010000
 BEGIN_CODE
 
 END_CODE
 83CBufferMonitor499AddLinkintmutatorpublicAdds a link to the link manager.  Note that links
-
 are somewhat independent of buffers.  A link
-
 Buffers are accepted along links, the tag and
-
 mask of each link and buffer combine to determine
-
 what data is receieved into the buffer.  However if
-
 these conditions overlap, it is possible to get some
-
 strange results as for each buffer accepted by the link
-
 at >most< one buffer is allowed to receive it.
 
-
-
 The link is inserted in the m_lLinks list of links.
-
 The linkid (from the SpectroDaq link manager) is returned.
-
 On failure, CLinkFailed is thrown.
-
-
-
 
 
 000110000000
@@ -1410,75 +873,48 @@ BEGIN_CODE
 
 END_CODE
 83CBufferMonitor500RemoveLinkvoidmutatorpublicIf the specified link exists, it is removed from the link list and
-
 deleted from the SpectroDaq link manager.
-
 If the link does not exist, then CNoSuchLink is thrown.
-
 000010000000
 BEGIN_CODE
 
 END_CODE
 83CBufferMonitor501RemoveLink$voidmutatorpublicRemoves a link given the iterator to
-
 it's link structure in the link list.
-
 If the iterator is end() then
-
 CNoSuchLink is thrown.000010000000
 BEGIN_CODE
 
 END_CODE
 83CBufferMonitor502FindLinkLinkIteratorSelector (Templated)publicLocates the first link which satisfies a 
-
 given predicate.  Predefined predicates
-
 include:
-
 MatchURL  - Matches a URL only.
-
 MatchAll      - Matches URL, tag and mask.
 
-
-
 A LinkMatchPredicate is a function object
-
 implementing:
-
 bool operator()(LinkInfo)
-
   which returns TRUE if the link satisfies
-
 the predicate.
 
-
-
 Returns:
-
   An iterator 'pointing' to the first match or
-
 end() if there are no matches.000010000000
 BEGIN_CODE
 
 END_CODE
 83CBufferMonitor503beginLinksLinkIteratorSelectorpublicReturns an iterator to the beginning of the 
-
 links list.000010000000
 BEGIN_CODE
 
 END_CODE
 83CBufferMonitor504endLinksLinkIteratorselectorpublicReturns an iterator suitable for
-
 determining end of iteration
-
 through the link list e.g.:
-
 LinkIterator p;
-
 for(p = o.beginLinks(); p != o.endLinks(); o++) {
-
 ...
-
 }000010000000
 BEGIN_CODE
 
@@ -1488,303 +924,204 @@ BEGIN_CODE
 
 END_CODE
 83CBufferMonitor506SetBufferTagvoidMutator.publicSets the tag matched on receives into the buffer.
-
 For each link/buffer pair, tags are used to determine
-
 which buffers routed through SpectroDaq will be
-
 received by a link or buffer.  The logic is that
-
 at each stage, the routed buffer's tag is anded with
-
 the receiving entity's mask.  If this is equal to the
-
 receiving entity's tag, the buffer is accepted.
-
 So, for a given link (link.mask, link.tag), and
-
 our buffer (buffer.mask, buffer.tag):
-
 A routed buffer rbuffer.tag is received when:
 
-
-
 ((rbuffer.tag & link.mask) == link.tag) &&
-
 ((rbuffer.tag & buffer.mask) == buffer.tag)
-
 000010000000
 BEGIN_CODE
 
 END_CODE
 83CBufferMonitor507SetBufferMaskvoidMutator.publicSets the receive mask associated with the buffer.
-
 See SetBufferTag for an explanation of tags and masks
-
 and how they interact with link tags and masks and the tag
-
 of the incomming buffer to determine receipt.000010000000
 BEGIN_CODE
 
 END_CODE
 83CBufferMonitor508DescribeSelfstringSelectorpublicProduces a desciprtion string of the object.  This includes
-
 1. Calling CEventManager::DescribeSelf()
-
 2. Putting out the tag and mask of the buffer.
-
 3. Listing the links and their information.000010000000
 BEGIN_CODE
 
 END_CODE
 83CBufferMonitor509isReactorCompatibleboolRealityCheck.publicDetermines if the reactor passed in is descended from
-
 a CBufferReactor.  If not, returns FALSE, if so 
-
 Returns TRUE.
-
 000010000000
 BEGIN_CODE
 
 END_CODE
 85CTimerMonitor510operator()CEventMonitor::resultsOverride behaviorpublicWaits for the timer as follows:
-
 1. If m_fOneshot is false, this function blocks
-
     for m_tvTimeout time, then returns Occured
-
 2. If m_fOneshot is true, but m_fFired is false,
-
     blocks for m_tvTimeout, sets m_fFired and
-
     returns Occured
-
 3. If m_fOneshot and m_fFired are both true,
-
     returns TimedOut
-
 000110000000
 BEGIN_CODE
 
 END_CODE
 85CTimerMonitor511Repeatvoidmutator.publicSets m_fOneshot to the value of its
-
 parameter.000010000000
 BEGIN_CODE
 
 END_CODE
 85CTimerMonitor512setTimeoutvoidMutator.public  Calls CEventMonitor::setTimeout and
-
 clears m_fFired.
-
   The wait flag FOREVER results in a
-
 MAXINT being passed to CEventMonitor::setTimeout
-
 000110000000
 BEGIN_CODE
 
 END_CODE
 85CTimerMonitor513DescribeSelfstringselectorpublicProduces a string describing the object:
-
 1. Calls CEventMonitor::DecribeSelf
-
 2. Dumps the state of the oneshot and timed flags.
-
 000110000000
 BEGIN_CODE
 
 END_CODE
 85CTimerMonitor514isReactorCompatibleboolerrorcheckingpublicDetermines if the Reactor passed in is derived from CReactor (TRUE).
-
 000110000000
 BEGIN_CODE
 
 END_CODE
 86CLocationReactor515isMonitorCompatibleBOOLOverride.publicReturns TRUE if the monitor passed
-
 in is descended from CLocation Monitor.000110010000
 BEGIN_CODE
 
 END_CODE
 87CFdReactor516isMonitorCompatibleBOOLOverride.publicReturns TRUE if the EventMonitor passed
-
 in is derived from a CFdMonitor object.000110010000
 BEGIN_CODE
 
 END_CODE
 88CBufferReactor517isMonitorCompatibleBOOLOverride.publicReturns TRUE if the Event monitor passed in is 
-
 subclassed from CBufferMonitor000110010000
 BEGIN_CODE
 
 END_CODE
 111CEvent518OnEventvoidCallbackprotectedLocks the global mutex, invokes the
-
 Reactor's operator() and unlocks the global mutex.000010001000
 BEGIN_CODE
 
 END_CODE
 111CEvent519ReplaceMonitorvoidMutator.publicReplaces the event monitor with a different
-
 object.  This allows the event to reconfigure
-
 itself at run time.  In theory base class
-
 events can completely reconfigure what they
-
 point to.  In practice, this member is called
-
 by constructors of descendants to set up
-
 the initial event systesm.
 
-
-
  Note that it is an error to call this when the
-
 EventThread is active.  If this is done a
-
 CAlreadyRunning exception will be thrown.
-
 000010001000
 BEGIN_CODE
 
 END_CODE
 111CEvent520ReplaceReactorvoidMutatorpublicCalled to replace the current instance of the event reactor.
-
 This is typically called at construction time by subclasess
-
 to set up the actual event framework.  Event reactors
-
 may be modified when the event thread is active.000010001000
 BEGIN_CODE
 
 END_CODE
 111CEvent521EnablevoidMutator.publicThe Event thread is started in a synchronized way.
-
 If the event thread is already running, this is a noop.
-
 000010001000
 BEGIN_CODE
 
 END_CODE
 111CEvent522DisablevoidMutator.publicThe event thread is stopped.  This member
-
 returns when the stop has been requested,
-
 but not necessarily halted.  If the
-
 event thread has been halted or has a halt
-
 pending, this is a No-Op.000010001000
 BEGIN_CODE
 
 END_CODE
 111CEvent523DescribeSelfstringSelectorpublicReturns a description of this.
-
 1. CNamedObject::DescribeSelf
-
 2. Values of m_fEnabled.
-
 3. Describe self from:
-
    Event monitor
-
    Event reactor,
-
    
-
-
 
 000110000000
 BEGIN_CODE
 
 END_CODE
 112CEventContainer524AddEventCEventContainer::iteratormutatorpublicAdds an event to the container.
-
 The state of the event is not changed.
-
 It is up to the caller to enable/disable the
-
 event.  In most physics applications,
-
 events remain enabled once created
-
 in any event.
-
 Exception to this: servers.000010000000
 BEGIN_CODE
 
 END_CODE
 112CEventContainer525RemoveEventvoidMutatorpublicRemoves an event given it's name.
-
 If the event does not exist in the container,
-
 throws CNoSuchObject.000010000000
 BEGIN_CODE
 
 END_CODE
 112CEventContainer526RemoveEvent$voidMutator.publicRemoves an event from the container
-
 given an iterator.  If the iterator is end()
-
 CNoSuchObject is thrown.000010000000
 BEGIN_CODE
 
 END_CODE
 112CEventContainer527FindEventCEventContainer::iteratorSelector.publicLocates an event given it's name.
-
 If the event is not found, endEvents() is
-
 returned.000010000000
 BEGIN_CODE
 
 END_CODE
 112CEventContainer528FindEvent$CEventContainer::iteratorSelectorpublicReturns an event iterator which points to
-
 a selected event.  The event is the first one
-
 in iteration order to match an EventMatchPredicate
-
 EventMatchPredicates are function objects which
-
 implement: 
-
 bool operator()(CEvent& rEvent)
 
-
-
 If no event causes the predicate to return TRUE,
-
 endEvents() is returned.000010000000
 BEGIN_CODE
 
 END_CODE
 112CEventContainer529beginEventsCEventContainer::iteratorpublicReturns an iterator pointing towards the 
-
 'first' item in m_Events.000010000000
 BEGIN_CODE
 
 END_CODE
 112CEventContainer530endEventsCEventContainer::iteratorSelectorpublicReturns an iterator suitable for 
-
 ending iteration through the
-
 container e.g.:
-
 CEventContainer::iterator p = cont.beginEvents();
-
 for(;p!= cont.endEvents(); p++) {
-
    // do stuff on *p.
-
 }000010000000
 BEGIN_CODE
 
 END_CODE
 112CEventContainer531EnableEventsvoidMutatorpublicEnables execution of all 
-
 events which match the predicate.000010000000
 BEGIN_CODE
 
@@ -1794,65 +1131,45 @@ BEGIN_CODE
 
 END_CODE
 112CEventContainer533DescribeSelfstring&SelectorpublicReturns a string which defines the event container.  
-
 The container describes all events it
-
 contains.000110010000
 BEGIN_CODE
 
 END_CODE
 113CApplication534GetInstanceCApplication*SelectorpublicReturns the application instance.
-
 (m_Instance).100010000000
 BEGIN_CODE
 
 END_CODE
 113CApplication535DescribeSelfstringSelectorpublicDescribes the application.
-
 This is done by calling CNamedObject::DescribeSelf
-
 then dumping the event container and the object registry in that
-
 order.
-
 000110000000
 BEGIN_CODE
 
 END_CODE
 114CLocationEvent536operator()voidInterface.publicCalled in response to a location monitor event.
-
 001110000000
 BEGIN_CODE
 
 END_CODE
 115CFileEvent537operator()voidInterfacepublicProvides an interface for application
-
 specific processing of file events.
-
 The EventMask describes the state of
-
 the fd and consists of a mask of zero or more:
 
-
-
 FD_READABLE  - File descriptor can be read
-
 FD_WRITABLE  - File descriptor can be written
-
 FD_EXCEPTION - File descriptor has an exceptional
-
                               condition set.
-
-
 
 001110000000
 BEGIN_CODE
 
 END_CODE
 116CBufferEvent538operator()voidinterfacepublicProvides an interface on which to supply application
-
 specific behavior when a Spectrodaq buffer is 
-
 received.  001110000000
 BEGIN_CODE
 
@@ -1860,17 +1177,12 @@ END_CODE
 120CChangedPredicate539operator()booloverride.publicReturns TRUE if the current value is different from the prior value.000110010000
 BEGIN_CODE
 bool retval = (m_TOldValue == nValue) ? (FALSE) : (TRUE);
-
 m_TOldValue = nValue;
-
 return retval;
 END_CODE
 120CChangedPredicate540DescribeSelfstringOverride.publicDescribes self as:
-
 CPointerPredicate::DescribeSelf()
-
 Value to compare with.
-
 000110000000
 BEGIN_CODE
 
@@ -1880,48 +1192,32 @@ BEGIN_CODE
 return ((m_TMask & nValue) == m_TValue);
 END_CODE
 121CMaskedValuePredicate542DescribeSelfstringOverride.publicReturns a string which describes this object:
-
 1. CPointerPredicate::DescribeSellf
-
 2. Values of mask and value.
-
-
 
 Note that T must implement an operator <<000110000000
 BEGIN_CODE
 
 END_CODE
 124CAlarmMonitor543AddLinkintMutatorpublicAdds an alarm link to the link list.
-
 The link id is returned.  On failure
-
 CLinkFailed is thrown.000110000000
 BEGIN_CODE
 
 END_CODE
 158CEventThread544StartvoidMutator.publicSchedules the event thread for
-
 execution. Note that if the thread is
-
 already executing , this will
-
 throw a CAlreadyRunning exception.000010000000
 BEGIN_CODE
 
 END_CODE
 158CEventThread545StopvoidMutator.publicRequests the thread to stop execution
-
 by setting m_fStopSoon  The
-
 thread will exit as soon as it can
-
 notice that it should.  If an event fires
-
 with m_fStopSoon set, it will not be dispatched.
-
 If the thread is not running, then this member throws:
-
-
 
 CNotRunning000010001000
 BEGIN_CODE
@@ -1932,225 +1228,140 @@ BEGIN_CODE
 
 END_CODE
 255CEventLoop547operator()voidInterfaceprivateProvdes an interface for starting an event
-
 loop.  operator() is called when the thread
-
 is started.001110000000
 BEGIN_CODE
 
 END_CODE
 256CXtEventLoop548InitializeApplicationWidgetIniitializationpublicCalled to initialize the X toolkit.  Default
-
 behavior is to call XtAppinit(), and return
-
 its result.000110000000
 BEGIN_CODE
 
 END_CODE
 256CXtEventLoop549SetupApplicationResourcesvoidInitializationpublicCalled from operator() to process the
-
 resource database.  Since the resource
-
 database requires definitions which are
-
 application specific but is not actually 
-
 required, the default behavior is to do
-
 nothing.  Normal applications will set 
-
 up resource definition structures and
-
 invoke XtGetApplicationResrouces()000110000000
 BEGIN_CODE
 
 END_CODE
 256CXtEventLoop550SetupWidgetTreevoidInitialization.publicoperator() calls this function to set up the
-
 initial widget tree.000110000000
 BEGIN_CODE
 
 END_CODE
 256CXtEventLoop551operator()intEntry pointprivateentry point for the Xt event loop thread.
-
 The initialization functions are called to
-
 allow the application to set up the application
-
 widget set.  After this is done, the event loop
-
 is entered. Each call of XtDispatchEvent is
-
 bracketed by calls to lock/unlock the application
-
 serializatio mutex.000110000000
 BEGIN_CODE
 
 END_CODE
 257CInterpreterStartup552OnIniitializevoidDefault behaviorprotectedOn initialize is called very early in 
-
 the execution of the operator() member.
-
 It is intended that subclassed interpreters
-
 perform early initialization here.  At this
-
 point an interpreter has not yet been 
-
 instantiated.  Therefore,  you may not
-
 perform Tcl/Tk library calls at this 
-
 stage.
-
   Default implementation is a no-op.000110000000
 BEGIN_CODE
 
 END_CODE
 257CInterpreterStartup553RegisterExtensionsvoidInterfaceprotectedConcrete subclasses of this class must
-
 implement this function.  It is expected that
-
 all tcl interpreters run in this envrionment will
-
 have extensions (if not, just implement an
-
 empty function), therefore this member is
-
 pure virtual.  At this point, an interpreter has
-
 been created.  If this is a Tk derived 
-
 interpreter, it's not certain that the tk Main
-
 window has been created yet however.
-
 001110000000
 BEGIN_CODE
 
 END_CODE
 257CInterpreterStartup554operator()intInterfaceprivateThis pure virtual member function is expected
-
 to start the interpreter and call the other member
-
 functions; it is the entry point of the thread.001010000000
 BEGIN_CODE
 
 END_CODE
 258CTCLInterpreterStartup555operator()voidOverride.private1. Calls OnInitialize.
-
 2. Sets up the Tcl interpreter.
-
 3. Within the Tcl initialization function
-
     (CTCLInterpreterStartup::Tcl_Init) call
-
    RegisterExtensions.
 
-
-
 Note that the instance of the interpreter is gotten
-
 via a call to CEventLoop::getInstance() since this is
-
 a singleton class.
-
 000110011000
 BEGIN_CODE
 
 END_CODE
 258CTCLInterpreterStartup556Tcl_InitintInitialization.publicCalled from the Tcl_Main() function.
-
 This static member:
-
 1. Obtains the object by calling
-
     CEventLoop::getInstanc()
-
 2. Initializes the interpreter.
-
 3. Invokes the Object's RegisterExtensions function
-
     to load packages, register modules and add
-
     application specific commands.
-
 4. Returns to allow Tcl to start it's main loop.
-
 100010000000
 BEGIN_CODE
 
 END_CODE
 259CTKInterpeterStartup557operator()voidpublic1. Calls OnInitialize to allow users to do early initialization.
-
 2..Starts the Tk interpreter by callling Tk_Main.
-
 The static member Tk_Init iis passed as 
-
 the application initialization function.
-
 001110010000
 BEGIN_CODE
 
 END_CODE
 259CTKInterpeterStartup558Tk_InitintpublicCalled by Tk_Main to do application 
-
 specific initialization.
 
-
-
 Establishes object context by invoking
-
 CEventLoop::getInstance(), 
-
 invokes RegisterExtensions so that
-
 applicaiton packages and commands can be
-
 registered on the interpreter.
-
-
 
 Finally returns to the Tk event loopo.100010000000
 BEGIN_CODE
 
 END_CODE
 518CTCLSynchronizeCommand559operator()voidCommand processor.publicExecutes the script passed as argv[1]  synchronized
-
 to the appliication's global mutex.000110010000
 BEGIN_CODE
 
 END_CODE
 519CSocket560ConnectvoidConnection ControlpublicIndicates that the socket will be used
-
 as a client socket and attempts to connect it
-
 to a server. 
-
 The address of the server can be
-
 passed in either in IP address or
-
 IP name textual format.  Similarly,
-
 the port can be passed in as a textual
-
 port name (in /etc/services) or a port number.
 
-
-
 Exceptions which can be thrown:
-
 CTCPBadSocketState -- m_State was not Disconnected
-
 CTCPNoSuchHost       - Host not in DNS or nonexistent.
-
 CTCPNoSuchService  - Named service does not translate.
-
 CTCPConnectionFailed- Connection refused by remote host.
-
-
-
 
 
 On Success m_State --> Connected000010001000
@@ -2158,251 +1369,154 @@ BEGIN_CODE
 
 END_CODE
 519CSocket561BindvoidConnectionControlpublicIndicates that the socket will be used
-
 as a server listener socket, and binds it
-
 to a service port.  The service can be
-
 provided either as a numerical string
-
 or as a string translated via getservbyname().
-
-
 
 The following exceptions can be thrown:
 
-
-
 CTCPBadSocketState   - m_State != Disconnected
-
 CTCPNoSuchService    - getservbyname() failed and
-
                                         service string was not numeric.
-
-
 
 On success, m_State --> Bound000010001000
 BEGIN_CODE
 
 END_CODE
 519CSocket562ListenvoidConnection ControlpublicIndicates that the specified server 
-
 listener socket is ready to listen
-
 for connections. 
 
-
-
 The Following exceptions can be 
-
 thrown:
 
-
-
 CTCPBadSocketState - m_State != Bound
-
-
 
 On success, m_State --> Listening000010001000
 BEGIN_CODE
 
 END_CODE
 519CSocket563AcceptCSocket* Connection ControlpublicThis member function can be called on 
-
 a server socket.  The calling thread is blocked
-
 until a connection request is received.  At that
-
 time, the connection is accepted (granted),
-
 and a new CSocket is created in the Connected
-
 state.  The new CSocket represents a Server
-
 Instance socket, communication along that
-
 socket can take place immediately and will
-
 represent communication with the client.
 
-
-
 Exceptions which can be thrown:
-
 CTCPBadSocketState -- m_State != Listening
-
-
 
 Side effects:
 
-
-
 The client parameter is 
-
 written with a string representing the
-
 hostname of the client or the IP address
-
 if the hostname can not be determined.
 
-
-
 The socket created is created via new, therefore 
-
 it is the responsibility of the caller to delete it.000010001000
 BEGIN_CODE
 
 END_CODE
 519CSocket564ShutdownvoidConnection Controlpublic  Shuts down a connection to a remote system.
-
 Unlike shutdown(2) this function does not support
-
 selectively shutting down reads or writes.  Both are
-
 unconditionally shutdown.
-
   Note that the destructor will automatically call Shutdown
-
 if necessary.
 
-
-
 Exceptions:
-
 CTCPBadSocketState  -- m_State != Connected.000010001000
 BEGIN_CODE
 
 END_CODE
 519CSocket565ReadintIO initiatorpublicPerforms a read on the socket.  The read will transfer
-
 all of the bytes currently waiting in the socket buffers
-
 or block until data is avaialble.  The return valiue will
-
 be the number of bytes transferred.  If the connection
-
 is lost, CTCPConnectionLost will be thrown.000010000000
 BEGIN_CODE
 
 END_CODE
 519CSocket566WriteintIO Initiator.publicWrites data to the socket.  Note that
-
 this member will block as needed until
-
 all data has been queued to the socket buffers.
-
 This may require multiple write(2) function calls
-
 if the amount of data to be written is larger than
-
 the socket's blocking factor.  Note that if the connection
-
 is lost during the write, CTCPConnectionLost will be thrown.000010000000
 BEGIN_CODE
 
 END_CODE
 519CSocket567getPeervoidSelector.publicReturns information about who a socket
-
 is connected to.  If the socket is not
-
 connected, CTCPBadSocketState is thrown.
-
 If possible, the peername parameter is returned
-
 as a string containing the DNS name of the
-
 peer. If the DNS lookup fails, the IP address
-
 is converted into dotted form.000010000000
 BEGIN_CODE
 
 END_CODE
 519CSocket568OOBInlinevoidConfigurationpublicAllows Out Of Band (OOB) data to be inserted in line with buffered data.
-
 OOB data is data with a higher delivery priority than 'normal data'. If this
-
 flag is not set, then by default OOB data must be read through normal
-
 socket interface functions by specifying it in the recv flags parameter.
-
 If this flag is set, oob data is queue at the front of the data to be read
-
 with the Read member.
-
   If the socket is not connected, then the CTCPBadSocketState exception
-
 is thrown.000010000000
 BEGIN_CODE
 
 END_CODE
 519CSocket569isOOBInlineboolOptionspublicReturns TRUE if OOBinline is set
-
 FALSE otherwise.  Note that the underlying
-
 socket state is inquired, not some saved internal
-
 state.
-
   If not connected, CTCPBadSocketState is returned.000010000000
 BEGIN_CODE
 
 END_CODE
 519CSocket570setRcvLowWaterMarkvoidConfigurationpublicSets the Receive low water mark for the socket.
-
 This is the number of bytes received by the
-
 protocol before any is made available to the
-
 user.  Note that some systems do not allow 
-
 this to be changed.  It is not an error at this
-
 level to attempt to do so, however you will need to 
-
 call getRcvlowWaterMark to be sure the change was
-
 actually made.
-
-
 
 Throws CTCPBadSocketState if not connected.000010000000
 BEGIN_CODE
 
 END_CODE
 519CSocket571getRcvLowWaterMarksize_tpublicReturns the size of the current receive low water mark.
-
 See setRcvLowWaterMark for information about what this
-
 parameter does.  Note that the value returned is inquired from
-
 the socket rather than stored in internal state.000010000000
 BEGIN_CODE
 
 END_CODE
 519CSocket572setSndLowWaterMarkvoidconfigurationpublicSets the new value of the Send Low water mark.
-
 This controls the number of bytes which must be written
-
 before transferring data to the protocol layers for transmission.
-
 Note that some systems don't allow this value to be changed.
-
 It is not an error to attempt to change this value on those systems,
-
 however you should use getSndLowWaterMark to determine the
-
 actual value negotiated by the system,000010000000
 BEGIN_CODE
 
 END_CODE
 519CSocket573getSndLowWaterMarksize_tConfigurationpublicReturn the value of the current Send Low Water Mark
-
 Set setSndLowWaterMarrk for more information.000010000000
 BEGIN_CODE
 
 END_CODE
 519CSocket574setRcvTimeoutvoidConfigurationpublicSet the protocol receive timeouts.  Note that in some systems,
-
 these are not settable.  However it is not an error to attempt to do so.000010000000
 BEGIN_CODE
 
@@ -2412,65 +1526,43 @@ BEGIN_CODE
 
 END_CODE
 519CSocket576setSndTimeoutvoidConfigurationpublicSet the number of milliseconds in the send timeout.
-
 Some systems may not allow this to be set, however it is not
-
 an error to try.000010000000
 BEGIN_CODE
 
 END_CODE
 519CSocket577getSndTimeoutunsigned intConfigurationpublicReturns the current send timeout in ms.
 
-
-
 000010000000
 BEGIN_CODE
 
 END_CODE
 519CSocket578DebugvoidConfigurationpublicAttempts to turn on Socket debugging.
-
 To support this. The user must have effective
-
 UID = 0.  If the socket is not connected,
-
 the CTCPBadSocketState exception is thrown.
-
 If there are other errors (e.g. because the user
-
 doesn't have eff UID=0), then the appropriate
-
 CErrnoException object is thrown.000010000000
 BEGIN_CODE
 
 END_CODE
 519CSocket579isDebugboolConfigurationpublicReturns TRUE if socket debugging is
-
 turned on and False otherwise.  If the socket
-
 is not connected, CTCPBadSocketState is
-
 thrown.000010000000
 BEGIN_CODE
 
 END_CODE
 519CSocket580SetNotRoutablevoidConfigurationpublicAllows the caller to control the routability of messages
-
 sent on the socket.  If set, messages will not
-
 be sent through a gateway.
-
 Note:
-
  The socket need not be connected. Presumably,
-
 if this flag is set prior to Connect on a client socket
-
 the client will be unable to connect outside the local
-
 subnet, and if set prior to Bind for a server, the server will
-
 be unable to accept connections from outside the subnet.
-
 000010000000
 BEGIN_CODE
 
@@ -2480,76 +1572,48 @@ BEGIN_CODE
 
 END_CODE
 519CSocket582setSndBufSizevoidConfigurationpublicSets the socket send buffer size.  This 
-
 has to do with how many bytes can be 
-
 sent in a single write(2) service call. Messages
-
 larger than that must be segmented into multiple
-
 write(2) calls.  Note howerver that 
-
 CTCPSocket::Write automatically handles
-
 any necessary segmentation.
-
   If the socket is not connected, throws:
-
 CTCPBadSocketState
-
-
 
 000010000000
 BEGIN_CODE
 
 END_CODE
 519CSocket583getSndBufSizesize_tConfigurationpublicReturns the number of bytes that can be
-
 written in a single write(2) call.
-
 000010000000
 BEGIN_CODE
 
 END_CODE
 519CSocket584setRcvBufSizevoidConfigurationpublicSets the maximum number of bytes which can be received in a single
-
 read(2) operation.  Note that CTCPSocket::Read does >NOT< 
-
 automatically segment or else you may block when you'd like
-
 to believe that a message has been received.
 
-
-
 If the socket is not connected, throws CTCPBadSocketState
-
 000010000000
 BEGIN_CODE
 
 END_CODE
 519CSocket585getRcvBufSizesize_tConfigurationpublicReturns the maximum number of bytes which can be 
-
 recieved in a single read(2) call.000010000000
 BEGIN_CODE
 
 END_CODE
 519CSocket586setLingervoidConfigurationpublicSets the socket linger parameters.  Linger properties
-
 govern the way a shutdown, operates.  Note that
-
 object destruction which requires a shutdown implicitly
-
 turns off linger.  
-
   If linger is enabled, then the close will block until
-
 all pending data has been successfully sent or until the
-
 linger timerout is exceeded.  If the socket is not
-
 connected, throws a CTCPBadState exception.
-
-
 
 000010000000
 BEGIN_CODE
@@ -2560,157 +1624,103 @@ BEGIN_CODE
 
 END_CODE
 520CServerConnectionEvent588operator()boolDefault functionality.publicoperator() is supposed to determine if a 
-
 connection request to the server should be
-
 honored.  The default functionality is to return
-
 TRUE indicating that all connection requests are
-
 valid.000110010000
 BEGIN_CODE
 
 END_CODE
 522CServerInstance589OnStartupBOOLIniitializerpublicCalled after a particular instance has
-
 been created to provide application
-
 specific post connection functionality.
-
 If FALSE is returned, this is considered a
-
 late rejection of the connection (perhaps
-
 as a result of an invalid username/password
-
 interaction on the socket).
-
   Default functionality is a no-op returning TRUE.
-
 000110010000
 BEGIN_CODE
 
 END_CODE
 522CServerInstance590cloneCServerInstance*Interface:virtual constructionpublicProvides an interface for cloning the 
-
 reference instance and associating it
-
 with a server socket.  Returns a pointer
-
 to a new server instance of this type
-
 001110000000
 BEGIN_CODE
 
 END_CODE
 670CClassifiedObjectRegistry591CreateRegistryvoidMutatorpublicCreates a new registry. It is not an error
-
 to create a registry which already exists.
-
 If this is attempted, it is a no-op.000010001000
 BEGIN_CODE
 
 END_CODE
 670CClassifiedObjectRegistry592DeleteRegistryvoidMutatorpublicDelete an existing registry. Any registry entries
-
 are destroyed, however the objects they point to
-
 are not.
-
 Attempts to destroy an nonexsitent registry
-
 result in a NoSuchObject exception.000010001000
 BEGIN_CODE
 
 END_CODE
 670CClassifiedObjectRegistry593Addvoidbase class mutator.publicAdds an item to a registry.
-
 If the item already exists in that registry,
-
 a DuplicateName exception is thrown.
-
 If the registry does not exist a 
-
 NoSuchObject exception is thrown.000110000000
 BEGIN_CODE
 
 END_CODE
 670CClassifiedObjectRegistry594Removevoidbase class mutatorpublicThe named object is removed from the designated registry.
-
 If the object does not exist, or the registry does not exist,
-
 a NoSuchObject exception is thrown. The name embedded
-
 in the exception differentiates between these two cases.
-
 000110000000
 BEGIN_CODE
 
 END_CODE
 670CClassifiedObjectRegistry595FindObjectRegistryIteratorSelectorpublicLocates an object in a specific registry.
-
 If the registry or object don't exist a
-
 NoSuchObject exception is thrown.
-
 000010001000
 BEGIN_CODE
 
 END_CODE
 670CClassifiedObjectRegistry596Find$CRefcountedPtr<ObjectList>SellectorpublicReturns a referece counted pointer to
-
 a dynamically allocated list of Objects which
-
 match the name requested.
-
 ObjectList is a typedef for:
-
 list<CNamedObject*>
-
 The list is drawn from all of the registries.
-
 If no registries contain the requested name,
-
 an empty list is returned.000010000000
 BEGIN_CODE
 
 END_CODE
 670CClassifiedObjectRegistry597beginregistryRegistryIteratorSelectorpublicReturns an iterator into the registries which
-
 are contained by this object.  Note that iteratiing
-
 will return registries... that is RegistryIterator is a
-
 typedef for:
-
-
 
 map<string,CObjectRegistry>::iterator000010001000
 BEGIN_CODE
 
 END_CODE
 670CClassifiedObjectRegistry598endregistryRegistryIteratorSelectorpublicReturns a registry iterator suitable for determining
-
 when iteration has been completed
-
 (e.g. while(p != coreg.endregistry()) {...
-
   p++;
-
 }000010001000
 BEGIN_CODE
 
 END_CODE
 670CClassifiedObjectRegistry599DescribeSelfstringSelectorpublicDescirbes self.  This produces a string of the form:
 
-
-
 CNamedObject::DescibeSelf()
-
 "  Registries defined: "  List of registries
-
 "     Registry " <name>"  Contains:   <- for all registries.
-
           Registry::DescribeSelf000110000000
 BEGIN_CODE
 
@@ -2720,9 +1730,7 @@ BEGIN_CODE
 
 END_CODE
 950CServerMonitor601DescribeSelfstringselectorpublicDescribes self as a file descriptor
-
 which has a socket that has a state.
-
 000110000000
 BEGIN_CODE
 

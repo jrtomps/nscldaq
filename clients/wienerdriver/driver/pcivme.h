@@ -37,8 +37,11 @@
 //             not equal. Please check if you cross-port or develop.
 //
 // $Log$
-// Revision 1.1  2004/12/07 14:12:33  ron-fox
-// Initial revision
+// Revision 1.2  2005/02/03 18:16:28  ron-fox
+// Just adjustmets of newline conditions mostly after eclipse futz-up.
+//
+// Revision 1.1.1.1  2004/12/07 14:12:33  ron-fox
+// Driver sources for Wiener
 //
 // Revision 4.2  2004/11/08 19:21:27  ron-fox
 // add to mainl ne

@@ -31,6 +31,9 @@
 // plxbug.c -- plx 9050 bug fix code the PCIVME PCI to VME Interface
 //
 // $Log$
+// Revision 4.3  2005/02/03 18:16:28  ron-fox
+// Just adjustmets of newline conditions mostly after eclipse futz-up.
+//
 // Revision 4.2  2004/11/08 19:21:27  ron-fox
 // add to mainl ne
 //

@@ -32,6 +32,9 @@
 // vme.h - some important definitions about VME bus address modifiers
 //
 // $Log$
+// Revision 4.3  2005/02/03 18:16:28  ron-fox
+// Just adjustmets of newline conditions mostly after eclipse futz-up.
+//
 // Revision 4.2  2004/11/08 19:21:28  ron-fox
 // add to mainl ne
 //

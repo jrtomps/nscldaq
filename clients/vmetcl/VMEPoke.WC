@@ -15,31 +15,19 @@ ClassID, Name, Description, Multiplicity, Concurrency, Visibility, Persistence, 
 75CTCLApplicationpublic0000
 76CTestHarness// TCLApplication which will be a test harness for the VME peek/poke classes.publicTestHarness0000
 77CVmeCommand// Implements the vme command:
-
 //   vme -create spacename [-device name] -base size
-
 //   vme -list
-
 //   vme -delete
-
 //publicVMECommand0000
 78CTCLProcessorpublic0000
 79CVMEMapCommand// Front ends for a VME map.  Providing the command syntaxes:
-
 //
-
 //  spacename set [-l|w|b]  offset value
-
 //         Writes value to offset from the requested base of the map.
-
 //          Default size is a word write with overrides to longword or byte provided.
-
 //  spacename get [-l|w|b] offset value
-
 //        Reads a value from the offset relative to the requested base of the map.
-
 //       default size of read is word, with overrides to long/byte provided.
-
 //       Return value is the value read from the address.public0000
 ***END_TABLE***
 
@@ -67,7 +55,6 @@ Operations
 ClassID, ClassName, OperID, OperName, Return Type, Post Condition, PreCondition, Invariant, Stereotype, Classification, Exception, Transformation, Concurrency, Visibility,  Comment1, Comment2, Comment3, IsStatic, IsConstant, IsPureVirtual, IsVirtual, IsProcedure, IsInline, IsEvent, IsOverride, Message, IsFinal, IsSynchronized, IsNative, IsFriend
 ***BEGIN_TABLE***
 76CTestHarness945operator()intpublic// Called at startup time to do interpreter and application
-
 // initialization as well as command registration.000110010000
 BEGIN_CODE
 
@@ -77,75 +64,52 @@ BEGIN_CODE
 
 END_CODE
 77CVmeCommand946operator()intpublic// Called by the tcl vme command.
-
 // Dispatches based on the subcommand to Add, Listmaps or DeleteMaps.000110010000
 BEGIN_CODE
 
 END_CODE
 77CVmeCommand947AddMapintprotected// Adds a vme space map syntax:
-
 //    vme create mapname [-device devname] base size
-
 //                mapname - name of a new TCL command (CVMEMapCommand) which
-
 //                                  manages the map.
-
 //                -device devname - optional vme device specification.
-
 //                                              default is to the A24/D32 device.
-
 //                base        - Offset into the VME space
-
 //                size          - # bytes requested.  This is increased to a multiple of the system
-
 //                                  pagesize.
-
 //000010000000
 BEGIN_CODE
 
 END_CODE
 77CVmeCommand948ListMapsintprotected// Lists the set of known maps.
-
 // Syntax:
-
 //     vme list000010000000
 BEGIN_CODE
 
 END_CODE
 77CVmeCommand949DeleteMapintprotected// Deletes a map.
-
 //   Syntax:
-
 //      vme delete mapname
-
 //000010000000
 BEGIN_CODE
 
 END_CODE
 79CVMEMapCommand950operator()intpublic// Called to dispatch to appropriate Get/Set members
-
 // based on the first command line parameter.001110000000
 BEGIN_CODE
 
 END_CODE
 79CVMEMapCommand951Getintprotected// Get (read) from VME bus:
-
 //
-
 //  syntax:   
-
 //    spacename get [-l|w|b] offset
-
 //000010000000
 BEGIN_CODE
 
 END_CODE
 79CVMEMapCommand952Setintpublic// Called to process a Set (write) to the
-
 //  vme bus.
-
 //     spacename set [-l|w|b] offset value
-
 //000010000000
 BEGIN_CODE
 

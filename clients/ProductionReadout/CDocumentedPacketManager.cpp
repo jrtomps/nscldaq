@@ -294,6 +294,9 @@ using namespace std;
     
     Modification History:
     $Log$
+    Revision 4.3  2005/02/03 18:15:40  ron-fox
+    Just adjustmets of newline conditions mostly after eclipse futz-up.
+
     Revision 4.2  2004/11/22 19:26:08  ron-fox
     Port to gcc/g++ 3.x
 
