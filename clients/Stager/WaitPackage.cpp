@@ -34,13 +34,14 @@
 
 
 */
+#include <config.h>
 #include <tcl.h>
 #include <string>
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <stdlib.h>
 #include <stdio.h>
-#include <iostream.h>
+#include <Iostream.h>
 #include <errno.h>
 #include <unistd.h>
 
@@ -48,6 +49,11 @@
 #include <TCLApplication.h>
 #include <TCLInterpreter.h>
 #include <TCLProcessor.h>
+
+#ifdef HAVE_STD_NAMESPACE
+using namespace std;
+#endif
+
 
 static const char* pInstDir=HOME;
 static const char* pScriptSubDir="/Scripts";
