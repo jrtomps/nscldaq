@@ -75,6 +75,10 @@ struct CAENRegisters {
 };
 static const unsigned int CAENRegisterSize(sizeof(CAENRegisters));
 
+// Status Register bits:
+
+const u_short STAT_DATAREADY(1);
+
 
 // Control register bits:
 
@@ -909,4 +913,13 @@ CAENV890::NsToTicks(int ns)
   int ticks;
   return (ns + rounder)/m_nTdcClock;
 
+}
+/*!
+   Test for data in the output buffer.
+*/
+bool
+CAENV890::DataReady()
+{
+  CAENRegisters* pModule = (CAENRegisters*)m_pModule;
+  return (pModule->m_StatusRegister & STAT_DATAREADY) != 0;
 }

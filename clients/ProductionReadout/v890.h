@@ -9,6 +9,9 @@
    this communication as that's hidden from you.
 
 */
+#ifndef __V890_H
+#define __V890_H
+
 
 class CAENV890 {
   int             m_nSlot;
@@ -37,7 +40,7 @@ public:
 
   typedef enum _ResolutionSelection {
     ps800      = 0,
-    ps200      = 2,
+    ps200      = 1,
     ps100      = 2
   } ResolutionSelection;	//!< Values for resolution.
 
@@ -130,6 +133,7 @@ public:
   bool DelimetersEnabled();
   void SetMaxHits(MaxHitSelection hits);
   MaxHitSelection GetMaxHits();
+  bool DataReady();
 
   // Data transfer from the module:
   
@@ -150,3 +154,4 @@ protected:
   static int  NsToTicks(int ns);
 };
 
+#endif
