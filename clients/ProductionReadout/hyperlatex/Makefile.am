@@ -17,3 +17,24 @@ install-data-local:
         then \
 	   $(INSTALL_DATA)  Readout.ps $(prefix)/Docs/ProductionReadout; \
         fi
+
+EXTRA_DIST = CAMACTriggerelec.eps \
+	CAMACTriggerelec.gif \
+	EventPacket.eps \
+	EventPacket.gif \
+	InitializationFlow.eps \
+	InitializationFlow.gif \
+	MajorClasses.eps \
+	MajorClasses.gif \
+	Readout.tex \
+	ReadoutBody.tex \
+	RunStateDiagram.eps \
+	RunStateDiagram.gif \
+	Theadingdiagram.eps \
+	Threadingdiagram.eps \
+	Threadingdiagram.gif 
+	VMETriggerelec.eps \
+	VMETriggerelec.gif \
+	definitions.tex \
+	eventformat.eps \
+	eventformat.gif
