@@ -15,3 +15,20 @@ Copyright (c) 1999-2000 by SBS Technologies, Inc.
 
 Use of the device driver and library software in those directories is governed
 by the terms and conditions of the SBS Technologies license.
+
+
+To build you must be root:
+
+configure --prefix=root-of-install-tree
+make install
+
+
+configure has many other options.  
+
+configure --help for more information.
+
+Pre-requisite software:
+Tcl/Tk
+OpenMotif
+Linux kernel headers.
+
