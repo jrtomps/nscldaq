@@ -26,4 +26,4 @@
 # spread out over the entire source repository.
 nscldaq         nscldaq/clients
 ScalerDisplay   clients/ScalerDisplay
-vhqpanel        clients/contrib/vhqpanel
+vhqpanel        nscldaq/clients/contrib/vhqpanel
