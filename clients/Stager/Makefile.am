@@ -1,6 +1,8 @@
 install-exec-local:
 	$(mkinstalldirs) $(prefix)/Scripts
 	for f in *.tcl *.sh; do  $(INSTALL_SCRIPT) $$f $(prefix)/Scripts;done
+	export LD_LIBRARY_PATH=$(prefix)/lib
+	export TCLLIBPATH="$(prefix)/lib $(prefix)/Scripts"
 	./installpkg $(prefix)
 	rm -f $(bindir)/Stager
 	$(LN_S) $(prefix)/Scripts/StagerGui.tcl $(bindir)/Stager
