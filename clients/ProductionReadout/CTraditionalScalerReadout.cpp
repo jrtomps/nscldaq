@@ -283,7 +283,7 @@ static const char* Copyright = "(C) Copyright Michigan State University 2002, Al
 
 extern void iniscl();
 extern void clrscl();
-extern int readscl(unsigned long* pBuffer, unsigned int n);
+extern int readscl(unsigned int* pBuffer, int n);
 extern int numscl();		//!< This is a new addition to the traditionals
 
 /*!
@@ -345,17 +345,17 @@ CTraditionalScalerReadout::Initialize()
 
 */
 void 
-CTraditionalScalerReadout::Read(vector<unsigned int>& Scalers)  
+CTraditionalScalerReadout::Read(vector<unsigned long>& Scalers)  
 {
   int n = ::numscl();
-  unsigned long *pScalers = new unsigned long[n];
-  assert(n == ::readscl(pScalers, n));
+  unsigned long ScalerArray[n];
+  unsigned long* pScalers=ScalerArray;
+  assert(n == (::readscl((unsigned int*)pScalers, n)/sizeof(int)));
 
   for(int i = 0; i < n; i++) {
     Scalers.push_back(*pScalers++);
   }
 
-  delete []pScalers;
   
 }  
 
