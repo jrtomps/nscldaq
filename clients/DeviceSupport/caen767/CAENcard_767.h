@@ -77,15 +77,7 @@
 #define CAEN_767_BOARD_ID      0x0819
 #define CAEN_767_REVISION_ID   0x0827
 
-/*! \mainpage The CAENcard_767 and CAENchain Drivers
 
-  These is the documentation of the drivers for the CAEN V767 TDC module.
-  For more information on these cards, in particular the data format,
-  please consult the documentation found at the CAEN website:
-  <ftp://ftp.caen.it/pub/DocCaen/vme/>.
-
-  \author Christopher J Maurice
-*/
 
 /*! \class CAENcard_767 CAENcard_767.h
     \brief Drivers for the CAEN V767A TDC module.
