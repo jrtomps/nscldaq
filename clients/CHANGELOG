@@ -19,4 +19,43 @@
 	ExpFileSystem::GenRunFile in the event the user has overidden the 
 	default daq buffersize
 
+7.1-002 3/2/03:
+-   Correct the name of the Vme API library.
+-   No longer set the busy when scalers are being read as that can
+    cause false triggers in the case where the user is using the busy
+    as the trigger signal.
+
+7.1-003 3/17/03
+	ReadoutGUI defect fix:  If a link to the event file already exists 
+	in the ~/experiment/current directory at the start of a recorded run, 
+	the run start fails.  Fixed by removing such links if required.
+
+	ReadoutGUI defect fix:  If readout is being recompiled as it runs, 
+	ReadoutGUI can hang or readout can die.  Fixed by copying readout 
+	program to 'private hidden' directory first.
+
+	Added production readout software to the autoconf build, along with 
+	its documentation.
+
+7.1-004 3/23/03
+	This release adds the SBS/Bit3 device driver to the build.  
+	 SBS/Bit3 has kindly released the source code of this driver for 
+	open distribution so long as redistribution includes acknowledgement 
+	of the SBS Technologies copyright.
+
+	From now on, it will be necessary to be root to build the system 
+	in order to get the device driver properly installed.
+
+	Changes:
+	- Minor bug fixes.
+	- SBS/Bit3 device driver included in the build.
+
+7.1-005 3/31/03
+    -  Allow Readout/Active.cpp Active::EndRun to be harmlessly called
+       when the run is not in progress.
+
+7.2    ??/??/??
+    - Support multi-crate configurations of the CAENCard and CAENChain
+      modules.
+
 
