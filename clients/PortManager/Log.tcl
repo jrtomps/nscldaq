@@ -28,7 +28,6 @@ snit::type Log {
         if {[catch {open $options(-filename) a+} logfd]} {
             set logfd stderr
         }
-        puts "Logfile channel: $logfd"
         ::log::lvChannelForall $logfd
         #
         #  Enable all log levels

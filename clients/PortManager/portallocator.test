@@ -70,9 +70,6 @@ test 1.1 {Test allocation failure with no server present} {} {
     
 } {couldn't open socket: connection refused}
 
-test 1.2 {Test allocation with a server that's present} {} {
-    
-} {31000}
 
 #  Post test cleanup:
 

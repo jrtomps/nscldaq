@@ -194,6 +194,7 @@ snit::type ConnectionManager {
             # Allocation failed:
             
             $options(-logger) logAllocationFailure $application $user $port
+            $self SendClient $fd [list FAIL $port]
         } else {
             $options(-logger) logAllocation $port $application $user
             set clientinfo $ClientInfo($fd)

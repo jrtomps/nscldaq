@@ -25,11 +25,12 @@ proc makeLog {n} {
 proc makePorts {n} {
     return [PortManager create $n]
 }
-
+#  Use the 1234 listen port in case the connection manager is running on the default port already on
+#  this system.
 proc makeManager {n} {
     set l [makeLog l]
     set p [makePorts p]
-    return [ConnectionManager create $n -usagefile ./usage.txt -logger $l -ports $p]
+    return [ConnectionManager create $n -usagefile ./usage.txt -logger $l -ports $p -listen 1234]
 }
 proc destroyManager {n} {
     set log [$n cget -logger]
@@ -56,14 +57,14 @@ test 1.1 {constructOk} {} {
     #
     set l [makeLog l]
     set p [makePorts p]
-    set cm [ConnectionManager create cm -usagefile ./usage.txt -logger $l -ports $p]
+    set cm [ConnectionManager create cm -usagefile ./usage.txt -logger $l -ports $p -listen 1234]
             
     set actuall [$cm cget -logger]
     set actualp [$cm cget -ports]
     set actualu [$cm cget -usagefile]
     set actuallp [$cm cget -listen]
     
-    set sb [list $l $p ./usage.txt 30000]
+    set sb [list $l $p ./usage.txt 1234]
     set is [list $actuall $actualp $actualu $actuallp]
     
     testCleanup
@@ -120,7 +121,7 @@ test 2.1 {connect disconnect test} {} {
     #  Connect to the connection manager.  The eventLoop calls are needed to
     #  be sure that ConnectionManager's callbacks fire off.
     
-    set fd [socket localhost 30000]
+    set fd [socket localhost 1234]
     eventLoop 50
     
     #  Note that windows and linux have different ideas of what my hostname will
@@ -165,7 +166,7 @@ test 3.1 {allocateport} {} {
     #  Connect to the connection manager.  The eventLoop calls are needed to
     #  be sure that ConnectionManager's callbacks fire off.
     
-    set fd [socket localhost 30000]
+    set fd [socket localhost 1234]
     fconfigure $fd -buffering line
     
     eventLoop 50
@@ -200,7 +201,7 @@ test 3.2 {reallocatetest - this relies on internals server knowledge} {} {
     #  Connect to the connection manager.  The eventLoop calls are needed to
     #  be sure that ConnectionManager's callbacks fire off.
     
-    set fd [socket localhost 30000]
+    set fd [socket localhost 1234]
     fconfigure $fd -buffering line
     
     eventLoop 50
@@ -220,7 +221,7 @@ test 3.2 {reallocatetest - this relies on internals server knowledge} {} {
     close $fd
     eventLoop 500
     
-    set fd [socket localhost 30000]
+    set fd [socket localhost 1234]
     fconfigure $fd -buffering line
     
     eventLoop 50
@@ -251,7 +252,7 @@ test 3.2 {reallocatetest - this relies on internals server knowledge} {} {
 
 test 4.1 {null list} {} {
     set cm [makeManager cm]
-    set fd [socket localhost 30000]
+    set fd [socket localhost 1234]
     fconfigure $fd -buffering line
     eventLoop 50
     
@@ -276,7 +277,7 @@ test 4.1 {null list} {} {
 
 test 4.2 {single entry list} {} {
     set cm [makeManager cm]
-    set fd [socket localhost 30000]
+    set fd [socket localhost 1234]
     fconfigure $fd -buffering line
     eventLoop 50
 
