@@ -273,7 +273,7 @@ THIRD PARTIES OR A FAILURE OF THE PROGRAM TO OPERATE WITH ANY OTHER PROGRAMS),
 EVEN IF SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH 
 DAMAGES.
 
-		     END OF TERMS AND CONDITIONS
+		     END OF TERMS AND CONDITIONS '
 */
 // Class: CStreamIOError                     //ANSI C++
 //
@@ -311,7 +311,6 @@ DAMAGES.
 #define __STL_STRING
 #endif                
      
-class ios;			// Forward definition.
 
 class CStreamIOError  : public CException        
 {       
@@ -324,7 +323,7 @@ public:				// Data types;
 
 private:  
   IoStreamConditions m_eReason; //Reason for the throw
-  ios&               m_rStream; //Reference to stream <may be invalid>
+  STD(ios)&               m_rStream; //Reference to stream <may be invalid>
   char               m_sReasonText[1000]; // Reason for failure built here.
   static char**      m_svErrorMessages; //Pointer to error message table.      
 
@@ -332,14 +331,14 @@ private:
 public:
 
   CStreamIOError(IoStreamConditions eReason,
-		 const  char* pDoing, ios& rStream) :
+		 const  char* pDoing, STD(ios)& rStream) :
     CException(pDoing),
     m_eReason(eReason),
     m_rStream(rStream)
   {}
 
   CStreamIOError(IoStreamConditions eReason,
-	  const std::string&  rDoing, ios& rStream) :
+	  const STD(string)&  rDoing, STD(ios)& rStream) :
     CException(rDoing),
     m_eReason(eReason),
     m_rStream(rStream)
@@ -385,7 +384,7 @@ public:
   { 
     return m_eReason;
   }
-  ios& getStream()
+  STD(ios)& getStream()
   { 
     return m_rStream;
   }

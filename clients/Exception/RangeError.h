@@ -275,11 +275,9 @@ DAMAGES.
 
 		     END OF TERMS AND CONDITIONS
 */
-
-
-//  CErrnoException.h:
+//  CRangeError.h:
 //
-//    This file defines the CErrnoException class.
+//    This file defines the CRangeError class.
 //
 // Author:
 //    Ron Fox
@@ -292,102 +290,139 @@ DAMAGES.
 //
 /////////////////////////////////////////////////////////////
 
-#ifndef __ERRNOEXCEPTION_H  //Required for current class
-#define __ERRNOEXCEPTION_H
-                               //Required for base classes
-#ifndef __EXCEPTION_H
-#include "Exception.h"
-#endif                               
-  
-#ifndef __HISTOTYPES_H
-#include <histotypes.h>
-#endif
+/********************** WARNING - this file is obsolete, include 
+                        CrangeError.h from now on
+*/
 
-#ifndef __CRTL_ERRNO_H
-#include <errno.h>
-#define __CRTL_ERRNO_H
-#endif
-                           
+
+#ifndef __CRANGEERROR_H  //Required for current class
+#define __CRANGEERROR_H
+                               //Required for base classes
+#ifndef __CEXCEPTION_H
+#include "Exception.h"
+#endif                             
 #ifndef __STL_STRING
 #include <string>
 #define __STL_STRING
-#endif
-
-  
-class CErrnoException  : public CException        
+#endif  
+                               
+class CRangeError  : public CException        
 {
-  Int_t m_nErrno;  // // Snapshot of errno at construction time.
-  
+  Int_t m_nLow;			// Lowest allowed value for range (inclusive).
+  Int_t m_nHigh;		// Highest allowed value for range.
+  Int_t m_nRequested;		// Actual requested value which is outside
+				// of the range.
+  STD(string) m_ReasonText;            // Reason text will be built up  here.
 public:
+  //   The type below is intended to allow the client to categorize the
+  //   exception:
 
-			//Constructor with arguments
+  enum {
+    knTooLow,			// CRangeError::knTooLow  - below m_nLow
+    knTooHigh			// CRangeError::knTooHigh - above m_nHigh
+  };
+			//Constructors with arguments
 
-  CErrnoException(const char* pszAction) :
-    m_nErrno(errno),
-    CException(pszAction) {}
-  CErrnoException(const STD(string)& rsAction) :
-    m_nErrno(errno),
-    CException(rsAction) {}
-  ~CErrnoException ( ) { }       //Destructor
+  CRangeError (  Int_t nLow,  Int_t nHigh,  Int_t nRequested,
+		 const char* pDoing) :       
+    CException(pDoing),
+    m_nLow (nLow),  
+    m_nHigh (nHigh),  
+    m_nRequested (nRequested)
+  { UpdateReason(); }
+  CRangeError(Int_t nLow, Int_t nHigh, Int_t nRequested,
+	  const STD(string)& rDoing) :
+    CException(rDoing),
+    m_nLow(nLow),
+    m_nHigh(nHigh),
+    m_nRequested(nRequested)
+  { UpdateReason(); }
+  virtual ~ CRangeError ( ) { }       //Destructor
 
-  // Copy Constructor:
+			//Copy constructor
 
-  CErrnoException (const CErrnoException& aCErrnoException )   : 
-    CException (aCErrnoException) 
-  {   
-    m_nErrno = aCErrnoException.m_nErrno;             
+  CRangeError (const CRangeError& aCRangeError )   : 
+    CException (aCRangeError) 
+  {
+    m_nLow = aCRangeError.m_nLow;
+    m_nHigh = aCRangeError.m_nHigh;
+    m_nRequested = aCRangeError.m_nRequested;
+    UpdateReason();
   }                                     
+
 			//Operator= Assignment Operator
-     
-  CErrnoException& operator= (const CErrnoException& aCErrnoException)
+
+  CRangeError operator= (const CRangeError& aCRangeError)
   { 
-    if (this == &aCErrnoException) return *this;          
-    CException::operator= (aCErrnoException);
-    m_nErrno = aCErrnoException.m_nErrno;
-    return *this;                                                                                                 
+    if (this != &aCRangeError) {
+      CException::operator= (aCRangeError);
+      m_nLow = aCRangeError.m_nLow;
+      m_nHigh = aCRangeError.m_nHigh;
+      m_nRequested = aCRangeError.m_nRequested;
+      UpdateReason();
+    }
+
+    return *this;
   }                                     
 
 			//Operator== Equality Operator
 
-  int operator== (const CErrnoException& aCErrnoException)
+  int operator== (const CRangeError& aCRangeError)
   { 
-    return ((CException::operator== (aCErrnoException)) &&
-	    (m_nErrno == aCErrnoException.m_nErrno) 
+    return (
+	    (CException::operator== (aCRangeError)) &&
+	    (m_nLow == aCRangeError.m_nLow) &&
+	    (m_nHigh == aCRangeError.m_nHigh) &&
+	    (m_nRequested == aCRangeError.m_nRequested) 
 	    );
   }
-  // Selectors:  Note typically these are not needed.
-               
-public:
-  Int_t getErrno() const
+  // Selectors - Don't use these unless you're a derived class
+  //             or you need some special exception type specific
+  //             data.  Generic handling should be based on the interface
+  //             for CException.
+public:                             
+
+  Int_t getLow() const
   {
-    return m_nErrno;
+    return m_nLow;
   }
-  // Mutating selectors:  For derived classes only.
-protected:                   
-  void setErrno(Int_t am_nErrno)
+  Int_t getHigh() const
+  {
+    return m_nHigh;
+  }
+  Int_t getRequested() const
+  {
+    return m_nRequested;
+  }
+  // Mutators - These can only be used by derived classes:
+
+protected:
+  void setLow (Int_t am_nLow)
   { 
-    m_nErrno = am_nErrno;
-  }                   
-
-  // Functions of the class:
-public:
-
+    m_nLow = am_nLow;
+    UpdateReason();
+  }
+  void setHigh (Int_t am_nHigh)
+  { 
+    m_nHigh = am_nHigh;
+    UpdateReason();
+  }
+  void setRequested (Int_t am_nRequested)
+  { 
+    m_nRequested = am_nRequested;
+    UpdateReason();
+  }
+  //
+  //  Interfaces implemented from the CException class.
+  //
+public:                    
   virtual   const char* ReasonText () const  ;
-  virtual   Int_t       ReasonCode () const  ;
+  virtual   Int_t ReasonCode () const  ;
  
+  // Protected utilities:
+  //
+protected:
+  void UpdateReason();
 };
 
 #endif
-
-
-
-
-
-
-
-
-
-
-
-
-

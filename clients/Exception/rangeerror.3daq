@@ -1,0 +1,102 @@
+.TH CRangeError 3daq "November 2004" "NSCLDAQ-8.0" "DAQ programmer's manual"
+.SH NAME
+RangeError \- Class used to throw excpetions when values are out of range.
+.SH SYNOPSIS
+.B #include <config.h>
+.br
+.B #include <histotypes.h>
+.br
+.B #include <RangeError.h>
+.br
+.sp
+.nf
+  enum {
+
+    knTooLow,      
+    knTooHigh
+  };
+.fi
+.sp
+.B Constructors
+.sp			//Constructors with arguments
+\fBCRangeError (  Int_t \fInLow\fB,  Int_t \fInHigh\fB,  Int_t \fInRequested\fB,
+		 const char* \fIpDoing\fB);       
+.br
+\fBCRangeError(Int_t \fInLow\fB, Int_t \fInHigh\fB, Int_t \fInRequested,
+	 \fBconst string& rDoing\fI) 
+.br
+\fBCRangeError (const CRangeError& \fIaCRangeError\fB )
+.br
+.sp
+.B Operator overloads:
+.sp
+\fBCRangeError operator= (const CRangeError& \fIaCRangeError\fB)
+.br
+ \fBint operator== (const CRangeError& \fIaCRangeError\fB)
+.br
+.sp
+.B Inquiry
+.br
+.sp
+\fBInt_t getLow() const\fI
+.br
+\fBInt_t getHigh() const\fI
+.br
+\fBInt_t getRequested() const\fI
+.br
+.sp
+.B Base class overrides
+.br
+.sp
+\fBvirtual   const char* ReasonText () const  ;\fR
+.br
+\fBvirtual   Int_t ReasonCode () const  ;\fR
+.br
+
+.SH DESCRIPTION
+.PP
+The \fBCRangeError\fR class is used to report exceptions that have to do with
+integer bounds violations.  For example if a user attempts to access channel 17
+of a 16 channel channel adressable module, the module driver may throw a
+CRangeError exception.   In addition to the \fIpDoing\fB parameter, which is
+supposed to indicate what the program was doing when the range violation was
+detected, all (non-copy) constructors take three additional parameters:
+.TP
+\fInLow\fR
+The lowest allowed value of the range that was violated.
+.TP
+\fInHigh\fR
+The highest allowed value of the range that was violated.
+.TP
+\fInRequested\fR
+The value requested (this will be out of the range \[nLow, nHigh\].
+.PP
+Other function supported by this class include:
+.TP
+\fBCRangeError operator= (const CRangeError& \fIaCRangeError\fB)
+Assigns the aCRangeError parameter to *this.
+.TP
+\fBint operator== (const CRangeError& \fIaCRangeError\fB)
+Returns true if the base class (CExcpetion) equality comparison returns true
+and the low, high, and requested values of *this are equal to the corresponding
+values in aCRangeError.
+.TP
+\fBInt_t getLow() const\fI
+Returns the low limit of the range.
+.TP
+\fBInt_t getHigh() const\fI
+Returns the high limit of the range.
+.TP
+\fBInt_t getRequested() const\fI
+Returns the requested value that caused the exception to be created and thrown.
+.TP
+\fBvirtual   const char* ReasonText () const  ;\fR
+Returns the reason text.  This will be the reason the exception was thrown.
+.TP
+\fBvirtual   Int_t ReasonCode () const  ;\fR
+Returns the integer cast of either 
+CRangeError::knTooLow, if the value was below the range, or
+CRangeError::knTooHigh if the value was above the range.
+
+.SH SEE ALSO
+Exception
