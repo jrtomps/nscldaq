@@ -26,5 +26,5 @@
 #DEFAULT (echo ""; id; echo %{sVv}; date; cat) >> $CVSROOT/CVSROOT/commitlog
 # Log the commit to a mailing list along with the id of the committer,
 # The file, old and new version number
-#  May need to play with the subject line
+
 DEFAULT mailx -s"nsclDAQ `whoami` cvs commit: " fox@nscl.msu.edu 
