@@ -299,10 +299,12 @@ DAMAGES.
 #include <VmeModule.h>
 #endif
 
-#define NIMOUTPUTS 16  // the number of outputs on the card
-
 class CNimout : public CVmeModule
 {
+  enum { LENGTH = 64 };
+  UShort_t* m_pBase;
+  UShort_t* m_pStrobeRegister;
+  UShort_t* m_pControlRegister;
 
   // These are the registers in the bira nimout board. Their place
   // in the enumeration also happens to correspond their offset in
@@ -316,7 +318,7 @@ class CNimout : public CVmeModule
   };
 
   // Default constructor
-  CNimout(UInt_t base, UInt_t length);
+  CNimout(UInt_t base);
   CNimout(CVME<UShort_t>& am_CVME);
   
   // Copy Constructor

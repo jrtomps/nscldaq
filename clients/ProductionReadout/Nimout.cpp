@@ -275,7 +275,7 @@ DAMAGES.
 
 		     END OF TERMS AND CONDITIONS
 */
-static const char* Copyright = "(C) Copyright Michigan State University 2002, All rights reserved";/*
+static const char* Copyright= "(C) Copyright Michigan State University 2002, All rights reserved";/*
   \class CNimout
   \file Nimout.cpp
 
@@ -295,7 +295,7 @@ static const char* Copyright = "(C) Copyright Michigan State University 2002, Al
 #include "Nimout.h"
 
 /*!
-  \fn CNimout(UInt_t base, UInt_t length)
+  \fn CNimout(UInt_t base)
 
   Purpose: 
      Basic constructor for type CNimout. Defines a
@@ -303,11 +303,15 @@ static const char* Copyright = "(C) Copyright Michigan State University 2002, Al
      and with length 'length'.
 
   \param UInt_t base - offset into Vme module at which to begin mapping
-         UInt_t length - length of the mapping in bytes
 */
-CNimout::CNimout(UInt_t base, UInt_t length) :
-  CVmeModule(CVmeModule::a16d16, base, length)
+CNimout::CNimout(UInt_t base) :
+  CVmeModule(CVmeModule::a16d16, base, LENGTH),
+  m_pStrobeRegister(0)
 {
+  CVME<UShort_t> space = getCVME();    // Get address space
+  m_pBase            = (UShort_t*)space.getgenptr(0);
+  m_pStrobeRegister  = &(m_pBase[STROBE]);
+  m_pControlRegister =  &(m_pBase[CONTROL]);
 }
 
 /*!
@@ -321,8 +325,7 @@ CNimout::CNimout(UInt_t base, UInt_t length) :
 */
 CNimout::CNimout(CVME<UShort_t>& am_CVME) :
   CVmeModule(am_CVME)
-{
-}
+{ }
 
 /*!
   \fn CNimout(const CNimout& aCNimout)
@@ -399,12 +402,9 @@ CNimout::ClearAll()
 void
 CNimout::WriteRegister(Register reg, UShort_t pattern)
 {
-  try {
-    pokew(pattern, reg);
-  }
-  catch(CRangeError& re) {
-    throw re;
-  }
+
+  m_pBase[reg] = pattern;
+
 }
 
 /*!
@@ -473,7 +473,7 @@ CNimout::SetStrobeLength(DFloat_t time_in_ns)
 void
 CNimout::StrobeAll()
 {
-  pokew(0xffff, STROBE);
+  *m_pStrobeRegister = 0xffff;
 }
 
 /*!
@@ -595,8 +595,9 @@ CNimout::ClearBit(Register reg, UInt_t bit_num)
 void
 CNimout::TransferData()
 {
-  UShort_t curr_reg = peekw(CONTROL);
-  pokew((curr_reg | 0x1), CONTROL);
+
+  *m_pControlRegister |= 0x01;
+
 }
 
 /*!

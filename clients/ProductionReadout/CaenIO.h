@@ -296,6 +296,35 @@ DAMAGES.
      mailto: venemaja@msu.edu
 */
 
+
+/*  
+   Change log:
+    $Log$
+    Revision 3.2  2003/06/19 19:13:01  ron-fox
+    Make these identical to their cousins in ../Readout
+
+    Revision 3.1  2003/03/22 04:03:28  ron-fox
+    Added SBS/Bit3 device driver.
+
+    Revision 2.1  2003/02/11 16:44:13  ron-fox
+    Retag to version 2.1 to remove the weird branch I accidently made.
+
+    Revision 1.2  2003/02/05 18:06:17  ron-fox
+    Catch up on drift between Readout and the snapshot from which we started
+    the port to autotools.
+
+    Revision 2.5  2002/11/20 16:03:08  fox
+    Support multiple VME crates and CAMAC Branches spread across the multiple VME
+    crates.
+
+    Revision 2.4  2002/10/15 10:52:43  fox
+    1. Add support to get pointers to individual registers, for High performance
+       access (e.g. in trigger polling).
+    2. Add Change log entries automated from CVS
+
+*/
+
+
 #ifndef __CCAENIO_H
 #define __CCAENIO_H
 
@@ -307,11 +336,12 @@ class CCaenIO : public CVmeModule
 {
   UInt_t m_nOutputMask;  /*! each bit in the mask corresponds to a level
 			   output. A 1 indicates the output is set. */
-
+  enum { LENGTH = 256 };
+  
  public:
 
   // Default constructor
-  CCaenIO(UInt_t base, UInt_t length = 0xff);
+  CCaenIO(UInt_t base, int nCrate = 0);
   CCaenIO(CVME<UShort_t>& am_CVME);
 
   // Copy constructor
@@ -336,14 +366,16 @@ class CCaenIO : public CVmeModule
   void PulseOutput(UInt_t output);
   void SetLevel(UInt_t output);
   void ClearLevel(UInt_t output);
-  void SetAllNIM();
-  void ClearAllNIM();
   void ClearAll();
   
   // Writing to ECL outputs
   void SetECL(UShort_t value);
-  void SetEcl();
   void ClearECL();
+  short* getInputPointer() const;
+  short* getPulsedOutputPointer() const;
+  short* getLatchedOutputPointer() const;
+  short* getECLOutputPointer() const;
+
 };
 
 #endif

@@ -275,7 +275,7 @@ DAMAGES.
 
 		     END OF TERMS AND CONDITIONS
 */
-static const char* Copyright = "(C) Copyright Michigan State University 2002, All rights reserved";/*
+static const char* Copyright= "(C) Copyright Michigan State University 2002, All rights reserved";/*
   \class CNimout
   \file Nimout.cpp
 
@@ -295,10 +295,42 @@ static const char* Copyright = "(C) Copyright Michigan State University 2002, Al
      mailto: venemaja@msu.edu
 */
 
+/*  
+   Change log:
+   $Log$
+   Revision 3.2  2003/06/19 19:13:01  ron-fox
+   Make these identical to their cousins in ../Readout
+
+   Revision 3.1  2003/03/22 04:03:28  ron-fox
+   Added SBS/Bit3 device driver.
+
+   Revision 2.1  2003/02/11 16:44:13  ron-fox
+   Retag to version 2.1 to remove the weird branch I accidently made.
+
+   Revision 1.2  2003/02/05 18:06:17  ron-fox
+   Catch up on drift between Readout and the snapshot from which we started
+   the port to autotools.
+
+   Revision 2.7  2002/11/20 16:03:08  fox
+   Support multiple VME crates and CAMAC Branches spread across the multiple VME
+   crates.
+
+   Revision 2.6  2002/10/22 12:37:22  fox
+   Straighten out dates in copyright notices in files.
+
+// Revision 2.5  2002/10/15  10:52:42  fox
+// 1. Add support to get pointers to individual registers, for High performance
+//    access (e.g. in trigger polling).
+// 2. Add Change log entries automated from CVS
+//
+*/
+
+
 #include <CaenIO.h>
+#include <CVME.h>
 
 /*!
-  \fn CCaenIO(UInt_t base, UInt_t length)
+  \fn CCaenIO(UInt_t base)
 
   Purpose:
      Basic constructor for type CCaenIO. Definees a
@@ -307,12 +339,13 @@ static const char* Copyright = "(C) Copyright Michigan State University 2002, Al
      mask to zero.
 
   \param UInt_t base - offset into the VME module at which to begin mapping
-         UInt_t length - length of the mapping in bytes
+  \param int   nCrate - VME Crate number.
 */
-CCaenIO::CCaenIO(UInt_t base, UInt_t length) :
-  CVmeModule(CVmeModule::a24d16, base, length),
+CCaenIO::CCaenIO(UInt_t base, int nCrate) :
+  CVmeModule(CVmeModule::a24d16, base, LENGTH, nCrate),
   m_nOutputMask(0)
 {
+
 }
 
 /*!
@@ -507,19 +540,45 @@ CCaenIO::ClearAll()
   pokew(0, 2);
   pokew(0, 3);
 }
+
 /*!
-   Set all NIM levels true.
-   */
-void
-CCaenIO::SetAllNIM()
+   Get a pointer to the input register.  This is
+designed for high performance software that does
+not want to  crawl through the layers of abstraction:
+
+*/
+short*
+CCaenIO::getInputPointer() const
 {
-  pokew(0xf, 3);
+  CVME<UShort_t> map = getCVME();
+  return ((short*)(map.getStart())+5);
+
 }
 /*!
-  Clear all NIM levels to false.
-  */
-void
-CCaenIO::ClearAllNIM()
+  Get a pointer to the pulsed output register.
+*/
+short* 
+CCaenIO::getPulsedOutputPointer() const
 {
-  pokew(0, 3);
+  CVME<UShort_t> map = getCVME();
+  return ((short*)(map.getStart()) + 4);
 }
+/*!
+   Get a pointer to the level output register:
+*/
+short* 
+CCaenIO::getLatchedOutputPointer() const
+{
+  CVME<UShort_t> map = getCVME();
+  return ((short*)(map.getStart()) + 3);
+}
+/*!
+  Get a pointer to the ECL output register:
+*/
+short* 
+CCaenIO::getECLOutputPointer() const
+{
+  CVME<UShort_t> map = getCVME();
+  return ((short*)(map.getStart()) + 2);
+}
+
