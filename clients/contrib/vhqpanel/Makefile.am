@@ -1,4 +1,4 @@
-scripts = vhqapp.ui.tcl vhqapp.tcl
+scripts = vhqpanel.ui.tcl vhqapp.tcl
 
 EXTRA_DIST=$(scripts) 
 
