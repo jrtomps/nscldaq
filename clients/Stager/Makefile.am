@@ -33,6 +33,7 @@ EXTRA_DIST =  Experiment.tcl \
 	StagePolicyUsed.tcl \
 	Stager.tcl \
 	StagerGui.tcl \
+	UniqueInstance.tcl \
 	directories.tcl \
 	rsh.tcl \
 	warning.tcl \
