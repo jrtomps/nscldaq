@@ -62,3 +62,8 @@
 
 7.2.2 12/05/03
    - Abstracting the device support libraries from the Readout software.
+
+7.2.2-001 12/05/03
+   - Stager: At install time create a package InstallRoot that allows
+     us to figure out where we're installed (needed to reliably locate
+     eventlog e.g.).
