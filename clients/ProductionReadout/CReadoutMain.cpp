@@ -282,6 +282,9 @@ static const char* Copyright = "(C) Copyright Michigan State University 2002, Al
   
   Change Log:
    $Log$
+   Revision 4.1  2004/11/08 17:37:30  ron-fox
+   bring to mainline
+
    Revision 3.6  2004/11/08 17:31:40  ron-fox
    mainline
 

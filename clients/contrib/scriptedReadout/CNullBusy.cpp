@@ -286,6 +286,9 @@ Author:
    fox@nscl.msu.edu
 Change log:
    $Log$
+   Revision 4.1  2004/11/08 17:37:56  ron-fox
+   bring to mainline
+
    Revision 1.1  2003/12/09 21:16:27  ron-fox
    Incorporated ScriptedReadout software into the build.
 

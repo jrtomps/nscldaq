@@ -318,6 +318,9 @@ DAMAGES.
     Change history:
 
     $Log$
+    Revision 4.1  2004/11/08 17:37:47  ron-fox
+    bring to mainline
+
     Revision 3.2  2003/10/31 17:50:04  ron-fox
     Added CVMEInterface::Lock and CVMEInterface::Unlock
     to support serialization between mmap and

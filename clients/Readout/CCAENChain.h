@@ -281,6 +281,9 @@ DAMAGES.
 /*
    Revision history:
    $Log$
+   Revision 4.1  2004/11/08 17:37:39  ron-fox
+   bring to mainline
+
    Revision 1.1  2003/09/16 12:16:24  ron-fox
    Added support for CBLT readout of CAEN 32 channel adcs.  Note for SBS/bit3 the driver must be patched to support early termination of block transfers.
 

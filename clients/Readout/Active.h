@@ -295,6 +295,9 @@ DAMAGES.
    
   Modifications:
     $Log$
+    Revision 4.1  2004/11/08 17:37:39  ron-fox
+    bring to mainline
+
     Revision 3.3  2003/08/14 17:59:22  ron-fox
     Add functions to allow programmatic replacement of trigger and busy modules.
 

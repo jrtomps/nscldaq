@@ -14,6 +14,9 @@
 //
 /* Change log:
       $Log$
+      Revision 4.1  2004/11/08 17:37:40  ron-fox
+      bring to mainline
+
       Revision 3.2  2003/06/06 11:16:55  ron-fox
       Remove extra data busy set on ScalerSet.. I can overlap a trigger accept with scaler readout.
 

@@ -279,6 +279,9 @@ DAMAGES.
 /*
   Change Log:
   $Log$
+  Revision 4.1  2004/11/08 17:37:19  ron-fox
+  bring to mainline
+
   Revision 1.2  2004/01/14 17:45:38  ron-fox
   Remove code for spectrodaq copyin that
   crept back in by mistake.

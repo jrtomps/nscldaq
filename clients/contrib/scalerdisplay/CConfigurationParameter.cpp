@@ -289,6 +289,9 @@ static const char* Copyright = "(C) Copyright Michigan State University 1977, Al
             (c) 2002, All rights reserved.
     Revision History:
       $Log$
+      Revision 4.1  2004/11/08 17:37:54  ron-fox
+      bring to mainline
+
       Revision 1.1  2003/12/12 16:07:14  ron-fox
       Incorporate the tabbed scaler display program as an extendable entity.
 
