@@ -287,6 +287,20 @@
 # Revision History:
 #
 # $Log$
+# Revision 2.2  2003/03/17 18:59:16  ron-fox
+# Fixes for bug 42:
+# Stager's list of output from tar was not interactive:
+# - Feed rsh's output lines to a callback that updates the log window visibly
+#    throughout the tar.
+# - Make the success confirmation dialog at the end of a tape non-modal so the
+#   user can scroll up and down the tar output while deciding whether or not to
+#   accept the tar.
+# - Make the success confirmation dialog indicate which tape out of how many
+#   have been written in a multitape stage operation.
+# - Fix a one-off defect in the tape splitting algorithm that always split
+#   a stage across at least 2 tapes, even if there was enough space on a single
+#   tape to contain the entire set of runs.
+#
 # Revision 2.1  2003/02/11 16:46:19  ron-fox
 # Retag to version 2.1 to remove the weird branch I accidently made.
 #
@@ -338,7 +352,11 @@ namespace eval   Stager {
     #
     #  Writes a list of files in the 'ROOT' directory to tape.
     #  
-    proc WriteToTape {files} {
+    #   The callback script is called each time a line comes in from
+    #   The archive command. By default, the puts command receives this line
+    #   which causes the output to go to stdout.
+    #
+    proc WriteToTape {files callback} {
 	variable ArchiveCommand
 	variable RemoteDrive
 	variable RemoteHost
@@ -353,8 +371,12 @@ namespace eval   Stager {
 	append cmd  $semi
 	append cmd  $ArchiveCommand
 	append cmd  $RemoteDrive " " $ftails
-	set tarout [rsh::rsh $RemoteHost $cmd]
-	return $tarout
+	set tarout [rsh::rshpipe $RemoteHost $cmd "r"]
+	fconfigure $tarout -buffering line
+	while {! [eof $tarout]} {
+	    set line [gets $tarout]
+	    $callback "$line\n"
+	}
     }
     #
     #  Delete event data

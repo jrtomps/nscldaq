@@ -306,7 +306,8 @@ namespace eval  rsh {
     proc rshpipe {host command access} {
 	AllowMe
 	lappend command {"2>&1"}
-	return [open "|rsh $host $command '2>&1' " $access]
+#	return [open "|rsh $host $command  " $access]
+	return [open "|rsh $host $command '2>&1'  " $access]
     }
     namespace export rsh rshpipe
 }

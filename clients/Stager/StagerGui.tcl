@@ -287,6 +287,20 @@ exec wish ${0} ${@}
 #
 # Revision History:
 #  $Log$
+#  Revision 2.2  2003/03/17 18:59:17  ron-fox
+#  Fixes for bug 42:
+#  Stager's list of output from tar was not interactive:
+#  - Feed rsh's output lines to a callback that updates the log window visibly
+#     throughout the tar.
+#  - Make the success confirmation dialog at the end of a tape non-modal so the
+#    user can scroll up and down the tar output while deciding whether or not to
+#    accept the tar.
+#  - Make the success confirmation dialog indicate which tape out of how many
+#    have been written in a multitape stage operation.
+#  - Fix a one-off defect in the tape splitting algorithm that always split
+#    a stage across at least 2 tapes, even if there was enough space on a single
+#    tape to contain the entire set of runs.
+#
 #  Revision 2.1  2003/02/11 16:46:19  ron-fox
 #  Retag to version 2.1 to remove the weird branch I accidently made.
 #
@@ -355,6 +369,33 @@ set TapeDrive   "Not Set"
 set configfilename ".stagerconfig"
 set hashkey        "nscldaq"
 set stagelist      ""               ;# Only used on state restore.
+
+proc NonModalConfirm {top title text OkValue CancelValue} {
+    global NonModalResult
+    
+    # build the dialog widgets;  a top frame with the questhead
+    # bitmask and the question text.
+    # A bottom frame with ok and cancel buttons.
+    #
+    toplevel $top
+    wm title $top $title
+    set query  [frame $top.query]
+    set action [frame $top.action]
+    label $query.quest -bitmap questhead 
+    label $query.text  -text $text -wraplength 2i
+    pack $query $action
+    pack $query.quest $query.text -side left
+
+    button $action.ok -text "  Ok  " -command "set NonModalResult $OkValue"
+    button $action.cancel -text "Cancel" \
+	    -command "set NonModalResult $CancelValue"
+    pack $action.ok $action.cancel -side left -anchor c
+
+    vwait NonModalResult
+    destroy $top
+    return $NonModalResult
+
+}
 #
 #  Confirm exit:
 #
@@ -374,9 +415,9 @@ proc PutTextToWindow {text} {
     .tarout.output insert end $text
     .tarout.output config -state disabled
     .tarout.output see end
-    update idle
-    update idle
-    update idle
+    update idletasks
+    update idletasks
+    update idletasks
 }
 proc ClearTextWindow {} {
     .tarout.output config -state normal
@@ -550,7 +591,7 @@ proc StartReadout {SourceHost ReadoutPath ftphost Password} {
 	    break;
 	}
     }
-    update idle; update idle; update idle
+    update idletasks; update idletasks; update idletasks
     if {!$found} {
 	puts "Could not find ReadoutShell.tcl in any of $Path"
 	exit
@@ -590,10 +631,9 @@ proc SplitIntoTapes {files} {
     set thissize 0.0
     set Result   ""
 
-
     foreach file $files {
 	if {[lindex $runSizes $index] > $Remaining ||
-            $index == [expr [llength $files] - 1]} {
+            ($index == [llength $files])} {
 	    # Close off a tape - Add the list entry describing
 	    # this tape segment to Result
 	    # and set up for the next tape.
@@ -648,8 +688,7 @@ proc LogStage {Files} {
 #
 proc StageATape {StageFiles} {
 
-
-    return [Stager::WriteToTape $StageFiles]
+    return [Stager::WriteToTape $StageFiles ::PutTextToWindow]
 
 }
 #
@@ -662,8 +701,8 @@ proc Stage {} {
     global TarFileNum
 
     set oldcursor [. cget -cursor]
-    update idle
-    update idle
+    update idletasks
+    update idletasks
 
     ClearTextWindow
     
@@ -684,6 +723,8 @@ proc Stage {} {
 	    incr TarFileNum
 	}
 
+	set tapeinset 1
+	set tapestodo [llength $TapeList]
 	foreach Tape $TapeList {
 	    set Files [lindex $Tape 0]
 	    set Size  [lindex $Tape 1]
@@ -698,14 +739,24 @@ proc Stage {} {
 
 	    PutTextToWindow \
              "Staging $Size Gbytes of data to tape #  $TapeNumber\n"
-	    set Taroutput [StageATape $Files]
-	    PutTextToWindow $Taroutput
+	    StageATape $Files
+	    update idletasks
+	    update idletasks
+	    update idletasks
+	    update idletasks              ;# Ensure tar output is complete.
+	    update idletasks
 
 	    . config -cursor $oldcursor
 
-	    set answer [tk_dialog .confirm "Confirmation" \
-	     "If the tar of the data succeeded, click Ok, else Cancel" \
-		    questhead 1 "Ok" "Cancel"]
+	    set message "Tape $tapeinset of $tapestodo written\n"
+	    append message \
+		"If the tar of the data succeeded, click Ok, else Cancel";
+
+	    .buttons.stage config -state disabled
+	    set answer [NonModalConfirm .confirm "Confirmation" \
+		    $message \
+		   0  1 ]
+	    .buttons.stage config -state normal
 	    if {$answer == 0} {
 		LogStage $Files
 		set Retained [Stager::DeleteEventData $Files]
@@ -718,6 +769,7 @@ proc Stage {} {
 
 	    set TapeMounted 0
 	    set TapeUsed $Size
+	    incr tapeinset
 	}
 	set TapeMounted 1
     }
