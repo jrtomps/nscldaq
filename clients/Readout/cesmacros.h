@@ -308,12 +308,18 @@ DAMAGES.
 #define rstbufpt(var)		bufpt = ((INT16 *)var)
 
 
+
+
 #define camread16(b,c,n,a,f)	 (CAMRD16(CBDPTR((b),(c),(n),(a),(f),CAM16)))
 #define camread24(b, c, n, a, f) (CAMRD24(CBDPTR((b),(c),(n),(a),(f), CAM24)))
 
 #define camwrite16(b,c,n,a,f,d)	(CAMWR16(CBDPTR((b),(c),(n),(a),(f),CAM16),d))
 #define camwrite24(b,c,n,a,f,d)	(CAMWR24(CBDPTR((b),(c),(n),(a),(f),CAM24),d))
 #define camctl(b,c,n,a,f)	CAMCTL(CBDPTR((b), (c), (n), (a), (f), CAM16))
+
+#define inhibit(b,c)         camctl(b,c,30,9,26);
+#define uninhibit(b,c)       camctl(b,c,30,9,24);
+
 
 #ifdef LONGBRANCH
 
