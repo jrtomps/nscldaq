@@ -369,6 +369,6 @@ CVMEStatusModule::GoClear()
 void
 CVMEStatusModule::ModuleClear() 
 {
-  m_IOModule.SetAllNIM();
-  m_IOModule.ClearAllNIM();
+  m_IOModule.PulseOutput(3);
+
 }

@@ -334,8 +334,14 @@ CVMETrigger::operator==(const CVMETrigger& rhs)
 bool 
 CVMETrigger::operator()()  
 {
-  if(m_TriggerModule.ReadInput(0) != 0)
+  if(m_TriggerModule.ReadInput(0) != 0) {
+    // strobe the trigger acknowlege:
+    
+    m_TriggerModule.PulseOutput(2);
+    // return true: A trigger occured.
     return true;
-  else
+  }
+  else {
     return false;
+  }
 }
