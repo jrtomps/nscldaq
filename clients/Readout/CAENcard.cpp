@@ -279,6 +279,10 @@ DAMAGES.
 /*
   Change Log:
   $Log$
+  Revision 3.5  2003/06/19 19:09:17  ron-fox
+  Rewrite to make both multi-crate safe and a little cleaner code.
+  work around problems I'm seeing with word count field corruption.
+
   Revision 3.4  2003/06/06 11:40:11  ron-fox
   Remove some debug output now that everything works.
 
@@ -630,7 +634,7 @@ CAENcard::getCrate()
 void 
 CAENcard::setThreshold(int ch, int threshold)
 {
-  Registers* pModule = (Registers*)m_pModule;
+  volatile Registers* pModule = (volatile Registers*)m_pModule;
   threshold = threshold & 0x00FF;
   
   if( ch < 0 ) {
@@ -1060,7 +1064,7 @@ CAENcard::readEvent(void* buf)
 	   <<datum << dec << endl;
     }
     Header &= 0xffffC0ff;	// Channel count is sometimes wrong.
-    Header |= ((n-1) << 8);	// this fixes it.
+    Header |= ((n-2) << 8);	// this fixes it.
     *pHeader = swaplong(Header);
     return n * sizeof(long);			// Rely on the trailer!!
   } else {
@@ -1252,8 +1256,8 @@ void CAENcard::MapCard()
 
      //the card is not mapped yet, so do it
 
-   void* fd;
-   ROM *pRom;
+   void*         fd;
+   volatile ROM* pRom;
    if( m_fGeo) {		// Geographical addressing...
      fd   = CVMEInterface::Open(CVMEInterface::GEO, m_nCrate);
      m_pModule= (volatile unsigned short*) 
@@ -1272,7 +1276,7 @@ void CAENcard::MapCard()
      m_pModule = (volatile unsigned short*) CVMEInterface::Map(fd,
 							  m_nBase,
 						 CAEN_REGISTERSIZE);
-     pRom = (ROM*)CVMEInterface::Map(fd,
+     pRom = (volatile ROM*)CVMEInterface::Map(fd,
 				     m_nBase + CAEN_ROMOFFSET,
 				     CAEN_ROMSIZE);
      // The geographical address register must be programmed
@@ -1284,9 +1288,9 @@ void CAENcard::MapCard()
    // Get the module type from the PROM and unmap the prom,
    // as that's all we use it for:
 
-   m_nCardType = pRom->BoardIdMSB << 16 |
-                 pRom->BoardId    <<  8 |
-                 pRom->BoardIdLSB;
+   m_nCardType = (pRom->BoardIdMSB & 0xff) << 16 |
+                 (pRom->BoardId & 0xff)    <<  8 |
+                 (pRom->BoardIdLSB & 0xff);
    m_nSerialno  = pRom->SerialMSB << 8 |
                  pRom->SerialLSB;
    m_nHardwareRev = pRom->Revision;
@@ -1318,8 +1322,11 @@ void CAENcard::MapCard()
 			  (void*)m_pModule, CAEN_REGISTERSIZE);
      
      CVMEInterface::Close(fd);
-     throw 
-       string("Card is incompatable type or not inserted");
+     char message[1000];
+     sprintf(message,
+	     "Card is incompatible type or not inserted in slot %d type %d",
+	     m_nSlot, m_nCardType);
+     throw   string(message);
    }
    
    
