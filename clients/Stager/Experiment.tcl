@@ -359,6 +359,7 @@ namespace eval  Experiment {
 	    #  Make a link in the current dir to the staged data.
 	    #
 	    set runname [ExpFileSystem::GenRunFile $nrun]
+	    file delete $currentdata/$runname ;# Kill any hanging link.
 	    exec ln -s $Stagedir/$runname $currentdata/$runname 
 	    #
 	    #  Wait for the logger to be ready to accept data:
