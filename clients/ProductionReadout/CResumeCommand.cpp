@@ -280,7 +280,7 @@ static const char* Copyright = "(C) Copyright Michigan State University 2002, Al
 
 #include "CResumeCommand.h"    
 #include "CReadoutMain.h"
-#include "CException.h"
+#include <Exception.h>
 #include "TCLResult.h"
 
 

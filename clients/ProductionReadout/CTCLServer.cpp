@@ -282,7 +282,7 @@ static const char* Copyright = "(C) Copyright Michigan State University 2002, Al
 #include <CSocket.h>     
 #include <TCLInterpreter.h>
 #include "CReaper.h"     
-#include <CException.h>
+#include <Exception.h>
 #include <CTCPConnectionLost.h> 
 #include "CReadoutMain.h"
 #include <CInterpreterStartup.h>

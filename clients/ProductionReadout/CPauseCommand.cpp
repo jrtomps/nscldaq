@@ -280,7 +280,7 @@ static const char* Copyright = "(C) Copyright Michigan State University 2002, Al
 #include "CPauseCommand.h"                  
 #include "CReadoutMain.h"
 #include "CRunState.h"
-#include <CException.h>
+#include <Exception.h>
 /*!
   Default constructor creates the "pause" command.
 */

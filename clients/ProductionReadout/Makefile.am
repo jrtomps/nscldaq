@@ -180,9 +180,11 @@ libPReadout_la_LDFLAGS = -g -version-info 1:0:0 \
 	$(TCL_LDFLAGS) $(X11LIBS) 
 
 INCLUDES = -I@top_srcdir@/Headers \
+	-I@top_srcdir@/CopyrightTools     \
 	-I@top_srcdir@/VMEApi     \
 	-I@top_srcdir@/framework  \
 	-I@top_srcdir@/Exception \
+	-I@top_srcdir@/TCL \
 	$(TCL_FLAGS) $(SPECTRODAQ_FLAGS)
 
 EXTRA_DIST = 	MyExperiment.cpp \

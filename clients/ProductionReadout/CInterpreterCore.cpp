@@ -285,7 +285,7 @@ static const char* Copyright = "(C) Copyright Michigan State University 2002, Al
 #include "CConstVariableCommand.h"
 #include "CConstVariable.h"
 #include "CTCLListener.h"
-#include <CException.h>
+#include <Exception.h>
 #include <CopyrightNotice.h>
 #include <NSCLException.h>
 #include <iostream.h>

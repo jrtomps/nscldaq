@@ -281,7 +281,7 @@ static const char* Copyright = "(C) Copyright Michigan State University 2002, Al
 #include "CEndCommand.h"                  
 #include "CReadoutMain.h"
 #include "CRunState.h"
-#include <CException.h>
+#include <Exception.h>
 
 /*!
   Create the command ("end"):
