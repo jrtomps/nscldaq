@@ -1,10 +1,11 @@
 SUBDIRS = btdriver \
 	Headers CopyrightTools Exception TCL Security Ftp \
 	VMEApi cvt SpecTclOnline DeviceSupport\
-	Readout diskrun EventLog Scaler contrib \
+	Readout diskrun EventLog Scaler  \
 	vmetcl  \
 	bufdump TclServer bcnaf TcpHoister Stager Scripts framework \
-	AlarmDisplay LogDisplay ProductionReadout 
+	AlarmDisplay LogDisplay ProductionReadout  \
+	contrib
 
 EXTRA_DIST =  config/install-sh config/config.sub config/config.guess \
 	config/ltmain.sh config/missing config/mkinstalldirs  CHANGELOG
