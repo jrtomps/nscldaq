@@ -362,4 +362,5 @@ protected:
   virtual void DoAssign(const CException& rhs);
 };
 
+
 #endif
