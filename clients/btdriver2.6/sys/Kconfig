@@ -1,0 +1,17 @@
+#
+# For a description of the syntax of this configuration file,
+# see Documentation/kbuild/kconfig-language.txt.
+#
+# SBS Technologies dataBlizzard configuration.
+#
+
+menu "SBS Technologies dataBlizzard support"
+
+config SBSDB
+	tristate "SBS Technologies dataBlizzard support"
+	---help---
+	  Add support for SBS Technologies dataBlizzard adapters.
+
+endmenu
+
+

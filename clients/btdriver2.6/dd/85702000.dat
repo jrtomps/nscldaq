@@ -1,0 +1,24 @@
+# Build.dat file
+# 
+# Any line starting with a pound sign is a comment
+# All fields must be separated by a semi-colon ';' character!
+#
+# The OS directory must obey ISO 9660 level 1 naming. This limits it to eight
+# characters, only [A-Z0-9] are valid characters. Since it is a directory, no
+# extension is allowed either.
+#
+# SW = Software, HW = Hardware, PN = partnumber, OS = operating system
+#
+# Fields:
+# $1 = SW Model; $2 = SW PN; $3 = SW filename extension; $4 = SW Version; $5 = SW Manual PN; $6 = SW Manual revision; $7 = OS directory; $8 = Description of OS versions supported; $9 = List of HW models supported
+#
+
+945;85221901;TAR;1.6;85221940;1.4;SOLARIS;Solaris 2.5.1 and 2.6 and 2.7;614 615 616 617 618 7X2
+924;85221741;TAR;1.4;85221730;1.4;AIX;AIX 4.1.4, 4.2, and 4.3;614 615 616 617 618
+934;85222050;TAR;1.1;85222090;1.1;HPUX;HP-UX 10.20;616 617 618
+965;85222001;TAR;2.2;85222040;1.5;IRIX;IRIX 6.5;RPQ600890 617 618 7X2
+973;85221781;EXE;2.2;85221820;1.6;WIN95;Windows/95 and Windows/95 OSR2 Windows/98;614 615 616 617 618
+983;85221831;EXE;2.4;85221870;1.5;WINNT;Windows/NT 3.51 and 4.0;614 615 616 617 618 7X2
+993;85221950;TAR;1.0;85221960;1.0;VXWORKS;Tornado 1.0.1 / VxWorks 5.3.1;616 617 618
+13-908;85901170;EXE;1.1;85901140;1.0;WDM;Windows/98 Second Edition;2345
+1003;85222100;TAR;2.2;85221990;1.0;Linux;Kernel 2.4.18 (RH 8.0);616-620 628 630 712 713 722 723 732 733 & dataBLIZZARD

@@ -1,0 +1,96 @@
+#!/bin/bash
+#
+# SBS Technologies dataBlizzard install script
+#
+KERNDIR=/usr/src/linux
+
+echo "SBS Technologies datablizzard driver source install script"
+echo "Note Modified files are backed up as fn.add-sbsdb"
+
+if [ ! -d $KERNDIR ]
+then
+	echo -n "KERNDIR="$KERNDIR" is not found"
+	echo -n "Create a link to the linux kernel source to install the driver"
+	exit -1
+fi
+
+DRIVERSKCONFIG=$KERNDIR/drivers/Kconfig
+DRIVERSMAKEFILE=$KERNDIR/drivers/Makefile
+DRIVERSSBSDB=$KERNDIR/drivers/sbsdb
+DRIVERCONF_BASE=/etc
+
+#
+# Check if already installed
+#
+grep CONFIG_SBSDB $DRIVERSMAKEFILE > /dev/null 2>&1
+if [ $? -eq 0 ]
+then
+	echo "SBS Technologies dataBlizzard is already installed, run remove script"
+	exit 1
+fi
+
+#
+# Check to make sure that we can find where to insert our driver string
+#
+grep "endmenu" $DRIVERSKCONFIG > /dev/null 2>&1
+if [ $? -ne 0 ]
+then
+	echo "Cannot find -endmenu- string in "$DRIVERSKCONFIG
+	exit 1
+fi
+
+#
+# Insert our driver string
+#
+echo "Backing up $DRIVERSMAKEFILE to $DRIVERSMAKEFILE.add-sbsdb"
+
+cp -f $DRIVERSMAKEFILE $DRIVERSMAKEFILE.add-sbsdb
+
+echo "Inserting driver string into $DRIVERSMAKEFILE ..."
+
+ed $DRIVERSMAKEFILE > /dev/null 2>&1 << EOF
+$
+a
+obj-\$(CONFIG_SBSDB)		+= sbsdb/
+
+.
+w
+EOF
+
+#
+# Insert our driver string
+#
+echo "Backing up $DRIVERSKCONFIG to $DRIVERSKCONFIG.add-sbsdb"
+
+cp -f $DRIVERSKCONFIG $DRIVERSKCONFIG.add-sbsdb
+
+echo "Inserting driver string into $DRIVERSKCONFIG ..."
+
+ed $DRIVERSKCONFIG > /dev/null 2>&1 << EOF
+g/endmenu
+^
+a
+source "drivers/sbsdb/Kconfig"
+
+.
+w
+EOF
+
+echo "Copying driver source to "$DRIVERSSBSDB
+mkdir $DRIVERSSBSDB
+cp -f ../dd/*.c $DRIVERSSBSDB/.
+cp -f ../dd/*.h $DRIVERSSBSDB/.
+cp -f ../include/*.h $DRIVERSSBSDB/.
+cp -f Kconfig $DRIVERSSBSDB/.
+cp -f KMakefile $DRIVERSSBSDB/Makefile
+
+echo "Copying driver configuration file btp.conf to "$DRIVERCONF_BASE
+if [ ! -f btp.conf ] 
+then
+	touch btp.conf
+fi
+cp -f btp.conf $DRIVERCONF_BASE/.
+
+echo "Installation Completed Successfully"
+
+exit 0

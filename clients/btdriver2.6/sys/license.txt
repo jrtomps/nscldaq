@@ -1,0 +1,133 @@
+SBS Adapter Software License Agreement
+IMPORTANT: Read Before Using This Product
+YOU SHOULD CAREFULLY READ THE FOLLOWING TERMS AND CONDITIONS BEFORE USING 
+THIS PRODUCT. IT CONTAINS SOFTWARE, THE USE OF WHICH IS LICENSED BY SBS TECHNOLOGIES, INC. (“SBS”) TO ITS 
+CUSTOMERS FOR THEIR USE ONLY AS SET OUT BELOW. IF YOU DO NOT AGREE TO THE TERMS AND CONDITIONS OF THIS AGREEMENT, DO 
+NOT USE THE SOFTWARE. USING ANY PART OF THE SOFTWARE INDICATES THAT YOU ACCEPT THESE TERMS.
+
+LICENSE: SBS grants you a nonexclusive license to use the accompanying 
+software program(s) (the “Software”) subject to the terms and restrictions 
+set forth in this License Agreement. You are not permitted to lease, rent, distribute or 
+sublicense the Software. Further, no license is granted to you in the human 
+readable code of the Software (source code). Except as provided below, this License Agreement does 
+not grant you any rights to patents, copyrights, trade secrets, or any other 
+rights in respect to the Software.
+
+The Software is Licensed to be used on one computer or computer workstation, 
+provided that the software is used only in connection with a SBS adapter. Any 
+Software merged with any other software program is subject to the terms and 
+conditions of this license. You may reproduce and provide one (1) copy of the 
+Software and supporting documentation for each such computer or computer workstation 
+on which the Software is used as permitted hereunder. Otherwise, the Software 
+and supporting documentation may be copied only as essential for backup or 
+archive purposes in support of your use of the Software as permitted hereunder
+. You must reproduce and include all copyright notices and any other proprietary rights 
+notices and include all copyright notices on the Software and the supporting 
+documentation on any copies that you make.
+
+NO ASSIGNMENT; NO REVERSE ENGINEERING: You may not transfer or assign the 
+Software and/or this License Agreement to another party without the
+prior written consent of SBS. If such consent is given and you transfer or 
+assign the Software and/or this License Agreement, then you must at the same 
+time either transfer any copies of the Software and the supporting documentation to the 
+same party or destroy any such materials not transferred. Except as set forth 
+above, you may not transfer or assign the Software or your rights under this License 
+Agreement. Modification, reverse engineering, reverse compiling or 
+disassembly of the Software is expressly prohibited.
+
+EXPORT RESTRICTIONS: You agree that you will not export or re-export the 
+Software or accompanying documentation (or any copies thereof) or any products 
+utilizing the Software or such documentation in violation of any applicable 
+laws or regulations of the United States or the country in which you obtained 
+them.
+
+TRADE SECRETS, TITLE: You acknowledge and agree that the structure, sequence 
+and organization of the Software are the valuable trade secrets of SBS and its 
+suppliers. You agree to hold such trade secrets in confidence. You further 
+acknowledge and agree that ownership of, and title to, the Software and all 
+subsequent copies thereof regardless of the form or media are held by SBS and its 
+suppliers.
+
+TERM AND TERMINATION: This license will expire twenty-five (25) years from 
+the date that you first use the Software if it is not earlier terminated. You 
+may
+
+terminate it at any time by destroying the Software and documentation 
+together with all copies and merged portions in any form. It will also 
+terminate immediately if you fail to comply with any term or condition of this License  
+Agreement. Upon such termination you agree to destroy the Software and documentation, 
+together with all copies and merged portions in any form.
+
+GOVERNING LAW: This License Agreement shall be governed by the laws of the 
+State of Minnesota as such laws are applied to agreements entered into and to 
+be performed entirely within Minnesota between Minnesota residents and by the 
+laws of the United States. You agree that the United Nations Convention on 
+Contracts for the international Sale of Goods (1980) is hereby excluded in its entirety 
+from application to this License Agreement.
+
+LIMITED WARRANTY; LIMITATION OF LIABILITY: All warranties and limitations of 
+liability applicable to the Software are as stated on the Limited Warranty 
+accompanying the Software. Such warranties and limitations of liability are 
+incorporated herein in their entirety by this reference.
+
+SEVERABILITY: In the event that any provision of this License Agreement is 
+found to be invalid, illegal or unenforceable, the validity, legality and 
+enforceability of any of the remaining provisions shall not in any way be affected or 
+impaired and a valid, legal and enforceable provision of similar intent and 
+economic impact shall be substituted therefor.
+
+ENTIRE AGREEMENT: This License Agreement sets forth the entire understanding 
+and agreement between you and SBS, supersedes all prior agreements, whether 
+written or oral, with respect to the Software, and may be amended only by a 
+written agreement signed by both parties.
+
+UNITED STATES GOVERNMENT LEGEND:
+Use, duplication or disclosure of the Software and/or derived products by the 
+United States Government is subject to restrictions set forth in subdivision (
+c)(1)(ii) of Rights in Technical Data and Computer Software Clause of DFAR 252.227-7013 (
+October 1998) and similar clauses in FAR & NASA FAR Supplements.
+
+02/19/02
+Limited Warranty
+85701970 rev. D 02/19/02
+This Program Material is provided and licensed “AS IS” without warranty of 
+any kind, either express or implied, including but not limited to the implied warranties of merchantability and 
+fitness for a particular purpose. While every effort is made to provide you with functional and productive software 
+support products, no warranty is made that the performance or functions of the Program Materials will operate in an entirely 
+error-free manner, or appear precisely as described in the Program Materials documentation. The Program Materials are 
+designed and intended for use by computer professionals experienced in the uses and limitations of computer software: 
+it is your responsibility to ascertain suitability for your purposes. SBS's commitment is that the Program Materials will 
+substantially perform the functions or generally conform to the Program’s specifications published by SBS.
+
+SBS warrants that the medium on which the Program is furnished will be free 
+from defects in materials and workmanship under normal use for a period of ninety (90) days from the date of delivery 
+to you.
+
+REMEDIES AND LIMITATION OF LIABILITY
+The remedies described below are accepted by you as your only remedies. SBS’s 
+entire liability and your exclusive remedies shall be:
+
+a. If the Program does not substantially perform the functions or generally 
+conform to the Program’s specifications published by SBS, you may, within six months after delivery, write to SBS to 
+report a significant defect. If SBS is unable to correct that defect within 90 days after receiving your report, you 
+may terminate your License and this Agreement by returning the Program with your original receipt and your money 
+will be refunded.
+
+b. If the Program medium is defective, you may return it with a copy of your 
+receipt, and SBS will either replace it or, if a replacement cannot soon be delivered, you may terminate your License and 
+this Agreement by returning the rest of the Program and your money will be refunded.
+SBS shall in no event be liable for any lost profits, lost savings, and 
+special, indirect, incidental, or consequential damages suffered by Licensee, nor for any claim or demand against Licensee by 
+any other party, arising out of or in connection with the use, or the inability to use, or the performance, or 
+lack thereof, of the Program Materials, modifications thereto, and/or Derived Products, or arising from the 
+negligence of SBS or its employees, officers, directors, consultants, distributors, or dealers, even if any of these 
+parties have been advised of the possibility of such damages. Furthermore, Licensee hereby indemnifies and agrees to hold SBS 
+harmless from such claims.
+
+Governing Law: This Limited Warranty shall be governed by the laws of the 
+State of Minnesota.
+
+Any questions concerning this Limited Warranty should be referred in writing 
+to SBS Technologies Inc., 1284 Corporate
+
+Center Drive, St. Paul, MN 55121-1245.

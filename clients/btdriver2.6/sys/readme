@@ -1,0 +1,159 @@
+
+*******************************************************************************
+*******************************************************************************
+
+  All rights restricted under the copyright laws of the United States.
+
+  The Support Software license and your right to use this product terminate
+  if you fail to comply with any provision of the license agreement or with
+  the restricted rights conditions stated below.
+
+  U.S. GOVERNMENT RESTRICTED RIGHTS
+  The Support Software and documentation are provided with restricted rights.
+  Use, duplication or disclosure by the Government is subject to restrictions
+  as set forth in subparagraph (c)(1)(ii) of the Rights in Technical Data and
+  Computer Software clause of DFAR 252.227-7013 (October 1988) and in similar
+  clauses in the FAR and NASA FAR Supplement.  Manufacturer is SBS Technologies
+  Inc, 1284 Corporate Center Dr. St. Paul, Minnesota 55121-1245 USA.         
+
+*******************************************************************************
+*******************************************************************************
+
+*******************************************************************************
+
+            Copyright (c) 1997-2004 by SBS Technolgies, Inc.
+                          All Rights Reserved.
+                 License governs use and distribution.
+
+*******************************************************************************
+
+
+      	                Version v2p3pA Release notes
+		   Model 1003 PCI Adaptor Support Software
+
+    Version v2p3pA:
+	
+			Add Kbuild support for kernel 2.6.6 (added install/remove scripts)
+            Note bigphysarea kernel patch is not yet ported to 2.6.X
+
+    Version v2p3p0:
+
+          Added support for VME dataBlizzard models 800, 800-202, 810,
+          820, and 830, which are PCI to VME 64 based adapters.
+
+    Beta version v2p2pC:
+            Add code to support 2.6.1 kernels
+            Note bigphysarea kernel patch is not yet ported to 2.6.1
+
+    Beta version v2p2pB:
+            Add code to support 2.4.20-6 kernels (Red Hat 9)
+            Modify dd/bt_param.c to enable/disable bigphysarea support via 
+            compiler switch
+
+    Beta version v2p2pA:
+            Add code to return +/- 256 byte residual (if 256 byte aligned + 
+            count) rather than the existing +/- 64k byte residual transfer 
+            count for read requests.
+
+    Version v2.2:
+            Add bt_bind and bt_unbind support.
+
+            Add A64 support.
+
+            Tested with Red Hat 8.0 Linux 2.4.18
+
+    Beta version v2.1.E:
+            Fixed bug with multiprocess DMA and opens of system hang.
+
+    Beta version v2.1.D:
+            Fixed bug with local and remote dual port RAM on dataBLIZZARD.
+
+            Internal diagnostic routines now work.
+
+    Beta version v2.1.C:
+            Restored double buffering since problem with 2.4.18-x kernels.
+
+            Restored disabled Polled mode DMAs.
+
+            Fixed kernel panic when bt_kvm2bus() failed.
+
+            Requires DMA_POLL_CEILING to be set higher then 0x20000 for 
+            stressor to not hang.
+
+            Fixed bug where all DMA was done D32 not D64.
+            
+    Beta version v2.1.B:
+            Added hardware diagnostic routines for GEMS only.
+
+            Elimates the kernel double buffering for DMAs
+
+            Added driver version and hardware firmware revision.
+
+            Prevents PIO/DMA from occuring at same time to fix system
+            lockups
+
+            Breaks DMAs up to 0x20000 or less xfers to prevent timeout on 
+            MCP750 single board computers.
+
+    Beta version v2.1.a:
+            Adds "CC = kgcc" to sys/makefile for newer Red Hat GNU/Linux
+            releases; if kgcc doesn't exist, simply delete that line.
+
+            Fixes page usage count in bt_vmnopage() for 2.4.x kernels.
+            This error caused hangs or panics when using bt_icbr multiple
+            times, after it did an mmap() to the BT_DEV_DIAG minor device.
+
+            Improved the btp_open() and btp_close() entry point functions.
+
+
+    Official version v2.0:
+	    Obsoletes the following beta releases: v1.1.a, v1.1.b and v1.1.c.
+            (There was no v1.1 release; Official releases are just v1.0 & v2.0.)
+
+            Adds support for 2.4.x Linux kernels.
+
+            Supports Red Hat GNU/Linux 7.2 (kernel 2.4.7-10), Red Hat GNU/Linux
+            7.0 (kernel 2.2.16-22) and Red Hat GNU/Linux 6.0 (kernel 2.2.5-15)
+            on the x86 platform.  It has also been tested on SuSE GNU/Linux 7.3
+            (kernel 2.4.10-4GB), Red Hat GNU/Linux 6.1 (kernel 2.2.12-20) and
+            SuSE GNU/Linux 6.2 (kernel 2.2.10).  It should work with any 2.2.x
+            or 2.4.x kernel.
+
+
+    Official version v1.0:
+	    Obsoletes the following beta releases: v1.0.a, v1.0.b, v1.0.c,
+	    v1.0.d and v1.0.e.
+
+            Supports Red Hat 7.0 Linux (kernel 2.2.16-22) and Red Hat 6.0
+	    Linux (kernel 2.2.5-15) on the x86 platform.  It has also been
+            tested on Red Hat 6.1 (kernel 2.2.12-20) and SuSE 6.2 Linux
+            (kernel 2.2.10).  It should work with any 2.2.x kernel.
+
+            Supports all SBS (PCI, cPCI) to (PCI, cPCI, VME) adapter sets
+            including 616, 617, 618, 620, 628, 630, 712, 713, 722, 723,
+            732, & 733 plus SBS dataBLIZZARD adapter sets DB0-PCI-PCI,
+            DB0-CPCI-CPCI, DB0-PMC-PMC, DB0-PCI-CPCI, DB0-PCI-PMC &
+            DB0-CPCI-PMC.
+
+	    The driver file dd/btp_kernel.c routines have not been tested.
+            These routines allow other kernel drivers to install a kernel
+            interrupt service routine that the SBS driver will call
+            whenever a given interrupt type occurs.  These routines are
+            the means by which RORA VMEbus devices can be supported.
+            Thus v1.0 only supports interrupts from ROAK VMEbus devices.
+
+
+    Beta version v1.0.e:
+	    All known bugs fixed, excluding dd/btp_kernel.c which hasn't
+            been tested as mentioned above.  Supports Red Hat 6.0
+            (kernel 2.2.5-15).  Also supports SBS dataBLIZZARD adapters.
+
+
+    Beta version v1.0.b:
+            Fixed a bug were adaptor writes were doing reads.         
+
+
+    Beta version v1.0.a:
+            Initialial beta version for Red Hat 6.0 Linux and up.
+            This device driver supports Bit 3 Model 616, 617, 618
+            Adaptors.
