@@ -618,8 +618,7 @@ proc bellOnAlarm {} {
 
     foreach page [array names pageAlarmState] {
         if {$pageAlarmState($page) != 0} {
-            puts -nonewline "\a"
-            flush stdout
+	    bell
             return
         }
     }
