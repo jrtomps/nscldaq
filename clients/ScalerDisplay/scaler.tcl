@@ -37,9 +37,19 @@ namespace import ::blt::tabset
 namespace import ::blt::vector
 namespace import ::blt::stripchart
 
+#   The run state variable depends on whether or not
+#   we're running inside of SpecTcl or as a 
+#   TclServer for ScalerClient:
+
+if {[info exists SpecTclHome]} {
+    set RunStateName ScalerRunState
+} else {
+    set RunStateName RunState
+}
+
 set RunNumber       Unknown
 set RunTitle        Unknown
-set RunState        Unknown
+set $RunStateName   Unknown
 set ElapsedRunTime  0
 set ScalerDeltaTime 0
 set Fakename     >>><<<
@@ -467,15 +477,18 @@ proc DoUpdate {{average 0}} {
 #
 
 proc Update {} {
-    global RunState
+    global RunStateName
+    global $RunStateName
     global stripchartWidget
+
+    set State [set $RunStateName]
 
     UpdateStatistics
     if {$stripchartWidget != ""} {
         updateStripChart
     }
 
-    if {$RunState == "Active" } {
+    if {$State == "Active" } {
         DoUpdate
     } else {
         DoUpdate 1
@@ -857,7 +870,9 @@ proc UpdateTable {widget page {average 0}} {
 #
 
 proc SetupGui {top} {
-    global RunNumber RunTitle RunState
+    global RunNumber RunTitle 
+    global RunStateName
+    global $RunStateName
     global HMStime ScalerDeltaTime
     set stat      [frame $top.status]
     set topstat   [frame $stat.top]
@@ -882,7 +897,7 @@ proc SetupGui {top} {
     label $runnum.run   -textvariable RunNumber
 
     label $state.sl    -text "Run state: "
-    label $state.state -textvariable RunState
+    label $state.state -textvariable $RunStateName
 
     label $duration.atl   -text "Length of run: "
     label $duration.atime -textvariable HMStime

@@ -353,7 +353,7 @@ February 23, 2005
           months now official start from 1 = January everywhere.
 March 1, 2005
        -  Scaler Display  Rates at end of run will now reflect average rates over 
-          the entire run.
+          >the entire run.
 March 2, 2005
        - Add rate alarming capability.  NOTE: This introduces a dependency on the BLT
          package.  BLT is a plotting/graphing package that is available as a package
@@ -380,6 +380,7 @@ March 2, 2005
 March 4, 2005
      - Debug the strip chart capability of the Scaler display
      - Update the scaler display man page to reflect the modifications since March 1
-
+March 8, 2005
+     - Make the scaler.tcl script sourceable into SpecTcl's scaler analysis software.
 
 
