@@ -393,3 +393,5 @@ March 25, 2005
      - spectcldaq - delay a bit between retries on a blocked write to the pipe
        after data was already transferred...otherwise we get caught in a spin
        making matters worse.
+March 28, 2005
+     - Install mkbtp in /lib/modules
