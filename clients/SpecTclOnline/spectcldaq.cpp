@@ -277,10 +277,11 @@ DAMAGES.
 ' */
 static const char* Copyright= "(C) Copyright Michigan State University 2002, All rights reserved";
 
+#include <config.h>
 #include <stdlib.h>
 #include <stdio.h>
-#include <iostream.h>
-#include <iomanip.h>
+#include <Iostream.h>
+#include <Iomanip.h>
 #include <buftypes.h>
 #include <buffer.h>
 #include <assert.h>
@@ -290,6 +291,10 @@ static const char* Copyright= "(C) Copyright Michigan State University 2002, All
 #include <fcntl.h>
 #include <unistd.h>
 #include <CopyrightNotice.h>
+
+#ifdef HAVE_STD_NAMESPACE
+using namespace std;
+#endif
 
 
 #ifndef SPECTRODAQ_H
@@ -433,8 +438,9 @@ class DAQBuff : public DAQROCNode {
       // From now on we can operate on the local copy of the buffer.
       
       {
-	DAQString process;
-	process << "spectcldaq - piping fd=" << fileno(stdout);
+	char buffer[100];
+	sprintf(buffer, "spectcldaq - piping fd=%d", fileno(stdout));
+	DAQString process(buffer);
 	SetProcessTitle(process);
       }
       if(Write(fileno(stdout), pLocalBuffer, nLength*sizeof(short)) <= 0)

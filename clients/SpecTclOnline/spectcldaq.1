@@ -1,0 +1,38 @@
+.TH spectcldaq 1 "November 2004" spectcldaq-1.0 "USER COMMANDS"
+
+.SH NAME
+spectcldaq \- Filter to take data from NSCL DAQ and send it to stdout.
+
+.SH SYNOPSIS
+.B spectcldaq [sinkurl]
+.SH  DESCRIPTION
+.PP
+This program is an adapter that allows non  NSCLDAQ aware programs to obtain
+data from the NSCL DAQ system.  It connects to the data source specified in
+\fIsinkurl\fR.  Buffers received from that source are copied to stdout. User
+written software will typically run this program on the other end of a pipe to
+process data although as the examples show, it's possible just to use it to
+provide data to ordinary unix filters too.
+.PP
+The \fIsinkurl\fR parameter is of the form tcp://host:2602/.  Note that event
+data is only accepted in 'unreliable mode' so that the programs receiving data
+will not be a system throughput limit.  If omitted the default value is
+tcp://localhost:2602/ 
+.SH EXAMPLES
+.TP
+Crude hex dump of all data from spdaq16:
+.nf
+spectcldaq tcp://spdaq16:2602/ |od -x
+.fi
+
+.TP
+Print the titles and any other ASCII information in the event stream from the
+local system:
+.nf
+spectcldaq |strings
+.fi
+
+.SH BUGS
+.PP 
+There is no way to run this program so that all of the data is routed to stdout
+(e.g. to write special purpose event loggers).
