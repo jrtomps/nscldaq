@@ -288,6 +288,9 @@
 #   Change log:
 #
 # $Log$
+# Revision 3.1  2003/03/22 04:03:55  ron-fox
+# Added SBS/Bit3 device driver.
+#
 # Revision 2.2  2003/03/12 03:46:42  ron-fox
 #    Added an event binding to the <Destroy> Event  the binding calls a new procedure:  EmergencyExit that in turn forces the Readout program to exit.  The exit is done via the normal ReadoutControl::ExitReadoutProgram.  That ends the run if possible (which will allow the event file to properly close even if the directory manipulations don't happen). And if possible Readout is exited cleanly.  Regardless, the socket is actively shutdown, so Readout won't hang around until timeout, but will exit immediately.
 #

@@ -287,6 +287,9 @@ exec wish ${0} ${@}
 #
 # Revision History:
 #  $Log$
+#  Revision 3.1  2003/03/22 04:03:57  ron-fox
+#  Added SBS/Bit3 device driver.
+#
 #  Revision 2.2  2003/03/17 18:59:17  ron-fox
 #  Fixes for bug 42:
 #  Stager's list of output from tar was not interactive:

@@ -2,7 +2,7 @@
 AC_INIT(CopyrightTools/CopyrightNotice.cpp)
 AC_CONFIG_AUX_DIR(config)
 AM_CONFIG_HEADER(config.h)
-AM_INIT_AUTOMAKE(nscldaq, 7.1-003)
+AM_INIT_AUTOMAKE(nscldaq, 7.1-004)
 
 #  Checks for parameters:
 
@@ -45,6 +45,9 @@ AC_CHECK_HEADERS(sys/time.h)
 AC_CHECK_HEADERS(arpa/inet.h)
 AC_CHECK_HEADERS(sys/socket.h)
 AC_CHECK_HEADERS(gdbm.h)
+AC_CHECK_HEADERS(limits.h)
+AC_CHECK_HEADERS(stddef.h)
+
 
 AC_HEADER_MAJOR
 AC_HEADER_SYS_WAIT
@@ -60,6 +63,7 @@ AC_TYPE_PID_T
 AC_TYPE_OFF_T
 AC_C_CONST
 AC_C_INLINE
+
 
 
 # Checks for library functions.
@@ -84,6 +88,9 @@ AC_CHECK_FUNCS(socket)
 AC_CHECK_FUNCS(strdup)
 AC_CHECK_FUNCS(strstr)
 AC_CHECK_FUNCS(fork)
+AC_CHECK_FUNCS(clock_gettime)
+AC_CHECK_FUNCS(strtol)
+AC_CHECK_FUNCS(strtoul)
 
 
 # NSCL DAQ specific checks:
@@ -255,157 +262,16 @@ else
 fi
 
 
-#  We need to determine what the underlying VME Access library is.
-#  At this point this must be selected by the user using either:
-#  --with-nsclbit3
-#  --with-sbsbit3
-#  If neither of these is provided, we assume that the sbs bit3 device
-#  driver was used.
-#  The end result of all of this is to set the variables:
-#   VMELIBRARY - Set of static libraries required by the shared api lib.
-#   VMELIBRARYHEADERS - Set of header file directories required when compiling
-#                       the api.
 #   VMEDEVICE  - The name of the selected api.
 #
-AC_MSG_CHECKING([ Which vme interface...])
-VMEDEVICE=SBSBIT3                # default device.
-AC_ARG_WITH(nsclbit3, 
-	[  --with-nsclbit3  - select VME api for the nscl/nikhef bit3 driver],
-	[VMEDEVICE=NSCLBIT3],)
-AC_ARG_WITH(sbsbit3,
-	[ --with-sbsbit3 - Select the VME api for the SBS bit3 driver],
-	[VMEDEVICE=SBSBIT3])
 
-AC_MSG_RESULT([ $VMEDEVICE selected])
-
-# Depending on the value of VMEDEVICE, set VMELIBRARY VMELIBRARYHEADERS
-
-#  If nsclbit3, there are no libraries and the headers get installed in the
-# .h search path:
-
-if test $VMEDEVICE == "NSCLBIT3"
-then
- VMELIBRARY=""
- VMELIBRARYHEADERS=""
-fi
-
-#  If sbs bit 3 device driver. We look for the headers in
-#  the following locations:
-#   /usr/include/sbsbit3
-#   /usr/local/include/sbsbit3
-#   /opt/include/sbsbit3
-#   /usr/opt/include/sbsbit3
-#   /opt/daq/[iI]nclude
-#   /usr/opt/daq/[iI]nclude
-#   $includedir
-#   --with-sbsbit3-headers=path.
-#
+VMEDEVICE=SBSBIT3     # Support for Nikhef drv dropped
 
 
+#  Since the bt library is part of the build:
 
-if test $VMEDEVICE == "SBSBIT3"
-then
-   AC_MSG_CHECKING([Searching for btapi.h ...])
-   foundsbs_headers="false"
-   checkdirs="/usr/include/sbsbit3 /usr/local/include/sbsbit3 \
-	/opt/include/sbsbit3 /usr/opt/daq/include /usr/opt/daq/Include \
-	/opt/daq/include /usr/opt/daq/Include"
-
-	
-	#  Check in explicit directories:
-
-   for directory in ${checkdirs}
-   do
-     if test $foundsbs_headers == "false" 
-     then
-       AC_CHECK_FILE([${directory}/btapi.h], 
-	   [VMELIBRARYHEADERS=${directory}
-	   foundsbs_headers="true"])
-     fi
-   done
-
-	#  Check in installation include subdir:
-
-   if test $foundsbs_headers == "false"
-   then
-      AC_CHECK_FILE([$prefix/include/btapi.h],
-	   [VMELIBRARYHEADERS=$prefix/include],
-	   foundsbs_headers="true"])
-   fi
-
-	# Check the --with-sbsbit3-headers parameters.
-
-   if test $foundsbs_headers == "false"
-   then
-      AC_ARG_WITH(sbsbit3-headers, 
-	[ --with-sbsbit3-headers=path location of sbs bit3 headers],
-	[VMELIBRARYHEADERS=$withval
-	 foundsbs_headers="true"
-	])
-
-   fi
-   if test $foundsbs_headers == "true"
-   then
-     AC_MSG_RESULT([Located in $VMELIBRARYHEADERS])
-     VMELIBRARYHEADERS=-I$VMELIBRARYHEADERS
-   else
-      AC_MSG_ERROR([Unable to locate bit3 headers.  Try --with-sbsbit3-headers=path])
-   fi
-
-   # Search for libbtp.a in the following places:
-   #
-   # /usr/lib
-   # /usr/lib/sbsbit3
-   # /usr/local/lib
-   # /usr/local/lib/sbsbit3
-   # /opt/lib
-   # /opt/lib/sbsbit3
-   # /opt/daq/[lL]ib
-   # /usr/opt/daq/[lL]ib
-   # $libdir
-   #  --with-sbsbit3-lib=path
-   AC_MSG_CHECKING([ Searching for libbtp.a...])
-   foundsbs_libs="false"
-   checkdirs="/usr/lib /usr/lib/sbsbit3 /usr/local/lib \
-	/usr/local/lib/sbsbit3 /opt/lib /opt/lib/sbsbit3 /opt/daq/lib \
-	/opt/daq/Lib /usr/opt/daq/lib /usr/opt/daq/Lib"
-
-   for directory in ${checkdirs} 
-   do
-     if test $foundsbs_libs == "false"
-     then
-        AC_CHECK_FILE([${directory}/libbtp.a],
-		[VMELIBRARY="-L${directory} -lbtp"
-	         foundsbs_libs="true"])
-     fi
-   done
- 
-    #  Check for it in libdir.
-
-   if test $foundsbs_libs == "false"
-   then
-      AC_CHECK_FILE([$libdir/libbtp.a],
-	[VMELIBRARY="-L$libdir -lbtp"
-	foundsbs_libs="true"])
-   fi
-
-   # check for --with-sbsbit3-lib=path   
-
-   if test $foundsbs_libs == "false"
-   then
-     AC_ARG_WITH(sbsbit3-lib,
-	[ --with-sbsbit3-lib=path - specify path to the sbs interface library],
-	VMELIBRARY="-L$withval -lbtp"
-	foundsbs_libs="true"])
-   fi
-
-   if test $foundsbs_libs == "true"
-   then
-      AC_MSG_RESULT([ found in $VMELIBRARY])
-   else
-      AC_MSG_ERROR([ Unable to find libbtp.a help me via --with-sbsbit3-lib])
-   fi
-fi
+VMELIBRARYHEADERS="-I$prefix/include"
+VMELIBRARY="-L$prefix/lib -lbtp"
 
 #   CAMAC defaults to CESCAMAC but can be overidden via --with-camac=VC32CAMAC
 
@@ -437,6 +303,43 @@ then
 	fi
 fi
 
+
+
+#  Figure out where the linux kernel headers are.
+#  We'll look for  $(HEADERS)/linux/module.h  in the following spots:
+#  - /usr/src/kernel-headers-$(uname -r)/include  [debian]
+#  - /usr/src/linux-$(uname-r)/include            [redhat]
+#  -  Where the user tells us with --with-kernel-headers=value.
+
+AC_MSG_CHECKING([for kernel headers (.../linux/module.h)])
+
+AC_ARG_WITH(kernel-headers,
+	[--with-kernel-headers=location of linux kernel headers],
+	[KERNEL_INCS="-I$withval"],[KERNEL_INCS="-"])
+
+if test $KERNEL_INCS == "-" ; then
+  AC_CHECK_FILE(/usr/src/kernel-headers-$(uname -r)/include/linux/module.h,
+    [KERNEL_INCS="-I/usr/src/kernel-headers-$(uname -r)/include"])
+fi
+
+if test $KERNEL_INCS == "-" ; then
+  AC_CHECK_FILE(/usr/src/linux-$(uname -r)/include/linux/module.h,
+      [KERNEL_INCS="-I/usr/src/linux-$(uname -r)/include"])
+fi
+
+
+#   Figure out SMP flag (needed by the btdriver build).
+
+AC_MSG_CHECKING([for smp system (btdriver)])
+
+if (uname -v |grep -q SMP)
+then
+  SMP_FLAG="-D__SMP__"
+  AC_MSG_RESULT([System runs the SMP kernel])
+else
+  SMP_FLAG=""
+  AC_MSG_RESULT([System is not running an SMP kernel])
+fi
 
 # define substitutions:
 
@@ -476,6 +379,15 @@ AC_SUBST(HYPERLATEX)
 AC_SUBST(LATEX)
 AC_SUBST(DVIPS)
 
+#   Linux kernel headers:
+
+AC_SUBST(KERNEL_INCS)
+
+#   Kernel type (SMP or not)
+
+AC_SUBST(SMP_FLAG)
+
+
 #  Create output files:
 
 AC_OUTPUT(Makefile Headers/Makefile CopyrightTools/Makefile \
@@ -488,4 +400,6 @@ AC_OUTPUT(Makefile Headers/Makefile CopyrightTools/Makefile \
 	TclServer/Makefile bcnaf/Makefile TcpHoister/Makefile Stager/Makefile \
 	Scripts/Makefile framework/Makefile AlarmDisplay/Makefile \
 	LogDisplay/Makefile ProductionReadout/Makefile \
-	ProductionReadout/hyperlatex/Makefile)
+	ProductionReadout/hyperlatex/Makefile \
+	btdriver/Makefile btdriver/dd/Makefile btdriver/lib/Makefile \
+	btdriver/include/Makefile)

@@ -293,6 +293,9 @@ static const char* Copyright= "(C) Copyright Michigan State University 2002, All
 
      Change Log:
      $Log$
+     Revision 3.1  2003/03/22 04:04:04  ron-fox
+     Added SBS/Bit3 device driver.
+
      Revision 2.1  2003/02/11 16:46:45  ron-fox
      Retag to version 2.1 to remove the weird branch I accidently made.
 

@@ -285,6 +285,9 @@
 #      ExpFileSystem
 #
 # $Log$
+# Revision 3.1  2003/03/22 04:03:57  ron-fox
+# Added SBS/Bit3 device driver.
+#
 # Revision 2.2  2003/03/11 18:55:19  ron-fox
 # Fix bug 47 - Allow users to build the readout software while they are
 #             already running it.  This is done by copying the readout program

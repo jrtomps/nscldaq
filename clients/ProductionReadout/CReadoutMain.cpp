@@ -282,6 +282,9 @@ static const char* Copyright = "(C) Copyright Michigan State University 2002, Al
   
   Change Log:
    $Log$
+   Revision 3.1  2003/03/22 04:03:08  ron-fox
+   Added SBS/Bit3 device driver.
+
    Revision 1.2  2003/03/14 20:12:30  ron-fox
    Get the production readout program actually running as a shared library.
 

@@ -294,6 +294,9 @@ static const char* Copyright= "(C) Copyright Michigan State University 2002, All
 //
 /* Change log:
       $Log$
+      Revision 3.1  2003/03/22 04:03:28  ron-fox
+      Added SBS/Bit3 device driver.
+
       Revision 2.2  2003/02/26 13:46:29  ron-fox
       Actually the only real change is to CAMACBusy.cpp which has been modified
       to not set the readout busy during scaler readouts.  Triggers will come

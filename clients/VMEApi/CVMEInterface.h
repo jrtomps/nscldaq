@@ -318,6 +318,9 @@ DAMAGES.
     Change history:
 
     $Log$
+    Revision 3.1  2003/03/22 04:04:03  ron-fox
+    Added SBS/Bit3 device driver.
+
     Revision 2.1  2003/02/11 16:46:44  ron-fox
     Retag to version 2.1 to remove the weird branch I accidently made.
 

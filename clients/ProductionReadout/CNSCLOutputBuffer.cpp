@@ -283,6 +283,9 @@ static const char* Copyright = "(C) Copyright Michigan State University 2002, Al
       
       Modification History:
       $Log$
+      Revision 3.1  2003/03/22 04:03:05  ron-fox
+      Added SBS/Bit3 device driver.
+
       Revision 1.2  2003/03/13 18:19:37  ron-fox
       First clean compile with Production readout software.
 

@@ -286,8 +286,11 @@ static const char* Copyright = "(C) Copyright Michigan State University 2002, Al
   
   Modification History:
   $Log$
-  Revision 1.1  2003/03/12 04:17:39  ron-fox
-  Initial revision
+  Revision 3.1  2003/03/22 04:03:09  ron-fox
+  Added SBS/Bit3 device driver.
+
+  Revision 1.1.1.1  2003/03/12 04:17:39  ron-fox
+  Correct initial import this time.
 
   Revision 1.5  2002/11/20 16:14:42  fox
   Misc. stuff
