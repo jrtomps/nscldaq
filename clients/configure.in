@@ -2,7 +2,7 @@
 AC_INIT(CopyrightTools/CopyrightNotice.cpp)
 AC_CONFIG_AUX_DIR(config)
 AM_CONFIG_HEADER(config.h)
-AM_INIT_AUTOMAKE(nscldaq, 7.0)
+AM_INIT_AUTOMAKE(nscldaq, 7.1)
 
 #  Checks for parameters:
 
@@ -320,8 +320,8 @@ then
 
    if test $foundsbs_headers == "false"
    then
-      AC_CHECK_FILE([${includedir}/btapi.h],
-	   [VMELIBRARYHEADERS=${includedir}
+      AC_CHECK_FILE([$prefix/include/btapi.h],
+	   [VMELIBRARYHEADERS=$prefix/include],
 	   foundsbs_headers="true"])
    fi
 
