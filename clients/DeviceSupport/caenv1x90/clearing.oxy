@@ -1,5 +1,5 @@
 /*!
-   \page Clearing Clearing data from the module.
+   \page caenv1x90Clearing Clearing data from the module.
 
  Due to power up timing considerations you must also supply code to clear the
  data from the module. This code invokes the module's CCAENV1x90::Clear member
@@ -8,10 +8,10 @@
 
 As usual, where you put this code depends on whether you are using 
 
-- \ref TraditionalClear
-- \ref ProductionClear
+- \ref caenv1x90TraditionalClear
+- \ref caenv1x90ProductionClear
 
-\section TraditionalClear Traditional Readout Skeleton
+\section caenv1x90TraditionalClear Traditional Readout Skeleton
 
 The Traditional Readout Skeleton provides the clearevt function.  This function
 is supposed to clear all of the digitizing modules used by an experiment, on an
@@ -32,10 +32,10 @@ clearevt ()
 
 \endcode
 
-Next \ref Unpacking  Back \ref Reading Top \ref Intro
+Next \ref caenv1x90Unpacking  Back \ref caenv1x90Reading Top \ref caenv1x90Intro
 
 
-\section ProductionClear  Production Readout Skeleton
+\section caenv1x90ProductionClear  Production Readout Skeleton
 
 Event segment classes that are used with the production readout skeleton
 provide a Clear member function.  This function should provide code to clear
@@ -50,7 +50,7 @@ void v1x90segment::Clear()
 }
 \endcode
 
-Next \ref Unpacking  Back \ref Reading Top \ref Intro
+Next \ref caenv1x90Unpacking  Back \ref caenv1x90Reading Top \ref caenv1x90Intro
 
 
 */

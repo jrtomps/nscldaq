@@ -1,8 +1,8 @@
 /*!
-\mainpage CAENV1190/CAENV1290 support software
+\page caenv1x90main CAENV1190/CAENV1290 support software
 \author Ron Fox	
 
-\section Intro Introduction
+\section caenv1x90Intro Introduction
 
 The CAENV1190 and CAENV1290 are high performance VME TDC
 modules.  These moudules are highly software compatible. 
@@ -48,11 +48,11 @@ order to get the full resolution of the module, you must:
 
 This document will describe:
 
-- \ref Constructing
-- \ref Initializing
-- \ref Reading
-- \ref Clearing
-- \ref Unpacking
+- \ref caenv1x90Constructing
+- \ref caenv1x90Initializing
+- \ref caenv1x90Reading
+- \ref caenv1x90Clearing
+- \ref caenv1x90Unpacking
 
 The documentation will be presented in the context of both the
 NSCL production and classic readout software skeletons.  Where

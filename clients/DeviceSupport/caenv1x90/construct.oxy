@@ -1,6 +1,6 @@
 /*!
 
-\page Constructing Constructing a module.
+\page caenv1x90Constructing Constructing a module.
 
 The CAENV1x90 module support comes in the form of a C++ class.
 In C++, classes can be thought of as data types and operations
@@ -53,13 +53,13 @@ The constructor requires the following parameters:
 
 The remainder of this page describes:
 
-- \ref TraditionalConstruction
-- \ref ProductionConstruction
+- \ref caenv1x90TraditionalConstruction
+- \ref caenv1x90ProductionConstruction
 
 In all cases we assume the base address of the module is 0xee000000
 of crate 0, to be initialized as virtual module 3.
 
-\section TraditionalConstruction Constructing a module in traditional Readout
+\section caenv1x90TraditionalConstruction Constructing a module in traditional Readout
 
 In traditional readout, you should construct a module in the initevt 
 function.  Since initevt, clearevt and readevt are all likely to need
@@ -88,7 +88,7 @@ static CCAENV1x90* pModule(0);          // (2)
    Up until now, no CCAENV1x90 objects have been  
    created.
 
-Within initevt, we will create the module itself. Refer to \ref Initializing
+Within initevt, we will create the module itself. Refer to \ref caenv1x90Initializing
 for information about how to initialize the module once its object
 has been created.
 
@@ -116,9 +116,9 @@ initevt ()
    stored in the pModule variable.
 
 
-Next \ref Initializing     Back \ref Intro
+Next \ref caenv1x90Initializing     Back \ref caenv1x90Intro
 
-\section ProductionConstruction Constructing a module in production readout
+\section caenv1x90ProductionConstruction Constructing a module in production readout
 
 The production readout software operates in a fundamentally different manner
 than the traditional readout.  With  production readout, you must generate
@@ -202,7 +202,7 @@ Once a v1x90segment is constructed, it will also contain a member object named
 m_TDC that is a CCAENV1x90 TDC object.  The TDC can be controlled by 
 the class member functions through this object.
 
-Next \ref Initializing     Back \ref Intro
+Next \ref caenv1x90Initializing     Back \ref caenv1x90Intro
 
 
 */

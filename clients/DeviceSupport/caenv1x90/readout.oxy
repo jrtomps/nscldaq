@@ -1,6 +1,6 @@
 /*!
 
-\page Reading Reading out events.
+\page caenv1x90Reading Reading out events.
 
 This page describes how to read a trigger matched event from the module. Sample
 code will be given for both the traditional and production readout skeletons.
@@ -30,11 +30,11 @@ In the examples that follow we will not show how to encapsulate data into
 tagged packets.
 
 See the approprate section below for more information:
-- \ref readTraditional
-- \ref readProduction
+- \ref caenv1x90readTraditional
+- \ref caenv1x90readProduction
 
 
-\section readTraditional  Reading TDC data in the traditional framework.
+\section caenv1x90readTraditional  Reading TDC data in the traditional framework.
 
 The readout of the TDC belongs in the readevt() function of skeleton.cpp.
 The sample code below waits for data to be present in the FIFO for a fixed
@@ -100,9 +100,9 @@ if(pModule->isEventFIFOReady()) {                     // Data present. (4)
 -# The bufpt buffer pointer is incremented to point to the next free location
    in the spectrodaq buffer.
 
-Next \ref Clearing  Back \ref Initializing   Top \ref Intro
+Next \ref caenv1x90Clearing  Back \ref caenv1x90Initializing   Top \ref caenv1x90Intro
 
-\section readProduction Reading TDC data in the production framework.
+\section caenv1x90readProduction Reading TDC data in the production framework.
 
 The read operation for the production readout system should be coded in the
 Read member of the event segment class.  The operations this member should
@@ -167,7 +167,7 @@ v1x90segment::Read(DAQWordBufferPtr& rBuffer)
 -# The bufpt buffer pointer is incremented to point to the next free location
    in the spectrodaq buffer.
 
-Next \ref Clearing  Back \ref Initializing   Top \ref Intro
+Next \ref caenv1x90Clearing  Back \ref caenv1x90Initializing   Top \ref caenv1x90Intro
 
 */
 

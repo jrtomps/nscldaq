@@ -1,5 +1,5 @@
 /*!
-\page Initializing Initializing the TDC
+\page caenv1x90Initializing Initializing the TDC
 
 The CAENV1x90 is a complex TDC, however very likely you will only need a few of
 its modes operation.  You will need to set the following parameters in a way
@@ -78,14 +78,14 @@ functions on the TDC object:
 
 
 See:
-- \ref Traditionalinit for how to do this in the traditional readout skeleton
-- \ref Productioninit for how to do this in the productino readout skeleton.
+- \ref caenv1x90Traditionalinit for how to do this in the traditional readout skeleton
+- \ref caenv1x90Productioninit for how to do this in the productino readout skeleton.
 
-\section Traditionalinit Initializing the module  in the traditional readout skeleton
+\section caenv1x90Traditionalinit Initializing the module  in the traditional readout skeleton
 
 To initialize the module in the traditional readout skeleton, you must add code
 to the initevt() function.  This code is added after the module creation shown
-in \ref Constructing.  The code below shows the construction of the module
+in \ref caenv1x90Constructing.  The code below shows the construction of the module
 along with the additional code needed to initialize the module as specified:
 
 \code
@@ -157,9 +157,9 @@ initevt ()
 -# Enables all error reporting on the board.
 -# Enable all tdc channels.
 
-Back  \ref Constructing  Next \ref Reading  Top \ref Intro
+Back  \ref caenv1x90Constructing  Next \ref caenv1x90Reading  Top \ref caenv1x90Intro
 
-\section Productioninit Initializing the module  in the production readout
+\section caenv1x90Productioninit Initializing the module  in the production readout
 skeleton 
 
 The production readout code to initialize the module will live in the
@@ -227,6 +227,6 @@ void v1x90segment::Initialize()
 -# Enable all tdc channels.
 
 
-Back  \ref Constructing  Next \ref Reading  Top \ref Intro
+Back  \ref caenv1x90Constructing  Next \ref caenv1x90Reading  Top \ref caenv1x90Intro
 
 */
