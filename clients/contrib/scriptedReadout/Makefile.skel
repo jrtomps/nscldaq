@@ -9,7 +9,13 @@ include $(INSTDIR)/etc/scriptedreadout_Makefile.include
 #
 #   If your modules need any additional c++ compilation swithces, define
 #   them below:
-
+#  If you are using CAMAC you must add one of the following to select
+#  the camac interface you are using:
+#
+#      -DCESCAMAC
+# or
+#      -DWIENERCAMAC
+#
 USERCXXFLAGS=
 
 #

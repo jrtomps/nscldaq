@@ -12,6 +12,13 @@ USERCXXFLAGS=
 #
 #   If you require any additional C compilation flags, define them below.
 #   Note: by default this is the same as the C++ flags:
+#
+#  If you are using CAMAC, you will need to add:
+#
+#      -DCESCAMAC
+# or
+#      -DWIENERCAMAC
+# To select your camac interface.
 
 USERCCFLAGS=$(USERCXXFLAGS)
 

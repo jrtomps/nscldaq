@@ -6,6 +6,11 @@ include $(INSTDIR)/etc/ProductionReadout_Makefile.include
 #
 #   Below, define any additional C++ compilation switches you might need.
 #
+#  If you are using camac you will need to add at least:
+#    -DCESCAMAC  
+# or -DWIENERCAMAC
+# to select between the CES 8210 and WIENER CAMAC interface modules.
+#
 USERCXXFLAGS=
 #
 #  Below, define any additional C compilation switches you may need.
@@ -28,6 +33,7 @@ USERLDFLAGS=
 #
 #   If you are using a 'traditional readout skeleton,
 #  Comment the Objects line two down and  uncomment the next line:
+#
 #Objects= Skeleton.o CTraditionalEventSegment.o CTraditionalScalerReadout.o
 Objects=Skeleton.o
 
