@@ -479,6 +479,9 @@ class CAENcard {
     int readEvent(DAQDWordBuffer& dwbuf, int offset);
     //! Reads one event from the event buffer (if data is present) and returns the number of 32-BIT DWORDS read into the buffer.
     int readEvent(DAQDWordBufferPtr& dwp);
+
+    void setIped(int channel, int value);
+    int  getIped(int channel);
 };
 
 #endif

@@ -432,7 +432,7 @@ int CAENcard::slotInit(int slotNum, int crateNum, bool fGeo, long nBase)
       To determine that the experimenter is not lying to us
       about how the VME is stuffed, we require that the module
       identifier be of a supported module type:
-      V775, V785, V792, and that, for good measure,
+      V775, V785, V792, V862 and that, for good measure,
       it's geographical address register match the slot
       the module is in.  For random data this should
       make a pretty miniscule chance that we'll be fooled
@@ -445,7 +445,10 @@ int CAENcard::slotInit(int slotNum, int crateNum, bool fGeo, long nBase)
    unsigned int geo          = (*(pModule + 0x1002/sizeof(short)) & 0xff) & 0x1f;
    if(!(
 	( (short int)slot == geo )   &&		//check geo address
-	( (boardid == 775) || (boardid == 785) || (boardid == 792) ) // and board type
+	( (boardid == 775) || 
+	  (boardid == 785) || 
+	  (boardid == 792) ||
+	  (boardid == 862) ) // and board type
 	))   {   //either an invalid board or no board is present in this slot
      printf("\nCard is not inserted or is of an incompatable type!\n");
      CVMEInterface::Unmap(crate[slot].fd, (void*)crate[slot].mbuf, CAEN_CARD_MMAP_LEN);
@@ -1190,5 +1193,28 @@ bool operator< (const CAENcard& card1, const CAENcard& card2)
 {
   return card1.slot < card2.slot;
 };
+
+/*!
+   Set an iped value.
+   \param channel - Channel to set.
+   \param value   - New value for pedestal only bottom 8 bits are used.
+
+*/
+void CAENcard::setIped(int channel, int value)
+{
+  if(crate[slot].status & CAEN_MODE_A32D16) {
+    *(crate[slot].mbuf+(0x1080)/sizeof(short) + channel) = value;
+  }
+}
+/*!
+   Return the value of an Iped register.
+   \param channel - Channel to get.
+*/
+int CAENcard::getIped(int channel)
+{
+  if(crate[slot].status & CAEN_MODE_A32D16) {
+    return *(crate[slot].mbuf+(0x1080)/sizeof(short) + channel);
+  }
+}
 
 #endif

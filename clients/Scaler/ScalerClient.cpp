@@ -295,6 +295,9 @@ static const char* Copyright= "(C) Copyright Michigan State University 2002, All
 /*
   Modification history:
     $Log$
+    Revision 3.2  2003/05/16 17:33:04  ron-fox
+    Support V862 board.
+
     Revision 3.1  2003/03/22 04:03:50  ron-fox
     Added SBS/Bit3 device driver.
 
@@ -436,9 +439,15 @@ void CScalerClient::OnBeginBuffer(CNSCLStateChangeBuffer& rBuffer)
 {
   //  Called when a begin run buffer is received.
 
+ 
   ClearScalers();
   UpdateRunTitle(rBuffer.getTitle().c_str());
   UpdateRunNumber(rBuffer.getRunNumber());
+  
+  // Begins can only come our way from state halted... so even if this
+  // is the first buffer, we know the state unambiguously.
+
+  setRunState(RSHalted);
   UpdateRunState(RSActive);
 
   string cmd;
