@@ -273,7 +273,7 @@ THIRD PARTIES OR A FAILURE OF THE PROGRAM TO OPERATE WITH ANY OTHER PROGRAMS),
 EVEN IF SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH 
 DAMAGES.
 
-		     END OF TERMS AND CONDITIONS
+		     END OF TERMS AND CONDITIONS '
 */
 static const char* Copyright = "(C) Copyright Michigan State University 1944, All rights reserved";
 // Author:
@@ -289,7 +289,9 @@ static const char* Copyright = "(C) Copyright Michigan State University 1944, Al
 // See CAlarmServer.h for a description of this class.
 //
 
-#include <iostream.h>
+#include <config.h>
+
+#include <Iostream.h>
 #include <stdio.h>
 #include <string.h>
 #include <math.h>
@@ -298,6 +300,11 @@ static const char* Copyright = "(C) Copyright Michigan State University 1944, Al
 #include <sys/stat.h>
 #include <sys/socket.h>
 #include <errno.h>
+
+#ifdef HAVE_STD_NAMESPACE
+using namespace std;
+#endif
+
 extern gdbm_error gdbm_errno;           // errno for gdbm
 // extern int errno;                       // in case the server dies
 
@@ -681,7 +688,7 @@ CAlarmServer::Log(string& srFacility, string& srMessage,
     if(It->first == m_sExpId) {
       m_sAlarmId = It->second;
       int nAlarmId = atoi(m_sAlarmId.c_str());
-      int nChars   = (int)log10(nAlarmId+1) + 1;
+      int nChars   = (int)log10((double)(nAlarmId+1)) + 1;
       char alm[nChars];
       sprintf(alm, "%d", (++nAlarmId));
       string sAlm = string(alm);

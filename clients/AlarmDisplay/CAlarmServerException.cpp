@@ -273,7 +273,7 @@ THIRD PARTIES OR A FAILURE OF THE PROGRAM TO OPERATE WITH ANY OTHER PROGRAMS),
 EVEN IF SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH 
 DAMAGES.
 
-		     END OF TERMS AND CONDITIONS
+		     END OF TERMS AND CONDITIONS '
 */
 
 // Author:
@@ -289,7 +289,14 @@ DAMAGES.
 // See CAlarmServerException.h for a description of this class.
 //
 
+#include <config.h>
 #include <CAlarmServerException.h>
+
+#ifdef HAVE_STD_NAMESPACE
+using namespace std;
+#endif
+
+
 
 static const char* Copyright= Copyright =
 "CAlarmServerException.cpp: Copyright 2002 NSCL, All rights reserved\n";

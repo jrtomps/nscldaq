@@ -4,7 +4,7 @@
 #ifndef __FSTREAM_DAQH
 #define __FSTREAM_DAQH
 
-#ifdef HAVE_HLESS_HEADERS
+#ifdef HAVE_HLESS_FSTREAM
 
 #include <fstream>
 #else

@@ -346,7 +346,11 @@ CConsumer::~CConsumer()
     if(!pSource->Disconnect()) {
       DAQURL srcurl(pSource->getURL());
       cerr << "Unable to form connection for Data source: " << endl;
+#if __GNUC__ >= 3		// 3.0 or later spectrodaq not a stream..
       cerr << " URL - " << srcurl.Get().str()  << endl;
+#else
+      cerr << " URL - " << srcurl << endl;
+#endif
     }
     delete pSource;
   }

@@ -300,6 +300,9 @@ DAMAGES.
 /*  
    Change log:
     $Log$
+    Revision 4.3  2004/11/24 17:59:59  ron-fox
+    Complete the port so that it can go both ways
+
     Revision 4.2  2004/11/16 15:24:48  ron-fox
     - Port to the gnu 3.x compiler set.
     - Integrate buid of tests.
@@ -340,6 +343,9 @@ DAMAGES.
 
 #ifndef __CCAENIO_H
 #define __CCAENIO_H
+
+#include <config.h>
+
 
 #ifndef __VMEMODULE_H
 #include <VmeModule.h>

@@ -273,7 +273,7 @@ THIRD PARTIES OR A FAILURE OF THE PROGRAM TO OPERATE WITH ANY OTHER PROGRAMS),
 EVEN IF SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH 
 DAMAGES.
 
-		     END OF TERMS AND CONDITIONS
+		     END OF TERMS AND CONDITIONS '
 */
 // Author:
 //   Jason Venema
@@ -313,7 +313,7 @@ DAMAGES.
 
 class CAlarmServerException : public CException
 {
-  string m_sRequestString;  // The offending request that caused the exception
+  STD(string) m_sRequestString;  // The offending request that caused the exception
   Int_t  m_nErrno;          // Snapshot of errno at construction time
 
  public:
@@ -322,15 +322,15 @@ class CAlarmServerException : public CException
     m_sRequestString(pError),
     CException(pszAction),
     m_nErrno(errno) {}
-  CAlarmServerException(const char* pszAction, const string& rError) :
+  CAlarmServerException(const char* pszAction, const STD(string)& rError) :
     m_sRequestString(rError),
     CException(pszAction),
     m_nErrno(errno) {}
-  CAlarmServerException(const std::string& rsAction, const char* pError) :
+  CAlarmServerException(const STD(string)& rsAction, const char* pError) :
     m_sRequestString(pError),
     CException(rsAction),
     m_nErrno(errno) {}
-  CAlarmServerException(const std::string& rsAction, const string& rError) :
+  CAlarmServerException(const STD(string)& rsAction, const STD(string)& rError) :
     m_sRequestString(rError),
     CException(rsAction),
     m_nErrno(errno) {}
@@ -363,12 +363,12 @@ class CAlarmServerException : public CException
     }
 
   // Public selector functions
-  string getRequestString() const { return m_sRequestString; }
+  STD(string) getRequestString() const { return m_sRequestString; }
   Int_t getErrno() const { return m_nErrno; }
 
   // Protected mutator function
  protected:
-  void setRequestString(string am_sRequestString) 
+  void setRequestString(STD(string) am_sRequestString) 
     { m_sRequestString = am_sRequestString; }
   void setErrno(Int_t err) { m_nErrno = err; }
 

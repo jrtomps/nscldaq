@@ -12,6 +12,8 @@ libSecurity_la_LDFLAGS = -version-info $(SOVERSION):0 -Wl,"-rpath=$(libdir)"
 INCLUDES = -I@top_srcdir@/Headers -I@top_srcdir@/TCL $(TCL_FLAGS) $(SPECTRODAQ_FLAGS)
 
 
+if CPPUNIT
+
 noinst_PROGRAMS = unittests
 
 unittests_SOURCES = test.cpp AccessListCheck.cpp AuthTokenCheck.cpp \
@@ -23,3 +25,5 @@ unittests_LDADD = -L@top_srcdir@/TCL -lTclPlus -L@top_srcdir@/Exception -lExcept
 	$(SPECTRODAQ_LDFLAGS) $(TCL_LDFLAGS)
 
 TESTS = ./unittests
+
+endif

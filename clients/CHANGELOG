@@ -127,20 +127,33 @@ Week of November 1:
     - Port SpecTclDAQ     -> 3.x 
     - Port DiskRun        -> 3.x
 
-Week of November 8:
-    - Add VMEINTERFACE featur full in configure.in: support sbs, wiener and
-      none as well as HAVE_VME_MAPPING
-    - Incorporate Wiener driver into the build.
-    - Port VMEApi        -> 3.x using feature variables to select which
-                            interface gets built.
-    - Port libTCLPlus    -> 3.x using feature variables.
-    - Port vmetcl        -> 3.x using feature variables.
-    - bcnaf.tcl: Added -ces/-wiener switch so the same script can fire off
-       either cesbcnaf or wienerbcnaf.  The default is -ces so that pure
-       compatibility is retained.
-    - Remove CTCLFileHandler constructors that operate on c++ streams as
-      these will no longer work in the ANSI standard IOSTREAMS library.
-    - Port Security      - 3.x 
-    - Add feature test for spectrodaq_main()  use it in pReadout to 
-      conditionally define main() when spectrodaq has a separable
-      main() that might not get linked otherwise.
+Initial port to gcc/g++ 3.x  Note that this version can be compile on either 
+3.x or prior compilers. There is, however a version dependency with spectrodaq.
+spectrodaq-0.8.x.y and earlier will only compile with 2-ish compilers. 
+spectrodaq-pregt is th first version that compiles with 3.x
+
+The port includes a few additions that can be triggered at compile time:
+
+--enable-cppunit  - If the cppunit package can be located, this switch
+                    enables the compilation of cppunit based tests for
+                    some directories.  Within those diretories, unit tests
+	            can be run via make check-TESTS.
+--with-vme-interface=dev  Allows the selection of one of the following
+	            PCI/VME interfaces depending on the value of dev:
+                     sbs    - SBS/Bit3 PCI/VME interface.
+                     wiener - Wiener PC/VC32 combination.
+		     non    - No VME support is built.
+                    Note that not all device support modules are aware of
+	            this.
+--with-camac=dev  - Allows the selection of one of the following VME/CAMAC
+                    interfaces as the default (although support for both is
+                    created).
+                    CESCAMAC  - Default CAMAC support is CES CBD8210
+                    VC32CAMAC - Default CAMAC support is Wiener VC/CC32.
+
+
+November 24, 2004:
+ 	Happy Thanksgiving:
+	o Completed the port to 3.x compilers
+	o Determined that the software can also still compile/run on 2.95
+    

@@ -287,6 +287,6 @@ void* daq_MapCamacSpace(void* fid);	/* Map to camac address space.   */
 void  daq_UnmapCamacSpace(void* fid,void* pSpace); /* Unmap CAMAC address space.   */
 void  daq_CloseCamacDriver(void* fid);    /* deaccess the CAMAC.           */
 
-void BranchAccess(int br);	/* Setup access to the branch. */
+/* void BranchAccess(int br); */	/* Setup access to the branch. */
 
 #endif

@@ -7,7 +7,7 @@
 #ifndef  __OSTREAM_DAQH
 #define  __OSTREAM_DAQH
 
-#ifdef HAVE_HLESS_HEADERS
+#ifdef HAVE_HLESS_OSTREAM
 #include <ostream>
 #else
 #include <ostream.h>

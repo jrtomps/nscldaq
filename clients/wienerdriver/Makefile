@@ -16,7 +16,7 @@ SHELL = /bin/sh
 srcdir = .
 top_srcdir = ..
 
-prefix = /scratch/fox/daq/8.0test
+prefix = /scratch/fox/daq/8.0
 exec_prefix = ${prefix}
 
 bindir = ${exec_prefix}/bin
@@ -112,12 +112,12 @@ VERSION = 8.0
 VMEBUILDHEADERS = -I/scratch/fox/daq/8.0/btdriver/include
 VMEBUILDLIBS = -L/scratch/fox/daq/8.0/btdriver/lib -lbtp
 VMEDEVICE = SBSBIT3
-VMELIBRARY = -L/scratch/fox/daq/8.0test/lib -lbtp
-VMELIBRARYHEADERS = -I/scratch/fox/daq/8.0test/include
+VMELIBRARY = -L/scratch/fox/daq/8.0/lib -lbtp
+VMELIBRARYHEADERS = -I/scratch/fox/daq/8.0/include
 VME_DRIVERDIR = btdriver
 X11INCS =  -I/usr/X11R6/include
 X11LIBS =  -L/usr/X11R6/lib  -lXm -lXt -lX11
-spectrodaq_conf_dir = /scratch/fox/spectrodaq/test/bin
+spectrodaq_conf_dir = /scratch/fox/spectrodaq/test//bin
 
 SUBDIRS = driver lib
 mkinstalldirs = $(SHELL) $(top_srcdir)/config/mkinstalldirs

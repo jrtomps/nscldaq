@@ -282,6 +282,9 @@ static const char* Copyright = "(C) Copyright Michigan State University 2002, Al
   
   Change Log:
    $Log$
+   Revision 4.4  2004/11/24 17:59:59  ron-fox
+   Complete the port so that it can go both ways
+
    Revision 4.3  2004/11/22 19:26:12  ron-fox
    Port to gcc/g++ 3.x
 
@@ -338,7 +341,6 @@ using namespace std;
 #endif
 #include <spectrodaq.h>
 #include "CReadoutMain.h"                  
-#include "cmdline.h"
 
 #include "CTclInterpreterShell.h"
 #include "CTkInterpreterShell.h"
@@ -361,6 +363,8 @@ using namespace std;
 #include <string.h>
 #include <Iostream.h>
 #include <unistd.h>
+
+#include "cmdline.h"		// Hopefully last will stop redef issues.
 
 static const long VMETRIGGERBASE(0x444400);
 

@@ -29,8 +29,8 @@ using namespace std;		// Needed here for spectrodaq
 
 
 
-#include <iostream.h>
-#include <iomanip.h>
+#include <Iostream.h>
+#include <Iomanip.h>
 
 const char* sDevice="/dev/vme32d32";
 const unsigned long nDeviceSize = 0x383000;

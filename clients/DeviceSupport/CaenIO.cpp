@@ -298,6 +298,9 @@ static const char* Copyright= "(C) Copyright Michigan State University 2002, All
 /*  
    Change log:
    $Log$
+   Revision 4.3  2004/11/24 17:59:59  ron-fox
+   Complete the port so that it can go both ways
+
    Revision 4.2  2004/11/16 15:24:48  ron-fox
    - Port to the gnu 3.x compiler set.
    - Integrate buid of tests.
@@ -534,7 +537,7 @@ CCaenIO::ClearAll()
   pokew(0, 2);
   pokew(0, 3);
 }
-#ifndef HAVE_VME_MAPPING
+#ifdef HAVE_VME_MAPPING
 /*!
    Get a pointer to the input register.  This is
 designed for high performance software that does

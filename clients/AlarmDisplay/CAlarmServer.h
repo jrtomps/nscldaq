@@ -273,7 +273,7 @@ THIRD PARTIES OR A FAILURE OF THE PROGRAM TO OPERATE WITH ANY OTHER PROGRAMS),
 EVEN IF SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH 
 DAMAGES.
 
-		     END OF TERMS AND CONDITIONS
+		     END OF TERMS AND CONDITIONS '
 */
 // Author:
 //   Jason Venema
@@ -308,23 +308,28 @@ DAMAGES.
 #endif
 
 #ifndef __STL_STRING
-#define __STL_STRING
 #include <string>
+#ifndef __STL_STRING
+#define __STL_STRING
 #endif
-
-#ifndef __STL_VECTOR
-#define __STL_VECTOR
-#include <vector>
 #endif
 
 #ifndef __STL_MAP
-#define __STL_MAP
 #include <map>
+#ifndef __STL_MAP
+#define __STL_MAP
+#endif
 #endif
 
 #ifndef __STL_ALGORITHM
-#define __STL_ALGORITHM
 #include <algorithm>
+#ifndef __STL_ALGORITHM
+#define __STL_ALGORITHM
+#endif
+#endif
+
+#ifdef HAVE_STD_NAMESPACE
+using namespace std;
 #endif
 
 #ifndef __SPECTRODAQ_H
@@ -349,14 +354,14 @@ DAMAGES.
 
 using namespace std;
 
-typedef map<string, string>::iterator MapIterator;
+typedef STD(map)<STD(string), STD(string)>::iterator MapIterator;
 
 class CAlarmServer
 {
-  string m_sPort;               //! The port this server listens on
-  string m_sExpId;              //! The experiment requesting the service
-  string m_sAlarmId;            //! The alarm id of this alarm
-  map<string, string> m_CurrAlarm; //! Maps the exp. id to the current alarm id
+  STD(string)m_sPort;               //! The port this server listens on
+  STD(string) m_sExpId;              //! The experiment requesting the service
+  STD(string) m_sAlarmId;            //! The alarm id of this alarm
+  STD(map)<STD(string), STD(string)> m_CurrAlarm; //! Maps the exp. id to the current alarm id
 
  public:
   enum ClientReason {
@@ -389,15 +394,15 @@ class CAlarmServer
 
   // Public selectors
  public:
-  string getPort() { return m_sPort; }
-  string getExpId() { return m_sExpId; }
-  string getAlarmId() { return m_sAlarmId; }
+  STD(string) getPort() { return m_sPort; }
+  STD(string) getExpId() { return m_sExpId; }
+  STD(string) getAlarmId() { return m_sAlarmId; }
 
   // Protected mutators
  protected:
-  void setPort(const string& aPort) { m_sPort = aPort; }
-  void setExpId(const string& aExpId) { m_sExpId = aExpId; }
-  void setAlarmId(const string& aAlarmId) { m_sAlarmId = aAlarmId; }
+  void setPort(const STD(string)& aPort) { m_sPort = aPort; }
+  void setExpId(const STD(string)& aExpId) { m_sExpId = aExpId; }
+  void setAlarmId(const STD(string)& aAlarmId) { m_sAlarmId = aAlarmId; }
 
   // Public member functions
  public:
@@ -405,11 +410,11 @@ class CAlarmServer
 
   // Protected member fuctions
  protected:
-  void Log(string& sFacility, string& sMessage, string& sDate, string& srFrom);
+  void Log(STD(string)& sFacility, STD(string)& sMessage, STD(string)& sDate, STD(string)& srFrom);
   void EditAlarm(Int_t nReason);
-  string Init();
+  STD(string) Init();
   void CreateExperiment();
-  string GetExperimentHistory();
+  STD(string) GetExperimentHistory();
 };
 
 #endif
