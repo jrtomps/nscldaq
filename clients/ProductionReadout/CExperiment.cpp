@@ -13,7 +13,7 @@
 freedom to share and change it.  By contrast, the GNU General Public
 License is intended to guarantee your freedom to share and change free
 software--to make sure the software is free for all its users.  This
-General Public License applies to most of the Free Software
+General Public License aplies to most of the Free Software
 Foundation's software and to any other program whose authors commit to
 using it.  (Some other Free Software Foundation software is covered by
 the GNU Library General Public License instead.)  You can apply it to
@@ -283,6 +283,11 @@ static const char* Copyright = "(C) Copyright Michigan State University 2002, Al
    
    Modification History:
    $Log$
+   Revision 3.4  2003/12/05 17:35:42  ron-fox
+   Fix sloppy handling of the buffer
+   sequence number that was throwing off
+   sampling calculations in e.g. spectcl.
+
    Revision 3.3  2003/10/31 17:42:13  ron-fox
    Lock the VME prior to releasing control to the
    experimental readout.
@@ -745,6 +750,7 @@ CExperiment::ReadEvent()
   // at this time.
   //
   if(!m_EventBuffer) {
+    CNSCLOutputBuffer::IncrementSequence();
     m_EventBuffer = new CNSCLPhysicsBuffer(m_nBufferSize * 2);
   }
   
@@ -909,9 +915,10 @@ CExperiment::TriggerScalerReadout()
     
     if(m_EventBuffer->getEntityCount()) {
       m_EventBuffer->SetRun(GetRunNumber());
+      m_EventBuffer->Resize(m_nBufferSize);
       m_EventBuffer->Route();
       delete m_EventBuffer;
-      m_EventBuffer = new CNSCLPhysicsBuffer(m_nBufferSize*2);
+      m_EventBuffer = 0;
     }
   }
 
@@ -939,7 +946,7 @@ CExperiment::TriggerScalerReadout()
   buffer.SetStartTime(m_LastScalerTime);
   buffer.SetEndTime(now);
   buffer.SetRun(GetRunNumber());
-  buffer.Route(false);		// No sequence increment for scalers.
+  buffer.Route();		// No sequence increment for scalers.
 
   m_LastSnapTime = 0;
   m_LastScalerTime = now;
@@ -970,7 +977,7 @@ CExperiment::TriggerRunVariableBuffer()
     CRunVariableBuffer buf;
     i = EmitRunVariableBuffer(buf, i, Vars->end());
     buf.SetRun(GetRunNumber());
-    buf.Route(true);		// Increment else SpecTcl's eff is wrong.
+    buf.Route();		// Increment else SpecTcl's eff is wrong.
   }
   
 }  
@@ -987,7 +994,7 @@ CExperiment::TriggerStateVariableBuffer()
     CStateVariableBuffer buf(m_nBufferSize);
     i = EmitStateVariableBuffer(buf, i, e);
     buf.SetRun(GetRunNumber());
-    buf.Route(true);		//Increment else spectcl eff. is wrong
+    buf.Route();		//Increment else spectcl eff. is wrong
   }
 
 }
@@ -1025,7 +1032,7 @@ CExperiment::TriggerSnapshotScaler()
   buffer.SetEndTime(m_LastSnapTime = GetElapsedTime()/10);
 
   buffer.SetRun(GetRunNumber());
-  buffer.Route(false);
+  buffer.Route();
 		     
 }  
 
@@ -1047,7 +1054,7 @@ CExperiment::TriggerDocBuffer()
 
     i = EmitDocBuffer(i, pManager->end(), buf);
     buf.SetRun(GetRunNumber());
-    buf.Route(true);		// Increment else spectcl's smapling eff. is wrong
+    buf.Route();		// Increment else spectcl's smapling eff. is wrong
   }
   
 }  
@@ -1107,7 +1114,7 @@ CExperiment::EmitStart()
   buffer.PutTimeOffset(GetElapsedTime());
   buffer.SetRun(GetRunNumber());
   buffer.SetType(BEGRUNBF);
-  buffer.Route(false);
+  buffer.Route();
 
 }
 /*!
@@ -1122,7 +1129,7 @@ CExperiment::EmitEnd()
   buffer.PutTimeOffset(GetElapsedTime());
   buffer.SetRun(GetRunNumber());
   buffer.SetType(ENDRUNBF);
-  buffer.Route(false);
+  buffer.Route();
 }
 /*!
   Emits a pause run buffer.  Pause run buffers also look like Begin buffers with
@@ -1136,7 +1143,7 @@ CExperiment::EmitPause()
   buffer.PutTimeOffset(GetElapsedTime());
   buffer.SetRun(GetRunNumber());
   buffer.SetType(PAUSEBF);
-  buffer.Route(false);
+  buffer.Route();
   
 }
 /*!
@@ -1151,7 +1158,7 @@ CExperiment::EmitResume()
   buffer.PutTimeOffset(GetElapsedTime());
   buffer.SetRun(GetRunNumber());
   buffer.SetType(RESUMEBF);
-  buffer.Route(false);
+  buffer.Route();
 
 }
 /*!
@@ -1300,6 +1307,7 @@ CExperiment::Overflow(DAQWordBufferPtr& header,
    
    // Copy the overflowing event to a new buffer:
    
+   CNSCLOutputBuffer::IncrementSequence();
    CNSCLPhysicsBuffer* pNewBuffer = new CNSCLPhysicsBuffer(m_nBufferSize*2);
    DAQWordBufferPtr    pDest      = pNewBuffer->StartEvent();
    DAQWordBufferPtr    pSrc       = header;
@@ -1314,6 +1322,7 @@ CExperiment::Overflow(DAQWordBufferPtr& header,
    
    m_EventBuffer->RetractEvent(header);
    m_EventBuffer->SetRun(GetRunNumber());
+   m_EventBuffer->Resize(m_nBufferSize);
    m_EventBuffer->Route();
    delete m_EventBuffer;
    
