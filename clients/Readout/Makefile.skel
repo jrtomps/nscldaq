@@ -11,7 +11,7 @@ CC = gcc
 
 
 
-LDFLAGS=-L$(LIBDIR) -lReadout $(SPECTRO_LDFLAGS) $(VMELIBRARY)
+LDFLAGS=-L$(LIBDIR) -lReadout -lException $(SPECTRO_LDFLAGS) $(VMELIBRARY)
 
 CXXFLAGS = -c -D__UNIX__ $(SPECTRO_FLAGS) -I$(INCLUDEDIR) \
 	-I$(VMELIBRARYHEADERS) $(CAMAC)
@@ -33,4 +33,6 @@ skeleton.o: skeleton.cpp
 	$(CPP)  $<
 
 
-
+clean: 
+	rm -f $(PROGOBJS)
+	rm -f Readout
