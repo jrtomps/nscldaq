@@ -124,3 +124,5 @@ Week of November 1:
     - Port Exception      -> 3.x
     - Port daqstart       -> 3.x
     - Port TcpHoist       -> 3.x (note found/fixed defect).
+    - Port SpecTclDAQ     -> 3.x 
+    - Port DiskRun        -> 3.x
