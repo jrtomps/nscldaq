@@ -114,3 +114,11 @@ Week of October 25, 2004
   against the tcl stub library.
 - Link the vme access extension against the stub lib to make it starkit compatible.
 - Allow a find on static tcl libs without requiring dynamic libs.
+
+Week of November 1:
+    - Add feature tests to support port to gcc/g++ 3.x
+    - Add some feature headers (Iostream.h, Ostream.h) to do 
+      compiler independent #includes for the corresponding c++ library
+      includes (with or without the .h ...).
+    - Port CopyrightTools -> 3.x
+    - Port Exception      -> 3.x
