@@ -348,7 +348,12 @@ operator() and the unlocks the resource.
 
 */
 int 
-CDAQTCLProcessor::EvalRelay(ClientData pData, Tcl_Interp* pInterp, int Argc, char** Argv)  
+CDAQTCLProcessor::EvalRelay(ClientData pData, Tcl_Interp* pInterp, int Argc, 
+#if (TCL_MAJOR_VERSION > 8) || ((TCL_MAJOR_VERSION ==8) && (TCL_MINOR_VERSION > 3))
+			 const char** Argv)
+#else
+			 char** Argv)
+#endif
 { 
   CApplicationSerializer* pSynch = CApplicationSerializer::getInstance();
 
