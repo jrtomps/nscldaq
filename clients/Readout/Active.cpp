@@ -299,6 +299,9 @@ DAMAGES.
 /*
   Modification History:
   $Log$
+  Revision 3.2  2003/03/31 14:42:08  ron-fox
+  Do a try {} catch(...) in Active::EndRun to ensure that the current state is actually active before asking the run to end.
+
   Revision 3.1  2003/03/22 04:03:27  ron-fox
   Added SBS/Bit3 device driver.
 
@@ -363,6 +366,7 @@ DAMAGES.
 #include "TestBusy.h"
 
 #include <iostream.h>
+#include <typeinfo>
 
 #include "Readout.h"
 
@@ -758,11 +762,17 @@ Active::UpdateInternalTime()
 
 // EndRun - Static member function which allows readout software to request
 //          an end of run.  
-//  BIG ASSUMPTION:
-//          The run is active or else undefined results will occur.
-//
+//   If the run is not active, this is a no-op.
+
 void Active::EndRun()
 {
-  Active* pMe = (Active*)(gpStateMachine->GetCurrentStatePtr());
-  pMe->m_EndRunRequested = true;
+  try {				// ensure we're really active...
+    // Seems like these need to be static else the dynamic cast can get fooled!
+
+    static State* pState = (gpStateMachine->GetCurrentStatePtr());
+    static Active* pMe   = dynamic_cast<Active*>(pState);
+    pMe->m_EndRunRequested = true;
+  }
+  catch (...) {
+  }
 }

@@ -295,6 +295,9 @@ DAMAGES.
    
   Modifications:
     $Log$
+    Revision 3.2  2003/03/31 14:42:10  ron-fox
+    Do a try {} catch(...) in Active::EndRun to ensure that the current state is actually active before asking the run to end.
+
     Revision 3.1  2003/03/22 04:03:27  ron-fox
     Added SBS/Bit3 device driver.
 
@@ -385,10 +388,12 @@ public:
     State(),
     m_nEventsRead(0), 
     m_pNimout(0),
-    m_EndRunRequested(false),
+    m_pCaen(0),
     m_pTrigger(0),
+    m_pBusy(0),
     m_pReader(0),
-    m_pBusy(0)
+    m_EndRunRequested(false)
+
     { } 
   ~ Active ( )       //Destructor
     {

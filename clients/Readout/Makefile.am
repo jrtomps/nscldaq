@@ -46,10 +46,10 @@ install-data-local:
 	
 
 libReadout_la_LDFLAGS = -version-info 1:0:0  -L@top_srcdir@/VMEApi \
-	-lVmeAPI $(SPECTRODAQ_LDFLAGS)
+	-lVmeAPI $(SPECTRODAQ_LDFLAGS) -g
 
 INCLUDES = -I@top_srcdir@/Headers -I@top_srcdir@/VMEApi \
-	$(SPECTRODAQ_FLAGS) -DINSTDIR=\"$(prefix)\" $(CAMAC)
+	$(SPECTRODAQ_FLAGS) -DINSTDIR=\"$(prefix)\" $(CAMAC) -g
 
 EXTRA_DIST = runstate.tran Makefile.skel ReadoutMain.cpp skeleton.cpp 
 
