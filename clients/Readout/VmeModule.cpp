@@ -362,6 +362,12 @@ CVmeModule::CVmeModule(Space space, UInt_t base, UInt_t length, int nCrate)
       break;
     case a32d32:
       m_CVME = CVME<UShort_t>(CVME<UShort_t>::a32d32, base, length);
+      break;
+    case geo:
+      m_CVME =  CVME<UShort_t>(CVME<UShort_t>::geo, base, length);
+      break;
+    default:
+      throw 1;			// Force the catch below to complain.
     }
   }
   catch(...) {
