@@ -4,8 +4,12 @@
 #
 RUNREADOUTdir=$1
 RUNREADOUTexec=$2
-if [ -e .profile ]; then
-  . .profile
+if [ -e /etc/profile ]; then
+  . /etc/profile
+fi
+
+if [ -e ~/.bash_profile ]; then
+  . ~/.bash_profile
 fi
 if [ -e .bashrc ]; then
   . .bashrc
