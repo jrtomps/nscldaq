@@ -297,16 +297,10 @@ DAMAGES.
 #endif
 
 
+#ifndef __CAMACMAP_H
+#include <camacmap.h>
+#endif
 
-  /*
-  ** CAMAC/BIT3 device interface functions:
-  */
-void* daq_OpenCamacDriver();	        /* Open the Camac device driver  */
-void* daq_MapCamacSpace(void* fid);	/* Map to camac address space.   */
-void  daq_UnmapCamacSpace(void* fid,void* pSpace); /* Unmap CAMAC address space.   */
-void  daq_CloseCamacDriver(void* fid);    /* deaccess the CAMAC.           */
-
-void BranchAccess(int br);	/* Setup access to the branch. */
 
 #ifdef __cplusplus
 extern "C" {
