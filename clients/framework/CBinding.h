@@ -273,7 +273,7 @@ THIRD PARTIES OR A FAILURE OF THE PROGRAM TO OPERATE WITH ANY OTHER PROGRAMS),
 EVEN IF SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH 
 DAMAGES.
 
-		     END OF TERMS AND CONDITIONS
+		     END OF TERMS AND CONDITIONS '
 */
 // Author:
 //    Ron Fox
@@ -389,20 +389,20 @@ public:
     \throws CRangeError - no type match
     \bug    Should invent a bad type exception and throw it.
     */
-  string ItemToString(T Item)
+  STD(string) ItemToString(T Item)
   {
     char item[20];
 
     if(typeid(Item) == typeid(int)) {
       sprintf(item, "%d", Item);
-      return string(item);
+      return STD(string)(item);
     }
     if(typeid(Item) == typeid(double) ) {
       sprintf(item, "%lf", Item);
-      return string(item);
+      return STD(string)(item);
     }
     if(typeid(Item) == typeid(bool)) {
-      return string(item ? "true" : "false");
+      return STD(string)(item ? "true" : "false");
     }
     if(typeid(Item) == typeid(char*)) {
 	union {
@@ -411,10 +411,10 @@ public:
 	} Values;
 	Values.t = Item;
 	if(Values.p == NULL) 
-	  return string("");
+	  return STD(string)("");
 	else {
 	  Values.t = Item;
-	  return string(Values.p);
+	  return STD(string)(Values.p);
 	}
     }
     throw CRangeError(TCL_LINK_INT, TCL_LINK_STRING,

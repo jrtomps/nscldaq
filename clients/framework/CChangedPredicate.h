@@ -273,7 +273,7 @@ THIRD PARTIES OR A FAILURE OF THE PROGRAM TO OPERATE WITH ANY OTHER PROGRAMS),
 EVEN IF SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH 
 DAMAGES.
 
-		     END OF TERMS AND CONDITIONS
+		     END OF TERMS AND CONDITIONS '
 */
 /*!
 
@@ -310,7 +310,7 @@ class CChangedPredicate : public CPointerPredicate<T>
     m_TOldValue(am_TOldValue)
     { AppendClassInfo(); }
 
-  CChangedPredicate<T>(const string& rName, T am_TOldValue) :
+  CChangedPredicate<T>(const STD(string)& rName, T am_TOldValue) :
     CPointerPredicate<T>(rName),
     m_TOldValue(am_TOldValue)
     { AppendClassInfo(); }
@@ -358,7 +358,7 @@ class CChangedPredicate : public CPointerPredicate<T>
  public:
   
   virtual bool operator() (T nValue);
-  virtual string DescribeSelf();
+  virtual STD(string) DescribeSelf();
 };
 
 #include <CChangedPredicate.cpp>

@@ -273,7 +273,7 @@ THIRD PARTIES OR A FAILURE OF THE PROGRAM TO OPERATE WITH ANY OTHER PROGRAMS),
 EVEN IF SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH 
 DAMAGES.
 
-		     END OF TERMS AND CONDITIONS
+		     END OF TERMS AND CONDITIONS '
 */
 /*!
 
@@ -305,7 +305,15 @@ DAMAGES.
 #include <CApplicationRegistry.h>
 #endif
 
-static const string RegistryName = "PointerPredicates";
+#ifndef __STL_STRING
+#include <string>
+#ifndef __STL_STRING
+#define __STL_STRING
+#endif
+#endif
+
+
+static const STD(string) RegistryName = "PointerPredicates";
 
 template <typename T>
 class CPointerPredicate : public CRegisteredObject
@@ -320,7 +328,7 @@ class CPointerPredicate : public CRegisteredObject
 		      RegistryName)
     { AppendClassInfo(); }
 
-  CPointerPredicate<T>(const string& rName) :
+  CPointerPredicate<T>(const STD(string)& rName) :
     CRegisteredObject(rName, CApplicationRegistry::getInstance(), RegistryName)
     { AppendClassInfo(); }
 
@@ -351,11 +359,11 @@ class CPointerPredicate : public CRegisteredObject
  public:
   
   virtual bool operator() (T nValue) = 0;
-  virtual string DescribeSelf() = 0;
+  virtual STD(string) DescribeSelf() = 0;
 
   // For derived classes which wish to implement an auto-naming function
  protected:
-  static string GetAutoName(const string& rBaseName);
+  static STD(string) GetAutoName(const STD(string)& rBaseName);
 };
 
 

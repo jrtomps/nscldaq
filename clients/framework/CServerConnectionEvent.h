@@ -273,7 +273,7 @@ THIRD PARTIES OR A FAILURE OF THE PROGRAM TO OPERATE WITH ANY OTHER PROGRAMS),
 EVEN IF SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH 
 DAMAGES.
 
-		     END OF TERMS AND CONDITIONS
+		     END OF TERMS AND CONDITIONS '
 */
 
 //! \file:  CServerConnectionEvent.h
@@ -305,7 +305,13 @@ DAMAGES.
 
 #ifndef __STL_STRING
 #include <string>
+#ifndef __STL_STRING
 #define __STL_STRING
+#endif
+#endif
+
+#ifndef __ISTREAM_DAQH
+#include <Istream.h>
 #endif
 
 /*!
@@ -331,15 +337,15 @@ class CServerConnectionEvent : public  CFileEvent
 public:
   CServerConnectionEvent(CSocket& sock);
   CServerConnectionEvent(const char* pName, CSocket& sock);
-  CServerConnectionEvent(const string& rName, CSocket& sock);
+  CServerConnectionEvent(const STD(string)& rName, CSocket& sock);
 
   // Constructors - Socket must be created.
 public:
-  CServerConnectionEvent(const string& rServiceName);
+  CServerConnectionEvent(const STD(string)& rServiceName);
 
-  CServerConnectionEvent(const char* pName, const string& rServiceName);
+  CServerConnectionEvent(const char* pName, const STD(string)& rServiceName);
 
-  CServerConnectionEvent(const string& rName, const string& rServiceName);
+  CServerConnectionEvent(const STD(string)& rName, const STD(string)& rServiceName);
   
 
   // Constructors - fd open on a socket (already configured).
@@ -347,7 +353,7 @@ public:
 
   CServerConnectionEvent(int nFd);
   CServerConnectionEvent(const char* pName, int nFd);
-  CServerConnectionEvent(const string& rName, int nFd);
+  CServerConnectionEvent(const STD(string)& rName, int nFd);
 
   ~CServerConnectionEvent();
 
@@ -379,10 +385,10 @@ protected:
   // Class operations.
 public:
   virtual void OnConnection(CSocket* pPeer);
-  virtual void OnReadable(istream& rStream); // Don't override this...
-  virtual string DescribeSelf();
+  virtual void OnReadable(STD(istream)& rStream); // Don't override this...
+  virtual STD(string) DescribeSelf();
 protected:
-  void ConfigureSocket(const string& rSvcName);
+  void ConfigureSocket(const STD(string)& rSvcName);
   void ConfigureSocket(int           nPort);
   int  Protocol();
 };

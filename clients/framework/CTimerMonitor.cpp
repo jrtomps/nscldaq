@@ -273,7 +273,7 @@ THIRD PARTIES OR A FAILURE OF THE PROGRAM TO OPERATE WITH ANY OTHER PROGRAMS),
 EVEN IF SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH 
 DAMAGES.
 
-		     END OF TERMS AND CONDITIONS
+		     END OF TERMS AND CONDITIONS '
 */
 static const char* Copyright= "(C) Copyright Michigan State University 2002, All rights reserved";/*!
    \file  CTimerMonitor.cpp 
@@ -295,8 +295,13 @@ static const char* Copyright= "(C) Copyright Michigan State University 2002, All
     mailto: venemaja@msu.edu
 */
 
+#include <config.h>
 #include "CTimerMonitor.h"
 #include <unistd.h>
+
+#ifdef HAVE_STD_NAMESPACE
+using namespace std;
+#endif
 
 /*!
   \fn CEventMonitor::result CTimerMonitor::operator() ()
@@ -361,7 +366,7 @@ CTimerMonitor::operator() ()
     parameter.
 */
 void
-CTimerMonitor::Repeat(bool fRepeat = true)
+CTimerMonitor::Repeat(bool fRepeat)
 {
   m_fOneShot = !fRepeat;
   m_fFired   = false;
@@ -379,7 +384,7 @@ CTimerMonitor::Repeat(bool fRepeat = true)
     MAXINT being passed to CEventMonitor::setTimeout
 */
 void
-CTimerMonitor::setTimeout(int nTimeout = FOREVER)
+CTimerMonitor::setTimeout(int nTimeout)
 {
   CEventMonitor::setTimeout(nTimeout);
   m_fFired = false;

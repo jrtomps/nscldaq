@@ -273,7 +273,7 @@ THIRD PARTIES OR A FAILURE OF THE PROGRAM TO OPERATE WITH ANY OTHER PROGRAMS),
 EVEN IF SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH 
 DAMAGES.
 
-		     END OF TERMS AND CONDITIONS
+		     END OF TERMS AND CONDITIONS '
 */
 //  Author:
 //   Ron Fox
@@ -334,7 +334,7 @@ class CReactor : public CRegisteredObject
   // Constructors and related members:
 public:
   CReactor();			// I choose the name for him here.
-  CReactor(const string& rName);
+  CReactor(const STD(string)& rName);
   CReactor(const char*   pName);
   //! For now copy construction is not allowed.
 private:

@@ -273,7 +273,7 @@ THIRD PARTIES OR A FAILURE OF THE PROGRAM TO OPERATE WITH ANY OTHER PROGRAMS),
 EVEN IF SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH 
 DAMAGES.
 
-		     END OF TERMS AND CONDITIONS
+		     END OF TERMS AND CONDITIONS '
 */
 
 // Author:
@@ -339,14 +339,14 @@ private:
   T*  m_pArrayBase;		//!< Pointer to the configured array.
   int m_nFirstIndex;		//!<  Low index of the binding.
   int m_nLastIndex;		//!<  High index of the binding.
-  string m_sName;		//!<  Name of the Tcl array.
+  STD(string) m_sName;		//!<  Name of the Tcl array.
   T*  m_pInitialValues;		//!<  Optional array of initial values.
   int m_TCLVariableType;        //!<  Type of the variable.
   
   // Constructors:
 
 public:
-  CArrayBinding(T* pArray, int nFirst, int nLast, const string& m_sName, 
+  CArrayBinding(T* pArray, int nFirst, int nLast, const STD(string)& m_sName, 
 		T* Defaults = NULL);
   CArrayBinding(T* pArray, int nFirst, int nLast, const char* m_sName, 
 		T* Defaults = NULL);
@@ -372,7 +372,7 @@ public:
   int getLastIndex() const {
     return m_nLastIndex;
   }
-  string getArrayName() const {
+  STD(string) getArrayName() const {
     return m_sName;
   }
   T getDefault(int n) const {
@@ -401,7 +401,7 @@ protected:
   void setLastIndex(int n) {
     m_nLastIndex = n;
   }
-  void setName(const string& rName) {
+  void setName(const STD(string)& rName) {
     m_sName = rName;
   }
   void setDefaults(T* pDefaults) {

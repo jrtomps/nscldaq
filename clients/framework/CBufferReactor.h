@@ -273,7 +273,7 @@ THIRD PARTIES OR A FAILURE OF THE PROGRAM TO OPERATE WITH ANY OTHER PROGRAMS),
 EVEN IF SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH 
 DAMAGES.
 
-		     END OF TERMS AND CONDITIONS
+		     END OF TERMS AND CONDITIONS '
 */
 
 //   Ron Fox
@@ -295,6 +295,14 @@ DAMAGES.
 #ifndef __CREACTOR_H     //CReactor
 #include "CReactor.h"
 #endif
+
+// Required for spectrodaq.h: 
+
+#ifdef HAVE_STD_NAMESPACE
+using namespace std;
+#endif
+
+
 #ifndef __SPECTRODAQ_HEADER
 #include <spectrodaq.h>
 #define __SPECTRODAQ_HEADER
@@ -330,7 +338,7 @@ class CBufferReactor  : public CReactor
 
 public:
   CBufferReactor ();
-  CBufferReactor(const string& rName);
+  CBufferReactor(const STD(string)& rName);
   CBufferReactor(const char*   pName);
  ~ CBufferReactor ( );  
  

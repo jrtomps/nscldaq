@@ -273,7 +273,7 @@ THIRD PARTIES OR A FAILURE OF THE PROGRAM TO OPERATE WITH ANY OTHER PROGRAMS),
 EVEN IF SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH 
 DAMAGES.
 
-		     END OF TERMS AND CONDITIONS
+		     END OF TERMS AND CONDITIONS '
 */
 #ifndef __CNOSUCHLINKEXCEPTION_H
 #define __CNOSUCHLINKEXCEPTION_H
@@ -288,14 +288,17 @@ DAMAGES.
 
 #ifndef __STL_STRING
 #include <string>
+#ifndef __STL_STRING
+#define __STL_STRING
+#endif
 #endif
 
 class CNoSuchLinkException : public CException
 {
-  string m_sName;         // Name of key
+  STD(string) m_sName;         // Name of key
   int m_nId;              // Id of key
   bool m_fName;           // True if key was a name, false if key was an ID
-  string m_sReasonText;   // The reason for throwing
+  STD(string) m_sReasonText;   // The reason for throwing
  public:
 
   CNoSuchLinkException(const char* pDoing, const char* pName) :
@@ -303,22 +306,22 @@ class CNoSuchLinkException : public CException
     m_sName(pName)
     { UpdateReasonText(); }
 
-  CNoSuchLinkException(const char* pDoing, const string& rName) :
+  CNoSuchLinkException(const char* pDoing, const STD(string)& rName) :
     CException(pDoing),
     m_sName(rName)
     { UpdateReasonText(); }
 
-  CNoSuchLinkException(const string& rDoing, const char* pName) :
+  CNoSuchLinkException(const STD(string)& rDoing, const char* pName) :
     CException(rDoing),
     m_sName(pName)
     { UpdateReasonText(); }
 
-  CNoSuchLinkException(const string& rDoing, const string& rName) :
+  CNoSuchLinkException(const STD(string)& rDoing, const STD(string)& rName) :
     CException(rDoing),
     m_sName(rName)
     { UpdateReasonText(); }
 
-  CNoSuchLinkException(const string& rDoing, int nId) :
+  CNoSuchLinkException(const STD(string)& rDoing, int nId) :
     CException(rDoing),
     m_nId(nId),
     m_fName(false)
@@ -364,13 +367,13 @@ class CNoSuchLinkException : public CException
     }
 
  public:
-  string getName() const
+  STD(string) getName() const
     {
       return m_sName;
     }
 
  public:
-  void setName (string am_sName)
+  void setName (STD(string) am_sName)
     {
       m_sName = am_sName;
     }

@@ -275,7 +275,7 @@ THIRD PARTIES OR A FAILURE OF THE PROGRAM TO OPERATE WITH ANY OTHER PROGRAMS),
 EVEN IF SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH 
 DAMAGES.
 
-		     END OF TERMS AND CONDITIONS
+		     END OF TERMS AND CONDITIONS '
 */
 // Author:
 //   Ron Fox
@@ -321,7 +321,7 @@ class CDAQTCLProcessor  : public CTCLProcessor
 {
 
 public:
-  CDAQTCLProcessor(const string& rCommand, 
+  CDAQTCLProcessor(const STD(string)& rCommand, 
 		CTCLInterpreter* pInterp); 
   CDAQTCLProcessor(const char*   pCommand,
 		CTCLInterpreter* pInter); 

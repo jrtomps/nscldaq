@@ -273,7 +273,7 @@ THIRD PARTIES OR A FAILURE OF THE PROGRAM TO OPERATE WITH ANY OTHER PROGRAMS),
 EVEN IF SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH 
 DAMAGES.
 
-		     END OF TERMS AND CONDITIONS
+		     END OF TERMS AND CONDITIONS '
 */
 static const char* Copyright= "(C) Copyright Michigan State University 2002, All rights reserved";// Author:
 //    Ron Fox
@@ -286,7 +286,7 @@ static const char* Copyright= "(C) Copyright Michigan State University 2002, All
 //
 /////////////////////////////////////////////////////////////
 
-
+#include <config.h>
 #include <CConfigurationManager.h>
 #include <unistd.h>
 #include <sys/types.h>
@@ -297,6 +297,10 @@ static const char* Copyright= "(C) Copyright Michigan State University 2002, All
 #include <time.h>
 #include <string.h>
 #include <algorithm>
+
+#ifdef HAVE_STD_NAMESPACE
+using namespace std;
+#endif
 
 // Manifest constants:
 

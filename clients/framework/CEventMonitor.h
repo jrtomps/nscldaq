@@ -273,7 +273,7 @@ THIRD PARTIES OR A FAILURE OF THE PROGRAM TO OPERATE WITH ANY OTHER PROGRAMS),
 EVEN IF SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH 
 DAMAGES.
 
-		     END OF TERMS AND CONDITIONS
+		     END OF TERMS AND CONDITIONS '
 */
 /*!
   Author:
@@ -298,7 +298,9 @@ DAMAGES.
 
 #ifndef __STL_STRING
 #include <string>
+#ifndef __STL_STRING
 #define __STL_STRING
+#endif
 #endif
 
 #ifndef __SYS_TIME_H
@@ -341,7 +343,7 @@ class CEventMonitor : public CRegisteredObject
  public:
   // Default constructors
   CEventMonitor(bool am_fTimedWait = true);
-  CEventMonitor(const string& rName, bool am_fTimedWait = true);
+  CEventMonitor(const STD(string)& rName, bool am_fTimedWait = true);
   CEventMonitor(const char* pName, bool am_fTimedWait = true);
 
   // operator== Equality operator
@@ -397,7 +399,7 @@ class CEventMonitor : public CRegisteredObject
   virtual void setTimeout (int nTimeout=FOREVER);
 
  protected:
-  static string GetAutoName(const string& rBaseName);
+  static STD(string) GetAutoName(const STD(string)& rBaseName);
 };
 
 #endif

@@ -273,7 +273,7 @@ THIRD PARTIES OR A FAILURE OF THE PROGRAM TO OPERATE WITH ANY OTHER PROGRAMS),
 EVEN IF SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH 
 DAMAGES.
 
-		     END OF TERMS AND CONDITIONS
+		     END OF TERMS AND CONDITIONS '
 */
 
 //! \file:  CEvent.h
@@ -292,6 +292,12 @@ DAMAGES.
 //
 // Include files:
 //
+
+// Spectrodaq requires the std namespace be imported.
+
+#ifdef HAVE_STD_NAMESPACE
+using namespace std;
+#endif
 
 #include <spectrodaq.h>        //Required for base class. 
 
@@ -353,7 +359,7 @@ public:
 	 CEventMonitor& rMonitor, CReactor& rReactor,
 	 bool InformTimeouts = false,
 	 int  nTimeoutMs     = 500);
-  CEvent(const string& rName,
+  CEvent(const STD(string)& rName,
 	 CEventMonitor& rMonitor, CReactor& rReactor,
 	 bool InformTimeouts = false,
 	 int  nTimeoutMs     = 500);
@@ -429,7 +435,7 @@ public:
   }
   void ReactToTimeouts(bool fReact = true);
   
-  virtual   string DescribeSelf ()   ;
+  virtual   STD(string) DescribeSelf ()   ;
   
 protected:
   // Protected functions:

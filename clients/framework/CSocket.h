@@ -273,7 +273,7 @@ THIRD PARTIES OR A FAILURE OF THE PROGRAM TO OPERATE WITH ANY OTHER PROGRAMS),
 EVEN IF SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH 
 DAMAGES.
 
-		     END OF TERMS AND CONDITIONS
+		     END OF TERMS AND CONDITIONS '
 */
 // Author:
 //   Ron Fox
@@ -352,7 +352,7 @@ private:
   // Private Member data:
   int m_Fd;			//!<  Socket  
   CSocket::State m_State;	//!<  State of socket.  
-  static map<CSocket::State, string> m_StateNames;  //!< State name lookup tbl.
+  static STD(map)<CSocket::State, STD(string)> m_StateNames;  //!< State name lookup tbl.
    
   // Public nested data types:
 
@@ -406,15 +406,15 @@ protected:
 
 public:
 
-  void Connect (const string&     host,      const string&  service);
+  void Connect (const STD(string)&     host,      const STD(string)&  service);
   void Connect (unsigned long int IpAddress, unsigned short service);
-  void Bind (const string& service)   ;
+  void Bind (const STD(string)& service)   ;
   void Listen (unsigned int nBacklog=5)   ;
-  CSocket*  Accept (string& client)   ;
+  CSocket*  Accept (STD(string)& client)   ;
   void Shutdown ()   ;
   int Read (void* pBuffer, size_t nBytes)   ;
   int Write (void* pBuffer, size_t nBytes)   ;
-  void getPeer (unsigned short& port, string& peer)   ;
+  void getPeer (unsigned short& port, STD(string)& peer)   ;
   void OOBInline (bool State=TRUE)   ;
   bool isOOBInline ()   ;
   void setRcvLowWaterMark (size_t nBytes)   ;
@@ -436,14 +436,14 @@ public:
   void setLinger (bool lOn, int nLingerSeconds)   ;
   void getLinger (bool& isLingering, int& nLingerSeconds)   ;
 
-  static string StateName(CSocket::State state);
+  static STD(string) StateName(CSocket::State state);
 
 
   // Protected utility functions.
 protected:
   static void StockStateMap();
-  unsigned short Service(const string& rService);
-  string         AddressToHostString(in_addr peer);
+  unsigned short Service(const STD(string)& rService);
+  STD(string)         AddressToHostString(in_addr peer);
   void           OpenSocket();
 };
 

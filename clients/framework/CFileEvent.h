@@ -273,7 +273,7 @@ THIRD PARTIES OR A FAILURE OF THE PROGRAM TO OPERATE WITH ANY OTHER PROGRAMS),
 EVEN IF SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH 
 DAMAGES.
 
-		     END OF TERMS AND CONDITIONS
+		     END OF TERMS AND CONDITIONS '
 */
 
 //! \file:  CFileEvent.h
@@ -322,9 +322,16 @@ DAMAGES.
 #define __CRT_FCTNL_H
 #endif
 
+#ifndef __STL_STRING
+#include <string>
+#ifndef __STL_STRING
+#define __STL_STRING
+#endif
+#endif
+
 
 /*!
-C lass providing functionality for 
+Class providing functionality for 
 file descriptor events.  Must be derived and 
 operator() implemented to provide application
 functionality.
@@ -343,7 +350,7 @@ class CFileEvent  : public CEvent
   {
     CFileEvent& m_rOwner;	//!< Owner of us.
   public:
-    CFileEventReactor(const string& rName, CFileEvent& rOwner);
+    CFileEventReactor(const STD(string)& rName, CFileEvent& rOwner);
     ~CFileEventReactor() {}
 
     virtual void OnReadable(CFdMonitor& rMonitor, int fd);
@@ -369,22 +376,22 @@ public:
 
   CFileEvent(int fd, int access=readable); 
   CFileEvent(const char* pName,int flags = O_RDONLY,  int access=readable);
-  CFileEvent(const string& rName,int flags = O_RDONLY,  int access=readable);
+  CFileEvent(const STD(string)& rName,int flags = O_RDONLY,  int access=readable);
 
   // Constructors for objects with explicit object names (char*)
 
   CFileEvent(int fd, const char* pObjName,  int access=readable);
   CFileEvent(const char* pObjName, const char* pName, 
 	     int flags = O_RDONLY, int access=readable);
-  CFileEvent(const char* pObjName, const string& rName, 
+  CFileEvent(const char* pObjName, const STD(string)& rName, 
 	     int flags = O_RDONLY, int access=readable);
 
-  // Constructors for objects with explicit object names (string).
+  // Constructors for objects with explicit object names (STD(string)).
 
-  CFileEvent(int fd, const string& rObjName, int access=readable);
-  CFileEvent(const string& rObjName, const char* pname,
+  CFileEvent(int fd, const STD(string)& rObjName, int access=readable);
+  CFileEvent(const STD(string)& rObjName, const char* pname,
 	     int flags = O_RDONLY, int access=readable);
-  CFileEvent(const string& rObjName, const string& rName,
+  CFileEvent(const STD(string)& rObjName, const STD(string)& rName,
 	     int flags = O_RDONLY, int access=readable);
   
   // Destructor:
@@ -421,7 +428,7 @@ public:
   virtual void OnException(iostream&     fd);
   virtual void OnTimeout(iostream&   str);
 
-  virtual string DescribeSelf();
+  virtual STD(string) DescribeSelf();
 protected:
   void Exit(int status);	// Exit thread now (release mutex).
   void SetupMonitor(int AccessMask);    // Set up the monitor.

@@ -273,7 +273,7 @@ THIRD PARTIES OR A FAILURE OF THE PROGRAM TO OPERATE WITH ANY OTHER PROGRAMS),
 EVEN IF SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH 
 DAMAGES.
 
-		     END OF TERMS AND CONDITIONS
+		     END OF TERMS AND CONDITIONS '
 */
 // Author:
 //   Jason Venema
@@ -291,6 +291,12 @@ DAMAGES.
 
 #ifndef __CSOCKET_H
 #include <CSocket.h>
+#endif
+
+// Need the std fo spectrodaq.h
+
+#ifdef HAVE_STD_NAMESPACE
+using namespace std;
 #endif
 
 #ifndef __SPECTRODAQ_H
@@ -322,17 +328,17 @@ using namespace std;
 
 class CAlarmLogger
 {
-  string m_sFacility;   //! The facility name that's doing the logging
-  string m_sHost;       //! The host to log to (server host)
-  string m_sPort;       //! The port to log to (server port)
-  string m_sExpId;      //! The experiment id to log this alarm to
+  STD(string) m_sFacility;   //! The facility name that's doing the logging
+  STD(string) m_sHost;       //! The host to log to (server host)
+  STD(string) m_sPort;       //! The port to log to (server port)
+  STD(string) m_sExpId;      //! The experiment id to log this alarm to
 
  public:
   // Default constructor
-  CAlarmLogger(string facility, 
-	       string expid,
-	       string host="localhost", 
-	       string port="daqalarm");
+  CAlarmLogger(STD(string) facility, 
+	       STD(string) expid,
+	       STD(string) host="localhost", 
+	       STD(string) port="daqalarm");
 
   // Copy constructor
   CAlarmLogger(const CAlarmLogger& aCAlarmLogger);
@@ -342,33 +348,33 @@ class CAlarmLogger
 
   // Selectors
  public:
-  string getFacility() { return m_sFacility; }
-  string getHost() { return m_sHost; }
-  string getPort() { return m_sPort; }
-  string getId() { return m_sExpId; }
+  STD(string) getFacility() { return m_sFacility; }
+  STD(string) getHost() { return m_sHost; }
+  STD(string) getPort() { return m_sPort; }
+  STD(string) getId() { return m_sExpId; }
 
   // Mutators
  protected:
-  void setFacility(string fac)
+  void setFacility(STD(string) fac)
     { 
       m_sFacility = fac;
     }
-  void setHost(const string& host)
+  void setHost(const STD(string)& host)
     {
       m_sHost = host;
     }
-  void setPort(const string& port)
+  void setPort(const STD(string)& port)
     {
       m_sPort = port;
     }
-  void setIf(const string& id)
+  void setIf(const STD(string)& id)
     {
       m_sExpId = id;
     }
 
   // Member functions
  public:
-  void Log(string message);
+  void Log(STD(string) message);
 };
 
 #endif

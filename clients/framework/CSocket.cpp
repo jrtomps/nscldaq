@@ -273,7 +273,7 @@ THIRD PARTIES OR A FAILURE OF THE PROGRAM TO OPERATE WITH ANY OTHER PROGRAMS),
 EVEN IF SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH 
 DAMAGES.
 
-		     END OF TERMS AND CONDITIONS
+		     END OF TERMS AND CONDITIONS '
 */
 static const char* Copyright= "(C) Copyright Michigan State University 2002, All rights reserved";/*!
            Encapsulates a generalized TCP/IP SOCK_STREAM
@@ -309,6 +309,7 @@ static const char* Copyright= "(C) Copyright Michigan State University 2002, All
     */
 
 ////////////////////////// FILE_NAME.cpp /////////////////////////////////////////////////////
+#include <config.h>
 #include "CSocket.h"    
 #include <CApplicationSerializer.h>
 
@@ -332,7 +333,12 @@ static const char* Copyright= "(C) Copyright Michigan State University 2002, All
 
 // STL includes.
 
-#include <vector>				
+#include <vector>	
+
+#ifdef HAVE_STD_NAMESPACE
+using namespace std;
+#endif
+			
 
 // Manifest constannts:
 
@@ -1198,7 +1204,7 @@ Throws:
                      debugging to be turned on.  FALSE turned off.
 */
 void 
-CSocket::Debug(bool fState=TRUE)  
+CSocket::Debug(bool fState)  
 {
   int state((int)fState);
   if(setsockopt(m_Fd, SOL_SOCKET, SO_DEBUG, &state, sizeof(int)) < 0) {

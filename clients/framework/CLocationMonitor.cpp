@@ -273,11 +273,12 @@ THIRD PARTIES OR A FAILURE OF THE PROGRAM TO OPERATE WITH ANY OTHER PROGRAMS),
 EVEN IF SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH 
 DAMAGES.
 
-		     END OF TERMS AND CONDITIONS
+		     END OF TERMS AND CONDITIONS '
 */
 
 #ifndef __CLOCATIONMONITOR_CPP
 #define __CLOCATIONMONITOR_CPP
+#include <config.h>
 #include <CLocationMonitor.h>
 
 #ifndef __CCHANGEDPREDICATE_H
@@ -290,7 +291,12 @@ DAMAGES.
 
 #include <unistd.h>
 
-#include <iostream.h>
+#include <Iostream.h>
+
+#ifdef HAVE_STD_NAMESPACE
+using namespace std;
+#endif
+
 static const int INCREMENTS = 1000;
 
 /*----------------------------------------------------------------------------

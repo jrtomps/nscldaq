@@ -273,7 +273,7 @@ THIRD PARTIES OR A FAILURE OF THE PROGRAM TO OPERATE WITH ANY OTHER PROGRAMS),
 EVEN IF SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH 
 DAMAGES.
 
-		     END OF TERMS AND CONDITIONS
+		     END OF TERMS AND CONDITIONS '
 */
 
 // Author:
@@ -361,7 +361,7 @@ public:
 		 CPointerPredicate<T>& pred); // Default names.
   CLocationEvent(const char* pName,
 		 volatile T* Location, CPointerPredicate<T>& pred);
-  CLocationEvent(const string& rName,
+  CLocationEvent(const STD(string)& rName,
 		 volatile T* Location, CPointerPredicate<T>& pred);
   ~CLocationEvent();
 
@@ -398,7 +398,7 @@ public:
 
   virtual void OnLocationChanged(T newValue);
   virtual void OnTimeout();
-  virtual string DescribeSelf();
+  virtual STD(string) DescribeSelf();
 
 protected:
 

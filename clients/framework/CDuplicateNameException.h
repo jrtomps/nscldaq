@@ -273,7 +273,7 @@ THIRD PARTIES OR A FAILURE OF THE PROGRAM TO OPERATE WITH ANY OTHER PROGRAMS),
 EVEN IF SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH 
 DAMAGES.
 
-		     END OF TERMS AND CONDITIONS
+		     END OF TERMS AND CONDITIONS '
 */
 #ifndef __DUPLICATENAMEEXCEPTION_H
 #define __DUPLICATENAMEEXCEPTION_H
@@ -292,8 +292,8 @@ DAMAGES.
 
 class CDuplicateNameException : public CException
 {
-  string m_sName;
-  string m_sReasonText;
+  STD(string) m_sName;
+  STD(string) m_sReasonText;
 
  public:
 
@@ -302,17 +302,17 @@ class CDuplicateNameException : public CException
     m_sName(pName)
     { UpdateReasonText(); }
 
-  CDuplicateNameException(const char* pDoing, const string& rName) :
+  CDuplicateNameException(const char* pDoing, const STD(string)& rName) :
     CException(pDoing),
     m_sName(rName)
     { UpdateReasonText(); }
 
-  CDuplicateNameException(const string& rDoing, const char* pName) :
+  CDuplicateNameException(const STD(string)& rDoing, const char* pName) :
     CException(rDoing),
     m_sName(pName)
     { UpdateReasonText(); }
 
-  CDuplicateNameException(const string& rDoing, const string& rName) :
+  CDuplicateNameException(const STD(string)& rDoing, const STD(string)& rName) :
     CException(rDoing),
     m_sName(rName)
     { UpdateReasonText(); }
@@ -351,13 +351,13 @@ class CDuplicateNameException : public CException
     }
 
  public:
-  string getName() const
+  STD(string) getName() const
     {
       return m_sName;
     }
 
  public:
-  void setName (string am_sName)
+  void setName (STD(string) am_sName)
     {
       m_sName = am_sName;
     }

@@ -273,7 +273,7 @@ THIRD PARTIES OR A FAILURE OF THE PROGRAM TO OPERATE WITH ANY OTHER PROGRAMS),
 EVEN IF SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH 
 DAMAGES.
 
-		     END OF TERMS AND CONDITIONS
+		     END OF TERMS AND CONDITIONS '
 */
 static const char* Copyright= "(C) Copyright Michigan State University 2002, All rights reserved";//  Provides the implementation of the CTimerEvent and closely related classes.
 // Author:
@@ -283,7 +283,12 @@ static const char* Copyright= "(C) Copyright Michigan State University 2002, All
 //   East Lansing, MI 48824-1321
 //   mailto:fox@nscl.msu.edu
 //
+#include <config.h>
 #include <CTimerEvent.h>
+
+#ifdef HAVE_STD_NAMESPACE
+using namespace std;
+#endif
 
 
 // Implementation of the timer reactor: CTimerGenericReactor:

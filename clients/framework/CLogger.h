@@ -273,7 +273,7 @@ THIRD PARTIES OR A FAILURE OF THE PROGRAM TO OPERATE WITH ANY OTHER PROGRAMS),
 EVEN IF SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH 
 DAMAGES.
 
-		     END OF TERMS AND CONDITIONS
+		     END OF TERMS AND CONDITIONS '
 */
 // Author:
 //   Jason Venema
@@ -304,6 +304,10 @@ DAMAGES.
 #ifndef __STL_LIST
 #define __STL_LIST
 #include <list>
+#endif
+
+#ifdef HAVE_STD_NAMESPACE
+using namespace std;
 #endif
 
 #ifndef __SPECTRODAQ_H
@@ -346,8 +350,8 @@ typedef list<string>::iterator HostListIterator;
 
 class CLogger
 {
-  list<string> m_HostList;    //! The list of hosts running EventLog.tcl
-  const string m_sFacility;   //! The facility name which is logging the event
+  STD(list)<STD(string)> m_HostList;    //! The list of hosts running EventLog.tcl
+  const STD(string) m_sFacility;   //! The facility name which is logging the event
 
  public:
   enum Severity {
@@ -357,7 +361,7 @@ class CLogger
   };
 
   // Default constructor
-  CLogger(string facility);
+  CLogger(STD(string) facility);
 
   // Copy constructor
   CLogger(const CLogger& aCLogger);  
@@ -373,17 +377,17 @@ class CLogger
   int operator== (const CLogger& aCLogger);
 
   // Public selectors
-  list<string> getHostList() const { return m_HostList; }
-  const string getFacility() const { return m_sFacility; }
+  STD(list)<STD(string)> getHostList() const { return m_HostList; }
+  const STD(string) getFacility() const { return m_sFacility; }
 
   // Public functions
  public:
-  bool Log(Severity sev, string message);
+  bool Log(Severity sev, STD(string) message);
   HostListIterator begin();
   HostListIterator end();
   int size();
-  void AddHost(const string& newHost);
-  void RemoveHost(const string& oldHost);
+  void AddHost(const STD(string)& newHost);
+  void RemoveHost(const STD(string)& oldHost);
   void RemoveHost(HostListIterator It);
 };
 

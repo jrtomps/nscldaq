@@ -273,7 +273,7 @@ THIRD PARTIES OR A FAILURE OF THE PROGRAM TO OPERATE WITH ANY OTHER PROGRAMS),
 EVEN IF SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH 
 DAMAGES.
 
-		     END OF TERMS AND CONDITIONS
+		     END OF TERMS AND CONDITIONS '
 */
 /*!
   \class: CBufferMonitor
@@ -314,8 +314,23 @@ DAMAGES.
 #include <CLinkFailedException.h>
 #endif
 
+// Needed for spectrodaq.h:
+
+
+#ifdef HAVE_STD_NAMESPACE
+using namespace std;
+#endif
+
 #ifndef SPECTRODAQ_H
 #include <spectrodaq.h>
+#endif
+
+
+#ifndef __STL_STRING
+#include <string>
+#ifndef __STL_STRING
+#define __STL_STRING
+#endif
 #endif
 
 //
@@ -326,7 +341,7 @@ class CBufferMonitor;
 struct LinkInfo {
   int Tag;     // the tag associated with the link
   int Mask;    // the mask associated with the link
-  string URL;  // the URL defining the source system
+  STD(string) URL;  // the URL defining the source system
   int linkid;  // identifies the link to the spectrodaq link manager object.
   int operator== (const LinkInfo& l) const {
     return ((Tag == l.Tag) &&
@@ -343,9 +358,9 @@ typedef list<struct LinkInfo>::iterator LinkIterator;
 // to match partial LinkInfo data structures.
 //
 class MatchURL {
-  string m_sURL;
+  STD(string) m_sURL;
  public:
-  MatchURL(string& rURL) :
+  MatchURL(STD(string)& rURL) :
     m_sURL(rURL) { };
   bool operator() (struct LinkInfo l) {
     return (l.URL.find(m_sURL) == 0);
@@ -353,11 +368,11 @@ class MatchURL {
 };
 
 class MatchAll {
-  string m_sURL;
+  STD(string) m_sURL;
   int m_nTag;
   int m_nMask;
  public:
-  MatchAll(string& rURL, int nTag, int nMask) :
+  MatchAll(STD(string)& rURL, int nTag, int nMask) :
     m_sURL(rURL),
     m_nTag(nTag),
     m_nMask(nMask) { }
@@ -393,7 +408,7 @@ class CBufferMonitor : public CEventMonitor
     AppendClassInfo();
   }
 
-  CBufferMonitor<T> (const string& rName, 
+  CBufferMonitor<T> (const STD(string)& rName, 
 		     bool am_fTimedWait = true) :
     CEventMonitor(rName, am_fTimedWait),
        m_nTag(COS_MAXBUFTAG),
@@ -466,7 +481,7 @@ class CBufferMonitor : public CEventMonitor
  public:
 
   virtual CEventMonitor::result operator() ();
-  virtual int AddLink (const string& URL, int tag=COS_MAXBUFTAG,
+  virtual int AddLink (const STD(string)& URL, int tag=COS_MAXBUFTAG,
 		       int mask=COS_ALLBITS, bool fReliable=true);
   void RemoveLink (int linkid);
   void RemoveLink (LinkIterator link);
@@ -478,7 +493,7 @@ class CBufferMonitor : public CEventMonitor
   Pointer<DAQBuffer<T>, T> getBufferPointer (int nOffset=0);
   void SetBufferTag (int tag=COS_ALLBITS);
   void SetBufferMask (int nMask);
-  string DescribeSelf ();
+  STD(string) DescribeSelf ();
 };
 typedef CBufferMonitor<Byte> CByteBufferMonitor;
 typedef CBufferMonitor<Word> CWordBufferMonitor;

@@ -273,7 +273,7 @@ THIRD PARTIES OR A FAILURE OF THE PROGRAM TO OPERATE WITH ANY OTHER PROGRAMS),
 EVEN IF SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH 
 DAMAGES.
 
-		     END OF TERMS AND CONDITIONS
+		     END OF TERMS AND CONDITIONS '
 */
 //
 // Author:
@@ -292,7 +292,9 @@ DAMAGES.
 
 #ifndef __STL_STRING
 #include <string>
+#ifndef __STL_STRING
 #define __STL_STRING
+#endif
 #endif
 
 // Forward class references:
@@ -307,10 +309,10 @@ class CTCPConnectionLost : public CErrnoException
 {
   // Private data members:
 
-  string m_Host;
-  string m_Port;
+  STD(string) m_Host;
+  STD(string) m_Port;
 
-  mutable string m_ReasonText;
+  mutable STD(string) m_ReasonText;
 
   // Constructors and related members:
 
@@ -326,18 +328,18 @@ public:
   
 
 public:
-  string getHost() const {
+  STD(string) getHost() const {
     return m_Host; }
-  string getPort() const {
+  STD(string) getPort() const {
     return m_Port; }
 
   // Mutators:
 
 protected:
-  void setHost(const string& rHost) {
+  void setHost(const STD(string)& rHost) {
     m_Host = rHost;
   }
-  void setPort(const string& rPort) {
+  void setPort(const STD(string)& rPort) {
     m_Port = rPort;
   }
 

@@ -273,7 +273,7 @@ THIRD PARTIES OR A FAILURE OF THE PROGRAM TO OPERATE WITH ANY OTHER PROGRAMS),
 EVEN IF SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH 
 DAMAGES.
 
-		     END OF TERMS AND CONDITIONS
+		     END OF TERMS AND CONDITIONS '
 */
 /*!
    \file  CMaskedValuePredicate.cpp 
@@ -297,6 +297,13 @@ DAMAGES.
 #include "CPointerPredicate.h"
 #endif
 
+#ifndef __STL_STRING
+#include <string>
+#ifndef __STL_STRING
+#define __STL_STRING
+#endif
+#endif
+
 template<typename T>
 class CMaskedValuePredicate : public CPointerPredicate<T>
 {
@@ -312,7 +319,7 @@ class CMaskedValuePredicate : public CPointerPredicate<T>
     m_TMask (am_TMask)
     { AppendClassInfo(); }
 
-  CMaskedValuePredicate<T>(const string& rName, T am_TValue, 
+  CMaskedValuePredicate<T>(const STD(string)& rName, T am_TValue, 
 			   T am_TMask = COS_ALLBITS) :
     CPointerPredicate<T>(rName),
     m_TValue(am_TValue),
@@ -376,7 +383,7 @@ class CMaskedValuePredicate : public CPointerPredicate<T>
  public:
 
   virtual bool operator() (T nValue);
-  virtual string DescribeSelf();
+  virtual STD(string) DescribeSelf();
 };
 
 #include <CMaskedValuePredicate.cpp>

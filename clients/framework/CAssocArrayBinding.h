@@ -273,7 +273,7 @@ THIRD PARTIES OR A FAILURE OF THE PROGRAM TO OPERATE WITH ANY OTHER PROGRAMS),
 EVEN IF SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH 
 DAMAGES.
 
-		     END OF TERMS AND CONDITIONS
+		     END OF TERMS AND CONDITIONS '
 */
 // Author:
 //    Ron Fox
@@ -296,7 +296,7 @@ DAMAGES.
 #include <TCLInterpreter.h>
 #endif
 
-#ifndef __STL_STRING
+#ifndef __STL_STRING 
 #include <string>
 #define __STL_STRING
 #endif
@@ -327,12 +327,12 @@ class CAssocArrayBinding : public CBinding<T>
 {
   // Member data.
   
-  map<string,T> m_Array;	  //!< Data stored in this map.
-  string        m_sName;          //!< TCL  Name of array.
+  STD(map)<STD(string),T> m_Array;	  //!< Data stored in this STD(map).
+  STD(string)        m_sName;          //!< TCL  Name of array.
   int           m_TCLVariableType; //!< Type of data in the array.
   // Constructors and other canonical operators.
 public:
-  CAssocArrayBinding(const string& rName);
+  CAssocArrayBinding(const STD(string)& rName);
   CAssocArrayBinding(const char* pName);
   ~CAssocArrayBinding();
 
@@ -343,31 +343,31 @@ private:
 public:
   // Selectors:
 
-  map<string,T> getArray() const //!< Get entire map
+  STD(map)<STD(string),T> getArray() const //!< Get entire STD(map)
   {
     return m_Array;
   }
-  map<string,T>::iterator begin() { //!< get iterator to start of map.
+  typename STD(map)<STD(string),T>::iterator begin() { //!< get iterator to start of STD(map).
     return m_Array.begin();
   }
-  map<string,T>::iterator end() { //!< get iterator to end of map.
+  typename STD(map)<STD(string),T>::iterator end() { //!< get iterator to end of STD(map).
     return m_Array.end();
   }
   T& operator[](const char* pName) { //!< Index item by name.
-    string name(pName);
+    STD(string) name(pName);
     return m_Array[name];
   }
-  T& operator[](const string& rName) { //!< Index item by name. 
+  T& operator[](const STD(string)& rName) { //!< Index item by name. 
     return m_Array[rName];
   }
-  map<string,T>::iterator find(const char* pName) {
-    return m_Array.find(string(pName));
+  typename STD(map)<STD(string),T>::iterator find(const char* pName) {
+    return m_Array.find(STD(string)(pName));
   }
-  map<string,T>::iterator find(const string& rName) {
+  typename STD(map)<STD(string),T>::iterator find(const STD(string)& rName) {
     return m_Array.find(rName);
   }
 
-  string getName() const {	//!<  Get name of TCL array.
+  STD(string) getName() const {	//!<  Get name of TCL array.
     return m_sName;
   }
 

@@ -273,7 +273,7 @@ THIRD PARTIES OR A FAILURE OF THE PROGRAM TO OPERATE WITH ANY OTHER PROGRAMS),
 EVEN IF SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH 
 DAMAGES.
 
-		     END OF TERMS AND CONDITIONS
+		     END OF TERMS AND CONDITIONS '
 */
 // Author:
 //   Ron Fox
@@ -297,7 +297,9 @@ DAMAGES.
 
 #ifndef __STL_STRING
 #include <string>
+#ifndef __STL_STRING
 #define __STL_STRING
+#endif
 #endif
 
 /*!
@@ -306,9 +308,9 @@ DAMAGES.
    posible string formats
 
    - Hostnames DNS hostnames such as crusher.nscl.msu.edu
-   - IPaddresses stringified dotted ip addresses e.g. 35.8.33.224
+   - IPaddresses STD(string)ified dotted ip addresses e.g. 35.8.33.224
 
-   The exception produces reason strings which describe why the host could
+   The exception produces reason STD(string)s which describe why the host could
    not be opened along with contextual information supplied by the application
    when the object is instantiated.
    */
@@ -317,13 +319,13 @@ class CTCPNoSuchHost : public CException
   // Member data (private):
 
   int     m_hErrno;		//!< Cached value of errno when instantiated.
-  string  m_Host;		//!< Host which doesn't exist.
-  mutable string  m_Reason;	//!< String for building up reason text.
+  STD(string)  m_Host;		//!< Host which doesn't exist.
+  mutable STD(string)  m_Reason;	//!< STD(String) for building up reason text.
 
 public:
   // Constructors and related functions:
 
-  CTCPNoSuchHost(const string& hostname, const string& Doing);
+  CTCPNoSuchHost(const STD(string)& hostname, const STD(string)& Doing);
   CTCPNoSuchHost(const CTCPNoSuchHost& rhs); //!< Copy constructor.
   virtual ~CTCPNoSuchHost() {}	             //!< Destructor.
 
@@ -335,7 +337,7 @@ public:
 public:
   int gethErrno() const		//!< Return h_errno at time of instantiation
   { return m_hErrno; }
-  string getHost() const	//!< Return name of failing host
+  STD(string) getHost() const	//!< Return name of failing host
   { return m_Host; }
  
   // Mutators:
@@ -343,7 +345,7 @@ public:
 protected:
   void sethErrno(int newVal)
   { m_hErrno = newVal; }
-  void setHost(const string newVal)
+  void setHost(const STD(string) newVal)
   { m_Host = newVal; }
 
   // Operations on the class:

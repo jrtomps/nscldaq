@@ -273,7 +273,7 @@ THIRD PARTIES OR A FAILURE OF THE PROGRAM TO OPERATE WITH ANY OTHER PROGRAMS),
 EVEN IF SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH 
 DAMAGES.
 
-		     END OF TERMS AND CONDITIONS
+		     END OF TERMS AND CONDITIONS '
 */
 
 
@@ -294,8 +294,15 @@ DAMAGES.
 */
 
 ////////////////////////// FILE_NAME.cpp /////////////////////////////////////////////////////
+
+#include <config.h>
 #include "CBufferEvent.h"    				
 #include <stdio.h>
+
+#ifdef HAVE_STD_NAMESPACE
+using namespace std;
+#endif
+
 // Implementation of the CGenericBufferReactor class
 // This class serves as a relay of events reported by the buffer monitor
 // to the event class.  The purpose of this is to provide a monolithic model of
@@ -551,12 +558,15 @@ CBufferEvent<T>::ProcessDelQueue()
 /*!
   Called to get a description of this type of event.
   */
-template <class T>
+template <typename T>
 string
 CBufferEvent<T>::DescribeSelf()
 {
+
   string result(" Buffer event\n");
-  list<CBufferEvent<T>::AddLinkRequest>::iterator i;
+
+  typename list<CBufferEvent<T>::AddLinkRequest>::iterator i;
+
 
   result += CEvent::DescribeSelf();
   if(m_AddQueue.empty()) {

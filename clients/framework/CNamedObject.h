@@ -273,7 +273,7 @@ THIRD PARTIES OR A FAILURE OF THE PROGRAM TO OPERATE WITH ANY OTHER PROGRAMS),
 EVEN IF SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH 
 DAMAGES.
 
-		     END OF TERMS AND CONDITIONS
+		     END OF TERMS AND CONDITIONS '
 */
 /*!
   NamedObject.h:
@@ -298,7 +298,7 @@ DAMAGES.
 #endif
 
 #ifndef __TYPEINFO
-#include <typeinfo>
+#include <Typeinfo.h>
 #define __TYPEINFO
 #endif
 
@@ -313,8 +313,8 @@ DAMAGES.
 
 class CNamedObject
 {
-  string m_sName;	       /*!< The name of the object*/
-  string m_sClassPath;        /*!< The class path of the object*/
+  STD(string) m_sName;	       /*!< The name of the object*/
+  STD(string) m_sClassPath;        /*!< The class path of the object*/
   static unsigned int m_nAutoIndex; //!< Used to name autonamed objects.
  public:
 
@@ -325,7 +325,7 @@ class CNamedObject
   {
     AppendClassInfo();
   }
-  CNamedObject(string am_sName) :
+  CNamedObject(STD(string) am_sName) :
     m_sName(am_sName)
     { AppendClassInfo(); }
 
@@ -351,13 +351,13 @@ class CNamedObject
  public:
 
   //Get accessor function for non-static attribute data member
-  string getClassPath() const
+  STD(string) getClassPath() const
     {
       return m_sClassPath;
     }
   
   //Get accessor function for constant attribute data member
-  const string getName() const
+  const STD(string) getName() const
     { 
       return m_sName;
     }
@@ -371,7 +371,7 @@ class CNamedObject
  protected:
 
   //Set accessor function for non-static attribute data member
-  void setClassPath (const string am_sClassPath)
+  void setClassPath (const STD(string) am_sClassPath)
     { 
       m_sClassPath = am_sClassPath;
     }
@@ -387,12 +387,12 @@ class CNamedObject
 
  public:
 
-  virtual string DescribeSelf ();
+  virtual STD(string) DescribeSelf ();
 
   // Utility functions:
 
 protected:
-  static string GetAutoName(const string& rBase); //!< Assign default name.
+  static STD(string) GetAutoName(const STD(string)& rBase); //!< Assign default name.
   
 };
 

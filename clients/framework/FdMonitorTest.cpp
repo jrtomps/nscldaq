@@ -277,7 +277,8 @@ DAMAGES.
 */
 static const char* Copyright= "(C) Copyright Michigan State University 2002, All rights reserved";
 
-#include <iostream.h>
+#include <config.h>
+#include <Iostream.h>
 #include "CNamedObject.h"
 #include "CObjectRegistry.h"
 #include "CClassifiedObjectRegistry.h"
@@ -286,6 +287,10 @@ static const char* Copyright= "(C) Copyright Michigan State University 2002, All
 #include "CDuplicateNameException.h"
 #include "CNoSuchObjectException.h"
 #include <assert.h>
+
+#ifdef HAVE_STD_NAMESPACE
+using namespace std;
+#endif
 
 int main()
 {

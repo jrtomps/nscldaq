@@ -273,7 +273,7 @@ THIRD PARTIES OR A FAILURE OF THE PROGRAM TO OPERATE WITH ANY OTHER PROGRAMS),
 EVEN IF SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH 
 DAMAGES.
 
-		     END OF TERMS AND CONDITIONS
+		     END OF TERMS AND CONDITIONS '
 */
 
 // Author:
@@ -302,7 +302,9 @@ DAMAGES.
 
 #ifndef __STL_STRING
 #include <string>
+#ifndef __STL_STRING
 #define __STL_STRING
+#endif
 #endif
 
 
@@ -316,12 +318,12 @@ template <class T>
 class CVariableBinding : public CBinding<T>
 {
   T*     m_pVariable;		//!< Pointer to the config variable.
-  string m_sName;		//!< Name of the variable (for Tcl binding).
+  STD(string) m_sName;		//!< Name of the variable (for Tcl binding).
   T      m_tInitialValue;	//!< Initial value of the variable.
   int    m_TCLVariableType;	//!< Type of binding (for TCL).
 
 public:
-  CVariableBinding(T& variable, const string& rName, T tInitialValue);
+  CVariableBinding(T& variable, const STD(string)& rName, T tInitialValue);
   CVariableBinding(T& variable, const char*   pName, T tInitialValue);
   ~CVariableBinding() {}
 
@@ -336,7 +338,7 @@ public:
   T  getVariable() const {
     return *m_pVariable;
   }
-  string getName() const {
+  STD(string) getName() const {
     return m_sName;
   }
   T getInitValue() const {
@@ -353,11 +355,11 @@ public:
   void setPointer(T* ptr) {
     m_pVariable = ptr;
   }
-  void setName(const string& rName) {
+  void setName(const STD(string)& rName) {
     m_sName = rName;
   }
   void setName(const char* pName) {
-    m_sName = string(pName);
+    m_sName = STD(string)(pName);
   }
   void setInitialValue(T value) {
     m_tInitialValue = value;

@@ -273,7 +273,7 @@ THIRD PARTIES OR A FAILURE OF THE PROGRAM TO OPERATE WITH ANY OTHER PROGRAMS),
 EVEN IF SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH 
 DAMAGES.
 
-		     END OF TERMS AND CONDITIONS
+		     END OF TERMS AND CONDITIONS '
 */
 // Author:
 //    Ron Fox
@@ -358,12 +358,12 @@ class CConfigurationManager
 {
   // Member variables:
 private:
-  list<CTypeFreeBinding*> m_lBindings; //!< List of configuration bindings.
+  STD(list)<CTypeFreeBinding*> m_lBindings; //!< List of configuration bindings.
 
   // constructors and other cannonical operations.
 public:
   CConfigurationManager() {}	//!< Default construtor.
-  CConfigurationManager(list<CTypeFreeBinding*>& rBindings) :
+  CConfigurationManager(STD(list)<CTypeFreeBinding*>& rBindings) :
     m_lBindings(rBindings) {}	//!< Prestocked configuration.
   ~CConfigurationManager() {}	//!< Destruction requires nothing special.
 
@@ -385,20 +385,20 @@ public:
 
   // Selectors:
 public:
-  list<CTypeFreeBinding*> getBindings() const {	//!< Get a copy of bindings.
+  STD(list)<CTypeFreeBinding*> getBindings() const {	//!< Get a copy of bindings.
     return m_lBindings;	    
   }
 
   // Mutators: - these are all ok for public access:
 
 public:
-  void setBindings(list<CTypeFreeBinding*> newBindings) { 
+  void setBindings(STD(list)<CTypeFreeBinding*> newBindings) { 
     m_lBindings = newBindings;
   }                                              //!< Replace all bindings. 
   void AddBinding(CTypeFreeBinding& rBinding) {	//!< Append to list of bindings
     m_lBindings.push_back(&rBinding);
   }
-  void AddBinding(list<CTypeFreeBinding*> addlist) //!< Append list of bindings
+  void AddBinding(STD(list)<CTypeFreeBinding*> addlist) //!< Append list of bindings
   {
     m_lBindings.splice(m_lBindings.end(), addlist);
   }
@@ -407,25 +407,25 @@ public:
   // Read single explicit config file family:
 
   void ReadConfigFile(const char* pName);
-  void ReadConfigFile(const string& rName);
+  void ReadConfigFile(const STD(string)& rName);
   void ReadConfigFile(int fd);
 
   // Read first config file from a set family:
 
-  void Read1stConfigFile(const vector<string>& Names);
-  void Read1stConfigFile(const vector<string>& Paths, const char* pName);
-  void Read1stConfigFile(const vector<string>& Paths, const string& rName);
+  void Read1stConfigFile(const STD(vector)<STD(string)>& Names);
+  void Read1stConfigFile(const STD(vector)<STD(string)>& Paths, const char* pName);
+  void Read1stConfigFile(const STD(vector)<STD(string)>& Paths, const STD(string)& rName);
 
   // Read Multiple configuration files:
 
-  void ReadAllConfigFiles(const vector<string>& Name);
-  void ReadAllConfigFiles(const vector<string>& Paths, const char* pName);
-  void ReadAllConfigFiles(const vector<string>& Paths, const string& rName);
+  void ReadAllConfigFiles(const STD(vector)<STD(string)>& Name);
+  void ReadAllConfigFiles(const STD(vector)<STD(string)>& Paths, const char* pName);
+  void ReadAllConfigFiles(const STD(vector)<STD(string)>& Paths, const STD(string)& rName);
 
   // Write configuration file family:
 
   void WriteConfigFile(const char* pName);
-  void WriteConfigFile(const string& rName);
+  void WriteConfigFile(const STD(string)& rName);
   void WriteConfigFile(int fd);
 protected:
   void InternalReadConfigFile(CTCLInterpreter& rInterp, int fd);

@@ -273,7 +273,7 @@ THIRD PARTIES OR A FAILURE OF THE PROGRAM TO OPERATE WITH ANY OTHER PROGRAMS),
 EVEN IF SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH 
 DAMAGES.
 
-		     END OF TERMS AND CONDITIONS
+		     END OF TERMS AND CONDITIONS '
 */
 static const char* Copyright= "(C) Copyright Michigan State University 2002, All rights reserved";/*
 ** Facility:
@@ -292,6 +292,8 @@ static const char* Copyright= "(C) Copyright Michigan State University 2002, All
 ** Versioning:
 **   @(#)helpmenu.cc	8.9 10/19/98 
 */
+#include <config.h>
+
 #ifdef unix
 #pragma implementation "XMCallback.h"
 #endif
@@ -309,6 +311,11 @@ static char *sccsinfo="@(#)helpmenu.cc	8.9 10/19/98 \n";
 #endif
 #include <Xm/Xm.h>
 #include "XMDialogs.h"
+
+
+#ifdef HAVE_STD_NAMESPACE
+using namespace std;
+#endif
 
 
 /*

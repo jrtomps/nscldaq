@@ -273,7 +273,7 @@ THIRD PARTIES OR A FAILURE OF THE PROGRAM TO OPERATE WITH ANY OTHER PROGRAMS),
 EVEN IF SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH 
 DAMAGES.
 
-		     END OF TERMS AND CONDITIONS
+		     END OF TERMS AND CONDITIONS '
 */
 // Author:
 //   Ron Fox
@@ -300,7 +300,7 @@ DAMAGES.
 #endif
 
 #ifndef __CPP_IOSTREAM_H
-#include <iostream.h>
+#include <Iostream.h>
 #define __CPP_IOSTREAM_H
 #endif
 
@@ -330,7 +330,7 @@ public:
   CServerInstance(CSocket* pSocket, bool fDeleteSocket = true);
   CServerInstance(const char*   pName, CSocket* pSocket,
 		  bool fDeleteSocket = true);
-  CServerInstance(const string& rName, CSocket* pSocket,
+  CServerInstance(const STD(string)& rName, CSocket* pSocket,
 		  bool fDeleteSocket = true);
   ~CServerInstance();
 
@@ -349,7 +349,7 @@ public:
   bool getDeleteFlag() const {
     return m_fDeleteSocket;
   }
-  string getPeername() const;
+  STD(string) getPeername() const;
   unsigned short getPeerPort() const;
 
   // Mutators
@@ -367,7 +367,7 @@ public:
   virtual void OnReadable(istream& rStream);
   virtual void OnRequest(CSocket*  pConnection);
   void         Shutdown();
-  virtual string DescribeSelf();
+  virtual STD(string) DescribeSelf();
 };
 
 #endif

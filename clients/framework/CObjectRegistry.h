@@ -273,7 +273,7 @@ THIRD PARTIES OR A FAILURE OF THE PROGRAM TO OPERATE WITH ANY OTHER PROGRAMS),
 EVEN IF SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH 
 DAMAGES.
 
-		     END OF TERMS AND CONDITIONS
+		     END OF TERMS AND CONDITIONS '
 */
 /*!
   ObjectRegistry.h:
@@ -297,15 +297,19 @@ DAMAGES.
 
 #ifndef __STL_STRING
 #include <string>
+#ifndef __STL_STRING
 #define __STL_STRING
+#endif
 #endif
 
 #ifndef __STL_MAP
 #include <map>
+#ifndef __STL_MAP
 #define __STL_MAP
 #endif
+#endif
 
-typedef map<string, CNamedObject*>::iterator ObjectIterator;
+typedef STD(map)<STD(string), CNamedObject*>::iterator ObjectIterator;
 
 /*!
   Implements a registry of named objects.  
@@ -320,13 +324,13 @@ typedef map<string, CNamedObject*>::iterator ObjectIterator;
 
 class CObjectRegistry : public CNamedObject
 {
-  map<string, CNamedObject*> m_Objects; /*! Map containing the name key and a
+  STD(map)<STD(string), CNamedObject*> m_Objects; /*! STD(Map) containing the name key and a
                                            pointer to the object.
 					 */
  public:
 
   // Default constructor
-  CObjectRegistry (string am_sName) :
+  CObjectRegistry (STD(string) am_sName) :
     CNamedObject(am_sName)
     { AppendClassInfo(); }
 
@@ -336,7 +340,7 @@ class CObjectRegistry : public CNamedObject
   // Selectors
  public:
 
-  map<string, CNamedObject*> getObjects() const
+  STD(map)<STD(string), CNamedObject*> getObjects() const
     {
       return m_Objects;
     }
@@ -344,7 +348,7 @@ class CObjectRegistry : public CNamedObject
   // Mutators
  protected:
 
-  void setObjects(map<string, CNamedObject*> am_Objects)
+  void setObjects(STD(map)<STD(string), CNamedObject*> am_Objects)
     {
       m_Objects = am_Objects;
     }
@@ -353,12 +357,12 @@ class CObjectRegistry : public CNamedObject
  public:
 
   void Add(CNamedObject& rObject);
-  void Remove(const string& rName);
+  void Remove(const STD(string)& rName);
   void Remove(const CNamedObject& rObject);
-  const ObjectIterator Find(const string& rObjectName) const;
+  const ObjectIterator Find(const STD(string)& rObjectName) const;
   ObjectIterator begin();
   ObjectIterator end();
-  virtual string DescribeSelf();
+  virtual STD(string) DescribeSelf();
 };
 
 #endif

@@ -273,7 +273,7 @@ THIRD PARTIES OR A FAILURE OF THE PROGRAM TO OPERATE WITH ANY OTHER PROGRAMS),
 EVEN IF SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH 
 DAMAGES.
 
-		     END OF TERMS AND CONDITIONS
+		     END OF TERMS AND CONDITIONS '
 */
 /*!
 
@@ -342,7 +342,7 @@ class CFdMonitor : public CEventMonitor
     m_fLastEventMask(0)
     { AppendClassInfo(); }
 
-  CFdMonitor(const string& rName, int am_nFd, bool am_fTimedWait = true) :
+  CFdMonitor(const STD(string)& rName, int am_nFd, bool am_fTimedWait = true) :
     CEventMonitor(rName, am_fTimedWait),
     m_nFd(am_nFd),
     m_nConditionMask(0),
@@ -418,7 +418,7 @@ class CFdMonitor : public CEventMonitor
   void MonitorWritable (bool fWritable = true);
   void MonitorExceptions (bool fException = true);
   virtual CEventMonitor::result operator() ();
-  virtual string DescribeSelf();
+  virtual STD(string) DescribeSelf();
 };
 
 #endif

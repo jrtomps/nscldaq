@@ -273,7 +273,7 @@ THIRD PARTIES OR A FAILURE OF THE PROGRAM TO OPERATE WITH ANY OTHER PROGRAMS),
 EVEN IF SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH 
 DAMAGES.
 
-		     END OF TERMS AND CONDITIONS
+		     END OF TERMS AND CONDITIONS'
 */
 
 //    Ron Fox
@@ -285,12 +285,19 @@ DAMAGES.
 #ifndef __CARRAYBINDING_CPP
 #define __CARRAYBINDING_CPP
 
+#include <config.h>
+
 #include <CArrayBinding.h>
 #include <TCLVariable.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <fstream.h>
+#include <Fstream.h>
+
+#ifdef HAVE_STD_NAMESPACE
+using namespace std;
+#endif
+
 
 /*!
    Construct an array binding from a TCL Variable as an STL String:

@@ -273,7 +273,7 @@ THIRD PARTIES OR A FAILURE OF THE PROGRAM TO OPERATE WITH ANY OTHER PROGRAMS),
 EVEN IF SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH 
 DAMAGES.
 
-		     END OF TERMS AND CONDITIONS
+		     END OF TERMS AND CONDITIONS  '
 */
 // Author:
 //   Ron Fox
@@ -303,7 +303,9 @@ DAMAGES.
 
 #ifndef __STL_STRING
 #include <string>
+#ifndef __STL_STRING
 #define __STL_STRING
+#endif
 #endif
 
 /*!
@@ -338,7 +340,7 @@ private:
                m_pOptionTable;  //!< Command line option table (optional).
   unsigned int m_nOptionCount;  //!< Number of options.
   char**       m_ppcFallbackResources; //!< Application fall back resourcelist.
-  string       m_sClass;	//!< Application class. 
+  STD(string)       m_sClass;	//!< Application class. 
   bool         m_fExit;		//!< TRUE when supposed to exit.
   
 private:
@@ -379,7 +381,7 @@ public:
     return m_ppcFallbackResources;
   }
   //! Returns the application class name.
-  string getApplicationClass() const
+  STD(string) getApplicationClass() const
   {
     return m_sClass;
   }
@@ -408,7 +410,7 @@ protected:
     m_ppcFallbackResources = resources;
   }
   //! Set a new application class string.
-  void setApplicationClass(const string& ClassName) {
+  void setApplicationClass(const STD(string)& ClassName) {
     m_sClass = ClassName;
   }
   //! Set the number of items in the option list.

@@ -273,7 +273,7 @@ THIRD PARTIES OR A FAILURE OF THE PROGRAM TO OPERATE WITH ANY OTHER PROGRAMS),
 EVEN IF SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH 
 DAMAGES.
 
-		     END OF TERMS AND CONDITIONS
+		     END OF TERMS AND CONDITIONS '
 */
 static const char* Copyright= "(C) Copyright Michigan State University 2002, All rights reserved";/*
 ** Facility:
@@ -305,9 +305,15 @@ static char *sccsversion="@(#)XMCallback.cc	8.2 1/26/98 ";
 /*
 ** Includes:
 */
+#include <config.h>
 #include <errno.h>
 #include <stdio.h>
 #include "XMWidget.h"
+
+
+#ifdef HAVE_STD_NAMESPACE
+using namespace std;
+#endif
 
 extern "C" {
              void exit(int);

@@ -273,7 +273,7 @@ THIRD PARTIES OR A FAILURE OF THE PROGRAM TO OPERATE WITH ANY OTHER PROGRAMS),
 EVEN IF SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH 
 DAMAGES.
 
-		     END OF TERMS AND CONDITIONS
+		     END OF TERMS AND CONDITIONS '
 */
 // Author:
 //   Ron Fox
@@ -300,13 +300,17 @@ DAMAGES.
 
 #ifndef __STL_VECTOR
 #include <vector>
+#ifndef __STL_VECTOR
 #define __STL_VECTOR
+#endif
 #endif
 
 
 #ifndef __STL_STRING
 #include <string>
+#ifndef __STL_STRING
 #define __STL_STRING
+#endif
 #endif
 
 /*!
@@ -321,13 +325,13 @@ class CTCPBadSocketState : public CException
   // Private members:
   
   CSocket::State          m_BadState;	 //!< Incorrect state at time of throw.
-  vector<CSocket::State>  m_ValidStates; //!< States which would have been ok.
-  mutable string          m_Message;     //!< Full error message built up here
+  STD(vector)<CSocket::State>  m_ValidStates; //!< States which would have been ok.
+  mutable STD(string)          m_Message;     //!< Full error message built up here
 
   // Constructors and related functions:
 public:
   CTCPBadSocketState(CSocket::State badState,
-		     vector<CSocket::State> okStates,
+		     STD(vector)<CSocket::State> okStates,
 		     const char* pDoing);
   CTCPBadSocketState(const CTCPBadSocketState& rhs);
   virtual ~CTCPBadSocketState() {}
@@ -340,7 +344,7 @@ public:
 public:
   CSocket::State getBadState() const 
   { return m_BadState; }
-  vector<CSocket::State> getValidStates() const
+  STD(vector)<CSocket::State> getValidStates() const
   { return m_ValidStates; }
 
   // Mutators:
@@ -348,7 +352,7 @@ protected:
 
   void setBadState(CSocket::State newState)
   { m_BadState = newState; }
-  void setValidStates(const vector<CSocket::State>& newStates)
+  void setValidStates(const STD(vector)<CSocket::State>& newStates)
   { m_ValidStates = newStates; }
 
   // Operations on the class:

@@ -273,7 +273,7 @@ THIRD PARTIES OR A FAILURE OF THE PROGRAM TO OPERATE WITH ANY OTHER PROGRAMS),
 EVEN IF SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH 
 DAMAGES.
 
-		     END OF TERMS AND CONDITIONS
+		     END OF TERMS AND CONDITIONS '
 */
 // Author:
 //    Ron Fox
@@ -308,8 +308,8 @@ class CIncompatibleMonitor : public CException
 {
   // Attributes:
 
-  string         m_MonitorDescription;
-  mutable string m_Reason;
+  STD(string)         m_MonitorDescription;
+  mutable STD(string) m_Reason;
 
   // Constructors and related functions:
 public:
@@ -322,13 +322,13 @@ public:
 
   // Selectors:
 public:
-  string getMonitorDescription() const
+  STD(string) getMonitorDescription() const
   { return m_MonitorDescription; }
  
   // Mutators:
 
 public:
-  void setMonitorDescription(const string& rnew)
+  void setMonitorDescription(const STD(string)& rnew)
   { m_MonitorDescription = rnew; }
 
   // Class functions:

@@ -273,7 +273,7 @@ THIRD PARTIES OR A FAILURE OF THE PROGRAM TO OPERATE WITH ANY OTHER PROGRAMS),
 EVEN IF SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH 
 DAMAGES.
 
-		     END OF TERMS AND CONDITIONS
+		     END OF TERMS AND CONDITIONS '
 */
 
 /*!
@@ -291,11 +291,12 @@ DAMAGES.
 ////////////////////////// FILE_NAME.cpp /////////////////////////////////////////////////////
 #ifndef __CLOCATIONREACTOR_CPP
 #define __CLOCATIONREACTOR_CPP
+#include <config.h>
 #include "CLocationReactor.h"
 #include <CEventMonitor.h>
 #include <CLocationMonitor.h>
 #include <CIncompatibleMonitor.h>
-#include <typeinfo>
+#include <Typeinfo.h>
 
 
 

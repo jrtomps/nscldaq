@@ -273,7 +273,7 @@ THIRD PARTIES OR A FAILURE OF THE PROGRAM TO OPERATE WITH ANY OTHER PROGRAMS),
 EVEN IF SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH 
 DAMAGES.
 
-		     END OF TERMS AND CONDITIONS
+		     END OF TERMS AND CONDITIONS '
 */
 static const char* Copyright= "(C) Copyright Michigan State University 2002, All rights reserved";/*!
   \file: CEventMonitor.cpp
@@ -292,9 +292,14 @@ static const char* Copyright= "(C) Copyright Michigan State University 2002, All
       mailto:venemaja@msu.edu
 */
 
+#include <config.h>
 #include "CEventMonitor.h"
 #include <CApplicationRegistry.h>
 #include <stdio.h>
+#ifdef HAVE_STD_NAMESPACE
+using namespace std;
+#endif
+
 
 static const string RegistryName = "Monitors";
 
@@ -309,7 +314,7 @@ unsigned int CEventMonitor::m_nAutoIndex(0);
   The name used is gaurenteed unique and can be queried via:
   getName().
 */
-CEventMonitor::CEventMonitor(bool am_fTimedWait = true) :
+CEventMonitor::CEventMonitor(bool am_fTimedWait) :
   CRegisteredObject(GetAutoName("GenericMonitor"),
 		    CApplicationRegistry::getInstance(),
 		    RegistryName)
@@ -330,7 +335,7 @@ CEventMonitor::CEventMonitor(bool am_fTimedWait = true) :
   - CDuplicateNameException (indirectly) if a Reactor of this name
     already exists.
 */
-CEventMonitor::CEventMonitor(const string& rName, bool am_fTimedWait = true) :
+CEventMonitor::CEventMonitor(const string& rName, bool am_fTimedWait) :
   CRegisteredObject(rName,
 		    CApplicationRegistry::getInstance(),
 		    RegistryName)
@@ -351,7 +356,7 @@ CEventMonitor::CEventMonitor(const string& rName, bool am_fTimedWait = true) :
   -CDuplicateNameException (indirectly) if an event monitor of this name
   already exists.
 */
-CEventMonitor::CEventMonitor(const char* pName, bool am_fTimedWait = true) :
+CEventMonitor::CEventMonitor(const char* pName, bool am_fTimedWait ) :
   CRegisteredObject(string(pName),
 		    CApplicationRegistry::getInstance(),
 		    RegistryName)
@@ -386,7 +391,7 @@ CEventMonitor::~CEventMonitor()
       FOREVER - Block until event.
 */
 void
-CEventMonitor::setTimeout (int nTimeout=FOREVER)
+CEventMonitor::setTimeout (int nTimeout)
 {
   m_tvTimeout.tv_sec  = nTimeout / 1000;
   m_tvTimeout.tv_usec = (nTimeout % 1000)*1000;	// 1000ms in a usec.

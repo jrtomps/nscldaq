@@ -273,7 +273,7 @@ THIRD PARTIES OR A FAILURE OF THE PROGRAM TO OPERATE WITH ANY OTHER PROGRAMS),
 EVEN IF SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH 
 DAMAGES.
 
-		     END OF TERMS AND CONDITIONS
+		     END OF TERMS AND CONDITIONS '
 */
 /*!
   RegisteredObject.h:
@@ -301,7 +301,9 @@ DAMAGES.
 
 #ifndef __STL_STRING
 #include <string>
+#ifndef __STL_STRING
 #define __STL_STRING
+#endif
 #endif
 
 class CRegisteredObject : public CNamedObject
@@ -312,8 +314,8 @@ class CRegisteredObject : public CNamedObject
  public:
 
   // Default constructor
-  CRegisteredObject(string am_sName, CClassifiedObjectRegistry* am_Registry,
-		    const string& RegistryName) :
+  CRegisteredObject(STD(string) am_sName, CClassifiedObjectRegistry* am_Registry,
+		    const STD(string)& RegistryName) :
     CNamedObject(am_sName),
     m_Registry(am_Registry) 
     { 
@@ -357,7 +359,7 @@ public:
   // Interactors
  public:
 
-  void RegisterSelf(const string& RegistryName);
+  void RegisterSelf(const STD(string)& RegistryName);
 };
 
 #endif

@@ -273,7 +273,7 @@ THIRD PARTIES OR A FAILURE OF THE PROGRAM TO OPERATE WITH ANY OTHER PROGRAMS),
 EVEN IF SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH 
 DAMAGES.
 
-		     END OF TERMS AND CONDITIONS
+		     END OF TERMS AND CONDITIONS '
 */
 static const char* Copyright= "(C) Copyright Michigan State University 2002, All rights reserved";
 
@@ -287,13 +287,20 @@ static const char* Copyright= "(C) Copyright Michigan State University 2002, All
 //      East Lansing, MI 48824-1321
 //      mailto:fox@nscl.msu.edu
 //
+#include <config.h>
 #include <CFileEvent.h>
 #include <CApplicationSerializer.h>
-#include <iostream.h>
-#include <fstream.h>
+#include <Iostream.h>
+#include <Fstream.h>
 #include <unistd.h>
 #include <ErrnoException.h>
 #include <stdio.h>
+
+#include <fdstream.h>		// extensions to c++ streams for fd stream.
+
+#ifdef HAVE_STD_NAMESPACE
+using namespace std;
+#endif
 
 // static member data:
 
@@ -341,7 +348,7 @@ CFileEventReactor(const string& rName, CFileEvent& rOwner) :
 void
 CFileEvent::CFileEventReactor::OnReadable(CFdMonitor& rMonitor, int fd)
 {
-  ifstream infile(fd);
+  fdistream infile(fd);
 
   m_rOwner.OnReadable(infile);
 }
@@ -359,7 +366,7 @@ CFileEvent::CFileEventReactor::OnReadable(CFdMonitor& rMonitor, int fd)
 void
 CFileEvent::CFileEventReactor::OnWritable(CFdMonitor& rMonitor, int fd)
 {
-  ofstream ofile(fd);
+  fdostream ofile(fd);
   m_rOwner.OnWritable(ofile);
 }
 /*!
@@ -371,7 +378,7 @@ void
 CFileEvent::CFileEventReactor::OnException(CFdMonitor& rMonitor, int fd)
 {
 
-  fstream io(fd);
+  fdiostream io(fd);
   m_rOwner.OnException(io);
 }
 
@@ -383,7 +390,7 @@ void
 CFileEvent::CFileEventReactor::OnTimeout(CEventMonitor& rMonitor)
 {
   int fd =m_rOwner.getFd();
-  fstream io(fd);
+  fdiostream io(fd);
   m_rOwner.OnTimeout(io);
 }
 

@@ -40,58 +40,58 @@ clean:
 	rm $(TESTS)
 
 
-MutexTest: MutexTest.cpp ../libEventFramework.a
+MutexTest: MutexTest.cpp ../.libs/libEventFramework.a
 	$(CXX) $(CXXFLAGS) -o MutexTest $< $(LDFLAGS)
 
 
-XtTest: XtTest.cpp ../libEventFramework.a
+XtTest: XtTest.cpp ../.libs/libEventFramework.a
 	$(CXX) $(CXXFLAGS) -o XtTest $< $(LDFLAGS) $($(OS)MOTIFLIBDIR) -lXm -lXt
 
-TclTest: TclTest.cpp TCLExtension.o ../libEventFramework.a
+TclTest: TclTest.cpp TCLExtension.o ../.libs/libEventFramework.a
 	$(CXX) $(CXXFLAGS) -o TclTest $< TCLExtension.o $(LDFLAGS)
 
-TkTest: TkTest.cpp TCLExtension.o ../libEventFramework.a
+TkTest: TkTest.cpp TCLExtension.o ../.libs/libEventFramework.a
 	$(CXX) $(CXXFLAGS) -o TkTest $< TCLExtension.o $(LDFLAGS)
 
-RegistryTest: RegistryTest.cpp CTestClasses.h ../libEventFramework.a
+RegistryTest: RegistryTest.cpp CTestClasses.h ../.libs/libEventFramework.a
 	$(CXX) $(CXXFLAGS) -o RegistryTest $< $(LDFLAGS)
 
-SocketTest: SocketTest.cpp ../libEventFramework.a
+SocketTest: SocketTest.cpp ../.libs/libEventFramework.a
 	$(CXX) $(CXXFLAGS) -o SocketTest $< $(LDFLAGS)
 
 TCLExtension.o: TCLExtension.cpp
 	$(CXX) $(CXXFLAGS) -c $<
 
-BufferTest: BufferTest.cpp ../libEventFramework.a
+BufferTest: BufferTest.cpp ../.libs/libEventFramework.a
 	$(CXX) $(CXXFLAGS) -o BufferTest $< $(LDFLAGS)
 
-FdMonitorTest: FdMonitorTest.cpp ../libEventFramework.a
+FdMonitorTest: FdMonitorTest.cpp ../.libs/libEventFramework.a
 	$(CXX) $(CXXFLAGS) -o FdMonitorTest $< $(LDFLAGS)
 
-TimerTest: TimerTest.cpp ../libEventFramework.a
+TimerTest: TimerTest.cpp ../.libs/libEventFramework.a
 	$(CXX) $(CXXFLAGS) -o TimerTest $< $(LDFLAGS)
 
-LocationTest: LocationTest.cpp ../libEventFramework.a
+LocationTest: LocationTest.cpp ../.libs/libEventFramework.a
 	$(CXX) $(CXXFLAGS) -o LocationTest $< $(LDFLAGS)
 
 
-EventTest: EventTest.cpp ../libEventFramework.a
+EventTest: EventTest.cpp ../.libs/libEventFramework.a
 	$(CXX) $(CXXFLAGS) -o EventTest $< $(LDFLAGS)
 
-CFileEventTest: CFileEventTest.cpp ../libEventFramework.a
+CFileEventTest: CFileEventTest.cpp ../.libs/libEventFramework.a
 	$(CXX) $(CXXFLAGS) -o CFileEventTest $< $(LDFLAGS)
 
-LocationEventTest: LocationEventTest.cpp ../libEventFramework.a
+LocationEventTest: LocationEventTest.cpp ../.libs/libEventFramework.a
 	$(CXX) $(CXXFLAGS) -o LocationEventTest $< $(LDFLAGS)
 
-BufferEventTest: BufferEventTest.cpp ../libEventFramework.a
+BufferEventTest: BufferEventTest.cpp ../.libs/libEventFramework.a
 	$(CXX) $(CXXFLAGS) -o BufferEventTest $< $(LDFLAGS)
 
-TimerEventTest: TimerEventTest.cpp ../libEventFramework.a
+TimerEventTest: TimerEventTest.cpp ../.libs/libEventFramework.a
 	$(CXX) $(CXXFLAGS) -o TimerEventTest $< $(LDFLAGS)
 
-CTCPEventsTest: CTCPEventsTest.cpp ../libEventFramework.a
+CTCPEventsTest: CTCPEventsTest.cpp ../.libs/libEventFramework.a
 	$(CXX) $(CXXFLAGS) -o CTCPEventsTest $< $(LDFLAGS)
 
-ConfigTest: ConfigTest.cpp ../libEventFramework.a
+ConfigTest: ConfigTest.cpp ../.libs/libEventFramework.a
 	$(CXX) $(CXXFLAGS) -o ConfigTest $< $(LDFLAGS)

@@ -273,7 +273,7 @@ THIRD PARTIES OR A FAILURE OF THE PROGRAM TO OPERATE WITH ANY OTHER PROGRAMS),
 EVEN IF SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH 
 DAMAGES.
 
-		     END OF TERMS AND CONDITIONS
+		     END OF TERMS AND CONDITIONS '
 */
 
 
@@ -298,6 +298,13 @@ DAMAGES.
                                //Required for base classes
 #ifndef __CFDMONITOR_H     //CFdMonitor
 #include "CFdMonitor.h"
+#endif
+
+#ifndef __STL_STRING
+#include <string>
+#ifndef __STL_STRING
+#define __STL_STRING
+#endif
 #endif
  
 /*!
@@ -375,7 +382,7 @@ protected:
 public:
 
     void operator() ()   ;
-   virtual   string DescribeSelf ()   ;
+   virtual   STD(string) DescribeSelf ()   ;
 
 };
 

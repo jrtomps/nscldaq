@@ -273,7 +273,7 @@ THIRD PARTIES OR A FAILURE OF THE PROGRAM TO OPERATE WITH ANY OTHER PROGRAMS),
 EVEN IF SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH 
 DAMAGES.
 
-		     END OF TERMS AND CONDITIONS
+		     END OF TERMS AND CONDITIONS '
 */
 /*!
   ObjectRegistry.h:
@@ -318,18 +318,18 @@ DAMAGES.
 #define __STL_LIST
 #endif
 
-typedef map<string, CObjectRegistry>::iterator RegistryIterator;
-typedef list<CNamedObject*> ObjectList;
+typedef STD(map)<STD(string), CObjectRegistry>::iterator RegistryIterator;
+typedef STD(list)<CNamedObject*> ObjectList;
 
 class CClassifiedObjectRegistry : public CNamedObject
 {
-  map<string, CObjectRegistry> m_Registries; /*! map containing the type key
+  STD(map)<STD(string), CObjectRegistry> m_Registries; /*! STD(map) containing the type key
 					      and object registry */
 
 public:
 
   // Default constructor
-  CClassifiedObjectRegistry (string am_sName) :
+  CClassifiedObjectRegistry (STD(string) am_sName) :
     CNamedObject(am_sName)
     { AppendClassInfo(); }
 
@@ -339,7 +339,7 @@ public:
   // Selectors
 public:
   
-  map<string, CObjectRegistry> getRegistries() const
+  STD(map)<STD(string), CObjectRegistry> getRegistries() const
     {
       return m_Registries;
     }
@@ -347,7 +347,7 @@ public:
   // Mutators
 protected:
   
-  void setRegistries (map<string, CObjectRegistry> am_Registries)
+  void setRegistries (STD(map)<STD(string), CObjectRegistry> am_Registries)
     {
       m_Registries = am_Registries;
     }
@@ -355,15 +355,15 @@ protected:
   // Public member functions
 public:
   
-  void CreateRegistry (const string& RegistryName);
-  void DeleteRegistry (const string& RegistryName);
-  void Add (const string& RegistryName, CNamedObject& rObject);
-  void Remove (const string& RegistryName, CNamedObject& Object);
-  ObjectIterator Find (const string& RegistryName, const string& ObjectName);
-  CRefcountedPtr<ObjectList> Find (const string& ObjectName);
+  void CreateRegistry (const STD(string)& RegistryName);
+  void DeleteRegistry (const STD(string)& RegistryName);
+  void Add (const STD(string)& RegistryName, CNamedObject& rObject);
+  void Remove (const STD(string)& RegistryName, CNamedObject& Object);
+  ObjectIterator Find (const STD(string)& RegistryName, const STD(string)& ObjectName);
+  CRefcountedPtr<ObjectList> Find (const STD(string)& ObjectName);
   RegistryIterator beginregistry ();
   RegistryIterator endregistry ();
-  virtual string DescribeSelf();
+  virtual STD(string) DescribeSelf();
 };
 
 #endif

@@ -273,7 +273,7 @@ THIRD PARTIES OR A FAILURE OF THE PROGRAM TO OPERATE WITH ANY OTHER PROGRAMS),
 EVEN IF SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH 
 DAMAGES.
 
-		     END OF TERMS AND CONDITIONS
+		     END OF TERMS AND CONDITIONS '
 */
 // Author:
 //   Ron Fox
@@ -296,26 +296,28 @@ DAMAGES.
 
 #ifndef __STL_STRING
 #include <string>
+#ifndef __STL_STRING
 #define __STL_STRING
+#endif
 #endif
 
 /*! 
   Encapsulates an excpetion which indicates a failure to translate a service
-  specification string into a service port number.  Service strings can be
+  specification STD(string) into a service port number.  Service STD(string)s can be
   either a service name which is looked up in e.g. /etc/services or a 
-  stringified service port number.
+  STD(string)ified service port number.
 
  */
 class CTCPNoSuchService : public CErrnoException
 {
   // Member data [private]
 private:
-  string         m_Service;	//!< cached value of service.
-  mutable string m_Reason;	//!< Where the reason text is built up.
+  STD(string)         m_Service;	//!< cached value of service.
+  mutable STD(string) m_Reason;	//!< Where the reason text is built up.
 
   // Constructors and related functions:
 public:
-  CTCPNoSuchService(const string& service, const string& Doing); 
+  CTCPNoSuchService(const STD(string)& service, const STD(string)& Doing); 
   CTCPNoSuchService(const CTCPNoSuchService& rhs); //!< Copy Constructor.
   virtual ~CTCPNoSuchService() {}                  //!< Destructor.
 
@@ -325,13 +327,13 @@ public:
   // Selectors:
 
 public:
-  string getService() const	//!< Return service name.
+  STD(string) getService() const	//!< Return service name.
   { return m_Service; }
 
   // Mutators:
 
 protected:
-  void setService(const string& newVal) 
+  void setService(const STD(string)& newVal) 
   { m_Service = newVal; }
 
   // Operations on the class:

@@ -273,7 +273,7 @@ THIRD PARTIES OR A FAILURE OF THE PROGRAM TO OPERATE WITH ANY OTHER PROGRAMS),
 EVEN IF SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH 
 DAMAGES.
 
-		     END OF TERMS AND CONDITIONS
+		     END OF TERMS AND CONDITIONS '
 */
 
 /*!
@@ -291,13 +291,21 @@ DAMAGES.
 ////////////////////////// FILE_NAME.cpp /////////////////////////////////////////////////////
 #ifndef __CBUFFERREACTOR_CPP
 #define __CBUFFERREACTOR_CPP
+#include <config.h>
+
+// This module needs this here to deal with spectrodaq.h's needs.
+
+#ifdef HAVE_STD_NAMESPACE
+using namespace std;
+#endif
+
 #include "CBufferReactor.h"    				
 #include <spectrodaq.h>
 #include <CEventMonitor.h>
 #include <CBufferMonitor.h>
 #include <CIncompatibleMonitor.h>
 #include <string.h>
-#include <typeinfo>
+#include <Typeinfo.h>
 
 // Constructors.
 

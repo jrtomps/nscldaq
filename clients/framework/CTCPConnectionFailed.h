@@ -273,7 +273,7 @@ THIRD PARTIES OR A FAILURE OF THE PROGRAM TO OPERATE WITH ANY OTHER PROGRAMS),
 EVEN IF SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH 
 DAMAGES.
 
-		     END OF TERMS AND CONDITIONS
+		     END OF TERMS AND CONDITIONS '
 */
 // Author:
 //   Ron Fox
@@ -290,6 +290,13 @@ DAMAGES.
 #include <ErrnoException.h>
 #endif
 
+#ifndef __STL_STRING
+#include <string>
+#ifndef __STL_STRING
+#define __STL_STRING
+#endif
+#endif
+
 /*!
    Encapsulates a connection failure exception. Since connect(2) reports
    failure reasons through errno, this classs derives from CErrnoException.
@@ -298,15 +305,15 @@ class CTCPConnectionFailed : public CErrnoException
 {
   // Private member data:
 
-  string m_Host;		//!< Attempted peername.
-  string m_Service;		//!< Attempted connection point port. 
-  mutable string m_ReasonText;	//!< Reason text is built up here.
+  STD(string) m_Host;		//!< Attempted peername.
+  STD(string) m_Service;		//!< Attempted connection point port. 
+  mutable STD(string) m_ReasonText;	//!< Reason text is built up here.
 
   // Constructors and related functions.
 
 public:
-  CTCPConnectionFailed(const string& host,
-		       const string& service,
+  CTCPConnectionFailed(const STD(string)& host,
+		       const STD(string)& service,
 		       const char*   pDoing);
   CTCPConnectionFailed(const CTCPConnectionFailed& rhs);
   ~CTCPConnectionFailed() {}	//!< Destructor.
@@ -317,17 +324,17 @@ public:
   // Selectors:
 
 public:
-  string getHost() const
+  STD(string) getHost() const
   { return m_Host; }
-  string getService() const
+  STD(string) getService() const
   { return m_Service; }
  
   // Mutators:
 
 protected:
-  void setHost(const string& rHost) 
+  void setHost(const STD(string)& rHost) 
   { m_Host = rHost; }
-  void setService(const string& rService)
+  void setService(const STD(string)& rService)
   { m_Service = rService; }
 
   // Class functions:

@@ -273,7 +273,7 @@ THIRD PARTIES OR A FAILURE OF THE PROGRAM TO OPERATE WITH ANY OTHER PROGRAMS),
 EVEN IF SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH 
 DAMAGES.
 
-		     END OF TERMS AND CONDITIONS
+		     END OF TERMS AND CONDITIONS '
 */
 static const char* Copyright= "(C) Copyright Michigan State University 2002, All rights reserved";/*!
    \file  CFdMonitor.cpp 
@@ -299,11 +299,16 @@ static const char* Copyright= "(C) Copyright Michigan State University 2002, All
     mailto:venemaja@msu.edu
 */
 
+#include <config.h>
 #include "CFdMonitor.h"
 #include <stdio.h>
 
+#ifdef HAVE_STD_NAMESPACE
+using namespace std;
+#endif
+
 /*!
-  \fn void CFdMonitor::MonitorReadable(bool fReadable=TRUE) 
+  \fn void CFdMonitor::MonitorReadable(bool fReadable) 
   Operation Type:
     Mutator
 
@@ -311,7 +316,7 @@ static const char* Copyright= "(C) Copyright Michigan State University 2002, All
     Sets or clears the FD_READABLE bit in m_nConditionMask.
 */
 void
-CFdMonitor::MonitorReadable(bool fReadable = true)
+CFdMonitor::MonitorReadable(bool fReadable)
 {
   unsigned int Mask = (fReadable) ? (1 << FD_READABLE) : (0 << FD_READABLE);
   m_nConditionMask = (m_nConditionMask | Mask);
@@ -326,7 +331,7 @@ CFdMonitor::MonitorReadable(bool fReadable = true)
     Sets or clears the FD_WRITABLE bit in the m_nConditionMask attribute.
 */
 void
-CFdMonitor::MonitorWritable(bool fWritable = true)
+CFdMonitor::MonitorWritable(bool fWritable)
 {
   unsigned int Mask = (fWritable) ? (1 << FD_WRITABLE) : (0 << FD_WRITABLE);
   m_nConditionMask = (m_nConditionMask | Mask);
@@ -341,7 +346,7 @@ CFdMonitor::MonitorWritable(bool fWritable = true)
     Sets or clears  the FD_EXCEPTION bit in m_nConditionMask.
 */
 void
-CFdMonitor::MonitorExceptions(bool fException = true)
+CFdMonitor::MonitorExceptions(bool fException)
 {
   unsigned int Mask = 
     (fException) ? (1 << FD_EXCEPTION) : (0 << FD_EXCEPTION);

@@ -273,7 +273,7 @@ THIRD PARTIES OR A FAILURE OF THE PROGRAM TO OPERATE WITH ANY OTHER PROGRAMS),
 EVEN IF SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH 
 DAMAGES.
 
-		     END OF TERMS AND CONDITIONS
+		     END OF TERMS AND CONDITIONS '
 */
 static const char* Copyright= "(C) Copyright Michigan State University 2002, All rights reserved";/*! \file  CThreadRecursiveMutex.cpp 
            Provides a mutex which can be locked in a nested manner by a thread.
@@ -285,13 +285,23 @@ static const char* Copyright= "(C) Copyright Michigan State University 2002, All
 */
 
 ////////////////////////// FILE_NAME.cpp /////////////////////////////////////////////////////
+#include <config.h>
+
+// Need to do this here to be compatible with spectrodaq.h.
+
+#ifdef HAVE_STD_NAMESPACE
+using namespace std;
+#endif
+
 #include "CThreadRecursiveMutex.h"    				
 #include <spectrodaq.h>
 #include <errno.h>
 
+#include <assert.h>
+
 #ifdef __DEBUG__
-#include <iostream.h>
-#include <iomanip.h>
+#include <Iostream.h>
+#include <Iomanip.h>
 #endif
 
 //!

@@ -273,7 +273,7 @@ THIRD PARTIES OR A FAILURE OF THE PROGRAM TO OPERATE WITH ANY OTHER PROGRAMS),
 EVEN IF SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH 
 DAMAGES.
 
-		     END OF TERMS AND CONDITIONS
+		     END OF TERMS AND CONDITIONS '
 */
 #ifndef __SPECTROFRAMEWORK_H
 #define __SPECTROFRAMEWORK_H
@@ -329,7 +329,6 @@ DAMAGES.
 #include <CTimerEvent.h>
 #include <CTimerMonitor.h>
 #include <CXtEventLoop.h>
-#include <SpectroFramework.h>
 #include <TCLApplication.h>
 #include <TCLCommandPackage.h>
 #include <TCLException.h>

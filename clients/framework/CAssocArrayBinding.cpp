@@ -273,7 +273,7 @@ THIRD PARTIES OR A FAILURE OF THE PROGRAM TO OPERATE WITH ANY OTHER PROGRAMS),
 EVEN IF SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH 
 DAMAGES.
 
-		     END OF TERMS AND CONDITIONS
+		     END OF TERMS AND CONDITIONS '
 */
 
 
@@ -290,15 +290,20 @@ DAMAGES.
 //  Copyright 2001 NSCL, All Rights Reserved.
 //
 /////////////////////////////////////////////////////////////
+#include <config.h>
 #include <CAssocArrayBinding.h>
 #include <tcl.h>
 #include <TCLList.h>
 #include <TCLException.h>
 #include <TCLInterpreter.h>
 #include <vector>
-#include <iostream.h>
-#include <fstream.h>
+#include <Iostream.h>
+#include <Fstream.h>
 #include <stdlib.h>
+
+#ifdef HAVE_STD_NAMESPACE
+using namespace std;
+#endif
 
 /*!
   Constructs an associative array configured from a TCL array.
@@ -334,7 +339,7 @@ template <class T>
 CAssocArrayBinding<T>::~CAssocArrayBinding()
 {
   if(m_TCLVariableType == TCL_LINK_STRING) {
-    map<string,T>::iterator p = m_Array.begin();
+    typename map<string,T>::iterator p = m_Array.begin();
     while(p != m_Array.end()) {
       delete (char*)((long)p->second);
       p++;
@@ -470,7 +475,7 @@ CAssocArrayBinding<T>::Dump(int fd)
 {
   ofstream str(fd);		// Turn fd into a file  stream.
 
-  map<string,T>::iterator p = m_Array.begin();
+  typename map<string,T>::iterator p = m_Array.begin();
   while(p != m_Array.end()) {
     string command("set ");	// The command gets built up here.
     command += m_sName;

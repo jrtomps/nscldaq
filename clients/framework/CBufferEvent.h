@@ -273,7 +273,7 @@ THIRD PARTIES OR A FAILURE OF THE PROGRAM TO OPERATE WITH ANY OTHER PROGRAMS),
 EVEN IF SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH 
 DAMAGES.
 
-		     END OF TERMS AND CONDITIONS
+		     END OF TERMS AND CONDITIONS '
 */
 //! \file:  CBufferEvent.h
 // Author:
@@ -315,6 +315,15 @@ DAMAGES.
 #define __STL_STRING
 #endif
 
+
+// In general needed for spectrodaq.h
+// includes.
+
+#ifdef HAVE_STD_NAMESPACE
+using namespace std;
+#endif
+
+
 #ifndef __SPECTRODAQ_H
 #include <spectrodaq.h>
 #define __SPECTRODAQ_H
@@ -344,7 +353,7 @@ class CBufferEvent  : public CEvent
 
   //!  Form of request to add a link to the link manager.
   struct AddLinkRequest {
-    string       s_url;		//!< URL of source system.
+    STD(string)       s_url;		//!< URL of source system.
     unsigned int s_tag;		//!< tag to match against.
     unsigned int s_mask;	//!< Accpetance mask to apply to tags.
     unsigned int s_linktype;	//!< Type of link (COS_RELIABLE e.g.).
@@ -371,8 +380,8 @@ class CBufferEvent  : public CEvent
 
   // The two request queues must have a synchronized access.
 
-  list<AddLinkRequest> m_AddQueue; //!< Requests to add links go here.
-  list<AddLinkRequest> m_DelQueue;  //!< Requests to delete links go here.
+  STD(list)<AddLinkRequest> m_AddQueue; //!< Requests to add links go here.
+  STD(list)<AddLinkRequest> m_DelQueue;  //!< Requests to delete links go here.
 
   CBufferMonitor<T>&   m_rMonitor; //!< Monitors the input links.
   CGenericBufferReactor<T>&   m_rReactor; //!< Reacts to the input links.
@@ -383,7 +392,7 @@ public:
 
   CBufferEvent();		   //!< Anonymous buffer event.
   CBufferEvent(const char* pName); //!< Named event with char* name.
-  CBufferEvent(const string& rName); //!< Named event with string name.
+  CBufferEvent(const STD(string)& rName); //!< Named event with STD(string) name.
   ~CBufferEvent();		//!< Destroy the event.
 
   // Copy construction, assignment, comparison are all illegal:
@@ -396,15 +405,15 @@ public:
 
   // Selectors:
 public:
-  list<AddLinkRequest> getPendingAddQueue() const {
+  STD(list)<AddLinkRequest> getPendingAddQueue() const {
     CApplicationSerializer::getInstance()->Lock();
-    list<AddLinkRequest> result = m_AddQueue;
+    STD(list)<AddLinkRequest> result = m_AddQueue;
     CApplicationSerializer::getInstance()->UnLock();
     return result;
   }
-  list<AddLinkRequest> getPendingDeleteQueue() const {
+  STD(list)<AddLinkRequest> getPendingDeleteQueue() const {
     CApplicationSerializer::getInstance()->Lock();
-    list<AddLinkRequest> result = m_DelQueue;
+    STD(list)<AddLinkRequest> result = m_DelQueue;
     CApplicationSerializer::getInstance()->UnLock();
     return result;
   }
@@ -417,10 +426,10 @@ public:
 
   // Class operations:
 
-  void AddLink(const string& url,unsigned int tag, 
+  void AddLink(const STD(string)& url,unsigned int tag, 
 	       unsigned int mask = ALLBITS_MASK, 
 	       int reliability = COS_RELIABLE);
-  void DeleteLink(const string& url, unsigned int tag, 
+  void DeleteLink(const STD(string)& url, unsigned int tag, 
 		  unsigned int mask = ALLBITS_MASK,
 		  int reliability = COS_RELIABLE);
 
@@ -433,12 +442,12 @@ public:
   virtual void setBufferMask(int mask) {
     m_rMonitor.SetBufferMask(mask);
   }
-  virtual string DescribeSelf();
+  virtual STD(string) DescribeSelf();
 protected:
   virtual void ProcessQueues();
   void ProcessAddQueue();
   void ProcessDelQueue();
-  string QueueEntryToString(AddLinkRequest& rEntry);
+  STD(string) QueueEntryToString(AddLinkRequest& rEntry);
 };
 
 #include "CBufferEvent.cpp"

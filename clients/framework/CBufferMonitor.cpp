@@ -273,14 +273,20 @@ THIRD PARTIES OR A FAILURE OF THE PROGRAM TO OPERATE WITH ANY OTHER PROGRAMS),
 EVEN IF SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH 
 DAMAGES.
 
-		     END OF TERMS AND CONDITIONS
+		     END OF TERMS AND CONDITIONS '
 */
 
 
 
 #ifndef __CBUFFERMONITOR_CPP
 #define __CBUFFERMONITOR_CPP
+#include <config.h>
 #include <CBufferMonitor.h>
+
+#ifdef HAVE_STD_NAMESPACE
+using namespace std;
+#endif
+
 /*!
   \fn CEventMonitor::result CBufferMonitor::operator()() 
 
@@ -489,7 +495,7 @@ CBufferMonitor<T>::endLinks()
 */
 template<class T>
 Pointer<DAQBuffer<T>, T>
-CBufferMonitor<T>::getBufferPointer (int nOffset = 0)
+CBufferMonitor<T>::getBufferPointer (int nOffset)
 {
   Pointer<DAQBuffer<T>, T> p(&m_Buffer);
   p += nOffset;
@@ -519,7 +525,7 @@ CBufferMonitor<T>::getBufferPointer (int nOffset = 0)
 */
 template<class T>
 void 
-CBufferMonitor<T>::SetBufferTag (int tag = COS_ALLBITS)
+CBufferMonitor<T>::SetBufferTag (int tag)
 {
   try {
     m_Buffer.SetTag(tag);
