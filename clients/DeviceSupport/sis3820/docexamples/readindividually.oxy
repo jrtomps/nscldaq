@@ -1,0 +1,7 @@
+	readscl (UINT32* buffer,int numscalers)
+	{
+          ...
+           for(int i = 0; i < 32; i++) {
+             *buffer++ = pScaler->ReadChannel(i);
+          }
+          ...

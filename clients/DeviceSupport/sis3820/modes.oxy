@@ -1,0 +1,15 @@
+/*!
+   \page Modes Supported operating modes.
+
+	Software support for the module is currently restricted to the latching 
+	scaler mode.  The hardware itself supports:
+	- Latching mode
+	- Multi event scaler mode.
+	- Histogramming scaler mode.
+
+	As applications require these additional operational modes, 
+       the software development group will implement support for them.
+       The implication of our current software restriction, however is that
+       CSIS3820::setOperatingMode can only be called with the parameter
+	CSIS3820::LatchingScaler.
+*/

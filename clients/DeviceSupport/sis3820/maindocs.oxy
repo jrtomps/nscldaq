@@ -1,0 +1,22 @@
+// This is a documentation only file.  It supplies the main page for Doxygen
+// including a link to the user documentation for the software.
+//
+
+/*!
+  \mainpage SIS3820 Scaler support software
+
+
+  \author Ron Fox
+
+  \section Intro Introduction
+ 
+	This document describes software support for the SIS3820 VME scaler.
+   Support for this module consists of a single C++ class: CSIS3820
+
+   This document describes:
+  - The \ref Modes Supported module modes
+  - \ref SetupLatching 
+  - \ref Readout
+
+
+ */
