@@ -308,7 +308,8 @@ proc configureStripChart {} {
 
     set shiftby [expr $xAxisLength * 0.1]
     $stripchartWidget axis configure x -autorange $xAxisLength \
-                                       -shiftby $shiftby
+                                       -shiftby $shiftby \
+	                               -title seconds
     if {$yAxisType == "linear"} {
         set log 0
         $logButton deselect
@@ -316,7 +317,7 @@ proc configureStripChart {} {
         set log 1
         $logButton select
     }
-    $stripchartWidget axis configure y -logscale $log
+    $stripchartWidget axis configure y -logscale $log -title counts
 
     puts "done"
 }
