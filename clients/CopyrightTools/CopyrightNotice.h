@@ -1,10 +1,12 @@
 #ifndef __COPYRIGHTNOTICE_H
 #define __COPYRIGHTNOTICE_H
 
-#ifndef __CPP_IOSTREAM_H
-#include <iostream.h>
-#define __CPP_IOSTREAM_H
+/// Requires include of config.h by parent.
+
+#ifndef __OSTREAM_DAQH
+#include <Ostream.h>
 #endif
+
 
 /*!
   Generate simple copyright and authorship notices.
@@ -14,9 +16,9 @@
 class CopyrightNotice
 {
 public:
-  static void  Notice(ostream& out,  const char* program, 
+  static void  Notice(STD(ostream)& out,  const char* program, 
 		      const char* version,  const char* year);
-  static void  AuthorCredit(ostream& out, char* program, ...);
+  static void  AuthorCredit(STD(ostream)& out, char* program, ...);
 
 }; 
 

@@ -4,6 +4,7 @@
 #include "CopyrightNotice.h"
 #include <stdarg.h>
 
+using namespace std;
 void
 CopyrightNotice::Notice(ostream& out, const char* program, 
 			const char* version, const char* year)
@@ -30,9 +31,9 @@ CopyrightNotice::AuthorCredit(ostream& out, char* program, ...)
 
   out << program << " was written by:\n\n";
   pAuthor = (char*)va_arg(ap, char*);
-  //  while(pAuthor != (char*)0) {
+  while(pAuthor != (char*)0) {
     out << pAuthor << endl;
     pAuthor = (char*)va_arg(ap, char*);
-    //  }
+  }
   va_end(ap);
 }
