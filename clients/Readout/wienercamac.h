@@ -1,17 +1,17 @@
 
 #ifndef __WIENERCAMAC_H
 #define __WIENERCAMAC_H
-
+#include <daqdatatypes.h>
 /* 
 The Wiener VC32 each control only one crate, so an array of pointers is
 required for multiple crate operation
 */
 
-extern void* pBranchBases;
-#define CAMBAS(b) ((long)pBranchBases[(b)]
+extern void* (pBranchBases[]);
+#define CAMBAS(b) (pBranchBases[(b)])
 
 
-/* new camac inlines when wiener vc32cc32 modules are used --ddc */
+/* New camac inlines when wiener vc32cc32 modules are used --ddc */
 
 /* 
 HUH... better check what's going on here because getlong and putlong are
@@ -28,7 +28,7 @@ static inline UINT32 getlong(volatile void* a) {
 #define getlong(ptr) ( *(volatile UINT32 *)(ptr) )
 
 
-static inline void putlong(INT32 v,volatile void *a) {
+static inline void putlong(UINT32 v,volatile void *a) {
     *(volatile UINT32*)a = v;
 };
 
@@ -43,7 +43,9 @@ static inline void putlong(INT32 v,volatile void *a) {
 #define    CAMF    2              /* Shift count to F field. */
 #define    CAMA    6              /* Shift count to A field  */
 #define    CAMN    10             /* Shift count to N field  */
-
+#define    CAM24   0              /* unused for wiener interface */
+#define    CAM16   0              /* Unused for wiener interface */
+#define    CAMB    0		/*  Unused if wiener interface */
 
 /*
  * The macros are used to do accesses to the CAMAC at higher 
@@ -74,12 +76,12 @@ static inline void putlong(INT32 v,volatile void *a) {
 
 /* Unhappiness with recasting a pointer in 24bit reads... replace this --ddc
 #define CBDPTR(c, n, a, f) \
-    ((volatile INT16 *)(CAMBAS(c-1) + \
+    ((volatile INT16 *)(((unsigned long)CAMBAS(c-1)) + \
               ( (n) << CAMN ) | ( (a) << CAMA) | ( (f&0x0f) << CAMF )))
 */
 
-#define CBDPTR(c, n, a, f) \
-    ((CAMBAS(c-1) + \
+#define CBDPTR(b, c, n, a, f, width) \
+    ((unsigned long)(((unsigned long)CAMBAS(c-1)) + \
               ( (n) << CAMN ) | ( (a) << CAMA) | ( (f&0x0f) << CAMF )))
 
 /*

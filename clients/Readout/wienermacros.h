@@ -37,12 +37,12 @@
 
 
 /*All definitions referring to CBDPTR are changed from macros.h--ddc */
-#define camread16(b,c,n,a,f)     (CAMRD16(CBDPTR((c),(n),(a),(f))))
-#define camread24(b, c, n, a, f) (CAMRD24(CBDPTR((c),(n),(a),(f))))
-#define camread32(b, c, n, a, f) (CAMRD32(CBDPTR((c),(n),(a),(f))))
+#define camread16(b,c,n,a,f)     (CAMRD16(CBDPTR((b), (c),(n),(a),(f), CAM16)))
+#define camread24(b, c, n, a, f) (CAMRD24(CBDPTR((b), (c),(n),(a),(f), CAM24)))
+#define camread32(b, c, n, a, f) (CAMRD32(CBDPTR((b), (c),(n),(a),(f), CAM24)))
 
-#define camwrite16(b,c,n,a,f,d)  (CAMWR16(CBDPTR((c),(n),(a),(f)),d))
-#define camwrite24(b,c,n,a,f,d)  (CAMWR24(CBDPTR((c),(n),(a),(f)),d))
+#define camwrite16(b,c,n,a,f,d)  (CAMWR16(CBDPTR((b), (c),(n),(a),(f), CAM16),d))
+#define camwrite24(b,c,n,a,f,d)  (CAMWR24(CBDPTR((b), (c),(n),(a),(f), CAM24),d))
 /* 
 camctl...
 unfortunately, the prior version of camctl assumed that a READ was
@@ -52,11 +52,11 @@ access to determine the actual function that it executes (reading for
 F<16, write for F>=16). So, we replace the camctl macro. --ddc
 */ 
 
-/* #define camctl(b,c,n,a,f)        CAMCTL(CBDPTR((c), (n), (a), (f))) */
+/* #define camctl(b,c,n,a,f)        CAMCTL(CBDPTR((b), (c), (n), (a), (f), CAM16)) */
 #define camctl(b,c,n,a,f)  {  \
             if(f<16){ \
-                if( *(volatile INT16 *)CBDPTR((c),(n),(a),(f)) ){}; \
-            } else *(volatile INT16 *)CBDPTR((c),(n),(a),(f))=0;    \
+                if( *(volatile INT16 *)CBDPTR((b), (c),(n),(a),(f), CAM16) ){}; \
+            } else *(volatile INT16 *)CBDPTR((b), (c),(n),(a),(f), CAM16)=0;    \
 	}
 
 #ifdef LONGBRANCH
@@ -138,13 +138,16 @@ F<16, write for F>=16). So, we replace the camctl macro. --ddc
  * branch number is irrelevent, but each vc32 has a "number" same as
  * crate number. --ddc
  */
+
+ extern void WIENERBranchAccess(int branch);
+
 #define AR 0x1000             /* turns on autoread ... NORMALLY OFF! */
 #define ROAK 0x0800           /* ROAK mode, RORA mode if zero */
 #define VME_LAM_INT 0x0000    /* If vme int generated for LAMS (bits8-11) */
 #define VME_INT_VEC 0x0000    /* If vme int vector for LAMS (bits0-7) */
-#define branchinit(b) \ WIENERBranchAccess(b); \
-                     camwrite16(b,b,0,0,3,VME_LAM_INT|VME_INT_VEC);    \
-                     camctl(b,b,31,0,16);                              \
+#define branchinit(b)  WIENERBranchAccess(b);  \
+                      camwrite16(b,b+1,0,0,3,VME_LAM_INT|VME_INT_VEC);     \
+                       camctl(b,b+1,31,0,16);                              \
                      sleep(2)
 
 /* NAF (0,3,16) Z+I, (0,2,16) C+Uninhibit, (28,1,16,0) set lam mask */
@@ -525,3 +528,4 @@ F<16, write for F>=16). So, we replace the camctl macro. --ddc
 
 
 /*#endif  * endif for MACROS_H defined */
+#endif         /*  _WIENERMACROS_H */
