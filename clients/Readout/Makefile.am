@@ -1,5 +1,5 @@
 lib_LTLIBRARIES = libReadout.la
-libReadout_la_SOURCES = Active.cpp CAENcard.cpp CAENcard_test.cpp \
+libReadout_la_SOURCES = Active.cpp CAENcard.cpp  \
 	 CAMACBusy.cpp CESTrigger.cpp CaenIO.cpp DebugState.cpp \
 	EventBufferPointer.cpp Exception.cpp Exiting.cpp Inactive.cpp \
 	MmapError.cpp Nimout.cpp Paused.cpp RangeError.cpp Reader.cpp \
@@ -7,7 +7,8 @@ libReadout_la_SOURCES = Active.cpp CAENcard.cpp CAENcard_test.cpp \
 	State.cpp StateMachine.cpp TestBusy.cpp TestTrigger.cpp VMEBusy.cpp \
 	VMETrigger.cpp VmeModule.cpp camacmap.cpp sis3300.cpp \
 	cmdio.c command.c diagnose.c docmd.c CAENcard_767.cpp
-#	CAENchain.o
+
+#	CAENchain.cpp
 
 include_HEADERS = Active.h Busy.h CAENcard.h CAENchain.h CAMACBusy.h \
 	CCaenIO.h CESTrigger.h CException.h CVME.h CVMEptr.h CaenIO.h \
@@ -52,5 +53,12 @@ INCLUDES = -I@top_srcdir@/Headers -I@top_srcdir@/VMEApi \
 	$(SPECTRODAQ_FLAGS) -DINSTDIR=\"$(prefix)\" $(CAMAC) -g
 
 EXTRA_DIST = runstate.tran Makefile.skel ReadoutMain.cpp skeleton.cpp 
+
+
+
+
+
+
+
 
 
