@@ -747,8 +747,7 @@ CApplication::ValidateInterval(int interval)
   - ss  is the two digit second.
 
   This format supports date comparisons as simple lexical string compares.
-  Note that the date 0000-00-00 00:00:00 is used to represent the epoch start
-  time.
+
   \param time_t t
       The time value to convert
   \return string
@@ -765,7 +764,7 @@ CApplication::FormatTime(time_t t)
     struct tm* timestruct = localtime(&t);
     sprintf(timestamp, "%04d-%02d-%02d %02d:%02d:%02d",
 	    timestruct->tm_year+YEARBASE,
-	    timestruct->tm_mon,
+	    timestruct->tm_mon+1,
 	    timestruct->tm_mday,
 	    timestruct->tm_hour,
 	    timestruct->tm_min,
