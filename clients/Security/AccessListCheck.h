@@ -273,7 +273,7 @@ THIRD PARTIES OR A FAILURE OF THE PROGRAM TO OPERATE WITH ANY OTHER PROGRAMS),
 EVEN IF SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH 
 DAMAGES.
 
-		     END OF TERMS AND CONDITIONS
+		     END OF TERMS AND CONDITIONS '
 */
 
  
@@ -312,7 +312,7 @@ DAMAGES.
 #define __STL_MAP
 #endif
 
-typedef std::map<std::string,std::string> StringMap;                        
+typedef STD(map)<STD(string),STD(string)> StringMap;                        
 class CAccessListCheck  : public CAuthenticator        
 {                       
 			
@@ -378,8 +378,8 @@ protected:
 public:
 
  virtual   Bool_t Authenticate (CInteractor& rInteractor)    ;
- virtual   void AddAclEntry (const std::string& rEntry)    ;
- virtual   void DeleteAclEntry (const std::string& rEntry)    ;
+ virtual   void AddAclEntry (const STD(string)& rEntry)    ;
+ virtual   void DeleteAclEntry (const STD(string)& rEntry)    ;
 
 
 };

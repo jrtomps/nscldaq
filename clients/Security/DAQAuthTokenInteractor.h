@@ -273,7 +273,7 @@ THIRD PARTIES OR A FAILURE OF THE PROGRAM TO OPERATE WITH ANY OTHER PROGRAMS),
 EVEN IF SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH 
 DAMAGES.
 
-		     END OF TERMS AND CONDITIONS
+		     END OF TERMS AND CONDITIONS '
 */
 // Class: CDAQAuthTokenInteractor                     //ANSI C++
 //
@@ -297,6 +297,14 @@ DAMAGES.
 #ifndef __STRINGINTERACTOR_H
 #include "StringInteractor.h"
 #endif
+
+// Don't like to do unsing namespace in headers, but spectrodaq.h
+//doesn't give me any choice:
+
+#ifdef  HAVE_STD_NAMESPACE
+using namespace std;
+#endif
+
 
 #ifndef __SPDAQ_DAQTYPES_H
 #include <daqtypes.h>

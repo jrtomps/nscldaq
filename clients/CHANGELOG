@@ -138,3 +138,6 @@ Week of November 8:
     - bcnaf.tcl: Added -ces/-wiener switch so the same script can fire off
        either cesbcnaf or wienerbcnaf.  The default is -ces so that pure
        compatibility is retained.
+    - Remove CTCLFileHandler constructors that operate on c++ streams as
+      these will no longer work in the ANSI standard IOSTREAMS library.
+    - Port Security      - 3.x 

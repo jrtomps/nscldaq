@@ -273,7 +273,7 @@ THIRD PARTIES OR A FAILURE OF THE PROGRAM TO OPERATE WITH ANY OTHER PROGRAMS),
 EVEN IF SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH 
 DAMAGES.
 
-		     END OF TERMS AND CONDITIONS
+		     END OF TERMS AND CONDITIONS '
 */
 // Class: CUnixUserCheck                     //ANSI C++
 //
@@ -304,11 +304,20 @@ DAMAGES.
 #include "Authenticator.h"
 #endif
                                
+
+#ifndef __STL_STRING
+#include <string>
+#ifndef __STL_STRING
+#define __STL_STRING
+#endif
+#endif
+
+
 class CUnixUserCheck  : public CAuthenticator        
 {                       
 			
-   string m_sUserPrompt;	//Username Prompt string
-   string m_sPasswordPrompt;	//Password Prompt string.
+   STD(string) m_sUserPrompt;	//Username Prompt string
+   STD(string) m_sPasswordPrompt;	//Password Prompt string.
    Bool_t m_fPromptUser;	//If true usename is prompted for.
    Bool_t m_fPromptPassword;	//If false, password is prompted for.        
 
@@ -320,8 +329,8 @@ public:
 
   CUnixUserCheck ()    : 
     CAuthenticator(),
-    m_sUserPrompt(string("Username: ")),   
-    m_sPasswordPrompt(string("Password: ")),   
+    m_sUserPrompt(STD(string)("Username: ")),   
+    m_sPasswordPrompt(STD(string)("Password: ")),   
     m_fPromptUser(kfTRUE),   
     m_fPromptPassword(kfTRUE) 
   { 
@@ -329,8 +338,8 @@ public:
   } 
    ~ CUnixUserCheck ( )  // Destructor 
      { }  
-  CUnixUserCheck (const string& am_sUserPrompt,  
-		  const string& am_sPasswordPrompt,  
+  CUnixUserCheck (const STD(string)& am_sUserPrompt,  
+		  const STD(string)& am_sPasswordPrompt,  
 		  Bool_t am_fPromptUser,  Bool_t am_fPromptPassword  ) 
       : CAuthenticator()   ,
 	m_sUserPrompt(am_sUserPrompt),
@@ -376,10 +385,10 @@ public:
 
 public:
 
-  string getUserPrompt() const
+  STD(string) getUserPrompt() const
   { return m_sUserPrompt;
   }
-  string getPasswordPrompt() const
+  STD(string) getPasswordPrompt() const
   { return m_sPasswordPrompt;
   }
   Bool_t getPromptUser() const
@@ -393,10 +402,10 @@ public:
 
 protected:
 
-  void setUserPrompt (const string& am_sUserPrompt)
+  void setUserPrompt (const STD(string)& am_sUserPrompt)
   { m_sUserPrompt = am_sUserPrompt;
   }
-  void setPasswordPrompt (const string& am_sPasswordPrompt)
+  void setPasswordPrompt (const STD(string)& am_sPasswordPrompt)
   { m_sPasswordPrompt = am_sPasswordPrompt;
   }
   void setPromptUser (Bool_t am_fPromptUser)
@@ -411,12 +420,12 @@ public:
   virtual   Bool_t Authenticate (CInteractor& rInteractor)    ;
   void SetPrompting (Bool_t fUserPrompt=kfTRUE, 
 		     Bool_t fPasswordPrompt=kfTRUE)    ;
-  void SetUserPrompt (const string& rNewPrompt=string("Password: "))    ;
-  void SetPasswordPrompt (const string& rNewPrompt=string("Password: "))    ;
+  void SetUserPrompt (const STD(string)& rNewPrompt=STD(string)("Password: "))    ;
+  void SetPasswordPrompt (const STD(string)& rNewPrompt=STD(string)("Password: "))    ;
  
 protected:
-  void   PutPrompt(CInteractor& rInteractor, const string& rPrompt);
-  Bool_t Validate(const string& sUser, const string& sPassword);
+  void   PutPrompt(CInteractor& rInteractor, const STD(string)& rPrompt);
+  Bool_t Validate(const STD(string)& sUser, const STD(string)& sPassword);
 
 };
 

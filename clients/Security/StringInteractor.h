@@ -273,7 +273,7 @@ THIRD PARTIES OR A FAILURE OF THE PROGRAM TO OPERATE WITH ANY OTHER PROGRAMS),
 EVEN IF SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH 
 DAMAGES.
 
-		     END OF TERMS AND CONDITIONS
+		     END OF TERMS AND CONDITIONS '
 */
 
  
@@ -309,8 +309,8 @@ DAMAGES.
 class CStringInteractor  : public CInteractor        
 {                       
 			
-	std::string m_sString;		//
-   int    m_nReadCursor;	//Char offset for read.        
+  STD(string) m_sString;		//
+  int    m_nReadCursor;	//Char offset for read.        
 
 protected:
 
@@ -320,7 +320,7 @@ public:
 
   ~ CStringInteractor ( )  // Destructor 
   { }  
-  CStringInteractor (const std::string& am_sString  ) 
+  CStringInteractor (const STD(string)& am_sString  ) 
     : CInteractor(),
       m_sString(am_sString),
       m_nReadCursor(0)
@@ -356,7 +356,7 @@ public:
 
 public:
 
-  std::string getString() const
+  STD(string) getString() const
   { return m_sString;
   }
   int getReadCursor() const
@@ -367,7 +367,7 @@ public:
 
 protected:
 
-	void setString (const std::string& am_sString)
+	void setString (const STD(string)& am_sString)
   { m_sString = am_sString;
   }
   void setReadCursor (const int am_nReadCursor)

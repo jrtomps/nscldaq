@@ -273,7 +273,7 @@ THIRD PARTIES OR A FAILURE OF THE PROGRAM TO OPERATE WITH ANY OTHER PROGRAMS),
 EVEN IF SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH 
 DAMAGES.
 
-		     END OF TERMS AND CONDITIONS
+		     END OF TERMS AND CONDITIONS '
 */
 // Class: CPasswordCheck                     //ANSI C++
 //
@@ -312,9 +312,9 @@ DAMAGES.
 
 class CPasswordCheck  : public CAuthenticator        
 {                       
-   static const std::string m_EmptyString;
-   std::string m_sPassword;		//Password in clear text.
-   std::string m_sPromptString;	// Promptstring.
+   static const STD(string) m_EmptyString;
+   STD(string) m_sPassword;		//Password in clear text.
+   STD(string) m_sPromptString;	// Promptstring.
    Bool_t m_fWithPrompt;	//TRUE if need to prompt for password.        
 
 protected:
@@ -323,8 +323,8 @@ public:
 
    // Constructors and other cannonical operations:
 
-	CPasswordCheck (const std::string& rPassword,
-	      std::string rPrompt = m_EmptyString,
+	CPasswordCheck (const STD(string)& rPassword,
+	      STD(string) rPrompt = m_EmptyString,
 		  Bool_t WithPrompt = kfFALSE)    : 
     m_sPassword(rPassword),
     m_sPromptString(rPrompt),
@@ -360,10 +360,10 @@ public:
 
 public:
 
-  std::string getPassword() const
+  STD(string) getPassword() const
   { return m_sPassword;
   }
-  std::string getPromptString() const
+  STD(string) getPromptString() const
   { return m_sPromptString;
   }
   Bool_t getWithPrompt() const
@@ -373,10 +373,10 @@ public:
 // Mutators (public!)
 
 
-  void setPassword (const std::string am_sPassword)
+  void setPassword (const STD(string) am_sPassword)
   { m_sPassword = am_sPassword;
   }
-  void setPromptString (const std::string am_sPromptString)
+  void setPromptString (const STD(string) am_sPromptString)
   { m_sPromptString = am_sPromptString;
   }
 protected:
@@ -398,7 +398,7 @@ public:
   }
   
 protected:
-  std::string GetUserPassword(CInteractor& rInteractor) {
+  STD(string) GetUserPassword(CInteractor& rInteractor) {
     return GetLine(rInteractor);
   }
 };

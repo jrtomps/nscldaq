@@ -101,10 +101,10 @@ RANLIB = ranlib
 RC = @RC@
 SMP_FLAG = -D__SMP__
 SOVERSION = 8:0
-SPECTRODAQ_FLAGS = -D_REENTRANT=1 -I/usr/opt/spectrodaq/include -I/usr/opt/spectrodaq/include/nscl -I/usr/opt/spectrodaq/include/xmloop
-SPECTRODAQ_LDFLAGS = -lpthread -L/usr/opt/spectrodaq/lib -lnetio -ldaqclient -lspectrodaq -ldaqthreads -lxmloop -lxmlparse -lxmltok -lpthread -lcrypt -L/usr/opt/spectrodaq/lib -lNSCLException
+SPECTRODAQ_FLAGS = -D_REENTRANT=1 -I/scratch/fox/spectrodaq/test/include -I/scratch/fox/spectrodaq/test/include/nscl -I/scratch/fox/spectrodaq/test/include/xmloop
+SPECTRODAQ_LDFLAGS = -lpthread -L/scratch/fox/spectrodaq/test/lib -lnetio -ldaqclient -lspectrodaq -ldaqthreads -lxmloop -lxmlparse -lxmltok -lpthread -lcrypt -L/scratch/fox/spectrodaq/test/lib -lNSCLException
 STRIP = strip
-TCL_FLAGS = -I/usr/include/tcl8.4/
+TCL_FLAGS = -I/usr/include/tcl8.4
 TCL_LDFLAGS = -L/usr/lib -ltk  -ltcl
 TCL_STUBFLAGS = -L/usr/lib -ltclstub
 TK_STUBFLAGS = -L/usr/lib  -ltkstub
@@ -117,7 +117,7 @@ VMELIBRARYHEADERS = -I/scratch/fox/daq/8.0test/include
 VME_DRIVERDIR = btdriver
 X11INCS =  -I/usr/X11R6/include
 X11LIBS =  -L/usr/X11R6/lib  -lXm -lXt -lX11
-spectrodaq_conf_dir = /usr/opt/spectrodaq/bin
+spectrodaq_conf_dir = /scratch/fox/spectrodaq/test/bin
 
 SUBDIRS = driver lib
 mkinstalldirs = $(SHELL) $(top_srcdir)/config/mkinstalldirs
