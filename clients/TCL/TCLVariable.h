@@ -394,7 +394,13 @@ public:
 			       int Flags)  ;
 
    static  char* TraceRelay (ClientData pObject, Tcl_Interp* pInterpreter, 
-			     char*      pName,   char*       pIndex, 
+#if (TCL_MAJOR_VERSION > 8) || ((TCL_MAJOR_VERSION ==8) && (TCL_MINOR_VERSION > 3))
+			     const char*      pName,   
+			     const char*      pIndex, 
+#else
+			     char*           pName,
+			     char*           pIndex,
+#endif
 			     int flags)  ;
   const char* Set (const char* pValue, int flags=TCL_LEAVE_ERR_MSG)  ;
   const char* Set (const char* pSubscript, char* pValue, 
