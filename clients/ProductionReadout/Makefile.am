@@ -4,20 +4,11 @@ SUBDIRS = hyperlatex
 lib_LTLIBRARIES=libPReadout.la
 libPReadout_la_SOURCES = AccessListCheck.cpp \
 	AuthTokenCheck.cpp \
-	CBD8210.cpp \
 	CBadTransitionException.cpp \
 	CBeginCommand.cpp \
-	CCAMACScalerLRS2551.cpp \
-	CCAMACScalerLRS4434.cpp \
-	CCAMACStatusModule.cpp \
-	CCAMACTrigger.cpp \
-	CCamac.cpp \
-	CCamacModule.cpp \
-	CCamacNimout.cpp \
 	CCompoundEventSegment.cpp \
 	CConstVariable.cpp \
 	CConstVariableCommand.cpp \
-	CCrateController.cpp \
 	CDocumentedPacket.cpp \
 	CDocumentedPacketManager.cpp \
 	CEndCommand.cpp \
@@ -47,14 +38,12 @@ libPReadout_la_SOURCES = AccessListCheck.cpp \
 	CRunVariableBuffer.cpp \
 	CRunVariableCommand.cpp \
 	CRunVariableDumpTrigger.cpp \
-	CScaler.cpp \
 	CScalerBank.cpp \
 	CScalerTrigger.cpp \
 	CStateTransitionCommand.cpp \
 	CStateVariable.cpp \
 	CStateVariableBuffer.cpp \
 	CStateVariableCommand.cpp \
-	CStatusModule.cpp \
 	CTCLListener.cpp \
 	CTCLServer.cpp \
 	CTagBaseCommand.cpp \
@@ -62,50 +51,28 @@ libPReadout_la_SOURCES = AccessListCheck.cpp \
 	CTimedEvent.cpp \
 	CTimer.cpp \
 	CTkInterpreterShell.cpp \
-	CTrigger.cpp \
-	CAENcard.cpp  \
-	CVMEScalerCAENV830.cpp \
-	CVMEScalerLRS1151.cpp \
-	CVMEStatusModule.cpp \
-	CVMETrigger.cpp \
-	CaenIO.cpp \
 	DAQAuthTokenInteractor.cpp \
 	FdInteractor.cpp \
 	HostListCheck.cpp \
 	IOInteractor.cpp \
 	Interactor.cpp \
-	MmapError.cpp \
-	Nimout.cpp \
 	PasswordCheck.cpp \
 	Skeleton.cpp \
 	StringInteractor.cpp \
 	TclAccessListCheck.cpp \
 	TclAuthorizer.cpp \
 	UnixUserCheck.cpp \
-	VmeModule.cpp  \
 	cmdline.c \
-	camacmap.cpp \
-	v890.cpp \
-	CCAENV830.cpp
 	CTKListener.cpp CTKServerInstance.cpp
 
 include_HEADERS = AccessListCheck.h \
 	AuthTokenCheck.h \
 	Authenticator.h \
-	CBD8210.h \
 	CBadTransitionException.h \
 	CBeginCommand.h \
-	CCAMACScalerLRS2551.h \
-	CCAMACScalerLRS4434.h \
-	CCAMACStatusModule.h \
-	CCAMACTrigger.h \
-	CCamac.h \
-	CCamacModule.h \
-	CCamacNimout.h \
 	CCompoundEventSegment.h \
 	CConstVariable.h \
 	CConstVariableCommand.h \
-	CCrateController.h \
 	CDocumentedPacket.h \
 	CDocumentedPacketManager.h \
 	CEndCommand.h \
@@ -114,7 +81,6 @@ include_HEADERS = AccessListCheck.h \
 	CExperiment.h \
 	CInterpreterCore.h \
 	CInterpreterShell.h \
-	CAENcard.h \
 	CInvalidPacketStateException.h \
 	CNSCLBeginBuffer.h \
 	CNSCLControlBuffer.h \
@@ -136,14 +102,12 @@ include_HEADERS = AccessListCheck.h \
 	CRunVariableBuffer.h \
 	CRunVariableCommand.h \
 	CRunVariableDumpTrigger.h \
-	CScaler.h \
-	CScalerBank.h \
+	CScalerBank.h    \
 	CScalerTrigger.h \
 	CStateTransitionCommand.h \
 	CStateVariable.h \
 	CStateVariableBuffer.h \
 	CStateVariableCommand.h \
-	CStatusModule.h \
 	CTCLListener.h \
 	CTCLServer.h \
 	CTagBaseCommand.h \
@@ -153,32 +117,19 @@ include_HEADERS = AccessListCheck.h \
 	CTkInterpreterShell.h \
 	CTraditionalEventSegment.h \
 	CTraditionalScalerReadout.h \
-	CTrigger.h \
-	CVME.h \
-	CVMEScalerCAENV830.h \
-	CVMEScalerLRS1151.h \
-	CVMEStatusModule.h \
-	CVMETrigger.h \
-	CVMEptr.h \
-	CaenIO.h \
 	DAQAuthTokenInteractor.h \
 	FdInteractor.h \
 	HostListCheck.h \
 	IOInteractor.h \
 	Interactor.h \
-	MmapError.h \
-	Nimout.h \
 	PasswordCheck.h \
 	StringInteractor.h \
 	TclAccessListCheck.h \
 	TclAuthorizer.h \
 	UnixUserCheck.h \
-	VmeModule.h \
 	cmdline.h  \
-	v890.h \
 	CTKServerInstance.h \
-	CTKListener.h \
-	CCAENV830.h CCAENV820Registers.h
+	CTKListener.h 
 
 
 libPReadout_la_LDFLAGS = -g -version-info 1:1:1 \
@@ -188,7 +139,9 @@ libPReadout_la_LDFLAGS = -g -version-info 1:1:1 \
 	-lEventFramework -lVmeAPI -lException  $(SPECTRODAQ_LDFLAGS) \
 	$(TCL_LDFLAGS) $(X11LIBS) 
 
-INCLUDES = -I@top_srcdir@/Headers \
+INCLUDES =  $(CAMAC) -I@top_srcdir@/Headers \
+	$(VMEBUILDHEADERS)        \
+	-I@top_srcdir@/DeviceSupport \
 	-I@top_srcdir@/CopyrightTools     \
 	-I@top_srcdir@/VMEApi     \
 	-I@top_srcdir@/framework  \
@@ -208,6 +161,13 @@ install-data-local:
 	chmod a+rx $(prefix)/pReadoutSkeleton
 	$(INSTALL_DATA) MyExperiment.cpp $(prefix)/pReadoutSkeleton/Skeleton.cpp
 	echo INSTDIR=$(prefix) > Makefile.user
+	echo BINDIR=$(prefix)/bin                        >> Makefile.user
+	echo LIBDIR=$(prefix)/lib                        >> Makefile.user
+	echo INCLUDEDIR=$(prefix)/include                >> Makefile.user
+	echo VMELIBRARY="$(VMELIBRARY)"                  >> Makefile.user
+	echo VMELIBRARYHEADERS="$(VMELIBRARYHEADERS)"    >> Makefile.user
+	echo spectrodaq_conf_dir=$(spectrodaq_conf_dir)  >> Makefile.user
+	echo CAMAC=$(CAMAC)                              >> Makefile.user
 	cat  Makefile.skel    >> Makefile.user
 	$(INSTALL_DATA) Makefile.user $(prefix)/pReadoutSkeleton/Makefile
 	$(INSTALL_DATA) CTraditionalEventSegment.cpp \
