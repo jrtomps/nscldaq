@@ -5,7 +5,8 @@ lib_LTLIBRARIES = libVme.la
 libVme_la_SOURCES = VMECommand.cpp VMEMapCommand.cpp VMEPackage.cpp
 
 libVme_la_LDFLAGS =  -L@top_srcdir@/VMEApi \
-	 -L@top_srcdir@/TCL -L@top_srcdir@/Exception  -version-info 1:0:0
+	 -L@top_srcdir@/TCL -L@top_srcdir@/Exception  \
+	-version-info 1:0:0
 
 	  
 libVme_la_LIBADD =  -lTclPlus -lException  \
@@ -42,3 +43,4 @@ install-data-local:
 	$(mkinstalldirs) $(prefix)/Docs
 	$(mkinstalldirs) $(prefix)/Docs/vmetcl
 	$(INSTALL_DATA) Readme.txt $(prefix)/Docs/vmetcl/VmeTcl.txt
+
