@@ -85,8 +85,8 @@ namespace eval wienercamac {
 
     proc Encode {b c n {a 0} {f 0}} {
 #--ddc change to match coding for vc32... NOTE! assuming BYTE addressing!
-#	set reg [expr ($b << 19) | ($c << 16) | ($n << 11)]
-#	set reg [expr $reg | ($a << 7) | ($f << 2)]
+#	set reg [expr ($b << 19) | ($c << 16) | ($n << 10)]
+#	set reg [expr $reg | ($a << 6) | ($f << 2)]
 	set reg [expr ( ($c<<15)|($n<<10) | ($a << 6) | (($f&0xf) <<2))]
 	return $reg
     }   
