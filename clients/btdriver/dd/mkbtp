@@ -14,7 +14,7 @@ PERM=666		# File permissions to give the device
 PCI_VEND_ID=108a	# Vendor ID to search for in /proc/pci
 MOD_BASE=/lib/modules	# Location to look for the files at
 
-if [ `whoami` != root ] ; then
+if [ `id -u` != 0 ] ; then
     echo "You must be root user in order to load the device driver."
     exit 1
 fi
