@@ -353,6 +353,10 @@ private:
   CConstVariable*       m_pStartTime; //!< Run Start Time.
   CConstVariable*       m_pEvents;  //!< Events in the run.
   CConstVariable*       m_pWords;   //!< Words acquired in run.
+  int                   m_nEvents;  //!< Linked to m_pEvents.
+  int                   m_nWords;   //!< Linked to m_pWords.
+  // Use links to avoid threading problems.
+
 
 public:
 
@@ -418,7 +422,9 @@ public:
   // Class operations:
 public:  
   virtual   void RegisterExtensions ();
-  
+
+private:
+  static int ServiceEvent(int flags);
 };
 
 #endif

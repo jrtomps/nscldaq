@@ -54,7 +54,7 @@ program will individually obtain patent licenses, in effect making the
 program proprietary.  To prevent this, we have made it clear that any
 patent must be licensed for everyone's free use or not licensed at all.
 
- The precise terms and conditions for copying, distribution and
+  The precise terms and conditions for copying, distribution and
 modification follow.
 
 		    GNU GENERAL PUBLIC LICENSE
@@ -275,325 +275,236 @@ DAMAGES.
 
 		     END OF TERMS AND CONDITIONS
 */
-static const char* Copyright = "(C) Copyright Michigan State University 2002, All rights reserved";   
-//////////////////////////CInterpreterCore.cpp file////////////////////////////////////
-#include <tcl.h>
-#include <tclDecls.h>
-#include "TclAuthorizer.h"
-#include "CInterpreterCore.h"                  
-#include <TCLInterpreter.h>
-#include "CReadoutMain.h"
-#include "CStateVariable.h"
-#include "CConstVariableCommand.h"
-#include "CConstVariable.h"
-#include "CTCLListener.h"
-#include "CTKListener.h"
-#include <Exception.h>
-#include <CopyrightNotice.h>
-#include <NSCLException.h>
+static const char* Copyright= "(C) Copyright Michigan State University 2002, All rights reserved";///////////////////////////////////////////////////////////////////////
+//
+// serverinstnace.cpp:
+//    Implements the CTKServerInstance class of the 
+//    tcl server.
+//    One trick is used in this class to get it to self destruct.
+//    Disconnections are detected in a static member function which,
+//    on acceptance of a chunk of data passes control to appropriate
+//    members of the actual class (passed by pointer as client data) and,
+//    if the connection was broken, assumes the client was dynamically
+//    allocated and deletes it.
+//
+
+#include <CTKServerInstance.h>
+#include <CTKListener.h>
+#include <string.h>
+#include <tk.h>
 #include <iostream.h>
-#include <spectrodaq.h>
-#include <stdio.h>
 
+char *eol = "\n";
 
-/*!
-  Construct an interpreter core.
-  Saves the interpreter startup object and
-  constructs the commands.  The commands are registered
-  from the RegisterExtensions entry point.
-  \param rStartup - reference to the interpreter startup object.
-*/
-CInterpreterCore::CInterpreterCore (CInterpreterStartup& rStartup) :
-  m_rInterpreter(rStartup),
-  m_pBegin(new CBeginCommand),
-  m_pEnd(new CEndCommand),
-  m_pPause(new CPauseCommand),
-  m_pResume(new CResumeCommand),
-  m_pRunVariable(new CRunVariableCommand),
-  m_pStateVariable(new CStateVariableCommand),
-  m_pTagBase(new CTagBaseCommand),
-  m_pExit(new CExitCommand),
-  m_pAuthorizer(0),
-  m_pState(0),
-  m_pStartTime(0),
-  m_pEvents(0),
-  m_pWords(0)
+//////////////////////////////////////////////////////////////////////////
+//
+// CTKServerInstance(ServerContext& rContext)
+//
+// Constructor:
+//
+CTKServerInstance::CTKServerInstance(ServerContext& rContext)
 {
+  Context.pInterp       = rContext.pInterp;
+  Context.RemotePort    = rContext.RemotePort;
+  Context.DialogChannel = rContext.DialogChannel;
+  Tcl_DStringInit(&(Context.command));
+  Tcl_DStringInit(&(Context.RemoteHost));
+  Tcl_DStringAppend(&(Context.RemoteHost), 
+		    Tcl_DStringValue(&(rContext.RemoteHost)), -1);
 
+  Tcl_CreateChannelHandler(Context.DialogChannel, 
+			   TCL_READABLE | TCL_EXCEPTION,
+			   CTKServerInstance::InputHandler,
+			   (ClientData)this);
 }
-/*!
-   Destructor: Release all dynamically produced members.
-   In this case each member is a command object.  It is 
-   unregistered and deleted.
-
-   */
-
-CInterpreterCore::~CInterpreterCore()
+///////////////////////////////////////////////////////////////////////
+//
+//  ~CTKServerInstance()
+// 
+// Destructor:
+//
+CTKServerInstance::~CTKServerInstance()
 {
-  m_pBegin->UnregisterAll();
-  delete m_pBegin;
-
-  m_pEnd->UnregisterAll();
-  delete m_pEnd;
-
-  m_pPause->UnregisterAll();
-  delete m_pPause;
-
-  m_pResume->UnregisterAll();
-  delete m_pResume;
-
-  m_pRunVariable->UnregisterAll();
-  delete m_pRunVariable;
-
-  m_pStateVariable->UnregisterAll();
-  delete m_pStateVariable;
-
-  m_pTagBase->UnregisterAll();
-  delete m_pTagBase;
-
-  m_pExit->UnregisterAll();
-  delete m_pExit;
-
-  m_Const.UnregisterAll();
-
-
-   // Delete the const variables:
-   
-  delete m_pState;  
-  delete m_pState;
-
-  // The existence of an authorizer is optional depending
-  // on whether or not the usr selected to enable tcl server
-  // functionality.
-  //  If it exists it is rundown and deleted.
-  if(m_pAuthorizer) {
-     m_pAuthorizer->UnregisterAll();
-     delete m_pAuthorizer;
-  }
-
+  Shutdown();
+}
+/////////////////////////////////////////////////////////////////////
+//
+// void ClearCommand()
+//
+// Function Type:
+//   Utilty (command string manipulation).
+//
+void
+CTKServerInstance::ClearCommand()
+{
+  Tcl_DStringFree(&(Context.command));
+  Tcl_DStringInit(&(Context.command));
+}
+/////////////////////////////////////////////////////////////////////
+//
+//   void AppendChunk(const char* pChunk)
+//
+// Operation Type:
+//   Utility - command manipulation
+//
+void
+CTKServerInstance::AppendChunk(const char* pChunk)
+{
+  Tcl_DStringAppend(&(Context.command), pChunk, -1);
+}
+/////////////////////////////////////////////////////////////////////////
+//
+// virtual int  isChunkCommand()
+//
+// Operation Type:
+//   Utility, overridable, command manipulation.
+//
+int
+CTKServerInstance::isChunkCommand()
+{
+  return Tcl_CommandComplete(Tcl_DStringValue(&(Context.command)));
 }
 
-// Functions for class CInterpreterCore
-
-/*!
-    Register the command extensions associated with a Readout
-    interpreter.  These extensions support:
-    - Run control
-    - State variables
-    - Run variables
-
-	\param CTCLInterpreter* pInterp
-
-*/
-void 
-CInterpreterCore::RegisterExtensions()  
+/////////////////////////////////////////////////////////////////////////
+//
+// virtual int OnCommand()
+//
+// Operation Type:
+//    Overridable, action
+//
+int
+CTKServerInstance::OnCommand()
 {
+  // A complete command has been received.  Default action
+  // is to get Tcl/Tk to interpret it.  Errors are reported via OnError.
+  //
 
-  // Put out the copyright information:
+  int status;
 
-  CopyrightNotice::Notice(cerr, "pReadout", "1.0", "2002");
-  CopyrightNotice::AuthorCredit(cerr, "pReadout", "Ron Fox", NULL);
+  status = Tcl_Eval(Context.pInterp, 
+		    Tcl_DStringValue(&(Context.command)));
+  Tcl_Write(Context.DialogChannel, Context.pInterp->result,
+	    strlen(Context.pInterp->result));
+  Tcl_Write(Context.DialogChannel, eol, strlen(eol));
+  Tcl_Flush(Context.DialogChannel);
 
-  // From the Interpreter core, we need the actual interpreter object:
-
-  CTCLInterpreter* pTcl = m_rInterpreter.getInterpreter();
-
-  // We'll also need the main object and the experiment:
-
-  CReadoutMain* pMain = CReadoutMain::getInstance();
-  CExperiment*  pExperiment = pMain->getExperiment();
-  
-
-  // Now create and register the command executor modules:
-
-  // Begin:
-
-  m_pBegin->Bind(pTcl);
-  m_pBegin->Register();
-
-  // End:
-  
-  m_pEnd->Bind(pTcl);
-  m_pEnd->Register();
-
-  // Pause:
-
-  m_pPause->Bind(pTcl);
-  m_pPause->Register();
-
-  // Resume:
-
-  m_pResume->Bind(pTcl);
-  m_pResume->Register();
-
-  // Run variable manager:
-
-  m_pRunVariable->Bind(pTcl);
-  m_pRunVariable->Register();
-
-  // State variable manager:
-
-
-  m_pStateVariable->Bind(pTcl);
-  m_pStateVariable->Register();
-
-  // Tag base management:
-
-  m_pTagBase->Bind(pTcl);
-  m_pTagBase->Register();
-
-  // Safe exit:
-
-
-  m_pExit->Bind(pTcl);
-  m_pExit->Register();
-
-  // const command:
-
-  m_Const.Bind(pTcl);
-  m_Const.Register();
-
-
-  // Finally: Register the run state variables and initialize them:
-
-  CStateVariableCommand& rState(*m_pStateVariable);
-
-  rState.Create("title");
-  rState.Create("run");
-  rState.Create("frequency");
-  rState.Create("experiment");
-
-  // The iteration below initializes these variables to reasonable values.
-  
-  StateVariableIterator i = rState.begin();
-  while(i != rState.end()) {
-    if(i->first == "run") {
-      i->second->Set("0");
-    }
-    if(i->first == "frequency") {
-      i->second->Set("10");
-    }
-   if(i->first == "title") {
-      i->second->Set("Set a new title please");
-   }
-   if(i->first == "experiment") {
-      i->second->Set("Set a new experiment description please");
-   }
-    i++;
+  if(status != TCL_OK) {
+    OnError(status);
   }
-  
-  // Execute a little scriptlet to set the correct value of the tkloaded
-  // const:
-  
-  string command("const tkloaded ");
-  if(pMain->getWindowed()) {
-	command += "true";
-	pTcl->Eval("proc __Wake {} { after 10 __Wake }; __Wake");
+
+  ClearCommand();
+  return status;
+}
+////////////////////////////////////////////////////////////////////////
+//
+// virtual void OnError(int nError)
+//
+// Operation Type:
+//   Overridable, Action.
+//
+void
+CTKServerInstance::OnError(int nError)
+{
+  cerr << "Error detected in client script command: from: "
+       << "Host: " << Tcl_DStringValue(&(Context.RemoteHost))
+       << "\nPort: " << Context.RemotePort 
+       << "\nCommand: '"
+       << Tcl_DStringValue(&(Context.command))
+       << "'\n";
+  cerr << "Tcl Error message was: '"
+       << Context.pInterp->result
+       << "'";
+
+}
+////////////////////////////////////////////////////////////////////////
+//
+// virtual void OnShutdown()
+// 
+// Operation Type:
+//   Overridable Action:
+void
+CTKServerInstance::OnShutdown()
+{
+  cerr << "Shutting down connection to: " 
+       << "Host: " << Tcl_DStringValue(&(Context.RemoteHost))
+       << "\nPort: " << Context.RemotePort 
+       << endl;
+} 
+
+
+///////////////////////////////////////////////////////////////////////
+//
+// void Shutdown()
+//
+// Operation Type:
+//   Cleanup.
+//
+void
+CTKServerInstance::Shutdown()
+{
+  OnShutdown();
+  Tcl_DStringFree(&(Context.RemoteHost));
+  Tcl_DStringFree(&(Context.command));
+ 
+
+  Tcl_DeleteChannelHandler(Context.DialogChannel, 
+			   CTKServerInstance::InputHandler, (ClientData)this);
+  Tcl_Close(Context.pInterp, Context.DialogChannel);
+}
+///////////////////////////////////////////////////////////////////////////
+//
+//  Tcl_DString GetChunk()
+//
+// OPeration type:
+//   Overidable utility.
+//
+Tcl_DString*
+CTKServerInstance::GetChunk()
+{
+  Tcl_Channel  chan     = Context.DialogChannel;
+  if(!Tcl_Eof(chan)) {
+    Tcl_DString& str =*(new Tcl_DString);
+    Tcl_DStringInit(&str);
+    Tcl_Gets(chan, &str);
+    Tcl_DStringAppend(&str, eol, -1);
+    return &str;		// Needs to be deleted by caller.
   }
-  else {
-	command += "false";
+  return (Tcl_DString*)NULL;
+
+}
+//////////////////////////////////////////////////////////////////////
+//
+// static void InputHandler(ClientData cd, int mask)
+//
+// Operation Type:
+//   Callback relay.
+//
+void
+CTKServerInstance::InputHandler(ClientData cd, int mask)
+{
+  CTKServerInstance* pObject = (CTKServerInstance*)cd;
+
+  if(mask & TCL_EXCEPTION) {	// Exceptions are treated like eof.
+    pObject->OnError(TCL_EXCEPTION);
+    delete pObject;		// Committ suicide
   }
-  pTcl->Eval(command.c_str());
-  
-  // Constants that reflect run state are also defined:
-  //   "state" - the run state e.g. "active"
-  //   "starttime" - When the most recently started run began.
-  //   "events"     - Number of events taken this run.
-  //   "words"      - Number of data words taken this run.
-  
-  m_pState     = new CConstVariable(pTcl, string("state"), string("Inactive"));
-  m_Const.Enter(m_pState);
-
-  m_pStartTime = new CConstVariable(pTcl, string("starttime"), 
-				   string("-never-"));
-  m_Const.Enter(m_pStartTime);
-  
-  m_pEvents    = new CConstVariable(pTcl, string("events"), string("0"));
-  m_Const.Enter(m_pEvents);
-  m_nEvents=0; 
-  m_pEvents->Link(&m_nEvents, TCL_LINK_INT);
-  
-  m_pWords    = new CConstVariable(pTcl, string("words"), string("0"));
-  m_Const.Enter(m_pWords);
-  m_nWords = 0;
-  m_pWords->Link(&m_nWords, TCL_LINK_INT);
-  
-  // Now we let the experiment register its experiment specific stuff:
-
-
-  pMain->AddUserCommands(*pExperiment, m_rInterpreter, *this);
-  pMain->SetupStateVariables(*pExperiment, m_rInterpreter, *this);
-  pMain->SetupRunVariables(*pExperiment, m_rInterpreter, *this);
-
-
-
-  // If the server is turned on, then start the listener thread:
-  
-
-  try {
-    if(pMain->getServer()) {
-       // Add authorization commands.  Note that if this is
-       // done in the listener it races against Tcl startup.
-       //
-      m_pAuthorizer = new CTclAuthorizer(pTcl->getInterpreter());
-      m_pAuthorizer->AddHost(string("localhost"));
-
-      if(pMain->getWindowed()) { // Tk needs a single threaded approach.
-	CTKListener::Server_Init(pTcl->getInterpreter(),
-                                 pMain->getPort(),
-				 m_pAuthorizer);
-	
-      } else {			// Tcl needs to use threaded listener.
-	static CTCLListener* pServer = new CTCLListener(pMain->getPort(),
-							m_pAuthorizer); 
-	pServer->Enable();	// Never will stop this so don't neeed to save.
+  if(mask & TCL_READABLE) {	// Input's available.
+    Tcl_Channel  Chan    = pObject->Context.DialogChannel;
+    Tcl_DString* pString = &(pObject->Context.command);
+    Tcl_Interp*  pInterp = pObject->Context.pInterp;
+    if(!Tcl_Eof(Chan)) {	// Add command chunks.
+      Tcl_DString* pChunk = pObject->GetChunk();
+      if(pChunk) {
+	pObject->AppendChunk(*pChunk);
+	if(pObject->isChunkCommand()) {
+	  pObject->OnCommand();
+	}
+	Tcl_DStringFree(pChunk);
+	delete pChunk;
       }
     }
+    if(Tcl_Eof(Chan)) {		// EOF at end of all this kills self.
+      delete pObject;		// Calls OnShutdown etc.
+    }
   }
-  catch (NSCLException& rExcept) {
-    cerr << "Caught spectrodaq exception" << rExcept.GetErrorString() << endl;
-    cerr << "While: " << rExcept.GetContextString() << endl;
-    cerr << "in pServer->Enable() \n";
-  }
-  catch (CException& rExcept) {
-    cerr << "Caught framework exception " << rExcept.ReasonText() << endl;
-    cerr << " while: " << rExcept.WasDoing() << endl;
-    cerr << " in pServer->Enable() \n";
-  }
-  catch(string rString) {
-    cerr << "Caught string exception " << rString << endl;
-    cerr << "in pServer->Enable()\n";
-  }
-  catch(char* pString) {
-    cerr << "Caught char* exception: " << pString << endl;
-    cerr << " in pserver->Enable()\n";
-  }
-  catch(...) {
-    cerr << "Unrecognized exception fired in pserver->Enable()\n";
-  }
-  
-
 }
-
-/*!
-   Set a current value for the number of events acquired.
-  \param nValue unsigned int [in]  New value for the "events" const.
-*/
-void
-CInterpreterCore::setEvents(unsigned int nValue)
-{
-  m_nEvents = nValue;
-}
-/*!
-   Set the value of the "words" const.  This const tells you how many words of data
-   have been acquired in the current run.
-   \param nValue unsigned int [in] New value.
-*/
-void
-CInterpreterCore::setWords(unsigned int nValue)
-{
-  m_nWords = nValue;
-}
-
-
-
