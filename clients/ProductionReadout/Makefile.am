@@ -86,6 +86,7 @@ libPReadout_la_SOURCES = AccessListCheck.cpp \
 	cmdline.c \
 	camacmap.cpp \
 	v890.cpp \
+	CCAENV830.cpp
 	CTKListener.cpp CTKServerInstance.cpp
 
 include_HEADERS = AccessListCheck.h \
@@ -176,7 +177,8 @@ include_HEADERS = AccessListCheck.h \
 	cmdline.h  \
 	v890.h \
 	CTKServerInstance.h \
-	CTKListener.h
+	CTKListener.h \
+	CCAENV830.h CCAENV820Registers.h
 
 
 libPReadout_la_LDFLAGS = -g -version-info 1:1:1 \

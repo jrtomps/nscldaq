@@ -7,7 +7,7 @@ libReadout_la_SOURCES = Active.cpp CAENcard.cpp  \
 	State.cpp StateMachine.cpp TestBusy.cpp TestTrigger.cpp VMEBusy.cpp \
 	VMETrigger.cpp VmeModule.cpp camacmap.cpp sis3300.cpp \
 	cmdio.c command.c diagnose.c docmd.c CAENcard_767.cpp v890.cpp \
-	CCAENChain.cpp
+	CCAENChain.cpp CCAENV830.cpp
 
 
 include_HEADERS = Active.h Busy.h CAENcard.h CCAENChain.h CAMACBusy.h \
@@ -20,7 +20,8 @@ include_HEADERS = Active.h Busy.h CAENcard.h CCAENChain.h CAMACBusy.h \
 	cmdio.h daqerrno.h daqinterface.h  CAENcard_767.h  \
 	 sis3300.h \
 	skeleton.h  vme.h cesmacros.h wienermacros.h macros.h \
-	cescamac.h wienercamac.h camac.h v890.h
+	cescamac.h wienercamac.h camac.h v890.h CCAENV830.h \
+	 CCAENV820Registers.h
 
 
 sysconf_DATA = runstate.tran
