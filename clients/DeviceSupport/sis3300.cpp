@@ -805,7 +805,6 @@ CSIS3300::Arm2()
 
   *m_pAcqReg = DAQSampleBank2On; // Enable bank1.
 }
-
 /*!
   Utility function to read a full event.  This breaks into three
   cases:
@@ -822,9 +821,10 @@ CSIS3300::Arm2()
       circularly in the first m_nPagesize words of the buffer memory
       since we don't support multi-event mode yet.
 
-   \param pBuffer     -  Points to the target buffer.
+   \param pBuffer     -  Points to the target buffer (ordinary memory.
+                         the caller must ensure this is at least a page long.
    \param pAddressReg - Pointer to the address index register.
-   \param pBase       - Pointer to the start of event memory.
+   \param nBase       - Pointer to the start of event memory.
 
    \note
    -  Event memory can only be read as longwords, but the event buffer is a
@@ -834,11 +834,10 @@ CSIS3300::Arm2()
    Returns the number of words read. 
 
    */
-
-unsigned int
-CSIS3300:: ReadAGroup(DAQWordBufferPtr& pBuffer,
+unsigned int 
+CSIS3300::ReadAGroup(void* pbuffer,
 			  volatile unsigned long* pAddressReg,
-			  unsigned long  nBase)
+			  unsigned long           nBase)
 {
 
   unsigned long nPagesize(m_nPagesize);	// Max conversion count.
@@ -850,7 +849,7 @@ CSIS3300:: ReadAGroup(DAQWordBufferPtr& pBuffer,
   unsigned long  nEventEnd     = (*pAddressReg & EDIREndEventMask);
   nEventEnd                   &= (nPagesize-1);	// Wrap the pointer to pagesize
   unsigned long  nLongs(0);
-  unsigned long Samples[nPagesize];
+  unsigned long* Samples((unsigned long*)pbuffer);
 
   // The three cases above break into two cases: fWrapped true or not.
 
@@ -895,23 +894,67 @@ CSIS3300:: ReadAGroup(DAQWordBufferPtr& pBuffer,
       nLongs = 0;
     }
   }
+  return nLongs*sizeof(unsigned long)/sizeof(unsigned short);
+
+}
+
+/*!
+  Utility function to read a full event.  This breaks into three
+  cases:
+  -# m_fPageWrap false.  In this case, the event directory
+     entry determines the end of the event as well as the 
+     number of samples.  Note that we assume that the wrap bit
+     in the event directory allows us to differentiate between
+     0 samples and 128Ksamples.
+   -# m_fPageWrap true, but the event directory wrap bit is false.
+      Again, the number of samples is determined by the address pointer.
+   -# m_fPageWrap true and event directory wrap bit is true.  In this
+      case, a full m_nPagesize samples have been taken and the
+      address pointer indicates the start of event.  The data procede
+      circularly in the first m_nPagesize words of the buffer memory
+      since we don't support multi-event mode yet.
+
+   \param pBuffer     -  Points to the target buffer.
+   \param pAddressReg - Pointer to the address index register.
+   \param pBase       - Pointer to the start of event memory.
+
+   \note
+   -  Event memory can only be read as longwords, but the event buffer is a
+      word buffer
+   - The event pointer will be updated to reflect the words read in..
+
+   Returns the number of words read. 
+
+   */
+
+unsigned int
+CSIS3300:: ReadAGroup(DAQWordBufferPtr& pBuffer,
+			  volatile unsigned long* pAddressReg,
+			  unsigned long  nBase)
+{
+
+  unsigned long nPagesize(m_nPagesize);	// Max conversion count.
+  unsigned long Samples[nPagesize];
+
+  unsigned int nWords = ReadAGroup(Samples,
+				   pAddressReg,
+				   nBase);
+
   // The data are now read into the first nLongs of Sample.
   // Now copy them into the data buffer:
 
-  if(nLongs > 0) {
+  if(nWords > 0) {
 #ifdef CLIENT_HAS_POINTER_COPYIN
-    pBuffer.CopyIn((unsigned short*)Samples, 0,  nLongs*(sizeof (long))/sizeof(short));
+    pBuffer.CopyIn((unsigned short*)Samples, 0,  nWords);
 #else
     unsigned short* pSrc = (unsigned short*)Samples;
-    for(int i =0; i < nLongs; i++) {
-      *pBuffer = *pSrc++;
-      ++pBuffer;
+    for(int i =0; i < nWords; i++) {
       *pBuffer = *pSrc++;
       ++pBuffer;
     }
 #endif
   }
-  return nLongs * sizeof(long)/sizeof(short);
+  return nWords;
 
 }
 
@@ -940,6 +983,31 @@ CSIS3300::ReadAllGroups(DAQWordBufferPtr& pBuffer)
 
   return nRead;
 }
+// With ordinary buffers:
+
+unsigned int
+CSIS3300::ReadAllGroups(void* pBuff)
+{
+  int nRead(0);
+  int nSegSize;
+
+  unsigned short *pBuffer;
+
+  nSegSize = ReadGroup1(pBuffer);
+  pBuffer += nSegSize;
+  nRead   += nSegSize;
+  nSegSize = ReadGroup2(pBuffer);
+  pBuffer += nSegSize;
+  nRead   += nSegSize;
+  nSegSize = ReadGroup3(pBuffer);
+  pBuffer += nSegSize;
+  nRead   += nSegSize;
+  nSegSize = ReadGroup4(pBuffer);
+  pBuffer += nSegSize;
+  nRead   += nSegSize;
+
+  return nRead;
+}
 
 /*!
    Read the first group of adc's  This comprises channel 0, 1
@@ -956,6 +1024,14 @@ CSIS3300::ReadGroup1(DAQWordBufferPtr& pBuffer)
   unsigned long endaddress = *m_pAddressReg1; // For debugging.
   return ReadAGroup(pBuffer, m_pEventDirectory1, m_nBase + 0x400000);
 }
+// Now with ordinary buffers:
+
+unsigned int
+CSIS3300::ReadGroup1(void* pBuffer)
+{
+  unsigned long endaddress = *m_pAddressReg1;
+  return ReadAGroup(pBuffer, m_pEventDirectory1, m_nBase + 0x400000);
+}
 /*!
    Read the second group of adc's  This comprises channel 2,3
    \param pBuffer - A DAQWordBufferPtr which points to the buffer.
@@ -969,6 +1045,15 @@ CSIS3300::ReadGroup2(DAQWordBufferPtr& pBuffer)
 {
   unsigned long endaddress = *m_pAddressReg1; // For debugging.
   return ReadAGroup(pBuffer, m_pEventDirectory2, m_nBase + 0x480000);
+}
+// Now with ordinary buffers:
+
+unsigned int
+CSIS3300::ReadGroup2(void* pBuffer)
+{
+  unsigned long endaddress = *m_pAddressReg1;
+  return ReadAGroup(pBuffer, m_pEventDirectory2, m_nBase+0x480000);
+
 }
 /*!
    Read the third  group of adc's  This comprises channel 4,5
@@ -984,6 +1069,15 @@ CSIS3300::ReadGroup3(DAQWordBufferPtr& pBuffer)
   unsigned long endaddress = *m_pAddressReg1; // For debugging.
   return ReadAGroup(pBuffer, m_pEventDirectory3, m_nBase + 0x500000);
 }
+// Now with ordinary buffers:
+
+unsigned int 
+CSIS3300::ReadGroup3(void* pBuffer)
+{
+  unsigned long endaddress = *m_pAddressReg1; // For debugging.
+  return ReadAGroup(pBuffer, m_pEventDirectory3, m_nBase + 0x500000);
+}
+
 /*!
    Read the fourth  group of adc's  This comprises channel 6,7
    \param pBuffer - A DAQWordBufferPtr which points to the buffer.
@@ -994,6 +1088,14 @@ CSIS3300::ReadGroup3(DAQWordBufferPtr& pBuffer)
    */
 unsigned int
 CSIS3300::ReadGroup4(DAQWordBufferPtr& pBuffer)
+{
+  unsigned long endaddress = *m_pAddressReg1; // For debugging.
+  return ReadAGroup(pBuffer, m_pEventDirectory4, m_nBase + 0x580000 );
+}
+// With ordinary buffers:
+
+unsigned int
+CSIS3300::ReadGroup4(void* pBuffer)
 {
   unsigned long endaddress = *m_pAddressReg1; // For debugging.
   return ReadAGroup(pBuffer, m_pEventDirectory4, m_nBase + 0x580000 );

@@ -289,6 +289,17 @@ public:
   void StrobeUserOut(int time);
   bool WaitUntilDone(int timeout);
   unsigned long EventNumber(int bank);
+
+  // New members to do I/O to ordinary buffers.
+
+  unsigned int ReadGroup1(void* pBuffer);
+  unsigned int ReadGroup2(void* pBuffer);
+  unsigned int ReadGroup3(void* pBuffer);
+  unsigned int ReadGroup4(void* pBuffer);
+  unsigned int ReadAllGroups(void * pBuffer);
+  //
+  // Old style read to spectrodaq buffers.
+  //
   unsigned int ReadGroup1(DAQWordBufferPtr& pBuffer);
   unsigned int ReadGroup2(DAQWordBufferPtr& pBuffer);
   unsigned int ReadGroup3(DAQWordBufferPtr& pBuffer);
@@ -300,7 +311,12 @@ protected:
   unsigned int ReadAGroup(DAQWordBufferPtr& pBuffer,
 			  volatile unsigned long* pAddressReg1,
 			  unsigned long pBase);
-
+ 
+  /// For reading to normal memory buffers.
+  //
+  unsigned int ReadAGroup(void* pbuffer,
+			  volatile unsigned long* pAddressReg1,
+			  unsigned long           pBase);
 };
 
 
