@@ -1,11 +1,11 @@
 /*!
-	\page Enable Enabling the module.
+	\page sis3600Enable Enabling the module.
 
-	Once the mode is selected (see \ref Modes), the module must be enabled
+	Once the mode is selected (see \ref sis3600Modes), the module must be enabled
 	in order to be able to accept events.  In addition it is prudent to clear
 	the FIFO prior to the first event, in case any events have stacked up in
 	the FIFO prior to the start of run.  The sample code extends the examples in
-	\ref Coincidence  to prepare the module to receive the first event:
+	\ref sis3600Coincidence  to prepare the module to receive the first event:
 
 	\code
 	\code

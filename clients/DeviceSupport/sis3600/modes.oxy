@@ -1,7 +1,7 @@
 /*!
-	\page Modes Supported module operating modes.
+	\page sis3600Modes Supported module operating modes.
 
-	\section Modesec Module operating modes.
+	\section sis3600Modesec Module operating modes.
 
 	The SIS3600 is a 32 bit coincidence register/latch.  It therefore has
 	two operating modes (refer to page 27 of the hardware manual);
@@ -20,15 +20,15 @@
 	that function in this way is beyond the scope of this document.
 
 	The remainder of this page describes how to setup the module in 
-	- \ref Latch
-	- \ref Coincidence
+	- \ref sis3600Latch
+	- \ref sis3600Coincidence
 
-	and describes the \ref FastClear
+	and describes the \ref sis3600astClear
 
-	\section Latch Latch mode.
+	\section sis3600Latch Latch mode.
 	
 	Latch mode is seected by invoking the CSIS3600::SetLatchMode member function.
-	The sample code below expands on the constructor example in \ref Intro to
+	The sample code below expands on the constructor example in \ref sis3600Intro to
 	construct the module and set it into latch mode:
 
 	\code
@@ -47,11 +47,11 @@
 
 	\endcode.
 
-	\section Coincidence Coincidence mode.
+	\section sis3600Coincidence Coincidence mode.
 
 	Concidence mode is selected by invoking the CSIS3600::SetCoincidenceMode
 	member function.
-	The sample code below expands on the constructor example in \ref Intro to
+	The sample code below expands on the constructor example in \ref sis3600Intro to
 	construct a module and set it into Coincidence mode.
 	\code
 	   #include <CSIS3600.h>
@@ -69,7 +69,7 @@
 
 	\endcode.
 
-	\section FastClear Fast clear window.
+	\section sis3600FastClear Fast clear window.
 
 	The module includes support for a fast clear input.  If the fast clear
 	input is pulsed within the fast clear window after the falling edge of
@@ -81,7 +81,7 @@
 	window size and then calling the CSIS3600::EnableExternalClear member
 	to enable the external fast clear.
 
-	Extending the sample codein \ref Coincidence:
+	Extending the sample codein \ref sis3600Coincidence:
 
 	\code
 	   #include <CSIS3600.h>

@@ -4,20 +4,20 @@
 //
 
 /*!
-	\mainpage SIS3600 Coincidence Register/Latch.
+	\page sis3600main  SIS3600 Coincidence Register/Latch.
 
 	\author Ron Fox
 	
-	\section Intro Introduction
+	\section sis3600Intro Introduction
 
 	This document describes software support for the SIS3600
 	VME Coincidence register/latch.  Support for this module consists
 	of a single C++ class: CSIS3600
 
 	This document describes:
-	- The \ref Modes
-	- \ref Enable
-	- \ref Readout
+	- The \ref sis3600Modes
+	- \ref sis3600Enable
+	- \ref sis3600Readout
 
 	Regardless of how you are going to run the module, you must create
 	an instance of the CSIS3600 class (an object) in order to use the module.

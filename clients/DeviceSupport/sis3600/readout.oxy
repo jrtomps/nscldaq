@@ -1,12 +1,12 @@
 /*!
-	\page Readout Reading the module
+	\page sis3600Readout Reading the module
 
 	Once the module has been setup, it should be read at each event.	
 	When reading the module, there are two possibilities:
-	- \ref Single
-	- \ref Multiple
+	- \ref sis3600Single
+	- \ref sis3600Multiple
 
-	\section Single Read a Single Word.
+	\section sis3600Single Read a Single Word.
 
 	This mode is appropriate in most NSCL applications, where the
 	 module is a 
@@ -17,7 +17,7 @@
 	-# Read the module using CSIS3600::Read() in its single event form.
 
 	The code below shows how to do this using the pModule object that
-	has been used in the setup examples (e.g. \ref Intro).
+	has been used in the setup examples (e.g. \ref sis3600Intro).
 
 	\code
 
@@ -33,7 +33,7 @@
 	
 
 
-	\section Multiple Read Multiple Words.
+	\section sis3600Multiple Read Multiple Words.
 	
 	 This mode is appropriate if the module is being used to readout an external
 	source of data which then must then be read by CPU in response to an event
@@ -41,7 +41,7 @@
 	-# Ensure that data is available in the module (CSIS3600::DataReady()).
 	-# Read the data using CSIS3600::Read (multievent format).
 
-	Using the pModule created in the example from e.g. \ref Intro 
+	Using the pModule created in the example from e.g. \ref sis3600Intro 
 	\code
 
 	unsigned long latchedvalues[NVALUES];
