@@ -273,7 +273,7 @@ THIRD PARTIES OR A FAILURE OF THE PROGRAM TO OPERATE WITH ANY OTHER PROGRAMS),
 EVEN IF SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH 
 DAMAGES.
 
-		     END OF TERMS AND CONDITIONS
+		     END OF TERMS AND CONDITIONS '
 */
 // Class: CTclAuthorizer                     //ANSI C++
 //
@@ -288,6 +288,7 @@ DAMAGES.
 // 
 // (c) Copyright NSCL 1999, All rights reserved TclAuthorizer.h
 //
+
 
 #ifndef __TCLAUTHORIZER_H  //Required for current class
 #define __TCLAUTHORIZER_H
@@ -380,22 +381,22 @@ public:
 
   virtual   int operator() (CTCLInterpreter& rInterp, CTCLResult& rResult, 
 			    int nArgs, char* pArgs[])    ;
-  Bool_t AddHost (const std::string& HostOrIp)    ;
-  Bool_t RemoveHost (const std::string& NameOrIP)    ;
-  std::string ListHosts ()    ;
-  Bool_t Authenticate (const std::string& rNameOrIp)    ;
+  Bool_t AddHost (const STD(string)& HostOrIp)    ;
+  Bool_t RemoveHost (const STD(string)& NameOrIP)    ;
+  STD(string) ListHosts ()    ;
+  Bool_t Authenticate (const STD(string)& rNameOrIp)    ;
 
 protected:
   int   Process(CTCLInterpreter& rInterp, CTCLResult& rResult, 
 		  int nArgs, char* pArgs[])    ;
-  Bool_t  HostToIp(std::string& rName);
-  Int_t   GetIndex (const std::string& rHostOrIp)   ;
-  Bool_t ConvertHost(const std::string& rInName, 
-	                 std::string& rOutname, std::string& rCanonicalIP)   ;
+  Bool_t  HostToIp(STD(string)& rName);
+  Int_t   GetIndex (const STD(string)& rHostOrIp)   ;
+  Bool_t ConvertHost(const STD(string)& rInName, 
+	                 STD(string)& rOutname, STD(string)& rCanonicalIP)   ;
 
   Int_t   Usage(CTCLResult& rResult);
 private:
-	void setResult(const std::string& rResult) {
+	void setResult(const STD(string)& rResult) {
     if(m_pResult) *m_pResult = rResult;
   }
   void setResult(const char* pResult) {

@@ -273,7 +273,7 @@ THIRD PARTIES OR A FAILURE OF THE PROGRAM TO OPERATE WITH ANY OTHER PROGRAMS),
 EVEN IF SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH 
 DAMAGES.
 
-		     END OF TERMS AND CONDITIONS
+		     END OF TERMS AND CONDITIONS '
 */
 static const char* Copyright= "(C) Copyright Michigan State University 2002, All rights reserved";/* 
  * tkAppInit.c --
@@ -289,8 +289,10 @@ static const char* Copyright= "(C) Copyright Michigan State University 2002, All
  *
  * RCS: @(#) $Id$
  */
+
+#include <config.h>
 #include <stdio.h>
-#include <iostream.h>
+#include <Iostream.h>
 #include "tk.h"
 
 #ifdef WIN32
@@ -310,6 +312,11 @@ int *tclDummyMathPtr = (int *) matherr;
 #ifdef TK_TEST
 EXTERN int		Tktest_Init _ANSI_ARGS_((Tcl_Interp *interp));
 #endif /* TK_TEST */
+
+#ifdef HAVE_STD_NAMESPACE
+using namespace std;
+#endif
+
 
 /*
  *----------------------------------------------------------------------

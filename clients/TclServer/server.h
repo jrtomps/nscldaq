@@ -273,17 +273,11 @@ THIRD PARTIES OR A FAILURE OF THE PROGRAM TO OPERATE WITH ANY OTHER PROGRAMS),
 EVEN IF SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH 
 DAMAGES.
 
-		     END OF TERMS AND CONDITIONS
+		     END OF TERMS AND CONDITIONS '
 */
 #ifndef _SERVER_H
 #define _SERVER_H
 #include <tk.h>
-
-#ifndef __STL_STRING
-#include <string>
-#define __STL_STRING
-#endif
-
 
 extern int serverport;
 #define SERVERPORT serverport	/* Compatibility with 'test version'. */

@@ -288,6 +288,7 @@ DAMAGES.
 //
 //////////////////////////.cpp file/////////////////////////////////////////////////////
 
+#include <config.h>
 #include "TclAuthorizer.h"    				
 #include "TCLString.h"
 
@@ -309,13 +310,20 @@ DAMAGES.
 #define uint8_t     unsigned char
 #endif
 
+
+#ifdef HAVE_STD_NAMESPACE
+using namespace std;
+#endif
+
+
+
 static char* pCopyrightNotice = 
 "(C) Copyright 1999 NSCL, All rights reserved TclAuthorizer.cpp \n";
 
 // Functions for class CTclAuthorizer
 
-static const std::string NameVariable("ServerHostNames");
-static const std::string IPVariable("ServerHostIps");
+static const string NameVariable("ServerHostNames");
+static const string IPVariable("ServerHostIps");
 
 
 //////////////////////////////////////////////////////////////////////////////
@@ -368,7 +376,7 @@ int CTclAuthorizer::Process(CTCLInterpreter& rInterp, CTCLResult& rResult,
     if(nArgs != 1) {
       return Usage(rResult);
     }
-    return AddHost(std::string(pArgs[0])) ? TCL_OK : TCL_ERROR;
+    return AddHost(string(pArgs[0])) ? TCL_OK : TCL_ERROR;
   }
   else if (strcmp("remove", pArgs[0]) == 0) {
     nArgs--;
@@ -376,7 +384,7 @@ int CTclAuthorizer::Process(CTCLInterpreter& rInterp, CTCLResult& rResult,
     if(nArgs != 1) {
       return Usage(rResult);
     }
-    return RemoveHost(std::string(pArgs[0])) ? TCL_OK : TCL_ERROR;
+    return RemoveHost(string(pArgs[0])) ? TCL_OK : TCL_ERROR;
   }
   else if (strcmp("list", pArgs[0]) == 0) {
     nArgs--;
@@ -390,7 +398,7 @@ int CTclAuthorizer::Process(CTCLInterpreter& rInterp, CTCLResult& rResult,
   else {
     return Usage(rResult);
   }
-  rResult = std::string("Bug in CTclAuthorizer::operator() decode section");
+  rResult = string("Bug in CTclAuthorizer::operator() decode section");
   return TCL_ERROR;
   
 }
@@ -400,7 +408,7 @@ int CTclAuthorizer::Process(CTCLInterpreter& rInterp, CTCLResult& rResult,
 //     AddHost(const string& HostOrIp)
 //  Operation Type: 
 //     
-Bool_t CTclAuthorizer::AddHost( const std::string& HostOrIp)  
+Bool_t CTclAuthorizer::AddHost( const string& HostOrIp)  
 {
   // Adds a specified host to the access lists.
   // The parameter is first analyzed as a host name.
@@ -417,7 +425,7 @@ Bool_t CTclAuthorizer::AddHost( const std::string& HostOrIp)
     setResult("Duplicate host or ip address");
     return kfFALSE;
   }
-  std::string hostname, hostip;
+  string hostname, hostip;
   if(!ConvertHost(HostOrIp, hostname, hostip)) {
     setResult("Invalid host or IP address");
     return kfFALSE;
@@ -426,8 +434,8 @@ Bool_t CTclAuthorizer::AddHost( const std::string& HostOrIp)
   //
   StringArray hosts;
   StringArray ips;
-  CTCLList HostList(m_pInterpreter,std::string(""));
-  CTCLList IpList(m_pInterpreter,std::string(""));
+  CTCLList HostList(m_pInterpreter,string(""));
+  CTCLList IpList(m_pInterpreter,string(""));
 
   if(m_pHostNames->Get(TCL_GLOBAL_ONLY | TCL_LEAVE_ERR_MSG)) {
     CTCLList     HostList(m_pInterpreter, 
@@ -453,7 +461,7 @@ Bool_t CTclAuthorizer::AddHost( const std::string& HostOrIp)
 //     RemoveHost(const string& NameOrIP)
 //  Operation Type: 
 //     
-Bool_t CTclAuthorizer::RemoveHost(const std::string& NameOrIp)  
+Bool_t CTclAuthorizer::RemoveHost(const string& NameOrIp)  
 {
   // An attempt is made to locate the host in 
   // the name list.  If it is found it and the 
@@ -503,7 +511,7 @@ Bool_t CTclAuthorizer::RemoveHost(const std::string& NameOrIp)
 //     ListHosts()
 //  Operation Type: 
 //     
-std::string CTclAuthorizer::ListHosts()  
+string CTclAuthorizer::ListHosts()  
 {
   // Returns a TCL formatted list whose elements are two entry
   // lists containing {hostname ipaddress}
@@ -534,7 +542,7 @@ std::string CTclAuthorizer::ListHosts()
     Result.AppendElement(hostips[i]);
     Result.EndSublist();
   }
-  std::string sResult = Result;
+  string sResult = Result;
   return sResult;
   
 }
@@ -544,7 +552,7 @@ std::string CTclAuthorizer::ListHosts()
 //     Authenticate(const string& rNameOrIp)
 //  Operation Type: 
 //     
-Bool_t CTclAuthorizer::Authenticate(const std::string& rNameOrIp)  
+Bool_t CTclAuthorizer::Authenticate(const string& rNameOrIp)  
 {
   // The parameter is converted to canonical ip form
   // and searched for in the ip list.
@@ -561,7 +569,7 @@ Bool_t CTclAuthorizer::Authenticate(const std::string& rNameOrIp)
 //     HostToIp(string& rName)
 //  Operation Type: 
 //     
-Bool_t CTclAuthorizer::HostToIp(std::string& rName)  
+Bool_t CTclAuthorizer::HostToIp(string& rName)  
 {
   // Converts a string to IP address in 'canonical dotted' form
   // Cannonical dotted form is:  %03d.%03d.%03d.%03d
@@ -595,7 +603,7 @@ Bool_t CTclAuthorizer::HostToIp(std::string& rName)
 	  IpMyOrder.bytes[3], IpMyOrder.bytes[2],
 	  IpMyOrder.bytes[1], IpMyOrder.bytes[0]);
 
-  std::string R(Result);
+  string R(Result);
   rName = R;
   return kfTRUE;
 
@@ -607,14 +615,14 @@ Bool_t CTclAuthorizer::HostToIp(std::string& rName)
 //     GetIndex(const string& rHostOrIp)
 //  Operation Type: 
 //     
-Int_t CTclAuthorizer::GetIndex(const std::string& rHostOrIp)  
+Int_t CTclAuthorizer::GetIndex(const string& rHostOrIp)  
 {
   // Returns the index of the entry corresponding
   // to an input IP name or Address or -1 if no match.
   // This utility contains common code between 
   // Add, Delete and Authenticate.
 
-  std::string Host(rHostOrIp);
+  string Host(rHostOrIp);
   if(!HostToIp(Host)) return -1; // Invalid host.
   int flags = TCL_LEAVE_ERR_MSG;
   flags    |= TCL_GLOBAL_ONLY;
@@ -639,19 +647,19 @@ Int_t CTclAuthorizer::GetIndex(const std::string& rHostOrIp)
 //   Utility:
 //
 Bool_t 
-CTclAuthorizer::ConvertHost(const std::string& rInName, 
-							std::string& rOutname, 
-							std::string& rCanonicalIP)
+CTclAuthorizer::ConvertHost(const string& rInName, 
+							string& rOutname, 
+							string& rCanonicalIP)
 {
   // Converts the input name into the information required to
   // insert it into the host access list.
 
-  std::string myname(rInName);
+  string myname(rInName);
   rCanonicalIP = rInName;
   if(!HostToIp(rCanonicalIP)) return kfFALSE;
 
   struct hostent* pEntry = gethostbyname(myname.c_str());
-  rOutname = pEntry ? myname : std::string(">unresolved<");
+  rOutname = pEntry ? myname : string(">unresolved<");
   return kfTRUE;
 }
 /////////////////////////////////////////////////////////////////////
@@ -669,9 +677,9 @@ CTclAuthorizer::Usage(CTCLResult& rResult)
   //  return Usage(rResult)
   // a useful simplification.
 
-  rResult   = std::string("Usage:\n");
-  rResult  += std::string("  serverauth add hostorip\n");
-  rResult  += std::string("  serverauth remove hostorip\n");
-  rResult  += std::string("  serverauth list\n");
+  rResult   = string("Usage:\n");
+  rResult  += string("  serverauth add hostorip\n");
+  rResult  += string("  serverauth remove hostorip\n");
+  rResult  += string("  serverauth list\n");
   return TCL_ERROR;
 }
