@@ -399,18 +399,11 @@ using namespace std;
 **
 **	Function    Meaning		When Called
 **	initevt	    Init event readout  Power up Begin run and Resume Run.
-**	clrtrig1    Clr trig1 readout	Power up, Begin, resume, end of trig1.
 **	iniscl	    Init scalers.	Power up Begin run and Resume Run.
 **	clearevt    Clear evt readout	Power up, Begin, Resume, end of event.
-**	clrtrig1    Clr trig1 readout	Power up, Begin, resume, end of trig1.
 **	clrscl	    Clear scaler readout Power up, Begin, Resume, end of scaler
 **	readevt	    Read an event	Event trigger.
 **	readscl	    REad scaler event	Scaler time.
-**	trig1ena    Enable trigger 1	Begin run, resume run.
-**	trig1dis    Disable trigger1	End run
-**	rdtrig1	    Readout for trig 1	User trigger 1 fires.
-**	evtmax	    Max size of event	Begin run time.
-**	trig1max    Max words in trig1  Begin run time.
 **
 **			Language elements:
 **	    Statements:
@@ -633,36 +626,6 @@ initevt ()
 }
 
 
-
-/*
-/*
-**++
-**  FUNCTIONAL DESCRIPTION:
-**
-**      initrig1    - This section should be filled in to initialize CAMAC
-**		      modules associated with user trigger 1.
-**
-**--
-*/
-void
-initrig1 ()
-{
-
-/*
-**  Instructions:
-**  -------------
-**
-**	The section of code between the end of this comment and the the }
-**	should be filled in with code that initializes all hardware associated
-**	with user trigger1.  This trigger SHOULD NOT BE ENABLED AT THIS TIME
-**	since this routine is called at power up as well as at run start.
-**	The trigger should only be enabled in trig1ena().
-**	The sample provided takes no action to initialize trigger 1.
-** End of instructions, but there's more later...		    */
-
-    
-}
-
 
 
 /*
@@ -794,38 +757,6 @@ clearevt ()
 
 }
 
-
-
-/*
-**++
-**  FUNCTIONAL DESCRIPTION:
-**
-**      clrtrig1    - This function is called when a user 1 trigger read out is 
-**		      complete.
-**
-**
-**--
-*/
-void
-clrtrig1 ()
-{
-/*
-**  Instructions:
-**  -------------
-**	This function is called to clear the user1 trigger devices.  This
-**	should not be used to disable triggers, since we are called at the end
-**	of every trigger 1 event.  The entry trig1dis should be used instead.
-**	Note when clearing trigger 1 devices, it is assumed that there need not
-**	be any connection between trigger 1 and the 'event' trigger.  Therefore,
-**	the front panel NIM out clear register is not written to by the uppler
-**	levels of the system and must be written to by the user if that's 
-**	desired.
-**	    The sample code below does nothing.
-**	End of Instructions for now...					    */ 
-    
-}
-
-
 
 /*
 **++
@@ -900,18 +831,9 @@ clrscl ()
 **
 **--
 */
-WORD
-#ifdef __unix__
-readevt (DAQWordBufferPtr& bufpt)
-#else 
-readevt (WORD* bufpt)
-#endif
+WORD readevt (UINT16* bufpt)
 {
-#ifdef __unix__
-    DAQWordBufferPtr _sbufpt = bufpt;
-#else
-    WORD *_sbufpt = bufpt;
-#endif
+    UINT16 *_sbufpt = bufpt;
     LOGICAL reject;
 
     reject   = FALSE;
@@ -1011,12 +933,10 @@ readevt (WORD* bufpt)
 
 /*-------------------------  End of user code. ---------------------------*/
 }
-    IF(reject) return 0;
-#ifdef __unix__
-    return bufpt.GetIndex() - _sbufpt.GetIndex();
-#else
+    IF(reject) THEN
+      return 0;
+    ENDIF
     return (bufpt - _sbufpt);
-#endif
 }
 
 
@@ -1115,237 +1035,3 @@ readscl (UINT32* buffer,int numscalers)
      
     return (UINT16)((UINT32)bufpt - (UINT32)_sbufpt);
 }
-
-
-
-/*
-**++
-**  FUNCTIONAL DESCRIPTION:
-**
-**      trig1dis    - Disable trigger 1 triggers.
-**
-**
-**--
-*/
-void
-trig1dis ()
-{
-
-/*
-** NOTE:
-**    >>>>User triggers are not supported in the UNIX readout system<<<<
-**  Instructions:
-**  -------------
-**	The code below is used to turn off user triggers.  At present, the only
-**	sort of user triggers supported are time periodic user triggers for
-**	user trigger 1.  User triggers are intended to trigger readout events
-**	that are not necessarily part of the normal set of event triggers.
-**	These might be triggers to readout calibration systems or other
-**	monitoring systems.
-**	  The sample code below is compiled if the #define for USERTRIG1_ENABLE
-**	is set to be true.  In that case, the frequency and eventy type produced
-**	for user triggers is controlled by the #define statements for
-**	USER1_PERIOD	(INTEGER seconds between triggers) and:
-**
-**  End of instructions for now:    */
-
-#ifndef __unix__
-#define USERTRIG1_ENABLE	FALSE		/* TRUE if triggers desired */
-#define USERTRIG1_PERIOD	-1		/* Seconds between triggers */
-
-#if USERTRIG1_ENABLE
-
-    STOPUSR1TRIG();
-    
-#endif
-#endif
-}
-
-
-
-/*
-**++
-**  FUNCTIONAL DESCRIPTION:
-**
-**      trig1ena    - This function is called when user triggers are to be
-**		      enabled.
-**
-**
-**--
-*/
-void
-trig1ena ()
-{
-/*
-**  NOTE:
-**     >>>>User triggers are not supported in the UNIX environment<<<<
-**  Instructions:
-**  -------------
-**	This section of code should be filled in to enable user triggers.
-**  The sample code continues the example begun for trig1dis.
-**  End of instructions	for now:	*/
-#ifndef __unix__
-INTEGER period;
-
-
-#if USERTRIG1_ENABLE
-    IF(USERTRIG1_PERIOD LE 0) THEN
-	msg("FATAL - Trigger frequency less than zero in trig1ena()");
-	newline; newline;
-	die();
-    ENDIF
-
-    STARTUSR1TRIG(USERTRIG1_PERIOD);
-
-#endif
-#endif
-}
-
-
-
-/*
-**++
-**  FUNCTIONAL DESCRIPTION:
-**
-**      rdtrig1	- Read out a user trigger.
-**
-**  FORMAL PARAMETERS:
-**
-**      INT16 *buffer	- Pointer to buffer to readout.
-**
-*/
-int 
-rdtrig1 (WORD* bufpt)
-{
-    WORD *_sbufpt;
-
-    _sbufpt = bufpt;
-    {
-/*
-**  NOTE:
-**    >>>>The UNIX environment does not support user triggers <<<<
-**  Instructions:
-**  -------------
-**	This area should be filled in with code that manages the readout of a
-**	user 1 trigger.  The sample code below assumes that if user triggers are
-**	enabled, you will want to trigger an action via setting a bit in a NIM
-**	out register. 
-**	  The default event type of the event being read out
-**	is USERBUF1 (32).  If not data is read into the buffer, then no event
-**	is generated.  Similarly, if the function returns the value zero, then
-**	no event is generated.
-**	NOTE:
-**	    1.  The special variable bufpt is a 'pointer' to the event buffer.
-**	    2.  As before, the predeclared variable WORD _sbufpt[] gives
-**		you a way to modify the buffer after readout (e.g. put in
-**	        a special bit in the bit register.
-**	    3.  The defines for NIMOUT_xxx allow the CAMAC location of the
-**		nimout to be defined, as well as the bit that's actually
-**		fired off.
-**  End of instructions for now...		    */
-#ifndef __unix__
-#define NIMOUT_BRANCH	0			    /* Branch nimout is in */
-#define NIMOUT_CRATE	2			    /* Crate nimout is in. */
-#define NIMOUT_SLOT	20			    /* Slot nimout lives in */
-#define NIMOUT_TRIG1	0x800			    /* Bit to set. */
-
-#if USERTRIG1_ENABLE
-	NIMOUT(NIMOUT_BRANCH, NIMOUT_CRATE, NIMOUT_SLOT, NIMOUT_TRIG1);
-
-/* -------------------------- End user code. ----------------------- */
-#endif
-#endif
-
-    }
-    return (bufpt - _sbufpt);
-}
-
-
-
-/*
-**++
-**  FUNCTIONAL DESCRIPTION:
-**
-**      evtmax	- Returns the size of the largest physics event.
-**
-**  FUNCTION VALUE:
-**
-**      Largest number of words that can be read out by a physics trigger.
-****--
-*/
-WORD 
-evtmax ()
-{
-
-/*
-**  Instructions:
-**  -------------
-**	Fill in the #define below to indicate the size of the largest
-**	possible physics event in words.
-**  End of instructions for now...	    */
-
-#define EVENT_MAXWORDS	40	/* Fill with correct size */
-
-/*------------------------------ end of user code  -----------------------*/
-
-    IF (EVENT_MAXWORDS LE 0) THEN	    /* We crash the program if the */
-					    /* user didn't set the size */
-	fprintf (stderr, "EVENT_MAXWORDS was not properly defined\n");
-	fprintf (stderr, "Must be .GT. 0 was %d \n", EVENT_MAXWORDS);
-#ifdef __unix__
-	abort();
-#else
-        panic("BUGCHECK");
-#endif
-    ENDIF;
-    return (EVENT_MAXWORDS);
-}
-
-
-
-/*
-**++
-**  FUNCTIONAL DESCRIPTION:
-**
-**      trig1max    - Returns the number of words readout in a user1 trigger.
-**
-**  FUNCTION VALUE:
-**
-**      Number of  words read out.
-**
-**
-**--
-*/
-WORD 
-trig1max ()
-{
-/*
-** NOTE:
-**    >>>>The UNIX environment does not support user triggers <<<<
-**
-**  Instructions:
-**  -------------
-**	This function should be filled in to indicate the maximum number
-**	of words to be read out on a user trigger 1.  The sample code operates
-**	as follows, if the #define'd constant USERTRIG1_ENABLE is FALSE, then
-**	the value 0 is generated (no words read out), If USERTRIG1_ENABLE is
-**	true, then the user should edit the definition of USERTRIG1_MAXWORDS
-**	to reflect the largest number of words that can be read out in a
-**	user1 trigger.  
-**  End of all Instructions for now....				*/
-
-#define USERTRIG1_MAXWORDS	0	    /* Edit to reflect actual count */
-
-#if USERTRIG1_ENABLE && (!defined(__unix__))
-    IF (USERTRIG1_MAXWORDS LT 0) THEN
-	fprintf (stderr, "USERTRIG1_MAXWORDS incorrectly initialized\n");
-	fprintf (stderr, "Must be GE 0 was %d\n", USERTRIG1_MAXWORDS);
-	die();
-	return USERTRIG1_MAXWORDS;
-    ENDIF;
-#else
-    return 0;
-#endif    
-
-}
-

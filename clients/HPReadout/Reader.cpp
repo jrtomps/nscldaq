@@ -306,6 +306,8 @@ using namespace std;
 CReader::CReader(ReadoutStateMachine& rManager) :
   m_rManager(rManager),
   m_pBuffer(0),
+  m_pRawBuffer(0),
+  m_pRawCursor(0),
   m_nEvents(0),
   m_nWords(0),
   m_nBufferSize(daq_GetBufferSize()),
@@ -386,10 +388,12 @@ ReadSomeEvents(unsigned int nPasses)
   // If necessary, allocate a new >empty<  buffer etc.
   //
   if(!m_pBuffer) {
-    m_pBuffer     = m_rManager.GetBuffer();
+    m_pBuffer     = m_rManager.GetBuffer(daq_GetBufferSize());
     m_BufferPtr  = m_rManager.GetBody(m_pBuffer);
     m_nEvents     = 0;
     m_nBufferSize = daq_GetBufferSize() - m_BufferPtr.GetIndex();
+    m_pRawBuffer  = new unsigned short[daq_GetBufferSize()*2]; // Double sized buffer.
+    m_pRawCursor  = m_pRawBuffer;
     m_nWords      = 0;
   }
   
@@ -398,19 +402,20 @@ ReadSomeEvents(unsigned int nPasses)
       unsigned int nEventSize;
       if(m_pTrigger->Check()) {	// Event fired.
 	m_pTrigger->Clear();
-	DAQWordBufferPtr hdr = m_BufferPtr;
-	m_BufferPtr++;		// Reserve space for event size.
+	unsigned short*  hdr = m_pRawCursor;
+	m_pRawCursor++;		// Reserve space for event size.
 	
 	CVMEInterface::Lock();
-	nEventSize = ::readevt(m_BufferPtr);
+	nEventSize = ::readevt(m_pRawCursor);
 	CVMEInterface::Unlock();
 	if(nEventSize > 0) {
 	  *hdr       = nEventSize + 1; // Fill in the size header.
 	  m_nWords  += nEventSize + 1;   // Fill in the buffer index.
 	  m_nEvents++;
+	  m_pRawCursor += nEventSize;
 	}
 	else {			// Rejected (zero length) event.
-	  m_BufferPtr = hdr;	// Retract buffer ptr on rejected event.
+	  m_pRawCursor  = hdr;	// Retract buffer ptr on rejected event.
 	}
 	//
 	// Try to overlap buffer flush management behind inter-event time.
@@ -421,7 +426,7 @@ ReadSomeEvents(unsigned int nPasses)
 
 	// If necessary, flush the buffer:
 
-	if(m_nWords >= m_nBufferSize) {
+	if(m_nWords > m_nBufferSize) {
 	  OverFlow(hdr);
 	}
       }      	                 // Trigger present.
@@ -476,14 +481,14 @@ CReader::FlushBuffer()
 {
   if(!m_pBuffer) return;	// No buffer to flush.
 
-  // Shrink the buffer down to the daq buffer size:
-
-  m_pBuffer->Resize(daq_GetBufferSize(),true);
-  
   // Fill in the buffer heaer:
 
   m_rManager.NextSequence();	// Increment sequence
   m_rManager.FormatHeader(m_pBuffer, m_nWords, DATABF, m_nEvents);
+
+  // Copyin data from the raw buffer into the spectrodaq buffer:
+
+  m_BufferPtr.CopyIn(m_pRawBuffer, 0, m_nWords);
 
   // Route and delete the buffer.
 
@@ -493,6 +498,9 @@ CReader::FlushBuffer()
   // Reset the member variables to force a new allocation on the next call
   // to ReadSomeEvents:
 
+  delete []m_pRawBuffer;
+  m_pRawBuffer  = (unsigned short*)NULL;
+  m_pRawCursor  = (unsigned short*)NULL;
   m_pBuffer     = (DAQWordBuffer*)NULL;
   m_nEvents     = 0;
   m_nWords      = 0;
@@ -513,15 +521,14 @@ CReader::FlushBuffer()
      into it.
 */
 void
-CReader::OverFlow(DAQWordBufferPtr& rLastEventPtr)
+CReader::OverFlow(unsigned short* rLastEventPtr)
 {
-  
-  //  Allocate the buffer and point to where the first event belongs:
 
+  // Allocate a new raw buffer and copy the event that's hanging over the
+  // end of the current raw buffer:
 
-  DAQWordBuffer* pNewBuffer = m_rManager.GetBuffer();
-  DAQWordBufferPtr EventPtr = m_rManager.GetBody(pNewBuffer);
-  //
+  unsigned short* pNextBuffer = new unsigned short[m_nBufferSize*2];
+
   // Retract the last event from the buffer:
 
   unsigned int nWords = *rLastEventPtr;
@@ -530,29 +537,38 @@ CReader::OverFlow(DAQWordBufferPtr& rLastEventPtr)
   m_nWords -= nWords;
   m_nEvents--;
 
+
+
   // Copy the last event in the old buffer (pointed to by rLastEventPtr)
   // into the new buffer.  The only assumption is that the first word of
   // the event is a self inclusive size.  Note that pre-increments are used
   // because in general they will be faster for objects since they avoid
   // copy construction.
   
-  while(nWords) {
-    *EventPtr = *rLastEventPtr;
-    ++EventPtr;
-    ++rLastEventPtr;
-    nWords--;
-  }
+  memcpy(pNextBuffer, rLastEventPtr, nWords*sizeof(unsigned short));
+
   // Flush the existing buffer:
 
   FlushBuffer();
 
-  // Adjust the member data so that the new buffer will be used from now on:
 
-  m_pBuffer     = pNewBuffer;
-  m_BufferPtr   = EventPtr;
-  m_nEvents     = 1;		// We've just put the first event in the buffer
-  m_nWords      = nNewSize;
+  // Allocate a new DAQWordBuffer and so on, and reset the member data
+  // to use all the new stuff.
+
+
+  // The raw buffer:
+
+  m_pRawBuffer = pNextBuffer;
+  m_pRawCursor = pNextBuffer + *m_pRawBuffer;
+
+
+  // The DAQWordBuffer:
+
+  m_pBuffer     = m_rManager.GetBuffer(daq_GetBufferSize());
+  m_BufferPtr   = m_rManager.GetBody(m_pBuffer);
+  m_nEvents     = 1;		// The odd event.
+  m_nWords       = *m_pRawBuffer;   // The size of the odd event.
   m_nBufferSize = daq_GetBufferSize() -
-                  m_rManager.GetBody(pNewBuffer).GetIndex();
-  
+    m_BufferPtr.GetIndex();
+      
 }

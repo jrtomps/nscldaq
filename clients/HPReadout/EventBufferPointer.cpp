@@ -490,8 +490,7 @@ EventBufferPointer::MaxSize()
 void
 EventBufferPointer::CopyIn(const void* pData, unsigned len)
 {
-  const UINT16* pD = (UINT16*) pData;
-  for(unsigned i = 0; i < len; i++)
-    (*this)[m_nOffset+i] = *pD++;
+  m_pData->CopyIn((void*)pData, 0, len);
+
   m_nOffset += len;
 }

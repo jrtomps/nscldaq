@@ -341,11 +341,9 @@ WORD2(UINT32 l)
 inline void 
 CopyIn(DAQWordBufferPtr& p, void* src, unsigned nWords)
 {
-  UINT16* pSrc = (UINT16*)src;
-  for(int i = 0; i < nWords; i++) {
-    *p = *pSrc++;
-    ++p;			// For objects preinc is faster (no copies).
-  }
+  p.CopyIn(src, 0, nWords);
+  p += nWords;
+
 }
 
 // Functions for class ReadoutStateMachine

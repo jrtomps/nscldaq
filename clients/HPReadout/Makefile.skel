@@ -3,7 +3,7 @@
 #  Makefile to build a readout program given the stuff in the standard
 #  skeleton.
 #
-include $(INSTDIR)/etc/Readout_Makefile.include
+include $(INSTDIR)/etc/HPReadout_Makefile.include
 
 #   If you require any addtional compilation flags for c++ compilations,
 #   define them here:

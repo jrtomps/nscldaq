@@ -306,17 +306,10 @@ using namespace std;
 
 
 void initevt();			/* Initialize event readout.    */
-void initrig1();		/* Initialize auxiliary trigger */
 void iniscl();			/* Initialize Scaler readout.   */
 void clearevt();			/* Clear the event              */
-void clrtrig1();		/* Clear aux trigger readout    */
 void clrscl();			/* Clear scaler readout.        */
-UINT16  readevt(DAQWordBufferPtr& Buffer); /* Read an event  */
+UINT16  readevt(UINT16* Buffer); /* Read an event  */
 UINT16  readscl(UINT32* pBuffer, int nScalers); /* Read scaler set   */
-void trig1dis();		/* Disable Aux. trigger         */
-void trig1ena();		/* Enable  Aux. trigger         */
-int  rdtrig1(UINT16* pBuffer);	/* Read out Aux. trigger.       */
-UINT16 evtmax();		/* Get maximum event size.      */
-UINT16 trig1max();		/* Get max readout size for aux. trigger */
 
 #endif

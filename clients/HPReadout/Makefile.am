@@ -1,5 +1,5 @@
-lib_LTLIBRARIES = libReadout.la
-libReadout_la_SOURCES = Active.cpp   \
+lib_LTLIBRARIES = libHPReadout.la
+libHPReadout_la_SOURCES = Active.cpp   \
 	 CAMACBusy.cpp CESTrigger.cpp  DebugState.cpp \
 	EventBufferPointer.cpp Exception.cpp Exiting.cpp Inactive.cpp \
 	 Paused.cpp RangeError.cpp Reader.cpp \
@@ -21,21 +21,22 @@ include_HEADERS = Active.h Busy.h   CAMACBusy.h \
 sysconf_DATA = runstate.tran
 
 install-data-local:
-	$(mkinstalldirs) $(prefix)/Readout/skel
-	$(mkinstalldirs) $(prefix)/Readout/etc
-	rm -f $(prefix)/Readout/Etc
-	$(LN_S) $(prefix)/Readout/etc $(prefix)/Readout/Etc
+	$(mkinstalldirs) $(prefix)/Readout/hpskel
+	$(mkinstalldirs) $(prefix)/Readout/hpetc
+	rm -f $(prefix)/Readout/HPEtc
+	$(LN_S) $(prefix)/Readout/etc $(prefix)/Readout/HPEtc
 	$(INSTALL_DATA) $(srcdir)/ReadoutMain.cpp \
-		$(prefix)/Readout/skel/ReadoutMain.cpp
+		$(prefix)/Readout/hpskel/ReadoutMain.cpp
 	$(INSTALL_DATA) $(srcdir)/skeleton.cpp    \
-		$(prefix)/Readout/skel/skeleton.cpp
+		$(prefix)/Readout/hpskel/skeleton.cpp
 	echo INSTDIR=$(prefix)                           > Makefile.user
 	cat Makefile.skel                               >> Makefile.user
-	$(INSTALL_DATA) Makefile.user $(prefix)/Readout/skel/Makefile
-	$(INSTALL_DATA) Readout_Makefile.include $(prefix)/etc
-	$(INSTALL_DATA) runstate.tran $(prefix)/Readout/etc	
+	$(INSTALL_DATA) $(srcdir)/skeleton.h $(prefix)/Readout/hpskel
+	$(INSTALL_DATA) Makefile.user $(prefix)/Readout/hpskel/Makefile
+	$(INSTALL_DATA) Readout_Makefile.include $(prefix)/etc/HPReadout_Makefile.include
+	$(INSTALL_DATA) runstate.tran $(prefix)/Readout/hpetc	
 
-libReadout_la_LDFLAGS = -version-info $(SOVERSION):0  -L@top_srcdir@/VMEApi \
+libHPReadout_la_LDFLAGS = -version-info $(SOVERSION):0  -L@top_srcdir@/VMEApi \
 	-L@top_srcdir@/DeviceSupport -lDeviceSupport \
 	-lVmeAPI $(SPECTRODAQ_LDFLAGS) -g -Wl,"-rpath-link=$(libdir)"
 

@@ -300,6 +300,9 @@ DAMAGES.
 //
 /* Change log:
       $Log$
+      Revision 1.2  2005/02/07 16:47:57  ron-fox
+      Debugged version of HP readout.
+
       Revision 1.1  2005/02/04 19:33:34  ron-fox
       Initial split off Readout -> HPReadout, high performance Readout Classic.
 
@@ -365,6 +368,10 @@ private:
     DAQWordBuffer*         m_pBuffer;  //!< Current buffer.
   mutable 
     DAQWordBufferPtr       m_BufferPtr; //!< Cursor into current buffer.
+  mutable 
+    unsigned short*        m_pRawBuffer; //!< Raw buffer.
+  mutable
+    unsigned short*        m_pRawCursor; //!< Cursor into current buffer.
   unsigned int             m_nEvents;  //!< Current Event count.
   unsigned int             m_nWords;   //!< Current word count.
   unsigned int             m_nBufferSize; //!< System buffersize (High w.mrk).
@@ -448,7 +455,7 @@ public:
   // Utility functions.
 
 private:
-  void OverFlow(DAQWordBufferPtr& rLastEventPtr);
+  void OverFlow(unsigned short*  rLastEventPtr);
 
 };
 
