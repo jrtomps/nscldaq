@@ -273,7 +273,7 @@ THIRD PARTIES OR A FAILURE OF THE PROGRAM TO OPERATE WITH ANY OTHER PROGRAMS),
 EVEN IF SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH 
 DAMAGES.
 
-		     END OF TERMS AND CONDITIONS
+		     END OF TERMS AND CONDITIONS '
 */
 // Class: CVmeCommand                     //ANSI C++
 
@@ -281,7 +281,7 @@ DAMAGES.
 #define __VMECOMMAND_H
 
 #ifndef __IOSTREAM_H            //Required for cin and cout
-#include <iostream.h>                 
+#include <Iostream.h>                 
 #endif
 
                                //Required for base classes
@@ -312,8 +312,8 @@ DAMAGES.
 class CVmeCommand  : public CTCLProcessor        
 {                       
 			
-  map<std::string,CVMEMapCommand*>   m_Spaces;    //Attribute data member        
-  map<pair<string, int>, void*>             m_VmeHbfds;  // Cached VME device fds.
+  STD(map)<STD(string),CVMEMapCommand*>        m_Spaces;    //Attribute data member        
+  STD(map)<STD(pair)<STD(string), int>, void*> m_VmeHbfds;  // Cached VME device fds.
 
   enum Switches {		// switch values
     device,			// -device
@@ -332,8 +332,8 @@ protected:
 
     int Usage(CTCLResult& rResult);
 
-  CVMEMapCommand* CreateMap(const string& rName,
-			    const string& rDevice,
+  CVMEMapCommand* CreateMap(const STD(string)& rName,
+			    const STD(string)& rDevice,
 			    int  nBase, int nSize, 
 			    unsigned short nCrate = 0);  
 public:
@@ -346,13 +346,13 @@ public:
 				
   //Get accessor function for non-static attribute data member
 
-  map<std::string,CVMEMapCommand*>& getm_Spaces()
+  STD(map)<STD(string),CVMEMapCommand*>& getm_Spaces()
   { 
     return m_Spaces;
   }
 protected:
                        
-  void setm_Spaces (const map<std::string,CVMEMapCommand*>& am_Spaces)
+  void setm_Spaces (const STD(map)<STD(string),CVMEMapCommand*>& am_Spaces)
   { 
     m_Spaces = am_Spaces;
   }
@@ -366,7 +366,7 @@ public:
 private:
   // The functions below throw strings if they fail.
   //
-  static  CVMEInterface::AddressMode UserToLogical(const string& rsUser);
+  static  CVMEInterface::AddressMode UserToLogical(const STD(string)& rsUser);
   void*  OpenDevice(CVMEInterface::AddressMode eMode,
 		    unsigned short nCrate= 0);
   

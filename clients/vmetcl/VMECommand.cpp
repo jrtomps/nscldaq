@@ -273,11 +273,12 @@ THIRD PARTIES OR A FAILURE OF THE PROGRAM TO OPERATE WITH ANY OTHER PROGRAMS),
 EVEN IF SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH 
 DAMAGES.
 
-		     END OF TERMS AND CONDITIONS
+		     END OF TERMS AND CONDITIONS '
 */
 static const char* Copyright= "(C) Copyright Michigan State University 2002, All rights reserved";// Class: CVmeCommand
 
 //////////////////////////.cpp file/////////////////////////////////////////////////////
+#include <config.h>
 #include "VMECommand.h"    				
 #include "TCLString.h"
 #include <vector>
@@ -289,6 +290,10 @@ static const char* Copyright= "(C) Copyright Michigan State University 2002, All
 #include <errno.h>
 #include <assert.h>
 #include <stdio.h>
+
+#ifdef HAVE_STD_NAMESPACE
+using namespace std;
+#endif
 
 static const string aSubCommands[] = {
   string("create"),

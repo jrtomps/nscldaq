@@ -417,7 +417,7 @@ public:
   int Unregister ()  ;
   void UnregisterAll ()  ;
 
-  static int MatchKeyword(STD(vector)<string>& MatchTable, 
+  static int MatchKeyword(STD(vector)<STD(string)>& MatchTable, 
 			  const STD(string)& rValue, 
 			  int NoMatch = -1);
 };
