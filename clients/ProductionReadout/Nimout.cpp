@@ -314,18 +314,6 @@ CNimout::CNimout(UInt_t base) :
   m_pControlRegister =  &(m_pBase[CONTROL]);
 }
 
-/*!
-  \fn CNimout(CVME<UShort_t>& am_CVME)
-  
-  Purpose: 
-     Constructor for type CNimout. Defines a VmeModule
-     with a previously constructed CVME object.
-
-  \param CVME<UShort_t>& am_CVME - the CVME to use for this
-*/
-CNimout::CNimout(CVME<UShort_t>& am_CVME) :
-  CVmeModule(am_CVME)
-{ }
 
 /*!
   \fn CNimout(const CNimout& aCNimout)

@@ -298,8 +298,11 @@ static const char* Copyright= "(C) Copyright Michigan State University 2002, All
 /*  
    Change log:
    $Log$
-   Revision 3.2  2003/06/19 19:13:01  ron-fox
-   Make these identical to their cousins in ../Readout
+   Revision 3.3  2003/09/19 19:55:04  ron-fox
+   Update from other places ... really need a common device library.
+
+   Revision 3.2  2003/09/10 11:09:43  ron-fox
+   Provide support for VME interfaces without mmap capability (e.g. Wiener).
 
    Revision 3.1  2003/03/22 04:03:28  ron-fox
    Added SBS/Bit3 device driver.
@@ -346,22 +349,6 @@ CCaenIO::CCaenIO(UInt_t base, int nCrate) :
   m_nOutputMask(0)
 {
 
-}
-
-/*!
-  \fn CCaenIO(CVME<UShort_t>& am_CVME)
-
-  Purpose:
-     Basic constructor for type CCaenIO. Defines a
-     VmeModule with a previously constructed CVME
-     object. Initializes the output mask to zero.
-
-  \param CVME<UShort_t>& am_CVME - the CVME to use for this construction
-*/
-CCaenIO::CCaenIO(CVME<UShort_t>& am_CVME) :
-  CVmeModule(am_CVME),
-  m_nOutputMask(0)
-{
 }
 
 /*!
@@ -433,16 +420,9 @@ UShort_t
 CCaenIO::ReadInput(UInt_t input)
 {
   if((input < 0) || (input > 3)) {
-    cerr << "\nInvalid input on read operation. Must be between 0 and 3.\n";
-    exit(0);
+    throw string("\nInvalid input on read operation. Must be between 0 and 3.\n");
   }
-
-  try {
-    return ((peekw(5) & (1 << input)) ? 1 : 0);
-  }
-  catch(CRangeError& re) {
-    throw re;
-  }
+  return ((peekw(5) & (1 << input)) ? 1 : 0);
 }
 
 /*!
@@ -540,7 +520,7 @@ CCaenIO::ClearAll()
   pokew(0, 2);
   pokew(0, 3);
 }
-
+#ifndef WienerVME
 /*!
    Get a pointer to the input register.  This is
 designed for high performance software that does
@@ -582,3 +562,4 @@ CCaenIO::getECLOutputPointer() const
   return ((short*)(map.getStart()) + 2);
 }
 
+#endif
