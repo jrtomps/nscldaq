@@ -421,6 +421,7 @@ DAQBuff::operator()(int argc, char** argv)
     UpdateTitle();
   }
   close(m_fd);
+  sleep(5);
   return 0;
 }
 
