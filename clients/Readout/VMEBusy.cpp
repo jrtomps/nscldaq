@@ -14,6 +14,9 @@
 //
 /* Change log:
       $Log$
+      Revision 3.2  2003/06/06 11:16:55  ron-fox
+      Remove extra data busy set on ScalerSet.. I can overlap a trigger accept with scaler readout.
+
       Revision 3.1  2003/03/22 04:03:45  ron-fox
       Added SBS/Bit3 device driver.
 
@@ -103,7 +106,7 @@ CVMEBusy::ModuleClear()
 void
 CVMEBusy::ScalerSet()
 {
-  Set();			// Go busy.
+  // Set();			// Go busy.
   m_rBusyModule.SetLevel(0); // For a scaler.
   m_rBusyModule.ClearLevel(0);
 
