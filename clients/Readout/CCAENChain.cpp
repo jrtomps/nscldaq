@@ -275,11 +275,14 @@ DAMAGES.
 
 		     END OF TERMS AND CONDITIONS
 */
-#define DMA_THRESHOLD 200
+#define DMA_THRESHOLD 8
 
 /*
   Revision history:
   $Log$
+  Revision 1.2  2003/09/19 19:52:45  ron-fox
+  This is probably debugged.  Need to see what CAEN says about data corruption .
+
   Revision 1.1  2003/09/16 12:16:24  ron-fox
   Added support for CBLT readout of CAEN 32 channel adcs.  Note for SBS/bit3 the driver must be patched to support early termination of block transfers.
 
@@ -380,7 +383,7 @@ CCAENChain::CCAENChain(int nFirstSlot, int nLastSlot,
   //   Data can be 32 longs,
   //   header, trailer and invalid are both a single long.
 
-  m_nMaxBytes = nModules * 35 * sizeof(long);
+  m_nMaxBytes = (nModules * 35 + 1) * sizeof(long);
 
   // The very last thing to do is open the VME crate on
   // CBLT addressing so that we can do a read(2) to read an event:
