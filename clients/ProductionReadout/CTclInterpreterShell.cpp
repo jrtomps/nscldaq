@@ -299,7 +299,7 @@ Change Log:
 
 #include "CTclInterpreterShell.h"                  
 #include "CInterpreterCore.h"
-#include "CErrnoException.h"
+#include <ErrnoException.h>
 /*!
    Default constructor
 
@@ -426,7 +426,7 @@ CTclInterpreterShell::RegisterExtensions ()
     m_pCore = ConstructCore();
     if(!m_pCore) {
       throw 
-	ErrnoException("CTclInterpreterShell::RegisterExtensions -null core");
+	CErrnoException("CTclInterpreterShell::RegisterExtensions -null core");
     }
     m_bMyCore = true;
     CInterpreterShell::Initialize(*m_pCore); // Spectrodaq base classe also

@@ -350,7 +350,7 @@ CVMEScalerCAENV830::Initialize()
 
 */
 void 
-CVMEScalerCAENV830::Read(vector<unsigned in& Scalers)  
+CVMEScalerCAENV830::Read(vector<unsigned>& Scalers)  
 {
  
 }  

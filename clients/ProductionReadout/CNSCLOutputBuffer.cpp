@@ -283,8 +283,11 @@ static const char* Copyright = "(C) Copyright Michigan State University 2002, Al
       
       Modification History:
       $Log$
-      Revision 1.1  2003/03/12 04:17:37  ron-fox
-      Initial revision
+      Revision 1.2  2003/03/13 18:19:37  ron-fox
+      First clean compile with Production readout software.
+
+      Revision 1.1.1.1  2003/03/12 04:17:37  ron-fox
+      Correct initial import this time.
 
       Revision 1.3  2002/10/22 12:38:18  fox
       Straighten out dates in internal copyright notices.
@@ -304,7 +307,7 @@ static const char* Copyright = "(C) Copyright Michigan State University 2002, Al
 #include "CNSCLOutputBuffer.h"                  
 #include <string>
 #include <unistd.h>
-#include <CRangeError.h>
+#include <RangeError.h>
 
 // Manifest constants:
 

@@ -18,6 +18,9 @@
 /* Define if major, minor, and makedev are declared in <sysmacros.h>.  */
 #undef MAJOR_IN_SYSMACROS
 
+/* Define to `long' if <sys/types.h> doesn't define.  */
+#undef off_t
+
 /* Define to `int' if <sys/types.h> doesn't define.  */
 #undef pid_t
 

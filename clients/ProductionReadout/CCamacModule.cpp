@@ -278,7 +278,7 @@ DAMAGES.
 static const char* Copyright = "(C) Copyright Michigan State University 2002, All rights reserved";//////////////////////////CCamacModule.cpp file////////////////////////////////////
 
 #include "CCamacModule.h"                  
-#include <CRangeError.h>
+#include <RangeError.h>
 #include <CCamac.h>
 
 #include <assert.h>

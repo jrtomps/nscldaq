@@ -298,7 +298,7 @@ Change Log:
    */
 #include "CTkInterpreterShell.h"                  
 #include "CInterpreterCore.h"
-#include "CErrnoException.h"
+#include <ErrnoException.h>
 
 /*!
    Default constructor
@@ -428,7 +428,7 @@ CTkInterpreterShell::RegisterExtensions ()
     m_pCore = ConstructCore();
     if(!m_pCore) {
       throw 
-	ErrnoException("CTkInterpreterShell::RegisterExtensions -null core");
+	CErrnoException("CTkInterpreterShell::RegisterExtensions -null core");
     }
     m_bMyCore = true;
     CInterpreterShell::Initialize(*m_pCore);
