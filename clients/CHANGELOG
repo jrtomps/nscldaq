@@ -312,3 +312,7 @@ November 24, 2004:
  	Happy Thanksgiving:
 	o Completed the port to 3.x compilers
 	o Determined that the software can also still compile/run on 2.95
+December 28,2004
+	The incarnations of CIntConfigParam/CIntArrayParam.cpp need
+	to use strtoll instead of ExprLong to work with values above
+        the maximum signed int in Tcl 8.4
