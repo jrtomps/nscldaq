@@ -8,8 +8,9 @@ include $(INSTDIR)/etc/ProductionReadout_Makefile.include
 #
 #  If you are using camac you will need to add at least:
 #    -DCESCAMAC  
-# or -DWIENERCAMAC
+# or -DVC32CAMAC
 # to select between the CES 8210 and WIENER CAMAC interface modules.
+# respectively.
 #
 USERCXXFLAGS=
 #

@@ -12,9 +12,9 @@ include $(INSTDIR)/etc/scriptedreadout_Makefile.include
 #  If you are using CAMAC you must add one of the following to select
 #  the camac interface you are using:
 #
-#      -DCESCAMAC
+#      -DCESCAMAC     (CES CBD8210 camac)
 # or
-#      -DWIENERCAMAC
+#      -DVC32CAMAC    (Wiener VC32/CC32).
 #
 USERCXXFLAGS=
 
