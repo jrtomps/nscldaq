@@ -32,7 +32,7 @@ LIBFLAGS=-L. -L$(INSTDIR)/Lib  -L/usr/X11R6/lib -lPReadout \
 #  Add any additional compiler flages you need here.
 #
 COMPILEFLAGS=  -c -ggdb -I. -I$(INSTDIR)/Include  \
-	-D$(OS) -I/usr/include/tcl  $(SPECTRO_FLAGS)
+	-D$(OS) -I/usr/include/tcl  $(SPECTRO_FLAGS) -DCESCAMAC
 
 CPP=g++ $(COMPILEFLAGS)
 CC=gcc $(COMPILEFLAGS)
@@ -54,10 +54,11 @@ CC=gcc $(COMPILEFLAGS)
 Objects=Skeleton.o
 #
 #   If you are using a 'traditional readout skeleton uncomment the next line:
-#Objects= $(Objects) CTraditionalEventSegment.o CTraditionalScalerSegment.o
+#Objects= Skeleton.o CTraditionalEventSegment.o CTraditionalScalerReadout.o
 
 Readout: $(Objects)
 	$(LD) -o Readout $(LDFLAGS) $(Objects)  $(LIBFLAGS) $(LIBFLAGS)
+
 
 
 

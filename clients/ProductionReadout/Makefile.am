@@ -63,6 +63,7 @@ libPReadout_la_SOURCES = AccessListCheck.cpp \
 	CTimer.cpp \
 	CTkInterpreterShell.cpp \
 	CTrigger.cpp \
+	CAENcard.cpp  \
 	CVMEScalerCAENV830.cpp \
 	CVMEScalerLRS1151.cpp \
 	CVMEStatusModule.cpp \
@@ -82,7 +83,10 @@ libPReadout_la_SOURCES = AccessListCheck.cpp \
 	TclAuthorizer.cpp \
 	UnixUserCheck.cpp \
 	VmeModule.cpp  \
-	cmdline.c
+	cmdline.c \
+	camacmap.cpp \
+	v890.cpp \
+	CTKListener.cpp CTKServerInstance.cpp
 
 include_HEADERS = AccessListCheck.h \
 	AuthTokenCheck.h \
@@ -168,11 +172,12 @@ include_HEADERS = AccessListCheck.h \
 	TclAuthorizer.h \
 	UnixUserCheck.h \
 	VmeModule.h \
-	buffer.h \
-	buftypes.h \
-	cmdline.h 
+	cmdline.h  \
+	v890.h \
+	CTKListener.h
 
-libPReadout_la_LDFLAGS = -g -version-info 1:0:0 \
+
+libPReadout_la_LDFLAGS = -g -version-info 1:1:0 \
 	-L@top_srcdir@/framework \
 	-L@top_srcdir@/VMEApi \
 	-L@top_srcdir@/Exception \
@@ -205,3 +210,6 @@ install-data-local:
 		$(prefix)/pReadoutSkeleton/CTraditionalEventSegment.cpp
 	$(INSTALL_DATA) CTraditionalScalerReadout.cpp \
 	        $(prefix)/pReadoutSkeleton/CTraditionalScalerReadout.cpp
+
+CXXFLAGS=-g
+CCFLAGS=-g
