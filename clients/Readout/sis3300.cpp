@@ -108,7 +108,8 @@ const unsigned long THRChannelShift    = 16;
 
   \param nBaseAddress - The VME base address of the module.
   */
-CSIS3300::CSIS3300(unsigned long nBaseAddress) :
+CSIS3300::CSIS3300(unsigned long nBaseAddress,
+		   int           nCrate) :
   m_nBase(nBaseAddress),
   m_nFd(0),
   m_pCsrs(0),
@@ -153,7 +154,7 @@ CSIS3300::CSIS3300(unsigned long nBaseAddress) :
   // Map to the base address in A32/D32 space.
 
 
-  void *p = CVMEInterface::Open(CVMEInterface::A32);
+  void *p = CVMEInterface::Open(CVMEInterface::A32, nCrate);
   m_nFd = p;
   m_pCsrs  = (volatile unsigned long*)CVMEInterface::Map(p, m_nBase, 
 							  0x3000);
@@ -424,7 +425,7 @@ CSIS3300::SetThresholds(bool* pLessthan, unsigned int* pValues)
 {
   for(int i = 0; i < 8; i++) {
     m_fThresholdLt[i] = *pLessthan++;
-    m_nThresholds[i]  = (*pValues++) & 0xfff;
+    m_nThresholds[i]  = (*pValues++) & 0x3fff;
   }
 }
 
