@@ -141,3 +141,6 @@ Week of November 8:
     - Remove CTCLFileHandler constructors that operate on c++ streams as
       these will no longer work in the ANSI standard IOSTREAMS library.
     - Port Security      - 3.x 
+    - Add feature test for spectrodaq_main()  use it in pReadout to 
+      conditionally define main() when spectrodaq has a separable
+      main() that might not get linked otherwise.

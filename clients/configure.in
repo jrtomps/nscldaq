@@ -163,6 +163,29 @@ SPECTRODAQ_LDFLAGS=$($spectrodaq_conf_dir/spectrodaq-conf --libs)
 AC_MSG_RESULT([ found in $spectrodaq_conf_dir ])
 fi
 
+#  Now that we have spectrodaq, we need to see if it has a 
+#  spectrodaq_main defined... if so, some of our stuff needs
+#  to implement main().
+#
+AC_LANG_PUSH(C++)
+oldcxxflags="$CXXFLAGS"
+CXXFLAGS="$CXXFLAGS $SPECTRODAQ_FLAGS"
+AC_MSG_CHECKING([spectrodaq has spectrodaq_main() separable])
+AC_COMPILE_IFELSE([#include <spectrodaq.h>
+main(int argc, char**argv, char** envp)
+{
+  return spectrodaq_main(argc, argv, envp);
+}], [separate="yes" ], [separate="no"])
+  
+
+if test "$separate" == "yes"
+then
+   AC_DEFINE([HAVE_SPECTRODAQ_MAIN], 1, [spectrodaq has separable main])
+fi
+AC_MSG_RESULT([$separate])
+CXXFLAGS="$oldcxxflags"
+AC_LANG_POP(C++)
+
 
 # Locate Tcl/Tk and setup compile/link switches for them too:
 

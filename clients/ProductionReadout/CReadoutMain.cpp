@@ -282,6 +282,11 @@ static const char* Copyright = "(C) Copyright Michigan State University 2002, Al
   
   Change Log:
    $Log$
+   Revision 4.2  2004/11/11 17:30:50  ron-fox
+   Add feature test for spectrodaq_main() and use it to conditionally
+   define a main() in ProductionReadout/CReadoutMain.cpp to deal with
+   some library linking issues that arise otherwise.
+
    Revision 4.1  2004/11/08 17:37:30  ron-fox
    bring to mainline
 
@@ -324,6 +329,7 @@ static const char* Copyright = "(C) Copyright Michigan State University 2002, Al
 //
    */
 
+#include <config.h>
 #include <spectrodaq.h>
 #include "CReadoutMain.h"                  
 #include "cmdline.h"
@@ -697,3 +703,18 @@ CReadoutMain::Exit()
   CReaper::getInstance()->clear(); // Don't reap threads that are being
   m_fExit = true;		// destroyed.
 }
+
+
+// If spectrodaq main is separable, then I need to define main
+// here to ensure that TCL++'s main is not pulled in by mistake.
+//
+
+#ifdef HAVE_SPECTRODAQ_MAIN
+int
+main(int argc, char** argv, char** envp) 
+{
+  return spectrodaq_main(argc, argv, envp);
+}
+
+
+#endif
