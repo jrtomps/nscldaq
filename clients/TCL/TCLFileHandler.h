@@ -310,10 +310,6 @@ DAMAGES.
 #define __CRT_STDIO_H
 #endif
   
-#ifndef __CXX_FSTREAM_H
-#include <Fstream.h>   
-#define __CXX_STD(FSTREAM)_H
-#endif
 
                           
 class CTCLFileHandler  : public CTCLInterpreterObject        
@@ -333,11 +329,7 @@ public:
     CTCLInterpreterObject(pInterp->getInterpreter()),
     m_nFid(fileno(pFile))
   { }
-  CTCLFileHandler(CTCLInterpreterObject* pInterp,
-		  STD(fstream)& rFile) :
-    CTCLInterpreterObject(*pInterp),
-    m_nFid(rFile.rdbuf()->fd())
-  { }
+
   CTCLFileHandler(CTCLInterpreter* pInterp,
 		  UInt_t am_nFid = STDIN_FILENO) :
     CTCLInterpreterObject(pInterp),
@@ -348,11 +340,7 @@ public:
     CTCLInterpreterObject(pInterp),
     m_nFid(fileno(pFile))
   { }
-  CTCLFileHandler(CTCLInterpreter* pInterp,
-		  STD(fstream)& rFile) :
-    CTCLInterpreterObject(pInterp),
-    m_nFid(rFile.rdbuf()->fd())
-  { }
+
   ~CTCLFileHandler ( ) {Clear(); }       //Destructor	
 			//Copy constructor
 
