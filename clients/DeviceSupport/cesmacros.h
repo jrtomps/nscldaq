@@ -293,7 +293,7 @@ DAMAGES.
 #endif
 #endif
 
-#include <daqinterface.h>
+#include <camacmap.h>
 
 
 
