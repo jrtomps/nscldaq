@@ -1,0 +1,96 @@
+/*!
+	\page Constructing Constructing a module object
+	
+	Each physical module is represented in the software by an object
+	constructed from the class CAENclass.   The CAENclass interface
+	supports constructing objects in any VME crate attached to the system
+	- With geographical addressing for modules and crates that support this.
+	- With physical addressing for modules and crates that do not support
+	  geographical addressing.
+
+   	The original VME bus specification does not support geographical 
+	addressing (the ability to select a module by its slot position in 
+	the crate).  In an effort to make module setup easier, CERN has defined
+	an extension to the VME bus that adds a connector, P3, between the
+	two normal VME connectors.  This connetor includes an encoding of the
+	module slot,and allows modules to support geographical addressing.
+
+	The CAEN 32 channel digitizer family can be purchased with 
+	geographical addressing capability as an option.  Modules 
+	with geographical addressing capability will have three connectors
+	on the VME bus, and must be used in a VME bus with CERN extensions
+	(there will be three connectors on the backplane of such crates as well).
+
+	When accessed in geographical address mode, not all of the module
+	capabilities are accessible.  Therefore, since the CAEN modules also
+	support the ability to have a programmable base address, when 
+	constructed in geographical mode, modules are programmed with 
+	a base address of slot << 24.  During data taking, the module is
+	accessed at this relocated base address.  
+
+	When used in combinatino  with other modules, it is therefore important
+	to ensure that there are no address collisions between these modules
+	and the reprogrammed base addresses of the CAEN cards.
+
+
+	See the sections below which show how to invoke CAENcard::CAENcard to
+	construct modules in:
+	- \ref Geomode
+	- \ref PhysicalBasemode
+
+	\section Geomode Geographical adress mode.
+
+	Modules are constructed in geographical address mode by setting the
+	\em Geo flag of the constructor (CAENcard::CAENcard) true, and specifying
+	the module's \em slotNum (geographical address). This slot will be used
+	not only to locate the module and set it up, but will also be placed
+	by the module in the module's data word geo fields when the module is
+	read out.
+
+	When constructed in geographical mode, the constructor's \em nBase 
+	parameter is ignored.  The code sample below constructs a 
+	CAENcard in slot 5 of crate 0:
+
+	\code
+	#include <CAENcard.h>
+	...
+	   CAENcard* pCard = new CAENcard(5);
+        ...
+	\endcode
+
+	note that the default value for the \em crateNum parameter is 0, and the
+	default value for the \em Geo parameter is true.
+
+	\section PhysicalBasemode Physical base address mode.
+
+	When a module is constructed in Physical Base mode, the geographical
+	address in the data is actually a virtual slot number that is programmed
+	into the module.  The constructor, CAENcard::CAENcard will use the
+	\em slotNum parameter to set the geographical address register of the
+	module.
+
+	To construct a module using physical address mode you must:
+	- Set the modules base address with the rotary switches as described
+	  in the module's hardware manual.
+	- Construct the module specifying the desired geographical address
+	  in the \em slotNum parameter, \em Geo false and set \em base to the
+	  base address you set in the module's rotary switches.
+	- If the module and crate are capable of geographical addressing, but
+	  you wish to use physical base you must construct the module with
+	  a \em slotNum parameter that is the same as the physical slot number
+	  as in this case the module's geographical address cannot be 
+          re-programmed.
+
+	The code sample below constructs a CAENcard object corresponding to a 
+	module at base address 0x100000 in crate 0.  The geographical address
+	will be programmed to 6:
+
+	\code
+	#include <CAENcard.h>
+	...
+	   CAENcard* pCard = new CAENcard(6, 0, false, 0x100000);
+	...
+	\endcode
+
+
+*/

@@ -1,0 +1,84 @@
+/*!
+	\page Readout Reading out the CAEN 32 channel VME digitizers
+
+	This section describes how to readout modules you have 
+	instantiated and initialized using CAENcard.  Note that the
+	CAEN 32 channel modules do not support channel addressability.
+	Each module will provide 0 longwords if all channels are supressed,
+	or between 3 and 34 longwords if at least one channel is present
+	(n + 2 where n are the number of unsupressed channels).
+	See page 40 of the V775 manual (e.g.) for a description of the 	
+	block of data you will get from one of these modules.  
+	Note that a longword is two words.
+
+	Readout is done via the CAENcard::readEvent function.  This is overloaded,
+	but typically only two variants will be used.  In the most common case,
+	you are reading data directly to the buffer.  Sample code for readout
+	classic (or production readout if  \em bufpt is the DAQWordBufferPtr
+	parameter) is shown below:
+
+	\code
+	#include <CAENcard.h>
+	#include <spectrodaq.h>
+	#define CAENTIMEOUT 50
+	...
+	   CAENcard* pModule;
+	...
+	   for(int i =0; i < CAENTIMEOUT; i++) {
+	     if (pModule->dataPresent()) {
+               break;
+             }
+           }
+           if (pModule->dataPresent()) {
+              pModule->readEvent(bufpt);
+           }    
+	...
+	\endcode
+	Note that:
+	-#  CAENcard::dataPresent is used to determine if the card has any data
+	    to read out.
+        -#  bufpt is passed by reference and will be modified to point to the
+	    next word after the data read by CAENcard::readEvent.
+	-#  You should probably experimentally determine the shortest value
+	    for CAENTIMEOUT.  This may be dependent on which data acquisition
+	    computer you use.
+
+	In some cases you may want to read data from the module into a local
+	buffer and then, after some processing, copy the data you have read
+	into the final buffer.   The sample below shows how to do this.
+
+	\code 
+	#include <CAENcard.h>
+	#include <spectrodaq.h>
+	#define CAENTIMEOUT 50
+	...
+	   CAENcard* pModule;
+	...
+	   for(int i =0; i < CAENTIMEOUT; i++) {
+	     if (pModule->dataPresent()) {
+               break;
+             }
+           }
+	   if (pModule->dataPresent()) {
+	      unsigned long adcData[34];      // Temp buffer.
+	      int nWords = pModule->readEvent(adcData);
+	      int nLongs = nWords*sizeof(short)/sizeof(long);
+	      ..
+	      unsigned short* pwData = (unsigned short*)adcData;
+	      for(int i =0; i < nWords; i++) {
+                *bufpt = *pwData++;
+                ++bufpt;
+              }
+	...
+
+	\endcode
+
+	Note that:
+        -#  The return value from CAENcard::readEvent is the number of 
+             \em words (16 bit) that were read from the device.
+        -#  For objects, pre-increment is generally faster than postincrement
+            because the post increment/decrement operators will require
+            a pair of copy constructions and a destructor call, in order to
+	    preserve the semantics of post increment/decrement.
+	
+*/
