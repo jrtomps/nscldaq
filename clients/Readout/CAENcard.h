@@ -278,6 +278,9 @@ DAMAGES.
 /*
   Change Log:
   $Log$
+  Revision 3.4  2003/08/14 17:57:47  ron-fox
+  Add support for small threshold mode in modules up to date enough to implement it.  Note that we still need to modify the setthresholdvoltage function so that it understands what to do in the different pedestal modes.
+
   Revision 3.3  2003/06/02 14:37:34  ron-fox
   Support multiple crates correctly.
 
@@ -419,7 +422,9 @@ public:
     int readEvent(DAQDWordBufferPtr& dwp); //!< Read event into daq long buf.
     void setIped(int value); //!< IF qdc set pedestal current.
     int  getIped();	//! If qdc set pedestal current.
-
+    void setFastClearWindow(int n);  //!< Set fast clear window width.
+    void enableSmallThresholds();   //!< Enable small thresholds.
+    void disableSmallThresholds();  //!< Disable small thresholds.
   //Utility functions:
 
   void  DestroyCard();		//!< Destroy a card memory map.

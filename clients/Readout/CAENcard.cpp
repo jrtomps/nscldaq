@@ -279,6 +279,9 @@ DAMAGES.
 /*
   Change Log:
   $Log$
+  Revision 3.6  2003/08/14 17:57:47  ron-fox
+  Add support for small threshold mode in modules up to date enough to implement it.  Note that we still need to modify the setthresholdvoltage function so that it understands what to do in the different pedestal modes.
+
   Revision 3.5  2003/06/19 19:09:17  ron-fox
   Rewrite to make both multi-crate safe and a little cleaner code.
   work around problems I'm seeing with word count field corruption.
@@ -333,6 +336,7 @@ static const char* Copyright= "(C) Copyright Michigan State University 2002, All
 #define KEEPTHRESH  0x010
 #define KEEPINVALID 0x020
 #define COMMONSTOP  0x400
+#define STEPTHR     0x100
 
 // The structure below represents the CAEN register set:
 //
@@ -509,7 +513,7 @@ CAENcard& CAENcard::operator=(const CAENcard& card)
 
   This function:
   - Maps to the card and
-  - Initializes it to a standard, well defined state.
+ - Initializes it to a standard, well defined state.
   
   The card location is assumed to already have been set up in 
   the member variables (except for m_pModule which is filled in by
@@ -544,7 +548,7 @@ CAENcard::slotInit()
     setThreshold(-1, 0x01);
 
   }
-  else if(cardType() == 792) {   // Set defaults for a QDC:
+  else if((cardType() == 792) || (cardType() == 862)) {	// Set defaults for a QDC:
 
       setThreshold(-1, 0);	// Maybe later default raise this??
   }
@@ -860,14 +864,15 @@ void
 CAENcard::setPedestalCurrent(int ped)
 {
   //make sure that the card is a QDC
-  if(cardType() == 792)
+  int type = cardType();
+  if((type == 792) || (type == 862))
   {
     volatile Registers* pRegisters    = (volatile Registers*) m_pModule;
     pRegisters->QDCIPedestal = (ped & 0x0ff); 
   }
   else
   {
-    throw string("setPedestalCurrent - module is not a V792 QDC");
+    throw string("setPedestalCurrent - module is not a V792 or V862 QDC");
   }
 }
 /*!
@@ -1058,14 +1063,15 @@ CAENcard::readEvent(void* buf)
       *pBuf++ = swaplong(datum);
       n++;
       datum = (datum >> 24) & 7;
-    } while ( datum == 0);
+    } while ( (datum == 0) && (n <= 34));
     if(datum != 4) {		// The trailer should be of type 4.
       cerr << " Data type in terminating long wrong: " << hex 
 	   <<datum << dec << endl;
-    }
+    } 
     Header &= 0xffffC0ff;	// Channel count is sometimes wrong.
     Header |= ((n-2) << 8);	// this fixes it.
     *pHeader = swaplong(Header);
+
     return n * sizeof(long);			// Rely on the trailer!!
   } else {
     // cerr << "Readout called but no data present\n";
@@ -1099,12 +1105,14 @@ CAENcard::readEvent(DAQWordBuffer& wbuf, int offset)
 
     int n = readEvent(localBuffer);
     int nWords = n/sizeof(int);
-
+#ifdef CLIENT_HAS_BUFFER_COPYIN
+    wbuf.CopyIn(localBuffer, offset, nWords);
+#else
     for(int i = 0; i < nWords; i++) {
       wbuf[offset] = *pBuf++;
       offset++;
     }
-
+#endif
     return nWords;
   }
 
@@ -1130,14 +1138,19 @@ int CAENcard::readEvent(DAQWordBufferPtr& wp)
   // Patterned after the previous function:
 
   if(dataPresent()) {
-    int localBuffer[32+2];
+    int localBuffer[32+200];
     short *pBuf((short*)localBuffer);
     int nbytes = readEvent(localBuffer); // Read to temp buffer.
     int nWords = nbytes / sizeof(short);
+#ifdef CLIENT_HAS_POINTER_COPYIN
+    wp.CopyIn(localBuffer, wp, nWords);
+    wp += nWords;
+#else
     for(int i = 0; i < nWords; i++) {
       *wp = *pBuf++;
       ++wp;
     }
+#endif
     return nWords;
   }
   return 0;
@@ -1163,11 +1176,15 @@ CAENcard::readEvent(DAQDWordBuffer& dwbuf, int offset)
     int localBuffer[32+2];	// 32 chans + header + trailer.
     int nbytes = readEvent(localBuffer);
     int nlongs = nbytes/sizeof(long);
+#ifdef CLIENT_HAS_BUFFER_COPYIN
+    dwbuf.CopyIn(localBuffer, offset, nlongs);
+#else
     int* pLocal(localBuffer);
     for(int i =0; i < nlongs; i++) {
       dwbuf[offset] = *pLocal++;
       offset++;
     }
+#endif
     return nlongs;
   }
   return 0;
@@ -1190,11 +1207,16 @@ int CAENcard::readEvent(DAQDWordBufferPtr& dwp)
     int localBuffer[32+2];	// 32 chans + header +trailer.
     int nbytes  = readEvent(localBuffer);
     int nlongs  = nbytes/sizeof(long);
+#ifdef CLIENT_HAS_POINTER_COPYIN
+    dwp.CopyIn(localBuffer, 0, nlongs);
+    dwp += nlongs;
+#else
     int* pLocal(localBuffer);
     for(int i =0; i < nlongs; i++) {
       *dwp = *pLocal++;
       ++dwp;
     }
+#endif
     return nlongs;
   }
   return 0;
@@ -1219,10 +1241,10 @@ void CAENcard::setIped(int value)
 */
 int CAENcard::getIped()
 {
-  if(cardType() == 792) {
+  if((cardType() == 792) || (cardType() != 862)) {
     return ((volatile Registers*)m_pModule)->QDCIPedestal;
   } else {
-    throw string("getIped - Module is not a V792 QDC");
+    throw string("getIped - Module is not a V792 or V862 QDC");
   }
 
 }
@@ -1393,3 +1415,41 @@ int CAENcard::getFirmware()
 {
   return ((Registers*)m_pModule)->FirmwareRev;
 }
+/*! 
+   Set the fast clear window width.
+   \param n (int [in]):
+     the value to program in the FCLRWindow register.
+*/
+void
+CAENcard::setFastClearWindow(int n)
+{
+  Registers* pRegs = (Registers*)m_pModule;
+  pRegs->FCLRWindow = n;
+}
+/*!
+   Enable the small threshold mode.
+   In this mode, the threshold is shifted by only 1 bit
+   to the left before being applied to the data word.
+   See disableSmallThresholds to turn this off.
+   The module default state on creation is small thresholds
+   disabled.
+*/
+void
+CAENcard::enableSmallThresholds()
+{
+  ((Registers*)m_pModule)->BitSet2 = STEPTHR;
+}
+/*!
+  Disable the small threshold mode.
+  In this mode, the threshold is shifted by 4 bits to the
+  left before being applied to the data word.
+  See enableSmallThresholds to turn this on.
+  The default state on creation is small thresohlds enabled.
+*/
+void
+CAENcard::disableSmallThresholds()
+{
+  ((Registers*)m_pModule)->BitClear2 = STEPTHR;
+}
+
+
