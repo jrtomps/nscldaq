@@ -278,6 +278,9 @@ DAMAGES.
 /*
   Change Log:
   $Log$
+  Revision 3.5  2003/09/16 12:15:07  ron-fox
+  Fixed setVoltageThreshold to work regardless of the threshold mode (small or large).
+
   Revision 3.4  2003/08/14 17:57:47  ron-fox
   Add support for small threshold mode in modules up to date enough to implement it.  Note that we still need to modify the setthresholdvoltage function so that it understands what to do in the different pedestal modes.
 
@@ -344,7 +347,15 @@ DAMAGES.
 
  */
 class CAENcard {
-  protected:
+ public:			// Data types
+  typedef enum _ChainMember {	// Possible chain memberships
+    NotInChain,
+    FirstInChain,
+    LastInChain,
+    IntermediateInChain
+  } ChainMember;
+
+ protected:
   int    m_nSlot;		//!< vme virtual slot number.
   int    m_nCrate;		//!< VME crate number housing the module.
   bool   m_fGeo;		//!< True if geo addressing.
@@ -354,7 +365,7 @@ class CAENcard {
   void*  m_nFd;			//!< File desc. open on VME.
   int    m_nSerialno;		//!< Serial number of card.
   int    m_nHardwareRev;	//!< Hardware revision level.
-
+  bool   m_fSmallThresholds;	//!< True if small threshold mode.
 
 
 /*************************begin public section*********************************/
@@ -425,8 +436,11 @@ public:
     void setFastClearWindow(int n);  //!< Set fast clear window width.
     void enableSmallThresholds();   //!< Enable small thresholds.
     void disableSmallThresholds();  //!< Disable small thresholds.
-  //Utility functions:
+  void SetCBLTChainMembership(int cbltaddr,
+			      ChainMember where); //!< set up cblt.
 
+  //Utility functions:
+protected:
   void  DestroyCard();		//!< Destroy a card memory map.
   void  slotInit();		//!< Bring a card into being.
   void  MapCard();		//!< Map the card's memory.

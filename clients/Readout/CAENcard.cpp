@@ -279,6 +279,9 @@ DAMAGES.
 /*
   Change Log:
   $Log$
+  Revision 3.7  2003/09/16 12:15:09  ron-fox
+  Fixed setVoltageThreshold to work regardless of the threshold mode (small or large).
+
   Revision 3.6  2003/08/14 17:57:47  ron-fox
   Add support for small threshold mode in modules up to date enough to implement it.  Note that we still need to modify the setthresholdvoltage function so that it understands what to do in the different pedestal modes.
 
@@ -337,6 +340,21 @@ static const char* Copyright= "(C) Copyright Michigan State University 2002, All
 #define KEEPINVALID 0x020
 #define COMMONSTOP  0x400
 #define STEPTHR     0x100
+
+// Control register1:
+
+#define CTL1BLKEND   0x04
+#define CTL1PROGRST  0x10
+#define CTL1BERRENA  0x20
+#define CTL1ALIGN64  0x40
+
+
+// Multicast control register:
+
+#define MCSTFIRST    2
+#define MCSTLAST     1
+
+
 
 // The structure below represents the CAEN register set:
 //
@@ -478,7 +496,8 @@ CAENcard::CAENcard(const CAENcard& card) :
   m_nCrate(card.m_nCrate),
   m_fGeo(card.m_fGeo),
   m_nBase(card.m_nBase),
-  m_pModule(0)
+  m_pModule(0),
+  m_fSmallThresholds(false)
 {
   MapCard();			// Map the card.
 }
@@ -667,7 +686,12 @@ CAENcard::setThreshold(int ch, int threshold)
 void 
 CAENcard::setThresholdVoltage(int ch, double voltage)
 {
-  setThreshold(ch,(int)(voltage*64.0));  
+  if(m_fSmallThresholds) {
+    setThreshold(ch,(int)(voltage*64.0));  
+  }
+  else {
+    setThreshold(ch, (int)(voltage*8.0));
+  }
 }
 
 /*!
@@ -1433,11 +1457,15 @@ CAENcard::setFastClearWindow(int n)
    See disableSmallThresholds to turn this off.
    The module default state on creation is small thresholds
    disabled.
+
+  Note that the threshold registers will  not be modified as a result of
+  this call.
 */
 void
 CAENcard::enableSmallThresholds()
 {
   ((Registers*)m_pModule)->BitSet2 = STEPTHR;
+  m_fSmallThresholds = true;
 }
 /*!
   Disable the small threshold mode.
@@ -1445,11 +1473,56 @@ CAENcard::enableSmallThresholds()
   left before being applied to the data word.
   See enableSmallThresholds to turn this on.
   The default state on creation is small thresohlds enabled.
+
+  Note that the threshold registers will  not be modified as a result of
+  this call.
 */
 void
 CAENcard::disableSmallThresholds()
 {
   ((Registers*)m_pModule)->BitClear2 = STEPTHR;
+  m_fSmallThresholds = false;
 }
 
 
+/*!
+   Set up a card's chain membership. 
+
+   \param cbltaddr (int in) :
+      The top 8 bits of the A24 address at which the chain
+      will be recognized.
+   \param where (ChainMember in):
+      Where in the chain the module lives:
+      - NotInChain - Module is not in a chain.
+      - FirstInChain - Module is physically first in a chain.
+      - LastInChain - Module is last in the chain.
+      - IntermediateInChain - Module is in the middle of a chain.
+*/
+void
+CAENcard::SetCBLTChainMembership(int cbltaddr,
+				 CAENcard::ChainMember where)
+{
+  ((Registers*)m_pModule)->MCSTAddress = cbltaddr;
+  ((Registers*)m_pModule)->Control1    = CTL1BERRENA;
+  
+  // Compute membership mask:
+
+  int mask;
+  switch (where) {
+  case NotInChain:
+    mask = 0;
+    break;
+  case FirstInChain:
+    mask = MCSTFIRST;
+    break;
+  case LastInChain:
+    mask = MCSTLAST;
+    break;
+  case IntermediateInChain:
+    mask = MCSTFIRST | MCSTLAST;
+    break;
+  default:
+    throw string("CAENcard::SetCBLTChainMembership: Invalid chain membership selector");
+  }
+  ((Registers*)m_pModule)->MCSTControl = mask;
+}
