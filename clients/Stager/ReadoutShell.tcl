@@ -1,3 +1,4 @@
+#!/bin/sh
 # /*
 # 		    GNU GENERAL PUBLIC LICENSE
 # 		       Version 2, June 1991
@@ -277,7 +278,6 @@
 # */
 
 # (C) Copyright Michigan State University 1937, All rights reserved 
-#!/bin/sh
 #   start wish \
 exec wish ${0} ${@}
 #

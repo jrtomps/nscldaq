@@ -1,3 +1,4 @@
+#!/bin/sh
 # /*
 # 		    GNU GENERAL PUBLIC LICENSE
 # 		       Version 2, June 1991
@@ -277,7 +278,6 @@
 # */
 
 # (C) Copyright Michigan State University 1937, All rights reserved 
-#!/bin/sh
 # Start Wish. \
 exec wish ${0} ${@}
 
@@ -287,6 +287,10 @@ exec wish ${0} ${@}
 #
 # Revision History:
 #  $Log$
+#  Revision 3.3  2003/08/28 18:46:51  ron-fox
+#  Put the
+#  #!/bin/bash back up at the beginning of the file since the copyright notice wound up before it.
+#
 #  Revision 3.2  2003/08/14 19:01:55  ron-fox
 #  Multiple changes:
 #  1. Fix support of segmented event files.
