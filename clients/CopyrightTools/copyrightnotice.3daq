@@ -1,0 +1,57 @@
+.TH CopyrightNotice 3daq "October 2004" nscldaq-8.0 "CopyrightNotice(3daq)"
+
+.SH NAME
+
+CopyrightNotice \- Module that generates copyright notices and author credits.
+.SH SYNOPSIS
+
+.B #include <CopyrightNotice.h>
+.br
+.sp
+\fBstatic void CopyrightNotice::Notice(ostream& \fIout\fB, 
+				       const char* \fIprogram\fB,
+				       const char* \fIversion\fB,
+					const char* \fIyear\fB);
+.br
+.sp
+\fBstatic void CopyrightNotice::AuthorCredit(ostream& \fIout\fB,
+					     char* \fIprogram\fB, ...);
+.br
+.sp
+
+.SH DESCRIPTION
+The CopyrightNotice class supplies the functions
+.B Notice
+which outputs a coypright notice to the output stream, and
+.B AuthorCredit
+which outputs an author credit to the output stream. 
+The parameters of these functions are as follows:
+.TP
+out
+The output stream to which the messages are formatted (e.g. cout or cerr).
+.TP
+program
+The name of the program.  This is usually the final path element of argv[0].
+.TP
+version
+The version of the program (e.g. "5.4").
+.TP
+year
+The year of the program copyright (e.g. "2004").
+.TP
+\.\.\.
+An arbitrary list of const char* author names.  The list should be terminated with a 
+NULL Pointer.
+
+.SH EXAMPLES
+.PP
+Create a copyright notice on stderr:
+.nf
+   CopyrightNotice::Notice(cerr, argv[0], "2.1", "2004");
+.fi
+.PP
+Create an author credit on stderr for the authors Ron and Kanayo:
+.nf
+   CopyrightNotice::AuthorCredit(cerr, argv[0],
+				"Kanayo", "Ron", NULL);
+.fi
