@@ -310,7 +310,7 @@ class CVmeModule
   };
 
  private:
-  mutable CVME<UShort_t> m_CVME;  // the CVME map to the module
+  CVME<UShort_t> m_CVME;  // the CVME map to the module
 
  public:
   // Default constructors

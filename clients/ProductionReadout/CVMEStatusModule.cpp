@@ -290,7 +290,7 @@ static const unsigned int GoingFree=1;
 */
 CVMEStatusModule::CVMEStatusModule (UInt_t base, int nCrate) :
   CStatusModule(),
-  m_IOModule(base, nCrate)
+  m_IOModule(base)
 {
 } 
 
