@@ -31,7 +31,8 @@ lib_LTLIBRARIES = libWait.la
 libWait_la_SOURCES = WaitPackage.cpp
 
 libWait_la_LDFLAGS =   -L@top_srcdir@/TCL \
-	-version-info 1:0:0
+	-L@top_srcdir@/Exception -L@top_srcdir@/CopyrightTools \
+	-version-info 1:1:0
 
 	  
 libWait_la_LIBADD =  -lTclPlus -lException  \
