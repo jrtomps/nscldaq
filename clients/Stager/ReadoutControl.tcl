@@ -283,6 +283,8 @@
 #
 package provide ReadoutControl 1.0
 package require rsh
+package require ExpFileSystem
+
 namespace eval ReadoutControl {
     variable State   NotLoaded
     variable PipeFd
@@ -464,21 +466,33 @@ namespace eval ReadoutControl {
 	variable LoadCallback
 	
 	if {$State != "NotLoaded"} ExitReadoutProgram
-	#
-	#   Break the readout file apart into it's path and name.
-
-	set path [file dirname $ReadoutProgram]
-	set name [file tail    $ReadoutProgram]
 
 	#  Attempt to locate the environment setup script.
 	#
 	set script [PathFind RunReadout.sh]
 
+	# In order to ensure that Readout cannot be modified by the
+	# user while we run it, copy the user's readout program to
+	# ~/stagearea/.readout
+	
+	set DestDir [ExpFileSystem::GetStage]
+
+	file copy -force $ReadoutProgram $DestDir/.readout
+	set Executable ""
+	append Executable $DestDir/.readout/ [file tail $ReadoutProgram]
+	exec chmod a+x $Executable
+
+	#
+	#   Break the readout file apart into it's path and name.
+
+	set path [file dirname $Executable]
+	set name [file tail    $Executable]
+	
 	#  Now do the rsh.
 
 	if {$script == ""} {	;# Run directly.
 	    puts "Running $ReadoutProgram directly"
-	    set fd [rsh::rshpipe $ReadoutHost $ReadoutProgram r+]
+	    set fd [rsh::rshpipe $ReadoutHost $Executable r+]
 	} else {		;# Run via env setup script. 
 	    puts "Running readout program via wrapper: $script $path $name"
 	    set fd [rsh::rshpipe $ReadoutHost "$script $path $name" r+]

@@ -284,8 +284,16 @@
 #    All procs live in the namespace:
 #      ExpFileSystem
 #
+# $Log$
+# Revision 2.2  2003/03/11 18:55:19  ron-fox
+# Fix bug 47 - Allow users to build the readout software while they are
+#             already running it.  This is done by copying the readout program
+# 	    to the ~/stagearea/.readout and running it from there where the user
+# 	    is not likely to find it, let alone modify it.
+#
+#
 
-package provide ExpFileSystem 1.0
+package provide ExpFileSystem 1.1
 package require Diagnostics
 
 namespace eval ExpFileSystem {
@@ -331,6 +339,7 @@ namespace eval ExpFileSystem {
 	file mkdir $StageArea/current
 	file mkdir $StageArea/complete
 	file mkdir $StageArea/retained
+	file mkdir $StageArea/.readout
     }
 
     proc GetRoot {} {
