@@ -1,6 +1,6 @@
-lib_LTLIBRARIES = libVmeApi.la
-libVmeApi_la_SOURCES = $(VMEDEVICE)API.cpp
-libVmeApi_la_LDFLAGS = -version-info 1:0:0
+lib_LTLIBRARIES = libVmeAPI.la
+libVmeAPI_la_SOURCES = $(VMEDEVICE)API.cpp
+libVmeAPI_la_LDFLAGS = -version-info 1:0:0
 include_HEADERS = CVMEInterface.h SBSBit3API.h
 
 INCLUDES = -I@top_srcdir@/Headers -I@top_srcdir@/Exception $(VMELIBRARYHEADERS)
