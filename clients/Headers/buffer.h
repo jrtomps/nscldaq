@@ -371,9 +371,17 @@ struct sclbody				/* body of scaler buffers   */
     {					/* taped and snapshot	    */
 	INT32	etime;			/* Start time since SOR in ticks */
 	INT16	unused1[3];		/* Unused words.	    */
-	INT32	btime;			/* End time since SOR in ticks	*/
+	INT32	btime
+#ifdef __GNUC__
+	__attribute__((packed))
+#endif
+	;			/* end time since SOR in ticks	*/
 	INT16	unused2[3];		/* Unused words.	    */
-	INT32	scalers[1];		/* Array with scaler data   */
+	INT32	scalers[1]
+#ifdef __GNUC__
+	__attribute__((packed))
+#endif
+;		/* Array with scaler data   */
     };
 
 /*	    The types below define the structure of event packets put in    */
@@ -386,7 +394,11 @@ struct sclevt				/* Scaler event		    */
 	INT32	bticks;			/* Ticks at interval start  */
 	INT32	eticks;			/* Ticks at interval end.   */
 	INT16	nscl;			/* Number of scalers	    */
-	INT32	scls[1];	       	/* The scaler data	    */
+	INT32	scls[1]
+#ifdef __GNUC__
+	__attribute__((packed))
+#endif
+	;	       	/* The scaler data	    */
     };
 
 struct phydata							       /* 4 */
