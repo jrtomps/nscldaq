@@ -135,3 +135,6 @@ Week of November 8:
                             interface gets built.
     - Port libTCLPlus    -> 3.x using feature variables.
     - Port vmetcl        -> 3.x using feature variables.
+    - bcnaf.tcl: Added -ces/-wiener switch so the same script can fire off
+       either cesbcnaf or wienerbcnaf.  The default is -ces so that pure
+       compatibility is retained.
