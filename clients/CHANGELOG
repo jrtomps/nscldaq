@@ -123,3 +123,4 @@ Week of November 1:
     - Port CopyrightTools -> 3.x
     - Port Exception      -> 3.x
     - Port daqstart       -> 3.x
+    - Port TcpHoist       -> 3.x (note found/fixed defect).
