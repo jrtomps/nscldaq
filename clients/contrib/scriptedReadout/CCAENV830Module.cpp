@@ -543,15 +543,10 @@ CCAENV830Module::Read(DAQWordBufferPtr& rBuffer)
 
   int nBytes = Read(Buffer);
   int nWords = nBytes/sizeof(short);
-#ifdef CLIENT_HAS_POINTER_COPYIN
-  rBuffer.CopyIn(Buffer, nWords);
-  wp += nWords;
-#else
   for(int i =0; i < nWords; i++) {
     *rBuffer = Buffer[i];
     ++rBuffer;
   }
-#endif
 
 }
 /*!

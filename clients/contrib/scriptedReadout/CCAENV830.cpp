@@ -920,16 +920,11 @@ CCAENV830::ReadEvent(DAQWordBufferPtr& rBufferPtr)
   unsigned long localBuffer[m_nEventLength];
   int nSize = ReadEvent(localBuffer);
   if(nSize) {
-#ifdef CLIENT_HAS_POINTER_COPYIN
-    rBufferPtr.CopyIn(localBuffer, rBufferPtr, nSize);
-    rBufferPtr += (m_nEventLength * sizeof(long)/sizeof(short));
-#else
     unsigned short* pLocal = (unsigned short*)localBuffer;
     for(int i =0; i < nSize; i++) {
       *rBufferPtr = *pLocal++;
       ++rBufferPtr;		// This is faster than post incr.
     }
-#endif
   }
   return nSize;
   
@@ -955,14 +950,10 @@ CCAENV830::ReadEvent(DAQWordBuffer& rBuffer, int offset)
   unsigned long localBuffer[m_nEventLength];
   int nSize = ReadEvent(localBuffer);
   if(nSize) {
-#ifdef CLIENT_HAS_BUFFER_COPYIN
-    rBuffer.CopyInt(localBuffer, offset, nSize);
-#else
     unsigned short* pBuf = (unsigned short*)localBuffer;
     for(int i =0; i < nSize; i++) {
       rBuffer[offset++] = *pBuf++;
     }
-#endif
   }
   return nSize;
 }
