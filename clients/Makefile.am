@@ -5,7 +5,7 @@ SUBDIRS = $(VME_DRIVERDIR) \
 	vmetcl  \
 	bufdump TclServer bcnaf TcpHoister Stager Scripts framework \
 	AlarmDisplay LogDisplay ProductionReadout  HPProductionReadout \
-	contrib dvdburn daqstart $(EPICSSOFTWARE) ScalerDisplay
+	contrib dvdburn daqstart $(EPICSSOFTWARE) ScalerDisplay PowerCheck
 
 EXTRA_DIST =  config/install-sh config/config.sub config/config.guess \
 	config/ltmain.sh config/missing config/mkinstalldirs mkpackage.tcl \

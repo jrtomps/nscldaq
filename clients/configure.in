@@ -764,4 +764,4 @@ AC_OUTPUT( Makefile Headers/Makefile CopyrightTools/Makefile \
 	controlpush/Makefile dvdburn/Makefile \
 	daqstart/Makefile ScalerDisplay/Makefile ScalerDisplay/ScalerDisplay \
 	wienerdriver/Makefile wienerdriver/driver/Makefile \
-	wienerdriver/lib/Makefile)
+	wienerdriver/lib/Makefile PowerCheck/Makefile)
