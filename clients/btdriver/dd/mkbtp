@@ -1,0 +1,83 @@
+#/bin/ksh
+#
+#	Filename:   mkb1tp
+#
+#	Purpose:    Create the /dev entries for NanoBus PCI driver on Linux.
+#
+# Copyright 1999 by SBS Technologies, Inc.
+#        All Rights Reserved.
+# License governs use and distribution.
+#
+MODULE=btp		# Module name
+DEVICE=${MODULE}	# Name to give device in /dev directory
+PERM=666		# File permissions to give the device
+PCI_VEND_ID=108a	# Vendor ID to search for in /proc/pci
+MOD_BASE=/lib/modules	# Location to look for the files at
+
+if [ `whoami` != root ] ; then
+    echo "You must be root user in order to load the device driver."
+    exit 1
+fi
+
+# First parameter can be the number of units to create. Otherwise we guess.
+if test -z "$1" ; then
+    # Number of units to create +1
+    # No need for this to be exactl, just as long as it is >= real value.
+    MAX_UNIT=`cat /proc/pci | grep -i ${PCI_VEND_ID} | wc --lines`
+else
+    MAX_UNIT=$1
+fi
+MAX_UNIT=$[${MAX_UNIT}+0]
+
+echo "Creating ${MAX_UNIT} units of the ${MODULE} device."
+
+if [ ! -d ${MOD_BASE} ] ; then
+    echo "No ${MOD_BASE} directory, can not find module."
+    exit 1
+fi
+
+# Install the module
+if [ ! -f ${MOD_BASE}/${MODULE}.conf ] ; then
+	touch ${MOD_BASE}/${MODULE}.conf
+fi
+
+#  Install driver if not already installed
+if  ! grep --silent btp /proc/modules ; then
+      echo "Installing the driver module."
+     /sbin/insmod ${MOD_BASE}/${MODULE}.o `cat ${MOD_BASE}/${MODULE}.conf`
+fi
+
+if ! grep --silent ${MODULE} /proc/modules || \
+   ! grep --silent ${MODULE} /proc/devices ; then
+    echo "Failed: driver ${MODULE} is not loaded successfully."
+    exit 1
+fi
+
+
+# remove stale nodes
+rm -f /dev/${DEVICE}[1-9][0-9][0-9]
+rm -f /dev/${DEVICE}[1-9][0-9]
+rm -f /dev/${DEVICE}[0-9]
+
+MAJOR=`cat /proc/devices | awk '\$2 == "'${MODULE}'" { print $1 }' `
+echo "${MODULE} major number = ${MAJOR}"
+
+if [ ${MAJOR} -lt 1 ] ; then
+    echo "Invalid driver major number ${MAJOR}."
+    exit 1
+fi
+
+UNIT=0
+while [ ${UNIT} -lt ${MAX_UNIT} ] # Loop through each possible unit
+do
+    LDEV=0
+    while [ ${LDEV} -lt $[11*16] ] # Create the node for each logical device
+    do
+        MINOR=$[ ${UNIT} +${LDEV}]
+	echo "/dev/${DEVICE}${MINOR} ${MAJOR} ${MINOR}"
+        mknod /dev/${DEVICE}${MINOR} c ${MAJOR} ${MINOR}
+	chmod ${PERM} /dev/${DEVICE}${MINOR}
+        LDEV=$[${LDEV} + 16]
+    done
+    UNIT=$[${UNIT} + 1]
+done
