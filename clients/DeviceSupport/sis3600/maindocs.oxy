@@ -10,7 +10,7 @@
 	
 	\section Intro Introduction
 
-	This documentt describes software support for the SIS3600
+	This document describes software support for the SIS3600
 	VME Coincidence register/latch.  Support for this module consists
 	of a single C++ class: CSIS3600
 

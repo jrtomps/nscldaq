@@ -23,6 +23,9 @@ clean:
 test: tests
 	./tests# DO NOT DELETE
 
+docs:
+	doxygen
+
 CSIS3600.o: CSIS3600.h
 TestRunner.o: /usr/include/cppunit/extensions/TestFactoryRegistry.h
 TestRunner.o: /usr/include/cppunit/Portability.h
