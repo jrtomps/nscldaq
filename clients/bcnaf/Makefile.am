@@ -3,4 +3,4 @@ install-exec-local:
 	$(INSTALL_PROGRAM) cesbcnaf.tcl    $(bindir)/cesbcnaf
 	$(INSTALL_PROGRAM) wienerbcnaf.tcl $(bindir)/wienerbcnaf
 
-EXTRA_DIST = bcnaf.tcl wienerbcnaf.tcl
+EXTRA_DIST = bcnaf.tcl wienerbcnaf.tcl cesbcnaf.tcl

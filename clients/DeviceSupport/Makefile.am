@@ -41,6 +41,8 @@ CXXFLAGS=-g
 CCFLAGS=-g
 
 
+EXTRA_DIST=Doxyfile		# to build the docs
+
 #  Documentation:
 
 install-data-local:
