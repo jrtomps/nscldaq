@@ -5,7 +5,7 @@ AM_CONFIG_HEADER(config.h)
 
 #    Separate device libraries.
 
-AM_INIT_AUTOMAKE(nscldaq, 7.3-003)  
+AM_INIT_AUTOMAKE(nscldaq, 7.3-004)  
 
 #  Checks for parameters:
 
@@ -157,7 +157,7 @@ AC_MSG_CHECKING([for tcl headers])
 
 AC_ARG_WITH(tcl-header-dir,
 	[  --with-tcl-header-dir=path Path to tcl headers],
-	[tcl_header_dir=$withval
+	[tcl_header_dir="$withval"
 	tcl_headers_found="yes"],[tcl_headers_found="no"])
 
 
@@ -180,9 +180,9 @@ fi
 	# /usr/include/tcl<version>
 
 if test $tcl_headers_found == "no" ; then
- for version in ${tcl_versions};  do
+ for version in $tcl_versions;  do
    if test $tcl_headers_found == "no" ; then   # stop at first match
-      testdir=/usr/include/tcl${versions}
+      testdir=/usr/include/tcl$version
       AC_CHECK_FILE([${testdir}/tcl.h],
 	[tcl_header_dir=${testdir}
 	 tcl_headers_found="yes"])
@@ -275,7 +275,7 @@ AC_MSG_CHECKING([ for VME device ])
 
 VMEDEVICE="SBSBIT3"     # Support for Nikhef drv dropped
 
-if test $VMEDEVICE == "SBSBIT3" 
+if test $VMEDEVICE = "SBSBIT3" 
 then
    VMEBUILDHEADERS="-I$(pwd)/btdriver/include"
    VMEBUILDLIBS="-L$(pwd)/btdriver/lib -lbtp"
@@ -304,11 +304,11 @@ X11LIBS="${X_LIBS} ${X_EXTRA_LIBS} -lXm -lXt -lX11"
 #  Latex, dvips, kpathsea and the existence of hyperlatex.sty findable by
 #  kpathsea:
 #
-if test $HAVELATEX == "yes" -a $HAVEDVIPS == "yes" -a \
-	$HAVEKPATHSEA == "yes"
+if test $HAVELATEX = "yes" -a $HAVEDVIPS == "yes" -a \
+	$HAVEKPATHSEA = "yes"
 then
 	stylefile=$(kpsewhich hyperlatex.sty)
-	if test $stylefile != ""
+	if test "$stylefile" != ""
 	then
 	   AC_PATH_PROG(LATEX, latex)
 	   AC_PATH_PROG(DVIPS, dvips)
@@ -333,22 +333,22 @@ AC_ARG_WITH(kernel-headers,
 	[--with-kernel-headers=location of linux kernel headers],
 	[KERNEL_INCS="-I$withval"],[KERNEL_INCS="-"])
 
-if test $KERNEL_INCS == "-" ; then
+if test $KERNEL_INCS = "-" ; then
   AC_CHECK_FILE(/usr/src/kernel-headers-$(uname -r)/include/linux/module.h,
     [KERNEL_INCS="-I/usr/src/kernel-headers-$(uname -r)/include"])
 fi
 
-if test $KERNEL_INCS == "-" ; then
+if test $KERNEL_INCS = "-" ; then
   AC_CHECK_FILE(/usr/src/linux-$(uname -r)/include/linux/module.h,
       [KERNEL_INCS="-I/usr/src/linux-$(uname -r)/include"])
 fi
 
-if test $KERNEL_INCS == "-" ; then
+if test $KERNEL_INCS = "-" ; then
   AC_CHECK_FILE(/usr/src/linux/include/linux/module.h,
       [KERNEL_INCS="-I/usr/src/linux-$(uname -r)/include"])
 fi
 
-if test $KERNEL_INCS == "-"; then
+if test $KERNEL_INCS = "-"; then
 	AC_MSG_ERROR([Could not find kernel headers. Try the --with-kernel-headers switch])
 fi
 
