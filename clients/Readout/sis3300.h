@@ -87,7 +87,8 @@ private:
 public:
   // Constructors and other canonical member functions:
 
-  CSIS3300(unsigned long nBaseAddress);
+  CSIS3300(unsigned long nBaseAddress,
+	   int nCrate = 0);
 private:
   CSIS3300(const CSIS3300& rhs);
   CSIS3300& operator=(const CSIS3300& rhs);
