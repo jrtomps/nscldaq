@@ -899,6 +899,9 @@ CSIS3300:: ReadAGroup(DAQWordBufferPtr& pBuffer,
   // Now copy them into the data buffer:
 
   if(nLongs > 0) {
+#ifdef CLIENT_HAS_POINTER_COPYIN
+    pBuffer.CopyIn((unsigned short*)Samples, 0,  nLongs*(sizeof (long))/sizeof(short));
+#else
     unsigned short* pSrc = (unsigned short*)Samples;
     for(int i =0; i < nLongs; i++) {
       *pBuffer = *pSrc++;
@@ -906,6 +909,7 @@ CSIS3300:: ReadAGroup(DAQWordBufferPtr& pBuffer,
       *pBuffer = *pSrc++;
       ++pBuffer;
     }
+#endif
   }
   return nLongs * sizeof(long)/sizeof(short);
 

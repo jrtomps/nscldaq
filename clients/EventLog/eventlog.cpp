@@ -618,7 +618,7 @@ private:
 	  cerr << ">>Begin run received for new run while event file open\n";
 	  cerr << "  Closing current event file and opening new file\n";
 	  CloseEventFile();
-      nSegment = 0;
+	  nSegment = 0;
 	  OpenEventFile(pHeader->run, nLength);
 	  FileOpen = TRUE;
 	  LastRunNumber  = pHeader->run;

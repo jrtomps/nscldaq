@@ -3,7 +3,7 @@ lib_LTLIBRARIES=libScriptedRdo.la
 
 
 
-ScriptedReadout_SOURCES = ReadoutMain.cpp skeleton.cpp
+ScriptedReadout_SOURCES = ReadoutMain.cpp  skeleton.cpp
 ScriptedReadout_DEPENDENCIES = libScriptedRdo.la
 
 
@@ -96,11 +96,10 @@ CCFLAGS=-g
 ScriptedReadout_LDADD = -L@top_srcdir@/contrib/scriptedReadout -lScriptedRdo  \
 	-L@top_srcdir@/Readout -lReadout \
 	-L@top_srcdir@/DeviceSupport -lDeviceSupport \
-	$(VMELIBRARY)            \
+	-L@top_srcdir@/VMEApi -lVmeAPI \
 	-L@top_srcdir@/TCL -lTclPlus	\
-	-L@top_srcdir@/Exception -lException \
-	$(SPECTRODAQ_LDFLAGS) $(TCL_LDFLAGS) 
-
+	-L@top_srcdir@/Exception -lException $(TCL_LDFLAGS) \
+	$(SPECTRODAQ_LDFLAGS) $(VMELIBRARY) -lpthread
 
 EXTRA_DIST=Makefile.skel scriptedreadout_Makefile.include
 

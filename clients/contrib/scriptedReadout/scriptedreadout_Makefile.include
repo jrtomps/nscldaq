@@ -38,8 +38,8 @@ CCFLAGS= $(CXXFLAGS)
 SPECTRO_LDFLAGS= $(shell $(SPECTRODAQBINDIR)/spectrodaq-conf --libs)
 
 LDFLAGS=-L$(DAQLIBS) -lScriptedRdo -lReadout -lDeviceSupport -lTclPlus \
-	 -lException $(VMELIBRARY) \
-	$(SPECTRO_LDFLAGS) \
+	 -lException \
+	$(SPECTRO_LDFLAGS) $(VMELIBRARY) \
 	$(TCLLIBS) $(X11LIBS)  -Wl,"-rpath=$(DAQLIBS)"
 
 

@@ -1,4 +1,158 @@
-7.4:
+NSCLDAQ-7.1
+
+7.1-005 3/31/03
+    -  Allow Readout/Active.cpp Active::EndRun to be harmlessly called
+       when the run is not in progress.
+
+7.1-002-004 - 
+	Fixed misc. problems with Stager and with ReadoutGui
+        to make these more production quality.
+
+7.1-001  2/11/03: 
+  - ./configure.in  - Fix an error in the search for the SBS/Bit3 headers.
+    the script would fail if the initial set of directories did not contain
+    the headers...even if the secondary search set did.
+  - VMEApi/Makefile.am
+    VMEApi/SBSBIT3API.h  - this file was mis-named and should have been called
+	SBSBit3API.h  (note difference in capitalization).  The file has been
+        renamed and Makefile.am fixed up to produce an appropriate tarball.
+  - Stager/directories.tcl - Modified to support a BUFFERSIZE environment
+	variable that can be used to modify the behavior of 
+	ExpFileSystem::GenRunFile in the event the user has overidden the 
+	default daq buffersize
+
+7.1-002 3/2/03:
+-   Correct the name of the Vme API library.
+-   No longer set the busy when scalers are being read as that can
+    cause false triggers in the case where the user is using the busy
+    as the trigger signal.
+
+7.1-003 3/17/03
+	ReadoutGUI defect fix:  If a link to the event file already exists 
+	in the ~/experiment/current directory at the start of a recorded run, 
+	the run start fails.  Fixed by removing such links if required.
+
+	ReadoutGUI defect fix:  If readout is being recompiled as it runs, 
+	ReadoutGUI can hang or readout can die.  Fixed by copying readout 
+	program to 'private hidden' directory first.
+
+	Added production readout software to the autoconf build, along with 
+	its documentation.
+
+7.1-004 3/23/03
+	This release adds the SBS/Bit3 device driver to the build.  
+	 SBS/Bit3 has kindly released the source code of this driver for 
+	open distribution so long as redistribution includes acknowledgement 
+	of the SBS Technologies copyright.
+
+	From now on, it will be necessary to be root to build the system 
+	in order to get the device driver properly installed.
+
+	Changes:
+	- Minor bug fixes.
+	- SBS/Bit3 device driver included in the build.
+
+7.1-005 3/31/03
+    -  Allow Readout/Active.cpp Active::EndRun to be harmlessly called
+       when the run is not in progress.
+
+NSCLDAQ-7.2
+
+7.2    ??/??/??
+    - Support multi-crate configurations of the CAENCard and CAENChain
+      modules.
+    - Support for the CAEN V890 multihit tdc.
+    - Many stager bugs fixed.  to alloow multiple hits
+
+7.2.2 12/05/03
+   - Abstracting the device support libraries from the Readout software.
+
+7.2.2-001 12/05/03
+   - Stager: At install time create a package InstallRoot that allows
+     us to figure out where we're installed (needed to reliably locate
+     eventlog e.g.).
+
+NSCLDAQ- 7.3
+
+7.3    12/05/03
+    - Incorporate the CAEN V812 CFD GUI developed by Ron Fox,
+      Mike Famiano, and Anton Zalessov:
+       $(prefix)/contrib/caenv812.
+    - Incorporate scripted readout engine developed initially for
+      LLNL, LBL then SEE and RPI by Ron Fox.
+    - Added bunches of stuff to the contrib directory for scriptable readout.
+
+
+7.3-005 3/3/04
+    - Did a merge with the 7.4 branch for:
+       framework
+       controlpush ...
+       ProductionReadout
+       configure.in
+       Makefile.am
+     in order to get the controlpush functionality and readout fixes that
+     go along with it.
+    - Fix incorrect base address for vme trigger/status module was
+      0xf000 sb. 0x444400
+7.3-006 3/10/04
+   - Merge production readout with 7.4 branch to incorporate fix for
+     issue 116: Title, run variable and state variable values that are too
+     large cause all sorts of grief.
+7.3-007 3/24/04
+   - Merge Scaler client from 7.4 to catch a long standing issue I'd
+     forgotton about: Update needs to be called even if there are no
+     scalers (if only to keep track of run time).
+   - Merge Production readout with 7.4 branch to incorporate fix for
+     issue 106: Elapsed run time incorrect.
+7.3-008 3/31/04
+   - Merge in the fixes to the Stager/ReadoutGui that constitute the fix
+     for issue 108: Event files can be ovewritten with no prompt.
+   - Merge in fix for production readout - stabilization of scaler readout timings.
+7.3-008 4/12/04
+   - Added build stamp to the installation procedure
+   - Fixed an incompatibility with tcl 8.4 and cratelocator.tcl
+   - Fixed controlpush - plc channels need extra time to connect
+   - Added # escaping to controlpush and to production readout
+7.3-009 4/18/04
+   - Modify Stager so that it can record tape on a different node than
+     it records ftp data.
+   - Issue 112: Warn the user if the scaler client is started with the default
+     data source.  At the NSCL this is an unusual occurence.  Note that
+     the warning will be sent via an Xwindows window if possible or if not
+     via stderr.
+7.3-010 
+   - Modify VMEPtr.cpp - was ignoring the crate number.!!!
+   - TCLList.cpp - needs to use Tcl_Free not free() for TCL 8.4 and higher.
+   - DiskRun - Had an error with strlen that clobbered stack occaisonally.
+   - Recover lost version of sis3300 software.
+   - Add -p to untar that creates ~/experiment/runx directories..
+     otherwise the file permissions are governed by umask.
+
+7.3-011
+   - Fix defect 139 - non numerics in readoutgui run number field cause
+     failure in status line; added validator to prevent run number field
+     from becoming non-numeric.
+7.3-012
+   - Allow caennet controllers to live in any VME crate (caennet.tcl).
+   - Fix defect 143 - last scaler has incorrect value from sclclient.
+7.3-014
+   - Fix defect in production readout. was not calling scaler initializtions.
+7.3-015
+   - Fix defect in vmetcl build - was linking vmelibs from install dir
+     rather than build dirs.
+   - Increase controlpush connection timeouts, had some intermittent
+     connection failures.
+7.3-016
+   - ProductionReadout/CReadoutMain.cpp must define main() if spectrodaq_main()
+     is defined, otherwise, TCL++'s main get's pulled in first since
+     main was separated into a different module of spectrodaq.
+
+7.3-017
+   - Ensure that -lbtp is prior to spectrodaq ld flags so that we don't
+     have any undefs from pthread.
+
+
+NSCLDAQ  7.4:
 
 - Added program controlpush to push EPICS controls data into tcl server
   programs (e.g. ProductionReadout too).
@@ -115,6 +269,8 @@ Week of October 25, 2004
 - Link the vme access extension against the stub lib to make it starkit compatible.
 - Allow a find on static tcl libs without requiring dynamic libs.
 
+NSCLDAQ-8.0
+
 Week of November 1:
     - Add feature tests to support port to gcc/g++ 3.x
     - Add some feature headers (Iostream.h, Ostream.h) to do 
@@ -156,6 +312,3 @@ November 24, 2004:
  	Happy Thanksgiving:
 	o Completed the port to 3.x compilers
 	o Determined that the software can also still compile/run on 2.95
-December 13, 2004:
-        o Get a unified build for 2.6 kernel and 2.4 kernel.
-        o Increment edit level -2.

@@ -279,6 +279,9 @@ DAMAGES.
 /*
   Change Log:
   $Log$
+  Revision 4.4  2004/12/21 18:08:55  ron-fox
+  Finalize 8.0pre1
+
   Revision 4.3  2004/12/07 15:20:21  ron-fox
   - Fix some CVS errors with the wiener driver.
   - Re create the autotools based build for the wiener driver stuff.
@@ -1371,7 +1374,7 @@ void CAENcard::setIped(int value)
 */
 int CAENcard::getIped()
 {
-  if((cardType() == 792) || (cardType() != 862)) {
+  if((cardType() == 792) || (cardType() == 862)) {
 #ifdef HAVE_VME_MAPPING
     return ((volatile Registers*)m_pModule)->QDCIPedestal;
 #else
@@ -1518,7 +1521,11 @@ void CAENcard::MapCard()
      
      CVMEInterface::Close(fd);
 #endif
-     throw 
+     char buffer[128];
+     sprintf(buffer, "Card in crate %d, slot %d is incompatible or missing %d\n",
+	     m_nCrate, m_nSlot, m_nCardType);
+     throw string(buffer);
+       
        string("Card is incompatable type or not inserted");
    }
    

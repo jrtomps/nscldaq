@@ -317,6 +317,7 @@ using namespace std;
 #include <spectrodaq.h>
 #include <NSCLException.h>
 #include <string>
+#include <DAQROCNode.h>
 //
 //   Global Variables:
 //
@@ -328,6 +329,7 @@ extern int UsingVME;
 void* pCamac;
 
 class DAQBuff : public DAQROCNode {
+protected:
   int operator()(int argc, char** argv);
 public:
   bool SetProcessTitle(const char* pTitle) {
@@ -339,6 +341,7 @@ ReadoutStateMachine* gpStateMachine;
 int 
 DAQBuff::operator()(int argc, char**argv)
 {
+
   if(argc != 2) {
     cerr << "Usage:\n";
     cerr << "   Readout config-file\n";
@@ -408,7 +411,19 @@ DAQBuff::operator()(int argc, char**argv)
   
 
   exit(0);
+
 }
 DAQBuff mydaq;
   
 void* gpTCLApplication(0);
+
+#ifdef HAVE_SPECTRODAQ_MAIN
+int
+main(int argc, char** argv, char** envp) 
+{
+  return spectrodaq_main(argc, argv, envp);
+}
+
+
+#endif
+

@@ -202,7 +202,9 @@ AC_LANG_PUSH(C++)
 oldcxxflags="$CXXFLAGS"
 CXXFLAGS="$CXXFLAGS $SPECTRODAQ_FLAGS"
 AC_MSG_CHECKING([spectrodaq has spectrodaq_main() separable])
-AC_COMPILE_IFELSE([#include <spectrodaq.h>
+AC_COMPILE_IFELSE([
+using namespace std;
+#include <spectrodaq.h>
 main(int argc, char**argv, char** envp)
 {
   return spectrodaq_main(argc, argv, envp);
@@ -376,14 +378,17 @@ AC_ARG_WITH(vme-interface,
 
 case "$vmeinterface" in
      sbs)
+	VMEDEVICE="SBSBIT3"
+
+	    # Definitions require to build us:
+	   
 	#  We can support 2.4 and 2.6 kernel builds but they're done
 	#  differently:
 	#
-	   VMEDEVICE="SBSBIT3"
-	   # definitions written into user skeleton makefiles:
+
 
 	VMELIBRARYHEADERS="-I\$(prefix)/include"
-	VMELIBRARY="-L\$(prefix)/lib -lbtp"
+	VMELIBRARY="-L\$(prefix)/lib -lbtp -lpthread"
 	AC_DEFINE(HAVE_SBSVME_INTERFACE,"1",[VME interface is sbs/bit3])
 	AC_DEFINE(HAVE_VME_MAPPING, "1",[VME interface capable of mmap(2)])
 
@@ -724,7 +729,6 @@ AC_OUTPUT( Makefile Headers/Makefile CopyrightTools/Makefile \
 	ProductionReadout/hyperlatex/Makefile \
 	btdriver/Makefile btdriver/dd/Makefile btdriver/lib/Makefile \
 	btdriver/include/Makefile  \
-	btdriver2.6/Makefile btdriver2.6/lib/Makefile btdriver2.6/include/Makefile \
 	controlpush/Makefile dvdburn/Makefile \
 	daqstart/Makefile ScalerDisplay/Makefile ScalerDisplay/ScalerDisplay \
 	wienerdriver/Makefile wienerdriver/driver/Makefile \
