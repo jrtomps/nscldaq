@@ -1,0 +1,155 @@
+\section{XMManager  Class Reference}
+\label{classXMManager}\index{XMManager@{XMManager}}
+{\tt \#include $<$XMManagers.h$>$}
+
+Inheritance diagram for XMManager::\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[height=3.73333cm]{classXMManager}
+\end{center}
+\end{figure}
+\subsection*{Public Methods}
+\begin{CompactItemize}
+\item 
+{\bf XMManager} (char $\ast$n)
+\item 
+{\bf XMManager} (Widget w)
+\item 
+{\bf XMManager} (char $\ast$n, Widget\-Class cl, {\bf XMApplication} \&parent, Arg\-List l=NULL, Cardinal num\_\-args=0)
+\item 
+{\bf XMManager} (char $\ast$n, Widget\-Class cl, Widget parent, Arg\-List l=NULL, Cardinal num\_\-args=0)
+\item 
+{\bf XMManager} (char $\ast$n, Widget\-Class cl, {\bf XMWidget} \&parent, Arg\-List l=NULL, Cardinal num\_\-args=0)
+\item 
+{\bf Callback\_\-data} $\ast$ {\bf Add\-Help\-Callback} (void($\ast$callback)({\bf XMWidget} $\ast$, Xt\-Pointer, Xt\-Pointer), Xt\-Pointer client\_\-data)
+\item 
+void {\bf Set\-Navigation\-Type} (Xm\-Navigation\-Type navtype=Xm\-NONE)
+\item 
+void {\bf Traversal\-On} ()
+\item 
+void {\bf Traverse\-Off} ()
+\item 
+void {\bf Set\-Constraint} ({\bf XMWidget} \&w, String constraint, Xt\-Arg\-Val value)
+\item 
+void {\bf Set\-Constraint} ({\bf XMWidget} \&w, String constraint, void $\ast$value)
+\item 
+void {\bf Set\-Constraint} (Widget w, String constraint, Xt\-Arg\-Val value)
+\item 
+void {\bf Set\-Constraint} (Widget w, String constraint, void $\ast$value)
+\end{CompactItemize}
+
+
+\subsection{Constructor \& Destructor Documentation}
+\index{XMManager@{XMManager}!XMManager@{XMManager}}
+\index{XMManager@{XMManager}!XMManager@{XMManager}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}XMManager::XMManager (char $\ast$ {\em n})\hspace{0.3cm}{\tt  [inline]}}\label{classXMManager_a0}
+
+
+
+
+Definition at line 318 of file XMManagers.h.\index{XMManager@{XMManager}!XMManager@{XMManager}}
+\index{XMManager@{XMManager}!XMManager@{XMManager}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}XMManager::XMManager (Widget {\em w})\hspace{0.3cm}{\tt  [inline]}}\label{classXMManager_a1}
+
+
+
+
+Definition at line 319 of file XMManagers.h.\index{XMManager@{XMManager}!XMManager@{XMManager}}
+\index{XMManager@{XMManager}!XMManager@{XMManager}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}XMManager::XMManager (char $\ast$ {\em n}, Widget\-Class {\em cl}, {\bf XMApplication} \& {\em parent}, Arg\-List {\em l} = NULL, Cardinal {\em num\_\-args} = 0)\hspace{0.3cm}{\tt  [inline]}}\label{classXMManager_a2}
+
+
+
+
+Definition at line 320 of file XMManagers.h.\index{XMManager@{XMManager}!XMManager@{XMManager}}
+\index{XMManager@{XMManager}!XMManager@{XMManager}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}XMManager::XMManager (char $\ast$ {\em n}, Widget\-Class {\em cl}, Widget {\em parent}, Arg\-List {\em l} = NULL, Cardinal {\em num\_\-args} = 0)\hspace{0.3cm}{\tt  [inline]}}\label{classXMManager_a3}
+
+
+
+
+Definition at line 325 of file XMManagers.h.\index{XMManager@{XMManager}!XMManager@{XMManager}}
+\index{XMManager@{XMManager}!XMManager@{XMManager}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}XMManager::XMManager (char $\ast$ {\em n}, Widget\-Class {\em cl}, {\bf XMWidget} \& {\em parent}, Arg\-List {\em l} = NULL, Cardinal {\em num\_\-args} = 0)\hspace{0.3cm}{\tt  [inline]}}\label{classXMManager_a4}
+
+
+
+
+Definition at line 329 of file XMManagers.h.
+
+\subsection{Member Function Documentation}
+\index{XMManager@{XMManager}!AddHelpCallback@{AddHelpCallback}}
+\index{AddHelpCallback@{AddHelpCallback}!XMManager@{XMManager}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}{\bf Callback\_\-data}$\ast$ XMManager::Add\-Help\-Callback (void($\ast$ {\em callback})({\bf XMWidget} $\ast$, Xt\-Pointer, Xt\-Pointer), Xt\-Pointer {\em client\_\-data})\hspace{0.3cm}{\tt  [inline]}}\label{classXMManager_a5}
+
+
+
+
+Definition at line 335 of file XMManagers.h.
+
+References XMWidget::Add\-Callback().\index{XMManager@{XMManager}!SetConstraint@{SetConstraint}}
+\index{SetConstraint@{SetConstraint}!XMManager@{XMManager}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}void XMManager::Set\-Constraint (Widget {\em w}, String {\em constraint}, void $\ast$ {\em value})\hspace{0.3cm}{\tt  [inline]}}\label{classXMManager_a12}
+
+
+
+
+Definition at line 365 of file XMManagers.h.\index{XMManager@{XMManager}!SetConstraint@{SetConstraint}}
+\index{SetConstraint@{SetConstraint}!XMManager@{XMManager}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}void XMManager::Set\-Constraint (Widget {\em w}, String {\em constraint}, Xt\-Arg\-Val {\em value})\hspace{0.3cm}{\tt  [inline]}}\label{classXMManager_a11}
+
+
+
+
+Definition at line 362 of file XMManagers.h.\index{XMManager@{XMManager}!SetConstraint@{SetConstraint}}
+\index{SetConstraint@{SetConstraint}!XMManager@{XMManager}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}void XMManager::Set\-Constraint ({\bf XMWidget} \& {\em w}, String {\em constraint}, void $\ast$ {\em value})\hspace{0.3cm}{\tt  [inline]}}\label{classXMManager_a10}
+
+
+
+
+Definition at line 359 of file XMManagers.h.
+
+References XMWidget::Set\-Attribute().\index{XMManager@{XMManager}!SetConstraint@{SetConstraint}}
+\index{SetConstraint@{SetConstraint}!XMManager@{XMManager}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}void XMManager::Set\-Constraint ({\bf XMWidget} \& {\em w}, String {\em constraint}, Xt\-Arg\-Val {\em value})\hspace{0.3cm}{\tt  [inline]}}\label{classXMManager_a9}
+
+
+
+
+Definition at line 356 of file XMManagers.h.
+
+References XMWidget::Set\-Attribute().
+
+Referenced by XMBulletin\-Board::Set\-Abs\-Position(), XMForm::Set\-Bottom\-Attachment(), XMForm::Set\-Bottom\-Offset(), XMForm::Set\-Bottom\-Position(), XMForm::Set\-Bottom\-Widget(), XMForm::Set\-Left\-Attachment(), XMForm::Set\-Left\-Offset(), XMForm::Set\-Left\-Position(), XMForm::Set\-Left\-Widget(), XMForm::Set\-Right\-Attachment(), XMForm::Set\-Right\-Offset(), XMForm::Set\-Right\-Position(), XMForm::Set\-Right\-Widget(), XMForm::Set\-Top\-Attachment(), XMForm::Set\-Top\-Offset(), XMForm::Set\-Top\-Position(), and XMForm::Set\-Top\-Widget().\index{XMManager@{XMManager}!SetNavigationType@{SetNavigationType}}
+\index{SetNavigationType@{SetNavigationType}!XMManager@{XMManager}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}void XMManager::Set\-Navigation\-Type (Xm\-Navigation\-Type {\em navtype} = Xm\-NONE)\hspace{0.3cm}{\tt  [inline]}}\label{classXMManager_a6}
+
+
+
+
+Definition at line 339 of file XMManagers.h.
+
+References XMWidget::Set\-Attribute().\index{XMManager@{XMManager}!TraversalOn@{TraversalOn}}
+\index{TraversalOn@{TraversalOn}!XMManager@{XMManager}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}void XMManager::Traversal\-On ()\hspace{0.3cm}{\tt  [inline]}}\label{classXMManager_a7}
+
+
+
+
+Definition at line 343 of file XMManagers.h.
+
+References XMWidget::Set\-Attribute().\index{XMManager@{XMManager}!TraverseOff@{TraverseOff}}
+\index{TraverseOff@{TraverseOff}!XMManager@{XMManager}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}void XMManager::Traverse\-Off ()\hspace{0.3cm}{\tt  [inline]}}\label{classXMManager_a8}
+
+
+
+
+Definition at line 346 of file XMManagers.h.
+
+References XMWidget::Set\-Attribute().
+
+The documentation for this class was generated from the following file:\begin{CompactItemize}
+\item 
+{\bf XMManagers.h}\end{CompactItemize}

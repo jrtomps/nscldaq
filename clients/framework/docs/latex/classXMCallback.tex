@@ -1,0 +1,188 @@
+\section{XMCallback$<$ T $>$  Class Template Reference}
+\label{classXMCallback}\index{XMCallback@{XMCallback}}
+{\tt \#include $<$XMCallback.h$>$}
+
+\subsection*{Public Types}
+\begin{CompactItemize}
+\item 
+typedef void(T::$\ast$ {\bf T\_\-Action} )({\bf XMWidget} $\ast$, Xt\-Pointer, Xt\-Pointer)
+\end{CompactItemize}
+\subsection*{Public Methods}
+\begin{CompactItemize}
+\item 
+{\bf XMCallback} (T $\ast$object)
+\item 
+{\bf XMCallback} ()
+\item 
+{\bf $\sim$XMCallback} ()
+\item 
+void {\bf Register} ({\bf XMWidget} $\ast$w, String reason, void(T::$\ast$callback)({\bf XMWidget} $\ast$, Xt\-Pointer, Xt\-Pointer), Xt\-Pointer userdata)
+\item 
+void {\bf Un\-Register} ()
+\item 
+void {\bf Relay} (Xt\-Pointer calld)
+\end{CompactItemize}
+\subsection*{Static Private Methods}
+\begin{CompactItemize}
+\item 
+void {\bf \_\-Dispatch\_\-Callback\_\-Relay} (Widget w, Xt\-Pointer ud, Xt\-Pointer cd)
+\end{CompactItemize}
+\subsection*{Private Attributes}
+\begin{CompactItemize}
+\item 
+T $\ast$ {\bf instance}
+\item 
+String {\bf callbackreason}
+\item 
+{\bf T\_\-Action} {\bf callbackaction}
+\item 
+int {\bf callbackset}
+\item 
+Xt\-Pointer {\bf callbackuserd}
+\item 
+{\bf XMWidget} $\ast$ {\bf wid}
+\item 
+XMCallback$<$ T $>$ $\ast$ {\bf self}
+\end{CompactItemize}
+\subsubsection*{template$<$class T$>$ class XMCallback$<$ T $>$}
+
+
+
+\subsection{Member Typedef Documentation}
+\index{XMCallback@{XMCallback}!T_Action@{T\_\-Action}}
+\index{T_Action@{T\_\-Action}!XMCallback@{XMCallback}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}template$<$class T$>$ typedef void(T::$\ast$ XMCallback$<$ T $>$::T\_\-Action)({\bf XMWidget} $\ast$, Xt\-Pointer, Xt\-Pointer)}\label{classXMCallback_s0}
+
+
+
+
+Definition at line 316 of file XMCallback.h.
+
+\subsection{Constructor \& Destructor Documentation}
+\index{XMCallback@{XMCallback}!XMCallback@{XMCallback}}
+\index{XMCallback@{XMCallback}!XMCallback@{XMCallback}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}template$<$class T$>$ XMCallback$<$ T $>$::XMCallback (T $\ast$ {\em object})\hspace{0.3cm}{\tt  [inline]}}\label{classXMCallback_a0}
+
+
+
+
+Definition at line 322 of file XMCallback.h.\index{XMCallback@{XMCallback}!XMCallback@{XMCallback}}
+\index{XMCallback@{XMCallback}!XMCallback@{XMCallback}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}template$<$class T$>$ XMCallback$<$ T $>$::XMCallback ()\hspace{0.3cm}{\tt  [inline]}}\label{classXMCallback_a1}
+
+
+
+
+Definition at line 334 of file XMCallback.h.\index{XMCallback@{XMCallback}!~XMCallback@{$\sim$XMCallback}}
+\index{~XMCallback@{$\sim$XMCallback}!XMCallback@{XMCallback}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}template$<$class T$>$ XMCallback$<$ T $>$::$\sim$XMCallback ()\hspace{0.3cm}{\tt  [inline]}}\label{classXMCallback_a2}
+
+
+
+
+Definition at line 335 of file XMCallback.h.
+
+\subsection{Member Function Documentation}
+\index{XMCallback@{XMCallback}!_Dispatch_Callback_Relay@{\_\-Dispatch\_\-Callback\_\-Relay}}
+\index{_Dispatch_Callback_Relay@{\_\-Dispatch\_\-Callback\_\-Relay}!XMCallback@{XMCallback}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}template$<$class T$>$ void XMCallback$<$ T $>$::\_\-Dispatch\_\-Callback\_\-Relay (Widget {\em w}, Xt\-Pointer {\em ud}, Xt\-Pointer {\em cd})\hspace{0.3cm}{\tt  [inline, static, private]}}\label{classXMCallback_f0}
+
+
+
+
+Definition at line 407 of file XMCallback.h.\index{XMCallback@{XMCallback}!Register@{Register}}
+\index{Register@{Register}!XMCallback@{XMCallback}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}template$<$class T$>$ void XMCallback$<$ T $>$::Register ({\bf XMWidget} $\ast$ {\em w}, String {\em reason}, void(T::$\ast$ {\em callback})({\bf XMWidget} $\ast$, Xt\-Pointer, Xt\-Pointer), Xt\-Pointer {\em userdata})\hspace{0.3cm}{\tt  [inline]}}\label{classXMCallback_a3}
+
+
+
+
+Definition at line 340 of file XMCallback.h.\index{XMCallback@{XMCallback}!Relay@{Relay}}
+\index{Relay@{Relay}!XMCallback@{XMCallback}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}template$<$class T$>$ void XMCallback$<$ T $>$::Relay (Xt\-Pointer {\em calld})\hspace{0.3cm}{\tt  [inline]}}\label{classXMCallback_a5}
+
+
+
+
+Definition at line 386 of file XMCallback.h.
+
+Referenced by XMCallback$<$ Shell $>$::\_\-Dispatch\_\-Callback\_\-Relay().\index{XMCallback@{XMCallback}!UnRegister@{UnRegister}}
+\index{UnRegister@{UnRegister}!XMCallback@{XMCallback}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}template$<$class T$>$ void XMCallback$<$ T $>$::Un\-Register ()\hspace{0.3cm}{\tt  [inline]}}\label{classXMCallback_a4}
+
+
+
+
+Definition at line 366 of file XMCallback.h.
+
+Referenced by XMCallback$<$ Shell $>$::$\sim$XMCallback().
+
+\subsection{Member Data Documentation}
+\index{XMCallback@{XMCallback}!callbackaction@{callbackaction}}
+\index{callbackaction@{callbackaction}!XMCallback@{XMCallback}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}template$<$class T$>$ {\bf T\_\-Action} XMCallback$<$ T $>$::callbackaction\hspace{0.3cm}{\tt  [private]}}\label{classXMCallback_o2}
+
+
+
+
+Definition at line 398 of file XMCallback.h.
+
+Referenced by XMCallback$<$ Shell $>$::Register(), XMCallback$<$ Shell $>$::Un\-Register(), and XMCallback$<$ Shell $>$::XMCallback().\index{XMCallback@{XMCallback}!callbackreason@{callbackreason}}
+\index{callbackreason@{callbackreason}!XMCallback@{XMCallback}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}template$<$class T$>$ String XMCallback$<$ T $>$::callbackreason\hspace{0.3cm}{\tt  [private]}}\label{classXMCallback_o1}
+
+
+
+
+Definition at line 397 of file XMCallback.h.
+
+Referenced by XMCallback$<$ Shell $>$::Register(), XMCallback$<$ Shell $>$::Un\-Register(), and XMCallback$<$ Shell $>$::XMCallback().\index{XMCallback@{XMCallback}!callbackset@{callbackset}}
+\index{callbackset@{callbackset}!XMCallback@{XMCallback}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}template$<$class T$>$ int XMCallback$<$ T $>$::callbackset\hspace{0.3cm}{\tt  [private]}}\label{classXMCallback_o3}
+
+
+
+
+Definition at line 399 of file XMCallback.h.
+
+Referenced by XMCallback$<$ Shell $>$::Register(), XMCallback$<$ Shell $>$::Un\-Register(), and XMCallback$<$ Shell $>$::XMCallback().\index{XMCallback@{XMCallback}!callbackuserd@{callbackuserd}}
+\index{callbackuserd@{callbackuserd}!XMCallback@{XMCallback}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}template$<$class T$>$ Xt\-Pointer XMCallback$<$ T $>$::callbackuserd\hspace{0.3cm}{\tt  [private]}}\label{classXMCallback_o4}
+
+
+
+
+Definition at line 400 of file XMCallback.h.
+
+Referenced by XMCallback$<$ Shell $>$::Register(), XMCallback$<$ Shell $>$::Relay(), XMCallback$<$ Shell $>$::Un\-Register(), and XMCallback$<$ Shell $>$::XMCallback().\index{XMCallback@{XMCallback}!instance@{instance}}
+\index{instance@{instance}!XMCallback@{XMCallback}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}template$<$class T$>$ T$\ast$ XMCallback$<$ T $>$::instance\hspace{0.3cm}{\tt  [private]}}\label{classXMCallback_o0}
+
+
+
+
+Definition at line 391 of file XMCallback.h.
+
+Referenced by XMCallback$<$ Shell $>$::Relay(), and XMCallback$<$ Shell $>$::XMCallback().\index{XMCallback@{XMCallback}!self@{self}}
+\index{self@{self}!XMCallback@{XMCallback}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}template$<$class T$>$ XMCallback$<$T$>$$\ast$ XMCallback$<$ T $>$::self\hspace{0.3cm}{\tt  [private]}}\label{classXMCallback_o6}
+
+
+
+
+Definition at line 402 of file XMCallback.h.
+
+Referenced by XMCallback$<$ Shell $>$::Register(), XMCallback$<$ Shell $>$::Un\-Register(), and XMCallback$<$ Shell $>$::XMCallback().\index{XMCallback@{XMCallback}!wid@{wid}}
+\index{wid@{wid}!XMCallback@{XMCallback}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}template$<$class T$>$ {\bf XMWidget}$\ast$ XMCallback$<$ T $>$::wid\hspace{0.3cm}{\tt  [private]}}\label{classXMCallback_o5}
+
+
+
+
+Definition at line 401 of file XMCallback.h.
+
+Referenced by XMCallback$<$ Shell $>$::Register(), XMCallback$<$ Shell $>$::Relay(), XMCallback$<$ Shell $>$::Un\-Register(), and XMCallback$<$ Shell $>$::XMCallback().
+
+The documentation for this class was generated from the following file:\begin{CompactItemize}
+\item 
+{\bf XMCallback.h}\end{CompactItemize}

@@ -1,0 +1,103 @@
+#
+#  Makefile for the C++ interface to Tcl/TK
+#  The following targets are supported:
+#      system(default)         - Build the library.
+#      install                 - Install the system at $(INSTDIR)
+#      clean                   - Clean up .o and .a files.
+#      tests                   - Build any test programs against local version
+#                                of the library.
+
+LinuxLIBS=-ldl -L/usr/X11R6/lib
+LinuxINCS=-I/usr/include/tcl
+HPUXLIBS=-L/opt/tcltk/lib
+HPUXINCS=-I/opt/tcltk/include
+
+INCLUDEDIRS= -I. -I$(INSTDIR)/Include -I/usr/local/include $($(OS)INCS)
+OBJECTS=TCLInterpreter.o TCLProcessor.o  \
+	TCLVariable.o TCLString.o  \
+	TCLResult.o TCLTimer.o TCLFileHandler.o \
+	TCLList.o TCLException.o TCLInterpreterObject.o TCLApplication.o \
+	TCLCommandPackage.o TCLIdleProcess.o TCLObject.o
+LIBDIRS=-L/usr/X11/lib -L/usr/local -L. -L$(INSTDIR)/Lib
+MYLIBS=   -ltclPlus -lException -ltk -ltcl -lXt -lX11 $($(OS)LIBS)
+
+
+
+ECHO=echo
+COMPILE=g++ -c -g $(INCLUDEDIRS)
+LINK=g++ -g $(INCLUDEDIRS) $(LIBDIRS)
+RM=rm -f
+DEPEND=makedepend
+INSTALL=install -m 0664
+MKDIR=install -d -m 02775
+ARCHIVE=ar cr
+
+
+system: libtclPlus.a tests
+	$(ECHO) Library rebuild complete.
+
+clean: 
+	$(RM) $(OBJECTS) 
+	$(RM) libtclPlus.a
+
+depend:
+	makedepend $(INCLUDEDIRS) *.cpp
+
+install: system
+	$(MKDIR) $(INSTDIR)/Lib
+	$(MKDIR) $(INSTDIR)/Include
+	$(INSTALL) libtclPlus.a $(INSTDIR)/Lib
+	$(INSTALL) *.h          $(INSTDIR)/Include
+
+tests: TCLTest 
+	$(ECHO) Tests rebuilt.
+
+TCLTest: TCLTest.cpp
+	$(LINK) -o TCLTest TCLTest.cpp $(MYLIBS)
+libtclPlus.a: $(OBJECTS)
+	$(ARCHIVE) libtclPlus.a $(OBJECTS)
+
+TCLApplication.o: TCLApplication.cpp
+	$(COMPILE) TCLApplication.cpp
+
+TCLInterpreter.o: TCLInterpreter.cpp
+	$(COMPILE) TCLInterpreter.cpp
+
+TCLProcessor.o: TCLProcessor.cpp
+	$(COMPILE) TCLProcessor.cpp
+
+
+TCLVariable.o: TCLVariable.cpp
+	$(COMPILE) TCLVariable.cpp
+
+TCLString.o: TCLString.cpp
+	$(COMPILE) TCLString.cpp
+
+TCLResult.o: TCLResult.cpp
+	$(COMPILE) TCLResult.cpp
+
+TCLTimer.o: TCLTimer.cpp
+	$(COMPILE) TCLTimer.cpp
+
+TCLFileHandler.o: TCLFileHandler.cpp
+	$(COMPILE) TCLFileHandler.cpp
+
+TCLList.o: TCLList.cpp
+	$(COMPILE) TCLList.cpp
+
+TCLException.o: TCLException.cpp
+	$(COMPILE) TCLException.cpp
+
+TCLInterpreterObject.o: TCLInterpreterObject.cpp
+	$(COMPILE) TCLInterpreterObject.cpp
+
+
+TCLCommandPackage.o: TCLCommandPackage.cpp
+	$(COMPILE) TCLCommandPackage.cpp
+
+TCLIdleProcess.o: TCLIdleProcess.cpp
+	$(COMPILE) TCLIdleProcess.cpp
+
+TCLObject.o: TCLObject.cpp
+	$(COMPILE) TCLObject.cpp
+

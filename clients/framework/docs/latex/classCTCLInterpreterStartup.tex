@@ -1,0 +1,141 @@
+\section{CTCLInterpreter\-Startup  Class Reference}
+\label{classCTCLInterpreterStartup}\index{CTCLInterpreterStartup@{CTCLInterpreter\-Startup}}
+{\tt \#include $<$CTCLInterpreter\-Startup.h$>$}
+
+Inheritance diagram for CTCLInterpreter\-Startup::\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[height=3cm]{classCTCLInterpreterStartup}
+\end{center}
+\end{figure}
+\subsection*{Public Methods}
+\begin{CompactItemize}
+\item 
+{\bf CTCLInterpreter\-Startup} ()
+\item 
+virtual {\bf $\sim$CTCLInterpreter\-Startup} ()
+\end{CompactItemize}
+\subsection*{Static Protected Methods}
+\begin{CompactItemize}
+\item 
+int {\bf Tcl\_\-Init} (Tcl\_\-Interp $\ast$p\-Interp)
+\end{CompactItemize}
+\subsection*{Private Methods}
+\begin{CompactItemize}
+\item 
+virtual int {\bf operator()} (int argc, char $\ast$$\ast$argv)
+\item 
+{\bf CTCLInterpreter\-Startup} (const CTCLInterpreter\-Startup \&a\-CTCLInterpreter\-Startup)
+\begin{CompactList}\small\item\em Copy Constructor Illegal private and unimplemented.\item\end{CompactList}\item 
+CTCLInterpreter\-Startup \& {\bf operator=} (const CTCLInterpreter\-Startup \&a\-CTCLInterpreter\-Startup)
+\begin{CompactList}\small\item\em Operator= Assignment Operator Illegal private and unimplemented.\item\end{CompactList}\item 
+int {\bf operator==} (const CTCLInterpreter\-Startup \&a\-CTCLInterpreter\-Startup) const
+\begin{CompactList}\small\item\em Operator== Equality Operator Illegal private and unimplemented.\item\end{CompactList}\end{CompactItemize}
+
+
+\subsection{Detailed Description}
+Starts up a TCL interpreter. This is suitable for applications which do not require or cannot use a GUI. 
+
+
+
+Definition at line 309 of file CTCLInterpreter\-Startup.h.
+
+\subsection{Constructor \& Destructor Documentation}
+\index{CTCLInterpreterStartup@{CTCLInterpreter\-Startup}!CTCLInterpreterStartup@{CTCLInterpreterStartup}}
+\index{CTCLInterpreterStartup@{CTCLInterpreterStartup}!CTCLInterpreterStartup@{CTCLInterpreter\-Startup}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}CTCLInterpreter\-Startup::CTCLInterpreter\-Startup ()\hspace{0.3cm}{\tt  [inline]}}\label{classCTCLInterpreterStartup_a0}
+
+
+
+
+Definition at line 316 of file CTCLInterpreter\-Startup.h.\index{CTCLInterpreterStartup@{CTCLInterpreter\-Startup}!~CTCLInterpreterStartup@{$\sim$CTCLInterpreterStartup}}
+\index{~CTCLInterpreterStartup@{$\sim$CTCLInterpreterStartup}!CTCLInterpreterStartup@{CTCLInterpreter\-Startup}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}virtual CTCLInterpreter\-Startup::$\sim$CTCLInterpreter\-Startup ()\hspace{0.3cm}{\tt  [inline, virtual]}}\label{classCTCLInterpreterStartup_a1}
+
+
+
+
+Definition at line 317 of file CTCLInterpreter\-Startup.h.\index{CTCLInterpreterStartup@{CTCLInterpreter\-Startup}!CTCLInterpreterStartup@{CTCLInterpreterStartup}}
+\index{CTCLInterpreterStartup@{CTCLInterpreterStartup}!CTCLInterpreterStartup@{CTCLInterpreter\-Startup}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}CTCLInterpreter\-Startup::CTCLInterpreter\-Startup (const CTCLInterpreter\-Startup \& {\em a\-CTCLInterpreter\-Startup})\hspace{0.3cm}{\tt  [private]}}\label{classCTCLInterpreterStartup_c1}
+
+
+Copy Constructor Illegal private and unimplemented.
+
+
+
+\subsection{Member Function Documentation}
+\index{CTCLInterpreterStartup@{CTCLInterpreter\-Startup}!operator()@{operator()}}
+\index{operator()@{operator()}!CTCLInterpreterStartup@{CTCLInterpreter\-Startup}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}int CTCLInterpreter\-Startup::operator() (int {\em argc}, char $\ast$$\ast$ {\em argv})\hspace{0.3cm}{\tt  [private, virtual]}}\label{classCTCLInterpreterStartup_c0}
+
+
+Operation Type: Override.
+
+Purpose:
+
+\begin{CompactItemize}
+\item 
+Calls On\-Initialize.\item 
+Sets up the Tcl interpreter.\item 
+Within the Tcl initialization function ({\bf CTCLInterpreter\-Startup::Tcl\_\-Init} {\rm (p.\,\pageref{classCTCLInterpreterStartup_e0})}) call Register\-Extensions.\end{CompactItemize}
+Note that the instance of the interpreter is gotten via a call to {\bf CEvent\-Loop::get\-Instance}() {\rm (p.\,\pageref{classCEventLoop_d0})} since this is a singleton class.\begin{Desc}
+\item[Parameters: ]\par
+\begin{description}
+\item[{\em 
+argc}]- Number of \char`\"{}command line\char`\"{} parameters in  \item[{\em 
+argv}]- \char`\"{}command line\char`\"{} argument strings. \end{description}
+\end{Desc}
+
+
+Implements {\bf CInterpreter\-Startup} {\rm (p.\,\pageref{classCInterpreterStartup_c0})}.
+
+Definition at line 329 of file CTCLInterpreter\-Startup.cpp.
+
+References NULL, CInterpreter\-Startup::On\-Initialize(), and Tcl\_\-Init().\index{CTCLInterpreterStartup@{CTCLInterpreter\-Startup}!operator=@{operator=}}
+\index{operator=@{operator=}!CTCLInterpreterStartup@{CTCLInterpreter\-Startup}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}CTCLInterpreter\-Startup\& CTCLInterpreter\-Startup::operator= (const CTCLInterpreter\-Startup \& {\em a\-CTCLInterpreter\-Startup})\hspace{0.3cm}{\tt  [private]}}\label{classCTCLInterpreterStartup_c2}
+
+
+Operator= Assignment Operator Illegal private and unimplemented.
+
+\index{CTCLInterpreterStartup@{CTCLInterpreter\-Startup}!operator==@{operator==}}
+\index{operator==@{operator==}!CTCLInterpreterStartup@{CTCLInterpreter\-Startup}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}int CTCLInterpreter\-Startup::operator== (const CTCLInterpreter\-Startup \& {\em a\-CTCLInterpreter\-Startup}) const\hspace{0.3cm}{\tt  [private]}}\label{classCTCLInterpreterStartup_c3}
+
+
+Operator== Equality Operator Illegal private and unimplemented.
+
+\index{CTCLInterpreterStartup@{CTCLInterpreter\-Startup}!Tcl_Init@{Tcl\_\-Init}}
+\index{Tcl_Init@{Tcl\_\-Init}!CTCLInterpreterStartup@{CTCLInterpreter\-Startup}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}int CTCLInterpreter\-Startup::Tcl\_\-Init (Tcl\_\-Interp $\ast$ {\em p\-Interp})\hspace{0.3cm}{\tt  [static, protected]}}\label{classCTCLInterpreterStartup_e0}
+
+
+Operation Type: Initialization.
+
+Purpose:
+
+Called from the Tcl\_\-Main() function. This static member:\begin{CompactItemize}
+\item 
+Obtains the object by calling {\bf CEvent\-Loop::get\-Instance}() {\rm (p.\,\pageref{classCEventLoop_d0})}\item 
+Initializes the interpreter.\item 
+Invokes the Object's Register\-Extensions function to load packages, register modules and add application specific commands.\item 
+Returns to allow Tcl to start it's main loop.\end{CompactItemize}
+\begin{Desc}
+\item[Parameters: ]\par
+\begin{description}
+\item[{\em 
+Tcl\_\-Interp}]$\ast$ p\-Interp The interpreter created to run Tcl. \end{description}
+\end{Desc}
+
+
+Definition at line 366 of file CTCLInterpreter\-Startup.cpp.
+
+References CEvent\-Loop::get\-Instance(), NULL, CInterpreter\-Startup::Register\-Extensions(), and CInterpreter\-Startup::set\-Interpreter().
+
+Referenced by operator()().
+
+The documentation for this class was generated from the following files:\begin{CompactItemize}
+\item 
+{\bf CTCLInterpreter\-Startup.h}\item 
+{\bf CTCLInterpreter\-Startup.cpp}\end{CompactItemize}

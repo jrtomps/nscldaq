@@ -1,0 +1,234 @@
+\section{CTCLCommand\-Package  Class Reference}
+\label{classCTCLCommandPackage}\index{CTCLCommandPackage@{CTCLCommand\-Package}}
+{\tt \#include $<$TCLCommand\-Package.h$>$}
+
+Inheritance diagram for CTCLCommand\-Package::\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[height=2cm]{classCTCLCommandPackage}
+\end{center}
+\end{figure}
+\subsection*{Public Methods}
+\begin{CompactItemize}
+\item 
+{\bf CTCLCommand\-Package} ({\bf CTCLInterpreter} $\ast$p\-Interp, const std::string \&r\-Signon=std::string(\char`\"{}Unnamed pkg\char`\"{}))
+\item 
+{\bf CTCLCommand\-Package} ({\bf CTCLInterpreter} $\ast$p\-Interp, const char $\ast$p\-Signon=\char`\"{}Unnamed pkg\char`\"{})
+\item 
+virtual {\bf $\sim$CTCLCommand\-Package} ()
+\item 
+{\bf CTCLCommand\-Package} (const CTCLCommand\-Package \&a\-CTCLCommand\-Package)
+\item 
+CTCLCommand\-Package \& {\bf operator=} (const CTCLCommand\-Package \&a\-CTCLCommand\-Package)
+\item 
+int {\bf operator==} (const CTCLCommand\-Package \&a\-CTCLCommand\-Package)
+\item 
+std::string {\bf get\-Signon} () const
+\item 
+{\bf Command\-List} {\bf get\-Command\-List} () const
+\item 
+void {\bf Register} ()
+\item 
+void {\bf Unregister} ()
+\item 
+void {\bf Add\-Processor} ({\bf CTCLProcessor} $\ast$p\-Processor)
+\item 
+void {\bf Add\-Processors} ({\bf Command\-List} \&r\-List)
+\item 
+{\bf Command\-List\-Iterator} {\bf begin} ()
+\item 
+{\bf Command\-List\-Iterator} {\bf end} ()
+\end{CompactItemize}
+\subsection*{Protected Methods}
+\begin{CompactItemize}
+\item 
+void {\bf set\-Signon} (std::string am\_\-s\-Signon)
+\item 
+void {\bf set\-Command\-List} ({\bf Command\-List} \&r\-List)
+\end{CompactItemize}
+\subsection*{Private Attributes}
+\begin{CompactItemize}
+\item 
+std::string {\bf m\_\-s\-Signon}
+\item 
+{\bf Command\-List} {\bf m\_\-l\-Commands}
+\end{CompactItemize}
+
+
+\subsection{Constructor \& Destructor Documentation}
+\index{CTCLCommandPackage@{CTCLCommand\-Package}!CTCLCommandPackage@{CTCLCommandPackage}}
+\index{CTCLCommandPackage@{CTCLCommandPackage}!CTCLCommandPackage@{CTCLCommand\-Package}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}CTCLCommand\-Package::CTCLCommand\-Package ({\bf CTCLInterpreter} $\ast$ {\em p\-Interp}, const std::string \& {\em r\-Signon} = std::string(\char`\"{}Unnamed pkg\char`\"{}))\hspace{0.3cm}{\tt  [inline]}}\label{classCTCLCommandPackage_a0}
+
+
+
+
+Definition at line 337 of file TCLCommand\-Package.h.
+
+References m\_\-s\-Signon.\index{CTCLCommandPackage@{CTCLCommand\-Package}!CTCLCommandPackage@{CTCLCommandPackage}}
+\index{CTCLCommandPackage@{CTCLCommandPackage}!CTCLCommandPackage@{CTCLCommand\-Package}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}CTCLCommand\-Package::CTCLCommand\-Package ({\bf CTCLInterpreter} $\ast$ {\em p\-Interp}, const char $\ast$ {\em p\-Signon} = \char`\"{}Unnamed pkg\char`\"{})\hspace{0.3cm}{\tt  [inline]}}\label{classCTCLCommandPackage_a1}
+
+
+
+
+Definition at line 342 of file TCLCommand\-Package.h.
+
+References m\_\-s\-Signon.\index{CTCLCommandPackage@{CTCLCommand\-Package}!~CTCLCommandPackage@{$\sim$CTCLCommandPackage}}
+\index{~CTCLCommandPackage@{$\sim$CTCLCommandPackage}!CTCLCommandPackage@{CTCLCommand\-Package}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}virtual CTCLCommand\-Package::$\sim$CTCLCommand\-Package ()\hspace{0.3cm}{\tt  [inline, virtual]}}\label{classCTCLCommandPackage_a2}
+
+
+
+
+Definition at line 347 of file TCLCommand\-Package.h.\index{CTCLCommandPackage@{CTCLCommand\-Package}!CTCLCommandPackage@{CTCLCommandPackage}}
+\index{CTCLCommandPackage@{CTCLCommandPackage}!CTCLCommandPackage@{CTCLCommand\-Package}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}CTCLCommand\-Package::CTCLCommand\-Package (const CTCLCommand\-Package \& {\em a\-CTCLCommand\-Package})\hspace{0.3cm}{\tt  [inline]}}\label{classCTCLCommandPackage_a3}
+
+
+
+
+Definition at line 351 of file TCLCommand\-Package.h.
+
+References m\_\-l\-Commands, and m\_\-s\-Signon.
+
+\subsection{Member Function Documentation}
+\index{CTCLCommandPackage@{CTCLCommand\-Package}!AddProcessor@{AddProcessor}}
+\index{AddProcessor@{AddProcessor}!CTCLCommandPackage@{CTCLCommand\-Package}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}void CTCLCommand\-Package::Add\-Processor ({\bf CTCLProcessor} $\ast$ {\em p\-Processor})\hspace{0.3cm}{\tt  [inline]}}\label{classCTCLCommandPackage_a10}
+
+
+
+
+Definition at line 408 of file TCLCommand\-Package.h.
+
+References m\_\-l\-Commands.\index{CTCLCommandPackage@{CTCLCommand\-Package}!AddProcessors@{AddProcessors}}
+\index{AddProcessors@{AddProcessors}!CTCLCommandPackage@{CTCLCommand\-Package}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}void CTCLCommand\-Package::Add\-Processors ({\bf Command\-List} \& {\em r\-List})\hspace{0.3cm}{\tt  [inline]}}\label{classCTCLCommandPackage_a11}
+
+
+
+
+Definition at line 411 of file TCLCommand\-Package.h.
+
+References Command\-List, end(), and m\_\-l\-Commands.\index{CTCLCommandPackage@{CTCLCommand\-Package}!begin@{begin}}
+\index{begin@{begin}!CTCLCommandPackage@{CTCLCommand\-Package}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}{\bf Command\-List\-Iterator} CTCLCommand\-Package::begin ()\hspace{0.3cm}{\tt  [inline]}}\label{classCTCLCommandPackage_a12}
+
+
+
+
+Definition at line 415 of file TCLCommand\-Package.h.
+
+References Command\-List\-Iterator, and m\_\-l\-Commands.
+
+Referenced by Register(), and Unregister().\index{CTCLCommandPackage@{CTCLCommand\-Package}!end@{end}}
+\index{end@{end}!CTCLCommandPackage@{CTCLCommand\-Package}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}{\bf Command\-List\-Iterator} CTCLCommand\-Package::end ()\hspace{0.3cm}{\tt  [inline]}}\label{classCTCLCommandPackage_a13}
+
+
+
+
+Definition at line 418 of file TCLCommand\-Package.h.
+
+References Command\-List\-Iterator, and m\_\-l\-Commands.
+
+Referenced by Add\-Processors(), Register(), and Unregister().\index{CTCLCommandPackage@{CTCLCommand\-Package}!getCommandList@{getCommandList}}
+\index{getCommandList@{getCommandList}!CTCLCommandPackage@{CTCLCommand\-Package}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}{\bf Command\-List} CTCLCommand\-Package::get\-Command\-List () const\hspace{0.3cm}{\tt  [inline]}}\label{classCTCLCommandPackage_a7}
+
+
+
+
+Definition at line 385 of file TCLCommand\-Package.h.
+
+References Command\-List, and m\_\-l\-Commands.\index{CTCLCommandPackage@{CTCLCommand\-Package}!getSignon@{getSignon}}
+\index{getSignon@{getSignon}!CTCLCommandPackage@{CTCLCommand\-Package}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}std::string CTCLCommand\-Package::get\-Signon () const\hspace{0.3cm}{\tt  [inline]}}\label{classCTCLCommandPackage_a6}
+
+
+
+
+Definition at line 381 of file TCLCommand\-Package.h.
+
+References m\_\-s\-Signon.\index{CTCLCommandPackage@{CTCLCommand\-Package}!operator=@{operator=}}
+\index{operator=@{operator=}!CTCLCommandPackage@{CTCLCommand\-Package}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}CTCLCommand\-Package\& CTCLCommand\-Package::operator= (const CTCLCommand\-Package \& {\em a\-CTCLCommand\-Package})\hspace{0.3cm}{\tt  [inline]}}\label{classCTCLCommandPackage_a4}
+
+
+
+
+Definition at line 359 of file TCLCommand\-Package.h.
+
+References m\_\-l\-Commands, m\_\-s\-Signon, and CTCLInterpreter\-Object::operator=().\index{CTCLCommandPackage@{CTCLCommand\-Package}!operator==@{operator==}}
+\index{operator==@{operator==}!CTCLCommandPackage@{CTCLCommand\-Package}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}int CTCLCommand\-Package::operator== (const CTCLCommand\-Package \& {\em a\-CTCLCommand\-Package})\hspace{0.3cm}{\tt  [inline]}}\label{classCTCLCommandPackage_a5}
+
+
+
+
+Definition at line 371 of file TCLCommand\-Package.h.
+
+References m\_\-l\-Commands, m\_\-s\-Signon, and CTCLInterpreter\-Object::operator==().\index{CTCLCommandPackage@{CTCLCommand\-Package}!Register@{Register}}
+\index{Register@{Register}!CTCLCommandPackage@{CTCLCommand\-Package}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}void CTCLCommand\-Package::Register ()}\label{classCTCLCommandPackage_a8}
+
+
+
+
+Definition at line 324 of file TCLCommand\-Package.cpp.
+
+References begin(), Command\-List\-Iterator, end(), and CTCLInterpreter\-Object::get\-Interpreter().\index{CTCLCommandPackage@{CTCLCommand\-Package}!setCommandList@{setCommandList}}
+\index{setCommandList@{setCommandList}!CTCLCommandPackage@{CTCLCommand\-Package}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}void CTCLCommand\-Package::set\-Command\-List ({\bf Command\-List} \& {\em r\-List})\hspace{0.3cm}{\tt  [inline, protected]}}\label{classCTCLCommandPackage_b1}
+
+
+
+
+Definition at line 396 of file TCLCommand\-Package.h.
+
+References Command\-List, and m\_\-l\-Commands.\index{CTCLCommandPackage@{CTCLCommand\-Package}!setSignon@{setSignon}}
+\index{setSignon@{setSignon}!CTCLCommandPackage@{CTCLCommand\-Package}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}void CTCLCommand\-Package::set\-Signon (std::string {\em am\_\-s\-Signon})\hspace{0.3cm}{\tt  [inline, protected]}}\label{classCTCLCommandPackage_b0}
+
+
+
+
+Definition at line 392 of file TCLCommand\-Package.h.
+
+References m\_\-s\-Signon.\index{CTCLCommandPackage@{CTCLCommand\-Package}!Unregister@{Unregister}}
+\index{Unregister@{Unregister}!CTCLCommandPackage@{CTCLCommand\-Package}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}void CTCLCommand\-Package::Unregister ()}\label{classCTCLCommandPackage_a9}
+
+
+
+
+Definition at line 348 of file TCLCommand\-Package.cpp.
+
+References begin(), Command\-List\-Iterator, and end().
+
+\subsection{Member Data Documentation}
+\index{CTCLCommandPackage@{CTCLCommand\-Package}!m_lCommands@{m\_\-lCommands}}
+\index{m_lCommands@{m\_\-lCommands}!CTCLCommandPackage@{CTCLCommand\-Package}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}{\bf Command\-List} CTCLCommand\-Package::m\_\-l\-Commands\hspace{0.3cm}{\tt  [private]}}\label{classCTCLCommandPackage_o1}
+
+
+
+
+Definition at line 331 of file TCLCommand\-Package.h.
+
+Referenced by Add\-Processor(), Add\-Processors(), begin(), CTCLCommand\-Package(), end(), get\-Command\-List(), operator=(), operator==(), and set\-Command\-List().\index{CTCLCommandPackage@{CTCLCommand\-Package}!m_sSignon@{m\_\-sSignon}}
+\index{m_sSignon@{m\_\-sSignon}!CTCLCommandPackage@{CTCLCommand\-Package}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}std::string CTCLCommand\-Package::m\_\-s\-Signon\hspace{0.3cm}{\tt  [private]}}\label{classCTCLCommandPackage_o0}
+
+
+
+
+Definition at line 330 of file TCLCommand\-Package.h.
+
+Referenced by CTCLCommand\-Package(), get\-Signon(), operator=(), operator==(), and set\-Signon().
+
+The documentation for this class was generated from the following files:\begin{CompactItemize}
+\item 
+{\bf TCLCommand\-Package.h}\item 
+{\bf TCLCommand\-Package.cpp}\end{CompactItemize}

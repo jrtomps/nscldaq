@@ -1,0 +1,404 @@
+<html>
+
+<head>
+<meta http-equiv="Content-Language" content="en-us">
+<meta http-equiv="Content-Type" content="text/html; charset=windows-1252">
+<meta name="GENERATOR" content="Microsoft FrontPage 4.0">
+<meta name="ProgId" content="FrontPage.Editor.Document">
+<title>CSocket</title>
+</head>
+
+<body>
+
+<h1>CSocket:</h1>
+<p><img border="0" src="images/csocke6.gif" width="152" height="452"></p>
+
+<H1><A NAME = "CSocket">CSocket</A></H1>
+
+<P> SuperClasses: </P>
+<P> One to One associations: 
+</P>
+<P> One to Many associations:  
+</P>
+<P> Aggregate classes (1:1)  : 
+</P>
+<P> Aggregate classes (1:*)  : 
+
+</P>
+
+<H2>Class Attributes</H2>
+
+<H3>m_Fd</H3>
+<P>Visibility: private</P>
+<P>Type: int</p>
+<P>
+A CSocket is create by construction.
+This member variable contains the
+file descriptor associated with the socket.
+
+</P>
+<H3>m_State</H3>
+<P>Visibility: private</P>
+<P>Type: CSocket::State</p>
+<P>
+Describes the current state of the socket.
+This is taken from the enum:
+CSocket::State and can be:
+Disconnected  - The socket is not connected to anything.
+Bound              - The socket is a server socket which is
+                           not connected, but has been bound to
+                           a service port.
+Listening           - The socket is a server port which is
+                            listening and can therefore accept
+                            connections
+Connected        - The socket is either a client or a 
+                            server instance and is connected
+                            to it's counterpart.
+
+</P>
+
+<H2>Operations on  CSocket</H2>
+
+<H3>  Connect</H3>
+<P>Visibility: public</p>
+<P>Parameters: const string& host, const string& service</P>
+<P>Return Type: void</p>
+<P>Classification: Connection Control</p>
+<P>Indicates that the socket will be used
+as a client socket and attempts to connect it
+to a server. 
+The address of the server can be
+passed in either in IP address or
+IP name textual format.  Similarly,
+the port can be passed in as a textual
+port name (in /etc/services) or a port number.
+
+Exceptions which can be thrown:
+CTCPBadSocketState -- m_State was not Disconnected
+CTCPNoSuchHost       - Host not in DNS or nonexistent.
+CTCPNoSuchService  - Named service does not translate.
+CTCPConnectionFailed- Connection refused by remote host.
+
+
+On Success m_State --> Connected</P>
+<H3>  Bind</H3>
+<P>Visibility: public</p>
+<P>Parameters: const string& service</P>
+<P>Return Type: void</p>
+<P>Classification: ConnectionControl</p>
+<P>Indicates that the socket will be used
+as a server listener socket, and binds it
+to a service port.  The service can be
+provided either as a numerical string
+or as a string translated via getservbyname().
+
+The following exceptions can be thrown:
+
+CTCPBadSocketState   - m_State != Disconnected
+CTCPNoSuchService    - getservbyname() failed and
+                                        service string was not numeric.
+
+On success, m_State --> Bound</P>
+<H3>  Listen</H3>
+<P>Visibility: public</p>
+<P>Parameters: unsigned int nBacklog=5</P>
+<P>Return Type: void</p>
+<P>Classification: Connection Control</p>
+<P>Indicates that the specified server 
+listener socket is ready to listen
+for connections. 
+
+The Following exceptions can be 
+thrown:
+
+CTCPBadSocketState - m_State != Bound
+
+On success, m_State --> Listening</P>
+<H3>  Accept</H3>
+<P>Visibility: public</p>
+<P>Parameters: string& client</P>
+<P>Return Type: CSocket* </p>
+<P>Classification: Connection Control</p>
+<P>This member function can be called on 
+a server socket.  The calling thread is blocked
+until a connection request is received.  At that
+time, the connection is accepted (granted),
+and a new CSocket is created in the Connected
+state.  The new CSocket represents a Server
+Instance socket, communication along that
+socket can take place immediately and will
+represent communication with the client.
+
+Exceptions which can be thrown:
+CTCPBadSocketState -- m_State != Listening
+
+Side effects:
+
+The client parameter is 
+written with a string representing the
+hostname of the client or the IP address
+if the hostname can not be determined.
+
+The socket created is created via new, therefore 
+it is the responsibility of the caller to delete it.</P>
+<H3>  Shutdown</H3>
+<P>Visibility: public</p>
+<P>Parameters: </P>
+<P>Return Type: void</p>
+<P>Classification: Connection Control</p>
+<P>  Shuts down a connection to a remote system.
+Unlike shutdown(2) this function does not support
+selectively shutting down reads or writes.  Both are
+unconditionally shutdown.
+  Note that the destructor will automatically call Shutdown
+if necessary.
+
+Exceptions:
+CTCPBadSocketState  -- m_State != Connected.</P>
+<H3>  Read</H3>
+<P>Visibility: public</p>
+<P>Parameters: void* pBuffer, size_t nBytes</P>
+<P>Return Type: int</p>
+<P>Classification: IO initiator</p>
+<P>Performs a read on the socket.  The read will transfer
+all of the bytes currently waiting in the socket buffers
+or block until data is avaialble.  The return valiue will
+be the number of bytes transferred.  If the connection
+is lost, CTCPConnectionLost will be thrown.</P>
+<H3>  Write</H3>
+<P>Visibility: public</p>
+<P>Parameters: void* pBuffer, size_t nBytes</P>
+<P>Return Type: int</p>
+<P>Classification: IO Initiator.</p>
+<P>Writes data to the socket.  Note that
+this member will block as needed until
+all data has been queued to the socket buffers.
+This may require multiple write(2) function calls
+if the amount of data to be written is larger than
+the socket's blocking factor.  Note that if the connection
+is lost during the write, CTCPConnectionLost will be thrown.</P>
+<H3>  getPeer</H3>
+<P>Visibility: public</p>
+<P>Parameters: int& short, string& peer</P>
+<P>Return Type: void</p>
+<P>Classification: Selector.</p>
+<P>Returns information about who a socket
+is connected to.  If the socket is not
+connected, CTCPBadSocketState is thrown.
+If possible, the peername parameter is returned
+as a string containing the DNS name of the
+peer. If the DNS lookup fails, the IP address
+is converted into dotted form.</P>
+<H3>  OOBInline</H3>
+<P>Visibility: public</p>
+<P>Parameters: bool State=TRUE</P>
+<P>Return Type: void</p>
+<P>Classification: Configuration</p>
+<P>Allows Out Of Band (OOB) data to be inserted in line with buffered data.
+OOB data is data with a higher delivery priority than 'normal data'. If this
+flag is not set, then by default OOB data must be read through normal
+socket interface functions by specifying it in the recv flags parameter.
+If this flag is set, oob data is queue at the front of the data to be read
+with the Read member.
+  If the socket is not connected, then the CTCPBadSocketState exception
+is thrown.</P>
+<H3>  isOOBInline</H3>
+<P>Visibility: public</p>
+<P>Parameters: </P>
+<P>Return Type: bool</p>
+<P>Classification: Options</p>
+<P>Returns TRUE if OOBinline is set
+FALSE otherwise.  Note that the underlying
+socket state is inquired, not some saved internal
+state.
+  If not connected, CTCPBadSocketState is returned.</P>
+<H3>  setRcvLowWaterMark</H3>
+<P>Visibility: public</p>
+<P>Parameters: size_t nBytes</P>
+<P>Return Type: void</p>
+<P>Classification: Configuration</p>
+<P>Sets the Receive low water mark for the socket.
+This is the number of bytes received by the
+protocol before any is made available to the
+user.  Note that some systems do not allow 
+this to be changed.  It is not an error at this
+level to attempt to do so, however you will need to 
+call getRcvlowWaterMark to be sure the change was
+actually made.
+
+Throws CTCPBadSocketState if not connected.</P>
+<H3>  getRcvLowWaterMark</H3>
+<P>Visibility: public</p>
+<P>Parameters: </P>
+<P>Return Type: size_t</p>
+<P>Classification: </p>
+<P>Returns the size of the current receive low water mark.
+See setRcvLowWaterMark for information about what this
+parameter does.  Note that the value returned is inquired from
+the socket rather than stored in internal state.</P>
+<H3>  setSndLowWaterMark</H3>
+<P>Visibility: public</p>
+<P>Parameters: size_t nBytes</P>
+<P>Return Type: void</p>
+<P>Classification: configuration</p>
+<P>Sets the new value of the Send Low water mark.
+This controls the number of bytes which must be written
+before transferring data to the protocol layers for transmission.
+Note that some systems don't allow this value to be changed.
+It is not an error to attempt to change this value on those systems,
+however you should use getSndLowWaterMark to determine the
+actual value negotiated by the system,</P>
+<H3>  getSndLowWaterMark</H3>
+<P>Visibility: public</p>
+<P>Parameters: </P>
+<P>Return Type: size_t</p>
+<P>Classification: Configuration</p>
+<P>Return the value of the current Send Low Water Mark
+Set setSndLowWaterMarrk for more information.</P>
+<H3>  setRcvTimeout</H3>
+<P>Visibility: public</p>
+<P>Parameters: unsigned int nMs</P>
+<P>Return Type: void</p>
+<P>Classification: Configuration</p>
+<P>Set the protocol receive timeouts.  Note that in some systems,
+these are not settable.  However it is not an error to attempt to do so.</P>
+<H3>  getRcvTimeout</H3>
+<P>Visibility: public</p>
+<P>Parameters: </P>
+<P>Return Type: unsigned int</p>
+<P>Classification: Configuration</p>
+<P>Retrieve the protocol receive timeout.</P>
+<H3>  setSndTimeout</H3>
+<P>Visibility: public</p>
+<P>Parameters: unsigned int nMs</P>
+<P>Return Type: void</p>
+<P>Classification: Configuration</p>
+<P>Set the number of milliseconds in the send timeout.
+Some systems may not allow this to be set, however it is not
+an error to try.</P>
+<H3>  getSndTimeout</H3>
+<P>Visibility: public</p>
+<P>Parameters: </P>
+<P>Return Type: unsigned int</p>
+<P>Classification: Configuration</p>
+<P>Returns the current send timeout in ms.
+
+</P>
+<H3>  Debug</H3>
+<P>Visibility: public</p>
+<P>Parameters: bool fState=TRUE</P>
+<P>Return Type: void</p>
+<P>Classification: Configuration</p>
+<P>Attempts to turn on Socket debugging.
+To support this. The user must have effective
+UID = 0.  If the socket is not connected,
+the CTCPBadSocketState exception is thrown.
+If there are other errors (e.g. because the user
+doesn't have eff UID=0), then the appropriate
+CErrnoException object is thrown.</P>
+<H3>  isDebug</H3>
+<P>Visibility: public</p>
+<P>Parameters: </P>
+<P>Return Type: bool</p>
+<P>Classification: Configuration</p>
+<P>Returns TRUE if socket debugging is
+turned on and False otherwise.  If the socket
+is not connected, CTCPBadSocketState is
+thrown.</P>
+<H3>  SetNotRoutable</H3>
+<P>Visibility: public</p>
+<P>Parameters: bool fRoutable=TRUE</P>
+<P>Return Type: void</p>
+<P>Classification: Configuration</p>
+<P>Allows the caller to control the routability of messages
+sent on the socket.  If set, messages will not
+be sent through a gateway.
+Note:
+ The socket need not be connected. Presumably,
+if this flag is set prior to Connect on a client socket
+the client will be unable to connect outside the local
+subnet, and if set prior to Bind for a server, the server will
+be unable to accept connections from outside the subnet.
+</P>
+<H3>  isNotRoutable</H3>
+<P>Visibility: public</p>
+<P>Parameters: </P>
+<P>Return Type: bool</p>
+<P>Classification: Configuration</p>
+<P>Returns the state of the routability flag.</P>
+<H3>  setSndBufSize</H3>
+<P>Visibility: public</p>
+<P>Parameters: size_t nBufferSize</P>
+<P>Return Type: void</p>
+<P>Classification: Configuration</p>
+<P>Sets the socket send buffer size.  This 
+has to do with how many bytes can be 
+sent in a single write(2) service call. Messages
+larger than that must be segmented into multiple
+write(2) calls.  Note howerver that 
+CTCPSocket::Write automatically handles
+any necessary segmentation.
+  If the socket is not connected, throws:
+CTCPBadSocketState
+
+</P>
+<H3>  getSndBufSize</H3>
+<P>Visibility: public</p>
+<P>Parameters: </P>
+<P>Return Type: size_t</p>
+<P>Classification: Configuration</p>
+<P>Returns the number of bytes that can be
+written in a single write(2) call.
+</P>
+<H3>  setRcvBufSize</H3>
+<P>Visibility: public</p>
+<P>Parameters: size_t nBytes</P>
+<P>Return Type: void</p>
+<P>Classification: Configuration</p>
+<P>Sets the maximum number of bytes which can be received in a single
+read(2) operation.  Note that CTCPSocket::Read does >NOT< 
+automatically segment or else you may block when you'd like
+to believe that a message has been received.
+
+If the socket is not connected, throws CTCPBadSocketState
+</P>
+<H3>  getRcvBufSize</H3>
+<P>Visibility: public</p>
+<P>Parameters: </P>
+<P>Return Type: size_t</p>
+<P>Classification: Configuration</p>
+<P>Returns the maximum number of bytes which can be 
+recieved in a single read(2) call.</P>
+<H3>  setLinger</H3>
+<P>Visibility: public</p>
+<P>Parameters: bool lOn, int nLingerSeconds</P>
+<P>Return Type: void</p>
+<P>Classification: Configuration</p>
+<P>Sets the socket linger parameters.  Linger properties
+govern the way a shutdown, operates.  Note that
+object destruction which requires a shutdown implicitly
+turns off linger.  
+  If linger is enabled, then the close will block until
+all pending data has been successfully sent or until the
+linger timerout is exceeded.  If the socket is not
+connected, throws a CTCPBadState exception.
+
+</P>
+<H3>  getLinger</H3>
+<P>Visibility: public</p>
+<P>Parameters: bool& isLingering, int& nLingerSeconds</P>
+<P>Return Type: void</p>
+<P>Classification: Configuration</p>
+<P>Retrieve the linger parameters.</P>
+
+<HR>
+
+<p>Last Modified: <!--webbot bot="Timestamp" startspan S-Type="EDITED"
+S-Format="%A, %B %d, %Y" -->Tuesday, August 07, 2001<!--webbot bot="Timestamp"
+I-CheckSum="50518" endspan -->
+ <a href="mailto:fox@nscl.msu.edu">Ron Fox</a></p>
+<p>&nbsp;</p>
+
+</body>
+
+</html>

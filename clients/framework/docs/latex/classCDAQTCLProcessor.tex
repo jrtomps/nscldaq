@@ -1,0 +1,139 @@
+\section{CDAQTCLProcessor  Class Reference}
+\label{classCDAQTCLProcessor}\index{CDAQTCLProcessor@{CDAQTCLProcessor}}
+{\tt \#include $<$CDAQTCLProcessor.h$>$}
+
+Inheritance diagram for CDAQTCLProcessor::\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[height=4cm]{classCDAQTCLProcessor}
+\end{center}
+\end{figure}
+\subsection*{Public Methods}
+\begin{CompactItemize}
+\item 
+{\bf CDAQTCLProcessor} (const string \&r\-Command, {\bf CTCLInterpreter} $\ast$p\-Interp)
+\item 
+{\bf CDAQTCLProcessor} (const char $\ast$p\-Command, {\bf CTCLInterpreter} $\ast$p\-Inter)
+\item 
+{\bf $\sim$CDAQTCLProcessor} ()
+\item 
+int {\bf operator==} (const CDAQTCLProcessor \&a\-CDAQTCLProcessor) const
+\begin{CompactList}\small\item\em Operator== Equality Operator.\item\end{CompactList}\item 
+virtual void {\bf Register} ()
+\end{CompactItemize}
+\subsection*{Private Methods}
+\begin{CompactItemize}
+\item 
+{\bf CDAQTCLProcessor} (const CDAQTCLProcessor \&a\-CDAQTCLProcessor)
+\begin{CompactList}\small\item\em Copy Constructor {\bf illegal} and therefore unimplemented.\item\end{CompactList}\item 
+CDAQTCLProcessor \& {\bf operator=} (const CDAQTCLProcessor \&a\-CDAQTCLProcessor)
+\begin{CompactList}\small\item\em Operator= Assignment Operator {\bf illegal} and therefore unimplemented.\item\end{CompactList}\end{CompactItemize}
+\subsection*{Static Private Methods}
+\begin{CompactItemize}
+\item 
+int {\bf Eval\-Relay} (Client\-Data p\-Data, Tcl\_\-Interp $\ast$p\-Interp, int Argc, char $\ast$$\ast$Argv)
+\item 
+void {\bf Delete\-Relay} (Client\-Data p\-Data)
+\end{CompactItemize}
+
+
+\subsection{Detailed Description}
+Provides a synchronized TCL command. Inheriting from this class allows you to produce a TCL command which is synchronized to the application through the application mutex. This member essentially just replaces the TCLProcessor's registration procedures and static callback relay. The static callback relay will now lock the application mutex prior to calling operator() and unlock on return (exception or normal). 
+
+
+
+Definition at line 318 of file CDAQTCLProcessor.h.
+
+\subsection{Constructor \& Destructor Documentation}
+\index{CDAQTCLProcessor@{CDAQTCLProcessor}!CDAQTCLProcessor@{CDAQTCLProcessor}}
+\index{CDAQTCLProcessor@{CDAQTCLProcessor}!CDAQTCLProcessor@{CDAQTCLProcessor}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}CDAQTCLProcessor::CDAQTCLProcessor (const string \& {\em r\-Command}, {\bf CTCLInterpreter} $\ast$ {\em p\-Interp})}\label{classCDAQTCLProcessor_a0}
+
+
+Constructor. Builds a new command which will execute synchronized with all other threads in the application. 
+
+Definition at line 309 of file CDAQTCLProcessor.cpp.\index{CDAQTCLProcessor@{CDAQTCLProcessor}!CDAQTCLProcessor@{CDAQTCLProcessor}}
+\index{CDAQTCLProcessor@{CDAQTCLProcessor}!CDAQTCLProcessor@{CDAQTCLProcessor}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}CDAQTCLProcessor::CDAQTCLProcessor (const char $\ast$ {\em p\-Command}, {\bf CTCLInterpreter} $\ast$ {\em p\-Interp})}\label{classCDAQTCLProcessor_a1}
+
+
+Constructor, Builds a new command which will execute synchronized with all the other threads in the application. 
+
+Definition at line 319 of file CDAQTCLProcessor.cpp.\index{CDAQTCLProcessor@{CDAQTCLProcessor}!~CDAQTCLProcessor@{$\sim$CDAQTCLProcessor}}
+\index{~CDAQTCLProcessor@{$\sim$CDAQTCLProcessor}!CDAQTCLProcessor@{CDAQTCLProcessor}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}CDAQTCLProcessor::$\sim$CDAQTCLProcessor ()}\label{classCDAQTCLProcessor_a2}
+
+
+Destructor: The base class will take care of everything we need. The fact that register registered our Delete\-Relay will take care of ensuring that On\-Delete is executed with application synchronization. 
+
+Definition at line 301 of file CDAQTCLProcessor.cpp.\index{CDAQTCLProcessor@{CDAQTCLProcessor}!CDAQTCLProcessor@{CDAQTCLProcessor}}
+\index{CDAQTCLProcessor@{CDAQTCLProcessor}!CDAQTCLProcessor@{CDAQTCLProcessor}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}CDAQTCLProcessor::CDAQTCLProcessor (const CDAQTCLProcessor \& {\em a\-CDAQTCLProcessor})\hspace{0.3cm}{\tt  [private]}}\label{classCDAQTCLProcessor_c0}
+
+
+Copy Constructor {\bf illegal} and therefore unimplemented.
+
+
+
+\subsection{Member Function Documentation}
+\index{CDAQTCLProcessor@{CDAQTCLProcessor}!DeleteRelay@{DeleteRelay}}
+\index{DeleteRelay@{DeleteRelay}!CDAQTCLProcessor@{CDAQTCLProcessor}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}void CDAQTCLProcessor::Delete\-Relay (Client\-Data {\em p\-Data})\hspace{0.3cm}{\tt  [static, private]}}\label{classCDAQTCLProcessor_f1}
+
+
+Locks the application mutex, call's the object's On\-Delete member function (the object is pointed to by the client data parameter), and unlocks the mutex. 
+
+Reimplemented from {\bf CTCLProcessor} {\rm (p.\,\pageref{classCTCLProcessor_d2})}.
+
+Definition at line 374 of file CDAQTCLProcessor.cpp.
+
+References CTCLProcessor::Delete\-Relay(), CApplication\-Serializer::get\-Instance(), CThread\-Recursive\-Mutex::Lock(), and CThread\-Recursive\-Mutex::Un\-Lock().
+
+Referenced by Register().\index{CDAQTCLProcessor@{CDAQTCLProcessor}!EvalRelay@{EvalRelay}}
+\index{EvalRelay@{EvalRelay}!CDAQTCLProcessor@{CDAQTCLProcessor}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}int CDAQTCLProcessor::Eval\-Relay (Client\-Data {\em p\-Data}, Tcl\_\-Interp $\ast$ {\em p\-Interp}, int {\em Argc}, char $\ast$$\ast$ {\em Argv})\hspace{0.3cm}{\tt  [static, private]}}\label{classCDAQTCLProcessor_f0}
+
+
+Locks the application mutex, calls operator() and the unlocks the resource. 
+
+Definition at line 351 of file CDAQTCLProcessor.cpp.
+
+References CTCLProcessor::Eval\-Relay(), CApplication\-Serializer::get\-Instance(), CThread\-Recursive\-Mutex::Lock(), and CThread\-Recursive\-Mutex::Un\-Lock().
+
+Referenced by Register().\index{CDAQTCLProcessor@{CDAQTCLProcessor}!operator=@{operator=}}
+\index{operator=@{operator=}!CDAQTCLProcessor@{CDAQTCLProcessor}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}CDAQTCLProcessor\& CDAQTCLProcessor::operator= (const CDAQTCLProcessor \& {\em a\-CDAQTCLProcessor})\hspace{0.3cm}{\tt  [private]}}\label{classCDAQTCLProcessor_c1}
+
+
+Operator= Assignment Operator {\bf illegal} and therefore unimplemented.
+
+\index{CDAQTCLProcessor@{CDAQTCLProcessor}!operator==@{operator==}}
+\index{operator==@{operator==}!CDAQTCLProcessor@{CDAQTCLProcessor}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}int CDAQTCLProcessor::operator== (const CDAQTCLProcessor \& {\em a\-CDAQTCLProcessor}) const\hspace{0.3cm}{\tt  [inline]}}\label{classCDAQTCLProcessor_a3}
+
+
+Operator== Equality Operator.
+
+
+
+Definition at line 335 of file CDAQTCLProcessor.h.
+
+References CTCLProcessor::operator==().\index{CDAQTCLProcessor@{CDAQTCLProcessor}!Register@{Register}}
+\index{Register@{Register}!CDAQTCLProcessor@{CDAQTCLProcessor}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}void CDAQTCLProcessor::Register ()\hspace{0.3cm}{\tt  [virtual]}}\label{classCDAQTCLProcessor_a4}
+
+
+Registers the processor on the current interpreter. This reimplements code from the base class because I need to specify my own Eval and Delete relay  functions (there's naturally no way for static functions to be virtual). 
+
+Reimplemented from {\bf CTCLProcessor} {\rm (p.\,\pageref{classCTCLProcessor_a15})}.
+
+Definition at line 334 of file CDAQTCLProcessor.cpp.
+
+References CTCLInterpreter::Add\-Command(), CTCLProcessor::Add\-Registered\-On\-Current(), CTCLInterpreter\-Object::Assert\-If\-Not\-Bound(), Delete\-Relay(), Eval\-Relay(), and CTCLProcessor::get\-Command\-Name().
+
+Referenced by CInterpreter\-Startup::Register\-Extensions().
+
+The documentation for this class was generated from the following files:\begin{CompactItemize}
+\item 
+{\bf CDAQTCLProcessor.h}\item 
+{\bf CDAQTCLProcessor.cpp}\end{CompactItemize}

@@ -1,0 +1,44 @@
+BINDIR=/usr/opt/daqtest/bin
+INCLUDEDIR=/usr/opt/daqtest/include
+LIBDIR=/usr/opt/daqtest/lib
+VMELIBRARY=-L/opt/daq/Lib -lbtp
+VMELIBRARYHEADERS=-I/usr/opt/daq/Include
+spectrodaq_conf_dir=/opt/spectrodaq/bin
+#
+#  Makefile to build a readout program given the stuff in the standard
+#  skeleton.
+#
+
+SPECTRO_FLAGS=$(shell $(spectrodaq_conf_dir)/spectrodaq-conf --cflags)
+SPECTRO_LDFLAGS=$(shell $(spectrodaq_conf_dir)/spectrodaq-conf --libs)
+
+CC = gcc
+
+
+
+LDFLAGS=-L$(INSTDIR)/Lib -L$(DESTROOT)/Lib -lReadout $(SPECTRO_LDFLAGS) \
+	$($(VMEDEVICE)LIBS) 
+
+LDFLAGS=-L$(LIBDIR) -lReadout $(SPECTRO_LDFLAGS) $(VMELIBRARY)
+
+CXXFLAGS = -c -D__UNIX__ $(SPECTRO_FLAGS) -I$(INCLUDEDIR) \
+	-I$(VMELIBRARYHEADERS)
+
+
+CPP = g++ $(CXXFLAGS)
+
+
+PROGOBJS=ReadoutMain.o skeleton.o
+
+all : Program
+
+Program: $(PROGOBJS)
+	g++ -o Readout $(PROGOBJS) $(LDFLAGS)
+
+ReadoutMain.o: ReadoutMain.cpp
+	$(CPP)  $<
+skeleton.o: skeleton.cpp
+	$(CPP)  $<
+
+
+

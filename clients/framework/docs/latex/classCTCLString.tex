@@ -1,0 +1,454 @@
+\section{CTCLString  Class Reference}
+\label{classCTCLString}\index{CTCLString@{CTCLString}}
+{\tt \#include $<$TCLString.h$>$}
+
+\subsection*{Public Methods}
+\begin{CompactItemize}
+\item 
+{\bf CTCLString} ()
+\item 
+{\bf $\sim$CTCLString} ()
+\item 
+{\bf CTCLString} (const char $\ast$p\-String)
+\item 
+{\bf CTCLString} (const std::string \&r\-String)
+\item 
+{\bf CTCLString} (const Tcl\_\-DString \&r\-String)
+\item 
+{\bf CTCLString} (const CTCLString \&a\-CTCLString)
+\item 
+CTCLString \& {\bf operator=} (const CTCLString \&a\-CTCLString)
+\item 
+int {\bf operator==} (const CTCLString \&a\-CTCLString)
+\item 
+int {\bf operator!=} (const CTCLString \&a\-CTCLString)
+\item 
+int {\bf operator$>$} (const CTCLString \&a\-CTCLString)
+\item 
+int {\bf operator$<$} (const CTCLString \&a\-CTCLString)
+\item 
+int {\bf operator$>$=} (const CTCLString \&a\-CTCLString)
+\item 
+int {\bf operator$<$=} (const CTCLString \&a\-CTCLString)
+\item 
+Tcl\_\-DString \& {\bf get\-String} ()
+\item 
+void {\bf set\-String} (const Tcl\_\-DString \&am\_\-String)
+\item 
+CTCLString \& {\bf Append} (const std::string \&r\-String, {\bf Int\_\-t} n\-Length=-1)
+\item 
+CTCLString \& {\bf Append} (const CTCLString \&r\-String, {\bf Int\_\-t} n\-Length=-1)
+\item 
+CTCLString \& {\bf Append} (Tcl\_\-DString \&p\-String, {\bf Int\_\-t} n\-Length=-1)
+\item 
+CTCLString \& {\bf Append} (const char $\ast$p\-String, {\bf Int\_\-t} n\-Length=-1)
+\item 
+CTCLString \& {\bf Append\-Element} (const Tcl\_\-DString $\ast$p\-Rhs)
+\item 
+CTCLString \& {\bf Append\-Element} (const CTCLString \&r\-Rhs)
+\item 
+CTCLString \& {\bf Append\-Element} (const std::string \&r\-Rhs)
+\item 
+CTCLString \& {\bf Append\-Element} (const char $\ast$p\-Rhs)
+\item 
+CTCLString \& {\bf Start\-Sublist} ()
+\item 
+CTCLString \& {\bf End\-Sublist} ()
+\item 
+{\bf UInt\_\-t} {\bf Length} () const
+\item 
+CTCLString \& {\bf Truncate} ({\bf UInt\_\-t} n\-New\-Length)
+\item 
+{\bf Bool\_\-t} {\bf is\-Command} () const
+\item 
+{\bf Bool\_\-t} {\bf Match} (const char $\ast$p\-Pattern) const
+\item 
+{\bf Bool\_\-t} {\bf Match} (std::string \&r\-Pattern) const
+\item 
+{\bf Bool\_\-t} {\bf Match} (const CTCLString \&r\-Pattern) const
+\item 
+{\bf operator const char $\ast$} () const
+\item 
+{\bf operator std::string} () const
+\item 
+{\bf operator Tcl\_\-DString $\ast$} ()
+\item 
+CTCLString \& {\bf operator+=} (const CTCLString \&r\-Rhs)
+\item 
+CTCLString {\bf operator+} (const CTCLString \&r\-Rhs)
+\end{CompactItemize}
+\subsection*{Protected Methods}
+\begin{CompactItemize}
+\item 
+void {\bf Do\-Assign} (const CTCLString \&r\-Rhs)
+\end{CompactItemize}
+\subsection*{Private Attributes}
+\begin{CompactItemize}
+\item 
+Tcl\_\-DString {\bf m\_\-String}
+\end{CompactItemize}
+
+
+\subsection{Constructor \& Destructor Documentation}
+\index{CTCLString@{CTCLString}!CTCLString@{CTCLString}}
+\index{CTCLString@{CTCLString}!CTCLString@{CTCLString}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}CTCLString::CTCLString ()\hspace{0.3cm}{\tt  [inline]}}\label{classCTCLString_a0}
+
+
+
+
+Definition at line 321 of file TCLString.h.
+
+References m\_\-String.\index{CTCLString@{CTCLString}!~CTCLString@{$\sim$CTCLString}}
+\index{~CTCLString@{$\sim$CTCLString}!CTCLString@{CTCLString}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}CTCLString::$\sim$CTCLString ()\hspace{0.3cm}{\tt  [inline]}}\label{classCTCLString_a1}
+
+
+
+
+Definition at line 324 of file TCLString.h.
+
+References m\_\-String.\index{CTCLString@{CTCLString}!CTCLString@{CTCLString}}
+\index{CTCLString@{CTCLString}!CTCLString@{CTCLString}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}CTCLString::CTCLString (const char $\ast$ {\em p\-String})\hspace{0.3cm}{\tt  [inline]}}\label{classCTCLString_a2}
+
+
+
+
+Definition at line 330 of file TCLString.h.
+
+References m\_\-String.\index{CTCLString@{CTCLString}!CTCLString@{CTCLString}}
+\index{CTCLString@{CTCLString}!CTCLString@{CTCLString}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}CTCLString::CTCLString (const std::string \& {\em r\-String})\hspace{0.3cm}{\tt  [inline]}}\label{classCTCLString_a3}
+
+
+
+
+Definition at line 335 of file TCLString.h.
+
+References m\_\-String.\index{CTCLString@{CTCLString}!CTCLString@{CTCLString}}
+\index{CTCLString@{CTCLString}!CTCLString@{CTCLString}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}CTCLString::CTCLString (const Tcl\_\-DString \& {\em r\-String})\hspace{0.3cm}{\tt  [inline]}}\label{classCTCLString_a4}
+
+
+
+
+Definition at line 339 of file TCLString.h.
+
+References m\_\-String.\index{CTCLString@{CTCLString}!CTCLString@{CTCLString}}
+\index{CTCLString@{CTCLString}!CTCLString@{CTCLString}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}CTCLString::CTCLString (const CTCLString \& {\em a\-CTCLString})\hspace{0.3cm}{\tt  [inline]}}\label{classCTCLString_a5}
+
+
+
+
+Definition at line 346 of file TCLString.h.
+
+References Do\-Assign(), and m\_\-String.
+
+\subsection{Member Function Documentation}
+\index{CTCLString@{CTCLString}!Append@{Append}}
+\index{Append@{Append}!CTCLString@{CTCLString}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}CTCLString \& CTCLString::Append (const char $\ast$ {\em p\-String}, {\bf Int\_\-t} {\em n\-Length} = -1)}\label{classCTCLString_a18}
+
+
+
+
+Definition at line 317 of file TCLString.cpp.
+
+References Int\_\-t, and m\_\-String.\index{CTCLString@{CTCLString}!Append@{Append}}
+\index{Append@{Append}!CTCLString@{CTCLString}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}CTCLString\& CTCLString::Append (Tcl\_\-DString \& {\em p\-String}, {\bf Int\_\-t} {\em n\-Length} = -1)\hspace{0.3cm}{\tt  [inline]}}\label{classCTCLString_a17}
+
+
+
+
+Definition at line 413 of file TCLString.h.
+
+References Append(), and Int\_\-t.\index{CTCLString@{CTCLString}!Append@{Append}}
+\index{Append@{Append}!CTCLString@{CTCLString}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}CTCLString\& CTCLString::Append (const CTCLString \& {\em r\-String}, {\bf Int\_\-t} {\em n\-Length} = -1)\hspace{0.3cm}{\tt  [inline]}}\label{classCTCLString_a16}
+
+
+
+
+Definition at line 410 of file TCLString.h.
+
+References Append(), Int\_\-t, and m\_\-String.\index{CTCLString@{CTCLString}!Append@{Append}}
+\index{Append@{Append}!CTCLString@{CTCLString}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}CTCLString\& CTCLString::Append (const std::string \& {\em r\-String}, {\bf Int\_\-t} {\em n\-Length} = -1)\hspace{0.3cm}{\tt  [inline]}}\label{classCTCLString_a15}
+
+
+
+
+Definition at line 407 of file TCLString.h.
+
+References Int\_\-t.
+
+Referenced by Append().\index{CTCLString@{CTCLString}!AppendElement@{AppendElement}}
+\index{AppendElement@{AppendElement}!CTCLString@{CTCLString}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}CTCLString \& CTCLString::Append\-Element (const char $\ast$ {\em p\-Rhs})}\label{classCTCLString_a22}
+
+
+
+
+Definition at line 349 of file TCLString.cpp.
+
+References m\_\-String.\index{CTCLString@{CTCLString}!AppendElement@{AppendElement}}
+\index{AppendElement@{AppendElement}!CTCLString@{CTCLString}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}CTCLString\& CTCLString::Append\-Element (const std::string \& {\em r\-Rhs})\hspace{0.3cm}{\tt  [inline]}}\label{classCTCLString_a21}
+
+
+
+
+Definition at line 426 of file TCLString.h.
+
+References Append\-Element().\index{CTCLString@{CTCLString}!AppendElement@{AppendElement}}
+\index{AppendElement@{AppendElement}!CTCLString@{CTCLString}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}CTCLString\& CTCLString::Append\-Element (const CTCLString \& {\em r\-Rhs})\hspace{0.3cm}{\tt  [inline]}}\label{classCTCLString_a20}
+
+
+
+
+Definition at line 423 of file TCLString.h.
+
+References Append\-Element(), and m\_\-String.\index{CTCLString@{CTCLString}!AppendElement@{AppendElement}}
+\index{AppendElement@{AppendElement}!CTCLString@{CTCLString}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}CTCLString\& CTCLString::Append\-Element (const Tcl\_\-DString $\ast$ {\em p\-Rhs})\hspace{0.3cm}{\tt  [inline]}}\label{classCTCLString_a19}
+
+
+
+
+Definition at line 420 of file TCLString.h.
+
+Referenced by Append\-Element(), CVariable\-Binding$<$ T $>$::Dump(), and CArray\-Binding$<$ T $>$::Dump().\index{CTCLString@{CTCLString}!DoAssign@{DoAssign}}
+\index{DoAssign@{DoAssign}!CTCLString@{CTCLString}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}void CTCLString::Do\-Assign (const CTCLString \& {\em r\-Rhs})\hspace{0.3cm}{\tt  [protected]}}\label{classCTCLString_b0}
+
+
+
+
+Definition at line 530 of file TCLString.cpp.
+
+References m\_\-String.
+
+Referenced by CTCLString(), and operator=().\index{CTCLString@{CTCLString}!EndSublist@{EndSublist}}
+\index{EndSublist@{EndSublist}!CTCLString@{CTCLString}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}CTCLString \& CTCLString::End\-Sublist ()}\label{classCTCLString_a24}
+
+
+
+
+Definition at line 398 of file TCLString.cpp.
+
+References m\_\-String.\index{CTCLString@{CTCLString}!getString@{getString}}
+\index{getString@{getString}!CTCLString@{CTCLString}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}Tcl\_\-DString\& CTCLString::get\-String ()\hspace{0.3cm}{\tt  [inline]}}\label{classCTCLString_a13}
+
+
+
+
+Definition at line 391 of file TCLString.h.
+
+References m\_\-String.\index{CTCLString@{CTCLString}!isCommand@{isCommand}}
+\index{isCommand@{isCommand}!CTCLString@{CTCLString}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}{\bf Bool\_\-t} CTCLString::is\-Command () const}\label{classCTCLString_a27}
+
+
+
+
+Definition at line 456 of file TCLString.cpp.
+
+References Int\_\-t, and m\_\-String.\index{CTCLString@{CTCLString}!Length@{Length}}
+\index{Length@{Length}!CTCLString@{CTCLString}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}{\bf UInt\_\-t} CTCLString::Length () const}\label{classCTCLString_a25}
+
+
+
+
+Definition at line 417 of file TCLString.cpp.
+
+References m\_\-String.\index{CTCLString@{CTCLString}!Match@{Match}}
+\index{Match@{Match}!CTCLString@{CTCLString}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}{\bf Bool\_\-t} CTCLString::Match (const CTCLString \& {\em r\-Pattern}) const\hspace{0.3cm}{\tt  [inline]}}\label{classCTCLString_a30}
+
+
+
+
+Definition at line 445 of file TCLString.h.
+
+References Bool\_\-t, m\_\-String, and Match().\index{CTCLString@{CTCLString}!Match@{Match}}
+\index{Match@{Match}!CTCLString@{CTCLString}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}{\bf Bool\_\-t} CTCLString::Match (std::string \& {\em r\-Pattern}) const\hspace{0.3cm}{\tt  [inline]}}\label{classCTCLString_a29}
+
+
+
+
+Definition at line 442 of file TCLString.h.
+
+References Bool\_\-t, and Match().\index{CTCLString@{CTCLString}!Match@{Match}}
+\index{Match@{Match}!CTCLString@{CTCLString}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}{\bf Bool\_\-t} CTCLString::Match (const char $\ast$ {\em p\-Pattern}) const}\label{classCTCLString_a28}
+
+
+
+
+Definition at line 471 of file TCLString.cpp.
+
+References Int\_\-t, and m\_\-String.
+
+Referenced by Match().\index{CTCLString@{CTCLString}!operator const char *@{operator const char $\ast$}}
+\index{operator const char *@{operator const char $\ast$}!CTCLString@{CTCLString}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}CTCLString::operator const char $\ast$ () const\hspace{0.3cm}{\tt  [inline]}}\label{classCTCLString_a31}
+
+
+
+
+Definition at line 449 of file TCLString.h.
+
+References m\_\-String.\index{CTCLString@{CTCLString}!operator std::string@{operator std::string}}
+\index{operator std::string@{operator std::string}!CTCLString@{CTCLString}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}CTCLString::operator std::string () const\hspace{0.3cm}{\tt  [inline]}}\label{classCTCLString_a32}
+
+
+
+
+Definition at line 452 of file TCLString.h.
+
+References m\_\-String.\index{CTCLString@{CTCLString}!operator Tcl_DString *@{operator Tcl\_\-DString $\ast$}}
+\index{operator Tcl_DString *@{operator Tcl\_\-DString $\ast$}!CTCLString@{CTCLString}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}CTCLString::operator Tcl\_\-DString $\ast$ ()\hspace{0.3cm}{\tt  [inline]}}\label{classCTCLString_a33}
+
+
+
+
+Definition at line 455 of file TCLString.h.\index{CTCLString@{CTCLString}!operator"!=@{operator"!=}}
+\index{operator"!=@{operator"!=}!CTCLString@{CTCLString}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}int CTCLString::operator!= (const CTCLString \& {\em a\-CTCLString})\hspace{0.3cm}{\tt  [inline]}}\label{classCTCLString_a8}
+
+
+
+
+Definition at line 369 of file TCLString.h.
+
+References operator==().\index{CTCLString@{CTCLString}!operator+@{operator+}}
+\index{operator+@{operator+}!CTCLString@{CTCLString}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}CTCLString CTCLString::operator+ (const CTCLString \& {\em r\-Rhs})}\label{classCTCLString_a35}
+
+
+
+
+Definition at line 504 of file TCLString.cpp.\index{CTCLString@{CTCLString}!operator+=@{operator+=}}
+\index{operator+=@{operator+=}!CTCLString@{CTCLString}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}CTCLString\& CTCLString::operator+= (const CTCLString \& {\em r\-Rhs})\hspace{0.3cm}{\tt  [inline]}}\label{classCTCLString_a34}
+
+
+
+
+Definition at line 458 of file TCLString.h.\index{CTCLString@{CTCLString}!operator<@{operator$<$}}
+\index{operator<@{operator$<$}!CTCLString@{CTCLString}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}int CTCLString::operator$<$ (const CTCLString \& {\em a\-CTCLString})\hspace{0.3cm}{\tt  [inline]}}\label{classCTCLString_a10}
+
+
+
+
+Definition at line 377 of file TCLString.h.
+
+References m\_\-String.
+
+Referenced by operator$<$=().\index{CTCLString@{CTCLString}!operator<=@{operator$<$=}}
+\index{operator<=@{operator$<$=}!CTCLString@{CTCLString}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}int CTCLString::operator$<$= (const CTCLString \& {\em a\-CTCLString})\hspace{0.3cm}{\tt  [inline]}}\label{classCTCLString_a12}
+
+
+
+
+Definition at line 385 of file TCLString.h.
+
+References operator$<$(), and operator==().\index{CTCLString@{CTCLString}!operator=@{operator=}}
+\index{operator=@{operator=}!CTCLString@{CTCLString}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}CTCLString\& CTCLString::operator= (const CTCLString \& {\em a\-CTCLString})\hspace{0.3cm}{\tt  [inline]}}\label{classCTCLString_a6}
+
+
+
+
+Definition at line 354 of file TCLString.h.
+
+References Do\-Assign().
+
+Referenced by set\-String().\index{CTCLString@{CTCLString}!operator==@{operator==}}
+\index{operator==@{operator==}!CTCLString@{CTCLString}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}int CTCLString::operator== (const CTCLString \& {\em a\-CTCLString})\hspace{0.3cm}{\tt  [inline]}}\label{classCTCLString_a7}
+
+
+
+
+Definition at line 364 of file TCLString.h.
+
+References m\_\-String.
+
+Referenced by operator!=(), operator$<$=(), and operator$>$=().\index{CTCLString@{CTCLString}!operator>@{operator$>$}}
+\index{operator>@{operator$>$}!CTCLString@{CTCLString}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}int CTCLString::operator$>$ (const CTCLString \& {\em a\-CTCLString})\hspace{0.3cm}{\tt  [inline]}}\label{classCTCLString_a9}
+
+
+
+
+Definition at line 372 of file TCLString.h.
+
+References m\_\-String.
+
+Referenced by operator$>$=().\index{CTCLString@{CTCLString}!operator>=@{operator$>$=}}
+\index{operator>=@{operator$>$=}!CTCLString@{CTCLString}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}int CTCLString::operator$>$= (const CTCLString \& {\em a\-CTCLString})\hspace{0.3cm}{\tt  [inline]}}\label{classCTCLString_a11}
+
+
+
+
+Definition at line 382 of file TCLString.h.
+
+References operator==(), and operator$>$().\index{CTCLString@{CTCLString}!setString@{setString}}
+\index{setString@{setString}!CTCLString@{CTCLString}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}void CTCLString::set\-String (const Tcl\_\-DString \& {\em am\_\-String})\hspace{0.3cm}{\tt  [inline]}}\label{classCTCLString_a14}
+
+
+
+
+Definition at line 398 of file TCLString.h.
+
+References operator=().\index{CTCLString@{CTCLString}!StartSublist@{StartSublist}}
+\index{StartSublist@{StartSublist}!CTCLString@{CTCLString}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}CTCLString \& CTCLString::Start\-Sublist ()}\label{classCTCLString_a23}
+
+
+
+
+Definition at line 378 of file TCLString.cpp.
+
+References m\_\-String.\index{CTCLString@{CTCLString}!Truncate@{Truncate}}
+\index{Truncate@{Truncate}!CTCLString@{CTCLString}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}CTCLString \& CTCLString::Truncate ({\bf UInt\_\-t} {\em n\-New\-Length})}\label{classCTCLString_a26}
+
+
+
+
+Definition at line 432 of file TCLString.cpp.
+
+References m\_\-String, and UInt\_\-t.
+
+\subsection{Member Data Documentation}
+\index{CTCLString@{CTCLString}!m_String@{m\_\-String}}
+\index{m_String@{m\_\-String}!CTCLString@{CTCLString}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}Tcl\_\-DString CTCLString::m\_\-String\hspace{0.3cm}{\tt  [private]}}\label{classCTCLString_o0}
+
+
+
+
+Definition at line 316 of file TCLString.h.
+
+Referenced by Append(), Append\-Element(), CTCLString(), Do\-Assign(), End\-Sublist(), get\-String(), is\-Command(), Length(), Match(), operator const char $\ast$(), operator std::string(), operator$<$(), operator==(), operator$>$(), Start\-Sublist(), Truncate(), and $\sim$CTCLString().
+
+The documentation for this class was generated from the following files:\begin{CompactItemize}
+\item 
+{\bf TCLString.h}\item 
+{\bf TCLString.cpp}\end{CompactItemize}

@@ -1,0 +1,46 @@
+/*!
+   \page configsys Configuration subsystem
+
+In many cases, applications require configuration information to run correctly.
+For example, a readout program may need to load a set of ADC thresholds in
+order to manage those ADC's correctly.  The application framework provides 
+for configuration information to be read via Tcl startup scripts. 
+
+Configuration data can be directly bound to:
+- Single C/C++ variables or member data.
+- Slices of C/C++ arrays.
+
+In addition, associative arrays (based on the STL Map class) can be created,
+and initialized via these scripts.  The framwoerk provides a wide variety of 
+configuration policies including:
+- Read single script.
+- Read first specified script in directory path list.
+- Read all specified scripts in a directory path list.
+
+Once configuration requirments for an application have been determined:
+- Create a binding for each variable, array slice, or associative array
+  needed for the configuration.
+- Register these bindings with a CConfigurationManger object.
+- Request the CCConfiguration manager object process configuration files.
+
+Configuration scripts can be written using the entire Tcl language.  Variable
+bindings are allowed for data of type:
+- Integer (int)
+- Double precision (double)
+- Boolean (bool)
+- String (char*)
+Each of the configuration classes is templated to support configuration for
+any of these types.  The Configuration bindings classes are:
+- CVariableBinding - Allows you to bind a single variable to a Tcl variable
+  in the configuraiton script.
+- CArrayBinding  - Allows you to bind a slice of an array to a Tcl array
+  with integer indices in the configuration script.
+- CAssocArrayBinding - Allows you to create and configue an associative
+  array with string indices.
+
+The example below creates all of these bindings, and manages them via a 
+CConfigurationManager object
+
+\include configtest.cpp
+
+*/

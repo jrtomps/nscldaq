@@ -1,0 +1,99 @@
+\section{Buffer arrival events}\label{BufferEvent}
+
+
+The main function of the Spectrodaq server is to provide buffers of data, as requested from producers of data. The {\bf CBuffer\-Event} {\rm (p.\,\pageref{classCBufferEvent})} class provides the hook to respond to buffers received asyncrhonously. Each Buffer\-Event class  can respond to buffers from a disjoint set of sources (links in Spectrodaq terminology).
+
+In order to understand buffer data sources it is necessary to understand the folowing spectrodaq concepts:\begin{CompactItemize}
+\item 
+Link - A link is a virtual connection to a spectrodaq server in the local system or in some remote system. The link is specified by a URL of the form: TCP://hostname:2602/ where:\begin{enumerate}
+\item 
+hostname specifies the host on which the server lives e.g. localhost for buffers produced on the local system.\item 
+2602 is the TCP/IP port number on which the server by default listens for connection requests.\end{enumerate}
+\item 
+Selectivity - A link can be selective of the buffers it receives in two ways:\begin{enumerate}
+\item 
+Reliability - For programs which need not see all data, the application can specify that it wants to receive data  \char`\"{}Unreliably\char`\"{} The application will then only recieve the fraction of the data it can analyze.\item 
+Type selection; Buffers are tagged with a longword which can be thought of as representative of their data type. A link has associated with it a tag and a mask. Links will only accept buffers where (buffer.tag \& link.mask) ==  link.tag In addition, buffers which receive data along a link also have tags and masks. Once the link has received the data it is only sent to the receiving buffer after similar selection logic.\end{enumerate}
+\end{CompactItemize}
+With that understanding we can now look in more detail at the {\bf CBuffer\-Event} {\rm (p.\,\pageref{classCBufferEvent})} class and how to use it. To respond to spectrodaq buffers you must:\begin{CompactItemize}
+\item 
+Write a subclas to {\bf CBuffer\-Event} {\rm (p.\,\pageref{classCBufferEvent})}.\item 
+The {\bf On\-Buffer} {\rm (p.\,\pageref{classCBufferEvent_a10})} must be overridden with experiment specific code to process buffers received by the object.\item 
+One or more instances (depending on application needs) of the class must be instantiated by the running application.\item 
+The instances must be started by calling their  {\bf Enable()} {\rm (p.\,\pageref{classCEvent_a11})} member.\item 
+Select the buffer mask and tag using:\begin{enumerate}
+\item 
+{\bf set\-Buffer\-Tag} {\rm (p.\,\pageref{classCBufferEvent_a12})} and\item 
+{\bf set\-Buffer\-Mask} {\rm (p.\,\pageref{classCBufferEvent_a13})}\end{enumerate}
+\item 
+Create links for every data source desired by calling {\bf Add\-Link().} {\rm (p.\,\pageref{classCBufferEvent_a8})}\end{CompactItemize}
+In the example below, a buffer event is created which listens for, and receives all buffers from the local host. When a buffer is received, the first 64 words (16 bit integers) are dumped to stdout in hex notation with just enough header text to allow us to separate the buffers.
+
+
+
+\footnotesize\begin{verbatim}#include <spectrodaq.h>
+#include <SpectroFramework.h>
+#include <iostream.h>
+
+typedef CBufferEvent<Word> WordBufferEvent;
+typedef Pointer<DAQBuffer<Word>,Word> WordPointer;
+
+
+static const int WordsToDump = 64;
+static const int WordsPerLine= 16;
+class MyBuffers : public WordBufferEvent
+{
+  ostream& m_rOutfile;
+public:
+  MyBuffers(const char* pName, ostream& routfile);
+  virtual void OnBuffer(WordPointer& pBuffer);
+};
+
+MyBuffers::MyBuffers(const char* pname, ostream& routfile) :
+  WordBufferEvent(pname),
+  m_rOutfile(routfile)
+{}
+
+void
+MyBuffers::OnBuffer(WordPointer& pBuffer)
+{
+  m_rOutfile << "---------------------- buffer -----------------";
+  m_rOutfile << hex;
+  for(int i =0; i < WordsToDump; i++) {
+    if( (i% WordsPerLine) == 0) {
+      cout << endl;
+    }
+    cout << *pBuffer << " ";
+    ++pBuffer;
+  }
+  m_rOutfile << endl;
+
+  m_rOutfile << dec;
+}
+
+class MyApp : public DAQROCNode
+{
+protected:
+  int operator() (int argc, char** argv);
+
+};
+MyApp theApplication;
+
+int
+MyApp::operator()(int argc, char** argv)
+{
+  MyBuffers Receiver("BuferReceiver", cout);
+  Receiver.setBufferTag(0);
+  Receiver.setBufferMask(0);
+  
+  Receiver.AddLink("TCP://localhost:2602/", 0, 0);   // Relieable, all events
+  Receiver.Enable();
+  
+  DAQThreadId id = Receiver.getThreadId();
+  
+  Join(id);
+}
+
+\end{verbatim}\normalsize 
+
+

@@ -1,0 +1,247 @@
+\section{CAlarm\-Logger  Class Reference}
+\label{classCAlarmLogger}\index{CAlarmLogger@{CAlarm\-Logger}}
+{\tt \#include $<$CAlarm\-Logger.h$>$}
+
+\subsection*{Public Methods}
+\begin{CompactItemize}
+\item 
+{\bf CAlarm\-Logger} (string facility, string expid, string host=\char`\"{}localhost\char`\"{}, string port=\char`\"{}daqalarm\char`\"{})
+\begin{CompactList}\small\item\em The experiment id to log this alarm to.\item\end{CompactList}\item 
+{\bf CAlarm\-Logger} (const CAlarm\-Logger \&a\-CAlarm\-Logger)
+\item 
+{\bf $\sim$CAlarm\-Logger} ()
+\item 
+string {\bf get\-Facility} ()
+\item 
+string {\bf get\-Host} ()
+\item 
+string {\bf get\-Port} ()
+\item 
+string {\bf get\-Id} ()
+\item 
+void {\bf Log} (string message)
+\end{CompactItemize}
+\subsection*{Protected Methods}
+\begin{CompactItemize}
+\item 
+void {\bf set\-Facility} (string fac)
+\item 
+void {\bf set\-Host} (const string \&host)
+\item 
+void {\bf set\-Port} (const string \&port)
+\item 
+void {\bf set\-If} (const string \&id)
+\end{CompactItemize}
+\subsection*{Private Attributes}
+\begin{CompactItemize}
+\item 
+string {\bf m\_\-s\-Facility}
+\item 
+string {\bf m\_\-s\-Host}
+\begin{CompactList}\small\item\em The facility name that's doing the logging.\item\end{CompactList}\item 
+string {\bf m\_\-s\-Port}
+\begin{CompactList}\small\item\em The host to log to (server host).\item\end{CompactList}\item 
+string {\bf m\_\-s\-Exp\-Id}
+\begin{CompactList}\small\item\em The port to log to (server port).\item\end{CompactList}\end{CompactItemize}
+
+
+\subsection{Detailed Description}
+CAlarm\-Logger encapsulates an alarm logger object. CAlarm\-Loggers are created with the name of the facility doing the logging, a host and port number of the place to do the logging to. Typically, this is the host and port of the machine that the alarm displayer is running on. 
+
+
+
+Definition at line 323 of file CAlarm\-Logger.h.
+
+\subsection{Constructor \& Destructor Documentation}
+\index{CAlarmLogger@{CAlarm\-Logger}!CAlarmLogger@{CAlarmLogger}}
+\index{CAlarmLogger@{CAlarmLogger}!CAlarmLogger@{CAlarm\-Logger}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}CAlarm\-Logger::CAlarm\-Logger (string {\em facility}, string {\em expid}, string {\em host} = \char`\"{}localhost\char`\"{}, string {\em port} = \char`\"{}daqalarm\char`\"{})}\label{classCAlarmLogger_a0}
+
+
+The experiment id to log this alarm to.
+
+\char`\"{}Default Constructor\char`\"{} This is the default constructor which constructs a CAlarm\-Logger given a list of hosts to which it will form socket connections when logging events, and a facility name which will be the name of the facility doing the logging.\begin{Desc}
+\item[Parameters: ]\par
+\begin{description}
+\item[{\em 
+facility}]- the name of the facility doing the logging \end{description}
+\end{Desc}
+
+
+Definition at line 308 of file CAlarm\-Logger.cpp.
+
+References Int\_\-t, and m\_\-s\-Port.\index{CAlarmLogger@{CAlarm\-Logger}!CAlarmLogger@{CAlarmLogger}}
+\index{CAlarmLogger@{CAlarmLogger}!CAlarmLogger@{CAlarm\-Logger}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}CAlarm\-Logger::CAlarm\-Logger (const CAlarm\-Logger \& {\em a\-CAlarm\-Logger})}\label{classCAlarmLogger_a1}
+
+
+\char`\"{}Copy Constructor\char`\"{} This is the copy constructor. It creates a new object by copying the information of the reference object which is its parameter.\begin{Desc}
+\item[Parameters: ]\par
+\begin{description}
+\item[{\em 
+a\-CAlarm\-Logger}]- the reference object whose attributes will be copied. \end{description}
+\end{Desc}
+
+
+Definition at line 336 of file CAlarm\-Logger.cpp.\index{CAlarmLogger@{CAlarm\-Logger}!~CAlarmLogger@{$\sim$CAlarmLogger}}
+\index{~CAlarmLogger@{$\sim$CAlarmLogger}!CAlarmLogger@{CAlarm\-Logger}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}CAlarm\-Logger::$\sim$CAlarm\-Logger ()}\label{classCAlarmLogger_a2}
+
+
+\char`\"{}Destructor\char`\"{} Called when an object goes out of scope, or when execution of the program is terminated. Destroys the object, and frees up space. 
+
+Definition at line 347 of file CAlarm\-Logger.cpp.
+
+\subsection{Member Function Documentation}
+\index{CAlarmLogger@{CAlarm\-Logger}!getFacility@{getFacility}}
+\index{getFacility@{getFacility}!CAlarmLogger@{CAlarm\-Logger}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}string CAlarm\-Logger::get\-Facility ()\hspace{0.3cm}{\tt  [inline]}}\label{classCAlarmLogger_a3}
+
+
+
+
+Definition at line 345 of file CAlarm\-Logger.h.
+
+References m\_\-s\-Facility.\index{CAlarmLogger@{CAlarm\-Logger}!getHost@{getHost}}
+\index{getHost@{getHost}!CAlarmLogger@{CAlarm\-Logger}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}string CAlarm\-Logger::get\-Host ()\hspace{0.3cm}{\tt  [inline]}}\label{classCAlarmLogger_a4}
+
+
+
+
+Definition at line 346 of file CAlarm\-Logger.h.
+
+References m\_\-s\-Host.\index{CAlarmLogger@{CAlarm\-Logger}!getId@{getId}}
+\index{getId@{getId}!CAlarmLogger@{CAlarm\-Logger}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}string CAlarm\-Logger::get\-Id ()\hspace{0.3cm}{\tt  [inline]}}\label{classCAlarmLogger_a6}
+
+
+
+
+Definition at line 348 of file CAlarm\-Logger.h.
+
+References m\_\-s\-Exp\-Id.\index{CAlarmLogger@{CAlarm\-Logger}!getPort@{getPort}}
+\index{getPort@{getPort}!CAlarmLogger@{CAlarm\-Logger}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}string CAlarm\-Logger::get\-Port ()\hspace{0.3cm}{\tt  [inline]}}\label{classCAlarmLogger_a5}
+
+
+
+
+Definition at line 347 of file CAlarm\-Logger.h.
+
+References m\_\-s\-Port.\index{CAlarmLogger@{CAlarm\-Logger}!Log@{Log}}
+\index{Log@{Log}!CAlarmLogger@{CAlarm\-Logger}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}void CAlarm\-Logger::Log (string {\em message})}\label{classCAlarmLogger_a7}
+
+
+Operation Type: Log to file and screen
+
+Attempts to log a message (facility, severity, message, date) to  Event\-Log.tcl by opening a socket connection to each of the hosts in m\_\-Host\-List. The first connection logs the message which consists of the facility, severity, and message to the log file via a call to the tcl procedure Logger::Log. This only needs to be written once, since the same log file will be used by each displayer. The Logger::Log tcl procedure obtains the exact time of the event via a call to date(1). It then returns the date string through the socket (which we read) and that string is what is displayed on the GUI via a call to Logger::Display\_\-Event. In this way, the date on each display will be exactly the same. NOTE: If {\bf Log}() {\rm (p.\,\pageref{classCAlarmLogger_a7})} fails for the first host in the list, then the event will not be written to the log file and will not be displayed anywhere.  If connection to the first host succeeds, but fails on a subsequent host, the event will be logged to file but will not be displayed on whichever host connection failed. It will, however, be displayed on all hosts (including subsequent hosts) to which connection does not fail.\begin{Desc}
+\item[Exceptions: ]\par
+\begin{description}
+\item[{\em 
+{\bf CErrno\-Exception} {\rm (p.\,\pageref{classCErrnoException})}}] - Errno exception occurred \item[{\em 
+{\bf CTCPBad\-Socket\-State} {\rm (p.\,\pageref{classCTCPBadSocketState})}}] - {\bf CSocket::m\_\-State} {\rm (p.\,\pageref{classCSocket_o1})} was not disconnected \item[{\em 
+{\bf CTCPNo\-Such\-Host} {\rm (p.\,\pageref{classCTCPNoSuchHost})}}] - Host not in DNS or nonexistent \item[{\em 
+{\bf CTCPNo\-Such\-Service} {\rm (p.\,\pageref{classCTCPNoSuchService})}}] - Named service does not translate. \item[{\em 
+{\bf CTCPConnection\-Failed} {\rm (p.\,\pageref{classCTCPConnectionFailed})}}] - Connection refused by remote host \item[{\em 
+{\bf CTCPConnection\-Lost} {\rm (p.\,\pageref{classCTCPConnectionLost})}}] - Connection terminated by remote host\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Parameters: ]\par
+\begin{description}
+\item[{\em 
+sev}]- This is an enumerated value which represent the severity of the event. \item[{\em 
+message}]- This is the message which the caller wants to log. \end{description}
+\end{Desc}
+
+
+Definition at line 383 of file CAlarm\-Logger.cpp.
+
+References CSocket::Connect(), m\_\-s\-Exp\-Id, m\_\-s\-Facility, m\_\-s\-Host, m\_\-s\-Port, CSocket::Shutdown(), and CSocket::Write().\index{CAlarmLogger@{CAlarm\-Logger}!setFacility@{setFacility}}
+\index{setFacility@{setFacility}!CAlarmLogger@{CAlarm\-Logger}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}void CAlarm\-Logger::set\-Facility (string {\em fac})\hspace{0.3cm}{\tt  [inline, protected]}}\label{classCAlarmLogger_b0}
+
+
+
+
+Definition at line 352 of file CAlarm\-Logger.h.
+
+References m\_\-s\-Facility.\index{CAlarmLogger@{CAlarm\-Logger}!setHost@{setHost}}
+\index{setHost@{setHost}!CAlarmLogger@{CAlarm\-Logger}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}void CAlarm\-Logger::set\-Host (const string \& {\em host})\hspace{0.3cm}{\tt  [inline, protected]}}\label{classCAlarmLogger_b1}
+
+
+
+
+Definition at line 356 of file CAlarm\-Logger.h.
+
+References m\_\-s\-Host.\index{CAlarmLogger@{CAlarm\-Logger}!setIf@{setIf}}
+\index{setIf@{setIf}!CAlarmLogger@{CAlarm\-Logger}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}void CAlarm\-Logger::set\-If (const string \& {\em id})\hspace{0.3cm}{\tt  [inline, protected]}}\label{classCAlarmLogger_b3}
+
+
+
+
+Definition at line 364 of file CAlarm\-Logger.h.
+
+References m\_\-s\-Exp\-Id.\index{CAlarmLogger@{CAlarm\-Logger}!setPort@{setPort}}
+\index{setPort@{setPort}!CAlarmLogger@{CAlarm\-Logger}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}void CAlarm\-Logger::set\-Port (const string \& {\em port})\hspace{0.3cm}{\tt  [inline, protected]}}\label{classCAlarmLogger_b2}
+
+
+
+
+Definition at line 360 of file CAlarm\-Logger.h.
+
+References m\_\-s\-Port.
+
+\subsection{Member Data Documentation}
+\index{CAlarmLogger@{CAlarm\-Logger}!m_sExpId@{m\_\-sExpId}}
+\index{m_sExpId@{m\_\-sExpId}!CAlarmLogger@{CAlarm\-Logger}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}string CAlarm\-Logger::m\_\-s\-Exp\-Id\hspace{0.3cm}{\tt  [private]}}\label{classCAlarmLogger_o3}
+
+
+The port to log to (server port).
+
+
+
+Definition at line 328 of file CAlarm\-Logger.h.
+
+Referenced by get\-Id(), Log(), and set\-If().\index{CAlarmLogger@{CAlarm\-Logger}!m_sFacility@{m\_\-sFacility}}
+\index{m_sFacility@{m\_\-sFacility}!CAlarmLogger@{CAlarm\-Logger}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}string CAlarm\-Logger::m\_\-s\-Facility\hspace{0.3cm}{\tt  [private]}}\label{classCAlarmLogger_o0}
+
+
+
+
+Definition at line 325 of file CAlarm\-Logger.h.
+
+Referenced by get\-Facility(), Log(), and set\-Facility().\index{CAlarmLogger@{CAlarm\-Logger}!m_sHost@{m\_\-sHost}}
+\index{m_sHost@{m\_\-sHost}!CAlarmLogger@{CAlarm\-Logger}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}string CAlarm\-Logger::m\_\-s\-Host\hspace{0.3cm}{\tt  [private]}}\label{classCAlarmLogger_o1}
+
+
+The facility name that's doing the logging.
+
+
+
+Definition at line 326 of file CAlarm\-Logger.h.
+
+Referenced by get\-Host(), Log(), and set\-Host().\index{CAlarmLogger@{CAlarm\-Logger}!m_sPort@{m\_\-sPort}}
+\index{m_sPort@{m\_\-sPort}!CAlarmLogger@{CAlarm\-Logger}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}string CAlarm\-Logger::m\_\-s\-Port\hspace{0.3cm}{\tt  [private]}}\label{classCAlarmLogger_o2}
+
+
+The host to log to (server host).
+
+
+
+Definition at line 327 of file CAlarm\-Logger.h.
+
+Referenced by CAlarm\-Logger(), get\-Port(), Log(), and set\-Port().
+
+The documentation for this class was generated from the following files:\begin{CompactItemize}
+\item 
+{\bf CAlarm\-Logger.h}\item 
+{\bf CAlarm\-Logger.cpp}\end{CompactItemize}

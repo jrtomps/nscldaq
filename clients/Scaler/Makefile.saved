@@ -1,0 +1,231 @@
+# Generated automatically from Makefile.in by configure.
+SPECTRO_FLAGS=$(shell $(INSTDIR)/../spectrodaq/bin/spectrodaq-conf --cflags)
+SPECTRO_LDFLAGS=$(shell $(INSTDIR)/../spectrodaq/bin/spectrodaq-conf --libs)
+
+# To get unreliable links DEFS=-DRF_UNRELIABLE on make cmd.
+
+# If you want to run the program in test mode, uncomment
+# the second definition of TESTFLAGS below.
+
+#TESTFLAGS=-DDAQ_TEST_MODE
+
+
+FLAGS=  -I. -Iinclude -ggdb2 -g2 $(SPECTRO_FLAGS) $(TESTFLAGS) -I$(INSTDIR)/Include
+CFLAGS=  -I. -Iinclude -ggdb2 -g2 $(SPECTRO_FLAGS) $(TESTFLAGS)  -I. -I$(INSTDIR)/Include
+CXXFLAGS=  -Iinclude -ggdb2 -g2 $(SPECTRO_FLAGS) $(TESTFLAGS) $(DEFS) -I. -I$(INSTDIR)/Include
+LDFLAGS=-L. -Llib -lDaqFramework -lNSCLBuffer -lcvt $(SPECTRO_LDFLAGS) -L$(INSTDIR)/Lib -lLicense
+
+
+CC=c++
+CXX=g++
+
+
+prog_files=scaler
+objects=ScalerClient.o
+
+all: $(prog_files)	
+
+depend:
+	makedepend $(CXXFLAGS)  *.cpp
+
+scaler: $(objects)
+	$(CXX) $(CXXFLAGS) -o $@ $(objects) $(LDFLAGS)
+
+
+
+
+
+
+clean:
+	rm -f *.o
+
+realclean: clean
+	rm -f $(prog_files)
+
+install: all
+	install -d -m 02775        $(INSTDIR)/Bin
+	install    -m 00775 scaler $(INSTDIR)/Bin 
+	install    -m 00775 scaler $(INSTDIR)/Bin/sclclient
+	mkdir -p $(INSTDIR)/Bin
+
+
+# DO NOT DELETE
+
+ScalerClient.o: ScalerClient.h include/Consumer.h
+ScalerClient.o: /usr/opt/spectrodaq/include/spectrodaq.h
+ScalerClient.o: /usr/opt/spectrodaq/include/daqconfig.h
+ScalerClient.o: /usr/opt/spectrodaq/include/netio/netio.h
+ScalerClient.o: /usr/opt/spectrodaq/include/netio/netio_parms.h
+ScalerClient.o: /usr/include/string.h /usr/include/features.h
+ScalerClient.o: /usr/include/sys/cdefs.h /usr/include/gnu/stubs.h
+ScalerClient.o: /usr/lib/gcc-lib/i386-linux/2.95.4/include/stddef.h
+ScalerClient.o: /usr/include/sys/socket.h /usr/include/sys/uio.h
+ScalerClient.o: /usr/include/sys/types.h /usr/include/bits/types.h
+ScalerClient.o: /usr/include/time.h /usr/include/bits/uio.h
+ScalerClient.o: /usr/include/bits/socket.h /usr/include/limits.h
+ScalerClient.o: /usr/lib/gcc-lib/i386-linux/2.95.4/include/limits.h
+ScalerClient.o: /usr/include/bits/sockaddr.h /usr/include/asm/socket.h
+ScalerClient.o: /usr/include/asm/sockios.h /usr/include/sys/un.h
+ScalerClient.o: /usr/include/netinet/in.h /usr/include/stdint.h
+ScalerClient.o: /usr/include/bits/wchar.h /usr/include/bits/wordsize.h
+ScalerClient.o: /usr/include/bits/in.h /usr/include/endian.h
+ScalerClient.o: /usr/include/bits/endian.h /usr/include/bits/byteswap.h
+ScalerClient.o: /usr/opt/spectrodaq/include/netio/sockopts.h
+ScalerClient.o: /usr/opt/spectrodaq/include/netio/tcpio.h
+ScalerClient.o: /usr/include/stdlib.h /usr/include/stdio.h
+ScalerClient.o: /usr/include/libio.h /usr/include/_G_config.h
+ScalerClient.o: /usr/include/wchar.h /usr/include/gconv.h
+ScalerClient.o: /usr/lib/gcc-lib/i386-linux/2.95.4/include/stdarg.h
+ScalerClient.o: /usr/include/bits/stdio_lim.h /usr/include/signal.h
+ScalerClient.o: /usr/include/bits/sigset.h /usr/include/bits/signum.h
+ScalerClient.o: /usr/include/sys/time.h /usr/include/bits/time.h
+ScalerClient.o: /usr/include/sys/select.h /usr/include/bits/select.h
+ScalerClient.o: /usr/include/unistd.h /usr/include/bits/posix_opt.h
+ScalerClient.o: /usr/include/bits/confname.h /usr/include/errno.h
+ScalerClient.o: /usr/include/bits/errno.h /usr/include/linux/errno.h
+ScalerClient.o: /usr/include/asm/errno.h /usr/include/fcntl.h
+ScalerClient.o: /usr/include/bits/fcntl.h /usr/include/ctype.h
+ScalerClient.o: /usr/include/netdb.h /usr/include/bits/netdb.h
+ScalerClient.o: /usr/opt/spectrodaq/include/netio/udpio.h
+ScalerClient.o: /usr/opt/spectrodaq/include/netio/unixio.h
+ScalerClient.o: /usr/opt/spectrodaq/include/threads/daqthreads.h
+ScalerClient.o: /usr/opt/spectrodaq/include/mainexterns.h
+ScalerClient.o: /usr/opt/spectrodaq/include/daqcstr.h
+ScalerClient.o: /usr/opt/spectrodaq/include/maindefs.h
+ScalerClient.o: /usr/opt/spectrodaq/include/genmacros.h
+ScalerClient.o: /usr/opt/spectrodaq/include/DAQTrackMap.h
+ScalerClient.o: /usr/include/syslog.h /usr/include/sys/syslog.h
+ScalerClient.o: /usr/opt/spectrodaq/include/DAQObject.h
+ScalerClient.o: /usr/opt/spectrodaq/include/OStream.h
+ScalerClient.o: /usr/opt/spectrodaq/include/Printable.h
+ScalerClient.o: /usr/opt/spectrodaq/include/DAQTrackMemory.h
+ScalerClient.o: /usr/opt/spectrodaq/include/DAQObjectType.h
+ScalerClient.o: /usr/opt/spectrodaq/include/DAQAlloc.h
+ScalerClient.o: /usr/opt/spectrodaq/include/nscl/ErrnoException.h
+ScalerClient.o: /usr/opt/spectrodaq/include/nscl/OSException.h
+ScalerClient.o: /usr/opt/spectrodaq/include/nscl/NSCLException.h
+ScalerClient.o: /usr/opt/spectrodaq/include/nscl/UNIXExceptionFactory.h
+ScalerClient.o: /usr/opt/spectrodaq/include/nscl/OSExceptionFactory.h
+ScalerClient.o: /usr/opt/spectrodaq/include/DAQNodeContext.h
+ScalerClient.o: /usr/opt/spectrodaq/include/DAQContext.h
+ScalerClient.o: /usr/opt/spectrodaq/include/DAQException.h
+ScalerClient.o: /usr/opt/spectrodaq/include/DAQEvent.h
+ScalerClient.o: /usr/opt/spectrodaq/include/DAQExceptionType.h
+ScalerClient.o: /usr/opt/spectrodaq/include/DAQStatus.h
+ScalerClient.o: /usr/opt/spectrodaq/include/maintypes.h
+ScalerClient.o: /usr/opt/spectrodaq/include/daqtypes.h
+ScalerClient.o: /usr/opt/spectrodaq/include/DAQLogger.h
+ScalerClient.o: /usr/opt/spectrodaq/include/DAQThreadMutex.h
+ScalerClient.o: /usr/opt/spectrodaq/include/DAQExecObject.h
+ScalerClient.o: /usr/opt/spectrodaq/include/DAQExecTrack.h
+ScalerClient.o: /usr/opt/spectrodaq/include/LinkedList.h
+ScalerClient.o: /usr/opt/spectrodaq/include/NullMutex.h
+ScalerClient.o: /usr/opt/spectrodaq/include/MutexIface.h
+ScalerClient.o: /usr/opt/spectrodaq/include/DAQString.h
+ScalerClient.o: /usr/opt/spectrodaq/include/Array.h
+ScalerClient.o: /usr/opt/spectrodaq/include/ArrayAllocator.h
+ScalerClient.o: /usr/opt/spectrodaq/include/Pointer.h
+ScalerClient.o: /usr/opt/spectrodaq/include/PointerBag.h
+ScalerClient.o: /usr/opt/spectrodaq/include/DAQShmseg.h
+ScalerClient.o: /usr/opt/spectrodaq/include/DAQShmsegData.h
+ScalerClient.o: /usr/opt/spectrodaq/include/DAQRefCounter.h
+ScalerClient.o: /usr/opt/spectrodaq/include/DAQRefObject.h
+ScalerClient.o: /usr/include/sys/stat.h /usr/include/bits/stat.h
+ScalerClient.o: /usr/include/sys/wait.h /usr/include/sys/resource.h
+ScalerClient.o: /usr/include/bits/resource.h /usr/include/bits/waitflags.h
+ScalerClient.o: /usr/include/bits/waitstatus.h /usr/include/sys/ipc.h
+ScalerClient.o: /usr/include/bits/ipc.h /usr/include/sys/shm.h
+ScalerClient.o: /usr/include/bits/shm.h /usr/include/sys/sem.h
+ScalerClient.o: /usr/include/bits/sem.h
+ScalerClient.o: /usr/opt/spectrodaq/include/DAQExecTrackEntry.h
+ScalerClient.o: /usr/opt/spectrodaq/include/DAQThreadId.h
+ScalerClient.o: /usr/opt/spectrodaq/include/DAQExecId.h
+ScalerClient.o: /usr/opt/spectrodaq/include/DAQNodeId.h
+ScalerClient.o: /usr/opt/spectrodaq/include/DAQExecFactory.h
+ScalerClient.o: /usr/opt/spectrodaq/include/DAQExceptionFactory.h
+ScalerClient.o: /usr/opt/spectrodaq/include/DAQThreadHashTable.h
+ScalerClient.o: /usr/opt/spectrodaq/include/DAQThread.h
+ScalerClient.o: /usr/opt/spectrodaq/include/DAQThreadFactory.h
+ScalerClient.o: /usr/opt/spectrodaq/include/DAQThreadDebugMutex.h
+ScalerClient.o: /usr/opt/spectrodaq/include/DAQNode.h
+ScalerClient.o: /usr/opt/spectrodaq/include/DAQNodeFactory.h
+ScalerClient.o: /usr/opt/spectrodaq/include/HashTable.h
+ScalerClient.o: /usr/opt/spectrodaq/include/DebugMutex.h
+ScalerClient.o: /usr/opt/spectrodaq/include/DAQServConfig.h
+ScalerClient.o: /usr/opt/spectrodaq/include/DAQURL.h
+ScalerClient.o: /usr/opt/spectrodaq/include/Queue.h
+ScalerClient.o: /usr/opt/spectrodaq/include/Stack.h
+ScalerClient.o: /usr/opt/spectrodaq/include/DAQMain.h
+ScalerClient.o: /usr/opt/spectrodaq/include/DAQEncoder.h
+ScalerClient.o: /usr/opt/spectrodaq/include/DAQDisplayXML.h
+ScalerClient.o: /usr/opt/spectrodaq/include/DAQCommInfo.h
+ScalerClient.o: /usr/opt/spectrodaq/include/xmloop/XMLParser.h
+ScalerClient.o: /usr/opt/spectrodaq/include/xmloop/xmlpconfig.h
+ScalerClient.o: /usr/opt/spectrodaq/include/xmloop/XMLHandler.h
+ScalerClient.o: /usr/opt/spectrodaq/include/xmloop/xmlparse.h
+ScalerClient.o: /usr/opt/spectrodaq/include/xmloop/XMLLinkedList.h
+ScalerClient.o: /usr/opt/spectrodaq/include/xmloop/XMLOut.h
+ScalerClient.o: /usr/opt/spectrodaq/include/xmloop/XMLPipe.h
+ScalerClient.o: /usr/opt/spectrodaq/include/xmloop/XMLStack.h
+ScalerClient.o: /usr/opt/spectrodaq/include/xmloop/XMLNamespace.h
+ScalerClient.o: /usr/opt/spectrodaq/include/xmloop/XMLINSStack.h
+ScalerClient.o: /usr/opt/spectrodaq/include/xmloop/XMLPtrStack.h
+ScalerClient.o: /usr/opt/spectrodaq/include/DAQDisplayProto.h
+ScalerClient.o: /usr/include/arpa/inet.h
+ScalerClient.o: /usr/opt/spectrodaq/include/DAQDisplayText.h
+ScalerClient.o: /usr/opt/spectrodaq/include/DAQDisplayText_H.h
+ScalerClient.o: /usr/opt/spectrodaq/include/DAQDisplayHTML.h
+ScalerClient.o: /usr/opt/spectrodaq/include/DAQDisplayHTML_H.h
+ScalerClient.o: /usr/opt/spectrodaq/include/DAQThreadCond.h
+ScalerClient.o: /usr/opt/spectrodaq/include/DAQDispatcher.h
+ScalerClient.o: /usr/opt/spectrodaq/include/DAQArray.h
+ScalerClient.o: /usr/opt/spectrodaq/include/DAQAuthToken.h
+ScalerClient.o: /usr/opt/spectrodaq/include/DAQSelectable.h
+ScalerClient.o: /usr/opt/spectrodaq/include/DAQSelectObj.h
+ScalerClient.o: /usr/opt/spectrodaq/include/DAQCommMsg.h
+ScalerClient.o: /usr/opt/spectrodaq/include/DAQCommMsgIface.h
+ScalerClient.o: /usr/opt/spectrodaq/include/DAQCommunicator.h
+ScalerClient.o: /usr/include/sys/poll.h /usr/include/bits/poll.h
+ScalerClient.o: /usr/opt/spectrodaq/include/DAQExpBackOff.h
+ScalerClient.o: /usr/include/setjmp.h /usr/include/bits/setjmp.h
+ScalerClient.o: /usr/opt/spectrodaq/include/DAQRPCHandler.h
+ScalerClient.o: /usr/opt/spectrodaq/include/DAQRPCStub.h
+ScalerClient.o: /usr/opt/spectrodaq/include/DAQRPCHandles.h
+ScalerClient.o: /usr/opt/spectrodaq/include/DAQRPC.h
+ScalerClient.o: /usr/opt/spectrodaq/include/DAQRPCServ.h
+ScalerClient.o: /usr/opt/spectrodaq/include/DAQRPCServStub.h
+ScalerClient.o: /usr/opt/spectrodaq/include/DAQRPCServThread.h
+ScalerClient.o: /usr/opt/spectrodaq/include/DAQKeyRing.h
+ScalerClient.o: /usr/opt/spectrodaq/include/DAQSemset.h
+ScalerClient.o: /usr/opt/spectrodaq/include/DAQBlock.h
+ScalerClient.o: /usr/opt/spectrodaq/include/BufferAllocator.h
+ScalerClient.o: /usr/opt/spectrodaq/include/Buffer.h
+ScalerClient.o: /usr/opt/spectrodaq/include/DAQBufferPage.h
+ScalerClient.o: /usr/opt/spectrodaq/include/DAQBufferPageHeaderEncoder.h
+ScalerClient.o: /usr/opt/spectrodaq/include/DAQServClock.h
+ScalerClient.o: /usr/opt/spectrodaq/include/DAQTestBuffer.h
+ScalerClient.o: /usr/opt/spectrodaq/include/DAQBuffer.h
+ScalerClient.o: /usr/opt/spectrodaq/include/DAQPageBlock.h
+ScalerClient.o: /usr/opt/spectrodaq/include/DAQBufferGetPage.h
+ScalerClient.o: /usr/opt/spectrodaq/include/DAQBufferAccept.h
+ScalerClient.o: /usr/opt/spectrodaq/include/DAQBufferDefs.h
+ScalerClient.o: /usr/opt/spectrodaq/include/DAQPriorityBuffer.h
+ScalerClient.o: /usr/opt/spectrodaq/include/DAQBufferPager.h
+ScalerClient.o: /usr/opt/spectrodaq/include/DAQLinkMgr.h
+ScalerClient.o: /usr/opt/spectrodaq/include/DAQLink.h
+ScalerClient.o: /usr/opt/spectrodaq/include/DAQROCNode.h
+ScalerClient.o: /usr/opt/spectrodaq/include/DAQFilterNode.h
+ScalerClient.o: /usr/opt/spectrodaq/include/DAQServNode.h
+ScalerClient.o: /usr/opt/spectrodaq/include/DAQPeriodicEvent.h
+ScalerClient.o: /usr/opt/spectrodaq/include/DAQPeriodicEventMgr.h
+ScalerClient.o: /usr/opt/spectrodaq/include/DAQPeriodicEventThread.h
+ScalerClient.o: /usr/opt/spectrodaq/include/DAQAlarm.h
+ScalerClient.o: /usr/opt/spectrodaq/include/DAQAlarmMsg.h
+ScalerClient.o: /usr/opt/spectrodaq/include/DAQTrap.h
+ScalerClient.o: /usr/opt/spectrodaq/include/DAQOstreamOut.h
+ScalerClient.o: include/DataSource.h ./basetypes.h
+ScalerClient.o: include/TclServerConnection.h include/TcpClient.h
+ScalerClient.o: include/NSCLScalerBuffer.h include/NSCLDaqBuffer.h
+ScalerClient.o: include/daqcvt.h include/buftypes.h include/nsclbuffer.h
+ScalerClient.o: include/NSCLStateChangeBuffer.h
+ScalerClient.o: /usr/opt/daq/Include/CopyrightNotice.h

@@ -1,0 +1,89 @@
+<html>
+
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=windows-1252">
+<meta name="GENERATOR" content="Microsoft FrontPage 4.0">
+<meta name="ProgId" content="FrontPage.Editor.Document">
+<title>eventlog</title>
+</head>
+
+<body>
+
+<table border="0" cellpadding="0" cellspacing="0" width="100%">
+  <tr>
+    <th width="9%" nowrap><a href="http://www.nscl.msu.edu"><img src="nscl_logo.gif" alt="nscl_logo_small.gif (2463 bytes)" width="107" height="88"></a></th>
+    <td width="90%">
+      <h1>eventlog - Log events from a SpectroDaq server.</h1>
+    </td>
+    <td width="1%"></td>
+  </tr>
+</table>
+<h2>Synopsis</h2>
+<p>/opt/daq/Bin/eventlog [-help] | [-source srcurl] [-ftp ftpurl] [-user
+username] [-pass password]</p>
+<h2>Detailed Description</h2>
+<p><b>eventlog</b> logs event data from a spectrodaq server to a disk
+file.&nbsp; Event files are written either in eventlog's current working
+directory, or alternatively via ftp in some remote directory.</p>
+<h3>Command Switches:</h3>
+<table border="1" width="100%">
+  <tr>
+    <td width="8%"><b>Switch</b></td>
+    <td width="28%"><b>Parameter</b></td>
+    <td width="64%"><b>Meaning</b></td>
+  </tr>
+  <tr>
+    <td width="8%">-help</td>
+    <td width="28%">&nbsp;</td>
+    <td width="64%"><b>eventlog</b> prints a message describing how to use it
+      and exits.</td>
+  </tr>
+  <tr>
+    <td width="8%" valign="top">-source</td>
+    <td width="28%">URL of data source </td>
+    <td width="64%">Allows the URL of an alternative Spectrodaq server to be
+      supplied. By default, the spectrodaq server in the localhost is accessed.
+      (tcp://localhost:2602/).&nbsp; Data can be gotten from remote hosts as
+      well e.g.: tcp://spdaq05.nscl.msu.edu:2602/ </td>
+  </tr>
+  <tr>
+    <td width="8%" valign="top">-ftp</td>
+    <td width="28%">URL of ftp destination directory</td>
+    <td width="64%">Specifies the ftp URL of a directory into which the data
+      will be written.&nbsp; If omitted, data will be written locally to <b>eventlog</b>'s
+      current working directory.&nbsp; If, for example, you want to write data
+      to the event1 staging region use:<br>
+      &nbsp;-ftp tcp://daq1.nscl.msu.edu:ftp/usr/DAQ/event1</td>
+  </tr>
+  <tr>
+    <td width="8%" valign="top">-user</td>
+    <td width="28%">FTP login username</td>
+    <td width="64%">Allows you to supply a username for the ftp login associated
+      with the URL supplied by the -ftp switch.&nbsp; This defaults to anonymous
+      which in most cases is useless</td>
+  </tr>
+  <tr>
+    <td width="8%" valign="top">-pass</td>
+    <td width="28%">FTP Login password</td>
+    <td width="64%">Allows you to supply a password for the ftp login associated
+      with the URL supplied by the -ftp switch.&nbsp; This defaults to <a href="mailto:user@nscl.msu.edu">user@nscl.msu.edu</a>
+      which in general is useless.</td>
+  </tr>
+</table>
+<h2>Examples</h2>
+<pre>eventlog                                                 # Record data locally from local data source
+eventlog -source tcp://spdaq01.nscl.msu.edu:2602/        # Record data locally from spdaq01.
+eventlog -ftp tcp://daq1.nscl.msu.edu/usr/DAQ/event1 \   # Record data in /usr/DAQ/event1 of the system
+         -user event1 -pass event1pass                   # daq1.nscl.msu.edu as an ftp client logged in
+                                                         # as event1 with the password event1pass.
+                                                     </pre>
+<hr>
+<p>Last Modified: <!--webbot bot="Timestamp" startspan s-type="EDITED"
+s-format="%B %d, %Y" -->March 26, 2001<!--webbot bot="Timestamp"
+I-CheckSum="17347" endspan -->
+ by: <a href="mailto:fox@nscl.msu.edu">fox@nscl.msu.edu</a><br>
+<font size="2">© Copyright NSCL 1999, All rights reserved</font></p>
+
+</body>
+
+</html>

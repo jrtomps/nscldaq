@@ -1,0 +1,233 @@
+\section{XMRow\-Column  Class Reference}
+\label{classXMRowColumn}\index{XMRowColumn@{XMRow\-Column}}
+{\tt \#include $<$XMManagers.h$>$}
+
+Inheritance diagram for XMRow\-Column::\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[height=3cm]{classXMRowColumn}
+\end{center}
+\end{figure}
+\subsection*{Public Methods}
+\begin{CompactItemize}
+\item 
+{\bf XMRow\-Column} (char $\ast${\bf name})
+\item 
+{\bf XMRow\-Column} (Widget {\bf id})
+\item 
+{\bf XMRow\-Column} (char $\ast${\bf name}, {\bf XMApplication} \&parent, Arg\-List l=NULL, Cardinal num\_\-args=0)
+\item 
+{\bf XMRow\-Column} (char $\ast${\bf name}, {\bf XMWidget} \&parent, Arg\-List l=NULL, Cardinal num\_\-args=0)
+\item 
+{\bf XMRow\-Column} (char $\ast${\bf name}, Widget parent, Arg\-List l=NULL, Cardinal num\_\-args=0)
+\item 
+void {\bf Set\-Alignment} (unsigned char alignment)
+\item 
+void {\bf Set\-Entry\-Class} (Widget\-Class type)
+\item 
+void {\bf Align} (Boolean align)
+\item 
+void {\bf Set\-Homogenous} (Boolean homog)
+\item 
+void {\bf Margins} (Dimension vertical, Dimension horizontal)
+\item 
+void {\bf Set\-Row\-Columns} (int numcols)
+\item 
+void {\bf Set\-Orientation} (unsigned char orientation)
+\item 
+void {\bf Set\-Packing} (unsigned char packmethod)
+\item 
+void {\bf Radio\-Menu} ()
+\item 
+void {\bf Radio\-Force\-One} ()
+\item 
+void {\bf No\-Radio\-Menu} ()
+\item 
+void {\bf Radio\-No\-Force\-One} ()
+\item 
+void {\bf Set\-Spacing} (Dimension spacing)
+\item 
+{\bf Callback\_\-data} $\ast$ {\bf Add\-Entry\-Callback} (void($\ast$callback)({\bf XMWidget} $\ast$, Xt\-Pointer, Xt\-Pointer), Xt\-Pointer client\_\-data)
+\end{CompactItemize}
+
+
+\subsection{Constructor \& Destructor Documentation}
+\index{XMRowColumn@{XMRow\-Column}!XMRowColumn@{XMRowColumn}}
+\index{XMRowColumn@{XMRowColumn}!XMRowColumn@{XMRow\-Column}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}XMRow\-Column::XMRow\-Column (char $\ast$ {\em name})\hspace{0.3cm}{\tt  [inline]}}\label{classXMRowColumn_a0}
+
+
+
+
+Definition at line 584 of file XMManagers.h.
+
+References XMWidget::name.\index{XMRowColumn@{XMRow\-Column}!XMRowColumn@{XMRowColumn}}
+\index{XMRowColumn@{XMRowColumn}!XMRowColumn@{XMRow\-Column}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}XMRow\-Column::XMRow\-Column (Widget {\em id})\hspace{0.3cm}{\tt  [inline]}}\label{classXMRowColumn_a1}
+
+
+
+
+Definition at line 585 of file XMManagers.h.
+
+References XMWidget::id.\index{XMRowColumn@{XMRow\-Column}!XMRowColumn@{XMRowColumn}}
+\index{XMRowColumn@{XMRowColumn}!XMRowColumn@{XMRow\-Column}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}XMRow\-Column::XMRow\-Column (char $\ast$ {\em name}, {\bf XMApplication} \& {\em parent}, Arg\-List {\em l} = NULL, Cardinal {\em num\_\-args} = 0)\hspace{0.3cm}{\tt  [inline]}}\label{classXMRowColumn_a2}
+
+
+
+
+Definition at line 586 of file XMManagers.h.
+
+References XMWidget::name.\index{XMRowColumn@{XMRow\-Column}!XMRowColumn@{XMRowColumn}}
+\index{XMRowColumn@{XMRowColumn}!XMRowColumn@{XMRow\-Column}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}XMRow\-Column::XMRow\-Column (char $\ast$ {\em name}, {\bf XMWidget} \& {\em parent}, Arg\-List {\em l} = NULL, Cardinal {\em num\_\-args} = 0)\hspace{0.3cm}{\tt  [inline]}}\label{classXMRowColumn_a3}
+
+
+
+
+Definition at line 589 of file XMManagers.h.
+
+References XMWidget::name.\index{XMRowColumn@{XMRow\-Column}!XMRowColumn@{XMRowColumn}}
+\index{XMRowColumn@{XMRowColumn}!XMRowColumn@{XMRow\-Column}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}XMRow\-Column::XMRow\-Column (char $\ast$ {\em name}, Widget {\em parent}, Arg\-List {\em l} = NULL, Cardinal {\em num\_\-args} = 0)\hspace{0.3cm}{\tt  [inline]}}\label{classXMRowColumn_a4}
+
+
+
+
+Definition at line 592 of file XMManagers.h.
+
+References XMWidget::name.
+
+\subsection{Member Function Documentation}
+\index{XMRowColumn@{XMRow\-Column}!AddEntryCallback@{AddEntryCallback}}
+\index{AddEntryCallback@{AddEntryCallback}!XMRowColumn@{XMRow\-Column}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}{\bf Callback\_\-data}$\ast$ XMRow\-Column::Add\-Entry\-Callback (void($\ast$ {\em callback})({\bf XMWidget} $\ast$, Xt\-Pointer, Xt\-Pointer), Xt\-Pointer {\em client\_\-data})\hspace{0.3cm}{\tt  [inline]}}\label{classXMRowColumn_a18}
+
+
+
+
+Definition at line 639 of file XMManagers.h.
+
+References XMWidget::Add\-Callback().\index{XMRowColumn@{XMRow\-Column}!Align@{Align}}
+\index{Align@{Align}!XMRowColumn@{XMRow\-Column}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}void XMRow\-Column::Align (Boolean {\em align})\hspace{0.3cm}{\tt  [inline]}}\label{classXMRowColumn_a7}
+
+
+
+
+Definition at line 604 of file XMManagers.h.
+
+References XMWidget::Set\-Attribute().\index{XMRowColumn@{XMRow\-Column}!Margins@{Margins}}
+\index{Margins@{Margins}!XMRowColumn@{XMRow\-Column}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}void XMRow\-Column::Margins (Dimension {\em vertical}, Dimension {\em horizontal})\hspace{0.3cm}{\tt  [inline]}}\label{classXMRowColumn_a9}
+
+
+
+
+Definition at line 610 of file XMManagers.h.
+
+References XMWidget::Set\-Attribute().\index{XMRowColumn@{XMRow\-Column}!NoRadioMenu@{NoRadioMenu}}
+\index{NoRadioMenu@{NoRadioMenu}!XMRowColumn@{XMRow\-Column}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}void XMRow\-Column::No\-Radio\-Menu ()\hspace{0.3cm}{\tt  [inline]}}\label{classXMRowColumn_a15}
+
+
+
+
+Definition at line 628 of file XMManagers.h.
+
+References XMWidget::Set\-Attribute().\index{XMRowColumn@{XMRow\-Column}!RadioForceOne@{RadioForceOne}}
+\index{RadioForceOne@{RadioForceOne}!XMRowColumn@{XMRow\-Column}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}void XMRow\-Column::Radio\-Force\-One ()\hspace{0.3cm}{\tt  [inline]}}\label{classXMRowColumn_a14}
+
+
+
+
+Definition at line 626 of file XMManagers.h.
+
+References XMWidget::Set\-Attribute().\index{XMRowColumn@{XMRow\-Column}!RadioMenu@{RadioMenu}}
+\index{RadioMenu@{RadioMenu}!XMRowColumn@{XMRow\-Column}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}void XMRow\-Column::Radio\-Menu ()\hspace{0.3cm}{\tt  [inline]}}\label{classXMRowColumn_a13}
+
+
+
+
+Definition at line 624 of file XMManagers.h.
+
+References XMWidget::Set\-Attribute().\index{XMRowColumn@{XMRow\-Column}!RadioNoForceOne@{RadioNoForceOne}}
+\index{RadioNoForceOne@{RadioNoForceOne}!XMRowColumn@{XMRow\-Column}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}void XMRow\-Column::Radio\-No\-Force\-One ()\hspace{0.3cm}{\tt  [inline]}}\label{classXMRowColumn_a16}
+
+
+
+
+Definition at line 630 of file XMManagers.h.
+
+References XMWidget::Set\-Attribute().\index{XMRowColumn@{XMRow\-Column}!SetAlignment@{SetAlignment}}
+\index{SetAlignment@{SetAlignment}!XMRowColumn@{XMRow\-Column}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}void XMRow\-Column::Set\-Alignment (unsigned char {\em alignment})\hspace{0.3cm}{\tt  [inline]}}\label{classXMRowColumn_a5}
+
+
+
+
+Definition at line 598 of file XMManagers.h.
+
+References XMWidget::Set\-Attribute().\index{XMRowColumn@{XMRow\-Column}!SetEntryClass@{SetEntryClass}}
+\index{SetEntryClass@{SetEntryClass}!XMRowColumn@{XMRow\-Column}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}void XMRow\-Column::Set\-Entry\-Class (Widget\-Class {\em type})\hspace{0.3cm}{\tt  [inline]}}\label{classXMRowColumn_a6}
+
+
+
+
+Definition at line 601 of file XMManagers.h.
+
+References XMWidget::Set\-Attribute().\index{XMRowColumn@{XMRow\-Column}!SetHomogenous@{SetHomogenous}}
+\index{SetHomogenous@{SetHomogenous}!XMRowColumn@{XMRow\-Column}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}void XMRow\-Column::Set\-Homogenous (Boolean {\em homog})\hspace{0.3cm}{\tt  [inline]}}\label{classXMRowColumn_a8}
+
+
+
+
+Definition at line 607 of file XMManagers.h.
+
+References XMWidget::Set\-Attribute().\index{XMRowColumn@{XMRow\-Column}!SetOrientation@{SetOrientation}}
+\index{SetOrientation@{SetOrientation}!XMRowColumn@{XMRow\-Column}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}void XMRow\-Column::Set\-Orientation (unsigned char {\em orientation})\hspace{0.3cm}{\tt  [inline]}}\label{classXMRowColumn_a11}
+
+
+
+
+Definition at line 618 of file XMManagers.h.
+
+References XMWidget::Set\-Attribute().\index{XMRowColumn@{XMRow\-Column}!SetPacking@{SetPacking}}
+\index{SetPacking@{SetPacking}!XMRowColumn@{XMRow\-Column}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}void XMRow\-Column::Set\-Packing (unsigned char {\em packmethod})\hspace{0.3cm}{\tt  [inline]}}\label{classXMRowColumn_a12}
+
+
+
+
+Definition at line 621 of file XMManagers.h.
+
+References XMWidget::Set\-Attribute().\index{XMRowColumn@{XMRow\-Column}!SetRowColumns@{SetRowColumns}}
+\index{SetRowColumns@{SetRowColumns}!XMRowColumn@{XMRow\-Column}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}void XMRow\-Column::Set\-Row\-Columns (int {\em numcols})\hspace{0.3cm}{\tt  [inline]}}\label{classXMRowColumn_a10}
+
+
+
+
+Definition at line 615 of file XMManagers.h.
+
+References XMWidget::Set\-Attribute().\index{XMRowColumn@{XMRow\-Column}!SetSpacing@{SetSpacing}}
+\index{SetSpacing@{SetSpacing}!XMRowColumn@{XMRow\-Column}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}void XMRow\-Column::Set\-Spacing (Dimension {\em spacing})\hspace{0.3cm}{\tt  [inline]}}\label{classXMRowColumn_a17}
+
+
+
+
+Definition at line 632 of file XMManagers.h.
+
+References XMWidget::Set\-Attribute().
+
+The documentation for this class was generated from the following file:\begin{CompactItemize}
+\item 
+{\bf XMManagers.h}\end{CompactItemize}

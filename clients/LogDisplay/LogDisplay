@@ -1,0 +1,4 @@
+#!/bin/bash
+
+SCRIPT_DIR=${0%/LogDisplay}/../Scripts
+/opt/daq/Bin/tclserver -p2702 < $SCRIPT_DIR/LogDisplay.tcl $1 $SCRIPT_DIR

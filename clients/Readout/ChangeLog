@@ -1,0 +1,11 @@
+August 3, 2001 Ron Fox, Chris Maurice:
+	Included Chris's support for the CAEN VME digitizers.
+	
+$Log$
+Revision 1.1  2003/02/05 14:04:31  ron-fox
+Initial revision
+
+Revision 2.3  2002/11/20 16:03:08  fox
+Support multiple VME crates and CAMAC Branches spread across the multiple VME
+crates.
+

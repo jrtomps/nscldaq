@@ -1,0 +1,72 @@
+\section{Sub-classing in object frameworks}\label{Subclassing}
+
+
+Sub-classing is the basic mechanism which object frameworks provide the  programmer to supply application functionality. Application frameworks can be thought of as providing a complete program which does nothing. The  programmer selects classes to extend (via subclassing) and instantiates an appropriate set of objects to give the final program its functionality.
+
+Subclassing to provide functionality consists of the following steps:\begin{CompactItemize}
+\item 
+Derive a class from the base class in the framework.\item 
+Override some of the virtual member functions of the base class to  provide the functionality you desire. It is good practice to call the base class's member from within your function in case the base class performs useful default processing.\item 
+Create an object of your derived class.\item 
+Start the object 'running'.\end{CompactItemize}
+Consider for example the {\bf CFile\-Event} {\rm (p.\,\pageref{classCFileEvent})} class. This class provides a framework for handling events which occur as a result of a file descriptor becomming readable, writable or having an exceptional condition. (For user documentation of {\bf CFile\-Event} {\rm (p.\,\pageref{classCFileEvent})}, see {\bf the File Event handling class} {\rm (p.\,\pageref{FileEvents})}):
+
+
+
+\footnotesize\begin{verbatim}#include <iostream.h>
+#include <stdio.h>
+#include <spectrodaq.h>
+#include <SpectroFramework.h>
+
+class Echo : public CFileEvent
+{
+public:
+  Echo(int fd, const char* pName);
+  virtual void OnReadable(istream& rin);
+};
+
+Echo::Echo(int fd, const char* pName):
+  CFileEvent(fd, pName)
+{
+  AppendClassInfo();
+}
+
+void
+Echo::OnReadable(istream& rin)
+{
+  CFileEvent::OnReadable(rin);
+  string word;
+  rin >> word;
+  cout << word << endl;
+}
+
+class MyApp : public DAQROCNode
+{
+protected:
+  virtual int operator()(int argc, char** argv);
+};
+
+int
+MyApp::operator()(int argc, char** argv)
+{
+  Echo echo(fileno(stdin), "EchoProcessor");
+
+  echo.Enable();
+  DAQThreadId id = echo.getThreadId();
+
+  Join(id);                     // Wait for echo to exit.
+}
+
+
+MyApp theapp;
+\end{verbatim}\normalsize 
+
+
+The class declaration for Echo defines a new class derived from {\bf CFile\-Event} {\rm (p.\,\pageref{classCFileEvent})}. In addition to implementing a constructor, this application specific class overrides {\bf CFile\-Event::On\-Readable} {\rm (p.\,\pageref{classCFileEvent_a15})}. That member is called when the file descriptor represented by the object becomes readable.
+
+The implementation of our override is to call the base class function ({\bf CFile\-Event::On\-Readable} {\rm (p.\,\pageref{classCFileEvent_a15})}), and to read a string from the input file and echo it back to stdout (cout).
+
+The application's operator() (entry point) creates an instance of echo monitoring stdin. It enables execution of the event object via a call to the object's Enable() member. Enable creates an independent thread of execution. The event serializes execution of the On\-Readable member, and other user overridable members so that the programmer, for the most part, doe not need to worry about thread/thread synchronization (see {\bf Synchronizing multiple threads of execution} {\rm (p.\,\pageref{Synchronization})}).
+
+Once the thread is started, it's thread Id is gotten and the main program  blocks until the Event thread exits (never).
+

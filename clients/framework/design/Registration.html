@@ -1,0 +1,280 @@
+
+
+<HTML>
+<HEAD>
+<TITLE>Class details</TITLE>
+</HEAD>
+<BODY>
+
+<H1>Registration Classes:</H1>
+
+<p><map name="FPMap0">
+<area href="#CNamedObject" shape="rect" coords="356, 16, 489, 108">
+<area href="#CClassifiedObjectRegistry" shape="rect" coords="58, 281, 242, 433">
+<area href="#CObjectRegistry" shape="rect" coords="477, 286, 598, 415"></map><img border="0" src="images/Regist2.gif" usemap="#FPMap0" width="639" height="475"></p>
+
+<HR>
+
+<H1><A NAME = "CObjectRegistry">CObjectRegistry</A></H1>
+
+<P> SuperClasses: *CNamedObject </P>
+<P> One to One associations: 
+</P>
+<P> One to Many associations:  
+</P>
+<P> Aggregate classes (1:1)  : 
+</P>
+<P> Aggregate classes (1:*)  : 
+
+</P>
+
+<H2>Class Attributes</H2>
+
+<H2>Operations on  CObjectRegistry</H2>
+
+<H3>  Add</H3>
+<P>Visibility: public</p>
+<P>Parameters: CNamedObject& rObject</P>
+<P>Return Type: void</p>
+<P>Classification: Mutator</p>
+<P>Registers its parameter in the registry.
+If the name is already present in the map,
+CDuplicateNameException is thrown.</P>
+<H3>  Remove</H3>
+<P>Visibility: public</p>
+<P>Parameters: const string& rName</P>
+<P>Return Type: void</p>
+<P>Classification: Mutator</p>
+<P>Removes an object from the registry.
+This version locates an object by name
+and removes it from the registry.  If the object
+does not exist the CNoSuchObject exception
+is thrown.</P>
+<H3>  Remove</H3>
+<P>Visibility: public</p>
+<P>Parameters: const CNamedObj& rObject</P>
+<P>Return Type: void</p>
+<P>Classification: Mutator</p>
+<P>Removes an object from the registry.
+This version locates an object by a reference
+tot he object and removes it from the registry.  If the object
+does not exist the CNoSuchObject exception
+is thrown.</P>
+<H3>  Find</H3>
+<P>Visibility: public</p>
+<P>Parameters: const string& rObjectName</P>
+<P>Return Type: const ObjectRegistryIterator</p>
+<P>Classification: Selector</p>
+<P>Locates the object described by the input string.
+If there is no such object then CNoSuchObject is
+thrown.  Note that a const iterator is returned.
+To get a non-const iterator,  clients will need
+to use the STL find algorithm, with begin and end
+iterators produced by this class.</P>
+<H3>  begin</H3>
+<P>Visibility: public</p>
+<P>Parameters: </P>
+<P>Return Type: ObjectIterator</p>
+<P>Classification: Selector/indirect mutator</p>
+<P>Returns an iterator which 'points' to the first object in the
+registry.  Traversing the registry through this iterator will
+visit all objects in name alphabetical order.
+ObjectIterator is a typedef for:
+map<string,CNamedObject*>::iterator</P>
+<H3>  end</H3>
+<P>Visibility: public</p>
+<P>Parameters: </P>
+<P>Return Type: ObjectIterator</p>
+<P>Classification: Selector.</p>
+<P>Returns an iterator which 'points' off the end of
+the m_Registrants map.  Provided to allow
+clients to know when to terminate iteration through
+the objects.</P>
+<H3>virtual   DescribeSelf</H3>
+<P>Visibility: public</p>
+<P>Parameters: </P>
+<P>Return Type: string</p>
+<P>Classification: Selector</p>
+<P>Returns a string which describes the registry.
+The string is of the form:
+
+CNamedObject::DescribSelf()
+Objects in the registry:
+   <Each object is asked to describe itself>
+</P>
+
+<HR>
+
+<H1><A NAME = "CClassifiedObjectRegistry">CClassifiedObjectRegistry</A></H1>
+
+<P> SuperClasses: *CNamedObject </P>
+<P> One to One associations: 
+</P>
+<P> One to Many associations:  
+</P>
+<P> Aggregate classes (1:1)  : 
+</P>
+<P> Aggregate classes (1:*)  : 
+
+</P>
+
+<H2>Class Attributes</H2>
+
+<H2>Operations on  CClassifiedObjectRegistry</H2>
+
+<H3>  CreateRegistry</H3>
+<P>Visibility: public</p>
+<P>Parameters: const string& RegistryName</P>
+<P>Return Type: void</p>
+<P>Classification: Mutator</p>
+<P>Creates a new registry. It is not an error
+to create a registry which already exists.
+If this is attempted, it is a no-op.</P>
+<H3>  DeleteRegistry</H3>
+<P>Visibility: public</p>
+<P>Parameters: const string& RegistryName</P>
+<P>Return Type: void</p>
+<P>Classification: Mutator</p>
+<P>Delete an existing registry. Any registry entries
+are destroyed, however the objects they point to
+are not.
+Attempts to destroy an nonexsitent registry
+result in a NoSuchObject exception.</P>
+<H3>virtual   Add</H3>
+<P>Visibility: public</p>
+<P>Parameters: const string& RegistryName, CNamedObject& rObject</P>
+<P>Return Type: void</p>
+<P>Classification: base class mutator.</p>
+<P>Adds an item to a registry.
+If the item already exists in that registry,
+a DuplicateName exception is thrown.
+If the registry does not exist a 
+NoSuchObject exception is thrown.</P>
+<H3>virtual   Remove</H3>
+<P>Visibility: public</p>
+<P>Parameters: const string& RegistryName, CNamedObject& Object</P>
+<P>Return Type: void</p>
+<P>Classification: base class mutator</p>
+<P>The named object is removed from the designated registry.
+If the object does not exist, or the registry does not exist,
+a NoSuchObject exception is thrown. The name embedded
+in the exception differentiates between these two cases.
+</P>
+<H3>  Find</H3>
+<P>Visibility: public</p>
+<P>Parameters: const string& RegistryName, const string& ObjectName</P>
+<P>Return Type: ObjectRegistryIterator</p>
+<P>Classification: Selector</p>
+<P>Locates an object in a specific registry.
+If the registry or object don't exist a
+NoSuchObject exception is thrown.
+</P>
+<H3>  Find</H3>
+<P>Visibility: public</p>
+<P>Parameters: const string& ObjectName</P>
+<P>Return Type: CRefcountedPtr<ObjectList></p>
+<P>Classification: Sellector</p>
+<P>Returns a referece counted pointer to
+a dynamically allocated list of Objects which
+match the name requested.
+ObjectList is a typedef for:
+list<CNamedObject*>
+The list is drawn from all of the registries.
+If no registries contain the requested name,
+an empty list is returned.</P>
+<H3>  beginregistry</H3>
+<P>Visibility: public</p>
+<P>Parameters: </P>
+<P>Return Type: RegistryIterator</p>
+<P>Classification: Selector</p>
+<P>Returns an iterator into the registries which
+are contained by this object.  Note that iteratiing
+will return registries... that is RegistryIterator is a
+typedef for:
+
+map<string,CObjectRegistry>::iterator</P>
+<H3>  endregistry</H3>
+<P>Visibility: public</p>
+<P>Parameters: </P>
+<P>Return Type: RegistryIterator</p>
+<P>Classification: Selector</p>
+<P>Returns a registry iterator suitable for determining
+when iteration has been completed
+(e.g. while(p != coreg.endregistry()) {...
+  p++;
+}</P>
+<H3>virtual   DescribeSelf</H3>
+<P>Visibility: public</p>
+<P>Parameters: </P>
+<P>Return Type: string</p>
+<P>Classification: Selector</p>
+<P>Descirbes self.  This produces a string of the form:
+
+CNamedObject::DescibeSelf()
+"  Registries defined: "  List of registries
+"     Registry " <name>"  Contains:   <- for all registries.
+          Registry::DescribeSelf</P>
+
+<HR>
+
+<H1><A NAME = "CNamedObject">CNamedObject</A></H1>
+
+<P> SuperClasses: </P>
+<P> One to One associations: 
+</P>
+<P> One to Many associations:  
+</P>
+<P> Aggregate classes (1:1)  : 
+</P>
+<P> Aggregate classes (1:*)  : 
+
+</P>
+
+<H2>Class Attributes</H2>
+
+<H3>m_sName</H3>
+<P>Visibility: private</P>
+<P>Type: string</p>
+<P>
+The name of this object, as assigned at creation time.
+</P>
+<H3>m_sClassPath</H3>
+<P>Visibility: private</P>
+<P>Type: string</p>
+<P>
+Class derivation as determined by at
+construction time by recursing the
+typeinfo tree.
+</P>
+
+<H2>Operations on  CNamedObject</H2>
+
+<H3>virtual   DescribeSelf</H3>
+<P>Visibility: public</p>
+<P>Parameters: </P>
+<P>Return Type: string</p>
+<P>Classification: Selector</p>
+<P>Returns a string decribing what is known about 
+the object.  In this case, the string is of the
+form:&nbsp;</P>
+<P>
+>>>>>>>>>>>>>>>>>>><<<<<<<<<<<<<<<<<<<&nbsp;</P>
+<P>
+Object of type m_sClassPath named m_sName</P>
+<H3>virtual   AppendClassInfo</H3>
+<P>Visibility: protected</p>
+<P>Parameters: </P>
+<P>Return Type: void</p>
+<P>Classification: Construction helper</p>
+<P>Called down through the construction chain
+to build up the m_sClassPath string.</P>
+
+<HR>
+
+<p>Last Updated: <!--webbot bot="Timestamp" startspan S-Type="EDITED"
+S-Format="%A, %B %d, %Y" -->Tuesday, August 07, 2001<!--webbot bot="Timestamp"
+I-CheckSum="50518" endspan -->
+&nbsp; <a href="mailto:fox@nscl.msu.edu">Ron Fox</a></p>
+
+</BODY>
+</HTML>

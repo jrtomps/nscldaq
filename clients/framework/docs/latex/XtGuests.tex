@@ -1,0 +1,160 @@
+\section{Xt/X11 event loops.}\label{XtGuests}
+
+
+Support for Xt/X11 event loops allows framework software to take advantage of the rich GUI functionality offered by Xwindows widget libraries such as the Athena widget library or Motif widgets. The Xt event loop is fully  synchronized with the application. The event loop structure looks like:
+
+
+
+\footnotesize\begin{verbatim}  while(!m_fExit) {
+    XEvent event;
+
+    XtAppNextEvent(m_AppContext, &event);
+    pMutex->Lock(); {           //--> Begin Critical region.
+      XtDispatchEvent(&event);
+    }
+    pMutex->UnLock();           //<-- End Critical region.
+
+  }
+\end{verbatim}\normalsize 
+
+
+Xt event dispatch is bracketed by Lock and Unlock calls on the application  serialization mutex ensuring that all Xt Event processing is done synchronized to the application.
+
+To include an Xt event loop in your application you must:\begin{CompactItemize}
+\item 
+Create a subclass of the {\bf CXt\-Event\-Loop} {\rm (p.\,\pageref{classCXtEventLoop})} class.\item 
+Fill in the following member functions with application specific code:\begin{enumerate}
+\item 
+{\bf Initialize\-Application()} {\rm (p.\,\pageref{classCXtEventLoop_b6})} (see {\bf Application initialization.} {\rm (p.\,\pageref{InitializeApplication})} below).\item 
+{\bf Setup\-Application\-Resources()} {\rm (p.\,\pageref{classCXtEventLoop_b7})} (see  {\bf Setting up the application resource} {\rm (p.\,\pageref{SetupApplicationResources})} below).\item 
+{\bf Setup\-Widget\-Tree()} {\rm (p.\,\pageref{classCXtEventLoop_b8})} (see {\bf Setting up the application's initial widget tree.} {\rm (p.\,\pageref{SetupWidgetTree})} below).\end{enumerate}
+\item 
+Create an instance of the event loop in the application object\item 
+Schedule the event loop for execution.\end{CompactItemize}
+\section{Application initialization.}\label{InitializeApplication}
+ If the default application initialization is not sufficient, you can implement an override to this function. The default contents of the function are: 
+
+\footnotesize\begin{verbatim}Widget
+CXtEventLoop::InitializeApplication(int& argc, char** argv)
+{
+  m_TopLevel = XtAppInitialize(&m_AppContext,
+                               m_sClass.c_str(),
+                               m_pOptionTable,
+                               m_nOptionCount,
+                               &argc, argv,
+                               m_ppcFallbackResources,
+                               NULL, 0);
+  return m_TopLevel;
+
+}
+\end{verbatim}\normalsize 
+
+
+This initializes the Xt library, and produces the application top level widget. You can write your member to modify the class (m\_\-s\-Class), the option table  (m\_\-p\-Option\-Table), and the application fallback resources  (m\_\-ppc\-Fallback\-Resources) prior to calling {\bf CXt\-Event\-Loop::Initialize\-Application} {\rm (p.\,\pageref{classCXtEventLoop_b6})}
+
+You can also detect and process application specific \char`\"{}Command line parameters.\char`\"{}
+
+\section{Setting up the application resource}\label{SetupApplicationResources}
+ database.
+
+The attributes of widgets and classes of widgets are defined both by explicit properties at widget creation or modification time, and by a set of  defaults or \char`\"{}resources.\char`\"{} The resources are loaded into a resource database from several sources:\begin{CompactItemize}
+\item 
+A set of 'fallback' resources can be loaded at Xt initialization time in {\bf Initialize\-Application().} {\rm (p.\,\pageref{classCXtEventLoop_b6})}\item 
+A set of default resources may be loaded into the Xt library in the function  described in this section ({\bf Setup\-Application\-Resources()} {\rm (p.\,\pageref{classCXtEventLoop_b7})}).\item 
+The resources can be loaded in from files in the X11 resource directory and from resource specifications in a user application specific resource file.\end{CompactItemize}
+The function {\bf Setup\-Application\-Resources()} {\rm (p.\,\pageref{classCXtEventLoop_b7})} provides a hook to allow default application resources to be loaded into the system. The call signature for this member is: 
+
+\footnotesize\begin{verbatim}void   SetupApplicationResources (Widget TopLevel);
+\end{verbatim}\normalsize 
+ Where: \begin{Desc}
+\item[Parameters: ]\par
+\begin{description}
+\item[{\em 
+Toplevel}]is the top level widget created in  {\bf Initialize\-Application()} {\rm (p.\,\pageref{classCXtEventLoop_b6})}\end{description}
+\end{Desc}
+The default behavior of this member is empty. For more information on X11 resources and the resource database, consult the relevant Xt and X11  programming documentation.
+
+\section{Setting up the application's initial widget tree.}\label{SetupWidgetTree}
+
+
+Xt applications consist of a hierachical set of GUI components called  \char`\"{}widgets.\char`\"{} {\bf Setup\-Widget\-Tree} {\rm (p.\,\pageref{classCXtEventLoop_b8})} allows the initial set of widgets to be created.
+
+The call signature of this member is: 
+
+\footnotesize\begin{verbatim}void 
+CXtEventLoop::SetupWidgetTree(Widget TopLevel)
+\end{verbatim}\normalsize 
+
+
+Where: \begin{Desc}
+\item[Parameters: ]\par
+\begin{description}
+\item[{\em 
+Top\-Level}]is the toplevel widget. All application widgets have this  widget as an ultimate parent.\end{description}
+\end{Desc}
+The default implementation of {\bf Setup\-Widget\-Tree} {\rm (p.\,\pageref{classCXtEventLoop_b8})} is empty. It is up to the application to determine its user interface
+
+\section{:}\label{Example}
+ The example below creates a single button which when clicked exits the Xt event loop.
+
+
+
+\footnotesize\begin{verbatim}//
+// Tests the Xt event loop as a separate thread.
+//
+#include <spectrodaq.h>
+#include <CXtEventLoop.h>
+#include <XMPushbutton.h>
+#include <iostream.h>
+class CXMApplication : public CXtEventLoop
+{
+  XMPushButton* m_pButton;
+protected:
+  virtual void SetupWidgetTree(Widget top)
+  {
+    cerr << "Setting up widget tree\n";
+    cerr.flush();
+    m_pButton = new XMPushButton("Exit",
+                                 top,
+                                 CXMApplication::Exit,
+                                 (XtPointer)this);
+    m_pButton->Manage();
+    cerr << "Widget Tree set up.\n";
+    cerr.flush();
+  }
+public:
+  CXMApplication() :
+    m_pButton(0)
+  {
+    cerr << "Motif app constructed\n";
+    cerr.flush();
+  }
+
+private:
+  static void  Exit(XMWidget* pMyWidget, XtPointer cd, XtPointer reason)
+  {
+    CXMApplication* pMe = (CXMApplication*)cd;
+    delete pMe->m_pButton;
+    pMe->exit();
+  }
+
+};
+
+class Main : public DAQROCNode
+{
+  int operator()(int argc, char** argv)
+  {
+    CXMApplication app;
+    DAQThreadId   tid = daq_dispatcher.Dispatch(app);
+    DAQStatus     stat;
+
+    Join(tid, &stat);
+    cerr << "Motif gui thread exited: " << stat.GetStatusCode() << endl;
+    return 0;
+  }
+};
+
+static Main myApp;
+\end{verbatim}\normalsize 
+
+

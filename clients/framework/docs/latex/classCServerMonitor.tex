@@ -1,0 +1,167 @@
+\section{CServer\-Monitor  Class Reference}
+\label{classCServerMonitor}\index{CServerMonitor@{CServer\-Monitor}}
+$\backslash$class: CServer\-Monitor $\backslash$file: {\bf CServer\-Monitor.h}. 
+
+
+{\tt \#include $<$CServer\-Monitor.h$>$}
+
+Inheritance diagram for CServer\-Monitor::\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[height=5cm]{classCServerMonitor}
+\end{center}
+\end{figure}
+\subsection*{Public Methods}
+\begin{CompactItemize}
+\item 
+{\bf CServer\-Monitor} ()
+\begin{CompactList}\small\item\em Associated Socket.\item\end{CompactList}\item 
+{\bf $\sim$CServer\-Monitor} ()
+\item 
+{\bf CServer\-Monitor} ({\bf CSocket} \&am\_\-Socket)
+\item 
+{\bf CServer\-Monitor} (const CServer\-Monitor \&a\-CServer\-Monitor)
+\item 
+CServer\-Monitor \& {\bf operator=} (const CServer\-Monitor \&a\-CServer\-Monitor)
+\item 
+int {\bf operator==} (const CServer\-Monitor \&a\-CServer\-Monitor) const
+\item 
+{\bf CSocket} \& {\bf getm\_\-Socket} () const
+\item 
+void {\bf operator()} ()
+\item 
+virtual string {\bf Describe\-Self} ()
+\end{CompactItemize}
+\subsection*{Protected Methods}
+\begin{CompactItemize}
+\item 
+void {\bf setm\_\-Socket} (const {\bf CSocket} \&am\_\-Socket)
+\end{CompactItemize}
+\subsection*{Private Attributes}
+\begin{CompactItemize}
+\item 
+{\bf CSocket} \& {\bf m\_\-Socket}
+\end{CompactItemize}
+
+
+\subsection{Detailed Description}
+$\backslash$class: CServer\-Monitor $\backslash$file: {\bf CServer\-Monitor.h}.
+
+Monitors a TCP/IP socket for connection requests. When a connection request is available, returns. Note that it is up to the reactor to actually accept the connection request. Server\-Monitors can have monitors which are descended from CFd\-Moniitors 
+
+
+
+Definition at line 312 of file CServer\-Monitor.h.
+
+\subsection{Constructor \& Destructor Documentation}
+\index{CServerMonitor@{CServer\-Monitor}!CServerMonitor@{CServerMonitor}}
+\index{CServerMonitor@{CServerMonitor}!CServerMonitor@{CServer\-Monitor}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}CServer\-Monitor::CServer\-Monitor ()}\label{classCServerMonitor_a0}
+
+
+Associated Socket.
+
+
+
+Definition at line 301 of file CServer\-Monitor.cpp.\index{CServerMonitor@{CServer\-Monitor}!~CServerMonitor@{$\sim$CServerMonitor}}
+\index{~CServerMonitor@{$\sim$CServerMonitor}!CServerMonitor@{CServer\-Monitor}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}CServer\-Monitor::$\sim$CServer\-Monitor ()}\label{classCServerMonitor_a1}
+
+
+
+
+Definition at line 312 of file CServer\-Monitor.cpp.\index{CServerMonitor@{CServer\-Monitor}!CServerMonitor@{CServerMonitor}}
+\index{CServerMonitor@{CServerMonitor}!CServerMonitor@{CServer\-Monitor}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}CServer\-Monitor::CServer\-Monitor ({\bf CSocket} \& {\em am\_\-Socket})}\label{classCServerMonitor_a2}
+
+
+
+
+Definition at line 319 of file CServer\-Monitor.cpp.
+
+References m\_\-Socket.\index{CServerMonitor@{CServer\-Monitor}!CServerMonitor@{CServerMonitor}}
+\index{CServerMonitor@{CServerMonitor}!CServerMonitor@{CServer\-Monitor}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}CServer\-Monitor::CServer\-Monitor (const CServer\-Monitor \& {\em a\-CServer\-Monitor})}\label{classCServerMonitor_a3}
+
+
+
+
+Definition at line 329 of file CServer\-Monitor.cpp.
+
+References m\_\-Socket.
+
+\subsection{Member Function Documentation}
+\index{CServerMonitor@{CServer\-Monitor}!DescribeSelf@{DescribeSelf}}
+\index{DescribeSelf@{DescribeSelf}!CServerMonitor@{CServer\-Monitor}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}string CServer\-Monitor::Describe\-Self ()\hspace{0.3cm}{\tt  [virtual]}}\label{classCServerMonitor_a8}
+
+
+Operation Type: selector
+
+Purpose:
+
+Describes self as a file descriptor which has a socket that has a state. 
+
+Reimplemented from {\bf CFd\-Monitor} {\rm (p.\,\pageref{classCFdMonitor_a12})}.
+
+Definition at line 393 of file CServer\-Monitor.cpp.\index{CServerMonitor@{CServer\-Monitor}!getm_Socket@{getm\_\-Socket}}
+\index{getm_Socket@{getm\_\-Socket}!CServerMonitor@{CServer\-Monitor}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}{\bf CSocket}\& CServer\-Monitor::getm\_\-Socket () const\hspace{0.3cm}{\tt  [inline]}}\label{classCServerMonitor_a6}
+
+
+
+
+Definition at line 360 of file CServer\-Monitor.h.\index{CServerMonitor@{CServer\-Monitor}!operator()@{operator()}}
+\index{operator()@{operator()}!CServerMonitor@{CServer\-Monitor}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}void CServer\-Monitor::operator() ()\hspace{0.3cm}{\tt  [virtual]}}\label{classCServerMonitor_a7}
+
+
+Operation Type:
+
+Purpose: 
+
+Reimplemented from {\bf CFd\-Monitor} {\rm (p.\,\pageref{classCFdMonitor_a11})}.
+
+Definition at line 376 of file CServer\-Monitor.cpp.\index{CServerMonitor@{CServer\-Monitor}!operator=@{operator=}}
+\index{operator=@{operator=}!CServerMonitor@{CServer\-Monitor}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}CServer\-Monitor \& CServer\-Monitor::operator= (const CServer\-Monitor \& {\em a\-CServer\-Monitor})}\label{classCServerMonitor_a4}
+
+
+
+
+Definition at line 339 of file CServer\-Monitor.cpp.
+
+References m\_\-Socket, and CFd\-Monitor::operator=().\index{CServerMonitor@{CServer\-Monitor}!operator==@{operator==}}
+\index{operator==@{operator==}!CServerMonitor@{CServer\-Monitor}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}int CServer\-Monitor::operator== (const CServer\-Monitor \& {\em a\-CServer\-Monitor}) const}\label{classCServerMonitor_a5}
+
+
+
+
+Definition at line 349 of file CServer\-Monitor.cpp.
+
+References m\_\-Socket, and CFd\-Monitor::operator==().\index{CServerMonitor@{CServer\-Monitor}!setm_Socket@{setm\_\-Socket}}
+\index{setm_Socket@{setm\_\-Socket}!CServerMonitor@{CServer\-Monitor}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}void CServer\-Monitor::setm\_\-Socket (const {\bf CSocket} \& {\em am\_\-Socket})\hspace{0.3cm}{\tt  [inline, protected]}}\label{classCServerMonitor_b0}
+
+
+
+
+Definition at line 369 of file CServer\-Monitor.h.
+
+\subsection{Member Data Documentation}
+\index{CServerMonitor@{CServer\-Monitor}!m_Socket@{m\_\-Socket}}
+\index{m_Socket@{m\_\-Socket}!CServerMonitor@{CServer\-Monitor}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}{\bf CSocket}\& CServer\-Monitor::m\_\-Socket\hspace{0.3cm}{\tt  [private]}}\label{classCServerMonitor_o0}
+
+
+
+
+Definition at line 317 of file CServer\-Monitor.h.
+
+Referenced by CServer\-Monitor(), operator=(), and operator==().
+
+The documentation for this class was generated from the following files:\begin{CompactItemize}
+\item 
+{\bf CServer\-Monitor.h}\item 
+{\bf CServer\-Monitor.cpp}\end{CompactItemize}

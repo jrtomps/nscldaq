@@ -1,0 +1,181 @@
+\section{CTCLInterpreter\-Object  Class Reference}
+\label{classCTCLInterpreterObject}\index{CTCLInterpreterObject@{CTCLInterpreter\-Object}}
+{\tt \#include $<$TCLInterpreter\-Object.h$>$}
+
+Inheritance diagram for CTCLInterpreter\-Object::\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[height=11cm]{classCTCLInterpreterObject}
+\end{center}
+\end{figure}
+\subsection*{Public Methods}
+\begin{CompactItemize}
+\item 
+{\bf CTCLInterpreter\-Object} ()
+\item 
+virtual {\bf $\sim$CTCLInterpreter\-Object} ()
+\item 
+{\bf CTCLInterpreter\-Object} ({\bf CTCLInterpreter} $\ast$p\-Interp)
+\item 
+{\bf CTCLInterpreter\-Object} (const CTCLInterpreter\-Object \&a\-CTCLInterpreter\-Object)
+\item 
+CTCLInterpreter\-Object \& {\bf operator=} (const CTCLInterpreter\-Object \&a\-CTCLInterpreter\-Object)
+\item 
+int {\bf operator==} (const CTCLInterpreter\-Object \&a\-CTCLInterpreter\-Object) const
+\item 
+{\bf CTCLInterpreter} $\ast$ {\bf get\-Interpreter} () const
+\item 
+{\bf CTCLInterpreter} $\ast$ {\bf Bind} ({\bf CTCLInterpreter} \&r\-Binding)
+\item 
+{\bf CTCLInterpreter} $\ast$ {\bf Bind} ({\bf CTCLInterpreter} $\ast$p\-Binding)
+\end{CompactItemize}
+\subsection*{Protected Methods}
+\begin{CompactItemize}
+\item 
+virtual void {\bf On\-Bind} ()
+\item 
+virtual void {\bf On\-Unbind} ()
+\item 
+{\bf CTCLInterpreter} $\ast$ {\bf Assert\-If\-Not\-Bound} ()
+\end{CompactItemize}
+\subsection*{Private Attributes}
+\begin{CompactItemize}
+\item 
+{\bf CTCLInterpreter} $\ast$ {\bf m\_\-p\-Interpreter}
+\end{CompactItemize}
+
+
+\subsection{Constructor \& Destructor Documentation}
+\index{CTCLInterpreterObject@{CTCLInterpreter\-Object}!CTCLInterpreterObject@{CTCLInterpreterObject}}
+\index{CTCLInterpreterObject@{CTCLInterpreterObject}!CTCLInterpreterObject@{CTCLInterpreter\-Object}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}CTCLInterpreter\-Object::CTCLInterpreter\-Object ()\hspace{0.3cm}{\tt  [inline]}}\label{classCTCLInterpreterObject_a0}
+
+
+
+
+Definition at line 320 of file TCLInterpreter\-Object.h.\index{CTCLInterpreterObject@{CTCLInterpreter\-Object}!~CTCLInterpreterObject@{$\sim$CTCLInterpreterObject}}
+\index{~CTCLInterpreterObject@{$\sim$CTCLInterpreterObject}!CTCLInterpreterObject@{CTCLInterpreter\-Object}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}virtual CTCLInterpreter\-Object::$\sim$CTCLInterpreter\-Object ()\hspace{0.3cm}{\tt  [inline, virtual]}}\label{classCTCLInterpreterObject_a1}
+
+
+
+
+Definition at line 322 of file TCLInterpreter\-Object.h.
+
+References On\-Unbind().\index{CTCLInterpreterObject@{CTCLInterpreter\-Object}!CTCLInterpreterObject@{CTCLInterpreterObject}}
+\index{CTCLInterpreterObject@{CTCLInterpreterObject}!CTCLInterpreterObject@{CTCLInterpreter\-Object}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}CTCLInterpreter\-Object::CTCLInterpreter\-Object ({\bf CTCLInterpreter} $\ast$ {\em p\-Interp})\hspace{0.3cm}{\tt  [inline]}}\label{classCTCLInterpreterObject_a2}
+
+
+
+
+Definition at line 326 of file TCLInterpreter\-Object.h.
+
+References On\-Bind().\index{CTCLInterpreterObject@{CTCLInterpreter\-Object}!CTCLInterpreterObject@{CTCLInterpreterObject}}
+\index{CTCLInterpreterObject@{CTCLInterpreterObject}!CTCLInterpreterObject@{CTCLInterpreter\-Object}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}CTCLInterpreter\-Object::CTCLInterpreter\-Object (const CTCLInterpreter\-Object \& {\em a\-CTCLInterpreter\-Object})\hspace{0.3cm}{\tt  [inline]}}\label{classCTCLInterpreterObject_a3}
+
+
+
+
+Definition at line 332 of file TCLInterpreter\-Object.h.
+
+References m\_\-p\-Interpreter, and On\-Bind().
+
+\subsection{Member Function Documentation}
+\index{CTCLInterpreterObject@{CTCLInterpreter\-Object}!AssertIfNotBound@{AssertIfNotBound}}
+\index{AssertIfNotBound@{AssertIfNotBound}!CTCLInterpreterObject@{CTCLInterpreter\-Object}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}{\bf CTCLInterpreter}$\ast$ CTCLInterpreter\-Object::Assert\-If\-Not\-Bound ()\hspace{0.3cm}{\tt  [inline, protected]}}\label{classCTCLInterpreterObject_b2}
+
+
+
+
+Definition at line 377 of file TCLInterpreter\-Object.h.
+
+References get\-Interpreter().
+
+Referenced by CTCLProcessor::Add\-Registered\-On\-Current(), CTCLResult::Append\-Element(), CTCLResult::Clear(), CTCLVariable::Get(), CTCLVariable::Link(), CTCLResult::operator const char $\ast$(), CTCLObject::operator double(), CTCLObject::operator int(), CTCLObject::operator()(), CTCLResult::operator+=(), CTCLObject::operator+=(), CTCLResult::operator=(), CTCLProcessor::Register(), CDAQTCLProcessor::Register(), CTCLVariable::Set(), CTCLList::Split(), CTCLVariable::Trace(), CTCLVariable::Trace\-Relay(), CTCLVariable::Unlink(), CTCLProcessor::Unregister(), and CTCLVariable::Un\-Trace().\index{CTCLInterpreterObject@{CTCLInterpreter\-Object}!Bind@{Bind}}
+\index{Bind@{Bind}!CTCLInterpreterObject@{CTCLInterpreter\-Object}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}{\bf CTCLInterpreter} $\ast$ CTCLInterpreter\-Object::Bind ({\bf CTCLInterpreter} $\ast$ {\em p\-Binding})}\label{classCTCLInterpreterObject_a8}
+
+
+
+
+Definition at line 318 of file TCLInterpreter\-Object.cpp.
+
+References m\_\-p\-Interpreter, On\-Bind(), and On\-Unbind().\index{CTCLInterpreterObject@{CTCLInterpreter\-Object}!Bind@{Bind}}
+\index{Bind@{Bind}!CTCLInterpreterObject@{CTCLInterpreter\-Object}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}{\bf CTCLInterpreter}$\ast$ CTCLInterpreter\-Object::Bind ({\bf CTCLInterpreter} \& {\em r\-Binding})\hspace{0.3cm}{\tt  [inline]}}\label{classCTCLInterpreterObject_a7}
+
+
+
+
+Definition at line 364 of file TCLInterpreter\-Object.h.
+
+Referenced by CTCLProcessor::Delete\-Relay(), CTCLProcessor::Eval\-Relay(), CTCLException::set\-Interpreter(), Tcl\_\-App\-Init(), and CTCLProcessor::Unregister\-All().\index{CTCLInterpreterObject@{CTCLInterpreter\-Object}!getInterpreter@{getInterpreter}}
+\index{getInterpreter@{getInterpreter}!CTCLInterpreterObject@{CTCLInterpreter\-Object}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}{\bf CTCLInterpreter}$\ast$ CTCLInterpreter\-Object::get\-Interpreter () const\hspace{0.3cm}{\tt  [inline]}}\label{classCTCLInterpreterObject_a6}
+
+
+
+
+Definition at line 359 of file TCLInterpreter\-Object.h.
+
+Referenced by CTCLException::Add\-Error\-Info(), Assert\-If\-Not\-Bound(), CTCLFile\-Handler::CTCLFile\-Handler(), CTCLIdle\-Process::CTCLIdle\-Process(), CTCLProcessor::Delete\-Relay(), CTCLProcessor::Eval\-Relay(), CTCLException::Get\-Result(), CTCLProcessor::Parse\-Boolean(), CTCLProcessor::Parse\-Double(), CTCLProcessor::Parse\-Int(), CTCLCommand\-Package::Register(), CTCLException::Set\-Error\-Code(), CTCLProcessor::Unregister\-All(), and CTCLVariable::Update().\index{CTCLInterpreterObject@{CTCLInterpreter\-Object}!OnBind@{OnBind}}
+\index{OnBind@{OnBind}!CTCLInterpreterObject@{CTCLInterpreter\-Object}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}virtual void CTCLInterpreter\-Object::On\-Bind ()\hspace{0.3cm}{\tt  [inline, protected, virtual]}}\label{classCTCLInterpreterObject_b0}
+
+
+
+
+Definition at line 371 of file TCLInterpreter\-Object.h.
+
+Referenced by Bind(), CTCLInterpreter\-Object(), and operator=().\index{CTCLInterpreterObject@{CTCLInterpreter\-Object}!OnUnbind@{OnUnbind}}
+\index{OnUnbind@{OnUnbind}!CTCLInterpreterObject@{CTCLInterpreter\-Object}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}virtual void CTCLInterpreter\-Object::On\-Unbind ()\hspace{0.3cm}{\tt  [inline, protected, virtual]}}\label{classCTCLInterpreterObject_b1}
+
+
+
+
+Definition at line 372 of file TCLInterpreter\-Object.h.
+
+Referenced by Bind(), operator=(), and $\sim$CTCLInterpreter\-Object().\index{CTCLInterpreterObject@{CTCLInterpreter\-Object}!operator=@{operator=}}
+\index{operator=@{operator=}!CTCLInterpreterObject@{CTCLInterpreter\-Object}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}CTCLInterpreter\-Object\& CTCLInterpreter\-Object::operator= (const CTCLInterpreter\-Object \& {\em a\-CTCLInterpreter\-Object})\hspace{0.3cm}{\tt  [inline]}}\label{classCTCLInterpreterObject_a4}
+
+
+
+
+Definition at line 341 of file TCLInterpreter\-Object.h.
+
+References CTCLInterpreter::m\_\-p\-Interpreter, On\-Bind(), and On\-Unbind().
+
+Referenced by CTCLVariable::operator=(), CTCLResult::operator=(), CTCLObject::operator=(), CTCLFile\-Handler::operator=(), CTCLException::operator=(), CTCLCommand\-Package::operator=(), and CTCLApplication::operator=().\index{CTCLInterpreterObject@{CTCLInterpreter\-Object}!operator==@{operator==}}
+\index{operator==@{operator==}!CTCLInterpreterObject@{CTCLInterpreter\-Object}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}int CTCLInterpreter\-Object::operator== (const CTCLInterpreter\-Object \& {\em a\-CTCLInterpreter\-Object}) const\hspace{0.3cm}{\tt  [inline]}}\label{classCTCLInterpreterObject_a5}
+
+
+
+
+Definition at line 352 of file TCLInterpreter\-Object.h.
+
+References m\_\-p\-Interpreter.
+
+Referenced by CTCLVariable::operator==(), CTCLResult::operator==(), CTCLProcessor::operator==(), CTCLIdle\-Process::operator==(), CTCLFile\-Handler::operator==(), CTCLException::operator==(), CTCLCommand\-Package::operator==(), and CTCLApplication::operator==().
+
+\subsection{Member Data Documentation}
+\index{CTCLInterpreterObject@{CTCLInterpreter\-Object}!m_pInterpreter@{m\_\-pInterpreter}}
+\index{m_pInterpreter@{m\_\-pInterpreter}!CTCLInterpreterObject@{CTCLInterpreter\-Object}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}{\bf CTCLInterpreter}$\ast$ CTCLInterpreter\-Object::m\_\-p\-Interpreter\hspace{0.3cm}{\tt  [private]}}\label{classCTCLInterpreterObject_o0}
+
+
+
+
+Definition at line 315 of file TCLInterpreter\-Object.h.
+
+Referenced by Bind(), CTCLInterpreter\-Object(), and operator==().
+
+The documentation for this class was generated from the following files:\begin{CompactItemize}
+\item 
+{\bf TCLInterpreter\-Object.h}\item 
+{\bf TCLInterpreter\-Object.cpp}\end{CompactItemize}

@@ -1,0 +1,302 @@
+\section{CEvent\-Monitor  Class Reference}
+\label{classCEventMonitor}\index{CEventMonitor@{CEvent\-Monitor}}
+{\tt \#include $<$CEvent\-Monitor.h$>$}
+
+Inheritance diagram for CEvent\-Monitor::\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[height=4.63576cm]{classCEventMonitor}
+\end{center}
+\end{figure}
+\subsection*{Public Types}
+\begin{CompactItemize}
+\item 
+enum {\bf result} \{ {\bf Occurred} =  0, 
+{\bf Timed\-Out} =  1, 
+{\bf Error} =  2
+ \}
+\end{CompactItemize}
+\subsection*{Public Methods}
+\begin{CompactItemize}
+\item 
+{\bf CEvent\-Monitor} (bool am\_\-f\-Timed\-Wait=true)
+\item 
+{\bf CEvent\-Monitor} (const string \&r\-Name, bool am\_\-f\-Timed\-Wait=true)
+\item 
+{\bf CEvent\-Monitor} (const char $\ast$p\-Name, bool am\_\-f\-Timed\-Wait=true)
+\item 
+int {\bf operator==} (const CEvent\-Monitor \&a\-CEvent\-Monitor) const
+\item 
+virtual {\bf $\sim$CEvent\-Monitor} ()
+\item 
+timeval {\bf get\-Timeout} () const
+\item 
+bool {\bf get\-Timed\-Wait} () const
+\item 
+virtual {\bf CEvent\-Monitor::result} {\bf operator()} ()=0
+\item 
+virtual void {\bf set\-Timeout} (int n\-Timeout={\bf FOREVER})
+\end{CompactItemize}
+\subsection*{Protected Methods}
+\begin{CompactItemize}
+\item 
+void {\bf set\-Timeout} (const timeval am\_\-tv\-Timeout)
+\item 
+void {\bf set\-Timed\-Wait} (const bool am\_\-f\-Timed\-Wait)
+\end{CompactItemize}
+\subsection*{Static Protected Methods}
+\begin{CompactItemize}
+\item 
+string {\bf Get\-Auto\-Name} (const string \&r\-Base\-Name)
+\begin{CompactList}\small\item\em Assign default name.\item\end{CompactList}\end{CompactItemize}
+\subsection*{Private Methods}
+\begin{CompactItemize}
+\item 
+{\bf CEvent\-Monitor} (const CEvent\-Monitor \&a\-CEvent\-Monitor)
+\begin{CompactList}\small\item\em Copy construction is forbidden for now.\item\end{CompactList}\item 
+CEvent\-Monitor {\bf operator=} (const {\bf CRegistered\-Object} \&a\-CEvent\-Monitor)
+\begin{CompactList}\small\item\em Assignment is forbidden for now.\item\end{CompactList}\end{CompactItemize}
+\subsection*{Private Attributes}
+\begin{CompactItemize}
+\item 
+timeval {\bf m\_\-tv\-Timeout}
+\item 
+bool {\bf m\_\-f\-Timed\-Wait}
+\end{CompactItemize}
+\subsection*{Static Private Attributes}
+\begin{CompactItemize}
+\item 
+unsigned int {\bf m\_\-n\-Auto\-Index}
+\end{CompactItemize}
+
+
+\subsection{Detailed Description}
+$\backslash$class: CEvent\-Monitor
+
+This file defines the CEvent\-Monitor class. CEvent\-Monitor is the ABC for all Event Monitors. An event monitor  provides event specific logic for waiting for external program events. operator() is expected to wait for an event to occur and return to  indicate if the event in fact did occur. 
+
+
+
+Definition at line 326 of file CEvent\-Monitor.h.
+
+\subsection{Member Enumeration Documentation}
+\index{CEventMonitor@{CEvent\-Monitor}!result@{result}}
+\index{result@{result}!CEventMonitor@{CEvent\-Monitor}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}enum CEvent\-Monitor::result}\label{classCEventMonitor_s3}
+
+
+Used to name autonamed objects \begin{Desc}
+\item[Enumeration values:]\par
+\begin{description}
+\index{Occurred@{Occurred}!CEventMonitor@{CEvent\-Monitor}}\index{CEventMonitor@{CEventMonitor}!Occurred@{Occurred}}\item[{\em 
+{\em Occurred}\label{classCEventMonitor_s3s0}
+}]\index{TimedOut@{TimedOut}!CEventMonitor@{CEvent\-Monitor}}\index{CEventMonitor@{CEventMonitor}!TimedOut@{Timed\-Out}}\item[{\em 
+{\em Timed\-Out}\label{classCEventMonitor_s3s1}
+}]\index{Error@{Error}!CEventMonitor@{CEvent\-Monitor}}\index{CEventMonitor@{CEventMonitor}!Error@{Error}}\item[{\em 
+{\em Error}\label{classCEventMonitor_s3s2}
+}]\end{description}
+\end{Desc}
+
+
+
+Definition at line 335 of file CEvent\-Monitor.h.
+
+Referenced by CEvent::On\-Event(), and CReactor::operator()().
+
+\subsection{Constructor \& Destructor Documentation}
+\index{CEventMonitor@{CEvent\-Monitor}!CEventMonitor@{CEventMonitor}}
+\index{CEventMonitor@{CEventMonitor}!CEventMonitor@{CEvent\-Monitor}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}CEvent\-Monitor::CEvent\-Monitor (bool {\em am\_\-f\-Timed\-Wait} = true)}\label{classCEventMonitor_a0}
+
+
+Default constructor. An Event\-Monitor with name of the form Monitor\_\-nnn is created. The monitor is entered in to the \char`\"{}Monitors\char`\"{} registry of the  classified object registry returned from get\-CClassified\-Object\-Registry(). The name used is gaurenteed unique and can be queried via: {\bf get\-Name}() {\rm (p.\,\pageref{classCNamedObject_a6})}. 
+
+Definition at line 312 of file CEvent\-Monitor.cpp.
+
+References CNamed\-Object::Append\-Class\-Info(), m\_\-f\-Timed\-Wait, m\_\-tv\-Timeout, and Registry\-Name.\index{CEventMonitor@{CEvent\-Monitor}!CEventMonitor@{CEventMonitor}}
+\index{CEventMonitor@{CEventMonitor}!CEventMonitor@{CEvent\-Monitor}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}CEvent\-Monitor::CEvent\-Monitor (const string \& {\em r\-Name}, bool {\em am\_\-f\-Timed\-Wait} = true)}\label{classCEventMonitor_a1}
+
+
+Constructs an Event\-Monitor given a name as an STL string, and a value of m\_\-f\-Timed\-Wait :\begin{Desc}
+\item[Parameters: ]\par
+\begin{description}
+\item[{\em 
+r\-Name}]- The desired name of the event monitor. \item[{\em 
+am\_\-f\-Timed\-Wait}]- indicates whether or not the monitor is timed\end{description}
+\end{Desc}
+Throws:\begin{CompactItemize}
+\item 
+{\bf CDuplicate\-Name\-Exception} {\rm (p.\,\pageref{classCDuplicateNameException})} (indirectly) if a Reactor of this name already exists. \end{CompactItemize}
+
+
+Definition at line 333 of file CEvent\-Monitor.cpp.
+
+References CNamed\-Object::Append\-Class\-Info(), m\_\-f\-Timed\-Wait, m\_\-tv\-Timeout, and Registry\-Name.\index{CEventMonitor@{CEvent\-Monitor}!CEventMonitor@{CEventMonitor}}
+\index{CEventMonitor@{CEventMonitor}!CEventMonitor@{CEvent\-Monitor}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}CEvent\-Monitor::CEvent\-Monitor (const char $\ast$ {\em p\-Name}, bool {\em am\_\-f\-Timed\-Wait} = true)}\label{classCEventMonitor_a2}
+
+
+Constructs an event monitor given its name as an ASCII string and an (optional) value for m\_\-f\-Timed\-Wait :\begin{Desc}
+\item[Parameters: ]\par
+\begin{description}
+\item[{\em 
+p\-Name}]- char$\ast$ pointer to the desired object name. \item[{\em 
+am\_\-f\-Timed\-Wait}]- bool indicates whether the monitor is timed\end{description}
+\end{Desc}
+Throws: -{\bf CDuplicate\-Name\-Exception} {\rm (p.\,\pageref{classCDuplicateNameException})} (indirectly) if an event monitor of this name already exists. 
+
+Definition at line 354 of file CEvent\-Monitor.cpp.
+
+References CNamed\-Object::Append\-Class\-Info(), m\_\-f\-Timed\-Wait, m\_\-tv\-Timeout, and Registry\-Name.\index{CEventMonitor@{CEvent\-Monitor}!CEventMonitor@{CEventMonitor}}
+\index{CEventMonitor@{CEventMonitor}!CEventMonitor@{CEvent\-Monitor}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}CEvent\-Monitor::CEvent\-Monitor (const CEvent\-Monitor \& {\em a\-CEvent\-Monitor})\hspace{0.3cm}{\tt  [private]}}\label{classCEventMonitor_c0}
+
+
+Copy construction is forbidden for now.
+
+\index{CEventMonitor@{CEvent\-Monitor}!~CEventMonitor@{$\sim$CEventMonitor}}
+\index{~CEventMonitor@{$\sim$CEventMonitor}!CEventMonitor@{CEvent\-Monitor}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}CEvent\-Monitor::$\sim$CEvent\-Monitor ()\hspace{0.3cm}{\tt  [virtual]}}\label{classCEventMonitor_a4}
+
+
+Destructor: Just ensure that we are removed from the Reactors registry before being destroyed. 
+
+Definition at line 368 of file CEvent\-Monitor.cpp.
+
+References CRegistered\-Object::get\-Registry(), Registry\-Name, and CClassified\-Object\-Registry::Remove().
+
+\subsection{Member Function Documentation}
+\index{CEventMonitor@{CEvent\-Monitor}!GetAutoName@{GetAutoName}}
+\index{GetAutoName@{GetAutoName}!CEventMonitor@{CEvent\-Monitor}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}string CEvent\-Monitor::Get\-Auto\-Name (const string \& {\em r\-Base\-Name})\hspace{0.3cm}{\tt  [static, protected]}}\label{classCEventMonitor_e0}
+
+
+Assign default name.
+
+Allocate a name for an object given some generic base name.  The final name is of the form: Base\-Name(m\_\-n\-Auto\-Index). 
+
+Reimplemented from {\bf CNamed\-Object} {\rm (p.\,\pageref{classCNamedObject_e0})}.
+
+Definition at line 397 of file CEvent\-Monitor.cpp.
+
+References m\_\-n\-Auto\-Index.\index{CEventMonitor@{CEvent\-Monitor}!getTimedWait@{getTimedWait}}
+\index{getTimedWait@{getTimedWait}!CEventMonitor@{CEvent\-Monitor}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}bool CEvent\-Monitor::get\-Timed\-Wait () const\hspace{0.3cm}{\tt  [inline]}}\label{classCEventMonitor_a6}
+
+
+
+
+Definition at line 375 of file CEvent\-Monitor.h.
+
+References m\_\-f\-Timed\-Wait.
+
+Referenced by CFd\-Monitor::Describe\-Self(), CFd\-Monitor::operator()(), and CBuffer\-Monitor$<$ T $>$::operator()().\index{CEventMonitor@{CEvent\-Monitor}!getTimeout@{getTimeout}}
+\index{getTimeout@{getTimeout}!CEventMonitor@{CEvent\-Monitor}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}timeval CEvent\-Monitor::get\-Timeout () const\hspace{0.3cm}{\tt  [inline]}}\label{classCEventMonitor_a5}
+
+
+
+
+Definition at line 370 of file CEvent\-Monitor.h.
+
+References m\_\-tv\-Timeout.
+
+Referenced by CFd\-Monitor::Describe\-Self(), CTimer\-Monitor::operator()(), CLocation\-Monitor$<$ T $>$::operator()(), CFd\-Monitor::operator()(), and CBuffer\-Monitor$<$ T $>$::operator()().\index{CEventMonitor@{CEvent\-Monitor}!operator()@{operator()}}
+\index{operator()@{operator()}!CEventMonitor@{CEvent\-Monitor}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}virtual {\bf CEvent\-Monitor::result} CEvent\-Monitor::operator() ()\hspace{0.3cm}{\tt  [pure virtual]}}\label{classCEventMonitor_a7}
+
+
+
+
+Implemented in {\bf CBuffer\-Monitor$<$ T $>$} {\rm (p.\,\pageref{classCBufferMonitor_a7})}, {\bf CFd\-Monitor} {\rm (p.\,\pageref{classCFdMonitor_a11})}, {\bf CLocation\-Monitor$<$ T $>$} {\rm (p.\,\pageref{classCLocationMonitor_a7})}, {\bf CServer\-Monitor} {\rm (p.\,\pageref{classCServerMonitor_a7})}, {\bf CTimer\-Monitor} {\rm (p.\,\pageref{classCTimerMonitor_a7})}, and {\bf CBuffer\-Monitor$<$ U $>$} {\rm (p.\,\pageref{classCBufferMonitor_a7})}.\index{CEventMonitor@{CEvent\-Monitor}!operator=@{operator=}}
+\index{operator=@{operator=}!CEventMonitor@{CEvent\-Monitor}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}CEvent\-Monitor CEvent\-Monitor::operator= (const {\bf CRegistered\-Object} \& {\em a\-CEvent\-Monitor})\hspace{0.3cm}{\tt  [private]}}\label{classCEventMonitor_c1}
+
+
+Assignment is forbidden for now.
+
+
+
+Reimplemented from {\bf CRegistered\-Object} {\rm (p.\,\pageref{classCRegisteredObject_c1})}.
+
+Reimplemented in {\bf CFd\-Monitor} {\rm (p.\,\pageref{classCFdMonitor_c1})}.\index{CEventMonitor@{CEvent\-Monitor}!operator==@{operator==}}
+\index{operator==@{operator==}!CEventMonitor@{CEvent\-Monitor}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}int CEvent\-Monitor::operator== (const CEvent\-Monitor \& {\em a\-CEvent\-Monitor}) const\hspace{0.3cm}{\tt  [inline]}}\label{classCEventMonitor_a3}
+
+
+
+
+Definition at line 348 of file CEvent\-Monitor.h.
+
+References m\_\-f\-Timed\-Wait, m\_\-tv\-Timeout, and CRegistered\-Object::operator==().
+
+Referenced by CTimer\-Monitor::operator==(), CLocation\-Monitor$<$ T $>$::operator==(), and CFd\-Monitor::operator==().\index{CEventMonitor@{CEvent\-Monitor}!setTimedWait@{setTimedWait}}
+\index{setTimedWait@{setTimedWait}!CEventMonitor@{CEvent\-Monitor}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}void CEvent\-Monitor::set\-Timed\-Wait (const bool {\em am\_\-f\-Timed\-Wait})\hspace{0.3cm}{\tt  [inline, protected]}}\label{classCEventMonitor_b1}
+
+
+
+
+Definition at line 388 of file CEvent\-Monitor.h.
+
+References m\_\-f\-Timed\-Wait.\index{CEventMonitor@{CEvent\-Monitor}!setTimeout@{setTimeout}}
+\index{setTimeout@{setTimeout}!CEventMonitor@{CEvent\-Monitor}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}void CEvent\-Monitor::set\-Timeout (int {\em n\-Timeout} = {\bf FOREVER})\hspace{0.3cm}{\tt  [virtual]}}\label{classCEventMonitor_a8}
+
+
+void {\bf CEvent\-Monitor::set\-Timeout} {\rm (p.\,\pageref{classCEventMonitor_b0})}(int n\-Timeout=FOREVER)  Operation Type: mutator
+
+Purpose: Sets the timeout. The length of the timeout is determined by the parameter in ms..  Special values: 0 - Poll (return instantly). FOREVER - Block until event. 
+
+Reimplemented in {\bf CTimer\-Monitor} {\rm (p.\,\pageref{classCTimerMonitor_a9})}.
+
+Definition at line 389 of file CEvent\-Monitor.cpp.
+
+References m\_\-f\-Timed\-Wait, and m\_\-tv\-Timeout.\index{CEventMonitor@{CEvent\-Monitor}!setTimeout@{setTimeout}}
+\index{setTimeout@{setTimeout}!CEventMonitor@{CEvent\-Monitor}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}void CEvent\-Monitor::set\-Timeout (const timeval {\em am\_\-tv\-Timeout})\hspace{0.3cm}{\tt  [inline, protected]}}\label{classCEventMonitor_b0}
+
+
+
+
+Definition at line 383 of file CEvent\-Monitor.h.
+
+References m\_\-tv\-Timeout.
+
+Referenced by main(), CEvent::operator()(), and CTimer\-Monitor::set\-Timeout().
+
+\subsection{Member Data Documentation}
+\index{CEventMonitor@{CEvent\-Monitor}!m_fTimedWait@{m\_\-fTimedWait}}
+\index{m_fTimedWait@{m\_\-fTimedWait}!CEventMonitor@{CEvent\-Monitor}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}bool CEvent\-Monitor::m\_\-f\-Timed\-Wait\hspace{0.3cm}{\tt  [private]}}\label{classCEventMonitor_o1}
+
+
+Timeout length 
+
+Definition at line 329 of file CEvent\-Monitor.h.
+
+Referenced by CEvent\-Monitor(), get\-Timed\-Wait(), operator==(), set\-Timed\-Wait(), and set\-Timeout().\index{CEventMonitor@{CEvent\-Monitor}!m_nAutoIndex@{m\_\-nAutoIndex}}
+\index{m_nAutoIndex@{m\_\-nAutoIndex}!CEventMonitor@{CEvent\-Monitor}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}unsigned int CEvent\-Monitor::m\_\-n\-Auto\-Index\hspace{0.3cm}{\tt  [static, private]}}\label{classCEventMonitor_r0}
+
+
+Timed wait? 
+
+Reimplemented from {\bf CNamed\-Object} {\rm (p.\,\pageref{classCNamedObject_r0})}.
+
+Referenced by Get\-Auto\-Name().\index{CEventMonitor@{CEvent\-Monitor}!m_tvTimeout@{m\_\-tvTimeout}}
+\index{m_tvTimeout@{m\_\-tvTimeout}!CEventMonitor@{CEvent\-Monitor}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}timeval CEvent\-Monitor::m\_\-tv\-Timeout\hspace{0.3cm}{\tt  [private]}}\label{classCEventMonitor_o0}
+
+
+
+
+Definition at line 328 of file CEvent\-Monitor.h.
+
+Referenced by CEvent\-Monitor(), get\-Timeout(), operator==(), and set\-Timeout().
+
+The documentation for this class was generated from the following files:\begin{CompactItemize}
+\item 
+{\bf CEvent\-Monitor.h}\item 
+{\bf CEvent\-Monitor.cpp}\end{CompactItemize}

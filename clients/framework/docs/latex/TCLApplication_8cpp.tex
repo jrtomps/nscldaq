@@ -1,0 +1,85 @@
+\section{TCLApplication.cpp File Reference}
+\label{TCLApplication_8cpp}\index{TCLApplication.cpp@{TCLApplication.cpp}}
+{\tt \#include \char`\"{}TCLApplication.h\char`\"{}}\par
+{\tt \#include \char`\"{}TCLInterpreter.h\char`\"{}}\par
+{\tt \#include $<$histotypes.h$>$}\par
+{\tt \#include $<$assert.h$>$}\par
+{\tt \#include $<$tcl.h$>$}\par
+{\tt \#include $<$tk.h$>$}\par
+\subsection*{Functions}
+\begin{CompactItemize}
+\item 
+int {\bf main} (int argc, char $\ast$$\ast$argv)
+\item 
+int {\bf Tcl\_\-App\-Init} (Tcl\_\-Interp $\ast$interp)
+\end{CompactItemize}
+\subsection*{Variables}
+\begin{CompactItemize}
+\item 
+const char $\ast$ {\bf Copyright} = \char`\"{}(C) Copyright Michigan State University 2002, All rights reserved\char`\"{}
+\item 
+char $\ast$ {\bf p\-Copyright}
+\item 
+{\bf CTCLApplication} $\ast$ {\bf gp\-TCLApplication}
+\item 
+{\bf CTCLInterpreter} $\ast$ {\bf gp\-TCLInterpreter}
+\end{CompactItemize}
+
+
+\subsection{Function Documentation}
+\index{TCLApplication.cpp@{TCLApplication.cpp}!main@{main}}
+\index{main@{main}!TCLApplication.cpp@{TCLApplication.cpp}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}int main (int {\em argc}, char $\ast$$\ast$ {\em argv})}\label{TCLApplication_8cpp_a4}
+
+
+
+
+Definition at line 350 of file TCLApplication.cpp.
+
+References Tcl\_\-App\-Init().\index{TCLApplication.cpp@{TCLApplication.cpp}!Tcl_AppInit@{Tcl\_\-AppInit}}
+\index{Tcl_AppInit@{Tcl\_\-AppInit}!TCLApplication.cpp@{TCLApplication.cpp}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}int Tcl\_\-App\-Init (Tcl\_\-Interp $\ast$ {\em interp})}\label{TCLApplication_8cpp_a5}
+
+
+
+
+Definition at line 358 of file TCLApplication.cpp.
+
+References CTCLInterpreter\-Object::Bind().
+
+Referenced by CTCLApplication::CTCLApplication(), and main().
+
+\subsection{Variable Documentation}
+\index{TCLApplication.cpp@{TCLApplication.cpp}!Copyright@{Copyright}}
+\index{Copyright@{Copyright}!TCLApplication.cpp@{TCLApplication.cpp}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}const char$\ast$ Copyright = \char`\"{}(C) Copyright Michigan State University 2002, All rights reserved\char`\"{}\hspace{0.3cm}{\tt  [static]}}\label{TCLApplication_8cpp_a0}
+
+
+
+
+Definition at line 278 of file TCLApplication.cpp.\index{TCLApplication.cpp@{TCLApplication.cpp}!gpTCLApplication@{gpTCLApplication}}
+\index{gpTCLApplication@{gpTCLApplication}!TCLApplication.cpp@{TCLApplication.cpp}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}{\bf CTCLApplication}$\ast$ gp\-TCLApplication}\label{TCLApplication_8cpp_a2}
+
+
+
+
+Definition at line 318 of file TCLApplication.cpp.\index{TCLApplication.cpp@{TCLApplication.cpp}!gpTCLInterpreter@{gpTCLInterpreter}}
+\index{gpTCLInterpreter@{gpTCLInterpreter}!TCLApplication.cpp@{TCLApplication.cpp}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}{\bf CTCLInterpreter}$\ast$ gp\-TCLInterpreter}\label{TCLApplication_8cpp_a3}
+
+
+
+
+Definition at line 320 of file TCLApplication.cpp.\index{TCLApplication.cpp@{TCLApplication.cpp}!pCopyright@{pCopyright}}
+\index{pCopyright@{pCopyright}!TCLApplication.cpp@{TCLApplication.cpp}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}char$\ast$ p\-Copyright\hspace{0.3cm}{\tt  [static]}}\label{TCLApplication_8cpp_a1}
+
+
+{\bf Initial value:}
+
+\footnotesize\begin{verbatim}
+"TCLApplication.cpp - (c) Copyright NSCL 1999, all rights reserved\n"\end{verbatim}\normalsize 
+
+
+Definition at line 312 of file TCLApplication.cpp.

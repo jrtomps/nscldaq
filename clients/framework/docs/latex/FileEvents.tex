@@ -1,0 +1,71 @@
+\section{Reacting to file events.}\label{FileEvents}
+
+
+The class {\bf CFile\-Event} {\rm (p.\,\pageref{classCFileEvent})} allows an application to react asynchronously to events on a file. To use a {\bf CFile\-Event} {\rm (p.\,\pageref{classCFileEvent})} you will need to:\begin{CompactItemize}
+\item 
+Decide which of the following conditions you need to supply  application code for:\begin{enumerate}
+\item 
+Readbility (may be significant on e.g. \item 
+Writability (may be significant e.g. pipes).\item 
+Exceptional conditions (e.g. pipe broken).\end{enumerate}
+\item 
+Write a subclass of CFile event which supplies the appropriate application specific functionality for any or all of the functions:\begin{enumerate}
+\item 
+{\bf On\-Readable} {\rm (p.\,\pageref{classCFileEvent_a15})} which is called when the file descriptor becomes readable.\item 
+{\bf On\-Writable} {\rm (p.\,\pageref{classCFileEvent_a16})} which  is called when the file descriptor becomes writable.\item 
+{\bf On\-Exception} {\rm (p.\,\pageref{classCFileEvent_a17})} which is called when the file descriptor has an exceptional condition pending.\end{enumerate}
+\item 
+During application execution create and enable an instance of this class.\end{CompactItemize}
+In the example below, a file event is created to monitor stdin. When input is available on stdin, the first word of the line is echoed back on stdout.
+
+
+
+\footnotesize\begin{verbatim}#include <iostream.h>
+#include <stdio.h>
+#include <spectrodaq.h>
+#include <SpectroFramework.h>
+
+class Echo : public CFileEvent
+{
+public:
+  Echo(int fd, const char* pName);
+  virtual void OnReadable(istream& rin);
+};
+
+Echo::Echo(int fd, const char* pName):
+  CFileEvent(fd, pName)
+{
+  AppendClassInfo();
+}
+
+void
+Echo::OnReadable(istream& rin)
+{
+  CFileEvent::OnReadable(rin);
+  string word;
+  rin >> word;
+  cout << word << endl;
+}
+
+class MyApp : public DAQROCNode
+{
+protected:
+  virtual int operator()(int argc, char** argv);
+};
+
+int
+MyApp::operator()(int argc, char** argv)
+{
+  Echo echo(fileno(stdin), "EchoProcessor");
+
+  echo.Enable();
+  DAQThreadId id = echo.getThreadId();
+
+  Join(id);                     // Wait for echo to exit.
+}
+
+
+MyApp theapp;
+\end{verbatim}\normalsize 
+
+

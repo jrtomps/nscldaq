@@ -1,0 +1,41 @@
+\section{TCLCommand\-Package.h File Reference}
+\label{TCLCommandPackage_8h}\index{TCLCommandPackage.h@{TCLCommand\-Package.h}}
+{\tt \#include \char`\"{}TCLInterpreter\-Object.h\char`\"{}}\par
+{\tt \#include \char`\"{}TCLInterpreter.h\char`\"{}}\par
+{\tt \#include \char`\"{}TCLProcessor.h\char`\"{}}\par
+{\tt \#include $<$histotypes.h$>$}\par
+{\tt \#include $<$list$>$}\par
+\subsection*{Compounds}
+\begin{CompactItemize}
+\item 
+class {\bf CTCLCommand\-Package}
+\end{CompactItemize}
+\subsection*{Typedefs}
+\begin{CompactItemize}
+\item 
+typedef std::list$<$ {\bf CTCLProcessor} $\ast$ $>$ {\bf Command\-List}
+\item 
+typedef Command\-List::iterator {\bf Command\-List\-Iterator}
+\end{CompactItemize}
+
+
+\subsection{Typedef Documentation}
+\index{TCLCommandPackage.h@{TCLCommand\-Package.h}!CommandList@{CommandList}}
+\index{CommandList@{CommandList}!TCLCommandPackage.h@{TCLCommand\-Package.h}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}typedef std::list$<${\bf CTCLProcessor}$\ast$$>$ Command\-List}\label{TCLCommandPackage_8h_a0}
+
+
+
+
+Definition at line 325 of file TCLCommand\-Package.h.
+
+Referenced by CTCLCommand\-Package::Add\-Processors(), CTCLCommand\-Package::get\-Command\-List(), and CTCLCommand\-Package::set\-Command\-List().\index{TCLCommandPackage.h@{TCLCommand\-Package.h}!CommandListIterator@{CommandListIterator}}
+\index{CommandListIterator@{CommandListIterator}!TCLCommandPackage.h@{TCLCommand\-Package.h}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}typedef Command\-List::iterator Command\-List\-Iterator}\label{TCLCommandPackage_8h_a1}
+
+
+
+
+Definition at line 326 of file TCLCommand\-Package.h.
+
+Referenced by CTCLCommand\-Package::begin(), CTCLCommand\-Package::end(), CTCLCommand\-Package::Register(), and CTCLCommand\-Package::Unregister().

@@ -1,0 +1,106 @@
+/*!
+  \page TCLGuests  TCL/Tk Guest event loops.
+
+The framework allows you to include either a TCL (non GUI script engine) or
+Tk (GUI based script engine) in your application.  To do this you must:
+- Design the set of command extensions your application needs.
+- Write subclasses of CDAQTCLProcessor which implement these commands.
+- Write a subclass of either CTCLInterpreterStartup (non GUI script engine)
+  or CTKInterpreterstartup (GUI script engine) which instantiates your command
+  extensions and registers them with the interpreter.
+- Instantiate your extension of the C*Interpreterstartup class to create and
+  start an interpreter.
+
+\section TclCommandProcessors Writing CDAQTCLProcessor extensions.
+
+It is important that user written extensions to the Tcl/Tk command interpreter.
+This is done automatically by deriving your command extensions from 
+CDAQTCLProcessor.  There are two member functions which must be written:
+-  The constructor which determines the command keyword (or name).
+-  The function call operator (operator()), which gets control when the 
+   command keyword has been recognized by the Tcl/Tk interpreter.
+
+See CDAQTCLProcessor::CDAQTCLProcessor for the call signature of the base class
+constructor.  The parameters are:
+\param *Command  - A specification of the command (char* or string&).
+\param pInterp   - A pointer to the interpreter object.
+
+The function call operator (operator()) is called when the command 
+registered by an object has been recognized.  The parameters of this function
+are:
+\param rInterpreter - A reference to the \link CTCLInterpreter interpreter 
+	object \endlink which invoked this command.  The interpreter provides
+	several facilities including subscriptexecution support, and parameter
+	parsing utilities.
+\param rResult - A refereince to the interpreter's \link CTCLResult result
+	object. \endlink  The result object is used to return information
+	from the command to the invoking script.  In the event of an error,
+	the error message associated with the error should be returned in the
+	result object.
+\param argc - The number of words in the command (after the interpreter's
+	round of substitutions).
+\param argv - A pointer to a list of pointers to the characters strings
+	which represent the words of the command.  Note that the 'first'
+	of these is the command itself.
+
+The function call operator must return an int which is one of:
+- TCL_OK  - The command completed successfully and script execution can
+	 continue
+- TCL_ERROR - The command failed, script execution should terminate unless
+	the command was invoked within a catch command.
+
+\section TclInterpreters Writing the interpreter startup functions
+
+This section describes the member functions you may need to override when 
+deriving your command interpreter startup class (subclass of either
+CTCLInterpreterStartup or CTKInterpreterStartup).  The functions you may need
+to write are:
+- \link CInterpreterStartup::OnInitialize OnInitialize \endlink
+ which is called to allow you a chance to process command line parameters and
+ do other pre-interpreter startup initializations.
+- \link CInterpreterStartup::RegisterExtensions which is called after the
+  Tcl/Tk interpreter has been created and initialized and is intended to be
+  the member in which you instantiate and register your command extensions.
+
+\subsection OnInitialize  The \link CInterpreterStartup::OnInitialize 
+	OnInitialize() \endlink member function.
+
+  This member function is called prior to the creation and initialization of
+the interpreter object.  The parameters passed to this member are:
+\param argc   - Number of command line parameters with which to invoke the
+     interpreter.
+\param argv   - char** pointer to the list of pointers to the parameter
+	strings.
+
+\subsection RegisterExtensions The 
+\link CInterpreterStartup::RegisterExtensions RegisterExtensions() \endlink
+	member function.
+
+Once the interpreter has been created and initialized, the framework calls
+RegisterExtensions with no parameters.  The interpreter can be retrieved via
+\link CInterpreterStartup::getInterpreter getInterpreter(). \endlink  In this
+function you should provide code to make instances of your command processors
+and register them with the interpreter.  A normal tactic is to use new to 
+instantiate a processor, save the processor's pointer as member data which is
+deleted' by the destructor.
+
+
+\section TclExample Example application.
+
+The sample application in this section shows how to create a Tcl interpreter
+as a guest event loop.  A simple Echo command is added which simply takes 
+command parameters and places them in the result.
+
+\include TclExample.cpp
+
+\section TkExample example application
+
+This sample application is the same as the one shown in section \link 
+TclExample TclExample, \endlink however a Tk interpreter is started up rather 
+than a Tcl interpreter.  This provides the capability of a scripted GUI
+for the application.
+
+
+\include TkExample.cpp
+
+*/

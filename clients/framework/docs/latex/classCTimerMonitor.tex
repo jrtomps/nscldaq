@@ -1,0 +1,247 @@
+\section{CTimer\-Monitor  Class Reference}
+\label{classCTimerMonitor}\index{CTimerMonitor@{CTimer\-Monitor}}
+{\tt \#include $<$CTimer\-Monitor.h$>$}
+
+Inheritance diagram for CTimer\-Monitor::\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[height=4cm]{classCTimerMonitor}
+\end{center}
+\end{figure}
+\subsection*{Public Methods}
+\begin{CompactItemize}
+\item 
+{\bf CTimer\-Monitor} (bool am\_\-f\-One\-Shot=true, bool am\_\-f\-Timed\-Wait=true)
+\item 
+{\bf CTimer\-Monitor} (const string \&r\-Name, bool am\_\-f\-One\-Shot=true, bool am\_\-f\-Timed\-Wait=true)
+\item 
+{\bf CTimer\-Monitor} (const char $\ast$p\-Name, bool am\_\-f\-One\-Shot=true, bool am\_\-f\-Fired=false, bool am\_\-f\-Timed\-Wait=true)
+\item 
+{\bf $\sim$CTimer\-Monitor} ()
+\item 
+int {\bf operator==} (const CTimer\-Monitor \&a\-CTimer\-Monitor)
+\item 
+bool {\bf get\-One\-Shot} () const
+\item 
+bool {\bf get\-Fired} () const
+\item 
+virtual {\bf CEvent\-Monitor::result} {\bf operator()} ()
+\item 
+void {\bf Repeat} (bool f\-Repeat=true)
+\item 
+virtual void {\bf set\-Timeout} (int n\-Timeout={\bf FOREVER})
+\item 
+virtual string {\bf Describe\-Self} ()
+\end{CompactItemize}
+\subsection*{Protected Methods}
+\begin{CompactItemize}
+\item 
+void {\bf set\-One\-Shot} (bool am\_\-f\-One\-Shot)
+\item 
+void {\bf set\-Fired} (bool am\_\-f\-Fired)
+\end{CompactItemize}
+\subsection*{Private Methods}
+\begin{CompactItemize}
+\item 
+{\bf CTimer\-Monitor} (const CTimer\-Monitor \&a\-CTimer\-Monitor)
+\begin{CompactList}\small\item\em Copy construction is forbidden for now.\item\end{CompactList}\item 
+CTimer\-Monitor {\bf operator=} (const CTimer\-Monitor \&a\-CTimer\-Monitor)
+\begin{CompactList}\small\item\em Assignment is forbidden for now.\item\end{CompactList}\end{CompactItemize}
+\subsection*{Private Attributes}
+\begin{CompactItemize}
+\item 
+bool {\bf m\_\-f\-One\-Shot}
+\item 
+bool {\bf m\_\-f\-Fired}
+\end{CompactItemize}
+
+
+\subsection{Detailed Description}
+Encapsulates an event monitor for timers. Timers can be either repeating or oneshot. A oneshot timer willl fire once after a delay and  then refuse to fire until it's time is reset.
+
+Repeating timers essentially reset their time after each instance of an event. 
+
+
+
+Definition at line 311 of file CTimer\-Monitor.h.
+
+\subsection{Constructor \& Destructor Documentation}
+\index{CTimerMonitor@{CTimer\-Monitor}!CTimerMonitor@{CTimerMonitor}}
+\index{CTimerMonitor@{CTimerMonitor}!CTimerMonitor@{CTimer\-Monitor}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}CTimer\-Monitor::CTimer\-Monitor (bool {\em am\_\-f\-One\-Shot} = true, bool {\em am\_\-f\-Timed\-Wait} = true)\hspace{0.3cm}{\tt  [inline]}}\label{classCTimerMonitor_a0}
+
+
+Fired flag 
+
+Definition at line 320 of file CTimer\-Monitor.h.
+
+References CNamed\-Object::Append\-Class\-Info(), m\_\-f\-Fired, and m\_\-f\-One\-Shot.\index{CTimerMonitor@{CTimer\-Monitor}!CTimerMonitor@{CTimerMonitor}}
+\index{CTimerMonitor@{CTimerMonitor}!CTimerMonitor@{CTimer\-Monitor}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}CTimer\-Monitor::CTimer\-Monitor (const string \& {\em r\-Name}, bool {\em am\_\-f\-One\-Shot} = true, bool {\em am\_\-f\-Timed\-Wait} = true)\hspace{0.3cm}{\tt  [inline]}}\label{classCTimerMonitor_a1}
+
+
+
+
+Definition at line 328 of file CTimer\-Monitor.h.
+
+References CNamed\-Object::Append\-Class\-Info(), m\_\-f\-Fired, and m\_\-f\-One\-Shot.\index{CTimerMonitor@{CTimer\-Monitor}!CTimerMonitor@{CTimerMonitor}}
+\index{CTimerMonitor@{CTimerMonitor}!CTimerMonitor@{CTimer\-Monitor}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}CTimer\-Monitor::CTimer\-Monitor (const char $\ast$ {\em p\-Name}, bool {\em am\_\-f\-One\-Shot} = true, bool {\em am\_\-f\-Fired} = false, bool {\em am\_\-f\-Timed\-Wait} = true)\hspace{0.3cm}{\tt  [inline]}}\label{classCTimerMonitor_a2}
+
+
+
+
+Definition at line 337 of file CTimer\-Monitor.h.
+
+References CNamed\-Object::Append\-Class\-Info(), m\_\-f\-Fired, and m\_\-f\-One\-Shot.\index{CTimerMonitor@{CTimer\-Monitor}!~CTimerMonitor@{$\sim$CTimerMonitor}}
+\index{~CTimerMonitor@{$\sim$CTimerMonitor}!CTimerMonitor@{CTimer\-Monitor}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}CTimer\-Monitor::$\sim$CTimer\-Monitor ()\hspace{0.3cm}{\tt  [inline]}}\label{classCTimerMonitor_a3}
+
+
+
+
+Definition at line 347 of file CTimer\-Monitor.h.\index{CTimerMonitor@{CTimer\-Monitor}!CTimerMonitor@{CTimerMonitor}}
+\index{CTimerMonitor@{CTimerMonitor}!CTimerMonitor@{CTimer\-Monitor}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}CTimer\-Monitor::CTimer\-Monitor (const CTimer\-Monitor \& {\em a\-CTimer\-Monitor})\hspace{0.3cm}{\tt  [private]}}\label{classCTimerMonitor_c0}
+
+
+Copy construction is forbidden for now.
+
+
+
+\subsection{Member Function Documentation}
+\index{CTimerMonitor@{CTimer\-Monitor}!DescribeSelf@{DescribeSelf}}
+\index{DescribeSelf@{DescribeSelf}!CTimerMonitor@{CTimer\-Monitor}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}string CTimer\-Monitor::Describe\-Self ()\hspace{0.3cm}{\tt  [virtual]}}\label{classCTimerMonitor_a10}
+
+
+Operation Type: Selector
+
+Purpose: Produces a string describing the object: 1. Calls CEvent\-Monitor::Decribe\-Self 2. Dumps the state of the oneshot and timed flags. 
+
+Reimplemented from {\bf CNamed\-Object} {\rm (p.\,\pageref{classCNamedObject_a8})}.
+
+Definition at line 400 of file CTimer\-Monitor.cpp.
+
+References CNamed\-Object::Describe\-Self().\index{CTimerMonitor@{CTimer\-Monitor}!getFired@{getFired}}
+\index{getFired@{getFired}!CTimerMonitor@{CTimer\-Monitor}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}bool CTimer\-Monitor::get\-Fired () const\hspace{0.3cm}{\tt  [inline]}}\label{classCTimerMonitor_a6}
+
+
+
+
+Definition at line 371 of file CTimer\-Monitor.h.
+
+References m\_\-f\-Fired.\index{CTimerMonitor@{CTimer\-Monitor}!getOneShot@{getOneShot}}
+\index{getOneShot@{getOneShot}!CTimerMonitor@{CTimer\-Monitor}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}bool CTimer\-Monitor::get\-One\-Shot () const\hspace{0.3cm}{\tt  [inline]}}\label{classCTimerMonitor_a5}
+
+
+
+
+Definition at line 366 of file CTimer\-Monitor.h.
+
+References m\_\-f\-One\-Shot.
+
+Referenced by CTimer\-Event::Internal\-On\-Timer().\index{CTimerMonitor@{CTimer\-Monitor}!operator()@{operator()}}
+\index{operator()@{operator()}!CTimerMonitor@{CTimer\-Monitor}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}{\bf CEvent\-Monitor::result} CTimer\-Monitor::operator() ()\hspace{0.3cm}{\tt  [virtual]}}\label{classCTimerMonitor_a7}
+
+
+Operation Type: override behavior
+
+Purpose: Waits for the timer as follows: 1. If m\_\-f\-Oneshot is false, this function blocks for m\_\-tv\-Timeout time, then returns Occured 2. If m\_\-f\-Oneshot is true, but m\_\-f\-Fired is false, blocks for m\_\-tv\-Timeout, sets m\_\-f\-Fired and returns Occured 3. If m\_\-f\-Oneshot and m\_\-f\-Fired are both true, returns Timed\-Out 
+
+Implements {\bf CEvent\-Monitor} {\rm (p.\,\pageref{classCEventMonitor_a7})}.
+
+Definition at line 318 of file CTimer\-Monitor.cpp.
+
+References CEvent\-Monitor::get\-Timeout(), m\_\-f\-Fired, m\_\-f\-One\-Shot, CEvent\-Monitor::Occurred, and CEvent\-Monitor::Timed\-Out.\index{CTimerMonitor@{CTimer\-Monitor}!operator=@{operator=}}
+\index{operator=@{operator=}!CTimerMonitor@{CTimer\-Monitor}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}CTimer\-Monitor CTimer\-Monitor::operator= (const CTimer\-Monitor \& {\em a\-CTimer\-Monitor})\hspace{0.3cm}{\tt  [private]}}\label{classCTimerMonitor_c1}
+
+
+Assignment is forbidden for now.
+
+\index{CTimerMonitor@{CTimer\-Monitor}!operator==@{operator==}}
+\index{operator==@{operator==}!CTimerMonitor@{CTimer\-Monitor}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}int CTimer\-Monitor::operator== (const CTimer\-Monitor \& {\em a\-CTimer\-Monitor})\hspace{0.3cm}{\tt  [inline]}}\label{classCTimerMonitor_a4}
+
+
+
+
+Definition at line 350 of file CTimer\-Monitor.h.
+
+References m\_\-f\-Fired, m\_\-f\-One\-Shot, and CEvent\-Monitor::operator==().\index{CTimerMonitor@{CTimer\-Monitor}!Repeat@{Repeat}}
+\index{Repeat@{Repeat}!CTimerMonitor@{CTimer\-Monitor}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}void CTimer\-Monitor::Repeat (bool {\em f\-Repeat} = true)}\label{classCTimerMonitor_a8}
+
+
+Operation Type: Mutator
+
+Purpose: Sets m\_\-f\-Oneshot to the value of its parameter. 
+
+Definition at line 364 of file CTimer\-Monitor.cpp.
+
+References m\_\-f\-Fired, and m\_\-f\-One\-Shot.
+
+Referenced by CTimer\-Event::Enable(), and CTimer\-Event::Repeat().\index{CTimerMonitor@{CTimer\-Monitor}!setFired@{setFired}}
+\index{setFired@{setFired}!CTimerMonitor@{CTimer\-Monitor}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}void CTimer\-Monitor::set\-Fired (bool {\em am\_\-f\-Fired})\hspace{0.3cm}{\tt  [inline, protected]}}\label{classCTimerMonitor_b1}
+
+
+
+
+Definition at line 384 of file CTimer\-Monitor.h.
+
+References m\_\-f\-Fired.\index{CTimerMonitor@{CTimer\-Monitor}!setOneShot@{setOneShot}}
+\index{setOneShot@{setOneShot}!CTimerMonitor@{CTimer\-Monitor}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}void CTimer\-Monitor::set\-One\-Shot (bool {\em am\_\-f\-One\-Shot})\hspace{0.3cm}{\tt  [inline, protected]}}\label{classCTimerMonitor_b0}
+
+
+
+
+Definition at line 379 of file CTimer\-Monitor.h.
+
+References m\_\-f\-One\-Shot.\index{CTimerMonitor@{CTimer\-Monitor}!setTimeout@{setTimeout}}
+\index{setTimeout@{setTimeout}!CTimerMonitor@{CTimer\-Monitor}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}void CTimer\-Monitor::set\-Timeout (int {\em n\-Timeout} = {\bf FOREVER})\hspace{0.3cm}{\tt  [virtual]}}\label{classCTimerMonitor_a9}
+
+
+Operation Type: Mutator
+
+Purpose: Calls {\bf CEvent\-Monitor::set\-Timeout} {\rm (p.\,\pageref{classCEventMonitor_b0})} and clears m\_\-f\-Fired. The wait flag FOREVER results in a MAXINT being passed to {\bf CEvent\-Monitor::set\-Timeout} {\rm (p.\,\pageref{classCEventMonitor_b0})} 
+
+Reimplemented from {\bf CEvent\-Monitor} {\rm (p.\,\pageref{classCEventMonitor_a8})}.
+
+Definition at line 382 of file CTimer\-Monitor.cpp.
+
+References m\_\-f\-Fired, and CEvent\-Monitor::set\-Timeout().
+
+Referenced by CTimer\-Event::CTimer\-Event(), CTimer\-Event::Enable(), and CTimer\-Event::Set\-Timeout().
+
+\subsection{Member Data Documentation}
+\index{CTimerMonitor@{CTimer\-Monitor}!m_fFired@{m\_\-fFired}}
+\index{m_fFired@{m\_\-fFired}!CTimerMonitor@{CTimer\-Monitor}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}bool CTimer\-Monitor::m\_\-f\-Fired\hspace{0.3cm}{\tt  [private]}}\label{classCTimerMonitor_o1}
+
+
+Oneshot flag 
+
+Definition at line 314 of file CTimer\-Monitor.h.
+
+Referenced by CTimer\-Monitor(), get\-Fired(), operator()(), operator==(), Repeat(), set\-Fired(), and set\-Timeout().\index{CTimerMonitor@{CTimer\-Monitor}!m_fOneShot@{m\_\-fOneShot}}
+\index{m_fOneShot@{m\_\-fOneShot}!CTimerMonitor@{CTimer\-Monitor}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}bool CTimer\-Monitor::m\_\-f\-One\-Shot\hspace{0.3cm}{\tt  [private]}}\label{classCTimerMonitor_o0}
+
+
+
+
+Definition at line 313 of file CTimer\-Monitor.h.
+
+Referenced by CTimer\-Monitor(), get\-One\-Shot(), operator()(), operator==(), Repeat(), and set\-One\-Shot().
+
+The documentation for this class was generated from the following files:\begin{CompactItemize}
+\item 
+{\bf CTimer\-Monitor.h}\item 
+{\bf CTimer\-Monitor.cpp}\end{CompactItemize}

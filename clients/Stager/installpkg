@@ -1,0 +1,7 @@
+#!/bin/sh
+# Start tclsh: \
+exec tclsh ${0} ${@}
+puts "+++++++++ pkg_mkIndex ++++++++++"
+pkg_mkIndex -verbose $argv/Scripts *.tcl
+puts "++++++++++ auto_mkindex +++++++"
+auto_mkindex $argv/Scripts  *.tcl

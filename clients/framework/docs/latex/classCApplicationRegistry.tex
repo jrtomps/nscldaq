@@ -1,0 +1,122 @@
+\section{CApplication\-Registry  Class Reference}
+\label{classCApplicationRegistry}\index{CApplicationRegistry@{CApplication\-Registry}}
+{\tt \#include $<$CApplication\-Registry.h$>$}
+
+\subsection*{Public Methods}
+\begin{CompactItemize}
+\item 
+{\bf CApplication\-Registry} ()
+\item 
+{\bf CApplication\-Registry} (const CApplication\-Registry \&rhs)
+\item 
+{\bf $\sim$CApplication\-Registry} ()
+\item 
+CApplication\-Registry \& {\bf operator=} (const CApplication\-Registry \&rhs)
+\item 
+int {\bf operator==} (const CApplication\-Registry \&rhs)
+\end{CompactItemize}
+\subsection*{Static Public Methods}
+\begin{CompactItemize}
+\item 
+{\bf CClassified\-Object\-Registry} $\ast$ {\bf get\-Instance} ()
+\end{CompactItemize}
+\subsection*{Static Protected Methods}
+\begin{CompactItemize}
+\item 
+void {\bf set\-Instance} ({\bf CClassified\-Object\-Registry} $\ast$p)
+\begin{CompactList}\small\item\em Set a new value for the instance (should not be done).\item\end{CompactList}\end{CompactItemize}
+\subsection*{Static Private Attributes}
+\begin{CompactItemize}
+\item 
+{\bf CClassified\-Object\-Registry} $\ast$ {\bf m\_\-p\-Instance}
+\end{CompactItemize}
+
+
+\subsection{Detailed Description}
+Encapsulates a singleton {\bf CClassified\-Object\-Registry} {\rm (p.\,\pageref{classCClassifiedObjectRegistry})} which contains the names of all objects registered by the application. 
+
+
+
+Definition at line 301 of file CApplication\-Registry.h.
+
+\subsection{Constructor \& Destructor Documentation}
+\index{CApplicationRegistry@{CApplication\-Registry}!CApplicationRegistry@{CApplicationRegistry}}
+\index{CApplicationRegistry@{CApplicationRegistry}!CApplicationRegistry@{CApplication\-Registry}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}CApplication\-Registry::CApplication\-Registry ()}\label{classCApplicationRegistry_a0}
+
+
+Construct the application registry. Normally this does not need to be used, just call {\bf CApplication\-Registry::get\-Instance}() {\rm (p.\,\pageref{classCApplicationRegistry_d0})}. 
+
+Definition at line 302 of file CApplication\-Registry.cpp.
+
+References get\-Instance().\index{CApplicationRegistry@{CApplication\-Registry}!CApplicationRegistry@{CApplicationRegistry}}
+\index{CApplicationRegistry@{CApplicationRegistry}!CApplicationRegistry@{CApplication\-Registry}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}CApplication\-Registry::CApplication\-Registry (const CApplication\-Registry \& {\em rhs})}\label{classCApplicationRegistry_a1}
+
+
+Copy construction: 
+
+Definition at line 307 of file CApplication\-Registry.cpp.
+
+References get\-Instance().\index{CApplicationRegistry@{CApplication\-Registry}!~CApplicationRegistry@{$\sim$CApplicationRegistry}}
+\index{~CApplicationRegistry@{$\sim$CApplicationRegistry}!CApplicationRegistry@{CApplication\-Registry}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}CApplication\-Registry::$\sim$CApplication\-Registry ()\hspace{0.3cm}{\tt  [inline]}}\label{classCApplicationRegistry_a2}
+
+
+
+
+Definition at line 311 of file CApplication\-Registry.h.
+
+\subsection{Member Function Documentation}
+\index{CApplicationRegistry@{CApplication\-Registry}!getInstance@{getInstance}}
+\index{getInstance@{getInstance}!CApplicationRegistry@{CApplication\-Registry}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}{\bf CClassified\-Object\-Registry} $\ast$ CApplication\-Registry::get\-Instance ()\hspace{0.3cm}{\tt  [static]}}\label{classCApplicationRegistry_d0}
+
+
+Get the singleton instance of the application registry: 
+
+Definition at line 334 of file CApplication\-Registry.cpp.
+
+References m\_\-p\-Instance.
+
+Referenced by CApplication\-Registry(), operator=(), and CReactor::$\sim$CReactor().\index{CApplicationRegistry@{CApplication\-Registry}!operator=@{operator=}}
+\index{operator=@{operator=}!CApplicationRegistry@{CApplication\-Registry}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}CApplication\-Registry \& CApplication\-Registry::operator= (const CApplication\-Registry \& {\em rhs})}\label{classCApplicationRegistry_a3}
+
+
+Assignment: 
+
+Definition at line 315 of file CApplication\-Registry.cpp.
+
+References get\-Instance(), and m\_\-p\-Instance.\index{CApplicationRegistry@{CApplication\-Registry}!operator==@{operator==}}
+\index{operator==@{operator==}!CApplicationRegistry@{CApplication\-Registry}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}int CApplication\-Registry::operator== (const CApplication\-Registry \& {\em rhs})}\label{classCApplicationRegistry_a4}
+
+
+Equality compare: All application registries are equal. 
+
+Definition at line 325 of file CApplication\-Registry.cpp.\index{CApplicationRegistry@{CApplication\-Registry}!setInstance@{setInstance}}
+\index{setInstance@{setInstance}!CApplicationRegistry@{CApplication\-Registry}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}void CApplication\-Registry::set\-Instance ({\bf CClassified\-Object\-Registry} $\ast$ {\em p})\hspace{0.3cm}{\tt  [inline, static, protected]}}\label{classCApplicationRegistry_e0}
+
+
+Set a new value for the instance (should not be done).
+
+
+
+Definition at line 322 of file CApplication\-Registry.h.
+
+\subsection{Member Data Documentation}
+\index{CApplicationRegistry@{CApplication\-Registry}!m_pInstance@{m\_\-pInstance}}
+\index{m_pInstance@{m\_\-pInstance}!CApplicationRegistry@{CApplication\-Registry}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}{\bf CClassified\-Object\-Registry} $\ast$ CApplication\-Registry::m\_\-p\-Instance\hspace{0.3cm}{\tt  [static, private]}}\label{classCApplicationRegistry_r0}
+
+
+
+
+Referenced by get\-Instance(), and operator=().
+
+The documentation for this class was generated from the following files:\begin{CompactItemize}
+\item 
+{\bf CApplication\-Registry.h}\item 
+{\bf CApplication\-Registry.cpp}\end{CompactItemize}

@@ -1,0 +1,159 @@
+\section{XMHelp.cpp File Reference}
+\label{XMHelp_8cpp}\index{XMHelp.cpp@{XMHelp.cpp}}
+{\tt \#include $<$stdio.h$>$}\par
+{\tt \#include $<$Xm/Xm.h$>$}\par
+{\tt \#include \char`\"{}XMDialogs.h\char`\"{}}\par
+\subsection*{Functions}
+\begin{CompactItemize}
+\item 
+XMInformation\-Dialog $\ast$ {\bf XM\_\-help} (char $\ast$name, {\bf XMWidget} $\ast$parent, char $\ast$$\ast$help\_\-text)
+\item 
+void {\bf XM\_\-display\_\-help} ({\bf XMWidget} $\ast$caller, Xt\-Pointer client\_\-data, Xt\-Pointer reason)
+\end{CompactItemize}
+\subsection*{Variables}
+\begin{CompactItemize}
+\item 
+const char $\ast$ {\bf Copyright} = \char`\"{}(C) Copyright Michigan State University 2002, All rights reserved\char`\"{}
+\item 
+char $\ast$ {\bf sccsinfo} = \char`\"{}@(\#)helpmenu.cc 8.9 10/19/98 $\backslash$n\char`\"{}
+\item 
+char $\ast$ {\bf About} [$\,$]
+\item 
+char $\ast$ {\bf aboutname} = \char`\"{}{\bf About}\char`\"{}
+\item 
+XM\_\-help\_\-client\_\-data {\bf XM\_\-About} = \{ {\bf aboutname}, NULL, {\bf About} \}
+\item 
+char $\ast$ {\bf Help} [$\,$]
+\item 
+char $\ast$ {\bf overname} = \char`\"{}Help\_\-Overview\char`\"{}
+\item 
+XM\_\-help\_\-client\_\-data {\bf XM\_\-Help\_\-Overview} = \{{\bf overname}, NULL, {\bf Help} \}
+\end{CompactItemize}
+
+
+\subsection{Function Documentation}
+\index{XMHelp.cpp@{XMHelp.cpp}!XM_display_help@{XM\_\-display\_\-help}}
+\index{XM_display_help@{XM\_\-display\_\-help}!XMHelp.cpp@{XMHelp.cpp}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}void XM\_\-display\_\-help ({\bf XMWidget} $\ast$ {\em caller}, Xt\-Pointer {\em client\_\-data}, Xt\-Pointer {\em reason})}\label{XMHelp_8cpp_a9}
+
+
+
+
+Definition at line 464 of file XMHelp.cpp.
+
+References XM\_\-help().\index{XMHelp.cpp@{XMHelp.cpp}!XM_help@{XM\_\-help}}
+\index{XM_help@{XM\_\-help}!XMHelp.cpp@{XMHelp.cpp}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}XMInformation\-Dialog$\ast$ XM\_\-help (char $\ast$ {\em name}, {\bf XMWidget} $\ast$ {\em parent}, char $\ast$$\ast$ {\em help\_\-text})}\label{XMHelp_8cpp_a8}
+
+
+Functional Description: XM\_\-help - This function builds a help dialog object and returns it to the caller. The help dialog is built up from a list of string pointers. The Help dialog will be managed at the time we exit. The caller can do whatever it wants with the dialog including recycling it for later use or allowing it to be destroyed.  A Help dialog will be an information dialog with a single button labelled \char`\"{}Dismiss\char`\"{}. The \char`\"{}Dismiss\char`\"{} button, when pressed, by default will just pop down the dialog. To alter this behavior, the caller must invoke the Add\-Ok\-Callback method on the returned dialog to string a callback onto the Dismiss button. Formal Parameters: char $\ast$name: Name of the dialog. {\bf XMWidget} {\rm (p.\,\pageref{classXMWidget})} $\ast$parent: Parent widget for the help dialog. char $\ast$$\ast$help\_\-text: A NULL terminated list of character string pointers which will be used to construct the help message string. Returns: XMInformation\-Dialog $\ast$ - Pointer to the created information dialog. NULL - If failed. 
+
+Definition at line 397 of file XMHelp.cpp.
+
+References XMWidget::getid().
+
+Referenced by XM\_\-display\_\-help().
+
+\subsection{Variable Documentation}
+\index{XMHelp.cpp@{XMHelp.cpp}!About@{About}}
+\index{About@{About}!XMHelp.cpp@{XMHelp.cpp}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}char$\ast$ About[$\,$]\hspace{0.3cm}{\tt  [static]}}\label{XMHelp_8cpp_a2}
+
+
+{\bf Initial value:}
+
+\footnotesize\begin{verbatim} { "Xamine -- The NSCL X/Motif histogram display program\n",
+      "               Author: Ron Fox\n",
+      "                       NSCL\n",
+      "                       Michigan State University\n",
+      "                       East Lansing, MI 48824-1321\n",
+      "                       fox@foxsun.nscl.msu.edu\n",
+      "               Copyright (c) NSCL, 1995,1996,1997,1998 All rights reserved\n",
+      "\n",
+      "               Version: Xamine - X2.0-003\n",
+      "               O/S support for:   VAX/VMS\n",
+      "                                  AXP/VMS\n",
+      "                                  Ultrix 4.x\n",
+      "                                  SunOS 4.1.x\n",
+      "                                  OSF/1 AXP\n",
+      "                                  Linux with Lesstif\n",
+      "               Recent enhancements:\n",
+      "                    June 24, 1997:\n"
+      "                      Added support for client supplied peak markers\n",
+      "                    July 13, 1998:\n",
+      "                      Fixed problems doing graphics to deleted pixmaps\n",
+      "                      Fixed problems producing corrupt default files\n",
+      "                    July 23, 1998:\n",
+      "                      Completed port to Linux with Lesstif\n",
+      "                    October 19, 1998\n",
+      "                      Fixed error in points prompter on client buttons\n",
+        NULL
+        }\end{verbatim}\normalsize 
+
+
+Definition at line 319 of file XMHelp.cpp.\index{XMHelp.cpp@{XMHelp.cpp}!aboutname@{aboutname}}
+\index{aboutname@{aboutname}!XMHelp.cpp@{XMHelp.cpp}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}char$\ast$ aboutname = \char`\"{}{\bf About}\char`\"{}\hspace{0.3cm}{\tt  [static]}}\label{XMHelp_8cpp_a3}
+
+
+
+
+Definition at line 346 of file XMHelp.cpp.\index{XMHelp.cpp@{XMHelp.cpp}!Copyright@{Copyright}}
+\index{Copyright@{Copyright}!XMHelp.cpp@{XMHelp.cpp}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}const char$\ast$ Copyright = \char`\"{}(C) Copyright Michigan State University 2002, All rights reserved\char`\"{}\hspace{0.3cm}{\tt  [static]}}\label{XMHelp_8cpp_a0}
+
+
+
+
+Definition at line 278 of file XMHelp.cpp.\index{XMHelp.cpp@{XMHelp.cpp}!Help@{Help}}
+\index{Help@{Help}!XMHelp.cpp@{XMHelp.cpp}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}char$\ast$ Help[$\,$]\hspace{0.3cm}{\tt  [static]}}\label{XMHelp_8cpp_a5}
+
+
+{\bf Initial value:}
+
+\footnotesize\begin{verbatim} { "Xamine is the NSCL X/Motif histogram display program\n\n",
+      "   The highlighted pane is the \"selected\" pane. All operations\n",
+      " that require a pane are performed on that pane. To get a feel\n",
+      " for the functionality of the program, explore the menu bar at the \n",
+      " top of the set of panes. Where appropriate, dialogs that result\n",
+      " from selecting menu buttons, or buttons on the quick select button\n",
+      " bar below the pane region include context sensitive documentation.\n",
+      " By exploring these options and reading the associated help where\n",
+      " the consequences of your actions are not clear, you can get a hands\n",
+      " on introduction to Xamine.\n",
+    "\n   For more information about the program, refer to the Xamine paper\n",
+      " documentation\n",
+      NULL
+      }\end{verbatim}\normalsize 
+
+
+Definition at line 351 of file XMHelp.cpp.\index{XMHelp.cpp@{XMHelp.cpp}!overname@{overname}}
+\index{overname@{overname}!XMHelp.cpp@{XMHelp.cpp}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}char$\ast$ overname = \char`\"{}Help\_\-Overview\char`\"{}\hspace{0.3cm}{\tt  [static]}}\label{XMHelp_8cpp_a6}
+
+
+
+
+Definition at line 366 of file XMHelp.cpp.\index{XMHelp.cpp@{XMHelp.cpp}!sccsinfo@{sccsinfo}}
+\index{sccsinfo@{sccsinfo}!XMHelp.cpp@{XMHelp.cpp}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}char$\ast$ sccsinfo = \char`\"{}@(\#)helpmenu.cc 8.9 10/19/98 $\backslash$n\char`\"{}\hspace{0.3cm}{\tt  [static]}}\label{XMHelp_8cpp_a1}
+
+
+
+
+Definition at line 298 of file XMHelp.cpp.\index{XMHelp.cpp@{XMHelp.cpp}!XM_About@{XM\_\-About}}
+\index{XM_About@{XM\_\-About}!XMHelp.cpp@{XMHelp.cpp}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}XM\_\-help\_\-client\_\-data XM\_\-About = \{ {\bf aboutname}, NULL, {\bf About} \}}\label{XMHelp_8cpp_a4}
+
+
+
+
+Definition at line 348 of file XMHelp.cpp.\index{XMHelp.cpp@{XMHelp.cpp}!XM_Help_Overview@{XM\_\-Help\_\-Overview}}
+\index{XM_Help_Overview@{XM\_\-Help\_\-Overview}!XMHelp.cpp@{XMHelp.cpp}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}XM\_\-help\_\-client\_\-data XM\_\-Help\_\-Overview = \{{\bf overname}, NULL, {\bf Help} \}}\label{XMHelp_8cpp_a7}
+
+
+
+
+Definition at line 367 of file XMHelp.cpp.

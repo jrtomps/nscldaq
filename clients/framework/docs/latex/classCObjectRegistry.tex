@@ -1,0 +1,197 @@
+\section{CObject\-Registry  Class Reference}
+\label{classCObjectRegistry}\index{CObjectRegistry@{CObject\-Registry}}
+{\tt \#include $<$CObject\-Registry.h$>$}
+
+Inheritance diagram for CObject\-Registry::\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[height=2cm]{classCObjectRegistry}
+\end{center}
+\end{figure}
+\subsection*{Public Methods}
+\begin{CompactItemize}
+\item 
+{\bf CObject\-Registry} (string am\_\-s\-Name)
+\item 
+virtual {\bf $\sim$CObject\-Registry} ()
+\item 
+map$<$ string, {\bf CNamed\-Object} $\ast$ $>$ {\bf get\-Objects} () const
+\item 
+void {\bf Add} ({\bf CNamed\-Object} \&r\-Object)
+\item 
+void {\bf Remove} (const string \&r\-Name)
+\item 
+void {\bf Remove} (const {\bf CNamed\-Object} \&r\-Object)
+\item 
+const {\bf Object\-Iterator} {\bf Find} (const string \&r\-Object\-Name) const
+\item 
+{\bf Object\-Iterator} {\bf begin} ()
+\item 
+{\bf Object\-Iterator} {\bf end} ()
+\item 
+virtual string {\bf Describe\-Self} ()
+\end{CompactItemize}
+\subsection*{Protected Methods}
+\begin{CompactItemize}
+\item 
+void {\bf set\-Objects} (map$<$ string, {\bf CNamed\-Object} $\ast$ $>$ am\_\-Objects)
+\end{CompactItemize}
+\subsection*{Private Attributes}
+\begin{CompactItemize}
+\item 
+map$<$ string, {\bf CNamed\-Object} $\ast$ $>$ {\bf m\_\-Objects}
+\end{CompactItemize}
+
+
+\subsection{Detailed Description}
+Implements a registry of named objects.  Registries allow you to determine which instances of particular types of objects exist. Typically a programmer wanting to  allow this level of introspection will subclass a class hierarchy from {\bf CRegistered\-Object} {\rm (p.\,\pageref{classCRegisteredObject})} such that the constructor of each class will register that class. One can then programmatically search for named instances of a class as well as iterate through the registry to determine which instances exist. 
+
+
+
+Definition at line 321 of file CObject\-Registry.h.
+
+\subsection{Constructor \& Destructor Documentation}
+\index{CObjectRegistry@{CObject\-Registry}!CObjectRegistry@{CObjectRegistry}}
+\index{CObjectRegistry@{CObjectRegistry}!CObjectRegistry@{CObject\-Registry}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}CObject\-Registry::CObject\-Registry (string {\em am\_\-s\-Name})\hspace{0.3cm}{\tt  [inline]}}\label{classCObjectRegistry_a0}
+
+
+Map containing the name key and a pointer to the object. 
+
+Definition at line 329 of file CObject\-Registry.h.
+
+References CNamed\-Object::Append\-Class\-Info().\index{CObjectRegistry@{CObject\-Registry}!~CObjectRegistry@{$\sim$CObjectRegistry}}
+\index{~CObjectRegistry@{$\sim$CObjectRegistry}!CObjectRegistry@{CObject\-Registry}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}virtual CObject\-Registry::$\sim$CObject\-Registry ()\hspace{0.3cm}{\tt  [inline, virtual]}}\label{classCObjectRegistry_a1}
+
+
+
+
+Definition at line 334 of file CObject\-Registry.h.
+
+\subsection{Member Function Documentation}
+\index{CObjectRegistry@{CObject\-Registry}!Add@{Add}}
+\index{Add@{Add}!CObjectRegistry@{CObject\-Registry}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}void CObject\-Registry::Add ({\bf CNamed\-Object} \& {\em r\-Object})}\label{classCObjectRegistry_a3}
+
+
+Adds an object to the object registry.  The name of the object is gotten from the object itself.\begin{Desc}
+\item[Parameters: ]\par
+\begin{description}
+\item[{\em 
+r\-Object}]The object to add to the registry. \end{description}
+\end{Desc}
+
+
+Definition at line 310 of file CObject\-Registry.cpp.
+
+References CNamed\-Object::get\-Name(), and m\_\-Objects.\index{CObjectRegistry@{CObject\-Registry}!begin@{begin}}
+\index{begin@{begin}!CObjectRegistry@{CObject\-Registry}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}{\bf Object\-Iterator} CObject\-Registry::begin ()}\label{classCObjectRegistry_a7}
+
+
+Returns an iterator which 'points' to the beginning of the  registry of objects. Traversing the registry through this  iterator will visit all objects in name alphabetical order. 
+
+Definition at line 386 of file CObject\-Registry.cpp.
+
+References m\_\-Objects.\index{CObjectRegistry@{CObject\-Registry}!DescribeSelf@{DescribeSelf}}
+\index{DescribeSelf@{DescribeSelf}!CObjectRegistry@{CObject\-Registry}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}string CObject\-Registry::Describe\-Self ()\hspace{0.3cm}{\tt  [virtual]}}\label{classCObjectRegistry_a9}
+
+
+Returns a string which describes the registry The description includes the name and class path of the registry, and the name and class path of all objects contained in the registry. 
+
+Reimplemented from {\bf CNamed\-Object} {\rm (p.\,\pageref{classCNamedObject_a8})}.
+
+Definition at line 409 of file CObject\-Registry.cpp.
+
+References CNamed\-Object::Describe\-Self(), m\_\-Objects, and Object\-Iterator.\index{CObjectRegistry@{CObject\-Registry}!end@{end}}
+\index{end@{end}!CObjectRegistry@{CObject\-Registry}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}{\bf Object\-Iterator} CObject\-Registry::end ()}\label{classCObjectRegistry_a8}
+
+
+Returns an iterator which 'points' off the end of the registry of objects. Provided to allow clients to know when to terminate iteration through the registry. 
+
+Definition at line 397 of file CObject\-Registry.cpp.
+
+References m\_\-Objects.\index{CObjectRegistry@{CObject\-Registry}!Find@{Find}}
+\index{Find@{Find}!CObjectRegistry@{CObject\-Registry}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}const {\bf Object\-Iterator} CObject\-Registry::Find (const string \& {\em r\-Object\-Name}) const}\label{classCObjectRegistry_a6}
+
+
+Searches the registry for an object name. If the object exists in the registry, an Object\-Iterator pointing to the object is returned. If it does not exist, a {\bf CNo\-Such\-Object\-Exception} {\rm (p.\,\pageref{classCNoSuchObjectException})} is thrown.\begin{Desc}
+\item[Parameters: ]\par
+\begin{description}
+\item[{\em 
+r\-Object\-Name}]The name of the object to find. \end{description}
+\end{Desc}
+
+
+Definition at line 368 of file CObject\-Registry.cpp.
+
+References m\_\-Objects, and Object\-Iterator.\index{CObjectRegistry@{CObject\-Registry}!getObjects@{getObjects}}
+\index{getObjects@{getObjects}!CObjectRegistry@{CObject\-Registry}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}map$<$string, {\bf CNamed\-Object}$\ast$$>$ CObject\-Registry::get\-Objects () const\hspace{0.3cm}{\tt  [inline]}}\label{classCObjectRegistry_a2}
+
+
+
+
+Definition at line 339 of file CObject\-Registry.h.
+
+References m\_\-Objects.\index{CObjectRegistry@{CObject\-Registry}!Remove@{Remove}}
+\index{Remove@{Remove}!CObjectRegistry@{CObject\-Registry}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}void CObject\-Registry::Remove (const {\bf CNamed\-Object} \& {\em r\-Object})}\label{classCObjectRegistry_a5}
+
+
+Removes an object from the object registry. The name of the object is obtained from the object itself. If the name does not exist in the registry, a  {\bf CNo\-Such\-Object\-Exception} {\rm (p.\,\pageref{classCNoSuchObjectException})} is thrown.\begin{Desc}
+\item[Parameters: ]\par
+\begin{description}
+\item[{\em 
+r\-Object}]The object to be removed from the registry. \end{description}
+\end{Desc}
+
+
+Definition at line 350 of file CObject\-Registry.cpp.
+
+References CNamed\-Object::get\-Name(), and m\_\-Objects.\index{CObjectRegistry@{CObject\-Registry}!Remove@{Remove}}
+\index{Remove@{Remove}!CObjectRegistry@{CObject\-Registry}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}void CObject\-Registry::Remove (const string \& {\em r\-Name})}\label{classCObjectRegistry_a4}
+
+
+Removes an object from the object registry. The name of the object is inserted into the registry. If the name does not exists, a {\bf CNo\-Such\-Object\-Exception} {\rm (p.\,\pageref{classCNoSuchObjectException})} is  thrown.\begin{Desc}
+\item[Parameters: ]\par
+\begin{description}
+\item[{\em 
+r\-Name}]The name of the object to remove from the registry. \end{description}
+\end{Desc}
+
+
+Definition at line 332 of file CObject\-Registry.cpp.
+
+References m\_\-Objects.\index{CObjectRegistry@{CObject\-Registry}!setObjects@{setObjects}}
+\index{setObjects@{setObjects}!CObjectRegistry@{CObject\-Registry}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}void CObject\-Registry::set\-Objects (map$<$ string, {\bf CNamed\-Object} $\ast$ $>$ {\em am\_\-Objects})\hspace{0.3cm}{\tt  [inline, protected]}}\label{classCObjectRegistry_b0}
+
+
+
+
+Definition at line 347 of file CObject\-Registry.h.
+
+References m\_\-Objects.
+
+\subsection{Member Data Documentation}
+\index{CObjectRegistry@{CObject\-Registry}!m_Objects@{m\_\-Objects}}
+\index{m_Objects@{m\_\-Objects}!CObjectRegistry@{CObject\-Registry}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}map$<$string, {\bf CNamed\-Object}$\ast$$>$ CObject\-Registry::m\_\-Objects\hspace{0.3cm}{\tt  [private]}}\label{classCObjectRegistry_o0}
+
+
+
+
+Definition at line 323 of file CObject\-Registry.h.
+
+Referenced by Add(), begin(), Describe\-Self(), end(), Find(), get\-Objects(), Remove(), and set\-Objects().
+
+The documentation for this class was generated from the following files:\begin{CompactItemize}
+\item 
+{\bf CObject\-Registry.h}\item 
+{\bf CObject\-Registry.cpp}\end{CompactItemize}

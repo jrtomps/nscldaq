@@ -1,0 +1,36 @@
+\section{Bug List}\label{bug}
+\begin{description}
+\item[\label{_bug000005}
+Member {\bf CBinding::Item\-To\-String}(T Item) ]
+ Should invent a bad type exception and throw it. \end{description}
+
+
+\begin{description}
+\item[\label{_bug000004}
+Member {\bf CBinding::Variable\-Type}(T item) ]
+Really should invent a bad type exception and throw it instead\end{description}
+
+
+\begin{description}
+\item[\label{_bug000001}
+Member {\bf CEvent\-Loop::$\sim$CEvent\-Loop}() ]
+There is no good way to enforce that {\bf CDuplicate\-Singleton} {\rm (p.\,\pageref{classCDuplicateSingleton})}'s don't result in spurious clears of the instance pointer.\end{description}
+
+
+\begin{description}
+\item[\label{_bug000003}
+Member {\bf CSocket::Write}(void $\ast$p\-Buffer, size\_\-t n\-Bytes) ]
+There's not a good way to handle failures on the second or later call to write(2). Since we'd like to indicate that part of the write completed before an error occured. The current assumption is that a followup write will produce the same error. Perhaps the best long term thing to do is to define a CTCPSocket\-IOError which will include as data the number of bytes written along with a {\bf CErrno\-Exception} {\rm (p.\,\pageref{classCErrnoException})} which describes why the write actually failed??\end{description}
+
+
+\begin{description}
+\item[\label{_bug000006}
+Member {\bf CXt\-Event\-Loop::set\-Fallback\-Resources}(char $\ast$$\ast$resources) ]
+ May want to do a copy in instead of pointer copy.\end{description}
+
+
+\begin{description}
+\item[\label{_bug000002}
+Member {\bf FALSE} ]
+ Perhaps global syncronization of (3) calls should be conditionalized so that this module can be used in a non spectrodaq environment too. \end{description}
+ 

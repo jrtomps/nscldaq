@@ -1,0 +1,79 @@
+\section{Location monitors.}\label{LocationMonitors}
+
+
+A location monitor watches a volatile memory location and, with low latency, dispatches to application code whenever a significant change in the monitored location occurs. A typical use of a location monitor would be to spin while monitoring a hardware register for changes indicating an event trigger.
+
+The application framework encapsulates location monitors in a templated class: {\bf CLocation\-Event} {\rm (p.\,\pageref{classCLocationEvent})}. The implementation of this event is a thread which spins tightly on the location.
+
+For each pass through the the main loop of {\bf CLocation\-Event} {\rm (p.\,\pageref{classCLocationEvent})}, the location is  tested for significant change. If a significant change ocured, the On\-Event member is called ({\bf CLocation\-Event::On\-Event} {\rm (p.\,\pageref{classCEvent_b2})}).
+
+The concept of \char`\"{}significant change\char`\"{} is captured by associating a  {\bf CPointer\-Predicate} {\rm (p.\,\pageref{classCPointerPredicate})} derived class with each location monitor. Predicates are  function like objects (they are objects from classes which implement  operator()), whose function call operator returns a boolean given the current value of the monitored location. The predicate determines if the change was significate from the application's standpoint and if so returns TRUE, otherwise FALSE.
+
+The following pre-defined predicates exist:\begin{CompactItemize}
+\item 
+{\bf CChanged\-Predicate} {\rm (p.\,\pageref{classCChangedPredicate})} - The location's value this pass through the loop is  different than the prior pass.\item 
+{\bf CMasked\-Value\-Predicate} {\rm (p.\,\pageref{classCMaskedValuePredicate})} - does a bitwise and of the location with a mask and compares the result to a value, equality indicates significance.\end{CompactItemize}
+The example below is somewhat artificial. A location monitor is created to monitor an ordinary program memory location, using the {\bf CChanged\-Predicate} {\rm (p.\,\pageref{classCChangedPredicate})} to  determine significant change. The main program accepts input from stdin, and modifies the location each time input is received.
+
+The location monitor responds to the change by printing out the value of the location.
+
+
+
+\footnotesize\begin{verbatim}#include <spectrodaq.h>
+#include <SpectroFramework.h>
+
+#include <iostream.h>
+
+volatile long location = 0;     // Location monitored.
+
+typedef CLocationEvent<long> LongMonitor;
+typedef CPointerPredicate<long> LongPred;
+typedef CChangedPredicate<long> LongChanged;
+
+class MyLocation : public LongMonitor
+{
+public:
+  MyLocation(const char* pName, LongPred& pred, long* pLoc); //  Constructor.
+  virtual void OnLocationChanged(long newval);
+
+};
+
+MyLocation::MyLocation(const char* pName, LongPred& pred,  long* pLoc) :
+  LongMonitor(pName, pLoc,  pred)
+{
+}
+void
+MyLocation::OnLocationChanged(long newval)
+{
+  cout << "Location changed. New value is: " << newval <<endl;
+}
+
+
+class MyApp : public DAQROCNode
+{
+protected:
+  int operator()(int argc, char** argv);
+};
+
+MyApp theApp;
+
+int
+MyApp::operator()(int argc, char** argv)
+{
+  LongChanged predicate(location);
+  MyLocation LocMonitor("TriggeronChanged", predicate, (long*)&location);
+
+  LocMonitor.Enable();
+
+  cout << " Location event: " << LocMonitor.DescribeSelf() << endl;
+  cout << "Started\n";
+
+  string input;
+  while(1) {
+    cin >> input;               //  Block until input...
+    location++;                 // Update location.
+  }
+}
+\end{verbatim}\normalsize 
+
+

@@ -1,0 +1,301 @@
+\section{CTimer\-Event  Class Reference}
+\label{classCTimerEvent}\index{CTimerEvent@{CTimer\-Event}}
+{\tt \#include $<$CTimer\-Event.h$>$}
+
+Inheritance diagram for CTimer\-Event::\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[height=4cm]{classCTimerEvent}
+\end{center}
+\end{figure}
+\subsection*{Public Methods}
+\begin{CompactItemize}
+\item 
+{\bf CTimer\-Event} (unsigned long nms, bool f\-Repeat)
+\item 
+{\bf CTimer\-Event} (const char $\ast$p\-Name, unsigned long nms, bool f\-Repeat)
+\item 
+{\bf CTimer\-Event} (const string \&r\-Name, unsigned long nms, bool f\-Repeat)
+\item 
+virtual {\bf $\sim$CTimer\-Event} ()
+\item 
+{\bf CTimer\-Monitor} \& {\bf get\-Monitor} ()
+\begin{CompactList}\small\item\em Allow manipulation of the event monitor:.\item\end{CompactList}\item 
+{\bf CTimer\-Generic\-Reactor} \& {\bf get\-Reactor} ()
+\begin{CompactList}\small\item\em Allow manipulation of the event reactor:.\item\end{CompactList}\item 
+void {\bf Enable} (unsigned long nms, bool f\-Repeat=true)
+\item 
+void {\bf Enable} ()
+\item 
+void {\bf Set\-Timeout} (unsigned long nms)
+\item 
+void {\bf Repeat} (bool f\-Repeat=true)
+\item 
+virtual void {\bf On\-Timer} ()
+\item 
+void {\bf Internal\-On\-Timer} ()
+\item 
+string {\bf Describe\-Self} ()
+\end{CompactItemize}
+\subsection*{Private Methods}
+\begin{CompactItemize}
+\item 
+{\bf CTimer\-Event} (const CTimer\-Event \&rhs)
+\item 
+CTimer\-Event \& {\bf operator=} (const CTimer\-Event \&rhs)
+\item 
+int {\bf operator==} (const CTimer\-Event \&rhs)
+\end{CompactItemize}
+\subsection*{Private Attributes}
+\begin{CompactItemize}
+\item 
+{\bf CTimer\-Monitor} \& {\bf m\_\-r\-Monitor}
+\begin{CompactList}\small\item\em Refer to the timer monitor maintained.\item\end{CompactList}\item 
+{\bf CTimer\-Generic\-Reactor} \& {\bf m\_\-r\-Reactor}
+\begin{CompactList}\small\item\em Refers to the callback reactor.\item\end{CompactList}\end{CompactItemize}
+
+
+\subsection{Detailed Description}
+CTimer\-Event encapsulates a thread which manages a single timer event. The timer event is capable of waiting for a fixed period of time. Timer events are either one-shot or are multi-shot. Each timer event can be dynamically switched between one-shot and multi-shot. 
+
+
+
+Definition at line 317 of file CTimer\-Event.h.
+
+\subsection{Constructor \& Destructor Documentation}
+\index{CTimerEvent@{CTimer\-Event}!CTimerEvent@{CTimerEvent}}
+\index{CTimerEvent@{CTimerEvent}!CTimerEvent@{CTimer\-Event}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}CTimer\-Event::CTimer\-Event (unsigned long {\em nms}, bool {\em f\-Repeat})}\label{classCTimerEvent_a0}
+
+
+Construct an anonymous CTimer\-Event.  \begin{Desc}
+\item[Parameters: ]\par
+\begin{description}
+\item[{\em 
+nms}]- Number of milliseconds before timer expires. \item[{\em 
+f\-Repeat}]- True if the timer is a recurring timer. \end{description}
+\end{Desc}
+
+
+Definition at line 330 of file CTimer\-Event.cpp.
+
+References get\-Monitor(), get\-Reactor(), m\_\-r\-Monitor, m\_\-r\-Reactor, CEvent::set\-Reactivity(), and CTimer\-Monitor::set\-Timeout().\index{CTimerEvent@{CTimer\-Event}!CTimerEvent@{CTimerEvent}}
+\index{CTimerEvent@{CTimerEvent}!CTimerEvent@{CTimer\-Event}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}CTimer\-Event::CTimer\-Event (const char $\ast$ {\em p\-Name}, unsigned long {\em nms}, bool {\em f\-Repeat})}\label{classCTimerEvent_a1}
+
+
+Construct an named CTimer\-Event where the name is given as an char$\ast$ p C String. \begin{Desc}
+\item[Parameters: ]\par
+\begin{description}
+\item[{\em 
+p\-Name}]- Pointer to object name..  \item[{\em 
+nms}]- Number of milliseconds before timer expires. \item[{\em 
+f\-Repeat}]- True if the timer is a recurring timer. \end{description}
+\end{Desc}
+
+
+Definition at line 347 of file CTimer\-Event.cpp.
+
+References m\_\-r\-Monitor, CEvent::set\-Reactivity(), and CTimer\-Monitor::set\-Timeout().\index{CTimerEvent@{CTimer\-Event}!CTimerEvent@{CTimerEvent}}
+\index{CTimerEvent@{CTimerEvent}!CTimerEvent@{CTimer\-Event}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}CTimer\-Event::CTimer\-Event (const string \& {\em r\-Name}, unsigned long {\em nms}, bool {\em f\-Repeat})}\label{classCTimerEvent_a2}
+
+
+Construct an named CTimer\-Event where the name is given as an STL String. \begin{Desc}
+\item[Parameters: ]\par
+\begin{description}
+\item[{\em 
+r\-Name}]- Reference to object name..  \item[{\em 
+nms}]- Number of milliseconds before timer expires. \item[{\em 
+f\-Repeat}]- True if the timer is a recurring timer. \end{description}
+\end{Desc}
+
+
+Definition at line 364 of file CTimer\-Event.cpp.
+
+References m\_\-r\-Monitor, CEvent::set\-Reactivity(), and CTimer\-Monitor::set\-Timeout().\index{CTimerEvent@{CTimer\-Event}!~CTimerEvent@{$\sim$CTimerEvent}}
+\index{~CTimerEvent@{$\sim$CTimerEvent}!CTimerEvent@{CTimer\-Event}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}CTimer\-Event::$\sim$CTimer\-Event ()\hspace{0.3cm}{\tt  [virtual]}}\label{classCTimerEvent_a3}
+
+
+Destroy a timer event. This involves simply deleteing the monitor and the reactor: 
+
+Definition at line 380 of file CTimer\-Event.cpp.
+
+References m\_\-r\-Monitor, and m\_\-r\-Reactor.\index{CTimerEvent@{CTimer\-Event}!CTimerEvent@{CTimerEvent}}
+\index{CTimerEvent@{CTimerEvent}!CTimerEvent@{CTimer\-Event}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}CTimer\-Event::CTimer\-Event (const CTimer\-Event \& {\em rhs})\hspace{0.3cm}{\tt  [private]}}\label{classCTimerEvent_c0}
+
+
+
+
+\subsection{Member Function Documentation}
+\index{CTimerEvent@{CTimer\-Event}!DescribeSelf@{DescribeSelf}}
+\index{DescribeSelf@{DescribeSelf}!CTimerEvent@{CTimer\-Event}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}string CTimer\-Event::Describe\-Self ()\hspace{0.3cm}{\tt  [virtual]}}\label{classCTimerEvent_a12}
+
+
+Called to produce a string description of self. 
+
+Reimplemented from {\bf CEvent} {\rm (p.\,\pageref{classCEvent_a16})}.
+
+Definition at line 464 of file CTimer\-Event.cpp.
+
+References CEvent::Describe\-Self().\index{CTimerEvent@{CTimer\-Event}!Enable@{Enable}}
+\index{Enable@{Enable}!CTimerEvent@{CTimer\-Event}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}void CTimer\-Event::Enable ()\hspace{0.3cm}{\tt  [inline]}}\label{classCTimerEvent_a7}
+
+
+Enable execution of the event. This is intended to be called from outside the Event thread. This allows us to directly schedule the object as a thread, rather than going through the rigmarole required by {\bf CEvent::Schedule} {\rm (p.\,\pageref{classCEvent_b3})}
+
+\begin{CompactItemize}
+\item 
+Enabling an active thread is a no-op.\item 
+The enable state is a flag, not a counter, so only a single disable is required to kill the thread regardless of the number of Enable calls. \end{CompactItemize}
+
+
+Reimplemented from {\bf CEvent} {\rm (p.\,\pageref{classCEvent_a11})}.
+
+Definition at line 369 of file CTimer\-Event.h.
+
+References CEvent::Enable().\index{CTimerEvent@{CTimer\-Event}!Enable@{Enable}}
+\index{Enable@{Enable}!CTimerEvent@{CTimer\-Event}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}void CTimer\-Event::Enable (unsigned long {\em nms}, bool {\em f\-Repeat} = true)}\label{classCTimerEvent_a6}
+
+
+Overload for Enable specific to timers... since one shot timers are allowed, this member is supplied to setup the timer and start it in one operation.\begin{Desc}
+\item[Parameters: ]\par
+\begin{description}
+\item[{\em 
+nms}]- Number of milliseconds before timer expires. \item[{\em 
+f\-Repeat-}]true if this is a repetitive timer. \end{description}
+\end{Desc}
+
+
+Definition at line 396 of file CTimer\-Event.cpp.
+
+References CEvent::Enable(), m\_\-r\-Monitor, CTimer\-Monitor::Repeat(), CEvent::set\-Reactivity(), and CTimer\-Monitor::set\-Timeout().\index{CTimerEvent@{CTimer\-Event}!getMonitor@{getMonitor}}
+\index{getMonitor@{getMonitor}!CTimerEvent@{CTimer\-Event}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}{\bf CTimer\-Monitor}\& CTimer\-Event::get\-Monitor ()\hspace{0.3cm}{\tt  [inline]}}\label{classCTimerEvent_a4}
+
+
+Allow manipulation of the event monitor:.
+
+
+
+Reimplemented from {\bf CEvent} {\rm (p.\,\pageref{classCEvent_a8})}.
+
+Definition at line 359 of file CTimer\-Event.h.
+
+Referenced by CTimer\-Event().\index{CTimerEvent@{CTimer\-Event}!getReactor@{getReactor}}
+\index{getReactor@{getReactor}!CTimerEvent@{CTimer\-Event}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}{\bf CTimer\-Generic\-Reactor}\& CTimer\-Event::get\-Reactor ()\hspace{0.3cm}{\tt  [inline]}}\label{classCTimerEvent_a5}
+
+
+Allow manipulation of the event reactor:.
+
+
+
+Reimplemented from {\bf CEvent} {\rm (p.\,\pageref{classCEvent_a9})}.
+
+Definition at line 362 of file CTimer\-Event.h.
+
+Referenced by CTimer\-Event().\index{CTimerEvent@{CTimer\-Event}!InternalOnTimer@{InternalOnTimer}}
+\index{InternalOnTimer@{InternalOnTimer}!CTimerEvent@{CTimer\-Event}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}void CTimer\-Event::Internal\-On\-Timer ()}\label{classCTimerEvent_a11}
+
+
+Called directly from the reactor. \begin{enumerate}
+\item 
+Calls the user overridable member.\item 
+If the timer is a single shot timer, the thread is disabled from continuing. \end{enumerate}
+
+
+Definition at line 441 of file CTimer\-Event.cpp.
+
+References CTimer\-Monitor::get\-One\-Shot(), m\_\-r\-Monitor, On\-Timer(), and CEvent::set\-Enable().
+
+Referenced by CTimer\-Event::CTimer\-Generic\-Reactor::On\-Event().\index{CTimerEvent@{CTimer\-Event}!OnTimer@{OnTimer}}
+\index{OnTimer@{OnTimer}!CTimerEvent@{CTimer\-Event}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}void CTimer\-Event::On\-Timer ()\hspace{0.3cm}{\tt  [virtual]}}\label{classCTimerEvent_a10}
+
+
+Called internally - user overridable event code. No-OP for now: 
+
+Definition at line 456 of file CTimer\-Event.cpp.
+
+Referenced by Internal\-On\-Timer().\index{CTimerEvent@{CTimer\-Event}!operator=@{operator=}}
+\index{operator=@{operator=}!CTimerEvent@{CTimer\-Event}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}CTimer\-Event\& CTimer\-Event::operator= (const CTimer\-Event \& {\em rhs})\hspace{0.3cm}{\tt  [private]}}\label{classCTimerEvent_c1}
+
+
+\index{CTimerEvent@{CTimer\-Event}!operator==@{operator==}}
+\index{operator==@{operator==}!CTimerEvent@{CTimer\-Event}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}int CTimer\-Event::operator== (const CTimer\-Event \& {\em rhs})\hspace{0.3cm}{\tt  [private]}}\label{classCTimerEvent_c2}
+
+
+\index{CTimerEvent@{CTimer\-Event}!Repeat@{Repeat}}
+\index{Repeat@{Repeat}!CTimerEvent@{CTimer\-Event}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}void CTimer\-Event::Repeat (bool {\em f\-Repeat} = true)}\label{classCTimerEvent_a9}
+
+
+Set the flag indicating if the timer is a repeating or single shot: \begin{Desc}
+\item[Parameters: ]\par
+\begin{description}
+\item[{\em 
+f\-Repeat}]- True if this is a repetetitve timer. \end{description}
+\end{Desc}
+
+
+Definition at line 421 of file CTimer\-Event.cpp.
+
+References m\_\-r\-Monitor, and CTimer\-Monitor::Repeat().\index{CTimerEvent@{CTimer\-Event}!SetTimeout@{SetTimeout}}
+\index{SetTimeout@{SetTimeout}!CTimerEvent@{CTimer\-Event}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}void CTimer\-Event::Set\-Timeout (unsigned long {\em nms})}\label{classCTimerEvent_a8}
+
+
+Re-export the members of the monitor which allow control over the timer. This member sets the timeout.\begin{Desc}
+\item[Parameters: ]\par
+\begin{description}
+\item[{\em 
+nms}]- Number of milliseconds before timeout fires. \end{description}
+\end{Desc}
+
+
+Definition at line 410 of file CTimer\-Event.cpp.
+
+References m\_\-r\-Monitor, CEvent::set\-Reactivity(), and CTimer\-Monitor::set\-Timeout().
+
+\subsection{Member Data Documentation}
+\index{CTimerEvent@{CTimer\-Event}!m_rMonitor@{m\_\-rMonitor}}
+\index{m_rMonitor@{m\_\-rMonitor}!CTimerEvent@{CTimer\-Event}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}{\bf CTimer\-Monitor}\& CTimer\-Event::m\_\-r\-Monitor\hspace{0.3cm}{\tt  [private]}}\label{classCTimerEvent_o0}
+
+
+Refer to the timer monitor maintained.
+
+
+
+Reimplemented from {\bf CEvent} {\rm (p.\,\pageref{classCEvent_o4})}.
+
+Definition at line 335 of file CTimer\-Event.h.
+
+Referenced by CTimer\-Event(), Enable(), Internal\-On\-Timer(), Repeat(), Set\-Timeout(), and $\sim$CTimer\-Event().\index{CTimerEvent@{CTimer\-Event}!m_rReactor@{m\_\-rReactor}}
+\index{m_rReactor@{m\_\-rReactor}!CTimerEvent@{CTimer\-Event}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}{\bf CTimer\-Generic\-Reactor}\& CTimer\-Event::m\_\-r\-Reactor\hspace{0.3cm}{\tt  [private]}}\label{classCTimerEvent_o1}
+
+
+Refers to the callback reactor.
+
+
+
+Reimplemented from {\bf CEvent} {\rm (p.\,\pageref{classCEvent_o5})}.
+
+Definition at line 336 of file CTimer\-Event.h.
+
+Referenced by CTimer\-Event(), and $\sim$CTimer\-Event().
+
+The documentation for this class was generated from the following files:\begin{CompactItemize}
+\item 
+{\bf CTimer\-Event.h}\item 
+{\bf CTimer\-Event.cpp}\end{CompactItemize}

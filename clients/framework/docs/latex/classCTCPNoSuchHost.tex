@@ -1,0 +1,239 @@
+\section{CTCPNo\-Such\-Host  Class Reference}
+\label{classCTCPNoSuchHost}\index{CTCPNoSuchHost@{CTCPNo\-Such\-Host}}
+{\tt \#include $<$CTCPNo\-Such\-Host.h$>$}
+
+Inheritance diagram for CTCPNo\-Such\-Host::\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[height=2cm]{classCTCPNoSuchHost}
+\end{center}
+\end{figure}
+\subsection*{Public Methods}
+\begin{CompactItemize}
+\item 
+{\bf CTCPNo\-Such\-Host} (const string \&hostname, const string \&Doing)
+\item 
+{\bf CTCPNo\-Such\-Host} (const CTCPNo\-Such\-Host \&rhs)
+\begin{CompactList}\small\item\em Copy constructor.\item\end{CompactList}\item 
+virtual {\bf $\sim$CTCPNo\-Such\-Host} ()
+\begin{CompactList}\small\item\em Destructor.\item\end{CompactList}\item 
+CTCPNo\-Such\-Host \& {\bf operator=} (const CTCPNo\-Such\-Host \&rhs)
+\item 
+int {\bf operator==} (const CTCPNo\-Such\-Host \&rhs)
+\item 
+int {\bf geth\-Errno} () const
+\begin{CompactList}\small\item\em $<$ Return h\_\-errno at time of instantiation.\item\end{CompactList}\item 
+string {\bf get\-Host} () const
+\begin{CompactList}\small\item\em $<$ Return name of failing host.\item\end{CompactList}\item 
+virtual const char $\ast$ {\bf Reason\-Text} () const
+\item 
+virtual {\bf Int\_\-t} {\bf Reason\-Code} () const
+\end{CompactItemize}
+\subsection*{Protected Methods}
+\begin{CompactItemize}
+\item 
+void {\bf seth\-Errno} (int new\-Val)
+\item 
+void {\bf set\-Host} (const string new\-Val)
+\end{CompactItemize}
+\subsection*{Private Attributes}
+\begin{CompactItemize}
+\item 
+int {\bf m\_\-h\-Errno}
+\begin{CompactList}\small\item\em Cached value of errno when instantiated.\item\end{CompactList}\item 
+string {\bf m\_\-Host}
+\begin{CompactList}\small\item\em Host which doesn't exist.\item\end{CompactList}\item 
+string {\bf m\_\-Reason}
+\begin{CompactList}\small\item\em String for building up reason text.\item\end{CompactList}\end{CompactItemize}
+
+
+\subsection{Detailed Description}
+Encapsulates an exception which indicates a failure to translate a host specification string into an IP address. Hosts are translated from two posible string formats
+
+\begin{CompactItemize}
+\item 
+Hostnames DNS hostnames such as crusher.nscl.msu.edu\item 
+IPaddresses stringified dotted ip addresses e.g. 35.8.33.224\end{CompactItemize}
+The exception produces reason strings which describe why the host could not be opened along with contextual information supplied by the application when the object is instantiated. 
+
+
+
+Definition at line 315 of file CTCPNo\-Such\-Host.h.
+
+\subsection{Constructor \& Destructor Documentation}
+\index{CTCPNoSuchHost@{CTCPNo\-Such\-Host}!CTCPNoSuchHost@{CTCPNoSuchHost}}
+\index{CTCPNoSuchHost@{CTCPNoSuchHost}!CTCPNoSuchHost@{CTCPNo\-Such\-Host}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}CTCPNo\-Such\-Host::CTCPNo\-Such\-Host (const string \& {\em hostname}, const string \& {\em Doing})}\label{classCTCPNoSuchHost_a0}
+
+
+'Normal' Constructor for the exception class. Initializes the base class and sets up the initial object state.\begin{Desc}
+\item[Parameters: ]\par
+\begin{description}
+\item[{\em 
+hostname}]Name of the host which could not be looked up. \item[{\em 
+Doing}]String which describes what the application was attempting to do when the exceptional condition was thrown. This string is encoded verbatim into the Reason\-Text.\end{description}
+\end{Desc}
+External Inputs:\begin{CompactItemize}
+\item 
+h\_\-errno The (thread) global containing the error number describing why the last host database function called failed. \end{CompactItemize}
+
+
+Definition at line 307 of file CTCPNo\-Such\-Host.cpp.\index{CTCPNoSuchHost@{CTCPNo\-Such\-Host}!CTCPNoSuchHost@{CTCPNoSuchHost}}
+\index{CTCPNoSuchHost@{CTCPNoSuchHost}!CTCPNoSuchHost@{CTCPNo\-Such\-Host}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}CTCPNo\-Such\-Host::CTCPNo\-Such\-Host (const CTCPNo\-Such\-Host \& {\em rhs})}\label{classCTCPNoSuchHost_a1}
+
+
+Copy constructor.
+
+Copy constructor. Used to build temporaries for e.g. call by value or return by value functional semantics.\begin{Desc}
+\item[Parameters: ]\par
+\begin{description}
+\item[{\em 
+rhs}]- The original object from which the copy is constructed. \end{description}
+\end{Desc}
+
+
+Definition at line 321 of file CTCPNo\-Such\-Host.cpp.\index{CTCPNoSuchHost@{CTCPNo\-Such\-Host}!~CTCPNoSuchHost@{$\sim$CTCPNoSuchHost}}
+\index{~CTCPNoSuchHost@{$\sim$CTCPNoSuchHost}!CTCPNoSuchHost@{CTCPNo\-Such\-Host}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}virtual CTCPNo\-Such\-Host::$\sim$CTCPNo\-Such\-Host ()\hspace{0.3cm}{\tt  [inline, virtual]}}\label{classCTCPNoSuchHost_a2}
+
+
+Destructor.
+
+
+
+Definition at line 328 of file CTCPNo\-Such\-Host.h.
+
+\subsection{Member Function Documentation}
+\index{CTCPNoSuchHost@{CTCPNo\-Such\-Host}!gethErrno@{gethErrno}}
+\index{gethErrno@{gethErrno}!CTCPNoSuchHost@{CTCPNo\-Such\-Host}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}int CTCPNo\-Such\-Host::geth\-Errno () const\hspace{0.3cm}{\tt  [inline]}}\label{classCTCPNoSuchHost_a5}
+
+
+$<$ Return h\_\-errno at time of instantiation.
+
+
+
+Definition at line 336 of file CTCPNo\-Such\-Host.h.
+
+References m\_\-h\-Errno.\index{CTCPNoSuchHost@{CTCPNo\-Such\-Host}!getHost@{getHost}}
+\index{getHost@{getHost}!CTCPNoSuchHost@{CTCPNo\-Such\-Host}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}string CTCPNo\-Such\-Host::get\-Host () const\hspace{0.3cm}{\tt  [inline]}}\label{classCTCPNoSuchHost_a6}
+
+
+$<$ Return name of failing host.
+
+
+
+Definition at line 338 of file CTCPNo\-Such\-Host.h.
+
+References m\_\-Host.\index{CTCPNoSuchHost@{CTCPNo\-Such\-Host}!operator=@{operator=}}
+\index{operator=@{operator=}!CTCPNoSuchHost@{CTCPNo\-Such\-Host}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}CTCPNo\-Such\-Host \& CTCPNo\-Such\-Host::operator= (const CTCPNo\-Such\-Host \& {\em rhs})}\label{classCTCPNoSuchHost_a3}
+
+
+Assignment operator\begin{Desc}
+\item[Parameters: ]\par
+\begin{description}
+\item[{\em 
+rhs}]- the right hand side of the assignment. \end{description}
+\end{Desc}
+
+
+Definition at line 333 of file CTCPNo\-Such\-Host.cpp.\index{CTCPNoSuchHost@{CTCPNo\-Such\-Host}!operator==@{operator==}}
+\index{operator==@{operator==}!CTCPNoSuchHost@{CTCPNo\-Such\-Host}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}int CTCPNo\-Such\-Host::operator== (const CTCPNo\-Such\-Host \& {\em rhs})}\label{classCTCPNoSuchHost_a4}
+
+
+Comparison operator.\begin{Desc}
+\item[Parameters: ]\par
+\begin{description}
+\item[{\em 
+rhs}]- the right hand side of the comparison (Who $\ast$this is potentially equal to). \end{description}
+\end{Desc}
+
+
+Definition at line 347 of file CTCPNo\-Such\-Host.cpp.
+
+References m\_\-h\-Errno, m\_\-Host, and CException::operator==().\index{CTCPNoSuchHost@{CTCPNo\-Such\-Host}!ReasonCode@{ReasonCode}}
+\index{ReasonCode@{ReasonCode}!CTCPNoSuchHost@{CTCPNo\-Such\-Host}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}{\bf Int\_\-t} CTCPNo\-Such\-Host::Reason\-Code () const\hspace{0.3cm}{\tt  [virtual]}}\label{classCTCPNoSuchHost_a8}
+
+
+Returns the exception specific reason code. In this case, m\_\-h\-Errno. 
+
+Reimplemented from {\bf CException} {\rm (p.\,\pageref{classCException_a9})}.
+
+Definition at line 379 of file CTCPNo\-Such\-Host.cpp.
+
+References m\_\-h\-Errno.\index{CTCPNoSuchHost@{CTCPNo\-Such\-Host}!ReasonText@{ReasonText}}
+\index{ReasonText@{ReasonText}!CTCPNoSuchHost@{CTCPNo\-Such\-Host}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}const char $\ast$ CTCPNo\-Such\-Host::Reason\-Text () const\hspace{0.3cm}{\tt  [virtual]}}\label{classCTCPNoSuchHost_a7}
+
+
+Returns a textual string indicating why the exception was thrown. This string is suitable for diaplay to a user. The string is of the form: \char`\"{}Host Lookup failed for [m\_\-Host] due to: [hstrerror(m\_\-h\-Errno)]  while [{\bf Was\-Doing}() {\rm (p.\,\pageref{classCException_a10})}]\char`\"{} 
+
+Reimplemented from {\bf CException} {\rm (p.\,\pageref{classCException_a8})}.
+
+Definition at line 364 of file CTCPNo\-Such\-Host.cpp.
+
+References m\_\-h\-Errno, m\_\-Host, m\_\-Reason, and CException::Was\-Doing().\index{CTCPNoSuchHost@{CTCPNo\-Such\-Host}!sethErrno@{sethErrno}}
+\index{sethErrno@{sethErrno}!CTCPNoSuchHost@{CTCPNo\-Such\-Host}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}void CTCPNo\-Such\-Host::seth\-Errno (int {\em new\-Val})\hspace{0.3cm}{\tt  [inline, protected]}}\label{classCTCPNoSuchHost_b0}
+
+
+
+
+Definition at line 344 of file CTCPNo\-Such\-Host.h.
+
+References m\_\-h\-Errno.\index{CTCPNoSuchHost@{CTCPNo\-Such\-Host}!setHost@{setHost}}
+\index{setHost@{setHost}!CTCPNoSuchHost@{CTCPNo\-Such\-Host}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}void CTCPNo\-Such\-Host::set\-Host (const string {\em new\-Val})\hspace{0.3cm}{\tt  [inline, protected]}}\label{classCTCPNoSuchHost_b1}
+
+
+
+
+Definition at line 346 of file CTCPNo\-Such\-Host.h.
+
+References m\_\-Host.
+
+\subsection{Member Data Documentation}
+\index{CTCPNoSuchHost@{CTCPNo\-Such\-Host}!m_hErrno@{m\_\-hErrno}}
+\index{m_hErrno@{m\_\-hErrno}!CTCPNoSuchHost@{CTCPNo\-Such\-Host}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}int CTCPNo\-Such\-Host::m\_\-h\-Errno\hspace{0.3cm}{\tt  [private]}}\label{classCTCPNoSuchHost_o0}
+
+
+Cached value of errno when instantiated.
+
+
+
+Definition at line 319 of file CTCPNo\-Such\-Host.h.
+
+Referenced by geth\-Errno(), operator==(), Reason\-Code(), Reason\-Text(), and seth\-Errno().\index{CTCPNoSuchHost@{CTCPNo\-Such\-Host}!m_Host@{m\_\-Host}}
+\index{m_Host@{m\_\-Host}!CTCPNoSuchHost@{CTCPNo\-Such\-Host}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}string CTCPNo\-Such\-Host::m\_\-Host\hspace{0.3cm}{\tt  [private]}}\label{classCTCPNoSuchHost_o1}
+
+
+Host which doesn't exist.
+
+
+
+Definition at line 320 of file CTCPNo\-Such\-Host.h.
+
+Referenced by get\-Host(), operator==(), Reason\-Text(), and set\-Host().\index{CTCPNoSuchHost@{CTCPNo\-Such\-Host}!m_Reason@{m\_\-Reason}}
+\index{m_Reason@{m\_\-Reason}!CTCPNoSuchHost@{CTCPNo\-Such\-Host}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}string CTCPNo\-Such\-Host::m\_\-Reason\hspace{0.3cm}{\tt  [private]}}\label{classCTCPNoSuchHost_o2}
+
+
+String for building up reason text.
+
+
+
+Definition at line 321 of file CTCPNo\-Such\-Host.h.
+
+Referenced by Reason\-Text().
+
+The documentation for this class was generated from the following files:\begin{CompactItemize}
+\item 
+{\bf CTCPNo\-Such\-Host.h}\item 
+{\bf CTCPNo\-Such\-Host.cpp}\end{CompactItemize}

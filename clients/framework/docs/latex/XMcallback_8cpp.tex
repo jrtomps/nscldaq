@@ -1,0 +1,98 @@
+\section{XMcallback.cpp File Reference}
+\label{XMcallback_8cpp}\index{XMcallback.cpp@{XMcallback.cpp}}
+{\tt \#include $<$errno.h$>$}\par
+{\tt \#include $<$stdio.h$>$}\par
+{\tt \#include \char`\"{}XMWidget.h\char`\"{}}\par
+\subsection*{Functions}
+\begin{CompactItemize}
+\item 
+void {\bf exit} (int)
+\item 
+void {\bf XMDispatch\-Callback} (Widget w, Xt\-Pointer cbd, Xt\-Pointer reason)
+\item 
+{\bf Callback\_\-data} $\ast$ {\bf XMAdd\-Callback} ({\bf XMWidget} $\ast$object, String reason, void($\ast$proc)({\bf XMWidget} $\ast$, Xt\-Pointer, Xt\-Pointer), Xt\-Pointer data)
+\item 
+void {\bf XMRemove\-Callback} ({\bf Callback\_\-data} $\ast$cbd)
+\item 
+void {\bf XMUnmanage\-Child} ({\bf XMWidget} $\ast$wid, Xt\-Pointer client\_\-data, Xt\-Pointer callback\_\-data)
+\item 
+void {\bf XMDestroy\-Widget} ({\bf XMWidget} $\ast$w, Xt\-Pointer cd, Xt\-Pointer cb)
+\end{CompactItemize}
+\subsection*{Variables}
+\begin{CompactItemize}
+\item 
+const char $\ast$ {\bf Copyright} = \char`\"{}(C) Copyright Michigan State University 2002, All rights reserved\char`\"{}
+\item 
+char $\ast$ {\bf sccsversion} = \char`\"{}@(\#)XMcallback.cc 8.1 6/23/95 \char`\"{}
+\end{CompactItemize}
+
+
+\subsection{Function Documentation}
+\index{XMcallback.cpp@{XMcallback.cpp}!exit@{exit}}
+\index{exit@{exit}!XMcallback.cpp@{XMcallback.cpp}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}void exit (int)}\label{XMcallback_8cpp_a2}
+
+
+\index{XMcallback.cpp@{XMcallback.cpp}!XMAddCallback@{XMAddCallback}}
+\index{XMAddCallback@{XMAddCallback}!XMcallback.cpp@{XMcallback.cpp}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}{\bf Callback\_\-data}$\ast$ XMAdd\-Callback ({\bf XMWidget} $\ast$ {\em object}, String {\em reason}, void($\ast$ {\em proc})({\bf XMWidget} $\ast$, Xt\-Pointer, Xt\-Pointer), Xt\-Pointer {\em data})}\label{XMcallback_8cpp_a4}
+
+
+
+
+Definition at line 359 of file XMcallback.cpp.
+
+References Callback\_\-data::client\_\-data, exit(), Callback\_\-data::function, XMWidget::getid(), Callback\_\-data::object, Callback\_\-data::reason, and XMDispatch\-Callback().\index{XMcallback.cpp@{XMcallback.cpp}!XMDestroyWidget@{XMDestroyWidget}}
+\index{XMDestroyWidget@{XMDestroyWidget}!XMcallback.cpp@{XMcallback.cpp}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}void XMDestroy\-Widget ({\bf XMWidget} $\ast$ {\em w}, Xt\-Pointer {\em cd}, Xt\-Pointer {\em cb})}\label{XMcallback_8cpp_a7}
+
+
+
+
+Definition at line 438 of file XMcallback.cpp.\index{XMcallback.cpp@{XMcallback.cpp}!XMDispatchCallback@{XMDispatchCallback}}
+\index{XMDispatchCallback@{XMDispatchCallback}!XMcallback.cpp@{XMcallback.cpp}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}void XMDispatch\-Callback (Widget {\em w}, Xt\-Pointer {\em cbd}, Xt\-Pointer {\em reason})\hspace{0.3cm}{\tt  [static]}}\label{XMcallback_8cpp_a3}
+
+
+
+
+Definition at line 335 of file XMcallback.cpp.
+
+References Callback\_\-data::client\_\-data, Callback\_\-data::function, and Callback\_\-data::object.
+
+Referenced by XMAdd\-Callback(), and XMRemove\-Callback().\index{XMcallback.cpp@{XMcallback.cpp}!XMRemoveCallback@{XMRemoveCallback}}
+\index{XMRemoveCallback@{XMRemoveCallback}!XMcallback.cpp@{XMcallback.cpp}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}void XMRemove\-Callback ({\bf Callback\_\-data} $\ast$ {\em cbd})}\label{XMcallback_8cpp_a5}
+
+
+
+
+Definition at line 396 of file XMcallback.cpp.
+
+References XMWidget::getid(), Callback\_\-data::object, Callback\_\-data::reason, and XMDispatch\-Callback().\index{XMcallback.cpp@{XMcallback.cpp}!XMUnmanageChild@{XMUnmanageChild}}
+\index{XMUnmanageChild@{XMUnmanageChild}!XMcallback.cpp@{XMcallback.cpp}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}void XMUnmanage\-Child ({\bf XMWidget} $\ast$ {\em wid}, Xt\-Pointer {\em client\_\-data}, Xt\-Pointer {\em callback\_\-data})}\label{XMcallback_8cpp_a6}
+
+
+Functional Description: XMUnmanage\-Child - A callback that can be specified to unmanage a child widget. Formal Parameters: {\bf XMWidget} {\rm (p.\,\pageref{classXMWidget})} $\ast$wid: Widget of callback. Xt\-Pointer client\_\-data, callback\_\-data: Ignored data pointers. 
+
+Definition at line 422 of file XMcallback.cpp.
+
+References XMWidget::Un\-Manage().
+
+\subsection{Variable Documentation}
+\index{XMcallback.cpp@{XMcallback.cpp}!Copyright@{Copyright}}
+\index{Copyright@{Copyright}!XMcallback.cpp@{XMcallback.cpp}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}const char$\ast$ Copyright = \char`\"{}(C) Copyright Michigan State University 2002, All rights reserved\char`\"{}\hspace{0.3cm}{\tt  [static]}}\label{XMcallback_8cpp_a0}
+
+
+
+
+Definition at line 278 of file XMcallback.cpp.\index{XMcallback.cpp@{XMcallback.cpp}!sccsversion@{sccsversion}}
+\index{sccsversion@{sccsversion}!XMcallback.cpp@{XMcallback.cpp}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}char$\ast$ sccsversion = \char`\"{}@(\#)XMcallback.cc 8.1 6/23/95 \char`\"{}\hspace{0.3cm}{\tt  [static]}}\label{XMcallback_8cpp_a1}
+
+
+
+
+Definition at line 303 of file XMcallback.cpp.

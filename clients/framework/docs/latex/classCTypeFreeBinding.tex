@@ -1,0 +1,72 @@
+\section{CType\-Free\-Binding  Class Reference}
+\label{classCTypeFreeBinding}\index{CTypeFreeBinding@{CType\-Free\-Binding}}
+{\tt \#include $<$CType\-Free\-Binding.h$>$}
+
+Inheritance diagram for CType\-Free\-Binding::\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[height=3cm]{classCTypeFreeBinding}
+\end{center}
+\end{figure}
+\subsection*{Public Methods}
+\begin{CompactItemize}
+\item 
+virtual void {\bf Init\-Bindings} ({\bf CTCLInterpreter} \&r\-Interp)=0
+\item 
+virtual void {\bf Commit} ({\bf CTCLInterpreter} \&r\-Interp)=0
+\item 
+virtual void {\bf Shutdown\-Bindings} ({\bf CTCLInterpreter} \&r\-Interp)=0
+\item 
+virtual void {\bf Dump} (int fd)=0
+\end{CompactItemize}
+
+
+\subsection{Detailed Description}
+Provides a non-templated ABC for configuration variable bindings. this is required to allow the {\bf CConfiguration\-Manager} {\rm (p.\,\pageref{classCConfigurationManager})} class to hold a list of bindings. For information about the member functions, see {\bf CBinding} {\rm (p.\,\pageref{classCBinding})} 
+
+
+
+Definition at line 299 of file CType\-Free\-Binding.h.
+
+\subsection{Member Function Documentation}
+\index{CTypeFreeBinding@{CType\-Free\-Binding}!Commit@{Commit}}
+\index{Commit@{Commit}!CTypeFreeBinding@{CType\-Free\-Binding}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}virtual void CType\-Free\-Binding::Commit ({\bf CTCLInterpreter} \& {\em r\-Interp})\hspace{0.3cm}{\tt  [pure virtual]}}\label{classCTypeFreeBinding_a1}
+
+
+
+
+Implemented in {\bf CArray\-Binding$<$ T $>$} {\rm (p.\,\pageref{classCArrayBinding_a11})}, {\bf CAssoc\-Array\-Binding$<$ T $>$} {\rm (p.\,\pageref{classCAssocArrayBinding_a13})}, {\bf CBinding$<$ T $>$} {\rm (p.\,\pageref{classCBinding_a1})}, and {\bf CVariable\-Binding$<$ T $>$} {\rm (p.\,\pageref{classCVariableBinding_a14})}.
+
+Referenced by CCommit::operator()().\index{CTypeFreeBinding@{CType\-Free\-Binding}!Dump@{Dump}}
+\index{Dump@{Dump}!CTypeFreeBinding@{CType\-Free\-Binding}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}virtual void CType\-Free\-Binding::Dump (int {\em fd})\hspace{0.3cm}{\tt  [pure virtual]}}\label{classCTypeFreeBinding_a3}
+
+
+
+
+Implemented in {\bf CArray\-Binding$<$ T $>$} {\rm (p.\,\pageref{classCArrayBinding_a13})}, {\bf CAssoc\-Array\-Binding$<$ T $>$} {\rm (p.\,\pageref{classCAssocArrayBinding_a15})}, {\bf CBinding$<$ T $>$} {\rm (p.\,\pageref{classCBinding_a2})}, and {\bf CVariable\-Binding$<$ T $>$} {\rm (p.\,\pageref{classCVariableBinding_a16})}.
+
+Referenced by CDump\-Binding::operator()().\index{CTypeFreeBinding@{CType\-Free\-Binding}!InitBindings@{InitBindings}}
+\index{InitBindings@{InitBindings}!CTypeFreeBinding@{CType\-Free\-Binding}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}virtual void CType\-Free\-Binding::Init\-Bindings ({\bf CTCLInterpreter} \& {\em r\-Interp})\hspace{0.3cm}{\tt  [pure virtual]}}\label{classCTypeFreeBinding_a0}
+
+
+
+
+Implemented in {\bf CArray\-Binding$<$ T $>$} {\rm (p.\,\pageref{classCArrayBinding_a10})}, {\bf CAssoc\-Array\-Binding$<$ T $>$} {\rm (p.\,\pageref{classCAssocArrayBinding_a12})}, {\bf CBinding$<$ T $>$} {\rm (p.\,\pageref{classCBinding_a0})}, and {\bf CVariable\-Binding$<$ T $>$} {\rm (p.\,\pageref{classCVariableBinding_a13})}.
+
+Referenced by CInit\-Binding::operator()().\index{CTypeFreeBinding@{CType\-Free\-Binding}!ShutdownBindings@{ShutdownBindings}}
+\index{ShutdownBindings@{ShutdownBindings}!CTypeFreeBinding@{CType\-Free\-Binding}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}virtual void CType\-Free\-Binding::Shutdown\-Bindings ({\bf CTCLInterpreter} \& {\em r\-Interp})\hspace{0.3cm}{\tt  [pure virtual]}}\label{classCTypeFreeBinding_a2}
+
+
+
+
+Implemented in {\bf CArray\-Binding$<$ T $>$} {\rm (p.\,\pageref{classCArrayBinding_a12})}, {\bf CAssoc\-Array\-Binding$<$ T $>$} {\rm (p.\,\pageref{classCAssocArrayBinding_a14})}, and {\bf CVariable\-Binding$<$ T $>$} {\rm (p.\,\pageref{classCVariableBinding_a15})}.
+
+Referenced by CShutdown\-Binding::operator()().
+
+The documentation for this class was generated from the following file:\begin{CompactItemize}
+\item 
+{\bf CType\-Free\-Binding.h}\end{CompactItemize}

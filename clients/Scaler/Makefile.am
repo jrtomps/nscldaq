@@ -1,0 +1,30 @@
+bin_PROGRAMS = sclclient
+sclclient_SOURCES = ScalerClient.cpp \
+	Consumer.cpp DataSource.cpp EventIterator.cpp \
+	NSCLBufferCreator.cpp NSCLBufferFactory.cpp NSCLDaqBuffer.cpp \
+	NSCLEventBuffer.cpp NSCLPhysicsCreator.cpp NSCLScalerBuffer.cpp \
+	NSCLScalerCreator.cpp NSCLStateChangeBuffer.cpp \
+	NSCLStateChangeCreator.cpp TclServerConnection.cpp \
+	TcpClient.cpp
+INCLUDES=-I@top_srcdir@/Headers -I@top_srcdir@/CopyrightTools  \
+	-I@top_srcdir@/cvt $(SPECTRODAQ_FLAGS)
+sclclient_LDADD = -L@top_srcdir@/CopyrightTools -lLicense \
+	-L@top_srcdir@/cvt -lcvt $(SPECTRODAQ_LDFLAGS)
+
+noinst_HEADERS = Consumer.h \
+	DataSource.h \
+	EventIterator.h \
+	NSCLBufferCreator.h \
+	NSCLBufferFactory.h \
+	NSCLDaqBuffer.h \
+	NSCLEventBuffer.h \
+	NSCLPhysicsCreator.h \
+	NSCLScalerBuffer.h \
+	NSCLScalerCreator.h \
+	NSCLStateChangeBuffer.h \
+	NSCLStateChangeCreator.h \
+	ScalerClient.h \
+	TclServerConnection.h \
+	TcpClient.h \
+	buftypes.h \
+	nsclbuffer.h	

@@ -1,0 +1,113 @@
+\section{XMMain\-Window  Class Reference}
+\label{classXMMainWindow}\index{XMMainWindow@{XMMain\-Window}}
+{\tt \#include $<$XMManagers.h$>$}
+
+Inheritance diagram for XMMain\-Window::\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[height=3cm]{classXMMainWindow}
+\end{center}
+\end{figure}
+\subsection*{Public Methods}
+\begin{CompactItemize}
+\item 
+{\bf XMMain\-Window} (char $\ast${\bf name})
+\item 
+{\bf XMMain\-Window} (Widget {\bf id})
+\item 
+{\bf XMMain\-Window} (char $\ast${\bf name}, {\bf XMApplication} \&parent, Arg\-List l=NULL, Cardinal arg\_\-count=0)
+\item 
+{\bf XMMain\-Window} (char $\ast${\bf name}, {\bf XMWidget} \&parent, Arg\-List l=NULL, Cardinal arg\_\-count=0)
+\item 
+{\bf XMMain\-Window} (char $\ast${\bf name}, Widget \&parent, Arg\-List l=NULL, Cardinal arg\_\-count=0)
+\item 
+void {\bf Set\-Areas} ({\bf XMWidget} $\ast$menubar=NULL, {\bf XMWidget} $\ast$commandwindow=NULL, {\bf XMWidget} $\ast$horizontalscroller=NULL, {\bf XMWidget} $\ast$verticalscroller=NULL, {\bf XMWidget} $\ast$workregion=NULL, {\bf XMWidget} $\ast$messagewidget=NULL)
+\item 
+void {\bf Show\-Separator} (Boolean show)
+\item 
+void {\bf Command\-Window\-Location} (unsigned char where)
+\end{CompactItemize}
+
+
+\subsection{Constructor \& Destructor Documentation}
+\index{XMMainWindow@{XMMain\-Window}!XMMainWindow@{XMMainWindow}}
+\index{XMMainWindow@{XMMainWindow}!XMMainWindow@{XMMain\-Window}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}XMMain\-Window::XMMain\-Window (char $\ast$ {\em name})\hspace{0.3cm}{\tt  [inline]}}\label{classXMMainWindow_a0}
+
+
+
+
+Definition at line 702 of file XMManagers.h.
+
+References XMWidget::name.\index{XMMainWindow@{XMMain\-Window}!XMMainWindow@{XMMainWindow}}
+\index{XMMainWindow@{XMMainWindow}!XMMainWindow@{XMMain\-Window}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}XMMain\-Window::XMMain\-Window (Widget {\em id})\hspace{0.3cm}{\tt  [inline]}}\label{classXMMainWindow_a1}
+
+
+
+
+Definition at line 703 of file XMManagers.h.
+
+References XMWidget::id.\index{XMMainWindow@{XMMain\-Window}!XMMainWindow@{XMMainWindow}}
+\index{XMMainWindow@{XMMainWindow}!XMMainWindow@{XMMain\-Window}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}XMMain\-Window::XMMain\-Window (char $\ast$ {\em name}, {\bf XMApplication} \& {\em parent}, Arg\-List {\em l} = NULL, Cardinal {\em arg\_\-count} = 0)\hspace{0.3cm}{\tt  [inline]}}\label{classXMMainWindow_a2}
+
+
+
+
+Definition at line 704 of file XMManagers.h.
+
+References XMWidget::name.\index{XMMainWindow@{XMMain\-Window}!XMMainWindow@{XMMainWindow}}
+\index{XMMainWindow@{XMMainWindow}!XMMainWindow@{XMMain\-Window}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}XMMain\-Window::XMMain\-Window (char $\ast$ {\em name}, {\bf XMWidget} \& {\em parent}, Arg\-List {\em l} = NULL, Cardinal {\em arg\_\-count} = 0)\hspace{0.3cm}{\tt  [inline]}}\label{classXMMainWindow_a3}
+
+
+
+
+Definition at line 708 of file XMManagers.h.
+
+References XMWidget::name.\index{XMMainWindow@{XMMain\-Window}!XMMainWindow@{XMMainWindow}}
+\index{XMMainWindow@{XMMainWindow}!XMMainWindow@{XMMain\-Window}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}XMMain\-Window::XMMain\-Window (char $\ast$ {\em name}, Widget \& {\em parent}, Arg\-List {\em l} = NULL, Cardinal {\em arg\_\-count} = 0)\hspace{0.3cm}{\tt  [inline]}}\label{classXMMainWindow_a4}
+
+
+
+
+Definition at line 712 of file XMManagers.h.
+
+References XMWidget::name.
+
+\subsection{Member Function Documentation}
+\index{XMMainWindow@{XMMain\-Window}!CommandWindowLocation@{CommandWindowLocation}}
+\index{CommandWindowLocation@{CommandWindowLocation}!XMMainWindow@{XMMain\-Window}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}void XMMain\-Window::Command\-Window\-Location (unsigned char {\em where})\hspace{0.3cm}{\tt  [inline]}}\label{classXMMainWindow_a7}
+
+
+
+
+Definition at line 727 of file XMManagers.h.
+
+References XMWidget::Set\-Attribute().\index{XMMainWindow@{XMMain\-Window}!SetAreas@{SetAreas}}
+\index{SetAreas@{SetAreas}!XMMainWindow@{XMMain\-Window}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}void XMMain\-Window::Set\-Areas ({\bf XMWidget} $\ast$ {\em menubar} = NULL, {\bf XMWidget} $\ast$ {\em commandwindow} = NULL, {\bf XMWidget} $\ast$ {\em horizontalscroller} = NULL, {\bf XMWidget} $\ast$ {\em verticalscroller} = NULL, {\bf XMWidget} $\ast$ {\em workregion} = NULL, {\bf XMWidget} $\ast$ {\em messagewidget} = NULL)}\label{classXMMainWindow_a5}
+
+
+
+
+Definition at line 322 of file XMManagers.cpp.
+
+References XMWidget::getid(), and XMWidget::Set\-Attribute().\index{XMMainWindow@{XMMain\-Window}!ShowSeparator@{ShowSeparator}}
+\index{ShowSeparator@{ShowSeparator}!XMMainWindow@{XMMain\-Window}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}void XMMain\-Window::Show\-Separator (Boolean {\em show})\hspace{0.3cm}{\tt  [inline]}}\label{classXMMainWindow_a6}
+
+
+
+
+Definition at line 724 of file XMManagers.h.
+
+References XMWidget::Set\-Attribute().
+
+The documentation for this class was generated from the following files:\begin{CompactItemize}
+\item 
+{\bf XMManagers.h}\item 
+{\bf XMManagers.cpp}\end{CompactItemize}

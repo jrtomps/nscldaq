@@ -1,0 +1,216 @@
+\section{CException  Class Reference}
+\label{classCException}\index{CException@{CException}}
+{\tt \#include $<$CException.h$>$}
+
+Inheritance diagram for CException::\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[height=12cm]{classCException}
+\end{center}
+\end{figure}
+\subsection*{Public Methods}
+\begin{CompactItemize}
+\item 
+virtual {\bf $\sim$CException} ()
+\item 
+{\bf CException} (const char $\ast$psz\-Action)
+\item 
+{\bf CException} (const std::string \&rs\-Action)
+\item 
+{\bf CException} (const CException \&a\-CException)
+\item 
+CException \& {\bf operator=} (const CException \&a\-CException)
+\item 
+int {\bf operator==} (const CException \&a\-CException)
+\item 
+int {\bf operator!=} (const CException \&r\-Exception)
+\item 
+const char $\ast$ {\bf get\-Action} () const
+\item 
+virtual const char $\ast$ {\bf Reason\-Text} () const
+\item 
+virtual {\bf Int\_\-t} {\bf Reason\-Code} () const
+\item 
+const char $\ast$ {\bf Was\-Doing} () const
+\end{CompactItemize}
+\subsection*{Protected Methods}
+\begin{CompactItemize}
+\item 
+void {\bf set\-Action} (const char $\ast$psz\-Action)
+\item 
+void {\bf set\-Action} (const std::string \&rs\-Action)
+\item 
+virtual void {\bf Do\-Assign} (const CException \&rhs)
+\end{CompactItemize}
+\subsection*{Private Attributes}
+\begin{CompactItemize}
+\item 
+char {\bf m\_\-sz\-Action} [k\-ACTIONSIZE]
+\end{CompactItemize}
+
+
+\subsection{Detailed Description}
+Base class for exceptions thrown  by the histogrammign subsystem. (could be used for any other subsystem for that matter). 
+
+
+
+Definition at line 308 of file CException.h.
+
+\subsection{Constructor \& Destructor Documentation}
+\index{CException@{CException}!~CException@{$\sim$CException}}
+\index{~CException@{$\sim$CException}!CException@{CException}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}virtual CException::$\sim$CException ()\hspace{0.3cm}{\tt  [inline, virtual]}}\label{classCException_a0}
+
+
+
+
+Definition at line 318 of file CException.h.\index{CException@{CException}!CException@{CException}}
+\index{CException@{CException}!CException@{CException}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}CException::CException (const char $\ast$ {\em psz\-Action})}\label{classCException_a1}
+
+
+
+
+Definition at line 319 of file CException.cpp.
+
+References set\-Action().\index{CException@{CException}!CException@{CException}}
+\index{CException@{CException}!CException@{CException}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}CException::CException (const std::string \& {\em rs\-Action})}\label{classCException_a2}
+
+
+
+
+Definition at line 323 of file CException.cpp.
+
+References set\-Action().\index{CException@{CException}!CException@{CException}}
+\index{CException@{CException}!CException@{CException}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}CException::CException (const CException \& {\em a\-CException})}\label{classCException_a3}
+
+
+
+
+Definition at line 335 of file CException.cpp.
+
+References Do\-Assign().
+
+\subsection{Member Function Documentation}
+\index{CException@{CException}!DoAssign@{DoAssign}}
+\index{DoAssign@{DoAssign}!CException@{CException}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}void CException::Do\-Assign (const CException \& {\em r\-Exception})\hspace{0.3cm}{\tt  [protected, virtual]}}\label{classCException_b2}
+
+
+This is virtual to allow derived classes to override and chain calls to. 
+
+Definition at line 465 of file CException.cpp.
+
+References m\_\-sz\-Action, and set\-Action().
+
+Referenced by CException(), and operator=().\index{CException@{CException}!getAction@{getAction}}
+\index{getAction@{getAction}!CException@{CException}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}const char$\ast$ CException::get\-Action () const\hspace{0.3cm}{\tt  [inline]}}\label{classCException_a7}
+
+
+
+
+Definition at line 343 of file CException.h.
+
+References m\_\-sz\-Action.
+
+Referenced by Was\-Doing().\index{CException@{CException}!operator"!=@{operator"!=}}
+\index{operator"!=@{operator"!=}!CException@{CException}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}int CException::operator!= (const CException \& {\em r\-Exception})\hspace{0.3cm}{\tt  [inline]}}\label{classCException_a6}
+
+
+
+
+Definition at line 335 of file CException.h.
+
+References operator==().\index{CException@{CException}!operator=@{operator=}}
+\index{operator=@{operator=}!CException@{CException}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}CException \& CException::operator= (const CException \& {\em a\-CException})}\label{classCException_a4}
+
+
+
+
+Definition at line 347 of file CException.cpp.
+
+References Do\-Assign().
+
+Referenced by CTCLException::operator=(), CTCPBad\-Socket\-State::operator=(), CRange\-Error::operator=(), CNo\-Such\-Object\-Exception::operator=(), CNo\-Such\-Link\-Exception::operator=(), CLink\-Failed\-Exception::operator=(), CIncompatible\-Monitor::operator=(), CErrno\-Exception::operator=(), CDuplicate\-Singleton::operator=(), and CDuplicate\-Name\-Exception::operator=().\index{CException@{CException}!operator==@{operator==}}
+\index{operator==@{operator==}!CException@{CException}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}int CException::operator== (const CException \& {\em a\-CException})}\label{classCException_a5}
+
+
+
+
+Definition at line 363 of file CException.cpp.
+
+References m\_\-sz\-Action.
+
+Referenced by operator!=(), CTCLException::operator==(), CTCPNo\-Such\-Host::operator==(), CTCPBad\-Socket\-State::operator==(), CStream\-IOError::operator==(), CRange\-Error::operator==(), CNo\-Such\-Object\-Exception::operator==(), CNo\-Such\-Link\-Exception::operator==(), CLink\-Failed\-Exception::operator==(), CIncompatible\-Monitor::operator==(), CErrno\-Exception::operator==(), CDuplicate\-Singleton::operator==(), and CDuplicate\-Name\-Exception::operator==().\index{CException@{CException}!ReasonCode@{ReasonCode}}
+\index{ReasonCode@{ReasonCode}!CException@{CException}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}{\bf Int\_\-t} CException::Reason\-Code () const\hspace{0.3cm}{\tt  [virtual]}}\label{classCException_a9}
+
+
+Returns a code which describes the reason for the exception . This is exception type specific and may be used to do detailed exception analysis and recovery. For example in the {\bf CErrno\-Exception} {\rm (p.\,\pageref{classCErrnoException})} class, the errno at the time of instantiation of the object is returned. The default returns -1 
+
+Reimplemented in {\bf CTCPNo\-Such\-Host} {\rm (p.\,\pageref{classCTCPNoSuchHost_a8})}, {\bf CErrno\-Exception} {\rm (p.\,\pageref{classCErrnoException_a8})}, {\bf CRange\-Error} {\rm (p.\,\pageref{classCRangeError_a10})}, {\bf CStream\-IOError} {\rm (p.\,\pageref{classCStreamIOError_a9})}, and {\bf CTCLException} {\rm (p.\,\pageref{classCTCLException_a14})}.
+
+Definition at line 407 of file CException.cpp.\index{CException@{CException}!ReasonText@{ReasonText}}
+\index{ReasonText@{ReasonText}!CException@{CException}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}const char $\ast$ CException::Reason\-Text () const\hspace{0.3cm}{\tt  [virtual]}}\label{classCException_a8}
+
+
+Returns a const pointer to text which describes the reason the exception was thrown. This is exception type specific. The default action returns a pointer to the constant string: \char`\"{}Unspecified Exception\char`\"{} 
+
+Reimplemented in {\bf CDuplicate\-Name\-Exception} {\rm (p.\,\pageref{classCDuplicateNameException_a10})}, {\bf CDuplicate\-Singleton} {\rm (p.\,\pageref{classCDuplicateSingleton_a10})}, {\bf CIncompatible\-Monitor} {\rm (p.\,\pageref{classCIncompatibleMonitor_a7})}, {\bf CLink\-Failed\-Exception} {\rm (p.\,\pageref{classCLinkFailedException_a12})}, {\bf CNo\-Such\-Link\-Exception} {\rm (p.\,\pageref{classCNoSuchLinkException_a12})}, {\bf CNo\-Such\-Object\-Exception} {\rm (p.\,\pageref{classCNoSuchObjectException_a10})}, {\bf CTCPBad\-Socket\-State} {\rm (p.\,\pageref{classCTCPBadSocketState_a7})}, {\bf CTCPConnection\-Failed} {\rm (p.\,\pageref{classCTCPConnectionFailed_a7})}, {\bf CTCPConnection\-Lost} {\rm (p.\,\pageref{classCTCPConnectionLost_a7})}, {\bf CTCPNo\-Such\-Host} {\rm (p.\,\pageref{classCTCPNoSuchHost_a7})}, {\bf CTCPNo\-Such\-Service} {\rm (p.\,\pageref{classCTCPNoSuchService_a6})}, {\bf CErrno\-Exception} {\rm (p.\,\pageref{classCErrnoException_a7})}, {\bf CRange\-Error} {\rm (p.\,\pageref{classCRangeError_a9})}, {\bf CStream\-IOError} {\rm (p.\,\pageref{classCStreamIOError_a8})}, and {\bf CTCLException} {\rm (p.\,\pageref{classCTCLException_a13})}.
+
+Definition at line 385 of file CException.cpp.\index{CException@{CException}!setAction@{setAction}}
+\index{setAction@{setAction}!CException@{CException}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}void CException::set\-Action (const std::string \& {\em rs\-Action})\hspace{0.3cm}{\tt  [protected]}}\label{classCException_b1}
+
+
+
+
+Definition at line 448 of file CException.cpp.
+
+References set\-Action().\index{CException@{CException}!setAction@{setAction}}
+\index{setAction@{setAction}!CException@{CException}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}void CException::set\-Action (const char $\ast$ {\em psz\-Action})\hspace{0.3cm}{\tt  [protected]}}\label{classCException_b0}
+
+
+
+
+Definition at line 443 of file CException.cpp.
+
+References m\_\-sz\-Action.
+
+Referenced by CException(), Do\-Assign(), and set\-Action().\index{CException@{CException}!WasDoing@{WasDoing}}
+\index{WasDoing@{WasDoing}!CException@{CException}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}const char $\ast$ CException::Was\-Doing () const}\label{classCException_a10}
+
+
+Returns a const pointer to m\_\-sz\-Action. This is intended to describe the action  which was occuring when the exception was thrown. 
+
+Definition at line 427 of file CException.cpp.
+
+References get\-Action().
+
+Referenced by CTCPNo\-Such\-Host::Reason\-Text(), CTCPBad\-Socket\-State::Reason\-Text(), and CIncompatible\-Monitor::Reason\-Text().
+
+\subsection{Member Data Documentation}
+\index{CException@{CException}!m_szAction@{m\_\-szAction}}
+\index{m_szAction@{m\_\-szAction}!CException@{CException}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}char CException::m\_\-sz\-Action[k\-ACTIONSIZE]\hspace{0.3cm}{\tt  [private]}}\label{classCException_o0}
+
+
+
+
+Definition at line 312 of file CException.h.
+
+Referenced by Do\-Assign(), get\-Action(), operator==(), and set\-Action().
+
+The documentation for this class was generated from the following files:\begin{CompactItemize}
+\item 
+{\bf CException.cpp}\item 
+{\bf CException.h}\end{CompactItemize}

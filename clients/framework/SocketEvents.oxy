@@ -1,0 +1,32 @@
+/*!
+	\page SocketEvents  Server Instance events.
+
+The class CServerInstanceEvent is used to encapsulate a simple model of
+client server interaction.  The model implemented is that following connection:
+- Clients make requests of the server by sending them a message.
+- Servers, perform the request and optionally send a reply message to the
+  client.
+- Servers never initiate communication with the client without being prompted
+  first by the client with a request message.
+
+This simple model is sufficient to encompass a wide variety of application
+level protocols.  Under this model, you can think of a CServerInstanceEvent as
+a CFileEvent which is only sensitized to readability, and which operates on a 
+socket rather than a file descriptor.
+
+In general, a CServerInstanceEvent is created by the 
+\link CServerConnectionEvent::OnConnection 
+OnConnection member function of a CServerConnectionvent
+derived object. \endlink  For more information, see \link ServerEvent Server
+accept events. \endlink
+
+The sample application below implements an echo server.  The class to examine
+closely is the EchoServer class, its implementation and how it is constructed
+from the connection socket by the listener object (of type EchoListener).  Note
+as well how the Reaper helper class and object is used to delete the resources
+associated with EchoServer objects which are no longer active. 
+
+\include server.cpp 
+
+
+*/

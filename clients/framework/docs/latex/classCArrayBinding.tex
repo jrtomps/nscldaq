@@ -1,0 +1,438 @@
+\section{CArray\-Binding$<$ T $>$  Class Template Reference}
+\label{classCArrayBinding}\index{CArrayBinding@{CArray\-Binding}}
+{\tt \#include $<$CArray\-Binding.h$>$}
+
+Inheritance diagram for CArray\-Binding$<$ T $>$::\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[height=3cm]{classCArrayBinding}
+\end{center}
+\end{figure}
+\subsection*{Public Methods}
+\begin{CompactItemize}
+\item 
+{\bf CArray\-Binding} (T $\ast$p\-Array, int n\-First, int n\-Last, const string \&{\bf m\_\-s\-Name}, T $\ast$Defaults=NULL)
+\item 
+{\bf CArray\-Binding} (T $\ast$p\-Array, int n\-First, int n\-Last, const char $\ast${\bf m\_\-s\-Name}, T $\ast$Defaults=NULL)
+\item 
+{\bf $\sim$CArray\-Binding} ()
+\item 
+T {\bf get\-Value} (int n) const
+\item 
+T $\ast$ {\bf get\-Pointer} ()
+\item 
+int {\bf get\-First\-Index} () const
+\item 
+int {\bf get\-Last\-Index} () const
+\item 
+string {\bf get\-Array\-Name} () const
+\item 
+T {\bf get\-Default} (int n) const
+\item 
+int {\bf get\-Variable\-Type} () const
+\item 
+virtual void {\bf Init\-Bindings} ({\bf CTCLInterpreter} \&r\-Interp)
+\item 
+virtual void {\bf Commit} ({\bf CTCLInterpreter} \&r\-Interp)
+\item 
+virtual void {\bf Shutdown\-Bindings} ({\bf CTCLInterpreter} \&r\-Interp)
+\item 
+virtual void {\bf Dump} (int fd)
+\end{CompactItemize}
+\subsection*{Protected Methods}
+\begin{CompactItemize}
+\item 
+void {\bf set\-Value} (int n, T value)
+\item 
+void {\bf set\-Array\-Base} (T $\ast$p\-Base)
+\item 
+void {\bf set\-First\-Index} (int n)
+\item 
+void {\bf set\-Last\-Index} (int n)
+\item 
+void {\bf set\-Name} (const string \&r\-Name)
+\item 
+void {\bf set\-Defaults} (T $\ast$p\-Defaults)
+\item 
+void {\bf set\-Variable\-Type} (int n\-Type)
+\end{CompactItemize}
+\subsection*{Private Methods}
+\begin{CompactItemize}
+\item 
+{\bf CArray\-Binding} (const CArray\-Binding \&rhs)
+\begin{CompactList}\small\item\em Forbidden.\item\end{CompactList}\item 
+CArray\-Binding \& {\bf operator=} (const CArray\-Binding \&rhs)
+\begin{CompactList}\small\item\em Forbidden.\item\end{CompactList}\item 
+int {\bf operator==} (const CArray\-Binding \&rhs)
+\begin{CompactList}\small\item\em Forbidden.\item\end{CompactList}\end{CompactItemize}
+\subsection*{Private Attributes}
+\begin{CompactItemize}
+\item 
+T $\ast$ {\bf m\_\-p\-Array\-Base}
+\begin{CompactList}\small\item\em Pointer to the configured array.\item\end{CompactList}\item 
+int {\bf m\_\-n\-First\-Index}
+\begin{CompactList}\small\item\em Low index of the binding.\item\end{CompactList}\item 
+int {\bf m\_\-n\-Last\-Index}
+\begin{CompactList}\small\item\em High index of the binding.\item\end{CompactList}\item 
+string {\bf m\_\-s\-Name}
+\begin{CompactList}\small\item\em Name of the Tcl array.\item\end{CompactList}\item 
+T $\ast$ {\bf m\_\-p\-Initial\-Values}
+\begin{CompactList}\small\item\em Optional array of initial values.\item\end{CompactList}\item 
+int {\bf m\_\-TCLVariable\-Type}
+\begin{CompactList}\small\item\em Type of the variable.\item\end{CompactList}\end{CompactItemize}
+
+
+\subsection{Detailed Description}
+\subsubsection*{template$<$class T$>$ class CArray\-Binding$<$ T $>$}
+
+Binds an array of configuration values to a slice of a numerically indexed array of TCL variables. When the configuration file is  read the tcl array is checked for the slice of indices provided. any defined indices result in an overwrite of the corresponding configuration array element.  The member data of this class are:
+
+\begin{CompactItemize}
+\item 
+m\_\-p\-Array\-Base - Points to the base of the array to be configured.\item 
+m\_\-n\-First\-Index - The base index of the slice to be configured. This index is both the index whithin the array defined by m\_\-p\-Array\-Base and the index within the Tcl array.\item 
+m\_\-n\-Last\-Index - The last index in the configured slice. Indexing is relative to both the start of m\_\-p\-Array\-Base and the TCL variable.\item 
+m\_\-s\-Name - Name of the tcl array providing the configuration information.\item 
+m\_\-p\-Initial\-Values - If this is a non null pointer, it points to a set of initial values which are loaded into the of m\_\-p\-Array\-Base prior to processing the configuration file(s).\item 
+m\_\-TCLVariable\-Type - The variable type which can be any of:\begin{enumerate}
+\item 
+TCL\_\-LINK\_\-INT - Integer varliable.\item 
+TCL\_\-LINK\_\-DOUBLE - Floating point double.\item 
+TCL\_\-LINK\_\-BOOLEAN - int as boolean.\item 
+TCL\_\-LINK\_\-STRING - asciz string. \end{enumerate}
+\end{CompactItemize}
+
+
+
+
+Definition at line 335 of file CArray\-Binding.h.
+
+\subsection{Constructor \& Destructor Documentation}
+\index{CArrayBinding@{CArray\-Binding}!CArrayBinding@{CArrayBinding}}
+\index{CArrayBinding@{CArrayBinding}!CArrayBinding@{CArray\-Binding}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}template$<$class T$>$ CArray\-Binding$<$ T $>$::CArray\-Binding (T $\ast$ {\em p\-Array}, int {\em n\-First}, int {\em n\-Last}, const string \& {\em rs\-Name}, T $\ast$ {\em Defaults} = NULL)}\label{classCArrayBinding_a0}
+
+
+Construct an array binding from a TCL Variable as an STL String:\begin{Desc}
+\item[Parameters: ]\par
+\begin{description}
+\item[{\em 
+p\-Array}]- Pointer to the base of the array. \item[{\em 
+n\-First,n\-Last}]- Slice of array to configure. \item[{\em 
+rs\-Name}]- Name of Tcl array to configure from. \item[{\em 
+Defaults}]- Optional pointer to defautls array. \end{description}
+\end{Desc}
+
+
+Definition at line 305 of file CArray\-Binding.cpp.\index{CArrayBinding@{CArray\-Binding}!CArrayBinding@{CArrayBinding}}
+\index{CArrayBinding@{CArrayBinding}!CArrayBinding@{CArray\-Binding}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}template$<$class T$>$ CArray\-Binding$<$ T $>$::CArray\-Binding (T $\ast$ {\em p\-Array}, int {\em n\-First}, int {\em n\-Last}, const char $\ast$ {\em p\-Name}, T $\ast$ {\em Defaults} = NULL)}\label{classCArrayBinding_a1}
+
+
+Construct an array binding from a TCL Variable name given as a char$\ast$: \begin{Desc}
+\item[Parameters: ]\par
+\begin{description}
+\item[{\em 
+p\-Array}]- Pointer to the base of the array. \item[{\em 
+n\-First,n\-Last}]- Slice of array to configure. \item[{\em 
+p\-Name}]- Name of Tcl array to configure from. \item[{\em 
+Defaults}]- Optional pointer to defautls array. \end{description}
+\end{Desc}
+
+
+Definition at line 324 of file CArray\-Binding.cpp.\index{CArrayBinding@{CArray\-Binding}!~CArrayBinding@{$\sim$CArrayBinding}}
+\index{~CArrayBinding@{$\sim$CArrayBinding}!CArrayBinding@{CArray\-Binding}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}template$<$class T$>$ CArray\-Binding$<$ T $>$::$\sim$CArray\-Binding ()\hspace{0.3cm}{\tt  [inline]}}\label{classCArrayBinding_a2}
+
+
+
+
+Definition at line 353 of file CArray\-Binding.h.\index{CArrayBinding@{CArray\-Binding}!CArrayBinding@{CArrayBinding}}
+\index{CArrayBinding@{CArrayBinding}!CArrayBinding@{CArray\-Binding}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}template$<$class T$>$ CArray\-Binding$<$ T $>$::CArray\-Binding (const CArray\-Binding$<$ T $>$ \& {\em rhs})\hspace{0.3cm}{\tt  [private]}}\label{classCArrayBinding_c0}
+
+
+Forbidden.
+
+
+
+\subsection{Member Function Documentation}
+\index{CArrayBinding@{CArray\-Binding}!Commit@{Commit}}
+\index{Commit@{Commit}!CArrayBinding@{CArray\-Binding}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}template$<$class T$>$ void CArray\-Binding$<$ T $>$::Commit ({\bf CTCLInterpreter} \& {\em r\-Interp})\hspace{0.3cm}{\tt  [virtual]}}\label{classCArrayBinding_a11}
+
+
+Commits the changes from the TCL array to the configured array. This is done by sequentially attempting to read the TCL array with textual indices that are encoded integers in the range [m\_\-n\-First\-Index, m\_\-n\-Last\-Index). For each succesful read of a variable and decode of an integer value from it, the corresponding configured array element is set. Note that strings (T == char$\ast$ are handled specially. \begin{Desc}
+\item[Parameters: ]\par
+\begin{description}
+\item[{\em 
+{\bf CTCLInterpreter} {\rm (p.\,\pageref{classCTCLInterpreter})}\&}]r\-Interp - the interpreter which read in the configuration file. \end{description}
+\end{Desc}
+
+
+Implements {\bf CBinding$<$ T $>$} {\rm (p.\,\pageref{classCBinding_a1})}.
+
+Definition at line 364 of file CArray\-Binding.cpp.
+
+References CTCLInterpreter::Expr\-Boolean(), CTCLInterpreter::Expr\-Double(), CTCLInterpreter::Expr\-Long(), CTCLVariable::Get(), CArray\-Binding$<$ T $>$::m\_\-n\-First\-Index, CArray\-Binding$<$ T $>$::m\_\-n\-Last\-Index, CArray\-Binding$<$ T $>$::m\_\-p\-Array\-Base, and CArray\-Binding$<$ T $>$::m\_\-s\-Name.\index{CArrayBinding@{CArray\-Binding}!Dump@{Dump}}
+\index{Dump@{Dump}!CArrayBinding@{CArray\-Binding}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}template$<$class T$>$ void CArray\-Binding$<$ T $>$::Dump (int {\em fd})\hspace{0.3cm}{\tt  [virtual]}}\label{classCArrayBinding_a13}
+
+
+Dumps the contents of the array to a file in TCL Script form. Since spaces are possible, this cannot be done straightforwardly. We will build (for each line in the file): a list containing the set command, the variable, and index name, and the stringified array value. \begin{Desc}
+\item[Parameters: ]\par
+\begin{description}
+\item[{\em 
+fd}]- File descriptor to which to write this. \end{description}
+\end{Desc}
+
+
+Implements {\bf CBinding$<$ T $>$} {\rm (p.\,\pageref{classCBinding_a2})}.
+
+Definition at line 437 of file CArray\-Binding.cpp.
+
+References CTCLString::Append\-Element(), CBinding$<$ T $>$::Item\-To\-String(), CArray\-Binding$<$ T $>$::m\_\-n\-First\-Index, CArray\-Binding$<$ T $>$::m\_\-n\-Last\-Index, CArray\-Binding$<$ T $>$::m\_\-p\-Array\-Base, and CArray\-Binding$<$ T $>$::m\_\-s\-Name.\index{CArrayBinding@{CArray\-Binding}!getArrayName@{getArrayName}}
+\index{getArrayName@{getArrayName}!CArrayBinding@{CArray\-Binding}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}template$<$class T$>$ string CArray\-Binding$<$ T $>$::get\-Array\-Name () const\hspace{0.3cm}{\tt  [inline]}}\label{classCArrayBinding_a7}
+
+
+
+
+Definition at line 375 of file CArray\-Binding.h.
+
+References CArray\-Binding$<$ T $>$::m\_\-s\-Name.\index{CArrayBinding@{CArray\-Binding}!getDefault@{getDefault}}
+\index{getDefault@{getDefault}!CArrayBinding@{CArray\-Binding}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}template$<$class T$>$ T CArray\-Binding$<$ T $>$::get\-Default (int {\em n}) const\hspace{0.3cm}{\tt  [inline]}}\label{classCArrayBinding_a8}
+
+
+
+
+Definition at line 378 of file CArray\-Binding.h.\index{CArrayBinding@{CArray\-Binding}!getFirstIndex@{getFirstIndex}}
+\index{getFirstIndex@{getFirstIndex}!CArrayBinding@{CArray\-Binding}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}template$<$class T$>$ int CArray\-Binding$<$ T $>$::get\-First\-Index () const\hspace{0.3cm}{\tt  [inline]}}\label{classCArrayBinding_a5}
+
+
+
+
+Definition at line 369 of file CArray\-Binding.h.
+
+References CArray\-Binding$<$ T $>$::m\_\-n\-First\-Index.\index{CArrayBinding@{CArray\-Binding}!getLastIndex@{getLastIndex}}
+\index{getLastIndex@{getLastIndex}!CArrayBinding@{CArray\-Binding}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}template$<$class T$>$ int CArray\-Binding$<$ T $>$::get\-Last\-Index () const\hspace{0.3cm}{\tt  [inline]}}\label{classCArrayBinding_a6}
+
+
+
+
+Definition at line 372 of file CArray\-Binding.h.
+
+References CArray\-Binding$<$ T $>$::m\_\-n\-Last\-Index.\index{CArrayBinding@{CArray\-Binding}!getPointer@{getPointer}}
+\index{getPointer@{getPointer}!CArrayBinding@{CArray\-Binding}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}template$<$class T$>$ T$\ast$ CArray\-Binding$<$ T $>$::get\-Pointer ()\hspace{0.3cm}{\tt  [inline]}}\label{classCArrayBinding_a4}
+
+
+
+
+Definition at line 366 of file CArray\-Binding.h.
+
+References CArray\-Binding$<$ T $>$::m\_\-p\-Array\-Base.\index{CArrayBinding@{CArray\-Binding}!getValue@{getValue}}
+\index{getValue@{getValue}!CArrayBinding@{CArray\-Binding}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}template$<$class T$>$ T CArray\-Binding$<$ T $>$::get\-Value (int {\em n}) const\hspace{0.3cm}{\tt  [inline]}}\label{classCArrayBinding_a3}
+
+
+
+
+Definition at line 363 of file CArray\-Binding.h.
+
+References CArray\-Binding$<$ T $>$::m\_\-p\-Array\-Base.\index{CArrayBinding@{CArray\-Binding}!getVariableType@{getVariableType}}
+\index{getVariableType@{getVariableType}!CArrayBinding@{CArray\-Binding}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}template$<$class T$>$ int CArray\-Binding$<$ T $>$::get\-Variable\-Type () const\hspace{0.3cm}{\tt  [inline]}}\label{classCArrayBinding_a9}
+
+
+
+
+Definition at line 386 of file CArray\-Binding.h.
+
+References CArray\-Binding$<$ T $>$::m\_\-TCLVariable\-Type.\index{CArrayBinding@{CArray\-Binding}!InitBindings@{InitBindings}}
+\index{InitBindings@{InitBindings}!CArrayBinding@{CArray\-Binding}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}template$<$class T$>$ void CArray\-Binding$<$ T $>$::Init\-Bindings ({\bf CTCLInterpreter} \& {\em r\-Interp})\hspace{0.3cm}{\tt  [virtual]}}\label{classCArrayBinding_a10}
+
+
+Initializes the objects prior to reading in the  configuration file. For arrays, what we do is just initialize the configured array slice.\begin{Desc}
+\item[Parameters: ]\par
+\begin{description}
+\item[{\em 
+r\-Interp}]- The TCL interpreter which will be used to configure the array. \end{description}
+\end{Desc}
+
+
+Implements {\bf CBinding$<$ T $>$} {\rm (p.\,\pageref{classCBinding_a0})}.
+
+Definition at line 344 of file CArray\-Binding.cpp.
+
+References CArray\-Binding$<$ T $>$::m\_\-n\-First\-Index, CArray\-Binding$<$ T $>$::m\_\-n\-Last\-Index, CArray\-Binding$<$ T $>$::m\_\-p\-Array\-Base, and CArray\-Binding$<$ T $>$::m\_\-p\-Initial\-Values.\index{CArrayBinding@{CArray\-Binding}!operator=@{operator=}}
+\index{operator=@{operator=}!CArrayBinding@{CArray\-Binding}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}template$<$class T$>$ CArray\-Binding\& CArray\-Binding$<$ T $>$::operator= (const CArray\-Binding$<$ T $>$ \& {\em rhs})\hspace{0.3cm}{\tt  [private]}}\label{classCArrayBinding_c1}
+
+
+Forbidden.
+
+\index{CArrayBinding@{CArray\-Binding}!operator==@{operator==}}
+\index{operator==@{operator==}!CArrayBinding@{CArray\-Binding}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}template$<$class T$>$ int CArray\-Binding$<$ T $>$::operator== (const CArray\-Binding$<$ T $>$ \& {\em rhs})\hspace{0.3cm}{\tt  [private]}}\label{classCArrayBinding_c2}
+
+
+Forbidden.
+
+\index{CArrayBinding@{CArray\-Binding}!setArrayBase@{setArrayBase}}
+\index{setArrayBase@{setArrayBase}!CArrayBinding@{CArray\-Binding}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}template$<$class T$>$ void CArray\-Binding$<$ T $>$::set\-Array\-Base (T $\ast$ {\em p\-Base})\hspace{0.3cm}{\tt  [inline, protected]}}\label{classCArrayBinding_b1}
+
+
+
+
+Definition at line 395 of file CArray\-Binding.h.
+
+References CArray\-Binding$<$ T $>$::m\_\-p\-Array\-Base.\index{CArrayBinding@{CArray\-Binding}!setDefaults@{setDefaults}}
+\index{setDefaults@{setDefaults}!CArrayBinding@{CArray\-Binding}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}template$<$class T$>$ void CArray\-Binding$<$ T $>$::set\-Defaults (T $\ast$ {\em p\-Defaults})\hspace{0.3cm}{\tt  [inline, protected]}}\label{classCArrayBinding_b5}
+
+
+
+
+Definition at line 407 of file CArray\-Binding.h.
+
+References CArray\-Binding$<$ T $>$::m\_\-p\-Initial\-Values.\index{CArrayBinding@{CArray\-Binding}!setFirstIndex@{setFirstIndex}}
+\index{setFirstIndex@{setFirstIndex}!CArrayBinding@{CArray\-Binding}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}template$<$class T$>$ void CArray\-Binding$<$ T $>$::set\-First\-Index (int {\em n})\hspace{0.3cm}{\tt  [inline, protected]}}\label{classCArrayBinding_b2}
+
+
+
+
+Definition at line 398 of file CArray\-Binding.h.
+
+References CArray\-Binding$<$ T $>$::m\_\-n\-First\-Index.\index{CArrayBinding@{CArray\-Binding}!setLastIndex@{setLastIndex}}
+\index{setLastIndex@{setLastIndex}!CArrayBinding@{CArray\-Binding}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}template$<$class T$>$ void CArray\-Binding$<$ T $>$::set\-Last\-Index (int {\em n})\hspace{0.3cm}{\tt  [inline, protected]}}\label{classCArrayBinding_b3}
+
+
+
+
+Definition at line 401 of file CArray\-Binding.h.
+
+References CArray\-Binding$<$ T $>$::m\_\-n\-Last\-Index.\index{CArrayBinding@{CArray\-Binding}!setName@{setName}}
+\index{setName@{setName}!CArrayBinding@{CArray\-Binding}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}template$<$class T$>$ void CArray\-Binding$<$ T $>$::set\-Name (const string \& {\em r\-Name})\hspace{0.3cm}{\tt  [inline, protected]}}\label{classCArrayBinding_b4}
+
+
+
+
+Definition at line 404 of file CArray\-Binding.h.
+
+References CArray\-Binding$<$ T $>$::m\_\-s\-Name.\index{CArrayBinding@{CArray\-Binding}!setValue@{setValue}}
+\index{setValue@{setValue}!CArrayBinding@{CArray\-Binding}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}template$<$class T$>$ void CArray\-Binding$<$ T $>$::set\-Value (int {\em n}, T {\em value})\hspace{0.3cm}{\tt  [inline, protected]}}\label{classCArrayBinding_b0}
+
+
+
+
+Definition at line 392 of file CArray\-Binding.h.
+
+References CArray\-Binding$<$ T $>$::m\_\-p\-Array\-Base.\index{CArrayBinding@{CArray\-Binding}!setVariableType@{setVariableType}}
+\index{setVariableType@{setVariableType}!CArrayBinding@{CArray\-Binding}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}template$<$class T$>$ void CArray\-Binding$<$ T $>$::set\-Variable\-Type (int {\em n\-Type})\hspace{0.3cm}{\tt  [inline, protected]}}\label{classCArrayBinding_b6}
+
+
+
+
+Definition at line 410 of file CArray\-Binding.h.
+
+References CArray\-Binding$<$ T $>$::m\_\-TCLVariable\-Type.\index{CArrayBinding@{CArray\-Binding}!ShutdownBindings@{ShutdownBindings}}
+\index{ShutdownBindings@{ShutdownBindings}!CArrayBinding@{CArray\-Binding}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}template$<$class T$>$ void CArray\-Binding$<$ T $>$::Shutdown\-Bindings ({\bf CTCLInterpreter} \& {\em r\-Interp})\hspace{0.3cm}{\tt  [virtual]}}\label{classCArrayBinding_a12}
+
+
+Terminates any linkages to the Tcl variable space.. this is a no-op for this class.\begin{Desc}
+\item[Parameters: ]\par
+\begin{description}
+\item[{\em 
+r\-Interp}]- interpreter about to be shutdown. \end{description}
+\end{Desc}
+
+
+Implements {\bf CType\-Free\-Binding} {\rm (p.\,\pageref{classCTypeFreeBinding_a2})}.
+
+Definition at line 421 of file CArray\-Binding.cpp.
+
+\subsection{Member Data Documentation}
+\index{CArrayBinding@{CArray\-Binding}!m_nFirstIndex@{m\_\-nFirstIndex}}
+\index{m_nFirstIndex@{m\_\-nFirstIndex}!CArrayBinding@{CArray\-Binding}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}template$<$class T$>$ int CArray\-Binding$<$ T $>$::m\_\-n\-First\-Index\hspace{0.3cm}{\tt  [private]}}\label{classCArrayBinding_o1}
+
+
+Low index of the binding.
+
+
+
+Definition at line 340 of file CArray\-Binding.h.
+
+Referenced by CArray\-Binding$<$ T $>$::Commit(), CArray\-Binding$<$ T $>$::Dump(), CArray\-Binding$<$ T $>$::get\-First\-Index(), CArray\-Binding$<$ T $>$::Init\-Bindings(), and CArray\-Binding$<$ T $>$::set\-First\-Index().\index{CArrayBinding@{CArray\-Binding}!m_nLastIndex@{m\_\-nLastIndex}}
+\index{m_nLastIndex@{m\_\-nLastIndex}!CArrayBinding@{CArray\-Binding}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}template$<$class T$>$ int CArray\-Binding$<$ T $>$::m\_\-n\-Last\-Index\hspace{0.3cm}{\tt  [private]}}\label{classCArrayBinding_o2}
+
+
+High index of the binding.
+
+
+
+Definition at line 341 of file CArray\-Binding.h.
+
+Referenced by CArray\-Binding$<$ T $>$::Commit(), CArray\-Binding$<$ T $>$::Dump(), CArray\-Binding$<$ T $>$::get\-Last\-Index(), CArray\-Binding$<$ T $>$::Init\-Bindings(), and CArray\-Binding$<$ T $>$::set\-Last\-Index().\index{CArrayBinding@{CArray\-Binding}!m_pArrayBase@{m\_\-pArrayBase}}
+\index{m_pArrayBase@{m\_\-pArrayBase}!CArrayBinding@{CArray\-Binding}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}template$<$class T$>$ T$\ast$ CArray\-Binding$<$ T $>$::m\_\-p\-Array\-Base\hspace{0.3cm}{\tt  [private]}}\label{classCArrayBinding_o0}
+
+
+Pointer to the configured array.
+
+
+
+Definition at line 339 of file CArray\-Binding.h.
+
+Referenced by CArray\-Binding$<$ T $>$::Commit(), CArray\-Binding$<$ T $>$::Dump(), CArray\-Binding$<$ T $>$::get\-Pointer(), CArray\-Binding$<$ T $>$::get\-Value(), CArray\-Binding$<$ T $>$::Init\-Bindings(), CArray\-Binding$<$ T $>$::set\-Array\-Base(), and CArray\-Binding$<$ T $>$::set\-Value().\index{CArrayBinding@{CArray\-Binding}!m_pInitialValues@{m\_\-pInitialValues}}
+\index{m_pInitialValues@{m\_\-pInitialValues}!CArrayBinding@{CArray\-Binding}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}template$<$class T$>$ T$\ast$ CArray\-Binding$<$ T $>$::m\_\-p\-Initial\-Values\hspace{0.3cm}{\tt  [private]}}\label{classCArrayBinding_o4}
+
+
+Optional array of initial values.
+
+
+
+Definition at line 343 of file CArray\-Binding.h.
+
+Referenced by CArray\-Binding$<$ T $>$::Init\-Bindings(), and CArray\-Binding$<$ T $>$::set\-Defaults().\index{CArrayBinding@{CArray\-Binding}!m_sName@{m\_\-sName}}
+\index{m_sName@{m\_\-sName}!CArrayBinding@{CArray\-Binding}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}template$<$class T$>$ string CArray\-Binding$<$ T $>$::m\_\-s\-Name\hspace{0.3cm}{\tt  [private]}}\label{classCArrayBinding_o3}
+
+
+Name of the Tcl array.
+
+
+
+Definition at line 342 of file CArray\-Binding.h.
+
+Referenced by CArray\-Binding$<$ T $>$::Commit(), CArray\-Binding$<$ T $>$::Dump(), CArray\-Binding$<$ T $>$::get\-Array\-Name(), and CArray\-Binding$<$ T $>$::set\-Name().\index{CArrayBinding@{CArray\-Binding}!m_TCLVariableType@{m\_\-TCLVariableType}}
+\index{m_TCLVariableType@{m\_\-TCLVariableType}!CArrayBinding@{CArray\-Binding}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}template$<$class T$>$ int CArray\-Binding$<$ T $>$::m\_\-TCLVariable\-Type\hspace{0.3cm}{\tt  [private]}}\label{classCArrayBinding_o5}
+
+
+Type of the variable.
+
+
+
+Definition at line 344 of file CArray\-Binding.h.
+
+Referenced by CArray\-Binding$<$ T $>$::get\-Variable\-Type(), and CArray\-Binding$<$ T $>$::set\-Variable\-Type().
+
+The documentation for this class was generated from the following files:\begin{CompactItemize}
+\item 
+{\bf CArray\-Binding.h}\item 
+{\bf CArray\-Binding.cpp}\end{CompactItemize}

@@ -1,0 +1,115 @@
+\section{XMScale  Class Reference}
+\label{classXMScale}\index{XMScale@{XMScale}}
+{\tt \#include $<$XMScale.h$>$}
+
+Inheritance diagram for XMScale::\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[height=3cm]{classXMScale}
+\end{center}
+\end{figure}
+\subsection*{Public Methods}
+\begin{CompactItemize}
+\item 
+{\bf XMScale} (char $\ast$n, {\bf XMWidget} \&parent, Arg\-List args=NULL, Cardinal arg\_\-count=0)
+\item 
+{\bf XMScale} (char $\ast$n, Widget parent, Arg\-List args=NULL, Cardinal arg\_\-count=0)
+\item 
+{\bf XMScale} (char $\ast$n)
+\item 
+{\bf XMScale} (Widget w)
+\item 
+void {\bf Set\-Range} (int hi, int lo=0)
+\item 
+int {\bf Value} ()
+\item 
+void {\bf Value} (int value)
+\item 
+{\bf Callback\_\-data} $\ast$ {\bf Add\-Drag\-Callback} (void($\ast$callback)({\bf XMWidget} $\ast$, Xt\-Pointer, Xt\-Pointer), Xt\-Pointer user\_\-data=NULL)
+\item 
+{\bf Callback\_\-data} $\ast$ {\bf Add\-Changed\-Callback} (void($\ast$callback)({\bf XMWidget} $\ast$, Xt\-Pointer, Xt\-Pointer), Xt\-Pointer user\_\-data=NULL)
+\end{CompactItemize}
+
+
+\subsection{Constructor \& Destructor Documentation}
+\index{XMScale@{XMScale}!XMScale@{XMScale}}
+\index{XMScale@{XMScale}!XMScale@{XMScale}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}XMScale::XMScale (char $\ast$ {\em n}, {\bf XMWidget} \& {\em parent}, Arg\-List {\em args} = NULL, Cardinal {\em arg\_\-count} = 0)\hspace{0.3cm}{\tt  [inline]}}\label{classXMScale_a0}
+
+
+
+
+Definition at line 302 of file XMScale.h.\index{XMScale@{XMScale}!XMScale@{XMScale}}
+\index{XMScale@{XMScale}!XMScale@{XMScale}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}XMScale::XMScale (char $\ast$ {\em n}, Widget {\em parent}, Arg\-List {\em args} = NULL, Cardinal {\em arg\_\-count} = 0)\hspace{0.3cm}{\tt  [inline]}}\label{classXMScale_a1}
+
+
+
+
+Definition at line 307 of file XMScale.h.\index{XMScale@{XMScale}!XMScale@{XMScale}}
+\index{XMScale@{XMScale}!XMScale@{XMScale}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}XMScale::XMScale (char $\ast$ {\em n})\hspace{0.3cm}{\tt  [inline]}}\label{classXMScale_a2}
+
+
+
+
+Definition at line 312 of file XMScale.h.\index{XMScale@{XMScale}!XMScale@{XMScale}}
+\index{XMScale@{XMScale}!XMScale@{XMScale}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}XMScale::XMScale (Widget {\em w})\hspace{0.3cm}{\tt  [inline]}}\label{classXMScale_a3}
+
+
+
+
+Definition at line 313 of file XMScale.h.
+
+\subsection{Member Function Documentation}
+\index{XMScale@{XMScale}!AddChangedCallback@{AddChangedCallback}}
+\index{AddChangedCallback@{AddChangedCallback}!XMScale@{XMScale}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}{\bf Callback\_\-data}$\ast$ XMScale::Add\-Changed\-Callback (void($\ast$ {\em callback})({\bf XMWidget} $\ast$, Xt\-Pointer, Xt\-Pointer), Xt\-Pointer {\em user\_\-data} = NULL)\hspace{0.3cm}{\tt  [inline]}}\label{classXMScale_a8}
+
+
+
+
+Definition at line 339 of file XMScale.h.
+
+References XMWidget::Add\-Callback().\index{XMScale@{XMScale}!AddDragCallback@{AddDragCallback}}
+\index{AddDragCallback@{AddDragCallback}!XMScale@{XMScale}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}{\bf Callback\_\-data}$\ast$ XMScale::Add\-Drag\-Callback (void($\ast$ {\em callback})({\bf XMWidget} $\ast$, Xt\-Pointer, Xt\-Pointer), Xt\-Pointer {\em user\_\-data} = NULL)\hspace{0.3cm}{\tt  [inline]}}\label{classXMScale_a7}
+
+
+
+
+Definition at line 334 of file XMScale.h.
+
+References XMWidget::Add\-Callback().\index{XMScale@{XMScale}!SetRange@{SetRange}}
+\index{SetRange@{SetRange}!XMScale@{XMScale}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}void XMScale::Set\-Range (int {\em hi}, int {\em lo} = 0)\hspace{0.3cm}{\tt  [inline]}}\label{classXMScale_a4}
+
+
+
+
+Definition at line 317 of file XMScale.h.
+
+References XMWidget::id.\index{XMScale@{XMScale}!Value@{Value}}
+\index{Value@{Value}!XMScale@{XMScale}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}void XMScale::Value (int {\em value})\hspace{0.3cm}{\tt  [inline]}}\label{classXMScale_a6}
+
+
+
+
+Definition at line 328 of file XMScale.h.
+
+References XMWidget::id.\index{XMScale@{XMScale}!Value@{Value}}
+\index{Value@{Value}!XMScale@{XMScale}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}int XMScale::Value ()\hspace{0.3cm}{\tt  [inline]}}\label{classXMScale_a5}
+
+
+
+
+Definition at line 323 of file XMScale.h.
+
+References XMWidget::id.
+
+The documentation for this class was generated from the following file:\begin{CompactItemize}
+\item 
+{\bf XMScale.h}\end{CompactItemize}

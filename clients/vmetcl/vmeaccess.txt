@@ -1,0 +1,9 @@
+Commands:
+
+vme create spacename [-device name] base size
+vme list
+vme delete spacename
+
+spacename set [-w|b|l] offset value
+spacename get [-w]b|l] offset value
+

@@ -1,0 +1,446 @@
+# Process this file with autoconf to produce a configure script.
+AC_INIT(CopyrightTools/CopyrightNotice.cpp)
+AC_CONFIG_AUX_DIR(config)
+AM_CONFIG_HEADER(config.h)
+AM_INIT_AUTOMAKE(nscldaq, 7.0)
+
+#  Checks for parameters:
+
+
+
+
+# Checks for programs.
+AC_PROG_AWK
+AC_PROG_CXX
+AC_PROG_CC
+AC_PROG_CPP
+AC_PROG_INSTALL
+AC_PROG_LN_S
+AC_PROG_LIBTOOL
+AC_PATH_PROG(DOXYGEN, doxygen, echo)
+
+#
+
+AC_PROG_GCC_TRADITIONAL
+
+# Checks for libraries.
+
+
+# Checks for header files.
+AC_HEADER_STDC
+AC_CHECK_HEADERS(string.h)
+AC_CHECK_HEADERS(malloc.h)
+AC_CHECK_HEADERS(netdb.h)
+AC_CHECK_HEADERS(netinet/in.h)
+AC_CHECK_HEADERS(fcntl.h)
+AC_CHECK_HEADERS(sys/ioctl.h)
+AC_CHECK_HEADERS(sys/time.h)
+AC_CHECK_HEADERS(arpa/inet.h)
+AC_CHECK_HEADERS(sys/socket.h)
+AC_CHECK_HEADERS(gdbm.h)
+
+AC_HEADER_MAJOR
+AC_HEADER_SYS_WAIT
+AC_HEADER_TIME
+AC_HEADER_STAT
+AC_PATH_XTRA
+
+# Checks for typedefs, structures, and compiler characteristics.
+
+AC_STRUCT_TM
+AC_TYPE_SIZE_T
+AC_TYPE_PID_T
+AC_C_CONST
+AC_C_INLINE
+
+
+# Checks for library functions.
+
+AC_CHECK_LIB(gdbm, gdbm_open)
+AC_FUNC_MMAP
+AC_CHECK_FUNCS(stat)
+AC_CHECK_FUNCS(malloc)
+AC_CHECK_FUNCS(munmap)
+AC_CHECK_FUNCS(getpagesize)
+AC_CHECK_FUNCS(memset)
+AC_CHECK_FUNCS(strerror)
+AC_CHECK_FUNCS(gethostbyname)
+AC_CHECK_FUNCS(gethostbyaddr)
+AC_CHECK_FUNCS(inet_ntoa)
+AC_CHECK_FUNCS(gettimeofday)
+AC_CHECK_FUNCS(select)
+AC_CHECK_FUNCS(strchr)
+AC_CHECK_FUNCS(gethostname)
+AC_CHECK_FUNCS(getpass)
+AC_CHECK_FUNCS(socket)
+AC_CHECK_FUNCS(strdup)
+AC_CHECK_FUNCS(strstr)
+AC_CHECK_FUNCS(fork)
+
+
+# NSCL DAQ specific checks:
+
+#  We need to locate Spectrodaq most of all:
+#
+#   We look in the following order:
+#    1. In /opt/spectrodaq/bin
+#    2. In /usr/opt/spectrodaq/bin
+#    3. In the location suggested by --with-spectrodaq-home
+
+spectrodaq_conf_dir=""
+
+AC_MSG_CHECKING([ for spectrodaq-conf ])
+
+
+  AC_ARG_WITH(spectrodaq-home,
+       [  --with-spectrodaq-home=top level directory of spectrodaq installation],
+       [spectrodaq_conf_dir="$withval/bin"
+	spectrodaq_found="yes"],[spectrodaq_found="no"])
+
+
+if test $spectrodaq_found == "no"; then
+   AC_CHECK_FILE(/opt/spectrodaq/bin/spectrodaq-conf,
+	[spectrodaq_conf_dir=/opt/spectrodaq/bin
+	 spectrodaq_found="yes"])
+fi 
+
+if test $spectrodaq_found == "no"; then
+  AC_CHECK_FILE(/usr/opt/spectrodaq/bin/spectrodaq-conf,
+	[spectrodaq_conf_dir=/usr/opt/spectrodaq/bin
+	spectrodaq_found="yes"])
+fi
+
+if test $spectrodaq_found == "no"; then
+	AC_MSG_ERROR([ Cannot locate spectrodaq-conf help me by using --with-spectrodaq-home])
+else
+SPECTRODAQ_FLAGS=$($spectrodaq_conf_dir/spectrodaq-conf --cflags)
+SPECTRODAQ_LDFLAGS=$($spectrodaq_conf_dir/spectrodaq-conf --libs)
+AC_MSG_RESULT([ found in $spectrodaq_conf_dir ])
+fi
+
+
+# Locate Tcl/Tk and setup compile/link switches for them too:
+
+#  TCL headers:
+#    We know of a few places the headers can live:
+#       /usr/include              redhat linux.
+#       /usr/include/tcl          debian dude that made  link to default tcl.
+#       /usr/include/tcl<version> debian linux
+#       /usr/local/include        default for source based install.
+#       Whatever the user specifies. 
+#        For now, the versions we look for are determined by the
+#        variable tcl_versions  that variable is a list of version 
+#        number specifiers.
+#
+
+tcl_versions="8.4 8.3 8.2 8.1 8.0"     # First match;  so order new -> old.
+tcl_header_dir=""
+AC_MSG_CHECKING([for tcl headers])
+
+AC_ARG_WITH(tcl-header-dir,
+	[  --with-tcl-header-dir=path Path to tcl headers],
+	[tcl_header_dir=$withval,
+	tcl_headers_found="yes"],[tcl_headers_found="no"])
+
+
+	# /usr/include
+
+if test $tcl_headers_found == "no"; then
+   AC_CHECK_FILE([/usr/include/tcl.h],
+	[tcl_header_dir="/usr/include"
+	tcl_headers_found="yes"])
+fi
+
+	# /usr/include/tcl
+
+if test $tcl_headers_found == "no"; then
+   AC_CHECK_FILE([/usr/include/tcl/tcl.h],
+	[tcl_header_dir="/usr/include/tcl"
+	tcl_headers_found="yes"])
+fi
+
+	# /usr/include/tcl<version>
+
+if test $tcl_headers_found == "no" ; then
+ for version in ${tcl_versions};  do
+   if test $tcl_headers_found == "no" ; then   # stop at first match
+      testdir=/usr/include/tcl${versions}
+      AC_CHECK_FILE([${testdir}/tcl.h],
+	[tcl_header_dir=${testdir}
+	 tcl_headers_found="yes"])
+   fi
+ done
+fi
+
+      # /usr/local/include
+if test $tcl_headers_found == "no"; then
+   AC_CHECK_FILE([/usr/local/include/tcl.h],
+	[tcl_header_dir="/usr/local/include/tcl"
+1	tcl_headers_found="yes"])
+fi
+
+
+if test $tcl_headers_found == "yes"; then
+   TCL_FLAGS=-I${tcl_header_dir}
+   AC_MSG_RESULT([found in $tcl_header_dir])
+else
+   AC_MSG_ERROR([can't find tcl.h try using --with-tcl-header-dir to help me])
+fi
+
+#  Tcl libraries:
+#     We look for the following:
+#      /usr/lib/libtcl.a           - Usually a link to a default lib.
+#      /usr/lib/libtcl<version>.a  - version of tcl from tcl_versions
+#      /usr/local/lib/libtcl.a     - As above but installed from source.
+#      /usr/local/lib<version>.a   - As Above but installed from source.
+#      If --with-tcl-libdir=dir      is supplied, that directory is 
+#                                    searched first.
+# ASSUMPTIONS:  libtcl and libtk will have the same naming conventions.
+#
+
+tcl_libsearchpath=""
+tcl_libfound="no"
+AC_MSG_CHECKING([Tcl/Tk library to use])
+
+	# Does the user want us to look somewhere in particular:
+
+AC_ARG_WITH(tcl-libdir,
+	[  --with-tcl-libdir=dir Specify where the tcl libraries live.],
+	[tcl_libsearchpath=$withval])
+
+tcl_libsearchpath="$tcl_libsearchpath /usr/lib /usr/local/lib"
+
+tcl_libfiles=libtcl.a
+for v in ${tcl_versions}
+do
+   tcl_libfiles="$tcl_libfiles libtcl${v}.a"
+done
+
+
+for dir in ${tcl_libsearchpath} 
+do
+  for file in ${tcl_libfiles}
+  do
+    fname=$dir/$file
+    if test $tcl_libfound == "no" 
+    then
+      AC_CHECK_FILE($fname,
+	[tcl_libdir=$dir
+         tcl_libname=$file
+	 tcl_libfound="yes"
+	])
+    fi
+  done
+done
+
+if test $tcl_libfound == "yes"
+then
+  # Find the lib basename:
+
+  tcl_libname=$(echo $tcl_libname|cut -c 4- )  # trim off lib 
+  tcl_libname=$(echo $tcl_libname|cut -c -$(expr length $tcl_libname - 2))
+  tk_libname=tk$(echo $tcl_libname|cut -c 4-)   # trim off tc...and use tk
+  TCL_LDFLAGS="-L${tcl_libdir} -l${tk_libname}  -l${tcl_libname}"
+  
+else
+  AC_MSG_ERROR([Unable to find the tcl library, help me out with --with-tcl-libdir])
+fi
+
+
+#  We need to determine what the underlying VME Access library is.
+#  At this point this must be selected by the user using either:
+#  --with-nsclbit3
+#  --with-sbsbit3
+#  If neither of these is provided, we assume that the sbs bit3 device
+#  driver was used.
+#  The end result of all of this is to set the variables:
+#   VMELIBRARY - Set of static libraries required by the shared api lib.
+#   VMELIBRARYHEADERS - Set of header file directories required when compiling
+#                       the api.
+#   VMEDEVICE  - The name of the selected api.
+#
+AC_MSG_CHECKING([ Which vme interface...])
+VMEDEVICE=SBSBIT3                # default device.
+AC_ARG_WITH(nsclbit3, 
+	[  --with-nsclbit3  - select VME api for the nscl/nikhef bit3 driver],
+	[VMEDEVICE=NSCLBIT3],)
+AC_ARG_WITH(sbsbit3,
+	[ --with-sbsbit3 - Select the VME api for the SBS bit3 driver],
+	[VMEDEVICE=SBSBIT3])
+
+AC_MSG_RESULT([ $VMEDEVICE selected])
+
+# Depending on the value of VMEDEVICE, set VMELIBRARY VMELIBRARYHEADERS
+
+#  If nsclbit3, there are no libraries and the headers get installed in the
+# .h search path:
+
+if test $VMEDEVICE == "NSCLBIT3"
+then
+ VMELIBRARY=""
+ VMELIBRARYHEADERS=""
+fi
+
+#  If sbs bit 3 device driver. We look for the headers in
+#  the following locations:
+#   /usr/include/sbsbit3
+#   /usr/local/include/sbsbit3
+#   /opt/include/sbsbit3
+#   /usr/opt/include/sbsbit3
+#   /opt/daq/[iI]nclude
+#   /usr/opt/daq/[iI]nclude
+#   $includedir
+#   --with-sbsbit3-headers=path.
+#
+
+
+
+if test $VMEDEVICE == "SBSBIT3"
+then
+   AC_MSG_CHECKING([Searching for btapi.h ...])
+   foundsbs_headers="false"
+   checkdirs="/usr/include/sbsbit3 /usr/local/include/sbsbit3 \
+	/opt/include/sbsbit3 /usr/opt/daq/include /usr/opt/daq/Include \
+	/opt/daq/include /usr/opt/daq/Include"
+
+	
+	#  Check in explicit directories:
+
+   for directory in ${checkdirs}
+   do
+     if test $foundsbs_headers == "false" 
+     then
+       AC_CHECK_FILE([${directory}/btapi.h], 
+	   [VMELIBRARYHEADERS=${directory}
+	   foundsbs_headers="true"])
+     fi
+   done
+
+	#  Check in installation include subdir:
+
+   if test $foundsbs_headers == "false"
+   then
+      AC_CHECK_FILE([${includedir}/btapi.h],
+	   [VMELIBRARYHEADERS=${includedir}
+	   foundsbs_headers="true"])
+   fi
+
+	# Check the --with-sbsbit3-headers parameters.
+
+   if test $foundsbs_headers == "false"
+   then
+      AC_ARG_WITH(sbsbit3-headers, 
+	[ --with-sbsbit3-headers=path location of sbs bit3 headers],
+	[VMELIBRARYHEADERS=$withval
+	 foundsbs_headers="true"
+	])
+
+   fi
+   if test $foundsbs_headers == "true"
+   then
+     AC_MSG_RESULT([Located in $VMELIBRARYHEADERS])
+     VMELIBRARYHEADERS=-I$VMELIBRARYHEADERS
+   else
+      AC_MSG_ERROR([Unable to locate bit3 headers.  Try --with-sbsbit3-headers=path])
+   fi
+
+   # Search for libbtp.a in the following places:
+   #
+   # /usr/lib
+   # /usr/lib/sbsbit3
+   # /usr/local/lib
+   # /usr/local/lib/sbsbit3
+   # /opt/lib
+   # /opt/lib/sbsbit3
+   # /opt/daq/[lL]ib
+   # /usr/opt/daq/[lL]ib
+   # $libdir
+   #  --with-sbsbit3-lib=path
+   AC_MSG_CHECKING([ Searching for libbtp.a...])
+   foundsbs_libs="false"
+   checkdirs="/usr/lib /usr/lib/sbsbit3 /usr/local/lib \
+	/usr/local/lib/sbsbit3 /opt/lib /opt/lib/sbsbit3 /opt/daq/lib \
+	/opt/daq/Lib /usr/opt/daq/lib /usr/opt/daq/Lib"
+
+   for directory in ${checkdirs} 
+   do
+     if test $foundsbs_libs == "false"
+     then
+        AC_CHECK_FILE([${directory}/libbtp.a],
+		[VMELIBRARY="-L${directory} -lbtp"
+	         foundsbs_libs="true"])
+     fi
+   done
+ 
+    #  Check for it in libdir.
+
+   if test $foundsbs_libs == "false"
+   then
+      AC_CHECK_FILE([$libdir/libbtp.a],
+	[VMELIBRARY="-L$libdir -lbtp"
+	foundsbs_libs="true"])
+   fi
+
+   # check for --with-sbsbit3-lib=path   
+
+   if test $foundsbs_libs == "false"
+   then
+     AC_ARG_WITH(sbsbit3-lib,
+	[ --with-sbsbit3-lib=path - specify path to the sbs interface library],
+	VMELIBRARY="-L$withval -lbtp"
+	foundsbs_libs="true"])
+   fi
+
+   if test $foundsbs_libs == "true"
+   then
+      AC_MSG_RESULT([ found in $VMELIBRARY])
+   else
+      AC_MSG_ERROR([ Unable to find libbtp.a help me via --with-sbsbit3-lib])
+   fi
+fi
+
+#  X11 libraries 
+
+X11INCS="${X_CFLAGS}"
+X11LIBS="${X_LIBS} ${X_EXTRA_LIBS} -lXm -lXt -lX11"
+
+# define substitutions:
+
+	# Spectrodaq:
+
+AC_SUBST(spectrodaq_conf_dir)
+AC_SUBST(SPECTRODAQ_FLAGS)
+AC_SUBST(SPECTRODAQ_LDFLAGS)
+
+	# tcl/tk
+
+AC_SUBST(TCL_FLAGS)
+AC_SUBST(TCL_LDFLAGS)
+
+	# VME device:
+
+AC_SUBST(VMEDEVICE)
+AC_SUBST(VMELIBRARY)
+AC_SUBST(VMELIBRARYHEADERS)
+
+	# X11: 
+
+AC_SUBST(X11LIBS)
+AC_SUBST(X11INCS)
+
+	# DOXYGEN
+
+AC_SUBST(DOXYGEN)
+
+#  Create output files:
+
+AC_OUTPUT(Makefile Headers/Makefile CopyrightTools/Makefile \
+	Exception/Makefile  TCL/Makefile Security/Makefile Ftp/Makefile \
+	VMEApi/Makefile cvt/Makefile \
+	SpecTclOnline/Makefile Readout/Makefile diskrun/Makefile \
+	EventLog/Makefile  Scaler/Makefile contrib/Makefile \
+	contrib/lecroy/Makefile contrib/whedco/Makefile vmetcl/Makefile \
+	vmetcl/camactcl/Makefile vmetcl/vhq202m/Makefile bufdump/Makefile \
+	TclServer/Makefile bcnaf/Makefile TcpHoister/Makefile Stager/Makefile \
+	Scripts/Makefile framework/Makefile AlarmDisplay/Makefile \
+	LogDisplay/Makefile)

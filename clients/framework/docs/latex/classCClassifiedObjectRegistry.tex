@@ -1,0 +1,237 @@
+\section{CClassified\-Object\-Registry  Class Reference}
+\label{classCClassifiedObjectRegistry}\index{CClassifiedObjectRegistry@{CClassified\-Object\-Registry}}
+{\tt \#include $<$CClassified\-Object\-Registry.h$>$}
+
+Inheritance diagram for CClassified\-Object\-Registry::\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[height=2cm]{classCClassifiedObjectRegistry}
+\end{center}
+\end{figure}
+\subsection*{Public Methods}
+\begin{CompactItemize}
+\item 
+{\bf CClassified\-Object\-Registry} (string am\_\-s\-Name)
+\item 
+virtual {\bf $\sim$CClassified\-Object\-Registry} ()
+\item 
+map$<$ string, {\bf CObject\-Registry} $>$ {\bf get\-Registries} () const
+\item 
+void {\bf Create\-Registry} (const string \&{\bf Registry\-Name})
+\item 
+void {\bf Delete\-Registry} (const string \&{\bf Registry\-Name})
+\item 
+void {\bf Add} (const string \&{\bf Registry\-Name}, {\bf CNamed\-Object} \&r\-Object)
+\item 
+void {\bf Remove} (const string \&{\bf Registry\-Name}, {\bf CNamed\-Object} \&Object)
+\item 
+{\bf Object\-Iterator} {\bf Find} (const string \&{\bf Registry\-Name}, const string \&Object\-Name)
+\item 
+{\bf CRefcounted\-Ptr}$<$ {\bf Object\-List} $>$ {\bf Find} (const string \&Object\-Name)
+\item 
+{\bf Registry\-Iterator} {\bf beginregistry} ()
+\item 
+{\bf Registry\-Iterator} {\bf endregistry} ()
+\item 
+virtual string {\bf Describe\-Self} ()
+\end{CompactItemize}
+\subsection*{Protected Methods}
+\begin{CompactItemize}
+\item 
+void {\bf set\-Registries} (map$<$ string, {\bf CObject\-Registry} $>$ am\_\-Registries)
+\end{CompactItemize}
+\subsection*{Private Attributes}
+\begin{CompactItemize}
+\item 
+map$<$ string, {\bf CObject\-Registry} $>$ {\bf m\_\-Registries}
+\end{CompactItemize}
+
+
+\subsection{Constructor \& Destructor Documentation}
+\index{CClassifiedObjectRegistry@{CClassified\-Object\-Registry}!CClassifiedObjectRegistry@{CClassifiedObjectRegistry}}
+\index{CClassifiedObjectRegistry@{CClassifiedObjectRegistry}!CClassifiedObjectRegistry@{CClassified\-Object\-Registry}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}CClassified\-Object\-Registry::CClassified\-Object\-Registry (string {\em am\_\-s\-Name})\hspace{0.3cm}{\tt  [inline]}}\label{classCClassifiedObjectRegistry_a0}
+
+
+map containing the type key and object registry 
+
+Definition at line 332 of file CClassified\-Object\-Registry.h.
+
+References CNamed\-Object::Append\-Class\-Info().\index{CClassifiedObjectRegistry@{CClassified\-Object\-Registry}!~CClassifiedObjectRegistry@{$\sim$CClassifiedObjectRegistry}}
+\index{~CClassifiedObjectRegistry@{$\sim$CClassifiedObjectRegistry}!CClassifiedObjectRegistry@{CClassified\-Object\-Registry}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}virtual CClassified\-Object\-Registry::$\sim$CClassified\-Object\-Registry ()\hspace{0.3cm}{\tt  [inline, virtual]}}\label{classCClassifiedObjectRegistry_a1}
+
+
+
+
+Definition at line 337 of file CClassified\-Object\-Registry.h.
+
+\subsection{Member Function Documentation}
+\index{CClassifiedObjectRegistry@{CClassified\-Object\-Registry}!Add@{Add}}
+\index{Add@{Add}!CClassifiedObjectRegistry@{CClassified\-Object\-Registry}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}void CClassified\-Object\-Registry::Add (const string \& {\em Registry\-Name}, {\bf CNamed\-Object} \& {\em r\-Object})}\label{classCClassifiedObjectRegistry_a5}
+
+
+Adds an object to a registry. If the item already exists in that registry, a  {\bf CDuplicate\-Name\-Exception} {\rm (p.\,\pageref{classCDuplicateNameException})} is thrown. If the registry does not exist, a {\bf CNo\-Such\-Object\-Exception} {\rm (p.\,\pageref{classCNoSuchObjectException})} is thrown.\begin{Desc}
+\item[Parameters: ]\par
+\begin{description}
+\item[{\em 
+Registry\-Name}]The name of the registry to add the item to. \item[{\em 
+r\-Object}]A reference to the object to add to the registry. \end{description}
+\end{Desc}
+
+
+Definition at line 353 of file CClassified\-Object\-Registry.cpp.
+
+References endregistry(), m\_\-Registries, and Registry\-Iterator.
+
+Referenced by CRegistered\-Object::Register\-Self().\index{CClassifiedObjectRegistry@{CClassified\-Object\-Registry}!beginregistry@{beginregistry}}
+\index{beginregistry@{beginregistry}!CClassifiedObjectRegistry@{CClassified\-Object\-Registry}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}{\bf Registry\-Iterator} CClassified\-Object\-Registry::beginregistry ()}\label{classCClassifiedObjectRegistry_a9}
+
+
+Returns an iterator into the registries which are contained by this object. Note that iterating returns registries, not objects. 
+
+Definition at line 469 of file CClassified\-Object\-Registry.cpp.
+
+References m\_\-Registries.
+
+Referenced by Describe\-Self(), and Find().\index{CClassifiedObjectRegistry@{CClassified\-Object\-Registry}!CreateRegistry@{CreateRegistry}}
+\index{CreateRegistry@{CreateRegistry}!CClassifiedObjectRegistry@{CClassified\-Object\-Registry}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}void CClassified\-Object\-Registry::Create\-Registry (const string \& {\em Registry\-Name})}\label{classCClassifiedObjectRegistry_a3}
+
+
+Creates a new registry. It is not an error to create a registry which already exists. If this is attempted, the function is a no-op.\begin{Desc}
+\item[Parameters: ]\par
+\begin{description}
+\item[{\em 
+Registry\-Name}]The name of the registry being created. \end{description}
+\end{Desc}
+
+
+Definition at line 314 of file CClassified\-Object\-Registry.cpp.
+
+References m\_\-Registries.
+
+Referenced by CRegistered\-Object::Register\-Self().\index{CClassifiedObjectRegistry@{CClassified\-Object\-Registry}!DeleteRegistry@{DeleteRegistry}}
+\index{DeleteRegistry@{DeleteRegistry}!CClassifiedObjectRegistry@{CClassified\-Object\-Registry}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}void CClassified\-Object\-Registry::Delete\-Registry (const string \& {\em Registry\-Name})}\label{classCClassifiedObjectRegistry_a4}
+
+
+Deletes an existing registry. Any registry entries are destroyed, however the objects they point to are not. If the registry does not exist, a {\bf CNo\-Such\-Object\-Exception} {\rm (p.\,\pageref{classCNoSuchObjectException})} is thrown.\begin{Desc}
+\item[Parameters: ]\par
+\begin{description}
+\item[{\em 
+Registry\-Name}]The name of the registry being destroyed. \end{description}
+\end{Desc}
+
+
+Definition at line 334 of file CClassified\-Object\-Registry.cpp.
+
+References m\_\-Registries.\index{CClassifiedObjectRegistry@{CClassified\-Object\-Registry}!DescribeSelf@{DescribeSelf}}
+\index{DescribeSelf@{DescribeSelf}!CClassifiedObjectRegistry@{CClassified\-Object\-Registry}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}string CClassified\-Object\-Registry::Describe\-Self ()\hspace{0.3cm}{\tt  [virtual]}}\label{classCClassifiedObjectRegistry_a11}
+
+
+Produces a string containing the class path and name of the CClassified\-Object\-Registry, the class path and name of all of the {\bf CObject\-Registry} {\rm (p.\,\pageref{classCObjectRegistry})}'s contained therein, and the class path and name of all of the {\bf CNamed\-Object} {\rm (p.\,\pageref{classCNamedObject})}'s contained within the registries. 
+
+Reimplemented from {\bf CNamed\-Object} {\rm (p.\,\pageref{classCNamedObject_a8})}.
+
+Definition at line 492 of file CClassified\-Object\-Registry.cpp.
+
+References beginregistry(), CNamed\-Object::Describe\-Self(), endregistry(), and Registry\-Iterator.\index{CClassifiedObjectRegistry@{CClassified\-Object\-Registry}!endregistry@{endregistry}}
+\index{endregistry@{endregistry}!CClassifiedObjectRegistry@{CClassified\-Object\-Registry}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}{\bf Registry\-Iterator} CClassified\-Object\-Registry::endregistry ()}\label{classCClassifiedObjectRegistry_a10}
+
+
+Returns a registry iterator suitable for determining when iteration has been completed. 
+
+Definition at line 479 of file CClassified\-Object\-Registry.cpp.
+
+References m\_\-Registries.
+
+Referenced by Add(), Describe\-Self(), and Find().\index{CClassifiedObjectRegistry@{CClassified\-Object\-Registry}!Find@{Find}}
+\index{Find@{Find}!CClassifiedObjectRegistry@{CClassified\-Object\-Registry}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}{\bf CRefcounted\-Ptr}$<$ {\bf Object\-List} $>$ CClassified\-Object\-Registry::Find (const string \& {\em Object\-Name})}\label{classCClassifiedObjectRegistry_a8}
+
+
+Returns a reference counted pointer to a dynamically allocated list of Objects which match the name requested. The list is drawn from all of the registries. If no registries contain the requested name, an empty list is returned.  Note: A reference counted pointer is returned so that the client does not have to remember to delete the list when they are done with it.\begin{Desc}
+\item[Parameters: ]\par
+\begin{description}
+\item[{\em 
+Object\-Name}]The name of the object to search for. \end{description}
+\end{Desc}
+
+
+Definition at line 449 of file CClassified\-Object\-Registry.cpp.
+
+References beginregistry(), endregistry(), Object\-Iterator, Object\-List, and Registry\-Iterator.\index{CClassifiedObjectRegistry@{CClassified\-Object\-Registry}!Find@{Find}}
+\index{Find@{Find}!CClassifiedObjectRegistry@{CClassified\-Object\-Registry}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}{\bf Object\-Iterator} CClassified\-Object\-Registry::Find (const string \& {\em Registry\-Name}, const string \& {\em Object\-Name})}\label{classCClassifiedObjectRegistry_a7}
+
+
+Locates an object in a specific registry. If the registry or object do not exist, a {\bf CNo\-Such\-Object\-Exception} {\rm (p.\,\pageref{classCNoSuchObjectException})} is thrown. The name embedded in the exception differentiates between these two cases.\begin{Desc}
+\item[Parameters: ]\par
+\begin{description}
+\item[{\em 
+Registry\-Name}]The name of the registry to search for the object in. \item[{\em 
+Object\-Name}]The name of the object to search for. \end{description}
+\end{Desc}
+
+
+Definition at line 415 of file CClassified\-Object\-Registry.cpp.
+
+References m\_\-Registries, Object\-Iterator, and Registry\-Iterator.\index{CClassifiedObjectRegistry@{CClassified\-Object\-Registry}!getRegistries@{getRegistries}}
+\index{getRegistries@{getRegistries}!CClassifiedObjectRegistry@{CClassified\-Object\-Registry}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}map$<$string, {\bf CObject\-Registry}$>$ CClassified\-Object\-Registry::get\-Registries () const\hspace{0.3cm}{\tt  [inline]}}\label{classCClassifiedObjectRegistry_a2}
+
+
+
+
+Definition at line 342 of file CClassified\-Object\-Registry.h.
+
+References m\_\-Registries.\index{CClassifiedObjectRegistry@{CClassified\-Object\-Registry}!Remove@{Remove}}
+\index{Remove@{Remove}!CClassifiedObjectRegistry@{CClassified\-Object\-Registry}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}void CClassified\-Object\-Registry::Remove (const string \& {\em Registry\-Name}, {\bf CNamed\-Object} \& {\em Object})}\label{classCClassifiedObjectRegistry_a6}
+
+
+Removes an object from a registry. The named object is removed from the designated registry. If the object does not exist, or the registry does not exist, a {\bf CNo\-Such\-Object\-Exception} {\rm (p.\,\pageref{classCNoSuchObjectException})} is thrown. The name embedded in the exception differentiates between these two cases.\begin{Desc}
+\item[Parameters: ]\par
+\begin{description}
+\item[{\em 
+Registry\-Name}]The name of the registry containing the object to remove. \item[{\em 
+Object}]A reference to the object being removed. \end{description}
+\end{Desc}
+
+
+Definition at line 384 of file CClassified\-Object\-Registry.cpp.
+
+References CNamed\-Object::get\-Name(), m\_\-Registries, and Registry\-Iterator.
+
+Referenced by CEvent\-Monitor::$\sim$CEvent\-Monitor(), and CReactor::$\sim$CReactor().\index{CClassifiedObjectRegistry@{CClassified\-Object\-Registry}!setRegistries@{setRegistries}}
+\index{setRegistries@{setRegistries}!CClassifiedObjectRegistry@{CClassified\-Object\-Registry}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}void CClassified\-Object\-Registry::set\-Registries (map$<$ string, {\bf CObject\-Registry} $>$ {\em am\_\-Registries})\hspace{0.3cm}{\tt  [inline, protected]}}\label{classCClassifiedObjectRegistry_b0}
+
+
+
+
+Definition at line 350 of file CClassified\-Object\-Registry.h.
+
+References m\_\-Registries.
+
+\subsection{Member Data Documentation}
+\index{CClassifiedObjectRegistry@{CClassified\-Object\-Registry}!m_Registries@{m\_\-Registries}}
+\index{m_Registries@{m\_\-Registries}!CClassifiedObjectRegistry@{CClassified\-Object\-Registry}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}map$<$string, {\bf CObject\-Registry}$>$ CClassified\-Object\-Registry::m\_\-Registries\hspace{0.3cm}{\tt  [private]}}\label{classCClassifiedObjectRegistry_o0}
+
+
+
+
+Definition at line 326 of file CClassified\-Object\-Registry.h.
+
+Referenced by Add(), beginregistry(), Create\-Registry(), Delete\-Registry(), endregistry(), Find(), get\-Registries(), Remove(), and set\-Registries().
+
+The documentation for this class was generated from the following files:\begin{CompactItemize}
+\item 
+{\bf CClassified\-Object\-Registry.h}\item 
+{\bf CClassified\-Object\-Registry.cpp}\end{CompactItemize}

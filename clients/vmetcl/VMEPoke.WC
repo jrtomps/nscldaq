@@ -1,0 +1,229 @@
+With Class Chart Export File
+I:\LINUX\CAENNET\VMEPoke.omtUnified Method
+
+
+General Info
+Internal Version #, NextClassID, NextClassShapeID, NextRelationShapeID, NextStateID, NextStateShapeID, NextTransitionID, NextTransitionShapeID, NextObjectID, NextObjectShapeID, NextInteractionID, NextInteractionShapeID, NextOperationID, NextAttributeID
+***BEGIN_TABLE***
+4.78190301111111196098
+***END_TABLE***
+
+Classes
+ClassID, Name, Description, Multiplicity, Concurrency, Visibility, Persistence, FileName, Package, Import File, Author, LibraryBaseClass, Invariant, User1, User2, User3, Stereotype, 
+***BEGIN_TABLE***
+5
+75CTCLApplicationpublic0000
+76CTestHarness// TCLApplication which will be a test harness for the VME peek/poke classes.publicTestHarness0000
+77CVmeCommand// Implements the vme command:
+
+//   vme -create spacename [-device name] -base size
+
+//   vme -list
+
+//   vme -delete
+
+//publicVMECommand0000
+78CTCLProcessorpublic0000
+79CVMEMapCommand// Front ends for a VME map.  Providing the command syntaxes:
+
+//
+
+//  spacename set [-l|w|b]  offset value
+
+//         Writes value to offset from the requested base of the map.
+
+//          Default size is a word write with overrides to longword or byte provided.
+
+//  spacename get [-l|w|b] offset value
+
+//        Reads a value from the offset relative to the requested base of the map.
+
+//       default size of read is word, with overrides to long/byte provided.
+
+//       Return value is the value read from the address.public0000
+***END_TABLE***
+
+Class Shape
+ShapeID, PosX, PosY, TopText, MiddleText, BottomText, ClassDataID, ClassType, Abstract, Template, Interface, Final
+***BEGIN_TABLE***
+8742020CTCLProcessor78000000
+8428020CTCLApplication75000000
+85240180CTestHarnessoperator():RegisterCommands76000000
+86411161CVmeCommandm_Spacesoperator():AddMap:ListMaps:DeleteMap77000000
+88530160CVMEMapCommandm_pBase:m_nSize:m_pStart:m_pEndoperator():Get:Set79000000
+***END_TABLE***
+
+Attributes
+ClassID, ClassName, AttrID, Name, Type, Length, IsStatic, Description, Visibility, MaxVal, MinVal, InitVal, Stereotype, Constraint, IsConstant, IsIndexed, IsUnique, IsNotNull, IsPrimaryKey, IsForeignKey, User1, User2, User3, IsArray, IsFinal, IsWriteProperty, IsReadProperty
+***BEGIN_TABLE***
+77CVmeCommand92m_Spacesmap<std::string,CVMEMapCommand>0map of known spaces.private00000000000
+79CVMEMapCommand93m_pBaseAddress_t0Base of actual map (page aligned).private00000000000
+79CVMEMapCommand94m_nSizeUInt_t0Actual number of bytes in map.private00000000000
+79CVMEMapCommand96m_pStartAddress_t0Requested start of map (offsets computed relative to this).private00000000000
+79CVMEMapCommand97m_pEndAddress_t0Points to last byte of the map.private00000000000
+***END_TABLE***
+
+Operations
+ClassID, ClassName, OperID, OperName, Return Type, Post Condition, PreCondition, Invariant, Stereotype, Classification, Exception, Transformation, Concurrency, Visibility,  Comment1, Comment2, Comment3, IsStatic, IsConstant, IsPureVirtual, IsVirtual, IsProcedure, IsInline, IsEvent, IsOverride, Message, IsFinal, IsSynchronized, IsNative, IsFriend
+***BEGIN_TABLE***
+76CTestHarness945operator()intpublic// Called at startup time to do interpreter and application
+
+// initialization as well as command registration.000110010000
+BEGIN_CODE
+
+END_CODE
+76CTestHarness959RegisterCommandsintprotected// Registers commands in the class.000010000000
+BEGIN_CODE
+
+END_CODE
+77CVmeCommand946operator()intpublic// Called by the tcl vme command.
+
+// Dispatches based on the subcommand to Add, Listmaps or DeleteMaps.000110010000
+BEGIN_CODE
+
+END_CODE
+77CVmeCommand947AddMapintprotected// Adds a vme space map syntax:
+
+//    vme create mapname [-device devname] base size
+
+//                mapname - name of a new TCL command (CVMEMapCommand) which
+
+//                                  manages the map.
+
+//                -device devname - optional vme device specification.
+
+//                                              default is to the A24/D32 device.
+
+//                base        - Offset into the VME space
+
+//                size          - # bytes requested.  This is increased to a multiple of the system
+
+//                                  pagesize.
+
+//000010000000
+BEGIN_CODE
+
+END_CODE
+77CVmeCommand948ListMapsintprotected// Lists the set of known maps.
+
+// Syntax:
+
+//     vme list000010000000
+BEGIN_CODE
+
+END_CODE
+77CVmeCommand949DeleteMapintprotected// Deletes a map.
+
+//   Syntax:
+
+//      vme delete mapname
+
+//000010000000
+BEGIN_CODE
+
+END_CODE
+79CVMEMapCommand950operator()intpublic// Called to dispatch to appropriate Get/Set members
+
+// based on the first command line parameter.001110000000
+BEGIN_CODE
+
+END_CODE
+79CVMEMapCommand951Getintprotected// Get (read) from VME bus:
+
+//
+
+//  syntax:   
+
+//    spacename get [-l|w|b] offset
+
+//000010000000
+BEGIN_CODE
+
+END_CODE
+79CVMEMapCommand952Setintpublic// Called to process a Set (write) to the
+
+//  vme bus.
+
+//     spacename set [-l|w|b] offset value
+
+//000010000000
+BEGIN_CODE
+
+END_CODE
+***END_TABLE***
+
+Parameters
+OperID, Parameter Text
+***BEGIN_TABLE***
+959CTCLInterpreter&/rInterpreter//
+946CTCLInterpreter&/rInterpreter//
+946CTCLResult&/rResult//
+946int/nArgs//
+946char**/pArgs//
+947CTCLInterpreter&/rInterp//
+947CTCLResult&/rResult//
+947int/nArgs//
+947char**/pArgs//
+948CTCLInterpreter&/rInterp//
+948CTCLResult&/rResult//
+948int/nArgs//
+948char**/pArgs//
+949CTCLInterpreter&/rInterp//
+949CTCLResult&/rResult//
+949int/nArgs//
+949char**/pArgs//
+950CTCLInterpreter&/rInterp//
+950CTCLResult&/rResult//
+950int/nArgs//
+950char**/pArgs//
+951CTCLInterpreter&/rInterp//
+951CTCLResult&/rResult//
+951int/nArgs//
+951char**/pArgs//
+952CTCLInterpreter&/rInterp//
+952CTCLResult&/rResult//
+952int /nArgs//
+952char**/pArgs//
+***END_TABLE***
+
+Includes
+ClassID, ClassName, Include Text
+***BEGIN_TABLE***
+76CTestHarnessiostream
+77CVmeCommand<map>
+77CVmeCommand<string>
+***END_TABLE***
+
+Relation Shape
+ShapeID, Type, Text, Multiplicity, Source Node ID, Source Index, LineTexture, IsDisplayByVal, IsDisplayByRef, QualifierSrc
+***BEGIN_TABLE***
+272NoText08430001
+282NoText08730001
+290NoText085110001
+***END_TABLE***
+
+Branches
+Relation Shape ID, Multiplicity, Destination Node ID, Destination Index, Text, Relation Type, Branch Id,  IsDisplayStatic, IsDisplayFriend, IsDisplayPlus, QualifierDest, Offset x, Offset y
+***BEGIN_TABLE***
+27085626100000
+28086226200000
+28088426300000
+2908610m_pVme06400000
+***END_TABLE***
+
+Relations
+Id,ParentId,Name,Type,Description,SrcVisibility,SrcMultiplicity,SrcLength,IsSrcByRef,IsSrcByVal,IsSrcFriend,IsSrcStatic,SrcRole,SourceClassId,
+DestVisibility,DestMultiplicity,DestLength,DestByRef,IsDestByVal,IsDestFriend,IsDestStatic,IsDestRole,DestClassId
+***BEGIN_TABLE***
+61272private00000075private00000076
+62282private00000078private00000077
+63282private00000078private00000079
+6429m_pVme0private00000076private00000077
+***END_TABLE***
+
+General Shape
+ ShapeId, Type,Positionx, Position.y, # ConnectPoints metafileName, TextOffset, ShapeSize, Width, Height, Texture, FileName,  Class, Text
+
+***BEGIN_TABLE***
+***END_TABLE***
+

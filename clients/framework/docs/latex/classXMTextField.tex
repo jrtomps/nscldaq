@@ -1,0 +1,132 @@
+\section{XMText\-Field  Class Reference}
+\label{classXMTextField}\index{XMTextField@{XMText\-Field}}
+{\tt \#include $<$XMText.h$>$}
+
+Inheritance diagram for XMText\-Field::\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[height=3cm]{classXMTextField}
+\end{center}
+\end{figure}
+\subsection*{Public Methods}
+\begin{CompactItemize}
+\item 
+{\bf XMText\-Field} (char $\ast$n, {\bf XMWidget} \&parent, int columns=30, Arg\-List args=NULL, Cardinal arg\_\-count=0)
+\item 
+{\bf XMText\-Field} (char $\ast$n, Widget parent, int columns=30, Arg\-List args=NULL, Cardinal arg\_\-count=0)
+\item 
+{\bf XMText\-Field} (char $\ast$n)
+\item 
+{\bf XMText\-Field} (Widget w)
+\item 
+void {\bf Set\-Columns} (int columns)
+\item 
+void {\bf Set\-Max\-Length} (int len)
+\item 
+void {\bf Enable\-Word\-Wrap} ()
+\item 
+char $\ast$ {\bf Get\-Text} ()
+\item 
+void {\bf Set\-Text} (char $\ast$txt)
+\item 
+{\bf Callback\_\-data} $\ast$ {\bf Add\-Activate\-Callback} (void($\ast$callback)({\bf XMWidget} $\ast$, Xt\-Pointer, Xt\-Pointer), Xt\-Pointer user\_\-data=NULL)
+\end{CompactItemize}
+
+
+\subsection{Constructor \& Destructor Documentation}
+\index{XMTextField@{XMText\-Field}!XMTextField@{XMTextField}}
+\index{XMTextField@{XMTextField}!XMTextField@{XMText\-Field}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}XMText\-Field::XMText\-Field (char $\ast$ {\em n}, {\bf XMWidget} \& {\em parent}, int {\em columns} = 30, Arg\-List {\em args} = NULL, Cardinal {\em arg\_\-count} = 0)\hspace{0.3cm}{\tt  [inline]}}\label{classXMTextField_a0}
+
+
+
+
+Definition at line 356 of file XMText.h.
+
+References Set\-Columns().\index{XMTextField@{XMText\-Field}!XMTextField@{XMTextField}}
+\index{XMTextField@{XMTextField}!XMTextField@{XMText\-Field}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}XMText\-Field::XMText\-Field (char $\ast$ {\em n}, Widget {\em parent}, int {\em columns} = 30, Arg\-List {\em args} = NULL, Cardinal {\em arg\_\-count} = 0)\hspace{0.3cm}{\tt  [inline]}}\label{classXMTextField_a1}
+
+
+
+
+Definition at line 363 of file XMText.h.
+
+References Set\-Columns().\index{XMTextField@{XMText\-Field}!XMTextField@{XMTextField}}
+\index{XMTextField@{XMTextField}!XMTextField@{XMText\-Field}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}XMText\-Field::XMText\-Field (char $\ast$ {\em n})\hspace{0.3cm}{\tt  [inline]}}\label{classXMTextField_a2}
+
+
+
+
+Definition at line 369 of file XMText.h.\index{XMTextField@{XMText\-Field}!XMTextField@{XMTextField}}
+\index{XMTextField@{XMTextField}!XMTextField@{XMText\-Field}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}XMText\-Field::XMText\-Field (Widget {\em w})\hspace{0.3cm}{\tt  [inline]}}\label{classXMTextField_a3}
+
+
+
+
+Definition at line 370 of file XMText.h.
+
+\subsection{Member Function Documentation}
+\index{XMTextField@{XMText\-Field}!AddActivateCallback@{AddActivateCallback}}
+\index{AddActivateCallback@{AddActivateCallback}!XMTextField@{XMText\-Field}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}{\bf Callback\_\-data}$\ast$ XMText\-Field::Add\-Activate\-Callback (void($\ast$ {\em callback})({\bf XMWidget} $\ast$, Xt\-Pointer, Xt\-Pointer), Xt\-Pointer {\em user\_\-data} = NULL)\hspace{0.3cm}{\tt  [inline]}}\label{classXMTextField_a9}
+
+
+
+
+Definition at line 388 of file XMText.h.
+
+References XMWidget::Add\-Callback().\index{XMTextField@{XMText\-Field}!EnableWordWrap@{EnableWordWrap}}
+\index{EnableWordWrap@{EnableWordWrap}!XMTextField@{XMText\-Field}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}void XMText\-Field::Enable\-Word\-Wrap ()\hspace{0.3cm}{\tt  [inline]}}\label{classXMTextField_a6}
+
+
+
+
+Definition at line 380 of file XMText.h.
+
+References XMWidget::Set\-Attribute().\index{XMTextField@{XMText\-Field}!GetText@{GetText}}
+\index{GetText@{GetText}!XMTextField@{XMText\-Field}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}char$\ast$ XMText\-Field::Get\-Text ()\hspace{0.3cm}{\tt  [inline]}}\label{classXMTextField_a7}
+
+
+
+
+Definition at line 383 of file XMText.h.
+
+References XMWidget::id.\index{XMTextField@{XMText\-Field}!SetColumns@{SetColumns}}
+\index{SetColumns@{SetColumns}!XMTextField@{XMText\-Field}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}void XMText\-Field::Set\-Columns (int {\em columns})\hspace{0.3cm}{\tt  [inline]}}\label{classXMTextField_a4}
+
+
+
+
+Definition at line 374 of file XMText.h.
+
+References XMWidget::Set\-Attribute().
+
+Referenced by XMText\-Field().\index{XMTextField@{XMText\-Field}!SetMaxLength@{SetMaxLength}}
+\index{SetMaxLength@{SetMaxLength}!XMTextField@{XMText\-Field}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}void XMText\-Field::Set\-Max\-Length (int {\em len})\hspace{0.3cm}{\tt  [inline]}}\label{classXMTextField_a5}
+
+
+
+
+Definition at line 377 of file XMText.h.
+
+References XMWidget::Set\-Attribute().\index{XMTextField@{XMText\-Field}!SetText@{SetText}}
+\index{SetText@{SetText}!XMTextField@{XMText\-Field}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}void XMText\-Field::Set\-Text (char $\ast$ {\em txt})\hspace{0.3cm}{\tt  [inline]}}\label{classXMTextField_a8}
+
+
+
+
+Definition at line 385 of file XMText.h.
+
+References XMWidget::id.
+
+The documentation for this class was generated from the following file:\begin{CompactItemize}
+\item 
+{\bf XMText.h}\end{CompactItemize}

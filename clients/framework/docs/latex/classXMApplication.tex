@@ -1,0 +1,191 @@
+\section{XMApplication  Class Reference}
+\label{classXMApplication}\index{XMApplication@{XMApplication}}
+{\tt \#include $<$XMWidget.h$>$}
+
+\subsection*{Public Methods}
+\begin{CompactItemize}
+\item 
+{\bf XMApplication} (char $\ast$cl, Cardinal $\ast$argc, char $\ast$$\ast$argv, Xrm\-Option\-Desc\-List options=NULL, Cardinal noptions=0, const char $\ast$$\ast$fallback\_\-resources=NULL, Arg\-List args=NULL, Cardinal num\_\-args=0)
+\item 
+void {\bf Begin} ()
+\item 
+Xt\-App\-Context {\bf Get\-Context} ()
+\item 
+Widget {\bf getid} ()
+\item 
+void {\bf Manage} ()
+\item 
+void {\bf Un\-Manage} ()
+\item 
+void {\bf Realize} ()
+\item 
+void {\bf Un\-Realize} ()
+\item 
+void {\bf Set\-Attribute} (String attribute, Xt\-Arg\-Val value)
+\item 
+void {\bf Set\-Attribute} (String attribute, void $\ast$value)
+\item 
+void {\bf Get\-Attribute} (String attribute, void $\ast$value)
+\item 
+void {\bf Get\-Attribute} (String attribute, Xt\-Arg\-Val value)
+\end{CompactItemize}
+\subsection*{Protected Attributes}
+\begin{CompactItemize}
+\item 
+Xt\-App\-Context {\bf application}
+\item 
+Widget {\bf toplevel\_\-shell}
+\item 
+{\bf XMWidget\-Name} {\bf app\_\-class}
+\end{CompactItemize}
+
+
+\subsection{Constructor \& Destructor Documentation}
+\index{XMApplication@{XMApplication}!XMApplication@{XMApplication}}
+\index{XMApplication@{XMApplication}!XMApplication@{XMApplication}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}XMApplication::XMApplication (char $\ast$ {\em cl}, Cardinal $\ast$ {\em argc}, char $\ast$$\ast$ {\em argv}, Xrm\-Option\-Desc\-List {\em options} = NULL, Cardinal {\em noptions} = 0, const char $\ast$$\ast$ {\em fallback\_\-resources} = NULL, Arg\-List {\em args} = NULL, Cardinal {\em num\_\-args} = 0)\hspace{0.3cm}{\tt  [inline]}}\label{classXMApplication_a0}
+
+
+
+
+Definition at line 320 of file XMWidget.h.
+
+References app\_\-class, application, and toplevel\_\-shell.
+
+\subsection{Member Function Documentation}
+\index{XMApplication@{XMApplication}!Begin@{Begin}}
+\index{Begin@{Begin}!XMApplication@{XMApplication}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}void XMApplication::Begin ()\hspace{0.3cm}{\tt  [inline]}}\label{classXMApplication_a1}
+
+
+
+
+Definition at line 336 of file XMWidget.h.
+
+References application, and toplevel\_\-shell.\index{XMApplication@{XMApplication}!GetAttribute@{GetAttribute}}
+\index{GetAttribute@{GetAttribute}!XMApplication@{XMApplication}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}void XMApplication::Get\-Attribute (String {\em attribute}, Xt\-Arg\-Val {\em value})\hspace{0.3cm}{\tt  [inline]}}\label{classXMApplication_a11}
+
+
+
+
+Definition at line 356 of file XMWidget.h.
+
+References toplevel\_\-shell.\index{XMApplication@{XMApplication}!GetAttribute@{GetAttribute}}
+\index{GetAttribute@{GetAttribute}!XMApplication@{XMApplication}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}void XMApplication::Get\-Attribute (String {\em attribute}, void $\ast$ {\em value})\hspace{0.3cm}{\tt  [inline]}}\label{classXMApplication_a10}
+
+
+
+
+Definition at line 354 of file XMWidget.h.
+
+References toplevel\_\-shell.\index{XMApplication@{XMApplication}!GetContext@{GetContext}}
+\index{GetContext@{GetContext}!XMApplication@{XMApplication}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}Xt\-App\-Context XMApplication::Get\-Context ()\hspace{0.3cm}{\tt  [inline]}}\label{classXMApplication_a2}
+
+
+
+
+Definition at line 342 of file XMWidget.h.
+
+References application.\index{XMApplication@{XMApplication}!getid@{getid}}
+\index{getid@{getid}!XMApplication@{XMApplication}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}Widget XMApplication::getid ()\hspace{0.3cm}{\tt  [inline]}}\label{classXMApplication_a3}
+
+
+
+
+Definition at line 343 of file XMWidget.h.
+
+References toplevel\_\-shell.
+
+Referenced by XMWidget::XMWidget().\index{XMApplication@{XMApplication}!Manage@{Manage}}
+\index{Manage@{Manage}!XMApplication@{XMApplication}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}void XMApplication::Manage ()\hspace{0.3cm}{\tt  [inline]}}\label{classXMApplication_a4}
+
+
+
+
+Definition at line 344 of file XMWidget.h.
+
+References toplevel\_\-shell.\index{XMApplication@{XMApplication}!Realize@{Realize}}
+\index{Realize@{Realize}!XMApplication@{XMApplication}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}void XMApplication::Realize ()\hspace{0.3cm}{\tt  [inline]}}\label{classXMApplication_a6}
+
+
+
+
+Definition at line 346 of file XMWidget.h.
+
+References toplevel\_\-shell.\index{XMApplication@{XMApplication}!SetAttribute@{SetAttribute}}
+\index{SetAttribute@{SetAttribute}!XMApplication@{XMApplication}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}void XMApplication::Set\-Attribute (String {\em attribute}, void $\ast$ {\em value})\hspace{0.3cm}{\tt  [inline]}}\label{classXMApplication_a9}
+
+
+
+
+Definition at line 351 of file XMWidget.h.
+
+References toplevel\_\-shell.\index{XMApplication@{XMApplication}!SetAttribute@{SetAttribute}}
+\index{SetAttribute@{SetAttribute}!XMApplication@{XMApplication}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}void XMApplication::Set\-Attribute (String {\em attribute}, Xt\-Arg\-Val {\em value})\hspace{0.3cm}{\tt  [inline]}}\label{classXMApplication_a8}
+
+
+
+
+Definition at line 349 of file XMWidget.h.
+
+References toplevel\_\-shell.\index{XMApplication@{XMApplication}!UnManage@{UnManage}}
+\index{UnManage@{UnManage}!XMApplication@{XMApplication}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}void XMApplication::Un\-Manage ()\hspace{0.3cm}{\tt  [inline]}}\label{classXMApplication_a5}
+
+
+
+
+Definition at line 345 of file XMWidget.h.
+
+References toplevel\_\-shell.\index{XMApplication@{XMApplication}!UnRealize@{UnRealize}}
+\index{UnRealize@{UnRealize}!XMApplication@{XMApplication}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}void XMApplication::Un\-Realize ()\hspace{0.3cm}{\tt  [inline]}}\label{classXMApplication_a7}
+
+
+
+
+Definition at line 347 of file XMWidget.h.
+
+References toplevel\_\-shell.
+
+\subsection{Member Data Documentation}
+\index{XMApplication@{XMApplication}!app_class@{app\_\-class}}
+\index{app_class@{app\_\-class}!XMApplication@{XMApplication}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}{\bf XMWidget\-Name} XMApplication::app\_\-class\hspace{0.3cm}{\tt  [protected]}}\label{classXMApplication_n2}
+
+
+
+
+Definition at line 318 of file XMWidget.h.
+
+Referenced by XMApplication().\index{XMApplication@{XMApplication}!application@{application}}
+\index{application@{application}!XMApplication@{XMApplication}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}Xt\-App\-Context XMApplication::application\hspace{0.3cm}{\tt  [protected]}}\label{classXMApplication_n0}
+
+
+
+
+Definition at line 316 of file XMWidget.h.
+
+Referenced by Begin(), Get\-Context(), and XMApplication().\index{XMApplication@{XMApplication}!toplevel_shell@{toplevel\_\-shell}}
+\index{toplevel_shell@{toplevel\_\-shell}!XMApplication@{XMApplication}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}Widget XMApplication::toplevel\_\-shell\hspace{0.3cm}{\tt  [protected]}}\label{classXMApplication_n1}
+
+
+
+
+Definition at line 317 of file XMWidget.h.
+
+Referenced by Begin(), Get\-Attribute(), getid(), Manage(), Realize(), Set\-Attribute(), Un\-Manage(), Un\-Realize(), and XMApplication().
+
+The documentation for this class was generated from the following file:\begin{CompactItemize}
+\item 
+{\bf XMWidget.h}\end{CompactItemize}

@@ -1,0 +1,236 @@
+\section{histotypes.h File Reference}
+\label{histotypes_8h}\index{histotypes.h@{histotypes.h}}
+{\tt \#include $<$iostream.h$>$}\par
+{\tt \#include $<$string.h$>$}\par
+{\tt \#include $<$string$>$}\par
+{\tt \#include $<$math.h$>$}\par
+\subsection*{Compounds}
+\begin{CompactItemize}
+\item 
+struct {\bf Time\_\-t}
+\end{CompactItemize}
+\subsection*{Defines}
+\begin{CompactItemize}
+\item 
+\#define {\bf k\-ACTIONSIZE}\ 1024
+\end{CompactItemize}
+\subsection*{Typedefs}
+\begin{CompactItemize}
+\item 
+typedef int {\bf Int\_\-t}
+\item 
+typedef unsigned int {\bf UInt\_\-t}
+\item 
+typedef short {\bf Short\_\-t}
+\item 
+typedef unsigned short {\bf UShort\_\-t}
+\item 
+typedef long {\bf Long\_\-t}
+\item 
+typedef unsigned long {\bf ULong\_\-t}
+\item 
+typedef float {\bf Float\_\-t}
+\item 
+typedef double {\bf DFloat\_\-t}
+\item 
+typedef char {\bf Char\_\-t}
+\item 
+typedef unsigned char {\bf UChar\_\-t}
+\item 
+typedef char $\ast$ {\bf Textsz\_\-t}
+\item 
+typedef {\bf UInt\_\-t} {\bf Size\_\-t}
+\item 
+typedef void $\ast$ {\bf Address\_\-t}
+\item 
+typedef {\bf UChar\_\-t} {\bf Bool\_\-t}
+\item 
+typedef $\ast$ {\bf p\-Time\_\-t}
+\end{CompactItemize}
+\subsection*{Variables}
+\begin{CompactItemize}
+\item 
+const {\bf Address\_\-t} {\bf kp\-NULL} = ({\bf Address\_\-t})0
+\item 
+const {\bf Bool\_\-t} {\bf kf\-TRUE} = 0xff
+\item 
+const {\bf Bool\_\-t} {\bf kf\-FALSE} = 0
+\item 
+const {\bf UInt\_\-t} {\bf kn1K} = 1024
+\item 
+const {\bf UInt\_\-t} {\bf kn1M} = {\bf kn1K}$\ast${\bf kn1K}
+\item 
+const {\bf UInt\_\-t} {\bf kn\-Default\-Buffer\-Size} = {\bf kn1K}$\ast$8
+\end{CompactItemize}
+
+
+\subsection{Define Documentation}
+\index{histotypes.h@{histotypes.h}!kACTIONSIZE@{kACTIONSIZE}}
+\index{kACTIONSIZE@{kACTIONSIZE}!histotypes.h@{histotypes.h}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}\#define k\-ACTIONSIZE\ 1024}\label{histotypes_8h_a0}
+
+
+
+
+Definition at line 337 of file histotypes.h.
+
+\subsection{Typedef Documentation}
+\index{histotypes.h@{histotypes.h}!Address_t@{Address\_\-t}}
+\index{Address_t@{Address\_\-t}!histotypes.h@{histotypes.h}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}typedef void$\ast$ Address\_\-t}\label{histotypes_8h_a13}
+
+
+
+
+Definition at line 332 of file histotypes.h.\index{histotypes.h@{histotypes.h}!Bool_t@{Bool\_\-t}}
+\index{Bool_t@{Bool\_\-t}!histotypes.h@{histotypes.h}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}typedef {\bf UChar\_\-t} Bool\_\-t}\label{histotypes_8h_a15}
+
+
+
+
+Definition at line 340 of file histotypes.h.
+
+Referenced by CTCLVariable::CTCLVariable(), CTCLInterpreter::Expr\-Boolean(), CTCLTimer::Is\-Set(), CTCLVariable::Is\-Tracing(), CTCLString::Match(), CTCLProcessor::Parse\-Boolean(), CTCLInterpreter::Record\-And\-Eval(), CTCLTimer::set\-Set(), and CTCLVariable::set\-Tracing().\index{histotypes.h@{histotypes.h}!Char_t@{Char\_\-t}}
+\index{Char_t@{Char\_\-t}!histotypes.h@{histotypes.h}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}typedef char Char\_\-t}\label{histotypes_8h_a9}
+
+
+
+
+Definition at line 326 of file histotypes.h.\index{histotypes.h@{histotypes.h}!DFloat_t@{DFloat\_\-t}}
+\index{DFloat_t@{DFloat\_\-t}!histotypes.h@{histotypes.h}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}typedef double DFloat\_\-t}\label{histotypes_8h_a8}
+
+
+
+
+Definition at line 322 of file histotypes.h.
+
+Referenced by CTCLInterpreter::Expr\-Double().\index{histotypes.h@{histotypes.h}!Float_t@{Float\_\-t}}
+\index{Float_t@{Float\_\-t}!histotypes.h@{histotypes.h}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}typedef float Float\_\-t}\label{histotypes_8h_a7}
+
+
+
+
+Definition at line 321 of file histotypes.h.\index{histotypes.h@{histotypes.h}!Int_t@{Int\_\-t}}
+\index{Int_t@{Int\_\-t}!histotypes.h@{histotypes.h}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}typedef int Int\_\-t}\label{histotypes_8h_a1}
+
+
+
+
+Definition at line 312 of file histotypes.h.
+
+Referenced by CTCLString::Append(), CAlarm\-Logger::CAlarm\-Logger(), CRange\-Error::CRange\-Error(), CTCLException::CTCLException(), CTCLInterpreter::Detach\-Process(), CTCLHash\-Table$<$ T $>$::Enter(), CTCLInterpreter::Expr\-Boolean(), CTCLInterpreter::Expr\-Double(), CErrno\-Exception::get\-Errno(), CRange\-Error::get\-High(), CRange\-Error::get\-Low(), CTCLException::get\-Reason(), CRange\-Error::get\-Requested(), CTCLString::is\-Command(), CTCLString::Match(), CStream\-IOError::Reason\-Code(), CErrno\-Exception::set\-Errno(), CRange\-Error::set\-High(), CRange\-Error::set\-Low(), CTCLException::set\-Reason(), CRange\-Error::set\-Requested(), and CTCLInterpreter::Signal\-Id().\index{histotypes.h@{histotypes.h}!Long_t@{Long\_\-t}}
+\index{Long_t@{Long\_\-t}!histotypes.h@{histotypes.h}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}typedef long Long\_\-t}\label{histotypes_8h_a5}
+
+
+
+
+Definition at line 318 of file histotypes.h.
+
+Referenced by CTCLInterpreter::Expr\-Long().\index{histotypes.h@{histotypes.h}!pTime_t@{pTime\_\-t}}
+\index{pTime_t@{pTime\_\-t}!histotypes.h@{histotypes.h}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}typedef   $\ast$ p\-Time\_\-t}\label{histotypes_8h_a18}
+
+
+\index{histotypes.h@{histotypes.h}!Short_t@{Short\_\-t}}
+\index{Short_t@{Short\_\-t}!histotypes.h@{histotypes.h}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}typedef short Short\_\-t}\label{histotypes_8h_a3}
+
+
+
+
+Definition at line 315 of file histotypes.h.\index{histotypes.h@{histotypes.h}!Size_t@{Size\_\-t}}
+\index{Size_t@{Size\_\-t}!histotypes.h@{histotypes.h}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}typedef {\bf UInt\_\-t} Size\_\-t}\label{histotypes_8h_a12}
+
+
+
+
+Definition at line 330 of file histotypes.h.\index{histotypes.h@{histotypes.h}!Textsz_t@{Textsz\_\-t}}
+\index{Textsz_t@{Textsz\_\-t}!histotypes.h@{histotypes.h}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}typedef char$\ast$ Textsz\_\-t}\label{histotypes_8h_a11}
+
+
+
+
+Definition at line 329 of file histotypes.h.\index{histotypes.h@{histotypes.h}!UChar_t@{UChar\_\-t}}
+\index{UChar_t@{UChar\_\-t}!histotypes.h@{histotypes.h}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}typedef unsigned char UChar\_\-t}\label{histotypes_8h_a10}
+
+
+
+
+Definition at line 327 of file histotypes.h.\index{histotypes.h@{histotypes.h}!UInt_t@{UInt\_\-t}}
+\index{UInt_t@{UInt\_\-t}!histotypes.h@{histotypes.h}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}typedef unsigned int UInt\_\-t}\label{histotypes_8h_a2}
+
+
+
+
+Definition at line 313 of file histotypes.h.
+
+Referenced by CTCLFile\-Handler::CTCLFile\-Handler(), CTCLTimer::CTCLTimer(), CTCLInterpreter::Detach\-Process(), CTCLFile\-Handler::get\-Fid(), CTCLTimer::get\-Msec(), CTCLTimer::Set(), CTCLFile\-Handler::set\-Fid(), CTCLTimer::set\-Msec(), CTCLInterpreter::Signal\-Id(), CTCLInterpreter::Signal\-Msg(), and CTCLString::Truncate().\index{histotypes.h@{histotypes.h}!ULong_t@{ULong\_\-t}}
+\index{ULong_t@{ULong\_\-t}!histotypes.h@{histotypes.h}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}typedef unsigned long ULong\_\-t}\label{histotypes_8h_a6}
+
+
+
+
+Definition at line 319 of file histotypes.h.\index{histotypes.h@{histotypes.h}!UShort_t@{UShort\_\-t}}
+\index{UShort_t@{UShort\_\-t}!histotypes.h@{histotypes.h}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}typedef unsigned short UShort\_\-t}\label{histotypes_8h_a4}
+
+
+
+
+Definition at line 316 of file histotypes.h.
+
+\subsection{Variable Documentation}
+\index{histotypes.h@{histotypes.h}!kfFALSE@{kfFALSE}}
+\index{kfFALSE@{kfFALSE}!histotypes.h@{histotypes.h}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}const {\bf Bool\_\-t} kf\-FALSE = 0\hspace{0.3cm}{\tt  [static]}}\label{histotypes_8h_a17}
+
+
+
+
+Definition at line 342 of file histotypes.h.\index{histotypes.h@{histotypes.h}!kfTRUE@{kfTRUE}}
+\index{kfTRUE@{kfTRUE}!histotypes.h@{histotypes.h}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}const {\bf Bool\_\-t} kf\-TRUE = 0xff\hspace{0.3cm}{\tt  [static]}}\label{histotypes_8h_a16}
+
+
+
+
+Definition at line 341 of file histotypes.h.\index{histotypes.h@{histotypes.h}!kn1K@{kn1K}}
+\index{kn1K@{kn1K}!histotypes.h@{histotypes.h}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}const {\bf UInt\_\-t} kn1K = 1024\hspace{0.3cm}{\tt  [static]}}\label{histotypes_8h_a19}
+
+
+
+
+Definition at line 350 of file histotypes.h.\index{histotypes.h@{histotypes.h}!kn1M@{kn1M}}
+\index{kn1M@{kn1M}!histotypes.h@{histotypes.h}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}const {\bf UInt\_\-t} kn1M = {\bf kn1K}$\ast${\bf kn1K}\hspace{0.3cm}{\tt  [static]}}\label{histotypes_8h_a20}
+
+
+
+
+Definition at line 351 of file histotypes.h.\index{histotypes.h@{histotypes.h}!knDefaultBufferSize@{knDefaultBufferSize}}
+\index{knDefaultBufferSize@{knDefaultBufferSize}!histotypes.h@{histotypes.h}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}const {\bf UInt\_\-t} kn\-Default\-Buffer\-Size = {\bf kn1K}$\ast$8\hspace{0.3cm}{\tt  [static]}}\label{histotypes_8h_a21}
+
+
+
+
+Definition at line 355 of file histotypes.h.\index{histotypes.h@{histotypes.h}!kpNULL@{kpNULL}}
+\index{kpNULL@{kpNULL}!histotypes.h@{histotypes.h}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}const {\bf Address\_\-t} kp\-NULL = ({\bf Address\_\-t})0\hspace{0.3cm}{\tt  [static]}}\label{histotypes_8h_a14}
+
+
+
+
+Definition at line 334 of file histotypes.h.

@@ -1,0 +1,89 @@
+\section{CApplication\-Serializer  Class Reference}
+\label{classCApplicationSerializer}\index{CApplicationSerializer@{CApplication\-Serializer}}
+{\tt \#include $<$CApplication\-Serializer.h$>$}
+
+Inheritance diagram for CApplication\-Serializer::\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[height=2cm]{classCApplicationSerializer}
+\end{center}
+\end{figure}
+\subsection*{Static Public Methods}
+\begin{CompactItemize}
+\item 
+CApplication\-Serializer $\ast$ {\bf get\-Instance} ()
+\end{CompactItemize}
+\subsection*{Private Methods}
+\begin{CompactItemize}
+\item 
+{\bf CApplication\-Serializer} ()
+\item 
+{\bf $\sim$CApplication\-Serializer} ()
+\end{CompactItemize}
+\subsection*{Static Private Attributes}
+\begin{CompactItemize}
+\item 
+CApplication\-Serializer $\ast$ {\bf m\_\-p\-The\-Instance} = (CApplication\-Serializer$\ast$)NULL
+\begin{CompactList}\small\item\em the only allowed instance.\item\end{CompactList}\end{CompactItemize}
+
+
+\subsection{Detailed Description}
+Provides a singleton mutex to serialize threads within an application. The idea is that threads will typically be waiting for something to happen (an event), once the thread becomes unblocked and begins to perform application specific code, it will lock the synchronization mutex. This effectively hides the threaded nature of the application from the programmer. 
+
+
+
+Definition at line 304 of file CApplication\-Serializer.h.
+
+\subsection{Constructor \& Destructor Documentation}
+\index{CApplicationSerializer@{CApplication\-Serializer}!CApplicationSerializer@{CApplicationSerializer}}
+\index{CApplicationSerializer@{CApplicationSerializer}!CApplicationSerializer@{CApplication\-Serializer}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}CApplication\-Serializer::CApplication\-Serializer ()\hspace{0.3cm}{\tt  [private]}}\label{classCApplicationSerializer_c0}
+
+
+The constructor of CApplication\-Serializer is private. Only one object will come into existence, and that as a result of the first  get\-Instance call in the application. All we do is call the base class constructor and set m\_\-p\-The\-Instance to this. 
+
+Definition at line 297 of file CApplication\-Serializer.cpp.
+
+References m\_\-p\-The\-Instance, and NULL.\index{CApplicationSerializer@{CApplication\-Serializer}!~CApplicationSerializer@{$\sim$CApplicationSerializer}}
+\index{~CApplicationSerializer@{$\sim$CApplicationSerializer}!CApplicationSerializer@{CApplication\-Serializer}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}CApplication\-Serializer::$\sim$CApplication\-Serializer ()\hspace{0.3cm}{\tt  [private]}}\label{classCApplicationSerializer_c1}
+
+
+The destructor simply nulls m\_\-p\-The\-Instance. In theory it will never get called. 
+
+Definition at line 308 of file CApplication\-Serializer.cpp.
+
+References m\_\-p\-The\-Instance, and NULL.
+
+\subsection{Member Function Documentation}
+\index{CApplicationSerializer@{CApplication\-Serializer}!getInstance@{getInstance}}
+\index{getInstance@{getInstance}!CApplicationSerializer@{CApplication\-Serializer}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}CApplication\-Serializer $\ast$ CApplication\-Serializer::get\-Instance ()\hspace{0.3cm}{\tt  [static]}}\label{classCApplicationSerializer_d0}
+
+
+get\-Instance returns an assured non-null pointer to the singleton application serialization mutex: 
+
+Definition at line 317 of file CApplication\-Serializer.cpp.
+
+References m\_\-p\-The\-Instance.
+
+Referenced by CBuffer\-Event$<$ T $>$::Add\-Link(), CSocket::Address\-To\-Host\-String(), CSocket::Connect(), CBuffer\-Event$<$ T $>$::Delete\-Link(), CDAQTCLProcessor::Delete\-Relay(), CEvent::Disable(), CEvent::Enable(), CDAQTCLProcessor::Eval\-Relay(), CFile\-Event::Exit(), CBuffer\-Event$<$ U $>$::get\-Pending\-Add\-Queue(), CBuffer\-Event$<$ U $>$::get\-Pending\-Delete\-Queue(), CTCPConnection\-Lost::Host(), CEvent::On\-Event(), CSocket::Open\-Socket(), CXt\-Event\-Loop::operator()(), CTCPConnection\-Lost::Port(), CBuffer\-Event$<$ T $>$::Process\-Add\-Queue(), CBuffer\-Event$<$ T $>$::Process\-Del\-Queue(), CServer\-Connection\-Event::Protocol(), and CSocket::Service().
+
+\subsection{Member Data Documentation}
+\index{CApplicationSerializer@{CApplication\-Serializer}!m_pTheInstance@{m\_\-pTheInstance}}
+\index{m_pTheInstance@{m\_\-pTheInstance}!CApplicationSerializer@{CApplication\-Serializer}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}CApplication\-Serializer $\ast$ CApplication\-Serializer::m\_\-p\-The\-Instance = (CApplication\-Serializer$\ast$)NULL\hspace{0.3cm}{\tt  [static, private]}}\label{classCApplicationSerializer_r0}
+
+
+the only allowed instance.
+
+
+
+Definition at line 289 of file CApplication\-Serializer.cpp.
+
+Referenced by CApplication\-Serializer(), get\-Instance(), and $\sim$CApplication\-Serializer().
+
+The documentation for this class was generated from the following files:\begin{CompactItemize}
+\item 
+{\bf CApplication\-Serializer.h}\item 
+{\bf CApplication\-Serializer.cpp}\end{CompactItemize}

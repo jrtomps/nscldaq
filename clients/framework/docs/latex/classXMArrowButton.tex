@@ -1,0 +1,145 @@
+\section{XMArrow\-Button  Class Reference}
+\label{classXMArrowButton}\index{XMArrowButton@{XMArrow\-Button}}
+{\tt \#include $<$XMPushbutton.h$>$}
+
+Inheritance diagram for XMArrow\-Button::\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[height=4cm]{classXMArrowButton}
+\end{center}
+\end{figure}
+\subsection*{Public Methods}
+\begin{CompactItemize}
+\item 
+{\bf XMArrow\-Button} (char $\ast$n, Widget parent, void($\ast$cb)({\bf XMWidget} $\ast$, Xt\-Pointer, Xt\-Pointer)=NULL, Xt\-Pointer cd=NULL)
+\item 
+{\bf XMArrow\-Button} (char $\ast$n, {\bf XMWidget} \&parent, void($\ast$cb)({\bf XMWidget} $\ast$, Xt\-Pointer, Xt\-Pointer)=NULL, Xt\-Pointer cd=NULL)
+\item 
+{\bf Callback\_\-data} $\ast$ {\bf Add\-Callback} (void($\ast$cb)({\bf XMWidget} $\ast$, Xt\-Pointer, Xt\-Pointer)=NULL, Xt\-Pointer cd=NULL)
+\item 
+void {\bf Point\-Left} ()
+\item 
+void {\bf Point\-Right} ()
+\item 
+void {\bf Point\-Up} ()
+\item 
+void {\bf Point\-Down} ()
+\item 
+unsigned char {\bf Direction} ()
+\item 
+virtual void {\bf Label} (Xm\-String label)
+\item 
+virtual void {\bf Label} (String label)
+\item 
+virtual void {\bf Set\-Mnemonic} (Key\-Sym k)
+\end{CompactItemize}
+
+
+\subsection{Constructor \& Destructor Documentation}
+\index{XMArrowButton@{XMArrow\-Button}!XMArrowButton@{XMArrowButton}}
+\index{XMArrowButton@{XMArrowButton}!XMArrowButton@{XMArrow\-Button}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}XMArrow\-Button::XMArrow\-Button (char $\ast$ {\em n}, Widget {\em parent}, void($\ast$ {\em cb})({\bf XMWidget} $\ast$, Xt\-Pointer, Xt\-Pointer) = NULL, Xt\-Pointer {\em cd} = NULL)\hspace{0.3cm}{\tt  [inline]}}\label{classXMArrowButton_a0}
+
+
+
+
+Definition at line 538 of file XMPushbutton.h.
+
+References XMWidget::Add\-Callback(), and XMButton::Enable().\index{XMArrowButton@{XMArrow\-Button}!XMArrowButton@{XMArrowButton}}
+\index{XMArrowButton@{XMArrowButton}!XMArrowButton@{XMArrow\-Button}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}XMArrow\-Button::XMArrow\-Button (char $\ast$ {\em n}, {\bf XMWidget} \& {\em parent}, void($\ast$ {\em cb})({\bf XMWidget} $\ast$, Xt\-Pointer, Xt\-Pointer) = NULL, Xt\-Pointer {\em cd} = NULL)\hspace{0.3cm}{\tt  [inline]}}\label{classXMArrowButton_a1}
+
+
+
+
+Definition at line 547 of file XMPushbutton.h.
+
+References XMWidget::Add\-Callback(), and XMButton::Enable().
+
+\subsection{Member Function Documentation}
+\index{XMArrowButton@{XMArrow\-Button}!AddCallback@{AddCallback}}
+\index{AddCallback@{AddCallback}!XMArrowButton@{XMArrow\-Button}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}{\bf Callback\_\-data}$\ast$ XMArrow\-Button::Add\-Callback (void($\ast$ {\em cb})({\bf XMWidget} $\ast$, Xt\-Pointer, Xt\-Pointer) = NULL, Xt\-Pointer {\em cd} = NULL)\hspace{0.3cm}{\tt  [inline]}}\label{classXMArrowButton_a2}
+
+
+
+
+Definition at line 559 of file XMPushbutton.h.
+
+References XMWidget::Add\-Callback().\index{XMArrowButton@{XMArrow\-Button}!Direction@{Direction}}
+\index{Direction@{Direction}!XMArrowButton@{XMArrow\-Button}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}unsigned char XMArrow\-Button::Direction ()\hspace{0.3cm}{\tt  [inline]}}\label{classXMArrowButton_a7}
+
+
+
+
+Definition at line 577 of file XMPushbutton.h.
+
+References XMWidget::Get\-Attribute().\index{XMArrowButton@{XMArrow\-Button}!Label@{Label}}
+\index{Label@{Label}!XMArrowButton@{XMArrow\-Button}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}virtual void XMArrow\-Button::Label (String {\em label})\hspace{0.3cm}{\tt  [inline, virtual]}}\label{classXMArrowButton_a9}
+
+
+
+
+Reimplemented from {\bf XMButton} {\rm (p.\,\pageref{classXMButton_a3})}.
+
+Definition at line 588 of file XMPushbutton.h.\index{XMArrowButton@{XMArrow\-Button}!Label@{Label}}
+\index{Label@{Label}!XMArrowButton@{XMArrow\-Button}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}virtual void XMArrow\-Button::Label (Xm\-String {\em label})\hspace{0.3cm}{\tt  [inline, virtual]}}\label{classXMArrowButton_a8}
+
+
+
+
+Reimplemented from {\bf XMButton} {\rm (p.\,\pageref{classXMButton_a2})}.
+
+Definition at line 587 of file XMPushbutton.h.\index{XMArrowButton@{XMArrow\-Button}!PointDown@{PointDown}}
+\index{PointDown@{PointDown}!XMArrowButton@{XMArrow\-Button}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}void XMArrow\-Button::Point\-Down ()\hspace{0.3cm}{\tt  [inline]}}\label{classXMArrowButton_a6}
+
+
+
+
+Definition at line 573 of file XMPushbutton.h.
+
+References XMWidget::Set\-Attribute().\index{XMArrowButton@{XMArrow\-Button}!PointLeft@{PointLeft}}
+\index{PointLeft@{PointLeft}!XMArrowButton@{XMArrow\-Button}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}void XMArrow\-Button::Point\-Left ()\hspace{0.3cm}{\tt  [inline]}}\label{classXMArrowButton_a3}
+
+
+
+
+Definition at line 564 of file XMPushbutton.h.
+
+References XMWidget::Set\-Attribute().\index{XMArrowButton@{XMArrow\-Button}!PointRight@{PointRight}}
+\index{PointRight@{PointRight}!XMArrowButton@{XMArrow\-Button}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}void XMArrow\-Button::Point\-Right ()\hspace{0.3cm}{\tt  [inline]}}\label{classXMArrowButton_a4}
+
+
+
+
+Definition at line 567 of file XMPushbutton.h.
+
+References XMWidget::Set\-Attribute().\index{XMArrowButton@{XMArrow\-Button}!PointUp@{PointUp}}
+\index{PointUp@{PointUp}!XMArrowButton@{XMArrow\-Button}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}void XMArrow\-Button::Point\-Up ()\hspace{0.3cm}{\tt  [inline]}}\label{classXMArrowButton_a5}
+
+
+
+
+Definition at line 570 of file XMPushbutton.h.
+
+References XMWidget::Set\-Attribute().\index{XMArrowButton@{XMArrow\-Button}!SetMnemonic@{SetMnemonic}}
+\index{SetMnemonic@{SetMnemonic}!XMArrowButton@{XMArrow\-Button}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}virtual void XMArrow\-Button::Set\-Mnemonic (Key\-Sym {\em k})\hspace{0.3cm}{\tt  [inline, virtual]}}\label{classXMArrowButton_a10}
+
+
+
+
+Reimplemented from {\bf XMButton} {\rm (p.\,\pageref{classXMButton_a4})}.
+
+Definition at line 589 of file XMPushbutton.h.
+
+The documentation for this class was generated from the following file:\begin{CompactItemize}
+\item 
+{\bf XMPushbutton.h}\end{CompactItemize}

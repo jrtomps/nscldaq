@@ -1,0 +1,129 @@
+/*!
+
+	\page XtGuests Xt/X11 event loops.
+
+Support for Xt/X11 event loops allows framework software to take advantage
+of the rich GUI functionality offered by Xwindows widget libraries such as the
+Athena widget library or Motif widgets.  The Xt event loop is fully 
+synchronized with the application.    The event loop structure looks like:
+
+\code
+  while(!m_fExit) {
+    XEvent event;
+
+    XtAppNextEvent(m_AppContext, &event);
+    pMutex->Lock(); {           //--> Begin Critical region.
+      XtDispatchEvent(&event);
+    }
+    pMutex->UnLock();           //<-- End Critical region.
+
+  }
+\endcode
+
+Xt event dispatch is bracketed by Lock and Unlock calls on the application 
+serialization mutex ensuring that all Xt Event processing is done synchronized
+to the application.
+
+To include an Xt event loop in your application you must:
+- Create a subclass of the CXtEventLoop class.
+- Fill in the following member functions with application specific code:
+	-# \link CXtEventLoop::InitializeApplication InitializeApplication()
+	   \endlink (see \ref InitializeApplication below).
+	-# \link CXtEventLoop::SetupApplicationResources 
+	   SetupApplicationResources() \endlink (see 
+	   \ref SetupApplicationResources below).
+	-# \link CXtEventLoop::SetupWidgetTree SetupWidgetTree() \endlink
+	   (see \ref SetupWidgetTree below).
+- Create an instance of the event loop in the application object
+- Schedule the event loop for execution.
+
+\section InitializeApplication Application initialization.
+  If the default application initialization is not sufficient, you can
+implement an override to this function. The default contents of the function
+are:
+\code
+
+Widget
+CXtEventLoop::InitializeApplication(int& argc, char** argv)
+{
+  m_TopLevel = XtAppInitialize(&m_AppContext,
+                               m_sClass.c_str(),
+                               m_pOptionTable,
+                               m_nOptionCount,
+                               &argc, argv,
+                               m_ppcFallbackResources,
+                               NULL, 0);
+  return m_TopLevel;
+
+}
+
+\endcode
+
+This initializes the Xt library, and produces the application top level widget.
+You can write your member to modify the class (m_sClass), the option table 
+(m_pOptionTable), and the application fallback resources 
+(m_ppcFallbackResources) prior to calling CXtEventLoop::InitializeApplication
+
+You can also detect and process application specific "Command line parameters."
+
+\section SetupApplicationResources Setting up the application resource 
+database.
+
+  The attributes of widgets and classes of widgets are defined both by
+explicit properties at widget creation or modification time, and by a set of 
+defaults or "resources."  The resources are loaded into a resource database
+from several sources:
+- A set of 'fallback' resources can be loaded at Xt initialization time in
+\link CXtEventLoop::InitializeApplication InitializeApplication(). \endlink
+- A set of default resources may be loaded into the Xt library in the function 
+described in this section (\link CXtEventLoop::SetupApplicationResources
+SetupApplicationResources() \endlink).
+- The resources can be loaded in from files in the X11 resource directory and
+  from resource specifications in a user application specific resource file.
+
+The function \link CXtEventLoop::SetupApplicationResources
+SetupApplicationResources() \endlink provides a hook to allow default
+application resources to be loaded into the system. The call signature for
+this member is:
+\code
+void   SetupApplicationResources (Widget TopLevel);
+\endcode
+Where:
+\param Toplevel is the top level widget created in 
+\link CXtEventLoop::InitializeApplication  InitializeApplication() \endlink
+
+The default behavior of this member is empty.  For more information on X11
+resources and the resource database, consult the relevant Xt and X11 
+programming documentation.
+
+
+\section SetupWidgetTree Setting up the application's initial widget tree.
+
+Xt applications consist of a hierachical set of GUI components called 
+"widgets." \link CXtEventLoop::SetupWidgetTree SetupWidgetTree \endlink
+allows the initial set of widgets to be created. 
+
+The call signature of this member is:
+\code 
+void 
+CXtEventLoop::SetupWidgetTree(Widget TopLevel)
+\endcode
+
+Where:
+\param TopLevel is the toplevel widget.  All application widgets have this 
+widget as an ultimate parent.  
+
+The default implementation of \link CXtEventLoop::SetupWidgetTree 
+SetupWidgetTree \endlink is empty.  It is up to the application to determine
+its user interface
+
+\section Example:
+  The example below creates a single button which when clicked exits the
+Xt event loop.
+
+\include XtExample.cpp
+
+*/
+
+
+

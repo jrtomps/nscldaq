@@ -1,0 +1,250 @@
+\section{CTCLHash\-Table\-Iterator$<$ T $>$  Class Template Reference}
+\label{classCTCLHashTableIterator}\index{CTCLHashTableIterator@{CTCLHash\-Table\-Iterator}}
+{\tt \#include $<$TCLHash\-Table\-Iterator.h$>$}
+
+\subsection*{Public Methods}
+\begin{CompactItemize}
+\item 
+{\bf CTCLHash\-Table\-Iterator} (Tcl\_\-Hash\-Table $\ast$p\-Table)
+\item 
+virtual {\bf $\sim$CTCLHash\-Table\-Iterator} ()
+\item 
+{\bf CTCLHash\-Table\-Iterator} (const CTCLHash\-Table\-Iterator \&a\-CTCLHash\-Table\-Iterator)
+\item 
+CTCLHash\-Table\-Iterator {\bf operator=} (const CTCLHash\-Table\-Iterator \&a\-CTCLHash\-Table\-Iterator)
+\item 
+int {\bf operator==} (const CTCLHash\-Table\-Iterator \&a\-CTCLHash\-Table\-Iterator)
+\item 
+Tcl\_\-Hash\-Search {\bf get\-Context} () const
+\item 
+{\bf CTCLHash\-Table\-Item}$<$ T $>$ $\ast$ {\bf get\-Current\-Entry} () const
+\item 
+Tcl\_\-Hash\-Table $\ast$ {\bf get\-Hash\-Table} () const
+\item 
+void {\bf set\-Context} (Tcl\_\-Hash\-Search am\_\-Context)
+\item 
+void {\bf set\-Current\-Entry} ({\bf CTCLHash\-Table\-Item}$<$ T $>$ $\ast$am\_\-p\-Current\-Entry)
+\item 
+void {\bf set\-Hash\-Table} (Tcl\_\-Hash\-Table $\ast$am\_\-p\-Hash\-Table)
+\item 
+CTCLHash\-Table\-Iterator \& {\bf operator++} ()
+\item 
+CTCLHash\-Table\-Iterator {\bf operator++} (int i)
+\item 
+{\bf CTCLHash\-Table\-Item}$<$ T $>$ \& {\bf operator $\ast$} ()
+\item 
+{\bf CTCLHash\-Table\-Item}$<$ T $>$ $\ast$ {\bf operator $\rightarrow$ } ()
+\end{CompactItemize}
+\subsection*{Protected Methods}
+\begin{CompactItemize}
+\item 
+void {\bf Initialize} ()
+\end{CompactItemize}
+\subsection*{Private Types}
+\begin{CompactItemize}
+\item 
+typedef {\bf CTCLHash\-Table\-Item}$<$ T $>$ {\bf CTCLTHash\-Table\-Item}
+\item 
+typedef {\bf CTCLHash\-Table\-Item}$<$ T $>$ $\ast$ {\bf p\-CTCLTHash\-Table\-Item}
+\end{CompactItemize}
+\subsection*{Private Attributes}
+\begin{CompactItemize}
+\item 
+Tcl\_\-Hash\-Search {\bf m\_\-Context}
+\item 
+{\bf p\-CTCLTHash\-Table\-Item} {\bf m\_\-p\-Current\-Entry}
+\item 
+Tcl\_\-Hash\-Table $\ast$ {\bf m\_\-p\-Hash\-Table}
+\end{CompactItemize}
+\subsubsection*{template$<$class T$>$ class CTCLHash\-Table\-Iterator$<$ T $>$}
+
+
+
+\subsection{Member Typedef Documentation}
+\index{CTCLHashTableIterator@{CTCLHash\-Table\-Iterator}!CTCLTHashTableItem@{CTCLTHashTableItem}}
+\index{CTCLTHashTableItem@{CTCLTHashTableItem}!CTCLHashTableIterator@{CTCLHash\-Table\-Iterator}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}template$<$class T$>$ typedef {\bf CTCLHash\-Table\-Item}$<$T$>$ CTCLHash\-Table\-Iterator$<$ T $>$::CTCLTHash\-Table\-Item\hspace{0.3cm}{\tt  [private]}}\label{classCTCLHashTableIterator_u0}
+
+
+
+
+Definition at line 313 of file TCLHash\-Table\-Iterator.h.\index{CTCLHashTableIterator@{CTCLHash\-Table\-Iterator}!pCTCLTHashTableItem@{pCTCLTHashTableItem}}
+\index{pCTCLTHashTableItem@{pCTCLTHashTableItem}!CTCLHashTableIterator@{CTCLHash\-Table\-Iterator}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}template$<$class T$>$ typedef {\bf CTCLHash\-Table\-Item}$<$T$>$ $\ast$ CTCLHash\-Table\-Iterator$<$ T $>$::p\-CTCLTHash\-Table\-Item\hspace{0.3cm}{\tt  [private]}}\label{classCTCLHashTableIterator_u1}
+
+
+
+
+Definition at line 313 of file TCLHash\-Table\-Iterator.h.
+
+\subsection{Constructor \& Destructor Documentation}
+\index{CTCLHashTableIterator@{CTCLHash\-Table\-Iterator}!CTCLHashTableIterator@{CTCLHashTableIterator}}
+\index{CTCLHashTableIterator@{CTCLHashTableIterator}!CTCLHashTableIterator@{CTCLHash\-Table\-Iterator}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}template$<$class T$>$ CTCLHash\-Table\-Iterator$<$ T $>$::CTCLHash\-Table\-Iterator (Tcl\_\-Hash\-Table $\ast$ {\em p\-Table})\hspace{0.3cm}{\tt  [inline]}}\label{classCTCLHashTableIterator_a0}
+
+
+
+
+Definition at line 323 of file TCLHash\-Table\-Iterator.h.
+
+References CTCLHash\-Table\-Iterator$<$ T $>$::Initialize(), and CTCLHash\-Table\-Iterator$<$ T $>$::m\_\-p\-Hash\-Table.\index{CTCLHashTableIterator@{CTCLHash\-Table\-Iterator}!~CTCLHashTableIterator@{$\sim$CTCLHashTableIterator}}
+\index{~CTCLHashTableIterator@{$\sim$CTCLHashTableIterator}!CTCLHashTableIterator@{CTCLHash\-Table\-Iterator}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}template$<$class T$>$ virtual CTCLHash\-Table\-Iterator$<$ T $>$::$\sim$CTCLHash\-Table\-Iterator ()\hspace{0.3cm}{\tt  [inline, virtual]}}\label{classCTCLHashTableIterator_a1}
+
+
+
+
+Definition at line 329 of file TCLHash\-Table\-Iterator.h.\index{CTCLHashTableIterator@{CTCLHash\-Table\-Iterator}!CTCLHashTableIterator@{CTCLHashTableIterator}}
+\index{CTCLHashTableIterator@{CTCLHashTableIterator}!CTCLHashTableIterator@{CTCLHash\-Table\-Iterator}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}template$<$class T$>$ CTCLHash\-Table\-Iterator$<$ T $>$::CTCLHash\-Table\-Iterator (const CTCLHash\-Table\-Iterator$<$ T $>$ \& {\em a\-CTCLHash\-Table\-Iterator})\hspace{0.3cm}{\tt  [inline]}}\label{classCTCLHashTableIterator_a2}
+
+
+
+
+Definition at line 333 of file TCLHash\-Table\-Iterator.h.
+
+References CTCLHash\-Table\-Iterator$<$ T $>$::m\_\-Context, CTCLHash\-Table\-Iterator$<$ T $>$::m\_\-p\-Current\-Entry, and CTCLHash\-Table\-Iterator$<$ T $>$::m\_\-p\-Hash\-Table.
+
+\subsection{Member Function Documentation}
+\index{CTCLHashTableIterator@{CTCLHash\-Table\-Iterator}!getContext@{getContext}}
+\index{getContext@{getContext}!CTCLHashTableIterator@{CTCLHash\-Table\-Iterator}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}template$<$class T$>$ Tcl\_\-Hash\-Search CTCLHash\-Table\-Iterator$<$ T $>$::get\-Context () const\hspace{0.3cm}{\tt  [inline]}}\label{classCTCLHashTableIterator_a5}
+
+
+
+
+Definition at line 366 of file TCLHash\-Table\-Iterator.h.
+
+References CTCLHash\-Table\-Iterator$<$ T $>$::m\_\-Context.\index{CTCLHashTableIterator@{CTCLHash\-Table\-Iterator}!getCurrentEntry@{getCurrentEntry}}
+\index{getCurrentEntry@{getCurrentEntry}!CTCLHashTableIterator@{CTCLHash\-Table\-Iterator}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}template$<$class T$>$ {\bf CTCLHash\-Table\-Item}$<$T$>$$\ast$ CTCLHash\-Table\-Iterator$<$ T $>$::get\-Current\-Entry () const\hspace{0.3cm}{\tt  [inline]}}\label{classCTCLHashTableIterator_a6}
+
+
+
+
+Definition at line 372 of file TCLHash\-Table\-Iterator.h.\index{CTCLHashTableIterator@{CTCLHash\-Table\-Iterator}!getHashTable@{getHashTable}}
+\index{getHashTable@{getHashTable}!CTCLHashTableIterator@{CTCLHash\-Table\-Iterator}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}template$<$class T$>$ Tcl\_\-Hash\-Table$\ast$ CTCLHash\-Table\-Iterator$<$ T $>$::get\-Hash\-Table () const\hspace{0.3cm}{\tt  [inline]}}\label{classCTCLHashTableIterator_a7}
+
+
+
+
+Definition at line 376 of file TCLHash\-Table\-Iterator.h.
+
+References CTCLHash\-Table\-Iterator$<$ T $>$::m\_\-p\-Hash\-Table.\index{CTCLHashTableIterator@{CTCLHash\-Table\-Iterator}!Initialize@{Initialize}}
+\index{Initialize@{Initialize}!CTCLHashTableIterator@{CTCLHash\-Table\-Iterator}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}template$<$class T$>$ void CTCLHash\-Table\-Iterator$<$ T $>$::Initialize ()\hspace{0.3cm}{\tt  [inline, protected]}}\label{classCTCLHashTableIterator_b0}
+
+
+
+
+Definition at line 425 of file TCLHash\-Table\-Iterator.h.
+
+Referenced by CTCLHash\-Table\-Iterator$<$ T $>$::CTCLHash\-Table\-Iterator().\index{CTCLHashTableIterator@{CTCLHash\-Table\-Iterator}!operator *@{operator $\ast$}}
+\index{operator *@{operator $\ast$}!CTCLHashTableIterator@{CTCLHash\-Table\-Iterator}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}template$<$class T$>$ {\bf CTCLHash\-Table\-Item}$<$T$>$\& CTCLHash\-Table\-Iterator$<$ T $>$::operator $\ast$ ()\hspace{0.3cm}{\tt  [inline]}}\label{classCTCLHashTableIterator_a13}
+
+
+
+
+Definition at line 415 of file TCLHash\-Table\-Iterator.h.\index{CTCLHashTableIterator@{CTCLHash\-Table\-Iterator}!operator++@{operator++}}
+\index{operator++@{operator++}!CTCLHashTableIterator@{CTCLHash\-Table\-Iterator}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}template$<$class T$>$ CTCLHash\-Table\-Iterator CTCLHash\-Table\-Iterator$<$ T $>$::operator++ (int {\em i})\hspace{0.3cm}{\tt  [inline]}}\label{classCTCLHashTableIterator_a12}
+
+
+
+
+Definition at line 409 of file TCLHash\-Table\-Iterator.h.\index{CTCLHashTableIterator@{CTCLHash\-Table\-Iterator}!operator++@{operator++}}
+\index{operator++@{operator++}!CTCLHashTableIterator@{CTCLHash\-Table\-Iterator}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}template$<$class T$>$ CTCLHash\-Table\-Iterator\& CTCLHash\-Table\-Iterator$<$ T $>$::operator++ ()\hspace{0.3cm}{\tt  [inline]}}\label{classCTCLHashTableIterator_a11}
+
+
+
+
+Definition at line 405 of file TCLHash\-Table\-Iterator.h.
+
+References CTCLHash\-Table\-Iterator$<$ T $>$::m\_\-Context.\index{CTCLHashTableIterator@{CTCLHash\-Table\-Iterator}!operator->@{operator-$>$}}
+\index{operator->@{operator-$>$}!CTCLHashTableIterator@{CTCLHash\-Table\-Iterator}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}template$<$class T$>$ {\bf CTCLHash\-Table\-Item}$<$T$>$$\ast$ CTCLHash\-Table\-Iterator$<$ T $>$::operator $\rightarrow$  ()\hspace{0.3cm}{\tt  [inline]}}\label{classCTCLHashTableIterator_a14}
+
+
+
+
+Definition at line 418 of file TCLHash\-Table\-Iterator.h.\index{CTCLHashTableIterator@{CTCLHash\-Table\-Iterator}!operator=@{operator=}}
+\index{operator=@{operator=}!CTCLHashTableIterator@{CTCLHash\-Table\-Iterator}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}template$<$class T$>$ CTCLHash\-Table\-Iterator CTCLHash\-Table\-Iterator$<$ T $>$::operator= (const CTCLHash\-Table\-Iterator$<$ T $>$ \& {\em a\-CTCLHash\-Table\-Iterator})\hspace{0.3cm}{\tt  [inline]}}\label{classCTCLHashTableIterator_a3}
+
+
+
+
+Definition at line 344 of file TCLHash\-Table\-Iterator.h.
+
+References CTCLHash\-Table\-Iterator$<$ T $>$::m\_\-Context, and CTCLHash\-Table\-Iterator$<$ T $>$::m\_\-p\-Hash\-Table.\index{CTCLHashTableIterator@{CTCLHash\-Table\-Iterator}!operator==@{operator==}}
+\index{operator==@{operator==}!CTCLHashTableIterator@{CTCLHash\-Table\-Iterator}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}template$<$class T$>$ int CTCLHash\-Table\-Iterator$<$ T $>$::operator== (const CTCLHash\-Table\-Iterator$<$ T $>$ \& {\em a\-CTCLHash\-Table\-Iterator})\hspace{0.3cm}{\tt  [inline]}}\label{classCTCLHashTableIterator_a4}
+
+
+
+
+Definition at line 356 of file TCLHash\-Table\-Iterator.h.
+
+References CTCLHash\-Table\-Iterator$<$ T $>$::m\_\-p\-Current\-Entry, and CTCLHash\-Table\-Iterator$<$ T $>$::m\_\-p\-Hash\-Table.\index{CTCLHashTableIterator@{CTCLHash\-Table\-Iterator}!setContext@{setContext}}
+\index{setContext@{setContext}!CTCLHashTableIterator@{CTCLHash\-Table\-Iterator}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}template$<$class T$>$ void CTCLHash\-Table\-Iterator$<$ T $>$::set\-Context (Tcl\_\-Hash\-Search {\em am\_\-Context})\hspace{0.3cm}{\tt  [inline]}}\label{classCTCLHashTableIterator_a8}
+
+
+
+
+Definition at line 384 of file TCLHash\-Table\-Iterator.h.
+
+References CTCLHash\-Table\-Iterator$<$ T $>$::m\_\-Context.\index{CTCLHashTableIterator@{CTCLHash\-Table\-Iterator}!setCurrentEntry@{setCurrentEntry}}
+\index{setCurrentEntry@{setCurrentEntry}!CTCLHashTableIterator@{CTCLHash\-Table\-Iterator}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}template$<$class T$>$ void CTCLHash\-Table\-Iterator$<$ T $>$::set\-Current\-Entry ({\bf CTCLHash\-Table\-Item}$<$ T $>$ $\ast$ {\em am\_\-p\-Current\-Entry})\hspace{0.3cm}{\tt  [inline]}}\label{classCTCLHashTableIterator_a9}
+
+
+
+
+Definition at line 391 of file TCLHash\-Table\-Iterator.h.\index{CTCLHashTableIterator@{CTCLHash\-Table\-Iterator}!setHashTable@{setHashTable}}
+\index{setHashTable@{setHashTable}!CTCLHashTableIterator@{CTCLHash\-Table\-Iterator}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}template$<$class T$>$ void CTCLHash\-Table\-Iterator$<$ T $>$::set\-Hash\-Table (Tcl\_\-Hash\-Table $\ast$ {\em am\_\-p\-Hash\-Table})\hspace{0.3cm}{\tt  [inline]}}\label{classCTCLHashTableIterator_a10}
+
+
+
+
+Definition at line 397 of file TCLHash\-Table\-Iterator.h.
+
+References CTCLHash\-Table\-Iterator$<$ T $>$::m\_\-p\-Hash\-Table.
+
+\subsection{Member Data Documentation}
+\index{CTCLHashTableIterator@{CTCLHash\-Table\-Iterator}!m_Context@{m\_\-Context}}
+\index{m_Context@{m\_\-Context}!CTCLHashTableIterator@{CTCLHash\-Table\-Iterator}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}template$<$class T$>$ Tcl\_\-Hash\-Search CTCLHash\-Table\-Iterator$<$ T $>$::m\_\-Context\hspace{0.3cm}{\tt  [private]}}\label{classCTCLHashTableIterator_o0}
+
+
+
+
+Definition at line 315 of file TCLHash\-Table\-Iterator.h.
+
+Referenced by CTCLHash\-Table\-Iterator$<$ T $>$::CTCLHash\-Table\-Iterator(), CTCLHash\-Table\-Iterator$<$ T $>$::get\-Context(), CTCLHash\-Table\-Iterator$<$ T $>$::operator++(), CTCLHash\-Table\-Iterator$<$ T $>$::operator=(), and CTCLHash\-Table\-Iterator$<$ T $>$::set\-Context().\index{CTCLHashTableIterator@{CTCLHash\-Table\-Iterator}!m_pCurrentEntry@{m\_\-pCurrentEntry}}
+\index{m_pCurrentEntry@{m\_\-pCurrentEntry}!CTCLHashTableIterator@{CTCLHash\-Table\-Iterator}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}template$<$class T$>$ {\bf p\-CTCLTHash\-Table\-Item} CTCLHash\-Table\-Iterator$<$ T $>$::m\_\-p\-Current\-Entry\hspace{0.3cm}{\tt  [private]}}\label{classCTCLHashTableIterator_o1}
+
+
+
+
+Definition at line 316 of file TCLHash\-Table\-Iterator.h.
+
+Referenced by CTCLHash\-Table\-Iterator$<$ T $>$::CTCLHash\-Table\-Iterator(), and CTCLHash\-Table\-Iterator$<$ T $>$::operator==().\index{CTCLHashTableIterator@{CTCLHash\-Table\-Iterator}!m_pHashTable@{m\_\-pHashTable}}
+\index{m_pHashTable@{m\_\-pHashTable}!CTCLHashTableIterator@{CTCLHash\-Table\-Iterator}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}template$<$class T$>$ Tcl\_\-Hash\-Table$\ast$ CTCLHash\-Table\-Iterator$<$ T $>$::m\_\-p\-Hash\-Table\hspace{0.3cm}{\tt  [private]}}\label{classCTCLHashTableIterator_o2}
+
+
+
+
+Definition at line 317 of file TCLHash\-Table\-Iterator.h.
+
+Referenced by CTCLHash\-Table\-Iterator$<$ T $>$::CTCLHash\-Table\-Iterator(), CTCLHash\-Table\-Iterator$<$ T $>$::get\-Hash\-Table(), CTCLHash\-Table\-Iterator$<$ T $>$::operator=(), CTCLHash\-Table\-Iterator$<$ T $>$::operator==(), and CTCLHash\-Table\-Iterator$<$ T $>$::set\-Hash\-Table().
+
+The documentation for this class was generated from the following file:\begin{CompactItemize}
+\item 
+{\bf TCLHash\-Table\-Iterator.h}\end{CompactItemize}

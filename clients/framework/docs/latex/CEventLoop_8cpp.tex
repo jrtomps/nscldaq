@@ -1,0 +1,32 @@
+\section{CEvent\-Loop.cpp File Reference}
+\label{CEventLoop_8cpp}\index{CEventLoop.cpp@{CEvent\-Loop.cpp}}
+{\tt \#include \char`\"{}CEvent\-Loop.h\char`\"{}}\par
+{\tt \#include \char`\"{}CDuplicate\-Singleton.h\char`\"{}}\par
+{\tt \#include \char`\"{}CNo\-Such\-Object\-Exception.h\char`\"{}}\par
+\subsection*{Variables}
+\begin{CompactItemize}
+\item 
+const char $\ast$ {\bf Copyright} = \char`\"{}(C) Copyright Michigan State University 2002, All rights reserved\char`\"{}
+\end{CompactItemize}
+
+
+\subsection{Detailed Description}
+
+
+$\backslash$class {\bf CEvent\-Loop} {\rm (p.\,\pageref{classCEventLoop})} abstract  Encapsulates within a thread an application library which  runs it's own event loop. Examples are Xt and Tcl/Tk. These systems include their own mechanisms for detecting and dispatching events to application and framework specific code.
+
+Attempting to instantiate more than one instance of an event  loop derived object results in a CDuplicate\-Singelton exception. Event loop derived processes implement operator() to  initiate an event loop how they are used depends on the iindividual framework. Each of these event loops is supposed to ensure that event dispatching to application level code is synchronized through the application's mutex. It is legal to synchronize all such events or an \char`\"{}appropriate subset\char`\"{}.
+
+
+
+Definition in file {\bf CEvent\-Loop.cpp}.
+
+\subsection{Variable Documentation}
+\index{CEventLoop.cpp@{CEvent\-Loop.cpp}!Copyright@{Copyright}}
+\index{Copyright@{Copyright}!CEventLoop.cpp@{CEvent\-Loop.cpp}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}const char$\ast$ Copyright = \char`\"{}(C) Copyright Michigan State University 2002, All rights reserved\char`\"{}\hspace{0.3cm}{\tt  [static]}}\label{CEventLoop_8cpp_a0}
+
+
+
+
+Definition at line 278 of file CEvent\-Loop.cpp.

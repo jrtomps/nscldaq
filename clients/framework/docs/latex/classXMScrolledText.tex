@@ -1,0 +1,131 @@
+\section{XMScrolled\-Text  Class Reference}
+\label{classXMScrolledText}\index{XMScrolledText@{XMScrolled\-Text}}
+{\tt \#include $<$XMText.h$>$}
+
+Inheritance diagram for XMScrolled\-Text::\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[height=4cm]{classXMScrolledText}
+\end{center}
+\end{figure}
+\subsection*{Public Methods}
+\begin{CompactItemize}
+\item 
+{\bf XMScrolled\-Text} (char $\ast$n, {\bf XMWidget} \&parent, int rows=20, int columns=40, Arg\-List args=NULL, Cardinal arg\_\-count=0)
+\item 
+{\bf XMScrolled\-Text} (char $\ast$n, Widget parent, int rows=20, int columns=40, Arg\-List args=NULL, Cardinal arg\_\-count=0)
+\item 
+void {\bf Set\-Max\-Length} (int maxlen)
+\item 
+void {\bf Clear\-Text} ()
+\item 
+void {\bf Add\-Text} (char $\ast$string)
+\item 
+Widget {\bf Scroller} ()
+\end{CompactItemize}
+\subsection*{Protected Attributes}
+\begin{CompactItemize}
+\item 
+int {\bf text\_\-length}
+\item 
+int {\bf max\_\-text\_\-length}
+\item 
+Widget {\bf scroller}
+\end{CompactItemize}
+
+
+\subsection{Constructor \& Destructor Documentation}
+\index{XMScrolledText@{XMScrolled\-Text}!XMScrolledText@{XMScrolledText}}
+\index{XMScrolledText@{XMScrolledText}!XMScrolledText@{XMScrolled\-Text}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}XMScrolled\-Text::XMScrolled\-Text (char $\ast$ {\em n}, {\bf XMWidget} \& {\em parent}, int {\em rows} = 20, int {\em columns} = 40, Arg\-List {\em args} = NULL, Cardinal {\em arg\_\-count} = 0)\hspace{0.3cm}{\tt  [inline]}}\label{classXMScrolledText_a0}
+
+
+
+
+Definition at line 404 of file XMText.h.
+
+References XMWidget::getid(), XMWidget::id, max\_\-text\_\-length, scroller, XMText::Set\-Columns(), XMText::Set\-Rows(), and text\_\-length.\index{XMScrolledText@{XMScrolled\-Text}!XMScrolledText@{XMScrolledText}}
+\index{XMScrolledText@{XMScrolledText}!XMScrolledText@{XMScrolled\-Text}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}XMScrolled\-Text::XMScrolled\-Text (char $\ast$ {\em n}, Widget {\em parent}, int {\em rows} = 20, int {\em columns} = 40, Arg\-List {\em args} = NULL, Cardinal {\em arg\_\-count} = 0)\hspace{0.3cm}{\tt  [inline]}}\label{classXMScrolledText_a1}
+
+
+
+
+Definition at line 415 of file XMText.h.
+
+References XMWidget::id, max\_\-text\_\-length, scroller, XMText::Set\-Columns(), XMText::Set\-Rows(), and text\_\-length.
+
+\subsection{Member Function Documentation}
+\index{XMScrolledText@{XMScrolled\-Text}!AddText@{AddText}}
+\index{AddText@{AddText}!XMScrolledText@{XMScrolled\-Text}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}void XMScrolled\-Text::Add\-Text (char $\ast$ {\em string})\hspace{0.3cm}{\tt  [inline]}}\label{classXMScrolledText_a4}
+
+
+
+
+Definition at line 434 of file XMText.h.
+
+References XMWidget::id, max\_\-text\_\-length, and text\_\-length.\index{XMScrolledText@{XMScrolled\-Text}!ClearText@{ClearText}}
+\index{ClearText@{ClearText}!XMScrolledText@{XMScrolled\-Text}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}void XMScrolled\-Text::Clear\-Text ()\hspace{0.3cm}{\tt  [inline]}}\label{classXMScrolledText_a3}
+
+
+
+
+Definition at line 430 of file XMText.h.
+
+References XMWidget::id, and text\_\-length.\index{XMScrolledText@{XMScrolled\-Text}!Scroller@{Scroller}}
+\index{Scroller@{Scroller}!XMScrolledText@{XMScrolled\-Text}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}Widget XMScrolled\-Text::Scroller ()\hspace{0.3cm}{\tt  [inline]}}\label{classXMScrolledText_a5}
+
+
+
+
+Definition at line 447 of file XMText.h.
+
+References scroller.\index{XMScrolledText@{XMScrolled\-Text}!SetMaxLength@{SetMaxLength}}
+\index{SetMaxLength@{SetMaxLength}!XMScrolledText@{XMScrolled\-Text}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}void XMScrolled\-Text::Set\-Max\-Length (int {\em maxlen})\hspace{0.3cm}{\tt  [inline]}}\label{classXMScrolledText_a2}
+
+
+
+
+Reimplemented from {\bf XMText} {\rm (p.\,\pageref{classXMText_a6})}.
+
+Definition at line 429 of file XMText.h.
+
+References max\_\-text\_\-length.
+
+\subsection{Member Data Documentation}
+\index{XMScrolledText@{XMScrolled\-Text}!max_text_length@{max\_\-text\_\-length}}
+\index{max_text_length@{max\_\-text\_\-length}!XMScrolledText@{XMScrolled\-Text}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}int XMScrolled\-Text::max\_\-text\_\-length\hspace{0.3cm}{\tt  [protected]}}\label{classXMScrolledText_n1}
+
+
+
+
+Definition at line 398 of file XMText.h.
+
+Referenced by Add\-Text(), Set\-Max\-Length(), and XMScrolled\-Text().\index{XMScrolledText@{XMScrolled\-Text}!scroller@{scroller}}
+\index{scroller@{scroller}!XMScrolledText@{XMScrolled\-Text}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}Widget XMScrolled\-Text::scroller\hspace{0.3cm}{\tt  [protected]}}\label{classXMScrolledText_n2}
+
+
+
+
+Definition at line 399 of file XMText.h.
+
+Referenced by Scroller(), and XMScrolled\-Text().\index{XMScrolledText@{XMScrolled\-Text}!text_length@{text\_\-length}}
+\index{text_length@{text\_\-length}!XMScrolledText@{XMScrolled\-Text}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}int XMScrolled\-Text::text\_\-length\hspace{0.3cm}{\tt  [protected]}}\label{classXMScrolledText_n0}
+
+
+
+
+Definition at line 397 of file XMText.h.
+
+Referenced by Add\-Text(), Clear\-Text(), and XMScrolled\-Text().
+
+The documentation for this class was generated from the following file:\begin{CompactItemize}
+\item 
+{\bf XMText.h}\end{CompactItemize}

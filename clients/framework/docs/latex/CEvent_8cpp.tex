@@ -1,0 +1,61 @@
+\section{CEvent.cpp File Reference}
+\label{CEvent_8cpp}\index{CEvent.cpp@{CEvent.cpp}}
+{\tt \#include \char`\"{}CEvent.h\char`\"{}}\par
+{\tt \#include $<$CEvent\-Monitor.h$>$}\par
+{\tt \#include $<$CApplication\-Registry.h$>$}\par
+{\tt \#include $<$CApplication\-Serializer.h$>$}\par
+{\tt \#include $<$CReactor.h$>$}\par
+{\tt \#include $<$spectrodaq.h$>$}\par
+{\tt \#include $<$unistd.h$>$}\par
+\subsection*{Compounds}
+\begin{CompactItemize}
+\item 
+class {\bf Start\-Event\-Thread}
+\end{CompactItemize}
+\subsection*{Variables}
+\begin{CompactItemize}
+\item 
+const char $\ast$ {\bf Copyright} = \char`\"{}(C) Copyright Michigan State University 2002, All rights reserved\char`\"{}
+\item 
+const string {\bf Registry\-Name} = \char`\"{}Events\char`\"{}
+\item 
+const unsigned long {\bf Startup\-Delayu\-Sec} = 100000
+\end{CompactItemize}
+
+
+\subsection{Detailed Description}
+
+
+$\backslash$class {\bf CEvent} {\rm (p.\,\pageref{classCEvent})}  Encapsulates event handling. Events consist of an event monitor which is responsible for determining when an event fires and a reactor which provides application specific handling of the event.  When enabled, the event will schedule a thread m\_\-Event\-Thread to process the event. The event thread contains code to repeatedly calll the monitor's operator(), lock the global mutex and call the reactor's operator(). The reactors provided with  classes derived from this are generally standardized to invoke Subclass virtual function which are specific to the event being managed..
+
+
+
+Definition in file {\bf CEvent.cpp}.
+
+\subsection{Variable Documentation}
+\index{CEvent.cpp@{CEvent.cpp}!Copyright@{Copyright}}
+\index{Copyright@{Copyright}!CEvent.cpp@{CEvent.cpp}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}const char$\ast$ Copyright = \char`\"{}(C) Copyright Michigan State University 2002, All rights reserved\char`\"{}\hspace{0.3cm}{\tt  [static]}}\label{CEvent_8cpp_a0}
+
+
+
+
+Definition at line 278 of file CEvent.cpp.\index{CEvent.cpp@{CEvent.cpp}!RegistryName@{RegistryName}}
+\index{RegistryName@{RegistryName}!CEvent.cpp@{CEvent.cpp}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}const string Registry\-Name = \char`\"{}Events\char`\"{}\hspace{0.3cm}{\tt  [static]}}\label{CEvent_8cpp_a1}
+
+
+
+
+Definition at line 305 of file CEvent.cpp.
+
+Referenced by CEvent::CEvent().\index{CEvent.cpp@{CEvent.cpp}!StartupDelayuSec@{StartupDelayuSec}}
+\index{StartupDelayuSec@{StartupDelayuSec}!CEvent.cpp@{CEvent.cpp}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}const unsigned long Startup\-Delayu\-Sec = 100000\hspace{0.3cm}{\tt  [static]}}\label{CEvent_8cpp_a2}
+
+
+
+
+Definition at line 306 of file CEvent.cpp.
+
+Referenced by Start\-Event\-Thread::operator()().

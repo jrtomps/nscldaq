@@ -1,0 +1,264 @@
+\section{CTCPConnection\-Lost  Class Reference}
+\label{classCTCPConnectionLost}\index{CTCPConnectionLost@{CTCPConnection\-Lost}}
+{\tt \#include $<$CTCPConnection\-Lost.h$>$}
+
+Inheritance diagram for CTCPConnection\-Lost::\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[height=3cm]{classCTCPConnectionLost}
+\end{center}
+\end{figure}
+\subsection*{Public Methods}
+\begin{CompactItemize}
+\item 
+{\bf CTCPConnection\-Lost} ({\bf CSocket} $\ast$p\-Socket, const char $\ast$p\-Doing)
+\item 
+{\bf CTCPConnection\-Lost} (const CTCPConnection\-Lost \&rhs)
+\item 
+virtual {\bf $\sim$CTCPConnection\-Lost} ()
+\item 
+CTCPConnection\-Lost \& {\bf operator=} (const CTCPConnection\-Lost \&rhs)
+\item 
+int {\bf operator==} (const CTCPConnection\-Lost \&rhs)
+\item 
+string {\bf get\-Host} () const
+\item 
+string {\bf get\-Port} () const
+\item 
+virtual const char $\ast$ {\bf Reason\-Text} () const
+\end{CompactItemize}
+\subsection*{Protected Methods}
+\begin{CompactItemize}
+\item 
+void {\bf set\-Host} (const string \&r\-Host)
+\item 
+void {\bf set\-Port} (const string \&r\-Port)
+\item 
+void {\bf Host} ({\bf CSocket} $\ast$p\-Socket)
+\item 
+void {\bf Port} ({\bf CSocket} $\ast$p\-Socket)
+\end{CompactItemize}
+\subsection*{Private Attributes}
+\begin{CompactItemize}
+\item 
+string {\bf m\_\-Host}
+\item 
+string {\bf m\_\-Port}
+\item 
+string {\bf m\_\-Reason\-Text}
+\end{CompactItemize}
+
+
+\subsection{Detailed Description}
+Encapsulate the connection lost exception. This exception is thrown when a read is attempted on a busted socket. 
+
+
+
+Definition at line 306 of file CTCPConnection\-Lost.h.
+
+\subsection{Constructor \& Destructor Documentation}
+\index{CTCPConnectionLost@{CTCPConnection\-Lost}!CTCPConnectionLost@{CTCPConnectionLost}}
+\index{CTCPConnectionLost@{CTCPConnectionLost}!CTCPConnectionLost@{CTCPConnection\-Lost}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}CTCPConnection\-Lost::CTCPConnection\-Lost ({\bf CSocket} $\ast$ {\em p\-Socket}, const char $\ast$ {\em p\-Doing})}\label{classCTCPConnectionLost_a0}
+
+
+'Normal constructor' This is called prior to throwing a connection lost exception. The host and port information are gotten from the  socket. The reason the connection was lost is currently in errno.\begin{Desc}
+\item[Parameters: ]\par
+\begin{description}
+\item[{\em 
+p\-Socket}]- the socket which just lost connection. \end{description}
+\end{Desc}
+
+
+Definition at line 308 of file CTCPConnection\-Lost.cpp.
+
+References Host(), and Port().\index{CTCPConnectionLost@{CTCPConnection\-Lost}!CTCPConnectionLost@{CTCPConnectionLost}}
+\index{CTCPConnectionLost@{CTCPConnectionLost}!CTCPConnectionLost@{CTCPConnection\-Lost}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}CTCPConnection\-Lost::CTCPConnection\-Lost (const CTCPConnection\-Lost \& {\em rhs})}\label{classCTCPConnectionLost_a1}
+
+
+Copy constructor.. used by the compiler to generate termporary variables and of course, by throw to create a scope-safe copy of the exception being thrown. \begin{Desc}
+\item[Parameters: ]\par
+\begin{description}
+\item[{\em 
+rhs}]- the reference object being copied. \end{description}
+\end{Desc}
+
+
+Definition at line 319 of file CTCPConnection\-Lost.cpp.\index{CTCPConnectionLost@{CTCPConnection\-Lost}!~CTCPConnectionLost@{$\sim$CTCPConnectionLost}}
+\index{~CTCPConnectionLost@{$\sim$CTCPConnectionLost}!CTCPConnectionLost@{CTCPConnection\-Lost}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}virtual CTCPConnection\-Lost::$\sim$CTCPConnection\-Lost ()\hspace{0.3cm}{\tt  [inline, virtual]}}\label{classCTCPConnectionLost_a2}
+
+
+
+
+Definition at line 320 of file CTCPConnection\-Lost.h.
+
+\subsection{Member Function Documentation}
+\index{CTCPConnectionLost@{CTCPConnection\-Lost}!getHost@{getHost}}
+\index{getHost@{getHost}!CTCPConnectionLost@{CTCPConnection\-Lost}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}string CTCPConnection\-Lost::get\-Host () const\hspace{0.3cm}{\tt  [inline]}}\label{classCTCPConnectionLost_a5}
+
+
+
+
+Definition at line 329 of file CTCPConnection\-Lost.h.
+
+References m\_\-Host.\index{CTCPConnectionLost@{CTCPConnection\-Lost}!getPort@{getPort}}
+\index{getPort@{getPort}!CTCPConnectionLost@{CTCPConnection\-Lost}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}string CTCPConnection\-Lost::get\-Port () const\hspace{0.3cm}{\tt  [inline]}}\label{classCTCPConnectionLost_a6}
+
+
+
+
+Definition at line 331 of file CTCPConnection\-Lost.h.
+
+References m\_\-Port.\index{CTCPConnectionLost@{CTCPConnection\-Lost}!Host@{Host}}
+\index{Host@{Host}!CTCPConnectionLost@{CTCPConnection\-Lost}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}void CTCPConnection\-Lost::Host ({\bf CSocket} $\ast$ {\em p\-Socket})\hspace{0.3cm}{\tt  [protected]}}\label{classCTCPConnectionLost_b2}
+
+
+Extract the peer's hostname from the socket. This is done as follows:\begin{CompactItemize}
+\item 
+The fd of the socket is gotten.\item 
+getpeername(2) is called to get the peer address.\item 
+gethostbyaddr(3) is called to translate this (if possible) to a hostname.\item 
+If gethostbyaddr(3) failed to return a useful hostname, inet\_\-addr(3) is used to translate the peer address into a dotted ip string.\end{CompactItemize}
+\begin{Desc}
+\item[Parameters: ]\par
+\begin{description}
+\item[{\em 
+p\-Socket}]- Pointer to the socket for which this information is to be retrieved.\end{description}
+\end{Desc}
+NOTE: We assume gethostbyaddr(3) and inet\_\-addr(3) are not thread-safe. 
+
+Definition at line 397 of file CTCPConnection\-Lost.cpp.
+
+References CApplication\-Serializer::get\-Instance(), CSocket::get\-Socket\-Fd(), CThread\-Recursive\-Mutex::Lock(), m\_\-Host, and CThread\-Recursive\-Mutex::Un\-Lock().
+
+Referenced by CTCPConnection\-Lost().\index{CTCPConnectionLost@{CTCPConnection\-Lost}!operator=@{operator=}}
+\index{operator=@{operator=}!CTCPConnectionLost@{CTCPConnection\-Lost}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}CTCPConnection\-Lost \& CTCPConnection\-Lost::operator= (const CTCPConnection\-Lost \& {\em rhs})}\label{classCTCPConnectionLost_a3}
+
+
+Assignment operator. Only slightly different than copy construction:\begin{CompactItemize}
+\item 
+Protect against self assign.\item 
+Return $\ast$this.\item 
+this is already fully constructed.\end{CompactItemize}
+\begin{Desc}
+\item[Parameters: ]\par
+\begin{description}
+\item[{\em 
+rhs}]- Reference to rhs of assignment operation. \end{description}
+\end{Desc}
+
+
+Definition at line 334 of file CTCPConnection\-Lost.cpp.
+
+References m\_\-Host, m\_\-Port, and CErrno\-Exception::operator=().\index{CTCPConnectionLost@{CTCPConnection\-Lost}!operator==@{operator==}}
+\index{operator==@{operator==}!CTCPConnectionLost@{CTCPConnection\-Lost}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}int CTCPConnection\-Lost::operator== (const CTCPConnection\-Lost \& {\em rhs})}\label{classCTCPConnectionLost_a4}
+
+
+Equality comparison.\begin{Desc}
+\item[Parameters: ]\par
+\begin{description}
+\item[{\em 
+rhs}]The right hand side of the ==. \end{description}
+\end{Desc}
+
+
+Definition at line 349 of file CTCPConnection\-Lost.cpp.
+
+References m\_\-Host, m\_\-Port, and CErrno\-Exception::operator==().\index{CTCPConnectionLost@{CTCPConnection\-Lost}!Port@{Port}}
+\index{Port@{Port}!CTCPConnectionLost@{CTCPConnection\-Lost}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}void CTCPConnection\-Lost::Port ({\bf CSocket} $\ast$ {\em p\-Socket})\hspace{0.3cm}{\tt  [protected]}}\label{classCTCPConnectionLost_b3}
+
+
+For a given {\bf CSocket} {\rm (p.\,\pageref{classCSocket})}$\ast$ fills in m\_\-Port. This is done by:\begin{CompactItemize}
+\item 
+Retreiving the socket fd.\item 
+Asking getpeername(2) who is attached to the socket.\item 
+Asking getservbyport(3) to return the service name from the port.\item 
+If getservbyport(3) failed, the numeric service name is encoded.\item 
+If getpeername(2) failed, the port -unavailable- is returned.\end{CompactItemize}
+\begin{Desc}
+\item[Parameters: ]\par
+\begin{description}
+\item[{\em 
+p\-Socket}]- Pointer to the soket about which we're asking.\end{description}
+\end{Desc}
+NOTE: We assume that getservbyport(3) is not thread safe. 
+
+Definition at line 437 of file CTCPConnection\-Lost.cpp.
+
+References CApplication\-Serializer::get\-Instance(), CSocket::get\-Socket\-Fd(), CThread\-Recursive\-Mutex::Lock(), m\_\-Port, and CThread\-Recursive\-Mutex::Un\-Lock().
+
+Referenced by CTCPConnection\-Lost().\index{CTCPConnectionLost@{CTCPConnection\-Lost}!ReasonText@{ReasonText}}
+\index{ReasonText@{ReasonText}!CTCPConnectionLost@{CTCPConnection\-Lost}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}const char $\ast$ CTCPConnection\-Lost::Reason\-Text () const\hspace{0.3cm}{\tt  [virtual]}}\label{classCTCPConnectionLost_a7}
+
+
+Return the reason for the exception as a textual string of the form:
+
+Connection with host m\_\-Host at m\_\-Port was lost: {\bf CErrno\-Exception::Reason\-Text}() {\rm (p.\,\pageref{classCErrnoException_a7})} 
+
+Reimplemented from {\bf CErrno\-Exception} {\rm (p.\,\pageref{classCErrnoException_a7})}.
+
+Definition at line 367 of file CTCPConnection\-Lost.cpp.
+
+References m\_\-Host, m\_\-Port, m\_\-Reason\-Text, and CErrno\-Exception::Reason\-Text().\index{CTCPConnectionLost@{CTCPConnection\-Lost}!setHost@{setHost}}
+\index{setHost@{setHost}!CTCPConnectionLost@{CTCPConnection\-Lost}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}void CTCPConnection\-Lost::set\-Host (const string \& {\em r\-Host})\hspace{0.3cm}{\tt  [inline, protected]}}\label{classCTCPConnectionLost_b0}
+
+
+
+
+Definition at line 337 of file CTCPConnection\-Lost.h.
+
+References m\_\-Host.\index{CTCPConnectionLost@{CTCPConnection\-Lost}!setPort@{setPort}}
+\index{setPort@{setPort}!CTCPConnectionLost@{CTCPConnection\-Lost}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}void CTCPConnection\-Lost::set\-Port (const string \& {\em r\-Port})\hspace{0.3cm}{\tt  [inline, protected]}}\label{classCTCPConnectionLost_b1}
+
+
+
+
+Definition at line 340 of file CTCPConnection\-Lost.h.
+
+References m\_\-Port.
+
+\subsection{Member Data Documentation}
+\index{CTCPConnectionLost@{CTCPConnection\-Lost}!m_Host@{m\_\-Host}}
+\index{m_Host@{m\_\-Host}!CTCPConnectionLost@{CTCPConnection\-Lost}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}string CTCPConnection\-Lost::m\_\-Host\hspace{0.3cm}{\tt  [private]}}\label{classCTCPConnectionLost_o0}
+
+
+
+
+Definition at line 310 of file CTCPConnection\-Lost.h.
+
+Referenced by get\-Host(), Host(), operator=(), operator==(), Reason\-Text(), and set\-Host().\index{CTCPConnectionLost@{CTCPConnection\-Lost}!m_Port@{m\_\-Port}}
+\index{m_Port@{m\_\-Port}!CTCPConnectionLost@{CTCPConnection\-Lost}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}string CTCPConnection\-Lost::m\_\-Port\hspace{0.3cm}{\tt  [private]}}\label{classCTCPConnectionLost_o1}
+
+
+
+
+Definition at line 311 of file CTCPConnection\-Lost.h.
+
+Referenced by get\-Port(), operator=(), operator==(), Port(), Reason\-Text(), and set\-Port().\index{CTCPConnectionLost@{CTCPConnection\-Lost}!m_ReasonText@{m\_\-ReasonText}}
+\index{m_ReasonText@{m\_\-ReasonText}!CTCPConnectionLost@{CTCPConnection\-Lost}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}string CTCPConnection\-Lost::m\_\-Reason\-Text\hspace{0.3cm}{\tt  [private]}}\label{classCTCPConnectionLost_o2}
+
+
+
+
+Definition at line 313 of file CTCPConnection\-Lost.h.
+
+Referenced by Reason\-Text().
+
+The documentation for this class was generated from the following files:\begin{CompactItemize}
+\item 
+{\bf CTCPConnection\-Lost.h}\item 
+{\bf CTCPConnection\-Lost.cpp}\end{CompactItemize}

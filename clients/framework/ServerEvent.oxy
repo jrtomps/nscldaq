@@ -1,0 +1,43 @@
+/*!
+	\page ServerEvent Server accept events.
+
+ Before reading this page, be sure you are familiar with \link TCPIP TCP/IP 
+client server programming. \endlink  
+Server accept events allow a Spectrodaq application
+running under the framework to act as the listener part of a TCP/IP server.  
+
+To do this, the application writer must:
+- Subclass the class CServerConnectionEvent to provide application specific
+  functionality for connection events (override
+   \link CServerConnectionEvent::OnConnection OnConnecition). \endlink
+- Create an instance of this class in your application and configure it with
+  the service on which to listen.  Note that the service can either be a
+  textual service name, as it appears in the /etc/services file, or it can
+  be a port number.
+- Enable the event.
+
+When a connection to the service is requested by a client, the framework:
+-  Creates a CSocket which represents the connection along which client and
+   server communicate.  This CSocket object is dynamically created and must be
+   deleted when the connection to the client is shutdown.
+-  Calls \link CServerConnectionEvent::OnConnection OnConnection \endlink.
+   Normally the application will do the following:
+   -# Optionally validate the connection request, shutting down and destroying
+      the connection socket if necessary.
+   -# Create a CServerInstance derived object to carry out the dialog between
+      the client and server for that client (see \link SocketEvents Server
+      Instance Events \endlink).
+
+In the example below, the program waits for connection requests on port 2048.
+When a connection arrives, it is honored by creating an echo server.  The
+echo server simply echoes back lines to the client until the client breaks the
+connection.  Deletion of exiting server instance threads is handled as follows:
+-  A timer event derived object called GrimReaper is instantiated and started.
+-  GrimReaper maintains an interlocked queue of CEvent object pointers
+   for threads about to be deleted.
+-  When GrimReaper executes, it examines entries in the queue, ensures that
+   they are indeed inactive, and if so, deletes them.
+
+\include server.cpp
+
+*/

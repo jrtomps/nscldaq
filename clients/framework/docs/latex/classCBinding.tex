@@ -1,0 +1,141 @@
+\section{CBinding$<$ T $>$  Class Template Reference}
+\label{classCBinding}\index{CBinding@{CBinding}}
+{\tt \#include $<$CBinding.h$>$}
+
+Inheritance diagram for CBinding$<$ T $>$::\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[height=3cm]{classCBinding}
+\end{center}
+\end{figure}
+\subsection*{Public Methods}
+\begin{CompactItemize}
+\item 
+virtual void {\bf Init\-Bindings} ({\bf CTCLInterpreter} \&r\-Interp)=0
+\item 
+virtual void {\bf Commit} ({\bf CTCLInterpreter} \&r\-Interp)=0
+\item 
+virtual void {\bf Dump} (int fd)=0
+\item 
+int {\bf Variable\-Type} (T item)
+\item 
+string {\bf Item\-To\-String} (T Item)
+\end{CompactItemize}
+
+
+\subsection{Detailed Description}
+\subsubsection*{template$<$class T$>$ class CBinding$<$ T $>$}
+
+This is an abstract base class for the Tcl configuration manager's bindings subsystem. interfaces for the functions required of all bindings objects are defined as pure virtual member functions. 
+
+
+
+Definition at line 322 of file CBinding.h.
+
+\subsection{Member Function Documentation}
+\index{CBinding@{CBinding}!Commit@{Commit}}
+\index{Commit@{Commit}!CBinding@{CBinding}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}template$<$class T$>$ virtual void CBinding$<$ T $>$::Commit ({\bf CTCLInterpreter} \& {\em r\-Interp})\hspace{0.3cm}{\tt  [pure virtual]}}\label{classCBinding_a1}
+
+
+This function is called just after a configuration script or set of  configuration scripts have been read to perform any actions required to commit the read in Tcl values to the variables. For example, an associative array bindings might need to fetch the individual values from Tcl array elements. \begin{Desc}
+\item[Parameters: ]\par
+\begin{description}
+\item[{\em 
+r\-Interp}]- The interpreter in which the config script was read. \end{description}
+\end{Desc}
+
+
+Implements {\bf CType\-Free\-Binding} {\rm (p.\,\pageref{classCTypeFreeBinding_a1})}.
+
+Implemented in {\bf CArray\-Binding$<$ T $>$} {\rm (p.\,\pageref{classCArrayBinding_a11})}, {\bf CAssoc\-Array\-Binding$<$ T $>$} {\rm (p.\,\pageref{classCAssocArrayBinding_a13})}, and {\bf CVariable\-Binding$<$ T $>$} {\rm (p.\,\pageref{classCVariableBinding_a14})}.\index{CBinding@{CBinding}!Dump@{Dump}}
+\index{Dump@{Dump}!CBinding@{CBinding}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}template$<$class T$>$ virtual void CBinding$<$ T $>$::Dump (int {\em fd})\hspace{0.3cm}{\tt  [pure virtual]}}\label{classCBinding_a2}
+
+
+This function is called just prior to deleting the interpreter. Any cleanup actions required by the binding should be done at this point. For example, if Init mapped a C variable to a TCL variable, that mapping should be broken. \begin{Desc}
+\item[Parameters: ]\par
+\begin{description}
+\item[{\em 
+r\-Interp}]- The interpreter about to be deleted. virtual void {\bf Shutdown\-Bindings}(CTCLInterpreter\& r\-Interp) {\rm (p.\,\pageref{classCTypeFreeBinding_a2})}= 0; /$\ast$! This function is called to write the set of Tcl commands required to duplicate the current state. Note that this may not be identical to the set of commands which produced the configuration. \end{description}
+\end{Desc}
+
+
+Implements {\bf CType\-Free\-Binding} {\rm (p.\,\pageref{classCTypeFreeBinding_a3})}.
+
+Implemented in {\bf CArray\-Binding$<$ T $>$} {\rm (p.\,\pageref{classCArrayBinding_a13})}, {\bf CAssoc\-Array\-Binding$<$ T $>$} {\rm (p.\,\pageref{classCAssocArrayBinding_a15})}, and {\bf CVariable\-Binding$<$ T $>$} {\rm (p.\,\pageref{classCVariableBinding_a16})}.\index{CBinding@{CBinding}!InitBindings@{InitBindings}}
+\index{InitBindings@{InitBindings}!CBinding@{CBinding}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}template$<$class T$>$ virtual void CBinding$<$ T $>$::Init\-Bindings ({\bf CTCLInterpreter} \& {\em r\-Interp})\hspace{0.3cm}{\tt  [pure virtual]}}\label{classCBinding_a0}
+
+
+This function will be called just prior to reading in a configuration file. The Tcl Interpreter has been set up and initialized. The Init function can do any preparation required by the binding prior to readin (e.g. a simple binding $>$might$<$ bind the contained variable to a Tcl variable \begin{Desc}
+\item[Parameters: ]\par
+\begin{description}
+\item[{\em 
+r\-Interp}]- The interpreter on which the config script will be read. \end{description}
+\end{Desc}
+
+
+Implements {\bf CType\-Free\-Binding} {\rm (p.\,\pageref{classCTypeFreeBinding_a0})}.
+
+Implemented in {\bf CArray\-Binding$<$ T $>$} {\rm (p.\,\pageref{classCArrayBinding_a10})}, {\bf CAssoc\-Array\-Binding$<$ T $>$} {\rm (p.\,\pageref{classCAssocArrayBinding_a12})}, and {\bf CVariable\-Binding$<$ T $>$} {\rm (p.\,\pageref{classCVariableBinding_a13})}.\index{CBinding@{CBinding}!ItemToString@{ItemToString}}
+\index{ItemToString@{ItemToString}!CBinding@{CBinding}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}template$<$class T$>$ string CBinding$<$ T $>$::Item\-To\-String (T {\em Item})\hspace{0.3cm}{\tt  [inline]}}\label{classCBinding_a4}
+
+
+Item to string conversion: Converts an item of type T to  its string representation.  \begin{Desc}
+\item[Parameters: ]\par
+\begin{description}
+\item[{\em 
+item}]- item to convert. \end{description}
+\end{Desc}
+\begin{Desc}
+\item[Exceptions: ]\par
+\begin{description}
+\item[{\em 
+{\bf CRange\-Error} {\rm (p.\,\pageref{classCRangeError})}}] - no type match \end{description}
+\end{Desc}
+\begin{Desc}
+\item[{\bf Bug: }]\par
+ Should invent a bad type exception and throw it. \end{Desc}
+ 
+
+Definition at line 390 of file CBinding.h.
+
+Referenced by CVariable\-Binding$<$ T $>$::Dump(), CAssoc\-Array\-Binding$<$ T $>$::Dump(), and CArray\-Binding$<$ T $>$::Dump().\index{CBinding@{CBinding}!VariableType@{VariableType}}
+\index{VariableType@{VariableType}!CBinding@{CBinding}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}template$<$class T$>$ int CBinding$<$ T $>$::Variable\-Type (T {\em item})\hspace{0.3cm}{\tt  [inline]}}\label{classCBinding_a3}
+
+
+Returns the TCL code for the type of variable being bound to: This can be one of:\begin{CompactItemize}
+\item 
+TCL\_\-LINK\_\-INT - Variable is an integer.\item 
+TCL\_\-LINK\_\-DOUBLE - Variable is a double precision.\item 
+TCL\_\-LINK\_\-BOOLEAN - Variable is a boolean.\item 
+TCL\_\-LINK\_\-STRING - Variable is a char$\ast$.\end{CompactItemize}
+\begin{Desc}
+\item[Parameters: ]\par
+\begin{description}
+\item[{\em 
+item}]- A variable of type T.\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Exceptions: ]\par
+\begin{description}
+\item[{\em 
+{\bf CRange\-Error} {\rm (p.\,\pageref{classCRangeError})}}] - no neat match.\end{description}
+\end{Desc}
+
+
+\begin{Desc}
+\item[{\bf Bug: }]\par
+Really should invent a bad type exception and throw it instead\end{Desc}
+ 
+
+Definition at line 372 of file CBinding.h.
+
+Referenced by CAssoc\-Array\-Binding$<$ T $>$::CAssoc\-Array\-Binding().
+
+The documentation for this class was generated from the following file:\begin{CompactItemize}
+\item 
+{\bf CBinding.h}\end{CompactItemize}

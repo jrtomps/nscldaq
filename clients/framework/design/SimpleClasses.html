@@ -1,0 +1,165 @@
+
+
+<HTML>
+<HEAD>
+<TITLE>Class details</TITLE>
+</HEAD>
+<BODY>
+
+<H1>Event Framework documentation: Simple Classes:</H1>
+
+<p><map name="FPMap0">
+<area href="#CTCLProcessor" shape="rect" coords="544, 32, 646, 122">
+<area href="#CDAQTCLProcessor" shape="rect" coords="519, 245, 661, 325">
+<area href="#CThreadRecursiveMutex" shape="rect" coords="37, 254, 209, 359"></map><img border="0" src="images/Simple1.gif" usemap="#FPMap0" width="958" height="570"></p>
+
+<H1><A NAME = "CTCLProcessor">CTCLProcessor</A></H1>
+
+<P> SuperClasses: </P>
+<P> One to One associations: 
+</P>
+<P> One to Many associations:  
+</P>
+<P> Aggregate classes (1:1)  : 
+</P>
+<P> Aggregate classes (1:*)  : 
+
+</P>
+
+<H2>Class Attributes</H2>
+
+<H2>Operations on  CTCLProcessor</H2>
+
+<HR>
+
+<H1><A NAME = "CDAQTCLProcessor">CDAQTCLProcessor</A></H1>
+
+<P> SuperClasses: CTCLProcessor, 
+  CTCLProcessor </P>
+<P> One to One associations: 
+</P>
+<P> One to Many associations:  
+</P>
+<P> Aggregate classes (1:1)  : 
+</P>
+<P> Aggregate classes (1:*)  : 
+
+</P>
+
+<H2>Class Attributes</H2>
+
+<H2>Operations on  CDAQTCLProcessor</H2>
+
+<H3>virtual   Register</H3>
+<P>Visibility: public</p>
+<P>Parameters: </P>
+<P>Return Type: void</p>
+<P>Classification: Tcl Interface.</p>
+<P>Registers the processor on the current interpreter.</P>
+<H3> static  EvalRelay</H3>
+<P>Visibility: public</p>
+<P>Parameters: ClientData pData, Tcl_Interp* pInterp, int Argc, char** Argv</P>
+<P>Return Type: int</p>
+<P>Classification: </p>
+<P>Locks the application mutex, calls
+operator() and the unlocks the resource.</P>
+<H3> static  DeleteRelay</H3>
+<P>Visibility: public</p>
+<P>Parameters: ClientData pData</P>
+<P>Return Type: void</p>
+<P>Classification: </p>
+<P>Locks the application mutex, call's
+the object's OnDelete member function
+(the object is pointed to by the client data
+parameter), and unlocks the mutex.</P>
+
+<HR>
+
+<H1><A NAME = "CThreadRecursiveMutex">CThreadRecursiveMutex</A></H1>
+
+<P> SuperClasses: </P>
+<P> One to One associations: 
+</P>
+<P> One to Many associations:  
+</P>
+<P> Aggregate classes (1:1)  : 
+</P>
+<P> Aggregate classes (1:*)  : 
+
+</P>
+
+<H2>Class Attributes</H2>
+
+<H3>m_tOwningThread</H3>
+<P>Visibility: private</P>
+<P>Type: daqthread_t</p>
+<P>
+This value is only valid if m_LockLevel > 0.
+</P>
+<H3>m_nLockLevel</H3>
+<P>Visibility: private</P>
+<P>Type: unsigned</p>
+<P>
+Each time a thread locks a mutex, the lock level increments actual final unlocking 
+only occurs when the m_nLockLevel goes to zero.
+</P>
+<H3>m_MonitorMutex</H3>
+<P>Visibility: private</P>
+<P>Type: DAQThreadMutex</p>
+<P>
+member is used to force otherwise non-atomic members to execute atomically
+with respect to the mutex represented by this object.
+</P>
+
+<H2>Operations on  CThreadRecursiveMutex</H2>
+
+<H3>virtual   Lock</H3>
+<P>Visibility: public</p>
+<P>Parameters: </P>
+<P>Return Type: int</p>
+<P>Classification: Override.</p>
+<P>Locks the mutex.  Returns zero on success,
+otherwise, errno has the reason for the failure.</P>
+<H3>virtual   UnLock</H3>
+<P>Visibility: public</p>
+<P>Parameters: </P>
+<P>Return Type: int</p>
+<P>Classification: Override</p>
+<P>Unlocks a locked mutex.  If the mutex is already locked by us,
+the lock level is decremented.  The mutex is not actually released
+until the lock level goes to zero.  If we don't own the mutex, and
+error results.
+Returns zero on success,
+otherwise, errno has the reason for the failure.</P>
+<H3>virtual   TryLock</H3>
+<P>Visibility: public</p>
+<P>Parameters: </P>
+<P>Return Type: int</p>
+<P>Classification: Override</p>
+<P>Tries to lock the mutex. 
+ If the mutex is owned by the running thread
+the lock succeeds and the lock level is incremented.
+If the lock level is zero, then trylock is done on the
+base class and the result is returned.  On success, the
+lock level is incremented.
+Returns 0 on success, otherwise, errno has reason for
+failure.</P>
+<H3>virtual   isLocked</H3>
+<P>Visibility: public</p>
+<P>Parameters: </P>
+<P>Return Type: int</p>
+<P>Classification: Override.</p>
+<P>Returns non zero if someone, anyone (even self()) owns the mutex.
+Note that the mutex is considered owned if the lock level is 
+nonzero.  This should even be faster than the base class 
+implementation.</P>
+
+<HR>
+
+<p>Last Updated: <!--webbot bot="Timestamp" startspan S-Type="EDITED"
+S-Format="%A, %B %d, %Y" -->Tuesday, August 07, 2001<!--webbot bot="Timestamp"
+I-CheckSum="50518" endspan -->
+&nbsp;&nbsp; <a href="mailto:fox@nscl.msu.edu">Ron Fox</a></p>
+
+</BODY>
+</HTML>

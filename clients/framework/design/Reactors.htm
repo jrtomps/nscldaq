@@ -1,0 +1,197 @@
+<html>
+
+<head>
+<meta http-equiv="Content-Language" content="en-us">
+<meta http-equiv="Content-Type" content="text/html; charset=windows-1252">
+<meta name="GENERATOR" content="Microsoft FrontPage 4.0">
+<meta name="ProgId" content="FrontPage.Editor.Document">
+<title>Event Reactors</title>
+</head>
+
+<body>
+
+<h1>Event Reactors</h1>
+<p><map name="FPMap0">
+<area href="#CReactor" shape="rect" coords="262, 36, 414, 120">
+<area href="#CLocationMonitor" shape="rect" coords="38, 335, 187, 419">
+<area href="#CFdReactor" shape="rect" coords="303, 339, 456, 426">
+<area href="#CBufferReactor" shape="rect" coords="545, 332, 687, 427"></map><img border="0" src="images/Reacto3.gif" usemap="#FPMap0" width="815" height="450"></p>
+
+<H1><A NAME = "CReactor">CReactor</A></H1>
+
+<P> SuperClasses: CRegisteredObject </P>
+<P> One to One associations: 
+</P>
+<P> One to Many associations:  
+</P>
+<P> Aggregate classes (1:1)  : 
+</P>
+<P> Aggregate classes (1:*)  : 
+
+</P>
+
+<H2>Class Attributes</H2>
+
+<H2>Operations on  CReactor</H2>
+
+<H3>virtual   operator()</H3>
+<P>Visibility: public</p>
+<P>Parameters: CEventMonitor& rMonitor, CEventMonitor::result Reason</P>
+<P>Return Type: void</p>
+<P>Classification: Interface Definition</p>
+<P>This method is called in response ot an event
+from an event monitor on which this reactor
+has been established.  The Reactor provides 
+application specific procesing of the event.</P>
+<H3>virtual   isMonitorCompatible</H3>
+<P>Visibility: public</p>
+<P>Parameters: CEventMonirtor& rMonitor</P>
+<P>Return Type: BOOL</p>
+<P>Classification: interface.</p>
+<P>Determines if the monitor passed in
+is compatible with us.   Base class
+default functionality is to return TRUE.</P>
+
+<HR>
+
+<H1><A NAME = "CLocationMonitor">CLocationMonitor</A></H1>
+
+<P> SuperClasses: CEventMonitor </P>
+<P> One to One associations: *CPointerPredicate : m_Predicate 
+</P>
+<P> One to Many associations:  
+</P>
+<P> Aggregate classes (1:1)  : 
+</P>
+<P> Aggregate classes (1:*)  : 
+
+</P>
+
+<H2>Class Attributes</H2>
+
+<H3>m_pTLocation</H3>
+<P>Visibility: private</P>
+<P>Type: volatile T*</p>
+<P>
+Points to the location monitored. This location is
+assumed to be changing asynchronously to the 
+execution of the thread which monitors the location.
+Note that the pointer can point to any type which can be
+accepted by the predicate.   For the predefined predicates:
+CChangedPredicate:        Requiires operator== be implemented fo rT
+                                                        CopyConstruction
+CMaksedValuePredicate Requires:   operator&,
+                                                          operator==
+                                                          Copy construction:
+CisValuePredicate Require:     opreator==
+                                                CopyConstruction
+</P>
+
+<H2>Operations on  CLocationMonitor</H2>
+
+<H3>  ChangePredicate</H3>
+<P>Visibility: public</p>
+<P>Parameters: LocationMonPred& newloc</P>
+<P>Return Type: void</p>
+<P>Classification: Mutator.</p>
+<P>Associates a new predicate with the 
+location monitor.</P>
+<H3>virtual   operator()</H3>
+<P>Visibility: public</p>
+<P>Parameters: </P>
+<P>Return Type: CEventMonitor::results</p>
+<P>Classification: behavior override.</p>
+<P>Reads the current value of the location and passes it to the predicate.
+Returns:
+1. Occured - if the predicate returned TRUE
+2. TimedOut - if the wait time for this event timedout.
+3. Error         - If the predicate threw an exception.</P>
+<H3>  ChangeLocation</H3>
+<P>Visibility: public</p>
+<P>Parameters: T* pNewLocation</P>
+<P>Return Type: void</p>
+<P>Classification: Mutator</p>
+<P>Changes the location monitored.</P>
+<H3>virtual   DescribeSelf</H3>
+<P>Visibility: public</p>
+<P>Parameters: </P>
+<P>Return Type: string</p>
+<P>Classification: Selector</p>
+<P>Returns a string which describes the monitor.  Inlcudes:
+1. CEventMonitor::DescribeSelf
+2. Dumps of thte pointer value,
+3.  m_Predicate.DescribeSelf()
+</P>
+<H3>virtual   isReactorCompatible</H3>
+<P>Visibility: public</p>
+<P>Parameters: CReactor& rReactor</P>
+<P>Return Type: bool</p>
+<P>Classification: Override.</p>
+<P>Returns TRUE if the Reactor passed in is a 
+valid reactor for location monitors (is an object
+descended from CLocationReactor.</P>
+
+<HR>
+
+<H1><A NAME = "CFdReactor">CFdReactor</A></H1>
+
+<P> SuperClasses: CReactor </P>
+<P> One to One associations: 
+</P>
+<P> One to Many associations:  
+</P>
+<P> Aggregate classes (1:1)  : 
+</P>
+<P> Aggregate classes (1:*)  : 
+
+</P>
+
+<H2>Class Attributes</H2>
+
+<H2>Operations on  CFdReactor</H2>
+
+<H3>virtual   isMonitorCompatible</H3>
+<P>Visibility: public</p>
+<P>Parameters: CEventMonitor& rEvent</P>
+<P>Return Type: BOOL</p>
+<P>Classification: Override.</p>
+<P>Returns TRUE if the EventMonitor passed
+in is derived from a CFdMonitor object.</P>
+
+<HR>
+
+<H1><A NAME = "CBufferReactor">CBufferReactor</A></H1>
+
+<P> SuperClasses: CReactor </P>
+<P> One to One associations: 
+</P>
+<P> One to Many associations:  
+</P>
+<P> Aggregate classes (1:1)  : 
+</P>
+<P> Aggregate classes (1:*)  : 
+
+</P>
+
+<H2>Class Attributes</H2>
+
+<H2>Operations on  CBufferReactor</H2>
+
+<H3>virtual   isMonitorCompatible</H3>
+<P>Visibility: public</p>
+<P>Parameters: CEventMonitor& rMonitor</P>
+<P>Return Type: BOOL</p>
+<P>Classification: Override.</p>
+<P>Returns TRUE if the Event monitor passed in is 
+subclassed from CBufferMonitor</P>
+
+<HR>
+
+<p>Last Updated: <!--webbot bot="Timestamp" startspan S-Type="EDITED"
+S-Format="%A, %B %d, %Y" -->Tuesday, August 07, 2001<!--webbot bot="Timestamp"
+I-CheckSum="50518" endspan -->
+ <a href="mailto:fox@nscl.msu.edu">Ron Fox</a></p>
+
+</body>
+
+</html>

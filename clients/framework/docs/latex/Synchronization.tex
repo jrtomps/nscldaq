@@ -1,0 +1,49 @@
+\section{Guest event loop synchronization}\label{Synchronization}
+
+
+The framework supports the existence of exactly one guest event loop.  The event loop supported are:\begin{CompactItemize}
+\item 
+Tcl event loops.\item 
+Tk Event loops.\item 
+X11/Xt event loops\end{CompactItemize}
+The first two synchronize differently than the X11/Xt event loops:
+
+\section{Tcl and Tk event loop synchronization}\label{TCLSynchronization}
+
+
+Most of the built in Tcl/Tk commands require no application synchronization.  For example, setting a variable is an essentially atomic action and in most cases does not involve interaction with other event threads. User command extensions are another matter however. It is assumed that user command  extensions may be used to control other event threads executing in the  framework. Therefore, user command extensions should be implemented as  derived classes from {\bf CDAQTCLProcessor} {\rm (p.\,\pageref{classCDAQTCLProcessor})} rather than from {\bf CTCLProcessor} {\rm (p.\,\pageref{classCTCLProcessor})}.
+
+The {\bf CDAQTCLProcessor} {\rm (p.\,\pageref{classCDAQTCLProcessor})} jackets the call to operator() with a lock and unlock of the global serialization mutex. This forces the command's execution to be synchronized to the  application.
+
+There may be some application specific scripts which require syncronization to the application (for example modification of related variables). The sync command can be added to the interpreter by instantiating and registering an instance of a {\bf CTCLSynchronize\-Command} {\rm (p.\,\pageref{classCTCLSynchronizeCommand})}. The sync command allows a script to be syncronized to the application. For example:
+
+
+
+\footnotesize\begin{verbatim}sync {                  ;# Synchronized script begins.
+  set var1  $thing
+  set var2 [Relationship $var1]
+}                       ;# Synchronized script ends.
+\end{verbatim}\normalsize 
+
+
+\section{X11/Xt Syncronization}\label{XTSynchronization}
+
+
+The class {\bf CXt\-Event\-Loop} {\rm (p.\,\pageref{classCXtEventLoop})} provides a base class for implementing X11/Xt event  loops in a synchronized manner. Since Xt operates by associating arbitrary application specific callbacks with events in the GUI, potentially and GUI event can trigger code which must be synchronized.
+
+The {\bf CXt\-Event\-Loop} {\rm (p.\,\pageref{classCXtEventLoop})} encapsulates an event loop which brackets the dispatch of a GUI event with synchronization calls. The main loop for examples looks like:
+
+
+
+\footnotesize\begin{verbatim}           while(1) {
+              XtGetEvent()
+              LockMutex()
+              XtDispatchEvent();
+              UnlockMutex();
+             yield();                         // Let someone else run.
+           }
+\end{verbatim}\normalsize 
+
+
+The call to Lock\-Mutex() enters application synchronized code. After this call the GUI event is dispatched to its application specific callback via the call to Xt\-Dispatch\-Event(). On return, Unlock\-Mutex() marks the end of  syncronized execution.
+

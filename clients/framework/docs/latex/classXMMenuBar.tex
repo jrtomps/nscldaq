@@ -1,0 +1,236 @@
+\section{XMMenu\-Bar  Class Reference}
+\label{classXMMenuBar}\index{XMMenuBar@{XMMenu\-Bar}}
+{\tt \#include $<$XMMenus.h$>$}
+
+Inheritance diagram for XMMenu\-Bar::\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[height=3cm]{classXMMenuBar}
+\end{center}
+\end{figure}
+\subsection*{Public Methods}
+\begin{CompactItemize}
+\item 
+{\bf XMMenu\-Bar} (char $\ast$n, Widget parent, Cardinal num\_\-menus, Arg\-List l=NULL, Cardinal num\_\-args=0)
+\item 
+{\bf XMMenu\-Bar} (char $\ast$n, {\bf XMWidget} \&parent, Cardinal num\_\-menus, Arg\-List l=NULL, Cardinal num\_\-args=0)
+\item 
+{\bf $\sim$XMMenu\-Bar} ()
+\item 
+{\bf XMPulldown} $\ast$ {\bf Add\-Pulldown} (char $\ast$n, int max\_\-items, Arg\-List l=NULL, Cardinal num\_\-args=0)
+\item 
+{\bf XMPulldown} $\ast$ {\bf Add\-Help\-Pulldown} (char $\ast$n, int max\_\-items, Arg\-List l=NULL, Cardinal num\_\-args=0)
+\item 
+int {\bf Num\-Menus} ()
+\item 
+{\bf XMPulldown} $\ast$ {\bf Get\-Pulldown} (char $\ast$n)
+\item 
+{\bf XMPulldown} $\ast$ {\bf Get\-Pulldown} (Cardinal index)
+\item 
+{\bf XMPulldown} $\ast$ {\bf Get\-Help\-Pulldown} ()
+\item 
+{\bf XMMenu\-Item} $\ast$ {\bf Get\-Menu\-Item} (char $\ast$n)
+\item 
+{\bf XMPulldown} $\ast$ {\bf Get\-Next\-Pulldown} ()
+\item 
+{\bf XMPulldown} $\ast$ {\bf Get\-First\-Pulldown} ()
+\end{CompactItemize}
+\subsection*{Protected Methods}
+\begin{CompactItemize}
+\item 
+void {\bf mb\-Create} (Widget parent, Cardinal num\_\-menus, Arg\-List l, Cardinal num\_\-args)
+\end{CompactItemize}
+\subsection*{Protected Attributes}
+\begin{CompactItemize}
+\item 
+{\bf XMPulldown} $\ast$ {\bf help\_\-pulldown}
+\item 
+{\bf XMPulldown} $\ast$$\ast$ {\bf menu\_\-items}
+\item 
+Cardinal {\bf menu\_\-cursor}
+\item 
+Cardinal {\bf menu\_\-count}
+\item 
+Cardinal {\bf max\_\-menu\_\-items}
+\end{CompactItemize}
+
+
+\subsection{Constructor \& Destructor Documentation}
+\index{XMMenuBar@{XMMenu\-Bar}!XMMenuBar@{XMMenuBar}}
+\index{XMMenuBar@{XMMenuBar}!XMMenuBar@{XMMenu\-Bar}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}XMMenu\-Bar::XMMenu\-Bar (char $\ast$ {\em n}, Widget {\em parent}, Cardinal {\em num\_\-menus}, Arg\-List {\em l} = NULL, Cardinal {\em num\_\-args} = 0)\hspace{0.3cm}{\tt  [inline]}}\label{classXMMenuBar_a0}
+
+
+
+
+Definition at line 423 of file XMMenus.h.
+
+References mb\-Create().\index{XMMenuBar@{XMMenu\-Bar}!XMMenuBar@{XMMenuBar}}
+\index{XMMenuBar@{XMMenuBar}!XMMenuBar@{XMMenu\-Bar}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}XMMenu\-Bar::XMMenu\-Bar (char $\ast$ {\em n}, {\bf XMWidget} \& {\em parent}, Cardinal {\em num\_\-menus}, Arg\-List {\em l} = NULL, Cardinal {\em num\_\-args} = 0)\hspace{0.3cm}{\tt  [inline]}}\label{classXMMenuBar_a1}
+
+
+
+
+Definition at line 429 of file XMMenus.h.
+
+References XMWidget::getid(), and mb\-Create().\index{XMMenuBar@{XMMenu\-Bar}!~XMMenuBar@{$\sim$XMMenuBar}}
+\index{~XMMenuBar@{$\sim$XMMenuBar}!XMMenuBar@{XMMenu\-Bar}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}XMMenu\-Bar::$\sim$XMMenu\-Bar ()}\label{classXMMenuBar_a2}
+
+
+
+
+Definition at line 751 of file XMMenus.cpp.
+
+References max\_\-menu\_\-items, and menu\_\-items.
+
+\subsection{Member Function Documentation}
+\index{XMMenuBar@{XMMenu\-Bar}!AddHelpPulldown@{AddHelpPulldown}}
+\index{AddHelpPulldown@{AddHelpPulldown}!XMMenuBar@{XMMenu\-Bar}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}{\bf XMPulldown} $\ast$ XMMenu\-Bar::Add\-Help\-Pulldown (char $\ast$ {\em n}, int {\em max\_\-items}, Arg\-List {\em l} = NULL, Cardinal {\em num\_\-args} = 0)}\label{classXMMenuBar_a4}
+
+
+Method Description: {\bf XMMenu\-Bar::Add\-Help\-Pulldown} {\rm (p.\,\pageref{classXMMenuBar_a4})} - Adds a pulldown menu which will be registerd as the help menu for the bar. Formal Parameters: char $\ast$n: Name/label of the pulldown menu. int max\_\-items: Maximum number of items in the pulldown. Arg\-List l: Possibly null argument list containing resource overrides. Cardinal num\_\-args: Possibly zero count of arguments in l. Returns: Pointer to the pulldown object created. 
+
+Definition at line 835 of file XMMenus.cpp.
+
+References Add\-Pulldown(), exit(), XMPulldown::Get\-Cascade\-Button(), XMWidget::getid(), help\_\-pulldown, and XMWidget::Set\-Attribute().\index{XMMenuBar@{XMMenu\-Bar}!AddPulldown@{AddPulldown}}
+\index{AddPulldown@{AddPulldown}!XMMenuBar@{XMMenu\-Bar}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}{\bf XMPulldown} $\ast$ XMMenu\-Bar::Add\-Pulldown (char $\ast$ {\em n}, int {\em max\_\-items}, Arg\-List {\em l} = NULL, Cardinal {\em num\_\-args} = 0)}\label{classXMMenuBar_a3}
+
+
+
+
+Definition at line 789 of file XMMenus.cpp.
+
+References exit(), max\_\-menu\_\-items, menu\_\-count, and menu\_\-items.
+
+Referenced by Add\-Help\-Pulldown().\index{XMMenuBar@{XMMenu\-Bar}!GetFirstPulldown@{GetFirstPulldown}}
+\index{GetFirstPulldown@{GetFirstPulldown}!XMMenuBar@{XMMenu\-Bar}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}{\bf XMPulldown}$\ast$ XMMenu\-Bar::Get\-First\-Pulldown ()\hspace{0.3cm}{\tt  [inline]}}\label{classXMMenuBar_a11}
+
+
+
+
+Definition at line 460 of file XMMenus.h.
+
+References Get\-Next\-Pulldown(), and menu\_\-cursor.\index{XMMenuBar@{XMMenu\-Bar}!GetHelpPulldown@{GetHelpPulldown}}
+\index{GetHelpPulldown@{GetHelpPulldown}!XMMenuBar@{XMMenu\-Bar}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}{\bf XMPulldown}$\ast$ XMMenu\-Bar::Get\-Help\-Pulldown ()\hspace{0.3cm}{\tt  [inline]}}\label{classXMMenuBar_a8}
+
+
+
+
+Definition at line 453 of file XMMenus.h.\index{XMMenuBar@{XMMenu\-Bar}!GetMenuItem@{GetMenuItem}}
+\index{GetMenuItem@{GetMenuItem}!XMMenuBar@{XMMenu\-Bar}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}{\bf XMMenu\-Item} $\ast$ XMMenu\-Bar::Get\-Menu\-Item (char $\ast$ {\em n})}\label{classXMMenuBar_a9}
+
+
+
+
+Definition at line 885 of file XMMenus.cpp.
+
+References XMPulldown::Find\-Menu\-Item(), menu\_\-count, and menu\_\-items.\index{XMMenuBar@{XMMenu\-Bar}!GetNextPulldown@{GetNextPulldown}}
+\index{GetNextPulldown@{GetNextPulldown}!XMMenuBar@{XMMenu\-Bar}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}{\bf XMPulldown} $\ast$ XMMenu\-Bar::Get\-Next\-Pulldown ()}\label{classXMMenuBar_a10}
+
+
+
+
+Definition at line 906 of file XMMenus.cpp.
+
+References menu\_\-count, menu\_\-cursor, and menu\_\-items.
+
+Referenced by Get\-First\-Pulldown().\index{XMMenuBar@{XMMenu\-Bar}!GetPulldown@{GetPulldown}}
+\index{GetPulldown@{GetPulldown}!XMMenuBar@{XMMenu\-Bar}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}{\bf XMPulldown}$\ast$ XMMenu\-Bar::Get\-Pulldown (Cardinal {\em index})\hspace{0.3cm}{\tt  [inline]}}\label{classXMMenuBar_a7}
+
+
+
+
+Definition at line 450 of file XMMenus.h.
+
+References menu\_\-count.\index{XMMenuBar@{XMMenu\-Bar}!GetPulldown@{GetPulldown}}
+\index{GetPulldown@{GetPulldown}!XMMenuBar@{XMMenu\-Bar}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}{\bf XMPulldown} $\ast$ XMMenu\-Bar::Get\-Pulldown (char $\ast$ {\em n})}\label{classXMMenuBar_a6}
+
+
+
+
+Definition at line 864 of file XMMenus.cpp.
+
+References XMWidget::getname(), menu\_\-count, and menu\_\-items.\index{XMMenuBar@{XMMenu\-Bar}!mbCreate@{mbCreate}}
+\index{mbCreate@{mbCreate}!XMMenuBar@{XMMenu\-Bar}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}void XMMenu\-Bar::mb\-Create (Widget {\em parent}, Cardinal {\em num\_\-menus}, Arg\-List {\em l}, Cardinal {\em num\_\-args})\hspace{0.3cm}{\tt  [protected]}}\label{classXMMenuBar_b0}
+
+
+
+
+Definition at line 718 of file XMMenus.cpp.
+
+References exit(), help\_\-pulldown, XMWidget::id, max\_\-menu\_\-items, menu\_\-count, menu\_\-items, and XMWidget::name.
+
+Referenced by XMMenu\-Bar().\index{XMMenuBar@{XMMenu\-Bar}!NumMenus@{NumMenus}}
+\index{NumMenus@{NumMenus}!XMMenuBar@{XMMenu\-Bar}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}int XMMenu\-Bar::Num\-Menus ()\hspace{0.3cm}{\tt  [inline]}}\label{classXMMenuBar_a5}
+
+
+
+
+Definition at line 448 of file XMMenus.h.
+
+References menu\_\-count.
+
+\subsection{Member Data Documentation}
+\index{XMMenuBar@{XMMenu\-Bar}!help_pulldown@{help\_\-pulldown}}
+\index{help_pulldown@{help\_\-pulldown}!XMMenuBar@{XMMenu\-Bar}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}{\bf XMPulldown}$\ast$ XMMenu\-Bar::help\_\-pulldown\hspace{0.3cm}{\tt  [protected]}}\label{classXMMenuBar_n0}
+
+
+
+
+Definition at line 412 of file XMMenus.h.
+
+Referenced by Add\-Help\-Pulldown(), and mb\-Create().\index{XMMenuBar@{XMMenu\-Bar}!max_menu_items@{max\_\-menu\_\-items}}
+\index{max_menu_items@{max\_\-menu\_\-items}!XMMenuBar@{XMMenu\-Bar}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}Cardinal XMMenu\-Bar::max\_\-menu\_\-items\hspace{0.3cm}{\tt  [protected]}}\label{classXMMenuBar_n4}
+
+
+
+
+Definition at line 416 of file XMMenus.h.
+
+Referenced by Add\-Pulldown(), mb\-Create(), and $\sim$XMMenu\-Bar().\index{XMMenuBar@{XMMenu\-Bar}!menu_count@{menu\_\-count}}
+\index{menu_count@{menu\_\-count}!XMMenuBar@{XMMenu\-Bar}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}Cardinal XMMenu\-Bar::menu\_\-count\hspace{0.3cm}{\tt  [protected]}}\label{classXMMenuBar_n3}
+
+
+
+
+Definition at line 415 of file XMMenus.h.
+
+Referenced by Add\-Pulldown(), Get\-Menu\-Item(), Get\-Next\-Pulldown(), Get\-Pulldown(), mb\-Create(), and Num\-Menus().\index{XMMenuBar@{XMMenu\-Bar}!menu_cursor@{menu\_\-cursor}}
+\index{menu_cursor@{menu\_\-cursor}!XMMenuBar@{XMMenu\-Bar}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}Cardinal XMMenu\-Bar::menu\_\-cursor\hspace{0.3cm}{\tt  [protected]}}\label{classXMMenuBar_n2}
+
+
+
+
+Definition at line 414 of file XMMenus.h.
+
+Referenced by Get\-First\-Pulldown(), and Get\-Next\-Pulldown().\index{XMMenuBar@{XMMenu\-Bar}!menu_items@{menu\_\-items}}
+\index{menu_items@{menu\_\-items}!XMMenuBar@{XMMenu\-Bar}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}{\bf XMPulldown}$\ast$$\ast$ XMMenu\-Bar::menu\_\-items\hspace{0.3cm}{\tt  [protected]}}\label{classXMMenuBar_n1}
+
+
+
+
+Definition at line 413 of file XMMenus.h.
+
+Referenced by Add\-Pulldown(), Get\-Menu\-Item(), Get\-Next\-Pulldown(), Get\-Pulldown(), mb\-Create(), and $\sim$XMMenu\-Bar().
+
+The documentation for this class was generated from the following files:\begin{CompactItemize}
+\item 
+{\bf XMMenus.h}\item 
+{\bf XMMenus.cpp}\end{CompactItemize}

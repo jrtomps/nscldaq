@@ -1,0 +1,54 @@
+/*!
+\page LocationMonitors  Location monitors.
+
+A location monitor watches a volatile memory location and, with low latency,
+dispatches to application code whenever a significant change in the
+monitored location occurs. A typical use of a location monitor would be to spin
+while monitoring a hardware register for changes indicating an event trigger.
+
+ The application framework encapsulates location
+monitors in a templated class: CLocationEvent.  The implementation of this
+event is a thread which spins tightly on the location. 
+
+For each pass through the the main loop of CLocationEvent, the location is 
+tested for significant change.  If a significant change ocured, the OnEvent
+member is called (CLocationEvent::OnEvent).  
+
+The concept of "significant change" is captured by associating a 
+CPointerPredicate derived class with each location monitor.  Predicates are 
+function like objects (they are objects from classes which implement 
+operator()), whose function call operator returns a boolean given the
+current value of the monitored location.  The predicate determines if the
+change was significate from the application's standpoint and if so returns
+TRUE, otherwise FALSE.
+
+The following pre-defined predicates exist:
+- CChangedPredicate - The location's value this pass through the loop is 
+  different than the prior pass.
+- CMaskedValuePredicate -  does a bitwise and of the location with a mask
+  and compares the result to a value, equality indicates significance.
+
+The example below is somewhat artificial.  A location monitor is created to
+monitor an ordinary program memory location, using the CChangedPredicate to 
+determine significant change.  The main program accepts
+input from stdin, and modifies the location each time input is received.
+
+The location monitor responds to the change by printing out the value of the
+location.
+
+\include locationex.cpp
+
+
+
+*/
+
+
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,89 @@
+\section{Event Driven Programming model}\label{EventDriven}
+
+
+\section{What is event driven software.}\label{WhatisEventDriven}
+
+
+A simple way to understand the event driven programming model is to compare  and contrast it with the the traditional model. In the traditional model the  programmer:\begin{CompactItemize}
+\item 
+Writes a main program.\item 
+Explicitly controls a main loop which looks for stuff to do and then does it.\end{CompactItemize}
+In the event driven model, the programmer:\begin{CompactItemize}
+\item 
+Writes application initialization code which, among other things,  requests the receipt of events of interest from the outside world.\item 
+Writes handlers for the events and reigsters a correspondence betwen events and their handlers.\item 
+Turns control over to a library event loop which waits for the desired events and dispatches control to their handlers as required.\end{CompactItemize}
+Event driven software is a win whenever:\begin{CompactItemize}
+\item 
+The event loop is sufficiently complex that you'd like to re-use it from application to application.\item 
+You want to decouple the user interface from the functionality of the software.\end{CompactItemize}
+Both of these criteria are true for the spectrodaq framework.
+
+\section{Event management and the spectrodaq framework}\label{FWKEventManagement}
+
+
+In the spectrodaq event framework, event handlers are member functions of classes descended from the {\bf CEvent} {\rm (p.\,\pageref{classCEvent})} class. Thus events are handled as follows:\begin{CompactItemize}
+\item 
+The appropriate {\bf CEvent} {\rm (p.\,\pageref{classCEvent})} subclass is subclassed and its event handlers are  overridden with application specific code.\item 
+One or more instance's of this event handler are created (e.g. via new).\item 
+An Event handler's {\bf CEvent::Enable} {\rm (p.\,\pageref{classCEvent_a11})} member function is called to start the handlers private thread and event loop. See the general   concepts page for more information about the event classes.\item 
+As the event thread detects events, the overridden handler function is  called triggering the application specific behavior.\end{CompactItemize}
+The example below shows this process: 
+
+\footnotesize\begin{verbatim}#include <iostream.h>
+#include <stdio.h>
+#include <spectrodaq.h>
+#include <SpectroFramework.h>
+
+class Echo : public CFileEvent
+{
+public:
+  Echo(int fd, const char* pName);
+  virtual void OnReadable(istream& rin);
+};
+
+Echo::Echo(int fd, const char* pName):
+  CFileEvent(fd, pName)
+{
+  AppendClassInfo();
+}
+
+void
+Echo::OnReadable(istream& rin)
+{
+  CFileEvent::OnReadable(rin);
+  string word;
+  rin >> word;
+  cout << word << endl;
+}
+
+class MyApp : public DAQROCNode
+{
+protected:
+  virtual int operator()(int argc, char** argv);
+};
+
+int
+MyApp::operator()(int argc, char** argv)
+{
+  Echo echo(fileno(stdin), "EchoProcessor");
+
+  echo.Enable();
+  DAQThreadId id = echo.getThreadId();
+
+  Join(id);                     // Wait for echo to exit.
+}
+
+
+MyApp theapp;
+\end{verbatim}\normalsize 
+
+
+The Echo class subclasses {\bf CFile\-Event} {\rm (p.\,\pageref{classCFileEvent})} which is an event handler that watches  for events on a file descriptor. Overriding On\-Readable supplies application specific behavior for a file descriptor when the file becomes readable. The line in My\-App::operator() which reads: 
+
+\footnotesize\begin{verbatim}        Echo echo(fileno(stdin), "EchoProcessor");
+\end{verbatim}\normalsize 
+ creates an instance of this event to listen for and react to input on stdin. and the call to echo.Enable() starts the thread.
+
+When the event thread detecs input on stdin, it calls Echo::On\-Readable which proceses the input in an application specific manner.
+

@@ -1,0 +1,116 @@
+\section{CTCLIdle\-Process  Class Reference}
+\label{classCTCLIdleProcess}\index{CTCLIdleProcess@{CTCLIdle\-Process}}
+{\tt \#include $<$TCLIdle\-Process.h$>$}
+
+Inheritance diagram for CTCLIdle\-Process::\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[height=3cm]{classCTCLIdleProcess}
+\end{center}
+\end{figure}
+\subsection*{Public Methods}
+\begin{CompactItemize}
+\item 
+{\bf CTCLIdle\-Process} ({\bf CTCLInterpreter\-Object} $\ast$p\-Interp)
+\item 
+{\bf CTCLIdle\-Process} ({\bf CTCLInterpreter} $\ast$p\-Interp)
+\item 
+virtual {\bf $\sim$CTCLIdle\-Process} ()
+\item 
+int {\bf operator==} (const CTCLIdle\-Process \&r\-Rhs)
+\item 
+void {\bf Set} ()
+\item 
+void {\bf Clear} ()
+\item 
+virtual void {\bf operator()} ()=0
+\end{CompactItemize}
+\subsection*{Private Methods}
+\begin{CompactItemize}
+\item 
+{\bf CTCLIdle\-Process} (const CTCLIdle\-Process \&r\-Rhs)
+\item 
+CTCLIdle\-Process \& {\bf operator=} (const CTCLIdle\-Process \&r\-Rhs)
+\end{CompactItemize}
+
+
+\subsection{Constructor \& Destructor Documentation}
+\index{CTCLIdleProcess@{CTCLIdle\-Process}!CTCLIdleProcess@{CTCLIdleProcess}}
+\index{CTCLIdleProcess@{CTCLIdleProcess}!CTCLIdleProcess@{CTCLIdle\-Process}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}CTCLIdle\-Process::CTCLIdle\-Process ({\bf CTCLInterpreter\-Object} $\ast$ {\em p\-Interp})\hspace{0.3cm}{\tt  [inline]}}\label{classCTCLIdleProcess_a0}
+
+
+
+
+Definition at line 327 of file TCLIdle\-Process.h.
+
+References CTCLInterpreter\-Object::get\-Interpreter().\index{CTCLIdleProcess@{CTCLIdle\-Process}!CTCLIdleProcess@{CTCLIdleProcess}}
+\index{CTCLIdleProcess@{CTCLIdleProcess}!CTCLIdleProcess@{CTCLIdle\-Process}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}CTCLIdle\-Process::CTCLIdle\-Process ({\bf CTCLInterpreter} $\ast$ {\em p\-Interp})\hspace{0.3cm}{\tt  [inline]}}\label{classCTCLIdleProcess_a1}
+
+
+
+
+Definition at line 330 of file TCLIdle\-Process.h.\index{CTCLIdleProcess@{CTCLIdle\-Process}!~CTCLIdleProcess@{$\sim$CTCLIdleProcess}}
+\index{~CTCLIdleProcess@{$\sim$CTCLIdleProcess}!CTCLIdleProcess@{CTCLIdle\-Process}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}virtual CTCLIdle\-Process::$\sim$CTCLIdle\-Process ()\hspace{0.3cm}{\tt  [inline, virtual]}}\label{classCTCLIdleProcess_a2}
+
+
+
+
+Definition at line 333 of file TCLIdle\-Process.h.\index{CTCLIdleProcess@{CTCLIdle\-Process}!CTCLIdleProcess@{CTCLIdleProcess}}
+\index{CTCLIdleProcess@{CTCLIdleProcess}!CTCLIdleProcess@{CTCLIdle\-Process}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}CTCLIdle\-Process::CTCLIdle\-Process (const CTCLIdle\-Process \& {\em r\-Rhs})\hspace{0.3cm}{\tt  [private]}}\label{classCTCLIdleProcess_c0}
+
+
+
+
+\subsection{Member Function Documentation}
+\index{CTCLIdleProcess@{CTCLIdle\-Process}!Clear@{Clear}}
+\index{Clear@{Clear}!CTCLIdleProcess@{CTCLIdle\-Process}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}void CTCLIdle\-Process::Clear ()\hspace{0.3cm}{\tt  [inline]}}\label{classCTCLIdleProcess_a5}
+
+
+
+
+Reimplemented from {\bf CTCLTimer} {\rm (p.\,\pageref{classCTCLTimer_a9})}.
+
+Definition at line 358 of file TCLIdle\-Process.h.
+
+References CTCLTimer::Clear().\index{CTCLIdleProcess@{CTCLIdle\-Process}!operator()@{operator()}}
+\index{operator()@{operator()}!CTCLIdleProcess@{CTCLIdle\-Process}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}virtual void CTCLIdle\-Process::operator() ()\hspace{0.3cm}{\tt  [pure virtual]}}\label{classCTCLIdleProcess_a6}
+
+
+
+
+Implements {\bf CTCLTimer} {\rm (p.\,\pageref{classCTCLTimer_a6})}.\index{CTCLIdleProcess@{CTCLIdle\-Process}!operator=@{operator=}}
+\index{operator=@{operator=}!CTCLIdleProcess@{CTCLIdle\-Process}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}CTCLIdle\-Process\& CTCLIdle\-Process::operator= (const CTCLIdle\-Process \& {\em r\-Rhs})\hspace{0.3cm}{\tt  [private]}}\label{classCTCLIdleProcess_c1}
+
+
+\index{CTCLIdleProcess@{CTCLIdle\-Process}!operator==@{operator==}}
+\index{operator==@{operator==}!CTCLIdleProcess@{CTCLIdle\-Process}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}int CTCLIdle\-Process::operator== (const CTCLIdle\-Process \& {\em r\-Rhs})\hspace{0.3cm}{\tt  [inline]}}\label{classCTCLIdleProcess_a3}
+
+
+
+
+Definition at line 349 of file TCLIdle\-Process.h.
+
+References CTCLInterpreter\-Object::operator==().\index{CTCLIdleProcess@{CTCLIdle\-Process}!Set@{Set}}
+\index{Set@{Set}!CTCLIdleProcess@{CTCLIdle\-Process}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}void CTCLIdle\-Process::Set ()\hspace{0.3cm}{\tt  [inline]}}\label{classCTCLIdleProcess_a4}
+
+
+
+
+Reimplemented from {\bf CTCLTimer} {\rm (p.\,\pageref{classCTCLTimer_a7})}.
+
+Definition at line 355 of file TCLIdle\-Process.h.
+
+References CTCLTimer::Set().
+
+The documentation for this class was generated from the following file:\begin{CompactItemize}
+\item 
+{\bf TCLIdle\-Process.h}\end{CompactItemize}
