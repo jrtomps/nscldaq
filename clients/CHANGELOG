@@ -1,3 +1,11 @@
+7.1-005 3/31/03
+    -  Allow Readout/Active.cpp Active::EndRun to be harmlessly called
+       when the run is not in progress.
+
+7.1-002-004 - 
+	Fixed misc. problems with Stager and with ReadoutGui
+        to make these more production quality.
+
 7.1-001  2/11/03: 
   - ./configure.in  - Fix an error in the search for the SBS/Bit3 headers.
     the script would fail if the initial set of directories did not contain
@@ -9,6 +17,6 @@
   - Stager/directories.tcl - Modified to support a BUFFERSIZE environment
 	variable that can be used to modify the behavior of 
 	ExpFileSystem::GenRunFile in the event the user has overidden the 
-	default daq buffersize.
+	default daq buffersize
 
-y
+

@@ -6,7 +6,7 @@ SUBDIRS = btdriver \
 	AlarmDisplay LogDisplay ProductionReadout 
 
 EXTRA_DIST =  config/install-sh config/config.sub config/config.guess \
-	config/ltmain.sh config/missing config/mkinstalldirs 
+	config/ltmain.sh config/missing config/mkinstalldirs  CHANGELOG
 
 install-data-local:
 	rm -f $(prefix)/Bin
