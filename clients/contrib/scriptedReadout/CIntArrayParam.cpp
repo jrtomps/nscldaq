@@ -289,7 +289,7 @@ static const char* Copyright = "(C) Copyright Ron Fox 2002, All rights reserved"
 #include <TCLInterpreter.h>
 #include <TCLResult.h>
 #include <TCLList.h>
-#include <CRangeError.h>
+#include <RangeError.h>
 #include <stdio.h>
 #include <string.h>
 #include <assert.h>

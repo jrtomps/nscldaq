@@ -1,7 +1,7 @@
 lib_LTLIBRARIES = libVmeAPI.la
 libVmeAPI_la_SOURCES = $(VMEDEVICE)API.cpp Locking.cpp
 libVmeAPI_la_LDFLAGS = -version-info $(SOVERSION):0 $(VMEBUILDLIBS) \
-	-Wl"-rpath-$(libdir)"
+	-Wl"-rpath=$(libdir)"
 include_HEADERS = CVMEInterface.h SBSBit3API.h WienerAPI.h
 
 INCLUDES = -I@top_srcdir@/Headers -I@top_srcdir@/Exception $(VMEBUILDHEADERS)

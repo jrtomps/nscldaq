@@ -2,7 +2,7 @@ lib_LTLIBRARIES = libHPReadout.la
 libHPReadout_la_SOURCES = Active.cpp   \
 	 CAMACBusy.cpp CESTrigger.cpp  DebugState.cpp \
 	EventBufferPointer.cpp Exception.cpp Exiting.cpp Inactive.cpp \
-	 Paused.cpp RangeError.cpp Reader.cpp \
+	 Paused.cpp Reader.cpp \
 	ReadoutStateMachine.cpp RecordingBufferPointer.cpp \
 	State.cpp StateMachine.cpp TestBusy.cpp TestTrigger.cpp VMEBusy.cpp \
 	VMETrigger.cpp   \
@@ -11,7 +11,7 @@ libHPReadout_la_SOURCES = Active.cpp   \
 include_HEADERS = Active.h Busy.h   CAMACBusy.h \
 	 CESTrigger.h CException.h  \
 	DebugState.h EventBufferPointer.h Exception.h Exiting.h Inactive.h \
-	  Paused.h RangeError.h Reader.h Readout.h \
+	  Paused.h  Reader.h Readout.h \
 	ReadoutStateMachine.h RecordingBufferPointer.h  State.h \
 	StateMachine.h TestBusy.h TestTrigger.h Transition.h Trigger.h \
 	VMEBusy.h VMETrigger.h   \

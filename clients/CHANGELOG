@@ -4,11 +4,11 @@ NSCLDAQ-7.1
     -  Allow Readout/Active.cpp Active::EndRun to be harmlessly called
        when the run is not in progress.
 
-7.1-002-004 - 
+7.1-002-004 -
 	Fixed misc. problems with Stager and with ReadoutGui
         to make these more production quality.
 
-7.1-001  2/11/03: 
+7.1-001  2/11/03:
   - ./configure.in  - Fix an error in the search for the SBS/Bit3 headers.
     the script would fail if the initial set of directories did not contain
     the headers...even if the secondary search set did.
@@ -17,8 +17,8 @@ NSCLDAQ-7.1
 	SBSBit3API.h  (note difference in capitalization).  The file has been
         renamed and Makefile.am fixed up to produce an appropriate tarball.
   - Stager/directories.tcl - Modified to support a BUFFERSIZE environment
-	variable that can be used to modify the behavior of 
-	ExpFileSystem::GenRunFile in the event the user has overidden the 
+	variable that can be used to modify the behavior of
+	ExpFileSystem::GenRunFile in the event the user has overidden the
 	default daq buffersize
 
 7.1-002 3/2/03:
@@ -28,24 +28,24 @@ NSCLDAQ-7.1
     as the trigger signal.
 
 7.1-003 3/17/03
-	ReadoutGUI defect fix:  If a link to the event file already exists 
-	in the ~/experiment/current directory at the start of a recorded run, 
+	ReadoutGUI defect fix:  If a link to the event file already exists
+	in the ~/experiment/current directory at the start of a recorded run,
 	the run start fails.  Fixed by removing such links if required.
 
-	ReadoutGUI defect fix:  If readout is being recompiled as it runs, 
-	ReadoutGUI can hang or readout can die.  Fixed by copying readout 
+	ReadoutGUI defect fix:  If readout is being recompiled as it runs,
+	ReadoutGUI can hang or readout can die.  Fixed by copying readout
 	program to 'private hidden' directory first.
 
-	Added production readout software to the autoconf build, along with 
+	Added production readout software to the autoconf build, along with
 	its documentation.
 
 7.1-004 3/23/03
-	This release adds the SBS/Bit3 device driver to the build.  
-	 SBS/Bit3 has kindly released the source code of this driver for 
-	open distribution so long as redistribution includes acknowledgement 
+	This release adds the SBS/Bit3 device driver to the build.
+	 SBS/Bit3 has kindly released the source code of this driver for
+	open distribution so long as redistribution includes acknowledgement
 	of the SBS Technologies copyright.
 
-	From now on, it will be necessary to be root to build the system 
+	From now on, it will be necessary to be root to build the system
 	in order to get the device driver properly installed.
 
 	Changes:
@@ -120,7 +120,7 @@ NSCLDAQ- 7.3
      data source.  At the NSCL this is an unusual occurence.  Note that
      the warning will be sent via an Xwindows window if possible or if not
      via stderr.
-7.3-010 
+7.3-010
    - Modify VMEPtr.cpp - was ignoring the crate number.!!!
    - TCLList.cpp - needs to use Tcl_Free not free() for TCL 8.4 and higher.
    - DiskRun - Had an error with strlen that clobbered stack occaisonally.
@@ -163,7 +163,7 @@ NSCLDAQ  7.4:
 - ProductionReadout - quote and escape the contents of runvariables and
   statevariables so that arbitrary characters like [ can appear in the
   variable values.
-- Framework CSocket::Bind - prior to bind(), enable 
+- Framework CSocket::Bind - prior to bind(), enable
    SO_REUSEADDR to deal with lingering sockets if e.g. readout exits and then
    restarts soon.
 - Fix incorrect base address of VME trigger/status module was 0xf000 s.b.
@@ -185,7 +185,7 @@ NSCLDAQ  7.4:
 - Fix incompatibility (bug 121) with Tcl 8.4 for cratelocator.tcl
 - Allow plc channels longer to connect in controlpush, and the heck
   with looking for units for them.
-- In both controlpush and production readout, add # to the set of 
+- In both controlpush and production readout, add # to the set of
   characters escaped when writing TCL scripts.
 - Added dvdburn product shamelessly stolen from what I did for SEE.
 - Support writing tape on a different host than ftp'd to.
@@ -241,7 +241,7 @@ Week of August 16, 2004
 - Add man page for sclclient.
 - Add man page for bufdump.
 - Add man page for tclserver
-- Fix defect 140: Support multiple VME crates for shaper GUI:  
+- Fix defect 140: Support multiple VME crates for shaper GUI:
   Also did a whole bunch of common code factorization out into shaperapp.tcl.
   the GUI's are now only shadows of their former selves, and shaperapp16.tcl
   is as well
@@ -273,19 +273,19 @@ NSCLDAQ-8.0
 
 Week of November 1:
     - Add feature tests to support port to gcc/g++ 3.x
-    - Add some feature headers (Iostream.h, Ostream.h) to do 
+    - Add some feature headers (Iostream.h, Ostream.h) to do
       compiler independent #includes for the corresponding c++ library
       includes (with or without the .h ...).
     - Port CopyrightTools -> 3.x
     - Port Exception      -> 3.x
     - Port daqstart       -> 3.x
     - Port TcpHoist       -> 3.x (note found/fixed defect).
-    - Port SpecTclDAQ     -> 3.x 
+    - Port SpecTclDAQ     -> 3.x
     - Port DiskRun        -> 3.x
 
-Initial port to gcc/g++ 3.x  Note that this version can be compile on either 
+Initial port to gcc/g++ 3.x  Note that this version can be compile on either
 3.x or prior compilers. There is, however a version dependency with spectrodaq.
-spectrodaq-0.8.x.y and earlier will only compile with 2-ish compilers. 
+spectrodaq-0.8.x.y and earlier will only compile with 2-ish compilers.
 spectrodaq-pregt is th first version that compiles with 3.x
 
 The port includes a few additions that can be triggered at compile time:
@@ -322,14 +322,14 @@ January 5, 2005
        -  Add comments to the readout makefiles to describe how to select
           between CAMAC interfaces.
 January 11, 2005
-       - Remove reference to the nonexistent Preadout style guide in the 
+       - Remove reference to the nonexistent Preadout style guide in the
          Preadout docs.
 January 14, 2005
        - Fix documentation error in skeleton makefiles - how to get each type
          of CAMAC controller.
 January 17, 2005
        - Fix typo in macro name in the skeleton makefile of production readout.
-January 24, 2005 
+January 24, 2005
        - Fix typos in goshaper, goshaper16 as well as document the need to
          run this in a spdaq system.
        - Fix up the .cfd sample config files so that they are right
@@ -348,3 +348,38 @@ February 7, 2005
        - Added ability to read an SIS 3300 to an 'ordinary memory buffer'.
 February 9, 2005
 	- Added high performance Production readout to the mix.
+February 23, 2005
+        - Fix a pile of inconsistencies in the date/timestamp format
+          months now official start from 1 = January everywhere.
+March 1, 2005
+       -  Scaler Display  Rates at end of run will now reflect average rates over 
+          the entire run.
+March 2, 2005
+       - Add rate alarming capability.  NOTE: This introduces a dependency on the BLT
+         package.  BLT is a plotting/graphing package that is available as a package
+	 with most Linux Distributions.  On Debian, the package required is called 'blt'
+	 blt-dev is a developers package that supports C/C++ interfaces with the BLT
+	 library but is not necessary.  Configuration file changes for logging:
+	    channel ?-lowalarm value? ?-hialarm value? name index
+	 Alarming colors cells of alarmed value with colors specified by the global variables:
+	   lowColor    (defaults to green) If a variable in the cell is in low alarm state.
+	   hiColor     (defaults to red)   If a variable in the cell is in high alarm state.
+	   bothColor   (defaults to orange) If the cell contains a ratio and both low and
+	                high alarm conditions are present.
+	 If a page of the scaler display that is not visible contains an alarm its tab is
+	 colored appropriately.
+	   Color choices can be modified by the user's configuration file by setting the
+	 globals above, e.g. to use blue for lowColor:
+	    set lowColor blue
+	- Use of the BLT tabset allows tearoff pages.  These are disabled by default. To enable
+	  add the following to the user configuration file:
+	     $Notebook configure -tearoff 1
+	  This adds a ---- line to the tab of the visible page.  Click the line to tear the page
+	  off into a separate top level.  Delete the separate window to re-merge the page into the
+	  tabset.
+March 4, 2005
+     - Debug the strip chart capability of the Scaler display
+     - Update the scaler display man page to reflect the modifications since March 1
+
+
+
