@@ -1,5 +1,5 @@
 SUBDIRS = $(VME_DRIVERDIR) \
-	Headers CopyrightTools Exception TCL Security Ftp \
+	Headers CopyrightTools Exception PortManager TCL Security Ftp \
 	VMEApi cvt SpecTclOnline DeviceSupport\
 	Readout diskrun EventLog Scaler  \
 	vmetcl  \
