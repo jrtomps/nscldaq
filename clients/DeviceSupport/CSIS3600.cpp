@@ -273,16 +273,22 @@ THIRD PARTIES OR A FAILURE OF THE PROGRAM TO OPERATE WITH ANY OTHER PROGRAMS),
 EVEN IF SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH 
 DAMAGES.
 
-		     END OF TERMS AND CONDITIONS
+		     END OF TERMS AND CONDITIONS '
 */
 
 
+#include <config.h>
 
 #include "CSIS3600.h"
 
 
+
 #ifndef __VMEMODULE_H
 #include <VmeModule.h>
+#endif
+
+#ifdef HAVE_STD_NAMESPACE
+using namespace std;
 #endif
 
 // Structure of the module registers (offsets).
@@ -449,7 +455,7 @@ static const unsigned int ModuleLength(0x200); //!< size of the module.
 /*!
    Construct a module.  The module consists of a VME space definition
    that is held by m_Module.  Note that use of m_Module ensures
-   portabilit between SBS Bit3 and Wiener bus bridge modules.
+   portability between SBS Bit3 and Wiener bus bridge modules.
    \param base (unsigned long [in]):
       VME Base address of the module.
    \param crate (int [in default = 0])

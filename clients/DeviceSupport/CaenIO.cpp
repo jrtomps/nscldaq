@@ -273,7 +273,7 @@ THIRD PARTIES OR A FAILURE OF THE PROGRAM TO OPERATE WITH ANY OTHER PROGRAMS),
 EVEN IF SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH 
 DAMAGES.
 
-		     END OF TERMS AND CONDITIONS
+		     END OF TERMS AND CONDITIONS '
 */
 static const char* Copyright= "(C) Copyright Michigan State University 2002, All rights reserved";/*
   \class CNimout
@@ -298,6 +298,11 @@ static const char* Copyright= "(C) Copyright Michigan State University 2002, All
 /*  
    Change log:
    $Log$
+   Revision 1.2  2004/11/16 15:23:29  ron-fox
+   - Port -> gcc/g++ 3.x
+   - Support integrated test building.
+   - Support integrated doxygen docu7mentation building.
+
    Revision 1.1  2003/12/03 18:45:45  ron-fox
    Update 767 documentation
 
@@ -328,9 +333,13 @@ static const char* Copyright= "(C) Copyright Michigan State University 2002, All
 //
 */
 
-
+#include <config.h>
 #include <CaenIO.h>
 #include <CVME.h>
+
+#ifdef HAVE_STD_NAMESPACE
+using namespace std;
+#endif
 
 /*!
   \fn CCaenIO(UInt_t base)
@@ -520,7 +529,7 @@ CCaenIO::ClearAll()
   pokew(0, 2);
   pokew(0, 3);
 }
-#ifndef WienerVME
+#ifndef HAVE_VME_MAPPING
 /*!
    Get a pointer to the input register.  This is
 designed for high performance software that does

@@ -273,10 +273,10 @@ THIRD PARTIES OR A FAILURE OF THE PROGRAM TO OPERATE WITH ANY OTHER PROGRAMS),
 EVEN IF SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH 
 DAMAGES.
 
-		     END OF TERMS AND CONDITIONS
+		     END OF TERMS AND CONDITIONS '
 */
-#ifndef VMEMODULE_H
-#define VMEMODULE_H
+// #ifndef VMEMODULE_H
+// #define VMEMODULE_H
 
 static const char* Copyright= "(C) Copyright Michigan State University 2002, All rights reserved";/*
   \class CVmeModule
@@ -295,13 +295,21 @@ static const char* Copyright= "(C) Copyright Michigan State University 2002, All
      mailto: venemaja@msu.edu
 */
 
+#include <config.h>
+
 #include "VmeModule.h"
-#ifdef WienerVME
+
+#ifdef HAVE_WIENERVME_INTERFACE
 #include <CVMEInterface.h>
 #include <WienerAPI.h>
-
 #endif
+
 #include <string>
+
+#ifdef HAVE_STD_NAMESPACE
+using namespace std;
+#endif
+
 /*
 
    The array below maps from address space selectors to CVME<UShort_t 
@@ -309,7 +317,7 @@ static const char* Copyright= "(C) Copyright Michigan State University 2002, All
    
 */
 static const
-#ifdef WienerVME
+#ifdef HAVE_WIENERVME_INTERFACE
 CVMEInterface::AddressMode AmodTable[] = {
    CVMEInterface::A16,
    CVMEInterface::A24,
@@ -317,7 +325,9 @@ CVMEInterface::AddressMode AmodTable[] = {
    CVMEInterface::A32,
    CVMEInterface::GEO
 };
-#else
+#endif
+
+#ifdef HAVE_SBSVME_INTERFACE
 CVME<UShort_t>::VmeSpace AmodTable[] = {
    CVME<UShort_t>::a16d16,
    CVME<UShort_t>::a24d16,
@@ -340,8 +350,9 @@ CVME<UShort_t>::VmeSpace AmodTable[] = {
   \param UInt_t length - the length of the mapping (bytes)
   \param int nCrate    - VME crate number.
 */
-CVmeModule::CVmeModule(Space space, UInt_t base, UInt_t length, int nCrate)
-#ifdef WienerVME
+CVmeModule::CVmeModule(CVmeModule::Space space, UInt_t base, 
+		       UInt_t length, int nCrate)
+#ifdef HAVE_WIENERVME_INTERFACE
    :  m_nSpace(space),
       m_nBase(base),
       m_nLength(length),
@@ -349,7 +360,7 @@ CVmeModule::CVmeModule(Space space, UInt_t base, UInt_t length, int nCrate)
       m_pDriver(0)
 #endif
 {
-#ifdef WienerVME
+#ifdef HAVE_WIENERVME_INTERFACE
    m_pDriver = CVMEInterface::Open(AmodTable[space], m_nCrate);
 #else
   try {
@@ -432,7 +443,7 @@ CVmeModule::operator=(const CVmeModule& aCVmeModule)
 int
 CVmeModule::operator== (const CVmeModule& aCVmeModule)
 {
-#ifdef WienerVME
+#ifdef HAVE_WIENERVME_INTERFACE
   return ((m_nSpace == aCVmeModule.m_nSpace)      &&
           (m_nBase  == aCVmeModule.m_nBase)       &&
 	  (m_nLength== aCVmeModule.m_nLength)     &&
@@ -456,15 +467,16 @@ CVmeModule::operator== (const CVmeModule& aCVmeModule)
                          if not specified.
 */
 UChar_t
-CVmeModule::peekb(UInt_t offset=0)
+CVmeModule::peekb(UInt_t offset)
 {
-#ifdef WienerVME
+#ifdef HAVE_WIENERVME_INTERFACE
    UChar_t byte;
    WienerVMEInterface::ReadBytes(m_pDriver,
 			         m_nBase + offset,
 				 &byte, 1);
    return byte;
-#else
+#endif
+#ifdef HAVE_VME_MAPPING
    return (UChar_t)((m_CVME.asChar())[offset]);
 #endif
 }
@@ -483,15 +495,17 @@ CVmeModule::peekb(UInt_t offset=0)
                          if unspecified.
 */
 UShort_t
-CVmeModule::peekw(UInt_t offset=0)
+CVmeModule::peekw(UInt_t offset)
 {
-#ifdef WienerVME
+#ifdef HAVE_WIENERVME_INTERFACE
    UShort_t word;
    WienerVMEInterface::ReadWords(m_pDriver, 
 				 m_nBase + offset * sizeof(UShort_t), 
 				 &word, 1);
    return word;
-#else
+#endif
+
+#ifdef HAVE_VME_MAPPING
    volatile UShort_t* c = (m_CVME.asShort());
    return (UShort_t)(c[offset]);
 #endif
@@ -511,15 +525,17 @@ CVmeModule::peekw(UInt_t offset=0)
                          offset if this is unspecified).
 */
 ULong_t
-CVmeModule::peekl(UInt_t offset=0)
+CVmeModule::peekl(UInt_t offset)
 {
-#ifdef WienerVME
+#ifdef HAVE_WIENERVME_INTERFACE
    ULong_t lword;
    WienerVMEInterface::ReadLongs(m_pDriver, 
 				 m_nBase + offset * sizeof(UInt_t),
 				 &lword, 1);
    return lword;
-#else
+#endif
+
+#ifdef HAVE_VME_MAPPING
    return (ULong_t)((m_CVME.asLong())[offset]);
 #endif
 }
@@ -540,10 +556,12 @@ CVmeModule::peekl(UInt_t offset=0)
 void
 CVmeModule::pokeb(UChar_t byte, UInt_t nOffset)
 {
-#ifdef WienerVME
+#ifdef HAVE_WIENERVME_INTERFACE
    WienerVMEInterface::ReadBytes(m_pDriver, m_nBase + nOffset,
 			&byte, 1);
-#else
+#endif
+
+#ifdef HAVE_VME_MAPPING
     (m_CVME.asChar())[nOffset] = byte;
 #endif
 }
@@ -564,11 +582,13 @@ CVmeModule::pokeb(UChar_t byte, UInt_t nOffset)
 void
 CVmeModule::pokew(UShort_t word, UInt_t nOffset)
 {
-#ifdef WienerVME
+#ifdef HAVE_WIENERVME_INTERFACE
    WienerVMEInterface::WriteWords(m_pDriver, 
 				  m_nBase + nOffset*sizeof(UShort_t),
 				  &word, 1);
-#else
+#endif
+
+#ifdef HAVE_VME_MAPPING
     (m_CVME.asShort())[nOffset] = word;
 #endif
 }
@@ -589,11 +609,13 @@ CVmeModule::pokew(UShort_t word, UInt_t nOffset)
 void
 CVmeModule::pokel(ULong_t lword, UInt_t nOffset)
 {
-#ifdef WienerVME
+#ifdef HAVE_WIENERVME_INTERFACE
    WienerVMEInterface::WriteLongs(m_pDriver, 
 				  m_nBase + nOffset * sizeof(ULong_t),
 				 &lword, 1);
-#else
+#endif
+
+#ifdef HAVE_VME_MAPPING
    (m_CVME.asLong())[nOffset] = lword;
 #endif 
 }
@@ -603,15 +625,16 @@ CVmeModule::pokel(ULong_t lword, UInt_t nOffset)
 void
 CVmeModule::CopyToMe(const CVmeModule& rModule)
 {
-#ifdef WienerVME
+#ifdef HAVE_WIENERVME_MAPPING
    m_nSpace = rModule.m_nSpace;
    m_nBase  = rModule.m_nBase;
    m_nLength= rModule.m_nLength;
    m_nCrate = rModule.m_nCrate;
    m_pDriver= (rModule.m_pDriver);
-#else
+#endif
+#ifdef HAVE_VME_MAPPING
   m_CVME = rModule.m_CVME;
 #endif
 }
 
-#endif
+// #endif

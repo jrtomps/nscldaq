@@ -6,6 +6,8 @@
 
 // Headers etc.
 
+#include <config.h>
+
 #include "CCAENV1x90.h"
 #include "CCAENV1x90Registers.h"
 #include "CCAENV1x90Data.h"
@@ -19,8 +21,12 @@
 #include <vector>
 
 
+
 // Namespace imports:
 
+#ifdef HAVE_STD_NAMESPACE
+using namespace std;
+#endif
 using namespace DesignByContract;
 using namespace CCAENV1x90Registers;
 using namespace CCAENV1x90Data;

@@ -14,6 +14,11 @@
 
 
 #ifndef SPECTRODAQ_H
+
+#ifdef HAVE_STD_NAMESPACE
+using namespace std;
+#endif
+
 #include <spectrodaq.h>
 #endif
 

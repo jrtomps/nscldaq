@@ -273,12 +273,17 @@ THIRD PARTIES OR A FAILURE OF THE PROGRAM TO OPERATE WITH ANY OTHER PROGRAMS),
 EVEN IF SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH 
 DAMAGES.
 
-		     END OF TERMS AND CONDITIONS
+		     END OF TERMS AND CONDITIONS '
 */
 
 /*
   Change Log:
   $Log$
+  Revision 1.6  2004/11/16 15:23:28  ron-fox
+  - Port -> gcc/g++ 3.x
+  - Support integrated test building.
+  - Support integrated doxygen docu7mentation building.
+
   Revision 1.5  2004/11/05 21:31:34  ron-fox
   Bring onto main line
 
@@ -328,10 +333,18 @@ DAMAGES.
 
 static const char* Copyright= "(C) Copyright Michigan State University 2002, All rights reserved";
 
+#include <config.h>
+
 
 #include "CAENcard.h"
 #include <string>
 #include <unistd.h>
+
+#include <assert.h>
+#ifdef HAVE_STD_NAMESPACE
+using namespace std;
+#endif
+
 
 //   Convenience function for longword swapping.
 #define swaplong(n)  (((n >> 16) & 0xffff) | ((n & 0xffff) << 16))
@@ -477,6 +490,26 @@ struct ROM {
   unsigned short  pad12;                     // 0x8f04
   unsigned short  SerialLSB;                 // 0x8f06
 };
+
+
+// Byte offset associated with a structure/field.
+
+
+#define Offset(structname, field)  \
+((unsigned int)&(((structname*)0x0)->field))
+
+/// Short offset associated with a struct/field.
+
+#define ShortOffset(structname, field) Offset(structname, field)/sizeof(short)
+#define LongOffset(structname, field)  Offset(structname, field)/sizeof(long)
+
+/// Read the buffer:
+///
+#ifdef HAVE_VME_MAPPING
+#define ReadBuffer   (((volatile Registers*)m_pModule)->Buffer[0])
+#else
+#define ReadBuffer   (m_pModule->peekl(LongOffset(Registers, Buffer)));
+#endif
 
 
 /*!
@@ -648,9 +681,13 @@ CAENcard::cardType()
 void 
 CAENcard::setCrate(int crateNum)
 {
+#ifdef HAVE_VME_MAPPING
   volatile Registers* pModule = (volatile Registers*)m_pModule;
   pModule->CrateSelect = crateNum & 0x0ff; // Bottom 8 bits only.
-
+#else
+   m_pModule->pokew((0x0ff & m_pModule->peekw(ShortOffset(Registers,CrateSelect))),
+		    ShortOffset(Registers,CrateSelect));
+#endif
 }
 
 /*!
@@ -663,8 +700,13 @@ CAENcard::setCrate(int crateNum)
 int 
 CAENcard::getCrate()
 {
+#ifdef HAVE_VME_MAPPING
   volatile Registers* pModule = (volatile Registers*)m_pModule;
   return (pModule->CrateSelect & 0xff);
+#else
+  return (m_pModule->peekw(ShortOffset(Registers, CrateSelect)) & 0xff);
+#endif
+
 }
 
 /*!
@@ -704,8 +746,16 @@ CAENcard::setThreshold(int ch, int threshold)
     }
   }
   else {
+#ifdef HAVE_VME_MAPPING
+    Registers* pModule      = (Registers*)m_pModule;
     pModule->Thresholds[ch] = threshold |
                              (pModule->Thresholds[ch] & KILLBIT);
+#else
+    int noffset = ShortOffset(Registers, Thresholds[ch]);
+    int now     = m_pModule->peekw(noffset);
+    now         = threshold | (now & KILLBIT);
+    m_pModule->pokew(now, noffset);
+#endif
   }
 }
 
@@ -741,9 +791,7 @@ CAENcard::setThresholdVoltage(int ch, double voltage)
 */
 void CAENcard::keepUnderThresholdData()
 {
-  volatile Registers* pRegisters = (volatile Registers*)m_pModule;
-  pRegisters->BitSet2   = KEEPTHRESH;
-
+  Bitset2(KEEPTHRESH);
 }
 
 /*!
@@ -752,8 +800,7 @@ void CAENcard::keepUnderThresholdData()
 */
 void CAENcard::discardUnderThresholdData()
 {
-  volatile Registers* pRegisters = (volatile Registers*)m_pModule;
-  pRegisters->BitClear2 = KEEPTHRESH;
+  Bitclear2(KEEPTHRESH);
 
 }
 /*!
@@ -764,8 +811,7 @@ void CAENcard::discardUnderThresholdData()
 */
 void CAENcard::keepOverflowData()
 {
-  volatile Registers* pRegisters = (volatile Registers*)m_pModule;
-  pRegisters->BitSet2   = KEEPOVER;
+  Bitset2(KEEPOVER);
 }
 
 /*!
@@ -775,8 +821,8 @@ void CAENcard::keepOverflowData()
 */
 void CAENcard::discardOverflowData()
 {
-  volatile Registers* pRegisters = (volatile Registers*)m_pModule;
-  pRegisters->BitClear2   = KEEPOVER;
+  Bitclear2(KEEPOVER);
+
 }
 
 /*!
@@ -791,8 +837,7 @@ CAENcard::keepInvalidData()
 { 
 
   if(cardType() == 775) {
-    volatile Registers* pRegisters = (volatile Registers*)m_pModule;
-    pRegisters->BitSet2   = KEEPINVALID;
+    Bitset2(KEEPINVALID);
   }
   else {
     throw string("keepInvalidData - Module is not a V775 TDC");
@@ -809,8 +854,7 @@ CAENcard::discardInvalidData()
 {
   if(cardType() == 775)
   {
-    volatile Registers* pRegisters = (volatile Registers*)m_pModule;
-    pRegisters->BitClear2 = KEEPINVALID;
+    Bitclear2(KEEPINVALID);
   }
   else
   {
@@ -834,8 +878,7 @@ void CAENcard::commonStart()
   //make sure that the card is a TDC and initialized
   if(cardType() == 775)
   {
-    volatile Registers* pRegisters = (volatile Registers*)m_pModule;
-    pRegisters->BitClear2 = COMMONSTOP;
+    Bitclear2(COMMONSTOP);
   }
   else
   {
@@ -892,8 +935,13 @@ CAENcard::setRange(int range)
   {
     if(range > 0x001D && range < 0x0100)
     {
+#ifdef HAVE_VME_MAPPING
       volatile Registers* pRegisters = (volatile Registers*)m_pModule;
       pRegisters->TDCRange  = (short int)range;
+#else
+      m_pModule->pokew(range, ShortOffset(Registers, TDCRange));
+#endif
+
     }
     else
     {
@@ -929,8 +977,13 @@ CAENcard::setPedestalCurrent(int ped)
   int type = cardType();
   if((type == 792) || (type == 862))
   {
+    ped = ped & 0xff;
+#ifdef HAVE_VME_MAPPING
     volatile Registers* pRegisters    = (volatile Registers*) m_pModule;
-    pRegisters->QDCIPedestal = (ped & 0x0ff); 
+    pRegisters->QDCIPedestal = (ped); 
+#else
+    m_pModule->pokew(ped, ShortOffset(Registers,QDCIPedestal));
+#endif
   }
   else
   {
@@ -947,8 +1000,7 @@ CAENcard::setPedestalCurrent(int ped)
 void 
 CAENcard::cardOff()
 {
-  volatile Registers* pRegisters  = (volatile Registers*)m_pModule;
-  pRegisters->BitSet2 = OFFLINE;
+  Bitset2(OFFLINE);
 }
 
 /*!
@@ -957,8 +1009,7 @@ CAENcard::cardOff()
 void 
 CAENcard::cardOn()
 {
-  volatile Registers* pRegisters  = (volatile Registers*)m_pModule;
-  pRegisters->BitClear2 = OFFLINE;
+  Bitclear2(OFFLINE);
 }
 
 /*!
@@ -989,8 +1040,13 @@ void CAENcard::channelOff(int ch)
   }
   else {
     if(ch < 32) {
+#ifdef HAVE_VME_MAPPING
        volatile Registers* pRegisters = (volatile Registers*)m_pModule;
-       pRegisters->Thresholds[ch] |= KILLBIT;
+       pRegisters->Thresholds[ch] |= KILLBIT;   
+#else
+      short thresh = m_pModule->peekw(ShortOffset(Registers,Thresholds[ch])) | KILLBIT;
+      m_pModule->pokew(thresh, ShortOffset(Registers,Thresholds[ch]));
+#endif
     } else {
       throw string("channelOff - channel number must be in [0,31]");
     }
@@ -1022,8 +1078,13 @@ CAENcard::channelOn(int ch)
   }
   else {
     if(ch < 32) {
+#ifdef HAVE_VME_MAPPING
        volatile Registers* pRegisters = (volatile Registers*)m_pModule;
-       pRegisters->Thresholds[ch] &= (KILLBIT - 1);
+       pRegisters->Thresholds[ch] &= ~(KILLBIT);
+#else
+      int thresh =  m_pModule->peekw(ShortOffset(Registers,Thresholds[ch])) & ~(KILLBIT);
+       m_pModule->pokew(thresh, ShortOffset(Registers, Thresholds[ch]));
+#endif
     } 
     else {
       throw string("channelOn - channel number must be in [0,31]");
@@ -1041,6 +1102,13 @@ CAENcard::resetEventCounter()
 {
   // Any write triggers the reset!
 
+#ifdef HAVE_VME_MAPPING
+  ((volatile Registers*)m_pModule)->EventCounterReset = 1;
+#else
+   m_pModule->pokew(1, ShortOffset(Registers, EventCounterReset));
+#endif
+
+
   ((volatile Registers*)m_pModule)->EventCounterReset = 1;
 
 }
@@ -1051,10 +1119,8 @@ CAENcard::resetEventCounter()
 */
 void CAENcard::clearData()
 {
-  volatile Registers* pReg = (volatile Registers*)m_pModule;
-  pReg->BitSet2   = CLEARDATA;
-  pReg->BitClear2 = CLEARDATA;
-
+   Bitset2(CLEARDATA);
+   Bitclear2(CLEARDATA);
 };
 
 /*!
@@ -1074,10 +1140,8 @@ void CAENcard::clearData()
 void 
 CAENcard::reset()
 {
-  volatile Registers* pReg = (volatile Registers*)m_pModule;
-  pReg->BitSet1   = RESET;
-  pReg->BitClear1 = RESET;
-
+  Bitset1(RESET);
+  Bitclear1(RESET);
 };
 
 /*!
@@ -1090,9 +1154,12 @@ read any data.
 bool 
 CAENcard::dataPresent()
 {
+#ifdef HAVE_VME_MAPPING
   volatile Registers* pReg = (volatile Registers*)m_pModule;
   return ((pReg->Status1 & DREADY) != 0);
-
+#else
+  return ((m_pModule->peekw(ShortOffset(Registers, Status1))  & DREADY) != 0);
+#endif
 };
 
 /*!
@@ -1110,19 +1177,18 @@ CAENcard::dataPresent()
 int 
 CAENcard::readEvent(void* buf)
 {
+
   int* pBuf((int*)buf);
   if(dataPresent())
   {
     int n = 1;			// Header at least is read.
-    volatile int* pBuffer    = 
-      (volatile int*)(((volatile Registers*)m_pModule)->Buffer);
-    int  Header     = *pBuffer++;
+    int  Header     = ReadBuffer;
     int* pHeader    = pBuf;	// To fix channel count.
     int  nRawChancnt= (Header >> 8) & 0x3f;
     *pBuf++         = swaplong(Header);
     int datum;
     do {
-      datum   = *pBuffer++;
+      datum   = ReadBuffer;
       *pBuf++ = swaplong(datum);
       n++;
       datum = (datum >> 24) & 7;
@@ -1143,7 +1209,7 @@ CAENcard::readEvent(void* buf)
     // cerr << "Readout called but no data present\n";
     return 0;
   }
-};
+}
 
 /*!
   Read a single event from the module into a DAQ system buffer:
@@ -1179,7 +1245,7 @@ CAENcard::readEvent(DAQWordBuffer& wbuf, int offset)
   }
 
   return 0;
-};
+}
 
 /*!
   read data into a buffer pointer.
@@ -1247,7 +1313,7 @@ CAENcard::readEvent(DAQDWordBuffer& dwbuf, int offset)
   }
   return 0;
 
-};
+}
 
 /*!
   Reads an event into a buffer pointed to by a DAQDWordBufferObject.
@@ -1274,7 +1340,7 @@ int CAENcard::readEvent(DAQDWordBufferPtr& dwp)
   }
   return 0;
 
-};
+}
 
 
 
@@ -1295,7 +1361,11 @@ void CAENcard::setIped(int value)
 int CAENcard::getIped()
 {
   if((cardType() == 792) || (cardType() != 862)) {
+#ifdef HAVE_VME_MAPPING
     return ((volatile Registers*)m_pModule)->QDCIPedestal;
+#else
+    return m_pModule->peekw(ShortOffset(Registers, QDCIPedestal));
+#endif
   } else {
     throw string("getIped - Module is not a V792 or V862 QDC");
   }
@@ -1321,6 +1391,7 @@ int CAENcard::getIped()
 void CAENcard::MapCard()
 {
   //ensure that the slot and crate specified stay within bounds
+
    m_nCrate = m_nCrate & 0xff;  //not important enough to give an error for, just discard the extra
 
    if(m_nSlot > VME_CRATE_SIZE)
@@ -1331,9 +1402,20 @@ void CAENcard::MapCard()
 
      //the card is not mapped yet, so do it
 
-   void*         fd;
-   volatile ROM* pRom;
+   void* fd;
+#ifndef HAVE_VME_MAPPING
+   CVmeModule* pRom;
+#else
+   ROM *pRom;
+#endif
    if( m_fGeo) {		// Geographical addressing...
+#ifndef HAVE_VME_MAPPING
+      m_pModule = new CVmeModule(CVmeModule::geo, m_nSlot << 19, 
+			         CAEN_REGISTERSIZE, m_nCrate);
+      pRom      = new CVmeModule(CVmeModule::geo, 
+				 ((long)m_nSlot << 19) + CAEN_ROMOFFSET,
+				 CAEN_ROMSIZE);
+#else
      fd   = CVMEInterface::Open(CVMEInterface::GEO, m_nCrate);
      m_pModule= (volatile unsigned short*) 
                    CVMEInterface::Map(fd, 
@@ -1344,28 +1426,48 @@ void CAENcard::MapCard()
 					 ((long)m_nSlot <<19) + 
 					 CAEN_ROMOFFSET,
 					 CAEN_ROMSIZE);
-     
+#endif     
    }
    else {                                    // A32 addressing.
+#ifndef HAVE_VME_MAPPING 
+     m_pModule = new CVmeModule(CVmeModule::a32d32, m_nBase,
+			        CAEN_REGISTERSIZE, m_nCrate);
+     pRom      = new CVmeModule(CVmeModule::a32d32, m_nBase+CAEN_ROMOFFSET,
+			        CAEN_ROMSIZE);
+      // The geographical address register must be programmed
+     // in case the module or crate don't support geo.
+
+     m_pModule->pokew(m_nSlot, ShortOffset(Registers, GeoAddress));
+#else
      fd = CVMEInterface::Open(CVMEInterface::A32, m_nCrate);
      m_pModule = (volatile unsigned short*) CVMEInterface::Map(fd,
 							  m_nBase,
 						 CAEN_REGISTERSIZE);
-     pRom = (volatile ROM*)CVMEInterface::Map(fd,
+     pRom = (ROM*)CVMEInterface::Map(fd,
 				     m_nBase + CAEN_ROMOFFSET,
 				     CAEN_ROMSIZE);
-     // The geographical address register must be programmed
+      // The geographical address register must be programmed
      // in case the module or crate don't support geo.
 
      ((volatile Registers*)m_pModule)->GeoAddress = m_nSlot;
+#endif
    }
 
    // Get the module type from the PROM and unmap the prom,
    // as that's all we use it for:
 
-   m_nCardType = (pRom->BoardIdMSB & 0xff) << 16 |
-                 (pRom->BoardId & 0xff)    <<  8 |
-                 (pRom->BoardIdLSB & 0xff);
+#ifndef HAVE_VME_MAPPING
+   m_nCardType = (pRom->peekw(ShortOffset(ROM, BoardIdMSB)) & 0xff) << 16  |
+                 (pRom->peekw(ShortOffset(ROM, BoardId))    & 0xff) << 8   |
+                 (pRom->peekw(ShortOffset(ROM, BoardIdLSB)) & 0xff);
+   m_nSerialno = (pRom->peekw(ShortOffset(ROM, SerialMSB))  & 0xff) << 8   |
+	         (pRom->peekw(ShortOffset(ROM, SerialLSB))  & 0xff);
+   m_nHardwareRev = pRom->peekw(ShortOffset(ROM, Revision));
+   delete pRom;
+#else   
+   m_nCardType = pRom->BoardIdMSB << 16 |
+                 pRom->BoardId    <<  8 |
+                 pRom->BoardIdLSB;
    m_nSerialno  = pRom->SerialMSB << 8 |
                  pRom->SerialLSB;
    m_nHardwareRev = pRom->Revision;
@@ -1373,7 +1475,7 @@ void CAENcard::MapCard()
    // We can now unmap the prom:
    
    CVMEInterface::Unmap(fd, (void*)pRom, CAEN_ROMSIZE);
-
+#endif
    /* 
       To determine that the experimenter is not lying to us
       about how the VME is stuffed, we require that the module
@@ -1384,7 +1486,11 @@ void CAENcard::MapCard()
       make a pretty miniscule chance that we'll be fooled
       by an empty slot. 1/32 * (1/2&24)
    */
+#ifndef HAVE_VME_MAPPING
+   int nSlot = m_pModule->peekw(ShortOffset(Registers, GeoAddress)) & 0x1f;
+#else
    int nSlot = ((volatile Registers*)m_pModule)->GeoAddress & 0x1f;
+#endif
    
    if(!(
 	( m_nSlot  ==  nSlot )   &&
@@ -1393,15 +1499,16 @@ void CAENcard::MapCard()
 	  (m_nCardType == 792) ||
 	  (m_nCardType == 862) )
 	))   {   //either an invalid board or no board is present in this slot
+#ifndef HAVE_VME_MAPPING
+   delete m_pModule;
+#else
      CVMEInterface::Unmap(fd, 
 			  (void*)m_pModule, CAEN_REGISTERSIZE);
      
      CVMEInterface::Close(fd);
-     char message[1000];
-     sprintf(message,
-	     "Card is incompatible type or not inserted in slot %d type %d",
-	     m_nSlot, m_nCardType);
-     throw   string(message);
+#endif
+     throw 
+       string("Card is incompatable type or not inserted");
    }
    
    
@@ -1414,33 +1521,42 @@ void CAENcard::MapCard()
 
    
    if(m_fGeo) {                              // Transition to A32...
-
      // Set the address registers of the module so that it will
      // recognize at m_nSlot << 24:
-
+#ifdef WienerVME
+      m_pModule->pokew(m_nSlot, ShortOffset(Registers, HighAddress));
+      m_pModule->pokew(0,       ShortOffset(Registers, LowAddress));
+#else
      ((volatile Registers*)m_pModule)->HighAddress = m_nSlot;
      ((volatile Registers*)m_pModule)->LowAddress  = 0;
-     
+#endif
      // Enable address recognition based on the address registers
      // (bypass the rotary switches).
 
-     ((volatile Registers*)m_pModule)->BitSet1 = SELADDR;
+     Bitset1(SELADDR);
      
      //destroy GEO24 mmap and file descriptor
+     // Now remap using A32 addressing:
+
+#ifdef WienerVME
+     delete m_pModule;
+     m_pModule = new CVmeModule(CVmeModule::a32d32, (long)m_nSlot << 24,
+			      CAEN_REGISTERSIZE);
      
+#else
+
      CVMEInterface::Unmap(fd, (void*)m_pModule, CAEN_REGISTERSIZE);
      CVMEInterface::Close(fd);
 
-     // Now remap using A32 addressing:
-     
      fd = CVMEInterface::Open(CVMEInterface::A32, m_nCrate);
      
      //create A32D16 mmap
      
      m_pModule = (volatile unsigned short *) 
-       CVMEInterface::Map(fd, 
-			  (long)m_nSlot << 24, 
-			  CAEN_REGISTERSIZE);
+     CVMEInterface::Map(fd, 
+	  	        (long)m_nSlot << 24, 
+			CAEN_REGISTERSIZE);
+#endif
    }
    m_nFd = fd;			// Save for destruction.
   
@@ -1455,10 +1571,14 @@ void CAENcard::MapCard()
 */
 void CAENcard::DestroyCard()
 {
+#ifndef HAVE_VME_MAPPING
+   delete m_pModule;
+#else
   CVMEInterface::Unmap(m_nFd, 
 		       (void*)m_pModule,
 		       CAEN_REGISTERSIZE);
   CVMEInterface::Close(m_nFd);
+#endif
 }
 
 /*!
@@ -1466,7 +1586,11 @@ void CAENcard::DestroyCard()
 */
 int CAENcard::getFirmware() 
 {
+#ifndef HAVE_VME_MAPPING
+  return m_pModule->peekw(ShortOffset(Registers, FirmwareRev));
+#else
   return ((Registers*)m_pModule)->FirmwareRev;
+#endif
 }
 /*! 
    Set the fast clear window width.
@@ -1476,8 +1600,12 @@ int CAENcard::getFirmware()
 void
 CAENcard::setFastClearWindow(int n)
 {
+#ifdef HAVE_VME_MAPPING
   Registers* pRegs = (Registers*)m_pModule;
   pRegs->FCLRWindow = n;
+#else
+  m_pModule->pokew(n, ShortOffset(Registers, FCLRWindow));
+#endif
 }
 /*!
    Enable the small threshold mode.
@@ -1493,8 +1621,9 @@ CAENcard::setFastClearWindow(int n)
 void
 CAENcard::enableSmallThresholds()
 {
-  ((Registers*)m_pModule)->BitSet2 = STEPTHR;
+  Bitset2(STEPTHR);
   m_fSmallThresholds = true;
+
 }
 /*!
   Disable the small threshold mode.
@@ -1509,7 +1638,7 @@ CAENcard::enableSmallThresholds()
 void
 CAENcard::disableSmallThresholds()
 {
-  ((Registers*)m_pModule)->BitClear2 = STEPTHR;
+  Bitclear2(STEPTHR);
   m_fSmallThresholds = false;
 }
 
@@ -1531,9 +1660,6 @@ void
 CAENcard::SetCBLTChainMembership(int cbltaddr,
 				 CAENcard::ChainMember where)
 {
-  ((Registers*)m_pModule)->MCSTAddress = cbltaddr;
-  ((Registers*)m_pModule)->Control1    = CTL1BERRENA;
-  
   // Compute membership mask:
 
   int mask;
@@ -1553,7 +1679,15 @@ CAENcard::SetCBLTChainMembership(int cbltaddr,
   default:
     throw string("CAENcard::SetCBLTChainMembership: Invalid chain membership selector");
   }
+#ifdef HAVE_VME_MAPPING
   ((Registers*)m_pModule)->MCSTControl = mask;
+  ((Registers*)m_pModule)->MCSTAddress = cbltaddr;
+  ((Registers*)m_pModule)->Control1    = CTL1BERRENA;
+#else
+  m_pModule->pokew(mask,       ShortOffset(Registers, MCSTControl));
+  m_pModule->pokew(cbltaddr,   ShortOffset(Registers, MCSTAddress));
+  m_pModule->pokew(CTLBERRENA, ShortOffset(Registers, Control1);
+#endif
 }
 /*!
    Return true if global data ready is set in SR1
@@ -1561,8 +1695,13 @@ CAENcard::SetCBLTChainMembership(int cbltaddr,
 bool
 CAENcard::gdataPresent()
 {
+#ifdef HAVE_VME_MAPPING
   volatile Registers* pReg = (volatile Registers*)m_pModule;
   return ((pReg->Status1 & GDREADY) != 0);
+#else
+  short mask = m_pModule->peekw(ShortOffset(Registers, Status1));
+  return ((mask & GDREADY) != 0);
+#endif
 
 }
 /*!
@@ -1571,9 +1710,13 @@ CAENcard::gdataPresent()
 bool
 CAENcard::Busy()
 {
+#ifdef HAVE_VME_MAPPING
   volatile Registers* pReg = (volatile Registers*)m_pModule;
   return ((pReg->Status1 & BUSY) != 0);
-
+#else
+  short mask = m_pModule-peekw(ShortOffset(Registers, Status1));
+  return ((mask & BUSY) != 0);
+#endif
 }
 /*!
   Return true if the global busy is set (at least one module
@@ -1582,9 +1725,13 @@ CAENcard::Busy()
 bool
 CAENcard::gBusy()
 {
+#ifdef HAVE_VME_MAPPING
   volatile Registers* pReg = (volatile Registers*)m_pModule;
   return ((pReg->Status1 & GBUSY) != 0);
-
+#else
+  short mask = m_pModule->peekw(ShortOffset(Registers, Status1));
+  return ((mask & GBUSY) != 0);
+#endif
 }
 /*!
    Return true if the module's MEB is completely full.
@@ -1592,8 +1739,13 @@ CAENcard::gBusy()
 bool
 CAENcard::MEBFull()
 {
+#ifdef HAVE_VME_MAPPING
   volatile Registers* pReg = (volatile Registers*)m_pModule;
   return ((pReg->Status2 & SR2FULL) != 0);
+#else
+  short mask = m_pModule->peekw(ShortOffset(Registers, Status2));
+  return ((mask & SR2FULL) != 0);
+#endif
 }
 /*!
   Return true if the module's MEB is empty.
@@ -1601,8 +1753,13 @@ CAENcard::MEBFull()
 bool
 CAENcard::MEBEmpty()
 {
+#ifdef HAVE_VME_MAPPING
   volatile Registers* pReg = (volatile Registers*)m_pModule;
   return ((pReg->Status2 & SR2EMPTY) != 0);
+#else
+  short mask = m_pModule->peekw(ShortOffset(Registers, Status2));
+  return ((mask & SR2EMPTY) != 0);
+#endif
 }
 /*!
    Cleare the internal statistics maintained by the object.
@@ -1657,4 +1814,62 @@ int
 CAENcard::EventCount()
 {
   return m_nEvents;
+}
+/*!
+    Set a mask in the bit set 1 register. 
+   \param mask (short [in]):
+      the mask to set.
+*/
+void
+CAENcard::Bitset1(short mask) 
+{
+#ifdef WienerVME
+   m_pModule->pokew(mask, ShortOffset(Registers, BitSet1));
+#else
+  volatile Registers* pRegisters = (volatile Registers*)m_pModule;
+  pRegisters->BitSet1   = mask;
+#endif   
+}
+/*!
+   Set a mask in the bit clear 1 register.
+    \param mask (short [in]): 
+      the mask to set
+*/
+void
+CAENcard::Bitclear1(short mask)
+{
+#ifdef WienerVME
+   m_pModule->pokew(mask, ShortOffset(Registers, BitClear1));
+#else
+  volatile Registers* pRegisters = (volatile Registers*)m_pModule;
+  pRegisters->BitClear1   = mask;
+#endif 
+}
+/*!
+   Set a mask in the bit 2 set register.
+*/
+void
+CAENcard::Bitset2(short mask)
+{
+#ifdef WienerVME
+   m_pModule->pokew(mask, ShortOffset(Registers, BitSet2));
+#else
+  volatile Registers* pRegisters = (volatile Registers*)m_pModule;
+  pRegisters->BitSet2   = mask;
+#endif 
+}
+/*!
+   Set a mask in the bit clear 2 register.
+   \param mask (short [in]):
+     The mask to set.
+*/
+void
+CAENcard::Bitclear2(short mask)
+{
+#ifdef WienerVME
+   m_pModule->pokew(mask, ShortOffset(Registers, BitClear2));
+#else
+  volatile Registers* pRegisters = (volatile Registers*)m_pModule;
+  pRegisters->BitClear2   = mask;
+#endif 
 }

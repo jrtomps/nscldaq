@@ -273,7 +273,7 @@ THIRD PARTIES OR A FAILURE OF THE PROGRAM TO OPERATE WITH ANY OTHER PROGRAMS),
 EVEN IF SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH 
 DAMAGES.
 
-		     END OF TERMS AND CONDITIONS
+		     END OF TERMS AND CONDITIONS '
 */
 
 #ifndef __CSIS3820_H
@@ -352,7 +352,7 @@ private:
 public:
   // Constructors:
 
-  CSIS3820(unsigned long base, int crate = 0) throw (string);
+  CSIS3820(unsigned long base, int crate = 0) throw (STD(string));
   virtual ~CSIS3820() {}
 
   // Copy, etc. not supported.
@@ -377,13 +377,13 @@ public:
 
   void   Reset()      const;   //!< Reset the module.
 
-  void   setOperatingMode(OperatingMode mode) const throw (string);
+  void   setOperatingMode(OperatingMode mode) const throw (STD(string));
   OperatingMode  getOperatingMode()           const;
 
-  void      setInputMode(InputMode mode) const throw(string);
+  void      setInputMode(InputMode mode) const throw(STD(string));
   InputMode getInputMode() const;
 
-  void setLatchSource(LNESource mode) const throw(string); 
+  void setLatchSource(LNESource mode) const throw(STD(string)); 
   LNESource getLatchSource() const;
 
   void Arm()     const;		//!< Arm the module.
@@ -425,7 +425,7 @@ protected:
 
   void setCSR(unsigned int long data) const;
   static void ValidChannel(unsigned int chan, const char *pWhere)
-           throw (string);
+           throw (STD(string));
   static unsigned long ChannelOffset(unsigned long base, 
 				     unsigned int  chan);
 };

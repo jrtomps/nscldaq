@@ -273,7 +273,7 @@ THIRD PARTIES OR A FAILURE OF THE PROGRAM TO OPERATE WITH ANY OTHER PROGRAMS),
 EVEN IF SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH 
 DAMAGES.
 
-		     END OF TERMS AND CONDITIONS
+		     END OF TERMS AND CONDITIONS '
 */
 /*!
   \class CMmapError
@@ -303,7 +303,7 @@ DAMAGES.
 
 class CMmapError : public CException
 {
-  string m_ReasonText;     // Reason text
+  STD(string) m_ReasonText;     // Reason text
 
  public:
   // Default constructor
@@ -311,7 +311,7 @@ class CMmapError : public CException
     CException(pDoing)
     { UpdateReason(); }
 
-  CMmapError(const string& rDoing) :
+  CMmapError(const STD(string)& rDoing) :
     CException(rDoing)
     { UpdateReason(); }
   

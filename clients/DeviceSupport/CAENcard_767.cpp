@@ -1,14 +1,17 @@
-#ifndef CAENCARD_767_CPP
-#define CAENCARD_767_CPP
 
-#ifndef CAENCARD_767_H
+#include <config.h>
 #include "CAENcard_767.h"
-#endif
+
 
 
 #include <string>
-#include <iostream.h>
+#include <Iostream.h>
 #include <CVMEInterface.h>
+
+#ifdef HAVE_STD_NAMESPACE
+using namespace std;
+#endif
+
 
 struct CAENcard_767::CAENcrate_767 CAENcard_767::crate[VME_CRATE_SIZE + 1];
 
@@ -30,7 +33,7 @@ struct CAENcard_767::CAENcrate_767 CAENcard_767::crate[VME_CRATE_SIZE + 1];
   previous settings.  Also, the thresholds are also set to default values and the TDC
   is set to common-start mode.
  */
-CAENcard_767::CAENcard_767(int slotNum = 0, int crateNum = 0)
+CAENcard_767::CAENcard_767(int slotNum, int crateNum)
 {
   if(slotInit(slotNum, crateNum) < 0)
     slot = 0;
@@ -690,4 +693,4 @@ bool operator< (const CAENcard_767& card1, const CAENcard_767& card2)
   return card1.slot < card2.slot;
 };
 
-#endif
+

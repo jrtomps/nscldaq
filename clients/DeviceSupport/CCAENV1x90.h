@@ -45,8 +45,10 @@ software.
 Change Log:
 
 $Log$
-Revision 1.3  2004/08/06 13:26:00  ron-fox
-Merge prior to begining kernel 2.6/gcc 3.x port
+Revision 1.4  2004/11/16 15:23:29  ron-fox
+- Port -> gcc/g++ 3.x
+- Support integrated test building.
+- Support integrated doxygen docu7mentation building.
 
 Revision 1.1.2.4  2004/07/06 13:39:08  ron-fox
 Fix the experimentally determined error in leading/trailing edge detection.
@@ -61,13 +63,6 @@ Merge in development line for the CAENV1x90 module.
 #ifndef __CCAENV1x90_H
 #define __CCAENV1x90_h
 
-
-#ifndef __STL_STRING
-#include <string>
-#ifndef __STL_STRING
-#define __STL_STRING
-#endif
-#endif
 
 #ifndef __STL_VECTOR
 #include <vector>
@@ -407,8 +402,8 @@ public:
   void DisableChannel(unsigned short nChannel);	//!< Disable a channel (0x41nn)
   void EnableAllChannels();	//!< Enable all tdc channels (0x4200)
   void DisableAllChannels();	//!< Disable all tdc channels (0x4300)
-  void SetChannelEnables(vector<unsigned short> masks); //!< Set enables mask for all chans (0x4400)
-  void GetChannelEnables(vector<unsigned short>& masks); //!< read enables mask. (0x4500)
+  void SetChannelEnables(STD(vector)<unsigned short> masks); //!< Set enables mask for all chans (0x4400)
+  void GetChannelEnables(STD(vector)<unsigned short>& masks); //!< read enables mask. (0x4500)
   void SetChipEnables(unsigned short nChip,
 		      unsigned int nMask); //!< Set the enables for a single chip. (0x460n)
   unsigned int GetChipEnables(unsigned short nChip); //!< read enables for a chip. (0x470n)

@@ -313,7 +313,7 @@ DAMAGES.
 #endif
 
 #ifndef __RANGEERROR_H
-#include <CRangeError.h>
+#include <RangeError.h>
 #endif
 
 #ifndef __CVMEINTERFACE_H
@@ -596,8 +596,8 @@ CVMEptr<T>::CreateMap(UInt_t space, UInt_t base, UInt_t length, UInt_t crate)
       break;
     }
   }
-  catch(string& err) {
-    string merr = "CVMEptr<T>::CreateMap - Opening connection to vme device";
+  catch(STD(string)& err) {
+    STD(string) merr = "CVMEptr<T>::CreateMap - Opening connection to vme device";
     merr += '\n';
     merr += err;
     merr += "\n";
@@ -612,8 +612,8 @@ CVMEptr<T>::CreateMap(UInt_t space, UInt_t base, UInt_t length, UInt_t crate)
   try {
     m_pStart  = CVMEInterface::Map(m_pHandle, base, length);
   }
-  catch (string& err) {
-    string merr("CVMEptr<T>::CreateMap - Unable to perform CVMEInterface::Map");
+  catch (STD(string)& err) {
+    STD(string) merr("CVMEptr<T>::CreateMap - Unable to perform CVMEInterface::Map");
     merr += '\n';
     merr += err;
     merr += "/n";
@@ -826,7 +826,7 @@ CVMEptr<T>::operator++()
     return *this;
   }
   else {
-    string reason = "CVMEptr<T>::operator++() - reference to address which\n";
+    STD(string) reason = "CVMEptr<T>::operator++() - reference to address which\n";
     reason += "is greater than map size";
     CRangeError re(0, m_nOffset, m_nOffset+1, reason);
     throw re;
@@ -852,7 +852,7 @@ CVMEptr<T>::operator--()
     return *this;
   }
   else {
-    string reason = "CVMEptr<T>::operator--() - reference to address which\n";
+    STD(string) reason = "CVMEptr<T>::operator--() - reference to address which\n";
     reason += "is less than map size";
     CRangeError re(0, m_nOffset, m_nOffset-1, reason);
     throw re;
@@ -882,7 +882,7 @@ CVMEptr<T>::operator++(Int_t)
     return p;
   }
   else {
-    string reason = "CVMEptr<T>::operator++() - reference to memory address\n";
+    STD(string) reason = "CVMEptr<T>::operator++() - reference to memory address\n";
     reason += "which is greater than the size of the map";
     CRangeError re(0, m_nOffset, m_nOffset+1, reason);
     throw re;
@@ -912,7 +912,7 @@ CVMEptr<T>::operator--(Int_t)
     return p;
   }
   else {
-    string reason = "CVMEptr<T>::operator--() reference to memory address\n";
+    STD(string) reason = "CVMEptr<T>::operator--() reference to memory address\n";
     reason += "which is less than the start address of the map";
     CRangeError re(0, m_nOffset, m_nOffset-1, reason);
     throw re;

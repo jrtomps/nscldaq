@@ -11,6 +11,11 @@
 //
 // Copyright (c) 2001 NSCL all rights reserved.
 //
+#include <config.h>
+#ifdef HAVE_STD_NAMESPACE
+using namespace std;		// Needed here for spectrodaq
+#endif
+
 #include <spectrodaq.h>
 #include <sis3300.h>
 #include <string>

@@ -308,6 +308,11 @@ static const char* Copyright= "(C) Copyright Michigan State University 2002, All
    Change log:
 
    $Log$
+   Revision 1.2  2004/11/16 15:23:29  ron-fox
+   - Port -> gcc/g++ 3.x
+   - Support integrated test building.
+   - Support integrated doxygen docu7mentation building.
+
    Revision 1.1  2003/12/03 19:29:05  ron-fox
     Add generic CAMAC support to the library.
 
@@ -350,6 +355,7 @@ static const char* Copyright= "(C) Copyright Michigan State University 2002, All
 //   VME crate access.
 //
 */
+#include <config.h>
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -374,6 +380,10 @@ static const char* Copyright= "(C) Copyright Michigan State University 2002, All
 
 
 #include <CVMEInterface.h>
+
+#ifdef HAVE_STD_NAMESPACE
+using namespace std;
+#endif
 
 #define VMECRATES      16
 #define BRANCHESINCRATE 8 

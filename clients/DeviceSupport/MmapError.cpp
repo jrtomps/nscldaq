@@ -273,7 +273,7 @@ THIRD PARTIES OR A FAILURE OF THE PROGRAM TO OPERATE WITH ANY OTHER PROGRAMS),
 EVEN IF SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH 
 DAMAGES.
 
-		     END OF TERMS AND CONDITIONS
+		     END OF TERMS AND CONDITIONS '
 */
 
 
@@ -289,9 +289,13 @@ DAMAGES.
      East Lansing, MI 48824-1321
      mailto: venemaja@msu.edu
 */
-
+#include <config.h>
 #include "MmapError.h"
 #include <stdio.h>
+
+#ifdef HAVE_STD_NAMESPACE
+using namespace std;
+#endif
 
 static const char* Copyright =
 "CMmapError.cpp: Copyright 2002 NSCL, All rights reserved\n";

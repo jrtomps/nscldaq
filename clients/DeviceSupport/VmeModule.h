@@ -273,7 +273,7 @@ THIRD PARTIES OR A FAILURE OF THE PROGRAM TO OPERATE WITH ANY OTHER PROGRAMS),
 EVEN IF SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH 
 DAMAGES.
 
-		     END OF TERMS AND CONDITIONS
+		     END OF TERMS AND CONDITIONS '
 */
 /*!
   \class CVmeModule
@@ -311,13 +311,14 @@ class CVmeModule
   };
 
 private:
-#ifdef WienerVME
+#ifdef HAVE_WIENERVME_INTERFACE
    Space  m_nSpace;
    UInt_t m_nBase;
    UInt_t m_nLength;
    Int_t  m_nCrate;
    void*  m_pDriver;
-#else
+#endif
+#ifdef HAVE_VME_MAPPING
   CVME<UShort_t> m_CVME;  // the CVME map to the module
 #endif
 
@@ -340,7 +341,7 @@ private:
 
   // Mutator function
 
-#ifndef WienerVME
+#ifndef HAVE_WIENERVME_INTERFACE
  protected:
   void setCVME(CVME<UShort_t> aCVME)
     {

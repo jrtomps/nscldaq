@@ -273,10 +273,17 @@ THIRD PARTIES OR A FAILURE OF THE PROGRAM TO OPERATE WITH ANY OTHER PROGRAMS),
 EVEN IF SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH 
 DAMAGES.
 
-		     END OF TERMS AND CONDITIONS
+		     END OF TERMS AND CONDITIONS '
 */
+#include <config.h>
 
 #include "CModule32.h"
+
+#ifdef HAVE_STD_NAMESPACE
+using namespace std;
+#endif
+
+
 
 /*!
   Construct the object.
@@ -286,7 +293,7 @@ DAMAGES.
       Crate in which the module lives.
 
 */
-CModule32::CModule32(unsigned long base, unsigned int size, int crate = 0) :
+CModule32::CModule32(unsigned long base, unsigned int size, int crate) :
     m_Module(CVmeModule::a32d32, base, size, crate)
 {
 } 

@@ -273,15 +273,20 @@ THIRD PARTIES OR A FAILURE OF THE PROGRAM TO OPERATE WITH ANY OTHER PROGRAMS),
 EVEN IF SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH 
 DAMAGES.
 
-		     END OF TERMS AND CONDITIONS
+		     END OF TERMS AND CONDITIONS '
 */
-
+#include <config.h>
 #include "CCAENV830.h"
 #include "CCAENV820Registers.h"
 #include <CVMEInterface.h>
 #include <string>
 #include <stdio.h>
 #include <string.h>
+
+#ifdef HAVE_STD_NAMESPACE
+using namespace std;
+#endif
+
 
 // The 'macros' below are used to do structure like offsets
 // using the register structure through VmeModule:
@@ -888,10 +893,11 @@ int
 CCAENV830::ReadEvent(void * pBuffer) 
 {
   if(isDataReady()) {
-#ifdef WienerVME
+#ifdef HAVE_WIENERVME_INTERFACE
     void* pHandle = m_pModule->getDriver();
-    ReadLongs(pHandle, m_nBase, pBuffer, m_nEventLength);
-#else
+    WienerVMEInterface::ReadLongs(pHandle, m_nBase, pBuffer, m_nEventLength);
+#endif
+#ifdef HAVE_VME_MAPPING		// Can't be wiener.
     unsigned long* p((unsigned long*) pBuffer);
     for(int i = 0; i < m_nEventLength; i++) {
       *p++ = GetLong(MEB[i]);

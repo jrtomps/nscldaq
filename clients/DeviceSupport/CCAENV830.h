@@ -273,7 +273,7 @@ THIRD PARTIES OR A FAILURE OF THE PROGRAM TO OPERATE WITH ANY OTHER PROGRAMS),
 EVEN IF SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH 
 DAMAGES.
 
-		     END OF TERMS AND CONDITIONS
+		     END OF TERMS AND CONDITIONS '
 */
 
 #ifndef __CCAENV820_H
@@ -285,6 +285,11 @@ DAMAGES.
 #endif
 
 #ifndef __SPECTRODAQ_H
+
+#ifdef      HAVE_STD_NAMESPACE
+using namespace std;
+#endif
+
 #include <spectrodaq.h>
 #endif
 
@@ -335,7 +340,7 @@ public:
   CCAENV830(int slot,
 	    int crate = 0,
 	    bool geo = true,
-	    unsigned long base = 0) throw (string);
+	    unsigned long base = 0) throw (STD(string));
 
   ~CCAENV830();
 
@@ -388,11 +393,11 @@ public:
   // Class operations.
 
 public:
-  void Enable(int nChannel) throw (string);
-  void Disable(int nChannel) throw (string);
+  void Enable(int nChannel) throw (STD(string));
+  void Disable(int nChannel) throw (STD(string));
   void SetEnableMask(int nMask);
   void SetDwellTime(int n400ns);
-  void SetTriggerMode(TriggerMode mode) throw (string);
+  void SetTriggerMode(TriggerMode mode) throw (STD(string));
   void SetWide();
   void SetNarrow();
   void EnableHeader();
@@ -422,7 +427,7 @@ public:
   // Utility functions:
 protected:
   void ComputeEventSize();
-  void MapModule() throw (string);
+  void MapModule() throw (STD(string));
   void InitModule();
   void UnmapModule();
 };

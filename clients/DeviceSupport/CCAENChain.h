@@ -275,14 +275,16 @@ THIRD PARTIES OR A FAILURE OF THE PROGRAM TO OPERATE WITH ANY OTHER PROGRAMS),
 EVEN IF SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH 
 DAMAGES.
 
-		     END OF TERMS AND CONDITIONS
+		     END OF TERMS AND CONDITIONS '
 */
 
 /*
    Revision history:
    $Log$
-   Revision 1.2  2004/10/29 20:32:54  ron-fox
-   Merge the 7.4 development into the main line
+   Revision 1.3  2004/11/16 15:23:28  ron-fox
+   - Port -> gcc/g++ 3.x
+   - Support integrated test building.
+   - Support integrated doxygen docu7mentation building.
 
    Revision 1.1  2003/12/03 18:45:45  ron-fox
    Update 767 documentation
@@ -307,7 +309,7 @@ DAMAGES.
 #endif
 
 #ifndef __CRANGEERROR_H
-#include <CRangeError.h>
+#include <RangeError.h>
 #endif
 
 // Forward class definitions:
@@ -368,13 +370,13 @@ class CAENcard;
    constructor the range of slots you'll be using.
 
    If you don't have slot addressable cards, you'll have to be sure that the
-   vector of base addresses you supply really corresponds to a valid chain
+   STD(vector) of base addresses you supply really corresponds to a valid chain
    or errors will occur.
 */
 class CCAENChain {
   // Private data.
 private:
-  vector<CAENcard*> m_vCards;	    //!< Card driver objects for the chain.
+  STD(vector)<CAENcard*> m_vCards;	    //!< Card driver objects for the chain.
   unsigned long     m_nCBLTAddress; //!< CBLT address assigned to the chain.
   int               m_nCrate;	    //!< VME crate containing the chain. 
   void*             m_pHandle;   //!< Handle to he VME crate for Read.
@@ -384,8 +386,8 @@ private:
   // Constructors and other canonical operations.
 public:
   CCAENChain(int nFirstSlot, int nLastSlot,
-	     vector<unsigned long>& vBases,
-	     int nCrate = 0, bool geo=true) throw (string);
+	     STD(vector)<unsigned long>& vBases,
+	     int nCrate = 0, bool geo=true) throw (STD(string));
   ~CCAENChain();
   
   // Canonicals that are not allowed:
@@ -399,7 +401,7 @@ public:
 
   // Selectors:
 public:
-  vector<CAENcard*> getCards() {      //!< Get vector with ptrs to all cards. 
+  STD(vector)<CAENcard*> getCards() {      //!< Get STD(vector) with ptrs to all cards. 
     return m_vCards;
   }
   unsigned long getCBLTAddress() const { //!< Get CBLT transfer address.
@@ -420,7 +422,7 @@ public:
   //             set these things during construction.
 
 protected:
-  void setCards(const vector<CAENcard*> vCards) { //!< Set vector of card ptrs
+  void setCards(const STD(vector)<CAENcard*> vCards) { //!< Set STD(vector) of card ptrs
     m_vCards = vCards;
   }
   void setCBLTAddress(unsigned long nCBLTAddress) { //!< set new xfer address.

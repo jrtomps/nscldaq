@@ -273,11 +273,16 @@ THIRD PARTIES OR A FAILURE OF THE PROGRAM TO OPERATE WITH ANY OTHER PROGRAMS),
 EVEN IF SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH 
 DAMAGES.
 
-		     END OF TERMS AND CONDITIONS
+		     END OF TERMS AND CONDITIONS '
 */
 /*
   Change Log:
   $Log$
+  Revision 1.2  2004/11/16 15:23:28  ron-fox
+  - Port -> gcc/g++ 3.x
+  - Support integrated test building.
+  - Support integrated doxygen docu7mentation building.
+
   Revision 1.1  2003/12/03 15:59:29  ron-fox
   Add CAENcard and associated documentation.
 
@@ -315,7 +320,18 @@ DAMAGES.
 #endif
 
 #ifndef SPECTRODAQ_H
+ // Hate to do this here, but I have no real choice:
+
+#ifdef HAVE_STD_NAMESPACE
+using namespace std;
+#endif
+
 #include <spectrodaq.h>
+#endif
+
+
+#ifndef HAVE_VME_MAPPING
+#include <VmeModule.h>		// Needed to access registers via peek/poke.
 #endif
 
 //Constants used to determine the type of data being returned from the card
@@ -359,7 +375,11 @@ class CAENcard {
   int    m_nCrate;		//!< VME crate number housing the module.
   bool   m_fGeo;		//!< True if geo addressing.
   unsigned long   m_nBase;	//!< Base physical VME address in crate.
+#ifdef HAVE_VME_MAPPING
   volatile unsigned short* m_pModule;	//!< Pointer to module data (not prom).
+#else
+  CVMEModule* m_pModule;
+#endif
   long   m_nCardType;          //!< Type of card (filled in at MapCard)
   void*  m_nFd;			//!< File desc. open on VME.
   int    m_nSerialno;		//!< Serial number of card.
@@ -369,6 +389,8 @@ class CAENcard {
   int    m_nChancountHigh;	//!< How many channel counts high
   int    m_nChancountLow;	//!< How many channel counts low.
   int    m_nEvents;		//!< How many events read.
+
+
 
 
 /*************************begin public section*********************************/
@@ -458,7 +480,11 @@ protected:
   void  DestroyCard();		//!< Destroy a card memory map.
   void  slotInit();		//!< Bring a card into being.
   void  MapCard();		//!< Map the card's memory.
-
+private:
+   void Bitset1(short mask);    //!< Set a mask in the bit set 1 register.
+   void Bitclear1(short mask);  //!< Set a mask in the bit clear 1 register.
+   void Bitset2(short mask);    //!< Set a mask i the bit set 2 register.
+   void Bitclear2(short mask);  //!< set a mask in the bit clear 2 register.
 };
 
 #endif

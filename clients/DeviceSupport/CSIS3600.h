@@ -273,7 +273,7 @@ THIRD PARTIES OR A FAILURE OF THE PROGRAM TO OPERATE WITH ANY OTHER PROGRAMS),
 EVEN IF SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH 
 DAMAGES.
 
-		     END OF TERMS AND CONDITIONS
+		     END OF TERMS AND CONDITIONS '
 */
 
 #ifndef __CSIS3600_H
@@ -306,7 +306,7 @@ private:
   // Constructors and other canonicals:
 
 public:
-  CSIS3600(unsigned long base, int crate =0) throw (string);
+  CSIS3600(unsigned long base, int crate =0) throw (STD(string));
   ~CSIS3600();
 
 private:
@@ -354,7 +354,7 @@ public:
 
   bool DataReady()  const;	//!< True if FIFO not empty
   void ClearData()  const;	//!< Clear the FIFO.
-  unsigned long Read() const throw (string); //!< Read a datum from FIFO.
+  unsigned long Read() const throw (STD(string)); //!< Read a datum from FIFO.
   unsigned int  Read(void* pBuffer, 
 		     int nLongs) const;	//!< Read block of events.
 

@@ -300,6 +300,11 @@ DAMAGES.
 /*  
    Change log:
     $Log$
+    Revision 1.2  2004/11/16 15:23:29  ron-fox
+    - Port -> gcc/g++ 3.x
+    - Support integrated test building.
+    - Support integrated doxygen docu7mentation building.
+
     Revision 1.1  2003/12/03 18:45:45  ron-fox
     Update 767 documentation
 
@@ -345,7 +350,7 @@ class CCaenIO : public CVmeModule
 
   // Default constructor
   CCaenIO(UInt_t base, int nCrate = 0);
-#ifndef WienerVME
+#ifndef HAVE_WIENERVME_INTERFACE
   CCaenIO(CVME<UShort_t>& am_CVME);
 #endif
   // Copy constructor
@@ -375,7 +380,7 @@ class CCaenIO : public CVmeModule
   // Writing to ECL outputs
   void SetECL(UShort_t value);
   void ClearECL();
-#ifndef WienerVME
+#ifdef HAVE_VME_MAPPING
   short* getInputPointer() const;
   short* getPulsedOutputPointer() const;
   short* getLatchedOutputPointer() const;

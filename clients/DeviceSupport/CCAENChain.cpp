@@ -280,6 +280,11 @@ DAMAGES.
 /*
   Revision history:
   $Log$
+  Revision 1.2  2004/11/16 15:23:28  ron-fox
+  - Port -> gcc/g++ 3.x
+  - Support integrated test building.
+  - Support integrated doxygen docu7mentation building.
+
   Revision 1.1  2003/12/03 18:45:45  ron-fox
   Update 767 documentation
 
@@ -290,10 +295,15 @@ DAMAGES.
   Added support for CBLT readout of CAEN 32 channel adcs.  Note for SBS/bit3 the driver must be patched to support early termination of block transfers.
 
 */
+#include <config.h>
 #include "CCAENChain.h"
 #include "CAENcard.h"
 #include <CVMEInterface.h>
 #include <SBSBit3API.h>
+
+#ifdef HAVE_STD_NAMESPACE
+using namespace std;
+#endif
 
 /*!
    Construct a chain.  The chain can consist either of a
@@ -331,8 +341,8 @@ DAMAGES.
       point will be properly destroyed if an exception is thrown.
 */
 CCAENChain::CCAENChain(int nFirstSlot, int nLastSlot,
-		     vector<unsigned long>& vBases,
-		     int nCrate = 0, bool geo = true) throw (string)
+		       vector<unsigned long>& vBases,
+		       int nCrate, bool geo) throw (string)
       : m_nCBLTAddress(0),
 	m_nCrate(nCrate),
 	m_pHandle(0),
