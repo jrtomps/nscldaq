@@ -40,7 +40,7 @@ install-data-local:
 	$(INSTALL_DATA) Makefile.user $(prefix)/Readout/Skel/Makefile
 	$(INSTALL_DATA) runstate.tran $(prefix)/Readout/etc	
 
-libReadout_la_LDFLAGS = -version-info 2:2:0  -L@top_srcdir@/VMEApi \
+libReadout_la_LDFLAGS = -version-info $(SOVERSION):0  -L@top_srcdir@/VMEApi \
 	-L@top_srcdir@/DeviceSupport -lDeviceSupport
 	-lVmeAPI $(SPECTRODAQ_LDFLAGS) -g
 

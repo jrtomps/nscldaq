@@ -5,7 +5,15 @@ AM_CONFIG_HEADER(config.h)
 
 #    Separate device libraries.
 
-AM_INIT_AUTOMAKE(nscldaq, 7.3-004)  
+AM_INIT_AUTOMAKE(nscldaq, 7.4)  
+
+#
+#   The variable below should track the
+#   version number above to ensure that
+#   all the .so's get appropriately versioned:
+#
+SOVERSION="7:4"
+
 
 #  Checks for parameters:
 
@@ -414,6 +422,10 @@ AC_SUBST(KERNEL_INCS)
 
 AC_SUBST(SMP_FLAG)
 
+
+#   The base part of the .so version:
+
+AC_SUBST(SOVERSION)
 
 #  Create output files:
 

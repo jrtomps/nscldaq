@@ -7,6 +7,6 @@ include_HEADERS = AccessListCheck.h AuthTokenCheck.h Authenticator.h \
 	DAQAuthTokenInteractor.h DaqSecurity.h FdInteractor.h HostListCheck.h \
 	IOInteractor.h Interactor.h PasswordCheck.h StringInteractor.h \
 	TclAccessListCheck.h UnixUserCheck.h
-libSecurity_la_LDFLAGS = -version-info 1:0:0
+libSecurity_la_LDFLAGS = -version-info $(SOVERSION)0
 
 INCLUDES = -I@top_srcdir@/Headers -I@top_srcdir@/TCL $(TCL_FLAGS) $(SPECTRODAQ_FLAGS)

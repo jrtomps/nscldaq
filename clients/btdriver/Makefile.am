@@ -1,2 +1,2 @@
-SUBDIRS = dd lib include
+SUBDIRS =  lib include # dd
 

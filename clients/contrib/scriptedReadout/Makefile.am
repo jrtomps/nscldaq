@@ -34,7 +34,7 @@ libScriptedRdo_la_SOURCES = CBoolConfigParam.cpp \
 	CStringConfigParam.cpp \
 	CTriggerCommand.cpp 
 
-libScriptedRdo_la_LDFLAGS = -version-info 1:0:0
+libScriptedRdo_la_LDFLAGS = -version-info $(SOVERSION):0
 
 noinst_HEADERS=CBoolConfigParam.h \
 	CCAENModule.h \

@@ -132,7 +132,7 @@ include_HEADERS = AccessListCheck.h \
 	CTKListener.h 
 
 
-libPReadout_la_LDFLAGS = -g -version-info 1:1:1 \
+libPReadout_la_LDFLAGS = -g -version-info $(SOVERSION):0 \
 	-L@top_srcdir@/framework \
 	-L@top_srcdir@/VMEApi \
 	-L@top_srcdir@/Exception \

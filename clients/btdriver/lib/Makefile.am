@@ -25,7 +25,7 @@ libbtp_la_SOURCES =  bt_rdwr.c \
 
 
 
-libbtp_la_LDFLAGS = -version-info 1:0:0
+libbtp_la_LDFLAGS = -version-info $(SOVERSION):0
 INCLUDES = -I. -I../include \
 	-DBT1003 -DNDEBUG -DBT_INLINE \
 	-D_POSIX_C_SOURCE -D_POSIX_THREAD_SEMANTICS \
