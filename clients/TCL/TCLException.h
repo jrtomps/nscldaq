@@ -404,7 +404,7 @@ protected:
   //
 public:
   void AddErrorInfo (const char* pMessage)  ;
-  void AddErrorInfo(const string& rMessage) {
+  void AddErrorInfo(const STD(string)& rMessage) {
     AddErrorInfo(rMessage.c_str());
   }
   void AddErrorInfo(const CTCLString& rMessage) {
