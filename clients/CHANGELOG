@@ -126,3 +126,10 @@ Week of November 1:
     - Port TcpHoist       -> 3.x (note found/fixed defect).
     - Port SpecTclDAQ     -> 3.x 
     - Port DiskRun        -> 3.x
+
+Week of November 8:
+    - Add VMEINTERFACE featur full in configure.in: support sbs, wiener and
+      none as well as HAVE_VME_MAPPING
+    - Incorporate Wiener driver into the build.
+    - Port VMEApi        -> 3.x using feature variables to select which
+                            interface gets built.
