@@ -45,6 +45,11 @@ software.
 Change Log:
 
 $Log$
+Revision 4.2  2004/11/16 15:24:48  ron-fox
+- Port to the gnu 3.x compiler set.
+- Integrate buid of tests.
+- Integrate build of docos.
+
 Revision 1.4  2004/11/16 15:23:29  ron-fox
 - Port -> gcc/g++ 3.x
 - Support integrated test building.

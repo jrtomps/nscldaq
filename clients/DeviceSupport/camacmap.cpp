@@ -308,6 +308,11 @@ static const char* Copyright= "(C) Copyright Michigan State University 2002, All
    Change log:
 
    $Log$
+   Revision 4.2  2004/11/16 15:24:48  ron-fox
+   - Port to the gnu 3.x compiler set.
+   - Integrate buid of tests.
+   - Integrate build of docos.
+
    Revision 1.2  2004/11/16 15:23:29  ron-fox
    - Port -> gcc/g++ 3.x
    - Support integrated test building.
