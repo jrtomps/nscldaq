@@ -8,7 +8,7 @@ libDeviceSupport_la_SOURCES = VmeModule.cpp MmapError.cpp \
 	CCAMACTrigger.cpp CCamac.cpp CCamacModule.cpp \
 	CCamacNimout.cpp CCrateController.cpp CScaler.cpp CStatusModule.cpp \
 	 CVMEScalerCAENV830.cpp CVMEScalerLRS1151.cpp \
-	CVMEStatusModule.cpp CVMETrigger.cpp CCAENV1x90.cpp
+	CVMEStatusModule.cpp CVMETrigger.cpp CCAENV1x90.cpp 
 
 include_HEADERS = VmeModule.h CVME.h CVMEptr.h MmapError.h CSIS3820.h \
 	sis3300.h CModule32.h CAENcard.h CCAENChain.h CaenIO.h Nimout.h \
@@ -21,7 +21,8 @@ include_HEADERS = VmeModule.h CVME.h CVMEptr.h MmapError.h CSIS3820.h \
 	CCamacNimout.h CCrateController.h CScaler.h CStatusModule.h \
 	CTrigger.h CVMEScalerCAENV830.h CVMEScalerLRS1151.h \
 	CVMEStatusModule.h CVMETrigger.h CBD8210.h \
-	CCAENV1x90.h CCAENV1x90Data.h CCAENV1x90Opcodes.h CCAENV1x90Registers.h \
+	CCAENV1x90.h CCAENV1x90Data.h CCAENV1x90Opcodes.h \
+	 CCAENV1x90Registers.h \
 	Asserts.h
 
 
@@ -54,12 +55,6 @@ install-data-local:
 		done );  \
 	fi
 
-EXTRA_DIST = caen32/cblt.oxy caen32/construct.oxy caen32/initialize.oxy \
-	caen32/maindocs.oxy caen32/readout.oxy \
-	caenv1x90/main.oxy caenv1x90/clearing..oxy caenv1x90/construct.oxy \
-	caenv1x90/init.oxy caenv1x90/readout.oxy caenv1x90/unpacking.oxy \
-	sis3600/enable.oxy sis3600/maindocs.oxy sis3600/modes.oxy sis3600/readout.oxy \
-	sis3820/maindocs.oxy sis3820/modes.oxy sis3820/readout.oxy sis3820/setup.oxy
 
 #  Unit tests
 

@@ -10,7 +10,7 @@ SUBDIRS = $(VME_DRIVERDIR) \
 EXTRA_DIST =  config/install-sh config/config.sub config/config.guess \
 	config/ltmain.sh config/missing config/mkinstalldirs  \
 	Directories.include CompilationRules.include \
-	CHANGELOG daqman
+	CHANGELOG daqman Makefile.am wienerdriver btdriver
 
 install-data-local:
 	rm -f $(prefix)/Bin

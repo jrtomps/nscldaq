@@ -10,6 +10,8 @@ spectcldaq_LDFLAGS= -Wl,"-rpath=$(libdir)"
 
 man_MANS = spectcldaq.1
 
+EXTRA_DIST = spectcldaq.1
+
 
 if CPPUNIT
 noinst_PROGRAMS  = testdriver injector

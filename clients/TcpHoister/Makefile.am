@@ -7,7 +7,7 @@ TcpHoist_LDFLAGS=-Wl,"-rpath=$(libdir)"
 
 noinst_HEADERS = TcpClient.h
 
-EXTRA_DIST = 0README.txt systest.sh
+EXTRA_DIST = 0README.txt systest.sh tcphoist.1
 
 install-data-local:
 	$(mkinstalldirs) $(prefix)/Docs
@@ -15,6 +15,7 @@ install-data-local:
 	$(INSTALL_DATA) 0README.txt $(prefix)/Docs/TcpHoister/TcpHoister.txt
 
 man_MANS = tcphoist.1
+
 
 
 #  The tests:
