@@ -32,6 +32,9 @@
 // vme.h - some important definitions about VME bus address modifiers
 //
 // $Log$
+// Revision 4.2  2004/11/08 19:21:28  ron-fox
+// add to mainl ne
+//
 // Revision 4.1  2004/11/08 18:14:04  ron-fox
 // Add wiener device driver to CVS
 //
