@@ -2,7 +2,10 @@
 AC_INIT(CopyrightTools/CopyrightNotice.cpp)
 AC_CONFIG_AUX_DIR(config)
 AM_CONFIG_HEADER(config.h)
-AM_INIT_AUTOMAKE(nscldaq, 7.2-pre)
+
+#    Separate device libraries.
+
+AM_INIT_AUTOMAKE(nscldaq, 7.2.2-pre)  
 
 #  Checks for parameters:
 
@@ -265,17 +268,25 @@ else
   AC_MSG_ERROR([Unable to find the tcl library, help me out with --with-tcl-libdir])
 fi
 
-
+AC_MSG_CHECKING([ for VME device ])
 #   VMEDEVICE  - The name of the selected api.
 #
 
-VMEDEVICE=SBSBIT3     # Support for Nikhef drv dropped
 
+VMEDEVICE="SBSBIT3"     # Support for Nikhef drv dropped
+
+if test $VMEDEVICE == "SBSBIT3" 
+then
+   VMEBUILDHEADERS="-I$(pwd)/btdriver/include"
+   VMEBUILDLIBS="-L$(pwd)/btdriver/lib -lbtp"
 
 #  Since the bt library is part of the build:
 
-VMELIBRARYHEADERS="-I$prefix/include"
-VMELIBRARY="-L$prefix/lib -lbtp"
+   VMELIBRARYHEADERS="-I$prefix/include"
+   VMELIBRARY="-L$prefix/lib -lbtp"
+fi
+
+AC_MSG_RESULT([hard coded to SBSBIT3: BUILDHEADERS: $VMEBUILDHEADERS])
 
 #   CAMAC defaults to CESCAMAC but can be overidden via --with-camac=VC32CAMAC
 
@@ -373,6 +384,8 @@ AC_SUBST(TCL_LDFLAGS)
 AC_SUBST(VMEDEVICE)
 AC_SUBST(VMELIBRARY)
 AC_SUBST(VMELIBRARYHEADERS)
+AC_SUBST(VMEBUILDHEADERS)
+AC_SUBST(VMEBUILDLIBS)
 
 	# CAMAC device:
 
@@ -407,7 +420,8 @@ AC_SUBST(SMP_FLAG)
 AC_OUTPUT(Makefile Headers/Makefile CopyrightTools/Makefile \
 	Exception/Makefile  TCL/Makefile Security/Makefile Ftp/Makefile \
 	VMEApi/Makefile cvt/Makefile \
-	SpecTclOnline/Makefile Readout/Makefile diskrun/Makefile \
+	SpecTclOnline/Makefile DeviceSupport/Makefile \
+	Readout/Makefile diskrun/Makefile \
 	EventLog/Makefile  Scaler/Makefile contrib/Makefile \
 	contrib/lecroy/Makefile contrib/whedco/Makefile vmetcl/Makefile \
 	vmetcl/camactcl/Makefile vmetcl/vhq202m/Makefile bufdump/Makefile \
