@@ -4,7 +4,7 @@ SUBDIRS = camactcl vhq202m
 lib_LTLIBRARIES = libVme.la
 libVme_la_SOURCES = VMECommand.cpp VMEMapCommand.cpp VMEPackage.cpp
 
-libVme_la_LDFLAGS = -static   -L@top_srcdir@/VMEApi \
+libVme_la_LDFLAGS =   -L@top_srcdir@/VMEApi \
 	 -L@top_srcdir@/TCL -L@top_srcdir@/Exception  \
 	-L@top_srcdir@/CopyrightTools\
 	-version-info $(SOVERSION):0 -Wl,"-rpath=$(libdir)"
@@ -26,10 +26,6 @@ install-exec-local:
 	$(INSTALL_DATA) caennet.tcl $(prefix)/Scripts
 	export LD_LIBRARY_PATH=$(prefix)/lib
 	export TCLLIBPATH="$(prefix)/lib $(prefix)/Scripts"
-	tclsh mkpackage.tcl $(prefix)/Scripts
-	rm -f $(prefix)/TclLibs/libVme.so
-	$(LN_S) $(prefix)/lib/libVme.so $(prefix)/TclLibs/libVme.so
-	tclsh mkpackage.tcl $(prefix)/TclLibs
 	rm -f $(prefix)/lib/{pkgIndex.tcl,tclIndex}
 	$(LN_S) $(prefix)/TclLibs/pkgIndex.tcl $(prefix)/lib/pkgIndex.tcl
 	$(LN_S) $(prefix)/TclLibs/tclIndex     $(prefix)/lib/tclIndex

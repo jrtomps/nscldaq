@@ -1,4 +1,4 @@
-o
+
 # Process this file with autoconf to produce a configure script.
 AC_INIT(CopyrightTools/CopyrightNotice.cpp)
 AC_CONFIG_AUX_DIR(config)
@@ -6,7 +6,7 @@ AM_CONFIG_HEADER(config.h)
 
 #    Separate device libraries.
 
-AM_INIT_AUTOMAKE(nscldaq, 8.0)  
+AM_INIT_AUTOMAKE(nscldaq, 8.0-pre1)  
 
 #
 #   The variable below should track the
@@ -345,21 +345,13 @@ then
 
   tcl_libname=$(basename $(basename $tcl_libname .a) .so)
   echo tcl libname $tcl_libname
-  tcl_stublibname=$(sed s/tcl/tclstub/ <<-ENDDATA
-$tcl_libname
-ENDDATA
-)
-echo tcl_stublibname $tcl_stublibname
+
+
 
   tk_libname=tk$(echo $tcl_libname|cut -c 4-)   # trim off tc...and use tk
-  tk_stublibname=$(sed s/tk/tkstub/ <<-ENDDATA
-$tk_libname
-ENDDATA
-)
 
   TCL_LDFLAGS="-L${tcl_libdir} -l${tk_libname}  -l${tcl_libname}"
-  TCL_STUBFLAGS="-L${tcl_libdir} -l${tcl_stublibname}" 
-  TK_STUBFLAGS="-L${tcl_libdir}  -l${tk_stublibname}"
+
 else
   AC_MSG_ERROR([Unable to find the tcl library, help me out with --with-tcl-libdir])
 fi
@@ -668,8 +660,7 @@ AC_SUBST(SPECTRODAQ_LDFLAGS)
 
 AC_SUBST(TCL_FLAGS)
 AC_SUBST(TCL_LDFLAGS)
-AC_SUBST(TCL_STUBFLAGS)
-AC_SUBST(TK_STUBFLAGS)
+
 
 	# VME device:
 

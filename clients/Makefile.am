@@ -8,9 +8,10 @@ SUBDIRS = $(VME_DRIVERDIR) \
 	contrib dvdburn daqstart $(EPICSSOFTWARE) ScalerDisplay
 
 EXTRA_DIST =  config/install-sh config/config.sub config/config.guess \
-	config/ltmain.sh config/missing config/mkinstalldirs  \
+	config/ltmain.sh config/missing config/mkinstalldirs mkpackage.tcl \
 	Directories.include CompilationRules.include \
-	CHANGELOG daqman Makefile.am wienerdriver btdriver
+	CHANGELOG daqman Makefile.am wienerdriver btdriver controlpush/Makefile.am \
+	controlpush/Makefile.in
 
 install-data-local:
 	rm -f $(prefix)/Bin
@@ -39,4 +40,8 @@ install-data-local:
 	$(INSTALL_PROGRAM)  daqman $(prefix)/bin
 	echo "Version: " $(VERSION) build on `hostname` `date` > $(prefix)/VERSION
 	mandb $(prefix)/man
+	tclsh mkpackage.tcl $(prefix)/Scripts "*.tcl"
+	- tclsh mkpackage.tcl $(prefix)/lib  libVme.so libWait.so 2>/dev/null
+
+
 

@@ -156,4 +156,6 @@ November 24, 2004:
  	Happy Thanksgiving:
 	o Completed the port to 3.x compilers
 	o Determined that the software can also still compile/run on 2.95
-    
+December 13, 2004:
+        o Get a unified build for 2.6 kernel and 2.4 kernel.
+        o Increment edit level -2.

@@ -307,6 +307,11 @@ int Vme_Init(Tcl_Interp* pInterp)
   CopyrightNotice::Notice(cerr, "Vmetcl", version, "2002");
   CopyrightNotice::AuthorCredit(cerr, "Vmetcl", "Ron Fox", NULL);
 
+  // Indicate we provide the package.
+
+  Tcl_PkgProvide(pInterp, "Vme", version);
+
+
 // Wrap the interpreter in an object.
 
   CTCLInterpreter &rInterp(*(new CTCLInterpreter(pInterp))); 
@@ -316,9 +321,6 @@ int Vme_Init(Tcl_Interp* pInterp)
   CVmeCommand* p= new CVmeCommand(&rInterp);
   p->Register();
 
-  // Indicate we provide the package.
-
-  Tcl_PkgProvide(pInterp, "Vme", version);
   
   // Add our script directory to the package path.
   //
