@@ -2,7 +2,7 @@ lib_LTLIBRARIES = libException.la
 libException_la_SOURCES = ErrnoException.cpp Exception.cpp \
 			  RangeError.cpp StreamIOError.cpp 
 include_HEADERS = ErrnoException.h Exception.h  StreamIOError.h \
-	CRangeError.h RangeError.h
+	CRangeError.h
 libException_la_LDFLAGS = -version-info $(SOVERSION):0 \
 	-Wl,"-rpath-link=$(libdir)"
 
