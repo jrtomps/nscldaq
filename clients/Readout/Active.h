@@ -295,6 +295,9 @@ DAMAGES.
    
   Modifications:
     $Log$
+    Revision 3.3  2003/08/14 17:59:22  ron-fox
+    Add functions to allow programmatic replacement of trigger and busy modules.
+
     Revision 3.2  2003/03/31 14:42:10  ron-fox
     Do a try {} catch(...) in Active::EndRun to ensure that the current state is actually active before asking the run to end.
 
@@ -438,6 +441,8 @@ public:
   virtual   unsigned Run (StateMachine& rMachine)  ;
   virtual   void     OnInitialize (StateMachine& rMachine)  ;
   static void EndRun();
+  void SetTrigger(CTrigger* pNewTrigger);
+  void SetBusy(CBusy*  pNewBusy);
 
   // Internal functions:
 protected:
@@ -451,7 +456,7 @@ protected:
   void SetBusy();
   void FrontPanelClear();
   void UpdateInternalTime();
-  //  unsigned ReadSomeEvents(unsigned nCount, DAQWordBufferPtr& Buffer);
+
 };
 
 #endif

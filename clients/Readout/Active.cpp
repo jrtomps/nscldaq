@@ -299,6 +299,9 @@ DAMAGES.
 /*
   Modification History:
   $Log$
+  Revision 3.3  2003/08/14 17:59:22  ron-fox
+  Add functions to allow programmatic replacement of trigger and busy modules.
+
   Revision 3.2  2003/03/31 14:42:08  ron-fox
   Do a try {} catch(...) in Active::EndRun to ensure that the current state is actually active before asking the run to end.
 
@@ -775,4 +778,36 @@ void Active::EndRun()
   }
   catch (...) {
   }
+}
+/*!
+   Sets a new trigger module for the system.  Note that
+  the trigger module must have been dynamically allocated if
+  it will be installed at destruction time for this object
+  as the destructor will \em delete it.
+
+  \param pNewTrigger (CTrigger* [in]):
+      Pointer to the new trigger module.
+
+*/
+void
+Active::SetTrigger(CTrigger* pNewTrigger) 
+{
+  m_pTrigger = pNewTrigger;
+  m_pReader->setTrigger(pNewTrigger);
+}
+
+/*!
+   Sets a new busy module for the system.  Note that
+   the busy module must have been dynamically allocated
+   if it will remain installed at the time the Active
+   object is deleted since the destructor will \em delete
+   it.
+   \param pNewBusy (CBusy* [in]):
+     Pointer to the new busy module.
+*/
+void
+Active::SetBusy(CBusy* pNewBusy)
+{
+  m_pBusy  = pNewBusy;
+  m_pReader->setBusy(pNewBusy);
 }
