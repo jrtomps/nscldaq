@@ -5,7 +5,7 @@ AM_CONFIG_HEADER(config.h)
 
 #    Separate device libraries.
 
-AM_INIT_AUTOMAKE(nscldaq, 7.3-002)  
+AM_INIT_AUTOMAKE(nscldaq, 7.3-003)  
 
 #  Checks for parameters:
 
