@@ -292,6 +292,7 @@ static const char* Copyright = "(C) Copyright Michigan State University 2002, Al
 #include <CDAQTCLProcessor.h>
 #include <CVMEScalerLRS1151.h>
 #include <CTraditionalEventSegment.h>
+#include <CTraditionalScalerReadout.h>
 #include <CEventSegment.h>
 
 class MySegment : public CEventSegment
