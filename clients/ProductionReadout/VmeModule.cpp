@@ -293,7 +293,36 @@ static const char* Copyright= "(C) Copyright Michigan State University 2002, All
 */
 
 #include "VmeModule.h"
+#ifdef WienerVME
+#include <CVMEInterface.h>
+#include <WienerAPI.h>
 
+#endif
+#include <string>
+/*
+
+   The array below maps from address space selectors to CVME<UShort_t 
+   selectors or, in the caes of WienerVME controllers, the address modifier.
+   
+*/
+static const
+#ifdef WienerVME
+CVMEInterface::AddressMode AmodTable[] = {
+   CVMEInterface::A16,
+   CVMEInterface::A24,
+   CVMEInterface::A24,
+   CVMEInterface::A32,
+   CVMEInterface::GEO
+};
+#else
+CVME<UShort_t>::VmeSpace AmodTable[] = {
+   CVME<UShort_t>::a16d16,
+   CVME<UShort_t>::a24d16,
+   CVME<UShort_t>::a24d32,
+   CVME<UShort_t>::a32d32,
+   CVME<UShort_t>::geo
+};
+#endif
 /*
   \fn CVmeModule::CVmeModule(Space space, UInt_t base, UInt_t length)
 
@@ -309,54 +338,44 @@ static const char* Copyright= "(C) Copyright Michigan State University 2002, All
   \param int nCrate    - VME crate number.
 */
 CVmeModule::CVmeModule(Space space, UInt_t base, UInt_t length, int nCrate)
+#ifdef WienerVME
+   :  m_nSpace(space),
+      m_nBase(base),
+      m_nLength(length),
+      m_nCrate(nCrate),
+      m_pDriver(0)
+#endif
 {
+#ifdef WienerVME
+   m_pDriver = CVMEInterface::Open(AmodTable[space], m_nCrate);
+#else
   try {
     switch(space) {
     case a16d16:
-      m_CVME = CVME<UShort_t>(CVME<UShort_t>::a16d16, base, length,
-			      nCrate);
+      m_CVME = CVME<UShort_t>(CVME<UShort_t>::a16d16, base, length);
       break;
     case a24d16:
-      m_CVME = CVME<UShort_t>(CVME<UShort_t>::a24d16, base, length,
-			      nCrate);
+      m_CVME = CVME<UShort_t>(CVME<UShort_t>::a24d16, base, length);
       break;
     case a24d32:
-      m_CVME = CVME<UShort_t>(CVME<UShort_t>::a24d32, base, length,
-			      nCrate);
+      m_CVME = CVME<UShort_t>(CVME<UShort_t>::a24d32, base, length);
       break;
     case a32d32:
-      m_CVME = CVME<UShort_t>(CVME<UShort_t>::a32d32, base, length,
-			      nCrate);
+      m_CVME = CVME<UShort_t>(CVME<UShort_t>::a32d32, base, length);
+      break;
     case geo:
-      m_CVME = CVME<UShort_t>(CVME<UShort_t>::geo, base, length, nCrate);
+      m_CVME =  CVME<UShort_t>(CVME<UShort_t>::geo, base, length);
       break;
     default:
-      cerr << "CVmeModule::CVmeModule bad address mode!!\n";
-      exit(-1);
+      throw 1;			// Force the catch below to complain.
     }
-
   }
-  catch (CMmapError& me) {
-    cerr << me.ReasonText() << endl;
-    exit(-1);
+  catch(...) {
+    throw string("Invalid address space in CVMEModule constructor");
   }
+#endif
 }
 
-/*
-  \fn CVmeModule::CVmeModule(CVME<UShort_t>& amCVME)
-
-  Operation Type:
-     Basic constructor
-
-  Purpose:
-     Constructs an object of type CVmeModule
-  
-  \param CVME<UShort_t>& am_CVME - a CVME object from which to construct this
-*/
-CVmeModule::CVmeModule(CVME<UShort_t>& am_CVME)
-{
-  m_CVME = am_CVME;
-}
 
 /*
   \fn CVmeModule::CVmeModule(const CVmeModule& aCVmeModule)
@@ -372,7 +391,8 @@ CVmeModule::CVmeModule(CVME<UShort_t>& am_CVME)
 */
 CVmeModule::CVmeModule(const CVmeModule& aCVmeModule)
 {
-  m_CVME = aCVmeModule.m_CVME;
+ 
+   CopyToMe(aCVmeModule);
 }
 
 /*
@@ -391,7 +411,7 @@ CVmeModule::operator=(const CVmeModule& aCVmeModule)
 {
   if(this == &aCVmeModule) return *this;
   
-  m_CVME = aCVmeModule.m_CVME;
+  CopyToMe(aCVmeModule);
   return *this;
 }
 
@@ -409,7 +429,14 @@ CVmeModule::operator=(const CVmeModule& aCVmeModule)
 int
 CVmeModule::operator== (const CVmeModule& aCVmeModule)
 {
+#ifdef WienerVME
+  return ((m_nSpace == aCVmeModule.m_nSpace)      &&
+          (m_nBase  == aCVmeModule.m_nBase)       &&
+	  (m_nLength== aCVmeModule.m_nLength)     &&
+	  (m_nCrate == aCVmeModule.m_nCrate));
+#else
   return (m_CVME == aCVmeModule.m_CVME);
+#endif
 }
 
 /*
@@ -428,12 +455,15 @@ CVmeModule::operator== (const CVmeModule& aCVmeModule)
 UChar_t
 CVmeModule::peekb(UInt_t offset=0)
 {
-  try {
-    return (UChar_t)((m_CVME.asChar())[offset]);
-  }
-  catch(CRangeError& re) {
-    throw re;
-  }
+#ifdef WienerVME
+   UChar_t byte;
+   WienerVMEInterface::ReadBytes(m_pDriver,
+			         m_nBase + offset,
+				 &byte, 1);
+   return byte;
+#else
+   return (UChar_t)((m_CVME.asChar())[offset]);
+#endif
 }
 
 /*
@@ -452,13 +482,16 @@ CVmeModule::peekb(UInt_t offset=0)
 UShort_t
 CVmeModule::peekw(UInt_t offset=0)
 {
-  try {
-    volatile UShort_t* c = (m_CVME.asShort());
-    return (UShort_t)(c[offset]);
-  }
-  catch(CRangeError& re) {
-    throw re;
-  }
+#ifdef WienerVME
+   UShort_t word;
+   WienerVMEInterface::ReadWords(m_pDriver, 
+				 m_nBase + offset * sizeof(UShort_t), 
+				 &word, 1);
+   return word;
+#else
+   volatile UShort_t* c = (m_CVME.asShort());
+   return (UShort_t)(c[offset]);
+#endif
 }
 
 /*
@@ -477,12 +510,15 @@ CVmeModule::peekw(UInt_t offset=0)
 ULong_t
 CVmeModule::peekl(UInt_t offset=0)
 {
-  try {
-    return (ULong_t)((m_CVME.asLong())[offset]);
-  }
-  catch(CRangeError& re) {
-    throw re;
-  }
+#ifdef WienerVME
+   ULong_t lword;
+   WienerVMEInterface::ReadLongs(m_pDriver, 
+				 m_nBase + offset * sizeof(UInt_t),
+				 &lword, 1);
+   return lword;
+#else
+   return (ULong_t)((m_CVME.asLong())[offset]);
+#endif
 }
 
 /*
@@ -501,12 +537,12 @@ CVmeModule::peekl(UInt_t offset=0)
 void
 CVmeModule::pokeb(UChar_t byte, UInt_t nOffset)
 {
-  try {
+#ifdef WienerVME
+   WienerVMEInterface::ReadBytes(m_pDriver, m_nBase + nOffset,
+			&byte, 1);
+#else
     (m_CVME.asChar())[nOffset] = byte;
-  }
-  catch(CRangeError& re) {
-    throw re;
-  }
+#endif
 }
 
 /*
@@ -525,12 +561,13 @@ CVmeModule::pokeb(UChar_t byte, UInt_t nOffset)
 void
 CVmeModule::pokew(UShort_t word, UInt_t nOffset)
 {
-  try {
+#ifdef WienerVME
+   WienerVMEInterface::WriteWords(m_pDriver, 
+				  m_nBase + nOffset*sizeof(UShort_t),
+				  &word, 1);
+#else
     (m_CVME.asShort())[nOffset] = word;
-  }
-  catch(CRangeError& re) {
-    throw re;
-  }
+#endif
 }
 
 /*
@@ -549,10 +586,27 @@ CVmeModule::pokew(UShort_t word, UInt_t nOffset)
 void
 CVmeModule::pokel(ULong_t lword, UInt_t nOffset)
 {
-  try {
-    (m_CVME.asLong())[nOffset] = lword;
-  }
-  catch(CRangeError& re) {
-    throw re;
-  }
+#ifdef WienerVME
+   WienerVMEInterface::WriteLongs(m_pDriver, 
+				  m_nBase + nOffset * sizeof(ULong_t),
+				 &lword, 1);
+#else
+   (m_CVME.asLong())[nOffset] = lword;
+#endif 
+}
+/*!
+    Utility function to copy an object to me.
+*/
+void
+CVmeModule::CopyToMe(const CVmeModule& rModule)
+{
+#ifdef WienerVME
+   m_nSpace = rModule.m_nSpace;
+   m_nBase  = rModule.m_nBase;
+   m_nLength= rModule.m_nLength;
+   m_nCrate = rModule.m_nCrate;
+   m_pDriver= (rModule.m_pDriver);
+#else
+  m_CVME = rModule.m_CVME;
+#endif
 }
