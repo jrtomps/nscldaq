@@ -28,4 +28,4 @@
 # The file, old and new version number
 # mail message will have user, version and file information.
 
-DEFAULT mailx -s"nsclDAQ `whoami` cvs commit: %{vV}" nscldaq-cvscommits@lists.sourceforge.net
+DEFAULT mailx -s"nsclDAQ `whoami` cvs commit: %{v} from %{V}" nscldaq-cvscommits@lists.sourceforge.net
