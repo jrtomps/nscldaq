@@ -280,6 +280,9 @@ DAMAGES.
    
    Modification History:
    $Log$
+   Revision 3.2  2003/10/31 17:45:38  ron-fox
+   Add getBufferType()  member.
+
    Revision 3.1  2003/03/22 04:03:06  ron-fox
    Added SBS/Bit3 device driver.
 
@@ -364,6 +367,8 @@ public:
     }
 
     unsigned short getEntityCount();
+
+    unsigned short getBufferType();
 
 	// Mutators:
 protected:  

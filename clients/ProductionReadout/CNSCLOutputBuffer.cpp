@@ -283,6 +283,9 @@ static const char* Copyright = "(C) Copyright Michigan State University 2002, Al
       
       Modification History:
       $Log$
+      Revision 3.3  2003/10/31 17:45:38  ron-fox
+      Add getBufferType()  member.
+
       Revision 3.2  2003/08/22 18:38:43  ron-fox
       Fix errors in buffer formatting (bug 71)
 
@@ -622,7 +625,7 @@ CNSCLOutputBuffer::PutString(const char*  pData, int nMaxSize=-1)
     if(data.size() < (nMaxSize - 1)) { // Allow for null terminator.
       int nPad = (nMaxSize-1) - data.size(); // Pad count.
       while(nPad) {
-	data+= ' ';
+	data+= '\0';		// Null pad.
 	nPad--;
       }
     }
@@ -845,4 +848,12 @@ void
 CNSCLOutputBuffer::Resize(int newsize)
 {
    m_Buffer.Resize(newsize, true);              // Wait for resize to finish.
+}
+/*!
+   Return the buffer type word (m_Buffer[1]):
+*/
+unsigned short
+CNSCLOutputBuffer::getBufferType()
+{
+  return m_Buffer[1];
 }
