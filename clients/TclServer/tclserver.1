@@ -55,12 +55,19 @@ inetd daemons won't usually have access the X11 display.
 In addtion to the options desceribed below, tclserver accepts all
 options that wish(1) accepts.  See the man page for wish for information
 about these options.
-
 .TP
-\-p port
+\-a"AppName"
+If the \-pManaged option is used, the string "AppName" will be used as
+the application name when interacting with the port management server.  If 
+this switch is not present but \-pManaged is, the application name used will
+be "TclServer".
+.TP
+\-pport
 Specifies the port on which the server listens for connections. By 
 default this will be port 2048.  Scaler tclserver, for example, usually 
-listen on port 2700.
+listen on port 2700.   If the port is the string "Managed", the Tcl server
+will interact with the Port manager server to allocate a port.
+Regardless, the port number chosen will be stored in the TCL global variable: TclServerPort.
 .TP
 \-display disp
 Specifies an X11 display identifier on which to project the GUI. Note
