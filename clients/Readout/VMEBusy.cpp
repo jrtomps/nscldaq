@@ -14,8 +14,12 @@
 //
 /* Change log:
       $Log$
-      Revision 1.1  2003/02/05 14:04:53  ron-fox
-      Initial revision
+      Revision 2.1  2003/02/11 16:44:57  ron-fox
+      Retag to version 2.1 to remove the weird branch I accidently made.
+
+      Revision 1.1.1.1  2003/02/05 14:04:53  ron-fox
+      Initial import of the NSCL Daq clients version 7.0-000 to sourceforge.
+
 
       Revision 2.6  2002/10/23 12:00:42  fox
       Use output 3 for module clears (prior to busy release).

@@ -288,8 +288,12 @@ exec wish ${0} ${@}
 #
 #  Change Log:
 #  $Log$
-#  Revision 1.1  2003/02/05 14:05:05  ron-fox
-#  Initial revision
+#  Revision 2.1  2003/02/11 16:45:57  ron-fox
+#  Retag to version 2.1 to remove the weird branch I accidently made.
+#
+#  Revision 1.1.1.1  2003/02/05 14:05:05  ron-fox
+#  Initial import of the NSCL Daq clients version 7.0-000 to sourceforge.
+#
 #
 #  Revision 1.1  2002/11/20 16:05:59  fox
 #  Locate VME crates in a multicrate system

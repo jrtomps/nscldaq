@@ -293,8 +293,12 @@ DAMAGES.
 //
 /* Change log:
       $Log$
-      Revision 1.1  2003/02/05 14:04:54  ron-fox
-      Initial revision
+      Revision 2.1  2003/02/11 16:44:58  ron-fox
+      Retag to version 2.1 to remove the weird branch I accidently made.
+
+      Revision 1.1.1.1  2003/02/05 14:04:54  ron-fox
+      Initial import of the NSCL Daq clients version 7.0-000 to sourceforge.
+
 
       Revision 2.4  2002/10/15 10:54:54  fox
       1. Add Clear() member code to indicate trigger acceptance on output 2.

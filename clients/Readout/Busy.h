@@ -292,6 +292,9 @@ DAMAGES.
 //
 /* Change log:
       $Log$
+      Revision 2.1  2003/02/11 16:44:07  ron-fox
+      Retag to version 2.1 to remove the weird branch I accidently made.
+
       Revision 1.2  2003/02/05 18:06:12  ron-fox
       Catch up on drift between Readout and the snapshot from which we started
       the port to autotools.

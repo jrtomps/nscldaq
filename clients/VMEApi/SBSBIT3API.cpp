@@ -293,6 +293,9 @@ static const char* Copyright= "(C) Copyright Michigan State University 2002, All
 
      Change Log:
      $Log$
+     Revision 2.1  2003/02/11 16:46:45  ron-fox
+     Retag to version 2.1 to remove the weird branch I accidently made.
+
      Revision 1.2  2003/02/05 19:20:02  ron-fox
      Catch added SBSBit3 specific functions to vme library
 
