@@ -292,6 +292,8 @@ static const char* Copyright= "(C) Copyright Michigan State University 2002, All
 #include <iostream.h>
 #include <string>
 #include <buftypes.h>
+#include <CVMEInterface.h>
+
 
 /*!
    Construct a Reader object.  Note that tyipcally the Reader object is 
@@ -396,7 +398,9 @@ ReadSomeEvents(unsigned int nPasses)
 	DAQWordBufferPtr hdr = m_BufferPtr;
 	m_BufferPtr++;		// Reserve space for event size.
 	
+	CVMEInterface::Lock();
 	nEventSize = ::readevt(m_BufferPtr);
+	CVMEInterface::Unlock();
 	if(nEventSize > 0) {
 	  *hdr       = nEventSize + 1; // Fill in the size header.
 	  m_nWords  += nEventSize + 1;   // Fill in the buffer index.
