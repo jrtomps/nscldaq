@@ -1,0 +1,68 @@
+/*!
+	\page Readout Reading the module
+
+	Once the module has been setup, it should be read at each event.	
+	When reading the module, there are two possibilities:
+	- \ref Single
+	- \ref Multiple
+
+	\section Single Read a Single Word.
+
+	This mode is appropriate in most NSCL applications, where the
+	 module is a 
+	simple bit patter register or a coincidence register. To Read a single
+	word from the FIFO you must:
+	-# Ensure that data is available in the FIFO by invoking 
+	  CSIS3600::DataReady
+	-# Read the module using CSIS3600::Read() in its single event form.
+
+	The code below shows how to do this using the pModule object that
+	has been used in the setup examples (e.g. \ref Intro).
+
+	\code
+
+	unsigned long latchvalue = 0;      // If no data return 0.
+	if(pModule->DataReady()) {
+           latchvalue = pModule->Read();
+        }
+	putlong(latchvalue);               // Readout classic.
+
+
+	\endcode
+
+	
+
+
+	\section Multiple Read Multiple Words.
+	
+	 This mode is appropriate if the module is being used to readout an external
+	source of data which then must then be read by CPU in response to an event
+	trigger.  To use the module in this mode you must:
+	-# Ensure that data is available in the module (CSIS3600::DataReady()).
+	-# Read the data using CSIS3600::Read (multievent format).
+
+	Using the pModule created in the example from e.g. \ref Intro 
+	\code
+
+	unsigned long latchedvalues[NVALUES];
+        unsigned int  nRead;
+	if(pModule->DataReady()) {
+	    do {
+	      nRead = pModule->Read(latchedvalues, NVALUES);
+	      if(nRead) {
+	        bufpt = LongArrayToBuffer(bufpt, latchedvalues, nRead);
+              }
+            } while(nRead == NVALUES);
+        }	
+
+	\endcode
+
+	This example assumes that:
+	- NVALUES is a constant declared elsewhere in the file.	
+     	- LongArrayToBuffer is a function \em you have written to 
+	  copy an array of longwords to the data buffer
+
+	note that the return value from CSIS3600::Read is the
+	number of longwords actually read.  If there are no more longs in the
+	FIFO, the function will return a zero.
+*/

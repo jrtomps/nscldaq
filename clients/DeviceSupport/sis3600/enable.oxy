@@ -1,0 +1,31 @@
+/*!
+	\page Enable Enabling the module.
+
+	Once the mode is selected (see \ref Modes), the module must be enabled
+	in order to be able to accept events.  In addition it is prudent to clear
+	the FIFO prior to the first event, in case any events have stacked up in
+	the FIFO prior to the start of run.  The sample code extends the examples in
+	\ref Coincidence  to prepare the module to receive the first event:
+
+	\code
+	\code
+	   #include <CSIS3600.h>
+	...
+	   CSIS3600* pModule(0);       // At program startup, null pointer.
+        ...
+           void initevt() 
+           {
+        ...
+	     if(!pModule) {
+               pModule = new CSIS3600(0x36000000, 0);    // Base,crate.
+             }
+	     pModule->SetCoincidenceMode();              // Run in latch mode.
+	     pModule->ClearData();
+	     pModule->Enable();
+           }
+
+	\endcode.
+
+	In this code, CSIS3600::ClearData clears any data in the FIFO while
+	CSIS3600::Enable enables the externa logic to accept events.
+*/
