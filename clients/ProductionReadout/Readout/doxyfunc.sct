@@ -1,0 +1,88 @@
+//////////////////////////CLASS_NAME.cpp file////////////////////////////////////
+
+#include "CLASS_NAME.h"                  
+
+SELECT_WHEN ATTRIBUTE_IS_STATIC
+[ATTRIBUTE_TYPE CLASS_NAME$::$ATTRIBUTE_NAME = ATTRIBUTE_INITIAL_VALUE$; //Static data member initialization]
+
+	//Default constructor alternative to compiler provided default constructor
+	//Association object data member pointers initialized to null association object NO_OUTPUT_BEGIN
+	//Ensure correct initial values are entered in the Attribute Specification NO_OUTPUT_END
+/*!
+   Default constructor.  This is called when declarations of the form e.g.:
+   -  CLASS_NAME  object;
+   are performed.
+*/
+CLASS_NAME::CLASS_NAME ()
+SELECT_WHEN LOGICAL_NOT ATTRIBUTE_IS_STATIC [NO_RETURN NO_REPEAT: ATTRIBUTE_NAME(ATTRIBUTE_INITIAL_VALUE),DELETE_LAST_SYMBOL]
+{
+[COLUMN_TAB(3) ASSOCIATION_ONE_NAME = &null$ASSOCIATION_ONE_CLASS; //Initialization to null association object ]
+[COLUMN_TAB(3) AGGREGATION_MANY_NAME$Index = 0; //Index for array of 1:M aggregation part objects ]
+[COLUMN_TAB(3) ASSOCIATION_MANY_NAME$Index = 0; //Index for array of 1:M association objects ]
+	 //Initialization of array of 1:M association objects to null association objects
+[COLUMN_TAB(3) for ( int i = 0; i < maxNumberOf$ASSOCIATION_MANY_CLASS$s; i++)
+COLUMN_TAB(6) ASSOCIATION_MANY_NAME LITERAL_SYMBOL[i LITERAL_SYMBOL] = &null$ASSOCIATION_MANY_CLASS; ]
+} 
+/*!
+   Copy construction. This is invoked when e.g. an object is passed by value
+   to a function.  The copy constructor makes a clone of the rhs object.
+*/
+CLASS_NAME::CLASS_NAME(const CLASS_NAME$& rhs) 
+{
+	// Copy member data.
+
+[COLUMN_TAB(3) ATTRIBUTE_NAME = rhs.$ATTRIBUTE_NAME;
+]
+	// Copy association data.
+
+[COLUMN_TAB(3) ASSOCIATION_NAME = rhs.$ASSOCIATION_NAME;
+]
+	// Copy aggregations.
+
+[COLUMN_TAB(3) AGGREGATION_NAME = rhs.$AGGREGATION_NAME;
+]
+
+}
+
+	//Operator= Assignment Operator alternative to compiler provided operator=  NO_OUTPUT_BEGIN
+	//Assignment alternatives for association objects: (1) initialize association object to nullAssociation Object
+	//(2) Shallow copy to copy pointers to association objects (3) Deep copy to copy value of association objects
+	//Commented out code copies pointers for 1:1 and 1:M association object data members for shallow copy NO_OUTPUT_END
+
+/*!
+   Assignment operation.  This member function supports assignment of
+   an object of this class to an object of the same class.
+*/
+CLASS_NAME& CLASS_NAME::operator= (const CLASS_NAME$& a$CLASS_NAME)
+{ 
+COLUMN_TAB(3) if (this != &a$CLASS_NAME) {
+COLUMN_TAB(6) int i = 0; 
+[COLUMN_TAB(6) BASE_CLASS$::operator= (a$CLASS_NAME);]
+SELECT_WHEN ATTRIBUTE_IS_NORMAL 
+[COLUMN_TAB(6) ATTRIBUTE_NAME = a$CLASS_NAME$.$ATTRIBUTE_NAME;]
+[COLUMN_TAB(6) AGGREGATION_ONE_NAME = a$CLASS_NAME$.$AGGREGATION_ONE_NAME;]
+[COLUMN_TAB(6) ASSOCIATION_ONE_NAME = &null$ASSOCIATION_ONE_CLASS; //Initialization to null association object ]
+[COLUMN_TAB(6) // ASSOCIATION_ONE_NAME = a$CLASS_NAME$.$ASSOCIATION_ONE_NAME;//Commented out shallow copy]  
+[COLUMN_TAB(6) for (i = 0; i < maxNumberOf$AGGREGATION_MANY_CLASS$s; i++) 
+COLUMN_TAB(9) AGGREGATION_MANY_NAME LITERAL_SYMBOL[i LITERAL_SYMBOL] = a$CLASS_NAME$.$AGGREGATION_MANY_NAME LITERAL_SYMBOL[i LITERAL_SYMBOL] ; ]
+[COLUMN_TAB(6) for (i = 0; i < maxNumberOf$ASSOCIATION_MANY_CLASS$s; i++)
+COLUMN_TAB(9) ASSOCIATION_MANY_NAME LITERAL_SYMBOL[i LITERAL_SYMBOL] = &null$ASSOCIATION_MANY_CLASS ; //Initialization of pointers to null association object ]
+[COLUMN_TAB(6) //for (i = 0; i < maxNumberOf$ASSOCIATION_MANY_CLASS$s; i++) ASSOCIATION_MANY_NAME LITERAL_SYMBOL[i LITERAL_SYMBOL] = a$CLASS_NAME$.$ASSOCIATION_MANY_NAME LITERAL_SYMBOL[i LITERAL_SYMBOL] ; ]
+COLUMN_TAB(3) }
+COLUMN_TAB(3) return *this;
+}
+
+// Functions for class CLASS_NAME
+[
+/*!
+    OPERATION_COMMENT1
+
+	\param CPP_OPERATION_PARAMETERS
+
+    OPERATION_COMMENT2
+*/
+OPERATION_RETURN_TYPE 
+CLASS_NAME::OPERATION_NAME(CPP_OPERATION_PARAMETERS) CPP_OPERATION_CONSTANT 
+{
+ OPERATION_CODE
+}  ] 
