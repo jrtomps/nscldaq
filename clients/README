@@ -1,4 +1,4 @@
-This is the nscl data acquisition system.  This software is the property
+TThis is the nscl data acquisition system.  This software is the property
 of the Board of Trustees of Michigan State University.
 
 Copyright (c) 1998-2003 Michigan State University
@@ -32,3 +32,10 @@ Tcl/Tk
 OpenMotif
 Linux kernel headers.
 
+
+Note to make and run tests you need to have a version of cppunit installed.
+see:
+
+http://sourceforge.net/projects/cppunit/
+
+for more information. 
