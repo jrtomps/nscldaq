@@ -482,7 +482,11 @@ int CAENcard_767::dataPresent()
 {
   if(crate[slot].status & CAEN_MODE_A32D16)
   {
-    return (*(crate[slot].mbuf + CAEN_767_STATUS_1) & (1 << 0) );
+    // Wait for data ready without a busy.
+
+    unsigned short s1 = *(crate[slot].mbuf + CAEN_767_STATUS_1);
+
+    return ((s1 & 5) == 1 );
   }
   else
   {

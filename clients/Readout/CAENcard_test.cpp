@@ -276,7 +276,6 @@ DAMAGES.
 		     END OF TERMS AND CONDITIONS
 */
 static const char* Copyright= "(C) Copyright Michigan State University 2002, All rights reserved";
-#include <unistd.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <iostream.h>

@@ -373,9 +373,9 @@ class CVME
 
   // Type conversion operators
  public:
-  CVME<UChar_t> asChar();
-  CVME<UShort_t> asShort();
-  CVME<ULong_t> asLong();
+  volatile UChar_t*      asChar();
+  volatile UShort_t*  asShort();
+  volatile ULong_t*   asLong();
 };
 
 
@@ -811,14 +811,14 @@ CVME<T>::getcurrptr()
      containing data of type UChar_t.
 */
 template<class T>
-CVME<UChar_t>
+volatile UChar_t*
 CVME<T>::asChar()
 {
-  CVMEptr<UChar_t>* CPtr = new CVMEptr<UChar_t>(m_pRCptr->getSpace(),
-						m_pRCptr->getBase(),
-						m_pRCptr->getLength());
-  CPtr->setOffset(m_pRCptr->getOffset());
-  return CVME<UChar_t>(CPtr);
+  volatile UChar_t* p = (UChar_t*)m_pRCptr->getStart();
+  p         += m_pRCptr->getOffset() * sizeof(T)/sizeof(UChar_t);
+
+  return p;
+
 }
 
 /*
@@ -832,14 +832,13 @@ CVME<T>::asChar()
      containing data of type UShort_t.
 */
 template<class T>
-CVME<UShort_t>
+volatile UShort_t*
 CVME<T>::asShort()
 {
-  CVMEptr<UShort_t>* CPtr = new CVMEptr<UShort_t>(m_pRCptr->getSpace(), 
-						  m_pRCptr->getBase(), 
-						  m_pRCptr->getLength());
-  CPtr->setOffset(m_pRCptr->getOffset());
-  return CVME<UShort_t>(CPtr);
+  volatile UShort_t* p = (UShort_t*)m_pRCptr->getStart();
+  p         += m_pRCptr->getOffset() * sizeof(T)/sizeof(UShort_t);
+
+  return p;
 }
 
 /*
@@ -853,13 +852,12 @@ CVME<T>::asShort()
      containing data of type ULong_t.
 */
 template<class T>
-CVME<ULong_t>
+volatile ULong_t*
 CVME<T>::asLong()
 {
-  CVMEptr<ULong_t>* CPtr = new CVMEptr<ULong_t>(m_pRCptr->getSpace(),
-						m_pRCptr->getBase(),
-						m_pRCptr->getLength());
-  CPtr->setOffset(m_pRCptr->getOffset());
-  return CVME<ULong_t>(CPtr);
+  volatile ULong_t* p = (ULong_t*)m_pRCptr->getStart();
+  p         += m_pRCptr->getOffset() * sizeof(T)/sizeof(ULong_t);
+
+  return p;
 }
 #endif

@@ -4,6 +4,7 @@ LIBDIR=/usr/opt/daqtest/lib
 VMELIBRARY=-L/opt/daq/Lib -lbtp
 VMELIBRARYHEADERS=-I/usr/opt/daq/Include
 spectrodaq_conf_dir=/opt/spectrodaq/bin
+CAMAC=-DCESCAMAC
 #
 #  Makefile to build a readout program given the stuff in the standard
 #  skeleton.
@@ -22,7 +23,7 @@ LDFLAGS=-L$(INSTDIR)/Lib -L$(DESTROOT)/Lib -lReadout $(SPECTRO_LDFLAGS) \
 LDFLAGS=-L$(LIBDIR) -lReadout $(SPECTRO_LDFLAGS) $(VMELIBRARY)
 
 CXXFLAGS = -c -D__UNIX__ $(SPECTRO_FLAGS) -I$(INCLUDEDIR) \
-	-I$(VMELIBRARYHEADERS)
+	-I$(VMELIBRARYHEADERS) $(CAMAC)
 
 
 CPP = g++ $(CXXFLAGS)

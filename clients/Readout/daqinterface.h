@@ -285,6 +285,8 @@ DAMAGES.
 #ifndef __DAQINTERFACE_H
 #define __DAQINTERFACE_H
 
+
+
 #ifndef __CRTL_TIME_H
 #include <time.h>
 #define __CRTL_TIME_H
@@ -293,6 +295,8 @@ DAMAGES.
 #ifndef _DAQTYPES_H
 #include "daqdatatypes.h"
 #endif
+
+
 
   /*
   ** CAMAC/BIT3 device interface functions:

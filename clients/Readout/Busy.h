@@ -292,8 +292,9 @@ DAMAGES.
 //
 /* Change log:
       $Log$
-      Revision 1.1  2003/02/05 14:04:31  ron-fox
-      Initial revision
+      Revision 1.2  2003/02/05 18:06:12  ron-fox
+      Catch up on drift between Readout and the snapshot from which we started
+      the port to autotools.
 
       Revision 2.3  2002/10/09 11:27:33  fox
       Add copyright/license stamp.

@@ -442,7 +442,7 @@ UShort_t
 CVmeModule::peekw(UInt_t offset=0)
 {
   try {
-    CVME<UShort_t> c = (m_CVME.asShort());
+    volatile UShort_t* c = (m_CVME.asShort());
     return (UShort_t)(c[offset]);
   }
   catch(CRangeError& re) {

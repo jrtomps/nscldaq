@@ -295,8 +295,9 @@ DAMAGES.
    
   Modifications:
     $Log$
-    Revision 1.1  2003/02/05 14:04:31  ron-fox
-    Initial revision
+    Revision 1.2  2003/02/05 18:06:12  ron-fox
+    Catch up on drift between Readout and the snapshot from which we started
+    the port to autotools.
 
     Revision 2.3  2002/10/09 11:27:32  fox
     Add copyright/license stamp.
@@ -315,6 +316,10 @@ DAMAGES.
 
 #ifndef __ACTIVE_H  //Required for current class
 #define __ACTIVE_H
+
+#ifndef __HISTOTYPES_H
+#include <histotypes.h>
+#endif
                                //Required for base classes
 #ifndef __STATE_H
 #include "State.h"

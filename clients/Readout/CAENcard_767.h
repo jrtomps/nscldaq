@@ -240,6 +240,26 @@ class CAENcard_767 {
       opcodeWait(100000);
       return 0;
     }
+    
+    int SetRisingEdgeAll() {
+      if(writeOpcode(0x6000, 1000000) < 0) {
+	return -1;
+      }
+      opcodeWait(1000000);
+      return 0;
+    }
+
+    int SetFallingEdgeAll() {
+      if(writeOpcode(0x6100, 1000000) < 0) {
+	return -1;
+      }
+      opcodeWait(1000000);
+      return 0;
+    }
+    unsigned short getSr2() {
+      return *((crate[slot].mbuf + CAEN_767_STATUS_2));
+    }
+
 };
 
 #endif

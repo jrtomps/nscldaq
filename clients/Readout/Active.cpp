@@ -299,8 +299,16 @@ DAMAGES.
 /*
   Modification History:
   $Log$
-  Revision 1.1  2003/02/05 14:04:31  ron-fox
-  Initial revision
+  Revision 1.2  2003/02/05 18:06:11  ron-fox
+  Catch up on drift between Readout and the snapshot from which we started
+  the port to autotools.
+
+  Revision 2.8  2003/02/05 15:46:01  fox
+  finaly commit before moving completely to sourceforge.
+
+  Revision 2.7  2002/12/30 18:46:57  fox
+  Support the WIENER VC/CC32 crate controller hardware thanks to
+  Dave Caussyn at FSU (caussyn@nucmar.physics.fsu.edu)
 
   Revision 2.6  2002/11/20 16:03:07  fox
   Support multiple VME crates and CAMAC Branches spread across the multiple VME
@@ -336,7 +344,7 @@ DAMAGES.
 #include <skeleton.h>
 #include <string>
 #include <time.h>
-#include <macros.h>
+#include <camac.h>
 #include <daqdatatypes.h>
 #include <buftypes.h>
 #include <spectrodaq.h>
@@ -495,11 +503,11 @@ Active::Run(StateMachine& rMachine)
     // Check for scalers and commands:
 
     if(CheckScalerTrigger(rRun)) {
+      m_pBusy->ScalerSet();	// Hold computer busy while scalers are read.
       m_pReader->FlushBuffer();
-      m_pBusy->ScalerSet();		// Hold computer busy while scalers are read.
       rRun.EmitScaler();
       ClearScalerTrigger();
-      m_pBusy->ScalerClear();
+      m_pBusy->ScalerClear();  // busy, otherwise, the event will do it.
     }
     if(rRun.PollForCommand()) {
       m_pReader->FlushBuffer();
@@ -608,7 +616,7 @@ Active::EnableTrigger()
 bool
 Active::CheckEventTrigger()
 {
-  // Returns TRUE if the event trigger is set.  This will be true if 
+  // Returns true if the event trigger is set.  This will be true if 
   // UsingVME is flase and either of the IT2/IT4 bits are set in the 
   // CAMAC branch highway driver for branch zero. If UsingVME is true,
   // then this will be true if the NIM input labeled 0 on the Caen v262
@@ -627,12 +635,12 @@ Active::CheckEventTrigger()
 bool
 Active::CheckScalerTrigger(StateMachine& rMachine)
 {
-  // Returns TRUE if it's time to read a scaler trigger.
+  // Returns true if it's time to read a scaler trigger.
   // This is done as follows:   The current time is checked against
   // the time saved in m_LastReadoutTime.  If the difference in ms
   // is greater than the value returned from daq_GetScalerReadoutInterval,
-  // return TRUE.. note that successive calls to CheckScalerTrigger() after
-  // that time interval passes will return TRUE until ClearScalerTrigger() is
+  // return true.. note that successive calls to CheckScalerTrigger() after
+  // that time interval passes will return true until ClearScalerTrigger() is
   // called.
   // Formal Parameters:
   //     StateMachine& rMachine:

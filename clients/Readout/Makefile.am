@@ -18,7 +18,8 @@ include_HEADERS = Active.h Busy.h CAENcard.h CAENchain.h CAMACBusy.h \
 	VMEBusy.h VMETrigger.h VmeModule.h  \
 	cmdio.h daqerrno.h daqinterface.h  CAENcard_767.h  \
 	 sis3300.h \
-	skeleton.h  vme.h
+	skeleton.h  vme.h cesmacros.h wienermacros.h \
+	cescamac.h wienercamac.h camac.h
 
 
 sysconf_DATA = runstate.tran
@@ -35,6 +36,7 @@ install-data-local:
 	echo VMELIBRARY=$(VMELIBRARY)                   >> Makefile.user
 	echo VMELIBRARYHEADERS=$(VMELIBRARYHEADERS)     >> Makefile.user
 	echo spectrodaq_conf_dir=$(spectrodaq_conf_dir) >> Makefile.user
+	echo CAMAC=$(CAMAC)				>> Makefile.user
 	cat Makefile.skel                               >> Makefile.user
 	$(INSTALL_DATA) Makefile.user $(prefix)/Readout/Skel/Makefile
 	
@@ -43,7 +45,7 @@ libReadout_la_LDFLAGS = -version-info 1:0:0  -L@top_srcdir@/VMEApi \
 	-lVmeApi $(SPECTRODAQ_LDFLAGS)
 
 INCLUDES = -I@top_srcdir@/Headers -I@top_srcdir@/VMEApi \
-	$(SPECTRODAQ_FLAGS) -DINSTDIR=\"$(prefix)\"
+	$(SPECTRODAQ_FLAGS) -DINSTDIR=\"$(prefix)\" $(CAMAC)
 
 EXTRA_DIST = runstate.tran Makefile.skel ReadoutMain.cpp skeleton.cpp 
 

@@ -68,6 +68,7 @@ host_alias = @host_alias@
 host_triplet = @host@
 AS = @AS@
 AWK = @AWK@
+CAMAC = @CAMAC@
 CC = @CC@
 CPP = @CPP@
 CXX = @CXX@

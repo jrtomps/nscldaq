@@ -5,7 +5,7 @@
  Copyright (C) 1989, 1991 Free Software Foundation, Inc.
                        59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  Everyone is permitted to copy and distribute verbatim copies
- of this license document, but changing it is not allowed.
+ of this license document, but changing it is not lalowed.
 
 			    Preamble
 
@@ -275,163 +275,195 @@ DAMAGES.
 
 		     END OF TERMS AND CONDITIONS
 */
-static const char* Copyright= "(C) Copyright Michigan State University 2002, All rights reserved";/*!
-  \file CAMACBusy.cpp
-  Implements CAMAC busy and clear management.
-  Assumptions:
-  - The camac space is already mapped when the constructor is called.
-
-  */
-// Author:
-//        Ron Fox
-//        NSCL
-//        Michigan State University
-//        East Lansing, MI 48824-1321
-//        fox@nscl.msu.edu
-//
-// Version information:
-//    $Header$
-//
-/* Change log:
-      $Log$
-      Revision 1.2  2003/02/05 18:06:14  ron-fox
-      Catch up on drift between Readout and the snapshot from which we started
-      the port to autotools.
-
-      Revision 2.8  2003/02/05 15:46:02  fox
-      finaly commit before moving completely to sourceforge.
-
-      Revision 2.7  2002/11/06 15:58:22  fox
-      Remove call to ModuleClear from Clear.
-
-      Revision 2.6  2002/10/22 18:56:54  fox
-      Fix regression error that prevents the nimout from working properly.
-
-// Revision 2.5  2002/10/22  12:37:21  fox
-// Straighten out dates in copyright notices in files.
-//
-// Revision 2.4  2002/10/10  12:54:19  fox
-// Remove multiple copyright strings.
-//
-// Revision 2.3  2002/10/09  11:27:34  fox
-// Add copyright/license stamp.
-//
-// Revision 2.2  2002/07/02  15:12:08  fox
-// Go to 2.xx based releases (recover from client crash too).
-//
-// Revision 2.1  2002/07/02  15:05:02  fox
-// Transition to 2.1 releases
-//
-// Revision 1.1  2002/06/27  15:55:06  fox
-// - Debug tight packed buffer Readout (note still problems with Spectrodaq)
-// - Support SBS/Bit3 device driver in vmetcl et seq.
-//
+/*
+** Modified to support the unix daq environment.
+** Note that includer must have defined a CAMBAS which is the base of
+** the branch highway system in VME space.
+**
 */
-#include "CAMACBusy.h"
-#include <macros.h>
 
-static const unsigned nBranch    = 0;  // All modules are on branch 0.
-static const unsigned nCrate     = 2;  //                 and crate 2.
-static const unsigned nGateSlot  = 21; // Gate generator is slot 21.
-static const unsigned nOutSlot   = 19; // NIMOUT is in slot 19.
 
-// NIMOUT bit mask patterns.
+/* DEC/CMS REPLACEMENT HISTORY, Element CAMAC.H*/
+/* *4    26-APR-1991 08:02:34 FOX "Make CAMCTL safe from greenhills optimizers."*/
+/* *3    13-MAR-1991 10:14:28 FOX "Add probing camac operations"*/
+/* *2    12-APR-1990 15:20:51 FOX "Improve efficiency of CAMCTL macro"*/
+/* *1    17-JAN-1990 10:16:44 FOX "CAMAC definitions"*/
+/* DEC/CMS REPLACEMENT HISTORY, Element CAMAC.H*/
 
-static const int nGoingBusy      = 0x100;
-static const int nGoingFree      = 0x200;
-static const int nClears         = 0x0ff;
-/*!
-  Constrcutor.  There are no parameters as the default locations of CAMAC
-  modules are predetermined.  We do init the branch and crate in which the
-  modules live.
-  */
-CCAMACBusy::CCAMACBusy()
-{
+/*
+*++
+**  FACILITY:
+**
+**      Data acquisition system
+**
+**  ABSTRACT:
+**
+**      camac.h	- This file contains definitions and MACROS which 
+**		  can be used to access the CAMAC system 
+**
+**  AUTHORS:
+**
+**      Ron Fox
+**
+**
+**  MODIFICATION HISTORY:
+**--
+**/
+#ifndef __CESCAMAC_H
+#define __CESCAMAC_H
+#ifndef _DAQTYPES_H
+#include <daqdatatypes.h>
+#endif
+
+/*
+** Need to define getlong and putlong to support the 24 bit operations.
+** these are written in an endian independent way as long as you refer to
+** VME address space.
+*/
+
+static inline long getlong(volatile void* a) {
+  UINT16* p = (UINT16*)a;
+  long    l = p[0];
+  l   = l << 16;
+  l  |= p[1];
+  return l;
 }
 
-/*!
-  Destructor.
-  */
-CCAMACBusy::~CCAMACBusy()
-{}
-
-/*!
-   Initialize the hardware as  follows:
-   - The branch is in initialized
-   - The crate with the control hardware is initialized.
-   - The Gate generator is set to latch  mode and both outputs are set busy.
-
-   */
-void
-CCAMACBusy::Initialize()
-{
-  branchinit(nBranch);
-  crateinit(nBranch, nCrate);
-  Set();
-  ScalerSet();
-
-
+static inline void putlong(INT32 v,volatile void *a)
+{                                      
+  volatile short* p = (volatile short*)a;
+  *p = (v >> 16) & 0xff;                 
+  p++;                                   
+  *p = (v & 0xffff);                     
 }
-/*!
-  Set the computer busy.  This involves:
-  - Setting the latch on channel a of the gate and delay generator.
-  - Pulsing the going busy bit of the NIMOUT.
-  */
-void
-CCAMACBusy::Set()
-{
-  camwrite16(nBranch, nCrate, nOutSlot, 0, 16, nGoingBusy);
-  camctl(nBranch, nCrate, nGateSlot, 0, 25);
 
-}
-/*!
-   Clear the compute busy.  This involves:
-   - pulsing the going free bit of the NIMOUT.
-   - Clearing the latch on channel a of the gate and delay generator.
+/* CAMAC 'keywords'		 */
 
-   */
-void 
-CCAMACBusy::Clear()
-{
-  // ModuleClear();
-  camwrite16(nBranch, nCrate, nOutSlot, 0, 16, nGoingFree);
-  camctl(nBranch, nCrate, nGateSlot, 0, 9);
 
-}
-/*!
-   Clear modules that take front panel clears.  This is done by pulsing
-   the bottom two nybbles  on the NIMOUT register.
-   */
-void
-CCAMACBusy::ModuleClear()
-{
-  camwrite16(nBranch, nCrate, nOutSlot, 0, 16, nClears);
-}
-/*!
-   Set the busy associated with scalers.
-   This involves:
-   - Setting channels a and b of the gate generator.
-   - Pulsing the Going busy bit of the NIMOUT.
-   */
-void
-CCAMACBusy::ScalerSet()
-{
-  Set();			// Takes care of chan a and nimout.
-  camctl(nBranch, nCrate, nGateSlot, 1, 25);
+#define    CSRCRATE    0	    /* 'crate' for Branch CSR */
+#define    CSRSLOT    29	    /* 'slot' for branch CSR  */
+#define    CSRSUBAD    0	    /* 'subaddress' for branch CSR */
+#define    CSRFUN    0		    /* 'f code' for branch CSR	    */
 
-}
-/*!
-  Clear the busy associated with scalers.  This involves:
-  - Clearing the digitizers,
-  - Pulsing the going free bit on the NIMOUT
-  - Clearing channel A,B of the gate generator.
-  */
-void
-CCAMACBusy::ScalerClear()
-{
 
-  camctl(nBranch, nCrate, nGateSlot, 1, 9); // Clear channel b only.
 
-}
+/* The define below is used in the construction of CAMAC pointers: */
+
+#define    CAM16    2		    /* 16 bit operation */
+#define    CAM24    0		    /* 24 bit operation */
+#define    CAMF    2		    /* Shift count to F field. */
+#define    CAMA    7		    /* Shift count to A field  */
+#define    CAMN    11		    /* Shift count to N field  */
+#define    CAMC    16		    /* Shift count to C field  */
+#define    CAMB    19		    /* Shift count to B field  */
+				    /* Base address of CAMAC branches: */
+#ifdef __unix__
+extern void*  (pBranchBases[]);
+#define CAMBAS(b) ((long)pBranchBases[(b)])
+#else
+#define    CAMBAS(b)  ((int)(camac.busbase + (int)busbases[camac.localaccess]))
+#endif
+
+/* The definitions below are bits in the BRANCH CSR.		     */
+
+#define    IT4    1                 /* Interrupt 4 pendng.           */
+#define    IT2    2                 /* Interrupt 2 pending           */
+#define    MIT4   0x4		    /* Mask interrupt 4.	     */
+#define    MIT2   0x8		    /* Mask interrupt 2.	     */
+#define    MLAM   0x10		    /* Mask LAM interrupts.	     */
+#define    MTO    0x20		    /* MASK Branch timeout.	     */
+#define    MNOX	  0x800		    /* Mask BERR on no x.	     */
+#define    QMASK  0x8000	    /* Q bit in branch CSR.	    */
+#define    XMASK  0x4000	    /* X bit in branch CSR.	     */
+
+
+/* The macros below can be used to do accesses to the CAMAC at higher */
+/* speed than function calls might allow.			      */
+
+    /*			    CBDPTR				     */
+    /* CBDPTR	- Generate a CAMAC pointer for the branch driver at */
+    /*		- compile time.  To generate a pointer which might  */
+    /*		- vary at run time, use the lower case version	     */
+    /*		- cbdptr which has the same call sequence.	     */
+    /*		- Both produce a pointer type			     */
+    /*		- Arguments: b - branch, c - crate, n - slot,		*/
+    /*		-            a - subaddress, f - function	    */
+    /*		-	     s - size, one of CAM16 or CAM24	    */
+    /*		By compile time generation, we mean that this macro */
+    /*		can be used on the right hand side of #define directives */
+    /*		or variable initializers for example:		     */
+    /* #define READDE1 CBDPTR(0, 1, 1, 0, 0, CAM16)		     */
+    /* INT16   *readde1 = CBDPTR(0, 1, 1, 0, 0, CAM16);		     */
+    /* produce a macro READDE1 which produces the same pointer that the	*/
+    /* variable readde1 is initialized to point to.		     */
+
+#define CBDPTR(b, c, n, a, f, s) \
+    ((volatile INT16 *)((char*)CAMBAS(b) + (s) +  ( (c) << CAMC) + \
+              ( (n) << CAMN ) + ( (a) << CAMA) + ( (f) << CAMF )))
+
+    /*				CAMCTL					 */
+    /* Do a CAMAC control operation (non data transfer)  The argument is */
+    /* A pointer which has been constructed via either CBDPTR or cbdptr	 */
+    /* the size specified when constructing the pointer must have been	 */
+    /* CAM16 or else this will flop abysmally				 */
+    /* use in a staement by itself, e.g.    CAMCTL(ADC1RST);		 */
+
+#define    CAMCTL(ptr)    { if(*((volatile INT16 *)(ptr))){} }
+#ifndef __unix__
+#define    CAMCTLP(ptr)   probew((INT16 *)(ptr))
+#endif
+    /*				CAMRD16					 */
+    /* Do a 16 bit read from CAMAC via a pointer constructed with either */
+    /* CBDPTR or cbdptr. The macro returns a value (may be treated like a */
+    /* function) which is the result of the read.   The size argument	 */
+    /* specified when constructing the pointer must have been CAM16	 */
+    /* Sample usage:							 */
+    /* result = (CAMRD16(DE1) * scale) / offset;			 */
+
+#define    CAMRD16(ptr)    (*(volatile INT16 *)(ptr))
+#ifndef __unix__
+#define    CAMRD16P(ptr,dest) prbrdw(((INT16 *)(ptr)), ((INT16 *)(&dest)))
+#endif
+
+    /*				CAMRD24					 */
+    /* Same as CAMRD16, but a 24 bit read is done, and the pointer must	 */
+    /* have been generated with size CAM24				 */
+    /* This operation will be quite a bit slower than CAMRD16		 */
+
+#define    CAMRD24(ptr)    (getlong(ptr) & 0xffffff)
+#ifndef VME16
+#ifndef __unix__
+#define    CAMRD24P(ptr,dest) prbrdl(((INT32 *)(ptr)), ((INT32 *)(&dest)))
+#endif
+#endif
+    /*				CAMWR16					 */
+    /* Does a 16 bit write CAMAC cycle. Use as a single statment e.g.	 */
+    /* CAMWR16(ptr, value);						 */
+    /* Arguments:							 */
+    /*		    ptr - Pointer produced by either CBDPTR or cbdptr.	 */
+    /*			   size must have been CAM16			 */
+    /*		    value - Least significant 16 bits of this are written */
+
+#define    CAMWR16(ptr, val)    (*((volatile INT16 *)(ptr)) = (val))
+#ifndef __unix
+#define    CAMWR16P(ptr, val)  prbwtw(((volatile INT16 *)(ptr)), ((INT16)(val)))
+#endif
+    /*				CAMWR24					 */
+    /* Just like CAMWR16, but the operation writes the lower 24 bits of	 */
+    /* the data.  The pointer argument must have been constructed with	 */
+    /* size CAM24							 */
+
+#define    CAMWR24(ptr, val)    (putlong( ((val) & 0xFFFFFF), ((volatile INT32 *)ptr)))
+#ifndef VME16
+#ifndef __unix__
+#define    CAMWR24P(ptr, val)  prbwtl(((INT32 *)(ptr)), ((INT32)(val)))
+#endif
+#endif
+
+
+#include <cesmacros.h>   /* Don't allow mis-match screwups. */
+
+#endif
+
 
 

@@ -1,3 +1,10 @@
+/* Change the line below if we ever move out of CES branch drivers:
+
+ */
+#ifndef CESCAMAC
+#define CESCAMAC
+#endif
+
 /*
 		    GNU GENERAL PUBLIC LICENSE
 		       Version 2, June 1991
@@ -328,6 +335,9 @@ INCLUDE FILES
 
 #include <stdio.h>
 
+#ifndef __unix__
+#include "cpus.h"
+#endif
 
 #ifdef __unix__
 #include <stdlib.h>

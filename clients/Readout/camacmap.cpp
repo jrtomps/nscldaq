@@ -308,8 +308,13 @@ static const char* Copyright= "(C) Copyright Michigan State University 2002, All
    Change log:
 
    $Log$
-   Revision 1.1  2003/02/05 14:04:54  ron-fox
-   Initial revision
+   Revision 1.2  2003/02/05 18:06:17  ron-fox
+   Catch up on drift between Readout and the snapshot from which we started
+   the port to autotools.
+
+   Revision 2.7  2002/12/30 18:46:57  fox
+   Support the WIENER VC/CC32 crate controller hardware thanks to
+   Dave Caussyn at FSU (caussyn@nucmar.physics.fsu.edu)
 
    Revision 2.6  2002/11/20 16:03:09  fox
    Support multiple VME crates and CAMAC Branches spread across the multiple VME
@@ -361,10 +366,16 @@ static const char* Copyright= "(C) Copyright Michigan State University 2002, All
 
 #include <CVMEInterface.h>
 
+#define VMECRATES      16
+#define BRANCHESINCRATE 8 
+
+
 #define DEF_SIGNAL SIGUSR1
 #define DEF_VECTOR -1
 #define DEF_IRQ    2
 
+
+/* This stuff is all pretty obsolete I'm guessing.  - RF */
 
 #define PAGE_SIZE 4096
 #define SLOT_SIZE 2048
@@ -476,7 +487,7 @@ daq_CloseCamacDriver(void* fid)
 
 static void*   vmeFds[VMECRATES];
        void*   pBranchBases[VMECRATES*BRANCHESINCRATE];  // static init to NULL
-void BranchAccess(int nBranch)
+void CESBranchAccess(int nBranch)
 {
   int nVme    = nBranch >> 3;	// Extract the VME crate and the
   int nB      = nBranch & 0x7;  // branch inside the crate.
@@ -501,3 +512,37 @@ void BranchAccess(int nBranch)
 					       (1L << CAMB));
   }
 }
+/*!
+   Map to a WIENER crate controller.  These take up 0x20 << CAMN bytes of
+   storage.  We organize the WIENER crates so that a branch is one crate. 
+   This allows 8 WIENER crates to be controlled from one vme crate which,
+   for now, is probably sufficient.  If we need to do more, we need to
+   do something more intelligent with the mapping of 
+   crates/branches/vme crates.  So crates 0-7 are in VME crate 0 etc.
+
+*/
+void WIENERBranchAccess(int nBranch)
+{
+  int nVme        =  nBranch >> 3;	// 8 crates == crates / vme crate.
+  int nController =  nBranch & 0x7;     // This is the crate #.
+
+  assert ((void*) NULL == (void*)0);    // Assume the pointers init to null.
+  assert(nBranch < VMECRATES*BRANCHESINCRATE);
+
+  // Map the crate if the pointer is still NULL:
+
+  if(pBranchBases[nBranch] == (void*)NULL) {
+    if(vmeFds[nVme] == (void*)NULL) { // Need to open the device...
+      vmeFds[nVme]  = CVMEInterface::Open(CVMEInterface::Standard, nVme);
+    }
+  
+    // Map the memory for a crate...
+    // The crates are at : 0x800000 + ((nB *  0x20) << CAMN)
+    
+    long nBase = 0x800000 + ((nController * 0x20) << CAMN);
+    pBranchBases[nBranch] = CVMEInterface::Map(vmeFds[nVme], nBase,
+					       0x20 << CAMN);
+  }
+}
+
+   

@@ -298,8 +298,9 @@ static const char* Copyright= "(C) Copyright Michigan State University 2002, All
 /*  
    Change log:
    $Log$
-   Revision 1.1  2003/02/05 14:04:31  ron-fox
-   Initial revision
+   Revision 1.2  2003/02/05 18:06:17  ron-fox
+   Catch up on drift between Readout and the snapshot from which we started
+   the port to autotools.
 
    Revision 2.7  2002/11/20 16:03:08  fox
    Support multiple VME crates and CAMAC Branches spread across the multiple VME
