@@ -338,7 +338,7 @@ CDAQTCLProcessor::Register()
 
   pInterp->AddCommand(getCommandName(), EvalRelay, (ClientData)this,
 		      DeleteRelay);
-  AddRegisteredOnCurrent();
+  //  AddRegisteredOnCurrent();
 }  
 
 /*!

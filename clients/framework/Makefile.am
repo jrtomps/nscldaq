@@ -5,6 +5,7 @@ libEventFramework_la_SOURCES= CThreadRecursiveMutex.cpp  \
 	CNamedObject.cpp CObjectRegistry.cpp \
 	CClassifiedObjectRegistry.cpp CSocket.cpp CRegisteredObject.cpp \
 	CApplicationRegistry.cpp CReactor.cpp CFdReactor.cpp \
+	CInterpreterStartup.cpp CDAQTCLProcessor.cpp CTCLSynchronizeCommand.cpp \
 	CLocationReactor.cpp \
 	CBufferReactor.cpp CEventMonitor.cpp CBufferMonitor.cpp\
 	CFdMonitor.cpp CTimerMonitor.cpp CEvent.cpp CLocationMonitor.cpp \

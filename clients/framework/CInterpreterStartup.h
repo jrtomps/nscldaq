@@ -357,10 +357,8 @@ public:
   /*! Get a reference to the interpreter object: Note that this can fail if there is
     not yet an interpreter (m_pInterp is NULL in that case).
     */
-  CTCLInterpreter& Interp()
-  {
-    return *m_pInterp;
-  }
+  CTCLInterpreter& Interp();
+
 protected:
   // Mutators.
 

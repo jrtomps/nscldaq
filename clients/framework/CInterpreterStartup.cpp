@@ -358,6 +358,8 @@ CInterpreterStartup::RegisterExtensions()
   m_pSyncCommand->Register();
 }  
 
-
-
-
+CTCLInterpreter&
+CInterpreterStartup::Interp()
+{
+  return *m_pInterp;
+}
