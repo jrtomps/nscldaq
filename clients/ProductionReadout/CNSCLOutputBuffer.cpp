@@ -279,14 +279,12 @@ static const char* Copyright = "(C) Copyright Michigan State University 2002, Al
   \file CNSCLOutputBuffer.cpp
       Implementation of CNSCLOutputBuffer  See CNSCLOutputBuffer.h for details.
       
-
       $Header$
       
       Modification History:
       $Log$
-      Revision 3.7  2004/10/29 20:32:55  ron-fox
-      Merge the 7.4 development into the main line
-
+      Revision 3.8  2004/11/08 17:31:40  ron-fox
+      mainline
 
       Revision 3.4.4.1  2004/03/10 12:59:35  ron-fox
       If necessary truncate strings to a maximum size.. this was not done correctly
@@ -319,14 +317,14 @@ static const char* Copyright = "(C) Copyright Michigan State University 2002, Al
       Revision 1.3  2002/10/22 12:38:18  fox
       Straighten out dates in internal copyright notices.
 
- Revision 1.2  2002/10/15  12:48:24  fox
- 1. Initial testing
- 2. Add const variable and make tkloaded const.
- 3. Add TclServer functionality.
-
- Revision 1.1  2002/10/09  11:22:27  fox
- Stamp with copyright/gpl license notice
-
+// Revision 1.2  2002/10/15  12:48:24  fox
+// 1. Initial testing
+// 2. Add const variable and make tkloaded const.
+// 3. Add TclServer functionality.
+//
+// Revision 1.1  2002/10/09  11:22:27  fox
+// Stamp with copyright/gpl license notice
+//
 */
       
 //////////////////////////CNSCLOutputBuffer.cpp file////////////////////////////////////
@@ -334,7 +332,7 @@ static const char* Copyright = "(C) Copyright Michigan State University 2002, Al
 #include "CNSCLOutputBuffer.h"                  
 #include <string>
 #include <unistd.h>
-#include <CRangeError.h>
+#include <RangeError.h>
 
 // Manifest constants:
 
@@ -645,7 +643,6 @@ CNSCLOutputBuffer::PutString(const char*  pData, int nMaxSize=-1)
     }
     while(data.size() < nMaxSize-1) {
       data += '\0';	// If too short, fill with nulls.
-
     }
 
   }

@@ -8,5 +8,5 @@
 . ~/.bashrc                 # This does not get sourced by kde shortcuts.
 
 cd $ConfigDir
-$DISTDIR/N568panel/shaperapp.tcl $ConfigDir/shaper.cfg 2>&1
+$DISTDIR/N568Panel/shaperapp.tcl $ConfigDir/shaper.cfg 2>&1
 

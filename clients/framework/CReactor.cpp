@@ -302,7 +302,7 @@ static const char* Copyright= "(C) Copyright Michigan State University 2002, All
 #include "CReactor.h"    				
 #include <CEventMonitor.h>
 #include <CApplicationRegistry.h>
-#include <CRangeError.h>
+#include <RangeError.h>
 
 // Static data:
 

@@ -309,7 +309,7 @@ DAMAGES.
 #include <CNoSuchObjectException.h>
 #include <CObjectRegistry.h>
 #include <CPointerPredicate.h>
-#include <CRangeError.h>
+#include <RangeError.h>
 #include <CReactor.h>
 #include <CRefptr.h>
 #include <CRegisteredObject.h>

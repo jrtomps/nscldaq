@@ -288,10 +288,9 @@
 #   Change log:
 #
 # $Log$
-# Revision 3.5  2004/10/29 20:32:57  ron-fox
-# Merge the 7.4 development into the main line
+# Revision 3.6  2004/11/08 17:31:41  ron-fox
+# mainline
 #
-
 # Revision 3.2.4.3  2004/07/22 14:05:10  ron-fox
 # Add a validator to ensure that run numbers are actually numbers
 # otherwise the status line can blow up trying to format a textual

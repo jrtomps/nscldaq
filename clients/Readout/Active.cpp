@@ -299,9 +299,8 @@ DAMAGES.
 /*
   Modification History:
   $Log$
-  Revision 3.6  2004/10/29 20:32:55  ron-fox
-  Merge the 7.4 development into the main line
-
+  Revision 3.7  2004/11/08 17:31:41  ron-fox
+  mainline
 
   Revision 3.3.4.1  2004/02/09 17:49:44  ron-fox
   Bugzilla 76: Improve accuracy of the elpased run time by doing differences of absolute times

@@ -279,7 +279,7 @@ static const char* Copyright = "(C) Copyright Michigan State University 2002, Al
 //////////////////////////CTagBaseCommand.cpp file////////////////////////////////////
 
 #include "CTagBaseCommand.h"     
-#include <CRangeError.h>
+#include <RangeError.h>
 #include <string>             
 #include <stdio.h>
 

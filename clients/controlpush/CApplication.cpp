@@ -330,8 +330,8 @@ static const int    YEARBASE(1900);           // Base year of struct tm.tm_year
 static const int    DEFAULTPORT(2701);        // Default tcp/ip port.
 static const string DEFAULTHOST("localhost"); // Default host to connect with.
 static const int    INTERVAL(10);             // Default update interval.
-static const float  TIMEOUT(0.35);             // Default EPICS timeout we'll use.
-static const float  PLCTIMEOUT(5.0); // Timeout for PLC Channels.
+static const float  TIMEOUT(1.0);             // Default EPICS timeout we'll use.
+static const float  PLCTIMEOUT(10.0); // Timeout for PLC Channels.
 
 static const int    CONNECTRETRYINTERVAL(10); // Seconds between retry attempts.
 static const int    CONNECTRETRIES(1000);     // Number of retries allowed. 

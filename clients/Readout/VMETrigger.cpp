@@ -287,13 +287,12 @@ static const char* Copyright= "(C) Copyright Michigan State University 2002, All
 //        fox@nscl.msu.edu
 //
 // Version information:
-
 //    $Header$
 //
 /* Change log:
       $Log$
-      Revision 3.4  2004/10/29 20:32:56  ron-fox
-      Merge the 7.4 development into the main line
+      Revision 3.5  2004/11/08 17:31:41  ron-fox
+      mainline
 
       Revision 3.1.4.1  2004/02/09 17:49:45  ron-fox
       Bugzilla 76: Improve accuracy of the elpased run time by doing differences of absolute times

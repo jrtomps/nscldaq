@@ -279,14 +279,12 @@ static const char* Copyright = "(C) Copyright Michigan State University 2002, Al
       Implementation of the CEXperiment class.  See CExperiment.h for detailes.
       */
 /*
-
    $Header$
-
+   
    Modification History:
    $Log$
-   Revision 3.7  2004/10/29 20:32:55  ron-fox
-   Merge the 7.4 development into the main line
-
+   Revision 3.8  2004/11/08 17:31:40  ron-fox
+   mainline
 
    Revision 3.4.4.4  2004/09/23 15:33:23  ron-fox
    Ensure that scaler initialization is called at start of run (defect repair).
@@ -326,7 +324,7 @@ static const char* Copyright = "(C) Copyright Michigan State University 2002, Al
 
    Revision 1.6  2002/10/22 12:38:16  fox
    Straighten out dates in internal copyright notices.
-*/
+
 // Revision 1.5  2002/10/16  16:16:09  fox
 // Add events and words status consts: Number of events acquired and number of
 // words acquired in current run.
@@ -346,7 +344,7 @@ static const char* Copyright = "(C) Copyright Michigan State University 2002, Al
 // Revision 1.2  2002/10/09  11:22:25  fox
 // Stamp with copyright/gpl license notice
 //
- 
+   */
    
 //////////////////////////CExperiment.cpp file////////////////////////////////////
 #include "CVMEInterface.h"
@@ -687,7 +685,6 @@ CExperiment::Start(CStateTransitionCommand& rCommand)
   TriggerStateVariableBuffer();
 
   // Prepare the hardware for readout:
-
 
   try {
     m_EventReadout.Initialize();	// Initialize the event readout...

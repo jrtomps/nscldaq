@@ -311,10 +311,8 @@ static char* Copyright =
 #include <spectrodaq.h>
 #include <NSCLException.h>
 #include <string>
-
 #include <DesignByContract.h>
 using namespace DesignByContract;
-
 //
 //   Global Variables:
 //

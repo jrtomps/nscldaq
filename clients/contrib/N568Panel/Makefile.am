@@ -1,10 +1,22 @@
-isntall-exec-local:
-	$(mkinstalldirs) $(prefix)/contrib
-	$(mkinstalldirs) $(prefix)/N568Panel
-	$(INSTALL_PROGRAM) $(srcdir) *.tcl  $(prefix)/N568Panel
-	$(INSTALL_PROGRAM) $(srcdir) goShaper goShaper16 $(prefix)/N568Panel
-	$(INSTALL_DATA)   $(srcdir) *.cfg                $(prefix)/N568Panel
+scripts = loadshaper.tcl n568b.tcl \
+	shaper8.ui.tcl shaper16.ui.tcl shaperapp.tcl \
+	shaperapp16.tcl
 
-EXTRA_DIST = loadshaper.tcl n568b.tcl shaper.ui.tcl \
-	shaperapp.tcl shaperapp16.tcl shaper16.ui.tcl myshaper.cfg shaper.cfg \
-	goShaper goShaper16
+samples = goShaper goShaper16 \
+	myshaper.cfg shaper.cfg
+
+
+EXTRA_DIST = $(scripts) $(samples)
+
+
+install-exec-local:
+	$(mkinstalldirs) $(prefix)/contrib $(prefix)/contrib/N568Panel
+	$(mkinstalldirs) $(prefix)/contrib/N568Panel/examples
+	for f in $(scripts);  \
+	do \
+	   $(INSTALL_PROGRAM) $(srcdir)/$$f $(prefix)/contrib/N568Panel; \
+        done
+	for f in $(samples); \
+	do			\
+	   $(INSTALL_PROGRAM) $(srcdir)/$$f $(prefix)/contrib/N568Panel/examples ; \
+	done 

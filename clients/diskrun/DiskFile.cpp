@@ -273,7 +273,7 @@ THIRD PARTIES OR A FAILURE OF THE PROGRAM TO OPERATE WITH ANY OTHER PROGRAMS),
 EVEN IF SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH 
 DAMAGES.
 
-		     END OF TERMS AND CONDITIONS
+		     END OF TERMS AND CONDITIONS '
 */
 static const char* Copyright= "(C) Copyright Michigan State University 2002, All rights reserved";
 //
@@ -292,11 +292,12 @@ static const char* Copyright= "(C) Copyright Michigan State University 2002, All
 // mailto:  fox@nscl.msu.edu
 //
 
+#include <config.h>
 
 #include <stdlib.h>
 #include <stdio.h>
-#include <iostream.h>
-#include <iomanip.h>
+#include <Iostream.h>
+#include <Iomanip.h>
 #include <buftypes.h>
 #include <buffer.h>
 #include <assert.h>
@@ -308,11 +309,10 @@ static const char* Copyright= "(C) Copyright Michigan State University 2002, All
 #include <CopyrightNotice.h>
 
 
-#ifndef SPECTRODAQ_H
-#include <spectrodaq.h>
+#ifdef HAVE_STD_NAMESPACE
+using namespace std;
 #endif
-
-// Due to conflicts with spectrodaq headers, can't include publib.h, so:
+#include <spectrodaq.h>
 
 extern "C"  int strsplit(char* src, char** words, int maxw, const char* sep);
 

@@ -295,9 +295,8 @@ static const char* Copyright= "(C) Copyright Michigan State University 2002, All
 /*
   Modification history:
     $Log$
-    Revision 3.7  2004/10/29 20:32:56  ron-fox
-    Merge the 7.4 development into the main line
-
+    Revision 3.8  2004/11/08 17:31:41  ron-fox
+    mainline
 
     Revision 3.4.4.2  2004/05/19 16:28:01  ron-fox
     Issue 112- If sclclient is started up with the default data source

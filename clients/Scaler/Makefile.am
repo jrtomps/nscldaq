@@ -40,4 +40,3 @@ install-exec-local:
 EXTRA_DIST = scalerlocal.tk sclclient.1
 
 man_MANS = sclclient.1
-
