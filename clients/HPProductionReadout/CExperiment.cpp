@@ -283,6 +283,9 @@ static const char* Copyright = "(C) Copyright Michigan State University 2002, Al
    
    Modification History:
    $Log$
+   Revision 1.2  2005/02/09 14:40:11  ron-fox
+   Debugged high performance production readout.
+
    Revision 1.1  2005/02/07 19:50:50  ron-fox
    Break off branch for HPProduction readout (using transparent copyin).
 
@@ -801,8 +804,8 @@ CExperiment::ReadEvent()
     m_EventBuffer = new CNSCLPhysicsBuffer(m_nBufferSize * 2);
   }
   
-  DAQWordBufferPtr ptr(m_EventBuffer->StartEvent());
-  DAQWordBufferPtr hdr = ptr;
+  unsigned short* ptr(m_EventBuffer->StartEvent());
+  unsigned short*  hdr = ptr;
    
   CVMEInterface::Lock();
   try {
@@ -818,8 +821,9 @@ CExperiment::ReadEvent()
   CVMEInterface::Unlock();
 
   m_nEventsAcquired++;
-  m_nWordsAcquired += ptr.GetIndex() - hdr.GetIndex();
-  if(ptr.GetIndex() > m_nBufferSize) {
+  int nEventSize = ptr - hdr + 1;
+  m_nWordsAcquired += nEventSize;
+  if((m_EventBuffer->WordsInBody() + nEventSize) > (m_nBufferSize - sizeof(bheader)/sizeof(unsigned short))) {
      
      Overflow(hdr, ptr);
      
@@ -1374,22 +1378,20 @@ CExperiment::EmitDocBuffer(DocumentationPacketIterator s,
                                 that overflows the buffer.
 */
 void
-CExperiment::Overflow(DAQWordBufferPtr& header,
-		      DAQWordBufferPtr& end)
+CExperiment::Overflow(unsigned short*  header,
+		      unsigned short*  end)
 {
    
    // Copy the overflowing event to a new buffer:
    
    CNSCLOutputBuffer::IncrementSequence();
    CNSCLPhysicsBuffer* pNewBuffer = new CNSCLPhysicsBuffer(m_nBufferSize*2);
-   DAQWordBufferPtr    pDest      = pNewBuffer->StartEvent();
-   DAQWordBufferPtr    pSrc       = header;
-   DAQWordBufferPtr    pEnd       = end;
-   while(pSrc != pEnd) {
-      *pDest = *pSrc;
-      ++pDest; ++pSrc;                // Preinccrement is fastest.
-   }
-   pNewBuffer->EndEvent(pDest);
+   unsigned short*    pDest      = pNewBuffer->StartEvent();
+   unsigned short*    pSrc       = header;
+   unsigned short*    pEnd       = end;
+   unsigned short     nWords    = (end - header);
+   memcpy(pDest, pSrc, nWords * sizeof(unsigned short));
+   pNewBuffer->EndEvent(pDest + nWords);
    
    // Retract the event from the old buffer and route it:
    

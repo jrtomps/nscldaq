@@ -280,6 +280,7 @@ static const char* Copyright = "(C) Copyright Michigan State University 2002, Al
 //   to setup our experiment specific requirements
 //   creates an instance of it and lets the base classes
 //  do most of the work:
+
 #include <config.h>
 #include <CReadoutMain.h>
 #include <CExperiment.h>
@@ -294,18 +295,19 @@ static const char* Copyright = "(C) Copyright Michigan State University 2002, Al
 #include <CVMEScalerLRS1151.h>
 #include <CTraditionalEventSegment.h>
 #include <CTraditionalScalerReadout.h>
-
 #include <CEventSegment.h>
+
 #ifdef HAVE_STD_NAMESPACE
 using namespace std;
 #endif
+
 class MySegment : public CEventSegment
 {
 public:
   virtual void Initialize() {}
   virtual void Clear() {}
   virtual unsigned int MaxSize() { return 10; }
-  virtual DAQWordBufferPtr& Read(DAQWordBufferPtr& rBuf) {
+  virtual unsigned short* Read(unsigned short* rBuf) {
     for(int i =0; i < 10; i++) {
       *rBuf = i;
       ++rBuf;

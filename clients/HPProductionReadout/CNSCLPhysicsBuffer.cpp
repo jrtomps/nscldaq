@@ -292,12 +292,23 @@ using namespace std;
    are performed.
 */
 CNSCLPhysicsBuffer::CNSCLPhysicsBuffer(unsigned nWords)
-   : CNSCLOutputBuffer(nWords)
+  : CNSCLOutputBuffer(nWords),
+    m_pBuffer(new unsigned short[nWords]),
+    m_nEntityCount(0),
+    m_nBufferSize(nWords)
 {
+  m_pBufferCursor = m_pBuffer;
+
   SetType(DATABF);
   getBuffer().SetTag(CNSCLOutputBuffer::m_EventTag);
 } 
 
+//! Destructor:
+
+CNSCLPhysicsBuffer::~CNSCLPhysicsBuffer()
+{
+  delete []m_pBuffer;
+}
 
 /*!
     Creates a buffer pointer,  reserves space
@@ -305,15 +316,11 @@ CNSCLPhysicsBuffer::CNSCLPhysicsBuffer(unsigned nWords)
     
 
 */
-DAQWordBufferPtr 
+unsigned short*
 CNSCLPhysicsBuffer::StartEvent()  
 {
-  m_EventStartPtr = StartEntity(); // Start the buffer entity.
-  DAQWordBufferPtr p = m_EventStartPtr;
-  p++;
-  return p;
+  return (m_pBufferCursor + 1);	// Hold space for the word count
   
-  //  return m_EventStartPtr + 1;	// Reserve space for the event counter.
 
 }  
 
@@ -325,7 +332,7 @@ CNSCLPhysicsBuffer::StartEvent()
     and m_EventStartPtr is set to be the same as
     the input pointer.  The entity count is incremented.
  
-   \param p - DAQWordBufferPtr which points past
+   \param pEnd - unsigned short*  which points past
        the last word of the event.
     
     \exception - If the DAQWordBufferPtr indicates that
@@ -334,16 +341,18 @@ CNSCLPhysicsBuffer::StartEvent()
 
 */
 void 
-CNSCLPhysicsBuffer::EndEvent(DAQWordBufferPtr& rPtr)  
+CNSCLPhysicsBuffer::EndEvent(unsigned short* pEnd)
 {
-  if(rPtr.GetIndex() >= getWords()) {
-    throw CRangeError(0, getWords(), rPtr.GetIndex(),
-	     "CNSCLPhysicsBuffer::EndEvent - Off the end of the buffer");
-  }
-  unsigned nSize = rPtr.GetIndex() - m_EventStartPtr.GetIndex();
-  *m_EventStartPtr = nSize;
 
-  EndEntity(rPtr);		// Add to entity count and update ptr.
+  if ((pEnd - m_pBuffer) > m_nBufferSize) {
+    throw CRangeError(0, m_nBufferSize,
+		      (pEnd - m_pBuffer),
+		      "CNSCLPhysicsBuffer::EndEvent - off the end of the buffer");
+  }
+  *m_pBufferCursor = (pEnd - m_pBufferCursor); // Event size.
+  m_pBufferCursor  = pEnd;
+  m_nEntityCount++;
+
 }  
 
 /*!
@@ -360,7 +369,29 @@ CNSCLPhysicsBuffer::EndEvent(DAQWordBufferPtr& rPtr)
 
 */
 void 
-CNSCLPhysicsBuffer::RetractEvent(DAQWordBufferPtr& p)  
+CNSCLPhysicsBuffer::RetractEvent(unsigned short* p)  
 {
  
+}
+/*!
+   Route the event.  This involves doing a copyin to the 
+   base class buffer and asking it to route:
+
+*/
+void
+CNSCLPhysicsBuffer::Route()
+{
+  setEntityCount(m_nEntityCount);
+  PutWords(m_pBuffer, m_pBufferCursor - m_pBuffer);
+  CNSCLOutputBuffer::Route();
+
+}
+/*!
+   Return the number of words in the buffer at this point
+   (where the cursor is).
+*/
+int
+CNSCLPhysicsBuffer::WordsInBody() const
+{
+  return (m_pBufferCursor - m_pBuffer);
 }

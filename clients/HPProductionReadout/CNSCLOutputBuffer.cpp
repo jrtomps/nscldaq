@@ -283,6 +283,9 @@ static const char* Copyright = "(C) Copyright Michigan State University 2002, Al
       
       Modification History:
       $Log$
+      Revision 1.2  2005/02/09 14:40:11  ron-fox
+      Debugged high performance production readout.
+
       Revision 1.1  2005/02/07 19:50:52  ron-fox
       Break off branch for HPProduction readout (using transparent copyin).
 
@@ -615,11 +618,9 @@ CNSCLOutputBuffer::PutWord(unsigned short nData)
 void 
 CNSCLOutputBuffer::PutWords(const unsigned short* pWords, unsigned int nWords)  
 {
-  while(nWords) {
-    *m_BufferPtr = *pWords++;
-    ++m_BufferPtr;
-    nWords--;
-  }
+  m_BufferPtr.CopyIn((unsigned short*)pWords, 0, nWords);
+  m_BufferPtr += nWords;
+
 }  
 
 /*!
@@ -861,6 +862,15 @@ unsigned short
 CNSCLOutputBuffer::getEntityCount()
 {
   return m_Buffer[hdrWENTITY];
+}
+
+/*!
+   Set the entity count to the user defined value:
+*/
+void
+CNSCLOutputBuffer::setEntityCount(unsigned short entities)
+{
+  m_Buffer[hdrWENTITY] = entities;
 }
 /*!  
     Resize the buffer as requested.  

@@ -280,6 +280,9 @@ DAMAGES.
 
 Modification History:
 $Log$
+Revision 1.2  2005/02/09 14:40:11  ron-fox
+Debugged high performance production readout.
+
 Revision 1.1  2005/02/07 19:50:54  ron-fox
 Break off branch for HPProduction readout (using transparent copyin).
 
@@ -345,13 +348,17 @@ using namespace std;
 class CNSCLPhysicsBuffer  : public CNSCLOutputBuffer        
 { 
 private:
-      DAQWordBufferPtr m_EventStartPtr; //!< Points to start of event being built.
- 
+  unsigned short*   m_pBuffer;
+  unsigned short*   m_pBufferCursor;
+  unsigned short    m_nEntityCount;
+  unsigned int      m_nBufferSize;
+
+      
 public:
 	// Constructors, destructors and other cannonical operations: 
 
     CNSCLPhysicsBuffer (unsigned nWords = 4096); //!< Default constructor.
-    virtual ~ CNSCLPhysicsBuffer ( ) { } //!< Destructor.
+    virtual ~ CNSCLPhysicsBuffer ( );            //!< Destructor.
 private:
     CNSCLPhysicsBuffer& operator= (const CNSCLPhysicsBuffer& rhs); //!< Assignment
     int         operator==(const CNSCLPhysicsBuffer& rhs) const; //!< Comparison for equality.
@@ -362,8 +369,8 @@ public:
 	// Selectors for class attributes:
 public:
 
-    DAQWordBufferPtr getEventStartPtr() const {
-       return m_EventStartPtr;
+    unsigned short* getEventStartPtr() const {
+      return m_pBufferCursor;
     }
 
 	// Mutators:
@@ -371,10 +378,11 @@ protected:
 
 	// Class operations:
 public:
-     DAQWordBufferPtr StartEvent ()  ;
-     void EndEvent (DAQWordBufferPtr& rPtr)  ;
-     void RetractEvent (DAQWordBufferPtr& p)  ;
- 
+     unsigned short* StartEvent ()  ;
+     void EndEvent (unsigned short* rPtr)  ;
+     void RetractEvent (unsigned short* p)  ;
+     virtual void Route();
+     int  WordsInBody() const;
 };
 
 #endif

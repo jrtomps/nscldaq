@@ -280,6 +280,9 @@ DAMAGES.
    
 Modification History:
 $Log$
+Revision 1.2  2005/02/09 14:40:11  ron-fox
+Debugged high performance production readout.
+
 Revision 1.1  2005/02/07 19:50:50  ron-fox
 Break off branch for HPProduction readout (using transparent copyin).
 
@@ -502,8 +505,8 @@ protected:
 					     CNSCLDocumentationBuffer&    b);
 					     
 
-   void Overflow(DAQWordBufferPtr& header, 
-	         DAQWordBufferPtr& End);
+   void Overflow(unsigned short*  header, 
+	         unsigned short*  End);
    void SetupTimedEvent();
 };
 

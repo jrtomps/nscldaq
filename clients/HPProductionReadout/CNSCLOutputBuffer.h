@@ -280,6 +280,9 @@ DAMAGES.
    
    Modification History:
    $Log$
+   Revision 1.2  2005/02/09 14:40:11  ron-fox
+   Debugged high performance production readout.
+
    Revision 1.1  2005/02/07 19:50:53  ron-fox
    Break off branch for HPProduction readout (using transparent copyin).
 
@@ -359,7 +362,7 @@ public:
 	// Constructors, destructors and other cannonical operations: 
 
     CNSCLOutputBuffer (unsigned nWords=4096); //!< Default constructor.
-     ~ CNSCLOutputBuffer ( ) { } //!< Destructor.
+    virtual  ~ CNSCLOutputBuffer ( ) { } //!< Destructor.
 
   // Copying DAQ buffers is not legal so the various copy stuff is
   // illegal too.
@@ -413,12 +416,14 @@ public:
      void PutString (const char*  pData, int nMaxSize=-1)  ;
      void SetRun (unsigned short nRun)  ;
      bool EntityFits (unsigned short  nWords)  ;
-     void Route ()  ;
+     virtual void Route ()  ;
      void Seek (int nOffset, int  whence=SEEK_SET)  ;
      void Seek(DAQWordBufferPtr& rPtr) {
        m_BufferPtr = rPtr;
      }
      void Resize(int newsize);
+     void setEntityCount(unsigned short entities);
+
      static void IncrementSequence ()  ;
      static void ClearSequence ()  ;
 protected:

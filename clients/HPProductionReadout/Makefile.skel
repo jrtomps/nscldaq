@@ -1,7 +1,7 @@
 # User makefile for the Production readout skeleton.  Read the comments
 # in the code below to know what you can modify.
 #
-include $(INSTDIR)/etc/ProductionReadout_Makefile.include
+include $(INSTDIR)/etc/HPProductionReadout_Makefile.include
 
 #
 #   Below, define any additional C++ compilation switches you might need.

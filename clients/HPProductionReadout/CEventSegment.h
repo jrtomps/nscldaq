@@ -333,7 +333,7 @@ protected:
 	// Class operations:
 public:
    virtual   void Initialize ()   = 0;
-   virtual   DAQWordBufferPtr& Read (DAQWordBufferPtr& rBuffer)   = 0;
+   virtual   unsigned short*  Read (unsigned short* rBuffer)   = 0;
    virtual   void Clear ()   = 0;
    virtual   unsigned int MaxSize ()   = 0; // for compatibility.
  

@@ -1,8 +1,6 @@
-SUBDIRS = hyperlatex
 
-
-lib_LTLIBRARIES=libPReadout.la
-libPReadout_la_SOURCES = AccessListCheck.cpp \
+lib_LTLIBRARIES=libHPPreadout.la
+libHPPreadout_la_SOURCES = AccessListCheck.cpp \
 	AuthTokenCheck.cpp \
 	CBadTransitionException.cpp \
 	CBeginCommand.cpp \
@@ -66,7 +64,7 @@ libPReadout_la_SOURCES = AccessListCheck.cpp \
 	CTKListener.cpp CTKServerInstance.cpp \
 	CStrings.cpp
 
-include_HEADERS = AccessListCheck.h \
+noinst_HEADERS = AccessListCheck.h \
 	AuthTokenCheck.h \
 	Authenticator.h \
 	CBadTransitionException.h \
@@ -133,7 +131,7 @@ include_HEADERS = AccessListCheck.h \
 	CTKListener.h  CStrings.h
 
 
-libPReadout_la_LDFLAGS = -g -version-info $(SOVERSION):0 \
+libHPPreadout_la_LDFLAGS = -g -version-info $(SOVERSION):0 \
 	-L@top_srcdir@/framework \
 	-L@top_srcdir@/VMEApi \
 	-L@top_srcdir@/Exception \
@@ -157,18 +155,23 @@ EXTRA_DIST = 	MyExperiment.cpp \
 
 
 install-data-local:
-	$(mkinstalldirs) $(prefix)/pReadoutSkeleton
+	$(mkinstalldirs) $(prefix)/HPpReadoutSkeleton
+	$(mkinstalldirs) $(prefix)/HPpReadoutIncludes
 	chmod a+rx $(prefix)
-	chmod a+rx $(prefix)/pReadoutSkeleton
-	$(INSTALL_DATA) MyExperiment.cpp $(prefix)/pReadoutSkeleton/Skeleton.cpp
+	chmod a+rx $(prefix)/HPpReadoutSkeleton
+	$(INSTALL_DATA) MyExperiment.cpp $(prefix)/HPpReadoutSkeleton/Skeleton.cpp
 	echo INSTDIR=$(prefix) > Makefile.user
 	cat  Makefile.skel    >> Makefile.user
-	$(INSTALL_DATA) Makefile.user $(prefix)/pReadoutSkeleton/Makefile
-	$(INSTALL_DATA) ProductionReadout_Makefile.include $(prefix)/etc
+	$(INSTALL_DATA) Makefile.user $(prefix)/HPpReadoutSkeleton/Makefile
+	$(INSTALL_DATA) ProductionReadout_Makefile.include \
+	      $(prefix)/etc/HPProductionReadout_Makefile.include
 	$(INSTALL_DATA) CTraditionalEventSegment.cpp \
-		$(prefix)/pReadoutSkeleton/CTraditionalEventSegment.cpp
+		$(prefix)/HPpReadoutSkeleton/CTraditionalEventSegment.cpp
 	$(INSTALL_DATA) CTraditionalScalerReadout.cpp \
-	        $(prefix)/pReadoutSkeleton/CTraditionalScalerReadout.cpp
+	        $(prefix)/HPpReadoutSkeleton/CTraditionalScalerReadout.cpp
+	$(INSTALL_DATA) *.h $(prefix)/HPpReadoutIncludes
+
+
 
 CXXFLAGS=-g
 CCFLAGS=-g

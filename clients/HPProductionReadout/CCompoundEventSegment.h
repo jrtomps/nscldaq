@@ -342,7 +342,7 @@ public:
 	// Standard class operations:
 
    virtual   void Initialize ()  ;
-   virtual   DAQWordBufferPtr& Read (DAQWordBufferPtr& rBuffer) ;
+   virtual   unsigned short*  Read (unsigned short*   rBuffer) ;
    virtual   void Clear ()   ;
    virtual   unsigned int MaxSize ();
  
