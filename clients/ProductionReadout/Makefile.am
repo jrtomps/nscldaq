@@ -187,7 +187,8 @@ INCLUDES = -I@top_srcdir@/Headers \
 
 EXTRA_DIST = 	MyExperiment.cpp \
 	CTraditionalScalerReadout.cpp \
-	CTraditionalEventSegment.cpp 
+	CTraditionalEventSegment.cpp  \
+	Makefile.skel
 
 
 install-data-local:

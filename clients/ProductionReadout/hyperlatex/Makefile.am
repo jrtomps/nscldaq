@@ -32,7 +32,7 @@ EXTRA_DIST = CAMACTriggerelec.eps \
 	RunStateDiagram.gif \
 	Theadingdiagram.eps \
 	Threadingdiagram.eps \
-	Threadingdiagram.gif 
+	Threadingdiagram.gif \
 	VMETriggerelec.eps \
 	VMETriggerelec.gif \
 	definitions.tex \
