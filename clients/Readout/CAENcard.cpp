@@ -275,159 +275,1023 @@ DAMAGES.
 
 		     END OF TERMS AND CONDITIONS
 */
+
+/*
+  Change Log:
+  $Log$
+  Revision 3.3  2003/06/02 14:37:33  ron-fox
+  Support multiple crates correctly.
+
+*/
+
 static const char* Copyright= "(C) Copyright Michigan State University 2002, All rights reserved";
 
-#ifndef CAENCARD_CPP
-#define CAENCARD_CPP
 
-#ifndef CAENCARD_H
 #include "CAENcard.h"
-#endif
-
-#ifndef __STL_STRING
 #include <string>
-#define __STL_STRING
-#endif
+#include <unistd.h>
 
-struct CAENcard::CAENcrate CAENcard::crate[VME_CRATE_SIZE + 1];
+//   Convenience function for longword swapping.
+#define swaplong(n)  (((n >> 16) & 0xffff) | ((n & 0xffff) << 16))
+//
+
+#define VME_CRATE_SIZE      24	// Slots in a VME crate.
+
+#define CAEN_REGISTERSIZE   0x2000 // Size of CAEN Register set.
+#define CAEN_ROMSIZE        0x1000 // Size of CAEN ROM page.
+#define CAEN_ROMOFFSET      0x8000 // Offset from base of ROM page.
+
+
+// Bits we need in registers:
+
+// Threshold memory.
+
+#define KILLBIT  0x100		// Kill bit in threshold registers.
+
+// Bit Set/Clear 1 register:
+
+#define RESET       0x080
+#define SELADDR     0x010
+
+// Status register 1:
+
+
+#define DREADY      0x001
+
+// Bit Set/Clear 2 register.
+
+#define OFFLINE     0x002
+#define CLEARDATA   0x004
+#define KEEPOVER    0x008
+#define KEEPTHRESH  0x010
+#define KEEPINVALID 0x020
+#define COMMONSTOP  0x400
+
+// The structure below represents the CAEN register set:
+//
+
+struct Registers {
+  unsigned long   Buffer[0x1000/sizeof(long)]; // 0x0000
+  unsigned short  FirmwareRev;                 // 0x1000
+  unsigned short  GeoAddress;	               // 0x1002
+  unsigned short  MCSTAddress;                 // 0x1004
+  unsigned short  BitSet1;	               // 0x1006
+  unsigned short  BitClear1;	               // 0x1008
+  unsigned short  InterruptLevel;              // 0x100a
+  unsigned short  InterruptVector;             // 0x100c
+  unsigned short  Status1;	               // 0x100e
+  unsigned short  Control1;                    // 0x1010
+  unsigned short  HighAddress;	               // 0x1012
+  unsigned short  LowAddress;                  // 0x1014
+  unsigned short  Reset;                       // 0x1016
+  unsigned short  pad1;                        // 0x1018
+  unsigned short  MCSTControl;                 // 0x101a
+  unsigned short  pad2;                        // 0x101c
+  unsigned short  pad3;                        // 0x101e
+  unsigned short  EventTrigger;	               // 0x1020
+  unsigned short  Status2;                     // 0x1022
+  unsigned short  EventCounterLow;             // 0x1024
+  unsigned short  EventCounterHigh;            // 0x1026
+  unsigned short  IncrementEvent;              // 0x1028
+  unsigned short  IncrementOffset;             // 0x102a
+  unsigned short  LoadTestRegister;            // 0x102c
+  unsigned short  FCLRWindow;                  // 0x102e
+  unsigned short  pad4;                        // 0x1030
+  unsigned short  BitSet2;                     // 0x1032
+  unsigned short  BitClear2;                   // 0x1034
+  unsigned short  WMemoryTestAddress;          // 0x1036
+  unsigned short  MemoryTestHigh;              // 0x1038
+  unsigned short  MemoryTestLow;               // 0x103a
+  unsigned short  CrateSelect;                 // 0x103c
+  unsigned short  TestEventWrite;              // 0x103e
+  unsigned short  EventCounterReset;           // 0x1040
+  unsigned short  pad5[15];                    // 0x1042-105e
+  unsigned short  TDCRange;                    // 0x1060
+  unsigned short  pad7;                        // 0x1062
+  unsigned short  RMemoryTestAddress;          // 0x1064
+  unsigned short  pad8;                        // 0x1066
+  unsigned short  SWComm;                      // 0x1068
+  unsigned short  SlideConstant;               // 0x106a
+  unsigned short  pad10;	               // 0x106c
+  unsigned short  pad11;                       // 0x106e
+  unsigned short  AAD;                         // 0x1070
+  unsigned short  BAD;                         // 0x1072
+  unsigned short  pad9[6];                     // 0x1074-107e
+  unsigned short  Thresholds[32];              // 0x1080
+  
+};
+#define QDCIPedestal TDCRange    // same register offsets.
+
+// The structure below represents the part of the board ROM
+// we care about... it holds a few chunks of useful info about
+// the board:
+
+struct ROM {
+  unsigned short  pad1[0x26/sizeof(short)];  // 0x8000 - 0x8024
+  unsigned short  OUIMSB;                    // 0x8026
+  unsigned short  pad2;                      // 0x8028
+  unsigned short  OUI;                       // 0x802a
+  unsigned short  pad3;                      // 0x802c
+  unsigned short  OUILSB;                    // 0x802e
+  unsigned short  pad4;                      // 0x8030
+  unsigned short  Version;                   // 0x8032
+  unsigned short  pad5;                      // 0x8034
+  unsigned short  BoardIdMSB;                // 0x8036
+  unsigned short  pad6;                      // 0x8038
+  unsigned short  BoardId;                   // 0x803a
+  unsigned short  pad7;                      // 0x803c
+  unsigned short  BoardIdLSB;                // 0x803e
+  unsigned short  pad8[7];                   // 0x8040-0x804c
+  unsigned short  Revision;                  // 0x804e
+  unsigned short  pad9[0xb0/sizeof(short)];  // 0x8050 - 0x8100
+  unsigned short  pad10[0xe00/sizeof(short)]; // 0x8100 - 0x8ffe
+  unsigned short  pad11;                     // 0x8f00
+  unsigned short  SerialMSB;                 // 0x8f02
+  unsigned short  pad12;                     // 0x8f04
+  unsigned short  SerialLSB;                 // 0x8f06
+};
+
 
 /*!
-  \param slotNum  This specifies the slot in the VME crate in which the module resides.
-    This value will be the first five bits of every 32-bit word in the output buffer.
-
-  \param crateNum An optional value that the module will write into the header of each
-     event/block of data.  May be useful to differential between different cards.
-     The Default value is zero.
-     
- \param Geo  bool [in] defaulst to true:
-	 - true if the slot supports geographical addressing
-	 - false if the slot requires 'thumbwheel addressing'
-	 
- \param nBase long [in] the base address of the module if Geo is false.
- 
-\note  The Geo parameter has been added to allow support for:
-- crates without the CERN j3 connector, (many mfgs make these).
-- modules that don't have the j3 connector (CAEN makes these).
- 
-
-  If slotNum is not specified, or if it is outside the range of valid values then the
-  function returns a "NULL" card.  If the card
-  cannot be initialized (wrong version of card, no card in slot) then the function
-  returns a card which will be recognized as invalid by the other functions.
-
-  Once the card is verified to be in the slot, one of the supported types, and if it
-  is not currently referenced by another instance then it is reset to clear any
-  previous settings.  Also, the thresholds are also set to default values and the TDC
-  is set to common-start mode.
+  Constructs a CAEN card.  The card can be addressed either
+  geographically  or via base addres switches.  If geographical
+  addressing is used, the slot value comes from the card position
+  in the crate.  Otherwise it is programmed by the slotNum parameter.
+  
+  \param slotNum  This specifies the slot in the VME crate in 
+  which the module resides.  If Geo is true, the module in that
+  slot of the crate will be initialized.  If Geo is false, the
+  module at physical address nBase will be initialized and its
+  virtual slot number set to slotNum.
+  
+  
+  \param crateNum The crate number in which the module lives.
+  This selects which of the VME crates the module is in.  VME
+  crate numbers can be determined using the cratelocator utility.
+  The crate number is also programmed into the crate register so
+  that the module crate field in the data stream is correct.
+  
+  \param Geo  
+  - true if the slot supports geographical addressing
+  - false if the slot requires 'thumbwheel addressing'
+  
+  \param nBase long [in] 
+  The base address of the module.  Only has meaning if the 
+  Geo parameter is false.
+  
  */
 CAENcard::CAENcard(int slotNum, int crateNum , 
-			     bool Geo, long nBase)
+		   bool Geo, long nBase) :
+  m_nSlot(slotNum),
+  m_nCrate(crateNum),
+  m_fGeo(Geo),
+  m_nBase(nBase),
+  m_pModule(0)
 {
-  if(slotInit(slotNum, crateNum, Geo, nBase) < 0)
-    slot = 0;
-  ++(crate[slot].refCount);
-};
-
+  assert(sizeof(Registers) == 0x10c0);    // else struct misdefined.
+  assert(sizeof(ROM) == 0xf08);          // else struct misdefined.
+  slotInit();
+}
 /*!
+  Copy constructor: Constructs a new card from an existing card
+  object.  A new map is established to the card for this object.
+  The card is not re-initialized, but remains in the state defined
+  by the existing card.
+
   \param card The card to copy.
 
-  The new CAENcard object will not cause the module to be reset, as this only happens
-  the first time that a CAENcard object is created that refers to a given slot.  This
-  means that any settings that you have set on the card in that slot will not be
-  lost.  Also understand that the destination argument now points to the same card
-  in the crate, and therefore any changes to either instance will be reflected in
-  all other instances referring to the same card.
+
   */
-CAENcard::CAENcard(const CAENcard& card)
+CAENcard::CAENcard(const CAENcard& card) :
+  m_nSlot(card.m_nSlot),
+  m_nCrate(card.m_nCrate),
+  m_fGeo(card.m_fGeo),
+  m_nBase(card.m_nBase),
+  m_pModule(0)
 {
-  slot = card.slot;
-  ++(crate[slot].refCount);
-};
+  MapCard();			// Map the card.
+}
 
 /*!
-  \param card The CAENcard value to assign to the destination argument.
-  \return The value placed into the destination argument.
+  Assignment operator.  This card is destroyed, and replaced with
+  a copy of the card described by <em>card</em>.  this is not
+  initialized, but remains in the state defined by the rhs of the
+  assignment.
 
-  The new CAENcard object will not cause the module to be reset, as this only happens
-  the first time that a CAENcard object is created that refers to a given slot.  This
-  means that any settings that you have set on the card in that slot will not be
-  lost.  Also understand that the destination argument now points to the same card
-  in the crate, and therefore any changes to either instance will be reflected in
-  all other instances referring to the same card.
+  \param card The CAENcard value to assign to the target 
+              of the assignment (this).
+  \return Dereferenced version of this.
+
   */
 CAENcard& CAENcard::operator=(const CAENcard& card)
 {
-  --(crate[slot].refCount);
-  destruct();  //free the resources associated with the first argument
-  slot = card.slot;
-  ++(crate[slot].refCount);
-  return(*this);
+  if(this != &card) {
+    if(this->m_pModule) DestroyCard(); // Destroy old memory map.
+    m_nSlot   = card.m_nSlot;
+    m_nCrate = card.m_nCrate;
+    m_fGeo   = m_fGeo;
+    m_nBase  = card.m_nBase;
+    MapCard();
+  }
+  return *this;
+}
+
+
+
+/*!
+
+  This function:
+  - Maps to the card and
+  - Initializes it to a standard, well defined state.
+  
+  The card location is assumed to already have been set up in 
+  the member variables (except for m_pModule which is filled in by
+  the call to MapCard).
+
+  \throw string - If there were problems a string exception is
+     thrown with the string containing the reason for the problem.
+
+*/
+void 
+CAENcard::slotInit()
+{
+
+  MapCard();
+
+  reset();			// clears the event count and buffer
+  channelOn(-1);		// Enable all channels.
+  setCrate(m_nCrate);		// Set the module's crate number.
+  
+  if(cardType() == 775) {	// Set defaults for a TDC:
+    // set use common start mode
+    // with thresholds at 14ns.
+
+    commonStart();
+    setRange(0xFF);
+    setThreshold(-1, 0x19);
+
+  }
+  else if(cardType() == 785) {	// Set the defaults for a Peak ADC:
+      // thresholds to ~15mV 
+
+    setThreshold(-1, 0x01);
+
+  }
+  else if(cardType() == 792) {   // Set defaults for a QDC:
+
+      setThreshold(-1, 0);	// Maybe later default raise this??
+  }
+  
+
+}
+
+/*! 
+
+  Destructor.  The card memory is unmapped.
+
+*/
+CAENcard::~CAENcard()
+{
+  DestroyCard();
+}
+
+/*!
+  Get the card type.  At initialization time, a short-lived map is
+  made to the device configuration ROM and the card type is read
+  and stored in m_nCardType.  This function just returns that value:
+*/
+int 
+CAENcard::cardType()
+{
+  return m_nCardType;
+}
+
+/*!
+  Each module has a crate number register that can be programmed
+  with a virtual VME crate number.  The constructor defaults this
+  to the physical VME crate number passed in.  If it's more 
+  convenient to reprogram this to be a virtual crate number this
+  function does the trick.
+
+  \param crateNum (int [in]):
+     New virtual crate numger.
+
+*/
+void 
+CAENcard::setCrate(int crateNum)
+{
+  volatile Registers* pModule = (volatile Registers*)m_pModule;
+  pModule->CrateSelect = crateNum & 0x0ff; // Bottom 8 bits only.
+
+}
+
+/*!
+  See setCrate for more information.  This function reads the 
+  virtual crate register.  To get the physical crate address 
+  use getPhysicalCrate()
+
+  \return Current value of the physical crate number.
+*/
+int 
+CAENcard::getCrate()
+{
+  volatile Registers* pModule = (volatile Registers*)m_pModule;
+  return (pModule->CrateSelect & 0xff);
+}
+
+/*!
+  This function programs the modules thresholds.  When the ADC is
+  triggered, the peaks sensed are compared against their per channel
+  thresholds.  If below, the peak is not digitized, and supressed 
+  from the readout, unless keepUnderThresholdData has been enabled.
+
+  This function programs the threshold for a single channel or 
+  sets all channels to a common threshold.  The kill bit (channel
+  disable) is preserved.
+
+  Performing a hardware reset will clear the
+  thresholds, but  no hardware  default values defined. 
+  The constructor does set all
+  thresholds to reasonable defaults, however.
+
+  \param ch (int [in]): 
+    The channel on which to set the threshold.  
+    Use a value of -1 to set the
+    threshold of all channels on the card.
+  \param threshold (int [in]):
+    The low 8-bits of this value are used to set the 
+    threshold on the
+    desired channels.
+
+*/
+void 
+CAENcard::setThreshold(int ch, int threshold)
+{
+  Registers* pModule = (Registers*)m_pModule;
+  threshold = threshold & 0x00FF;
+  
+  if( ch < 0 ) {
+    for(int i = 0; i < 32; i++) {
+      setThreshold(i,threshold); // Set individual channel threshold
+    }
+  }
+  else {
+    pModule->Thresholds[ch] = threshold |
+                             (pModule->Thresholds[ch] & KILLBIT);
+  }
+}
+
+/*!
+  Set the threshold given a voltage.
+
+  \param ch  (int [in]):
+  The channel on which to set the threshold.  
+  Use a value of -1 to set the
+    threshold of all channels on the card.
+  \param voltage (double [in]):
+  The approximate voltage to which the threshold is to be set.  The
+    conversion has a resolution of approximately 0.016 volts.
+
+*/
+void 
+CAENcard::setThresholdVoltage(int ch, double voltage)
+{
+  setThreshold(ch,(int)(voltage*64.0));  
+}
+
+/*!
+  Enables the retension of data that is under the threshold.
+  Any under threshold data that is kept in the event buffer 
+  has the under-threshold bit
+  set in the channel data.  
+  This setting is cleared when reset() is called.
+*/
+void CAENcard::keepUnderThresholdData()
+{
+  volatile Registers* pRegisters = (volatile Registers*)m_pModule;
+  pRegisters->BitSet2   = KEEPTHRESH;
+
+}
+
+/*!
+  This setting is cleared if reset() is called. The default value is to dicard the
+  under threshold conversions.
+*/
+void CAENcard::discardUnderThresholdData()
+{
+  volatile Registers* pRegisters = (volatile Registers*)m_pModule;
+  pRegisters->BitClear2 = KEEPTHRESH;
+
+}
+/*!
+  Enables the retension of data that overflows the digitizer's 
+  dynamic range.  This setting is cleared by a reset() call, or
+  a call to discardOverflowData.
+
+*/
+void CAENcard::keepOverflowData()
+{
+  volatile Registers* pRegisters = (volatile Registers*)m_pModule;
+  pRegisters->BitSet2   = KEEPOVER;
+}
+
+/*!
+  This setting is cleared if reset() is called. 
+  The default value is to discard the
+  conversions that result in an overflow.
+*/
+void CAENcard::discardOverflowData()
+{
+  volatile Registers* pRegisters = (volatile Registers*)m_pModule;
+  pRegisters->BitClear2   = KEEPOVER;
+}
+
+/*!
+  Instructs a tdc to keep invalid data.  Invalid data are stops
+  received in the middle of reset operations, and are only
+  applicable to V775 modules.
+
+  \throw a string exception if the module is not a V775
+*/
+void
+CAENcard::keepInvalidData() 
+{ 
+
+  if(cardType() == 775) {
+    volatile Registers* pRegisters = (volatile Registers*)m_pModule;
+    pRegisters->BitSet2   = KEEPINVALID;
+  }
+  else {
+    throw string("keepInvalidData - Module is not a V775 TDC");
+  }
+}
+/*!
+  Instructs a tdc to discard any invalid data (see keepInvalidData).
+
+  \throw a string exception if the module is not a V775
+
+*/
+void 
+CAENcard::discardInvalidData()
+{
+  if(cardType() == 775)
+  {
+    volatile Registers* pRegisters = (volatile Registers*)m_pModule;
+    pRegisters->BitClear2 = KEEPINVALID;
+  }
+  else
+  {
+    throw string("discardInvalidData - Module is not a V775 TDC");
+  }
+}
+
+/*!
+
+  Sets a TDC to common start mode.  In this mode, time is measured
+  beginning with the common gate input (start) and 
+  ended for each channel
+  by the individual channel input pulses (stops).
+
+  \throw string indicating the module is not a 775 tdc if it is some
+  other module.
+
+*/
+void CAENcard::commonStart()
+{
+  //make sure that the card is a TDC and initialized
+  if(cardType() == 775)
+  {
+    volatile Registers* pRegisters = (volatile Registers*)m_pModule;
+    pRegisters->BitClear2 = COMMONSTOP;
+  }
+  else
+  {
+    throw string("commonStart()  - Module is not a V775 TDC");
+  }
+}
+
+/*!
+  \return Zero indicates a successful write while -1 indicates that either the card
+    is not a TDC or it is not yet initialized.
+
+  This setting is cleared by a call to reset(). The TDC has slightly better minimum
+  detectable signal in this mode.
+*/
+void
+CAENcard::commonStop()
+{
+  //make sure that the card is a TDC and initialized
+  if(cardType() == 775)
+  {
+    volatile Registers* pRegisters = (volatile Registers*)m_pModule;
+    pRegisters->BitSet2 = COMMONSTOP;
+    
+  }
+  else
+  {
+    throw string("commonStop() - Module is not a V775 TDC");
+  }
+}
+
+/*!
+  Sets the conversion range of a V775 tdc.   The range
+  is between 140 and 1200ns represented as follows:
+  - 0x1e    - 1200ns
+  - 0xff    -  140ns
+
+  Values outside this range are illegal.  The constructor defaults
+  the range to 140ns.
+
+  \param range (int [in]):
+     A raw value used to set the range on the TDC with.
+
+
+  \throw string exception containing explanatory text if:
+  - The range value is illegal.
+  - The module is not a V775.
+*/
+void
+CAENcard::setRange(int range)
+{
+  //make sure that the card is a TDC
+
+  if(cardType() == 775)
+  {
+    if(range > 0x001D && range < 0x0100)
+    {
+      volatile Registers* pRegisters = (volatile Registers*)m_pModule;
+      pRegisters->TDCRange  = (short int)range;
+    }
+    else
+    {
+      throw 
+	string("setRange - TDC Range value must be in [0x1e,0xff");
+    }
+  }
+  else
+  {
+    throw string("setRange - Module is not a V775 TDC");
+  }
+}
+
+/*!
+  Set the current injection pedestals for a V792 qdc.  Qdc's
+  operate by storing input current on a capacitor.  The 
+  capacitor has some leakage current that is normally negligible,
+  however, this leakage current can become significant for 
+  integration widths that are long.  The V792 qdc has a high
+  high precision constant current source that can inject a 
+  compensating current into the cap. during the gate period.  This
+  function sets the amount of current injected.
+
+  \param ped (int [in]):
+  A raw value to set the pedestal current on the QDC with. 
+
+  \throw string exception if this is not a V792 module.
+*/
+void 
+CAENcard::setPedestalCurrent(int ped)
+{
+  //make sure that the card is a QDC
+  if(cardType() == 792)
+  {
+    volatile Registers* pRegisters    = (volatile Registers*) m_pModule;
+    pRegisters->QDCIPedestal = (ped & 0x0ff); 
+  }
+  else
+  {
+    throw string("setPedestalCurrent - module is not a V792 QDC");
+  }
+}
+/*!
+  This function forces the module into offline mode so that 
+  no new data is produced.
+  Data may still be present in the event buffer, however. 
+  This setting is cleared
+  when reset() is called.
+*/
+void 
+CAENcard::cardOff()
+{
+  volatile Registers* pRegisters  = (volatile Registers*)m_pModule;
+  pRegisters->BitSet2 = OFFLINE;
+}
+
+/*!
+  Sets a card to online (undoes the effects of a cardOff).
+*/
+void 
+CAENcard::cardOn()
+{
+  volatile Registers* pRegisters  = (volatile Registers*)m_pModule;
+  pRegisters->BitClear2 = OFFLINE;
+}
+
+/*!
+
+  The kill bit in the threshold memory for the channel is set 
+  without
+  destroying the threshold values. 
+  Call clearData() to ensure that all data in
+  the event buffer reflects this change.
+
+  The kill bit is not cleared by clearData() or reset(). 
+  Performing a hardware reset
+  will clear the values, but there is no default value defined. 
+  The constructor does
+  ensure that all channels are on, however.
+
+  \param ch (int [in]):
+  The channel to suppress.  A value of -1 indicates that all channels will
+    be supressed.
+
+*/
+void CAENcard::channelOff(int ch)
+{
+
+  if( ch < 0 ) {
+    for( int i = 0; i < 32; ++i )
+      channelOff(i);
+  }
+  else {
+    if(ch < 32) {
+       volatile Registers* pRegisters = (volatile Registers*)m_pModule;
+       pRegisters->Thresholds[ch] |= KILLBIT;
+    } else {
+      throw string("channelOff - channel number must be in [0,31]");
+    }
+  }
+}
+
+/*!
+
+  The kill bit in the threshold memory for the channel is 
+  cleared without
+  destroying the threshold values. Call clearData() to ensure 
+  that all data in
+  the event buffer reflects this change. 
+  An overflow, under threshold, or invalid
+  data condition can still cause the channel to be supressed.
+
+    \param ch (int [in]):
+    The channel to unsuppress.  A value of -1 indicates that all channels will
+    be unsupressed.
+
+*/
+void 
+CAENcard::channelOn(int ch)
+{
+
+  if( ch < 0 ) {
+    for( int i = 0; i < 32; ++i )
+      channelOn(i);
+  }
+  else {
+    if(ch < 32) {
+       volatile Registers* pRegisters = (volatile Registers*)m_pModule;
+       pRegisters->Thresholds[ch] &= (KILLBIT - 1);
+    } 
+    else {
+      throw string("channelOn - channel number must be in [0,31]");
+    }
+  }
+
+}
+
+/*!
+  Clear the module event counter.
+
+*/
+void 
+CAENcard::resetEventCounter()
+{
+  // Any write triggers the reset!
+
+  ((volatile Registers*)m_pModule)->EventCounterReset = 1;
+
+}
+
+/*!
+  Clear the module's multievent data buffers.
+  This requires setting and clearing the clear data bit:
+*/
+void CAENcard::clearData()
+{
+  volatile Registers* pReg = (volatile Registers*)m_pModule;
+  pReg->BitSet2   = CLEARDATA;
+  pReg->BitClear2 = CLEARDATA;
+
 };
 
 /*!
-  \param slotNum  This specifies the slot in the VME crate in which the module resides.  This value will be the first five bits of every 32-bit word in the output buffer.
-  \param crateNum An optional value that the module will write into the header of each event/block of data.  May be useful to differential between different cards.
-  \param fGeo - true if the slot is a geographical address, false if slotNum is actually
-            an A32 base address.
-   \param nBase long base address of the module if fGeo is false.
+  Peforms a soft reset on the module using the reset bit of the
+  BitSet/Clear1 registers.
 
-  \return Failure to initialize the card is indicated by a return value less than zero.  Each failure returns a different value and are numbered sequentially through the function.
-
-  The calling function must increment the value of
-  CAENcard::crate[#slot].\link CAENcrate#refCount refCount\endlink after calling
-  this function (if appropriate).  The memory map and file descriptor associated
-  with this slot will be allocated and opened, respectively, if not already present.
-  The status of the slot is then set to be CAEN_MODE_A32D16 if successful.
+  - This call does not change the threshold values or any of 
+    the settings that might
+    disrupt communication with the module. 
+  - This call does set the module to discard
+    under threshold, overflow, and invalid data. 
+  - The crate value is set to zero.
+  - The range, pedestal current, and start mode are all set to 
+    default values
+    which are, unfortunately, not specified by the documentation.
 */
-int CAENcard::slotInit(int slotNum, int crateNum, bool fGeo, long nBase)
+void 
+CAENcard::reset()
 {
+  volatile Registers* pReg = (volatile Registers*)m_pModule;
+  pReg->BitSet1   = RESET;
+  pReg->BitClear1 = RESET;
 
+};
+
+/*!
+  \return \li true indicates that there is data in the event buffer
+          \li false indicates that the event buffer is empty
+
+  This function is called by all of the readEvent functions before they 
+read any data.
+*/
+bool 
+CAENcard::dataPresent()
+{
+  volatile Registers* pReg = (volatile Registers*)m_pModule;
+  return ((pReg->Status1 & DREADY) != 0);
+
+};
+
+/*!
+  Read a single event from a module into a user buffer.
+
+  \param buf (int* [out]):
+  A pointer to local memory that has already been allocated.
+  Should be at least 34 * 4 = 136 bytes to hold the header, 
+  footer, and 32 channels of data.
+
+  \return \li \> 0 indicates the number of BYTES of data placed in buf
+          \li 0 indicates that no data was placed in the buffer
+
+*/
+int 
+CAENcard::readEvent(void* buf)
+{
+  int* pBuf((int*)buf);
+  if(dataPresent())
+  {
+    int n = 1;			// Header at least is read.
+    volatile int* pBuffer    = 
+      (volatile int*)(((volatile Registers*)m_pModule)->Buffer);
+    int  Header     = *pBuffer++;
+    int* pHeader    = pBuf;	// To fix channel count.
+    *pBuf++         = swaplong(Header);
+    int datum;
+    do {
+      datum   = *pBuffer++;
+      *pBuf++ = swaplong(datum);
+      n++;
+      datum = (datum >> 24) & 7;
+    } while ( datum == 0);
+    if(datum != 4) {
+      cerr << " Data type in terminating long wrong: " << hex 
+	   <<datum << dec << endl;
+    }
+    Header &= 0xffffC0ff;	// Channel count is sometimes wrong.
+    Header |= ((n-1) << 8);	// this fixes it.
+    *pHeader = swaplong(Header);
+    return n * sizeof(long);			// Rely on the trailer!!
+  } else {
+    cerr << "Readout called but no data present\n";
+    return 0;
+  }
+};
+
+/*!
+  Read a single event from the module into a DAQ system buffer:
+
+  \param wbuf A DAQWordBuffer object to put data in. 
+      When using the standard readout
+      skeleton this object is created for you.
+  \param offset The position that the data should be written to.  
+      This may be necessary
+      to avoid overwriting other data in the DAQWordBuffer.
+
+  \return \li \> 0 indicates the number of 16-BIT WORDS of 
+          data placed in wbuf
+          \li 0 indicates that no data was placed in the buffer
+	  
+
+*/
+int 
+CAENcard::readEvent(DAQWordBuffer& wbuf, int offset)
+{
+  int    localBuffer[32+2];	// 32 channels, + header + trailer.
+  short* pBuf((short*)localBuffer); // Read here then copy.
+
+  if(dataPresent()) {
+
+    int n = readEvent(localBuffer);
+    int nWords = n/sizeof(int);
+
+    for(int i = 0; i < nWords; i++) {
+      wbuf[offset] = *pBuf++;
+      offset++;
+    }
+
+    return nWords;
+  }
+
+  return 0;
+};
+
+/*!
+  read data into a buffer pointer.
+
+  \param wp A DAQWordBufferPtr object.
+
+  \return \li \> 0 indicates the number of 16-BIT WORDS of data placed in buf
+          \li 0 indicates that no data was placed in the buffer
+
+
+
+   wp gets advanced by the number of words read.
+
+
+*/
+int CAENcard::readEvent(DAQWordBufferPtr& wp)
+{
+  // Patterned after the previous function:
+
+  if(dataPresent()) {
+    int localBuffer[32+2];
+    short *pBuf((short*)localBuffer);
+    int nbytes = readEvent(localBuffer); // Read to temp buffer.
+    int nWords = nbytes / sizeof(short);
+    for(int i = 0; i < nWords; i++) {
+      *wp = *pBuf++;
+      ++wp;
+    }
+    return nWords;
+  }
+  return 0;
+};
+
+/*!
+  Read an event into a double word buffer object.  For now, the
+  event is first read into a local buffer and then transferred into
+  the daq buffer.
+
+  \param dwbuf A DAQDWordBuffer object to put data in.
+  \param offset The position that the data should be written to.  This is necessary
+      to avoid overwriting other data in the DAQDWordBuffer.
+
+  \return \li \> 0 indicates the number of 32-BIT DWORDS of data placed in dwbuf
+          \li 0 indicates that no data was placed in the buffer
+
+*/
+int 
+CAENcard::readEvent(DAQDWordBuffer& dwbuf, int offset)
+{
+  if(dataPresent()) {
+    int localBuffer[32+2];	// 32 chans + header + trailer.
+    int nbytes = readEvent(localBuffer);
+    int nlongs = nbytes/sizeof(long);
+    int* pLocal(localBuffer);
+    for(int i =0; i < nlongs; i++) {
+      dwbuf[offset] = *pLocal++;
+      offset++;
+    }
+    return nlongs;
+  }
+  return 0;
+
+};
+
+/*!
+  Reads an event into a buffer pointed to by a DAQDWordBufferObject.
+  Dword is assumed to be 32 bits wide.
+
+  \param wp A pointer to a DAQDWordBuffer object.
+
+  \return \li \> 0 indicates the number of 32-BIT WORDS of data placed in buf
+          \li 0 indicates that no data was placed in the buffer
+
+*/
+int CAENcard::readEvent(DAQDWordBufferPtr& dwp)
+{
+  if(dataPresent()) {
+    int localBuffer[32+2];	// 32 chans + header +trailer.
+    int nbytes  = readEvent(localBuffer);
+    int nlongs  = nbytes/sizeof(long);
+    int* pLocal(localBuffer);
+    for(int i =0; i < nlongs; i++) {
+      *dwp = *pLocal++;
+      ++dwp;
+    }
+    return nlongs;
+  }
+  return 0;
+
+};
+
+
+
+/*!
+   Set an iped value.
+   \param channel - Channel to set.
+   \param value   - New value for pedestal only bottom 8 bits are used.
+
+*/
+void CAENcard::setIped(int value)
+{
+  setPedestalCurrent(value);
+}
+/*!
+   Return the value of an Iped register.
+   \param channel - Channel to get.
+*/
+int CAENcard::getIped()
+{
+  if(cardType() == 792) {
+    return ((volatile Registers*)m_pModule)->QDCIPedestal;
+  } else {
+    throw string("getIped - Module is not a V792 QDC");
+  }
+
+}
+/*!
+   Given the values in 
+   - m_nSlot  - Geographical slot address.
+   - m_nCrate - Physical crate number.
+   - m_fGeo   - true if module should be initially accessed via geo.
+   - m_nBase  - Base address (used if !m_fGeo).
+
+   - Creates a map to the data buffer and registers of the module.
+     and stores it in m_pModule.
+   - Determines the module type by mapping the PROM memory and
+     storing the module type (if legal) in m_nCardType.
+   - If necessary programs the module's Geo register (!m_fGeo).
+   - If necessary, programs the modules base address and re-maps
+     the module for base address mapping (m_fGeo).
+
+     \throw string describing why the function failed. 
+*/
+void CAENcard::MapCard()
+{
   //ensure that the slot and crate specified stay within bounds
-   crateNum = crateNum & 0xff;  //not important enough to give an error for, just discard the extra
-   slot = slotNum;
-   if( slot == 0 )	//nothing to do... dummy card created by empty constructor
-   {
-      return(0);
-   }
+   m_nCrate = m_nCrate & 0xff;  //not important enough to give an error for, just discard the extra
 
-   if(slot > VME_CRATE_SIZE)
+   if(m_nSlot > VME_CRATE_SIZE)
    {
-      perror("Invalid slot number specified to slotInit(). ");
-      return(-1);
+      throw string("Invalid slot number specified to MapCard(). ");
    }
-
-  //check to see if the card in this slot is already being referenced
-   if(crate[slot].refCount > 0 && (crate[slot].status & CAEN_MODE_A32D16))
-   {
-      //set the crate number as requested by the calling program (defaults to zero)
-      setCrate(crateNum);
-
-      return(0);
-   }
+   
 
      //the card is not mapped yet, so do it
-   if( fGeo) {                                  // Geographical addressing...
-     crate[slot].status = CAEN_MODE_UNINIT;
 
-     crate[slot].fd   = CVMEInterface::Open(CVMEInterface::GEO, crateNum);
-     crate[slot].mbuf = (unsigned short int*)
-				      CVMEInterface::Map(crate[slot].fd, 
-								  slot << 19, 
-								  CAEN_CARD_MMAP_LEN);
-
+   void* fd;
+   ROM *pRom;
+   if( m_fGeo) {		// Geographical addressing...
+     fd   = CVMEInterface::Open(CVMEInterface::GEO, m_nCrate);
+     m_pModule= (volatile unsigned short*) 
+                   CVMEInterface::Map(fd, 
+				      (unsigned long)m_nSlot << 19, 
+				      CAEN_REGISTERSIZE);
+     pRom     = (ROM*)
+                      CVMEInterface::Map(fd,
+					 ((long)m_nSlot <<19) + 
+					 CAEN_ROMOFFSET,
+					 CAEN_ROMSIZE);
+     
    }
    else {                                    // A32 addressing.
-      crate[slot].fd = CVMEInterface::Open(CVMEInterface::A32, crateNum);
-      crate[slot].mbuf = (unsigned short int*) 
-				       CVMEInterface::Map(crate[slot].fd,
-							            nBase,
-								    CAEN_CARD_MMAP_LEN);
-								    
-	    // for non geo modules. .it's necesasry to program the geo register:
-	    
-      *(crate[slot].mbuf + (0x1002/sizeof(short))) = slot;
-      reset();                      // This only takes effect after a reset.
+     fd = CVMEInterface::Open(CVMEInterface::A32, m_nCrate);
+     m_pModule = (volatile unsigned short*) CVMEInterface::Map(fd,
+							  m_nBase,
+						 CAEN_REGISTERSIZE);
+     pRom = (ROM*)CVMEInterface::Map(fd,
+				     m_nBase + CAEN_ROMOFFSET,
+				     CAEN_ROMSIZE);
+     // The geographical address register must be programmed
+     // in case the module or crate don't support geo.
+
+     ((volatile Registers*)m_pModule)->GeoAddress = m_nSlot;
    }
+
+   // Get the module type from the PROM and unmap the prom,
+   // as that's all we use it for:
+
+   m_nCardType = pRom->BoardIdMSB << 16 |
+                 pRom->BoardId    <<  8 |
+                 pRom->BoardIdLSB;
+   m_nSerialno  = pRom->SerialMSB << 8 |
+                 pRom->SerialLSB;
+   m_nHardwareRev = pRom->Revision;
+
+   // We can now unmap the prom:
+   
+   CVMEInterface::Unmap(fd, (void*)pRom, CAEN_ROMSIZE);
+
    /* 
       To determine that the experimenter is not lying to us
       about how the VME is stuffed, we require that the module
@@ -438,783 +1302,84 @@ int CAENcard::slotInit(int slotNum, int crateNum, bool fGeo, long nBase)
       make a pretty miniscule chance that we'll be fooled
       by an empty slot. 1/32 * (1/2&24)
    */
-   volatile unsigned short int* pModule = crate[slot].mbuf; // Base of module.
-   unsigned int boardid      = (*(pModule + 0x803e/sizeof(short)) & 0xff)        |
-     ((*(pModule + 0x803a/sizeof(short)) & 0xff) << 8)  |
-     ((*(pModule + 0x8036/sizeof(short)) & 0xff) << 16);
-   unsigned int geo          = (*(pModule + 0x1002/sizeof(short)) & 0xff) & 0x1f;
+   int nSlot = ((volatile Registers*)m_pModule)->GeoAddress & 0x1f;
+   
    if(!(
-	( (short int)slot == geo )   &&		//check geo address
-	( (boardid == 775) || 
-	  (boardid == 785) || 
-	  (boardid == 792) ||
-	  (boardid == 862) ) // and board type
+	( m_nSlot  ==  nSlot )   &&
+	( (m_nCardType == 775) || 
+	  (m_nCardType == 785) || 
+	  (m_nCardType == 792) ||
+	  (m_nCardType == 862) )
 	))   {   //either an invalid board or no board is present in this slot
-     printf("\nCard is not inserted or is of an incompatable type!\n");
-     CVMEInterface::Unmap(crate[slot].fd, (void*)crate[slot].mbuf, CAEN_CARD_MMAP_LEN);
+     CVMEInterface::Unmap(fd, 
+			  (void*)m_pModule, CAEN_REGISTERSIZE);
      
-     CVMEInterface::Close(crate[slot].fd);
-     crate[slot].fd = 0;
-     return(-7);
+     CVMEInterface::Close(fd);
+     throw 
+       string("Card is incompatable type or not inserted");
    }
    
    
+   //  Now that we've accessed the card successfully,
+   //  If the initial mapping was geographical, we need to
+   //  re-map using our 'standard' address scheme.  Otherwise
+   //  we won't be able to read the event buffer which makes
+   //  the module hard to readout. Note that if !m_fGeo,
+   //  we already have a non-geo map, so this section gets skipped.
 
-   //card access and initialization was successful
    
-   if(fGeo) {                              // Transition to A32...
-     crate[slot].status = CAEN_MODE_GEO24;
+   if(m_fGeo) {                              // Transition to A32...
+
+     // Set the address registers of the module so that it will
+     // recognize at m_nSlot << 24:
+
+     ((volatile Registers*)m_pModule)->HighAddress = m_nSlot;
+     ((volatile Registers*)m_pModule)->LowAddress  = 0;
      
-     //end of slot initialization, begin address initialization
-     
-     //set the address in the registers based upon the slot number
-     //the 32bit address becomes (slot<<24)
-     *(crate[slot].mbuf+0x0809) = slot;
-     *(crate[slot].mbuf+0x080A) = 0;
-     //set "bit set 1" register to use address in registers for addressing
-     *(crate[slot].mbuf+0x0803) = 0x0010;
+     // Enable address recognition based on the address registers
+     // (bypass the rotary switches).
+
+     ((volatile Registers*)m_pModule)->BitSet1 = SELADDR;
      
      //destroy GEO24 mmap and file descriptor
      
-     CVMEInterface::Unmap(crate[slot].fd, (void*)crate[slot].mbuf, CAEN_CARD_MMAP_LEN);
-     CVMEInterface::Close(crate[slot].fd);
-     crate[slot].fd = 0;
-     try {
-       crate[slot].fd = CVMEInterface::Open(CVMEInterface::A32, crateNum);
-     }
-     catch(string& emsg) {
-       cerr << "Failed to change the card access mode from GEO24 to A32D16\n";
-       cerr << emsg <<endl;
-       crate[slot].status = CAEN_MODE_UNINIT;
-       return(-10);
-     }
+     CVMEInterface::Unmap(fd, (void*)m_pModule, CAEN_REGISTERSIZE);
+     CVMEInterface::Close(fd);
+
+     // Now remap using A32 addressing:
+     
+     fd = CVMEInterface::Open(CVMEInterface::A32, m_nCrate);
      
      //create A32D16 mmap
      
-     try {
-       crate[slot].mbuf = (volatile unsigned short int*)CVMEInterface::Map(crate[slot].fd, slot << 24, CAEN_CARD_MMAP_LEN);
-     }
-     catch (string& error) {
-       cerr << " Unable to map the card for base addressing\n";
-       cerr << error << endl;
-       crate[slot].mbuf = 0;
-       CVMEInterface::Close(crate[slot].fd);
-       crate[slot].fd = 0;
-       crate[slot].status = CAEN_MODE_UNINIT;
-       return(-11);  
-     }
-  }                                 // All set if not doing GEO addressing.
+     m_pModule = (volatile unsigned short *) 
+       CVMEInterface::Map(fd, 
+			  (long)m_nSlot << 24, 
+			  CAEN_REGISTERSIZE);
+   }
+   m_nFd = fd;			// Save for destruction.
   
-  crate[slot].status = CAEN_MODE_A32D16;
-  reset();  //puts almost all settings back to default value
-  //clears the event count and buffer
-  channelOn(-1);  //make sure that no kill bits are set
-  //set the crate number as requested by the calling program (defaults to zero)
-  setCrate(crateNum);
-  
-  if(cardType() == 775)
-    {
-      //set use common start mode and the thresholds to 14ns if a TDC
-      commonStart();
-      setRange(0xFF);
-      setThreshold(-1, 0x19);
-    }
-  else if(cardType() == 785)
-    {
-      //set all of the thresholds to ~15mV if this card is an ADC
-      setThreshold(-1, 0x01);
-    }
-  else if(cardType() == 792)
-    {
-      //set default operation for the QDC
-      
-      //is a default pedestal current value desired??
-      
-      //don't know if this is appropriate as I don't have access to this type of card.
-      //documentation simply says "resolution : 12 bit" and "Gain : 100 fC/count".
-    //a good threshold likely depends upon the gate width...
-      setThreshold(-1, 0);
-    }
-  
-  return(0);
-};
+}
 
-/*! The reference count of the slot number is decreased and then the destruct()
-    function is called.  If the reference count is less than one then the items
-    in CAENcard::crate[#slot] are destroyed. (memory map unmapped, file descriptor
-    closed, status set to uninitialized)
-*/
-CAENcard::~CAENcard()
-{
-  --(crate[slot].refCount);
-  destruct();
-};
-
-/*! The calling function for this function must decrement value of
-    CAENcard::crate[#slot].\link CAENcrate#refCount refCount\endlink before calling
-    this function (if appropriate).  The memory map and file descriptor associated
-    with this slot will be released and closed, respectively. The status of the
-    slot is then set to be uninitialized.
-*/
-void CAENcard::destruct()
-{
-  int temp[2];
-  if( crate[slot].refCount < 1)
-  {
-    crate[slot].refCount = 0;
-    if(slot > 0 )
-    {
-      if (crate[slot].mbuf)
-      {
-	CVMEInterface::Unmap(crate[slot].fd, (void*)crate[slot].mbuf, CAEN_CARD_MMAP_LEN);
-      }
-      crate[slot].mbuf = 0;
-      if(crate[slot].fd != 0)
-      {
-        CVMEInterface::Close(crate[slot].fd);
-      }
-      crate[slot].fd = 0;
-      crate[slot].status = CAEN_MODE_UNINIT;
-    }
-  }
-};
-
-/*! \return \li If the call succeeds then either 775, 785, or 792 will be returned as an integer.
-            \li If the call fails (if it is called on an uninitialized card) then -1 will be returned.
- */
-int CAENcard::cardType()
-{
-  if(crate[slot].status & CAEN_MODE_A32D16)
-  {
-    return( 768 + (*(crate[slot].mbuf+0x401F) & 0x00FF) );
-  }
-  else
-  {
-//    printf("Attempted to determine the card type of an uninitialized card.\n");
-    return(-1);
-  }
-};
 
 /*!
-  This eight-bit value is set when the board is initialized (default value is zero).  The value
-  appears in the header of each event sent back from the card and is only useful to differentiate
-  between the data from different cards. This value is cleared by a call to reset().
+   Unmap the card.  This is a required part of several operations
+   including:
+   - destruction
+   - assignment
 */
-void CAENcard::setCrate(int crateNum)
+void CAENcard::DestroyCard()
 {
-  if(crate[slot].status & CAEN_MODE_A32D16)
-  {
-    *(crate[slot].mbuf+0x081E) = crateNum & 0x00FF;
-  }
-};
-
-/*!
-  \return \li The current crate number is returned if the value is successfully read from the card.
-          \li If the card is not in CAEN_MODE_A32D16 then the call will fail and return -1.
-
-  This eight-bit value is set when the board is initialized (default value is zero).  The value
-  appears in the header of each event sent back from the card and is only useful to differentiate
-  between the data from different cards.
-
-  This value is not cleared by a call to dataClear(), but is cleared by a call to reset().
-*/
-int CAENcard::getCrate()
-{
-  if(crate[slot].status & CAEN_MODE_A32D16)
-  {
-    return *(crate[slot].mbuf+0x081E) & 0x00FF;
-  }
-  else
-  {
-//    printf("Attempted to retrieve the crate value from an uninitialized card.\n");
-    return(-1);
-  }
+  CVMEInterface::Unmap(m_nFd, 
+		       (void*)m_pModule,
+		       CAEN_REGISTERSIZE);
+  CVMEInterface::Close(m_nFd);
 }
 
 /*!
-  \param ch The channel on which to set the threshold.  Use a value of -1 to set the
-    threshold of all channels on the card.
-  \param threshold The low 12-bits of this value are used to set the threshold on the
-    desired channels.
-
-  The threshold value is compared against each converted value.  If the converted value
-  is less than the threshold then it is either discarded or, if the card is set to
-  keepUnderThresholdData() then the underflow bit in the data word is set and it is
-  stored in the event buffer.
-
-  This function preserves the state of the kill bit in threshold memory so that it does
-  not "turn on" any channels that have had channelOff() called on them.  Thresholds are
-  not cleared by clearData() or reset(). Performing a hardware reset will clear the
-  thresholds, but there are no default values defined. The constructor does set all
-  thresholds to reasonable defaults, however.
+   Return the firmware revision info:
 */
-void CAENcard::setThreshold(int ch, int threshold)
+int CAENcard::getFirmware() 
 {
-  if((crate[slot].status & CAEN_MODE_A32D16) && ch < 32)
-  {
-    //make sure that the kill bit won't accidentally be set
-    threshold = threshold & 0x00FF;
-    //don't turn the channel on or off, but change the threshold
-    if( ch < 0 )
-      for(int i = 0; i < 32; i++)
-        *(crate[slot].mbuf+0x0840+i) = (short int)threshold + ((*(crate[slot].mbuf+0x0840+i)) & 0x0100);
-    else
-      *(crate[slot].mbuf+0x0840+ch) = (short int)threshold + ((*(crate[slot].mbuf+0x0840+ch)) & 0x0100);
-  }
-};
-
-/*!
-  \param ch The channel on which to set the threshold.  Use a value of -1 to set the
-    threshold of all channels on the card.
-  \param voltage The approximate voltage to which the threshold is to be set.  The
-    conversion has a resolution of approximately 0.016 volts.
-
-  This function only works if the card is a V785 ADC since it does not make sense to
-  speak in terms of voltage thresholds with the TDC or QDC.
-*/
-int CAENcard::setThresholdVoltage(int ch, double voltage)
-{
-  //make sure that the card is the peak-sensing ADC
-  if(cardType() == 785)
-  {
-    setThreshold(ch,(int)(voltage*64));
-    return(0);
-  }
-  else
-  {
-    printf("Attempted to set threshold by voltage on a card other than the V785 or an uninitialized card.\n");
-    return(-1);
-  }
-};
-
-/*!
-  Any under threshold data that is kept in the event buffer has the under-threshold bit
-  set in the channel data.  This setting is cleared when reset() is called.
-*/
-void CAENcard::keepUnderThresholdData()
-{
-  if(crate[slot].status & CAEN_MODE_A32D16)
-    *(crate[slot].mbuf+0x0819) = 1<<4;
-};
-
-/*!
-  This setting is cleared if reset() is called. The default value is to dicard the
-  under threshold conversions.
-*/
-void CAENcard::discardUnderThresholdData()
-{
-  if(crate[slot].status & CAEN_MODE_A32D16)
-    *(crate[slot].mbuf+0x081A) = 1<<4;
-};
-
-/*!
-  Any conversions that result in an overflow condition cause the overflow bit to be
-  set in the channel data. This setting is cleared when reset() is called.
-*/
-void CAENcard::keepOverflowData()
-{
-  if(crate[slot].status & CAEN_MODE_A32D16)
-    *(crate[slot].mbuf+0x0819) = 1<<3;
-};
-
-/*!
-  This setting is cleared if reset() is called. The default value is to dicard the
-  conversions that result in an overflow.
-*/
-void CAENcard::discardOverflowData()
-{
-  if(crate[slot].status & CAEN_MODE_A32D16)
-    *(crate[slot].mbuf+0x081A) = 1<<3;
-};
-
-/*!
-  \return Zero indicates a successful write while -1 indicates that either the card
-    is not a TDC or it is not yet initialized.
-
-  The invalid data bit is set when a stop signal is received while the TDC
-  is reseting (it takes 700ns to reset) after the maximum conversion time das
-  been hit. This setting is cleared when reset() is called.
-*/
-int CAENcard::keepInvalidData() { if(cardType() == 775) {
-  *(crate[slot].mbuf+0x0819) = 1<<5; return(0); } else { printf("Attempted to
-  keep invalid data on a card that is not a TDC or not initialized.\n");
-  return(-1); } };
-
-/*!
-  \return Zero indicates a successful write while -1 indicates that either the card
-    is not a TDC or it is not yet initialized.
-
-  This setting is cleared if reset() is called. The default behavior is for the TDC
-  to discard the invalid data.
-*/
-int CAENcard::discardInvalidData()
-{
-  if(cardType() == 775)
-  {
-    *(crate[slot].mbuf+0x081A) = 1<<5;
-    return(0);
-  }
-  else
-  {
-    printf("Attempted to keep invalid data on a card that is not a TDC or not not initialized.\n");
-    return(-1);
-  }
-};
-
-/*!
-  \return Zero indicates a successful write while -1 indicates that either the card
-    is not a TDC or it is not yet initialized.
-
-  This setting is cleared by a call to reset(). When the card is first created it
-  is set to use common start mode.
-*/
-int CAENcard::commonStart()
-{
-  //make sure that the card is a TDC and initialized
-  if(cardType() == 775)
-  {
-    *(crate[slot].mbuf+0x081A) = 1<<10;
-    return(0);
-  }
-  else
-  {
-    printf("Attempt to set common start on a card that is not a TDC or not initialized.\n");
-    return(-1);
-  }
-};
-
-/*!
-  \return Zero indicates a successful write while -1 indicates that either the card
-    is not a TDC or it is not yet initialized.
-
-  This setting is cleared by a call to reset(). The TDC has slightly better minimum
-  detectable signal in this mode.
-*/
-int CAENcard::commonStop()
-{
-  //make sure that the card is a TDC and initialized
-  if(cardType() == 775)
-  {
-    *(crate[slot].mbuf+0x0819) = 1<<10;
-    return(0);
-  }
-  else
-  {
-    printf("Attempt to set common start on a card that is not a TDC or not initialized.\n");
-    return(-1);
-  }
-};
-
-/*!
-  \param range A raw value used to set the range on the TDC with.
-    -0x1E (30) sets the range to 1200ns
-    -0xFF (255) sets the range to 140ns
-    -Use linear iterpolation for intermediate values.
-
-  \return Zero indicates a successful write while -1 indicates that either the card
-    is not a TDC or it is not yet initialized and -2 indicates that an invalid value
-    was passed.
-
-  This setting is cleared by a call to reset(). The constructor defaults the range to 
-  140ns.
-*/
-int CAENcard::setRange(int range)
-{
-  //make sure that the card is a TDC
-  if(cardType() == 775)
-  {
-    if(range > 0x001D && range < 0x0100)
-    {
-      *(crate[slot].mbuf+0x0830) = (short int)range;
-      return(0);
-    }
-    else
-    {
-      printf("Passed invalid value to the setRange function.\n");
-      return(-2);
-    }
-  }
-  else
-  {
-    printf("Attempt to set range on a card that is not a TDC or not initialized.\n");
-    return(-1);
-  }
-};
-
-/*!
-  \param ped A raw value to set the pedestal current on the QDC with. I do not have a
-    QDC to test and the documentation is unclear to me.  For larger values, however,
-    the gate width also affects the channels' offsets.
-
-  \return Zero indicates a successful write while -1 indicates that either the card
-    is not a QDC or it is not yet initialized.
-
-  This setting is cleared when reset() is called. No default value is set when the
-  card is initialized.
-*/
-int CAENcard::setPedestalCurrent(int ped)
-{
-  //make sure that the card is a QDC
-  if(cardType() == 792)
-  {
-    *(crate[slot].mbuf+0x0830) = ped & 0x00FF;
-    return(0);
-  }
-  else
-  {
-    printf("Attempt to set range on a card that is not a TDC.\n");
-    return(-1);
-  }
-};
-
-/*!
-  This function forces the module into offline mode so that no new data is produced.
-  Data may still be present in the event buffer, however. This setting is cleared
-  when reset() is called.
-*/
-void CAENcard::cardOff()
-{
-  if(crate[slot].status & CAEN_MODE_A32D16 )
-    *(crate[slot].mbuf+0x0819) = 1<<1;
-};
-
-/*!
-  The event buffer may still have data in it from events that were converted before
-  cardOff() was called. This setting is cleared when reset() is called.
-*/
-void CAENcard::cardOn()
-{
-  if(crate[slot].status & CAEN_MODE_A32D16 )
-    *(crate[slot].mbuf+0x081A) = 1<<1;
-};
-
-/*!
-  \param ch The channel to suppress.  A value of -1 indicates that all channels will
-    be supressed.
-
-  The kill bit in the threshold memory for the channel is set without
-  destroying the threshold values. Call clearData() to ensure that all data in
-  the event buffer reflects this change.
-
-  The kill bit is not cleared by clearData() or reset(). Performing a hardware reset
-  will clear the values, but there is no default value defined. The constructor does
-  ensure that all channels are on, however.
-*/
-void CAENcard::channelOff(int ch)
-{
-  if (crate[slot].status & CAEN_MODE_A32D16)
-  {
-    if( ch < 0 )
-    {
-      //set kill bits for every channel without destroying the threshold
-      for( int i = 0; i < 32; ++i )
-        *(crate[slot].mbuf + 0x840 + i) = 0x0100 + (*(crate[slot].mbuf + 0x0840 + i ) & 0x00FF);
-    }
-    else
-    {
-      ch &= 0x001F;
-      //set kill bit for requested channel without destroying the threshold
-      *(crate[slot].mbuf+0x840+ch) = 0x0100 + (*(crate[slot].mbuf + 0x0840 + ch ) & 0x00FF);
-    }
-  }
-};
-
-/*!
-  \param ch The channel to unsuppress.  A value of -1 indicates that all channels will
-    be unsupressed.
-
-  The kill bit in the threshold memory for the channel is cleared without
-  destroying the threshold values. Call clearData() to ensure that all data in
-  the event buffer reflects this change. An overflow, under threshold, or invalid
-  data condition can still cause the channel to be supressed.
-
-  The kill bit is not cleared by clearData() or reset(). Performing a hardware reset
-  will clear the values, but there is no default value defined. The constructor does
-  ensure that all channels are on, however.
-*/
-void CAENcard::channelOn(int ch)
-{
-  if (crate[slot].status & CAEN_MODE_A32D16)
-  {
-    if( ch < 0 )
-    {
-      //set kill bits for every channel without destroying the threshold
-      for( int i = 0; i < 32; ++i )
-        *(crate[slot].mbuf + 0x840 + i) = *(crate[slot].mbuf + 0x0840 + i ) & 0x00FF;
-    }
-    else
-    {
-      ch &= 0x001F;
-      //set kill bit for requested channel without destroying the threshold
-      *(crate[slot].mbuf+0x840+ch) = *(crate[slot].mbuf + 0x0840 + ch ) & 0x00FF;
-    }
-  }
-};
-
-/*!
-  Only the event counter (present in the End Of Block of every event) is affected by
-  this call.
-*/
-void CAENcard::resetEventCounter()
-{
-  if (crate[slot].status & CAEN_MODE_A32D16)
-    *(crate[slot].mbuf+0x0820) = 1;
-  //the value written doesn't matter, it is a dummy register.
-  //the VME write access is what triggers the counter reset.
-};
-
-/*!
-  No settings on the module are altered by this call.
-*/
-void CAENcard::clearData()
-{
-  if (crate[slot].status & CAEN_MODE_A32D16)
-  {
-    *(crate[slot].mbuf+0x0819) = 1<<2;
-    *(crate[slot].mbuf+0x081a) = 1<<2;
-  }
-};
-
-/*!
-  This call does not change the threshold values or any of the settings that might
-  disrupt communication with the module. This call does set the module to discard
-  under threshold, overflow, and invalid data. Also the crate value is set to zero.
-  Finally, the range, pedestal current, and start mode are all set to default values
-  which are, unfortunately, not specified by the documentation.
-*/
-void CAENcard::reset()
-{
-  if (crate[slot].status & CAEN_MODE_A32D16)
-  {
-    *(crate[slot].mbuf+0x0803) = 1<<7;  //put board into reset mode
-    *(crate[slot].mbuf+0x0804) = 1<<7;  //take board out of reset mode
-  }
-};
-
-/*!
-  \return \li 1 indicates that there is data in the event buffer
-          \li 0 indicates that the event buffer is empty
-          \li -1 is returned when the card has not been initialized
-
-  This function is called by all of the readEvent functions before they read any data.
-*/
-int CAENcard::dataPresent()
-{
-  if(crate[slot].status & CAEN_MODE_A32D16)
-  {
-    return (*(crate[slot].mbuf+0x0807) & 0x0001);
-  }
-  else
-  {
-    return(-1);
-  }
-};
-
-/*!
-  \param buf A pointer to local memory that has already been allocated.
-      Should be at least 34 * 4 = 136 bytes to hold the header, footer, and 32
-      channels of data.
-
-  \return \li \> 0 indicates the number of BYTES of data placed in buf
-          \li 0 indicates that no data was placed in the buffer
-          \li -1 is returned if the card is not properly initialized
-
-  Be careful about putting this function into a loop because it can return a negative
-  value.
-*/
-int CAENcard::readEvent(void* buf)
-{
-  int n = dataPresent();
-  if(n > 0)
-  {
-    *(int*)buf = *(int*)(crate[slot].mbuf);
-    n = (((*(int*)buf) >> 8) & 0x003F) + 1;
-    for(int i = 0; i<n; ++i)
-      *(((int*)buf) + i + 1) = *(int *)(crate[slot].mbuf);
-    n = (n+1)*4;
-  }
-  return(n);
-};
-
-/*!
-  \param wbuf A DAQWordBuffer object to put data in. When using the standard readout
-      skeleton this object is created for you.
-  \param offset The position that the data should be written to.  This is necessary
-      to avoid overwriting other data in the DAQWordBuffer.
-
-  \return \li \> 0 indicates the number of 16-BIT WORDS of data placed in wbuf
-          \li 0 indicates that no data was placed in the buffer
-          \li -1 is returned if the card is not properly initialized
-
-  Be careful about putting this function into a loop because it can return a negative
-  value.
-*/
-int CAENcard::readEvent(DAQWordBuffer& wbuf, int offset)
-{
-  int n = dataPresent();
-  union{
-    int dword;
-    struct{
-      short int low;
-      short int high;
-    } word;
-  } temp;
-
-  if(n > 0)
-  {
-    temp.dword = *(int *)(crate[slot].mbuf);
-    wbuf[offset] = temp.word.high;
-    wbuf[offset+1] = temp.word.low;
-    n = ((temp.word.low >> 8) & 0x003f) + 1;  //count of data words plus EOB word
-    for(int i = 0; i < n; i++)
-    {
-      temp.dword = *(int *)(crate[slot].mbuf);
-      wbuf[offset + 2*(i+1)] = temp.word.high;
-      wbuf[offset + 2*(i+1) + 1] = temp.word.low;
-    }
-    n = (n+1)*2;
-  }
-  return(n);
-};
-
-/*!
-  \param wp A DAQWordBufferPtr object.
-
-  \return \li \> 0 indicates the number of 16-BIT WORDS of data placed in buf
-          \li 0 indicates that no data was placed in the buffer
-          \li -1 is returned if the card is not properly initialized
-
-  Be careful about putting this function into a loop because it can return a negative
-  value. Also make sure that the pointer does not point to a location that already
-  contains data.
-
-  Under normal conditions the readEvent(DAQWordBuffer& wbuf, int offset) fuction is
-  much easier and intuitive to use.
-*/
-int CAENcard::readEvent(DAQWordBufferPtr& wp)
-{
-  int n;
-  union{
-    int dword;
-    struct{
-      short int low;
-      short int high;
-    } word;
-  } temp;
-
-  n = dataPresent();
-  if(n > 0)
-  {
-    temp.dword = *(int *)(crate[slot].mbuf);
-    *wp = temp.word.high;
-    ++wp;			// preincrement is faster.
-    *wp = temp.word.low;
-    n = (((*wp) >> 8) & 0x003f) + 1;  //count of data words plus EOB word
-    ++wp;
-    for(int i = 0; i < n; i++)
-    {
-      temp.dword = *(int *)(crate[slot].mbuf);
-      *wp = temp.word.high;
-      ++wp;
-      *wp = temp.word.low;
-      ++wp;
-    }
-    n = (n+1)*2;
-  }
-  return(n);
-};
-
-/*!
-  \param dwbuf A DAQDWordBuffer object to put data in.
-  \param offset The position that the data should be written to.  This is necessary
-      to avoid overwriting other data in the DAQDWordBuffer.
-
-  \return \li \> 0 indicates the number of 32-BIT DWORDS of data placed in dwbuf
-          \li 0 indicates that no data was placed in the buffer
-          \li -1 is returned if the card is not properly initialized
-
-  Be careful about putting this function into a loop because it can return a negative
-  value. Note that the standard readout skeleton does not provide you with a
-  DAQDWordBuffer.
-*/
-int CAENcard::readEvent(DAQDWordBuffer& dwbuf, int offset)
-{
-  int temp = dataPresent();
-  if(temp > 0)
-  {
-    dwbuf[offset] = *(int*)(crate[slot].mbuf);
-    int n = ((dwbuf[offset] >> 8) & 0x0000003F) + 1;
-
-    for(int i=0; i<n; ++i)
-      dwbuf[offset + i + 1] = *(int*)(crate[slot].mbuf);
-
-    return(n+1);
-  }
-  return(temp);
-};
-
-/*!
-  \param wp A pointer to a DAQDWordBuffer object.
-
-  \return \li \> 0 indicates the number of 32-BIT WORDS of data placed in buf
-          \li 0 indicates that no data was placed in the buffer
-          \li -1 is returned if the card is not properly initialized
-
-  Be careful about putting this function into a loop because it can return a negative
-  value. Note that the standard readout skeleton does not provide you with a
-  DAQDWordBuffer. Also make sure that the pointer does not point to a location that
-  already contains data.
-
-  Under normal conditions the readEvent(DAQDWordBuffer& dwbuf, int offset) fuction is
-  much easier and intuitive to use.
-*/
-int CAENcard::readEvent(DAQDWordBufferPtr& dwp)
-{
-  int temp = dataPresent();
-  if(temp > 0)
-  {
-    *dwp = *(int *)(crate[slot].mbuf);
-    int n = (((*dwp) >> 8) & 0x0000003f) + 1;  //count of data words plus EOB word
-    dwp++;
-    for(int i = 0; i < n; ++i)
-    {
-      *dwp = *(int *)(crate[slot].mbuf);
-      dwp++;
-    }
-    return(n+1);
-  }
-  return(temp);
-};
-
-/*!
-  Not likely to be of any use except to allow the cards to be used in an STL class.
-*/
-bool operator< (const CAENcard& card1, const CAENcard& card2)
-{
-  return card1.slot < card2.slot;
-};
-
-/*!
-   Set an iped value.
-   \param channel - Channel to set.
-   \param value   - New value for pedestal only bottom 8 bits are used.
-
-*/
-void CAENcard::setIped(int channel, int value)
-{
-  if(crate[slot].status & CAEN_MODE_A32D16) {
-    *(crate[slot].mbuf+(0x1080)/sizeof(short) + channel) = value;
-  }
+  return ((Registers*)m_pModule)->FirmwareRev;
 }
-/*!
-   Return the value of an Iped register.
-   \param channel - Channel to get.
-*/
-int CAENcard::getIped(int channel)
-{
-  if(crate[slot].status & CAEN_MODE_A32D16) {
-    return *(crate[slot].mbuf+(0x1080)/sizeof(short) + channel);
-  }
-}
-
-#endif

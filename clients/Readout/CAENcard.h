@@ -275,6 +275,14 @@ DAMAGES.
 
 		     END OF TERMS AND CONDITIONS
 */
+/*
+  Change Log:
+  $Log$
+  Revision 3.3  2003/06/02 14:37:34  ron-fox
+  Support multiple crates correctly.
+
+*/
+
 #ifndef CAENCARD_H
 #define CAENCARD_H
 
@@ -296,21 +304,8 @@ DAMAGES.
 #include <spectrodaq.h>
 #endif
 
-//the number of cards in a VME crate
-#define VME_CRATE_SIZE	21
-
-//define the operating modes of the card object
-#define CAEN_MODE_UNINIT 0
-#define CAEN_MODE_GEO24  1
-#define CAEN_MODE_A32D16 2
-#define CAEN_MODE_MCST   4
-#define CAEN_MODE_CBLT   8
-
-
-//will be used to create a 64k mmap for the card
-#define CAEN_CARD_MMAP_LEN 0x00010000
-
 //Constants used to determine the type of data being returned from the card
+
 #define CAEN_DATUM_TYPE    0x07000000
 #define CAEN_HEADER        0x02000000
 #define CAEN_DATA          0x00000000
@@ -330,158 +325,107 @@ DAMAGES.
 /*! \class CAENcard CAENcard.h
     \brief Drivers for the CAEN V775 TDC, V785 ADC, and V792 QDC modules.
 
-  Please note that these
-  drivers have not yet been tested with the V792 QDC as I do not have access to one.  Also,
-  currently the initializer checks to see if the card is board version 3 or 4 and bios
-  version 3 or 5.  The drivers have only been tested with these versions of the cards.  We
-  recommend, however, that you ask your dealer to upgrade your cards to the latest bios
-  revision as we have noticed issues with a version 3 card.
+    This is a support class for the CAEN V775,785,792 digitizers.  
+    the code is based on initial work by Chris Maurice.  It is
+    also possible to place individual cards into a CAENchain.  Placing
+    cards in a chain allows them to be read out using the Chain block 
+    transfer readout.  For large systems this can be faster than using
+    program controlled readout.  If you are using the modules in multi-event
+    mode, it is your resopnsibility to re-assemble events after readout.
 
-  So far no adverse effects have been noticed if the optimize option is used on the
-  compiler, so optimize away!
+    The class supports construction for use either with or without 
+    support for geographical addressing.
 
-  If you have a specific question or request email Chris Maurice at <maurice@nscl.msu.edu> and I will do my best to help.
+    Note that for now, copy construction will involve the creation of a
+    new memory map and is therefore discouraged.
+
  */
 class CAENcard {
-  //! Allows multiple contiguous cards to be accessed as one object.
-  friend class CAENchain;
-  //! Compares the slot numbers to determine if the first is less.
-  friend bool operator< (const CAENcard&, const CAENcard&);
-
   protected:
-    //! This is the only member varaiable that is created with each instance of the class.
-    /*! This variable is used as a reference into the static CAENcrate instance crate.  It
-        holds the reference counted information needed to access the card. <br>
-        The value is not zero indexed, so a value of 1 refers to the card in the physical
-        slot number 1.  A value of zero is reserved for uninitialized cards.
-    */
-    int slot;
+  int    m_nSlot;		//!< vme virtual slot number.
+  int    m_nCrate;		//!< VME crate number housing the module.
+  bool   m_fGeo;		//!< True if geo addressing.
+  unsigned long   m_nBase;	//!< Base physical VME address in crate.
+  volatile unsigned short* m_pModule;	//!< Pointer to module data (not prom).
+  long   m_nCardType;          //!< Type of card (filled in at MapCard)
+  void*  m_nFd;			//!< File desc. open on VME.
+  int    m_nSerialno;		//!< Serial number of card.
+  int    m_nHardwareRev;	//!< Hardware revision level.
 
-    //! An array of this structure holds all of the information on the current instances of CAENcards.
-    /*! \struct CAENcrate
-        This struct is only referenced to create the crate member array. There is no
-        good reason why you should ever have a need to creat CAENcrate objects. Doxygen wouldn't
-        parse things right if I declared the variable in the same line as the struct so now
-        CAENcrate gets this extra documentation.
-    */
-    struct CAENcrate{
-      volatile unsigned short int *mbuf;  //!< Pointer to a virtual memory map of the card. (note that it is a short int and that offsets must take this into account)
-      unsigned int status;  //!< Used to specify what level of initialization the slot is currently at.
-      int refCount;  //!< The number of instances currently referring to the given slot.
-      void* fd;  //!< The file descriptor used to memory map the card and in various \c ioctl calls.
-    };
 
-    //! This member holds all of the information on the current instances of CAENcards
-    /*! The array holds a reference counted list of all of the currently initialized cards.
-        index zero, aka. crate[0], is used to specify that the instance of a CAENcard
-        has not been initialized to a slot (ie. a NULL CAENcard). Only one array is
-        created no matter how many of the instances of the class are created, so any
-        instances that are created with the same slot number will reference the the same
-        physical card and the same entry in the crate array.
-    */
-    static CAENcrate crate[VME_CRATE_SIZE + 1];
-
-    //! Called by the constructor to initialize a card in a given slot. (should probably be broken into multiple functions...)
-    int slotInit(int slotNum, int crateNum, bool fGeo, long nBase);
-
-    //! Called by the destructor to free the resources associated with an allocated card.
-    void destruct();
 
 /*************************begin public section*********************************/
-  public:
+public:
+  //
+  // Constructors and canonical operations.
+  //
+  
+  CAENcard(int slotNum = -1, int crateNum = 0, 
+	   bool fGeo=true, long nBase = 0); //!< 'normal' constructor.
+  CAENcard(const CAENcard& card); //!< Copy Constructor.
+  CAENcard& operator=(const CAENcard& card); //!< Assignment involves mapping.
+  ~CAENcard();		//!< Destructor.
 
-    //! Standard constructor. SlotNum is required to create a valid card, 
-    // cratenum is used to select the crate in multiVME configuration.
-    CAENcard(int slotNum = -1, int crateNum = 0, 
-		    bool fGeo=true, long nBase = 0);
+  // selectors:
+  int getPhysicalCrate() const {
+    return m_nCrate;
+  }
+  int getSlot() const {
+    return m_nSlot;
+  }
+  bool isGeo() const {
+    return m_fGeo;
+  }
+  unsigned long getBase() const {
+    return m_nBase;
+  }
+  int getSerial() const {
+    return  m_nSerialno;
+  }
+  int getHardwareRev() const {
+    return m_nHardwareRev;
+  }
 
-    //! Another constructor. Allows a card to be created using another card.
-    CAENcard(const CAENcard& card);
+  //   Operations on the card.
 
-    //! The card being assigned to has the destructor called on it and the value of the other argument assigned to it.
-    CAENcard& operator=(const CAENcard& card);
+    int  cardType();		//!< Return module Id of card.
+  int  getFirmware();		//!< return hardware firmware rev.
+    int  getCrate();		//!< Gets the module's crate number.
+    void setCrate(int crateNum);  //!< Set the crate id register.
+    void setThreshold(int ch, int threshold); //!< Changes the card threshold.
+    void setThresholdVoltage(int ch, double voltage);//!< Set 785 adc threshold from volts.
+    void keepUnderThresholdData(); //!< Allow retentionof under-thresholds.
+    void discardUnderThresholdData(); //!< Discards under threshold chans.
+    void keepOverflowData();	//!< Keep channels above overflow value.
+    void discardOverflowData();	//!< Discard channels below overflow value.
+    void keepInvalidData();	//!< Keep conversions in the midst of reset.
+    void discardInvalidData();	//!< Discard data in midst of reset.
+    void commonStart();		//!< If TDC, use in common start mode.
+    void commonStop();		//!< IF TDC use in common stop mode.
+    void setRange(int range);	//!< If TDC Set range (from 140 to 1200 ns).
+    void setPedestalCurrent(int ped);//!< IF Qdc set pedestal curent.
+    void cardOff();		//! Disable card.
+    void cardOn();		//!< Enable card.
+    void channelOff(int ch);	//!< Disable a channel.
+    void channelOn(int ch);	//!< Enable a channel.
+    void resetEventCounter();	//!< Set event number -> 0.
+    void clearData();		//!< Clear any buffered event data.
+    void reset();		//!< Soft power up up reset.
+    bool dataPresent();		//!< TRUE if data is ready to be read.
+    int readEvent(void* buf);	//!< Read event into 'ordinary' buffer.
+    int readEvent(DAQWordBuffer& wbuf, int offset);//!< Read event to daq word buffer.
+    int readEvent(DAQWordBufferPtr& wp); //!< Read event into daq word buffer
+    int readEvent(DAQDWordBuffer& dwbuf, int offset);//!< Read event into daq long buf.
+    int readEvent(DAQDWordBufferPtr& dwp); //!< Read event into daq long buf.
+    void setIped(int value); //!< IF qdc set pedestal current.
+    int  getIped();	//! If qdc set pedestal current.
 
-    //! Reference counted destructor. The cards are not de-allocated until there are no references to them.
-    ~CAENcard();
+  //Utility functions:
 
-    //! Returns the module number of the card in the slot.
-    int cardType();
+  void  DestroyCard();		//!< Destroy a card memory map.
+  void  slotInit();		//!< Bring a card into being.
+  void  MapCard();		//!< Map the card's memory.
 
-    //! Sets the crate value that appears in the header of each data event.
-    // Calling this post construction does >not< move the module to a 
-    // different physical crate so you're best off not ever calling this.
-    void setCrate(int crateNum);
-
-    //! Returns an integer containing the current crate value.
-    int getCrate();
-
-    //! Changes the raw 12-bit threshold value on any card.
-    void setThreshold(int ch, int threshold);
-
-    //! Sets the threshold on the 785 ADC based upon the specified voltage value.
-    int setThresholdVoltage(int ch, double voltage);
-
-    //! Allows conversions that resulted in under threshold values to be retained.
-    void keepUnderThresholdData();
-    //! Instructs the module to discard all under threshold conversions. (default)
-    void discardUnderThresholdData();
-
-    //! Allows conversions that resulted in an overflow to be kept.
-    void keepOverflowData();
-    //! Instructs the module to discard all conversions that overflow. (default)
-    void discardOverflowData();
-
-    //! Allows conversions that take place while the TDC is reseting to be kept.
-    int keepInvalidData();
-    //! Instructs the module to discard all conversions performed while the TDC is reseting. (default)
-    int discardInvalidData();
-
-    //! Sets the TDC to run in common start mode.
-    int commonStart();
-    //! Sets the TDC to run in common stop mode.
-    int commonStop();
-
-    //! Sets the range on a TDC (from 140 to 1200 ns).
-    int setRange(int range);
-    //! Sets the pedestal current and resolution on a QDC.
-    int setPedestalCurrent(int ped);
-
-    //! Prevents the card from performing convertions until cardOn() or reset() is called.
-    void cardOff();
-    //! Puts the card into online mode. (default) This function is not needed unless cardOff() has been previously called.
-    void cardOn();
-
-    //! Prevents the module from saving any conversions for the specified channel in the event buffer.
-    void channelOff(int ch);
-    //! Makes sure that the module can save conversions for the specified channel.
-    void channelOn(int ch);
-
-    //! Resets the value in the event counter to zero.
-    void resetEventCounter();
-
-    //! Clears all data from the event buffer and usually the event counter, too (if not in "count all triggers" mode).
-    void clearData();
-
-    //! Clears all data from the buffer and clears most settings (they are set to default values by the card)v
-    void reset();
-
-
-    //! A simple test to see if there is data in the event buffer.
-    int dataPresent();
-
-    //! Reads one event from the event buffer (if data is present) and returns the number of BYTES read into the buffer.
-    int readEvent(void* buf);
-    //! Reads one event from the event buffer (if data is present) and returns the number of 16-BIT WORDS read into the buffer.
-    int readEvent(DAQWordBuffer& wbuf, int offset);
-    //! Reads one event from the event buffer (if data is present) and returns the number of 16-BIT WORDS read into the buffer.
-    int readEvent(DAQWordBufferPtr& wp);
-    //! Reads one event from the event buffer (if data is present) and returns the number of 32-BIT DWORDS read into the buffer.
-    int readEvent(DAQDWordBuffer& dwbuf, int offset);
-    //! Reads one event from the event buffer (if data is present) and returns the number of 32-BIT DWORDS read into the buffer.
-    int readEvent(DAQDWordBufferPtr& dwp);
-
-    void setIped(int channel, int value);
-    int  getIped(int channel);
 };
 
 #endif
