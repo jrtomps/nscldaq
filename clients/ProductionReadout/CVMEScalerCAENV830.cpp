@@ -281,7 +281,13 @@ static const char* Copyright = "(C) Copyright Michigan State University 2002, Al
 #include <config.h>
 #include "CVMEScalerCAENV830.h"                  
 
-
+#ifdef  __STL_VECTOR
+#include <vector>
+#ifndef __STL_VECTOR
+#define __STL_VECTOR
+#endif
+#endif
+           
 #ifdef HAVE_STD_NAMESPACE
 using namespace std;
 #endif
@@ -320,6 +326,8 @@ CVMEScalerCAENV830::CVMEScalerCAENV830(const CVMEScalerCAENV830& rhs)
    Assignment operation.  This member function supports assignment of
    an object of this class to an object of the same class.
 */
+
+
 CVMEScalerCAENV830& CVMEScalerCAENV830::operator= (const CVMEScalerCAENV830& aCVMEScalerCAENV830)
 { 
     if (this != &aCVMEScalerCAENV830) {

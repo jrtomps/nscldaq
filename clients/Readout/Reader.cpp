@@ -345,8 +345,8 @@ CReader::Enable()
 
   // Clear the busy
 
-  m_pTrigger->Initialize();
-  m_pTrigger->Clear();
+  m_pBusy->Initialize();
+  m_pBusy->Clear();
 
 
 }

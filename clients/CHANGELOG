@@ -316,3 +316,6 @@ December 28,2004
 	The incarnations of CIntConfigParam/CIntArrayParam.cpp need
 	to use strtoll instead of ExprLong to work with values above
         the maximum signed int in Tcl 8.4
+January 5, 2005
+        Fix typo that Eric found for me in Readout/Reader.cpp where at init
+        time, m_pTrigger was used where m_pBusy was intended.
