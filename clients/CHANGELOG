@@ -341,3 +341,4 @@ February 3, 2005
        - Added the port manager to the build/library.  All but the
          C++ library is tested.
        - Made TclServer able to use port manager to get a port.
+       - Made scaler display use managed ports.
