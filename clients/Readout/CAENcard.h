@@ -278,6 +278,11 @@ DAMAGES.
 /*
   Change Log:
   $Log$
+  Revision 3.6  2003/09/19 19:53:34  ron-fox
+  Add:
+   - Statistics about event fix ups.
+   - Access to a few more bits of SR1 and SR2.
+
   Revision 3.5  2003/09/16 12:15:07  ron-fox
   Fixed setVoltageThreshold to work regardless of the threshold mode (small or large).
 
@@ -366,6 +371,10 @@ class CAENcard {
   int    m_nSerialno;		//!< Serial number of card.
   int    m_nHardwareRev;	//!< Hardware revision level.
   bool   m_fSmallThresholds;	//!< True if small threshold mode.
+  int    m_nInvalidTrailers;	//!< How many invalid trailers.
+  int    m_nChancountHigh;	//!< How many channel counts high
+  int    m_nChancountLow;	//!< How many channel counts low.
+  int    m_nEvents;		//!< How many events read.
 
 
 /*************************begin public section*********************************/
@@ -426,6 +435,11 @@ public:
     void clearData();		//!< Clear any buffered event data.
     void reset();		//!< Soft power up up reset.
     bool dataPresent();		//!< TRUE if data is ready to be read.
+    bool gdataPresent();
+    bool Busy();
+    bool gBusy();
+    bool MEBFull();
+    bool MEBEmpty();
     int readEvent(void* buf);	//!< Read event into 'ordinary' buffer.
     int readEvent(DAQWordBuffer& wbuf, int offset);//!< Read event to daq word buffer.
     int readEvent(DAQWordBufferPtr& wp); //!< Read event into daq word buffer
@@ -438,6 +452,12 @@ public:
     void disableSmallThresholds();  //!< Disable small thresholds.
   void SetCBLTChainMembership(int cbltaddr,
 			      ChainMember where); //!< set up cblt.
+
+  void ClearStatistics();	//!< Clear the statistics counters.
+  int  InvalidTrailerCount();
+  int  ChannelsTooBigCount();
+  int  ChannelsTooSmallCount();
+  int  EventCount();
 
   //Utility functions:
 protected:

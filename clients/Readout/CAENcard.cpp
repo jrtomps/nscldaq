@@ -279,6 +279,11 @@ DAMAGES.
 /*
   Change Log:
   $Log$
+  Revision 3.8  2003/09/19 19:53:34  ron-fox
+  Add:
+   - Statistics about event fix ups.
+   - Access to a few more bits of SR1 and SR2.
+
   Revision 3.7  2003/09/16 12:15:09  ron-fox
   Fixed setVoltageThreshold to work regardless of the threshold mode (small or large).
 
@@ -330,6 +335,10 @@ static const char* Copyright= "(C) Copyright Michigan State University 2002, All
 
 
 #define DREADY      0x001
+#define GDREADY     0x002
+#define BUSY        0x004
+#define GBUSY       0x008
+
 
 // Bit Set/Clear 2 register.
 
@@ -354,6 +363,11 @@ static const char* Copyright= "(C) Copyright Michigan State University 2002, All
 #define MCSTFIRST    2
 #define MCSTLAST     1
 
+
+// Status register 2:
+
+#define SR2EMPTY     2		// MEB empty
+#define SR2FULL      4		// MEB full.
 
 
 // The structure below represents the CAEN register set:
@@ -1080,6 +1094,7 @@ CAENcard::readEvent(void* buf)
       (volatile int*)(((volatile Registers*)m_pModule)->Buffer);
     int  Header     = *pBuffer++;
     int* pHeader    = pBuf;	// To fix channel count.
+    int  nRawChancnt= (Header >> 8) & 0x3f;
     *pBuf++         = swaplong(Header);
     int datum;
     do {
@@ -1091,11 +1106,14 @@ CAENcard::readEvent(void* buf)
     if(datum != 4) {		// The trailer should be of type 4.
       cerr << " Data type in terminating long wrong: " << hex 
 	   <<datum << dec << endl;
+      m_nInvalidTrailers++;
     } 
+    if ((n-2) < nRawChancnt) m_nChancountHigh++;
+    if ((n-2) > nRawChancnt) m_nChancountLow++;
     Header &= 0xffffC0ff;	// Channel count is sometimes wrong.
     Header |= ((n-2) << 8);	// this fixes it.
     *pHeader = swaplong(Header);
-
+    m_nEvents++;		// Count an event taken.
     return n * sizeof(long);			// Rely on the trailer!!
   } else {
     // cerr << "Readout called but no data present\n";
@@ -1525,4 +1543,107 @@ CAENcard::SetCBLTChainMembership(int cbltaddr,
     throw string("CAENcard::SetCBLTChainMembership: Invalid chain membership selector");
   }
   ((Registers*)m_pModule)->MCSTControl = mask;
+}
+/*!
+   Return true if global data ready is set in SR1
+*/
+bool
+CAENcard::gdataPresent()
+{
+  volatile Registers* pReg = (volatile Registers*)m_pModule;
+  return ((pReg->Status1 & GDREADY) != 0);
+
+}
+/*!
+   Return true if this module is busy.
+*/
+bool
+CAENcard::Busy()
+{
+  volatile Registers* pReg = (volatile Registers*)m_pModule;
+  return ((pReg->Status1 & BUSY) != 0);
+
+}
+/*!
+  Return true if the global busy is set (at least one module
+  in the set of modules with bussed busys is busy).
+*/
+bool
+CAENcard::gBusy()
+{
+  volatile Registers* pReg = (volatile Registers*)m_pModule;
+  return ((pReg->Status1 & GBUSY) != 0);
+
+}
+/*!
+   Return true if the module's MEB is completely full.
+*/
+bool
+CAENcard::MEBFull()
+{
+  volatile Registers* pReg = (volatile Registers*)m_pModule;
+  return ((pReg->Status2 & SR2FULL) != 0);
+}
+/*!
+  Return true if the module's MEB is empty.
+*/
+bool
+CAENcard::MEBEmpty()
+{
+  volatile Registers* pReg = (volatile Registers*)m_pModule;
+  return ((pReg->Status2 & SR2EMPTY) != 0);
+}
+/*!
+   Cleare the internal statistics maintained by the object.
+*/
+void
+CAENcard::ClearStatistics()
+{
+  m_nInvalidTrailers = 0;
+  m_nChancountHigh   = 0;
+  m_nChancountLow    = 0;
+  m_nEvents          = 0;
+}
+/*!
+   From time to time these modules are observed to not supply a 
+   trailer in the event stream. This function returns the number
+   of times this has happened since the last call to 
+   ClearStatistics
+*/
+int
+CAENcard::InvalidTrailerCount() 
+{
+  return m_nInvalidTrailers;
+}
+/*!
+  From time to time these modules are observed to give a header
+  with  a channel count larger than the actual number of channels
+  read before either a trailer or an invalid word is read.  This
+  function returns the number of times this has happened since the
+  last call to ClearStatistics
+*/
+int
+CAENcard::ChannelsTooBigCount()
+{
+  return m_nChancountHigh;
+}
+/*!
+  From time to time these modules are observed to return more data
+  than indicated by the channel count in their header.  This 
+  function returns the number of times this happened since the
+  last call to ClearStatistics
+*/
+int
+CAENcard::ChannelsTooSmallCount()
+{
+  return m_nChancountLow;
+}
+/*!
+  Returns the number of events read with data ready set since
+  the last time ClearStatistics was called.
+*/
+int
+CAENcard::EventCount()
+{
+  return m_nEvents;
 }
