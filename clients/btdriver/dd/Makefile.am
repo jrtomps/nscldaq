@@ -40,11 +40,11 @@ install-data-local:
 	echo license.
 	install -m 0744 btp.o \
 	         /lib/modules
-        install -m 0755 mkbtp /lib/modules
+	install -m 0755 mkbtp /lib/modules
 	/lib/modules/mkbtp 1       # Make first unit for him.
 	echo "##### Bit 3 drivers:" >> /etc/modules.conf
 	echo alias "/dev/btp*" /dev/btp >>/etc/modules.conf
 	echo probe /dev/btp btp >> /etc/modules.conf
 	echo alias char-major-$(cat /proc/devices |grep btp | \
-                                cut -f1 -d' ') btp >> \
+	                cut -f1 -d' ') btp >> \
 				/etc/modules.conf
