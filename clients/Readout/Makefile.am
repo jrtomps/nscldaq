@@ -6,11 +6,11 @@ libReadout_la_SOURCES = Active.cpp CAENcard.cpp  \
 	ReadoutStateMachine.cpp RecordingBufferPointer.cpp \
 	State.cpp StateMachine.cpp TestBusy.cpp TestTrigger.cpp VMEBusy.cpp \
 	VMETrigger.cpp VmeModule.cpp camacmap.cpp sis3300.cpp \
-	cmdio.c command.c diagnose.c docmd.c CAENcard_767.cpp v890.cpp
+	cmdio.c command.c diagnose.c docmd.c CAENcard_767.cpp v890.cpp \
+	CCAENChain.cpp
 
-#	CAENchain.cpp
 
-include_HEADERS = Active.h Busy.h CAENcard.h CAENchain.h CAMACBusy.h \
+include_HEADERS = Active.h Busy.h CAENcard.h CCAENChain.h CAMACBusy.h \
 	CCaenIO.h CESTrigger.h CException.h CVME.h CVMEptr.h CaenIO.h \
 	DebugState.h EventBufferPointer.h Exception.h Exiting.h Inactive.h \
 	MmapError.h Nimout.h Paused.h RangeError.h Reader.h Readout.h \
@@ -43,23 +43,17 @@ install-data-local:
 	echo CAMAC=$(CAMAC)				>> Makefile.user
 	cat Makefile.skel                               >> Makefile.user
 	$(INSTALL_DATA) Makefile.user $(prefix)/Readout/Skel/Makefile
-	$(INSTALL_DATA) runstate.tran $(prefix)/Readout/etc
-	
+	$(INSTALL_DATA) runstate.tran $(prefix)/Readout/etc	
 
 libReadout_la_LDFLAGS = -version-info 2:1:0  -L@top_srcdir@/VMEApi \
 	-lVmeAPI $(SPECTRODAQ_LDFLAGS) -g
 
-INCLUDES = -I@top_srcdir@/Headers -I@top_srcdir@/VMEApi \
+INCLUDES = $(VMELIBRARYHEADERS) \
+	-I@top_srcdir@/Headers -I@top_srcdir@/Exception \
+	-I@top_srcdir@/VMEApi \
 	$(SPECTRODAQ_FLAGS) -DINSTDIR=\"$(prefix)\" $(CAMAC) -g
 
 EXTRA_DIST = runstate.tran Makefile.skel ReadoutMain.cpp skeleton.cpp 
 
 CXXFLAGS=-g
 CCFLAGS=-g
-
-
-
-
-
-
-
