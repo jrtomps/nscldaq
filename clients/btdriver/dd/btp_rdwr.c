@@ -34,7 +34,7 @@ const char *no_unit_p = "Unit not initialized.\n";
 */
 extern void btk_dma_pio(bt_unit_t *unit_p, bt_dev_t ldev, bt_data32_t laddr_p, bt_data32_t raddr, int *xfer_length_p, int *dma_flag_p, int *data_width_p, unsigned *start_p, unsigned *need_p);
 extern bt_error_t btk_pio_xfer(bt_unit_t *unit_p, bt_dev_t ldev, caddr_t laddr_p, bt_data32_t ldev_addr, int *xfer_length_p, size_t xfer_dir);
-extern bt_error_t btk_dma_xfer(bt_unit_t *unit_p, bt_dev_t ldev, bt_data32_t laddr, bt_data32_t raddr, int xfer_length, int xfer_dir, int data_width);
+extern bt_error_t btk_dma_xfer(bt_unit_t *unit_p, bt_dev_t ldev, bt_data32_t laddr, bt_data32_t raddr, int* xfer_length, int xfer_dir, int data_width);
 extern bt_error_t btk_take_drv_sema(bt_unit_t *unit_p);
 extern void btk_give_drv_sema(bt_unit_t *unit_p);
 
@@ -728,7 +728,8 @@ static int btp_xfer(
         /*
         ** Calculate the length, data size and whether DMA is possible
         */
-        btk_dma_pio(unit_p, type, (bt_data32_t) data_p, dest_addr, &local_length, &dma_flag, &data_width, &start, &need);
+        btk_dma_pio(unit_p, type, (bt_data32_t) data_p, dest_addr, 
+		    &local_length, &dma_flag, &data_width, &start, &need);
 #define BTP_FREE_MREG  btk_mutex_enter(unit_p, &unit_p->mreg_mutex); \
                        (void) btk_bit_free(unit_p, unit_p->sdma_aval_p, start, need); \
                        btk_mutex_exit(unit_p, &unit_p->mreg_mutex);
@@ -786,7 +787,11 @@ static int btp_xfer(
             ** Do the DMA
             */
             ldma_addr = (bt_data32_t) ((start * BT_PAGE_SIZE) + ((unsigned long) data_p & (BT_PAGE_SIZE - 1)));
-            retval = btk_dma_xfer(unit_p, type, ldma_addr, (bt_data32_t) dest_addr, local_length, (dir == BT_RD) ? BT_READ : BT_WRITE, data_width);
+            retval = btk_dma_xfer(unit_p, type, ldma_addr, 
+				  (bt_data32_t) dest_addr, 
+				  &local_length, 
+				  (dir == BT_RD) ? BT_READ : BT_WRITE, 
+				  data_width);
             if (IS_CLR(unit_p->bt_status, BT_NEXT_GEN)) {
                 btk_rwlock_wr_exit(unit_p, &unit_p->hw_rwlock);
             }
@@ -794,6 +799,7 @@ static int btp_xfer(
             BTP_FREE_MREG;
             btk_mutex_exit(unit_p, &unit_p->dma_mutex);
 
+	    done = TRUE;	/* DMA also only gets one xfer try. */
         /*
         ** Do a PIO
         */

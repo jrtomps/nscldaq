@@ -80,7 +80,7 @@ static void btk_dma_poll(bt_unit_t *unit_p, int xfer_length,
 bt_error_t btk_pio_xfer(bt_unit_t *unit_p, bt_dev_t ldev, caddr_t laddr_p, 
             bt_data32_t ldev_addr, int *xfer_length_p, size_t xfer_dir);
 bt_error_t btk_dma_xfer(bt_unit_t *unit_p, bt_dev_t ldev, bt_data32_t laddr, 
-            bt_data32_t raddr, int xfer_length, int xfer_dir, int data_width);
+            bt_data32_t raddr, int* xfer_length, int xfer_dir, int data_width);
 bt_error_t btk_hw_xfer(bt_unit_t *unit_p, bt_dev_t ldev, int xfer_dir, 
             bt_hw_xfer_t *hw_xfer_p);
 void btk_dma_pio(bt_unit_t *unit_p, bt_dev_t ldev, bt_data32_t laddr_p, 
@@ -267,11 +267,6 @@ bt_error_t btk_pio_xfer(
 	**  how much data to read:
 	*/
         if (data_copied != length) {
-	  //	  INFO_STR("Marking hardware error - incomplete transfer");
-	  //	  INFO_MSG((LOG_FMT "Length = %d ",
-	  //	    LOG_ARG, length));
-	  //	  INFO_MSG((LOG_FMT " data copied = %d\n",
-	  //		    LOG_ARG, data_copied));
 	  hardware_status = BT_EIO; /* Flag error if nothing transferred. */
 	  break;
         }
@@ -286,14 +281,12 @@ bt_error_t btk_pio_xfer(
     ** and set the BT_ERROR bit
     */
     if (btk_get_io(unit_p, BT_LOC_STATUS) & LSR_CERROR_MASK) {
-      //      INFO_STR("Marking hardware error - LCS_CERROR_MASK");
       hardware_status= BT_ESTATUS;
 
     /* 
     ** Now check if an error occurred on the final transfer 
     */
     } else if (IS_SET(unit_p->bt_status, BT_ERROR)) {
-      //      INFO_STR("Marking hardware error - bt_status == error");
       hardware_status= BT_ESTATUS;
     }
     BTK_LOCK_ISR(unit_p, isr_pl);
@@ -306,7 +299,6 @@ bt_error_t btk_pio_xfer(
     ** If we had an adapter error we need to clear it
     */
     if (hardware_status == BT_ESTATUS) {
-      // INFO_STR("Recovering from hardware error");
         btk_rwlock_wr_enter(unit_p, &unit_p->hw_rwlock);
         if (IS_SET(unit_p->bt_status, BT_ERROR)) {
             CLR_BIT(unit_p->bt_status, BT_ERROR);
@@ -325,12 +317,9 @@ bt_error_t btk_pio_xfer(
     
 btk_pio_exit:
     if(data_xferred) {		/* If anyting transferred... */
-      // INFO_MSG((LOG_FMT  "btk_pio_exit: xferred = %d last copied %d\n",
-      //          LOG_ARG, data_xferred,  data_copied));
 
       *xfer_length_p = (int) data_xferred;
     } else {			/* If nothing transferred... */
-      INFO_STR("Nothing transferred, returning hardware_status");
       retval = hardware_status;
     }
     FEXIT(retval);
@@ -351,6 +340,9 @@ btk_pio_exit:
 **                      laddr           Local address to transfer to/from.
 **                      raddr           Remote address to transfer to/from.
 **                      xfer_length     Amount of data to transfer.
+**                                      The returned value is the amount
+**                                      actually transferred (in the event
+**                                      of a partial transfer).
 **                      xfer_dir        BT_READ  -> xfer from device to buffer.
 **                                      BT_WRITE -> xfer from buffer to device.
 **
@@ -370,7 +362,7 @@ bt_error_t btk_dma_xfer(
     bt_dev_t ldev, 
     bt_data32_t laddr, 
     bt_data32_t raddr, 
-    int xfer_length, 
+    int *xfer_length, 
     int xfer_dir,
     int data_width)
 
@@ -379,17 +371,16 @@ bt_error_t btk_dma_xfer(
     bt_data8_t          dma_cmd, tmp_reg, amod;
     int                 polled_dma = TRUE;
     int                 timeout_usec;
-    int                 remainder = 0; /* after xfer */
-    int                 blocks    = 0; /* after xfer */
+    bt_data32_t         raddr_end = raddr;
 
     FUNCTION("btk_dma_xfer");
     LOG_UNIT(unit_p);
     
     FENTRY;
     
-    TRC_MSG((BT_TRC_DMA | BT_TRC_DETAIL), 
+    TRC_MSG ((BT_TRC_DMA | BT_TRC_DETAIL),
            (LOG_FMT "laddr 0x%x; raddr 0x%x; len 0x%x; dir = %c; size %d\n", 
-           LOG_ARG, laddr, raddr, xfer_length, 
+           LOG_ARG, laddr, raddr, *xfer_length, 
            (xfer_dir == BT_READ) ? 'R' : 'W', data_width));
 
     /*
@@ -412,7 +403,7 @@ bt_error_t btk_dma_xfer(
         SET_BIT(dma_cmd, LDC_DP_SEL);
     }
 #if 0 /* ONLY TEMPORARY UNTIL HW IS FIXED */
-    if (xfer_length > unit_p->dma_poll_size) {
+    if (*xfer_length > unit_p->dma_poll_size) {
         polled_dma = FALSE;
         SET_BIT(dma_cmd, LDC_DMA_INT_ENABLE);
     }
@@ -426,7 +417,7 @@ bt_error_t btk_dma_xfer(
     **  Setup the remote address reg. & remote partial packet reg.
     */
     btk_put_io(unit_p, BT_RDMA_ADDR, raddr);
-    btk_put_io(unit_p, BT_RDMA_RMD_CNT, xfer_length & (DMA_PKT_SIZE - 1));
+    btk_put_io(unit_p, BT_RDMA_RMD_CNT, *xfer_length & (DMA_PKT_SIZE - 1));
 
     /*
     **  Setup remote command register 2 and remote amod register
@@ -472,8 +463,8 @@ bt_error_t btk_dma_xfer(
     /* 
     ** Setup the local packet and partial packet count
     */
-    btk_put_io(unit_p, BT_LDMA_PKT_CNT, (xfer_length >> 8));
-    btk_put_io(unit_p, BT_LDMA_RMD_CNT, xfer_length & (DMA_PKT_SIZE - 1));
+    btk_put_io(unit_p, BT_LDMA_PKT_CNT, (*xfer_length >> 8));
+    btk_put_io(unit_p, BT_LDMA_RMD_CNT, *xfer_length & (DMA_PKT_SIZE - 1));
 
     /*
     ** Check for errors before we actually start the DMA
@@ -556,19 +547,13 @@ bt_error_t btk_dma_xfer(
         /* 
         **  Poll for the DMA's completion based on delay time 
         */
-        btk_dma_poll(unit_p, xfer_length, data_width, timeout_usec);
+        btk_dma_poll(unit_p, *xfer_length, data_width, timeout_usec);
 
     }
     /*
       Get current values of local packet and remainder counts for now log them 
     */
-    remainder = btk_get_io(unit_p, BT_LDMA_RMD_CNT);
-    blocks    = btk_get_io(unit_p, BT_LDMA_PKT_CNT);
-    INFO_MSG((LOG_FMT "Blocks left = %d remainder = %d\n",
-	      LOG_ARG, blocks, remainder));
-    remainder = btk_get_io(unit_p, BT_RDMA_RMD_CNT);
-    INFO_MSG((LOG_FMT "remote remainder = %d\n",
-	      LOG_ARG, remainder));
+    raddr_end = btk_get_io(unit_p, BT_RDMA_ADDR);
 
     btk_put_io(unit_p,BT_LDMA_CMD , 0);     /* ??? not sure why this is here */
     btk_put_io(unit_p, BT_REM_CMD2, 0);
@@ -576,7 +561,6 @@ bt_error_t btk_dma_xfer(
 
 
     if (IS_SET(unit_p->bt_status, BT_DMA_ERROR)) {
-        INFO_STR("DMA error detected during transfer");
         retval = BT_ESTATUS;
         goto dma_xfer_exit;
     }
@@ -599,16 +583,16 @@ bt_error_t btk_dma_xfer(
 
     if (BT_WRITE == xfer_dir) {
         laddr_end = btk_get_io(unit_p, BT_LDMA_ADDR);
-        if (laddr_end != (laddr + xfer_length)) {
+        if (laddr_end != (laddr + *xfer_length)) {
             INFO_MSG((LOG_FMT "Local ending DMA address wrong; expected 0x%x recevied 0x%x\n",
-                  LOG_ARG, laddr + xfer_length, laddr_end));
+                  LOG_ARG, laddr + *xfer_length, laddr_end));
             INFO_STR("Local ending DMA address wrong; H/W operation suspect");
             retval = BT_EIO;
         } else {
             raddr_end = btk_get_io(unit_p, BT_RDMA_ADDR);
-            if (raddr_end != (raddr + xfer_length)) {
+            if (raddr_end != (raddr + *xfer_length)) {
                 INFO_MSG((LOG_FMT "Remote ending DMA address wrong; expected 0x%x recevied 0x%x\n",
-                     LOG_ARG, raddr + xfer_length, raddr_end));
+                     LOG_ARG, raddr + *xfer_length, raddr_end));
             retval = BT_EIO;
             }
         }
@@ -616,7 +600,10 @@ bt_error_t btk_dma_xfer(
 }
 #endif
 
+
 dma_xfer_exit:
+    *xfer_length = (raddr_end - raddr);
+    if(xfer_length) retval = BT_SUCCESS; /* If any trasferred it's a success */
     FEXIT(retval);
     return(retval);
 }
@@ -753,11 +740,14 @@ bt_error_t btk_hw_xfer(
         ** Do the DMA
         */
         if (IS_CLR(unit_p->bt_status, BT_NEXT_GEN)) {
+	  int llength = curr_length;
             dma_addr = mreg_start * BT_PAGE_SIZE + (curr_laddr & ~BT_MREG_ADDR_MASK);
-            retval = btk_dma_xfer(unit_p, ldev, dma_addr, curr_raddr, curr_length, xfer_dir, data_width);
+            retval = btk_dma_xfer(unit_p, ldev, dma_addr, curr_raddr, &llength, xfer_dir, data_width);
             btk_rwlock_wr_exit(unit_p, &unit_p->hw_rwlock);
         } else {
-            retval = btk_dma_xfer(unit_p, ldev, curr_laddr, curr_raddr, curr_length, xfer_dir, data_width);
+	  int llength = curr_length;
+            retval = btk_dma_xfer(unit_p, ldev, curr_laddr, curr_raddr, 
+				  &llength, xfer_dir, data_width);
         }
 
         /*
