@@ -295,8 +295,14 @@ namespace eval ExpFileSystem {
     variable localsubdir /experiment
     variable Root $Home/$localsubdir
     variable StageArea "Unknown"
-
-
+    variable Buffersize 4096
+    
+    puts "In directories.tcl"
+    if {[array names env BUFFERSIZE] != ""} { 
+       puts "env(BUFFERSIZE) exists!"
+       scan $env(BUFFERSIZE) %d Buffersize ;# initialization :-(.
+       puts "New value for Buffersize = $env(BUFFERSIZE)"
+    }
 
 #
 #      Create the entire directory hierarchy.  All Directories
@@ -344,7 +350,8 @@ namespace eval ExpFileSystem {
 	return $Root/run$num
     }
     proc GenRunFile {num} {
-	return run$num-4096.evt
+	variable Buffersize
+	return run$num-$Buffersize.evt
     }
     proc WhereisRunFile {num} {
 	variable Root
