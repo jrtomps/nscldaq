@@ -1,6 +1,7 @@
 SUBDIRS = btdriver \
 	Headers CopyrightTools Exception TCL Security Ftp \
-	VMEApi cvt SpecTclOnline Readout diskrun EventLog Scaler contrib \
+	VMEApi cvt SpecTclOnline DeviceSupport\
+	Readout diskrun EventLog Scaler contrib \
 	vmetcl  \
 	bufdump TclServer bcnaf TcpHoister Stager Scripts framework \
 	AlarmDisplay LogDisplay ProductionReadout 
