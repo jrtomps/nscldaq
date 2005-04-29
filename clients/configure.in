@@ -51,10 +51,11 @@ AC_PATH_PROG(DOXYGEN, doxygen, echo)
 
 #  Needed components for hyperlatex
 
-AC_PATH_PROG(HYPERLATEX, hyperlatex, echo)
-AC_CHECK_PROG(HAVELATEX,  latex, yes, no)
-AC_CHECK_PROG(HAVEDVIPS,  dvips, yes, no)
-AC_CHECK_PROG(HAVEKPATHSEA, kpsewhich, yes, no)
+AC_PATH_PROG(HYPERLATEX, hyperlatex, echo)	
+AC_CHECK_PROG(HAVELATEX,  latex, yes, no)		
+AC_CHECK_PROG(HAVEDVIPS,  dvips, yes, no)		
+AC_CHECK_PROG(HAVEKPATHSEA, kpsewhich, yes, no)	
+
 
 #
 
@@ -513,8 +514,8 @@ X11LIBS="${X_LIBS} ${X_EXTRA_LIBS} -lXm -lXt -lX11"
 #  Latex, dvips, kpathsea and the existence of hyperlatex.sty findable by
 #  kpathsea:
 #
-if test $HAVELATEX = "yes" -a $HAVEDVIPS == "yes" -a \
-	$HAVEKPATHSEA = "yes"
+if test $HAVELATEX = "yes" -a $HAVEDVIPS = "yes" -a \
+	$HAVEKPATHSEA = "yes" -a $HYPERLATEX != "echo"
 then
 	stylefile=$(kpsewhich hyperlatex.sty)
 	if test "$stylefile" != ""
