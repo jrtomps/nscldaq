@@ -397,3 +397,10 @@ March 28, 2005
      - Install mkbtp in /lib/modules
 April 4, 2005
      - Add power monitoring software.
+April 19, 2005
+     Changes to allow this to build on Scientific Linux
+     - Remove dependency on libpub which is not always on systems.
+     - Add clean target to btdriver/dd
+     - Remove dead file btp_mmap from the build of the btdriver.
+April 29, 2005
+     Fix error in wiener driver build.

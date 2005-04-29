@@ -2,7 +2,7 @@ SUFFIXES =  .c .o
 .c.o:
 	$(CC) -c $(INCLUDES) $<
 
-OBJECTS= askpci.o fops.o plxbug.o
+OBJECTS= askpci.o fops.o plxbug.o main.o
 
 EXTRA_DIST=askpci.c fops.c plxbug.c \
 	askpci.h common.h fops.h main.h pciif.h pcivme.h plx9050.h \

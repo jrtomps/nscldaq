@@ -307,14 +307,13 @@ static const char* Copyright= "(C) Copyright Michigan State University 2002, All
 #include <fcntl.h>
 #include <string>
 #include <CopyrightNotice.h>
+#include <libgen.h>
 
 
 #ifdef HAVE_STD_NAMESPACE
 using namespace std;
 #endif
 #include <spectrodaq.h>
-
-extern "C"  int strsplit(char* src, char** words, int maxw, const char* sep);
 
 
 
@@ -394,12 +393,9 @@ DAQBuff::operator()(int argc, char** argv)
 
   m_pFilename = new char[strlen(argv[1])+1];
   strcpy(m_pFilename, argv[1]);
-  
-  int   nPathels    = strsplit(argv[1], NULL, 0, "/");
-  char* Words[nPathels];
-  strsplit(argv[1], Words, nPathels, "/");
+  char* pBase = basename(argv[1]);
 
-  if(sscanf(Words[nPathels-1], 
+  if(sscanf(pBase, 
 	    "run%d-%d.evt", &m_nRunNumber, &m_nBufferWords) != 2) {
     Usage(cerr);
     exit(-1);

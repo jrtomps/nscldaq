@@ -2,7 +2,7 @@ SUFFIXES =  .c .o
 .c.o:
 	$(CC) -c $(INCLUDES) $<
 
-OBJECTS= btp_cfg.o btp_open.o btp_rdwr.o btp_mmap.o btp_ioctl.o \
+OBJECTS= btp_cfg.o btp_open.o btp_rdwr.o btp_ioctl.o \
     btp_lowio.o btp_version.o btp_bind.o \
     bt_mem.o bt_mutex.o bt_event.o bt_bit.o bt_llist.o \
     bt_delay.o bt_rwlck.o \
@@ -22,6 +22,9 @@ all-local: btp.o
 btp.o: $(OBJECTS)
 	$(LD) -r -o btp.o $(OBJECTS)
 
+
+clean:
+	rm -f $(OBJECTS) btp.o
 
 INCLUDES= -I. -I../include $(SMP_FLAG) -fno-strength-reduce \
 	-g -DDEBUG -DBT1003 -O2 $(KERNEL_INCS) \

@@ -15,7 +15,6 @@
 #include "CSinkCreator.h"
 #include "CSink.h"
 
-#include <publib.h>
 
 #ifdef HAVE_STD_NAMESPACE
 using namespace std;
@@ -162,5 +161,11 @@ CSinkFactory::SplitName(char* pName, char** ppParts)
   ppParts[0] = (char*)NULL;
   ppParts[1] = (char*)NULL;
 
-  return strsplit(pName, ppParts, 2, ":");
+  ppParts[0] = strtok(pName, ":");
+  ppParts[1] = strtok(NULL, ":");
+
+  int nItems = 0;
+  if(ppParts[0]) nItems++;
+  if(ppParts[1]) nItems++;
+
 }
