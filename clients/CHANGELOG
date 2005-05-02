@@ -406,3 +406,6 @@ April 29, 2005
      Fix error in wiener driver build.
      Try to remove some strange failures when doxygen or hyperlatex not
      installed.
+May 2, 2005
+     - Ensure that the scaler display pages will expand in x if the window
+       is stretched.
