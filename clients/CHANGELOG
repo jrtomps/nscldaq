@@ -412,3 +412,4 @@ May 2, 2005
      - Defect 175: Use an absolute timebase rather than tick counting in
        Readout.
      - Defect 148: Possible to have events with only a word count.
+     - Defect 150: For now disable -window in 8.0pre3.

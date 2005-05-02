@@ -282,6 +282,9 @@ static const char* Copyright = "(C) Copyright Michigan State University 2002, Al
   
   Change Log:
    $Log$
+   Revision 4.5  2005/05/02 14:28:11  ron-fox
+   Disable --window on production readout for now.
+
    Revision 4.4  2004/11/24 17:59:59  ron-fox
    Complete the port so that it can go both ways
 
@@ -471,6 +474,10 @@ CReadoutMain::ParseSwitches(int argc, char** argv)
   if( m_fServer = parse.port_given) {
     m_nPort = parse.port_arg;
 
+  }
+  if(parse.window_flag) {
+    cerr << "Due to some rather nasty to fix bugs, --window is not supported\n";
+    exit(-1);
   }
   m_fWindowed = parse.window_flag;
   m_fVmeTrigger = ! parse.camac_trigger_flag;
