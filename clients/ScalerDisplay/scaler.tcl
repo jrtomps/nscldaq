@@ -288,8 +288,8 @@ proc createStripChart {top} {
                                 -text "Auto X scale"]
 
     pack $scaleButton $logButton -side left
-    pack $stripchartWidget $controlframe -side top
-    pack $stripframe -side top
+    pack $stripchartWidget $controlframe -side top -fill x
+    pack $stripframe -side top -fill x
 
     return $stripchartWidget
 }
@@ -357,12 +357,20 @@ proc updateStripChart {} {
     global stripchartChannels
     global stripchartRatios
     global timeVector
+    global stripchartWidget
 
     set timeVector(++end) $ElapsedRunTime
 
     foreach channel $stripchartChannels {
         global $channel
         set rate [scalerRate $channel]
+	#
+	#   Fake a bit on rate to ensure
+	#   we don't have a huge # of decades below
+	#   1E0
+	if {$rate == 0} {
+	    set rate 0.01
+	}
         set ${channel}(++end) $rate
     }
 
@@ -372,11 +380,14 @@ proc updateStripChart {} {
 
         set nrate [scalerRate $numerator]
         set drate [scalerRate $denominator]
-        if {$drate == 0} {
+        if {$drate == 0 } {
             set rate 0.0
         } else {
             set rate [expr 1.0*$nrate/$drate]
         }
+	if {$rate == 0} {
+	    set rate .01
+	}
         set vecname [ratioName $numerator $denominator]
         global $vecname
         set ${vecname}(++end) $rate
@@ -940,8 +951,8 @@ proc SetupGui {top} {
 
 
     set notebook [tabset $book.pages -tiers 3 -tearoff 0]
-    pack $book.pages -side top -fill both -expand 1
-    pack $book       -side top -fill both -expand 1
+    pack $book.pages -side top -fill x -expand 1
+    pack $book       -side top -fill x -expand 1
 
 
     return $notebook
@@ -971,7 +982,7 @@ proc page {name title} {
 	puts "Attempt to create duplicate page: $name ignored"
     } else {
         set newpage [frame $Notebook.p${pageSerial}]
-        $Notebook insert end "$name" -window $newpage
+        $Notebook insert end "$name" -window $newpage -fill x
 	set Pages($name) $newpage
 	frame $newpage.title -relief groove
 	set lines [frame $newpage.lines]
@@ -1008,7 +1019,7 @@ proc page {name title} {
 
 	# Lay this out in the notebook page:
 
-	pack $newpage.title.titleline -anchor c -side top
+	pack $newpage.title.titleline -anchor c -side top -fill x
 	pack $newpage.title -side top -fill x
 
 
@@ -1016,9 +1027,9 @@ proc page {name title} {
 #	grid      $vsb -row 0 -column 1   -sticky nse
 #	grid      $hsb -row 1 -column 0 -sticky ews
 	pack  $vsb   -side right  -fill y
-	pack  $table -anchor n   -fill both -expand 1
+	pack  $table -anchor n   -fill x  -expand 1
 	pack  $hsb   -side bottom -anchor s -fill x -expand 1
-	pack $newpage.lines -side top -fill x -expand 1
+	pack $newpage.lines -side top -fill x  -expand 1
 
     }
     incr pageSerial
