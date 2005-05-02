@@ -413,3 +413,5 @@ May 2, 2005
        Readout.
      - Defect 148: Possible to have events with only a word count.
      - Defect 150: For now disable -window in 8.0pre3.
+     - Eventlog - use cerr << for ftp errors no perror since ftplib
+       does not leave useful stuff in errno.
