@@ -283,6 +283,11 @@ static const char* Copyright = "(C) Copyright Michigan State University 2002, Al
    
    Modification History:
    $Log$
+   Revision 4.3  2005/05/02 14:16:44  ron-fox
+   Fix defect 158: Events with empty body are included in buffer.  In
+   Readout Classic, this was not the case.  Fixed in ProductionReadout
+   and HPProductionReadout.
+
    Revision 4.2  2004/11/22 19:26:09  ron-fox
    Port to gcc/g++ 3.x
 
@@ -830,7 +835,12 @@ CExperiment::ReadEvent()
  
      
   } else {
-     m_EventBuffer->EndEvent(ptr);
+    if (ptr == hdr) {
+      m_EventBuffer->RetractEvent(ptr);	// No data reaad actually.
+    } 
+    else {
+      m_EventBuffer->EndEvent(ptr);
+    }
   }
 
 }  
