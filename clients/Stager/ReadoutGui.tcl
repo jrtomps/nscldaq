@@ -288,6 +288,10 @@
 #   Change log:
 #
 # $Log$
+# Revision 4.2  2005/05/02 13:59:01  ron-fox
+# Use absolute time differences to compute the run elapsed time rather than
+# using tick counting... less drift this way.
+#
 # Revision 4.1  2004/11/08 17:37:45  ron-fox
 # bring to mainline
 #
@@ -341,7 +345,8 @@ namespace eval ReadoutGui {
     variable BeginButton
     variable PauseButton
     variable RecordToggle
-    
+    variable RunStartedTime
+
     # Run number entry edit validation proc.
     # This procedure ensures that any edit string
     # inserted will be entirely numeric.
@@ -551,6 +556,7 @@ namespace eval ReadoutGui {
     }
     proc StartElapsedTimer {begin pause} {
 	variable ElapsedTimer 
+	variable RunStartedTime [clock seconds]
 	set ElapsedTimer [after 1000 ReadoutGui::SecondElapsed $begin $pause]
     }
     proc StopElapsedTimer {} {
@@ -563,20 +569,17 @@ namespace eval ReadoutGui {
     proc SecondElapsed {begin pause} {
 	variable ElapsedTime
 	variable ElapsedTimer
+	variable RunStartedTime
 	variable EventFileStatusLine
 
-	scan $ElapsedTime "%d-%d:%d:%d" Days Hrs Min Sec
-	if {[incr Sec] >= 60} {
-	    set Sec 0
-	    if {[incr Min] >= 60} {
-		set Min 0
-		if {[incr Hrs] >= 24} {
-		    set Hrs 0
-		    incr Days
-		}
-	    }
-	}
-	#
+	set now [clock seconds]
+	set elapsed [expr {$now - $RunStartedTime}]
+	set Sec     [expr {$elapsed % 60}]
+	set elapsed [expr {$elapsed/60}]
+	set Min     [expr {$elapsed % 60}]
+	set elapsed [expr {$elapsed/60}]
+	set Hrs     [expr {$elapsed % 24}]
+	set Days    [expr {$elapsed / 24}]
 	#  Set the run elapsed time.
 	#
 	set ElapsedTime [format "%d-%02d:%02d:%02d" $Days $Hrs $Min $Sec]

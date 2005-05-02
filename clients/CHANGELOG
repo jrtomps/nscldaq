@@ -409,3 +409,5 @@ April 29, 2005
 May 2, 2005
      - Ensure that the scaler display pages will expand in x if the window
        is stretched.
+     - Defect 175: Use an absolute timebase rather than tick counting in
+       Readout.
