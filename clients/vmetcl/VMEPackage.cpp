@@ -298,7 +298,7 @@ using namespace std;
 static const char* pInstdir=HOME;
 static const char* pScriptSubdir="/Scripts"; // Where scripts may live.
 
-static char* version="1.1";
+static char* version="2.0";
 extern "C" {
 int Vme_Init(Tcl_Interp* pInterp)
 {

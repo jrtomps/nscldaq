@@ -415,3 +415,7 @@ May 2, 2005
      - Defect 150: For now disable -window in 8.0pre3.
      - Eventlog - use cerr << for ftp errors no perror since ftplib
        does not leave useful stuff in errno.
+May 3, 2005
+     - VmeTCL - switch from use of ExprLong to strtoul for addresses,
+       offsets and values.  This is becaause ExprLong is strictly
+       signed in tcl8.4.. and that causes problems for e.g. 0x80000000

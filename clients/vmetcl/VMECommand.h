@@ -361,7 +361,11 @@ public:
   virtual   int operator() (CTCLInterpreter& rInterpreter, 
 			    CTCLResult& rResult, int nArgs, char** pArgs)    ;
 
+
   // Utility functions:
+public:
+
+  static unsigned long     TextToULong(const char* text);
 
 private:
   // The functions below throw strings if they fail.
@@ -373,5 +377,6 @@ private:
 
   static Switches MatchSwitch(const char* pSwitch);
 };
+
 
 #endif

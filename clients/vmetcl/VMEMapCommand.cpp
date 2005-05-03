@@ -281,6 +281,7 @@ static const char* Copyright= "(C) Copyright Michigan State University 2002, All
 
 #include <config.h>
 #include "VMEMapCommand.h"    				
+#include "VMECommand.h"
 #include <sys/ioctl.h>
 #include <CVMEInterface.h>
 
@@ -409,7 +410,7 @@ int CVMEMapCommand::Get(CTCLInterpreter& rInterp, CTCLResult& rResult,
   if(nArgs != 1) return Usage(rResult);
   Long_t nOffset;
   try {
-    nOffset = rInterp.ExprLong(*pArgs);
+    nOffset = CVmeCommand::TextToULong(*pArgs);
   }
   catch (...) {
     rResult += "  Expecting an integer for the offset";
@@ -474,7 +475,7 @@ int CVMEMapCommand::Set(CTCLInterpreter& rInterp, CTCLResult& rResult,
   Char_t* pOffset = *pArgs;
 
   try {
-    nOffset = rInterp.ExprLong(*pArgs);
+    nOffset = CVmeCommand::TextToULong(*pArgs);
     nArgs--; 
     pArgs++;
   }
@@ -484,7 +485,7 @@ int CVMEMapCommand::Set(CTCLInterpreter& rInterp, CTCLResult& rResult,
   }
 
   try {
-    nValue = rInterp.ExprLong(*pArgs);
+    nValue = CVmeCommand::TextToULong(*pArgs);
     nArgs--;
     pArgs++;
   }
@@ -533,6 +534,7 @@ CVMEMapCommand::Usage(CTCLResult& rResult)
   rResult += "Usage:\n";
   rResult += "  mapname set [-l|w|b] offset value\n";
   rResult += "  mapname get [-l|w|b] offset\n";
+  rResult += "Offset and value must both be unsigned.\n";
   return TCL_ERROR;
 }
 //

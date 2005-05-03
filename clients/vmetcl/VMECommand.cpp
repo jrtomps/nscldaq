@@ -504,7 +504,7 @@ int CVmeCommand::AddMap(CTCLInterpreter& rInterp,
       break;
     case unknown:		// This had better be the base:
       try {
-	nBase = strtoul(*pArgs, NULL, 0);
+	nBase = TextToULong(*pArgs);
       }
       catch (...) {
 	rResult += "Failed to convert base address to integer\n";
@@ -526,7 +526,7 @@ int CVmeCommand::AddMap(CTCLInterpreter& rInterp,
   // Decode the area size:
 
   try {
-    nSize = (unsigned long)rInterp.ExprLong(*pArgs);
+    nSize = (unsigned long)TextToULong(*pArgs);
   }
   catch(...) {
     rResult += "Failed to convert map size to integer";
@@ -813,4 +813,24 @@ CVmeCommand::MatchSwitch(const char* pSwitch)
   if(Switch == string("-device")) return CVmeCommand::device;
   if(Switch == string("-crate")) return CVmeCommand::crate;
   return unknown;
+}
+/*!
+   Convert a text string to an unsigned long.  If there's a problem,
+   a string exception is thrown.
+
+   @param text
+      The text to convert.
+   \return unsigned long
+   \retval    The value of the conversion.
+   \throw  string - the stringified version of the errno.
+*/
+unsigned long
+CVmeCommand::TextToULong(const char* text)
+{
+  unsigned long result = strtoul(text, NULL, 0);
+  if(errno) {
+    string message = strerror(errno);
+    throw message;
+  }
+  return result;
 }
