@@ -279,6 +279,10 @@ DAMAGES.
 /*
   Change Log:
   $Log$
+  Revision 4.5  2005/05/05 13:28:32  ron-fox
+  Put vmetcl on top of the CVmeInterface peek/poke class so that
+  it is independent of the VME interface module
+
   Revision 4.4  2004/12/21 18:08:55  ron-fox
   Finalize 8.0pre1
 
@@ -1841,7 +1845,7 @@ CAENcard::EventCount()
 void
 CAENcard::Bitset1(short mask) 
 {
-#ifdef WienerVME
+#ifndef HAVE_VME_MAPPING
    m_pModule->pokew(mask, ShortOffset(Registers, BitSet1));
 #else
   volatile Registers* pRegisters = (volatile Registers*)m_pModule;
@@ -1856,7 +1860,7 @@ CAENcard::Bitset1(short mask)
 void
 CAENcard::Bitclear1(short mask)
 {
-#ifdef WienerVME
+#ifndef HAVE_VME_MAPPING
    m_pModule->pokew(mask, ShortOffset(Registers, BitClear1));
 #else
   volatile Registers* pRegisters = (volatile Registers*)m_pModule;
@@ -1869,7 +1873,7 @@ CAENcard::Bitclear1(short mask)
 void
 CAENcard::Bitset2(short mask)
 {
-#ifdef WienerVME
+#ifndef HAVE_VME_MAPPING
    m_pModule->pokew(mask, ShortOffset(Registers, BitSet2));
 #else
   volatile Registers* pRegisters = (volatile Registers*)m_pModule;
@@ -1884,7 +1888,7 @@ CAENcard::Bitset2(short mask)
 void
 CAENcard::Bitclear2(short mask)
 {
-#ifdef WienerVME
+#ifndef HAVE_VME_MAPPING
    m_pModule->pokew(mask, ShortOffset(Registers, BitClear2));
 #else
   volatile Registers* pRegisters = (volatile Registers*)m_pModule;

@@ -419,3 +419,9 @@ May 3, 2005
      - VmeTCL - switch from use of ExprLong to strtoul for addresses,
        offsets and values.  This is becaause ExprLong is strictly
        signed in tcl8.4.. and that causes problems for e.g. 0x80000000
+May 4, 2005
+     - Fix errors in conditinoal compilation for non-mapped VME interfaces
+       in CAENcard.
+May 5, 2005
+     - Make VME tcl independent of VME interface type by building it on
+       top of the CVmeModule::peek/poke interface.

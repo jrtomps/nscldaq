@@ -319,6 +319,42 @@ static vector<string> vSizeSwitches(aSizeSwitches, &aSizeSwitches[3]);
 #define SZ_NOMATCH -1
 
 
+/** Construct the 'map'  In this implementation we really are not mapping
+ *  at all but abstracting the access behind a CVmeModule object.
+ *  That class understands the dirty details of how to access the VME bus
+ * regardless of the characteristics of the underlying VME interface module.
+ *  @param   Name:
+ *       Name of the address space we are creating.
+ *  @param   pInterp
+ *      The TCL interpreter on which we register.
+ *  @param   Base
+ *      Base address of the VME map.
+ *  @param   nSize
+ *      Size of the VME map.
+ *  @param   nCrate
+ *       Crate in which the map is done.
+ *  @param   space
+ *       Addresss space selector.  See VmeModule.h for information
+ *       about this parameter.
+ *      
+ */
+CVMEMapCommand::CVMEMapCommand( string           Name, 
+				CTCLInterpreter* pInterp,
+				ULong_t          Base, 
+				UInt_t           nSize,
+				UInt_t           nCrate,
+				CVmeModule::Space space) :
+  CTCLProcessor(Name, pInterp),
+  m_nPhysBase(Base),
+  m_nSize(nSize),
+  m_nCrate(nCrate),
+  m_pSpace(new CVmeModule(space, Base, nSize, nCrate)),
+  m_Name(Name)
+{
+  Register();
+}
+
+
 //
 // Destructor must unmap the window... presumably base class unregisters us
 //
@@ -416,9 +452,11 @@ int CVMEMapCommand::Get(CTCLInterpreter& rInterp, CTCLResult& rResult,
     rResult += "  Expecting an integer for the offset";
     return TCL_ERROR;
   }
-  Address_t pVa = (Address_t)((unsigned)nOffset + 
-			      (unsigned)m_pBase);
-  if( (pVa < m_pBase) || (pVa >= (((char*)m_pBase) + m_nSize))) {
+
+  // Make sure the offset is in the address window represented
+  // by this command.
+
+  if(nOffset >= m_nSize) {
     rResult += *pArgs;
     rResult += " is outside the mapped address window";
     return TCL_ERROR;
@@ -430,13 +468,13 @@ int CVMEMapCommand::Get(CTCLInterpreter& rInterp, CTCLResult& rResult,
   ULong_t nValue;
   switch(nSize) {
   case SZ_LONG:
-    nValue = *(ULong_t*)pVa;
+    nValue = m_pSpace->peekl(nOffset/sizeof(long));
     break;
   case SZ_WORD:
-    nValue = *(UShort_t*)pVa;
+    nValue = m_pSpace->peekw(nOffset/sizeof(short));
     break;
   case SZ_BYTE:
-    nValue = *(UChar_t*)pVa;
+    nValue = m_pSpace->peekb(nOffset);
     break;
   default:
     CVMEInterface::Unlock();
@@ -494,11 +532,10 @@ int CVMEMapCommand::Set(CTCLInterpreter& rInterp, CTCLResult& rResult,
     return TCL_ERROR;
   }
 
-  // Figure out what the offset means in terms of a real address:
+  // Make sure the offset represents a value that's inside
+  // the address window represented by this command:
 
-  Address_t pVa = (Address_t)((unsigned)nOffset + 
-			      (unsigned)m_pBase);
-  if( (pVa < m_pBase) || (pVa >= (((char*)m_pBase) + m_nSize))) {
+  if(nOffset >= m_nSize) {
     rResult += pOffset;
     rResult +=" is outside the address window";
     return TCL_ERROR;
@@ -507,13 +544,13 @@ int CVMEMapCommand::Set(CTCLInterpreter& rInterp, CTCLResult& rResult,
   CVMEInterface::Lock();
   switch(nSize) {
   case SZ_LONG:
-    *(ULong_t*)pVa = (ULong_t)nValue;
+    m_pSpace->pokel(nValue, nOffset/sizeof(long));
     break;
   case SZ_WORD:
-    *(UShort_t*)pVa = (UShort_t)nValue;
+    m_pSpace->pokew(nValue, nOffset/sizeof(UShort_t));
     break;
   case SZ_BYTE:
-    *(UChar_t*)pVa  = (UChar_t)nValue;
+    m_pSpace->pokeb(nValue, nOffset);
     break;
   default:
     CVMEInterface::Unlock();
@@ -546,5 +583,6 @@ CVMEMapCommand::Usage(CTCLResult& rResult)
 void
 CVMEMapCommand::OnDelete()
 {
-  CVMEInterface::Unmap(m_MapFd, m_pBase, m_nSize);
+  delete m_pSpace;
+  m_pSpace = 0;
 }

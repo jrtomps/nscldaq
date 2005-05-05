@@ -285,15 +285,19 @@ DAMAGES.
 #include <TCLProcessor.h>
 #endif
 
+#ifndef __VMEMODULE_H
+#include <VmeModule.h>
+#endif
 
                          
 class CVMEMapCommand  : public CTCLProcessor        
 { 
-  void*    m_MapFd;
-  unsigned long       m_nPhysBase;  // Physical base address of map.
-   
-  Address_t m_pBase; //Attribute data member
-  UInt_t m_nSize; //Attribute data member
+  unsigned long       m_nPhysBase;  //!< VME  base address of map.
+  UInt_t              m_nSize;      //!< Size of segment in bytes.
+  UInt_t              m_nCrate;      //!< Crate segment lives in.
+  CVmeModule*         m_pSpace;     //!< Accessor for the space.
+  STD(string)         m_Name;       //!< Name of the space.
+
  
 protected:
 
@@ -304,47 +308,21 @@ protected:
   int Usage(CTCLResult& rResult);
 
 public:
+  // Constructor.
 
-  CVMEMapCommand (void* fd,
-		  int nPhysBase,
-		  const char* pName, CTCLInterpreter* pInterp,
-		  Address_t pBase, UInt_t nSize) :
-    m_MapFd(fd),
-    m_nPhysBase(nPhysBase),
-    CTCLProcessor(pName, pInterp),
-    m_pBase(pBase),   
-    m_nSize(nSize)
-  { 
-    Register();
-    
-  } 
+  CVMEMapCommand ( STD(string)      Name, 
+		   CTCLInterpreter* pInterp,
+		   ULong_t          Base, 
+		   UInt_t           nSize,
+		   UInt_t           nCrate,
+		   CVmeModule::Space space);
    ~ CVMEMapCommand ( ); 
 
-  // Selectors:
+   /// Selectors:
 
-  Address_t getBase() const
-  { 
-    return m_pBase;
-  }
-
-  //Get accessor function for non-static attribute data member
- 
-  UInt_t getSize() const
-  { 
-    return m_nSize;
-  }
-
-           
-protected:         
-  //Set accessor function for non-static attribute data member
-  void setBase (const Address_t am_pBase)
-  { m_pBase = am_pBase;
-  }
-
-  //Set accessor function for non-static attribute data member
-  void setSize (const UInt_t am_nSize)
-  { m_nSize = am_nSize;
-  }
+   ULong_t getBase() const {
+     return m_nPhysBase;
+   }
   
 public:       
   virtual   int operator() (CTCLInterpreter& rInterp, 

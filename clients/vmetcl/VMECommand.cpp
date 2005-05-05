@@ -321,54 +321,41 @@ static vector<string> vSubCommands(aSubCommands, &aSubCommands[3]);
 typedef struct MapEntry  {
   const string me_sLogicalDev;	// Name passed in by user on cmd.
   const 
-  CVMEInterface::AddressMode  me_eAPIDev; // Name expected by the api.
+  CVmeModule::Space  me_eAPIDev; // Name expected by the api.
 };
 
 static const MapEntry kaDeviceMap[] = {
   // Short I/O space (A16):
 
-  {"shortio"      , CVMEInterface::A16   },
-  {"shortio16"    , CVMEInterface::A16   },
-  {"vme16"        , CVMEInterface::A16   },
-  {"vme16d16"     , CVMEInterface::A16   },
-  {"/dev/vme16d32", CVMEInterface::A16   },
-  {"/dev/vme16d16", CVMEInterface::A16   },
+  {"shortio"      , CVmeModule::a16d16   },
+  {"shortio16"    , CVmeModule::a16d16   },
+  {"vme16"        , CVmeModule::a16d16   },
+  {"vme16d16"     , CVmeModule::a16d16   },
+  {"/dev/vme16d16", CVmeModule::a16d16   },
 
   // Standard addressing space (A24):
 
-  {"standard"     , CVMEInterface::A24   },
-  {"standard16"   , CVMEInterface::A24   },
-  {"vme24"        , CVMEInterface::A24   },
-  {"vme2416"      , CVMEInterface::A24   },
-  {"/dev/vme24d32", CVMEInterface::A24   },
-  {"/dev/vme24d16", CVMEInterface::A24   },
+  {"standard"     , CVmeModule::a24d32   },
+  {"standard16"   , CVmeModule::a24d32   },
+  {"vme24"        , CVmeModule::a24d32   },
+  {"vme2416"      , CVmeModule::a24d32   },
+  {"/dev/vme24d32", CVmeModule::a24d32   },
+  {"/dev/vme24d16", CVmeModule::a24d32   },
 
   // extended address space (A32):
 
-  {"extended"     , CVMEInterface::A32   },
-  {"extended16"   , CVMEInterface::A32   },
-  {"vme32"        , CVMEInterface::A32   },
-  {"vme32d16"     , CVMEInterface::A32   },
-  {"/dev/vme32d32", CVMEInterface::A32   },
-  {"/dev/vme32d16", CVMEInterface::A32   },
+  {"extended"     , CVmeModule::a32d32   },
+  {"extended16"   , CVmeModule::a32d32   },
+  {"vme32"        , CVmeModule::a32d32   },
+  {"vme32d16"     , CVmeModule::a32d32   },
+  {"/dev/vme32d32", CVmeModule::a32d32   },
+  {"/dev/vme32d16", CVmeModule::a32d32   },
 
   // Geographical addressing... only A24/D32 is supported:
 
-  {"geographical" , CVMEInterface::GEO   },
-  {"vmegeo"       , CVMEInterface::GEO   },
-  {"/dev/vmegeo24", CVMEInterface::GEO   },
+  {"geographical" , CVmeModule::geo      },
+  {"geo" ,          CVmeModule::geo      }
 
-  // Multicast control addressing:
-
-  {"multicast"    , CVMEInterface::MCST  },
-  {"vmemcst"      , CVMEInterface::MCST  },
-  {"/dev/vmemca32", CVMEInterface::MCST  },
-
-  // Chained block trsnafer addressing:
-
-  {"chainedblock" , CVMEInterface::CBLT },
-  {"vmecblt"      , CVMEInterface::CBLT },
-  {"/dev/vmecba32", CVMEInterface::CBLT }
 
 
 };
@@ -538,21 +525,12 @@ int CVmeCommand::AddMap(CTCLInterpreter& rInterp,
   }
   // Now create the map:
 
-  CVMEMapCommand* pMap;
-  try {
-    pMap = CreateMap(mapname, devname, 
-		     nBase, nSize, nCrate);
-    if(!pMap) {
-      rResult = "VME Map creation failed";
-      return TCL_ERROR;
-    }
-  }
-  catch (string& rsError) {
-    rResult = rsError;
-    rResult += "\n";
-    return Usage(rResult);
-  }
+  CVmeModule::Space space = UserToLogical(devname);
 
+  CVMEMapCommand* pMap = new CVMEMapCommand(mapname,
+					    &rInterp,
+					    nBase, nSize, nCrate,
+					    space);
   m_Spaces[mapname] = pMap;
   rResult = mapname;
 
@@ -637,72 +615,7 @@ CVmeCommand::Usage(CTCLResult& rResult)
   rResult += "  vme delete mapname\n"; 
   return TCL_ERROR;
 }
-/*!
 
-  Manufacture a memory map command object to the specifications
-  given and defined on the current interpreter.
-
-  \param rName (const string& [in]) Reference to the name of the map.
-  \param rDevice (const string& [in]) Device designator (not device name,
-          but some function of the address space.
-  \param nBase  (int [in])  VME base of start of the map.
-  \param nSize (int [in])   Size of map in bytes.
-  \param nCrate (usigned short [in]) VME Crate number.
-
-
-*/
-CVMEMapCommand*
-CVmeCommand::CreateMap(const string& rName, const string& rDevice, 
-		       int nBase, int nSize,
-		       unsigned short nCrate)
-{
-  CTCLInterpreter* pInterp = getInterpreter();
-
-  // Mapping consists of the following operations:
-  // 1. Open the device for R/W
-  // 2. Define a physical address window which is a multiple of mapping
-  //    pages and which contains the desired physical address unit.
-  // 3. Compute the offsets into this window which match the physical
-  //    requested base.
-  // 4. Perform the associated mmap() to map process virtual memory to this
-  //    physical window.
-  // 5. Create the CVMEMapCommand object.
-  //
-
-
-  // If the fd is cached, reuse it else, open.
-  void* fd;
-  pair<string,int> key;
-  key.first  = rDevice;
-  key.second = nCrate;
-  map<pair<string,int>, void*>::iterator p = m_VmeHbfds.find(key);
-  if(p != m_VmeHbfds.end()) {
-    fd = p->second;
-  }
-  else {
-    fd = OpenDevice(UserToLogical(rDevice), nCrate);
-    m_VmeHbfds[key] = fd;
-  }
-
-
-  // Important values:
-  // nPageOffset  - Where we'll actually mmap (base).
-  // nSize        - Number of bytes we'll request in the map.
-  // nPageOffset  - Where relative to the start of the map the desired
-  //                map starts.
-  //
-
-  // Now we're ready to mmap:
-  Address_t pActualBase;
-
-  pActualBase = CVMEInterface::Map(fd, nBase, nSize);
-
-
-  // Create and return the VMEMapCommand object.
-  //
-  return new CVMEMapCommand(fd, nBase, rName.c_str(), pInterp, 
-			    pActualBase, nSize);			    
-}
 
 
 
@@ -763,7 +676,7 @@ The number of entries in the table is small as is the
 lookup frequency so we just do a linear search.
 
 */
-CVMEInterface::AddressMode
+CVmeModule::Space
 CVmeCommand::UserToLogical(const string& rsUser)
 {
   for(int i=0; i < knDeviceMapSize; i++) {
@@ -775,28 +688,6 @@ CVmeCommand::UserToLogical(const string& rsUser)
 }
 
 
-/*!
-   Opens a device in an api/device specific way. Read and write
-   access will be requested.
-
-   \param eMode CVMEInterface::AddressMode - addressing mode of
-                     bus on which to open the device.
-   \param nCrate Number of the crate to access.  Crates are numbered from
-                zero. The actual limitation on crate number depends on the
-		underlying device driver.
-   \return - Vmefd - API specific open device handle.
-
-   \throw  string describing any error from the open.
-
-   */
-void*
-CVmeCommand::OpenDevice(CVMEInterface::AddressMode eMode,
-			unsigned short nCrate)
-{
-  void* fd;
-  fd = CVMEInterface::Open(eMode, nCrate);
-  return fd;
-}
 /*!
   Matches a string against the set of switches recognized by
   the program.:

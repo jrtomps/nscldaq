@@ -467,7 +467,7 @@ CApplication::operator()(gengetopt_args_info& Parameters)
   }
   catch(string msg) {		// Exit with error message.
     cerr << msg << endl;
-  }
+ }
   catch (...) {
     cerr << "An unanticipated exception was caught in CApplication::operator() "
 	 << " -- exiting\n";
