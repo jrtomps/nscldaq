@@ -425,3 +425,5 @@ May 4, 2005
 May 5, 2005
      - Make VME tcl independent of VME interface type by building it on
        top of the CVmeModule::peek/poke interface.
+     - Defect 172 - Make controlpush an event driven epics application
+       to try to deal with channels not getting connected within timeouts.

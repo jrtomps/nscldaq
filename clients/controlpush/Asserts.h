@@ -8,6 +8,19 @@
 #define ASSERT(expr)       CPPUNIT_ASSERT(expr)
 #define FAIL(msg)          CPPUNIT_FAIL(msg)
 
+// Macro to test for exceptions:
+
+#define EXCEPTION(operation, type) \
+   {                               \
+     bool ok = false;              \
+     try {                         \
+         operation;                 \
+     }                             \
+     catch (type e) {              \
+       ok = true;                  \
+     }                             \
+     ASSERT(ok);                   \
+   }
 
 
 #endif

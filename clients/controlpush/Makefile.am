@@ -280,8 +280,7 @@ APPITEMS= cmdline.c CApplication.cpp CChannelList.cpp \
 			CSocket.cpp CStrings.cpp CTCPBadSocketState.cpp \
 			CTCPConnectionFailed.cpp CTCPConnectionLost.cpp \
 			CTCPNoSuchHost.cpp CTCPNoSuchService.cpp \
-			CSGBuilder.cpp CSingleUpdater.cpp CAllOk.cpp \
-			CLookupVisitor.cpp CChannel.cpp CNoUnitsException.cpp \
+			CLookupVisitor.cpp CChannel.cpp CUnitChannel.cpp \
 			CApplicationSerializer.cpp CBuildChannelData.cpp
 controlpush_SOURCES = Main.cpp $(APPITEMS)
 
@@ -290,8 +289,7 @@ include_HEADERS= cmdline.h CApplication.h CChannelList.h \
 			CTCPBadSocketState.h CTCPConnectionFailed.h \
 			CTCPConnectionLost.h CTCPNoSuchHost.h \
 			CTCPNoSuchService.h \
-			CSGBuilder.h CSingleUpdater.h CAllOk.h \
-			CLookupVisitor.h CChannel.h CNoUnitsException.h \
+			CLookupVisitor.h CChannel.h CUnitChannel.h \
 			CApplicationSerializer.h CBuildChannelData.h 
 
 controlpush_LDADD   = -L@top_srcdir@/Exception -lException \
@@ -311,8 +309,10 @@ EXTRA_DIST=options.ggo Makefile.am Channels.dat
 
 if CPPUNIT
 noinst_PROGRAMS = unittests
-unittests_SOURCES = TestRunner.cpp ChannelListTests.cpp ChannelTest.cpp \
-	VisitorTests.cpp ApplicationTests.cpp $(APPITEMS)
+unittests_SOURCES = TestRunner.cpp ChannelListTests.cpp  \
+		LookupVisitorTest.cpp \
+		TestChannel.cpp TestUnitChannel.cpp \
+		$(APPITEMS)
 
 unittests_LDADD = $(CPPUNIT_LDFLAGS) $(controlpush_LDADD)
 

@@ -5,13 +5,8 @@
 #include <cppunit/Asserter.h>
 #include "Asserts.h"
 #include <CChannel.h>
-#include <CNoUnitsException.h>
-#include <CAllOk.h>
-#include <CSGBuilder.h>
-#include <CSingleUpdater.h>
-#include <CLookupVisitor.h>
-#include <CBuildChannelData.h>
 #include <CChannelList.h>
+#include "CChannelVisitor.h"
 #include <string>
 #include <iostream>
 #include <time.h>
@@ -25,9 +20,6 @@ class ChannelListTests : public CppUnit::TestFixture {
   CPPUNIT_TEST(StockTest);	// Test ability to build list.
   CPPUNIT_TEST(IterationTest);	// Test veracity of the iterators.
   CPPUNIT_TEST(ForeachTest);	// Test visitation rights.
-  CPPUNIT_TEST(Update1Test);	// Test Update1AtATime.
-  CPPUNIT_TEST(UpdateGroupTest); // Test update via synchronous group.
-  CPPUNIT_TEST(UpdateTest);
   CPPUNIT_TEST_SUITE_END();
 
 
@@ -78,9 +70,10 @@ ChannelListTests::Stock(CChannelList& l)
     // the channel it will be destroyable.
     //
     CChannel* p = new CChannel(string(Names[i]));
-    p->Lookup();
+    p->Connect();
     l.push_back(*p);
   }
+  CChannel::doEvents(0.5);
 }
 
 
@@ -120,7 +113,7 @@ ChannelListTests::IterationTest()
   CChannelList::ChannelIterator  p = clist.begin();
   int i = 0;
   while(p != clist.end()) {
-    EQ(string(Names[i]), (*p)->GetName());
+    EQ(string(Names[i]), (*p)->getName());
 
     p++;
     i++;
@@ -137,7 +130,7 @@ class CNameCheckVisitor : public CChannelVisitor
  public:
   CNameCheckVisitor() : i(0) {}
   virtual void operator()(CChannel* p) {
-    EQ(string(Names[i]), p->GetName());
+    EQ(string(Names[i]), p->getName());
     i++;
   }
 };
@@ -155,81 +148,4 @@ ChannelListTests::ForeachTest()
 
 }
 
-void
-ChannelListTests::CheckChannels(CChannelList& clist, time_t UpdateTime)
-{
-  
-  CBuildChannelData visitor;
-  clist.foreach(visitor);	// Build up the data...
-  
-  
-  EQ(nNames, visitor.size());	// One entry for each channel.
-  CBuildChannelData::ChannelItemIterator p = visitor.begin();
-  int i = 0;
-  while(p != visitor.end()) {
-    string Name      =  p->first;
-    string Value     =  p->second.m_sValue;
-    string Units     =  p->second.m_sUnits;
-    time_t Updated   =  p->second.m_Updated; 
-    
-    EQ(string(Names[i]), Name);
-    ASSERT(Value != string("-not-updated-"));
-    ASSERT(Units != string("-not-updated-")); // Allowed to be blank..
-    ASSERT((Updated - UpdateTime) <= 1);
-    
-    cerr << "OK! " << Name  << " = " << Value << Units << endl;
-    
-    i++;
-    p++;
-  }
 
-}
-//
-// Check the single updater based update..
-// After stocking a channel list, 
-// its Update1AtATime member is called.
-// We visit with a CBuildChannelData visitor and
-// see if all the data look ok (see VisitorTests::GetDataTest()
-// for critera for 'ok'.
-//
-void
-ChannelListTests::Update1Test()
-{
-  CChannelList clist;
-  Stock(clist);
-
-  time_t UpdateTime = time(NULL);
-  clist.Update1AtATime(1.0);	// the parameter is the timeout.
-
-  CheckChannels(clist, UpdateTime);
-}
-//  Check group updater.. Common code in CheckChannels is used to
-// validate the stuff.
-
-void
-ChannelListTests::UpdateGroupTest()
-{
-  CChannelList clist;
-  Stock(clist);
-
-  time_t UpdateTime = time(NULL);
-  clist.UpdateGroup(1.0);
-
-  CheckChannels(clist, UpdateTime);
-}
-// Check dealer's choice update (that's a group update unless a channel
-// fails.
-// 
-void
-ChannelListTests::UpdateTest()
-{
-  CChannelList clist;
-  Stock(clist);
-
-  time_t UpdateTime = time(NULL);
-  clist.Update(1.0, 1.0);
-
-  CheckChannels(clist, UpdateTime);
-
-
-}

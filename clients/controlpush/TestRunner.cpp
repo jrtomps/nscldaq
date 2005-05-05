@@ -1,8 +1,8 @@
 #include <config.h>
 #include <cppunit/extensions/TestFactoryRegistry.h>
 #include <cppunit/ui/text/TestRunner.h>
-#include <Iostream.h>
 #include <string>
+#include <Iostream.h>
 
 #ifdef HAVE_STD_NAMESPACE
 using namespace std;
