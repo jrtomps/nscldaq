@@ -1,0 +1,37 @@
+.TH epicsdisplay 1 "May 9, 2005" "NSCL-DAQ" "Commands"
+.SH NAME 
+epicsdisplay \- Display and chart epics channels.
+.SH SYNOPSIS
+.B epicsdisplay \fIchannelfile\fR
+.SH DESCRIPTION
+.B epicsdisplay
+Monitors a set of EPICS channels in tabular and, optionally, chart recorder 
+form.  \fIchannelfile\fR is the name of a file that describes the epics
+channels to monitor.  The file consists of two types of text lines; comments
+and channel lines.  Comment lines begin with the hash character \#.  Channel
+lines begin with a channel name followed by whitespace, followed by an optional
+comment.   If the first word of the optional comment is ``chart'', the channel
+is added to the chart recorder.
+.SH "OPERATING INSTRUCTIONS"
+.PP
+The display is divided into three sections. The top section is the channel
+table.  The middle section the chart recorder section and the bottom section
+the chart control panel.
+.PP
+While it appears as if the table section has no controls, in reality it is
+possible to resize all of the columns of the table.  Expanding the window width
+adds space to the right most, Comment column.  All other columns may be
+expanded by dragging their borders with the mouse.
+.PP
+The chart recorder control panel allows the user to perform a few operations
+on the chart.  The Clear button resets the time to 0 and clears the data
+accumulated so far. 
+.PP
+The rightmost three controls manage the time scale of the chart widget. Changes
+to these widgets do nothing until the Set button is clicked.   The widget
+states at that time determine the scale of the chart recorder.  If the ``Auto
+Range'' checkbutton is set, the time scale will change dynamically to
+accomodate the full time range of values.  If unchecked, the value in the entry
+widget labelled ``Range (min):''  determines the width in time of the chart.
+The chart is scrolled as needed (by 10% of the range) to keep the most recent
+data visible.

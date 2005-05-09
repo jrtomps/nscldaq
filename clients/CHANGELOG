@@ -427,3 +427,11 @@ May 5, 2005
        top of the CVmeModule::peek/poke interface.
      - Defect 172 - Make controlpush an event driven epics application
        to try to deal with channels not getting connected within timeouts.
+May 6, 2005
+     - Fix loadcfd.tcl - add its dir to auto_path rather than the 
+       old SEE-ish DISTROOT relative path.
+     - burngui - Was sending out two \n's to child process which resulted
+       in  a run from one DVD to the next without giving the user time to
+       switch disks.
+May 9, 2005 
+     - Added epicsdisplay program to do quicky monitoring of epics channels.

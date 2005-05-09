@@ -405,6 +405,13 @@ AC_ARG_WITH(vme-interface,
 	[--with-vme-interface=sbs|wiener|none - Choose VME interface],
 	vmeinterface="$withval")
 
+# VMEDEVICE         - Which device it is.
+# VMELIBRARYHEADERS - Where the headers will live for vme lib.
+# VMELIBRARY        - ld switches neede to use VME.
+# DEPENDSON_VME     - Space separated list of directories that
+#                     require that specific type of VME interface
+#                     to build (try to keep this number small!!).
+
 case "$vmeinterface" in
      sbs)
 	VMEDEVICE="SBSBIT3"
@@ -420,6 +427,7 @@ case "$vmeinterface" in
 	VMELIBRARY="-L\$(prefix)/lib -lbtp -lpthread"
 	AC_DEFINE(HAVE_SBSVME_INTERFACE,"1",[VME interface is sbs/bit3])
 	AC_DEFINE(HAVE_VME_MAPPING, "1",[VME interface capable of mmap(2)])
+	DEPENDSON_VME="PowerCheck"
 
 	case  $kernel_version in 
 	 2.4)
@@ -460,7 +468,7 @@ case "$vmeinterface" in
 
 	VMELIBRARYHEADERS="-I\$(prefix)/include"
 	VMELIBRARY="-L\$(prefix)/lib -lpcivme"
-
+	DEPENDSON_VME=""
 	AC_DEFINE(HAVE_WIENERVME_INTERFACE,"1",[VME Interface is Wiener])
 
      ;;
@@ -474,6 +482,7 @@ case "$vmeinterface" in
 
 	VMELIBRARYHEADERS=""
 	VMELIBRARY=""
+	DEPENDSON_VME=""
 
 	AC_DEFINE(HAVE_NOVME_INTERFACE, "1",[No VME interface selected])
 
@@ -483,18 +492,6 @@ case "$vmeinterface" in
      ;;
 esac
 
-# VMEDEVICE="SBSBIT3"     # Support for Nikhef drv dropped
-
-# if test $VMEDEVICE = "SBSBIT3" 
-#then
-#   VMEBUILDHEADERS="-I$(pwd)/btdriver/include"
-#   VMEBUILDLIBS="-L$(pwd)/btdriver/lib -lbtp"
-
-#  Since the bt library is part of the build:
-
-#   VMELIBRARYHEADERS="-I$prefix/include"
-#    VMELIBRARY="-L$prefix/lib -lbtp"
-# fi
 
 AC_MSG_RESULT([$VMEDEVICE])
 
@@ -624,7 +621,7 @@ if test $haveepics == "yes"
 then
 	# Have epics:
 
-   EPICSSOFTWARE="controlpush" # Add this directory to build.
+   EPICSSOFTWARE="controlpush epicsdisplay" # Add these directories to build.
    EPICS_INCLUDES="-I$epicsroot/include -I$epicsroot/include/os/Linux"
    EPICS_LDFLAGS="-L$epicsroot/lib/linux-x86 -lca -Wl,\"-rpath=$epicsroot/lib/linux-x86\""
    EPICS_BIN="-DEPICS_BIN=\"\\\"$epicsroot/bin/linux-x86\\\"\""
@@ -706,6 +703,7 @@ AC_SUBST(VMELIBRARY)
 AC_SUBST(VMELIBRARYHEADERS)
 AC_SUBST(VMEBUILDHEADERS)
 AC_SUBST(VMEBUILDLIBS)
+AC_SUBST(DEPENDSON_VME)
 
 	# CAMAC device:
 
@@ -762,7 +760,8 @@ AC_OUTPUT( Makefile Headers/Makefile CopyrightTools/Makefile \
 	ProductionReadout/hyperlatex/Makefile \
 	btdriver/Makefile btdriver/dd/Makefile btdriver/lib/Makefile \
 	btdriver/include/Makefile  \
-	controlpush/Makefile dvdburn/Makefile \
+	controlpush/Makefile  dvdburn/Makefile epicsdisplay/Makefile \
+	epicsdisplay/epicsdisplay \
 	daqstart/Makefile ScalerDisplay/Makefile ScalerDisplay/ScalerDisplay \
 	wienerdriver/Makefile wienerdriver/driver/Makefile \
 	wienerdriver/lib/Makefile PowerCheck/Makefile)

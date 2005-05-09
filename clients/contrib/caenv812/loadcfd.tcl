@@ -30,8 +30,8 @@
 exec tclsh $0 $@
 
 
-set root $env(DISTRIBROOT)
-set cfddir $root/controls/cfd          ;# The CFD support package is here.
+set me $argv0
+set cfddir [file dirname $me]
 
 lappend auto_path $cfddir
 package require CFD812

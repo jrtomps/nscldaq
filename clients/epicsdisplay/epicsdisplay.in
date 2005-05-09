@@ -1,0 +1,6 @@
+#!/bin/bash
+
+prefix=@prefix@
+
+$prefix/bin/tclserver $prefix/Scripts/EpicsDisplay.tcl $1 \
+			-pManaged -a"Epics Display"

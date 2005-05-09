@@ -111,7 +111,7 @@ proc CaptureOutput {} {
 	    
 	    tk_dialog .next "Next DVD" "Put a blank DVD in the burner" \
 		questhead 0 "Ready to Burn"
-	    puts $burnfd "\n"
+	    puts -nonewline $burnfd "\n"
 	    flush $burnfd
 	}
     }
