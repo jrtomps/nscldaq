@@ -308,6 +308,7 @@ proc setupStripChart {channels} {
 
     if {[llength $channels] > 0} {
         set chartWidget [stripchart $f.stripchart -height 3i -width 8i]
+	$chartWidget grid configure -hide 0
         pack $chartWidget
         vector create timeVector
 
