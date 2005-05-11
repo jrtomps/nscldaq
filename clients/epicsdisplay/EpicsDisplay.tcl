@@ -68,3 +68,5 @@ set chans [readSetupFile $file]
 makeGui
 fillTable $chans
 setupStripChart $chans
+pack $paneWidget -fill x -expand 1
+setupStripControls

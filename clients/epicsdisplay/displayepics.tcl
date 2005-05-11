@@ -20,6 +20,9 @@ namespace import ::blt::vector
 
 set tableWidget ""
 set chartWidget ""
+set paneWidget ""
+
+
 set stripColors {black red green blue cyan magenta brown}
 set stripStyles { "" {5 5} {2 2} {5 5 2 2} {5 2} { 5 5 2 5}}
 set stripColorIndex 0
@@ -61,16 +64,19 @@ proc compareFirst {el1 el2} {
 #   channel name, channel value, channel units, channel comment.
 #
 proc makeGui {} {
+    global paneWidget
     global tableWidget
 
-    ScrolledWindow   .sw
-    set tableWidget  [table .table -rows 1 -cols 4 -cache 1 \
+    set paneWidget [PanedWindow .pwindow -side left]
+    set f [$paneWidget add]
+    ScrolledWindow   $f.sw
+    set tableWidget  [table $f.table -rows 1 -cols 4 -cache 1 \
                                   -titlerows 1  \
                                   -pady 2 -padx 2]
-    .table width 3 15
-    .table set row 0,0 {Name Value Units Comment}
-    .sw setwidget .table
-    pack .sw -fill both -expand 1
+    $tableWidget width 3 15
+    $tableWidget set row 0,0 {Name Value Units Comment}
+    $f.sw setwidget $tableWidget
+    pack $f.sw -fill both -expand 1
 }
 
 #
@@ -119,7 +125,7 @@ proc getStripchartChannels {channels} {
 #       col1: A label widget that is linked to EPICS_DATA(channelname)
 #       col2: A label widget that is linked to EPICS_UNITS(channelname)
 #       col3: A comment.
-#
+# list:     The list to use to fill the table.
 proc fillTable {list} {
     global tableWidget
     foreach channel $list {
@@ -238,15 +244,18 @@ proc setupStripControls {} {
 #   Setup the stripchart given the list of channels to chart.
 #
 proc setupStripChart {channels} {
+    global paneWidget
     global chartWidget
     global timeVector
     global chartChannels
+
+    set f [$paneWidget add]
 
     set channels [getStripchartChannels $channels]
 
 
     if {[llength $channels] > 0} {
-        set chartWidget [stripchart .stripchart -height 3i -width 8i]
+        set chartWidget [stripchart $f.stripchart -height 3i -width 8i]
         pack $chartWidget
         vector create timeVector
 
@@ -268,7 +277,6 @@ proc setupStripChart {channels} {
         }
 
         updateStripChart 1
-        setupStripControls
 
     }
 
