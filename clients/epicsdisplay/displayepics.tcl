@@ -34,6 +34,36 @@ set timeRange     2;          #Minutes.
 
 set chartChannels ""
 
+#   We don't want the vector to build up without bound in case
+#   nobody ever hits the clear button.  The value below is the
+#   maximum number of hours we will keep.
+#  
+set maxKeepHours 4.0;			# Should be floating.
+
+
+# flushOldData:
+#     Called to determine if it is time to flush the old data
+#     in the strip chart vector and, if so, does just that.
+#
+proc flushOldData {} {
+    global timeVector
+    global chartChannels
+    global maxKeepHours
+
+    set maxKeepSamples [expr round($maxKeepHours * 3600)]
+    set samples [timeVector length]
+    if {$samples > $maxKeepSamples} {
+	set killcount [expr $samples - $maxKeepSamples/2]
+	timeVector delete 0:$killcount
+	for {set i 0} {$i < [llength $chartChannels]} {incr i} {
+	    set name channel$i
+	    $name delete 0:$killcount
+	}
+	
+    }
+}
+
+
 #
 #  Select the style for a plot.
 #
@@ -163,8 +193,11 @@ proc updateStripChart {secs} {
         set value $EPICS_DATA($name)
         if {[string is double -strict $value]} {
             $vectorname append  $value
-        }
+        } else {
+	    $vectorname append 0.0
+	}
     }
+    flushOldData
     after $ms "updateStripChart $secs"
 }
 #
@@ -197,6 +230,8 @@ proc setStripchartRange {} {
     global timeRange
     global chartWidget
     global time
+    global retainTime
+    global maxKeepHours
 
     if {$autotimeRange} {
         $chartWidget axis configure x -autorange $time
@@ -214,6 +249,15 @@ proc setStripchartRange {} {
                -title "Bad int" -type ok
         }
     }
+    # Set the maxkeep hours:
+
+    if {[string is double -strict $retainTime]} {
+	set maxKeepHours $retainTime
+    } else {
+	tk_messageBox -icon error \
+	    -message "Retension time must be a floating point number of hours" \
+	    -title "Bad doulbe" -type ok
+    }
 }
 #
 # Setup the strip chart control panel.  We have a button
@@ -224,6 +268,8 @@ proc setStripchartRange {} {
 # the time scale entries take effect.
 #
 proc setupStripControls {} {
+    global maxKeepHours
+
     frame .stripcontrols -bd 2 -relief groove
     button .stripcontrols.clear -text Clear  -command clearStripChart
 
@@ -231,10 +277,16 @@ proc setupStripControls {} {
     checkbutton .stripcontrols.time.auto -variable autotimeRange -text "Auto Range"
     label       .stripcontrols.time.rlabel -text {  Range (min) :}
     entry       .stripcontrols.time.range -textvariable timeRange
+    label       .stripcontrols.time.retainl -text {Retain data (hrs)}
+    entry       .stripcontrols.time.retain -textvariable retainTime
     button      .stripcontrols.time.set   -text Set -command setStripchartRange
 
-    pack .stripcontrols.time.auto .stripcontrols.time.rlabel \
-         .stripcontrols.time.range .stripcontrols.time.set -side left
+    .stripcontrols.time.retain insert end $maxKeepHours
+
+    pack .stripcontrols.time.auto \
+	.stripcontrols.time.rlabel  .stripcontrols.time.range \
+	.stripcontrols.time.retainl .stripcontrols.time.retain \
+	.stripcontrols.time.set -side left
     pack .stripcontrols.clear  -side left
     pack .stripcontrols.time   -side right
     pack .stripcontrols -side top -fill x
