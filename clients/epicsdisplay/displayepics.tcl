@@ -122,8 +122,10 @@ proc readSetupFile {filename} {
     foreach line $lines {
         # Skip comment lines.
         if {[string index $line 0] != "#"} {
-            set channel [lindex $line 0]
-            set comment [lrange $line 1 end]
+	    set listLine [split $line " "]
+	    set channel  [lindex $listLine 0]
+	    set channelLength [string length $channel]
+	    set comment [string range $line $channelLength end]
             lappend channelList [list $channel $comment]
         }
     }
@@ -138,9 +140,8 @@ proc readSetupFile {filename} {
 proc getStripchartChannels {channels} {
     set result ""
     foreach channel $channels {
-        set comment [lindex $channel 1]
-        set keyword [lindex $comment 0]
-        if {$keyword == "chart"} {
+        set comment [split [lindex $channel 1] " "]
+        if {[lsearch -exact $comment chart] != -1} {
             lappend result [lindex $channel 0]
         }
     }
@@ -269,27 +270,31 @@ proc setStripchartRange {} {
 #
 proc setupStripControls {} {
     global maxKeepHours
+    global chartChannels
 
-    frame .stripcontrols -bd 2 -relief groove
-    button .stripcontrols.clear -text Clear  -command clearStripChart
-
-    frame .stripcontrols.time -bd 2 -relief groove
-    checkbutton .stripcontrols.time.auto -variable autotimeRange -text "Auto Range"
-    label       .stripcontrols.time.rlabel -text {  Range (min) :}
-    entry       .stripcontrols.time.range -textvariable timeRange
-    label       .stripcontrols.time.retainl -text {Retain data (hrs)}
-    entry       .stripcontrols.time.retain -textvariable retainTime
-    button      .stripcontrols.time.set   -text Set -command setStripchartRange
-
-    .stripcontrols.time.retain insert end $maxKeepHours
-
-    pack .stripcontrols.time.auto \
-	.stripcontrols.time.rlabel  .stripcontrols.time.range \
-	.stripcontrols.time.retainl .stripcontrols.time.retain \
-	.stripcontrols.time.set -side left
-    pack .stripcontrols.clear  -side left
-    pack .stripcontrols.time   -side right
-    pack .stripcontrols -side top -fill x
+    if {[llength $chartChannels] != 0} {
+	
+	frame .stripcontrols -bd 2 -relief groove
+	button .stripcontrols.clear -text Clear  -command clearStripChart
+	
+	frame .stripcontrols.time -bd 2 -relief groove
+	checkbutton .stripcontrols.time.auto -variable autotimeRange -text "Auto Range"
+	label       .stripcontrols.time.rlabel -text {  Range (min) :}
+	entry       .stripcontrols.time.range -textvariable timeRange
+	label       .stripcontrols.time.retainl -text {Retain data (hrs)}
+	entry       .stripcontrols.time.retain -textvariable retainTime
+	button      .stripcontrols.time.set   -text Set -command setStripchartRange
+	
+	.stripcontrols.time.retain insert end $maxKeepHours
+	
+	pack .stripcontrols.time.auto \
+	    .stripcontrols.time.rlabel  .stripcontrols.time.range \
+	    .stripcontrols.time.retainl .stripcontrols.time.retain \
+	    .stripcontrols.time.set -side left
+	pack .stripcontrols.clear  -side left
+	pack .stripcontrols.time   -side right
+	pack .stripcontrols -side top -fill x
+    }
 }
 
 #
@@ -301,12 +306,13 @@ proc setupStripChart {channels} {
     global timeVector
     global chartChannels
 
-    set f [$paneWidget add]
+
 
     set channels [getStripchartChannels $channels]
 
 
     if {[llength $channels] > 0} {
+	set f [$paneWidget add]
         set chartWidget [stripchart $f.stripchart -height 3i -width 8i]
 	$chartWidget grid configure -hide 0
 	$chartWidget legend configure -position top -anchor w

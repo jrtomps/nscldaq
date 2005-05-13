@@ -435,3 +435,6 @@ May 6, 2005
        switch disks.
 May 9, 2005 
      - Added epicsdisplay program to do quicky monitoring of epics channels.
+May 13, 2005
+     - Deal with improper lists in comment lines of channel files for 
+       epicsdisplay
