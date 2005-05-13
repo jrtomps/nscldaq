@@ -6,4 +6,4 @@ install-exec-local:
 
 man_MANS = EpicsDisplay.1
 
-EXTRA_DIST = EpicsDisplay.tcl displayepics.tcl EpicsDisplay.1 epicsdisplay.in
+EXTRA_DIST = channels.txt  EpicsDisplay.tcl displayepics.tcl EpicsDisplay.1 epicsdisplay.in
