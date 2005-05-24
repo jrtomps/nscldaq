@@ -7,14 +7,14 @@ OBJECTS= btp_cfg.o btp_open.o btp_rdwr.o btp_ioctl.o \
     bt_mem.o bt_mutex.o bt_event.o bt_bit.o bt_llist.o \
     bt_delay.o bt_rwlck.o \
     bt_icbr_thread.o bt_isr.o bt_nbus.o bt_param.o bt_setup.o \
-    bt_xfer.o
+    bt_xfer.o btp_mmap.o
 
 EXTRA_DIST=btp_cfg.c btp_open.c btp_rdwr.c btp_mmap.c btp_ioctl.c \
     btp_lowio.c btp_version.c btp_bind.c \
     bt_mem.c bt_mutex.c bt_event.c bt_bit.c bt_llist.c bt_delay.c \
     bt_rwlck.c \
     bt_icbr_thread.c bt_isr.c bt_nbus.c bt_param.c bt_setup.c \
-    bt_xfer.c btdd.h btpdd.h mkbtp
+    bt_xfer.c btdd.h btpdd.h mkbtp btp_mmap.c
 
 all-local: btp.o
 

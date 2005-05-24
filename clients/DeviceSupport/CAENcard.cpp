@@ -279,6 +279,9 @@ DAMAGES.
 /*
   Change Log:
   $Log$
+  Revision 4.6  2005/05/24 11:08:00  ron-fox
+  Minor commits and open 8.0-001 edit level
+
   Revision 4.5  2005/05/05 13:28:32  ron-fox
   Put vmetcl on top of the CVmeInterface peek/poke class so that
   it is independent of the VME interface module
@@ -918,7 +921,7 @@ CAENcard::commonStop()
   if(cardType() == 775)
   {
     volatile Registers* pRegisters = (volatile Registers*)m_pModule;
-    pRegisters->BitSet2 = COMMONSTOP;
+    Bitset2(COMMONSTOP);
     
   }
   else

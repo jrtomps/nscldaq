@@ -122,7 +122,7 @@ proc readSetupFile {filename} {
     foreach line $lines {
         # Skip comment lines.
         if {[string index $line 0] != "#"} {
-	    set listLine [split $line " "]
+	    set listLine [split $line " \t"]
 	    set channel  [lindex $listLine 0]
 	    set channelLength [string length $channel]
 	    set comment [string range $line $channelLength end]
@@ -140,7 +140,7 @@ proc readSetupFile {filename} {
 proc getStripchartChannels {channels} {
     set result ""
     foreach channel $channels {
-        set comment [split [lindex $channel 1] " "]
+        set comment [split [lindex $channel 1] " \t"]
         if {[lsearch -exact $comment chart] != -1} {
             lappend result [lindex $channel 0]
         }

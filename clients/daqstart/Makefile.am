@@ -10,7 +10,7 @@ include_HEADERS = cmdline.h CDAQStart.h  CFileSinkCreator.h \
 
 INCLUDES	= -I@top_srcdir@/Headers -I@top_srcdir@/Exception -I.
 
-daqstart_LDADD = -L@top_srcdir@/Exception -lException -lpub
+daqstart_LDADD = -L@top_srcdir@/Exception -lException
 
 AM_CXXFLAGS	= -D_GNU_SOURCE
 
