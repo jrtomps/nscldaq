@@ -43,6 +43,8 @@
 
 #define camwrite16(b,c,n,a,f,d)  (CAMWR16(CBDPTR((b), (c),(n),(a),(f), CAM16),d))
 #define camwrite24(b,c,n,a,f,d)  (CAMWR24(CBDPTR((b), (c),(n),(a),(f), CAM24),d))
+
+
 /* 
 camctl...
 unfortunately, the prior version of camctl assumed that a READ was
@@ -58,6 +60,9 @@ F<16, write for F>=16). So, we replace the camctl macro. --ddc
                 if( *(volatile INT16 *)CBDPTR((b), (c),(n),(a),(f), CAM16) ){}; \
             } else *(volatile INT16 *)CBDPTR((b), (c),(n),(a),(f), CAM16)=0;    \
 	}
+
+#define inhibit(b,c)    camctl(b,c,27, 0, 26)  
+#define uninhibit(b,c)  camctl(b,c,27, 1, 24)
 
 #ifdef LONGBRANCH
 
