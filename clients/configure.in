@@ -749,6 +749,7 @@ AC_OUTPUT( Makefile Headers/Makefile CopyrightTools/Makefile \
 	EventLog/Makefile  Scaler/Makefile contrib/Makefile \
 	contrib/lecroy/Makefile contrib/whedco/Makefile \
 	contrib/caenv812/Makefile contrib/scriptedReadout/Makefile \
+	contrib/hpscriptedReadout/Makefile \
 	contrib/scalerdisplay/Makefile contrib/N568Panel/Makefile \
 	contrib/vhqpanel/Makefile \
 	vmetcl/Makefile \
