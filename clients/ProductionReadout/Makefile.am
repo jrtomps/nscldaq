@@ -158,6 +158,7 @@ EXTRA_DIST = 	MyExperiment.cpp \
 
 install-data-local:
 	$(mkinstalldirs) $(prefix)/pReadoutSkeleton
+	$(mkinstalldirs) $(prefix)/etc
 	chmod a+rx $(prefix)
 	chmod a+rx $(prefix)/pReadoutSkeleton
 	$(INSTALL_DATA) MyExperiment.cpp $(prefix)/pReadoutSkeleton/Skeleton.cpp

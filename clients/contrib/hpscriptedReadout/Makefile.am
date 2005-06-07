@@ -83,7 +83,7 @@ INCLUDES=  $(VMEBUILDEADERS) \
 	-I@top_srcdir@/TCL \
 	-I@top_srcdir@/Headers -I@top_srcdir@/Exception \
 	-I@top_srcdir@/VMEApi -I@top_srcdir@/DeviceSupport\
-	-I@top_srcdir@/Readout \
+	-I@top_srcdir@/HPReadout \
 	-DVME $(TCL_FLAGS) \
 	$(SPECTRODAQ_FLAGS) -DINSTDIR=\"$(prefix)\" $(CAMAC) -g
 
@@ -94,7 +94,7 @@ CCFLAGS=-g
 
 
 hpScriptedReadout_LDADD = -L@top_srcdir@/contrib/hpscriptedReadout -lhpScriptedRdo  \
-	-L@top_srcdir@/Readout -lReadout \
+	-L@top_srcdir@/HPReadout -lHPReadout \
 	-L@top_srcdir@/DeviceSupport -lDeviceSupport \
 	-L@top_srcdir@/VMEApi -lVmeAPI \
 	-L@top_srcdir@/TCL -lTclPlus	\
@@ -128,6 +128,7 @@ install-exec-local:
 	$(mkinstalldirs)     $(prefix)/contrib/hpscriptedReadout/include
 	$(mkinstalldirs)     $(prefix)/contrib/hpscriptedReadout/skel
 	$(mkinstalldirs)     $(prefix)/contrib/hpscriptedReadout/src
+	$(mkinstalldirs)     $(prefix)/etc
 	#
 	#   put the raw files where they belong:
 	#
@@ -143,5 +144,5 @@ install-exec-local:
 	cat  Makefile.skel                                    >> Makefile.user
 	$(INSTALL_DATA) Makefile.user \
 		$(prefix)/contrib/hpscriptedReadout/skel/Makefile
-	$(INSTALL_DATA) scriptedreadout_Makefile.include \
+	$(INSTALL_DATA) hpscriptedreadout_Makefile.include \
 	        $(prefix)/etc

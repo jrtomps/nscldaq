@@ -1,4 +1,4 @@
-INSTDIR=/scratch/fox/daq/8.0test
+INSTDIR=/scratch/fox/daq/8.1test
 #  The line above is written by the installation procedure.
 #
 #  Makefile to build a readout program given the stuff in the standard

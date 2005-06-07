@@ -128,6 +128,7 @@ install-exec-local:
 	$(mkinstalldirs)     $(prefix)/contrib/scriptedReadout/include
 	$(mkinstalldirs)     $(prefix)/contrib/scriptedReadout/skel
 	$(mkinstalldirs)     $(prefix)/contrib/scriptedReadout/src
+	$(mkinstalldirs)     $(prefix)/etc
 	#
 	#   put the raw files where they belong:
 	#

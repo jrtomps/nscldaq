@@ -1063,18 +1063,10 @@ clrscl ()
 **
 **--
 */
-WORD
-#ifdef __unix__
-readevt (DAQWordBufferPtr& bufpt)
-#else 
-readevt (WORD* bufpt)
-#endif
+
+WORD readevt (UINT16* bufpt)
 {
-#ifdef __unix__
-    DAQWordBufferPtr _sbufpt = bufpt;
-#else
-    WORD *_sbufpt = bufpt;
-#endif
+    UINT16 *_sbufpt = bufpt;
     LOGICAL reject;
 
     reject   = FALSE;
@@ -1111,21 +1103,20 @@ readevt (WORD* bufpt)
 **  End of instructions for now...				*/
 
       if(pReader) {
-
+	int nwords;
 	// If he wants to he can turn on packetization in the reader!!
 
-	pReader->Read(bufpt);
+	nwords = pReader->Read(bufpt);
+	bufpt += nwords;
       }
 
 
 /*-------------------------  End of user code. ---------------------------*/
 }
     IF(reject) return 0;
-#ifdef __unix__
-    return bufpt.GetIndex() - _sbufpt.GetIndex();
-#else
+
     return (bufpt - _sbufpt);
-#endif
+
 }
 
 

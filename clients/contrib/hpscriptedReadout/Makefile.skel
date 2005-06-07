@@ -3,7 +3,7 @@
 #  INSTDIR   - The root of the installation directory.
 #
 
-include $(INSTDIR)/etc/scriptedreadout_Makefile.include
+include $(INSTDIR)/etc/hpscriptedreadout_Makefile.include
 
 
 #

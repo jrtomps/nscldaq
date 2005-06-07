@@ -23,6 +23,7 @@ sysconf_DATA = runstate.tran
 install-data-local:
 	$(mkinstalldirs) $(prefix)/Readout/hpskel
 	$(mkinstalldirs) $(prefix)/Readout/hpetc
+	$(mkinstalldirs) $(prefix)/etc
 	rm -f $(prefix)/Readout/HPEtc
 	$(LN_S) $(prefix)/Readout/etc $(prefix)/Readout/HPEtc
 	$(INSTALL_DATA) $(srcdir)/ReadoutMain.cpp \

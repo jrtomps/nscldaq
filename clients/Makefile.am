@@ -16,6 +16,10 @@ EXTRA_DIST =  config/install-sh config/config.sub config/config.guess \
 	controlpush/Makefile.in
 
 install-data-local:
+	$(mkinstalldirs) $(prefix)/etc
+	$(mkinstalldirs) $(prefix)/bin
+	$(mkinstalldirs) $(prefix)/lib
+	$(mkinstalldirs) $(prefix)/include
 	rm -f $(prefix)/Bin
 	rm -f $(prefix)/Lib
 	rm -f $(prefix)/Include

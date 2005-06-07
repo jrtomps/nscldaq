@@ -1,5 +1,6 @@
 install-exec-local:
 	$(mkinstalldirs) $(prefix)/Scripts
+	$(mkinstalldirs) $(prefix)/etc
 	$(INSTALL_DATA)  camac.tcl $(prefix)/Scripts
 	$(INSTALL_DATA)  wienercamac.tcl $(prefix)/Scripts
 install-exec-local:

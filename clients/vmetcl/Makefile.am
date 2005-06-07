@@ -45,6 +45,7 @@ noinst_HEADERS = TestHarness.h \
 install-data-local:
 	$(mkinstalldirs) $(prefix)/Docs
 	$(mkinstalldirs) $(prefix)/Docs/vmetcl
+	$(mkinstalldirs) $(prefix)/etc
 	$(INSTALL_DATA) Readme.txt $(prefix)/Docs/vmetcl/VmeTcl.txt
 
 man_MANS =  vme.3tcl caennet.3tcl 

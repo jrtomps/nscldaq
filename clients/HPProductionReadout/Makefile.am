@@ -157,6 +157,7 @@ EXTRA_DIST = 	MyExperiment.cpp \
 install-data-local:
 	$(mkinstalldirs) $(prefix)/HPpReadoutSkeleton
 	$(mkinstalldirs) $(prefix)/HPpReadoutIncludes
+	$(mkinstalldirs) $(prefix)/etc
 	chmod a+rx $(prefix)
 	chmod a+rx $(prefix)/HPpReadoutSkeleton
 	$(INSTALL_DATA) MyExperiment.cpp $(prefix)/HPpReadoutSkeleton/Skeleton.cpp

@@ -99,6 +99,7 @@ install-exec-local:
 	$(mkinstalldirs)	$(prefix)/contrib/scalerdisplay/src
 	$(mkinstalldirs)	$(prefix)/contrib/scalerdisplay/scripts
 	$(mkinstalldirs)	$(prefix)/contrib/scalerdisplay/skel
+	$(mkdinstalldirs)       $(prefix)/etc
 	#
 	#  Install the headers, sources and scripts.
 	#

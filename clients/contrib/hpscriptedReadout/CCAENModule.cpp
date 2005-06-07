@@ -571,8 +571,12 @@ int
 CCAENModule::Read(void* pBuffer)
 {
   if(m_pCAENcard) {
-    if(m_pCAENcard->dataPresent())
+    if(m_pCAENcard->dataPresent()) {
       return (m_pCAENcard->readEvent(pBuffer)/sizeof(short));
+    }
+    else {
+      return 0;
+    }
        
   }
   else {
