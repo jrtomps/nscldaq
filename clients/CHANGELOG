@@ -439,4 +439,6 @@ May 13, 2005
      - Deal with improper lists in comment lines of channel files for 
        epicsdisplay
 8.0-001
-     - Creat high performance scripted readout. 
+     - Create high performance scripted readout. 
+     - Put exception handling back into Vme package so that scripts that
+       fail vme mapppings report decent errors.

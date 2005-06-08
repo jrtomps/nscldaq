@@ -527,12 +527,31 @@ int CVmeCommand::AddMap(CTCLInterpreter& rInterp,
 
   CVmeModule::Space space = UserToLogical(devname);
 
-  CVMEMapCommand* pMap = new CVMEMapCommand(mapname,
-					    &rInterp,
-					    nBase, nSize, nCrate,
-					    space);
-  m_Spaces[mapname] = pMap;
-  rResult = mapname;
+  try {
+    CVMEMapCommand* pMap = new CVMEMapCommand(mapname,
+					      &rInterp,
+					      nBase, nSize, nCrate,
+					      space);
+    m_Spaces[mapname] = pMap;
+    rResult = mapname;
+    
+  }
+  catch (CMmapError& error) {
+    rResult = error.ReasonText();
+    return TCL_ERROR;
+  }
+  catch (string& msg) {
+    rResult = msg;
+    return TCL_ERROR;
+  }
+  catch (char* pmsg) {
+    rResult = pmsg;
+    return TCL_ERROR;
+  }
+  catch (...) {
+    rResult = "Unexpected exception caught while mapping";
+    return TCL_ERROR;
+  }
 
   return TCL_OK;
 }
