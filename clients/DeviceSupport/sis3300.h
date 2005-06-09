@@ -95,8 +95,12 @@ private:
   unsigned int m_nStartDelayClocks; //!< clocks to load into start delay reg.
   bool        m_fStopDelayEnabled;  //!< true if stop delay register is used.
   unsigned int m_nStopDelayClocks;//!< clocks to load into stop delay register.
+
   bool       m_fGateMode;	 //! true if module in gate mode.
   bool       m_fRandomClock;     //! True if module is in Random Clock Mode.
+  bool       m_fLemoStartStop;
+  bool       m_fP2StartStop;
+
   bool       m_fHiRA_RCM;        //! True if in HiRA Random Clock Mode.
   bool       m_fStopTrigger;    //! True if stop is trigger.
   SampleSize m_ePagesize;	//!< Size of acquisition page (enum).
@@ -104,6 +108,11 @@ private:
   bool       m_fPageWrap;	//!< True if allowing data to wrap the pages
   bool       m_fThresholdLt[8];	//!< True if chann  threshold is a < threshold
   unsigned int m_nThresholds[8];	//!< ADC channel threshold values.
+
+
+
+
+
 public:
   // Constructors and other canonical member functions:
 
@@ -248,6 +257,8 @@ public:
   void SetStopDelay(bool Enable  = false, unsigned int nClocks = 0);
   void GateMode(bool Enable = false);
   void RandomClock(bool Enable = false);
+  void LemoStartStop(bool Enable = false);
+  void P2StartStop(bool   Enable = false);
   void HiRA_RCM(bool Enable = false);
   void TriggerOnStop(bool Enable=true);
   void SetSampleSize(SampleSize eSamples);

@@ -439,6 +439,11 @@ May 13, 2005
      - Deal with improper lists in comment lines of channel files for 
        epicsdisplay
 8.0-001
+June 8, 2005
      - Create high performance scripted readout. 
      - Put exception handling back into Vme package so that scripts that
        fail vme mapppings report decent errors.
+June 9, 2005
+     - DeviceSupport - fix initialization of sis3300 to give complete control
+       over gate mode and source, RCM in both acq and event control register.
+       and update buffer pointer on read.

@@ -163,6 +163,8 @@ CSIS3300::CSIS3300(unsigned long nBaseAddress,
   m_nStopDelayClocks(0),
   m_fGateMode(false),
   m_fRandomClock(false),
+  m_fLemoStartStop(false),
+  m_fP2StartStop(false),
   m_fHiRA_RCM(false),
   m_fStopTrigger(false),
   m_fPageWrap(false)
@@ -348,6 +350,23 @@ void
 CSIS3300::RandomClock(bool Enable)
 {
   m_fRandomClock = Enable;
+}
+/*!
+   Enables or disables the lemo start/stop inputs.
+   \param Enable [false] - if true, lemo start /stop inputs are enabled.
+*/
+void
+CSIS3300::LemoStartStop(bool Enable)
+{
+   m_fLemoStartStop = Enable;
+}
+/*!
+   Enables ore disables the P2 start/stop input.
+*/
+void
+CSIS3300::P2StartStop(bool Enable)
+{
+   m_fP2StartStop = Enable;
 }
 /*!
   Enables or disables the special HiRA Random Clock mode.  
@@ -560,7 +579,9 @@ CSIS3300::InitDaq()
   // for post trigger modes and should be harmless for the start modes.
   
   *m_pAcqReg = 0xffff0000;
-  csrmask = DAQEnableLemoStartStop |     DAQMultiEventOn;
+	//  csrmask = DAQEnableLemoStartStop |     DAQMultiEventOn;
+  csrmask = 0;
+
   if(m_fStartDelayEnabled) {
     csrmask |= DAQStartDelayOn;
     *m_pStartDelay = m_nStartDelayClocks;
@@ -573,6 +594,16 @@ CSIS3300::InitDaq()
   if(m_fGateMode) {
     csrmask |= DAQEnableGateMode;
   }
+  if(m_fRandomClock) {
+    csrmask |= DAQEnableRandomClock;
+  }
+  if(m_fLemoStartStop) {
+    csrmask |= DAQEnableLemoStartStop;
+  }
+  if(m_fP2StartStop) {
+    csrmask |= DAQEnableP2StartStop;
+  }
+
   /* Added by M. Famiano  to Enable the HiRA RCM */
 
 
@@ -889,6 +920,7 @@ CSIS3300::ReadAGroup(void* pbuffer,
       nLongs = 0;
     }
   }
+
   return nLongs*sizeof(unsigned long)/sizeof(unsigned short);
 
 }
@@ -941,6 +973,7 @@ CSIS3300:: ReadAGroup(DAQWordBufferPtr& pBuffer,
   if(nWords > 0) {
 #ifdef CLIENT_HAS_POINTER_COPYIN
     pBuffer.CopyIn((unsigned short*)Samples, 0,  nWords);
+    pBuffer += nWords;
 #else
     unsigned short* pSrc = (unsigned short*)Samples;
     for(int i =0; i < nWords; i++) {
