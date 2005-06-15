@@ -8,7 +8,8 @@ libDeviceSupport_la_SOURCES = VmeModule.cpp MmapError.cpp \
 	CCAMACTrigger.cpp CCamac.cpp CCamacModule.cpp \
 	CCamacNimout.cpp CCrateController.cpp CScaler.cpp CStatusModule.cpp \
 	 CVMEScalerCAENV830.cpp CVMEScalerLRS1151.cpp \
-	CVMEStatusModule.cpp CVMETrigger.cpp CCAENV1x90.cpp 
+	CVMEStatusModule.cpp CVMETrigger.cpp CCAENV1x90.cpp  \
+	CCAENV977.cpp 
 
 include_HEADERS = VmeModule.h CVME.h CVMEptr.h MmapError.h CSIS3820.h \
 	sis3300.h CModule32.h CAENcard.h CCAENChain.h CaenIO.h Nimout.h \
@@ -23,7 +24,8 @@ include_HEADERS = VmeModule.h CVME.h CVMEptr.h MmapError.h CSIS3820.h \
 	CVMEStatusModule.h CVMETrigger.h CBD8210.h \
 	CCAENV1x90.h CCAENV1x90Data.h CCAENV1x90Opcodes.h \
 	 CCAENV1x90Registers.h \
-	Asserts.h
+	Asserts.h \
+	CCAENV977.h 
 
 
 libDeviceSupport_la_LDFLAGS = -version-info $(SOVERSION):0 \
