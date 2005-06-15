@@ -6,7 +6,8 @@ libHPReadout_la_SOURCES = Active.cpp   \
 	ReadoutStateMachine.cpp RecordingBufferPointer.cpp \
 	State.cpp StateMachine.cpp TestBusy.cpp TestTrigger.cpp VMEBusy.cpp \
 	VMETrigger.cpp   \
-	cmdio.c command.c diagnose.c docmd.c 
+	cmdio.c command.c diagnose.c docmd.c \
+	CTraditionalV977Busy.cpp CTraditionalV977Trigger.cpp
 
 include_HEADERS = Active.h Busy.h   CAMACBusy.h \
 	 CESTrigger.h CException.h  \
@@ -16,7 +17,8 @@ include_HEADERS = Active.h Busy.h   CAMACBusy.h \
 	StateMachine.h TestBusy.h TestTrigger.h Transition.h Trigger.h \
 	VMEBusy.h VMETrigger.h   \
 	cmdio.h daqerrno.h daqinterface.h   \
-	skeleton.h  vme.h  
+	skeleton.h  vme.h  \
+	CTraditionalV977Busy.h CTraditionalV977Trigger.h
 
 sysconf_DATA = runstate.tran
 

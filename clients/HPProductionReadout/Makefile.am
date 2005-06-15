@@ -62,7 +62,8 @@ libHPPreadout_la_SOURCES = AccessListCheck.cpp \
 	UnixUserCheck.cpp \
 	cmdline.c \
 	CTKListener.cpp CTKServerInstance.cpp \
-	CStrings.cpp
+	CStrings.cpp \
+	CCAENV977Status.cpp CCAENV977Trigger.cpp
 
 noinst_HEADERS = AccessListCheck.h \
 	AuthTokenCheck.h \
@@ -128,7 +129,8 @@ noinst_HEADERS = AccessListCheck.h \
 	UnixUserCheck.h \
 	cmdline.h  \
 	CTKServerInstance.h \
-	CTKListener.h  CStrings.h
+	CTKListener.h  CStrings.h \
+	CCAENV977Status.h CCAENV977Trigger.h
 
 
 libHPPreadout_la_LDFLAGS = -g -version-info $(SOVERSION):0 \

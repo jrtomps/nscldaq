@@ -6,6 +6,7 @@ libReadout_la_SOURCES = Active.cpp   \
 	ReadoutStateMachine.cpp RecordingBufferPointer.cpp \
 	State.cpp StateMachine.cpp TestBusy.cpp TestTrigger.cpp VMEBusy.cpp \
 	VMETrigger.cpp   \
+	CTraditionalV977Busy.cpp CTraditionalV977Trigger.cpp \
 	cmdio.c command.c diagnose.c docmd.c 
 
 include_HEADERS = Active.h Busy.h   CAMACBusy.h \
@@ -15,6 +16,7 @@ include_HEADERS = Active.h Busy.h   CAMACBusy.h \
 	ReadoutStateMachine.h RecordingBufferPointer.h  State.h \
 	StateMachine.h TestBusy.h TestTrigger.h Transition.h Trigger.h \
 	VMEBusy.h VMETrigger.h   \
+	CTraditionalV977Busy.h CTraditionalV977Trigger.h \
 	cmdio.h daqerrno.h daqinterface.h   \
 	skeleton.h  vme.h  
 

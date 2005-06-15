@@ -447,3 +447,5 @@ June 9, 2005
      - DeviceSupport - fix initialization of sis3300 to give complete control
        over gate mode and source, RCM in both acq and event control register.
        and update buffer pointer on read.
+June 15, 2005 
+     - Device support - add support for V977 as trigger module.
