@@ -1176,11 +1176,11 @@ proc display_single {page scaler} {
 
     # Both the page and scaler must exist:
 
-    if {[array names ScalerMap $scaler] != $scaler} {
+    if {[array names ScalerMap $scaler] == ""} {
 	puts "display_single Scaler $scaler does not exist .. ignored"
 	return
     }
-    if {[array names Pages $page] != $page} {
+    if {[array names Pages $page] == ""} {
 	puts "display_single Page $page does not exist ... ignored"
 	return
     }
@@ -1190,7 +1190,7 @@ proc display_single {page scaler} {
     set page $Pages($page)
     set table $page.lines.table
     set entry $scaler
-    $table insert end $entry
+    $table insert end [list $entry]
 
 }
 
@@ -1205,15 +1205,15 @@ proc display_ratio {page numerator denominator} {
 
     # Validate page and both scalers:
 
-    if {[array names Pages $page] != $page} {
+    if {[array names Pages $page] == ""} {
 	puts "display_ratio Page $page does not exist ... ignored."
 	return
     }
-    if {[array names ScalerMap $numerator] != $numerator} {
+    if {[array names ScalerMap $numerator] == ""} {
 	puts "display_ratio Numerator $numerator does not exist... ignored"
 	return
     }
-    if {[array names ScalerMap $denominator] != $denominator} {
+    if {[array names ScalerMap $denominator] == ""} {
 	puts "display_ratio Denominator $denominator does not exist... ignored"
 	return
     }
@@ -1222,7 +1222,7 @@ proc display_ratio {page numerator denominator} {
 
     set page $Pages($page)
     set table $page.lines.table
-    $table insert end "$numerator $denominator"
+    $table insert end [list $numerator $denominator]
 
 }
 
