@@ -449,3 +449,7 @@ June 9, 2005
        and update buffer pointer on read.
 June 15, 2005 
      - Device support - add support for V977 as trigger module.
+June 23, 2005
+     - Fix defect in DeviceSupport Makefile.am that cut the 3600 support
+       out of the build.
+     - Fix defect in scaler display with pathalogical scaler names
