@@ -279,6 +279,9 @@ DAMAGES.
 /*
   Change Log:
   $Log$
+  Revision 8.2  2005/06/24 11:30:36  ron-fox
+  Bring the entire world onto the 8.2 line
+
   Revision 4.6  2005/05/24 11:08:00  ron-fox
   Minor commits and open 8.0-001 edit level
 

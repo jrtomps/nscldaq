@@ -285,6 +285,9 @@ Author:
    fox@nscl.msu.edu
 Change log:
    $Log$
+   Revision 8.2  2005/06/24 11:33:05  ron-fox
+   Bring the entire world onto the 8.2 line
+
    Revision 1.1  2005/06/03 18:58:25  ron-fox
    Initial hp scripted readout directory stockage.
 

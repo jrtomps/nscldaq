@@ -298,6 +298,9 @@ static const char* Copyright= "(C) Copyright Michigan State University 2002, All
 /*  
    Change log:
    $Log$
+   Revision 8.2  2005/06/24 11:30:38  ron-fox
+   Bring the entire world onto the 8.2 line
+
    Revision 4.3  2004/11/24 17:59:59  ron-fox
    Complete the port so that it can go both ways
 

@@ -289,6 +289,9 @@ static const char* Copyright = "(C) Copyright Michigan State University 1977, Al
             (c) 2002, All rights reserved.
     Revision History:
       $Log$
+      Revision 8.2  2005/06/24 11:33:05  ron-fox
+      Bring the entire world onto the 8.2 line
+
       Revision 1.1  2005/06/03 18:58:25  ron-fox
       Initial hp scripted readout directory stockage.
 

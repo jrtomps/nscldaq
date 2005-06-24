@@ -283,6 +283,9 @@ static const char* Copyright = "(C) Copyright Michigan State University 2002, Al
    
    Modification History:
    $Log$
+   Revision 8.2  2005/06/24 11:31:28  ron-fox
+   Bring the entire world onto the 8.2 line
+
    Revision 4.3  2005/05/02 14:16:44  ron-fox
    Fix defect 158: Events with empty body are included in buffer.  In
    Readout Classic, this was not the case.  Fixed in ProductionReadout

@@ -31,6 +31,9 @@
 // pciif.h - all definitions about the VMEMM module
 //
 // $Log$
+// Revision 8.2  2005/06/24 11:33:50  ron-fox
+// Bring the entire world onto the 8.2 line
+//
 // Revision 1.2  2005/02/03 18:16:28  ron-fox
 // Just adjustmets of newline conditions mostly after eclipse futz-up.
 //

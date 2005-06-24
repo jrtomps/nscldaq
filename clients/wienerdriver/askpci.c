@@ -32,6 +32,9 @@
 //            information about searched pci-hardware
 //
 // $Log$
+// Revision 8.2  2005/06/24 11:33:49  ron-fox
+// Bring the entire world onto the 8.2 line
+//
 // Revision 4.2  2004/11/08 19:21:27  ron-fox
 // add to mainl ne
 //

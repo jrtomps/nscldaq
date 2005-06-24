@@ -291,6 +291,9 @@ static const char* Copyright= "(C) Copyright Michigan State University 2002, All
 //
 /* Change log:
       $Log$
+      Revision 8.2  2005/06/24 11:32:04  ron-fox
+      Bring the entire world onto the 8.2 line
+
       Revision 4.3  2004/12/07 15:20:21  ron-fox
       - Fix some CVS errors with the wiener driver.
       - Re create the autotools based build for the wiener driver stuff.

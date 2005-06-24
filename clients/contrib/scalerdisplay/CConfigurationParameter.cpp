@@ -289,6 +289,9 @@ static const char* Copyright = "(C) Copyright Michigan State University 1977, Al
             (c) 2002, All rights reserved.
     Revision History:
       $Log$
+      Revision 8.2  2005/06/24 11:33:21  ron-fox
+      Bring the entire world onto the 8.2 line
+
       Revision 4.2  2004/11/23 18:56:03  ron-fox
       Port to gcc/g++ 3.x
 

@@ -286,6 +286,9 @@ Author:
    fox@nscl.msu.edu
 Change log:
    $Log$
+   Revision 8.2  2005/06/24 11:33:25  ron-fox
+   Bring the entire world onto the 8.2 line
+
    Revision 4.2  2004/11/23 15:01:01  ron-fox
    Port to gcc/g++ 3.x
 

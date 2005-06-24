@@ -34,8 +34,11 @@
 // plxbug.h -- plx 9050 bug fix prototype for the PCIVME PCI to VME Interface
 //
 // $Log$
-// Revision 1.1  2004/12/07 14:12:33  ron-fox
-// Initial revision
+// Revision 8.2  2005/06/24 11:33:51  ron-fox
+// Bring the entire world onto the 8.2 line
+//
+// Revision 1.1.1.1  2004/12/07 14:12:33  ron-fox
+// Driver sources for Wiener
 //
 // Revision 4.2  2004/11/08 19:21:27  ron-fox
 // add to mainl ne

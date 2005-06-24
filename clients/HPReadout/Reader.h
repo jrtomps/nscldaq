@@ -300,6 +300,9 @@ DAMAGES.
 //
 /* Change log:
       $Log$
+      Revision 8.2  2005/06/24 11:31:17  ron-fox
+      Bring the entire world onto the 8.2 line
+
       Revision 1.2  2005/02/07 16:47:57  ron-fox
       Debugged version of HP readout.
 

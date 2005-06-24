@@ -278,6 +278,9 @@ DAMAGES.
 /*
   Change Log:
   $Log$
+  Revision 8.2  2005/06/24 11:30:36  ron-fox
+  Bring the entire world onto the 8.2 line
+
   Revision 4.4  2005/02/03 18:15:36  ron-fox
   Just adjustmets of newline conditions mostly after eclipse futz-up.
 

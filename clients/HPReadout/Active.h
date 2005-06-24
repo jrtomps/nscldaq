@@ -295,6 +295,9 @@ DAMAGES.
    
   Modifications:
     $Log$
+    Revision 8.2  2005/06/24 11:31:15  ron-fox
+    Bring the entire world onto the 8.2 line
+
     Revision 1.1  2005/02/04 19:33:33  ron-fox
     Initial split off Readout -> HPReadout, high performance Readout Classic.
 

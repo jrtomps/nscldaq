@@ -11,6 +11,9 @@
 /*
    Change log:
    $Log$
+   Revision 8.2  2005/06/24 11:32:40  ron-fox
+   Bring the entire world onto the 8.2 line
+
    Revision 4.1  2004/11/08 19:38:13  ron-fox
    Add the Wiener api to the build.
 

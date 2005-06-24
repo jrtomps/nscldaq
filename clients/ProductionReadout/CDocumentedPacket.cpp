@@ -293,6 +293,9 @@ using namespace std;
    
    Modification History:
    $Log$
+   Revision 8.2  2005/06/24 11:31:28  ron-fox
+   Bring the entire world onto the 8.2 line
+
    Revision 4.2  2004/11/22 19:26:08  ron-fox
    Port to gcc/g++ 3.x
 

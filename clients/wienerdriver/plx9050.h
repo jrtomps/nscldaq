@@ -35,6 +35,9 @@
 //             interface chip PLX9050 from PLX Technology (www.plxtech.com)
 //
 // $Log$
+// Revision 8.2  2005/06/24 11:33:50  ron-fox
+// Bring the entire world onto the 8.2 line
+//
 // Revision 4.2  2004/11/08 19:21:27  ron-fox
 // add to mainl ne
 //

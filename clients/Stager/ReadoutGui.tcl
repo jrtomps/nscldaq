@@ -288,6 +288,9 @@
 #   Change log:
 #
 # $Log$
+# Revision 8.2  2005/06/24 11:32:16  ron-fox
+# Bring the entire world onto the 8.2 line
+#
 # Revision 4.2  2005/05/02 13:59:01  ron-fox
 # Use absolute time differences to compute the run elapsed time rather than
 # using tick counting... less drift this way.

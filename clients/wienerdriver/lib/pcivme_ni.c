@@ -12,6 +12,9 @@
 // Please announce changes and hints to ARW Elektronik
 // 
 // $Log$
+// Revision 8.2  2005/06/24 11:33:51  ron-fox
+// Bring the entire world onto the 8.2 line
+//
 // Revision 4.1  2004/11/08 18:15:24  ron-fox
 // Add wiener access lib to cvs
 //

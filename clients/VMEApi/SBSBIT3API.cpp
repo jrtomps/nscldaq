@@ -293,6 +293,9 @@ static const char* Copyright= "(C) Copyright Michigan State University 2002, All
 
      Change Log:
      $Log$
+     Revision 8.2  2005/06/24 11:32:40  ron-fox
+     Bring the entire world onto the 8.2 line
+
      Revision 4.3  2005/03/25 18:56:02  ron-fox
      Insert a 10ms delay before retrying a blocked buffer send from spectcldaq
      across the pipe.  This prevents spectcldaq from going compute bound and

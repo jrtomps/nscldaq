@@ -295,6 +295,9 @@ DAMAGES.
    
   Modifications:
     $Log$
+    Revision 8.2  2005/06/24 11:32:01  ron-fox
+    Bring the entire world onto the 8.2 line
+
     Revision 4.2  2004/11/16 18:51:36  ron-fox
     Port to gcc/g++ 3.x
 
