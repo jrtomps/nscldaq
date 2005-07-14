@@ -310,6 +310,15 @@ using namespace std;
    Modification History:
    
      $Log$
+     Revision 8.3  2005/07/14 20:25:22  ron-fox
+     Use uchar* in documented packet as is required for HP readout.
+
+     Revision 1.1.2.2  2005/07/14 20:23:33  ron-fox
+     Correct ushort* documented packet first crack.
+
+     Revision 1.1.2.1  2005/07/14 20:18:27  ron-fox
+     Properly port this to hp style readout.. with ushort* not ushort.
+
      Revision 8.2  2005/06/24 11:30:50  ron-fox
      Bring the entire world onto the 8.2 line
 
@@ -344,7 +353,7 @@ private:
   STD(string) m_sDescription;	//!< Long description of tag.
   STD(string) m_sVersion;		//!< Version of the packet.
   STD(string) m_sInstantiationDate;	//!< Date/time object instantiated.
-  DAQWordBufferPtr m_pHeaderPtr; //!< 'pointer' to header of current packet.
+  unsigned short* m_pHeaderPtr; //!< 'pointer' to header of current packet.
   bool m_fPacketInProgress;	//!< true if packet being built now.
  
 public:
@@ -400,7 +409,7 @@ public:
     return m_sInstantiationDate;
   }
   
-  DAQWordBufferPtr getHeaderPtr() const; // Throws if pkt not open.
+  unsigned short* getHeaderPtr() const; // Throws if pkt not open.
  
   bool getPacketInProgress() const {
     return m_fPacketInProgress;
@@ -409,8 +418,8 @@ public:
   // Class operations:
   
   STD(string) Format ()  ;
-  DAQWordBufferPtr Begin (DAQWordBufferPtr& rPointer)  ;
-  DAQWordBufferPtr End (DAQWordBufferPtr& rBuffer)  ;
+  unsigned short* Begin (unsigned short* rPointer)  ;
+  unsigned short* End (unsigned short* rBuffer)  ;
   
 };
 
