@@ -918,7 +918,7 @@ proc shaper16_ui {root args} {
 	grid $base.offset -in $root	-row 2 -column 7  \
 		-columnspan 3 \
 		-sticky ew
-	grid $base.lockstate -in $root	-row 2 -column 12 
+#	grid $base.lockstate -in $root	-row 2 -column 12 
 	grid $base.label#5 -in $root	-row 3 -column 1 
 	grid $base.label#14 -in $root	-row 3 -column 2 
 	grid $base.label#15 -in $root	-row 3 -column 3 
@@ -1154,7 +1154,7 @@ proc shaper16_ui {root args} {
 		-sticky ew
 	grid $base.button#1 -in $root	-row 21 -column 6 
 	grid $base.button#2 -in $root	-row 21 -column 8 
-	grid $base.lock -in $root	-row 21 -column 10 
+#	grid $base.lock -in $root	-row 21 -column 10 
 
 	# Resize behavior management
 
