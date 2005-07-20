@@ -621,7 +621,7 @@ if test $haveepics == "yes"
 then
 	# Have epics:
 
-   EPICSSOFTWARE="controlpush epicsdisplay" # Add these directories to build.
+   EPICSSOFTWARE="controlpush epicsdisplay chanlog" # Add these directories to build.
    EPICS_INCLUDES="-I$epicsroot/include -I$epicsroot/include/os/Linux"
    EPICS_LDFLAGS="-L$epicsroot/lib/linux-x86 -lca -Wl,\"-rpath=$epicsroot/lib/linux-x86\""
    EPICS_BIN="-DEPICS_BIN=\"\\\"$epicsroot/bin/linux-x86\\\"\""
@@ -762,7 +762,7 @@ AC_OUTPUT( Makefile Headers/Makefile CopyrightTools/Makefile \
 	btdriver/Makefile btdriver/dd/Makefile btdriver/lib/Makefile \
 	btdriver/include/Makefile  \
 	controlpush/Makefile  dvdburn/Makefile epicsdisplay/Makefile \
-	epicsdisplay/epicsdisplay \
+	epicsdisplay/epicsdisplay chanlog/Makefile \
 	daqstart/Makefile ScalerDisplay/Makefile ScalerDisplay/ScalerDisplay \
 	wienerdriver/Makefile wienerdriver/driver/Makefile \
 	wienerdriver/lib/Makefile PowerCheck/Makefile)

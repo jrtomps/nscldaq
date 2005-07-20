@@ -455,3 +455,5 @@ June 23, 2005
      - Fix defect in scaler display with pathalogical scaler names
 July 14, 2005
      - Add in fix to CDocumentedPacket in 8.0 for ushort* problem.
+July 20, 2005
+     - Add in epics log imported from the SEE software.
