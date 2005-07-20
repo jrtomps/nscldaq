@@ -1,0 +1,28 @@
+.TH chanlog 1 "July 20, 2005" NSCL-DAQ Commands
+.SH NAME
+chanlog \- log the values of a set of epics channels
+.SH SYNOPSIS
+.B chanlog chanfile outfile
+.SH DESCRIPTION
+.PP
+Logs the names, values and units of a set of EPICS channels to file.  In the command
+invocation, \fIchanfile\fR is a file that contains the names of the channels to
+lookup and log.  If \fIchanfile\fR is \fB\-\fR, then the channels are taken from
+stdin.  \fIoutfile\fR  is the name of a file to which the channels will be
+logged.  If \fIoutfile\fR is \fB\-\fR, the output is sent to stdout.
+.PP
+The channel file is an ordinary text file that contains the names of EPICS
+channels, each channel is separated by whitespace (note that a newline counts
+as whitespace).  No comments are allowed, in contrast to the form of input file
+expected by e.g. epicsdisplay.  The following is a sample input file:
+
+.nf
+Z001DV Z002DH
+Z003DV
+Z004QA 
+
+Z012QB
+.fi
+.PP
+This file will output the values and units for 5 channels: Z001DV, Z002DH,
+Z003DV, Z004QA and Z004QA.
