@@ -619,6 +619,7 @@ CReadOrder*           pReader(0);       // The readout engine.
 CModuleCommand*       pCreator(0);      // Module creational. 
 CCAENV775Creator*     p775(0);	        // Creator for V775.
 CCAENV785Creator*     p785(0);          // Creator for V785.
+CCAENV785Creator*     p1785(0);         // Creator for V1785
 CCAENV792Creator*     p792(0);	        // Creator for V792.
 CPacketCreator*       pPacket(0);       // Creator for subpackets.
 
@@ -646,6 +647,7 @@ void DestroyConfigurator()
    if(pDictionary) delete pDictionary;
    if(p775)        delete p775;
    if(p785)        delete p785;
+   if(p1785)       delete p1785;
    if(p792)        delete p792;
    if(pInterp)     delete pInterp;
 
@@ -656,6 +658,7 @@ void DestroyConfigurator()
   pInterp     = 0;
   p775        = 0;
   p785        = 0;
+  p1785       = 0;
   p792        = 0;
   pPacket     = 0;
 
@@ -706,6 +709,7 @@ void InitializeConfigurator()
 
   pCreator->AddCreator(p775 = new CCAENV775Creator);
   pCreator->AddCreator(p785 = new CCAENV785Creator);
+  pCreator->AddCreator(p1785 = new CCAENV785Creator("caenv1785"));
   pCreator->AddCreator(p792 = new CCAENV792Creator);
   pCreator->AddCreator(pPacket = new CPacketCreator("packet",pDictionary));
 

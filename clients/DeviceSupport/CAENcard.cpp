@@ -279,6 +279,10 @@ DAMAGES.
 /*
   Change Log:
   $Log$
+  Revision 8.3  2005/08/15 21:49:32  ron-fox
+  Support for the CAEN V1785 module.  This module is a weird dual
+  range ADC.
+
   Revision 8.2  2005/06/24 11:30:36  ron-fox
   Bring the entire world onto the 8.2 line
 
@@ -656,7 +660,8 @@ CAENcard::slotInit()
     setThreshold(-1, 0x19);
 
   }
-  else if(cardType() == 785) {	// Set the defaults for a Peak ADC:
+  else if((cardType() == 785) || 
+	  (cardType() == 1785)) {	// Set the defaults for a Peak ADC:
       // thresholds to ~15mV 
 
     setThreshold(-1, 0x01);
@@ -1504,7 +1509,7 @@ void CAENcard::MapCard()
       To determine that the experimenter is not lying to us
       about how the VME is stuffed, we require that the module
       identifier be of a supported module type:
-      V775, V785, V792, V862 and that, for good measure,
+      V775, V785, V792, V862, or V1785 and that, for good measure,
       it's geographical address register match the slot
       the module is in.  For random data this should
       make a pretty miniscule chance that we'll be fooled
@@ -1521,7 +1526,8 @@ void CAENcard::MapCard()
 	( (m_nCardType == 775) || 
 	  (m_nCardType == 785) || 
 	  (m_nCardType == 792) ||
-	  (m_nCardType == 862) )
+	  (m_nCardType == 862) ||
+	  (m_nCardType == 1785))
 	))   {   //either an invalid board or no board is present in this slot
 #ifndef HAVE_VME_MAPPING
    delete m_pModule;

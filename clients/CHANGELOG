@@ -457,3 +457,6 @@ July 14, 2005
      - Add in fix to CDocumentedPacket in 8.0 for ushort* problem.
 July 20, 2005
      - Add in epics log imported from the SEE software.
+     - Remove lock button from shaper gui until we can get it right.
+August 15, 2005
+     - Code in support for the CAEN V1785 dual resolution ADC.
