@@ -80,9 +80,7 @@ noinst_HEADERS=CBoolConfigParam.h \
 	CPacketCreator.h    	\
 	CTraditionalV977Trigger.h \
 	CTraditionalV977Busy.h
-    
 
- 
 
 INCLUDES=  $(VMEBUILDEADERS) \
 	-I@top_srcdir@/Exception \
@@ -126,26 +124,16 @@ EXTRA_DIST=Makefile.skel scriptedreadout_Makefile.include
 #  in                                     .../skel
 #
 install-exec-local:
-	#
-	#  Make my directory hierarchy.
-	#
 	$(mkinstalldirs)     $(prefix)/contrib
 	$(mkinstalldirs)     $(prefix)/contrib/hpscriptedReadout
 	$(mkinstalldirs)     $(prefix)/contrib/hpscriptedReadout/include
 	$(mkinstalldirs)     $(prefix)/contrib/hpscriptedReadout/skel
 	$(mkinstalldirs)     $(prefix)/contrib/hpscriptedReadout/src
 	$(mkinstalldirs)     $(prefix)/etc
-	#
-	#   put the raw files where they belong:
-	#
 	$(INSTALL_DATA)   *.cpp $(prefix)/contrib/hpscriptedReadout/src
 	$(INSTALL_DATA)   *.h   $(prefix)/contrib/hpscriptedReadout/include
 	$(INSTALL_DATA)  skeleton.cpp  ReadoutMain.cpp \
 				$(prefix)/contrib/hpscriptedReadout/skel
-	#
-	#   Now build Makefile from Makefile.skel along with other stuff
-	#   that autoconf has figured out for us:
-	#
 	echo INSTDIR=$(prefix)                                 > Makefile.user
 	cat  Makefile.skel                                    >> Makefile.user
 	$(INSTALL_DATA) Makefile.user \

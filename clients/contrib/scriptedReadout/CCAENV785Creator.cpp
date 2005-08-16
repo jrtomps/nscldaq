@@ -434,5 +434,5 @@ command.
 string  
 CCAENV785Creator::Help()  
 { 
-   return string("Creates a CAEN V785/1785 module.");
+   return string("Creates a CAEN V785 module.");
 }

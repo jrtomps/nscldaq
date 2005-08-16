@@ -344,7 +344,8 @@ private:
 public:
   // Construtors and other cannonical functions:
 
-  CCAENV785(const STD(string) &rName, CTCLInterpreter& rInterp);
+  CCAENV785(const STD(string) &rName, CTCLInterpreter& rInterp,
+	    int nChannels=32);
  ~CCAENV785 ( );
 private:
   CCAENV785 (const CCAENV785& aCCAENV785 );

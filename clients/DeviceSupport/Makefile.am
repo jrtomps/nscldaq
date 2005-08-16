@@ -70,14 +70,17 @@ caenv1x90test_SOURCES = 1x90AcqModeTests.cpp 1x90AdjustTests.cpp \
 	1x90ConstructTests.cpp 1x90DataTests.cpp 1x90MatchTiming.cpp \
 	1x90MiscTests.cpp 1x90ReadTests.cpp 1x90ReadoutModes.cpp \
 	1x90RegisterTests.cpp 1x90ResEdgeTests.cpp 1x90TerminationTests.cpp \
-	1x90TriggerTimeTagTests.cpp 1x90geotests.cpp 1x90TestRunner.cpp \
-	CCAENV1x90.cpp VmeModule.cpp MmapError.cpp
+	1x90TriggerTimeTagTests.cpp 1x90geotests.cpp 1x90TestRunner.cpp 
+
+caenv1x90test_DEPENDENCIES = CCAENV1x90.cpp VmeModule.cpp MmapError.cpp
 
 caenv1x90test_LDADD = -L@top_srcdir@/Exception -lException \
 	-L@top_srcdir@/VMEApi -lVmeAPI  $(VMEBUILDLIBS) \
 	 $(SPECTRODAQ_LDFLAGS) $(CPPUNIT_LDFLAGS)
 
-sis3600test_SOURCES = sis3600TestRunner.cpp sis3600tests.cpp CSIS3600.cpp \
+sis3600test_SOURCES = sis3600TestRunner.cpp sis3600tests.cpp 
+
+sis3600test_DEPENDENCIES = CSIS3600.cpp \
 	VmeModule.cpp MmapError.cpp CModule32.cpp
 
 sis3600test_LDADD = -L@top_srcdir@/Exception -lException \
@@ -85,8 +88,9 @@ sis3600test_LDADD = -L@top_srcdir@/Exception -lException \
 	$(SPECTRODAQ_LDFLAGS) $(CPPUNIT_LDFLAGS)
 
 
-sis3820test_SOURCES = sis3800TestRunner.cpp sis3820tests.cpp \
-	CSIS3820.cpp  VmeModule.cpp MmapError.cpp CModule32.cpp
+sis3820test_SOURCES = sis3800TestRunner.cpp sis3820tests.cpp 
+
+sis3820test_DEPENDENCIES = CSIS3820.cpp  VmeModule.cpp MmapError.cpp CModule32.cpp
 
 sis3820test_LDADD = -L@top_srcdir@/Exception -lException \
 	-L@top_srcdir@/VMEApi -lVmeAPI $(VMEBUILDLIBS) \

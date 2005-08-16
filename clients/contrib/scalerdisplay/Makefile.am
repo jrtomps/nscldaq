@@ -100,15 +100,9 @@ install-exec-local:
 	$(mkinstalldirs)	$(prefix)/contrib/scalerdisplay/scripts
 	$(mkinstalldirs)	$(prefix)/contrib/scalerdisplay/skel
 	$(mkdinstalldirs)       $(prefix)/etc
-	#
-	#  Install the headers, sources and scripts.
-	#
 	$(INSTALL_DATA)  *.cpp  $(prefix)/contrib/scalerdisplay/src
 	$(INSTALL_DATA)  *.h    $(prefix)/contrib/scalerdisplay/include
 	$(INSTALL_DATA)  *.tcl  $(prefix)/contrib/scalerdisplay/scripts
-	#
-	# Build the skeleton directory:
-	#
 	$(INSTALL_DATA) tkAppInit.cpp $(prefix)/contrib/scalerdisplay/skel
 	echo INSTDIR=$(prefix)                                 > Makefile.user
 	cat  Makefile.skel                                    >> Makefile.user

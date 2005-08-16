@@ -619,7 +619,7 @@ CReadOrder*           pReader(0);       // The readout engine.
 CModuleCommand*       pCreator(0);      // Module creational. 
 CCAENV775Creator*     p775(0);	        // Creator for V775.
 CCAENV785Creator*     p785(0);          // Creator for V785.
-CCAENV785Creator*     p1785(0);         // Creator for V1785
+CCAENV785Creator*     p1785(0);         // Creator for V785
 CCAENV792Creator*     p792(0);	        // Creator for V792.
 CPacketCreator*       pPacket(0);       // Creator for subpackets.
 

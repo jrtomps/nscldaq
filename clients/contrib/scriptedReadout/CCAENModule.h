@@ -68,10 +68,11 @@ private:
   CAENcard* m_pCAENcard;	//!< Pointer to the underlying driver
   bool      m_fMultiEvent;	//!< If true Prepare does not clear.
   int       m_nLoopTime;         //!< # times to wait for data ready.
+  int       m_nChannels;	//!< # channels this module.
 public:
   // Constructors:
   CCAENModule(const string& rCommand,
-	      CTCLInterpreter& rInterp);
+	      CTCLInterpreter& rInterp, int nChannels=32);
   virtual ~CCAENModule();
 private:
   CCAENModule(const CCAENModule& rhs);

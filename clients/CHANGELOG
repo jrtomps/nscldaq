@@ -460,3 +460,5 @@ July 20, 2005
      - Remove lock button from shaper gui until we can get it right.
 August 15, 2005
      - Code in support for the CAEN V1785 dual resolution ADC.
+Auguts 16, 2005
+     - Update to make work with current auto tools. etc.

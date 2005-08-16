@@ -292,8 +292,6 @@ using namespace std;
 #include <assert.h>
 #include <Iostream.h>
 
-static const int CHANNELS(32);
-static const int WAITLOOPS(10);
 /*!
   Constructs a CAEN V785 readout object.
   The constructor does not actually create a CAENcard
@@ -306,8 +304,8 @@ static const int WAITLOOPS(10);
   The main purpose of this function is to register the
   configuration parsing objects.
 */
-CCAENV785::CCAENV785 (const string & rName, CTCLInterpreter& rInterp)
-  : CCAENModule(rName, rInterp)
+CCAENV785::CCAENV785 (const string & rName, CTCLInterpreter& rInterp, int nChannels)
+  : CCAENModule(rName, rInterp, nChannels)
 {
 
 } 

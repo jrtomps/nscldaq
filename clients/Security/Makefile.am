@@ -16,7 +16,9 @@ if CPPUNIT
 
 noinst_PROGRAMS = unittests
 
-unittests_SOURCES = test.cpp AccessListCheck.cpp AuthTokenCheck.cpp \
+unittests_SOURCES = test.cpp 
+
+unittests_DEPENDENCIES = AccessListCheck.cpp AuthTokenCheck.cpp \
 	DAQAuthTokenInteractor.cpp FdInteractor.cpp HostListCheck.cpp \
 	IOInteractor.cpp Interactor.cpp PasswordCheck.cpp  \
 	StringInteractor.cpp TclAccessListCheck.cpp UnixUserCheck.cpp

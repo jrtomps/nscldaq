@@ -291,7 +291,7 @@ using namespace std;
 #endif
 
 
-static const int CHANNELS(32);
+// static const int CHANNELS(32);
 static const int WAITLOOPS(20);
 /*!
   Constructs a CAEN module object.  The constructor
@@ -306,23 +306,28 @@ are recognized by all types of modules.
 \param rInterpeter (CTCLInterpreter& [in]):
    The interpreter on which this object's manipulating
    command will be registered.
+\param nChannels 
+    Number of channels this module supports (this is to deal with
+    some of the stranger dual range modules that CAEN is recently 
+    putting out.
 */
 CCAENModule::CCAENModule(const string & rName,
-			CTCLInterpreter& rInterpreter) :
+			CTCLInterpreter& rInterpreter, int nChannels) :
   CDigitizerModule(rName, rInterpreter),
   m_pCAENcard(0),
-  m_fMultiEvent(false)
+  m_fMultiEvent(false),
+  m_nChannels(nChannels)
 {
   // Setup our configuration parameters:
   
   AddIntParam(string("crate"), 0);
   AddIntParam(string("slot"), -1);   // Force legal config.
-  AddIntArrayParam(string("threshold"), CHANNELS, 0);
+  AddIntArrayParam(string("threshold"), m_nChannels, 0);
   AddBoolParam(string("keepunder"), false);
   AddBoolParam(string("keepoverflow"), false);
   AddBoolParam(string("card"), true);
   AddBoolParam(string("geo"),  true);    // Geographical addressing.
-  AddIntArrayParam(string("enable"), CHANNELS, 1);
+  AddIntArrayParam(string("enable"), m_nChannels, 1);
   AddIntParam(string("base"), 0);
   AddBoolParam(string("multievent"), false);
   AddIntParam(string("fastclearwindow"), 0);
@@ -449,7 +454,7 @@ CCAENModule::Initialize()
     i   = Find("threshold");
     assert(i != end());
     pArray = (CIntArrayParam*)*i;
-    for(int c = 0; c < CHANNELS; c++) {
+    for(int c = 0; c < m_nChannels; c++) {
       m_pCAENcard->setThreshold(c, (*pArray)[c]);
     }
   
@@ -489,7 +494,7 @@ CCAENModule::Initialize()
     i = Find("enable");
     assert(i != end());
     pArray = (CIntArrayParam*)*i;
-    for(int c = 0; c < CHANNELS; c++) {
+    for(int c = 0; c < m_nChannels; c++) {
       if((*pArray)[c]) {
         m_pCAENcard->channelOn(c);
       }
