@@ -105,7 +105,7 @@ hpScriptedReadout_LDADD = -L@top_srcdir@/contrib/hpscriptedReadout -lhpScriptedR
 	-L@top_srcdir@/Exception -lException $(TCL_LDFLAGS) \
 	$(SPECTRODAQ_LDFLAGS) $(VMELIBRARY) -lpthread
 
-EXTRA_DIST=Makefile.skel scriptedreadout_Makefile.include
+EXTRA_DIST=Makefile.skel hpscriptedreadout_Makefile.include
 
 
 #
