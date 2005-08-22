@@ -402,7 +402,7 @@ vmeinterface="sbs"
 #  Process -with-vme-interface if there.
 
 AC_ARG_WITH(vme-interface,
-	[--with-vme-interface=sbs|wiener|none - Choose VME interface],
+	[--with-vme-interface=sbs|wiener|wienerusb|none - Choose VME interface],
 	vmeinterface="$withval")
 
 # VMEDEVICE         - Which device it is.
@@ -470,6 +470,20 @@ case "$vmeinterface" in
 	VMELIBRARY="-L\$(prefix)/lib -lpcivme"
 	DEPENDSON_VME=""
 	AC_DEFINE(HAVE_WIENERVME_INTERFACE,"1",[VME Interface is Wiener])
+
+     ;;
+     wienerusb)
+	VMEDEVICE="WIENERUSB"
+	VME_DRIVERDIR=""
+	VMEBUILDHEADERS=""
+	VMEBUILDLIBS="-lusb"
+
+	# Definitions written to the build skeletons
+
+	VMELIBRARYHEADERS=""
+	VMELIBRARY="-lusb"
+	DEPENDSON_VME=""
+	AC_DEFINE(HAVE_WIENERUSBVME_INTERFACE,"1",[VME interfaces is WienerUSB])
 
      ;;
      none)

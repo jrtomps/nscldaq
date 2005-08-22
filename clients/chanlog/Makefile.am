@@ -7,5 +7,6 @@ include_HEADERS = getinfo.h
 chanlog_LDADD   = $(EPICS_LDFLAGS)
 INCLUDES        = $(EPICS_BIN) $(EPICS_INCLUDES) -I@top_srcdir@/Headers
 
+EXTRA_DIST = chanlog.1
 
 man_MANS        =  chanlog.1
