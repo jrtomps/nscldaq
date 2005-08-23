@@ -288,6 +288,9 @@ exec wish ${0} ${@}
 #
 #  Change Log:
 #  $Log$
+#  Revision 8.3  2005/08/23 19:40:40  ron-fox
+#  Add some diagnosis to why devices fail to locate
+#
 #  Revision 8.2  2005/06/24 11:32:11  ron-fox
 #  Bring the entire world onto the 8.2 line
 #
@@ -387,7 +390,7 @@ proc StartLocator {widget crates} {
     
     set VmeMapName ""
     set BlinkDone   0
-    if {[catch "BlinkCrate $Crate $BlinkRate"] == 0} {
+    if {[catch {BlinkCrate $Crate $BlinkRate} msg] == 0} {
 	
 	$widget config -text Stop \
 		-command "StopLocator $widget  $crates"
@@ -396,7 +399,7 @@ proc StartLocator {widget crates} {
 	    $button config -state disabled
 	}
     } else {                   ;# Crate open failed.
-	tk_dialog .error "No such" "The Selected crate is offline" \
+	tk_dialog .error "No such" "The Selected crate could not be located: $msg" \
 		warning 0 Dismiss
     }
 }
