@@ -1,6 +1,17 @@
 SUBDIRS = camactcl vhq202m
 
 
+noinst_PROGRAMS=TestHarness
+TestHarness_SOURCES= TestHarness.cpp
+TestHarness_DEPENDENCIES=VMECommand.o VMEMapCommand.o
+
+TestHarness_LDFLAGS = VMECommand.o VMEMapCommand.o \
+	 -L@top_srcdir@/VMEApi \
+	 -L@top_srcdir@/TCL -L@top_srcdir@/Exception  \
+	-L@top_srcdir@/CopyrightTools\
+	-L@top_srcdir@/DeviceSupport -lDeviceSupport -lTclPlus -lException \
+	$(TCL_LDFLAGS)
+
 lib_LTLIBRARIES = libVme.la
 libVme_la_SOURCES = VMECommand.cpp VMEMapCommand.cpp VMEPackage.cpp
 
