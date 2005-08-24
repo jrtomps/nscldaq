@@ -1,12 +1,12 @@
-SUBDIRS = $(VME_DRIVERDIR) \
+SUBDIRS = @VME_DRIVERDIR@ \
 	Headers CopyrightTools Exception PortManager TCL Security Ftp \
 	VMEApi cvt SpecTclOnline DeviceSupport\
 	Readout HPReadout diskrun EventLog Scaler  \
 	vmetcl  \
 	bufdump TclServer bcnaf TcpHoister Stager Scripts framework \
 	AlarmDisplay LogDisplay ProductionReadout  HPProductionReadout \
-	contrib dvdburn daqstart $(EPICSSOFTWARE) \
-	ScalerDisplay $(DEPENDSON_VME)
+	contrib dvdburn daqstart @EPICSSOFTWARE@ \
+	ScalerDisplay @DEPENDSON_VME@
 
 
 EXTRA_DIST =  config/install-sh config/config.sub config/config.guess \

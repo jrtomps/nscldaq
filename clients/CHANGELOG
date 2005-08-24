@@ -464,3 +464,9 @@ Auguts 16, 2005
      - Update to make work with current auto tools. etc.
 August 22, 2005
      - Add support for Wienerusb to configuration build scripts.
+August 23, 2005
+     - Improve the performance of CAENcard readout for non-mapped interfaces
+       (block transfer from buffer rather than individuals)... thinking here
+       about WienerUSB and WienerVME interfaces in particular, as these
+       will both benefit from amortizing the transfer count over a single
+       driver operation.

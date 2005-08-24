@@ -279,6 +279,9 @@ DAMAGES.
 /*
   Change Log:
   $Log$
+  Revision 8.4  2005/08/24 11:15:46  ron-fox
+  Improve CAENcard readout performance for non mapped devices.
+
   Revision 8.3  2005/08/15 21:49:32  ron-fox
   Support for the CAEN V1785 module.  This module is a weird dual
   range ADC.
@@ -540,6 +543,29 @@ struct ROM {
 #endif
 
 
+/*!  Utility to read a block of data from the data buffer (FIFO).
+     This is mainly here to optimize non mapped VME interfaces.
+     \param pDest   - Pointer to the destination.
+     \param nLongs  - Number of longs to read.
+*/
+void
+CAENcard::ReadBufferBlock(int* pDest, Int_t nLongs)
+{
+#ifdef HAVE_VME_MAPPING
+  for(int i = 0; i < nLongs; i++) {
+    int Datum = ReadBuffer;
+    *pDest++ = swaplong(Datum);
+  }
+#else
+  int* pd = pDest;
+  m_pModule->readl(pd, LongOffset(Registers, Buffer), nLongs);
+  for(int i =0; i < nLongs; i++) {
+    *pDest++ = swaplong(*pDest);
+  }
+#endif
+}
+
+
 /*!
   Constructs a CAEN card.  The card can be addressed either
   geographically  or via base addres switches.  If geographical
@@ -574,7 +600,8 @@ CAENcard::CAENcard(int slotNum, int crateNum ,
   m_nCrate(crateNum),
   m_fGeo(Geo),
   m_nBase(nBase),
-  m_pModule(0)
+  m_pModule(0),
+  m_nFirmware(0)
 {
   assert(sizeof(Registers) == 0x10c0);    // else struct misdefined.
   assert(sizeof(ROM) == 0xf08);          // else struct misdefined.
@@ -1215,26 +1242,33 @@ CAENcard::readEvent(void* buf)
     int* pHeader    = pBuf;	// To fix channel count.
     int  nRawChancnt= (Header >> 8) & 0x3f;
     *pBuf++         = swaplong(Header);
-    int datum;
-    do {
-      datum   = ReadBuffer;
-      *pBuf++ = swaplong(datum);
-      n++;
-      datum = (datum >> 24) & 7;
-    } while ( (datum == 0) && (n <= 34));
-    if(datum != 4) {		// The trailer should be of type 4.
-      cerr << " Data type in terminating long wrong: " << hex 
-	   <<datum << dec << endl;
-      m_nInvalidTrailers++;
-    } 
-    if ((n-2) < nRawChancnt) m_nChancountHigh++;
-    if ((n-2) > nRawChancnt) m_nChancountLow++;
-    Header &= 0xffffC0ff;	// Channel count is sometimes wrong.
-    Header |= ((n-2) << 8);	// this fixes it.
-    *pHeader = swaplong(Header);
-    m_nEvents++;		// Count an event taken.
-    return n * sizeof(long);			// Rely on the trailer!!
-  } else {
+    if(getFirmware() >= 0x808) {	// Raw chancount reliable
+      
+      ReadBufferBlock(pBuf, nRawChancnt+1);
+      return (nRawChancnt+2)*sizeof(long);
+
+    } else {
+      int datum;
+      do {
+	datum   = ReadBuffer;
+	*pBuf++ = swaplong(datum);
+	n++;
+	datum = (datum >> 24) & 7;
+      } while ( (datum == 0) && (n <= 34));
+      if(datum != 4) {		// The trailer should be of type 4.
+	cerr << " Data type in terminating long wrong: " << hex 
+	     <<datum << dec << endl;
+	m_nInvalidTrailers++;
+      } 
+      if ((n-2) < nRawChancnt) m_nChancountHigh++;
+      if ((n-2) > nRawChancnt) m_nChancountLow++;
+      Header &= 0xffffC0ff;	// Channel count is sometimes wrong.
+      Header |= ((n-2) << 8);	// this fixes it.
+      *pHeader = swaplong(Header);
+      m_nEvents++;		// Count an event taken.
+      return n * sizeof(long);			// Rely on the trailer!!
+    }
+  }else {
     // cerr << "Readout called but no data present\n";
     return 0;
   }
@@ -1262,18 +1296,16 @@ CAENcard::readEvent(DAQWordBuffer& wbuf, int offset)
   int    localBuffer[32+2];	// 32 channels, + header + trailer.
   short* pBuf((short*)localBuffer); // Read here then copy.
 
-  if(dataPresent()) {
 
-    int n = readEvent(localBuffer);
-    int nWords = n/sizeof(int);
-    for(int i = 0; i < nWords; i++) {
-      wbuf[offset] = *pBuf++;
-      offset++;
-    }
-    return nWords;
+  int n = readEvent(localBuffer);
+  int nWords = n/sizeof(int);
+  for(int i = 0; i < nWords; i++) {
+    wbuf[offset] = *pBuf++;
+    offset++;
   }
+  return nWords;
+  
 
-  return 0;
 }
 
 /*!
@@ -1294,23 +1326,21 @@ int CAENcard::readEvent(DAQWordBufferPtr& wp)
 {
   // Patterned after the previous function:
 
-  if(dataPresent()) {
-    int localBuffer[32+200];
-    short *pBuf((short*)localBuffer);
-    int nbytes = readEvent(localBuffer); // Read to temp buffer.
-    int nWords = nbytes / sizeof(short);
+  int localBuffer[32+200];
+  short *pBuf((short*)localBuffer);
+  int nbytes = readEvent(localBuffer); // Read to temp buffer.
+  int nWords = nbytes / sizeof(short);
 #ifdef CLIENT_HAS_POINTER_COPYIN
-    wp.CopyIn(localBuffer, 0, nWords);
-    wp += nWords;
+  wp.CopyIn(localBuffer, 0, nWords);
+  wp += nWords;
 #else
-    for(int i =0; i < nWords; i++) {
-      *wp = *pBuf++;
-      ++wp;
-    }
-#endif
-    return nWords;
+  for(int i =0; i < nWords; i++) {
+    *wp = *pBuf++;
+    ++wp;
   }
-  return 0;
+#endif
+  return nWords;
+  
 };
 
 /*!
@@ -1329,18 +1359,16 @@ int CAENcard::readEvent(DAQWordBufferPtr& wp)
 int 
 CAENcard::readEvent(DAQDWordBuffer& dwbuf, int offset)
 {
-  if(dataPresent()) {
-    int localBuffer[32+2];	// 32 chans + header + trailer.
-    int nbytes = readEvent(localBuffer);
-    int nlongs = nbytes/sizeof(long);
-    int* pLocal(localBuffer);
-    for(int i =0; i < nlongs; i++) {
-      dwbuf[offset] = *pLocal++;
-      offset++;
-    }
-    return nlongs;
+  int localBuffer[32+2];	// 32 chans + header + trailer.
+  int nbytes = readEvent(localBuffer);
+  int nlongs = nbytes/sizeof(long);
+  int* pLocal(localBuffer);
+  for(int i =0; i < nlongs; i++) {
+    dwbuf[offset] = *pLocal++;
+    offset++;
   }
-  return 0;
+  return nlongs;
+
 
 }
 
@@ -1356,18 +1384,16 @@ CAENcard::readEvent(DAQDWordBuffer& dwbuf, int offset)
 */
 int CAENcard::readEvent(DAQDWordBufferPtr& dwp)
 {
-  if(dataPresent()) {
-    int localBuffer[32+2];	// 32 chans + header +trailer.
-    int nbytes  = readEvent(localBuffer);
-    int nlongs  = nbytes/sizeof(long);
-    int* pLocal(localBuffer);
-    for(int i =0; i < nlongs; i++) {
-      *dwp = *pLocal++;
-      ++dwp;
-    }
-    return nlongs;
+  int localBuffer[32+2];	// 32 chans + header +trailer.
+  int nbytes  = readEvent(localBuffer);
+  int nlongs  = nbytes/sizeof(long);
+  int* pLocal(localBuffer);
+  for(int i =0; i < nlongs; i++) {
+    *dwp = *pLocal++;
+    ++dwp;
   }
-  return 0;
+  return nlongs;
+
 
 }
 
@@ -1620,11 +1646,14 @@ void CAENcard::DestroyCard()
 */
 int CAENcard::getFirmware() 
 {
+  if (!m_nFirmware) {
 #ifndef HAVE_VME_MAPPING
-  return m_pModule->peekw(ShortOffset(Registers, FirmwareRev));
+    m_nFirmware = m_pModule->peekw(ShortOffset(Registers, FirmwareRev));
 #else
-  return ((Registers*)m_pModule)->FirmwareRev;
+    m_nFirmware = ((Registers*)m_pModule)->FirmwareRev;
 #endif
+  }
+  return m_nFirmware;
 }
 /*! 
    Set the fast clear window width.

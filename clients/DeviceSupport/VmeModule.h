@@ -284,6 +284,10 @@ DAMAGES.
   the CVME and CVMEptr objects. CVmeModules can write to and read 
   from these registers using poke and peek operations, respectively.
 
+  \note
+        While this module is not final, the data transfer methods are
+       not virtual
+
   Author:
      Jason Venema
      NSCL
@@ -366,13 +370,18 @@ private:
 #endif
 
   // Public member functions
- public:
-  virtual UChar_t peekb(UInt_t offset=0);
-  virtual UShort_t peekw(UInt_t offset=0);
-  virtual ULong_t peekl(UInt_t offset=0);
-  virtual void pokeb(UChar_t byte, UInt_t nOffset);
-  virtual void pokew(UShort_t word, UInt_t nOffset);
-  virtual void pokel(ULong_t lword, UInt_t nOffset);
+public:
+  UChar_t peekb(UInt_t offset=0);
+  UShort_t peekw(UInt_t offset=0);
+  ULong_t peekl(UInt_t offset=0);
+  void pokeb(UChar_t byte, UInt_t nOffset);
+  void pokew(UShort_t word, UInt_t nOffset);
+  void pokel(ULong_t lword, UInt_t nOffset);
+  
+  UInt_t readl(void* pBuffer, UInt_t nOffset, size_t longs);
+  UInt_t readw(void* pBuffer, UInt_t nOffset, size_t words);
+  UInt_t readb(void* pBuffer, UInt_t nOffset, size_t bytes);
+  
  
  // Utility:
 protected:

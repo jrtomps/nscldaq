@@ -278,6 +278,9 @@ DAMAGES.
 /*
   Change Log:
   $Log$
+  Revision 8.3  2005/08/24 11:15:46  ron-fox
+  Improve CAENcard readout performance for non mapped devices.
+
   Revision 8.2  2005/06/24 11:30:36  ron-fox
   Bring the entire world onto the 8.2 line
 
@@ -406,6 +409,7 @@ class CAENcard {
   int    m_nChancountHigh;	//!< How many channel counts high
   int    m_nChancountLow;	//!< How many channel counts low.
   int    m_nEvents;		//!< How many events read.
+  unsigned short m_nFirmware;    //!< Firmware rev level.
 
 
 
@@ -502,6 +506,7 @@ private:
    void Bitclear1(short mask);  //!< Set a mask in the bit clear 1 register.
    void Bitset2(short mask);    //!< Set a mask i the bit set 2 register.
    void Bitclear2(short mask);  //!< set a mask in the bit clear 2 register.
+   void ReadBufferBlock(int* pDest, Int_t size); // Read block from data buf.
 };
 
 #endif

@@ -637,4 +637,133 @@ CVmeModule::CopyToMe(const CVmeModule& rModule)
 #endif
 }
 
+
+/*!
+    Read a block of longwords from the VME.  At present, we 
+    assume that for mapped interfaces, transfers are faster if done
+    under programmed control.  In future releases we may need to
+    think about a threshold above which we ask the driver to 
+    do the transfers for us.  The real motiviation for this
+    function are the devices that do not have mapping...
+    for them it's almost certain, that letting the driver do
+    the block transfer is better than us doing it since
+    the driver overhead will be amortized over the transfer count.
+
+\param pBuffer - The target of the transfer.  This buffer must be at least
+                 longs*sizeof(long) large.
+\param nOffset - The longword offset into the region represented by
+                 this class.
+\param longs   - The number of longwords to transfer.
+
+\return UInt_t
+\retval number of longs transferred if everything worked or some device
+        dependent result.
+*/
+UInt_t
+CVmeModule::readl(void* pBuffer, UInt_t nOffset, size_t longs)
+{
+#ifdef HAVE_VME_MAPPING
+  ULong_t* pSource = (ULong_t*)m_CVME.asLong() + nOffset;
+  ULong_t* pDest   = (ULong_t*)pBuffer;
+  for(UInt_t i =0; i < longs; i++) { // memcpy is not ensured to be long transfers.
+    *pDest++ = *pSource++;
+  }
+  return longs;
+#else
+#  ifdef HAVE_WIENERVME_INTERFACE
+  return WienerVMEInterface::ReadWords(m_pDriver,
+				       m_nBase + nOffset*sizeof(ULong_t),
+				       pBuffer, longs);
+#  else
+  return 0;			// There is no VME interface.
+#  endif
+#endif
+}
+
+/*!
+    Read a block of words from the VME.  At present, we 
+    assume that for mapped interfaces, transfers are faster if done
+    under programmed control.  In future releases we may need to
+    think about a threshold above which we ask the driver to 
+    do the transfers for us.  The real motiviation for this
+    function are the devices that do not have mapping...
+    for them it's almost certain, that letting the driver do
+    the block transfer is better than us doing it since
+    the driver overhead will be amortized over the transfer count.
+
+\param pBuffer - The target of the transfer.  This buffer must be at least
+                 longs*sizeof(UShort_t) large.
+\param nOffset - The word offset into the region represented by
+                 this class.
+\param words   - The number of words to transfer.
+
+\return UInt_t
+\retval number of words transferred if everything worked or some device
+        dependent result.
+*/
+UInt_t
+CVmeModule::readw(void* pBuffer, UInt_t nOffset, size_t words)
+{
+#ifdef HAVE_VME_MAPPING
+  UShort_t* pSource = (UShort_t*)m_CVME.asShort() + nOffset;
+  UShort_t* pDest   = (UShort_t*)pBuffer;
+  for(UInt_t i =0; i < words; i++) { // memcpy is not ensured to be word transfers.
+    *pDest++ = *pSource++;
+  }
+  return words;
+#else
+#  ifdef HAVE_WIENERVME_INTERFACE
+  return WienerVMEInterface::ReadWords(m_pDriver,
+				       m_nBase + nOffset*sizeof(UShort_t),
+				       pBuffer, words);
+#  else
+  return 0;			// There is no VME interface.
+#  endif
+#endif
+}
+
+/*!
+    Read a block of bytes from the VME.  At present, we 
+    assume that for mapped interfaces, transfers are faster if done
+    under programmed control.  In future releases we may need to
+    think about a threshold above which we ask the driver to 
+    do the transfers for us.  The real motiviation for this
+    function are the devices that do not have mapping...
+    for them it's almost certain, that letting the driver do
+    the block transfer is better than us doing it since
+    the driver overhead will be amortized over the transfer count.
+
+\param pBuffer - The target of the transfer.  This buffer must be at least
+                 longs bytes  large.
+\param nOffset - The byte offset into the region represented by
+                 this class.
+\param bytes   - The number of bytes to transfer.
+
+\return UInt_t
+\retval number of bytes transferred if everything worked or some device
+        dependent result.
+*/
+UInt_t
+CVmeModule::readb(void* pBuffer, UInt_t nOffset, size_t bytes)
+{
+#ifdef HAVE_VME_MAPPING
+  UChar_t* pSource = (UChar_t*)m_CVME.asChar() + nOffset;
+  UChar_t* pDest   = (UChar_t*)pBuffer;
+  for(UInt_t i =0; i < bytes; i++) { // memcpy is not ensured to be long transfers.
+    *pDest++ = *pSource++;
+  }
+  return bytes;
+#else
+#  ifdef HAVE_WIENERVME_INTERFACE
+  return WienerVMEInterface::ReadBytes(m_pDriver,
+				       m_nBase + nOffset,
+				       pBuffer, bytes);
+#  else
+  return 0;			// There is no VME interface.
+#  endif
+#endif
+}
+
+
+
 // #endif
