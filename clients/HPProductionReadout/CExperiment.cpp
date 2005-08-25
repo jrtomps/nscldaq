@@ -283,6 +283,10 @@ static const char* Copyright = "(C) Copyright Michigan State University 2002, Al
    
    Modification History:
    $Log$
+   Revision 8.3  2005/08/25 22:55:23  ron-fox
+   merge in some fixes from 8.0-005 (reopened as pre1 so I can update the
+   sourceforge tarballs).
+
    Revision 8.2  2005/06/24 11:31:07  ron-fox
    Bring the entire world onto the 8.2 line
 
@@ -988,9 +992,9 @@ CExperiment::TriggerScalerReadout()
       m_EventBuffer->SetRun(GetRunNumber());
       m_EventBuffer->Resize(m_nBufferSize);
       m_EventBuffer->Route();
-      delete m_EventBuffer;
-      m_EventBuffer = 0;
     }
+    delete m_EventBuffer;
+    m_EventBuffer = 0;
   }
 
   //

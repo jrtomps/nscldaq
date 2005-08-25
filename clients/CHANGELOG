@@ -472,3 +472,6 @@ August 23, 2005
        driver operation.
 August 25, 2005 
      - Completed re-do of directory subsystem and readout gui.
+     - Port in fixes to event log (crash if 1'st buffer not begin) from 8.0
+     - Port in fixes to (HP)Production readout (1'st event buffer has
+       incorrect sequence if empty event buffer avail on end of prior run).

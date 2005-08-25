@@ -582,7 +582,7 @@ proc ReadoutGui::ReadoutController {topname} {
     # regardless, a destroy handler is established to ensure that
     # any readout program is killed off.
     #
-    if {$topname != {}} {
+    if {$topname != ""} {
 	toplevel $topname
 	bind $topname <Destroy> ::ReadoutGui::EmergencyExit
 	set topprefix $topname

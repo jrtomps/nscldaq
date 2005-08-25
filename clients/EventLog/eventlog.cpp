@@ -627,7 +627,10 @@ private:
    }
     else {			// If not open, then do an emergency open.
 	if(!FileOpen) {
-	  TimeStamp(cerr, pBody->tod);
+	  time_t epochtime = time(&epochtime);
+	  char   timebuffer[64];
+	  cerr << ctime_r(&epochtime, timebuffer);
+
 	  cerr << ">>Received a non-begin run buffer while file closed\n";
 	  cerr << "  Opening a new event file in spite of this.\n";
 	  cerr << "  The culprit is run: " << pHeader->run << endl;
