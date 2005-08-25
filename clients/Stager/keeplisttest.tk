@@ -1,0 +1,61 @@
+set auto_path [concat . $auto_path]
+package require KeeplistGUI 2.0
+
+button .exit -text Exit -command exit
+pack .exit
+
+set runs [list run1-4096.evt    \
+               run10-4096.evt   \
+               run2-4096.evt    \
+               run3-4096.evt]
+for {set run 30} {$run < 45} {incr run} {
+    lappend runs [format "run%d-4096.evt" $run]
+}
+
+set sched [list run5-4096.evt \
+                run4-4096.evt \
+                run7-4096.evt \
+                run6-4096.evt \
+                run8-4096.evt \
+                run9-4096.evt ]
+
+for {set run 50} {$run < 65} {incr run} {
+    lappend sched [format "run%d-4096.evt" $run]
+}
+
+set kept [list run20-4096.evt \
+               run25-4096.evt \
+               run21-4096.evt \
+               run23-4096.evt \
+               run22-4096.evt]
+for {set run 100} {$run < 110} {incr run} {
+    lappend kept [format "run%d-4096.evt" $run]
+}
+
+puts "Test modal"
+puts [KeeplistGUI::modalKeeplistDialog .test $runs $sched $kept]
+
+puts "Test non modal"
+
+proc ok {widget} {
+    set runs  [$widget cget -eligible]
+    set sched [$widget cget -scheduled]
+    set kept  [$widget cget -kept]
+    destroy $widget
+    puts "Ok"
+    puts [list $runs $sched $kept]
+}
+proc cancel {widget} {
+    global runs sched kept
+    puts "Cancelled"
+    puts [list $runs $sched $kept]
+    catch {destroy $widget}
+}
+keeplistGUI .test -command ok -cancelcmd cancel -eligible $runs -scheduled $sched -kept $kept
+
+tkwait window .test
+exit
+
+
+
+

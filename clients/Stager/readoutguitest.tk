@@ -1,0 +1,74 @@
+#
+
+set auto_path [concat $auto_path . /usr/opt/daq/lib]
+package require InstallRoot
+puts "Initially install root is $::InstallRoot::here"
+set ::InstallRoot::here /usr/opt/daq/bin
+puts "Now its $::InstallRoot::here"
+
+package require ReadoutGui
+package require ReadoutGUIPanel
+package require ReadoutControl
+package require ReadoutState
+package require DAQParameters
+package require ExpFileSystemConfig
+package require ExpFileSystem
+package require Experiment 2.0
+
+set pwd ""
+proc getPassword {} {
+    global pwd
+    toplevel .dialog
+    entry    .dialog.password -show * -textvariable pwd
+    pack .dialog.password
+    grab .dialog
+    tkwait window .dialog
+
+    return $pwd
+
+}
+
+proc addToGui {top} {
+    set mymenu [ReadougGUIPanel::addUserMenu test Help]
+    $mymenu add command -label About... -command showAbout
+
+    set myframe [ReadougGUIPanel::addUserFrame testframe]
+    $myframe configure -relief groove -borderwidth 3
+
+    label $myframe.label -text "This is only a test"
+    pack $myframe.label
+
+}
+
+
+
+
+
+ExpFileSystemConfig::setDefaults
+ExpFileSystem::CreateHierarchy
+
+ReadoutState::setDefaults
+DAQParameters::setDefaults
+DAQParameters::ftpHostIs localhost
+DAQParameters::passwordIs [getPassword]
+DAQParameters::readoutPathIs /user/fox/test/Readout/Readout
+set ::ReadoutControl::State  NotRunning
+
+ReadoutGui::setGuiBuiltCallback ::addToGui
+
+ReadoutGui::ReadoutController .alternate
+
+button .disable -text Ghost -command ReadougGUIPanel::ghostWidgets
+button .enable  -text unGhost -command ReadougGUIPanel::unghostWidgets
+
+pack .disable .enable
+
+wm withdraw .
+
+
+proc showAbout {} {
+    global argv0
+    tk_dialog .about "About $argv0" \
+    {This is a test of the ReadoutGUI panel.} info 0 Dismiss
+}
+

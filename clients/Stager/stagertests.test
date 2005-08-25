@@ -1,0 +1,499 @@
+#!/usr/bin/tclsh
+#
+#   This file contains tests for scripts and packages in this directory.
+#
+package require tcltest
+set here [file dirname [info script]]
+
+# starting to just get too tough to do this without
+# packaging:
+
+set auto_saved $auto_path
+
+lappend auto_path $here
+
+if {[file exists pkgIndex.tcl]} {
+    file delete              pkgIndex.tcl.saved
+    file rename pkgIndex.tcl pkgIndex.tcl.saved
+}
+pkg_mkIndex . *.tcl
+
+package require Stager
+package require RunRetension
+package require Diagnostics
+#
+#  So we don't have to answer questions.
+#
+proc Diagnostics::Warning {text} {}
+
+#   Test group 1 works on dirs to Runs:
+#
+
+tcltest::test Stager-1.0  {Stager::dirsToRuns - good input} {
+   set testlist {run10 /this/that/theother/run11 /another/run12}
+   set result [Stager::dirsToRuns $testlist]
+} [list 10 11 12]
+
+tcltest::test Stager-1.1 {Stager::dirsToRuns - bad run in the middle} {
+    set testlist {/hi/ther/run10 baddata hothere/run12}
+    set result [Stager::dirsToRuns $testlist]
+
+} [list 10 12]
+
+# Test group 2 workson  tape serail. ... which depends on the
+# configuration subsystem... specifically StagerConfiguration::.
+
+proc resetSerial {{num 1}} {
+    StagerConfiguration::tapeNumberIs $num
+}
+
+tcltest::test Stager-2.0 {Stager::tapeSerial - 0} {
+    resetSerial
+    Stager::tapeSerial
+} 1
+
+tcltest::test Stager-2.1 {Stager::tapeSerial - 1} {
+    resetSerial
+    StagerConfiguration::incrTapeNumber
+    Stager::tapeSerial
+} 2
+
+#   Test group 3 tests cleanCommandFiles
+#
+
+proc setExpFileRoot {} {
+    set here [info script]
+    set here [file dirname $here]
+
+    set configuration::StageArea $here
+    file delete -force complete
+    file delete -force current
+    file delete -force experiment
+    file delete -force retained
+    file delete -force stagearea
+    file delete -force staged
+}
+tcltest::test Stager-3.0 {Stager::cleanCommandFiles - none to clean} {
+    setExpFileRoot
+    Stager::cleanCommandFiles
+    glob -nocomplain [file join [ExpFileSystem::GetStage] .stagecommand*]
+} {}
+
+tcltest::test Stager-3.1 {Stager::cleanCommandFiles - some to clean} {
+    setExpFileRoot
+    set root [ExpFileSystem::GetStage]
+    tcltest::makeFile {} [file join $root .stagecommand1]
+    tcltest::makeFile {} [file join $root .stagecommand5]
+    tcltest::makeFile {} [file join $root .stagecommand37]
+
+    Stager::cleanCommandFiles
+
+    glob -nocomplain [file join $root .stagecommand*]
+} {}
+#  Test set 4 tests GenerateStageList:
+#     .0    - no runs.
+#     .1    - runs all dirs, no files staged.
+#     .2    - runs all dirs, a file staged in the list.
+#     .3    - runs all dirs, a file staged but not in the list.
+#     .4    - runs one run not a dir. no files staged yet.
+
+proc cleanStageDir {} {
+    setExpFileRoot
+    ExpFileSystem::CreateHierarchy
+
+    set stagedir [ExpFileSystem::WhereisMetadata]
+    foreach file [glob -nocomplain [file join $stagedir run*]] {
+        file delete -force $file
+    }
+    return $stagedir
+}
+proc makeTestDirs root {
+    tcltest::makeDirectory [file join $root run1]
+    tcltest::makeFile {} [file join $root run1 run1-4096.evt]
+    tcltest::makeFile {} [file join $root run1 some.metadata]
+    tcltest::makeDirectory [file join $root run3]
+    tcltest::makeFile {} [file join $root run3 run3-4096.evt]
+    tcltest::makeFile {} [file join $root run3 some.metadata]
+    tcltest::makeDirectory [file join $root run7]
+    tcltest::makeFile {} [file join $root run7 run7-4096.evt]
+    tcltest::makeFile {} [file join $root run7 some.metadata]
+}
+tcltest::test Stager-4.0 {Stager::GenerateeStageList - no files} {
+    cleanStageDir
+
+    set runs [Stager::GenerateStageList]
+    setExpFileRoot
+    Stager::dirsToRuns $runs
+} {}
+
+tcltest::test Stager-4.1 {Stager::GenerateStageList - all dirs, no files already staged.} {
+    set root [cleanStageDir]
+
+    makeTestDirs $root
+    tcltest::makeDirectory george
+
+    set runs [Stager::GenerateStageList]
+    tcltest::removeDirectory [file join $root george]
+    setExpFileRoot
+    Stager::dirsToRuns $runs
+
+} {1 3 7}
+
+tcltest::test Stager-4.2 {Stager::GenerateStageList - all dirs a file in staged list} {
+    set root [cleanStageDir]
+    makeTestDirs $root
+
+    StagerConfiguration::appendStageList 3
+
+    set runs [Stager::GenerateStageList]
+    StagerConfiguration::setStageList {}
+    setExpFileRoot
+    Stager::dirsToRuns $runs
+} {1 7}
+
+tcltest::test Stager-4.3 {Stager::GenerateStageList - runs all dirs, a file staged but not in the list.} {
+    set root [cleanStageDir]
+    makeTestDirs $root
+
+    set stagedDir [ExpFileSystem::WhereisRun 7]
+    set destDir   [ExpFileSystem::WhereisStagedMetaData]
+    file rename $stagedDir $destDir
+    exec ln -s [file join $destDir run7] $stagedDir
+
+    set runs [Stager::GenerateStageList]
+    setExpFileRoot
+
+    Stager::dirsToRuns $runs
+
+
+} {1 3}
+
+tcltest::test Stager-4.4 {Stager::GenerateStageList - runs, on not a dir none staged} {
+    set root [cleanStageDir]
+    makeTestDirs $root
+    tcltest::makeFile {junk} [file join $root run8]
+
+    set runs [Stager::GenerateStageList]
+
+    tcltest::removeFile [file join $root run8]
+    setExpFileRoot
+
+    Stager::dirsToRuns $runs
+} {1 3 7}
+
+#  Test set 5 is for Stager::TarLogInput:
+#     .0    - on an eof.
+#     .1    - on a file with a know line of text.
+# Note that in both cases we check the Stager::Tardone side effect
+# var and also, if necessary, the contents of the line.
+#
+set tarlogline ""
+proc TarLogCallback line {
+    global tarlogline
+    set tarlogline $line
+}
+tcltest::test Stager-5.0 {Stager::TarLogInput - no input} {
+    set ::tarlogline ""
+    set Stager::Tardone 0
+
+    set pipe [open "| cat /dev/null" r]
+    Stager::TarLogInput $pipe TarLogCallback; #empty line
+    Stager::TarLogInput $pipe TarLogCallback; #EOF.
+    catch {close $pipe};     # Input may close it.
+
+    list $::tarlogline $::Stager::Tardone
+
+} {{} 1}
+
+tcltest::test Stager-5.1 {Stager::TarLogInput - one line of input} {
+    set ::tarlogline ""
+    set Stager::Tardone 0
+    set here [file dirname [info script]]
+
+    set testfile [tcltest::makeFile {Hello World.} [file join $here data.txt]]
+    set pipe [open "| cat $testfile" r]
+
+    Stager::TarLogInput $pipe TarLogCallback
+
+    catch {close $pipe}
+    tcltest::removeFile $testfile
+    set ::tarlogline [string trimright $::tarlogline "\n"]
+    list $::tarlogline $::Stager::Tardone
+} {{Hello World.} 0}
+
+#   For now I'm not sure how to test WriteToTape without using a drive.
+
+tcltest::test Stager-6.0 {Stager::WriteToTape} {emptyTest} {
+} {}
+
+#  The group 7 tests check the functionality of Stager::DeleteEventData:
+#    .0  - Ensures that if there are no event files nothing happens and
+#          no files are listed as retained.
+#    .1  - Ensures that if there are event files and none of them are on
+#          the retained list, they all get deleted.
+#    .2  - Ensures that if there are event files those on the retained
+#          list don't get deleted.
+#    .3  - Ensure that if an event file is actually a link, it is not
+#          deleted.
+tcltest::test Stager-7.0 {Stager::DeleteEventData - no files} {
+    set r [Stager::DeleteEventData {}]
+
+} {}
+
+tcltest::test Stager-7.1 {Stager::DeleteEventData - file but none retained} {
+    set root [cleanStageDir]
+    makeTestDirs $root
+    set dirlist [list [ExpFileSystem::WhereisRun 1] \
+                      [ExpFileSystem::WhereisRun 3] \
+                      [ExpFileSystem::WhereisRun 7]]
+    StagerConfiguration::clearStageList
+    set r [Stager::DeleteEventData $dirlist]
+
+    set result [list $r]
+    foreach dir $dirlist {
+        lappend result [glob -nocomplain [file join $dir run*.evt]]
+    }
+    setExpFileRoot
+    set result
+
+} {{} {} {} {}}
+
+tcltest::test Stager-7.2 {Stager::DeleteEventData - files but some retained} {
+    set root [cleanStageDir]
+    makeTestDirs $root
+    set ExpRunRetension::PendingRetensions ""
+
+    ExpRunRetension::AddToPending 3
+
+
+    set dirlist [list [ExpFileSystem::WhereisRun 1] \
+                      [ExpFileSystem::WhereisRun 3] \
+                      [ExpFileSystem::WhereisRun 7]]
+    StagerConfiguration::clearStageList
+    set r [Stager::DeleteEventData $dirlist]
+
+    set result $r
+    set havefile [glob -nocomplain [file join [ExpFileSystem::WhereisRun 3] run*.evt]]
+
+    setExpFileRoot
+    set ExpRunRetension::PendingRetensions ""
+    if {$result == $havefile} {
+        set result 0
+    } else {
+        set result  [list $result $havefile]
+    }
+
+
+
+}  0
+
+tcltest::test Stager-7.3 {Stager::DeleteEventData - files but one is a link} {
+    set root [cleanStageDir]
+    makeTestDirs $root
+
+
+    set dirlist [list [ExpFileSystem::WhereisRun 1] \
+                      [ExpFileSystem::WhereisRun 3] \
+                      [ExpFileSystem::WhereisRun 7]]
+    StagerConfiguration::clearStageList
+
+    # Turn run3 into a link:
+
+    set destdir  [ExpFileSystem::WhereareRetainedEventFiles]
+    set srcfile  [ExpFileSystem::WhereisRunFile 3]
+    set filename [file tail $srcfile]
+    set destfile [file join $destdir $filename]
+
+    file rename $srcfile $destfile
+    exec ln -s $destfile $srcfile
+
+
+    set r [Stager::DeleteEventData $dirlist]
+
+    set result $r
+    set havefile $srcfile
+
+    setExpFileRoot
+
+    if {$result == $havefile} {
+        set result 0
+    } else {
+        set result  [list $havefile $result]
+    }
+
+
+} 0
+
+#   The 8 test group tests Stager::MoveRetainedData which moves event data
+#   from a run to the retained directory.
+#
+#    .0   - No files to move/link.
+#    .1   - Files exist but none to move
+#    .2   - File to move.
+#    .3   - Links that should not move
+#
+tcltest::test Stager-8.0 {Stager::MoveRetainedData - no files to move} {
+    set root [cleanStageDir]
+
+    Stager::MoveRetainedData {}
+
+    set retained [ExpFileSystem::WhereareRetainedEventFiles]
+    set file [glob -nocomplain [file join $retained *]]
+    setExpFileRoot
+
+    set file
+
+
+} {}
+
+tcltest::test Stager-8.1 {Stager::MoveRetainedData - files exist but none on list} {
+    set root [cleanStageDir]
+    makeTestDirs $root
+
+    Stager::MoveRetainedData {}
+
+    set retained [ExpFileSystem::WhereareRetainedEventFiles]
+    set file [glob -nocomplain [file join $retained *]]
+
+    setExpFileRoot
+
+    set file
+
+} {}
+
+tcltest::test Stager-8.2 {Stager::MoveRetainedData - files to move} {
+    set root [cleanStageDir]
+    makeTestDirs $root
+    set ExpRunRetension::PendingRetensions ""
+
+    ExpRunRetension::AddToPending 3
+    set moveDir [ExpFileSystem::WhereisRunFile 3]
+    Stager::MoveRetainedData $moveDir
+
+
+    set retained [ExpFileSystem::WhereareRetainedEventFiles]
+    set file [glob -nocomplain [file join $retained *]]
+    setExpFileRoot
+    set ExpRunRetension::PendingRetensions ""
+
+    llength $file
+} 1
+
+tcltest::test Stager-8.3 {Stager::MoveRetainedData - files to move} {
+    set root [cleanStageDir]
+    makeTestDirs $root
+    set ExpRunRetension::PendingRetensions ""
+    ExpRunRetension::AddToPending 7
+
+    set movedir [ExpFileSystem::WhereisRun 7]
+    set movetail [file tail $movedir]
+    set retained [ExpFileSystem::WhereareRetainedEventFiles]
+    set current  [ExpFileSystem::WhereisCurrentData];   # Need to put it somewhere.
+    file rename $movedir [file join $current $movetail]
+    exec ln -s [file join $current $movetail] $movedir
+
+    Stager::MoveRetainedData $movedir
+
+
+    set files    [glob -nocomplain [file join $retained *]]
+    setExpFileRoot
+    set ExpRunRetension::PendingRetensions ""
+
+    llength $files
+
+} 0
+#  The 9 group of tests works out Stager::MoveMetaData:
+#
+#    .0    - Nothing to move.
+#    .1    - Normal move everything.
+#    .2    - somethings don't move because they are links.
+
+
+
+tcltest::test Stager-9.0 {Stager::MoveMetaData - nothing to move} {
+    set root [cleanStageDir]
+    makeTestDirs $root
+
+    set dirlist [list [ExpFileSystem::WhereisRun 1] \
+                      [ExpFileSystem::WhereisRun 3] \
+                      [ExpFileSystem::WhereisRun 7]]
+    set links 0
+
+    Stager::MoveMetaData {}
+
+    foreach dir $dirlist {
+        if {![catch {file readlink $dir}]} {
+            incr links
+        }
+    }
+
+    setExpFileRoot
+    set links
+} 0
+
+tcltest::test Stager-9.1 {Stager::MoveMetaData - move all files} {
+    set root [cleanStageDir]
+    makeTestDirs $root
+
+    set dirlist [list [ExpFileSystem::WhereisRun 1] \
+                      [ExpFileSystem::WhereisRun 3] \
+                      [ExpFileSystem::WhereisRun 7]]
+    set links 0
+
+    Stager::MoveMetaData $dirlist
+
+
+    foreach dir $dirlist {
+        if {![catch {file readlink $dir}]} {
+            incr links
+        }
+    }
+
+    setExpFileRoot
+    set links
+} 3
+
+tcltest::test Stager-9.2 {Stager::MoveMetaData - Move all but a link} {
+    set root [cleanStageDir]
+    makeTestDirs $root
+
+    set dirlist [list [ExpFileSystem::WhereisRun 1] \
+                      [ExpFileSystem::WhereisRun 3] \
+                      [ExpFileSystem::WhereisRun 7]]
+    set links 0
+    set run1 [ExpFileSystem::WhereisRun 1]
+    set dest [ExpFileSystem::GetStage]
+    set dirname [file tail $run1]
+    file delete -force [file join $dest $dirname]
+    file rename $run1 $dest
+    exec ln -s [file join $dest $dirname] $run1
+
+    Stager::MoveMetaData $dirlist
+
+    #  There should be only 2 runs in the staged dir.
+
+    set target [ExpFileSystem::WhereisStagedMetaData]
+    set files  [glob -nocomplain [file join $target run*]]
+
+    setExpFileRoot
+    file delete -force [file join $dest $dirname]
+    llength $files
+} 2
+
+#
+tcltest::test Stager-10.0 {Stager::Stage} {emptyTest} {
+} {}
+
+
+# Cleanup
+
+# cleanStageDir
+file delete pkgIndex.tcl
+if {[file exists pkgIndex.tcl.saved]} {
+    file rename pkgIndex.tcl.saved pkgIndex.tcl
+}
+set auto_path $auto_saved
+package forget Stager
+package forget RunRetension
+package forget Diagnositcs
+tcltest::cleanupTests

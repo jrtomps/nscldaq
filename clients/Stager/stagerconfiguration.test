@@ -1,0 +1,403 @@
+#  StagerConfiguration tests
+
+set here [file dirname [info script]]
+source [file join $here Configuration.tcl]
+source [file join $here StagerConfiguration.tcl]
+
+package require StagerConfiguration
+package require Configuration
+package require tcltest
+
+
+set StagerConfigItems {TapeHost TapeCapacity TapeNumber StagePolicy
+                       StageThreshold TapeDrive StageList RetainedList}
+
+        # in same order as StagerConfigItems.
+
+
+
+# Utilities:
+
+proc StagerConfigurationSetup {} {
+    global StagerConfigItems
+    foreach item $StagerConfigItems {
+        catch {unset ::configuration::$item}
+    }
+    clearStagerEnv
+    StagerConfiguration::setDefaults
+    StagerConfiguration::environmentOverrides
+
+}
+
+proc clearStagerEnv {} {
+    global env
+
+    catch {unset env(TAPEHOST)}
+    catch {unset env(TAPESIZE)}
+    catch {unset env(STAGEPOLICY)}
+    catch {unset env(TAPE)}
+}
+
+proc checkStagerValues values {
+    global StagerConfigItems
+    set result ""
+    foreach item $StagerConfigItems sb $values {
+        set is [Configuration::get $item]
+        if {$is != $sb} {
+            lappend result [list $item $sb $is]
+        }
+    }
+    if {$result == ""} {
+        set result 1
+    }
+    return $result
+}
+
+proc checkStagerDefaults {} {
+    set stagerDefaults {"" 100 1 StagePolicyFree 0.75 "" ""}
+    return [checkStagerValues $stagerDefaults]
+}
+
+
+
+# setDefaults
+
+tcltest::test StagerConfiguration-1.1 {StagerConfiguration::setDefaults} {
+    global StagerConfigItems
+    global stagerDefaults
+
+
+    StagerConfiguration::setDefaults
+    checkStagerDefaults
+
+} 1
+
+# environmentalOverrides:
+
+tcltest::test StagerConfiguration-2.1 {StagerConfiguration::envOverrides with no env set} {
+
+
+    StagerConfigurationSetup
+    checkStagerDefaults
+
+} 1
+
+tcltest::test StagerConfiguration-2.2 {StagerConfiguration::envOverrides with env set} {
+    global env
+
+    clearStagerEnv
+    set env(TAPEHOST) test.nscl.msu.edu
+    set env(TAPESIZE)  200
+    set env(STAGEPOLICY) testPolicy
+    set env(TAPE)     /dev/mt0
+
+
+
+    StagerConfiguration::setDefaults
+    StagerConfiguration::environmentOverrides
+
+    set values {test.nscl.msu.edu 200 1 testPolicy 0.75 /dev/mt0 ""}
+
+    checkStagerValues $values
+} 1
+
+# Controlling and getting the TapeHost config variable.
+#  Note that you must be able to rsh to localhost for these
+#  tests to pass.
+
+tcltest::test StagerConfiguration-3.1 {StagerConfiguration::tapeHostIs good host} {macOrUnix} {
+    StagerConfigurationSetup
+
+    StagerConfiguration::tapeHostIs localhost
+
+    Configuration::get TapeHost
+
+} localhost
+
+tcltest::test StagerConfiguration-3.2 {StagerConfiguration::tapeHostIs bad host} {} {
+    StagerConfigurationSetup
+
+    if {![catch {StagerConfiguration::tapeHostIs nosuchost.nodomain.none} msg]} {
+        set msg Connected
+    }
+    set msg
+
+
+} {StagerConfiguration::NoRshServer}
+
+tcltest::test StagerConfiguration-3.3 {StagerConfiguration taphost round trip} {macOrUnix} {
+    StagerConfigurationSetup
+
+    StagerConfiguration::tapeHostIs localhost
+    StagerConfiguration::getTapeHost
+} localhost
+
+#  tape capacity configuration testing.
+
+tcltest::test StagerConfiguration-4.1 {StagerConfiguration:: get default capacity} {} {
+    StagerConfigurationSetup
+
+    StagerConfiguration::getTapeCapacity
+} 100
+
+tcltest::test StagerConfiguration-4.2 {StagerConfiguration:: set/get good capacity} {} {
+    StagerConfigurationSetup
+
+    StagerConfiguration::tapeCapacityIs 150
+    StagerConfiguration::getTapeCapacity
+} 150
+
+tcltest::test StagerConfiguration-4.3 {StagerConfiguration:: non integer string for tape capacity} {} {
+    if {! [catch {StagerConfiguration::tapeCapacityIs 150trailingtrash} msg]} {
+        set msg 1
+    }
+    set msg
+} StagerConfiguration::NotInteger
+
+tcltest::test StagerConfiguration-4.4 {StagerConfiguration:: tape capacity too small} {} {
+    if {! [catch {StagerConfiguration::tapeCapacityIs 0} msg]} {
+        set msg 1
+    }
+    set msg
+} StagerConfiguration::TooSmall
+
+# Tape number set/get tests.
+
+tcltest::test StagerConfigurtion-5.1 {StagerConfiguration::tapeNumberIs with ok value} {} {
+    StagerConfigurationSetup
+
+    StagerConfiguration::tapeNumberIs 42
+    Configuration::get TapeNumber
+
+} 42
+
+tcltest::test StagerConfiguration-5.2 {StagerConfiguration::tapeNumberis with noninteger} {} {
+    StagerConfigurationSetup
+
+    if {! [catch {StagerConfiguration::tapeNumberIs 42nogood} msg]} {
+        set msg {bad value was accepted}
+    }
+    set msg
+} StagerConfiguration::NotInteger
+
+tcltest::test StagerConfiguration-5.3 {StagerConfiguration::tapeNumberIs with <1} {} {
+    StagerConfigurationSetup
+
+    if {! [catch {StagerConfiguration::tapeNumberIs 0} msg]} {
+        set msg {0 was accepted}
+    }
+    set msg
+} StagerConfiguration::TooSmall
+
+
+tcltest::test StagerConfiguration-5.4 {StagerConfiguration:: Tape number round trip} {} {
+    StagerConfigurationSetup
+
+    StagerConfiguration::tapeNumberIs 5
+    StagerConfiguration::getTapeNumber
+} 5
+
+tcltest::test StagerConfiguration-5.5 {StagerConfiguration::incrTapeNumber} {} {
+    StagerConfigurationSetup
+
+    StagerConfiguration::tapeNumberIs 5
+    StagerConfiguration::incrTapeNumber
+
+    StagerConfiguration::getTapeNumber
+} 6
+
+#  Stage policy tests.
+
+tcltest::test StagerConfiguration-6.1 {StagerConfiguration::getStagePolicy form default} {} {
+    StagerConfigurationSetup
+
+    StagerConfiguration::getStagePolicy
+
+} StagePolicyFree
+
+tcltest::test StagerConfiguration-6.2 {StagerConfiguration::stagePolicyIsUsed} {} {
+    StagerConfigurationSetup
+
+    StagerConfiguration::stagePolicyIsUsed
+
+    StagerConfiguration::getStagePolicy
+
+} StagePolicyUsed
+
+tcltest::test StagerConfiguration-6.3 {StagerConfiguration::stagerPolicyFree} {} {
+    StagerConfigurationSetup
+
+    #  Need to oscillate since the initial policy is free:
+
+    StagerConfiguration::stagePolicyIsUsed
+    StagerConfiguration::stagePolicyIsFree
+
+    StagerConfiguration::getStagePolicy
+
+} StagePolicyFree
+
+# Stage threshold
+
+tcltest::test StagerConfiguration-7.1 {StagerConfiguration::stageTrhesholdIs good value} {} {
+    StagerConfigurationSetup
+
+    StagerConfiguration::stageThresholdIs 0.5
+
+    Configuration::get StageThreshold
+} 0.5
+
+tcltest::test StagerConfiguration-7.2 {StagerConfiguration::stageThresholdIs non float} {} {
+    StagerConfigurationSetup
+
+    if {! [catch {StagerConfiguration::stageThresholdIs 0.5junk} msg]} {
+        set msg {bad float worked}
+    }
+    set msg
+} StagerConfiguration::NotFloat
+
+tcltest::test StagerConfiguration-7.3 {StagerConfiguration::stageThresholdIs too small} {} {
+     StagerConfigurationSetup
+
+     if {! [catch {StagerConfiguration::stageThresholdIs 0.05} msg]} {
+        set msg {too small ok}
+     }
+     set msg
+} StagerConfiguration::TooSmall
+
+tcltest::test StagerConfiguration-7.4 {StagerConfiguration::stageThresholdIs too big} {} {
+    StagerConfigurationSetup
+
+    if {! [catch {StagerConfiguration::stageThresholdIs 0.91} msg]} {
+        set msg {too big ok}
+    }
+    set msg
+} StagerConfiguration::TooBig
+
+tcltest::test StagerConfiguration-7.5 {StagerConfiguration:: stage threhsold round trip} {} {
+    StagerConfigurationSetup
+
+    StagerConfiguration::stageThresholdIs 0.42
+
+    StagerConfiguration::getStageThreshold
+} 0.42
+
+# Tape drive names. These don't get validated (TODO: could require they be in /dev but even that's dicey).
+
+tcltest::test StagerConfiguration-8.1 {StagerConfiguration::tapeDriveIs} {} {
+    StagerConfigurationSetup
+
+    StagerConfiguration::tapeDriveIs /dev/nrmt0
+
+    Configuration::get TapeDrive
+
+} /dev/nrmt0
+
+tcltest::test StagerConfiguration-8.2 {StagerConfiguration:: round trip tapedrive} {} {
+    StagerConfigurationSetup
+
+    StagerConfiguration::tapeDriveIs /dev/nrst0
+    StagerConfiguration::getTapeDrive
+} /dev/nrst0
+
+# Stage list manipulation...
+
+tcltest::test StagerConfiguration-9.1 {StagerConfiguration::appendStageList good run} {} {
+    StagerConfigurationSetup
+    StagerConfiguration::appendStageList 5
+
+    Configuration::get StageList
+} 5
+
+tcltest::test StagerConfiguration-9.2 {StagerConfiguration::appendStageList noninteger} {} {
+    StagerConfigurationSetup
+    if {! [catch {StagerConfiguration::appendStageList 42mice} msg]} {
+        set msg {non integer ok}
+    }
+    set msg
+} StagerConfiguration::NotInteger
+
+tcltest::test StagerConfiguration-9.3 {StagerConfiguration::appendStageList too small} {} {
+    StagerConfigurationSetup
+    if {! [catch {StagerConfiguration::appendStageList -1} msg]} {
+        set msg {too small ok}
+    }
+    set msg
+} StagerConfiguration::TooSmall
+
+tcltest::test StagerConfiguration-9.4 {StagerConfiguration::appendStageList add multiple} {} {
+    StagerConfigurationSetup
+    StagerConfiguration::appendStageList 1
+    StagerConfiguration::appendStageList 2
+    StagerConfiguration::appendStageList 3
+    StagerConfiguration::appendStageList 73
+
+    Configuration::get StageList
+} {1 2 3 73}
+
+tcltest::test StagerConfiguration-9.5 {StagerConfiguration::clearStageList} {} {
+    StagerConfigurationSetup
+
+    StagerConfiguration::appendStageList 1
+    StagerConfiguration::appendStageList 2
+    StagerConfiguration::appendStageList 3
+    StagerConfiguration::appendStageList 73
+
+    StagerConfiguration::clearStageList
+
+    Configuration::get StageList
+} {}
+
+tcltest::test StagerConfiguration-9.6 {StagerConfiguration::setStageList ok list} {} {
+    StagerConfigurationSetup
+
+    StagerConfiguration::setStageList [list 1 2 3 500]
+
+    Configuration::get StageList
+
+} {1 2 3 500}
+
+tcltest::test StagerConfiguration-9.7 {StagerConfiguration::setStageList list bad element} {} {
+    StagerConfigurationSetup
+
+
+
+    StagerConfiguration::setStageList [list 1 2 3 500]; # start with nonempty good list.
+
+    if {! [catch {StagerConfiguration::setStageList [list 1 3 monkeys zoo]} msg]} {
+        set msg {Bad stage list ok}
+    }
+    list $msg [Configuration::get StageList]
+
+} {StagerConfiguration::InvalidParameter {1 2 3 500}}
+
+
+tcltest::test StagerConfiguration-9.8 {StagerConfiguration::stage list round trip} {} {
+    StagerConfigurationSetup
+
+    StagerConfiguration::setStageList [list 1 3 5 7]
+    StagerConfiguration::getStageList
+} {1 3 5 7}
+tcltest::test StagerConfiguration-9.9 {StagerConfiguration::clearStageList} {} {
+    StagerConfigurationSetup
+
+    StagerConfiguration::setStageList [list 1 3 5 7]
+    StagerConfiguration::clearStageList
+
+    StagerConfiguration::appendStageList 2
+    StagerConfiguration::appendStageList 4
+    StagerConfiguration::appendStageList 6
+    StagerConfiguration::appendStageList 8
+
+    StagerConfiguration::getStageList
+
+} {2 4 6 8}
+
+#  Test appendRetainList
+
+tcltest::test StagerConfiguration-10.0 {StagerConfiguration::appendRetainList ok run} {
+    StagerConfigurationSetup
+
+    StagerConfiguration::appendRetainList 5
+
+    set result $configuration::RetainedList
+} 5

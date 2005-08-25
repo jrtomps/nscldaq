@@ -1,0 +1,45 @@
+# Tests for the InstallRoot package.
+
+set here [file dirname [info script]]
+
+# starting to just get too tough to do this without
+# packaging:
+
+set auto_saved $auto_path
+lappend auto_path $here
+if {[file exists pkgIndex.tcl]} {
+    file delete              pkgIndex.tcl.saved
+    file rename pkgIndex.tcl pkgIndex.tcl.saved
+}
+pkg_mkIndex . *.tcl
+
+package require InstallRoot
+
+
+
+tcltest::test InstallRoot-1.0 {InstallRoot::Where} {
+    set root [InstallRoot::Where]
+    set here [file dirname [info script]]
+    set wd   [pwd]
+    cd        ..
+    set up1  [pwd]
+    cd $wd
+
+    string compare $root $up1
+} 0
+
+# Cleanup
+
+file delete pkgIndex.tcl
+if {[file exists pkgIndex.tcl.saved]} {
+    file rename pkgIndex.tcl.saved pkgIndex.tcl
+}
+
+unset env(EVENTS)
+unset env(EXPDIR)
+
+set auto_path $auto_saved
+
+package forget InstallRoot
+
+tcltest::cleanupTests

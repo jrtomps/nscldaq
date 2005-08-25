@@ -18,27 +18,68 @@ install-exec-local:
 	./installpkg $(prefix)
 
 
-EXTRA_DIST =  Experiment.tcl \
+EXTRA_DIST = Configuration.tcl \
+	DAQParameters.tcl \
+	ExpFileSystemConfig.tcl \
+	Experiment.tcl \
 	GetTapeDrive.tcl \
+	InitializeConfiguration.tcl \
+	InstallRoot.tcl \
 	KeeplistGui.tcl \
 	OS.tcl \
+	ReadougGUIPanel.tcl \
+	ReadougGUIPanel.ui \
+	ReadougGUIPanel_ui.tcl \
 	ReadoutControl.tcl \
 	ReadoutGui.tcl \
 	ReadoutShell.tcl \
+	ReadoutState.tcl \
 	RemoteInfo.tcl \
 	Retain.tcl \
 	RunReadout.sh \
+	ScalerParameterGUI.tcl \
 	SetStagePolicy.tcl \
 	StagePolicy.tcl \
 	StagePolicyFree.tcl \
 	StagePolicyUsed.tcl \
 	Stager.tcl \
+	StagerConfiguration.tcl \
 	StagerGui.tcl \
 	UniqueInstance.tcl \
+	build.sh \
+	daqparameters.test \
 	directories.tcl \
+	directories.test \
+	experiment.test \
+	filesystem.test \
+	initconfig.test \
+	installpkg \
+	installroot.test \
+	keeplistDialog.tcl \
+	keeplistDialog.ui \
+	keeplistDialog_ui.tcl \
+	keeplisttest.tk \
+	ostest.test \
+	readoutcontrol.test \
+	readoutguitest.tk \
+	retain.test \
 	rsh.tcl \
-	warning.tcl \
-	installpkg
+	scalerParameterDialog.tcl \
+	scalerParameterDialog.ui \
+	scalerParameterDialog_ui.tcl \
+	scalerparametergui.tk \
+	selectReadout.tcl \
+	selectReadout.ui \
+	selectReadoutDialog.tcl \
+	selectReadout_ui.tcl \
+	selectreadoutest.tk \
+	stagerconfiguration.test \
+	stagertests.test \
+	system.test \
+	testrunner.tk \
+	tests.test \
+	warning.tcl 
+
 
 bin_PROGRAMS =  SecretTk
 

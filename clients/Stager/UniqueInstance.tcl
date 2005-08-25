@@ -11,7 +11,7 @@
 #                   otherwise creates the file containing
 #                   pid@host and returns 1 if sucessful.
 #      IsMe   App - Invokes Unique.  If the return value is 0,
-#                   indicating the lock file exists, 
+#                   indicating the lock file exists,
 #                      returns 0 if the contents of the lock
 #                      file are pid@host otherwise return 0.
 #                    If the return value from Unique is 1
@@ -19,12 +19,12 @@
 #     WhoElse App - Returns the contents of the lock file if
 #                   if it exists or errors if not.
 #     Exit    App - If IsMe removes the lock file and exits.
-#                   Applications using UniqueInstance should 
-#                   use Exit rather than exit in order to 
+#                   Applications using UniqueInstance should
+#                   use Exit rather than exit in order to
 #                   clean up the lockfile.
 #
 package provide UniqueInstance 1.0
-package require Wait
+# package require Wait
 namespace eval UniqueInstance {
     variable home
     #   Constructs the lock file name:
@@ -69,12 +69,12 @@ namespace eval UniqueInstance {
 	}
     }
     #
-    #  See header comments: indicates who else is running this 
+    #  See header comments: indicates who else is running this
     #  Application.
     #
     proc WhoElse {App} {
 	set lockfile [LockFile $App]
-	set fd [open $lockfile r] 
+	set fd [open $lockfile r]
 	set contents [read $fd]
 	close $fd
 	return $contents
@@ -83,10 +83,8 @@ namespace eval UniqueInstance {
     #  exits.
 
     proc Exit {App {from "unknown"}} {
-	puts "UniqueInstance::Exit $App at $from"
 	set lockfile [LockFile $App]
 	file delete $lockfile
-	puts "Exiting"
 	# catch Wait
 	exit
     }
@@ -101,4 +99,4 @@ set UniqueInstance::home $env(HOME)
 
 
 
- 
+
