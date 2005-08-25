@@ -470,3 +470,5 @@ August 23, 2005
        about WienerUSB and WienerVME interfaces in particular, as these
        will both benefit from amortizing the transfer count over a single
        driver operation.
+August 25, 2005 
+     - Completed re-do of directory subsystem and readout gui.
