@@ -475,3 +475,5 @@ August 25, 2005
      - Port in fixes to event log (crash if 1'st buffer not begin) from 8.0
      - Port in fixes to (HP)Production readout (1'st event buffer has
        incorrect sequence if empty event buffer avail on end of prior run).
+September 2, 2005
+     - Adopt simplified license text.

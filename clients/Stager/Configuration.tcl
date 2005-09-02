@@ -118,7 +118,8 @@ proc Configuration::writeConfigFile channel {
     foreach var $names {
         set value [set $var]
         set list [split $var :]
-        set varname [lindex [split $var :] 4]
+        set varname [lrange [split $var :] 4 end]
+	set varname [join $varname ::]
         puts $channel [list set $varname $value]
     }
 }
