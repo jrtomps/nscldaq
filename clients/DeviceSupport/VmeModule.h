@@ -315,7 +315,7 @@ class CVmeModule
   };
 
 private:
-#ifdef HAVE_WIENERVME_INTERFACE
+#if defined(HAVE_WIENERVME_INTERFACE) || defined(HAVE_WIENERUSBVME_INTERFACE)
    Space  m_nSpace;
    UInt_t m_nBase;
    UInt_t m_nLength;
@@ -345,7 +345,7 @@ private:
 
   // Mutator function
 
-#ifndef HAVE_WIENERVME_INTERFACE
+#if defined(HAVE_WIENERVME_INTERFACE) || (HAVE_WIENERVME_INTERFACE)
  protected:
   void setCVME(CVME<UShort_t> aCVME)
     {

@@ -284,6 +284,10 @@ DAMAGES.
 #include <WienerAPI.h>
 #endif
 
+#ifdef HAVE_WIENERUSBVME_INTERFACE
+#include <WienerUSBVMEInterface.h>
+#endif
+
 #include <string>
 #include <stdio.h>
 #include <string.h>
@@ -902,6 +906,10 @@ CCAENV830::ReadEvent(void * pBuffer)
 #ifdef HAVE_WIENERVME_INTERFACE
     void* pHandle = m_pModule->getDriver();
     WienerVMEInterface::ReadLongs(pHandle, m_nBase, pBuffer, m_nEventLength);
+#endif
+#ifdef HAVE_WIENERUSBVME_INTERFACE
+    void *pHandle = m_pModule->getDriver();
+    WienerUSBVMEInterface::ReadLongs(pHandle, m_nBase, pBuffer, m_nEventLength);
 #endif
 #ifdef HAVE_VME_MAPPING		// Can't be wiener.
     unsigned long* p((unsigned long*) pBuffer);

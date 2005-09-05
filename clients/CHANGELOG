@@ -479,3 +479,5 @@ September 2, 2005
      - Adopt simplified license text.
 Septemeber 5, 2005
      - Use -device standard not -device /dev/... for caennet.tcl
+     - Integrate the Wiener VM-USB driver support. 
+     - Add the Wiener USB discovery/permission setting Daemon.

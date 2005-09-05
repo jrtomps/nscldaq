@@ -304,6 +304,11 @@ static const char* Copyright= "(C) Copyright Michigan State University 2002, All
 #include <WienerAPI.h>
 #endif
 
+#ifdef HAVE_WIENERUSBVME_INTERFACE
+#include <CVMEInterface.h>
+#include <WienerUSBVMEInterface.h>
+#endif
+
 #include <string>
 
 #ifdef HAVE_STD_NAMESPACE
@@ -317,7 +322,7 @@ using namespace std;
    
 */
 static const
-#ifdef HAVE_WIENERVME_INTERFACE
+#if  defined(HAVE_WIENERVME_INTERFACE) || defined (HAVE_WIENERUSBVME_INTERFACE)
 CVMEInterface::AddressMode AmodTable[] = {
    CVMEInterface::A16,
    CVMEInterface::A24,
@@ -352,7 +357,7 @@ CVME<UShort_t>::VmeSpace AmodTable[] = {
 */
 CVmeModule::CVmeModule(CVmeModule::Space space, UInt_t base, 
 		       UInt_t length, int nCrate)
-#ifdef HAVE_WIENERVME_INTERFACE
+#if defined(HAVE_WIENERVME_INTERFACE) || defined(HAVE_WIENERUSBVME_INTERFACE)
    :  m_nSpace(space),
       m_nBase(base),
       m_nLength(length),
@@ -360,7 +365,7 @@ CVmeModule::CVmeModule(CVmeModule::Space space, UInt_t base,
       m_pDriver(0)
 #endif
 {
-#ifdef HAVE_WIENERVME_INTERFACE
+#if defined(HAVE_WIENERVME_INTERFACE) || defined(HAVE_WIENERUSBVME_INTERFACE)
    m_pDriver = CVMEInterface::Open(AmodTable[space], m_nCrate);
 #else
   try {
@@ -443,7 +448,7 @@ CVmeModule::operator=(const CVmeModule& aCVmeModule)
 int
 CVmeModule::operator== (const CVmeModule& aCVmeModule)
 {
-#ifdef HAVE_WIENERVME_INTERFACE
+#if defined(HAVE_WIENERVME_INTERFACE) || defined(HAVE_WIENERUSBVME_INTERFACE)
   return ((m_nSpace == aCVmeModule.m_nSpace)      &&
           (m_nBase  == aCVmeModule.m_nBase)       &&
 	  (m_nLength== aCVmeModule.m_nLength)     &&
@@ -476,6 +481,13 @@ CVmeModule::peekb(UInt_t offset)
 				 &byte, 1);
    return byte;
 #endif
+#ifdef  HAVE_WIENERUSBVME_INTERFACE
+   UChar_t byte;
+   WienerUSBVMEInterface::ReadBytes(m_pDriver,
+				   m_nBase + offset,
+				   &byte, 1);
+   return byte;
+#endif
 #ifdef HAVE_VME_MAPPING
    return (UChar_t)((m_CVME.asChar())[offset]);
 #endif
@@ -502,6 +514,14 @@ CVmeModule::peekw(UInt_t offset)
    WienerVMEInterface::ReadWords(m_pDriver, 
 				 m_nBase + offset * sizeof(UShort_t), 
 				 &word, 1);
+   return word;
+#endif
+
+#ifdef HAVE_WIENERUSBVME_INTERFACE
+   UShort_t word;
+   WienerUSBVMEInterface::ReadWords(m_pDriver,
+				    m_nBase + offset * sizeof(UShort_t),
+				    &word, 1);
    return word;
 #endif
 
@@ -535,6 +555,14 @@ CVmeModule::peekl(UInt_t offset)
    return lword;
 #endif
 
+#ifdef HAVE_WIENERUSBVME_INTERFACE
+   ULong_t lword;
+   WienerUSBVMEInterface::ReadLongs(m_pDriver,
+				    m_nBase + offset * sizeof(UInt_t),
+				    &lword, 1);
+   return lword;
+#endif
+
 #ifdef HAVE_VME_MAPPING
    return (ULong_t)((m_CVME.asLong())[offset]);
 #endif
@@ -557,8 +585,13 @@ void
 CVmeModule::pokeb(UChar_t byte, UInt_t nOffset)
 {
 #ifdef HAVE_WIENERVME_INTERFACE
-   WienerVMEInterface::ReadBytes(m_pDriver, m_nBase + nOffset,
+   WienerVMEInterface::WriteBytes(m_pDriver, m_nBase + nOffset,
 			&byte, 1);
+#endif
+
+#ifdef HAVE_WIENERUSBVME_INTERFACE
+   WienerUSBVMEInterface::WriteBytes(m_pDriver, m_nBase + nOffset,
+				     &byte, 1);
 #endif
 
 #ifdef HAVE_VME_MAPPING
@@ -588,6 +621,12 @@ CVmeModule::pokew(UShort_t word, UInt_t nOffset)
 				  &word, 1);
 #endif
 
+#ifdef HAVE_WIENERUSBVME_INTERFACE
+   WienerUSBVMEInterface::WriteWords(m_pDriver,
+				     m_nBase + nOffset*sizeof(UShort_t),
+				     &word, 1);
+#endif
+
 #ifdef HAVE_VME_MAPPING
     (m_CVME.asShort())[nOffset] = word;
 #endif
@@ -615,6 +654,12 @@ CVmeModule::pokel(ULong_t lword, UInt_t nOffset)
 				 &lword, 1);
 #endif
 
+#ifdef HAVE_WIENERUSBVME_INTERFACE
+   WienerUSBVMEInterface::WriteLongs(m_pDriver,
+				     m_nBase + nOffset * sizeof(ULong_t),
+				     &lword, 1);
+#endif
+
 #ifdef HAVE_VME_MAPPING
    (m_CVME.asLong())[nOffset] = lword;
 #endif 
@@ -625,7 +670,7 @@ CVmeModule::pokel(ULong_t lword, UInt_t nOffset)
 void
 CVmeModule::CopyToMe(const CVmeModule& rModule)
 {
-#ifdef HAVE_WIENERVME_MAPPING
+#if defined(HAVE_WIENERVME_INTERFACE) || defined(HAVE_WIENERUSBVME_INTERFACE)
    m_nSpace = rModule.m_nSpace;
    m_nBase  = rModule.m_nBase;
    m_nLength= rModule.m_nLength;
@@ -669,15 +714,20 @@ CVmeModule::readl(void* pBuffer, UInt_t nOffset, size_t longs)
     *pDest++ = *pSource++;
   }
   return longs;
-#else
-#  ifdef HAVE_WIENERVME_INTERFACE
-  return WienerVMEInterface::ReadWords(m_pDriver,
+#endif
+
+#ifdef HAVE_WIENERVME_INTERFACE
+  return WienerVMEInterface::ReadLongs(m_pDriver,
 				       m_nBase + nOffset*sizeof(ULong_t),
 				       pBuffer, longs);
-#  else
-  return 0;			// There is no VME interface.
-#  endif
 #endif
+
+#ifdef HAVE_WIENERUSBVME_INTERFACE
+  return WienerUSBVMEInterface::ReadLongs(m_pDriver,
+					  m_nBase + nOffset*sizeof(ULong_t),
+					  pBuffer, longs);
+#endif
+
 }
 
 /*!
@@ -711,14 +761,16 @@ CVmeModule::readw(void* pBuffer, UInt_t nOffset, size_t words)
     *pDest++ = *pSource++;
   }
   return words;
-#else
-#  ifdef HAVE_WIENERVME_INTERFACE
+#endif
+#ifdef HAVE_WIENERVME_INTERFACE
   return WienerVMEInterface::ReadWords(m_pDriver,
 				       m_nBase + nOffset*sizeof(UShort_t),
 				       pBuffer, words);
-#  else
-  return 0;			// There is no VME interface.
-#  endif
+#endif
+#ifdef HAVE_WIENERUSBVME_INTERFACE
+  return WienerUSBVMEInterface::ReadWords(m_pDriver,
+					  m_nBase + nOffset*sizeof(UShort_t),
+					  pBuffer, words);
 #endif
 }
 
@@ -753,15 +805,20 @@ CVmeModule::readb(void* pBuffer, UInt_t nOffset, size_t bytes)
     *pDest++ = *pSource++;
   }
   return bytes;
-#else
-#  ifdef HAVE_WIENERVME_INTERFACE
+#endif
+#ifdef HAVE_WIENERVME_INTERFACE
   return WienerVMEInterface::ReadBytes(m_pDriver,
 				       m_nBase + nOffset,
 				       pBuffer, bytes);
-#  else
-  return 0;			// There is no VME interface.
-#  endif
 #endif
+
+#ifdef HAVE_WIENERUSBVME_INTERFACE
+  return WienerUSBVMEInterface::ReadBytes(m_pDriver,
+					  m_nBase + nOffset,
+					  pBuffer, bytes);
+#endif
+
+
 }
 
 

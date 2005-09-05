@@ -300,6 +300,9 @@ DAMAGES.
 /*  
    Change log:
     $Log$
+    Revision 8.3  2005/09/05 19:22:30  ron-fox
+    Add support for the Wiener/Jtec VM-USB interface
+
     Revision 8.2  2005/06/24 11:30:38  ron-fox
     Bring the entire world onto the 8.2 line
 
@@ -364,7 +367,8 @@ class CCaenIO : public CVmeModule
 
   // Default constructor
   CCaenIO(UInt_t base, int nCrate = 0);
-#ifndef HAVE_WIENERVME_INTERFACE
+#if defined(HAVE_WIENERVME_INTERFACE) || defined(HAVE_WIENERUSBVME_INTERFACE)
+#else
   CCaenIO(CVME<UShort_t>& am_CVME);
 #endif
   // Copy constructor

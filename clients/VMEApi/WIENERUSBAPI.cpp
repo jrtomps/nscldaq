@@ -46,7 +46,7 @@ static const int   ENDPOINT_IN(0x86); // Inbound endpoint.
 
 // Constants to help construct the stack:
 
-static const unsigned int   STACK_MAXIMMEDIATE(7); // Maximum transfers safe in an
+static const unsigned int   STACK_MAXIMMEDIATE(1); // Maximum transfers safe in an
 
    
                                                // immediate stack.
@@ -282,6 +282,27 @@ void
 CVMEInterface::Unmap(void* handle, void* p, unsigned long bytes)
 {
   throw string("Wiener VC_USB does not support memory mapped I/O");
+}
+/*!
+   Read a block (of bytes), from the VME.  This is just a jacket
+   for WienerUSBVMEInterface::ReadBytes().
+*/
+int
+CVMEInterface::Read(void* pHandle, unsigned long nOffset,
+		    void* pBuffer, unsigned long nBytes)
+{
+  return WienerUSBVMEInterface::ReadBytes(pHandle, nOffset,
+					   pBuffer, nBytes);
+}
+/*!
+   Write a block of bytes to the vme.  This is just a thin jacket for
+   WienerUSBVMEInterface::WriteBytes()
+*/
+int
+CVMEInterface::Write(void* pHandle, unsigned long nOffset,
+		     void* pBuffer, unsigned long nBytes)
+{
+  return WienerUSBVMEInterface::WriteBytes(pHandle, nOffset, pBuffer, nBytes);
 }
 
 // Interface specific functions.

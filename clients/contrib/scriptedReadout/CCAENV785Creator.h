@@ -321,7 +321,7 @@ class CCAENV785Creator  : public CModuleCreator
 public:
 	//   Constructors and other cannonical operations.
 	
-  CCAENV785Creator (const string recognize="caenv785");
+  CCAENV785Creator (const char* recognize="caenv785");
   ~CCAENV785Creator ( );
   CCAENV785Creator (const CCAENV785Creator& aCCAENV785Creator );
   CCAENV785Creator& operator= (const CCAENV785Creator& aCCAENV785Creator);

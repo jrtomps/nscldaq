@@ -300,7 +300,7 @@ using namespace std;
     to do base class construction, specifying our keyword as "caenv785"
     
 */
-CCAENV785Creator::CCAENV785Creator (const string recognize) :
+CCAENV785Creator::CCAENV785Creator (const char* recognize) :
 	CModuleCreator(recognize)
 {   
     
