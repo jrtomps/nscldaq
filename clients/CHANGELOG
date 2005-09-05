@@ -477,3 +477,5 @@ August 25, 2005
        incorrect sequence if empty event buffer avail on end of prior run).
 September 2, 2005
      - Adopt simplified license text.
+Septemeber 5, 2005
+     - Use -device standard not -device /dev/... for caennet.tcl
