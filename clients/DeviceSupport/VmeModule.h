@@ -345,7 +345,7 @@ private:
 
   // Mutator function
 
-#if defined(HAVE_WIENERVME_INTERFACE) || (HAVE_WIENERVME_INTERFACE)
+#if defined(HAVE_WIENERVME_INTERFACE) || defined(HAVE_WIENERUSBVME_INTERFACE)
 
  protected:
   void setDriver(void* pDriver) {
