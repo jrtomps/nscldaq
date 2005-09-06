@@ -481,3 +481,6 @@ Septemeber 5, 2005
      - Use -device standard not -device /dev/... for caennet.tcl
      - Integrate the Wiener VM-USB driver support. 
      - Add the Wiener USB discovery/permission setting Daemon.
+September 6, 2005
+     - Fix minor issues when building for mapped vme interface.
+     - Add support for CAEN V560 scaler module.

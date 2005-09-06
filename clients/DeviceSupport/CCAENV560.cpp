@@ -273,131 +273,264 @@ THIRD PARTIES OR A FAILURE OF THE PROGRAM TO OPERATE WITH ANY OTHER PROGRAMS),
 EVEN IF SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH 
 DAMAGES.
 
-		     END OF TERMS AND CONDITIONS '
+		     END OF TERMS AND CONDITIONS
 */
-/*!
-  \class CVmeModule
-  \file CVmeModule.h
+#include <config.h>
+#include "CCAENV560.h"
+#include "CCAENV560Registers.h"
+#include <CVMEInterface.h>
+#include <string>
+#include <stdio.h>
+#include <string.h>
 
-  Encapsulates a Vme module object. CVmeModules have access to
-  memory which is mapped via the mmap(3) system service using 
-  the CVME and CVMEptr objects. CVmeModules can write to and read 
-  from these registers using poke and peek operations, respectively.
-
-  \note
-        While this module is not final, the data transfer methods are
-       not virtual
-
-  Author:
-     Jason Venema
-     NSCL
-     Michigan State University
-     East Lansing, MI 48824-1321
-     mailto: venemaja@msu.edu
-*/
-
-#ifndef __VMEMODULE_H
-#define __VMEMODULE_H
-
-#ifndef __CVME_H
-#include <CVME.h>
+#ifdef HAVE_STD_NAMESPACE
+using namespace std;
 #endif
 
-class CVmeModule
+
+// The 'macros' below are used to do structure like offsets
+// using the register structure through VmeModule:
+//
+#define SOffset(s,field) (((unsigned int)&(((s*)0)->field))/sizeof(short))
+#define LOffset(s,field) (((unsigned int)&(((s*)0)->field))/sizeof(long))
+#define GetShort(field) (m_pModule->peekw(SOffset(CAENV560Registers,field)))
+#define GetLong(field)  (m_pModule->peekl(LOffset(CAENV560Registers,field)))
+#define PutShort(field,value) (m_pModule->pokew((value),  \
+                                  SOffset(CAENV560Registers,field)))
+#define PutLong(field,value)  (m_pModule->pokel((value), \
+                                  LOffset(CAENV560Registers,field)))
+
+
+static const unsigned short Manufacturer(2);
+static const unsigned short ModelNumber(0x18);
+static const unsigned short FixedCode(0xfaf5);
+
+static inline void ThrowIntString(char* formatstring, int value) 
+  throw (string)
 {
- public:
-  enum Space {
-    a16d16 = 0,
-    a24d16 = 1,
-    a24d32 = 2,
-    a32d32 = 3,
-    geo    = 4
-  };
-
-private:
-#if defined(HAVE_WIENERVME_INTERFACE) || defined(HAVE_WIENERUSBVME_INTERFACE)
-   Space  m_nSpace;
-   UInt_t m_nBase;
-   UInt_t m_nLength;
-   Int_t  m_nCrate;
-   void*  m_pDriver;
-#endif
-#ifdef HAVE_VME_MAPPING
-  CVME<UShort_t> m_CVME;  // the CVME map to the module
-#endif
-
- public:
-  // Default constructors
-  CVmeModule(Space space, UInt_t base, UInt_t length, int nCrate = 0);
-  // CVmeModule(CVME<UShort_t>& am_CVME);
-  
-  // Copy Constructor
-  CVmeModule(const CVmeModule& aCVmeModule);
-
-  // Destructor
-  virtual ~CVmeModule() {}
-
-  // Operator= assignment operator
-  CVmeModule& operator= (const CVmeModule& aCVmeModule);
-
-  // Operator== equality operator
-  int operator== (const CVmeModule& aCVmeModule);
-
-  // Mutator function
-
-#if defined(HAVE_WIENERVME_INTERFACE) || (HAVE_WIENERVME_INTERFACE)
-
- protected:
-  void setDriver(void* pDriver) {
-    m_pDriver = pDriver;
+  char msg[strlen(formatstring) + 100];
+  sprintf(msg, formatstring, value);
+  throw string(msg);
+}
+static inline void ThrowIfBadChannel(const char* pFunction,
+				   int nChannel)  throw (string)
+{
+  char* pFmtString=
+    "CCAENV560::%s Invalid channel must be in [0,15] %d";
+  if( (nChannel < 0) || (nChannel > 15)) {
+    char msg[100 + strlen(pFunction) + strlen(pFmtString)];
+    sprintf(msg, pFmtString, pFunction, nChannel);
+    throw string(msg);
   }
- public:
-  void* getDriver() {
-    return m_pDriver;
+}
+static inline void ThrowIfBadSection(const char* pFunction,
+	       			   int nSection) throw (string)
+{
+   char* pFmtString=
+     "CCAENV560::%s Invalid section must be in [0,7] %d";
+   if( (nSection < 0) || (nSection > 7)) {
+     char msg[100 + strlen(pFunction) + strlen(pFmtString)];
+     sprintf(msg, pFmtString, pFunction, nSection);
+     throw string(msg);
+   }
+}
+/*!
+    Make a new CCAENV560 module.  This involves:
+    - Mapping the proposed module.
+    - Ensuring the module is a V560.
+    - Initializing the module to a known initial state.
+   \param base (in):
+      The module base address as set in it's rotary switches.
+   \param crate (in):
+      The VME crate the module lives in.  This defaults to zero.
+
+\note  - The parameter order changed from the original KSU
+         contribution because you ought to be able to 
+         construct without a crate number if you are in crate 0...
+	 and the base should not be optional.
+
+*/
+CCAENV560::CCAENV560(unsigned long base, int crate) 
+  throw (string) :
+  m_nCrate(crate),
+  m_nBase(base),
+  m_pModule(0)
+{
+  try {
+    MapModule();		// Access the module.
+    InitModule();		// Setup initial module state.
+  } catch (...) {
+    delete m_pModule;		// Prevent leakage...
+    throw;			// But let the exception propagate.
   }
-#endif
 
-#ifdef HAVE_VME_MAPPING
- protected:
-  void setCVME(CVME<UShort_t> aCVME)
-    {
-      m_CVME = aCVME;
-    }
+}
+/*!
+   Destroy a VME module; the address map created is deleted.
+*/
+CCAENV560::~CCAENV560()
+{
+  UnmapModule();		// Destroy mapping info.
+}
+
+// Functions that operate on the module:
 
 
-  CVME<UShort_t> getCVME() const
-    {
-      return m_CVME;
-    }
 
-#endif
+// Utility functions:
 
-  // Public member functions
-public:
-  UChar_t peekb(UInt_t offset=0);
-  UShort_t peekw(UInt_t offset=0);
-  ULong_t peekl(UInt_t offset=0);
-  void pokeb(UChar_t byte, UInt_t nOffset);
-  void pokew(UShort_t word, UInt_t nOffset);
-  void pokel(ULong_t lword, UInt_t nOffset);
+/*!
+   Get the scale status (bit=0, two 32-bit scales, bit=1, one 64 bit) of 
+   one of the 8 sections of the module; each representing a pair of scalers.
+   \param nSection (in):
+      Number of section to check status of [0-7].
+*/
+bool
+CCAENV560::GetSectStat(int nSection) throw (string)
+{
+  ThrowIfBadSection("GetSectStat", nSection);
+  short nStat  = GetShort(SSsr);
+  return ((nStat & SSRMask[nSection]) != 0);
+}
+
+/*!  
+  Increment all counters by 1. Simple VME access (r or w) to address.
+ */
+void
+CCAENV560::ScalInc()
+{
+  short nDummy = GetShort(SInc);
+}
+
+/*!
+  Set the VME VETO, preventing counters from counting. Simple VME access.
+*/
+void
+CCAENV560::SetVeto()
+{
+  short nDummy = GetShort(VMEVS);
+}
+
+/*!
+  Reset (clear) the VME VETO, allowing the counters to count.  Simple VME
+  access.
+*/
+void
+CCAENV560::ResetVeto() 
+{
+  short nDummy = GetShort(VMEVR);
+}
+
+/*!
+   Clear all scalers, remove VME interrupt request if asserted, disable VME
+   interrupt generation.  Simple VME access.
+*/
+void
+CCAENV560::Clear()
+{
+  short nDummy = GetShort(SClear);
+}
+
+
+/*!
+   Get latched status of VETO from last counter read
+*/
+bool
+CCAENV560::GetVetoStat()
+{
+  return (Vetostat(GetShort(Ilvr)) != 0);
+}
+
+/*!
+   Map the vme module.  This involves:
+   - Creating a CVmeModule object after validating the crate number.
+   - Retrieving the following information from the module:
+     #  Module type
+     #  Module serial number
+     #  Module version
+
+*/
+void
+CCAENV560::MapModule() throw (string)
+{
+  // Validate the member data:
+
+  if(m_nCrate < 0) {
+    ThrowIntString("CCAENV560::MapCard - invalid crate %d",
+		   m_nCrate);
+  }
   
-  UInt_t readl(void* pBuffer, UInt_t nOffset, size_t longs);
-  UInt_t readw(void* pBuffer, UInt_t nOffset, size_t words);
-  UInt_t readb(void* pBuffer, UInt_t nOffset, size_t bytes);
+
+  // Now create the 'permanent' register map.
   
- 
- // Utility:
-protected:
-   void CopyToMe(const CVmeModule& rModule);
-};
+  m_pModule = new CVmeModule(CVmeModule::a32d32,
+			     m_nBase,
+			     sizeof(CAENV560Registers),
+			     m_nCrate);
 
-#endif
+  // Ensure that this module is really a V560:
+  // by requiring the fixed code and correct mfrmod register
+  //
+  m_nModuleType = MIModTyp(GetShort(Mfrmod));
+  unsigned short mfgr  = MIMfrNo(GetShort(Mfrmod));
+  unsigned short fCode = GetShort(FCode);
 
+  if ((m_nModuleType != ModelNumber)   ||
+      (mfgr          != Manufacturer)  ||
+      (fCode         != FixedCode)) {
+    delete m_pModule;
+    ThrowIntString("CCAENV560::MapCard - Module at base %x not a CAEN V560",
+		   m_nBase);
+  }
+  // Store the rest of the stuff away.. we can no longer fail.
 
+  m_nSerialno = MISN(GetShort(VerSN));
+  m_nVersion  = MIVer(GetShort(VerSN));
 
+}
+/*!
+   Setup the initial module state.  The default setup is:
+   - Veto is set (counting is disabled).
+   - Clear all counters, clear and disable interrupt generation.
+*/
+void
+CCAENV560::InitModule()
+{
+  // Set module to power up settings (disable counting), and clear the data
 
+  SetVeto();
+  Clear();
 
-
-
-
-
+}
+/*!
+  Destroy any memory map held on the module:
+*/
+void
+CCAENV560::UnmapModule()
+{
+  delete m_pModule;
+  m_pModule = 0;
+}
+/*!
+   Read an individual instantaneous scaler channel.
+   \param nChannel (int in):
+      Number of channel to read must be in the range [0,15].
+   \return int
+      Instantaneous value of the counter for the selected channel.
+   \throw string
+      If nChannel is invalid, an explanatory string exception
+      is thrown.
+*/
+int
+CCAENV560::ReadCounter(int nChannel) throw(string)
+{
+  if((nChannel < 0) || (nChannel > 15)) {
+    char text[1000];
+    string msg;
+    sprintf(text, "Invalid channel %d (must be in [0,15] in %s\n",
+	    nChannel, "CCAENV560::ReadCounter");
+    msg = text;
+    throw msg;
+  }
+  return GetLong(Counters[nChannel]);
+}

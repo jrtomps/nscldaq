@@ -273,131 +273,132 @@ THIRD PARTIES OR A FAILURE OF THE PROGRAM TO OPERATE WITH ANY OTHER PROGRAMS),
 EVEN IF SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH 
 DAMAGES.
 
-		     END OF TERMS AND CONDITIONS '
+		     END OF TERMS AND CONDITIONS
 */
-/*!
-  \class CVmeModule
-  \file CVmeModule.h
 
-  Encapsulates a Vme module object. CVmeModules have access to
-  memory which is mapped via the mmap(3) system service using 
-  the CVME and CVMEptr objects. CVmeModules can write to and read 
-  from these registers using poke and peek operations, respectively.
+#ifndef __CCAENV560_H
+#define __CCAENV560_H
 
-  \note
-        While this module is not final, the data transfer methods are
-       not virtual
+#ifndef __STL_STRING
+#include <string>
+#define __STL_STRING
+#endif
 
-  Author:
-     Jason Venema
-     NSCL
-     Michigan State University
-     East Lansing, MI 48824-1321
-     mailto: venemaja@msu.edu
-*/
+#ifndef __SPECTRODAQ_H
+#include <spectrodaq.h>
+#endif
 
 #ifndef __VMEMODULE_H
-#define __VMEMODULE_H
-
-#ifndef __CVME_H
-#include <CVME.h>
+#include <VmeModule.h>
 #endif
 
-class CVmeModule
+
+// Forward definitions:
+
+
+
+/*!
+   Encapsulates the readout driver for a CCAENV560 scaler.
+   This class was contributed by Kevin Carnes, Kansas State University.
+   Only minor modifications have been made from the original.
+   I believe that due to the use of the CVmeModule abstraction of the VME,
+   this should be vme bus controller inependent.
+
+   Summary of changes at the NSCL:
+    - Reversed the order of the parameters to the constructor to allow
+      construction without specifying a vme crate if crate 0 is desired,
+      and to require a base address.
+    - Removed the functions that control/examine the module interrupts as
+      these are irrelevant in the way the module is used in the NSCLDAQ.
+      Functions removed are:
+\verbatim
+  void EnableInt(int nSection) throw (STD(string));
+  void DisableInt(int nSection) throw (STD(string));
+  bool GetInt(int nSection) throw (STD(string)); 
+  void ClearInt();
+  void EnableVMEInt();
+  void DisableVMEInt();
+  void SetIntLevel(short nLevel);
+  short GetIntLevel();
+  void SetIntVec(short nVector);
+  short GetIntVec();
+\endverbatim
+
+      - Attempt to catch incorrect module errors by checking for
+        fixed code and manufacturer model no. register correctness.
+
+*/
+
+class CCAENV560
 {
- public:
-  enum Space {
-    a16d16 = 0,
-    a24d16 = 1,
-    a24d32 = 2,
-    a32d32 = 3,
-    geo    = 4
-  };
 
+  // Class data.
 private:
-#if defined(HAVE_WIENERVME_INTERFACE) || defined(HAVE_WIENERUSBVME_INTERFACE)
-   Space  m_nSpace;
-   UInt_t m_nBase;
-   UInt_t m_nLength;
-   Int_t  m_nCrate;
-   void*  m_pDriver;
-#endif
-#ifdef HAVE_VME_MAPPING
-  CVME<UShort_t> m_CVME;  // the CVME map to the module
-#endif
-
- public:
-  // Default constructors
-  CVmeModule(Space space, UInt_t base, UInt_t length, int nCrate = 0);
-  // CVmeModule(CVME<UShort_t>& am_CVME);
+  int                m_nCrate;
+  int                m_nBase;	     // Module base address.  
+  CVmeModule*        m_pModule;
+  int                m_nModuleType;
+  int                m_nSerialno;
+  int                m_nVersion;
   
-  // Copy Constructor
-  CVmeModule(const CVmeModule& aCVmeModule);
+  // Constructors and other canonical operations:
 
-  // Destructor
-  virtual ~CVmeModule() {}
-
-  // Operator= assignment operator
-  CVmeModule& operator= (const CVmeModule& aCVmeModule);
-
-  // Operator== equality operator
-  int operator== (const CVmeModule& aCVmeModule);
-
-  // Mutator function
-
-#if defined(HAVE_WIENERVME_INTERFACE) || (HAVE_WIENERVME_INTERFACE)
-
- protected:
-  void setDriver(void* pDriver) {
-    m_pDriver = pDriver;
-  }
- public:
-  void* getDriver() {
-    return m_pDriver;
-  }
-#endif
-
-#ifdef HAVE_VME_MAPPING
- protected:
-  void setCVME(CVME<UShort_t> aCVME)
-    {
-      m_CVME = aCVME;
-    }
-
-
-  CVME<UShort_t> getCVME() const
-    {
-      return m_CVME;
-    }
-
-#endif
-
-  // Public member functions
 public:
-  UChar_t peekb(UInt_t offset=0);
-  UShort_t peekw(UInt_t offset=0);
-  ULong_t peekl(UInt_t offset=0);
-  void pokeb(UChar_t byte, UInt_t nOffset);
-  void pokew(UShort_t word, UInt_t nOffset);
-  void pokel(ULong_t lword, UInt_t nOffset);
-  
-  UInt_t readl(void* pBuffer, UInt_t nOffset, size_t longs);
-  UInt_t readw(void* pBuffer, UInt_t nOffset, size_t words);
-  UInt_t readb(void* pBuffer, UInt_t nOffset, size_t bytes);
-  
- 
- // Utility:
+  CCAENV560(unsigned long base, int crate = 0) throw (STD(string));
+
+  ~CCAENV560();
+
+  // Outlawed functions:
+private:
+  CCAENV560 (const CCAENV560& rhs );
+  CCAENV560& operator= (const CCAENV560& rhs);
+  int operator== (const CCAENV560& rhs) const;
+  int operator!= (const CCAENV560& rhs) const;
+public:
+
+
+  // Selectors:
+
+public:
+
+  int getCrate() const {
+    return m_nCrate;
+  }
+  int getModuleType() const {
+    return m_nModuleType;
+  }
+  int getVersion() const {
+    return m_nVersion;
+  }
+
+  int getSerial() const {
+    return m_nSerialno;
+  }
+
+  // mutators:
+
+  void setCrate(int crate) {
+    m_nCrate = crate;
+  }
+  // Class operations.
+
+public:
+  bool GetSectStat(int nSection) throw (STD(string));
+  void ScalInc();
+  void SetVeto();
+  void ResetVeto();
+  void Clear();
+  bool GetVetoStat();
+
+  int ReadCounter(int nChannel) throw (STD(string));
+  // Utility functions:
 protected:
-   void CopyToMe(const CVmeModule& rModule);
+  void ComputeEventSize();
+  void MapModule() throw (STD(string));
+  void InitModule();
+  void UnmapModule();
 };
+   
+
 
 #endif
-
-
-
-
-
-
-
-
-
