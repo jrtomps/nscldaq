@@ -484,3 +484,8 @@ Septemeber 5, 2005
 September 6, 2005
      - Fix minor issues when building for mapped vme interface.
      - Add support for CAEN V560 scaler module.
+September 7, 2005
+     - Add support for base addressing in CAENV767.
+     - Do code cleanup as well for CAENV767 driver... including making it
+       VME controller independent.
+     - Treat counts as unsigned in display.
