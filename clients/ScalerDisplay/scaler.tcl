@@ -752,12 +752,12 @@ proc UpdateSingle {widget line name page {average 0}} {
                 set delta $ElapsedRunTime
             }
 	    if {$delta != 0} {
-		set rate   [expr 1.0*$incr/$delta]
+		set rate   [expr 1.0*[format %u $incr]/$delta]
 	    } else {
 		set rate "0"
 	    }
 	    $widget cellconfigure $line,2 -text $rate
-	    $widget cellconfigure $line,3 -text $totals
+	    $widget cellconfigure $line,3 -text [format %u $totals]
 
             # Check the alarms:
 
@@ -804,8 +804,8 @@ proc UpdateRatio {widget line numerator denominator page {average 0}} {
             }
 
 	    if {$delta != 0} {
-		set rn [expr 1.0*$in/$delta]
-		set rd [expr 1.0*$id/$delta]
+		set rn [expr 1.0*[format %u $in]/$delta]
+		set rd [expr 1.0*[format %u $id]/$delta]
 	    } else {
 		set rn "0"
 		set rd "0"
@@ -822,7 +822,7 @@ proc UpdateRatio {widget line numerator denominator page {average 0}} {
 	    }
 	    $widget cellconfigure $line,2 -text  "$rn $rd"
 	    $widget cellconfigure $line,3 -text  "$tn $td"
-	    $widget cellconfigure $line,4 -text "$qr $qt"
+	    $widget cellconfigure $line,4 -text [format "%u %u" $qr $qt]
 
             # Check the alarms:
 
