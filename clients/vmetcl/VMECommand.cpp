@@ -737,6 +737,7 @@ CVmeCommand::MatchSwitch(const char* pSwitch)
 unsigned long
 CVmeCommand::TextToULong(const char* text)
 {
+  errno = 0;
   unsigned long result = strtoul(text, NULL, 0);
   if(errno) {
     string message = strerror(errno);
