@@ -284,6 +284,11 @@ DAMAGES.
 #define __STL_STRING
 #endif
 
+#ifdef HAVE_STD_NAMESPACE
+using namespace std;
+#endif
+
+
 #ifndef __SPECTRODAQ_H
 #include <spectrodaq.h>
 #endif
