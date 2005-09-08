@@ -299,6 +299,10 @@ DAMAGES.
 /*
   Modification History:
   $Log$
+  Revision 8.3  2005/09/08 13:30:50  ron-fox
+  When using the Wiener USB interface, don't poll the trigger as many
+  times so that the end run e.g. stays responsivel
+
   Revision 8.2  2005/06/24 11:32:01  ron-fox
   Bring the entire world onto the 8.2 line
 
@@ -398,7 +402,11 @@ using namespace std;
 
 extern DAQBuff mydaq;
 
+#ifdef HAVE_WIENERUSBVME_INTERFACE
+static const unsigned SCALEDOWN = 10;
+#else
 static const unsigned SCALEDOWN = 1000;	// # times to poll for events.
+#endif
 
 static const char* Copyright=
 "Active.cpp: Copyright 1999 NSCL, All rights reserved\n";
