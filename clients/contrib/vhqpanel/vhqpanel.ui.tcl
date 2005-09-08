@@ -858,6 +858,7 @@ proc DefineVhq {name} {
     # by a list of its characteristics.
     # in addition, a vhq device gets made.
 
+    set cratenum [eval {set $name\(crate)}]
 
     lappend VhqDevices($name) [eval {set $name\(base)}]
     lappend VhqDevices($name) [eval {set $name\(maxv)}]
@@ -866,9 +867,9 @@ proc DefineVhq {name} {
   
     lappend VhqDevices($name) [vhq::create                \
                                [lindex $VhqDevices($name) 0] \
-			       $name(crate)]
+			       $cratenum]
     lappend VhqDevices($name) [eval {set $name\(resi)}]
-    lappend VhqDevices($name) [eval {set $name\(crate)}]
+    lappend VhqDevices($name) $cratenum
     
     SetSerial $name
     SetLabel  $name
