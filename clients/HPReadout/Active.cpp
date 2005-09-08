@@ -299,6 +299,10 @@ DAMAGES.
 /*
   Modification History:
   $Log$
+  Revision 8.3  2005/09/08 13:34:19  ron-fox
+  When using wiener usb interface, decrease number of trigger polls
+  in order to make the ui more responsive.
+
   Revision 8.2  2005/06/24 11:31:15  ron-fox
   Bring the entire world onto the 8.2 line
 
@@ -401,7 +405,12 @@ using namespace std;
 
 extern DAQBuff mydaq;
 
+#ifdef HAVE_WIENERUSBVME_INTERFACE
+static const unsigned SCALEDOWN = 10;
+#else
 static const unsigned SCALEDOWN = 1000;	// # times to poll for events.
+#endif
+
 
 static const char* Copyright=
 "Active.cpp: Copyright 1999 NSCL, All rights reserved\n";
