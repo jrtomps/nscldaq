@@ -1,3 +1,19 @@
+/*
+    This software is Copyright by the Board of Trustees of Michigan
+    State University (c) Copyright 2005.
+
+    You may use this software under the terms of the GNU public license
+    (GPL).  The terms of this license are described at:
+
+     http://www.gnu.org/licenses/gpl.txt
+
+     Author:
+             Ron Fox
+	     NSCL
+	     Michigan State University
+	     East Lansing, MI 48824-1321
+*/
+
 
 #include <config.h>
 #include "CAENcard_767.h"
@@ -13,491 +29,376 @@ using namespace std;
 #endif
 
 
-struct CAENcard_767::CAENcrate_767 CAENcard_767::crate[VME_CRATE_SIZE + 1];
 
 /*!
-  \param slotNum  This specifies the slot in the VME crate in which the module resides.
-    This value will be the first five bits of every 32-bit word in the output buffer.
+  Construct a CAEN V767 object. 
+  \param slotNum - Slot in which the module is installed, or a slot address to be
+     programmed into the module in case geographical addressing is not allowed.
 
-  \param crateNum An optional value that the module will write into the header of each
-     event/block of data.  May be useful to differential between different cards.
-     The Default value is zero.
+  \param crateNum Physical VME crate in which the module is inserted.  Note that
+     this is also programmed a sthe crate number field for the data.
+  \param fisGeo - If true, the slot number determines the base addressing via
+     the CAEN/CERN P3 connector, if Fals, then the nBase parameter is the
+     base address of the module.
+  \param nBase - Base address of the module when fisGeo is false.
 
-  If slotNum is not specified, or if it is outside the range of valid values then the
-  function returns a "NULL" card.  If the card
-  cannot be initialized (wrong version of card, no card in slot) then the function
-  returns a card which will be recognized as invalid by the other functions.
+  
 
   Once the card is verified to be in the slot, one of the supported types, and if it
   is not currently referenced by another instance then it is reset to clear any
-  previous settings.  Also, the thresholds are also set to default values and the TDC
-  is set to common-start mode.
+  previous settings.  Also, the thresholds are also set to default values and the
+   TDC   is set to common-start mode.
+
+   \throw string - If any thing prevented the module form getting properly 
+      establihsed.  See the slotInit function for more info.
  */
-CAENcard_767::CAENcard_767(int slotNum, int crateNum)
+CAENcard_767::CAENcard_767(int slotNum, int crateNum,
+			   bool fisGeo, unsigned long nBase) :
+  slot(0), 
+  m_pSpace(0)
+  
 {
-  if(slotInit(slotNum, crateNum) < 0)
-    slot = 0;
-  ++(crate[slot].refCount);
-};
-
-/*!
-  \param card The card to copy.
-
-  The new CAENcard_767 object will not cause the module to be reset, as this only happens
-  the first time that a CAENcard_767 object is created that refers to a given slot.  This
-  means that any settings that you have set on the card in that slot will not be
-  lost.  Also understand that the destination argument now points to the same card
-  in the crate, and therefore any changes to either instance will be reflected in
-  all other instances referring to the same card.
-  */
-CAENcard_767::CAENcard_767(const CAENcard_767& card)
-{
-  slot = card.slot;
-  ++(crate[slot].refCount);
-};
-
-/*!
-  \param card The CAENcard_767 value to assign to the destination argument.
-  \return The value placed into the destination argument.
-
-  The new CAENcard_767 object will not cause the module to be reset, as this only happens
-  the first time that a CAENcard_767 object is created that refers to a give  //the value written doesn't matter, it is a dummy register.
-  //the VME access is what triggers the reset.
-n slot.  This
-  means that any settings that you have set on the card in that slot will not be
-  lost.  Also understand that the destination argument now points to the same card
-  in the crate, and therefore any changes to either instance will be reflected in
-  all other instances referring to the same card.
-  */
-CAENcard_767& CAENcard_767::operator=(const CAENcard_767& card)
-{
-  --(crate[slot].refCount);
-  destruct();  //free the resources associated with the first argument
-  slot = card.slot;
-  ++(crate[slot].refCount);
-  return(*this);
-};
-
-/*!
-  \param slotNum  This specifies the slot in the VME crate in which the module resides.  This value will be the first five bits of every 32-bit word in the output buffer.
-  \param crateNum An optional value that the module will write into the header of each event/block of data.  May be useful to differential between different cards.
-
-  \return Failure to initialize the card is indicated by a return value less than zero.  Each failure returns a different value and are numbered sequentially through the function.
-
-  The calling function must increment the value of
-  CAENcard_767::crate[#slot].\link CAENcrate#refCount refCount\endlink after calling
-  this function (if appropriate).  The memory map and file descriptor associated
-  with this slot will be allocated and opened, respectively, if not already present.
-  The status of the slot is then set to be CAEN_MODE_A32D16 if successful.
-*/
-int CAENcard_767::slotInit(int slotNum, int crateNum)
-{
-  unsigned int temp[2];
-
-  //ensure that the slot and crate specified stay within bounds
-//  crateNum = crateNum & 0xFF;  //not important enough to give an error for, just discard the extra bits
-  slot = slotNum;
-  if( slot == 0 )	//nothing to do... dummy card created by empty constructor
-  {
-    return(0);
+  if(slotInit(slotNum, crateNum, fisGeo, nBase) < 0) {
+    throw string("CAENcard_767 construction failed!");
   }
 
-  if(slot > VME_CRATE_SIZE)
+};
+
+/*!
+  Copy constructor.  Creates a functional equivalent of the card parameter.
+  Copy construction is a heavyweight mechanism to get pass by value semantics in 
+  function calls and other cases where temporaries are needed.  
+  It is recommended that code avoid the use of copy construction if it is speed
+  critical.
+
+  \param card The card to copy.
+
+
+  */
+CAENcard_767::CAENcard_767(const CAENcard_767& card) :
+  slot(card.slot),
+  m_pSpace(card.m_pSpace)
+{
+
+};
+
+/*!
+  Assignment from another card.
+
+  \param card The CAENcard_767 value to assign to the destination argument.
+  \return CAENcard_767&
+  \retval reference to *this... allowing operator chaining.
+
+  */
+CAENcard_767& 
+CAENcard_767::operator=(const CAENcard_767& card)
+{
+  if(this != &card) {
+    slot     = card.slot;
+    m_pSpace = card.m_pSpace;
+  }
+  return *this;
+
+};
+
+/*!
+  This function does the work of initializing a module.
+
+  \param slotNum  This specifies the slot in the VME crate in which the module 
+        resides.  This value will be the first five bits of every 32-bit word 
+	in the output buffer.
+  \param crateNum Specifies which VME crate we are plugged into.  This is also
+        part of the data stream.  Defaults to zero.
+  \param fisGeo  True if the module is to be addressed via geographical means,
+        false if the base parameter is to be used to set a base address for the 
+	module.
+  \param nBase  If fisGeo is false, this is the base addressof th emodule.
+
+
+  \return int
+  \retval Failure to initialize the card is indicated by a return value less
+       than zero.  Each failure returns a different value and are numbered 
+       sequentially through the function.
+
+
+*/
+int CAENcard_767::slotInit(int slotNum, int crateNum, 
+			   bool fisGeo, unsigned long nBase)
+{
+
+  //ensure that the slot and crate specified stay within bounds
+
+  
+  slot = slotNum;
+
+
+  if((slot > VME_CRATE_SIZE) || (slot <= 0))
   {
     perror("Invalid slot number specified to slotInit(). ");
     return(-1);
   }
 
-  //check to see if the card in this slot is already being referenced
-  if(crate[slot].refCount > 0 && (crate[slot].status & CAEN_MODE_A32D16))
-  {
-    //set the crate number as requested by the calling program (defaults to zero)
-//    setCrate(crateNum);
 
-    return(0);
+
+  // Create the VME module... this may be a GEO or an extended address
+  // modifier range, depending on the base parameter.
+
+  CVmeModule::Space space;
+  unsigned long     base;
+  
+  // Based on the geo flag, figure out which space, and what the base is.
+
+  if (fisGeo) {
+    space = CAEN_GEO24;
+    base  = slot << 19;
   }
-
-  //the card is not initialized yet, so do it
-  crate[slot].status = CAEN_MODE_UNINIT;
+  else {
+    space = CAEN_A32D16;
+    base  = nBase;
+  }
 
   try {
-    crate[slot].fd = 
-      CVMEInterface::Open(CVMEInterface::Geographical, crateNum);
-  }
-  catch (string& msg) {
-    cerr << "Could not open vme crate: " << crateNum 
-	 << " for geographical addressing: " << msg << endl;
-    return -1;
-  }
-
-
-  try {
-    crate[slot].mbuf = (unsigned short int*)
-      CVMEInterface::Map(crate[slot].fd,
-			 slot << 19,
-			 CAEN_767_CARD_MMAP_LEN);
-  }
+    m_pSpace = new CVmeModule(space, base, CAEN_767_CARD_MMAP_LEN, crateNum);
+  } 
   catch (string& msg) {
     cerr << "Could not map crate: " << crateNum << " slot: " << slot
 	 << " : " << msg << endl;
-    CVMEInterface::Close(crate[slot].fd);
-    crate[slot].mbuf = 0;
-    crate[slot].fd = NULL;
-    return(-6);
- 
+    return(-6);  
   }
+   
 
-  if(  !( 0x0000 == *(crate[slot].mbuf + CAEN_767_MANUFACT_ID) &&
-          0x0040 == *(crate[slot].mbuf + CAEN_767_MANUFACT_ID + 2) &&
-	  /*  0x00E6 == *(crate[slot].mbuf + CAEN_767_MANUFACT_ID + 3) && */
-          0x0000 == *(crate[slot].mbuf + CAEN_767_BOARD_ID) &&
-          0x0000 == *(crate[slot].mbuf + CAEN_767_BOARD_ID + 2) &&
-          0x0002 == *(crate[slot].mbuf + CAEN_767_BOARD_ID + 4) &&
-          0x00FF == *(crate[slot].mbuf + CAEN_767_BOARD_ID + 6) &&
-          (short int)slot == ( 0x001F & (*(crate[slot].mbuf + CAEN_767_ADDR_GEO)) ) )  )
-    {   //either an invalid board or no board is present in this slot
+
+  if(  !( (0x0040e6 == mfgId())                   &&
+	  (767    == cardType())                  &&
+          (((short int)slot ==  (0x001F & m_pSpace->peekw(CAEN_767_ADDR_GEO))) ||
+	   !fisGeo))) {
+
       printf( "\n767 Card %d is not inserted or is of an incompatable type!\n", slotNum);
       printf("  One of the following tests has failed\n");
-      printf("    0x0000 == 0x%4.4X\n", *(crate[slot].mbuf + CAEN_767_MANUFACT_ID) );
-      printf("              0x%4.4X\n", *(crate[slot].mbuf + CAEN_767_MANUFACT_ID + 1) );
-      printf("    0x0040 == 0x%4.4X\n", *(crate[slot].mbuf + CAEN_767_MANUFACT_ID + 2) );
-      printf("              0x%4.4X\n", *(crate[slot].mbuf + CAEN_767_MANUFACT_ID + 3) );
-      printf("    0x00E6 == 0x%4.4X\n", *(crate[slot].mbuf + CAEN_767_MANUFACT_ID + 4) );
-      printf("              0x%4.4X\n", *(crate[slot].mbuf + CAEN_767_MANUFACT_ID + 5) );
-      printf("    0x0000 == 0x%4.4X\n", *(crate[slot].mbuf + CAEN_767_BOARD_ID) );
-      printf("    0x0000 == 0x%4.4X\n", *(crate[slot].mbuf + CAEN_767_BOARD_ID + 2) );
-      printf("    0x0002 == 0x%4.4X\n", *(crate[slot].mbuf + CAEN_767_BOARD_ID + 4) );
-      printf("    0x00FF == 0x%4.4X\n", *(crate[slot].mbuf + CAEN_767_BOARD_ID + 6) );
-      printf("    0x%4.4X == 0x%4.4X & 0x001F\n", (short int)slot, *(crate[slot].mbuf + CAEN_767_ADDR_GEO) );
+      printf("    0x0040e6 = 0x%6.6X\n", mfgId());
+      printf("    767    == %d\n",  cardType());
+      printf("    0x%4.4X == 0x%4.4X & 0x001F\n", slot,
+                                          m_pSpace->peekw(CAEN_767_ADDR_GEO));
 
-      CVMEInterface::Unmap(crate[slot].fd,
-			   (void*)crate[slot].mbuf,
-			   CAEN_767_CARD_MMAP_LEN);
-      CVMEInterface::Close(crate[slot].fd);
-
-      crate[slot].mbuf = 0;
-      crate[slot].fd = NULL;
+      delete m_pSpace;
+      m_pSpace = NULL;
       return(-7);
-    }
-
-
-  //card access and initialization was successful
-  crate[slot].status = CAEN_MODE_GEO24;
-
-  //disable the auto load of the user configuration at the next reset
-  if(  ( writeOpcode(0x1900, 1000000) < 0 ) || ( opcodeWait(1000000) < 0 )  )
-  {
-    //failed to write the opcode...
-    CVMEInterface::Unmap(crate[slot].fd,
-			 (void*)crate[slot].mbuf,
-			 CAEN_767_CARD_MMAP_LEN);
-    CVMEInterface::Close(crate[slot].fd);
-
-    crate[slot].mbuf = 0;
-    crate[slot].fd = NULL;
-    return(-10);
   }
+  // If the card is not being accessed geographically we program the slot:
+
   reset();
 
-//end of slot initialization, begin address initialization
 
-  //set the address in the registers based upon the slot number
-  //the 32bit address becomes (slot<<24)
-  *(crate[slot].mbuf + CAEN_767_ADDR_32) = slot;
-  *(crate[slot].mbuf + CAEN_767_ADDR_24) = 0;
-  //set "bit set 1" register to use address in registers for addressing
-  *(crate[slot].mbuf + CAEN_767_BIT_SET) = 1<<4;
-
-  //destroy GEO24 mmap and file descriptor
-
-  CVMEInterface::Unmap(crate[slot].fd,
-		       (void*)crate[slot].mbuf,
-		       CAEN_767_CARD_MMAP_LEN);
-  CVMEInterface::Close(crate[slot].fd);
-
-  crate[slot].mbuf = 0;
-  crate[slot].fd = NULL;
-
-  // Create A32 map: Required to access the event memory buffer.
-
-  try {
-    crate[slot].fd = 
-      CVMEInterface::Open(CVMEInterface::A32, crateNum);
-  }
-  catch (string& msg) {
-    cerr << "Unable to open crate " << crateNum << " as A32\n";
-    cerr << msg << endl;
-    crate[slot].status = CAEN_MODE_UNINIT;
-    return(-11);
+  if(!fisGeo) {
+     m_pSpace->pokew(slot,CAEN_767_ADDR_GEO);
   }
 
-  //create A32D16 mmap
+  //disable the auto load of the user configuration at the next reset
 
-  try { 
-    crate[slot].mbuf = (unsigned short int*) 
-      CVMEInterface::Map(crate[slot].fd, 
-			 slot << 24, 
-			 CAEN_767_CARD_MMAP_LEN);
-  }
-  catch (string& msg) {
-    cerr << "Unable to establish an a32 map to crate: " << crateNum
-	 << " slot: " << slot << endl;
-    cerr << msg << endl;
-    CVMEInterface::Close(crate[slot].fd);
-    crate[slot].mbuf = 0;
-    crate[slot].fd = NULL;
-    crate[slot].status = CAEN_MODE_UNINIT;
-    return(-12);
-
-  }
-
-  crate[slot].status = CAEN_MODE_A32D16;
-
-  //double check that the ROM is still readable
-  if(  !( 0x0000 == *(crate[slot].mbuf + CAEN_767_MANUFACT_ID) &&
-          0x0040 == *(crate[slot].mbuf + CAEN_767_MANUFACT_ID + 2) &&
-       /* 0x00E6 == *(crate[slot].mbuf + CAEN_767_MANUFACT_ID + 4) && */
-          0x0000 == *(crate[slot].mbuf + CAEN_767_BOARD_ID) &&
-          0x0000 == *(crate[slot].mbuf + CAEN_767_BOARD_ID + 2) &&
-          0x0002 == *(crate[slot].mbuf + CAEN_767_BOARD_ID + 4) &&
-          0x00FF == *(crate[slot].mbuf + CAEN_767_BOARD_ID + 6) &&
-          (short int)slot == ( 0x001F & (*(crate[slot].mbuf + CAEN_767_ADDR_GEO)) ) )  )
-  {   //either an invalid board or no board is present in this slot
-    printf( "\nIntegrity check failed after remapping card!\n" );
-
-    CVMEInterface::Unmap(crate[slot].fd,
-			 (void*)crate[slot].mbuf,
-			 CAEN_767_CARD_MMAP_LEN);
-    crate[slot].mbuf = 0;
-    CVMEInterface::Close(crate[slot].fd);
-    crate[slot].fd = NULL;
-    return(-13);
-  }
-
-  //now set any desired default values (thresholds, range, operating mode, etc )
-  if(cardType() == 767)
+  if(  ( writeOpcode(0x1900, 1000000) < 0 ) || ( opcodeWait(1000000) < 0 )  )
   {
-    //load the default configuration (only problem is that it is "Stop Trigger Matching")
+    delete m_pSpace;
+    m_pSpace = NULL;
+    return(-10);
+  }
+
+  // end of slot initialization, begin address initialization.. This is only needed
+  // if access is geographical.... as otherwise we're already mapped the way we
+  // want to be!
+
+  if(fisGeo) {
+    m_pSpace->pokew(slot, CAEN_767_ADDR_32); // Set the new module address...
+    m_pSpace->pokew(0,    CAEN_767_ADDR_24);
+    m_pSpace->pokew(1<<4, CAEN_767_BIT_SET); // Enable address relocation.
+
+    delete m_pSpace;
+    m_pSpace = NULL;
+    try {
+      m_pSpace = new CVmeModule(CAEN_A32D16, slot << 24,
+				CAEN_767_CARD_MMAP_LEN, crateNum);
+    }
+    catch (string& msg) {
+      cerr << "Unable to create relocated address for CAEN-767 " 
+	   << msg << endl;
+      return -11;
+    }
+
+  }
+
+
+
+  // load the default configuration (only problem is that it is "Stop Trigger 
+  // Matching")
+
+  if(cardType() == 767)   {
     if(  ( writeOpcode(0x1500, 1000000) < 0 ) || ( opcodeWait(1000000) < 0 )  )
     {
-      //failed to write the opcode
-      CVMEInterface::Unmap(crate[slot].fd,
-			   (void*)crate[slot].mbuf, 
-			   CAEN_767_CARD_MMAP_LEN);
-      crate[slot].mbuf = 0;
-      CVMEInterface::Close(crate[slot].fd);
-      crate[slot].fd = NULL;
+      delete m_pSpace;
+      m_pSpace = NULL;
       return(-14);
     }
   }
+  sleep(5);
 
   return(0);
 };
 
-/*! The reference count of the slot number is decreased and then the destruct()
-    function is called.  If the reference count is less than one then the items
-    in CAENcard_767::crate[#slot] are destroyed. (memory map unmapped, file descriptor
-    closed, status set to uninitialized)
-*/
+/*!
+  The destructor just needs to release the address space object.
+
+ */
 CAENcard_767::~CAENcard_767()
 {
-  --(crate[slot].refCount);
-  destruct();
-};
-
-/*! The calling function for this function must decrement value of
-    CAENcard_767::crate[#slot].\link CAENcrate#refCount refCount\endlink before calling
-    this function (if appropriate).  The memory map and file descriptor associated
-    with this slot will be released and closed, respectively. The status of the
-    slot is then set to be uninitialized.
-*/
-void CAENcard_767::destruct()
-{
-  int temp[2];
-  if( crate[slot].refCount < 1)
-  {
-    crate[slot].refCount = 0;
-    if(slot > 0 )
-    {
-      if (crate[slot].mbuf)
-      {
-	CVMEInterface::Unmap(crate[slot].fd,
-			     (void*)crate[slot].mbuf, 
-			     CAEN_767_CARD_MMAP_LEN);
-      }
-      crate[slot].mbuf = 0;
-      if(crate[slot].fd != NULL)
-      {
-        CVMEInterface::Close(crate[slot].fd);
-      }
-      crate[slot].fd = NULL;
-      crate[slot].status = CAEN_MODE_UNINIT;
-    }
-  }
-};
-
-int CAENcard_767::readOpcode(unsigned short int *value, int maxRetry)
-{
-  if( crate[slot].status )
-  {
-    int i;  //must declare outside of the loop so I can use the value after the loop is finished
-    for( i = 0; i < maxRetry; ++i )
-    {
-      if( (*(crate[slot].mbuf + CAEN_767_OPCODE_STATUS)) & (1 << 0) )
-      {
-        //the "read okay" bit is set
-        break;
-      }
-    }
-
-    if( i == maxRetry )
-    {
-      //never broke the loop...
-      return(-2);
-    }
-
-    //take the prescribed 10ms timeout before reading the value
-    usleep(10000);
-
-    //now read the register and return
-    *value = *(crate[slot].mbuf + CAEN_767_OPCODE);
-    return( i );
-  }
-  else
-  {
-    return(-1);
-  }
-};
-
-int CAENcard_767::writeOpcode(unsigned short int value, int maxRetry)
-{
-  if( crate[slot].status )
-  {
-    int i;  //must declare outside of the loop so I can use the value after the loop is finished
-    for( i = 0; i < maxRetry; ++i )
-    {
-      if( (*(crate[slot].mbuf + CAEN_767_OPCODE_STATUS)) & (1 << 1) )
-      {
-        //the "write okay" bit is set
-        break;
-      }
-    }
-
-    if( i == maxRetry )
-    {
-      //never broke the loop...
-      return(-2);
-    }
-
-    //take the prescribed 10ms timeout before reading the value
-    usleep(10000);
-
-    //now read the register and return
-    *(crate[slot].mbuf + CAEN_767_OPCODE) = value;
-
-    return( i );
-  }
-  else
-  {
-    return(-1);
-  }
-};
-
-int CAENcard_767::opcodeWait(int maxRetry)
-{
-  if( crate[slot].status )
-  {
-    int i;  //must declare outside of the loop so I can use the value after the loop is finished
-    for( i = 0; i < maxRetry; ++i )
-    {
-      if( (*(crate[slot].mbuf + CAEN_767_OPCODE_STATUS)) & (1 << 1) )
-      {
-        //the "write okay" bit is set
-        break;
-      }
-    }
-
-    if( i == maxRetry )
-    {
-      //never broke the loop...
-      return(-2);
-    }
-
-    //take the prescribed 10ms timeout before doing anything else
-    usleep(10000);
-
-    return( i );
-  }
-  else
-  {
-    return(-1);
-  }
-}
-
-/*! \return \li If the call succeeds then 767 will be returned as an integer.
-            \li If the call fails (if it is called on an uninitialized card) then -1 will be returned.
- */
-int CAENcard_767::cardType()
-{
-  if( crate[slot].status )
-  {
-    //    return( *(crate[slot].mbuf + CAEN_767_BOARD_ID) );
-    return(767);
-  }
-  else
-  {
-//    printf("Attempted to determine the card type of an uninitialized card.\n");
-    return(-1);
-  }
+  m_pSpace->pokew(1 << 4, CAEN_767_BIT_CLEAR); // Turn off any relocation
+  delete m_pSpace;
 };
 
 /*!
-  No settings on the module are altered by this call.
+   Do a read from the sequencer.
+   \param value    - buffer to hold the returned value.
+   \param maxRetry - Maximum number of times to retry the check for
+                     info ready from the sequencer
+
+   \return int
+   \retval >0  - Number tries actually used.
+   \retval <0  - Failure:
+
+*/
+int CAENcard_767::readOpcode(unsigned short int *value, int maxRetry)
+{
+  int i;  
+  for( i = 0; i < maxRetry; ++i ) {
+    if( m_pSpace->peekw(CAEN_767_OPCODE_STATUS) & (1 << 0) ) {
+      //the "read okay" bit is set
+      break;
+    }
+  }
+  
+  if( i >= maxRetry )  {
+    //never broke the loop...
+    return(-1);
+  }
+  
+  //take the prescribed 10ms timeout before reading the value
+  
+  usleep(10000);
+  
+  //now read the register and return
+  *value = m_pSpace->peekw(CAEN_767_OPCODE);
+  return( i );
+}
+
+/*!
+  Do a write to the sequencer.
+  \param value    - the value to write.
+  \param maxRetry - # times to loop while waiting for the sequencer to allow
+                    a write.
+   \return int
+   \retval >=0   Number of times needed to loop before sequencer was ready.
+   \retval <0    Failure.
+ */
+int 
+CAENcard_767::writeOpcode(unsigned short int value, int maxRetry)
+{
+  int i = opcodeWait(maxRetry);
+
+  if (i >= 0) {
+    
+    //take the prescribed 10ms timeout before reading the value
+    
+    usleep(10000);
+    
+    //now write the register and return
+    
+    m_pSpace->pokew(value, CAEN_767_OPCODE);
+  }
+  return( i );
+
+};
+/*!
+  Wait for the opcode register to be writable.
+  \param maxRetry  Number of retries to allow.
+
+   \return int
+   \retval >=0   Number of times needed to loop before sequencer was ready.
+   \retval <0    Failure.  
+
+ */
+int CAENcard_767::opcodeWait(int maxRetry)
+{
+  int i;  
+  for( i = 0; i < maxRetry; ++i ) {
+    if( m_pSpace->peekw(CAEN_767_OPCODE_STATUS) & (1 << 1) ) {
+      //the "write okay" bit is set
+      break;
+    }
+  }
+  
+  if( i == maxRetry ) {
+    //never broke the loop...
+    return(-2);
+  }
+  
+  //take the prescribed 10ms timeout before doing anything else
+  
+  usleep(10000);
+  
+  return( i );
+  
+}
+
+/*! 
+  Returns the board id.   This should be 0x2ff which translates to 767.
+
+ */
+int CAENcard_767::cardType()
+{
+  return (( (int)m_pSpace->peekw(CAEN_767_BOARD_ID) << 24)   |
+	  ( (int)m_pSpace->peekw(CAEN_767_BOARD_ID+2) << 16) |
+	  ( (int)m_pSpace->peekw(CAEN_767_BOARD_ID+4) << 8)  |
+	  ( (int)m_pSpace->peekw(CAEN_767_BOARD_ID+6)));
+};
+
+/*!
+  Clear the data buffer for the module.
 */
 void CAENcard_767::clearData()
 {
-  if (crate[slot].status & CAEN_MODE_A32D16)
-    *(crate[slot].mbuf + CAEN_767_CLEAR) = 1;
-  //the value written doesn't matter, it is a dummy register.
-  //the VME access is what triggers the data clear.
+  m_pSpace->pokew(1, CAEN_767_CLEAR);
+
 };
 
 
 void CAENcard_767::reset()
 {
-  if( crate[slot].status )
-  {
-    //the value written doesn't matter, it is a dummy register.
-    //the VME access is what triggers the reset.
-    *(crate[slot].mbuf + CAEN_767_SS_RESET) = 1;
-    sleep(2);
-  }
+  m_pSpace->pokew(1, CAEN_767_SS_RESET);
+  sleep(2);
+
 };
 
 /*!
-  \return \li 1 indicates that there is data in the event buffer
-          \li 0 indicates that the event buffer is empty
-          \li -1 is returned when the card has not been initialized
+  Determines if there is any data in the output fifo of the module.
+  This function is called by all of the readEvent functions before they read 
+  any data.  Your code can also loop on this a while to see if the module
+  has data to contribute to an event.
 
-  This function is called by all of the readEvent functions before they read any data.
+  \return int
+  \retval  1 indicates that there is data in the event buffer
+  \retval  0 indicates that the event buffer is empty
+
 */
 int CAENcard_767::dataPresent()
 {
-  if(crate[slot].status & CAEN_MODE_A32D16)
-  {
-    // Wait for data ready without a busy.
 
-    unsigned short s1 = *(crate[slot].mbuf + CAEN_767_STATUS_1);
+  unsigned short s1 = m_pSpace->peekw(CAEN_767_STATUS_1);
+  
+  return ((s1 & 5) == 1 );
 
-    return ((s1 & 5) == 1 );
-  }
-  else
-  {
-    return(-1);
-  }
 };
 
 /*!
+  Read an event into an ordinary memory buffer.
+
   \param buf A pointer to local memory that has already been allocated.
       Should be at least 34 * 4 = 136 bytes to hold the header, footer, and 32
       channels of data.
@@ -512,24 +413,24 @@ int CAENcard_767::dataPresent()
 int CAENcard_767::readEvent(void* buf)
 {
   int temp, n = dataPresent();
-  if(n > 0)
-  {
+  if(n > 0) {
     n = 0;
     // read until it hits an invalid datum (should there be an option to stop at EOB?)
-    temp = *(int*)(crate[slot].mbuf);
-    while( (temp & CAEN_767_DATUM_TYPE) != CAEN_767_INVALID )
-    {
+    temp = m_pSpace->peekl(0);
+    while( (temp & CAEN_767_DATUM_TYPE) != CAEN_767_INVALID )  {
       *(((int*)buf) + n) = temp;
       ++n;
-      temp = *(int*)(crate[slot].mbuf);
+      temp = m_pSpace->peekl(0);
     }
     n *= 4;  //convert the number of integers to the number of bytes
   }
-
+  
   return(n);
 };
 
 /*!
+  Read an event into an offset within a spectrodaq word buffer.
+
   \param wbuf A DAQWordBuffer object to put data in. When using the standard readout
       skeleton this object is created for you.
   \param offset The position that the data should be written to.  This is necessary
@@ -545,7 +446,7 @@ int CAENcard_767::readEvent(void* buf)
 int CAENcard_767::readEvent(DAQWordBuffer& wbuf, int offset)
 {
   int n = dataPresent();
-  union{
+  union{			// Assume little endian longword order.
     int dword;
     struct{
       short int low;
@@ -553,32 +454,30 @@ int CAENcard_767::readEvent(DAQWordBuffer& wbuf, int offset)
     } word;
   } temp;
 
-  if(n > 0)
-  {
+  if(n > 0)  {
     n = 0;
     // read until it hits an invalid datum (should there be an option to stop at EOB?)
-    temp.dword = *(int*)(crate[slot].mbuf);
-//    while( (temp.dword & CAEN_767_DATUM_TYPE) != CAEN_767_INVALID )
-    while( (temp.dword & CAEN_767_DATUM_TYPE) != CAEN_767_FOOTER )
-    {
+    temp.dword = m_pSpace->peekl(0);
+    
+    while( (temp.dword & CAEN_767_DATUM_TYPE) != CAEN_767_FOOTER ) {
       wbuf[offset] = temp.word.high;
       wbuf[offset+1] = temp.word.low;
       ++n;
-      temp.dword = *(int*)(crate[slot].mbuf);
+      temp.dword = m_pSpace->peekl(0);
     }
-    if( (temp.dword & CAEN_767_DATUM_TYPE) == CAEN_767_FOOTER )
-    {
+    if( (temp.dword & CAEN_767_DATUM_TYPE) == CAEN_767_FOOTER ) {
       wbuf[offset] = temp.word.high;
       wbuf[offset + 1] = temp.word.low;
       ++n;
     }
-
+    
     n *= 2;
   }
   return(n);
 };
 
 /*!
+  Read an even into a spectrodaq word buffer by way of a 'pointer'.
   \param wp A DAQWordBufferPtr object.
 
   \return \li \> 0 indicates the number of 16-BIT WORDS of data placed in buf
@@ -606,7 +505,7 @@ int CAENcard_767::readEvent(DAQWordBufferPtr& wp)
   if(n > 0)
   {
     n = 0;
-    temp.dword = *(int *)(crate[slot].mbuf);
+    temp.dword = m_pSpace->peekl(0);
     while( (temp.dword & CAEN_767_DATUM_TYPE) != CAEN_767_INVALID )
     {
       *wp = temp.word.high;
@@ -614,7 +513,7 @@ int CAENcard_767::readEvent(DAQWordBufferPtr& wp)
       *wp = temp.word.low;
       wp++;
       ++n;
-      temp.dword = *(int *)(crate[slot].mbuf);
+      temp.dword = m_pSpace->peekl(0);
     }
 
     n *= 2;
@@ -623,6 +522,8 @@ int CAENcard_767::readEvent(DAQWordBufferPtr& wp)
 };
 
 /*!
+  Read an event into a spectrodaq longword buffer via an offset.
+
   \param dwbuf A DAQDWordBuffer object to put data in.
   \param offset The position that the data should be written to.  This is necessary
       to avoid overwriting other data in the DAQDWordBuffer.
@@ -641,18 +542,19 @@ int CAENcard_767::readEvent(DAQDWordBuffer& dwbuf, int offset)
   if(n > 0)
   {
     n = 0;
-    temp = *(int*)(crate[slot].mbuf);
+    temp = m_pSpace->peekl(0);
     while( (temp & CAEN_767_DATUM_TYPE) != CAEN_767_INVALID )
     {
       dwbuf[offset + n] = temp;
       ++n;
-      temp = *(int*)(crate[slot].mbuf);
+      temp = m_pSpace->peekl(0);
     }
   }
   return(n);
 };
 
 /*!
+  Read an event into a spectrodaq longword buffer via a 'pointer'.
   \param wp A pointer to a DAQDWordBuffer object.
 
   \return \li \> 0 indicates the number of 32-BIT WORDS of data placed in buf
@@ -673,24 +575,182 @@ int CAENcard_767::readEvent(DAQDWordBufferPtr& dwp)
   if(n > 0)
   {
     n = 0;
-    temp = *(int *)(crate[slot].mbuf);
+    temp = m_pSpace->peekl(0);
     while( (temp & CAEN_767_DATUM_TYPE) != CAEN_767_INVALID )
     {
       *dwp = temp;
       dwp++;
       ++n;
-      temp = *(int *)(crate[slot].mbuf);
+      temp = m_pSpace->peekl(0);
     }
   }
   return(n);
 };
 
+
 /*!
-  Not likely to be of any use except to allow the cards to be used in an STL class.
+  set up the card. At one point this was considered a temp
+  The current setup is common start, all channels enabled
 */
-bool operator< (const CAENcard_767& card1, const CAENcard_767& card2)
+
+int
+CAENcard_767::tempSetup()
 {
-  return card1.slot < card2.slot;
-};
+  //set to common start mode ("Start Gating")
+  // -- saves all conversions while the start signal is high.  the trigger signal is unused
+  if( writeOpcode(0x1200, 1000000) < 0 )
+    {
+      return(-1);
+    }
+  
+  //set data-ready mode to be event-ready
+  if( writeOpcode(0x7000, 1000000) < 0 )
+    {
+      return(-2);
+    }
+  
+  //enable subtraction of start time for start gating mode
+  if( writeOpcode(0x4300, 1000000) < 0)
+    {
+      return(-3);
+    }
+  opcodeWait(1000000);
+  
+  return(0);
+}
+/*!
+   Enable hits to be considered as starts  on the rising
+edge of the input signals.
+*/
+
+int 
+CAENcard_767::SetRisingEdgeStart()
+{
+  if(writeOpcode(0x6400, 1000000) < 0) {
+    return -1;
+  }
+  opcodeWait(1000000);
+  return 0;
+}
+/*!
+   Enable hits to be considered as starts on the falling edge
+of the input signal.
+*/
+
+int
+CAENcard_767::SetFallingEdgeStart()
+{
+  if(writeOpcode(0x6500, 100000) < 0) {
+    return -1;
+  }
+  opcodeWait(100000);
+  return 0;
+}
+/*!
+   Enable input rising edges to be considered channel hits.
+*/
+int
+CAENcard_767::SetRisingEdgeAll()
+{
+  if(writeOpcode(0x6000, 1000000) < 0) {
+    return -1;
+  }
+  opcodeWait(1000000);
+  return 0;
+}
+/*!
+   Enable input falling edges to be considered channel hits.
+*/
+int
+CAENcard_767::SetFallingEdgeAll()
+{
+  if(writeOpcode(0x6100, 1000000) < 0) {
+    return -1;
+  }
+  opcodeWait(1000000);
+  return 0;
+}
+/*!
+   Return the edge information for the start trigger:
+   Note that negative is bad.
+*/
+int
+CAENcard_767::getStartEdge() {
+  unsigned short edges[3];
+  int stat = readEdgeConfiguration(edges);
+  if (stat < 0) {
+    return stat;
+  }
+  return edges[2];
+}
+/*!
+   Return the edge information for the even channels
+*/
+int
+CAENcard_767::getEdgeEven()
+{
+  unsigned short edges[3];
+  int stat = readEdgeConfiguration(edges);
+  if (stat < 0) {
+    return stat;
+  }
+  return edges[0];
+}
+/*!
+  Return edge information for the odd channels.
+*/
+int 
+CAENcard_767::getEdgeOdd()
+{
+  unsigned short edges[3];
+  int stat = readEdgeConfiguration(edges);
+  if (stat < 0) {
+    return stat;
+  }
+  return edges[1];  
+}
+/*!
+   Return the value of status register 2.
+*/
+unsigned short CAENcard_767::getSr2()
+{
+  return m_pSpace->peekw(CAEN_767_STATUS_2);
+}
+/*!
+   Return the manufacturer's id.
+*/
+int
+CAENcard_767::mfgId()
+{
+  return ((m_pSpace->peekw(CAEN_767_MANUFACT_ID) <<   16)  |
+          (m_pSpace->peekw(CAEN_767_MANUFACT_ID+2) << 8)  |
+	  (m_pSpace->peekw(CAEN_767_MANUFACT_ID+4)));
+}
 
 
+/*!
+  Read the three words of edge information.
+*/
+int
+CAENcard_767::readEdgeConfiguration(unsigned short* values)
+{
+  if (writeOpcode(0x6700, 10000) < 0) {
+    return -1;
+  }
+  opcodeWait(1000000);
+  if (readOpcode(values, 1000) < 0) { // Even channels..
+    return -2;
+  }
+  *values &= CAEN_767_EDGE_BOTH;
+  values++;
+  if (readOpcode(values, 1000) < 0) { // Odd channels..
+    return -3;
+  } 
+  *values &= CAEN_767_EDGE_BOTH;
+  values++;
+  if (readOpcode(values, 1000) < 0) { // Start channel...
+    return -4;
+  }
+  *values &= CAEN_767_EDGE_BOTH;
+  return 0;
+}

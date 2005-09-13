@@ -1,3 +1,19 @@
+/*
+    This software is Copyright by the Board of Trustees of Michigan
+    State University (c) Copyright 2005.
+
+    You may use this software under the terms of the GNU public license
+    (GPL).  The terms of this license are described at:
+
+     http://www.gnu.org/licenses/gpl.txt
+
+     Author:
+             Ron Fox
+	     NSCL
+	     Michigan State University
+	     East Lansing, MI 48824-1321
+*/
+
 #ifndef CAENCARD_767_H
 #define CAENCARD_767_H
 
@@ -10,7 +26,7 @@
 #include <unistd.h>
 #include <signal.h>
 #include <sys/ioctl.h>
-
+#include <VmeModule.h>
 
 
 #ifndef SPECTRODAQ_H
@@ -32,16 +48,11 @@ using namespace std;
 #define CAEN_MODE_MCST   4
 #define CAEN_MODE_CBLT   8
 
-//define the drivers used (different Address Modifiers are used in each)
-//am = 0x2f
-#define CAEN_GEO24       "/dev/vmegeo24"
-//am = 0x0d
-#define CAEN_A32D16      "/dev/vme32d16"
-//the next two are only used in CAENchain.cpp
-//am = 0x09
-#define CAEN_MCST        "/dev/vmemca32"
-//am = 0x0b
-#define CAEN_CBLT        "/dev/vmecba32"
+//define the address spaces used to access the board.
+
+#define CAEN_GEO24       CVmeModule::geo
+#define CAEN_A32D16      CVmeModule::a32d32 /* No real distinction with d16. */
+
 
 //will be used to create a memory map for the card
 #define CAEN_767_CARD_MMAP_LEN 0x00002000
@@ -82,6 +93,11 @@ using namespace std;
 #define CAEN_767_BOARD_ID      0x0819
 #define CAEN_767_REVISION_ID   0x0827
 
+// Bits in the edge info data:
+
+#define CAEN_767_EDGE_RISING   0x0001
+#define CAEN_767_EDGE_FALLING  0x0002
+#define CAEN_767_EDGE_BOTH     (CAEN_767_EDGE_RISING | CAEN_767_EDGE_FALLING)
 
 
 /*! \class CAENcard_767 CAENcard_767.h
@@ -90,173 +106,69 @@ using namespace std;
   So far no adverse effects have been noticed if the optimize option is used on the
   compiler, so optimize away!
 
-  If you have a specific question or request email Chris Maurice at <maurice@nscl.msu.edu> and I will do my best to help.
- */
+  If you have a specific question or request email Ron Fox (fox@nscl.msu.edu)
+  Original version of this was by Chris Maurice.  Main changes for this
+  heavy modification is
+  - Allow for cases where the module can only be addressed via base address.
+  - Make this look much more like 'normal' daq code in the way commenting
+    and Doxygen documentation is done.
+  - Make the module indpendent of the VME bus interface by building it around
+    a CVmeModule object rather than just a pointer to the mapped memory.
+    We only optimize the readout for mapped/unmapped mode as the setup
+    operations can run at a slower pace.
+*/
 class CAENcard_767 {
-  //! Compares the slot numbers to determine if the first is less.
-  friend bool operator< (const CAENcard_767&, const CAENcard_767&);
 
-  protected:
-    //! This is the only member varaiable that is created with each instance of the class.
-    /*! This variable is used as a reference into the static CAENcrate instance crate.  It
-        holds the reference counted information needed to access the card. <br>
-        The value is not zero indexed, so a value of 1 refers to the card in the physical
-        slot number 1.  A value of zero is reserved for uninitialized cards.
-    */
-    int slot;
+private:
+  int slot;
+  CVmeModule  *m_pSpace;
 
-    //! An array of this structure holds all of the information on the current instances of CAENcard_767s.
-    /*! \struct CAENcrate
-        This struct is only referenced to create the crate member array. There is no
-        good reason why you should ever have a need to creat CAENcrate objects. Doxygen wouldn't
-        parse things right if I declared the variable in the same line as the struct so now
-        CAENcrate_767 gets this extra documentation.
-    */
-    struct CAENcrate_767{
-      volatile unsigned short int *mbuf;  //!< Pointer to a virtual memory map of the card. (note that it is a short int and that offsets must take this into account)
-      unsigned int status;                //!< Used to specify what level of initialization the slot is currently at.
-      int refCount;                       //!< The number of instances currently referring to the given slot.
-      void* fd;                             //!< The file descriptor used to memory map the card and in various \c ioctl calls.
-    };
-
-    //! This member holds all of the information on the current instances of CAENcard_767s
-    /*! The array holds a reference counted list of all of the currently initialized cards.
-        index zero, aka. crate[0], is used to specify that the instance of a CAENcard_767
-        has not been initialized to a slot (ie. a NULL CAENcard_767). Only one array is
-        created no matter how many of the instances of the class are created, so any
-        instances that are created with the same slot number will reference the the same
-        physical card and the same entry in the crate array.
-    */
-    static CAENcrate_767 crate[VME_CRATE_SIZE + 1];
-
-    //! Called by the constructor to initialize a card in a given slot. (should probably be broken into multiple functions...)
-    int slotInit(int slotNum, int crateNum);
-
-    //! Called by the destructor to free the resources associated with an allocated card.
-    void destruct();
-
-    //! A return value greater than or equal to zero indicates success
-    int readOpcode(unsigned short int *value, int maxRetry);
-    int writeOpcode(unsigned short int value, int maxRetry);
-    int opcodeWait(int maxRetry);
-
-    //! Clears all data from the buffer and clears all settings (they are set to default values by the card)
-    //will destroy the address registers... unsafe for users
-    void reset();
 
 /*************************begin public section*********************************/
-  public:
+public:
+  // Constructors and other canonical operations.
+  
+  CAENcard_767(int slotNum, int crateNum = 0,
+	       bool fisGeo = true, unsigned long nBase=0);
+  CAENcard_767(const CAENcard_767& card);
+  CAENcard_767& operator=(const CAENcard_767& card);
+  ~CAENcard_767();
+  
+  
+  int cardType();		//!< Returns the type of the card in the slot.
+  int mfgId();			//!< Return manufacturer id.
+  void clearData();		//!< Clear event data.
+  int dataPresent();		//!< Check for data present.
+  
+  
+  int readEvent(void* buf);	//!< Read an event -> Ordinary buffer.
+  int readEvent(DAQWordBuffer& wbuf, int offset); //!< Read event -> spectrodaq buffer
+  int readEvent(DAQWordBufferPtr& wp); //!< Read event to spectrudaq buffer.
+  int readEvent(DAQDWordBuffer& dwbuf, int offset); //!< Read evt to spectrodaq long buffer.
+  int readEvent(DAQDWordBufferPtr& dwp); //!< Read event to spectrodaq long buffer via pointer.
+  
+  int tempSetup();		//!< Setup the card.
 
-    //! Standard constructor. SlotNum is required to create a valid card, crateNum is not.
-    CAENcard_767(int slotNum = 0, int crateNum = 0);
 
-    //! Another constructor. Allows a card to be created using another card.
-    CAENcard_767(const CAENcard_767& card);
+  int SetRisingEdgeStart() ;
+  int SetFallingEdgeStart(); 
+  int SetRisingEdgeAll();
+  int SetFallingEdgeAll();
 
-    //! The card being assigned to has the destructor called on it and the value of the other argument assigned to it.
-    CAENcard_767& operator=(const CAENcard_767& card);
+  int getStartEdge();		//!< Get the edge of the start input.
+  int getEdgeOdd();		//!< Get odd channel edge
+  int getEdgeEven();		//!< Get even channel edge info.
+  unsigned short getSr2();
+  // Utilities:
 
-    //! Reference counted destructor. The cards are not de-allocated until there are no references to them.
-    ~CAENcard_767();
-
-    //! Returns the module number of the card in the slot.
-    int cardType();
-
-    //! Clears all data from the event buffer and usually the event counter, too (if not in "count all triggers" mode).
-    void clearData();
-
-    //! A simple test to see if there is data in the event buffer.
-    int dataPresent();
-
-    //! Reads one event from the event buffer (if data is present) and returns the number of BYTES read into the buffer.
-    int readEvent(void* buf);
-    //! Reads one event from the event buffer (if data is present) and returns the number of 16-BIT WORDS read into the buffer.
-    int readEvent(DAQWordBuffer& wbuf, int offset);
-    //! Reads one event from the event buffer (if data is present) and returns the number of 16-BIT WORDS read into the buffer.
-    int readEvent(DAQWordBufferPtr& wp);
-    //! Reads one event from the event buffer (if data is present) and returns the number of 32-BIT DWORDS read into the buffer.
-    int readEvent(DAQDWordBuffer& dwbuf, int offset);
-    //! Reads one event from the event buffer (if data is present) and returns the number of 32-BIT DWORDS read into the buffer.
-    int readEvent(DAQDWordBufferPtr& dwp);
-
-    // Set up the card -- this is a temporary function that will be removed later
-    // The current setup is common start, all channels enabled
-    int tempSetup()
-    {
-      //set to common start mode ("Start Gating")
-      // -- saves all conversions while the start signal is high.  the trigger signal is unused
-      if( writeOpcode(0x1200, 1000000) < 0 )
-      {
-        return(-1);
-      }
-
-      //set data-ready mode to be event-ready
-      if( writeOpcode(0x7000, 1000000) < 0 )
-      {
-        return(-2);
-      }
-
-      //enable subtraction of start time for start gating mode
-      if( writeOpcode(0x4300, 1000000) < 0)
-      {
-	return(-3);
-      }
-      
-      ////disables all channels
-      //if( writeOpcode(0x2400, 1000000) < 0)
-      // {
-      //return(-4);
-      //}
-      //enable individual channels
-      //if( writeOpcode(0x2000, 1000000) < 0)
-      //{  
-      //  return(-5);
-      //}
-      
-      //if( writeOpcode(0x2001, 1000000) < 0)
-      //{
-      //	return(-6);
-      //}
-
-      opcodeWait(1000000);
-
-      return(0);
-    }
-
-    int SetRisingEdgeStart() {
-      if(writeOpcode(0x6400, 1000000) < 0) {
-	return -1;
-      }
-      opcodeWait(1000000);
-      return 0;
-    }
-    int SetFallingEdgeStart() {
-      if(writeOpcode(0x6500, 100000) < 0) {
-	return -1;
-      }
-      opcodeWait(100000);
-      return 0;
-    }
-    
-    int SetRisingEdgeAll() {
-      if(writeOpcode(0x6000, 1000000) < 0) {
-	return -1;
-      }
-      opcodeWait(1000000);
-      return 0;
-    }
-
-    int SetFallingEdgeAll() {
-      if(writeOpcode(0x6100, 1000000) < 0) {
-	return -1;
-      }
-      opcodeWait(1000000);
-      return 0;
-    }
-    unsigned short getSr2() {
-      return *((crate[slot].mbuf + CAEN_767_STATUS_2));
-    }
-
+protected:
+  int slotInit(int slotNum, int crateNum,
+	       bool fGeo, unsigned long base); //!< Initialize a slot.
+  int readEdgeConfiguration(unsigned short* values);
+  int readOpcode(unsigned short int *value, int maxRetry); //!< Opcode for seq read.
+  int writeOpcode(unsigned short int value, int maxRetry); //!< Opcode for seq write.
+  int opcodeWait(int maxRetry);           //!< Wait for sequencer ready.
+  void reset();		            //!< MOdule soft reset. 
 };
 
 #endif
