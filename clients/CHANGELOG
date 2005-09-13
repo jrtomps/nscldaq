@@ -489,3 +489,5 @@ September 7, 2005
      - Do code cleanup as well for CAENV767 driver... including making it
        VME controller independent.
      - Treat counts as unsigned in display.
+September 13, 2005
+     - Debugged the base addressing/code cleanup of the CAENV767 module
