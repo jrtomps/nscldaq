@@ -585,8 +585,25 @@ CSIS3820::setInputMode(CSIS3820::InputMode mode) const throw (string)
     break;
 
     // Invalid modes:
-  case InputReserved5:
-  case InputReserved6:
+  case InputLNEHiscal:
+    if (getRevision() >= 1.1) {
+      unsigned long current = getAcqMode();
+      current = (current & ~getInputMode()) | mode;
+      setAcqMode(current);
+
+    }
+    else {
+      ThrowString(pLeader, "InputLNEHiscal requires FW rev 1.1 and above!");
+    }
+  case InputLNEInhAllExtClear:
+    if (getRevision() >= 1.5) {
+      unsigned long current = getAcqMode();
+      current = (current & ~getInputMode()) | mode;
+      setAcqMode(current);
+    }
+    else {
+      ThrowString(pLeader,"InputLNEInhAllExtClear requires FW rewv 1.5 and above.");
+    }
   case InputReserved7:
     
     ThrowString(pLeader,

@@ -491,3 +491,5 @@ September 7, 2005
      - Treat counts as unsigned in display.
 September 13, 2005
      - Debugged the base addressing/code cleanup of the CAENV767 module
+September 15, 2005
+     - Added support for two new input modes on SIS 3820 scaler.

@@ -324,9 +324,9 @@ public:
     InputLatchInhibitAllAndLatch = 0x0020000,
     InputLatchInhibitAll         = 0x0030000,
     InhibitGroups                = 0x0040000,
-    InputReserved5               = 0x0050000,
-    InputReserved6               = 0x0060000,
-    InputReserved7               = 0x0070000
+    InputLNEHiscal               = 0x0050000, // FW 1.1 and above.
+    InputLNEInhAllExtClear       = 0x0060000, // FW 1.5 and above. 
+    InputReserved7               = 0x0070000 
 
   };
 
