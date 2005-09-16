@@ -24,7 +24,6 @@ EXTRA_DIST = Configuration.tcl \
 	Experiment.tcl \
 	GetTapeDrive.tcl \
 	InitializeConfiguration.tcl \
-	InstallRoot.tcl \
 	KeeplistGui.tcl \
 	OS.tcl \
 	ReadougGUIPanel.tcl \
