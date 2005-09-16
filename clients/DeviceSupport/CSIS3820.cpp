@@ -558,7 +558,20 @@ CSIS3820::getOperatingMode() const
       Input3 Inhibits counting in channels 17-24
       Input4 Inhibits counting in channels 25-32
     \endverbatim
-    - InputReserved{5,6,7} not unimplemented in the module.
+    - CSIS3820::InputLNEHiscal
+      \verbatim
+         Input 1 External LNE
+         Input 2 Exterinal HISCAL_STart (time reste/start pulse).
+                 see the manual
+      \endverbatim
+    - CSIS3820::InputLNEInhAllExtClear (requres at lest FW 1.08)
+      \verbatim
+         Input 1 External LNE
+         Input 2 Inhibit counting in all channels.
+         Input 3 clear all counters.
+         Input 4 external user bit 1.
+      \endverbatim
+    - InputReserved{5,6} not unimplemented in the module.
 
     \param mode  (CSIS3820::InputMode [in])
        desired new input mode.
@@ -577,26 +590,15 @@ CSIS3820::setInputMode(CSIS3820::InputMode mode) const throw (string)
   case InputLatchInhibitAllAndLatch:
   case InputLatchInhibitAll:
   case InhibitGroups:
+  case InputLNEHiscal:
     {
       unsigned long current = getAcqMode();
       current = (current & ~getInputMode()) | mode;
       setAcqMode(current);
     }
     break;
-
-    // Invalid modes:
-  case InputLNEHiscal:
-    if (getRevision() >= 1.1) {
-      unsigned long current = getAcqMode();
-      current = (current & ~getInputMode()) | mode;
-      setAcqMode(current);
-
-    }
-    else {
-      ThrowString(pLeader, "InputLNEHiscal requires FW rev 1.1 and above!");
-    }
   case InputLNEInhAllExtClear:
-    if (getRevision() >= 1.5) {
+    if (getRevision() >= 1.08) {
       unsigned long current = getAcqMode();
       current = (current & ~getInputMode()) | mode;
       setAcqMode(current);
@@ -604,6 +606,8 @@ CSIS3820::setInputMode(CSIS3820::InputMode mode) const throw (string)
     else {
       ThrowString(pLeader,"InputLNEInhAllExtClear requires FW rewv 1.5 and above.");
     }
+    break;
+    // unimplemented modes.
   case InputReserved7:
     
     ThrowString(pLeader,
