@@ -246,6 +246,8 @@ CVMEInterface::Open(CVMEInterface::AddressMode nMode,
   unit->s_pHandle = handle;
   unit->s_AM      = AM;
 
+  usleep(150);			// For some reason Linux 2.6.x needs this??
+
   return (void*) unit;
 }
 /*!

@@ -495,3 +495,6 @@ September 15, 2005
      - Added support for two new input modes on SIS 3820 scaler.
      - Continue to remove InstallRoot.tcl from distro... it gets made
        at install time
+October 5, 2005
+     - Added 150usec delay in VMEInterface::Open for the Wiener/JTec
+       USB/VME interface... seems to need this on the 2.6.x kernel :-(.
