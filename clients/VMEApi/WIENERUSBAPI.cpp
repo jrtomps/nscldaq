@@ -46,7 +46,7 @@ static const int   ENDPOINT_IN(0x86); // Inbound endpoint.
 
 // Constants to help construct the stack:
 
-static const unsigned int   STACK_MAXIMMEDIATE(1); // Maximum transfers safe in an
+static const unsigned int   STACK_MAXIMMEDIATE(7); // Maximum transfers safe in an
 
    
                                                // immediate stack.
@@ -84,8 +84,8 @@ static const unsigned long DUMMYSIZE(9192); // From Jan's libxxusb.cpp.
 
 // USB Timeouts (taken from Jan's libxxusb.cpp).
 
-static const unsigned long WRITE_TIMEOUT(2000);	//  in ms.
-static const unsigned long READ_TIMEOUT(3000); // in ms.
+static const unsigned long WRITE_TIMEOUT(20000);	//  in ms.
+static const unsigned long READ_TIMEOUT(30000); // in ms.
 
 // Claim retry time in usec.
 
@@ -246,8 +246,7 @@ CVMEInterface::Open(CVMEInterface::AddressMode nMode,
   unit->s_pHandle = handle;
   unit->s_AM      = AM;
 
-  usleep(150);			// For some reason Linux 2.6.x needs this??
-
+  usleep(150);
   return (void*) unit;
 }
 /*!
@@ -284,27 +283,6 @@ void
 CVMEInterface::Unmap(void* handle, void* p, unsigned long bytes)
 {
   throw string("Wiener VC_USB does not support memory mapped I/O");
-}
-/*!
-   Read a block (of bytes), from the VME.  This is just a jacket
-   for WienerUSBVMEInterface::ReadBytes().
-*/
-int
-CVMEInterface::Read(void* pHandle, unsigned long nOffset,
-		    void* pBuffer, unsigned long nBytes)
-{
-  return WienerUSBVMEInterface::ReadBytes(pHandle, nOffset,
-					   pBuffer, nBytes);
-}
-/*!
-   Write a block of bytes to the vme.  This is just a thin jacket for
-   WienerUSBVMEInterface::WriteBytes()
-*/
-int
-CVMEInterface::Write(void* pHandle, unsigned long nOffset,
-		     void* pBuffer, unsigned long nBytes)
-{
-  return WienerUSBVMEInterface::WriteBytes(pHandle, nOffset, pBuffer, nBytes);
 }
 
 // Interface specific functions.
@@ -896,6 +874,7 @@ WienerUSBVMEInterface::usbImmediateStackTransaction(void* handle,
   //    correct, but I'm not sure what is correct... so we'll do what the rest
   //    of the world does.
   //
+#ifdef CLAIMUSB
   while(1) {
     int status = usb_claim_interface(pDevice, 0);
     if (status >= 0) break;	// Got it.
@@ -908,6 +887,7 @@ WienerUSBVMEInterface::usbImmediateStackTransaction(void* handle,
      throw msg;
     }
   }
+#endif
   // Construct the outpacket and send it...
 
   int nOutWords = pStack[0] + 2; // Stack count not self inclusive.
@@ -921,6 +901,9 @@ WienerUSBVMEInterface::usbImmediateStackTransaction(void* handle,
 				(char*)pOutPacket, nOutWords*sizeof(unsigned short),
 				WRITE_TIMEOUT);
   if (nWritten < 0) {
+#ifdef CLAIMUSB
+    usb_release_interface(pDevice, 0);
+#endif
     throw string("usbImmediateStackTransaction - usb_bulk_write failed");
   }
   
@@ -933,6 +916,9 @@ WienerUSBVMEInterface::usbImmediateStackTransaction(void* handle,
 			    inPacket, sizeof(inPacket), READ_TIMEOUT);
 
   if (nRead < 0) {
+#ifdef CLAIMUSB
+    usb_release_interface(pDevice, 0);
+#endif
     throw string("usbImmediateStackTransaction- usb_bulk_read failed");
   }
   // Copy any input data -> inputBuffer... at most readSize bytes.
@@ -941,8 +927,9 @@ WienerUSBVMEInterface::usbImmediateStackTransaction(void* handle,
 	 (nRead < readSize) ? nRead : readSize);
 
   // Release the interface
-
+#ifdef CLAIMUSB
   usb_release_interface(pDevice, 0);
+#endif
 
   // Return the result... always nRead so the user knows if they missed something.
 
