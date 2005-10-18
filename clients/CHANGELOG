@@ -498,3 +498,7 @@ September 15, 2005
 October 5, 2005
      - Added 150usec delay in VMEInterface::Open for the Wiener/JTec
        USB/VME interface... seems to need this on the 2.6.x kernel :-(.
+October 18, 2005
+     - Preserve order of run variables:  They will now be written to 
+	buffers in the order in which they were defined.
+     - Preserve order of state variables: They get written in order defined.
