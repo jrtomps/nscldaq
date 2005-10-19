@@ -507,3 +507,4 @@ October 19, 2005
        for enable on external lne.
      - Add a bunch of extra try /catch logic  to production readout
        so that it is better at diagnosing why it wants to exit.
+     - Same as above for high speed production readout.
