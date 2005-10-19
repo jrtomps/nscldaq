@@ -502,3 +502,6 @@ October 18, 2005
      - Preserve order of run variables:  They will now be written to 
 	buffers in the order in which they were defined.
      - Preserve order of state variables: They get written in order defined.
+October 19, 2005
+     - Fix defect in CSIS3600 - needed functions to enable/disable/check
+       for enable on external lne.

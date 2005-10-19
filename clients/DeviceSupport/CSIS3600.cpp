@@ -592,6 +592,42 @@ CSIS3600::Reset()
   m_nFastClearWindow = 220;	// Default initial fast clear window.
 }
 /*!
+    Enable the external next event input.
+    This is required to accept an external latch or coinc. gate.
+*/
+void
+CSIS3600::EnableExternalNext() const
+{
+  CtlReg cr;
+  Zero(cr);
+  SetBit(cr, EnableExternalNext, 1);
+  poke(Long(cr), CSR);
+}
+/*!
+   Disable the external next event input.
+   (Not recommended).
+*/   
+void 
+CSIS3600::DisableExternalNext() const
+{
+  CtlReg cr;
+  Zero(cr);
+  SetBit(cr, DisableExternalNext, 1);
+  poke(Long(cr), CSR);
+}
+/*!
+    Return true if the external next event input is
+    enabled.
+*/
+
+bool
+CSIS3600::ExternalNextEnabled() const
+{
+  StatReg sr;
+  Long(sr) = peek(CSR);
+  return (GetBit(sr, isExternalNext) == 1);
+}
+/*!
   Enable the external clear.  Once enabled, the external clear
   can be used as a fast clear mechanism to prevent an event
   from making it into the FIFO.  Note this is not the same as 

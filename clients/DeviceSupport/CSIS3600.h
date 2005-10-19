@@ -336,6 +336,11 @@ public:
   void EnableExternalClear() const;  //!< External clear input works.
   void DisableExternalClear() const; //!< External clear disable.
   bool ExternalClearEnabled() const; //!< State of clear enable.
+
+  void EnableExternalNext() const;
+  void DisableExternalNext() const;
+  bool ExternalNextEnabled() const;
+
   void SetFastClearWindow(int ns); //!< Set fast clear window.
   int  GetFastClearWindow() const; //!< Inquire fast clear window.
 
