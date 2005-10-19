@@ -616,7 +616,7 @@ CVMEptr<T>::CreateMap(UInt_t space, UInt_t base, UInt_t length, UInt_t crate)
     STD(string) merr("CVMEptr<T>::CreateMap - Unable to perform CVMEInterface::Map");
     merr += '\n';
     merr += err;
-    merr += "/n";
+    merr += "\n";
     throw CMmapError(merr.c_str());
 
   }

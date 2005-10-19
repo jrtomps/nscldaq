@@ -505,3 +505,5 @@ October 18, 2005
 October 19, 2005
      - Fix defect in CSIS3600 - needed functions to enable/disable/check
        for enable on external lne.
+     - Add a bunch of extra try /catch logic  to production readout
+       so that it is better at diagnosing why it wants to exit.

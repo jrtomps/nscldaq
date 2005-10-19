@@ -19,6 +19,7 @@
 
 #include <config.h>
 #include "CVMEInterface.h"
+#include "Exception.h"
 #include "CExperiment.h"                  
 #include "CStateTransitionCommand.h"
 #include "CBeginCommand.h"
@@ -159,8 +160,14 @@ CTriggerThread::operator()(int argc, char** argv)
   try {
     MainLoop();
   } 
-  catch(string& rReason) {
-    cerr << "Main loop of trigger failed: " << rReason << endl;
+
+  catch(char* pReason) {
+    cerr << "Main loop of trigger failed: " << pReason << endl;
+    CApplicationSerializer::getInstance()->UnLockCompletely();
+  }
+  catch (CException& rException) {
+    cerr << "Main loop of trigger failed: " <<
+      rException.ReasonText() << " while: " << rException.WasDoing() << endl;
     CApplicationSerializer::getInstance()->UnLockCompletely();
   }
   catch(...) {
@@ -320,77 +327,98 @@ CExperiment::~CExperiment() {}
 void 
 CExperiment::Start(CStateTransitionCommand& rCommand)  
 {
-  // Execute pre-actions:
- 
-  rCommand.ExecutePreFunction();
 
-  // Figure out what kind of buffer to emit and emit it.
+  // Wrap the entire function in a try catch block to nail the 
+  // exceptions that may come up:
+  //
 
   try {
-    CBeginCommand& rBegin(dynamic_cast<CBeginCommand&>(rCommand)); // Throws if resume.
-    MyApp.getClock().Reset();	// Reset the run elapsed time.
-    EmitStart();		// and emit a begin buffer.
-    m_LastScalerTime = 0;	// Neither scalers have been readout yet this run.
-    m_LastSnapTime   = 0;
 
-    // Set the starttime variable:
-
-    CInterpreterShell* pShell = CReadoutMain::getInstance()->getInterpreter();
-    CInterpreterCore*  pCore  = pShell->getInterpreterCore();
-    time_t epochTime = time(NULL);
-    string sTime(ctime(&epochTime));
-    pCore->setStartTime(sTime);
-	  
-    // Reset the statistical counters:
-	  
-   m_nEventsAcquired = 0;
-   m_nWordsAcquired  = 0;
-     
-   pCore->setEvents(m_nEventsAcquired);
-   pCore->setWords(m_nWordsAcquired);
+    // Execute pre-actions:
     
+    rCommand.ExecutePreFunction();
+    
+    // Figure out what kind of buffer to emit and emit it.
+    
+    try {
+      CBeginCommand& rBegin(dynamic_cast<CBeginCommand&>(rCommand)); // Throws if resume.
+      MyApp.getClock().Reset();	// Reset the run elapsed time.
+      EmitStart();		// and emit a begin buffer.
+      m_LastScalerTime = 0;	// Neither scalers have been readout yet this run.
+      m_LastSnapTime   = 0;
+      
+      // Set the starttime variable:
+      
+      CInterpreterShell* pShell = CReadoutMain::getInstance()->getInterpreter();
+      CInterpreterCore*  pCore  = pShell->getInterpreterCore();
+      time_t epochTime = time(NULL);
+      string sTime(ctime(&epochTime));
+      pCore->setStartTime(sTime);
+      
+      // Reset the statistical counters:
+      
+      m_nEventsAcquired = 0;
+      m_nWordsAcquired  = 0;
+      
+      pCore->setEvents(m_nEventsAcquired);
+      pCore->setWords(m_nWordsAcquired);
+      
+    }
+    catch (bad_cast& rbad) {
+      m_LastSnapTime = 0;	// Snaps will not have been read out at resume.
+      EmitResume();		// Emit a resume without zeroing the run elapsed time.
+    }
+    
+    // Emit documentation and runstate variable buffers.
+    
+    TriggerDocBuffer();
+    TriggerRunVariableBuffer();
+    TriggerStateVariableBuffer();
+    
+    // Prepare the hardware for readout:
+    
+    try {
+      m_EventReadout.Initialize();	// Initialize the event readout...
+      m_Scalers.Initialize();
+      m_Scalers.Clear();
+      m_EventReadout.Clear();	// Clear digitizers prior to start.
+    }
+    catch (DesignByContractException& rContractViolation) {
+      string msg(rContractViolation);
+      
+      cerr << "Interface contract violation: " << msg << endl;
+      cerr << "Detected in user's code called by CExperiment::Start" << endl;
+    }
+    
+    
+    // Start the trigger process and clock.
+    
+    StartTrigger();
+    m_pScalerTrigger->SetInterval(MyApp.getScalerPeriod() * 1000);
+    MyApp.getClock().Start(msPerClockTick, nTriggerDwellTime/2);
+    ClearBusy();
+    
+    
+    
+    //<----------- At this point we can potentially take data.
+    // Execute post-actions:
+    
+    
+    rCommand.ExecutePostFunction();
+  } 
+  catch (string reason) {
+    cerr << "CExperiment::Start caught a string exception : " << reason << endl;
   }
-  catch (bad_cast& rbad) {
-    m_LastSnapTime = 0;	// Snaps will not have been read out at resume.
-    EmitResume();		// Emit a resume without zeroing the run elapsed time.
+  catch (char* reason) {
+    cerr << "CExperiment::Start caught a char* exception : " << reason << endl;
   }
-
-  // Emit documentation and runstate variable buffers.
-
-  TriggerDocBuffer();
-  TriggerRunVariableBuffer();
-  TriggerStateVariableBuffer();
-
-  // Prepare the hardware for readout:
-
-  try {
-    m_EventReadout.Initialize();	// Initialize the event readout...
-    m_Scalers.Initialize();
-    m_Scalers.Clear();
-    m_EventReadout.Clear();	// Clear digitizers prior to start.
+  catch (CException& reason) {
+    cerr << "CExperiment::Start caught a CSNCLException: "
+	 << reason.ReasonText() << " while " << reason.WasDoing() << endl;
   }
-  catch (DesignByContractException& rContractViolation) {
-    string msg(rContractViolation);
-
-    cerr << "Interface contract violation: " << msg << endl;
-    cerr << "Detected in user's code called by CExperiment::Start" << endl;
+  catch (...) {
+    cerr << "CExperiment::Start caught an unexpected type of exception\n";
   }
-
-
-  // Start the trigger process and clock.
-
-  StartTrigger();
-  m_pScalerTrigger->SetInterval(MyApp.getScalerPeriod() * 1000);
-  MyApp.getClock().Start(msPerClockTick, nTriggerDwellTime/2);
-  ClearBusy();
-
-
-
-  //<----------- At this point we can potentially take data.
-  // Execute post-actions:
-
-
-  rCommand.ExecutePostFunction();
 }  
 
 /*!
@@ -408,38 +436,56 @@ CExperiment::Start(CStateTransitionCommand& rCommand)
 void 
 CExperiment::Stop(CStateTransitionCommand& rCommand)  
 {
-  // Do the pre actions.
-
-  rCommand.ExecutePreFunction();
-
-
-  // Emit documentation and variable list buffers.
-
-  TriggerDocBuffer();
-  TriggerRunVariableBuffer();
-  TriggerStateVariableBuffer();  
-
-  // Stop the trigger and clock processes.  Note that the stop trigger function
-  // synchronizes with the exit of the trigger thread.
-  
-  StopTrigger();		//<--------- At this point we can't take data.
-  TriggerScalerReadout();	// Closing scaler buffers.
-
-  // Figure out what kind of event this is and emit the appropriate buffer
-  //  (End or Pause).
-
+  // Wrap the entire body of the Stop function in a try catch block
+  // to attempt to describe any problems encountered.
   try {
-    CEndCommand& rend(dynamic_cast<CEndCommand&>( rCommand));
-    EmitEnd();
-  }
-  catch (bad_cast& rbad) {
-    EmitPause();
+    // Do the pre actions.
+    
+    rCommand.ExecutePreFunction();
+    
+    
+    // Emit documentation and variable list buffers.
+    
+    TriggerDocBuffer();
+    TriggerRunVariableBuffer();
+    TriggerStateVariableBuffer();  
+    
+    // Stop the trigger and clock processes.  Note that the stop trigger function
+    // synchronizes with the exit of the trigger thread.
+    
+    StopTrigger();		//<--------- At this point we can't take data.
+    TriggerScalerReadout();	// Closing scaler buffers.
+    
+    // Figure out what kind of event this is and emit the appropriate buffer
+    //  (End or Pause).
+    
+    try {
+      CEndCommand& rend(dynamic_cast<CEndCommand&>( rCommand));
+      EmitEnd();
+    }
+    catch (bad_cast& rbad) {
+      EmitPause();
+    }
+    
+    // Do the post actions.
+    
+    MyApp.getClock().Stop();
+    rCommand.ExecutePostFunction();
   }
 
-  // Do the post actions.
-
-  MyApp.getClock().Stop();
-  rCommand.ExecutePostFunction();
+  catch (string reason) {
+    cerr << "CExperiment::Stop caught a string exception: " << reason << endl;
+  }
+  catch (char* reason) {
+    cerr << "CExperiment::Stop caught a char* exception: " << reason << endl;
+  }
+  catch (CException& reason) {
+    cerr << "CExperiment::Stop caught a CException: "
+	 << reason.ReasonText() << " while " << reason.WasDoing() << endl;
+  }
+  catch (...) {
+    cerr << "CExperiment::Stop caught an unexpected exception type\n";
+  }
 }  
 
 /*!
@@ -473,7 +519,32 @@ CExperiment::ReadEvent()
     string msg(rContractViolation);
     cerr << "Interface contract violation: " << msg << endl;
     cerr << "Detected in CExperiment::ReadEvent" << endl;
+    cerr << "Any partially acquired event will be discarded\n";
+    ptr = hdr;
   }
+  catch (string reason) {
+    cerr << "Event Segment reads threw a string exception: " << reason 
+	 << " any partial event read will be discarded "     << endl;
+    ptr = hdr;			// Ensure the event is retracted.
+  }
+  catch (char* reason) {
+    cerr << "Event segment reads threw a char* exception: "
+	 << reason << " any partial event read will be discarded\n";
+    ptr = hdr;
+  }
+  catch (CException& rexcept) {
+    cerr << "Event segment reads threw a CException : "
+	 << rexcept.ReasonText() << " while " << rexcept.WasDoing() <<endl;
+    cerr << "Any partial event data read will be discarded\n";
+    ptr = hdr;
+  }
+  catch (...) {
+    cerr << "Event segment reads threw a unexpected exception type\n";
+    cerr << "Any partial event data read will be discarded\n";
+    ptr = hdr;
+  }
+
+
   PostEvent();
   CVMEInterface::Unlock();
 
@@ -494,7 +565,7 @@ CExperiment::ReadEvent()
      
   } else {
     if (ptr == hdr) {
-      m_EventBuffer->RetractEvent(ptr);	// No data reaad actually.
+      m_EventBuffer->RetractEvent(ptr);	// No data read actually.
     } 
     else {
       m_EventBuffer->EndEvent(ptr);
@@ -651,7 +722,31 @@ CExperiment::TriggerScalerReadout()
     string msg(rViolation);
     cerr << "Interface contract violation: " << msg << endl;
     cerr << "Detected in user code called by CExperiment::TriggerScalerReadout\n";
+    cerr << "Any partial scaler reads are discarded\n";
+    scalers.erase(scalers.begin(), scalers.end());
   }
+  catch (string msg) {
+    cerr << "Scaler reads threw a string exception: " << msg << endl;
+    cerr << "Any scalers read wil be discarded\n";
+    scalers.erase(scalers.begin(), scalers.end());
+  }
+  catch (char* msg) {
+    cerr << "Scaler reads threw a char* exception: " << msg << endl;
+    cerr << "Any scalers read wil be discarded\n";
+    scalers.erase(scalers.begin(), scalers.end());
+  }
+  catch (CException& exception) {
+    cerr << "Scaler reads threw a CException: " << exception.ReasonText()
+	 << " while " << exception.WasDoing() << endl;
+    cerr << "Any scalers read will be discarded\n";
+    scalers.erase(scalers.begin(), scalers.end());    
+  }
+  catch (...) {
+    cerr << "Scaler reads threw an unexpected exception type\n";
+    cerr << "Any scalers read will be discarded\n";
+    scalers.erase(scalers.begin(), scalers.end());  
+  }
+
   CNSCLScalerBuffer buffer(m_nBufferSize);
 
   // If a snapshot scaler has been readout, the values
@@ -746,6 +841,33 @@ CExperiment::TriggerSnapshotScaler()
     string msg(rContractViolation);
     cerr << "Interface contract violation: " << msg << endl;
     cerr << "Detected in user code called by CExperiment::TriggerSnapshotScaler\n";
+    cerr << "Any partially read scalers will be discarded\n";
+    scalers.erase(scalers.begin(), scalers.end());
+  }
+  catch (string msg) {
+    cerr << "CExperiment::TriggerSnapshotScaler caught a string exception reading out the scalers:\n";
+    cerr << msg << endl;
+    cerr << "Any partially read scalers will be discarded\n";
+    scalers.erase(scalers.begin(), scalers.end());
+
+
+  }
+  catch (char* msg) {
+    cerr << "CExperiment::TriggerSnapshotScaler caught a char* exception reading out scalers:\n";
+    cerr << msg << endl;
+    cerr << "Any partially read scalers will be discarded\n";
+    scalers.erase(scalers.begin(), scalers.end());
+  }
+  catch (CException& exception) {
+    cerr << "CExperiment::TriggerSnapshotScaler caught an NSCLException reading out the scalers:\n";
+    cerr << exception.ReasonText() << " while " << exception.WasDoing() << endl;
+    cerr << "Any partially read scalers will be discarded\n";
+    scalers.erase(scalers.begin(), scalers.end());
+  }
+  catch (...) {
+    cerr << "CExperiment::CTriggerSnapshotScaler caught an exception of an unanticipated type while reading scalers\n";
+    cerr << "Any partially read scalers will be discarded\n";
+    scalers.erase(scalers.begin(), scalers.end());
   }
   
   // Sum the scalers into the snapshot scaler totals vector.
