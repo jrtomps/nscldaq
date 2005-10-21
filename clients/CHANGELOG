@@ -508,3 +508,5 @@ October 19, 2005
      - Add a bunch of extra try /catch logic  to production readout
        so that it is better at diagnosing why it wants to exit.
      - Same as above for high speed production readout.
+October 21, 2005
+     - Mark the CAENV812 stuff in contrib as obsolete for people who attempt to use it.

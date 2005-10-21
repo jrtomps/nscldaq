@@ -1,4 +1,4 @@
-install-exec-local:
+pwdinstall-exec-local:
 	$(mkinstalldirs) $(prefix)/contrib $(prefix)/contrib/caenv812
 	$(INSTALL_SCRIPT) *.tcl            $(prefix)/contrib/caenv812
 	$(INSTALL_DATA)   *.cfd            $(prefix)/contrib/caenv812

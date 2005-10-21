@@ -19,6 +19,30 @@
 
 package provide CFDState 1.0
 
+set libs [info loaded]
+if {[string first  "Tk" $libs] != -1} {
+    set result [tk_messageBox -title {Obsolete Software} \
+		              -icon warning              \
+		              -type okcancel             \
+		    -message {WARNING: You are using an obsolete version of the CFDSTATE package.
+The up to date version of this package is in: $DAQROOT/Scripts/ControlDrivers
+(DAQROOT - means where the DAQ software is installed on your system).  
+Unless you wish to continue using this obsolete software, please ensure 
+that your TCLLIBPATH environment variable includes this directory early 
+in the list of library directories.  }]
+    if {$result == "cancel"} {
+        exit
+    }
+} else {
+    puts stderr {WARNING: You are using an obsolete version of the CFD812 package.
+The up to date version of this package is in $DAQROOT/Scripts/ControlDrivers
+(DAQROOT - means where the DAQ software is installed on your system).  Unless you
+wish to continue using this obsolete software, please ensure that your TCLLIBPATH environment
+variable includes this directory early in the list of library directories.  }
+
+}
+
+
 namespace eval CFDState {
    variable Modules         ""
    variable Thresholds      
