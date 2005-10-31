@@ -280,6 +280,9 @@ DAMAGES.
    
 Modification History:
 $Log$
+Revision 8.3  2005/10/31 22:57:00  ron-fox
+Support Settable buffersizes
+
 Revision 8.2  2005/06/24 11:31:07  ron-fox
 Bring the entire world onto the 8.2 line
 
@@ -457,6 +460,10 @@ public:
   }
   // Mutators:
 protected:  
+public:
+  void setBufferSize(unsigned nBufferSize) {
+    m_nBufferSize = nBufferSize;
+  }
   
   // Class operations:
 public:
