@@ -509,8 +509,10 @@ October 19, 2005
        so that it is better at diagnosing why it wants to exit.
      - Same as above for high speed production readout.
 October 21, 2005
-     - Mark the CAENV812 stuff in contrib as obsolete for people who attempt to use it.
-     - Absorb the CAENV812 stuff - with rewritten GUI in the 
+     - Mark the CAENV812 stuff in contrib as obsolete for people who attempt 
+       to use it.
+     - Absorb the CAENV812 stuff - with rewritten GUI in the slowControls
+       subdir tree.
 October 31, 2005
      - Support user settable buffersizes.
        
