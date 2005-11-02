@@ -6,7 +6,8 @@ SUBDIRS = @VME_DRIVERDIR@ \
 	bufdump TclServer bcnaf TcpHoister Stager Scripts framework \
 	AlarmDisplay LogDisplay ProductionReadout  HPProductionReadout \
 	contrib dvdburn daqstart @EPICSSOFTWARE@ \
-	ScalerDisplay @DEPENDSON_VME@ wienerusbd
+	ScalerDisplay @DEPENDSON_VME@ wienerusbd \
+	slowControls
 
 
 EXTRA_DIST =  config/install-sh config/config.sub config/config.guess \

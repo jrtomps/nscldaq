@@ -5,7 +5,7 @@ exec wish ${0} ${@}
 
 set reply [tk_messageBox -icon warning -title "Obsolete software!" \
     -message {You are running an obsolete version of the CAENV812 CFD controller gui.
-An up to date version is in $DAQROOT/Scripts/ControlGUI/cfd.tcl  where $DAQROOT is
+An up to date version is in $DAQROOT/Scripts/ControlApplications/caenv812control.tcl  where $DAQROOT is
 where the DAQ software has been installed} -type okcancel]
 
 if {$reply == "cancel"} {

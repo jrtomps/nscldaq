@@ -19,25 +19,37 @@
 #     WidthLow, WidthHigh       Widths for channels 0-7, 8-15
 #     DeadTimeLow, DeadTimeHigh Channel deadtimes for 0-7, 8-15
 #     Majority                  Majority logic level.
-#     ChannelOn(0:15)           Channel enables (0 - channel disabled, 1 on).
+#     mask_arr(0:15)           Channel enables (0 - channel disabled, 1 on).
 #
 #
 #  Requires:
-#     DISTRIBROOT environment variable to point to the SEE software 
+#     DISTRIBROOT environment variable to point to the SEE software
 #     distribution root.
 #
 # start tclsh \
 exec tclsh $0 $@
 
-puts {You are running an obsolete version of the loadcfd.tcl program.
-The up to date version of this program is in $DAQROOT/Scripts/ControlApplications}
 
+set me [info script]
 
-set me $argv0
-set cfddir [file dirname $me]
+# Canonicalize the directory one above me so that we can search
+# for packages in the tree rooted in ..
 
-lappend auto_path $cfddir
-package require CFD812
+set libdirs [file join [file dirname $me] ..]
+set dir [pwd]
+cd $libdirs
+set libdirs [pwd]
+cd $dir
+
+#  If $libdirs is not part of the path yet, then
+#  prepend it to the path so that it overrides any bad obsolete dirs.
+#
+
+if {[lsearch -exact $auto_path $libdirs] == -1} {
+    set auto_path [linsert $auto_path 0 $libdirs]
+}
+
+package require CFD812 2.0
 
 #
 #   Print out how to use this program:
@@ -45,14 +57,14 @@ package require CFD812
 #
 proc Usage {} {
     puts "Usage:"
-    puts "   loadcfd.tcl  configfile settingsfile"
+    puts "   loadcfd.tcl  configfile ?settingsfile?"
     puts "Where:"
     puts "    configfile   - defines the location of the module."
     puts "    settingsfile - describes how to set up the module."
-    
+
 }
 
-if {[llength $argv] != 2} {
+if {([llength $argv] > 2) || ([llength $argv] < 1)} {
     Usage
     exit
 }
@@ -61,11 +73,13 @@ if {[llength $argv] != 2} {
 puts "$argv0 $argv"
 
 set config   [lindex $argv 0]
-set settings [lindex $argv 1]
-
-
 source $config
-source $settings
+
+
+if {[llength $argv] == 2} {
+    set settings [lindex $argv 1]
+    source $settings
+}
 
 #
 #   Create the module:
@@ -82,32 +96,46 @@ CFD812::SetMask $module 0
 #
 
 for {set i 0} {$i < 16} {incr i } {
-   CFD812::SetThreshold $module $i $Thresholds($i)
+    if {[array names Threshold $i] != ""} {
+	CFD812::SetThreshold $module $i $Thresholds($i)
+    }
 }
 
 #
 #   Set the widths by bank:
 #
-CFD812::SetWidth $module 0 $WidthLow
-CFD812::SetWidth $module 1 $WidthHigh
+if {[info var WidthLow] != ""} {
+    CFD812::SetWidth $module 0 $WidthLow
+}
+if {[info var WidthHigh] != ""} {
+    CFD812::SetWidth $module 1 $WidthHigh
+}
 
 #
 #  Set the deadtimes by bank:
 #
-CFD812::SetDeadtime $module 0 $DeadTimeLow
-CFD812::SetDeadtime $module 1 $DeadTimeHigh
+if {[info var DeadTimeLow] != ""} {
+    CFD812::SetDeadtime $module 0 $DeadTimeLow
+}
+if {[info var DeadTimeHigh] != ""} {
+    CFD812::SetDeadtime $module 1 $DeadTimeHigh
+}
 #
 #  Set the multiplicity logic:
 #
-CFD812::SetMultiplicityThreshold $module $Majority
+if {[info var Majority] != ""} {
+    CFD812::SetMultiplicityThreshold $module $Majority
+}
 
 #
 #  Compute the channel enable mask and set it.
 #
 set mask 0
 for {set i 0} {$i < 16} {incr i} {
-    if {$ChannelOn($i)} {
-	set mask [expr $mask | (1 << $i)]
+    if {[array names mask_arr $i] != ""} {
+	if {$mask_arr($i)} {
+	    set mask [expr $mask | (1 << $i)]
+	}
     }
 }
 CFD812::SetMask $module $mask

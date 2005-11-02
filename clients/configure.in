@@ -780,4 +780,5 @@ AC_OUTPUT( Makefile Headers/Makefile CopyrightTools/Makefile \
 	daqstart/Makefile ScalerDisplay/Makefile ScalerDisplay/ScalerDisplay \
 	wienerdriver/Makefile wienerdriver/driver/Makefile \
 	wienerdriver/lib/Makefile PowerCheck/Makefile \
-	wienerusbd/Makefile)
+	wienerusbd/Makefile \
+	slowControls/Makefile slowControls/caenv812/Makefile)
