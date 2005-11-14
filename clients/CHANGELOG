@@ -515,4 +515,7 @@ October 21, 2005
        subdir tree.
 October 31, 2005
      - Support user settable buffersizes.
+November 11, 2005
+     - Absorb the CAEN N568 stuff with rewritten GUI in the slowControls
+	subdir tree.
        
