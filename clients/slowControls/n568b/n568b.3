@@ -1,0 +1,358 @@
+'\"
+'\" Copyright (c) 2005 Michigan State University All Rights Reserved
+'\"  Licensed under the GPL.  See http://www.gnu.org/licenses/gpl.txt
+'\"  terms and conditions.
+'\"
+'\" The definitions below are for supplemental macros used in Tcl/Tk
+'\" manual entries.
+'\"
+'\" .AP type name in/out ?indent?
+'\"	Start paragraph describing an argument to a library procedure.
+'\"	type is type of argument (int, etc.), in/out is either "in", "out",
+'\"	or "in/out" to describe whether procedure reads or modifies arg,
+'\"	and indent is equivalent to second arg of .IP (shouldn't ever be
+'\"	needed;  use .AS below instead)
+'\"
+'\" .AS ?type? ?name?
+'\"	Give maximum sizes of arguments for setting tab stops.  Type and
+'\"	name are examples of largest possible arguments that will be passed
+'\"	to .AP later.  If args are omitted, default tab stops are used.
+'\"
+'\" .BS
+'\"	Start box enclosure.  From here until next .BE, everything will be
+'\"	enclosed in one large box.
+'\"
+'\" .BE
+'\"	End of box enclosure.
+'\"
+'\" .CS
+'\"	Begin code excerpt.
+'\"
+'\" .CE
+'\"	End code excerpt.
+'\"
+'\" .VS ?version? ?br?
+'\"	Begin vertical sidebar, for use in marking newly-changed parts
+'\"	of man pages.  The first argument is ignored and used for recording
+'\"	the version when the .VS was added, so that the sidebars can be
+'\"	found and removed when they reach a certain age.  If another argument
+'\"	is present, then a line break is forced before starting the sidebar.
+'\"
+'\" .VE
+'\"	End of vertical sidebar.
+'\"
+'\" .DS
+'\"	Begin an indented unfilled display.
+'\"
+'\" .DE
+'\"	End of indented unfilled display.
+'\"
+'\" .SO
+'\"	Start of list of standard options for a Tk widget.  The
+'\"	options follow on successive lines, in four columns separated
+'\"	by tabs.
+'\"
+'\" .SE
+'\"	End of list of standard options for a Tk widget.
+'\"
+'\" .OP cmdName dbName dbClass
+'\"	Start of description of a specific option.  cmdName gives the
+'\"	option's name as specified in the class command, dbName gives
+'\"	the option's name in the option database, and dbClass gives
+'\"	the option's class in the option database.
+'\"
+'\" .UL arg1 arg2
+'\"	Print arg1 underlined, then print arg2 normally.
+'\"
+'\" RCS: @(#) $Id$
+'\"
+'\"	# Set up traps and other miscellaneous stuff for Tcl/Tk man pages.
+.if t .wh -1.3i ^B
+.nr ^l \n(.l
+.ad b
+'\"	# Start an argument description
+.de AP
+.ie !"\\$4"" .TP \\$4
+.el \\fI\
+.   ie !"\\$2"" .TP \\n()Cu
+.   el          .TP 15
+.\}
+.ta \\n()Au \\n()Bu
+.ie !"\\$3"" \\fI\
+\&\\$1	\\fI\\$2\\fP	(\\$3)
+.\".b
+.\}
+.el \\fI\
+.br
+.ie !"\\$2"" \\fI\
+\&\\$1	\\fI\\$2\\fP
+.\}
+.el \\fI\
+\&\\fI\\$1\\fP
+.\}
+.\}
+..
+'\"	# define tabbing values for .AP
+.de AS
+.nr )A 10n
+.if !"\\$1"" .nr )A \\w'\\$1'u+3n
+.nr )B \\n()Au+15n
+.\"
+.if !"\\$2"" .nr )B \\w'\\$2'u+\\n()Au+3n
+.nr )C \\n()Bu+\\w'(in/out)'u+2n
+..
+.AS Tcl_Interp Tcl_CreateInterp in/out
+'\"	# BS - start boxed text
+'\"	# ^y = starting y location
+'\"	# ^b = 1
+.de BS
+.br
+.mk ^y
+.nr ^b 1u
+.if n .nf
+.if n .ti 0
+.if n \l'\\n(.lu\(ul'
+.if n .fi
+..
+'\"	# BE - end boxed text (draw box now)
+.de BE
+.nf
+.ti 0
+.mk ^t
+.ie n \l'\\n(^lu\(ul'
+.el \\fI\
+.\"	Draw four-sided box normally, but don't draw top of
+.\"	box if the box started on an earlier page.
+.ie !\\n(^b-1 \\fI\
+\h'-1.5n'\L'|\\n(^yu-1v'\l'\\n(^lu+3n\(ul'\L'\\n(^tu+1v-\\n(^yu'\l'|0u-1.5n\(ul'
+.\}
+.el \}\
+\h'-1.5n'\L'|\\n(^yu-1v'\h'\\n(^lu+3n'\L'\\n(^tu+1v-\\n(^yu'\l'|0u-1.5n\(ul'
+.\}
+.\}
+.fi
+.br
+.nr ^b 0
+..
+'\"	# VS - start vertical sidebar
+'\"	# ^Y = starting y location
+'\"	# ^v = 1 (for troff;  for nroff this doesn't matter)
+.de VS
+.if !"\\$2"" .br
+.mk ^Y
+.ie n 'mc \s12\(br\s0
+.el .nr ^v 1u
+..
+'\"	# VE - end of vertical sidebar
+.de VE
+.ie n 'mc
+.el \\fI\
+.ev 2
+.nf
+.ti 0
+.mk ^t
+\h'|\\n(^lu+3n'\L'|\\n(^Yu-1v\(bv'\v'\\n(^tu+1v-\\n(^Yu'\h'-|\\n(^lu+3n'
+.sp -1
+.fi
+.ev
+.\}
+.nr ^v 0
+..
+'\"	# Special macro to handle page bottom:  finish off current
+'\"	# box/sidebar if in box/sidebar mode, then invoked standard
+'\"	# page bottom macro.
+.de ^B
+.ev 2
+'ti 0
+'nf
+.mk ^t
+.if \\n(^b \\fI\
+.\"	Draw three-sided box if this is the box's first page,
+.\"	draw two sides but no top otherwise.
+.ie !\\n(^b-1 \h'-1.5n'\L'|\\n(^yu-1v'\l'\\n(^lu+3n\(ul'\L'\\n(^tu+1v-\\n(^yu'\h'|0u'\c
+.el \h'-1.5n'\L'|\\n(^yu-1v'\h'\\n(^lu+3n'\L'\\n(^tu+1v-\\n(^yu'\h'|0u'\c
+.\}
+.if \\n(^v \\fI\
+.nr ^x \\n(^tu+1v-\\n(^Yu
+\kx\h'-\\nxu'\h'|\\n(^lu+3n'\ky\L'-\\n(^xu'\v'\\n(^xu'\h'|0u'\c
+.\}
+.bp
+'fi
+.ev
+.if \\n(^b \\fI\
+.mk ^y
+.nr ^b 2
+.\}
+.if \\n(^v \\fI\
+.mk ^Y
+.\}
+..
+'\"	# DS - begin display
+.de DS
+.RS
+.nf
+.sp
+..
+'\"	# DE - end display
+.de DE
+.fi
+.RE
+.sp
+..
+'\"	# SO - start of list of standard options
+.de SO
+.SH "STANDARD OPTIONS"
+.LP
+.nf
+.ta 5.5c 11c
+.ft B
+..
+'\"	# SE - end of list of standard options
+.de SE
+.fi
+.ft R
+.LP
+See the \\fBoptions\\fR manual entry for details on the standard options.
+..
+'\"	# OP - start of full description for a single option
+.de OP
+.LP
+.nf
+.ta 4c
+Command-Line Name:	\\fB\\$1\\fR
+Database Name:	\\fB\\$2\\fR
+Database Class:	\\fB\\$3\\fR
+.fi
+.IP
+..
+'\"	# CS - begin code excerpt
+.de CS
+.RS
+.nf
+.ta .25i .5i .75i 1i
+..
+'\"	# CE - end code excerpt
+.de CE
+.fi
+.RE
+..
+.de UL
+\\$1\l'|0\(ul'\\$2
+..
+.TH n568b 3 "" Tcl "NSCL DAQ Tcl support"
+.BS
+'\" Note:  do not modify the .SH NAME line immediately below!
+.SH NAME
+n568b \- Support package for the CAEN N568b shaper.
+.SH SYNOPSIS
+.DS
+\fBpackage require n568b\fR
+\fB::n568b::Id\fI controller node\fR
+\fB::n568b::GetAllParameters\fI controller node\fR
+\fB::n568b::GetOffset\fI controller node\fR
+\fB::n568b::GetChannelParameters\fI controller node channel\fR
+\fB::n568b::GetMuxStatus\fI controller node\fR
+\fB::n568b::SetFineGain\fI controller node channel value\fR
+\fB::n568b::SetCoarseGain\fI controller node channel value\fR
+\fB::n568b::SetPole0\fI controller node channel value\fR
+\fB::n568b::SetShapingTime\fI controller node channel value\fR
+\fB::n568b::SetPolarity\fI controller node channel value\fR
+\fB::n568b::SetOutputConfiguration\fI controller node channel value\fR
+\fB::n568b::SetOffset\fI controller node value\fR
+\fB::n568b::EnableMuxOut\fI controller node\fR
+\fB::n568b::DisableMuxOut\fI controller node\fR
+.DE
+.BE
+
+.SH DESCRIPTION
+.PP
+The n568b package provides support for controlling and monitoring the
+CAEN N568b shaping amplifier over the CAEN V288 high speed VME CAENnet controller.
+CAENnet support is in terms of\fI controller\fR handles.  A controller handle is
+obtained via the caennet::create procedure (see \fBcaennet(3)\fR).  This controller
+represents a single CAEN V288 controller.  On the CAENnet run by that controller, each
+device must be configured to have a uniqe node address or id.  In the case of the N568b
+module, this node id is set via switches on the module front panel.  Thus we see that all
+of the procs in this package operate on a module identifies by\fI controller\fR and\fI node\fR.
+.PP
+Subsequent paragraphs provide operational details for each procedure this package supports.
+.TP
+\fB::n568b::Id\fI controller node\fR
+Returns the node id string of a module.  See the N568b manual for information
+about the structure of this string.
+.TP.
+\fB::n568b::GetAllParameters\fI controller node\fR
+Returns information about all parameters.  The return value is in the form of a proper
+Tcl list containing seventeen (17) elements.  The last element is the module common offset
+value.  Each of the other 16 elements is a list describing the parameters of each of the
+16 channels in the module.  Each channel parameter list provides:
+.DS
+        The channel fine gain.
+        The channel pole 0 correction.
+        The channel polarity (+ or \-).
+        The channel output configuration (normal or inverted).
+        The shaping time in microseconds.
+        The channel coarse gain.
+.DE
+.TP
+\fB::n568b::GetOffset\fI controller node\fR
+Returns the current value of the module's common offset.
+\fB::n568b::GetChannelParameters\fI controller node channel\fR
+Returns the settings associated with\fI channel\fR.  This is
+in the same form as the settings list for each channel returned by
+\fB::n568b::GetAllParameters\fR.  Note that it is faster to do a
+call to\fB::n568b::GetAllParameters\fR than to do a call for each
+channel to n568b::GetChannelParameters.
+.TP
+\fB::n568b::GetMuxStatus\fI controller node\fR
+Returns the output multiplexor status of the module.   The return value
+as a two element Tcl list.  The first element of the list is either\fI on\fR
+or\fI off\fR indicating the state of the multiplexor.  The second element of the
+list is the channel being monitored by the output multiplexor and is only meaningful
+if the first list element is\fI on\fR.
+.TP
+\fB::n568b::SetFineGain\fI controller node channel value\fR
+Sets the fine gain for\fI channel\fR to\fI value\fR.
+.TP
+\fB::n568b::SetCoarseGain\fI controller node channel value\fR
+Sets the coarse gain for\fI channel\fR to\fI value\fR.  Note that the
+coarse gain\fI value\fR is a value between 0 and 7 and that the
+actual coarse gain is approximately 2**\fIvalue\fR.
+.TP
+\fB::n568b::SetPole0\fI controller node channel value\fR
+Set the pole 0 correction magnitude for \fIchannel\fR to \fIvalue\fR.
+.TP
+\fB::n568b::SetShapingTime\fI controller node channel value\fR
+Set the shaping time for \fIchannel\fR to \fIvalue\fR.  Valid
+\fIvalue\fR can be:
+.DS
+        0  \- 0.2 microseconds
+        1  \- 1.0 microseconds
+        2  \- 3.0 microseconds
+        3  \- 6.0 microseconds
+.DE
+.TP
+\fB::n568b::SetPolarity\fI controller node channel value\fR
+Ste the the polarity of \fIchannel\fR to \fIvalue\fR.  A \fIvalue\fR
+of 0 means positive, 1 means negative.
+.TP
+\fB::n568b::SetOutputConfiguration\fI controller node channel value\fR
+Sets the output configuration of \fIchannel\fR.  If \fIvalue\fR is 0,
+the output is direct.  If 1, inverted.
+.TP
+\fB::n568b::SetOffset\fI controller node value\fR
+Sets the module common offset.
+.TP
+\fB::n568b::EnableMuxOut\fI controller node\fR
+Enables the multiplexed output.  Note that the channel that appears on the output
+multiplexor is the one last accessed, and that this will change dynamically if you
+access other channels after turning on the multiplexor.
+.TP
+\fB::n568b::DisableMuxOut\fI controller node\fR
+Disables the multiplexor output.
+
+.SH "SEE ALSO"
+loadshaper(1) n568control(1) n568panel(3) caennet(3)
+
+.SH KEYWORDS
+CAENnet n568b shaper
