@@ -31,6 +31,9 @@
 # Start tclsh \
 exec tclsh $0 $@ 
 
+puts {You are running an obsolete version of the loadcfd.tcl program.
+The up to date version of this program is in $DAQROOT/Scripts/ControlApplications}
+
 #
 #   Locate out package directory and require the shaper support package from 
 #   it

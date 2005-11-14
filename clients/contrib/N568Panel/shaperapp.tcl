@@ -3,6 +3,12 @@
 # start wish \
 exec wish ${0} ${@}
 
+
+
+tk_messageBox -type ok -icon warning -title {Obsolete software} \
+    -message {You are running an obsolete version of the shaperapp.tcl script 
+The current versions of the shaper application software are now stored in
+$DAQROOT/Scripts/ControlApplications}
 #
 #  SEE application for shaper control.
 #  Source in configuration files build the appropriate set of GUI's.
@@ -10,8 +16,7 @@ exec wish ${0} ${@}
 #  that are globally known.  This allows the 8/16 channel versions
 #  to be common except for the ChannelCount variable.
 
-puts $tcl_pkgPath
-puts $auto_path
+
 
 set base 0x100000;			# Default base address of controller.
 if {[info var crate] == "" } {
@@ -55,7 +60,6 @@ proc KillMe {} {
 #
 #  Exit with confirmation prompt:
 #
-puts "Exit"
 proc Exit {}  {
    global Config
    global Controllers
@@ -66,7 +70,6 @@ proc Exit {}  {
      # Close the controllers:
      
      foreach controller [array names Controllers] {
-    	puts "Killing controller: $controller"
 	    catch "caennet::delete $controller"
      }
      #  Not sure why but exit hangs so we kill ourself.
@@ -79,7 +82,6 @@ proc Exit {}  {
 #  Enable/Disable the mux depending on the
 # value of Config($name.muxenable)
 #
-puts "SetMuxOnOff"
 proc SetMuxOnOff {name} {
    global Config
    set state $Config($name.muxenable)
@@ -95,7 +97,6 @@ proc SetMuxOnOff {name} {
 #   Select a channel for the mux.  This is done by just
 #   requesting the value of the parameters for the channel.
 #
-puts "SelectChannel"
 proc SelectChannel {name} {
    global Config
    set controller $Config($name.controller)
@@ -111,7 +112,6 @@ proc SelectChannel {name} {
 #   Procedure to configure an output channel to be either
 #   normal or inverting.
 #
-puts ConfigureOutput
 proc ConfigureOutput {name chan} {
    global Config
    
@@ -128,7 +128,6 @@ proc ConfigureOutput {name chan} {
 #  Procedure to set the output polarity of the module.
 #
 
-puts SetPolarity
 proc SetPolarity {name channel} {
    global Config
    set controller $Config($name.controller)
@@ -144,7 +143,6 @@ proc SetPolarity {name channel} {
 #
 #   Set the shaping time for the specified channel:
 #
-puts SetShapingTime
 proc SetShapingTime {name channel} {
     global Config
     
@@ -161,7 +159,6 @@ proc SetShapingTime {name channel} {
 #  In addition to setting the hardware, the label in the associated
 #  widget has to be set to the appropriate gain factor.
 #
-puts SetCoarsegain
 proc SetCoarseGain {name channel widget value} {  
    global Config
    
@@ -186,7 +183,7 @@ proc SetCoarseGain {name channel widget value} {
 #   Set the fine gain on a channel.  The label of the associated scale
 #   is just the raw register value.
 #
-puts SetFineGain
+
 proc SetFineGain {name channel widget value} {
    global Config
    set     controller $Config($name.controller)
@@ -210,7 +207,7 @@ proc SetFineGain {name channel widget value} {
 #  is represented as 0 - 255 in the slider, but we adjust the
 #  label so that it shows -75 - +210mv
 #
-puts SetOffset
+
 proc SetOffset {name widget value} {
 	global Config
 	
@@ -230,7 +227,7 @@ proc SetOffset {name widget value} {
 #
 #  Set a channel pole 0 adjust value.
 #
-puts SetPole0
+
 proc SetPole0 {name channel value} {
    global Config
    set controller $Config($name.controller)
@@ -255,12 +252,10 @@ proc SetPole0 {name channel value} {
 #  It is an error to assign the same alias to two controllers.
 #  It is an error to try to change the base/crate of an existing
 #  controller.
-puts UpdateControllers
+
 proc UpdateControllers  {name base crate}  { 
     global Controllers 
     global Aliases
-    puts "In update controllers"
-    puts "name = $name base = $base crate = $crate"
     #
     # If the name is in the Controllers array try that:
     #
@@ -277,7 +272,6 @@ proc UpdateControllers  {name base crate}  {
     # If the name is in the alias list already, then ensure that the
     # caller isn't trying to redefine again:
     #
-    puts "Not in aliases $name"
     if {[array names Aliases $name] != ""}  {
 	set ActualName $Aliases($name)
 	set ActualBase  [lindex $Controllers($ActualName) 0]
@@ -292,7 +286,6 @@ proc UpdateControllers  {name base crate}  {
     #   This is either a new controller or a new alias.
     #   If the base/crate match an existing controller,
     #   This is just a new alias:
-   puts "About to check new $name"
     foreach ControllerName [array names Controllers] {
         set ControllerBase  [lindex $Controllers($ControllerName) 0]
         set ControllerCrate [lindex $Controllers($ControllerName) 1]
@@ -300,11 +293,11 @@ proc UpdateControllers  {name base crate}  {
             set Aliases($name) $ControllerName
             return $ControllerName
         }
-	puts "Looping $name"
+
     }
     #  Need to make a new controller:
     #
-    puts "Creating crate: $base $crate $name"
+
     set caennetname [caennet::create $base $crate]
     caennet::reset $caennetname
     set Controllers($caennetname) "$base $crate"
@@ -488,7 +481,6 @@ proc RestoreFile {name filename} {
 		     error 0 Dismiss
 	     return
         }
-	puts "Sourced $filename for $name"
 	
 	# Set up the shaper from the settings.
 	
@@ -512,7 +504,7 @@ proc RestoreFile {name filename} {
 #
 #   Restore settings (prompting for a file).
 #
-puts RestoreSetting
+
 proc RestoreSettings widget {
 	set path [split $widget .]
 	set name [lindex $path 1]
@@ -538,14 +530,14 @@ package require n568b
 wm withdraw .
 
 
-puts "Sourcing shaper script"
+
 append uiname $instdir/shaper $ChannelCount .ui.tcl
 source $uiname
 
 
 
 
-puts "argv - $argv"
+
 
 set bads 0
 foreach file $argv {
@@ -557,11 +549,9 @@ foreach file $argv {
     set guiname shaper
     append guiname $ChannelCount _ui
     $guiname .$name
-    puts "Creating module $name $controller $nodeid"
     set bad [catch "CreateModule $name $controller $nodeid $base $crate" errormsg]
     if {$bad} {
 	incr bads
-	puts "Unable to create module $name: $errormsg"
 	exec kill -9 [pid]
     }
 

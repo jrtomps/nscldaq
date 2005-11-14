@@ -282,6 +282,9 @@
 #  sourced in.
 #
 
+puts {You have loaded an obsolete version of the n568b package.
+The current version can be found in $DAQROOT/Scripts/ControlDrivers}
+
 package provide n568b 1.0
 namespace eval n568b {
 
