@@ -25,8 +25,25 @@ exec wish ${0} ${@}
 #     ReadoutShell.tcl host path
 #
 
+#  Setup the auto_path to include the installation root
+#  dir:
+
 set here [file dirname [info script]]
-set auto_path [concat $here $auto_path]
+set libdir [file join $here ..]
+#
+# Canonicalize $here/..
+#
+set wd [pwd]
+cd $libdir
+set libdir [pwd]
+cd $wd
+#   
+#  Prepend to auto_path only if it's not already 
+#  there.
+#
+if {[lsearch -exact $auto_path $libdir] == -1} {
+    set auto_path [concat $libdir $auto_path]
+}
 
 
 package require ReadoutGui

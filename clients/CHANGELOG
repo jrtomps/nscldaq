@@ -527,3 +527,6 @@ November 16, 2005
        * Make the server work if Spectrodaq has separable mains.
        * Make the table widget utility work correctly since it evidently
          broke and became unable to locate subfiles.
+     - Stager:
+       * Made Stager obsolete.
+       * Make ReadoutGui auto-locate package dirs

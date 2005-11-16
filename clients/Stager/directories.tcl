@@ -25,7 +25,7 @@ namespace eval ExpFileSystem {
     namespace export WhereareCompleteEventFiles
     namespace export WhereisCurrentEventData GenRunFileBase
     namespace export WhereisRunFile GenRunFile WhereisRun
-    namespace export WhereisCurrentData GetStage GetRoot
+    namespace export WhereisCurrentData GetStage
     namespace export CreateHierarchy
     namespace export WhereisMetadata
     namespace export WhereisStagedMetaData
