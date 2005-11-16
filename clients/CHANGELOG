@@ -519,7 +519,7 @@ November 11, 2005
      - Absorb the CAEN N568 stuff with rewritten GUI in the slowControls
 	subdir tree.
 November 16, 2005
-     - Absorbe the VHQ control pannels with rewritten Gui into the
+     - Absorb the VHQ control pannels with rewritten Gui into the
 	slwoControls subdirectory tree.
-
+     - bcnaf - Make them autolocate package directories.
        

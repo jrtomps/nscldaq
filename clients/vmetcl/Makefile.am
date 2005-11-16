@@ -35,13 +35,11 @@ INCLUDES = -I@top_srcdir@/Headers -I@top_srcdir@/Exception \
 
 install-exec-local:
 	$(mkinstalldirs) $(prefix)/Scripts
-	$(mkinstalldirs) $(prefix)/TclLibs
 	$(INSTALL_DATA) caennet.tcl $(prefix)/Scripts
-	export LD_LIBRARY_PATH=$(prefix)/lib
-	export TCLLIBPATH="$(prefix)/lib $(prefix)/Scripts"
-	rm -f $(prefix)/lib/{pkgIndex.tcl,tclIndex}
-	$(LN_S) $(prefix)/TclLibs/pkgIndex.tcl $(prefix)/lib/pkgIndex.tcl
-	$(LN_S) $(prefix)/TclLibs/tclIndex     $(prefix)/lib/tclIndex
+
+#	export LD_LIBRARY_PATH=$(prefix)/lib
+#	export TCLLIBPATH="$(prefix)/lib $(prefix)/Scripts"
+#	rm -f $(prefix)/lib/{pkgIndex.tcl,tclIndex}
 
 
 
