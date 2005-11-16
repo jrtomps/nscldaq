@@ -781,4 +781,5 @@ AC_OUTPUT( Makefile Headers/Makefile CopyrightTools/Makefile \
 	wienerdriver/Makefile wienerdriver/driver/Makefile \
 	wienerdriver/lib/Makefile PowerCheck/Makefile \
 	wienerusbd/Makefile \
-	slowControls/Makefile slowControls/caenv812/Makefile)
+	slowControls/Makefile slowControls/caenv812/Makefile 
+	slowControls/n568b/Makefile slowControls/vhq/Makefile)

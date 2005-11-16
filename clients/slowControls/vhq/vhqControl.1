@@ -1,16 +1,8 @@
 '\"
-'\" Copyright (c) 2004  Michigan State University
-'\" The TCL formatting macros have been shamelessly stolen
-'\" from the httpd tcl man page:
+'\" Copyright (c) 2005 Michigan State University All Rights Reserved
+'\"  Licensed under the GPL.  See http://www.gnu.org/licenses/gpl.txt
+'\"  terms and conditions.
 '\"
-'\" Copyright (c) 1995-1997 Sun Microsystems, Inc.
-'\" Copyright (c) 1998-2000 by Ajuba Solutions.
-'\"
-'\" See the file "license.terms" for information on usage and redistribution
-'\" of this file, and for a DISCLAIMER OF ALL WARRANTIES.
-'\" 
-'\" RCS: @(#) $Id: http.n,v 1.10.2.5 2002/04/18 16:46:09 dgp Exp $
-'\" 
 '\" The definitions below are for supplemental macros used in Tcl/Tk
 '\" manual entries.
 '\"
@@ -28,7 +20,8 @@
 '\"
 '\" .BS
 '\"	Start box enclosure.  From here until next .BE, everything will be
-'\"	enclosed in one large box.'\"
+'\"	enclosed in one large box.
+'\"
 '\" .BE
 '\"	End of box enclosure.
 '\"
@@ -71,7 +64,7 @@
 '\" .UL arg1 arg2
 '\"	Print arg1 underlined, then print arg2 normally.
 '\"
-'\" RCS: @(#) $Id: man.macros,v 1.3.12.1 2001/04/03 22:06:43 hobbs Exp $
+'\" RCS: @(#) $Id$
 '\"
 '\"	# Set up traps and other miscellaneous stuff for Tcl/Tk man pages.
 .if t .wh -1.3i ^B
@@ -246,79 +239,27 @@ Database Class:	\\fB\\$3\\fR
 .de UL
 \\$1\l'|0\(ul'\\$2
 ..
-'\"  End of stolen macros --------------------------------
-.TH "caennet" 3tcl 1.0 DAQ "Caennet TCL loadable package"
+
+.TH vhqControl 1 "" Tcl "NSCLDAQ Tcl Support"
 .BS
+'\" Note:  do not modify the .SH NAME line immediately below!
 .SH NAME
-caennet \- TCL Package to control CAENnet devices via a CAEN V288 module
+vhqControl \- Control program for vhq 2xx.
 .SH SYNOPSIS
-\fBpackage require caennet\fR
-.sp
-\fB::caennet::create\fR \fIbase ?crate?\fR
-.sp
-\fB::caennet::delete\fR \fIcontroller\fR
-.sp
-\fB::caennet::createhandle\fI base ?crate?\fR
-.sp
-\fB::caennet::reset\fR   \fIcontroller\fR
-.sp
-\fB::caennet::send\fR    \fIcontroller slave function ?...?\fR
+\fB$DAQHOME/Scripts/ControlApplications/vhqControl.tcl\fI \fR?\fIconfig config ...\fR?
+.BE
+
 .SH DESCRIPTION
 .PP
-The caennet package allows TCL scripts to control devices attached to a CAEN V288 
-module in a VME crate attached to the system.  The package is built on top of the vme package.
-You can only control devices attached to controllers that are in VME crate physically attached
-to the system running the script.  The normal use of this package is to build graphical user
-interfaces that control devices that are on CAENnet.
+This command runs the vhq control program.   \fIconfig\fR are
+configuration files described by \fBvhqconfig(5)\fR.  If no configuration
+files are provided on the command line, the program will graphically prompt
+for one.
 .PP
-The \fB::caennet::create\fR command creates a connection to a controller in the selected
-VME crate.  Once this controller has been created, it can be manipulated via the \fB::caennet::reset\fR
-and \fB::caennet::send\fR comands.  Once you are finished using the controller, you can deallocated the
-resources associated with it by invoking the \fB::caennet::delete\fR command.
-.SH COMMANDS
-.TP
-\fB::caennet::create\fP \fIbase ?crate?\fR
-Creates a connection with a CAENnet controller in the seleted crate.  The command returns a value that
-is a handle to the controller.  The handle should be used as the \fIcontroller\fR parameter for all
-subsequent commands that affect that controller.  The command parameters are:
-.RS
-.TP
-\fIbase\fP
-The base address of the controller.  The module's base address is set via a set of DIP switches on 
-the module's printed circuit board.  Refer to the module's manual for information about setting these
-switches.
-\fIcrate\fP
-This optional parameter selects the crate in which the controler has been inserted.  If omitted,
-the parameter defaults to zero.  The default is suitable for a single crate system.  The \fIcrate\fR 
-parameter is only required in systems with several VME crates.
-.RE
-.TP
-\fB::caennet::delete\fP \fIcontroller\fP
-Releases all resources associated with a caennet controller that was returned by \fB::cannet::create\fR.
-.TP
-\fB::caennet::gethandle\fI base ?crate?\fP
-If a controller has already been created in \fIbase\fR in crate \fIcrate\fR,
-its name is returned. If not, an empty list is returned.
-.TP
-\fB::caennet::reset\fP \fIcontroller\fP
-Performs a controller reset on the specified \fIcontroller\fR.  The controller will be set to its power up state.
-.TP
-\fB::caennet::send\fP \fIcontroller slave function ?data...?\fP
-Peforms a transacation with the specified \fIslave\fR device attached to the \fIcontroller\fR.  The
-slave is determined by the number in the front panel node select switches on the CAENnet module.
-The \fIfunction\fR is an operation code with module specific meaning.  \fIdata\fR are any
-data required by the function code.    The return value from this command is a list of data returned by
-the module as specified by the function code for the module.
-.SH EXAMPLE
-The following requests the module ID string of a CAEN N586 shaping amplifier that is set at node 3 of
-a CAENnet controller at base address 0x4000 in crate 2:
-.DS
-package require caennet
+Refer to the extensive online help for further operational details.
 
-set controller [caennet::create 0x4000 2]
-caennet::reset $controller
-set reply [caennet::send $controller 3 0]
-caennet::delete $controller
+.SH "SEE ALSO"
+vhqPanel(3) vhqconfig(5)
 
-.DE
-
+.SH KEYWORDS
+vhq slow-controls

@@ -1,3 +1,4 @@
+
 # /*
 # 		    GNU GENERAL PUBLIC LICENSE
 # 		       Version 2, June 1991
@@ -287,7 +288,7 @@
 #   caennet::reset  controller
 #   caennet::send   controller slaveaddr code ?{data}? 
 #   
-package provide caennet 1.0
+package provide caennet 1.5
 
 namespace eval caennet {
     package require Vme
@@ -309,8 +310,7 @@ namespace eval caennet {
 
     proc AddController { controller } {
 	variable caennetcontrollers
-	set caennetcontrollers [
-	lappend $caennetcontrollers $controller]
+	lappend caennetcontrollers $controller
     }
     proc waitfordata {controller} {
 	variable timeout
@@ -353,6 +353,39 @@ namespace eval caennet {
     namespace export create delete reset send
 
 }
+# caennet::createHandle base crate
+#      Creates the handle name for a controller.
+# Parameters:
+#    base   - base address of the controller.
+#    crate  - VME crate in which the controller lives.
+# Returns:
+#    The controller name string for that controller.
+#
+proc caennet::createHandle {base crate} {
+    append memname caennet_ $base _ $crate
+    return $memname
+}
+
+# caennet::gethandle base crate=0
+#      If a caennet controller as described exists, return its
+#      handle, otherwise, return an empty string
+#
+# Parameters:
+#    base    - The base address of the vme/CAENNET controller.
+#    crate   - The VME crate in which the controller lives or 0 if
+#              there is none.
+# Returns:
+#     the handle or "" if the controller instance has not been made
+#     yet.
+#
+proc caennet::gethandle {base {crate 0}} {
+    set name [createHandle $base $crate]
+    if {[::caennet::isController $name] == -1} {
+	return [list]
+    }
+    return $name
+}
+
 #
 #  caennet::create baseadd
 #    Creats a caennet controller at baseadd returning the handle to the
@@ -362,9 +395,12 @@ namespace eval caennet {
 #      caennet::reset $caennet1
 #
 proc caennet::create {baseadd {crate 0}}  {
-    append memname caennet_ $baseadd _ $crate
-    vme create $memname -crate $crate -device standard $baseadd 10
-    ::caennet::AddController $memname
+    set memname [caennet::gethandle $baseadd $crate]
+    if {$memname == [list]} {
+	set memname [caennet::createHandle $baseadd $crate]
+	vme create $memname -crate $crate -device standard $baseadd 10
+	::caennet::AddController $memname
+    }
     return $memname
 }
 #

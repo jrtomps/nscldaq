@@ -1,16 +1,8 @@
 '\"
-'\" Copyright (c) 2004  Michigan State University
-'\" The TCL formatting macros have been shamelessly stolen
-'\" from the httpd tcl man page:
+'\" Copyright (c) 2005 Michigan State University All Rights Reserved
+'\"  Licensed under the GPL.  See http://www.gnu.org/licenses/gpl.txt
+'\"  terms and conditions.
 '\"
-'\" Copyright (c) 1995-1997 Sun Microsystems, Inc.
-'\" Copyright (c) 1998-2000 by Ajuba Solutions.
-'\"
-'\" See the file "license.terms" for information on usage and redistribution
-'\" of this file, and for a DISCLAIMER OF ALL WARRANTIES.
-'\" 
-'\" RCS: @(#) $Id: http.n,v 1.10.2.5 2002/04/18 16:46:09 dgp Exp $
-'\" 
 '\" The definitions below are for supplemental macros used in Tcl/Tk
 '\" manual entries.
 '\"
@@ -28,7 +20,8 @@
 '\"
 '\" .BS
 '\"	Start box enclosure.  From here until next .BE, everything will be
-'\"	enclosed in one large box.'\"
+'\"	enclosed in one large box.
+'\"
 '\" .BE
 '\"	End of box enclosure.
 '\"
@@ -71,7 +64,7 @@
 '\" .UL arg1 arg2
 '\"	Print arg1 underlined, then print arg2 normally.
 '\"
-'\" RCS: @(#) $Id: man.macros,v 1.3.12.1 2001/04/03 22:06:43 hobbs Exp $
+'\" RCS: @(#) $Id$
 '\"
 '\"	# Set up traps and other miscellaneous stuff for Tcl/Tk man pages.
 .if t .wh -1.3i ^B
@@ -246,79 +239,99 @@ Database Class:	\\fB\\$3\\fR
 .de UL
 \\$1\l'|0\(ul'\\$2
 ..
-'\"  End of stolen macros --------------------------------
-.TH "caennet" 3tcl 1.0 DAQ "Caennet TCL loadable package"
+.TH vhqconfig 5 "" Tcl "NCSLDAQ Tcl support"
 .BS
+'\" Note:  do not modify the .SH NAME line immediately below!
 .SH NAME
-caennet \- TCL Package to control CAENnet devices via a CAEN V288 module
+vhqconfig \- \fBvhqControl(1)\fR configuration files
 .SH SYNOPSIS
-\fBpackage require caennet\fR
-.sp
-\fB::caennet::create\fR \fIbase ?crate?\fR
-.sp
-\fB::caennet::delete\fR \fIcontroller\fR
-.sp
-\fB::caennet::createhandle\fI base ?crate?\fR
-.sp
-\fB::caennet::reset\fR   \fIcontroller\fR
-.sp
-\fB::caennet::send\fR    \fIcontroller slave function ?...?\fR
+.DS
+\fBname
+crate
+base
+maxv
+maxi
+ILimit(\fIchan\fB)
+RampSpeed(\fIchan\fB)
+SetPoint(\fIchan\fB)\fR
+.DE
+.BE
+
 .SH DESCRIPTION
 .PP
-The caennet package allows TCL scripts to control devices attached to a CAEN V288 
-module in a VME crate attached to the system.  The package is built on top of the vme package.
-You can only control devices attached to controllers that are in VME crate physically attached
-to the system running the script.  The normal use of this package is to build graphical user
-interfaces that control devices that are on CAENnet.
+The \fBvhqControl(1)\fR application uses configuration files both to
+form a connection to vhq 2xx modules it is controlling and to
+load previously saved settings.  These configuration files
+are Tcl scripts that set agreed upon variables to the needed
+configuration values.
 .PP
-The \fB::caennet::create\fR command creates a connection to a controller in the selected
-VME crate.  Once this controller has been created, it can be manipulated via the \fB::caennet::reset\fR
-and \fB::caennet::send\fR comands.  Once you are finished using the controller, you can deallocated the
-resources associated with it by invoking the \fB::caennet::delete\fR command.
-.SH COMMANDS
+Configuration scripts have two sorts of variables \fIIdentification\fR
+and \fISettings\fR variables.  Identification variables identify the module
+both to humans and to computers, providing the necessary information
+to connect to and control the module.
+Settings variables provide saved settings information that can be restored
+into a module once a connection to it has been established.
+.PP
+\fIIdentification variables\fR
 .TP
-\fB::caennet::create\fP \fIbase ?crate?\fR
-Creates a connection with a CAENnet controller in the seleted crate.  The command returns a value that
-is a handle to the controller.  The handle should be used as the \fIcontroller\fR parameter for all
-subsequent commands that affect that controller.  The command parameters are:
-.RS
+\fBname\fR
+Provides a human readable name for the module.
 .TP
-\fIbase\fP
-The base address of the controller.  The module's base address is set via a set of DIP switches on 
-the module's printed circuit board.  Refer to the module's manual for information about setting these
-switches.
-\fIcrate\fP
-This optional parameter selects the crate in which the controler has been inserted.  If omitted,
-the parameter defaults to zero.  The default is suitable for a single crate system.  The \fIcrate\fR 
-parameter is only required in systems with several VME crates.
-.RE
+\fBcrate\fR
+Provides the number of the VME crate in which the module is stuffed.
+If not provided, this defaults to zero.
 .TP
-\fB::caennet::delete\fP \fIcontroller\fP
-Releases all resources associated with a caennet controller that was returned by \fB::cannet::create\fR.
+\fBbase\fR
+Provides the base address (A16) at which the module has been configured.
+See the VHQ manuals for more information on setting the module base address.
+It is important not to configure two modules at the same base address in the
+same VME crate.  This variable is mandatory.
 .TP
-\fB::caennet::gethandle\fI base ?crate?\fP
-If a controller has already been created in \fIbase\fR in crate \fIcrate\fR,
-its name is returned. If not, an empty list is returned.
+\fBmaxv\fR
+Defines the maximum voltage the module can output in volts.  This variable is
+mandatory.
 .TP
-\fB::caennet::reset\fP \fIcontroller\fP
-Performs a controller reset on the specified \fIcontroller\fR.  The controller will be set to its power up state.
+\fBmaxi\fR
+Defines the maxiumum current the module can output in micro\-Amps.
+This variable is mandatory.
+.PP
+\fISettings variables\fR
 .TP
-\fB::caennet::send\fP \fIcontroller slave function ?data...?\fP
-Peforms a transacation with the specified \fIslave\fR device attached to the \fIcontroller\fR.  The
-slave is determined by the number in the front panel node select switches on the CAENnet module.
-The \fIfunction\fR is an operation code with module specific meaning.  \fIdata\fR are any
-data required by the function code.    The return value from this command is a list of data returned by
-the module as specified by the function code for the module.
+\fBIlimit(\fIchannel\fR)
+Sets the current limit for \fIchannel\fR.  The channel index can be either
+\fIa\fR or \fIb\fR.   Recall that array indices in Tcl are strings.  The
+units of measure are micro\-Amps
+.TP
+\fBRampSpeed(\fIchannel\fR)
+Sets the ramp speed for \fIchannel\fR.  The channel index can be either
+\fIa\fR or \fIb\fR.  The units of measure are Volts/Sec.
+.TP
+\fBSetPoint(\fIchannel\fR)
+Sets the target voltage for the \fIchannel\fR.  The channel index can be either
+\fIa\fR or \fIb\fR.  Note that setting this variable does not cause the
+module to perform a ramp.  The units of measure are Volts.
 .SH EXAMPLE
-The following requests the module ID string of a CAEN N586 shaping amplifier that is set at node 3 of
-a CAENnet controller at base address 0x4000 in crate 2:
+.PP
+Below is a sample configuration file that has both identification variables and
+settings.  This configuration file was written by the \fBvhqControl(1)\fR program
 .DS
-package require caennet
+# vhq configuration file saved Tue Nov 15 13:28:47 EST 2005
 
-set controller [caennet::create 0x4000 2]
-caennet::reset $controller
-set reply [caennet::send $controller 3 0]
-caennet::delete $controller
-
+set name ppac_hv
+set crate 0
+set base 0xdd00
+set maxv 2000
+set maxi 100
+#
+set ILimit(a) 50
+set RampSpeed(a) 100
+set SetPoint(a) 1000
+set ILimit(b) 50
+set RampSpeed(b) 250
+set SetPoint(b) 1000
 .DE
+.SH "SEE ALSO"
+vhqControl(1), vhqPanel(3) vhq(3)
 
+.SH KEYWORDS
+config vhq slow-controls

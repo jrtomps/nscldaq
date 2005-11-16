@@ -4,7 +4,7 @@ HELPDIR=$(prefix)/Scripts/ControlApplications/caenv812help
 
 VERSION=2.0			#Must match the package versions!!!
 
-PACKAGES=CFD812.tcl CFDState.tcl caenv812Gui.tcl pkgIndex.tcl
+PACKAGES=CFD812.tcl CFDState.tcl caenv812Gui.tcl
 APPS=caenv812control.tcl loadcfd.tcl
 MANPAGES=loadcfd.1 caenv812control.1 CFDState.3 CFD812.3 caenv812gui.3 \
 	caenv812control.1 caen812configfile.5
