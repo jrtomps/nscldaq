@@ -1,3 +1,8 @@
+#!/bin/sh
+# Start Wish. \
+exec tclsh ${0} ${@}
+
+
 #==============================================================================
 # Author:
 #    Jason Venema
@@ -18,7 +23,37 @@
 # several alarm displays may be running concurrently.
 #==============================================================================
 
+#  Ensure our library directories are part of the search path.
+#
+
+set here [file dirname [info script]]
+set libdir [file join $here ..]
+#
+# Canonicalize $here/..
+#
+set wd [pwd]
+cd $libdir
+set libdir [pwd]
+cd $wd
+#   
+#  Prepend to auto_path only if it's not already 
+#  there.
+#
+if {[lsearch -exact $auto_path $libdir] == -1} {
+    set auto_path [concat $libdir $auto_path]
+}
+
+# Images are in the Images directory below the top.
+
+set imagedir [file join $libdir Images]
+
+puts "path: $auto_path"
+
+
+package require Tk
 package require Tablelist
+
+puts [package version Tablelist]
 
 namespace eval Alarm {}
 
@@ -86,15 +121,15 @@ proc Alarm::Display {} {
     # Create some images for use as cool buttons
     #
     image create photo AckButton -format GIF \
-	-file [file join $script_dir ../Images/AckButton.gif]
+	-file [file join $script_dir $::imagedir/AckButton.gif]
     image create photo DisButton -format GIF \
-	-file [file join $script_dir ../Images/DisButton.gif]
+	-file [file join $script_dir $::imagedir/DisButton.gif]
     image create photo RemButton -format GIF \
-	-file [file join $script_dir ../Images/RemButton.gif]
+	-file [file join $script_dir $::imagedir/RemButton.gif]
     image create photo HistButton -format GIF \
-	-file [file join $script_dir ../Images/HistButton.gif]
+	-file [file join $script_dir $::imagedir/HistButton.gif]
     image create photo ExitButton -format GIF \
-	-file [file join $script_dir ../Images/ExitButton.gif]
+	-file [file join $script_dir $::imagedir/ExitButton.gif]
 
     #
     # Create a button for acknowledging 'new' alarms
@@ -901,9 +936,9 @@ proc Alarm::Warning_Prompt {} {
     # Create the button images
     #
     image create photo RetryButton -format GIF \
-	-file [file join $script_dir ../Images/RetryButton.gif]
+	-file [file join $script_dir $::imagedir/RetryButton.gif]
     image create photo ExitButton -format GIF \
-	-file [file join $script_dir ../Images/ExitButton.gif]
+	-file [file join $script_dir $::imagedir/ExitButton.gif]
 
     if [Dialog_Create $f "Warning" -width 320 -height 70 \
 	   -relief groove -borderwidth 2] {
@@ -1001,9 +1036,9 @@ if {[llength $argument2] == 0} {
 # Create some images for cool buttons
 #
 image create photo OkButton -format GIF \
-    -file [file join $script_dir ../Images/OkButton.gif]
+    -file [file join $script_dir $::imagedir/OkButton.gif]
 image create photo CancelButton -format GIF \
-    -file [file join $script_dir ../Images/CancelButton.gif]
+    -file [file join $script_dir $::imagedir/CancelButton.gif]
 
 #
 # Parse the command line arguments

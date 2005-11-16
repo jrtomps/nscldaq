@@ -11,7 +11,7 @@ namespace eval tablelist {
     #
     # Public variables:
     #
-    variable version	2.6
+    variable version	3.0
     variable library	[file dirname [info script]]
 
     #
@@ -28,3 +28,7 @@ namespace eval tablelist {
 package provide Tablelist $tablelist::version
 
 lappend auto_path [file join $tablelist::library scripts]
+
+catch {source [file join $::tablelist::library tablelistWidget.tcl]}
+catch {source [file join $::tablelist::library tablelistSourtByColumn.tcl]}
+catch {source [file join $::tablelist::library mwutil.tcl]}

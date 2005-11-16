@@ -39,7 +39,7 @@ install-exec-local:
 	$(mkinstalldirs) $(prefix)/Scripts
 	$(mkinstalldirs) $(prefix)/Images
 	for f in *.gif; do $(INSTALL_DATA) $$f $(prefix)/Images; done
-	for f in *.tcl; do $(INSTALL_DATA) $$f $(prefix)/Scripts; done
+	for f in *.tcl; do $(INSTALL_SCRIPT) $$f $(prefix)/Scripts; done
 	$(INSTALL_SCRIPT) AlarmDisplay $(bindir)
 	./installpkg $(prefix)
 

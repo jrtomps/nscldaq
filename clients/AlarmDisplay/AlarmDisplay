@@ -1,4 +1,4 @@
 #!/bin/bash
 
 SCRIPT_DIR=${0%/AlarmDisplay}/../Scripts
-wish -p2703 < $SCRIPT_DIR/AlarmDisplay.tcl $1 $2 $SCRIPT_DIR
+$SCRIPT_DIR/AlarmDisplay.tcl $1 $2 $SCRIPT_DIR
