@@ -115,11 +115,26 @@ set legendPosition top
 vector create timeVector
 
 
-# Establish my location so that I can source in additional scripts:
+# Establish the directory of the library scripts.
+# This is the top level dir of the installation.
+# we assume we're only one level down:
+
 
 
 set me [info script]
 set mydirectory [file dirname $me]
+
+# Cannonicalize one level up and add, if necessary to auto_path:
+
+set libDir [file join $mydirectory ..]
+set wd [pwd]
+cd $libDir
+set libDir [pwd]
+cd $wd
+
+if {[lsearch $auto_path $libDir] == -1} {
+    set auto_path [concat $libDir $auto_path]
+}
 
 set IntervalCount 0
 
@@ -127,10 +142,10 @@ set IntervalCount 0
 
 
 
-source $mydirectory/mwutil.tcl
-source $mydirectory/tablelist.tcl
-source $mydirectory/tablelistSortByColumn.tcl
-source $mydirectory/tablelistWidget.tcl
+#source $mydirectory/mwutil.tcl
+#source $mydirectory/tablelist.tcl
+#source $mydirectory/tablelistSortByColumn.tcl
+#source $mydirectory/tablelistWidget.tcl
 
 package require Tablelist
 
@@ -322,7 +337,7 @@ proc configureStripChart {} {
     }
     $stripchartWidget axis configure y -logscale $log -title counts
 
-    puts "done"
+
 }
 
 # Flip the stripchart widget's y axis between log/lin mode
@@ -420,16 +435,16 @@ proc UpdateStatistics {} {
     }
 
     incr IntervalCount
-	foreach element [array names Scaler_Increments] {
-		set rate [expr 1.0*$Scaler_Increments($element)/$ScalerDeltaTime]
-		set square [expr $rate*$rate]
-		if {[array names SumSquares $element] == ""} {
-			set SumSquares($element) $square;           # First time set.
-		} else {
-			set SumSquares($element) \
-			    [expr $SumSquares($element) + $square]; #Accumulate
-		}
+    foreach element [array names Scaler_Increments] {
+	set rate [expr 1.0*$Scaler_Increments($element)/$ScalerDeltaTime]
+	set square [expr $rate*$rate]
+	if {[array names SumSquares $element] == ""} {
+	    set SumSquares($element) $square;           # First time set.
+	} else {
+	    set SumSquares($element) \
+		[expr $SumSquares($element) + $square]; #Accumulate
 	}
+    }
 }
 #
 #   Compute the standard deviation from the average
@@ -473,12 +488,12 @@ proc DoUpdate {{average 0}} {
     set hours [expr $min/60]
     set days  [expr $hours/24]
     set HMStime [format "%d %02d:%02d:%02d" \
-	         $days  \
-		 [expr $hours % 24] \
-                 [expr $min % 60] \
-		 [expr $sec % 60]]
-
-
+		     $days  \
+		     [expr $hours % 24] \
+		     [expr $min % 60] \
+		     [expr $sec % 60]]
+    
+    
     foreach page [array names Pages] {
 	if {$page != $Fakename} {
 	    UpdateTable $Pages($page).lines.table $page $average
@@ -502,13 +517,12 @@ proc Update {} {
     if {$stripchartWidget != ""} {
         updateStripChart
     }
-
+    
     if {$State == "Active" } {
         DoUpdate
     } else {
         DoUpdate 1
     }
-
     if {[info proc UserUpdate] != ""} {
 	UserUpdate
     }
@@ -822,7 +836,7 @@ proc UpdateRatio {widget line numerator denominator page {average 0}} {
 	    }
 	    $widget cellconfigure $line,2 -text  "$rn $rd"
 	    $widget cellconfigure $line,3 -text  "$tn $td"
-	    $widget cellconfigure $line,4 -text [format "%u %u" $qr $qt]
+	    $widget cellconfigure $line,4 -text [format "%.2f %.2f" $qr $qt]
 
             # Check the alarms:
 
