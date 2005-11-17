@@ -5,10 +5,15 @@ exec wish ${0} ${@}
 
 set me      $argv0
 set mypath  [file dirname $me]
+#
+#  I may not be installed in the Scripts dir...
+#
+
+set scriptPath [file join $mypath .. Scripts]
 
 
-source $mypath/TopGUi.ui.tcl
-source $mypath/dvdburnoutput.ui.tcl
+source $scriptPath/TopGUi.ui.tcl
+source $scriptPath/dvdburnoutput.ui.tcl
 
 set burning 0
 set burnfd ""

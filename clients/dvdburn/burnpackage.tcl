@@ -240,11 +240,14 @@ namespace eval  DvdBurn {
 	    return [expr $size/1000] ;	# Return mBytes.
 	} else {
 	    switch $units {
-		K { return [expr $size/1000] }
+		K { return [expr $size/1000.0] }
 		M { return $size }
-		G { return $size*1000 }
+		G { return $size*1000.0 }
 		default { 
-		    error "MarshallRun: Unrecognized size units: $units" }
+		    # Assume it's bytes.
+
+		    return [expr $size/1000000.0]
+		}
 	    }
 	}
 	error "MarshallRun: >>BUG<<< control should not have reached here"

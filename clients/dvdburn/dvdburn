@@ -20,8 +20,20 @@ proc Usage {} {
 
 set me     $argv0
 set mypath [file dirname $me]
+set scriptPath [file join $mypath .. Scripts]
 
-source $mypath/burnpackage.tcl
+# canonicalize the path:
+
+set wd [pwd]
+cd $scriptPath
+set scriptpath [pwd]
+cd $wd
+
+if {[lsearch -exact $auto_path $scriptPath] == -1} {
+    set auto_path [concat $scriptpath $auto_path]
+}
+
+# source $mypath/burnpackage.tcl
 
 package require DvdBurn
 

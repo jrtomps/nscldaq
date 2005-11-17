@@ -530,3 +530,9 @@ November 16, 2005
      - Stager:
        * Made Stager obsolete.
        * Make ReadoutGui auto-locate package dirs
+November 17, 2005
+     - Fix burnpackage.tcl - if size of a run is less than 1k
+       used to produce an error about unrecognized size type...
+       default unrecognized size-types to bytes for now... may need
+       to be smarter later.
+     - dvdburn, burngui - Help them find packages better.
