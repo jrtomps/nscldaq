@@ -3,4 +3,5 @@
 SCRIPT_DIR=${0%/LogDisplay}/../Scripts
 BIN_DIR=${0%/LogDisplay}/../bin
 
-$BIN_DIR/tclserver -p2702 < $SCRIPT_DIR/LogDisplay.tcl $1 $SCRIPT_DIR
+
+$BIN_DIR/tclserver -p2702  <$SCRIPT_DIR/LogDisplay.tcl $1 $SCRIPT_DIR
