@@ -540,3 +540,6 @@ November 17, 2005
        needing to explicitly source files.
      - LogDisplay - Teach it to find its library dirs.
        and not to install yet another version of tablelist.
+     - DaqPortManager - Teach it to find its library dirs.
+       Ensure startup is really correct with the right type
+       of shell etc.

@@ -1,3 +1,24 @@
+#!/bin/sh
+# start tclsh \
+    exec tclsh ${0} ${@}
+
+
+#    This software is Copyright by the Board of Trustees of Michigan
+#    State University (c) Copyright 2005.
+#
+#    You may use this software under the terms of the GNU public license
+#    (GPL).  The terms of this license are described at:
+#
+#     http://www.gnu.org/licenses/gpl.txt
+#
+#    Author:
+#             Ron Fox
+#	     NSCL
+#	     Michigan State University
+#	     East Lansing, MI 48824-1321
+
+
+
 #
 #   This is the application itself.  We are just going to setup the
 #   pieces and parts of the system, hook them together and enter the event loop.
@@ -15,10 +36,21 @@
 #      -log    /var/log/var/log/nscldaq/portmanager.log
 #
  
-# In order to find the packages we need to add our directory to auto_path:
+# In order to find the packages we need to add the canonicalized .. to 
+# auto_path if it isn't already.
 
 set here [file dirname [info script]]
-lappend auto_path $here
+set wd [pwd]
+
+puts "Here = $here"
+
+cd [file join $here ..]
+set libDir [pwd]
+cd $wd
+
+if {[lsearch -exact $auto_path $libDir] == -1} {
+    set auto_path [concat $libDir $auto_path]
+}
 
 package require snit
 package require ConnectionManager

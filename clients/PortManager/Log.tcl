@@ -8,6 +8,24 @@
 #        logInvalidRequest    - Log invalid server requests.
 #
 #
+
+#   Add the canonicalized form of the directory above
+#   the one this script is in to the auto_path if it
+#   isn't already to ensure that the local packages can
+#   be found and loaded.
+#
+
+set here   [file dirname [info script]]
+set libDir [file join $here ..]
+set wd [pwd]
+cd $libDir
+set libDir [pwd]
+cd $wd
+
+if {[lsearch -exact $auto_path $libDir] == -1} {
+    set auto_path [concat $libDir $auto_path]
+}
+
 package provide Log 0.1
 package require snit
 package require log
