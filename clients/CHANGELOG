@@ -543,3 +543,5 @@ November 17, 2005
      - DaqPortManager - Teach it to find its library dirs.
        Ensure startup is really correct with the right type
        of shell etc.
+     - vmetcl - Make all the second layer scripts able to auto
+       locate the Vme package.. even if env vars are not set.

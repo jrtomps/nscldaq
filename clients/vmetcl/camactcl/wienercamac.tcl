@@ -1,3 +1,18 @@
+#    This software is Copyright by the Board of Trustees of Michigan
+#    State University (c) Copyright 2005.
+#
+#    You may use this software under the terms of the GNU public license
+#    (GPL).  The terms of this license are described at:
+#
+#     http://www.gnu.org/licenses/gpl.txt
+#
+#    Author:
+#             Ron Fox
+#	     NSCL
+#	     Michigan State University
+#	     East Lansing, MI 48824-1321
+
+
 #
 #
 #   Package to support subset ESONE CAMAC access from TCL.
@@ -26,10 +41,27 @@
 #       ReadLams b c   ?vme?          - Read controller lam mask.
 #
 
+#  Set up the auto_path so that it includes the canonicalized dir
+#  above this package's location if necessary.
+#  this should ensure that we'll find the Vme
+#   package.
+
+set here    [file dirname [info script]]
+set libDir  [file join $here ..]
+set wd [pwd]
+cd $libDir
+set libDir [pwd]
+cd $wd
+
+if {[file search $auto_path $libDir] == -1} {
+    set auto_path [concat $libDir $auto_path]
+}
+
+
 package provide wienercamac 1.1
+package require Vme
 
 namespace eval wienercamac {
-    package require Vme
 
 
     #  caamac is an array with indices of the
