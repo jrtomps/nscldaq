@@ -536,3 +536,5 @@ November 17, 2005
        default unrecognized size-types to bytes for now... may need
        to be smarter later.
      - dvdburn, burngui - Help them find packages better.
+     - ScalerDisplay - make it better able to locate packages without
+       needing to explicitly source files.
