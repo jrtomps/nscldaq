@@ -44,9 +44,25 @@ set bindir     $mydirectory/../bin
 set scriptdir  $mydirectory/../Scripts
 source $scriptdir/displayepics.tcl
 
+# restartControlPush file
+#       Restarts the controlpush program.
+# Parameters:
+#    file  - setup file.
+#
+proc restartControlPush file {
+   global clientpid
+   global TclServerPort
+   global bindir
+
+   exec kill -9 $clientpid
+
+   set clientpid [exec $bindir/controlpush --port=$TclServerPort --node=localhost \
+                  --interval=5 $file &]
+   bind . <Destroy> "Cleanup %W $clientpid"
+}
 
 #
-#   Now the setup file is sourced we can start the scalerclient
+#   Now the setup file is sourced we can start the controlpushp rogram.
 #   and set things up so that we will kill it on our exit:
 #
 
@@ -68,5 +84,4 @@ set chans [readSetupFile $file]
 makeGui
 fillTable $chans
 setupStripChart $chans
-pack $paneWidget -fill x -expand 1
-setupStripControls
+setupAlarms $chans
