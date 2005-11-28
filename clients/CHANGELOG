@@ -545,3 +545,6 @@ November 17, 2005
        of shell etc.
      - vmetcl - Make all the second layer scripts able to auto
        locate the Vme package.. even if env vars are not set.
+November 28, 2005
+     -  Add alarming and a few other bells and whistles to 
+        epicsdisplay.
