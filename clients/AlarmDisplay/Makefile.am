@@ -29,10 +29,6 @@ EXTRA_DIST= CAlarmServer.h CAlarmServerException.h CGDBMException.h \
 	OkButton.gif \
 	RemButton.gif \
 	RetryButton.gif \
-	mwutil.tcl \
-	tablelist.tcl \
-	tablelistSortByColumn.tcl \
-	tablelistWidget.tcl \
 	installpkg
 
 install-exec-local:

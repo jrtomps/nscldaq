@@ -548,3 +548,5 @@ November 17, 2005
 November 28, 2005
      -  Add alarming and a few other bells and whistles to 
         epicsdisplay.
+November 29, 2005
+     -  Add tcllib directory to conglomorate tcl script libs.

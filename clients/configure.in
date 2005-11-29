@@ -753,7 +753,8 @@ AC_SUBST(SOVERSION)
 
 #  Create output files:
 
-AC_OUTPUT( Makefile Headers/Makefile CopyrightTools/Makefile \
+AC_OUTPUT( Makefile tcllib/Makefile \
+	   Headers/Makefile CopyrightTools/Makefile \
 	Exception/Makefile PortManager/Makefile \
 	TCL/Makefile Security/Makefile Ftp/Makefile \
 	VMEApi/Makefile cvt/Makefile \

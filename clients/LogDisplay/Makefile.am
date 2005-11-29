@@ -12,24 +12,3 @@ install-exec-local:
 
 EXTRA_DIST = $(SCRIPTFILES) $(IMAGES) LogDisplay
 
-#EXTRA_DIST = AddButton.gif \
-#	CancelButton.gif \
-#	CloseButton.gif \
-#	DisButton.gif \
-#	ExitButton.gif \
-#	FiltButton.gif \
-#	HostButton.gif \
-#	Hostlist.tcl \
-#	LogDisplay.tcl \
-#	OkButton.gif \
-#	RecovButton.gif \
-#	RemButton.gif \
-#	UfiltButton.gif \
-#	LogDisplay
-#
-#	mwutil.tcl \
-#	tablelist.tcl \
-#	tablelistSortByColumn.tcl \
-#	tablelistWidget.tcl \
-#	installpkg 
-

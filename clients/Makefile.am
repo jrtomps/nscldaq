@@ -1,4 +1,4 @@
-SUBDIRS = @VME_DRIVERDIR@ \
+SUBDIRS = tcllib @VME_DRIVERDIR@ \
 	Headers CopyrightTools Exception PortManager TCL Security Ftp \
 	VMEApi cvt SpecTclOnline DeviceSupport\
 	Readout HPReadout diskrun EventLog Scaler  \
