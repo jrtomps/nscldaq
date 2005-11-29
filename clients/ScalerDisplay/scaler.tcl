@@ -56,6 +56,10 @@ namespace import ::blt::stripchart
 #   we're running inside of SpecTcl or as a 
 #   TclServer for ScalerClient:
 
+if {![info exists scalerWin]} {
+    set scalerWin ""
+}
+
 if {[info exists SpecTclHome]} {
     set RunStateName ScalerRunState
 } else {
@@ -1305,6 +1309,7 @@ proc stripparam channel {
     global ScalerMap
     global stripchartChannels
     global stripchartWidget
+    global scalerWin
 
     # complain but don't do anything if the channel does not exist.
 
@@ -1321,7 +1326,7 @@ proc stripparam channel {
     #  If the strip chart does not exist, create and configure it:
 
     if {$stripchartWidget == ""} {
-        set stripchartWidget [createStripChart .]
+        set stripchartWidget [createStripChart $scalerWin]
         configureStripChart
     }
     # Add the vector as a data series:
@@ -1344,6 +1349,7 @@ proc stripratio {numerator denominator} {
     global stripchartWidget
     global stripchartRatios
     global timeVector
+    global scalerWin
 
     # If either channel is not defined, complain and do nothing.
 
@@ -1366,7 +1372,7 @@ proc stripratio {numerator denominator} {
     # If the strip chart does not yet exist, create and configure it.
 
     if {$stripchartWidget == ""} {
-        set stripchartWidget [createStripChart .]
+        set stripchartWidget [createStripChart $scalerWin]
         configureStripChart
     }
 
@@ -1392,6 +1398,7 @@ proc stripconfig {args} {
     global xAxisLength
     global yAxisType
     global stripchartWidget
+    global scalerWin
 
     # Should be an even number of arguments:
 
@@ -1424,7 +1431,7 @@ proc stripconfig {args} {
         }
     }
     if {$stripchartWidget == ""} {
-        set stripchartWidget [createStripChart .]
+        set stripchartWidget [createStripChart $scalerWin]
     }
     configureStripChart
 
@@ -1433,6 +1440,6 @@ proc stripconfig {args} {
 #
 #
 
-set Notebook [SetupGui ""]
+set Notebook [SetupGui $scalerWin]
 
 

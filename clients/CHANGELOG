@@ -556,3 +556,8 @@ November 29, 2005
        access to full input mask.
      - Defect 170 - decouple scaler alarm bing timing from
        update rate.
+     - Defect 186 - added scalerWin global relative to which
+       all gui elements are made for the scaler display.
+       This allows application software to be written
+       that can put the scalers into other than the 
+       toplevel widget.

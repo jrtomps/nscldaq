@@ -300,7 +300,31 @@ ScalerMap
 the corresponding scaler.  For example, if you have defined a channel named
 .I george,
 ScalerMap(george) will be the scaler channel index associated with george.
+.TP
+scalerWin
+  This global is the name of the widget into which the scaler display
+will be drawn, or "" if the display is drawn into "."
 
+If you are adding more elements to the GUI you can use this to know
+where to manage these new elements.  For example:
+.nf
+
+ checkbutton $scalerWin.silence -text {Silence Alarms} -command [silence]
+
+.fi
+creates a checkbutton that is a child of the scaler display page and can
+be packed on that page.
+
+If you are using the scaler display program from within SpecTcl,
+you can set this widget to allow the scaler display program to
+pop up in a separate top level.  For example:
+.nf
+
+ set  scalerWin [toplevel .scaler]
+ source /usr/opt/daq/current/Scripts/scaler.tcl
+
+.fi
+Creates the scaler display in a new top level widget called .scaler
 
 .SH EXAMPLE(S)
 .nf
