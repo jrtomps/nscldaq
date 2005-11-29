@@ -550,3 +550,7 @@ November 28, 2005
         epicsdisplay.
 November 29, 2005
      -  Add tcllib directory to conglomorate tcl script libs.
+     -  If mandb does not exist on install target, just
+        replace it with echo.
+     - Added ReadInputs member function to CaenIO to allow
+       access to full input mask.

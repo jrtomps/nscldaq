@@ -47,7 +47,7 @@ install-data-local:
 	$(INSTALL_DATA) config.h $(prefix)/include
 	$(INSTALL_PROGRAM)  daqman $(prefix)/bin
 	echo "Version: " $(VERSION) build on `hostname` `date` > $(prefix)/VERSION
-	mandb $(prefix)/man
+	$(MANDB) $(prefix)/man
 	tclsh mkpackage.tcl $(prefix)/Scripts "*.tcl"
 	- tclsh mkpackage.tcl $(prefix)/lib  libVme.so libWait.so 2>/dev/null
 

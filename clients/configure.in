@@ -51,6 +51,8 @@ AC_PATH_PROG(DOXYGEN, doxygen, echo)
 
 #  Needed components for hyperlatex
 
+
+AC_PATH_PROG(MANDB, mandb, echo)
 AC_PATH_PROG(HYPERLATEX, hyperlatex, echo)	
 AC_CHECK_PROG(HAVELATEX,  latex, yes, no)		
 AC_CHECK_PROG(HAVEDVIPS,  dvips, yes, no)		
