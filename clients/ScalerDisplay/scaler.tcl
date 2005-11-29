@@ -3,6 +3,21 @@
 #   start tclserver on us. \
 exec tclserver  -pManaged -a"Scaler Display"  ${0} ${@}
 
+#    This software is Copyright by the Board of Trustees of Michigan
+#    State University (c) Copyright 2005.
+#
+#    You may use this software under the terms of the GNU public license
+#    (GPL).  The terms of this license are described at:
+#
+#     http://www.gnu.org/licenses/gpl.txt
+#
+#    Author:
+#             Ron Fox
+#	     NSCL
+#	     Michigan State University
+#	     East Lansing, MI 48824-1321
+
+
 
 #
 #   Simple TCL scaler display:
@@ -111,6 +126,12 @@ set stripStyles { "" {5 5} {2 2} {5 5 2 2} {5 2} {5 5 2 5}}
 set stripColorIndex 0
 set stripStyleIndex 0
 set legendPosition top
+
+
+# Alarm variables:
+#
+set alarmId  0;				# Non zero if alarms on.
+set alarmMs  1000;			# Ms between beeps.
 
 vector create timeVector
 
@@ -588,6 +609,10 @@ proc EndRun   {} {
     global InitialRunNumber
     global StartTime
     global ElapsedRunTime
+    global alarmId
+
+    cancelAlarms
+
 
 
     #  Construct the log filename:
@@ -632,25 +657,55 @@ proc EndRun   {} {
 }
 
 
-proc PauseRun {} {}
+proc PauseRun {} {
+    cancelAlarms
+}
 proc ResumeRun {} {}
 proc RunInProgress {} {}
+
+proc AlarmBeeps ms {
+    global alarmId
+    bell
+    set alarmId [after $ms [list AlarmBeeps $ms]]
+}
+proc cancelAlarms {} {
+    global alarmId
+    if {$alarmId != 0} {
+	after cancel $alarmId
+	set alarmId 0
+    }
+}
 
 #  Ring the bell if there are any alarms set.
 proc bellOnAlarm {} {
     global pageAlarmState
     global silentAlarms
+    global alarmMs
+    global alarmId
+    global RunStateName
+    global $RunStateName
+
+    set state [set $RunStateName]
+    if {$state != "Active"} {
+	return
+    }
 
     if {$silentAlarms} {
-        return
+	if {$alarmId != 0} {
+	    after cancel $alarmId
+	}
+    } else {
+	foreach page [array names pageAlarmState] {
+	    if {$pageAlarmState($page) != 0} {
+		if {$alarmId == 0} {
+		    AlarmBeeps $alarmMs
+		}
+		return
+	    }
+	}
+	cancelAlarms
     }
 
-    foreach page [array names pageAlarmState] {
-        if {$pageAlarmState($page) != 0} {
-	    bell
-            return
-        }
-    }
 }
 
 #   Check the alarm state of a chanel.

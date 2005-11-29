@@ -554,3 +554,5 @@ November 29, 2005
         replace it with echo.
      - Added ReadInputs member function to CaenIO to allow
        access to full input mask.
+     - Defect 170 - decouple scaler alarm bing timing from
+       update rate.
