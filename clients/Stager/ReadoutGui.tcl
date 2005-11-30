@@ -482,6 +482,7 @@ proc ReadoutGui::Begin {} {
     #
 
     if {[ReadougGUIPanel::recordData]} {
+	ReadoutState::enableRecording
 	ReadoutControl::EnableTape
 	set action [ReadoutGui::OverwriteCheck]
 	if {$action == 0} {;	# Run aborted.
@@ -495,6 +496,7 @@ proc ReadoutGui::Begin {} {
 
 
     } else {
+	ReadoutState::disableRecording
 	ReadoutControl::DisableTape
     }
     # Update the scaler info with the GUI's idea of what it should be.
@@ -513,6 +515,14 @@ proc ReadoutGui::Begin {} {
     # Also  start the timers needed to show the status line and
     # increment the elapsed run time.
 
+    if {[ReadougGUIPanel::isTimed]} {
+	puts "Timed"
+	ReadoutState::TimedRun
+	ReadoutState::setTimedLength [ReadougGUIPanel::getRequestedRunTime]
+    } else {
+	puts Untimed
+	ReadoutState::notTimedRun
+    }
     ReadoutGui::ClearElapsedTime;    # NO paused segments, new run.
     ::ReadoutGui::StartRunTimers
 
@@ -582,7 +592,7 @@ proc ReadoutGui::ReadoutController {topname} {
     # regardless, a destroy handler is established to ensure that
     # any readout program is killed off.
     #
-    if {$topname != ""} {
+    if {$topname ne ""} {
 	toplevel $topname
 	bind $topname <Destroy> ::ReadoutGui::EmergencyExit
 	set topprefix $topname
@@ -607,6 +617,10 @@ proc ReadoutGui::ReadoutController {topname} {
     set period  [ReadoutState::getScalerPeriod]
     set host    [DAQParameters::getSourceHost]
     set path    [DAQParameters::getReadoutPath]
+    set recording [ReadoutState::getRecording]
+    set timedrun  [ReadoutState::isTimedRun]
+    set timedlen  [ReadoutState::timedLength]
+
 
 
     #  Set up the GUI  with the values of the configuration
@@ -617,11 +631,21 @@ proc ReadoutGui::ReadoutController {topname} {
     ReadougGUIPanel::setHost    $host
     ReadougGUIPanel::setPath    $path
     ReadougGUIPanel::setScalers $scalers $period
+    if {$recording} {
+	ReadougGUIPanel::recordOn
+    } else {
+	ReadougGUIPanel::recordOff
+    }
+    ReadougGUIPanel::setTimed $timedrun
+    if {$timedlen ne ""} {
+	ReadougGUIPanel::setRequestedRunTime $timedlen
+    }
 
     # Setup the readout control package with this as well.
 
     ReadoutControl::SetTitle $title
     ReadoutControl::SetRun   $run
+
 
 
 

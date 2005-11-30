@@ -57,7 +57,7 @@ cd $libDir
 set libDir [pwd]
 cd $wd
 
-if {[file search $auto_path $libDir] == -1} {
+if {[lsearch $auto_path $libDir] == -1} {
     set auto_path [concat $libDir $auto_path]
 }
 

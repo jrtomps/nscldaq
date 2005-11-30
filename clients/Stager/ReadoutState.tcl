@@ -32,6 +32,9 @@ proc ReadoutState::setDefaults {} {
     Configuration::Set RunNumber      1
     Configuration::Set ScalerCount    0
     Configuration::Set ScalerInterval 2;       # more common than the old 10.
+    Configuration::Set Recording      0;       # Event recording enabled.
+    Configuration::Set Timed          0;       # Timed run enabled.
+    Configuration::Set TimedLength    0;       # Seconds of a timed run.
 }
 
 # ReadoutState::environmentOverrides
@@ -144,4 +147,55 @@ proc ReadoutState::setScalerPeriod time {
 #
 proc ReadoutState::getScalerPeriod {} {
     return [Configuration::get ScalerInterval]
+}
+# ReadoutState::getRecording
+#     Return state of the recording flag.
+#
+proc ReadoutState::getRecording {} {
+    return [Configuration::get Recording]
+}
+#
+#   Set recording state to various values.
+#
+proc ReadoutState::enableRecording {} {
+    Configuration::Set Recording 1
+}
+proc ReadoutState::disableRecording {} {
+    Configuration::Set Recording 0
+}
+proc ReadoutState::setRecording {value} {
+    Configuration::Set Recording $value
+}
+# ReadoutState::isTimedRun
+# ReadoutState::TimedRun
+# ReadoutState::notTimedRun
+# ReadoutState::setTimedRun
+#
+#     Get and set state of timed run configuration.
+#
+
+proc ReadoutState::isTimedRun {} {
+    Configuration::get Timed
+}
+
+proc ReadoutState::TimedRun {} {
+    Configuration::Set Timed 1
+}
+proc ReadoutState::notTimedRun {} {
+    Configuration::Set Timed 0
+}
+proc ReadoutState::setTimedRun {state} {
+    Configuration::Set Timed $state
+}
+# ReadoutState::timedLength
+#     Return the timed run length.
+#
+proc ReadoutState::timedLength {} {
+    Configuration::get TimedLength
+}
+# ReadoutState::setTimedLength value
+#     Set the timed run length.
+#
+proc ReadoutState::setTimedLength {value} {
+    Configuration::Set TimedLength $value
 }

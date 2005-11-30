@@ -320,6 +320,14 @@ proc ReadougGUIPanel::recordOff {} {
     $w deselect
     set ::ReadougGUIPanel::RecordData 0
 }
+# ReadouGUIPanel::recordOn
+#     Turn on the recording data checkbox.
+proc ReadougGUIPanel::recordOn {} {
+    set base $::ReadougGUIPanel::ROOT
+    append w $base . recording
+    $w select
+    set ::ReadougGUIPanel::RecordData 1
+}
 # ReadougGUIPanel::setScalers channels period
 #    Sets the scaler parameters.  This allows us
 #    to preload the scaler dialog with the current
@@ -495,6 +503,18 @@ proc ::ReadougGUIPanel::getTitle {} {
 proc ReadougGUIPanel::isTimed {} {
     return $::ReadougGUIPanel::TimedRun
 }
+# ReadougGUIPanel::setTimed state
+#     Set state of timed run.
+#
+proc ReadougGUIPanel::setTimed {state} {
+    set ::ReadougGUIPanel::TimedRun $state
+    append widget $::ReadougGUIPanel::ROOT . timed
+    if {$state} {
+        .timed select
+    } else {
+        .timed deselect
+    }
+}
 # ReadougGUIPanel::getRequestedRunTime
 #   Find out how long the user requested the
 #   run to be.  This is done by reading the
@@ -513,6 +533,29 @@ proc ReadougGUIPanel::getRequestedRunTime {} {
     set elapsed [expr {$elapsed*60 + [$wseconds get]}]; # seconds.
 
     return $elapsed
+}
+# ReadougGUIPanel::setRequestedRunTime time
+#       Set the requested run time in seconds.
+#
+proc ReadougGUIPanel::setRequestedRunTime {time} {
+    append wdays    $::ReadougGUIPanel::ROOT . days
+    append whours   $::ReadougGUIPanel::ROOT . hours
+    append wminutes $::ReadougGUIPanel::ROOT . minutes
+    append wseconds $::ReadougGUIPanel::ROOT . seconds
+
+    set secs [expr $time % 60]
+    $wseconds set $secs
+
+    set time [expr $time/60]
+    set min  [expr $time % 60]
+    $wminutes set $min
+
+    set time  [expr $time /60]
+    set hours [expr $time % 60]
+    $whours set $hours
+
+    set days   [expr $time / 24]
+    $wdays set $days
 }
 # END USER CODE
 

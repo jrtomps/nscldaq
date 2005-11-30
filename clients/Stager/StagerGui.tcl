@@ -17,8 +17,8 @@ exec wish ${0} ${@}
 #	     East Lansing, MI 48824-1321
 
 tk_messageBox -icon info -title "Not Used" \
-    -message {The stager program is no longer in use at the NSCL}
-exit 0
+    -message {The stager program is no longer in use at the NSCL you should exit this}
+
 
 
 # Set up the auto_path to include

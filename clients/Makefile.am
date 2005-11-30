@@ -21,10 +21,11 @@ install-data-local:
 	$(mkinstalldirs) $(prefix)/bin
 	$(mkinstalldirs) $(prefix)/lib
 	$(mkinstalldirs) $(prefix)/include
-	rm -f $(prefix)/Bin
+	rm -f $(prefix)/Bins
 	rm -f $(prefix)/Lib
 	rm -f $(prefix)/Include
 	rm -f $(prefix)/Etc
+	rm -f $(prefix)/TclLibs
 	$(LN_S) $(prefix)/lib $(prefix)/TclLibs
 	$(LN_S) $(prefix)/bin $(prefix)/Bin
 	$(LN_S) $(prefix)/lib $(prefix)/Lib
@@ -49,7 +50,7 @@ install-data-local:
 	echo "Version: " $(VERSION) build on `hostname` `date` > $(prefix)/VERSION
 	$(MANDB) $(prefix)/man
 	tclsh mkpackage.tcl $(prefix)/Scripts "*.tcl"
-	- tclsh mkpackage.tcl $(prefix)/lib  libVme.so libWait.so 2>/dev/null
+	tclsh mkpackage.tcl $(prefix)/lib  "lib*.so"
 
 
 

@@ -561,3 +561,8 @@ November 29, 2005
        This allows application software to be written
        that can put the scalers into other than the 
        toplevel widget.
+November 30, 2005
+     - Defect 184 : ReadoutGui now saves:
+              Recording state.
+              Timed run state.
+              Timed run duration.

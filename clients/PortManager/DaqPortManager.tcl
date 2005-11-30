@@ -209,6 +209,7 @@ proc run {argList} {
 }
 
 #  Entry point
-
-run $argv
+if {[info exists argv]} {
+    run $argv
+}
 # 
