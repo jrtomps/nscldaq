@@ -797,7 +797,9 @@ proc setupStripChart {channels} {
     foreach channel $channels {
 	addPlotChannel $channel
     }
-    clearStripChart
+    if {[llength $channels] != 0} {
+	clearStripChart
+    }
 }
 #------------------------------------------------------------------------------
 # getTableLine name
