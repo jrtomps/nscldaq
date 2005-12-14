@@ -566,3 +566,10 @@ November 30, 2005
               Recording state.
               Timed run state.
               Timed run duration.
+December 13, 2005
+      - Defect 189: controlpush using epics's string form is not appropriate
+        for all channel types, as it can turn small values -> 0 and
+        does not always give the desired/required precision.
+      - Unnumbered defect in epicsdisplay: If there are no strip chart
+        channels, the clearStripChart proc was called which referenced
+        widgets that did not exist.

@@ -37,6 +37,10 @@
 #endif
 #endif
 
+#include <typeinfo>
+
+class CConverter;
+
 /**
  *   The CChannel class implements transparently updated EPICS channels for C++
  * programs.  Objects require a two-phase construction, as we won't be sure of the
@@ -55,6 +59,7 @@ private:
   bool          m_fConnectionHandlerEstablished;
   STD(string)   m_sValue;
   time_t        m_LastUpdateTime;
+  CConverter*   m_pConverter;
 public:
   CChannel(STD(string) name);
   virtual ~CChannel();
@@ -87,6 +92,84 @@ protected:
   static void UpdateHandler(event_handler_args     args);
 };
 
+//////////////////////////////////////////////////////////////////////////////
+/*!
+**   The classes below are used to convert between epics native values
+**   and strings... this is required becuse epics does not always
+**   choose a good conversion.
+**
+**   In addition a conversion factory is provided.
+**   This is all much simpler than it looks.  There are basically
+**   only the following conversion types that we entertain:
+**    string : Ask the user to request DBF_STRING and convert that
+**             as %s
+**    uint:    Ask the user to request DBF_ULONG and convert that.
+**             as %ul
+**             NOTE: Due to some funkiness in the epics headers I don't
+**             understand, these can'tbe made to work. at this time.
+**    int      Ask the user to request DBF_LONG and convert that.
+**             and convert that as %l
+**    float:   Ask the user to request DBF_DOUBLE  and convert that.
+**             as %12.9g
+** 
+**  The normal path usage of the stuff below is:
+**    In the connection handler for the channel
+**    get the underlying data type using ca_field_type
+**    Pass that in to an invocation of 
+**      CConversionFactory::Converter();
+**    This dynamically allocates a converter, call the pointer to it
+**     pConverter
+**    Invoke pConverter->requestType()
+**    And use the return value as the data type requested when
+**    invoking ca_add_event on the channel.
+**    In the UpdateHandler,
+**       string value = (*pConverter)(args);
+**    to get a nice string value returned for the channel.
+**
+*/
+
+/*!
+   Abstract CConverter base class.... this is pure abstract.
+*/
+
+class CConverter 
+{
+public:
+  virtual short  requestType() = 0;
+  virtual string operator()(event_handler_args args) = 0;
+};
+
+class CStringConverter : public CConverter 
+{
+public:
+  virtual short requestType();
+  virtual string operator()(event_handler_args args);
+
+};
 
 
+
+class CIntegerConverter : public CConverter
+{
+public:
+  virtual short requestType();
+  virtual string operator()(event_handler_args args);
+};
+
+class CFloatConverter : public CConverter
+{
+public:
+  virtual short requestType();
+  virtual string operator()(event_handler_args args);
+};
+
+/*!
+   Provides the correct converter type for the
+   particular epics data type.
+   If no type exists, an exception is thrown.
+*/
+class CConversionFactory {
+public:
+  static CConverter* Converter(short type);
+};
 #endif

@@ -6,6 +6,9 @@ using namespace std;
 #endif
 
 
+
+
+
 /**
  * Construct a channel.  This member function 
  * initializes the data associated with a channel, but does not actually
@@ -24,7 +27,8 @@ CChannel::CChannel(string name) :
   m_fUpdateHandlerEstablished(false),
   m_fConnectionHandlerEstablished(false),
   m_sValue(""),
-  m_LastUpdateTime(0)
+  m_LastUpdateTime(0),
+  m_pConverter(0)
 {
 }
 /**
@@ -35,6 +39,7 @@ CChannel::~CChannel()
   if (m_fConnected || (m_fUpdateHandlerEstablished)) {
     ca_clear_channel(m_nChannel);
   }
+  delete m_pConverter;
 }
 
 /**
@@ -123,12 +128,16 @@ CChannel::StateHandler(connection_handler_args args)
   if (op == CA_OP_CONN_UP) {	// Just connected...
     pChannel->m_fConnected = true;
     if(!pChannel->m_fUpdateHandlerEstablished) {
-      ca_add_event(DBF_STRING, id, UpdateHandler, (void*)pChannel, NULL);
+      pChannel->m_pConverter = CConversionFactory::Converter(ca_field_type(id));
+      ca_add_event(pChannel->m_pConverter->requestType(), 
+		   id, UpdateHandler, (void*)pChannel, NULL);
       pChannel->m_fUpdateHandlerEstablished;
     }
   }
   else if (op == CA_OP_CONN_DOWN) { // just disconnected
     pChannel->m_fConnected = false;
+    delete pChannel->m_pConverter;
+    pChannel->m_pConverter = 0;
   }
   else {			// none of the above.
     // TODO: Figure out appropriate error handling here.
@@ -147,12 +156,104 @@ CChannel::UpdateHandler(event_handler_args args)
 {
   if(args.status == ECA_NORMAL) {
     CChannel* pChannel = (CChannel*)args.usr;
-    time_t    now      = time(NULL); // Last update time.
-    pChannel->m_LastUpdateTime = now;
-    pChannel->m_sValue = (const char*) args.dbr;
+    if(pChannel->m_pConverter) {
+      time_t    now      = time(NULL); // Last update time.
+      pChannel->m_LastUpdateTime = now;
+      pChannel->m_sValue = (*(pChannel->m_pConverter))(args);
+      //      pChannel->m_sValue = (const char*) args.dbr;
+    }
   }
   else {
     // TODO:  Figure out appropriate error action if any.
   }
 }
+
+
+
+/*!
+ *  Connection factory converter instantiator.
+ *   \param type - the underlying epics data type of the channel.
+ */
+CConverter*
+CConversionFactory::Converter(short type) {
+  switch (type) {
+  case DBF_STRING:
+    return new CStringConverter;
+    break;
+  case DBF_CHAR:
+  case DBF_SHORT:
+  case DBF_LONG:
+    return new CIntegerConverter;
+    break;
+  case DBF_FLOAT:
+  case DBF_DOUBLE:
+    return new CFloatConverter;
+    break;
+  default:
+    throw "CConversionFactory::Converter: Can't make a converter for data type";
+  }
+}
+
+/////////////////////////////////////////////////////////////
+/*!
+   Return the request type appropriate to a string converter
+   (DBF_STRING)
+*/
+short
+CStringConverter::requestType()
+{
+  return DBF_STRING;
+}
+/*!
+   Convert a string data type to a string... basically
+   just casting/assignment
+*/
+string
+CStringConverter::operator()(event_handler_args args)
+{
+  return string((const char*)(args.dbr));
+}
+////////////////////////////////////////////////////////////
+/*!
+   Return the request type appropriate to an integer converter
+   (DBF_LONG)
+*/
+short
+CIntegerConverter::requestType()
+{
+  return DBF_LONG;
+}
+/*!
+   Return the stringified version of an integer value.
+*/
+string
+CIntegerConverter::operator()(event_handler_args args)
+{
+  char buffer[100];
+  sprintf(buffer, "%ld", *((long*)(args.dbr)));
+  return string(buffer);
+}
+////////////////////////////////////////////////////////////
+
+
+/*!
+    Return the request type appropriate to a floating point value
+   conversion (DBF_DOUBLE)
+*/
+short
+CFloatConverter::requestType()
+{
+  return DBF_DOUBLE;
+}
+/*!
+   Return the stringified version of a double channel
+*/
+string
+CFloatConverter::operator()(event_handler_args args)
+{
+  char buffer[100];
+  sprintf(buffer, "%12.9g", (*(double*)(args.dbr)));
+  return string(buffer);
+}
+
 
