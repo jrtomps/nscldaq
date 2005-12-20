@@ -14,7 +14,7 @@ EXTRA_DIST =  config/install-sh config/config.sub config/config.guess \
 	config/ltmain.sh config/missing config/mkinstalldirs mkpackage.tcl \
 	Directories.include CompilationRules.include \
 	CHANGELOG daqman Makefile.am wienerdriver btdriver controlpush/Makefile.am \
-	controlpush/Makefile.in
+	controlpush/Makefile.in LICENSE
 
 install-data-local:
 	$(mkinstalldirs) $(prefix)/etc
@@ -44,6 +44,7 @@ install-data-local:
 	echo VMELIBRARY=$(VMELIBRARY) >> Directories.include.final
 	echo X11LIBS=$(X11LIBS)       >> Directories.include.final
 	cat Directories.include       >> Directories.include.final
+	$(INSTALL_DATA) LICENSE $(prefix)
 	$(INSTALL_DATA) Directories.include.final $(prefix)/etc/Directories.include
 	$(INSTALL_DATA) config.h $(prefix)/include
 	$(INSTALL_PROGRAM)  daqman $(prefix)/bin
