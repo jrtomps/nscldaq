@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.3//EN"
+        "http://www.oasis-open.org/docbook/xml/4.3/docbookx.dtd"
+[
+     <!ENTITY chap1 SYSTEM "quickstart.xml">
+    <!ENTITY chap2 SYSTEM "concepts.xml">
+    <!ENTITY chap3 SYSTEM "filemenu.xml">
+    <!ENTITY chap4 SYSTEM "filtermenu.xml">
+    <!ENTITY chap5 SYSTEM "helpmenu.xml">
+    <!ENTITY chap6 SYSTEM "extending.xml">
+    <!ENTITY refman SYSTEM "refman.xml">
+    ]
+>
+<book>
+   <bookinfo>
+        <title>bufdump - A utility for dumping NSCL event buffers</title>
+        <author><firstname>Ron</firstname>
+                <surname>Fox</surname>
+        </author>
+    </bookinfo>
+   <preface>
+     <title>Preface </title>
+     <para>
+     Every effort has been made to ensure that this manual is correct and
+     accurate.  Nonetheless errors may have crept in.  If you find an error
+     in this manual, please report it to <ulink url="http://daqbugs.nscl.msu.edu" />
+     so that we can correct it as soon as possible.
+     </para>
+     <para>
+          If you find errors in the program or have suggestions for enhancements
+          that will improve bufdump, we welcome your defect reports and
+          suggestions at <ulink url="http://daqbugs.nscl.msu.edu" />.
+     </para>
+   </preface>
+
+    &chap1;
+    &chap2;
+    &chap3;
+    &chap4;
+    &chap5;
+    &chap6;
+    <article>
+    &refman;
+    </article>
+</book>

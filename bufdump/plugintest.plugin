@@ -1,0 +1,10 @@
+# Plugin to format 0x8000 packets:
+#
+proc format8000 body {
+    set result "Hex   Decimal   Octal\n"
+    foreach item $body {
+	append result [format "0x%04x %05d %06o\n" $item $item $item]
+    }
+return $result
+}
+registerPacketFormatter 0x8000 format8000

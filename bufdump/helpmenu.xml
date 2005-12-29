@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+
+<chapter id="chap5">
+    <title>Commands on the Help menu</title>
+    <para>
+        The Help menu provides commands that access information about
+        bufdump as well as its extensive online help facility.
+        This chapter describes those commands:
+        <screenshot>
+            <screeninfo>The file menu</screeninfo>
+            <mediaobject>
+                <imageobject><imagedata fileref="helpmenu.gif" format="GIF" />
+                </imageobject>
+                <imageobject><imagedata fileref="helpmenu.eps" format="EPS" />
+                </imageobject>
+            </mediaobject>
+        </screenshot>
+    </para>
+    <para>
+        When you are finished reading this chapter you will know:
+        <itemizedlist>
+            <listitem><para>
+                        How to obtain program identification information
+                      </para></listitem>
+            <listitem><para>
+                        How to access the online help
+                      </para></listitem>
+        </itemizedlist>
+    </para>
+    <sect1>
+        <title>
+            <menuchoice>
+                <guimenu>Help</guimenu>
+                <guimenuitem>About...</guimenuitem>
+            </menuchoice>
+        </title>
+        <para>
+            The
+            <menuchoice>
+                <guimenu>Help</guimenu>
+                <guimenuitem>About...</guimenuitem>
+            </menuchoice>
+            command displays a dialog that provides the program version, license
+            terms and information about the author and owner of the program.
+        </para>
+    </sect1>
+    <sect1>
+        <title>
+            <menuchoice>
+                <shortcut><keycap>F1</keycap></shortcut>
+                <guimenu>Help</guimenu>
+                <guimenuitem>Topics...</guimenuitem>
+            </menuchoice>
+        </title>
+        <para>
+            The
+            <menuchoice>
+                <shortcut><keycap>F1</keycap></shortcut>
+                <guimenu>Help</guimenu>
+                <guimenuitem>Topics...</guimenuitem>
+            </menuchoice>
+            command acceses the extensive online help bundled into bufdump.
+            If the online help window is already displayed it is brought to the
+            front of the window stacking order displays the introductory help page.
+        </para>
+    </sect1>
+</chapter>

@@ -1,0 +1,59 @@
+<html>
+    <head>
+        <title>Packets; an introduction</title>
+    </head>
+    <body>
+        <h1>Packets; an introduction</h1>
+        <p>
+            Experiments at the NSCL often involve combinations of supported
+            apparatus.  In order to allow independent development, testing and
+            subsequent integration of data acquisition and analysis software for
+            apparatus at the NSCL, experimeters at the NSCL devised a simple self
+            describing outer structure to their events.
+        </p>
+        <p>
+            This structure is based on the concept of <em>packets</em>.  A packet is
+            a piece of an event with substructure.  The outer structure of a packet is:
+            <br />
+            <pre>
+                packet-size      (16 bit word)
+                packet-type      (16 bit word)
+                Packet-contents  (packet-size - 2 words).
+            </pre>
+        </p>
+        <p>
+            The overall event is just a word count of the entire event followed by
+            a sequence of packets.  Data analysis at the NSCL can then be built out
+            of a sequence of event analyzers that recognize and know how to deal with
+            a subset of the packets in an event while skipping the packets they don't
+            know about.
+        </p>
+        <p>
+            A registry of packets, their ids and responsible maintainers is kept
+            by Daniel Bazin (bazin@nscl.msu.edu).   bufdump knows about the
+            packets in this registry to the best of the ability of this programmer
+            to keep up with this registry, and those packet definitions are automatically
+            read in when bufdump starts.  If you become aware of additional packet types
+            that are not known to bufdump, please submit an enhancement defect report to
+            http://daqbugs.nscl.msu.edu.
+        </p>
+        <p>
+            Users of the NSCL Production readout software have the ability to create
+            <em>documented packets</em>.  Creating a documented packet produces includes
+            the definition of a packet in documentation buffers produced by the production
+            readout software.   If bufdump encounters a documentation buffer for packet
+            definitions that defines packets it does not already know about, it augments
+            it's database of packet types from that buffer.
+        </p>
+        <p>
+            Bufdump's intrinsic knowledge of the packet strucure is limited to
+            the ability to recognize and format the header of each packet type.
+            It is possible to augment the set of packet types bufdump knows about
+            via <a href="filepackets.html">packet definition files</a>.
+            It is also possible to teach bufdump how to format the internals of
+            a packet via a <a href="plugins.html">plugin script</a>.
+        </p>
+    <hr />
+    <p>Please report all errors to http://daqbugs.nscl.msu.edu </p>
+    </body>
+</html>

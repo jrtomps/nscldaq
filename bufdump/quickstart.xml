@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+
+<chapter>
+    <title>bufdump quickstart guide</title>
+    <para>
+        This chapter will give you the minimum information you need
+        to start using the bufdump program.  In this chapter you will learn:
+        <itemizedlist>
+            <listitem><para>How to start bufdump</para></listitem>
+            <listitem><para>How to select a source of buffers</para> </listitem>
+            <listitem><para>How to get buffers from the data source </para></listitem>
+            <listitem><para>How to access the program's online help</para></listitem>
+        </itemizedlist>
+    </para>
+    <important>
+        <para>The procedure below assumes that the
+            NSCLDAQ utility programs are in the your PATH.
+            At the NSCL this means that the PATH environment
+            variable includes an entry for /usr/opt/utilities/current/bin
+        </para>
+    </important>
+
+    <procedure>
+        <title>Starting bufdump</title>
+        <para>
+            To start the bufdump program:
+        </para>
+        <step performance="required">
+            <para>Login to a system on which the bufdump program has been
+                installed </para>
+        </step>
+        <step performance="required">
+            <para>If necessary start a terminal window</para>
+        </step>
+        <step performance="required">
+            <para>Type:</para>
+            <screen>
+                <prompt> bash$ </prompt><command> bufdump </command>
+            </screen>
+        </step>
+    </procedure>
+    <para> If you have successfully followed these steps, the bufdump
+        window will appear as shown below:
+        <screenshot>
+            <screeninfo>Screenshot of bufdump main window</screeninfo>
+            <mediaobject>
+                <imageobject><imagedata fileref="bufdump.gif" format="GIF" />
+                </imageobject>
+                <imageobject><imagedata fileref="bufdump.eps" format="EPS" />
+                </imageobject>
+                <caption>Screen shot of the bufdump program's main window
+                </caption>
+            </mediaobject>
+        </screenshot>
+    </para>
+    <procedure>
+        <title>Selecting a data source</title>
+        <para>This procedure will show you how to select an offline
+            data source for detailed information about selecting
+            data sources see the discussion of the
+            <menuchoice>
+                <guimenu>File</guimenu>
+                <guimenuitem>Open...</guimenuitem>
+            </menuchoice>
+            command in <link linkend="chap3">Chapter 3: The file menu</link>.
+        </para>
+        <step performance="required">
+            <para>
+                Click the File menu on the menubar at the top of the
+                bufdump main window.
+            </para>
+        </step>
+        <step performance="required">
+            <para>Click the Open... menu entry in the File menu.
+            </para>
+            <para> This should result in the data source dialog box
+                like the one shown below.
+                <screenshot>
+                    <screeninfo>Screenshot of the open data source dialog</screeninfo>
+                    <mediaobject>
+                        <imageobject><imagedata fileref="open.gif" format="GIF" />
+                        </imageobject>
+                        <imageobject><imagedata fileref="open.eps" format="EPS" />
+                        </imageobject>
+                        <caption>Screen shot of the open data source dialog.
+                        </caption>
+                    </mediaobject>
+                </screenshot>
+            </para>
+        </step>
+        <step performance="required">
+            <para>Use the lower part of the dialog box to navigate to the directory that has
+                your event files and click on the event file you want to
+                examine.
+            </para>
+        </step>
+        <step performance="required">
+            <para>Click the Ok button.  The dialog box will be removed from
+                the screen.
+            </para>
+        </step>
+
+    </procedure>
+    <important>
+        <para>The procedure below assumes that you have already selected a
+            data source.
+        </para>
+    </important>
+    <procedure>
+        <title>Stepping through the event source</title>
+        <step performance="required">
+            <para>Locate the arrow button pointing right at the lower left of
+                the bufdump main window</para>
+        </step>
+        <step performance="required">
+            <para>Click the right arrow button.
+                The bufdump program will read the next buffer from
+                the event source, decode the buffer and display the
+                decoded buffer in the middle part of the bufdump main window.
+            </para>
+        </step>
+        <step>
+            <para>Repeatedly clicking the right arrow button will
+                tell bufdump to read subseqeunt buffers from the data source,
+                decode and display them.  Bufdump will hold several buffers in
+                memory.  As needed, the middle window will grow scroll bars
+                to allow you to scroll back and forth through the
+                data that has been decoded and displayed.
+            </para>
+        </step>
+    </procedure>
+
+<tip>
+    <para>The bufdump program is quite powerful.  If you want to learn
+        more about what bufdump can do, and how to use it like an expert,
+        read the remainder of this manual.
+    </para>
+</tip>
+
+</chapter>

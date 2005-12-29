@@ -1,0 +1,136 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en-us" lang="en-us"><head><title>EventDumper &lt; Main &lt; TWiki</title>
+ 
+ <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+  <link rel="alternate" type="application/rss+xml" title="RSS Feed" href="http://groups.nscl.msu.edu/computer/webs/bin/view/Main/WebRss?skin=rss&amp;contenttype=text/xml">
+ <!-- base href="http://groups.nscl.msu.edu/computer/webs/bin/view/Main/EventDumper" --></head>
+ 
+<body bgcolor="#ffffff">
+<a name="PageTop"></a>
+-- <a class="twikiLink" href="http://groups.nscl.msu.edu/computer/webs/bin/view/Main/RonFox">RonFox</a> - 06 Jan 2005
+<p>
+</p><p>
+</p><h1><a name="Event_Dump_utility_specification"> </a> Event Dump utility specifications. </h1>
+<p>
+Events at the NSCL have the following format:
+</p><p>
+</p><pre>
+WordCount
+Body
+
+</pre>
+<p>
+</p><p>
+The body is often further subdivided into packets where a packet  is of the form:
+</p><p>
+</p><pre>WordCount
+PacketType
+PacketBody
+</pre>
+<p>
+The body may be divided additionally into sub-packets.  We will not address this issue at this time.
+</p><p>
+We will enhance bufdump to:
+</p><p>
+</p><ul>
+<li> Know via a central file and an optional user extension file an association between top level packet types and
+     some descriptive string.
+</li>
+<li> Dump events in a structured way (see below.
+</li>
+<li> Be able to dump more than the first event of each event buffer.
+</li>
+<li> Produce more meaningful dumps of non-event buffers.
+</li>
+<li> Be able to take data from online or file based data sets.
+</li>
+</ul>
+<p>
+</p><h3><a name="Specifying_the_packet_type_files"> </a> Specifying the packet type files. </h3>
+<p>
+A central packet type file will live in
+/usr/opt/daq/current/etc/packettypes.conf Each line in the file will
+have two fields. The first a packet id, the second arbitrary text
+associated with the packet id. For example:
+</p><p>
+</p><pre>0x8000    See test facility
+</pre>
+<p>
+Associates the text "See test facility" with the packet id 0x8000.
+</p><p>Users may augment this with a file of the same format. If there
+are conflicts, the user's file overrides the definitions in the central
+file. </p><p>
+bufdump will have an additional switch  --packets=<em>filename</em>.  If supplied, this specifies the user's packet id file.
+</p><p>
+</p><h3><a name="Specifying_the_number_of_events"> </a><a name="Specifying_the_number_of_events_"> </a> Specifying the number of events to dump. </h3>
+<p>
+Bufdump will get a switch:  --events=<em>num</em>.  When supplied, instead of dumping a single event from each event buffer, the dumper will dump <em>num</em> events.
+</p><p>
+</p><h3><a name="dumpbuf_s_output_format"> </a><a name="dumpbuf_s_output_format_"> </a> dumpbuf's output format. </h3>
+<p>
+Two changes here:
+</p><p>
+</p><ul>
+<li> More information from non event buffers.
+</li>
+<li> Packets id's will be used to produce a more structured dump of events in physics buffers.
+</li>
+</ul>
+<p>
+</p><h4><a name="Non_Event_buffers"> </a><a name="Non_Event_buffers_"> </a> Non Event buffers: </h4>
+<p>
+Begin/pause/end/resume buffers all have the same general format:
+</p><p>
+</p><pre>--------------------
+Begin Run for run number 1232 at Jan 8 2005.
+Title:  This is a test run.
+Occured at 0 seconds into the run.
+</pre>
+<p>
+Scaler buffers:
+</p><pre>----------------------
+Scaler buffer
+Interval start time:   10 seconds into the run.
+Interval end time:     12 seconds into the run
+12 scalers follow:
+&lt;the scaler values&gt;
+</pre>
+<p>
+Packet documentation buffers:
+</p><pre>-----------------------
+Packet documentation buffer. Documented packets in use are:
+
+0x8000  SEETF  See Test facility Version 1.0
+...
+</pre>
+<p>
+</p><p>
+Run state /run variable buffers:
+</p><pre>----------------------
+Run variable buffer.  Variables are set as follows:
+
+set EPICS_DATA(Q1013) {100 Amps {April 1, 2004 01:23:34}}
+...
+</pre>
+<p>
+</p><p>
+</p><h3><a name="Specifying_the_data_source"> </a><a name="Specifying_the_data_source_"> </a> Specifying the data source. </h3>
+<p>
+Currently the data source is an optional command line parameter. If not
+supplied the data source is the online data source for the current
+system. If supplied it is a url that specifies an online data source in
+an arbitrary system. For example:
+</p><p>
+</p><pre>bufdump tcp://spdaq22:2602/
+</pre>
+<p>
+This will be augmented to recognize additional url types:
+</p><p>
+</p><table border="1" cellpadding="0" cellspacing="1">
+<tbody><tr><td class="twikiFirstCol" bgcolor="#ffffcc"> file://filename </td><td bgcolor="#ffffcc"> dump data in a local event file. </td></tr>
+<tr><td class="twikiFirstCol" bgcolor="#ffffff"> stdin:// </td><td bgcolor="#ffffff"> dump data from stdin (zcat run123-4096.evt </td><td bgcolor="#ffffff"> bufdump stdin://) </td></tr>
+</tbody></table>
+<p>
+</p><p>
+<a name="PageBottom"></a>
+</p></body></html>

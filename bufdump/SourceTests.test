@@ -1,0 +1,93 @@
+#
+#    This software is Copyright by the Board of Trustees of Michigan
+#    State University (c) Copyright 2005.
+#
+#    You may use this software under the terms of the GNU public license
+#    (GPL).  The terms of this license are described at:
+#
+#     http://www.gnu.org/licenses/gpl.txt
+#
+#     Author:
+#             Ron Fox
+#            NSCL
+#            Michigan State University
+#            East Lansing, MI 48824-1321
+#
+#----------- Setup environment
+
+set here [file dirname [info script]]
+
+# starting to just get too tough to do this without
+# packaging:
+package require tcltest
+
+set auto_saved $auto_path
+set auto_path [concat $here $auto_path]
+
+
+if {[file exists pkgIndex.tcl]} {
+    file delete              pkgIndex.tcl.saved
+    file rename pkgIndex.tcl pkgIndex.tcl.saved
+}
+pkg_mkIndex . *.tcl
+
+package require dataSources
+
+#----------- Test utility procs
+
+#----------- Tests:
+
+tcltest::test  1.0  {Offline test}               \
+-constraints unix                                \
+-setup {
+    set data [makeCountingPattern 0 15]
+    set binaryData [binary format s16 $data]
+    writeBinaryFile $binaryData  [file join [pwd] counting16.testdata]
+}                                                \
+-cleanup {
+    file delete [file join [pwd] counting16.testdata]
+}                                                \
+-body {
+    dataSource dsource
+    dsource openOffline [file join [pwd] counting16.testdata] -buffersize 32
+    set buffer [dsource getNext]
+    dsource close
+    dsource destroy
+
+    set buffer
+}                                                \
+-match list                                      \
+-result {0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15}
+
+tcltest::test 1.1 {Online test}                      \
+-constraints unix                                    \
+-setup {
+    startDummySource
+}                                                    \
+-cleanup {
+    stopDummySource
+}                                                    \
+-match list                                          \
+-body {
+    dataSource dsource
+    dsource openOnline  localhost -buffersize 32
+    set buffer [dsource getNext]
+    dsource close
+    dsource destroy
+
+    set buffer
+}                                                   \
+-result {0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15}
+
+
+#----------- Test environment cleanup
+
+
+file delete pkgIndex.tcl
+if {[file exists pkgIndex.tcl.saved]} {
+    file rename pkgIndex.tcl.saved pkgIndex.tcl
+}
+set auto_path $auto_saved
+
+
+tcltest::cleanupTests

@@ -1,0 +1,33 @@
+<html>
+    <head>
+        <title>Searches</title>
+    </head>
+    <body>
+        <h1>Searches</h1>
+        <p>
+            Searches are a mechanism bufdump provides for locating specific
+            data within buffers that are already displayed.  The bufdump
+            search facility allows you to search for:
+            <ul>
+                <li>Specific ASCII strings in the dumped data</li>
+                <li>Specific regular expressions in the dumped data.
+                    The syntax of regular expressions is powerful, complex
+                    and beyond the scope of this document.  For information
+                    about regular expressions, see the regex(7) man page on
+                    the Linux systems, or read the sections describing the
+                    regexp command in Tcl books.</li>
+                <li>Specific bit patterns in the dumped data.  A bit pattern
+                    can have "don't care" bits as well as specified bits.</li>
+                <li>Sequences of bit patterns in the dumped data.  Each bit pattern
+                    in the sequence can have "don't care" bits as well as specified bits</li>
+            </ul>
+        </p>
+        <p>Searches are specified via the <a href="filtersearch.html">Filter->Search...</a>
+            command.  Once a search has been specified, it can be repeated without
+            respecification via the <a href="filtersearchnext.html">Filter->Search Next</a>
+            command.
+        </p>
+    <hr />
+    <p>Please report all errors to http://daqbugs.nscl.msu.edu </p>
+    </body>
+</html>

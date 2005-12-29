@@ -1,0 +1,44 @@
+<html>
+    <head>
+        <title>Overview of the Buffer dumper</title>
+    </head>
+    <body>
+        <h1>Overview of bufdump </h1>
+        <p>
+            bufdump is a Tcl/Tk script that understands the structure
+            of data buffers produced by the NSCL Data Acquisition System (NSCLDAQ).
+            In addition to understanding the outer structure of data buffers, bufdump
+            understands how to produce understandable dumps of the internal structure
+            of each buffer.  This understanding extends to a knowledge of the known registered
+            packet types, as well as the ability to be taught about new packet types and
+            how to support them.
+        </p>
+        <p>
+            A summary of the program features includes:
+            <ul>
+                <li><a href="gui.html">Graphical user interface</a> makes using this program
+                    easy for inexperienced users.</li>
+                <li>Online and offline <a href="datasource.html">data sources</a> allow
+                    you to look at data already taken as well as data from a live experiment.</li>
+                <li>Sophisticated <a href="filters.html">buffer filters</a> allow you to specify
+                    a subset of buffer types as well as required bit patterns and bit pattern
+                    sequences.  These filters are easily created and modified via a visual
+                    <a href="filter.html">filter creator</a></li>
+                <li>A knowledge of <a href="packets.html">event packet types</a> as well as
+                    the ability to read in <a href="filepackets.html">packet definition files</a>
+                    that extend the set of packets that can be identified.</li>
+                <li>Support for <a href="plugins.html">formatting plugins</a> that can produce
+                    a more readable form of the internals of event packets.  Plugins can be
+                    <a href="fileplugin.html">dynamically read in</a> at any time.</li>
+                <li>Sophisticated <a href="search.html">search capabilities</a> including the
+                    ability to search the dump of buffers for specific text, regular expressions
+                    or bit patterns and bit sequences.</li>
+                <li><a href="help.html">Extensive online help</a> which you are reading now as
+                    well as offline man pages and web based documentation at
+                    http://docs.nscl.msu.edu</li>
+            </ul>
+        </p>
+    <hr />
+    <p>Please report all errors to http://daqbugs.nscl.msu.edu </p>
+    </body>
+</html>

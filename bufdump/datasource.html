@@ -1,0 +1,57 @@
+<html>
+    <head>
+        <title>Data Sources</title>
+    </head>
+    <body>
+        <h1>Data Sources</h1>
+        <p>
+            A data source is a source of data in buffers that are formatted
+            by the NSCL data acquisition system or some compatible software
+            or hardware.  Data sources provide the data that bufdump formats
+            for you.
+        </p>
+        <p>
+            See the <a href="fileopen.html">File->Open</a> menu command
+            documentation for a description of how to open a data source.
+        </p>
+        <p>
+            At the time this documentation is being written, the bufdump
+            program supports the following data sources:
+            <ul>
+                <li>Event Files.  These are event files that have been
+                    saved to disk and are available in the filesystem
+                    of the computer running the program.  Event files
+                    may be on mounted shares or purely local.</li>
+                <li>Online data.  This represents a direct connection to
+                    a data source on a system running the NSCL data
+                    acquisition system.  In order to acquire data
+                    from an online data source, the NSCL data acquisition
+                    software must be installed and running on the computer
+                    running bufdump as well.   This software makes some
+                    assumptions about where this software is installed.
+                    At present, the NSCL DAQ software is assumed to be
+                    installed in /usr/opt/daq/current, or assumes that
+                    /usr/opt/daq/current represents a link to the actual
+                    top level directory of the NSCL DAQ installation.
+
+            </ul>
+        </p>
+        <p>
+            If the location of the NSCL Data acquisition software does not
+            match your installation, talk with your system manager about either
+            establishing the link described above or alternatively, modifying
+            bufdump.tcl.  Locate the line that reads:
+            <pre>
+if {[catch {theEvents openOnline $host -buffersize $buffersize} msg] == 0} {
+            </pre>
+            And modify it to read:
+            <pre>
+if {[catch {theEvents openOnline $host -daqroot yourroot -buffersize $buffersize} msg] == 0} {
+            </pre>
+           Where <em>yourroot</em> is the root of your installation.
+        </p>
+
+    <hr />
+    <p>Please report all errors to http://daqbugs.nscl.msu.edu </p>
+    </body>
+</html>

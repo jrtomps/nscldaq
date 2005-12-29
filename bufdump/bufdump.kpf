@@ -1,0 +1,216 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Komodo Project File - DO NOT EDIT -->
+<project id="F029C72F-561D-4127-9AE4-D045B9086638" name="bufdump" kpf_version="2">
+<preference-set id="">
+</preference-set>
+<folder id="563EEEF2-76A2-48C6-B33D-DE37D1977929" name="tests">
+<preference-set id="">
+</preference-set>
+<file url="bufferAssemblyTests.test" id="D869BF1D-69C4-4123-85F9-8B3BF9966228" name="bufferAssemblyTests.test">
+</file>
+<file url="testrunner.tcl" id="B9E3DA47-9235-4452-9BBC-3295C35EB839" name="testrunner.tcl">
+<preference-set id="">
+  <string id="lastInvocation">default</string>
+<preference-set id="Invocations">
+<preference-set id="default">
+  <string id="postparams"></string>
+  <string id="tclInterpreterType">tclsh</string>
+  <boolean id="show-dialog">1</boolean>
+  <boolean id="use-console">0</boolean>
+  <string id="getparams"></string>
+  <string id="mpostparams"></string>
+  <string id="filename">H:\Wincluster\DAQDocs\2005a\daq\bufdump\testrunner.tcl</string>
+  <string id="request-method">GET</string>
+  <string id="params"></string>
+  <string id="executable-params"></string>
+  <string id="posttype">application/x-www-form-urlencoded</string>
+  <string id="documentRoot"></string>
+  <string id="cookieparams"></string>
+  <string id="userEnvironment"></string>
+  <boolean id="sim-cgi">0</boolean>
+  <string id="cwd">H:\Wincluster\DAQDocs\2005a\daq\bufdump</string>
+  <string id="userCGIEnvironment"></string>
+</preference-set>
+</preference-set>
+</preference-set>
+</file>
+<file url="offlineSourceTests.test" id="D1AF5869-4672-4DA2-AC52-152FFC786C1E" name="offlineSourceTests.test">
+</file>
+<file url="onlineSourceTests.test" id="C315DB43-DF30-4125-A23A-CE37FC169A1D" name="onlineSourceTests.test">
+</file>
+<file url="SourceTests.test" id="2B73D4F3-218A-491D-9968-E41D226A0033" name="SourceTests.test">
+</file>
+<file url="bufdumpDialogExerciser.tcl" id="D8142C04-87CB-44F2-8598-A8F5593090C2" name="bufdumpDialogExerciser.tcl">
+</file>
+<file url="verticalSpinBoxExerciser.tcl" id="5D4411A2-A17D-4F39-8404-8D6259E5273F" name="verticalSpinBoxExerciser.tcl">
+</file>
+<file url="bitPatternExerciser.tcl" id="D153A73A-220A-4AFC-835D-4C77496FCFB7" name="bitPatternExerciser.tcl">
+</file>
+<file url="filterDialogExerciser.tcl" id="45ADBEE4-1150-441F-8FF9-B9A5D60C8751" name="filterDialogExerciser.tcl">
+</file>
+<file url="eventFileVariableTests.test" id="E25E942C-E7C4-481D-B91A-B91F1F90174D" name="eventFileVariableTests.test">
+</file>
+<file url="packetDescriptionTests.test" id="0A717A47-2BC4-47A0-AB26-89BCA9CD7AEA" name="packetDescriptionTests.test">
+</file>
+<file url="evenformatTests.test" id="D097A12D-61B3-4B86-8989-ED7375C4BAE7" name="evenformatTests.test">
+</file>
+<file url="bufferTests.test" id="C02F6892-CDDD-49BA-9AB9-A2243E639DDB" name="bufferTests.test">
+</file>
+<file url="entityFinderTests.test" id="E3D113FD-9447-4EBC-8023-18938CBA28AA" name="entityFinderTests.test">
+</file>
+<file url="searchDialogtest.tcl" id="02C74E53-267D-4716-8D10-63CEC6BF77A1" name="searchDialogtest.tcl">
+</file>
+</folder>
+<folder id="CF55090A-CA7A-4684-960F-4BD71B362347" name="packages">
+<preference-set id="">
+</preference-set>
+<file url="bufferAssembly.tcl" id="00D484E7-9741-4187-B2D6-A4C316CD12DC" name="bufferAssembly.tcl">
+</file>
+<file url="dataSources.tcl" id="4E0D2874-6567-4F0C-89A3-1F70B2F5DDB5" name="dataSources.tcl">
+</file>
+<file url="bufdumpDialogs.tcl" id="5F0BFDD0-2303-42D8-9B6C-0F42D98D5E12" name="bufdumpDialogs.tcl">
+</file>
+<file url="eventData.tcl" id="78C6F383-319F-45A5-8C16-432120C20DC6" name="eventData.tcl">
+</file>
+<file url="bufdumpWidgets.tcl" id="1385C800-ABF2-4A2C-9E5E-51A1B21E4939" name="bufdumpWidgets.tcl">
+<preference-set id="">
+  <string id="lastInvocation">default</string>
+<preference-set id="Invocations">
+<preference-set id="default">
+  <string id="postparams"></string>
+  <string id="userEnvironment"></string>
+  <string id="getparams"></string>
+  <boolean id="use-console">0</boolean>
+  <string id="tclInterpreterType">wish</string>
+  <string id="mpostparams"></string>
+  <boolean id="show-dialog">1</boolean>
+  <string id="request-method">GET</string>
+  <string id="params"></string>
+  <string id="executable-params"></string>
+  <string id="posttype">application/x-www-form-urlencoded</string>
+  <string id="documentRoot"></string>
+  <string id="cookieparams"></string>
+  <string id="filename">H:\Wincluster\DAQDocs\2005a\daq\bufdump\bufdumpWidgets.tcl</string>
+  <boolean id="sim-cgi">0</boolean>
+  <string id="cwd"></string>
+  <string id="userCGIEnvironment"></string>
+</preference-set>
+</preference-set>
+</preference-set>
+</file>
+</folder>
+<folder id="BB6A0375-DC9E-423B-8595-286C54F01090" name="help files">
+<preference-set id="">
+  <string id="import_dirname">H:\Wincluster\DAQDocs\2005a\daq\bufdump</string>
+  <string id="import_include_matches">*.html</string>
+</preference-set>
+<file url="plugins.html" id="29F5591E-80C5-47D2-9642-F808BFFEAC1A" name="plugins.html">
+</file>
+<file url="gui.html" id="863325AD-7FF0-4497-B536-6960704500C6" name="gui.html">
+</file>
+<file url="intro.html" id="CF3914FD-91BD-45A8-984B-97D97F6F61F1" name="intro.html">
+</file>
+<file url="overview.html" id="A57D30E9-4D3E-4B94-B077-48DDD4B116B5" name="overview.html">
+</file>
+<file url="packets.html" id="206590A6-52A5-4D65-8549-62125320D2AE" name="packets.html">
+</file>
+<file url="datasource.html" id="6FC6AA98-17EA-410F-88DA-1C8DC99213AD" name="datasource.html">
+</file>
+<file url="filepackets.html" id="2232F44A-F66B-486F-9700-7EB799AD0C6D" name="filepackets.html">
+</file>
+<folder id="EF5A2AA3-69BD-4DE3-8C37-03089F5C3CB2" name="graphics">
+<preference-set id="">
+  <string id="import_dirname">h:\Wincluster\DAQDocs\2005a\daq\bufdump</string>
+  <string id="import_include_matches">*.gif</string>
+</preference-set>
+<file url="file:///h:/Wincluster/DAQDocs/2005a/daq/bufdump/open.gif" id="B764527C-71C6-4250-B600-4DCD596C96FD" name="open.gif">
+</file>
+<file url="file:///h:/Wincluster/DAQDocs/2005a/daq/bufdump/search.gif" id="7C6BF634-106C-4E2B-B2C6-EACDFB9E7A59" name="search.gif">
+</file>
+<file url="file:///h:/Wincluster/DAQDocs/2005a/daq/bufdump/textmatch.gif" id="F6746F0B-81FB-4F62-A62D-A1E93F2DB44F" name="textmatch.gif">
+</file>
+<file url="file:///h:/Wincluster/DAQDocs/2005a/daq/bufdump/seqmatch.gif" id="34C394BE-848D-4CAC-B213-E161FFE985E3" name="seqmatch.gif">
+</file>
+<file url="file:///h:/Wincluster/DAQDocs/2005a/daq/bufdump/filter.gif" id="1E794307-7611-4779-B3EB-636EED131083" name="filter.gif">
+</file>
+</folder>
+<file url="file.html" id="842A548C-D92C-4B56-BC27-44563DC6BDF6" name="file.html">
+</file>
+<file url="fileopen.html" id="2149676D-D87F-409A-A016-DF879E556A50" name="fileopen.html">
+</file>
+<file url="filplugin.html" id="5539DC2E-AE36-4C46-BEF8-C618842B6217" name="filplugin.html">
+</file>
+<file url="filter.html" id="6442E5A9-2D0A-40EA-86AF-610E0AFC139E" name="filter.html">
+</file>
+<file url="filters.html" id="1B10B0A8-2B61-4B4E-8E72-CB910764121B" name="filters.html">
+</file>
+<file url="search.html" id="50FDB8ED-5A81-4CFC-8BE5-A8E2677AA2A4" name="search.html">
+</file>
+<file url="filtersearch.html" id="10144403-8D0C-4128-9532-A6DE9D192074" name="filtersearch.html">
+</file>
+<file url="help.html" id="EB606EBD-6280-4B54-9359-94C18E896556" name="help.html">
+</file>
+<file url="fileexit.html" id="51AA532A-3482-4EF4-87BC-9125D084DE14" name="fileexit.html">
+</file>
+<file url="fitlerfilter.html" id="FC4CDA25-3700-415A-9F22-B12677C539AC" name="fitlerfilter.html">
+</file>
+<file url="filtersearchnext.html" id="702FE214-B811-46C3-AA11-E2456C69EABB" name="filtersearchnext.html">
+</file>
+</folder>
+<folder id="85B87FE8-5463-4988-8460-7279288A6DE2" name="printedDocs">
+<preference-set id="">
+  <string id="import_dirname">h:\Wincluster\DAQDocs\2005a\daq\bufdump</string>
+  <string id="import_include_matches">*.xml</string>
+</preference-set>
+<file url="file:///h:/Wincluster/DAQDocs/2005a/daq/bufdump/manual.xml" id="25BA615B-9CCD-45A4-9DB8-9B70BAE0D979" name="manual.xml">
+</file>
+<file url="file:///h:/Wincluster/DAQDocs/2005a/daq/bufdump/manpage.xml" id="88978AF9-44BD-4F03-A21A-B6092437FC91" name="manpage.xml">
+</file>
+<file url="file:///h:/Wincluster/DAQDocs/2005a/daq/bufdump/quickstart.xml" id="894E08B8-1775-44C5-9E99-52AB8C840CBD" name="quickstart.xml">
+</file>
+<file url="file:///h:/Wincluster/DAQDocs/2005a/daq/bufdump/concepts.xml" id="76A53CDA-DC8F-4A73-A58D-C654A568BDF6" name="concepts.xml">
+</file>
+<file url="file:///h:/Wincluster/DAQDocs/2005a/daq/bufdump/filemenu.xml" id="6FB60B0C-40A7-4920-8B00-FE4F5D971DBF" name="filemenu.xml">
+</file>
+<file url="file:///h:/Wincluster/DAQDocs/2005a/daq/bufdump/filtermenu.xml" id="682B7C17-45D7-481C-867A-27627955F751" name="filtermenu.xml">
+</file>
+<file url="file:///h:/Wincluster/DAQDocs/2005a/daq/bufdump/helpmenu.xml" id="3E752B23-63ED-49CA-8437-75BE487F9DEE" name="helpmenu.xml">
+</file>
+<file url="file:///h:/Wincluster/DAQDocs/2005a/daq/bufdump/extending.xml" id="FE716A25-7F88-46F5-8C1A-50D59965A334" name="extending.xml">
+</file>
+<file url="file:///h:/Wincluster/DAQDocs/2005a/daq/bufdump/refman.xml" id="966B847C-527A-4F4C-905A-4FD32011BB72" name="refman.xml">
+</file>
+</folder>
+<folder id="164CFAD4-93FA-4534-98FF-28A95BBFAAC2" name="c++-code">
+<file url="countingsource.cpp" id="6CF9BDED-950A-4156-B24C-A2A983A5F41F" name="countingsource.cpp">
+</file>
+</folder>
+<file url="bufdump.tcl" id="0B2ECD21-A727-404B-87BA-4DBB7002E541" name="bufdump.tcl">
+<preference-set id="">
+  <string id="lastInvocation">default</string>
+<preference-set id="Invocations">
+<preference-set id="default">
+  <string id="postparams"></string>
+  <string id="tclInterpreterType">tclsh</string>
+  <boolean id="use-console">0</boolean>
+  <string id="getparams"></string>
+  <string id="filename">H:\Wincluster\DAQDocs\2005a\daq\bufdump\bufdump.tcl</string>
+  <string id="mpostparams"></string>
+  <boolean id="show-dialog">1</boolean>
+  <string id="request-method">GET</string>
+  <string id="params"></string>
+  <string id="executable-params"></string>
+  <string id="posttype">application/x-www-form-urlencoded</string>
+  <string id="documentRoot"></string>
+  <string id="cookieparams"></string>
+  <string id="userEnvironment"></string>
+  <boolean id="sim-cgi">0</boolean>
+  <string id="cwd">H:\Wincluster\DAQDocs\2005a\daq\bufdump</string>
+  <string id="userCGIEnvironment"></string>
+</preference-set>
+</preference-set>
+</preference-set>
+</file>
+<file url="packets.def" id="394F0EFD-96B8-4CC7-978F-4A6B93FDFDC8" name="packets.def">
+</file>
+</project>

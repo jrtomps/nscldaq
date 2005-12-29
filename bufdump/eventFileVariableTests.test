@@ -1,0 +1,103 @@
+#
+#    This software is Copyright by the Board of Trustees of Michigan
+#    State University (c) Copyright 2005.
+#
+#    You may use this software under the terms of the GNU public license
+#    (GPL).  The terms of this license are described at:
+#
+#     http://www.gnu.org/licenses/gpl.txt
+#
+#     Author:
+#             Ron Fox
+#            NSCL
+#            Michigan State University
+#            East Lansing, MI 48824-1321
+#
+#----------- Setup environment
+
+set here [file dirname [info script]]
+
+# starting to just get too tough to do this without
+# packaging:
+package require tcltest
+
+set auto_saved $auto_path
+set auto_path [concat $here $auto_path]
+
+
+if {[file exists pkgIndex.tcl]} {
+    file delete              pkgIndex.tcl.saved
+    file rename pkgIndex.tcl pkgIndex.tcl.saved
+}
+pkg_mkIndex . *.tcl
+
+package require eventData
+
+
+
+#----------- Test utility procs
+
+#----------- Tests:
+
+tcltest::test 1.0 {too small a list}                 \
+-body {
+    eventFileVariable efv
+    set a [catch {efv configure -variable [list set george]} msg]
+    efv destroy
+
+    list $a $msg
+}                                                    \
+-result {1 {Too Small A List}}
+
+tcltest::test 1.1 {List does not have 'set' in it}    \
+-body {
+    eventFileVariable efv
+    set a [catch {efv configure -variable [list junk a b]} msg]
+    efv destroy
+
+    list $a $msg
+}                                                            \
+-result {1 {No Set In Variable}}
+
+tcltest::test 2.0 {Simple variable set/decode}              \
+-body {
+    eventFileVariable efv -variable [list set abcde 3]
+    set name  [efv getName]
+    set value [efv getValue]
+
+    list $name $value
+}                                                            \
+-result {abcde 3}
+
+tcltest::test 2.1 {Funky Name}                               \
+-body {
+    eventFileVariable efv -variable [list set P#3:42522#F 5]
+    set name   [efv getName]
+    set value  [efv getValue]
+
+    list $name $value
+}                                                             \
+-result {P#3:42522#F 5}
+
+tcltest::test 2.2 {Funky Value}                             \
+-body {
+    eventFileVariable efv -variable [list set george {a[b]}]
+
+    set name  [efv getName]
+    set value [efv getValue]
+
+    set result "$name $value"
+}                                                           \
+-result {george a[b]}
+
+#----------- Test environment cleanup
+
+
+file delete pkgIndex.tcl
+if {[file exists pkgIndex.tcl.saved]} {
+    file rename pkgIndex.tcl.saved pkgIndex.tcl
+}
+set auto_path $auto_saved
+
+
+tcltest::cleanupTests
