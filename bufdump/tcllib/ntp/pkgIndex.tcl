@@ -8,8 +8,4 @@
 # script is sourced, the variable $dir must contain the
 # full path name of this file's directory.
 
-package ifneeded bufdumpDialogs 1.0 [list source [file join $dir bufdumpDialogs.tcl]]
-package ifneeded bufdumpWidgets 1.0 [list source [file join $dir bufdumpWidgets.tcl]]
-package ifneeded bufferAssembly 1.0 [list source [file join $dir bufferAssembly.tcl]]
-package ifneeded dataSources    1.0 [list source [file join $dir dataSources.tcl]]
-package ifneeded eventData      1.0 [list source [file join $dir eventData.tcl]]
+package ifneeded time 1.0.3 [list source [file join $dir time.tcl]]

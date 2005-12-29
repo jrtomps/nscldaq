@@ -30,15 +30,16 @@ cd $here
 set here [pwd]
 cd $wd
 
-if {[lsearch -exact $auto_path $here] == -1} {
-    set auto_path [concat $here $auto_path]
-}
+#if {[lsearch -exact $auto_path $here] == -1} {
+#    set auto_path [concat $here $auto_path]
+#}
+
+
 
 
 package require Tk
 package require BWidget
 package require Iwidgets
-
 package require dataSources
 package require bufdumpDialogs
 package require bufdumpWidgets
@@ -75,11 +76,22 @@ set searchText        [list]
 
 #  Packets file:
 
-set packetDefinitionFile [file join $here packets.def]
+# If we are in a starkit, our
+# packet files are in $starkit::topdir/etc
+# and helpfiles       $starkit::topdir/help
+#   Otherwise they are ../etc ./help
+
+if {[info exists starkit::topdir]} {
+    set packetDefinitionFile [file join $starkit::topdir etc packets.def]
+    set helpDirectory        [file join $starkit::topdir help]
+} else {
+    set packetDefinitionFile [file join $here .. etc packets.def]
+    set helpDirectory [file join $here help]
+}
 
 # Help directory:
 
-set helpDirectory [file join $here bufdumpHelp]
+
 
 
 
