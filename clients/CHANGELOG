@@ -573,3 +573,6 @@ December 13, 2005
       - Unnumbered defect in epicsdisplay: If there are no strip chart
         channels, the clearStripChart proc was called which referenced
         widgets that did not exist.
+December 30, 2005
+      - Get the VM-USB to work on the 2.6 kernel... note there's still
+	a problem with the 8 bit reads (writes are fine).

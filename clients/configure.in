@@ -413,6 +413,8 @@ AC_ARG_WITH(vme-interface,
 # DEPENDSON_VME     - Space separated list of directories that
 #                     require that specific type of VME interface
 #                     to build (try to keep this number small!!).
+# SEPARABLELOCK     - Locking if the 'default' locking is good enough
+#                     for this interface.
 
 case "$vmeinterface" in
      sbs)
@@ -430,6 +432,7 @@ case "$vmeinterface" in
 	AC_DEFINE(HAVE_SBSVME_INTERFACE,"1",[VME interface is sbs/bit3])
 	AC_DEFINE(HAVE_VME_MAPPING, "1",[VME interface capable of mmap(2)])
 	DEPENDSON_VME="PowerCheck"
+	SEPERABLELOCK="Locking"
 
 	case  $kernel_version in 
 	 2.4)
@@ -471,6 +474,7 @@ case "$vmeinterface" in
 	VMELIBRARYHEADERS="-I\$(prefix)/include"
 	VMELIBRARY="-L\$(prefix)/lib -lpcivme"
 	DEPENDSON_VME=""
+	SEPERABLELOCK="Locking"	
 	AC_DEFINE(HAVE_WIENERVME_INTERFACE,"1",[VME Interface is Wiener])
 
      ;;
@@ -485,6 +489,7 @@ case "$vmeinterface" in
 	VMELIBRARYHEADERS=""
 	VMELIBRARY="-lusb"
 	DEPENDSON_VME=""
+	SEPERABLELOCK="NullLock"
 	AC_DEFINE(HAVE_WIENERUSBVME_INTERFACE,"1",[VME interfaces is WienerUSB])
 
      ;;
@@ -499,6 +504,7 @@ case "$vmeinterface" in
 	VMELIBRARYHEADERS=""
 	VMELIBRARY=""
 	DEPENDSON_VME=""
+	SEPERABLELOCK="NullLock"
 
 	AC_DEFINE(HAVE_NOVME_INTERFACE, "1",[No VME interface selected])
 
@@ -720,6 +726,7 @@ AC_SUBST(VMELIBRARYHEADERS)
 AC_SUBST(VMEBUILDHEADERS)
 AC_SUBST(VMEBUILDLIBS)
 AC_SUBST(DEPENDSON_VME)
+AC_SUBST(SEPERABLELOCK)
 
 	# CAMAC device:
 
