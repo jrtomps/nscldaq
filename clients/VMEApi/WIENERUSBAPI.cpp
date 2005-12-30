@@ -34,6 +34,13 @@
 #include <vector>
 #include <string>
 
+#include <sys/types.h>
+#include <sys/ipc.h>
+#include <sys/sem.h>
+#include <assert.h>
+
+#include <iostream>
+
 using namespace std;
 
 // Constant definitions
@@ -93,13 +100,30 @@ static const unsigned long    USB_CLAIM_RETRYDELAY(1000); // microseconds.
 
 // Data Structures:
 
+typedef struct usb_device *usb_device_ptr;
+
+// In some cases we need to define the semun union:
+
+#if defined(__GNU_LIBRARY__) && !(defined(_SEM_SEMUN_UNDEFINED))
+#else
+union semun {
+  int                val;	// SETVAL value.
+  struct semid_ds    *buf;	// IPC_STAT, IPC_SET buffer.
+  unsigned short int *array;	// Array for GETALL/SETALL
+  struct seminfo*    _buf;	// Buffer for IPC_INFO
+};
+#endif
+
+
+
+
 // Unit defines an 'open' vme device.  In this case the open model
 // is that of opening an address space (modifier) in a VME crate.
 // Since each usb unit is capable of carrying any address modifier,
 // The AM is computed and carried with the Unit structure.
 
 typedef struct _Unit {
-  usb_dev_handle*   s_pHandle;	// Handle open on the unit.
+  unsigned short   s_Crate;    // Number of the crate.
   unsigned char     s_AM;	// VME Address modifier.
 } Unit, *pUnit;
 
@@ -110,8 +134,22 @@ typedef struct _Unit {
 typedef struct _ModifierMap {
   enum CVMEInterface::AddressMode s_Mode;
   unsigned char                   s_Modifier;  
+  
 } ModifierMap, *pModifierMap;
 
+
+// Due to the funky way in which we have to handle usb_claim_interface,
+// usb_release_interface and its interaction with usb_open/usb_close,
+// We will actually do our opens in the Lock and closes in the
+// Unlock functions.  Therefore we need to keep track of which
+// devices the user is actually using (has 'open').
+// This is done with the following structure:
+// 
+typedef struct _CrateInfo {
+  usb_device_ptr   s_pDevice;	// Pointer to the device.
+  usb_dev_handle*  s_pHandle;   // Pointer to the actual open handle.
+  unsigned int     s_nOpens;	// Number of user opens on the crate.
+} CrateInfo, *CrateInfoPtr;
 
 
 // The usb bus is a dynamic entity.  On the first open we
@@ -121,8 +159,18 @@ typedef struct _ModifierMap {
 //
 
 static bool                 initialized(false);
-typedef struct usb_device *usb_device_ptr;
-static std::vector<usb_device_ptr>  vmeCrates;	// Array of crates we found.
+static std::vector<CrateInfoPtr>  vmeCrates;	// Array of crates we found.
+
+
+/*!
+   This file implements coarse grained VME locking.
+   If applications use this, the entire VME subsystem will be controlled
+   by a single lock.  
+*/
+
+static int semid = -1;		// This will be the id of the locking semaphore
+static int semkey= 0x564d4520;  // "VME " :-).
+
 
 // Map CVMEInterface::AddressMode -> VME AM's.
 
@@ -138,6 +186,93 @@ static ModifierMap ModifierMappings[6] = {
 static const int numModifiers = sizeof(ModifierMappings)/sizeof(ModifierMap);
 
 
+// For debugging the API's initial libusb accesses you can modify this..
+//  or call WienerUSBVMEInterface::setDebug prior to the first
+// open call.
+static   unsigned debug_level(1);
+
+
+
+// Debugging hex dump of words:
+
+static void hexdumpw(void* p, unsigned nWords) {
+  unsigned short* pw = (unsigned short*)p;
+  for(int i =0; i < nWords; i++) {
+    if ((i % 8) == 0) {
+      cerr << endl;
+    }
+    cerr << hex << " " << *pw << dec;
+    pw++;
+  }
+  cerr << endl << endl;
+  cerr.flush();
+}
+
+
+/*!
+   This internal function is used to establish the semaphore:
+   - If the semaphore exists, it's id is just stored in semid.
+   - If the semaphore does not exist we try to create it O_EXCL
+     this is an attempt to deal with any timing holes that may
+     occur when two programs simultaneously attemp to create the semaphore.
+   - If the O_EXCL creation succeeds (semaphore does not exist), it is
+     given in initial value of 1 so that a single process can pass the lock
+     gate.
+   - If the O_EXCL creation fails, the process backs off for a while and
+     then does a semget for an existing  semaphore again assuming that on the 
+     second try, all initialization has been complete.
+
+   \throw   String
+      If an error occured on any of the system calls.
+
+*/
+static void
+AttachSemaphore()
+{
+  // Retry loop in case anybody makes and then kills it:
+
+  while(1) {
+    // Try to get the id of an existing semaphore:
+
+    semid = semget(semkey, 0, 0777); // Try to map:
+    if(semid >= 0) break;	     // Previously existing!!
+    if(errno != ENOENT) {
+      throw 
+	string("AttachSemaphore - semget error unexpected");
+    }
+    // Sempahore does not exist.  Try to be the only guy to 
+    // create it:
+
+    semid = semget(semkey, 1, 0777 | IPC_CREAT | IPC_EXCL);
+    if(semid >= 0) {
+      // We're the creator... initialize the sempahore, and return.
+
+      union semun data;
+      data.val = 1;
+
+      int istat = semctl(semid, 0, SETVAL, data); // Allow 1 holder
+      if(istat < 0) {
+	throw string("AttachSemaphore - semctl error unexpected");
+      }
+
+      break;
+    }
+    if(errno != EEXIST) {
+      throw
+	string("AttachSemaphore - semget error unexpected");
+    }
+    //   The semaphore popped into being between the initial try
+    //   to just attach it and our try to create it.
+    //   The next semget should work, but we want to give
+    //   the creator a chance to initialize the semaphore so
+    //   we don't try to take out a lock on the semaphore before
+    //   it is completely initialized:
+
+    sleep(1);
+  }
+  return;
+}
+
 // Local function to initialize our static data structures:
 //
 //   - Initialize the VME bus.
@@ -149,10 +284,12 @@ static const int numModifiers = sizeof(ModifierMappings)/sizeof(ModifierMap);
 //
 static void Initialize() {
   usb_init();
+  usb_set_debug(debug_level);
   if(usb_find_busses() < 0) {
     throw string("Failed to find usb busses");
   }
   if(usb_find_devices() < 0) {
+    std::cerr << "throwing usb_find_devices failure\n";
     throw string("Failed in usb_find_devices");
   }
   struct usb_bus* busses = usb_get_busses();
@@ -164,7 +301,12 @@ static void Initialize() {
       
       if( (aDevice->descriptor.idVendor  == USB_WIENER_VENDOR_ID) &&
 	  (aDevice->descriptor.idProduct == USB_VMUSB_PRODUCT_ID)) {
-	vmeCrates.push_back(aDevice);
+	CrateInfoPtr info = new CrateInfo;
+	info->s_pDevice = aDevice;
+	info->s_pHandle = (usb_dev_handle*)NULL;
+	info->s_nOpens  = 0;
+
+	vmeCrates.push_back(info);
       }
 
       aDevice = aDevice->next;
@@ -196,11 +338,114 @@ AddressModifier(CVMEInterface::AddressMode mode)
   }
   throw string("Address modifier is invalid and could not be translated");
 }
+/*!
+    Lock the semaphore.  If the semid is -1, the
+    semaphore is created first.  
+
+    \throw string
+       - Really from AttachSemaphore
+       - From failures in semop.
+*/
+void 
+CVMEInterface::Lock() 
+{
+  // If necessary, get the semaphore id..
+
+  if (semid == -1) AttachSemaphore();
+  assert(semid >= 0);		// Otherwise attach.. throws.
+
+  struct sembuf buf;
+  buf.sem_num = 0;		// Only one semaphore.
+  buf.sem_op  = -1;		// Want to take the semaphore.
+  buf.sem_flg = SEM_UNDO;	// For process exit.
+
+  while (1) {			// In case of signal...
+    int stat = semop(semid, &buf, 1);
+
+    if(stat == 0) break;
+
+    if(errno != EINTR) {	// Bad errno:
+      throw string("CVMEInterface::Lock semop gave bad status");
+    }
+    // On EINTR try again.
+  }
+  // Now that I've locked the interface, I can open
+  // and claim all the crates:
+
+  unsigned int nCrates = vmeCrates.size();
+  for (int i =0; i < nCrates; i++) {
+    CrateInfoPtr p = vmeCrates[i];
+    if(p->s_nOpens > 0) {
+      p->s_pHandle = usb_open(p->s_pDevice);
+      if(p->s_pHandle) {
+	usb_claim_interface(p->s_pHandle, 0);
+	usleep(150);		// Seemed to need this earlier.
+      } else {
+	cerr << "CVMEInterface::Lock: Failed to open crate " << i << endl;
+	throw "Crate open failed in CVMEInterface::Lock()";
+      }
+    }
+  }
+  return;
+}
+/*!
+  Unlock the semaphore. It is a crime to unlock the semaphore if it doesn
+  not yet exist, since that would be unlocking a semaphore that is not yet
+  locked.
+  
+  \throw  string
+     If the semop operation produced an error.
+  \throw string
+     If the semaphore did not yet exist.
+*/
+void
+CVMEInterface::Unlock()
+{
+  if(semid == -1) {
+    throw string("Attempt to unlock the semaphore before it was created");
+  }
+
+  // Take all open interfaces and release/close them.
+  // We put in a bit of delay since superstition currently says
+  // they may be needed.
+  //
+
+  unsigned int nCrates = vmeCrates.size();
+  for (int i=0; i < nCrates; i++) {
+    CrateInfoPtr p = vmeCrates[i];
+    if(p->s_pHandle) {
+      usb_release_interface(p->s_pHandle, 0);
+      usleep(150);
+      usb_close(p->s_pHandle);
+      usleep(150);
+      p->s_pHandle = (usb_dev_handle*)NULL;
+    }
+  }
+  struct sembuf buf;
+  buf.sem_num = 0;
+  buf.sem_op  = 1;
+  buf.sem_flg= SEM_UNDO;	// Undoes the locking undo.
+
+  while(1) {			// IN case of signal though not likely.
+    int stat = semop(semid, &buf, 1);
+    if(stat == 0) break;	// Got the job done!!
+    if(errno != EINTR) {
+      throw string("CVMEInterface::Unlock semop gave bad status");
+    }
+    // on EINTR try again.
+  }
+  return;
+}
 
 /*!
-   Public interface to 'open' a vme crate.   What we do is 
-   do a usb_open on the crate requested, create and fill in a Unit 
-   structure passing a pointer to that structure as an opaque type.
+   Public interface to 'open' a vme crate.  
+   Create a unit structure and mark the crate open.
+   Due to the way that usb_claim_interface/usb_release_interface
+   interact with usb_open/usb_close, it is not possible to 
+   do the usb_open here.  We require lock which will open all
+   crates and claim them.. The unlock will release and close them.
+   The user will get a pointer to an opaque type that contains
+   the address modifier and the crate number.
 
    \param nMode
       The CVMEInterface::AdddressMode to open the device on.
@@ -231,43 +476,51 @@ CVMEInterface::Open(CVMEInterface::AddressMode nMode,
   }
   unsigned char AM = AddressModifier(nMode); // Throws on error.
 
-  // Now try to open the device:
+  // All we do is mark the user interested in the
+  // crate.. the open/claim will get done in Lock
+  // and the close in Unlock.
+  //
 
-  usb_dev_handle* handle = usb_open(vmeCrates[crate]);
-  if(!handle) {
-    throw string("Unable to open the cdrate in CVMEInterface::Open");
-  }
+  vmeCrates[crate]->s_nOpens++;
 
   // Create the unit, fill it in and hand it to the caller.
   // There's a tacit assumption that multiple opens can be done on the
   // same 'device'.
 
   pUnit unit       = new Unit;
-  unit->s_pHandle = handle;
-  unit->s_AM      = AM;
+  unit->s_Crate    = crate;
+  unit->s_AM       = AM;
 
-  usleep(150);
   return (void*) unit;
 }
 /*!
    Close a VME unit.
-   - usb_close() is called for the open device.
    - The Unit structure allocated for the device is destroyed.
+   - The open count in the vme crate is decremented so that
+     when the last instance of a Unit pointing to a crate is
+     closed, Lock will no longer open/claim the unit.
 
    \param handle
        The opaque device handle gotten from the Open call.
-   \throw string if the usb_close failed.
+
 */
 void
 CVMEInterface::Close(void* handle)
 {
   pUnit p = static_cast<pUnit>(handle);
-  if (usb_close(p->s_pHandle) < 0) {
-    throw string("usb_close failed, most likely reason is bad handle");
-  }
+
+  // Actual opens and closes are done by the
+  // Lock/Unlock functions.  All we do
+  // is destroy the user's handle and decrement
+  // the count that keeps track of how many times
+  // the user opened this vme crate.
+
+  vmeCrates[p->s_Crate]->s_nOpens--;
   delete p;
 
 }
+
+
 /*!
    Map is unsupported and will throw an exception
 */
@@ -283,18 +536,6 @@ void
 CVMEInterface::Unmap(void* handle, void* p, unsigned long bytes)
 {
   throw string("Wiener VC_USB does not support memory mapped I/O");
-}
-
-int CVMEInterface::Read(void* handle, unsigned long nOffset,
-			void* pBuffer, unsigned long nBytes) {
-  return WienerUSBVMEInterface::ReadLongs(handle, nOffset,
-					  pBuffer, nBytes/sizeof(long));
-}
-int CVMEInterface::Write(void* handle, unsigned long nOffset, void* pBuffer,
-			 unsigned long nBytes) 
-{
-  return WienerUSBVMEInterface::WriteLongs(handle, nOffset, pBuffer,
-					   nBytes/sizeof(long));
 }
 
 // Interface specific functions.
@@ -327,8 +568,9 @@ WienerUSBVMEInterface::atomicReadLongs(void* handle, unsigned long base, void* p
 				 unsigned long count)
 {
   pUnit pHandle = (pUnit)handle;
-  usb_dev_handle* pDevice    = pHandle->s_pHandle;
   unsigned char   aModifier  = pHandle->s_AM;
+
+
 
   // Error checking: The base address must be longword aligned:
   // and count*4 must be within 0xffc  (a safety fudge here).
@@ -380,7 +622,6 @@ WienerUSBVMEInterface::atomicReadWords(void* handle, unsigned long base, void* p
 				 unsigned long count)
 {
   pUnit pHandle = (pUnit)handle;
-  usb_dev_handle* pDevice    = pHandle->s_pHandle;
   unsigned char   aModifier  = pHandle->s_AM;
 
   // Error checking: The base address must be longword aligned:
@@ -430,7 +671,6 @@ WienerUSBVMEInterface::atomicReadBytes(void* handle, unsigned long base, void* p
 		     unsigned long count)
 {
   pUnit pHandle = (pUnit)handle;
-  usb_dev_handle* pDevice    = pHandle->s_pHandle;
   unsigned char   aModifier  = pHandle->s_AM;
   unsigned short  inBuffer[STACK_MAXIMMEDIATE];
 
@@ -445,7 +685,7 @@ WienerUSBVMEInterface::atomicReadBytes(void* handle, unsigned long base, void* p
 
 
 
-  for (int i =0; i<=count; i++) {
+  for (int i =0; i<count; i++) {
 
     // The bottom  bit of the address determine the data strobes.
 
@@ -498,10 +738,9 @@ int
 WienerUSBVMEInterface::atomicWriteLongs(void* handle, unsigned long base, void* pBuffer,
 		      unsigned long count)
 {
-  // Extract the AM and usb_dev_handle from the handle:
+
 
   pUnit pHandle = (pUnit)handle;
-  usb_dev_handle* pDevice    = pHandle->s_pHandle;
   unsigned char   aModifier  = pHandle->s_AM;
 
   unsigned long* pData = (unsigned long*) pBuffer;
@@ -559,10 +798,9 @@ int
 WienerUSBVMEInterface::atomicWriteWords(void* handle, unsigned long base, void* pBuffer,
 		      unsigned long count)
 {
-  // Extract the AM and usb_dev_handle from the handle:
+  // Extract the AM and 
 
   pUnit pHandle = (pUnit)handle;
-  usb_dev_handle* pDevice    = pHandle->s_pHandle;
   unsigned char   aModifier  = pHandle->s_AM;
 
   unsigned short* pData = (unsigned short*) pBuffer;
@@ -617,10 +855,9 @@ int
 WienerUSBVMEInterface::atomicWriteBytes(void* handle, unsigned long base, void* pBuffer,
 			       unsigned long count)
 {
-  // Extract the usb device handle and address modifier from the opaque handle.
+  // Extract the  address modifier from the opaque handle.
 
   pUnit pHandle = (pUnit)handle;
-  usb_dev_handle* pDevice    = pHandle->s_pHandle;
   unsigned char   aModifier  = pHandle->s_AM;
 
   char* pData = (char*)pBuffer; // Data must be copied to stack.
@@ -642,6 +879,7 @@ WienerUSBVMEInterface::atomicWriteBytes(void* handle, unsigned long base, void* 
   
   for (int i =0; i < count; i++) {
     unsigned short dstrobes;	// The DS0/DS1 mask.
+    unsigned long datum = *pData++;
 
     if ((base & 1) == 0) {	// Even bytes
       dstrobes  = MODE_NODS1;
@@ -649,7 +887,6 @@ WienerUSBVMEInterface::atomicWriteBytes(void* handle, unsigned long base, void* 
     else {			// Odd bytes.
       dstrobes  = MODE_NODS0;
     }
-    unsigned long datum = *pData++;
     *pStack++ = aModifier | dstrobes;
     *pStack++ = (base & 0xfffffffe) | ADDRESS_LWORD;
     *pStack++ = (datum);
@@ -876,30 +1113,19 @@ WienerUSBVMEInterface::usbImmediateStackTransaction(void* handle,
   // Extract the usb_dev_handle:
 
   pUnit pHandle = (pUnit)handle;
-  usb_dev_handle* pDevice    = pHandle->s_pHandle;
+  usb_dev_handle* pDevice    = vmeCrates[pHandle->s_Crate]->s_pHandle;
   unsigned long*  pStack = (unsigned long*)stack;
+  
+  // It's an error to try to access the device when
+  // we haven't locked the VME interface since the
+  // USB is inherently un-shareable.
 
-  // Attempt to claim the interface, retry every USB_CLAIM_RETRYDELAY us if
-  // we fail:
-  //    Note that all examples I can find (few enough), are always
-  //    claiming interface 0.... seems to me this may not be strictly speaking
-  //    correct, but I'm not sure what is correct... so we'll do what the rest
-  //    of the world does.
-  //
-#ifdef CLAIMUSB
-  while(1) {
-    int status = usb_claim_interface(pDevice, 0);
-    if (status >= 0) break;	// Got it.
-    if (status == -EBUSY) {
-      usleep(USB_CLAIM_RETRYDELAY);
-    } 
-    else {
-     string msg("usbImmediateStackTransaction: Failed to claim interface: ");
-     msg += strerror(-status);
-     throw msg;
-    }
+  if(!pDevice) {
+    cerr << "Vme crate " << pHandle->s_Crate << " accessed without lock!\n";
+    throw "usbImmediateStackTransaction - called with unlocked interface";
   }
-#endif
+
+
   // Construct the outpacket and send it...
 
   int nOutWords = pStack[0] + 2; // Stack count not self inclusive.
@@ -909,13 +1135,13 @@ WienerUSBVMEInterface::usbImmediateStackTransaction(void* handle,
   memcpy(pOutData, pStack, 
 	 (pStack[0]+1)*sizeof(unsigned short));	// Assumes host is little endian
 
+  if(debug_level) {
+    hexdumpw(pOutPacket, nOutWords);
+  }
   int nWritten = usb_bulk_write(pDevice, ENDPOINT_OUT,
 				(char*)pOutPacket, nOutWords*sizeof(unsigned short),
 				WRITE_TIMEOUT);
   if (nWritten < 0) {
-#ifdef CLAIMUSB
-    usb_release_interface(pDevice, 0);
-#endif
     throw string("usbImmediateStackTransaction - usb_bulk_write failed");
   }
   
@@ -928,22 +1154,36 @@ WienerUSBVMEInterface::usbImmediateStackTransaction(void* handle,
 			    inPacket, sizeof(inPacket), READ_TIMEOUT);
 
   if (nRead < 0) {
-#ifdef CLAIMUSB
-    usb_release_interface(pDevice, 0);
-#endif
     throw string("usbImmediateStackTransaction- usb_bulk_read failed");
   }
   // Copy any input data -> inputBuffer... at most readSize bytes.
-
+  if(debug_level) {
+    cerr << "Read " << nRead << " bytes\n";
+    hexdumpw(inPacket, nRead/sizeof(short));
+    
+  }
+  
   memcpy(inputBuffer, inPacket,
 	 (nRead < readSize) ? nRead : readSize);
 
-  // Release the interface
-#ifdef CLAIMUSB
-  usb_release_interface(pDevice, 0);
-#endif
+
 
   // Return the result... always nRead so the user knows if they missed something.
 
   return nRead;
+}
+/*!
+   Set the debug level.
+   If we have not yet been initialized, this just sets the
+   debug_level variable.  Otherwise, usb_set_debug is called.
+
+   \param level  - the new debug level for the usb library.
+
+*/
+void
+WienerUSBVMEInterface::setDebug(int level) {
+  debug_level = level;
+  if(initialized) {
+    usb_set_debug(level);
+  }
 }

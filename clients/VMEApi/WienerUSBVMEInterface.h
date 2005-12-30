@@ -83,6 +83,8 @@ public:
 					  void* stack,
 					  void* inputBuffer,
 					  unsigned long readSize);
+
+  static void setDebug(int level); //Sets the Debug level for the usb.
 };
 
 #endif
