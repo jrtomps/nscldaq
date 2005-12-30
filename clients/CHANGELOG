@@ -576,3 +576,5 @@ December 13, 2005
 December 30, 2005
       - Get the VM-USB to work on the 2.6 kernel... note there's still
 	a problem with the 8 bit reads (writes are fine).
+      - Modify locking in Readout classic to reflect the needs of
+        the VM-USB locking.
