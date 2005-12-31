@@ -189,7 +189,7 @@ static const int numModifiers = sizeof(ModifierMappings)/sizeof(ModifierMap);
 // For debugging the API's initial libusb accesses you can modify this..
 //  or call WienerUSBVMEInterface::setDebug prior to the first
 // open call.
-static   unsigned debug_level(1);
+static   unsigned debug_level(0);
 
 
 
