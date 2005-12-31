@@ -1,3 +1,12 @@
+#!/bin/sh
+# start tclsh: \
+    exec tclsh ${0} ${@}
+
+
+# Note that tclsh is fine since we package require to get Tk.
+#
+
+
 #
 #    This software is Copyright by the Board of Trustees of Michigan
 #    State University (c) Copyright 2005.
@@ -30,9 +39,14 @@ cd $here
 set here [pwd]
 cd $wd
 
-#if {[lsearch -exact $auto_path $here] == -1} {
-#    set auto_path [concat $here $auto_path]
-#}
+#  Prepend here to the front of auto-path so that
+#  if we're not living in a starkit we can still
+#  find all our toys.
+#
+
+if {[lsearch -exact $auto_path $here] == -1} {
+    set auto_path [concat [file join $here .. lib]  $auto_path]
+}
 
 
 
@@ -86,7 +100,7 @@ if {[info exists starkit::topdir]} {
     set helpDirectory        [file join $starkit::topdir help]
 } else {
     set packetDefinitionFile [file join $here .. etc packets.def]
-    set helpDirectory [file join $here help]
+    set helpDirectory [file join $here .. help]
 }
 
 # Help directory:

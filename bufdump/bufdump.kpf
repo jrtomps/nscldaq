@@ -14,19 +14,19 @@
 <preference-set id="Invocations">
 <preference-set id="default">
   <string id="postparams"></string>
-  <string id="tclInterpreterType">tclsh</string>
-  <boolean id="show-dialog">1</boolean>
-  <boolean id="use-console">0</boolean>
+  <string id="userEnvironment"></string>
   <string id="getparams"></string>
+  <boolean id="use-console">0</boolean>
+  <string id="tclInterpreterType">tclsh</string>
   <string id="mpostparams"></string>
-  <string id="filename">H:\Wincluster\DAQDocs\2005a\daq\bufdump\testrunner.tcl</string>
+  <boolean id="show-dialog">1</boolean>
   <string id="request-method">GET</string>
   <string id="params"></string>
   <string id="executable-params"></string>
   <string id="posttype">application/x-www-form-urlencoded</string>
   <string id="documentRoot"></string>
   <string id="cookieparams"></string>
-  <string id="userEnvironment"></string>
+  <string id="filename">H:\Wincluster\DAQDocs\2005a\daq\bufdump\testrunner.tcl</string>
   <boolean id="sim-cgi">0</boolean>
   <string id="cwd">H:\Wincluster\DAQDocs\2005a\daq\bufdump</string>
   <string id="userCGIEnvironment"></string>
@@ -78,10 +78,10 @@
 <preference-set id="Invocations">
 <preference-set id="default">
   <string id="postparams"></string>
-  <string id="userEnvironment"></string>
-  <string id="getparams"></string>
-  <boolean id="use-console">0</boolean>
   <string id="tclInterpreterType">wish</string>
+  <boolean id="use-console">0</boolean>
+  <string id="getparams"></string>
+  <string id="filename">H:\Wincluster\DAQDocs\2005a\daq\bufdump\bufdumpWidgets.tcl</string>
   <string id="mpostparams"></string>
   <boolean id="show-dialog">1</boolean>
   <string id="request-method">GET</string>
@@ -90,7 +90,7 @@
   <string id="posttype">application/x-www-form-urlencoded</string>
   <string id="documentRoot"></string>
   <string id="cookieparams"></string>
-  <string id="filename">H:\Wincluster\DAQDocs\2005a\daq\bufdump\bufdumpWidgets.tcl</string>
+  <string id="userEnvironment"></string>
   <boolean id="sim-cgi">0</boolean>
   <string id="cwd"></string>
   <string id="userCGIEnvironment"></string>
@@ -138,8 +138,6 @@
 </file>
 <file url="fileopen.html" id="2149676D-D87F-409A-A016-DF879E556A50" name="fileopen.html">
 </file>
-<file url="filplugin.html" id="5539DC2E-AE36-4C46-BEF8-C618842B6217" name="filplugin.html">
-</file>
 <file url="filter.html" id="6442E5A9-2D0A-40EA-86AF-610E0AFC139E" name="filter.html">
 </file>
 <file url="filters.html" id="1B10B0A8-2B61-4B4E-8E72-CB910764121B" name="filters.html">
@@ -152,9 +150,11 @@
 </file>
 <file url="fileexit.html" id="51AA532A-3482-4EF4-87BC-9125D084DE14" name="fileexit.html">
 </file>
-<file url="fitlerfilter.html" id="FC4CDA25-3700-415A-9F22-B12677C539AC" name="fitlerfilter.html">
-</file>
 <file url="filtersearchnext.html" id="702FE214-B811-46C3-AA11-E2456C69EABB" name="filtersearchnext.html">
+</file>
+<file url="fileplugin.html" id="7B4D4868-C7C3-4441-AB09-704E6D5541C5" name="fileplugin.html">
+</file>
+<file url="filterfilter.html" id="47FBBD8B-1A2F-4715-BC3B-30364B3F4CEB" name="filterfilter.html">
 </file>
 </folder>
 <folder id="85B87FE8-5463-4988-8460-7279288A6DE2" name="printedDocs">
@@ -191,19 +191,19 @@
 <preference-set id="Invocations">
 <preference-set id="default">
   <string id="postparams"></string>
-  <string id="tclInterpreterType">tclsh</string>
-  <boolean id="use-console">0</boolean>
+  <string id="userEnvironment"></string>
   <string id="getparams"></string>
-  <string id="filename">H:\Wincluster\DAQDocs\2005a\daq\bufdump\bufdump.tcl</string>
+  <boolean id="use-console">0</boolean>
+  <string id="tclInterpreterType">tclsh</string>
   <string id="mpostparams"></string>
-  <boolean id="show-dialog">1</boolean>
+  <string id="filename">H:\Wincluster\DAQDocs\2005a\daq\bufdump\bufdump.tcl</string>
   <string id="request-method">GET</string>
   <string id="params"></string>
   <string id="executable-params"></string>
   <string id="posttype">application/x-www-form-urlencoded</string>
   <string id="documentRoot"></string>
   <string id="cookieparams"></string>
-  <string id="userEnvironment"></string>
+  <boolean id="show-dialog">1</boolean>
   <boolean id="sim-cgi">0</boolean>
   <string id="cwd">H:\Wincluster\DAQDocs\2005a\daq\bufdump</string>
   <string id="userCGIEnvironment"></string>

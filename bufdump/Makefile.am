@@ -1,3 +1,19 @@
+#    This software is Copyright by the Board of Trustees of Michigan
+#    State University (c) Copyright 2005.
+#
+#    You may use this software under the terms of the GNU public license
+#    (GPL).  The terms of this license are described at:
+#
+#     http://www.gnu.org/licenses/gpl.txt
+#
+#    Author:
+#             Ron Fox
+#	     NSCL
+#	     Michigan State University
+#	     East Lansing, MI 48824-1321
+
+
+
 TCLPACKAGES=bufdumpDialogs.tcl bufdumpWidgets.tcl bufferAssembly.tcl \
 	dataSources.tcl eventData.tcl pkgIndex.tcl
 
@@ -7,9 +23,59 @@ HELPFILES=filter.gif open.gif search.gif seqmatch.gif textmatch.gif   \
 	filtersearch.html filtersearchnext.html filterfilter.html     \
 	gui.html help.html intro.html overview.html packets.html      \
 	plugins.html search.html
+HTMLGRAPHICS=filemenu.gif opencallout.gif filtermenu.gif filtercallouts.gif \
+	searchcallouts.gif seqmatch.gif helpmenu.gif bufdump.gif open.gif
+
 
 WINRUNTIME=./kit-win32-MTall.exe
 LINUXRUNTIME=./kit-linux-x86-MTall.bin
+
+all: docs  starpacks
+
+# 
+#   Heres's where we do the installation.
+#   $(prefix) is our installation top level dir.
+#   Underneath we build the following tree:
+#       lib     - Where the packages we depend on are
+#                 installed.
+#       help    - Where the online help files are installed.
+#       doc     - Where the printed manual is installed.
+#       man/man1- Where the manpage is installed.
+#       htmldocs- Where the web documentation is installed.
+#       images  - Where the htmldocs expect the callout images installed.
+#       etc     - Where the packet definition file is.
+#       bin     - where the script is installed.  
+#
+#  Note that if docbook is not installed in all it's
+#  glory we will not be able to generate the documentation
+#  and that's just life.
+#
+install-exec-am: docs
+	$(mkinstalldirs) $(prefix)/lib
+	$(mkinstalldirs) $(prefix)/help
+	$(mkinstalldirs) $(prefix)/doc
+	$(mkinstalldirs) $(prefix)/man $(prefix)/man/man1
+	$(mkinstalldirs) $(prefix)/htmldocs
+	$(mkinstalldirs) $(prefix)/images $(prefix)/images/callouts
+	$(mkinstalldirs) $(prefix)/etc
+	$(mkinstalldirs) $(prefix)/bin
+	$(INSTALL_PROGRAM) bufdump.tcl  $(prefix)/bin/bufdump
+	$(INSTALL_DATA)  $(TCLPACKAGES) $(prefix)/lib
+	$(INSTALL_DATA)  $(HELPFILES)   $(prefix)/help
+	$(INSTALL_DATA)  packets.def    $(prefix)/etc
+	if [ -e bufdump.1 ]; then \
+		$(INSTALL_DATA) bufdump.1 $(prefix)/man/man1; \
+	fi
+	if [ -e manual.pdf ]; then \
+		$(INSTALL_DATA) manual.pdf $(prefix)/doc;     \
+	fi
+	if [ -d htmldocs ]; then \
+		$(INSTALL_DATA) htmldocs/* $(prefix)/htmldocs; \
+		$(INSTALL_DATA) $(HTMLGRAPHICS) $(prefix)/htmldocs; \
+		$(INSTALL_DATA) calloutgraphics/*.gif      $(prefix)/images/callouts;   \
+	fi
+
+
 
 docs: manpage manual htmldocs
 
