@@ -23,8 +23,15 @@ HELPFILES=filter.gif open.gif search.gif seqmatch.gif textmatch.gif   \
 	filtersearch.html filtersearchnext.html filterfilter.html     \
 	gui.html help.html intro.html overview.html packets.html      \
 	plugins.html search.html
+
 HTMLGRAPHICS=filemenu.gif opencallout.gif filtermenu.gif filtercallouts.gif \
 	searchcallouts.gif seqmatch.gif helpmenu.gif bufdump.gif open.gif
+
+EPSGRAPHICS=bufdump.eps filemenu.eps filtercallouts.eps helpmenu.eps filtermenu.eps \
+	open.eps opencallout.eps searchcallouts.eps seqmatch.eps
+
+DOCUMENTATION=concepts.xml extending.xml filemenu.xml filtermenu.xml helpmenu.xml \
+	manpage.xml manual.xml quickstart.xml refman.xml
 
 
 WINRUNTIME=./kit-win32-MTall.exe
@@ -128,4 +135,10 @@ sdx-toolchain: sdx.kit
 
 sdx.kit:
 	$(WGET) http://www.equi4.com/pub/sk/sdx.kit
+
+
+EXTRA_DIST=$(TCLPACKAGES) $(HELPFILES) $(HTMLGRAPHICS) \
+	$(WINRUNTIME) $(LINUXRUNTIME) calloutgraphics  \
+	packets.def bwidgets iwidgets tcllib bufdump.tcl \
+	$(DOCUMENTATION) $(EPSGRAPHICS)
 
