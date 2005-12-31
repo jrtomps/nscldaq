@@ -87,7 +87,9 @@ manual:
 	$(DVIPDF)    manual.dvi
 htmldocs:
 	$(HTMLDOCBOOK) -o htmldocs manual.xml
-	cp *.gif htmldocs
+	if [ -d htmldocs ]; then   \
+	    cp *.gif htmldocs;     \
+	fi
 
 clean:
 	rm -f  bufdump.1 
@@ -95,7 +97,7 @@ clean:
 	rm -rf htmldocs
 	rm -f *.gz *.kit
 
-starpacks: sdx-toolchain
+starpacks: sdx-toolchain htmldocs
 	rm -rf tclkit
 	cp $(SDXRUNTIME) tclkit
 	rm -rf bufdump.kit bufdump.vfs
@@ -106,6 +108,13 @@ starpacks: sdx-toolchain
 	cp packets.def bufdump.vfs/etc
 	mkdir bufdump.vfs/help
 	cp $(HELPFILES) bufdump.vfs/help
+	if [ -d htmldocs ]; then  \
+		mkdir -p bufdump.vfs/htmldocs;           \
+		mkdir -p bufdump.vfs/images/callouts;    \
+		cp htmldocs/*      bufdump.vfs/htmldocs; \
+		cp $(HTMLGRAPHICS) bufdump.vfs/htmldocs; \
+		cp calloutgraphics/*.gif  bufdump.vfs/images/callouts; \
+	fi
 	tar czf - bwidgets iwidgets tcllib | (cd bufdump.vfs/lib; tar xzf -)
 	./tclkit sdx.kit wrap bufdump.kit -runtime $(WINRUNTIME) 
 	cp bufdump.kit bufdump.exe

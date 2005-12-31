@@ -93,14 +93,18 @@ set searchText        [list]
 # If we are in a starkit, our
 # packet files are in $starkit::topdir/etc
 # and helpfiles       $starkit::topdir/help
-#   Otherwise they are ../etc ./help
+# and html manual in  $starkit::topdir/htmldocs
+#   Otherwise they are ../etc ../help ../htmldocs
+#
 
 if {[info exists starkit::topdir]} {
     set packetDefinitionFile [file join $starkit::topdir etc packets.def]
     set helpDirectory        [file join $starkit::topdir help]
+    set manualDirectory      [file join $starkit::topdir htmldocs]
 } else {
     set packetDefinitionFile [file join $here .. etc packets.def]
-    set helpDirectory [file join $here .. help]
+    set helpDirectory        [file join $here .. help]
+    set manualDirectory      [file join $here ../ htmldocs]
 }
 
 # Help directory:
@@ -145,6 +149,20 @@ proc helpTopics {} {
     wm     deiconify .topics
     focus .topics
     .topics showtopic intro
+}
+#------------------------------------------------------------------------
+# showManual
+#    Shows the documentation using a scrolled html widget in a top level.
+#
+proc showManual {} {
+    global manualDirectory
+    if {![winfo exists .manual]} {
+	set topFile [file join $manualDirectory index.html]
+	toplevel .manual
+        ::iwidgets::scrolledhtml .manual.browser
+        pack .manual.browser -fill both -expand 1
+        .manual.browser import $topFile
+    }
 }
 #-------------------------------------------------------------------------
 # listToMasks  patterns
@@ -755,6 +773,8 @@ You must first use Filter->Search.. to establish one}
 #
 proc GUISetup {} {
     global radix
+    global manualDirectory
+
     set radix hex
 
     formattedDump   .fdumper
@@ -798,6 +818,17 @@ proc GUISetup {} {
     .menu.help add command -label {About...}   -command showAbout
     .menu.help add command -label {Topics...}  -command helpTopics \
                             -accelerator {F1}
+
+    # We can only give a manual menu entry if there's a manualDirectory.
+
+    #  Unfortunately, the scrolledhtml widget is not up to the job of
+    # rendering docbook html output so we shelve this for now.
+
+    if {0} {
+    if {[file readable [file join $manualDirectory index.html]]} {
+	.menu.help add command -label {Manual} -command showManual
+    }
+    }
 
     .menu add cascade -label {File}   -menu .menu.file
     .menu add cascade -label {Filter} -menu .menu.filter
