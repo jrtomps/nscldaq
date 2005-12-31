@@ -1,0 +1,23 @@
+bufdump README - 
+
+This directory contains a distribution of the
+bufdump utility.  This utility can produce formatted
+dumps of data from the NSCL data acquisition system.
+
+For redistribution information see:
+
+LICENSE
+
+For installation instructions see:
+
+INSTALL
+
+Note that INSTALL also describes how to get more complete documentation.
+The software is known to run on the following platforms:
+
+linux-x86
+Windows-2000 pro
+
+It will probably run on MAC OS-X as well, See the INSTALL
+document for more information.
+
