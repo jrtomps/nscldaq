@@ -83,6 +83,19 @@ install-exec-am: docs
 	fi
 
 
+#  Install the documentation alone in some web-place.
+#
+#
+install-webdocs: docs
+	$(mkinstalldirs) $(prefix)
+	$(INSTALL_DATA)   manual.pdf $(prefix)
+	if [ -d htmldocs ]; then \
+		$(INSTALL_DATA) htmldocs/* $(prefix); \
+		$(INSTALL_DATA) $(HTMLGRAPHICS) $(prefix); \
+		$(mkinstalldirs) $(prefix)/../images $(prefix)/../images/callouts;     \
+		$(INSTALL_DATA) calloutgraphics/*.gif      $(prefix)/../images/callouts;   \
+	fi
+
 
 docs: manpage manual htmldocs
 

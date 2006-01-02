@@ -116,5 +116,11 @@ sdx-toolchain - Used by the starpacks target to fetch the starkit toolchain
                 from equi4.com
 install   - Install a source based distribtution of the software.
 dist      - Recreate the distribution tarball.
+install-webdocs
+          - Installs documentation alone in a directory hierachy suitable for
+            linkage into a larger web.  In particular, the manual.pdf
+            and html documentation are installed in the directory specified
+            at configuration time, and the callout images are installed
+            in prefix/../images/callouts
 
 
