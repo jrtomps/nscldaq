@@ -95,13 +95,13 @@ protected:
 //////////////////////////////////////////////////////////////////////////////
 /*!
 **   The classes below are used to convert between epics native values
-**   and strings... this is required becuse epics does not always
+**   and STD(string)s... this is required becuse epics does not always
 **   choose a good conversion.
 **
 **   In addition a conversion factory is provided.
 **   This is all much simpler than it looks.  There are basically
 **   only the following conversion types that we entertain:
-**    string : Ask the user to request DBF_STRING and convert that
+**    STD(string) : Ask the user to request DBF_STRING and convert that
 **             as %s
 **    uint:    Ask the user to request DBF_ULONG and convert that.
 **             as %ul
@@ -123,8 +123,8 @@ protected:
 **    And use the return value as the data type requested when
 **    invoking ca_add_event on the channel.
 **    In the UpdateHandler,
-**       string value = (*pConverter)(args);
-**    to get a nice string value returned for the channel.
+**       STD(string) value = (*pConverter)(args);
+**    to get a nice STD(string) value returned for the channel.
 **
 */
 
@@ -136,14 +136,14 @@ class CConverter
 {
 public:
   virtual short  requestType() = 0;
-  virtual string operator()(event_handler_args args) = 0;
+  virtual STD(string) operator()(event_handler_args args) = 0;
 };
 
 class CStringConverter : public CConverter 
 {
 public:
   virtual short requestType();
-  virtual string operator()(event_handler_args args);
+  virtual STD(string) operator()(event_handler_args args);
 
 };
 
@@ -153,14 +153,14 @@ class CIntegerConverter : public CConverter
 {
 public:
   virtual short requestType();
-  virtual string operator()(event_handler_args args);
+  virtual STD(string) operator()(event_handler_args args);
 };
 
 class CFloatConverter : public CConverter
 {
 public:
   virtual short requestType();
-  virtual string operator()(event_handler_args args);
+  virtual STD(string) operator()(event_handler_args args);
 };
 
 /*!
