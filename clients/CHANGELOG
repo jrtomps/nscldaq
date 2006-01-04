@@ -580,3 +580,6 @@ December 30, 2005
         the VM-USB locking.
 January 3, 2006
       - Fix little problem with controlpush mods and g++3 compiles
+January 4, 2006
+      - Fix error in contrib/scalerdisplay/Makefile misspelled
+        $(mkinstalldirs) macro invocation.
