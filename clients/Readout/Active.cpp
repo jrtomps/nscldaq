@@ -244,54 +244,61 @@ Active::OnInitialize(StateMachine& rMachine)
   //  We must:
   //   1. Set the Gate generator to latched mode.
 
+  try {
+    CVMEInterface::Lock();
+    if(UsingVME == TESTMODE) {
+      if(!m_pTrigger) {
+	m_pTrigger = new CTestTrigger;
+      }
+      if(!m_pBusy) {
+	m_pBusy = new CTestBusy;
+      }
+    }
+    else if(!UsingVME) {
+      if(!m_pTrigger) {
+	m_pTrigger = new CESTrigger(0);
+      }
+      if(!m_pBusy) {
+	m_pBusy    = new CCAMACBusy();
+      }
+      m_pBusy->Initialize();
+      m_pTrigger->Initialize();
+    }
 
-  CVMEInterface::Lock();
-  if(UsingVME == TESTMODE) {
-    if(!m_pTrigger) {
-      m_pTrigger = new CTestTrigger;
-    }
-    if(!m_pBusy) {
-      m_pBusy = new CTestBusy;
-    }
-  }
-  else if(!UsingVME) {
-    if(!m_pTrigger) {
-      m_pTrigger = new CESTrigger(0);
-    }
-    if(!m_pBusy) {
-      m_pBusy    = new CCAMACBusy();
-    }
-    m_pBusy->Initialize();
-    m_pTrigger->Initialize();
     
-  }
-
-  // If we are using VME instead of CAMAC, all we have to do is
-  // construct a new CNimout object and a new CCaenIO object and
-  // initialize all of their outputs to zero.
-  //
-  else {
-    if(!m_pNimout)
-      m_pNimout = new CNimout(0x8000);  // don't worry, it gets deleted
-    if(!m_pCaen)
-      m_pCaen = new CCaenIO(0x444400); // so does this.
-    if(!m_pTrigger) {
-      m_pTrigger = new CVMETrigger(m_pCaen);
-    }
-    if(!m_pBusy) {
-      m_pBusy    = new CVMEBusy(m_pNimout, m_pCaen);
-    }
-  }
-  m_pTrigger->Initialize();
-  m_pTrigger->Disable();
-  m_pBusy->Initialize();
   
-  if(!m_pReader) {
-    m_pReader = new CReader((ReadoutStateMachine&)rMachine);
+
+    // If we are using VME instead of CAMAC, all we have to do is
+    // construct a new CNimout object and a new CCaenIO object and
+    // initialize all of their outputs to zero.
+    //
+    else {
+      if(!m_pNimout)
+	m_pNimout = new CNimout(0x8000);  // don't worry, it gets deleted
+      if(!m_pCaen)
+	m_pCaen = new CCaenIO(0x444400); // so does this.
+      if(!m_pTrigger) {
+	m_pTrigger = new CVMETrigger(m_pCaen);
+      }
+      if(!m_pBusy) {
+	m_pBusy    = new CVMEBusy(m_pNimout, m_pCaen);
+      }
+    }
+    m_pTrigger->Initialize();
+    m_pTrigger->Disable();
+    m_pBusy->Initialize();
+    
+    if(!m_pReader) {
+      m_pReader = new CReader((ReadoutStateMachine&)rMachine);
+    }
+    m_pReader->setTrigger(m_pTrigger);
+    m_pReader->setBusy(m_pBusy);
+    CVMEInterface::Unlock();
+    
+  } catch (...) {
+    cerr << "Active::Oninitialize detected an exception, rethrowing\n";
+    throw;
   }
-  m_pReader->setTrigger(m_pTrigger);
-  m_pReader->setBusy(m_pBusy);
-  CVMEInterface::Unlock();
 }
 
 ////////////////////////////////////////////////////////////
