@@ -438,7 +438,8 @@ May 9, 2005
 May 13, 2005
      - Deal with improper lists in comment lines of channel files for 
        epicsdisplay
-8.0-001
+
+8.1 development branches off.
 June 8, 2005
      - Create high performance scripted readout. 
      - Put exception handling back into Vme package so that scripts that
@@ -456,11 +457,10 @@ June 23, 2005
 July 14, 2005
      - Add in fix to CDocumentedPacket in 8.0 for ushort* problem.
 July 20, 2005
-     - Add in epics log imported from the SEE software.
      - Remove lock button from shaper gui until we can get it right.
 August 15, 2005
      - Code in support for the CAEN V1785 dual resolution ADC.
-Auguts 16, 2005
+August 16, 2005
      - Update to make work with current auto tools. etc.
 August 22, 2005
      - Add support for Wienerusb to configuration build scripts.
