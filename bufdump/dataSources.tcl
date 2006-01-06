@@ -219,8 +219,9 @@ snit::type onlineDataSource {
         #
 
         set spectcldaq [file join $options(-daqroot) bin spectcldaq]
+	set url "tcp://$host:2602/"
 
-        set fd [open [list | $spectcldaq]  r]
+        set fd [open [list | $spectcldaq $url]  r]
         fconfigure $fd -buffering line -buffersize $options(-buffersize) \
             -encoding binary -translation binary
         fileevent $fd readable [mymethod gotData]

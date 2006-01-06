@@ -1,3 +1,5 @@
 January 2, 2006
 	- Added an install-webdocs target that allows automated updates
           of the web documentation.
+January 6, 2006
+        - Fix defect: only localhost seems to be used as a data source hmmm.
