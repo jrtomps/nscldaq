@@ -111,7 +111,9 @@ snit::type offlineDataSource {
         }
         set binaryData [read $fd $options(-buffersize)]
         set size   [expr {$options(-buffersize)/2}]
-        binary scan $binaryData s$size buffer
+        if {[binary scan $binaryData s$size buffer] == 0} {
+	    error [list End of Data Source]
+	}
         return $buffer
 
     }
