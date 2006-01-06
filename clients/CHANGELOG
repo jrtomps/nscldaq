@@ -586,3 +586,6 @@ January 4, 2006
 January 5, 2006
       - Work around defect? with g++ rethrowing exceptions out of 
         constructors in shared libs???
+January 6, 2006
+      - Deal with some package path peculiarities in the presence
+        of TCLLIBPATH env vars.

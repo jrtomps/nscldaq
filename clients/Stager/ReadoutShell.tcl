@@ -17,7 +17,7 @@
 #
 
 #   start wish \
-exec wish ${0} ${@}
+exec tclsh ${0} ${@}
 #
 #  Script which is a readout shell for the readout
 #  GUI.
@@ -35,16 +35,19 @@ set libdir [file join $here ..]
 #
 set wd [pwd]
 cd $libdir
-set libdir [pwd]
+set libdir [file join [pwd] lib]
 cd $wd
 #   
 #  Prepend to auto_path only if it's not already 
 #  there.
 #
 if {[lsearch -exact $auto_path $libdir] == -1} {
-    set auto_path [concat $libdir $auto_path]
+    set auto_path [concat $here $libdir $auto_path]
 }
+puts $auto_path
+package require Tcl
 
+puts [package version ReadoutGui]
 
 package require ReadoutGui
 package require Experiment

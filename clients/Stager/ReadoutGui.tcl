@@ -13,7 +13,7 @@
 #	     Michigan State University
 #	     East Lansing, MI 48824-1321
 #
-
+puts "New Readout Gui file"
 
 #  Package to provide a gui for the readout software.  Includes
 #  a GUI to select the readout program. The assumptions are:
