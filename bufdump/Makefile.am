@@ -116,6 +116,7 @@ clean:
 	rm -f  manual.dvi manual.pdf
 	rm -rf htmldocs
 	rm -f *.gz *.kit
+	rm -rf bufdump.vfs
 
 starpacks: sdx-toolchain htmldocs
 	rm -rf tclkit
