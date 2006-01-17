@@ -589,3 +589,6 @@ January 5, 2006
 January 6, 2006
       - Deal with some package path peculiarities in the presence
         of TCLLIBPATH env vars.
+January 17, 2006
+      - CCAMACScalerLRS2551.h/cpp - Read must be into a vetor
+        of ulong, not uint.

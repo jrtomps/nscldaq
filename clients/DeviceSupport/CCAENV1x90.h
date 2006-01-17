@@ -1,3 +1,20 @@
+/*
+    This software is Copyright by the Board of Trustees of Michigan
+    State University (c) Copyright 2005.
+
+    You may use this software under the terms of the GNU public license
+    (GPL).  The terms of this license are described at:
+
+     http://www.gnu.org/licenses/gpl.txt
+
+     Author:
+             Ron Fox
+	     NSCL
+	     Michigan State University
+	     East Lansing, MI 48824-1321
+*/
+
+
 /*!
   \class CCAENV1x90
    The CCAENV1x90 class provides a C++ class based interface
@@ -42,30 +59,6 @@ mode, the pair trigger mode is not allowed.
 Wherever possible, we attempt to enforce all restrictions via 
 software.
 
-Change Log:
-
-$Log$
-Revision 8.2  2005/06/24 11:30:36  ron-fox
-Bring the entire world onto the 8.2 line
-
-Revision 4.2  2004/11/16 15:24:48  ron-fox
-- Port to the gnu 3.x compiler set.
-- Integrate buid of tests.
-- Integrate build of docos.
-
-Revision 1.4  2004/11/16 15:23:29  ron-fox
-- Port -> gcc/g++ 3.x
-- Support integrated test building.
-- Support integrated doxygen docu7mentation building.
-
-Revision 1.1.2.4  2004/07/06 13:39:08  ron-fox
-Fix the experimentally determined error in leading/trailing edge detection.
-
-Revision 1.1.2.3  2004/07/01 12:31:05  ron-fox
-Correct edge discrimination enum problems due to error in manual.
-
-Revision 1.1.2.2  2004/06/29 14:50:15  ron-fox
-Merge in development line for the CAENV1x90 module.
 
 */
 #ifndef __CCAENV1x90_H
