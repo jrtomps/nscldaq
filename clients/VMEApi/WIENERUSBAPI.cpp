@@ -551,7 +551,7 @@ CVMEInterface::Read(void* pDeviceHandle,
   return WienerUSBVMEInterface::ReadLongs(pDeviceHandle,
 					  nOffset,
 					  pBuffer,
-					  count/sizeof(long));
+					  nBytes/sizeof(long));
 }
 
 /*!  
@@ -567,7 +567,7 @@ CVMEInterface::Write(void* pDeviceHandle,
   return WienerUSBVMEInterface::WriteLongs(pDeviceHandle,
 					   nOffset,
 					   pBuffer,
-					   count/sizeof(long));
+					   nBytes/sizeof(long));
 }
 // Interface specific functions.
 
