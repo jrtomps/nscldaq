@@ -318,6 +318,10 @@ DAMAGES.
     Change history:
 
     $Log$
+    Revision 8.3  2006/02/17 18:35:04  ron-fox
+    Add in the CVMEInterface::{Read,Write} functions missing from the
+    initial code pass.
+
     Revision 8.2  2005/06/24 11:32:39  ron-fox
     Bring the entire world onto the 8.2 line
 
@@ -383,6 +387,14 @@ class CVMEInterface
     Geographical = GEO,
     Multicast = MCST,
     ChainedBlock = CBLT
+#ifdef HAVE_WIENERUSBVME_INTERFACE
+    ,
+    A24SuperBLT,
+    A24UserBLT,
+    A32SuperBLT,
+    A32UserBLT,
+    
+#endif
   } AddressMode;
 
   static const char* m_szDriverName; // Name of driver (e.g. NSCLBiT3).

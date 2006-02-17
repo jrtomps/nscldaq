@@ -538,6 +538,37 @@ CVMEInterface::Unmap(void* handle, void* p, unsigned long bytes)
   throw string("Wiener VC_USB does not support memory mapped I/O");
 }
 
+/*!  
+   Read is really readlongs... at present only a full number of long word
+   transfers is supported.
+*/
+int
+CVMEInterface::Read(void* pDeviceHandle,
+		    unsigned long nOffset,
+		    void*  pBuffer,
+		    unsigned long nBytes)
+{
+  return WienerUSBVMEInterface::ReadLongs(pDeviceHandle,
+					  nOffset,
+					  pBuffer,
+					  count/sizeof(long));
+}
+
+/*!  
+   Write is really writelongs... at present only a full number of long word
+   transfers is supported.
+*/
+int
+CVMEInterface::Write(void* pDeviceHandle,
+		     unsigned long nOffset,
+		     void* pBuffer,
+		     unsigned long nBytes)
+{
+  return WienerUSBVMEInterface::WriteLongs(pDeviceHandle,
+					   nOffset,
+					   pBuffer,
+					   count/sizeof(long));
+}
 // Interface specific functions.
 
 /*!
