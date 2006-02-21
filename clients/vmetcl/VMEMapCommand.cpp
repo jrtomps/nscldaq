@@ -408,16 +408,26 @@ int CVMEMapCommand::operator()(CTCLInterpreter& rInterp, CTCLResult& rResult,
   }
   // Now we have a keyword and a size:  dispatch to get or set or error:
 
-  switch(SubCommand) {
-  case SC_GET:
-    return Get(rInterp, rResult, size, nArgs, pArgs);
-    break;
-  case SC_SET:
-    return Set(rInterp, rResult, size, nArgs, pArgs);
-    break;
-  case SC_NOMATCH:
-  default:
-    return Usage(rResult);
+  try {
+    switch(SubCommand) {
+    case SC_GET:
+      return Get(rInterp, rResult, size, nArgs, pArgs);
+      break;
+    case SC_SET:
+      return Set(rInterp, rResult, size, nArgs, pArgs);
+      break;
+    case SC_NOMATCH:
+    default:
+      return Usage(rResult);
+    }
+  }
+  catch (string msg) {
+    rResult += msg;
+    return TCL_ERROR;
+  }
+  catch (...) {
+    rResult += "Unexpected exception type caugh in CVMEMapCommand::operator()";
+    return TCL_ERROR;
   }
   
 }

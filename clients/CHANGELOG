@@ -599,3 +599,7 @@ January 26, 2006
 February 17, 2006
       - Put in missing CVMEInterface::Read/Write() functions in the
         Wiener VM/USB support.
+February 22, 2006
+      - Add some error trapping in VMEMapCommand.cpp so that non mapped
+        Vme controllers can deal with error issues that may
+        occur during reads/writes.
