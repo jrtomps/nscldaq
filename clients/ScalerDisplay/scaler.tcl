@@ -167,10 +167,6 @@ set IntervalCount 0
 
 
 
-#source $mydirectory/mwutil.tcl
-#source $mydirectory/tablelist.tcl
-#source $mydirectory/tablelistSortByColumn.tcl
-#source $mydirectory/tablelistWidget.tcl
 
 package require Tablelist
 

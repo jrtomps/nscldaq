@@ -2,5 +2,5 @@
 
 prefix=@prefix@
 
-$prefix/bin/tclserver $prefix/Scripts/EpicsDisplay.tcl $1 \
+$prefix/bin/tclserver $prefix/bin/EpicsDisplay.tcl $1 \
 			-pManaged -a"Epics Display"

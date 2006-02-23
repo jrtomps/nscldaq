@@ -1,4 +1,3 @@
-#
 #    This software is Copyright by the Board of Trustees of Michigan
 #    State University (c) Copyright 2005.
 #
@@ -84,21 +83,15 @@
 #
 #
 
-# Include script dir in auto_path.
 
-namespace eval N568Panel {
-    variable installdir {}
-}
-set ::N568Panel::installdir [file dirname [info script]]
-if {[lsearch -exact $auto_path $::N568Panel::installdir] == -1} {
-    set auto_path [concat $::N568Panel::installdir $auto_path]
-}
+
 
 package provide n568Panel 1.0
 package require Tk
 package require snit
 package require BWidget
 package require titledSpinBox
+package require caennet
 package require n568b
 
 

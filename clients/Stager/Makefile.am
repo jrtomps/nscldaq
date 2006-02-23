@@ -1,83 +1,63 @@
 install-exec-local:
-	$(mkinstalldirs) $(prefix)/Scripts
-	for f in *.tcl *.sh; do  $(INSTALL_SCRIPT) $$f $(prefix)/Scripts;done
-	export LD_LIBRARY_PATH=$(prefix)/lib
-	export TCLLIBPATH="$(prefix)/lib $(prefix)/Scripts"
-	echo package provide InstallRoot 1.0       > InstallRoot.tcl
-	echo namespace eval InstallRoot {         >> InstallRoot.tcl
-	echo  "variable root $(prefix)"             >> InstallRoot.tcl
-	echo  proc Where {} {                     >> InstallRoot.tcl
-	echo     variable root             >> InstallRoot.tcl
-	echo     "return \$$root"             >> InstallRoot.tcl
-	echo  }                                   >> InstallRoot.tcl
-	echo }                                    >> InstallRoot.tcl
-	$(INSTALL_SCRIPT) InstallRoot.tcl $(prefix)/Scripts
-	./installpkg $(prefix)
-	rm -f $(bindir)/Stager
-	$(LN_S) $(prefix)/Scripts/StagerGui.tcl $(bindir)/Stager
-	./installpkg $(prefix)
+	$(mkinstalldirs) $(prefix)/bin
+	$(mkinstalldirs) $(prefix)/TclLibs/Stager
+	$(INSTALL_SCRIPT) $(TCLPACKAGES) $(prefix)/TclLibs/Stager
+	$(INSTALL_SCRIPT) InstallRoot.tcl $(prefix)/TclLibs/Stager
+	for f in $(TCLAPPS); do $(INSTALL_SCRIPT) $$f  $(prefix)/bin/`basename $$f .tcl`; done
+	$(INSTALL_SCRIPT) StagerGui.tcl $(prefix)/bin/Stager
+	$(INSTALL_SCRIPT) RunReadout.sh  $(prefix)/TclLibs
+	echo "pkg_mkIndex -verbose $(prefix)/TclLibs/Stager *.tcl" > installpkg.tcl
+	$(TCLSH_CMD) <installpkg.tcl
+	echo Adjusting installation location of libWait.so compiled tcl extension.
+	mv $(prefix)/lib/libWait.* $(prefix)/TclLibs
 
-
-EXTRA_DIST = Configuration.tcl \
+TCLPACKAGES=Configuration.tcl \
 	DAQParameters.tcl \
 	ExpFileSystemConfig.tcl \
 	Experiment.tcl \
 	GetTapeDrive.tcl \
 	InitializeConfiguration.tcl \
 	KeeplistGui.tcl \
-	OS.tcl \
-	ReadougGUIPanel.tcl \
-	ReadougGUIPanel.ui \
-	ReadougGUIPanel_ui.tcl \
+	OS.tcl          \
+	ReadougGUIPanel.tcl ReadougGUIPanel_ui.tcl \
 	ReadoutControl.tcl \
 	ReadoutGui.tcl \
-	ReadoutShell.tcl \
 	ReadoutState.tcl \
-	RemoteInfo.tcl \
-	Retain.tcl \
-	RunReadout.sh \
+	RemoteInfo.tcl    \
+	Retain.tcl  \
 	ScalerParameterGUI.tcl \
-	SetStagePolicy.tcl \
-	StagePolicy.tcl \
+	SetStagePolicy.tcl  \
+	StagePolicy.tcl  \
 	StagePolicyFree.tcl \
 	StagePolicyUsed.tcl \
-	Stager.tcl \
+	Stager.tcl          \
 	StagerConfiguration.tcl \
-	StagerGui.tcl \
 	UniqueInstance.tcl \
-	build.sh \
-	daqparameters.test \
 	directories.tcl \
-	directories.test \
-	experiment.test \
-	filesystem.test \
-	initconfig.test \
-	installpkg \
-	installroot.test \
-	keeplistDialog.tcl \
-	keeplistDialog.ui \
-	keeplistDialog_ui.tcl \
-	keeplisttest.tk \
-	ostest.test \
-	readoutcontrol.test \
-	readoutguitest.tk \
-	retain.test \
+	keeplistDialog.tcl keeplistDialog_ui.tcl \
 	rsh.tcl \
-	scalerParameterDialog.tcl \
-	scalerParameterDialog.ui \
-	scalerParameterDialog_ui.tcl \
-	scalerparametergui.tk \
-	selectReadout.tcl \
-	selectReadout.ui \
+	scalerParameterDialog.tcl scalerParameterDialog_ui.tcl \
+	selectReadout.tcl selectReadout_ui.tcl \
 	selectReadoutDialog.tcl \
-	selectReadout_ui.tcl \
-	selectreadoutest.tk \
-	stagerconfiguration.test \
-	stagertests.test \
-	system.test \
-	testrunner.tk \
-	tests.test \
-	warning.tcl 
+	warning.tcl
+
+TCLAPPS=ReadoutShell.tcl \
+	StagerGui.tcl
+
+TCLTESTS = daqparameters.test directories.test experiment.test filesystem.test \
+	initconfig.test installroot.test keeplisttest.tk ostest.test readoutcontrol.test \
+	readoutguitest.tk retain.test scalerparametergui.tk \
+	selectreadoutest.tk stagerconfiguration.test stagertests.test system.test \
+	testrunner.tk tests.test
+
+EXTRA_DIST = $(TCLPACKAGES) $(TCLAPPS) $(TCLTESTS) \
+	ReadougGUIPanel.ui \
+	Retain.tcl \
+	RunReadout.sh \
+	keeplistDialog.ui \
+	scalerParameterDialog.ui \
+	selectReadout.ui \
+	warning.tcl InstallRoot.tcl.in
 
 
 bin_PROGRAMS =  SecretTk
@@ -94,7 +74,6 @@ libWait_la_LDFLAGS =   -L@top_srcdir@/TCL \
 	-L@top_srcdir@/Exception -L@top_srcdir@/CopyrightTools \
 	-version-info $(SOVERSION):0
 
-	  
 libWait_la_LIBADD =  -lTclPlus -lException  \
 	$(TCL_LDFLAGS)	$(X11LIBS)  -lLicense  \
 	-lm -lstdc++ -lgcc -lc

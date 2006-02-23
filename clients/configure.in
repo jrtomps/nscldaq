@@ -778,7 +778,8 @@ AC_OUTPUT( Makefile tcllib/Makefile \
 	contrib/vhqpanel/Makefile \
 	vmetcl/Makefile \
 	vmetcl/camactcl/Makefile vmetcl/vhq202m/Makefile bufdump/Makefile \
-	TclServer/Makefile bcnaf/Makefile TcpHoister/Makefile Stager/Makefile \
+	TclServer/Makefile bcnaf/Makefile TcpHoister/Makefile \
+	Stager/InstallRoot.tcl Stager/Makefile \
 	Scripts/Makefile framework/Makefile AlarmDisplay/Makefile \
 	LogDisplay/Makefile ProductionReadout/Makefile \
 	HPProductionReadout/Makefile \

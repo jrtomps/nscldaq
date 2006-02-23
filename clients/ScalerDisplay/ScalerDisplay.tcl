@@ -53,8 +53,22 @@ if {![file readable $file]} {
 set me [info script]
 set mydirectory [file dirname $me]
 set bindir     $mydirectory/../bin
-set scriptdir  $mydirectory/../Scripts
+set scriptdir  $mydirectory/../TclLibs/ScalerDisplay
 source $scriptdir/scaler.tcl
+
+# Canonicalize the TclLibs directory subtree location and
+# if needed, prepend to auto_path.
+
+
+set libDir [file join  $mydirectory ..]
+set wd [pwd]
+cd $libDir
+set libDir [pwd]
+cd $wd
+
+if {[lsearch -exact $auto_path $libDir] == -1} {
+    set auto_path [concat $libDir $auto_path]
+}
 
 
 #

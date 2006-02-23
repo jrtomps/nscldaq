@@ -23,13 +23,19 @@ exec wish $0 $@
 #
 #----------------------------------
 
-set version 1.0
+set version 1.1
 set instanceNumber 0;   # id of next gui widget instance.
 set livePanels     0;   # Number of live panels.
 
 set here [file dirname [info script]]
-set drivers [file join $here .. ControlDrivers]
-set helpdir [file join $here caenv812help]
+set drivers [file join $here .. TclLibs]
+
+set wd [pwd]
+cd $drivers
+set drivers [pwd]
+cd $wd
+
+set helpdir [file join $drivers data caenv812]
 
 
 if {[lsearch -exact $auto_path $here] == -1} {

@@ -50,6 +50,8 @@ namespace eval Logger {}
 proc Logger::Log {entry} {
     global logfile
 
+    puts "In Log"
+
     # Break the entry down into its components
     set facility [lindex $entry 0]
     set severity [lindex $entry 1]
@@ -68,6 +70,7 @@ proc Logger::Log {entry} {
 	puts $file $line
 	close $file
     }
+    Logger::Display_Event [list $facility $severity $message $time]
     return $time
 }
 
@@ -140,17 +143,17 @@ proc Logger::Display {} {
     # Create some images for use as cool buttons
     #
     image create photo FiltButton -format GIF \
-	-file [file join $script_dir ../Images/FiltButton.gif]
+	-file [file join $script_dir FiltButton.gif]
     image create photo UfiltButton -format GIF \
-	-file [file join $script_dir ../Images/UfiltButton.gif]
+	-file [file join $script_dir UfiltButton.gif]
     image create photo DisButton -format GIF \
-	-file [file join $script_dir ../Images/DisButton.gif]
+	-file [file join $script_dir DisButton.gif]
     image create photo RecovButton -format GIF \
-	-file [file join $script_dir ../Images/RecovButton.gif]
+	-file [file join $script_dir RecovButton.gif]
     image create photo HostButton -format GIF \
-	-file [file join $script_dir ../Images/HostButton.gif]
+	-file [file join $script_dir HostButton.gif]
     image create photo ExitButton -format GIF \
-	-file [file join $script_dir ../Images/ExitButton.gif]
+	-file [file join $script_dir ExitButton.gif]
 
     #
     # Create a button for filtering
@@ -1006,9 +1009,9 @@ package require Hostlist
 # Create some button images for global use
 #
 image create photo OkButton -format GIF \
-    -file [file join $script_dir ../Images/OkButton.gif]
+    -file [file join $script_dir OkButton.gif]
 image create photo CancelButton -format GIF \
-    -file [file join $script_dir ../Images/CancelButton.gif]
+    -file [file join $script_dir CancelButton.gif]
 
 Hostlist::Init_List
 Logger::Display

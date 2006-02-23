@@ -37,7 +37,7 @@ install-data-local:
 	$(INSTALL_DATA) Readout_Makefile.include $(prefix)/etc
 	$(INSTALL_DATA) runstate.tran $(prefix)/Readout/etc	
 
-libReadout_la_LDFLAGS = -version-info $(SOVERSION):0  -L@top_srcdir@/VMEApi \
+libReadout_la_LDFLAGS = -version-info $(SOVERSION):0  $(VMEBUILDLIBS) \
 	-L@top_srcdir@/DeviceSupport -lDeviceSupport \
 	-lVmeAPI $(SPECTRODAQ_LDFLAGS) -g -Wl,"-rpath-link=$(libdir)"
 

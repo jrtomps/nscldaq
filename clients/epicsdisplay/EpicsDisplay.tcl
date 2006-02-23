@@ -39,9 +39,10 @@ set me [info script]
 if {[file type $me] == "link"} {
     set me [file readlink $me]
 }
+
 set mydirectory [file dirname $me]
 set bindir     $mydirectory/../bin
-set scriptdir  $mydirectory/../Scripts
+set scriptdir  $mydirectory/../TclLibs/epicsdisplay
 source $scriptdir/displayepics.tcl
 
 # restartControlPush file

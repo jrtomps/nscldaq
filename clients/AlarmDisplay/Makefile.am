@@ -19,7 +19,6 @@ AlarmServerApp_LDFLAGS=-Wl,"-rpath=$(libdir)"
 #  Scripts (and their associated gifs:
 #
 EXTRA_DIST= CAlarmServer.h CAlarmServerException.h CGDBMException.h \
-	AlarmDisplay \
 	AckButton.gif \
 	AlarmDisplay.tcl \
 	CancelButton.gif \
@@ -31,12 +30,11 @@ EXTRA_DIST= CAlarmServer.h CAlarmServerException.h CGDBMException.h \
 	RetryButton.gif \
 	installpkg
 
+TCLAPPS=AlarmDisplay.tcl
+
 install-exec-local:
-	$(mkinstalldirs) $(prefix)/Scripts
-	$(mkinstalldirs) $(prefix)/Images
-	for f in *.gif; do $(INSTALL_DATA) $$f $(prefix)/Images; done
-	for f in *.tcl; do $(INSTALL_SCRIPT) $$f $(prefix)/Scripts; done
-	$(INSTALL_SCRIPT) AlarmDisplay $(bindir)
-	./installpkg $(prefix)
+	$(mkinstalldirs) $(prefix)/TclLibs/data/AlarmDisplay
+	for f in *.gif; do $(INSTALL_DATA) $$f $(prefix)/TclLibs/data/AlarmDisplay; done
+	for f in $(TCLAPPS); do $(INSTALL_SCRIPT) $$f  $(prefix)/bin/`basename $$f .tcl`; done
 
 noinst_HEADERS = CAlarmServerException.h

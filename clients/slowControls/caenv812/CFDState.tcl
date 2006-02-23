@@ -1,3 +1,17 @@
+#    This software is Copyright by the Board of Trustees of Michigan
+#    State University (c) Copyright 2005.
+#
+#    You may use this software under the terms of the GNU public license
+#    (GPL).  The terms of this license are described at:
+#
+#     http://www.gnu.org/licenses/gpl.txt
+#
+#    Author:
+#             Ron Fox
+#	     NSCL
+#	     Michigan State University
+#	     East Lansing, MI 48824-1321
+
 #
 #   CFDState.tcl
 #     This file provides the package CFDState
@@ -17,6 +31,7 @@
 #       Bases   	- An array indexed by module name.  Each element
 #			is the base address of the corresponding module.
 #       Masks           - An array of disable masks.
+
 package provide CFDState 2.0
 
 namespace eval CFDState {

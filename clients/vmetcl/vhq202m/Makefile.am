@@ -1,7 +1,8 @@
 install-exec-local:
-	$(mkinstalldirs) $(prefix)/Scripts
-	$(mkinstalldirs) $(prefix)/etc
-	$(INSTALL_DATA)  vhq202m.tcl $(prefix)/Scripts
+	$(mkinstalldirs) $(prefix)/TclLibs/vhq
+	$(INSTALL_DATA)  vhq202m.tcl $(prefix)/TclLibs/vhq
+	echo "pkg_mkIndex $(prefix)/TclLibs/vhq *.tcl" >makeindex.tcl
+	$(TCLSH_CMD) <makeindex.tcl
 
 EXTRA_DIST = vhq202m.tcl AAReadme.txt vhq.3tcl
 

@@ -1,6 +1,6 @@
-DRIVERDIR=$(prefix)/Scripts/ControlDrivers
-APPDIR=$(prefix)/Scripts/ControlApplications
-HELPDIR=$(prefix)/Scripts/ControlApplications/n568bhelp
+DRIVERDIR=$(prefix)/TclLibs/v568
+APPDIR=$(prefix)/bin
+HELPDIR=$(prefix)/TclLibs/data/n568
 
 VERSION=2.0			#Must match the package versions!!!
 
@@ -15,9 +15,10 @@ install-exec-local:
 	$(mkinstalldirs)  $(DRIVERDIR) $(APPDIR) $(HELPDIR)
 	chmod o+rx $(DRIVERDIR) $(APPDIR) $(HELPDIR)
 	$(INSTALL_SCRIPT) $(PACKAGES) $(DRIVERDIR)
-	$(INSTALL_SCRIPT) $(APPS)     $(APPDIR)
+	for f in $(APPS); do $(INSTALL_SCRIPT) $$f $(APPDIR)/`basename $$f .tcl`; done
 	$(INSTALL_DATA)   $(HELPFILES) $(HELPDIR)
-
+	echo "pkg_mkIndex $(DRIVERDIR) *.tcl" > makeindex.tcl
+	$(TCLSH_CMD) <makeindex.tcl
 
 EXTRA_DIST= $(PACKAGES) $(APPS) $(MANPAGES) $(HELPFILES)
 

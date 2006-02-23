@@ -42,9 +42,8 @@
 set here [file dirname [info script]]
 set wd [pwd]
 
-puts "Here = $here"
 
-cd [file join $here ..]
+cd [file join $here .. TclLibs]
 set libDir [pwd]
 cd $wd
 
@@ -80,7 +79,8 @@ set selectedPidFile     $defaultPidFile
 #    usage string.
 #
 proc usage {} {
-    set Usage         {PortManager.tcl ?-ports low-high? ?-listen port? ?-log filename?}
+    set self [file tail [info script]]
+    set Usage         "$self ?-ports low-high? ?-listen port? ?-log filename?"
     append Usage "\n" {    -ports   - Specifies the range of ports to be managed}
     append Usage "\n" {    -listen  - Specifies the port on which the program listens for connections}
     append Usage "\n" {    -log     - Specifies the log file}
@@ -102,13 +102,15 @@ proc ParseParameters {rawParameters} {
     global  selectedListenPort
     global  selectedPortRange
     global  selectedLogFile
+    global  selectedPidFile
+    global  selectedPortFile
     
     # Parameters come in pairs:
     
     for {set i 0} {$i < [llength $rawParameters]} {incr i 2} {
         set Switch [lindex $rawParameters $i]
         set Value  [lindex $rawParameters [expr {$i+1}]]
-        switch -exact $Switch {
+        switch -exact -- $Switch {
             -ports {
                 #  Ports must have a list with 2 numeric elements...
                 
@@ -117,7 +119,7 @@ proc ParseParameters {rawParameters} {
                 }
                 #  If necessary swap values to get low hi pairs:
                 
-                if {$low < $high} {
+                if {$low > $high} {
                     set tmp $high
                     set high $low
                     set low  $tmp
@@ -138,6 +140,12 @@ proc ParseParameters {rawParameters} {
                 
                 set selectedLogFile $Value
             }
+	    -portfile {			# Undocumented
+		set selectedPortFile $Value
+	    }
+	    -pidfile {			# Undocumented
+		set selectedPidFile $Value
+	    }
             default {
                 error "Invalid switch $Switch\n [usage]"
             }
@@ -173,7 +181,10 @@ proc run {argList} {
     global selectedPortFile
     global selectedPidFile
     
-    ParseParameters $argList
+    if {[catch {ParseParameters $argList} msg]} {
+	puts stderr $msg
+	exit -1
+    }
     
     # Create the directories needed by all the files:
     
@@ -200,7 +211,7 @@ proc run {argList} {
     set ports  [PortManager create ports -range $selectedPortRange]
     set cm     [ConnectionManager create cm -ports     $ports \
                                             -logger    $logger \
-                                            -listener  $selectedListenPort \
+                                            -listen    $selectedListenPort \
                                             -usagefile $selectedUsageFile]
                                             
     # Start processing events:

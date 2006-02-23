@@ -30,7 +30,7 @@ include_HEADERS = VmeModule.h CVME.h CVMEptr.h MmapError.h CSIS3820.h \
 
 
 libDeviceSupport_la_LDFLAGS = -version-info $(SOVERSION):0 \
-	-L@top_srcdir@/VMEApi \
+	$(VMEBUILDLIBS) \
 	-lVmeAPI $(SPECTRODAQ_LDFLAGS) -g -Wl,"-rpath-link=$(libdir)"
 
 INCLUDES = $(VMEBUILDHEADERS) \
@@ -76,7 +76,7 @@ caenv1x90test_SOURCES = 1x90AcqModeTests.cpp 1x90AdjustTests.cpp \
 caenv1x90test_DEPENDENCIES = CCAENV1x90.cpp VmeModule.cpp MmapError.cpp
 
 caenv1x90test_LDADD = -L@top_srcdir@/Exception -lException \
-	-L@top_srcdir@/VMEApi -lVmeAPI  $(VMEBUILDLIBS) \
+	$(VMEBUILDLIBS) -lVmeAPI  $(VMEBUILDLIBS) \
 	 $(SPECTRODAQ_LDFLAGS) $(CPPUNIT_LDFLAGS)
 
 sis3600test_SOURCES = sis3600TestRunner.cpp sis3600tests.cpp 
@@ -85,7 +85,7 @@ sis3600test_DEPENDENCIES = CSIS3600.cpp \
 	VmeModule.cpp MmapError.cpp CModule32.cpp
 
 sis3600test_LDADD = -L@top_srcdir@/Exception -lException \
-	-L@top_srcdir@/VMEApi -lVmeAPI $(VMEBUILDLIBS) \
+	$(VMEBUILDLIBS) -lVmeAPI $(VMEBUILDLIBS) \
 	$(SPECTRODAQ_LDFLAGS) $(CPPUNIT_LDFLAGS)
 
 
@@ -94,7 +94,7 @@ sis3820test_SOURCES = sis3800TestRunner.cpp sis3820tests.cpp
 sis3820test_DEPENDENCIES = CSIS3820.cpp  VmeModule.cpp MmapError.cpp CModule32.cpp
 
 sis3820test_LDADD = -L@top_srcdir@/Exception -lException \
-	-L@top_srcdir@/VMEApi -lVmeAPI $(VMEBUILDLIBS) \
+	$(VMEBUILDLIBS) -lVmeAPI $(VMEBUILDLIBS) \
 	$(SPECTRODAQ_LDFLAGS) $(CPPUNIT_LDFLAGS)
 
 #

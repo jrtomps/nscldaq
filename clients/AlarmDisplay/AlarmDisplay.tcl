@@ -29,11 +29,11 @@ exec tclsh ${0} ${@}
 set here [file dirname [info script]]
 set libdir [file join $here ..]
 #
-# Canonicalize $here/..
+# Canonicalize $here/../TclLibs
 #
 set wd [pwd]
 cd $libdir
-set libdir [pwd]
+set libdir [file join [pwd] TclLibs]
 cd $wd
 #   
 #  Prepend to auto_path only if it's not already 
@@ -45,15 +45,12 @@ if {[lsearch -exact $auto_path $libdir] == -1} {
 
 # Images are in the Images directory below the top.
 
-set imagedir [file join $libdir Images]
+set imagedir [file join $libdir data AlarmDisplay]
 
-puts "path: $auto_path"
 
 
 package require Tk
 package require Tablelist
-
-puts [package version Tablelist]
 
 namespace eval Alarm {}
 
@@ -67,7 +64,6 @@ namespace eval Alarm {}
 proc Alarm::Display {} {
     global tbl
     global expId
-    global script_dir
     #
     # Create a top-level widget
     #
@@ -121,15 +117,15 @@ proc Alarm::Display {} {
     # Create some images for use as cool buttons
     #
     image create photo AckButton -format GIF \
-	-file [file join $script_dir $::imagedir/AckButton.gif]
+	-file [file join $::imagedir AckButton.gif]
     image create photo DisButton -format GIF \
-	-file [file join $script_dir $::imagedir/DisButton.gif]
+	-file [file join  $::imagedir DisButton.gif]
     image create photo RemButton -format GIF \
-	-file [file join $script_dir $::imagedir/RemButton.gif]
+	-file [file join  $::imagedir RemButton.gif]
     image create photo HistButton -format GIF \
-	-file [file join $script_dir $::imagedir/HistButton.gif]
+	-file [file join  $::imagedir HistButton.gif]
     image create photo ExitButton -format GIF \
-	-file [file join $script_dir $::imagedir/ExitButton.gif]
+	-file [file join  $::imagedir ExitButton.gif]
 
     #
     # Create a button for acknowledging 'new' alarms
@@ -929,16 +925,15 @@ proc Alarm::Make_Sure_Prompt {id} {
 proc Alarm::Warning_Prompt {} {
     global warning_prompt
     global expId
-    global script_dir
     set f .warning_prompt
 
     #
     # Create the button images
     #
     image create photo RetryButton -format GIF \
-	-file [file join $script_dir $::imagedir/RetryButton.gif]
+	-file [file join $::imagedir RetryButton.gif]
     image create photo ExitButton -format GIF \
-	-file [file join $script_dir $::imagedir/ExitButton.gif]
+	-file [file join $::imagedir ExitButton.gif]
 
     if [Dialog_Create $f "Warning" -width 320 -height 70 \
 	   -relief groove -borderwidth 2] {
@@ -1025,20 +1020,19 @@ set Reason(HISTORY) 7
 set argument1 [lindex $argv 1]
 set argument2 [lindex $argv 2]
 set argument3 [lindex $argv 3]
-set script_dir $argument3
-if {[llength $argument2] == 0} {
-    set script_dir $argument1
-} elseif {[llength $argument3] == 0} {
-    set script_dir $argument2
-}
+
 
 #
 # Create some images for cool buttons
 #
 image create photo OkButton -format GIF \
-    -file [file join $script_dir $::imagedir/OkButton.gif]
+    -file [file join $::imagedir OkButton.gif]
 image create photo CancelButton -format GIF \
-    -file [file join $script_dir $::imagedir/CancelButton.gif]
+    -file [file join $::imagedir CancelButton.gif]
+
+# TODO:  Make the server and display use the 
+#        port manager!!!!
+#
 
 #
 # Parse the command line arguments

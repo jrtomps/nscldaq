@@ -18,22 +18,16 @@ proc Usage {} {
 }
 #  set up to locate and load burnpackage.tcl
 
-set me     $argv0
-set mypath [file dirname $me]
-set scriptPath [file join $mypath .. Scripts]
-
-# canonicalize the path:
-
+set scriptDir [file dirname [info script]]
+set libDir    [file join $scriptDir .. TclLibs]
 set wd [pwd]
-cd $scriptPath
-set scriptpath [pwd]
+cd $libDir
+set libDir [pwd]
 cd $wd
 
-if {[lsearch -exact $auto_path $scriptPath] == -1} {
-    set auto_path [concat $scriptpath $auto_path]
+if {[lsearch -exact $auto_path $libDir] == -1} {
+	set auto_path [concat $libDir $auto_path]
 }
-
-# source $mypath/burnpackage.tcl
 
 package require DvdBurn
 

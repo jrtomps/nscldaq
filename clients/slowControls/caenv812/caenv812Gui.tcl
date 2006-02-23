@@ -103,7 +103,9 @@ snit::widget cfdv812Gui {
 
         # Get the device and state 'objects' made.
 
-        $self createDevice
+        if {[catch {$self createDevice} msg]} {
+	    error "controller creation failed: $msg"
+	}
         $self createState
 
         # Since all that worked we can now layout the GUI.
@@ -215,8 +217,8 @@ snit::widget cfdv812Gui {
     #
 
     destructor {
-        $self destroyDevice
-        $self destroyState
+        catch {$self destroyDevice}
+        catch {$self destroyState}
 
     }
     # setThreshold channel threshold

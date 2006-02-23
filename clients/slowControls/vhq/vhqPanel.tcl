@@ -13,27 +13,6 @@
 #	     Michigan State University
 #	     East Lansing, MI 48824-1321
 #
-
-# Packages... establish the path to add to auto_path for the daq packages.
-
-set here [file dirname [info script]]
-set vhqpkgdir [file join $here ..]
-
-
-#
-#  This normalizes vhqpkgdir to an absolute path.
-#
-set wd [pwd]
-cd $vhqpkgdir
-set libdir [pwd]
-cd $wd
-#
-#  If necessary add the library dir to auto_path
-#
-if {[lsearch $auto_path $libdir] == -1} {
-    set auto_path [concat $libdir $auto_path]
-}
-
 package require Vme
 package require vhq
 package require Tk

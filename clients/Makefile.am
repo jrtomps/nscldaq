@@ -1,6 +1,8 @@
+# Not sure why I sometimes have to build VMEApi twice but here it is.
+
 SUBDIRS = tcllib @VME_DRIVERDIR@ \
 	Headers CopyrightTools Exception PortManager TCL Security Ftp \
-	VMEApi cvt SpecTclOnline DeviceSupport\
+	VMEApi VMEApi cvt SpecTclOnline DeviceSupport\
 	Readout HPReadout diskrun EventLog Scaler  \
 	vmetcl  \
 	bufdump TclServer bcnaf TcpHoister Stager Scripts framework \
@@ -21,12 +23,11 @@ install-data-local:
 	$(mkinstalldirs) $(prefix)/bin
 	$(mkinstalldirs) $(prefix)/lib
 	$(mkinstalldirs) $(prefix)/include
-	rm -f $(prefix)/Bins
+	rm -f $(prefix)/Bin
 	rm -f $(prefix)/Lib
 	rm -f $(prefix)/Include
 	rm -f $(prefix)/Etc
-	rm -f $(prefix)/TclLibs
-	$(LN_S) $(prefix)/lib $(prefix)/TclLibs
+	$(mkinstalldirs) $(prefix)TclLibs
 	$(LN_S) $(prefix)/bin $(prefix)/Bin
 	$(LN_S) $(prefix)/lib $(prefix)/Lib
 	$(LN_S) $(prefix)/include $(prefix)/Include
@@ -50,8 +51,8 @@ install-data-local:
 	$(INSTALL_PROGRAM)  daqman $(prefix)/bin
 	echo "Version: " $(VERSION) build on `hostname` `date` > $(prefix)/VERSION
 	$(MANDB) $(prefix)/man
-	tclsh mkpackage.tcl $(prefix)/Scripts "*.tcl"
-	tclsh mkpackage.tcl $(prefix)/lib  "lib*.so"
+	echo "pkg_mkIndex $(prefix)/TclLibs *.so" >makeindex.tcl
+	$(TCLSH_CMD) <makeindex.tcl
 
 
 

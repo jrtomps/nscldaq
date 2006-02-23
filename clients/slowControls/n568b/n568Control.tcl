@@ -21,7 +21,12 @@ exec tclsh $0 $@
 # Packages:
 
 set here [file dirname [info script]]
-set drivers [file join $here .. ControlDrivers]
+set drivers [file join $here .. TclLibs]
+set wd [pwd]
+cd $drivers
+set drivers [pwd]
+cd $wd
+
 if {[lsearch -exact $auto_path $here] == -1} {
     set auto_path [concat $drivers $auto_path]
 }
@@ -35,7 +40,7 @@ package require n568Panel
 set Version         1.0
 set panels          0
 set activePanels    0
-set helpdir         [file join $here n568bhelp];      # Help files live here.
+set helpdir         [file join $here $drivers data n568];      # Help files live here.
 set configFileTypes [list                               \
                         [list {n568 configurations} .n568] \
                         [list {configuration files} .cfg]  \

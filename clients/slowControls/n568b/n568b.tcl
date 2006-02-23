@@ -22,6 +22,7 @@
 
 
 package provide n568b 2.0
+package require caennet
 namespace eval n568b {
 
 }

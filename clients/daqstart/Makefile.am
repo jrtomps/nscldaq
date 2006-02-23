@@ -23,10 +23,7 @@ EXTRA_DIST=daqstart.ggo popup.tcl daqstart.1 Makefile.am
 man_MANS = daqstart.1
 
 install-exec-local:
-	$(mkinstalldirs) $(prefix)/Scripts
-	$(INSTALL_SCRIPT) popup.tcl $(prefix)/Scripts
-	rm -f $(bindir)/PopUp
-	$(LN_S)  $(prefix)/Scripts/popup.tcl $(bindir)/PopUp
+	$(INSTALL_SCRIPT) popup.tcl $(bindir)/PopUp
 
 
 if CPPUNIT

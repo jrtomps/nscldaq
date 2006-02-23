@@ -137,7 +137,7 @@ include_HEADERS = AccessListCheck.h \
 
 libPReadout_la_LDFLAGS = -g -version-info $(SOVERSION):0 \
 	-L@top_srcdir@/framework \
-	-L@top_srcdir@/VMEApi \
+	$(VMEBUILDLIBS) \
 	-L@top_srcdir@/Exception \
 	-lEventFramework -lVmeAPI -lException -lrt  $(SPECTRODAQ_LDFLAGS) \
 	$(TCL_LDFLAGS) $(X11LIBS) -Wl,"-rpath-link=$(libdir)"

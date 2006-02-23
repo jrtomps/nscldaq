@@ -1,6 +1,6 @@
 #!/bin/bash
 
-SCRIPT_DIR=${0%/LogDisplay}/../Scripts
+SCRIPT_DIR=${0%/LogDisplay}/../TclLibs/data/LogDisplay
 BIN_DIR=${0%/LogDisplay}/../bin
 
 

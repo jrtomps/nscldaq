@@ -1,15 +1,19 @@
+APPDIR=$(prefix)/bin
+PKGDIR=$(prefix)/TclLibs/camac
+DOCDIR=$(prefix)/Docs/vmetcl
+
 install-exec-local:
-	$(mkinstalldirs) $(prefix)/Scripts
-	$(mkinstalldirs) $(prefix)/etc
-	$(INSTALL_DATA)  camac.tcl $(prefix)/Scripts
-	$(INSTALL_DATA)  wienercamac.tcl $(prefix)/Scripts
-install-exec-local:
+	$(mkinstalldirs) $(PKGDIR)
+	$(INSTALL_SCRIPT)  camac.tcl $(PKGDIR)
+	$(INSTALL_SCRIPT)  wienercamac.tcl $(PKGDIR)
+	echo "pkg_mkIndex $(PKGDIR) *.tcl" >makeindex.tcl
+	$(TCLSH_CMD) <makeindex.tcl
+
 EXTRA_DIST = camac.tcl AAReadme.txt  wienercamac.tcl  cescamac.3tcl
 
 
 install-data-local:
-	$(mkinstalldirs) $(prefix)/Docs
-	$(mkinstalldirs) $(prefix)/Docs/vmetcl
-	$(INSTALL_DATA) AAReadme.txt $(prefix)/Docs/vmetcl/camactcl.txt
+	$(mkinstalldirs) $(DOCDIR)
+	$(INSTALL_DATA) AAReadme.txt $(DOCDIR)
 
 man_MANS = cescamac.3tcl 

@@ -3,17 +3,26 @@
 exec wish ${0} ${@}
 
 
-set me      $argv0
-set mypath  [file dirname $me]
+set scriptDir [file dirname [info script]]
+
+# Canonicalize the TclLibs tree and prepend it to auto_path if not already there.
+
+set libDir [file join $scriptDir .. TclLibs]
+set wd [pwd]
+cd $libDir
+set libDir [pwd]
+cd $wd
+
+if {[lsearch -exact $auto_path $libDir] == -1} {
+	set auto_path [concat $libDir $auto_path]
+}
+
 #
-#  I may not be installed in the Scripts dir...
+# Sourcein the guis:
 #
 
-set scriptPath [file join $mypath .. Scripts]
-
-
-source $scriptPath/TopGUi.ui.tcl
-source $scriptPath/dvdburnoutput.ui.tcl
+source [file join $libDir dvdburn TopGUi.ui.tcl]
+source [file join $libDir dvdburn dvdburnoutput.ui.tcl]
 
 set burning 0
 set burnfd ""
@@ -79,10 +88,10 @@ proc KillBurn {} {
 proc BurnRange {range} {
     global burning
     global burnfd
-    global mypath
+    global scriptDir
 
 
-    set burnfd [open "| $mypath/dvdburn [lindex $range 0] [lindex $range 1]" r+]
+    set burnfd [open "| $scriptDir/dvdburn [lindex $range 0] [lindex $range 1]" r+]
     fconfigure $burnfd -blocking 0
     fileevent $burnfd readable CaptureOutput
     set burning 1

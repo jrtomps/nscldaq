@@ -603,3 +603,10 @@ February 22, 2006
       - Add some error trapping in VMEMapCommand.cpp so that non mapped
         Vme controllers can deal with error issues that may
         occur during reads/writes.
+      - Start re-organizing tcl package installations to be a closer match to
+        TEA and therefore to
+        1. Simplify the production of package indices
+        2. Prevent the error messages that have occured when we've done it in
+           the past.
+February 23, 2006
+      - Completed reorg of Tcl stuff and testing of that.

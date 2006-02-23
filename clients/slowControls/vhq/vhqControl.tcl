@@ -43,8 +43,8 @@ exec tclsh $0 $@
 #  Note that ./.. is canonicalized to an absolute path.
 #
 set here [file dirname [info script]]
-set libdir [file join $here ..]
-set helpdir   [file join $here vhqhelp]
+set libdir [file join $here .. TclLibs]
+set helpdir   [file join $here .. TclLibs data vhq]
 
 # Normalize to an absolute path.
 
@@ -64,7 +64,7 @@ package require snit
 
 # Global data:
 
-set Version 1.0
+set Version 1.1
 set panels       0
 set activePanels 0
 set Models [list                        \

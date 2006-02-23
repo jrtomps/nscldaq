@@ -14,25 +14,33 @@ libPortManager_la_LDFLAGS = -L@top_srcdir@/Exception \
 
 INCLUDES = -I@top_srcdir@/Headers -I@top_srcdir@/Exception \
 		-DHOME=\"$(prefix)\"
+
+TCLPACKAGES=ConnectionManager.tcl \
+	Log.tcl \
+	portAllocator.tcl  \
+	PortManager.tcl
+
+TCLAPPS=DaqPortManager.tcl
+
+TCLTESTS=connectionmanager.test portallocator.test portmanager.test log.test
+
+
 #
 #   Install the TCL Packages:
 #   We're counting on the top level makefile to build the package directory.
 #
 install-exec-local:
-	$(mkinstalldirs) $(prefix)/Scripts
 	$(mkinstalldirs) $(prefix)/bin
-	install -m 0644 *.tcl              $(prefix)/Scripts
-	install -m 0755 DaqPortManager.tcl $(prefix)/Scripts
-	rm -f $(prefix)/bin/DaqPortManager
-	$(LN_S) $(prefix)/Scripts/DaqPortManager.tcl $(prefix)/bin/DaqPortManager
+	$(mkinstalldirs) $(prefix)/TclLibs/PortManager
+	$(INSTALL_SCRIPT) $(TCLPACKAGES) $(prefix)/TclLibs/PortManager
+	$(INSTALL_SCRIPT) $(TCLAPPS)     $(prefix)/bin/DaqPortManager
+	echo "pkg_mkIndex $(prefix)/TclLibs/PortManager *.tcl" > makeindex.tcl
+	$(TCLSH_CMD) <makeindex.tcl
 
 #
 #  The distribution should contain the tcl files as well as their unit tests:
 #
-EXTRA_DIST = Application.tcl ConnectionManager.tcl Log.tcl DaqPortManager.tcl \
-	portAllocator.tcl PortManager.tcl \
-	connectionmanager.test portallocator.test \
-	portmanager.test log.test \
+EXTRA_DIST =$(TCLPACKAGES) $(TCLAPPS) $(TCLTESTS)          \
 	DaqPortManager.8 portAllocator.3tcl CPortManager.3 \
 	CPortManagerException.3
 #

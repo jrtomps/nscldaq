@@ -100,7 +100,7 @@ CCFLAGS=-g
 hpScriptedReadout_LDADD = -L@top_srcdir@/contrib/hpscriptedReadout -lhpScriptedRdo  \
 	-L@top_srcdir@/HPReadout -lHPReadout \
 	-L@top_srcdir@/DeviceSupport -lDeviceSupport \
-	-L@top_srcdir@/VMEApi -lVmeAPI \
+	 $(VMEBUILDLIBS) -lVmeAPI \
 	-L@top_srcdir@/TCL -lTclPlus	\
 	-L@top_srcdir@/Exception -lException $(TCL_LDFLAGS) \
 	$(SPECTRODAQ_LDFLAGS) $(VMELIBRARY) -lpthread

@@ -35,7 +35,7 @@ set me [info script]
 # Canonicalize the directory one above me so that we can search
 # for packages in the tree rooted in ..
 
-set libdirs [file join [file dirname $me] .. ControlDrivers]
+set libdirs [file join [file dirname $me] .. TclLibs]
 set dir [pwd]
 cd $libdirs
 set libdirs [pwd]

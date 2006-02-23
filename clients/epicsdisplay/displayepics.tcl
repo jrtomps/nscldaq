@@ -26,6 +26,8 @@
 #   in a tktable.
 #
 
+
+
 package require Tktable
 package require BWidget
 package require BLT
@@ -63,7 +65,7 @@ set popupIndex 0
 set maxKeepHours 4.0;			# Should be floating.
 
 set here [file dirname [info script]]
-set helpdir [file join $here epicsdisplayHelp]
+set helpdir [file join $here .. data  epicsdisplay]
 
 #------------------------------------------------------------------------------
 # helpAbout:
