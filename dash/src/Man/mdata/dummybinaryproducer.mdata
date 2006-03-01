@@ -1,0 +1,57 @@
+@VERSION
+dummybinaryproducer 1.82
+
+Copyright (C) 2005 by the Board of Trustees of Michigan State University.
+You may use this software under the terms of the GNU public license
+(GPL).  The terms of this license are described at:
+http://www.gnu.org/licenses/gpl.txt
+
+Written by E. Kasten.
+@HELP
+Output random sized records from a dummy binary records for consumption
+by a DAQ on-ramp. This program produces records with a leading length 
+field, written as an integer in host byte order, followed by data bytes.  
+The length of the data is indicated by the leading length field; the size
+of the length field is not included in the data length.  This program
+is intended as a binary on-ramp test program.
+
+Usage: dummybinaryproducer [OPTION]...
+
+Options:
+  --version         Output version information and exit     
+  --help            Display this help and exit
+  --debug=SECONDS   Output a debugging command and wait SECONDS
+                        before beginning execution of main loop
+
+  --size=INTEGER    Specify a fixed record size.  The default
+                    is to generate random sized records up to a
+                    maximum of 64K.
+
+  --iterations=INTEGER Specify the number of data records this
+                    producer should emit prior to exiting.
+
+  --delay=MICROSECONDS Output occurs at a delay rate of MICROSECONDS
+
+  --packet=PACKET   If this parameter is specified, then the binary record 
+                    records emitted are typed binary records.  That is
+                    the emitted records will have an host-byte-order integer
+                    field, indicating the record type, following the length.
+                    This field will be set to PACKET.  PACKET may be an 
+                    integer or the symbolic name for a well known packet 
+                    type such as Physics.  
+
+Examples:
+  dummyproducer --run=45 | binaryonramp --packet=104 dummybinaryproducer |
+               segmenter /evt/data/output
+          Inject output from dummybinaryoneramp into the data stream.  
+          Records produced from data from dummybinaryproducer will have a type
+          of 104.  If dummybinaryproducer terminates, it will not be restarted.
+           
+  dummyproducer --run=46 | binaryonramp --packet=103 --restart 
+               dummybinaryproducer --iterations=10 | segmenter /evt/data/output
+          Inject output from dummybinaryproducer into the data stream.  
+          Records produced from data produced by dummybinaryproducer will 
+          have a type of 103.  Dummybinaryproducer will emit 10 records each
+          time it is executed and then exit.  When dummybinaryproducer
+          terminates, it is restarted by binaryonramp.
+

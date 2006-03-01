@@ -1,0 +1,68 @@
+@VERSION
+daqtail key_DAQHWY_VERSION
+
+Copyright (C) 2005 by the Board of Trustees of Michigan State University.
+You may use this software under the terms of the GNU public license
+(GPL).  The terms of this license are described at:
+http://www.gnu.org/licenses/gpl.txt
+
+Written by E. Kasten.
+@HELP
+Output the records from a DAQ experiment that has previously been
+saved to disk.  DAQ experimental data is stored in segmented 
+files to avoid exceeding the maximum file size of the filesystem.
+To simplify processing experimental data, daqtail understands how
+to output the records for the current experiment as the are 
+appended to the current segment.  
+
+Creation of new runs and new run segments in the specified directory
+is understood by daqtail.  When new runs are added to the directory,
+daqtail will detect that a new run has been stared and automatically
+resume processing with this new run.  When new segments are created
+for the current run, daqtail will detect that a new segment has been
+created and continue processing with this new segment.
+
+Unless the --catchup option has been specified, processing begins
+by outputting the last record of the most recent segment.
+
+Usage: daqtail [OPTION]... DIRECTORY
+
+Options:
+  --version         Output version information and exit     
+  --help            Display this help and exit
+  --debug=SECONDS   Output a debugging command and wait SECONDS
+                        before beginning execution of main loop
+
+  --catchup         Start processing with the first record
+                    of the first segment of the current run.  
+
+  --collate=[ctime|runnumber] (default: ctime)
+                    Collate the event files found in DIRECTORY
+                    according to either file ctime (inode change time)
+                    or by runnumber.  
+
+  --file            Treat DIRECTORY as a file.  The file specified will
+                    be tailed until an ENDRUN, BADEND or CONTINUE 
+                    record is encountered.  Note that --collate
+                    has no effect when tailing a specific file.   If
+                    --catchup is specified, processing begins at the
+                    start, instead of the end, of the specified file.
+                    
+Examples:
+  daqtail /evt/data/output  
+         Tail most recent experiment found in directory /evt/data/output
+
+  daqtail --catchup /evt/data/output | recorddump 
+         Tail most recent experiment found in directory 
+         /evt/data/output into program recorddump.
+         Processing begins with the first segment of the most 
+         recent run.
+
+  daqtail --collate=runnumber /evt/data/output  
+         tail most recent experiment found in directory /evt/data/output.
+         Collate using run numbers instead of ctime. 
+
+  daqtail --file experiment.data
+         tail the file experiment.data and exit when an ENDRUN, BADEND or
+         CONTINUE record is encountered.
+

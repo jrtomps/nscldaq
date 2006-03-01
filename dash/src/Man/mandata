@@ -1,0 +1,83 @@
+#!/bin/sh
+
+# /*=========================================================================*\
+# | Copyright (C) 2005 by the Board of Trustees of Michigan State University. |
+# | You may use this software under the terms of the GNU public license       |
+# | (GPL).  The terms of this license are described at:                       |
+# | http://www.gnu.org/licenses/gpl.txt                                       |
+# |                                                                           |
+# | Written by: E. Kasten                                                     |
+# \*=========================================================================*/
+
+# Emit a usage message
+function usage() {
+  echo "Usage: mandata [--version | --help ]"
+}
+
+# Check if there's at least one command
+if [ -z "$1" ]; then
+  usage
+  exit -1
+fi
+
+# Initialize booleans
+let VERSION=0
+let HELP=0
+
+# Get the command name
+CMD=`basename $0`
+CMD="./$CMD.mdata"
+
+# Capture commandline flags
+for opt in $*; do
+  if [ "$opt" == "--version" ]; then
+    let VERSION=1
+  elif [ "$opt" == "--help" ]; then
+    let HELP=1
+  else
+    usage
+    exit -1
+  fi
+done
+
+# Check for the data file
+if [ ! -e "$CMD" ]; then
+  echo "mandata: Cannot locate man data file \"$CMD\""
+  exit -2
+fi
+
+# Cat out the version info
+if [ $VERSION -eq 1 ]; then
+  awk 'BEGIN { fnd=0; } {
+    if (fnd > 0) {
+      if (substr($1,1,1) == "@") {
+        fnd=0;
+      } else {
+        print $0
+      }
+    } else {
+      if ($1 == "@VERSION") {
+        fnd=1;
+      }
+    } 
+  }' ./$CMD
+fi
+
+# Cat out the help info
+if [ $HELP -eq 1 ]; then
+  awk 'BEGIN { fnd=0; } {
+    if (fnd > 0) {
+      if (substr($1,1,1) == "@") {
+        fnd=0;
+      } else {
+        print $0
+      }
+    } else {
+      if ($1 == "@HELP") {
+        fnd=1;
+      }
+    } 
+  }' ./$CMD
+fi
+
+exit $?

@@ -1,0 +1,334 @@
+# DO NOT DELETE
+
+segmenter.o: /usr/include/stdlib.h /usr/include/features.h
+segmenter.o: /usr/include/sys/cdefs.h /usr/include/gnu/stubs.h
+segmenter.o: /usr/lib/gcc-lib/i486-linux/3.3.5/include/stddef.h
+segmenter.o: /usr/include/stdio.h /usr/include/bits/types.h
+segmenter.o: /usr/include/bits/wordsize.h /usr/include/bits/typesizes.h
+segmenter.o: /usr/include/libio.h /usr/include/_G_config.h
+segmenter.o: /usr/include/wchar.h /usr/include/bits/wchar.h
+segmenter.o: /usr/include/gconv.h
+segmenter.o: /usr/lib/gcc-lib/i486-linux/3.3.5/include/stdarg.h
+segmenter.o: /usr/include/bits/stdio_lim.h /usr/include/bits/sys_errlist.h
+segmenter.o: /usr/include/string.h /usr/include/unistd.h
+segmenter.o: /usr/include/bits/posix_opt.h /usr/include/bits/confname.h
+segmenter.o: /usr/include/errno.h /usr/include/bits/errno.h
+segmenter.o: /usr/include/linux/errno.h /usr/include/asm/errno.h
+segmenter.o: /usr/include/asm-generic/errno.h
+segmenter.o: /usr/include/asm-generic/errno-base.h /usr/include/signal.h
+segmenter.o: /usr/include/bits/sigset.h /usr/include/bits/signum.h
+segmenter.o: /usr/include/netinet/in.h /usr/include/stdint.h
+segmenter.o: /usr/include/sys/socket.h /usr/include/sys/uio.h
+segmenter.o: /usr/include/sys/types.h /usr/include/time.h
+segmenter.o: /usr/include/bits/uio.h /usr/include/bits/socket.h
+segmenter.o: /usr/include/limits.h
+segmenter.o: /usr/lib/gcc-lib/i486-linux/3.3.5/include/limits.h
+segmenter.o: /usr/include/bits/sockaddr.h /usr/include/asm/socket.h
+segmenter.o: /usr/include/asm/sockios.h /usr/include/bits/in.h
+segmenter.o: /usr/include/endian.h /usr/include/bits/endian.h
+segmenter.o: /usr/include/bits/byteswap.h
+segmenter.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/daqhwyapi.h
+segmenter.o: /usr/include/math.h /usr/include/bits/huge_val.h
+segmenter.o: /usr/include/bits/mathdef.h /usr/include/bits/mathcalls.h
+segmenter.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/cstr.h
+segmenter.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/maindefs.h
+segmenter.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/Exceptions.h
+segmenter.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/System.h
+segmenter.o: /usr/include/sys/time.h /usr/include/bits/time.h
+segmenter.o: /usr/include/sys/select.h /usr/include/bits/select.h
+segmenter.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/Object.h
+segmenter.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/String.h
+segmenter.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/StringTokenizer.h
+segmenter.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/Runnable.h
+segmenter.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/Process.h
+segmenter.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/daqconfig.h
+segmenter.o: /usr/include/sys/stat.h /usr/include/bits/stat.h
+segmenter.o: /usr/include/sys/wait.h /usr/include/sys/resource.h
+segmenter.o: /usr/include/bits/resource.h /usr/include/bits/waitflags.h
+segmenter.o: /usr/include/bits/waitstatus.h
+segmenter.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/Main.h
+segmenter.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/Buffer.h
+segmenter.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/ByteBuffer.h
+segmenter.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/InputStream.h
+segmenter.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/OutputStream.h
+segmenter.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/FdInputStream.h
+segmenter.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/FdOutputStream.h
+segmenter.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/FileInputStream.h
+segmenter.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/FileOutputStream.h
+segmenter.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/Reader.h
+segmenter.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/Writer.h
+segmenter.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/RecordReader.h
+segmenter.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/ByteArray.h
+segmenter.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/DSHArray.h
+segmenter.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/Record.h
+segmenter.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/RecordWriter.h
+segmenter.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/LineRecordReader.h
+segmenter.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/FdRecordReader.h
+segmenter.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/BinaryRecordReader.h
+segmenter.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/PipeConnector.h
+segmenter.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/Selector.h
+segmenter.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/FdSelector.h
+segmenter.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/WordArray.h
+segmenter.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/DWordArray.h
+segmenter.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/PipeInjector.h
+segmenter.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/BufferedRecordReader.h
+segmenter.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/BufferedReader.h
+segmenter.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/BufferedWriter.h
+segmenter.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/FdRecordWriter.h
+segmenter.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/BufferedRecordWriter.h
+segmenter.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/FSUtils.h
+segmenter.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/StringUtils.h
+segmenter.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/StringArray.h
+segmenter.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/DSHUtils.h
+segmenter.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/IntArray.h
+segmenter.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshusage/segmenter_version.h
+segmenter.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshusage/segmenter_help.h
+recorddump.o: /usr/include/stdlib.h /usr/include/features.h
+recorddump.o: /usr/include/sys/cdefs.h /usr/include/gnu/stubs.h
+recorddump.o: /usr/lib/gcc-lib/i486-linux/3.3.5/include/stddef.h
+recorddump.o: /usr/include/stdio.h /usr/include/bits/types.h
+recorddump.o: /usr/include/bits/wordsize.h /usr/include/bits/typesizes.h
+recorddump.o: /usr/include/libio.h /usr/include/_G_config.h
+recorddump.o: /usr/include/wchar.h /usr/include/bits/wchar.h
+recorddump.o: /usr/include/gconv.h
+recorddump.o: /usr/lib/gcc-lib/i486-linux/3.3.5/include/stdarg.h
+recorddump.o: /usr/include/bits/stdio_lim.h /usr/include/bits/sys_errlist.h
+recorddump.o: /usr/include/string.h /usr/include/unistd.h
+recorddump.o: /usr/include/bits/posix_opt.h /usr/include/bits/confname.h
+recorddump.o: /usr/include/errno.h /usr/include/bits/errno.h
+recorddump.o: /usr/include/linux/errno.h /usr/include/asm/errno.h
+recorddump.o: /usr/include/asm-generic/errno.h
+recorddump.o: /usr/include/asm-generic/errno-base.h /usr/include/signal.h
+recorddump.o: /usr/include/bits/sigset.h /usr/include/bits/signum.h
+recorddump.o: /usr/include/netinet/in.h /usr/include/stdint.h
+recorddump.o: /usr/include/sys/socket.h /usr/include/sys/uio.h
+recorddump.o: /usr/include/sys/types.h /usr/include/time.h
+recorddump.o: /usr/include/bits/uio.h /usr/include/bits/socket.h
+recorddump.o: /usr/include/limits.h
+recorddump.o: /usr/lib/gcc-lib/i486-linux/3.3.5/include/limits.h
+recorddump.o: /usr/include/bits/sockaddr.h /usr/include/asm/socket.h
+recorddump.o: /usr/include/asm/sockios.h /usr/include/bits/in.h
+recorddump.o: /usr/include/endian.h /usr/include/bits/endian.h
+recorddump.o: /usr/include/bits/byteswap.h
+recorddump.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/daqhwyapi.h
+recorddump.o: /usr/include/math.h /usr/include/bits/huge_val.h
+recorddump.o: /usr/include/bits/mathdef.h /usr/include/bits/mathcalls.h
+recorddump.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/cstr.h
+recorddump.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/maindefs.h
+recorddump.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/Exceptions.h
+recorddump.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/System.h
+recorddump.o: /usr/include/sys/time.h /usr/include/bits/time.h
+recorddump.o: /usr/include/sys/select.h /usr/include/bits/select.h
+recorddump.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/Object.h
+recorddump.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/String.h
+recorddump.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/StringTokenizer.h
+recorddump.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/Runnable.h
+recorddump.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/Process.h
+recorddump.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/daqconfig.h
+recorddump.o: /usr/include/sys/stat.h /usr/include/bits/stat.h
+recorddump.o: /usr/include/sys/wait.h /usr/include/sys/resource.h
+recorddump.o: /usr/include/bits/resource.h /usr/include/bits/waitflags.h
+recorddump.o: /usr/include/bits/waitstatus.h
+recorddump.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/Main.h
+recorddump.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/Buffer.h
+recorddump.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/ByteBuffer.h
+recorddump.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/InputStream.h
+recorddump.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/OutputStream.h
+recorddump.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/FdInputStream.h
+recorddump.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/FdOutputStream.h
+recorddump.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/FileInputStream.h
+recorddump.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/FileOutputStream.h
+recorddump.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/Reader.h
+recorddump.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/Writer.h
+recorddump.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/RecordReader.h
+recorddump.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/ByteArray.h
+recorddump.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/DSHArray.h
+recorddump.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/Record.h
+recorddump.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/RecordWriter.h
+recorddump.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/LineRecordReader.h
+recorddump.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/FdRecordReader.h
+recorddump.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/BinaryRecordReader.h
+recorddump.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/PipeConnector.h
+recorddump.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/Selector.h
+recorddump.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/FdSelector.h
+recorddump.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/WordArray.h
+recorddump.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/DWordArray.h
+recorddump.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/PipeInjector.h
+recorddump.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/BufferedRecordReader.h
+recorddump.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/BufferedReader.h
+recorddump.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/BufferedWriter.h
+recorddump.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/FdRecordWriter.h
+recorddump.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/BufferedRecordWriter.h
+recorddump.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/FSUtils.h
+recorddump.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/StringUtils.h
+recorddump.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/StringArray.h
+recorddump.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/DSHUtils.h
+recorddump.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/IntArray.h
+recorddump.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshusage/recorddump_version.h
+recorddump.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshusage/recorddump_help.h
+record2raw.o: /usr/include/stdlib.h /usr/include/features.h
+record2raw.o: /usr/include/sys/cdefs.h /usr/include/gnu/stubs.h
+record2raw.o: /usr/lib/gcc-lib/i486-linux/3.3.5/include/stddef.h
+record2raw.o: /usr/include/stdio.h /usr/include/bits/types.h
+record2raw.o: /usr/include/bits/wordsize.h /usr/include/bits/typesizes.h
+record2raw.o: /usr/include/libio.h /usr/include/_G_config.h
+record2raw.o: /usr/include/wchar.h /usr/include/bits/wchar.h
+record2raw.o: /usr/include/gconv.h
+record2raw.o: /usr/lib/gcc-lib/i486-linux/3.3.5/include/stdarg.h
+record2raw.o: /usr/include/bits/stdio_lim.h /usr/include/bits/sys_errlist.h
+record2raw.o: /usr/include/string.h /usr/include/sys/types.h
+record2raw.o: /usr/include/time.h /usr/include/unistd.h
+record2raw.o: /usr/include/bits/posix_opt.h /usr/include/bits/confname.h
+record2raw.o: /usr/include/errno.h /usr/include/bits/errno.h
+record2raw.o: /usr/include/linux/errno.h /usr/include/asm/errno.h
+record2raw.o: /usr/include/asm-generic/errno.h
+record2raw.o: /usr/include/asm-generic/errno-base.h /usr/include/signal.h
+record2raw.o: /usr/include/bits/sigset.h /usr/include/bits/signum.h
+record2raw.o: /usr/include/netinet/in.h /usr/include/stdint.h
+record2raw.o: /usr/include/sys/socket.h /usr/include/sys/uio.h
+record2raw.o: /usr/include/bits/uio.h /usr/include/bits/socket.h
+record2raw.o: /usr/include/limits.h
+record2raw.o: /usr/lib/gcc-lib/i486-linux/3.3.5/include/limits.h
+record2raw.o: /usr/include/bits/sockaddr.h /usr/include/asm/socket.h
+record2raw.o: /usr/include/asm/sockios.h /usr/include/bits/in.h
+record2raw.o: /usr/include/endian.h /usr/include/bits/endian.h
+record2raw.o: /usr/include/bits/byteswap.h
+record2raw.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/daqhwyapi.h
+record2raw.o: /usr/include/math.h /usr/include/bits/huge_val.h
+record2raw.o: /usr/include/bits/mathdef.h /usr/include/bits/mathcalls.h
+record2raw.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/cstr.h
+record2raw.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/maindefs.h
+record2raw.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/Exceptions.h
+record2raw.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/System.h
+record2raw.o: /usr/include/sys/time.h /usr/include/bits/time.h
+record2raw.o: /usr/include/sys/select.h /usr/include/bits/select.h
+record2raw.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/Object.h
+record2raw.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/String.h
+record2raw.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/StringTokenizer.h
+record2raw.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/Runnable.h
+record2raw.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/Process.h
+record2raw.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/daqconfig.h
+record2raw.o: /usr/include/sys/stat.h /usr/include/bits/stat.h
+record2raw.o: /usr/include/sys/wait.h /usr/include/sys/resource.h
+record2raw.o: /usr/include/bits/resource.h /usr/include/bits/waitflags.h
+record2raw.o: /usr/include/bits/waitstatus.h
+record2raw.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/Main.h
+record2raw.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/Buffer.h
+record2raw.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/ByteBuffer.h
+record2raw.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/InputStream.h
+record2raw.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/OutputStream.h
+record2raw.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/FdInputStream.h
+record2raw.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/FdOutputStream.h
+record2raw.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/FileInputStream.h
+record2raw.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/FileOutputStream.h
+record2raw.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/Reader.h
+record2raw.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/Writer.h
+record2raw.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/RecordReader.h
+record2raw.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/ByteArray.h
+record2raw.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/DSHArray.h
+record2raw.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/Record.h
+record2raw.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/RecordWriter.h
+record2raw.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/LineRecordReader.h
+record2raw.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/FdRecordReader.h
+record2raw.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/BinaryRecordReader.h
+record2raw.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/PipeConnector.h
+record2raw.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/Selector.h
+record2raw.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/FdSelector.h
+record2raw.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/WordArray.h
+record2raw.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/DWordArray.h
+record2raw.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/PipeInjector.h
+record2raw.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/BufferedRecordReader.h
+record2raw.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/BufferedReader.h
+record2raw.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/BufferedWriter.h
+record2raw.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/FdRecordWriter.h
+record2raw.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/BufferedRecordWriter.h
+record2raw.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/FSUtils.h
+record2raw.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/StringUtils.h
+record2raw.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/StringArray.h
+record2raw.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/DSHUtils.h
+record2raw.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/IntArray.h
+record2raw.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshusage/record2raw_version.h
+record2raw.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshusage/record2raw_help.h
+record2binary.o: /usr/include/stdlib.h /usr/include/features.h
+record2binary.o: /usr/include/sys/cdefs.h /usr/include/gnu/stubs.h
+record2binary.o: /usr/lib/gcc-lib/i486-linux/3.3.5/include/stddef.h
+record2binary.o: /usr/include/stdio.h /usr/include/bits/types.h
+record2binary.o: /usr/include/bits/wordsize.h /usr/include/bits/typesizes.h
+record2binary.o: /usr/include/libio.h /usr/include/_G_config.h
+record2binary.o: /usr/include/wchar.h /usr/include/bits/wchar.h
+record2binary.o: /usr/include/gconv.h
+record2binary.o: /usr/lib/gcc-lib/i486-linux/3.3.5/include/stdarg.h
+record2binary.o: /usr/include/bits/stdio_lim.h
+record2binary.o: /usr/include/bits/sys_errlist.h /usr/include/string.h
+record2binary.o: /usr/include/sys/types.h /usr/include/time.h
+record2binary.o: /usr/include/unistd.h /usr/include/bits/posix_opt.h
+record2binary.o: /usr/include/bits/confname.h /usr/include/errno.h
+record2binary.o: /usr/include/bits/errno.h /usr/include/linux/errno.h
+record2binary.o: /usr/include/asm/errno.h /usr/include/asm-generic/errno.h
+record2binary.o: /usr/include/asm-generic/errno-base.h /usr/include/signal.h
+record2binary.o: /usr/include/bits/sigset.h /usr/include/bits/signum.h
+record2binary.o: /usr/include/netinet/in.h /usr/include/stdint.h
+record2binary.o: /usr/include/sys/socket.h /usr/include/sys/uio.h
+record2binary.o: /usr/include/bits/uio.h /usr/include/bits/socket.h
+record2binary.o: /usr/include/limits.h
+record2binary.o: /usr/lib/gcc-lib/i486-linux/3.3.5/include/limits.h
+record2binary.o: /usr/include/bits/sockaddr.h /usr/include/asm/socket.h
+record2binary.o: /usr/include/asm/sockios.h /usr/include/bits/in.h
+record2binary.o: /usr/include/endian.h /usr/include/bits/endian.h
+record2binary.o: /usr/include/bits/byteswap.h
+record2binary.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/daqhwyapi.h
+record2binary.o: /usr/include/math.h /usr/include/bits/huge_val.h
+record2binary.o: /usr/include/bits/mathdef.h /usr/include/bits/mathcalls.h
+record2binary.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/cstr.h
+record2binary.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/maindefs.h
+record2binary.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/Exceptions.h
+record2binary.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/System.h
+record2binary.o: /usr/include/sys/time.h /usr/include/bits/time.h
+record2binary.o: /usr/include/sys/select.h /usr/include/bits/select.h
+record2binary.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/Object.h
+record2binary.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/String.h
+record2binary.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/StringTokenizer.h
+record2binary.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/Runnable.h
+record2binary.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/Process.h
+record2binary.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/daqconfig.h
+record2binary.o: /usr/include/sys/stat.h /usr/include/bits/stat.h
+record2binary.o: /usr/include/sys/wait.h /usr/include/sys/resource.h
+record2binary.o: /usr/include/bits/resource.h /usr/include/bits/waitflags.h
+record2binary.o: /usr/include/bits/waitstatus.h
+record2binary.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/Main.h
+record2binary.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/Buffer.h
+record2binary.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/ByteBuffer.h
+record2binary.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/InputStream.h
+record2binary.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/OutputStream.h
+record2binary.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/FdInputStream.h
+record2binary.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/FdOutputStream.h
+record2binary.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/FileInputStream.h
+record2binary.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/FileOutputStream.h
+record2binary.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/Reader.h
+record2binary.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/Writer.h
+record2binary.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/RecordReader.h
+record2binary.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/ByteArray.h
+record2binary.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/DSHArray.h
+record2binary.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/Record.h
+record2binary.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/RecordWriter.h
+record2binary.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/LineRecordReader.h
+record2binary.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/FdRecordReader.h
+record2binary.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/BinaryRecordReader.h
+record2binary.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/PipeConnector.h
+record2binary.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/Selector.h
+record2binary.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/FdSelector.h
+record2binary.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/WordArray.h
+record2binary.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/DWordArray.h
+record2binary.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/PipeInjector.h
+record2binary.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/BufferedRecordReader.h
+record2binary.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/BufferedReader.h
+record2binary.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/BufferedWriter.h
+record2binary.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/FdRecordWriter.h
+record2binary.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/BufferedRecordWriter.h
+record2binary.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/FSUtils.h
+record2binary.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/StringUtils.h
+record2binary.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/StringArray.h
+record2binary.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/DSHUtils.h
+record2binary.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/IntArray.h
+record2binary.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshusage/record2binary_version.h
+record2binary.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshusage/record2binary_help.h

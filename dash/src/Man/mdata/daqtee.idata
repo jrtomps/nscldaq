@@ -1,0 +1,70 @@
+@VERSION
+daqtee key_DAQHWY_VERSION
+
+Copyright (C) 2005 by the Board of Trustees of Michigan State University.
+You may use this software under the terms of the GNU public license
+(GPL).  The terms of this license are described at:
+http://www.gnu.org/licenses/gpl.txt
+
+Written by E. Kasten.
+@HELP
+Daqtee writes records from a DAQ experiment to two separate 
+programs enabling online filtering and data processing while
+retaining the unfiltered or processed data.  Records written
+to the secondary (tee) data stream can be selected a priori
+using the --packet flag.  That is, daqtee considers each record 
+read from standard input.  If the record's packet type matches 
+one of the specified packet types, then the record will be written 
+to the tee data stream.  All records read from stdin are 
+unconditionally written to the main data stream on stdout.  
+If the --packet flag is not specified, then all records read from 
+stdin are also written to the tee data stream.
+
+Packet types can be specified as either a single positive integer,
+a range of positive integers or by using one of the known symbolic
+names for some well known packet types.  Currently, the list
+of symbolic well known packet types includes: Physics (a.k.a, Data),
+Scaler, SnapSc, StateVar, RunVar, PktDoc and ParamDescript.
+
+The essential characteristics of daqtee are as follows:
+
+1. daqtee passes all records read on stdin to stdout.
+
+2. daqtee runs a client program with stdin connected to a pipe 
+   to which it write a copy of the records specified using the
+   --packet flag.  If, the --packet flag is not specified then
+   a copy of all the records received on stdin will be written
+   to the pipe.
+
+3. If PROGRAM breaks the pipe, daqtee degenerates to writing
+   all records read on stdin to stdout.
+
+4. If an eof is received on stdin, daqtee exits.
+
+Usage: daqtee [--packet=PACKETS] ... [OPTION]... PROGRAM
+
+Options:
+  --version         Output version information and exit     
+  --help            Display this help and exit
+  --debug=SECONDS   Output a debugging command and wait SECONDS
+                    before beginning execution of main loop
+
+  --packet=PACKETS  If more than one occurrence of this flag appears 
+                    on the command line, all packets and ranges 
+                    specified will be considered.  PACKETS can
+                    be either a single positive integer, a range of
+                    positive integers (e.g., 101-118 or 101,118) or
+                    a symbolic name (e.g., Physics).  All ranges are
+                    inclusive.
+
+Examples:
+  Readout --run=123 | daqtee --packet=101 myfilter | segmenter
+         Output all records read on stdin to stdout and write
+         a copy of records that have a packet type of 101 to
+         myfilter.
+
+  Readout --run=890 | daqtee --packet=PktDoc recorddump | segmenter
+         Output all records read on stdin to stdout and write
+         a copy of records that have a packet type of PktDoc to
+         recorddump.
+

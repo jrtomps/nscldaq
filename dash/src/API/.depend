@@ -1,0 +1,960 @@
+# DO NOT DELETE
+
+Exceptions.o: /usr/include/stdlib.h /usr/include/features.h
+Exceptions.o: /usr/include/sys/cdefs.h /usr/include/gnu/stubs.h
+Exceptions.o: /usr/lib/gcc-lib/i486-linux/3.3.5/include/stddef.h
+Exceptions.o: /usr/include/stdio.h /usr/include/bits/types.h
+Exceptions.o: /usr/include/bits/wordsize.h /usr/include/bits/typesizes.h
+Exceptions.o: /usr/include/libio.h /usr/include/_G_config.h
+Exceptions.o: /usr/include/wchar.h /usr/include/bits/wchar.h
+Exceptions.o: /usr/include/gconv.h
+Exceptions.o: /usr/lib/gcc-lib/i486-linux/3.3.5/include/stdarg.h
+Exceptions.o: /usr/include/bits/stdio_lim.h /usr/include/bits/sys_errlist.h
+Exceptions.o: /usr/include/unistd.h /usr/include/bits/posix_opt.h
+Exceptions.o: /usr/include/bits/confname.h
+Exceptions.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/Exceptions.h
+Exceptions.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/cstr.h
+String.o: /usr/include/unistd.h /usr/include/features.h
+String.o: /usr/include/sys/cdefs.h /usr/include/gnu/stubs.h
+String.o: /usr/include/bits/posix_opt.h /usr/include/bits/types.h
+String.o: /usr/include/bits/wordsize.h
+String.o: /usr/lib/gcc-lib/i486-linux/3.3.5/include/stddef.h
+String.o: /usr/include/bits/typesizes.h /usr/include/bits/confname.h
+String.o: /usr/include/string.h
+String.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/cstr.h
+String.o: /usr/include/stdlib.h /usr/include/stdio.h /usr/include/libio.h
+String.o: /usr/include/_G_config.h /usr/include/wchar.h
+String.o: /usr/include/bits/wchar.h /usr/include/gconv.h
+String.o: /usr/lib/gcc-lib/i486-linux/3.3.5/include/stdarg.h
+String.o: /usr/include/bits/stdio_lim.h /usr/include/bits/sys_errlist.h
+String.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/Object.h
+String.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/String.h
+String.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/Exceptions.h
+StringTokenizer.o: /usr/include/ctype.h /usr/include/features.h
+StringTokenizer.o: /usr/include/sys/cdefs.h /usr/include/gnu/stubs.h
+StringTokenizer.o: /usr/include/bits/types.h /usr/include/bits/wordsize.h
+StringTokenizer.o: /usr/lib/gcc-lib/i486-linux/3.3.5/include/stddef.h
+StringTokenizer.o: /usr/include/bits/typesizes.h /usr/include/endian.h
+StringTokenizer.o: /usr/include/bits/endian.h
+StringTokenizer.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/cstr.h
+StringTokenizer.o: /usr/include/stdlib.h /usr/include/stdio.h
+StringTokenizer.o: /usr/include/libio.h /usr/include/_G_config.h
+StringTokenizer.o: /usr/include/wchar.h /usr/include/bits/wchar.h
+StringTokenizer.o: /usr/include/gconv.h
+StringTokenizer.o: /usr/lib/gcc-lib/i486-linux/3.3.5/include/stdarg.h
+StringTokenizer.o: /usr/include/bits/stdio_lim.h
+StringTokenizer.o: /usr/include/bits/sys_errlist.h /usr/include/unistd.h
+StringTokenizer.o: /usr/include/bits/posix_opt.h /usr/include/bits/confname.h
+StringTokenizer.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/Object.h
+StringTokenizer.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/String.h
+StringTokenizer.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/Exceptions.h
+StringTokenizer.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/StringTokenizer.h
+globals.o: /usr/include/stdlib.h /usr/include/features.h
+globals.o: /usr/include/sys/cdefs.h /usr/include/gnu/stubs.h
+globals.o: /usr/lib/gcc-lib/i486-linux/3.3.5/include/stddef.h
+globals.o: /usr/include/stdio.h /usr/include/bits/types.h
+globals.o: /usr/include/bits/wordsize.h /usr/include/bits/typesizes.h
+globals.o: /usr/include/libio.h /usr/include/_G_config.h /usr/include/wchar.h
+globals.o: /usr/include/bits/wchar.h /usr/include/gconv.h
+globals.o: /usr/lib/gcc-lib/i486-linux/3.3.5/include/stdarg.h
+globals.o: /usr/include/bits/stdio_lim.h /usr/include/bits/sys_errlist.h
+globals.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/cstr.h
+globals.o: /usr/include/unistd.h /usr/include/bits/posix_opt.h
+globals.o: /usr/include/bits/confname.h
+Process.o: /usr/include/stdlib.h /usr/include/features.h
+Process.o: /usr/include/sys/cdefs.h /usr/include/gnu/stubs.h
+Process.o: /usr/lib/gcc-lib/i486-linux/3.3.5/include/stddef.h
+Process.o: /usr/include/stdio.h /usr/include/bits/types.h
+Process.o: /usr/include/bits/wordsize.h /usr/include/bits/typesizes.h
+Process.o: /usr/include/libio.h /usr/include/_G_config.h /usr/include/wchar.h
+Process.o: /usr/include/bits/wchar.h /usr/include/gconv.h
+Process.o: /usr/lib/gcc-lib/i486-linux/3.3.5/include/stdarg.h
+Process.o: /usr/include/bits/stdio_lim.h /usr/include/bits/sys_errlist.h
+Process.o: /usr/include/setjmp.h /usr/include/bits/setjmp.h
+Process.o: /usr/include/bits/sigset.h /usr/include/sys/types.h
+Process.o: /usr/include/time.h /usr/include/sys/stat.h
+Process.o: /usr/include/bits/stat.h /usr/include/sys/time.h
+Process.o: /usr/include/bits/time.h /usr/include/sys/select.h
+Process.o: /usr/include/bits/select.h /usr/include/unistd.h
+Process.o: /usr/include/bits/posix_opt.h /usr/include/bits/confname.h
+Process.o: /usr/include/errno.h /usr/include/bits/errno.h
+Process.o: /usr/include/linux/errno.h /usr/include/asm/errno.h
+Process.o: /usr/include/asm-generic/errno.h
+Process.o: /usr/include/asm-generic/errno-base.h /usr/include/string.h
+Process.o: /usr/include/fcntl.h /usr/include/bits/fcntl.h
+Process.o: /usr/include/sys/socket.h /usr/include/sys/uio.h
+Process.o: /usr/include/bits/uio.h /usr/include/bits/socket.h
+Process.o: /usr/include/limits.h
+Process.o: /usr/lib/gcc-lib/i486-linux/3.3.5/include/limits.h
+Process.o: /usr/include/bits/sockaddr.h /usr/include/asm/socket.h
+Process.o: /usr/include/asm/sockios.h /usr/include/netdb.h
+Process.o: /usr/include/netinet/in.h /usr/include/stdint.h
+Process.o: /usr/include/bits/in.h /usr/include/endian.h
+Process.o: /usr/include/bits/endian.h /usr/include/bits/byteswap.h
+Process.o: /usr/include/bits/netdb.h
+Process.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/cstr.h
+Process.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/Process.h
+Process.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/daqconfig.h
+Process.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/Object.h
+Process.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/Runnable.h
+Process.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/String.h
+Process.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/Exceptions.h
+Process.o: /usr/include/signal.h /usr/include/bits/signum.h
+Process.o: /usr/include/sys/wait.h /usr/include/sys/resource.h
+Process.o: /usr/include/bits/resource.h /usr/include/bits/waitflags.h
+Process.o: /usr/include/bits/waitstatus.h
+Main.o: /usr/include/stdlib.h /usr/include/features.h
+Main.o: /usr/include/sys/cdefs.h /usr/include/gnu/stubs.h
+Main.o: /usr/lib/gcc-lib/i486-linux/3.3.5/include/stddef.h
+Main.o: /usr/include/stdio.h /usr/include/bits/types.h
+Main.o: /usr/include/bits/wordsize.h /usr/include/bits/typesizes.h
+Main.o: /usr/include/libio.h /usr/include/_G_config.h /usr/include/wchar.h
+Main.o: /usr/include/bits/wchar.h /usr/include/gconv.h
+Main.o: /usr/lib/gcc-lib/i486-linux/3.3.5/include/stdarg.h
+Main.o: /usr/include/bits/stdio_lim.h /usr/include/bits/sys_errlist.h
+Main.o: /usr/include/setjmp.h /usr/include/bits/setjmp.h
+Main.o: /usr/include/bits/sigset.h /usr/include/sys/time.h
+Main.o: /usr/include/time.h /usr/include/bits/time.h
+Main.o: /usr/include/sys/select.h /usr/include/bits/select.h
+Main.o: /usr/include/unistd.h /usr/include/bits/posix_opt.h
+Main.o: /usr/include/bits/confname.h
+Main.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/Main.h
+Main.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/daqconfig.h
+Main.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/Object.h
+Main.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/Process.h
+Main.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/Runnable.h
+Main.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/String.h
+Main.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/Exceptions.h
+Main.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/cstr.h
+Main.o: /usr/include/signal.h /usr/include/bits/signum.h
+Main.o: /usr/include/sys/stat.h /usr/include/bits/stat.h
+Main.o: /usr/include/sys/types.h /usr/include/sys/wait.h
+Main.o: /usr/include/sys/resource.h /usr/include/bits/resource.h
+Main.o: /usr/include/bits/waitflags.h /usr/include/bits/waitstatus.h
+daqhwyapi_main.o: /usr/include/stdlib.h /usr/include/features.h
+daqhwyapi_main.o: /usr/include/sys/cdefs.h /usr/include/gnu/stubs.h
+daqhwyapi_main.o: /usr/lib/gcc-lib/i486-linux/3.3.5/include/stddef.h
+daqhwyapi_main.o: /usr/include/stdio.h /usr/include/bits/types.h
+daqhwyapi_main.o: /usr/include/bits/wordsize.h /usr/include/bits/typesizes.h
+daqhwyapi_main.o: /usr/include/libio.h /usr/include/_G_config.h
+daqhwyapi_main.o: /usr/include/wchar.h /usr/include/bits/wchar.h
+daqhwyapi_main.o: /usr/include/gconv.h
+daqhwyapi_main.o: /usr/lib/gcc-lib/i486-linux/3.3.5/include/stdarg.h
+daqhwyapi_main.o: /usr/include/bits/stdio_lim.h
+daqhwyapi_main.o: /usr/include/bits/sys_errlist.h /usr/include/errno.h
+daqhwyapi_main.o: /usr/include/bits/errno.h /usr/include/linux/errno.h
+daqhwyapi_main.o: /usr/include/asm/errno.h /usr/include/asm-generic/errno.h
+daqhwyapi_main.o: /usr/include/asm-generic/errno-base.h
+daqhwyapi_main.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/Main.h
+daqhwyapi_main.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/daqconfig.h
+daqhwyapi_main.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/Object.h
+daqhwyapi_main.o: /usr/include/unistd.h /usr/include/bits/posix_opt.h
+daqhwyapi_main.o: /usr/include/bits/confname.h
+daqhwyapi_main.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/Process.h
+daqhwyapi_main.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/Runnable.h
+daqhwyapi_main.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/String.h
+daqhwyapi_main.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/Exceptions.h
+daqhwyapi_main.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/cstr.h
+daqhwyapi_main.o: /usr/include/signal.h /usr/include/bits/sigset.h
+daqhwyapi_main.o: /usr/include/bits/signum.h /usr/include/sys/stat.h
+daqhwyapi_main.o: /usr/include/bits/stat.h /usr/include/sys/types.h
+daqhwyapi_main.o: /usr/include/time.h /usr/include/sys/wait.h
+daqhwyapi_main.o: /usr/include/sys/resource.h /usr/include/bits/resource.h
+daqhwyapi_main.o: /usr/include/bits/time.h /usr/include/bits/waitflags.h
+daqhwyapi_main.o: /usr/include/bits/waitstatus.h
+main.o: /usr/include/stdlib.h /usr/include/features.h
+main.o: /usr/include/sys/cdefs.h /usr/include/gnu/stubs.h
+main.o: /usr/lib/gcc-lib/i486-linux/3.3.5/include/stddef.h
+main.o: /usr/include/stdio.h /usr/include/bits/types.h
+main.o: /usr/include/bits/wordsize.h /usr/include/bits/typesizes.h
+main.o: /usr/include/libio.h /usr/include/_G_config.h /usr/include/wchar.h
+main.o: /usr/include/bits/wchar.h /usr/include/gconv.h
+main.o: /usr/lib/gcc-lib/i486-linux/3.3.5/include/stdarg.h
+main.o: /usr/include/bits/stdio_lim.h /usr/include/bits/sys_errlist.h
+System.o: /usr/include/stdlib.h /usr/include/features.h
+System.o: /usr/include/sys/cdefs.h /usr/include/gnu/stubs.h
+System.o: /usr/lib/gcc-lib/i486-linux/3.3.5/include/stddef.h
+System.o: /usr/include/stdio.h /usr/include/bits/types.h
+System.o: /usr/include/bits/wordsize.h /usr/include/bits/typesizes.h
+System.o: /usr/include/libio.h /usr/include/_G_config.h /usr/include/wchar.h
+System.o: /usr/include/bits/wchar.h /usr/include/gconv.h
+System.o: /usr/lib/gcc-lib/i486-linux/3.3.5/include/stdarg.h
+System.o: /usr/include/bits/stdio_lim.h /usr/include/bits/sys_errlist.h
+System.o: /usr/include/unistd.h /usr/include/bits/posix_opt.h
+System.o: /usr/include/bits/confname.h /usr/include/errno.h
+System.o: /usr/include/bits/errno.h /usr/include/linux/errno.h
+System.o: /usr/include/asm/errno.h /usr/include/asm-generic/errno.h
+System.o: /usr/include/asm-generic/errno-base.h /usr/include/sys/time.h
+System.o: /usr/include/time.h /usr/include/bits/time.h
+System.o: /usr/include/sys/select.h /usr/include/bits/select.h
+System.o: /usr/include/bits/sigset.h /usr/include/string.h
+System.o: /usr/include/sys/timeb.h
+System.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/System.h
+System.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/Object.h
+System.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/Exceptions.h
+System.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/cstr.h
+System.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/String.h
+System.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/StringTokenizer.h
+Buffer.o: /usr/include/unistd.h /usr/include/features.h
+Buffer.o: /usr/include/sys/cdefs.h /usr/include/gnu/stubs.h
+Buffer.o: /usr/include/bits/posix_opt.h /usr/include/bits/types.h
+Buffer.o: /usr/include/bits/wordsize.h
+Buffer.o: /usr/lib/gcc-lib/i486-linux/3.3.5/include/stddef.h
+Buffer.o: /usr/include/bits/typesizes.h /usr/include/bits/confname.h
+Buffer.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/cstr.h
+Buffer.o: /usr/include/stdlib.h /usr/include/stdio.h /usr/include/libio.h
+Buffer.o: /usr/include/_G_config.h /usr/include/wchar.h
+Buffer.o: /usr/include/bits/wchar.h /usr/include/gconv.h
+Buffer.o: /usr/lib/gcc-lib/i486-linux/3.3.5/include/stdarg.h
+Buffer.o: /usr/include/bits/stdio_lim.h /usr/include/bits/sys_errlist.h
+Buffer.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/Object.h
+Buffer.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/Buffer.h
+Buffer.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/Exceptions.h
+Buffer.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/maindefs.h
+ByteBuffer.o: /usr/include/unistd.h /usr/include/features.h
+ByteBuffer.o: /usr/include/sys/cdefs.h /usr/include/gnu/stubs.h
+ByteBuffer.o: /usr/include/bits/posix_opt.h /usr/include/bits/types.h
+ByteBuffer.o: /usr/include/bits/wordsize.h
+ByteBuffer.o: /usr/lib/gcc-lib/i486-linux/3.3.5/include/stddef.h
+ByteBuffer.o: /usr/include/bits/typesizes.h /usr/include/bits/confname.h
+ByteBuffer.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/cstr.h
+ByteBuffer.o: /usr/include/stdlib.h /usr/include/stdio.h /usr/include/libio.h
+ByteBuffer.o: /usr/include/_G_config.h /usr/include/wchar.h
+ByteBuffer.o: /usr/include/bits/wchar.h /usr/include/gconv.h
+ByteBuffer.o: /usr/lib/gcc-lib/i486-linux/3.3.5/include/stdarg.h
+ByteBuffer.o: /usr/include/bits/stdio_lim.h /usr/include/bits/sys_errlist.h
+ByteBuffer.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/Object.h
+ByteBuffer.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/String.h
+ByteBuffer.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/Exceptions.h
+ByteBuffer.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/System.h
+ByteBuffer.o: /usr/include/sys/time.h /usr/include/time.h
+ByteBuffer.o: /usr/include/bits/time.h /usr/include/sys/select.h
+ByteBuffer.o: /usr/include/bits/select.h /usr/include/bits/sigset.h
+ByteBuffer.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/ByteBuffer.h
+ByteBuffer.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/Buffer.h
+ByteBuffer.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/maindefs.h
+FdInputStream.o: /usr/include/stdio.h /usr/include/features.h
+FdInputStream.o: /usr/include/sys/cdefs.h /usr/include/gnu/stubs.h
+FdInputStream.o: /usr/lib/gcc-lib/i486-linux/3.3.5/include/stddef.h
+FdInputStream.o: /usr/include/bits/types.h /usr/include/bits/wordsize.h
+FdInputStream.o: /usr/include/bits/typesizes.h /usr/include/libio.h
+FdInputStream.o: /usr/include/_G_config.h /usr/include/wchar.h
+FdInputStream.o: /usr/include/bits/wchar.h /usr/include/gconv.h
+FdInputStream.o: /usr/lib/gcc-lib/i486-linux/3.3.5/include/stdarg.h
+FdInputStream.o: /usr/include/bits/stdio_lim.h
+FdInputStream.o: /usr/include/bits/sys_errlist.h /usr/include/stdlib.h
+FdInputStream.o: /usr/include/sys/select.h /usr/include/bits/select.h
+FdInputStream.o: /usr/include/bits/sigset.h /usr/include/time.h
+FdInputStream.o: /usr/include/bits/time.h /usr/include/sys/time.h
+FdInputStream.o: /usr/include/sys/types.h /usr/include/unistd.h
+FdInputStream.o: /usr/include/bits/posix_opt.h /usr/include/bits/confname.h
+FdInputStream.o: /usr/include/errno.h /usr/include/bits/errno.h
+FdInputStream.o: /usr/include/linux/errno.h /usr/include/asm/errno.h
+FdInputStream.o: /usr/include/asm-generic/errno.h
+FdInputStream.o: /usr/include/asm-generic/errno-base.h /usr/include/fcntl.h
+FdInputStream.o: /usr/include/bits/fcntl.h
+FdInputStream.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/Object.h
+FdInputStream.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/FdInputStream.h
+FdInputStream.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/InputStream.h
+FdInputStream.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/maindefs.h
+FdInputStream.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/ByteBuffer.h
+FdInputStream.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/Buffer.h
+FdInputStream.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/Exceptions.h
+FdInputStream.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/cstr.h
+FdInputStream.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/String.h
+FdOutputStream.o: /usr/include/stdio.h /usr/include/features.h
+FdOutputStream.o: /usr/include/sys/cdefs.h /usr/include/gnu/stubs.h
+FdOutputStream.o: /usr/lib/gcc-lib/i486-linux/3.3.5/include/stddef.h
+FdOutputStream.o: /usr/include/bits/types.h /usr/include/bits/wordsize.h
+FdOutputStream.o: /usr/include/bits/typesizes.h /usr/include/libio.h
+FdOutputStream.o: /usr/include/_G_config.h /usr/include/wchar.h
+FdOutputStream.o: /usr/include/bits/wchar.h /usr/include/gconv.h
+FdOutputStream.o: /usr/lib/gcc-lib/i486-linux/3.3.5/include/stdarg.h
+FdOutputStream.o: /usr/include/bits/stdio_lim.h
+FdOutputStream.o: /usr/include/bits/sys_errlist.h /usr/include/stdlib.h
+FdOutputStream.o: /usr/include/unistd.h /usr/include/bits/posix_opt.h
+FdOutputStream.o: /usr/include/bits/confname.h /usr/include/errno.h
+FdOutputStream.o: /usr/include/bits/errno.h /usr/include/linux/errno.h
+FdOutputStream.o: /usr/include/asm/errno.h /usr/include/asm-generic/errno.h
+FdOutputStream.o: /usr/include/asm-generic/errno-base.h
+FdOutputStream.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/Object.h
+FdOutputStream.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/FdOutputStream.h
+FdOutputStream.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/OutputStream.h
+FdOutputStream.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/maindefs.h
+FdOutputStream.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/ByteBuffer.h
+FdOutputStream.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/Buffer.h
+FdOutputStream.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/Exceptions.h
+FdOutputStream.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/cstr.h
+FdOutputStream.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/String.h
+FileInputStream.o: /usr/include/stdio.h /usr/include/features.h
+FileInputStream.o: /usr/include/sys/cdefs.h /usr/include/gnu/stubs.h
+FileInputStream.o: /usr/lib/gcc-lib/i486-linux/3.3.5/include/stddef.h
+FileInputStream.o: /usr/include/bits/types.h /usr/include/bits/wordsize.h
+FileInputStream.o: /usr/include/bits/typesizes.h /usr/include/libio.h
+FileInputStream.o: /usr/include/_G_config.h /usr/include/wchar.h
+FileInputStream.o: /usr/include/bits/wchar.h /usr/include/gconv.h
+FileInputStream.o: /usr/lib/gcc-lib/i486-linux/3.3.5/include/stdarg.h
+FileInputStream.o: /usr/include/bits/stdio_lim.h
+FileInputStream.o: /usr/include/bits/sys_errlist.h /usr/include/stdlib.h
+FileInputStream.o: /usr/include/unistd.h /usr/include/bits/posix_opt.h
+FileInputStream.o: /usr/include/bits/confname.h /usr/include/errno.h
+FileInputStream.o: /usr/include/bits/errno.h /usr/include/linux/errno.h
+FileInputStream.o: /usr/include/asm/errno.h /usr/include/asm-generic/errno.h
+FileInputStream.o: /usr/include/asm-generic/errno-base.h /usr/include/fcntl.h
+FileInputStream.o: /usr/include/bits/fcntl.h /usr/include/sys/types.h
+FileInputStream.o: /usr/include/time.h
+FileInputStream.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/Object.h
+FileInputStream.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/FileInputStream.h
+FileInputStream.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/FdInputStream.h
+FileInputStream.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/InputStream.h
+FileInputStream.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/maindefs.h
+FileInputStream.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/ByteBuffer.h
+FileInputStream.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/Buffer.h
+FileInputStream.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/Exceptions.h
+FileInputStream.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/cstr.h
+FileInputStream.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/String.h
+FileOutputStream.o: /usr/include/stdio.h /usr/include/features.h
+FileOutputStream.o: /usr/include/sys/cdefs.h /usr/include/gnu/stubs.h
+FileOutputStream.o: /usr/lib/gcc-lib/i486-linux/3.3.5/include/stddef.h
+FileOutputStream.o: /usr/include/bits/types.h /usr/include/bits/wordsize.h
+FileOutputStream.o: /usr/include/bits/typesizes.h /usr/include/libio.h
+FileOutputStream.o: /usr/include/_G_config.h /usr/include/wchar.h
+FileOutputStream.o: /usr/include/bits/wchar.h /usr/include/gconv.h
+FileOutputStream.o: /usr/lib/gcc-lib/i486-linux/3.3.5/include/stdarg.h
+FileOutputStream.o: /usr/include/bits/stdio_lim.h
+FileOutputStream.o: /usr/include/bits/sys_errlist.h /usr/include/stdlib.h
+FileOutputStream.o: /usr/include/unistd.h /usr/include/bits/posix_opt.h
+FileOutputStream.o: /usr/include/bits/confname.h /usr/include/errno.h
+FileOutputStream.o: /usr/include/bits/errno.h /usr/include/linux/errno.h
+FileOutputStream.o: /usr/include/asm/errno.h /usr/include/asm-generic/errno.h
+FileOutputStream.o: /usr/include/asm-generic/errno-base.h
+FileOutputStream.o: /usr/include/sys/types.h /usr/include/time.h
+FileOutputStream.o: /usr/include/sys/stat.h /usr/include/bits/stat.h
+FileOutputStream.o: /usr/include/fcntl.h /usr/include/bits/fcntl.h
+FileOutputStream.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/Object.h
+FileOutputStream.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/FileOutputStream.h
+FileOutputStream.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/FdOutputStream.h
+FileOutputStream.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/OutputStream.h
+FileOutputStream.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/maindefs.h
+FileOutputStream.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/ByteBuffer.h
+FileOutputStream.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/Buffer.h
+FileOutputStream.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/Exceptions.h
+FileOutputStream.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/cstr.h
+FileOutputStream.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/String.h
+LineRecordReader.o: /usr/include/stdio.h /usr/include/features.h
+LineRecordReader.o: /usr/include/sys/cdefs.h /usr/include/gnu/stubs.h
+LineRecordReader.o: /usr/lib/gcc-lib/i486-linux/3.3.5/include/stddef.h
+LineRecordReader.o: /usr/include/bits/types.h /usr/include/bits/wordsize.h
+LineRecordReader.o: /usr/include/bits/typesizes.h /usr/include/libio.h
+LineRecordReader.o: /usr/include/_G_config.h /usr/include/wchar.h
+LineRecordReader.o: /usr/include/bits/wchar.h /usr/include/gconv.h
+LineRecordReader.o: /usr/lib/gcc-lib/i486-linux/3.3.5/include/stdarg.h
+LineRecordReader.o: /usr/include/bits/stdio_lim.h
+LineRecordReader.o: /usr/include/bits/sys_errlist.h /usr/include/stdlib.h
+LineRecordReader.o: /usr/include/unistd.h /usr/include/bits/posix_opt.h
+LineRecordReader.o: /usr/include/bits/confname.h /usr/include/errno.h
+LineRecordReader.o: /usr/include/bits/errno.h /usr/include/linux/errno.h
+LineRecordReader.o: /usr/include/asm/errno.h /usr/include/asm-generic/errno.h
+LineRecordReader.o: /usr/include/asm-generic/errno-base.h
+LineRecordReader.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/Object.h
+LineRecordReader.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/LineRecordReader.h
+LineRecordReader.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/FdRecordReader.h
+LineRecordReader.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/ByteArray.h
+LineRecordReader.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/DSHArray.h
+LineRecordReader.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/maindefs.h
+LineRecordReader.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/RecordReader.h
+LineRecordReader.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/Record.h
+LineRecordReader.o: /usr/include/time.h /usr/include/netinet/in.h
+LineRecordReader.o: /usr/include/stdint.h /usr/include/sys/socket.h
+LineRecordReader.o: /usr/include/sys/uio.h /usr/include/sys/types.h
+LineRecordReader.o: /usr/include/bits/uio.h /usr/include/bits/socket.h
+LineRecordReader.o: /usr/include/limits.h
+LineRecordReader.o: /usr/lib/gcc-lib/i486-linux/3.3.5/include/limits.h
+LineRecordReader.o: /usr/include/bits/sockaddr.h /usr/include/asm/socket.h
+LineRecordReader.o: /usr/include/asm/sockios.h /usr/include/bits/in.h
+LineRecordReader.o: /usr/include/endian.h /usr/include/bits/endian.h
+LineRecordReader.o: /usr/include/bits/byteswap.h
+LineRecordReader.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/FdInputStream.h
+LineRecordReader.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/InputStream.h
+LineRecordReader.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/ByteBuffer.h
+LineRecordReader.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/Buffer.h
+LineRecordReader.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/Exceptions.h
+LineRecordReader.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/cstr.h
+LineRecordReader.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/String.h
+PipeConnector.o: /usr/include/stdlib.h /usr/include/features.h
+PipeConnector.o: /usr/include/sys/cdefs.h /usr/include/gnu/stubs.h
+PipeConnector.o: /usr/lib/gcc-lib/i486-linux/3.3.5/include/stddef.h
+PipeConnector.o: /usr/include/math.h /usr/include/bits/huge_val.h
+PipeConnector.o: /usr/include/bits/mathdef.h /usr/include/bits/mathcalls.h
+PipeConnector.o: /usr/include/errno.h /usr/include/bits/errno.h
+PipeConnector.o: /usr/include/linux/errno.h /usr/include/asm/errno.h
+PipeConnector.o: /usr/include/asm-generic/errno.h
+PipeConnector.o: /usr/include/asm-generic/errno-base.h /usr/include/limits.h
+PipeConnector.o: /usr/lib/gcc-lib/i486-linux/3.3.5/include/limits.h
+PipeConnector.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/Object.h
+PipeConnector.o: /usr/include/stdio.h /usr/include/bits/types.h
+PipeConnector.o: /usr/include/bits/wordsize.h /usr/include/bits/typesizes.h
+PipeConnector.o: /usr/include/libio.h /usr/include/_G_config.h
+PipeConnector.o: /usr/include/wchar.h /usr/include/bits/wchar.h
+PipeConnector.o: /usr/include/gconv.h
+PipeConnector.o: /usr/lib/gcc-lib/i486-linux/3.3.5/include/stdarg.h
+PipeConnector.o: /usr/include/bits/stdio_lim.h
+PipeConnector.o: /usr/include/bits/sys_errlist.h /usr/include/unistd.h
+PipeConnector.o: /usr/include/bits/posix_opt.h /usr/include/bits/confname.h
+PipeConnector.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/PipeConnector.h
+PipeConnector.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/FdInputStream.h
+PipeConnector.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/InputStream.h
+PipeConnector.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/maindefs.h
+PipeConnector.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/ByteBuffer.h
+PipeConnector.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/Buffer.h
+PipeConnector.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/Exceptions.h
+PipeConnector.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/cstr.h
+PipeConnector.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/FdOutputStream.h
+PipeConnector.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/OutputStream.h
+Record.o: /usr/include/stdlib.h /usr/include/features.h
+Record.o: /usr/include/sys/cdefs.h /usr/include/gnu/stubs.h
+Record.o: /usr/lib/gcc-lib/i486-linux/3.3.5/include/stddef.h
+Record.o: /usr/include/stdio.h /usr/include/bits/types.h
+Record.o: /usr/include/bits/wordsize.h /usr/include/bits/typesizes.h
+Record.o: /usr/include/libio.h /usr/include/_G_config.h /usr/include/wchar.h
+Record.o: /usr/include/bits/wchar.h /usr/include/gconv.h
+Record.o: /usr/lib/gcc-lib/i486-linux/3.3.5/include/stdarg.h
+Record.o: /usr/include/bits/stdio_lim.h /usr/include/bits/sys_errlist.h
+Record.o: /usr/include/unistd.h /usr/include/bits/posix_opt.h
+Record.o: /usr/include/bits/confname.h /usr/include/sys/time.h
+Record.o: /usr/include/time.h /usr/include/bits/time.h
+Record.o: /usr/include/sys/select.h /usr/include/bits/select.h
+Record.o: /usr/include/bits/sigset.h /usr/include/netinet/in.h
+Record.o: /usr/include/stdint.h /usr/include/sys/socket.h
+Record.o: /usr/include/sys/uio.h /usr/include/sys/types.h
+Record.o: /usr/include/bits/uio.h /usr/include/bits/socket.h
+Record.o: /usr/include/limits.h
+Record.o: /usr/lib/gcc-lib/i486-linux/3.3.5/include/limits.h
+Record.o: /usr/include/bits/sockaddr.h /usr/include/asm/socket.h
+Record.o: /usr/include/asm/sockios.h /usr/include/bits/in.h
+Record.o: /usr/include/endian.h /usr/include/bits/endian.h
+Record.o: /usr/include/bits/byteswap.h /usr/include/errno.h
+Record.o: /usr/include/bits/errno.h /usr/include/linux/errno.h
+Record.o: /usr/include/asm/errno.h /usr/include/asm-generic/errno.h
+Record.o: /usr/include/asm-generic/errno-base.h
+Record.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/Record.h
+Record.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/Exceptions.h
+Record.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/cstr.h
+Record.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/String.h
+Record.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/ByteArray.h
+Record.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/DSHArray.h
+Record.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/maindefs.h
+FdSelector.o: /usr/include/sys/select.h /usr/include/features.h
+FdSelector.o: /usr/include/sys/cdefs.h /usr/include/gnu/stubs.h
+FdSelector.o: /usr/include/bits/types.h /usr/include/bits/wordsize.h
+FdSelector.o: /usr/lib/gcc-lib/i486-linux/3.3.5/include/stddef.h
+FdSelector.o: /usr/include/bits/typesizes.h /usr/include/bits/select.h
+FdSelector.o: /usr/include/bits/sigset.h /usr/include/time.h
+FdSelector.o: /usr/include/bits/time.h /usr/include/sys/time.h
+FdSelector.o: /usr/include/sys/types.h /usr/include/unistd.h
+FdSelector.o: /usr/include/bits/posix_opt.h /usr/include/bits/confname.h
+FdSelector.o: /usr/include/errno.h /usr/include/bits/errno.h
+FdSelector.o: /usr/include/linux/errno.h /usr/include/asm/errno.h
+FdSelector.o: /usr/include/asm-generic/errno.h
+FdSelector.o: /usr/include/asm-generic/errno-base.h
+FdSelector.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/FdSelector.h
+FdSelector.o: /usr/include/stdlib.h /usr/include/stdio.h /usr/include/libio.h
+FdSelector.o: /usr/include/_G_config.h /usr/include/wchar.h
+FdSelector.o: /usr/include/bits/wchar.h /usr/include/gconv.h
+FdSelector.o: /usr/lib/gcc-lib/i486-linux/3.3.5/include/stdarg.h
+FdSelector.o: /usr/include/bits/stdio_lim.h /usr/include/bits/sys_errlist.h
+FdSelector.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/Object.h
+FdSelector.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/Selector.h
+FdSelector.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/String.h
+FdSelector.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/Exceptions.h
+FdSelector.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/cstr.h
+ByteArray.o: /usr/include/string.h /usr/include/features.h
+ByteArray.o: /usr/include/sys/cdefs.h /usr/include/gnu/stubs.h
+ByteArray.o: /usr/lib/gcc-lib/i486-linux/3.3.5/include/stddef.h
+ByteArray.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/Object.h
+ByteArray.o: /usr/include/stdlib.h /usr/include/stdio.h
+ByteArray.o: /usr/include/bits/types.h /usr/include/bits/wordsize.h
+ByteArray.o: /usr/include/bits/typesizes.h /usr/include/libio.h
+ByteArray.o: /usr/include/_G_config.h /usr/include/wchar.h
+ByteArray.o: /usr/include/bits/wchar.h /usr/include/gconv.h
+ByteArray.o: /usr/lib/gcc-lib/i486-linux/3.3.5/include/stdarg.h
+ByteArray.o: /usr/include/bits/stdio_lim.h /usr/include/bits/sys_errlist.h
+ByteArray.o: /usr/include/unistd.h /usr/include/bits/posix_opt.h
+ByteArray.o: /usr/include/bits/confname.h
+ByteArray.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/ByteArray.h
+ByteArray.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/DSHArray.h
+ByteArray.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/maindefs.h
+FdRecordReader.o: /usr/include/stdio.h /usr/include/features.h
+FdRecordReader.o: /usr/include/sys/cdefs.h /usr/include/gnu/stubs.h
+FdRecordReader.o: /usr/lib/gcc-lib/i486-linux/3.3.5/include/stddef.h
+FdRecordReader.o: /usr/include/bits/types.h /usr/include/bits/wordsize.h
+FdRecordReader.o: /usr/include/bits/typesizes.h /usr/include/libio.h
+FdRecordReader.o: /usr/include/_G_config.h /usr/include/wchar.h
+FdRecordReader.o: /usr/include/bits/wchar.h /usr/include/gconv.h
+FdRecordReader.o: /usr/lib/gcc-lib/i486-linux/3.3.5/include/stdarg.h
+FdRecordReader.o: /usr/include/bits/stdio_lim.h
+FdRecordReader.o: /usr/include/bits/sys_errlist.h /usr/include/stdlib.h
+FdRecordReader.o: /usr/include/unistd.h /usr/include/bits/posix_opt.h
+FdRecordReader.o: /usr/include/bits/confname.h /usr/include/errno.h
+FdRecordReader.o: /usr/include/bits/errno.h /usr/include/linux/errno.h
+FdRecordReader.o: /usr/include/asm/errno.h /usr/include/asm-generic/errno.h
+FdRecordReader.o: /usr/include/asm-generic/errno-base.h /usr/include/fcntl.h
+FdRecordReader.o: /usr/include/bits/fcntl.h /usr/include/sys/types.h
+FdRecordReader.o: /usr/include/time.h
+FdRecordReader.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/Object.h
+FdRecordReader.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/FdInputStream.h
+FdRecordReader.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/InputStream.h
+FdRecordReader.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/maindefs.h
+FdRecordReader.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/ByteBuffer.h
+FdRecordReader.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/Buffer.h
+FdRecordReader.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/Exceptions.h
+FdRecordReader.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/cstr.h
+FdRecordReader.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/FdRecordReader.h
+FdRecordReader.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/ByteArray.h
+FdRecordReader.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/DSHArray.h
+FdRecordReader.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/RecordReader.h
+FdRecordReader.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/Record.h
+FdRecordReader.o: /usr/include/netinet/in.h /usr/include/stdint.h
+FdRecordReader.o: /usr/include/sys/socket.h /usr/include/sys/uio.h
+FdRecordReader.o: /usr/include/bits/uio.h /usr/include/bits/socket.h
+FdRecordReader.o: /usr/include/limits.h
+FdRecordReader.o: /usr/lib/gcc-lib/i486-linux/3.3.5/include/limits.h
+FdRecordReader.o: /usr/include/bits/sockaddr.h /usr/include/asm/socket.h
+FdRecordReader.o: /usr/include/asm/sockios.h /usr/include/bits/in.h
+FdRecordReader.o: /usr/include/endian.h /usr/include/bits/endian.h
+FdRecordReader.o: /usr/include/bits/byteswap.h
+FdRecordReader.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/String.h
+PipeInjector.o: /usr/include/stdlib.h /usr/include/features.h
+PipeInjector.o: /usr/include/sys/cdefs.h /usr/include/gnu/stubs.h
+PipeInjector.o: /usr/lib/gcc-lib/i486-linux/3.3.5/include/stddef.h
+PipeInjector.o: /usr/include/math.h /usr/include/bits/huge_val.h
+PipeInjector.o: /usr/include/bits/mathdef.h /usr/include/bits/mathcalls.h
+PipeInjector.o: /usr/include/errno.h /usr/include/bits/errno.h
+PipeInjector.o: /usr/include/linux/errno.h /usr/include/asm/errno.h
+PipeInjector.o: /usr/include/asm-generic/errno.h
+PipeInjector.o: /usr/include/asm-generic/errno-base.h /usr/include/limits.h
+PipeInjector.o: /usr/lib/gcc-lib/i486-linux/3.3.5/include/limits.h
+PipeInjector.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/Object.h
+PipeInjector.o: /usr/include/stdio.h /usr/include/bits/types.h
+PipeInjector.o: /usr/include/bits/wordsize.h /usr/include/bits/typesizes.h
+PipeInjector.o: /usr/include/libio.h /usr/include/_G_config.h
+PipeInjector.o: /usr/include/wchar.h /usr/include/bits/wchar.h
+PipeInjector.o: /usr/include/gconv.h
+PipeInjector.o: /usr/lib/gcc-lib/i486-linux/3.3.5/include/stdarg.h
+PipeInjector.o: /usr/include/bits/stdio_lim.h /usr/include/bits/sys_errlist.h
+PipeInjector.o: /usr/include/unistd.h /usr/include/bits/posix_opt.h
+PipeInjector.o: /usr/include/bits/confname.h
+PipeInjector.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/PipeInjector.h
+PipeInjector.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/Runnable.h
+PipeInjector.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/FdInputStream.h
+PipeInjector.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/InputStream.h
+PipeInjector.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/maindefs.h
+PipeInjector.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/ByteBuffer.h
+PipeInjector.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/Buffer.h
+PipeInjector.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/Exceptions.h
+PipeInjector.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/cstr.h
+PipeInjector.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/FdOutputStream.h
+PipeInjector.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/OutputStream.h
+PipeInjector.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/FdRecordReader.h
+PipeInjector.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/ByteArray.h
+PipeInjector.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/DSHArray.h
+PipeInjector.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/RecordReader.h
+PipeInjector.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/Record.h
+PipeInjector.o: /usr/include/time.h /usr/include/netinet/in.h
+PipeInjector.o: /usr/include/stdint.h /usr/include/sys/socket.h
+PipeInjector.o: /usr/include/sys/uio.h /usr/include/sys/types.h
+PipeInjector.o: /usr/include/bits/uio.h /usr/include/bits/socket.h
+PipeInjector.o: /usr/include/bits/sockaddr.h /usr/include/asm/socket.h
+PipeInjector.o: /usr/include/asm/sockios.h /usr/include/bits/in.h
+PipeInjector.o: /usr/include/endian.h /usr/include/bits/endian.h
+PipeInjector.o: /usr/include/bits/byteswap.h
+PipeInjector.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/FdSelector.h
+PipeInjector.o: /usr/include/sys/time.h /usr/include/bits/time.h
+PipeInjector.o: /usr/include/sys/select.h /usr/include/bits/select.h
+PipeInjector.o: /usr/include/bits/sigset.h
+PipeInjector.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/Selector.h
+PipeInjector.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/String.h
+PipeInjector.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/DSHUtils.h
+BufferedRecordReader.o: /usr/include/stdio.h /usr/include/features.h
+BufferedRecordReader.o: /usr/include/sys/cdefs.h /usr/include/gnu/stubs.h
+BufferedRecordReader.o: /usr/lib/gcc-lib/i486-linux/3.3.5/include/stddef.h
+BufferedRecordReader.o: /usr/include/bits/types.h
+BufferedRecordReader.o: /usr/include/bits/wordsize.h
+BufferedRecordReader.o: /usr/include/bits/typesizes.h /usr/include/libio.h
+BufferedRecordReader.o: /usr/include/_G_config.h /usr/include/wchar.h
+BufferedRecordReader.o: /usr/include/bits/wchar.h /usr/include/gconv.h
+BufferedRecordReader.o: /usr/lib/gcc-lib/i486-linux/3.3.5/include/stdarg.h
+BufferedRecordReader.o: /usr/include/bits/stdio_lim.h
+BufferedRecordReader.o: /usr/include/bits/sys_errlist.h /usr/include/stdlib.h
+BufferedRecordReader.o: /usr/include/unistd.h /usr/include/bits/posix_opt.h
+BufferedRecordReader.o: /usr/include/bits/confname.h /usr/include/errno.h
+BufferedRecordReader.o: /usr/include/bits/errno.h /usr/include/linux/errno.h
+BufferedRecordReader.o: /usr/include/asm/errno.h
+BufferedRecordReader.o: /usr/include/asm-generic/errno.h
+BufferedRecordReader.o: /usr/include/asm-generic/errno-base.h
+BufferedRecordReader.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/Object.h
+BufferedRecordReader.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/BufferedRecordReader.h
+BufferedRecordReader.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/FdRecordReader.h
+BufferedRecordReader.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/ByteArray.h
+BufferedRecordReader.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/DSHArray.h
+BufferedRecordReader.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/maindefs.h
+BufferedRecordReader.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/RecordReader.h
+BufferedRecordReader.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/Record.h
+BufferedRecordReader.o: /usr/include/time.h /usr/include/netinet/in.h
+BufferedRecordReader.o: /usr/include/stdint.h /usr/include/sys/socket.h
+BufferedRecordReader.o: /usr/include/sys/uio.h /usr/include/sys/types.h
+BufferedRecordReader.o: /usr/include/bits/uio.h /usr/include/bits/socket.h
+BufferedRecordReader.o: /usr/include/limits.h
+BufferedRecordReader.o: /usr/lib/gcc-lib/i486-linux/3.3.5/include/limits.h
+BufferedRecordReader.o: /usr/include/bits/sockaddr.h
+BufferedRecordReader.o: /usr/include/asm/socket.h /usr/include/asm/sockios.h
+BufferedRecordReader.o: /usr/include/bits/in.h /usr/include/endian.h
+BufferedRecordReader.o: /usr/include/bits/endian.h
+BufferedRecordReader.o: /usr/include/bits/byteswap.h
+BufferedRecordReader.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/FdInputStream.h
+BufferedRecordReader.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/InputStream.h
+BufferedRecordReader.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/ByteBuffer.h
+BufferedRecordReader.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/Buffer.h
+BufferedRecordReader.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/Exceptions.h
+BufferedRecordReader.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/cstr.h
+BufferedRecordReader.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/String.h
+BufferedReader.o: /usr/include/stdio.h /usr/include/features.h
+BufferedReader.o: /usr/include/sys/cdefs.h /usr/include/gnu/stubs.h
+BufferedReader.o: /usr/lib/gcc-lib/i486-linux/3.3.5/include/stddef.h
+BufferedReader.o: /usr/include/bits/types.h /usr/include/bits/wordsize.h
+BufferedReader.o: /usr/include/bits/typesizes.h /usr/include/libio.h
+BufferedReader.o: /usr/include/_G_config.h /usr/include/wchar.h
+BufferedReader.o: /usr/include/bits/wchar.h /usr/include/gconv.h
+BufferedReader.o: /usr/lib/gcc-lib/i486-linux/3.3.5/include/stdarg.h
+BufferedReader.o: /usr/include/bits/stdio_lim.h
+BufferedReader.o: /usr/include/bits/sys_errlist.h /usr/include/stdlib.h
+BufferedReader.o: /usr/include/unistd.h /usr/include/bits/posix_opt.h
+BufferedReader.o: /usr/include/bits/confname.h /usr/include/errno.h
+BufferedReader.o: /usr/include/bits/errno.h /usr/include/linux/errno.h
+BufferedReader.o: /usr/include/asm/errno.h /usr/include/asm-generic/errno.h
+BufferedReader.o: /usr/include/asm-generic/errno-base.h
+BufferedReader.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/Object.h
+BufferedReader.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/BufferedReader.h
+BufferedReader.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/Reader.h
+BufferedReader.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/maindefs.h
+BufferedReader.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/ByteArray.h
+BufferedReader.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/DSHArray.h
+BufferedReader.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/String.h
+BufferedReader.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/Exceptions.h
+BufferedReader.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/cstr.h
+BufferedReader.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/InputStream.h
+BufferedWriter.o: /usr/include/stdio.h /usr/include/features.h
+BufferedWriter.o: /usr/include/sys/cdefs.h /usr/include/gnu/stubs.h
+BufferedWriter.o: /usr/lib/gcc-lib/i486-linux/3.3.5/include/stddef.h
+BufferedWriter.o: /usr/include/bits/types.h /usr/include/bits/wordsize.h
+BufferedWriter.o: /usr/include/bits/typesizes.h /usr/include/libio.h
+BufferedWriter.o: /usr/include/_G_config.h /usr/include/wchar.h
+BufferedWriter.o: /usr/include/bits/wchar.h /usr/include/gconv.h
+BufferedWriter.o: /usr/lib/gcc-lib/i486-linux/3.3.5/include/stdarg.h
+BufferedWriter.o: /usr/include/bits/stdio_lim.h
+BufferedWriter.o: /usr/include/bits/sys_errlist.h /usr/include/stdlib.h
+BufferedWriter.o: /usr/include/unistd.h /usr/include/bits/posix_opt.h
+BufferedWriter.o: /usr/include/bits/confname.h /usr/include/errno.h
+BufferedWriter.o: /usr/include/bits/errno.h /usr/include/linux/errno.h
+BufferedWriter.o: /usr/include/asm/errno.h /usr/include/asm-generic/errno.h
+BufferedWriter.o: /usr/include/asm-generic/errno-base.h
+BufferedWriter.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/Object.h
+BufferedWriter.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/BufferedWriter.h
+BufferedWriter.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/Writer.h
+BufferedWriter.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/maindefs.h
+BufferedWriter.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/ByteArray.h
+BufferedWriter.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/DSHArray.h
+BufferedWriter.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/String.h
+BufferedWriter.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/Exceptions.h
+BufferedWriter.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/cstr.h
+BufferedWriter.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/OutputStream.h
+FdRecordWriter.o: /usr/include/stdio.h /usr/include/features.h
+FdRecordWriter.o: /usr/include/sys/cdefs.h /usr/include/gnu/stubs.h
+FdRecordWriter.o: /usr/lib/gcc-lib/i486-linux/3.3.5/include/stddef.h
+FdRecordWriter.o: /usr/include/bits/types.h /usr/include/bits/wordsize.h
+FdRecordWriter.o: /usr/include/bits/typesizes.h /usr/include/libio.h
+FdRecordWriter.o: /usr/include/_G_config.h /usr/include/wchar.h
+FdRecordWriter.o: /usr/include/bits/wchar.h /usr/include/gconv.h
+FdRecordWriter.o: /usr/lib/gcc-lib/i486-linux/3.3.5/include/stdarg.h
+FdRecordWriter.o: /usr/include/bits/stdio_lim.h
+FdRecordWriter.o: /usr/include/bits/sys_errlist.h /usr/include/stdlib.h
+FdRecordWriter.o: /usr/include/unistd.h /usr/include/bits/posix_opt.h
+FdRecordWriter.o: /usr/include/bits/confname.h /usr/include/errno.h
+FdRecordWriter.o: /usr/include/bits/errno.h /usr/include/linux/errno.h
+FdRecordWriter.o: /usr/include/asm/errno.h /usr/include/asm-generic/errno.h
+FdRecordWriter.o: /usr/include/asm-generic/errno-base.h /usr/include/fcntl.h
+FdRecordWriter.o: /usr/include/bits/fcntl.h /usr/include/sys/types.h
+FdRecordWriter.o: /usr/include/time.h
+FdRecordWriter.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/Object.h
+FdRecordWriter.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/FdOutputStream.h
+FdRecordWriter.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/OutputStream.h
+FdRecordWriter.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/maindefs.h
+FdRecordWriter.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/ByteBuffer.h
+FdRecordWriter.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/Buffer.h
+FdRecordWriter.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/Exceptions.h
+FdRecordWriter.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/cstr.h
+FdRecordWriter.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/FdRecordWriter.h
+FdRecordWriter.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/ByteArray.h
+FdRecordWriter.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/DSHArray.h
+FdRecordWriter.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/RecordWriter.h
+FdRecordWriter.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/Record.h
+FdRecordWriter.o: /usr/include/netinet/in.h /usr/include/stdint.h
+FdRecordWriter.o: /usr/include/sys/socket.h /usr/include/sys/uio.h
+FdRecordWriter.o: /usr/include/bits/uio.h /usr/include/bits/socket.h
+FdRecordWriter.o: /usr/include/limits.h
+FdRecordWriter.o: /usr/lib/gcc-lib/i486-linux/3.3.5/include/limits.h
+FdRecordWriter.o: /usr/include/bits/sockaddr.h /usr/include/asm/socket.h
+FdRecordWriter.o: /usr/include/asm/sockios.h /usr/include/bits/in.h
+FdRecordWriter.o: /usr/include/endian.h /usr/include/bits/endian.h
+FdRecordWriter.o: /usr/include/bits/byteswap.h
+FdRecordWriter.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/String.h
+BufferedRecordWriter.o: /usr/include/stdio.h /usr/include/features.h
+BufferedRecordWriter.o: /usr/include/sys/cdefs.h /usr/include/gnu/stubs.h
+BufferedRecordWriter.o: /usr/lib/gcc-lib/i486-linux/3.3.5/include/stddef.h
+BufferedRecordWriter.o: /usr/include/bits/types.h
+BufferedRecordWriter.o: /usr/include/bits/wordsize.h
+BufferedRecordWriter.o: /usr/include/bits/typesizes.h /usr/include/libio.h
+BufferedRecordWriter.o: /usr/include/_G_config.h /usr/include/wchar.h
+BufferedRecordWriter.o: /usr/include/bits/wchar.h /usr/include/gconv.h
+BufferedRecordWriter.o: /usr/lib/gcc-lib/i486-linux/3.3.5/include/stdarg.h
+BufferedRecordWriter.o: /usr/include/bits/stdio_lim.h
+BufferedRecordWriter.o: /usr/include/bits/sys_errlist.h /usr/include/stdlib.h
+BufferedRecordWriter.o: /usr/include/unistd.h /usr/include/bits/posix_opt.h
+BufferedRecordWriter.o: /usr/include/bits/confname.h /usr/include/errno.h
+BufferedRecordWriter.o: /usr/include/bits/errno.h /usr/include/linux/errno.h
+BufferedRecordWriter.o: /usr/include/asm/errno.h
+BufferedRecordWriter.o: /usr/include/asm-generic/errno.h
+BufferedRecordWriter.o: /usr/include/asm-generic/errno-base.h
+BufferedRecordWriter.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/Object.h
+BufferedRecordWriter.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/BufferedRecordWriter.h
+BufferedRecordWriter.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/FdRecordWriter.h
+BufferedRecordWriter.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/ByteArray.h
+BufferedRecordWriter.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/DSHArray.h
+BufferedRecordWriter.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/maindefs.h
+BufferedRecordWriter.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/RecordWriter.h
+BufferedRecordWriter.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/Record.h
+BufferedRecordWriter.o: /usr/include/time.h /usr/include/netinet/in.h
+BufferedRecordWriter.o: /usr/include/stdint.h /usr/include/sys/socket.h
+BufferedRecordWriter.o: /usr/include/sys/uio.h /usr/include/sys/types.h
+BufferedRecordWriter.o: /usr/include/bits/uio.h /usr/include/bits/socket.h
+BufferedRecordWriter.o: /usr/include/limits.h
+BufferedRecordWriter.o: /usr/lib/gcc-lib/i486-linux/3.3.5/include/limits.h
+BufferedRecordWriter.o: /usr/include/bits/sockaddr.h
+BufferedRecordWriter.o: /usr/include/asm/socket.h /usr/include/asm/sockios.h
+BufferedRecordWriter.o: /usr/include/bits/in.h /usr/include/endian.h
+BufferedRecordWriter.o: /usr/include/bits/endian.h
+BufferedRecordWriter.o: /usr/include/bits/byteswap.h
+BufferedRecordWriter.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/String.h
+BufferedRecordWriter.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/Exceptions.h
+BufferedRecordWriter.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/cstr.h
+BufferedRecordWriter.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/OutputStream.h
+FSUtils.o: /usr/include/stdlib.h /usr/include/features.h
+FSUtils.o: /usr/include/sys/cdefs.h /usr/include/gnu/stubs.h
+FSUtils.o: /usr/lib/gcc-lib/i486-linux/3.3.5/include/stddef.h
+FSUtils.o: /usr/include/stdio.h /usr/include/bits/types.h
+FSUtils.o: /usr/include/bits/wordsize.h /usr/include/bits/typesizes.h
+FSUtils.o: /usr/include/libio.h /usr/include/_G_config.h /usr/include/wchar.h
+FSUtils.o: /usr/include/bits/wchar.h /usr/include/gconv.h
+FSUtils.o: /usr/lib/gcc-lib/i486-linux/3.3.5/include/stdarg.h
+FSUtils.o: /usr/include/bits/stdio_lim.h /usr/include/bits/sys_errlist.h
+FSUtils.o: /usr/include/sys/time.h /usr/include/time.h
+FSUtils.o: /usr/include/bits/time.h /usr/include/sys/select.h
+FSUtils.o: /usr/include/bits/select.h /usr/include/bits/sigset.h
+FSUtils.o: /usr/include/sys/types.h /usr/include/sys/stat.h
+FSUtils.o: /usr/include/bits/stat.h /usr/include/unistd.h
+FSUtils.o: /usr/include/bits/posix_opt.h /usr/include/bits/confname.h
+FSUtils.o: /usr/include/string.h /usr/include/errno.h
+FSUtils.o: /usr/include/bits/errno.h /usr/include/linux/errno.h
+FSUtils.o: /usr/include/asm/errno.h /usr/include/asm-generic/errno.h
+FSUtils.o: /usr/include/asm-generic/errno-base.h /usr/include/dirent.h
+FSUtils.o: /usr/include/bits/dirent.h /usr/include/fnmatch.h
+FSUtils.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/FSUtils.h
+FSUtils.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/Object.h
+FSUtils.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/String.h
+FSUtils.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/Exceptions.h
+FSUtils.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/cstr.h
+FSUtils.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/StringArray.h
+FSUtils.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/DSHArray.h
+FSUtils.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/maindefs.h
+StringUtils.o: /usr/include/stdlib.h /usr/include/features.h
+StringUtils.o: /usr/include/sys/cdefs.h /usr/include/gnu/stubs.h
+StringUtils.o: /usr/lib/gcc-lib/i486-linux/3.3.5/include/stddef.h
+StringUtils.o: /usr/include/stdio.h /usr/include/bits/types.h
+StringUtils.o: /usr/include/bits/wordsize.h /usr/include/bits/typesizes.h
+StringUtils.o: /usr/include/libio.h /usr/include/_G_config.h
+StringUtils.o: /usr/include/wchar.h /usr/include/bits/wchar.h
+StringUtils.o: /usr/include/gconv.h
+StringUtils.o: /usr/lib/gcc-lib/i486-linux/3.3.5/include/stdarg.h
+StringUtils.o: /usr/include/bits/stdio_lim.h /usr/include/bits/sys_errlist.h
+StringUtils.o: /usr/include/sys/time.h /usr/include/time.h
+StringUtils.o: /usr/include/bits/time.h /usr/include/sys/select.h
+StringUtils.o: /usr/include/bits/select.h /usr/include/bits/sigset.h
+StringUtils.o: /usr/include/sys/types.h /usr/include/sys/stat.h
+StringUtils.o: /usr/include/bits/stat.h /usr/include/unistd.h
+StringUtils.o: /usr/include/bits/posix_opt.h /usr/include/bits/confname.h
+StringUtils.o: /usr/include/string.h /usr/include/errno.h
+StringUtils.o: /usr/include/bits/errno.h /usr/include/linux/errno.h
+StringUtils.o: /usr/include/asm/errno.h /usr/include/asm-generic/errno.h
+StringUtils.o: /usr/include/asm-generic/errno-base.h /usr/include/math.h
+StringUtils.o: /usr/include/bits/huge_val.h /usr/include/bits/mathdef.h
+StringUtils.o: /usr/include/bits/mathcalls.h /usr/include/limits.h
+StringUtils.o: /usr/lib/gcc-lib/i486-linux/3.3.5/include/limits.h
+StringUtils.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/StringUtils.h
+StringUtils.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/Object.h
+StringUtils.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/String.h
+StringUtils.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/Exceptions.h
+StringUtils.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/cstr.h
+StringArray.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/Object.h
+StringArray.o: /usr/include/stdlib.h /usr/include/features.h
+StringArray.o: /usr/include/sys/cdefs.h /usr/include/gnu/stubs.h
+StringArray.o: /usr/lib/gcc-lib/i486-linux/3.3.5/include/stddef.h
+StringArray.o: /usr/include/stdio.h /usr/include/bits/types.h
+StringArray.o: /usr/include/bits/wordsize.h /usr/include/bits/typesizes.h
+StringArray.o: /usr/include/libio.h /usr/include/_G_config.h
+StringArray.o: /usr/include/wchar.h /usr/include/bits/wchar.h
+StringArray.o: /usr/include/gconv.h
+StringArray.o: /usr/lib/gcc-lib/i486-linux/3.3.5/include/stdarg.h
+StringArray.o: /usr/include/bits/stdio_lim.h /usr/include/bits/sys_errlist.h
+StringArray.o: /usr/include/unistd.h /usr/include/bits/posix_opt.h
+StringArray.o: /usr/include/bits/confname.h
+StringArray.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/StringArray.h
+StringArray.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/DSHArray.h
+StringArray.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/maindefs.h
+StringArray.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/String.h
+StringArray.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/Exceptions.h
+StringArray.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/cstr.h
+DSHUtils.o: /usr/include/stdlib.h /usr/include/features.h
+DSHUtils.o: /usr/include/sys/cdefs.h /usr/include/gnu/stubs.h
+DSHUtils.o: /usr/lib/gcc-lib/i486-linux/3.3.5/include/stddef.h
+DSHUtils.o: /usr/include/stdio.h /usr/include/bits/types.h
+DSHUtils.o: /usr/include/bits/wordsize.h /usr/include/bits/typesizes.h
+DSHUtils.o: /usr/include/libio.h /usr/include/_G_config.h
+DSHUtils.o: /usr/include/wchar.h /usr/include/bits/wchar.h
+DSHUtils.o: /usr/include/gconv.h
+DSHUtils.o: /usr/lib/gcc-lib/i486-linux/3.3.5/include/stdarg.h
+DSHUtils.o: /usr/include/bits/stdio_lim.h /usr/include/bits/sys_errlist.h
+DSHUtils.o: /usr/include/sys/time.h /usr/include/time.h
+DSHUtils.o: /usr/include/bits/time.h /usr/include/sys/select.h
+DSHUtils.o: /usr/include/bits/select.h /usr/include/bits/sigset.h
+DSHUtils.o: /usr/include/sys/types.h /usr/include/sys/stat.h
+DSHUtils.o: /usr/include/bits/stat.h /usr/include/unistd.h
+DSHUtils.o: /usr/include/bits/posix_opt.h /usr/include/bits/confname.h
+DSHUtils.o: /usr/include/string.h /usr/include/errno.h
+DSHUtils.o: /usr/include/bits/errno.h /usr/include/linux/errno.h
+DSHUtils.o: /usr/include/asm/errno.h /usr/include/asm-generic/errno.h
+DSHUtils.o: /usr/include/asm-generic/errno-base.h /usr/include/dirent.h
+DSHUtils.o: /usr/include/bits/dirent.h /usr/include/fnmatch.h
+DSHUtils.o: /usr/include/ctype.h /usr/include/endian.h
+DSHUtils.o: /usr/include/bits/endian.h
+DSHUtils.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/DSHUtils.h
+DSHUtils.o: /usr/include/netinet/in.h /usr/include/stdint.h
+DSHUtils.o: /usr/include/sys/socket.h /usr/include/sys/uio.h
+DSHUtils.o: /usr/include/bits/uio.h /usr/include/bits/socket.h
+DSHUtils.o: /usr/include/limits.h
+DSHUtils.o: /usr/lib/gcc-lib/i486-linux/3.3.5/include/limits.h
+DSHUtils.o: /usr/include/bits/sockaddr.h /usr/include/asm/socket.h
+DSHUtils.o: /usr/include/asm/sockios.h /usr/include/bits/in.h
+DSHUtils.o: /usr/include/bits/byteswap.h
+DSHUtils.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/String.h
+DSHUtils.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/Exceptions.h
+DSHUtils.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/cstr.h
+DSHUtils.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/StringArray.h
+DSHUtils.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/DSHArray.h
+DSHUtils.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/maindefs.h
+DSHUtils.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/IntArray.h
+DSHUtils.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/Object.h
+DSHUtils.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/ByteArray.h
+DSHUtils.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/StringUtils.h
+DSHUtils.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/FSUtils.h
+DSHUtils.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/Record.h
+IntArray.o: /usr/include/string.h /usr/include/features.h
+IntArray.o: /usr/include/sys/cdefs.h /usr/include/gnu/stubs.h
+IntArray.o: /usr/lib/gcc-lib/i486-linux/3.3.5/include/stddef.h
+IntArray.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/Object.h
+IntArray.o: /usr/include/stdlib.h /usr/include/stdio.h
+IntArray.o: /usr/include/bits/types.h /usr/include/bits/wordsize.h
+IntArray.o: /usr/include/bits/typesizes.h /usr/include/libio.h
+IntArray.o: /usr/include/_G_config.h /usr/include/wchar.h
+IntArray.o: /usr/include/bits/wchar.h /usr/include/gconv.h
+IntArray.o: /usr/lib/gcc-lib/i486-linux/3.3.5/include/stdarg.h
+IntArray.o: /usr/include/bits/stdio_lim.h /usr/include/bits/sys_errlist.h
+IntArray.o: /usr/include/unistd.h /usr/include/bits/posix_opt.h
+IntArray.o: /usr/include/bits/confname.h
+IntArray.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/IntArray.h
+WordArray.o: /usr/include/string.h /usr/include/features.h
+WordArray.o: /usr/include/sys/cdefs.h /usr/include/gnu/stubs.h
+WordArray.o: /usr/lib/gcc-lib/i486-linux/3.3.5/include/stddef.h
+WordArray.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/Object.h
+WordArray.o: /usr/include/stdlib.h /usr/include/stdio.h
+WordArray.o: /usr/include/bits/types.h /usr/include/bits/wordsize.h
+WordArray.o: /usr/include/bits/typesizes.h /usr/include/libio.h
+WordArray.o: /usr/include/_G_config.h /usr/include/wchar.h
+WordArray.o: /usr/include/bits/wchar.h /usr/include/gconv.h
+WordArray.o: /usr/lib/gcc-lib/i486-linux/3.3.5/include/stdarg.h
+WordArray.o: /usr/include/bits/stdio_lim.h /usr/include/bits/sys_errlist.h
+WordArray.o: /usr/include/unistd.h /usr/include/bits/posix_opt.h
+WordArray.o: /usr/include/bits/confname.h
+WordArray.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/WordArray.h
+WordArray.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/DSHArray.h
+WordArray.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/maindefs.h
+DWordArray.o: /usr/include/string.h /usr/include/features.h
+DWordArray.o: /usr/include/sys/cdefs.h /usr/include/gnu/stubs.h
+DWordArray.o: /usr/lib/gcc-lib/i486-linux/3.3.5/include/stddef.h
+DWordArray.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/Object.h
+DWordArray.o: /usr/include/stdlib.h /usr/include/stdio.h
+DWordArray.o: /usr/include/bits/types.h /usr/include/bits/wordsize.h
+DWordArray.o: /usr/include/bits/typesizes.h /usr/include/libio.h
+DWordArray.o: /usr/include/_G_config.h /usr/include/wchar.h
+DWordArray.o: /usr/include/bits/wchar.h /usr/include/gconv.h
+DWordArray.o: /usr/lib/gcc-lib/i486-linux/3.3.5/include/stdarg.h
+DWordArray.o: /usr/include/bits/stdio_lim.h /usr/include/bits/sys_errlist.h
+DWordArray.o: /usr/include/unistd.h /usr/include/bits/posix_opt.h
+DWordArray.o: /usr/include/bits/confname.h
+DWordArray.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/DWordArray.h
+DWordArray.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/DSHArray.h
+DWordArray.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/maindefs.h
+BinaryRecordReader.o: /usr/include/stdio.h /usr/include/features.h
+BinaryRecordReader.o: /usr/include/sys/cdefs.h /usr/include/gnu/stubs.h
+BinaryRecordReader.o: /usr/lib/gcc-lib/i486-linux/3.3.5/include/stddef.h
+BinaryRecordReader.o: /usr/include/bits/types.h /usr/include/bits/wordsize.h
+BinaryRecordReader.o: /usr/include/bits/typesizes.h /usr/include/libio.h
+BinaryRecordReader.o: /usr/include/_G_config.h /usr/include/wchar.h
+BinaryRecordReader.o: /usr/include/bits/wchar.h /usr/include/gconv.h
+BinaryRecordReader.o: /usr/lib/gcc-lib/i486-linux/3.3.5/include/stdarg.h
+BinaryRecordReader.o: /usr/include/bits/stdio_lim.h
+BinaryRecordReader.o: /usr/include/bits/sys_errlist.h /usr/include/stdlib.h
+BinaryRecordReader.o: /usr/include/unistd.h /usr/include/bits/posix_opt.h
+BinaryRecordReader.o: /usr/include/bits/confname.h /usr/include/errno.h
+BinaryRecordReader.o: /usr/include/bits/errno.h /usr/include/linux/errno.h
+BinaryRecordReader.o: /usr/include/asm/errno.h
+BinaryRecordReader.o: /usr/include/asm-generic/errno.h
+BinaryRecordReader.o: /usr/include/asm-generic/errno-base.h
+BinaryRecordReader.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/Object.h
+BinaryRecordReader.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/BinaryRecordReader.h
+BinaryRecordReader.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/FdRecordReader.h
+BinaryRecordReader.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/ByteArray.h
+BinaryRecordReader.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/DSHArray.h
+BinaryRecordReader.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/maindefs.h
+BinaryRecordReader.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/RecordReader.h
+BinaryRecordReader.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/Record.h
+BinaryRecordReader.o: /usr/include/time.h /usr/include/netinet/in.h
+BinaryRecordReader.o: /usr/include/stdint.h /usr/include/sys/socket.h
+BinaryRecordReader.o: /usr/include/sys/uio.h /usr/include/sys/types.h
+BinaryRecordReader.o: /usr/include/bits/uio.h /usr/include/bits/socket.h
+BinaryRecordReader.o: /usr/include/limits.h
+BinaryRecordReader.o: /usr/lib/gcc-lib/i486-linux/3.3.5/include/limits.h
+BinaryRecordReader.o: /usr/include/bits/sockaddr.h /usr/include/asm/socket.h
+BinaryRecordReader.o: /usr/include/asm/sockios.h /usr/include/bits/in.h
+BinaryRecordReader.o: /usr/include/endian.h /usr/include/bits/endian.h
+BinaryRecordReader.o: /usr/include/bits/byteswap.h
+BinaryRecordReader.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/FdInputStream.h
+BinaryRecordReader.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/InputStream.h
+BinaryRecordReader.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/ByteBuffer.h
+BinaryRecordReader.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/Buffer.h
+BinaryRecordReader.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/Exceptions.h
+BinaryRecordReader.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/cstr.h
+BinaryRecordReader.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/String.h
+BinaryRecordReader.o: /user/kasten/Local/DAQ/Highway/daqhighway/include/dshapi/DSHUtils.h
+BinaryRecordReader.o: /usr/include/sys/time.h /usr/include/bits/time.h
+BinaryRecordReader.o: /usr/include/sys/select.h /usr/include/bits/select.h
+BinaryRecordReader.o: /usr/include/bits/sigset.h

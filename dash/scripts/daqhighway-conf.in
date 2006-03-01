@@ -1,0 +1,102 @@
+#!/bin/sh
+
+PATH=/bin:/usr/bin:/usr/local/bin:@prefix@/bin
+export PATH
+
+#-----------------------------------------------------------------------
+# Display this script's usage
+#-----------------------------------------------------------------------
+function usage() 
+{
+  echo "$1 Options are:" 1>&2 
+  echo "     --daqdir --daqbin --daqlib --daqinc " 1>&2
+  echo "     --libs --cflags --bin" 1>&2
+  echo "     --version --help" 1>&2
+  echo "     --builtwith --cxx --license" 1>&2
+}
+
+#-----------------------------------------------------------------------
+# Display the DAQHighway license
+#-----------------------------------------------------------------------
+function license() 
+{
+cat << EOT
+
+Copyright (C) 2005 by the Board of Trustees of Michigan State University.
+You may use this software under the terms of the GNU public license
+(GPL).  The terms of this license are described at:
+http://www.gnu.org/licenses/gpl.txt
+
+EOT
+}
+
+
+#-----------------------------------------------------------------------
+# Main processing
+#-----------------------------------------------------------------------
+if [ -z "$1" ]; then
+  usage $0 
+  exit -1
+fi
+
+DAQ_DIR=@prefix@
+DAQ_BIN=@prefix@/bin
+DAQ_INC=@prefix@/include/daqhwy
+DAQ_LIB=@prefix@/lib
+VERSION="@DAQHWY_VERSION@"
+CXXVERSION="@CXX_STR_VERSION@"
+CPPVERSION="@CPP_STR_VERSION@"
+CXXPROG="@CXX@"
+CPPPROG="@CXXCPP@"
+GXX="@GXX@"
+
+ARGS=""
+for arg in $*; do
+  case $arg in
+  --daqdir)
+    ARGS="$ARGS $DAQ_DIR" 
+    ;;
+  --daqbin)
+    ARGS="$ARGS $DAQ_BIN" 
+    ;;
+  --daqlib)
+    ARGS="$ARGS $DAQ_LIB" 
+    ;;
+  --daqinc)
+    ARGS="$ARGS $DAQ_INC" 
+    ;;
+  --libs)
+    ARGS="$ARGS $THREADLIBS -L$DAQ_LIB -ldaqhwyapi" 
+    ;;
+  --cflags)
+    ARGS="$ARGS -O3 -Wno-long-long -Wshadow -Wunused -Wreturn-type -Wuninitialized -D_REENTRANT=1 -I$DAQ_INC -I$DAQ_INC/dshapi"
+    ;;
+  --bin)
+    ARGS="$ARGS $DAQ_BIN" 
+    ;;
+  --version)
+    ARGS="$ARGS $VERSION"
+    ;;
+  --builtwith)
+    ARGS="$ARGS gxx=$GXX cpp($CPPPROG)=$CPPVERSION cxx($CXXPROG)=$CXXVERSION"
+    ;;
+  --cxx)
+    ARGS="$CXXPROG"
+    ;;
+  --license)
+    license
+    ;;
+  --help)
+    usage $0
+    exit -1
+    ;;
+  *) 
+    echo "$0 I don't grok the argument: $arg" 1>&2
+    exit -1
+    ;;
+esac
+done
+
+echo $ARGS
+
+exit 0 

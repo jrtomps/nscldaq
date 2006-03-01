@@ -1,0 +1,49 @@
+@VERSION
+dummyproducer 1.82
+
+Copyright (C) 2005 by the Board of Trustees of Michigan State University.
+You may use this software under the terms of the GNU public license
+(GPL).  The terms of this license are described at:
+http://www.gnu.org/licenses/gpl.txt
+
+Written by E. Kasten.
+@HELP
+Output random sized records from a dummy DAQ experiment.  Each
+execution of dummyproducer begins with a BEGINRUN record and
+ends with either an ENDRUN or BADEND record depending on how
+the producer was terminated.  If dummyproducer is terminated
+with a SIGINT (Ctrl-C), then dummyproducer emits an
+ENDRUN record.  If dummyproducer is terminated by a SIGTERM, 
+then dummyproducer will emit a BADEND record prior to exiting.
+All other records are of type PHYSICS.
+
+Usage: dummyproducer --run=INTEGER [OPTION]...
+
+Options:
+  --version         Output version information and exit     
+  --help            Display this help and exit
+  --debug=SECONDS   Output a debugging command and wait SECONDS
+                        before beginning execution of main loop
+
+  --size=INTEGER    Specify a fixed record size.  The default
+                    is to generate random sized records up to a
+                    maximum of 64K.
+
+  --run=INTEGER     Mandatory. Specify experiment run number
+  --delay=MICROSECONDS Output occurs at a delay rate of MICROSECONDS
+  --title=STRING     Experiment title string
+
+  --packet=PACKET   Emitted records will have a record type of PACKET.
+                    PACKET may be an integer or the symbolic name for 
+                    a well known packet type such as Physics.  If this
+                    parameter is not specified, the default record
+                    type is Physics.
+
+Examples:
+  dummyproducer --run=45 --title="Experiment number 45" 
+         Produce records using run number 45 and title
+         "Experiment number 45."
+
+  dummyproducer --run=123 --delay=1000000 | recorddump 
+         Produce records using run number 123 once per second
+         and pipe them into program recorddump.

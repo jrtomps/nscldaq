@@ -1,0 +1,38 @@
+@VERSION
+Readout 1.82
+
+Copyright (C) 2005 by the Board of Trustees of Michigan State University.
+You may use this software under the terms of the GNU public license
+(GPL).  The terms of this license are described at:
+http://www.gnu.org/licenses/gpl.txt
+
+Written by E. Kasten.
+@HELP
+Read experiment input from DAQ hardware and output event records. 
+Each execution of Readout begins with a BEGINRUN record and
+ends with either an ENDRUN or BADEND record depending on how
+Readout was terminated.  If Readout is terminated
+with a SIGINT (Ctrl-C), then Readout emits an
+ENDRUN record.  If Readout is terminated by a SIGTERM, 
+then Readout will emit a BADEND record prior to exiting.
+All other records are of type PHYSICS.
+
+Usage: Readout --run=INTEGER [OPTION]...
+
+Options:
+  --version         Output version information and exit     
+  --help            Display this help and exit
+  --debug=SECONDS   Output a debugging command and wait SECONDS
+                        before beginning execution of main loop
+
+  --run=INTEGER     Mandatory. Specify experiment run number
+  --title=STRING     Experiment title string
+
+Examples:
+  Readout --run=45 --title="Experiment number 45" 
+         Produce records using run number 45 and title
+         "Experiment number 45."
+
+  Readout --run=123 --title="A cool experiment" | recorddump 
+         Produce records using run number 123 and title
+         "A cool experiment" and pipe them into program recorddump.

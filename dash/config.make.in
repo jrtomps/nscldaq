@@ -1,0 +1,89 @@
+SHELL = /bin/sh -e
+
+srcdir = @srcdir@
+VPATH = @srcdir@
+
+prefix = @prefix@
+exec_prefix = @exec_prefix@
+
+bindir = @bindir@
+sbindir = @sbindir@
+libexecdir = @libexecdir@
+datadir = @datadir@
+sysconfdir = @sysconfdir@
+sharedstatedir = @sharedstatedir@
+localstatedir = @localstatedir@
+libdir = @libdir@
+infodir = @infodir@
+mandir = @mandir@
+includedir = @includedir@
+
+TOPDIR=@TOPDIR@
+DAQHWY_VERSION=@DAQHWY_VERSION@
+
+APILIB=@TOPDIR@/lib/libdaqhwyapi.a
+DAQLIB=@TOPDIR@/lib/libdaqhwy.a
+DAQINCDIR=@TOPDIR@/include/
+APIINCDIR=@TOPDIR@/include/dshapi
+USAGEINCDIR=@TOPDIR@/include/dshusage
+DAQBINDIR=@TOPDIR@/bin
+DAQMANDIR=@TOPDIR@/man/
+
+INST_LIBDIR=@prefix@/lib/
+INST_BINDIR=@prefix@/bin/
+INST_EXMPDIR=@prefix@/examples/daqhwy/
+INST_CONFDIR=@prefix@/etc/
+INST_DOCDIR=@prefix@/doc/daqhwy/
+INST_DAQLIB=@prefix@/lib/libdaqhwy.a
+INST_APILIB=@prefix@/lib/libdaqhwyapi.a
+INST_DAQINCDIR=@prefix@/include/daqhwy/
+INST_APIINCDIR=@prefix@/include/daqhwy/dshapi
+INST_USAGEINCDIR=@prefix@/include/daqhwy/dshusage
+INST_DAQDOCDIR=@prefix@/doc/daqhwy/
+INST_DAQMANDIR=@prefix@/man/
+
+FLAGS=@COMPILER_VERSION@ @CFLAGS@ -D_REENTRANT=1 -I$(DAQINCDIR) 
+CFLAGS=@COMPILER_VERSION@ @CFLAGS@ -D_REENTRANT=1 -I$(DAQINCDIR)
+CXXFLAGS=@COMPILER_VERSION@ @CXXFLAGS@ -D_REENTRANT=1 -I$(DAQINCDIR)
+COMPILER_VERSION=@COMPILER_VERSION@
+CC=@CXX@
+CXX=@CXX@
+RANLIB=@RANLIB@
+AR=@AR@
+CP=@CP@
+MAKEDEP=@MAKEDEP@ @makedep_header@
+TOUCH=@TOUCH@
+BININST=@BININST@
+DIRINST=@DIRINST@
+INSTALL=@INSTALL@
+MKDIR=@MKDIR@
+
+%.o: %.cpp
+	@echo "Compiling @CXX_STR_VERSION@: $<"
+	@AT_BUILD@$(CXX) -c $(CXXFLAGS) $(CPPFLAGS) -o $@ $<
+
+%.o: %.cc
+	@echo "Compiling @CXX_STR_VERSION@: $<"
+	@AT_BUILD@$(CXX) -c $(CXXFLAGS) $(CPPFLAGS) -o $@ $<
+
+%.o: %.c
+	@echo "Compiling @CXX_STR_VERSION@: $<"
+	@AT_BUILD@$(CXX) -c $(CXXFLAGS) $(CPPFLAGS) -o $@ $<
+
+O_FILES=$(addsuffix .o,$(FILES))
+C_FILES=$(addsuffix .cc,$(FILES))
+
+build: all
+
+depend::
+	@echo "Creating Dependencies in: $(shell pwd)"
+	@:> .depend
+	@AT_BUILD@$(MAKEDEP) -- $(CFLAGS) -- $(C_FILES) 1>/dev/null 2>&1
+ifneq (,$(strip $(SUB_DIRS)))
+	for i in $(SUB_DIRS); do \
+          echo "Making $@ in $$i..."; \
+          (cd $$i && make -s $@) || \
+          case "$$MAKEFLAGS" in *k*) FAIL="yes";; *) exit 1;; esac; \
+        done; test -z "$$FAIL"
+endif
+

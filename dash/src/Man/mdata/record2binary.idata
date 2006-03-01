@@ -1,0 +1,41 @@
+@VERSION
+record2binary key_DAQHWY_VERSION
+
+Copyright (C) 2005 by the Board of Trustees of Michigan State University.
+You may use this software under the terms of the GNU public license
+(GPL).  The terms of this license are described at:
+http://www.gnu.org/licenses/gpl.txt
+
+Written by E. Kasten.
+@HELP
+Convert DSH records directory into binary data.  Binary data is
+data stream consisting of records with a leading length field, 
+written as an integer in host byte order, followed by data bytes.
+Control records, such as BEGINRUN, ENDRUN, BADEND and CONTINUE,
+are consumed and not passed to stdout as part of the raw data
+stream.
+
+Usage: record2binary [OPTION]...
+
+Options:
+  --version         Output version information and exit     
+  --help            Display this help and exit
+  --debug=SECONDS   Output a debugging command and wait SECONDS
+                        before beginning execution of main loop
+
+  --typed           Output typed binary data.  That is, add a 
+                    host-byte-order integer field that indicates the 
+                    record type following the length field.
+
+Examples:
+  daqcat --run=45 /evt/data/output | record2binary 
+         Produce a binary data stream from the event data for run 45
+         stored in directory /evt/data/output.  Conversion continues
+         until record2binary receives an eof on stdin.
+
+  daqcat --run=45 /evt/data/output | sieve --packet=Physics | record2binary 
+         Produce a binary data stream from the event data for run 45
+         stored in directory /evt/data/output.  Sieve restricts the 
+         type of records fed to record2binary to be of type Physics.
+         Conversion continues until record2binary receives an eof on stdin.
+

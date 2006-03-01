@@ -1,0 +1,53 @@
+@VERSION
+binary2record key_DAQHWY_VERSION
+
+Copyright (C) 2005 by the Board of Trustees of Michigan State University.
+You may use this software under the terms of the GNU public license
+(GPL).  The terms of this license are described at:
+http://www.gnu.org/licenses/gpl.txt
+
+Written by E. Kasten.
+@HELP
+Convert binary data directly into DSH records.  This program is
+not intended as an injection program, but as a primary source that
+can consume binary data from stdin and write DSH records on stdout.
+Data read from stdin is automagically packaged into well structured 
+records prior to being written to stdout.  The essential 
+characteristics of binary2record are as follows:
+
+1.  Binary2record first emits a BEGINRUN record on stdout.
+
+2.  Data read from stdin is expected to have a structure
+    that includes a leading byte count, indicating the number of data
+    bytes produced, followed by the data.  The leading byte count
+    should be a 4 byte integer in host byte order.
+
+3.  Data read from stdin is automagically packaged into
+    records and written to binary2record's stdout.
+
+4.  If binary2record's stdin is closed, or binary2record receives a
+    SIGINT, binary2record will emit a ENDRUN record on stdout and 
+    then exit.
+
+Usage: binary2record --run=INTEGER --packet=INTEGER [OPTION]...
+
+Options:
+  --version         Output version information and exit     
+  --help            Display this help and exit
+  --debug=SECONDS   Output a debugging command and wait SECONDS
+                        before beginning execution of main loop
+
+  --run=INTEGER     Mandatory. Specify experiment run number
+  --title=STRING    Experiment title string
+  --packet=[PACKET|typed] Mandatory. Record type to use for records produced.
+                    PACKET may be an integer or the symbolic name for
+                    a well known packet type such as Physics.  If the
+                    argument is the string "typed," then the binary records
+                    read are assumed to have an host-byte-order integer
+                    field, indicating the record type, following the length.
+
+Examples:
+  binary2record --run=45 --packet=104 --title="Experiment number 45" 
+         Produce records using run number 45 and title
+         "Experiment number 45."  Records produced from binary
+         data read from stdin will have a record type of 104.
