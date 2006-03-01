@@ -119,9 +119,12 @@ FdOutputStream::FdOutputStream(int fd,int bufsiz) {
 * @return None
 */                                                             
 FdOutputStream::~FdOutputStream() { 
+  if (my_fd >= 0) {
+    flush();
+    ::close(my_fd);
+  }
   if (my_work != NULL) delete[] my_work;
   my_work = NULL; 
-  if (my_fd >= 0) ::close(my_fd);
   my_fd = -1;
 }
 
