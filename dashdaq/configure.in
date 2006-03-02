@@ -35,9 +35,8 @@ then
 else
    AC_MSG_ERROR([This software can only be built on linux-gnu not $host_os])
 fi
-
-
-
+KERNEL_VERSION=$kernel_full_version
+AC_SUBST(KERNEL_VERSION)
 
 # Checks for programs.
 
@@ -299,4 +298,8 @@ AC_SUBST(KERNEL_INCS)
 AC_SUBST(SMP_FLAG)
 
 
-AC_OUTPUT(Makefile)
+AC_OUTPUT(Makefile \
+          sbsbit3/Makefile \
+             sbsbit3/dd/Makefile sbsbit3/dd/mkbtp \
+             sbsbit3/lib/Makefile \
+             sbsbit3/include/Makefile)
