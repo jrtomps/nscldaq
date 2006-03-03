@@ -6,30 +6,27 @@ include_HEADERS = ErrnoException.h Exception.h  StreamIOError.h \
 libException_la_LDFLAGS = -version-info $(SOVERSION):0 \
 	-Wl,"-rpath-link=$(libdir)"
 
-INCLUDES = -I@top_srcdir@/Headers
-
-install-data-local:
-	rm -f $(prefix)/include/CErrnoException.h
-	$(LN_S) $(prefix)/include/ErrnoException.h \
-	        $(prefix)/include/CErrnoException.h
 
 man_MANS=streamioerror.3daq rangeerror.3daq exception.3daq \
 	errnoexception.3daq
 
+TESTS= testErrnoException.cpp  \
+	testException.cpp  \
+	testRangeError.cpp  \
+	testStreamIOError.cpp  TestRunner.cpp
+
 EXTRA_DIST=streamioerror.3daq rangeerror.3daq exception.3daq \
-	errnoexception.3daq
+	errnoexception.3daq $(TESTS) Asserts.h
 
 
-if CPPUNIT
-noinst_PROGRAMS = unittests
-
-unittests_SOURCES = TestRunner.cpp testException.cpp testErrnoException.cpp \
-	testStreamIOError.cpp testRangeError.cpp
-
-unittests_LDADD   = $(CPPUNIT_LDFLAGS) -lException
-
-noinst_HEADERS = Asserts.h
-
-
-TESTS=./unittests
-endif
+ivp: 
+	@echo	"+-------------------------------------+"
+	@echo   "| Building the ivp for exceptions     |"
+	@echo   "+-------------------------------------+"
+	$(CXXLINK) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) \
+		   $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) \
+		   -I@prefix@/include $(CPPUNIT_CXXSW) -o ivptests $(TESTS) \
+		$(CPPUNIT_LDSW) -L@prefix@/lib -lException
+	@echo  Running the ivp for exceptions:
+	./ivptests
+	@echo done

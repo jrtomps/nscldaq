@@ -33,9 +33,6 @@
 #ifndef __EXCEPTION_H  //Required for current class
 #define __EXCEPTION_H
 
-#ifndef __HISTOTYPES_H
-#include <histotypes.h>
-#endif
 
 #ifndef __STL_STRING
 #include <string>
@@ -45,6 +42,7 @@
                                
 class CException      
 {
+  static const unsigned int kACTIONSIZE=128;
 	// Attributes:
 private:
   char m_szAction[kACTIONSIZE] ;   // Saved action in progress when
@@ -58,7 +56,7 @@ public:
 			//Constructors with arguments
 
   CException (const char* pszAction  );
-  CException (const STD(string)& rsAction);
+  CException (const std::string& rsAction);
   
 			//Copy constructor
 
@@ -87,13 +85,13 @@ public:
 
 protected:
   void setAction (const char* pszAction);
-  void setAction (const STD(string)& rsAction);
+  void setAction (const std::string& rsAction);
 
   // Selectors which depend on the actual exception type:
 
 public:
   virtual const char* ReasonText () const  ;
-  virtual Int_t ReasonCode () const  ;
+  virtual int ReasonCode () const  ;
   const char* WasDoing () const  ;
 
   // Utility functions:

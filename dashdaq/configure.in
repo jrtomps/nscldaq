@@ -4,11 +4,11 @@ AC_INIT(Makefile.am)
 AC_CONFIG_AUX_DIR(config)
 AM_CONFIG_HEADER(config.h)
 
-#    Separate device libraries.
+# Initialize subcomponents of autotools.
 
 AM_INIT_AUTOMAKE(dashdaq, 0.1-pre1)  
 
-#
+#------------------------------------------------------------
 #   The variable below should track the
 #   version number above to ensure that
 #   all the .so's get appropriately versioned:
@@ -17,8 +17,7 @@ SOVERSION="0:1"
 AC_SUBST(SOVERSION)
 
 
-
-
+#-----------------------------------------------------------
 #  Compute the system type:
 #  We can only build on linux-gnu  due to the VME drivers
 #  We also have restrictions  on the versions for the drivers.
@@ -38,18 +37,20 @@ fi
 KERNEL_VERSION=$kernel_full_version
 AC_SUBST(KERNEL_VERSION)
 
+
 # Checks for programs.
 
+AC_PROG_LIBTOOL
 AC_PROG_CXX
 AC_PROG_CC
 AC_PROG_INSTALL
 AC_PROG_LN_S
-AC_PROG_LIBTOOL
 
 #
 
 AC_LANG_PUSH(C++)
 
+#------------------------------------------------------------
 #   Is there an std namespace to import from?
 
 AC_COMPILE_IFELSE([using namespace std;], [AC_DEFINE([HAVE_STD_NAMESPACE],[1],[1 if std namespace defined])])
@@ -63,7 +64,7 @@ AH_VERBATIM([VHAVE_STD_NAMESPACE],[
 
 AC_LANG_POP(C++)
 
-
+#-------------------------------------------------------------
 # Hunt for the DASH library.
 # In the end we want to define the following symbols:
 #
@@ -129,6 +130,7 @@ AC_ARG_WITH(vme-interface,
 	[--with-vme-interface=sbs|wiener|wienerusb|none - Choose VME interface],
 	vmeinterface="$withval")
 
+#----------------------------------------------------------
 # VMEDEVICE         - Which device it is.
 # VMELIBRARYHEADERS - Where the headers will live for vme lib.
 # VMELIBRARY        - ld switches neede to use VME.
@@ -247,7 +249,7 @@ AC_SUBST(SEPERABLELOCK)
 
 AC_MSG_RESULT([$VMEDEVICE])
 
-
+#------------------------------------------------------------------------
 #  Figure out where the linux kernel headers are.
 #  We'll look for  $(HEADERS)/linux/module.h  in the following spots:
 #  - /usr/src/kernel-headers-$(uname -r)/include  [debian]
@@ -298,8 +300,104 @@ AC_SUBST(KERNEL_INCS)
 AC_SUBST(SMP_FLAG)
 
 
+#----------------------------------------------------------------------
+#   In order to be able to run the installation verification make
+#   target, we will need to have the cppunit library.
+#   If cppunit cannot be found, this is not an error, we just
+#   warn that the user will not be able to run the IVP.
+#
+#   We check for headers and library:
+
+# library and headers looked for in:
+
+cppunitlibsearchpath="/usr/lib /usr/local/lib /opt/lib"
+cppunitincsearchpath="/usr/include /usr/include/cppunit \
+	             /usr/local/include /usr/local/include/cppunit \
+                     /opt/include /opt/include/cppunit"
+
+#  We also support:
+#    --with-cppunit-libdir=directory that libcppunit lives in.
+#    --with-cppunit-incdir=directory that cppunit headers live in.
+#
+# TODO:
+#    Figure out if cppunit was compiled with the same compiler we're 
+#    configuring with.
+
+
+AC_MSG_CHECKING([For cppunit needed to run installation verification tests])
+
+AC_ARG_WITH(cppunit-libdir,
+	   [   --with-cppunit-libdir=Directory with libcppunit],
+	   [   cppunitlibdir=$withval
+	       cppunitlibdir_found="yes"],
+	       cppunitlibdir_found="no")
+
+AC_ARG_WITH(cppunit-incdir,
+	   [   --with-cppunit-incdir=Directory with cppunit headers],
+	   [    cppunitincdir=$withval
+	       cppunitincdir_found="yes"],
+	       cppunitincdir_found="no")
+
+#   Look for the headers:
+
+for dir in $cppunitincsearchpath; do
+#
+#   The if below is needed to ensure we stop searching
+#   when we find the first match.
+#
+    if test $cppunitincdir_found == "no"; then
+       AC_CHECK_FILE($dir/TestCase.h,
+	   	     [cppunitincdir=$dir
+		      cppunitincdir_found="yes"])
+    fi
+done   
+
+
+# Look for the library libcppunit.a   - there will always be a static lib
+# even if dynlibs exist.
+
+for dir in $cppunitlibsearchpath; do
+    if test $cppunitlibdir_found == "no"; then
+       AC_CHECK_FILE($dir/libcppunit.a,
+		    [cppunitlibdir=$dir
+		     cppunitlibdir_found="yes"])
+    fi
+done
+
+
+#   Set the following for cppunit compileations:
+#      CPPUNIT_CXXSW    - Compilation switches.
+#      CPPUNIT_LDSW     - Link switches.
+#
+#  Or warn that IVP can't be run.
+#
+
+if test $cppunitlibdir_found == "yes"; then
+   AC_MSG_RESULT([cppunit library found in $cppunitlibdir])
+   CPPUNIT_LDSW="-L$cppunitlibdir -lcppunit"
+   AC_SUBST(CPPUNIT_LDSW)
+else
+   AC_MSG_WARN([cppunit library could not be found, ivp cannot be run try configuring with --with-cppunit-libdir])
+fi
+
+if test $cppunitincdir_found == "yes"; then
+   AC_MSG_RESULT([cppunit headers found in $cppunitincdir])
+   CPPUNIT_CXXSW="-I$cppunitincdir"
+   AC_SUBST(CPPUNIT_CXXSW)
+else
+   AC_MSG_WARN([cppunit headers cannot be found, ivp cannot be run, try configuring with --with-cppunit-incdir])
+fi
+
+
+
+
+#-----------------------------------------------------------------------
+#
+#   Specifiy the files that are built under auto tools control.
+
 AC_OUTPUT(Makefile \
           sbsbit3/Makefile \
              sbsbit3/dd/Makefile sbsbit3/dd/mkbtp \
              sbsbit3/lib/Makefile \
-             sbsbit3/include/Makefile)
+             sbsbit3/include/Makefile \
+          exceptions/Makefile)
