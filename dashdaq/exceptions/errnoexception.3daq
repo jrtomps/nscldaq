@@ -1,0 +1,47 @@
+.TH CERRNOEXCEPTION 3daq "November 2004" "NSCLDAQ-8.0" "NSCL DAQ programming manual"
+.SH NAME
+CErrnoException \- An exception class that encapsulates errno conditions.
+.SH SYNOPSIS
+.B #include <config.h>
+.br
+.B #include <ErrnoException.h>
+.br
+.sp
+.B Constructors
+.br
+.sp
+ \fBCErrnoException(const char* \fIpszAction\fB)
+.br
+\fBCErrnoException(const string& \fIrsAction\fB)
+.br
+\fBCErrnoException (const CErrnoException& \fIaCErrnoException \fB)\fR 
+.br
+.sp
+.B Operator overloads:
+.sp
+\fBCErrnoException& operator= (const CErrnoException& \fIaCErrnoException\fB)
+.br
+\fBint operator== (const CErrnoException& \fIaCErrnoException\fB)\fR
+.br
+.sp
+.B Inquiry functions
+.sp
+\fBInt_t getErrno() const\fR
+.br
+.sp
+.B Overrides:
+.sp
+\fBvirtual   const char* ReasonText () const\fR
+.br
+\fBvirtual   Int_t       ReasonCode () const\fR
+
+.SH DESCRIPTION
+.PP
+The CErrnoException class encapsulates a C run time library \fIerrno\fR error
+value in an exception class that can be thrown. Objects from this class should
+be instantiated as close to detected problem as possible to ensure that errno
+does not get modified by other code.
+.PP 
+The class constructor autonomously stores  a copy of the value of \fIerrno\fR
+.SH "SEE ALSO"
+Exception
