@@ -307,7 +307,11 @@ public:
   virtual void Initialize() {}
   virtual void Clear() {}
   virtual unsigned int MaxSize() { return 10; }
+#ifndef HIGH_PERFORMANCE
   virtual DAQWordBufferPtr& Read(DAQWordBufferPtr& rBuf) {
+#else /* HIGH_PERFORMANCE */
+  virtual unsigned short* Read(unsigned short* rBuf) {
+#endif /* HIGH_PERFORMANCE */
     for(int i =0; i < 10; i++) {
       *rBuf = i;
       ++rBuf;

@@ -346,8 +346,24 @@ CCAMACTrigger::operator==(const CCAMACTrigger& rhs) const
 bool 
 CCAMACTrigger::operator()()  
 {
-  if(m_Controller.IT2()) {
-    m_Controller.WriteIFR(0);	// Clear our interrupt.
+  // Unfortunately, no matter how we slice it there's
+  // a timing hole that may cause us to accidently clear IT4.
+  // this is because an IT4 may come in while we are busy
+  // futzing around figuring out what to write into the IFR
+  // to reset the IT2:
+  // All we can do is make this as short a hole as possible:
+  //
+  unsigned short mask;
+
+  // Below reads the csr into mask and clears it2 leaving it4 alone 
+  // the length of time between the ReadCsr() and WriteIFR call is the
+  // timing hole described above.
+  // If we read and clear here we could also miss an IT2 which is even worse!
+
+  mask = m_Controller.ReadCsr();
+
+  if(mask & CBD8210::IT2BIT) {
+    m_Controller.WriteIFR(mask & CBD8210::IT4BIT);
     return true;		// Trigger fired.
   }
   return false;			// Trigger did not fire.

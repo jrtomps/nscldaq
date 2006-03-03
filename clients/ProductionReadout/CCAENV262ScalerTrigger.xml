@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE book PUBLIC "-//OASIS//DTD Docbook XML 4.3//EN"
+                      "file:///usr/share/xml/docbook/schema/dtd/4.3/docbookx.dtd" >
+<book>
+<article>
+
+<refentry>
+    <refmeta>
+        <refentrytitle>CCAENV262ScalerTrigger  nscl</refentrytitle>
+        <manvolnum>3nscl</manvolnum>
+    </refmeta>
+    <refnamediv>
+        <refname>CCAENV262ScalerTrigger</refname>
+        <refpurpose>
+            Scaler trigger using the CAEN V262 I/O register.
+        </refpurpose>
+    </refnamediv>
+    <refsynopsisdiv>
+        <para>
+            #include <filename>&lt;CCAENV262ScalerTrigger.h</filename>&gt;
+        </para>
+        <programlisting>
+class CCAENV262ScalerTrigger : public CScalerTrigger
+{
+  CCAENV262ScalerTrigger(unsigned long base, unsigned long vmeCrate = 0);
+  virtual ~CCAENV262ScalerTrigger();
+
+  // overrides that implement our functionality:
+
+  virtual  bool operator()();
+  virtual  void Initialize();
+};
+
+        </programlisting>
+    </refsynopsisdiv>
+
+    <refsect1>
+        <title>DESCRIPTION</title>
+        <para>
+            Provides a scaler trigger that comes from a CAEN V262 I/O register.
+            This is a VME module with several inputs and outputs.  The module
+            must be set to a different base address than any other CAEN V262 register
+            used as an event trigger.
+        </para>
+        <para>
+            This trigger should be used when some external electronic event should
+            define when a scaler trigger should occur.
+            See ELECTRONICS SETUP below for a summary of
+            the electronics setup required.
+        </para>
+    </refsect1>
+    <refsect1>
+        <title>METHODS</title>
+        <para>
+            <function>CCAENV262ScalerTrigger</function>(
+                   <classname>unsigned long</classname> <parameter>base</parameter>,
+                   <classname>unsigned long</classname> <parameter>vmeCrate</parameter>
+                    )
+        </para>
+        <para>
+            Constructs the scaler trigger.  <parameter>base</parameter> is the base
+            address of the module selected by configuring the rotary switches on the
+            module circuit board.  <parameter>vmeCrate</parameter> is the number of the
+            VME crate into which the module is inserted.  The
+            <application>cratelocator</application> application can be used to determine
+            the crate number.  The crate number defaults to 0 which is the number of the
+            VME crate in a single crate system.
+        </para>
+        <para>
+            <returnvalue>bool</returnvalue> <function>operator()</function>()
+        </para>
+        <para>
+            This function is called often to determine if a scaler trigger
+            condition has occured.  See ELECTRONICS SETUP below for more information
+            about what constitutes a scaler trigger.
+        </para>
+        <para>
+            <returnvalue>void</returnvalue> <function>Initialize</function>()
+        </para>
+        <para>
+            Performs initialization required when a run is going active.
+        </para>
+    </refsect1>
+    <refsect1>
+        <title>ELECTRONICS SETUP</title>
+        <para>
+            The CAEN V262 I/O register does not have latching inputs.  It is therefore
+            necessary to hold the scaler trigger signal true until you are certain
+            that it has been accepted by the computer.  This can be done either by
+            latching the signal with a Gate and Delay module in Latch mode or by using
+            an NSCL latch module.
+        </para>
+        <para>
+            The IN0 signal should be asserted NIM true to trigger the scaler readout.
+            This signal should be held true as described above until the
+            SHP2 output is pulsed.  This output is pulsed by the computer as soon
+            as it has reacted to the scaler trigger.
+        </para>
+    </refsect1>
+    <refsect1>
+        <title>SEE ALSO</title>
+        <para>
+            CScalerTrigger(3nscl),
+            CCAENTimedScalerTrigger(3nscl),
+            CCAENV977ScalerTrigger(3nscl),
+            CCAENCBDCES8210ScalerTrigger(3nscl)
+        </para>
+        <para>
+            <ulink url="http://docs.nscl.msu.edu/daq/appnotes/ScalerTriggerAppnote.pdf" />
+            contains complete documentation that describes scaler triggers, how to
+            establish them and how to write application specific ones.
+        </para>
+    </refsect1>
+</refentry>
+
+
+
+</article>
+</book>

@@ -321,11 +321,21 @@ CCompoundEventSegment::Initialize()
 	\returns 'Pointer' to the next free word of the buffer.
 
 */
+#ifndef HIGH_PERFORMANCE
 DAQWordBufferPtr&
 CCompoundEventSegment::Read(DAQWordBufferPtr& rBuffer)  
+#else /* HIGH_PERFORMANCE */
+unsigned short* 
+CCompoundEventSegment::Read(unsigned short* rBuffer)  
+#endif /* HIGH_PERFORMANCE */
 {
 	EventSegmentList::iterator p = m_Segments.begin();
+#ifndef HIGH_PERFORMANCE
 	while(p != m_Segments.end()) {
+#else /* HIGH_PERFORMANCE */
+	EventSegmentList::iterator e = m_Segments.end(); // loop factorization.
+	while(p != e) {
+#endif /* HIGH_PERFORMANCE */
 		rBuffer = (*p)->Read(rBuffer);
 		p++;
 	}

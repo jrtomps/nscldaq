@@ -6,7 +6,7 @@ SUBDIRS = tcllib @VME_DRIVERDIR@ \
 	Readout HPReadout diskrun EventLog Scaler  \
 	vmetcl  \
 	bufdump TclServer bcnaf TcpHoister Stager Scripts framework \
-	AlarmDisplay LogDisplay ProductionReadout  HPProductionReadout \
+	AlarmDisplay LogDisplay ProductionReadout  \
 	contrib dvdburn daqstart @EPICSSOFTWARE@ \
 	ScalerDisplay @DEPENDSON_VME@ wienerusbd \
 	slowControls

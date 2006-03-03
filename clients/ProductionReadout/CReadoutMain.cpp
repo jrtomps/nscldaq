@@ -35,6 +35,7 @@ using namespace std;
 #include "CCAMACStatusModule.h"
 #include "CReaper.h"
 #include "CTCLListener.h"
+#include "CTimedScalerTrigger.h"
 
 #include <CApplicationSerializer.h>
 
@@ -224,6 +225,7 @@ CReadoutMain::CreateExperiment()
     m_Experiment.EstablishTrigger(new CCAMACTrigger(0));
     m_Experiment.EstablishBusy(new CCAMACStatusModule(0,2, 19));
   }
+  m_Experiment.setScalerTrigger(new CTimedScalerTrigger(&m_Experiment));
 
   // Now invoke the experiment specific overrides:
 

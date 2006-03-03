@@ -20,15 +20,15 @@ include $(INSTDIR)/etc/Directories.include
 
 SPECTRODAQ_FLAGS=$(shell $(SPECTRODAQBINDIR)/spectrodaq-conf --cflags)
 
-CXXFLAGS=-I$(DAQINCLUDE)   $(TCLHEADERS) $(SPECTRODAQ_FLAGS) $(VMEHEADERS) \
-	-DHIGH_PERFORMANCE
+CXXFLAGS=-I$(INSTDIR)/HPpReadoutIncludes -I$(DAQINCLUDE)   \
+	$(TCLHEADERS) $(SPECTRODAQ_FLAGS) $(VMEHEADERS) -DHIGH_PERFORMANCE
 CCFLAGS=$(CXXFLAGS)
 
 #  Build the link flags:
 
 SPECTRODAQ_LDFLAGS=$(shell $(SPECTRODAQBINDIR)/spectrodaq-conf --libs)
 LDFLAGS=-L. -L$(DAQLIBS) \
-	-lPReadout -lEventFramework -lTclPlus -lDeviceSupport -lException \
+	-lHPPreadout -lEventFramework -lTclPlus -lDeviceSupport -lException \
 	-lLicense \
 	$(VMELIBRARY) $(SPECTRODAQ_LDFLAGS)  $(TCLLIBS) $(X11LIBS) \
 	-Wl,"-rpath=$(DAQLIBS)"

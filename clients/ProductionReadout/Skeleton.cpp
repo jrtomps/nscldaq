@@ -280,6 +280,9 @@ static const char* Copyright = "(C) Copyright Michigan State University 2002, Al
 //   to setup our experiment specific requirements
 //   creates an instance of it and lets the base classes
 //  do most of the work:
+#ifdef HIGH_PERFORMANCE
+
+#endif /* HIGH_PERFORMANCE */
 #include <config.h>
 #include <CReadoutMain.h>
 #include <CExperiment.h>
@@ -294,18 +297,30 @@ static const char* Copyright = "(C) Copyright Michigan State University 2002, Al
 #include <CVMEScalerLRS1151.h>
 #include <CTraditionalEventSegment.h>
 #include <CTraditionalScalerReadout.h>
+#ifndef HIGH_PERFORMANCE
 
+#endif /* ! HIGH_PERFORMANCE */
 #include <CEventSegment.h>
+#ifdef HIGH_PERFORMANCE
+
+#endif /* HIGH_PERFORMANCE */
 #ifdef HAVE_STD_NAMESPACE
 using namespace std;
 #endif
+#ifdef HIGH_PERFORMANCE
+
+#endif /* HIGH_PERFORMANCE */
 class MySegment : public CEventSegment
 {
 public:
   virtual void Initialize() {}
   virtual void Clear() {}
   virtual unsigned int MaxSize() { return 10; }
+#ifndef HIGH_PERFORMANCE
   virtual DAQWordBufferPtr& Read(DAQWordBufferPtr& rBuf) {
+#else /* HIGH_PERFORMANCE */
+  virtual unsigned short* Read(unsigned short* rBuf) {
+#endif /* HIGH_PERFORMANCE */
     for(int i =0; i < 10; i++) {
       *rBuf = i;
       ++rBuf;

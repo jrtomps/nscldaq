@@ -14,7 +14,6 @@
 	     East Lansing, MI 48824-1321
 */
 
-
 static const char* Copyright = "(C) Copyright Michigan State University 2002, All rights reserved";
 //////////////////////////CRunVariableBuffer.cpp file////////////////////////////////////
 #include <config.h>

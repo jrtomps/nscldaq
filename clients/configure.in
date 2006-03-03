@@ -49,6 +49,16 @@ AC_PROG_LN_S
 AC_PROG_LIBTOOL
 AC_PATH_PROG(DOXYGEN, doxygen, echo)
 
+# Documentation tools:
+
+AC_PROG_LN_S
+AC_PATH_PROG(HCDOCBOOK,   docbook2dvi,  echo)
+AC_PATH_PROG(HTMLDOCBOOK, docbook2html, echo)
+AC_PATH_PROG(DVIPDF,      dvipdf,       echo)
+AC_PATH_PROG(MANDOCBOOK,  xmlto,        echo)
+
+
+
 #  Needed components for hyperlatex
 
 
@@ -760,6 +770,13 @@ AC_SUBST(SMP_FLAG)
 
 AC_SUBST(SOVERSION)
 
+# Documentation tools
+
+AC_SUBST(HCDOCBOOK)
+AC_SUBST(DVIPDF)
+AC_SUBST(MANDOCBOOK)
+AC_SUBST(HTMLDOCBOOK)
+
 #  Create output files:
 
 AC_OUTPUT( Makefile tcllib/Makefile \
@@ -782,8 +799,9 @@ AC_OUTPUT( Makefile tcllib/Makefile \
 	Stager/InstallRoot.tcl Stager/Makefile \
 	Scripts/Makefile framework/Makefile AlarmDisplay/Makefile \
 	LogDisplay/Makefile ProductionReadout/Makefile \
-	HPProductionReadout/Makefile \
 	ProductionReadout/hyperlatex/Makefile \
+	ProductionReadout/direct/Makefile    \
+	ProductionReadout/HP/Makefile \
 	btdriver/Makefile btdriver/dd/Makefile btdriver/lib/Makefile \
 	btdriver/include/Makefile  \
 	controlpush/Makefile  dvdburn/Makefile epicsdisplay/Makefile \

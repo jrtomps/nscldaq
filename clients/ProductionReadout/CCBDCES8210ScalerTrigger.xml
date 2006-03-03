@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE book PUBLIC "-//OASIS//DTD Docbook XML 4.3//EN"
+                      "file:///usr/share/xml/docbook/schema/dtd/4.3/docbookx.dtd" >
+<book>
+<article>
+
+<refentry>
+    <refmeta>
+        <refentrytitle>CCBDCES8210ScalerTrigger nscl</refentrytitle>
+        <manvolnum>3nscl</manvolnum>
+    </refmeta>
+    <refnamediv>
+        <refname>CCBDCES8210ScalerTrigger</refname>
+        <refpurpose>
+            Provide a scaler trigger for the CES CBD8210 CAMAC
+            parallel branch highway driver.
+        </refpurpose>
+    </refnamediv>
+    <refsynopsisdiv>
+        <para>
+            You are strongly discouraged from using this module in
+            new setups as the hardware cannot be serviced.
+        </para>
+        <para>
+            #include <filename>&lt;CCBDCES8210ScalerTrigger.h&gt;</filename>
+        </para>
+        <programlisting>
+class CCBDCES8210ScalerTrigger : public CScalerTrigger
+{
+public:
+  CCBDCES8210ScalerTrigger(int b = 0);
+  ~CCBDCES8210ScalerTrigger();
+
+
+  // Overrides to produce a trigger:
+public:
+  virtual bool operator()();
+  virtual void Initialize();
+};
+
+        </programlisting>
+    </refsynopsisdiv>
+
+    <refsect1>
+        <title>DESCRIPTION</title>
+        <para>
+            Since the CES CBD8210 CAMAC parallel branch highway driver this
+            software depends on is physically no longer maintainable, we do
+            not recommend its use in new setups and strongly recommend existing
+            setups migrate either to the Wiener VC32/CC32 module set, or away
+            from CAMAC entirely if possible.
+        </para>
+        <para>
+            This class provides the capability to drive scaler readouts off a
+            NIM pulse into the IT4 input of a CES CBD 8210 CAMAC parallel branch
+            highway driver.  The same module can simultaneously be used to supply
+            event triggers as well.
+        </para>
+        <para>
+            See ELECTRONICS SETUP below for a description of the trigger
+            requirements of this module.
+        </para>
+    </refsect1>
+    <refsect1>
+        <title>METHODS</title>
+        <para>
+            <function>CCBDCES8210ScalerTrigger</function>(
+                  <classname>int</classname> <parameter>b</parameter>)
+        </para>
+        <para>
+            Constructs a scaler trigger that is driven off the IT4 input of
+            a CES CBD 8210 module (did we remember to tell you not to use this
+            if you can help it yet?).  The <parameter>b</parameter> parameter
+            is the branch number of the module.  The branch number also implies
+            a VME crate number as follows.  The first 8 branches (numbered 0-7)
+            are in VME crate 0,  The second 8 branches are in crate 1 etc.
+            The branch selector on the front panel of the branch highway module
+            determines the offset of the branch within the VME crate. Thus
+            <parameter>b</parameter> = 9 is the module with branch 1 selected in
+            VME crate 1.  The <parameter>b</parameter> parameter defaults to 0 if
+            not supplied.
+        </para>
+        <para>
+            <returnvalue>bool</returnvalue> <function>operator()</function>()
+        </para>
+        <para>
+            This function is called by the framework to check for scaler triggers.
+            normally you will not need to call this function.
+        </para>
+        <para>
+            <returnvalue>void</returnvalue> <function>Initialize</function>()
+        </para>
+        <para>
+            This function is called by the framework when the run is about to go
+            active.  Normally you will not have to call this function.
+        </para>
+    </refsect1>
+    <refsect1>
+        <title>ELECTRONICS SETUP</title>
+        <para>
+            The CES CBD8210 module (you do remember this module is obsolete right?),
+            latches NIM logic pulses sent to the IT2 and IT4 inputs.  It is therefore
+            only necessar to arrange a NIM logic true pulse to be presented at the IT4
+            input when you want to trigger a scaler read.  It is not necessary
+            to provide an external latch for this trigger.
+        </para>
+    </refsect1>
+    <refsect1>
+        <title>SEE ALSO</title>
+        <para>
+            CScalerTrigger(3nscl), CCAENV262ScalerTrigger(3nscl), CCAENV977ScalerTrigger(3nscl),
+            CTimedScalerTrigger(3nscl),
+        </para>
+        <para>
+            <ulink url="http://docs.nscl.msu.edu/daq/appnotes/ScalerTriggerAppnote.pdf" />
+            contains complete documentation that describes scaler triggers, how to
+            establish them and how to write application specific ones.
+        </para>
+    </refsect1>
+</refentry>
+
+
+
+</article>
+</book>

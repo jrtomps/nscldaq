@@ -19,8 +19,13 @@
 
 #include <config.h>
 #include "CVMEInterface.h"
+#ifndef HIGH_PERFORMANCE
 #include "Exception.h"
+#endif /* ! HIGH_PERFORMANCE */
 #include "CExperiment.h"                  
+#ifdef HIGH_PERFORMANCE
+#include <Exception.h>
+#endif /* HIGH_PERFORMANCE */
 #include "CStateTransitionCommand.h"
 #include "CBeginCommand.h"
 #include "CEndCommand.h"
@@ -44,6 +49,7 @@
 #include "CTimer.h"
 #include "CScalerTrigger.h"
 
+#include "CRunState.h"
 
 #include "CRunVariableCommand.h"
 #include "CRunVariable.h"
@@ -160,15 +166,16 @@ CTriggerThread::operator()(int argc, char** argv)
   try {
     MainLoop();
   } 
-
   catch(char* pReason) {
     cerr << "Main loop of trigger failed: " << pReason << endl;
+  }
+  catch(string& rReason) {
+    cerr << "Main loop of trigger failed (string thrown): " << rReason << endl;
     CApplicationSerializer::getInstance()->UnLockCompletely();
   }
   catch (CException& rException) {
     cerr << "Main loop of trigger failed: " <<
       rException.ReasonText() << " while: " << rException.WasDoing() << endl;
-    CApplicationSerializer::getInstance()->UnLockCompletely();
   }
   catch(...) {
     cerr << "Main loop of trigger caught an exception " << endl;
@@ -200,6 +207,7 @@ CTriggerThread::operator()(int argc, char** argv)
 void
 CTriggerThread::MainLoop() 
 {
+  CScalerTrigger* pScaler = m_pExperiment->getScalerTrigger();
   while(!m_Exiting) {
     struct timeval mutexstart;
     struct timeval mutexend;
@@ -220,6 +228,12 @@ CTriggerThread::MainLoop()
 	  if((triggers++) >= m_nTriggerdwell) break; // Check elapsed time.
 	}
       }
+      // Now try the scaler trigger:
+
+      if((*pScaler)()) {
+	m_pExperiment->TriggerScalerReadout();
+      }
+
       // If we've held the mutex for longer than m_msHoldTime,
       // release the mutex so that other threads get a chance to run.
       //
@@ -247,10 +261,11 @@ CExperiment::CExperiment (unsigned nBufferSize) :
   m_pTThread(0),
   m_LastSnapTime(0),
   m_LastScalerTime(0),
+  m_pScalerTrigger(0),
   m_nEventsAcquired(0),
   m_nWordsAcquired(0)
 {
-  SetupTimedEvent();
+
 }
 /*!
   Parameterized constructor.  Allows the experiment to be created as needed for
@@ -292,12 +307,12 @@ CExperiment::CExperiment(CTrigger*      pTriggerModule,
   m_pTThread(0),
   m_LastSnapTime(0),
   m_LastScalerTime(0),
+  m_pScalerTrigger(0),
   m_nEventsAcquired(0),
   m_nWordsAcquired(0)
 {
   if(pScalers) m_Scalers.AddScalerModule(pScalers);
   m_EventReadout.AddSegment(pEventReadout);
-  SetupTimedEvent();
 }
 
 /*! 
@@ -327,6 +342,9 @@ CExperiment::~CExperiment() {}
 void 
 CExperiment::Start(CStateTransitionCommand& rCommand)  
 {
+
+
+  assert(m_pScalerTrigger);	// Must have established a scaler trigger.
 
   // Wrap the entire function in a try catch block to nail the 
   // exceptions that may come up:
@@ -394,8 +412,8 @@ CExperiment::Start(CStateTransitionCommand& rCommand)
     // Start the trigger process and clock.
     
     StartTrigger();
-    m_pScalerTrigger->SetInterval(MyApp.getScalerPeriod() * 1000);
     MyApp.getClock().Start(msPerClockTick, nTriggerDwellTime/2);
+    m_pScalerTrigger->Initialize();
     ClearBusy();
     
     
@@ -449,6 +467,7 @@ CExperiment::Stop(CStateTransitionCommand& rCommand)
     TriggerDocBuffer();
     TriggerRunVariableBuffer();
     TriggerStateVariableBuffer();  
+    m_pScalerTrigger->Cleanup();
     
     // Stop the trigger and clock processes.  Note that the stop trigger function
     // synchronizes with the exit of the trigger thread.
@@ -471,8 +490,7 @@ CExperiment::Stop(CStateTransitionCommand& rCommand)
     
     MyApp.getClock().Stop();
     rCommand.ExecutePostFunction();
-  }
-
+  } 
   catch (string reason) {
     cerr << "CExperiment::Stop caught a string exception: " << reason << endl;
   }
@@ -486,8 +504,10 @@ CExperiment::Stop(CStateTransitionCommand& rCommand)
   catch (...) {
     cerr << "CExperiment::Stop caught an unexpected exception type\n";
   }
-}  
+}
 
+
+  
 /*!
     Reads an event in response to an event trigger.
     The event is read into the current position within the
@@ -507,8 +527,13 @@ CExperiment::ReadEvent()
     m_EventBuffer = new CNSCLPhysicsBuffer(m_nBufferSize * 2);
   }
   
+#ifndef HIGH_PERFORMANCE
   DAQWordBufferPtr ptr(m_EventBuffer->StartEvent());
   DAQWordBufferPtr hdr = ptr;
+#else /* HIGH_PERFORMANCE */
+  unsigned short* ptr(m_EventBuffer->StartEvent());
+  unsigned short*  hdr = ptr;
+#endif /* HIGH_PERFORMANCE */
    
   CVMEInterface::Lock();
   try {
@@ -545,12 +570,21 @@ CExperiment::ReadEvent()
   }
 
 
+#ifdef HIGH_PERFORMANCE
+
+#endif /* HIGH_PERFORMANCE */
   PostEvent();
   CVMEInterface::Unlock();
 
   m_nEventsAcquired++;
+#ifndef HIGH_PERFORMANCE
   m_nWordsAcquired += ptr.GetIndex() - hdr.GetIndex();
   if(ptr.GetIndex() > m_nBufferSize) {
+#else /* HIGH_PERFORMANCE */
+  int nEventSize = ptr - hdr + 1;
+  m_nWordsAcquired += nEventSize;
+  if((m_EventBuffer->WordsInBody() + nEventSize) > (m_nBufferSize - sizeof(bheader)/sizeof(unsigned short))) {
+#endif /* HIGH_PERFORMANCE */
      
      Overflow(hdr, ptr);
      
@@ -565,8 +599,13 @@ CExperiment::ReadEvent()
      
   } else {
     if (ptr == hdr) {
+#ifndef HIGH_PERFORMANCE
       m_EventBuffer->RetractEvent(ptr);	// No data read actually.
     } 
+#else /* HIGH_PERFORMANCE */
+      m_EventBuffer->RetractEvent(ptr);
+    }
+#endif /* HIGH_PERFORMANCE */
     else {
       m_EventBuffer->EndEvent(ptr);
     }
@@ -763,7 +802,7 @@ CExperiment::TriggerScalerReadout()
   // Format the buffer and adjust the times:
   //
 
-  int now = GetElapsedTime()/10;
+  int now = GetElapsedTime()/10; // Seconds.
   buffer.PutScalerVector(scalers);
   buffer.SetStartTime(m_LastScalerTime);
   buffer.SetEndTime(now);
@@ -940,7 +979,31 @@ CExperiment::RemoveScalerModule(CScaler* pScaler)
 {
   m_Scalers.DeleteScalerModule(pScaler);
 }
-
+/*!
+    Retrieves the current value of the scaler trigger pointer.
+*/
+CScalerTrigger*
+CExperiment::getScalerTrigger()
+{
+  return m_pScalerTrigger;
+}
+/*!
+   Sets a new scaler trigger module.
+   
+*/
+void
+CExperiment::setScalerTrigger(CScalerTrigger* pTrigger)
+{
+  CReadoutMain* pApp   = CReadoutMain::getInstance();
+  CRunState*    pState = pApp->getRunState();
+  if (pState->getState() != CRunState::Inactive) {
+    throw 
+      string("Attempting to set the scaler trigger when state is not inactive");
+  }
+  else {
+    m_pScalerTrigger = pTrigger;
+  }
+}
 /*!
   Emits the start of run buffer.  A start of run 
   buffer contains a standard buffer header as well 
@@ -983,7 +1046,7 @@ CExperiment::EmitEnd()
 {
   CNSCLControlBuffer buffer(m_nBufferSize);
   buffer.PutTitle(MyApp.getTitle());
-  buffer.PutTimeOffset(GetElapsedTime());
+  buffer.PutTimeOffset(GetElapsedTime()/10);
   buffer.SetRun(GetRunNumber());
   buffer.SetType(ENDRUNBF);
   buffer.Route();
@@ -997,7 +1060,7 @@ CExperiment::EmitPause()
 {
   CNSCLControlBuffer buffer(m_nBufferSize);
   buffer.PutTitle(MyApp.getTitle());
-  buffer.PutTimeOffset(GetElapsedTime());
+  buffer.PutTimeOffset(GetElapsedTime()/10);
   buffer.SetRun(GetRunNumber());
   buffer.SetType(PAUSEBF);
   buffer.Route();
@@ -1012,7 +1075,7 @@ CExperiment::EmitResume()
 {
   CNSCLControlBuffer buffer(m_nBufferSize);
   buffer.PutTitle(MyApp.getTitle());
-  buffer.PutTimeOffset(GetElapsedTime());
+  buffer.PutTimeOffset(GetElapsedTime()/10);
   buffer.SetRun(GetRunNumber());
   buffer.SetType(RESUMEBF);
   buffer.Route();
@@ -1161,14 +1224,20 @@ CExperiment::EmitDocBuffer(DocumentationPacketIterator s,
                                 that overflows the buffer.
 */
 void
+#ifndef HIGH_PERFORMANCE
 CExperiment::Overflow(DAQWordBufferPtr& header,
 		      DAQWordBufferPtr& end)
+#else /* HIGH_PERFORMANCE */
+CExperiment::Overflow(unsigned short*  header,
+		      unsigned short*  end)
+#endif /* HIGH_PERFORMANCE */
 {
    
    // Copy the overflowing event to a new buffer:
    
    CNSCLOutputBuffer::IncrementSequence();
    CNSCLPhysicsBuffer* pNewBuffer = new CNSCLPhysicsBuffer(m_nBufferSize*2);
+#ifndef HIGH_PERFORMANCE
    DAQWordBufferPtr    pDest      = pNewBuffer->StartEvent();
    DAQWordBufferPtr    pSrc       = header;
    DAQWordBufferPtr    pEnd       = end;
@@ -1177,6 +1246,14 @@ CExperiment::Overflow(DAQWordBufferPtr& header,
       ++pDest; ++pSrc;                // Preinccrement is fastest.
    }
    pNewBuffer->EndEvent(pDest);
+#else /* HIGH_PERFORMANCE */
+   unsigned short*    pDest      = pNewBuffer->StartEvent();
+   unsigned short*    pSrc       = header;
+   unsigned short*    pEnd       = end;
+   unsigned short     nWords    = (end - header);
+   memcpy(pDest, pSrc, nWords * sizeof(unsigned short));
+   pNewBuffer->EndEvent(pDest + nWords);
+#endif /* HIGH_PERFORMANCE */
    
    // Retract the event from the old buffer and route it:
    
@@ -1229,17 +1306,4 @@ CExperiment::GetElapsedTime() const
   // Note that CTimer::GetElapsedTime's units are ms.
 
   return (MyApp.getClock().GetElapsedTime()) / 100;
-}
-/*!
-  Sets up all timed events needed by the experiment when
-  the run is active. These include:
-  - A timer to periodically trigger scaler readouts.
-*/
-void
-CExperiment::SetupTimedEvent()
-{
-  CTimer& rTimer(MyApp.getClock());
-  m_pScalerTrigger = new CScalerTrigger(*this);
-  rTimer.EstablishEvent(*m_pScalerTrigger);
-
 }

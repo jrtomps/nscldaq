@@ -110,7 +110,7 @@ bool
 CCAENV977Trigger::operator()()
 {
   m_LastPattern = m_Module.singleHitReadAndClear();
-
+  m_Module.inputSet(m_LastPattern & 0x8000); // So top bit can be used for other stuf.
   return (m_LastPattern != 0);
 }
 

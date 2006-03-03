@@ -610,3 +610,10 @@ February 22, 2006
            the past.
 February 23, 2006
       - Completed reorg of Tcl stuff and testing of that.
+March 3, 2006
+      - Completed reorganization of production readout and HP
+        production readout so that these are both built from
+        common source directories.
+      - Added support for and documentation of external triggers
+        for production readout.
+    

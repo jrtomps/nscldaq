@@ -318,7 +318,11 @@ protected:
 	// Class operations:
 
    virtual   void Initialize ()  ;
+#ifndef HIGH_PERFORMANCE
    virtual   DAQWordBufferPtr& Read (DAQWordBufferPtr& rBuffer)  ;
+#else /* HIGH_PERFORMANCE */
+   virtual   unsigned short*  Read (unsigned short* rBuffer)  ;
+#endif /* HIGH_PERFORMANCE */
    virtual   void Clear ()  ;
    virtual   unsigned int MaxSize ()  ;
  

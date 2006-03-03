@@ -1,4 +1,20 @@
 /*
+    This software is Copyright by the Board of Trustees of Michigan
+    State University (c) Copyright 2005.
+
+    You may use this software under the terms of the GNU public license
+    (GPL).  The terms of this license are described at:
+
+     http://www.gnu.org/licenses/gpl.txt
+
+     Author:
+             Ron Fox
+	     NSCL
+	     Michigan State University
+	     East Lansing, MI 48824-1321
+*/
+
+/*
 		    GNU GENERAL PUBLIC LICENSE
 		       Version 2, June 1991
 
@@ -288,41 +304,6 @@ static const char* Copyright = "(C) Copyright Michigan State University 2002, Al
 #ifdef HAVE_STD_NAMESPACE
 using namespace std;
 #endif
-/*
-  $Header$
-   
-   Modification History:
-   $Log$
-   Revision 8.2  2005/06/24 11:31:28  ron-fox
-   Bring the entire world onto the 8.2 line
-
-   Revision 4.2  2004/11/22 19:26:08  ron-fox
-   Port to gcc/g++ 3.x
-
-   Revision 4.1  2004/11/08 17:37:29  ron-fox
-   bring to mainline
-
-   Revision 3.1  2003/03/22 04:03:03  ron-fox
-   Added SBS/Bit3 device driver.
-
-   Revision 1.1.1.1  2003/03/12 04:17:36  ron-fox
-   Correct initial import this time.
-
-   Revision 1.5  2002/11/20 16:14:41  fox
-   Misc. stuff
-
-// Revision 1.4  2002/10/22  12:38:15  fox
-// Straighten out dates in internal copyright notices.
-//
-// Revision 1.3  2002/10/15  12:48:22  fox
-// 1. Initial testing
-// 2. Add const variable and make tkloaded const.
-// 3. Add TclServer functionality.
-//
-// Revision 1.2  2002/10/09  11:22:23  fox
-// Stamp with copyright/gpl license notice
-//
-   */
 
 /*!
    Default constructor.  This is called when declarations of the form e.g.:
@@ -336,6 +317,9 @@ CDocumentedPacket::CDocumentedPacket (unsigned short nTag,
   m_nTag(nTag),
   m_sName(rName),
   m_sDescription(rDescription),
+#ifdef HIGH_PERFORMANCE
+  m_pHeaderPtr(0),
+#endif /* HIGH_PERFORMANCE */
   m_sVersion(rVersion),
   m_fPacketInProgress(false)
 {
@@ -402,8 +386,13 @@ CDocumentedPacket::Format()
 	\returns Pointer to body of packet.
 
 */
+#ifndef HIGH_PERFORMANCE
 DAQWordBufferPtr 
 CDocumentedPacket::Begin(DAQWordBufferPtr& rPointer)  
+#else /* HIGH_PERFORMANCE */
+unsigned short* 
+CDocumentedPacket::Begin(unsigned short* rPointer)  
+#endif /* HIGH_PERFORMANCE */
 {
   if(m_fPacketInProgress) {
     throw CInvalidPacketStateException(m_fPacketInProgress, 
@@ -412,7 +401,11 @@ CDocumentedPacket::Begin(DAQWordBufferPtr& rPointer)
   m_fPacketInProgress = true;
   m_pHeaderPtr        = rPointer;
   
+#ifndef HIGH_PERFORMANCE
   DAQWordBufferPtr p  = m_pHeaderPtr;
+#else /* HIGH_PERFORMANCE */
+  unsigned short* p  = m_pHeaderPtr;
+#endif /* HIGH_PERFORMANCE */
   *p = 0;			// Don't know word count yet.
   ++p;
   *p = m_nTag;			// The packet is tagged with our id.
@@ -437,14 +430,23 @@ CDocumentedPacket::Begin(DAQWordBufferPtr& rPointer)
 		 this allows for a trailer as well as a header to be inserted.
 
 */
+#ifndef HIGH_PERFORMANCE
 DAQWordBufferPtr 
 CDocumentedPacket::End(DAQWordBufferPtr& rBuffer)  
+#else /* HIGH_PERFORMANCE */
+unsigned short* 
+CDocumentedPacket::End(unsigned short* rBuffer)  
+#endif /* HIGH_PERFORMANCE */
 {
   if(!m_fPacketInProgress) {
     throw CInvalidPacketStateException(m_fPacketInProgress,
 			      "Packet must be open to be ended.");
   }
+#ifndef HIGH_PERFORMANCE
   *m_pHeaderPtr = rBuffer.GetIndex() - m_pHeaderPtr.GetIndex();
+#else /* HIGH_PERFORMANCE */
+  *m_pHeaderPtr = (unsigned short)(rBuffer - m_pHeaderPtr);
+#endif /* HIGH_PERFORMANCE */
   m_fPacketInProgress = false;
   return rBuffer;
 }
@@ -452,7 +454,11 @@ CDocumentedPacket::End(DAQWordBufferPtr& rBuffer)
     Get a pointer to the current packet.  This throws  CInvalidPacketState if there is not
    an open packet, and is therefore not a trivial selector.
 */
+#ifndef HIGH_PERFORMANCE
 DAQWordBufferPtr 
+#else /* HIGH_PERFORMANCE */
+unsigned short* 
+#endif /* HIGH_PERFORMANCE */
 CDocumentedPacket::getHeaderPtr() const
 {
    if(!m_fPacketInProgress) {

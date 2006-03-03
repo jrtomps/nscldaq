@@ -1,8 +1,7 @@
-SUBDIRS = hyperlatex
+SUBDIRS = hyperlatex direct HP
 
 
-lib_LTLIBRARIES=libPReadout.la
-libPReadout_la_SOURCES = AccessListCheck.cpp \
+PRODUCTIONSOURCES = AccessListCheck.cpp \
 	AuthTokenCheck.cpp \
 	CBadTransitionException.cpp \
 	CBeginCommand.cpp \
@@ -65,9 +64,13 @@ libPReadout_la_SOURCES = AccessListCheck.cpp \
 	cmdline.c \
 	CTKListener.cpp CTKServerInstance.cpp \
 	CStrings.cpp \
-	CCAENV977Status.cpp CCAENV977Trigger.cpp
+	CCAENV977Status.cpp CCAENV977Trigger.cpp \
+	CCBDCES8210ScalerTrigger.cpp             \
+	CCAENV2562ScalerTrigger.cpp             \
+	CCAENV977ScalerTrigger.cpp
 
-include_HEADERS = AccessListCheck.h \
+
+PRODUCTIONHEADERS = AccessListCheck.h \
 	AuthTokenCheck.h \
 	Authenticator.h \
 	CBadTransitionException.h \
@@ -132,46 +135,43 @@ include_HEADERS = AccessListCheck.h \
 	cmdline.h  \
 	CTKServerInstance.h \
 	CTKListener.h  CStrings.h \
-	CCAENV977Status.h CCAENV977Trigger.h
+	CCAENV977Status.h CCAENV977Trigger.h \
+	CCBDCES8210ScalerTrigger.h \
+	CCAENV262ScalerTrigger.h   \
+	CCAENV977ScalerTrigger.h
 
 
-libPReadout_la_LDFLAGS = -g -version-info $(SOVERSION):0 \
-	-L@top_srcdir@/framework \
-	$(VMEBUILDLIBS) \
-	-L@top_srcdir@/Exception \
-	-lEventFramework -lVmeAPI -lException -lrt  $(SPECTRODAQ_LDFLAGS) \
-	$(TCL_LDFLAGS) $(X11LIBS) -Wl,"-rpath-link=$(libdir)"
-
-INCLUDES =  $(CAMAC) -I@top_srcdir@/Headers \
-	$(VMEBUILDHEADERS)        \
-	-I@top_srcdir@/DeviceSupport \
-	-I@top_srcdir@/CopyrightTools     \
-	-I@top_srcdir@/VMEApi     \
-	-I@top_srcdir@/framework  \
-	-I@top_srcdir@/Exception \
-	-I@top_srcdir@/TCL \
-	$(TCL_FLAGS) $(SPECTRODAQ_FLAGS)
-
-EXTRA_DIST = 	MyExperiment.cpp \
+OTHER_STUFF  = 	MyExperiment.cpp \
 	CTraditionalScalerReadout.cpp \
 	CTraditionalEventSegment.cpp  \
 	Makefile.skel ProductionReadout_Makefile.include
 
+DOCFILES=ScalerTriggerAppnote.xml \
+	CScalerTrigger.xml CCAENV262ScalerTrigger.xml   \
+	CCAENV977ScalerTrigger.xml CCBDCES8210ScalerTrigger.xml \
+	CTimedScalerTrigger.xml 
 
-install-data-local:
-	$(mkinstalldirs) $(prefix)/pReadoutSkeleton
-	$(mkinstalldirs) $(prefix)/etc
-	chmod a+rx $(prefix)
-	chmod a+rx $(prefix)/pReadoutSkeleton
-	$(INSTALL_DATA) MyExperiment.cpp $(prefix)/pReadoutSkeleton/Skeleton.cpp
-	echo INSTDIR=$(prefix) > Makefile.user
-	cat  Makefile.skel    >> Makefile.user
-	$(INSTALL_DATA) Makefile.user $(prefix)/pReadoutSkeleton/Makefile
-	$(INSTALL_DATA) ProductionReadout_Makefile.include $(prefix)/etc
-	$(INSTALL_DATA) CTraditionalEventSegment.cpp \
-		$(prefix)/pReadoutSkeleton/CTraditionalEventSegment.cpp
-	$(INSTALL_DATA) CTraditionalScalerReadout.cpp \
-	        $(prefix)/pReadoutSkeleton/CTraditionalScalerReadout.cpp
+EXTRA_DIST=$(OTHER_STUFF) $(PRODUCTIONSOURCES) $(PRODUCTIONHEADERS) \
+	$(DOCFILES)
 
-CXXFLAGS=-g
-CCFLAGS=-g
+
+# PDF files if made go to Docs
+# Man pages are all in the man3 subdir
+#
+install-data-local: documentation
+	$(mkinstalldirs) $(prefix)/Docs
+	$(mkinstalldirs) $(prefix)/man $(prefix)/man/man3
+	-$(INSTALL_DATA) CScalerTriggerAppnote.pdf $(prefix)/Docs
+	-for f in *Trigger.3*; do $(INSTALL_DATA) $$f $(prefix)/man/man3; done
+
+
+documentation: manpages appnote.pdf
+
+appnote.pdf : ScalerTriggerAppnote.xml
+	$(HCDOCBOOK) ScalerTriggerAppnote.xml
+	$(DVIPDF)    ScalerTriggerAppnote.dvi
+
+manpages: CScalerTrigger.xml CCAENV262ScalerTrigger.xml   \
+	CCAENV977ScalerTrigger.xml CCBDCES8210ScalerTrigger.xml CTimedScalerTrigger.xml
+	for f in $+; do $(MANDOCBOOK) man $$f; done
+

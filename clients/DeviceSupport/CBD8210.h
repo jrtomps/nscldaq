@@ -296,7 +296,12 @@ DAMAGES.
    
  */		
 class CBD8210  : public CCamacModule        
-{ 
+{
+public:
+  // Bits in the Interrupt flag register and CSR for interrupts:
+
+  static const int IT2BIT = 2;
+  static const int IT4BIT = 1;
 private:
       volatile unsigned short* m_pCsr; //!< Pointer to the Control Status Register.
       volatile unsigned short* m_pITF; //!< Pointer to the Interrupt flag register.

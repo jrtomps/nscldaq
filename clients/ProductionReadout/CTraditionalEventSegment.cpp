@@ -292,7 +292,11 @@ using namespace std;
 
 extern void initevt();
 extern void clearevt();
+#ifndef HIGH_PERFORMANCE
 extern int  readevt(DAQWordBufferPtr& rBuf);
+#else /* HIGH_PERFORMANCE */
+extern int  readevt(unsigned short*  rBuf);
+#endif /* HIGH_PERFORMANCE */
 extern unsigned short  evtmax();
 
 unsigned long CAMBAS = 0;
@@ -333,11 +337,21 @@ CTraditionalEventSegment::Initialize()
 	\param DAQWordBufferPtr& rBuffer
 
 */
+#ifndef HIGH_PERFORMANCE
 DAQWordBufferPtr&
 CTraditionalEventSegment::Read(DAQWordBufferPtr& rBuffer)  
+#else /* HIGH_PERFORMANCE */
+unsigned short*
+CTraditionalEventSegment::Read(unsigned short* rBuffer)  
+#endif /* HIGH_PERFORMANCE */
 {
+#ifndef HIGH_PERFORMANCE
   int nBytes = ::readevt(rBuffer);
   return rBuffer;		// It got incremented in ::readevt(...).
+#else /* HIGH_PERFORMANCE */
+  int nWords = ::readevt(rBuffer);
+  return (rBuffer + nWords);
+#endif /* HIGH_PERFORMANCE */
 
 }  
 

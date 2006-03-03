@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE book PUBLIC "-//OASIS//DTD Docbook XML 4.3//EN"
+                      "file:///usr/share/xml/docbook/schema/dtd/4.3/docbookx.dtd" >
+<book>
+<article>
+
+<refentry>
+    <refmeta>
+        <refentrytitle>CTimedScalerTrigger nscl</refentrytitle>
+        <manvolnum>3nscl</manvolnum>
+    </refmeta>
+    <refnamediv>
+        <refname>CTimedScalerTrigger</refname>
+        <refpurpose>
+            Provides a periodic scaler trigger.
+        </refpurpose>
+    </refnamediv>
+    <refsynopsisdiv>
+        <para>
+            #include &lt;CTimedScalerTrigger.h&gt;
+        </para>
+        <programlisting>
+class CTimedScalerTrigger : public CScalerTrigger
+{
+public:
+  // Constructors and other canonicals.
+
+  CTimedScalerTrigger(CExperiment* pExperiment);
+  virtual ~CTimedScalerTrigger();
+
+public:
+
+  // Overrides:
+
+  virtual void Initialize();
+  virtual bool operator()();
+};
+
+        </programlisting>
+    </refsynopsisdiv>
+
+    <refsect1>
+        <title>DESCRIPTION</title>
+        <para>
+            <classname>CTimedScalerTrigger</classname> provides a class that, when
+            registered as  a scaler trigger on the <classname>CExperiment</classname>
+            triggers periodic scaler readouts.
+            Scaler readouts are triggered at a fixed period determined by the
+            <varname>frequency</varname> <application>Tcl</application> variable.
+        </para>
+        <para>
+            If no programmatic effort is taken to establish a scaler trigger, the
+            production readout framework will establish a <classname>CTimedScalerTrigger</classname>
+            as the scaler trigger.
+        </para>
+    </refsect1>
+    <refsect1>
+        <title>METHODS</title>
+        <para>
+            <function>CTimedScalerTrigger</function>(
+                 <classname>CExperiment</classname>* <parameter>pExperiment</parameter>
+                 )
+        </para>
+        <para>
+            This constructs a <classname>CTimedScalerTrigger</classname> object.
+            The <parameter>pExperiment</parameter> parameter is the experiment on which
+            this object will be registered.
+        </para>
+        <para>
+            <returnvalue>void</returnvalue> <function>Initialize</function>()
+        </para>
+        <para>
+            This member function is called when the run becomes active.  The
+            <varname>frequency</varname> variable is read and the current elapsed run
+            time as well.  The <varname>frequency</varname>
+            and elapsed run time are used to compute
+            the elapsed run time at which the next scaler read is triggerd, and the
+            <varname>frequency</varname> is saved in order to be used to compute
+            subsequent scaler read trigger times.
+        </para>
+        <para>
+            <returnvalue>bool</returnvalue> <function>operator()</function>()
+        </para>
+        <para>
+            This function is called often by the production readout framework to
+            determine if it is time to read the next set of scalers.
+        </para>
+    </refsect1>
+    <refsect1>
+        <title>SEE ALSO</title>
+        <para>
+            CScalerTrigger(3nscl),
+            CCAENV262ScalerTrigger(3nscl),
+            CCAENV977ScalerTrigger(3nscl),
+            CCAENCBDCES8210ScalerTrigger(3nscl)
+        </para>
+        <para>
+            <ulink url="http://docs.nscl.msu.edu/daq/appnotes/ScalerTriggerAppnote.pdf" />
+            contains complete documentation that describes scaler triggers, how to
+            establish them and how to write application specific ones.
+        </para>
+    </refsect1>
+</refentry>
+
+
+
+</article>
+</book>

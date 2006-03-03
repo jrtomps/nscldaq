@@ -14,7 +14,6 @@
 	     East Lansing, MI 48824-1321
 */
 
-
 //////////////////////////CRunVariable.h file//////////////////////////////////
 
 #ifndef __CRUNVARIABLE_H  
