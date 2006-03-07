@@ -173,10 +173,7 @@ INCLUDES =  -I.. $(CAMAC) -I@top_srcdir@/Headers \
 	$(TCL_FLAGS) $(SPECTRODAQ_FLAGS) \
 	-DHIGH_PERFORMANCE
 
-EXTRA_DIST = 	MyExperiment.cpp \
-	CTraditionalScalerReadout.cpp \
-	CTraditionalEventSegment.cpp  \
-	Makefile.skel ProductionReadout_Makefile.include
+EXTRA_DIST = Makefile.skel ProductionReadout_Makefile.include
 
 
 install-data-local:

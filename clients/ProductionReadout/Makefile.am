@@ -66,7 +66,7 @@ PRODUCTIONSOURCES = AccessListCheck.cpp \
 	CStrings.cpp \
 	CCAENV977Status.cpp CCAENV977Trigger.cpp \
 	CCBDCES8210ScalerTrigger.cpp             \
-	CCAENV2562ScalerTrigger.cpp             \
+	CCAENV262ScalerTrigger.cpp             \
 	CCAENV977ScalerTrigger.cpp
 
 
