@@ -616,4 +616,5 @@ March 3, 2006
         common source directories.
       - Added support for and documentation of external triggers
         for production readout.
-    
+March 7, 2006
+      - Use direct recording, rather than ftp.

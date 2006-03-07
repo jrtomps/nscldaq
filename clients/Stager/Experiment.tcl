@@ -252,12 +252,11 @@ proc Experiment::RunBeginning {} {
             set SourceURL    [Experiment::spectrodaqURL $sourceHost]
             set ftpLoghost   [DAQParameters::getFtpHost]
             set ftpLogpasswd [DAQParameters::getPassword]
+	    
+	    cd $Stagedir
 
-            puts "Starting event log: src: $SourceURL ftp: tcp://$ftpLoghost:ftp$Stagedir"
-            puts "User = $user, pass = $ftpLogpasswd"
-	    set EventlogPid [exec $Logrecorder -one -source $SourceURL \
-		    -ftp tcp://$ftpLoghost:ftp$Stagedir \
-		    -user $user -pass $ftpLogpasswd &]
+
+	    set EventlogPid [exec $Logrecorder -one -source $SourceURL &]
 
             Experiment::makeEventLink $nrun
 

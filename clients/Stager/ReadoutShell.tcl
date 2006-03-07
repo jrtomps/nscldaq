@@ -29,13 +29,13 @@ exec tclsh ${0} ${@}
 #  dir:
 
 set here [file dirname [info script]]
-set libdir [file join $here ..]
+set libdir [file join $here .. TclLibs]
 #
-# Canonicalize $here/..
+# Canonicalize $here/../TclLibs
 #
 set wd [pwd]
 cd $libdir
-set libdir [file join [pwd] lib]
+set libdir [pwd]
 cd $wd
 #   
 #  Prepend to auto_path only if it's not already 
