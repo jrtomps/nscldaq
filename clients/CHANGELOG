@@ -624,3 +624,6 @@ March 14, 2006
         connection thing cannot occur.
 March 16, 2006
       - Use new version of TclLib from SpecTcl3.1
+      - Added capability to jacket CTCLProcessor::operator()
+        with overridable code as a way to support
+        CDAQTCLProcessor in a better way.
