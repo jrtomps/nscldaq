@@ -335,23 +335,17 @@ private:
   //! Operator== Equality Operator 
   int operator== (const CDAQTCLProcessor& aCDAQTCLProcessor) const;
 public:
-
+  virtual void preCommand();
+  virtual void postCommand();
+  virtual void preDelete();
+  virtual void postDelete();
 
   // Class operations:
 
-public:
-  
-  virtual void Register ();	          
 private:
-  static  int EvalRelay (ClientData pData, 
-			 Tcl_Interp* pInterp, 
-			 int Argc, 
-#if (TCL_MAJOR_VERSION > 8) || ((TCL_MAJOR_VERSION ==8) && (TCL_MINOR_VERSION > 3))
-			 const char** Argv);
-#else
-			 char** Argv);
-#endif
-  static  void DeleteRelay (ClientData pData);  
+  void lock();
+  void unlock();
+  
 
 };
 

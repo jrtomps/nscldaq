@@ -73,76 +73,46 @@ CDAQTCLProcessor::CDAQTCLProcessor(const char* pCommand,
 }
 // Functions for class CDAQTCLProcessor
 
-/*!
-  Registers the processor on the current interpreter. This reimplements code
-from the base class because I need to specify my own Eval and Delete relay 
-functions (there's naturally no way for static functions to be virtual).
 
- */
-void 
-CDAQTCLProcessor::Register()  
-{
-  CTCLInterpreter* pInterp = AssertIfNotBound();
-  
 
-  pInterp->AddCommand(getCommandName(), EvalRelay, (ClientData)this,
-		      DeleteRelay);
-  //  AddRegisteredOnCurrent();
-}  
 
 /*!
-
-Locks the application mutex, calls
-operator() and the unlocks the resource.
-
+    Called just prior to operator() .. lock the mutex.
 */
-int 
-CDAQTCLProcessor::EvalRelay(ClientData pData, Tcl_Interp* pInterp, int Argc, 
-#if (TCL_MAJOR_VERSION > 8) || ((TCL_MAJOR_VERSION ==8) && (TCL_MINOR_VERSION > 3))
-			 const char** Argv)
-#else
-			 char** Argv)
-#endif
-{ 
-   CApplicationSerializer* pSynch = CApplicationSerializer::getInstance();
-
-   pSynch->Lock(); {		//<-- Begin critical region.
-   try {
-      CTCLProcessor*   pProcessor = (CTCLProcessor*)pData;
-      CTCLInterpreter* pInterpObject = pProcessor->getInterpreter();
-      CTCLResult       result(pInterpObject); 
-      int status = (*pProcessor)(*pInterpObject, result, Argc, (char**)Argv);
-      result.commit();
-      return status;
-// CTCLProcessor::EvalRelay(pData, pInterp, Argc, Argv);
-    }
-    catch(...)			// Ensure the mutex is released.
-      {
-      }
-  }
-  pSynch->UnLock();		//<-- End critical region.
-}  
-
-/*!
-Locks the application mutex, call's
-the object's OnDelete member function
-(the object is pointed to by the client data
-parameter), and unlocks the mutex.
-
-*/
-void 
-CDAQTCLProcessor::DeleteRelay(ClientData pData)  
+void
+CDAQTCLProcessor::preCommand()
 {
-  CApplicationSerializer* pSynch = CApplicationSerializer::getInstance();
-  pSynch->Lock(); {		//<-- Begin Critical region.
-    try {
-      CTCLProcessor* pProcesor = (CTCLProcessor*)pData;
-      pProcesor->OnDelete();
-      //      CTCLProcessor::DeleteRelay(pData);
-    } 
-    catch(...) {}		// Ensure we don't exception out before
-				// releasing the lock.
-  }
-  pSynch->UnLock();		//<-- End Critical region.
+  lock();
+}
+/*!
+   Called just after operator() .. unlock the mutex.
+*/
+void
+CDAQTCLProcessor::postCommand()
+{
+  unlock();
+}
+void
+CDAQTCLProcessor::preDelete()
+{
+  lock();
+}
+void
+CDAQTCLProcessor::postDelete()
+{
+  unlock();
+}
+
+void
+CDAQTCLProcessor::lock()
+{
+  CApplicationSerializer* pSync = CApplicationSerializer::getInstance();
+  pSync->Lock();
+}
+void CDAQTCLProcessor::unlock()
+{
+  CApplicationSerializer* pSync = CApplicationSerializer::getInstance();
+  pSync->UnLock();
+
 }
 

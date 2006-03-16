@@ -627,3 +627,5 @@ March 16, 2006
       - Added capability to jacket CTCLProcessor::operator()
         with overridable code as a way to support
         CDAQTCLProcessor in a better way.
+      - Redo CDAQTCLProcessor to use the base class facilities added
+        to jacket operator().
