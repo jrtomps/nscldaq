@@ -273,9 +273,9 @@ THIRD PARTIES OR A FAILURE OF THE PROGRAM TO OPERATE WITH ANY OTHER PROGRAMS),
 EVEN IF SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH 
 DAMAGES.
 
-		     END OF TERMS AND CONDITIONS'
+		     END OF TERMS AND CONDITIONS '
 */
-
+static const char* Copyright = "(C) Copyright Michigan State University 2015, All rights reserved";
 //  CTCLException.cpp
 // Encapsulates an exception which can be 
 // thrown by the TCL interpreter classes.
@@ -292,6 +292,7 @@ DAMAGES.
 //
 // Header Files:
 //
+
 #include <config.h>
 #include "TCLException.h"                               
 #include "TCLInterpreter.h"
@@ -300,9 +301,6 @@ DAMAGES.
 #ifdef HAVE_STD_NAMESPACE
 using namespace std;
 #endif
-
-static const char* Copyright= 
-"CTCLException.cpp: Copyright 1999 NSCL, All rights reserved\n";
 
 // Functions for class CTCLException
 
@@ -380,7 +378,7 @@ CTCLException::ReasonText() const
 // Returns  a pointer to the reason for the
 // failure.  This is currently the Result string.
 
-  return (const char*)(GetResult());
+  return m_ResultText.c_str();
 
 }
 //////////////////////////////////////////////////////////////////////////
@@ -408,7 +406,7 @@ CTCLException::ReasonCode() const
 //     Selector.
 //
 CTCLResult 
-CTCLException::GetResult() const
+CTCLException::GetResult()
 {
 // Returns the result string object.
 // associated with this interpreter.

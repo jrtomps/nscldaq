@@ -318,7 +318,9 @@ DAMAGES.
 
 #ifndef __STL_STRING
 #include <string>
+#ifndef __STL_STRING
 #define __STL_STRING
+#endif
 #endif
 
 template <class T>

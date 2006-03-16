@@ -10,7 +10,7 @@ TestHarness_LDFLAGS = VMECommand.o VMEMapCommand.o \
 	 $(VMEBUILDLIBS) \
 	 -L@top_srcdir@/TCL -L@top_srcdir@/Exception  \
 	-L@top_srcdir@/CopyrightTools\
-	-L@top_srcdir@/DeviceSupport -lDeviceSupport -lTclPlus -lException \
+	-L@top_srcdir@/DeviceSupport -lDeviceSupport -ltclPlus -lException \
 	-lVmeAPI $(TCL_LDFLAGS)
 
 lib_LTLIBRARIES = libVme.la
@@ -22,7 +22,7 @@ libVme_la_LDFLAGS =   $(VMEBUILDLIBS) \
 	-L@top_srcdir@/DeviceSupport -lDeviceSupport \
 	-version-info $(SOVERSION):0 -Wl,"-rpath=$(libdir)"
 
-libVme_la_LIBADD =  -lTclPlus -lException  \
+libVme_la_LIBADD =  -ltclPlus -lException  \
 	$(TCL_LDFLAGS)   $(X11LIBS)  \
 	$(VMEBUILDLIBS) -lVmeAPI -lLicense -lpthread \
 	-lm -lstdc++ -lgcc -lc 

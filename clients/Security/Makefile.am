@@ -18,12 +18,12 @@ noinst_PROGRAMS = unittests
 
 unittests_SOURCES = test.cpp 
 
-unittests_DEPENDENCIES = AccessListCheck.cpp AuthTokenCheck.cpp \
-	DAQAuthTokenInteractor.cpp FdInteractor.cpp HostListCheck.cpp \
-	IOInteractor.cpp Interactor.cpp PasswordCheck.cpp  \
-	StringInteractor.cpp TclAccessListCheck.cpp UnixUserCheck.cpp
+unittests_DEPENDENCIES = AccessListCheck.o AuthTokenCheck.o \
+	DAQAuthTokenInteractor.o FdInteractor.o  HostListCheck.o \
+	IOInteractor.o Interactor.o PasswordCheck.o  \
+	StringInteractor.o TclAccessListCheck.o UnixUserCheck.o
 
-unittests_LDADD = -L@top_srcdir@/TCL -lTclPlus -L@top_srcdir@/Exception -lException \
+unittests_LDADD = $(unittests_DEPENDENCIES) -L@top_srcdir@/TCL -ltclPlus -L@top_srcdir@/Exception -lException \
 	$(SPECTRODAQ_LDFLAGS) $(TCL_LDFLAGS)
 
 TESTS = ./unittests

@@ -321,13 +321,9 @@ private:
   CTCLSynchronizeCommand (const CTCLSynchronizeCommand& aCTCLSynchronizeCommand );
              //! Operator= Assignment Operator Private and unimplemented.
   CTCLSynchronizeCommand& operator= (const CTCLSynchronizeCommand& aCTCLSynchronizeCommand);
+  int operator== (const CTCLSynchronizeCommand& aCTCLSynchronizeCommand) const;
 public:
 
-            //! Operator== Equality Operator 
-  int operator== (const CTCLSynchronizeCommand& aCTCLSynchronizeCommand) const
-  {
-    return CTCLProcessor::operator==(aCTCLSynchronizeCommand);
-  }
 
 public:
 

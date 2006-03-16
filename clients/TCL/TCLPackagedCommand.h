@@ -273,7 +273,7 @@ THIRD PARTIES OR A FAILURE OF THE PROGRAM TO OPERATE WITH ANY OTHER PROGRAMS),
 EVEN IF SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH 
 DAMAGES.
 
-		     END OF TERMS AND CONDITIONS
+		     END OF TERMS AND CONDITIONS '
 */
 //  CTCLPackagedCommand.h:
 //
@@ -300,7 +300,14 @@ DAMAGES.
 
 #ifndef __TCLPROCESSOR_H
 #include "TCLProcessor.h"
-#endif                                                  
+#endif                                  
+
+#ifndef __STL_STRING
+#include <string>
+#ifndef __STL_STRING
+#define __STL_STRING
+#endif
+#endif                
              
 class CTCLPackagedCommand   : public CTCLProcessor
 {
@@ -330,17 +337,9 @@ public:
 private:
   CTCLPackagedCommand& operator= 
       (const CTCLPackagedCommand& aCTCLPackagedCommand);
+  int operator==(const CTCLPackagedCommand& rhs) const;
+  int operator!=(const CTCLPackagedCommand& rhs) const;
 public:
-
-			//Operator== Equality Operator
-                        // Nonsense maybe, but provided anyway.
-
-  int operator== (const CTCLPackagedCommand& aCTCLPackagedCommand) const
-  { return ( CTCLProcessor::operator==(aCTCLPackagedCommand) &&
-	    (m_rMyPackage == aCTCLPackagedCommand.m_rMyPackage)
-
-	     );
-  }                             
   // Selectors:
 
 public:

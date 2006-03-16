@@ -23,6 +23,7 @@ static const char* Copyright = "(C) Copyright Michigan State University 2002, Al
 #include "CRunVariable.h"
 
 #include <TCLProcessor.h>
+#include <TCLResult.h>
 
 #include <assert.h>
 #include <string>

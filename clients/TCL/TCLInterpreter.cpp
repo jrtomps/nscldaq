@@ -1,4 +1,4 @@
-/*
+ /*
 		    GNU GENERAL PUBLIC LICENSE
 		       Version 2, June 1991
 
@@ -273,10 +273,9 @@ THIRD PARTIES OR A FAILURE OF THE PROGRAM TO OPERATE WITH ANY OTHER PROGRAMS),
 EVEN IF SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH 
 DAMAGES.
 
-		     END OF TERMS AND CONDITIONS
+		     END OF TERMS AND CONDITIONS '
 */
-
-
+static const char* Copyright = "(C) Copyright Michigan State University 2015, All rights reserved";
 //  CTCLInterpreter.cpp
 // Encapsulates a TCL Command interpreter.
 // in an object oriented way.  Note that many
@@ -304,26 +303,23 @@ DAMAGES.
 // Header Files:
 //
 #include <config.h>
+#include "TCLVersionHacks.h"
 #include "TCLInterpreter.h"                               
 #include "TCLException.h"
-
+#include "TCLList.h"
 #ifdef HAVE_STD_NAMESPACE
 using namespace std;
 #endif
-
-static const char*  Copyright = 
-"CTCLInterpreter.cpp: Copyright 1999 NSCL, All rights reserved\n";
-
 // Functions for class CTCLInterpreter
 
 //////////////////////////////////////////////////////////////////////////
 //
 //  Function:   
-//    string Eval ( const char* pScript )
+//    std::string Eval ( const char* pScript )
 //  Operation Type:
 //     Script evaluation.
 //
-string 
+std::string 
 CTCLInterpreter::Eval(const char* pScript) 
 {
 // Evaluates a TCL script contained in any of several types
@@ -337,7 +333,7 @@ CTCLInterpreter::Eval(const char* pScript)
 //      script variable type:
 //          const char*            pScript
 //          const CTCLString& rScript
-//          const string&    rScript
+//          const std::string&    rScript
 //               String containing the script.
 // Returns:
 //    Result of the evaluation.
@@ -349,16 +345,16 @@ CTCLInterpreter::Eval(const char* pScript)
 			Status,
 			"CTCLInterpreter::Eval - Evaluating expression");
   }
-  return string(m_pInterpreter->result);
+  return std::string(Tcl_GetStringResult(m_pInterpreter));
 }
 //////////////////////////////////////////////////////////////////////////
 //
 //  Function:   
-//    string EvalFile ( const char* pFilename )
+//    std::string EvalFile ( const char* pFilename )
 //  Operation Type:
 //     Script Evaluation
 //
-string 
+std::string 
 CTCLInterpreter::EvalFile(const char* pFilename) 
 {
 // Evaluates the script contained in the file.
@@ -371,7 +367,7 @@ CTCLInterpreter::EvalFile(const char* pFilename)
 //
 //       const char*            pFilename
 //       const CTCLString& rFilename
-//       const string&    rFilename:
+//       const std::string&    rFilename:
 //            Name of the file contaning
 //            a script to evaluate.
 //  Returns:
@@ -384,16 +380,16 @@ CTCLInterpreter::EvalFile(const char* pFilename)
 			Status,
 			"CTCLInterpreter::EvalFile - Evaluating file script");;
   }
-  return string(m_pInterpreter->result);
+  return std::string(Tcl_GetStringResult(m_pInterpreter));
 }
 //////////////////////////////////////////////////////////////////////////
 //
 //  Function:   
-//    string GlobalEval ( const char* pScript )
+//    std::string GlobalEval ( const char* pScript )
 //  Operation Type:
 //     script evaluator
 //
-string 
+std::string 
 CTCLInterpreter::GlobalEval(const char* pScript) 
 {
 // Evaluates a script at the global level.
@@ -407,17 +403,17 @@ CTCLInterpreter::GlobalEval(const char* pScript)
 			"CTCLInterpreter::Eval - Evaluating expression");
     throw except;
   }
-  return string(m_pInterpreter->result);
+  return std::string(Tcl_GetStringResult(m_pInterpreter));
 
 }
 //////////////////////////////////////////////////////////////////////////
 //
 //  Function:   
-//    string RecordAndEval ( const char* pScript )
+//    std::string RecordAndEval ( const char* pScript )
 //  Operation Type:
 //     script evaluation
 //
-string 
+std::string 
 CTCLInterpreter::RecordAndEval(const char* pScript, Bool_t fEvaluate) 
 {
 // Records and optionally evaluates
@@ -433,7 +429,10 @@ CTCLInterpreter::RecordAndEval(const char* pScript, Bool_t fEvaluate)
 //      The results of the script on success or
 //       throws an exception on error.
 
-  int Status = Tcl_RecordAndEval(m_pInterpreter, (char*)pScript, fEvaluate);
+  int Status = Tcl_RecordAndEval(m_pInterpreter, (char*)pScript, 
+				 fEvaluate ? TCL_EVAL_GLOBAL : 
+				             TCL_NO_EVAL);
+
   if(Status != TCL_OK) {
     CTCLException except(*this,
 			Status,
@@ -441,17 +440,17 @@ CTCLInterpreter::RecordAndEval(const char* pScript, Bool_t fEvaluate)
     throw except;
   }
 
-  return string(m_pInterpreter->result);
+  return std::string(Tcl_GetStringResult(m_pInterpreter));
 
 }
 //////////////////////////////////////////////////////////////////////////
 //
 //  Function:   
-//    string ExprString ( const char* pExpression )
+//    std::string ExprString ( const char* pExpression )
 //  Operation Type:
 //     Expression evaluation
 //
-string 
+std::string 
 CTCLInterpreter::ExprString(const char* pExpression) 
 {
 // Evaluates an expression as a string.  The
@@ -464,14 +463,33 @@ CTCLInterpreter::ExprString(const char* pExpression)
 //    The string.  On failure to evaluate,  a
 //    CTCLException is thrown.
 
-  int Status = Tcl_ExprString(m_pInterpreter, (char*)pExpression);
+  Tcl_Obj* expressionObject = Tcl_NewStringObj(pExpression, -1);
+  Tcl_IncrRefCount(expressionObject); // So I can explicitly kill it.
+  Tcl_Obj* resultObject;
+
+  int Status = Tcl_ExprObj(m_pInterpreter, expressionObject, &resultObject);
+  Tcl_DecrRefCount(expressionObject); // Destroy expression.
+
+  // Throw an exception on error (e.g. invalid exception).
+
   if(Status != TCL_OK) {
+    string msg = "CTCLInterpreter::ExprString - Evaluating string expression : ";
+    msg += pExpression;
     CTCLException e(*this,
 		    Status,
-	  "CTCLInterpreter::ExprString - Evaluating string expression");
-    throw e;
+		    msg);
+	  
+    throw e;  
   }
-  return string(m_pInterpreter->result);
+
+  // Get the string form of the object, kill the reference count,
+  // and return the string:
+
+  string result(Tcl_GetString(resultObject));
+  Tcl_DecrRefCount(resultObject);
+
+  return result;
+
 
 }
 //////////////////////////////////////////////////////////////////////////
@@ -496,17 +514,26 @@ CTCLInterpreter::ExprLong(const char* pExpression)
 //
 // Returns:
 //   The longword value evaluated.
-  Long_t l;
-  int    Status =  Tcl_ExprLong(m_pInterpreter, 
-				(char*)pExpression,
-				&l);
+
+  Tcl_Obj* expressionObject = Tcl_NewStringObj(pExpression, -1);
+  Tcl_IncrRefCount(expressionObject); // So I can explicitly kill it.
+  Long_t result;
+
+  int Status = Tcl_ExprLongObj(m_pInterpreter, expressionObject, &result);
+  Tcl_DecrRefCount(expressionObject); // Destroy expression.
+
+  // Throw an exception on error (e.g. invalid exception).
+
   if(Status != TCL_OK) {
+    string msg = "CTCLInterpreter::ExprString - Evaluating string expression : ";
+    msg += pExpression;
     CTCLException e(*this,
 		    Status,
-		    "CTCLInterpreter::ExprLong - Evaluating long expression");
-    throw e;
+		    msg);
+	  
+    throw e;  
   }
-  return l;
+  return result;
 
 
 }
@@ -533,17 +560,27 @@ CTCLInterpreter::ExprDouble(const char* pExpression)
 // Returns:
 //   The floating point value of the expression
 //
-  DFloat_t f;
-  Int_t    Status = Tcl_ExprDouble(m_pInterpreter, 
-				   (char*)pExpression,
-				   &f);
+
+  Tcl_Obj* expressionObject = Tcl_NewStringObj(pExpression, -1);
+  Tcl_IncrRefCount(expressionObject); // So I can explicitly kill it.
+  DFloat_t result;
+
+  int Status = Tcl_ExprDoubleObj(m_pInterpreter, expressionObject, &result);
+  Tcl_DecrRefCount(expressionObject); // Destroy expression.
+
+  // Throw an exception on error (e.g. invalid exception).
+
   if(Status != TCL_OK) {
+    string msg = "CTCLInterpreter::ExprString - Evaluating string expression : ";
+    msg += pExpression;
     CTCLException e(*this,
 		    Status,
-		    "CTCLInterpreter::ExprDouble - Evaluating dbl expression");
-    throw e;
+		    msg);
+	  
+    throw e;  
   }
-  return f;
+  return result;
+
 
 }
 //////////////////////////////////////////////////////////////////////////
@@ -567,25 +604,36 @@ CTCLInterpreter::ExprBoolean(const char*  pExpression)
 //      types.
 // Returns:
 //    The value of the expression.
+  Tcl_Obj* expressionObject = Tcl_NewStringObj(pExpression, -1);
+  Tcl_IncrRefCount(expressionObject); // So I can explicitly kill it.
+  int result;
 
-  Int_t flag;
-  int   Status = Tcl_ExprBoolean(m_pInterpreter, (char*)pExpression, &flag);
+  int Status = Tcl_ExprBooleanObj(m_pInterpreter, expressionObject, &result);
+  Tcl_DecrRefCount(expressionObject); // Destroy expression.
+
+  // Throw an exception on error (e.g. invalid exception).
+
   if(Status != TCL_OK) {
+    string msg = "CTCLInterpreter::ExprString - Evaluating string expression : ";
+    msg += pExpression;
     CTCLException e(*this,
 		    Status,
-		    "CTCLInterpreter::ExprBoolean - Evaluating boolean expr.");
-    throw e;
+		    msg);
+	  
+    throw e;  
   }
-  return (flag ? kfTRUE : kfFALSE);
+
+
+  return (result ? kfTRUE : kfFALSE);
 }
 //////////////////////////////////////////////////////////////////////////
 //
 //  Function:   
-//    string TildeSubst ( const char* pFilename )
+//    std:string TildeSubst ( const char* pFilename )
 //  Operation Type:
 //     parse
 //
-string 
+std::string 
 CTCLInterpreter::TildeSubst(const char* pFilename) const 
 {
 // Provides support for filenames which begin with ~ 
@@ -597,25 +645,25 @@ CTCLInterpreter::TildeSubst(const char* pFilename) const
 //    The filename in any of the three acceptable
 //     string types.
 // Returns:
-//     string - filename with the name appropriately
+//     std::string - filename with the name appropriately
 //     substituted.
 
   Tcl_DString result;
   char*       pResult = Tcl_TildeSubst(m_pInterpreter,
 				       (char*)pFilename,
 				       &result);
-  string stdResult(pResult);
+  std::string stdResult(pResult);
   Tcl_DStringFree(&result);
   return stdResult;
 }
 //////////////////////////////////////////////////////////////////////////
 //
 //  Function:   
-//    string PosixError (  )
+//    std::string PosixError (  )
 //  Operation Type:
 //     POSIX interface
 //
-string 
+std::string 
 CTCLInterpreter::PosixError() const 
 {
 // Sets the interpreter error code with a string 
@@ -623,33 +671,33 @@ CTCLInterpreter::PosixError() const
 // errno, and returns a string identifying the
 // error (strerror()??).
 
-  return string(Tcl_PosixError(m_pInterpreter));
+  return std::string(Tcl_PosixError(m_pInterpreter));
 
 }
 //////////////////////////////////////////////////////////////////////////
 //
 //  Function:   
-//    string ErrnoId (  )
+//    std::string ErrnoId (  )
 //  Operation Type:
 //     POSIX interface
 //
-string 
+std::string 
 CTCLInterpreter::ErrnoId()  
 {
 // Returns a symbolic string identifying the
 // error currently stored in errno e.g. EBADF
 
-  return string(Tcl_ErrnoId());
+  return std::string(Tcl_ErrnoId());
 
 }
 //////////////////////////////////////////////////////////////////////////
 //
 //  Function:   
-//    string SignalId ( UInt_t nSignal )
+//    std::string SignalId ( UInt_t nSignal )
 //  Operation Type:
 //     POSIX interface
 //
-string 
+std::string 
 CTCLInterpreter::SignalId(UInt_t nSignal) 
 {
 // Returns a string identifying a signal
@@ -659,17 +707,17 @@ CTCLInterpreter::SignalId(UInt_t nSignal)
 //   UInt_t nSignal:
 //      The signal to lookup.
 
-  return string(Tcl_SignalId((Int_t)nSignal));
+  return std::string(Tcl_SignalId((Int_t)nSignal));
 
 }
 //////////////////////////////////////////////////////////////////////////
 //
 //  Function:   
-//    string SignalMsg ( UInt_t nSignal )
+//    std::string SignalMsg ( UInt_t nSignal )
 //  Operation Type:
 //     POSIX interface.
 //
-string 
+std::string 
 CTCLInterpreter::SignalMsg(UInt_t nSignal) 
 {
 // Returns a human readable message which
@@ -679,18 +727,18 @@ CTCLInterpreter::SignalMsg(UInt_t nSignal)
 //    UInt_t nSignal:
 //      Signal to identify
 
-  return string(Tcl_SignalMsg(nSignal));
+  return std::string(Tcl_SignalMsg(nSignal));
 
 }
 //////////////////////////////////////////////////////////////////////////
 //
 //  Function:   
-//    void DetachProcess ( const vector>UInt_t>& rPids )
+//    void DetachProcess ( const std::vector>UInt_t>& rPids )
 //  Operation Type:
 //     POSIX interface
 //
 void 
-CTCLInterpreter::DetachProcess(const vector<UInt_t>& rPids) const 
+CTCLInterpreter::DetachProcess(const std::vector<UInt_t>& rPids) const 
 {
 // Passes responsibility for a set of process ids to
 // TCL's zombie process reaper functions  On error
@@ -698,7 +746,7 @@ CTCLInterpreter::DetachProcess(const vector<UInt_t>& rPids) const
 //
 // Formal Parameters:
 //        one of the following:
-//          const vector<UInt_t>& rPids:
+//          const std::vector<UInt_t>& rPids:
 //          const UInt_t nPids, const UInt_t* pPids:
 //              where:
 //                      nPids is the number of Process id's
@@ -742,7 +790,7 @@ CTCLInterpreter::AddCommand(const char* pCommandName,
 // Formal Paramters:
 //     const char*            pCommandName
 //     const CTCLString& rCommandName
-//     const string&    rCommandName:
+//     const std::string&    rCommandName:
 //            Name of the command to register.
 //     Tcl_CmdProc* pCmdProcessor:
 //            Pointer to command processing function
@@ -779,7 +827,7 @@ CTCLInterpreter::UnregisterCommand(const char* pCommand) const
 // Formal Parameters:
 //       const char*             pCommand
 //       const CTCLString&  rCommand
-//       const string&     rCommand:
+//       const std::string&     rCommand:
 //             The command to delete.
 // NOTE:
 //    The command's deletion processor will
@@ -792,17 +840,84 @@ CTCLInterpreter::UnregisterCommand(const char* pCommand) const
 //////////////////////////////////////////////////////////////////////////
 //
 //  Function:   
-//    string GetResultString (  )
+//    std::string GetResultString (  )
 //  Operation Type:
 //     Selector
 //
-string 
+std::string 
 CTCLInterpreter::GetResultString() const 
 {
 // Returns a string containing the TCL result string
 // if no string has been set, an empty string is returned.
 
-  return string(m_pInterpreter->result);
+  return std::string(Tcl_GetStringResult(m_pInterpreter));
 
 }
 
+////////////////////////////////////////////////////////////////////////
+//  The functions below handle inquiry about Tcl Channels.
+//  Tcl Channels are abtractions of the system's I/O subsystem
+//  that are extensible and operating system independent.
+//
+
+/*!
+    GetChannel - Given the name of a Tcl Channel registered with 
+    this interpreter, returns a Tcl channel handle.  This is a pointer
+    to an opaque structure. It can be used to construct a CTCLChannel
+    object.
+
+    \param rName   (const string&)
+        The name of the channel to lookup.
+    \param pMode   (Int_t* [out] == kpNULL
+        If non null, the integer pointed to by this will be filed in with
+	a mask defining the access mode the channel supports.  This will 
+	be the logical or of:
+	- TCL_READABLE  you may read the channel.
+	- TCL_WRITABLE  you may write the channel.
+    \return Tcl_Channel
+    \retval NULL   - There is no channel by this name.
+    \retval nonnull- Opaque pointer to the channel.
+*/
+Tcl_Channel
+CTCLInterpreter::GetChannel(const string& rName, Int_t* pMode)
+{
+  return Tcl_GetChannel(m_pInterpreter, (tclConstCharPtr)rName.c_str(), pMode);
+}
+/*!
+   GetChannelNames Given a pattern returns all the names
+   of TCL channels that match the pattern.  Note that "*" will
+   return the names of all channels. 
+  
+   \param rPattern (const string&):
+      The glob pattern to match.
+
+   \return vector<string>
+   \retval Empty vector: no matches.
+   \retval Each element of the vector is a channel name.
+
+*/
+vector<string>
+CTCLInterpreter::GetChannelNames(const string& rPattern)
+{
+  vector<string> result;
+
+  int status = Tcl_GetChannelNamesEx(m_pInterpreter, (tclConstCharPtr)rPattern.c_str());
+  
+  // The result contains a TCL list if everything was ok.
+  // otherwise it's an error which for now just results in an
+  // emtpy channel name list:
+  //
+  if(status == TCL_OK) {
+    Tcl_Obj* pResult = Tcl_GetObjResult(m_pInterpreter);
+    if(pResult) {
+      char* pList = Tcl_GetStringFromObj(pResult, (Int_t*)kpNULL);
+      if(pList) {
+	CTCLList ResultList(this, pList);
+	ResultList.Split(result);
+      }
+    }
+    
+  }
+
+  return result;
+}

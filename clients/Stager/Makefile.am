@@ -74,7 +74,7 @@ libWait_la_LDFLAGS =   -L@top_srcdir@/TCL \
 	-L@top_srcdir@/Exception -L@top_srcdir@/CopyrightTools \
 	-version-info $(SOVERSION):0
 
-libWait_la_LIBADD =  -lTclPlus -lException  \
+libWait_la_LIBADD =  -ltclPlus -lException  \
 	$(TCL_LDFLAGS)	$(X11LIBS)  -lLicense  \
 	-lm -lstdc++ -lgcc -lc
 

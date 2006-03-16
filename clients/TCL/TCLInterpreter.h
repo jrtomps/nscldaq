@@ -295,7 +295,50 @@ DAMAGES.
 //  Copyright 1999 NSCL, All Rights Reserved.
 //
 /////////////////////////////////////////////////////////////
+/* 
+   Change Log:
+   $Log$
+   Revision 8.3  2006/03/16 16:57:50  ron-fox
+   Import tclPlus (TCL DIr) from SpecTcl-3.1 where it tries to get rid
+   of most deprecated calls and adds docbook -> manpage documentation for the
+   entire library
 
+   Revision 5.3  2006/03/10 14:21:53  ron-fox
+   Migrate TCL Interfaces to object form and remove direct
+   references to interp->result
+
+   Revision 5.2  2005/06/03 15:19:30  ron-fox
+   Part of breaking off /merging branch to start 3.1 development
+
+   Revision 5.1.2.1  2004/12/21 17:51:27  ron-fox
+   Port to gcc 3.x compilers.
+
+   Revision 5.1  2004/11/29 16:56:14  ron-fox
+   Begin port to 3.x compilers calling this 3.0
+
+   Revision 4.4  2003/03/25 12:00:45  ron-fox
+   Added Change log comment generated from the CVS $Log$
+   Added Change log comment generated from the CVS Revision 8.3  2006/03/16 16:57:50  ron-fox
+   Added Change log comment generated from the CVS Import tclPlus (TCL DIr) from SpecTcl-3.1 where it tries to get rid
+   Added Change log comment generated from the CVS of most deprecated calls and adds docbook -> manpage documentation for the
+   Added Change log comment generated from the CVS entire library
+   Added Change log comment generated from the CVS
+   Added Change log comment generated from the CVS Revision 5.3  2006/03/10 14:21:53  ron-fox
+   Added Change log comment generated from the CVS Migrate TCL Interfaces to object form and remove direct
+   Added Change log comment generated from the CVS references to interp->result
+   Added Change log comment generated from the CVS
+   Added Change log comment generated from the CVS Revision 5.2  2005/06/03 15:19:30  ron-fox
+   Added Change log comment generated from the CVS Part of breaking off /merging branch to start 3.1 development
+   Added Change log comment generated from the CVS
+   Added Change log comment generated from the CVS Revision 5.1.2.1  2004/12/21 17:51:27  ron-fox
+   Added Change log comment generated from the CVS Port to gcc 3.x compilers.
+   Added Change log comment generated from the CVS
+   Added Change log comment generated from the CVS Revision 5.1  2004/11/29 16:56:14  ron-fox
+   Added Change log comment generated from the CVS Begin port to 3.x compilers calling this 3.0
+   Added Change log comment generated from the CVS tag.
+
+
+*/
 #ifndef __TCLInterpreter_H  //Reuired for current class
 #define __TCLInterpreter_H
 
@@ -304,14 +347,21 @@ DAMAGES.
 #define __TCL_H
 #endif          
 
+
+
+
 #ifndef __STL_STRING
 #include <string>
+#ifndef __STL_STRING
 #define __STL_STRING
 #endif
+#endif
 
-#ifndef __STL_VECTORR
+#ifndef __STL_VECTOR
 #include <vector>
+#ifndef __STL_VECTOR
 #define __STL_VECTOR
+#endif
 #endif
 
 #ifndef __TCLSTRING_H
@@ -384,7 +434,7 @@ public:
     return Eval(rScript.c_str()); 
   }
   //
-  // Evaluate a script stored in a file.
+  // Evaluate a scripts stored in a file.
   //
   STD(string) EvalFile (const char* pFilename)   ;
   STD(string) EvalFile(const CTCLString& rFilename)  {
@@ -457,6 +507,9 @@ public:
   STD(string) TildeSubst (const CTCLString& rName) const {
     return TildeSubst((const char*)(rName));
   }
+  STD(string) TildeSubst (const STD(string)& rName) const {
+    return TildeSubst(rName.c_str());
+  }
   
   STD(string) PosixError () const  ;
   static  STD(string) ErrnoId ()   ;
@@ -498,6 +551,13 @@ public:
     UnregisterCommand((const char*)(rCommandName));
   }
   STD(string) GetResultString () const  ;
+
+  // Access to Tcl Channels inquiry:
+  //
+  Tcl_Channel GetChannel(const STD(string)& rName, Int_t* pMode=(Int_t*)kpNULL);
+  STD(vector)<STD(string)> GetChannelNames(const STD(string)& rPattern);
+
+
   //
   // These two support access to the interpreter:
   //
@@ -510,5 +570,7 @@ public:
     return m_pInterpreter; 
   }
 };
+
+
 
 #endif

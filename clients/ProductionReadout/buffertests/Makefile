@@ -21,7 +21,7 @@ depend:
 
 BufferTests: $(OBJECTS)
 	g++ -o BufferTests  -L/usr/opt/daq/lib \
-	$(OBJECTS) -lPReadout -lTclPlus -lLicense $(SPECLD) \
+	$(OBJECTS) -lPReadout -ltclPlus -lLicense $(SPECLD) \
 	-lcppunit -lVmeAPI -lbtp -lpthread -lpub
 
 

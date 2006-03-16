@@ -275,7 +275,8 @@ DAMAGES.
 
 		     END OF TERMS AND CONDITIONS '
 */
-static const char* Copyright= "(C) Copyright Michigan State University 1936, All rights reserved";//
+static const char* Copyright = "(C) Copyright Michigan State University 2015, All rights reserved";
+//
 //  TCLApplication.cpp
 //     This implementation file bridges between TCL/TK and the C++
 //     TCL/TK object framework.  The idea is that the user supplies a 
@@ -303,20 +304,21 @@ static const char* Copyright= "(C) Copyright Michigan State University 1936, All
 
 #include <config.h>
 
-#define TCLAPPLICATION_IMPL
 #include "TCLApplication.h"
 #include "TCLInterpreter.h"
+
+#include <string>
+
 #include <histotypes.h>
 #include <assert.h>
 #include <tcl.h>
 #include <tk.h>
+#include <Iostream.h>
 
 #ifdef HAVE_STD_NAMESPACE
 using namespace std;
 #endif
 
-static char* pCopyright =
-"TCLApplication.cpp - (c) Copyright NSCL 1999, all rights reserved\n";
 
 //
 // Global/External declarations:
@@ -355,8 +357,22 @@ EXTERN int		Tktest_Init _ANSI_ARGS_((Tcl_Interp *interp));
 int
 main(int argc,char** argv)
 {
+  try {
     Tk_Main(argc, argv, Tcl_AppInit);
     return 0;			/* Needed only to prevent compiler warning. */
+  }
+  catch (string msg) {
+    cerr << "An unhandled string exception was caught: " << msg << endl;
+    return -1;
+  }
+  catch (const char* msg) {
+    cerr << "An unhandled char* exception was caught: " << msg << endl;
+    return -1;
+  }
+  catch(...) {
+    cerr << "Unhandled exception\n";
+    return -1;
+  }
 }
 
 extern "C" {

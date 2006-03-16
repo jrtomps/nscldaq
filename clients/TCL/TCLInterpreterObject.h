@@ -358,6 +358,7 @@ public:
     return m_pInterpreter;
   }
 
+
   CTCLInterpreter* Bind (CTCLInterpreter& rBinding){
     return Bind(&rBinding);
   }
@@ -371,6 +372,7 @@ protected:
     assert(pInterp != kpNULL);
     return pInterp;
   }
+
 };
 
 #endif

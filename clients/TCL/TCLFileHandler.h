@@ -303,6 +303,7 @@ DAMAGES.
 
 #ifndef __CRT_UNISTD_H
 #include <unistd.h>
+#define __CRT_UNISTD_H
 #endif
 
 #ifndef __CRT_STDIO_H
@@ -311,7 +312,6 @@ DAMAGES.
 #endif
   
 
-                          
 class CTCLFileHandler  : public CTCLInterpreterObject        
 {
   UInt_t m_nFid;  // File descriptor associated with the object.
@@ -329,9 +329,8 @@ public:
     CTCLInterpreterObject(pInterp->getInterpreter()),
     m_nFid(fileno(pFile))
   { }
-
   CTCLFileHandler(CTCLInterpreter* pInterp,
-		  UInt_t am_nFid = STDIN_FILENO) :
+		   UInt_t am_nFid = STDIN_FILENO) :       
     CTCLInterpreterObject(pInterp),
     m_nFid(am_nFid)
   { }
@@ -340,7 +339,6 @@ public:
     CTCLInterpreterObject(pInterp),
     m_nFid(fileno(pFile))
   { }
-
   ~CTCLFileHandler ( ) {Clear(); }       //Destructor	
 			//Copy constructor
 

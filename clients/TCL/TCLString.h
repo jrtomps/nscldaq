@@ -300,7 +300,9 @@ DAMAGES.
 
 #ifndef __STL_STRING
 #include <string>
+#ifndef __STL_STRING
 #define __STL_STRING
+#endif
 #endif
 
 #ifndef __CRT_STRING_H
@@ -427,6 +429,8 @@ public:
     return AppendElement(rRhs.c_str());
   }
   CTCLString& AppendElement (const char*             pRhs);
+  CTCLString& AppendElement(DFloat_t value, const char* pFormat = "%f");
+  CTCLString& AppendElement(long value, const char* pFormat = "%i");
   //
   // List/sublist bracketing calls:
   //

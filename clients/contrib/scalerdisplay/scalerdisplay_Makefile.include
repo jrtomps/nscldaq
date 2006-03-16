@@ -21,7 +21,7 @@ CXXFLAGS = (TCLHEADERS) \
 CCFLAGS=$(CXXFLAGS)
 
 LDFLAGS=-L$(DAQLIBS) \
-	 -lScalerServer -lTclPlus -lException -lLicense $(TCLLIBS) \
+	 -lScalerServer -ltclPlus -lException -lLicense $(TCLLIBS) \
 	$(X11LIBS) -Wl,"-rpath=$(DAQLIBS)"
 
 include $(DAQETC)/CompilationRules.include

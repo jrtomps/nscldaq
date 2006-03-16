@@ -38,7 +38,7 @@ source code.  And you must show them these terms so they know their
 rights.
 
   We protect your rights with two steps: (1) copyright the software, and
-(2) offer you this license which gives you legal permission to copy,
+ (2) offer you this license which gives you legal permission to copy,
 distribute and/or modify the software.
 
   Also, for each author's protection and ours, we want to make certain
@@ -275,8 +275,7 @@ DAMAGES.
 
 		     END OF TERMS AND CONDITIONS '
 */
-
-
+static const char* Copyright = "(C) Copyright Michigan State University 2015, All rights reserved";
 //  CTCLFileHandler.cpp
 // Abstract base class for TK file handerl objects.
 // These are fd containing objects which are inserted into
@@ -299,6 +298,7 @@ DAMAGES.
 // Header Files:
 //
 
+
 #include <config.h>
 
 #include "TCLFileHandler.h"                               
@@ -308,8 +308,6 @@ DAMAGES.
 #ifdef HAVE_STD_NAMESPACE
 using namespace std;
 #endif
-static const char* Copyright= 
-"CTCLFileHandler.cpp: Copyright 1999 NSCL, All rights reserved\n";
 
 // Functions for class CTCLFileHandler
 
@@ -362,8 +360,11 @@ CTCLFileHandler::Set(int mask)
 //           callback database.  This is supposed to be more efficient
 //           than a call to Clear().
 
+#ifdef HAVE_WINDOWS_H
+  assert(0);			// CYGWIN's does not implement this.
+#else
   Tk_CreateFileHandler(m_nFid, mask, CallbackRelay, (ClientData)this);
-
+#endif
 }
 //////////////////////////////////////////////////////////////////////////
 //
@@ -381,7 +382,10 @@ CTCLFileHandler::Clear()
 // Note:  That the only one file handler can be
 //             associated with a file descriptor.
 // 
-
+#ifdef HAVE_WINDOWS_H
+  assert(0);			// CYGWIn's tcl does not implement this.
+#else
   Tk_DeleteFileHandler(m_nFid);
+#endif
 
 }

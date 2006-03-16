@@ -308,7 +308,9 @@ DAMAGES.
                            
 #ifndef __STL_STRING
 #include <string>
+#ifndef __STL_STRING
 #define __STL_STRING
+#endif
 #endif
 
 #ifndef __HISTOTYPES_H
@@ -325,6 +327,7 @@ class CTCLException  : public CTCLInterpreterObject ,public CException
 				// TCL_RETURN   - fuction return.
 				// NOTE: Really no business throwing anything
 				//       but TCL_ERRORs.
+   STD(string) m_ResultText;		// Cached result text at construction time.
 public:
 			//Default constructor
 
@@ -335,6 +338,7 @@ public:
     CException(pString),
     m_nReason(am_nReason)
   {
+    m_ResultText = STD(string)(GetResult());
   }
   CTCLException(CTCLInterpreter& am_rInterpreter,
 		Int_t am_nReason,
@@ -343,6 +347,7 @@ public:
     CException(rString),
     m_nReason(am_nReason)
   {
+    m_ResultText = STD(string)(GetResult());
   }
   virtual ~CTCLException ( ) { }       //Destructor
 	
@@ -353,6 +358,7 @@ public:
     CException (aCTCLException) 
   {   
     m_nReason = aCTCLException.m_nReason;            
+    m_ResultText = aCTCLException.m_ResultText;
   }                                     
 
 			//Operator= Assignment Operator
@@ -363,8 +369,10 @@ public:
     CTCLInterpreterObject::operator= (aCTCLException);
     CException::operator= (aCTCLException);
 
-    m_nReason = aCTCLException.m_nReason;
-    
+    if(this != &aCTCLException) {
+      m_nReason = aCTCLException.m_nReason;
+      m_ResultText = aCTCLException.m_ResultText;
+    }
     return *this;
   }                                     
 
@@ -423,12 +431,14 @@ public:
 		 rFacility.c_str(), rSeverity.c_str());
   }
 
-  CTCLResult GetResult ()  const;  
   //
   // CException generic interface:
   //
   virtual   const char* ReasonText () const;
   virtual   Int_t ReasonCode () const  ;
+private:
+  CTCLResult GetResult ();
+  
 };
 
 #endif

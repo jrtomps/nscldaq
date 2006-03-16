@@ -275,7 +275,7 @@ DAMAGES.
 
 		     END OF TERMS AND CONDITIONS '
 */
-
+static const char* Copyright = "(C) Copyright Michigan State University 2015, All rights reserved";
 //
 //  TCLIdleProcess.cpp:
 //     This file provides implementions for the non trivial member functions
@@ -294,14 +294,11 @@ DAMAGES.
 //  Copyright 1999 NSCL, All Rights Reserved.
 //
 /////////////////////////////////////////////////////////////////////////////
+
 #include <config.h>
-
-#include "TCLIdleProcess.h"
-
 #ifdef HAVE_STD_NAMESPACE
 using namespace std;
 #endif
+#include "TCLIdleProcess.h"
 
-static char* Copyright=
-"TCLIdleProcess.cpp - (c) Copyright NSCL 1999, All rights reserved\n";
 

@@ -77,7 +77,7 @@ INCLUDES= -I. -I@top_srcdir@/Headers \
 	$(TCL_FLAGS)
 
 ScalerServer_LDADD =  -L. -lScalerServer \
-	-L@top_srcdir@/TCL -lTclPlus -L@top_srcdir@/Exception \
+	-L@top_srcdir@/TCL -ltclPlus -L@top_srcdir@/Exception \
 	-L@top_srcdir@/CopyrightTools -lLicense -lException $(TCL_LDFLAGS) \
 	$(X11LIBS) 
 

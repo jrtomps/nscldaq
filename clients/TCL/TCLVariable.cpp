@@ -275,8 +275,7 @@ DAMAGES.
 
 		     END OF TERMS AND CONDITIONS '
 */
-
-
+static const char* Copyright = "(C) Copyright Michigan State University 2015, All rights reserved";
 //  CTCLVariable.cpp
 // Encapsulates a TCL Variable.  TCL Variables are string valued.
 // Their contents can be gotten or set.  in addition, by deriving
@@ -298,17 +297,16 @@ DAMAGES.
 // Header Files:
 //
 #include <config.h>
+#include "TCLVersionHacks.h"
 #include "TCLVariable.h"                               
 #include "TCLInterpreter.h"
 #include <tcl.h>
 #include <histotypes.h>
 #include <assert.h>
+
 #ifdef HAVE_STD_NAMESPACE
 using namespace std;
 #endif
-
-static const char* Copyright= 
-"CTCLVariable.cpp: Copyright 1999 NSCL, All rights reserved\n";
 
 // Functions for class CTCLVariable
 
@@ -371,14 +369,9 @@ CTCLVariable::operator()(char* pName, char* pSubscript, int Flags)
 //
 char* 
 CTCLVariable::TraceRelay(ClientData pObject, Tcl_Interp* pInterpreter, 
-#if (TCL_MAJOR_VERSION > 8) || ((TCL_MAJOR_VERSION ==8) && (TCL_MINOR_VERSION > 3))
-			     const char*      pName,   
-			     const char*      pIndex, 
-#else
-			 char* pName, 
-			 char* pIndex, 
-#endif
-			 int flags) 
+			 tclConstCharPtr pName,
+			 tclConstCharPtr pIndex,
+			 int flags)
 {
 // This is the actual trace function set by the Trace() method.
 //  We use the ClientData to establish object context and

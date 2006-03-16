@@ -11,7 +11,7 @@ INCLUDES=-I@top_srcdir@/Headers -I@top_srcdir@/Exception \
 	-I@top_srcdir@/framework -I@top_srcdir@/TCL $(SPECTRODAQ_FLAGS) \
 	$(TCL_FLAGS) $(X11INCS)
 AlarmServerApp_LDADD= -L@top_srcdir@/framework -L@top_srcdir@/Exception \
-	-L@top_srcdir@/TCL -lTclPlus \
+	-L@top_srcdir@/TCL -ltclPlus \
 	-lEventFramework -lException $(SPECTRODAQ_LDFLAGS)  \
 	$(TCL_LDFLAGS) $(X11LIBS) -lm 
 AlarmServerApp_LDFLAGS=-Wl,"-rpath=$(libdir)"

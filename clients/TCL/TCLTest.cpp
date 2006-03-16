@@ -275,18 +275,20 @@ DAMAGES.
 
 		     END OF TERMS AND CONDITIONS '
 */
-static const char* Copyright= "(C) Copyright Michigan State University 1936, All rights reserved";//
+static const char* Copyright = "(C) Copyright Michigan State University 2015, All rights reserved";
+//
 // TCLTest.cpp:
 //    Test of the TCL/TK object stuff:
 //
 // 
+
 #include <config.h>
 #include <tk.h>
 
 #include "TCLApplication.h"
 #include "TCLVariable.h"
 #include "TCLProcessor.h"
-#include <iostream.h>
+#include <Iostream.h>
 #include <string>
 
 #include <fcntl.h>
@@ -326,7 +328,7 @@ protected:
 MyApp app;
 CTCLApplication* gpTCLApplication = &app;
 
-CTCLVariable Rcfile(string("tcl_rcFileName"),
+CTCLVariable Rcfile(std::string("tcl_rcFileName"),
 		    kfFALSE);
 
 MyEcho echocmd;

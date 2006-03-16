@@ -332,12 +332,10 @@ private:
   CDAQTCLProcessor (const CDAQTCLProcessor& aCDAQTCLProcessor );
   //! Operator= Assignment Operator \b illegal and therefore unimplemented
   CDAQTCLProcessor& operator= (const CDAQTCLProcessor& aCDAQTCLProcessor);
-public:
   //! Operator== Equality Operator 
-  int operator== (const CDAQTCLProcessor& aCDAQTCLProcessor) const
-  {
-    return CTCLProcessor::operator==(aCDAQTCLProcessor);
-  }
+  int operator== (const CDAQTCLProcessor& aCDAQTCLProcessor) const;
+public:
+
 
   // Class operations:
 

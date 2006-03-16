@@ -53,6 +53,10 @@ install-data-local:
 	$(MANDB) $(prefix)/man
 	echo "pkg_mkIndex $(prefix)/TclLibs *.so" >makeindex.tcl
 	$(TCLSH_CMD) <makeindex.tcl
+	-rm -f $(prefix)/lib/libTclPlus*
+	$(LN_S) $(prefix)/lib/libtclPlus.so $(prefix)/lib/libTclPlus.so
+	$(LN_S) $(prefix)/lib/libtclPlus.a  $(prefix)/lib/libTclPlus.a
+
 
 
 

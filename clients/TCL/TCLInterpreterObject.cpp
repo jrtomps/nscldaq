@@ -275,7 +275,7 @@ DAMAGES.
 
 		     END OF TERMS AND CONDITIONS '
 */
-
+static const char* Copyright = "(C) Copyright Michigan State University 2015, All rights reserved";
 //  CTCLInterpreterObject.cpp
 //  Base class of objects which cannot exist without
 // a TCL Intpreter to provide them with services.
@@ -296,16 +296,13 @@ DAMAGES.
 //
 // Header Files:
 //
-#include <config.h>
 
+#include <config.h>
 #include "TCLInterpreterObject.h"                               
+
 #ifdef HAVE_STD_NAMESPACE
 using namespace std;
 #endif
-
-static const char* Copyright= 
-"CTCLInterpreterObject.cpp: Copyright 1999 NSCL, All rights reserved\n";
-
 // Functions for class CTCLInterpreterObject
 
 //////////////////////////////////////////////////////////////////////////

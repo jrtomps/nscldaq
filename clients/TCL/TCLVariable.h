@@ -292,7 +292,11 @@ DAMAGES.
 
 #ifndef __TCLVARIABLE_H  //Required for current class
 #define __TCLVARIABLE_H
-                               //Required for base classes
+
+#ifndef __TCLVERSIONHACKS_H
+#include "TCLVersionHacks.h"
+#endif 
+                              //Required for base classes
 #ifndef __TCLINTERPRETEROBJECT_H
 #include "TCLInterpreterObject.h"
 #endif                               
@@ -304,7 +308,9 @@ DAMAGES.
 
 #ifndef __STL_STRING
 #include <string>
+#ifndef __STL_STRING
 #define __STL_STRING
+#endif
 #endif
                                
 class CTCLVariable  : public CTCLInterpreterObject        
@@ -328,7 +334,7 @@ public:
     m_sVariable (am_sVariable),  
     m_fTracing (am_fTracing)  
   { }        
-  ~CTCLVariable();
+  virtual ~CTCLVariable();
 			//Copy constructor
  
   CTCLVariable (const CTCLVariable& aCTCLVariable )   : 
@@ -394,18 +400,16 @@ public:
 			       int Flags)  ;
 
    static  char* TraceRelay (ClientData pObject, Tcl_Interp* pInterpreter, 
-#if (TCL_MAJOR_VERSION > 8) || ((TCL_MAJOR_VERSION ==8) && (TCL_MINOR_VERSION > 3))
-			     const char*      pName,   
-			     const char*      pIndex, 
-#else
-			     char*           pName,
-			     char*           pIndex,
-#endif
+			     tclConstCharPtr  pName,
+			     tclConstCharPtr pIndex,
 			     int flags)  ;
-  const char* Set (const char* pValue, int flags=TCL_LEAVE_ERR_MSG)  ;
+
+  const char* Set (const char* pValue, int flags=TCL_LEAVE_ERR_MSG | 
+		                                 TCL_GLOBAL_ONLY)  ;
   const char* Set (const char* pSubscript, char* pValue, 
-		   int flags=TCL_LEAVE_ERR_MSG)  ;
-  const char* Get (int flags=TCL_LEAVE_ERR_MSG, char* pIndex=0)  ;
+		   int flags=TCL_LEAVE_ERR_MSG | TCL_GLOBAL_ONLY)  ;
+  const char* Get (int flags=TCL_LEAVE_ERR_MSG | TCL_GLOBAL_ONLY, 
+		   char* pIndex=0)  ;
   int Link (void* pVariable, int Type)  ;
   void Unlink ()  ;
   int Trace (int flags=TCL_TRACE_READS | TCL_TRACE_WRITES | TCL_TRACE_UNSETS,

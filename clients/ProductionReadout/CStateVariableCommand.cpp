@@ -19,6 +19,7 @@ static const char* Copyright = "(C) Copyright Michigan State University 2002, Al
 #include <config.h>
 #include "CStateVariableCommand.h"                  
 #include "CStateVariable.h"
+#include <TCLResult.h>
 #include <algorithm>
 
 #ifdef HAVE_STD_NAMESPACE

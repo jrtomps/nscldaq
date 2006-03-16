@@ -2,7 +2,7 @@ bin_PROGRAMS = tclserver
 tclserver_SOURCES = TclAuthorizer.cpp serverinstance.cpp tclAppInit.cpp \
 	tkAppInit.cpp Server.cpp
 
-tclserver_LDADD = -L@top_srcdir@/TCL -lTclPlus -L@top_srcdir@/Exception \
+tclserver_LDADD = -L@top_srcdir@/TCL -ltclPlus -L@top_srcdir@/Exception \
 	-L@top_srcdir@/PortManager \
 	-L@top_srcdir@/CopyrightTools -lPortManager -lLicense -lException $(TCL_LDFLAGS) \
 	$(X11LIBS)  

@@ -275,8 +275,7 @@ DAMAGES.
 
 		     END OF TERMS AND CONDITIONS '
 */
-
-
+static const char* Copyright = "(C) Copyright Michigan State University 2015, All rights reserved";
 //  CTCLCommandPackage.cpp
 // Provides a set of related commands to a TCL interpreter.  
 // References to the commands are stored in the m_lCommands list. 
@@ -305,16 +304,12 @@ DAMAGES.
 //
 
 #include <config.h>
-
 #include "TCLCommandPackage.h"                               
 #include <assert.h>
 
 #ifdef HAVE_STD_NAMESPACE
 using namespace std;
 #endif
-
-static const char* Copyright = 
-"CTCLCommandPackage.cpp: Copyright 1999 NSCL, All rights reserved\n";
 
 // Functions for class CTCLCommandPackage
 

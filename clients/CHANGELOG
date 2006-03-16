@@ -622,3 +622,5 @@ March 14, 2006
       - Forward port fix of race condition in ScalerDislay/sclclient.
         Start sclclient from the event loop so that the 'partial'
         connection thing cannot occur.
+March 16, 2006
+      - Use new version of TclLib from SpecTcl3.1

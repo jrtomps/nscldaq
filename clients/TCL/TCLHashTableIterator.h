@@ -293,7 +293,33 @@ DAMAGES.
 //  Copyright 1999 NSCL, All Rights Reserved.
 //
 /////////////////////////////////////////////////////////////
-
+/*
+ *   Change Log:
+ *     $Log$
+ *     Revision 8.3  2006/03/16 16:57:50  ron-fox
+ *     Import tclPlus (TCL DIr) from SpecTcl-3.1 where it tries to get rid
+ *     of most deprecated calls and adds docbook -> manpage documentation for the
+ *     entire library
+ *
+ *     Revision 5.2  2005/06/03 15:19:30  ron-fox
+ *     Part of breaking off /merging branch to start 3.1 development
+ *
+ *     Revision 5.1.2.1  2004/12/21 17:51:27  ron-fox
+ *     Port to gcc 3.x compilers.
+ *
+ *     Revision 5.1  2004/11/29 16:56:14  ron-fox
+ *     Begin port to 3.x compilers calling this 3.0
+ *
+ *     Revision 4.3  2003/01/02 17:11:34  venema
+ *     Major version upgrade to 2.0 includes support for arbitrary user coordinate mapping and sticky print options.
+ *
+ *     Revision 4.2  2002/08/08 15:20:16  ron-fox
+ *     Fix typo for Tcl_Hashtable -> Tcl_HashTable
+ *
+ * Revision 1.3  2002/08/08  15:17:15  fox
+ * Fix type on Tcl_Hashtable -> Tcl_HashTable
+ *
+ */
 #ifndef __TCLHASHTABLEITERATOR_H  //Required for current class
 #define __TCLHASHTABLEITERATOR_H
 

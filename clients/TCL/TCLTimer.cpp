@@ -275,7 +275,7 @@ DAMAGES.
 
 		     END OF TERMS AND CONDITIONS '
 */
-
+static const char* Copyright = "(C) Copyright Michigan State University 2015, All rights reserved";
 //  CTCLTimer.cpp
 // Encapsulates a TCL/TK timer object.  A timer object can be
 // scheduled for execution some number of milliseconds later from
@@ -303,12 +303,10 @@ DAMAGES.
 
 #include <config.h>
 #include "TCLTimer.h"                               
+
 #ifdef HAVE_STD_NAMESPACE
 using namespace std;
 #endif
-
-static const char* Copyright=
-"CTCLTimer.cpp: Copyright 1999 NSCL, All rights reserved\n";
 
 // Functions for class CTCLTimer
 

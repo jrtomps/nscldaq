@@ -201,8 +201,6 @@ sis3820tests::TestInputModes()
   int validmodecount = sizeof(Valid)/sizeof(CSIS3820::InputMode);
 
   CSIS3820::InputMode Invalid[] = {
-    CSIS3820::InputReserved5,
-    CSIS3820::InputReserved6,
     CSIS3820::InputReserved7
   };
   int invalidmodecount = sizeof(Invalid)/sizeof(CSIS3820::InputMode);

@@ -15,129 +15,91 @@
 */
 
 
-//  CTCLProcessor.h:
-//
-//    This file defines the CTCLProcessor class.
-//
-// Author:
-//    Ron Fox
-//    NSCL
-//    Michigan State University
-//    East Lansing, MI 48824-1321
-//    mailto:fox@nscl.msu.edu
-//
-//  Copyright 1999 NSCL, All Rights Reserved.
-//
-/////////////////////////////////////////////////////////////
-
-#ifndef __TCLPROCESSOR_H  //Required for current class
+#ifndef __TCLPROCESSOR_H
 #define __TCLPROCESSOR_H
-                               //Required for base classes
-#ifndef __TCLINTERPRETEROBJECT_H
-#include "TCLInterpreterObject.h"
-#endif                               
 
-#ifndef __TCLINTERPRETER_H
-#include "TCLInterpreter.h"
+#ifndef TCLINTERPRETEROBJECT_H
+#include <TCLInterpreterObject.h>
 #endif
 
-#ifndef __TCLRESULT_H
-#include "TCLResult.h"
-#endif
-  
+
 #ifndef __STL_STRING
 #include <string>
+#ifndef __STL_STRING
 #define __STL_STRING
 #endif
+#endif
+
 
 #ifndef __STL_VECTOR
 #include <vector>
+#ifndef __STL_VECTOR
 #define __STL_VECTOR
 #endif
-                             
-typedef STD(vector)<CTCLInterpreter*> TCLInterpreterList;
-typedef TCLInterpreterList::iterator TCLInterpreterIterator;
+#endif
 
-class CTCLProcessor  : public CTCLInterpreterObject        
+// Forward classes
+
+class CTCLInterpreter;
+class CTCLResult;
+class CTCLCompatibilityProcessor;
+
+/*!
+   This class is an abstract base class for commands written against the
+   argc/argv interface of Tcl/Tk.  Note that since this interface is
+   supposedly  due to be deprecated with Tcl 9.0, this is actually
+   written with the aid of an adaptor class (CTCLCompatibilityProcessor)
+   to work with only the object interface.
+
+   This is a complete rewrite of this class since SpecTcl-3.0
+   however it should be compatible with older uses.
+
+*/
+class CTCLProcessor : public CTCLInterpreterObject
 {
-
-  STD(string) m_sCommandName;                     // Name of the command.
-  TCLInterpreterList m_vRegisteredOn;  // Set of interpreters 
-				                  // we've been registered to.
-public:
-  
-  //Constructors with arguments
-
-  CTCLProcessor(const STD(string)& sCommand, CTCLInterpreter* pInterp);
-  CTCLProcessor(const char* pCommand, CTCLInterpreter* pInterp);
-
-  ~ CTCLProcessor ( ) {
-    UnregisterAll();
-  }
-  	
-			//Copy constructor [ illegal ]
+  // Data members:
 private:
-  CTCLProcessor (const CTCLProcessor& aCTCLProcessor );
+  STD(string)                  m_Command;	   // (initial) Name of the command.
+  CTCLCompatibilityProcessor*  m_pObjectProcessor; // Adaptor.
+
+  // Constructors and other canonicals.
 public:
-			//Operator= Assignment Operator [ illegal ]
+  CTCLProcessor(const STD(string) sCommand, CTCLInterpreter* pInterp);
+  CTCLProcessor(const char*       pCommand, CTCLInterpreter* pInterp);
+  virtual ~CTCLProcessor();
+
 private:
-  CTCLProcessor& operator= (const CTCLProcessor& aCTCLProcessor);
+  CTCLProcessor(const CTCLProcessor& rhs);
+  CTCLProcessor& operator=(const CTCLProcessor& rhs);
+  // 
+  // these used to be public but I doubt they are really useful.
+  //
+  int operator==(const CTCLProcessor& rhs) const;
+  int operator!=(const CTCLProcessor& rhs) const;
 public:
 
-			//Operator== Equality Operator
-                        // Legal, but pretty useless
+  // Selectors we must retain for compatibility with the old use
+  // we omitted begin()/end() as they no longer have meaning,
+  // and will have to deal with any usage we see in SpecTcl e.g.
 
-  int operator== (const CTCLProcessor& aCTCLProcessor) const
-  { 
-    return (
-	    (CTCLInterpreterObject::operator== (aCTCLProcessor)) &&
-	    (m_sCommandName == aCTCLProcessor.m_sCommandName) &&
-	    (m_vRegisteredOn == aCTCLProcessor.m_vRegisteredOn) 
-	    );
-  }                             
-  // Selectors:
+  STD(string) getCommandName() const;
 
-  STD(string) getCommandName() const
-  {
-    return m_sCommandName;
-  }
-  TCLInterpreterIterator begin() { 
-    return m_vRegisteredOn.begin();
-  }
-  TCLInterpreterIterator end() {
-    return m_vRegisteredOn.end();
-  }
-  // Mutators:
-protected:
-
-  void setCommandName (const STD(string)& am_sCommandName)
-  { m_sCommandName = am_sCommandName;
-  }
-  void setRegisteredOn (const STD(vector)<CTCLInterpreter*>& am_vRegisteredOn)
-  { m_vRegisteredOn = am_vRegisteredOn;
-  }
   // Operations and overrides:
 
-public:
-  
-  virtual   int operator() (CTCLInterpreter& rInterpreter, 
-			    CTCLResult& rResult, 
-			    int nArguments, 
-			    char* pArguments[])   = 0;
-  
+  virtual int operator()(CTCLInterpreter& rInterpreter,
+			 CTCLResult&      rResult,
+			 int argc, char** argv) = 0; // pure.
+  virtual void OnDelete();
+
+  void Register();
+  void Unregister();
+  void RegisterAll();		// Not really different than register now.
+  void UnregisterAll();
+
+  // The functions below should be refactorable into the interpreter object:
+
   static  STD(string) ConcatenateParameters (int nArguments, 
 					      char* pArguments[])  ;
-  static  int EvalRelay (ClientData pData,
-			 Tcl_Interp* pInterp, 
-			 int Argc, 
-#if (TCL_MAJOR_VERSION > 8) || ((TCL_MAJOR_VERSION ==8) && (TCL_MINOR_VERSION > 3))
-			 const char *Argv[])  ;
-#else
-                         char *Argv[]);
-#endif
-  virtual   void OnDelete ( )  ;
-  static void DeleteRelay (ClientData pObject)   ;
-
   int ParseInt (const char* pString, int* pInteger)  ;
   int ParseInt (const STD(string)& rString, int* pInteger) {
     return ParseInt(rString.c_str(), pInteger);
@@ -153,13 +115,15 @@ public:
     return ParseBoolean(rString.c_str(), pBoolean);
   }
 
-  void Register ()  ;
-  int Unregister ()  ;
-  void UnregisterAll ()  ;
-
   static int MatchKeyword(STD(vector)<STD(string)>& MatchTable, 
 			  const STD(string)& rValue, 
 			  int NoMatch = -1);
+			  
+  // Utilities available for derived classes.
+protected:
+  void NextParam(int& argc, char**& argv) {
+    argc--;
+    argv++;
+  }
 };
-
 #endif
