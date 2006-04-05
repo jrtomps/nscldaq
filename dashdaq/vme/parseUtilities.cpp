@@ -25,6 +25,7 @@ using namespace std;
 
 namespace descriptionFile
 {
+  string whitespace = " \t";	// Defines whitespace chars.
 
   /*!
       firstWord returns the first word from a string of text.
@@ -33,6 +34,7 @@ namespace descriptionFile
       Note that in many cases, you should first trim leading
       whitespace with stripLeadingBlanks before calling this,
       or you may get an empty word if there is leading whitespace.
+      In this case whitespace is defined by isspace().
 
       \param line : string[in]
          Line of text from which to return the leading whitespace.
@@ -56,5 +58,25 @@ namespace descriptionFile
     }
     return result;
   }
+  /*!
+     stripLeadingBlanks returns the a string that is the input
+     string with leading characters in 
+     descriptionFile::whitespace removed.
+
+     \param line : string [in]
+        Input string to strip.
+     \return string
+  */
+  string stripLeadingBlanks(string line)
+  {
+    size_t firstNon = line.find_first_not_of(whitespace);
+    if (firstNon < line.size()) {
+      return line.substr(firstNon);
+    } 
+    else {			// No match.
+      return line;
+    }
+  }
+
 
 }
