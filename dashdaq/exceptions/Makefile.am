@@ -23,10 +23,8 @@ ivp:
 	@echo	"+-------------------------------------+"
 	@echo   "| Building the ivp for exceptions     |"
 	@echo   "+-------------------------------------+"
-	$(CXXLINK) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) \
-		   $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) \
-		   -I@prefix@/include $(CPPUNIT_CXXSW) -o ivptests $(TESTS) \
-		$(CPPUNIT_LDSW) -L@prefix@/lib -lException
+	$(CXX)   -I@prefix@/include $(CPPUNIT_CXXSW) -o ivptests $(TESTS) \
+		$(CPPUNIT_LDSW) -L@prefix@/lib -lException -Wl,"-rpath=@prefix@/lib"
 	@echo  Running the ivp for exceptions:
 	./ivptests
 	@echo done
