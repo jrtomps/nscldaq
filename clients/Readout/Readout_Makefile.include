@@ -20,7 +20,7 @@ CCFLAGS=$(CXXFLAGS)
 
 SPECTRODAQ_LDFLAGS=$(shell $(SPECTRODAQBINDIR)/spectrodaq-conf --libs)
 LDFLAGS = -L. -L$(DAQLIBS) \
-	-lReadout -lDeviceSupport -lException $(VMELIBRARY) \
+	-lReadout -lDeviceSupport -lVmeAPI -lException $(VMELIBRARY) \
 	$(SPECTRODAQ_LDFLAGS) -Wl,"-rpath=$(DAQLIBS)"
 
 

@@ -279,6 +279,11 @@ DAMAGES.
 /*
   Change Log:
   $Log$
+  Revision 8.5  2006/04/05 11:24:53  ron-fox
+  1. Commit changes since the restore from sourceforge's backups.
+  2. Revert the CAENcard support... firmware 8.08 still makes wordcount
+     errors.
+
   Revision 8.4  2005/08/24 11:15:46  ron-fox
   Improve CAENcard readout performance for non mapped devices.
 
@@ -1242,7 +1247,7 @@ CAENcard::readEvent(void* buf)
     int* pHeader    = pBuf;	// To fix channel count.
     int  nRawChancnt= (Header >> 8) & 0x3f;
     *pBuf++         = swaplong(Header);
-    if(getFirmware() >= 0x808) {	// Raw chancount reliable
+    if(0 && (getFirmware() >= 0x808) ) {	// Raw chancount reliable... NOT
       
       ReadBufferBlock(pBuf, nRawChancnt+1);
       return (nRawChancnt+2)*sizeof(long);

@@ -99,7 +99,6 @@ install-exec-local:
 	$(mkinstalldirs)	$(prefix)/contrib/scalerdisplay/src
 	$(mkinstalldirs)	$(prefix)/contrib/scalerdisplay/scripts
 	$(mkinstalldirs)	$(prefix)/contrib/scalerdisplay/skel
-	$(mkinstalldirs)       $(prefix)/etc
 	$(INSTALL_DATA)  *.cpp  $(prefix)/contrib/scalerdisplay/src
 	$(INSTALL_DATA)  *.h    $(prefix)/contrib/scalerdisplay/include
 	$(INSTALL_DATA)  *.tcl  $(prefix)/contrib/scalerdisplay/scripts

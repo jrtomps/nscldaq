@@ -39,7 +39,7 @@ install-data-local:
 
 libReadout_la_LDFLAGS = -version-info $(SOVERSION):0  $(VMEBUILDLIBS) \
 	-L@top_srcdir@/DeviceSupport -lDeviceSupport \
-	-lVmeAPI $(SPECTRODAQ_LDFLAGS) -g -Wl,"-rpath-link=$(libdir)"
+	 $(SPECTRODAQ_LDFLAGS) -g -Wl,"-rpath-link=$(libdir)"
 
 INCLUDES = $(VMEBUILDEADERS) \
 	-I@top_srcdir@/Headers -I@top_srcdir@/Exception \

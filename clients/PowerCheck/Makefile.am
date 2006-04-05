@@ -7,7 +7,7 @@ INCLUDES = -I@top_srcdir@/Headers $(VMEBUILDHEADERS) \
 
 EXTRA_DIST = cratemonitor.tcl Makefile.am
 
-LDFLAGS = $(VMEBUILDLIBS) -lVmeAPI \
+LDFLAGS = -L@top_srcdir@/VMEApi $(VMEBUILDLIBS) -lVmeAPI \
 	-L@top_srcdir@/Exception -lException $(VMELIBRARY)
 
 install-exec-local:

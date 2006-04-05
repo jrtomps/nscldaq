@@ -102,7 +102,7 @@ CCFLAGS=-g
 ScriptedReadout_LDADD = -L@top_srcdir@/contrib/scriptedReadout -lScriptedRdo  \
 	-L@top_srcdir@/Readout -lReadout \
 	-L@top_srcdir@/DeviceSupport -lDeviceSupport \
-	$(VMEBUILDLIBS) -lVmeAPI \
+	-L@top_srcdir@/VMEApi	$(VMEBUILDLIBS) -lVmeAPI \
 	-L@top_srcdir@/TCL -ltclPlus	\
 	-L@top_srcdir@/Exception -lException $(TCL_LDFLAGS) \
 	$(SPECTRODAQ_LDFLAGS) $(VMELIBRARY) -lpthread

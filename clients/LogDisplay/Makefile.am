@@ -16,5 +16,5 @@ install-exec-local:
 	$(TCLSH_CMD) <index.tcl
 
 
-EXTRA_DIST = $(SCRIPTFILES) $(IMAGES) LogDisplay
+EXTRA_DIST = $(SCRIPTFILES) $(PACKAGES) $(IMAGES) LogDisplay 
 

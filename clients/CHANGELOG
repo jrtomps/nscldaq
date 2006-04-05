@@ -631,3 +631,9 @@ March 16, 2006
         to jacket operator().
       - Fix defect in CTCLProcessor... Bind must bind self and the
         adaptor object.!
+March 28, 2006
+      - Remove VMEAPI links from shared objects that don't need it as the
+	app links to this directly.
+April 3, 2006
+      - Revert code in CAENcard... even 8.08 still makes errors in
+        the word count.

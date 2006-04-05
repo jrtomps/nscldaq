@@ -7,16 +7,16 @@ TestHarness_SOURCES= TestHarness.cpp
 TestHarness_DEPENDENCIES=VMECommand.o VMEMapCommand.o
 
 TestHarness_LDFLAGS = VMECommand.o VMEMapCommand.o \
-	 $(VMEBUILDLIBS) \
+	 -L@top_srcdir@/VMEApi -lVmeAPI $(VMEBUILDLIBS) \
 	 -L@top_srcdir@/TCL -L@top_srcdir@/Exception  \
 	-L@top_srcdir@/CopyrightTools\
 	-L@top_srcdir@/DeviceSupport -lDeviceSupport -ltclPlus -lException \
-	-lVmeAPI $(TCL_LDFLAGS)
+	$(TCL_LDFLAGS)
 
 lib_LTLIBRARIES = libVme.la
 libVme_la_SOURCES = VMECommand.cpp VMEMapCommand.cpp VMEPackage.cpp
 
-libVme_la_LDFLAGS =   $(VMEBUILDLIBS) \
+libVme_la_LDFLAGS =    \
 	 -L@top_srcdir@/TCL -L@top_srcdir@/Exception  \
 	-L@top_srcdir@/CopyrightTools\
 	-L@top_srcdir@/DeviceSupport -lDeviceSupport \
@@ -24,7 +24,7 @@ libVme_la_LDFLAGS =   $(VMEBUILDLIBS) \
 
 libVme_la_LIBADD =  -ltclPlus -lException  \
 	$(TCL_LDFLAGS)   $(X11LIBS)  \
-	$(VMEBUILDLIBS) -lVmeAPI -lLicense -lpthread \
+	-lVmeAPI $(VMEBUILDLIBS)  -lLicense -lpthread \
 	-lm -lstdc++ -lgcc -lc 
 
 
