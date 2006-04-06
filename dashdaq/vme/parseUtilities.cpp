@@ -23,7 +23,7 @@
 using namespace std;
 #endif
 
-#include <iostream>
+
 
 namespace descriptionFile
 {
@@ -104,7 +104,7 @@ namespace descriptionFile
     return line.substr(0, commentLeader);
   }
   /*!
-    stripTralingBlanks strips trailing characters that are in 
+    stripTrailingBlanks strips trailing characters that are in 
     whitespace from a string.
     \param line : string [in]
        The line to strip.
@@ -121,7 +121,42 @@ namespace descriptionFile
     return line.substr(0, lastNon+1);
 
   }
+  /*!
+     Returns a line from the input file.  You may be asking me
+     why not just use the stream.getlin() function?  The answer is that
+     these limit the length of the input line by forcing the result
+     to fit in a static buffer.  We create and output std::string
+     and can therefore handle any sized line at all.
+     
+     \param str : istream& [modified]
+        The input stream from which we take characters.
+        This will be modified to reflect the updated read position of the
+        stream on exit.
+     \return string
+     \retval <empty>  - Either an empty line or an EOF condition existed on the
+                        stream prior to entry.  These can be distinguished
+                        from each other by looking at the str.eof() function.
+     \retval <nonempty>- The set of characters in a single \n terminated line.
+                         This version does not support trailing \ as a 
+                         continuation indicator.
+  */
+  string getLine(istream& str)
+  {
 
+
+    string result;		// Build the return value here.
+    while (!str.eof()) {	// EOF causes us to return whatever we have.
+      int c = str.get();
+      if (str.eof()) {
+	return result;		// No more data in the stream.
+      }
+      if (c == '\n') {
+	return result;		// Found the newline.
+      }
+      result += c;
+    }
+    return result;
+  }
 
 
 }

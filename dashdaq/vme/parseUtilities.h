@@ -24,6 +24,14 @@
 #endif
 #endif
 
+#ifndef __STDCPP_IOSTREAM
+#include <iostream>
+#ifndef __STDCPP_IOSTREAM
+#define __STDCPP_IOSTREAM
+#endif
+#endif
+
+
 /*!
    This file contains code that assists in parsing
    description files.  This code is common enough
@@ -41,6 +49,7 @@ namespace descriptionFile {
   std::string stripComment(std::string line,
 			   std::string commentIntroducer = std::string("#"));
   std::string stripTrailingBlanks(std::string line);
+  std::string getLine(std::istream& str);
 }
 
 #endif
