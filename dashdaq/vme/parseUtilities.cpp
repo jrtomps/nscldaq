@@ -23,6 +23,8 @@
 using namespace std;
 #endif
 
+#include <iostream>
+
 namespace descriptionFile
 {
   string whitespace        = " \t"; // Defines whitespace chars.
@@ -71,7 +73,7 @@ namespace descriptionFile
   string stripLeadingBlanks(string line)
   {
     size_t firstNon = line.find_first_not_of(whitespace);
-    if (firstNon < line.size()) {
+    if (firstNon != std::string::npos) {
       return line.substr(firstNon);
     } 
     else {			// No match.
@@ -96,8 +98,30 @@ namespace descriptionFile
   string stripComment(string line, string commentIntroducer)
   {
     size_t commentLeader = line.find(commentIntroducer);
+    if (commentLeader == std::string::npos) {
+      commentLeader = line.size();
+    }
     return line.substr(0, commentLeader);
   }
+  /*!
+    stripTralingBlanks strips trailing characters that are in 
+    whitespace from a string.
+    \param line : string [in]
+       The line to strip.
+    \return string
+    \retval The stripped line.
+
+  */
+  string stripTrailingBlanks(string line)
+  {
+    size_t lastNon = line.find_last_not_of(whitespace);
+    if (lastNon == std::string::npos) {
+      return string("");
+    }
+    return line.substr(0, lastNon+1);
+
+  }
+
+
 
 }
-

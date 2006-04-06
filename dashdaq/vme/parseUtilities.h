@@ -40,6 +40,7 @@ namespace descriptionFile {
   std::string stripLeadingBlanks(std::string line);
   std::string stripComment(std::string line,
 			   std::string commentIntroducer = std::string("#"));
+  std::string stripTrailingBlanks(std::string line);
 }
 
 #endif
