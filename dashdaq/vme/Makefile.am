@@ -1,7 +1,7 @@
 lib_LTLIBRARIES = libVme.la
 
-libVme_la_SOURCES = parseUtilities.cpp
-include_HEADERS   = parseUtilities.h
+libVme_la_SOURCES = parseUtilities.cpp CVMEInterface.cpp nullVMEInterface.cpp
+include_HEADERS   = parseUtilities.h   CVMEInterface.h   nullVMEInterface.h
 
 libVme_la_LDFLAGS = -version-info $(SOVERSION):0 \
 	-Wl,"-rpath-link=$(libdir)"
@@ -12,9 +12,10 @@ libVme_la_LDFLAGS = -version-info $(SOVERSION):0 \
 PARSETESTS = TestRunner.cpp testFirstWord.cpp testStripLeadingBlanks.cpp \
 	testStripComment.cpp testStripTrailing.cpp testgetLine.cpp
 
+VMEINTERFACETESTS = TestRunner.cpp testNullInterface.cpp
 
 
-TESTS = $(PARSETESTS)
+TESTS = $(PARSETESTS) $(VMEINTERFACETESTS)
 
 EXTRA_DIST=$(TESTS)
 
@@ -25,6 +26,13 @@ ivp:
 	$(CXX) -I@prefix@/include $(CPPUNIT_CXXSW) -o parsetests $(PARSETESTS) \
 		$(CPPUNIT_LDSW) -L@prefix@/lib -lVme -lException \
 		-Wl,"-rpath=@prefix@/lib"
+	$(CXX) -I@prefix@/include $(CPPUNIT_CXXSW) -o vmeinterfacetests \
+		$(VMEINTERFACETESTS) \
+		$(CPPUNIT_LDSW) -L@prefix@/lib -lVme -lException \
+		-Wl,"-rpath=@prefix@/lib"
+	@echo "-------------------------------------------"
 	@echo Runing parsetests for libVme:
 	./parsetests
+	@echo Runing vmeinterfacetests
+	./vmeinterfacetests
 	@echo done
