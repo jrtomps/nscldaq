@@ -35,9 +35,11 @@
 
 namespace descriptionFile {
   extern std::string whitespace;
+  extern std::string commentIntroducer;
 
   std::string firstWord(std::string line);
   std::string stripLeadingBlanks(std::string line);
+  std::string stripComment(std::string line);
 }
 
 #endif

@@ -25,8 +25,9 @@ using namespace std;
 
 namespace descriptionFile
 {
-  string whitespace = " \t";	// Defines whitespace chars.
-
+  string whitespace        = " \t"; // Defines whitespace chars.
+  string commentIntroducer = "#";   // Start of comment.
+ 
   /*!
       firstWord returns the first word from a string of text.
       The first word is defined as the set of non-whitespace
@@ -77,6 +78,24 @@ namespace descriptionFile
       return line;
     }
   }
-
+  /*!
+    stripComment strips comments from a line.
+    a comment is considered to be introduced by
+    commentIntroducer ..which is a char and continues
+    to the end of the line.  This function therefore locates
+    the first instance of commentIntroducer, and strips it and
+    the remainder of the string from the string.
+    \param line : string [in]
+         The line to strip.
+    \return string
+    \retval the part of the string prior to the first commentIntroducer.
+    
+  */
+  string stripComment(string line)
+  {
+    size_t commentLeader = line.find_first_of(commentIntroducer);
+    return line.substr(0, commentLeader);
+  }
 
 }
+

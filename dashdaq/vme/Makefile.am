@@ -6,7 +6,8 @@ include_HEADERS   = parseUtilities.h
 libVme_la_LDFLAGS = -version-info $(SOVERSION):0 \
 	-Wl,"-rpath-link=$(libdir)"
 
-TESTS = TestRunner.cpp testFirstWord.cpp testStripLeadingBlanks.cpp
+TESTS = TestRunner.cpp testFirstWord.cpp testStripLeadingBlanks.cpp \
+	testStripComment.cpp
 
 EXTRA_DIST=$(TESTS)
 
