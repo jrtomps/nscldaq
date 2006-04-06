@@ -20,6 +20,7 @@ class testComment : public CppUnit::TestFixture {
   CPPUNIT_TEST(lineCommentNoStuff);
   CPPUNIT_TEST(onlyComment);
   CPPUNIT_TEST(empty);
+  CPPUNIT_TEST(multicharIntroducer);
   CPPUNIT_TEST_SUITE_END();
 
 
@@ -36,6 +37,7 @@ protected:
   void lineCommentNoStuff();
   void onlyComment();
   void empty();
+  void multicharIntroducer();
 };
 
 CPPUNIT_TEST_SUITE_REGISTRATION(testComment);
@@ -82,4 +84,13 @@ void testComment::empty()
 {
   string result = stripComment(string(""));
   EQ(string(""), result);
+}
+// Multicharacter introducer.
+
+void testComment::multicharIntroducer()
+{
+  string test   = "This has a double / comment // here's the comment";
+  string result = stripComment(test, string("//"));
+
+  EQ(string("This has a double / comment "), result);
 }
