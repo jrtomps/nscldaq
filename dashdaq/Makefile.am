@@ -1,7 +1,8 @@
-SUBDIRS = sbsbit3 exceptions
+SUBDIRS = sbsbit3 exceptions vme
 
 
 install-data-local:
+	$(mkinstalldirs)  @prefix@/include
 	$(INSTALL_DATA) config.h  @prefix@/include
 #
 #   The following target is for installation verification.

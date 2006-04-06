@@ -400,4 +400,5 @@ AC_OUTPUT(Makefile \
              sbsbit3/dd/Makefile sbsbit3/dd/mkbtp \
              sbsbit3/lib/Makefile \
              sbsbit3/include/Makefile \
-          exceptions/Makefile)
+          exceptions/Makefile	      \
+	  vme/Makefile)
