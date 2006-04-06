@@ -26,10 +26,22 @@
 
 class nullVMEInterface : public CVMEInterface
 {
-  bool m_fLocked;
+  bool        m_fLocked;
+  std::string m_type;
+  std::string m_configuration;
 public:
 
-  nullVMEInterface();
+  nullVMEInterface(std::string type           = std::string(""), 
+		   std::string m_confguration = std::string(""));
+
+  // selectors:
+
+  std::string getType() const {
+    return m_type;
+  }
+  std::string getConfiguration() const {
+    return m_configuration;
+  }
 
   // overrides:
 

@@ -1,10 +1,10 @@
 lib_LTLIBRARIES = libVme.la
 
 libVme_la_SOURCES = parseUtilities.cpp CVMEInterface.cpp nullVMEInterface.cpp \
-		    CVMEInterfaceCreator.cpp
+		    CVMEInterfaceCreator.cpp nullVMEInterfaceCreator.cpp
 
 include_HEADERS   = parseUtilities.h   CVMEInterface.h   nullVMEInterface.h \
-		    CVMEInterfaceCreator.h
+		    CVMEInterfaceCreator.h nullVMEInterfaceCreator.h
 
 libVme_la_LDFLAGS = -version-info $(SOVERSION):0 \
 	-Wl,"-rpath-link=$(libdir)"
@@ -15,7 +15,7 @@ libVme_la_LDFLAGS = -version-info $(SOVERSION):0 \
 PARSETESTS = TestRunner.cpp testFirstWord.cpp testStripLeadingBlanks.cpp \
 	testStripComment.cpp testStripTrailing.cpp testgetLine.cpp
 
-VMEINTERFACETESTS = TestRunner.cpp testNullInterface.cpp 
+VMEINTERFACETESTS = TestRunner.cpp testNullInterface.cpp testCreator.cpp
 
 
 TESTS = $(PARSETESTS) $(VMEINTERFACETESTS)

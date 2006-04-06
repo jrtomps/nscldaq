@@ -23,8 +23,10 @@ using namespace std;
 // Implement test VME class.
 // Constructor:
 
-nullVMEInterface::nullVMEInterface() :
-  m_fLocked(false)
+nullVMEInterface::nullVMEInterface(string type, string configuration) :
+  m_fLocked(false),
+  m_type(type),
+  m_configuration(configuration)
 {}
 
 // Device type string.
