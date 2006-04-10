@@ -1,6 +1,6 @@
 SUFFIXES =  .c .o
 .c.o:
-	$(CC) -c $(INCLUDES) $<
+	$(CC) -c -DDEBUG $(INCLUDES) $<
 
 OBJECTS= btp_cfg.o btp_open.o btp_rdwr.o btp_ioctl.o \
     btp_lowio.o btp_version.o btp_bind.o \
