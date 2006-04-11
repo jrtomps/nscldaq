@@ -39,7 +39,8 @@ TCLPACKAGES=Configuration.tcl \
 	scalerParameterDialog.tcl scalerParameterDialog_ui.tcl \
 	selectReadout.tcl selectReadout_ui.tcl \
 	selectReadoutDialog.tcl \
-	warning.tcl
+	warning.tcl \
+	bells.tcl
 
 TCLAPPS=ReadoutShell.tcl \
 	StagerGui.tcl

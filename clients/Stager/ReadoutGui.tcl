@@ -33,6 +33,7 @@ package require Diagnostics
 package require ReadoutState
 package require DAQParameters
 package require Experiment
+package require bells
 
 namespace eval ReadoutGui {
     variable ElapsedTimer     0;        #Number of seconds in run so far.
@@ -369,9 +370,11 @@ proc ReadoutGui::ReadoutExited {RunStateonExit} {
 
     ReadoutGui::CleanupRun $RunStateonExit
     ReadougGUIPanel::readoutNotRunning
+    bells notify -interval 2500 -pattern {100 200 400 500}
     set doWhat [tk_dialog .rdoexited {Readout Exited} \
 		{The readout program exited.  What would you like to do?} \
 		 warning 0 Exit {Attempt to Restart} {Do Nothing}]
+    notify destroy
     switch -exact $doWhat {
 	0 {
 	    ReadoutGui::onExit
