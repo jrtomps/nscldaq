@@ -12,6 +12,8 @@ using namespace std;
 #include "nullVMEInterfaceCreator.h"
 #include "CVMEInterfaceFactory.h"
 #include <RangeError.h>
+#include <CInvalidInterfaceType.h>
+#include <sstream>
 
 class testSubsystem : public CppUnit::TestFixture {
   CPPUNIT_TEST_SUITE(testSubsystem);
@@ -21,6 +23,11 @@ class testSubsystem : public CppUnit::TestFixture {
   CPPUNIT_TEST(replace);
   CPPUNIT_TEST(index);
   CPPUNIT_TEST(goodDescriptionString);
+  CPPUNIT_TEST(badDescriptionString);
+  CPPUNIT_TEST(descriptionFile);
+  CPPUNIT_TEST(lock);
+  CPPUNIT_TEST(badLock);
+  CPPUNIT_TEST(lockVisitor);
   CPPUNIT_TEST_SUITE_END();
 
 
@@ -31,6 +38,7 @@ public:
     m_pSubsystem = new CVMESubsystem;
   }
   void tearDown() {
+    CVMESubsystem::destroyAll();
     delete m_pSubsystem;
   }
 protected:
@@ -40,9 +48,24 @@ protected:
   void replace();
   void index();
   void goodDescriptionString();
+  void badDescriptionString();
+  void descriptionFile();
+  void lock();
+  void badLock();
+  void lockVisitor();
 };
 
 CPPUNIT_TEST_SUITE_REGISTRATION(testSubsystem);
+
+
+char* fileContents[] = {
+  "#   This is a comment",
+  "",				// empty line
+  " \t",			// Line with blanks
+  "null some description",	// pure description
+  "null another # with a comment",
+  (char*)NULL
+};
 
 void testSubsystem::install() {
   EQMSG("before", static_cast<size_t>(0), m_pSubsystem->size());
@@ -156,7 +179,97 @@ void testSubsystem::goodDescriptionString()
   CVMEInterfaceFactory::addCreator("null", creator);
 
   int i = m_pSubsystem->processDescription(string("null some configuration"));
+  CVMEInterfaceFactory::clearRegistry(); // Clean up!
+
   EQ(0, i);
 
-  CVMEInterfaceFactory::clearRegistry(); // Clean up!
+
+}
+
+// add a null subystem but do a mis-spelled creation via string:
+
+void testSubsystem::badDescriptionString()
+{
+  nullVMEInterfaceCreator creator;
+  CVMEInterfaceFactory::addCreator("null", creator);
+
+  bool thrown(false);
+
+  CInvalidInterfaceType e1("","");
+  try {
+    int i = m_pSubsystem->processDescription(string("nll some configuration"));
+  }
+  catch (CInvalidInterfaceType& e) {
+    thrown = true;
+    e1 = e;
+  }
+  ASSERT(thrown);
+  EQ(string("nll some configuration"), string(e1.ReasonText()));
+  EQ(string("CVMESubsystem::processDescription Creating an interface"), 
+     string(e1.WasDoing()));
+
+  CVMEInterfaceFactory::clearRegistry();
+}
+
+void testSubsystem::descriptionFile()
+{
+  // Create the test file.
+
+  string theFile;
+  char** p = fileContents;
+  while (*p) {
+    theFile += *p++;
+    theFile += '\n';
+  }
+  istringstream file(theFile);
+
+  // Setup the factory:
+
+  nullVMEInterfaceCreator creator;
+  CVMEInterfaceFactory::addCreator("null", creator);
+
+  m_pSubsystem->processDescriptionFile(file);
+
+  CVMEInterfaceFactory::clearRegistry();
+
+  EQ((size_t)2, m_pSubsystem->size());
+  
+}
+
+
+void testSubsystem::lock()
+{
+
+  CVMESubsystem::lock();
+  ASSERT(CVMESubsystem::isLockHeld());
+
+  CVMESubsystem::unlock();
+  ASSERT(!CVMESubsystem::isLockHeld());
+}
+// Double lock.
+void testSubsystem::badLock()
+{
+  CVMESubsystem::lock();
+
+  bool thrown = false;
+  try {
+    CVMESubsystem::lock();	// Recursive...
+  }
+  catch (string msg) {
+    thrown = true;
+  }
+  ASSERT(thrown);
+
+  CVMESubsystem::unlock();
+}
+void testSubsystem::lockVisitor()
+{
+  nullVMEInterface null;
+  m_pSubsystem->installInterface(null);
+
+  CVMESubsystem::lock();
+  ASSERT(null.locked());
+
+  CVMESubsystem::unlock();
+  ASSERT(!null.locked());
 }

@@ -55,7 +55,7 @@ namespace descriptionFile
     string result;
     for (int i =0; i < line.size(); i++) {
       char c = line[i];
-      if(isblank(c)) break;
+      if(::isblank(c)) break;
       result += c;
       
     }

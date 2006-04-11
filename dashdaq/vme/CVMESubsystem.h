@@ -31,6 +31,13 @@
 #endif
 #endif
 
+#ifndef __CPP_ISTREAM
+#include <istream>
+#ifndef __CPP_ISTREAM
+#define __CPP_ISTREAM
+#endif
+#endif
+
 
 // Forward references:
 
@@ -85,37 +92,47 @@ private:
   static int  m_lockId;
   static bool m_lockHeld;
   
-  Interfaces  m_Interfaces;
-public:
-  // canonicals:
-
-  CVMESubsystem();
-  ~CVMESubsystem();
-
-  // No copying allowed:
-
-private:
-  CVMESubsystem(const CVMESubsystem& rhs);
-  CVMESubsystem& operator=(const CVMESubsystem& rhs);
-  int operator==(const CVMESubsystem& rhs) const;
-  int operator!=(const CVMESubsystem& rhs) const;
+  static Interfaces  m_Interfaces;
 public:
 
   // Interface management:
   
-  int installInterface(CVMEInterface& interface, bool deleteWhenDone=false);
-  CVMEInterface* replaceInterface(unsigned int   index, 
+  static int installInterface(CVMEInterface& interface, bool deleteWhenDone=false);
+  static CVMEInterface* replaceInterface(unsigned int   index, 
 				  CVMEInterface& replacement,
 				  bool           deleteWhenDone = false);
-  size_t size() const;
-  InterfaceIterator begin();
-  InterfaceIterator end();
+  static size_t size();
+  static InterfaceIterator begin();
+  static InterfaceIterator end();
   CVMEInterface& operator[](unsigned int index);
 
 
   // File based configuration:
 
-  int processDescription(STD(string) description);
+  static int processDescription(STD(string) description);
+  static void processDescriptionFile(STD(istream)& file);
+
+  // Subsystem locking:
+
+  static void lock();
+  static void unlock();
+
+  // Utilities...
+
+protected:
+  static CVMEInterface* createFromDescription(STD(string) description);
+
+  static void EnsureSemaphoreExists();
+
+  // Available for unit tests:
+
+#ifdef UNIT_TEST_INCLUDE
+public:
+#endif
+  static bool isLockHeld() {
+    return m_lockHeld;
+  }
+  static void destroyAll();
 
 };
 
