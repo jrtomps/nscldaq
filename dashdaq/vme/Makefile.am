@@ -2,11 +2,11 @@ lib_LTLIBRARIES = libVme.la
 
 libVme_la_SOURCES = parseUtilities.cpp CVMEInterface.cpp nullVMEInterface.cpp \
 		    CVMEInterfaceCreator.cpp nullVMEInterfaceCreator.cpp      \
-		    CVMEInterfaceFactory.cpp CVMESubsystem.cpp
+		    CVMEInterfaceFactory.cpp CVMESubsystem.cpp CVMELock.cpp
 
 include_HEADERS   = parseUtilities.h   CVMEInterface.h   nullVMEInterface.h \
 		    CVMEInterfaceCreator.h nullVMEInterfaceCreator.h        \
-		    CVMEInterfaceFactory.h CVMESubsystem.h
+		    CVMEInterfaceFactory.h CVMESubsystem.h CVMELock.h
 
 AM_CXXFLAGS=-I. -I@top_srcdir@/exceptions
 libVme_la_LDFLAGS = -version-info $(SOVERSION):0 \
@@ -19,7 +19,7 @@ PARSETESTS = TestRunner.cpp testFirstWord.cpp testStripLeadingBlanks.cpp \
 	testStripComment.cpp testStripTrailing.cpp testgetLine.cpp
 
 VMEINTERFACETESTS = TestRunner.cpp testNullInterface.cpp testCreator.cpp \
-	testFactory.cpp testVMESubsystem.cpp
+	testFactory.cpp testVMESubsystem.cpp testLock.cpp
 
 
 TESTS = $(PARSETESTS) $(VMEINTERFACETESTS) Asserts.h
