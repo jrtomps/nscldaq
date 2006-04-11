@@ -637,3 +637,6 @@ March 28, 2006
 April 3, 2006
       - Revert code in CAENcard... even 8.08 still makes errors in
         the word count.
+April 11, 2006
+      - ReadoutShell - add a distinctive bell pattern that will be
+        emitted when Readout exits.
