@@ -14,7 +14,7 @@
    Support for this module consists of a single C++ class: CSIS3820
 
    This document describes:
-  - The \ref sis3820Modes Supported module modes
+  - \ref sis3820Modes 
   - \ref sis3820SetupLatching 
   - \ref sis3820Readout
 

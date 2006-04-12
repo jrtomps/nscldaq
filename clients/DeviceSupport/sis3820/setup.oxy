@@ -1,5 +1,5 @@
 /*!
-	\page SetupLatching Setting up the module in latching mode.
+	\page sis3820SetupLatching  Setting up the module in latching mode.
 
 	Setting up the module involves the following steps:
 	- \ref Constructing 
