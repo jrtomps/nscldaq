@@ -103,7 +103,7 @@ CCaenIO::operator== (const CCaenIO& aCCaenIO)
      specified by its parameter. Inputs must be
      between 1 and 4.
 
-  \param UInt_t input - the input (1-4) from which to read a value.
+  \param UInt_t input - the input (0-3) from which to read a value.
 
   \return The value of the input.
 */
@@ -149,8 +149,10 @@ CCaenIO::PulseOutput(UInt_t output)
   Purpose:
      Set one of the level outputs. If the outputs is
      already set, then this function is a no-op.
+  
 
   \param UInt_t output - the output to assert.
+  Must be in the range 0 - 3.
 */
 void
 CCaenIO::SetLevel(UInt_t output)
@@ -172,6 +174,7 @@ CCaenIO::SetLevel(UInt_t output)
      cleared, then this function is a no-op.
 
   \param UInt_t output - the output to deassert
+     Must be in the range of 0-3
 */
 void
 CCaenIO::ClearLevel(UInt_t output)
@@ -188,6 +191,9 @@ CCaenIO::ClearLevel(UInt_t output)
      Set the ECL output
 
   \param UShort_t value - the value to place in the ECL out register.
+        The outputs of the ECL out connector will reflect the bit 
+	encoding of this parameter.
+
 */
 void
 CCaenIO::SetECL(UShort_t value)
@@ -224,6 +230,8 @@ CCaenIO::ClearAll()
    Get a pointer to the input register.  This is
 designed for high performance software that does
 not want to  crawl through the layers of abstraction:
+Note that his is only available for VME
+controllers that support memory mapping.
 
 */
 short*
@@ -235,6 +243,8 @@ CCaenIO::getInputPointer() const
 }
 /*!
   Get a pointer to the pulsed output register.
+  This is only available for controllers that support
+  memory mapping.
 */
 short* 
 CCaenIO::getPulsedOutputPointer() const
@@ -244,6 +254,8 @@ CCaenIO::getPulsedOutputPointer() const
 }
 /*!
    Get a pointer to the level output register:
+   This is only available for controllers that support
+   memory mapping.
 */
 short* 
 CCaenIO::getLatchedOutputPointer() const
@@ -253,6 +265,9 @@ CCaenIO::getLatchedOutputPointer() const
 }
 /*!
   Get a pointer to the ECL output register:
+  This is only avaialable for controllers that support
+  memory mapping.
+
 */
 short* 
 CCaenIO::getECLOutputPointer() const
@@ -261,4 +276,4 @@ CCaenIO::getECLOutputPointer() const
   return ((short*)(map.getStart()) + 2);
 }
 
-#endif
+#endifx
