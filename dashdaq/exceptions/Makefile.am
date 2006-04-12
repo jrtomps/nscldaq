@@ -1,9 +1,9 @@
 lib_LTLIBRARIES = libException.la
 libException_la_SOURCES = ErrnoException.cpp Exception.cpp \
 			  RangeError.cpp StreamIOError.cpp \
-			CInvalidInterfaceType.cpp
+			CInvalidInterfaceType.cpp CDeviceIncapable.cpp
 include_HEADERS = ErrnoException.h Exception.h  StreamIOError.h \
-	RangeError.h CInvalidInterfaceType.h
+	RangeError.h CInvalidInterfaceType.h CDeviceIncapable.h
 
 libException_la_LDFLAGS = -version-info $(SOVERSION):0 \
 	-Wl,"-rpath-link=$(libdir)"
@@ -16,7 +16,9 @@ TESTS= testErrnoException.cpp  \
 	testException.cpp  \
 	testRangeError.cpp  \
 	testBadInterface.cpp \
-	testStreamIOError.cpp  TestRunner.cpp
+	testStreamIOError.cpp  \
+	testDeviceIncapable.cpp \
+	TestRunner.cpp
 
 EXTRA_DIST=streamioerror.3daq rangeerror.3daq exception.3daq \
 	errnoexception.3daq $(TESTS) Asserts.h
