@@ -3,30 +3,35 @@ lib_LTLIBRARIES = libVme.la
 libVme_la_SOURCES = parseUtilities.cpp CVMEInterface.cpp nullVMEInterface.cpp \
 		    CVMEInterfaceCreator.cpp nullVMEInterfaceCreator.cpp      \
 		    CVMEInterfaceFactory.cpp CVMESubsystem.cpp CVMELock.cpp   \
-		    CVMEAddressRange.cpp
+		    CVMEAddressRange.cpp CSBSVmeAddressRange.cpp              \
+		    CSBSVmeException.cpp
 
 include_HEADERS   = parseUtilities.h   CVMEInterface.h   nullVMEInterface.h \
 		    CVMEInterfaceCreator.h nullVMEInterfaceCreator.h        \
 		    CVMEInterfaceFactory.h CVMESubsystem.h CVMELock.h       \
-		    CVMEAddressRange.h
+		    CVMEAddressRange.h CSBSVmeAddressRange.h                \
+		    CSBSVmeException.h
 
-AM_CXXFLAGS=-I. -I@top_srcdir@/exceptions
+AM_CXXFLAGS=-I. -I@top_srcdir@/exceptions     \
+	-I@top_srcdir@/sbsbit3/include
+
 libVme_la_LDFLAGS = -version-info $(SOVERSION):0 \
 	-Wl,"-rpath-link=$(libdir)"
 
 
 # Tests for string parse helpers.
 
-PARSETESTS = TestRunner.cpp testFirstWord.cpp testStripLeadingBlanks.cpp \
+PARSETESTS =  testFirstWord.cpp testStripLeadingBlanks.cpp \
 	testStripComment.cpp testStripTrailing.cpp testgetLine.cpp
 
-VMEINTERFACETESTS = TestRunner.cpp testNullInterface.cpp testCreator.cpp \
+VMEINTERFACETESTS =  testNullInterface.cpp testCreator.cpp \
 	testFactory.cpp testVMESubsystem.cpp testLock.cpp 
 
-SBSINTERFACETESTS = TestRunner.cpp testVMEAddressRange.cpp
+SBSINTERFACETESTS =  testVMEAddressRange.cpp \
+		testSBSRange.cpp
 
 
-TESTS = $(PARSETESTS) $(VMEINTERFACETESTS) Asserts.h
+TESTS = $(PARSETESTS) $(VMEINTERFACETESTS) $(SBSINTERFACETESTS) TestRunner.cpp Asserts.h
 
 EXTRA_DIST=$(TESTS)
 
@@ -36,17 +41,20 @@ ivp:
 	@echo "+------------------------------------------+"
 	$(CXX) -I@prefix@/include $(CPPUNIT_CXXSW) -o parsetests \
 		$(AM_CXXFLAGS)					\
-		-DUNIT_TEST_INCLUDE $(PARSETESTS) \
+		-DUNIT_TEST_INCLUDE TestRunner.cpp $(PARSETESTS) \
 		$(CPPUNIT_LDSW) -L@prefix@/lib -lVme -lException \
+		-lbtp -lpthread \
 		-Wl,"-rpath=@prefix@/lib"
 	$(CXX) -I@prefix@/include $(CPPUNIT_CXXSW) -o vmeinterfacetests \
 		$(AM_CXXFLAGS)					\
-		-DUNIT_TEST_INCLUDE $(VMEINTERFACETESTS) \
+		-DUNIT_TEST_INCLUDE TestRunner.cpp $(VMEINTERFACETESTS) \
 		$(CPPUNIT_LDSW) -L@prefix@/lib -lVme -lException \
+		-lbtp -lpthread \
 		-Wl,"-rpath=@prefix@/lib"
 	$(CXX) -I@prefix@/include $(CPPUNIT_CXXSW) -o sbsinterfacetests \
 		$(AM_CXXFLAGS)					\
-		-DUNIT_TEST_INCLUDE $(SBSINTERFACETESTS) \
+		-DUNIT_TEST_INCLUDE  TestRunner.cpp \
+		$(SBSINTERFACETESTS) \
 		$(CPPUNIT_LDSW) -L@prefix@/lib -lVme -lException \
 		-lbtp -lpthread \
 		-Wl,"-rpath=@prefix@/lib"
