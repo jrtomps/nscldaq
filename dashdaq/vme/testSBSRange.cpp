@@ -41,7 +41,7 @@ public:
   void setUp() {
     if(!warned) {
       warned = true;
-      cerr << "Warning: the tests in testSBSRange.cpp require:\n";
+      cerr << "\nWarning: the tests in testSBSRange.cpp require:\n";
       cerr << "   1. An SBS PCI/VME interface connected to an online VME crate\n";
       cerr << "   2.A24  Memory in that crate in the range 0x500000-0x5fffff\n";
       cerr << "If these conditions are not satisfied, tests will fail\n";
