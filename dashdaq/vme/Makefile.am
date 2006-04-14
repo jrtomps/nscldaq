@@ -5,14 +5,15 @@ libVme_la_SOURCES = parseUtilities.cpp CVMEInterface.cpp nullVMEInterface.cpp \
 		    CVMEInterfaceFactory.cpp CVMESubsystem.cpp CVMELock.cpp   \
 		    CVMEAddressRange.cpp CSBSVmeAddressRange.cpp              \
 		    CSBSVmeException.cpp CSBSVMEInterface.cpp                 \
-		    CSBSVMEInterfaceCreator.cpp CVmeDMATransfer.cpp 
+		    CSBSVMEInterfaceCreator.cpp CVmeDMATransfer.cpp           \
+		    CSBSVmeDMATransfer.cpp
 
 include_HEADERS   = parseUtilities.h   CVMEInterface.h   nullVMEInterface.h \
 		    CVMEInterfaceCreator.h nullVMEInterfaceCreator.h        \
 		    CVMEInterfaceFactory.h CVMESubsystem.h CVMELock.h       \
 		    CVMEAddressRange.h CSBSVmeAddressRange.h                \
 		    CSBSVmeException.h CSBSVMEInterface.h CSBSVMEInterfaceCreator.h \
-		    CVmeDMATransfer.h
+		    CVmeDMATransfer.h  CSBSVmeDMATransfer.h
 
 AM_CXXFLAGS=-I. -I@top_srcdir@/exceptions     \
 	-I@top_srcdir@/sbsbit3/include
@@ -32,7 +33,7 @@ VMEINTERFACETESTS =  testNullInterface.cpp testCreator.cpp \
 
 SBSINTERFACETESTS =  testVMEAddressRange.cpp \
 		testSBSRange.cpp testSBSInterface.cpp \
-		testSBSCreator.cpp
+		testSBSCreator.cpp testSBSDMA.cpp
 
 
 TESTS = $(PARSETESTS) $(VMEINTERFACETESTS) $(SBSINTERFACETESTS) TestRunner.cpp Asserts.h
