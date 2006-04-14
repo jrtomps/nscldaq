@@ -232,6 +232,7 @@ ssize_t btp_read(
 
     FENTRY;
 
+
     /*
     ** Handle local memory
     */
@@ -792,6 +793,8 @@ static int btp_xfer(
 				  &local_length, 
 				  (dir == BT_RD) ? BT_READ : BT_WRITE, 
 				  data_width);
+	    TRC_MSG((BT_TRC_DMA | BT_TRC_DETAIL),
+		    (LOG_FMT "Transferred 0x%x bytes\n", LOG_ARG, local_length));
             if (IS_CLR(unit_p->bt_status, BT_NEXT_GEN)) {
                 btk_rwlock_wr_exit(unit_p, &unit_p->hw_rwlock);
             }
@@ -799,7 +802,8 @@ static int btp_xfer(
             BTP_FREE_MREG;
             btk_mutex_exit(unit_p, &unit_p->dma_mutex);
 
-	    done = TRUE;	/* DMA also only gets one xfer try. */
+	    if(retval != BT_SUCCESS) 
+	      done = TRUE; 	 /* DMA done if an error. */
         /*
         ** Do a PIO
         */
@@ -844,6 +848,8 @@ static int btp_xfer(
         usr_data_p += local_length;
         dest_addr += local_length;
         length_remaining -= local_length;
+	TRC_MSG(BT_TRC_RD_WR, 
+		(LOG_FMT " remaining transfer: 0x%x\n", LOG_ARG, length_remaining));
 
     } /*    while.   */
 

@@ -470,6 +470,9 @@ bt_error_t btk_dma_xfer(
     ** Check for errors before we actually start the DMA
     */
     if (IS_SET(unit_p->bt_status, BT_DMA_ERROR)) {
+      TRC_MSG(BT_TRC_DMA,
+	      (LOG_FMT "Error prior to start 0x%x\n", LOG_ARG,
+	       unit_p->bt_status));
         retval = BT_ESTATUS;
         goto dma_xfer_exit;
     }
@@ -561,6 +564,9 @@ bt_error_t btk_dma_xfer(
 
 
     if (IS_SET(unit_p->bt_status, BT_DMA_ERROR)) {
+      TRC_MSG(BT_TRC_DMA,
+	      (LOG_FMT "Error after xfer 0x%x\n",
+	       LOG_ARG, unit_p->bt_status));
         retval = BT_ESTATUS;
         goto dma_xfer_exit;
     }
@@ -602,8 +608,13 @@ bt_error_t btk_dma_xfer(
 
 
 dma_xfer_exit:
+    TRC_MSG((BT_TRC_DMA | BT_TRC_DETAIL),
+	    (LOG_FMT "retval prior to length fixup: %d\n ", LOG_ARG, retval));
     *xfer_length = (raddr_end - raddr);
-    if(xfer_length) retval = BT_SUCCESS; /* If any trasferred it's a success */
+    /* if(xfer_length) retval = BT_SUCCESS;*/ /* If any trasferred it's a success */
+    TRC_MSG((BT_TRC_DMA | BT_TRC_DETAIL),
+	    (LOG_FMT "raddr_end = 0x%x raddr = 0x%x length 0x%x\n",
+	     LOG_ARG, raddr_end, raddr, *xfer_length));
     FEXIT(retval);
     return(retval);
 }
