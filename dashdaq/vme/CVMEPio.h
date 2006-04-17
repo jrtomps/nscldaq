@@ -48,6 +48,8 @@ public:
   virtual unsigned short read16(unsigned short modifier, unsigned long address) = 0;
   virtual unsigned char  read8 (unsigned short modifier, unsigned long address) = 0;
 
+
+
 };
 
 #endif

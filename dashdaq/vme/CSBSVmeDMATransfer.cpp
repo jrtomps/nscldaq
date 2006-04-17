@@ -150,6 +150,7 @@ CSBSVmeDMATransfer::setDriverParameters()
 
   bt_set_info(m_handle, BT_INFO_DATAWIDTH, (bt_devdata_t)transferWidth);
   bt_set_info(m_handle, BT_INFO_DMA_AMOD,  amod);
+  bt_set_info(m_handle, BT_INFO_PIO_AMOD,  amod);
   bt_set_info(m_handle, BT_INFO_BLOCK,      m_blockMode);
 
 
@@ -161,5 +162,6 @@ CSBSVmeDMATransfer::restoreDriverParameters()
 {
   bt_set_info(m_handle, BT_INFO_DATAWIDTH, m_oldWidth);
   bt_set_info(m_handle, BT_INFO_DMA_AMOD,  m_oldAm);
+  bt_set_info(m_handle, BT_INFO_PIO_AMOD,  m_oldAm); // assumes PIO/DMA same.
   bt_set_info(m_handle, BT_INFO_BLOCK,     m_oldBlockmode);
 }
