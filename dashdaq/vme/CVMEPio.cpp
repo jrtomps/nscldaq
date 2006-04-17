@@ -25,7 +25,7 @@ using namespace std;
 // or chaining.
 
 CVMEPio::CVMEPio() {}
-CVMEPio::CVMEPIo(const CVMEPio& rhs) {}
+CVMEPio::CVMEPio(const CVMEPio& rhs) {}
 CVMEPio::~CVMEPio() {}
 
 CVMEPio&
