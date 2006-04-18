@@ -647,3 +647,4 @@ April 12, 2006
 April 18, 2006
       - Enable user based connection verification to prevent port collisions.
         in tclserver.
+      - Use user based connection verification in scaler display
