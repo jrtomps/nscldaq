@@ -1903,7 +1903,6 @@ static size_t btk_bcopy(
             } else {
 
                 while (count > 0) {
-
                     PIO_WRITE_64(*sll_p, dll_p);
 
                     /*
@@ -1975,6 +1974,9 @@ static size_t btk_bcopy(
             } else {
 
                 while (count > 0) {
+		  TRC_MSG((BT_TRC_PIO | BT_TRC_DETAIL),
+			  (LOG_FMT "Transfering: 0x%x\n",
+			   LOG_ARG, *sl_p));
 
                     PIO_WRITE_32(*sl_p, dl_p);
                     dl_p++;

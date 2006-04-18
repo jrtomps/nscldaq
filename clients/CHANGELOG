@@ -644,3 +644,6 @@ April 11, 2006
 April 12, 2006
       - mods to device support so that doxygen can generate Ok
         supported electronics docs.
+April 18, 2006
+      - Enable user based connection verification to prevent port collisions.
+        in tclserver.
