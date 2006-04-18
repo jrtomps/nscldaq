@@ -276,4 +276,4 @@ CCaenIO::getECLOutputPointer() const
   return ((short*)(map.getStart()) + 2);
 }
 
-#endifx
+#endif

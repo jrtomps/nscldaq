@@ -1,7 +1,7 @@
 #!/bin/sh
 #   NOTE:: tclserver must live in the path.
 #   start tclserver on us. \
-exec tclserver  -pManaged -a"Scaler Display"  ${0} ${@}
+exec tclserver  -pManaged -a"Scaler Display"  -userauth ${0} ${@}
 
 #    This software is Copyright by the Board of Trustees of Michigan
 #    State University (c) Copyright 2005.
