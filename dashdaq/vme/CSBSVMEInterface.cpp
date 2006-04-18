@@ -17,6 +17,9 @@
 #include <config.h>
 #include "CSBSVMEInterface.h"
 #include "CSBSVmeAddressRange.h"
+#include "CSBSVmeDMATransfer.h"
+#include "CSBSPio.h"
+
 #include "CSBSVmeException.h"
 
 
@@ -180,7 +183,7 @@ CSBSVMEInterface::createAddressRange(unsigned short addressModifier,
 CVMEPio*
 CSBSVMEInterface::createPioDevice()
 {
-  return static_cast<CVMEPio*>(NULL);
+  return static_cast<CVMEPio*>(new CSBSPio(m_handle));
 }
 /*!
    Create and return a list pointer.
@@ -193,13 +196,15 @@ CSBSVMEInterface::createList()
 /*!
     Create and return a dma transfer object.
 */
-CVMEDMATransfer* 
+CVmeDMATransfer* 
 CSBSVMEInterface::createDMATransfer(unsigned short addressModifier,
 				    CVMEInterface::TransferWidth  width,
 				    unsigned long  base,
 				    size_t         units)
 {
-  return static_cast<CVMEDMATransfer*>(NULL);
+  return static_cast<CVmeDMATransfer*>(new CSBSVmeDMATransfer(m_handle,
+							      addressModifier,
+							      width, base, units));
 }
 /*!
    Get the part number of the local card of the system.  This is

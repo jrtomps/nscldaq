@@ -111,10 +111,10 @@ void vmeInterface::list()
 
 void vmeInterface::DMA()
 {
-  CVMEDMATransfer* result = m_pInterface->createDMATransfer(0, 
+  CVmeDMATransfer* result = m_pInterface->createDMATransfer(0, 
 						    CVMEInterface::TW_32,
 						    0x400000, 0x1000);
-  EQ(static_cast<CVMEDMATransfer*>(NULL), result);
+  EQ(static_cast<CVmeDMATransfer*>(NULL), result);
 }
 // Check that lock callbacks have desired effect.
 

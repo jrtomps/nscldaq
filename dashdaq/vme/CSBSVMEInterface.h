@@ -46,7 +46,7 @@ extern "C" {
 
 class CVMEPio;
 class CVMEList;
-class CVMEDMATransfer;
+class CVmeDMATransfer;
 
 /*!
    This is the object factory that represents
@@ -95,7 +95,7 @@ public:
 					       size_t         bytes);
   virtual CVMEPio*          createPioDevice();
   virtual CVMEList*         createList();
-  virtual CVMEDMATransfer*  createDMATransfer(unsigned short addressModifier,
+  virtual CVmeDMATransfer*  createDMATransfer(unsigned short addressModifier,
 					      TransferWidth  width,
 					      unsigned long  base,
 					      size_t         units);  

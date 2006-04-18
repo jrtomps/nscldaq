@@ -30,7 +30,7 @@
 class CVMEAddressRange;
 class CVMEPio;
 class CVMEList;
-class CVMEDMATransfer;
+class CVmeDMATransfer;
 
 /*!
     The CVMEInterface class is an abstract base class for
@@ -99,7 +99,7 @@ public:
 					       size_t         bytes) = 0;
   virtual CVMEPio*          createPioDevice() = 0;
   virtual CVMEList*         createList() = 0;
-  virtual CVMEDMATransfer*  createDMATransfer(unsigned short addressModifier,
+  virtual CVmeDMATransfer*  createDMATransfer(unsigned short addressModifier,
 					      TransferWidth  width,
 					      unsigned long  base,
 					      size_t         units) = 0;

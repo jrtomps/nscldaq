@@ -68,13 +68,13 @@ nullVMEInterface::createList()
 }
 // Null dma block transfer:
 
-CVMEDMATransfer*
+CVmeDMATransfer*
 nullVMEInterface::createDMATransfer(unsigned short               addressModifier,
 				    CVMEInterface::TransferWidth width,
 				    unsigned long                base,
 				    size_t                       units)
 {
-  return static_cast<CVMEDMATransfer*>(NULL);
+  return static_cast<CVmeDMATransfer*>(NULL);
 }
 // Check lock state:
 

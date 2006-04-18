@@ -52,7 +52,7 @@ public:
 						size_t         bytes);
   virtual CVMEPio*           createPioDevice();
   virtual CVMEList*          createList();
-  virtual CVMEDMATransfer*  createDMATransfer(unsigned short addressModifier,
+  virtual CVmeDMATransfer*  createDMATransfer(unsigned short addressModifier,
 					      CVMEInterface::TransferWidth  width,
 					      unsigned long  base,
 					      size_t         units);

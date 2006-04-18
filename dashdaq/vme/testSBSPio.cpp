@@ -18,6 +18,9 @@ class testSBSPio : public CppUnit::TestFixture {
   CPPUNIT_TEST(longwrite);
   CPPUNIT_TEST(shortwrite);
   CPPUNIT_TEST(bytewrite);
+  CPPUNIT_TEST(longread);
+  CPPUNIT_TEST(shortread);
+  CPPUNIT_TEST(byteread);
   CPPUNIT_TEST_SUITE_END();
 
 
@@ -51,6 +54,9 @@ protected:
   void longwrite();
   void shortwrite();
   void bytewrite();
+  void longread();
+  void shortread();
+  void byteread();
 };
 
 bool testSBSPio::m_Warned(false);
@@ -71,4 +77,20 @@ void testSBSPio::bytewrite()
 {
   m_pPio->write8(0x39, 0x500080, 0xaa);
   EQ((unsigned char)0xaa, m_pMap->peekb(0x80));
+}
+
+void testSBSPio::longread()
+{
+  m_pPio->write32(0x39, 0x500000, 0x87654321l);
+  EQ(0x87654321UL, m_pPio->read32(0x39, 0x500000));
+}
+void testSBSPio::shortread()
+{
+  m_pPio->write16(0x39, 0x500100, 0xaaaa);
+  EQ((unsigned short)0xaaaa, m_pPio->read16(0x39, 0x500100));
+}
+void testSBSPio::byteread()
+{
+  m_pPio->write16(0x39, 0x500080, 0x55);
+  EQ((unsigned char)0x55, m_pPio->read8(0x39, 0x500080));
 }

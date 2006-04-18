@@ -77,17 +77,24 @@ CSBSPio::write8(unsigned short modifier, unsigned long address, char value)
 unsigned long
 CSBSPio::read32(unsigned short modifier, unsigned long address)
 {
-  return 0ul;
+  unsigned long value;
+  readxx(modifier, address, &value, sizeof(long));
+  return value;
 }
 unsigned short 
 CSBSPio::read16(unsigned short modifier, unsigned long address)
 {
-  return 0;
+  unsigned short value;
+  readxx(modifier, address, &value, sizeof(short));
+  return value;
+
 }
 unsigned char 
 CSBSPio::read8(unsigned short modifier, unsigned long address)
 {
-  return 0;
+  unsigned char value;
+  readxx(modifier, address, &value, sizeof(char));
+  return value;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -107,3 +114,13 @@ CSBSPio::writexx(unsigned short modifier, unsigned long address,
   xfer.Write(value);
 }
 
+// Read an arbitrary value...same as writexx, but the values are read no
+// written.
+void
+CSBSPio::readxx(unsigned short modifier, unsigned long address,
+		void*  valueRead, size_t bytes)
+{
+  CSBSVmeDMATransfer xfer(m_handle, modifier, CVMEInterface::TW_32,
+			  address, bytes);
+  xfer.Read(valueRead);
+}
