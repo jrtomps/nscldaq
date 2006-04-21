@@ -15,7 +15,7 @@
 */
 
 #ifndef __CVMEPIO_H
-#define __CVMEPIO_h
+#define __CVMEPIO_H
 
 
 /*!
