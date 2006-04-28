@@ -9,7 +9,7 @@ libVme_la_SOURCES = parseUtilities.cpp CVMEInterface.cpp nullVMEInterface.cpp \
 		    CSBSVmeDMATransfer.cpp CVMEPio.cpp CSBSPio.cpp            \
 		    CSimulatedVMEList.cpp CBlockReadElement.cpp               \
 		    CBlockWriteElement.cpp  CCountFieldElement.cpp		\
-		    CCountFieldRead.cpp CHitRegisterRead.cpp
+		    CCountFieldRead.cpp CHitRegisterRead.cpp CConditionalRead.cpp
 
 include_HEADERS   = parseUtilities.h   CVMEInterface.h   nullVMEInterface.h \
 		    CVMEInterfaceCreator.h nullVMEInterfaceCreator.h        \
@@ -19,7 +19,7 @@ include_HEADERS   = parseUtilities.h   CVMEInterface.h   nullVMEInterface.h \
 		    CVmeDMATransfer.h  CSBSVmeDMATransfer.h CVMEPio.h CSBSPio.h \
 		    CVMEList.h CSimulatedVMEList.h CSimulatorElement.h \
 		    CBlockReadElement.h CBlockWriteElement.h CCountFieldElement.h \
-		    CCountFieldRead.h CHitRegisterRead.h
+		    CCountFieldRead.h CHitRegisterRead.h CConditionalRead.h
 
 AM_CXXFLAGS=-I. -I@top_srcdir@/exceptions     \
 	-I@top_srcdir@/sbsbit3/include
@@ -44,7 +44,7 @@ SBSINTERFACETESTS =  testVMEAddressRange.cpp \
 
 SIMULATEDLISTTESTS = testSimlistAccess.cpp testBlockReadElement.cpp  \
 		testBlockWriteElement.cpp testCountFieldElement.cpp \
-		testCountFieldRead.cpp testHitRead.cpp
+		testCountFieldRead.cpp testHitRead.cpp testCondRead.cpp
 
 
 TESTS = $(PARSETESTS) $(VMEINTERFACETESTS) $(SBSINTERFACETESTS) \
