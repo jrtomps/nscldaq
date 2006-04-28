@@ -36,7 +36,9 @@ public:
 
   // Evaulate the insruction:
 
-  virtual void* operator()(CVMEPio& pio, CSimulatedVMEList& program, void* outBuffer) = 0;
+  virtual void* operator()(CVMEPio& pio, 
+			   CSimulatedVMEList& program, 
+			   void* outBuffer) = 0;
 };
 
 
