@@ -26,9 +26,9 @@ public:
     // Note if tests are added, we need to include 
     // a first time only thingy as with testSBSInterface.cpp e.g.
 
-    cerr << "\nWARNING: The tests in tstSBSDMA.cpp require:\n";
+    cerr << "\nWARNING: The tests in testSBSDMA.cpp require:\n";
     cerr << "   1. An SBS PCI/VME interface connected to an online crate\n";
-    cerr << "   2. A24 Memory in that crate in the ragen 0x500000-0x5fffff\n";
+    cerr << "   2. A24 Memory in that crate in the range 0x500000-0x5fffff\n";
     cerr << "If these conditions are not met, tests will fail\n";
   }
   void tearDown() {

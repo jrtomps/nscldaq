@@ -9,7 +9,8 @@ libVme_la_SOURCES = parseUtilities.cpp CVMEInterface.cpp nullVMEInterface.cpp \
 		    CSBSVmeDMATransfer.cpp CVMEPio.cpp CSBSPio.cpp            \
 		    CSimulatedVMEList.cpp CBlockReadElement.cpp               \
 		    CBlockWriteElement.cpp  CCountFieldElement.cpp		\
-		    CCountFieldRead.cpp CHitRegisterRead.cpp CConditionalRead.cpp
+		    CCountFieldRead.cpp CHitRegisterRead.cpp CConditionalRead.cpp \
+		    CVMEList.cpp
 
 include_HEADERS   = parseUtilities.h   CVMEInterface.h   nullVMEInterface.h \
 		    CVMEInterfaceCreator.h nullVMEInterfaceCreator.h        \
