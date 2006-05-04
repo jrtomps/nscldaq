@@ -183,10 +183,15 @@ snit::type Event {
             }
 
             if {$pktSize > [llength $body]} {
-                error [list Event Format Error]
+		# Must not be a packet.. just 
+		# coincidental match.
+		return
+
             }
             if {$pktSize > $size} {
-                error [list Event Format Error]
+		# Must not be a packet.. just
+		# coincidental match
+		return
             }
             set packetOffsets($packets) $offset
             incr offset $pktSize
@@ -194,7 +199,7 @@ snit::type Event {
             incr size -$pktSize
             set body [lrange $body $pktSize end]
         }
-        return $packets
+        return
     }
 
     ######

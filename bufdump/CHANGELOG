@@ -6,3 +6,10 @@ January 6, 2006
 January 9, 2006 
         - Remove bufdump.vfs and subdirs in the clean target of the
           makefeil
+1.0-001
+        - Recognize that it is possible to get coincidental matches
+          on packet ids that are not real and that this just means
+          remaining data are not packets rather than a format error.
+        - Event::onconfigure -event should not return a value ever..
+          just configures and lets the caller call methods to determine
+          the results of this configuration.
