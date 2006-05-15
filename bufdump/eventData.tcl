@@ -510,10 +510,11 @@ snit::type nsclBuffer {
     #    There's an implicit assumption the buffer source was little endian.
     #
     method getLongEntity index {
-        set low   [lindex $options(-buffer) $index]
+        set low   [format %u [lindex $options(-buffer) $index]]
+	set low   [expr $low & 0xffff]
         incr index
-        set high  [lindex $options(-buffer) $index]
-
+        set high  [format %u [lindex $options(-buffer) $index]]
+	set high  [expr $high & 0xffff]
         return [expr {$low | ($high << 16)}]
     }
     ######

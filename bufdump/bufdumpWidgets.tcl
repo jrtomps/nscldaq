@@ -573,8 +573,9 @@ snit::widget formattedDump {
 
         for {set scaler 0} {$scaler < $entities} {incr scaler} {
             set value [$currentBuffer getEntity $scaler]
+	    set value [format %u $value]
             set rate [expr $value/$delta]
-            append formatText [format "%6d           %9d           %f\n" $scaler $value $rate]
+            append formatText [format "%6d           %9u           %f\n" $scaler $value $rate]
         }
         $self AppendText $formatText
 
