@@ -658,3 +658,8 @@ May 10, 2006
       - Added license text to sis3300.h
       - Added CEnumParameter from 4pi development to scripted skeleton so that
         all new scripted types can support it.
+May 5, 2006
+     - bcnaf.tcl and its dependents were installed with the
+       .tcl stripped from their names, but bcnaf.tcl was expecting
+       to be able to run e.g. cesbcnaf.tcl.. fixed this thanks to
+       A. Gade for pointing out this problem.

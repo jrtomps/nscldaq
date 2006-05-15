@@ -5,8 +5,8 @@ exec tclsh ${0} ${@}
 set me  [info script]
 set dir [file dirname $me]
 
-set cesbcnaf    [file join $dir cesbcnaf.tcl]
-set wienerbcnaf [file join $dir wienerbcnaf.tcl]
+set cesbcnaf    [file join $dir cesbcnaf]
+set wienerbcnaf [file join $dir wienerbcnaf]
 
 
 proc usage {} {
