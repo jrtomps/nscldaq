@@ -279,6 +279,9 @@ DAMAGES.
 /*
   Change Log:
   $Log$
+  Revision 8.6  2006/05/15 14:29:45  ron-fox
+  Little misc. changes..
+
   Revision 8.5  2006/04/05 11:24:53  ron-fox
   1. Commit changes since the restore from sourceforge's backups.
   2. Revert the CAENcard support... firmware 8.08 still makes wordcount
@@ -1525,9 +1528,9 @@ void CAENcard::MapCard()
    m_nHardwareRev = pRom->peekw(ShortOffset(ROM, Revision));
    delete pRom;
 #else   
-   m_nCardType = pRom->BoardIdMSB << 16 |
-                 pRom->BoardId    <<  8 |
-                 pRom->BoardIdLSB;
+   m_nCardType = (pRom->BoardIdMSB & 0xff) << 16 |
+                 (pRom->BoardId & 0xff)    <<  8 |
+                 (pRom->BoardIdLSB & 0xff);
    m_nSerialno  = pRom->SerialMSB << 8 |
                  pRom->SerialLSB;
    m_nHardwareRev = pRom->Revision;

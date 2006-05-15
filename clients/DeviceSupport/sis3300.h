@@ -1,3 +1,20 @@
+/*
+    This software is Copyright by the Board of Trustees of Michigan
+    State University (c) Copyright 2005.
+
+    You may use this software under the terms of the GNU public license
+    (GPL).  The terms of this license are described at:
+
+     http://www.gnu.org/licenses/gpl.txt
+
+     Author:
+             Ron Fox
+	     NSCL
+	     Michigan State University
+	     East Lansing, MI 48824-1321
+*/
+
+
 #ifndef __SIS3300_H
 #define __SIS3300_H
 
@@ -194,7 +211,7 @@ public:
     return (*m_pModuleId) & 0xff;
   }
 
-  //! Read ac cess to the Acquisition register.
+  //! Read access to the Acquisition register.
   volatile const unsigned long* getAcquisitionRegister() const {
     return m_pAcqReg;
   }

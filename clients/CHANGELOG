@@ -648,3 +648,13 @@ April 18, 2006
       - Enable user based connection verification to prevent port collisions.
         in tclserver.
       - Use user based connection verification in scaler display
+May 8, 2006
+      - Make branch count in CCamacModule.h consistent with CCamac.h which
+        understands multi vme crates better than CCamacModule.
+May 9, 2006
+      - Fixed errors in CAENcard - for mapped interfaces did not always get
+        the card type correct.
+May 10, 2006
+      - Added license text to sis3300.h
+      - Added CEnumParameter from 4pi development to scripted skeleton so that
+        all new scripted types can support it.
