@@ -13,3 +13,4 @@ January 9, 2006
         - Event::onconfigure -event should not return a value ever..
           just configures and lets the caller call methods to determine
           the results of this configuration.
+        - Support buffersizes up to 16Mbytes.

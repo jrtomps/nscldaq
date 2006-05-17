@@ -164,7 +164,8 @@ snit::widget dataSourceDialog {
         checkbutton $invariant.online   -variable [$self MyVar options(-online)] \
                                         -command  [mymethod onOnlineToggle]      \
                                         -text Online
-        spinbox     $invariant.bufsize  -values {8192 16348 32768 65536}         \
+        spinbox     $invariant.bufsize  -values {8192 16348 32768 65536 131072 262144 524288 1048576 
+	                                         2097152 4194304 8388608 1677216}         \
                                         -textvariable [$self MyVar options(-buffersize)]
         label       $invariant.buflabel -text " Byte buffers"
 
