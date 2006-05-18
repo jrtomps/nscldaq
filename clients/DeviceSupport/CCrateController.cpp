@@ -370,7 +370,7 @@ CCrateController::C()
     standard Graded LAM jumper header installed, the
     result is a bitmask which indicates which modules 
     have LAMs set in them.
-    N30.F0.A7
+    N30.F0.A0
 
 
 */

@@ -663,3 +663,6 @@ May 5, 2006
        .tcl stripped from their names, but bcnaf.tcl was expecting
        to be able to run e.g. cesbcnaf.tcl.. fixed this thanks to
        A. Gade for pointing out this problem.
+May 18, 2006
+     - Device support CCrateController.cpp - fix doc error about which
+       subaddress lams get read from.
