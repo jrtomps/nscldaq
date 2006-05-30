@@ -147,7 +147,7 @@ proc bufdumpWidgets::SecondsToElapsed secs {
 snit::widget unformattedDump {
 
     option -radix     hex
-    option -maxlines  10000
+    option -maxlines  100000
     delegate option -width  to  text
     delegate option -height to text
     delegate option -auto   to swin
@@ -463,7 +463,7 @@ snit::widget formattedDump {
 
     option -buffer {}
     option -radix  16
-    option -maxlines 10000
+    option -maxlines 100000
 
     variable lines 0
     variable formats
@@ -638,16 +638,21 @@ snit::widget formattedDump {
     # Parameters:
     #    num      - Event number (part of the event header)
     #    contents - Contents of the event.. note that the first
-    #               list element is the word count.
+    #               list element is the word count.... well first 2
+    #               if the event uses 32 bit counts see below.
+    #    size32   - True if the buffer uses 32 bit size counts.
     #
-    #
-    method format1Event {num contents} {
-        set result "Event: $num  Size: [lindex $contents 0] :\n"
+    method format1Event {num contents {size32 0}} {
+
+	set eventSize   [llength $contents];    # Independent of size32 .
+	$currentEvent configure -size32 $size32
+        set result "Event: $num  Size: $eventSize :\n"
         set item 0
         $currentEvent configure -event $contents
         set words 1
 
         set packets [$currentEvent packetCount]
+	puts "Got $packets packets in the event"
         for {set i 0} {$i < $packets} {incr i} {
             set packet [$currentEvent getPacket $i]
             set definition [lindex $packet 0]
@@ -680,12 +685,18 @@ snit::widget formattedDump {
     method formatEvents {} {
         set type    [$currentBuffer type]
         set events  [$currentBuffer entities]
+	set revlevel [$currentBuffer revLevel]
+	if {$revlevel < 6} {
+	    set size32 0
+	} else {
+	    set size32 1
+	}
 
         set output  "$type buffer with $events events\n"
 
         for {set i 0} {$i < $events} {incr i} {
             set event [$currentBuffer getEntity $i]
-            append output [$self format1Event $i $event]
+            append output [$self format1Event $i $event $size32]
         }
         $self AppendText $output
     }

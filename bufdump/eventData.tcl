@@ -141,10 +141,12 @@ snit::type packetDescription {
 #    -packets       - defines the set of packets that are known to the
 #                     software.  This is a list of packetDescription objets.
 #    -event         - The event as a Tcl list.
+#    -size32        - true if the event/packet sizes are in 32 bits not 16.
 #
 snit::type Event {
     option  -packets {}
     option  -event   {}
+    option  -size32  0;			# Default is as stuff is now.
 
     variable packetOffsets
 
@@ -167,16 +169,33 @@ snit::type Event {
 
         # Setup to traverse packets...
 
-        set  size [lindex $options(-event) 0]
-        set  body [lrange $options(-event) 1 end]
-        incr size -1
+	if {$options(-size32)} {
+	    set wcl   [lindex $options(-event) 0]
+	    set wch   [lindex $options(-event) 1]
+	    set size  [expr {$wcl | ($wch << 16)}]
+	    set body  [lrange $options(-event) 2 end]
+	    incr size -2
+ 	} else {
+	    set  size [lindex $options(-event) 0]
+	    set  body [lrange $options(-event) 1 end]
+	    incr size -1
+	}
         set packets 0
         set offset  1
 
         while {$size} {
-            set pktSize [lindex $body 0]
-            set pktId   [lindex $body 1]
+	    if {$options(-size32)} {
+		set pkslow  [lindex $body 0]
+		set pkshi   [lindex $body 1]
+		set pktSize [expr {$pkslow | ($pkshi << 16)}]
 
+		set pktId   [lindex $body 2]
+		incr offset;    # 2 words size
+		
+	    } else {
+		set pktSize [lindex $body 0]
+		set pktId   [lindex $body 1]
+	    }
             set packetInfo [$self PacketDescription $pktId]
             if {$packetInfo == ""} {
                 return
@@ -231,11 +250,21 @@ snit::type Event {
             return [list]
         }
         set offset   $packetOffsets($n)
-        set pktSize  [lindex $options(-event) $offset]
-        set pktId    [lindex $options(-event) [expr {$offset +  1}]]
-        set last     [expr {$offset + $pktSize -1}]
-        set body     [lrange $options(-event) [expr $offset+2] $last]
+	if {$options(-size32) } {
+	    set pkslow   [lindex $options(-event) $offset]
+	    set pkshi    [lindex $options(-event) [expr {$offset + 1}]]
+	    set pktSize  [expr $pkslow | ($pkshi << 16)]
 
+	    set pktId    [lindex $options(-event) [expr {$offset + 2}]]
+	    set last     [expr $offset + $pktSize - 1]
+	    set body     [lrange $options(-event) [expr $offset+3] $last]
+	} else {
+	    set pktSize  [lindex $options(-event) $offset]
+	    set pktId    [lindex $options(-event) [expr {$offset +  1}]]
+
+	    set last     [expr {$offset + $pktSize -1}]
+	    set body     [lrange $options(-event) [expr $offset+2] $last]
+	}
         return [list [$self PacketDescription $pktId] $body]
     }
 
@@ -295,12 +324,21 @@ snit::type scalerEntityFinder {
 #
 snit::type physicsEntityFinder {
     typemethod getEntityList buffer {
-        set entities [lindex $buffer 6]
+	set level    [lindex $buffer 10]
+	set entities [lindex $buffer 6]
+
         set base     16
         set result [list]
         for {set i 0} {$i < $entities} {incr i} {
             lappend result $base
-            incr base [lindex $buffer $base]
+	    set wc [lindex $buffer $base]
+	    
+	    # Event size is 32 bits for revlevel >=6.
+	    if {$level >= 6} {
+		set wch [lindex $buffer [expr $base+1]]
+		set wc  [expr $wc | ($wch << 16)]
+	    }
+            incr base $wc
         }
         return $result
     }
@@ -381,12 +419,28 @@ snit::type nsclBuffer {
         }
     }
     ####
+    # revLevel
+    #    Returns the buffer revision level.
+    #
+    method revLevel {} {
+	return [expr int([lindex $options(-buffer) 10])]
+    }
+    ####
     # usedSize
     #     Return the number of words in the body of the buffer.  While NSCL Buffers
     #     are fixed sizes, they are not packed tightly.
     #
     method usedSize {} {
-        return [expr int([lindex $options(-buffer) 0])]
+	set revision [$self revLevel]
+	set wc  [expr int([lindex $options(-buffer) 0])]
+	#
+	#  Revsion 6 and higher uses a 32 bit event size
+	#  with the high part in word 14.
+	if {$revision >= 6} {
+	    set wchi [expr int([lindex $options(-buffer) 14])]
+	    set wc [expr $wc | ($wchi << 16)]
+	}
+	return $wc
     }
     ####
     # typeid
@@ -524,8 +578,14 @@ snit::type nsclBuffer {
     #   index  - offset into buffer of start of the event.
     #
     method getEvent index {
-        set size [lindex $options(-buffer) $index]
-        set last [expr {$index + $size - 1}]
+	if {[$self revLevel] < 6} {
+	    set size [lindex $options(-buffer) $index]
+	} else {
+	    set sizel [lindex $options(-buffer) $index]
+	    set sizeh [lindex $options(-buffer) [expr $index +1]]
+	    set size  [expr $sizel | ($sizeh << 16)]
+	}
+	set last [expr {$index + $size - 1}]
         return [lrange $options(-buffer) $index $last]
     }
     #######
