@@ -666,3 +666,5 @@ May 5, 2006
 May 18, 2006
      - Device support CCrateController.cpp - fix doc error about which
        subaddress lams get read from.
+May 30, 2006
+     -  CCAMACScalerLRS4434 - Correct signature on Read members.

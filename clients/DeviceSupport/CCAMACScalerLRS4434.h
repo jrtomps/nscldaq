@@ -326,7 +326,7 @@ protected:
   // Class operations:
   
   virtual   void Initialize () ;
-  virtual   void Read (STD(vector)<unsigned int>& Scalers);
+  virtual   void Read (STD(vector)<unsigned long>& Scalers);
   virtual   void Clear () ;
   virtual   unsigned int size ();
   

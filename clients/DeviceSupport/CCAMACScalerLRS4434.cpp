@@ -374,7 +374,7 @@ CCAMACScalerLRS4434::Initialize()
 
 */
 void 
-CCAMACScalerLRS4434::Read(vector<unsigned int>& Scalers)  
+CCAMACScalerLRS4434::Read(vector<unsigned long>& Scalers)  
 {
   // construct and write the control register so that latch the data,
   // start reading at channel zero and for 32 channels.
