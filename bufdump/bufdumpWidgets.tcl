@@ -652,7 +652,6 @@ snit::widget formattedDump {
         set words 1
 
         set packets [$currentEvent packetCount]
-	puts "Got $packets packets in the event"
         for {set i 0} {$i < $packets} {incr i} {
             set packet [$currentEvent getPacket $i]
             set definition [lindex $packet 0]
