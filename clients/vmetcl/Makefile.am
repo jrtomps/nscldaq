@@ -54,6 +54,6 @@ install-data-local:
 	$(mkinstalldirs) $(prefix)/Docs/vmetcl
 	$(mkinstalldirs) $(prefix)/etc
 	$(INSTALL_DATA) Readme.txt $(prefix)/Docs/vmetcl/VmeTcl.txt
-	echo mv $(prefix)/lib/libVme* $(LIBDIR) # Can we do without this?
+	mv $(prefix)/lib/libVme.* $(LIBDIR)
 
 man_MANS =  vme.3tcl caennet.3tcl 
