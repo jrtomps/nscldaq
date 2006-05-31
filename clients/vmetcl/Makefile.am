@@ -7,7 +7,7 @@ TestHarness_SOURCES= TestHarness.cpp
 TestHarness_DEPENDENCIES=VMECommand.o VMEMapCommand.o
 
 TestHarness_LDFLAGS = VMECommand.o VMEMapCommand.o \
-	 -L@top_srcdir@/VMEApi -lVmeAPI $(VMEBUILDLIBS) \
+	 @top_srcdir@/VMEApi/libVmeAPI.la $(VMEBUILDLIBS) \
 	 -L@top_srcdir@/TCL -L@top_srcdir@/Exception  \
 	-L@top_srcdir@/CopyrightTools\
 	-L@top_srcdir@/DeviceSupport -lDeviceSupport -ltclPlus -lException \
@@ -24,7 +24,7 @@ libVme_la_LDFLAGS =    \
 
 libVme_la_LIBADD =  -ltclPlus -lException  \
 	$(TCL_LDFLAGS)   $(X11LIBS)  \
-	-lVmeAPI $(VMEBUILDLIBS)  -lLicense -lpthread \
+	 @top_srcdir@/VMEApi/libVmeAPI.la $(VMEBUILDLIBS)  -lLicense -lpthread \
 	-lm -lstdc++ -lgcc -lc 
 
 
@@ -54,6 +54,6 @@ install-data-local:
 	$(mkinstalldirs) $(prefix)/Docs/vmetcl
 	$(mkinstalldirs) $(prefix)/etc
 	$(INSTALL_DATA) Readme.txt $(prefix)/Docs/vmetcl/VmeTcl.txt
-	mv $(prefix)/lib/libVme* $(LIBDIR)
+	echo mv $(prefix)/lib/libVme* $(LIBDIR) # Can we do without this?
 
 man_MANS =  vme.3tcl caennet.3tcl 
