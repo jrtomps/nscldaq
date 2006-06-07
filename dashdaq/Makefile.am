@@ -1,4 +1,4 @@
-SUBDIRS = sbsbit3 exceptions vme
+SUBDIRS = sbsbit3 exceptions vme camac
 
 
 install-data-local:

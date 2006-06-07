@@ -21,14 +21,24 @@
 #include <CCAMACInterface.h>
 #endif
 
+#ifndef __STL_STRING
+#include <string>
+#ifndef __STL_STRING
+#define __STL_STRING
+#endif
+#endif
+
 class CFakeInterface : public CCAMACInterface
 {
+private:
+  std::string m_configuration;
 public:
-  CFakeInterface();
+  CFakeInterface(std::string configuration = std::string(""));
   virtual ~CFakeInterface();
 
 public:
   virtual size_t lastCrate() const;
+  const char* getConfiguration() const;
 };
 
 #endif

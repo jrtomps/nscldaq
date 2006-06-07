@@ -17,7 +17,8 @@
 #include <config.h>
 #include "CFakeInterface.h"
 
-#ifdef _HAVE_STD_NAMESPACE
+
+#ifdef HAVE_STD_NAMESPACE
 using namespace std;
 #endif
 
@@ -25,7 +26,8 @@ using namespace std;
   Construct a fake interface.. At this time we'll say that fake interfaces
   support 3 crates... got a better idea?
  */
-CFakeInterface::CFakeInterface()
+CFakeInterface::CFakeInterface(string configuration) :
+  m_configuration(configuration)
 {
   setCrateCount(3);
 }
@@ -43,4 +45,11 @@ size_t
 CFakeInterface::lastCrate() const
 {
   return 0;
+}
+
+
+const char*
+CFakeInterface::getConfiguration() const
+{
+  return m_configuration.c_str();
 }

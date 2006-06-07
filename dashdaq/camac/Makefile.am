@@ -1,10 +1,13 @@
 lib_LTLIBRARIES=libCamac.la
 
-libCamac_la_SOURCES	=	CCAMACInterface.cpp
+libCamac_la_SOURCES	=	CCAMACInterface.cpp \
+				CCAMACInterfaceFactory.cpp
 
 
 include_HEADERS		=	CCAMACInterface.h	\
-				CCAMACInterfaceCreator.h
+				CCAMACInterfaceCreator.h \
+				CCAMACInterfaceFactory.h
+
 
 
 
@@ -13,9 +16,12 @@ TESTHARNESS		= CFakeInterface.cpp \
 			  CFakeInterfaceCreator.h \
 			  CFakeInterfaceCreator.cpp \
 			  TestFake.cpp \
-			  TestRunner.cpp
+			  TestRunner.cpp \
+			  Asserts.h
 
-TESTS			= TESTHARNESS
+FACTORYTESTS		= FactoryTest.cpp
+
+TESTS			= $(TESTHARNESS) $(FACTORYTESTS)
 
 
 EXTRA_DIST=$(TESTS)
@@ -35,7 +41,14 @@ ivp:
 		CFakeInterfaceCreator.o \
 		$(CPPUNIT_LDSW) -L@prefix@/lib -lCamac -lVme -lException \
 		-lbtp -lpthread -Wl,"-rpath=@prefix@/lib"
+	$(CXX) -I@prefix@/include $(CPPUNIT_CXXSW) -o factoryTests \
+		-DUNIT_TEST_INCLUDE TestRunner.cpp FactoryTest.cpp \
+		CFakeInterface.o \
+		CFakeInterfaceCreator.o \
+		$(CPPUNIT_LDSW) -L@prefix@/lib -lCamac -lVme -lException \
+		-lbtp -lpthread -Wl,"-rpath=@prefix@/lib"
 	@echo "+-------------------------------------------"
 	@echo
 	./harnessTests
+	./factoryTests
 	@echo  Done

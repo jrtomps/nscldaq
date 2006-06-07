@@ -33,5 +33,5 @@ CFakeInterfaceCreator::~CFakeInterfaceCreator()
 CCAMACInterface*
 CFakeInterfaceCreator::operator()(string configuration)
 {
-  return new CFakeInterface;
+  return new CFakeInterface(configuration);
 }
