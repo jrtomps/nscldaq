@@ -100,7 +100,7 @@ install-webdocs: docs
 docs: manpage manual htmldocs
 
 manpage:
-	$(MANDOCBOOK) man manpage.xml
+	- $(MANDOCBOOK) man manpage.xml 2>/dev/null
 
 manual:
 	$(HCDOCBOOK) manual.xml
