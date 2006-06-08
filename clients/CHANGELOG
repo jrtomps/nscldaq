@@ -668,3 +668,6 @@ May 18, 2006
        subaddress lams get read from.
 May 30, 2006
      -  CCAMACScalerLRS4434 - Correct signature on Read members.
+June 8, 2006
+     - Try to make builds in systems without docbook or with 'broken?'
+       docbook installs work.

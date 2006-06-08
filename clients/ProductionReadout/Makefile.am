@@ -161,7 +161,7 @@ EXTRA_DIST=$(OTHER_STUFF) $(PRODUCTIONSOURCES) $(PRODUCTIONHEADERS) \
 install-data-local: documentation
 	$(mkinstalldirs) $(prefix)/Docs
 	$(mkinstalldirs) $(prefix)/man $(prefix)/man/man3
-	-$(INSTALL_DATA) CScalerTriggerAppnote.pdf $(prefix)/Docs
+	-$(INSTALL_DATA) ScalerTriggerAppnote.pdf $(prefix)/Docs
 	-for f in *Trigger.3*; do $(INSTALL_DATA) $$f $(prefix)/man/man3; done
 
 
@@ -173,5 +173,5 @@ appnote.pdf : ScalerTriggerAppnote.xml
 
 manpages: CScalerTrigger.xml CCAENV262ScalerTrigger.xml   \
 	CCAENV977ScalerTrigger.xml CCBDCES8210ScalerTrigger.xml CTimedScalerTrigger.xml
-	for f in $+; do $(MANDOCBOOK) man $$f; done
+	-for f in $+; do $(MANDOCBOOK) man $$f 2>/dev/null ; done 
 
