@@ -1,14 +1,22 @@
 lib_LTLIBRARIES=libCamac.la
 
-libCamac_la_SOURCES	=	CCAMACInterface.cpp \
-				CCAMACInterfaceFactory.cpp
+libCamac_la_SOURCES	=	CCAMACInterface.cpp 		\
+				CCAMACInterfaceFactory.cpp	\
+				CCAMACSubsystem.cpp
 
 
-include_HEADERS		=	CCAMACInterface.h	\
-				CCAMACInterfaceCreator.h \
-				CCAMACInterfaceFactory.h
+include_HEADERS		=	CCAMACInterface.h		\
+				CCAMACInterfaceCreator.h 	\
+				CCAMACInterfaceFactory.h	\
+				CCAMACSubsystem.h
 
 
+
+AM_CXXFLAGS		=	-I$(top_builddir)/exceptions \
+				-I$(top_builddir)/vme
+
+libCamac_la_LIBADD	= 	$(top_builddir)/vme/libVme.la \
+				$(top_builddir)/exceptions/libException.la
 
 
 TESTHARNESS		= CFakeInterface.cpp \
@@ -21,7 +29,9 @@ TESTHARNESS		= CFakeInterface.cpp \
 
 FACTORYTESTS		= FactoryTest.cpp
 
-TESTS			= $(TESTHARNESS) $(FACTORYTESTS)
+CAMACTESTS              = subsystemTests.cpp
+
+TESTS			= $(TESTHARNESS) $(FACTORYTESTS) $(CAMACTESTS)
 
 
 EXTRA_DIST=$(TESTS)
@@ -39,16 +49,23 @@ ivp:
 		-DUNIT_TEST_INCLUDE TestRunner.cpp TestFake.cpp \
 		CFakeInterface.o \
 		CFakeInterfaceCreator.o \
-		$(CPPUNIT_LDSW) -L@prefix@/lib -lCamac -lVme -lException \
+		$(CPPUNIT_LDSW) -L@prefix@/lib -lCamac  \
 		-lbtp -lpthread -Wl,"-rpath=@prefix@/lib"
 	$(CXX) -I@prefix@/include $(CPPUNIT_CXXSW) -o factoryTests \
 		-DUNIT_TEST_INCLUDE TestRunner.cpp FactoryTest.cpp \
 		CFakeInterface.o \
 		CFakeInterfaceCreator.o \
-		$(CPPUNIT_LDSW) -L@prefix@/lib -lCamac -lVme -lException \
+		$(CPPUNIT_LDSW) -L@prefix@/lib -lCamac \
+		-lbtp -lpthread -Wl,"-rpath=@prefix@/lib"
+	$(CXX) -I@prefix@/include $(CPPUNIT_CXXSW) -o camacTests \
+		-DUNIT_TEST_INCLUDE TestRunner.cpp $(CAMAC_TESTS) \
+		CFakeInterface.o \
+		CFakeInterfaceCreator.o \
+		$(CPPUNIT_LDSW) -L@prefix@/lib -lCamac \
 		-lbtp -lpthread -Wl,"-rpath=@prefix@/lib"
 	@echo "+-------------------------------------------"
 	@echo
 	./harnessTests
 	./factoryTests
+	./camacTests
 	@echo  Done
