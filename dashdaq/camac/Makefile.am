@@ -58,7 +58,7 @@ ivp:
 		$(CPPUNIT_LDSW) -L@prefix@/lib -lCamac \
 		-lbtp -lpthread -Wl,"-rpath=@prefix@/lib"
 	$(CXX) -I@prefix@/include $(CPPUNIT_CXXSW) -o camacTests \
-		-DUNIT_TEST_INCLUDE TestRunner.cpp $(CAMAC_TESTS) \
+		-DUNIT_TEST_INCLUDE TestRunner.cpp $(CAMACTESTS) \
 		CFakeInterface.o \
 		CFakeInterfaceCreator.o \
 		$(CPPUNIT_LDSW) -L@prefix@/lib -lCamac \
