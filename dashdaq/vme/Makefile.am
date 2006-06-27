@@ -32,7 +32,8 @@ libVme_la_LDFLAGS = -version-info $(SOVERSION):0 \
 # Tests for string parse helpers.
 
 PARSETESTS =  testFirstWord.cpp testStripLeadingBlanks.cpp \
-	testStripComment.cpp testStripTrailing.cpp testgetLine.cpp
+	testStripComment.cpp testStripTrailing.cpp testgetLine.cpp \
+	testGetKVPair.cpp 
 
 VMEINTERFACETESTS =  testNullInterface.cpp testCreator.cpp \
 	testFactory.cpp testVMESubsystem.cpp testLock.cpp \

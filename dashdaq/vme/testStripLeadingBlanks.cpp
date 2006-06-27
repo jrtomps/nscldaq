@@ -21,6 +21,7 @@ class StripLeadingBlanks : public CppUnit::TestFixture {
   CPPUNIT_TEST(leadingTabs);
   CPPUNIT_TEST(leadingMixed);
   CPPUNIT_TEST(empty);
+  CPPUNIT_TEST(allBlank);
   CPPUNIT_TEST_SUITE_END();
 
 
@@ -37,6 +38,7 @@ protected:
   void leadingTabs();
   void leadingMixed();
   void empty();
+  void allBlank();
 };
 
 CPPUNIT_TEST_SUITE_REGISTRATION(StripLeadingBlanks);
@@ -96,5 +98,10 @@ void StripLeadingBlanks::leadingMixed()
 void StripLeadingBlanks::empty()
 {
   string result = stripLeadingBlanks(string(""));
+  EQ(string(""), result);
+}
+void StripLeadingBlanks::allBlank()
+{
+  string result = stripLeadingBlanks(string("    \t"));
   EQ(string(""), result);
 }

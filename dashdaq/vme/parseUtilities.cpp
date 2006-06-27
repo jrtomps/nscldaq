@@ -77,7 +77,7 @@ namespace descriptionFile
       return line.substr(firstNon);
     } 
     else {			// No match.
-      return line;
+      return string("");
     }
   }
   /*!
