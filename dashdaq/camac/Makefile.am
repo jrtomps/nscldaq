@@ -2,13 +2,21 @@ lib_LTLIBRARIES=libCamac.la
 
 libCamac_la_SOURCES	=	CCAMACInterface.cpp 		\
 				CCAMACInterfaceFactory.cpp	\
-				CCAMACSubsystem.cpp
+				CCAMACSubsystem.cpp 		\
+				CCESCBD8210.cpp			\
+				CCAMACCrate.cpp			\
+				CBiRA1302CES8210.cpp		\
+				CCES8210Creator.cpp
 
 
 include_HEADERS		=	CCAMACInterface.h		\
 				CCAMACInterfaceCreator.h 	\
 				CCAMACInterfaceFactory.h	\
-				CCAMACSubsystem.h
+				CCAMACSubsystem.h		\
+				CCESCBD8210.h			\
+				CCAMACCrate.h			\
+				CBiRA1302CES8210.h		\
+				CCES8210Creator.h
 
 
 

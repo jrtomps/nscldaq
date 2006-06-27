@@ -67,8 +67,8 @@ public:
   CException& operator= (const CException& aCException);
   
 			//Operator== Equality Operator
-  int operator== (const CException& aCException);
-  int operator!= (const CException& rException) {
+  int operator== (const CException& aCException) const;
+  int operator!= (const CException& rException) const {
     return !(operator==(rException));
   }
                        //Get accessor function for attribute

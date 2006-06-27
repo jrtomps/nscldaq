@@ -38,15 +38,30 @@ CFakeInterface::~CFakeInterface()
 {
   
 }
-/*
-    For now we claim to have 0 crates installed as a constant.
-*/
-size_t
-CFakeInterface::lastCrate() const
+
+bool 
+CFakeInterface::haveCrate(size_t crate)
 {
-  return 0;
+  return false;
 }
 
+CCAMACCrate* 
+CFakeInterface::removeCrate(size_t crate)
+{
+  return static_cast<CCAMACCrate*>(NULL);
+}
+
+CCAMACCrate&
+CFakeInterface::operator[](size_t crate)
+{
+  return *(static_cast<CCAMACCrate*>(NULL));
+
+}
+bool
+CFakeInterface::online(size_t crate)
+{
+  return bool;
+}
 
 const char*
 CFakeInterface::getConfiguration() const

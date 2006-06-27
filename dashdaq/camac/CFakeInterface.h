@@ -36,8 +36,12 @@ public:
   CFakeInterface(std::string configuration = std::string(""));
   virtual ~CFakeInterface();
 
+  virtual bool         haveCrate(size_t crate);
+  virtual CCAMACCrate* removeCrate(size_t crate);
+  virtual CCAMACCrate& operator[](size_t crate);
+  virtual bool         online(size_t crate);
+
 public:
-  virtual size_t lastCrate() const;
   const char* getConfiguration() const;
 };
 

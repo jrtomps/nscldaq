@@ -1,9 +1,16 @@
 lib_LTLIBRARIES = libException.la
 libException_la_SOURCES = ErrnoException.cpp Exception.cpp \
 			  RangeError.cpp StreamIOError.cpp \
-			CInvalidInterfaceType.cpp CDeviceIncapable.cpp
+			CInvalidInterfaceType.cpp CDeviceIncapable.cpp \
+			CDuplicateDevice.cpp			\
+			CNoSuchDevice.cpp 			\
+			CBadValue.cpp
 include_HEADERS = ErrnoException.h Exception.h  StreamIOError.h \
-	RangeError.h CInvalidInterfaceType.h CDeviceIncapable.h
+	RangeError.h CInvalidInterfaceType.h CDeviceIncapable.h \
+	CDuplicateDevice.h				\
+	CNoSuchDevice.h					\
+	CBadValue.h
+
 
 libException_la_LDFLAGS = -version-info $(SOVERSION):0 \
 	-Wl,"-rpath-link=$(libdir)"
@@ -18,6 +25,9 @@ TESTS= testErrnoException.cpp  \
 	testBadInterface.cpp \
 	testStreamIOError.cpp  \
 	testDeviceIncapable.cpp \
+	testDuplicateDevice.cpp \
+	testNoSuchDevice.cpp	\
+	testBadValue.cpp  	\
 	TestRunner.cpp
 
 EXTRA_DIST=streamioerror.3daq rangeerror.3daq exception.3daq \

@@ -68,7 +68,7 @@ CInvalidInterfaceType::operator=(const CInvalidInterfaceType& rhs)
     Equality compare, compare base class and description strings.
 */
 int
-CInvalidInterfaceType::operator==(const CInvalidInterfaceType& rhs)
+CInvalidInterfaceType::operator==(const CInvalidInterfaceType& rhs) const
 {
   return ((CException::operator==(rhs)           &&
 	   m_description == rhs.m_description));
@@ -77,7 +77,7 @@ CInvalidInterfaceType::operator==(const CInvalidInterfaceType& rhs)
    Inequality is just negation of equality:
 */
 int
-CInvalidInterfaceType::operator!=(const CInvalidInterfaceType& rhs)
+CInvalidInterfaceType::operator!=(const CInvalidInterfaceType& rhs) const
 {
   return !(*this == rhs);
 }

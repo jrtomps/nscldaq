@@ -106,7 +106,7 @@ public:
 
 			//Operator== Equality Operator
 
-  int operator== (const CRangeError& aCRangeError)
+  int operator== (const CRangeError& aCRangeError) const
   { 
     return (
 	    (CException::operator== (aCRangeError)) &&
@@ -114,6 +114,9 @@ public:
 	    (m_nHigh == aCRangeError.m_nHigh) &&
 	    (m_nRequested == aCRangeError.m_nRequested) 
 	    );
+  }
+  int operator!=(const CRangeError& rhs) const {
+    return !(*this == rhs);
   }
   // Selectors - Don't use these unless you're a derived class
   //             or you need some special exception type specific

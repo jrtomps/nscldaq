@@ -46,8 +46,8 @@ public:
   virtual ~CInvalidInterfaceType();
   
   CInvalidInterfaceType& operator=(const CInvalidInterfaceType& rhs);
-  int operator==(const CInvalidInterfaceType& rhs);
-  int operator!=(const CInvalidInterfaceType& rhs);
+  int operator==(const CInvalidInterfaceType& rhs) const;
+  int operator!=(const CInvalidInterfaceType& rhs) const;
 
   // 
 

@@ -29,7 +29,7 @@ class CFakeInterfaceCreator : public CCAMACInterfaceCreator
 public:
   CFakeInterfaceCreator();
   virtual ~CFakeInterfaceCreator();
-  virtual CCAMACInterface* operator()(std::string configuration);
+  virtual CCAMACInterface* operator()(STD(string) configuration);
 };
 
 

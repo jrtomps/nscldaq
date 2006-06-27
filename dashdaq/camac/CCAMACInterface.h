@@ -25,6 +25,9 @@
 #endif
 
 
+
+class CCAMACCrate;
+
 /*!
     This is an abstract base class out of which concrete interfaces to
     CAMAC crates can be built.  An interface is something that can control
@@ -44,7 +47,13 @@ public:
 
 public:
   virtual size_t maxCrates() const;
-  virtual size_t lastCrate() const = 0;
+
+  virtual bool         haveCrate(size_t crate)   = 0;
+  virtual CCAMACCrate* removeCrate(size_t crate) = 0;
+  virtual CCAMACCrate& operator[](size_t crate)  = 0;
+  virtual bool         online(size_t crate)     = 0;
+
+
 protected:
   void setCrateCount(size_t maxCrates);
 };

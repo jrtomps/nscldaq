@@ -96,7 +96,7 @@ CException::operator=(const CException& rException)
 //    equality comparison.
 //
 int
-CException::operator==(const CException& rException)
+CException::operator==(const CException& rException) const
 {
   return (strcmp(m_szAction, rException.m_szAction) == 0);
 }

@@ -85,12 +85,16 @@ public:
 
 			//Operator== Equality Operator
 
-  int operator== (const CErrnoException& aCErrnoException)
+  int operator== (const CErrnoException& aCErrnoException) const
   { 
     return ((CException::operator== (aCErrnoException)) &&
 	    (m_nErrno == aCErrnoException.m_nErrno) 
 	    );
   }
+  int operator!=(const CErrnoExceptino& rhs) const {
+    return !(*this == rhs);
+  }
+
   // Selectors:  Note typically these are not needed.
                
 public:

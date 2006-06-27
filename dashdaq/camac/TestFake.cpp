@@ -13,7 +13,6 @@ using namespace std;
 class TestFake : public CppUnit::TestFixture {
   CPPUNIT_TEST_SUITE(TestFake);
   CPPUNIT_TEST(maxcrates);
-  CPPUNIT_TEST(lastcrate);
   CPPUNIT_TEST(creator);
   CPPUNIT_TEST_SUITE_END();
 
@@ -27,7 +26,6 @@ public:
   }
 protected:
   void maxcrates();
-  void lastcrate();
   void creator();
 };
 
@@ -39,12 +37,6 @@ void TestFake::maxcrates() {
 }
 
 
-void TestFake::lastcrate()
-{
-  CFakeInterface interface;
-
-  EQ((size_t)0, interface.lastCrate());
-}
 
 void TestFake::creator()
 {

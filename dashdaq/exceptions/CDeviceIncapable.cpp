@@ -73,7 +73,7 @@ CDeviceIncapable::operator=(const CDeviceIncapable& rhs)
    Comparison for equality
 */
 int
-CDeviceIncapable::operator==(const CDeviceIncapable& rhs)
+CDeviceIncapable::operator==(const CDeviceIncapable& rhs) const
 {
   return (CException::operator==(rhs)                    &&
 	  (m_attempted     == rhs.m_attempted)           &&
@@ -83,7 +83,7 @@ CDeviceIncapable::operator==(const CDeviceIncapable& rhs)
    Comparison for inequality.
 */
 int
-CDeviceIncapable::operator!=(const CDeviceIncapable& rhs)
+CDeviceIncapable::operator!=(const CDeviceIncapable& rhs) const
 {
   return !(*this == rhs);
 }

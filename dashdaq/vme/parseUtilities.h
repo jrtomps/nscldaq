@@ -50,6 +50,8 @@ namespace descriptionFile {
 			   std::string commentIntroducer = std::string("#"));
   std::string stripTrailingBlanks(std::string line);
   std::string getLine(std::istream& str);
+  
+  std::pair<std::string, std::string> getKeywordValue(std::string& line);
 }
 
 #endif

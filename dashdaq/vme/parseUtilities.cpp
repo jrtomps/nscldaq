@@ -158,5 +158,39 @@ namespace descriptionFile
     return result;
   }
 
+  /*!
+    Returns a keyword value pair from a configuration line.
+    The keyword and value are stripped from the input line.
+    if necessary, elements of the output pair will be empty.
+
+    \param line : std::string&
+       Reference to the line that will be analyzed. Note that
+       this will be modified to remove the keyword value pair.
+
+    \return pair<string, string>
+    \retval .first  - The keyword
+    \retval .second - The value.
+
+   Really all we do is find the first two words on the line.
+  */
+  pair<string, string>
+  getKeywordValue(string& line)
+  {
+    pair<string, string> result;
+    line = stripLeadingBlanks(line);
+    if (line == string("")) {
+      return result;		// Nothing left.
+    }
+    result.first = firstWord(line);
+    line         = line.substr(result.first.size());
+    line         = stripLeadingBlanks(line);
+    if (line == string("")) {
+      return result;
+    }
+    result.second = firstWord(line);
+    line         = line.substr(result.second.size());
+
+    return result;
+  }
 
 }

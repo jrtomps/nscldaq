@@ -46,8 +46,8 @@ public:
   virtual ~CDeviceIncapable();
 
   CDeviceIncapable& operator=(const CDeviceIncapable& rhs);
-  int operator==(const CDeviceIncapable& rhs);
-  int operator!=(const CDeviceIncapable& rhs);
+  int operator==(const CDeviceIncapable& rhs) const;
+  int operator!=(const CDeviceIncapable& rhs) const;
 
   virtual const char* ReasonText() const;
   virtual int ReasonCode() const;
