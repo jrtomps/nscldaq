@@ -91,7 +91,7 @@ public:
 	    (m_nErrno == aCErrnoException.m_nErrno) 
 	    );
   }
-  int operator!=(const CErrnoExceptino& rhs) const {
+  int operator!=(const CErrnoException& rhs) const {
     return !(*this == rhs);
   }
 

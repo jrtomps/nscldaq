@@ -71,3 +71,9 @@ CBadValue::ReasonText() const
   m_message += WasDoing();
   return m_message.c_str();
 }
+
+int 
+CBadValue::ReasonCode() const
+{
+  return 0;
+}
