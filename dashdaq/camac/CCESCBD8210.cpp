@@ -101,7 +101,8 @@ CCESCBD8210::base(unsigned crate)
 }
 /*!  return the length of a crate map:
  */
-size_t mapsize()
+size_t 
+CCESCBD8210::mapsize()
 {
   return CRATESIZE;
 }

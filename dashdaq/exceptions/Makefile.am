@@ -25,9 +25,9 @@ TESTS= testErrnoException.cpp  \
 	testBadInterface.cpp \
 	testStreamIOError.cpp  \
 	testDeviceIncapable.cpp \
-	testDuplicateDevice.cpp \
 	testNoSuchDevice.cpp	\
 	testBadValue.cpp  	\
+	testDuplicateDevice.cpp \
 	TestRunner.cpp
 
 EXTRA_DIST=streamioerror.3daq rangeerror.3daq exception.3daq \

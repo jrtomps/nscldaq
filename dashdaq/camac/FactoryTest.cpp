@@ -47,7 +47,7 @@ void factoryTests::creator() {
 						  string("some test stuff"));
 
   EQMSG("crate count", (size_t)3, pI->maxCrates());
-  EQMSG("last crate",  (size_t)0, pI->lastCrate());
+
 
   delete pFactory;		// We can do this since we're a test.
   

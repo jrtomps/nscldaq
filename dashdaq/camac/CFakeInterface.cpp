@@ -60,7 +60,7 @@ CFakeInterface::operator[](size_t crate)
 bool
 CFakeInterface::online(size_t crate)
 {
-  return bool;
+  return false;
 }
 
 const char*

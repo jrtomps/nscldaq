@@ -86,7 +86,7 @@ public:
 				unsigned int datum)                             = 0;
   virtual void            write16(size_t slot, unsigned int f, unsigned int a,
 				  unsigned short datum)                         = 0;
-  virtual void            control(size_t slot, unsigned int f, unsigned int a);
+  virtual void            control(size_t slot, unsigned int f, unsigned int a)  = 0;
 
   virtual bool X()    = 0;
   virtual bool Q()    = 0;
