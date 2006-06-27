@@ -165,7 +165,13 @@ CBiRA1302CES8210::read(size_t slot, unsigned int f, unsigned int a)
 {
   validateRead(slot, f, a);
   unsigned long addr = offset(slot, f, a, false);
-  unsigned long data = m_pCrate->peekl(addr);
+ 
+  // Note the interface is d16:
+
+  unsigned long data = m_pCrate->peekw(addr/sizeof(short)) ;
+  data               = (data << 16)                     | 
+                        m_pCrate->peekw((addr+sizeof(short))/sizeof(short));
+
   return (data & 0xffffff);	// Don't want to chance bits set in top 8 bits.
 }
 
@@ -177,7 +183,7 @@ CBiRA1302CES8210::read16(size_t slot, unsigned int f, unsigned int a)
 {
   validateRead(slot, f, a);
   unsigned long addr = offset(slot, f, a);
-  return m_pCrate->peekw(addr);
+  return m_pCrate->peekw(addr/sizeof(short));
 }
 /*!
    Write a 24 bit longword.
@@ -191,7 +197,12 @@ CBiRA1302CES8210::write(size_t slot, unsigned int f, unsigned int a,
 {
   validateWrite(slot, f, a);
   unsigned long addr = offset(slot, f, a, false);
-  m_pCrate->pokel(addr, datum);
+
+  // Interface has a 16 bit data path!!
+
+  m_pCrate->pokew(addr/sizeof(short), datum >> 16);
+  m_pCrate->pokew(addr/sizeof(short)+1, datum & 0xffff);
+
 }
 /*!
   Same as for write but only writes a 16 bit word.
@@ -202,7 +213,7 @@ CBiRA1302CES8210::write16(size_t slot, unsigned int f, unsigned int a,
 {
   validateWrite(slot, f, a);
   unsigned long addr = offset(slot, f, a);
-  m_pCrate->pokew(addr, datum);
+  m_pCrate->pokew(addr/sizeof(short), datum);
 }
 /*!
    Perform a control function.. parameters are as for the read members.
@@ -215,7 +226,7 @@ CBiRA1302CES8210::control(size_t slot, unsigned int f, unsigned int a)
   requireSubaddress(a);
 
   unsigned long addr = offset(slot, f, a);
-  m_pCrate->pokew(addr, 0);
+  m_pCrate->pokew(addr/sizeof(short), 0);
 }
 
 /////////////////////////////////////////////////////////////////////////

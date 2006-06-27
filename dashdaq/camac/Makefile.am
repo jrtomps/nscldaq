@@ -37,7 +37,7 @@ TESTHARNESS		= CFakeInterface.cpp \
 
 FACTORYTESTS		= FactoryTest.cpp
 
-CAMACTESTS              = subsystemTests.cpp
+CAMACTESTS              = subsystemTests.cpp ces8210Tests.cpp
 
 TESTS			= $(TESTHARNESS) $(FACTORYTESTS) $(CAMACTESTS)
 

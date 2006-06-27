@@ -8,6 +8,7 @@
 #include "Asserts.h"
 
 #include <string>
+
 using namespace std;
 
 class TestFake : public CppUnit::TestFixture {

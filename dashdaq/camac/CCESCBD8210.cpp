@@ -35,8 +35,8 @@ using namespace std;
 
 static const int    MAXBRANCH(7);
 static const long   BRANCH0   (0x800000);
-static const long   BRANCHSIZE(0x100000);
-static const long   CRATESIZE (0x020000);
+static const long   BRANCHSIZE(0x080000);
+static const long   CRATESIZE (0x010000);
 
 static const unsigned long SLOTSHIFT(11);
 static const unsigned long SUBSHIFT(7);
@@ -156,7 +156,7 @@ void
 CCESCBD8210::Z()
 {
   unsigned long address = offset(BZ.slot, BZ.function, BZ.subaddress);
-  m_pRegisters->pokew(address, 0);
+  m_pRegisters->pokew(address/sizeof(short), 0);
 }
 /*!
   Read the control status register.
@@ -165,7 +165,7 @@ unsigned short
 CCESCBD8210::readCSR()
 {
   unsigned long csrloc = offset(CSR.slot, CSR.function, CSR.subaddress);
-  return   m_pRegisters->peekw(csrloc);
+  return   m_pRegisters->peekw(csrloc/sizeof(short));
 }
 /*!
    Write the CSR:
@@ -177,7 +177,7 @@ void
 CCESCBD8210::writeCSR(unsigned short datum)
 {
   unsigned address = offset(CSR.slot, CSR.function, CSR.subaddress);
-  m_pRegisters->pokew(address, datum);
+  m_pRegisters->pokew(address/sizeof(short), datum);
 }
 /*!   
    Return true if the last operation on the branch resulted in an X
@@ -198,17 +198,6 @@ CCESCBD8210::lastQ()
   return (csr & csr_Q) != 0;
 }
 
-/*!  
-
-    Read the interrupt flag register.
-
-*/
-unsigned short 
-CCESCBD8210::readITF()
-{
-  unsigned long address = offset(ITF.slot, ITF.function, ITF.subaddress);
-  return m_pRegisters->peekw(address);
-}
 /*!
    Write the interrupt flag register (this is needed to clear the IT2/IT4 bits).
 */
@@ -216,7 +205,7 @@ void
 CCESCBD8210::writeITF(unsigned short datum)
 {
   unsigned long address = offset(ITF.slot, ITF.function, ITF.subaddress);
-  m_pRegisters->pokew(address, datum);
+  m_pRegisters->pokew(address/sizeof(short), datum);
 }
 
 /*!
@@ -227,7 +216,7 @@ unsigned short
 CCESCBD8210::readBTB()
 {
   unsigned long address = offset(BTB.slot, BTB.function, BTB.subaddress);
-  return m_pRegisters->peekw(address);
+  return m_pRegisters->peekw(address/sizeof(short));
 }
 
 /*!

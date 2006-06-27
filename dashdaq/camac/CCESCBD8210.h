@@ -73,7 +73,6 @@ public:
   bool lastQ();
 
 
-  unsigned short readITF();
   void writeITF(unsigned short datum);
 
   unsigned short readBTB();

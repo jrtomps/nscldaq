@@ -1,6 +1,9 @@
 #ifndef __ASSERTS_H
 #define __ASSERTS_H
 
+#include <iostream>
+#include <string>
+
 // Abbreviations for assertions in cppunit.
 
 #define EQMSG(msg, a, b)   CPPUNIT_ASSERT_EQUAL_MESSAGE(msg,a,b)
@@ -21,6 +24,14 @@
      }                             \
      ASSERT(ok);                   \
    }
+
+class Warning {
+
+public:
+  Warning(std::string message) {
+    std::cerr << message << std::endl;
+  }
+};
 
 
 #endif
