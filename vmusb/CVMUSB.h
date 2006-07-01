@@ -98,13 +98,13 @@ public:
 
     // Register I/O operations.
 public:
-    void     writeActionRegister(uint32_t value);
-    uint32_t readActionRegister();
+    void     writeActionRegister(uint16_t value);
+    uint16_t readActionRegister();
 
     uint32_t readFirmwareID();
 
-    void     writeGlobalMode(uint32_t value);
-    uint32_t readGlobalMode();
+    void     writeGlobalMode(uint16_t value);
+    uint16_t readGlobalMode();
 
     void     writeDAQSettings(uint32_t value);
     uint32_t readDAQSettings(uint32_t value);
@@ -139,7 +139,24 @@ public:
 
     
 
-    // VME I/O operations.
+    // VME transfer operations (1 shot)
+
+    int vmeWrite32(uint32_t address, uint8_t aModifier, uint32_t data);
+    int vmeRead32(uint32_t address, uint8_t aModifier, uint32_t* data);
+
+    int vmeWrite16(uint32_t address, uint8_t aModifier, uint16_t data);
+    int vmeRead16(uint32_t address, uint8_t aModifier, uint16_t* data);
+
+    int vmeWrite8(uint32_t address, uint8_t aModifier, uint8_t data);
+    int vmeRead8(uint32_t address, uint8_t aModifier, uint8_t* data);
+
+
+    int vmeBlockWrite(uint32_t baseAddress, uint8_t aModifier, 
+		      void* data, size_t transferCount, size_t* countTransferred);
+    int vmeBlockRead(uint32_t baseAddress, uint8_t aModifier,
+		     void* data,  size_t transferCount, size_t* countTransferred);
+    int vmeFifoRead(uint32_t address, int8_t aModifier,
+		    void* data, size_t transferCount, size_t* countTransferred);
 
     // List operations.
 
@@ -153,7 +170,132 @@ public:
 		 CVMEUSBReadoutList&    list,
 		 off_t                  listOffset = 0);
 
-    // Register bit definintions (implemented as nested classes).
+    // Once the interface is in DAQ auntonomous mode, the application
+    // should call the following function to read acquired data.
+
+    int usbRead(void* data, size_t bufferSize, size_t* transferCount,
+		int timeout = 2000);
+
+    // Register bit definintions.
+
+public: 
+    class ActionRegister {   // e.g. CVMUSB::ActionRegister::startDAQ is a bit.
+    public:
+	static const uint16_t startDAQ   = 1;
+	static const uint16_t usbTrigger = 2;
+	static const uint16_t clear      = 4;
+	static const uint16_t sysReset   = 8;
+	static const uint16_t scalerDump = 0x10;
+    };
+    
+    class FirmwareRegister {
+    public:
+	static const uint32_t minorRevMask     = 0x000000ff;
+	static const uint32_t minorRevShift    = 0;
+	
+	static const uint32_t majorRevMask     = 0x0000ff00;
+	static const uint32_t minorRevShift    = 8;
+
+
+	// These are my best guesses.
+
+	static const uint32_t betaVersionMask  = 0x00ff0000;
+	static const uint32_t betaVersionShift = 16;
+
+	static const uint32_t yearMask         = 0x0f000000;
+	static const uint32_t yearShift        = 24;
+       
+	static const uint32_t monthMask        = 0xf0000000;
+	static const uint32_t monthshfit       = 27;
+    };
+
+    class GlobalModeRegister {
+    public:
+	static const uint16_t bufferLenMask    = 0xf;
+	static const uint16_t bufferLenShift   = 0;
+	static const uint16_t bufferLen13K     = 0;
+	static const uint16_t bufferLen8K      = 1;
+	static const uint16_t bufferLen4K      = 2;
+	static const uint16_t bufferLen2K      = 3;
+	static const uint16_t bufferLen1K      = 4;
+	static const uint16_t bufferLen512     = 5;
+	static const uint16_t bufferLen256     = 6;
+	static const uint16_t bufferLen128     = 7;
+	static const uint16_t bufferLen64      = 8;
+	static const uint16_t bufferLenSingle  = 9;
+
+	static const uint16_t mixedBuffers     = 0x20;
+	static const uint16_t doubleSeparater  = 0x40;
+	static const uint16_t align32          = 0x80;
+	
+	static const uint16_t doubleHeader     = 0x100;
+	static const uint16_t busReqLevelMask  = 0x7000;
+	static const uint16_t busReqLevelShift = 12;
+    };
+    class DAQSettingsRegister {
+	static const uint32_t readoutTriggerDelayMask     = 0xff;
+	static const uint32_t readoutTriggerDelayShift    = 0;
+	
+	static const uint32_t scalerReadoutPeriodMask     = 0x0xff00;
+	static const uint32_t scalerReadoutPeriodShfit    = 8;
+
+	static const uint32_t scalerReadoutFrequenyMask   = 0xffff0000;
+	static const uint32_t scalerReadoutFrequencyShift = 16;
+    };
+    class LedSourceRegister {
+	// Top yellow led:
+
+	static const uint32_t topYellowOutFifoNotEmpty    = 0;
+	static const uint32_t topYellowInFifoNotEmpty     = 1;
+	static const uint32_t topYellowScalerEvent        = 2;
+	static const uint32_t topYellowInFifoFull         = 3;
+	static const uint32_t topYellowDTACK              = 4;
+	static const uint32_t topYellowBERR               = 5;
+	static const uint32_t topYellowBusRequest         = 6;
+	static const uint32_t topYellowBusGranted         = 7;
+	static const uint32_t topYellowInvert             = 0x8;
+	static const uint32_t topYellowLatch              = 0x10;
+
+	// Red LED:
+
+	static const uint32_t redEventTrigger           = (0 << 8);
+	static const uint32_t redNimInput1              = (1 << 8);
+	static const uint32_t redNimInput2              = (2 << 8);
+	static const uint32_t redBusy                   = (3 << 8);
+	static const uint32_t redDTACK                  = (4 << 8);
+	static const uint32_t redBERR                   = (5 << 8);
+	static const uint32_t redBusRequest             = (6 << 8);
+	static const uint32_t redBusGranted             = (7 << 8);
+	static const uint32_t redInvert                 = (8 << 8);
+	static const uint32_t redLatch                  = (0x10 << 8);
+
+	// Green led:
+
+	static const uint32_t greenAcquire              = (0 << 16);
+	static const uint32_t greenStackNotEmpty        = (1 << 16);
+	static const uint32_t greenEventReady           = (2 << 16);
+	static const uint32_t greenEventTrigger         = (3 << 16);
+	static const uint32_t greenDTACK                = (4 << 16);
+	static const uint32_t greenBERR                 = (5 << 16);
+	static const uint32_t greenBusRequest           = (6 << 16);
+	static const uint32_t greenBusGranted           = (7 << 16);
+	static const uint32_t greenInvert               = (8 << 16);
+	static const uint32_t greenLatch                = (0x10 << 16);
+
+	// Bottom yellow LED>
+
+	static const uint32_t bottomYellowNotArbiter    = (0 << 24);
+	static const uint32_t bottomYellowUsbTrigger    = (1 << 24);
+	static const uint32_t bottomYellowUSBReset      = (2 << 24);
+	static const uint32_t bottomYellowBERR1         = (3 << 24);
+	static const uint32_t bottomYellowDTACK         = (4 << 24);
+	static const uint32_t bottomYellowBERR          = (5 << 24);
+	static const uint32_t bottomYellowBusRequest    = (6 << 24);
+	static const uint32_t bottomYellowBusGranted    = (7 << 24);
+	static const uint32_t bottomYellowInvert        = (8 << 24);
+	static const uint32_t bottomYellowLatch         = (0x10 << 24);
+    };
+
 };
 
 
