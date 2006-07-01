@@ -72,10 +72,11 @@ class CVMUSB
 private:
     usb_dev_handle*  m_handle;	// Handle open on the device.
     usb_device*      m_device;  // Device we are open on.
+    int              m_timeout; // Timeout used when user doesn't give one.
 
     // Static functions.
 public:
-    static vector<usb_device*> enumerate();
+    static std::vector<usb_device*> enumerate();
 
     // Constructors and other canonical functions.
     // Note that since destruction closes the handle and there's no
@@ -175,6 +176,10 @@ public:
 
     int usbRead(void* data, size_t bufferSize, size_t* transferCount,
 		int timeout = 2000);
+
+    // Other administrative functions:
+
+    void setDefaultTimeout(int ms); // Can alter internally used timeouts.
 
     // Register bit definintions.
 
@@ -295,7 +300,116 @@ public:
 	static const uint32_t bottomYellowInvert        = (8 << 24);
 	static const uint32_t bottomYellowLatch         = (0x10 << 24);
     };
+    class DeviceSourceRegister {
+    public:
+	static const uint32_t nimO1Busy                 = 0;
+	static const uint32_t nimO1Trigger              = 1;
+	static const uint32_t nimO1BusRequest           = 2;
+	static const uint32_t nimO1EventToBuffer        = 3;
+	static const uint32_t nimO1DGGA                 = 4;
+	static const uint32_t nimO1DGGB                 = 5;
+	static const uint32_t nimO1EndOfEvent           = 6;
+	static const uint32_t nimO1UsbTrigger           = 7;
+	static const uint32_t nimO1Invert               = 8;
+	static const uint32_t nimO1Latch                = 0x10;
 
+	static const uint32_t nimO2UsbTrigger1          = (0 << 8);
+	static const uint32_t nimO2VMEExecuting         = (1 << 8);
+	static const uint32_t nimO2VMEAS                = (2 << 8);
+	static const uint32_t nimO2DataToUsbFIFO        = (3 << 8);
+	static const uint32_t nimO2DGGA                 = (4 << 8);
+	static const uint32_t nimO2DGGB                 = (5 << 8);
+	static const uint32_t nimO2EndOfEvent           = (6 << 8);
+	static const uint32_t nimO2UsbTrigger           = (7 << 8);
+	static const uint32_t nimO2Invert               = (8 << 8);
+	static const uint32_t nimO2Latch                = (0x10 << 8);
+
+	static const uint32_t scalerADisabled           = (0   << 16);
+	static const uint32_t scalerANIMI1              = (1   << 16);
+	static const uint32_t scalerANIMI2              = (2   << 16);
+	static const uint32_t scalerAEvent              = (2   << 16);
+	static const uint32_t scalerAEnable             = (8   << 16);
+	static const uint32_t scalerAReset              = (0x10 << 16);
+
+	static const uint32_t scalerBDisabled           = (0   << 20);
+	static const uint32_t scalerBNIMI1              = (1   << 20);
+	static const uint32_t scalerBNIMI2              = (2   << 20);
+	static const uint32_t scalerBEvent              = (2   << 20);
+	static const uint32_t scalerBEnable             = (8   << 20);
+	static const uint32_t scalerBReset              = (0x10 << 20);
+
+	static const uint32_t dggADisabled              = (0   << 24);
+	static const uint32_t dggANIMI1                 = (1   << 24);
+	static const uint32_t dggANIMI2                 = (2   << 24);
+	static const uint32_t dggAEventTrigger          = (3   << 24);
+	static const uint32_t dggAEndOfEvent            = (4   << 24);
+	static const uint32_t dggAUsbTrigger            = (5   << 24);
+	static const uint32_t dggAPulser                = (6   << 24);
+
+	static const uint32_t dggBDisabled              = (0   << 28);
+	static const uint32_t dggBNIMI1                 = (1   << 28);
+	static const uint32_t dggBNIMI2                 = (2   << 28);
+	static const uint32_t dggBEventTrigger          = (3   << 28);
+	static const uint32_t dggBEndOfEvent            = (4   << 28);
+	static const uint32_t dggBUsbTrigger            = (5   << 28);
+	static const uint32_t dggBPulser                = (6   << 28);
+
+
+    };
+    
+    class DGGAndPulserRegister {
+    public:
+	static const uint32_t dggFineDelayMask        = 0xffff;
+	static const uint32_t dggFineDelayShift       = 0;
+	
+	static const uint32_t dggGateWidthMask        = 0xffff0000;
+	static const uint32_t dggGateWidthShift       = 16;
+
+    };
+
+    class DGGCoarseRegister {
+    public:
+	static const uint32_t ACoarseMask             = 0xffff;
+	static const uint32_t ACoarseShift            = 0;
+	
+	static const uint32_t BCoarseMask             = 0xffff0000;
+	static const uint32_t BCoarseShift            = 16;
+
+    };
+    // There are two vectors per register called A/B in this set of 
+
+    class ISVRegister {
+	static const uint32_t AVectorMask             = 0xff;
+	static const uint32_t AVectorShift            = 0;
+	static const uint32_t AIPLMask                = 0x700;
+	static const uint32_t AIPLShift               = 8;
+	static const uint32_t AStackIDMask            = 0x7000;
+	static const uint32_t AStackIDShift           = 12;
+
+	static const uint32_t BVectorMask             = 0xff0000;
+	static const uint32_t BVectorShift            = 16;
+	static const uint32_t BIPLMask                = 0x7000000;
+	static const uint32_t BIPLShift               = 24;
+	static const uint32_t BStackIDMask            = 0x70000000;
+	static const uint32_t BStackIDShift           = 28;
+    };
+
+    class TransferSetupRegister {
+	static const uint32_t multiBufferCountMask   = 0x0xff;
+	static const uint32_t multiBufferCountShift  = 0;
+
+	static const uint32_t timeoutMask            = 0xf00;
+	static const uint32_t timeoutShift           = 8;
+
+    };
+    // Local functions:
+private:
+    int transaction(void* writePacket, size_t writeSize,
+		    void* readPacket,  size_t readSize);
+    void* addToPacket16(void* packet,   uint16_t datum);
+    void* addToPacket32(void* packet,   int32_t datum);
+    void* getFromPacket16(void* packet, uint16_t* datum);
+    void* getFromPacket32(void* packet, uint32_t* datum);
 };
 
 
