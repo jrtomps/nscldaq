@@ -108,13 +108,13 @@ public:
     uint16_t readGlobalMode();
 
     void     writeDAQSettings(uint32_t value);
-    uint32_t readDAQSettings(uint32_t value);
+    uint32_t readDAQSettings();
 
     void     writeLEDSource(uint32_t value);
     uint32_t readLEDSource();
 
     void     writeDeviceSource(uint32_t value);
-    uint32_t readLEDSource();
+    uint32_t readDeviceSource();
 
     void     writeDGG_A(uint32_t value);
     uint32_t readDGG_A();
@@ -131,8 +131,8 @@ public:
     void     writeCountExtractMask(uint32_t value);
     uint32_t readCountExtractMask();
 
-    void     writeVector(uint32_t value);
-    uint32_t readVector();
+    void     writeVector(int which, uint32_t value);
+    uint32_t readVector(int which);
 
     void     writeBulkXferSetup(uint32_t value);
     uint32_t readBulkXferSetup();
@@ -389,7 +389,7 @@ public:
 	static const uint32_t BVectorMask             = 0xff0000;
 	static const uint32_t BVectorShift            = 16;
 	static const uint32_t BIPLMask                = 0x7000000;
-	static const uint32_t BIPLShift               = 24;
+	static consDt uint32_t BIPLShift               = 24;
 	static const uint32_t BStackIDMask            = 0x70000000;
 	static const uint32_t BStackIDShift           = 28;
     };
@@ -406,10 +406,14 @@ public:
 private:
     int transaction(void* writePacket, size_t writeSize,
 		    void* readPacket,  size_t readSize);
+
     void* addToPacket16(void* packet,   uint16_t datum);
     void* addToPacket32(void* packet,   int32_t datum);
     void* getFromPacket16(void* packet, uint16_t* datum);
     void* getFromPacket32(void* packet, uint32_t* datum);
+    void  writeRegister(unsigned int address, uint32_t data);
+    uint32_t readRegister(unsigned int address);
+    unsigned int whichToISV(int which);
 };
 
 
