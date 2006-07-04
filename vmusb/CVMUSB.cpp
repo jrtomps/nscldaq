@@ -21,6 +21,7 @@
 #include <usb.h>
 #include <errno.h>
 #include <string.h>
+#include <string>
 
 using namespace std;
 
@@ -61,12 +62,12 @@ static const unsigned int USBSetup(0x3c);       // USB Bulk transfer setup.
 
 // Bits in the list target address word:
 
-static const unsigned uint16_t TAVcsID0(1); // Bit mask of Stack id bit 0.
-static const unsigned uint16_t TAVcsSel(2); // Bit mask to select list dnload
-static const unsigned uint16_t TAVcsWrite(4); // Write bitmask.
-static const unsigned uint16_t TAVcsIMMED(8); // Target the VCS immediately.
-static const unsigned uint16_t TAVcsID12MASK(0x30); // Mask for top 2 id bits
-static const unsigned uint16_t TAVcsID12SHIFT(4);
+static const uint16_t TAVcsID0(1); // Bit mask of Stack id bit 0.
+static const uint16_t TAVcsSel(2); // Bit mask to select list dnload
+static const uint16_t TAVcsWrite(4); // Write bitmask.
+static const uint16_t TAVcsIMMED(8); // Target the VCS immediately.
+static const uint16_t TAVcsID12MASK(0x30); // Mask for top 2 id bits
+static const uint16_t TAVcsID12SHIFT(4);
 
 /////////////////////////////////////////////////////////////////////
 /*!
@@ -77,7 +78,7 @@ static const unsigned uint16_t TAVcsID12SHIFT(4);
   It is perfectly ok for there to be no VM-USB device on the USB 
   subsystem.  In that case an empty vector is returned.
 */
-vector<usb_device*>
+vector<struct usb_device*>
 CVMUSB::enumerate()
 {
     usb_find_busses();		// re-enumerate the busses
@@ -85,15 +86,15 @@ CVMUSB::enumerate()
 
     // Now we are ready to start the search:
 
-    vector<usb_device*> devices;	// Result vector.
-    usb_bus* pBus = usb_get_busses();
+    vector<struct usb_device*> devices;	// Result vector.
+    struct usb_bus* pBus = usb_get_busses();
 
     while(pBus) {
-	usb_device* pDevice = pBus->devices;
+	struct usb_device* pDevice = pBus->devices;
 	while(pDevice) {
 	    usb_device_descriptor* pDesc = &(pDevice->descriptor);
 	    if ((pDesc->idVendor  == USB_WIENER_VENDOR_ID)    &&
-		(pDesc->idProduct == USB_WIENER_PRODUCT_ID)) {
+		(pDesc->idProduct == USB_VMUSB_PRODUCT_ID)) {
 		devices.push_back(pDevice);
 	    }
 
@@ -120,7 +121,7 @@ CVMUSB::enumerate()
       if there is aproblem.
 
 */
-CVMUSB::CVMUSB(usb_device* device) :
+CVMUSB::CVMUSB(struct usb_device* device) :
     m_handle(0),
     m_device(device),
     m_timeout(DEFAULT_TIMEOUT)
@@ -149,8 +150,7 @@ CVMUSB::~CVMUSB()
     usb_release_interface(m_handle, 0);
     usb_close(m_handle);
 }
-     
-*/
+
 ////////////////////////////////////////////////////////////////////
 /*!
     Writing a value to the action register.  This is really the only
@@ -172,9 +172,9 @@ CVMUSB::writeActionRegister(uint16_t value)
 
     char* pOut = outPacket;
     
-    pOut = addToPacket16(pOut, 5); // Select Register block for transfer.
-    pOut = addToPacket16(pOut, 10); // Select action register wthin block.
-    pOut = addToPacket16(pOut, value);
+    pOut = static_cast<char*>(addToPacket16(pOut, 5)); // Select Register block for transfer.
+    pOut = static_cast<char*>(addToPacket16(pOut, 10)); // Select action register wthin block.
+    pOut = static_cast<char*>(addToPacket16(pOut, value));
 
     // This operation is write only.
 
@@ -207,8 +207,8 @@ CVMUSB::readActionRegister()
     // Build up the request packet:
 
     char* pPacket = static_cast<char*>(outPacket);
-    pPacket = addToPacket16(pPacket, 1); // Read op on registerblock.
-    pPacket = addToPacket16(pPacket, 10); // Action register address.
+    pPacket = static_cast<char*>(addToPacket16(pPacket, 1)); // Read op on registerblock.
+    pPacket = static_cast<char*>(addToPacket16(pPacket, 10)); // Action register address.
     int size= (pPacket - outPacket);
 
     int status = transaction(outPacket, size,
@@ -244,10 +244,10 @@ CVMUSB::readActionRegister()
    \retval The value of the firmware Id register.
 
 */
-uint16_t 
-CVMUSB::readFirmwareId()
+uint32_t 
+CVMUSB::readFirmwareID()
 {
-    return static_cast<uint16_t>readRegister(FIDRegister);
+    return readRegister(FIDRegister);
 }
 
 ////////////////////////////////////////////////////////////////////////
@@ -314,7 +314,7 @@ CVMUSB::readDAQSettings()
 void
 CVMUSB::writeLEDSource(uint32_t value)
 {
-    writeRegister(LDESrcRegister, value);
+    writeRegister(LEDSrcRegister, value);
 }
 /*!
    Read the LED Source register.  
@@ -490,7 +490,7 @@ CVMUSB::writeVector(int which, uint32_t value)
  
   \throw string  - if thwhich is illegal.
 */
-void
+uint32_t 
 CVMUSB::readVector(int which)
 {
     unsigned int regno = whichToISV(which);
@@ -524,31 +524,31 @@ CVMUSB::readVector(int which)
     errno global variable.
 */
 int
-CVMUSB::executList(CVMUSBReadoutList&     list,
+CVMUSB::executeList(CVMUSBReadoutList&     list,
 		   void*                  pReadoutBuffer,
 		   size_t                 readBufferSize,
 		   size_t*                bytesRead)
 {
     int listLongwords = list.size();
-    int listShorts    = 3 + listLongWords*sizeof(uint32_t)/sizeof(uint16_t);
-    uint16_t* outPacket = new outPacket[listShorts];
+    int listShorts    = 3 + listLongwords*sizeof(uint32_t)/sizeof(uint16_t);
+    uint16_t* outPacket = new uint16_t[listShorts];
     uint16_t* p         = outPacket;
     
     // Fill the outpacket:
 
-    p = addToPacket16(TAVcsWrite | TAVcsIMMED);  // Write for immed execution
-    p = addToPacket32(listShorts);
+    p = static_cast<uint16_t*>(addToPacket16(p, TAVcsWrite | TAVcsIMMED));  // Write for immed execution
+    p = static_cast<uint16_t*>(addToPacket32(p, listShorts));
 
     vector<uint32_t> stack = list.get();
     for (int i = 0; i < listLongwords; i++) {
-	p = addToPacket32(stack[i]);
+	p = static_cast<uint16_t*>(addToPacket32(p, stack[i]));
     }
 
     // Now we can execute the transaction:
 
     int status = transaction(outPacket, listShorts*sizeof(uint16_t),
-			     pReadoutBuffer, readBufferSize,
-			     bytesRead);
+			     pReadoutBuffer, readBufferSize);
+
 
 
     delete []outPacket;
@@ -616,13 +616,14 @@ CVMUSB::transaction(void* writePacket, size_t writeSize,
 		    void* readPacket,  size_t readSize)
 {
     int status = usb_bulk_write(m_handle, ENDPOINT_OUT,
-				writePacket, writeSize, m_timeout);
+				static_cast<char*>(writePacket), writeSize, 
+				m_timeout);
     if (status < 0) {
 	errno = -status;
 	return -1;		// Write failed!!
     }
     status    = usb_bulk_read(m_handle, ENDPOINT_IN,
-			      readPacket, readSize, m_timeout);
+			      static_cast<char*>(readPacket), readSize, m_timeout);
     if (status < 0) {
 	errno = -status;
 	return -2;
@@ -653,7 +654,7 @@ CVMUSB::addToPacket16(void* packet, uint16_t datum)
   The datum is added low-endianly to the packet.
 */
 void*
-CVMUSB::addToPacket32(void* packet, unit32_t datum)
+CVMUSB::addToPacket32(void* packet, uint32_t datum)
 {
     char* pPacket = static_cast<char*>(packet);
 
@@ -688,7 +689,7 @@ CVMUSB::getFromPacket16(void* packet, uint16_t* datum)
 void*
 CVMUSB::getFromPacket32(void* packet, uint32_t* datum)
 {
-    char* pPacket = static_cat<char*>(packet);
+    char* pPacket = static_cast<char*>(packet);
 
     uint32_t b0  = *pPacket++;
     uint32_t b1  = *pPacket++;
@@ -784,7 +785,7 @@ CVMUSB::whichToISV(int which)
 	case 2:
 	    return ISV34;
 	case 3:
-	    return ISV65;
+	    return ISV56;
 	case 4:
 	    return ISV78;
 	default:

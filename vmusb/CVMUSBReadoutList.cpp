@@ -87,12 +87,12 @@ CVMUSBReadoutList::operator!=(const CVMUSBReadoutList& rhs) const
 void
 CVMUSBReadoutList::clear()
 {
-    m_list.erase(0, m_list.end());
+    m_list.clear();
 }
 /*!
    return the size of the list in longwords.
 */
-sizse_t
+size_t
 CVMUSBReadoutList::size() const
 {
     return m_list.size();

@@ -70,8 +70,8 @@ class CVMUSB
 
     // Class member data.
 private:
-    usb_dev_handle*  m_handle;	// Handle open on the device.
-    usb_device*      m_device;  // Device we are open on.
+    struct usb_dev_handle*  m_handle;	// Handle open on the device.
+    struct usb_device*      m_device;   // Device we are open on.
     int              m_timeout; // Timeout used when user doesn't give one.
 
     // Static functions.
@@ -162,13 +162,13 @@ public:
     // List operations.
 
 public:
-    int executeList(CVMEUSBReadoutList& list,
+    int executeList(CVMUSBReadoutList& list,
 		    void*               pReadBuffer,
 		    size_t              readBufferSize,
 		    size_t*             bytesRead);
     
     int loadList(uint8_t                listNumber,
-		 CVMEUSBReadoutList&    list,
+		 CVMUSBReadoutList&    list,
 		 off_t                  listOffset = 0);
 
     // Once the interface is in DAQ auntonomous mode, the application
@@ -199,7 +199,7 @@ public:
 	static const uint32_t minorRevShift    = 0;
 	
 	static const uint32_t majorRevMask     = 0x0000ff00;
-	static const uint32_t minorRevShift    = 8;
+	static const uint32_t majorRevShift    = 8;
 
 
 	// These are my best guesses.
@@ -241,7 +241,7 @@ public:
 	static const uint32_t readoutTriggerDelayMask     = 0xff;
 	static const uint32_t readoutTriggerDelayShift    = 0;
 	
-	static const uint32_t scalerReadoutPeriodMask     = 0x0xff00;
+	static const uint32_t scalerReadoutPeriodMask     = 0xff00;
 	static const uint32_t scalerReadoutPeriodShfit    = 8;
 
 	static const uint32_t scalerReadoutFrequenyMask   = 0xffff0000;
@@ -389,13 +389,13 @@ public:
 	static const uint32_t BVectorMask             = 0xff0000;
 	static const uint32_t BVectorShift            = 16;
 	static const uint32_t BIPLMask                = 0x7000000;
-	static consDt uint32_t BIPLShift               = 24;
+	static const uint32_t BIPLShift               = 24;
 	static const uint32_t BStackIDMask            = 0x70000000;
 	static const uint32_t BStackIDShift           = 28;
     };
 
     class TransferSetupRegister {
-	static const uint32_t multiBufferCountMask   = 0x0xff;
+	static const uint32_t multiBufferCountMask   = 0xff;
 	static const uint32_t multiBufferCountShift  = 0;
 
 	static const uint32_t timeoutMask            = 0xf00;
@@ -408,7 +408,7 @@ private:
 		    void* readPacket,  size_t readSize);
 
     void* addToPacket16(void* packet,   uint16_t datum);
-    void* addToPacket32(void* packet,   int32_t datum);
+    void* addToPacket32(void* packet,   uint32_t datum);
     void* getFromPacket16(void* packet, uint16_t* datum);
     void* getFromPacket32(void* packet, uint32_t* datum);
     void  writeRegister(unsigned int address, uint32_t data);
