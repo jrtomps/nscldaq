@@ -69,6 +69,10 @@ static const uint16_t TAVcsIMMED(8); // Target the VCS immediately.
 static const uint16_t TAVcsID12MASK(0x30); // Mask for top 2 id bits
 static const uint16_t TAVcsID12SHIFT(4);
 
+//   The following flag determines if enumerate needs to init the libusb:
+
+static bool usbInitialized(false);
+
 /////////////////////////////////////////////////////////////////////
 /*!
   Enumerate the Wiener/JTec VM-USB devices.
@@ -81,30 +85,34 @@ static const uint16_t TAVcsID12SHIFT(4);
 vector<struct usb_device*>
 CVMUSB::enumerate()
 {
-    usb_find_busses();		// re-enumerate the busses
-    usb_find_devices();		// re-enumerate the devices.
+  if(!usbInitialized) {
+    usb_init();
+    usbInitialized = true;
+  }
+  usb_find_busses();		// re-enumerate the busses
+  usb_find_devices();		// re-enumerate the devices.
+  
+  // Now we are ready to start the search:
+  
+  vector<struct usb_device*> devices;	// Result vector.
+  struct usb_bus* pBus = usb_get_busses();
 
-    // Now we are ready to start the search:
-
-    vector<struct usb_device*> devices;	// Result vector.
-    struct usb_bus* pBus = usb_get_busses();
-
-    while(pBus) {
-	struct usb_device* pDevice = pBus->devices;
-	while(pDevice) {
-	    usb_device_descriptor* pDesc = &(pDevice->descriptor);
-	    if ((pDesc->idVendor  == USB_WIENER_VENDOR_ID)    &&
-		(pDesc->idProduct == USB_VMUSB_PRODUCT_ID)) {
-		devices.push_back(pDevice);
-	    }
-
-	    pDevice = pDevice->next;
-	}
-
-	pBus = pBus->next;
+  while(pBus) {
+    struct usb_device* pDevice = pBus->devices;
+    while(pDevice) {
+      usb_device_descriptor* pDesc = &(pDevice->descriptor);
+      if ((pDesc->idVendor  == USB_WIENER_VENDOR_ID)    &&
+	  (pDesc->idProduct == USB_VMUSB_PRODUCT_ID)) {
+	devices.push_back(pDevice);
+      }
+      
+      pDevice = pDevice->next;
     }
-
-    return devices;
+    
+    pBus = pBus->next;
+  }
+  
+  return devices;
 }
 ////////////////////////////////////////////////////////////////////
 /*!

@@ -8,7 +8,8 @@ libVMUSB_la_LIBADD       = $(USB_LIBS)
 #IVP tests:
 
 
-TEST_MODULES = TestRunner.cpp
+TEST_MODULES = TestRunner.cpp conTests.cpp
+
 
 tests: $(TEST_MODULES)
 	$(CXX) -g -o tests -I$(prefix)/include $(CPPUNIT_INCLUDES) \
