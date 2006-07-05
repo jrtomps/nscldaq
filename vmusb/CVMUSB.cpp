@@ -22,6 +22,7 @@
 #include <errno.h>
 #include <string.h>
 #include <string>
+#include <unistd.h>
 
 using namespace std;
 
@@ -140,6 +141,8 @@ CVMUSB::CVMUSB(struct usb_device* device) :
     }
     // Now claim the interface.. again this could in theory fail.. but.
 
+    usb_set_configuration(m_handle, 1);
+
     int status = usb_claim_interface(m_handle, 0);
     if (status == -EBUSY) {
 	throw "CVMUSB::CVMUSB - some other process has already claimed";
@@ -147,6 +150,8 @@ CVMUSB::CVMUSB(struct usb_device* device) :
     if (status == -ENOMEM) {
 	throw "CVMUSB::CMVUSB - claim failed for lack of memory";
     }
+    usleep(5000);
+
 }
 ////////////////////////////////////////////////////////////////
 /*!
@@ -198,50 +203,7 @@ CVMUSB::writeActionRegister(uint16_t value)
 	throw "usb_bulk_write wrote different size than expected";
     }
 }
-////////////////////////////////////////////////////////////////////////
-/*!
-   Read the action register.  On errors a const char* exception is thrown.
-   The action register is the only register that demands special treatment
-   as it is only accessible via a usb register read operation.  All other
-   registers can be read by building a local list and executing it
-   immediately.
-*/
-uint16_t
-CVMUSB::readActionRegister()
-{
-    char outPacket[100];
-    char inPacket[100];
-    
-    // Build up the request packet:
 
-    char* pPacket = static_cast<char*>(outPacket);
-    pPacket = static_cast<char*>(addToPacket16(pPacket, 1)); // Read op on registerblock.
-    pPacket = static_cast<char*>(addToPacket16(pPacket, 10)); // Action register address.
-    int size= (pPacket - outPacket);
-
-    int status = transaction(outPacket, size,
-			     inPacket, sizeof(inPacket));
-    if (status == -1) {
-	char*   reason = strerror(errno);
-	string  message= "CVMUSB::readActionRegister write failed - ";
-	message += reason;
-	throw message;
-
-    }
-    if (status == -2) {
-	char*  reason = strerror(errno);
-	string message= "CVMUSB::readActionRegister read failed - ";
-	message += reason;
-	throw message;
-    }
-
-    uint16_t registerValue;
-    getFromPacket16(inPacket, &registerValue);
-    return registerValue;
-    
-
-	
-}
 ////////////////////////////////////////////////////////////////////////
 /*!
    Read the firmware id register.  This is register 0.
@@ -538,14 +500,15 @@ CVMUSB::executeList(CVMUSBReadoutList&     list,
 		   size_t*                bytesRead)
 {
     int listLongwords = list.size();
-    int listShorts    = 3 + listLongwords*sizeof(uint32_t)/sizeof(uint16_t);
-    uint16_t* outPacket = new uint16_t[listShorts];
+    int listShorts    = listLongwords*sizeof(uint32_t)/sizeof(uint16_t);
+    int packetShorts    = (listShorts + 3);
+    uint16_t* outPacket = new uint16_t[packetShorts];
     uint16_t* p         = outPacket;
     
     // Fill the outpacket:
 
     p = static_cast<uint16_t*>(addToPacket16(p, TAVcsWrite | TAVcsIMMED));  // Write for immed execution
-    p = static_cast<uint16_t*>(addToPacket32(p, listShorts));
+    p = static_cast<uint16_t*>(addToPacket32(p, listShorts+1));
 
     vector<uint32_t> stack = list.get();
     for (int i = 0; i < listLongwords; i++) {
@@ -554,7 +517,7 @@ CVMUSB::executeList(CVMUSBReadoutList&     list,
 
     // Now we can execute the transaction:
 
-    int status = transaction(outPacket, listShorts*sizeof(uint16_t),
+    int status = transaction(outPacket, packetShorts*sizeof(uint16_t),
 			     pReadoutBuffer, readBufferSize);
 
 

@@ -76,7 +76,7 @@ private:
 
     // Static functions.
 public:
-    static std::vector<usb_device*> enumerate();
+    static std::vector<struct usb_device*> enumerate();
 
     // Constructors and other canonical functions.
     // Note that since destruction closes the handle and there's no
@@ -86,7 +86,7 @@ public:
     // and destruction implies a usb_release_interface(),
     // equality comparison has no useful meaning either:
 
-    CVMUSB(usb_device* vmUsbDevice);
+    CVMUSB(struct usb_device* vmUsbDevice);
     virtual ~CVMUSB();		// Although this is probably a final class.
 
     // Disallowed functions as described above.
@@ -100,7 +100,6 @@ public:
     // Register I/O operations.
 public:
     void     writeActionRegister(uint16_t value);
-    uint16_t readActionRegister();
 
     uint32_t readFirmwareID();
 
