@@ -226,7 +226,7 @@ CBiRA1302CES8210::control(size_t slot, unsigned int f, unsigned int a)
   requireSubaddress(a);
 
   unsigned long addr = offset(slot, f, a);
-  m_pCrate->pokew(addr/sizeof(short), 0);
+  m_pCrate->peekw(addr/sizeof(short));
 }
 
 /////////////////////////////////////////////////////////////////////////

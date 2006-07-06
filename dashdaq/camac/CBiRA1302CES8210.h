@@ -77,6 +77,9 @@ private:
 		       bool shortTransfer=true);
   void validateRead(size_t n, unsigned int f, unsigned int a);
   void validateWrite(size_t n, unsigned int f, unsigned int a);
+#ifdef UNIT_TEST_INCLUDE
+ public:
+#endif
   CCESCBD8210& getInterface();
 };
 
