@@ -64,28 +64,86 @@
 class CVMUSBReadoutList
 {
 private:
-    std::vector<uint32_t> m_list; // Stack lines are all 32 bits wide.
+  std::vector<uint32_t> m_list; // Stack lines are all 32 bits wide.
 public:
-    CVMUSBReadoutList();
-    CVMUSBReadoutList(const CVMUSBReadoutList& rhs);
-    virtual ~CVMUSBReadoutList();
-
-    CVMUSBReadoutList& operator=(const CVMUSBReadoutList& rhs);
-    int operator==(const CVMUSBReadoutList& rhs) const;
-    int operator!=(const CVMUSBReadoutList& rhs) const;
-
-
-    // Operations on the list as a whole:
-
-    void                  clear();
-    size_t                size() const;
-    std::vector<uint32_t> get()  const;
-
-    // Register operations 
-
+  CVMUSBReadoutList();
+  CVMUSBReadoutList(const CVMUSBReadoutList& rhs);
+  virtual ~CVMUSBReadoutList();
+  
+  CVMUSBReadoutList& operator=(const CVMUSBReadoutList& rhs);
+  int operator==(const CVMUSBReadoutList& rhs) const;
+  int operator!=(const CVMUSBReadoutList& rhs) const;
+  
+  
+  // Operations on the list as a whole:
+  
+  void                  clear();
+  size_t                size() const;
+  std::vector<uint32_t> get()  const;
+  
+  // Register operations 
+  
 public:
-    void addRegisterRead(unsigned int address);
-    void addRegisterWrite(unsigned int address, uint32_t data);
+  void addRegisterRead(unsigned int address);
+  void addRegisterWrite(unsigned int address, uint32_t data);
+
+    // Single shot VME operations.  Note that these are only supported
+    // in natural alignments, as otherwise it is not so easy to let the
+    // application know how to marshall the multiple transers appropriately.
+    
+public:
+  // Writes:
+
+  void addWrite32(uint32_t address, uint8_t amod, uint32_t datum);
+  void addWrite16(uint32_t address, uint8_t amod, uint16_t datum);
+  void addWrite8(uint32_t address,  uint8_t amod, uint8_t datum);
+
+  // Reads:
+
+  void addRead32(uint32_t address, uint8_t amod);
+  void addRead16(uint32_t address, uint8_t amod);
+  void addRead8(uint32_t address, uint8_t amod);
+
+  // Block transfer operations. 
+  // These must meet the restrictions of the VMUSB on block transfers.
+  //
+  void addBlockRead32(uint32_t baseAddress, uint8_t amod, size_t transfers);
+  void addFifoRead32(uint32_t  baseAddress, uint8_t amod, size_t transfers);
+
+  // The following constants define address modifiers that are known to
+  // VME Rev C.  There are other amods that are legal in newer revs of the
+  // standard, since I don't know them, I don't list them :-).
+
+  // Mappings between terms used in VME C table 2-3 and these defs:
+  //
+  // "extended" = a32 "nonprivileged" = User. "supservisory" = Priv.
+  // "short"    = a16
+  // "standard" = a24.
+  //
+  static const uint8_t a32UserData(0x09);
+  static const uint8_t a32UserProgram(0xa);
+  static const uint8_t a32UserBlock(0x0b);
+
+  static const uint8_t a32PrivData(0x0d);
+  static const uint8_t a32PrivProgram(0x0e);
+  static const uint8_t a32PrivBlock(0x0f);
+
+  static const uint8_t a16User(0x29);
+  static const uint8_t a16Priv(0x2d);
+
+  static const uint8_t a24UserData(0x39);
+  static const uint8_t a24UserProgram(0x3a);
+  static const uint8_t a24UserBlock(0x3b);
+  
+  static const uint8_t a24PrivData(0x3d);
+  static const uint8_t a24PrivProgram(0x3e);
+  static const uint8_t a24PrivBlock(0x3f);
+
+  // utility functions:
+
+private:
+  uint32_t dataStrobes(uint32_t address);
+
 };
 
 

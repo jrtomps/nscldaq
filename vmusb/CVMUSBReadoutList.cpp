@@ -40,6 +40,11 @@ static const int modeNTShift(22);
 static const int modeBLTMask(0xf0000000);
 static const int modeBLTShift(24);
 
+// The following bit must be set in the address stack line for non long
+// word transfers:
+
+static const in addrNotLong(1);
+
 /////////////////////////////////////////////////////////////////
 //  Constructors and canonicals.
 
@@ -150,5 +155,203 @@ CVMUSBReadoutList::addRegisterWrite(unsigned int address,
 
 }
 
+////////////////////////////////////////////////////////////////////////////////
+// 
+// Single shot VME write operations:
+
+/*!
+   Add a single 32 bit write to the list.  Any legitimate non-block mode
+   address modifier is acceptable.   This version has the following restrictions:
+   - No checking for suitability of the address modifier is done.  E.g. doing a
+     MBLT64 transfer amod is allowed although will probably not work as expected
+     when the list is executed.
+   - The address must be longword aligned, however this is not checked.
+     Instead, the address will have the bottom 2 bits set to 0.
+     The VM-USB does not support marshalling the longword into an appropriate
+     multi-transfer UAT, and neither do we.
+ 
+   \param address : uint32_t
+       The address to which the data are transferred. It is the caller's
+       responsibility to ensure that this is longword aligned.
+   \param amod   : uint8_t
+       The 6 bit address modifier for the transfer.  Extraneous upper bits
+       will be silently masked off.
+    \param datum : uint32_t
+       The data to transfer to the DTB slave.
+*/
+void
+CVMUSBReadoutList::addWrite32(uint32_t address, uint8_t amod, uint32_t datum)
+{
+  // First we need to build up the stack transfer mode longword:
+
+  uint32_t mode = (static_cast<uint32_t>(amod) << modeAMShift) & modeAMMask;
+  m_list.push_back(mode);
+
+  // Now the address and data.. the LWORD* bit will not be set in the address
+
+  m_list.push_back(address & 0xfffffffc); // The longword aligned address.
+  m_list.push_back(datum);	          // data to write.
+}
+/*!
+   Add a single 16 bit word write to the list.  Any legitimate non-block mode
+   address modifier is acceptalbe.   This version has the following restrictions:
+   - No checking for address modifier suitability is done.
+   - The address must be word aligned.  The bottom bit of the address will be
+     silently zeroed if this is not the case.  
+
+   \param address : uint32_t
+       Address to which the data are transferred.  
+   \param amod : uint8_t
+       The 6 bit address modifier for the transfer.  Extraneous bits are
+       silently masked off.
+   \param datum : uint16_t
+       The data word to transfer.
+*/
+void
+CMVUSBReadoutList::addWrite16(uint32_t address, uint8_t amod, uint16_t datum)
+{
+  // Build up the mode word... no need to diddle with DS0/DS1 yet.
+
+  uint32_t mode = (static_cast<uint32_t>(amod) << modeAMShift) & modeAMMask;
+  m_list.push_back(mode);
+
+  // Now the address and data.  The thing that characterizes a non-longword
+  // transfer is that the LWORD* bit must be set in the address.
+  // Both data strobes firing is what makes this a word transfer as opposed
+  // to a byte transfer (see addWrite8 below).
+
+  m_list.push_back((address & 0xfffffffe) | addrNotLong);
+  m_list.push_back(static_cast<uint32_t>(datum));
+
+}
+/*!
+   Add a single 8 bit write to the list. 
+   - No checking for the address modifier is done, and any extraneous
+     bits in it are silently discarded.
+
+  Note that since this is a byte write, no alignment restrictions apply.
+  The data strobes that fire reflect the byte number.
+  \param address : uint32_t
+      The address to which the data will be written.
+  \param amod : uint8_t
+      The 6 bit address modifier code.
+  \param datum : uint8_t
+      The byte to write.
+*/
+void
+CVMUSBReadoutList::addWrite8(uint32_t address, uint8_t amod, uint8_t datum)
+{
+  // The data strobes depend on the bottom 2 bits of the address.
+  // for an even address, DS1 is disabled.
+  // for an odd address, DS0 is disabled.
+
+  uint32_t laddr = (address & 0xfffffffe) | addrNotLong;
+  uint32_t mode  = (static_cast<uint32_t>(amod) << modeAMShift) & modeAMMask;
+  mode |= dataStrobes(address);
+
+  m_list.push_back(mode);
+  m_list.push_back(laddr);
+
+  // The claim is that the data must be shifted to the correct lane.
+  // some old code I have does not do this.. What I'm going to do so I 
+  // don't have to think too hard about whether or not this is correct
+  // is to put the data byte on both D0-D7 and D8-D15, so it does not
+  // matter if 
+  // - an even byte is being written, or odd
+  // - the data has to or does not have to be in the appropriate data lanes.
+  //
+
+  uint32_t datum16 = (static_cast<uint32_t>datum); // D0-D7.
+  datum16         |= (datum16 << 8);               // D8-D15.
+
+  m_list.push_back(datum16);
+  
+}
+
+////////////////////////////////////////////////////////////////////////////////
+//
+// Single shot VME Read operations.
+
+/*!
+   Add a 32 bit read to the list.  Pretty much like addWrite32, but there is no
+   datum to transfer:
+   - Address modifier is not checked for validity and extraneous bits are
+     silently removed.
+   - The transfer must be longword aligned, but is not error checked for that.
+   \param address : uint32_t
+      Address to which to transfer the data.
+   \param amod   : uint8_t
+      The address modifier to be associated with the transfer.
+*/
+void
+CVMUSBReadoutList::addRead32(uint32_t address, uint8_t amod)
+{
+  uint32_t mode = modeNW | ((static_cast<uint32_t>(amod) << modeAMShift) & modeAMMask);
+  m_list.push_back(mode);
+  m_list.push_back(address & 0xfffffffc);
+}
+/*!
+   Add a 16 bit read to the list.  Pretty much like addWrite16, but there is no
+   datum to transfer:
+   - The address modifier is not checked for validity, and extraneous bits are
+     silently discarded.
+   - Data must be word aligned, but this is not checked for validity. 
+   \param address : uint32_t
+      The transfer address.
+   \param amod : uint8_t
+      Address modifier gated on the bus for the transfer.
+*/
+void 
+CVMUSBReadoutList::addRead16(uint32_t address, uint8_t amod)
+{
+  uint32_t mode = modeNW | ((static_cast<uint32_t>(amod) << modeAMShift) & modeAMMask);
+  m_list.push_back(mode);
+  m_list.push_back((address & 0xfffffffe) | addrNotLong);
+}
+/*!
+   Add an 8 bit read to the list.  Note that at this time, I am not 100%
+   sure which data lanes will hold the result.  The VME spec is 
+   contradictory between the spec and the examples, I \em think,
+   even bytes get returned in D0-D7, while odd bytes in D8-D15.
+   When this is thoroughly tested, this comment must be fixed.
+   \param address : uint32_t
+      The transfer address
+   \param amod : uint8_t 
+      The address modifier. No legality checking is done, and any
+      extraneous bits are silently discarded.
+*/
+void
+CVMUSBReadoutList::addRead8(uint32_t address, uint8_t amod)
+{
+  uint32_t mode = modeNW | ((static_cast<uint32_t>(amod) << modeAMShift) & modeAMMask);
+  mode         |= datatStrobes(address);
+  m_list.push_back(mode);
+  m_list.push_back((address & 0xfffffffe) | addrNotLong);
+}
+
+//////////////////////////////////////////////////////////////////////////////////
+//
+// Block transfer operations.
+//  
 
 
+///////////////////////////////////////////////////////////////////////////////////
+//
+// Private utility functions:
+
+// Figure out the data strobes for a byte address:
+
+uint32_t
+CVMUSBReadoutList::dataStrobes(uint32_t address)
+{
+  uint32_t dstrobes;
+  if (address & 1) {
+    // odd address:
+
+    dstrobes = 1;
+  }
+  else {
+    dstrobes = 2;
+  }
+  return (dstrobes << modeDSShift);
+}
