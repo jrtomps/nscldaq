@@ -650,6 +650,9 @@ snit::widget formattedDump {
         set item 0
         $currentEvent configure -event $contents
         set words 1
+	if {$size32} {
+	    incr words;			# Event size is 2 words.
+	}
 
         set packets [$currentEvent packetCount]
         for {set i 0} {$i < $packets} {incr i} {
@@ -659,6 +662,9 @@ snit::widget formattedDump {
             set id [$definition getId]
             set name [$definition getDescription]
             incr words [expr [llength $body] + 2]
+	    if {$size32} {
+		incr words;		# One more header word.
+	    }
             append result "   Packet id $id : $name Body size: [llength $body] body: \n"
             set pluginIndex [format %x $id]
             if {[array names plugins $pluginIndex] eq $pluginIndex} {

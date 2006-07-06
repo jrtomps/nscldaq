@@ -175,13 +175,15 @@ snit::type Event {
 	    set size  [expr {$wcl | ($wch << 16)}]
 	    set body  [lrange $options(-event) 2 end]
 	    incr size -2
+	    set offset 2
  	} else {
 	    set  size [lindex $options(-event) 0]
 	    set  body [lrange $options(-event) 1 end]
 	    incr size -1
+	    set offset 1
 	}
         set packets 0
-        set offset  1
+
 
         while {$size} {
 	    if {$options(-size32)} {
@@ -190,7 +192,6 @@ snit::type Event {
 		set pktSize [expr {$pkslow | ($pkshi << 16)}]
 
 		set pktId   [lindex $body 2]
-		incr offset;    # 2 words size
 		
 	    } else {
 		set pktSize [lindex $body 0]
