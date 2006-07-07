@@ -109,6 +109,7 @@ CCES8210Creator::operator()(string configuration)
 						    vmeCrate,
 						    i->first);
     pBranch->addCrate(*pCrate, i->first);
+    i++;			// Next crate...
   }
   return pBranch;  
   
