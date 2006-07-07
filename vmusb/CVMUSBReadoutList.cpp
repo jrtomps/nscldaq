@@ -43,7 +43,7 @@ static const int modeBLTShift(24);
 // The following bit must be set in the address stack line for non long
 // word transfers:
 
-static const in addrNotLong(1);
+static const int addrNotLong(1);
 
 /////////////////////////////////////////////////////////////////
 //  Constructors and canonicals.
@@ -208,7 +208,7 @@ CVMUSBReadoutList::addWrite32(uint32_t address, uint8_t amod, uint32_t datum)
        The data word to transfer.
 */
 void
-CMVUSBReadoutList::addWrite16(uint32_t address, uint8_t amod, uint16_t datum)
+CVMUSBReadoutList::addWrite16(uint32_t address, uint8_t amod, uint16_t datum)
 {
   // Build up the mode word... no need to diddle with DS0/DS1 yet.
 
@@ -261,7 +261,7 @@ CVMUSBReadoutList::addWrite8(uint32_t address, uint8_t amod, uint8_t datum)
   // - the data has to or does not have to be in the appropriate data lanes.
   //
 
-  uint32_t datum16 = (static_cast<uint32_t>datum); // D0-D7.
+  uint32_t datum16 = (static_cast<uint32_t>(datum)); // D0-D7.
   datum16         |= (datum16 << 8);               // D8-D15.
 
   m_list.push_back(datum16);
@@ -324,7 +324,7 @@ void
 CVMUSBReadoutList::addRead8(uint32_t address, uint8_t amod)
 {
   uint32_t mode = modeNW | ((static_cast<uint32_t>(amod) << modeAMShift) & modeAMMask);
-  mode         |= datatStrobes(address);
+  mode         |= dataStrobes(address);
   m_list.push_back(mode);
   m_list.push_back((address & 0xfffffffe) | addrNotLong);
 }
@@ -334,7 +334,45 @@ CVMUSBReadoutList::addRead8(uint32_t address, uint8_t amod)
 // Block transfer operations.
 //  
 
+/*!
+   Add a 32 bit block read to the list.  There are several requirements
+   in this version for simplicity.  None of these requirements are actively
+   enforced.
+   -  The base address must be longword aligned.
+   - The address modifier must be one of the block transfer modes e.g.
+     CVMUSBReadoutList::a32UserBlock
+  
+   This operation may generate more than one stack transaction, an initial
+   one of complete 256 byte blocks in MB mode, and a final partial block
+   transfer if necessary.
+   \param baseAddress : uint32_t
+      The addreess from which the first transfer occurs.
+   \param amod : uint8_t 
+      The address modifier for this transfer.  Should be one of the block
+      mode modifiers.
+   \param transfers : size_t
+      Number of \em longwords to transfer. 
+*/
+void
+CVMUSBReadoutList::addBlockRead32(uint32_t baseAddress, uint8_t amod, 
+				  size_t transfers)
+{
+  addBlockRead(baseAddress,  transfers, 
+	       static_cast<uint32_t>(((amod << modeAMShift) & modeAMMask) | modeNW));
+}
 
+/*!
+   Add a read from a fifo.  This is identical to addBlockRead32, however
+   the NA bit is set in the initial mode word to ensure that the actual
+   address is not incremented.
+*/
+void
+CVMUSBReadoutList::addFifoRead32(uint32_t address, uint8_t amod, size_t transfers)
+{
+  addBlockRead(address,  transfers, static_cast<uint32_t>(modeNA | 
+	                                ((amod << modeAMShift) & modeAMMask) |
+	                                modeNW));
+}
 ///////////////////////////////////////////////////////////////////////////////////
 //
 // Private utility functions:
@@ -354,4 +392,43 @@ CVMUSBReadoutList::dataStrobes(uint32_t address)
     dstrobes = 2;
   }
   return (dstrobes << modeDSShift);
+}
+// Add an block transfer.  This is common code for both addBlockRead32
+// and addFifoRead32.. The idea is that we get a starting mode word to work
+// with, within that mode we will fill in things like the BLT field, and the
+// MB bit as needed.
+//
+void
+CVMUSBReadoutList::addBlockRead(uint32_t base, size_t transfers, 
+				uint32_t startingMode)
+{
+  // There are two cases, transfers are larger than a block,
+  // or transfers are le a block.
+  // The first case requires an MB and possibly a single BLT transfer.
+  // the secod just a BLT...
+  // The maximum number of transfers in a block is 256/sizeof(uint32_t)
+  // Regardless, the base address is block justified.:
+
+  base     &= 0xffffff00;		// Block justify the address.
+  size_t  fullBlocks   = transfers/(256/sizeof(uint32_t));
+  size_t  partialBlock = transfers % (256/sizeof(uint32_t));
+
+  if (fullBlocks) {
+    uint32_t mode = startingMode;
+    mode         |= modeMB;	// Multiblock transfer.
+    mode         |= (256/sizeof(uint32_t)) << modeBLTShift; // Full block to xfer.
+    m_list.push_back(mode);
+    m_list.push_back(base);	// Not sure this order is correct...
+    m_list.push_back(fullBlocks);
+   
+    base += fullBlocks * 256;	// Adjust the base address in case there are partials.
+    
+  }
+  if (partialBlock) {
+    uint32_t   mode = startingMode;
+    mode           |= (partialBlock) << modeBLTShift;
+    m_list.push_back(mode);
+    m_list.push_back(base);
+  }
+
 }

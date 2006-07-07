@@ -151,8 +151,6 @@ public:
     int vmeRead8(uint32_t address, uint8_t aModifier, uint8_t* data);
 
 
-    int vmeBlockWrite(uint32_t baseAddress, uint8_t aModifier, 
-		      void* data, size_t transferCount, size_t* countTransferred);
     int vmeBlockRead(uint32_t baseAddress, uint8_t aModifier,
 		     void* data,  size_t transferCount, size_t* countTransferred);
     int vmeFifoRead(uint32_t address, int8_t aModifier,
@@ -413,6 +411,10 @@ private:
     void  writeRegister(unsigned int address, uint32_t data);
     uint32_t readRegister(unsigned int address);
     unsigned int whichToISV(int which);
+    int   doVMEWrite(CVMUSBReadoutList& list);
+    int   doVMERead(CVMUSBReadoutList&  list, uint32_t* datum);
+    uint16_t* listToOutPacket(uint16_t ta, CVMUSBReadoutList& list, size_t* outSize,
+			      off_t offset = 0);
 };
 
 

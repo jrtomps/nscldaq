@@ -67,6 +67,8 @@ static const uint16_t TAVcsID0(1); // Bit mask of Stack id bit 0.
 static const uint16_t TAVcsSel(2); // Bit mask to select list dnload
 static const uint16_t TAVcsWrite(4); // Write bitmask.
 static const uint16_t TAVcsIMMED(8); // Target the VCS immediately.
+static const uint16_t TAVcsID1(0x10);
+static const uint16_t TAVcsID2(0x20);
 static const uint16_t TAVcsID12MASK(0x30); // Mask for top 2 id bits
 static const uint16_t TAVcsID12SHIFT(4);
 
@@ -164,6 +166,8 @@ CVMUSB::~CVMUSB()
     usb_close(m_handle);
 }
 
+////////////////////////////////////////////////////////////////////
+//////////////////////// Register operations ///////////////////////
 ////////////////////////////////////////////////////////////////////
 /*!
     Writing a value to the action register.  This is really the only
@@ -466,9 +470,221 @@ CVMUSB::readVector(int which)
     unsigned int regno = whichToISV(which);
     return readRegister(regno);
 }
+///////////////////////////////////////////////////////////////////////
+/*!
+    write the bluk transfer setup register.  This register
+    sets up a few of the late breaking data taking parameters
+    that are built to allow data to flow through the USB more
+    effectively.  For bit/mask/shift-count definitions of this
+    register see CVMUSB::TransferSetup.
+    \param value : uint32_t
+      The value to write to the register.
+*/
+void
+CVMUSB::writeBulkXferSetup(uint32_t value)
+{
+    writeRegister(USBSetup, value);
+}
+/*!
+   Read the bulk transfer setup register.
+*/
+uint32_t
+CVMUSB::readBulkXferSetup()
+{
+    return readRegister(USBSetup);
+}
+/////////////////////////////////////////////////////////////////////////
+/////////////////////////// VME Transfer Ops ////////////////////////////
+/////////////////////////////////////////////////////////////////////////
+
+/*!
+   Write a 32 bit word to the VME for some specific address modifier.
+   This is done by creating a list, inserting a single
+   32bit write into it and executing the list.
+   \param address  : uint32_t 
+      Address to which the write is done.
+   \param aModifier : uint8_t
+      Address modifier for the operation.  This should not be a block transfer
+      address modifier... those may not work for single shots and in any
+      event would not pay.
+    \param data   : uint32_t
+      The datum to write.
+ 
+   \return int
+   \retval 0   - Success.
+   \retval -1  - USB write failed.
+   \retval -2  - USB read failed.
+   \retval -3  - VME Bus error.
+
+    \note In case of failure, errno, contains the reason.
+*/
+int
+CVMUSB::vmeWrite32(uint32_t address, uint8_t aModifier, uint32_t data)
+{
+  CVMUSBReadoutList list;
+
+  list.addWrite32(address, aModifier, data);
+  return doVMEWrite(list);
+
+}
+/*!
+   Write a 16 bit word to the VME.  This is identical to vmeWrite32,
+   however the data is 16 bits wide.
+*/
+int
+CVMUSB::vmeWrite16(uint32_t address, uint8_t aModifier, uint16_t data)
+{
+  CVMUSBReadoutList list;
+  list.addWrite16(address, aModifier, data);
+  return doVMEWrite(list);
+}
+/*!
+  Do an 8 bit write to the VME bus.
+*/
+int
+CVMUSB::vmeWrite8(uint32_t address, uint8_t aModifier, uint8_t data)
+{
+  CVMUSBReadoutList list;
+  list.addWrite8(address, aModifier, data);
+  return doVMEWrite(list);
+}
+
+/*!
+   Read a 32 bit word from the VME.  This is done by creating a list,
+   inserting a single VME read operation in it and executing the list in 
+   immediate mode.
+   \param address : uint32_t
+      The address to read.
+   \param amod    : uint8_t
+      The address modifier that selects the address space used for the
+      transfer.  You should not use a block transfer modifier for this.
+   \param data    : uint32_t*
+      Pointer to the location in which the data will be placed.
+
+   \return int
+    \retval  0    - All went well.
+    \retval -1    - The usb_bulk_write failed.
+    \retval -2    - The usb_bulk_read failed.
+*/
+int
+CVMUSB::vmeRead32(uint32_t address, uint8_t aModifier, uint32_t* data)
+{
+  CVMUSBReadoutList list;
+  list.addRead32(address, aModifier);
+  uint32_t      lData;
+  int status = doVMERead(list, &lData);
+  *data      = lData;
+  return status;
+}
+
+/*!
+    Read a 16 bit word from the VME.  This is just like the previous
+    function but the data transfer width is 16 bits.
+*/
+int
+CVMUSB::vmeRead16(uint32_t address, uint8_t aModifier, uint16_t* data)
+{
+  CVMUSBReadoutList list;
+  list.addRead16(address, aModifier);
+  uint32_t lData;
+  int      status = doVMERead(list, &lData);
+  *data = static_cast<uint16_t>(lData);
+
+  return status;
+}
+/*!
+   Read an 8 bit byte from the VME... see vmeRead32 for information about
+   this.
+*/
+int
+CVMUSB::vmeRead8(uint32_t address, uint8_t aModifier, uint8_t* data)
+{
+  CVMUSBReadoutList list;
+  list.addRead8(address, aModifier);
+  uint32_t lData;
+  int      status = doVMERead(list, &lData);
+  *data  = static_cast<uint8_t>(lData);
+  return status;
+}
 
 //////////////////////////////////////////////////////////////////////////
+/////////////////////////// Block read operations ////////////////////////
+/////////////////////////////////////////////////////////////////////////
 
+/*!
+    Read a block of longwords from the VME.  It is the caller's responsibility
+    to:
+    - Ensure that the starting address of the transfer is block aligned
+      (that is a multiple of 0x100).
+    - That the address modifier is  block transfer modifier such as
+      CVMUSBReadoutList::a32UserBlock.
+    The list construction takes care of the case where the count spans block
+    boundaries or requires a trailing partial block transfer.  Note that
+    transfers are done in 32 bit width.
+
+    \param baseAddress : uint32_t
+      First transfer address of the transfer.
+    \param aModifier   : uint8_t
+      Address modifier of the transfer.  See above for restrictions.
+    \param data        : void*
+       Buffer to hold the data read.
+    \param transferCount : size_t
+       Number of \em Longwords to transfer.
+    \param countTransferred : size_t*
+        Pointer to a size_t into which will be written the number of longwords
+        actually transferred.  This can be used to determine if the list
+        exited prematurely (e.g. due to a bus error).
+
+     \return int
+     \retval 0  - Successful completion.  Note that a BERR in the middle
+                  of the transfer is successful completion.  The countTransferred
+                  will be less than transferCount in that case.
+     \retval -1 - Failure on usb_bulk_write, the actual cause of the error is
+                  in errno, countTransferred will be 0.
+     \retval -2 - Failure on the usb_bulk_write, The actual error will be in 
+                  errno.  countTransferred will be 0.
+
+*/
+int
+CVMUSB::vmeBlockRead(uint32_t baseAddress, uint8_t aModifier,
+		     void*    data,        size_t transferCount, 
+		     size_t*  countTransferred)
+{
+  // Create the list:
+
+  CVMUSBReadoutList list;
+  list.addBlockRead32(baseAddress, aModifier, transferCount);
+
+
+  *countTransferred = 0;
+  int status = executeList(list, data, transferCount*sizeof(uint32_t),
+			   countTransferred);
+  *countTransferred = *countTransferred/sizeof(uint32_t); // bytes -> transfers.
+  return status;
+}
+/*!
+   Do a 32 bit wide block read from a FIFO.  The only difference between
+   this and vmeBlockRead is that the address read from is the same for the
+   entire block transfer.
+*/
+int 
+CVMUSB::vmeFifoRead(uint32_t address, int8_t aModifier,
+		    void*    data,    size_t transferCount, size_t* countTransferred)
+{
+  CVMUSBReadoutList list;
+  list.addFifoRead32(address, aModifier, transferCount);
+
+  *countTransferred = 0;
+  int status =  executeList(list, data, transferCount*sizeof(uint32_t), 
+			    countTransferred);
+  *countTransferred = *countTransferred/sizeof(uint32_t); // bytes -> transferrs.
+  return status;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+/////////////////////////// List operations  ////////////////////////////
+/////////////////////////////////////////////////////////////////////////
   
 /*!
     Execute a list immediately.  It is the caller's responsibility
@@ -499,61 +715,121 @@ CVMUSB::executeList(CVMUSBReadoutList&     list,
 		   size_t                 readBufferSize,
 		   size_t*                bytesRead)
 {
-    int listLongwords = list.size();
-    int listShorts    = listLongwords*sizeof(uint32_t)/sizeof(uint16_t);
-    int packetShorts    = (listShorts + 3);
-    uint16_t* outPacket = new uint16_t[packetShorts];
-    uint16_t* p         = outPacket;
+  size_t outSize;
+  uint16_t* outPacket = listToOutPacket(TAVcsWrite | TAVcsIMMED,
+					list, &outSize);
     
-    // Fill the outpacket:
-
-    p = static_cast<uint16_t*>(addToPacket16(p, TAVcsWrite | TAVcsIMMED));  // Write for immed execution
-    p = static_cast<uint16_t*>(addToPacket32(p, listShorts+1));
-
-    vector<uint32_t> stack = list.get();
-    for (int i = 0; i < listLongwords; i++) {
-	p = static_cast<uint16_t*>(addToPacket32(p, stack[i]));
-    }
-
     // Now we can execute the transaction:
-
-    int status = transaction(outPacket, packetShorts*sizeof(uint16_t),
-			     pReadoutBuffer, readBufferSize);
-
-
-
-    delete []outPacket;
-    if(status >= 0) {
-	*bytesRead = status;
-    } 
-    else {
-	*bytesRead = 0;
-    }
-    return (status >= 0) ? 0 : status;
-
+    
+  int status = transaction(outPacket, outSize,
+			   pReadoutBuffer, readBufferSize);
+  
+  
+  
+  delete []outPacket;
+  if(status >= 0) {
+    *bytesRead = status;
+  } 
+  else {
+    *bytesRead = 0;
+  }
+  return (status >= 0) ? 0 : status;
+  
 }
-///////////////////////////////////////////////////////////////////////
 /*!
-    write the bluk transfer setup register.  This register
-    sets up a few of the late breaking data taking parameters
-    that are built to allow data to flow through the USB more
-    effectively.  For bit/mask/shift-count definitions of this
-    register see CVMUSB::TransferSetup.
-    \param value : uint32_t
-      The value to write to the register.
+   Load a list into the VM-USB for later execution.
+   It is the callers responsibility to:
+   -  keep track of the lists and their  storage requirements, so that 
+      they are not loaded on top of or overlapping
+      each other, or so that the available list memory is not exceeded.
+   - Ensure that the list number is a valid value (0-7).
+   - The listOffset is valid and that there is room in the list memory
+     following it for the entire list being loaded.
+   This code just load the list, it does not attach it to any specific trigger.
+   that is done via register operations performed after all the required lists
+   are in place.
+    
+   \param listNumber : uint8_t  
+      Number of the list to load. 
+   \param list       : CVMUSBReadoutList
+      The constructed list.
+   \param listOffset : off_t
+      The offset in list memory at which the list is loaded.
+      Question for the Wiener/Jtec guys... is this offset a byte or long
+      offset... I'm betting it's a longword offset.
+*/
+int
+CVMUSB::loadList(uint8_t  listNumber, CVMUSBReadoutList& list, off_t listOffset)
+{
+  // Need to construct the TA field, straightforward except for the list number
+  // which is splattered all over creation.
+  
+  uint16_t ta = TAVcsSel | TAVcsWrite;
+  if (listNumber & 1)  ta |= TAVcsID0;
+  if (listNumber & 2)  ta |= TAVcsID1; // Probably the simplest way for this
+  if (listNumber & 4)  ta |= TAVcsID2; // few bits.
+
+  size_t   packetSize;
+  uint16_t* outPacket = listToOutPacket(ta, list, &packetSize, listOffset);
+
+
+  uint32_t   inPacket;		// I don't think we get anything actually?
+
+  int status = transaction(outPacket, packetSize, 
+			   &inPacket, sizeof(inPacket));
+
+  delete []outPacket;
+  return (status >= 0) ? 0 : status;
+
+
+  
+}
+/*!
+  Execute a bulk read for the user.  The user will need to do this
+  when the VMUSB is in autonomous data taking mode to read buffers of data
+  it has available.
+  \param data : void*
+     Pointer to user data buffer for the read.
+  \param buffersSize : size_t
+     size of 'data' in bytes.
+  \param transferCount : size_t*
+     Number of bytes actually transferred on success.
+  \param timeout : int [2000]
+     Timeout for the read in ms.
+ 
+  \return int
+  \retval 0   Success, transferCount has number of bytes transferred.
+  \retval -1  Read failed, errno has the reason. transferCount will be 0.
+
+*/
+int 
+CVMUSB::usbRead(void* data, size_t bufferSize, size_t* transferCount, int timeout)
+{
+  int status = usb_bulk_read(m_handle, ENDPOINT_IN,
+			     static_cast<char*>(data), bufferSize,
+			     timeout);
+  if (status >= 0) {
+    *transferCount = status;
+    status = 0;
+  } 
+  else {
+    errno = -status;
+    status= -1;
+    *transferCount = 0;
+  }
+  return status;
+}
+
+/*! 
+   Set a new transaction timeout.  The transaction timeout is used for
+   all usb transactions but usbRead where the user has full control.
+   \param ms : int
+      New timeout in milliseconds.
 */
 void
-CVMUSB::writeBulkXferSetup(uint32_t value)
+CVMUSB::setDefaultTimeout(int ms)
 {
-    writeRegister(USBSetup, value);
-}
-/*!
-   Read the bulk transfer setup register.
-*/
-uint32_t
-CVMUSB::readBulkXferSetup()
-{
-    return readRegister(USBSetup);
+  m_timeout = ms;
 }
 
 ////////////////////////////////////////////////////////////////////////
@@ -767,4 +1043,73 @@ CVMUSB::whichToISV(int which)
 	    throw string(msg);
 	}
     }
+}
+// If the write list has already been created, this fires it off and returns
+// the appropriate status:
+//
+int
+CVMUSB::doVMEWrite(CVMUSBReadoutList& list)
+{
+  uint16_t reply;
+  size_t   replyBytes;
+  int status = executeList(list, &reply, sizeof(reply), &replyBytes);
+  // Bus error:
+  if ((status == 0) && (reply == 0)) {
+    status = -3;
+  }
+  return status;
+}
+
+// Common code to do a single shot vme read operation:
+int
+CVMUSB::doVMERead(CVMUSBReadoutList& list, uint32_t* datum)
+{
+  size_t actualRead;
+  int status = executeList(list, &datum, sizeof(uint32_t), &actualRead);
+  return status;
+}
+
+//  Utility to create a stack from a transfer address word and
+//  a CVMUSBReadoutList and an optional list offset (for non VCG lists).
+//  Parameters:
+//     uint16_t ta               The transfer address word.
+//     CVMUSBReadoutList& list:  The list of operations to create a stack from.
+//     size_t* outSize:          Pointer to be filled in with the final out packet size
+//     off_t   offset:           If VCG bit is clear and VCS is set, the bottom
+//                               16 bits of this are put in as the stack load
+//                               offset. Otherwise, this is ignored and
+//                               the list lize is treated as a 32 bit value.
+//  Returns:
+//     A uint16_t* for the list. The result is dynamically allocated
+//     and must be released via delete []p e.g.
+//
+uint16_t*
+CVMUSB::listToOutPacket(uint16_t ta, CVMUSBReadoutList& list,
+			size_t* outSize, off_t offset)
+{
+    int listLongwords = list.size();
+    int listShorts    = listLongwords*sizeof(uint32_t)/sizeof(uint16_t);
+    int packetShorts    = (listShorts + 3);
+    uint16_t* outPacket = new uint16_t[packetShorts];
+    uint16_t* p         = outPacket;
+    
+    // Fill the outpacket:
+
+    p = static_cast<uint16_t*>(addToPacket16(p, ta)); 
+    //
+    // The next two words depend on which bits are set in the ta
+    //
+    if(ta & TAVcsIMMED) {
+      p = static_cast<uint16_t*>(addToPacket32(p, listShorts+1)); // 32 bit size.
+    }
+    else {
+      p = static_cast<uint16_t*>(addToPacket16(p, listShorts+1)); // 16 bits only.
+      p = static_cast<uint16_t*>(addToPacket16(p, offset));       // list load offset. 
+    }
+
+    vector<uint32_t> stack = list.get();
+    for (int i = 0; i < listLongwords; i++) {
+	p = static_cast<uint16_t*>(addToPacket32(p, stack[i]));
+    }
+    *outSize = packetShorts;
 }
