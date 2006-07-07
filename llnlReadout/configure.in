@@ -215,4 +215,5 @@ AC_SUBST(CPPUNIT_LDFLAGS)
 #  Create output files:
 
 AC_OUTPUT([Makefile
-	  vmusb/Makefile])
+	  vmusb/Makefile
+	  devices/Makefile])
