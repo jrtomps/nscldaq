@@ -15,17 +15,7 @@
 */
 
 // Class: CStreamIOError                     //ANSI C++
-//
-// Encapsulates error conditions on an ios
-// derived object as an exception.
-// Note that objects of this type carry with them
-// a reference to the stream on which the condition
-// was detected.  This reference may become invalid
-//  if the exception propagates up the call stack
-//  far enough to cause the stream to be destroyed.
-//  I would have ideally liked to carry a copy of the stream,
-//  however far too few ios derived classes are derived
-//  from ***_withassign to make this practical.
+
 //
 // Author:
 //     Ron Fox
@@ -50,7 +40,30 @@
 #define __STL_STRING
 #endif                
      
+/*!
+//
+ Encapsulates error conditions on an ios
+ derived object as an exception.
+ Note that objects of this type carry with them
+ a reference to the stream on which the condition
+ was detected.  This reference may become invalid
+  if the exception propagates up the call stack
+  far enough to cause the stream to be destroyed.
+  I would have ideally liked to carry a copy of the stream,
+ however far too few ios derived classes are derived
+  from ***_withassign to make this practical.
 
+  ReasonText returns an textual analysis of the reason.
+
+  ReasonCode returns one of the following cast to an int:
+  - CStreamIOError::EndFile -  End file encountered while reading.
+  - CStreamIOError::BadSet  - The bad bit was set on the stream.
+  - CStreamIOError::FailSet - The fail bit was set on the stream.
+
+  getStream returns a reference to the stream that failed, note, however
+  that it is possible for this reference to be invalid if the stream leaves
+  scope on the way to searching for the exception handler.
+*/
 class CStreamIOError  : public CException        
 {       
 public:				// Data types;
@@ -59,7 +72,6 @@ public:				// Data types;
     BadSet,
     FailSet
   } IoStreamConditions;
-
 private:  
   IoStreamConditions m_eReason; //Reason for the throw
   std::ios&               m_rStream; //Reference to stream <may be invalid>

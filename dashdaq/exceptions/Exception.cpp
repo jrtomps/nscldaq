@@ -102,44 +102,44 @@ CException::operator==(const CException& rException) const
 }
 
 
-//////////////////////////////////////////////////////////////////////////
-//
-//  Function:   
-//    const Textsz_t ReasonText (  )
-//  Operation Type:
-//     Selector.
-//
+
+
+/*!
+ Returns a const pointer to text which
+ describes the reason the exception was
+ thrown.  This is exception type
+ specific.  
+ \return const char*
+ \retval Usually provided by derived classes
+          The default action returns
+	  a pointer to the constant string:
+	  "Unspecified Exception"
+
+*/
 const char*
 CException::ReasonText() const 
 {
-// Returns a const pointer to text which
-// describes the reason the exception was
-// thrown.  This is exception type
-// specific.   The default action returns
-// a pointer to the constant string:
-//      "Unspecified Exception"
-//
+
 
   return "Unspecified Exception";
 
 }
-//////////////////////////////////////////////////////////////////////////
-//
-//  Function:   
-//    int ReasonCode (  )
-//  Operation Type:
-//     Selector
-//
+/*!
+ Returns a code which describes the reason for the
+ exception .  This is exception type specific and may
+ be used to do detailed exception analysis and recovery.
+ For example in the CErrnoException class, the errno
+ at the time of instantiation of the object is returned.
+
+ \return int
+ \retval Usually provided by derived clsses.
+         The default returns -1
+
+ */
 int 
 CException::ReasonCode() const 
 {
-// Returns a code which describes the reason for the
-// exception .  This is exception type specific and may
-// be used to do detailed exception analysis and recovery.
-// For example in the CErrnoException class, the errno
-// at the time of instantiation of the object is returned.
-// The default returns -1
-//
+
 
   return -1;
 

@@ -75,12 +75,15 @@ CStreamIOError::getErrorMessage() const
 //     ReasonText()
 //  Operation Type: 
 //     selector
+/*!
+   Returns error text describing this error.
+   in this case this is a string consisting of the
+   error reason and the action at the time the
+   exception was thrown. 
+*/
 const char* CStreamIOError::ReasonText()   const
 {
-  // Returns error text describing this error.
-  // in this case this is a string consisting of the
-  // error reason and the action at the time the
-  // exception was thrown.
+
   
   return getErrorMessage();
 

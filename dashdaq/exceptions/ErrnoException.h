@@ -49,7 +49,16 @@
 #define __STL_STRING
 #endif
 
-  
+/*!
+  Encapsulates an error that was reported by the unix/c/c++ errno
+  mechanism.  This should be thrown as soon after the error as possible
+  to ensure that the errno "doesn't get away".
+
+  ReasonText will return the context and the text associated with the
+  value of the errno at the time of construction via strerror().
+
+  ReasonCode will return the errno at the time of construction
+*/
 class CErrnoException  : public CException        
 {
   int m_nErrno;  // // Snapshot of errno at construction time.

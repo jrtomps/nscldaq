@@ -44,7 +44,21 @@
 #include <string>
 #define __STL_STRING
 #endif  
-                               
+
+/*!
+   Describes a range error.  A range error occurs when an integer
+   parameter is provided to a function and the paramter is out of the
+   valid range.
+
+    ReasonText produces text that describes the valid range and the number 
+    actually provided.
+
+    ReasonCode returns either knTooHigh or knTooLow depending on how the value
+    compares to the range.
+
+    Additional functions getLow, getHigh and getRequested provide further
+    contextual information.
+*/
 class CRangeError  : public CException        
 {
   int m_nLow;			// Lowest allowed value for range (inclusive).
@@ -124,15 +138,15 @@ public:
   //             for CException.
 public:                             
 
-  int getLow() const
+  int getLow() const		//!< Get low limit of range.
   {
     return m_nLow;
   }
-  int getHigh() const
+  int getHigh() const		//!< Get high limit of range.
   {
     return m_nHigh;
   }
-  int getRequested() const
+  int getRequested() const	//!< Get bad value that was provided.
   {
     return m_nRequested;
   }

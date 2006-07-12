@@ -1,0 +1,21 @@
+/*!
+	\page exception_intro    Introduction to the Exception class hierarchy
+	\section sec_exceptions   Exception classes.
+
+	This component provides a hierarchy of exceptions that are thrown
+by the DASH components.  You may also use these exceptions in your code.
+
+This component has a single key base classs: CException.  CException provides
+the following features:
+    - Exception context information (a text string that indicates what was
+      happening when an exception was thrown.
+    - A virtual member function called CException::ReasonText which provides
+      a text string suitable for output that describes the exception.\
+   - A virtual member function called CException::ReasonCode which, for exceptions
+     that have subtypes which may dictate recovery strategy returns an integer
+     code specific to the exception type that describes to the program why the
+     exception was thrown.
+
+For more information about the exception class hierarchy, See the CException class.
+
+*/

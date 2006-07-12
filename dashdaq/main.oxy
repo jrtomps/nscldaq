@@ -1,0 +1,23 @@
+/*!
+	\mainpage NSCL DAQ Super highway programmer's documentation
+
+      \section sec_intro Introduction
+
+   The NSCL DAQ Super Highway (DASH) is a new concept in data acquisition
+   systems.  Recognizing that advances in networking technology make the
+   need for traditional data distribution systems obsolete, DASH puts
+   data directly to file.  Data analysis is managed offline by reading the
+   event files taken during an experiment.  Online a utility simliar to the
+   unix tail -f command is used to sample data as it is appended to the
+   current event file.
+
+      \section sec_components Components
+
+   This section provides links to software documentation for the various
+   subcomponents of the DASH system. 
+ 
+   - \ref sec_exceptions Exceptions
+     This component provides a hierarchy of C++ exception classes for
+     DASH.  The DASH software will internally throw these exceptions as
+     warranted, and you may use them in your code as well.  
+*/
