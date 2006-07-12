@@ -1,4 +1,4 @@
-/*
+\/*
     This software is Copyright by the Board of Trustees of Michigan
     State University (c) Copyright 2005.
 
@@ -51,7 +51,7 @@
 
 // Typedefs for the parameter checker are in the global namespace:
 
-typedef bool (*typeChecker)(STD(string) name, STD(string) value, void* arg);
+typedef bool (*typeChecker)(std::string name, std::string value, void* arg);
 
 /*!
    Configurable object consist of a name and a configuration.
@@ -86,18 +86,23 @@ typedef bool (*typeChecker)(STD(string) name, STD(string) value, void* arg);
 class CConfigurableObject {
   // internal typedefs:
 private:
-  typedef STD(pair)<typeChecker, void*>  TypeCheckInfo;	// Type checker + arg.
-  typedef STD(map)<STD(string), STD(pair)<STD(string), TypeCheckInfo> > Configuration;
-  typedef Configuration::iterator   ConfigIterator;
+  typedef std::pair<typeChecker, void*>         TypeCheckInfo;	// Type checker + arg.
+  typedef std::pair<std::string, TypeCheckInfo> ConfigData;
+  typedef std::map<std::string, ConfigData>     Configuration;
+  typedef Configuration::iterator               ConfigIterator;
 
   // public typedefs:
 
-  typedef STD(vector)<STD(pair)<STD(string), STD(string)> > ConfigurationArray;
+  typedef std::vector<std::pair<std::string, std::string> > ConfigurationArray;
   
-  // Arg types for the standard typdefs:
+  // Arg types for the standard type checkers.
 
-  typedef STD(pair)<int, int>   isIntParameter;
-  typedef STD(set)<STD(string)> isEnumParameter;
+  struct  limit {
+    bool   s_checkMe;
+    long    s_value;
+  }
+  typedef std::pair<limit, limit>   isIntParameter;
+  typedef std::set<std::string> isEnumParameter;
   struct ListSizeConstraint {
     int s_atLeast;
     int s_atMost;
@@ -109,12 +114,13 @@ private:
   };
 
 private:
-  STD(string)     m_name;	//!< Name of this object.
+  std::string     m_name;	//!< Name of this object.
   Configuration   m_parameters;	//!< Contains the configuration parameters.
 
 public:
   // Canonicals..
 
+  CConfigurableObject(std::string name);
   CConfigurableObject(const CConfigurableObject& rhs);
   virtual ~CConfigurableObject();
   CConfigurableObject& operator=(const CConfigurableObject& rhs);
@@ -124,31 +130,33 @@ public:
   //  Selectors:
 
 public:
-  STD(string) getName() const;
+  std::string getName() const;
+  std::string cget(std::string name) const;
+  ConfigurationArray cget()          const;
 
   // Operations:
 
 public:
+  // Establishing the configuration:
+
+  void addParameter(std::string name, typeChecker checker, void* arg 
+		    std::string default = std::string(""));
 
   // Manipulating and querying the configuration:
 
-  void configure(STD(string) name, STD(string) value);
-  STD(string) cget(STD(string) name) const;
-  ConfigurationArray cget()          const;
+  void configure(std::string name, std::string value);
 
-  // Establishing the configuration:
 
-  void addParameter(STD(string), typeChecker checker, void* arg);
 
   // common type checkers:
 
-  static bool isInteger(STD(string) name, STD(string) value, void* arg);
-  static bool isBool(   STD(string) name, STD(string) value, void* arg);
-  static bool isEnum(   STD(string) name, STD(string) value, void* arg);
-  static bool isList(   STD(string) name, STD(string) value, void* arg);
-  static bool isBoolList(STD(string) name,STD(string) value, void* arg);
-  static bool isIntList(STD(string) name, STD(string) value, void* arg);
-  static bool isStringList(STD(string) name, STD(string) value, void* arg);
+  static bool isInteger(std::string name, std::string value, void* arg);
+  static bool isBool(   std::string name, std::string value, void* arg);
+  static bool isEnum(   std::string name, std::string value, void* arg);
+  static bool isList(   std::string name, std::string value, void* arg);
+  static bool isBoolList(std::string name,std::string value, void* arg);
+  static bool isIntList(std::string name, std::string value, void* arg);
+  static bool isStringList(std::string name, std::string value, void* arg);
   
 };
 
