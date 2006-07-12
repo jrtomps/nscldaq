@@ -59,6 +59,7 @@ bool CVMESubsystem::m_lockHeld(false);
 
 CVMESubsystem::Interfaces CVMESubsystem::m_Interfaces;
 
+CVMESubsystem* CVMESubsystem::m_Singleton(0);
 
 /*!
    Install a new interface.  A crate number is allocated and returned
@@ -311,6 +312,20 @@ CVMESubsystem::unlock()
   for (int i = 0; i < m_Interfaces.size(); i++) {
     m_Interfaces[i].s_pInterface->onUnlock();
   } 
+}
+
+/*!
+  Get an instance (useful in initializers of constructors).. that does not
+  have to be destroyed)... provides a singleton interface.
+
+*/
+CVMESubsystem&
+CVMESubsystem::getInstance()
+{
+  if (!m_Singleton) {
+    m_Singleton = new CVMESubsystem;
+  }
+  return *m_Singleton;
 }
 
 /////////////////

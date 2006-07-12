@@ -93,6 +93,8 @@ private:
   static bool m_lockHeld;
   
   static Interfaces  m_Interfaces;
+
+  static CVMESubsystem* m_Singleton;
 public:
 
   // Interface management:
@@ -116,6 +118,8 @@ public:
 
   static void lock();
   static void unlock();
+
+  static CVMESubsystem& getInstance();
 
   // Utilities...
 
