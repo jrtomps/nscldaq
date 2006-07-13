@@ -1,0 +1,85 @@
+/*!
+	\page pg_VME  DASH VME support framework
+
+        \section sec_vmeintro Introduction to the DASH VME support framework.
+
+	DASH VME support recognizes that there are several competing VME
+        bus interfaces on the market.  Each one has its own strengths and
+        weaknesses.  Each one its own special capabilities.
+
+	\subsection ssec_vmeclasses Major classes in DASH VME support
+
+	The major classes in the DASH VME suport are as follows:
+	- CVMESubsystem - This class consists of mostly static methods.
+          it maintains an ordered list of VME interfaces that have been
+          installed on the system.  It can return single VME interface objects
+          which, in turn, allow you to access the services of that interface.
+          The interface list is shared amongst all instances of this class in
+          a process.
+        - CVMEInterface - This is an abstract base class that defines the services
+                          all VME interfaces must supply.  Instances of concrete
+                          subclasses of CVMEInterface are what get stuck into 
+                          the CVMESubsystem.
+        - CVMEAddressRange - Represents a range of addresses that can be accessed
+                          randomly.  For interfaces that support direct mapping
+                          of the bus to process space, this can be the most
+                          efficient way to access the bus.
+        - CVMEList - Represents the list processor in VME interfaces, one of the
+                     concrete subclasses, CSimulatedVMEList allows interfaces
+                     without hardware intelligence to emulate this mode of operation.
+        - CVMEPio  - Represents access to a VME interface that requires a driver
+                     interaction for each operation.
+        - CVmeDMATransfer - Represents sequential access to a block of vme address
+                    space usually implemented via DMA block transfers.
+        - CVMEInterfaceFactory - A singleton factory object that supports the
+                   creation of objects from concrete classes derived from 
+                   CVMEInterface given a description.  See
+		   \ref ssec_supportingnewvme Building VME subsystems from configurations
+                   for more information about this.
+        - CVMEInterfaceCreator - An abstract base class defining the interface for
+                  objects that tell the CVMEInterfaceFactory how to build and 
+                  configure particular CVMEInterface objects.
+
+        The idea is that you follow these steps to use the library:
+  	-# Create CVMEInterface objects and populate the CVMESubsystem with them.
+        -# Accessing a particular CVMEinterface object, use its object creational
+          methods to create as appropriate CVMEAddressRange, CVMEList,
+	  CVMEPio, and/or CVMEDMATransfer objects to access the appropriate VME
+          busses.
+
+
+        \subsection ssec_vmeconfiguration Building VME subsystems from configurations
+
+	DASH VME support anticipates but does not require that VME subsystems
+        will be built from configuration files.  The key to doing this is the
+        CVMEInterfaceFactory and the CVMEInterfaceCreator objects registered
+        with it to implement the strategies of creating and configuring specific
+        interfaces.
+
+        These coupled with the CVMESubsystem::processDescription and
+        CVMESubsystem::ProcessDescriptionFile methods allow the VME subsystem
+        to be built automatically from a configuration file.
+        This works as follows:
+	-# CVMEInterfaceCreator objects are instantiated for each
+          of the VME interfaces supported by the system.  These are registered
+          with the CVMEInterfaceFactory by calling CVMEInterfaceFactory::addCreator
+        -# Open a description file and pass the open stream to 
+          CVMESubsystem::ProcessDescriptionFile.
+
+       Description files consist of lines of text.  Each line of text physically 
+       ends in a newline.  Lines of text can logically end in a point (#) character.
+       Blank logical lines are ignored.   Logical lines consist of an interface type
+       name (used to select the appropriate CInterfaceCrator), and a configuration
+       that is passded uninterpreted to the CInterfaceCreator and used to 
+       configure an interface after it is created.
+
+       Interfae configurations are generallly sets of keyword value pairs.
+       See each CVMEInterfaceCreator class documentation page for more information
+       about the format of the configuration file.
+    
+       
+
+        \subsection ssec_supportingnewvme  Supporting a new VME interface type.
+
+	\subsection ssec_vmecompiling Compiling and linking to DASH VME support.
+*/

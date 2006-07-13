@@ -20,4 +20,10 @@
      This component provides a hierarchy of C++ exception classes for
      DASH.  The DASH software will internally throw these exceptions as
      warranted, and you may use them in your code as well.  
+   - \ref sec_vmeintro VME
+     This component provides low level access to the VME bus interfaces
+     supported by the DASH system.  VME bus support is extensible, flexible
+     and can be heterogenous (more than one type of bus interface supported
+     within the same system).
+
 */
