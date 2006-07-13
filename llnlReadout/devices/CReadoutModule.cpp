@@ -68,6 +68,9 @@ CReadoutModule::operator=(const CReadoutModule& rhs)
   if (this != &rhs) {
     delete m_pHardware;
     m_pHardware = new *(rhs.m_pHardware);
+    clearConfiguration();
+    m_pHardware->onAttach(*this); // Re-setup the configuration.
+
   }
   return *this;
 }

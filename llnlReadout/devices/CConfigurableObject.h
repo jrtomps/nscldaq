@@ -141,6 +141,8 @@ public:
   void addParameter(std::string name, typeChecker checker, void* arg 
 		    std::string default = std::string(""));
 
+  void clearConfiguration();
+
   // Manipulating and querying the configuration:
 
   void configure(std::string name, std::string value);

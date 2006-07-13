@@ -239,6 +239,15 @@ CConfigurationParameter::configure(string name, string value)
   m_parameters[name].second.first = value;
 
 }
+/*!
+  clear the current configuration.  The configuration map m_parameters
+  map is emptied.
+*/
+void
+CConfigurableObject::clearCOnfiguration()
+{
+  m_parameters.clear();
+}
 ////////////////////////////////////////////////////////////////////////////
 /////////////////////  Stock type checkers //////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////
