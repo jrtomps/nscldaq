@@ -16,11 +16,19 @@
 
 #include <config.h>
 #include "CConfigurableObject.h"
+#include <set>
 #include <stdlib.h>
 #include <errno.h>
-
+#include <tcl.h>
 
 using namespace std;
+
+////////////////////////////////////////////////////////////////////////////
+//////////////////////////    Constants ///////////////////////////////////
+///////////////////////////////////////////////////////////////////////////
+
+static const ListSizeConstraint unconstrainedSize = {{false, 0},
+						     {false, 0}};
 
 ///////////////////////////////////////////////////////////////////////////
 //////////////////////// Canonical member functions ///////////////////////
@@ -267,11 +275,11 @@ CConfigurableObject::isInteger(string name, string value, void* arg)
 
   // Get the validator in the correct form:
 
-  isIntParameter* pRange = dynamic_cast<isIntParameter*>(arg);
-  if (!isIntParameter) {
+  Limits* pRange = dynamic_cast<Limits*>(arg);
+  if (!pRange) {
     string msg("BUG: argument for integer validator for parameter: ");
     msg += name;
-    msg += " is not a pointer to a isIntParameter type";
+    msg += " is not a pointer to a Limits type";
   }
   // check lower limit:
 
@@ -282,4 +290,244 @@ CConfigurableObject::isInteger(string name, string value, void* arg)
     return false;
   }
   return true;
+}
+
+/*!
+    Validate a bool parameter.  Bool parameters have any of the values:
+    - true: true, yes, 1, on, enabled
+    - false: false, no, 0, off, disabled
+   We'll just delegate this off to isEnum.
+   \param name  : std::string
+     Name of the parameter
+   \param value : std:: string
+     proposed new value.
+   \param ignored : void*
+     Ignored value parameter.
+   
+    \return bool
+    \retval true  If valid.
+    \retval false If invalid.
+*/
+bool
+CConfigurableObject::isBool(string name, string value, void* ignored)
+{
+  // Build the set required by isEnum:
+
+  set<string> allowedValues;
+  allowedValues.insert("true");  // True values:
+  allowedValues.insert("yes");
+  allowedValues.insert("1");
+  allowedValues.insert("on");
+  allowedValues.insert("enabled");
+
+  allowedValues.insert("false"); // False values.
+  allowedValues.insert("no");
+  allowedValues.insert("0");
+  allowedValues.insert("off");
+  allowedValues.insert("disabled");
+
+  return isEnum(name, value, &allowedValues);
+}
+/*!
+   Validate an enum parameter.
+   An enumerated parameter is one that can be a string drawn from a limited
+   set of keywords. Validation fails of the string is not one of the
+   valid keywords.
+   \param name : std::string
+      Name of the parameter.
+   \param value : std::string
+      Proposed parameter value.
+   \param values : void*
+      Actually an std::set<string>* where the set elements are the
+      valid keywords.
+  \return bool
+  \retval true If valid. 
+  \retval false If invalid.
+*/
+bool
+CConfigurableObject::isEnum(string name, string value, void* values)
+{
+  set<string>& validValues(dymamic_cast<set<string>&>(*values));
+
+  return ((validValues.find(value) != validValues.end()) ? true : false);
+
+}
+
+
+/*!
+   Validate a list parameter.   To simplify; a list parameter
+   is a Tcl formatted list.  List validation can fail for the following
+   reasons:
+   - The value is not a properly formatted list.
+   - The value has too many list elements.
+   - The value has too few list elements.
+   - One or more of the list elements fails validation.
+   \param name : std::string
+      Name of the parameter being modified.
+   \param value : std::string
+      Value proposed for the parameter.
+   \param validity : void*
+      Actually an optional pointer to an isListParameter:
+      - If validity is NULL, no size or element validity checking is done.
+      - If validity is non-null, it's s_allowedSize element is used to 
+        validate the list size, and if the s_checker.first is not null,
+        it is used to validate the list elementss.
+
+   \return bool
+   \retval true List is valid.
+   \retval fals List is invalid.
+
+*/
+bool
+CConfigurableObject::isList(string name, string value, void* validity)
+{
+  // First ensure the list can be split:
+
+  int    listSize;
+  char** list;
+  int status = Tcl_SplitList((Tcl_Interp*)NULL, value.c_str(),
+			     &listSize, &list);
+  if (status != TCL_OK) {
+    return false;
+  }
+  // The list is valid. Validate elements if needed:
+
+  bool result = true;
+  if (validity) {
+    isListParameter& listValidity(dynamic_cast<isListParameter&>(*validity));
+    
+
+    // Check length constraints.
+
+    if (listValidity.s_allowedSize.s_atLeast.s_checkMe && 
+	(listSize < listValidity.s_allowedSize.s_atLeast.s_value)) {
+      result = false;
+    }
+    if (listValidity.s_allowedSize.s_atMost.s_checkMe &&
+	(listSize > listValidity.s_allowedSize.s_atMost.s_value)) {
+      result = false;
+    }
+    // If checker supplied, check all the list elements for validity.
+
+    if (result && listValidity.s_checker.first) {
+      for (int i=0; i < listSize; i++) {
+	result = (*listValidity.s_checker.first)(name, list[i], 
+						 listValidity.s_checker.second);
+      }
+    }
+
+  }
+
+  Tcl_Free(list);
+  return result;
+
+}
+/*!
+    Check that a list is a valid bool list.
+    This is done by constructing the listValidity object with a list element
+    checker set to the bool element checker.
+    \param name : std::string
+      Name of the parameter.
+    \param value : std:: string
+      Proposed new value.
+    \param sizes : void*
+      Actually a pointer to Limits if non null:
+      - If NULL elements are checked for validity but any list size is ok.
+      - If non NULL elements are checked for validity and Limits set the
+        limits on size.
+    \return bool
+    \retval true List validates.
+    \retval false List is not valid.
+*/
+bool
+CConfigurableObject::isBoolList(string name, string value, void* size)
+{
+  // Set up our isListParameter struct initialized so that only
+  // elements will be checked:
+
+  isListParameter validator;
+  validator.s_checker.first = isBool;
+  validator.s_checker.second= NULL;
+
+  if (size) {
+    ListSizeContraint& limits(dynamic_cast<ListSizeConstraint&>(*size));
+    validator.s_allowedSize = limits;
+
+  }
+  else {
+    validator.s_allowedSize = unconstrainedSize;
+
+  }
+  return isList(name, value, &validator);
+}
+/*!
+    Check that this is a valid list of integers.
+    For string lists in this implementation we are not able to do range
+    checking on the values of the list elements.  We do, however enforce
+    the integer-ness of each element of the list.
+    \param name : std::string
+       Name of the parameter.
+    \param value : std::string
+       Proposed value of the parameter.
+    \param sizes : void*
+       Actually a pointer to a ListSizeConstraint which, if non null places
+       constraints on the number of elements in the list.
+    \return bool
+    \retval true  - List validated.
+    \retval false - List not validated
+
+    \todo Extend the parameter to us to supply optional limit information.
+*/
+bool
+CConfigurableObject::isIntList(string name, string value, void* size)
+{
+  isListParametr validator;
+  validator.s_checker.first  = isInteger; // Require integer but 
+  validator.s_checker.second = NULL;      // No range requirements. 
+
+ 
+  
+
+  if (size) {
+    ListSizeConstraint& limits(dynamic_cast<ListSizeConstraint&>(*size));
+    validator.s_allowedSize = limits;
+  }
+  else {
+    validator.s_allowedSize = unconstrainedSize;
+  }
+  return isList(name, value, &validator);
+}
+/*!
+    Check for a string list.  String lists are allowed to have just about anything
+    as element values...therefore, if the validSizes parameter is present, we'll
+    do list size checking only, otherwise on list syntax checking.
+    \param name : std::string
+       Name of the parameter being modified.
+    \param value ; std::string
+       proposed new value for the parameter.
+    \param validSizes : void*
+       Actually a pointer to a ListSizeConstraint structure that, if non-null
+       defines the list size checking that will take place.  If NULL, any sized
+       list (including empty) is allowed.
+    \return bool
+    \retval true  - List validated.
+    \retval false - List not validated
+
+*/
+bool
+CConfigurableObject::isStringList(string name, string value, void* validSizes)
+{
+  isListParameter validator;
+  validator.s_checker.first  = static_cast<typeChecker>(NULL);
+  validator.s_checker.second = NULL;
+
+  if (validSizes) {
+    ListSizeConstraint& limits(dynamic_cast<ListSizeConstraint&>(*validSizes));
+    validator.s_allowedSize = limits;
+  }
+  else {
+    validator.s_allowedSize = unconstrainedSize;
+  }
+
+  return isList(name, value, &validator);
 }

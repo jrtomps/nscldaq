@@ -101,17 +101,16 @@ private:
     bool   s_checkMe;
     long    s_value;
   }
-  typedef std::pair<limit, limit>   isIntParameter;
+  typedef std::pair<limit, limit>   Limits;
   typedef std::set<std::string> isEnumParameter;
   struct ListSizeConstraint {
-    int s_atLeast;
-    int s_atMost;
+    limit s_atLeast;
+    limit s_atMost;
   };
   typedef _isListParameter {
     ListSizeConstraint s_allowedSize;
-    typeChecker        s_Checker;
-    void*              s_CheckerArg;
-  };
+    TypeCheckInfo      s_checker;
+  } isListParameter;
 
 private:
   std::string     m_name;	//!< Name of this object.
