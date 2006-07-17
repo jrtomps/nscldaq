@@ -70,16 +70,72 @@
        ends in a newline.  Lines of text can logically end in a point (#) character.
        Blank logical lines are ignored.   Logical lines consist of an interface type
        name (used to select the appropriate CInterfaceCrator), and a configuration
-       that is passded uninterpreted to the CInterfaceCreator and used to 
+       that is passed uninterpreted to the CInterfaceCreator and used to 
        configure an interface after it is created.
 
-       Interfae configurations are generallly sets of keyword value pairs.
+       Interface configurations are generally sets of keyword value pairs.
        See each CVMEInterfaceCreator class documentation page for more information
        about the format of the configuration file.
     
-       
 
         \subsection ssec_supportingnewvme  Supporting a new VME interface type.
 
+	To add support for a new VME interface to the DASH VME subsystem,
+        you must write classes derived from the following base classes:
+	- CVMEAddressRange to implement random access to a range of VME
+          addresses under a single address modifier.
+    	- CVMEList if your interface includes a list processor, this would
+ 	  provide support for it.  Note that if the interface does not support
+	  list processing, or the interface's list processor does not have a good
+    	  match to the capabilities assumed by CVMEList, you can use the
+	  CSimulatedVMEList to implement support for immediate mode list processing.
+        - CVMEDMATransfer to implement support for any block transfer capabilities
+          your device has.
+        - CVMEPio - to implement support for 'call at a time' VME access.
+	- CVMEInterface to represent the interface, to provide capability
+          information as well as to provide creators for the classes above.
+        - CVMEInterfaceCreator - to provide a creational object for the
+           CVMEInterfaceFactory for this interface type.
+
+        At run time, if your application uses the CVMEInterfaceFactory
+        directly, or through calls to CVMESubsystem::ProcessDescriptionFile
+        or CVMESubsystem::ProcessDescription, you must register an instance of
+        your interface creator with the factory via CVMEInterfaceFactory::addCreator
+
 	\subsection ssec_vmecompiling Compiling and linking to DASH VME support.
+
+   Building applications that use the DASH VME support class library require that 
+you:
+	-# Include appropriate headers in your source files.
+	-# Tell the compiler how to locate the DASH VME Headers you have
+           included
+        -# Tell the linker how to link the DASH VME libraries to your
+ 	   application, and where to find the shared libraries at run-time.
+
+  This section assumes that the DASH software is installed in 
+/usr/opt/dash/current  If this is not the case, substitute the appropriate
+top level directory for that in the examples on this page.
+
+  The documentation page for each class describes the header that must be
+included to access the class definition.   See, for example, 
+CVMEInterface.  Once included, use the -I switch to indicate
+where the DASH headers are installed when compiling.  For example:
+\verbatim
+
+g++ -c -I/usr/opt/dash/current/include myProgram.cpp
+
+\endverbatim
+
+When linking you need to tell the linker the location of the libraries, specify
+the DASH VME library to link, and provide an appropriate \em rpath to the linker
+so that the shared libraries are located at run time.
+
+If, in the previous example, myProgram.cpp was  the only program file in your 
+application, it could be linked via:
+
+\verbatim
+
+g++ -o myProgram -L/usr/opt/dash/current/lib myProgram.o -lVme 
+\endverbatim
+
 */

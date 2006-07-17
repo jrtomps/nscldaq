@@ -37,6 +37,7 @@ public:
   virtual ~CFakeInterface();
 
   virtual bool         haveCrate(size_t crate);
+  virtual void         addCrate(CCAMACCrate& crate, size_t number) {}
   virtual CCAMACCrate* removeCrate(size_t crate);
   virtual CCAMACCrate& operator[](size_t crate);
   virtual bool         online(size_t crate);

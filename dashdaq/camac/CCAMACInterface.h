@@ -49,6 +49,7 @@ public:
   virtual size_t maxCrates() const;
 
   virtual bool         haveCrate(size_t crate)   = 0;
+  virtual void         addCrate(CCAMACCrate& crate, size_t number) = 0;
   virtual CCAMACCrate* removeCrate(size_t crate) = 0;
   virtual CCAMACCrate& operator[](size_t crate)  = 0;
   virtual bool         online(size_t crate)     = 0;

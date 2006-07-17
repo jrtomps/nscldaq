@@ -16,14 +16,18 @@
    This section provides links to software documentation for the various
    subcomponents of the DASH system. 
  
-   - \ref sec_exceptions Exceptions
+   - \ref sec_exceptions 
      This component provides a hierarchy of C++ exception classes for
      DASH.  The DASH software will internally throw these exceptions as
      warranted, and you may use them in your code as well.  
-   - \ref sec_vmeintro VME
+   - \ref sec_vmeintro 
      This component provides low level access to the VME bus interfaces
      supported by the DASH system.  VME bus support is extensible, flexible
      and can be heterogenous (more than one type of bus interface supported
      within the same system).
+   - \ref sec_camacintro 
+     This component provides low level access to CAMAC interfaces that
+     are supported within the NSCL DAQ.  An arbitrary combination of 
+     supported CAMAC interfaces can be created and added to the system.
 
 */
