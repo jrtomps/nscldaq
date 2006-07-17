@@ -89,7 +89,5 @@ ivp:
 	@echo
 	./harnessTests
 	./factoryTests
-	./camacTestsVC32
+	./camacTests8210
 	@echo  Done
-
-#	 	./camacTests8201
