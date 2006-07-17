@@ -116,7 +116,7 @@ unsigned int
 CVC32CC32::read(size_t slot, unsigned int f, unsigned int a)
 {
   off_t off = validReadOffset(slot,f,a); // Throws on errors.
-  return m_pCrate->peekl(off/sizeof(unsigned int));
+  return (m_pCrate->peekl(off/sizeof(unsigned int)) & 0xffffff);
 }
 /*!
    Do a 16 bit read from the CAMAC crate; parameters are as for read.

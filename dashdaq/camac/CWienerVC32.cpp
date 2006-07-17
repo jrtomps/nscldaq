@@ -62,7 +62,7 @@ static const registerNaf bcastOp(25, 0, 0); // Broadcast fills in the rest of th
 static const registerNaf lamMask(28,4,0);
 static const registerNaf cycleA(30, 0, 16);
 static const registerNaf cycleB(30, 1, 16);
-static const registerNaf cycleC(10, 2, 16);
+static const registerNaf cycleC(30, 2, 16);
 static const registerNaf Reset(31, 0, 16);
 
 /////////////////////////////////////////////////////////////////////////////

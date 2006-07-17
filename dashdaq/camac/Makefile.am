@@ -45,7 +45,7 @@ FACTORYTESTS		= FactoryTest.cpp
 
 CAMACTESTS8210              = subsystemTests.cpp ces8210Tests.cpp bira1302Tests.cpp \
 				  cescreatorTest.cpp
-CAMACTESTSVC32		    = subsystemTests.cpp
+CAMACTESTSVC32		    = subsystemTests.cpp vc32Tests.cpp cc32Tests.cpp
 
 TESTS			= $(TESTHARNESS) $(FACTORYTESTS) $(CAMACTESTS8210) $(CAMACTESTSVC32)
 
