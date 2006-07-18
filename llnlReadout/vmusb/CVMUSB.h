@@ -284,7 +284,7 @@ public:
 	static const uint32_t greenInvert               = (8 << 16);
 	static const uint32_t greenLatch                = (0x10 << 16);
 
-	// Bottom yellow LED>
+	// Bottom yellow LED
 
 	static const uint32_t bottomYellowNotArbiter    = (0 << 24);
 	static const uint32_t bottomYellowUsbTrigger    = (1 << 24);

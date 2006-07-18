@@ -8,7 +8,7 @@ libVMUSB_la_LIBADD       = $(USB_LIBS)
 #IVP tests:
 
 
-TEST_MODULES = TestRunner.cpp  regTests.cpp
+TEST_MODULES = TestRunner.cpp conTests.cpp  regTests.cpp
 
 
 tests: $(TEST_MODULES)

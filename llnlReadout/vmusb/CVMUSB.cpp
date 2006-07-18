@@ -144,16 +144,18 @@ CVMUSB::CVMUSB(struct usb_device* device) :
     // Now claim the interface.. again this could in theory fail.. but.
 
     usb_set_configuration(m_handle, 1);
-
     int status = usb_claim_interface(m_handle, 0);
     if (status == -EBUSY) {
 	throw "CVMUSB::CVMUSB - some other process has already claimed";
     }
+
     if (status == -ENOMEM) {
 	throw "CVMUSB::CMVUSB - claim failed for lack of memory";
     }
-    usleep(5000);
+    usb_clear_halt(m_handle, ENDPOINT_IN);
+    usb_clear_halt(m_handle, ENDPOINT_OUT);
 
+    usleep(100);
 }
 ////////////////////////////////////////////////////////////////
 /*!
@@ -164,6 +166,7 @@ CVMUSB::~CVMUSB()
 {
     usb_release_interface(m_handle, 0);
     usb_close(m_handle);
+    usleep(5000);
 }
 
 ////////////////////////////////////////////////////////////////////
@@ -1111,5 +1114,6 @@ CVMUSB::listToOutPacket(uint16_t ta, CVMUSBReadoutList& list,
     for (int i = 0; i < listLongwords; i++) {
 	p = static_cast<uint16_t*>(addToPacket32(p, stack[i]));
     }
-    *outSize = packetShorts;
+    *outSize = packetShorts*sizeof(short);
+    return outPacket;
 }
