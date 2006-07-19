@@ -402,4 +402,5 @@ AC_OUTPUT(Makefile \
              sbsbit3/include/Makefile \
           exceptions/Makefile	      \
 	  vme/Makefile		      \
-	  camac/Makefile)
+	  camac/Makefile	\
+	  devices/Makefile)
