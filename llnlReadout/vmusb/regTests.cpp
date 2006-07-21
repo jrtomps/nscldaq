@@ -86,6 +86,10 @@ void registerTests::globmode()
   mode   = m_pInterface->readGlobalMode();
   EQMSG("wrote 1s", validmask, (uint32_t)(validmask & mode));
 
+  // This left us with an invalid bus request level so:
+
+  m_pInterface->writeGlobalMode((uint32_t)(4 << CVMUSB::GlobalModeRegister::busReqLevelShift));
+
 }
 // Daq settings can accept any bit patterns.
 
@@ -119,9 +123,9 @@ void registerTests::ledsrc()
 
 void registerTests::devsrc()
 {
-  uint32_t usedBits = 0x77771f1f;    // 0x77ff1f1f; // Hope I got that right.
+  uint32_t usedBits =    0x77771f1f; // 7777 not 77ff since reset is momentary.
 
-  m_pInterface->writeDeviceSource(0xffffffff);
+  m_pInterface->writeDeviceSource(usedBits);
   uint32_t value = m_pInterface->readDeviceSource();
   EQMSG("ones", usedBits, (value & usedBits));
 

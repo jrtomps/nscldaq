@@ -8,7 +8,7 @@ libVMUSB_la_LIBADD       = $(USB_LIBS)
 #IVP tests:
 
 
-TEST_MODULES = TestRunner.cpp conTests.cpp  regTests.cpp
+TEST_MODULES = TestRunner.cpp regTests.cpp  vmeTests.cpp
 
 
 tests: $(TEST_MODULES)
@@ -19,3 +19,8 @@ tests: $(TEST_MODULES)
 installcheck-local: tests
 	./tests
 
+
+
+#  Stuff that needs to go int the distro:
+
+EXTRA_DIST = $(TEST_MODULES)
