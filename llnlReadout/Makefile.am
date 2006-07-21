@@ -1,1 +1,1 @@
-SUBDIRS = vmusb devices
+SUBDIRS = vmusb devices threadcomm
