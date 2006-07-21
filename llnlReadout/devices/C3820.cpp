@@ -20,9 +20,12 @@
 #include <CVMUSB.h>
 #include <CVMUSBReadoutList.h>
 
+#include <string>
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
+
+using namespace std;
 
 //////////////////////////////////////////////////////////////////////////
 //////////////////////////  Constants ////////////////////////////////////
@@ -91,21 +94,14 @@ static const uint32_t acqModeTest      = 0x70000000;
    Construction is a no-op.
 */
 C3820::C3820() {}
-C3820::C3280(const C3820& rhs) {} // m_pConfiguration gets set by onAttach next.
+C3820::C3820(const C3820& rhs) {} // m_pConfiguration gets set by onAttach next.
 C3820::~C3820() {}
 
 C3820&
 C3820::operator=(const C3820& rhs) {
   return *this;
 }
-int
-C3820::operator==(const C3820& rhs) const { 
-  return 1;
-}
-int
-C3820::operator!=(const C3820& rhs) const {
-  return !(*this == rhs);
-}
+
 
 /////////////////////////////////////////////////////////////////////////
 //////////////////////// Object operations //////////////////////////////
@@ -125,7 +121,7 @@ C3820::onAttach(CReadoutModule& configuration)
   // Add the base parameter:
 
   m_pConfiguration->addParameter("-base",
-				 CConfigurationParameter::isInteger, 
+				 CConfigurableObject::isInteger, 
 				 NULL, "0");
 }
 /*!
@@ -161,7 +157,7 @@ C3820::Initialize(CVMUSB& controller)
 	    base);
     throw string(msg);
   }
-  status = controller.vmeWrite32(base+KeyReset, CVMUSBReadoutList:a32UserData, 
+  status = controller.vmeWrite32(base+KeyReset, CVMUSBReadoutList::a32UserData, 
 				static_cast<uint32_t>(0));
   if(status) {
     throw string("C3820::Initialize single shot write to key-reset faileed");
@@ -173,14 +169,14 @@ C3820::Initialize(CVMUSB& controller)
   CVMUSBReadoutList initList;
   initList.addWrite32(base+AcqMode, CVMUSBReadoutList::a32UserData,
 		      acq32Bit    | acqLNEVME     | acqArmWithFP | acqSRAMMemory |
-		      acqInpInh4s | acqOutModeled | acqModeLatch);
+		       acqInpLNEInh4s | acqOutModeled | acqModeLatch);
   initList.addWrite32(base+KeyArm, CVMUSBReadoutList::a32UserData, 0);
   initList.addWrite32(base+KeyEnable, CVMUSBReadoutList::a32UserData, 0);
 
 
   uint32_t inBuffer[100];
   size_t   bytesRead;
-  int status = controller.executeList(initList,
+  status = controller.executeList(initList,
 				      &inBuffer, sizeof(inBuffer), &bytesRead);
   if (status) {
     throw string("C3820::Could not initialize via executeList.");
@@ -197,8 +193,17 @@ void
 C3820::addReadoutList(CVMUSBReadoutList& list)
 {
   uint32_t base = getBase();
-  list.addBlodkRead32(base + SDRAM, CVMUSBReadoutList::a32UserData,
+  list.addBlockRead32(base + SDRAM, CVMUSBReadoutList::a32UserData,
 		      32);	// Transfers is in longwords.
+}
+
+/*!
+   Create a dynamic copy of *this.
+*/
+CReadoutHardware*
+C3820::clone() const
+{
+  return new C3820(*this);
 }
 ///////////////////////////////////////////////////////////////////////////
 ////////////////////////// Private utilities /////////////////////////////
@@ -206,7 +211,7 @@ C3820::addReadoutList(CVMUSBReadoutList& list)
 uint32_t
 C3820::getBase() const
 {
-  string baseString = cget("-base");
+  string baseString = m_pConfiguration->cget("-base");
   uint32_t base     = strtoul(baseString.c_str(), NULL, 0); // must work!
   return base;
 }

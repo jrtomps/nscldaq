@@ -48,6 +48,7 @@ public:
   CReadoutModule(const CReadoutModule& rhs);
   virtual ~CReadoutModule();
   CReadoutModule& operator=(const CReadoutModule& rhs);
+private:
   int operator==(const CReadoutModule& rhs) const;
   int operator!=(const CReadoutModule& rhs) const;
 

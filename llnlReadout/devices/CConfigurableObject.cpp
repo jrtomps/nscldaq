@@ -27,7 +27,7 @@ using namespace std;
 //////////////////////////    Constants ///////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////
 
-static const ListSizeConstraint unconstrainedSize = {{false, 0},
+static const CConfigurableObject::ListSizeConstraint unconstrainedSize = {{false, 0},
 						     {false, 0}};
 
 ///////////////////////////////////////////////////////////////////////////
@@ -66,7 +66,7 @@ CConfigurableObject::~CConfigurableObject()
    Copy construction.  We can just copy the name and map.
    Copy construction should be rare as normally names are unique.
 */
-CConfigurableObject::CConfigurableObject(const CConfigurableObject& rhs)
+CConfigurableObject::CConfigurableObject(const CConfigurableObject& rhs) :
   m_name(rhs.m_name),
   m_parameters(rhs.m_parameters)
 {
@@ -75,7 +75,7 @@ CConfigurableObject::CConfigurableObject(const CConfigurableObject& rhs)
 /*!
    Assignement is similar to copy construction:
 */
-CCOnfigurableObject&
+CConfigurableObject&
 CConfigurableObject::operator=(const CConfigurableObject& rhs)
 {
   if (this != &rhs) {
@@ -130,11 +130,11 @@ CConfigurableObject::getName() const
 		   see the next cget which retrieves parameters and values.
 */
 string
-CConfigurationParameter::cget(string name) const
+CConfigurableObject::cget(string name) 
 {
   ConfigIterator found = m_parameters.begin();
   if (found == m_parameters.end()) {
-    string msg("CConfigurationParameter::cget was asked for parameter: ");
+    string msg("CConfigurableObject::cget was asked for parameter: ");
     msg += name;
     msg += " which is not defined";
     throw msg;
@@ -153,15 +153,15 @@ CConfigurationParameter::cget(string name) const
          you should not count on that fact.
 */
 CConfigurableObject::ConfigurationArray
-CConfigurationParameter::cget() const
+CConfigurableObject::cget() 
 {
   ConfigurationArray result;
   ConfigIterator p = m_parameters.begin();
   while(p != m_parameters.end()) {
     
     string name = p->first;
-    ConfigurationData data = p->second;
-    string value = data.second;
+    ConfigData data = p->second;
+    string value = data.first;
     result.push_back(pair<string, string>(name, value));
     
     p++;
@@ -185,17 +185,17 @@ CConfigurationParameter::cget() const
    \param arg   : void
       Parameter passed without interpretation to the typechecker at validation
       time.
-   \param default : string (default = "")
+   \param defaultValue : string (default = "")
       Initial value for the parameter.
 */
 void
-CConfigurationParameter::addParameter(string      name, 
+CConfigurableObject::addParameter(string      name, 
 				      typeChecker checker,
 				      void*       arg,
-				      string      default)
+				      string      defaultValue)
 {
   TypeCheckInfo checkInfo(checker, arg);
-  ConfigData    data(default, checkInfo);
+  ConfigData    data(defaultValue, checkInfo);
   m_parameters[name] = data;	// This overwrites any prior.
 }
 
@@ -211,7 +211,7 @@ CConfigurationParameter::addParameter(string      name,
            does not pass the validator for the parameter.
 */
 void
-CConfigurationParameter::configure(string name, string value)
+CConfigurableObject::configure(string name, string value)
 {
   // Locate the parameter and complain if it isn't in the map:
 
@@ -223,8 +223,8 @@ CConfigurationParameter::configure(string name, string value)
   }
   // If the parameter has a validator get it and validate:
 
-  TypeCheckInfo checker = item->second->second;
-  TypeChecker   pCheck  = checker.first;
+  TypeCheckInfo checker = item->second.second;
+  typeChecker   pCheck  = checker.first;
   if (pCheck) {			// No checker means no checkig.
     if (! (*pCheck)(name, value, checker.second)) {
       string msg("Validation failed for ");
@@ -236,7 +236,7 @@ CConfigurationParameter::configure(string name, string value)
   }
   // Now set the new validated value:
 
-  m_parameters[name].second.first = value;
+  m_parameters[name].first = value;
 
 }
 /*!
@@ -244,7 +244,7 @@ CConfigurationParameter::configure(string name, string value)
   map is emptied.
 */
 void
-CConfigurableObject::clearCOnfiguration()
+CConfigurableObject::clearConfiguration()
 {
   m_parameters.clear();
 }
@@ -274,8 +274,8 @@ CConfigurableObject::isInteger(string name, string value, void* arg)
   // first determine the 'integernes' using strtoul.
 
   errno = 0;			// Some strtoul's don't init this evidently.
-  long value = strtoul(value.c_str(), NULL, 0);	// Base allows e.g. 0x.
-  if ((value ==0) && (errno != 0)) {
+  long lvalue = strtoul(value.c_str(), NULL, 0);	// Base allows e.g. 0x.
+  if ((lvalue ==0) && (errno != 0)) {
     return false;
   }
   // If there's no validator by definition it's valid:
@@ -284,7 +284,7 @@ CConfigurableObject::isInteger(string name, string value, void* arg)
 
   // Get the validator in the correct form:
 
-  Limits* pRange = dynamic_cast<Limits*>(arg);
+  Limits* pRange = static_cast<Limits*>(arg);
   if (!pRange) {
     string msg("BUG: argument for integer validator for parameter: ");
     msg += name;
@@ -292,10 +292,10 @@ CConfigurableObject::isInteger(string name, string value, void* arg)
   }
   // check lower limit:
 
-  if((pRange->first.s_checkMe) && (value < pRange->first.s_value)) {
+  if((pRange->first.s_checkMe) && (lvalue < pRange->first.s_value)) {
     return false;
   }
-  if ((pRange->second.s_checkMe) && (value > pRange->second.s_value)) {
+  if ((pRange->second.s_checkMe) && (lvalue > pRange->second.s_value)) {
     return false;
   }
   return true;
@@ -356,7 +356,7 @@ CConfigurableObject::isBool(string name, string value, void* ignored)
 bool
 CConfigurableObject::isEnum(string name, string value, void* values)
 {
-  set<string>& validValues(dymamic_cast<set<string>&>(*values));
+  set<string>& validValues(*(static_cast<set<string>*>(values)));
 
   return ((validValues.find(value) != validValues.end()) ? true : false);
 
@@ -393,7 +393,7 @@ CConfigurableObject::isList(string name, string value, void* validity)
   // First ensure the list can be split:
 
   int    listSize;
-  char** list;
+  const char** list;
   int status = Tcl_SplitList((Tcl_Interp*)NULL, value.c_str(),
 			     &listSize, &list);
   if (status != TCL_OK) {
@@ -403,7 +403,7 @@ CConfigurableObject::isList(string name, string value, void* validity)
 
   bool result = true;
   if (validity) {
-    isListParameter& listValidity(dynamic_cast<isListParameter&>(*validity));
+    isListParameter& listValidity(*static_cast<isListParameter*>(validity));
     
 
     // Check length constraints.
@@ -427,7 +427,7 @@ CConfigurableObject::isList(string name, string value, void* validity)
 
   }
 
-  Tcl_Free(list);
+  Tcl_Free((char*)(list));
   return result;
 
 }
@@ -459,7 +459,7 @@ CConfigurableObject::isBoolList(string name, string value, void* size)
   validator.s_checker.second= NULL;
 
   if (size) {
-    ListSizeContraint& limits(dynamic_cast<ListSizeConstraint&>(*size));
+    ListSizeConstraint& limits(*static_cast<ListSizeConstraint*>(size));
     validator.s_allowedSize = limits;
 
   }
@@ -490,7 +490,7 @@ CConfigurableObject::isBoolList(string name, string value, void* size)
 bool
 CConfigurableObject::isIntList(string name, string value, void* size)
 {
-  isListParametr validator;
+  isListParameter validator;
   validator.s_checker.first  = isInteger; // Require integer but 
   validator.s_checker.second = NULL;      // No range requirements. 
 
@@ -498,7 +498,7 @@ CConfigurableObject::isIntList(string name, string value, void* size)
   
 
   if (size) {
-    ListSizeConstraint& limits(dynamic_cast<ListSizeConstraint&>(*size));
+    ListSizeConstraint& limits(*static_cast<ListSizeConstraint*>(size));
     validator.s_allowedSize = limits;
   }
   else {
@@ -531,7 +531,7 @@ CConfigurableObject::isStringList(string name, string value, void* validSizes)
   validator.s_checker.second = NULL;
 
   if (validSizes) {
-    ListSizeConstraint& limits(dynamic_cast<ListSizeConstraint&>(*validSizes));
+    ListSizeConstraint& limits(*static_cast<ListSizeConstraint*>(validSizes));
     validator.s_allowedSize = limits;
   }
   else {

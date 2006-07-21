@@ -1,4 +1,4 @@
-\/*
+/*
     This software is Copyright by the Board of Trustees of Michigan
     State University (c) Copyright 2005.
 
@@ -84,33 +84,38 @@ typedef bool (*typeChecker)(std::string name, std::string value, void* arg);
    by a Tcl interpreter reading scripts or any other practical means.
 */
 class CConfigurableObject {
-  // internal typedefs:
-private:
-  typedef std::pair<typeChecker, void*>         TypeCheckInfo;	// Type checker + arg.
-  typedef std::pair<std::string, TypeCheckInfo> ConfigData;
-  typedef std::map<std::string, ConfigData>     Configuration;
-  typedef Configuration::iterator               ConfigIterator;
 
   // public typedefs:
+
+public:
+  typedef std::pair<typeChecker, void*>         TypeCheckInfo;	// Type checker + arg.
 
   typedef std::vector<std::pair<std::string, std::string> > ConfigurationArray;
   
   // Arg types for the standard type checkers.
 
-  struct  limit {
+  typedef struct  _limit {
     bool   s_checkMe;
     long    s_value;
-  }
+  } limit;
   typedef std::pair<limit, limit>   Limits;
   typedef std::set<std::string> isEnumParameter;
-  struct ListSizeConstraint {
+  typedef struct _ListSizeConstraint {
     limit s_atLeast;
     limit s_atMost;
-  };
-  typedef _isListParameter {
+  } ListSizeConstraint;
+
+  typedef struct _isListParameter {
     ListSizeConstraint s_allowedSize;
     TypeCheckInfo      s_checker;
   } isListParameter;
+
+  // Internal typedefs
+private:
+  typedef std::pair<std::string, TypeCheckInfo> ConfigData;
+  typedef std::map<std::string, ConfigData>     Configuration;
+  typedef Configuration::iterator               ConfigIterator;
+
 
 private:
   std::string     m_name;	//!< Name of this object.
@@ -123,23 +128,23 @@ public:
   CConfigurableObject(const CConfigurableObject& rhs);
   virtual ~CConfigurableObject();
   CConfigurableObject& operator=(const CConfigurableObject& rhs);
-  int operator==(const CCOnfigurableObject& rhs) const;
+  int operator==(const CConfigurableObject& rhs) const;
   int operator!=(const CConfigurableObject& rhs) const;
 
   //  Selectors:
 
 public:
   std::string getName() const;
-  std::string cget(std::string name) const;
-  ConfigurationArray cget()          const;
-
+  std::string cget(std::string name) ;
+  ConfigurationArray cget();
+  
   // Operations:
 
 public:
   // Establishing the configuration:
 
-  void addParameter(std::string name, typeChecker checker, void* arg 
-		    std::string default = std::string(""));
+  void addParameter(std::string name, typeChecker checker, void* arg,
+		    std::string defaultValue = std::string(""));
 
   void clearConfiguration();
 

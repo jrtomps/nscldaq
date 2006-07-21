@@ -16,7 +16,7 @@
 #ifndef __C3820_H
 #define __C3820_h
 
-#ifndef _CREADOUTHARDWARE_H
+#ifndef __CREADOUTHARDWARE_H
 #include "CReadoutHardware.h"
 #endif
 
@@ -52,6 +52,7 @@ public:
   C3820(const C3820& rhs);
   virtual ~C3820();
   C3820& operator=(const C3820& rhs);
+private:
   int operator==(const C3820& rhs) const;
   int operator!=(const C3820& rhs) const;
 
@@ -59,7 +60,7 @@ public:
   virtual void onAttach(CReadoutModule& configuration);
   virtual void Initialize(CVMUSB& controller);
   virtual void addReadoutList(CVMUSBReadoutList& list);
-  
+  virtual CReadoutHardware* clone() const;
 private:
   uint32_t getBase() const;
 };

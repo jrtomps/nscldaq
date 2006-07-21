@@ -37,8 +37,9 @@ using namespace std;
         avoids scope/ownership/deletion issues... we own it and we 
         \em will delete it on destruction.
 */
-CReadoutModule::CReadoutModule(const CReadoutHardware& hardware) 
-  m_pHardware((new CReadoutHardware(hardware)))
+CReadoutModule::CReadoutModule(const CReadoutHardware& hardware) :
+  CConfigurableObject(getName()),
+  m_pHardware(hardware.clone())
 {
   m_pHardware->onAttach(*this);
 }
@@ -48,7 +49,8 @@ CReadoutModule::CReadoutModule(const CReadoutHardware& hardware)
    - invoke its onAttach member.
 */
 CReadoutModule::CReadoutModule(const CReadoutModule& rhs) :
-  m_pHardware(new CReadoutHardware(*(rhs.m_pHardware)))
+  CConfigurableObject(rhs.getName()),
+  m_pHardware(rhs.m_pHardware->clone())
 {
   m_pHardware->onAttach(*this);
 }
@@ -67,32 +69,15 @@ CReadoutModule::operator=(const CReadoutModule& rhs)
 {
   if (this != &rhs) {
     delete m_pHardware;
-    m_pHardware = new *(rhs.m_pHardware);
+    CConfigurableObject::operator=(rhs);
+    m_pHardware = rhs.m_pHardware->clone();
     clearConfiguration();
     m_pHardware->onAttach(*this); // Re-setup the configuration.
 
   }
   return *this;
 }
-/*!
-   Two CReadoutModule objects are equal if their configurations are
-   equal and the hardware objects are equal.
-*/
-int
-CReadoutModule::operator==(const CReadoutModule& rhs) const
-{
-  return ((CConfigurableObject::operator==(rhs))       &&
-	  (*m_pHardware  == *(rhs.m_pHardware)));
-}
-/*!
-   Two ReadoutModule objects are unequal if they are not equal.
-   This sounds trite but it is not necessarily the case with c++
-*/
-int
-CReadoutModule::operator!=(const CReadoutModule& rhs) const
-{
-  return !(*this == rhs);
-}
+
 /////////////////////////////////////////////////////////////////////////////
 /////////////////////////   Selectors   /////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////
@@ -101,10 +86,10 @@ CReadoutModule::operator!=(const CReadoutModule& rhs) const
    Return a pointer to a dynamcially allocated copy of our hardware.
    The caller is responsible for deleting this when done.
 */
-CReaoutHardware*
+CReadoutHardware*
 CReadoutModule::getHardwareCopy() const
 {
-  return new (*m_pHardware);
+  return m_pHardware->clone();
 }
 
 ////////////////////////////////////////////////////////////////////////////
