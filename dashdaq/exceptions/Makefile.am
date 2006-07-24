@@ -38,8 +38,10 @@ ivp:
 	@echo	"+-------------------------------------+"
 	@echo   "| Building the ivp for exceptions     |"
 	@echo   "+-------------------------------------+"
-	$(CXX)   -I@prefix@/include $(CPPUNIT_CXXSW) -o ivptests $(TESTS) \
-		$(CPPUNIT_LDSW) -L@prefix@/lib -lException -Wl,"-rpath=@prefix@/lib"
+	$(CXX)  -I. -I@top_builddir@ -I@prefix@/include $(CPPUNIT_CXXSW) \
+		-o ivptests $(TESTS) \
+		$(CPPUNIT_LDSW) -L@prefix@/lib -lException \
+		-Wl,"-rpath=@prefix@/lib"
 	@echo  Running the ivp for exceptions:
 	./ivptests
 	@echo done
