@@ -49,6 +49,7 @@ AC_PROG_CPP
 AC_PROG_INSTALL
 AC_PROG_LN_S
 AC_PROG_LIBTOOL
+AC_PROG_RANLIB
 AC_PATH_PROG(DOXYGEN, doxygen, echo)
 
 # Documentation tools:
@@ -70,13 +71,14 @@ AC_CHECK_PROG(HAVELATEX,  latex, yes, no)
 AC_CHECK_PROG(HAVEDVIPS,  dvips, yes, no)		
 AC_CHECK_PROG(HAVEKPATHSEA, kpsewhich, yes, no)	
 
-
 AC_PROG_GCC_TRADITIONAL
+AC_C_INLINE
 
 # Checks for header files.
 
 AC_HEADER_STDC
 AC_CHECK_HEADERS([stdint.h string.h])
+AC_HEADER_STDBOOL
 
 # Checks for typedefs, structures, and compiler characteristics.
 AC_C_CONST
@@ -86,7 +88,8 @@ AC_TYPE_SIZE_T
 # Checks for library functions.
 
 AC_CHECK_FUNCS([strerror])
-
+AC_CHECK_FUNCS([strtol])
+AC_CHECK_FUNCS([strtoul])
 
 
 #  We now look for cppunit.  This is needed to build c++ tests
@@ -381,8 +384,35 @@ AC_MSG_RESULT([$separate])
 CXXFLAGS="$oldcxxflags"
 AC_LANG_POP(C++)
 
+#----------------------------------------------------------------
+#  NSCLDAQ  Look for either /usr/opt/daq/current or if that's
+#           not there, the highest version from
+#           8.2, 8.1, 8.0
+#----------------------------------------------------------------
 
+subdirs="current 8.2 8.1 8.0"
+daqfound="no"
 
+AC_MSG_CHECKING([ for nscldaq ])
+
+for dir in $subdirs
+do
+	if test $daqfound == "no"
+	then
+		AC_CHECK_FILE(/usr/opt/daq/$dir/include/config.h,
+			     [daqdir=/usr/opt/daq/$dir
+			     daqfound="yes"])
+	fi
+done
+
+if test $daqfound == "yes"
+then
+	AC_MSG_RESULT([Found in $daqdir])
+	NSCLDAQFLAGS="-I$daqdir/include"
+	NSCLDAQLIB="-L$daqdir/lib"
+else
+	AC_MSG_ERROR([NSCLDAQ needs to be installed!])
+fi
 # define substitutions:
 
   # libusb:
@@ -422,6 +452,11 @@ AC_SUBST(TCL_LDFLAGS)
 
 AC_SUBST(SPECTRODAQ_FLAGS)
 AC_SUBST(SPECTRODAQ_LDFLAGS)
+
+# NSCLDAQdir stuff:
+
+AC_SUBST(NSCLDAQ_FLAGS)
+AC_SUBST(NSCLDAQ_LIB)
 
 #  Create output files:
 
