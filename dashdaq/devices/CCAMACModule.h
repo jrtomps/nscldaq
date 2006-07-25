@@ -52,6 +52,7 @@ public:
 
 
   // Selectors are the only thing this class exports:
+public:
 
   CCAMACCrate& getCrate();
   size_t       getSlot() const;

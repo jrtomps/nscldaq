@@ -45,9 +45,15 @@
 class CReadableObject 
 {
 public:
+
+  int operator==(const CReadableObject& rhs) const { return true;}
+  int operator!=(const CReadableObject& rhs) const {
+    return !(*this == rhs);
+  }
+
   virtual void    initialize()   = 0;
   virtual size_t  read(void*)    = 0;
-  virtual sizse_t largestEvent() = 0;
+  virtual size_t largestEvent() = 0;
 };
 
 #endif

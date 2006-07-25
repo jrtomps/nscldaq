@@ -14,6 +14,7 @@
 	     East Lansing, MI 48824-1321
 */
 
+#include <config.h>
 #include "CCAMACModule.h"
 #include <CCAMACCrate.h>
 
