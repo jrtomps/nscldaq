@@ -57,6 +57,8 @@ struct DataBuffer;
     +--------------------------------+
     |  Buffer Type                   |
     +--------------------------------+
+    | Time stamp                     |
+    +--------------------------------+
     |   Buffer contents as described |
     | in section 4.6 of the VM USB   |
     | manual                         |
@@ -78,6 +80,8 @@ struct DataBuffer;
         - 12  End Run
         - 1   Physics data
         - 2   Scaler Data.
+    -# Time stamp is result of time(2) when the buffer was received from
+       the VMUSB.
 
  \note  This class is a separate thread of execution.
  \note  A global variable: gFilledBuffers is a CBufferQueue that contains
@@ -101,6 +105,8 @@ private:
 private:
   uint32_t    m_sequence;	   // Buffer sequence number.
   uint32_t    m_outputBufferSize;  // Bytes in output buffers.
+  time_t      m_startTimestamp;    //!< Run start time.
+  time_t      m_lastStampedBuffer; //!< Seconds into run of last stamped buffer.
 
   // Constuctors and other canonicals.
 
@@ -135,6 +141,8 @@ private:
   void scaler(DataBuffer&   buffer);
   void events(DataBuffer&   buffer);
 
+  void formatControlBuffer(uint16_t type, void* buffer);
+  uint16_t eventCount(void* nsclBuffer);
 
 }
 

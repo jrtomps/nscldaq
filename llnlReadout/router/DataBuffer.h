@@ -27,6 +27,13 @@
 #endif 
 #endif
 
+#ifndef __CRT_TIME_H
+#include <time.h>
+#ifndef __CRT_TIME_H
+#define __CRT_TIME_H
+#endif
+#endif
+
 #ifndef __CBUFFERQUEUE_h
 #include <CBufferQeueue.h>
 #endif
@@ -43,6 +50,7 @@
 struct DataBuffer {
   uint32_t   s_bufferSize;
   uint32_t   s_bufferType;
+  time_t     s_timeStamp;	//!< When the buffer was received.
   uint16_t   s_rawData[1];	//!< Really larger than that
 
 };
