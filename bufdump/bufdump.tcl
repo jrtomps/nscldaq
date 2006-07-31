@@ -28,7 +28,10 @@
 #
 # Add the canonicalized path to the script to the front of auto_path.
 
-set version 1.0
+set version 1.0-001
+
+set daqSearchList [list /usr/opt/daq/8.2 /usr/opt/daq/8.1 /usr/opt/daq/8.0 \
+		       /usr/opt/daq/7.4  /usr/opt/daq/7.3 /usr/opt/daq]
 
 
 # Add the canonicalized path to the script to the front of auto_path.
@@ -372,6 +375,33 @@ proc readPacketDefinitions {} {
         }
     }
 }
+#-------------------------------------------------------------------------
+# findDAQRoot
+#    Locates the DAQ root.  We hunt for the DAQ root in the daqSearchList.
+#    Found, in this case means that we found the directory.
+#
+# If not found we prompt the user for this information.
+#
+proc findDAQRoot {} {
+    global daqSearchList
+    foreach dir $daqSearchList {
+	if {[file readable $dir] && ([file type $dir] eq "directory")} {
+	    return $dir
+	}
+    }
+    #  If we got here we need to prompt the user:
+    
+    while {1} {
+	tk_messageBox -icon warning -title {Can't find daq root} \
+	    -message "I cannot find the daq root install directory.  Please show me where it is" \
+	    -type ok
+	set dir [tk_chooseDirectory -title "Choose NSCL DAQ root directory" -mustexist true]
+	if {[file readable $dir] && ([file type $dir]  eq "directory")} {
+	    return $dir
+	}
+    }
+}
+
 
 #-------------------------------------------------------------------------
 # openDataSource
@@ -401,7 +431,9 @@ proc openDataSource {} {
                 .controls.next configure -state disabled
                 return
             }
-            if {[catch {theEvents openOnline $host -buffersize $buffersize} msg] == 0} {
+	    set daqroot [findDAQRoot]
+
+            if {[catch {theEvents openOnline $host -buffersize $buffersize -daqroot $daqroot} msg] == 0} {
                 set sourceObject theEvents
                 set sourceType   online
                 set sourceName   $host

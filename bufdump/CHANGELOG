@@ -15,3 +15,5 @@ January 9, 2006
           the results of this configuration.
         - Support buffersizes up to 16Mbytes.
         - Make docbooking a bit more robust.
+        - Do a bit more searching for spectcldaq and promt if we can't
+          find a daq directory.
