@@ -89,15 +89,20 @@ class CConfigurableObject {
 
 public:
   typedef std::pair<typeChecker, void*>         TypeCheckInfo;	// Type checker + arg.
-
   typedef std::vector<std::pair<std::string, std::string> > ConfigurationArray;
   
   // Arg types for the standard type checkers.
 
-  typedef struct  _limit {
+  struct  limit {
     bool   s_checkMe;
     long    s_value;
-  } limit;
+    limit() :
+      s_checkMe(false) 
+    {}
+    limit(long value) : 
+      s_checkMe(true), 
+      s_value(value) {}
+  } ;
   typedef std::pair<limit, limit>   Limits;
   typedef std::set<std::string> isEnumParameter;
   typedef struct _ListSizeConstraint {

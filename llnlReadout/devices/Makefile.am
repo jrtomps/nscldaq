@@ -17,4 +17,15 @@ include_HEADERS			= 	CConfigurableObject.h	\
 					C3820.h			\
 					C785.h
 
+TESTS=configtest.cpp
 
+tests: TestRunner.cpp $(TESTS)
+	$(CXX) -g -o tests -I. -I$(prefix)/include $(CPPUNIT_INCLUDES) \
+	TestRunner.cpp  $(TESTS) -L$(prefix)/lib -lVMUSBDevices -lVMUSB \
+	-Wl,"-rpath=$(prefix)/lib"   \
+	$(CPPUNIT_LDFLAGS)
+
+installcheck-local:	tests
+	./tests
+
+EXTRA_DIST=TestRunner.cpp $(TESTS)

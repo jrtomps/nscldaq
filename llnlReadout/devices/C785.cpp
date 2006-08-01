@@ -97,16 +97,16 @@ Const(MaxLongwordsBuffered) (MaxEventSize*MEBDepth);
 
 // -geo is a 5 bit unsigned field:
 
-static CConfigurableObject::limit GeoLow  = {true, 0};
-static CConfigurableObject::limit GeoHigh = {true, 0x1f};
+static CConfigurableObject::limit GeoLow(0);
+static CConfigurableObject::limit GeoHigh(0x1f);
 static CConfigurableObject::Limits GeoLimits(GeoLow, GeoHigh);
 
 // -threshold requires 32 integers in the range [0, 0xff]
 
-static CConfigurableObject::limit ThreshLow    = {true, 0};
-static CConfigurableObject::limit ThreshHi     = {true, 0xff};
+static CConfigurableObject::limit ThreshLow(0);  
+static CConfigurableObject::limit ThreshHi(0xff);
 static CConfigurableObject::Limits ThreshLimits(ThreshLow, ThreshHi);
-static CConfigurableObject::limit  thresholdSize = {true, 32};
+static CConfigurableObject::limit  thresholdSize(32);
 static CConfigurableObject::ListSizeConstraint threshListSize = {thresholdSize,
                                                                  thresholdSize};
 CConfigurableObject::TypeCheckInfo threshValueOk(CConfigurableObject::isInteger,
@@ -118,26 +118,26 @@ static CConfigurableObject::isListParameter threshValidity =
 							      
 // -ipl is in the range 0-7
 
-static CConfigurableObject::limit iplLow  = {true, 0};
-static CConfigurableObject::limit iplHigh = {true, 7};
+static CConfigurableObject::limit iplLow(0);
+static CConfigurableObject::limit iplHigh(7);
 static CConfigurableObject::Limits iplRange(iplLow, iplHigh);
 
 // - vector is in the range 0 0xff
 
-static CConfigurableObject::limit vectorLow   = {true, 0};
-static CConfigurableObject::limit vectorHigh  = {true, 0xff};
+static CConfigurableObject::limit vectorLow(0);
+static CConfigurableObject::limit vectorHigh(0xff);
 static CConfigurableObject::Limits vectorRange(vectorLow, vectorHigh);
 
 // -highwater is in the range 0 through MEBDepth.
 
-static CConfigurableObject::limit hwlow     = {true, 0};
-static CConfigurableObject::limit hwhigh    = {true, MEBDepth};
+static CConfigurableObject::limit hwlow(0);
+static CConfigurableObject::limit hwhigh(MEBDepth);
 static CConfigurableObject::Limits hwRange(hwlow, hwhigh);
 
 // -fastclear is in the range 0 through 0x3ff.
 
-static CConfigurableObject::limit  fcLow    = {true, 0};
-static CConfigurableObject::limit  fcHigh   = {true, 0x3ff};
+static CConfigurableObject::limit  fcLow(0);
+static CConfigurableObject::limit  fcHigh(0x3ff);
 static CConfigurableObject::Limits fcRange(fcLow, fcHigh);
 
 //////////////////////////////////////////////////////////////////////

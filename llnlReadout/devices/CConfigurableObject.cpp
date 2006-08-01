@@ -27,8 +27,9 @@ using namespace std;
 //////////////////////////    Constants ///////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////
 
-static const CConfigurableObject::ListSizeConstraint unconstrainedSize = {{false, 0},
-						     {false, 0}};
+static const CConfigurableObject::ListSizeConstraint unconstrainedSize = 
+  {CConfigurableObject::limit(0),
+   CConfigurableObject::limit(0)};
 
 ///////////////////////////////////////////////////////////////////////////
 //////////////////////// Canonical member functions ///////////////////////
@@ -259,7 +260,7 @@ CConfigurableObject::clearConfiguration()
    \param value : std::string
        Proposed new value.
    \param arg : void*
-       This is actually a pointer to an isIntParameter structure or NULL.
+       This is actually a pointer to an Limits structure or NULL.
        - If NULL, no range checking is done.
        - If not null, range checking is done.  Each limit contains a checkme
          flag which allows validation to occur when one or both limits are needed.
@@ -273,9 +274,10 @@ CConfigurableObject::isInteger(string name, string value, void* arg)
 {
   // first determine the 'integernes' using strtoul.
 
-  errno = 0;			// Some strtoul's don't init this evidently.
-  long lvalue = strtoul(value.c_str(), NULL, 0);	// Base allows e.g. 0x.
-  if ((lvalue ==0) && (errno != 0)) {
+
+  char* end;
+  long lvalue = strtoul(value.c_str(), &end, 0);	// Base allows e.g. 0x.
+  if (*end != '\0') {		               // String is not just an integer.
     return false;
   }
   // If there's no validator by definition it's valid:
