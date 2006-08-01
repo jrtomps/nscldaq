@@ -413,15 +413,18 @@ CVMUSBReadoutList::addBlockRead(uint32_t base, size_t transfers,
   size_t  fullBlocks   = transfers/(256/sizeof(uint32_t));
   size_t  partialBlock = transfers % (256/sizeof(uint32_t));
 
-  if (fullBlocks) {
+  if (fullBlocks) {		// Multiblock transfer...
     uint32_t mode = startingMode;
     mode         |= modeMB;	// Multiblock transfer.
     mode         |= (256/sizeof(uint32_t)) << modeBLTShift; // Full block to xfer.
     m_list.push_back(mode);
-    m_list.push_back(base);	// Not sure this order is correct...
     m_list.push_back(fullBlocks);
-   
-    base += fullBlocks * 256;	// Adjust the base address in case there are partials.
+    m_list.push_back(base); 
+  
+    if ((startingMode & modeNA) == 0 ) {
+      base += fullBlocks * 256;	// Adjust to end of MBLT if not FIFO read.
+    }
+
     
   }
   if (partialBlock) {

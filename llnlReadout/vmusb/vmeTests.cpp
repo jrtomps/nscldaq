@@ -1,4 +1,4 @@
-z// Template for a test suite.
+// Template for a test suite.
 
 #include <cppunit/extensions/HelperMacros.h>
 #include <cppunit/Asserter.h>
@@ -33,6 +33,9 @@ class vmeTests : public CppUnit::TestFixture {
   CPPUNIT_TEST(rdwr8);
   CPPUNIT_TEST(rdwr8);
   CPPUNIT_TEST(blockReadSingle);
+  CPPUNIT_TEST(blockReadTwo);
+  CPPUNIT_TEST(blockReadOdd);
+  CPPUNIT_TEST(fifoTest);
   CPPUNIT_TEST_SUITE_END();
 
 private:
@@ -55,6 +58,9 @@ protected:
   void rdwr16();
   void rdwr8();
   void blockReadSingle();
+  void blockReadTwo();
+  void blockReadOdd();
+  void fifoTest();
 };
 
 CPPUNIT_TEST_SUITE_REGISTRATION(vmeTests);
@@ -137,4 +143,73 @@ void vmeTests::blockReadSingle()
     EQMSG("compare", pattern[i], rdblock[i]);
   }
 
+}
+// Block read of exactly 128 longs.  This is 2 complete blocks of  data
+// and should kick in the multiblock capability without any odd blocks needed.
+// - We'll use a counting pattern.
+//
+void vmeTests::blockReadTwo()
+{
+  const size_t patternSize(128);
+  uint32_t     pattern[patternSize];
+
+  for (int i = 0; i < patternSize; i++) {
+    pattern[i] = i;
+    m_pInterface->vmeWrite32(blockBase+i*sizeof(uint32_t), a32amod, pattern[i]);
+
+  }
+  uint32_t rdblock[patternSize];
+  size_t   transferred;
+  m_pInterface->vmeBlockRead(blockBase, blkamod, rdblock, patternSize, &transferred);
+  EQMSG("transfercount", patternSize, transferred);
+  for(int i =0; i < patternSize; i++) {
+    EQMSG("compare", pattern[i], rdblock[i]);
+  }
+}
+// Block read 180 longs.  This is 2 complete blocks + a bit.
+// Should kick in multiblock transfer with a second transfer that
+// deals with the partial block.
+// - Count down pattern is used.
+//
+void vmeTests::blockReadOdd()
+{
+  const size_t patternSize(180);
+  uint32_t     pattern[patternSize];
+
+  for (int i = patternSize; i > 0; i--) {
+    pattern[i] = i;
+    m_pInterface->vmeWrite32(blockBase+i*sizeof(uint32_t), a32amod, pattern[i]);
+  }
+  
+  uint32_t rdblock[patternSize];
+  size_t   transferred;
+  m_pInterface->vmeBlockRead(blockBase, blkamod, rdblock, patternSize, &transferred);
+  EQMSG("Transfer count", patternSize, transferred);
+  for (int i =0; i < patternSize; i++) {
+    EQMSG("data compare", pattern[i], rdblock[i]);
+  }
+}
+//  Fifo reads just read the memory without autoinc.  uh... since the
+//  Board is responsible for handling addresses within a block what we will
+//  do is write 180 longs to memory, we will then read 180 longs with
+//  FIFO mode. What I >think< we should see is 0..63,0..63,0..51
+//
+void vmeTests::fifoTest()
+{
+  const size_t patternSize(180);
+  uint32_t     pattern[patternSize];
+  for (int i =0; i < patternSize; i ++) {
+    pattern[i] = i;
+    m_pInterface->vmeWrite32(blockBase+i*sizeof(uint32_t), a32amod, pattern[i]);
+  }
+  uint32_t rdblock[patternSize];
+  size_t   transferred;
+  m_pInterface->vmeFifoRead(blockBase, blkamod, rdblock, patternSize, &transferred);
+  EQMSG("count", patternSize, transferred);
+
+  for (int i=0; i < patternSize; i++) {
+    char msg[100];
+    sprintf(msg, "offset 0x%04x", i);
+    EQMSG(msg, pattern[i % 64], rdblock[i]);
+  }
 }
