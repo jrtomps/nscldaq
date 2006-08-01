@@ -19,7 +19,10 @@ class configtest : public CppUnit::TestFixture {
   CPPUNIT_TEST(configseveral);
   CPPUNIT_TEST(intparam);
   CPPUNIT_TEST(boolparam);
-  CPPUNIT_TEST(enumparam);
+  CPPUNIT_TEST(listparam);
+  CPPUNIT_TEST(boollistparam);
+  CPPUNIT_TEST(intlistparam);
+  CPPUNIT_TEST(stringlist);
   CPPUNIT_TEST_SUITE_END();
 
 
@@ -39,7 +42,10 @@ protected:
   void configseveral();
   void intparam();
   void boolparam();
-  void enumparam();
+  void listparam();
+  void boollistparam();
+  void intlistparam();
+  void stringlist();
 };
 
 CPPUNIT_TEST_SUITE_REGISTRATION(configtest);
@@ -148,6 +154,9 @@ void configtest::intparam()
 // and as false:
 //    false, no, 0, off, disabled
 //
+// A white box note:  bools are implemented as enums so 
+// isEnum is therefore tested by this 
+//
 void configtest::boolparam()
 {
 
@@ -194,6 +203,178 @@ void configtest::boolparam()
 }
 
 
-void configtest::enumparam()
+
+// 
+// List type... we will not check the type checkers directly, but let
+// the isBoolList, isIntList isStringList etc. check this indirectly.
+// We will check
+//   - Legal lists with no length restrictions
+//   - Illegal lists with no lenght restrictions.
+//   - Lists with length restrictions within the allowed lengths.
+//   - Lists that with length restrictions that are not in the allowed lengths.
+//
+void configtest::listparam()
 {
+  CConfigurableObject::limit none;
+  CConfigurableObject::ListSizeConstraint constraint  = {none, none};
+  CConfigurableObject::TypeCheckInfo      notype(NULL, NULL);
+
+  CConfigurableObject::isListParameter nochecks = {constraint, notype};
+
+  m_pObject->addParameter("list", CConfigurableObject::isList,
+			  &nochecks, "");
+  // Legal list
+
+  bool thrown(false);
+  string message;
+  try {
+    m_pObject->configure("list", "a b c d");
+  }
+  catch (string msg) {
+    message = msg;
+    thrown = true;
+  }
+  EQMSG(message, false, thrown);
+
+  // Illegal list (unbalanced {}'s).
+
+  try {
+    m_pObject->configure("list", "a b {c d e");
+  }
+  catch (string msg) {
+    message = msg;
+    thrown  = true;
+  }
+  EQMSG(message, true, thrown);
+  thrown = false;
+
+  // Now a param that has at least 1 and at most 5 elements
+
+  CConfigurableObject::limit low(1);
+  CConfigurableObject::limit high(5);
+  CConfigurableObject::ListSizeConstraint constrained = {low, high};
+  CConfigurableObject::isListParameter sizeChecked = {constrained, notype};
+
+  m_pObject->addParameter("constrained", CConfigurableObject::isList,
+			  &sizeChecked, "two");
+
+  try {
+    m_pObject->configure("constrained", "one");
+    m_pObject->configure("constrained", "1 2 3 4 5");
+  }
+  catch (string msg) {
+    message = msg;
+    thrown = true;
+  }
+  EQMSG(message, false, thrown);
+  
+  // Bad length:
+
+  try {
+    m_pObject->configure("constrained", "");
+  }
+  catch (string msg) {
+    message = msg;
+    thrown = true;
+  }
+  EQMSG(message, true, thrown);
+
+  thrown = false;
+  try {
+    m_pObject->configure("constrained", "1 2 3 4 5 6");
+  }
+  catch (string msg) {
+    message = msg;
+    thrown = true;
+  }
+  EQMSG(message, true, thrown);
+}
+// Bool lists. just need to check for bad value detection as the 
+// size stuff has already been done.
+
+void configtest::boollistparam()
+{
+  CConfigurableObject::limit none;
+  CConfigurableObject::ListSizeConstraint sizes={none, none};
+
+  m_pObject->addParameter("boollist", CConfigurableObject::isBoolList,
+			  &sizes, "");
+  
+  // Legal bools:
+
+  bool thrown(false);
+  string message;
+  try {
+    m_pObject->configure("boollist", "on off true false 0 1 enabled");
+  } 
+  catch (string msg) {
+    message = msg;
+    thrown  = true;
+  }
+  EQMSG(message, false, thrown);
+
+  // Illegal bool... add some commas.. typical error:
+
+  try {
+    m_pObject->configure("boollist", "on, off, true, false, 0, 1, enabled");
+  }
+  catch (string msg) {
+    thrown = true;
+  }
+  EQMSG("should have thrown", true, thrown);
+
+}
+// int lists - we already know that int range checking works so we'll just
+// check that the checker gets called...using format validity.
+//
+void configtest::intlistparam()
+{
+  CConfigurableObject::limit none;
+  CConfigurableObject::ListSizeConstraint s = {none, none};
+
+  m_pObject->addParameter("intlist", CConfigurableObject::isIntList, &s, "");
+
+  // legal list:
+
+  string message;
+  bool   thrown(false);
+
+  try {
+    m_pObject->configure("intlist", "1 2 3 4");
+  }
+  catch(string msg) {
+    message = msg;
+    thrown  = true;
+  }
+  EQMSG(message, false, thrown);
+
+  // Illegal list
+
+  try {
+    m_pObject->configure("intlist", "1 b c");
+  }
+  catch (string msg) {
+    thrown = true;
+  }
+  EQMSG("Should have thrown", true, thrown);
+}
+// String lists:
+
+void configtest::stringlist()
+{
+  CConfigurableObject::limit none;
+  CConfigurableObject::ListSizeConstraint s = {none, none};
+  m_pObject->addParameter("stringlist", CConfigurableObject::isStringList, &s);
+  
+
+  bool thrown(false);
+  string message;
+  try {
+    m_pObject->configure("stringlist", "a b c d e f g");
+  }
+  catch (string msg) {
+    message =msg;
+    thrown = true;
+  }
+  EQMSG(message, false, thrown);
 }

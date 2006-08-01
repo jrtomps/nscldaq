@@ -421,7 +421,7 @@ CConfigurableObject::isList(string name, string value, void* validity)
     // If checker supplied, check all the list elements for validity.
 
     if (result && listValidity.s_checker.first) {
-      for (int i=0; i < listSize; i++) {
+      for (int i=0; (i < listSize) && result; i++) {
 	result = (*listValidity.s_checker.first)(name, list[i], 
 						 listValidity.s_checker.second);
       }
@@ -442,7 +442,7 @@ CConfigurableObject::isList(string name, string value, void* validity)
     \param value : std:: string
       Proposed new value.
     \param sizes : void*
-      Actually a pointer to Limits if non null:
+      Actually a pointer to ListSizeConstraint if non null:
       - If NULL elements are checked for validity but any list size is ok.
       - If non NULL elements are checked for validity and Limits set the
         limits on size.
