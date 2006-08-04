@@ -10,6 +10,7 @@ include_HEADERS     = CReadableObject.h	\
 			CCAMACModule.h	\
 			CVMEModule.h 	\
 			CCAMACReadableObject.h	\
+			CVMEReadableObject.h	\
 			CAEN32.h
 
 
@@ -33,6 +34,6 @@ ivp:
 	@echo "| Building the IVP for the VME library     |"
 	@echo "+------------------------------------------+"
 	$(CXX) $(CPPUNIT_CXXSW) -o tests TestRunner.cpp $(TESTS) -lDeviceSupport \
-	-Wl,"-rpath=@prefix@/lib" -lcppunit
+	-Wl,"-rpath=@prefix@/lib" -lcppunit -lbtp -lpthread
 	@echo Running device support tests:
 	./tests
