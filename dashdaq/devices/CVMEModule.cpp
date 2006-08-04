@@ -73,7 +73,7 @@ CVMEModule::operator!=(const CVMEModule& rhs) const
 /////////////////////////////////////////////////////////////////////////////
 
 CVMEInterface&
-CVMEModule::getInterface()
+CVMEModule::getInterface() const
 {
   return *m_pInterface;
 }

@@ -40,7 +40,7 @@ class CVMEInterface;
 class CVMEModule
 {
 private:
-  CVMEInterface*   m_pInterface;
+  mutable CVMEInterface*   m_pInterface;
   uint32_t         m_base;
 
 public:
@@ -55,7 +55,7 @@ public:
   // Selectors:
 
 public:
-  CVMEInterface& getInterface();
+  CVMEInterface& getInterface() const;
   uint32_t       getBase() const;
 };
    
