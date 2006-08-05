@@ -133,7 +133,7 @@ CConfigurableObject::getName() const
 string
 CConfigurableObject::cget(string name) 
 {
-  ConfigIterator found = m_parameters.begin();
+  ConfigIterator found = m_parameters.find(name);
   if (found == m_parameters.end()) {
     string msg("CConfigurableObject::cget was asked for parameter: ");
     msg += name;

@@ -151,8 +151,16 @@ static CConfigurableObject::Limits fcRange(fcLow, fcHigh);
    It's nice to have some easy methods for a change.
 
 */
-C785::C785() {}
-C785::C785(const C785& rhs) {}
+C785::C785() :
+  m_pConfiguration(0)
+ {}
+C785::C785(const C785& rhs) :
+  m_pConfiguration(0)
+{
+  if (rhs.m_pConfiguration) {
+    m_pConfiguration = new CReadoutModule(*(rhs.m_pConfiguration));
+  }
+}
 C785::~C785() {}
 
 C785&
@@ -173,7 +181,7 @@ C785::operator=(const C785& rhs) {
 
 \verbatim
    Parameter        Default
-   -thresholds      Array of 32 0's.
+   -thresholds      list of 32 0's.
    -smallthresholds false
    -ipl             0 (interrupts disabled)
    -vector          0
@@ -252,7 +260,7 @@ C785::Initialize(CVMUSB& controller)
   uint32_t base = getIntegerParameter("-base");	// Get the base address.
   int      type = getModuleType(controller, base);
 
-  if (type != 785) {
+  if ((type != 785)  && (type != 775)) { // 775 for testing!!.
     char message[100];
     string name = m_pConfiguration->getName();
     sprintf(message, "Module %s at base 0x%x is not a 785",
@@ -306,17 +314,27 @@ C785::Initialize(CVMUSB& controller)
   uint16_t fclearValue = getIntegerParameter("-fastclear");
   controller.vmeWrite16(base+FastClear, initamod, fclearValue);
 
+  // Set the supression.
+
+  bool supressed = getBoolParameter("-supressrange");
+  if (supressed) {
+    controller.vmeWrite16(base+BSet2, initamod, 0x38);
+  }
+  else {
+    controller.vmeWrite16(base+BClear2, initamod, 0x38);
+  }
+
   // Finally, ensure that at the end of a readout we'll get a BERR, rather than
   // we'll just write control regiseter 1 the way we want it:
   // Bits:      CAEN Mnemonic   Meaning:
-  // 4          BLNKKEND  (on)  In block transfer send data until empty not just 1 evt
+  // 4          BLNKKEND  (off)  In block transfer send data until empty not just 1 evt
   // 0x10       PROG RESET(off) Front panel reset only clears MEB.
   // 0x20       BERR ENABLE(on) BERR after end of data rather than inv data.
   // 0x40       ALIGN64 (off)   Alighn output to 64 bit boundaries.
   // All this makes the mask:
   //    0x24
   //
-  controller.vmeWrite16(base+Control1, initamod, 0x24);
+  controller.vmeWrite16(base+Control1, initamod, 0x20);
 
 
  
@@ -356,11 +374,13 @@ C785::clone() const
 // Throws a string exception (from cget) if there is no such parameter.
 // caller is responsible for ensuring the parameter is an int.
 //
-int
+unsigned int
 C785::getIntegerParameter(string name)
 {
   string sValue =  m_pConfiguration->cget(name);
-  return static_cast<int>(strtol(name.c_str(), NULL, 0));
+  unsigned int    value  = strtoul(sValue.c_str(), NULL, 0);
+
+  return value;
 }
 //  Return the value of a bool parameter.
 // Parameters:

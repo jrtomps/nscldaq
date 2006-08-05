@@ -42,8 +42,11 @@ static const uint32_t ModuleID   = 0x00000004;     // Firmware and ident.
 static const uint32_t AcqMode    = 0x00000100; // Acquisition mode register.
 
 static const uint32_t KeyReset   = 0x00000400;     // Writing here resets.
+static const uint32_t KeyLNE     = 0x00000410;
 static const uint32_t KeyArm     = 0x00000414;
 static const uint32_t KeyEnable  = 0x00000418;
+
+static const uint32_t ShadowCounters = 0x00000800;
 
 static const uint32_t SDRAM      = 0x00800000;
 
@@ -193,8 +196,9 @@ void
 C3820::addReadoutList(CVMUSBReadoutList& list)
 {
   uint32_t base = getBase();
-  list.addBlockRead32(base + SDRAM, CVMUSBReadoutList::a32UserData,
-		      32);	// Transfers is in longwords.
+  list.addWrite32(base+KeyLNE, CVMUSBReadoutList::a32UserData, 0);
+  list.addBlockRead32(base+ShadowCounters, CVMUSBReadoutList::a32UserBlock,
+		      32);
 }
 
 /*!

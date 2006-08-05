@@ -44,7 +44,7 @@ class CReadoutModule : public CConfigurableObject
 {
   CReadoutHardware* m_pHardware;	        //!< The actual hardware object.
 public:
-  CReadoutModule(const CReadoutHardware& hardware);
+  CReadoutModule(std::string name, const CReadoutHardware& hardware);
   CReadoutModule(const CReadoutModule& rhs);
   virtual ~CReadoutModule();
   CReadoutModule& operator=(const CReadoutModule& rhs);

@@ -16,6 +16,7 @@ class configtest : public CppUnit::TestFixture {
   CPPUNIT_TEST(construct);
   CPPUNIT_TEST(addstring);
   CPPUNIT_TEST(config);
+  CPPUNIT_TEST(cget);
   CPPUNIT_TEST(configseveral);
   CPPUNIT_TEST(intparam);
   CPPUNIT_TEST(boolparam);
@@ -39,6 +40,7 @@ protected:
   void construct();
   void addstring();
   void config();
+  void cget();
   void configseveral();
   void intparam();
   void boolparam();
@@ -62,11 +64,30 @@ void configtest::addstring() {
 void configtest::config() {
   m_pObject->addParameter("item", NULL, NULL);
   m_pObject->configure("item", "testString");
-  EQ(string("testString"), m_pObject->cget("testString"));
+  EQ(string("testString"), m_pObject->cget("item"));
 
 }
 
+void configtest::cget() 
+{
+  m_pObject->addParameter("item1", NULL,NULL, "item1");
+  m_pObject->addParameter("item2", NULL, NULL, "item2");
 
+  string result = m_pObject->cget("item1");
+  EQ(string("item1"), result);
+  
+  result = m_pObject->cget("item2");
+  EQ(string("item2"), result);
+
+  bool thrown = false;
+  try {
+    m_pObject->cget("No such item");
+  }
+  catch (string msg) {
+    thrown = true;
+  }
+  ASSERT(thrown);
+}
 
 // really tsting the array returning version of cget.
 

@@ -1,1 +1,1 @@
-SUBDIRS = vmusb devices threadcomm
+SUBDIRS = vmusb devices threadcomm router

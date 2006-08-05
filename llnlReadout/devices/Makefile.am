@@ -17,7 +17,7 @@ include_HEADERS			= 	CConfigurableObject.h	\
 					C3820.h			\
 					C785.h
 
-TESTS=configtest.cpp
+TESTS=configtest.cpp c785test.cpp c3820test.cpp
 
 tests: TestRunner.cpp $(TESTS)
 	$(CXX) -g -o tests -I. -I$(prefix)/include $(CPPUNIT_INCLUDES) \

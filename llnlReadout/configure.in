@@ -408,8 +408,8 @@ done
 if test $daqfound == "yes"
 then
 	AC_MSG_RESULT([Found in $daqdir])
-	NSCLDAQFLAGS="-I$daqdir/include"
-	NSCLDAQLIB="-L$daqdir/lib"
+	NSCLDAQ_FLAGS="-I$daqdir/include"
+	NSCLDAQ_LIB="-L$daqdir/lib"
 else
 	AC_MSG_ERROR([NSCLDAQ needs to be installed!])
 fi
@@ -463,4 +463,5 @@ AC_SUBST(NSCLDAQ_LIB)
 AC_OUTPUT([Makefile
 	  vmusb/Makefile
 	  devices/Makefile
-	  threadcomm/Makefile])
+	  threadcomm/Makefile
+	  router/Makefile])

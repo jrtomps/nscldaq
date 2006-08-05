@@ -18,10 +18,15 @@
 #include "CReadoutModule.h"
 #include "CReadoutHardware.h"
 
-
-#ifdef HAVE_STD_NAMESPACE
-using namespace std;
+#ifndef __STL_STRING
+#include <string>
+#ifndef __STL_STRING
+#define __STL_STRING
 #endif
+#endif
+
+using namespace std;
+
 
 
 ///////////////////////////////////////////////////////////////////////////
@@ -31,14 +36,16 @@ using namespace std;
 /*!
     Constructing is just a matter of saving the hardware reference
     and invoking its onAttach member.
+    \param name     : std::string
+        Name of the module.
     \param hardware : CReadoutHardware& 
         Reference to a readout hardware object that will be 
         copy constructed to form our hardware.  This copy construction
         avoids scope/ownership/deletion issues... we own it and we 
         \em will delete it on destruction.
 */
-CReadoutModule::CReadoutModule(const CReadoutHardware& hardware) :
-  CConfigurableObject(getName()),
+CReadoutModule::CReadoutModule(string name, const CReadoutHardware& hardware) :
+  CConfigurableObject(name),
   m_pHardware(hardware.clone())
 {
   m_pHardware->onAttach(*this);

@@ -102,7 +102,7 @@ public:
 
   // utilities:
 private:
-  int  getIntegerParameter(std::string name);
+  unsigned int  getIntegerParameter(std::string name);
   bool getBoolParameter(std::string name);
   void getThresholds(std::vector<uint16_t>& thresholds);
   int  getModuleType(CVMUSB& controller, uint32_t base);

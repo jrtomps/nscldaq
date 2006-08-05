@@ -17,7 +17,7 @@ using namespace std;
 // below:
 
 static Warning msg("vmeTests requires 1MB VME A24 memory at 0x500000");
-static Warning blkmsg("vmeTests requries a few K A32 block xfer memory at 0x8000000");
+static Warning blkmsg("vmeTests requries a few K A32 block xfer memory at 0x08000000");
 static const uint32_t vmebase = 0x500000;
 static const uint8_t  amod    = CVMUSBReadoutList::a24UserData;
 
