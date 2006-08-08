@@ -30,9 +30,9 @@ CPPUNIT_CXXSW= -g -DUNIT_TEST_INCLUDE -I@prefix@/include $(AM_CXXFLAGS) \
 	-L@prefix@/lib
 
 ivp:
-	@echo "+------------------------------------------+"
-	@echo "| Building the IVP for the VME library     |"
-	@echo "+------------------------------------------+"
+	@echo "+-------------------------------------------------+"
+	@echo "| Building the IVP for the device support library |"
+	@echo "+-------------------------------------------------+"
 	$(CXX) $(CPPUNIT_CXXSW) -o tests TestRunner.cpp $(TESTS) -lDeviceSupport \
 	-Wl,"-rpath=@prefix@/lib" -lcppunit -lbtp -lpthread
 	@echo Running device support tests:

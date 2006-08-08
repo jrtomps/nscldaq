@@ -22,6 +22,8 @@
 #include <CInvalidInterfaceType.h>
 #include <CDeviceIncapable.h>
 #include <RangeError.h>
+#include <stdlib.h>
+
 using namespace std;
 
 // Register map of the device (these are byte offsets).
@@ -86,6 +88,7 @@ CONST uint16_t B2ClearData(0x4);
 CONST uint16_t B2OverRange(8);
 CONST uint16_t B2LowThreshold(0x10);
 CONST uint16_t B2ValidControl(0x20);
+CONST uint16_t B2SmallThresholds(0x100);
 CONST uint16_t B2CommonStop(0x400);
 
 // Threshold bits:
@@ -233,8 +236,8 @@ CAEN32::getCardType()
 uint16_t
 CAEN32::getSerial()
 {
-  uint32_t serialLow = readreg(BoardSerialLSB);
-  uint32_t serialHi  = readreg(BoardSerialMSB);
+  uint32_t serialLow = readreg(BoardSerialLSB) & 0xff;
+  uint32_t serialHi  = readreg(BoardSerialMSB) & 0xff;
 
   return (serialLow) | (serialHi << 8);
 }
@@ -256,6 +259,23 @@ CAEN32::cgetCrate() const
 {
   return m_crate;
 }
+// Thresholds:
+
+void
+CAEN32::configThresholds(std::vector<uint16_t> thresholds)
+{
+  if (thresholds.size() != 32) {
+    throw string("CAEN32::configThresholds - threshold array is not 32 elements");
+  }
+  m_thresholds = thresholds;
+}
+vector<uint16_t>
+CAEN32::cgetThresholds() const
+{
+  return m_thresholds;
+}
+
+
 // VME software slot number...or alternatively disable that:
 
 void
@@ -379,6 +399,26 @@ uint32_t
 CAEN32::cgetCBLTBase() const
 {
   return m_cbltBase;
+}
+
+/*!
+    Configure the module to clear or not clear after being read.
+    This essentially determines if the module will be used in multievent mode.
+    \param clear : bool
+        True to clear after read.
+*/
+void
+CAEN32::configClearAfterRead(bool clear)
+{
+  m_clearAfterRead = clear;
+}
+/*!
+   Get the state of the clear after read config.
+*/
+bool
+CAEN32::cgetClearAfterRead() const
+{
+  return m_clearAfterRead;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -582,19 +622,19 @@ CAEN32::initialize()
   
   uint16_t sets(0);
   uint16_t clears(0);
-  if (m_keepUnderThreshold) {
+  if (!m_keepUnderThreshold) {
     clears |= B2LowThreshold;
   }
   else {
     sets   |= B2LowThreshold;
   }
-  if (m_keepOverflows) {
+  if (!m_keepOverflows) {
     clears |=  B2OverRange;
   }
   else {
     sets |= B2OverRange;
   }
-  if (m_keepInvalid) {
+  if (!m_keepInvalid) {
     clears |= B2ValidControl;
   }
   else {
@@ -608,6 +648,7 @@ CAEN32::initialize()
       clears |= B2CommonStop;
     }
   }
+  usleep(1);			// Dunno why this should be needed but it is.
   bitset2(sets);
   bitclr2(clears);
 
@@ -647,10 +688,10 @@ CAEN32::initialize()
   // Small thresholds
 
   if (m_smallThresholds) {
-    bitset2(B2LowThreshold);
+    bitset2(B2SmallThresholds);
   }
   else {
-    bitclr2(B2LowThreshold);
+    bitclr2(B2SmallThresholds);
   }
   // CBLT chain setup.
 
