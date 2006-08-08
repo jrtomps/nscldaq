@@ -144,6 +144,6 @@ private:
   void formatControlBuffer(uint16_t type, void* buffer);
   uint16_t eventCount(void* nsclBuffer);
 
-}
+};
 
 #endif

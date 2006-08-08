@@ -35,7 +35,7 @@
 #endif
 
 #ifndef __CBUFFERQUEUE_h
-#include <CBufferQeueue.h>
+#include <CBufferQueue.h>
 #endif
 
 /*!

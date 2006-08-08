@@ -61,12 +61,13 @@ private:
   // Instance data:
 
 private:
-  std::string    m_title
+  std::string    m_title;
   uint16_t       m_runNumber;
   RunState       m_state;
 
 private:
   CRunState();
+public:
   ~CRunState();			// This is final so not virtual
 
   // These make no sense for singleton objects;
@@ -78,20 +79,20 @@ private:
 
   // Singleton access:
 public:
-  CRunState* getInstance();
+  static CRunState* getInstance();
 
   // Methods on the object that are gaurded by the semaphore:
 
 public:
-  RunState getState() const;
+  RunState getState();
   void     setState(RunState newState);
 
-  std::string getTitle() const;
+  std::string getTitle();
   void        setTitle(std::string newTitle);
 
-  uint16_t    getRunNumber() const;
+  uint16_t    getRunNumber();
   void        setRunNumber(uint16_t newRunNumber);
   
-}
+};
 
 #endif

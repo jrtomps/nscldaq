@@ -51,7 +51,7 @@ CRunState::~CRunState()
    \retval current run state value.
 */
 CRunState::RunState
-CRunState::getState() const
+CRunState::getState()
 {
   Enter();
   RunState state = m_state;
@@ -64,10 +64,10 @@ CRunState::getState() const
      New runstate can be one of CRunState::Idle or CRunState::Active
 */
 void
-CRunState::setState(CRunState::RunState)
+CRunState::setState(CRunState::RunState state)
 {
   Enter();
-  m_state = RunState;
+  m_state = state;
   Leave();
 }
 /*!
@@ -76,7 +76,7 @@ CRunState::setState(CRunState::RunState)
    \retval  String containing the run title.
 */
 string
-CRunState::getTitle() const
+CRunState::getTitle()
 {
   Enter();
   string title = m_title;
@@ -102,7 +102,7 @@ CRunState::setTitle(string newTitle)
     \retval  The current run number.
 */
 uint16_t
-getRunNumber() const
+CRunState::getRunNumber() 
 {
   Enter();
   uint16_t run = m_runNumber;
@@ -115,7 +115,7 @@ getRunNumber() const
       New value for the run number.
 */
 void
-setRunNumber(uint16_t newRunNumber)
+CRunState::setRunNumber(uint16_t newRunNumber)
 {
   Enter();
   m_runNumber = newRunNumber;

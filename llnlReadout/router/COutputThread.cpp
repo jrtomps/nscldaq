@@ -187,7 +187,7 @@ COutputThread::freeBuffer(DataBuffer& buffer)
 void
 COutputThread::processBuffer(DataBuffer& buffer)
 {
-  if (s_bufferType == 1) {
+  if (buffer.s_bufferType == 1) {
     startRun(buffer);
   } else {
     uint16_t header = buffer.s_rawData[0]; // VMUSB header.
@@ -220,8 +220,8 @@ COutputThread::startRun(DataBuffer& buffer)
 {
   // Update our concept of run state, and buffer size:
 
-  CRunState* pState = getInstance();
-  m_RunNumber       = pState->getRunNumber();
+  CRunState* pState = CRunState::getInstance();
+  m_runNumber       = pState->getRunNumber();
   m_title           = pState->getTitle();
   m_sequence        = 0;
   m_outputBufferSize= buffer.s_bufferSize;
@@ -238,61 +238,61 @@ COutputThread::startRun(DataBuffer& buffer)
   // Submit the buffer to spectrodaq as tag 2 and free it.
 
   bufferToSpectrodaq(p, 2, m_outputBufferSize, 
-		     sizeof(BeginRunBuffer/sizeof(uint16_t)));
+		     sizeof(BeginRunBuffer)/sizeof(uint16_t));
   free(p);
 }
 /*
-   Called when an end of run has occured.  The end of run
-   with a VMUSB is a data buffer.  We submit that data buffer.
-   by calling events, and then we generate an end of run buffer.
-   for the DAQ system to use to note the change of run state.
-   Parameters:
-      DataBuffer& buffer  - The data from the readout thread.
+  Called when an end of run has occured.  The end of run
+  with a VMUSB is a data buffer.  We submit that data buffer.
+  by calling events, and then we generate an end of run buffer.
+  for the DAQ system to use to note the change of run state.
+  Parameters:
+  DataBuffer& buffer  - The data from the readout thread.
 */
 void
 COutputThread::endRun(DataBuffer& buffer)
 {
   // Process the data buffer:
-
+  
   events(buffer);
-
+  
   // Now do an end run buffer.
-
+  
   pBeginRunBuffer p = static_cast<pBeginRunBuffer>(malloc(sizeof(BeginRunBuffer)));
   formatControlBuffer(ENDRUNBF, p);
-
+  
   // Submit to spectrodaq and free:
-
+  
   bufferToSpectrodaq(p, 2, m_outputBufferSize,
-		     sizeof(BeginRunBuffer/sizeof(uint16_t)));
+		     sizeof(BeginRunBuffer)/sizeof(uint16_t));
   free(p);
 }
 
 /*
-    Format a scaler buffer.  Scaler buffers are contain a single event.
-    The VMUSB manual is not completely clear, but I think the event
-    consists of a normal event header followed, given the way I'm managing
-    scalers a list of 32 bit words that contain the scaler values.
-    For now we assume that there are no continuation cases...thsi is probably true as
-    we'd need more than 1000 scalers to exceed the eventlength field.
+  Format a scaler buffer.  Scaler buffers are contain a single event.
+  The VMUSB manual is not completely clear, but I think the event
+  consists of a normal event header followed, given the way I'm managing
+  scalers a list of 32 bit words that contain the scaler values.
+  For now we assume that there are no continuation cases...thsi is probably true as
+  we'd need more than 1000 scalers to exceed the eventlength field.
 */
 void
 COutputThread::scaler(DataBuffer& buffer)
 {
-
+  
   // first put the scalers in place..
-
-
+  
+  
   uint16_t length = buffer.s_rawData[0] & VMUSBEventLengthMask;
   length   = length * sizeof(uint16_t)/sizeof(uint32_t); // Count of longs.
-  uint32_t* pScalers = static_cast<uint32_t*>(&(buffer.s_rawData[1]));
-
-  uint16_t  finalWordCount = sizeof(ScaerlBufferr)/sizeof(uint16_t) + 
-                              length*sizeof(uint32_t)/sizeof(uint16_t) - 1;
-
+  uint32_t* pScalers = (uint32_t*)(&(buffer.s_rawData[1]));
+  
+  uint16_t  finalWordCount = sizeof(ScalerBuffer)/sizeof(uint16_t) + 
+    length*sizeof(uint32_t)/sizeof(uint16_t) - 1;
+  
   pScalerBuffer outbuf  = static_cast<pScalerBuffer>(malloc(m_outputBufferSize));
   memcpy(outbuf->s_body.scalers, pScalers, length*sizeof(uint32_t));
-
+  
   // fill in the header.
   
   outbuf->s_header.nwds   = finalWordCount;
@@ -303,16 +303,16 @@ COutputThread::scaler(DataBuffer& buffer)
   outbuf->s_header.nevt   = length; // This is the number of scalers.
   outbuf->s_header.nlam   = 0;
   outbuf->s_header.nbit   = 0;
-  outbuf->s_header.buffmt = BUFFER_VERSION;
+  outbuf->s_header.buffmt = BUFFER_REVISION;
   outbuf->s_header.ssignature = 0x0102;
-  outbuf->s_header.lsignature = 0x01020304;
+ outbuf->s_header.lsignature = 0x01020304;
 
   // Now the body that does not have scaler data:
 
-  outbuf->s_body.btime    = m_lastTimestamp;
-  m_lastTimestamp         = buffer.s_timeStamp - m_startTimestamp;
-  outbuf->s_body.etime    = m_lastTimestamp;
-
+  outbuf->s_body.btime    = m_lastStampedBuffer;
+  m_lastStampedBuffer     = buffer.s_timeStamp - m_startTimestamp;
+  outbuf->s_body.etime    = m_lastStampedBuffer;
+  
   // Submit the buffer and free it:
 
   bufferToSpectrodaq(outbuf, 2, m_outputBufferSize, finalWordCount);
@@ -340,8 +340,8 @@ COutputThread::events(DataBuffer& buffer)
   //  Create the output buffer first; and copy the
   //  event data into it:
 
-  pEventBuffer p  = static_cast<pEventBuffer>(malloc(m_bufferSize));
-  memcpy(pEventBuffer->s_body, buffer.s_rawData, buffer.s_bufferSize/sizeof(uint16_t));
+  pEventBuffer p  = static_cast<pEventBuffer>(malloc(m_outputBufferSize));
+  memcpy(p->s_body, buffer.s_rawData, buffer.s_bufferSize/sizeof(uint16_t));
 
   //  Now the he4ader except for nevt...
 
@@ -363,7 +363,7 @@ COutputThread::events(DataBuffer& buffer)
 
   // route the buffer and free it:
 
-  bufferToSpectrodaq(p, 1, m_buffersize, finalLength);
+  bufferToSpectrodaq(p, 1, m_outputBufferSize, finalLength);
   free(p);
   
 }
@@ -383,10 +383,10 @@ COutputThread::formatControlBuffer(uint16_t type, void* buffer)
 
   // Header:
   
-  p->s_header.nwds  = sizeof(BeginRunBuffer/sizeof(uint16_t));
+  p->s_header.nwds  = sizeof(BeginRunBuffer)/sizeof(uint16_t);
   p->s_header.type  = type;
   p->s_header.cks   = 0;	// Not using the checksum!!!
-  p->s_header.run   = m_runNuber;
+  p->s_header.run   = m_runNumber;
   p->s_header.seq   = m_sequence;
   p->s_header.nevt  = 0;
   p->s_header.nlam  = 0;
@@ -440,7 +440,7 @@ COutputThread::eventCount(void* nsclBuffer)
 
   while (*pb != 0xffff) {
     uint16_t count = *pb & VMUSBEventLengthMask;
-    if (*pb & VMUSBContinuation) event++;
+    if (*pb & VMUSBContinuation) events++;
     p += count;
   }
 
