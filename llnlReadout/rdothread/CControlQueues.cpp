@@ -23,7 +23,7 @@ using namespace std;
 
 //
 
-CControlQeueues* CControlQueues::m_pTheInstance(0);
+CControlQueues* CControlQueues::m_pTheInstance(0);
 
 /*!
    The constructor does othing since the individueal buffer queues
@@ -109,7 +109,7 @@ CControlQueues::getRequest()
     \retval false  - no command message was available.
 */
 bool
-CCOntrolQueues::testRequest(string command)
+CControlQueues::testRequest(string command)
 {
   list<string> messages = m_requestQueue.getAll();
   if(messages.empty()) {

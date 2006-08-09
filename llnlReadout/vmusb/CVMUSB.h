@@ -133,7 +133,7 @@ public:
     void     writeVector(int which, uint32_t value);
     uint32_t readVector(int which);
 
-    void     writeBulkferSetup(uint32_t value);
+    void     writeBulkXferSetup(uint32_t value);
     uint32_t readBulkXferSetup();
 
 
@@ -208,7 +208,7 @@ public:
 	static const uint32_t yearShift        = 24;
        
 	static const uint32_t monthMask        = 0xf0000000;
-	static const uint32_t monthshfit       = 27;
+	static const uint32_t monthshift       = 27;
     };
 
     class GlobalModeRegister {
@@ -240,7 +240,7 @@ public:
 	static const uint32_t readoutTriggerDelayShift    = 0;
 	
 	static const uint32_t scalerReadoutPeriodMask     = 0xff00;
-	static const uint32_t scalerReadoutPeriodShfit    = 8;
+	static const uint32_t scalerReadoutPeriodShift    = 8;
 
 	static const uint32_t scalerReadoutFrequenyMask   = 0xffff0000;
 	static const uint32_t scalerReadoutFrequencyShift = 16;
@@ -397,7 +397,7 @@ public:
     class TransferSetupRegister {
     public:
 	static const uint32_t multiBufferCountMask   = 0xff;
-0);	static const uint32_t multiBufferCountShift  = 0;
+	static const uint32_t multiBufferCountShift  = 0;
 
 	static const uint32_t timeoutMask            = 0xf00;
 	static const uint32_t timeoutShift           = 8;

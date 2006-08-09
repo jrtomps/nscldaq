@@ -71,7 +71,7 @@ private:
   CBufferQueue<std::string>     m_requestQueue;
   CBufferQueue<std::string>     m_replyQueue;
 
-  static ControlQeueues*        m_pTheInstance;
+  static CControlQueues*        m_pTheInstance;
 
 private:
   CControlQueues();

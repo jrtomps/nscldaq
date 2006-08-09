@@ -20,17 +20,17 @@
 #include <CVMUSB.h>
 #include <CVMUSBReadoutList.h>
 #include <DataBuffer.h>
-#include "CControlQueue.h"
-#include <asserts.h>
+#include <CControlQueues.h>
+#include <assert.h>
 #include <time.h>
 
 using namespace std;
 
 static const uint8_t vmeVector(0x80); // Some middle of the road vector.
 static const uint8_t vmeIPL(6);	      // not quite NMI.
-static const scalerPeriod(10);	      // Seconds between scaler readouts.
-static const scalerPeriodMultiplier(1); // Scaler readout period assumed in secs.
-static const DRAINTIMEOUT(5);	// # consecutive drain read timeouts before giving up.
+static const unsigned scalerPeriod(10);	      // Seconds between scaler readouts.
+static const unsigned scalerPeriodMultiplier(1); // Scaler readout period assumed in secs.
+static const unsigned DRAINTIMEOUTS(5);	// # consecutive drain read timeouts before giving up.
 
 // buffer types:
 //
@@ -38,7 +38,7 @@ static const DRAINTIMEOUT(5);	// # consecutive drain read timeouts before giving
 
 bool                CAcquisitionThread::m_Running(false);
 CVMUSB*             CAcquisitionThread::m_pVme(0);
-CAcquisitionThread* CAcquistionThread::m_pTheInstance(0);
+CAcquisitionThread* CAcquisitionThread::m_pTheInstance(0);
 
 
 /*!
@@ -81,7 +81,7 @@ CAcquisitionThread::getInstance()
 
 */
 void
-CAcquistionThread::start(CVMUSB* usb,
+CAcquisitionThread::start(CVMUSB* usb,
 			 vector<CReadoutModule*> adcs,
 			 vector<CReadoutModule*> scalers)
 {
@@ -138,21 +138,21 @@ CAcquisitionThread::operator()(int argc, char** argv)
 void
 CAcquisitionThread::mainLoop()
 {
-  DataBuffer*     pBuffer   = gFreeBuffers->get();
+  DataBuffer*     pBuffer   = gFreeBuffers.get();
   CControlQueues* pCommands = CControlQueues::getInstance(); 
   try {
     while (true) {
       
       // Event data from the VM-usb.
       
-      size_t bytesRead
-	int status = m_pVme->usbRead(pBuffer->s_rawData, pBuffer->s_storageSize,
+      size_t bytesRead;
+      int status = m_pVme->usbRead(pBuffer->s_rawData, pBuffer->s_storageSize,
 				     &bytesRead);
       if (status == 0) {
 	pBuffer->s_bufferSize = bytesRead;
-	buffer.s_bufferType   = TYPE_EVENTS;
+	pBuffer->s_bufferType   = TYPE_EVENTS;
 	processBuffer(pBuffer);	// Submitted to output thread so...
-	pBuffer = gFreeBuffers->get(); // need a new one.
+	pBuffer = gFreeBuffers.get(); // need a new one.
       }
       // Commands from our command queue.
       
@@ -164,7 +164,7 @@ CAcquisitionThread::mainLoop()
     }
   }
   catch (...) {
-    gFreeBuffers->put(pBuffer);	// Don't lose buffers!!
+    gFreeBuffers.queue(pBuffer);	// Don't lose buffers!!
     throw;
   }
 }
@@ -228,8 +228,8 @@ CAcquisitionThread::processBuffer(DataBuffer* pBuffer)
   time_t acquiredTime;		// Need to generate  our own timestamps.
   time(&acquiredTime);
 
-  buffer.s_timeStamp  = acquiredTime;
-  gFilledBuffers.put(buffer);	// Send it on to be routed to spectrodaq in another thread.
+  pBuffer->s_timeStamp  = acquiredTime;
+  gFilledBuffers.queue(pBuffer);	// Send it on to be routed to spectrodaq in another thread.
 }
 /*!
     startDaq start data acquisition from a standing stop. To do this we need to:
@@ -256,12 +256,12 @@ CAcquisitionThread::startDaq()
   CVMUSBReadoutList*  adcList    = createList(m_adcs);
   CVMUSBReadoutList*  scalerList = createList(m_scalers);
 
-  size_t adcListLines            = adcList.size(); // offset to scaler list.
+  size_t adcListLines            = adcList->size(); // offset to scaler list.
   
   // Load the lists.
 
-  m_pVme->loadList(2, adcList);	                 // Event readout list.
-  m_pVme->loadList(1, scalerList, adcListLines); // Scaler list.
+  m_pVme->loadList(2, *adcList);	                 // Event readout list.
+  m_pVme->loadList(1, *scalerList, adcListLines); // Scaler list.
 
   // Set up the trigger for the event list; the A vector of 
   // vector register 1; the B Vector is unused.
@@ -292,7 +292,8 @@ CAcquisitionThread::startDaq()
   //   Bus request level 4.
   //
   m_pVme->writeGlobalMode((4 << CVMUSB::GlobalModeRegister::busReqLevelShift) | 
-			  (CVMUSB::GlobalModeRegister::bufferLen13K << CVMUSB::GLobalModeRegister::bufferLenShift));
+			  (CVMUSB::GlobalModeRegister::bufferLen13K << 
+			   CVMUSB::GlobalModeRegister::bufferLenShift));
 
   // initialize the hardware:
 
@@ -324,7 +325,7 @@ CAcquisitionThread::stopDaq()
    to the action register
 */
 void
-CAcquistitionThread::VMusbToAutonomous()
+CAcquisitionThread::VMusbToAutonomous()
 {
   m_pVme->writeActionRegister(CVMUSB::ActionRegister::startDAQ);
 }
@@ -345,12 +346,12 @@ CAcquisitionThread::drainUsb()
 				    &bytesRead, 5000); // 5 second timeout!!
     if (status == 0) {
       pBuffer->s_bufferSize = bytesRead;
-      buffer.s_bufferType   = TYPE_EVENTS;
-      if (pBuffer->s_body[0] & VMUSBLastBuffer) {
+      pBuffer->s_bufferType   = TYPE_EVENTS;
+      if (pBuffer->s_rawData[0] & VMUSBLastBuffer) {
 	done = true;
       }
       processBuffer(pBuffer);
-      pBuffer = gFreeBuffers->get();
+      pBuffer = gFreeBuffers.get();
     }
     else {
       timeouts++;		// By the time debugged this is only failure.
@@ -373,7 +374,7 @@ CAcquisitionThread::beginRun()
   DataBuffer* pBuffer   = gFreeBuffers.get();
   pBuffer->s_bufferSize = pBuffer->s_storageSize;
   pBuffer->s_bufferType = TYPE_START;
-  processBuffer(buffer);	// Rest gets taken care of there.
+  processBuffer(pBuffer);	// Rest gets taken care of there.
 }
 /*!
    Emit an end of run buffer.
@@ -385,7 +386,7 @@ CAcquisitionThread::endRun()
   DataBuffer* pBuffer   = gFreeBuffers.get();
   pBuffer->s_bufferSize = pBuffer->s_storageSize;
   pBuffer->s_bufferType = TYPE_STOP;
-  processBuffer(buffer);
+  processBuffer(pBuffer);
 } 
 /*!
    Create a VMUSB readout list from 
@@ -402,16 +403,16 @@ CAcquisitionThread::createList(vector<CReadoutModule*> modules)
   for (int i = 0; i < modules.size(); i++) {
     modules[i]->addReadoutList(*pList);
   }
-  return *pList;
+  return pList;
 }
 /*!
    Initialize a list of hardware modules by interacting with the
    VMUSB:
 */
 void
-CAcquisitionThread::InitializeHardware(vector<CReadoutModule* modules)
+CAcquisitionThread::InitializeHardware(vector<CReadoutModule*> modules)
 {
-  for (int i =0; i < modules.size() i++) {
+  for (int i =0; i < modules.size();  i++) {
     modules[i]->Initialize(*m_pVme);
   }
 }

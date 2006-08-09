@@ -495,4 +495,5 @@ AC_OUTPUT([Makefile
 	  vmusb/Makefile
 	  devices/Makefile
 	  threadcomm/Makefile
-	  router/Makefile])
+	  router/Makefile
+	  rdothread/Makefile])

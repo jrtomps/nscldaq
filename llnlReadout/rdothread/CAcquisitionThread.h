@@ -19,7 +19,7 @@
 
 using namespace std;		// required for spectrodaq includes.
 #ifndef __SPECTRODAQ_H
-#include <spectrodaq>
+#include <spectrodaq.h>
 #ifndef __SPECTRODAQ_H
 #define __SPECTRODAQ_H
 #endif
@@ -80,7 +80,7 @@ public:
   static void start(CVMUSB* usb,
 		    std::vector<CReadoutModule*> adcs,
 		    std::vector<CReadoutModule*> scalers);
-  static void isRunning();
+  static bool isRunning();
 
 protected:
   virtual int operator()(int argc, char** argv);

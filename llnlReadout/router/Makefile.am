@@ -10,4 +10,5 @@ include_HEADERS		=	COutputThread.h		\
 INCLUDES		= $(NSCLDAQ_FLAGS) $(SPECTRODAQ_FLAGS) \
 				-I@top_srcdir@/threadcomm
 
-libRouter_la_LIBADD	= $(NSCLDAQ_LIB) $(SPECTRODAQ_LDFLAGS)
+libRouter_la_LIBADD	= $(NSCLDAQ_LIB) $(SPECTRODAQ_LDFLAGS)	\
+			@top_srcdir@/threadcom/libThreadComm.la
