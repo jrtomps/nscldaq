@@ -172,5 +172,5 @@ CBufferQueue<T>::wait()
 template<class T> void
 CBufferQueue<T>::wake()
 {
-  m_condition.broadcast();
+  m_condition.Broadcast();
 }

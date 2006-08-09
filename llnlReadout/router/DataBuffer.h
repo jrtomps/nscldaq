@@ -48,8 +48,9 @@
 	use by the readout thread.
 */
 struct DataBuffer {
-  uint32_t   s_bufferSize;
-  uint32_t   s_bufferType;
+  uint32_t   s_bufferSize;	//!< Bytes used in the buffer.
+  uint32_t   s_storageSize;     //!< bytes in s_rawData[].
+  uint32_t   s_bufferType;	//!< Type of buffer.
   time_t     s_timeStamp;	//!< When the buffer was received.
   uint16_t   s_rawData[1];	//!< Really larger than that
 
@@ -63,3 +64,22 @@ extern CBufferQueue<DataBuffer*>  gFreeBuffers;
 
 extern DataBuffer* createDataBuffer(uint32_t bodySize); //!< Create a new data buffer.
 extern void        destroyDataBuffer(DataBuffer* pBuffer); //!< Free data buffer.
+
+// The VMUSB header:
+
+static const int VMUSBLastBuffer(0x8000);
+static const int VMUSBisScaler(0x4000);
+static const int VMUSBContinuous(0x2000);
+static const int VMUSBMultiBuffer(0x1000);
+static const int VMUSBNEventMask(0x0fff);
+
+static const int VMUSBContinuation(0x1000);
+static const int VMUSBEventLengthMask(0xfff);
+static const int VMUSBStackIdMask(0xe000);
+static const int VMUSBStackIdShift(13);
+
+// Buffer types;
+
+static const int TYPE_START(1);
+static const int TYPE_STOP(2);
+static const int TYPE_EVENTS(3);

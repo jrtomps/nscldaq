@@ -122,3 +122,25 @@ CRunState::setRunNumber(uint16_t newRunNumber)
   Leave();
 
 }
+/*!
+   Get the number of seconds between scaler readouts:
+*/
+uint32_t
+CRunState::getScalerPeriod()
+{
+  uint32_t value;
+  Enter();
+  value = m_scalerPeriod;
+  Leave();
+  return value;
+}
+/*!
+  Set the number of seconds between scaler readouts.
+*/
+void
+CRunState::setScalerPeriod(uint32_t period)
+{
+  Enter();
+  m_scalerPeriod = period;
+  Leave();
+}

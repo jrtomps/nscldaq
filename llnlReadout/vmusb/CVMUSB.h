@@ -133,7 +133,7 @@ public:
     void     writeVector(int which, uint32_t value);
     uint32_t readVector(int which);
 
-    void     writeBulkXferSetup(uint32_t value);
+    void     writeBulkferSetup(uint32_t value);
     uint32_t readBulkXferSetup();
 
 
@@ -235,6 +235,7 @@ public:
 	static const uint16_t busReqLevelShift = 12;
     };
     class DAQSettingsRegister {
+    public:
 	static const uint32_t readoutTriggerDelayMask     = 0xff;
 	static const uint32_t readoutTriggerDelayShift    = 0;
 	
@@ -245,6 +246,7 @@ public:
 	static const uint32_t scalerReadoutFrequencyShift = 16;
     };
     class LedSourceRegister {
+    public:
 	// Top yellow led:
 
 	static const uint32_t topYellowOutFifoNotEmpty    = 0;
@@ -376,6 +378,7 @@ public:
     // There are two vectors per register called A/B in this set of 
 
     class ISVRegister {
+    public:
 	static const uint32_t AVectorMask             = 0xff;
 	static const uint32_t AVectorShift            = 0;
 	static const uint32_t AIPLMask                = 0x700;
@@ -392,8 +395,9 @@ public:
     };
 
     class TransferSetupRegister {
+    public:
 	static const uint32_t multiBufferCountMask   = 0xff;
-	static const uint32_t multiBufferCountShift  = 0;
+0);	static const uint32_t multiBufferCountShift  = 0;
 
 	static const uint32_t timeoutMask            = 0xf00;
 	static const uint32_t timeoutShift           = 8;

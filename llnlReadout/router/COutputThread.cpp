@@ -29,22 +29,8 @@
 #include <time.h>
 
 
-///////////////////////////////////////////////////////////////////////
-///////////////////// Local constants. ////////////////////////////////
-///////////////////////////////////////////////////////////////////////
 
-// The VMUSB header:
 
-static const int VMUSBLastBuffer(0x8000);
-static const int VMUSBisScaler(0x4000);
-static const int VMUSBContinuous(0x2000);
-static const int VMUSBMultiBuffer(0x1000);
-static const int VMUSBNEventMask(0x0fff);
-
-static const int VMUSBContinuation(0x1000);
-static const int VMUSBEventLengthMask(0xfff);
-static const int VMUSBStackIdMask(0xe000);
-static const int VMUSBStackIdShift(13);
 
 ///////////////////////////////////////////////////////////////////////
 ///////////////////// Local data types ////////////////////////////////
@@ -283,9 +269,9 @@ COutputThread::scaler(DataBuffer& buffer)
   // first put the scalers in place..
   
   
-  uint16_t length = buffer.s_rawData[0] & VMUSBEventLengthMask;
+  uint16_t length = buffer.s_rawData[1] & VMUSBEventLengthMask;
   length   = length * sizeof(uint16_t)/sizeof(uint32_t); // Count of longs.
-  uint32_t* pScalers = (uint32_t*)(&(buffer.s_rawData[1]));
+  uint32_t* pScalers = (uint32_t*)(&(buffer.s_rawData[2]));
   
   uint16_t  finalWordCount = sizeof(ScalerBuffer)/sizeof(uint16_t) + 
     length*sizeof(uint32_t)/sizeof(uint16_t) - 1;
