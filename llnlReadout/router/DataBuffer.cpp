@@ -20,6 +20,8 @@
 // unbound functions that create and destroy event data buffers.
 //
 
+#include <config.h>
+
 #include "DataBuffer.h"
 #include <stdlib.h>
 #include <unistd.h>
