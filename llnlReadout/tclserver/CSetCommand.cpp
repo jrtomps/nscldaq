@@ -50,8 +50,7 @@ CSetCommand::operator()(CTCLInterpreter& interp,
   // Must be 4 words in the command:
 
   if (objv.size() != 4) {
-    setResult(interp, 
-	      "Set: Incorrect number of command words. Need: Set name point value");
+    m_Server.setResult("Set: Incorrect number of command words. Need: Set name point value");
     return TCL_ERROR;
   }
   // Pull out the values.. All values are strings:
@@ -67,25 +66,14 @@ CSetCommand::operator()(CTCLInterpreter& interp,
     string msg("Set: Control module: ");
     msg += name;
     msg += " cannot be found";
-    setResult(interp, msg);
+    m_Server.setResult( msg);
 
     return TCL_ERROR;
   }
   // Now try the command returning any string error that is thrown:
 
   string result = pModule->Set(vme, point.c_str(), value.c_str());
-  setResult(interp, result);
+  m_Server.setResult( result);
   return TCL_OK;
-  
-}
-/*
-  Set the result from a string:
-*/
-void
-CSetCommand::setResult(CTCLInterpreter& interp, string msg)
-{
-  Tcl_Obj* result = Tcl_NewStringObj(msg.c_str(), -1);
-  Tcl_SetObjResult(interp.getInterpreter(), result);
-  
   
 }

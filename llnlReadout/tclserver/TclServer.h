@@ -40,7 +40,7 @@
 
 class CVMUSB;
 class CControlModule;
-class CTCLIntepreter;
+class CTCLInterpreter;
 
 /*!
   The TclServer class implements a little Tcl server for our readout software.
@@ -63,7 +63,7 @@ class CTCLIntepreter;
    connections from localhost.
 
 */
-class TclSever : public DAQThread
+class TclServer : public DAQThread
 {
   // Member data:
 private:
@@ -72,7 +72,7 @@ private:
   CVMUSB*                      m_pVme;		// VME controller.
   std::vector<CControlModule*> m_Modules;       // Hardware we can access.
   CTCLInterpreter*             m_pInterpreter;
-  DAQThreadID                  m_tid;
+  DAQThreadId                  m_tid;
 
 public:
   TclServer();
@@ -85,10 +85,10 @@ private:
 
 
 public:
-  DAQThreadID start(int port, const char* configFile, CVMUSB& vme);
+  DAQThreadId start(int port, const char* configFile, CVMUSB& vme);
   CControlModule* findModule(std::string name);
   void            addModule(CControlModule* pNewModule);
-
+  void            setResult(std::string resultText);
 protected:
   int operator()(int argc, char** argv);
 

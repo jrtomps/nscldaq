@@ -15,6 +15,8 @@
 */
 
 #include <config.h>
+using namespace std;
+
 #include "TclServer.h"
 #include "server.h"
 #include "serverinstance.h"
@@ -109,7 +111,17 @@ TclServer::addModule(CControlModule* pNewModule)
   m_Modules.push_back(pNewModule);
 }
 
-
+/*!
+   Set the interpreter result to a string value.
+*/
+void
+TclServer::setResult(string msg)
+{
+  Tcl_Obj* result = Tcl_NewStringObj(msg.c_str(), -1);
+  Tcl_SetObjResult(m_pInterpreter->getInterpreter(), result);
+  
+  
+}
 /*!
    Entry point for the thread.  This will be called when the thread is first
    scheduled after start was called.  We just need to call our
@@ -209,3 +221,10 @@ TclServer::EventLoop()
   }
  cerr << "The Tcl Server event loop has exited. No Tcp ops can be done\n"; 
 }
+/*
+   Set the result string.
+   Parameters:
+     CTCLInterpreter& interp    -Interpreter whose result string will be set.
+     std::string      msg       -What to set the result string to.
+*/
+

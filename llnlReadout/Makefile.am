@@ -1,1 +1,1 @@
-SUBDIRS = vmusb devices threadcomm router rdothread
+SUBDIRS = vmusb devices threadcomm router rdothread tclserver

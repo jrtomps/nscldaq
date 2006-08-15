@@ -50,7 +50,7 @@ CGetCommand::operator()(CTCLInterpreter& interp,
   // Need 3 words on the command line:
 
   if (objv.size() != 3) {
-    setResult(interp,
+    m_Server.setResult(
 	      "Get: Incorrect number of command parameters : need Get name point");
     return TCL_ERROR;
   }
@@ -67,25 +67,13 @@ CGetCommand::operator()(CTCLInterpreter& interp,
   if (!pModule) {
     string msg("Get: unable to find module ");
     msg += name;
-    setResult(interp, msg);
+    m_Server.setResult( msg);
     return TCL_ERROR;
   }
 
   string result =   pModule->Get(m_Vme, point);
-  setResult(interp, result);
+  m_Server.setResult( result);
   return TCL_OK;
 
 }
 
-
-/*
-  Set the result from a string:
-*/
-void
-CGetCommand::setResult(CTCLInterpreter& interp, string msg)
-{
-  Tcl_Obj* result = Tcl_NewStringObj(msg.c_str(), -1);
-  Tcl_SetObjResult(interp.getInterpreter(), result);
-  
-  
-}

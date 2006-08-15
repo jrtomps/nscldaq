@@ -496,4 +496,5 @@ AC_OUTPUT([Makefile
 	  devices/Makefile
 	  threadcomm/Makefile
 	  router/Makefile
-	  rdothread/Makefile])
+	  rdothread/Makefile
+	  tclserver/Makefile])

@@ -50,13 +50,13 @@ class CModuleCommand : public CTCLObjectProcessor
 {
   // local member data:
 private:
-  TclServer*  m_Server;
+  TclServer&  m_Server;
   
   // Canonical functions:
 
 public:
   CModuleCommand(CTCLInterpreter& interp,
-		 TclServer&       server,
+		 TclServer&       server);
   virtual ~CModuleCommand();
 
 private:
@@ -79,7 +79,6 @@ private:
 	   std::vector<CTCLObject>& objv);
   
 
-  void setResult(CTCLInterpreter& interp, std::string msg);
 
 };
 

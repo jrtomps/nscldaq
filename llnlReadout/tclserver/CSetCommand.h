@@ -34,7 +34,7 @@
 #define __STL_STRING
 #endif
 #endif
-xcy
+
 
 class TclServer;
 class CTCLObject;
@@ -63,7 +63,7 @@ class CVMUSB;
 class CSetCommand : public CTCLObjectProcessor
 {
 private:
-  TclServer*   m_Server;	// Tcl server that is running us.
+  TclServer&   m_Server;	// Tcl server that is running us.
   CVMUSB&      m_Vme;
 public:
   CSetCommand(CTCLInterpreter&   interp,
@@ -83,8 +83,6 @@ protected:
   int operator()(CTCLInterpreter& interp,
 		 std::vector<CTCLObject*> objv);
 
-private:
-  void setResult(CTCLInterpreter& interp, std::string msg);
 
 };
 

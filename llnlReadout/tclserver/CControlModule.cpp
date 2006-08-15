@@ -49,17 +49,17 @@ CControlModule::~CControlModule()
 }
 
 /*! 
-  Copy construction.  The hardware is just cloned.
+  Copy construction.  The hardware is just cloned....configuration must be redone.
 */
 CControlModule::CControlModule(const CControlModule& rhs) :
   CConfigurableOjbect(rhs)
 {
-  m_pHardware->clone();
+  m_pHardware->clone(*(rhs.m_pHardware));
   m_pHardware->onAttach(*this);
 }
 /*!
   Assignment, clear our configuration, destroy our hardware
-and copy the new.
+and copy the new.  Note that the module must be reconfigured at this point
 */
 CControlModule& 
 CControlModule::operator=(const CControlModule& rhs)
@@ -68,12 +68,18 @@ CControlModule::operator=(const CControlModule& rhs)
     delete m_pHardware;
     clearConfiguration();
     CConfigurableObject::operator=(rhs);
-    m_pHardware = rhs.m_pHardware->clone();
+    m_pHardware = rhs.m_pHardware->clone(*(rhs.m_pHardware));
     clearConfiguration();
     m_pHardware->onAttach(*this);
     
   }
   return *this;
+}
+
+CControlModule*
+CControlHardware::getConfiguration()
+{
+  return m_pConfig;
 }
 
 
