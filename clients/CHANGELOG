@@ -671,5 +671,8 @@ May 30, 2006
 June 8, 2006
      - Try to make builds in systems without docbook or with 'broken?'
        docbook installs work.
+August 15,2006
+     - Fix the fact that epics alarms linger after being disabled for the chan.
+       This is defect 216.
 
 8.1 (final)

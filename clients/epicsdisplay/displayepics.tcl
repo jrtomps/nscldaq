@@ -316,6 +316,7 @@ proc makeGui {} {
 proc clearAlarmSetup {name row} {
     global tableWidget
 
+
     set comment [$tableWidget get $row,3]
     set nomindex [lsearch -exact $comment tolerance]
     if {$nomindex != -1} {
@@ -330,6 +331,12 @@ proc clearAlarmSetup {name row} {
     $tableWidget configure -state normal
     $tableWidget set $row,3 $comment
     $tableWidget configure -state disable
+
+    set bgcolor [$tableWidget cget -background]
+    set line [getTableLine $name]
+    $tableWidget clear tags $line,0 $line,3
+    .value$line  configure -background $bgcolor
+    .units$line  configure -background $bgcolor
 }
 
 #------------------------------------------------------------------------------
@@ -864,7 +871,7 @@ proc fireAlarm {name value actions} {
 
     foreach action $actions {
 	set request [lindex $action 0]
-	switch -exact $request {
+	switch -exact -- $request {
 	    color {
 		set line [getTableLine $name]
 		if {$line > 0} {
@@ -930,8 +937,9 @@ proc cancelAlarm {name value actions} {
 
     foreach action $actions {
 	set request [lindex $action 0]
-	switch -exact $request {
+	switch -exact -- $request {
 	    color {
+		puts "clearing color for $name"
 		set line [getTableLine $name]
 		if {$line > 0} {
 		    set bgcolor [$tableWidget cget -background]
@@ -1123,7 +1131,7 @@ proc createAlarm {name low high actions nominal} {
 
     set actionList [list]
     foreach action $actions {
-	switch -glob $action {
+	switch -glob -- $action {
 	    page {
 	    }
 	    popup {
@@ -2221,7 +2229,7 @@ snit::widget alarmConfiguration {
 
 	$win.work.color configure -background [$win.work cget -background]
 	foreach item $list {
-	    switch -glob $item {
+	    switch -glob -- $item {
 		popup {
 		    set popup 1
 		}

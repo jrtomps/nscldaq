@@ -43,7 +43,7 @@ static const UShort_t CLEARS(0xfffc);	// All the other bits.
    @param lBase:
        Base address of the module.
    @param nCrate:
-       crate number (Defaults to 0).
+       crate number (Defaults to 0)
 */
 CCAENV977Status::CCAENV977Status(ULong_t lBase, UShort_t nCrate) :
   m_Module(*(new CCAENV977(lBase, nCrate)))
@@ -124,7 +124,7 @@ CCAENV977Status::GoClear()
 {
   PulseOutputs(GOINGREADY);
 }
-
+`
 
 /**
  * Clear both the busy and ready outputs.
