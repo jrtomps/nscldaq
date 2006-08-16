@@ -30,7 +30,7 @@ static const char* Copyright= "(C) Copyright Michigan State University 2002, All
 #include <config.h>
 #include "serverinstance.h"
 #include <string.h>
-#include <cl.h>
+#include <tcl.h>
 #include <iostream>
 #include <unistd.h>
 #include <sys/types.h>

@@ -22,19 +22,22 @@
 
 #include <stdio.h>
 
+using namespace std;
 
 /*!
   Construction is pretty much a no-op as the configuration is 
   handled at attach time.
 */
-CGDG::CGDG() :
+CGDG::CGDG(string name) :
+  CControlHardware(name),
   m_pConfiguration(0)
 {}
 /*!
   Same for copy construction.. however this is done by clone just for
   regularity.
 */
-CGDG::CGDG(const CGDG& rhs) 
+CGDG::CGDG(const CGDG& rhs)  : 
+  CControlHardware(rhs)
 {
   clone(rhs);
 }

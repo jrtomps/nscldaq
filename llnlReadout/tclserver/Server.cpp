@@ -30,7 +30,7 @@ static const char* Copyright= "(C) Copyright Michigan State University 2002, All
 using namespace std;
 #endif
 
-CTclAuthorizer* pAuthenticator = 0;
+
 
 static void
 Server_Accept(ClientData cd, Tcl_Channel client, char* pHostname,
@@ -41,7 +41,7 @@ Server_Accept(ClientData cd, Tcl_Channel client, char* pHostname,
 
   if (strcmp(pHostname, "localhost")) {
     printf(">>Rejected unauthorized connection from s on port %d\n",
-	   pHostname, nHostPort);
+	   pHostname, nHostport);
     Tcl_Close(pInterp, client);
     return;
   }

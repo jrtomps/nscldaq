@@ -23,12 +23,12 @@ using namespace std;
 #include "CModuleCommand.h"
 #include "CSetCommand.h"
 #include "CGetCommand.h"
-#include "CUpdateComand.h"
+#include "CUpdateCommand.h"
 
 #include <tcl.h>
 #include <TCLInterpreter.h>
 #include <CVMUSB.h>
-#include "ControlModule.h"
+#include "CControlModule.h"
 #include <iostream>
 
 /*!  Constructor is not very interesting 'cause all the action is in 
@@ -36,7 +36,7 @@ using namespace std;
 */
 TclServer::TclServer() :
   m_port(-1),
-  m_configFilename(string("")),l
+  m_configFilename(string("")),
   m_pVme(0),
   m_pInterpreter(0)
 {}
@@ -65,7 +65,7 @@ TclServer::~TclServer()
 
 */
 
-DAQThreadID
+DAQThreadId
 TclServer::start(int port, const char* configFile, CVMUSB& vme)
 {
   // Set up the member data needed to run the thread...
@@ -169,13 +169,13 @@ TclServer::initInterpreter()
 		     *this);
   new CSetCommand(*m_pInterpreter,
 		  *this,
-		  m_pVme);
+		  *m_pVme);
   new CGetCommand(*m_pInterpreter,
 		  *this,
-		  m_pVme);
-  new CUpdateCommnd(*m_pInterpreter,
+		  *m_pVme);
+  new CUpdateCommand(*m_pInterpreter,
 		    *this,
-		    m_pVme);
+		    *m_pVme);
 
   
 }
@@ -200,7 +200,7 @@ void
 TclServer::startTcpServer()
 {
   ::Server_Init(m_pInterpreter->getInterpreter(),
-		m_port):
+		m_port);
 }
 /*
   run the event loop.  This should never exit (although in theory the
@@ -214,12 +214,12 @@ TclServer::startTcpServer()
 */
 void
 TclServer::EventLoop()
-{state
+{
   while(1) {
     Tcl_WaitForEvent(NULL);
     Tcl_ServiceAll();
   }
- cerr << "The Tcl Server event loop has exited. No Tcp ops can be done\n"; 
+ std::cerr << "The Tcl Server event loop has exited. No Tcp ops can be done\n"; 
 }
 /*
    Set the result string.

@@ -16,7 +16,7 @@
 
 
 #include <config.h>
-#include "CSetCommand.h"
+#include "CGetCommand.h"
 
 #include "TclServer.h"
 #include <TCLObject.h>
@@ -45,7 +45,7 @@ CGetCommand::~CGetCommand()
 */
 int
 CGetCommand::operator()(CTCLInterpreter& interp,
-			vector<CTCLObject*> objv)
+			vector<CTCLObject>& objv)
 {
   // Need 3 words on the command line:
 
@@ -71,7 +71,7 @@ CGetCommand::operator()(CTCLInterpreter& interp,
     return TCL_ERROR;
   }
 
-  string result =   pModule->Get(m_Vme, point);
+  string result =   pModule->Get(m_Vme, point.c_str());
   m_Server.setResult( result);
   return TCL_OK;
 

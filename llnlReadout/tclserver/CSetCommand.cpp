@@ -45,7 +45,7 @@ CSetCommand::~CSetCommand()
 */
 int
 CSetCommand::operator()(CTCLInterpreter& interp,
-			vector<CTLObject*> objv)
+			vector<CTCLObject>& objv)
 {
   // Must be 4 words in the command:
 
@@ -72,7 +72,7 @@ CSetCommand::operator()(CTCLInterpreter& interp,
   }
   // Now try the command returning any string error that is thrown:
 
-  string result = pModule->Set(vme, point.c_str(), value.c_str());
+  string result = pModule->Set(m_Vme, point.c_str(), value.c_str());
   m_Server.setResult( result);
   return TCL_OK;
   

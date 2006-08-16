@@ -72,7 +72,7 @@ public:
 
 protected:
   int operator()(CTCLInterpreter& interp,
-		 std::vector<CTCLObject*> objv);
+		 std::vector<CTCLObject>& objv);
 
 
 };

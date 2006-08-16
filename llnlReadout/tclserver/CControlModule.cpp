@@ -52,7 +52,7 @@ CControlModule::~CControlModule()
   Copy construction.  The hardware is just cloned....configuration must be redone.
 */
 CControlModule::CControlModule(const CControlModule& rhs) :
-  CConfigurableOjbect(rhs)
+  CConfigurableObject(rhs)
 {
   m_pHardware->clone(*(rhs.m_pHardware));
   m_pHardware->onAttach(*this);
@@ -68,7 +68,7 @@ CControlModule::operator=(const CControlModule& rhs)
     delete m_pHardware;
     clearConfiguration();
     CConfigurableObject::operator=(rhs);
-    m_pHardware = rhs.m_pHardware->clone(*(rhs.m_pHardware));
+    rhs.m_pHardware->clone(*(rhs.m_pHardware));
     clearConfiguration();
     m_pHardware->onAttach(*this);
     
@@ -89,19 +89,20 @@ CControlHardware::getConfiguration()
    \param vme : CVMUSB&
       Reference to the vme interface.
 */
-void
+string
 CControlModule::Update(CVMUSB& vme)
 {
   bool mustRelease(false);
-  if (CRunState::getInstance()->getState == CRunState::Active) {
+  if (CRunState::getInstance()->getState() == CRunState::Active) {
     mustRelease = true;
     CControlQueues::getInstance()->AcquireUsb();
   }
-  m_pHardware->Update(vme);
+  string result =  m_pHardware->Update(vme);
 
   if (mustRelease) {
     CControlQueues::getInstance()->ReleaseUsb();
   }
+  return result;
     
 }
 /*!
@@ -120,7 +121,7 @@ string
 CControlModule::Set(CVMUSB& vme, const char* what, const char* value)
 {
   bool mustRelease(false);
-  if (CRunState::getInstance()->getState == CRunState::Active) {
+  if (CRunState::getInstance()->getState() == CRunState::Active) {
     mustRelease = true;
     CControlQueues::getInstance()->AcquireUsb();
   }
@@ -144,14 +145,14 @@ CControlModule::Set(CVMUSB& vme, const char* what, const char* value)
        of the requested point.
 */
 string
-CControModule::Get(CVMUSB& vme, const char* what)
+CControlModule::Get(CVMUSB& vme, const char* what)
 {
   bool mustRelease(false);
-  if (CRunState::getInstance()->getState == CRunState::Active) {
+  if (CRunState::getInstance()->getState() == CRunState::Active) {
     mustRelease = true;
     CControlQueues::getInstance()->AcquireUsb();
   }
-  strint reply = m_pHardware->Get(vme, what);;
+  string reply = m_pHardware->Get(vme, what);;
 
   if (mustRelease) {
     CControlQueues::getInstance()->ReleaseUsb();

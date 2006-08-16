@@ -16,7 +16,7 @@
 
 #ifndef __TCLSERVER_H
 #define __TCLSERVER_H
-
+using namespace std;
 #ifndef __SPECTRODAQ_H
 #include <spectrodaq.h>
 #ifndef __SPECTRODAQ_H
