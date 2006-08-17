@@ -72,8 +72,6 @@ public:
 			 std::vector<CTCLObject>& objv);
 
 private:
-  int create(CTCLInterpreter& interp, 
-	     std::vector<CTCLObject>& objv);
 
   void Usage(std::string msg, std::vector<CTCLObject>& objv);
 	     

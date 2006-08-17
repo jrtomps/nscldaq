@@ -1,1 +1,1 @@
-SUBDIRS = vmusb devices threadcomm router rdothread tclserver
+SUBDIRS = vmusb devices threadcomm router rdothread tclserver daqconfig

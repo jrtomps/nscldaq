@@ -1,0 +1,203 @@
+/*
+    This software is Copyright by the Board of Trustees of Michigan
+    State University (c) Copyright 2005.
+
+    You may use this software under the terms of the GNU public license
+    (GPL).  The terms of this license are described at:
+
+     http://www.gnu.org/licenses/gpl.txt
+
+     Author:
+             Ron Fox
+	     NSCL
+	     Michigan State University
+	     East Lansing, MI 48824-1321
+*/
+
+#include <config.h>
+#include "CConfiguration.h"
+#include "CScalerCommand.h"
+#include "CADCCommand.h"
+
+
+#include <CReadoutModule.h>
+#include <TCLInterpreter.h>
+#include <TCLObjectProcessor.h>
+
+#include <tcl.h>
+#include <algorithm>
+
+using std::string;
+using std::vector;
+
+//////////////////////////////////////////////////////////////////////////
+//////////////////////////// Canonicals //////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
+
+/*!
+  Construct the object.  This consists of 
+  creating a new Tcl interpreter, wrapping into an object and
+  the adding the commands to the interpreter needed to manage the
+  configuration as well as saving those command processor objects for destruction
+  lateron.
+*/
+CConfiguration::CConfiguration() :
+  m_pInterp(0)
+{
+  Tcl_Interp* pInterp = Tcl_CreateInterp();
+  m_pInterp = new CTCLInterpreter(pInterp);
+
+
+  // Register and keep the commands.
+
+  m_Commands.push_back(new CADCCommand(*m_pInterp, *this));
+  m_Commands.push_back(new CScalerCommand(*m_pInterp, *this));
+
+
+}
+/*!
+   Destruction must:
+   - Destroy all the CReadoutModule object pointers that were added to m_Adcs
+   - Destroy all the CReadoutModule object pointers that were added to m_Scalers.
+   - Destroy all the CTCLObjectProcessors that were added to m_Commands.
+   - Destroy m_pInterp which will implicitly invoke Tcl_DeleteInterp() on
+     the interpreter it wraps.
+*/
+CConfiguration::~CConfiguration()
+{
+  for (int i = 0; i < m_Adcs.size(); i++) {
+    delete m_Adcs[i];
+  }
+  for (int i = 0; i < m_Scalers.size(); i++) {
+    delete m_Scalers[i];
+  }
+  for (int i = 0; i < m_Commands.size(); i++) {
+    delete m_Commands[i];
+  }
+
+  delete m_pInterp;
+}
+
+////////////////////////////////////////////////////////////////////////////
+//////////////////// Support for configuration /////////////////////////////
+////////////////////////////////////////////////////////////////////////////
+
+/*!
+   Process a configuration file.  Since configuration files are just
+   Tcl scripts for our enhanced interpreter, we just EvalFile.
+   errors are allowed to propagate upwareds.
+   \param configFile : std::string
+       Name of the configuration file to process.
+*/
+void
+CConfiguration::processConfiguration(string configFile)
+{
+  m_pInterp->EvalFile(configFile);
+}
+/*!
+   Locate an adc module by name.  This is used e.g. by configuration commands
+   to prevent duplicat module creation and to locate a module to be configured.
+   \param name : std::string
+      Name of the module to locate.
+   \return CReadoutModule*
+   \retval NULL - Readout module not found.
+   \retval other - A pointer to the CReadoutModule that was being looked for.
+
+   \note - Since the configuration is likely only a few objects there's no
+           need for anything fancier than a linear search.
+*/
+CReadoutModule*
+CConfiguration::findAdc(string name)
+{
+  return find(m_Adcs, name);
+}
+/*!
+   See findAdc above, but this version finds a scaler.
+*/
+CReadoutModule*
+CConfiguration::findScaler(string name)
+{
+  return find(m_Scalers, name);
+}
+
+/*!
+   Add a new scaler module to the configuration.
+   \param module : CReadoutModule
+      Pointer to the new module.. Restrictions:
+      - The module must have been dynamically created.
+      - The module's storage ownership is passsed to this object and will be
+        deleted by us when *this is destroyed.
+*/
+void
+CConfiguration::addScaler(CReadoutModule* module)
+{
+  m_Scalers.push_back(module);
+}
+
+/*!
+    Add a new adc module to the configuration.  See addScaler for
+    description.
+*/
+void
+CConfiguration::addAdc(CReadoutModule* module)
+{
+  m_Adcs.push_back(module);
+}
+
+/*!
+  set the interpreter result.
+  \param msg : std::string
+*/
+void
+CConfiguration::setResult(string msg)
+{
+  Tcl_Obj* result = Tcl_NewStringObj(msg.c_str(), -1);
+  Tcl_SetObjResult(m_pInterp->getInterpreter(), result);
+}
+
+////////////////////////////////////////////////////////////////////////////
+/////////////////////// Support for config retrieval ///////////////////////
+////////////////////////////////////////////////////////////////////////////
+
+/*!
+  Return the adc configuration vector (a copy of it).
+
+*/
+vector<CReadoutModule*>
+CConfiguration::getAdcs()
+{
+  return m_Adcs;
+}
+/*!
+  Return the Scaler configuration vector
+*/
+vector<CReadoutModule*>
+CConfiguration::getScalers()
+{
+  return m_Scalers;
+}
+
+////////////////////////////////////////////////////////////////////////////
+////////////////////// Private utilities ///////////////////////////////////
+////////////////////////////////////////////////////////////////////////////
+
+CReadoutModule* 
+CConfiguration::find(std::vector<CReadoutModule*>& modules,
+		     std::string name)
+{
+  vector<CReadoutModule*>::iterator i = find_if(modules.begin(), modules.end(),
+						MatchName(name));
+  if(i != modules.end()) {
+    return *i;
+  } 
+  else {
+    return static_cast<CReadoutModule*>(NULL);
+  }
+}
+
+
+bool
+CConfiguration::MatchName::operator()(CReadoutModule* module)
+{
+  return (module->getName() == m_name);
+}

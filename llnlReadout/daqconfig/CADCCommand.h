@@ -102,7 +102,7 @@ private:
 public:
   CADCCommand(CTCLInterpreter& interp,
 	      CConfiguration&  config);
-  virtual ~CADCCommand;
+  virtual ~CADCCommand();
 private:
   CADCCommand(const CADCCommand& rhs);
   CADCCommand& operator=(const CADCCommand& rhs);
@@ -119,9 +119,9 @@ private:
   int create(CTCLInterpreter& interp, 
 	     std::vector<CTCLObject>& objv);
   int config(CTCLInterpreter& interp,
-	     std::vector<CTCLObject& objv);
+	     std::vector<CTCLObject>& objv);
   int cget(CTCLInterpreter& interp,
-	   std::vector<CTCLObject& objv);
+	   std::vector<CTCLObject>& objv);
   void Usage(std::string msg, std::vector<CTCLObject>& objv);
 };
 #endif

@@ -497,4 +497,5 @@ AC_OUTPUT([Makefile
 	  threadcomm/Makefile
 	  router/Makefile
 	  rdothread/Makefile
-	  tclserver/Makefile])
+	  tclserver/Makefile
+	  daqconfig/Makefile])

@@ -110,13 +110,40 @@ CScalerCommand:: operator()(CTCLInterpreter& interp,
     Usage("Invalid base address", objv);
     return TCL_ERROR;
   }
-  pModule = new C3820;
-  CReadoutModule* pConfig = new CReadoutModule(name, *pModule);
-  pConfig->configure(string("-base"), sBase);
+  CReadoutHardware* pHardware = new C3820;
+  pModule  = new CReadoutModule(name, *pHardware);
+  pModule->configure(string("-base"), sBase);
 
-  m_Config.addScaler(pConfig);
+  m_Config.addScaler(pModule);
   
   m_Config.setResult(name);
   return TCL_OK;
 
+}
+/////////////////////////////////////////////////////////////////////////
+////////////////////// Utility(s) ///////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////
+
+/*
+   Set the result to  a usage message that is headed by a messages and
+   a reconstruction of the command following substitution.
+   Parametrs:
+    string msg                : error message.  This will be preceded by ERROR:
+    vector<CTCLObject>& objv  : The command line words.
+*/
+void
+CScalerCommand::Usage(string msg, vector<CTCLObject>& objv)
+{
+  string result = "ERROR: ";
+  result       += msg;
+  result       += "\n";
+  for (int i =0; i < objv.size(); i++) {
+    msg += string(objv[i]);
+    msg += ' ';
+  }
+  msg   += "\n";
+  msg   += "Usage:\n";
+  msg   += "   scaler create name base";
+
+  m_Config.setResult(msg);
 }

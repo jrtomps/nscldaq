@@ -246,7 +246,7 @@ CADCCommand::cget(CTCLInterpreter& interp, vector<CTCLObject>& objv)
     return TCL_ERROR;
   }
   string           name    = objv[2];
-  CReadableObject *pModule = m_Config.findAdc(name);
+  CReadoutModule *pModule = m_Config.findAdc(name);
   if (!pModule) {
     Usage("No such  module", objv);
     return TCL_ERROR;
@@ -277,8 +277,8 @@ CADCCommand::Usage(std::string msg, std::vector<CTCLObject>& objv)
   string result("ERROR: ");
   result += msg;
   result += "\n";
-  for (int i = ; i < objv.size(); i++) {
-    result += objv[i];
+  for (int i = 0; i < objv.size(); i++) {
+    result += string(objv[i]);
     result += ' ';
   }
   result += "\n";
