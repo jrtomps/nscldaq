@@ -66,7 +66,7 @@ public:
 
   // Process the command:
 protected:
-  virutal int operator()(CTCLInterpreter& interp,
+  virtual int operator()(CTCLInterpreter& interp,
 			 std::vector<CTCLObject>& objv);
 
 };

@@ -17,7 +17,7 @@
 #define __TCLUTIL_H
 
 #ifndef __STL_STRING
-#include <string.
+#include <string>
 #ifndef __STL_STRING
 #define __STL_STRING
 #endif

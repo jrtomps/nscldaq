@@ -90,6 +90,7 @@ private:
   void processBuffer(DataBuffer* pBuffer);
   void startDaq();
   void stopDaq();
+  void pauseDaq();
   void VMusbToAutonomous();
   void drainUsb();
   void beginRun();

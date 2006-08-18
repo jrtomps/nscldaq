@@ -22,6 +22,7 @@
 #include "tclUtil.h"
 #include <CAcquisitionThread.h>
 #include <CRunState.h>
+#include <CConfiguration.h>
 
 using std::vector;
 using std::string;
@@ -39,13 +40,13 @@ static const string usage(
   \param interp : CTCLInterpreter&
      Interpreter on which this command will be registered.
 */
-CBeginRun::CBeginRun(CTCLInterepreter& interp) :
+CBeginRun::CBeginRun(CTCLInterpreter& interp) :
   CTCLObjectProcessor(interp, "begin")
 {}
 /*!
    Destructor does nothing important.
 */
-BeginRun::~CBeginRun()
+CBeginRun::~CBeginRun()
 {}
 
 /////////////////////////////////////////////////////////////////////////////
@@ -74,16 +75,16 @@ CBeginRun::operator()(CTCLInterpreter& interp,
   // Make sured all precoditions are met.
 
   if (objv.size() != 1) {
-    tclUtil::Usage(getInterpreter(), 
+    tclUtil::Usage(interp, 
 		   "Incorrect number of command parameters",
-		   objv
+		   objv,
 		   usage);
     return TCL_ERROR;
   }
 
   CRunState* pState = CRunState::getInstance();
   if (pState->getState() != CRunState::Idle) {
-    tclUtil::Usage(getInterpreter(),
+    tclUtil::Usage(interp,
 		   "Invalid run state for begin be sure to stop the run",
 		   objv,
 		   usage);
@@ -92,14 +93,14 @@ CBeginRun::operator()(CTCLInterpreter& interp,
   // Now we can start the run.
 
   Globals::pConfig = new CConfiguration;
-  Globals::pConfig->processConfiguration(Globals::configureationFilename);
+  Globals::pConfig->processConfiguration(Globals::configurationFilename);
 
   CAcquisitionThread* pReadout = CAcquisitionThread::getInstance();
   pReadout->start(Globals::pUSBController,
-		  Globals::pConfig->getADCS()
+		  Globals::pConfig->getAdcs(),
 		  Globals::pConfig->getScalers());
 
-  tclUtil::setResult(getInterpreter(), string("Begin - Run started"));
+  tclUtil::setResult(interp, string("Begin - Run started"));
   return TCL_OK;
 }
 

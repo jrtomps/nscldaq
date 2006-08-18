@@ -14,12 +14,13 @@
 	     East Lansing, MI 48824-1321
 */
 
-#include <config>
-#include "CPauseRun.h"
+#include <config.h>
+#include "CResumeRun.h"
 #include <TCLObject.h>
 #include <TCLInterpreter.h>
 #include <CRunState.h>
 #include <CControlQueues.h>
+#include <tclUtil.h>
 
 using std::string;
 using std::vector;
@@ -73,9 +74,9 @@ CResumeRun::operator()(CTCLInterpreter& interp,
   }
   // resume the run:
 
-  CControlQueues* pRequest = CControlQueues::getInstnace();
-  pRequest->pauseRun();
+  CControlQueues* pRequest = CControlQueues::getInstance();
+  pRequest->PauseRun();
   
 
-  rturn TCL_OK;
+  return TCL_OK;
 }

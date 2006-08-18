@@ -21,6 +21,7 @@
 #include <CVMUSBReadoutList.h>
 #include <DataBuffer.h>
 #include <CControlQueues.h>
+#include <CRunState.h>
 #include <assert.h>
 #include <time.h>
 
@@ -85,6 +86,9 @@ CAcquisitionThread::start(CVMUSB* usb,
 			 vector<CReadoutModule*> adcs,
 			 vector<CReadoutModule*> scalers)
 {
+  CRunState* pState = CRunState::getInstance();
+  pState->setState(CRunState::Active);
+
   CAcquisitionThread* pThread = getInstance();
   m_pVme = usb;
   pThread->m_adcs    = adcs;
@@ -195,6 +199,10 @@ CAcquisitionThread::processCommand(string command)
     queues->Acknowledge();
     throw "Run ending";
   }
+  else if (command == string("PAUSE")) {
+    pauseDaq();
+
+  }
   else {
     // bad error:
 
@@ -249,7 +257,6 @@ CAcquisitionThread::processBuffer(DataBuffer* pBuffer)
 void
 CAcquisitionThread::startDaq()
 {
-  beginRun();			// Begin the run and set the run state.
 
   // Create the lists and size the event readout list.
 
@@ -319,6 +326,50 @@ CAcquisitionThread::stopDaq()
   m_pVme->writeActionRegister(CVMUSB::ActionRegister::scalerDump);
   m_pVme->writeActionRegister(0);
   drainUsb();
+}
+/*!
+  Pause the daq. This means doing a stopDaq() and fielding 
+  requests until resume or stop was sent.
+
+*/
+void
+CAcquisitionThread::pauseDaq()
+{
+  CControlQueues* queues = CControlQueues::getInstance();
+  stopDaq();
+  CRunState* pState = CRunState::getInstance();
+  pState->setState(CRunState::Paused);
+  queues->Acknowledge();
+
+  while (1) {
+    string req = queues->getRequest();
+    
+    // Acceptable actions are to acquire the USB, 
+    // End the run or resume the run.
+    //
+
+    if (req == string("ACQUIRE")) {
+      queues->Acknowledge();
+      string release = queues->getRequest();
+      assert (release == string("RELEASE"));
+      queues->Acknowledge();
+    }
+    else if (req == string("END")) {
+      queues->Acknowledge();
+      pState->setState(CRunState::Idle);
+      throw "Run Ending";
+    }
+    else if (req == string("RESUME")) {
+      startDaq();
+      queues->Acknowledge();
+      pState->setState(CRunState::Active);
+      return;
+    }
+    else {
+      assert(0);
+    }
+  }
+  
 }
 /*!
    Turn on Data taking this is just a write of CVMUSB::ActionRegister::startDAQ

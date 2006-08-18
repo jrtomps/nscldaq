@@ -20,6 +20,7 @@
 #include <TCLInterpreter.h>
 #include <CRunState.h>
 #include <CControlQueues.h>
+#include <tclUtil.h>
 
 using std::string;
 using std::vector;
@@ -78,9 +79,9 @@ CPauseRun::operator()(CTCLInterpreter& interp,
 		   usage);
     return TCL_ERROR;
   }
-  CControLQueues* pRequest = CControlQueues::getInstance();
+  CControlQueues* pRequest = CControlQueues::getInstance();
 
-  pRequest->pauseRun();
+  pRequest->PauseRun();
 
   return TCL_OK;
 }

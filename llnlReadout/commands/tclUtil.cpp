@@ -13,7 +13,7 @@
 	     Michigan State University
 	     East Lansing, MI 48824-1321
 */
-
+#include <config.h>
 #include "tclUtil.h"
 
 #include <TCLInterpreter.h>
@@ -36,7 +36,7 @@ namespace tclUtil {
   setResult(CTCLInterpreter& interp, string msg)
   {
     Tcl_Obj* pResult = Tcl_NewStringObj(msg.c_str(), -1);
-    Tcl_SetObjResult(interp.getInterpreter(), msg);
+    Tcl_SetObjResult(interp.getInterpreter(), pResult);
   }
 
   /*!
@@ -57,7 +57,7 @@ namespace tclUtil {
   void
   Usage(CTCLInterpreter&    interp,
 	string              msg,
-	vector<TCLObject>&  objv,
+	vector<CTCLObject>&  objv,
 	string              usage)
   {
     string result("ERROR: ");
@@ -68,7 +68,7 @@ namespace tclUtil {
       result += " ";
     }
     result += "\n";
-    result += usage();
+    result += usage;
     setResult(interp, result);
   }
 

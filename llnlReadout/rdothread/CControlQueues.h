@@ -16,6 +16,9 @@
 
 #ifndef __CCONTROLQUEUES_H
 #define __CCONTROLQUEUES_H
+#ifndef __CGAURDEDOBJECT_H
+#include <CGaurdedObject.h>
+#endif
 
 #ifndef __CBUFFERQUEUE_H
 #include <CBufferQueue.h>
@@ -64,7 +67,7 @@
 
 */
 
-class CControlQueues 
+class CControlQueues : public CGaurdedObject
 {
   // data:
 private:
@@ -86,6 +89,8 @@ public:
   void AcquireUsb();		//!< Send ACQUIRE to m_requestQueue wait for ACK.
   void ReleaseUsb();		//!< Send RELEASE to m_requestQueue wait for ACK.
   void EndRun();		//!< Send END     to m_requestQueue wait for ACK.
+  void PauseRun();
+  void ResumeRun();
   // 
   //    - Operations used by the readout thread;
   //

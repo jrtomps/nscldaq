@@ -57,7 +57,10 @@ CControlQueues::getInstance()
 void
 CControlQueues::AcquireUsb()
 {
+  Enter();
   blockingTransaction(string("ACQUIRE"));
+
+  // Leave when USB is released.
 
 }
 
@@ -69,6 +72,7 @@ void
 CControlQueues::ReleaseUsb()
 {
   blockingTransaction(string("RELEASE"));
+  Leave();
 }
 /*!
    Request an end run, block until the readout thread is just about to exit
@@ -77,8 +81,31 @@ CControlQueues::ReleaseUsb()
 void
 CControlQueues::EndRun()
 {
+  Enter();
   blockingTransaction(string("ENDRUN"));
+  Leave();
 
+}
+/*!
+   Request to pause a run.
+*/
+void
+CControlQueues::PauseRun()
+{
+  Enter();
+  blockingTransaction(string("PAUSE"));
+  Leave();
+}
+
+/*!
+   Request to resume a paused run.
+*/
+void
+CControlQueues::ResumeRun()
+{
+  Enter();
+  blockingTransaction(string("RESUME"));
+  Leave();
 }
 
 /*!

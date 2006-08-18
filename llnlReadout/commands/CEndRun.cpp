@@ -37,7 +37,7 @@ static string usage(
 
 
 CEndRun::CEndRun(CTCLInterpreter& interp) :
-  CTCLObjectProcesor(interp, string("end"))
+  CTCLObjectProcessor(interp, string("end"))
 {}
 CEndRun::~CEndRun()
 {}
@@ -61,14 +61,14 @@ CEndRun::operator()(CTCLInterpreter& interp,
   // Check pre-requisites:
 
   if (objv.size() != 1) {
-    tclUtil::Usage(getInterpreter(),
+    tclUtil::Usage(interp,
 		   "Incorrect number of command parameters",
-		   objv,usage());
+		   objv,usage);
     return TCL_ERROR;
   }
   CRunState* pState = CRunState::getInstance();
   if (pState->getState() == CRunState::Idle) {
-    tclUtil::Usage(getInterpreter(),
+    tclUtil::Usage(interp,
 		   "Invalid state for end run. must not already be idle",
 		   objv, usage);
     return TCL_ERROR;
