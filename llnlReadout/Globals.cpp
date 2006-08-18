@@ -17,8 +17,11 @@
 
 namespace std::string;
 
+
 namespace Globals {
   CConfiguration*    pCOnfig;
-  std::string       configurationFilename;
-  CVMUSB*           pUSBController;
+  string             configurationFilename;
+  string             controlConfigFilename;
+  CVMUSB*            pUSBController;
+
 };

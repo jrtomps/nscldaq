@@ -28,9 +28,21 @@
 class CConfiguration;
 class CVMUSB;
 
+/*!
+  This namespace defines global variables.  We've tried to keep this to minimum.
+  Here's what we define/need
+  - pConfig : CConfigurtation*           Will hold the daq configuration 
+                                         (adcs and scalers).
+  - configurationFilename : std::string  Holds the daq configuration filename
+  - controlConfigFilename : std::string  Holds the controllable object configuration 
+                                         filename.
+  - pUSBController        : CVMUSB*      Points to the VMUSB controller object.
+*/
+
 namespace Globals {
   extern CConfiguration* pConfig;
   extern std::string     configurationFilename;
+  extern std::string     controlConfigFilename;
   extern CVMUSB*         pUSBController;
 };
 

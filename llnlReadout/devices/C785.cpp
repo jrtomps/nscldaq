@@ -183,8 +183,8 @@ C785::operator=(const C785& rhs) {
    Parameter        Default
    -thresholds      list of 32 0's.
    -smallthresholds false
-   -ipl             0 (interrupts disabled)
-   -vector          0
+   -ipl             6 (interrupt 6 is expected by the rdo thread.
+   -vector          0x80
    -highwater       MEBDepth*3/4  (3/4 full event buffer).
    -fastclear       0
    -supressrange    true
@@ -215,9 +215,9 @@ C785::onAttach(CReadoutModule& configuration)
   m_pConfiguration->addParameter("-smallthresholds", CConfigurableObject::isBool,
 				 NULL, "false");
   m_pConfiguration->addParameter("-ipl", CConfigurableObject::isInteger,
-				 &iplRange, "0");
+				 &iplRange, "6");
   m_pConfiguration->addParameter("-vector", CConfigurableObject::isInteger,
-				 &vectorRange, "0");
+				 &vectorRange, "0x80");
 
   // The high water mark default is computed for cleanliness.
 
