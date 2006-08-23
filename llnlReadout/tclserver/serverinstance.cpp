@@ -41,7 +41,6 @@ using namespace std;
 #endif
 
 char *eol = "\n";
-extern bool userauth;
 
 //////////////////////////////////////////////////////////////////////////
 //
@@ -50,7 +49,7 @@ extern bool userauth;
 // Constructor:
 //
 CServerInstance::CServerInstance(ServerContext& rContext) :
-  m_authenticated(userauth ? false : true)
+  m_authenticated(true)		// no username authentication needed.
 {
   Context.pInterp       = rContext.pInterp;
   Context.RemotePort    = rContext.RemotePort;

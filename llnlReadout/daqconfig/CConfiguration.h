@@ -99,7 +99,8 @@ private:
   private:
     std::string m_name;
   public:
-    MatchName(std::string name);
+    MatchName(std::string name) :
+      m_name(name) {}
     MatchName(const MatchName& rhs) :
       m_name(rhs.m_name) {}
     bool operator()(CReadoutModule* module);

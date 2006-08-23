@@ -29,6 +29,7 @@ using namespace std;
 #include <TCLInterpreter.h>
 #include <CVMUSB.h>
 #include "CControlModule.h"
+#include "Exception.h"
 #include <iostream>
 
 /*!  Constructor is not very interesting 'cause all the action is in 
@@ -189,7 +190,26 @@ TclServer::initInterpreter()
 void
 TclServer::readConfigFile()
 {
-  m_pInterpreter->EvalFile(m_configFilename);
+  try {
+    m_pInterpreter->EvalFile(m_configFilename);
+  }
+  catch (string msg) {
+    cerr << "TclServer::readConfigFile - string exception: " << msg << endl;
+    throw;
+  }
+  catch (char* msg) {
+    cerr << "TclServer::readConfigFile - char* exception: " << msg << endl;
+    throw;
+  }
+  catch (CException& error) {
+    cerr << "TclServer::readConfigFile - CException: " 
+	 << error.ReasonText() << " while " << error.WasDoing() << endl;
+    throw;
+  }
+  catch (...) {
+    cerr << "TclServer::readConfigFile - unanticipated exception type\n";
+    throw;
+  }
 }
 /*
    Start the Tcl server.

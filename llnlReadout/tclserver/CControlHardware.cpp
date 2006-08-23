@@ -35,7 +35,6 @@ CControlHardware::CControlHardware(string name)
 CControlHardware::CControlHardware(const CControlHardware& rhs)
 {
   CControlModule* pModule = rhs.m_pConfig;
-  this->clone(rhs);
   m_pConfig = new CControlModule(pModule->getName(), *this);
 }
 CControlHardware::~CControlHardware()
@@ -48,7 +47,6 @@ CControlHardware::operator=(const CControlHardware& rhs)
 {
   if(this != &rhs) {
     delete m_pConfig;
-    this->clone(rhs);
     m_pConfig = new CControlModule(rhs.m_pConfig->getName(), *this);
   }
   return *this;

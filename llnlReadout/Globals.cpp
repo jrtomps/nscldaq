@@ -15,11 +15,13 @@
 */
 #include <string>
 
-namespace std::string;
+using std::string;
 
+class CConfiguration;
+class CVMUSB;
 
 namespace Globals {
-  CConfiguration*    pCOnfig;
+  CConfiguration*    pConfig;
   string             configurationFilename;
   string             controlConfigFilename;
   CVMUSB*            pUSBController;

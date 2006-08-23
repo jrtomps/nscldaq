@@ -23,12 +23,12 @@
 #include <CReadoutModule.h>
 #include <TCLInterpreter.h>
 #include <TCLObjectProcessor.h>
+#include <Exception.h>
 
 #include <tcl.h>
 #include <algorithm>
 
-using std::string;
-using std::vector;
+using namespace std;
 
 //////////////////////////////////////////////////////////////////////////
 //////////////////////////// Canonicals //////////////////////////////////
@@ -92,7 +92,28 @@ CConfiguration::~CConfiguration()
 void
 CConfiguration::processConfiguration(string configFile)
 {
-  m_pInterp->EvalFile(configFile);
+  try {
+    m_pInterp->EvalFile(configFile);
+  }
+  catch (string msg) {
+    cerr << "CConfiguration::processConfiguration caught string exception: "
+	 << msg << endl;
+    throw;
+  }
+  catch (char* msg) {
+    cerr << "CConfiguration::processConfiguration caught char* exception: "
+	 << msg << endl;
+    throw;
+  }
+  catch (CException& error) {
+    cerr << "CConfiguration::processConfiguration caught CExcpetion : "
+	 << error.ReasonText() << " while " << error.WasDoing() << endl;
+    throw;
+  }
+  catch (...) {
+    cerr << "CConfiguration::processConfiguration caught an unknown exception type\n";
+    throw;
+  }
 }
 /*!
    Locate an adc module by name.  This is used e.g. by configuration commands

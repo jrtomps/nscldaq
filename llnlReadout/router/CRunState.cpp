@@ -46,6 +46,18 @@ CRunState::~CRunState()
 }
 
 /*!
+    Get singleton instance:
+ */
+CRunState*
+CRunState::getInstance()
+{
+  if(!m_pTheInstance) {
+    m_pTheInstance = new CRunState;
+  }
+  return m_pTheInstance;
+}
+
+/*!
    Select the currenst state:
    \return RunState
    \retval current run state value.

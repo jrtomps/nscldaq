@@ -33,6 +33,7 @@ static const unsigned scalerPeriod(10);	      // Seconds between scaler readouts
 static const unsigned scalerPeriodMultiplier(1); // Scaler readout period assumed in secs.
 static const unsigned DRAINTIMEOUTS(5);	// # consecutive drain read timeouts before giving up.
 
+
 // buffer types:
 //
 
@@ -40,6 +41,7 @@ static const unsigned DRAINTIMEOUTS(5);	// # consecutive drain read timeouts bef
 bool                CAcquisitionThread::m_Running(false);
 CVMUSB*             CAcquisitionThread::m_pVme(0);
 CAcquisitionThread* CAcquisitionThread::m_pTheInstance(0);
+DAQThreadId CAcquisitionThread::m_tid; // Thread id of the running thread.
 
 
 /*!
