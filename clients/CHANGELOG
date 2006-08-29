@@ -675,4 +675,7 @@ August 15,2006
      - Fix the fact that epics alarms linger after being disabled for the chan.
        This is defect 216.
 
+August 29, 2006
+    - Added setResult family of members to CTCLInterpreter  and use where
+	appropriate.
 8.1 (final)
