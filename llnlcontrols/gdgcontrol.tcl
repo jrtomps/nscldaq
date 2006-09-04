@@ -176,8 +176,8 @@ snit::type gdgcontrol {
 	while {[catch {eval $script} msg] && ($msg ne "")} {
 	    if {$options(-onlost) ne ""} {# comm fail handler..
 		eval $options(-onlost) $options(-connection)
-	    }
-	    else {			# no handler.
+		set script [lreplace $script 0 0 $options(-connection)]
+	    } else {			# no handler.
 		error "Communication failure $msg"
 	    }
 	}
