@@ -104,11 +104,16 @@ CBufferQueue<T>::getAll()
   list<T> result;
   Enter();
 
-  typename std::list<T>::iterator f = m_queue.begin();
-  typename std::list<T>::iterator b = m_queue.end();
-  result.insert(result.begin(), f, b);
-  m_queue.erase(f,b);
+  // Something I don't understand is wrong with the code below:
+  //  typename std::list<T>::iterator f = m_queue.begin();
+  //  typename std::list<T>::iterator b = m_queue.end();
+  //  result.insert(result.begin(), f, b);
+  // So substitute this code which is what I'm trying to do.
 
+  while(!m_queue.empty()) {
+    result.push_back(m_queue.front());
+    m_queue.pop_front();
+  }
 
   Leave();
   return result;
