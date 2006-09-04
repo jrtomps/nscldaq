@@ -21,17 +21,21 @@
 #include <CVMUSBReadoutList.h>
 #include <DataBuffer.h>
 #include <CControlQueues.h>
-#include <CRunState.h>
+#include "../router/CRunState.h" // else pick up the daq one by mistake.
 #include <assert.h>
 #include <time.h>
+#include <string>
+#include <Exception.h>
+#include <iostream>
 
 using namespace std;
 
 static const uint8_t vmeVector(0x80); // Some middle of the road vector.
 static const uint8_t vmeIPL(6);	      // not quite NMI.
-static const unsigned scalerPeriod(10);	      // Seconds between scaler readouts.
-static const unsigned scalerPeriodMultiplier(1); // Scaler readout period assumed in secs.
+static const unsigned scalerPeriod(1);	      // Seconds between scaler readouts.
+static const unsigned scalerPeriodMultiplier(2); // period*this to get seconds.
 static const unsigned DRAINTIMEOUTS(5);	// # consecutive drain read timeouts before giving up.
+static const unsigned USBTIMEOUT(10);
 
 
 // buffer types:
@@ -113,27 +117,56 @@ CAcquisitionThread::isRunning()
 }
 
 /*!
+   Wait for the thread to exit.
+*/
+void
+CAcquisitionThread::waitExit()
+{
+  DAQThreadId id = getInstance()->Join(m_tid);
+}
+
+/*!
    Entry point for the thread.
 */
 int
 CAcquisitionThread::operator()(int argc, char** argv)
 {
-  m_Running = true;		// Thread is off and running now.
-
-  beginRun();			// Emit begin run buffer.
-
-  startDaq();  		        // Setup and start data taking.
   try {
-
-    mainLoop();			// Enter the main processing loop.
+    m_Running = true;		// Thread is off and running now.
+    
+    beginRun();			// Emit begin run buffer.
+    
+    startDaq();  		        // Setup and start data taking.
+    try {
+      
+      mainLoop();			// Enter the main processing loop.
+    }
+    catch (...) {			// exceptions are used to exit the main loop.?
+    }
+    
+    endRun();			// Emit end run buffer.
+    
+    m_Running = false;		// Exiting.
+    return      0;		// Successful exit I suppose.
   }
-  catch (...) {			// exceptions are used to exit the main loop.?
+  catch (string msg) {
+    cerr << "CAcquisition thread caught a string exception: " << msg << endl;
+    throw;
   }
-
-  endRun();			// Emit end run buffer.
-
-  m_Running = false;		// Exiting.
-  return      0;		// Successful exit I suppose.
+  catch (char* msg) {
+    cerr << "CAcquisition thread caught a char* exception: " << msg << endl;
+    throw;
+  }
+  catch (CException& err) {
+    cerr << "CAcquisitino thread caught a daq exception: "
+	 << err.ReasonText() << " while " << err.WasDoing() << endl;
+    throw;
+  }
+  catch (...) {
+    cerr << "CAcquisition thread caught some other exception type.\n";
+    throw;
+  }
+  return -1;
 }
 
 /*!
@@ -153,7 +186,8 @@ CAcquisitionThread::mainLoop()
       
       size_t bytesRead;
       int status = m_pVme->usbRead(pBuffer->s_rawData, pBuffer->s_storageSize,
-				     &bytesRead);
+				   &bytesRead,
+				  USBTIMEOUT*1000 );
       if (status == 0) {
 	pBuffer->s_bufferSize = bytesRead;
 	pBuffer->s_bufferType   = TYPE_EVENTS;
@@ -162,7 +196,7 @@ CAcquisitionThread::mainLoop()
       }
       // Commands from our command queue.
       
-      string request;
+      CControlQueues::opCode request;
       bool   gotOne = pCommands->testRequest(request);
       if (gotOne) {
 	processCommand(request);
@@ -180,28 +214,28 @@ CAcquisitionThread::mainLoop()
   ACQUIRE   - The commander wants to acquire the VM-USB we must temporarily
               shutdown data taking and drain the VMusb...then ack the message
               and wait paitently for a RELEASE before restarting.
-
+  PAUSE     - Commander wants the run to pause.
   END       - The commander wants the run to end.
 */
 void
-CAcquisitionThread::processCommand(string command)
+CAcquisitionThread::processCommand(CControlQueues::opCode command)
 {
   CControlQueues* queues = CControlQueues::getInstance();
 
-  if (command == string("ACQUIRE")) {
+  if (command == CControlQueues::ACQUIRE) {
     stopDaq();
     queues->Acknowledge();
-    string release  = queues->getRequest();
-    assert(release == string("RELEASE"));
+    CControlQueues::opCode release  = queues->getRequest();
+    assert(release == CControlQueues::RELEASE);
     queues->Acknowledge();
     VMusbToAutonomous();
   }
-  else if (command == string("END")) {
+  else if (command == CControlQueues::END) {
     stopDaq();
     queues->Acknowledge();
     throw "Run ending";
   }
-  else if (command == string("PAUSE")) {
+  else if (command == CControlQueues::PAUSE) {
     pauseDaq();
 
   }
@@ -260,6 +294,11 @@ void
 CAcquisitionThread::startDaq()
 {
 
+  // Reset the VME so that all modules are back to default conditions.
+
+  m_pVme->writeActionRegister(CVMUSB::ActionRegister::sysReset);
+  m_pVme->writeActionRegister(0);
+
   // Create the lists and size the event readout list.
 
   CVMUSBReadoutList*  adcList    = createList(m_adcs);
@@ -267,6 +306,8 @@ CAcquisitionThread::startDaq()
 
   size_t adcListLines            = adcList->size(); // offset to scaler list.
   
+  m_pVme->writeActionRegister(0); // Ensure DAQ is stopped.
+
   // Load the lists.
 
   m_pVme->loadList(2, *adcList);	                 // Event readout list.
@@ -301,7 +342,7 @@ CAcquisitionThread::startDaq()
   //   Bus request level 4.
   //
   m_pVme->writeGlobalMode((4 << CVMUSB::GlobalModeRegister::busReqLevelShift) | 
-			  (CVMUSB::GlobalModeRegister::bufferLen13K << 
+			  (CVMUSB::GlobalModeRegister::bufferLen1K << 
 			   CVMUSB::GlobalModeRegister::bufferLenShift));
 
   // initialize the hardware:
@@ -344,24 +385,24 @@ CAcquisitionThread::pauseDaq()
   queues->Acknowledge();
 
   while (1) {
-    string req = queues->getRequest();
+    CControlQueues::opCode req = queues->getRequest();
     
     // Acceptable actions are to acquire the USB, 
     // End the run or resume the run.
     //
 
-    if (req == string("ACQUIRE")) {
+    if (req == CControlQueues::ACQUIRE) {
       queues->Acknowledge();
-      string release = queues->getRequest();
-      assert (release == string("RELEASE"));
+      CControlQueues::opCode release = queues->getRequest();
+      assert (release == CControlQueues::RELEASE);
       queues->Acknowledge();
     }
-    else if (req == string("END")) {
+    else if (req == CControlQueues::END) {
       queues->Acknowledge();
       pState->setState(CRunState::Idle);
       throw "Run Ending";
     }
-    else if (req == string("RESUME")) {
+    else if (req == CControlQueues::RESUME) {
       startDaq();
       queues->Acknowledge();
       pState->setState(CRunState::Active);
@@ -393,10 +434,12 @@ CAcquisitionThread::drainUsb()
   bool done = false;
   DataBuffer* pBuffer = gFreeBuffers.get();
   int timeouts(0);
+  size_t bytesRead;
+
   do {
-    size_t bytesRead;
     int    status = m_pVme->usbRead(pBuffer->s_rawData, pBuffer->s_storageSize,
-				    &bytesRead, 5000); // 5 second timeout!!
+				    &bytesRead, 
+				    DRAINTIMEOUTS*1000); // 5 second timeout!!
     if (status == 0) {
       pBuffer->s_bufferSize = bytesRead;
       pBuffer->s_bufferType   = TYPE_EVENTS;
@@ -414,6 +457,28 @@ CAcquisitionThread::drainUsb()
       }
     }
   } while (!done);
+
+  return ;
+
+  // Now for the heck of it, since it seems that stuff may be jammed up still?
+  // Read until a timeout fires:
+
+  while(1) {
+    int status = m_pVme->usbRead(pBuffer->s_rawData, pBuffer->s_storageSize,
+				 &bytesRead,
+				 DRAINTIMEOUTS*1000);
+    if (status == 0) {
+      cerr << "Got a buffer after the 'last one'\n";
+    }
+    else {
+      cerr << "Drain read finally timed out\n";
+      break;
+    }
+  }
+
+  // give up that last buffer.
+
+  gFreeBuffers.queue(pBuffer);
 }
 /*!
    Emit a begin run buffer to the output thread.

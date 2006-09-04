@@ -39,6 +39,10 @@ using namespace std;		// required for spectrodaq includes.
 #endif
 #endif
 
+#ifndef __CCONTROLQUEUES_H
+#include "CControlQueues.h"
+#endif
+
 
 // forward class definitions.
 
@@ -81,12 +85,13 @@ public:
 		    std::vector<CReadoutModule*> adcs,
 		    std::vector<CReadoutModule*> scalers);
   static bool isRunning();
+  static void waitExit();	/* Wait for this thread to exit (join). */
 
 protected:
   virtual int operator()(int argc, char** argv);
 private:
   void mainLoop();
-  void processCommand(std::string command);
+  void processCommand(CControlQueues::opCode command);
   void processBuffer(DataBuffer* pBuffer);
   void startDaq();
   void stopDaq();

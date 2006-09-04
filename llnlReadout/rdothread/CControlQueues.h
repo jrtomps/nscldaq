@@ -24,12 +24,7 @@
 #include <CBufferQueue.h>
 #endif
 
-#ifndef __STL_STRING
-#include <string>
-#ifndef __STL_STRING
-#define __STL_STRING
-#endif
-#endif
+
 
 
 /*! 
@@ -69,10 +64,22 @@
 
 class CControlQueues : public CGaurdedObject
 {
+  // Public data types (operation codes):
+public:
+  typedef enum _opCode {
+    ACQUIRE,			// Acquire VM-USB for other thread.
+    RELEASE,			// Release VM-USB back to readout thread
+    END,			// End the run.
+    PAUSE,			// Pause the run.
+    RESUME,			// Resume the run.
+    ACK,			// Acknowledge operation (reply).
+    NAK				// Negative acknowledge (reply not yet used).
+
+  } opCode;
   // data:
 private:
-  CBufferQueue<std::string>     m_requestQueue;
-  CBufferQueue<std::string>     m_replyQueue;
+  CBufferQueue<opCode>     m_requestQueue;
+  CBufferQueue<opCode>     m_replyQueue;
 
   static CControlQueues*        m_pTheInstance;
 
@@ -95,13 +102,13 @@ public:
   //    - Operations used by the readout thread;
   //
   void Acknowledge();		         //!< Send ACK msg to replyQueue. 
-  std::string getRequest();	         //!< Blocks until request.
-  bool testRequest(std::string command); //!< Returns without blocking.
+  opCode getRequest();	         //!< Blocks until request.
+  bool testRequest(opCode& code); //!< Returns without blocking.
 
   // utilities:
 
 private:
-  void blockingTransaction(std::string command);
+  void blockingTransaction(opCode);
 };
 
 

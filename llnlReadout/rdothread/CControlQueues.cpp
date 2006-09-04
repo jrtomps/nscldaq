@@ -58,7 +58,7 @@ void
 CControlQueues::AcquireUsb()
 {
   Enter();
-  blockingTransaction(string("ACQUIRE"));
+  blockingTransaction(ACQUIRE);
 
   // Leave when USB is released.
 
@@ -71,7 +71,7 @@ CControlQueues::AcquireUsb()
 void
 CControlQueues::ReleaseUsb()
 {
-  blockingTransaction(string("RELEASE"));
+  blockingTransaction(RELEASE);
   Leave();
 }
 /*!
@@ -82,7 +82,7 @@ void
 CControlQueues::EndRun()
 {
   Enter();
-  blockingTransaction(string("ENDRUN"));
+  blockingTransaction(END);
   Leave();
 
 }
@@ -93,7 +93,7 @@ void
 CControlQueues::PauseRun()
 {
   Enter();
-  blockingTransaction(string("PAUSE"));
+  blockingTransaction(PAUSE);
   Leave();
 }
 
@@ -104,7 +104,7 @@ void
 CControlQueues::ResumeRun()
 {
   Enter();
-  blockingTransaction(string("RESUME"));
+  blockingTransaction(RESUME);
   Leave();
 }
 
@@ -114,31 +114,33 @@ CControlQueues::ResumeRun()
 void
 CControlQueues::Acknowledge()
 {
-  m_replyQueue.queue(string("ACK"));
+  m_replyQueue.queue(ACK);
 }
 /*!
   Get a command request form the request queue... blocking if needed.
-  the string is returned to the caller.
+  the op code is returned to the caller.
 */
-string
+CControlQueues::opCode
 CControlQueues::getRequest()
 {
-  return m_requestQueue.get();
+  opCode request = m_requestQueue.get();
+  return request;
+
 }
 /*!
    Check for a request in the command queue.  This is non blocking.
    It is used between buffer acquisitions from the readout thread
    to see if it needs to back off for the control thread.
-   \param command : std::string
+   \param command : CControlQueues::opCode
       Command received if one was received.
     \return bool
     \retval true   - A command message is available.
     \retval false  - no command message was available.
 */
 bool
-CControlQueues::testRequest(string command)
+CControlQueues::testRequest(CControlQueues::opCode& command)
 {
-  list<string> messages = m_requestQueue.getAll();
+  list<opCode> messages = m_requestQueue.getAll();
   if(messages.empty()) {
     return false;
   }
@@ -153,9 +155,10 @@ CControlQueues::testRequest(string command)
 //  Do the common work of a blocking transaction.
 
 void
-CControlQueues::blockingTransaction(string command)
+CControlQueues::blockingTransaction(CControlQueues::opCode command)
 {
+
   m_requestQueue.queue(command);
-  string reply = m_replyQueue.get();
-  assert(reply == string("ACK"));
+  opCode reply = m_replyQueue.get();
+  assert(reply == ACK);
 }
