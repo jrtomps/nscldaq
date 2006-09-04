@@ -37,7 +37,7 @@ CControlModule::CControlModule(string name, CControlHardware& hardware) :
   CConfigurableObject(name),
   m_pHardware(&hardware)
 {
-  m_pHardware->onAttach(*this);
+  //  m_pHardware->onAttach(*this);
 }
 /*!
    Destroy a module.  The hardware riding along with us is assumed to have

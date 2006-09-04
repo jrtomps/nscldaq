@@ -119,9 +119,11 @@ CModuleCommand::create(CTCLInterpreter& interp,
   }
   CControlHardware* pModule = new CGDG(name);
   CControlModule*   pConfig = pModule->getConfiguration();
+  pModule->onAttach(*pConfig);
 
   m_Server.addModule(pConfig);
   m_Server.setResult(name);
+  
 
   return TCL_OK;
 }

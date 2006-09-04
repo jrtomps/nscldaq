@@ -30,7 +30,7 @@ using std::string;
 
 CControlHardware::CControlHardware(string name)
 {
-  m_pConfig = new CControlModule(name, *this);
+    m_pConfig = new CControlModule(name, *this);
 }
 CControlHardware::CControlHardware(const CControlHardware& rhs)
 {
