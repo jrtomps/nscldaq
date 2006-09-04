@@ -51,7 +51,7 @@ CGetCommand::operator()(CTCLInterpreter& interp,
 
   if (objv.size() != 3) {
     m_Server.setResult(
-	      "Get: Incorrect number of command parameters : need Get name point");
+	      "ERROR Get: Incorrect number of command parameters : need Get name point");
     return TCL_ERROR;
   }
 
@@ -65,7 +65,7 @@ CGetCommand::operator()(CTCLInterpreter& interp,
 
   CControlModule* pModule = m_Server.findModule(name);
   if (!pModule) {
-    string msg("Get: unable to find module ");
+    string msg("ERROR Get: unable to find module ");
     msg += name;
     m_Server.setResult( msg);
     return TCL_ERROR;

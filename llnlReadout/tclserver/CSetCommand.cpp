@@ -50,7 +50,7 @@ CSetCommand::operator()(CTCLInterpreter& interp,
   // Must be 4 words in the command:
 
   if (objv.size() != 4) {
-    m_Server.setResult("Set: Incorrect number of command words. Need: Set name point value");
+    m_Server.setResult("ERROR Set: Incorrect number of command words. Need: Set name point value");
     return TCL_ERROR;
   }
   // Pull out the values.. All values are strings:
@@ -63,7 +63,7 @@ CSetCommand::operator()(CTCLInterpreter& interp,
 
   CControlModule* pModule = m_Server.findModule(name);
   if (!pModule) {
-    string msg("Set: Control module: ");
+    string msg("ERROR Set: Control module: ");
     msg += name;
     msg += " cannot be found";
     m_Server.setResult( msg);

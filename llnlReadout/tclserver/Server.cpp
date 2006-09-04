@@ -26,6 +26,7 @@ static const char* Copyright= "(C) Copyright Michigan State University 2002, All
 #include "server.h"
 #include "serverinstance.h"
 #include <string>
+#include <iostream>
 #ifdef HAVE_STD_NAMESPACE
 using namespace std;
 #endif
@@ -36,11 +37,13 @@ static void
 Server_Accept(ClientData cd, Tcl_Channel client, char* pHostname,
 		   int nHostport)
 {
+
+  cerr << "Client connection accepted from " << pHostname << endl;
   Tcl_Interp* pInterp     = (Tcl_Interp*)cd;
 
 
-  if (strcmp(pHostname, "localhost")) {
-    printf(">>Rejected unauthorized connection from s on port %d\n",
+  if (strcmp(pHostname, "127.0.0.1")) {
+    printf(">>Rejected unauthorized connection from %s on port %d\n",
 	   pHostname, nHostport);
     Tcl_Close(pInterp, client);
     return;

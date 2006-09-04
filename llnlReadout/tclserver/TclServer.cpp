@@ -25,11 +25,13 @@ using namespace std;
 #include "CGetCommand.h"
 #include "CUpdateCommand.h"
 
+
 #include <tcl.h>
 #include <TCLInterpreter.h>
 #include <CVMUSB.h>
 #include "CControlModule.h"
-#include "Exception.h"
+#include <Exception.h>
+#include <string>
 #include <iostream>
 
 /*!  Constructor is not very interesting 'cause all the action is in 
@@ -133,10 +135,29 @@ TclServer::setResult(string msg)
 int
 TclServer::operator()(int argc, char** argv)
 {
-  initInterpreter();		// Create interp and add commands.
-  readConfigFile();		// Initialize the modules.
-  startTcpServer();		// Set up the Tcp/Ip listener event.
-  EventLoop();			// Run the Tcl event loop forever.
+  try {
+    initInterpreter();		// Create interp and add commands.
+    readConfigFile();		// Initialize the modules.
+    startTcpServer();		// Set up the Tcp/Ip listener event.
+    EventLoop();			// Run the Tcl event loop forever.
+  }
+  catch (string msg) {
+    cerr << "TclServer thread caught a string exception: " << msg << endl;
+    throw;
+  }
+  catch (char* msg) {
+    cerr << "TclServer thread caught a char* exception: " << msg << endl;
+    throw;
+  }
+  catch (CException& err) {
+    cerr << "CAcquisitino thread caught a daq exception: "
+	 << err.ReasonText() << " while " << err.WasDoing() << endl;
+    throw;
+  }
+  catch (...) {
+    cerr << "TclServer thread caught some other exception type.\n";
+    throw;
+  }
 }
 
 /*
@@ -237,6 +258,7 @@ TclServer::EventLoop()
 {
   while(1) {
     Tcl_WaitForEvent(NULL);
+    Tcl_SetServiceMode(TCL_SERVICE_ALL);
     Tcl_ServiceAll();
   }
  std::cerr << "The Tcl Server event loop has exited. No Tcp ops can be done\n"; 

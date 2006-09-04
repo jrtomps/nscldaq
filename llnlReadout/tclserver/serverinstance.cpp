@@ -35,6 +35,7 @@ static const char* Copyright= "(C) Copyright Michigan State University 2002, All
 #include <unistd.h>
 #include <sys/types.h>
 #include <pwd.h>
+#include <iostream>
 
 #ifdef HAVE_STD_NAMESPACE
 using namespace std;
@@ -54,6 +55,7 @@ CServerInstance::CServerInstance(ServerContext& rContext) :
   Context.pInterp       = rContext.pInterp;
   Context.RemotePort    = rContext.RemotePort;
   Context.DialogChannel = rContext.DialogChannel;
+
   Tcl_DStringInit(&(Context.command));
   Tcl_DStringInit(&(Context.RemoteHost));
   Tcl_DStringAppend(&(Context.RemoteHost), 
@@ -129,7 +131,6 @@ CServerInstance::OnCommand()
   int status;
 
   if (m_authenticated) {
-    
     status = Tcl_Eval(Context.pInterp, 
 		      Tcl_DStringValue(&(Context.command)));
     Tcl_Write(Context.DialogChannel, Context.pInterp->result,
@@ -184,6 +185,8 @@ CServerInstance::OnCommand()
 void
 CServerInstance::OnError(int nError)
 {
+  return;
+#ifdef NOTDEFINED
   cerr << "Error detected in client script command: from: "
        << "Host: " << Tcl_DStringValue(&(Context.RemoteHost))
        << "\nPort: " << Context.RemotePort 
@@ -193,6 +196,7 @@ CServerInstance::OnError(int nError)
   cerr << "Tcl Error message was: '"
        << Context.pInterp->result
        << "'";
+#endif
 
 }
 ////////////////////////////////////////////////////////////////////////
