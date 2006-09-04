@@ -31,7 +31,11 @@ using namespace std;
 CGDG::CGDG(string name) :
   CControlHardware(name),
   m_pConfiguration(0)
-{}
+{
+  for (int i=0; i < 8; i++) {
+    m_delays[i] = m_widths[i] = 0; // Testing.
+  }
+}
 /*!
   Same for copy construction.. however this is done by clone just for
   regularity.
@@ -218,7 +222,8 @@ CGDG::setDelay(CVMUSB& vme, unsigned int channel, unsigned int value)
     return string ("ERROR - invalid channel");
   }
   else {
-    return string("OK - but stub");
+    m_delays[channel] = value;
+    return string("OK");
   }
 }
 /*
@@ -237,7 +242,8 @@ CGDG::setWidth(CVMUSB& vme, unsigned int channel, unsigned int value)
     return string("ERROR - invalid channel");
   }
   else {
-    return string("OK - but stub");
+    m_widths[channel] = value;
+    return string("OK");
   }
 
 }
@@ -258,7 +264,9 @@ CGDG::getDelay(CVMUSB& vme, unsigned int channel)
     return string("ERROR - invalid channel");
   }
   else {
-    return string("123");
+    char msg[100];
+    sprintf(msg, "%d", m_delays[channel]);
+    return string(msg);
   }
 }
 /*
@@ -276,6 +284,8 @@ CGDG::getWidth(CVMUSB& vme, unsigned int channel)
     return string("ERROR - invalid channel");
   }
   else {
-    return string("456");
+    char msg[100];
+    sprintf(msg, "%d", m_widths[channel]);
+    return string(msg);
   }
 }

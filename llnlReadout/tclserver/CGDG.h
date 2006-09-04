@@ -53,6 +53,9 @@ class CGDG : public CControlHardware
 private:
   CControlModule*      m_pConfiguration;
 
+  int                  m_delays[8];
+  int                  m_widths[8];
+
 public:
   // Cannonical operations:
 
