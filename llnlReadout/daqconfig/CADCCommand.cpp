@@ -146,7 +146,7 @@ CADCCommand::create(CTCLInterpreter& interp, vector<CTCLObject>& objv)
     return TCL_ERROR;
   }
   CReadoutModule* pModule = m_Config.findAdc(name);
-  if (!pModule) {
+  if (pModule) {
     Usage("Duplicate module creation attempted", objv);
     return TCL_ERROR;
   }

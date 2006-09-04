@@ -8,7 +8,8 @@ include_HEADERS		=	CADCCommand.h  		\
 				CScalerCommand.h
 
 INCLUDES		= 	-I@top_srcdir@/devices	\
-				$(NSCLDAQ_FLAGS) $(TCL_FLAGS)
+				$(NSCLDAQ_FLAGS) $(TCL_FLAGS) \
+				$(SPECTRODAQ_FLAGS)
 
 libConfig_la_LIBADD	=	@top_srcdir@/devices/libVMUSBDevices.la 	\
 				$(TCL_LDFLAGS)

@@ -5,7 +5,7 @@ libVMUSBDevices_la_SOURCES	= 	CConfigurableObject.cpp	\
 					C785.cpp
 
 
-INCLUDES	= -I$(top_builddir)/vmusb @TCL_FLAGS@
+INCLUDES	= -I$(top_builddir)/vmusb @TCL_FLAGS@ $(SPECTRODAQ_FLAGS)
 
 
 libVMUSBDevices_la_LIBADD	= $(top_builddir)/vmusb/libVMUSB.la \

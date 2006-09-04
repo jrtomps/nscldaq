@@ -19,6 +19,7 @@
 #include <TCLInterpreter.h>
 #include <TCLInterpreterObject.h>
 #include <Globals.h>
+#include <CAcquisitionThread.h>
 #include "tclUtil.h"
 
 #include <CControlQueues.h>
@@ -77,6 +78,10 @@ CEndRun::operator()(CTCLInterpreter& interp,
 
   CControlQueues* pRequest = CControlQueues::getInstance();
   pRequest->EndRun();
+
+
+  CAcquisitionThread::waitExit();
+
 
   pState->setState(CRunState::Idle);
 

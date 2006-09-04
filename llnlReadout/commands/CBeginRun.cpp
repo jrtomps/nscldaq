@@ -93,7 +93,16 @@ CBeginRun::operator()(CTCLInterpreter& interp,
   // Now we can start the run.
 
   Globals::pConfig = new CConfiguration;
-  Globals::pConfig->processConfiguration(Globals::configurationFilename);
+  try {
+    Globals::pConfig->processConfiguration(Globals::configurationFilename);
+  }
+  catch (...) {
+    // Configuration file processing error of some sort...
+
+    tclUtil::setResult(interp, string("Begin - configuration file processing failed"));
+    return TCL_ERROR;
+		       
+  }
 
   CAcquisitionThread* pReadout = CAcquisitionThread::getInstance();
   pReadout->start(Globals::pUSBController,
