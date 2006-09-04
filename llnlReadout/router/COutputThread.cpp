@@ -21,15 +21,20 @@
 #include "COutputThread.h"
 #include "CRunState.h"
 #include "DataBuffer.h"
+#include <string>
+#include <Exception.h>
+
+
 #include <assert.h>
 #include <buffer.h>
 #include <buftypes.h>
 #include <stdlib.h>
+#include <stdio.h>
 #include <string.h>
 #include <time.h>
+#include <iostream>
 
-
-
+using namespace std;
 
 
 ///////////////////////////////////////////////////////////////////////
@@ -91,12 +96,31 @@ COutputThread::operator()(int argc, char** argv)
 {
   // Main loop is pretty simple.
 
-  while(1) {
-
-    DataBuffer& buffer(getBuffer());
-    processBuffer(buffer);
-    freeBuffer(buffer);
-
+  try {
+    while(1) {
+      
+      DataBuffer& buffer(getBuffer());
+      processBuffer(buffer);
+      freeBuffer(buffer);
+      
+    }
+  }
+  catch (string msg) {
+    cerr << "COutput thread caught a string exception: " << msg << endl;
+    throw;
+  }
+  catch (char* msg) {
+    cerr << "COutput thread caught a char* exception: " << msg << endl;
+    throw;
+  }
+  catch (CException& err) {
+    cerr << "COutputThread thread caught a daq exception: "
+	 << err.ReasonText() << " while " << err.WasDoing() << endl;
+    throw;
+  }
+  catch (...) {
+    cerr << "COutput thread caught some other exception type.\n";
+    throw;
   }
 }
 
@@ -175,19 +199,39 @@ COutputThread::processBuffer(DataBuffer& buffer)
 {
   if (buffer.s_bufferType == 1) {
     startRun(buffer);
-  } else {
-    uint16_t header = buffer.s_rawData[0]; // VMUSB header.
-    if (header & VMUSBLastBuffer) {
-      endRun(buffer);
-    }
-    else if (header & VMUSBisScaler) {
-      scaler(buffer);
-    }
-    else {
-      events(buffer);
-    }
+  }
+  else if (buffer.s_bufferType == 2) {
+    endRun(buffer);
+  }
+  else {
+    formatBuffer(buffer);
   }
 }
+/*!
+   Format a buffer from the VM USB:
+*/
+void
+COutputThread::formatBuffer(DataBuffer& buffer)
+{
+  uint16_t header = buffer.s_rawData[0]; // VMUSB header.
+  uint16_t firstEvhdr = buffer.s_rawData[1]; // First event buffer.
+  uint16_t listId = (firstEvhdr >> 13) & 0x7;	// 
+  
+  if (listId == 1) {
+    scaler(buffer);
+  }
+  else if (listId == 2) {
+    events(buffer);
+  } 
+  else {
+    char msg[200];
+    sprintf(msg, 
+	    "unrecognized buffer type header: 0x%04x 1st event header 0x%04x",
+	    header, firstEvhdr);
+    throw msg;
+  }
+}
+
 /*
    Process a begin run pseudo buffer. I call this a psuedo buffer because
    there will not be any data from the VM_usb for this
@@ -240,9 +284,6 @@ COutputThread::endRun(DataBuffer& buffer)
 {
   // Process the data buffer:
   
-  events(buffer);
-  
-  // Now do an end run buffer.
   
   pBeginRunBuffer p = static_cast<pBeginRunBuffer>(malloc(sizeof(BeginRunBuffer)));
   formatControlBuffer(ENDRUNBF, p);

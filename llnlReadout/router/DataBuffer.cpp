@@ -46,7 +46,9 @@ DataBuffer*
 createDataBuffer(uint32_t bodySize)
 {
   size_t bytes = sizeof(struct DataBuffer) +  (bodySize-1)*sizeof(uint16_t);
-  return static_cast<DataBuffer*>(malloc(bytes));
+  DataBuffer* p =  static_cast<DataBuffer*>(malloc(bytes));
+  p->s_storageSize = bodySize;
+  return p;
 }
 /*!
    Free storage that was allocated by a data buffer.   It would be a very bad

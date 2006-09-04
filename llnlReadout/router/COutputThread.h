@@ -136,6 +136,7 @@ private:
   void freeBuffer(DataBuffer&  buffer);
 
   void processBuffer(DataBuffer& buffer);
+  void formatBuffer(DataBuffer& buffer);
   void startRun(DataBuffer& buffer);
   void endRun(DataBuffer&   buffer);
   void scaler(DataBuffer&   buffer);
