@@ -139,12 +139,10 @@ snit::type gdgcontrol {
 
     method refreshWidth channel {
 	set value [$self Get width$channel]
-	puts "setting width $channel -> $value"
 	$options(-widget) setWidth $channel $value
     }
     method refreshDelay channel {
 	set value [$self Get delay$channel]
-	puts "setting delay $channel -> $value"
 
 	$options(-widget) setDelay $channel $value
     }
