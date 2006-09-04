@@ -100,7 +100,7 @@ CGDG::onAttach(CControlModule& configuration)
 string
 CGDG::Update(CVMUSB& vme)
 {
-  return string("");
+  return string("OK - but stub.");
 }
 /*!
   Set a parameter value. All values must be integers, and the parameters
@@ -214,7 +214,12 @@ CGDG::base()
 string
 CGDG::setDelay(CVMUSB& vme, unsigned int channel, unsigned int value)
 {
-  return string("ERROR - GDG is just a stub for now");
+  if (channel > 7) {
+    return string ("ERROR - invalid channel");
+  }
+  else {
+    return string("OK - but stub");
+  }
 }
 /*
    Set the width of one of the channels.
@@ -228,7 +233,13 @@ CGDG::setDelay(CVMUSB& vme, unsigned int channel, unsigned int value)
 string
 CGDG::setWidth(CVMUSB& vme, unsigned int channel, unsigned int value)
 {
-  return string("ERROR - GDG is just a stub for now");
+  if (channel > 7) {
+    return string("ERROR - invalid channel");
+  }
+  else {
+    return string("OK - but stub");
+  }
+
 }
 
 /*
@@ -243,7 +254,12 @@ CGDG::setWidth(CVMUSB& vme, unsigned int channel, unsigned int value)
 string
 CGDG::getDelay(CVMUSB& vme, unsigned int channel)
 {
-  return string("ERROR - GDG is just a stub for now");
+  if (channel > 7) {
+    return string("ERROR - invalid channel");
+  }
+  else {
+    return string("123");
+  }
 }
 /*
   Get the value of a channel width.
@@ -256,5 +272,10 @@ CGDG::getDelay(CVMUSB& vme, unsigned int channel)
 string
 CGDG::getWidth(CVMUSB& vme, unsigned int channel)
 {
-  return string("ERROR - GDG is just a stub for now");
+  if (channel > 7) {
+    return string("ERROR - invalid channel");
+  }
+  else {
+    return string("456");
+  }
 }
