@@ -109,7 +109,7 @@ snit::type gdgcontrol {
 	foreach value $delays {
 	    $self Set delay$channel $value
 	    $self refreshDelay $channel
-	    incr channely
+	    incr channel
 	}
     }
 
