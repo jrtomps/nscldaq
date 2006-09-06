@@ -47,7 +47,7 @@ proc addPanel {notebook module connection} {
     global controllers
 
     set name [lindex $module 1]
-    puts "Adding $name"
+
     set w [gdgwidget $notebook.g$panelIndex -title $name]
     set c [gdgcontrol %AUTO% -widget $w -connection $connection \
 	                     -name $name -onlost Reconnect]
@@ -60,7 +60,96 @@ proc addPanel {notebook module connection} {
        
     incr panelIndex
 }
+#-----------------------------------------------------------------
+# saveConfiguration  filename
+#     Save the current settings to file 'filename'
+#
+proc saveConfiguration filename {
+    global controllers
 
+    set f [open $filename w]
+    foreach controller $controllers {
+	set name   [$controller cget -name]
+	set values [$controller getAll]
+	puts $f [list $name $values]
+    }
+
+    close $f
+}
+#-----------------------------------------------------------------
+#  restoreConfigurationFile filename
+#     Restore the configuration file 'filename'.
+#     If the file is missing controllers, nothing happens to those
+#     controllers.  If the file has extra controllers, they are ignored.
+#
+
+proc restoreConfigurationFile filename {
+    global controllers
+
+    # Read the file into configuration(controller-name).
+
+    set f [open $filename r]
+    while {![eof $f]} {
+	set entry [gets $f]
+	set name   [lindex $entry 0]
+	set values [lindex $entry 1]
+	if {$name ne ""} {
+	    set configuration($name) $values
+	}
+    }
+    close $f
+    
+    # Restore the controller values.
+
+    foreach controller $controllers {
+	set name [$controller cget -name]
+	if {[array names configuration $name] ne ""} {
+	    $controller setAll $configuration($name)
+	}
+    }
+}
+#-----------------------------------------------------------------
+# onRestore - prompts for a filename then restores that file.
+#
+proc onRestore {} {
+    set file  [tk_getOpenFile -defaultextension {.conf}           \
+		  -filetypes                                     \
+ 		     {{{Configuration Files} {.conf}     }
+		      {{All files}               *       }}         ]
+    if {$file ne ""} {
+	restoreConfigurationFile $file
+    }
+}
+
+#-----------------------------------------------------------------
+#
+# onSave  - Prompts for a filename then saves the file.
+#
+proc onSave {} {
+    set file [tk_getSaveFile -defaultextension {.conf}           \
+		  -filetypes                                     \
+ 		     {{{Configuration Files} {.conf}     }
+		      {{All files}               *       }}         ]
+    if {$file ne ""} {
+	saveConfiguration $file
+    }
+}
+
+#-----------------------------------------------------------------
+# 
+#  onExit - Prompts to be sure that's what the user wants and, if so
+#  exits.
+#
+#
+proc onExit {} {
+    set answer [tk_messageBox -icon question -title "Exit?" \
+		    -type yesno                             \
+		    -message {Are you sure you want to exit?}]
+    if {$answer eq "yes"} {
+	saveConfiguration "failsafe.conf"
+	exit
+    }
+}
 
 #----------------------------------------------------------------
 #  Entry point.
@@ -78,5 +167,16 @@ foreach module $modules {
     addPanel .panel $module $connection
 }
 
-pack .panel -fill both -expand 1
 
+pack .panel -fill both -expand 1
+menu .menubar
+menu .menubar.file -tearoff 0
+.menubar.file add command -label "Save..."    -command onSave
+.menubar.file add command -label "Restore..." -command onRestore
+.menubar.file add separator
+.menubar.file add command -label "Exit"       -command onExit
+
+.menubar add cascade -label "File" -menu .menubar.file
+
+
+. config -menu .menubar
