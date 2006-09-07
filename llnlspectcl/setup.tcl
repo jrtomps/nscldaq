@@ -4,11 +4,7 @@
 package require configFile
 
 
-# stub;;;;
-proc paramMap {slot chan name} {
-    puts "Mapping slot $slot channel $chan to parameter $name"
-}
-# endstub;;;
+
 
 configClear
 configRead ~/config/daqconfig.tcl
@@ -43,7 +39,7 @@ foreach adc [array names adcConfiguration] {
 
 	# Add the parameter mapping for the decoder.
 
-	paramMap $slot $channel $name1
+	paramMap $slot $i $name1
 	paramMap $slot [expr $i + 16] $name2
 
     }
