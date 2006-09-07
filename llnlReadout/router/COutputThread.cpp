@@ -368,9 +368,9 @@ COutputThread::events(DataBuffer& buffer)
   //  event data into it:
 
   pEventBuffer p  = static_cast<pEventBuffer>(malloc(m_outputBufferSize));
-  memcpy(p->s_body, buffer.s_rawData, buffer.s_bufferSize/sizeof(uint16_t));
+  memcpy(p->s_body, &(buffer.s_rawData[1]), buffer.s_bufferSize/sizeof(uint16_t) - sizeof(uint16_t));
 
-  //  Now the he4ader except for nevt...
+  //  Now the header except for nevt...
 
   uint16_t finalLength = sizeof(BHEADER) + buffer.s_bufferSize/sizeof(uint16_t);
   p->s_header.nwds   = finalLength;
