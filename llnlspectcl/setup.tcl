@@ -18,14 +18,13 @@ set paramnum 100
 foreach adc [array names adcConfiguration] {
 
     #  Make the parameters, 1d/2d spectra for this adc
-    set basename1 $adc.1.
-    set basename2 $adc.2.
+    set basename1 $adc.E.
+    set basename2 $adc.T.
 
     set slot      $adcConfiguration($adc)
-    
-    for {set i 0} {$i < 16} {incr i} {
-	set channel [format %02d $i]
-
+    set cnum      0
+    foreach i {0 1 2 3 8 9 10 11 16 17 18 19 24 25 26 27} {
+	set channel [format %02d $cnum]
 
 	set name1 $basename1$channel
 	set name2 $basename2$channel
@@ -35,13 +34,14 @@ foreach adc [array names adcConfiguration] {
 
 	spectrum $name1 1 $name1 {{0 4095 4096}}
 	spectrum $name2 1 $name2 {{0 4095 4096}}
-	spectrum $adc.1-vs-2.$channel 2 [list $name1 $name2]  {{0 4095 512} {0 4095 515}}
+	spectrum $adc.T-vs-E.$channel 2 [list $name1 $name2]  {{0 4095 512} {0 4095 515}}
 
 	# Add the parameter mapping for the decoder.
 
 	paramMap $slot $i $name1
-	paramMap $slot [expr $i + 16] $name2
+	paramMap $slot [expr $i + 4] $name2
 
+	incr cnum
     }
 }
 sbind -all
