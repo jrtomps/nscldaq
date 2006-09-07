@@ -186,7 +186,7 @@ CADCCommand::create(CTCLInterpreter& interp, vector<CTCLObject>& objv)
 int
 CADCCommand::config(CTCLInterpreter& interp, vector<CTCLObject>& objv)
 {
-  if ( (objv.size() < 5) || ((objv.size() & 2) == 0)) {
+  if ( (objv.size() < 5) || ((objv.size() & 1) == 0)) {
     Usage("Incorrect number of command parameters for config", objv);
     return TCL_ERROR;
   }
