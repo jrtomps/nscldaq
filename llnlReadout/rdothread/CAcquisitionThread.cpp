@@ -296,8 +296,8 @@ CAcquisitionThread::startDaq()
 
   // Reset the VME so that all modules are back to default conditions.
 
-  m_pVme->writeActionRegister(CVMUSB::ActionRegister::sysReset);
-  m_pVme->writeActionRegister(0);
+  // m_pVme->writeActionRegister(CVMUSB::ActionRegister::sysReset);
+  //  m_pVme->writeActionRegister(0);
 
   // Create the lists and size the event readout list.
 
