@@ -95,7 +95,7 @@ private:
   int operator!=(const CParamMapCommand& rhs) const;
 
 public:
-  static  const ParameterMap& getMap();
+  static ParameterMap& getMap();
 
   // Virtual function overrides.
 protected:

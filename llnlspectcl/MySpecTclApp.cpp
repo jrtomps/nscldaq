@@ -25,7 +25,9 @@ static const char* Copyright = "(C) Copyright Michigan State University 2008, Al
 #include "TCLAnalyzer.h"
 #include <Event.h>
 #include <TreeParameter.h>
+
 #include "CParamMapCommand.h"
+#include "CLLNLUnpacker.h"
 
 #ifdef HAVE_STD_NAMESPACE
 using namespace std;
@@ -57,8 +59,8 @@ elements 1 and 2 and putting the result into element 0.
 void 
 CMySpecTclApp::CreateAnalysisPipeline(CAnalyzer& rAnalyzer)  
 { 
-
-
+  RegisterEventProcessor(*(new CLLNLUnpacker), "adc-data");
+  
 }  
 
 // Constructors, destructors and other replacements for compiler cannonicals:

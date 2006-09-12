@@ -1,5 +1,5 @@
-INSTDIR=/usr/opt/spectcl/3.1
-# Skeleton makefile for 3.1
+INSTDIR=/usr/opt/spectcl/3.2
+# Skeleton makefile for 3.2
 
 include $(INSTDIR)/etc/SpecTcl_Makefile.include
 
@@ -21,7 +21,7 @@ USERLDFLAGS=
 #   Append your objects to the definitions below:
 #
 
-OBJECTS=MySpecTclApp.o CParamMapCommand.o
+OBJECTS=MySpecTclApp.o CParamMapCommand.o CLLNLUnpacker.o
 
 #
 #  Finally the makefile targets.

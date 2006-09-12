@@ -49,7 +49,7 @@ CParamMapCommand::~CParamMapCommand()
   Return a const reference to the parameter map so that the
   unpacker can figure out mappings.
 */
-const CParamMapCommand::ParameterMap&
+CParamMapCommand::ParameterMap&
 CParamMapCommand::getMap()
 {
   return m_theMap;

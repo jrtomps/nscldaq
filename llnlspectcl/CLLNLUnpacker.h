@@ -21,6 +21,26 @@
 #include <EventProcessor.h>
 #endif
 
+#ifndef __TRANSLATORPOINTER_H
+#include <TranslatorPointer.h>
+#endif
+
+
+#ifndef __STL_LIST
+#include <list>
+#ifndef __STL_LIST
+#define __STL_LIST
+#endif
+#endif
+
+
+#ifndef __CRT_STDINT
+#include <stdint.h>
+#ifndef __CRT_STDINT
+#define __CRT_STDINT
+#endif
+#endif
+
 /*!
   This class unpacks data from the LLNL neutron data taking system
   into parameters.  Events have a format that is described in
@@ -83,7 +103,7 @@ which would make us analyze too little of the buffer.
 \endverbatim
   
  */
-class CLLNLUnpacker : public CEvenProcessor
+class CLLNLUnpacker : public CEventProcessor
 {
   // Private data types.
 
@@ -95,10 +115,10 @@ private:
 
   // member data:
 private:
-  UnpackState   m_state;	      // Current state of unpacker.
-  UInt_t        m_fragmentResidual;   // Words left in unpacker.
-  Bool_t        m_isLastFragment;     // Working on last fragment in event.
-  Bool_t        m_entityDone;	      // if False invoke CAnalyzer::EntityNotDone()
+  UnpackState         m_state;	      // Current state of unpacker.
+  STD(list)<uint32_t> m_event;	      // Super event data.
+  UInt_t              m_size;	      // Full size of superevent (words).
+
 
 public:
   // Canonicals:  
@@ -120,7 +140,9 @@ public:
   // Utilities:
 
 private:
- 
+  void fetchSuperEvent(TranslatorPointer<UShort_t>& p);
+  void unpackModule( CEvent& rEvent);
+
   
 };
 
