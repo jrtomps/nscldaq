@@ -21,7 +21,8 @@ USERLDFLAGS=
 #   Append your objects to the definitions below:
 #
 
-OBJECTS=MySpecTclApp.o CParamMapCommand.o CLLNLUnpacker.o
+OBJECTS=MySpecTclApp.o CParamMapCommand.o CLLNLUnpacker.o	\
+	CRateProcessor.o CRateList.o
 
 #
 #  Finally the makefile targets.
