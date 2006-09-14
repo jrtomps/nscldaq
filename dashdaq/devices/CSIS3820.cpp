@@ -19,7 +19,11 @@
 
 #include <CVMEInterface.h>
 #include <CVMEList.h>
-#include <CInvalidInterfaceType>
+#include <CVMEAddressRange.h>
+
+#include "CVMEReadableObject.h"
+
+#include <CInvalidInterfaceType.h>
 #include <CBadValue.h>
 #include <stdio.h>
 
@@ -29,6 +33,12 @@
 
 #ifdef CONST
 #undef CONST
+#endif
+
+#define CONST static const
+
+#ifdef CONST32
+#undef CONST32
 #endif
 
 #define CONST32 static const uint32_t
@@ -102,7 +112,7 @@ CONST32 mode_MCS(0x20000000);
 CONST32 mode_HSCAL(0x30000000);
 
 CONST32 mode_invertOutputs(0x08000000);
-CONST32 mode_ouputSDRAM(0x000000000);
+CONST32 mode_outputSDRAM(0x000000000);
 CONST32 mode_outputClock(0x010000000);
 CONST32 mode_outputUnused(0x03000000);
 
@@ -111,7 +121,7 @@ CONST32 mode_inputNONE(0);
 CONST32 mode_inputLneInhibitLne(0x00100000);
 CONST32 mode_inputLneInhibitLneAndAll(0x00200000);
 CONST32 mode_inputLneInhibitAll(0x00300000);
-CONST32 mode_inputInibhitBanks8(0x00400000);
+CONST32 mode_inputInhibitBanks8(0x00400000);
 
 CONST32 mode_addMode(0x00020000);
 CONST32 mode_SDRAMisRAM(0x00010000);
@@ -148,7 +158,7 @@ CONST short blockAM(0x0f);
    \param base      : uint32_t
       VME base address set in the module rotary switches.
 */
-CSIS3820::CSIS3820(CVMEinterface& interface, uint32_t base) : 
+CSIS3820::CSIS3820(CVMEInterface& interface, uint32_t base) : 
   CVMEReadableObject(interface, base),
   m_pVme(0)
 {
@@ -190,7 +200,7 @@ CSIS3820::operator=(const CSIS3820& rhs)
 int
 CSIS3820::operator==(const CSIS3820& rhs) const
 {
-  return CVMEReadableObjecdt::operator==(rhs);
+  return CVMEReadableObject::operator==(rhs);
 }
 int
 CSIS3820::operator!=(const CSIS3820& rhs) const
@@ -203,7 +213,7 @@ CSIS3820::operator!=(const CSIS3820& rhs) const
 ////////////////////////////////////////////////////////////////////////
 
 void
-CSIS3820::configMode(CSIS3820:mode operatingMode) 
+CSIS3820::configMode(CSIS3820::mode operatingMode) 
 {
   m_mode = operatingMode;
 }
@@ -235,7 +245,7 @@ CSIS3820::configMCSPreset(uint32_t cycles)
   m_mcsPreset = cycles;
 }
 uint32_t 
-CSIS3820::cgetMCSPReset() const
+CSIS3820::cgetMCSPreset() const
 {
   return m_mcsPreset;
 }
@@ -436,7 +446,7 @@ CSIS3820::initialize()
   if (( (fwid & fwid_idMask) >> fwid_idShift) != fwid_correctId) {
     char msg[100];
     sprintf(msg, "CSIS3820::initialize - module with base address %0x08x is not a 3820",
-	    base);
+	    getBase());
     throw CInvalidInterfaceType(msg, "Initializing an SIS 3820");
   }
 
@@ -453,13 +463,13 @@ CSIS3820::initialize()
     opMode |= mode_format32;
     break;
   case format24:
-    opmode |= mode_format24;
+    opMode |= mode_format24;
     break;
   case format16:
-    opmode |= mode_format16;
+    opMode |= mode_format16;
     break;
   case format08:
-    opmode |= mode_format08;
+    opMode |= mode_format08;
     break;
   default:
     throw CBadValue("format32, format24, format16, format08",
@@ -468,13 +478,13 @@ CSIS3820::initialize()
   }
   switch (m_lneSource) {
   case LNEVME:
-    opmode |= mode_lneSourceVME;
+    opMode |= mode_lneSourceVME;
     break;
   case LNEFrontPanel:
-    opmode |= mode_lneSourceFrontPanel;
+    opMode |= mode_lneSourceFrontPanel;
     break;
   case LNE10MHz:
-    opmode |= mode_lneSource10Mhz;
+    opMode |= mode_lneSource10Mhz;
     break;
   default:
     throw CBadValue("LNEVME, LNEFrontpanel, LNE10MHz",
@@ -482,77 +492,77 @@ CSIS3820::initialize()
   }
 
   switch (m_armEnableSource) {
-    ArmFPLNE::
-      opmode |= mode_armFrom FPLNE;
+  case ArmFPLNE:
+      opMode |= mode_armFromFPLNE;
     break;
   default:
     throw CBadValue("ArmFPLNE", "Unknown", "CSIS3820::initialize");
   }
-  if (!m_SDRAMisFIFO) omcode |= m_SDRAMisRAM;
+  if (!m_SDRAMisFIFO) opMode |= mode_SDRAMisRAM;
   
   switch (m_inputMode) {
   case NoInputs:
-    opmode |= mode_inputNONE;
+    opMode |= mode_inputNONE;
     break;
   case LneInhibitLne:
-    opmode |= mode_inputLneInhibitLne;
+    opMode |= mode_inputLneInhibitLne;
     break;
   case LneInhibitLneAndAll:
-    opmode |= mode_inputLneInhibitLneAndAll;
+    opMode |= mode_inputLneInhibitLneAndAll;
     break;
   case LneInhibitBanks8:
-    opmode |= mode_inputLneInhibitBanks8;
+    opMode |= mode_inputInhibitBanks8;
     break;
   default:
     throw CBadValue("NoInputs, LneInhibitLne, LneInhibitLneAndAll,  LneInhibitBanks8",
 		    "unknown", "CSIS3820::initialize");
     
   }
-  if (m_inputsInverted) opmode |= mode_invertInputs;
+  if (m_inputsInverted) opMode |= mode_invertInputs;
   
   switch (m_outputMode) {
   case SDRAM:
-    opmode |= mode_outputSDRAM;
+    opMode |= mode_outputSDRAM;
     break;
   case Clock:
-    opmode |= mode_outputClock;
+    opMode |= mode_outputClock;
     break;
   case Unused:
-    opmode |= mode_outputUnused;
+    opMode |= mode_outputUnused;
     break;
   default:
     throw CBadValue("SDRAM, Clock, Unused", "Unknown output mode",
 		    "CSIS3820::initialize");
   }
-  if (m_outputsInverted) opmode |= mode_invertOutputs;
+  if (m_outputsInverted) opMode |= mode_invertOutputs;
 
   switch (m_mode) {
   case Latching:
-    opmode |= mode_Scaler;
+    opMode |= mode_Scaler;
     break;
   case MCS:
-    opmode |= mode_MCS;
+    opMode |= mode_MCS;
     break;
   case Histogramming:
-    opmode |= mode_HSCAL;
+    opMode |= mode_HSCAL;
     break;
   default:
     throw CBadValue(" Latching, MCS, Histogramming", 
 		    "Unknown operating mode", "CSIS3820::initialize");
   }
-  regWrite(operationMode, opmode);
+  regWrite(operationMode, opMode);
 
   // 
   regWrite(LNEPrescale, m_lnePrescale);
-  regWrite(acquistionPreset, m_mcsPreset);
-  regwrite(acquistitionCount, 0);
+  regWrite(acquisitionPreset, m_mcsPreset);
+  regWrite(acquisitionCount, 0);
   
 
   // figure out the bits to set/clear in the controlStatus register.
   // we must set or clear each bit as this register contains setters/clearers.
   // (well we could rely on known defaults but we won't so the code is clearer).
 
-  uint32_t csr = csr_ledOff | csr_24MhzOff | csr_testOff;
+  uint32_t csr = csr_ledOff | csr_25MhzOff | csr_testOff;
   if (m_enableRefPulser) {
     csr |= csr_refPulserOn;
   }
@@ -582,7 +592,7 @@ CSIS3820::initialize()
    \retval Number of bytes actually read.
 */
 size_t
-CSIS3820::Read(void* buffer)
+CSIS3820::read(void* buffer)
 {
   if (m_mode == Latching) {
     return readShadow(buffer);
@@ -708,7 +718,7 @@ CSIS3820::setConfigurationDefaults()
 	    we get around reference counting issues by setting it to zero.
 */
 void
-CSIS3820::copyIn(const CSIS3820::rhs)
+CSIS3820::copyIn(const CSIS3820& rhs)
 { 
   m_pVme                = 0;
   m_mode                = rhs.m_mode;
@@ -773,7 +783,7 @@ CSIS3820::readSDRAM(void* buffer)
     for (int i =0; i < n; i++) {
       *p++ = mem->peekl(i/sizeof(uint32_t));
     }
-    writeReg(keySDRAMReset, 0);
+    regWrite(keySDRAMReset, 0);
     delete mem;
   }
 }
@@ -796,7 +806,7 @@ CSIS3820::addShadowRead(CVMEList& list)
 CVMEList&
 CSIS3820::addSDRAMRead(CVMEList& list)
 {
-  list.addBlockRead32(blocAM, getBase() + SDRAM, liveChannels());
+  list.addBlockRead32(blockAM, getBase() + SDRAM, liveChannels());
   list.addWrite32(registerAM, getBase() + keySDRAMReset, 0);
 
   return list;
@@ -808,7 +818,7 @@ CSIS3820::addSDRAMRead(CVMEList& list)
 uint32_t
 CSIS3820::liveChannels()
 {
-  uint32 n = 32;
+  uint32_t n = 32;
   // To improve speed, we'll assume that typically later channels are disabled
   // and that those are disabled in contiguous lumps.  So we'll count the
   // disabled channels from high bit to low until there are no more bits.

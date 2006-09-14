@@ -4,14 +4,18 @@ libDeviceSupport_la_SOURCES	= CCAMACModule.cpp	\
 				CVMEModule.cpp		\
 				CCAMACReadableObject.cpp \
 				CVMEReadableObject.cpp	\
-				CAEN32.cpp
+				CAEN32.cpp		\
+				CSIS3300.cpp		\
+				CSIS3820.cpp
 
 include_HEADERS     = CReadableObject.h	\
 			CCAMACModule.h	\
 			CVMEModule.h 	\
 			CCAMACReadableObject.h	\
 			CVMEReadableObject.h	\
-			CAEN32.h
+			CAEN32.h		\
+			CSIS3300.h		\
+			CSIS3820.h
 
 
 AM_CXXFLAGS	= -I@top_builddir@/vme    \

@@ -60,7 +60,7 @@ class CVMEAddressRange;
    a cgetxxx parameter which interrogates it.
 
 */
-class CSIS3820 : public CVMEReadableOjbect
+class CSIS3820 : public CVMEReadableObject
 {
   // Data types (public):
 
@@ -177,7 +177,7 @@ public:
   void      configInputMode(InputMode mode);
   InputMode cgetInputMode() const;
 
-  void     configOutputsPolarity(Polarity mode);
+  void     configOutputPolarity(Polarity mode);
   Polarity cgetOutputPolarity() const;
   
   void       configOutputMode(OutputMode mode);
@@ -213,7 +213,7 @@ public:
   uint32_t regRead(uint32_t offset);
 
   void setConfigurationDefaults();
-  void copyIn(const CSIS3280& rhs) const;
+  void copyIn(const CSIS3820& rhs);
 
   size_t     readShadow(void* buffer);
   size_t     readSDRAM(void* buffer);
