@@ -41,6 +41,9 @@ CRateList::getInstance()
   return m_pInstance;
 }
 
+
+
+
 ////////////////////////////////////////////////////////////////////////
 //////////////////// List operations ///////////////////////////////////
 /////////////////////////////////////////////////////////////////////////
@@ -63,13 +66,9 @@ CRateList::addProcessor(CRateProcessor& processor)
 void
 CRateList::deleteProcessor(CRateProcessor& processor)
 {
-  RateListIterator  i = begin();
-  while (i != end()) {
-    if (i->first == &processor) {
-      m_rates.erase(i);		// remove from the list.
-      return;
-    }
-    i++;
+  RateListIterator  i = find(processor);
+  if (i != end()) {
+    m_rates.erase(i);
   }
 
 }
@@ -80,18 +79,32 @@ CRateList::deleteProcessor(CRateProcessor& processor)
 void
 CRateList::markForDeletion(CRateProcessor& processor)
 {
-  RateListIterator i= begin();
-  while (i!=end()) {
-    if (i->first == &processor) {
-      i->second = true;
-      return;
-    }
-    i++;
+  RateListIterator i= find(processor);
+  if (i != end()) {
+    i->second = true;
   }
+
 }
 ////////////////////////////////////////////////////////////////////////
 //////////////////////////////// List iteration ////////////////////////
 ////////////////////////////////////////////////////////////////////////
+
+/*!
+   Find an event processor.  Returns end() if failure.
+
+  
+*/
+CRateList::RateListIterator
+CRateList::find(CRateProcessor& processor)
+{
+  RateListIterator i = begin();
+  while (i != end()) {
+    if (i->first == &processor) break;
+    i++;
+  }
+
+  return i;
+}
 
 CRateList::RateListIterator
 CRateList::begin() {

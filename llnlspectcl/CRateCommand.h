@@ -51,14 +51,14 @@ private:
 
 public:
   virtual int operator()(CTCLInterpreter& interp,
-			 STD(vector)<CTCLObject&>& objv);
+			 STD(vector)<CTCLObject>& objv);
 protected:
   int createRate(CTCLInterpreter& interp,
-	     STD(vector)<CTCLObject&>& objv);
+	     STD(vector)<CTCLObject>& objv);
   int deleteRate(CTCLInterpreter& interp,
-	     STD(vector)<CTCLObject&>& objv);
+	     STD(vector)<CTCLObject>& objv);
   int listRates(CTCLInterpreter& interp,
-		STD(vector)<CTCLObject&>& objv);
+		STD(vector)<CTCLObject>& objv);
 
 private:
   STD(string) Usage();

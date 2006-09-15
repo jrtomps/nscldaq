@@ -85,6 +85,7 @@ public:
 
   // List iteration:
 
+  RateListIterator find(CRateProcessor& processor);
   RateListIterator begin();
   RateListIterator end();
 
