@@ -228,7 +228,7 @@ snit::widget editRatesDialog {
 	grab $win
 	tkwait window $hiddenWindow
 	grab release $win
-	set hiddenWindow "";		# no longer modal
+	catch {set hiddenWindow ""};		# no longer modal
     }
     ####
     #  Update the browser can be called when new spectra are created or
@@ -238,6 +238,72 @@ snit::widget editRatesDialog {
     method update {} {
 	$win.browser update
     }
+}
+
+#----------------------------------------------------------------------
+#
+#  Update the set of rates so that they match the list passed in
+#
+proc updateRateSet newRates {
+    set currentRates [rate list]
+    set currentSpectra [list]
+    foreach rate $currentRates {
+	lappend currentSpectra [lindex $rate 0]
+    }
+    #  For each new Rate not in currentSpectra add it:
+
+    foreach requested $newRates {
+	if {[lsearch -exact $currentSpectra $requested] == -1} {
+	    rate create $requested
+	}
+    }
+    # For each rate in currentSpectra if it's not in requested, delete it.
+    #
+    foreach spectrum $currentSpectra {
+	if {[lsearch -exact $newRates $spectrum] == -1} {
+	    rate delete $spectrum
+	}
+    }
+}
+#-----------------------------------------------------------------------
+#  editRates - called in response to requests to edit the current set of
+#              rates. A rates dialog is popped up and
+#              made modal.  When the dialog is done, we fetch
+#              the rates from it. 
+#    
+
+#  This stuff is used to know when a cancel happened.
+# 
+
+set cancelled 0
+proc editRatesCancelled {} {
+    global  cancelled 
+    set cancelled 1
+}
+
+proc editRates {} {
+    global cancelled
+    set cancelled 0
+
+    set currentRates    [rate list]
+    set currentSpectra  [list]
+    foreach rate $currentRates {
+	lappend currentSpectra [lindex $rate 0]
+    }
+    editRatesDialog .rateeditor -cancelcommand editRatesCancelled \
+	                        -rates $currentSpectra
+    .rateeditor modal
+    #
+    #  Killing the widget is the same as cancel..
+    #
+    if {[winfo exists .rateeditor]} {
+	if {!$cancelled} {
+	    set requestedSpectra [.rateeditor cget -rates]
+	    updateRateSet $requestedSpectra
+	}
+	destroy .rateeditor
+    }
+
 }
 
 #-----------------------------------------------------------------------

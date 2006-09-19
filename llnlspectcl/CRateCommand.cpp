@@ -227,6 +227,13 @@ CRateCommand::deleteRate(CTCLInterpreter& interp,
 
 /*!
    List the rates processors.
+   The following information is listed for each rate (list of sublists)
+   spectrum name.
+   - Spectrum name
+   - Delete pending flag (set by processor when the parameter was yanked out
+     from underneath it).
+   - Totals
+   - Last increments.
 */
 int
 CRateCommand::listRates(CTCLInterpreter& interp,
@@ -251,6 +258,8 @@ CRateCommand::listRates(CTCLInterpreter& interp,
     CSpectrum* pSpec = i->first->getSpectrum();
     element += pSpec->getName();
     element += (int)i->second;
+    element += (double)i->first->getTotals();
+    element += (double)i->first->getIncrements();
 
     result  += element;
 
