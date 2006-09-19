@@ -45,4 +45,13 @@ foreach adc [array names adcConfiguration] {
     }
 }
 sbind -all
+
+#  Add the rates gui ... integrate it with the SpecTcl GUI
+
+set here [info script]
+set here [file dirname $here]
+source [file join $here ratesGui.tcl]
+
 .gui.b update
+
+

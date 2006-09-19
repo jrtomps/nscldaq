@@ -28,6 +28,7 @@ static const char* Copyright = "(C) Copyright Michigan State University 2008, Al
 
 #include "CParamMapCommand.h"
 #include "CLLNLUnpacker.h"
+#include "CRateCommand.h"
 
 #ifdef HAVE_STD_NAMESPACE
 using namespace std;
@@ -257,6 +258,7 @@ CMySpecTclApp::AddCommands(CTCLInterpreter& rInterp)
 { 
   CTclGrammerApp::AddCommands(rInterp);
   new CParamMapCommand(rInterp);
+  new CRateCommand(rInterp);
 }  
 
 //  Function: 	
