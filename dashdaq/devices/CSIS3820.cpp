@@ -68,7 +68,7 @@ CONST32   keyDisable(0x41c);
 CONST32   shadowRegisters(0x800);
 CONST32   counterRegisters(0xa00);
 
-CONST32   SDRAM(0x800000);
+CONST32   SDRAMBASE(0x800000);
 
 CONST32   RegisterSize(0xb00);
 CONST32   SDRAMSize(0x800000);
@@ -86,7 +86,7 @@ CONST32 csr_25MhzOff(0x100000);
 CONST32 csr_testOn(0x20);
 CONST32 csr_testOff(0x200000);
 
-CONST32 csr_refPulserOn(0x400);
+CONST32 csr_refPulserOn(0x40);
 CONST32 csr_refPulserOff(0x400000);
 
 // Bit fields in module/id rev level:
@@ -111,20 +111,20 @@ CONST32 mode_Scaler(0);
 CONST32 mode_MCS(0x20000000);
 CONST32 mode_HSCAL(0x30000000);
 
-CONST32 mode_invertOutputs(0x08000000);
+CONST32 mode_invertOutputs(0x00800000);
 CONST32 mode_outputSDRAM(0x000000000);
-CONST32 mode_outputClock(0x010000000);
-CONST32 mode_outputUnused(0x03000000);
+CONST32 mode_outputClock(0x00100000);
+CONST32 mode_outputUnused(0x00300000);
 
-CONST32 mode_invertInputs(0x00800000);
+CONST32 mode_invertInputs(0x00080000);
 CONST32 mode_inputNONE(0);
-CONST32 mode_inputLneInhibitLne(0x00100000);
-CONST32 mode_inputLneInhibitLneAndAll(0x00200000);
-CONST32 mode_inputLneInhibitAll(0x00300000);
-CONST32 mode_inputInhibitBanks8(0x00400000);
+CONST32 mode_inputLneInhibitLne(0x00010000);
+CONST32 mode_inputLneInhibitLneAndAll(0x00020000);
+CONST32 mode_inputLneInhibitAll(0x00030000);
+CONST32 mode_inputInhibitBanks8(0x00040000);
 
-CONST32 mode_addMode(0x00020000);
-CONST32 mode_SDRAMisRAM(0x00010000);
+CONST32 mode_addMode(0x00002000);
+CONST32 mode_SDRAMisRAM(0x00001000);
 
 CONST32 mode_armFromFPLNE(0x00000000);
 
@@ -142,8 +142,9 @@ CONST32 mode_format08(0xc);
 CONST32 mode_nonClearing(1); 
 
 
-CONST short registerAM(0xe);
+CONST short registerAM(0xd);
 CONST short blockAM(0x0f);
+
 
 ///////////////////////////////////////////////////////////////
 //////////////// Constructors and canonicals //////////////////
@@ -238,6 +239,26 @@ CSIS3820::cgetRefPulserEnabled() const
 {
   return m_enableRefPulser;
 }
+
+void
+CSIS3820::configEnableTestPulser()
+{
+  m_enableTestPulser = true;
+}
+
+void 
+CSIS3820::configDisableTestPulser()
+{
+  m_enableTestPulser = false;
+}
+
+bool
+CSIS3820::cgetTestPulserEnabled() const
+{
+  return m_enableTestPulser;
+}
+
+
 
 void 
 CSIS3820::configMCSPreset(uint32_t cycles)
@@ -413,6 +434,25 @@ CSIS3820::Arm()
 {
   regWrite(keyArm, 0);
 }
+
+/*!
+  Enable the counters:
+
+*/
+void
+CSIS3820::Enable()
+{
+  regWrite(keyEnable,0);
+}
+
+/*!
+  Disable the counters:
+*/
+void
+CSIS3820::Disable()
+{
+  regWrite(keyDisable,0);
+}
 /*!
     Reset the module.
 */
@@ -544,7 +584,7 @@ CSIS3820::initialize()
     opMode |= mode_MCS;
     break;
   case Histogramming:
-    opMode |= mode_HSCAL;
+    opMode |= mode_HSCAL | mode_nonClearing;
     break;
   default:
     throw CBadValue(" Latching, MCS, Histogramming", 
@@ -569,6 +609,12 @@ CSIS3820::initialize()
   else {
     csr |= csr_refPulserOff;
   }
+  if (m_enableTestPulser) {
+    csr |= csr_25MhzOn | csr_testOn;
+  }
+  else {
+    csr |= csr_25MhzOff | csr_testOff;
+  }
   regWrite(controlStatus, csr);
   
 
@@ -576,6 +622,7 @@ CSIS3820::initialize()
 
 
   Arm();
+  Enable();
 }
 /*!
    Read the module into a user buffer.  Which we read depends on the
@@ -696,6 +743,7 @@ CSIS3820::setConfigurationDefaults()
 {
   m_mode                = Latching;
   m_enableRefPulser     = false;
+  m_enableTestPulser    = false;
   m_mcsPreset           = 0;
   m_lnePrescale         = 0;
   m_disableClear        = false;
@@ -753,7 +801,8 @@ CSIS3820::readShadow(void* buffer)
   LNE();			// Latch the values.
   
   for (int i =0; i < 32; i++) {
-    *p++ = regRead(offset++);
+    *p++ = regRead(offset);
+    offset+= sizeof(uint32_t);
   }
   return 32*sizeof(uint32_t);
 }
@@ -767,25 +816,26 @@ CSIS3820::readSDRAM(void* buffer)
 {
   uint32_t* p   = static_cast<uint32_t*>(buffer);
   uint32_t  n   = liveChannels();
-
+  uint32_t ram  = getBase() + SDRAMBASE;
+  
+  CVMEAddressRange* mem(getInterface().createAddressRange(registerAM,
+							  ram,
+							  n*sizeof(uint32_t)));
 
   if (m_SDRAMisFIFO) {
-    CVMEAddressRange* mem(getInterface().createAddressRange(registerAM,
-							    SDRAM, n*sizeof(uint32_t)));
     for (int i=0; i < n; i++) {
       *p++ = mem->peekl(0);
     }
     delete mem;
   }
   else {
-    CVMEAddressRange* mem(getInterface().createAddressRange(registerAM,
-							    SDRAM, n*sizeof(uint32_t)));
     for (int i =0; i < n; i++) {
-      *p++ = mem->peekl(i/sizeof(uint32_t));
+      *p++ = mem->peekl(i);
     }
-    regWrite(keySDRAMReset, 0);
     delete mem;
+    regWrite(keySDRAMReset, 0);
   }
+
 }
 /*
    Adds the stuff needed to read the shadow registers to a VME

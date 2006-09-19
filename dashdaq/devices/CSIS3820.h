@@ -113,6 +113,7 @@ private:
   CVMEAddressRange* m_pVme;
   mode            m_mode;
   bool            m_enableRefPulser;
+  bool            m_enableTestPulser;
   uint32_t        m_mcsPreset;
   uint32_t        m_lnePrescale;
   bool            m_disableClear;
@@ -147,6 +148,10 @@ public:
   void configEnableRefPulser();
   void configDisableRefPulser();
   bool cgetRefPulserEnabled() const;
+
+  void configEnableTestPulser();
+  void configDisableTestPulser();
+  bool cgetTestPulserEnabled() const;
 
   void     configMCSPreset(uint32_t cycles);
   uint32_t cgetMCSPreset() const;
@@ -194,6 +199,8 @@ public:
 
   void LNE();
   void Arm();
+  void Enable();
+  void Disable();
   void Reset();
 
 
@@ -208,9 +215,14 @@ public:
 
   /// Private helpers:
 
-  CVMEAddressRange& registers();
+#ifndef UNIT_TEST_INCLUDE
+private:			// These are avail. to unit tests.
+#endif
   void     regWrite(uint32_t offset, uint32_t value);
   uint32_t regRead(uint32_t offset);
+private:
+  CVMEAddressRange& registers();
+
 
   void setConfigurationDefaults();
   void copyIn(const CSIS3820& rhs);
