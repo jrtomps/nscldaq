@@ -30,7 +30,7 @@ static Warning msg("sis3820tests requires an SIS 3820 at base address 0x01000000
 
 //
 
-static const uint32_t O(0);	// Variable named O!!
+static const uint32_t O(0);	// Variable named O (oh) which contains 0 (uint32_t zero).!!
 
 using namespace std;
 
@@ -60,6 +60,9 @@ public:
     m_pModule    = new CSIS3820(*m_pVmeCrate, baseAddress);
   }
   void tearDown() {
+    delete m_pModule;
+    delete m_pSubsystem;
+    usleep(1000);
   }
 protected:
   void construct();
@@ -79,7 +82,6 @@ CPPUNIT_TEST_SUITE_REGISTRATION(sis3820tests);
 // check that intialization set the right defaults.
 
 void sis3820tests::construct() {
-  cerr << "Testing sis3820\n";
   EQMSG("mode", CSIS3820::Latching, m_pModule->cgetMode());
   EQMSG("refpulseron", false, m_pModule->cgetRefPulserEnabled());
   EQMSG("mcspreset",   O,     m_pModule->cgetMCSPreset());

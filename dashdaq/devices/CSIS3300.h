@@ -269,7 +269,7 @@ public:
   virtual void initialize();
   virtual size_t read(void* buffer);
   virtual size_t largestEvent();
-  virtual CVMEList& addReadoutTolist(CVMEList& list);
+  virtual CVMEList& addReadoutToList(CVMEList& list);
 
 
   // Additional read like functions:

@@ -800,7 +800,7 @@ CSIS3300::cgetFPGateModeIsEnabled() const
 void 
 CSIS3300::configExternRandomClockMode(bool on)
 {
-  m_externRandomClockMode = false;
+  m_externRandomClockMode = on;
 }
 /*!
     \return bool
@@ -867,7 +867,7 @@ CSIS3300::cgetMultiplexMode() const
 void
 CSIS3300::configStartDelay(uint16_t delay)
 {
-  uint16_t m_startDelay = delay;
+  m_startDelay = delay;
 }
 /*!
    Get the start delay.
@@ -1154,7 +1154,7 @@ CSIS3300::cgetChainMaxEvents() const
 void
 CSIS3300::configGroupEnables(uint8_t mask)
 {
-  uint8_t m_groupReadMask = mask;
+  m_groupReadMask = mask;
 }
 uint8_t
 CSIS3300::cgetGroupEnables() const
@@ -1473,13 +1473,18 @@ CSIS3300::largestEvent()
 }
 
 
+
+
 /*!
   Not really sure how to implement this as it is highly 
   dependent on the way the SIS3300 is setup and may require
   conditionals that just are not supported in most list processors.
 */
 CVMEList& 
-CSIS3300::addReadoutTolist(CVMEList& list){}
+CSIS3300::addReadoutToList(CVMEList& list)
+{
+  return list;
+}
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -1629,7 +1634,7 @@ CSIS3300::setDefaults()
 
   // All thresholds are set so that the trigger won't ever fire.
 
-  for (int i = 0; i < 4; i++) {	
+  for (int i = 0; i < 8; i++) {	
     m_thresholdInfo[i].s_value = 0x3fff; 
     m_thresholdInfo[i].s_le    = false;
   }

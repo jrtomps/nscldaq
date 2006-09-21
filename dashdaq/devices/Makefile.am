@@ -26,7 +26,7 @@ libDeviceSupport_la_LIBADD = @top_builddir@/camac/libCamac.la 	\
 			     @top_builddir@/vme/libVme.la	\
 			     @top_builddir@/exceptions/libException.la
 
-TESTS = caen32tests.cpp sis3820tests.cpp
+TESTS = caen32tests.cpp sis3820tests.cpp sis3300tests.cpp
 
 EXTRA_DIST=$(TESTS) TestRunner.cpp Asserts.h
 
