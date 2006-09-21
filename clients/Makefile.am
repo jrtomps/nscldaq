@@ -27,7 +27,7 @@ install-data-local:
 	rm -f $(prefix)/Lib
 	rm -f $(prefix)/Include
 	rm -f $(prefix)/Etc
-	$(mkinstalldirs) $(prefix)TclLibs
+	$(mkinstalldirs) $(prefix)/TclLibs
 	$(LN_S) $(prefix)/bin $(prefix)/Bin
 	$(LN_S) $(prefix)/lib $(prefix)/Lib
 	$(LN_S) $(prefix)/include $(prefix)/Include

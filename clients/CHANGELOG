@@ -678,4 +678,14 @@ August 15,2006
 August 29, 2006
     - Added setResult family of members to CTCLInterpreter  and use where
 	appropriate.
+August 30, 2006
+    - Fix error in top level Makefile.am missing / when making
+      $(prefix)/TclLibs was $(prefix)TclLibs.
+September 7, 2006
+    - Support state substitution in Readout State Machine...this is a hook
+      to allow modifications of state behavior.
 8.1 (final)
+    - Released September 21, 2006
+
+8.1-001
+    Start maintenance work for 8.1-001

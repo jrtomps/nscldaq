@@ -124,7 +124,7 @@ CCAENV977Status::GoClear()
 {
   PulseOutputs(GOINGREADY);
 }
-`
+
 
 /**
  * Clear both the busy and ready outputs.

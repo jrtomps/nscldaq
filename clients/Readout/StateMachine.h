@@ -404,6 +404,8 @@ public:
   int         NameToState (const STD(string)& rName)  const;
   STD(string) EventIdToName (unsigned nEvent)  const;
   int         NameToEventId (const STD(string)& rName)  const;
+  State*      replaceState(STD(string) name,
+			   State*      newState);
 
 				// Operations:
 public:

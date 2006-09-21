@@ -1029,3 +1029,37 @@ StateMachine::~StateMachine()
     }
   }
 }
+/*!
+
+    Allow an existing state processor to be replaced.
+    The new state processor is initialized, and the
+    old state processor returned.  If there is no old
+    processor, NULL is returned, and the operation is equivalent to AddState.
+    If there are transitions to/from the state they will not be affected.
+
+    \param name   : std::string   
+       Name of the state to replace
+    \param newState : CState*
+       Pointer to the new state.
+    \return CState*
+    \retval NULL - this is a new state.
+    \retval !NULL - Pointer to the previous state by that name.
+*/
+State*
+StateMachine::replaceState(string name,
+			   State* newState)
+{
+  int oldId = NameToState(name);
+  if (oldId < 0) {
+    // New state:
+
+    AddState(newState, name);
+    return NULL;
+  }
+  else {
+    State* pOld = m_StateList[oldId];
+    m_StateList[oldId] = newState;
+    newState->OnInitialize(*this);
+    return pOld;
+  }
+}
