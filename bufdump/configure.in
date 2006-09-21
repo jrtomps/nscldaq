@@ -4,7 +4,7 @@ AC_INIT(bufdump.tcl)
 
 #    Separate device libraries.
 
-AM_INIT_AUTOMAKE(bufdump, 1.0-001)  
+AM_INIT_AUTOMAKE(bufdump, 1.0-002)  
 
 
 AC_MSG_CHECKING([operating system ])

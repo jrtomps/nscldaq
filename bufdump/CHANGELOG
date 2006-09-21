@@ -6,7 +6,7 @@ January 6, 2006
 January 9, 2006 
         - Remove bufdump.vfs and subdirs in the clean target of the
           makefeil
-1.0-001
+1.0-001/a
         - Recognize that it is possible to get coincidental matches
           on packet ids that are not real and that this just means
           remaining data are not packets rather than a format error.
@@ -17,3 +17,6 @@ January 9, 2006
         - Make docbooking a bit more robust.
         - Do a bit more searching for spectcldaq and promt if we can't
           find a daq directory.
+
+ Released Sept 21, 2006
+1.0-002
