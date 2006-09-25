@@ -127,6 +127,7 @@ private:
   uint8_t m_clockPredivider;
   uint8_t m_muxModeSamples;
   bool    m_cfdEnabled;
+  bool    m_cfdPulseMode;
   uint8_t m_cfdNumerator;
   uint8_t m_cfdDenominator;
   uint8_t m_cfdWidth;
@@ -243,6 +244,9 @@ public:
   void configCFDEnable(bool enable);
   bool cgetCFDIsEnabled() const;
 
+  void configPulseTriggerEnable(bool enable);
+  bool cgetPulseTriggerIsEnabled() const;
+
   void configChainMaxEvents(uint16_t maxEvents);
   uint16_t cgetChainMaxEvents() const;
 
@@ -283,16 +287,28 @@ public:
 
 
   // Private utility functions:
+
+#ifdef UNIT_TEST_INCLUDE
+
+  // This allows tests to peek directly at the hardware to ensure
+  // e.g.that initialize works.
+
+public:
+#else
 private:
-  void copyIn(const CSIS3300& rhs);
-  void setDefaults();
+#endif
+
   CVMEAddressRange& getControlRegisters();
   CVMEAddressRange& getCommonRegisters();
   CVMEAddressRange& getGroupRegisters(uint8_t group);
-  void              key(uint32_t register);
-
   void     writeReg(CVMEAddressRange& page, uint32_t register, uint32_t value);
   uint32_t readReg(CVMEAddressRange& page,  uint32_t register);
+  void              key(uint32_t register);
+
+
+private:
+  void copyIn(const CSIS3300& rhs);
+  void setDefaults();
 
 
 

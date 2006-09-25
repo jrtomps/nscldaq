@@ -345,6 +345,7 @@ Const(TSR_NumeratorSHIFT)        8;
 Const(TSR_WidthMASK)             0x000f0000;
 Const(TSR_WidthShift)            16;
 Const(TSR_CFDEnable)             0x01000000;
+Const(TSR_PulseEnable)            0x10000000;
 
 // The data format depends on the module type.
 // We will define e.g. DATA3300_xxx
@@ -1130,6 +1131,20 @@ CSIS3300::cgetCFDIsEnabled() const
 }
 
 /*!
+  Enable/disable cfd pulse trigger mode: */
+void
+CSIS3300::configPulseTriggerEnable(bool enable)
+{
+  m_cfdPulseMode = enable;
+}
+
+bool
+CSIS3300::cgetPulseTriggerIsEnabled() const
+{
+  return m_cfdPulseMode;
+}
+
+/*!
     Configure the maximum number of events in a gate chain.
     \param maxEvents : uint16_t
       Max events in a chain.
@@ -1291,13 +1306,16 @@ CSIS3300::initialize()
   // order right.
 
   CVMEAddressRange& csrs(getControlRegisters());
-  CVMEAddressRange& all(getControlRegisters());
+  CVMEAddressRange& all(getCommonRegisters());
   
   writeReg(all, MaxEventCountAll, m_chainMaxEvents);
   
   // build/write the CFD control register:
 
   uint32_t tsetupRegister = 0;
+  if (m_cfdPulseMode) {
+    tsetupRegister |= TSR_PulseEnable;
+  }
   if (m_cfdEnabled) {
     tsetupRegister   |= TSR_CFDEnable;
     tsetupRegister   |= (m_cfdNumerator << TSR_NumeratorSHIFT) & TSR_NumeratorMASK;
@@ -1642,6 +1660,7 @@ CSIS3300::setDefaults()
   m_clockPredivider        = 0;
   m_muxModeSamples         = 0;
   m_cfdEnabled             = false;
+  m_cfdPulseMode           = false;
   m_cfdNumerator           = 0;
   m_cfdDenominator         = 0;
 

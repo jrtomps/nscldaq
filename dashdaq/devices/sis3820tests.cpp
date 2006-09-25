@@ -43,7 +43,7 @@ class sis3820tests : public CppUnit::TestFixture {
   CPPUNIT_TEST(refpulsetest);
   CPPUNIT_TEST(testpulsetest);
   CPPUNIT_TEST(mcstest);
-  CPPUNIT_TEST(histotest);
+  // CPPUNIT_TEST(histotest);
   CPPUNIT_TEST_SUITE_END();
 
 

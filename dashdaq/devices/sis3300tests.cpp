@@ -30,6 +30,7 @@ class sis3300tests : public CppUnit::TestFixture {
   CPPUNIT_TEST_SUITE(sis3300tests);
   CPPUNIT_TEST(construct);
   CPPUNIT_TEST(config);
+  CPPUNIT_TEST(init);
   CPPUNIT_TEST_SUITE_END();
 
 
@@ -52,6 +53,7 @@ public:
 protected:
   void construct();
   void config();
+  void init();
 };
 
 CPPUNIT_TEST_SUITE_REGISTRATION(sis3300tests);
@@ -205,6 +207,20 @@ void sis3300tests::config()
 
   m_pModule->configGroupEnables(0xaa);
   EQMSG("groupenables", (uint8_t)0xaa, m_pModule->cgetGroupEnables());
+
+
+  
+}
+// Test the init.
+//
+void
+sis3300tests::init()
+{
+
+  m_pModule->initialize();
+
+  CVMEAddressRange& all(m_pModule->getGroupRegisters(1));
+			
 
 
   

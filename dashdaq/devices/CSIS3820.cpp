@@ -22,6 +22,7 @@
 #include <CVMEAddressRange.h>
 
 #include "CVMEReadableObject.h"
+#include <string>
 
 #include <CInvalidInterfaceType.h>
 #include <CBadValue.h>
@@ -50,6 +51,15 @@ CONST32   moduleIdFirmware(4);
 CONST32   acquisitionPreset(0x10);
 CONST32   acquisitionCount(0x14);
 CONST32   LNEPrescale(0x18);
+
+CONST32   PresetValueGroup1(0x20);
+CONST32   PresetValueGroup2(0x24);
+CONST32   PresetEnableHitRegister(0x28);
+
+CONST32   HistogramStartPreset(0x40);
+CONST32   HistogramStartCounter(0x44);
+CONST32   HistogramLastAcqCounter(0x48);
+
 CONST32   operationMode(0x100);
 CONST32   copyDisable(0x104);
 CONST32   lneChannelSelect(0x108);
@@ -585,6 +595,7 @@ CSIS3820::initialize()
     break;
   case Histogramming:
     opMode |= mode_HSCAL | mode_nonClearing;
+    throw std::string("Histogramming mode is not yet supported");
     break;
   default:
     throw CBadValue(" Latching, MCS, Histogramming", 
