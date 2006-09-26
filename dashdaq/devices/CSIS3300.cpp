@@ -1330,13 +1330,13 @@ CSIS3300::initialize()
 
   int group = 1;
 
-  for (int i=0; i < 4; i += 2, group++) {
+  for (int i=0; i < 8; i += 2, group++) {
     CVMEAddressRange& groupreg(getGroupRegisters(group));
 
     uint32_t oddth   = m_thresholdInfo[i].s_value; // Numbered from 1 in sis.
     uint32_t eventh  = m_thresholdInfo[i+1].s_value;
     bool     oddle   = m_thresholdInfo[i].s_le;
-    bool     evenle  = m_thresholdInfo[i].s_le;
+    bool     evenle  = m_thresholdInfo[i+1].s_le;
 
     uint32_t rvalue  = 0;
     rvalue |= (eventh << THR_ADCEvenThresholdSHIFT) & THR_ADCEvenThresholdMASK;
@@ -1640,7 +1640,7 @@ CSIS3300::setDefaults()
   m_enableFPGateMode       = false;
   m_externRandomClockMode  = false;
 
-  m_clockSource            = internal80_100Mhz;
+  m_clockSource            = internal80_100MHz;
   m_enableMuxMode          = false;
   m_startDelay             = 0;
   m_stopDelay              = 0;

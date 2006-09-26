@@ -74,7 +74,7 @@ void sis3300tests::construct() {
   EQMSG("fpstartstop", true, m_pModule->cgetFrontPanelStartStopIsEnabled());
   EQMSG("fpgatemode",  false, m_pModule->cgetFPGateModeIsEnabled());
   EQMSG("extrcm", false, m_pModule->cgetIsExternRandomClockMode());
-  EQMSG("clksrc", CSIS3300::internal80_100Mhz, m_pModule->cgetClockSource());
+  EQMSG("clksrc", CSIS3300::internal80_100MHz, m_pModule->cgetClockSource());
   EQMSG("mux", false, m_pModule->cgetMultiplexMode());
   EQMSG("startdelay", (uint16_t)0,  m_pModule->cgetStartDelay());
   EQMSG("stopdelay", (uint16_t)0, m_pModule->cgetStopDelay());
@@ -217,11 +217,193 @@ void
 sis3300tests::init()
 {
 
+  uint32_t fwid  = m_pModule->readFirmware();
+  uint32_t major = (fwid >> 8) & 0xff;
+  uint32_t minor = (fwid & 0xff);
+
+  ASSERT(major != 10);		// We don't want amanda firmware in our lab.
+
+  // Using the firmware rev level figure out some of the capabilities of the
+  // device:
+
+  bool hasGateMode(false);	// Gate mode for trigger.
+  bool hasDisableMode(false);	// Disable timestampe clear mode.
+  bool hasCFD(false);		// CFD based trigger.
+  bool hasMuxMode(false);
+  bool hasClockPredivider(false);
+  bool ecrHasGroupId(false);
+  bool ecrHasEnableTriggerEventDir(false);
+
+  if (major >= 3) {
+    hasGateMode = true;
+    hasCFD      = true;
+
+    if ((major == 3) && (minor >= 7)) {
+      hasDisableMode = true;
+    }
+    // These are guesses about when they come in:
+    hasMuxMode         = true;		
+    hasClockPredivider = true;
+    ecrHasGroupId      = true;
+    ecrHasEnableTriggerEventDir = true;
+  }
+
+  m_pModule->configMuxModeSamples(5);
+  m_pModule->configClockPredivider(0xf);
+  for (int chan =0; chan < 8; chan++) {
+    CSIS3300::Threshold t; 
+    t.s_value  = chan*10;
+    t.s_le     = ((chan%2) == 0);
+    m_pModule->configChannelThreshold(chan,t);
+  }
+  m_pModule->configPageSize(CSIS3300::page512);
+
   m_pModule->initialize();
 
   CVMEAddressRange& all(m_pModule->getGroupRegisters(1));
-			
+  CVMEAddressRange& csr(m_pModule->getControlRegisters());
+		
+  // Check out the value of control registers we can check.
+  // note that what we can check will be somewhat modified by the
+  // firmware id as not all modules are created equal.
 
+  // If the module has a CFD trigger capability check out its register.
+
+  if (hasCFD) {
+    uint32_t tsetup = 0;
+    if (m_pModule->cgetCFDIsEnabled())             tsetup |= 0x01000000;
+    if (m_pModule->cgetPulseTriggerIsEnabled()) tsetup |= 0x10000000;
+    tsetup |= (m_pModule->cgetCFDNumerator()   >> 8) & 0xf;;
+    tsetup |=  m_pModule->cgetCFDDenominator() & 0xf;
+    tsetup |= (m_pModule->cgetCFDWidth() >> 16) & 0xf;
+    EQMSG("TriggerSetupReg", tsetup, m_pModule->readReg(all, 0x28));
+
+  }
+  // Multiplexor sample count.
+
+  if (hasMuxMode) {
+    EQMSG("mux mode samples", 
+	  (uint32_t)m_pModule->cgetMuxModeSamples(), 
+	  m_pModule->readReg(all, 0x24));
+  }
+  // Clock predivider.
+
+  if (hasClockPredivider) {
+    uint32_t cpd = m_pModule->cgetClockPredivider();
+    EQMSG("clock prediv.", cpd, m_pModule->readReg(all, 0x20));
+  }
+  // CSIS3300::Threshold registers (I think those were in rev 1).
+
+  CSIS3300::Threshold ts[8];
+  for (int i=0; i < 8; i++) {
+    ts[i] = m_pModule->cgetChannelThreshold(i);
+  }
+  for (int g = 0; g < 4; g++) {
+    int first = g*2;		// first channel in group.
+    CVMEAddressRange& grp(m_pModule->getGroupRegisters(g+1));
+    uint32_t expected  = 0;
+    expected |= ts[first].s_value << 16;
+    expected |= ts[first+1].s_value;
+    expected |= ts[first].s_le ? 1 << 31 : 0;
+    expected |= ts[first+1].s_le ? 1 << 15 : 0;
+    EQMSG("threshold", expected, m_pModule->readReg(grp, 0x4));
+  }
+  // Now the event configuration register.  That existed from t=0,
+  // but I'm not sure all the modern bits are supported...we'llsee.
+  //
+  uint32_t econf = 0;
+  if (ecrHasGroupId) econf |= 0x100;
+  if (ecrHasEnableTriggerEventDir) econf |= 0x1000;
+
+  switch (m_pModule->cgetPageSize()) {
+  case CSIS3300::page128K:
+    econf |= 0;			// for completeness.
+    break;
+  case CSIS3300::page16K:
+    econf |= 1;
+    break;
+  case CSIS3300::page4K:
+    econf |= 2;
+    break;
+  case CSIS3300::page2K:
+    econf |= 3;
+    break;
+  case CSIS3300::page1K:
+    econf |= 4;
+    break;
+  case CSIS3300::page512:
+    econf |= 5;
+    break;
+  case CSIS3300::page256:
+    econf |= 6;
+    break;
+  case CSIS3300::page128:
+    econf |= 7;
+    break;
+  }
+  if (m_pModule->cgetWrapIsEnabled()) econf  |= 8;
+  if (m_pModule->cgetIsGateChaining()) econf |= 0x10;
+  if (m_pModule->cgetIsExternRandomClockMode()) econf |= 0x800;
+  if (hasMuxMode & m_pModule->cgetMultiplexMode()) econf |= 0x8000;
+  EQMSG("Event config reg", econf,  m_pModule->readReg(all, 0));
+
+  // Predividers etc:
+
+  EQMSG("time stamp predivider:", (uint32_t)m_pModule->cgetTimestampPredivider(),
+	m_pModule->readReg(csr, 0x1c));
+  EQMSG("stop delay", (uint32_t)m_pModule->cgetStartDelay(),
+	m_pModule->readReg(csr, 0x14));
+  EQMSG("start delay", (uint32_t)m_pModule->cgetStopDelay(),
+	m_pModule->readReg(csr, 0x18));
+
+  uint32_t acqcontrol = m_pModule->readReg(csr, 0x10);
+
+  uint32_t expectedacq(0);
+  if (m_pModule->cgetBank1ClockIsEnabled()) expectedacq |= 1;
+  if (m_pModule->cgetBank2ClockIsEnabled()) expectedacq |= 2;
+  if (m_pModule->cgetAutoBankSwitchIsEnabled()) expectedacq |= 4;
+  if (m_pModule->cgetAutoStartIsEnabled()) expectedacq |= 0x10;
+  if (m_pModule->cgetIsMultiEventMode())   expectedacq |= 0x20;
+  if (m_pModule->cgetStartDelayIsEnabled()) expectedacq |= 0x40;
+  if (m_pModule->cgetStopDelayIsEnabled())  expectedacq |= 0x80;
+  if (m_pModule->cgetFrontPanelStartStopIsEnabled()) expectedacq |= 0x100;
+  if (m_pModule->cgetFPGateModeIsEnabled()) expectedacq |= 0x400;
+  if (m_pModule->cgetIsExternRandomClockMode()) expectedacq |= 0x800;
+
+  switch (m_pModule->cgetClockSource()) {
+  case CSIS3300::external:
+    expectedacq |= 0x6000;
+    break;
+  case CSIS3300::internal3pt125KHz:
+    expectedacq |= 0x5000;
+    break;
+  case CSIS3300::internal6pt250KHz:
+    expectedacq |= 0x4000;
+    break;
+  case CSIS3300::internal12500KHz:
+    expectedacq |= 0x3000;
+    break;
+  case CSIS3300::internal20_25MHz:
+    expectedacq |= 0x2000;
+    break;
+  case CSIS3300::internal40_50MHz:
+    expectedacq |= 0x1000;
+    break;
+  case CSIS3300::internal80_100MHz:
+    expectedacq |= 0x0000;	// I know, not needed but it's illustrative.
+    break;
+
+  }
+  if (hasMuxMode) {
+    if (m_pModule->cgetMultiplexMode()) {
+      expectedacq |= 0x8000;
+    }
+  }
+  EQMSG("ACQ register", expectedacq, m_pModule->readReg(csr, 0x10) & 0xffff);
+
+  // I'm not quite sure what the bits in the csr will be so we'll ignore that
+  // for now.
 
   
+
 }

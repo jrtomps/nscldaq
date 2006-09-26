@@ -62,14 +62,15 @@ class CSIS3300 : public CVMEReadableObject
   // data types;
 public:
   typedef enum _ClockSource {
-    external,
-    internal3pt125KHz,
-    internal6pt250KHz,
-    internal12500KHz,
-    internal20_25MHz,		//!< 20 or 25 mhz depending on module fpga clock.k
+    internal80_100MHz,
     internal40_50MHz,
-    internal80_100Mhz
+    internal20_25MHz,
+    internal12500KHz,
+    internal6pt250KHz,
+    internal3pt125KHz,
+    external
   } ClockSource;
+    
 
   typedef enum _PageSize {
     page128K,
