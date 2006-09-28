@@ -689,3 +689,5 @@ September 7, 2006
 
 8.1-001
     Start maintenance work for 8.1-001
+    Added channel write capability for epics CChannel class.
+    September 28, 2006 - Created new Tcl Epics access extension

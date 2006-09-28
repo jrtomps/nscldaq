@@ -28,7 +28,9 @@ CChannel::CChannel(string name) :
   m_fConnectionHandlerEstablished(false),
   m_sValue(""),
   m_LastUpdateTime(0),
-  m_pConverter(0)
+  m_pConverter(0),
+  m_pHandler(0),
+  m_pHandlerData(0)
 {
 }
 /**
@@ -98,6 +100,65 @@ CChannel::getValue() const
   return m_sValue;
 }
 
+
+/*!
+  Sets a handler slot for channel value notifications:
+  \param handler : CChannel::Slot 
+     Function called when the channel value changes. If this is null,
+     then notification is disabled.
+  \param data : void*
+     Data passed as the second parameter of the handler.
+     The first parameter of the handler is a pointer to the channel.
+
+*/
+void
+CChannel::setSlot(CChannel::Slot handler, void* data)
+{
+  m_pHandler     = handler;
+  m_pHandlerData = data;
+}
+
+/*!
+   set the channel to a string value..no-op if not connected.
+*/
+string
+CChannel::operator=(string value)
+{
+  if(m_fConnected) {
+    ca_put(DBF_STRING, m_nChannel, const_cast<char*>(value.c_str()));
+    ca_flush_io();
+  }
+  return value;
+}
+/*!
+   Set the channel to an integer value.
+*/
+
+int
+CChannel::operator=(int value)
+{
+  if (m_fConnected) {
+    ca_put(DBF_INT, m_nChannel, &value);
+    ca_flush_io();
+  }
+  return value;
+}
+
+/*!
+  Set channel to a double  value.
+*/
+double
+CChannel::operator=(double value)
+{
+  if (m_fConnected) {
+    ca_put(DBF_DOUBLE, m_nChannel, &value);
+    ca_flush_io();
+  }
+  return value;
+
+}
+
+
 /**
  * This function is a class level function that processes EPICS events
  * for some fixed number of seconds.
@@ -160,7 +221,12 @@ CChannel::UpdateHandler(event_handler_args args)
       time_t    now      = time(NULL); // Last update time.
       pChannel->m_LastUpdateTime = now;
       pChannel->m_sValue = (*(pChannel->m_pConverter))(args);
-      //      pChannel->m_sValue = (const char*) args.dbr;
+
+      // If necessary, invoke the user's update handler.
+
+      if(pChannel->m_pHandler) {
+	(pChannel->m_pHandler)(pChannel, pChannel->m_pHandlerData);
+      }
     }
   }
   else {

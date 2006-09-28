@@ -51,6 +51,8 @@ class CConverter;
 
 class CChannel 
 {
+public:
+  typedef void (*Slot)(CChannel*, void*);
 private:
   STD(string)   m_sName;
   bool          m_fConnected;
@@ -60,6 +62,9 @@ private:
   STD(string)   m_sValue;
   time_t        m_LastUpdateTime;
   CConverter*   m_pConverter;
+  Slot          m_pHandler;
+  void*         m_pHandlerData;
+  
 public:
   CChannel(STD(string) name);
   virtual ~CChannel();
@@ -81,6 +86,18 @@ public:
   virtual void Connect();
   time_t       getLastUpdate() const;
   STD(string)  getValue()      const;
+
+  void setSlot(Slot handler, void* data);
+
+  // operations to set channel values
+  // this is just an overloaded assign to the channel:
+  // the return value is the thing assigned:
+
+  STD(string) operator=(STD(string) value);
+  int         operator=(int value);
+  double      operator=(double value);
+
+
 
 
   // Class level operations.
