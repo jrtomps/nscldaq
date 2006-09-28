@@ -81,6 +81,7 @@ private:
   int Updatetime(CTCLInterpreter& interp);
   int Delete(CTCLInterpreter& interp);
   int Link(CTCLInterpreter& interp, STD(vector)<CTCLObject>& objv);
+  int Unlink(CTCLInterpreter& interp);
   //  int Unlink(CTCLInterpreter& interp);
   STD(string) Usage();
 

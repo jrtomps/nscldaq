@@ -99,6 +99,9 @@ CTCLChannelCommand::operator()(CTCLInterpreter&    interp,
   else if (subcommand == string("link")) {
     return Link(interp, objv);
   }
+  else if (subcommand == string("unlink")) {
+    return Unlink(interp);
+  }
   else {
     string result = objv[0];
     result       += " ";
@@ -293,6 +296,18 @@ CTCLChannelCommand::Link(CTCLInterpreter& interp,
   
   
   return TCL_OK;
+}
+
+/*!
+  Unlink a variable from the channel.
+*/
+int
+CTCLChannelCommand::Unlink(CTCLInterpreter& interp)
+{
+  if (m_pLinkedVar) {
+    removeLinkage(this);
+    delete m_pLinkedVar;
+  }
 }
 
 /*
