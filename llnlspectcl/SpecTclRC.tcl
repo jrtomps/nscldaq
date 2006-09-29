@@ -310,4 +310,14 @@ puts -nonewline "Starting treeparamgui..."
 source $SpecTclHome/Script/newGui.tcl
 puts " Done"
 
+
+puts -nonewline "Starting scaler display.."
+set scalerWin [toplevel .scalers]
+source /usr/opt/daq/current/TclLibs/ScalerDisplay/scaler.tcl
+if {[file exists [file join ~/config scalerdisplay.tcl]]} {
+    source [file join ~/config scalerdisplay.tcl]
+}
+puts " done"
+
+
 tk appname SpecTcl-[exec hostname]-[pid]

@@ -14,6 +14,9 @@
 #	     East Lansing, MI 48824-1321
 #
 
+package require Tktable
+package require BWidget
+
 #  This file contains code to implement the rates GUI.
 #
 
@@ -376,7 +379,149 @@ proc readRates {} {
     }
 
 }
+#-----------------------------------------------------------------------
+#  saveRatesValues widget
+#  Creates a human readable file of the rates at this time as displayed
+#  on the rates display.
+#  
+# widget - The frame in which the rates display is built  We'll be 
+#          interested in the table: $widget.table.
+#
+proc saveRatesValues widget {
+    global RunNumber
+    global RunTitle
 
+    set table $widget.table
+
+    # Get the file name and open the file.
+
+    set file [tk_getSaveFile                                 \
+		  -defaultextension .rates                   \
+		  -title {Select save file name}             \
+		  -filetypes {{ {rates file} .rates    }     \
+			      { {text file} .txt       }     \
+			      { {log file} .log        }     \
+			      { {All files} *          }}    ]
+    if {$file eq ""} {
+	return
+    }
+					 
+    set fd [open $file w]
+
+    # Write the run title /run number and column headers.
+
+
+
+    puts $fd [format "               Title   %s" $RunTitle]
+    puts $fd [format "               Run     %s" $RunNumber]
+    puts $fd [format "%-32s %-7s %-6s"  "Spectrum Name" "Rates" "Totals"]
+    puts $fd "-------------------------------------------------------------"
+
+    #  Write the data itself.
+
+    set rows [$table cget -rows];	# Max number of rates to write.
+    for {set row 1} {$row < $rows} {incr row} {
+	#
+	# Fetch data from a row:
+	#
+	set name  [$table get $row,0] 
+	set rate  [$table get $row,1]
+	set total [$table get $row,2]
+
+	# There can be blank rows at the bottom of the table, so break if name
+	# is blank:
+
+	if {$name eq ""} {
+	    break
+	}
+	puts $fd [format "%-32s %6.3f %5.2f" $name $rate $total] 
+    }
+
+    # Close the file.
+
+    close $fd
+
+}
+#-----------------------------------------------------------------------
+#
+#  buildRatesDisplay frame
+#    Builds the rates display into the frame given.
+#    The rates display will be a button labelled edit rates...
+#    Followed by a scrolling window that will contain a tablelist
+#    that has the rates currently defined... these are updated 
+#    every update period.
+#
+proc buildRatesDisplay frame {
+    frame  $frame.buttons -relief groove -borderwidth 3
+    button $frame.buttons.edit -text {Edit Rates...} -command editRates
+    button $frame.buttons.save -text {Save Rates...} -command [list saveRatesValues $frame]
+    pack   $frame.buttons.edit $frame.buttons.save -side left -anchor n
+    pack   $frame.buttons -side top -expand 1 -fill x
+
+    ScrolledWindow $frame.sw
+    table $frame.table -rows 1 -cols 3 -cache 1 \
+	               -titlerows 1 -pady 2 -padx 2 -rows 10 \
+	               -justify  left
+    $frame.table width 0 40 1 20 2 20
+    $frame.table set row 0,0 {Spectrum {Count Rates} {Total Counts}}
+    $frame.sw setwidget $frame.table
+    pack $frame.sw -side top -expand 1 -fill both
+    $frame.table configure -state disable
+
+}
+
+#-----------------------------------------------------------------------
+#
+#  Called to update the rates display
+#  the global ratesPage has the rates top level.
+#   We'll update the table in $ratesPage.table
+#
+proc UserUpdate {} {
+    global ratesPage
+    global ScalerDeltaTime
+    $ratesPage.table configure -state normal
+    set rates [rate list]
+    set numRates  [llength $rates]
+    set ratesRows [$ratesPage.table cget -rows]
+    #
+    #  If necessary, expand the table:
+    #
+    if {$ratesRows < $numRates} {
+	$ratesPage.table configure -rows [expr $numRates + 1]
+    }
+    set row 1;				# First row is title
+    set dt $ScalerDeltaTime
+
+    if {$dt == 0} {
+	set dt 1
+    }
+    set totalCounts 0.0
+    set totalRates  0.0
+    foreach rate $rates {
+	set name   [lindex $rate 0]
+	set name   [format %-32s $name]
+	set totals [lindex $rate 2]
+	set rates  [lindex $rate 3];
+	set rates  [expr $rates/$dt];	# Need livetime correction.
+
+	set totalCounts [expr $totalCounts + $totals]
+	set totalRates  [expr $totalRates  + $rates]
+
+	set rates [format %6.3f $rates]
+	set totals [format %5.2f $totals]
+
+	$ratesPage.table set row $row,0 [list $name $rates $totals]
+	incr row
+    }
+    $ratesPage.table set row $row,0 [list [format %-32s Totals]   \
+					 [format %6.3f $totalRates] \
+					 [format %5.2f $totalCounts]]
+
+    $ratesPage.table configure -state disable
+}
+
+
+#-----------------------------------------------------------------------
 
 #  Hook some stuff into the SpecTcl gui
 
@@ -393,6 +538,7 @@ if {![winfo exists .spectrumcontextmenu]} {
 #  intervene to set up our own command configuration.
 
 rename spectrumContextMenu standard_spectrumContextMenu
+
 proc spectrumContextMenu {path x y} {
     
 
@@ -421,3 +567,12 @@ incr position -1
 .topmenu.filemenu insert [incr position] command -label {Restore Rates List...} \
                                      -command readRates
 .topmenu.filemenu insert [incr position]  separator
+
+
+# Add the rates page to the scaler GUI:
+
+set ratesPage [frame $Notebook.ratespage] 
+$Notebook insert end "SpectrumRates" -window $ratesPage -fill x
+buildRatesDisplay $ratesPage
+
+UserUpdate

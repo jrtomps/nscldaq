@@ -1,4 +1,4 @@
-INSTDIR=/usr/opt/spectcl/3.2
+INSTDIR=/home/fox/spectest
 # Skeleton makefile for 3.2
 
 include $(INSTDIR)/etc/SpecTcl_Makefile.include
