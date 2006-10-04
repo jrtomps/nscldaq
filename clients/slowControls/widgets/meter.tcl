@@ -23,7 +23,7 @@
 #    set value    - Set the meter to a specific value (if -variable is defined it is modified).
 #    get          - Returns the current value of the meter.
 
-package provide controlMeter 1.0
+package provide meter 1.0
 package require Tk
 package require snit
 

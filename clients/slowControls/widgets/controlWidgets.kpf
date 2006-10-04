@@ -8,5 +8,9 @@
 <folder id="D6C75B1B-66DA-4C92-BAE6-B83B2EB8AA99" name="testscripts">
 <file url="file:///T:/daq/8.1/slowControls/widgets/metertest.tcl" id="715DC055-8AB2-46F4-8383-34C6F33C085D" name="metertest.tcl">
 </file>
+<file url="file:///T:/daq/8.1/slowControls/widgets/bcmMeterTest.tcl" id="EF2A0E75-75AE-48D9-861A-A1E0FC349308" name="bcmMeterTest.tcl">
+</file>
 </folder>
+<file url="file:///T:/daq/8.1/slowControls/widgets/bcmMeter.tcl" id="20E3B1E6-0535-4A54-8DE5-FAEE51D18F91" name="bcmMeter.tcl">
+</file>
 </project>
