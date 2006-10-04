@@ -202,7 +202,12 @@ snit::widget controlwidget::meter {
         set majorRight  [expr $meterLeft + $majorlength]
         set minorRight  [expr $meterLeft + $minorlength]
 
-        for {set m $first} {$m <= $last} {set m [expr $m + $major]} {
+       # the for loop is done the way it is in order to reduce
+       # the cumulative roundoff error from repetitive summing.
+       #
+
+        set majorIndex 0
+        for {set m $first} {$m <= $last} {set m [expr $first + $majorIndex*$major]} {
             # Draw a major tick label and the tick mark itself
             # major ticks are formatted in engineering notation (%.1e).
 
@@ -215,6 +220,7 @@ snit::widget controlwidget::meter {
                 set minorH [$self computeHeight $minorH]
                 lappend tickIds [$win.c create line $meterLeft $minorH $minorRight $minorH]
             }
+            incr majorIndex
         }
     }
     #
