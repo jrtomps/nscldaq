@@ -101,6 +101,30 @@ snit::widget  controlwidget::bcmMeter {
         grid $win.incrange              $win.decrange
 
     }
+    #-------------------------- public methods ---------------------------
+
+    # Get the current value of the channel.  This is done by gettint the
+    # value of the bound variable
+    #
+    method get {} {
+	set channel $options(-channel)
+	return [set ::controlwidget::$channel]
+    }
+    #  EWxternally bump the ranges up and down:
+
+    method incRange {} {
+	$self incrementRange
+    }
+    method decRange {} {
+	$self decrementRange
+    }
+    #  Retrieve the rang efrom the .mrng part of the channel
+
+    method getRange {} {
+	set field $options(-channel).MRNG
+	return [set ::controlwidget::$field]
+    }
+    #--------------------------- Private methods -------------------------
     #
     #  Called when the actual range changes to set the meter range.
     #

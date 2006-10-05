@@ -108,12 +108,14 @@ snit::widget controlwidget::meter {
 
         grid $win.c -sticky nsew
 
+
         $self drawTicks
 
         if {$options(-variable) ne ""} {
            trace add variable ::$options(-variable) write [mymethod variableChanged]
             $self needleTo [set ::$options(-variable)]
         }
+
 
     }
 
@@ -205,6 +207,7 @@ snit::widget controlwidget::meter {
        # the for loop is done the way it is in order to reduce
        # the cumulative roundoff error from repetitive summing.
        #
+
 
         set majorIndex 0
         for {set m $first} {$m <= $last} {set m [expr $first + $majorIndex*$major]} {

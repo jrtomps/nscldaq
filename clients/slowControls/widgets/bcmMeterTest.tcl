@@ -10,5 +10,5 @@ source bcmMeter.tcl
 
 ::controlwidget::bcmMeter .bcm  -channel $channel
 
-pack .bcm
 
+pack .bcm 
