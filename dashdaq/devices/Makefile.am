@@ -6,7 +6,8 @@ libDeviceSupport_la_SOURCES	= CCAMACModule.cpp	\
 				CVMEReadableObject.cpp	\
 				CAEN32.cpp		\
 				CSIS3300.cpp		\
-				CSIS3820.cpp
+				CSIS3820.cpp		\
+				CBiRA3251.cpp
 
 include_HEADERS     = CReadableObject.h	\
 			CCAMACModule.h	\
@@ -15,7 +16,8 @@ include_HEADERS     = CReadableObject.h	\
 			CVMEReadableObject.h	\
 			CAEN32.h		\
 			CSIS3300.h		\
-			CSIS3820.h
+			CSIS3820.h		\
+			CBiRA3251.cpp
 
 
 AM_CXXFLAGS	= -I@top_builddir@/vme    \
@@ -26,7 +28,8 @@ libDeviceSupport_la_LIBADD = @top_builddir@/camac/libCamac.la 	\
 			     @top_builddir@/vme/libVme.la	\
 			     @top_builddir@/exceptions/libException.la
 
-TESTS = caen32tests.cpp sis3820tests.cpp sis3300tests.cpp
+TESTS = caen32tests.cpp sis3820tests.cpp sis3300tests.cpp \
+	bira3251tests.cpp
 
 EXTRA_DIST=$(TESTS) TestRunner.cpp Asserts.h
 

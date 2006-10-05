@@ -31,6 +31,7 @@ class sis3300tests : public CppUnit::TestFixture {
   CPPUNIT_TEST(construct);
   CPPUNIT_TEST(config);
   CPPUNIT_TEST(init);
+  CPPUNIT_TEST(read);
   CPPUNIT_TEST_SUITE_END();
 
 
@@ -54,6 +55,7 @@ protected:
   void construct();
   void config();
   void init();
+  void read();
 };
 
 CPPUNIT_TEST_SUITE_REGISTRATION(sis3300tests);
@@ -406,4 +408,11 @@ sis3300tests::init()
 
   
 
+}
+/// Not sure how to test reads on this stinkin' board.
+
+void
+sis3300tests::read()
+{
+  Warning msg("sis3300tests::don't know how to test reads");
 }
