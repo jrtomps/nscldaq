@@ -56,6 +56,7 @@ class CTCLChannelCommand : public CTCLObjectProcessor
 private:
   CChannel*      m_pChannel;
   CTCLVariable*  m_pLinkedVar;
+  bool           m_Changed;
 
   // Canonicals:
 public:
@@ -73,6 +74,8 @@ public:
 			 STD(vector)<CTCLObject>& objv);
 
   void UpdateLinkedVariable();
+  bool hasChanged() const;
+
   // Utilties:
 
 private:
@@ -82,8 +85,8 @@ private:
   int Delete(CTCLInterpreter& interp);
   int Link(CTCLInterpreter& interp, STD(vector)<CTCLObject>& objv);
   int Unlink(CTCLInterpreter& interp);
-  //  int Unlink(CTCLInterpreter& interp);
   STD(string) Usage();
+  static void markChange(CChannel* pChannel, void* pObject);
 
 
 };

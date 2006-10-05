@@ -11,7 +11,12 @@
 #	     NSCL
 #	     Michigan State University
 #	     East Lansing, MI 48824-1321
-
+.xml.3:
+	- $(MANDOCBOOK) man $< 2>/dev/null
+	touch $@
+.xml.1:
+	- $(MANDOCBOOK) man $< 2>/dev/null
+	touch $@
 
 LIBDIR=$(prefix)/TclLibs
 
@@ -67,9 +72,27 @@ libepics_la_LIBADD  = @top_srcdir@/TCL/libtclPlus.la  \
 libepics_la_LDFLAGS = 	-version-info $(SOVERSION):0 -Wl,"-rpath=$(libdir)"
 
 
-install-data-local:
+XMLMANSRC= epics.xml controlpush.xml
+LIBMANS  = epics.3
+EXEMANS  = controlpush.1
+
+manpages: $(LIBMANS) $(EXEMANS) $(XMLMANSRC)
+
+install-data-local: manpages
 	$(mkinstalldirs) $(LIBDIR)
+	$(mkinstalldirs) @prefix@/man/man3 @prefix@/man/man1
 	mv $(prefix)/lib/libepics* $(LIBDIR)
+	for f in $(LIBMANS); do 		\
+		if [ -e $$f ]; then 		\
+			$(INSTALL_DATA) $$f @prefix@/man/man3; \
+		fi;                                            \
+	done
+	for f in $(EXEMANS); do			                \
+		if [ -e $$f ]; then                             \
+			$(INSTALL_DATA) $$f @prefix@/man/man1;  \
+		fi;                                             \
+	done
+
 
 
 if CPPUNIT

@@ -44,7 +44,9 @@ static void pollEpics(ClientData ignored) {
   CommandMap::iterator i = linkages.begin();
   while (i != linkages.end()) {
     CTCLChannelCommand* pCommand = i->second;
-    pCommand->UpdateLinkedVariable();
+    if(pCommand->hasChanged()) {
+      pCommand->UpdateLinkedVariable();
+    }
     i++;
   }
 

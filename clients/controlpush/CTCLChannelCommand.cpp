@@ -40,7 +40,8 @@ CTCLChannelCommand::CTCLChannelCommand(CTCLInterpreter& interp,
 				       string          name) :
   CTCLObjectProcessor(interp, name),
   m_pChannel(0),
-  m_pLinkedVar(0)
+  m_pLinkedVar(0),
+  m_Changed(false)
 {
   m_pChannel = new CChannel(name);
   m_pChannel->Connect();
@@ -293,7 +294,7 @@ CTCLChannelCommand::Link(CTCLInterpreter& interp,
   m_pLinkedVar = new CTCLVariable(&interp, tclVarName, kfFALSE);
   m_pLinkedVar->Set(m_pChannel->getValue().c_str(), TCL_GLOBAL_ONLY);
   addLinkage(this);
-  
+  m_pChannel->setSlot(CTCLChannelCommand::markChange, this);
   
   return TCL_OK;
 }
@@ -306,10 +307,16 @@ CTCLChannelCommand::Unlink(CTCLInterpreter& interp)
 {
   if (m_pLinkedVar) {
     removeLinkage(this);
+    m_pChannel->setSlot(NULL, NULL);
     delete m_pLinkedVar;
   }
 }
 
+bool
+CTCLChannelCommand::hasChanged() const 
+{
+  return m_Changed;
+}
 /*
   Provide command usage.
 */
@@ -339,6 +346,18 @@ void
 CTCLChannelCommand::UpdateLinkedVariable()
 {
   if (m_pLinkedVar) {
+    m_Changed = false;
     m_pLinkedVar->Set(m_pChannel->getValue().c_str(), TCL_GLOBAL_ONLY);
   }
+}
+
+/*
+   Set the changed flag 
+*/
+void
+CTCLChannelCommand::markChange(CChannel* pChannel, void* pObject)
+{
+  CTCLChannelCommand* command = static_cast<CTCLChannelCommand*>(pObject);
+
+  command->m_Changed = true;
 }
