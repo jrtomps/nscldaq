@@ -31,7 +31,7 @@ typedef map<string,CTCLChannelCommand*> CommandMap;
 
 static char* version= "1.0";
 
-static const int caPollInterval(500); // ms per epics poll.
+static const int caPollInterval(16); // ms per epics poll.
 
 static CommandMap  linkages;
 
