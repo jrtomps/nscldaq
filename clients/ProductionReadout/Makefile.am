@@ -1,3 +1,5 @@
+
+
 SUBDIRS = hyperlatex direct HP
 
 
@@ -12,7 +14,7 @@ PRODUCTIONSOURCES = AccessListCheck.cpp \
 	CDocumentedPacketManager.cpp \
 	CEndCommand.cpp \
 	CEventSegment.cpp \
-	CExitCommand.cpp \
+	CExitCommand.cpp \S
 	CExperiment.cpp \
 	CInterpreterCore.cpp \
 	CInterpreterShell.cpp \
@@ -169,9 +171,13 @@ documentation: manpages appnote.pdf
 
 appnote.pdf : ScalerTriggerAppnote.xml
 	$(HCDOCBOOK) ScalerTriggerAppnote.xml
-	$(DVIPDF)    ScalerTriggerAppnote.dvi
+	if [ -e ScalerTriggerAppnote.dvi ]; then          \
+		$(DVIPDF)    ScalerTriggerAppnote.dvi	; \
+	else                                              \
+		touch ScalerTriggerAppnote.pdf;           \
+	fi
 
 manpages: CScalerTrigger.xml CCAENV262ScalerTrigger.xml   \
 	CCAENV977ScalerTrigger.xml CCBDCES8210ScalerTrigger.xml CTimedScalerTrigger.xml
-	-for f in $+; do $(MANDOCBOOK) man $$f 2>/dev/null ; done 
+	-for f in $+; do $(MANDOCBOOK) man $$f 2>/dev/null ;  touch $$f; done 
 

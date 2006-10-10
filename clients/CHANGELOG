@@ -692,4 +692,7 @@ September 7, 2006
     Added channel write capability for epics CChannel class.
     September 28, 2006 - Created new Tcl Epics access extension
                        - added 'widgets' directory for controls megawidgets.
-    October 5, 2006    - Got working meter and bcmMeter widgets.
+    October 05, 2006   - Got working meter and bcmMeter widgets.
+    October 10, 2006   - As per Bugzilla defect 218, added some code to 
+                         ensure that installs don't fail on systems
+                         without all the docbook pieces.
