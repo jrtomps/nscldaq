@@ -810,5 +810,6 @@ AC_OUTPUT( Makefile tcllib/Makefile \
 	wienerdriver/Makefile wienerdriver/driver/Makefile \
 	wienerdriver/lib/Makefile PowerCheck/Makefile \
 	wienerusbd/Makefile \
-	slowControls/Makefile slowControls/caenv812/Makefile 
-	slowControls/n568b/Makefile slowControls/vhq/Makefile)
+	slowControls/Makefile slowControls/caenv812/Makefile \
+	slowControls/n568b/Makefile slowControls/vhq/Makefile \
+	slowControls/widgets/Makefile)

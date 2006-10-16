@@ -696,3 +696,6 @@ September 7, 2006
     October 10, 2006   - As per Bugzilla defect 218, added some code to 
                          ensure that installs don't fail on systems
                          without all the docbook pieces.
+    October 16, 2006   - Add docs for: epics package, meter widget, and
+	                 bcmMeter widget. Also add the installation of these
+	                 to the build process.

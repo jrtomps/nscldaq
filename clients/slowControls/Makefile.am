@@ -1,1 +1,1 @@
-SUBDIRS=caenv812 n568b vhq
+SUBDIRS=caenv812 n568b vhq widgets
