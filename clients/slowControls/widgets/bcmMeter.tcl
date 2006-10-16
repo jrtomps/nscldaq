@@ -70,7 +70,7 @@ package require BWidget;      # for ArrowButton.
 package require snit
 
 namespace eval controlwidget {
-    namespace export meter
+    namespace export bcmMeter
 }
 
 snit::widget  controlwidget::bcmMeter {
