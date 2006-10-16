@@ -1,0 +1,147 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE book PUBLIC "-//OASIS//DTD Docbook XML 4.3//EN"
+                      "file:///usr/share/xml/docbook/schema/dtd/4.3/docbookx.dtd"
+ [ <!ENTITY manpage SYSTEM "ph7106Control.xml"> ]
+ >
+<book>
+<article>
+
+<refentry>
+    <refmeta>
+        <refentrytitle>Vertical meter widget</refentrytitle>
+        <manvolnum>1tcl</manvolnum>
+    </refmeta>
+    <refnamediv>
+        <refname>meter</refname>
+        <refpurpose>
+            Provide a widget that is a vertical meter.
+        </refpurpose>
+    </refnamediv>
+    <refsynopsisdiv>
+        <cmdsynopsis>
+            <command>
+package require meter
+            </command>
+        </cmdsynopsis>
+        <cmdsynopsis>
+            <command>
+controlwidget::meter <replaceable>path  ?options...?</replaceable>
+            </command>
+        </cmdsynopsis>
+    </refsynopsisdiv>
+
+    <refsect1>
+        <title>OPTIONS</title>
+        <para>
+            <variablelist>
+                <varlistentry>
+                    <term><command>-from <replaceable>value</replaceable></command></term>
+                    <listitem>
+                        <para>
+                            Defines the lower end of the meter range and scale.  If not
+                            provided, this defaults to -1.0.  <replaceable>value</replaceable>
+                            should be a number that can be interpreted as a floating point value.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><command>-to <replaceable>value</replaceable></command></term>
+                    <listitem>
+                        <para>
+                            Defines the upper end of the meter range and scale.  If not provided,
+                            this defaults to 1.0.  <replaceable>value</replaceable>
+                            should be a number that can be interpreted as a floating point value.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><command>-height <replaceable>value</replaceable></command></term>
+                    <listitem>
+                        <para>
+                            Sets the height of the widget.  This can be specified in pixels,
+                            centimeters or inches like any other tk dimension.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><command>-width <replaceable>value</replaceable></command></term>
+                    <listitem>
+                        <para>
+                            Specifies the width of the widget. This can be specified in pixels,
+                            centimeters or inches like any other tk dimension.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><command>-variable <replaceable>name</replaceable></command></term>
+                    <listitem>
+                        <para>
+                            Links the height of the meter to a Tcl variable in global or namespace
+                            scope.  As the value of this variable changes, the height of the meter
+                            indicator also changes.  Setting to a blank name removes any linkage
+                            between the meter value and a variable.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><command>-majorticks <replaceable>interval</replaceable></command></term>
+                    <listitem>
+                        <para>
+                            Provides the interval between major ticks on the meter.  Note that
+                            major ticks get labeled, so be sure that you have enough range between
+                            major ticks to allow the label to be legible.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><command>-minorticks <replaceable>number </replaceable></command></term>
+                    <listitem>
+                        <para>
+                            Specifies the number of minor tick intervals between major ticks
+                            (intervals in this case implies that there will be one fewer tick
+                            marks than you specify e.g. 5 intervals require 4 ticks).
+                            Minor tick marks are not labeled, and are somewhat shorter than major
+                            tick marks.
+                        </para>
+                    </listitem>
+                </varlistentry>
+
+            </variablelist>
+        </para>
+    </refsect1>
+    <refsect1>
+        <title>METHODS</title>
+        <para>
+            <variablelist>
+                <varlistentry>
+                    <term><command>set <replaceable>value</replaceable></command></term>
+                    <listitem>
+                        <para>
+                            Sets the meter position to a specific value.  If the meter has a
+                            <command>-variable</command> specified, the variable is set as well.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><command>get</command></term>
+                    <listitem>
+                        <para>
+                            Returns the current meter value.
+                        </para>
+                    </listitem>
+                </varlistentry>
+            </variablelist>
+        </para>
+    </refsect1>
+    <refsect1>
+        <title>SEE ALSO</title>
+        <para>
+            controlwidget::bcmMeter
+        </para>
+    </refsect1>
+</refentry>
+
+
+
+</article>
+</book>
