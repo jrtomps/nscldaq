@@ -1,49 +1,167 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE book PUBLIC "-//OASIS//DTD Docbook XML 4.3//EN"
-                      "http://www.oasis-open.org/docbook/xml/4.3/docbookx.dtd"
- >
+<!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.3//EN"
+                      "file:///usr/share/xml/docbook/schema/dtd/4.3/docbookx.dtd"
+[]
+>
 <book>
 <article>
-
 <refentry>
     <refmeta>
-        <refentrytitle>   </refentrytitle>
-        <manvolnum>   </manvolnum>
+        <refentrytitle>epics tcl package</refentrytitle>
+        <manvolnum>3</manvolnum>
     </refmeta>
     <refnamediv>
-        <refname>   </refname>
+        <refname>epics</refname>
         <refpurpose>
-
+           Loadable package to access epics.
         </refpurpose>
     </refnamediv>
     <refsynopsisdiv>
         <cmdsynopsis>
             <command>
-
+package require epics
+            </command>
+        </cmdsynopsis>
+        <cmdsynopsis>
+            <command>
+epicschannel <replaceable>name</replaceable>
+            </command>
+        </cmdsynopsis>
+        <cmdsynopsis>
+             <command>
+<replaceable>name</replaceable> get
+            </command>
+        </cmdsynopsis>
+        <cmdsynopsis>
+             <command>
+<replaceable>name</replaceable> set <replaceable>value</replaceable>
+            </command>
+        </cmdsynopsis>
+        <cmdsynopsis>
+             <command>
+<replaceable>name</replaceable> updatetime
+            </command>
+        </cmdsynopsis>
+        <cmdsynopsis>
+             <command>
+<replaceable>name</replaceable> delete
+            </command>
+        </cmdsynopsis>
+        <cmdsynopsis>
+             <command>
+<replaceable>name</replaceable> link <replaceable>tclVariableName</replaceable>
+            </command>
+        </cmdsynopsis>
+        <cmdsynopsis>
+             <command>
+<replaceable>name</replaceable> unlink
             </command>
         </cmdsynopsis>
 
     </refsynopsisdiv>
 
     <refsect1>
-        <title>OPTIONS</title>
+        <title>SUMMARY</title>
         <para>
+            The epics package is a loadable package that supplies access to an epics control
+            system.  Loading epics will also load the shared libraries required for epics, so these
+            must be installed on the system on which this package is being used.
+        </para>
+        <para>
+            The <command>epicschanne</command> command expresses an interest in a specific
+            named channel, or database field.  Once specified, this becomes a new command.
+            The new command is an ensemble with several subcommands.  These subcommands
+            allow one to manipulate and inquire about the channel.  When interest is declared
+            epics events are requested to maintain the state of a channel.  Epics events can
+            only be processed, however, by entering the Tcl event loop.  Either by running wish,
+            or by doing a <command>vwait</command> in a pure Tcl interpreter.
+        </para>
+        <para>The subcommands for an epics channel are:
+            <variablelist>
+                <varlistentry>
+                    <term><command>get</command></term>
+                    <listitem>
+                        <para>
+                            Retrieves the value of the channel or field.  Note that if a
+                            connection event has not yet been recieved and processed, this will
+                            return an error.  This can happen either if the channel is not an
+                            epics channel or if the event loop has not yet been entered enough
+                            times to allow the event to be seen. Note that epics events are
+                            processed prior to executing this command so it is possible for this
+                            command to fail first and then work a few tries later.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><command>set</command> <replaceable>value</replaceable></term>
+                    <listitem>
+                        <para>
+                            Sets the value of the channel or database field (if changeable) to
+                            <replaceable>value</replaceable>.  All the remarks about the
+                            <command>set</command> subcommand apply here too.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><command>updatetime</command></term>
+                    <listitem>
+                        <para>
+                            Returns the time of the last update received for the channel.
+                            The time is returned as an integer suitable for use in the
+                            Tcl <command>clock</command> command.  This allows the result to
+                            be formatted as a time and date, or used arithmetically to calculate
+                            time diferences in seconds.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><command>delete</command></term>
+                    <listitem>
+                        <para>
+                            Deletes the command and attachment to an epics channel. All resources
+                            associated with the command are also destroyed.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><command>link</command> <replaceable>varname</replaceable></term>
+                    <listitem>
+                        <para>
+                            Forges a link between the channel or database field value and a
+                            tcl variable.  The variable must be either be at global level or
+                            be defined as a namespace variable.   Reading the variable will
+                            correspond to reading the channel value, while writing to it will
+                            set the channel value.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><command>unlink</command></term>
+                    <listitem>
+                        <para>
+                            Removes the established with the <command>link</command> subcommand.
+                        </para>
+                    </listitem>
+                </varlistentry>
+            </variablelist>
         </para>
     </refsect1>
     <refsect1>
-        <title>METHODS</title>
+        <title>EXAMPLES</title>
         <para>
-
+            The code below creates a label widget that follows the value of the epics channel
+            SOMECHANNEL:
+            <programlisting>
+package require epics
+epicschannel SOMECHANNEL
+SOMECHANNEL link SOMECHANNELvar
+entry .e -textvariable SOMECHANNELvar
+pack .e
+            </programlisting>
         </para>
     </refsect1>
-    <refsect1>
-        <title>SEE ALSO</title>
-        <para>
 
-        </para>
-    </refsect1>
 </refentry>
-
 
 
 </article>

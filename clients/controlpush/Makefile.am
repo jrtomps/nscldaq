@@ -12,10 +12,10 @@
 #	     Michigan State University
 #	     East Lansing, MI 48824-1321
 .xml.3:
-	- $(MANDOCBOOK) man $< 2>/dev/null
+	- $(MANDOCBOOK) man $< 
 	touch $@
 .xml.1:
-	- $(MANDOCBOOK) man $< 2>/dev/null
+	- $(MANDOCBOOK) man $< 
 	touch $@
 
 LIBDIR=$(prefix)/TclLibs
