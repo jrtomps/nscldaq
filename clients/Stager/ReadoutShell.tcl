@@ -58,11 +58,9 @@ package require InitializeConfiguration
 
 proc Usage {} {
     puts "Usage:"
-    puts "   ReadoutShell.tcl ?-host=host? ?-path=path? ?-ftphost=ftphost? ?-password=pass?"
+    puts "   ReadoutShell. ?-host=host? ?-path=path?"
     puts "       host - Name of the host on which to run the Readout."
     puts "       path - Path to readout program to run."
-    puts "       ftphost - Name of the host on which to ftp event files"
-    puts "       passwd  - ftp login password."
     puts " If any of these are missing, attempts are made to fetch them from the"
     puts " experiment configuration, which is sourced in prior to processing parameters"
     exit
@@ -378,16 +376,16 @@ setupConfiguration $argv
 
 # If necessary get a password via a prompt.
 
-if {[DAQParameters::getPassword] == ""} {
-    set password [getPassword]
-    if {$password == ""} {
-        tk_messageBox -icon error \
-            -message {No password given, attempts to record data will fail} \
-            -title {missing password} -type ok
-    } else {
-        DAQParameters::passwordIs $password
-    }
-}
+#if {[DAQParameters::getPassword] == ""} {
+#    set password [getPassword]
+#    if {$password == ""} {
+#        tk_messageBox -icon error \
+#            -message {No password given, attempts to record data will fail} \
+#           -title {missing password} -type ok
+#  } else {
+#        DAQParameters::passwordIs $password
+#    }
+#}
 
 if {$CanWrite} {
     ExpFileSystem::CreateHierarchy
@@ -400,6 +398,4 @@ if {$CanWrite} {
 Experiment::Register
 ReadoutGui::ReadoutController {}
 
-#if {!$CanWrite} {
-#    ReadoutGui::DisableEventRecording
-#}
+

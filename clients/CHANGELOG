@@ -704,4 +704,5 @@ September 7, 2006
                          started the tclserver.  This resulted in
                          sclclient attempting to authenticate when
                          tclserver was not expecting an authentication string.
-
+                       - BZ 222 - Don't really need the ftp info anymore
+                         as recording is being done 'locally'.
