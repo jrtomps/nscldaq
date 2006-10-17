@@ -58,7 +58,7 @@ package require InitializeConfiguration
 
 proc Usage {} {
     puts "Usage:"
-    puts "   ReadoutShell. ?-host=host? ?-path=path?"
+    puts "   ReadoutShell ?-host=host? ?-path=path?"
     puts "       host - Name of the host on which to run the Readout."
     puts "       path - Path to readout program to run."
     puts " If any of these are missing, attempts are made to fetch them from the"
