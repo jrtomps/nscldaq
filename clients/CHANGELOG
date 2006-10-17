@@ -706,3 +706,5 @@ September 7, 2006
                          tclserver was not expecting an authentication string.
                        - BZ 222 - Don't really need the ftp info anymore
                          as recording is being done 'locally'.
+                       - Add -label option to bcmMeter widget to override the
+                         channel label with a meaningful lable.
