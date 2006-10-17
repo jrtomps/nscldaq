@@ -8,6 +8,6 @@ source bcmMeter.tcl
 
 ::controlwidget::bcmMeter .bcm  -channel Z026L-C
 ::controlwidget::bcmMeter .bcm2 -channel Z026R-C
-::controlwidget::bcmMeter .bcm3 -channel B159F-C
+::controlwidget::bcmMeter .bcm3 -channel B159F-C -label {4-Pi FC}
 
 pack .bcm .bcm2 .bcm3 -side left

@@ -47,6 +47,8 @@
 #     -meterheight   - Delegated to meter as -height [static]
 #     -meterwidth    - Delegated to meter as -width  [static]
 #     -channel       - Epics channel name.           [static]
+#     -label         - If supplied overrides the -channel as a label for the
+#                      widget.
 # Methods
 #     get            - Gets the epics channel value.
 #     getRange       - Gets the appropriately cooked range.
@@ -77,9 +79,11 @@ snit::widget  controlwidget::bcmMeter {
     option -meterheight 2i
     option -meterwidth  1.5i
     option -channel {}
+    option -label   {}
 
     constructor args {
         $self configurelist $args
+
 
         # Create and bind the epics channels:
 
@@ -87,19 +91,25 @@ snit::widget  controlwidget::bcmMeter {
         if {$channel eq ""} {
             error "Need an epics channel name to bind to the bcmMeter"
         }
+	if {$options(-label) eq ""} {
+	    set options(-label) $options(-channel)
+	}
 
         epicschannel $channel
+	epicschannel $channel.EGU
         epicschannel $channel.MRNG
         epicschannel $channel.MSRN
         epicschannel $channel.MRRN
 
         $channel      link ::controlwidget::$channel
+	$channel.EGU  link ::controlwidget::$channel.EGU
         $channel.MRNG link ::controlwidget::$channel.MRNG
 
         #  Construct the widgets:
 
-        label $win.title -text $channel
+        label $win.title -text $options(-label)
         label $win.value -textvariable ::controlwidget::$channel
+	label $win.units -textvariable ::controlwidget::$channel.EGU
         ::controlwidget::meter $win.meter -height $options(-meterheight) \
                                           -width $options(-meterwidth)   \
                                           -variable ::controlwidget::$channel
@@ -111,10 +121,10 @@ snit::widget  controlwidget::bcmMeter {
         # Layout the widgets:
 
         grid $win.title                 -
-        grid $win.value                 -
+        grid $win.value           $win.units
         grid $win.meter                 -
         grid $win.rangelabel            -
-        grid $win.incrange              $win.decrange
+        grid $win.incrange        $win.decrange
 
     }
     #-------------------------- public methods ---------------------------
