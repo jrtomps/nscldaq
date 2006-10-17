@@ -129,6 +129,7 @@ CServerInstance::OnCommand()
 
   int status;
 
+
   if (m_authenticated) {
     
     status = Tcl_Eval(Context.pInterp, 
@@ -153,11 +154,16 @@ CServerInstance::OnCommand()
     
     // Need to strip the last char off the line since it's a \n'.
 
+
+
+
     int len = Tcl_DStringLength(&(Context.command)) - 1;
     Tcl_DStringTrunc(&(Context.command), len);
     
     uid_t uid = geteuid();		// In case this is run from setuid.
     struct passwd* pwdentry = getpwuid(uid);
+
+
     if (strcmp(Tcl_DStringValue(&(Context.command)), pwdentry->pw_name) == 0) {
       // Authenticated.
 
@@ -168,8 +174,6 @@ CServerInstance::OnCommand()
     else {
       // Bad auth string.
 
-      cerr << "Bad authentication string: '" 
-	   << Tcl_DStringValue(&(Context.command)) << "'\n";
       Shutdown();
       return TCL_OK;
     }

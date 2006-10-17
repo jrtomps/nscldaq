@@ -87,14 +87,17 @@ bool userauth=false;		// Require user authentication.
 
 static void GetServerPort(int argc, char** argv)
 {
+  cerr << "Getserver port\n";
   argc--; argv++;
   string AppName("TclServer");
   for(int i =0; i < argc; i++) {
     string param(argv[i]);
+    cerr << "Processing parameter: '" << param << "'\n";
     if( (param[0] == '-') && (param[1] == 'a')) {
       AppName.assign(param, 2, param.size()-1);
     }
     if (param == "-userauth") {
+      cerr << "Setting userauth true\n";
       userauth = true;
     }
     if((param[0] == '-') && (param[1] == 'p')) {

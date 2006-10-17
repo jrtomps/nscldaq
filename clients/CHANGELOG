@@ -699,3 +699,9 @@ September 7, 2006
     October 16, 2006   - Add docs for: epics package, meter widget, and
 	                 bcmMeter widget. Also add the installation of these
 	                 to the build process.
+    October 17, 2006   - BZ 221 - ScalerDisplay was not specifying
+                         -userauth on the command line that
+                         started the tclserver.  This resulted in
+                         sclclient attempting to authenticate when
+                         tclserver was not expecting an authentication string.
+
