@@ -76,6 +76,7 @@ snit::widget ::controlwidget::epicsEnumeratedControl {
 	}
 	
 	epicschannel  $channel
+	epicschannel  $channel.SETV
 	$channel link ::controlwidget::$channel
 
 	# build up the command to create the radioMatrix:
@@ -110,10 +111,11 @@ snit::widget ::controlwidget::epicsEnumeratedControl {
     #
     method updateRadio {} {
 	set channel $options(-channel)
+	
 
 	# If not connected reschedule every 100ms
 
-	if {[catch {$channel get} value] || ($value eq "")} {
+	if {[catch {$channel.SETV get} value] || ($value eq "")} {
 	    after 100 [mymethod updateRadio]
 	}
 	
