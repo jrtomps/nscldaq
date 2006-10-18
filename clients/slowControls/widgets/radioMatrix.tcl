@@ -126,8 +126,9 @@ snit::widget  ::controlwidget::radioMatrix {
 	return $radioVariable
     }
     method Set value {
+
 	set radioVariable $value
-	$self onChange
+
     }
 
 
@@ -182,10 +183,12 @@ snit::widget  ::controlwidget::radioMatrix {
 		    break
 		}
 		set item [lindex $options(-values) $index]
-		set value [lindex $item 0]
+
 		if {[llength $item] > 1} {
-		    set label [lindex $item 1]
+		    set label [lindex $item 0]
+		    set value [lindex $item 1]
 		} else {
+		    set value [lindex $item 0]
 		    set label $value
 		}
 		radiobutton $win.buttons.cb$index \
@@ -224,12 +227,14 @@ snit::widget  ::controlwidget::radioMatrix {
 		    break
 		}
 		set item [lindex $options(-values) $index]
-		set value [lindex $item 0]
 		if {[llength $item] > 1} {
-		    set label [lindex $item 1]
+		    set label [lindex $item 0]
+		    set value [lindex $item 1]
 		} else {
+		    set value [lindex $item 0]
 		    set label $value
 		}
+
 		radiobutton $win.buttons.cb$index \
 		    -command [mymethod onChange]  \
 		    -variable ${selfns}::radioVariable \
