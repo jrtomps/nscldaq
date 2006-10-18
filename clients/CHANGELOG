@@ -707,4 +707,20 @@ September 7, 2006
                        - BZ 222 - Don't really need the ftp info anymore
                          as recording is being done 'locally'.
                        - Add -label option to bcmMeter widget to override the
-                         channel label with a meaningful lable.
+                         channel label with a meaningful lable
+   October  18, 2006   - Added more control widgets:
+                         o radioMatrix - A regular array of radiobuttons and a
+                           label.
+                         o epicsEnumeratedControl - buildson radioMatrix
+                           to manage an epics channel with discrete settings.
+                         o typeNGo - A label, entry, button which supports
+                           editing the entry, then invoking a script when
+                           either <Return> is typed in the entry or the button
+                           is clicked.
+                         o epicsTypeNGo a typeNGo where the label is
+                           connected to the value reading and the commit
+                           script sets the value to the entry value.
+
+
+
+.

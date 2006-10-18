@@ -318,7 +318,7 @@ string
 CFloatConverter::operator()(event_handler_args args)
 {
   char buffer[100];
-  sprintf(buffer, "%12.9g", (*(double*)(args.dbr)));
+  sprintf(buffer, "%g", (*(double*)(args.dbr)));
   return string(buffer);
 }
 
