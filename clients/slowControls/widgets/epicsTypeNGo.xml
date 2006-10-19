@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE book PUBLIC "-//OASIS//DTD Docbook XML 4.3//EN"
+                      "file:///usr/share/xml/docbook/schema/dtd/4.3/docbookx.dtd"
+ [ <!ENTITY manpage SYSTEM "ph7106Control.xml"> ]
+ >
+<book>
+<article>
+
+<refentry>
+    <refmeta>
+        <refentrytitle>typeNGo bound to epics</refentrytitle>
+        <manvolnum>1tcl</manvolnum>
+    </refmeta>
+    <refnamediv>
+        <refname>epicsTypeNGo</refname>
+        <refpurpose>
+            Provide epics bindings to a typeNGo widget.
+        </refpurpose>
+    </refnamediv>
+    <refsynopsisdiv>
+        <cmdsynopsis>
+            <command>
+ package require epicsTypeNGo
+            </command>
+        </cmdsynopsis>
+        <cmdsynopsis>
+            <command>
+epicsTypeNGo <replaceable>path ?options?...</replaceable>
+            </command>
+        </cmdsynopsis>
+    </refsynopsisdiv>
+
+    <refsect1>
+        <title>SUMMARY</title>
+        <para>
+            Links an epics channel to a <command>typeNGo</command> widget.
+            Committing the value results in setting the value of the control channel,
+            while the label continuously displays the up-to-date value of the channel.
+            Validation serves to prevent a commit on nonsense values.
+        </para>
+    </refsect1>
+    <refsect1>
+        <title>OPTIONS</title>
+        <para>
+            All options except
+            <command>-command</command> are supported by this, however the use of the
+            <command>-textvariable</command> option will break the binding of the label
+            to the epics channel.  There may or may not be good reasons to do this.
+            The <command>-channel</command> option is added and selects which channel
+            the widget will be bound to.
+        </para>
+    </refsect1>
+    <refsect1>
+        <title>METHODS</title>
+        <para>
+            All typeNGo methods are supported.
+        </para>
+    </refsect1>
+    <refsect1>
+        <title>SEE ALSO</title>
+        <para>
+typeNGo(1tcl)
+        </para>
+    </refsect1>
+</refentry>
+
+
+
+</article>
+</book>
