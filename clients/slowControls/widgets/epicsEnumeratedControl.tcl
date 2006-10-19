@@ -124,6 +124,7 @@ snit::widget ::controlwidget::epicsEnumeratedControl {
 
 	if {[catch {$channel.SETV get} value] || ($value eq "")} {
 	    after 100 [mymethod updateRadio]
+	    return
 	}
 	
 	$self Set $value

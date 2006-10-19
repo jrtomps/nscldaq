@@ -87,6 +87,7 @@ snit::widget controlwidget::epicsTypeNGo {
 	set channel $options(-channel).SETV
 	if {[catch {$channel get} value] || ($value eq "")} {
 	    after 100 [mymethod loadEntry]
+	    return
 	}
 	# value is the current setv value:
 
