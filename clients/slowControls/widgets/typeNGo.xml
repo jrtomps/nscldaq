@@ -1,0 +1,160 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE book PUBLIC "-//OASIS//DTD Docbook XML 4.3//EN"
+                      "file:///usr/share/xml/docbook/schema/dtd/4.3/docbookx.dtd"
+ [ <!ENTITY manpage SYSTEM "ph7106Control.xml"> ]
+ >
+<book>
+<article>
+
+<refentry>
+    <refmeta>
+        <refentrytitle>typeNGo compound widget   </refentrytitle>
+        <manvolnum>1tcl</manvolnum>
+    </refmeta>
+    <refnamediv>
+        <refname>typeNGo</refname>
+        <refpurpose>
+            provides a compound widget for entering text with an explicit commit.
+        </refpurpose>
+    </refnamediv>
+    <refsynopsisdiv>
+        <cmdsynopsis>
+            <command>
+package require typeNGo
+            </command>
+        </cmdsynopsis>
+        <cmdsynopsis>
+            <command>
+controlwidget::typeNGo <replaceable>path ?options...?</replaceable>
+            </command>
+        </cmdsynopsis>
+    </refsynopsisdiv>
+
+    <refsect1>
+        <title>SUMMARY</title>
+        <para>
+            The <command>typeNGo</command> is a compound widget that consists of
+            vertically stacked label, entry and button widgets.  The idea is that this will
+            typcially be used to provide controlled updates of the value of the variable that
+            controls the label widget.  If you consider the case of an entry and a label both
+            bound via <command>-textvariable</command> to the same variable, as you type in the
+            entry, the variable value dynamically changes.  This is not suitable for controls
+            applications e.g.
+        </para>
+        <para>
+            The typeNGo widge provides explicit control over when the entry widget is a correct
+            value worth propagating to the application.  This is done either by clicking the
+            button or by hitting the enter/return key while the focus in in the entry widget.
+        </para>
+    </refsect1>
+    <refsect1>
+        <title>OPTIONS</title>
+        <para>
+            All label operations except <command>-text</command> are forwarded directly
+            tothe label widget contained by the megawidget.  See, however the
+            <command>-label</command> option.
+            <variablelist>
+                <varlistentry>
+                    <term><command>-text  <replaceable>labelstring</replaceable></command></term>
+                    <listitem>
+                        <para>
+                            Provides a label for the button widget.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><command>-label</command> <replaceable>labelstring</replaceable></term>
+                    <listitem>
+                        <para>
+                            Provides a string for the label.  This is overridden if a
+                            <command>-textvariable </command> is specified.
+                        </para>
+                    </listitem>
+                    </varlistentry>
+                <varlistentry>
+                    <term><command>-command</command> <replaceable>script</replaceable></term>
+                    <listitem>
+                        <para>
+                            Provides a callback script that will be invoked when the entry is
+                            committed via a button click or enter key.  In the script,
+                            %W is substituted wih the widget command name.  %V is substituted
+                            with the value of the entry.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><command>-validate</command> <replaceable>script</replaceable></term>
+                    <listitem>
+                        <para>Provides a scripttoperform validation.  The %V and %W substitutions
+                            described in <command>-command</command> are supported.  If the script
+                            does not return a true value,
+                            the <command>-command</command> script will not
+                            be executed.
+                        </para>
+                    </listitem>
+                </varlistentry>
+            </variablelist>
+        </para>
+
+    </refsect1>
+    <refsect1>
+        <title>METHODS</title>
+        <para>
+            <variablelist>
+                <varlistentry>
+                    <term><command>Get</command></term>
+                    <listitem><para>
+                        Gets the current value of the entry widget.. this will be the text
+                        currently displayed in that widget, not the most recently committed
+                        value.
+                     </para></listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><command>Set <replaceable>value</replaceable></command></term>
+                    <listitem>
+                        <para>
+                            Sets the value of the entry widget to the <replaceable>value</replaceable>
+                            string.  This does not commit it (see <command>Invoke</command>).
+                            This also does not do any validation.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><command>Invoke</command></term>
+                    <listitem>
+                        <para>
+                            Simulates a button click.  This will cause entry validiation and,
+                            if permitted, a commit of the entry.
+                        </para>
+                    </listitem>
+                </varlistentry>
+            </variablelist>
+        </para>
+    </refsect1>
+    <refsect1>
+        <title>BINDINGS</title>
+        <para>
+            <variablelist>
+                <varlistentry>
+                    <term>&lt;Return&gt; - with focus in the entry widget.</term>
+                    <listitem>
+                        <para>
+                            does an <command>Invoke</command> on self.
+                        </para>
+                    </listitem>
+                </varlistentry>
+            </variablelist>
+        </para>
+    </refsect1>
+    <refsect1>
+        <title>SEE ALSO</title>
+        <para>
+
+        </para>
+    </refsect1>
+</refentry>
+
+
+
+</article>
+</book>
