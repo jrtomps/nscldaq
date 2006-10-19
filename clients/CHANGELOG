@@ -721,6 +721,7 @@ September 7, 2006
                            connected to the value reading and the commit
                            script sets the value to the entry value.
 
+  October 19, 2006     - Added -validate option to typeNGo widget.
 
 
 .
