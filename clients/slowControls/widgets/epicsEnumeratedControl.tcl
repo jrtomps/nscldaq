@@ -76,7 +76,7 @@ snit::widget ::controlwidget::epicsEnumeratedControl {
 	}
 	
 	epicschannel  $channel
-	epicschannel  $channel.SETV
+
 	$channel link ::controlwidget::$channel
 
 	# build up the command to create the radioMatrix:
@@ -93,7 +93,14 @@ snit::widget ::controlwidget::epicsEnumeratedControl {
 	eval controlwidget::radioMatrix $win.rm $rmOptions \
 	    -variable ::controlwidget::$channel
 	pack $win.rm -fill both -expand 1
-	after 100 [mymethod updateRadio]
+
+	# If possible, attempt to load the radios from the
+	# SETV  .. can't do for modicons..
+
+	if {[string range $channel 0 1] ne "P#"} {
+	    epicschannel  $channel.SETV
+	    after 100 [mymethod updateRadio]
+	}
 
     }
     #  Processes radio button hits.. just turns these around

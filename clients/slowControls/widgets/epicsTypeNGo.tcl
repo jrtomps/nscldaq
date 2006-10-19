@@ -36,6 +36,7 @@ package require epics
 
 
 namespace eval controlwidget {
+    namespace export epicsTypeNGo
 }
 
 snit::widget controlwidget::epicsTypeNGo {
@@ -62,9 +63,12 @@ snit::widget controlwidget::epicsTypeNGo {
 	pack $win.tng -fill both -expand 1
 
 	# try to preload the entry with the setv...
-       
-	epicschannel $channel.SETV
-	after 100 [mymethod loadEntry]
+	# Don't try for modicon points.. they don't have a SETV.
+	#
+	if {[string range $channel 0 1] ne "P#"} {
+	    epicschannel $channel.SETV
+	    after 100 [mymethod loadEntry]
+	}
     }
     # Called when the entry has been comitted.. we just need to set the epics
     # channel value:
