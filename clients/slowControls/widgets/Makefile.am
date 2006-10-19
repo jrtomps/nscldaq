@@ -4,9 +4,11 @@ PACKAGES = meter.tcl bcmMeter.tcl epicsLabel.tcl \
 	radioMatrix.tcl epicsEnumeratedControl.tcl \
 	typeNGo.tcl epicsTypeNGo.tcl
 
-XMLFILES = meter.xml bcmMeter.xml epicsLabel.xml
+XMLFILES = meter.xml bcmMeter.xml epicsLabel.xml	\
+	radioMatrix.xml
 
-MANPAGES = meter.1tcl bcmMeter.1tcl epicsLabel.1tcl
+MANPAGES = meter.1tcl bcmMeter.1tcl epicsLabel.1tcl \
+	radioMatrix.1tcl
 
 # Build rule for manpages:
 

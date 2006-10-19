@@ -1,0 +1,174 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE book PUBLIC "-//OASIS//DTD Docbook XML 4.3//EN"
+                      "file:///usr/share/xml/docbook/schema/dtd/4.3/docbookx.dtd"
+ [ <!ENTITY manpage SYSTEM "ph7106Control.xml"> ]
+ >
+<book>
+<article>
+
+<refentry>
+    <refmeta>
+        <refentrytitle>Matrix of radio buttons</refentrytitle>
+        <manvolnum>1tcl</manvolnum>
+    </refmeta>
+    <refnamediv>
+        <refname>radioMatrix</refname>
+        <refpurpose>
+            Provide a megawidget that is an array of radio buttons.
+        </refpurpose>
+    </refnamediv>
+    <refsynopsisdiv>
+        <cmdsynopsis>
+            <command>
+package require radioMatrix
+            </command>
+        </cmdsynopsis>
+        <cmdsynopsis>
+            <command>
+controlwidget::radioMatrix <replaceable>path ?options...?</replaceable>
+            </command>
+        </cmdsynopsis>
+    </refsynopsisdiv>
+
+    <refsect1>
+        <title>OPTIONS</title>
+        <para>
+            <variablelist>
+                <varlistentry>
+                    <term><command>-orient</command></term>
+                    <listitem>
+                        <para>
+                            Can be one of <replaceable>vertical</replaceable>
+                            or <replaceable>horizontal</replaceable>.
+                            This determines whether or not the radio buttons
+                            are laid out in horizontal rows or vertical columns
+                            (if they are added to the matrix in row or column
+                            major order.  This is static and must be specified
+                            at creation time.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><command>-columns</command> <replaceable>n</replaceable></term>
+                    <listitem>
+                        <para>
+                            Defines the number of columns in the array.
+                            See OPTION CONSTRAINTS for information about
+                            which of the -columns, -rows, -values items
+                            are allowed to be simultaneously specified for
+                            this widget.  This is static and must be specified
+                            at creation time.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><command>-rows <replaceable>n</replaceable></command></term>
+                    <listitem>
+                        <para>
+                            Defines the number of rows in the array.
+                            See OPTION CONSTRAINTS for information about
+                            which of the -columns, -rows, -values items
+                            are allowed to be simultaneously specified for
+                            this widget.  This is static and must be specified
+                            at creation time.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><command>-values <replaceable>value-list</replaceable></command></term>
+                    <listitem>
+                        <para>
+                            Defines a list of values that are represented by
+                            the radio box.  This should be specified in the
+                            form of a list of one or two item sublists.
+                            If a list element is a single item, it is both the
+                            label and the value applied to the corresponding
+                            radio button.  If the item is a two item sublist,
+                            it is a label/value pair.
+                            See OPTION CONSTRAINTS for information about
+                            which of the -columns, -rows, -values items
+                            are allowed to be simultaneously specified for
+                            this widget.  This is static and must be specified
+                            at creation time.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><command>-variable</command> <replaceable>name</replaceable></term>
+                    <listitem>
+                        <para>
+                            Provides the name of a variable that is associated
+                            with the value of the checkbox array.
+                            This association is two-way.  That is setting the
+                            variable to one of the values specified via
+                            <command>-values</command> will modify the
+                            state of the buttons.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><command>-command</command> <replaceable>script</replaceable></term>
+                    <listitem>
+                        <para>
+                            Provides a command that is  executed when a radio
+                            button is clicked.
+                        </para>
+                    </listitem>
+                </varlistentry>
+            </variablelist>
+        </para>
+        <refsect2>
+            <title>OPTION CONSTRAINTS</title>
+            <para>
+                Some constraints apply to the <command>-values</command>,
+                <command>-rows</command> and <command>-columns</command> options.
+                If the <command>-values</command> option is supplied, only one of the
+                <command>-rows</command>, or <command>-columns</command> options can be
+                supplied, the other is calculated using the length of the <command>-values</command>
+                option parameter.  On the other hand if both the <command>-columns</command> and
+                <command>-rows</command> options are supplied, <command>-values</command> must
+                not be supplied, as values are assigned sequentially to the radio buttons,
+                and serve as their labels.
+            </para>
+            <para>
+                The normal use is to supply <command>-values</command> and one of
+                <command>-rows</command> or <command>-columns</command>.
+            </para>
+        </refsect2>
+    </refsect1>
+    <refsect1>
+        <title>METHODS</title>
+        <para>
+            <variablelist>
+                <varlistentry>
+                    <term><command>Get</command></term>
+                    <listitem>
+                        <para>
+                            Returns the current value of the widget (the value associated with
+                            the lit radio button).
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><command>Set</command></term>
+                    <listitem>
+                        <para>
+                            Sets the current value of the widget.
+                        </para>
+                    </listitem>
+                </varlistentry>
+            </variablelist>
+        </para>
+    </refsect1>
+    <refsect1>
+        <title>SEE ALSO</title>
+        <para>
+
+        </para>
+    </refsect1>
+</refentry>
+
+
+
+</article>
+</book>
