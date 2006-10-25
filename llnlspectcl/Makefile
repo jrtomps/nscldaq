@@ -22,7 +22,7 @@ USERLDFLAGS=
 #
 
 OBJECTS=MySpecTclApp.o CParamMapCommand.o CLLNLUnpacker.o	\
-	CRateProcessor.o CRateList.o CRateCommand.o
+	CRateProcessor.o CRateList.o CRateCommand.o CFitButton.o
 
 #
 #  Finally the makefile targets.

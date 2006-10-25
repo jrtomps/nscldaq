@@ -1,6 +1,6 @@
 source configFile.tcl
 source setup.tcl
-
+source fom.tcl
 
 #  Test for m2 spectra:
 

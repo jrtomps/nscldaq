@@ -26,10 +26,13 @@ static const char* Copyright = "(C) Copyright Michigan State University 2008, Al
 #include <Event.h>
 #include <TreeParameter.h>
 #include <ScalerProcessor.h>
+#include <Xamine.h>
+
 
 #include "CParamMapCommand.h"
 #include "CLLNLUnpacker.h"
 #include "CRateCommand.h"
+#include "CFitButton.h"
 
 #ifdef HAVE_STD_NAMESPACE
 using namespace std;
@@ -158,7 +161,12 @@ the program.
 */
 void 
 CMySpecTclApp::CreateHistogrammer()  
-{ CTclGrammerApp::CreateHistogrammer();
+{ 
+  CTclGrammerApp::CreateHistogrammer();
+
+  // Xamine has been started, so we can hook in our buttons now.
+
+  Xamine_DefineButtonBox(3,3);	
 }  
 
 //  Function: 	
@@ -176,7 +184,13 @@ to deal with gate objects accepted by Xamine interaction.
 */
 void 
 CMySpecTclApp::SelectDisplayer(UInt_t nDisplaySize, CHistogrammer& rHistogrammer)  
-{ CTclGrammerApp::SelectDisplayer(nDisplaySize, rHistogrammer);
+{ 
+  CTclGrammerApp::SelectDisplayer(nDisplaySize, rHistogrammer);
+
+  // By now the event handler is established:
+
+  new CFitButton(1, 1,1, getXamineEvents());
+
 }  
 
 //  Function: 	
