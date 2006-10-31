@@ -728,6 +728,6 @@ September 7, 2006
   October 31, 2006     - Happy Halloween.
                        - Misc. fixes and improvements to epics widgets.
                        - make sure epics command will work on 3.x
-
+                       - added epicsLabelWithUnits widget.
 
 .

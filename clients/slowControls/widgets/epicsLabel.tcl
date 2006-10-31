@@ -53,10 +53,12 @@ snit::widget  controlwidget::epicsLabel {
 	    error "epicsLabel widgets need a -channel on construction"
 	}
 	epicschannel $channel
-	$channel     link ::controlwidget::$channel
+
+	$channel         link ::controlwidget::$channel
 	$win.label configure -textvariable ::controlwidget::$channel
 
-	pack $win.label -expand 1 -fill both
+
+	pack $win.label  -side left -expand 1 -fill both
 
     }
 }

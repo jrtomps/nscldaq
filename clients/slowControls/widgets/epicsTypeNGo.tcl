@@ -44,6 +44,8 @@ snit::widget controlwidget::epicsTypeNGo {
     delegate method * to basewidget
     option -channel {}
 
+    variable timerId -1
+
     constructor args {
 
 	install basewidget as controlwidget::typeNGo $win.tng -command [mymethod onChanged]
@@ -67,7 +69,13 @@ snit::widget controlwidget::epicsTypeNGo {
 	#
 	if {[string range $channel 0 1] ne "P#"} {
 	    epicschannel $channel.SETV
-	    after 100 [mymethod loadEntry]
+	    set timerId [after 100 [mymethod loadEntry]]
+	}
+    }
+
+    destructor {
+	if {$timerId != -1} {
+	    after cancel $timerId
 	}
     }
     # Called when the entry has been comitted.. we just need to set the epics
@@ -86,11 +94,12 @@ snit::widget controlwidget::epicsTypeNGo {
     method loadEntry {} {
 	set channel $options(-channel).SETV
 	if {[catch {$channel get} value] || ($value eq "")} {
-	    after 100 [mymethod loadEntry]
+	    set timerId [after 100 [mymethod loadEntry]]
 	    return
 	}
 	# value is the current setv value:
 
 	$win.tng Set $value
+	set timerId -1
     }
 }

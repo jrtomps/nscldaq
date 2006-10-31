@@ -249,14 +249,16 @@ CConversionFactory::Converter(short type) {
   case DBF_CHAR:
   case DBF_SHORT:
   case DBF_LONG:
+  case DBF_ENUM:
     return new CIntegerConverter;
     break;
   case DBF_FLOAT:
   case DBF_DOUBLE:
     return new CFloatConverter;
     break;
+    // Default is a string as well:
   default:
-    throw "CConversionFactory::Converter: Can't make a converter for data type";
+    return new CStringConverter;
   }
 }
 
