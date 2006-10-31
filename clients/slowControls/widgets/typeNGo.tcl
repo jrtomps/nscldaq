@@ -73,6 +73,11 @@ snit::widget controlwidget::typeNGo {
 
 	$self configurelist $args
 
+	# Default the button label to "Go"
+
+	if {[$win.button cget -text] eq ""} {
+	    $win.button configure -text "Go"
+	}
 
 	grid $win.label  -sticky w
 	grid $win.entry  -sticky w

@@ -58,7 +58,7 @@ INCLUDES            =   -I@top_srcdir@/Exception \
 cmdline.c: options.ggo
 	gengetopt --unamed-opts <options.ggo
 
-EXTRA_DIST=options.ggo Makefile.am Channels.dat
+EXTRA_DIST=options.ggo Makefile.am Channels.dat  $(XMLMANSRC)
 
 
 

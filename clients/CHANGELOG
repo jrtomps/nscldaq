@@ -723,5 +723,11 @@ September 7, 2006
 
   October 19, 2006     - Added -validate option to typeNGo widget.
                        - Documented the latest passel of widgets.
+                       - ReadoutGui - sourced the user's ReadoutCallouts 
+			 script at the global level.
+  October 31, 2006     - Happy Halloween.
+                       - Misc. fixes and improvements to epics widgets.
+                       - make sure epics command will work on 3.x
+
 
 .

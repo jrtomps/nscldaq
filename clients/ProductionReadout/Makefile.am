@@ -14,7 +14,7 @@ PRODUCTIONSOURCES = AccessListCheck.cpp \
 	CDocumentedPacketManager.cpp \
 	CEndCommand.cpp \
 	CEventSegment.cpp \
-	CExitCommand.cpp \S
+	CExitCommand.cpp \
 	CExperiment.cpp \
 	CInterpreterCore.cpp \
 	CInterpreterShell.cpp \

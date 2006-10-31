@@ -106,7 +106,7 @@ CTCLChannelCommand::operator()(CTCLInterpreter&    interp,
   else {
     string result = objv[0];
     result       += " ";
-    result       += objv[1];
+    result       += string(objv[1]);
     result       += " -- Bad subcommand for channel command\n";
     result       += Usage();
     interp.setResult(result);
@@ -170,7 +170,7 @@ CTCLChannelCommand::Set(CTCLInterpreter&    interp,
   if ((objv.size() < 3) || (objv.size() > 4)) {
     string result = objv[0];
     result       += " ";
-    result       += objv[1];
+    result       += string(objv[1]);
     result       += " -- insufficient parameters\n";
     result       += Usage();
     interp.setResult(result);
@@ -183,7 +183,7 @@ CTCLChannelCommand::Set(CTCLInterpreter&    interp,
 
   string value = objv[2];
   if (objv.size() == 4) {
-    datatype = objv[3];
+    datatype = string(objv[3]);
   }
 
   // The rest of this is inside a try block so that any conversion errors
@@ -206,9 +206,9 @@ CTCLChannelCommand::Set(CTCLInterpreter&    interp,
     else {
       string result = objv[0];
       result += " ";
-      result += objv[1];
+      result += string(objv[1]);
       result += " ";
-      result += objv[2];
+      result += string(objv[2]);
       result += " ";
       result += datatype;
       result += " -- invalid data type\n";
@@ -221,9 +221,9 @@ CTCLChannelCommand::Set(CTCLInterpreter&    interp,
   catch (...) {
     string result = objv[0];
     result       += " ";
-    result       += objv[1];
+    result       +=string(objv[1]);
     result       += " ";
-    result       += objv[2];
+    result       += string(objv[2]);
     result       += " ";
     result       += datatype;
     result       += " -- data does not convert to selecte data type\n";

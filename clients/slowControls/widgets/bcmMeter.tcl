@@ -124,7 +124,8 @@ snit::widget  controlwidget::bcmMeter {
         grid $win.value           $win.units
         grid $win.meter                 -
         grid $win.rangelabel            -
-        grid $win.incrange        $win.decrange
+        grid $win.incrange        -row 4 -column 0 -sticky w
+	grid $win.decrange        -row 4 -column 1 -sticky e
 
     }
     #-------------------------- public methods ---------------------------

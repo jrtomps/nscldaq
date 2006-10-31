@@ -253,7 +253,7 @@ proc SourceExperimentFiles {} {
 	set file [glob -nocomplain $dir/ReadoutCallouts.tcl]
 	if {$file != ""} {
 	    lappend directories [ExactPath $dir]
-	    source $file
+	    uplevel #0 source $file
 	}
     }
     set curdir [pwd]
@@ -261,7 +261,8 @@ proc SourceExperimentFiles {} {
     set file [glob -nocomplain $curdir/ReadoutCallouts.tcl]
     if {[lsearch -exact $directories $curdir] == -1} {
 	if {$file != ""} {
-	    source $file
+	    
+	    uplevel #0 source $file
 	}
     }
 }
