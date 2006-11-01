@@ -729,5 +729,6 @@ September 7, 2006
                        - Misc. fixes and improvements to epics widgets.
                        - make sure epics command will work on 3.x
                        - added epicsLabelWithUnits widget.
-
+  November 1, 2006     - Fix some issues with building from distro rather
+                         than from source.
 .
