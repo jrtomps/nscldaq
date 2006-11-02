@@ -1,5 +1,4 @@
-// in review.... check:
-//   - use of m_buffersize is consistent.
+
 
 /*
     This software is Copyright by the Board of Trustees of Michigan
@@ -269,7 +268,7 @@ COutputThread::startRun(DataBuffer& buffer)
 
   // Submit the buffer to spectrodaq as tag 2 and free it.
 
-  bufferToSpectrodaq(p, 3, m_outputBufferSize, 
+  bufferToSpectrodaq(p, 3, m_outputBufferSize/sizeof(uint16_t), 
 		     sizeof(BeginRunBuffer)/sizeof(uint16_t));
   free(p);
 }
@@ -292,7 +291,7 @@ COutputThread::endRun(DataBuffer& buffer)
   
   // Submit to spectrodaq and free:
   
-  bufferToSpectrodaq(p, 3, m_outputBufferSize,
+  bufferToSpectrodaq(p, 3, m_outputBufferSize/sizeof(uint16_t),
 		     sizeof(BeginRunBuffer)/sizeof(uint16_t));
   free(p);
 }
@@ -344,7 +343,7 @@ COutputThread::scaler(DataBuffer& buffer)
   
   // Submit the buffer and free it:
 
-  bufferToSpectrodaq(outbuf, 3, m_outputBufferSize, finalWordCount);
+  bufferToSpectrodaq(outbuf, 3, m_outputBufferSize/sizeof(uint16_t), finalWordCount);
   free(outbuf);
 		     
 
@@ -394,7 +393,7 @@ COutputThread::events(DataBuffer& buffer)
 
   // route the buffer and free it:
 
-  bufferToSpectrodaq(p, 2, m_outputBufferSize, finalLength);
+  bufferToSpectrodaq(p, 2, m_outputBufferSize/sizeof(uint16_t), finalLength);
   free(p);
   lastBuffer = &buffer;  
 }
