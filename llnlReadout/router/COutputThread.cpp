@@ -36,6 +36,8 @@
 
 using namespace std;
 
+static DataBuffer* lastBuffer(0);
+
 
 ///////////////////////////////////////////////////////////////////////
 ///////////////////// Local data types ////////////////////////////////
@@ -224,7 +226,7 @@ COutputThread::formatBuffer(DataBuffer& buffer)
     events(buffer);
   } 
   else {
-    char msg[200];
+    static char msg[200];
     sprintf(msg, 
 	    "unrecognized buffer type header: 0x%04x 1st event header 0x%04x",
 	    header, firstEvhdr);
@@ -254,7 +256,7 @@ COutputThread::startRun(DataBuffer& buffer)
   m_runNumber       = pState->getRunNumber();
   m_title           = pState->getTitle();
   m_sequence        = 0;
-  m_outputBufferSize= buffer.s_bufferSize;
+  m_outputBufferSize= buffer.s_bufferSize + sizeof(BHEADER);
   m_startTimestamp       = buffer.s_timeStamp;
   m_lastStampedBuffer    = 0; 
 
@@ -267,7 +269,7 @@ COutputThread::startRun(DataBuffer& buffer)
 
   // Submit the buffer to spectrodaq as tag 2 and free it.
 
-  bufferToSpectrodaq(p, 2, m_outputBufferSize, 
+  bufferToSpectrodaq(p, 3, m_outputBufferSize, 
 		     sizeof(BeginRunBuffer)/sizeof(uint16_t));
   free(p);
 }
@@ -290,7 +292,7 @@ COutputThread::endRun(DataBuffer& buffer)
   
   // Submit to spectrodaq and free:
   
-  bufferToSpectrodaq(p, 2, m_outputBufferSize,
+  bufferToSpectrodaq(p, 3, m_outputBufferSize,
 		     sizeof(BeginRunBuffer)/sizeof(uint16_t));
   free(p);
 }
@@ -317,7 +319,7 @@ COutputThread::scaler(DataBuffer& buffer)
   uint16_t  finalWordCount = sizeof(ScalerBuffer)/sizeof(uint16_t) + 
     length*sizeof(uint32_t)/sizeof(uint16_t) - 1;
   
-  pScalerBuffer outbuf  = static_cast<pScalerBuffer>(malloc(m_outputBufferSize));
+  pScalerBuffer outbuf  = static_cast<pScalerBuffer>(malloc(sizeof(ScalerBuffer)+m_outputBufferSize));
   memcpy(outbuf->s_body.scalers, pScalers, length*sizeof(uint32_t));
   
   // fill in the header.
@@ -332,7 +334,7 @@ COutputThread::scaler(DataBuffer& buffer)
   outbuf->s_header.nbit   = 0;
   outbuf->s_header.buffmt = BUFFER_REVISION;
   outbuf->s_header.ssignature = 0x0102;
- outbuf->s_header.lsignature = 0x01020304;
+  outbuf->s_header.lsignature = 0x01020304;
 
   // Now the body that does not have scaler data:
 
@@ -342,7 +344,7 @@ COutputThread::scaler(DataBuffer& buffer)
   
   // Submit the buffer and free it:
 
-  bufferToSpectrodaq(outbuf, 2, m_outputBufferSize, finalWordCount);
+  bufferToSpectrodaq(outbuf, 3, m_outputBufferSize, finalWordCount);
   free(outbuf);
 		     
 
@@ -364,15 +366,17 @@ COutputThread::scaler(DataBuffer& buffer)
 void 
 COutputThread::events(DataBuffer& buffer)
 {
+
+
   //  Create the output buffer first; and copy the
   //  event data into it:
 
-  pEventBuffer p  = static_cast<pEventBuffer>(malloc(m_outputBufferSize));
-  memcpy(p->s_body, &(buffer.s_rawData[1]), buffer.s_bufferSize/sizeof(uint16_t) - sizeof(uint16_t));
+  pEventBuffer p  = static_cast<pEventBuffer>(malloc(sizeof(EventBuffer)+m_outputBufferSize));
+  memcpy(p->s_body, &(buffer.s_rawData[1]), buffer.s_bufferSize  - sizeof(uint16_t));
 
   //  Now the header except for nevt...
 
-  uint16_t finalLength = sizeof(BHEADER) + buffer.s_bufferSize/sizeof(uint16_t);
+  uint16_t finalLength = sizeof(BHEADER) + buffer.s_bufferSize/sizeof(uint16_t) - sizeof(uint16_t);
   p->s_header.nwds   = finalLength;
   p->s_header.type   = DATABF;
   p->s_header.cks    = 0;
@@ -390,9 +394,9 @@ COutputThread::events(DataBuffer& buffer)
 
   // route the buffer and free it:
 
-  bufferToSpectrodaq(p, 1, m_outputBufferSize, finalLength);
+  bufferToSpectrodaq(p, 2, m_outputBufferSize, finalLength);
   free(p);
-  
+  lastBuffer = &buffer;  
 }
 
 
@@ -467,8 +471,10 @@ COutputThread::eventCount(void* nsclBuffer)
 
   while (*pb != 0xffff) {
     uint16_t count = *pb & VMUSBEventLengthMask;
-    if (*pb & VMUSBContinuation) events++;
-    p += count;
+    if (!(*pb & VMUSBContinuation)) {
+      events++;			// End of event.
+    }
+    pb += (count+1);		// The event length does not include evt header.
   }
 
   return events;

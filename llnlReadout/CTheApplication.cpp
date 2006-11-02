@@ -50,7 +50,7 @@ static const int tclServerPort(27000);
 static const string daqConfigBasename("daqconfig.tcl");
 static const string ctlConfigBasename("controlconfig.tcl");
 static const uint32_t bufferCount(32); // Number of buffers that can be inflight.
-static const uint32_t bufferSize(13*1024*sizeof(uint16_t)); // 13kword buffers.
+static const uint32_t bufferSize(13*1024*sizeof(uint16_t)+1024); // 13kword buffers...+pad
 
 
 // Static member variables and initialization.

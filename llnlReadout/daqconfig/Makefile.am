@@ -12,5 +12,5 @@ INCLUDES		= 	-I@top_srcdir@/devices	\
 				$(SPECTRODAQ_FLAGS)
 
 libConfig_la_LIBADD	=	@top_srcdir@/devices/libVMUSBDevices.la 	\
-				$(TCL_LDFLAGS)
+				$(TCL_LDFLAGS) $(SPECTRODAQ_LDFLAGS)
 

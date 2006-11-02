@@ -28,11 +28,13 @@
 #include <Exception.h>
 #include <iostream>
 
+#include <string.h>
+#include <errno.h>
 using namespace std;
 
 static const uint8_t vmeVector(0x80); // Some middle of the road vector.
 static const uint8_t vmeIPL(6);	      // not quite NMI.
-static const unsigned scalerPeriod(1);	      // Seconds between scaler readouts.
+static const unsigned scalerPeriod(5);	      // Seconds between scaler readouts.
 static const unsigned scalerPeriodMultiplier(2); // period*this to get seconds.
 static const unsigned DRAINTIMEOUTS(5);	// # consecutive drain read timeouts before giving up.
 static const unsigned USBTIMEOUT(10);
@@ -193,6 +195,9 @@ CAcquisitionThread::mainLoop()
 	pBuffer->s_bufferType   = TYPE_EVENTS;
 	processBuffer(pBuffer);	// Submitted to output thread so...
 	pBuffer = gFreeBuffers.get(); // need a new one.
+      } 
+      else {
+	cerr << "Bad status from usbread: " << strerror(errno) << endl;
       }
       // Commands from our command queue.
       
@@ -271,8 +276,16 @@ CAcquisitionThread::processBuffer(DataBuffer* pBuffer)
 {
   time_t acquiredTime;		// Need to generate  our own timestamps.
   time(&acquiredTime);
-
   pBuffer->s_timeStamp  = acquiredTime;
+
+  // Sanity checking: see if the event in the buffer has one of our stack ids:
+  //
+  int stack = (pBuffer->s_rawData[1] & VMUSBStackIdMask) >> VMUSBStackIdShift;
+  if ((stack != 1) && (stack !=2) && (pBuffer->s_bufferType == TYPE_EVENTS)) {
+    cerr << "Read a buffer with first event from a strange stack: " << stack << endl;
+    cerr << "1'st event 1'st word: " << hex << pBuffer->s_rawData[1] << dec  << endl;
+  }
+
   gFilledBuffers.queue(pBuffer);	// Send it on to be routed to spectrodaq in another thread.
 }
 /*!
@@ -296,15 +309,15 @@ CAcquisitionThread::startDaq()
 
   // Reset the VME so that all modules are back to default conditions.
 
-  // m_pVme->writeActionRegister(CVMUSB::ActionRegister::sysReset);
-  //  m_pVme->writeActionRegister(0);
+   m_pVme->writeActionRegister(CVMUSB::ActionRegister::sysReset);
+    m_pVme->writeActionRegister(0);
 
   // Create the lists and size the event readout list.
 
   CVMUSBReadoutList*  adcList    = createList(m_adcs);
   CVMUSBReadoutList*  scalerList = createList(m_scalers);
 
-  size_t adcListLines            = adcList->size(); // offset to scaler list.
+  size_t adcListLines            = adcList->size() + 10; // offset to scaler list + slop
   
   m_pVme->writeActionRegister(0); // Ensure DAQ is stopped.
 
@@ -325,7 +338,7 @@ CAcquisitionThread::startDaq()
  
   // Set up the buffer size and mode:
 
-  m_pVme->writeBulkXferSetup(0); // don't want multibuffering...1sec timeout is fine.
+  m_pVme->writeBulkXferSetup(2 << CVMUSB::TransferSetupRegister::timeoutShift); // don't want multibuffering...2sec timeout is fine.
 
   // the DAQ settings;
   //  - No trigger delay is needed since IRQ implies data.
@@ -342,7 +355,7 @@ CAcquisitionThread::startDaq()
   //   Bus request level 4.
   //
   m_pVme->writeGlobalMode((4 << CVMUSB::GlobalModeRegister::busReqLevelShift) | 
-			  (CVMUSB::GlobalModeRegister::bufferLen1K << 
+			  (CVMUSB::GlobalModeRegister::bufferLen13K << 
 			   CVMUSB::GlobalModeRegister::bufferLenShift));
 
   // initialize the hardware:

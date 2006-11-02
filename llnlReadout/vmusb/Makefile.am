@@ -3,7 +3,7 @@ libVMUSB_la_SOURCES 	= CVMUSB.cpp CVMUSBReadoutList.cpp
 include_HEADERS		= CVMUSB.h   CVMUSBReadoutList.h 
 INCLUDES		= $(USBSWITCHES) $(SPECTRODAQ_FLAGS)
 
-libVMUSB_la_LIBADD       = $(USB_LIBS) 
+libVMUSB_la_LIBADD       = $(USB_LIBS)  $(SPECTRODAQ_LDFLAGS)
 
 #IVP tests:
 

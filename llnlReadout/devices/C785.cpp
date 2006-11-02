@@ -341,7 +341,9 @@ C785::Initialize(CVMUSB& controller)
 }
 /*!
    Add the module read to a readout list.  In this case we will
-   add MaxLongwordsBuffered reads in fifo mode to the list.
+   add MaxLongwordsBuffered*2 reads in fifo mode to the list.
+   The *2 is because we're still acquiring data when the read is
+   happening...and we really want to drain the device
    \param list : CVMUSBReadoutList&
        Reference to the readout list to append to.
 
@@ -350,7 +352,7 @@ void
 C785::addReadoutList(CVMUSBReadoutList& list)
 {
   list.addFifoRead32(static_cast<uint32_t>(getIntegerParameter("-base")),
-		     readamod, static_cast<size_t>(MaxLongwordsBuffered));
+		     readamod, static_cast<size_t>(MaxLongwordsBuffered*2));
 }
 
 /*!

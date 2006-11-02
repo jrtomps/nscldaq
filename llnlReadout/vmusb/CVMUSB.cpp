@@ -60,6 +60,8 @@ static const unsigned int ISV56(0x30);          // Interrupt 5/6 dispatch.
 static const unsigned int ISV78(0x34);          //  Interrupt 7/8 dispatch.
 static const unsigned int DGGExtended(0x38);    // DGG Additional bits.
 static const unsigned int USBSetup(0x3c);       // USB Bulk transfer setup. 
+static const unsigned int USBVHIGH1(0x40);      // High bits of ISV12/34.
+static const unsigned int USBVHIGH2(0x44);      // High bits of ISV56/78.
 
 // Bits in the list target address word:
 
@@ -455,6 +457,12 @@ CVMUSB::writeVector(int which, uint32_t value)
 {
     unsigned int regno = whichToISV(which);
     writeRegister(regno, value);
+    
+    // Horrible kluge... zero the top parts of all VM-USB interrupt
+    // vectors for now. 
+
+    writeRegister(USBVHIGH1, 0);
+    writeRegister(USBVHIGH2, 0);
 }
 
 /*!

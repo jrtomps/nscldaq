@@ -9,7 +9,7 @@ INCLUDES	= -I$(top_builddir)/vmusb @TCL_FLAGS@ $(SPECTRODAQ_FLAGS)
 
 
 libVMUSBDevices_la_LIBADD	= $(top_builddir)/vmusb/libVMUSB.la \
-				  @TCL_LDFLAGS@
+				  @TCL_LDFLAGS@ $(SPECTRODAQ_LDFLAGS)
 
 include_HEADERS			= 	CConfigurableObject.h	\
 					CReadoutModule.h 	\
