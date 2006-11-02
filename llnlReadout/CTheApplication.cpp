@@ -13,6 +13,9 @@
 	     Michigan State University
 	     East Lansing, MI 48824-1321
 */
+
+static const char "V1.0"
+
 #include <config.h>
 #include "CTheApplication.h"
 #include "Globals.h"
@@ -96,6 +99,9 @@ int CTheApplication::operator()(int argc, char** argv)
 {
   m_Argc   = argc;		// In case someone else wants them.
   m_Argv   = argv; 
+
+
+  cerr << "VM-USB scriptable readout version " << versionString << endl;
 
   try {				// Last chance exception catching...
     
