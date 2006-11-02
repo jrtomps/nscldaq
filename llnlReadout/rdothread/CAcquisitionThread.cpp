@@ -96,6 +96,7 @@ CAcquisitionThread::start(CVMUSB* usb,
 {
   CRunState* pState = CRunState::getInstance();
   pState->setState(CRunState::Active);
+  pState->setScalerPeriod(scalerPeriod);
 
   CAcquisitionThread* pThread = getInstance();
   m_pVme = usb;

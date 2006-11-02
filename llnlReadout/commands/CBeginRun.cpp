@@ -18,6 +18,7 @@
 #include "CBeginRun.h"
 #include <TCLInterpreter.h>
 #include <TCLInterpreterObject.h>
+#include <TCLVariable.h>
 #include <Globals.h>
 #include "tclUtil.h"
 #include <CAcquisitionThread.h>
@@ -90,6 +91,24 @@ CBeginRun::operator()(CTCLInterpreter& interp,
 		   usage);
     return TCL_ERROR;
   }
+  // Set the state to match the appropriate set of variables:
+  //
+  CTCLVariable run(&interp, "run", false);
+  const char* runNumberString = run.Get(TCL_GLOBAL_ONLY);
+  if (!runNumberString) {
+    runNumberString = "0";	// If no run variable, default run number-> 0.
+  }
+  uint16_t runNumber;
+  sscanf(runNumberString, "%hu", &runNumber);
+  pState->setRunNumber(runNumber);
+
+  CTCLVariable title(&interp, "title", false);
+  const char *titleString = title.Get(TCL_GLOBAL_ONLY);
+  if (!titleString) {
+    titleString = "No Title Set"; // If no title variable default it.
+  }
+  pState->setTitle(string(titleString));
+  
   // Now we can start the run.
 
   Globals::pConfig = new CConfiguration;
