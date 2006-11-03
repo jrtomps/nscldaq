@@ -826,7 +826,7 @@ proc UpdateSingle {widget line name page {average 0}} {
 		set rate "0"
 	    }
 	    $widget cellconfigure $line,2 -text $rate
-	    $widget cellconfigure $line,3 -text [format %u $totals]
+	    $widget cellconfigure $line,3 -text [format %.0f $totals]
 
             # Check the alarms:
 
