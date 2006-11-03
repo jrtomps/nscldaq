@@ -147,9 +147,10 @@ CLLNLUnpacker::operator()(const Address_t pEvent,
   switch (m_state) {
   case Initial:
     fetchSuperEvent(p);
-    m_state = Internal;
+    m_state = Internal;		// Want it to fall through to unpack.
   case Internal:
     unpackModule(rEvent);
+    break;			// Don't want to fall through for exception.
   default:
     throw CEventFormatError(static_cast<int>(CEventFormatError::knBadPacketContents),
 			    "Invalid state in CLLNLUnpacker::operator()");
@@ -216,10 +217,10 @@ CLLNLUnpacker::fetchSuperEvent(TranslatorPointer<UShort_t>& p)
     }
 
   }
-  // Now there's a delimeter too:
+  // Now there's a delimeter too: -- well not really .. not any more.
 
-  ++p;
-  m_size++;
+  //  ++p;
+  //m_size++;
 
 }
 
@@ -273,7 +274,7 @@ CLLNLUnpacker::unpackModule(CEvent& rEvent)
 
       if (theMap.size() > slot) { // Map must have the slot.
 	int paramno = theMap[slot][channel];
-	if (paramno >= 0) rEvent[paramno] = datum;
+	if (paramno >= 0) rEvent[paramno] = value;
       }
       m_event.pop_front();
       datum  = m_event.front();

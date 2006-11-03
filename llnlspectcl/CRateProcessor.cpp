@@ -165,9 +165,9 @@ CRateProcessor::OnBegin(CAnalyzer& analyzer, CBufferDecoder& decoder)
 */
 
 Bool_t
-CRateProcessor::OnOther(CAnalyzer& analyzer, CBufferDecoder& decoder)
+CRateProcessor::OnOther(UInt_t nType, CAnalyzer& analyzer, CBufferDecoder& decoder)
 {
-  if (decoder.getBufferType() != 2) {
+  if (nType != 2) {
     return kfTRUE;		// Not a scaler.
   }
 

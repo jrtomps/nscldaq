@@ -75,7 +75,7 @@ public:
   // Virtual function overrides:
   
   virtual Bool_t OnBegin (CAnalyzer& analyzer, CBufferDecoder& decoder);
-  virtual Bool_t OnOther (CAnalyzer& analyzer, CBufferDecoder& decoder);
+  virtual Bool_t OnOther (UInt_t nType, CAnalyzer& analyzer, CBufferDecoder& decoder);
 
 
   // Utilties:

@@ -86,6 +86,7 @@ CMySpecTclApp::CMySpecTclApp ()
 
 
 
+
 //  Function: 	
 //    void BindTCLVariables(CTCLInterpreter& rInterp) 
 //  Operation Type:

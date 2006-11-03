@@ -479,9 +479,16 @@ proc buildRatesDisplay frame {
 proc UserUpdate {} {
     global ratesPage
     global ScalerDeltaTime
+    global BuffersAnalyzed
+    global LastSequence
+
+    puts "UserUpdate called"
     $ratesPage.table configure -state normal
     set rates [rate list]
+
     set numRates  [llength $rates]
+    puts "Rates list has $numRates entries"
+
     set ratesRows [$ratesPage.table cget -rows]
     #
     #  If necessary, expand the table:
@@ -491,6 +498,7 @@ proc UserUpdate {} {
     }
     set row 1;				# First row is title
     set dt $ScalerDeltaTime
+    puts "Deltat time: $dt"
 
     if {$dt == 0} {
 	set dt 1
@@ -502,13 +510,20 @@ proc UserUpdate {} {
 	set name   [format %-32s $name]
 	set totals [lindex $rate 2]
 	set rates  [lindex $rate 3];
-	set rates  [expr $rates/$dt];	# Need livetime correction.
+	set rates  [expr $rates/$dt];	
+
+	# Correct for deadtime estimated as the fraction
+	# of the buffers processd.
+
+	set rates  [expr $rates*$LastSequence/$BuffersAnalyzed]
+	set totals [expr $totals*$LastSequence/$BuffersAnalyzed]
 
 	set totalCounts [expr $totalCounts + $totals]
 	set totalRates  [expr $totalRates  + $rates]
 
 	set rates [format %6.3f $rates]
 	set totals [format %5.2f $totals]
+
 
 	$ratesPage.table set row $row,0 [list $name $rates $totals]
 	incr row
@@ -518,6 +533,7 @@ proc UserUpdate {} {
 					 [format %5.2f $totalCounts]]
 
     $ratesPage.table configure -state disable
+    puts "Successful exit from UserUpdate"
 }
 
 
