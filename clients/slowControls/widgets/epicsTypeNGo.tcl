@@ -33,7 +33,7 @@ package require snit
 package require typeNGo
 
 package require epics
-
+package require bindDown
 
 namespace eval controlwidget {
     namespace export epicsTypeNGo
@@ -71,6 +71,8 @@ snit::widget controlwidget::epicsTypeNGo {
 	    epicschannel $channel.SETV
 	    set timerId [after 100 [mymethod loadEntry]]
 	}
+
+	bindDown $win $win
     }
 
     destructor {

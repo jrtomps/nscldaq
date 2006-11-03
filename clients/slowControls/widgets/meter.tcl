@@ -42,7 +42,7 @@
 package provide meter 1.0
 package require Tk
 package require snit
-
+package require bindDown
 
 namespace eval controlwidget {
     namespace export meter
@@ -131,7 +131,7 @@ snit::widget controlwidget::meter {
            trace add variable ::$options(-variable) write [mymethod variableChanged]
             $self needleTo [set ::$options(-variable)]
         }
-
+	bindDown $win $win
 
     }
 

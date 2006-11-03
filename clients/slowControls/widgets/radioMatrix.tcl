@@ -49,6 +49,7 @@
 package provide radioMatrix 1.0
 package require Tk
 package require snit
+package require bindDown
 
 namespace eval controlwidget {
     namespace export radioMatrix
@@ -117,7 +118,7 @@ snit::widget  ::controlwidget::radioMatrix {
 	if {$labelvar ne ""} {
 	    $self Set [set ::$labelvar]
 	}
-
+	bindDown $win $win
     }
 
     # Public methods:

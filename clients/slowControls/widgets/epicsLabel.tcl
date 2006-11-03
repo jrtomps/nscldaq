@@ -32,7 +32,7 @@ package provide epicsLabel 1.0
 package require Tk
 package require snit
 package require epics
-
+package require bindDown
 
 namespace eval controlwidget {
     namespace export epicsLabel
@@ -59,6 +59,8 @@ snit::widget  controlwidget::epicsLabel {
 
 
 	pack $win.label  -side left -expand 1 -fill both
+
+	bindDown $win $win
 
     }
 }

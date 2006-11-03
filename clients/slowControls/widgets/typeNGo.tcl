@@ -54,6 +54,7 @@
 package provide typeNGo  1.0
 package require Tk
 package require snit
+package require bindDown
 
 namespace eval controlwidget {
 }
@@ -86,6 +87,8 @@ snit::widget controlwidget::typeNGo {
 	# bind <Enter> in the entry so that it calls invoke:
 
 	bind $win.entry <Return> [mymethod Invoke]
+	bindDown $win $win
+
     }
     #
     #  Return the contents of the entry widget

@@ -731,4 +731,7 @@ September 7, 2006
                        - added epicsLabelWithUnits widget.
   November 1, 2006     - Fix some issues with building from distro rather
                          than from source.
-.
+. November 3, 2006     - Explicitly force a link of libException to the
+                         VME API due to the lock functions.. and problems
+                         on some systems with respect to it.
+

@@ -6,6 +6,9 @@ libVmeAPI_la_SOURCES = @VMEDEVICE@API.cpp  @SEPERABLELOCK@.cpp
 
 libVmeAPI_la_LDFLAGS = -version-info $(SOVERSION):0 $(VMEBUILDLIBS) \
 	-Wl"-rpath=$(libdir)"
+
+libVmeAPI_la_LIBADD = @top_srcdir@/Exception/libException.la
+
 include_HEADERS = CVMEInterface.h SBSBit3API.h WienerAPI.h \
 	WienerUSBVMEInterface.h
 

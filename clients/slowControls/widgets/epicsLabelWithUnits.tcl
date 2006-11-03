@@ -23,6 +23,7 @@ package provide epicsLabelWithUnits 1.0
 package require Tk
 package require snit
 package require epics
+package require bindDown
 
 namespace eval controlwidget {
     namespace export epicsLabelwithUnits
@@ -50,5 +51,6 @@ snit::widget ::controlwidget::epicsLabelWithUnits {
 	grid $win.value -column 0 -row 0 -sticky e
 	grid $win.units -column 1 -row 0 -sticky w
 
+	bindDown $win $win
     }
 }

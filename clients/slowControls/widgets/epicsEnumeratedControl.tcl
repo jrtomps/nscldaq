@@ -52,7 +52,7 @@ package provide epicsEnumeratedControl 1.0
 package require Tk
 package require epics
 package require radioMatrix
-
+package require bindDown
 
 namespace eval controlwidget {
     namespace export epicsEnumeratedControl
@@ -101,6 +101,7 @@ snit::widget ::controlwidget::epicsEnumeratedControl {
 	    epicschannel  $channel.SETV
 	    after 100 [mymethod updateRadio]
 	}
+	bindDown $win $win
 
     }
     #  Processes radio button hits.. just turns these around

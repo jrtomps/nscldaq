@@ -70,6 +70,7 @@ package require meter
 package require epics
 package require BWidget;      # for ArrowButton.
 package require snit
+package require bindDown
 
 namespace eval controlwidget {
     namespace export bcmMeter
@@ -126,6 +127,8 @@ snit::widget  controlwidget::bcmMeter {
         grid $win.rangelabel            -
         grid $win.incrange        -row 4 -column 0 -sticky w
 	grid $win.decrange        -row 4 -column 1 -sticky e
+
+	bindDown $win $win
 
     }
     #-------------------------- public methods ---------------------------
