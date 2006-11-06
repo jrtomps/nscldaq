@@ -734,4 +734,7 @@ September 7, 2006
 . November 3, 2006     - Explicitly force a link of libException to the
                          VME API due to the lock functions.. and problems
                          on some systems with respect to it.
-
+  November 6, 2006     - Add BUFFERSIZE env variable to readout GUI
+                         so that an external env variable can be set 
+                         to control the buffersize (e.g. for LLNL
+                         and its 13Kbyte+16word buffers)

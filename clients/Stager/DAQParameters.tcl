@@ -29,7 +29,7 @@
 #                                have to dig out yourself.  Note that
 #                                If supplied in the env var, PASSWD is assumed
 #                                to be cleartext and encrypted here.
-# BufferSize                     Size of buffers on disk.
+# BufferSize       BUFFERSIZE    Size of buffers on disk.
 #
 
 package provide DAQParameters 1.0
@@ -60,6 +60,7 @@ proc DAQParameters::environmentOverrides {} {
     Configuration::readEnvironment SourceHost  DAQHOST localhost
     Configuration::readEnvironment ReadoutPath RDOFILE
     Configuration::readEnvironment FtpHost     EVTHOST
+    Configuration::readEnvironment BufferSize  BUFFERSIZE
 
     #  Passwd is handled strangely since it must be encrypted.
 
