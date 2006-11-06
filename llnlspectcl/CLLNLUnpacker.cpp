@@ -263,12 +263,14 @@ CLLNLUnpacker::unpackModule(CEvent& rEvent)
     // down before.
     //
 
+
+    CParamMapCommand::ParameterMap& theMap(CParamMapCommand::getMap());
     uint32_t datum = m_event.front();
     uint32_t type = getType(datum);
 
-    CParamMapCommand::ParameterMap& theMap(CParamMapCommand::getMap());
+    while ((type == DATA) && (!m_event.empty())) {
 
-    while (type == DATA) {
+
       int channel = (datum & DATAH_CHANMASK) >> DATAH_CHANSHIFT;
       int value   = (datum & DATAL_DATAMASK);
 
@@ -276,9 +278,11 @@ CLLNLUnpacker::unpackModule(CEvent& rEvent)
 	int paramno = theMap[slot][channel];
 	if (paramno >= 0) rEvent[paramno] = value;
       }
-      m_event.pop_front();
-      datum  = m_event.front();
-      type   = getType(datum);
+      m_event.pop_front();	// next longword.
+      if (!m_event.empty()) {
+	datum = m_event.front();	// Fetch the elements.
+	type  = getType(datum);
+      }
     }
 
     // If the terminating long is not a header eat it up as it's either
@@ -286,7 +290,7 @@ CLLNLUnpacker::unpackModule(CEvent& rEvent)
     // time around.
     // 
 
-    if (type != HEADER) m_event.pop_front();
+    if ((type != HEADER) && (!m_event.empty())) m_event.pop_front();
 
   }
 

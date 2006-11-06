@@ -482,12 +482,10 @@ proc UserUpdate {} {
     global BuffersAnalyzed
     global LastSequence
 
-    puts "UserUpdate called"
     $ratesPage.table configure -state normal
     set rates [rate list]
 
     set numRates  [llength $rates]
-    puts "Rates list has $numRates entries"
 
     set ratesRows [$ratesPage.table cget -rows]
     #
@@ -498,7 +496,6 @@ proc UserUpdate {} {
     }
     set row 1;				# First row is title
     set dt $ScalerDeltaTime
-    puts "Deltat time: $dt"
 
     if {$dt == 0} {
 	set dt 1
@@ -532,8 +529,16 @@ proc UserUpdate {} {
 					 [format %6.3f $totalRates] \
 					 [format %5.2f $totalCounts]]
 
+    # Make sure the rest of the rows are empty:
+
+    incr row
+    while {$row < $ratesRows} {
+	$ratesPage.table set row $row,0 [list "" "" ""]
+	incr row
+    }
+    
+
     $ratesPage.table configure -state disable
-    puts "Successful exit from UserUpdate"
 }
 
 
