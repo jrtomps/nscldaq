@@ -73,3 +73,85 @@ proc fom {spectrum} {
     return [expr abs(($cent1 - $cent2)/($fwhm1 + $fwhm2))]
 
 }
+#
+#  ShowFOM   - show the figure of merit for specific spectrum to
+#  a popup:
+#
+set fomboxId 0
+proc ShowFOM spectrum {
+    global fomboxId
+    set value [fom $spectrum]
+    set value [format %0.2f $value]
+    
+    if {$value != -1} {
+	set message "Figure of merit for $spectrum is $value"
+    } else {
+	set message "Figure of merit for $spectrum is not defined"
+    }
+    set top [toplevel .fom$fomboxId]
+    incr fomboxId
+
+    message $top.msg -text $message
+    button  $top.dismiss -text Dismiss -command [list destroy $top]
+
+    pack $top.msg $top.dismiss
+}
+
+# ShowFOMAll - Show the figure of merit for all spectra for which
+#              it is defined.
+#
+proc ShowFOMAll {} {
+    global fomboxId
+    set top [toplevel .foms$fomboxId]
+    incr fomboxId
+
+    listbox   $top.foms                    \
+	-yscrollcommand [list $top.sb set] \
+	-width 28
+    scrollbar $top.sb     \
+	-orient vertical  \
+	-command [list $top.foms yview]
+    button    $top.dismiss -text Dismiss -command [list destroy $top]
+    button    $top.file    -text Save... -command [list saveFoms $top.foms]
+
+    grid $top.foms -row 0   -column 0 -sticky nsew
+    grid $top.sb   -row 0   -column 1 -sticky nsw
+    grid $top.dismiss  $top.file
+
+    foreach spectrum [spectrum -list] {
+	set name [lindex $spectrum 1]
+	set value [fom $name]
+	if {$value != -1} {
+	    set line [format "%-20s %5.2f" $name $value]
+	    $top.foms insert end $line
+	}
+
+    }
+
+}
+# saveFoms  - save the figure of merit calculations in the listbox
+#             provided to file
+#
+proc saveFoms widget {
+    global RunTitle
+    global RunNumber
+
+    set file [tk_getSaveFile -title "FOM File"                \
+		  -filetypes {{{Text files} .txt}             \
+				  {{All Files} *}}]
+    if {$file eq ""} {
+	return
+    }
+
+    set fd [open $file w]
+    puts $fd "Figure of merit listing for run $RunNumber '$RunTitle'"
+    puts $fd "Time: [clock format [clock seconds]]"
+    puts $fd
+
+    set data [$widget get 0 end]
+    foreach fom $data {
+	puts $fd $fom
+    }
+    close $fd
+
+}

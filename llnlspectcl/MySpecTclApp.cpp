@@ -167,7 +167,7 @@ CMySpecTclApp::CreateHistogrammer()
 
   // Xamine has been started, so we can hook in our buttons now.
 
-  Xamine_DefineButtonBox(3,3);	
+  Xamine_DefineButtonBox(4,4);	
 }  
 
 //  Function: 	
@@ -190,7 +190,7 @@ CMySpecTclApp::SelectDisplayer(UInt_t nDisplaySize, CHistogrammer& rHistogrammer
 
   // By now the event handler is established:
 
-  new CFitButton(1, 1,1, getXamineEvents());
+  new CFitButton(getXamineEvents());
 
 }  
 

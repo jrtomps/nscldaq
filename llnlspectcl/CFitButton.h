@@ -21,31 +21,52 @@
 #include <XamineEventHandler.h>	// For base class.
 #endif
 
+#ifndef __STL_STRING
+#include <string>
+#ifndef __STL_STRING
+#define __STL_STRING
+#endif
+#endif
+
 class CButtonEvent;
 
 /*!
    This class defines a subclass of CXamineEventHandler::CButtonHandler.
-   - The constructor of this class creates a point prompt button that is
-     only enabled on 1-d spectra, and requires exactly 2 points (left/right limits).
-   - We register ourselves as a button hander with XamineEventHandler as well.
-   - When events come in, we use the information in the button event (if it's
-     for us) to create a Gaussian fit on that spectrum, and add the fit to the
-     Fit dictionary.. the observers on the dictionary, in turn will ensure that
-     the fit is added to the display as well... furthermore, since the fit
-     command operates off the spectrum dictionary, fit list etc. will show
-     the fit.  We'll execute the appropriate fit list command as well
-     to ensure that the data about the fit get output to the tkcon window.
+   The constructor creates a set of buttons in the Xamine client
+   button box, which is assumed to already have been made.
+   - Fit Gammas - requests a 1-d point prompter and creates a fit
+     named <spectrumname>-gammas
+   - Fit Neutrons - requests a 1-d point prompter and creates a fit
+     named <specturmname>-neutrons
+   - FOM - Performs the figure of merit computation on the currently
+     selected spectrum (no prompter).
+   - FOM All - Performs the figure of merit computation on all spectra
+     for which it is possible and pops it up in a new toplevel so that
+     the user can inspect or write to file.
+
+   Note that this class makes use of several helper Tcl scripts that
+   are assumed to already be defined:
+
+   - ShowFOM spectrumname
+     Shows the figure of merit computation for the currently selected spectrum.
+   - ShowFOMAll 
+     shows the figure of merit computation for all spectra that are elligible for
+     this.
 
 */
 class CFitButton : public CXamineEventHandler::CButtonHandler
 {
   // Member data.
 private:
-  int   m_buttonId;		// Id assigned to button.
+  int   m_FitButtonId;		// Ids assigned to buttons.
+  int   m_GammaFitButtonId;
+  int   m_NeutronFitButtonId;
+  int   m_FOMButtonId;
+  int   m_FOMAllButtonId;
 
   // constructors and canonicals.. note that copy-like ops are forbidden.
 public:
-  CFitButton(int id, int row, int column, CXamineEventHandler* pHandler);
+  CFitButton(CXamineEventHandler* pHandler);
   virtual ~CFitButton();
 private:
   CFitButton(const CFitButton& rhs);
@@ -56,7 +77,9 @@ private:
   // The following is called when the button is successfully used:
 
   virtual Bool_t operator()(CButtonEvent& event);
- 
+
+  STD(string) spectrumName(CButtonEvent& event);
+
 };
 
 

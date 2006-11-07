@@ -25,6 +25,7 @@
 #include <SpecTcl.h>
 #include <Spectrum.h>
 #include <CFitCommand.h>
+#include <TCLInterpreter.h>
 
 #include <clientops.h>
 #include <string>
@@ -36,27 +37,21 @@ using namespace std;
 #include <iostream>		// For debugging.
 
 /*!
-  The constructor must create the button as directed int he Xamine
-   button box.  We assume that someone else has already created the button
-   box with the appropriate dimensions to handle our button location.
-   \param id  : int
-      Id associated with the button.  This must be unique amongst all of the
-      buttons in the button box.  It is what allows us to recognize our button
-      event amongst any other button events that have occured.
-   \param row, column : int
-       The coordinates of the button in the button box.
+
+   For now we assume we have the button box all to ourselves.
+
    \param pEventHandler : CXamineEventHandler*
       Pointer to the xamine event handler (we register ourselvse on this).
 
 */
-CFitButton::CFitButton(int id, int row, int column,
-		       CXamineEventHandler* pEventHandler) :
-  m_buttonId(id)
+CFitButton::CFitButton(CXamineEventHandler* pEventHandler) 
 {
-  // Fill in the button description to match what we want:
+  // Generic Gauss fit button.
 
+
+  m_FitButtonId          = 1;
   ButtonDescription myButton;
-  myButton.button_code   = id;
+  myButton.button_code   = m_FitButtonId;
   strcpy(myButton.label, "Gauss Fit");
   myButton.type          = Push;
   myButton.sensitive     = T;
@@ -67,7 +62,42 @@ CFitButton::CFitButton(int id, int row, int column,
   myButton.minpts        = 2;
   myButton.maxpts        = 2;               // need exactly 2 pts.
 
-  Xamine_DefineButton(row, column, &myButton);
+  //  Xamine_DefineButton(0,0, &myButton); // Old button in case Tim needs to see.
+
+  // The Fit Gammas button is about the same as the GaussFit button.. just
+  // different Id and label:
+
+  m_GammaFitButtonId   = 2;
+  myButton.button_code = m_GammaFitButtonId;
+  strcpy(myButton.label, "Fit Gammas");
+  Xamine_DefineButton(0,0, &myButton);
+
+  // The fit Neutrons button is also about the same as the guass fit button:
+
+  m_NeutronFitButtonId  = 3;
+  myButton.button_code = m_NeutronFitButtonId;
+  strcpy(myButton.label, "Fit Neutrons");
+  Xamine_DefineButton(0,2, &myButton);
+
+  // The SHOW FOM  button has no prompter, and requires
+  // we be in a 1-d spectrum... 
+
+  m_FOMButtonId        = 4;
+  myButton.button_code = m_FOMButtonId;
+  strcpy(myButton.label, "FOM");
+  myButton.prompter    = NoPrompt;
+  Xamine_DefineButton(2,0, &myButton);
+
+  // Show all FOM button has no prompter, and no requirements
+  // about the current spectrum.
+
+  m_FOMAllButtonId    = 5;
+  myButton.button_code = m_FOMAllButtonId;
+  strcpy(myButton.label, "FOM All");
+  myButton.whenavailable =  Anytime;
+  Xamine_DefineButton(2,1, &myButton);
+
+
 
   pEventHandler->addButtonHandler(*this);
   
@@ -99,54 +129,119 @@ CFitButton::operator()(CButtonEvent& event)
 {
   // If this is not our button, return false right away:
 
-  if (m_buttonId != event.getId()) {
-    return kfFALSE;
-  }
+  int buttonId = event.getId();
+
+  // What we do depends a bit on the button that has been clicked:
+
+  if (buttonId == m_FitButtonId      | 
+      buttonId == m_GammaFitButtonId |
+      buttonId == m_NeutronFitButtonId) {
+
+    // Fits are all the same except for where the fit name comes from.
+
+
   // Before we can fit, we need to get:
   // - The name of the fit.
   // - The name of the spectrum.
   // - The fit points.
 
-  string         fitName       = event.getm_sPromptedString();
-  PointArray     pts           = event.getPoints();
-  int            bindId        = event.getPromptedSpectrum();
-  SpecTcl*       pApi          = SpecTcl::getInstance();
-  CHistogrammer* pHistogrammer = pApi->GetHistogrammer();
-  CSpectrum*     pSpectrum     = pHistogrammer->DisplayBinding(bindId-1);
-  string         spectrumName  = pSpectrum->getName();
+    PointArray     pts           = event.getPoints();
+    string spectrum              = spectrumName(event);
+    // Figure out the fit source depending on the actual button
+    // id:
 
-  // Now we can create the fit:
+    string fitName;
+    if (buttonId == m_FitButtonId) {
+      fitName       = event.getm_sPromptedString();
 
-  CGaussianFit*  pFit  = new CGaussianFit(fitName, CFitCommand::id());
-  int            low   = pts[0].X();
-  int            high  = pts[1].X();
-  if (low > high) {
-    int temp = low;
-    low      = high;
-    high     = temp;
-  }
-  // This is in a try/catch block in case the user did the truly 
-  // pathalogical thing of deleting the spectrum just as they
-  // accepted the fit ... kids these days.
-  //
-  CSpectrumFit*   pSpectrumFit;
-  try {
-      pSpectrumFit = new CSpectrumFit(spectrumName,
+    }
+    if (buttonId == m_GammaFitButtonId) {
+      fitName     = spectrum;
+      fitName    += "-gammas";
+    }
+    if (buttonId == m_NeutronFitButtonId) {
+      fitName     = spectrum;
+      fitName    += "-neutrons";
+    }
+    
+    // Now we can create the fit:
+    
+    CGaussianFit*  pFit  = new CGaussianFit(fitName, CFitCommand::id());
+    int            low   = pts[0].X();
+    int            high  = pts[1].X();
+    if (low > high) {
+      int temp = low;
+      low      = high;
+      high     = temp;
+    }
+    // This is in a try/catch block in case the user did the truly 
+    // pathalogical thing of deleting the spectrum just as they
+    // accepted the fit ... kids these days.
+    //
+    CSpectrumFit*   pSpectrumFit;
+    try {
+      pSpectrumFit = new CSpectrumFit(spectrum,
 				      pFit->getNumber(),
 				      low, high, *pFit);
+    }
+    catch (...) {
+      delete pFit;		// Just abort the operation silently.
+      return kfTRUE;
+    }
+    
+    // we use the addOrReplace function of the fit dictionary:
+    
+    CFitDictionary& dict(CFitDictionary::getInstance());
+    dict.addOrReplace(*pSpectrumFit);
+    
+  } 
+  else if (buttonId == m_FOMButtonId) {
+    //
+    // We're going to invoke ShowFOM spectrum name:
+    // construc the script:
+
+    string script = "ShowFOM ";
+    script       += spectrumName(event);
+
+    SpecTcl*          api     = SpecTcl::getInstance();
+    CTCLInterpreter*  pInterp = api->getInterpreter();
+    try {
+      pInterp->GlobalEval(script);
+    }
+    catch (...) {
+    }
+  } 
+  else if (buttonId == m_FOMAllButtonId) {
+    string script = "ShowFOMAll";
+    SpecTcl*          api     = SpecTcl::getInstance();
+    CTCLInterpreter*  pInterp = api->getInterpreter();
+    try {
+      pInterp->GlobalEval(script);
+    }
+    catch (...) {
+    }
   }
-  catch (...) {
-    delete pFit;		// Just abort the operation silently.
-    return kfTRUE;
+  else {
+    return kfFALSE;		// Not one of our buttons.
   }
-
-  // we use the addOrReplace function of the fit dictionary:
-
-  CFitDictionary& dict(CFitDictionary::getInstance());
-  dict.addOrReplace(*pSpectrumFit);
-
-
-
-
   return kfTRUE;
+}
+//  Return the spectrum name associated with a button click.
+// an empty string if spectrum is not defined.
+//
+string
+CFitButton::spectrumName(CButtonEvent& event)
+{
+    int            bindId        = event.getPromptedSpectrum();
+    SpecTcl*       pApi          = SpecTcl::getInstance();
+    CHistogrammer* pHistogrammer = pApi->GetHistogrammer();
+    CSpectrum*     pSpectrum     = pHistogrammer->DisplayBinding(bindId-1);
+    string spectrumName;
+    if (pSpectrum) {
+      spectrumName  = pSpectrum->getName();
+    } 
+    else {
+      spectrumName  = "";
+    }
+    return spectrumName;
 }
