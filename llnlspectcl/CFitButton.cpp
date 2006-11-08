@@ -222,7 +222,7 @@ CFitButton::operator()(CButtonEvent& event)
     //
     // Invoke the projection GUI:
 
-    string script = "project ";
+    string script = "Project2D ";
     script       += spectrumName(event);
     invokeScript(script);
   }
