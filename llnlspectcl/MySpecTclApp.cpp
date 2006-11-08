@@ -27,6 +27,7 @@ static const char* Copyright = "(C) Copyright Michigan State University 2008, Al
 #include <TreeParameter.h>
 #include <ScalerProcessor.h>
 #include <Xamine.h>
+#include <XamineEventHandler.h>
 
 
 #include "CParamMapCommand.h"
@@ -37,6 +38,32 @@ static const char* Copyright = "(C) Copyright Michigan State University 2008, Al
 #ifdef HAVE_STD_NAMESPACE
 using namespace std;
 #endif
+
+
+// Create the appliation:
+CMySpecTclApp   myApp;
+CTclGrammerApp& app(myApp);	// Create an instance of me.
+CTCLApplication* gpTCLApplication=&app;  // Findable by the Tcl/tk framework.
+
+
+// Local class that is responsible for setting up our application
+// specific button box.
+//
+
+class CButtonBoxSetup : public CXamineEventHandler::CRestartHandler
+{
+private:
+  CFitButton* m_pButtons;
+public:
+  CButtonBoxSetup() : m_pButtons(0) {}
+  virtual void operator()() {
+    delete m_pButtons;
+    Xamine_DefineButtonBox(4,4);
+    m_pButtons = new CFitButton(myApp.getXamineEvents());
+  }
+};
+
+
 
 
 
@@ -165,9 +192,6 @@ CMySpecTclApp::CreateHistogrammer()
 { 
   CTclGrammerApp::CreateHistogrammer();
 
-  // Xamine has been started, so we can hook in our buttons now.
-
-  Xamine_DefineButtonBox(4,4);	
 }  
 
 //  Function: 	
@@ -188,9 +212,14 @@ CMySpecTclApp::SelectDisplayer(UInt_t nDisplaySize, CHistogrammer& rHistogrammer
 { 
   CTclGrammerApp::SelectDisplayer(nDisplaySize, rHistogrammer);
 
-  // By now the event handler is established:
 
-  new CFitButton(getXamineEvents());
+  // Hook in the button box and ensure that it gets re-hooked on exit.
+
+  CXamineEventHandler* pEventHandler = getXamineEvents();
+  CButtonBoxSetup*     pSetup        = new CButtonBoxSetup;
+  pEventHandler->addRestartHandler(*pSetup);
+  
+  (*pSetup)();			// Get it set up the first time.
 
 }  
 
@@ -337,7 +366,4 @@ CMySpecTclApp::operator()()
   return CTclGrammerApp::operator()();
 }
 
-CMySpecTclApp   myApp;
-CTclGrammerApp& app(myApp);	// Create an instance of me.
-CTCLApplication* gpTCLApplication=&app;  // Findable by the Tcl/tk framework.
 

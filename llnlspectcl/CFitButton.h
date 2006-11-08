@@ -43,6 +43,7 @@ class CButtonEvent;
    - FOM All - Performs the figure of merit computation on all spectra
      for which it is possible and pops it up in a new toplevel so that
      the user can inspect or write to file.
+   - Project - allows you to create a projection of the current 2-d spectrum.
 
    Note that this class makes use of several helper Tcl scripts that
    are assumed to already be defined:
@@ -52,6 +53,7 @@ class CButtonEvent;
    - ShowFOMAll 
      shows the figure of merit computation for all spectra that are elligible for
      this.
+   - Project2D manages the gui for 2-d projections.
 
 */
 class CFitButton : public CXamineEventHandler::CButtonHandler
@@ -63,6 +65,7 @@ private:
   int   m_NeutronFitButtonId;
   int   m_FOMButtonId;
   int   m_FOMAllButtonId;
+  int   m_projectButtonId;
 
   // constructors and canonicals.. note that copy-like ops are forbidden.
 public:
@@ -79,6 +82,7 @@ private:
   virtual Bool_t operator()(CButtonEvent& event);
 
   STD(string) spectrumName(CButtonEvent& event);
+  void        invokeScript(STD(string) script);
 
 };
 

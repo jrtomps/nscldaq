@@ -98,6 +98,13 @@ CFitButton::CFitButton(CXamineEventHandler* pEventHandler)
   Xamine_DefineButton(2,1, &myButton);
 
 
+  // Project button:
+
+  m_projectButtonId  = 6;
+  myButton.button_code = m_projectButtonId;
+  strcpy(myButton.label, "Project");
+  myButton.whenavailable = In2dSpectrum;
+  Xamine_DefineButton(2,2, &myButton);
 
   pEventHandler->addButtonHandler(*this);
   
@@ -203,23 +210,21 @@ CFitButton::operator()(CButtonEvent& event)
     string script = "ShowFOM ";
     script       += spectrumName(event);
 
-    SpecTcl*          api     = SpecTcl::getInstance();
-    CTCLInterpreter*  pInterp = api->getInterpreter();
-    try {
-      pInterp->GlobalEval(script);
-    }
-    catch (...) {
-    }
+    invokeScript(script);
   } 
   else if (buttonId == m_FOMAllButtonId) {
-    string script = "ShowFOMAll";
-    SpecTcl*          api     = SpecTcl::getInstance();
-    CTCLInterpreter*  pInterp = api->getInterpreter();
-    try {
-      pInterp->GlobalEval(script);
-    }
-    catch (...) {
-    }
+    // Report all the FOM's.
+    //
+
+    invokeScript(string("ShowFOMAll"));
+  }
+  else if (buttonId == m_projectButtonId) {
+    //
+    // Invoke the projection GUI:
+
+    string script = "project ";
+    script       += spectrumName(event);
+    invokeScript(script);
   }
   else {
     return kfFALSE;		// Not one of our buttons.
@@ -244,4 +249,18 @@ CFitButton::spectrumName(CButtonEvent& event)
       spectrumName  = "";
     }
     return spectrumName;
+}
+// 
+// Invoke a Tcl script ignoring any errors that may occur in it:
+//
+void
+CFitButton::invokeScript(string script)
+{
+  SpecTcl*          api     = SpecTcl::getInstance();
+  CTCLInterpreter*  pInterp = api->getInterpreter();
+  try {
+    pInterp->GlobalEval(script);
+  }
+  catch (...) {
+  }
 }
