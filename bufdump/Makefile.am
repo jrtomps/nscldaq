@@ -70,6 +70,7 @@ install-exec-am: docs
 	$(INSTALL_DATA)  $(TCLPACKAGES) $(prefix)/lib
 	$(INSTALL_DATA)  $(HELPFILES)   $(prefix)/help
 	$(INSTALL_DATA)  packets.def    $(prefix)/etc
+	$(INSTALL_DATA)  CHANGELOG      $(prefix)
 	if [ -e bufdump.1 ]; then \
 		$(INSTALL_DATA) bufdump.1 $(prefix)/man/man1; \
 	fi
@@ -154,5 +155,5 @@ sdx.kit:
 EXTRA_DIST=$(TCLPACKAGES) $(HELPFILES) $(HTMLGRAPHICS) \
 	$(WINRUNTIME) $(LINUXRUNTIME) calloutgraphics  \
 	packets.def bwidgets iwidgets tcllib bufdump.tcl \
-	$(DOCUMENTATION) $(EPSGRAPHICS)
+	$(DOCUMENTATION) $(EPSGRAPHICS) CHANGELOG
 
