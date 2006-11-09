@@ -3,7 +3,8 @@ PKGDIR=$(prefix)/TclLibs/controlWidgets
 PACKAGES = meter.tcl bcmMeter.tcl epicsLabel.tcl \
 	radioMatrix.tcl epicsEnumeratedControl.tcl \
 	typeNGo.tcl epicsTypeNGo.tcl		\
-	epicsLabelWithUnits.tcl bindDown.tcl
+	epicsLabelWithUnits.tcl bindDown.tcl led.tcl \
+	epicsLed.tcl
 
 XMLFILES = meter.xml bcmMeter.xml epicsLabel.xml	\
 	radioMatrix.xml epicsEnumeratedControl.xml	\
