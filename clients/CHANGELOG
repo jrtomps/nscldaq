@@ -738,3 +738,7 @@ September 7, 2006
                          so that an external env variable can be set 
                          to control the buffersize (e.g. for LLNL
                          and its 13Kbyte+16word buffers)
+  November 8, 2006     - Delegate options to epicsLabelWithUnits hull so that
+                         e.g. -relief and -borderwidth can be used to surround
+                         items in boxes.
+  November 9, 2006     - Ensure that CHANGELOG gets installed.

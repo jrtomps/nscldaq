@@ -31,6 +31,7 @@ namespace eval controlwidget {
 
 snit::widget ::controlwidget::epicsLabelWithUnits {
     option -channel {}
+    delegate option * to hull
 
     constructor args {
 	$self configurelist $args

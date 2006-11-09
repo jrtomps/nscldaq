@@ -50,6 +50,7 @@ install-data-local:
 	$(INSTALL_DATA) config.h $(prefix)/include
 	$(INSTALL_PROGRAM)  daqman $(prefix)/bin
 	echo "Version: " $(VERSION) build on `hostname` `date` > $(prefix)/VERSION
+	$(INSTALL_DATA) CHANGELOG $(prefix)
 	$(MANDB) $(prefix)/man
 	echo "pkg_mkIndex $(prefix)/TclLibs *.so" >makeindex.tcl
 	$(TCLSH_CMD) <makeindex.tcl

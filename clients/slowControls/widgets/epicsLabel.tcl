@@ -39,7 +39,6 @@ namespace eval controlwidget {
 }
 
 snit::widget  controlwidget::epicsLabel {
-    delegate option * to label except -textvariable
     delegate method * to label
 
     option   -channel {}
