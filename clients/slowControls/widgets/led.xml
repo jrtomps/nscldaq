@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE book PUBLIC "-//OASIS//DTD Docbook XML 4.3//EN"
+                      "file:///usr/share/xml/docbook/schema/dtd/4.3/docbookx.dtd"
+ [ <!ENTITY manpage SYSTEM "ph7106Control.xml"> ]
+ >
+<book>
+<article>
+
+<refentry>
+    <refmeta>
+        <refentrytitle>LED Widget</refentrytitle>
+        <manvolnum>1tcl</manvolnum>
+    </refmeta>
+    <refnamediv>
+        <refname>led</refname>
+        <refpurpose>
+            Provide a widget that looks like an LED.
+        </refpurpose>
+    </refnamediv>
+    <refsynopsisdiv>
+        <cmdsynopsis>
+            <command>
+package require led
+            </command>
+        </cmdsynopsis>
+        <cmdsynopsis>
+            <command>
+controlwidget::led <replaceable>path ?options?</replaceable>
+            </command>
+        </cmdsynopsis>
+    </refsynopsisdiv>
+
+    <refsect1>
+        <title>OPTIONS</title>
+        <para>
+            <variablelist>
+                <varlistentry>
+                    <term><command>-size</command> measure</term>
+                    <listitem>
+                        <para>
+                            Specifies the size of the widget (LED widgets are
+                            symmetric, so this specifies both the height and width
+                            of the widget.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><command>-on</command> color</term>
+                    <listitem>
+                        <para>
+                            Specifies the color of the LED when it is on.  By default
+                            this is green.  The color can be specified in any way normally
+                            acceptable to Tk.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><command>-off</command> color</term>
+                    <listitem>
+                        <para>
+                            Specifies the color of the LED when it is off. By default,
+                            this is black.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><command>-variable</command> name</term>
+                    <listitem>
+                        <para>
+                            Specifies the name of a variable with permanent scope (global or in a
+                            namespace) that will control the value of the LED.  If the value of the
+                            variable is 0 or a valid 'false' boolean, the LED will be off, otherwise,
+                            on.
+                        </para>
+                    </listitem>
+                </varlistentry>
+            </variablelist>
+        </para>
+    </refsect1>
+    <refsect1>
+        <title>METHODS</title>
+        <para>
+            <variablelist>
+                <varlistentry>
+                    <term><command>on</command></term>
+                    <listitem>
+                        <para>
+                            Turn the LED on.  If there is a variable associated with the LED,
+                            it is set to 1.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><command>off</command></term>
+                    <listitem>
+                        <para>
+                            Turn the LED off.  If there is a variable associated with the LED,
+                            it is set to 0.
+                        </para>
+                    </listitem>
+                </varlistentry>
+            </variablelist>
+        </para>
+    </refsect1>
+    <refsect1>
+        <title>SEE ALSO</title>
+        <para>
+epicsLed(1tcl)
+        </para>
+    </refsect1>
+</refentry>
+
+
+
+</article>
+</book>
