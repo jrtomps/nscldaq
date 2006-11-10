@@ -64,8 +64,12 @@ proc project2D::toggleAOI {list label} {
     if {!$project2D::inAOI} {
 	$list config -state disabled
 	$label config -text {}
+	bind $list <Double-1> [list]
+	bind $label <Double-1> [list]
     } else {
 	$list config -state normal
+	bind $list  <Double-1> [list project2D::setAoi $list $label]
+	bind $label <Double-1> [list $label config -text {}]
     }
 }
 
@@ -83,6 +87,12 @@ proc project2D::toggleAOI {list label} {
 proc project2D::ok top {
     set name     [$top.newname get]
     set basename [$top.basespec cget -text]
+
+    if {$name eq ""} {
+	tk_messageBox -title {Need name} -icon error \
+	    -message "You need to give the projection spectrum a name"
+	return
+    }
     # 
     # Confirm ovewrite on duplicate:
     #
@@ -188,9 +198,7 @@ proc Project2D baseName {
 	foreach contour $contours {
 	    $top.which insert end $contour
 	}
-	if {!$project2D::inAOI} {
-	    $top.which config -state disabled
-	}
+
 
 	label      $top.aoilbl       -text AOI: 
 	label      $top.selectedaoi  -width 32
@@ -203,9 +211,13 @@ proc Project2D baseName {
 	# double clicks on the list box set the value of the selected AOI.
 	# double clicks on the label blank it out.
 
-	bind $top.selectedaoi <Double-1> [list $top.selectedaoi config -text {}]
-	bind $top.which       <Double-1> \
-	    [list project2D::setAoi $top.which $top.selectedaoi]
+	if {!$project2D::inAOI} {
+	    $top.which config -state disabled
+	} else {	
+	    bind $top.selectedaoi <Double-1> [list $top.selectedaoi config -text {}]
+	    bind $top.which       <Double-1> \
+		[list project2D::setAoi $top.which $top.selectedaoi]
+	}
 
 
     } else {

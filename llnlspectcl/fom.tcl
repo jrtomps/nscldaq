@@ -44,25 +44,23 @@ proc fitstat {fit name} {
 # exactly 2 fits defined.
 
 proc fom {spectrum} {
-    set fits [fit list]
-    set spectrumFits [list]
-    foreach fit $fits {
-	set specname [lindex $fit 1]
-	set type     [lindex $fit 2]
-	if {($spectrum eq $specname) && ($type eq "gaussian")} {
-	    lappend spectrumFits $fit
-	}
-    }
-    if {[llength $spectrumFits] != 2} {
+    set neutrons [fit list $spectrum-neutrons]
+    if {[llength $neutrons] == 0} {
 	return -1
     }
+    set gammas [fit list $spectrum-gammas]
+    if {[llength $gammas] == 0} {
+	return -1
+    }
+    set neutrons [lindex $neutrons 0]
+    set gammas   [lindex $gammas   0]
 
     # Extract the centroid/fwhm from the fits:
 
-    set cent1 [fitstat [lindex $spectrumFits 0] "centroid"]
-    set cent2 [fitstat [lindex $spectrumFits 1] "centroid"]
-    set fwhm1 [fitstat [lindex $spectrumFits 0] "sigma"]
-    set fwhm2 [fitstat [lindex $spectrumFits 1] "sigma"]
+    set cent1 [fitstat $neutrons "centroid"]
+    set cent2 [fitstat $gammas   "centroid"]
+    set fwhm1 [fitstat $neutrons "sigma"]
+    set fwhm2 [fitstat $gammas   "sigma"]
 
 
     set fwhm1 [expr 2.354*$fwhm1];	# Sigma -> fwhm
@@ -73,6 +71,26 @@ proc fom {spectrum} {
     return [expr abs(($cent1 - $cent2)/($fwhm1 + $fwhm2))]
 
 }
+
+# canGuiFOM
+#    Returns an error message with suggested corrective action
+#    if the conditions are not all there for computing a FOM
+#    from the gui.
+#    conditions are that the spetrum its
+#    name-gammas 
+#    name-neutrons must exist
+#
+proc canGuiFOM name {
+    set neutrons [fit list $name-neutrons]
+    if {[llength $neutrons] == 0} {
+	error "Fit of neutrons peak for $name has not been created"
+    }
+    set gammas [fit list $name-gammas]
+    if {[llength $gammas] == 0} {
+	error "Fit of gamma peak for $name has not been created"
+    }
+}
+
 #
 #  ShowFOM   - show the figure of merit for specific spectrum to
 #  a popup:
@@ -80,13 +98,22 @@ proc fom {spectrum} {
 set fomboxId 0
 proc ShowFOM spectrum {
     global fomboxId
-    set value [fom $spectrum]
-    set value [format %0.2f $value]
-    
-    if {$value != -1} {
-	set message "Figure of merit for $spectrum is $value"
+
+    #  If the FOM cannot be created figure out why and error that:
+    #
+    if {[catch {canGuiFOM $spectrum} reason] } {
+	set message "Unable to do Figure of merit computation: $reason"
     } else {
-	set message "Figure of merit for $spectrum is not defined"
+
+	fit update
+	set value [fom $spectrum]
+	set value [format %0.2f $value]
+	
+	if {$value != -1} {
+	    set message "Figure of merit for $spectrum is $value"
+	} else {
+	    set message "Figure of merit for $spectrum is not defined"
+	}
     }
     set top [toplevel .fom$fomboxId]
     incr fomboxId
@@ -102,6 +129,7 @@ proc ShowFOM spectrum {
 #
 proc ShowFOMAll {} {
     global fomboxId
+    fit update
     set top [toplevel .foms$fomboxId]
     incr fomboxId
 
@@ -120,12 +148,13 @@ proc ShowFOMAll {} {
 
     foreach spectrum [spectrum -list] {
 	set name [lindex $spectrum 1]
-	set value [fom $name]
-	if {$value != -1} {
-	    set line [format "%-20s %5.2f" $name $value]
-	    $top.foms insert end $line
+	if {![catch {canGuiFOM $name}]} {
+	    set value [fom $name]
+	    if {$value != -1} {
+		set line [format "%-20s %5.2f" $name $value]
+		$top.foms insert end $line
+	    }
 	}
-
     }
 
 }

@@ -157,6 +157,13 @@ CFitButton::operator()(CButtonEvent& event)
     // Figure out the fit source depending on the actual button
     // id:
 
+
+
+
+
+
+
+
     string fitName;
     if (buttonId == m_FitButtonId) {
       fitName       = event.getm_sPromptedString();
