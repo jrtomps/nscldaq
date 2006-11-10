@@ -32,6 +32,7 @@
 package provide led 1.0
 package require Tk
 package require snit
+package require bindDown
 
 namespace eval controlwidget {
     namespace export led
@@ -53,6 +54,8 @@ snit::widget controlwidget::led {
 	set end [expr $options(-size) - $border]
 	$win.led create oval $border $border $end $end -fill $options(-off)
 	grid $win.led -sticky nsew
+
+	binddown $win $win
     }
 
     # Process the -variable configuration by killing off prior traces
