@@ -742,3 +742,7 @@ September 7, 2006
                          e.g. -relief and -borderwidth can be used to surround
                          items in boxes.
   November 9, 2006     - Ensure that CHANGELOG gets installed.
+  November 10, 2006    - Document some widgets:
+                         o epicsLabelWithUnits
+                         o led
+                         o epicsLed
