@@ -96,8 +96,9 @@ int
 COutputThread::operator()(int argc, char** argv)
 {
   // Main loop is pretty simple.
-
+#ifdef LAST_CHANCE
   try {
+#endif
     while(1) {
       
       DataBuffer& buffer(getBuffer());
@@ -105,6 +106,7 @@ COutputThread::operator()(int argc, char** argv)
       freeBuffer(buffer);
       
     }
+#ifdef LAST_CHANCE
   }
   catch (string msg) {
     cerr << "COutput thread caught a string exception: " << msg << endl;
@@ -123,6 +125,7 @@ COutputThread::operator()(int argc, char** argv)
     cerr << "COutput thread caught some other exception type.\n";
     throw;
   }
+#endif
 }
 
 /////////////////////////////////////////////////////////////////////////
@@ -148,6 +151,12 @@ COutputThread::bufferToSpectrodaq(void*          pBuffer,
 				  size_t         sdaqWords,
 				  size_t         copyInSize)
 {
+  if (copyInSize > sdaqWords) {
+    cerr << "COutputThread::bufferToSpectrodaq - copy in size too big: "
+	 << "buffersize: " << sdaqWords << " copyInSize: " << copyInSize << endl;
+    copyInSize = sdaqWords;	// Truncate and try to keep going.
+
+  }
   DAQWordBuffer sdaqBuffer(sdaqWords);
   sdaqBuffer.SetTag(sdaqTag);
   sdaqBuffer.CopyIn(pBuffer, 0, copyInSize);
@@ -375,7 +384,7 @@ COutputThread::events(DataBuffer& buffer)
 
   //  Now the header except for nevt...
 
-  uint16_t finalLength = sizeof(BHEADER) + buffer.s_bufferSize/sizeof(uint16_t) - sizeof(uint16_t);
+  uint16_t finalLength = (sizeof(BHEADER) + buffer.s_bufferSize)/sizeof(uint16_t) - 1;
   p->s_header.nwds   = finalLength;
   p->s_header.type   = DATABF;
   p->s_header.cks    = 0;
@@ -389,7 +398,7 @@ COutputThread::events(DataBuffer& buffer)
 
   // The event count
 
-  p->s_header.nevt   = eventCount(p);
+  p->s_header.nevt   = eventCount(p, buffer.s_bufferSize);
 
   // route the buffer and free it:
 
@@ -460,11 +469,13 @@ COutputThread::formatControlBuffer(uint16_t type, void* buffer)
 */
 
 uint16_t
-COutputThread::eventCount(void* nsclBuffer)
+COutputThread::eventCount(void* nsclBuffer, size_t maxBytes)
 {
+  size_t maxWords = maxBytes/sizeof(uint16_t); // 16 bit word count.
   pEventBuffer p = static_cast<pEventBuffer>(nsclBuffer);
   uint16_t*    pb= p->s_body;
   uint16_t events = 0;
+  size_t   words  = 0;
 
   // Here we go:
 
@@ -474,6 +485,12 @@ COutputThread::eventCount(void* nsclBuffer)
       events++;			// End of event.
     }
     pb += (count+1);		// The event length does not include evt header.
+    words += count+1;
+    if (words >= maxWords) {
+      cerr << "COutputThread::eventCount... running off end of buffer: " << words
+	   << endl;
+      break;
+    }
   }
 
   return events;

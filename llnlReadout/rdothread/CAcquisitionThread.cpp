@@ -308,10 +308,8 @@ void
 CAcquisitionThread::startDaq()
 {
 
-  // Reset the VME so that all modules are back to default conditions.
-
-   m_pVme->writeActionRegister(CVMUSB::ActionRegister::sysReset);
-    m_pVme->writeActionRegister(0);
+  m_pVme->writeActionRegister(CVMUSB::ActionRegister::sysReset);
+  m_pVme->writeActionRegister(0);
 
   // Create the lists and size the event readout list.
 
@@ -339,7 +337,7 @@ CAcquisitionThread::startDaq()
  
   // Set up the buffer size and mode:
 
-  m_pVme->writeBulkXferSetup(2 << CVMUSB::TransferSetupRegister::timeoutShift); // don't want multibuffering...2sec timeout is fine.
+  m_pVme->writeBulkXferSetup(0 << CVMUSB::TransferSetupRegister::timeoutShift); // don't want multibuffering...1sec timeout is fine.
 
   // the DAQ settings;
   //  - No trigger delay is needed since IRQ implies data.
@@ -449,7 +447,7 @@ CAcquisitionThread::drainUsb()
   DataBuffer* pBuffer = gFreeBuffers.get();
   int timeouts(0);
   size_t bytesRead;
-
+  cerr << "CAcquisitionThread::drainUsb...\n";
   do {
     int    status = m_pVme->usbRead(pBuffer->s_rawData, pBuffer->s_storageSize,
 				    &bytesRead, 
@@ -457,7 +455,9 @@ CAcquisitionThread::drainUsb()
     if (status == 0) {
       pBuffer->s_bufferSize = bytesRead;
       pBuffer->s_bufferType   = TYPE_EVENTS;
+      cerr << "Got a buffer, with type header: " << hex << pBuffer->s_rawData[0] << endl;
       if (pBuffer->s_rawData[0] & VMUSBLastBuffer) {
+	cerr << "Done\n";
 	done = true;
       }
       processBuffer(pBuffer);
@@ -465,34 +465,28 @@ CAcquisitionThread::drainUsb()
     }
     else {
       timeouts++;		// By the time debugged this is only failure.
+      cerr << "Read timed out\n";
       if(timeouts >= DRAINTIMEOUTS) {
 	cerr << "Warning: drainUsb() persistent timeout assuming already drained\n";
+	uint32_t junk;
+	cerr << "Desparate measures being employed to attempt final drain\n";
+	m_pVme->writeActionRegister(CVMUSB::ActionRegister::sysReset);
+	m_pVme->writeActionRegister(0);
+	usleep(100);
+	m_pVme->vmeRead32(0, CVMUSBReadoutList::a32UserData, &junk);
+	status = m_pVme->usbRead(pBuffer->s_rawData, pBuffer->s_storageSize,
+				 &bytesRead, DRAINTIMEOUTS*1000);
+	cerr << "Final desparate attempt to flush usb fifo got status: " 
+	     << status << endl;
 	done = true;
       }
     }
   } while (!done);
 
-  return ;
-
-  // Now for the heck of it, since it seems that stuff may be jammed up still?
-  // Read until a timeout fires:
-
-  while(1) {
-    int status = m_pVme->usbRead(pBuffer->s_rawData, pBuffer->s_storageSize,
-				 &bytesRead,
-				 DRAINTIMEOUTS*1000);
-    if (status == 0) {
-      cerr << "Got a buffer after the 'last one'\n";
-    }
-    else {
-      cerr << "Drain read finally timed out\n";
-      break;
-    }
-  }
-
-  // give up that last buffer.
 
   gFreeBuffers.queue(pBuffer);
+  cerr << "Done finished\n";
+  
 }
 /*!
    Emit a begin run buffer to the output thread.

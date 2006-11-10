@@ -229,8 +229,18 @@ CTheApplication::makeConfigFile(string baseName)
   string home(getenv("HOME"));
   string pathsep("/");
   string config("config");
+  string dir;
+  
+  // The user can define a CONFIGDIR env variable to move the configuration dir.
 
-  string result = home + pathsep + config + pathsep + baseName;
+  if (getenv("CONFIGDIR")) {
+    dir =getenv("CONFIGDIR");
+  } else {
+    dir = home + pathsep + config;
+  }
+
+
+  string result = dir +  pathsep + baseName;
   return result;
 
 }

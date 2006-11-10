@@ -61,7 +61,7 @@ Const(Status1)    0x100e;
 Const(Control1)    0x1010;
 Const(AderHigh)    0x1012;
 Const(AderLow)     0x1014;
-Const(RESET)       0x1018;	// Better to use Bset according to manual.
+Const(RESET)       0x1016;	// Better to use Bset according to manual.
 Const(McastCtl)    0x101a;
 Const(EventTrig)   0x1020;
 Const(Status2)     0x1022;
@@ -90,6 +90,7 @@ Const(BoardIDLSB) 0x803e;	// Lowest significant byte of the id.
 Const(MaxEventSize)  34;           // Longwords in the largest event.
 Const(MEBDepth)      32;	   // Max events the adc can buffer.
 Const(MaxLongwordsBuffered) (MaxEventSize*MEBDepth);
+
 
 /////////////////////////////////////////////////////////////////////
 ///////// Parameters for validity checkers (e.g. ranges)  ///////////
@@ -263,8 +264,8 @@ C785::Initialize(CVMUSB& controller)
   if ((type != 785)  && (type != 775)) { // 775 for testing!!.
     char message[100];
     string name = m_pConfiguration->getName();
-    sprintf(message, "Module %s at base 0x%x is not a 785",
-	    name.c_str(), base);
+    sprintf(message, "Module %s at base 0x%x is not a 785 but a %d",
+	    name.c_str(), base, type);
     throw string(message);
   }
   // Ok now we've established that we have a V785 we can program it.
@@ -281,6 +282,8 @@ C785::Initialize(CVMUSB& controller)
 
   uint16_t geo = getIntegerParameter("-geo");
   controller.vmeWrite16(base+GEO, initamod, geo);
+  controller.vmeWrite16(base+BSet1, initamod, 0x80);
+  controller.vmeWrite16(base+BClear1, initamod, 0x80);
 
   // Set the thresholds for the module:
   // As well as the meaning of the thresholds.
@@ -307,7 +310,12 @@ C785::Initialize(CVMUSB& controller)
 
   controller.vmeWrite16(base+IPL,       initamod, ipl);
   controller.vmeWrite16(base+Vector,    initamod, IVector);
-  controller.vmeWrite16(base+EventTrig, initamod, WhenIRQ);
+  //
+  // For now irq on first event:
+  //
+  //   controller.vmeWrite16(base+EventTrig, initamod, WhenIRQ);
+  //
+  controller.vmeWrite16(base+EventTrig, initamod, 1);
 
   // Set the fast clear window:
 
@@ -327,14 +335,14 @@ C785::Initialize(CVMUSB& controller)
   // Finally, ensure that at the end of a readout we'll get a BERR, rather than
   // we'll just write control regiseter 1 the way we want it:
   // Bits:      CAEN Mnemonic   Meaning:
-  // 4          BLNKKEND  (off)  In block transfer send data until empty not just 1 evt
+  // 4          BLNKKEND  (on)  Berr at end of event.
   // 0x10       PROG RESET(off) Front panel reset only clears MEB.
   // 0x20       BERR ENABLE(on) BERR after end of data rather than inv data.
   // 0x40       ALIGN64 (off)   Alighn output to 64 bit boundaries.
   // All this makes the mask:
   //    0x24
   //
-  controller.vmeWrite16(base+Control1, initamod, 0x20);
+  controller.vmeWrite16(base+Control1, initamod, 0x24);
 
 
  
@@ -351,8 +359,10 @@ C785::Initialize(CVMUSB& controller)
 void
 C785::addReadoutList(CVMUSBReadoutList& list)
 {
+  // only read 1 event.
+  //
   list.addFifoRead32(static_cast<uint32_t>(getIntegerParameter("-base")),
-		     readamod, static_cast<size_t>(MaxLongwordsBuffered*2));
+		     readamod, static_cast<size_t>(MaxEventSize+16));
 }
 
 /*!
