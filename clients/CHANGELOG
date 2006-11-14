@@ -746,3 +746,4 @@ September 7, 2006
                          o epicsLabelWithUnits
                          o led
                          o epicsLed
+  November 14, 2006    - Added an epics spinbox widget.
