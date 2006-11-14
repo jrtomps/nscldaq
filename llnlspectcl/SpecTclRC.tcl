@@ -321,3 +321,11 @@ puts " done"
 
 
 tk appname SpecTcl-[exec hostname]-[pid]
+
+puts $argv0
+set llnlSpecTcl [file dirname $argv0]
+
+source [file join $llnlSpecTcl configFile.tcl]
+source [file join $llnlSpecTcl setup.tcl]
+source [file join $llnlSpecTcl fom.tcl]
+source [file join $llnlSpecTcl project.tcl]

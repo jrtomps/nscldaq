@@ -195,33 +195,21 @@ CLLNLUnpacker::fetchSuperEvent(TranslatorPointer<UShort_t>& p)
   uint16_t fragmentSize;
   
   while (more) {
-    header       = *p; ++p; m_size++;
+    header       = *p++;
     fragmentSize = header & LengthMask;
     more         = (header & ContinuedMask) != 0;
-    
+    m_size += fragmentSize + 1;
+
     // Copy out a single event fragment.
+    // Since Jan has decided to put 0xffff after each BERR
+    // terminating block we need to copy out a 16 bit word at a time.
+    //
 
-    while(fragmentSize) {      
-      // 2k words is an even number of longs so we don't have to worry
-      // about a longword split across a fragment.
-
-      // Fetch a long:
-
-      uint32_t l  = *p; ++p;
-      l          |= *p << 16; ++p;
-      m_event.push_back(l);
-      m_size += 2; 
-      fragmentSize -= 2;
-      
-      
+    while (fragmentSize) {
+      m_event.push_back(*p++);
+      fragmentSize--;
     }
-
   }
-  // Now there's a delimeter too: -- well not really .. not any more.
-
-  //  ++p;
-  //m_size++;
-
 }
 
 // Utility functions for longs in CAEN data:
@@ -243,56 +231,85 @@ void
 CLLNLUnpacker::unpackModule(CEvent& rEvent)
 {
 
-  // Skip forward until we see a header or run out of data:
+  // Because of how the data are we can assume that
+  // we either start out with 0xffff's or an adc header:
+  //
 
-  uint32_t header;
+
+  // Eat up the 0xffff's that can lead:
+
   while (!m_event.empty()) {
-    header = m_event.front();
-    m_event.pop_front();
-
-    if (isHeader(header)) break;
-  }
-
-  // If the event is empty, we are done.
-
-  if (!m_event.empty()) {
-    int slot = (header & ALLH_GEOMASK) >> ALLH_GEOSHIFT;
-
-    // We're going to get data until we have a non datum
-    // because I don't trust the CAEN module channel count. It has let me
-    // down before.
-    //
-
-
-    CParamMapCommand::ParameterMap& theMap(CParamMapCommand::getMap());
-    uint32_t datum = m_event.front();
-    uint32_t type = getType(datum);
-
-    while ((type == DATA) && (!m_event.empty())) {
-
-
-      int channel = (datum & DATAH_CHANMASK) >> DATAH_CHANSHIFT;
-      int value   = (datum & DATAL_DATAMASK);
-
-      if (theMap.size() > slot) { // Map must have the slot.
-	int paramno = theMap[slot][channel];
-	if (paramno >= 0) rEvent[paramno] = value;
-      }
-      m_event.pop_front();	// next longword.
-      if (!m_event.empty()) {
-	datum = m_event.front();	// Fetch the elements.
-	type  = getType(datum);
-      }
+    if (peekw() == 0xffff) {
+      getw();			// Eat up the 0xffff's that can lead
     }
+    else {
+      break;			// Should now have an adc header.
+    }
+  }
+  // Next should be a header:
 
-    // If the terminating long is not a header eat it up as it's either
-    // an invalid, a trailer or something bad.  Headers we save for the next
-    // time around.
-    // 
-
-    if ((type != HEADER) && (!m_event.empty())) m_event.pop_front();
-
+  if (m_event.empty()) {
+    return;			// Nothing left in super event....
   }
 
- 
+  uint32_t header = getl();
+  if (!isHeader(header)) {
+    cerr << "Expected module header got: " << hex << header << dec << endl;
+    cerr << "Skipping the rest of the superevent\n";
+    m_event.clear();
+    return;
+  }
+  int slot = (header & ALLH_GEOMASK) >> ALLH_GEOSHIFT;
+  
+  // We're going to get data until we have a non datum
+  // because I don't trust the CAEN module channel count. It has let me
+  // down before.
+  //
+  
+  
+  CParamMapCommand::ParameterMap& theMap(CParamMapCommand::getMap());
+  uint32_t datum = getl();
+  uint32_t type = getType(datum);
+  
+  while ((type == DATA) && (!m_event.empty())) {
+    
+    
+    int channel = (datum & DATAH_CHANMASK) >> DATAH_CHANSHIFT;
+    int value   = (datum & DATAL_DATAMASK);
+    
+    if (theMap.size() > slot) { // Map must have the slot.
+      int paramno = theMap[slot][channel];
+      if (paramno >= 0) rEvent[paramno] = value;
+    }
+    if (!m_event.empty()) {
+      datum = getl();		// This is ok since there should be a trailer.
+      type  = getType(datum);
+    }
+  }  
+}
+
+/*
+** Utilties to get at the super event
+**   peekw  - gets the next word without removing it.
+**   getw   - gets the next word destructively
+**   getl   - gets the next longword destructively.
+*/
+uint16_t
+CLLNLUnpacker::peekw() {
+  return m_event.front();
+}
+uint16_t
+CLLNLUnpacker::getw()
+{
+  uint16_t result = m_event.front();
+  m_event.pop_front();
+  return result;
+}
+uint32_t
+CLLNLUnpacker::getl()
+{
+  uint32_t result;
+  result  = getw() | ((uint32_t)getw() << 16); // Litle endian data.
+
+  return result;
 }

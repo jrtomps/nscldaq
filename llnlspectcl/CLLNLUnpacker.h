@@ -116,7 +116,7 @@ private:
   // member data:
 private:
   UnpackState         m_state;	      // Current state of unpacker.
-  STD(list)<uint32_t> m_event;	      // Super event data.
+  STD(list)<uint16_t> m_event;	      // Super event data.
   UInt_t              m_size;	      // Full size of superevent (words).
 
 
@@ -142,6 +142,9 @@ public:
 private:
   void fetchSuperEvent(TranslatorPointer<UShort_t>& p);
   void unpackModule( CEvent& rEvent);
+  uint16_t peekw();
+  uint16_t getw();
+  uint32_t getl();
 
   
 };
