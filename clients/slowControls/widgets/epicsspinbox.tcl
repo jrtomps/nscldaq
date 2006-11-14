@@ -131,7 +131,7 @@ snit::widget ::controlwidget::epicsSpinbox {
 	#
 	if {!$constructing} {
 	    grid forget $win.label $win.spin
-	    if {[$winfo ismapped $win.feedback]} {
+	    if {[winfo ismapped $win.feedback]} {
 		grid forget $win.feedback
 	    }
 	}
@@ -143,5 +143,18 @@ snit::widget ::controlwidget::epicsSpinbox {
 	}
 	grid $win.spin
 
+    }
+    # ------------- public methods --------------
+
+    # Get the current channel value:
+    #
+    method Get {} {
+	return [$options(-channel) get]
+    }
+    # Set the current channel value and update the 
+    # spinbox:
+    method Set value {
+	$win.spin set $value
+	$self newValue
     }
 }
