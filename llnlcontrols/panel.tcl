@@ -14,6 +14,8 @@
 #	     East Lansing, MI 48824-1321
 #
 
+set here [file dirname [info script]]
+set auto_path [concat $here $auto_path]
 
 package require Tk
 package require client

@@ -10,5 +10,5 @@
 
 package ifneeded client 1.0 [list source [file join $dir client.tcl]]
 package ifneeded configfile 1.0 [list source [file join $dir configfile.tcl]]
-package ifneeded gdgcontrol 1.0 [list source [file join $dir onetest.tcl]]
-package ifneeded gdgwidget 1.0 [list source [file join $dir testwid.tcl]]
+package ifneeded gdgcontrol 1.0 [list source [file join $dir gdgcontrol.tcl]]
+package ifneeded gdgwidget 1.0 [list source [file join $dir gdgwidget.tcl]]
