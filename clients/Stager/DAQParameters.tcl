@@ -44,8 +44,9 @@ namespace eval DAQParameters {
 #  The following parameters have defaults:
 #
 #    SourceHost   - localhost
-#    BufferSize   - 8192
+#    BufferSize   - 4096 (words)
 proc DAQParameters::setDefaults {} {
+    
     Configuration::Set SourceHost localhost
     Configuration::Set BufferSize  8192
 }
@@ -57,10 +58,12 @@ proc DAQParameters::setDefaults {} {
 proc DAQParameters::environmentOverrides {} {
     global env
 
+
     Configuration::readEnvironment SourceHost  DAQHOST localhost
     Configuration::readEnvironment ReadoutPath RDOFILE
     Configuration::readEnvironment FtpHost     EVTHOST
-    Configuration::readEnvironment BufferSize  BUFFERSIZE
+    Configuration::readEnvironment BufferSize  BUFFERSIZE 8192
+
 
     #  Passwd is handled strangely since it must be encrypted.
 

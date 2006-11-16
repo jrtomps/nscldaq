@@ -15,6 +15,7 @@
 #
 
 
+
 package provide Experiment 2.0
 package require ExpFileSystem
 package require ReadoutControl
@@ -125,14 +126,10 @@ proc Experiment::makeEventLink run {
     set filename [ExpFileSystem::GenRunFile $run]
     set filepath [file join [ExpFileSystem::GetStage] current]
     set linkname [file join $linkpath $filename]
-    puts "Making link $linkname"
     if {[file exists $linkname] || ([catch {file readlink $linkname}] == 0)} {
-        puts "Must first delete $linkname"
         file delete -force $linkname
     }
-    puts "Making the link now"
     exec ln -s [file join $filepath $filename] $linkname
-    puts "done"
 
 }
 # Experiment::callback cbproc arg...
@@ -355,6 +352,7 @@ proc Experiment::CleanOrphans {} {
     set root     [ExpFileSystem::GetStage]
     file mkdir $root/orphans
 
+
     # If there are event files in the stagearea,
     # we finalize their runs.
     # and put a file named 000orphaned in their metadata
@@ -362,6 +360,7 @@ proc Experiment::CleanOrphans {} {
 
     while {1} {
         set orphans [glob -nocomplain [file join $Eventdir run*.evt]]
+
         if {[llength $orphans] == 0} {
             break
         }
