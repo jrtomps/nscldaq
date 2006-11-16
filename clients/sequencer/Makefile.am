@@ -8,3 +8,8 @@ install-exec-local:
 	$(INSTALL_SCRIPT) $(TCLPACKAGES) $(prefix)/TclLibs/sequencer
 	$(INSTALL_SCRIPT) $(EXAMPLEFILES) $(prefix)/examples/sequencer
 
+
+sequencer.3tcl: sequencer.xml
+	$(MANDOCBOOK) man sequencer.xml
+
+man_MANS=sequencer.3tcl

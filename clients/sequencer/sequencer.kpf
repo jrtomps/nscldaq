@@ -4,13 +4,15 @@
 <preference-set id="">
   <string id="import_type">makeFlat</string>
   <string id="import_dirname">t:\daq\8.1qa\gascell\sequencer</string>
-  <boolean id="import_recursive">0</boolean>
   <string id="import_include_matches">*.tcl</string>
+  <boolean id="import_recursive">0</boolean>
 </preference-set>
 <file url="sequencerGui.tcl" id="2965A031-F3A6-4841-9ADA-D396C9BBDE2C" name="sequencerGui.tcl">
 </file>
 <file url="ReadoutCallouts.tcl" id="750B229E-C167-4BEB-81C2-CACFB6E3D910" name="ReadoutCallouts.tcl">
 </file>
 <file url="controller.tcl" id="510A6A76-40B8-46C0-B073-315C9CF1DE13" name="controller.tcl">
+</file>
+<file url="sequencer.xml" id="C4209558-DD54-4255-83D2-1FC5AD6B0DDA" name="sequencer.xml">
 </file>
 </project>
