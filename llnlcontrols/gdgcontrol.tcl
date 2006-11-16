@@ -57,6 +57,9 @@ snit::type gdgcontrol {
     option   -onlost     ""
 
     variable maxChannels 8
+    variable minValue    0
+    variable maxValue    0x7fffffff; #signed maxint.
+    variable nsPerTick   8;          # what each register value is worth.
 
     constructor args {
 	$self configurelist $args
@@ -119,20 +122,36 @@ snit::type gdgcontrol {
     # Private methods.
 
     method onWidthPlus {channel oldValue} {
-	$self Set width$channel [incr oldValue]
+	incr oldValue $nsPerTick
+	if {$oldValue > $maxValue} {
+	    set oldValue $maxValue
+	}
+	$self Set width$channel $oldValue
 	$self refreshWidth $channel
 	
     }
     method onWidthDown {channel oldValue} {
-	$self Set width$channel [incr oldValue -1]
+	incr oldValue -$nsPerTick
+	if {$oldValue < $minValue} {
+	    set oldValue $minValue
+	}
+	$self Set width$channel $oldValue
 	$self refreshWidth $channel
     }
     method onDelayPlus {channel oldValue} {
-	$self Set delay$channel [incr oldValue]
+	incr oldValue $nsPerTick
+	if {$oldValue > $maxValue} {
+	    set oldValue $maxValue
+	}
+	$self Set delay$channel $oldValue
 	$self refreshDelay $channel
     }
     method onDelayDown {channel oldValue} {
-	$self Set delay$channel [incr oldValue -1]
+	incr oldValue -$nsPerTick
+	if {$oldValue < $minValue} {
+	    set oldValue $minValue
+	}
+	$self Set delay$channel $oldValue
 	$self refreshDelay $channel
     }
 
@@ -152,12 +171,14 @@ snit::type gdgcontrol {
     method Get channel {
 	set name $options(-name)
 	set conn $options(-connection)
-
-	return [$self transaction [list $conn Get $name $channel]]
+	set value  [$self transaction [list $conn Get $name $channel]]
+	set value  [expr $value*$nsPerTick]
+	return $value
     }
     method Set {channel value}  {
 	set name $options(-name)
 	set conn $options(-connection)
+	set value [expr $value/$nsPerTick]
 	
 	return [$self transaction [list $conn Set $name $channel $value]]
 

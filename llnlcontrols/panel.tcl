@@ -26,11 +26,28 @@ set panelIndex 0
 set controllers [list]
 set connection ""
 
+#  Configuration items..
+#  The array elements can be overridden by 
+#  env variables with the same name as the array index.
+#  e.g. export CONTROLHOST=llnldaq.llnl.gov
+#  sets the host on which the daq is running to llnldaq.llnl.gov
+#
+
+
+set config(CONTROLHOST)   localhost
+set config(CONTROLPORT)   27000
+set config(CONFIGDIR)     [file join ~ config]
+set config(CONFIGFILE)    controlconfig.tcl
+
 
 proc Reconnect {args} {
     global connection
     global controllers
-    while {[catch {controlClient %AUTO%} connection]} {
+    global config
+    set host $config(CONTROLHOST)
+    set port $config(CONTROLPORT)
+
+    while {[catch {controlClient %AUTO% -server $host -port $port} connection]} {
 	tk_messageBox -icon info \
 	    -message "The control panel requires readout be running, please start it: $connection"
     }
@@ -147,14 +164,36 @@ proc onExit {} {
 		    -message {Are you sure you want to exit?}]
     if {$answer eq "yes"} {
 	saveConfiguration "failsafe.conf"
+	bind . <Destroy> [list]
 	exit
     }
 }
 
 #----------------------------------------------------------------
+#
+# Called if widgets are gettting deleted. If the main toplevel
+# is getting deleted, the user clicked the x button and
+# we need to save the failsafe file
+#
+proc emergencyExit widget {
+    if {$widget eq "."} {
+	saveConfiguration "failsafe.conf"
+    }
+}
+#----------------------------------------------------------------
 #  Entry point.
 #
 #  
+
+#  Update the configuration based on env vars:
+
+foreach item [array names config] {
+    if {[array names env $item] ne ""} {
+	set config($item) $env($item)
+    }
+}
+
+
 
 #  Get connected.
 #
@@ -180,3 +219,4 @@ menu .menubar.file -tearoff 0
 
 
 . config -menu .menubar
+bind . <Destroy> [list emergencyExit %W]
