@@ -122,7 +122,7 @@ snit::widget gdgwidget {
     method setWidth {n v} {
 	set widths($n) $v
 	if {$n == $currentChannel} {
-	    $win.width configure -text $v
+	    $win.width configure -text "$v ns"
 	}
     }
     # Get the delay of channel n.
@@ -135,7 +135,7 @@ snit::widget gdgwidget {
     method setDelay {n v} {
 	set delays($n) $v
 	if {$n == $currentChannel} {
-	    $win.delay configure -text $v
+	    $win.delay configure -text "$v ns"
 	}
     }
 
