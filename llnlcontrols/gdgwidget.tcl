@@ -31,6 +31,7 @@ package require BWidget
 #   |         Channel [   ] +/-                      |
 #   |  Width: <value>          Delay <value>         |
 #   |         ^   V             ^   V                |
+#   |               [ Set All ]                      |
 #   +------------------------------------------------+
 #
 #    ^ - an up arrow button   V  - a down arrow button.
@@ -42,6 +43,8 @@ package require BWidget
 #    -downwidth script  -          Script to process width - button.
 #    -updelay   script  -          Script to process delay + button.
 #    -downdelay script  -          Script to process delay - button.
+#    -setdelay  script  -          Script to set a delay value (channel value)
+#    -setwidth  script  -          Script to set a width value (channel value)
 #
 #  All scripts have the current channel number and the parameter value
 #  appended to them... so scripts in general should be proc calls.
@@ -59,6 +62,8 @@ snit::widget gdgwidget {
     option -downwidth  ""
     option -updelay    ""
     option -downdelay  ""
+    option -setdelay   ""
+    option -setwidth   ""
 
     variable lastchan       7
     variable currentChannel 0
@@ -99,17 +104,23 @@ snit::widget gdgwidget {
 	                                    -command [mymethod onDelayDown]
 	pack $win.delcontrol.delplus $win.delcontrol.deldown -side left
 
+	button $win.setall -text {Set All} -comman [mymethod onSetAll]
+
 	# Layout the widgets on the grid.
 
 	grid $win.title       -            -        -        -      -      
 	grid     x        $win.chanlbl $win.chan
 	grid $win.widlbl  $win.width      $win.dellbl $win.delay
 	grid     x        $win.widcontrol     x       $win.delcontrol
+	grid     x        $win.setall         -           x
 
     }
 
 
     #   Public methods
+
+
+
 
     #  Return the width of channel n.
 
@@ -166,11 +177,33 @@ snit::widget gdgwidget {
 	$self setWidth $currentChannel $widths($currentChannel)
 	$self setDelay $currentChannel $delays($currentChannel)
     }
+    #
+    #   Process the set all button... all channel widths/delays
+    #   are set to match the current one
+    #
+    method onSetAll {} {
+	set width $widths($currentChannel)
+	set delay $delays($currentChannel)
+
+	for {set i 0} {$i <= $lastchan} {incr i} {
+	    $self dispatchSet -setdelay $i $delay
+	    $self dispatchSet -setwidth $i $width
+	}
+    }
+
     #  Dispatches to a script if one exists.
     #
     method dispatch {script currentValue} {
 	if {$script ne ""} {
 	    eval $script $currentChannel $currentValue
+	}
+    }
+    # Dispatches to a -set* script...
+    
+    method dispatchSet {option channel value} {
+	set script $options($option)
+	if {$script ne ""} {
+	    eval $script $channel $value
 	}
     }
 }

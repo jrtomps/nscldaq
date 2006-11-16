@@ -71,7 +71,10 @@ snit::type gdgcontrol {
 	$w configure -upwidth    [mymethod onWidthPlus]     \
 	             -downwidth  [mymethod onWidthDown]     \
 	             -updelay    [mymethod onDelayPlus]     \
-	             -downdelay  [mymethod onDelayDown]
+	             -downdelay  [mymethod onDelayDown]    \
+	             -setdelay   [mymethod onSetDelay]     \
+	             -setwidth   [mymethod onSetWidth]
+	
                     
     }
     # Public methods.
@@ -154,8 +157,15 @@ snit::type gdgcontrol {
 	$self Set delay$channel $oldValue
 	$self refreshDelay $channel
     }
+    method onSetDelay {channel value} {
+	$self Set delay$channel $value
+	$self refreshDelay $channel
 
-
+    }
+    method onSetWidth {channel value} {
+	$self Set width$channel $value
+	$self refreshWidth $channel
+    }
     method refreshWidth channel {
 	set value [$self Get width$channel]
 	$options(-widget) setWidth $channel $value
@@ -165,6 +175,8 @@ snit::type gdgcontrol {
 
 	$options(-widget) setDelay $channel $value
     }
+
+  
     # perform  transactions with the device.
     #
 
