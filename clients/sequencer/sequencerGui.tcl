@@ -13,7 +13,7 @@
 #	     Michigan State University
 #	     East Lansing, MI 48824-1321
 #
-
+package provide runSequencer 1.0
 package require Tk
 package require Tktable
 package require controller

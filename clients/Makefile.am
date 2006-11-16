@@ -9,7 +9,7 @@ SUBDIRS = tcllib @VME_DRIVERDIR@ \
 	AlarmDisplay LogDisplay ProductionReadout  \
 	contrib dvdburn daqstart @EPICSSOFTWARE@ \
 	ScalerDisplay @DEPENDSON_VME@ wienerusbd \
-	slowControls
+	slowControls sequencer
 
 
 EXTRA_DIST =  config/install-sh config/config.sub config/config.guess \
