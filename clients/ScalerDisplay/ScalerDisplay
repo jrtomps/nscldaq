@@ -1,4 +1,4 @@
 #!/bin/bash
 
-prefix=/usr/opt/daq/8.1
+prefix=/scratch/fox/daq/8.1test
 $prefix/bin/tclserver  $prefix/bin/ScalerDisplay.tcl $1 -pManaged -a"Scaler Display"
