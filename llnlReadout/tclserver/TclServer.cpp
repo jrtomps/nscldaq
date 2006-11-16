@@ -138,6 +138,7 @@ TclServer::operator()(int argc, char** argv)
   try {
     initInterpreter();		// Create interp and add commands.
     readConfigFile();		// Initialize the modules.
+    initModules();              // Initialize the fully configured modules.
     startTcpServer();		// Set up the Tcp/Ip listener event.
     EventLoop();			// Run the Tcl event loop forever.
   }
@@ -263,10 +264,15 @@ TclServer::EventLoop()
   }
  std::cerr << "The Tcl Server event loop has exited. No Tcp ops can be done\n"; 
 }
-/*
-   Set the result string.
-   Parameters:
-     CTCLInterpreter& interp    -Interpreter whose result string will be set.
-     std::string      msg       -What to set the result string to.
-*/
 
+
+/*   
+   Initialize the modules by calling all their Update functions:
+*/
+void
+TclServer::initModules()
+{
+  for (int i =0; i < m_Modules.size(); i++) {
+    m_Modules[i]->Update(*m_pVme);
+  }
+}

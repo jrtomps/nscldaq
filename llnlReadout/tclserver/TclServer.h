@@ -95,6 +95,7 @@ protected:
 private:
   void initInterpreter();
   void readConfigFile();
+  void initModules();
   void startTcpServer();
   void EventLoop();
 

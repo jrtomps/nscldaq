@@ -34,6 +34,7 @@
 #endif
 #endif
 
+
 class CControlModule;
 class CVMUSB;
 
@@ -44,7 +45,7 @@ class CVMUSB;
    - delay$n$  (n = 0 through 7).  The delay for channel n.
    - width$n$  (n = 0 through 7).  The output width for channel n
 
-   The configuration parameters are just:L
+   The configuration parameters are just:
    - base  - The base address of the module. We assume that address modifiers
              will be extended user data.
 */
@@ -53,8 +54,8 @@ class CGDG : public CControlHardware
 private:
   CControlModule*      m_pConfiguration;
 
-  int                  m_delays[8];
-  int                  m_widths[8];
+  uint32_t                  m_delays[8];
+  uint32_t                  m_widths[8];
 
 public:
   // Cannonical operations:
