@@ -6,7 +6,7 @@ proc epicsSet {name value} {
 proc epicsAccess name {
     puts "Setting up access to $name"
 }
-proc setTitle title {
+proc setTitle {name title} {
     ReadougGUIPanel::setTitle $title
 }
 

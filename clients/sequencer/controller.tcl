@@ -122,10 +122,6 @@ proc startPlannedRun {button table} {
         abortPlan $button $table
     } else {
 
-        # Set the epics value:
-
-        setRunConditions $channelNameList $channelValueList
-
         # Force the timed run on.
 
         ReadougGUIPanel::setTimed 1

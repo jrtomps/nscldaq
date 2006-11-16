@@ -396,6 +396,7 @@ proc setupGui {{top .}} {
         set mtop $top
     }
 
+
     # Menu structure:
 
     menu $mtop.menu -tearoff 0
