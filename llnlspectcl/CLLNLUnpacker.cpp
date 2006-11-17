@@ -188,17 +188,20 @@ CLLNLUnpacker::fetchSuperEvent(TranslatorPointer<UShort_t>& p)
   // be the event header.
   //
   m_size = 0;
+  int fragments = 0;
 
   // Fetch the first header:
   bool     more         = true;	// force the first loop pass.
   uint16_t header;
   uint16_t fragmentSize;
+
   
   while (more) {
     header       = *p++;
     fragmentSize = header & LengthMask;
     more         = (header & ContinuedMask) != 0;
-    m_size += fragmentSize + 1;
+    m_size += fragmentSize + 1;;
+    fragments++;
 
     // Copy out a single event fragment.
     // Since Jan has decided to put 0xffff after each BERR
@@ -238,9 +241,12 @@ CLLNLUnpacker::unpackModule(CEvent& rEvent)
 
   // Eat up the 0xffff's that can lead:
 
+  int efs = 0;
+  uint32_t header;
   while (!m_event.empty()) {
-    if (peekw() == 0xffff) {
-      getw();			// Eat up the 0xffff's that can lead
+    header = getl();
+    if (!isHeader(header)) {
+      efs++;
     }
     else {
       break;			// Should now have an adc header.
@@ -252,7 +258,6 @@ CLLNLUnpacker::unpackModule(CEvent& rEvent)
     return;			// Nothing left in super event....
   }
 
-  uint32_t header = getl();
   if (!isHeader(header)) {
     cerr << "Expected module header got: " << hex << header << dec << endl;
     cerr << "Skipping the rest of the superevent\n";
@@ -301,6 +306,9 @@ CLLNLUnpacker::peekw() {
 uint16_t
 CLLNLUnpacker::getw()
 {
+  if (m_event.empty()) {
+    return 0xffff;
+  }
   uint16_t result = m_event.front();
   m_event.pop_front();
   return result;
@@ -310,6 +318,5 @@ CLLNLUnpacker::getl()
 {
   uint32_t result;
   result  = getw() | ((uint32_t)getw() << 16); // Litle endian data.
-
   return result;
 }
