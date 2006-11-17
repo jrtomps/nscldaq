@@ -87,7 +87,7 @@ AC_CHECK_HEADERS(sys/ioctl.h)
 AC_CHECK_HEADERS(sys/time.h)
 AC_CHECK_HEADERS(arpa/inet.h)
 AC_CHECK_HEADERS(sys/socket.h)
-AC_CHECK_HEADERS(gdbm.h)
+AC_CHECK_HEADERS(gdbm.h, AC_DEFINE([HAVE_GDBM_H], 1, [<gdbm.h> exists]), AC_MSG_ERROR("Can't find gdbm.h needed to build nscldaq"))
 AC_CHECK_HEADERS(limits.h)
 AC_CHECK_HEADERS(stddef.h)
 
@@ -111,7 +111,7 @@ AC_C_INLINE
 
 # Checks for library functions.
 
-AC_CHECK_LIB(gdbm, gdbm_open)
+AC_CHECK_LIB(gdbm, gdbm_open, [], [AC_MSG_ERROR("Can't fine libgdm needed tobuild nscldaq")])
 AC_FUNC_MMAP
 AC_CHECK_FUNCS(stat)
 AC_CHECK_FUNCS(malloc)

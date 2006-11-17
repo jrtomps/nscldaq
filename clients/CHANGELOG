@@ -750,3 +750,5 @@ September 7, 2006
                        - Added episcButton widget.
   November 16, 2006    - Added sequencer dir for run plan tool.
                        - Fixed some buffer size errors in the readout gui config.
+  November 17, 2006    - Defect 231 - missing gdbm.h, libgdbm should fail
+                         the configure - fixed.
