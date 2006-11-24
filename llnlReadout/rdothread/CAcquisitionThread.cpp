@@ -39,6 +39,9 @@ static const unsigned scalerPeriodMultiplier(2); // period*this to get seconds.
 static const unsigned DRAINTIMEOUTS(5);	// # consecutive drain read timeouts before giving up.
 static const unsigned USBTIMEOUT(10);
 
+static const unsigned ReadoutStackNum(0);
+static const unsigned ScalerStackNum(1);
+
 
 // buffer types:
 //
@@ -282,7 +285,8 @@ CAcquisitionThread::processBuffer(DataBuffer* pBuffer)
   // Sanity checking: see if the event in the buffer has one of our stack ids:
   //
   int stack = (pBuffer->s_rawData[1] & VMUSBStackIdMask) >> VMUSBStackIdShift;
-  if ((stack != 1) && (stack !=2) && (pBuffer->s_bufferType == TYPE_EVENTS)) {
+  if ((stack != ScalerStackNum) && (stack != ReadoutStackNum) && 
+      (pBuffer->s_bufferType == TYPE_EVENTS)) {
     cerr << "Read a buffer with first event from a strange stack: " << stack << endl;
     cerr << "1'st event 1'st word: " << hex << pBuffer->s_rawData[1] << dec  << endl;
   }
@@ -322,13 +326,13 @@ CAcquisitionThread::startDaq()
 
   // Load the lists.
 
-  m_pVme->loadList(2, *adcList);	                 // Event readout list.
-  m_pVme->loadList(1, *scalerList, adcListLines); // Scaler list.
+  m_pVme->loadList(ReadoutStackNum, *adcList);	                 // Event readout list.
+  m_pVme->loadList(ScalerStackNum, *scalerList, adcListLines); // Scaler list.
 
   // Set up the trigger for the event list; the A vector of 
   // vector register 1; the B Vector is unused.
 
-  uint32_t vectorValue = (2 << CVMUSB::ISVRegister::AStackIDShift)      |
+  uint32_t vectorValue = (ReadoutStackNum << CVMUSB::ISVRegister::AStackIDShift)      |
                          (vmeVector << CVMUSB::ISVRegister::AVectorShift)  |
                          (vmeIPL << CVMUSB::ISVRegister::AIPLShift);
 

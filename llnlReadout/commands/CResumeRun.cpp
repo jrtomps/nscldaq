@@ -75,7 +75,7 @@ CResumeRun::operator()(CTCLInterpreter& interp,
   // resume the run:
 
   CControlQueues* pRequest = CControlQueues::getInstance();
-  pRequest->PauseRun();
+  pRequest->ResumeRun();
   
 
   return TCL_OK;

@@ -8,7 +8,7 @@ include_HEADERS		=	COutputThread.h		\
 				DataBuffer.h
 
 INCLUDES		= $(NSCLDAQ_FLAGS) $(SPECTRODAQ_FLAGS) \
-				-I@top_srcdir@/threadcomm
+				-I@top_srcdir@/threadcomm -DLAST_CHANCE
 
 libRouter_la_LIBADD	= $(NSCLDAQ_LIB) $(SPECTRODAQ_LDFLAGS)	\
 			@top_srcdir@/threadcomm/libThreadComm.la

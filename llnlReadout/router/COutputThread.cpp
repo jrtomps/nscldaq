@@ -36,6 +36,8 @@
 using namespace std;
 
 static DataBuffer* lastBuffer(0);
+static const unsigned ReadoutStack(0);
+static const unsigned ScalerStack(1);
 
 
 ///////////////////////////////////////////////////////////////////////
@@ -227,10 +229,10 @@ COutputThread::formatBuffer(DataBuffer& buffer)
   uint16_t firstEvhdr = buffer.s_rawData[1]; // First event buffer.
   uint16_t listId = (firstEvhdr >> 13) & 0x7;	// 
   
-  if (listId == 1) {
+  if (listId == ScalerStack) {
     scaler(buffer);
   }
-  else if (listId == 2) {
+  else if (listId == ReadoutStack) {
     events(buffer);
   } 
   else {

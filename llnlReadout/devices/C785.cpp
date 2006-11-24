@@ -33,6 +33,7 @@
 #include <string>
 #include <set>
 
+#include <iostream>
 using namespace std;
 
 ////////////////////////////////////////////////////////////////////////
@@ -90,6 +91,7 @@ Const(BoardIDLSB) 0x803e;	// Lowest significant byte of the id.
 Const(MaxEventSize)  34;           // Longwords in the largest event.
 Const(MEBDepth)      32;	   // Max events the adc can buffer.
 Const(MaxLongwordsBuffered) (MaxEventSize*MEBDepth);
+Const(EventsPerRead)  1;
 
 
 /////////////////////////////////////////////////////////////////////
@@ -296,10 +298,10 @@ C785::Initialize(CVMUSB& controller)
 			  threshold);
   }
   if (getBoolParameter("-smallthresholds")) {
-    controller.vmeWrite16(base+BSet2, initamod, 0x100);	// small thresholds.
+    controller.vmeWrite16(base+BSet2, initamod, 0x100);	// big thresholds.
   } 
   else {
-    controller.vmeWrite16(base+BClear2, initamod, 0x100); // large thresholds.
+    controller.vmeWrite16(base+BClear2, initamod, 0x100); // small thresholds.
   }
   
   // Set the interrupt characteristics of the module:
@@ -325,7 +327,7 @@ C785::Initialize(CVMUSB& controller)
   // Set the supression.
 
   bool supressed = getBoolParameter("-supressrange");
-  if (supressed) {
+  if (!supressed) {		// Set means disable checks.
     controller.vmeWrite16(base+BSet2, initamod, 0x38);
   }
   else {
@@ -361,8 +363,11 @@ C785::addReadoutList(CVMUSBReadoutList& list)
 {
   // only read 1 event.
   //
-  list.addFifoRead32(static_cast<uint32_t>(getIntegerParameter("-base")),
-		     readamod, static_cast<size_t>(MaxEventSize+16));
+  for (int i =0; i < EventsPerRead; i++) {
+
+    list.addFifoRead32(static_cast<uint32_t>(getIntegerParameter("-base")),
+		       readamod, static_cast<size_t>(MaxEventSize+16));
+  }
 }
 
 /*!
@@ -411,7 +416,8 @@ C785::getBoolParameter(string name)
   trueValues.insert("on");
   trueValues.insert("enabled");
 
-  return trueValues.count(sValue) != 0;
+
+  return (trueValues.count(sValue) != 0);
 }
 // Get the values of the thresholds  The thresholds should be a list
 // of integer values.. which we will stuff into a vector.
