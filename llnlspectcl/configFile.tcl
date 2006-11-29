@@ -47,7 +47,10 @@ proc configRead filename {
 #---------------------------------------------------------------------
 # scaler - processes the scaler command.  This is a no-op.
 #
+set scalerCount 0
 proc scaler args {
+    global scalerCount
+    incr scalerCount
 }
 
 #-------------------------------------------------------------------

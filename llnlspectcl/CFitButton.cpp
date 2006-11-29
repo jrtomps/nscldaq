@@ -159,11 +159,6 @@ CFitButton::operator()(CButtonEvent& event)
 
 
 
-
-
-
-
-
     string fitName;
     if (buttonId == m_FitButtonId) {
       fitName       = event.getm_sPromptedString();
@@ -183,6 +178,15 @@ CFitButton::operator()(CButtonEvent& event)
     CGaussianFit*  pFit  = new CGaussianFit(fitName, CFitCommand::id());
     int            low   = pts[0].X();
     int            high  = pts[1].X();
+
+    // Danger Will Robinson.. if low==high, gsl will exit our
+    // program.. not likely but need to catch it because the
+    // game theoretcial payoff is soo sooo bad.
+    //
+    if (low == high) {
+      invokeScript(string("tk_messageBox -icon error -message {Both fit points have the same X positions}"));
+      return kfTRUE;
+    }
     if (low > high) {
       int temp = low;
       low      = high;

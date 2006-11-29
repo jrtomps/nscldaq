@@ -481,6 +481,9 @@ proc UserUpdate {} {
     global ScalerDeltaTime
     global BuffersAnalyzed
     global LastSequence
+    global ScalerMap
+    global Scaler_Totals
+    global Scaler_Increments
 
     $ratesPage.table configure -state normal
     set rates [rate list]
@@ -503,14 +506,55 @@ proc UserUpdate {} {
     set totalCounts 0.0
     set totalRates  0.0
     foreach rate $rates {
-	set name   [lindex $rate 0]
-	set name   [format %-32s $name]
+	set rawname   [lindex $rate 0]
+	set name   [format %-32s $rawname]
 	set totals [lindex $rate 2]
 	set rates  [lindex $rate 3];
 	set rates  [expr $rates/$dt];	
 
+	# If possible, correct the rates/totals by the detector
+	# live time.  We do this by analyzing the name for a detector
+	# name.. if there are corresponding name.live/name.total
+	# scalers we can then correft the rates and totals by their live
+	# time ratio:
+
+	set namepath [split $rawname .]
+	set detector [lindex $namepath 0];  # e.g. detector00n...
+
+
+	if {([array names ScalerMap $detector.live]  ne "")   &&
+	    ([array names ScalerMap $detector.total] ne "")} {
+	    set liveindex  $ScalerMap($detector.live)
+	    set totalindex $ScalerMap($detector.total)
+	    
+	    # Attempt to correct the rates (need to have increments):
+	    
+	    if {([array names Scaler_Increments $liveindex]  ne "")  &&
+		([array names Scaler_Increments $totalindex] ne "")} {
+		set live  $Scaler_Increments($liveindex)
+		set total $Scaler_Increments($totalindex)
+		if {$live != 0} {
+		    set $rates [expr 1.0*$rates*$total/$live]
+		}
+	    }
+	    
+	    # Attempt to correct the totals (need t ohave the totals).
+	    
+	    if {([array names Scaler_Totals $liveindex] ne "")    &&
+		([array names Scaler_Totals $totalindex] ne "")} {
+		set live $Scaler_Totals($liveindex)
+		set total $Scaler_Totals($liveindex)
+		if {$live != 0} {
+		    set totals [expr 1.0*$totals*$total/$live]
+		}
+	    }
+		
+	}
+
+
 	# Correct for deadtime estimated as the fraction
-	# of the buffers processd.
+	# of the buffers processd....this we can always do.
+	#
 
 	set rates  [expr $rates*$LastSequence/$BuffersAnalyzed]
 	set totals [expr $totals*$LastSequence/$BuffersAnalyzed]
@@ -518,10 +562,10 @@ proc UserUpdate {} {
 	set totalCounts [expr $totalCounts + $totals]
 	set totalRates  [expr $totalRates  + $rates]
 
+
+
 	set rates [format %6.3f $rates]
 	set totals [format %5.2f $totals]
-
-
 	$ratesPage.table set row $row,0 [list $name $rates $totals]
 	incr row
     }
