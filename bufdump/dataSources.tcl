@@ -234,8 +234,16 @@ snit::type onlineDataSource {
     #
     method close {} {
         if {$fd ne [list]} {
+	    puts "killing fileevent"
             catch {fileevent $fd readable {}}
+	    puts "Closing"
+	    fconfigure $fd -blocking 0
+	    set helperPid [pid $fd];               # get spetrodaq pid.
+	    foreach pid $helperPid {
+		exec kill -9 $pid
+	    }
             catch {close $fd}
+	    puts "closed"
             set fd {}
         }
 
