@@ -753,3 +753,5 @@ September 7, 2006
   November 17, 2006    - Defect 231 - missing gdbm.h, libgdbm should fail
                          the configure - fixed.
   November 22, 2006    - Fix defect in LRS4434 readout for prod rdo.
+  December 05, 2006    - CVMEScalerCAENV830 was actually not completely
+                         implemented. Destroy it.

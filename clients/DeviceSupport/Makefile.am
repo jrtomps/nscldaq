@@ -7,7 +7,7 @@ libDeviceSupport_la_SOURCES = VmeModule.cpp MmapError.cpp \
 	CCAMACStatusModule.cpp CTrigger.cpp \
 	CCAMACTrigger.cpp CCamac.cpp CCamacModule.cpp \
 	CCamacNimout.cpp CCrateController.cpp CScaler.cpp CStatusModule.cpp \
-	 CVMEScalerCAENV830.cpp CVMEScalerLRS1151.cpp \
+	 CVMEScalerLRS1151.cpp \
 	CVMEStatusModule.cpp CVMETrigger.cpp CCAENV1x90.cpp  \
 	CCAENV977.cpp CSIS3600.cpp CCAENV560.cpp
 
@@ -20,7 +20,7 @@ include_HEADERS = VmeModule.h CVME.h CVMEptr.h MmapError.h CSIS3820.h \
 	CCAMACStatusModule.h CTrigger.h \
 	CCAMACTrigger.h CCamac.h CCamacModule.h \
 	CCamacNimout.h CCrateController.h CScaler.h CStatusModule.h \
-	CTrigger.h CVMEScalerCAENV830.h CVMEScalerLRS1151.h \
+	CTrigger.h  CVMEScalerLRS1151.h \
 	CVMEStatusModule.h CVMETrigger.h CBD8210.h \
 	CCAENV1x90.h CCAENV1x90Data.h CCAENV1x90Opcodes.h \
 	 CCAENV1x90Registers.h \
