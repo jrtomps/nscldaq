@@ -6,8 +6,10 @@ include $(INSTDIR)/etc/SpecTcl_Makefile.include
 
 #  If you have any switches that need to be added to the default c++ compilation
 # rules, add them to the definition below:
-
 USERCXXFLAGS=
+#
+#  Uncomment the next line to enable reportage of bad events to stderr.
+#USERCXXFLAGS=-DREPORT_BAD_EVENTS
 
 #  If you have any switches you need to add to the default c compilation rules,
 #  add them to the defintion below:

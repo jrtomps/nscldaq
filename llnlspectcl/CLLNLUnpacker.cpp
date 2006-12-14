@@ -51,7 +51,7 @@ static const uint32_t HDRL_COUNTSHIFT(8);
 static const uint32_t DATAH_CHANMASK(0x3f0000);
 static const uint32_t DATAH_CHANSHIFT(16);
 
-    // Low part of data:
+    // Low part of data
     
 static const uint32_t DATAL_UNBIT(0x2000);
 static const uint32_t DATAL_OVBIT(0x1000);
@@ -234,37 +234,8 @@ void
 CLLNLUnpacker::unpackModule(CEvent& rEvent)
 {
 
-  // Because of how the data are we can assume that
-  // we either start out with 0xffff's or an adc header:
-  //
-
-
-  // Eat up the 0xffff's that can lead:
-
-  int efs = 0;
-  uint32_t header;
-  while (!m_event.empty()) {
-    header = getl();
-    if (!isHeader(header)) {
-      efs++;
-    }
-    else {
-      break;			// Should now have an adc header.
-    }
-  }
-  // Next should be a header:
-
-  if (m_event.empty()) {
-    return;			// Nothing left in super event....
-  }
-
-  if (!isHeader(header)) {
-    cerr << "Expected module header got: " << hex << header << dec << endl;
-    cerr << "Skipping the rest of the superevent\n";
-    m_event.clear();
-    return;
-  }
-  int slot = (header & ALLH_GEOMASK) >> ALLH_GEOSHIFT;
+  // We're going to try to do this by only paying attention
+  // to the data words:
   
   // We're going to get data until we have a non datum
   // because I don't trust the CAEN module channel count. It has let me
@@ -273,22 +244,56 @@ CLLNLUnpacker::unpackModule(CEvent& rEvent)
   
   
   CParamMapCommand::ParameterMap& theMap(CParamMapCommand::getMap());
-  uint32_t datum = getl();
+  uint32_t datum = getGoodl();
   uint32_t type = getType(datum);
-  
+  int      slot = (datum & ALLH_GEOMASK) >> ALLH_GEOSHIFT;
+  //
+  // Lowest geo is 3 hard coded to get around Jtec issues
+  //
+  if (slot < 3) {
+#ifdef REPORT_BAD_EVENTS
+    cerr << "slot num too small " << dec << slot << endl;
+#endif
+    m_event.clear();
+    return;
+  }
   while ((type == DATA) && (!m_event.empty())) {
     
     
     int channel = (datum & DATAH_CHANMASK) >> DATAH_CHANSHIFT;
     int value   = (datum & DATAL_DATAMASK);
-    
+
+    if (channel > 31) {
+#ifdef REPORT_BAD_EVENTS
+      cerr << dec << "Bad channel number: " << hex  << datum 
+	   << dec << " " << channel << " " << value << endl;
+#endif
+      // When we see this what appears to be happening is that
+      // the top 16 bits got dropped...in that case,
+      // The top 16 bits are likley the bottom 16  bit of
+      // the next datum...so push that into the front and
+      // see if we can keep analyzing:
+
+      if (!m_event.empty()) {
+	uint16_t nextlow = (datum >> 16) & 0xffff;
+	m_event.push_front(nextlow);
+      }
+      return;
+    }
     if (theMap.size() > slot) { // Map must have the slot.
       int paramno = theMap[slot][channel];
       if (paramno >= 0) rEvent[paramno] = value;
     }
     if (!m_event.empty()) {
-      datum = getl();		// This is ok since there should be a trailer.
+      datum = getGoodl();		// This is ok since there should be a trailer.
       type  = getType(datum);
+      // If the slot changed... then we put the data back and
+      // break ...
+      int newslot = (datum & ALLH_GEOMASK) >> ALLH_GEOSHIFT;
+      if (newslot != slot) {
+	m_event.push_front(datum);
+	break;
+      }
     }
   }  
 }
@@ -319,4 +324,28 @@ CLLNLUnpacker::getl()
   uint32_t result;
   result  = getw() | ((uint32_t)getw() << 16); // Litle endian data.
   return result;
+}
+uint32_t
+CLLNLUnpacker::getGoodl()
+{
+  union {
+    uint16_t words[2];
+    uint32_t Long;
+  } result;
+  result.Long =0;
+  int      goodwords = 0;
+
+  while (!m_event.empty() && (goodwords < 2)) {
+    uint16_t item = getw();
+    if (item != 0xffff) {
+      result.words[goodwords]  = item;
+      goodwords++;
+    }
+  }
+  if (goodwords < 2) {
+    return 0xffffffff;
+  } 
+  else {
+    return result.Long;
+  }
 }

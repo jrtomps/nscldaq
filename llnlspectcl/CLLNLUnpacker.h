@@ -145,7 +145,7 @@ private:
   uint16_t peekw();
   uint16_t getw();
   uint32_t getl();
-
+  uint32_t getGoodl();
   
 };
 

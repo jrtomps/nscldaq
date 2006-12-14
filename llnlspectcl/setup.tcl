@@ -6,21 +6,18 @@ package require configFile
 
 
 
-
-
-
 set paramnum 100
 
 #  Process the adcs..
 #
 
 set cnum 1
-foreach adc [array names adcConfiguration] {
+foreach adc [lsort [array names adcConfiguration]] {
 
     #  Make the parameters, 1d/2d spectra for this adc
 
     set slot      $adcConfiguration($adc)
-    foreach i {0 1 2 3 8 9 10 11 16 17 18 19 24 25 26 27} {
+    for {set i 0} {$i < 32} {incr i 2} {
 	set basename [format det%03d $cnum]
 
 	set name1 $basename.e
@@ -36,7 +33,7 @@ foreach adc [array names adcConfiguration] {
 	# Add the parameter mapping for the decoder.
 
 	paramMap $slot $i $name1
-	paramMap $slot [expr $i + 4] $name2
+	paramMap $slot [expr $i + 1] $name2
 
 	incr cnum
     }
