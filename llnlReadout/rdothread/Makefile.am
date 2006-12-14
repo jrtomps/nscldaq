@@ -5,6 +5,9 @@ libRdoThread_la_SOURCES	= CAcquisitionThread.cpp 	\
 include_HEADERS		= CAcquisitionThread.h		\
 			CControlQueues.h
 
+# add -DREPORT_ERRORS to INCLUDES below for verbose
+# error reporting info.
+
 INCLUDES		= $(SPECTRODAQ_FLAGS) $(NSCLDAQ_FLAGS) -I@top_srcdir@/threadcomm \
 			-I@top_srcdir@/router				\
 			-I@top_srcdir@/devices				\

@@ -201,7 +201,9 @@ CAcquisitionThread::mainLoop()
 	pBuffer = gFreeBuffers.get(); // need a new one.
       } 
       else {
+#ifdef REPORT_ERRORS
 	cerr << "Bad status from usbread: " << strerror(errno) << endl;
+#endif
       }
       // Commands from our command queue.
       
@@ -320,7 +322,7 @@ CAcquisitionThread::startDaq()
   CVMUSBReadoutList*  adcList    = createList(m_adcs);
   CVMUSBReadoutList*  scalerList = createList(m_scalers);
 
-  size_t adcListLines            = adcList->size() + 10; // offset to scaler list + slop
+  size_t adcListLines            = adcList->size()*sizeof(long) + 10; // offset to scaler list + slop
   
   m_pVme->writeActionRegister(0); // Ensure DAQ is stopped.
 
@@ -345,7 +347,7 @@ CAcquisitionThread::startDaq()
 
   // the DAQ settings;
   //  - No trigger delay is needed since IRQ implies data.
-  //  - Scaler readout period 10 seconds.
+  //  - Scaler readout period scalerPeriod  seconds.
 
   m_pVme->writeDAQSettings((scalerPeriod * scalerPeriodMultiplier) <<
 			   CVMUSB::DAQSettingsRegister::scalerReadoutPeriodShift);
