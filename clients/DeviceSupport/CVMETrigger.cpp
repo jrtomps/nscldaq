@@ -287,9 +287,9 @@ using namespace std;
   \param base - Base address of the module.  Factory settings are
                 0x444400
 */
-CVMETrigger::CVMETrigger (unsigned int base) :  
+CVMETrigger::CVMETrigger (unsigned int base, int crate) :  
   CTrigger(),
-  m_TriggerModule(base)
+  m_TriggerModule(base,crate)
 {
 
 } 

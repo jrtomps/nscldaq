@@ -304,7 +304,7 @@ private:
 public:
 	// Constructors, destructors and other cannonical operations: 
 
-  CVMETrigger (unsigned int base); //!< Default constructor.
+  CVMETrigger (unsigned int base, int crate = 0); //!< Default constructor.
   CVMETrigger(const CVMETrigger& rhs); //!< Copy constructor.
   ~ CVMETrigger ( ) { }		//!< Destructor.
   

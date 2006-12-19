@@ -757,3 +757,4 @@ September 7, 2006
                          implemented. Destroy it.
                          Support CVMEStatusModules in non crate 0 crates.
                          Was supposed to be true but was defective.
+                         Support CVMETrigger in non crate 0 crates.
