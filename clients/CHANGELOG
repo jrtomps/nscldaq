@@ -755,3 +755,5 @@ September 7, 2006
   November 22, 2006    - Fix defect in LRS4434 readout for prod rdo.
   December 05, 2006    - CVMEScalerCAENV830 was actually not completely
                          implemented. Destroy it.
+                         Support CVMEStatusModules in non crate 0 crates.
+                         Was supposed to be true but was defective.
