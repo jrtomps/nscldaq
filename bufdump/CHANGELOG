@@ -23,3 +23,6 @@ January 9, 2006
 	- Nov 9, 2006 Install changelog
         - December 1, 2006 Fix and issue with the way bufdump closed off
           online sources.
+        - December 20, 2006 Refresh the dqkits from 
+          www.sourceforge.net/projects/dqsoftware  so that Makefiles
+          work with the current versions of sdx.kit (tcl 8.5).
