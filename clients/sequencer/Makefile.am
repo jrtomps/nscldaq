@@ -1,7 +1,7 @@
 TCLPACKAGES=sequencerGui.tcl controller.tcl pkgIndex.tcl
 EXAMPLEFILES=ReadoutCallouts.tcl sequencerActions.tcl sequencer.config run.plan
 
-EXTRA_DIST=$(TCLPACKAGES) $(EXAMPLE_FILES)
+EXTRA_DIST=$(TCLPACKAGES) $(EXAMPLE_FILES) sequencer.xml
 install-exec-local:
 	$(mkinstalldirs) $(prefix)/TclLibs/sequencer
 	$(mkinstalldirs) $(prefix)/examples/sequencer
