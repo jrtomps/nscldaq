@@ -760,3 +760,5 @@ September 7, 2006
                          Support CVMETrigger in non crate 0 crates.
   December 21, 2006    - Ensure that the sequencer docs srcs get included in
                          the tarball.
+                         Fix typos in sequencer makefil that prevented the
+			 examples from getting included in the tarball.
