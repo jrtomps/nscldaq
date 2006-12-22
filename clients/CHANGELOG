@@ -762,3 +762,7 @@ September 7, 2006
                          the tarball.
                          Fix typos in sequencer makefil that prevented the
 			 examples from getting included in the tarball.
+  December 22, 2006    - Fix issue with exec in bcnaf.tcl - the stderr
+                         output from vme package causes tcl to think
+                         that's an error unless it's caught & redirected
+                         to /dev/null.
