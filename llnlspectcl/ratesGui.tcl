@@ -494,8 +494,8 @@ proc UserUpdate {} {
     #
     #  If necessary, expand the table:
     #
-    if {$ratesRows < $numRates} {
-	$ratesPage.table configure -rows [expr $numRates + 1]
+    if {$ratesRows < ($numRates + 2)
+	$ratesPage.table configure -rows [expr $numRates + 2]
     }
     set row 1;				# First row is title
     set dt $ScalerDeltaTime
