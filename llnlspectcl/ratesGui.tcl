@@ -494,7 +494,7 @@ proc UserUpdate {} {
     #
     #  If necessary, expand the table:
     #
-    if {$ratesRows < ($numRates + 2)
+    if {$ratesRows < ($numRates + 2) } {
 	$ratesPage.table configure -rows [expr $numRates + 2]
     }
     set row 1;				# First row is title
