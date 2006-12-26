@@ -1020,8 +1020,8 @@ proc SetupGui {top} {
 
 
     set notebook [tabset $book.pages -tiers 3 -tearoff 0]
-    pack $book.pages -side top -fill x -expand 1
-    pack $book       -side top -fill x -expand 1
+    pack $book.pages -side top -fill both -expand 1
+    pack $book       -side top -fill both -expand 1
 
 
     return $notebook
@@ -1051,7 +1051,7 @@ proc page {name title} {
 	puts "Attempt to create duplicate page: $name ignored"
     } else {
         set newpage [frame $Notebook.p${pageSerial}]
-        $Notebook insert end "$name" -window $newpage -fill x
+        $Notebook insert end "$name" -window $newpage -fill both
 	set Pages($name) $newpage
 	frame $newpage.title -relief groove
 	set lines [frame $newpage.lines]
@@ -1095,13 +1095,13 @@ proc page {name title} {
 #	grid      $table -row 0 -column 0 -sticky nws
 #	grid      $vsb -row 0 -column 1   -sticky nse
 #	grid      $hsb -row 1 -column 0 -sticky ews
-	pack  $vsb   -side right  -fill y
-	pack  $table -anchor n   -fill x  -expand 1
+	pack  $vsb   -side right  -fill y -expand 1
+	pack  $table -anchor n   -fill both  -expand 1
 	pack  $hsb   -side bottom -anchor s -fill x -expand 1
-	pack $newpage.lines -side top -fill x  -expand 1
+	pack $newpage.lines -side top -fill both  -expand 1
+	incr pageSerial
 
     }
-    incr pageSerial
 }
 
 #  Process the legal switches associated with the channel commane.
