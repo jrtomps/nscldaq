@@ -767,6 +767,10 @@ September 7, 2006
                          that's an error unless it's caught & redirected
                          to /dev/null.
 
+Released January 15, 2007
+
+8.1-002
+
  January 18,2006       - Support the user making changes to the authorizer
                          at initialization time:
                          - Reorder user initialization after TclServer startup.
