@@ -524,12 +524,6 @@ CInterpreterCore::RegisterExtensions()
   m_nWords = 0;
   m_pWords->Link(&m_nWords, TCL_LINK_INT);
   
-  // Now we let the experiment register its experiment specific stuff:
-
-
-  pMain->AddUserCommands(*pExperiment, m_rInterpreter, *this);
-  pMain->SetupStateVariables(*pExperiment, m_rInterpreter, *this);
-  pMain->SetupRunVariables(*pExperiment, m_rInterpreter, *this);
 
 
 
@@ -578,6 +572,12 @@ CInterpreterCore::RegisterExtensions()
     cerr << "Unrecognized exception fired in pserver->Enable()\n";
   }
   
+  // Now we let the experiment register its experiment specific stuff:
+
+
+  pMain->AddUserCommands(*pExperiment, m_rInterpreter, *this);
+  pMain->SetupStateVariables(*pExperiment, m_rInterpreter, *this);
+  pMain->SetupRunVariables(*pExperiment, m_rInterpreter, *this);
 
 }
 

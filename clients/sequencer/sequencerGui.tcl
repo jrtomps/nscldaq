@@ -331,7 +331,17 @@ proc nextStep {button table} {
         set name    [lindex $columnInfo($i) 0]
         set action  [lindex $columnInfo($i) 1]
         if {$action ne ""} {
-            $action $name $setting
+            if {$action $name $setting} {
+		# 
+		# Action returning nonzero is an error
+		#
+		planAborted
+		$table tag delete current
+
+
+		$button configure -text "Execute Plan" \
+		    -command [list executePlan $button $table]		return
+	    }
         }
     }
 

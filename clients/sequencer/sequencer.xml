@@ -144,7 +144,12 @@ package require runSequencer
                             A tcl command that is executed when it is time to change the value
                             of the item in the column. The column name and the value of that
                             cell of the table are appended to the command.  If the
-                            set action is blank, no action is taken.
+                            set action is blank, no action is taken.  The
+                            action function must return 0 on success or else
+                            the run plan will be aborted prior to starting the
+                            run for the failing step.  Note that if an action
+                            can return and error it should indicate to the user
+                            what the error was.
                         </para>
                     </listitem>
                 </varlistentry>
@@ -258,7 +263,12 @@ package require runSequencer
                     <programlisting>
 package require epics
 proc epicsSet {name value} {
-    $name set $value
+  set status [catch  {$name set $value}] msg
+  if {$status != 0} {
+     tk_msgBox -message $msg -icon error -title {Epics channel set error}
+  } 
+  return $status
+  
 }
 proc epicsAccess name {
     epicschannel $name

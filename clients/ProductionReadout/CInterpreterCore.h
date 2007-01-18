@@ -414,6 +414,11 @@ public:
   CConstVariable* getStartTime() {
     return m_pStartTime;
   }
+
+  CTclAuthorizer* getServerAuthorizer() {
+    return m_pAuthorizer;
+  }
+
   //  Mutators:
 
   void setState(const STD(string)& rNewValue) {
