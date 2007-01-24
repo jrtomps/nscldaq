@@ -188,7 +188,6 @@ public:
   void RemoveScalerModule(ScalerListIterator it) {
     RemoveScalerModule(*it);
   }
-  void ReplaceBuffer(unsigned nSize);
   CScalerTrigger* getScalerTrigger();
   void            setScalerTrigger(CScalerTrigger* pTrigger);
   unsigned long GetElapsedTime() const;

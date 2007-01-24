@@ -771,8 +771,13 @@ Released January 15, 2007
 
 8.1-002
 
- January 18,2006       - Support the user making changes to the authorizer
+ January 18,2007       - Support the user making changes to the authorizer
                          at initialization time:
                          - Reorder user initialization after TclServer startup.
                          - Add getServerAuthorizer() member so that the
                            authorizer can be gotten and modified.
+ January 19, 2007      - Remove CExperiment::ReplaceBufer from 
+			 ProductionReadout/CExperiment.h as this was
+                         evidently never implemented.
+ January 24, 2007      - Fine tune sequencer so aborts are much more likely
+                         to work right.

@@ -17,7 +17,7 @@ package provide runSequencer 1.0
 package require Tk
 package require Tktable
 package require controller
-
+package require ReadoutControl
 
 puts "---------------------- Sequencer read in --------------"
 
@@ -331,7 +331,7 @@ proc nextStep {button table} {
         set name    [lindex $columnInfo($i) 0]
         set action  [lindex $columnInfo($i) 1]
         if {$action ne ""} {
-            if {$action $name $setting} {
+            if {[$action $name $setting]} {
 		# 
 		# Action returning nonzero is an error
 		#
@@ -340,12 +340,20 @@ proc nextStep {button table} {
 
 
 		$button configure -text "Execute Plan" \
-		    -command [list executePlan $button $table]		return
+		    -command [list executePlan $button $table]		
+		return
 	    }
         }
     }
+    # Run might have gotten aborted:
 
-    startPlannedRun  $button $table
+    if {$runStep < $rows} {
+	startPlannedRun  $button $table
+    } else {
+        $table tag delete current
+        $button configure -text "Execute Plan" \
+            -command [list executePlan $button $table]
+    }
 }
 #
 # Execute the run plan
@@ -378,7 +386,9 @@ proc executePlan {button table} {
 proc abortPlan {button table} {
     global runStep
     set runStep 10000000;   # so that when/if nextStep is called its over.
-    stopPlannedRun
+    if {$ReadoutControl::State ne "NotRunning"} {
+	stopPlannedRun
+    }
     planAborted
 
     $table tag delete current
