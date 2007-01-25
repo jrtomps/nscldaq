@@ -781,3 +781,5 @@ Released January 15, 2007
                          evidently never implemented.
  January 24, 2007      - Fine tune sequencer so aborts are much more likely
                          to work right.
+ January 25, 2007      -Bug 287 - Make scaler display stretch vertically
+                        when window is resized. Removed hsb.
