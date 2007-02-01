@@ -9,7 +9,14 @@
 #    Redhat:  /usr/src/linux-<version>
 #
 
-version="$(uname -r | cut -f1 -d-)"
+#  Note that you may need to edit
+#  the code below up to the ---- line so that the
+#  symbol Linuxsrc points to the directory
+#  that has to kernel sources.. configured as per the running kernel
+#
+
+
+version="$(uname -r)"
 Debiansrc="/usr/src/kernel-source-${version}"
 RedHatsrc="/usr/src/linux-${version}"
 
@@ -25,9 +32,26 @@ then
 Linuxsrc="RedHatsrc"
 fi
 
+#-------------------------------------------------
+#
+#  At this point, Linuxsrc must point to the
+#  directory that contains the kernel sources configured
+#  for the running kernel.
+#  As a last resort, uncomment the line below and fill in 
+# the correct definition:
+#Linuxsrc=replace-this-with-the-correct-directory
+
+#
+#  Everything below should be relatively system independent.
+#
+#------------------------------------------------------------
 BTDRIVER=$(pwd)
 
 pushd dd
+
+# Always make from scratch:
+
+rm -f *.o
 make -C $Linuxsrc SUBDIRS=$(pwd) modules BTDRIVER=${BTDRIVER}
 
 
