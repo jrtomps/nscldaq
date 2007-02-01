@@ -90,13 +90,13 @@ UNIT=0
 while [ ${UNIT} -lt ${MAX_UNIT} ] # Loop through each possible unit
 do
     LDEV=0
-    while [ ${LDEV} -lt $[8*32] ] # Create the node for each logical device
+    while [ ${LDEV} -lt $[11*16] ] # Create the node for each logical device
     do
         MINOR=$[ ${UNIT} +${LDEV}]
 	echo "/dev/${DEVICE}${MINOR} ${MAJOR} ${MINOR}"
         mknod /dev/${DEVICE}${MINOR} c ${MAJOR} ${MINOR}
 	chmod ${PERM} /dev/${DEVICE}${MINOR}
-        LDEV=$[${LDEV} + 32]
+        LDEV=$[${LDEV} + 16]
     done
     UNIT=$[${UNIT} + 1]
 done

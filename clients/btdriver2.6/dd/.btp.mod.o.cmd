@@ -1,7 +1,7 @@
-cmd_/daq/clients/btdriver2.6/dd/btp.mod.o := gcc -Wp,-MD,/daq/clients/btdriver2.6/dd/.btp.mod.o.d -nostdinc -iwithprefix include -D__KERNEL__ -Iinclude  -Wall -Wstrict-prototypes -Wno-trigraphs -fno-strict-aliasing -fno-common -pipe -msoft-float -mpreferred-stack-boundary=2  -march=i686 -Iinclude/asm-i386/mach-default -O2 -fomit-frame-pointer     -DKBUILD_BASENAME=btp -DKBUILD_MODNAME=btp -DMODULE -c -o /daq/clients/btdriver2.6/dd/btp.mod.o /daq/clients/btdriver2.6/dd/btp.mod.c
+cmd_/scratch/fox/daq/8.1/btdriver2.6/dd/btp.mod.o := gcc -Wp,-MD,/scratch/fox/daq/8.1/btdriver2.6/dd/.btp.mod.o.d -nostdinc -iwithprefix include -D__KERNEL__ -Iinclude  -Wall -Wstrict-prototypes -Wno-trigraphs -fno-strict-aliasing -fno-common -pipe -msoft-float -mpreferred-stack-boundary=2  -march=i686 -Iinclude/asm-i386/mach-default -O2 -fomit-frame-pointer     -DKBUILD_BASENAME=btp -DKBUILD_MODNAME=btp -DMODULE -c -o /scratch/fox/daq/8.1/btdriver2.6/dd/btp.mod.o /scratch/fox/daq/8.1/btdriver2.6/dd/btp.mod.c
 
-deps_/daq/clients/btdriver2.6/dd/btp.mod.o := \
-  /daq/clients/btdriver2.6/dd/btp.mod.c \
+deps_/scratch/fox/daq/8.1/btdriver2.6/dd/btp.mod.o := \
+  /scratch/fox/daq/8.1/btdriver2.6/dd/btp.mod.c \
     $(wildcard include/config/module/unload.h) \
   include/linux/module.h \
     $(wildcard include/config/modules.h) \
@@ -25,7 +25,7 @@ deps_/daq/clients/btdriver2.6/dd/btp.mod.o := \
     $(wildcard include/config/highmem64g.h) \
     $(wildcard include/config/lbd.h) \
   include/linux/compiler.h \
-  include/linux/compiler-gcc2.h \
+  include/linux/compiler-gcc3.h \
   include/linux/compiler-gcc.h \
   include/linux/spinlock.h \
     $(wildcard include/config/debug/spinlock.h) \
@@ -60,7 +60,7 @@ deps_/daq/clients/btdriver2.6/dd/btp.mod.o := \
     $(wildcard include/config/x86/oostore.h) \
   include/linux/kernel.h \
     $(wildcard include/config/debug/spinlock/sleep.h) \
-  /usr/lib/gcc-lib/i386-linux/2.95.4/include/stdarg.h \
+  /usr/lib/gcc-lib/i486-linux/3.3.5/include/stdarg.h \
   include/asm/byteorder.h \
     $(wildcard include/config/x86/bswap.h) \
   include/linux/byteorder/little_endian.h \
@@ -205,6 +205,6 @@ deps_/daq/clients/btdriver2.6/dd/btp.mod.o := \
   include/linux/vermagic.h \
   include/linux/version.h \
 
-/daq/clients/btdriver2.6/dd/btp.mod.o: $(deps_/daq/clients/btdriver2.6/dd/btp.mod.o)
+/scratch/fox/daq/8.1/btdriver2.6/dd/btp.mod.o: $(deps_/scratch/fox/daq/8.1/btdriver2.6/dd/btp.mod.o)
 
-$(deps_/daq/clients/btdriver2.6/dd/btp.mod.o):
+$(deps_/scratch/fox/daq/8.1/btdriver2.6/dd/btp.mod.o):

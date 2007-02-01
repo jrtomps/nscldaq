@@ -1,0 +1,34 @@
+lib_LTLIBRARIES = libbtp.la
+libbtp_la_SOURCES =  bt_rdwr.c \
+	bt_ctrl.c \
+	bt_mmap.c \
+	bt_open.c \
+	bt_bind.c \
+	 bt_chke.c \
+	bt_clre.c \
+	bt_init.c \
+	bt_perr.c \
+	bt_locking.c \
+	bt_info.c \
+	 bt_name.c \
+	bt_serr.c \
+	bt_icbr.c \
+	bt_reset.c \
+	bt_string.c \
+	 bt_ior.c \
+	bt_iow.c \
+	bt_stat.c \
+	bt_cas.c \
+	bt_tas.c \
+	bt_send_irq.c \
+	bt_or_io.c
+
+
+
+libbtp_la_LDFLAGS = -version-info 1:0:0 
+INCLUDES = -I. -I../include \
+	-DBT1003 -DNDEBUG -DBT_INLINE \
+	-D_POSIX_C_SOURCE -D_POSIX_THREAD_SEMANTICS \
+	-O2 -Wall -Wstrict-prototypes
+
+include_HEADERS = btpiflib.h

@@ -1,7 +1,7 @@
-cmd_/daq/clients/btdriver2.6/dd/btp_cfg.o := gcc -Wp,-MD,/daq/clients/btdriver2.6/dd/.btp_cfg.o.d -nostdinc -iwithprefix include -D__KERNEL__ -Iinclude  -Wall -Wstrict-prototypes -Wno-trigraphs -fno-strict-aliasing -fno-common -pipe -msoft-float -mpreferred-stack-boundary=2  -march=i686 -Iinclude/asm-i386/mach-default -O2 -fomit-frame-pointer  -g -DDEBUG  -DBT1003 -I/daq/clients/btdriver2.6/dd -I/daq/clients/btdriver2.6/include -fno-strength-reduce -Wall -Wstrict-prototypes -fno-common  -DMODULE -DKBUILD_BASENAME=btp_cfg -DKBUILD_MODNAME=btp -c -o /daq/clients/btdriver2.6/dd/.tmp_btp_cfg.o /daq/clients/btdriver2.6/dd/btp_cfg.c
+cmd_/scratch/fox/daq/8.1/btdriver2.6/dd/btp_cfg.o := gcc -Wp,-MD,/scratch/fox/daq/8.1/btdriver2.6/dd/.btp_cfg.o.d -nostdinc -iwithprefix include -D__KERNEL__ -Iinclude  -Wall -Wstrict-prototypes -Wno-trigraphs -fno-strict-aliasing -fno-common -pipe -msoft-float -mpreferred-stack-boundary=2  -march=i686 -Iinclude/asm-i386/mach-default -O2 -fomit-frame-pointer  -g -DDEBUG  -DBT1003 -I/scratch/fox/daq/8.1/btdriver2.6/dd -I/scratch/fox/daq/8.1/btdriver2.6/include -fno-strength-reduce -Wall -Wstrict-prototypes -fno-common  -DMODULE -DKBUILD_BASENAME=btp_cfg -DKBUILD_MODNAME=btp -c -o /scratch/fox/daq/8.1/btdriver2.6/dd/.tmp_btp_cfg.o /scratch/fox/daq/8.1/btdriver2.6/dd/btp_cfg.c
 
-deps_/daq/clients/btdriver2.6/dd/btp_cfg.o := \
-  /daq/clients/btdriver2.6/dd/btp_cfg.c \
+deps_/scratch/fox/daq/8.1/btdriver2.6/dd/btp_cfg.o := \
+  /scratch/fox/daq/8.1/btdriver2.6/dd/btp_cfg.c \
     $(wildcard include/config/pci.h) \
   include/linux/module.h \
     $(wildcard include/config/modules.h) \
@@ -26,7 +26,7 @@ deps_/daq/clients/btdriver2.6/dd/btp_cfg.o := \
     $(wildcard include/config/highmem64g.h) \
     $(wildcard include/config/lbd.h) \
   include/linux/compiler.h \
-  include/linux/compiler-gcc2.h \
+  include/linux/compiler-gcc3.h \
   include/linux/compiler-gcc.h \
   include/linux/spinlock.h \
     $(wildcard include/config/debug/spinlock.h) \
@@ -61,7 +61,7 @@ deps_/daq/clients/btdriver2.6/dd/btp_cfg.o := \
     $(wildcard include/config/x86/oostore.h) \
   include/linux/kernel.h \
     $(wildcard include/config/debug/spinlock/sleep.h) \
-  /usr/lib/gcc-lib/i386-linux/2.95.4/include/stdarg.h \
+  /usr/lib/gcc-lib/i486-linux/3.3.5/include/stdarg.h \
   include/asm/byteorder.h \
     $(wildcard include/config/x86/bswap.h) \
   include/linux/byteorder/little_endian.h \
@@ -209,10 +209,10 @@ deps_/daq/clients/btdriver2.6/dd/btp_cfg.o := \
   include/asm-i386/mach-default/irq_vectors_limits.h \
   include/asm/io.h \
     $(wildcard include/config/x86/numaq.h) \
-  /daq/clients/btdriver2.6/dd/btdd.h \
-  /usr/lib/gcc-lib/i386-linux/2.95.4/include/stddef.h \
+  /scratch/fox/daq/8.1/btdriver2.6/dd/btdd.h \
+  /usr/lib/gcc-lib/i486-linux/3.3.5/include/stddef.h \
   include/linux/version.h \
-  /daq/clients/btdriver2.6/dd/btpdd.h \
+  /scratch/fox/daq/8.1/btdriver2.6/dd/btpdd.h \
   include/linux/pci.h \
     $(wildcard include/config/pci/names.h) \
     $(wildcard include/config/isa.h) \
@@ -264,11 +264,11 @@ deps_/daq/clients/btdriver2.6/dd/btp_cfg.o := \
   include/linux/dma-mapping.h \
   include/asm/dma-mapping.h \
   include/asm-generic/pci.h \
-  /daq/clients/btdriver2.6/include/btio.h \
-  /daq/clients/btdriver2.6/include/btdef.h \
-  /daq/clients/btdriver2.6/include/btpio.h \
-  /daq/clients/btdriver2.6/include/btpdef.h \
-  /daq/clients/btdriver2.6/include/btngpci.h \
+  /scratch/fox/daq/8.1/btdriver2.6/include/btio.h \
+  /scratch/fox/daq/8.1/btdriver2.6/include/btdef.h \
+  /scratch/fox/daq/8.1/btdriver2.6/include/btpio.h \
+  /scratch/fox/daq/8.1/btdriver2.6/include/btpdef.h \
+  /scratch/fox/daq/8.1/btdriver2.6/include/btngpci.h \
     $(wildcard include/config/ctrl.h) \
   include/linux/interrupt.h \
   include/asm/hardirq.h \
@@ -329,6 +329,6 @@ deps_/daq/clients/btdriver2.6/dd/btp_cfg.o := \
   include/linux/notifier.h \
   include/linux/vermagic.h \
 
-/daq/clients/btdriver2.6/dd/btp_cfg.o: $(deps_/daq/clients/btdriver2.6/dd/btp_cfg.o)
+/scratch/fox/daq/8.1/btdriver2.6/dd/btp_cfg.o: $(deps_/scratch/fox/daq/8.1/btdriver2.6/dd/btp_cfg.o)
 
-$(deps_/daq/clients/btdriver2.6/dd/btp_cfg.o):
+$(deps_/scratch/fox/daq/8.1/btdriver2.6/dd/btp_cfg.o):

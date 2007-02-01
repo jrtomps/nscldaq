@@ -1,7 +1,7 @@
-cmd_/daq/clients/btdriver2.6/dd/btp_lowio.o := gcc -Wp,-MD,/daq/clients/btdriver2.6/dd/.btp_lowio.o.d -nostdinc -iwithprefix include -D__KERNEL__ -Iinclude  -Wall -Wstrict-prototypes -Wno-trigraphs -fno-strict-aliasing -fno-common -pipe -msoft-float -mpreferred-stack-boundary=2  -march=i686 -Iinclude/asm-i386/mach-default -O2 -fomit-frame-pointer  -g -DDEBUG  -DBT1003 -I/daq/clients/btdriver2.6/dd -I/daq/clients/btdriver2.6/include -fno-strength-reduce -Wall -Wstrict-prototypes -fno-common  -DMODULE -DKBUILD_BASENAME=btp_lowio -DKBUILD_MODNAME=btp -c -o /daq/clients/btdriver2.6/dd/.tmp_btp_lowio.o /daq/clients/btdriver2.6/dd/btp_lowio.c
+cmd_/scratch/fox/daq/8.1/btdriver2.6/dd/btp_lowio.o := gcc -Wp,-MD,/scratch/fox/daq/8.1/btdriver2.6/dd/.btp_lowio.o.d -nostdinc -iwithprefix include -D__KERNEL__ -Iinclude  -Wall -Wstrict-prototypes -Wno-trigraphs -fno-strict-aliasing -fno-common -pipe -msoft-float -mpreferred-stack-boundary=2  -march=i686 -Iinclude/asm-i386/mach-default -O2 -fomit-frame-pointer  -g -DDEBUG  -DBT1003 -I/scratch/fox/daq/8.1/btdriver2.6/dd -I/scratch/fox/daq/8.1/btdriver2.6/include -fno-strength-reduce -Wall -Wstrict-prototypes -fno-common  -DMODULE -DKBUILD_BASENAME=btp_lowio -DKBUILD_MODNAME=btp -c -o /scratch/fox/daq/8.1/btdriver2.6/dd/.tmp_btp_lowio.o /scratch/fox/daq/8.1/btdriver2.6/dd/btp_lowio.c
 
-deps_/daq/clients/btdriver2.6/dd/btp_lowio.o := \
-  /daq/clients/btdriver2.6/dd/btp_lowio.c \
+deps_/scratch/fox/daq/8.1/btdriver2.6/dd/btp_lowio.o := \
+  /scratch/fox/daq/8.1/btdriver2.6/dd/btp_lowio.c \
   include/asm/io.h \
     $(wildcard include/config/x86/oostore.h) \
     $(wildcard include/config/x86/ppro/fence.h) \
@@ -18,7 +18,7 @@ deps_/daq/clients/btdriver2.6/dd/btp_lowio.o := \
   include/asm/linkage.h \
     $(wildcard include/config/x86/alignment/16.h) \
   include/linux/compiler.h \
-  include/linux/compiler-gcc2.h \
+  include/linux/compiler-gcc3.h \
   include/linux/compiler-gcc.h \
   include/linux/thread_info.h \
   include/linux/bitops.h \
@@ -49,7 +49,7 @@ deps_/daq/clients/btdriver2.6/dd/btp_lowio.o := \
     $(wildcard include/config/x86/cmpxchg.h) \
   include/linux/kernel.h \
     $(wildcard include/config/debug/spinlock/sleep.h) \
-  /usr/lib/gcc-lib/i386-linux/2.95.4/include/stdarg.h \
+  /usr/lib/gcc-lib/i486-linux/3.3.5/include/stdarg.h \
   include/linux/stddef.h \
   include/linux/types.h \
     $(wildcard include/config/uid16.h) \
@@ -70,8 +70,8 @@ deps_/daq/clients/btdriver2.6/dd/btp_lowio.o := \
   include/asm/spinlock.h \
   include/asm/atomic.h \
   include/asm/rwlock.h \
-  /daq/clients/btdriver2.6/dd/btdd.h \
-  /usr/lib/gcc-lib/i386-linux/2.95.4/include/stddef.h \
+  /scratch/fox/daq/8.1/btdriver2.6/dd/btdd.h \
+  /usr/lib/gcc-lib/i486-linux/3.3.5/include/stddef.h \
   include/asm/semaphore.h \
   include/linux/wait.h \
   include/linux/list.h \
@@ -81,7 +81,7 @@ deps_/daq/clients/btdriver2.6/dd/btp_lowio.o := \
   include/asm/rwsem.h \
   include/linux/timer.h \
   include/linux/version.h \
-  /daq/clients/btdriver2.6/dd/btpdd.h \
+  /scratch/fox/daq/8.1/btdriver2.6/dd/btpdd.h \
   include/linux/errno.h \
   include/asm/errno.h \
   include/asm-generic/errno.h \
@@ -261,13 +261,13 @@ deps_/daq/clients/btdriver2.6/dd/btp_lowio.o := \
   include/linux/dma-mapping.h \
   include/asm/dma-mapping.h \
   include/asm-generic/pci.h \
-  /daq/clients/btdriver2.6/include/btio.h \
-  /daq/clients/btdriver2.6/include/btdef.h \
-  /daq/clients/btdriver2.6/include/btpio.h \
-  /daq/clients/btdriver2.6/include/btpdef.h \
-  /daq/clients/btdriver2.6/include/btngpci.h \
+  /scratch/fox/daq/8.1/btdriver2.6/include/btio.h \
+  /scratch/fox/daq/8.1/btdriver2.6/include/btdef.h \
+  /scratch/fox/daq/8.1/btdriver2.6/include/btpio.h \
+  /scratch/fox/daq/8.1/btdriver2.6/include/btpdef.h \
+  /scratch/fox/daq/8.1/btdriver2.6/include/btngpci.h \
     $(wildcard include/config/ctrl.h) \
 
-/daq/clients/btdriver2.6/dd/btp_lowio.o: $(deps_/daq/clients/btdriver2.6/dd/btp_lowio.o)
+/scratch/fox/daq/8.1/btdriver2.6/dd/btp_lowio.o: $(deps_/scratch/fox/daq/8.1/btdriver2.6/dd/btp_lowio.o)
 
-$(deps_/daq/clients/btdriver2.6/dd/btp_lowio.o):
+$(deps_/scratch/fox/daq/8.1/btdriver2.6/dd/btp_lowio.o):

@@ -1,9 +1,9 @@
-cmd_/daq/clients/btdriver2.6/dd/bt_diag.o := gcc -Wp,-MD,/daq/clients/btdriver2.6/dd/.bt_diag.o.d -nostdinc -iwithprefix include -D__KERNEL__ -Iinclude  -Wall -Wstrict-prototypes -Wno-trigraphs -fno-strict-aliasing -fno-common -pipe -msoft-float -mpreferred-stack-boundary=2  -march=i686 -Iinclude/asm-i386/mach-default -O2 -fomit-frame-pointer  -g -DDEBUG  -DBT1003 -I/daq/clients/btdriver2.6/dd -I/daq/clients/btdriver2.6/include -fno-strength-reduce -Wall -Wstrict-prototypes -fno-common  -DMODULE -DKBUILD_BASENAME=bt_diag -DKBUILD_MODNAME=btp -c -o /daq/clients/btdriver2.6/dd/.tmp_bt_diag.o /daq/clients/btdriver2.6/dd/bt_diag.c
+cmd_/scratch/fox/daq/8.1/btdriver2.6/dd/bt_diag.o := gcc -Wp,-MD,/scratch/fox/daq/8.1/btdriver2.6/dd/.bt_diag.o.d -nostdinc -iwithprefix include -D__KERNEL__ -Iinclude  -Wall -Wstrict-prototypes -Wno-trigraphs -fno-strict-aliasing -fno-common -pipe -msoft-float -mpreferred-stack-boundary=2  -march=i686 -Iinclude/asm-i386/mach-default -O2 -fomit-frame-pointer  -g -DDEBUG  -DBT1003 -I/scratch/fox/daq/8.1/btdriver2.6/dd -I/scratch/fox/daq/8.1/btdriver2.6/include -fno-strength-reduce -Wall -Wstrict-prototypes -fno-common  -DMODULE -DKBUILD_BASENAME=bt_diag -DKBUILD_MODNAME=btp -c -o /scratch/fox/daq/8.1/btdriver2.6/dd/.tmp_bt_diag.o /scratch/fox/daq/8.1/btdriver2.6/dd/bt_diag.c
 
-deps_/daq/clients/btdriver2.6/dd/bt_diag.o := \
-  /daq/clients/btdriver2.6/dd/bt_diag.c \
-  /daq/clients/btdriver2.6/dd/btdd.h \
-  /usr/lib/gcc-lib/i386-linux/2.95.4/include/stddef.h \
+deps_/scratch/fox/daq/8.1/btdriver2.6/dd/bt_diag.o := \
+  /scratch/fox/daq/8.1/btdriver2.6/dd/bt_diag.c \
+  /scratch/fox/daq/8.1/btdriver2.6/dd/btdd.h \
+  /usr/lib/gcc-lib/i486-linux/3.3.5/include/stddef.h \
   include/linux/types.h \
     $(wildcard include/config/uid16.h) \
   include/linux/config.h \
@@ -24,9 +24,9 @@ deps_/daq/clients/btdriver2.6/dd/bt_diag.o := \
     $(wildcard include/config/smp.h) \
   include/linux/kernel.h \
     $(wildcard include/config/debug/spinlock/sleep.h) \
-  /usr/lib/gcc-lib/i386-linux/2.95.4/include/stdarg.h \
+  /usr/lib/gcc-lib/i486-linux/3.3.5/include/stdarg.h \
   include/linux/compiler.h \
-  include/linux/compiler-gcc2.h \
+  include/linux/compiler-gcc3.h \
   include/linux/compiler-gcc.h \
   include/asm/byteorder.h \
     $(wildcard include/config/x86/bswap.h) \
@@ -78,7 +78,7 @@ deps_/daq/clients/btdriver2.6/dd/bt_diag.o := \
   include/asm/rwsem.h \
   include/linux/timer.h \
   include/linux/version.h \
-  /daq/clients/btdriver2.6/dd/btpdd.h \
+  /scratch/fox/daq/8.1/btdriver2.6/dd/btpdd.h \
   include/linux/errno.h \
   include/asm/errno.h \
   include/asm-generic/errno.h \
@@ -261,13 +261,13 @@ deps_/daq/clients/btdriver2.6/dd/bt_diag.o := \
   include/linux/dma-mapping.h \
   include/asm/dma-mapping.h \
   include/asm-generic/pci.h \
-  /daq/clients/btdriver2.6/include/btio.h \
-  /daq/clients/btdriver2.6/include/btdef.h \
-  /daq/clients/btdriver2.6/include/btpio.h \
-  /daq/clients/btdriver2.6/include/btpdef.h \
-  /daq/clients/btdriver2.6/include/btngpci.h \
+  /scratch/fox/daq/8.1/btdriver2.6/include/btio.h \
+  /scratch/fox/daq/8.1/btdriver2.6/include/btdef.h \
+  /scratch/fox/daq/8.1/btdriver2.6/include/btpio.h \
+  /scratch/fox/daq/8.1/btdriver2.6/include/btpdef.h \
+  /scratch/fox/daq/8.1/btdriver2.6/include/btngpci.h \
     $(wildcard include/config/ctrl.h) \
 
-/daq/clients/btdriver2.6/dd/bt_diag.o: $(deps_/daq/clients/btdriver2.6/dd/bt_diag.o)
+/scratch/fox/daq/8.1/btdriver2.6/dd/bt_diag.o: $(deps_/scratch/fox/daq/8.1/btdriver2.6/dd/bt_diag.o)
 
-$(deps_/daq/clients/btdriver2.6/dd/bt_diag.o):
+$(deps_/scratch/fox/daq/8.1/btdriver2.6/dd/bt_diag.o):
