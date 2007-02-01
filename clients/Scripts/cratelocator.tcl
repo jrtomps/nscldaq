@@ -13,6 +13,12 @@
 #	     NSCL
 #	     Michigan State University
 #	     East Lansing, MI 48824-1321
+#
+
+#   start wish \
+exec tclsh ${0} ${@}
+
+package require Tk
 
 set scriptDir [file dirname [info script]]
 set libDir    [file join $scriptDir .. TclLibs]

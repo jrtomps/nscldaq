@@ -783,3 +783,7 @@ Released January 15, 2007
                          to work right.
  January 25, 2007      -Bug 287 - Make scaler display stretch vertically
                         when window is resized. Removed hsb.
+ February 1, 2007      - Fix error in cratelocator.tcl... some stuff seems
+                         to have gotten removed :-(
+                       - Start working for Linux 2.6 support for real now.
+
