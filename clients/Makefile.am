@@ -1,6 +1,6 @@
 # Not sure why I sometimes have to build VMEApi twice but here it is.
 
-SUBDIRS = tcllib @VME_DRIVERDIR@ \
+SUBDIRS = tcllib  \
 	Headers CopyrightTools Exception PortManager TCL Security Ftp \
 	VMEApi VMEApi cvt SpecTclOnline DeviceSupport\
 	Readout HPReadout diskrun EventLog Scaler  \
@@ -16,7 +16,7 @@ EXTRA_DIST =  config/install-sh config/config.sub config/config.guess \
 	config/ltmain.sh config/missing config/mkinstalldirs mkpackage.tcl \
 	Directories.include CompilationRules.include \
 	CHANGELOG daqman Makefile.am wienerdriver btdriver controlpush/Makefile.am \
-	controlpush/Makefile.in LICENSE
+	controlpush/Makefile.in LICENSE btdriver2.6
 
 install-data-local:
 	$(mkinstalldirs) $(prefix)/etc

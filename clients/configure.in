@@ -38,6 +38,22 @@ else
 fi
 
 
+# Since we are making/installing drivers; you must be root to run this
+# -- there's a back door for fox development.. you can be me too:
+
+id=`id -u`
+if test "$id" != "0" 
+then
+   user=`id  -nu`
+   AC_MSG_RESULT([User is $user])
+   if test "$user" == "fox"
+   then
+      AC_MSG_RESULT([Fox is building so we'll allow non root build])
+   else
+      AC_MSG_ERROR([Since this installs device drivers you must run this as root])
+   fi
+fi
+
 
 # Checks for programs.
 AC_PROG_AWK
@@ -399,6 +415,19 @@ else
   AC_MSG_ERROR([Unable to find the tcl library, help me out with --with-tcl-libdir])
 fi
 
+#   Figure out SMP flag (needed by the btdriver build).
+
+AC_MSG_CHECKING([for smp system (btdriver)])
+
+if (uname -v |grep -q SMP)
+then
+  SMP_FLAG="-D__SMP__"
+  AC_MSG_RESULT([System runs the SMP kernel])
+else
+  SMP_FLAG=""
+  AC_MSG_RESULT([System is not running an SMP kernel])
+fi
+
 AC_MSG_CHECKING([ for VME device ])
 #   VMEDEVICE  - The name of the selected api.
 #
@@ -416,6 +445,47 @@ vmeinterface="sbs"
 AC_ARG_WITH(vme-interface,
 	[--with-vme-interface=sbs|wiener|wienerusb|none - Choose VME interface],
 	vmeinterface="$withval")
+
+
+#  Figure out where the linux kernel headers are.
+#  We'll look for  $(HEADERS)/linux/module.h  in the following spots:
+#  - /usr/src/kernel-headers-$(uname -r)/include  [debian]
+#  - /usr/src/linux-$(uname-r)/include            [redhat]
+#  - /usr/src/linux/include                       [old? redhat]
+#  -  Where the user tells us with --with-kernel-headers=value.
+
+# This only matters for 2.4 kernels:
+
+if test  "$kernel_version" == "2.4"
+then
+
+AC_MSG_CHECKING([for kernel headers (.../linux/module.h)])
+
+AC_ARG_WITH(kernel-headers,
+	[--with-kernel-headers=location of linux kernel headers],
+	[KERNEL_INCS="-I$withval"],[KERNEL_INCS="-"])
+
+if test $KERNEL_INCS = "-" ; then
+  AC_CHECK_FILE(/usr/src/kernel-headers-$(uname -r)/include/linux/module.h,
+    [KERNEL_INCS="-I/usr/src/kernel-headers-$(uname -r)/include"])
+fi
+
+if test $KERNEL_INCS = "-" ; then
+  AC_CHECK_FILE(/usr/src/linux-$(uname -r)/include/linux/module.h,
+      [KERNEL_INCS="-I/usr/src/linux-$(uname -r)/include"])
+fi
+
+if test $KERNEL_INCS = "-" ; then
+  AC_CHECK_FILE(/usr/src/linux/include/linux/module.h,
+      [KERNEL_INCS="-I/usr/src/linux-$(uname -r)/include"])
+fi
+
+if test $KERNEL_INCS = "-"; then
+	AC_MSG_ERROR([Could not find kernel headers. Try the --with-kernel-headers switch])
+fi
+
+fi
+
 
 # VMEDEVICE         - Which device it is.
 # VMELIBRARYHEADERS - Where the headers will live for vme lib.
@@ -452,12 +522,24 @@ case "$vmeinterface" in
 	    VME_DRIVERDIR="btdriver"
 	    VMEBUILDHEADERS="-I$(pwd)/btdriver/include"
 	    VMEBUILDLIBS="-L$(pwd)/btdriver/lib -lbtp -lpthread"
+						
+            # Build/install the 2.4 driver (you must be root).
+
+	    (cd btdriver; \
+	    ./configure --prefix=$prefix;\
+	    make clean;                  \
+	    make KERNEL_INCS=${KERNEL_INCS} SMP=${SMP_FLAG}; \
+	    make install SMP=${SMP_FLAG} KERNEL_INCS=${KERNEL_INCS})
 	   
 	    ;;
 	 2.6)
 	    VME_DRIVERDIR="btdriver2.6"
 	    VMEBUILDHEADERS=-I$(pwd)/btdriver2.6/include
 	    VMEBUILDLIBS="-L$(pwd)/btdriver2.6/lib -lbtp -lpthread"
+
+	    # build/install the 2.6 driver (you must be root)
+
+	    (cd btdriver2.6;./configure --prefix=$prefix;make clean;make; make -k install)
 	    ;;
 	*)
 	    AC_MSG_ERROR([SBS bit3 driver can only be built on 2.4 or 2.6 kernel this is $kernel_version])
@@ -489,6 +571,8 @@ case "$vmeinterface" in
 
      ;;
      wienerusb)
+        # lib usb is kernel independent as far as I know.
+
 	VMEDEVICE="WIENERUSB"
 	VME_DRIVERDIR=""
 	VMEBUILDHEADERS=""
@@ -559,51 +643,7 @@ fi
 
 
 
-#  Figure out where the linux kernel headers are.
-#  We'll look for  $(HEADERS)/linux/module.h  in the following spots:
-#  - /usr/src/kernel-headers-$(uname -r)/include  [debian]
-#  - /usr/src/linux-$(uname-r)/include            [redhat]
-#  - /usr/src/linux/include                       [old? redhat]
-#  -  Where the user tells us with --with-kernel-headers=value.
 
-AC_MSG_CHECKING([for kernel headers (.../linux/module.h)])
-
-AC_ARG_WITH(kernel-headers,
-	[--with-kernel-headers=location of linux kernel headers],
-	[KERNEL_INCS="-I$withval"],[KERNEL_INCS="-"])
-
-if test $KERNEL_INCS = "-" ; then
-  AC_CHECK_FILE(/usr/src/kernel-headers-$(uname -r)/include/linux/module.h,
-    [KERNEL_INCS="-I/usr/src/kernel-headers-$(uname -r)/include"])
-fi
-
-if test $KERNEL_INCS = "-" ; then
-  AC_CHECK_FILE(/usr/src/linux-$(uname -r)/include/linux/module.h,
-      [KERNEL_INCS="-I/usr/src/linux-$(uname -r)/include"])
-fi
-
-if test $KERNEL_INCS = "-" ; then
-  AC_CHECK_FILE(/usr/src/linux/include/linux/module.h,
-      [KERNEL_INCS="-I/usr/src/linux-$(uname -r)/include"])
-fi
-
-if test $KERNEL_INCS = "-"; then
-	AC_MSG_ERROR([Could not find kernel headers. Try the --with-kernel-headers switch])
-fi
-
-
-#   Figure out SMP flag (needed by the btdriver build).
-
-AC_MSG_CHECKING([for smp system (btdriver)])
-
-if (uname -v |grep -q SMP)
-then
-  SMP_FLAG="-D__SMP__"
-  AC_MSG_RESULT([System runs the SMP kernel])
-else
-  SMP_FLAG=""
-  AC_MSG_RESULT([System is not running an SMP kernel])
-fi
 
 #
 #   Look for epics in:

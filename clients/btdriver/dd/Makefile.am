@@ -26,7 +26,7 @@ btp.o: $(OBJECTS)
 clean:
 	rm -f $(OBJECTS) btp.o
 
-INCLUDES= -I. -I../include $(SMP_FLAG) -fno-strength-reduce \
+INCLUDES= -I. -I../include $(SMP) -fno-strength-reduce \
 	-g -DDEBUG -DBT1003 -O2 $(KERNEL_INCS) \
 	-D__KERNEL__ -DMODULE -DEXPORT_SYMTAB \
 	-Wall -Wstrict-prototypes

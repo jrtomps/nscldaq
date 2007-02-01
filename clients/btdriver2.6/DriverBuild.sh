@@ -15,6 +15,7 @@
 #  that has to kernel sources.. configured as per the running kernel
 #
 
+SMP=$1
 
 version="$(uname -r)"
 Debiansrc="/usr/src/kernel-source-${version}"
@@ -52,7 +53,7 @@ pushd dd
 # Always make from scratch:
 
 rm -f *.o
-make -C $Linuxsrc SUBDIRS=$(pwd) modules BTDRIVER=${BTDRIVER}
+make -C $Linuxsrc SUBDIRS=$(pwd) modules BTDRIVER=${BTDRIVER} 
 
 
 
