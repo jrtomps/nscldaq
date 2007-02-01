@@ -1,0 +1,35 @@
+AC_INIT(dd/bt_bit.c)
+AC_CONFIG_AUX_DIR(config)
+AC_CONFIG_HEADER(config.h)
+
+#
+#  The version for automake etc
+#
+AM_INIT_AUTOMAKE(btdriver26, 2.0)
+
+#  This must be a 2.6 kernel.. and linux too.
+
+AC_MSG_CHECKING([operating system])
+AC_CANONICAL_HOST
+if test "$host_os" == "linux-gnu"
+then
+   kernel_full_version="$(uname -r)"
+   kernel_version="$(echo $kernel_full_version | cut -f1,2 -d.)"
+   AC_MSG_RESULT([Building on $host_os kernel $kernel_version])   
+else
+   AC_MSG_ERROR([This software can only be built on linux-gnu not $host_os])
+fi
+
+
+if test "$kernel_version" != "2.4"
+then
+    AC_MSG_ERROR([This version of the driver needs Linux-2.4 to build])
+fi
+
+AC_PROG_CC
+AC_PROG_CPP
+AC_PROG_INSTALL
+AC_PROG_LN_S
+AC_PROG_LIBTOOL
+
+AC_OUTPUT(Makefile lib/Makefile include/Makefile dd/Makefile)
