@@ -15,7 +15,7 @@
 #  that has to kernel sources.. configured as per the running kernel
 #
 
-SMP=$1
+Linuxsrc=$1
 
 version="$(uname -r)"
 Debiansrc="/usr/src/kernel-source-${version}"
@@ -23,14 +23,18 @@ RedHatsrc="/usr/src/linux-${version}"
 
 #  Figure out which it is:
 
-if [ -d $Debiansrc ] 
+if [ "$Linuxsrc" == "" ]
 then
-Linuxsrc="$Debiansrc"
-fi
 
-if [ -d $RedHatsrc ]
-then
-Linuxsrc="RedHatsrc"
+    if [ -d $Debiansrc ] 
+    then
+	Linuxsrc="$Debiansrc"
+    fi
+
+    if [ -d $RedHatsrc ]
+    then
+	Linuxsrc="RedHatsrc"
+    fi
 fi
 
 #-------------------------------------------------

@@ -454,10 +454,11 @@ AC_ARG_WITH(vme-interface,
 #  - /usr/src/linux/include                       [old? redhat]
 #  -  Where the user tells us with --with-kernel-headers=value.
 
-# This only matters for 2.4 kernels:
 
 if test  "$kernel_version" == "2.4"
 then
+
+# 2.4 kernels need kernel headers installed:
 
 AC_MSG_CHECKING([for kernel headers (.../linux/module.h)])
 
@@ -484,6 +485,27 @@ if test $KERNEL_INCS = "-"; then
 	AC_MSG_ERROR([Could not find kernel headers. Try the --with-kernel-headers switch])
 fi
 
+else
+	# More recently we actually need the kernel sources installed.
+
+
+	AC_MSG_CHECKING([for kernel sources ])
+	AC_ARG_WITH(kernel-sources,
+	[--with-kernel-sources=location of configured kernel sources],
+	[KERNEL_SRC="$withval"],[KERNEL_SRC=""])
+
+	for dir in /usr/src/kernel-source-${kernel_full_version} /usr/src/linux-${kernel_full_version}
+	do
+		if test -d $dir -a "$KERNEL_SRC" == ""
+		then
+			KERNEL_SRC="$dir"
+			AC_MSG_RESULT([Found in $KERNEL_SRC])
+		fi
+	done
+	if test "$KERNEL_SRC" == ""
+	then
+		AC_MSG_ERROR([Could not find kernel source dir. help me out using --with-kernel-sources])
+	fi
 fi
 
 

@@ -1,6 +1,6 @@
 SUBDIRS=lib
 all-local:
-	./DriverBuild.sh  SMP=$(SMP)
+	./DriverBuild.sh  $(KERNEL_SRC)
 
 install-data-local:
 	$(INSTALL_DATA)   dd/btp.ko /lib/modules
