@@ -11,7 +11,11 @@ install-exec-local:
 	$(INSTALL_SCRIPT) $(EXAMPLEFILES) $(prefix)/examples/sequencer
 
 
+#  The touch below is in case the docbook tools are not
+#  installed.
+#
 sequencer.3tcl: sequencer.xml
 	$(MANDOCBOOK) man sequencer.xml
+	touch seqencer.3tcl
 
 man_MANS=sequencer.3tcl
