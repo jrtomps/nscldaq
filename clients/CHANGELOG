@@ -786,4 +786,7 @@ Released January 15, 2007
  February 1, 2007      - Fix error in cratelocator.tcl... some stuff seems
                          to have gotten removed :-(
                        - Start working for Linux 2.6 support for real now.
-
+ February 13, 2007     - Bug 235 Modify the CVME class to do pointer arithmetic
+		        without destroying the base pointer (e.g.
+                        move an offset into the class itself rather than
+			using the shared pointer from the refcounted obj.
