@@ -422,15 +422,30 @@ proc ::ReadougGUIPanel::isRecording {} {
 proc ::ReadougGUIPanel::notRecording {} {
     append text   $::ReadougGUIPanel::ROOT . output
     append status $::ReadougGUIPanel::ROOT . statusline
+
+    $text   config  -background black -foreground {dark green}
+    $status config  -background black -foreground {dark green}
+}
+
+# ReadougGUIPanel::normalColors
+#    Resets the text and status areas to normal coloration.
+#    (run is inactive).
+#
+proc ::ReadougGUIPanel::normalColors {} {
+    append text   $::ReadougGUIPanel::ROOT . output
+    append status $::ReadougGUIPanel::ROOT . statusline
     append host   $::ReadougGUIPanel::ROOT . host
     append title  $::ReadougGUIPanel::ROOT . title
+
+
 
     set bgcolor [$title cget -background]
     set fgcolor [$host              cget -foreground]
 
-    $text   config -foreground $fgcolor -background $bgcolor
-    $status config -foreground $fgcolor -background $bgcolor
+    $text   config  -background $bgcolor -foreground $fgcolor
+    $status config  -background $bgcolor -foreground $fgcolor
 }
+
 # ReadougGUIPanel::recordData
 #     True if the user requested data be recorded.
 #

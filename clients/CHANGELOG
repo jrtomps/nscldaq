@@ -790,3 +790,10 @@ Released January 15, 2007
 		        without destroying the base pointer (e.g.
                         move an offset into the class itself rather than
 			using the shared pointer from the refcounted obj.
+ February 14, 2007    - As per DJM request add message when at the end of a
+			run plan.
+                      - Color the readoutGUI Yellow if the run is active, but
+                        not recording.
+ February 15, 2007    - Changes to Sequencer:
+                        - disable table when sequencing.
+                        - disable clear when sequencing.

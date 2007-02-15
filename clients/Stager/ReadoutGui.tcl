@@ -570,8 +570,9 @@ proc ReadoutGui::End {} {
     if {[ReadoutControl::isTapeOn]} {
 	ReadougGUIPanel::incrRun
 	ReadoutControl::SetRun [ReadougGUIPanel::getRunNumber]
-	ReadougGUIPanel::notRecording
     }
+    ReadougGUIPanel::normalColors
+
     ReadougGUIPanel::setStatusLine {Run Ended}
     ReadoutControl::ShowAll
     ReadoutGui::SaveSettings

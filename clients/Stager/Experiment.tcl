@@ -95,12 +95,15 @@ proc Experiment::waitFile {name {granularity 1000} {timeout 0}} {
     set passes 0
     set done   0
 
+    puts "Waiting for file $name to exist"
     while {1} {
         if {[file exists $name]} {
+	    puts "Found file $name"
             return 1
         }
         incr passes
         if {($passes > $timeout) && ($timeout != 0)} {
+	    puts "Failed to fine $name"
             return 0
         }
         after $granularity

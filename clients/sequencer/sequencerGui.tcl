@@ -52,6 +52,37 @@ set ::runStep 1
 set columnCount 0
 #set columnInfo
 
+#  Disable changes to the run plan:
+
+proc disableChanges {table} {
+    $table configure -state disabled
+    set top [winfo toplevel $table]
+    set menu [$top.menu.file];		#  Maybe we could 'find this'.
+    set last [$menu index end]
+    for {set entry 0} {$entry < $last} {incr entry} {
+	set label [$menu entrycget -label]
+	if {$label eq "Clear..."} {
+	    $menu entryconfigure $entry -state disabled
+	}
+    }
+}
+
+
+#  Enable changes to the run plan:
+
+proc enableChanges {table} {
+    $table configure -state normal
+    set top [winfo toplevel $table]
+    set menu [$top.menu.file];		#  Maybe we could 'find this'.
+    set last [$menu index end]
+    for {set entry 0} {$entry < $last} {incr entry} {
+	set label [$menu entrycget -label]
+	if {$label eq "Clear..."} {
+	    $menu entryconfigure $entry -state normal
+	}
+    }
+}
+
 #  Read the configuration file.
 #  The configuration file is just a file containing the lists to load into
 #  columnInfo
@@ -306,6 +337,11 @@ proc nextStep {button table} {
         $table tag delete current
         $button configure -text "Execute Plan" \
             -command [list executePlan $button $table]
+	enableChanges
+	tk_messageBox -icon info                        \
+	    -message {Run plan has ended}               \
+	    -title   {plan status}                      \
+	    -type    ok
         return
     }
     # Extract the run settings... and also exit if the first
@@ -316,6 +352,11 @@ proc nextStep {button table} {
         $table tag delete current
         $button configure -text "Execute Plan" \
             -command [list executePlan $button $table]
+	enableChanges
+	tk_messageBox -icon info                        \
+	    -message {Run plan has ended}               \
+	    -title   {plan status}                      \
+	    -type    ok
         return
     }
     # Ok remove the highlight from the prior row, and highlight
@@ -338,7 +379,7 @@ proc nextStep {button table} {
 		planAborted
 		$table tag delete current
 
-
+		enableChanges
 		$button configure -text "Execute Plan" \
 		    -command [list executePlan $button $table]		
 		return
@@ -351,8 +392,10 @@ proc nextStep {button table} {
 	startPlannedRun  $button $table
     } else {
         $table tag delete current
+	enableChanges
         $button configure -text "Execute Plan" \
             -command [list executePlan $button $table]
+
     }
 }
 #
@@ -378,6 +421,7 @@ proc executePlan {button table} {
 
     $button configure -text "Abort Plan" \
         -command [list abortPlan $button $table]
+    disableChanges
     nextStep $button $table
 }
 
@@ -392,7 +436,8 @@ proc abortPlan {button table} {
     planAborted
 
     $table tag delete current
-
+    
+    enableChanges
 
     $button configure -text "Execute Plan" \
         -command [list executePlan $button $table]
@@ -481,7 +526,7 @@ proc setupGui {{top .}} {
     }
 
 
-    # the control button:
+    # the control buttons:
 
     button $mtop.run -text {Execute Plan} -takefocus 0 -command [list executePlan $mtop.run $table]
     pack   $mtop.run -side bottom -anchor s
