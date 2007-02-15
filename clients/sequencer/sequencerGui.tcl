@@ -57,10 +57,11 @@ set columnCount 0
 proc disableChanges {table} {
     $table configure -state disabled
     set top [winfo toplevel $table]
-    set menu [$top.menu.file];		#  Maybe we could 'find this'.
+    set menu $top.menu.file;		#  Maybe we could 'find this'.
     set last [$menu index end]
-    for {set entry 0} {$entry < $last} {incr entry} {
-	set label [$menu entrycget -label]
+    for {set entry 0} {$entry <= $last} {incr entry} {
+	catch {$menu entrycget $entry -label} label
+	puts "Label: $label"
 	if {$label eq "Clear..."} {
 	    $menu entryconfigure $entry -state disabled
 	}
@@ -73,10 +74,10 @@ proc disableChanges {table} {
 proc enableChanges {table} {
     $table configure -state normal
     set top [winfo toplevel $table]
-    set menu [$top.menu.file];		#  Maybe we could 'find this'.
+    set menu $top.menu.file;		#  Maybe we could 'find this'.
     set last [$menu index end]
-    for {set entry 0} {$entry < $last} {incr entry} {
-	set label [$menu entrycget -label]
+    for {set entry 0} {$entry <= $last} {incr entry} {
+	catch {$menu entrycget $entry -label} label;   # could be separator.
 	if {$label eq "Clear..."} {
 	    $menu entryconfigure $entry -state normal
 	}
@@ -337,7 +338,7 @@ proc nextStep {button table} {
         $table tag delete current
         $button configure -text "Execute Plan" \
             -command [list executePlan $button $table]
-	enableChanges
+	enableChanges $table
 	tk_messageBox -icon info                        \
 	    -message {Run plan has ended}               \
 	    -title   {plan status}                      \
@@ -352,7 +353,7 @@ proc nextStep {button table} {
         $table tag delete current
         $button configure -text "Execute Plan" \
             -command [list executePlan $button $table]
-	enableChanges
+	enableChanges $table
 	tk_messageBox -icon info                        \
 	    -message {Run plan has ended}               \
 	    -title   {plan status}                      \
@@ -379,7 +380,7 @@ proc nextStep {button table} {
 		planAborted
 		$table tag delete current
 
-		enableChanges
+		enableChanges $table
 		$button configure -text "Execute Plan" \
 		    -command [list executePlan $button $table]		
 		return
@@ -392,7 +393,7 @@ proc nextStep {button table} {
 	startPlannedRun  $button $table
     } else {
         $table tag delete current
-	enableChanges
+	enableChanges $table
         $button configure -text "Execute Plan" \
             -command [list executePlan $button $table]
 
@@ -421,7 +422,7 @@ proc executePlan {button table} {
 
     $button configure -text "Abort Plan" \
         -command [list abortPlan $button $table]
-    disableChanges
+    disableChanges $table
     nextStep $button $table
 }
 
@@ -437,7 +438,7 @@ proc abortPlan {button table} {
 
     $table tag delete current
     
-    enableChanges
+    enableChanges $table
 
     $button configure -text "Execute Plan" \
         -command [list executePlan $button $table]
