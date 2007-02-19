@@ -34,7 +34,7 @@ controlpush_SOURCES = Main.cpp $(APPITEMS)
 
 controlpush_DEPENDENCIES = CChannel.o
 
-include_HEADERS= cmdline.h CApplication.h CChannelList.h \
+noinst_HEADERS= cmdline.h CApplication.h CChannelList.h \
 			CChannelVisitor.h CSocket.h CStrings.h \
 			CTCPBadSocketState.h CTCPConnectionFailed.h \
 			CTCPConnectionLost.h CTCPNoSuchHost.h \

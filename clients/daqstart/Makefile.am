@@ -3,7 +3,7 @@ TESTABLEUNITS=CSink.cpp CFileSink.cpp CFileSinkCreator.cpp CSinkFactory.cpp \
 bin_PROGRAMS 	= daqstart
 daqstart_SOURCES= cmdline.c daqstart.cpp CDAQStart.cpp $(TESTABLEUNITS)
 
-include_HEADERS = cmdline.h CDAQStart.h  CFileSinkCreator.h \
+noinst_HEADERS = cmdline.h CDAQStart.h  CFileSinkCreator.h \
 		CMonitoredProgram.h  CSinkCreator.h \
 		CFileSink.h  CLocalMonitoredProgram.h  CSink.h \
 		CSinkFactory.h

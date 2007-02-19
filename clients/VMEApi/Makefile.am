@@ -4,7 +4,7 @@ libVmeAPI_la_SOURCES = @VMEDEVICE@API.cpp  @SEPERABLELOCK@.cpp
 # Locking.cpp
 
 
-libVmeAPI_la_LDFLAGS = -version-info $(SOVERSION):0 $(VMEBUILDLIBS) \
+libVmeAPI_la_LDFLAGS =  -version-info $(SOVERSION):0 $(VMEBUILDLIBS) \
 	-Wl"-rpath=$(libdir)"
 
 libVmeAPI_la_LIBADD = @top_srcdir@/Exception/libException.la
@@ -19,7 +19,7 @@ EXTRA_DIST = NSCLBIT3API.cpp NULLAPI.cpp SBSBIT3API.cpp WIENERAPI.cpp \
 
 bin_SCRIPTS = VmeDevice
 
-LDFLAGS = $(VMEBUILDLIBS) 
+LDFLAGS = -L$(libdir) $(VMEBUILDLIBS) 
 
 
 VmeDevice: 

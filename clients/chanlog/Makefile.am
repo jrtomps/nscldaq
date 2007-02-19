@@ -3,7 +3,7 @@
 bin_PROGRAMS = chanlog
 
 chanlog_SOURCES = chanlog.cpp getinfo.cpp
-include_HEADERS = getinfo.h
+noinst_HEADERS = getinfo.h
 chanlog_LDADD   = $(EPICS_LDFLAGS)
 INCLUDES        = $(EPICS_BIN) $(EPICS_INCLUDES) -I@top_srcdir@/Headers
 

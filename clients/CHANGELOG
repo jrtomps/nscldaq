@@ -797,3 +797,10 @@ Released January 15, 2007
  February 15, 2007    - Changes to Sequencer:
                         - disable table when sequencing.
                         - disable clear when sequencing.
+ February 19, 2007    - BZ 289 - Don't install the headers from
+			controlpush.. they are not needed, have some
+			kludges that would override 'correct' headers from
+			the framework and the production readout.  Did
+     			similar things for:
+			   chanlog
+                           daqstart
