@@ -804,3 +804,6 @@ Released January 15, 2007
      			similar things for:
 			   chanlog
                            daqstart
+February 26, 2007    - epics channel tcl layer- use tcl events to 
+	schedule data updates...better scalability. Also do deletions
+	a bit more carefully so there are no hanging event procs.
