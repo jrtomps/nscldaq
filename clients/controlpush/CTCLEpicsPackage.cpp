@@ -17,6 +17,8 @@
 #include <config.h>
 #include "CTCLEpicsCommand.h"
 #include "CTCLChannelCommand.h"
+#include <CChannel.h>
+
 #include <TCLInterpreter.h>
 #include <cadef.h>
 #include <map>
@@ -27,42 +29,25 @@
 using namespace std;
 #endif
 
-typedef map<string,CTCLChannelCommand*> CommandMap;
 
 static char* version= "1.0";
 
 static const int caPollInterval(16); // ms per epics poll.
 
-static CommandMap  linkages;
 
+// Ensures that ca_pend_event is called often enough
+// for epics to stay happy.
+//
 
 static void pollEpics(ClientData ignored) {
 
-  ca_pend_event(0.00000001);
+  CChannel::doEvents(0.01);
   Tcl_CreateTimerHandler(caPollInterval, pollEpics, (ClientData)NULL);
 
-  CommandMap::iterator i = linkages.begin();
-  while (i != linkages.end()) {
-    CTCLChannelCommand* pCommand = i->second;
-    if(pCommand->hasChanged()) {
-      pCommand->UpdateLinkedVariable();
-    }
-    i++;
-  }
-
 }
 
-void addLinkage(CTCLChannelCommand* pCommand)
-{
-  linkages[pCommand->getName()] = pCommand;
-}
-void removeLinkage(CTCLChannelCommand* pCommand)
-{
-  CommandMap::iterator i = linkages.find(pCommand->getName());
-  if (i != linkages.end()) {
-    linkages.erase(i);
-  }
-}
+
+
 
 extern "C" {
   int Epics_Init(Tcl_Interp* pInterp)

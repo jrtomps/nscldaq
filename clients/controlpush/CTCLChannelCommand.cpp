@@ -40,11 +40,11 @@ CTCLChannelCommand::CTCLChannelCommand(CTCLInterpreter& interp,
 				       string          name) :
   CTCLObjectProcessor(interp, name),
   m_pChannel(0),
-  m_pLinkedVar(0),
-  m_Changed(false)
+  m_pLinkedVar(0)
 {
   m_pChannel = new CChannel(name);
   m_pChannel->Connect();
+  m_interpreterThread = Tcl_GetCurrentThread();
 }
 /*!
    Destroy a channel command and the associated channel resources:
@@ -53,8 +53,10 @@ CTCLChannelCommand::~CTCLChannelCommand()
 {
 
   delete m_pChannel;
-  removeLinkage(this);
   delete m_pLinkedVar;
+  m_pChannel = 0;
+  m_pLinkedVar = 0;
+
 }
 
 /*!
@@ -288,12 +290,11 @@ CTCLChannelCommand::Link(CTCLInterpreter& interp,
   // If necessary get rid of the old one:
 
   if (m_pLinkedVar) {
-    removeLinkage(this);
     delete m_pLinkedVar;
+    
   }
   m_pLinkedVar = new CTCLVariable(&interp, tclVarName, kfFALSE);
   m_pLinkedVar->Set(m_pChannel->getValue().c_str(), TCL_GLOBAL_ONLY);
-  addLinkage(this);
   m_pChannel->setSlot(CTCLChannelCommand::markChange, this);
   
   return TCL_OK;
@@ -306,17 +307,13 @@ int
 CTCLChannelCommand::Unlink(CTCLInterpreter& interp)
 {
   if (m_pLinkedVar) {
-    removeLinkage(this);
     m_pChannel->setSlot(NULL, NULL);
     delete m_pLinkedVar;
+    m_pLinkedVar = 0;
   }
 }
 
-bool
-CTCLChannelCommand::hasChanged() const 
-{
-  return m_Changed;
-}
+
 /*
   Provide command usage.
 */
@@ -346,18 +343,35 @@ void
 CTCLChannelCommand::UpdateLinkedVariable()
 {
   if (m_pLinkedVar) {
-    m_Changed = false;
     m_pLinkedVar->Set(m_pChannel->getValue().c_str(), TCL_GLOBAL_ONLY);
   }
 }
 
 /*
-   Set the changed flag 
+  Queue a Tcl event to actually do the update.
 */
 void
 CTCLChannelCommand::markChange(CChannel* pChannel, void* pObject)
 {
   CTCLChannelCommand* command = static_cast<CTCLChannelCommand*>(pObject);
 
-  command->m_Changed = true;
+  ChangeEvent* pEvent     = (ChangeEvent*)Tcl_Alloc(sizeof(ChangeEvent));
+  pEvent->rawEvent.proc   = CTCLChannelCommand::update;
+  pEvent->pChangedChannel = command;
+  Tcl_ThreadQueueEvent(command->m_interpreterThread, (Tcl_Event*)pEvent, TCL_QUEUE_TAIL);
+  Tcl_ThreadAlert(command->m_interpreterThread);
+}
+
+/*
+   This function is called in the thread of the interpreter after
+   an epics variable has changed.
+*/
+int
+CTCLChannelCommand::update(Tcl_Event* p, int flags)
+{
+  CTCLChannelCommand::ChangeEvent* pEvent = (CTCLChannelCommand::ChangeEvent*)p;
+  pEvent->pChangedChannel->UpdateLinkedVariable();
+
+  return 1;
+  
 }

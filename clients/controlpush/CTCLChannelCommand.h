@@ -53,10 +53,16 @@ class CTCLVariable;
 */
 class CTCLChannelCommand : public CTCLObjectProcessor 
 {
+  // TclEvent queued for changes:
+public:
+  struct ChangeEvent {
+    Tcl_Event            rawEvent;
+    CTCLChannelCommand*  pChangedChannel;
+  }; 
 private:
   CChannel*      m_pChannel;
   CTCLVariable*  m_pLinkedVar;
-  bool           m_Changed;
+  Tcl_ThreadId   m_interpreterThread;
 
   // Canonicals:
 public:
@@ -74,7 +80,6 @@ public:
 			 STD(vector)<CTCLObject>& objv);
 
   void UpdateLinkedVariable();
-  bool hasChanged() const;
 
   // Utilties:
 
@@ -86,7 +91,9 @@ private:
   int Link(CTCLInterpreter& interp, STD(vector)<CTCLObject>& objv);
   int Unlink(CTCLInterpreter& interp);
   STD(string) Usage();
-  static void markChange(CChannel* pChannel, void* pObject);
+  static void markChange(CChannel* pChannel, 
+			 void* pObject);        // Called in Epics thread
+  static int update(Tcl_Event* pEvent, int flags);      // Called in Tcl thread.
 
 
 };

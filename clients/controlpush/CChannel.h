@@ -64,6 +64,7 @@ private:
   CConverter*   m_pConverter;
   Slot          m_pHandler;
   void*         m_pHandlerData;
+  evid          m_eventHandlerId;
   
 public:
   CChannel(STD(string) name);

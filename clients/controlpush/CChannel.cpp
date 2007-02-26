@@ -30,7 +30,8 @@ CChannel::CChannel(string name) :
   m_LastUpdateTime(0),
   m_pConverter(0),
   m_pHandler(0),
-  m_pHandlerData(0)
+  m_pHandlerData(0),
+  m_eventHandlerId(0)
 {
 }
 /**
@@ -39,7 +40,9 @@ CChannel::CChannel(string name) :
 CChannel::~CChannel()
 {
   if (m_fConnected || (m_fUpdateHandlerEstablished)) {
+    ca_clear_event(m_eventHandlerId);
     ca_clear_channel(m_nChannel);
+    doEvents(0.1);
   }
   delete m_pConverter;
 }
@@ -191,7 +194,8 @@ CChannel::StateHandler(connection_handler_args args)
     if(!pChannel->m_fUpdateHandlerEstablished) {
       pChannel->m_pConverter = CConversionFactory::Converter(ca_field_type(id));
       ca_add_event(pChannel->m_pConverter->requestType(), 
-		   id, UpdateHandler, (void*)pChannel, NULL);
+		   id, UpdateHandler, (void*)pChannel, 
+		   &(pChannel->m_eventHandlerId));
       pChannel->m_fUpdateHandlerEstablished;
     }
   }
