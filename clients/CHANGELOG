@@ -807,3 +807,5 @@ Released January 15, 2007
 February 26, 2007    - epics channel tcl layer- use tcl events to 
 	schedule data updates...better scalability. Also do deletions
 	a bit more carefully so there are no hanging event procs.
+Mar 1, 2007          - Kill off recursion in controller.tcl run plan
+                       module.

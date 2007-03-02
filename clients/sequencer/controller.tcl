@@ -26,6 +26,11 @@ package require ExpFileSystem
 set ::runFlag 0
 set ::runNumber 0;   #Initial run of the plan.
 
+namespace eval ::seqController {
+    variable table
+    variable button
+}
+
 #
 #  Return the event file in the complete dir for a run/seq
 #  pair.
@@ -72,6 +77,8 @@ proc OnEnd run {
     global runFlag
 
     incr runFlag
+    after 500 {nextStep $seqController::button $seqController::table}
+
 }
 
 
@@ -130,10 +137,12 @@ proc startPlannedRun {button table} {
         # run to end so that we can call
         # nextStep.. note that vwait will wait in the
         # event loop keeping the GUI alive.
+	
+	set seqController::table $table
+	set seqController::button $button
 
-        ReadoutGui::Begin
-        vwait runFlag
-        nextStep $button $table
+	ReadoutGui::Begin
+
     }
 
 }
