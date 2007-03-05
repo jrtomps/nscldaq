@@ -48,6 +48,11 @@ static const char driver_version[] = "$Name$";
 
 #endif  /* 0 */
 
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,17) 
+#define pci_find_class  pci_get_class
+#define pci_find_device pci_get_device
+#endif
+
 /******************************************************************************
 **
 **      Global symbols
@@ -126,11 +131,21 @@ struct file_operations btp_fops = {
 ******************************************************************************/
 
 unsigned int bt_major = 0;      /* Default major device number */
+
+#if LINUX_VERSION_CODE <  KERNEL_VERSION(2,6,8)
 MODULE_PARM(bt_major, "i");
+#else
+module_param(bt_major, int, 0);
+#endif
 MODULE_PARM_DESC(bt_major, "Default major device number, 0 == auto configure it.");
 
 unsigned long trace = 0;        /* Device driver trace level */
+#if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,8)
 MODULE_PARM(trace, "l");
+#else
+module_param(trace, long, 0);
+#endif
+
 MODULE_PARM_DESC(trace, "Bit mask of module tracing flags.");
 
 unsigned int icbr_q_size[BT_MAX_UNITS+1] = {
@@ -140,7 +155,11 @@ unsigned int icbr_q_size[BT_MAX_UNITS+1] = {
     DEFAULT_Q_SIZE, DEFAULT_Q_SIZE, DEFAULT_Q_SIZE, DEFAULT_Q_SIZE,
 
 };
+#if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,8)
 MODULE_PARM(icbr_q_size, "i");
+#else
+module_param(icbr_q_size, int, DEFAULT_Q_SIZE);
+#endif
 MODULE_PARM_DESC(icbr_q_size, "Number of entries to create in the interrupt callback routine (ICBR) queue.");
 
 unsigned long lm_size[BT_MAX_UNITS+1] = {
@@ -151,7 +170,12 @@ unsigned long lm_size[BT_MAX_UNITS+1] = {
     
 };
 
+#if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,8)
 MODULE_PARM(lm_size,"0-" __MODULE_STRING(BT_MAX_UNITS) "l");
+#else
+/* Not sure what to do here so not configurable in 2.6.8 and later */
+/* module_param_array(lm_size, (unsigned long), NULL, 0);  */
+#endif
 MODULE_PARM_DESC(lm_size, "Per unit array given the size of the local memory device. Default " __MODULE_STRING(DEFAULT_LMEM_SIZE) ".");
 
 MODULE_AUTHOR("SBS Technologies, Inc.");

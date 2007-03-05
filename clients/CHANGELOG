@@ -809,3 +809,12 @@ February 26, 2007    - epics channel tcl layer- use tcl events to
 	a bit more carefully so there are no hanging event procs.
 Mar 1, 2007          - Kill off recursion in controller.tcl run plan
                        module.
+March  5, 2007       - btdriver modifications in the 2. branch to prep for
+                       kernel versions that are e.g. 2.6.17 (ubuntu).
+                       - MODULE_PARM -> module_param  note that I can't
+                         get good compiles on module_param_array and it's not
+                         clear how necessary these parameters are anyway.
+                       - remap_page_range -> remap_pfn_range for sufficiently
+                         high kernel version numbers.
+                       - pci_find_xxx -> pci_get_xxx for sufficiently high
+                         kernel versions.
