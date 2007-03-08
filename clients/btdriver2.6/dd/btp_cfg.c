@@ -38,6 +38,10 @@ static const char driver_version[] = "$Name$";
 #include <linux/interrupt.h>
 #endif
 
+#if  LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,11) 
+#define pci_find_class pci_get_class
+#endif
+
 #if     0 && !defined(NDEBUG)
 
 #define DEBUG_INIT_SEQUENCE 1   /* For when you need the init_fail() routine */
@@ -47,11 +51,6 @@ static const char driver_version[] = "$Name$";
 #define DEBUG_INIT_SEQUENCE 0   /* Don't put init_fail() in code */
 
 #endif  /* 0 */
-
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,17) 
-#define pci_find_class  pci_get_class
-#define pci_find_device pci_get_device
-#endif
 
 /******************************************************************************
 **
@@ -131,21 +130,20 @@ struct file_operations btp_fops = {
 ******************************************************************************/
 
 unsigned int bt_major = 0;      /* Default major device number */
-
-#if LINUX_VERSION_CODE <  KERNEL_VERSION(2,6,8)
+#ifdef MODULE_PARM
 MODULE_PARM(bt_major, "i");
 #else
 module_param(bt_major, int, 0);
 #endif
+
 MODULE_PARM_DESC(bt_major, "Default major device number, 0 == auto configure it.");
 
 unsigned long trace = 0;        /* Device driver trace level */
-#if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,8)
+#ifdef MODULE_PARM
 MODULE_PARM(trace, "l");
 #else
 module_param(trace, long, 0);
 #endif
-
 MODULE_PARM_DESC(trace, "Bit mask of module tracing flags.");
 
 unsigned int icbr_q_size[BT_MAX_UNITS+1] = {
@@ -155,7 +153,7 @@ unsigned int icbr_q_size[BT_MAX_UNITS+1] = {
     DEFAULT_Q_SIZE, DEFAULT_Q_SIZE, DEFAULT_Q_SIZE, DEFAULT_Q_SIZE,
 
 };
-#if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,8)
+#ifdef MODULE_PARM
 MODULE_PARM(icbr_q_size, "i");
 #else
 module_param(icbr_q_size, int, DEFAULT_Q_SIZE);
@@ -169,14 +167,12 @@ unsigned long lm_size[BT_MAX_UNITS+1] = {
     DEFAULT_LMEM_SIZE, DEFAULT_LMEM_SIZE, DEFAULT_LMEM_SIZE, DEFAULT_LMEM_SIZE,
     
 };
-
-#if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,8)
+#ifdef MODULE_PARM
 MODULE_PARM(lm_size,"0-" __MODULE_STRING(BT_MAX_UNITS) "l");
-#else
-/* Not sure what to do here so not configurable in 2.6.8 and later */
-/* module_param_array(lm_size, (unsigned long), NULL, 0);  */
-#endif
 MODULE_PARM_DESC(lm_size, "Per unit array given the size of the local memory device. Default " __MODULE_STRING(DEFAULT_LMEM_SIZE) ".");
+#else
+/*   Not quite sure how to fix this, but can just leave it unconfigured. */
+#endif
 
 MODULE_AUTHOR("SBS Technologies, Inc.");
 MODULE_DESCRIPTION("Device driver for SBS Technologies Connectivity Products PCI-VMEbus adapters.");

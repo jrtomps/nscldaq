@@ -76,11 +76,13 @@ static const char file_rev[] = "$Revision$";
 #error POWER_TEST_LEN needs to be a power of 2!
 #endif /* POWER_TEST_LEN */
 
+#define MAX_ADJ_TABLE 128
+
+
 #if (POWER_TEST_LEN <= (FULL_TEST_LEN + MAX_ADJ_TABLE))
 #error POWER_TEST_LEN needs to be larger than FULL_TEST_LEN + MAX_ADJ_TABLE
 #endif /* POWER_TEST_LEN */
 
-#define MAX_ADJ_TABLE 128
 
 size_t adj_table[] = {
     1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16,

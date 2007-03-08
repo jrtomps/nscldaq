@@ -216,6 +216,7 @@ proc Experiment::finalizeEventData run {
         set dstfile [file join $targetdir $file]
         set linkfile [file join $complete $file]
         file rename -force $srcfile $dstfile
+	file attributes $dstfile -permissions 0440;   # Make the saved file read-only
         catch {exec ln -s $dstfile $linkfile};#   On overwrite links may exist.
 
         incr segment

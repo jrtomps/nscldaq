@@ -818,3 +818,4 @@ March  5, 2007       - btdriver modifications in the 2. branch to prep for
                          high kernel version numbers.
                        - pci_find_xxx -> pci_get_xxx for sufficiently high
                          kernel versions.
+March 8,2007   - Make event files readonly as they finalize.

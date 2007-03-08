@@ -40,12 +40,13 @@ static const char revcntrl[] = "@(#)"__FILE__"  $Revision$" __DATE__;
 #endif  /* LINUX_VERSION_CODE < KERNEL_VERSION(2,4,0) */
 
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,17)
-static inline int 
-remap_page_range(struct vm_area_struct* vma, unsigned long uvaddr,
-		 unsigned long paddr, unsigned long size, pgrpot_t prot)
+static inline
+int remap_page_range(struct vm_area_struct *vma, unsigned long uvaddr,
+		     unsigned long paddr, unsigned long size, pgprot_t prot)
 {
   return remap_pfn_range(vma, uvaddr, paddr >> PAGE_SHIFT, size, prot);
 }
+
 #endif
 
 /*
