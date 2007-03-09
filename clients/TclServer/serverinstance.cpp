@@ -130,6 +130,9 @@ CServerInstance::OnCommand()
   int status;
 
 
+
+
+
   if (m_authenticated) {
     
     status = Tcl_Eval(Context.pInterp, 
@@ -159,6 +162,8 @@ CServerInstance::OnCommand()
 
     int len = Tcl_DStringLength(&(Context.command)) - 1;
     Tcl_DStringTrunc(&(Context.command), len);
+
+    
     
     uid_t uid = geteuid();		// In case this is run from setuid.
     struct passwd* pwdentry = getpwuid(uid);

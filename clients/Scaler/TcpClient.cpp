@@ -306,6 +306,7 @@ static const char* Copyright= "(C) Copyright Michigan State University 2002, All
 #include <histotypes.h>
 #include <daqdatatypes.h>
 
+
 #ifdef HAVE_STD_NAMESPACE
 using namespace std;
 #endif

@@ -252,7 +252,7 @@ void CScalerClient::OnConnection(TcpClientConnection& rConnection)
   //  Called via ConnectionRelay when a connection has been 
   // established with the peer.
   
-  cerr << ">> Connected to TclServer <<" << endl;
+  m_eConnectionState = -1;	// Indicate connection.
 
   // As of 8.1 we indicate our username to the server...
   // the server will kill our connection if we don't match.
@@ -260,19 +260,27 @@ void CScalerClient::OnConnection(TcpClientConnection& rConnection)
 
   uid_t uid = geteuid();
   struct passwd* pwd = getpwuid(uid);
-  m_Connection->SendCommand(string(pwd->pw_name));
+  string username = string(pwd->pw_name);
+   username += "\n";
+  
+  // Authentication does not send a reply so we must do it this way.
+
+
+  m_Connection->Send((void*)(username.c_str()), username.size());
   
   // It's possible we've been disconnected at this point:
 
   if(!m_eConnectionState) {
     cerr << "You are connecting to the wrong tclserver (wrong username)\n";
     exit(-1);
+
   }
 
-  m_eConnectionState = -1;	// Indicate connection.
+
   setRunState(RSUnknown);	// State of run not known.
 
   // Update the server variables we know about.
+
 
   m_Connection->SendCommand(string("set ScalerDeltaTime 0"));
   m_Connection->SendCommand(string("set ElapsedRunTime  0"));
@@ -282,6 +290,7 @@ void CScalerClient::OnConnection(TcpClientConnection& rConnection)
   ClearScalers();
 
   // Start reading data and 
+
 
   EnableDataTaking();		// Connect to spectrodaq.
   
@@ -297,6 +306,9 @@ void CScalerClient::OnDisconnected(TcpClientConnection& rConnection)
   //  Called through DisconnectRelay whenever the 
   //  connection with the tcl server has been broken.
   
+
+  cerr << "Disconnection triggered\n";
+
   DisableDataTaking();
   m_eConnectionState = 0;
   cerr << "Disconnected from Tcl/Tk server" << endl;
