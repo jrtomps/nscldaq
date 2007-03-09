@@ -819,3 +819,5 @@ March  5, 2007       - btdriver modifications in the 2. branch to prep for
                        - pci_find_xxx -> pci_get_xxx for sufficiently high
                          kernel versions.
 March 8,2007   - Make event files readonly as they finalize.
+March 9,2007   - Re-enable user authorization now that that works.
+

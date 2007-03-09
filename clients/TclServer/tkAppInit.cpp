@@ -78,7 +78,7 @@ using namespace std;
  */
 
 int serverport=2048;		/* Default server port. */
-bool userauth=false;		// Require user authentication.
+bool userauth=true;		// Require user authentication.
 
 /*
 ** GetServerPort:  Search for -pnum and if present, modify serverport
