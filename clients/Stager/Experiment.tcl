@@ -206,6 +206,10 @@ proc Experiment::finalizeEventData run {
     # Move the event segments from stagearea/current -> experiment/runn
     # and make a compatibility link in stagarea/complete
 
+    # Ensure the targetdir is writable...
+   
+    file attributes $targetdir -permissions 0750;   # rwxr-x---
+
     set segment 0
     while {1} {
         set file [ExpFileSystem::GenRunFile $run $segment]
@@ -222,7 +226,9 @@ proc Experiment::finalizeEventData run {
         incr segment
 
     }
+    # Remove writability from the target dir so Dirk can't screw up.
 
+    file attributes $targetdir -permissions 0550;   # r-xr-x---
 }
 
 #------------ The procs below should be considered public -------------

@@ -823,4 +823,5 @@ March 9,2007   - Re-enable user authorization now that that works.
                - And fix a scaler client issue since it was not authenticating
                  correctly.
 
+March 13, 2007 - Remove write permission from directory owning the event file
 
