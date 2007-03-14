@@ -343,6 +343,7 @@ proc nextStep {button table} {
 	    -message {Run plan has ended}               \
 	    -title   {plan status}                      \
 	    -type    ok
+	set ::seqController::plannedRun 0;#  runs started are not planned.
         return
     }
     # Extract the run settings... and also exit if the first
@@ -358,6 +359,7 @@ proc nextStep {button table} {
 	    -message {Run plan has ended}               \
 	    -title   {plan status}                      \
 	    -type    ok
+	set ::seqController::plannedRun 0;# runs started are not planned.
         return
     }
     # Ok remove the highlight from the prior row, and highlight
@@ -442,6 +444,8 @@ proc abortPlan {button table} {
 
     $button configure -text "Execute Plan" \
         -command [list executePlan $button $table]
+
+    set ::seqController::plannedRun 0
 }
 #-------------------------------------------------------------------------
 #

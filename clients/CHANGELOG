@@ -824,4 +824,8 @@ March 9,2007   - Re-enable user authorization now that that works.
                  correctly.
 
 March 13, 2007 - Remove write permission from directory owning the event file
+March 14, 2007 - Fix issues with run sequencer .. manuall stop of run
+                 calls nextstep unconditionally making control changes
+                 that should not be made.
+
 

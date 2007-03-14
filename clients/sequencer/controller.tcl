@@ -29,6 +29,7 @@ set ::runNumber 0;   #Initial run of the plan.
 namespace eval ::seqController {
     variable table
     variable button
+    variable plannedRun 0
 }
 
 #
@@ -76,9 +77,12 @@ proc deleteData run {
 proc OnEnd run {
     global runFlag
 
-    incr runFlag
-    after 500 {nextStep $seqController::button $seqController::table}
-
+    # Only do any of this, of course if this is a planned run:
+    #
+    if {$::seqController::plannedRun} {
+	incr runFlag
+	after 500 {nextStep $seqController::button $seqController::table}
+    }
 }
 
 
@@ -88,6 +92,7 @@ proc OnEnd run {
 proc startingPlan {} {
     global runNumber
     set runNumber  [ReadoutControl::GetRun]
+    set ::seqController::plannedRun 1;	# Runs are planned.
 
 }
 #
