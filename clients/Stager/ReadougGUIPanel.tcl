@@ -462,7 +462,7 @@ proc ::ReadougGUIPanel::recordData {} {
 #    number of lines of text in the text widget is bigger
 #    than OutputSavedLines after the new text is appended,
 #    the oldest lines are discarded so that the number of
-#    lines in the text widget is about 10% less than that.
+#    lines in the text widget is about 10% of that
 #
 proc ReadougGUIPanel::outputText text {
     append widget $::ReadougGUIPanel::ROOT . output
@@ -471,7 +471,8 @@ proc ReadougGUIPanel::outputText text {
     set size [$widget index end]
     set lines [expr {int($size)}]
     if {$lines > $::ReadougGUIPanel::OutputSavedLines} {
-        set linestokill [expr {int($::ReadougGUIPanel::OutputSavedLines * 0.1)}]
+        set linestoleave [expr {int($::ReadougGUIPanel::OutputSavedLines * 0.1)}]
+	set linestokill [expr $lines - $linestoleave]
         $widget delete 0.0 $linestokill.0
     }
     $widget see end
