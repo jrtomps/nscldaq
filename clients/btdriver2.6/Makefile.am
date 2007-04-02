@@ -1,4 +1,4 @@
-SUBDIRS=lib
+SUBDIRS=lib include dd
 all-local:
 	./DriverBuild.sh  $(KERNEL_SRC)
 
@@ -8,3 +8,4 @@ install-data-local:
 
 
 
+EXTRA_DIST=DriverBuild.sh
