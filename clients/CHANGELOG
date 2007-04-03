@@ -828,4 +828,5 @@ March 14, 2007 - Fix issues with run sequencer .. manuall stop of run
                  calls nextstep unconditionally making control changes
                  that should not be made.
 March 15, 2007 - Trim the output window of ReadoutGUI more agressively.
+April 3, 2007  - Ensure the right compiler links all readouts in skel makefiles
 
