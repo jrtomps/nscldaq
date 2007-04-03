@@ -1,6 +1,6 @@
 lib_LTLIBRARIES = libSecurity.la
-libSecurity_la_SOURCES = AccessListCheck.cpp AuthTokenCheck.cpp \
-	DAQAuthTokenInteractor.cpp FdInteractor.cpp HostListCheck.cpp \
+libSecurity_la_SOURCES = AccessListCheck.cpp  \
+	FdInteractor.cpp HostListCheck.cpp \
 	IOInteractor.cpp Interactor.cpp PasswordCheck.cpp  \
 	StringInteractor.cpp TclAccessListCheck.cpp UnixUserCheck.cpp
 include_HEADERS = AccessListCheck.h AuthTokenCheck.h Authenticator.h \
@@ -18,8 +18,8 @@ noinst_PROGRAMS = unittests
 
 unittests_SOURCES = test.cpp 
 
-unittests_DEPENDENCIES = AccessListCheck.o AuthTokenCheck.o \
-	DAQAuthTokenInteractor.o FdInteractor.o  HostListCheck.o \
+unittests_DEPENDENCIES = AccessListCheck.o  \
+	FdInteractor.o  HostListCheck.o \
 	IOInteractor.o Interactor.o PasswordCheck.o  \
 	StringInteractor.o TclAccessListCheck.o UnixUserCheck.o
 

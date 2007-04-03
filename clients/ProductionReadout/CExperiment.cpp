@@ -221,8 +221,8 @@ CTriggerThread::MainLoop()
     CApplicationSerializer::getInstance()->Lock();
     gettimeofday(&mutexstart, &tz);
     do {
+      int triggers=0;
       for(int i = 0; i < 500; i++) {
-	int triggers=0;
 	if((*m_pTrigger)()) {	// Read an event...
 	  m_pExperiment->ReadEvent();
 	  if((triggers++) >= m_nTriggerdwell) break; // Check elapsed time.
