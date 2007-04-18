@@ -341,6 +341,11 @@ ReadoutStateMachine* gpStateMachine;
 int 
 DAQBuff::operator()(int argc, char**argv)
 {
+    
+  // 4. Instantiate a ReadoutStateMachine:
+  //
+  ReadoutStateMachine Run;
+  gpStateMachine = &Run;
 
   if(argc != 2) {
     cerr << "Usage:\n";
@@ -364,11 +369,7 @@ DAQBuff::operator()(int argc, char**argv)
     // Branchinit will access the camac.
     
 
-    
-    // 4. Instantiate a ReadoutStateMachine:
-    //
-    ReadoutStateMachine Run;
-    gpStateMachine = &Run;
+
     
     //  The line below can be modified to set the buffersize.
     // note that the buffersize is set in words not bytes
