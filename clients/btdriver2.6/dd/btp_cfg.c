@@ -2364,7 +2364,7 @@ static int init_swapping (
 #endif  /* EAS_A64_CODE */
               unit_p->swap_bits[inx] = BT_SWAP_NONE;
             } else {
-              unit_p->swap_bits[inx] = BT_SWAP_VMEBUS;
+              unit_p->swap_bits[inx] = BT_SWAP_NONE;    // Don't know why but this is right.
             }
             break;
         }
