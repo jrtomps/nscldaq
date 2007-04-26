@@ -835,4 +835,7 @@ April 26, 2007 - Ensure that framework template implementations get installed
                  in the include directory.
                - Fix chanlog - had compilation problems on new version of Epics
                  stdlib.h needed to be included when exit() is called.
+Released April 26, 2007
+
+8.1-003
 
