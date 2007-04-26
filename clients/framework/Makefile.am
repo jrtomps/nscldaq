@@ -1,4 +1,17 @@
 lib_LTLIBRARIES= libEventFramework.la
+TEMPLATE_IMPLEMENTATIONS= CArrayBinding.cpp                      \
+	CAssocArrayBinding.cpp	                        \
+	CBufferEvent.cpp                                \
+	CBufferMonitor.cpp                              \
+	CBufferReactor.cpp                              \
+	CChangedPredicate.cpp                           \
+	CLocationMonitor.cpp                            \
+	CLocationEvent.cpp                             \
+	CLocationReactor.cpp                           \
+	CMaskedValuePredicate.cpp                       \
+	CPointerPredicate.cpp                           \
+	CVariableBinding.cpp      
+
 libEventFramework_la_SOURCES= CThreadRecursiveMutex.cpp  \
 	CEventLoop.cpp CXtEventLoop.cpp \
 	CApplicationSerializer.cpp  \
@@ -137,7 +150,8 @@ EXTRA_DIST=Doxyfile BufferEvent.oxy \
 libEventFramework_la_LDFLAGS = -version-info $(SOVERSION):0 \
 	-Wl,"-rpath-link=$(libdir)"
 #
-# Doxygen documentation.
+# Doxygen documentation... and template class implementations
+#  which must be installedin $(prefix)/include.
 #
 install-data-local:
 	$(DOXYGEN)
@@ -150,4 +164,6 @@ install-data-local:
 	  $(INSTALL_DATA) $$f $(prefix)/Docs/Framework; \
         done) \
 	fi
+	$(mkinstalldirs) $(prefix)/include
+	$(INSTALL_DATA) $(TEMPLATE_IMPLEMENTATIONS) $(prefix)/include
 
