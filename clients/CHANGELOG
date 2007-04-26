@@ -831,4 +831,8 @@ March 15, 2007 - Trim the output window of ReadoutGUI more agressively.
 April 3, 2007  - Ensure the right compiler links all readouts in skel makefiles
 April 11, 2007 - Move some init stuff around to avoid string thread troubles.
 April 18, 2007 - Fix bt install on 2.6 so headers get installed correctly.
+April 26, 2007 - Ensure that framework template implementations get installed
+                 in the include directory.
+               - Fix chanlog - had compilation problems on new version of Epics
+                 stdlib.h needed to be included when exit() is called.
 
