@@ -16,6 +16,6 @@ install-exec-local:
 #
 sequencer.3tcl: sequencer.xml
 	$(MANDOCBOOK) man sequencer.xml
-	touch seqencer.3tcl
+	touch sequencer.3tcl
 
 man_MANS=sequencer.3tcl

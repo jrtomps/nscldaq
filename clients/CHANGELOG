@@ -837,5 +837,7 @@ April 26, 2007 - Ensure that framework template implementations get installed
                  stdlib.h needed to be included when exit() is called.
 Released April 26, 2007
 
-8.1-003
+8.1-003     
+ May 2, 2007   - Fix typo for touch of sequencer.3tcl in sequencer/Makefile.am
+
 
