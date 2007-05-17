@@ -291,9 +291,7 @@ using namespace std;
 class DAQBuff : public DAQROCNode {
   int operator()(int argc, char** argv);
 public:
-  bool SetProcessTitle(const char* pTitle) {
-    DAQROCNode::SetProcessTitle(pTitle);
-  }
+
 };
 
 

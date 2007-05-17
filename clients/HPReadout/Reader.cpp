@@ -532,7 +532,6 @@ CReader::OverFlow(unsigned short* rLastEventPtr)
   // Retract the last event from the buffer:
 
   unsigned int nWords = *rLastEventPtr;
-  unsigned int nNewSize = nWords;
 
   m_nWords -= nWords;
   m_nEvents--;

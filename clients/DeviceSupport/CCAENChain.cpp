@@ -280,6 +280,9 @@ DAMAGES.
 /*
   Revision history:
   $Log$
+  Revision 8.3  2007/05/17 21:26:09  ron-fox
+  Work on porting to spectrodq-lite.
+
   Revision 8.2  2005/06/24 11:30:36  ron-fox
   Bring the entire world onto the 8.2 line
 
@@ -500,7 +503,7 @@ CCAENChain::operator[](int index) throw (CRangeError)
 int
 CCAENChain::ReadEvent(void* pBuffer)
 {
-  int nCards = m_vCards.size();
+
   int nRead = 0;
   try {
     nRead = CVMEInterface::Read(m_pHandle,

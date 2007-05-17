@@ -337,6 +337,7 @@ class CDuplicateSingleton: public CException
       m_sName = aCDuplicateSingleton.m_sName;
       UpdateReasonText();
     }
+    return *this;
   }
 
 			//Operator== Equality Operator

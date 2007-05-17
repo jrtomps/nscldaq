@@ -324,14 +324,14 @@ class CTCPBadSocketState : public CException
 {
   // Private members:
   
-  CSocket::State          m_BadState;	 //!< Incorrect state at time of throw.
-  STD(vector)<CSocket::State>  m_ValidStates; //!< States which would have been ok.
+  CSocket::SocketState          m_BadState;	 //!< Incorrect state at time of throw.
+  STD(vector)<CSocket::SocketState>  m_ValidStates; //!< States which would have been ok.
   mutable STD(string)          m_Message;     //!< Full error message built up here
 
   // Constructors and related functions:
 public:
-  CTCPBadSocketState(CSocket::State badState,
-		     STD(vector)<CSocket::State> okStates,
+  CTCPBadSocketState(CSocket::SocketState badState,
+		     STD(vector)<CSocket::SocketState> okStates,
 		     const char* pDoing);
   CTCPBadSocketState(const CTCPBadSocketState& rhs);
   virtual ~CTCPBadSocketState() {}
@@ -342,17 +342,17 @@ public:
 
   // Selectors:
 public:
-  CSocket::State getBadState() const 
+  CSocket::SocketState getBadState() const 
   { return m_BadState; }
-  STD(vector)<CSocket::State> getValidStates() const
+  STD(vector)<CSocket::SocketState> getValidStates() const
   { return m_ValidStates; }
 
   // Mutators:
 protected:
 
-  void setBadState(CSocket::State newState)
+  void setBadState(CSocket::SocketState newState)
   { m_BadState = newState; }
-  void setValidStates(const STD(vector)<CSocket::State>& newStates)
+  void setValidStates(const STD(vector)<CSocket::SocketState>& newStates)
   { m_ValidStates = newStates; }
 
   // Operations on the class:

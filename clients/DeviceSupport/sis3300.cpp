@@ -887,7 +887,7 @@ CSIS3300::ReadAGroup(void* pbuffer,
 
   // Decode the event directory entry:
 
-  unsigned long    AddressRegister = *pAddressReg;
+
   bool           fWrapped      = (*pAddressReg & EDIRWrapFlag ) != 0;
   unsigned long  nEventEnd     = (*pAddressReg & EDIREndEventMask);
   nEventEnd                   &= (nPagesize-1);	// Wrap the pointer to pagesize
@@ -1031,12 +1031,14 @@ CSIS3300::ReadAllGroups(DAQWordBufferPtr& pBuffer)
 // With ordinary buffers:
 
 unsigned int
-CSIS3300::ReadAllGroups(void* pBuff)
+CSIS3300::ReadAllGroups(void* pBuf)
 {
+
+  
   int nRead(0);
   int nSegSize;
 
-  unsigned short *pBuffer;
+  uint16_t*  pBuffer(static_cast<uint16_t*>(pBuf));
 
   nSegSize = ReadGroup1(pBuffer);
   pBuffer += nSegSize;
@@ -1066,7 +1068,7 @@ unsigned int
 CSIS3300::ReadGroup1(DAQWordBufferPtr& pBuffer)
 {
 
-  unsigned long endaddress = *m_pAddressReg1; // For debugging.
+
   return ReadAGroup(pBuffer, m_pEventDirectory1, m_nBase + 0x400000);
 }
 // Now with ordinary buffers:
@@ -1074,7 +1076,7 @@ CSIS3300::ReadGroup1(DAQWordBufferPtr& pBuffer)
 unsigned int
 CSIS3300::ReadGroup1(void* pBuffer)
 {
-  unsigned long endaddress = *m_pAddressReg1;
+
   return ReadAGroup(pBuffer, m_pEventDirectory1, m_nBase + 0x400000);
 }
 /*!
@@ -1088,7 +1090,7 @@ CSIS3300::ReadGroup1(void* pBuffer)
 unsigned int
 CSIS3300::ReadGroup2(DAQWordBufferPtr& pBuffer)
 {
-  unsigned long endaddress = *m_pAddressReg1; // For debugging.
+
   return ReadAGroup(pBuffer, m_pEventDirectory2, m_nBase + 0x480000);
 }
 // Now with ordinary buffers:
@@ -1096,7 +1098,7 @@ CSIS3300::ReadGroup2(DAQWordBufferPtr& pBuffer)
 unsigned int
 CSIS3300::ReadGroup2(void* pBuffer)
 {
-  unsigned long endaddress = *m_pAddressReg1;
+
   return ReadAGroup(pBuffer, m_pEventDirectory2, m_nBase+0x480000);
 
 }
@@ -1111,7 +1113,7 @@ CSIS3300::ReadGroup2(void* pBuffer)
 unsigned int
 CSIS3300::ReadGroup3(DAQWordBufferPtr& pBuffer)
 {
-  unsigned long endaddress = *m_pAddressReg1; // For debugging.
+
   return ReadAGroup(pBuffer, m_pEventDirectory3, m_nBase + 0x500000);
 }
 // Now with ordinary buffers:
@@ -1119,7 +1121,7 @@ CSIS3300::ReadGroup3(DAQWordBufferPtr& pBuffer)
 unsigned int 
 CSIS3300::ReadGroup3(void* pBuffer)
 {
-  unsigned long endaddress = *m_pAddressReg1; // For debugging.
+
   return ReadAGroup(pBuffer, m_pEventDirectory3, m_nBase + 0x500000);
 }
 
@@ -1134,7 +1136,7 @@ CSIS3300::ReadGroup3(void* pBuffer)
 unsigned int
 CSIS3300::ReadGroup4(DAQWordBufferPtr& pBuffer)
 {
-  unsigned long endaddress = *m_pAddressReg1; // For debugging.
+
   return ReadAGroup(pBuffer, m_pEventDirectory4, m_nBase + 0x580000 );
 }
 // With ordinary buffers:
@@ -1142,7 +1144,7 @@ CSIS3300::ReadGroup4(DAQWordBufferPtr& pBuffer)
 unsigned int
 CSIS3300::ReadGroup4(void* pBuffer)
 {
-  unsigned long endaddress = *m_pAddressReg1; // For debugging.
+
   return ReadAGroup(pBuffer, m_pEventDirectory4, m_nBase + 0x580000 );
 }
 
@@ -1168,7 +1170,7 @@ CSIS3300::haveHiRAFirmware() const
 
 
   unsigned int major = getFirmwareMajor();
-  unsigned int minor = getFirmwareMinor();
+
 
   return ((HIRAFWMAJOR == major));
 

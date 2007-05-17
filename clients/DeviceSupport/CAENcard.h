@@ -29,6 +29,10 @@
 #include <signal.h>
 #include <sys/ioctl.h>
 
+#ifndef __HISTOTYPES_H
+#include <histotypes.h>
+#endif
+
 #ifndef __CVMEINTERFACE_H
 #include <CVMEInterface.h>
 #endif
@@ -174,8 +178,7 @@ public:
     int readEvent(void* buf);	//!< Read event into 'ordinary' buffer.
     int readEvent(DAQWordBuffer& wbuf, int offset);//!< Read event to daq word buffer.
     int readEvent(DAQWordBufferPtr& wp); //!< Read event into daq word buffer
-    int readEvent(DAQDWordBuffer& dwbuf, int offset);//!< Read event into daq long buf.
-    int readEvent(DAQDWordBufferPtr& dwp); //!< Read event into daq long buf.
+
     void setIped(int value); //!< IF qdc set pedestal current.
     int  getIped();	//! If qdc set pedestal current.
     void setFastClearWindow(int n);  //!< Set fast clear window width.

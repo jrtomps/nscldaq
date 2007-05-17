@@ -399,7 +399,7 @@ CCAENV560::GetSectStat(int nSection) throw (string)
 void
 CCAENV560::ScalInc()
 {
-  short nDummy = GetShort(SInc);
+  GetShort(SInc);
 }
 
 /*!
@@ -408,7 +408,7 @@ CCAENV560::ScalInc()
 void
 CCAENV560::SetVeto()
 {
-  short nDummy = GetShort(VMEVS);
+  GetShort(VMEVS);
 }
 
 /*!
@@ -418,7 +418,7 @@ CCAENV560::SetVeto()
 void
 CCAENV560::ResetVeto() 
 {
-  short nDummy = GetShort(VMEVR);
+  GetShort(VMEVR);
 }
 
 /*!
@@ -428,7 +428,7 @@ CCAENV560::ResetVeto()
 void
 CCAENV560::Clear()
 {
-  short nDummy = GetShort(SClear);
+  GetShort(SClear);
 }
 
 

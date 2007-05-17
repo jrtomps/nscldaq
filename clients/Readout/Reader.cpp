@@ -229,7 +229,7 @@ CReader::FlushBuffer()
 
   // Shrink the buffer down to the daq buffer size:
 
-  m_pBuffer->Resize(daq_GetBufferSize(),true);
+  m_pBuffer->Resize(daq_GetBufferSize());
   
   // Fill in the buffer heaer:
 

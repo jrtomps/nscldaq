@@ -1,6 +1,6 @@
 # Not sure why I sometimes have to build VMEApi twice but here it is.
 
-SUBDIRS = tcllib  \
+SUBDIRS = SpectrodaqLite tcllib  \
 	Headers CopyrightTools Exception PortManager TCL Security Ftp \
 	VMEApi VMEApi cvt SpecTclOnline DeviceSupport\
 	Readout HPReadout diskrun EventLog Scaler  \

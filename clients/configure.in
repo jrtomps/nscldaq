@@ -185,68 +185,47 @@ AC_LANG_POP(C++)
 
 # NSCL DAQ specific checks:
 
-#  We need to locate Spectrodaq most of all:
+# we need to hunt down spectrodaq-lite.
+# we'll hunt for spdaqline-conf
+# in the bin directory of:
 #
-#   We look in the following order:
-#    1. In /opt/spectrodaq/bin
-#    2. In /usr/opt/spectrodaq/bin
-#    3. In the location suggested by --with-spectrodaq-home
-
-spectrodaq_conf_dir=""
-
-AC_MSG_CHECKING([ for spectrodaq-conf ])
-
-
-  AC_ARG_WITH(spectrodaq-home,
-       [  --with-spectrodaq-home=top level directory of spectrodaq installation],
-       [spectrodaq_conf_dir="$withval/bin"
-	spectrodaq_found="yes"],[spectrodaq_found="no"])
-
-
-if test $spectrodaq_found == "no"; then
-   AC_CHECK_FILE(/opt/spectrodaq/bin/spectrodaq-conf,
-	[spectrodaq_conf_dir=/opt/spectrodaq/bin
-	 spectrodaq_found="yes"])
-fi 
-
-if test $spectrodaq_found == "no"; then
-  AC_CHECK_FILE(/usr/opt/spectrodaq/bin/spectrodaq-conf,
-	[spectrodaq_conf_dir=/usr/opt/spectrodaq/bin
-	spectrodaq_found="yes"])
-fi
-
-if test $spectrodaq_found == "no"; then
-	AC_MSG_ERROR([ Cannot locate spectrodaq-conf help me by using --with-spectrodaq-home])
-else
-SPECTRODAQ_FLAGS=$($spectrodaq_conf_dir/spectrodaq-conf --cflags)
-SPECTRODAQ_LDFLAGS=$($spectrodaq_conf_dir/spectrodaq-conf --libs)
-AC_MSG_RESULT([ found in $spectrodaq_conf_dir ])
-fi
-
-#  Now that we have spectrodaq, we need to see if it has a 
-#  spectrodaq_main defined... if so, some of our stuff needs
-#  to implement main().
+#  /usr/opt/spectrodaq-lite
+#  /usr/local
+#  /usr/local/spectrodaq-lite
 #
-AC_LANG_PUSH(C++)
-oldcxxflags="$CXXFLAGS"
-CXXFLAGS="$CXXFLAGS $SPECTRODAQ_FLAGS"
-AC_MSG_CHECKING([spectrodaq has spectrodaq_main() separable])
-AC_COMPILE_IFELSE([
-using namespace std;
-#include <spectrodaq.h>
-main(int argc, char**argv, char** envp)
-{
-  return spectrodaq_main(argc, argv, envp);
-}], [separate="yes" ], [separate="no"])
-  
+#  We'll also look for it in the bin subdirectory
+#  of the directory given by 
+#  --with-spdaq-lite-home
+#
 
-if test "$separate" == "yes"
+spdaqlite_homes="/usr/opt/spectrodaq-lite /usr/local /usr/local/spectrodaq-lite"spdaqlite_conf_dir=""
+
+AC_MSG_CHECKING([ for spectrodaq-lite ])
+
+AC_ARG_WITH(spectrodaq-lite-home,
+	[ --with-spectrodaq-lite-home=spectrodaq-lite top level install dir],
+	[spdaqlite_conf_dir="$withval/bin"
+	spdaqlite_found="yes"], 
+	[spdaqlite_found="no"])
+
+for dir in $spdaqlite_homes
+do
+  if test $spdaqlite_found == "no"
+  then
+      AC_CHECK_FILE($dir/bin/spdaqlite-conf,
+	  [spdaqlite_conf_dir="$dir/bin"
+	   spdaqlite_found="yes"])
+  fi
+done
+
+if test $spdaqlite_found == "no"
 then
-   AC_DEFINE([HAVE_SPECTRODAQ_MAIN], 1, [spectrodaq has separable main])
+    AC_MSG_ERROR([Cannot locate spdaqlite-conf help  mey by using --with-spectrodaq-lite-home])
+else
+    SPECTRODAQ_FLAGS=$(${spdaqlite_conf_dir}/spdaqlite-conf --cflags)
+    SPECTRODAQ_LDFLAGS=$(${spdaqlite_conf_dir}/spdaqlite-conf --libs)
+    AC_MSG_RESULT([found in ${spdaqlite_conf_dir}])
 fi
-AC_MSG_RESULT([$separate])
-CXXFLAGS="$oldcxxflags"
-AC_LANG_POP(C++)
 
 
 # Locate Tcl/Tk and setup compile/link switches for them too:
@@ -841,7 +820,7 @@ AC_SUBST(HTMLDOCBOOK)
 
 #  Create output files:
 
-AC_OUTPUT( Makefile tcllib/Makefile \
+AC_OUTPUT( Makefile SpectrodaqLite/Makefile tcllib/Makefile \
 	   Headers/Makefile CopyrightTools/Makefile \
 	Exception/Makefile PortManager/Makefile \
 	TCL/Makefile Security/Makefile Ftp/Makefile \

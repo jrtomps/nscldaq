@@ -411,11 +411,11 @@ protected:
 
 public:
   UINT16& operator* () {
-    UINT16& ri= (*(m_pData.get()))[m_nOffset];
+    UINT16& ri= (*(m_pData.get())).GetPtr()[m_nOffset];
     return ri;
   }
   UINT16& operator[] (int nOffset) {
-    UINT16& ri= (*(m_pData.get()))[m_nOffset + nOffset];
+    UINT16& ri= (*(m_pData.get())).GetPtr()[m_nOffset + nOffset];
     return ri;
   }
   EventBufferPointer&  operator++ ()   /* Prefix */

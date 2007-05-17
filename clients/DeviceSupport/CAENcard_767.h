@@ -144,8 +144,6 @@ public:
   int readEvent(void* buf);	//!< Read an event -> Ordinary buffer.
   int readEvent(DAQWordBuffer& wbuf, int offset); //!< Read event -> spectrodaq buffer
   int readEvent(DAQWordBufferPtr& wp); //!< Read event to spectrudaq buffer.
-  int readEvent(DAQDWordBuffer& dwbuf, int offset); //!< Read evt to spectrodaq long buffer.
-  int readEvent(DAQDWordBufferPtr& dwp); //!< Read event to spectrodaq long buffer via pointer.
   
   int tempSetup();		//!< Setup the card.
 

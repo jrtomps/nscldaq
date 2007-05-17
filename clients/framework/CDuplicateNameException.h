@@ -338,6 +338,7 @@ class CDuplicateNameException : public CException
       m_sName = aCDuplicateNameException.m_sName;
       UpdateReasonText();
     }
+    return *this;
   }
 
 			//Operator== Equality Operator

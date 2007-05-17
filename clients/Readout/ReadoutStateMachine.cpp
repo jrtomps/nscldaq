@@ -392,10 +392,10 @@ ReadoutStateMachine::GetBuffer(unsigned nWords)
 
   DAQWordBuffer* pBuffer;
   
-  mydaq.SetProcessTitle("Readout - Get");
+  SetProcessTitle("Readout - Get");
   pBuffer =  new DAQWordBuffer(nWords);
   pBuffer->SetTag(DAQ_EVENTS);	// Tag by default as event data.
-  mydaq.SetProcessTitle("Readout");
+  SetProcessTitle("Readout");
   return pBuffer;
 
 
@@ -416,7 +416,7 @@ void
 ReadoutStateMachine::RouteBuffer(DAQWordBuffer* pBuffer)
 {
 
-  pBuffer->Resize(daq_GetBufferSize(), true); // Resize back to correct size.
+  pBuffer->Resize(daq_GetBufferSize()); // Resize back to correct size.
   pBuffer->Route();		// Submit to the routing engine.
   delete pBuffer;
 
@@ -726,9 +726,9 @@ ReadoutStateMachine::EmitControlBuffer(INT16 nBufferType)
 
   FormatHeader(Buf, pBuf.GetIndex() - pStart.GetIndex(),
 	       nBufferType, 0);
-  mydaq.SetProcessTitle("Readout Route");
+  SetProcessTitle("Readout Route");
   Buf->Route();
-  mydaq.SetProcessTitle("Readout");
+  SetProcessTitle("Readout");
   delete Buf;
   
 }
@@ -763,7 +763,7 @@ ReadoutStateMachine::EmitScalerBuffer(INT16 nBufferType, unsigned nLastTime)
 
   UINT32* pThisReadout = new UINT32[nScalers]; // Read to here.
   assert(pThisReadout);		               // >>>BUGBUGBUG<<< 
-  UINT16 nwds = readscl(pThisReadout, nScalers); // Read the scalers.
+  readscl(pThisReadout, nScalers); // Read the scalers.
   clrscl();
 
   // If snapshot scaler, then we sum pThisReadout into the sums, if 
@@ -803,9 +803,9 @@ ReadoutStateMachine::EmitScalerBuffer(INT16 nBufferType, unsigned nLastTime)
   FormatHeader(Buf, pBuf.GetIndex() - pStart.GetIndex(), 
 	       nBufferType, nScalers);
 
-  mydaq.SetProcessTitle("Readout Routing");
+  SetProcessTitle("Readout Routing");
   Buf->Route();
-  mydaq.SetProcessTitle("Readout");
+  SetProcessTitle("Readout");
 
   // Done with the buffers.
 
@@ -882,7 +882,7 @@ ReadoutStateMachine::GetBody(DAQWordBuffer* pBuffer)
   // a buffer.  
 
   DAQWordBufferPtr p;
-  p  = pBuffer->operator&();
+  p  = &(*pBuffer);
   p += sizeof(bheader)/sizeof(INT16);
   return p;
 }
@@ -914,7 +914,7 @@ ReadoutStateMachine::FormatHeader(DAQWordBuffer* pBuffer,
   //      Number of 'things' in the buffer.
   //
 
-  DAQWordBufferPtr p = pBuffer->operator&();
+  DAQWordBufferPtr p = &(*pBuffer);
   *p++ = (INT16)(nWords + (sizeof(bheader)/sizeof(INT16))); // Size of buffer.
   *p++ = nType;			// Type of buffer.
   *p++ = 0;			// For now checksum is not computed.

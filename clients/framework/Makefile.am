@@ -13,7 +13,7 @@ TEMPLATE_IMPLEMENTATIONS= CArrayBinding.cpp                      \
 	CVariableBinding.cpp      
 
 libEventFramework_la_SOURCES= CThreadRecursiveMutex.cpp  \
-	CEventLoop.cpp CXtEventLoop.cpp \
+	CEventLoop.cpp  \
 	CApplicationSerializer.cpp  \
 	CNamedObject.cpp CObjectRegistry.cpp \
 	CClassifiedObjectRegistry.cpp CSocket.cpp CRegisteredObject.cpp \
@@ -102,7 +102,6 @@ include_HEADERS= CAlarmLogger.h \
 	CTimerMonitor.h \
 	CTypeFreeBinding.h \
 	CVariableBinding.h \
-	CXtEventLoop.h \
 	SpectroFramework.h \
 	XMCallback.h \
 	XMDialogs.h \
@@ -119,7 +118,8 @@ include_HEADERS= CAlarmLogger.h \
 	XMWidget.h \
 	XMWlist.h 
 
-INCLUDES= -I@top_srcdir@/Headers -I@top_srcdir@/Exception \
+INCLUDES= -I@top_srcdir@/Headers	\
+	-I@top_srcdir@/SpectrodaqLite  -I@top_srcdir@/Exception \
 	-I@top_srcdir@/TCL -I@top_srcdir@/VMEApi \
 	$(SPECTRODAQ_FLAGS) $(TCL_FLAGS) $(X11INCS)
 
@@ -146,6 +146,8 @@ EXTRA_DIST=Doxyfile BufferEvent.oxy \
 	 docexamples/minimal.cpp     docexamples/server.mak \
 	docexamples/TkExample.mak   docexamples/configtest.cpp  \
 	docexamples/minimal.mak     docexamples/subclass.cpp
+
+libEventFramework_la_LIBADD = @top_srcdir@/SpectrodaqLite/libSpectrodaqCompatibility.la
 
 libEventFramework_la_LDFLAGS = -version-info $(SOVERSION):0 \
 	-Wl,"-rpath-link=$(libdir)"

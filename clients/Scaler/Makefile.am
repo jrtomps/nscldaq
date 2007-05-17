@@ -6,10 +6,17 @@ sclclient_SOURCES = ScalerClient.cpp \
 	NSCLScalerCreator.cpp NSCLStateChangeBuffer.cpp \
 	NSCLStateChangeCreator.cpp TclServerConnection.cpp \
 	TcpClient.cpp
-INCLUDES=-I@top_srcdir@/Headers -I@top_srcdir@/CopyrightTools  \
-	-I@top_srcdir@/cvt $(SPECTRODAQ_FLAGS)
-sclclient_LDADD = -L@top_srcdir@/CopyrightTools -lLicense \
-	-L@top_srcdir@/cvt -lcvt $(SPECTRODAQ_LDFLAGS) 
+INCLUDES=-I@top_srcdir@/Headers \
+	-I@top_srcdir@/SpectrodaqLite \
+	-I@top_srcdir@/CopyrightTools  \
+	-I@top_srcdir@/cvt \
+	$(SPECTRODAQ_FLAGS)
+
+sclclient_LDADD = @top_srcdir@/CopyrightTools/libLicense.la \
+		@top_srcdir@/SpectroaqLite/libSpectrodaqCompatibilty.la	\
+		@top_srcdir@/cvt/libcvt.la \
+		 $(SPECTRODAQ_LDFLAGS) 
+
 sclclient_LDFLAGS=-Wl,"-rpath=$(libdir)"
 
 AM_CXXFLAGS= -DINSTDIR=\"$(prefix)\"

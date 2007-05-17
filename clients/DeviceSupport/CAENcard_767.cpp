@@ -459,15 +459,16 @@ int CAENcard_767::readEvent(DAQWordBuffer& wbuf, int offset)
     // read until it hits an invalid datum (should there be an option to stop at EOB?)
     temp.dword = m_pSpace->peekl(0);
     
+    uint16_t* buf = wbuf.GetPtr();
     while( (temp.dword & CAEN_767_DATUM_TYPE) != CAEN_767_FOOTER ) {
-      wbuf[offset] = temp.word.high;
-      wbuf[offset+1] = temp.word.low;
+      buf[offset] = temp.word.high;
+      buf[offset+1] = temp.word.low;
       ++n;
       temp.dword = m_pSpace->peekl(0);
     }
     if( (temp.dword & CAEN_767_DATUM_TYPE) == CAEN_767_FOOTER ) {
-      wbuf[offset] = temp.word.high;
-      wbuf[offset + 1] = temp.word.low;
+      buf[offset] = temp.word.high;
+      buf[offset + 1] = temp.word.low;
       ++n;
     }
     
@@ -517,72 +518,6 @@ int CAENcard_767::readEvent(DAQWordBufferPtr& wp)
     }
 
     n *= 2;
-  }
-  return(n);
-};
-
-/*!
-  Read an event into a spectrodaq longword buffer via an offset.
-
-  \param dwbuf A DAQDWordBuffer object to put data in.
-  \param offset The position that the data should be written to.  This is necessary
-      to avoid overwriting other data in the DAQDWordBuffer.
-
-  \return \li \> 0 indicates the number of 32-BIT DWORDS of data placed in dwbuf
-          \li 0 indicates that no data was placed in the buffer
-          \li -1 is returned if the card is not properly initialized
-
-  Be careful about putting this function into a loop because it can return a negative
-  value. Note that the standard readout skeleton does not provide you with a
-  DAQDWordBuffer.
-*/
-int CAENcard_767::readEvent(DAQDWordBuffer& dwbuf, int offset)
-{
-  int temp, n = dataPresent();
-  if(n > 0)
-  {
-    n = 0;
-    temp = m_pSpace->peekl(0);
-    while( (temp & CAEN_767_DATUM_TYPE) != CAEN_767_INVALID )
-    {
-      dwbuf[offset + n] = temp;
-      ++n;
-      temp = m_pSpace->peekl(0);
-    }
-  }
-  return(n);
-};
-
-/*!
-  Read an event into a spectrodaq longword buffer via a 'pointer'.
-  \param wp A pointer to a DAQDWordBuffer object.
-
-  \return \li \> 0 indicates the number of 32-BIT WORDS of data placed in buf
-          \li 0 indicates that no data was placed in the buffer
-          \li -1 is returned if the card is not properly initialized
-
-  Be careful about putting this function into a loop because it can return a negative
-  value. Note that the standard readout skeleton does not provide you with a
-  DAQDWordBuffer. Also make sure that the pointer does not point to a location that
-  already contains data.
-
-  Under normal conditions the readEvent(DAQDWordBuffer& dwbuf, int offset) fuction is
-  much easier and intuitive to use.
-*/
-int CAENcard_767::readEvent(DAQDWordBufferPtr& dwp)
-{
-  int temp, n = dataPresent();
-  if(n > 0)
-  {
-    n = 0;
-    temp = m_pSpace->peekl(0);
-    while( (temp & CAEN_767_DATUM_TYPE) != CAEN_767_INVALID )
-    {
-      *dwp = temp;
-      dwp++;
-      ++n;
-      temp = m_pSpace->peekl(0);
-    }
   }
   return(n);
 };

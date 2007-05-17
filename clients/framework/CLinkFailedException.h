@@ -355,6 +355,7 @@ class CLinkFailedException : public CException
       m_sName = aCLinkFailedException.m_sName;
       UpdateReasonText();
     }
+    return *this;
   }
 
 			//Operator== Equality Operator

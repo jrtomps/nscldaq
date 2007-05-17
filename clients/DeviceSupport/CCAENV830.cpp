@@ -972,7 +972,7 @@ CCAENV830::ReadEvent(DAQWordBuffer& rBuffer, int offset)
   if(nSize) {
     unsigned short* pBuf = (unsigned short*)localBuffer;
     for(int i =0; i < nSize; i++) {
-      rBuffer[offset++] = *pBuf++;
+      rBuffer.GetPtr()[offset++] = *pBuf++;
     }
   }
   return nSize;

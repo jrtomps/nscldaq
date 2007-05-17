@@ -354,6 +354,7 @@ class CNoSuchLinkException : public CException
       m_sName = aCNoSuchLinkException.m_sName;
       UpdateReasonText();
     }
+    return *this;
   }
 
 			//Operator== Equality Operator

@@ -279,6 +279,9 @@ DAMAGES.
 /*
   Change Log:
   $Log$
+  Revision 8.7  2007/05/17 21:26:07  ron-fox
+  Work on porting to spectrodq-lite.
+
   Revision 8.6  2006/05/15 14:29:45  ron-fox
   Little misc. changes..
 
@@ -811,7 +814,7 @@ CAENcard::setThreshold(int ch, int threshold)
   }
   else {
 #ifdef HAVE_VME_MAPPING
-    Registers* pModule      = (Registers*)m_pModule;
+
     pModule->Thresholds[ch] = threshold |
                              (pModule->Thresholds[ch] & KILLBIT);
 #else
@@ -963,7 +966,7 @@ CAENcard::commonStop()
   //make sure that the card is a TDC and initialized
   if(cardType() == 775)
   {
-    volatile Registers* pRegisters = (volatile Registers*)m_pModule;
+
     Bitset2(COMMONSTOP);
     
   }
@@ -1308,7 +1311,7 @@ CAENcard::readEvent(DAQWordBuffer& wbuf, int offset)
   int n = readEvent(localBuffer);
   int nWords = n/sizeof(int);
   for(int i = 0; i < nWords; i++) {
-    wbuf[offset] = *pBuf++;
+    wbuf.GetPtr()[offset] = *pBuf++;
     offset++;
   }
   return nWords;
@@ -1351,59 +1354,6 @@ int CAENcard::readEvent(DAQWordBufferPtr& wp)
   
 };
 
-/*!
-  Read an event into a double word buffer object.  For now, the
-  event is first read into a local buffer and then transferred into
-  the daq buffer.
-
-  \param dwbuf A DAQDWordBuffer object to put data in.
-  \param offset The position that the data should be written to.  This is necessary
-      to avoid overwriting other data in the DAQDWordBuffer.
-
-  \return \li \> 0 indicates the number of 32-BIT DWORDS of data placed in dwbuf
-          \li 0 indicates that no data was placed in the buffer
-
-*/
-int 
-CAENcard::readEvent(DAQDWordBuffer& dwbuf, int offset)
-{
-  int localBuffer[32+2];	// 32 chans + header + trailer.
-  int nbytes = readEvent(localBuffer);
-  int nlongs = nbytes/sizeof(long);
-  int* pLocal(localBuffer);
-  for(int i =0; i < nlongs; i++) {
-    dwbuf[offset] = *pLocal++;
-    offset++;
-  }
-  return nlongs;
-
-
-}
-
-/*!
-  Reads an event into a buffer pointed to by a DAQDWordBufferObject.
-  Dword is assumed to be 32 bits wide.
-
-  \param wp A pointer to a DAQDWordBuffer object.
-
-  \return \li \> 0 indicates the number of 32-BIT WORDS of data placed in buf
-          \li 0 indicates that no data was placed in the buffer
-
-*/
-int CAENcard::readEvent(DAQDWordBufferPtr& dwp)
-{
-  int localBuffer[32+2];	// 32 chans + header +trailer.
-  int nbytes  = readEvent(localBuffer);
-  int nlongs  = nbytes/sizeof(long);
-  int* pLocal(localBuffer);
-  for(int i =0; i < nlongs; i++) {
-    *dwp = *pLocal++;
-    ++dwp;
-  }
-  return nlongs;
-
-
-}
 
 
 

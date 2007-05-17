@@ -322,8 +322,7 @@ class CDataSource
   int  m_nMask;			//Buffer delivery mask.
   int  m_nTag;			// Tag for buffers.
   int  m_nDelivery;		// Delivery mode.
-  static
-  DAQLinkMgr* daq_link_mgr;	// Link manager associated with class.
+
 protected:
 
 public:
@@ -376,10 +375,10 @@ public:
   Bool_t Connect(int nMask, int nDelivery) {
     m_nMask     = nMask;
     m_nDelivery = nDelivery;
-    Connect();
+    return Connect();
   }
   Bool_t Disconnect ();
-  static void SetLinkManager(DAQLinkMgr& linkmgr);
+
 
 };
 

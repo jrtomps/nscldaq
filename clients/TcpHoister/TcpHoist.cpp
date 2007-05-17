@@ -608,9 +608,8 @@ DAQBuff::operator()(int argc, char** argv)
     else {
       buffer.SetTag(3);
     }
-    for(int i = 0; i < m_nBufferSize/sizeof(short); i++) {
-      buffer[i] = RawBuffer[i];
-    }
+    buffer.CopyIn(RawBuffer, 0, m_nBufferSize/sizeof(short));
+
     buffer.Route();
   }
 

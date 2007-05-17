@@ -438,7 +438,7 @@ DAQBuff::SubmitBuffer()
 
   // The buffer is tagged according to it's type.
 
-  unsigned short type = buf[1];
+  unsigned short type = buf.GetPtr()[1];
   buf.SetTag( (type == DATABF) ? 2 : 3);
   buf.Route();
   return -1;

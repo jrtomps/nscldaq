@@ -357,7 +357,8 @@ public:
   }  
 
   unsigned getLockLevel() const       //!< Retrieve m_LockLevel
-  { return m_nLockLevel;
+  { 
+    return m_nLockLevel;
   }  
             //Get accessor function for non-static attribute data member
   DAQThreadMutex getMonitorMutex() const //!< Return m_MonitoMutex 
@@ -387,7 +388,6 @@ protected:
 public:
   int Lock ();
   int UnLock ();
-  int TryLock ();
   int isLocked ();
   void UnLockCompletely ();
   

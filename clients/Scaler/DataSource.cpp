@@ -296,9 +296,7 @@ using namespace std;
 static char* pCopyrightNotice = 
 "(C) Copyright 1999 NSCL, All rights reserved DataSource.cpp \n";
 
-// Functions for class CDataSource
 
-DAQLinkMgr* CDataSource::daq_link_mgr(0);
 
 //////////////////////////////////////////////////////////////////////////////
 //
@@ -308,7 +306,7 @@ DAQLinkMgr* CDataSource::daq_link_mgr(0);
 //     
 Bool_t CDataSource::Connect()  
 {
-  m_lSinkId = daq_link_mgr->AddSink(m_sURL, m_nTag, m_nMask, m_nDelivery);
+  m_lSinkId = daq_link_mgr.AddSink(m_sURL, m_nTag, m_nMask, m_nDelivery);
   return (m_lSinkId != 0);
   
 }
@@ -321,26 +319,14 @@ Bool_t CDataSource::Connect()
 Bool_t CDataSource::Disconnect()  
 {
   if(!m_lSinkId) return kfFALSE; // Not connected in the first place.
-  
-  if(daq_link_mgr->DeleteSink(m_lSinkId)) {
-    return kfTRUE;
-  }
-  else {
-    kfFALSE;
-  }
+
+  daq_link_mgr.DeleteSink(m_lSinkId);
+  m_lSinkId = 0;
+
+  return kfTRUE;
+
 }
-///////////////////////////////////////////////////////////////////////////
-//
-// Function:
-//   SetLinkManager(DAQLinkMgr& linkmgr)
-// Operation Type:
-//   Class level.
-//
-void
-CDataSource::SetLinkManager(DAQLinkMgr& linkmgr)
-{
-  daq_link_mgr = &linkmgr;
-}
+
 
 
 

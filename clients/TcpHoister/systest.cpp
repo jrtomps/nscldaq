@@ -30,8 +30,8 @@ private:
 int CheckBuffer(DAQWordBuffer& buffer) {
   int size = buffer.GetLen();
   for(int i =0; i < size; i++) {
-    if (buffer[i] != i) {
-      cerr << "Mismatch sb " << i << " was " << buffer[i] << endl;
+    if (buffer.GetPtr()[i] != i) {
+      cerr << "Mismatch sb " << i << " was " << buffer.GetPtr()[i] << endl;
       return -1;
     }
   }
@@ -45,15 +45,14 @@ DAQBuff::operator()( int argc, char** argv)
 {
   DAQWordBuffer  buffer(0);
   DAQURL url("tcp://localhost:2602/");
-  long sink     = daq_link_mgr.AddSink(url, 2U, 2U, COS_RELIABLE);
+  long sink     = daq_link_mgr.AddSink(url, 3U, ALLBITS_MASK, COS_RELIABLE);
   if(sink == 0) {
     cerr << "Sink creation failed.  probably spectrodaq is not started\n";
     return -1;
   }
   buffer.SetTag(2);
-  buffer.SetMask(2);
   
-  buffer.Accept(NULL);	// Accept the buffer.
+  buffer.Accept();	// Accept the buffer.
   cerr << " top level: Got a buffer\n";
 
   if( (CheckBuffer(buffer)) == 0) {

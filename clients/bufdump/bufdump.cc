@@ -353,7 +353,7 @@ class DAQBuff : public DAQROCNode {
 
 
     // Add a sink for this tag
-    sinkid = daq_link_mgr.AddSink(sinkurl,2,2);
+    sinkid = daq_link_mgr.AddSink(sinkurl,3, ALLBITS_MASK, COS_UNRELIABLE);
 
     // If the sinkid == 0, then the AddSink failed.
     cerr << "Added Sink Id " << sinkid << endl;
@@ -371,7 +371,6 @@ class DAQBuff : public DAQROCNode {
       SetProcessTitle("dumper - Accepting");
       do {
 	bbuf.SetTag(2);
-	bbuf.SetMask(2);
 	bbuf.Accept();	// 
       } while(bbuf.GetLen() == 0);
       SetProcessTitle("dumper - Copying");

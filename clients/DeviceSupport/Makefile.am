@@ -28,12 +28,15 @@ include_HEADERS = VmeModule.h CVME.h CVMEptr.h MmapError.h CSIS3820.h \
 	CCAENV977.h CSIS3600.h CCAENV560.h CCAENV560Registers.h
 
 
+libDeviceSupport_la_LIBADD = @top_srcdir@/SpectrodaqLite/libSpectrodaqCompatibility.la \
+			$(VMEBUILDLIBS) \
+			$(SPECTRODAQ_LDFLAGS)
 
 libDeviceSupport_la_LDFLAGS = -version-info $(SOVERSION):0 \
-	$(VMEBUILDLIBS) \
-	 $(SPECTRODAQ_LDFLAGS) -g -Wl,"-rpath-link=$(libdir)"
+				 -g -Wl,"-rpath-link=$(libdir)"
 
 INCLUDES = $(VMEBUILDHEADERS) \
+	-I@top_srcdir@/SpectrodaqLite	\
 	-I@top_srcdir@/Headers \
 	-I@top_srcdir@/Exception \
 	-I@top_srcdir@/VMEApi -DINSTDIR=\"$(prefix)\" $(CAMAC) -g  \

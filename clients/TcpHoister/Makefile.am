@@ -1,8 +1,13 @@
 bin_PROGRAMS = TcpHoist
 TcpHoist_SOURCES = TcpHoist.cpp TcpClient.cpp  
 INCLUDES=-I@top_srcdir@/Headers \
+	-I@top_srcdir@/SpectrodaqLite	\
 	$(SPECTRODAQ_FLAGS) -I@top_srcdir@/CopyrightTools
-TcpHoist_LDADD=$(SPECTRODAQ_LDFLAGS) -L@top_srcdir@/CopyrightTools -lLicense 
+
+TcpHoist_LDADD=	@top_srcdir@/SpectrodaqLite/libSpectrodaqCompatibility.la \
+	$(SPECTRODAQ_LDFLAGS) \
+	@top_srcdir@/CopyrightTools/libLicense.la
+
 TcpHoist_LDFLAGS=-Wl,"-rpath=$(libdir)"
 
 noinst_HEADERS = TcpClient.h
@@ -26,7 +31,8 @@ noinst_PROGRAMS = systest systest_server
 systest_SOURCES = systest.cpp
 systest_server_SOURCES  = systest_server.cpp
 
-systest_LDFLAGS=$(SPECTRODAQ_LDFLAGS)
+systest_LDADD= @top_srcdir@/SpectrodaqLite/libSpectrodaqCompatibility.la \
+	$(SPECTRODAQ_LDFLAGS)
 
 
 

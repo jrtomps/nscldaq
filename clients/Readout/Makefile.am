@@ -37,13 +37,18 @@ install-data-local:
 	$(INSTALL_DATA) Readout_Makefile.include $(prefix)/etc
 	$(INSTALL_DATA) runstate.tran $(prefix)/Readout/etc	
 
-libReadout_la_LDFLAGS = -version-info $(SOVERSION):0  $(VMEBUILDLIBS) \
-	-L@top_srcdir@/DeviceSupport -lDeviceSupport \
-	 $(SPECTRODAQ_LDFLAGS) -g -Wl,"-rpath-link=$(libdir)"
+libReadout_la_LIBADD = @top_srcdir@/SpectrodaqLite/libSpectrodaqCompatibility.la \
+			@top_srcdir@/DeviceSupport/libDeviceSupport.la	\
+			 $(VMEBUILDLIBS) \
+			 $(SPECTRODAQ_LDFLAGS)
+
+libReadout_la_LDFLAGS = -version-info $(SOVERSION):0 
+		 -g -Wl,"-rpath-link=$(libdir)"
 
 INCLUDES = $(VMEBUILDEADERS) \
+	-I@top_srcdir@/SpectrodaqLite			\
 	-I@top_srcdir@/Headers -I@top_srcdir@/Exception \
-	-I@top_srcdir@/VMEApi -I@top_srcdir@/DeviceSupport\
+	-I@top_srcdir@/VMEApi -I@top_srcdir@/DeviceSupport \
 	$(SPECTRODAQ_FLAGS) -DINSTDIR=\"$(prefix)\" $(CAMAC) -g
 
 EXTRA_DIST = runstate.tran Makefile.skel ReadoutMain.cpp skeleton.cpp  \

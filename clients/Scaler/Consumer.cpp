@@ -347,7 +347,7 @@ CConsumer::~CConsumer()
       DAQURL srcurl(pSource->getURL());
       cerr << "Unable to form connection for Data source: " << endl;
 #if __GNUC__ >= 3		// 3.0 or later spectrodaq not a stream..
-      cerr << " URL - " << srcurl.Get().str()  << endl;
+      cerr << " URL - " << srcurl.toString().c_str()  << endl;
 #else
       cerr << " URL - " << srcurl << endl;
 #endif
@@ -613,7 +613,6 @@ int
 CConsumer::operator()(int argc, char** pargv)
 {
 
-    CDataSource::SetLinkManager(daq_link_mgr); // Provide the link manager.
     //
     // Set up the default buffer recognizers.  Done here because:
     //   This class represents a singleton object.

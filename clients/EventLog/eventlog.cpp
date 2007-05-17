@@ -404,6 +404,7 @@ Switch MatchSwitch(char* pSwitch)
     }
     pSwitches++;
   }
+  return Unrecognized;
 }
 ///////////////////////////////////////////////////////////////////////
 //
@@ -495,8 +496,8 @@ private:
   }
 
   int operator()(int argc,char **argv) {
-    int j;
-    int nSegment;
+
+    int nSegment(0);
     // Output copyright notice and author credit:
 
     CopyrightNotice::Notice(cerr, argv[0], 
@@ -517,7 +518,6 @@ private:
 
     SetProcessTitle("NSCLEventLog");   // Don't show uname/pwd.
     bbuf.SetTag(2);
-    bbuf.SetMask(2);
 
 
 
@@ -554,7 +554,7 @@ private:
 
       // Accept a buffer (with wait).
       do {
-	bbuf.Accept(NULL);
+	bbuf.Accept();
       } while(bbuf.GetLen() == 0);
       //
       // Should at least be able to pull out the buffer header:
@@ -828,8 +828,8 @@ DAQBuff::OpenEventFile(int nRun, int nBufferSize, int nSegment)
   cerr << "Run File is: " << FileName << endl;
 
   if(ftpValid) {		// Open file as ftp client.
-    string Host(ftpurl.GetHostName().Get());
-    string Directory(ftpurl.GetPath().Get());
+    string Host(ftpurl.GetHostName().c_str());
+    string Directory(ftpurl.GetPath().c_str());
     
     if(!FtpConnect(Host.c_str(), &pControl)) { // Connect to ftp server
       cerr << "Failed to connect to ftp host - check your ftp url.";
@@ -857,7 +857,7 @@ DAQBuff::OpenEventFile(int nRun, int nBufferSize, int nSegment)
     // Everything's working now so:
 
     eventFd = FtpGetFd(pData);	// Handle is the fd for the socket.
-    FullFilename = ftpurl.Get().Get();
+    FullFilename = ftpurl.toString().c_str();
     FullFilename += "/";
     FullFilename += FileName;
   }

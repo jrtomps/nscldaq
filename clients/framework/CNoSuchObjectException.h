@@ -340,6 +340,7 @@ class CNoSuchObjectException : public CException
       m_sName = aCNoSuchObjectException.m_sName;
       UpdateReasonText();
     }
+    return *this;
   }
 
 			//Operator== Equality Operator

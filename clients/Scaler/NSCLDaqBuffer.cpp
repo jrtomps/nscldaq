@@ -362,7 +362,7 @@ UShort_t CNSCLDaqBuffer::operator[](int nOffset)
   //  Returns 16bits of data from the buffer.  This has been byteswapped
   // as indicated by the buffer signature.
 
-  return BufferToHostWord(m_rRawBuffer[nOffset]);
+  return BufferToHostWord(m_rRawBuffer.GetPtr()[nOffset]);
 }
 //////////////////////////////////////////////////////////////////////////////
 //
@@ -418,10 +418,10 @@ int CNSCLDaqBuffer::getByteString(int nWordOffset,
   UShort_t* pDest = (UShort_t*) pBuffer;
   UInt_t i;
   for(i = 0; i < Words; i++) {
-    *pDest++ = m_rRawBuffer[i+nWordOffset]; // GetBytes are uninterpreted data.
+    *pDest++ = m_rRawBuffer.GetPtr()[i+nWordOffset]; // GetBytes are uninterpreted data.
   }
   if(Bytes) {
-    UShort_t OddWord = m_rRawBuffer[i+nWordOffset];
+    UShort_t OddWord = m_rRawBuffer.GetPtr()[i+nWordOffset];
     memcpy(pDest, &OddWord, 1);	// This keeps buffer byte ordering.
   }
   return ActualSize;
