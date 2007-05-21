@@ -9,6 +9,7 @@ TestHarness_DEPENDENCIES=VMECommand.o VMEMapCommand.o
 TestHarness_LDFLAGS = VMECommand.o VMEMapCommand.o \
 	 @top_srcdir@/VMEApi/libVmeAPI.la $(VMEBUILDLIBS) \
 	 -L@top_srcdir@/TCL -L@top_srcdir@/Exception  \
+		@top_srcdir@/SpectrodaqLite/libSpectrodaqCompatibility.la \
 	-L@top_srcdir@/CopyrightTools\
 	-L@top_srcdir@/DeviceSupport -lDeviceSupport -ltclPlus -lException \
 	$(TCL_LDFLAGS)
@@ -23,8 +24,9 @@ libVme_la_LIBADD = -L@top_srcdir@/TCL @top_srcdir@/TCL/libtclPlus.la    \
 		@top_srcdir@/VMEApi/libVmeAPI.la       \
 		@top_srcdir@/DeviceSupport/libDeviceSupport.la \
 		@top_srcdir@/CopyrightTools/libLicense.la     \
-		$(TCL_LDFLAGS) $(X11LIBX) $(VMEBUILDLIBS) -lpthread \
-		-lm -lstdc++ -lgcc -lc
+		$(TCL_LDFLAGS) $(X11LIBX) $(VMEBUILDLIBS) \
+		-lpthread \
+		-lm -lstdc++ -lgcc -lc 
 
 
 INCLUDES = -I@top_srcdir@/Headers -I@top_srcdir@/Exception \

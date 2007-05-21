@@ -275,7 +275,8 @@ DAMAGES.
 
 		     END OF TERMS AND CONDITIONS '
 */
-static const char* Copyright= "(C) Copyright Michigan State University 2002, All rights reserved";// Class: CConsumer
+static const char* Copyright= "(C) Copyright Michigan State University 2002, All rights reserved";
+// Class: CConsumer
 // Base class for a data acquisition system 
 // consumer application.
 //
@@ -309,8 +310,6 @@ static const char* Copyright= "(C) Copyright Michigan State University 2002, All
 using namespace std;
 #endif
 
-static char* pCopyrightNotice = 
-"(C) Copyright 1999 NSCL, All rights reserved Consumer.cpp \n";
 
 static CNSCLStateChangeCreator StateChange;
 static CNSCLPhysicsCreator     Physics;

@@ -17,7 +17,7 @@
 #include <config.h>
 #include <spectrodaq.h>
 
-linkManager daq_link_mgr;	//  For the rest of the world.
+DAQLinkMgr daq_link_mgr;	//  For the rest of the world.
 
 /*!
    Add a sink -- wraps DAQClentUtils::addSink
@@ -32,7 +32,7 @@ linkManager daq_link_mgr;	//  For the rest of the world.
 
 */
 int
-linkManager::AddSink(DAQURL& url, int mask1, int mask2, bool deliveryType)
+DAQLinkMgr::AddSink(DAQURL& url, int mask1, int mask2, bool deliveryType)
 {
   PacketRange range = maskToRanges(mask1 & mask2);
 
@@ -47,7 +47,7 @@ linkManager::AddSink(DAQURL& url, int mask1, int mask2, bool deliveryType)
 
 */
 void
-linkManager::DeleteSink(int sinkid)
+DAQLinkMgr::DeleteSink(int sinkid)
 {
   DAQClientUtils::delSink(sinkid);
 }
@@ -56,7 +56,7 @@ linkManager::DeleteSink(int sinkid)
 // map an old style tag mask into a PacketRange.
 //
 PacketRange
-linkManager::maskToRanges(int mask)
+DAQLinkMgr::maskToRanges(int mask)
 {
   PacketRange result;
 

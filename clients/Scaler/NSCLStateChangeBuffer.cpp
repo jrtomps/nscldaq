@@ -298,8 +298,6 @@ using namespace std;
 #endif
 
 
-static char* pCopyrightNotice = 
-"(C) Copyright 1999 NSCL, All rights reserved NSCLStateChangeBuffer.cpp \n";
 
 static const int nTitleOffset  = 16;
 static const int nSorTime      = nTitleOffset + 80;

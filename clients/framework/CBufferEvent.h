@@ -372,7 +372,7 @@ class CBufferEvent  : public CEvent
     CGenericBufferReactor(CBufferEvent<U>& owner);
 
     virtual void OnBuffer(CBufferMonitor<T>& rMonitor,
-			 Pointer<DAQBuffer<T>,T> pBuffer);
+			 T* pBuffer);
     virtual void OnTimeout(CEventMonitor& rMonitor);
   };
 
@@ -433,7 +433,7 @@ public:
 		  unsigned int mask = ALLBITS_MASK,
 		  int reliability = COS_RELIABLE);
 
-  virtual void OnBuffer(Pointer<DAQBuffer<T>,T>& pBuffer);
+  virtual void OnBuffer(T* pBuffer);
   virtual void OnTimeout();
 
   virtual void setBufferTag(int tag) {

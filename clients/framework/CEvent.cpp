@@ -468,7 +468,8 @@ CEvent::Enable()
   {
     if(!m_fEnabled) {
       m_fEnabled = true;	// Active is set by event thread.
-      m_Tid      = daq_dispatcher.Dispatch(*this);
+      daq_dispatcher.Dispatch(*this);
+      m_Tid = getId();
     }
   }
   CApplicationSerializer::getInstance()->UnLock(); // <-- End Critical region.
@@ -495,20 +496,18 @@ void
 CEvent::Disable()
 {
 
-  DAQThreadId id = m_Tid;	// Snapshot the tid, in case restarted.
   m_fEnabled     = false;	// Schedule the thread stop.
 
   if(m_fActive) {
     bool fHeldMutex(false);
     int  nLockLevel;
     CApplicationSerializer& mutex(*(CApplicationSerializer::getInstance()));
-    DAQStatus stat;
+
     if( daqthread_self() == mutex.getOwningThread()) { // If we own the mutex
       fHeldMutex = true;	              // Save the context and unlock 
       nLockLevel = mutex.getLockLevel();      // at whatever required depth.
       mutex.UnLockCompletely();
     }
-    Join(id, &stat);		// Wait for the thread to stop running.
     if(fHeldMutex) {		// If we previously had the mutex, relock at
       for(int i=0; i < nLockLevel; i++) { // the previous locking depth:
 	mutex.Lock();
@@ -631,7 +630,7 @@ CEvent::Schedule()
 int
 CEvent::operator()(int nargs, char** ppArgs)
 {
-  m_Tid = (DAQThreadId&)GetId();
+  m_Tid = GetId();
   m_fActive = true;
 
 
@@ -650,12 +649,12 @@ CEvent::operator()(int nargs, char** ppArgs)
    Does a join on the current object.  The assumption is that at some time
    this object exists as a thread and will exit to be joined before restarting.
    */
-DAQStatus
+void
 CEvent::JoinThis()
 {
-  DAQStatus Status;
-  Join(m_Tid, &Status);
-  return Status;
+
+  Join();
+
 }
 /*!
    Called periodically in event thread context to process any 

@@ -358,7 +358,7 @@ public:
 public:
   virtual void OnEvent(CEventMonitor& rMonitor);
   virtual void OnBuffer(CBufferMonitor<T>& rMonitor, 
-			Pointer<DAQBuffer<T>,T> pBuffer);
+			T*  pBuffer);
 
 };
 

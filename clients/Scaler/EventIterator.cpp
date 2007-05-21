@@ -298,8 +298,6 @@ static const char* Copyright= "(C) Copyright Michigan State University 2002, All
 using namespace std;
 #endif
 
-static char* pCopyrightNotice = 
-"(C) Copyright 1999 NSCL, All rights reserved EventIterator.cpp \n";
 
 // Functions for class CEventIterator
 

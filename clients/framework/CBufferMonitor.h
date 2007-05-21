@@ -386,7 +386,7 @@ class MatchAll {
 template<class T>
 class CBufferMonitor : public CEventMonitor
 {
-  DAQBuffer<T> m_Buffer;    /*!  Encapsulated buffer */
+  DAQBuffer    m_Buffer;    /*!  Encapsulated buffer */
   list<LinkInfo> m_lLinks;   /*!  List of links. */
   DAQLinkMgr daq_link_mgr;   /*!  A link manager */
   int          m_nTag;
@@ -444,7 +444,7 @@ class CBufferMonitor : public CEventMonitor
   // Selectors:
  public:
   
-  DAQBuffer<T>& getBuffer() 
+  DAQBuffer& getBuffer() 
     { 
       return m_Buffer;
     }  
@@ -462,7 +462,7 @@ class CBufferMonitor : public CEventMonitor
   // Attribute mutators:
  protected:
   
-  void setBuffer (const DAQBuffer<T> am_Buffer)
+  void setBuffer (const DAQBuffer am_Buffer)
     { 
       m_Buffer = am_Buffer;
     }
@@ -490,7 +490,7 @@ class CBufferMonitor : public CEventMonitor
 			   LinkIterator startat);
   LinkIterator beginLinks ();
   LinkIterator endLinks ();
-  Pointer<DAQBuffer<T>, T> getBufferPointer (int nOffset=0);
+  T* getBufferPointer (int nOffset=0);
   void SetBufferTag (int tag=COS_ALLBITS);
   void SetBufferMask (int nMask);
   STD(string) DescribeSelf ();

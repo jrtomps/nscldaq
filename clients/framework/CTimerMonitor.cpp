@@ -324,28 +324,24 @@ CTimerMonitor::operator() ()
 {
   struct timeval current_time;
   struct timespec timeout;
-  DAQThreadCond workcond;
-  DAQThreadMutex workmutex;
   gettimeofday(&current_time, NULL);
   timeout.tv_sec = current_time.tv_sec;
   timeout.tv_nsec = current_time.tv_usec * 1000;
 
   // If the timer is not a oneshot timer, then fire it
   if(!m_fOneShot) {
-    workmutex.Lock();
     timeout.tv_sec += getTimeout().tv_sec;
     timeout.tv_nsec += getTimeout().tv_usec * 1000;
-    workcond.TimedWait(workmutex, &timeout);
+    nanosleep(&timeout, NULL);
     return CEventMonitor::Occurred;
   }
 
   // If the timer is a oneshot timer, but it has not been
   // fired yet, then fire it
   else if((m_fOneShot) && (!m_fFired)) {
-    workmutex.Lock();
     timeout.tv_sec += getTimeout().tv_sec;
     timeout.tv_nsec += getTimeout().tv_usec * 1000;
-    workcond.TimedWait(workmutex, &timeout);
+    nanosleep(&timeout, NULL);
     m_fFired = true;  // set Fired = TRUE
     return CEventMonitor::Occurred;
   }

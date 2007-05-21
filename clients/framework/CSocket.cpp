@@ -191,8 +191,8 @@ CSocket::Connect(const string& host, const string& service)
 { 
   // We must be disconnected to do any of this...
   
-  std::vector<CSocket::SocketState> allowedStates;
-  allowedStates.push_back(CSocket::Disconnected);
+  std::vector<int> allowedStates;
+  allowedStates.push_back((int)CSocket::Disconnected);
 
   if(m_State != CSocket::Disconnected) throw CTCPBadSocketState(m_State, allowedStates,
 						    "CSocket::Connect");
@@ -201,7 +201,7 @@ CSocket::Connect(const string& host, const string& service)
   // try to resolve the name:
 
   unsigned long int ipaddr;
-  struct hostent* pEntry;
+  struct hostent* pEntry(NULL);
 
     CApplicationSerializer::getInstance()->Lock(); // <-- Critical region
     {				                   // (3) calls not threadsafe.
@@ -308,10 +308,10 @@ On success, m_State = Bound
 
 */
 void 
-CSocket::Bind(std::const string& service)  
+CSocket::Bind(const string& service)  
 { 
   CSocket::SocketState expected = CSocket::Disconnected;
-  std::vector<CSocket::SocketState> allowedStates;
+  vector<int> allowedStates;
   allowedStates.push_back(expected);
   if(m_State != Disconnected) throw CTCPBadSocketState(m_State, allowedStates,
 						       "CSocket::Bind");
@@ -370,7 +370,7 @@ CSocket::Listen(unsigned int nBacklog)
   // Throw CTCPBadSocketState if not bound:
 
   if(m_State != Bound) {
-    vector<CSocket::SocketState> allowedStates;
+    vector<int> allowedStates;
     allowedStates.push_back(Bound);
     throw CTCPBadSocketState(m_State, allowedStates, 
 			     "CSocket::Listen");
@@ -419,7 +419,7 @@ CSocket::Accept(string& client)
   // Throw CTCPBadSocket if not listening.
 
   if(m_State != Listening) {
-    vector<CSocket::SocketState> allowedStates;
+    vector<int> allowedStates;
     allowedStates.push_back(Listening);
     throw CTCPBadSocketState(m_State, allowedStates,
 			     "CSocket::Accept");
@@ -468,7 +468,7 @@ CSocket::Shutdown()
   // Require that the socket be connected.
 
   if(m_State != Connected) {
-    vector<CSocket::SocketState> allowedStates;
+    vector<int> allowedStates;
     allowedStates.push_back(Connected);
     throw CTCPBadSocketState(m_State, allowedStates,
 			     "CSocket::Shutdown");
@@ -509,7 +509,7 @@ CSocket::Read(void* pBuffer, size_t nBytes)
   // Require the socket be connected:
 
   if(m_State != Connected) {
-    vector<CSocket::SocketState> allowedStates;
+    vector<int> allowedStates;
     allowedStates.push_back(Connected);
     throw CTCPBadSocketState(m_State, allowedStates,
 			     "CSocket::Read()");
@@ -630,7 +630,7 @@ CSocket::getPeer(unsigned short&  port, string& peer)
   // Enforce connection requirement:
 
   if(m_State != Connected) {
-    vector<CSocket::SocketState> allowedStates;
+    vector<int> allowedStates;
     allowedStates.push_back(Connected);
     throw CTCPBadSocketState(m_State, allowedStates,
 			     "CSocket::GetPeer");
@@ -1221,7 +1221,7 @@ CSocket::getLinger(bool& isLingering, int& nLingerSeconds)
 unsigned short
 CSocket::Service(const string& rService)
 {
-  unsigned short port;
+  unsigned short port(0xffff);
   int           nport;
 
   if(sscanf(rService.c_str(), "%d", &nport) != 1) { // Non numeric service number.
@@ -1312,7 +1312,7 @@ CSocket::StockStateMap()
 void
 CSocket::OpenSocket()
 {
-  int             protocol;
+  int             protocol(-1);
   struct protoent* pEntry;
 
   StockStateMap();		// Ensure the state name map is stocked.

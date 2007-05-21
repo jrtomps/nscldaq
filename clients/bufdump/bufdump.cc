@@ -328,7 +328,6 @@ void CopyOut(void* pDest, DAQWordBufferPtr pSrc, unsigned int nWds)
 /*===================================================================*/
 class DAQBuff : public DAQROCNode {
   int operator()(int argc,char **argv) {
-    int j;
     DAQWordBuffer bbuf(BUFLEN);
     DAQURL sinkurl("TCP://localhost:2602/");
     long sinkid;

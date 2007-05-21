@@ -332,7 +332,7 @@ template <class U>
 void
 CBufferEvent<T>::CGenericBufferReactor<U>::
 OnBuffer(CBufferMonitor<T>& rMonitor,
-	 Pointer<DAQBuffer<T>,T> pBuffer)
+	 T* pBuffer)
 {
   m_rOwner.OnBuffer(pBuffer);	// Relay to event.
   pBuffer->Release();		// Release the underlying buffer in order
@@ -481,7 +481,7 @@ CBufferEvent<T>::DeleteLink(const string& url, unsigned int tag, unsigned int ma
 */
 template <class T>
 void
-CBufferEvent<T>::OnBuffer(Pointer<DAQBuffer<T>,T>& pBuffer)
+CBufferEvent<T>::OnBuffer(T* pBuffer)
 {
 }
 

@@ -395,7 +395,7 @@ CBufferReactor<T>::OnEvent(CEventMonitor& rMonitor)
 template <class T>
 void 
 CBufferReactor<T>::OnBuffer(CBufferMonitor<T>& rMonitor, 
-			    Pointer<DAQBuffer<T>,T> pBuffer)
+			    T* pBuffer)
 {
 }
 

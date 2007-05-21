@@ -49,7 +49,7 @@ using namespace std;
  */
 
 CTCPBadSocketState::CTCPBadSocketState(CSocket::SocketState         badState,
-				       vector<CSocket::SocketState> okStates,
+				       vector<int> okStates,
 				       const char*            pDoing) :
   CException(pDoing),
   m_BadState(badState),

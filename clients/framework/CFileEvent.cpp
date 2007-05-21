@@ -712,10 +712,8 @@ CFileEvent::OnTimeout(iostream& rStream)
 void
 CFileEvent::Exit(int status)
 {
-  DAQStatus ThreadStatus("CFileEvent::Exit", status,
-		 "CFileEvent::Exit was called to exit a file handling thread");
   CApplicationSerializer::getInstance()->UnLockCompletely();
-  DAQThread::Exit(ThreadStatus);
+  DAQThread::Exit(status);
 }
 
 /*!

@@ -445,7 +445,7 @@ protected:
   void  Schedule();
   virtual int operator()(int nargs, char** ppArgs);
   virtual void ProcessQueues();
-  DAQStatus  JoinThis();
+  void         JoinThis();
 
 };
 

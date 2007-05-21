@@ -111,7 +111,7 @@ static const int  ALLBITS_MASK=0xffffffff;
 static const bool COS_RELIABLE=false;
 static const bool COS_UNRELIABLE=true;
 
-class linkManager {
+class DAQLinkMgr {
 public:
   int AddSink(DAQURL& url,int mask1,  int mask2, const bool deliveryType);
   void DeleteSink(int sinkid);
@@ -121,7 +121,7 @@ private:
   PacketRange maskToRanges(int mask);
 };
 
-extern linkManager daq_link_mgr;
+extern DAQLinkMgr daq_link_mgr;
 
 extern void SetProcessTitle(const char* title);
 extern void SetProcessTitle(DAQString& title);
@@ -142,13 +142,36 @@ public:
 
 // Threads:
 
-class DAQThread : public Thread {
+typedef unsigned long daqthread_t;     /* Thread id. */
+typedef unsigned long DAQThreadId;     /* Same in other contexts */
+#define daqthread_self() dshwrappthread_self()
 
+
+class DAQThread : public Thread {
+private:
+  int    m_args;
+  char **m_pArgs;
+public:
+  DAQThread() :
+    m_args(0), m_pArgs(0)
+  {
+  }
+  void Detach()  { detach(); }
+  void Startup(int args, char** argv);
+  void Join() { join(); }
+  DAQThreadId GetId() {return getId();}
+  void Exit(int status);
+  virtual void run();
+  virtual int operator()(int argc, char** argv) = 0;
 
 };
 
-typedef unsigned long daqthread_t; /* Thread id. */
+class DAQScheduler {
+ public:
+  void Dispatch(DAQThread& pThread, int argc = 0, char** argv = 0);
+};
 
-#define daqthread_self() dshwrappthread_self()
+extern DAQScheduler daq_dispatcher;
+
 
 #endif

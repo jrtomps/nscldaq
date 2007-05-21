@@ -38,15 +38,7 @@ libEventFramework_la_SOURCES= CThreadRecursiveMutex.cpp  \
 	CNoSuchObjectException.cpp \
 	CDuplicateNameException.cpp \
 	CDuplicateSingleton.cpp \
-	CIncompatibleMonitor.cpp \
-	XMCallback.cpp \
-	XMDialogs.cpp    \
-	XMManagers.cpp   \
-	XMMenus.cpp      \
-	XMShell.cpp      \
-	XMWlist.cpp 	\
-	XMHelp.cpp
-
+	CIncompatibleMonitor.cpp 
 
 include_HEADERS= CAlarmLogger.h \
 	CApplicationRegistry.h \
@@ -102,21 +94,8 @@ include_HEADERS= CAlarmLogger.h \
 	CTimerMonitor.h \
 	CTypeFreeBinding.h \
 	CVariableBinding.h \
-	SpectroFramework.h \
-	XMCallback.h \
-	XMDialogs.h \
-	XMLabel.h \
-	XMList.h \
-	XMManagers.h \
-	XMMenubar.h \
-	XMMenus.h \
-	XMPushbutton.h \
-	XMScale.h \
-	XMSeparators.h \
-	XMShell.h \
-	XMText.h \
-	XMWidget.h \
-	XMWlist.h 
+	SpectroFramework.h 
+
 
 INCLUDES= -I@top_srcdir@/Headers	\
 	-I@top_srcdir@/SpectrodaqLite  -I@top_srcdir@/Exception \
