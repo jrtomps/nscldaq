@@ -90,11 +90,6 @@ CBeginCommand::operator()(CTCLInterpreter& rInterp, CTCLResult& rResult,
   catch (CException& rExcept) {
     rResult = rExcept.ReasonText();
   }
-  catch (NSCLException& rExcept) {
-    char msg[1024];
-    rResult = "Spectrodaq threw an exception: ";
-    rResult += rExcept.ErrorMessage(msg, sizeof(msg) - 1);
-  }
   catch (...) {
     rResult = "Unrecognized exception caught while starting run.\n";
     return TCL_ERROR;

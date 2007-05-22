@@ -64,7 +64,10 @@ int CNSCLOutputBuffer::m_EventTag   = 2;
   are performed.
   */
 CNSCLOutputBuffer::CNSCLOutputBuffer (unsigned nWords)
-   : m_Buffer(nWords),   m_BufferPtr(&m_Buffer),   m_nWords(nWords) 
+   : m_BufferBase(nWords),   
+     m_Buffer(&m_BufferBase),
+     m_BufferPtr(&m_Buffer),   
+     m_nWords(nWords) 
 {
   InitializeHeader();
 } 
@@ -430,7 +433,7 @@ CNSCLOutputBuffer::Route()
 {
   ComputeSize();
   ComputeChecksum();
-  m_Buffer.Route();
+  m_BufferBase.Route();
 
 
 }  
@@ -566,7 +569,7 @@ CNSCLOutputBuffer::setEntityCount(unsigned short entities)
 void
 CNSCLOutputBuffer::Resize(int newsize)
 {
-   m_Buffer.Resize(newsize, true);              // Wait for resize to finish.
+   m_BufferBase.Resize(newsize); // Wait for resize to finish.
    m_nWords = newsize;		                // update the size word.
 }
 /*!

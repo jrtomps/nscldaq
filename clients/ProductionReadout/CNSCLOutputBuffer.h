@@ -53,7 +53,8 @@ protected:
   static int m_ControlTag;
   static int m_EventTag;
 protected:
-  DAQWordBuffer m_Buffer; //!< Spectrodaq Buffer to hold the data being emitted.
+  DAQWordBuffer m_BufferBase; //!< Spectrodaq Buffer to hold the data being emitted.
+  DAQWordBufferPtr m_Buffer;
 private:
   DAQWordBufferPtr m_BufferPtr; //!< 'pointer' to the current slot of the buffer.
   int m_nWords; //!< Number of words the buffer can hold.
@@ -82,7 +83,7 @@ public:
 public:
 
     DAQWordBuffer& getBuffer()  {
-       return m_Buffer;
+       return m_BufferBase;
     }
 
     DAQWordBufferPtr  getBufferPtr() const  {

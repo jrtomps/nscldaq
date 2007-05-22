@@ -8,7 +8,6 @@ lib_LTLIBRARIES=libHPPreadout.la
 
 libHPPreadout_la_SOURCES = \
 	../AccessListCheck.cpp \
-	../AuthTokenCheck.cpp \
 	../CBadTransitionException.cpp \
 	../CBeginCommand.cpp \
 	../CCompoundEventSegment.cpp \
@@ -57,7 +56,6 @@ libHPPreadout_la_SOURCES = \
 	../CTimedEvent.cpp \
 	../CTimer.cpp \
 	../CTkInterpreterShell.cpp \
-	../DAQAuthTokenInteractor.cpp \
 	../FdInteractor.cpp \
 	../HostListCheck.cpp \
 	../IOInteractor.cpp \
@@ -81,7 +79,6 @@ libHPPreadout_la_SOURCES = \
 
 noinst_HEADERS = \
 	../AccessListCheck.h \
-	../AuthTokenCheck.h \
 	../Authenticator.h \
 	../CBadTransitionException.h \
 	../CBeginCommand.h \
@@ -133,7 +130,6 @@ noinst_HEADERS = \
 	../CTkInterpreterShell.h \
 	../CTraditionalEventSegment.h \
 	../CTraditionalScalerReadout.h \
-	../DAQAuthTokenInteractor.h \
 	../FdInteractor.h \
 	../HostListCheck.h \
 	../IOInteractor.h \
@@ -156,13 +152,16 @@ noinst_HEADERS = \
 
 
 libHPPreadout_la_LDFLAGS = -g -version-info $(SOVERSION):0 \
-	-L@top_srcdir@/framework \
+	@top_srcdir@/SpectrodaqLite/libSpectrodaqCompatibility.la \
+	@top_srcdir@/framework/libEventFramework.la 	\
 	$(VMEBUILDLIBS)          \
-	-L@top_srcdir@/Exception \
-	-lEventFramework -lException -lrt  $(SPECTRODAQ_LDFLAGS) \
+	@top_srcdir@/Exception/libException.la	\
+	-lrt  $(SPECTRODAQ_LDFLAGS) \
 	$(TCL_LDFLAGS) $(X11LIBS) -Wl,"-rpath-link=$(libdir)"
 
-INCLUDES =  -I.. $(CAMAC) -I@top_srcdir@/Headers \
+INCLUDES =  -I.. $(CAMAC) \
+	-I@top_srcdir@/SpectrodaqLite \
+	-I@top_srcdir@/Headers \
 	$(VMEBUILDHEADERS)        \
 	-I@top_srcdir@/DeviceSupport \
 	-I@top_srcdir@/CopyrightTools     \

@@ -291,7 +291,6 @@ static const char* Copyright = "(C) Copyright Michigan State University 2002, Al
 #include "CTKListener.h"
 #include <Exception.h>
 #include <CopyrightNotice.h>
-#include <NSCLException.h>
 #include <Iostream.h>
 #include <stdio.h>
 
@@ -550,11 +549,7 @@ CInterpreterCore::RegisterExtensions()
       }
     }
   }
-  catch (NSCLException& rExcept) {
-    cerr << "Caught spectrodaq exception" << rExcept.GetErrorString() << endl;
-    cerr << "While: " << rExcept.GetContextString() << endl;
-    cerr << "in pServer->Enable() \n";
-  }
+
   catch (CException& rExcept) {
     cerr << "Caught framework exception " << rExcept.ReasonText() << endl;
     cerr << " while: " << rExcept.WasDoing() << endl;

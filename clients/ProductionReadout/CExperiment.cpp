@@ -129,7 +129,8 @@ void
 CTriggerThread::Start()
 {
   m_Exiting = false;
-  m_Id = daq_dispatcher.Dispatch(*this, 0, 0);
+  daq_dispatcher.Dispatch(*this, 0, 0);
+  m_Id = getId();
 }
 /*! Schedule stop of trigger thread.
     \note This function assumes the calling thread is not 
@@ -152,7 +153,7 @@ CTriggerThread::Stop()
   unsigned nLockLevel = mutex.getLockLevel();
   mutex.UnLockCompletely();
 
-  Join(m_Id);			// Wait for trigger to exit.
+  Join();			// Wait for trigger to exit.
 
   for(unsigned i =0; i < nLockLevel; i++) {
     mutex.Lock();
