@@ -13,7 +13,7 @@ INCLUDES=-I@top_srcdir@/Headers \
 	$(SPECTRODAQ_FLAGS)
 
 sclclient_LDADD = @top_srcdir@/CopyrightTools/libLicense.la \
-		@top_srcdir@/SpectroaqLite/libSpectrodaqCompatibilty.la	\
+		@top_srcdir@/SpectrodaqLite/libSpectrodaqCompatibility.la \
 		@top_srcdir@/cvt/libcvt.la \
 		 $(SPECTRODAQ_LDFLAGS) 
 

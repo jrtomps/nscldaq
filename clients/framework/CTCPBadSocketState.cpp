@@ -128,7 +128,7 @@ CTCPBadSocketState::ReasonText() const
   m_Message += " allowed states were any of.:";
   for(int i = 0; i < m_ValidStates.size(); i++) {
     m_Message += " ";
-    m_Message += CSocket::StateName(m_ValidStates[i]);
+    m_Message += CSocket::StateName(static_cast<CSocket::SocketState>(m_ValidStates[i]));
   }
   m_Message += "\n CSocket was attempting to: ";
   m_Message += WasDoing();

@@ -46,6 +46,17 @@ DAQURL::DAQURL() :
 {
 }
 
+/*!
+   Assignment from char*:
+*/
+DAQURL&
+DAQURL::operator=(const char* url)
+{
+  DAQURL rhs = url;
+  *this = rhs;
+  return *this;
+}
+
 //  Pull the port out of a string of the form:
 //    tcp://host:port[/]
 // We're going to assume the URL is well formed for now

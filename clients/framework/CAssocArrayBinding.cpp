@@ -390,10 +390,10 @@ CAssocArrayBinding<T>::Commit(CTCLInterpreter& rInterp)
   // of the array indices which have been set by the configuration script.
 
   CTCLList IndexList(&rInterp, arraylist);
-  StringArray       indices;
+  ::StringArray       indices;
   IndexList.Split(indices);	// Inidices is a string vector of valid indices
 
-  StringArray::iterator i = indices.begin();
+  ::StringArray::iterator i = indices.begin();
   while(i != indices.end()) {
     char* pValue = Tcl_GetVar2(rInterp.getInterpreter(), 
 			       (char*)m_sName.c_str(), (char*)i->c_str(),

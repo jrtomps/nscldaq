@@ -36,3 +36,17 @@ DAQROCNode::main(int argc, char* argv[])
   int status = (*this)(argc, argv);
   exit(status);
 }
+/*!
+  Set a new process title.
+*/
+void
+DAQROCNode::SetProcessTitle(const char* pTitle)
+{
+  String newTitle(pTitle);
+  setName(newTitle);
+}
+void
+DAQROCNode::SetProcessTitle(String title)
+{
+  setName(title);
+}

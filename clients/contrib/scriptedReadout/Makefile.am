@@ -87,6 +87,7 @@ noinst_HEADERS=CBoolConfigParam.h \
 
 
 INCLUDES=  $(VMEBUILDEADERS) \
+	-I@top_srcdir@/SpectrodaqLite \
 	-I@top_srcdir@/Exception \
 	-I@top_srcdir@/TCL \
 	-I@top_srcdir@/Headers -I@top_srcdir@/Exception \
@@ -101,13 +102,16 @@ CCFLAGS=-g
 
 
 
-ScriptedReadout_LDADD = -L@top_srcdir@/contrib/scriptedReadout -lScriptedRdo  \
-	-L@top_srcdir@/Readout -lReadout \
-	-L@top_srcdir@/DeviceSupport -lDeviceSupport \
-	-L@top_srcdir@/VMEApi	$(VMEBUILDLIBS) -lVmeAPI \
-	-L@top_srcdir@/TCL -ltclPlus	\
-	-L@top_srcdir@/Exception -lException $(TCL_LDFLAGS) \
-	$(SPECTRODAQ_LDFLAGS) $(VMELIBRARY) -lpthread
+ScriptedReadout_LDADD =	@top_srcdir@/SpectrodaqLite/libSpectrodaqCompatibility.la \
+			@top_srcdir@/contrib/scriptedReadout/libScriptedRdo.la	\
+			@top_srcdir@/Readout/libReadout.la	\
+			@top_srcdir@/DeviceSupport/libDeviceSupport.la \
+			@top_srcdir@/VMEApi/libVmeAPI.la $(VMEBUILDLIBS) \
+			@top_srcdir@/TCL/libtclPlus.la 	\
+			@top_srcdir@/Exception/libException.la \
+			$(TCL_LDFLAGS) \
+			$(SPECTRODAQ_LDFLAGS) $(VMELIBRARY) -lpthread
+
 
 EXTRA_DIST=Makefile.skel scriptedreadout_Makefile.include
 

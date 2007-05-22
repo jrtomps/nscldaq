@@ -315,9 +315,8 @@ using namespace std;
 #include <stdlib.h>
 #include <string>
 #include <spectrodaq.h>
-#include <NSCLException.h>
 #include <string>
-#include <DAQROCNode.h>
+
 //
 //   Global Variables:
 //
@@ -387,11 +386,7 @@ DAQBuff::operator()(int argc, char**argv)
     catch(string exception) {
       cerr << "Exception caught at main level: " << exception << endl;
     }
-    catch(NSCLException& except) {
-      cerr << "NSCLException caught at main level " <<
-	except.GetErrorString() << " " <<
-	except.GetContextString() << endl;
-    }
+
     catch(...) {
       cerr << "Some other exception occured and was caught at main level" 
 	   << endl;

@@ -8,12 +8,17 @@ bin_PROGRAMS = AlarmServerApp
 AlarmServerApp_SOURCES = AlarmServerApp.cpp CAlarmServer.cpp \
 	CAlarmServerException.cpp CGDBMException.cpp
 INCLUDES=-I@top_srcdir@/Headers -I@top_srcdir@/Exception \
-	-I@top_srcdir@/framework -I@top_srcdir@/TCL $(SPECTRODAQ_FLAGS) \
+	-I@top_srcdir@/framework -I@top_srcdir@/TCL \
+	-I@top_srcdir@/SpectrodaqLite	\
+	$(SPECTRODAQ_FLAGS) \
 	$(TCL_FLAGS) $(X11INCS)
-AlarmServerApp_LDADD= -L@top_srcdir@/framework -L@top_srcdir@/Exception \
-	-L@top_srcdir@/TCL -ltclPlus \
-	-lEventFramework -lException $(SPECTRODAQ_LDFLAGS)  \
-	$(TCL_LDFLAGS) $(X11LIBS) -lm 
+AlarmServerApp_LDADD= 	@top_srcdir@/TCL/libtclPlus.la	\
+			@top_srcdir@/framework/libEventFramework.la \
+			@top_srcdir@/Exception/libException.la	\
+			@top_srcdir@/SpectrodaqLite/libSpectrodaqCompatibility.la \
+			$(SPECTRODAQ_LDFLAGS)  \
+			$(TCL_LDFLAGS) $(X11LIBS) -lm 
+
 AlarmServerApp_LDFLAGS=-Wl,"-rpath=$(libdir)"
 #
 #  Scripts (and their associated gifs:

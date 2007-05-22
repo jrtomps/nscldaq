@@ -292,6 +292,9 @@ DAMAGES.
 /*!
     Change Log:
     $Log$
+    Revision 8.4  2007/05/22 21:21:13  ron-fox
+    Got a clean compilation against spdaq-liT
+
     Revision 8.3  2006/03/16 16:57:50  ron-fox
     Import tclPlus (TCL DIr) from SpecTcl-3.1 where it tries to get rid
     of most deprecated calls and adds docbook -> manpage documentation for the
@@ -316,6 +319,9 @@ DAMAGES.
 
     Revision 4.2  2003/03/25 12:01:28  ron-fox
     Added Change log comment generated from the CVS $Log$
+    Added Change log comment generated from the CVS Revision 8.4  2007/05/22 21:21:13  ron-fox
+    Added Change log comment generated from the CVS Got a clean compilation against spdaq-liT
+    Added Change log comment generated from the CVS
     Added Change log comment generated from the CVS Revision 8.3  2006/03/16 16:57:50  ron-fox
     Added Change log comment generated from the CVS Import tclPlus (TCL DIr) from SpecTcl-3.1 where it tries to get rid
     Added Change log comment generated from the CVS of most deprecated calls and adds docbook -> manpage documentation for the
@@ -361,7 +367,7 @@ DAMAGES.
 #endif
 
 typedef STD(vector)<STD(string)> StringArray;
-typedef StringArray::iterator StringArrayIterator;
+typedef ::StringArray::iterator StringArrayIterator;
 
 class CTCLList  : public CTCLInterpreterObject        
 {
@@ -426,10 +432,10 @@ protected:
 public:
   // Operations which reflect the Tcl_xxx operations on lists.
 
-  int Split (StringArray& rElements)  ;
+  int Split (::StringArray& rElements)  ;
   int Split (int& argc, char*** argv);
 
-  const char* Merge (const StringArray& rElements)  ;
+  const char* Merge (const ::StringArray& rElements)  ;
   const char* Merge(int argc, char** argv);
   //
   // protected utilities:

@@ -52,12 +52,20 @@ private:
   uint16_t*   m_pInitial;
   uint16_t*   m_pData;
 public:
+  DAQWordBufferPtr(DAQWordBuffer* pBuffer) :
+    m_pInitial(pBuffer->GetPtr()),
+    m_pData(m_pInitial)
+    {}
   DAQWordBufferPtr(uint16_t* p) :
     m_pInitial(p),
     m_pData(p) {}
   DAQWordBufferPtr() :
     m_pInitial(0),
     m_pData(0) {}		/* need to assign to this e.g. */
+  DAQWordBufferPtr(const DAQWordBufferPtr* rhs) :
+    m_pInitial(rhs->m_pInitial),
+    m_pData(rhs->m_pData)
+    {}
 
   uint16_t& operator*();
   uint16_t& operator[](int index);
@@ -65,6 +73,12 @@ public:
   DAQWordBufferPtr operator++(int); // object++;
   DAQWordBufferPtr& operator+=(int offset);
 
+  int operator==(const DAQWordBufferPtr& rhs) {
+    return m_pData == rhs.m_pData;
+  }
+  int operator!=(const DAQWordBufferPtr& rhs) {
+    return m_pData != rhs.m_pData;
+  }
 
   size_t GetIndex();
   void CopyOut(void* pDest, off_t offset, size_t nwds);
@@ -83,6 +97,11 @@ private:
   virtual int operator()(int argc, char**argv) = 0;  
 public:
   virtual void main(int argc, char* argv[]);
+  void SetProcessTitle(const char* pTitle);
+  void SetProcessTitle(String title);
+  void SetProcessTitle(std::string title) {
+    SetProcessTitle(title.c_str());
+  }
 };
 
 /*!
@@ -95,6 +114,8 @@ class DAQURL : public URL
   DAQURL(std::string url);
   DAQURL(const char* url);
   DAQURL();
+
+  DAQURL& operator=(const char* rhs);
 
   String GetHostName();
   String GetPath();
@@ -159,6 +180,7 @@ public:
   void Detach()  { detach(); }
   void Startup(int args, char** argv);
   void Join() { join(); }
+  void Join(int id) {Join(); }
   DAQThreadId GetId() {return getId();}
   void Exit(int status);
   virtual void run();
