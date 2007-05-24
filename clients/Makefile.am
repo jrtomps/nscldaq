@@ -40,7 +40,7 @@ install-data-local:
 	$(INSTALL_DATA)  CompilationRules.include.final $(prefix)/etc/CompilationRules.include
 	echo TCLHEADERS=$(TCL_FLAGS) > Directories.include.final
 	echo TCLLIBS=$(TCL_LDFLAGS)  >>Directories.include.final
-	echo SPECTRODAQBINDIR=$(spectrodaq_conf_dir) >> Directories.include.final
+	echo SPECTRODAQBINDIR=$(spdaqlite_conf_dir) >> Directories.include.final
 	echo VMEHEADERS=$(VMELIBRARYHEADERS) >> Directories.include.final
 	echo VMELIBRARY=$(VMELIBRARY) >> Directories.include.final
 	echo X11LIBS=$(X11LIBS)       >> Directories.include.final

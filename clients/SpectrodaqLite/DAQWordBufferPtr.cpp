@@ -110,7 +110,7 @@ DAQWordBufferPtr::GetIndex()
 
 //!  Simulate the & operator on daqwordbuffers:
 
-DAQWordBufferPtr operator&(DAQWordBuffer buffer) {
+DAQWordBufferPtr operator&(DAQWordBuffer& buffer) {
   return DAQWordBufferPtr(buffer.GetPtr());
 }
 

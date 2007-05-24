@@ -12,13 +12,13 @@ include $(INSTDIR)/etc/Directories.include
 #   Create the compiler flags:
 #
 
-SPECTRODAQ_FLAGS=$(shell $(SPECTRODAQBINDIR)/spectrodaq-conf --cflags)
+SPECTRODAQ_FLAGS=$(shell $(SPECTRODAQBINDIR)/spdaqlite-conf --cflags)
 CXXFLAGS=-I$(DAQINCLUDE)  $(SPECTRODAQ_FLAGS) $(VMEHEADERS) $(VMETRIGGER)
 CCFLAGS=$(CXXFLAGS)
 
 # Create the Linker flags:
 
-SPECTRODAQ_LDFLAGS=$(shell $(SPECTRODAQBINDIR)/spectrodaq-conf --libs)
+SPECTRODAQ_LDFLAGS=$(shell $(SPECTRODAQBINDIR)/spdaqlite-conf --libs)
 LDFLAGS = -L. -L$(DAQLIBS) \
 	-lReadout -lDeviceSupport -lVmeAPI -lException $(VMELIBRARY) \
 	$(SPECTRODAQ_LDFLAGS) -Wl,"-rpath=$(DAQLIBS)"

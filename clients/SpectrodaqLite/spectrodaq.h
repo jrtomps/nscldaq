@@ -85,7 +85,7 @@ public:
   void CopyIn(void*  pSrc,  off_t offset, size_t nwds);
 };
 
-DAQWordBufferPtr operator&(DAQWordBuffer buffer);
+DAQWordBufferPtr operator&(DAQWordBuffer& buffer);
 
 
 /*!
@@ -139,7 +139,7 @@ public:
 
 
 private:
-  PacketRange maskToRanges(int mask);
+  PacketRange maskToRanges(int mask, int careBits);
 };
 
 extern DAQLinkMgr daq_link_mgr;

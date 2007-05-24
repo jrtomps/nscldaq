@@ -34,7 +34,7 @@ DAQLinkMgr daq_link_mgr;	//  For the rest of the world.
 int
 DAQLinkMgr::AddSink(DAQURL& url, int mask1, int mask2, bool deliveryType)
 {
-  PacketRange range = maskToRanges(mask1 & mask2);
+  PacketRange range = maskToRanges(mask1, mask2);
 
   return DAQClientUtils::addSink(url, range, deliveryType);
 }
@@ -53,34 +53,17 @@ DAQLinkMgr::DeleteSink(int sinkid)
 }
 
 
-// map an old style tag mask into a PacketRange.
+// map an old style tag mask pair  into a PacketRange.
+// This is simplified to only work with contiguous bit ranges.
 //
 PacketRange
-DAQLinkMgr::maskToRanges(int mask)
+DAQLinkMgr::maskToRanges(int mask, int careBits)
 {
   PacketRange result;
 
-  int bitnum = 0;
-  while (mask) {
-    if (mask & bitnum) {
-      int lowbit = bitnum;	// range started...
-      int hibit  = bitnum;
-      mask = mask >> 1;
-      bitnum++;
-      while (mask & 1) {	// Hunt for range ending.
-	hibit++;
-	mask = mask >> 1;
-	bitnum++;
-      }
-      // lowbit and hibit are the bit ranges of a contiguous range of bits.
-      
-      uint32_t lowRange = (1UL << lowbit);
-      uint32_t hiRange  = (1UL << hibit);
-      result.addRange(lowRange, hiRange);
-    }
-    mask = mask >> 1;
-    bitnum++;
-  }
+  int lowTag = mask & careBits;
 
+  result.addRange(lowTag, mask);
   return result;
+
 }

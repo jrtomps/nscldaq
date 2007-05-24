@@ -224,6 +224,7 @@ then
 else
     SPECTRODAQ_FLAGS=$(${spdaqlite_conf_dir}/spdaqlite-conf --cflags)
     SPECTRODAQ_LDFLAGS=$(${spdaqlite_conf_dir}/spdaqlite-conf --libs)
+
     AC_MSG_RESULT([found in ${spdaqlite_conf_dir}])
 fi
 
@@ -756,7 +757,7 @@ AC_SUBST(EPICS_BIN)
 
 	# Spectrodaq:
 
-AC_SUBST(spectrodaq_conf_dir)
+AC_SUBST(spdaqlite_conf_dir)
 AC_SUBST(SPECTRODAQ_FLAGS)
 AC_SUBST(SPECTRODAQ_LDFLAGS)
 

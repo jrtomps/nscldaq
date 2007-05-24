@@ -39,6 +39,8 @@ using namespace std;
 #include "buffer.h"
 
 
+#include <netdb.h>
+#include <netinet/in.h>
 #include <Iostream.h>
 #include <daqinterface.h>
 #include <buftypes.h>
@@ -112,12 +114,28 @@ ReadoutStateMachine::ReadoutStateMachine() :
     m_pInactive(0),
     m_pActive(0),
     m_pPaused(0),
-    m_pExiting(0)
+    m_pExiting(0),
+    m_pDataStore(&(DAQDataStore::instance()))
 {
   // This try/catch block deals with an issue in g++-3.x
   // with exceptions not always propagating correctly out of
   // a shared lib that we see in ReadoutMain.cpp
   //
+  int port;
+  struct servent* serviceInfo = getservbyname("sdlite-buff",
+					      "tcp");
+  if (serviceInfo) {
+    port = ntohs(serviceInfo->s_port);
+  } 
+  else {
+    port = 2701;
+  }
+
+					      
+  
+
+  m_pDataStore->setSourcePort(port);
+
   try {
 #ifdef HAVE_COPYRIGHT_NOTICE
     // Copyright notice here so that it can't be removed from readoutmain.
