@@ -94,7 +94,7 @@ class DAQBuff : public DAQROCNode {
   int operator()(int argc,char **argv) {
 
     DAQWordBuffer bbuf(BUFLEN);
-    DAQURL sinkurl("TCP://localhost:2602/");
+    DAQURL sinkurl("TCP://localhost:2700/");
     long sinkid;
 
     // Print out copyright information:
@@ -158,7 +158,7 @@ class DAQBuff : public DAQROCNode {
       SetProcessTitle("spectcldaq - Accepting");
       do {
 	bbuf.SetTag(2);
-	bbuf.Accept(2,3);
+	bbuf.Accept();
       } while(bbuf.GetLen() == 0);
       SetProcessTitle("spectcldaq - Copying");
 

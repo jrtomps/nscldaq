@@ -101,11 +101,12 @@ DAQURL::host(const char* url)
 
   char* end   = strrchr(url, ':');
 
-  size_t finalLength = end-start; // Chars + null terminator.
+  size_t finalLength = end-start+1; // Chars + null terminator.
 
   char* host = new char[finalLength];
   memset(host, 0, finalLength);
   strncpy(host, start, finalLength-1);
+  result = host;
 
   delete []host;
 
