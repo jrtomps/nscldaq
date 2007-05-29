@@ -416,17 +416,17 @@ CReadoutMain::Exit()
   m_fExit = true;		// destroyed.
 }
 
-
-// If spectrodaq main is separable, then I need to define main
+// I need to define main here
 // here to ensure that TCL++'s main is not pulled in by mistake.
 //
 
-#ifdef HAVE_SPECTRODAQ_MAIN
+extern int daqhwyapi_main(int argc, char**argv, char** envp);
+
+
 int
 main(int argc, char** argv, char** envp) 
 {
-  return spectrodaq_main(argc, argv, envp);
+  return daqhwyapi_main(argc, argv, envp);
 }
 
 
-#endif

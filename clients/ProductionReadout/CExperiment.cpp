@@ -18,6 +18,8 @@
 //////////////////////////CExperiment.cpp file////////////////////////////////////
 
 #include <config.h>
+#include <netdb.h>
+#include <netinet/in.h>
 #include "CVMEInterface.h"
 #ifndef HIGH_PERFORMANCE
 #include "Exception.h"
@@ -83,7 +85,7 @@ extern CReadoutMain MyApp;
 
 //! Manifest constants.
 
-static const unsigned int nTriggerDwellTime = 100; //!< ms trigger holds mutexs
+static const unsigned int nTriggerDwellTime = 10; //!< ms trigger holds mutexs
 static const unsigned int nTriggersPerPoll  =  10; //!< triggers between time
                                                    // checks.
 static const unsigned int msPerClockTick = 100;   //!< Time between run time
@@ -264,9 +266,10 @@ CExperiment::CExperiment (unsigned nBufferSize) :
   m_LastScalerTime(0),
   m_pScalerTrigger(0),
   m_nEventsAcquired(0),
-  m_nWordsAcquired(0)
+  m_nWordsAcquired(0),
+  m_pDataStore(0)
 {
-
+  setupDataStore();
 }
 /*!
   Parameterized constructor.  Allows the experiment to be created as needed for
@@ -310,8 +313,11 @@ CExperiment::CExperiment(CTrigger*      pTriggerModule,
   m_LastScalerTime(0),
   m_pScalerTrigger(0),
   m_nEventsAcquired(0),
-  m_nWordsAcquired(0)
+  m_nWordsAcquired(0),
+  m_pDataStore(0)
 {
+  setupDataStore();
+
   if(pScalers) m_Scalers.AddScalerModule(pScalers);
   m_EventReadout.AddSegment(pEventReadout);
 }
@@ -1051,6 +1057,10 @@ CExperiment::EmitEnd()
   buffer.SetRun(GetRunNumber());
   buffer.SetType(ENDRUNBF);
   buffer.Route();
+
+  flushData();
+
+
 }
 /*!
   Emits a pause run buffer.  Pause run buffers also look like Begin buffers with
@@ -1065,6 +1075,7 @@ CExperiment::EmitPause()
   buffer.SetRun(GetRunNumber());
   buffer.SetType(PAUSEBF);
   buffer.Route();
+  flushData();
   
 }
 /*!
@@ -1307,4 +1318,40 @@ CExperiment::GetElapsedTime() const
   // Note that CTimer::GetElapsedTime's units are ms.
 
   return (MyApp.getClock().GetElapsedTime()) / 100;
+}
+//
+// Set up the data store:
+//
+
+void
+CExperiment::setupDataStore()
+{
+  m_pDataStore = &(DAQDataStore::instance());
+
+  // This try/catch block deals with an issue in g++-3.x
+  // with exceptions not always propagating correctly out of
+  // a shared lib that we see in ReadoutMain.cpp
+  //
+  int port;
+  struct servent* serviceInfo = getservbyname("sdlite-buff",
+					      "tcp");
+  if (serviceInfo) {
+    port = ntohs(serviceInfo->s_port);
+  } 
+  else {
+    port = 2701;
+  }
+
+					      
+  
+
+  m_pDataStore->setSourcePort(port);
+}
+// Flush data in buffers.
+void
+CExperiment::flushData()
+{
+  
+  BufferedRecordWriter* pWriter = m_pDataStore->getSource();
+  pWriter->flush();
 }

@@ -157,7 +157,9 @@ libHPPreadout_la_LDFLAGS = -g -version-info $(SOVERSION):0 \
 	$(VMEBUILDLIBS)          \
 	@top_srcdir@/Exception/libException.la	\
 	-lrt  $(SPECTRODAQ_LDFLAGS) \
-	$(TCL_LDFLAGS) $(X11LIBS) -Wl,"-rpath-link=$(libdir)"
+	$(TCL_LDFLAGS) $(X11LIBS) \
+	-lcrypt
+	-Wl,"-rpath-link=$(libdir)"
 
 INCLUDES =  -I.. $(CAMAC) \
 	-I@top_srcdir@/SpectrodaqLite \

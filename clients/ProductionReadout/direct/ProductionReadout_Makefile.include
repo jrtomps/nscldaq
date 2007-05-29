@@ -18,18 +18,19 @@ include $(INSTDIR)/etc/Directories.include
 
 #  Build the compilation flags:
 
-SPECTRODAQ_FLAGS=$(shell $(SPECTRODAQBINDIR)/spectrodaq-conf --cflags)
+SPECTRODAQ_FLAGS=$(shell $(SPECTRODAQBINDIR)/spdaqlite-conf --cflags)
 
 CXXFLAGS=-I$(DAQINCLUDE)   $(TCLHEADERS) $(SPECTRODAQ_FLAGS) $(VMEHEADERS)
 CCFLAGS=$(CXXFLAGS)
 
 #  Build the link flags:
 
-SPECTRODAQ_LDFLAGS=$(shell $(SPECTRODAQBINDIR)/spectrodaq-conf --libs)
+SPECTRODAQ_LDFLAGS=$(shell $(SPECTRODAQBINDIR)/spdaqlite-conf --libs)
 LDFLAGS=-L. -L$(DAQLIBS) \
 	-lPReadout -lEventFramework -ltclPlus -lDeviceSupport -lVmeAPI \
 	 -lException -lLicense \
 	$(VMELIBRARY) $(SPECTRODAQ_LDFLAGS)  $(TCLLIBS) $(X11LIBS) \
+	-lcrypt \
 	-Wl,"-rpath=$(DAQLIBS)"
 
 

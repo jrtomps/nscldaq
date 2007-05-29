@@ -105,7 +105,7 @@ private:
   CScalerTrigger*       m_pScalerTrigger;
   unsigned int          m_nEventsAcquired;
   unsigned int 		m_nWordsAcquired;
-
+  DAQDataStore*         m_pDataStore;
 public:
   // Constructors, destructors and other cannonical operations: 
   
@@ -221,6 +221,8 @@ protected:
    void Overflow(unsigned short*  header, 
 	         unsigned short*  End);
 #endif /* HIGH_PERFORMANCE */
+   void setupDataStore();
+   void flushData();
 };
 
 #endif

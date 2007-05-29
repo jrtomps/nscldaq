@@ -175,5 +175,5 @@ appnote.pdf : ScalerTriggerAppnote.xml
 
 manpages: CScalerTrigger.xml CCAENV262ScalerTrigger.xml   \
 	CCAENV977ScalerTrigger.xml CCBDCES8210ScalerTrigger.xml CTimedScalerTrigger.xml
-	-for f in $+; do $(MANDOCBOOK) man $$f 2>/dev/null ;  touch $$f; done 
+	-for f in $+; do $(MANDOCBOOK) man $$f 2>/dev/null ;   done 
 
