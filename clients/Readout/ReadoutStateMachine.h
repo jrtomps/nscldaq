@@ -189,7 +189,9 @@ public:
   void FormatHeader(DAQWordBuffer* pBuffer, 
 		    UINT16 nWords, UINT16 nType, UINT16 nEntities);
   void UpdateRunTime();
-  void     NewRunSegment();	//!< Diddle clock for Begin or Resume.
+  void NewRunSegment();	//!< Diddle clock for Begin or Resume.
+
+  void  flushData();
 
   // Internal members:
 

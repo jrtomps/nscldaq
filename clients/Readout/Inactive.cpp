@@ -380,6 +380,8 @@ Inactive::Enter(StateMachine& rMachine)
     daq_EndRun();
     rRun.ResetSequence();
     daq_IncrementRunNumber();
+    rRun.flushData();
+
   }
  
 

@@ -949,3 +949,13 @@ ReadoutStateMachine::FormatHeader(DAQWordBuffer* pBuffer,
   CopyIn(p, &lsig, sizeof(INT32)/sizeof(INT16));
 }
 
+/*!
+   Flush the output data stream.
+*/
+void
+ReadoutStateMachine::flushData()
+{
+  BufferedRecordWriter* pWriter = m_pDataStore->getSource();
+  pWriter->flush();
+
+}

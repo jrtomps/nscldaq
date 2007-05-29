@@ -333,6 +333,7 @@ Paused::Enter(StateMachine& rMachine)
     rRun.EmitScaler();
     rRun.EmitPause();
     daq_PauseRun();
+    rRun.flushData();
   }
   
 
