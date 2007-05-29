@@ -44,7 +44,7 @@ static char* pCopyrightNotice =
 
 static const string kDefaultHost = string("localhost");
 static const int    knDefaultPort= 2700;
-static const string kDefaultURL  = string("TCP://localhost:2602/");
+static const string kDefaultURL  = string("TCP://localhost:2700/");
 
 //
 // The following are TCl script fragments we feed into the server:

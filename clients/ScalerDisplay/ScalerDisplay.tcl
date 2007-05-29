@@ -19,7 +19,7 @@ if {[array names env DAQHOST] == ""} {
 	exit -1
 }
 set spdaq  $env(DAQHOST)
-set spdaqurl tcp://$spdaq:2602/
+set spdaqurl tcp://$spdaq:2700/
 
 
 #  The user must have supplied a command line argument 
