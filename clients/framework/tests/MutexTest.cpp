@@ -1,3 +1,19 @@
+/*
+    This software is Copyright by the Board of Trustees of Michigan
+    State University (c) Copyright 2005.
+
+    You may use this software under the terms of the GNU public license
+    (GPL).  The terms of this license are described at:
+
+     http://www.gnu.org/licenses/gpl.txt
+
+     Author:
+             Ron Fox
+	     NSCL
+	     Michigan State University
+	     East Lansing, MI 48824-1321
+*/
+
 //
 // Test recursive mutex:
 //
@@ -7,8 +23,8 @@
 //   We want them all.. unsampled for now.
 //
 
-#include <iostream.h>
-#include <iomanip.h>
+#include <iostream>
+#include <iomanip>
 
 #ifndef SPECTRODAQ_H
 #include <spectrodaq.h>
@@ -68,28 +84,6 @@ class Unlockalltest : public DAQThread
   }
 };
 
-class TryTest : public DAQThread
-{
-  int operator() (int argc, char** argv) {
-
-    // argc  is really the loop count.
-
-    daqthread_t tid = daqthread_self();
-
-    while(argc) {
-      if(TestMutex.TryLock() == 0) {
-	cerr << " TryTest (" << hex << tid << dec << ") locked ...";
-	cerr << " TryTest (" << hex << tid << dec << ") unlocked\n";
-	cerr.flush();
-	TestMutex.UnLock();
-	argc--;
-      }
-      else {
-	assert(errno = EAGAIN);
-      }
-    }
-  }
-};
 
 class NestTest : public DAQThread
 {
@@ -123,13 +117,11 @@ class NestTest : public DAQThread
 class DAQMutex : public DAQROCNode {
   int operator()(int argc,char **argv) {
     int args[] = {0, LOOPCOUNT};
-    TryTest     tryer;
     DAQThreadId tids[THRDCOUNT];
     NestTest* objPtrs[THRDCOUNT];
     NestTest* pThread;
     DAQStatus    stat;
       
-    DAQThreadId Tryid = daq_dispatcher.Dispatch(tryer,LOOPCOUNT);
     for(int i = 1; i <= THRDCOUNT; i++) {
       args[0] = i;
       pThread = new NestTest;

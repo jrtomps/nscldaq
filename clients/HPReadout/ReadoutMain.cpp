@@ -310,7 +310,7 @@ static char* Copyright =
 #include <Iostream.h>
 #include <stdlib.h>
 #include <spectrodaq.h>
-#include <NSCLException.h>
+#include <Exception.h>
 #include <string>
 #include <DesignByContract.h>
 #ifdef HAVE_STD_NAMESPACE
@@ -374,11 +374,6 @@ DAQBuff::operator()(int argc, char**argv)
     }
     catch(char* pErrorMessage) {
       cerr << "Exception caught at main level: " << pErrorMessage << endl;
-    }
-    catch(NSCLException& except) {
-      cerr << "NSCLException caught at main level " <<
-	except.GetErrorString() << " " <<
-	except.GetContextString() << endl;
     }
     catch (string& error) {
       cerr << "A string exception was caught: " << error << endl;

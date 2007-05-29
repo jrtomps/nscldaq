@@ -4,8 +4,8 @@
 #
 
 
-SPECTRO_FLAGS=$(shell /opt/spectrodaq/bin/spectrodaq-conf --cflags)
-SPECTRO_LDFLAGS=$(shell /opt/spectrodaq/bin/spectrodaq-conf --libs)
+SPECTRO_FLAGS=$(shell /usr/opt/spectrodaq-lite/bin/spdaqlite-conf --cflags)
+SPECTRO_LDFLAGS=$(shell /usr/opt/spectrodaq-lite/bin/spdaqlite-conf --libs)
 OS=$(shell uname | sed s/-//)
 
 
@@ -19,9 +19,9 @@ LinuxDEF=-D_NEED_BOOL_T
 LinuxMOTIFLIBDIR = -L/usr/X11/lib -I/usr/X11/include
 
 FLAGS= -ggdb2 -g2 $(SPECTRO_FLAGS) $(TESTFLAGS) 
-CFLAGS= -ggdb2 -g2 $(SPECTRO_FLAGS) $(TESTFLAGS) -I. -I..
+CFLAGS= -ggdb2 -g2 $(SPECTRO_FLAGS) $(TESTFLAGS) -I. -I.. -I../../SpectrodaqLite
 CXXFLAGS= -ggdb2 -g2 $(SPECTRO_FLAGS) $(TESTFLAGS) -I. $($(OS)DEF) -I.. \
-	$($(OS)MOTIFLIBDIR)
+	$($(OS)MOTIFLIBDIR) -I../../SpectrodaqLite
 LDFLAGS=$(SPECTRO_LDFLAGS) -L.. -lEventFramework -ltk -ltcl -lm $($(OS)MOTIFLIBDIR) \
 	-lXm -lXt -lX11
 
