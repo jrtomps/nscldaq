@@ -91,7 +91,7 @@ class DAQBuff : public DAQROCNode {
 
 
     // Add a sink for this tag
-    sinkid = daq_link_mgr.AddSink(sinkurl,3, ALLBITS_MASK, COS_UNRELIABLE);
+    sinkid = daq_link_mgr.AddSink(sinkurl,3, 2, COS_UNRELIABLE);
 
     // If the sinkid == 0, then the AddSink failed.
     cerr << "Added Sink Id " << sinkid << endl;
