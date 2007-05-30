@@ -83,7 +83,7 @@ clean-local:
 man_MANS = TracingIntro.3 CTracedVariable.3  CVariableTraceCallback.3 \
 	 CLanguageTraceCallback.3
 
-EXTRA_DIST = TCL.WC TCL.omt tkAppInit.c $(man_MANS) $(XMLMANSRC)
+EXTRA_DIST =  tkAppInit.c $(man_MANS) $(XMLMANSRC)
 
 if CPPUNIT
 
