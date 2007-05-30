@@ -28,9 +28,9 @@
 #
 # Add the canonicalized path to the script to the front of auto_path.
 
-set version 1.0-001
+set version 1.1
 
-set daqSearchList [list /usr/opt/daq/8.2 /usr/opt/daq/8.1 /usr/opt/daq/8.0 \
+set daqSearchList [list /usr/opt/daq/9.0 /usr/opt/daq/8.1 /usr/opt/daq/8.0 \
 		       /usr/opt/daq/7.4  /usr/opt/daq/7.3 /usr/opt/daq]
 
 
@@ -380,13 +380,22 @@ proc readPacketDefinitions {} {
 #    Locates the DAQ root.  We hunt for the DAQ root in the daqSearchList.
 #    Found, in this case means that we found the directory.
 #
+#   The DAQROOT environment variable will unconditionally override the
+#   search if it points to a directory that exists.
+#
 # If not found we prompt the user for this information.
 #
 proc findDAQRoot {} {
     global daqSearchList
-    foreach dir $daqSearchList {
-	if {[file readable $dir] && ([file type $dir] eq "directory")} {
-	    return $dir
+    global env
+
+    if {[array names env DAQROOT] ne ""} {
+	return $env(DAQROOT)
+    } else {
+	foreach dir $daqSearchList {
+	    if {[file readable $dir] && ([file type $dir] eq "directory")} {
+		return $dir
+	    }
 	}
     }
     #  If we got here we need to prompt the user:

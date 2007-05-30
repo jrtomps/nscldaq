@@ -208,20 +208,32 @@ snit::type onlineDataSource {
             }
         }
         #  There's a remote daq if there's a server listening on
-        #  sdaq-link.
+        #  sdaq-link... if there's a server on spdaq-lite
+	#  we assume that's the right one.
 
-        if {[catch {socket $host sdaq-link} msg]} {
+	set port -1
+
+	if {[catch {socket $host sdlite-link} sock] eq 0} {
+	    close $sock
+	    set port 2700
+	} elseif  {[catch {socket $host sdaq-link} msg]} {
             error [list No DAQ on Remote Node]
         } else {
+	    set port 2602
             close $msg
         }
+	# The case below should not happen but...
+
+	if {$port == -1} {
+	    error "Could not form connection to spdaq-lite or spectrodaq"
+	}
         #  Now we can setup the online client piped through hexdump.
         # ... and a file-event so that we can keep processing buffers.
         # when the event loop is entered.
         #
 
         set spectcldaq [file join $options(-daqroot) bin spectcldaq]
-	set url "tcp://$host:2602/"
+	set url "tcp://$host:$port/"
 
         set fd [open [list | $spectcldaq $url]  r]
         fconfigure $fd -buffering line -buffersize $options(-buffersize) \
