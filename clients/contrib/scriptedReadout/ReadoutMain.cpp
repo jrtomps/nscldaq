@@ -413,13 +413,16 @@ DAQBuff mydaq;
   
 void* gpTCLApplication(0);
 
-#ifdef HAVE_SPECTRODAQ_MAIN
+// I need to define main here
+// here to ensure that TCL++'s main is not pulled in by mistake.
+//
+
+extern int daqhwyapi_main(int argc, char**argv, char** envp);
+
+
 int
 main(int argc, char** argv, char** envp) 
 {
-  return spectrodaq_main(argc, argv, envp);
+  return daqhwyapi_main(argc, argv, envp);
 }
-
-
-#endif
 

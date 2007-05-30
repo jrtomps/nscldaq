@@ -348,7 +348,13 @@ DAQBuff::operator()(int argc, char**argv)
     cerr << "       describes what is read out and how the trigger works\n";
     return -1;
   }
+
   SetupFile = argv[1];
+
+    // 4. Instantiate a ReadoutStateMachine:
+    //
+    ReadoutStateMachine Run;
+    gpStateMachine = &Run;
 
   try {
 #ifdef VME
@@ -356,18 +362,17 @@ DAQBuff::operator()(int argc, char**argv)
 #else
     UsingVME=0;
 #endif
+
+
     
     //
     ios::sync_with_stdio();
+
 
     // Branchinit will access the camac.
     
 
     
-    // 4. Instantiate a ReadoutStateMachine:
-    //
-    ReadoutStateMachine Run;
-    gpStateMachine = &Run;
     
     //  The line below can be modified to set the buffersize.
     // note that the buffersize is set in words not bytes
@@ -412,13 +417,18 @@ DAQBuff mydaq;
   
 void* gpTCLApplication(0);
 
-#ifdef HAVE_SPECTRODAQ_MAIN
+
+
+// I need to define main here
+// here to ensure that TCL++'s main is not pulled in by mistake.
+//
+
+extern int daqhwyapi_main(int argc, char**argv, char** envp);
+
+
 int
 main(int argc, char** argv, char** envp) 
 {
-  return spectrodaq_main(argc, argv, envp);
+  return daqhwyapi_main(argc, argv, envp);
 }
-
-
-#endif
 
