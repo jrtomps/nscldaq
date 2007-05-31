@@ -5,7 +5,7 @@ AC_INIT(./spectrodaqToStdout.cpp)
 AC_CONFIG_AUX_DIR(config)
 AM_CONFIG_HEADER([config.h])
 AC_CANONICAL_HOST
-AM_INIT_AUTOMAKE(bridge, 1.0-pre1)
+AM_INIT_AUTOMAKE(bridge, 1.0)
 
 # Checks for programs.
 AC_PROG_CXX

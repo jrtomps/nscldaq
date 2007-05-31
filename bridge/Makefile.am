@@ -11,6 +11,8 @@ stdinToSpdaqLite_SOURCES = stdinToSpdaqLite.cpp
 stdinToSpdaqLite_CXXFLAGS = @SPDAQLITE_CFLAGS@
 stdinToSpdaqLite_LDADD    = @SPDAQLITE_LDFLAGS@
 
+EXTRA_DIST=bridge
+
 
 
 install-exec-local:
@@ -18,6 +20,7 @@ install-exec-local:
 	echo bindir=@prefix@/bin >> @prefix@/bin/bridge
 	cat bridge               >> @prefix@/bin/bridge
 	chmod a+rx                  @prefix@/bin/bridge
+
 
 
 
