@@ -1,0 +1,4 @@
+
+
+($bindir/spectrodaqToStdout | $bindir/stdinToSpdaqLite) &
+

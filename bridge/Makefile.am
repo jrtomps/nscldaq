@@ -13,5 +13,11 @@ stdinToSpdaqLite_LDADD    = @SPDAQLITE_LDFLAGS@
 
 
 
+install-exec-local:
+	echo "#!/bin/bash"        > @prefix@/bin/bridge
+	echo bindir=@prefix@/bin >> @prefix@/bin/bridge
+	cat bridge               >> @prefix@/bin/bridge
+	chmod a+rx                  @prefix@/bin/bridge
+
 
 
