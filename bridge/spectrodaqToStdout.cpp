@@ -40,12 +40,12 @@ public:
 
 private:
   virtual int operator()(int argc, char** argv) {
-    DAQWordBuffer spectrodaqBuffer(BUFFER_LENGT);
+    DAQWordBuffer spectrodaqBuffer(BUFFER_LENGTH);
     DAQURL        sinkURL(m_Url.c_str());
 
     // Form the sink for buffers from spectrodaq:
 
-    long sinkid = daq_link_mgr.AddSink(sinkurl,
+    long sinkid = daq_link_mgr.AddSink(sinkURL,
 				       3,
 				       2, 
 				       COS_RELIABLE);
@@ -65,7 +65,7 @@ private:
 	spectrodaqBuffer.Accept();
       } while (spectrodaqBuffer.GetLen() == 0);
       
-      int nLength = bbuf.GetLen();
+      int nLength = spectrodaqBuffer.GetLen();
       short* pRegularBuffer = new short[nLength];
       spectrodaqBuffer.CopyOut(pRegularBuffer, 0, nLength);
       spectrodaqBuffer.Release();
@@ -73,7 +73,8 @@ private:
       write(fd, pRegularBuffer, nLength);
       delete []pRegularBuffer;
     }
+    return 0;
   }
-}
+};
 
 DAQBuff application("tcp://localhost:2602");

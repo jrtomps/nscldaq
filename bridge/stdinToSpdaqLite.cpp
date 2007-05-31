@@ -14,7 +14,7 @@
 	     East Lansing, MI 48824-1321
 */
 
-#include <dshnet/daqhwyapi.h>
+#include <dshapi/daqhwyapi.h>
 #include <dshnet/daqhwynet.h>
 
 
@@ -28,7 +28,7 @@ using namespace spdaq;
 
 static const int BUFFER_SIZE(4096); // words.
 
-class stdinToSpdaqlite : public Main {
+class stdinToSpdaqLite : public Main {
 private:
   int tagOfBuffer(unsigned short* pBuffer);
 public:
@@ -39,7 +39,8 @@ public:
   Figure out the tag associated with the buffer.
   It's going to be 2 for data buffer, 3 for anything else.
 */
-int tagofBufer(unsigned short* pBuffer) {
+int 
+stdinToSpdaqLite::tagOfBuffer(unsigned short* pBuffer) {
   return (pBuffer[1] == 1) ? 2 : 3;
 }
 
@@ -49,16 +50,16 @@ int tagofBufer(unsigned short* pBuffer) {
 */
 
 void
-stdinToSpdaqlite::main(int argc, char** argv)
+stdinToSpdaqLite::main(int argc, char** argv)
 {
   DAQDataStore& dataStore = DAQDataStore::instance();
   dataStore.setSourcePort(2700); // Hard coded for now.
-  int fd = fileno(stin);	// Locate the fd for stdin.
-  unsigned short* pRawBuffer[BUFFER_SIZE];
+  int fd = fileno(stdin);	// Locate the fd for stdin.
+  unsigned short pRawBuffer[BUFFER_SIZE];
 
   while (1) {
-    int read = read(fd, pRawBuffer, BUFFER_SIZE*sizeof(unsigned short));
-    if (read <= 0) {
+    int nRead = read(fd, pRawBuffer, BUFFER_SIZE*sizeof(unsigned short));
+    if (nRead <= 0) {
       // EOF or error finishes us off.
 
       return;
