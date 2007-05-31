@@ -46,7 +46,7 @@ private:
     // Form the sink for buffers from spectrodaq:
 
     long sinkid = daq_link_mgr.AddSink(sinkURL,
-				       3,
+				       2,
 				       2, 
 				       COS_RELIABLE);
     if(sinkid < 0) {
@@ -62,6 +62,7 @@ private:
       
       do {
 	spectrodaqBuffer.SetTag(2);
+	spectrodaqBuffer.SetMask(2);
 	spectrodaqBuffer.Accept();
       } while (spectrodaqBuffer.GetLen() == 0);
       

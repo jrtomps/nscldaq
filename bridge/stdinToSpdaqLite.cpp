@@ -24,6 +24,10 @@ using namespace daqhwynet;
 #include <spdaq/spdaqlite.h>
 using namespace spdaq;
 
+#include <netdb.h>
+#include <netinet/in.h>
+
+
 #include <stdio.h>
 
 static const int BUFFER_SIZE(4096); // words.
@@ -53,7 +57,21 @@ void
 stdinToSpdaqLite::main(int argc, char** argv)
 {
   DAQDataStore& dataStore = DAQDataStore::instance();
-  dataStore.setSourcePort(2700); // Hard coded for now.
+
+  int port;
+  struct servent* serviceInfo = getservbyname("sdlite-buff",
+					      "tcp");
+  if (serviceInfo) {
+    port = ntohs(serviceInfo->s_port);
+  } 
+  else {
+    port = 2701;
+  }
+
+					      
+  
+  dataStore.setSourcePort(port);
+
   int fd = fileno(stdin);	// Locate the fd for stdin.
   unsigned short pRawBuffer[BUFFER_SIZE];
 
