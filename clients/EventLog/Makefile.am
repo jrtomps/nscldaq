@@ -13,4 +13,4 @@ eventlog_LDFLAGS=-Wl,"-rpath=$(libdir)"
 
 man_MANS = eventlog.1
 
-EXTRA_DIST = eventlog.1
+EXTRA_DIST = eventlog.1y

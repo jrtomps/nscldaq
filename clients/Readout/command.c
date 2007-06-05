@@ -1,4 +1,20 @@
 /*
+    This software is Copyright by the Board of Trustees of Michigan
+    State University (c) Copyright 2005.
+
+    You may use this software under the terms of the GNU public license
+    (GPL).  The terms of this license are described at:
+
+     http://www.gnu.org/licenses/gpl.txt
+
+     Author:
+             Ron Fox
+	     NSCL
+	     Michigan State University
+	     East Lansing, MI 48824-1321
+*/
+
+/*
 ** command.c:
 **   Provides stubs for interfaces to the data acquisition command distribution
 **   and processing facility.
@@ -66,12 +82,15 @@ static unsigned        snRunNumber      = 0; /* Current run number. */
 static char            ssRunTitle[81]; /* Current Run title. */
 static RunState        rsState = State_Halted;
 
-#define NSETSHOKEYS   5
+static unsigned short  cpuNumber = 0;
+
+#define NSETSHOKEYS   6
 static const char* ppSetShoKeywords[NSETSHOKEYS] = {
   "FREQUENCY",
   "SCALERS",
   "RUN",
   "TITLE",
+  "CPU",
   "ALL",
 };
 
@@ -89,6 +108,9 @@ static int ShoTitle(const char* pTail);
 static int ShoAll(const char* pTail);
 static int InvKeyword(const char* pTail);
 
+static int setCPU(const char* pTail);
+static int shoCPU(const char* pTail);
+
 typedef int (*pCommandProcessor)(const char* pTail);
 
 static const pCommandProcessor ppSetRoutines[] = {
@@ -96,6 +118,7 @@ static const pCommandProcessor ppSetRoutines[] = {
    SetScalers,
    SetRun,
    SetTitle,
+   setCPU,
    InvKeyword
    };
 static const pCommandProcessor ppShoRoutines[] = {
@@ -103,6 +126,7 @@ static const pCommandProcessor ppShoRoutines[] = {
    ShoScalers,
    ShoRun,
    ShoTitle,
+   shoCPU,
    ShoAll
    };
 
@@ -538,6 +562,23 @@ ShoFrequency(const char* pTail)
     return (int)rctl_NoOp;
   }
 }
+/*---------------------------------------------------------------------
+ * Function:
+ *    ShoCPU
+ *      Show the number of the CPU.
+ */
+static int
+shoCPU(const char* pTail)
+{
+  if (NoParams(pTail, 0) == rctl_NoOp) {
+    return (int)rctl_NoOp;
+  }
+  else {
+    printf("CPU Node number is: %u\n", cpuNumber);
+    fflush(stdout);
+    return (int)rctl_NoOp;
+  }
+}
 /*----------------------------------------------------------------------
 ** Function:
 **   int ShoScalers(const char* pTail)
@@ -641,6 +682,25 @@ SetUnsignedPar(unsigned* pnParameter, const char* pTail, int nOk)
     nReturnValue = (int)rctl_NoOp;
   }
   return nReturnValue;
+}
+/*--------------------------------------------------------------------------
+** Function:
+**  SetCPU
+**    Set the CPU number from the command tail.
+*/
+static int
+setCPU(const char* pTail)
+{
+  unsigned newNode     = cpuNumber;
+  int      returnValue = SetUnsignedPar(&newNode, pTail, (int)rctl_NoOp);
+
+  if (!daq_IsHalted()) {
+    putmsg(RUNACTIVE);
+    return(int)rctl_NoOp;
+  }
+  cpuNumber = newNode;
+  return returnValue;
+
 }
 /*--------------------------------------------------------------------------
 ** Function:
@@ -986,4 +1046,23 @@ void daq_SetBufferSize(int newsize)
 int daq_GetBufferSize()
 {
   return daqBufferSize;
+}
+
+
+/*-----------------------------------------------------------
+ *  Support setting the CPU node number that is set in all
+ *  data buffers.
+ */
+void daq_setCPUNumber(unsigned short node)
+{
+  cpuNumber = node;
+}
+/*-------------------------------------------------------------
+ * Retrieve the CPU Node number:
+ *
+ */
+unsigned short
+daq_getCPUNumber()
+{
+  return cpuNumber;
 }

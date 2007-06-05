@@ -941,7 +941,7 @@ ReadoutStateMachine::FormatHeader(DAQWordBuffer* pBuffer,
   CopyIn(p, &seq, 2);
   *p++ = nEntities;
   *p++ = 1;			// Lam count.
-  *p++ = 1;			// CPU number.
+  *p++ = daq_getCPUNumber();	// CPU number.
   *p++ = 1;			// Number of bit registers.
   *p++ = BUFFER_REVISION;	// Buffer revision level.
   *p++ = 0x0102;		// Word Signature.
