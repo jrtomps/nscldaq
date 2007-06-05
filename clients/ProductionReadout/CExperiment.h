@@ -199,6 +199,7 @@ protected:
   void StartTrigger();
   void StopTrigger();
   unsigned short GetRunNumber() const;
+  unsigned short getCpu() const;
   void EmitScalerBuffer(unsigned int nBufferType, 
 			vector<unsigned long>& scalers,
 			unsigned long nIntervalStartTime);

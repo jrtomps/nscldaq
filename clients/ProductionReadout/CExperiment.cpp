@@ -751,6 +751,7 @@ CExperiment::TriggerScalerReadout()
     
     if(m_EventBuffer->getEntityCount()) {
       m_EventBuffer->SetRun(GetRunNumber());
+      m_EventBuffer->SetCpuNum(getCpu());
       m_EventBuffer->Resize(m_nBufferSize);
       m_EventBuffer->Route();
     }
@@ -813,6 +814,7 @@ CExperiment::TriggerScalerReadout()
   buffer.PutScalerVector(scalers);
   buffer.SetStartTime(m_LastScalerTime);
   buffer.SetEndTime(now);
+  buffer.SetCpuNum(getCpu());
   buffer.SetRun(GetRunNumber());
   buffer.Route();		// No sequence increment for scalers.
 
@@ -845,6 +847,7 @@ CExperiment::TriggerRunVariableBuffer()
     CRunVariableBuffer buf(m_nBufferSize);
     i = EmitRunVariableBuffer(buf, i, Vars->end());
     buf.SetRun(GetRunNumber());
+    buf.SetCpuNum(getCpu());
     buf.Route();		// Increment else SpecTcl's eff is wrong.
   }
   
@@ -862,6 +865,7 @@ CExperiment::TriggerStateVariableBuffer()
     CStateVariableBuffer buf(m_nBufferSize);
     i = EmitStateVariableBuffer(buf, i, e);
     buf.SetRun(GetRunNumber());
+    buf.SetCpuNum(getCpu());
     buf.Route();		//Increment else spectcl eff. is wrong
   }
 
@@ -935,6 +939,7 @@ CExperiment::TriggerSnapshotScaler()
   buffer.SetEndTime(m_LastSnapTime = GetElapsedTime()/10);
 
   buffer.SetRun(GetRunNumber());
+  buffer.SetCpuNum(getCpu());
   buffer.Route();
 		     
 }  
@@ -957,6 +962,7 @@ CExperiment::TriggerDocBuffer()
 
     i = EmitDocBuffer(i, pManager->end(), buf);
     buf.SetRun(GetRunNumber());
+    buf.SetCpuNum(getCpu());
     buf.Route();		// Increment else spectcl's smapling eff. is wrong
   }
   
@@ -1040,6 +1046,7 @@ CExperiment::EmitStart()
   buffer.PutTitle(MyApp.getTitle());
   buffer.PutTimeOffset(GetElapsedTime());
   buffer.SetRun(GetRunNumber());
+  buffer.SetCpuNum(getCpu());
   buffer.SetType(BEGRUNBF);
   buffer.Route();
 
@@ -1055,6 +1062,7 @@ CExperiment::EmitEnd()
   buffer.PutTitle(MyApp.getTitle());
   buffer.PutTimeOffset(GetElapsedTime()/10);
   buffer.SetRun(GetRunNumber());
+  buffer.SetCpuNum(getCpu());
   buffer.SetType(ENDRUNBF);
   buffer.Route();
 
@@ -1073,6 +1081,7 @@ CExperiment::EmitPause()
   buffer.PutTitle(MyApp.getTitle());
   buffer.PutTimeOffset(GetElapsedTime()/10);
   buffer.SetRun(GetRunNumber());
+  buffer.SetCpuNum(getCpu());
   buffer.SetType(PAUSEBF);
   buffer.Route();
   flushData();
@@ -1089,6 +1098,7 @@ CExperiment::EmitResume()
   buffer.PutTitle(MyApp.getTitle());
   buffer.PutTimeOffset(GetElapsedTime()/10);
   buffer.SetRun(GetRunNumber());
+  buffer.SetCpuNum(getCpu());
   buffer.SetType(RESUMEBF);
   buffer.Route();
 
@@ -1271,6 +1281,7 @@ CExperiment::Overflow(unsigned short*  header,
    
    m_EventBuffer->RetractEvent(header);
    m_EventBuffer->SetRun(GetRunNumber());
+   m_EventBuffer->SetCpuNum(getCpu());
    m_EventBuffer->Resize(m_nBufferSize);
    m_EventBuffer->Route();
    delete m_EventBuffer;
@@ -1306,6 +1317,32 @@ CExperiment::GetRunNumber() const
 
   return atoi((i->second)->Get(TCL_GLOBAL_ONLY));
 
+}
+/*
+  :Get the CPU node number from the run state variables:
+*/
+unsigned short
+CExperiment::getCpu() const
+{
+
+  // Locate the state variable command object as it containst the
+  // database of state variables.
+
+
+  CReadoutMain* pReadout        = CReadoutMain::getInstance();
+  CInterpreterShell* pShell     = pReadout->getInterpreter();
+  CInterpreterCore*  pCore      = pShell->getInterpreterCore();
+  CStateVariableCommand& rState(*(pCore->getStateVariables()));
+
+  // Now look for the state variable named "run" as that has the run number.
+
+  StateVariableIterator i = rState.find(string("cpu"));
+  if(i == rState.end()) {
+    throw CNoSuchObjectException("Getting the run number variable object",
+				 "run");
+  }
+
+  return atoi((i->second)->Get(TCL_GLOBAL_ONLY));
 }
 /*!
    Get the elapsed run time.  

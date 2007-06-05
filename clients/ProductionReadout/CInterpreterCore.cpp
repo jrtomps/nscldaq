@@ -467,11 +467,15 @@ CInterpreterCore::RegisterExtensions()
   rState.Create("run");
   rState.Create("frequency");
   rState.Create("experiment");
+  rState.Create("cpu");
 
   // The iteration below initializes these variables to reasonable values.
   
   StateVariableIterator i = rState.begin();
   while(i != rState.end()) {
+    if(i->first == "cpu") {
+      i->second->Set("0");
+    }
     if(i->first == "run") {
       i->second->Set("0");
     }
