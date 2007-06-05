@@ -850,3 +850,5 @@ Released April 26, 2007
 June 5, 2007    - Add set CPU/show CPU to Readout classic. This will support
                   buffer assembly... in particular which buffers come from which
                   nodes in the system.
+                - Add set CPU/show CPU to HP Readout classic .. see above for
+                  why.
