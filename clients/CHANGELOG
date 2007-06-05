@@ -852,3 +852,4 @@ June 5, 2007    - Add set CPU/show CPU to Readout classic. This will support
                   nodes in the system.
                 - Add set CPU/show CPU to HP Readout classic .. see above for
                   why.
+                - Add set CPU/show CPU to prodcution readout family.
