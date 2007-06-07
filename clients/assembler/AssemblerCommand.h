@@ -81,7 +81,7 @@ public:
 	  int               offset;
   } EventFragmentContributor, *pEventFragmentContributor;
 private:
-  pEventFragmentContributor  m_nodeTable[0x10000];    // 65K entries.
+  EventFragmentContributor   m_nodeTable[0x10000];    // 65K entries.
   std::list<int>             m_definedNodes;          // List of used indices
 
 public:

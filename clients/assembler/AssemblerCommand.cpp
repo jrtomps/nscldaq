@@ -65,8 +65,8 @@ static DispatchEntry DispatchTable[SUBCOMMANDCOUNT] = {
 AssemblerCommand::AssemblerCommand(CTCLInterpreter& interp) :
 	CTCLObjectProcessor(interp, string("assembler"), true)
 {	
-	// Initialize the array of pointers to node information
-	// to be empty:
+	// Initialize the array  node information
+	// full of zeroes.
 
 	memset(m_nodeTable, 0, sizeof(m_nodeTable));
 }

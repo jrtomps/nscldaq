@@ -28,7 +28,7 @@ int
 AssemblerApplication::operator()()
 {
     CTCLInterpreter* pInterp   = getInterpreter();
-    AssemblerCommand* pCommand = new Assembler(*pInterp);
+    AssemblerCommand* pCommand = new AssemblerCommand(*pInterp);
     return TCL_OK;
 }
 
