@@ -23,7 +23,7 @@ using namespace std;
 
 // The following is a table of error messages strings:
 
-static const char const* pErrorMessages[] =
+static const char * const pErrorMessages[] =
 {
     "Invalid sub command",
     "Node with this name already exists",
@@ -39,8 +39,8 @@ static const char const* pErrorMessages[] =
     "Too many parameters on the command line",
     "Too few parameters on the command line",
     "INVALID ERROR CODE!"
-}
-static const unsigned int MESSAGECOUNT(sizeof(perrorMessages)/sizeof(char*));
+};
+static const unsigned int MESSAGECOUNT(sizeof(pErrorMessages)/sizeof(char*));
 
 /*!
    Turn an error code into a text message.
@@ -55,7 +55,7 @@ AssemblerErrors::errorText(AssemblerErrors::ErrorCode code)
     if (intCode >= MESSAGECOUNT) {
         return string(pErrorMessages[INVALIDERRORCODE]);
     }
-    return string(pErrorMessagse[intCode]);
+    return string(pErrorMessages[intCode]);
 }
 /*!
    Set an interpreter result with an error code string
@@ -64,9 +64,10 @@ AssemblerErrors::errorText(AssemblerErrors::ErrorCode code)
    \param code     - the code for the error message.
    \param messageTail - Stuff that will follow the message string.
 */
-string
-AssembleErrors::setErrorMsg(CTCLInterpreter& interp, AssembleErrors::ErrorCode code,
-                            string messageTail)
+int
+AssemblerErrors::setErrorMsg(CTCLInterpreter& interp, 
+			     AssemblerErrors::ErrorCode code,
+                             string messageTail)
 {
     string result = errorText(code);
     result       += '\n';

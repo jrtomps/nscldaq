@@ -31,25 +31,13 @@
 
 using namespace std;
 
-// Dispatch table structure.. The dispatch table allows
-// table driven dispatch of the command subkeywords:
 
-
-typedef struct {
-    const char* pKeyword;
-    int         minParameters;
-    int         maxParameters;
-    int         (AssemblerCommand::*processor)(CTCLInterpreter& interp,
-                                               vector<CTCLObject>& objv);
-} DispatchEntry *pDispatchEntry;
-
-static const int SUBCOMMANDCOUNT(5);
-static DispatchEntry DispatchTable[SUBCOMMANDCOUNT] = {
-    {"node",     4,   4,   &Assembler::node},
-    {"trigger",  3,   3,   &Assember::trigger},
-    {"window",   4,   5,   &Assembler::window},
-    {"list",     2,   2,   &Assembler::list},
-    {"validate", 2,   2,   &Assembler::validate}
+AssemblerCommand::DispatchEntry AssemblerCommand::DispatchTable[AssemblerCommand::SUBCOMMANDCOUNT] = {
+    {"node",     4,   4,   &AssemblerCommand::node},
+    {"trigger",  3,   3,   &AssemblerCommand::trigger},
+    {"window",   4,   5,   &AssemblerCommand::window},
+    {"list",     2,   2,   &AssemblerCommand::list},
+    {"validate", 2,   2,   &AssemblerCommand::validate}
 };
 
 
@@ -112,13 +100,13 @@ AssemblerCommand::operator()(CTCLInterpreter& interp,
 
     if (objv.size() < 2) {
         return 
-            AssemblerErrors::setErrorMessage(interp,
+            AssemblerErrors::setErrorMsg(interp,
                                              AssemblerErrors::TooFewParameters,
-                                             Usage();
+                                             Usage());
     }
     // Extract the keyword and dispatch:
 
-    objv[1].bind(interp);
+    objv[1].Bind(interp);
     string keyword = objv[1];
 
     return Dispatch(keyword,
@@ -156,14 +144,15 @@ AssemblerCommand::node(CTCLInterpreter& interp,
     // Extract the parameters; and make sure the id is valid:
 
     string node = objv[2];
+    int id(-1);
     try {
-        int id = objv[3];
+        id = objv[3];
     }
     catch(...) {
         // Not an integer most likely...
         
         return
-            AssemblerErrors::setErrorText(interp,
+            AssemblerErrors::setErrorMsg(interp,
                                           AssemblerErrors::BadId,
                                           Usage());
     }
@@ -171,7 +160,7 @@ AssemblerCommand::node(CTCLInterpreter& interp,
 
     if ((id < 0) || (id > 0xffff)) {
         return
-            AssemblerErrors::setErrorText(interp,
+            AssemblerErrors::setErrorMsg(interp,
                                           AssemblerErrors::BadId,
                                           Usage());
     }
@@ -179,7 +168,7 @@ AssemblerCommand::node(CTCLInterpreter& interp,
 
     if (findNode((short)id)) {
         return
-            AssemblerErrors::setErrorText(interp,
+            AssemblerErrors::setErrorMsg(interp,
                                           AssemblerErrors::DuplicateId,
                                           Usage());
     }
@@ -192,7 +181,7 @@ AssemblerCommand::node(CTCLInterpreter& interp,
 
                 // It's a hostname but not in dns:
             
-                AssemblerErrors::setErrorText(interp, 
+                AssemblerErrors::setErrorMsg(interp, 
                                               AssemblerErrors::NoDnsName, 
                                               Usage());
         }
@@ -201,15 +190,15 @@ AssemblerCommand::node(CTCLInterpreter& interp,
         pHostInformation = gethostbyaddr(&ipAddress, sizeof(struct in_addr), AF_INET);
         if (!pHostInformation) {
             return
-                AssemblerErrors::setErrorText(interp, 
+                AssemblerErrors::setErrorMsg(interp, 
                                               AssemblerErrors::NoSuchHost, 
                                               Usage());
         }
         // the host has been gotten.. ensure the actual host does not exist in the table:
 
-        if (FindNode(pHostInformation->h_name)) {
+        if (findNode(pHostInformation->h_name)) {
             return
-                AssemblerErrors::setErrorText(interp, 
+                AssemblerErrors::setErrorMsg(interp, 
                                               AssemblerErrors::DuplicateNode, 
                                               Usage());
         }
@@ -254,7 +243,7 @@ AssemblerCommand::trigger(CTCLInterpreter& interp,
         // Not an integer most likely...
         
         return
-            AssemblerErrors::setErrorText(interp,
+            AssemblerErrors::setErrorMsg(interp,
                                           AssemblerErrors::BadId,
                                           Usage());
     }
@@ -262,18 +251,18 @@ AssemblerCommand::trigger(CTCLInterpreter& interp,
 
     if ((id < 0) || (id > 0xffff)) {
         return
-            AssemblerErrors::setErrorText(interp,
+            AssemblerErrors::setErrorMsg(interp,
                                           AssemblerErrors::BadId,
                                           Usage());
     }
     // Node must exist:
 
-    if (FindNode(id)) {
+    if (findNode(id)) {
         clearTrigger();                  // Reset triggerness of any existing node.
         m_nodeTable[id].isTrigger = true;
     }
     else {
-        return AssemblerErrors::setErrorText(interp, 
+        return AssemblerErrors::setErrorMsg(interp, 
                                              AssemblerErrors::NoSuchId,
                                              Usage());
 
@@ -306,7 +295,7 @@ AssemblerCommand::window(CTCLInterpreter& interp,
         // Not an integer most likely...
         
         return
-            AssemblerErrors::setErrorText(interp,
+            AssemblerErrors::setErrorMsg(interp,
                                           AssemblerErrors::BadId,
                                           Usage());
     }
@@ -315,7 +304,7 @@ AssemblerCommand::window(CTCLInterpreter& interp,
     }
     catch (...) {
         return
-            AssemblerErrors::setErrorText(interp,
+            AssemblerErrors::setErrorMsg(interp,
                                           AssemblerErrors::BadWindowWidth, 
                                           Usage());
     }
@@ -324,14 +313,14 @@ AssemblerCommand::window(CTCLInterpreter& interp,
 
     if ((id < 0) || (id > 0xffff)) {
         return
-            AssemblerErrors::setErrorText(interp,
+            AssemblerErrors::setErrorMsg(interp,
                                           AssemblerErrors::BadId,
                                           Usage());
     }
     // Node must exist:
 
-    if (!FindNode(id)) {
-        return AssemblerErrors::setErrorText(interp, 
+    if (!findNode(id)) {
+        return AssemblerErrors::setErrorMsg(interp, 
                                              AssemblerErrors::NoSuchId,
                                              Usage());
 
@@ -339,7 +328,7 @@ AssemblerCommand::window(CTCLInterpreter& interp,
     // Window width must be positive:
 
     if (window < 0) {
-        return AssemblerErrors::setErrorText(interp, 
+        return AssemblerErrors::setErrorMsg(interp, 
                                              AssemblerErrors::BadWindowWidth,
                                               Usage());
     }
@@ -352,7 +341,7 @@ AssemblerCommand::window(CTCLInterpreter& interp,
             offset = objv[4];
         }
         catch (...) {
-            return AssemblerErrors::setErrorText(interp,
+            return AssemblerErrors::setErrorMsg(interp,
                                                  AssemblerErrors::BadOffset,
                                                  Usage());
         }
@@ -395,7 +384,7 @@ AssemblerCommand::list(CTCLInterpreter& interp,
     CTCLObject  nodeInfo;
     nodeInfo.Bind(interp);
 
-    list<int>::iterator p = m_definedNodes.begin();
+    std::list<int>::iterator p = m_definedNodes.begin();
     while (p != m_definedNodes.end()) {
         int node = *p;
         if (m_nodeTable[node].isTrigger) {
@@ -421,12 +410,12 @@ AssemblerCommand::list(CTCLInterpreter& interp,
 //  Verify the sanity of the setup.
 //
 int
-AssemblerCommand::verify(CTCLInterpreter& interp,
-                         vector<CTCLObject& objv)
+AssemblerCommand::validate(CTCLInterpreter& interp,
+                         vector<CTCLObject>& objv)
 {
     bool foundTrigger(false);
 
-    list<int>::iterator p = m_definedNodes.begin();
+    std::list<int>::iterator p = m_definedNodes.begin();
     while (p != m_definedNodes.end()) {
         int node = *p;
         if (m_nodeTable[node].isTrigger) {
@@ -479,12 +468,12 @@ AssemblerCommand::Dispatch(string keyword,
             
             if (objv.size() < DispatchTable[i].minParameters) {
                 return 
-                    AssemblerErrors::setErrorText(interp, 
+                    AssemblerErrors::setErrorMsg(interp, 
                                                   AssemblerErrors::TooFewParameters,
                                                   Usage());
                 
             }
-            if (obj.size() > DispatchTable[i].maxParameters) {
+            if (objv.size() > DispatchTable[i].maxParameters) {
                 string message = 
                     AssemblerErrors::errorText(AssemblerErrors::TooManyParameters);
                 message       += '\n';
@@ -494,7 +483,9 @@ AssemblerCommand::Dispatch(string keyword,
             }
             // Dispatch and return the results from that:
 
-            return this->*DispatchTable[i].processor(intper,objv);
+
+            int status = (this->*DispatchTable[i].processor)(interp, objv);
+	    return status;
         }
     }
     // Invalid command keyword:
@@ -511,17 +502,17 @@ AssemblerCommand::Dispatch(string keyword,
 // defined nodes list and then returning either a pointer to the
 // entry in the node table or null if not.
 //
-pEventFragmentContributor
+AssemblerCommand::pEventFragmentContributor
 AssemblerCommand::findNode(unsigned short id)
 {
-    list<int>::iterator p = m_definedNodes.begin();
+    std::list<int>::iterator p = m_definedNodes.begin();
     while (p != m_definedNodes.end()) {
         if (id == *p) {
             return &(m_nodeTable[id]);
         }
         p++;
     }
-    return static_cast<pFragmentContributor>(0);
+    return static_cast<pEventFragmentContributor>(0);
 }
 /////////////////////////////////////////////////////////////////////
 //
@@ -529,10 +520,10 @@ AssemblerCommand::findNode(unsigned short id)
 // compare the name passed into the ones in the node table that 
 // correspond to defined nodes.
 //
-pEventFragmentContributor
+AssemblerCommand::pEventFragmentContributor
 AssemblerCommand::findNode(const char* node)
 {
-    list<int>::iterator p = m_definedNodes.begin();
+    std::list<int>::iterator p = m_definedNodes.begin();
     while (p != m_definedNodes.end()) {
         int id = *p;
         if (strcmp(node, m_nodeTable[id].pNodeName) == 0) {
@@ -540,7 +531,7 @@ AssemblerCommand::findNode(const char* node)
         }
         p++;
     }
-    return static_cast<pFragmentContributor>(0);
+    return static_cast<pEventFragmentContributor>(0);
 }
 ///////////////////////////////////////////////////////////////////
 //
@@ -566,7 +557,7 @@ AssemblerCommand::Usage()
 void
 AssemblerCommand::clearTrigger()
 {
-    list<int>::iterator p = m_definedNodes.begin();
+    std::list<int>::iterator p = m_definedNodes.begin();
     while (p != m_definedNodes.end()) {
         int id = *p;
         m_nodeTable[id].isTrigger = false;   // Don't bother to find the 'right one'.
@@ -595,7 +586,7 @@ AssemblerCommand::describeNode(CTCLObject&               description,
     description += node.cpuId;
 
     if (node.windowDefined) {
-        description += node.windowWidth;
+        description += (int)node.windowWidth;
         int width = node.offset;
         if (!node.offsetDefined) width = 0;
         description += width;

@@ -15,7 +15,7 @@
 */
 
 #include <config.h>
-#include "AssemblerApplication.h
+#include "AssemblerApplication.h"
 #include "AssemblerCommand.h"
 
 #include <TCLInterpreter.h>
@@ -33,5 +33,5 @@ AssemblerApplication::operator()()
 }
 
 AssemblerApplication myApp;
-CTCLApplication*     pApplication(&myApp);
+CTCLApplication*     gpTCLApplication(&myApp);
 

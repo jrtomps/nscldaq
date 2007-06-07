@@ -80,9 +80,28 @@ public:
       bool              offsetDefined;
 	  int               offset;
   } EventFragmentContributor, *pEventFragmentContributor;
+
+// Dispatch table structure.. The dispatch table allows
+// table driven dispatch of the command subkeywords:
+
+typedef int (AssemblerCommand::*CommandProcessor)(CTCLInterpreter&,
+						  std::vector<CTCLObject>&);
+
+typedef struct {
+    const char* pKeyword;
+    int         minParameters;
+    int         maxParameters;
+  CommandProcessor processor;
+
+} DispatchEntry, *pDispatchEntry;
+  static const int SUBCOMMANDCOUNT = 5;
+
 private:
+
   EventFragmentContributor   m_nodeTable[0x10000];    // 65K entries.
   std::list<int>             m_definedNodes;          // List of used indices
+
+  static DispatchEntry DispatchTable[SUBCOMMANDCOUNT];
 
 public:
 	AssemblerCommand(CTCLInterpreter& interpreter);
@@ -98,14 +117,13 @@ public:
 	
 	virtual int operator()(CTCLInterpreter &interp, 
                            std::vector<CTCLObject>& objv);
-protected:
 	// Command processors for the ensemble commands:
-
+protected:
 	int node(CTCLInterpreter& interp, std::vector<CTCLObject>& objv);
 	int trigger(CTCLInterpreter& interp, std::vector<CTCLObject>& objv);
 	int window(CTCLInterpreter& interp, std::vector<CTCLObject>& objv);
 	int list(CTCLInterpreter& interp, std::vector<CTCLObject>& objv);
-	int validate(CTCLInterpreter& interp, std::vector<CTCLObject& objv);
+	int validate(CTCLInterpreter& interp, std::vector<CTCLObject>& objv);
 private:
 	pEventFragmentContributor findNode(unsigned short id);
 	pEventFragmentContributor findNode(const char* name);

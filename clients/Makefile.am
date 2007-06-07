@@ -9,7 +9,7 @@ SUBDIRS = SpectrodaqLite tcllib  \
 	AlarmDisplay LogDisplay ProductionReadout  \
 	contrib dvdburn daqstart @EPICSSOFTWARE@ \
 	ScalerDisplay @DEPENDSON_VME@ wienerusbd \
-	slowControls sequencer
+	slowControls sequencer assembler
 
 
 EXTRA_DIST =  config/install-sh config/config.sub config/config.guess \
