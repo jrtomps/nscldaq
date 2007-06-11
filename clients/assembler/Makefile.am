@@ -19,3 +19,8 @@ INCLUDES	= 	-I@top_srcdir@/TCL		\
 			-I@top_srcdir@/Exception	\
 			-I@top_srcdir@/Headers		\
 			$(TCL_FLAGS)
+
+EXTRA_DIST=configtests.tcl
+
+installcheck-local:
+	$(bindir)/assembler configtests.tcl

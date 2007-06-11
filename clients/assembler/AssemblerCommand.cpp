@@ -37,7 +37,8 @@ AssemblerCommand::DispatchEntry AssemblerCommand::DispatchTable[AssemblerCommand
     {"trigger",  3,   3,   &AssemblerCommand::trigger},
     {"window",   4,   5,   &AssemblerCommand::window},
     {"list",     2,   2,   &AssemblerCommand::list},
-    {"validate", 2,   2,   &AssemblerCommand::validate}
+    {"validate", 2,   2,   &AssemblerCommand::validate},
+    {"clear",    2,   2,   &AssemblerCommand::clear}
 };
 
 
@@ -70,12 +71,7 @@ AssemblerCommand::AssemblerCommand(CTCLInterpreter& interp) :
 */
 AssemblerCommand::~AssemblerCommand()
 {
-	std::list<int>::iterator i = m_definedNodes.begin();
-	while (i != m_definedNodes.end()) {
-		int nodeIndex = *i;
-		delete [](m_nodeTable[nodeIndex].pNodeName);
-		i++;
-	}
+  clearTables();
 }
 /*!
    operator() is called when the 'assemble' command has been invoked.
@@ -177,10 +173,10 @@ AssemblerCommand::node(CTCLInterpreter& interp,
     struct hostent   *pHostInformation = gethostbyname(node.c_str());
     if (!pHostInformation) {
         struct in_addr ipAddress;
-        if (inet_aton(node.c_str(), &ipAddress)) {
+        if (!inet_aton(node.c_str(), &ipAddress)) {
 
                 // It's a hostname but not in dns:
-            
+            return
                 AssemblerErrors::setErrorMsg(interp, 
                                               AssemblerErrors::NoDnsName, 
                                               Usage());
@@ -447,6 +443,22 @@ AssemblerCommand::validate(CTCLInterpreter& interp,
     }
     return TCL_OK;
 }
+///////////////////////////////////////////////////////////////////////////
+//
+//  Clear the assembler configuration.  While this is mostly intended
+//  for testing, it can be used by the user to completely reconfigure
+//  the assembler as well.
+//
+int
+AssemblerCommand::clear(CTCLInterpreter& interp,
+			vector<CTCLObject>& objv)
+{
+  
+  clearTables();
+  return TCL_OK;
+}
+
+
 //////////////////////////////////////////////////////////////////////////////////////
 //  This function dispatches commands given their keyword.
 //  Parameters:
@@ -599,4 +611,19 @@ AssemblerCommand::describeNode(CTCLObject&               description,
         description += "";      // Window width.
         description += "";      // Window Offset.
     }
+}
+//
+// clear the node table and defined nodes (destructor and clear commands
+// both use this.
+//
+void
+AssemblerCommand::clearTables()
+{
+	std::list<int>::iterator i = m_definedNodes.begin();
+	while (i != m_definedNodes.end()) {
+		int nodeIndex = *i;
+		delete [](m_nodeTable[nodeIndex].pNodeName);
+		i++;
+	}
+	m_definedNodes.clear();
 }

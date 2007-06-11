@@ -94,7 +94,7 @@ typedef struct {
   CommandProcessor processor;
 
 } DispatchEntry, *pDispatchEntry;
-  static const int SUBCOMMANDCOUNT = 5;
+  static const int SUBCOMMANDCOUNT = 6;
 
 private:
 
@@ -124,6 +124,7 @@ protected:
 	int window(CTCLInterpreter& interp, std::vector<CTCLObject>& objv);
 	int list(CTCLInterpreter& interp, std::vector<CTCLObject>& objv);
 	int validate(CTCLInterpreter& interp, std::vector<CTCLObject>& objv);
+	int clear(CTCLInterpreter& interp, std::vector<CTCLObject>& objv);
 private:
 	pEventFragmentContributor findNode(unsigned short id);
 	pEventFragmentContributor findNode(const char* name);
@@ -135,6 +136,7 @@ private:
     void clearTrigger();
     void describeNode(CTCLObject&               description,
                       EventFragmentContributor& node);
+    void clearTables();
 };
 
 #endif
