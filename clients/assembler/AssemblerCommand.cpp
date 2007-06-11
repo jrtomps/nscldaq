@@ -194,31 +194,32 @@ AssemblerCommand::node(CTCLInterpreter& interp,
                                               AssemblerErrors::NoSuchHost, 
                                               Usage());
         }
-        // the host has been gotten.. ensure the actual host does not exist in the table:
-
-        if (findNode(pHostInformation->h_name)) {
-            return
-                AssemblerErrors::setErrorMsg(interp, 
-                                              AssemblerErrors::DuplicateNode, 
-                                              Usage());
-        }
+    }
+    // the host has been gotten.. ensure the actual host does not exist in the table:
+    
+    if (findNode(pHostInformation->h_name)) {
+      return
+	AssemblerErrors::setErrorMsg(interp, 
+				     AssemblerErrors::DuplicateNode, 
+				     Usage());
+    }
+    
         // Now I think we're good to install the entry.
 
-        m_nodeTable[id].cpuId              = id;
-        m_nodeTable[id].isTrigger          = false;
-        m_nodeTable[id].windowDefined      = false;
-        m_nodeTable[id].windowWidth        = 0;
-        m_nodeTable[id].offsetDefined      = false;
-        m_nodeTable[id].offset             = 0;
+    m_nodeTable[id].cpuId              = id;
+    m_nodeTable[id].isTrigger          = false;
+    m_nodeTable[id].windowDefined      = false;
+    m_nodeTable[id].windowWidth        = 0;
+    m_nodeTable[id].offsetDefined      = false;
+    m_nodeTable[id].offset             = 0;
+    
+    m_nodeTable[id].pNodeName          = new char[strlen(pHostInformation->h_name) + 1];
+    strcpy(m_nodeTable[id].pNodeName, pHostInformation->h_name);
+    memcpy(&(m_nodeTable[id].ipAddress), 
+	   pHostInformation->h_addr_list[0], 
+	   sizeof (struct in_addr));
+    m_definedNodes.push_back(id);
 
-        m_nodeTable[id].pNodeName          = new char[strlen(pHostInformation->h_name) + 1];
-        strcpy(m_nodeTable[id].pNodeName, pHostInformation->h_name);
-        memcpy(&(m_nodeTable[id].ipAddress), 
-               pHostInformation->h_addr_list[0], 
-               sizeof (struct in_addr));
-        m_definedNodes.push_back(id);
-
-    }
     interp.setResult(objv[3]);
     return TCL_OK;
     
@@ -267,6 +268,7 @@ AssemblerCommand::trigger(CTCLInterpreter& interp,
                                              Usage());
 
     }
+    return TCL_OK;
 }
 //////////////////////////////////////////////////////////////////////////////////////
 //
@@ -402,6 +404,8 @@ AssemblerCommand::list(CTCLInterpreter& interp,
     result += trigger;                // Trigger...
     result += nodeInfo;               // List of node information.
 
+    interp.setResult(result);
+
     return TCL_OK;
 
 }
@@ -427,8 +431,8 @@ AssemblerCommand::validate(CTCLInterpreter& interp,
 
 
             char noWindow[1000];
-            sprintf(noWindow, "Node %s has not had a matching width specified",
-                node);
+            sprintf(noWindow, "Node %s - id %d  has not had a matching width specified",
+                m_nodeTable[node].pNodeName ,node);
             interp.setResult(noWindow);
             return TCL_ERROR;
         }
