@@ -28,7 +28,7 @@ CCFLAGS=$(CXXFLAGS)
 
 SPECTRODAQ_LDFLAGS=$(shell $(SPECTRODAQBINDIR)/spdaqlite-conf --libs)
 LDFLAGS=-L. -L$(DAQLIBS) \
-	-lHPPreadout -lEventFramework -lOutputBuffers	\
+	-lHPPreadout -lEventFramework -lHPOutputBuffers	\
 	 -ltclPlus -lDeviceSupport -lVmeAPI \
 	-lException -lLicense \
 	$(VMELIBRARY) $(SPECTRODAQ_LDFLAGS)  $(TCLLIBS) $(X11LIBS) \
