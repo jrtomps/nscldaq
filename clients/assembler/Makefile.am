@@ -3,12 +3,14 @@ bin_PROGRAMS = assembler
 assembler_SOURCES =	AssemblerApplication.cpp	\
 			AssemblerCommand.cpp		\
 			AssemblerErrors.cpp		\
-			AssembledEvent.cpp
+			AssembledEvent.cpp		\
+			AssembledPhysicsEvent.cpp
 
 noinst_HEADERS = 	AssemblerApplication.h		\
 			AssemblerCommand.h		\
 			AssemblerErrors.h		\
-			AssembledEvent.h
+			AssembledEvent.h		\
+			AssembledPhysicsEvent.h
 
 
 assembler_LDADD =	@top_srcdir@/TCL/libtclPlus.la	\
