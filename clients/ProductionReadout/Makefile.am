@@ -18,16 +18,6 @@ PRODUCTIONSOURCES = AccessListCheck.cpp \
 	CInterpreterCore.cpp \
 	CInterpreterShell.cpp \
 	CInvalidPacketStateException.cpp \
-	CNSCLBeginBuffer.cpp \
-	CNSCLControlBuffer.cpp \
-	CNSCLDocumentationBuffer.cpp \
-	CNSCLEndBuffer.cpp \
-	CNSCLOutputBuffer.cpp \
-	CNSCLPauseBuffer.cpp \
-	CNSCLPhysicsBuffer.cpp \
-	CNSCLResumeBuffer.cpp \
-	CNSCLScalerBuffer.cpp \
-	CNSCLStringListBuffer.cpp \
 	CPauseCommand.cpp \
 	CReadoutException.cpp \
 	CReadoutMain.cpp \
@@ -86,16 +76,6 @@ PRODUCTIONHEADERS = AccessListCheck.h \
 	CInterpreterCore.h \
 	CInterpreterShell.h \
 	CInvalidPacketStateException.h \
-	CNSCLBeginBuffer.h \
-	CNSCLControlBuffer.h \
-	CNSCLDocumentationBuffer.h \
-	CNSCLEndBuffer.h \
-	CNSCLOutputBuffer.h \
-	CNSCLPauseBuffer.h \
-	CNSCLPhysicsBuffer.h \
-	CNSCLResumeBuffer.h \
-	CNSCLScalerBuffer.h \
-	CNSCLStringListBuffer.h \
 	CPauseCommand.h \
 	CReadoutException.h \
 	CReadoutMain.h \

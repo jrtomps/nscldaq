@@ -22,16 +22,6 @@ libHPPreadout_la_SOURCES = \
 	../CInterpreterCore.cpp \
 	../CInterpreterShell.cpp \
 	../CInvalidPacketStateException.cpp \
-	../CNSCLBeginBuffer.cpp \
-	../CNSCLControlBuffer.cpp \
-	../CNSCLDocumentationBuffer.cpp \
-	../CNSCLEndBuffer.cpp \
-	../CNSCLOutputBuffer.cpp \
-	../CNSCLPauseBuffer.cpp \
-	../CNSCLPhysicsBuffer.cpp \
-	../CNSCLResumeBuffer.cpp \
-	../CNSCLScalerBuffer.cpp \
-	../CNSCLStringListBuffer.cpp \
 	../CPauseCommand.cpp \
 	../CReadoutException.cpp \
 	../CReadoutMain.cpp \
@@ -94,16 +84,6 @@ noinst_HEADERS = \
 	../CInterpreterCore.h \
 	../CInterpreterShell.h \
 	../CInvalidPacketStateException.h \
-	../CNSCLBeginBuffer.h \
-	../CNSCLControlBuffer.h \
-	../CNSCLDocumentationBuffer.h \
-	../CNSCLEndBuffer.h \
-	../CNSCLOutputBuffer.h \
-	../CNSCLPauseBuffer.h \
-	../CNSCLPhysicsBuffer.h \
-	../CNSCLResumeBuffer.h \
-	../CNSCLScalerBuffer.h \
-	../CNSCLStringListBuffer.h \
 	../CPauseCommand.h \
 	../CReadoutException.h \
 	../CReadoutMain.h \
@@ -154,6 +134,7 @@ noinst_HEADERS = \
 libHPPreadout_la_LDFLAGS = -g -version-info $(SOVERSION):0 \
 	@top_srcdir@/SpectrodaqLite/libSpectrodaqCompatibility.la \
 	@top_srcdir@/framework/libEventFramework.la 	\
+	@top_srcdir@/OutputBuffers/libOutputBuffers.la	\
 	$(VMEBUILDLIBS)          \
 	@top_srcdir@/Exception/libException.la	\
 	-lrt  $(SPECTRODAQ_LDFLAGS) \
@@ -166,6 +147,7 @@ INCLUDES =  -I.. $(CAMAC) \
 	-I@top_srcdir@/Headers \
 	$(VMEBUILDHEADERS)        \
 	-I@top_srcdir@/DeviceSupport \
+	-I@top_srcdir@/OutputBuffers \
 	-I@top_srcdir@/CopyrightTools     \
 	-I@top_srcdir@/VMEApi     \
 	-I@top_srcdir@/framework  \
