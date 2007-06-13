@@ -134,7 +134,7 @@ noinst_HEADERS = \
 libHPPreadout_la_LDFLAGS = -g -version-info $(SOVERSION):0 \
 	@top_srcdir@/SpectrodaqLite/libSpectrodaqCompatibility.la \
 	@top_srcdir@/framework/libEventFramework.la 	\
-	@top_srcdir@/OutputBuffers/libHPOutputBuffers.la	\
+	@top_srcdir@/OutputBuffers/HPOutputBuffers/libHPOutputBuffers.la	\
 	$(VMEBUILDLIBS)          \
 	@top_srcdir@/Exception/libException.la	\
 	-lrt  $(SPECTRODAQ_LDFLAGS) \
