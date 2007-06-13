@@ -38,6 +38,9 @@ static const char * const pErrorMessages[] =
     "The offset must be a valid integer",
     "Too many parameters on the command line",
     "Too few parameters on the command line",
+    "Event sizes must be positive integers > 2",
+    "Invalid event/buffer type must be one of 2,3,4,5,11,12,13,14,15",
+    "Invalid event body format",
     "INVALID ERROR CODE!"
 };
 static const unsigned int MESSAGECOUNT(sizeof(pErrorMessages)/sizeof(char*));

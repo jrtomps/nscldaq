@@ -45,6 +45,9 @@ public:
         BadOffset,
         TooManyParameters,
         TooFewParameters,
+	BadEventSize,
+	InvalidType,
+	InvalidEventBody,
         INVALIDERRORCODE
     } ErrorCode;
         
