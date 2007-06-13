@@ -2,7 +2,7 @@
 
 SUBDIRS = SpectrodaqLite tcllib  \
 	Headers CopyrightTools Exception PortManager TCL Security Ftp \
-	VMEApi VMEApi cvt SpecTclOnline DeviceSupport\
+	VMEApi VMEApi OutputBuffers  cvt SpecTclOnline DeviceSupport\
 	Readout HPReadout diskrun EventLog Scaler  \
 	vmetcl  \
 	bufdump TclServer bcnaf TcpHoister Stager Scripts framework \

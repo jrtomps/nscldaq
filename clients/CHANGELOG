@@ -856,3 +856,6 @@ June 5, 2007    - Add set CPU/show CPU to Readout classic. This will support
 June 7, 2007    - Add the assembler directory to the build.
                   Incremental development of this timestamp based event
                   builder is now in the build integration.
+June 13, 2007   - Hoist the CNSCL Buffer formatting classes out
+                  of production readout and into their separate library:
+                  libOutputBuffers
