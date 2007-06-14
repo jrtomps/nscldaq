@@ -4,13 +4,15 @@ assembler_SOURCES =	AssemblerApplication.cpp	\
 			AssemblerCommand.cpp		\
 			AssemblerErrors.cpp		\
 			AssembledEvent.cpp		\
-			AssembledPhysicsEvent.cpp
+			AssembledPhysicsEvent.cpp	\
+			AssembledScalerEvent.cpp
 
 noinst_HEADERS = 	AssemblerApplication.h		\
 			AssemblerCommand.h		\
 			AssemblerErrors.h		\
 			AssembledEvent.h		\
-			AssembledPhysicsEvent.h
+			AssembledPhysicsEvent.h		\
+			AssembledScalerEvent.h
 
 
 assembler_LDADD =	@top_srcdir@/TCL/libtclPlus.la	\
