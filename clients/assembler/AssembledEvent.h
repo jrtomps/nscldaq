@@ -35,7 +35,7 @@ public:
     Packets        = 6,		// corresponding  buffer types in
     BeginRun       = 11,	// buftypes.h
     EndRun         = 12,
-    PausRun        = 13,
+    PauseRun       = 13,
     ResumeRun      = 14
   };
   // Object state data:
