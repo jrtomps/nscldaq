@@ -6,7 +6,8 @@ assembler_SOURCES =	AssemblerApplication.cpp	\
 			AssembledEvent.cpp		\
 			AssembledPhysicsEvent.cpp	\
 			AssembledScalerEvent.cpp	\
-			AssembledStateTransitionEvent.cpp
+			AssembledStateTransitionEvent.cpp \
+			AssembledStringArrayEvent.cpp
 
 noinst_HEADERS = 	AssemblerApplication.h		\
 			AssemblerCommand.h		\
@@ -14,7 +15,8 @@ noinst_HEADERS = 	AssemblerApplication.h		\
 			AssembledEvent.h		\
 			AssembledPhysicsEvent.h		\
 			AssembledScalerEvent.h		\
-			AssembledStateTransitionEvent.h	
+			AssembledStateTransitionEvent.h	\
+			AssembledStringArrayEvent.h
 
 
 assembler_LDADD =	@top_srcdir@/TCL/libtclPlus.la	\
