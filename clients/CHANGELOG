@@ -859,3 +859,5 @@ June 7, 2007    - Add the assembler directory to the build.
 June 13, 2007   - Hoist the CNSCL Buffer formatting classes out
                   of production readout and into their separate library:
                   libOutputBuffers
+June 19, 2007   - Fix typo in sis3300.cpp - 16k samples were being treated
+                  like 64k samples.
