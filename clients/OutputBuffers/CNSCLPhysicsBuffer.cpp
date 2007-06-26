@@ -18,6 +18,7 @@ static const char* Copyright = "(C) Copyright Michigan State University 2002, Al
 //////////////////////////CNSCLPhysicsBuffer.cpp file////////////////////////////////////
 #include <config.h>
 #include "CNSCLPhysicsBuffer.h"                  
+#include <buffer.h>
 #include "buftypes.h"
 #include <RangeError.h>
 #include <unistd.h>
@@ -164,6 +165,7 @@ CNSCLPhysicsBuffer::Route()
   CNSCLOutputBuffer::Route();
 
 }
+#endif /* HIGH_PERFORMANCE */
 /*!
    Return the number of words in the buffer at this point
    (where the cursor is).
@@ -171,6 +173,9 @@ CNSCLPhysicsBuffer::Route()
 int
 CNSCLPhysicsBuffer::WordsInBody() const
 {
+#ifdef HIGH_PERFORMANCE
   return (m_pBufferCursor - m_pBuffer);
+#else
+  return m_BufferPtr.GetIndex() - sizeof(struct bheader)/sizeof(unsigned short);
+#endif
 }
-#endif /* HIGH_PERFORMANCE */

@@ -291,6 +291,14 @@ DAMAGES.
 #define __STL_STRING
 #endif
 #endif
+
+#ifndef __CRT_TIME
+#include <time.h>
+#ifndef __CRT_TIME
+#define __CRT_TIME
+#endif
+#endif
+
                                
 /*!
    Encapsulates the formatting of a control buffer.
@@ -340,6 +348,7 @@ protected:
 public:
   void PutTitle (const STD(string)& rTitle)  ;
   void PutTimeOffset (unsigned long nTime)  ;
+  void PutTimestamp(struct tm stamp);
 protected:
   void SetTime();
 };

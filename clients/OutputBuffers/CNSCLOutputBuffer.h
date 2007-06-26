@@ -55,8 +55,9 @@ protected:
 protected:
   DAQWordBuffer m_BufferBase; //!< Spectrodaq Buffer to hold the data being emitted.
   DAQWordBufferPtr m_Buffer;
+  mutable DAQWordBufferPtr m_BufferPtr; //!< 'pointer' to the current slot of the buffer.
 private:
-  DAQWordBufferPtr m_BufferPtr; //!< 'pointer' to the current slot of the buffer.
+
   int m_nWords; //!< Number of words the buffer can hold.
   static  unsigned long m_nSequence; //!< Sequence number for the buffer.
  

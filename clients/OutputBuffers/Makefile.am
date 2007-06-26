@@ -1,3 +1,5 @@
+SUBDIRS=HPOutputBuffers
+
 lib_LTLIBRARIES = libOutputBuffers.la
 
 

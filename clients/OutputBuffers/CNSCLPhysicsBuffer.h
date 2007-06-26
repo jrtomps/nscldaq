@@ -98,6 +98,8 @@ protected:
 
 	// Class operations:
 public:
+     int  WordsInBody() const;
+
 #ifndef HIGH_PERFORMANCE
      DAQWordBufferPtr StartEvent ()  ;
      void EndEvent (DAQWordBufferPtr& rPtr)  ;
@@ -108,7 +110,6 @@ public:
      void EndEvent (unsigned short* rPtr)  ;
      void RetractEvent (unsigned short* p)  ;
      virtual void Route();
-     int  WordsInBody() const;
 #endif /* HIGH_PERFORMANCE */
 };
 
