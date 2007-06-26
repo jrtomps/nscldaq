@@ -7,7 +7,9 @@ assembler_SOURCES =	AssemblerApplication.cpp	\
 			AssembledPhysicsEvent.cpp	\
 			AssembledScalerEvent.cpp	\
 			AssembledStateTransitionEvent.cpp \
-			AssembledStringArrayEvent.cpp
+			AssembledStringArrayEvent.cpp	\
+			BadEventTypeException.cpp	\
+			AssemblerOutputStage.cpp
 
 noinst_HEADERS = 	AssemblerApplication.h		\
 			AssemblerCommand.h		\
@@ -16,11 +18,16 @@ noinst_HEADERS = 	AssemblerApplication.h		\
 			AssembledPhysicsEvent.h		\
 			AssembledScalerEvent.h		\
 			AssembledStateTransitionEvent.h	\
-			AssembledStringArrayEvent.h
+			AssembledStringArrayEvent.h	\
+			BadEventTypeException.h		\
+			AssemblerOutputStage.h
 
 
 assembler_LDADD =	@top_srcdir@/TCL/libtclPlus.la	\
-			@top_srcdir@/Exception/libException.la
+			@top_srcdir@/Exception/libException.la \
+			@top_srcdir@/OutputBuffers/libOutputBuffers.la \
+			@top_srcdir@/SpectrodaqLite/libSpectrodaqCompatibility.la \
+			$(SPECTRODAQ_LDFLAGS)
 
 assembler_LDFLAGS = 	$(TCL_LDFLAGS)			\
 			-Wl,"-rpath=$(libdir)"
@@ -28,9 +35,13 @@ assembler_LDFLAGS = 	$(TCL_LDFLAGS)			\
 INCLUDES	= 	-I@top_srcdir@/TCL		\
 			-I@top_srcdir@/Exception	\
 			-I@top_srcdir@/Headers		\
-			$(TCL_FLAGS)
+			-I@top_srcdir@/OutputBuffers	\
+			-I@top_srcdir@/SpectrodaqLite   \
+			$(TCL_FLAGS)			\
+			$(SPECTRODAQ_FLAGS)
 
 EXTRA_DIST=configtests.tcl
 
 installcheck-local:
 	$(bindir)/assembler configtests.tcl
+	$(bindir)/assembler outstagetests.tcl

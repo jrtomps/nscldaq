@@ -85,7 +85,7 @@ AssembledScalerEvent::getEndTime() const
 void
 AssembledScalerEvent::addScalers(void* pScalers, size_t count)
 {
-  uint32_t *pSrc(static_cast<uint32_t*>(pScalers));
+  unsigned long *pSrc(static_cast<unsigned long*>(pScalers));
   m_scalers.insert(end(), pSrc, pSrc+count);
 }
 /*!
@@ -94,7 +94,7 @@ AssembledScalerEvent::addScalers(void* pScalers, size_t count)
 
 */
 void
-AssembledScalerEvent::addScalers(vector<uint32_t> scalers)
+AssembledScalerEvent::addScalers(vector<unsigned long> scalers)
 {
   m_scalers.insert(end(),
 		   scalers.begin(),
@@ -105,7 +105,7 @@ AssembledScalerEvent::addScalers(vector<uint32_t> scalers)
 /*!
    Get a copy of the current scalers:
 */
-vector<uint32_t>
+vector<unsigned long>
 AssembledScalerEvent::getScalers() const
 {
   return m_scalers;
@@ -114,7 +114,7 @@ AssembledScalerEvent::getScalers() const
    Get a reference to a single scaler.. note this reference
    allows modification as well as retrieval.. use with care!!!
 */
-uint32_t&
+unsigned long&
 AssembledScalerEvent::operator[](unsigned int index)
 {
   return m_scalers[index];
@@ -133,7 +133,7 @@ AssembledScalerEvent::size() const
 
 ///
 
-vector<uint32_t>::iterator
+vector<unsigned long>::iterator
 AssembledScalerEvent::begin()
 {
   return m_scalers.begin();
@@ -141,7 +141,7 @@ AssembledScalerEvent::begin()
 
 ///
 
-vector<uint32_t>::iterator
+vector<unsigned long>::iterator
 AssembledScalerEvent::end()
 {
   return m_scalers.end();

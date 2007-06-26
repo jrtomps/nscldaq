@@ -28,6 +28,8 @@
 */
 class AssemblerApplication : public CTCLApplication
 {
+private:
+  static int portNumber();
 public:
     virtual int operator()();                    // Define/create the commands.
 };

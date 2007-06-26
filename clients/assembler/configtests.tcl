@@ -306,9 +306,9 @@ test validate-1.1 {Test validation but with no trigger set} \
     assembler window 80 100
     assembler window 81 110
     catch {assembler validate} errorMessage
-    set result errorMessage
+    set result $errorMessage
 }                                               \
--result {No trigger node has been defined}
+-result {No trigger node specified}
 
 test validate-1.0 {Test validation, but a node has no window}   \
 -setup {

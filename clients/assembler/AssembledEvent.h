@@ -46,11 +46,13 @@ public:
   AssembledEvent();
   AssembledEvent(unsigned short node,
 		 BufferType     type);
-
+  virtual ~AssembledEvent() {}
   // Selectors:
 
   unsigned short node() const;
   BufferType     type() const;
+
+  void           setNode(unsigned short node);
 };
 
 

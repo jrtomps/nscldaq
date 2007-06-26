@@ -61,3 +61,12 @@ AssembledEvent::type() const
 {
   return m_type;
 }
+/*!
+  You can also modify the cpu node:
+
+*/
+void
+AssembledEvent::setNode(unsigned short node)
+{
+  m_node = node;
+}

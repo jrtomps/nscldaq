@@ -48,6 +48,7 @@ public:
 	BadEventSize,
 	InvalidType,
 	InvalidEventBody,
+	ExceptionEvent,
         INVALIDERRORCODE
     } ErrorCode;
         

@@ -56,7 +56,7 @@ class AssembledScalerEvent : public AssembledEvent
 private:
   unsigned long         m_startTime;  
   unsigned long         m_stopTime;
-  std::vector<uint32_t> m_scalers;
+  std::vector<unsigned long> m_scalers;
 
 public:
   AssembledScalerEvent(unsigned short node,
@@ -72,19 +72,21 @@ public:
   // Put/get scalers in the beast:
 
   void addScalers(void* pScalers, size_t count);
-  void addScalers(std::vector<uint32_t> scalers);
+  void addScalers(std::vector<unsigned long> scalers);
 
-  std::vector<uint32_t> getScalers() const;
-  uint32_t& operator[](unsigned int index);
+  std::vector<unsigned long> getScalers() const;
+  unsigned long& operator[](unsigned int index);
 
   // delegations to the m_scalers vector:
 
   size_t size() const;
-  std::vector<uint32_t>::iterator begin();
-  std::vector<uint32_t>::iterator end();
+  std::vector<unsigned long>::iterator begin();
+  std::vector<unsigned long>::iterator end();
  
 };
 
 
 
 #endif
+
+
