@@ -136,6 +136,12 @@ struct	usrevt				/* User generated event.	 */
 };
 
 
+// tags for spectrodaq/spdaq-lite:
+
+static const int PHYSICS_TAG(2); /*  Buffer tag for physics data buffers. */
+static const int CONTROL_TAG(3); /*  Buffer tag for control buffers.     */
+
+
 
 typedef    struct bheader    BHEADER;	    /* Buffer header		*/
 typedef    struct event      EVENT;	    /* Event structure		*/

@@ -855,4 +855,5 @@ AC_OUTPUT( Makefile SpectrodaqLite/Makefile tcllib/Makefile \
 	slowControls/Makefile slowControls/caenv812/Makefile \
 	slowControls/n568b/Makefile slowControls/vhq/Makefile \
 	slowControls/widgets/Makefile sequencer/Makefile \
-	assembler/Makefile OutputBuffers/Makefile)
+	assembler/Makefile OutputBuffers/Makefile \
+	OutputBuffers/HPOutputBuffers/Makefile )
