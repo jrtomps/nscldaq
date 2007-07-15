@@ -279,6 +279,9 @@ DAMAGES.
 /*
   Change Log:
   $Log$
+  Revision 8.8  2007/07/15 14:33:13  ron-fox
+  Add emptyEnable/Disasble to CAENcard.
+
   Revision 8.7  2007/05/17 21:26:07  ron-fox
   Work on porting to spectrodq-lite.
 
@@ -428,6 +431,11 @@ using namespace std;
 #define KEEPINVALID 0x020
 #define COMMONSTOP  0x400
 #define STEPTHR     0x100
+#define AUTOIN      0x800
+#define EMPTY       0x1000
+#define SLIDESUB    0x2000
+#define ALLTRG      0x4000
+
 
 // Control register1:
 
@@ -870,6 +878,29 @@ void CAENcard::discardUnderThresholdData()
   Bitclear2(KEEPTHRESH);
 
 }
+/*!
+ * Enable the production of a header/trailer if the module was 
+ * gated but had no channels with valid conversions.
+ * (e.g. set the EMPTY bit in the BIS2 register.
+ */
+void
+CAENcard::emptyEnable()
+{
+	Bitset2(EMPTY);
+}
+/*!
+ * Disable the production of header/trailer if the module
+ * was  gated but had no channels with valid conversions
+ * This is the power up default.
+ * (clear the EMPTY bit in the BIC2 register.
+ */
+void
+CAENcard::emptyDisable()
+{
+	Bitclear2(EMPTY);
+}
+
+
 /*!
   Enables the retension of data that overflows the digitizer's 
   dynamic range.  This setting is cleared by a reset() call, or

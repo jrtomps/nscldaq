@@ -863,3 +863,4 @@ June 19, 2007   - Fix typo in sis3300.cpp - 16k samples were being treated
                   like 64k samples.
 June 26, 2007   - Event builder now has a workin output stage, as well as
 	          a working configuration system.
+July 15, 2007   - Add emptyEnable/Disable to CAENcard.

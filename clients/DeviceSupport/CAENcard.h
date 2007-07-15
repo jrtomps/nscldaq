@@ -158,6 +158,8 @@ public:
     void discardOverflowData();	//!< Discard channels below overflow value.
     void keepInvalidData();	//!< Keep conversions in the midst of reset.
     void discardInvalidData();	//!< Discard data in midst of reset.
+    void emptyEnable();         //!< Enable header/trailer if gate but no conv.
+    void emptyDisable();        //!< reverse of the above.
     void commonStart();		//!< If TDC, use in common start mode.
     void commonStop();		//!< IF TDC use in common stop mode.
     void setRange(int range);	//!< If TDC Set range (from 140 to 1200 ns).
