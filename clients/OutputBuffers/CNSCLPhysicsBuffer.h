@@ -97,6 +97,7 @@ public:
 protected:  
 
 	// Class operations:
+
 public:
      int  WordsInBody() const;
 
@@ -110,6 +111,9 @@ public:
      void EndEvent (unsigned short* rPtr)  ;
      void RetractEvent (unsigned short* p)  ;
      virtual void Route();
+     unsigned short getEntityCount() const {
+       return m_nEntityCount;
+     }
 #endif /* HIGH_PERFORMANCE */
 };
 
