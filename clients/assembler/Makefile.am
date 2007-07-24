@@ -9,7 +9,11 @@ assembler_SOURCES =	AssemblerApplication.cpp	\
 			AssembledStateTransitionEvent.cpp \
 			AssembledStringArrayEvent.cpp	\
 			BadEventTypeException.cpp	\
-			AssemblerOutputStage.cpp
+			AssemblerOutputStage.cpp	\
+			AssemblerWrongStateException.cpp \
+			EventFragment.cpp		\
+			PhysicsFragment.cpp		\
+			ScalerFragment.cpp
 
 noinst_HEADERS = 	AssemblerApplication.h		\
 			AssemblerCommand.h		\
@@ -20,7 +24,11 @@ noinst_HEADERS = 	AssemblerApplication.h		\
 			AssembledStateTransitionEvent.h	\
 			AssembledStringArrayEvent.h	\
 			BadEventTypeException.h		\
-			AssemblerOutputStage.h
+			AssemblerOutputStage.h		\
+			AssemblerWrongStateException.h	\
+			EventFragment.h			\
+			PhysicsFragment.h		\
+			ScalerFragment.h
 
 
 assembler_LDADD =	@top_srcdir@/TCL/libtclPlus.la	\

@@ -71,14 +71,14 @@ class AssemblerCommand : public CTCLObjectProcessor
 {
 public:
   typedef struct {
-	  char*             pNodeName;
-	  uint32_t          ipAddress;     // Octets of ip.
-	  unsigned short    cpuId;
-	  bool              isTrigger;
-      bool              windowDefined;
-	  unsigned int      windowWidth;
-      bool              offsetDefined;
-	  int               offset;
+    char*             pNodeName;
+    uint32_t          ipAddress;     // Octets of ip.
+    unsigned short    cpuId;
+    bool              isTrigger;
+    bool              windowDefined;
+    unsigned int      windowWidth;
+    bool              offsetDefined;
+    int               offset;
   } EventFragmentContributor, *pEventFragmentContributor;
 
 // Dispatch table structure.. The dispatch table allows
@@ -112,11 +112,16 @@ private:
 	int operator==(const AssemblerCommand& rhs);
 	int operator!=(const AssemblerCommand& rhs);
 public:
+	// Fetch used nodes:
+
+	std::list<EventFragmentContributor> getConfiguration();
 
 	//! Command dispatcher:
 	
 	virtual int operator()(CTCLInterpreter &interp, 
                            std::vector<CTCLObject>& objv);
+
+
 	// Command processors for the ensemble commands:
 protected:
 	int node(CTCLInterpreter& interp, std::vector<CTCLObject>& objv);
@@ -128,15 +133,17 @@ protected:
 private:
 	pEventFragmentContributor findNode(unsigned short id);
 	pEventFragmentContributor findNode(const char* name);
-
+	
 	std::string Usage();
-    int Dispatch(std::string keyword,
-                 CTCLInterpreter& interp, 
-                 std::vector<CTCLObject>& objv);
-    void clearTrigger();
-    void describeNode(CTCLObject&               description,
-                      EventFragmentContributor& node);
-    void clearTables();
+	int Dispatch(std::string keyword,
+		     CTCLInterpreter& interp, 
+		     std::vector<CTCLObject>& objv);
+	void clearTrigger();
+	void describeNode(CTCLObject&               description,
+			  EventFragmentContributor& node);
+	void clearTables();
+
+  static char* copyString(const char* src);
 };
 
 #endif

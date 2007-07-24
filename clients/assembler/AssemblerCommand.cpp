@@ -209,8 +209,7 @@ AssemblerCommand::node(CTCLInterpreter& interp,
     m_nodeTable[id].offsetDefined      = false;
     m_nodeTable[id].offset             = 0;
     
-    m_nodeTable[id].pNodeName          = new char[strlen(pHostInformation->h_name) + 1];
-    strcpy(m_nodeTable[id].pNodeName, pHostInformation->h_name);
+    m_nodeTable[id].pNodeName          = copyString(pHostInformation->h_name);
     memcpy(&(m_nodeTable[id].ipAddress), 
 	   pHostInformation->h_addr_list[0], 
 	   sizeof (struct in_addr));
@@ -626,4 +625,57 @@ AssemblerCommand::clearTables()
 		i++;
 	}
 	m_definedNodes.clear();
+}
+
+/////////////////////////////////////////////////////////////////////////
+/*!
+  Fetch the configuration in list mode.  This 
+  allows external objects to get access to the final configuration
+  (e.g. for setting up data sources and event assembly).
+  \note  The storage pointed to by the pNodeName field of each element ofthe
+         result list is dynamically created and must be deleted by the
+	 caller when the list is destroyed.
+*/
+list<AssemblerCommand::EventFragmentContributor>
+AssemblerCommand::getConfiguration()
+{
+
+  std::list<int>::iterator p = m_definedNodes.begin();
+  std::list<EventFragmentContributor> result;
+  while (p != m_definedNodes.end()) {
+    int index = *p;
+    EventFragmentContributor  nodeInfo;
+    EventFragmentContributor* infoSource = &(m_nodeTable[index]);
+    
+    // easy stuff first.
+
+    nodeInfo.ipAddress    = infoSource->ipAddress;
+    nodeInfo.cpuId        = infoSource->cpuId;
+    nodeInfo.isTrigger    = infoSource->isTrigger;
+    nodeInfo.windowDefined= infoSource->windowDefined;
+    nodeInfo.windowWidth  = infoSource->windowWidth;
+    nodeInfo.offsetDefined= infoSource->offsetDefined;
+    nodeInfo.offset       = infoSource->offset;
+
+    // Now the node name:
+
+    nodeInfo.pNodeName    = copyString(infoSource->pNodeName);
+
+    // Add to the result list.
+
+    p++;
+  }
+  return result;
+}
+
+//// Utility to create a dynamic copy of a C string and return a pointer to it.
+//// The storage is allocated as a new char[] and therefore must be
+//// delete []var.
+
+char*
+AssemblerCommand::copyString(const char* src)
+{
+  char* dest = new char[strlen(src) +1];
+  strcpy(dest, src);
+  return dest;
 }
