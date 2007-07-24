@@ -306,6 +306,7 @@ InputStage::removeCallback(InputStage::FragmentCallbackProc proc,
   }
 
 }
+///////////////////////////////////////////////////////////////
 /*!
  *   Peek at the head of the event fragment queue
  * for fragments from a specific node:
@@ -324,6 +325,7 @@ InputStage::peek(uint16_t node)
 	}
 	return pResult;
 }
+//////////////////////////////////////////////////////////////
 /*!
  * Remove the least recently inserted entry in a node fragment queue, 
  * returning a pointer to it
@@ -341,6 +343,7 @@ InputStage::pop(uint16_t node)
 	}
 	return pResult;
 }
+////////////////////////////////////////////////////////////
 /*!
  * Removes all fragments from a specific event fragment queue.
  * \param node - Number of the node whose queue will be emptied.
@@ -361,6 +364,7 @@ InputStage::clear(uint16_t node)
 	}
 	return result;
 }
+///////////////////////////////////////////////////////////////
 /*!
  * Static member function that is called when data is available
  * from one of the input nodes.  We must read a buffer of data
@@ -423,6 +427,7 @@ InputStage::onBuffer(ClientData clientData, int eventMask)
 		}
 	}
 }
+/////////////////////////////////////////////////////////////
 /*!
  *   Process a physics buffer in to a bunch of physics event fragments.
  *   The event fragments are queued on the appropriate event queue.
@@ -464,6 +469,7 @@ InputStage::processPhysicsBuffer(uint16_t* pBuffer)
 	}
 	declareNewFragments(node);
 }
+///////////////////////////////////////////////////////////////
 /*!
  * Process a state change buffer. This results in queueing a
  * single event change fragment to the node's queue.
@@ -481,7 +487,7 @@ InputStage::processStateChangeBuffer(uint16_t* pBuffer)
 	
 	declareNewFragments(node);
 }
-
+////////////////////////////////////////////////////////////////
 /*!
  * Process a string list buffer.  This results in queueing a
  * single string list fragment to the appropriate node's queue.
@@ -500,6 +506,7 @@ InputStage::processStringlistBuffer(uint16_t* pBuffer)
 	declareNewFragments(node);
 	
 }
+///////////////////////////////////////////////////////////////
 /*!
  * Process a scaler or snapshot scaler buffer, creating a single
  * scaler event fragment and queuing it on the appropriate node's
@@ -517,7 +524,7 @@ InputStage::processScalerBuffer(uint16_t* pBuffer)
 	updateCounters(node, type);
 	declareNewFragments(node);
 }
-
+/////////////////////////////////////////////////////////////////
 /*!
  *  Process an input failure by invoking the error callbacks
  * with an error event.  The node is the node that suffered the 
@@ -574,7 +581,7 @@ InputStage::startNode(const char* nodeName, uint16_t nodeId)
 			 				static_cast<ClientData>(pData));
 	
 }
-
+///////////////////////////////////////////////////////////////
 /*!
  * Stop accpeting input on a specific node. This is done in 
  * two cases:
@@ -619,6 +626,7 @@ InputStage::stopNode(uint16_t node)
 		
 	}
 }
+//////////////////////////////////////////////////////////////
 /*!
  *  Emtpy the contents of an event fragment queue.
  * \param node   - Node to empty.
@@ -636,7 +644,7 @@ InputStage::emptyQueue(uint16_t node)
 		}
 	}
 }
-
+////////////////////////////////////////////////////////////
 /*!
  *   Declare an arbitrary event. All the callback handlers
  * are invoked in order of registration.
@@ -655,6 +663,7 @@ InputStage::declareEvent(InputStage::event reason, uint16_t node)
 		(*callback)(pData, reason, node)
 	}
 }
+/////////////////////////////////////////////////////////////
 /*!
  *  Declare a starting event.
  */
@@ -663,6 +672,7 @@ InputStage::declareStarting()
 {
 	declareEvent(Starting, 0);
 }
+//////////////////////////////////////////////////////////////
 /*!
  * Declre a stopping event.
  */
@@ -671,6 +681,7 @@ InputStage::declareStopping()
 {
 	declareEvent(ShuttingDown, 0);
 }
+/////////////////////////////////////////////////////////////
 /*!
  *   Declare a node has an error:
  */
@@ -679,7 +690,7 @@ InputStage::declareError(int16_t node)
 {
 	declareEvent(Error, node);
 }
-
+//////////////////////////////////////////////////////////////
 /*!
  * Declare a node has new fragments.
  */
@@ -688,7 +699,7 @@ InputStage::declareNewFragments(uint16_t node)
 {
 	declareEvent(NewFragments, node);
 }
-
+////////////////////////////////////////////////////////////////
 /*   Make a size reduced vector of typecount pairs.
      The vector consists of a pair for each non zero  
      element of the array that contains the index and value.
@@ -705,6 +716,7 @@ InputStage::makeTypeCountVector(const uint32_t* statistics,
   }
   return result;
 }
+//////////////////////////////////////////////////////////
 /*
  * Update appropriate statistics counters for a fragment
  * production
@@ -716,6 +728,7 @@ InputStage::updateCounters(uint16_t node, uint16_t type)
 	m_typeCounts[node]++;
 	m_nodeTypeCounts[node][type]++;
 }
+/////////////////////////////////////////////////////////
 /*
  * Compute the path to th3e spectcldaq program.
  * This is a path join of the PREFIX externally defined
@@ -732,6 +745,7 @@ InputStage::spectclDaqPath()
 	
 	return topdir + PATHSEP + bindir + PATHSEP + program;
 }
+/////////////////////////////////////////////////////////////
 /*
  * Construct the URL for spetcldaq to use given a node.
  * This for now is tcp://nodename:sdlite-link  where sdlite-link
@@ -766,4 +780,3 @@ InputStage::spectclDaqURL(const char* node)
 	url += "/";
 	return url;
 }
-
