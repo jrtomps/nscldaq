@@ -120,7 +120,7 @@ public:
   
 
   void addCallback(FragmentCallbackProc proc, void* clientData);
-  vod removeCallback(FragmentCallbackProc proc, void* clientData);
+  void removeCallback(FragmentCallbackProc proc, void* clientData);
 
   EventFragment* peek(uint16_t node);
   EventFragment* pop(uint16_t node);
@@ -154,6 +154,8 @@ private:
   std::vector<typeCountPair> makeTypeCountVector(const uint32_t* statistics, 
 						 size_t          size);
   void updateCounters(uint16_t node, uint16_t type);
+  
+  // Diddly utilities.
   
   static std::string spectclDaqPath();
   static std::string spectclDaqURL(const char* node);

@@ -28,11 +28,16 @@
 #include <algorithm>
 
 #include <string.h>
+#include <netdb.h>
+#include <stdio.h>
+
 
 
 using namespace std;
 
 static const BUFFERSIZE(16*1024);
+
+static const string PATHSEP("/");
 
 // Predicate to match a channel list entry with a node.
 //
@@ -707,6 +712,58 @@ InputStage::makeTypeCountVector(const uint32_t* statistics,
 void
 InputStage::updateCounters(uint16_t node, uint16_t type)
 {
+	m_fragmentCounts[node]++;
+	m_typeCounts[node]++;
+	m_nodeTypeCounts[node][type]++;
+}
+/*
+ * Compute the path to th3e spectcldaq program.
+ * This is a path join of the PREFIX externally defined
+ * preprocessor variable, bin and spectcldaq.
+ * We're just going to use PATHSEP as the path
+ * separator and just merge the string.
+ */
+string
+InputStage::spectclDaqPath()
+{
+	string topdir(PREFIX);
+	string bindir("bin");
+	string program("spectcldaq");
 	
+	return topdir + PATHSEP + bindir + PATHSEP + program;
+}
+/*
+ * Construct the URL for spetcldaq to use given a node.
+ * This for now is tcp://nodename:sdlite-link  where sdlite-link
+ * is translated from getservbyname...or defaults to 2700 if
+ * that's not possible.
+ */
+string
+InputStage::spectclDaqURL(const char* node)
+{
+	string urlFront("tcp://");
+	string url;
+	
+	url = urlFront + node + ':';
+	
+	// Now we just need the port number:
+	
+	int port;
+	struct servent* pService = getservbyname("sdlite-link");
+	if (!pService) {
+		port = 2700;
+	} 
+	else {
+		port = ntohs(pService->port);
+		
+	}
+	// Encode the port as a string and append it to the url:
+	
+	char portString[100];       // Can't overflow this.
+	sprintf(portString, "%u", port);
+	
+	url += portString;
+	url += "/";
+	return url;
 }
 
