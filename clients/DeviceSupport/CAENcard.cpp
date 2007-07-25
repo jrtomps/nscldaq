@@ -279,6 +279,10 @@ DAMAGES.
 /*
   Change Log:
   $Log$
+  Revision 8.9  2007/07/25 19:53:33  ron-fox
+  Correce error in the word count of DAQWordBuffer reads (not pointer...
+  never used 'cause users never get a DAQWordBuffer, only pointer
+
   Revision 8.8  2007/07/15 14:33:13  ron-fox
   Add emptyEnable/Disasble to CAENcard.
 
@@ -1340,7 +1344,7 @@ CAENcard::readEvent(DAQWordBuffer& wbuf, int offset)
 
 
   int n = readEvent(localBuffer);
-  int nWords = n/sizeof(int);
+  int nWords = n/sizeof(short);
   for(int i = 0; i < nWords; i++) {
     wbuf.GetPtr()[offset] = *pBuf++;
     offset++;
