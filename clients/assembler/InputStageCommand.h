@@ -41,6 +41,7 @@ class CTCLInterpreter;
 class CTCLObject;
 class InputStage;
 class AssemblerCommand;
+class EventFragment;
 /*!
  *  This class provides the command/control for the
  * input stage.  It implements a tcl command that can be used
@@ -66,17 +67,20 @@ class InputStageCommand : public CTCLObjectProcessor
 private:
 	typedef int (AssemblerOutputStage::*CommandProcessor)(CTCLInterpreter&,
 														  std::vector<CTCLObject>&);
+	typedef int (InputStage::*EventGetter)(uint16_t node);
 	typedef struct {
 		std::string 		m_keyword;
 		unsigned     		m_parameterCount;
 		CommandProcessor	m_processor;
 	}DispatchTable, *pDispatchTable;
 	
+	typedef EventFragment* (InputStage::*fragGetter)(uint16_t);
 	// Private data.
 private:
 	static pDispatchTable   m_dispatchTable;
 	InputStage*             m_pInputStage;
 	AssemblerCommand*       m_pConfiguration;
+	CTCLProcessor*          m_pScript;
 	
 	// Constructors and canonicals.
 	
@@ -121,16 +125,25 @@ public:
 	int empty(CTCLInterpreter& interp,
 	   		  std::vector<CTCLObject>& objv);
 	static std::string Usage() const;
-public:
+private:
 	
 	// Private utilities.
-	
-	int injectPhysicsBuffer(CTCLInterpreter& interp,
-	   		  				std::vector<CTCLObject>& objv);
-	int injectStateChangeBuffer(CTCLInterpreter& interp,
-	   		  					std::vector<CTCLObject>& objv);
-	int injectStringBuffer(CTCLInterpreter& interp,
-	   		  			   std::vector<CTCLObject>& objv);
+		
+	CTCLObject* typeValuePairToList(CTCLInterpreter& interp,
+								    std::vector<InputStage::typeCountPair>& stats);
+	void*   installInt(void* dest, 
+					   int   value);
+	void*   installString(void* dest,
+			              std::string value);
+	static  dispatchMonitorScript(void* pData, 
+			 					  InputStage::event evt,
+			                      uint16_t node);
+	int getEvent(CTCLInterpreter&         interp,
+				 std::vector<CTCLObject>& objv,
+				 fragGetter member)
+	CTCLObject* eventToList(CTCLInterpreter& interp,
+						    EventFragment& fragment);
+
 };
 
 #endif

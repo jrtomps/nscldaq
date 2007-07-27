@@ -42,6 +42,11 @@ static const char * const pErrorMessages[] =
     "Invalid event/buffer type must be one of 2,3,4,5,11,12,13,14,15",
     "Invalid event body format",
     "Exception caught submitting event",
+    "Attempting to create an existing object.",
+    "Object is in the running state",
+    "Object is stopped",
+    "Object does not exist",
+    "Event queue has no events.",
     "INVALID ERROR CODE!"
 };
 static const unsigned int MESSAGECOUNT(sizeof(pErrorMessages)/sizeof(char*));

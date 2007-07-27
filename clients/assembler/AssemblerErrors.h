@@ -49,7 +49,12 @@ public:
 	InvalidType,
 	InvalidEventBody,
 	ExceptionEvent,
-        INVALIDERRORCODE
+	AlreadyExists,
+	Running,
+	Stopped,
+	DoesNotExist,
+	Empty,
+     INVALIDERRORCODE
     } ErrorCode;
         
     static std::string errorText(ErrorCode code);
