@@ -15,7 +15,7 @@
 */
 
 #include <config.h>
-#include <AssemberWrongStateException.h>
+#include "AssemblerWrongStateException.h"
 
 using namespace std;
 
@@ -54,7 +54,7 @@ AssemblerWrongStateException::AssemblerWrongStateException(AssemblerWrongStateEx
    m_reasonText.
 */
 const char*
-AssemblerWRongStateException::ReasonText() const
+AssemblerWrongStateException::ReasonText() const
 {
   return m_reasonText.c_str();
 }

@@ -22,6 +22,7 @@
 #include "FragmentQueue.h"
 #include "EventFragment.h"
 #include "AssemblerWrongStateException.h"
+#include <AssemblerCommand.h>
 
 #include <buftypes.h>
 
@@ -35,14 +36,14 @@
 
 using namespace std;
 
-static const BUFFERSIZE(16*1024);
+static const size_t  BUFFERSIZE(16*1024);
 
 static const string PATHSEP("/");
 
 // Predicate to match a channel list entry with a node.
 //
 static 
-bool matchChannelNode(pair<pInputReadyData> item, uint16_t node)
+bool matchChannelNode(InputStage::pInputReadyData item, uint16_t node)
 {
 	return item->s_node == node;
 }
@@ -59,7 +60,7 @@ bool matchChannelNode(pair<pInputReadyData> item, uint16_t node)
 */
 InputStage::InputStage(AssemblerCommand& config) :
   m_pConfig(&config),
-  m_running(false);
+  m_running(false)
 {
   // Clear the fragment queues:
 
@@ -143,12 +144,12 @@ InputStage::stop()
     // Already stopped:
 
     throw AssemblerWrongStateException(AssemblerWrongStateException::inactive,
-				       string("Stop attempted");,
+				       string("Stop attempted"),
 				       string("InputStage::stop already stopped"));
   }
   else {
     while (!m_channels.empty()) {
-      pInfoReadyData* info(m_channels.front());
+      pInputReadyData info(m_channels.front());
       stopNode(info->s_node);     // Also removes it from the list.
     }
     declareStopping();
@@ -216,7 +217,7 @@ InputStage::perTypeFragmentCount() const
     Return a vector of typecount pair vectors for
     each node that has nonzero types.
 */
-vector<pair<uint16_t, vector<typeCountPair> > >
+vector<pair<uint16_t, vector<InputStage::typeCountPair> > >
 InputStage::nodePerTypeFragmentCount() const
 {
   // This is just a matter of calling makeTypeCountVector for each
@@ -225,7 +226,8 @@ InputStage::nodePerTypeFragmentCount() const
   vector<pair<uint16_t, vector<typeCountPair> > > result;
 
   for (int i= 0; i < 0x1000; i++) {
-    vector<typeCountPair> stats = makeTypeCountVector(m_nodeTypeCounts[i]);
+    vector<typeCountPair> stats = makeTypeCountVector(m_nodeTypeCounts[i],
+						      0x1000);
     if (stats.size()) {
       result.push_back(pair<uint16_t, vector<typeCountPair> >(i, stats));
     }
@@ -243,18 +245,18 @@ void
 InputStage::injectFragment(EventFragment* fragment)
 {
 
-  if (!running) {
+  if (!m_running) {
     throw AssemblerWrongStateException(AssemblerWrongStateException::inactive,
 				       string("injectFragment"),
 				       string("InputStage::injectFragment injecting"));
   }
   else {
     uint16_t type = fragment->type();
-    uint16_t ndoe = fragment->node();
+    uint16_t node = fragment->node();
 
     // ensure the event fragment queue exists:
 
-    FragmentQueue* queue = m_queues[i];
+    FragmentQueue* queue = m_queues[node];
     if (queue) {
       queue->insert(*fragment);
       updateCountesr(node,type);
@@ -282,7 +284,7 @@ InputStage::injectFragment(EventFragment* fragment)
 
 */
 void
-InputStage::addCallback(InputStage::FragmentCallbackProc  proc,
+InputStage::addCallback(InputStage::FragmentCallback  proc,
 			void*                             clientData)
 {
   m_callbackHandlers.push_back(pair<FragmentCallback, void*>(proc, clientData));
@@ -294,7 +296,7 @@ InputStage::addCallback(InputStage::FragmentCallbackProc  proc,
     The handler must matchin proc and clientData.
 */
 void
-InputStage::removeCallback(InputStage::FragmentCallbackProc proc,
+InputStage::removeCallback(InputStage::FragmentCallback proc,
 			   void*                            clientData)
 {
   std::list<pair<FragmentCallback, void*> >::iterator p = 
@@ -380,15 +382,15 @@ InputStage::clear(uint16_t node)
 void
 InputStage::onBuffer(ClientData clientData, int eventMask)
 {
-	InputReadyData& readyData(&(*(static_cast<pInputReadyData>(clientData))));
+	InputReadyData* readyData(*(reinterpret_cast<pInputReadyData>(clientData)));
 	
 	// Read the data and extract appropriate information to continue:
 	
 	uint16_t* pBuffer = new uint16_t[BUFFERSIZE];
-	uint8_t* p        = static_cast<uint8_t*>(pBuffer);
+	uint8_t* p        = reinterpret_cast<uint8_t*>(pBuffer);
 	int bytesToRead   = BUFFERSIZE*(sizeof(uint16_t));
 	int bytesRead;
-	while (bytesToRead && (bytesRead = readyData.s_pChannel->Read(p, bytesToRead))) {
+	while (bytesToRead && (bytesRead = readyData->s_pChannel->Read(p, bytesToRead))) {
 		bytesToRead -= bytesRead;
 		p+= bytesRead;
 	}

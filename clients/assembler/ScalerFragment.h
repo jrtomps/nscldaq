@@ -51,8 +51,8 @@ public:
   uint32_t             operator[](size_t index) const;  
 
 private:
-  uint32_t getLongword(size_t wordOffset);
-  uint16_t getWord(size_t wordOffset);
+  uint32_t getLongword(size_t wordOffset) const;
+  uint16_t getWord(size_t wordOffset) const;
   
 };
 

@@ -35,8 +35,8 @@ using namespace std;
 PhysicsFragment::PhysicsFragment(uint16_t node,
 				 void*    body,
 				 size_t   words,
-				 off_t    offset=0) : 
-  EventFragment(node, DATABF
+				 off_t    offset) : 
+  EventFragment(node, DATABF,
 		static_cast<uint16_t*>(body) + offset,
 		words)
 {

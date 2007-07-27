@@ -13,7 +13,8 @@ assembler_SOURCES =	AssemblerApplication.cpp	\
 			AssemblerWrongStateException.cpp \
 			EventFragment.cpp		\
 			PhysicsFragment.cpp		\
-			ScalerFragment.cpp
+			ScalerFragment.cpp		\
+			InputStage.cpp InputStageCommand.cpp
 
 noinst_HEADERS = 	AssemblerApplication.h		\
 			AssemblerCommand.h		\
@@ -28,7 +29,9 @@ noinst_HEADERS = 	AssemblerApplication.h		\
 			AssemblerWrongStateException.h	\
 			EventFragment.h			\
 			PhysicsFragment.h		\
-			ScalerFragment.h
+			ScalerFragment.h		\
+			InputStage.h			\
+			InputStage.cpp
 
 
 assembler_LDADD =	@top_srcdir@/TCL/libtclPlus.la	\

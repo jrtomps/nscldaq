@@ -31,7 +31,7 @@ using namespace std;
 */
 ScalerFragment::ScalerFragment(uint16_t* rawBuffer) :
   EventFragment(extractNode(rawBuffer),
-		extractType(rawBufffer),
+		extractType(rawBuffer),
 		bodyPointer(rawBuffer),
 		extractSize(rawBuffer) - sizeof(bheader)/sizeof(uint16_t)),
   m_ssig(extractSsig(rawBuffer)),
@@ -51,7 +51,7 @@ ScalerFragment::ScalerFragment(uint16_t* rawBuffer) :
         values we can give the signatures are native byte ordering.
 */
 ScalerFragment::ScalerFragment(uint16_t  node,
-			       uint16_t  type
+			       uint16_t  type,
 			       uint16_t* body,
 			       size_t    bodyWords) :
   EventFragment(node, type, body, bodyWords),
@@ -75,7 +75,7 @@ ScalerFragment::startTime() const
 uint32_t
 ScalerFragment::endTime()   const
 {
-  return getLongWord(0);
+  return getLongword(0);
 }
 /////////////////////////////////////////////////////////////////////
 /*!
@@ -125,9 +125,13 @@ ScalerFragment:: operator[](size_t index) const
 
 */
 uint32_t
-ScalerFragment::getLongword(size_t wordOffset) 
+ScalerFragment::getLongword(size_t wordOffset) const
 {
-  uint32_t* pLong = static_cast<uint32_t*>(&((*this)[wordOffset]));
+  const uint16_t* pword(&(this->EventFragment::operator[](wordOffset)));
+
+
+  const uint32_t* pLong = reinterpret_cast<const uint32_t*>(pword);
+    reinterpret_cast<const uint32_t*>(&(this->EventFragment::operator[](wordOffset)));
   return tohl(*pLong, m_lsig);
 
 }
@@ -137,8 +141,8 @@ ScalerFragment::getLongword(size_t wordOffset)
 */
 
 uint16_t
-ScalerFragment::getWord(size_t wordOffet)
+ScalerFragment::getWord(size_t wordOffset) const
 {
-  uint16_t* pWord = &((*this)[wordOffset]);
-  return tohw(*pWord, m_ssig);
+  const uint16_t* pWord(&(this->EventFragment::operator[](wordOffset)));
+  return tohs(*pWord, m_ssig);
 }

@@ -14,8 +14,10 @@
 	     East Lansing, MI 48824-1321
 */
 
-#include <config.h.>
+#include <config.h>
 #include "EventFragment.h"
+#include <buffer.h>
+#include <buftypes.h>
 
 using namespace std;
 
@@ -27,15 +29,15 @@ using namespace std;
     \param body   - Pointer to the body.
     \param words  - Count of words in the body.
 */
-EventFragment:: EventFragment(uint16_t node,
+EventFragment::EventFragment(uint16_t node,
 			      uint16_t type,
-			      void*    body
+			      const void*    body,
 			      size_t   words) :
   m_node(node),
   m_type(type)
 {
-  uint16_t* pBegin static_cast<uint16_t*>(body);
-  uint16_t* pEnd  = pBegin + words;
+  const uint16_t* pBegin= static_cast<const uint16_t*>(body);
+  const uint16_t* pEnd  = pBegin + words;
 
   m_body.insert(m_body.begin(),
 		pBegin, pEnd);
@@ -108,6 +110,11 @@ EventFragment::operator[](size_t index)
 {
   return m_body[index];
 }
+const uint16_t&
+EventFragment::operator[](size_t index) const
+{
+  return m_body[index];
+}
 
 
 
@@ -119,9 +126,9 @@ EventFragment::operator[](size_t index)
 //  Extract the buffer type in host byte order from the raw buffer:
 
 uint16_t
-EventFragment::extractType(uint16_t* rawbuffer) 
+EventFragment::extractType(const uint16_t* rawbuffer) 
 {
-  struct bheader* pHeader = static_cast<struct bheader*>(rawbuffer);
+  const struct bheader* pHeader = reinterpret_cast<const struct bheader*>(rawbuffer);
 
   return tohs(pHeader->type, pHeader->ssignature);
 }
@@ -134,9 +141,9 @@ EventFragment::extractType(uint16_t* rawbuffer)
 //
 
 uint32_t
-EventFragment::extractSize(uint16_t* rawBuffer)
+EventFragment::extractSize(const uint16_t* rawBuffer)
 {
-  struct bheader* pHeader = static_cast<struct bheader*>(rawBuffer);
+  const struct bheader* pHeader = reinterpret_cast<const struct bheader*>(rawBuffer);
 
   uint32_t low = tohs(pHeader->nwds, pHeader->ssignature);
   uint32_t rev = tohs(pHeader->buffmt, pHeader->ssignature);
@@ -152,9 +159,9 @@ EventFragment::extractSize(uint16_t* rawBuffer)
 // Extract the node id from the buffer return it in host byte order.
 //
 uint16_t
-EventFragment::extractNode(uint16_t* rawBuffer)
+EventFragment::extractNode(const uint16_t* rawBuffer)
 {
-  struct bheader* pHeader = static_cast<struct bheader*>(rawBuffer);
+  const struct bheader* pHeader = reinterpret_cast<const struct bheader*>(rawBuffer);
   
   return tohs(pHeader->cpu, pHeader->ssignature);
 }
@@ -164,9 +171,9 @@ EventFragment::extractNode(uint16_t* rawBuffer)
 // conversion.
 //
 uint16_t
-EventFragment::extractSsig(uint16_t* rawBuffer)
+EventFragment::extractSsig(const uint16_t* rawBuffer)
 {
-  struct bheader* pHeader = static_cast<struct bheader*>(rawBuffer);
+  const struct bheader* pHeader = reinterpret_cast<const struct bheader*>(rawBuffer);
   return pHeader->ssignature;
 }
 //
@@ -175,20 +182,20 @@ EventFragment::extractSsig(uint16_t* rawBuffer)
 //
 
 uint32_t
-EventFragment::extractLsig(uint16_t* rawBuffer)
+EventFragment::extractLsig(const uint16_t* rawBuffer)
 {
-  struct bheader *pHeader = static_cast<struct bheader*>(rawBuffer);
+  const struct bheader *pHeader = reinterpret_cast<const struct bheader*>(rawBuffer);
   return pHeader->lsignature;
 }
 //
 // Return a pointer to the body of the buffer.
 //
-uint16_t* 
-EventFragment::bodyPointer(uint16_t* rawBuffer)
+const uint16_t* 
+EventFragment::bodyPointer(const uint16_t* rawBuffer)
 {
-  char* pBuffer = static_cast<char*>rawBuffer;
+  const char* pBuffer = reinterpret_cast<const char*>(rawBuffer);
   pBuffer += sizeof(struct bheader);
-  return static_cast<uint16_t*> pBuffer;
+  return reinterpret_cast<const uint16_t*> (pBuffer);
 }
 //
 // Given a longword in buffer byte order, and the buffer's
@@ -215,13 +222,13 @@ EventFragment::tohl(uint32_t datum, uint32_t lsig)
   dest.b[2] = source.b[1];
   dest.b[3] = source.b[0];
 
-  return deest.l;
+  return dest.l;
 }
 // Given a words in buffer byte order, and the buffer's
 // short signature, return the word in host byte order.
 //
 uint16_t
-EventFragment::tohs(uint16_t datum uint16_t ssig)
+EventFragment::tohs(uint16_t datum, uint16_t ssig)
 {
   if (ssig == 0x0102) return datum; // Same order as host.
 
@@ -242,11 +249,11 @@ EventFragment::tohs(uint16_t datum uint16_t ssig)
 // Return the entity count from a raw buffer in local byte ordering.
 // 
 uint16_t 
-EventFragment::extractEntityCount(uint16_t* rawBuffer)
+EventFragment::extractEntityCount(const uint16_t* rawBuffer)
 {
 
-  struct bheader* pHeader = static_cast<struct bheader*>(rawBuffer);
+  const struct bheader* pHeader = reinterpret_cast<const struct bheader*>(rawBuffer);
 
-  return tohs(pHeader->nevt, pHeader.ssignature);
+  return tohs(pHeader->nevt, pHeader->ssignature);
 
 }

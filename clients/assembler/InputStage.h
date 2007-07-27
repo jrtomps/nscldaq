@@ -23,6 +23,12 @@
 #endif
 #endif
 
+#ifndef __STL_VECTOR
+#include <vector>
+#ifndef __STL_VECTOR
+#define __STL_VECTOR
+#endif
+#endif
 
 #ifndef __CRT_STDINT_H
 #include <stdint.h>
@@ -30,6 +36,13 @@
 #endif
 #endif
 
+
+#ifndef __TCL_H
+#include <tcl.h>
+#ifndef __TCL_H
+#define __TCL_H
+#endif
+#endif
 
 // Forward class definitions.
 
@@ -63,10 +76,8 @@ public:
   } event;
   typedef void (*FragmentCallback)(void*, event, uint16_t);
 
-  typedef pair<uint16_t, uint32_t> typeCountPair;
+  typedef std::pair<uint16_t, uint32_t> typeCountPair;
 
-  // Private types:
-private:
   typedef struct {
 	  InputStage*   s_pObject;
 	  CTCLChannel*  s_pChannel;
@@ -98,8 +109,7 @@ public:
 private:
   InputStage(const InputStage&);
   InputStage& operator=(const InputStage&);
-  std::list<AssemblerCommand::EventFragmentContributor>::iterator p =
-    nodeList  int operator==(const InputStage&) const;
+  int operator==(const InputStage&) const;
   int operator!=(const InputStage&) const;
 public:
 
@@ -109,9 +119,9 @@ public:
   void stop();
   bool isRunning() const;
 
-  void clearStatisics();
+  void clearStatistics();
   std::vector<typeCountPair> nodeFragmentCount()     const;
-  std::vector<typeCountPair> perTypeFragmentCount(); const;
+  std::vector<typeCountPair> perTypeFragmentCount() const;
   std::vector<std::pair<uint16_t, std::vector<typeCountPair> > >
     nodePerTypeFragmentCount() const;
   
@@ -119,8 +129,8 @@ public:
   void injectFragment(EventFragment* fragment);
   
 
-  void addCallback(FragmentCallbackProc proc, void* clientData);
-  void removeCallback(FragmentCallbackProc proc, void* clientData);
+  void addCallback(FragmentCallback proc, void* clientData);
+  void removeCallback(FragmentCallback proc, void* clientData);
 
   EventFragment* peek(uint16_t node);
   EventFragment* pop(uint16_t node);
@@ -152,7 +162,7 @@ private:
   // Statistics utilities:
 
   std::vector<typeCountPair> makeTypeCountVector(const uint32_t* statistics, 
-						 size_t          size);
+						 size_t          size) const;
   void updateCounters(uint16_t node, uint16_t type);
   
   // Diddly utilities.

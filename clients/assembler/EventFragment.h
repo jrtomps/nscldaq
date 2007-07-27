@@ -49,7 +49,7 @@ private:
 public:
   EventFragment(uint16_t node,
 		uint16_t type,
-		void*    body
+		const void*    body,
 		size_t   words);
   EventFragment(uint16_t node,
 		uint16_t type,
@@ -60,19 +60,20 @@ public:
   std::vector<uint16_t> body() const;
   size_t   size() const;
   uint16_t& operator[](size_t index);
+  const uint16_t& operator[](size_t index) const;
 
 
 protected:
   // utilities:
 
 
-  static uint16_t extractType(uint16_t* rawBuffer);
-  static uint32_t extractSize(uint16_t* rawBuffer);
-  static uint16_t extractNode(uint16_t* rawBuffer);
-  static uint16_t extractSsig(uint16_t* rawBuffer);
-  static uint32_t extractLsig(uint16_t* rawBuffer);
-  static uint16_t extractEntityCount(uint16_t* rawBufer);
-  static uint16_t* bodyPointer(uint16_t* rawBuffer);
+  static uint16_t extractType(const uint16_t* rawBuffer);
+  static uint32_t extractSize(const uint16_t* rawBuffer);
+  static uint16_t extractNode(const uint16_t* rawBuffer);
+  static uint16_t extractSsig(const uint16_t* rawBuffer);
+  static uint32_t extractLsig(const uint16_t* rawBuffer);
+  static uint16_t extractEntityCount(const uint16_t* rawBufer);
+  static const uint16_t* bodyPointer(const uint16_t* rawBuffer);
 
 
 
@@ -80,10 +81,10 @@ protected:
   static uint32_t tohl(uint32_t datum, uint32_t lsig);
   static uint16_t tohs(uint16_t datum, uint16_t ssig);
 
-  static uint32_t getLongword(uint16_t* buffer,
+  static uint32_t getLongword(const uint16_t* buffer,
 			      size_t wordOffset,
 			      uint32_t lsig);
-  static uint16_t getWord(uint16_t* buffer,
+  static uint16_t getWord(const uint16_t* buffer,
 			  size_t wordOffset,
 			  uint16_t ssig);
 		     
