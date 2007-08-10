@@ -864,3 +864,6 @@ June 19, 2007   - Fix typo in sis3300.cpp - 16k samples were being treated
 June 26, 2007   - Event builder now has a workin output stage, as well as
 	          a working configuration system.
 July 15, 2007   - Add emptyEnable/Disable to CAENcard.
+August 10, 2007 - Tighten up the CAENcard read event by assuming the user
+                  has already ensured there's data present and by assuming the
+                  firmware is good (later than 0x808).

@@ -279,6 +279,9 @@ DAMAGES.
 /*
   Change Log:
   $Log$
+  Revision 8.10  2007/08/10 17:53:17  ron-fox
+  Attept performance improvemnts in CAENcard::readEvent(void*).
+
   Revision 8.9  2007/07/25 19:53:33  ron-fox
   Correce error in the word count of DAQWordBuffer reads (not pointer...
   never used 'cause users never get a DAQWordBuffer, only pointer
@@ -1281,43 +1284,13 @@ CAENcard::readEvent(void* buf)
 {
 
   int* pBuf((int*)buf);
-  if(dataPresent())
-  {
-    int n = 1;			// Header at least is read.
-    int  Header     = ReadBuffer;
-    int* pHeader    = pBuf;	// To fix channel count.
-    int  nRawChancnt= (Header >> 8) & 0x3f;
-    *pBuf++         = swaplong(Header);
-    if(0 && (getFirmware() >= 0x808) ) {	// Raw chancount reliable... NOT
-      
-      ReadBufferBlock(pBuf, nRawChancnt+1);
-      return (nRawChancnt+2)*sizeof(long);
 
-    } else {
-      int datum;
-      do {
-	datum   = ReadBuffer;
-	*pBuf++ = swaplong(datum);
-	n++;
-	datum = (datum >> 24) & 7;
-      } while ( (datum == 0) && (n <= 34));
-      if(datum != 4) {		// The trailer should be of type 4.
-	cerr << " Data type in terminating long wrong: " << hex 
-	     <<datum << dec << endl;
-	m_nInvalidTrailers++;
-      } 
-      if ((n-2) < nRawChancnt) m_nChancountHigh++;
-      if ((n-2) > nRawChancnt) m_nChancountLow++;
-      Header &= 0xffffC0ff;	// Channel count is sometimes wrong.
-      Header |= ((n-2) << 8);	// this fixes it.
-      *pHeader = swaplong(Header);
-      m_nEvents++;		// Count an event taken.
-      return n * sizeof(long);			// Rely on the trailer!!
-    }
-  }else {
-    // cerr << "Readout called but no data present\n";
-    return 0;
-  }
+  int  Header     = ReadBuffer;
+  int  nRawChancnt= (Header >> 8) & 0x3f;
+  *pBuf++         = swaplong(Header);
+  ReadBufferBlock(pBuf, nRawChancnt+1);
+  return (nRawChancnt+2)*sizeof(long);
+
 }
 
 /*!
