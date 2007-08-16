@@ -35,6 +35,8 @@ namespace eval  Experiment {
     namespace export EmergencyEnd
     namespace export CleanOrphans
     namespace export RunFileExists
+
+
 }
 #-------------- The procs below should be considered local to Experiment:: ---
 
@@ -95,15 +97,12 @@ proc Experiment::waitFile {name {granularity 1000} {timeout 0}} {
     set passes 0
     set done   0
 
-    puts "Waiting for file $name to exist"
     while {1} {
         if {[file exists $name]} {
-	    puts "Found file $name"
             return 1
         }
         incr passes
         if {($passes > $timeout) && ($timeout != 0)} {
-	    puts "Failed to fine $name"
             return 0
         }
         after $granularity
@@ -243,38 +242,40 @@ proc Experiment::finalizeEventData run {
 # If the proc OnBegin is defined invoke it.
 #
 proc Experiment::RunBeginning {} {
-	variable Logrecorder
-	variable EventlogPid
-        variable fileWaitTimeout
-
-	set      nrun [ReadoutControl::GetRun]
-	if {[ReadoutControl::isTapeOn]} {
-	    #
-	    # Start the event logger.
-	    #
-	    set Stagedir     [ExpFileSystem::WhereisCurrentEventData]
-	    set currentdata  [ExpFileSystem::WhereisCurrentData]
-	    set user         $::tcl_platform(user)
-            set sourceHost   [DAQParameters::getSourceHost]
-            set SourceURL    [Experiment::spectrodaqURL $sourceHost]
-            set ftpLoghost   [DAQParameters::getFtpHost]
-            set ftpLogpasswd [DAQParameters::getPassword]
-	    
-	    cd $Stagedir
+    variable Logrecorder
+    variable EventlogPid
+    variable fileWaitTimeout
 
 
-	    set EventlogPid [exec $Logrecorder -one -source $SourceURL &]
-
-            Experiment::makeEventLink $nrun
-
-            Experiment::waitFile .ready 1000 $fileWaitTimeout
-            if {![file exists .ready]} {
-                Error "The event logger is not yet ready after a very long time"
-            }
-	    file delete -force .ready
+    set ::Diagnostics::isTk 1;   #Ugly but works... forces tk dialogs from warning
+    set      nrun [ReadoutControl::GetRun]
+    if {[ReadoutControl::isTapeOn]} {
+	#
+	# Start the event logger.
+	#
+	set Stagedir     [ExpFileSystem::WhereisCurrentEventData]
+	set currentdata  [ExpFileSystem::WhereisCurrentData]
+	set user         $::tcl_platform(user)
+	set sourceHost   [DAQParameters::getSourceHost]
+	set SourceURL    [Experiment::spectrodaqURL $sourceHost]
+	set ftpLoghost   [DAQParameters::getFtpHost]
+	set ftpLogpasswd [DAQParameters::getPassword]
+	
+	cd $Stagedir
+	
+	
+	set EventlogPid [exec $Logrecorder -one -source $SourceURL &]
+	
+	Experiment::makeEventLink $nrun
+	
+	Experiment::waitFile .ready 1000 $fileWaitTimeout
+	if {![file exists .ready]} {
+	    Error "The event logger is not yet ready after a very long time"
 	}
-        Experiment::callback OnBegin $nrun
+	file delete -force .ready
     }
+    Experiment::callback OnBegin $nrun
+}
     # Experiment::RunEnded
     #    Run has ended.
     # If taping is on:
@@ -307,8 +308,8 @@ proc Experiment::RunEnded {} {
         file delete -force  .done
 	set EventlogPid     0
 
-        Experiment::finalizeEventData $nrun
 
+        Experiment::finalizeEventData $nrun
 
 
     }
@@ -349,7 +350,10 @@ proc Experiment::EmergencyEnd {} {
     set nrun [ReadoutControl::GetRun]
     set rundir [file dirname [ExpFileSystem::WhereisRunFile $nrun]]
     file mkdir  $rundir
+    file attributes $rundir -permissions 0750
     exec touch $rundir/000RunAbnormallyEnded
+    file attributes $rundir/000RunAbnormallyEnded 0440
+    file attributes $rundir -permissions 0550
 }
 #Experiment::CleanOrphans
 #  Clean up orphaned event files in the stage area's current

@@ -43,6 +43,18 @@ namespace eval ReadoutGui {
     variable guiBuiltCallback {};        # Callback when GUI is built.
 
 }
+# ReadoutGui::timestampOutput text
+#    Called to write a timestamped string to the
+#    gui text widget.  The string is of the form
+#    "some text with a %s embedded" where the
+#     %s will have a full timestamp substituted.
+#
+proc ReadoutGui::timestampOutput text {
+	set stamp [clock format [clock seconds]]
+	set output [format $text $stamp]
+	ReadougGUIPanel::outputText "$output\n"
+	
+}
 # ReadoutGui::setGuiBuiltCallback callback
 #       Set a callback to be invoked when the Gui has been constructed.
 # Parameters:
@@ -367,7 +379,7 @@ proc ReadoutGui::CleanupRun {State} {
 #Parameters:
 #   RunStateOnExit  - the state of the readout program on exit.
 proc ReadoutGui::ReadoutExited {RunStateonExit} {
-
+    timestampOutput "%s : The Readout program exited!"
     ReadoutGui::CleanupRun $RunStateonExit
     ReadougGUIPanel::readoutNotRunning
     bells notify -interval 2500 -pattern {100 200 400 500}
@@ -410,7 +422,7 @@ proc ReadoutGui::Start {} {
     }
     ReadoutControl::SetReadoutProgram [DAQParameters::getSourceHost] \
 				      [DAQParameters::getReadoutPath]
-
+	timestampOutput "%s : Starting the Readout program."
     ReadoutControl::StartReadoutProgram
     ReadougGUIPanel::readoutRunning
     ReadougGUIPanel::runIsHalted
@@ -447,7 +459,8 @@ proc ReadoutGui::Restart {} {
     "If you restart any currently active run will be ended.  Do you want to Restart?" \
 	       warning 1 Restart Cancel]
     if {$restart == 0} {
-	ReadoutGui::doRestart
+		timestampOutput "%s : Restarting the readout program."
+		ReadoutGui::doRestart
     }
 
 
@@ -499,8 +512,8 @@ proc ReadoutGui::Begin {} {
 
 
     } else {
-	ReadoutState::disableRecording
-	ReadoutControl::DisableTape
+		ReadoutState::disableRecording
+		ReadoutControl::DisableTape
     }
     # Update the scaler info with the GUI's idea of what it should be.
 
@@ -510,6 +523,7 @@ proc ReadoutGui::Begin {} {
 
     ReadoutControl::SetRun   [::ReadougGUIPanel::getRunNumber]
     ReadougGUIPanel::runIsActive
+	timestampOutput "%s : Starting a new run"
     ReadoutControl::SetTitle [::ReadougGUIPanel::getTitle]
     ReadoutControl::Begin
     ReadoutControl::ShowAll
@@ -539,12 +553,14 @@ proc ReadoutGui::Pause {} {
     ReadoutGui::StopRunTimers
     ReadougGUIPanel::runIsPaused
     ReadougGUIPanel::setStatusLine {Run paused}
+	timestampOutput "%s : Pausing the run"
     ReadoutControl::Pause
 }
 # ReadoutGui::Resume
 #   Called to resume a run via the GUI.
 #
 proc ReadoutGui::Resume {} {
+	timestampOutput "%s : Resuming the run"
     ReadoutControl::Resume
     ReadoutControl::ShowAll
     ReadougGUIPanel::runIsActive
@@ -566,6 +582,7 @@ proc ReadoutGui::StopRunTimers {} {
 proc ReadoutGui::End {} {
     ReadoutGui::StopRunTimers
     ReadougGUIPanel::runIsHalted
+	timestampOutput "%s : Ending the run"
     ReadoutControl::End
     if {[ReadoutControl::isTapeOn]} {
 	ReadougGUIPanel::incrRun
