@@ -70,6 +70,7 @@ XMLMANS=CTCLApplication.3 CTCLInterpreterObject.3 CTCLInterpreter.3 \
 manpages: $(XMLMANS) $(XMLMANSRC)
 
 install-data-local: manpages
+	$(mkinstalldirs) $(prefix)/man $(prefix)/man3
 	for f in  $(XMLMANS); do                          \
             if [ -e $$f ]; then                                \
 		$(INSTALL_DATA) $$f @prefix@/man/man3;         \
