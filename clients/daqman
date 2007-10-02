@@ -1,6 +1,6 @@
 #!/bin/bash
 
-daqmanpath=`dirname $0`/../man
+daqmanpath=`dirname $0`/../man:`dirname $0`/../share/man
 
 echo $daqmanpath
 
