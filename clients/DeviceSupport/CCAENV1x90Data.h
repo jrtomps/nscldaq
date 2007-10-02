@@ -418,7 +418,7 @@ namespace CCAENV1x90Data {
  /*!
     Extract the error bits from a TDC error reporting longword.
 
-    \param Datum   (Unsigned long  In)
+    \param datum   (Unsigned long  In)
     The data longword to analyze.
 
     \return Returns the error flag bit fields from TDCErrorBits. 
