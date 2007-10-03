@@ -33,8 +33,8 @@ StateTransitionFragment::StateTransitionFragment(uint16_t* pBuffer)  :
 		extractType(pBuffer),
 		bodyPointer(pBuffer),
 		extractSize(pBuffer) - sizeof(struct bheader)),
-  m_ssig(ExtractSsig(pBuffer)),
-  m_lsig(ExtractLsig(pBuffer))
+  m_ssig(extractSsig(pBuffer)),
+  m_lsig(extractLsig(pBuffer))
 {
 }
 
@@ -50,7 +50,7 @@ StateTransitionFragment::title() const
   // We can therefore directly construct the title string from it.
   
 
-  const char* pTitle = &((*this)[0]);
+  const char* pTitle = reinterpret_cast<const char*>(&((*this)[0]));
   return string(pTitle);
 }
 /*!
@@ -60,7 +60,7 @@ StateTransitionFragment::title() const
 struct tm 
 StateTransitionFragment::absoluteTime() const
 {
-  struct tim timestamp;
+  struct tm timestamp;
   memset(&timestamp, 0, sizeof(timestamp));
 
   timestamp.tm_mon = tohs((*this)[42], m_ssig);

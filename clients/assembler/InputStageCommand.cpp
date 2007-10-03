@@ -17,10 +17,18 @@
 #include "InputStageCommand.h"
 #include "InputStage.h"
 #include <TCLInterpreter.h>
+#include <TCLProcessor.h>
 #include <TCLObject.h>
 #include "AssemblerErrors.h"
+#include "EventFragment.h"
+#include "PhysicsFragment.h"
 #include <buftypes.h>
 #include <stdint.h>
+
+using namespace std;
+
+static const size_t BUFFERSIZE(16*1024);
+
 /*
  * Initialize the dispatch table.  Each
  * element of the dispatch table is used to
@@ -28,7 +36,7 @@
  * process a subcommand.
  */
 
-InputStageCommand::pDispatchTable InputStageCommand::m_dispatchTable =
+InputStageCommand::DispatchTable InputStageCommand::m_dispatchTable[] =
 {
 		{"create",    2,  &InputStageCommand::createInputStage},
 		{"destroy",   2,  &InputStageCommand::destroyInputStage},
@@ -37,11 +45,11 @@ InputStageCommand::pDispatchTable InputStageCommand::m_dispatchTable =
 		{"statistics",2,  &InputStageCommand::statistics},
 		{"clear",     2,  &InputStageCommand::clearStatistics},
 		{"inject",    3,  &InputStageCommand::inject},
-		{"monitor"    3,  &InputStageCommand::monitor},
+		{"monitor",    3,  &InputStageCommand::monitor},
 		{"unmonitor", 2,  &InputStageCommand::unmonitor},
 		{"get",       3,  &InputStageCommand::get},
 		{"pop",       3,  &InputStageCommand::pop},
-		{"empty",	  3,  &InputStageCommand::empty}
+		{"empty",	  3,  &InputStageCommand::empty},
 		{"",          0,  (InputStageCommand::CommandProcessor)(NULL)}
 };
 ////////////////////////////////////////////////////////////////
@@ -66,12 +74,15 @@ InputStageCommand::~InputStageCommand()
 {
 	if(m_pInputStage) {
 		if (m_pInputStage->isRunning()) {
-			m_pInputStaget->stop();
+			m_pInputStage->stop();
 		}
 		delete m_pInputStage;
 		m_pInputStage = 0;
 	}
-	delete m_pScript;
+	if (m_pScript) {
+	  delete m_pScript;
+	  m_pScript = 0;
+	}
 }
 
 /////////////////////////////////////////////////////////////
@@ -104,37 +115,37 @@ InputStageCommand::~InputStageCommand()
  * information is embedded in the error message.
  */
 int
-InputStageCommand::operator()(CTCLInterprete& interp,
-		   					  std::vector<CTCLObject>& objv)
+InputStageCommand::operator()(CTCLInterpreter& interp,
+			      std::vector<CTCLObject>& objv)
 {
-	// Too few commands if there is no subcommand:
-	
-	if (objv.size() < 2) {
-		return AssemblerErrors::setErrorMsg(interp, 
-											AssemblerErrors::TooFewParameters,
-											Usage());
-	}
-	// Extract the command keyword and hunt through the dispatch table
-	// for a match:
-	
-	string subcommand = (string)objv[1];
-	int    index      = 0;
-	while (m_dispatchTable[index].m_processor) {
-		if (subcommand == m_dispatchTable[index].m_keyword) {
-			if (objv.size() == m_dispatchTable[index].m_parameterCount) {
-				return this->*m_dispatchTable[index].m_processor(interp, objv);
-			} 
-			else {
-				return AssemblerErrors::setErrorMsg(interp,
-						objv.size() < m_dispatchTable[index].m_parameterCount ?
-									AssemblerErrors::TooManyParameters :
-									AssemblerErrors::TooFewParameters,
-									Usage());)
-			}
-		}
-		
-		index++;
-	}
+  // Too few commands if there is no subcommand:
+  
+  if (objv.size() < 2) {
+    return AssemblerErrors::setErrorMsg(interp, 
+					AssemblerErrors::TooFewParameters,
+					Usage());
+  }
+  // Extract the command keyword and hunt through the dispatch table
+  // for a match:
+  
+  string subcommand = (string)objv[1];
+  int    index      = 0;
+  while (m_dispatchTable[index].m_processor) {
+    if (subcommand == m_dispatchTable[index].m_keyword) {
+      if (objv.size() == m_dispatchTable[index].m_parameterCount) {
+	return (this->*m_dispatchTable[index].m_processor)(interp, objv);
+      } 
+      else {
+	return AssemblerErrors::setErrorMsg(interp,
+					    objv.size() < m_dispatchTable[index].m_parameterCount ?
+					    AssemblerErrors::TooManyParameters :
+					    AssemblerErrors::TooFewParameters,
+					    Usage());
+      }
+    }
+    
+    index++;
+  }
 }
 ////////////////////////////////////////////////////////////
 /*!
@@ -151,17 +162,17 @@ InputStageCommand::operator()(CTCLInterprete& interp,
  */
 int
 InputStageCommand::createInputStage(CTCLInterpreter& interp,
-  		 							std::vector<CTCLObject>& objv)
+				    std::vector<CTCLObject>& objv)
 {
-	if (m_pInputStage) {
-		return AssemblerErrors::setErrorMsg(interp,
-				  					        AssemblerErrors::AlreadyExists,
-									        "(Configuration)");
-	}
-	else {
-		m_pInputStage = new InputStage(m_pConfig);
-		return TCL_OK;
-	}
+  if (m_pInputStage) {
+    return AssemblerErrors::setErrorMsg(interp,
+					AssemblerErrors::AlreadyExists,
+					"(Configuration)");
+  }
+  else {
+    m_pInputStage = new InputStage(*m_pConfiguration);
+    return TCL_OK;
+  }
 }
 ///////////////////////////////////////////////////////////////
 /*!
@@ -182,24 +193,24 @@ int
 InputStageCommand::destroyInputStage(CTCLInterpreter& interp,
 		      						 std::vector<CTCLObject>& objv)
 {
-	if(m_pInputStage) {
-		if (!m_pInputStage->isRunning()) {
-			delete m_pInputStage;
-			m_pInputStage = static_cast<InputStage*>(m_pInputStage);
-			return TCL_OK;
-		}
-		else {
-			return AssemblerErrors:setErrorMsg(interp,
-											   AssemblerErrors::InputStageRunning,
-											   "Stop it and try again");
-		}
-	}
-	else {
-		return AssemblerErrors::setErrorMsg(interp,
-											AssemblerErrors::DoesNotExist,
-											"Need to create before destroying");
-	}
-
+  if(m_pInputStage) {
+    if (!m_pInputStage->isRunning()) {
+      delete m_pInputStage;
+      m_pInputStage = static_cast<InputStage*>(m_pInputStage);
+      return TCL_OK;
+    }
+    else {
+      return AssemblerErrors::setErrorMsg(interp,
+					 AssemblerErrors::Running,
+					 "Stop it and try again");
+    }
+  }
+  else {
+    return AssemblerErrors::setErrorMsg(interp,
+					AssemblerErrors::DoesNotExist,
+					"Need to create before destroying");
+  }
+  
 }
 /////////////////////////////////////////////////////////////
 /*!
@@ -228,8 +239,8 @@ InputStageCommand::startInputStage(CTCLInterpreter& interp,
 		}
 		else {
 			return AssemblerErrors::setErrorMsg(interp,
-										AssemblerInputStage::Runnning,
-										"(InputStage)");
+							    AssemblerErrors::Running,
+							    "(InputStage)");
 			
 		}
 	} 
@@ -266,8 +277,8 @@ InputStageCommand::stopInputStage(CTCLInterpreter& interp,
 		}
 		else {
 			return AssemblerErrors::setErrorMsg(interp,
-								AssemblerInputStage::Stopped,
-								"(InputStage)");
+							    AssemblerErrors::Stopped,
+							    "(InputStage)");
 		}
 	}
 	else {
@@ -326,22 +337,21 @@ InputStageCommand::statistics(CTCLInterpreter& interp,
 		
 		// The second element of the list is fragment counts per type:
 		
-		CTCLObject* typeCountList =
-			typeValuePairTolist(interp, typefrags);
+		CTCLObject* typeCountList = typeValuePairToList(interp, typefrags);
 		result += *typeCountList;
 		delete typeCountList;
 		
 		//  Now do the types by node:
 		
-		for (int i =0; i < nodePerTypeFragmentCount.size(); i++) {
-			uint16_t node = nodePerTypeFragmentCount[i].first;
+		for (int i =0; i < nodebyfrags.size(); i++) {
+			uint16_t node = nodebyfrags[i].first;
 			CTCLObject* nodeList =
 				typeValuePairToList(interp, 
-									nodePerTypeFragmentCount[i].second);
+						    nodebyfrags[i].second);
 			CTCLObject nodeItem;
 			nodeItem.Bind(interp);
 			nodeItem += node;
-			nodeItem += nodeList;
+			nodeItem += *nodeList;
 			result   += nodeItem;
 			delete nodeList;
 		}
@@ -416,7 +426,7 @@ InputStageCommand::inject(CTCLInterpreter& interp,
 											AssemblerErrors::DoesNotExist,
 											"(InputStage)");
 	}
-	if (!m_InputStage->isRunning()) {
+	if (!m_pInputStage->isRunning()) {
 		return AssemblerErrors::setErrorMsg(interp,
 							AssemblerErrors::Stopped,
 							"(InputStage)");
@@ -444,13 +454,13 @@ InputStageCommand::inject(CTCLInterpreter& interp,
 		
 		try {
 			int value = bufferElement;
-			pDest = installInt(pDest, value);
+			pDest = static_cast<uint16_t*>(installInt(pDest, value));
 		}
 		catch(...)  {
 			// Not an int...
 			
 			string value = bufferElement;
-			pDest = installString(pDest, value);
+			pDest = static_cast<uint16_t*>(installString(pDest, value));
 		}
 	}
 	
@@ -461,10 +471,10 @@ InputStageCommand::inject(CTCLInterpreter& interp,
 	try {
 		switch (type) {
 		case DATABF:
-			m_pInputStage->processPhysicBuffer(buffer);
+			m_pInputStage->processPhysicsBuffer(buffer);
 			break;
 		case SCALERBF:
-		case SNSAPSCBF:
+		case SNAPSCBF:
 			m_pInputStage->processScalerBuffer(buffer);
 			break;
 		case STATEVARBF:
@@ -522,19 +532,20 @@ InputStageCommand::monitor(CTCLInterpreter& interp,
 			m_pScript = new CTCLObject;
 			m_pScript->Bind(interp);
 		}
-		objv[2].Bind(inter);
+		objv[2].Bind(interp);
 		*m_pScript = objv[2];
 		m_pScript->Bind(interp);    // Probably don't need this.
 		
 		// always unregister/register.
 		
-		m_pInputStage->removeCallback(dispatchMonitor, m_pScript);
-		m_pInputStage->addCallback(dispatchMonitor, m_pScript);
+		m_pInputStage->removeCallback(dispatchMonitorScript, m_pScript);
+		m_pInputStage->addCallback(dispatchMonitorScript, m_pScript);
 		return TCL_OK;
 	}
 	else {
-		return AssemblerErrors(interp,
-				AssemblerErrors::DoesNotExist, "(InputStage)");
+		return AssemblerErrors::setErrorMsg(interp,
+						    AssemblerErrors::DoesNotExist, 
+						    "(InputStage)");
 	}
 }
 /////////////////////////////////////////////////////////////
@@ -552,7 +563,7 @@ InputStageCommand::unmonitor(CTCLInterpreter& interp,
 		                     std::vector<CTCLObject>& objv)
 {
 	if (m_pInputStage && m_pScript) {
-		m_pInputStage->removeCallback(dispatchMonitor, m_pScript);
+		m_pInputStage->removeCallback(dispatchMonitorScript, m_pScript);
 	}
 	delete m_pScript;
 	m_pScript=0;
@@ -580,7 +591,7 @@ int
 InputStageCommand::get(CTCLInterpreter& interp,
    					   std::vector<CTCLObject>& objv)
 {
-	return getEvent(interp, objv, InputStage::peek);
+	return getEvent(interp, objv, &InputStage::peek);
 }
 
 /*!
@@ -593,7 +604,7 @@ int
 InputStageCommand::pop(CTCLInterpreter& interp,
    		               std::vector<CTCLObject>& objv)
 {
-	return getEvent(interp, objv, InputStage::pop);
+	return getEvent(interp, objv, &InputStage::pop);
 }
 
 /*!
@@ -608,7 +619,7 @@ int
 InputStageCommand::empty(CTCLInterpreter& interp,
 						vector<CTCLObject>& objv)
 {
-	while (getEvent(interp, objv, InputStage::pop) == TCL_OK)
+	while (getEvent(interp, objv, &InputStage::pop) == TCL_OK)
 		;
 	// What's not by the book about the following is that errors
 	// are not reported but perverted into a successful return:
@@ -621,7 +632,7 @@ InputStageCommand::empty(CTCLInterpreter& interp,
  * Return the usage string for the command.
  */
 string
-InputStageCommand::Usage() const
+InputStageCommand::Usage()
 {
 	string usage;
 	usage   = "Usage\n";
@@ -652,7 +663,7 @@ InputStageCommand::Usage() const
  *    A pointer to the stocked list.
  */
 CTCLObject*
-InputStage::typeValuePairToList(CTCLInterpreter& interp,
+InputStageCommand::typeValuePairToList(CTCLInterpreter& interp,
 	                            vector<InputStage::typeCountPair>& stats)
 {
 	CTCLObject* pObject = new CTCLObject;
@@ -662,12 +673,101 @@ InputStage::typeValuePairToList(CTCLInterpreter& interp,
 		CTCLObject pair;
 		pair.Bind(interp);
 		pair += stats[i].first;
-		pair += stats[i].second;
+		pair += static_cast<int>(stats[i].second);
 		
 		(*pObject) += pair;
 	}
 	return pObject;
 }
+
+/*
+**  Install an integer int a test buffer.
+**    This is assumed to be a 16 bit integer.
+*/
+void*
+InputStageCommand::installInt(void* dest,
+			      int   value)
+{
+  uint16_t* p = reinterpret_cast<uint16_t*>(dest);
+  *p++        = value;
+  return reinterpret_cast<void*>(p);
+}
+
+/*
+ *   Install a text string in a test buffer.
+ *   The string is padded with an extra null if needed
+ *   so that the string ends on an even boundary.
+ */
+void*
+InputStageCommand::installString(void*   dest,
+				 string  value)
+{
+  char* p   = reinterpret_cast<char*>(dest);
+
+  size_t nchar = value.size() +1; //  include the null.
+
+  strcpy(p, value.c_str());
+  p += nchar;			// Include the null.
+
+  if (nchar % 2) {			// Padd if odd..
+    *p++ = '\0';
+  }
+
+
+  return reinterpret_cast<char*>(p);
+}
+
+/*
+ * Dispatch to a monitor script.
+ *   pData - Is  a pointer to the CTCLObject that
+ *           contains the script.
+ *   evt   - Is the event that caused the callback.
+ *   node  - Is the node that the event occured on.
+ *
+ *  The script is called with the following trailing parameters.
+ *     evt   - Text version of evt which can be one of:
+ *             new      - NewFragments.
+ *             shutdown - ShuttingDown
+ *             startup  - Starting
+ *             error    - Error.
+ *             unknonw  - Should never happen, means the eventToString
+ *                        function is not keeping pace with the
+ *                        event type codes.
+ *
+ *     node - Node on which the event occured.
+ * Errors are reported via
+ *   Tcl_BackgroundError.
+ * The script object must have already been bound to an interpreter
+ * and that interpreter will be used for all operations that need interps.
+ *
+ *
+ */
+void 
+InputStageCommand::dispatchMonitorScript(void* pData, 
+					InputStage::event evt,
+					uint16_t node)
+{
+  CTCLObject* pObject = reinterpret_cast<CTCLObject*>(pData);
+
+  // commands are lists so we can add the parameters as arguments by
+  // appending their stringification to the object...to prevent
+  // perversions of the existing object we copy the original (of course).
+
+  CTCLObject* pScript = new CTCLObject(*pObject);
+
+  string eventName = InputStage::eventToString(evt);
+  (*pScript)      += eventName;
+  (*pScript)      += node; 
+
+  try {
+    (*pScript)();
+  }
+  catch (...) {
+    Tcl_BackgroundError(pScript->getInterpreter()->getInterpreter());
+  }
+  delete pScript;		// Get rid of temp storage.
+}
+
 
 /*
  * Execute one of the get event operations using the
@@ -676,8 +776,8 @@ InputStage::typeValuePairToList(CTCLInterpreter& interp,
  */
 int
 InputStageCommand::getEvent(CTCLInterpreter& interp,
-							vector<CTCLObject>& objv,
-							InputStageCommand::fragGetter member)
+			    vector<CTCLObject>& objv,
+			    fragGetter member)
 {
 	if (!m_pInputStage) {
 		return AssemblerErrors::setErrorMsg(interp,
@@ -685,9 +785,9 @@ InputStageCommand::getEvent(CTCLInterpreter& interp,
 				"(InputStage)");
 	}
 	if(!m_pInputStage->isRunning()) {
-		return AssemblerErrors::setErrorMsg(interp,
-				AssemblerErrors::DoesNotExist,
-				"(InputStage)")
+	  return AssemblerErrors::setErrorMsg(interp,
+					      AssemblerErrors::DoesNotExist,
+					      "(InputStage)");
 	}
 	// The node parameter must be a valid unsigned integer.
 	
@@ -705,10 +805,10 @@ InputStageCommand::getEvent(CTCLInterpreter& interp,
 	// The node parameter must be < 0x1000.
 	
 	if (node < 0x1000) {
-		AssemblerEvent* pEvent = m_pInputStage->*member((uint16_t)node);
+		EventFragment* pEvent = (m_pInputStage->*member)((uint16_t)node);
 		if (pEvent) {
 			CTCLObject* pDecodedEvent = eventToList(interp, *pEvent);
-			interp.setResult(pDecodedEvent);
+			interp.setResult(*pDecodedEvent);
 			delete pDecodedEvent;
 			return TCL_OK;
 		}
@@ -723,4 +823,51 @@ InputStageCommand::getEvent(CTCLInterpreter& interp,
 				AssemblerErrors::NoSuchId,
 				"Id must be < 0x1000 to exist");
 	}	
+}
+
+/*
+ * Convert an event fragment to a list as specified in the 
+ * requirements.  The list contains, in order, 
+ *   - The node id.
+ *   - The timestamp, which is 0 for non event fragments but
+ *     the 32 bit words at offset 1 for event fragments.
+ *   - The body as a list of 16 bit words.
+ */
+CTCLObject* 
+InputStageCommand::eventToList(CTCLInterpreter& interp,
+				EventFragment& fragment)
+{
+  CTCLObject* pResult = new CTCLObject();
+  pResult->Bind(interp);
+
+  // Start building the list:
+
+  (*pResult) += fragment.node();
+  
+  if (fragment.type() == DATABF) {
+    
+    PhysicsFragment* pFrag = reinterpret_cast<PhysicsFragment*>(&fragment);
+    (*pResult) += static_cast<int>(pFrag->getTimestamp());
+
+  }
+  else {
+    (*pResult) += 0;
+  }
+  (*pResult) += fragment.type();
+
+  // Do the body now.
+
+
+  vector<uint16_t> body = fragment.body();
+  CTCLObject bodyList;
+  bodyList.Bind(interp);
+
+  for (int i=0; i < body.size(); i++) {
+    bodyList += static_cast<int>(body[i]);
+  }
+
+  (*pResult)+= bodyList;
+
+  return pResult;
+
 }

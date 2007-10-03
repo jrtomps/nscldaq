@@ -22,9 +22,18 @@
 #include "FragmentQueue.h"
 #include "EventFragment.h"
 #include "AssemblerWrongStateException.h"
-#include <AssemblerCommand.h>
+#include "InvalidNodeException.h"
+
+#include "PhysicsFragment.h"
+#include "StateTransitionFragment.h"
+#include "StringListFragment.h"
+#include "ScalerFragment.h"
+
+
+#include "AssemblerCommand.h"
 
 #include <buftypes.h>
+#include <buffer.h>
 
 #include <algorithm>
 
@@ -259,7 +268,7 @@ InputStage::injectFragment(EventFragment* fragment)
     FragmentQueue* queue = m_queues[node];
     if (queue) {
       queue->insert(*fragment);
-      updateCountesr(node,type);
+      updateCounters(node,type);
       declareNewFragments(node);
     }
     else {
@@ -322,8 +331,8 @@ EventFragment*
 InputStage::peek(uint16_t node)
 {
 	EventFragment* pResult = static_cast<EventFragment*>(NULL);
-	if (m_queues[i]) {
-		pResult = m_queues[i]->peek();
+	if (m_queues[node]) {
+		pResult = m_queues[node]->peek();
 	}
 	return pResult;
 }
@@ -340,8 +349,8 @@ EventFragment*
 InputStage::pop(uint16_t node)
 {
 	EventFragment* pResult = static_cast<EventFragment*>(NULL);
-	if (m_queues[i]) {
-		pResult = m_queues[i].pop();
+	if (m_queues[node]) {
+		pResult = m_queues[node]->remove();
 	}
 	return pResult;
 }
@@ -358,9 +367,9 @@ list<EventFragment*>
 InputStage::clear(uint16_t node)
 {
 	list<EventFragment*> result;
-	if (m_queues[i]) {
+	if (m_queues[node]) {
 		EventFragment* frag;
-		while ((frag = m_queues[i]->pop())) {
+		while ((frag = m_queues[node]->remove())) {
 			result.push_back(frag);
 		}
 	}
@@ -382,25 +391,31 @@ InputStage::clear(uint16_t node)
 void
 InputStage::onBuffer(ClientData clientData, int eventMask)
 {
-	InputReadyData* readyData(*(reinterpret_cast<pInputReadyData>(clientData)));
+	InputReadyData* readyData((reinterpret_cast<pInputReadyData>(clientData)));
 	
 	// Read the data and extract appropriate information to continue:
 	
 	uint16_t* pBuffer = new uint16_t[BUFFERSIZE];
 	uint8_t* p        = reinterpret_cast<uint8_t*>(pBuffer);
+	uint8_t** pNew(0);	// Will hold the new data.
 	int bytesToRead   = BUFFERSIZE*(sizeof(uint16_t));
 	int bytesRead;
-	while (bytesToRead && (bytesRead = readyData->s_pChannel->Read(p, bytesToRead))) {
-		bytesToRead -= bytesRead;
-		p+= bytesRead;
+	while (bytesToRead && (bytesRead = readyData->s_pChannel->Read((void**)pNew, bytesToRead))) {
+	  uint8_t* pData = *pNew;
+	  memcpy(p, pData, bytesRead);
+
+	  delete []pData;
+	  pNew = 0;
+	  bytesToRead -= bytesRead;
+	  p+= bytesRead;
 	}
 	if (bytesToRead) {
 		//
 		// error case: Residual bytes left:
 		
-		readData.s_pObject->processInputFailure(pBuffer,
-												BUFFERSIZE*sizeof(uint16_t)-byteToRead,
-												readyData.s_node)
+		readyData->s_pObject->processInputFailure(pBuffer,
+							  BUFFERSIZE*sizeof(uint16_t)-bytesToRead,
+							  readyData->s_node);
 	}
 	else {
 		// Full data buffer read. Dispatch depending on the
@@ -409,22 +424,22 @@ InputStage::onBuffer(ClientData clientData, int eventMask)
 		uint16_t type = EventFragment::extractType(pBuffer);
 		switch (type) {
 		case DATABF:
-			readData.s_pObject->processPhysicsBuffer(pBuffer);
+			readyData->s_pObject->processPhysicsBuffer(pBuffer);
 			break;
 		case SCALERBF:
 		case SNAPSCBF:
-			readData.s_pOjbect->processScalerBuffer(pBuffer);
+			readyData->s_pObject->processScalerBuffer(pBuffer);
 			break;
 		case STATEVARBF:
 		case RUNVARBF:
 		case PKTDOCBF:
-			readData.s_pObject->processStringlistBuffer(pBuffer);
+			readyData->s_pObject->processStringlistBuffer(pBuffer);
 			break;
 		case BEGRUNBF:
 		case ENDRUNBF:
 		case PAUSEBF:
 		case RESUMEBF:
-			readData.s_pObject->processStateChangeBuffer(pBuffer);
+			readyData->s_pObject->processStateChangeBuffer(pBuffer);
 			break;
 		}
 	}
@@ -443,29 +458,40 @@ InputStage::processPhysicsBuffer(uint16_t* pBuffer)
 {
 	uint16_t   node = EventFragment::extractNode(pBuffer);
 	uint16_t   nevt = EventFragment::extractEntityCount(pBuffer);
-	uint16_t* pBody = EventFragment::bodyPointer(pBuffer);
+	uint16_t* pBody = const_cast<uint16_t*>(EventFragment::bodyPointer(pBuffer));
 	uint16_t   ssig = EventFragment::extractSsig(pBuffer);
 	uint32_t   lsig = EventFragment::extractLsig(pBuffer);
 	
-	bheader*   pHeader= static_cast<bheader*>(pBuffer);
+	BHEADER*   pHeader= reinterpret_cast<BHEADER*>(pBuffer);
 	uint16_t   rev    = EventFragment::tohs(pHeader->buffmt, ssig);
 	
 	off_t      offset= 0;
 	
 	for  (int i =0; i < nevt; i++) {	
 		size_t           eventSize;
+		size_t           body; // word offset to body (tag).
+		uint32_t         timestamp;
 		if (rev < 6) {
-			eventSize = getWord(pBuffer, offset, ssig);
+			eventSize = EventFragment::getWord(pBuffer, offset, ssig);
+			body = 1; 
+			timestamp = EventFragment::getLongword(pBuffer, offset+2, lsig);
 		}
 		else {
-			eventSize = getLongword(pBuffer, offset, lsig);
+			eventSize = EventFragment::getLongword(pBuffer, offset, lsig);
+			body = 2; // jumbo.
+			timestamp = EventFragment::getLongword(pBuffer, offset+3, lsig);
 		}
-		
+
+		// The fragment knows the size.. we factor it out of the body
+		// so there's no need to worry later on if it's a 16 or 32 bit
+		// size.
+
 		PhysicsFragment* pFragment = new PhysicsFragment(node,
-														 pBody,
-														 eventSize,
-														 offset)
-		m_queues[node].insert(*pFragment);
+								 pBody,
+								 eventSize - body,
+								 offset + body,
+								 timestamp);
+		m_queues[node]->insert(*pFragment);
 		updateCounters(node, DATABF);
 		offset += eventSize;
 	}
@@ -483,7 +509,7 @@ InputStage::processStateChangeBuffer(uint16_t* pBuffer)
 	uint16_t   type = EventFragment::extractType(pBuffer);
 	StateTransitionFragment* frag = new StateTransitionFragment(pBuffer);
 	
-	m_queue[node].insert(*frag);
+	m_queues[node]->insert(*frag);
 	
 	updateCounters(node, type);
 	
@@ -502,7 +528,7 @@ InputStage::processStringlistBuffer(uint16_t* pBuffer)
 	
 	StringListFragment* pFrag = new StringListFragment(pBuffer);
 	
-	m_queue[node].insert(*pFrag);
+	m_queues[node]->insert(*pFrag);
 	
 	updateCounters(node,type);
 	declareNewFragments(node);
@@ -522,7 +548,7 @@ InputStage::processScalerBuffer(uint16_t* pBuffer)
 	
 	ScalerFragment* pFrag = new ScalerFragment(pBuffer);
 	
-	m_queue[node].insert(*pFrag);
+	m_queues[node]->insert(*pFrag);
 	updateCounters(node, type);
 	declareNewFragments(node);
 }
@@ -544,6 +570,29 @@ InputStage::processInputFailure(uint16_t* pPartialBuffer,
 	stopNode(node);
 }
 
+////////////////////////////////////////////////////////////////
+/*
+ *  Convert an event enumerated constant into the 
+ *   corresponding string.  At present this is a switch
+ *   default returns an unknown kind of string ... be sure to
+ *   extend this when the event type list is extended.
+ */
+string
+InputStage::eventToString(InputStage::event evt)
+{
+  switch (evt) {
+  case NewFragments:
+    return string("new");
+  case ShuttingDown:
+    return string("shutdown");
+  case Starting:
+    return string("startup");
+  case Error:
+    return string("error");
+  default:
+    return string("unknown");
+  }
+}
 
 //////////////////////////////////////////////////////////////
 /*
@@ -561,26 +610,27 @@ InputStage::startNode(const char* nodeName, uint16_t nodeId)
 	string program = spectclDaqPath();
 	string url     = spectclDaqURL(nodeName);
 	
-	conat char*    argv[2];
+	const char*    argv[2];
 	argv[0]      = program.c_str();
 	argv[1]      = url.c_str();
 	
-	CTCLChannel* pChannel = new CTCLChannel(getInterp(),
-											argv,
-											2);
+	CTCLChannel* pChannel = new CTCLChannel(m_pConfig->getInterpreter(),
+						2,
+						argv,
+						0);
 	m_queues[nodeId] = new FragmentQueue;
 	
 	// Create the callback for readability.
 	
 	Tcl_Channel chan = pChannel->getChannel();
-	pInputReadyData  pData = new PInputReadyData;
+	pInputReadyData  pData = new InputReadyData;
 	pData->s_pObject = this;
 	pData->s_pChannel= pChannel;
 	pData->s_node    = nodeId;
-	m_channels.push_back(pData)
+	m_channels.push_back(pData);
 	
 	Tcl_CreateChannelHandler(chan, TCL_READABLE, InputStage::onBuffer, 
-			 				static_cast<ClientData>(pData));
+				 static_cast<ClientData>(pData));
 	
 }
 ///////////////////////////////////////////////////////////////
@@ -607,10 +657,10 @@ InputStage::startNode(const char* nodeName, uint16_t nodeId)
 void 
 InputStage::stopNode(uint16_t node)
 {
-	std::list::<pInputReadyData>::iterator pChannel =
+	std::list<pInputReadyData>::iterator pChannel =
 		find_if(m_channels.begin(),
 				m_channels.end(),
-				bind2nd(matchChannelNode, node));
+				bind2nd(ptr_fun(matchChannelNode), node));
 	
 	// It's a no-op to stop a channel that is not running
 	//
@@ -621,7 +671,7 @@ InputStage::stopNode(uint16_t node)
 		
 		CTCLChannel* pTclChannel = pData->s_pChannel;
 		m_channels.erase(pChannel);
-		Tcl_Channel chan = pTclChannel.getChannel();
+		Tcl_Channel chan = pTclChannel->getChannel();
 		Tcl_DeleteChannelHandler(chan, InputStage::onBuffer, pData);
 		delete pData;
 		delete pTclChannel;
@@ -661,8 +711,8 @@ InputStage::declareEvent(InputStage::event reason, uint16_t node)
 		= m_callbackHandlers.begin();
 	while(p != m_callbackHandlers.end()) {
 		void*            pData    = p->second;
-		FragmentCallback callback = p->second;
-		(*callback)(pData, reason, node)
+		FragmentCallback callback = p->first;
+		(*callback)(pData, reason, node);
 	}
 }
 /////////////////////////////////////////////////////////////
@@ -688,7 +738,7 @@ InputStage::declareStopping()
  *   Declare a node has an error:
  */
 void
-InputStage::declareError(int16_t node)
+InputStage::declareError(uint16_t node)
 {
 	declareEvent(Error, node);
 }
@@ -708,7 +758,7 @@ InputStage::declareNewFragments(uint16_t node)
 */
 vector<InputStage::typeCountPair>
 InputStage::makeTypeCountVector(const uint32_t* statistics,
-				size_t          size)
+				size_t          size) const
 {
   vector<typeCountPair> result;
   for (int i = 0; i < size; i++) {
@@ -765,12 +815,12 @@ InputStage::spectclDaqURL(const char* node)
 	// Now we just need the port number:
 	
 	int port;
-	struct servent* pService = getservbyname("sdlite-link");
+	struct servent* pService = getservbyname("sdlite-link", NULL);
 	if (!pService) {
 		port = 2700;
 	} 
 	else {
-		port = ntohs(pService->port);
+		port = ntohs(pService->s_port);
 		
 	}
 	// Encode the port as a string and append it to the url:

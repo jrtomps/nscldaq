@@ -257,3 +257,26 @@ EventFragment::extractEntityCount(const uint16_t* rawBuffer)
   return tohs(pHeader->nevt, pHeader->ssignature);
 
 }
+
+//
+// Get a longword at a word offset.
+//
+uint32_t 
+EventFragment::getLongword(const uint16_t* buffer,
+			   size_t wordOffset,
+			   uint32_t lsig)
+{
+  const uint32_t* pDatum = reinterpret_cast<const uint32_t*>(buffer + wordOffset);
+  return tohl(*pDatum, lsig);
+}
+//
+// Get a word at a specific offset:
+//
+
+uint16_t
+EventFragment::getWord(const uint16_t* buffer,
+			  size_t wordOffset,
+			  uint16_t ssig)
+{
+  return tohs(*(buffer+wordOffset), ssig);
+}

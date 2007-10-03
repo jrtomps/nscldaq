@@ -9,12 +9,17 @@ assembler_SOURCES =	AssemblerApplication.cpp	\
 			AssembledStateTransitionEvent.cpp \
 			AssembledStringArrayEvent.cpp	\
 			BadEventTypeException.cpp	\
+			InvalidNodeException.cpp	\
 			AssemblerOutputStage.cpp	\
 			AssemblerWrongStateException.cpp \
 			EventFragment.cpp		\
 			PhysicsFragment.cpp		\
 			ScalerFragment.cpp		\
-			InputStage.cpp InputStageCommand.cpp
+			StringListFragment.cpp		\
+			StateTransitionFragment.cpp	\
+			InputStage.cpp 			\
+			InputStageCommand.cpp 		\
+			FragmentQueue.cpp
 
 noinst_HEADERS = 	AssemblerApplication.h		\
 			AssemblerCommand.h		\
@@ -25,13 +30,17 @@ noinst_HEADERS = 	AssemblerApplication.h		\
 			AssembledStateTransitionEvent.h	\
 			AssembledStringArrayEvent.h	\
 			BadEventTypeException.h		\
+			InvalidNodeException.h		\
 			AssemblerOutputStage.h		\
 			AssemblerWrongStateException.h	\
 			EventFragment.h			\
 			PhysicsFragment.h		\
 			ScalerFragment.h		\
+			StringListFragment.h		\
+			StateTransitionFragment.h	\
 			InputStage.h			\
-			InputStage.cpp
+			InputStageCommand.h		\
+			FragmentQueue.h
 
 
 assembler_LDADD =	@top_srcdir@/TCL/libtclPlus.la	\
@@ -48,6 +57,7 @@ INCLUDES	= 	-I@top_srcdir@/TCL		\
 			-I@top_srcdir@/Headers		\
 			-I@top_srcdir@/OutputBuffers	\
 			-I@top_srcdir@/SpectrodaqLite   \
+			-DPREFIX="\"@prefix@\""		\
 			$(TCL_FLAGS)			\
 			$(SPECTRODAQ_FLAGS)
 

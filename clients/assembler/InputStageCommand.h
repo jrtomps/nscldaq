@@ -31,7 +31,15 @@
 #endif
 
 #ifndef __TCLOBJECTPROCESSOR_H
-#include <TCLOjbectProcessor.h>
+#include <TCLObjectProcessor.h>
+#endif
+
+#ifndef __ASSEMBLEROUTPUTSTAGE_H
+#include <AssemblerOutputStage.h>
+#endif
+
+#ifndef __INPUTSTAGE_H
+#include <InputStage.h>
 #endif
 
 
@@ -39,7 +47,7 @@
 
 class CTCLInterpreter;
 class CTCLObject;
-class InputStage;
+class CTCLProcessor;
 class AssemblerCommand;
 class EventFragment;
 /*!
@@ -65,8 +73,8 @@ class InputStageCommand : public CTCLObjectProcessor
 {
 	// Private data types:
 private:
-	typedef int (AssemblerOutputStage::*CommandProcessor)(CTCLInterpreter&,
-														  std::vector<CTCLObject>&);
+	typedef int (InputStageCommand::*CommandProcessor)(CTCLInterpreter&,
+							   std::vector<CTCLObject>&);
 	typedef int (InputStage::*EventGetter)(uint16_t node);
 	typedef struct {
 		std::string 		m_keyword;
@@ -77,20 +85,20 @@ private:
 	typedef EventFragment* (InputStage::*fragGetter)(uint16_t);
 	// Private data.
 private:
-	static pDispatchTable   m_dispatchTable;
+	static DispatchTable    m_dispatchTable[];
 	InputStage*             m_pInputStage;
 	AssemblerCommand*       m_pConfiguration;
-	CTCLProcessor*          m_pScript;
-	
+	CTCLObject*             m_pScript;
+public:	
 	// Constructors and canonicals.
 	
 	InputStageCommand(CTCLInterpreter& interp,
-					AssemblerCommand&   config);
+			  AssemblerCommand&   config);
 	~InputStageCommand();
 	// Invalid canonicals:
 	
 private:
-	InputStageCommand(const InputStageCommand rhs);
+	InputStageCommand(const InputStageCommand& rhs);
 	InputStageCommand& operator=(const InputStageCommand& rhs);
 	int operator==(const InputStageCommand& rhs);
 	int operator!=(const InputStageCommand& rhs);
@@ -98,7 +106,7 @@ public:
 	
 	// Public methods.
 	
-	int operator()(CTCLInterprete& interp,
+	int operator()(CTCLInterpreter& interp,
 				   std::vector<CTCLObject>& objv);
 	int createInputStage(CTCLInterpreter& interp,
 				   		 std::vector<CTCLObject>& objv);
@@ -124,26 +132,28 @@ public:
 	   		std::vector<CTCLObject>& objv);
 	int empty(CTCLInterpreter& interp,
 	   		  std::vector<CTCLObject>& objv);
-	static std::string Usage() const;
+	static std::string Usage();
 private:
 	
 	// Private utilities.
 		
 	CTCLObject* typeValuePairToList(CTCLInterpreter& interp,
-								    std::vector<InputStage::typeCountPair>& stats);
+					std::vector<InputStage::typeCountPair>& stats);
 	void*   installInt(void* dest, 
-					   int   value);
+			   int   value);
 	void*   installString(void* dest,
-			              std::string value);
-	static  dispatchMonitorScript(void* pData, 
-			 					  InputStage::event evt,
-			                      uint16_t node);
-	int getEvent(CTCLInterpreter&         interp,
-				 std::vector<CTCLObject>& objv,
-				 fragGetter member)
-	CTCLObject* eventToList(CTCLInterpreter& interp,
-						    EventFragment& fragment);
+			      std::string value);
+	static  void dispatchMonitorScript(void* pData, 
+					   InputStage::event evt,
+					   uint16_t node);
 
+	int getEvent(CTCLInterpreter&         interp,
+		     std::vector<CTCLObject>& objv,
+		     fragGetter member);
+
+	CTCLObject* eventToList(CTCLInterpreter& interp,
+				EventFragment& fragment);
+	
 };
 
 #endif

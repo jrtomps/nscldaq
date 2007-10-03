@@ -18,6 +18,9 @@
 #include "AssemblerApplication.h"
 #include "AssemblerCommand.h"
 #include "AssemblerOutputStage.h"
+#include "InputStageCommand.h"
+
+
 
 #include <netdb.h>
 
@@ -66,6 +69,8 @@ AssemblerApplication::operator()()
   CTCLInterpreter*      pInterp   = getInterpreter();
   AssemblerCommand*     pCommand  = new AssemblerCommand(*pInterp);
   AssemblerOutputStage* pOutput   = new AssemblerOutputStage(*pInterp);
+  InputStageCommand*    pInputStage = new InputStageCommand(*pInterp,
+							    *pCommand);
   return TCL_OK;
 }
 

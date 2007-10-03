@@ -23,7 +23,7 @@ using namespace std;
   Insert an item at the back of the fragment queue.
 */
 void
-FragmentQeueue::insert(EventFragment& fragment)
+FragmentQueue::insert(EventFragment& fragment)
 {
   m_queue.push_back(&fragment);
 }
@@ -54,14 +54,14 @@ FragmentQueue::remove()
    Return the number of elements in the queue:
 */
 size_t
-FragmentQueue::size() const;
+FragmentQueue::size() const
 {
   return m_queue.size();
 }
 /*!
  Get the begin iterator.
 */
-FragmentQeueu::iterator
+FragmentQueue::iterator
 FragmentQueue::begin()
 {
   return m_queue.begin();

@@ -30,6 +30,14 @@
 #endif
 #endif
 
+#ifndef __STL_STRING
+#include <string>
+#ifndef __STL_STRING
+#define __STL_STRING
+#endif
+#endif
+
+
 #ifndef __CRT_STDINT_H
 #include <stdint.h>
 #ifndef __CRT_STDINT_H
@@ -60,6 +68,7 @@ class EventFragment;
    and building queues.  In inactive state, it has shutdown all the 
    channels connecting it to the data sources and is static.
 
+ 
    this allows the system to be safely configured after startup.
   
 */
@@ -145,6 +154,8 @@ public:
   
   void processInputFailure(uint16_t* pPartialBuffer, int bytesRead,
 		  				   uint16_t  node);
+
+  static std::string eventToString(event evt);
   
 private:
   void startNode(const char* nodeName, uint16_t nodeId);

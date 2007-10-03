@@ -63,7 +63,6 @@ public:
   const uint16_t& operator[](size_t index) const;
 
 
-protected:
   // utilities:
 
 
@@ -89,7 +88,6 @@ protected:
 			  uint16_t ssig);
 		     
 			      
-
 
 };
 

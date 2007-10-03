@@ -42,7 +42,7 @@ private:
 	
 public:
 	InvalidNodeException(uint16_t node, 
-						 std::string reason);
+			     std::string reason);
 	virtual ~InvalidNodeException();
 	
 	// Special stuff for this exception:
@@ -52,7 +52,7 @@ public:
 	// Virtual method overrides:
 	
 	virtual const char* ReasonText() const;
-	virtual Int_t Reasoncode() const;
+	virtual Int_t ReasonCode() const;
 
 };
 

@@ -26,10 +26,11 @@ using namespace std;
  * \param node  - the node that was being referenced.
  * \param reason- Context information about what was going on
  *                when the exception was thrown.
+ */
 InvalidNodeException::InvalidNodeException(uint16_t node,
-										   string reason) : 
-	CException(reason),
-	m_node(node)
+					   string reason) : 
+  CException(reason),
+  m_node(node)
 {
 
 }
@@ -77,5 +78,4 @@ int
 InvalidNodeException::ReasonCode() const
 {
 	return -1;
-}
 }

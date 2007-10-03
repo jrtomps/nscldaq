@@ -28,14 +28,14 @@ StringListFragment::StringListFragment(uint16_t* pBuffer) :
   EventFragment(extractNode(pBuffer),
 		extractType(pBuffer),
 		bodyPointer(pBuffer),
-		extractSize(pBuffer) - sizeof(bheader)/sizeof(uint16_t)),
+		extractSize(pBuffer) - sizeof(bheader)/sizeof(uint16_t))
 
 {
   uint16_t entities = extractEntityCount(pBuffer);
   pBuffer          += sizeof(bheader)/sizeof(uint16_t);
   int item=0;
   while(entities) {
-    m_strings.push_back(string(pBuffer));
+    m_strings.push_back(string(reinterpret_cast<char*>(pBuffer)));
 
     // Strings are an even number of words hence the +1 below.
 
@@ -52,5 +52,5 @@ StringListFragment::StringListFragment(uint16_t* pBuffer) :
 vector<string>
 StringListFragment::strings() const
 {
-  returnm_strings;
+  return m_strings;
 }

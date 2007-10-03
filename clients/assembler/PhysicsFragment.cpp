@@ -35,10 +35,12 @@ using namespace std;
 PhysicsFragment::PhysicsFragment(uint16_t node,
 				 void*    body,
 				 size_t   words,
-				 off_t    offset) : 
+				 off_t    offset,
+				 uint32_t timestamp) : 
   EventFragment(node, DATABF,
 		static_cast<uint16_t*>(body) + offset,
-		words)
+		words),
+  m_timeStamp(timestamp)
 {
   
 }
@@ -49,6 +51,18 @@ PhysicsFragment::PhysicsFragment(uint16_t node,
    \param body    The vector that makes up the event body.
 */
 PhysicsFragment:: PhysicsFragment(uint16_t node,
-				  std::vector<uint16_t> body) : 
-  EventFragment(node, DATABF, body)
+				  std::vector<uint16_t> body, 
+				  uint32_t timestamp) : 
+  EventFragment(node, DATABF, body),
+  m_timeStamp(timestamp)
 {}
+
+/////////////////////////////////////////////////////////////////////
+/*!
+  Return event timestamp:
+*/
+uint32_t
+PhysicsFragment::getTimestamp() const
+{
+  return m_timeStamp;
+}

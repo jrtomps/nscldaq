@@ -30,14 +30,20 @@
 */
 class PhysicsFragment : public EventFragment
 {
+private:
+
+  uint32_t       m_timeStamp;
 public:
   PhysicsFragment(uint16_t node,
 		  void*    body,
 		  size_t   words,
-		  off_t    offset=0);
+		  off_t    offset=0,
+		  uint32_t timestamp=0);
   PhysicsFragment(uint16_t node,
-		  std::vector<uint16_t> body);
+		  std::vector<uint16_t> body,
+		  uint32_t timestamp=0);
 
+  uint32_t getTimestamp() const;
 };
 
 
