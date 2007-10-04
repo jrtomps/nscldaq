@@ -29,7 +29,8 @@ StateTransitionInputBuffer::StateTransitionInputBuffer(const StateTransitionInpu
 
 }
 
-const StateTransitionInputBuffer& operator=(const StateTransitionInputBuffer& rhs) 
+const StateTransitionInputBuffer& 
+StateTransitionInputBuffer::operator=(const StateTransitionInputBuffer& rhs) 
 {
 	InputBuffer::operator=(rhs);
 	
@@ -42,7 +43,7 @@ StateTransitionInputBuffer::operator==(const StateTransitionInputBuffer& rhs) co
 	return InputBuffer::operator==(rhs);
 }
 int 
-StateTransitionBuffer::operator!=(const StateTransitionInputBuffer& rhs) const
+StateTransitionInputBuffer::operator!=(const StateTransitionInputBuffer& rhs) const
 {
 	return !(*this == rhs);
 }
@@ -52,9 +53,9 @@ StateTransitionBuffer::operator!=(const StateTransitionInputBuffer& rhs) const
  *   Produce the iterator:
  */
 InputBufferIterator*
-begin() const
+StateTransitionInputBuffer::begin() const
 {
-	return StateTransitionInputBufferIterator(*this);
+	return new StateTransitionInputBufferIterator(*this);
 }
 ////////////////////////////////////////////////////////////////////
 ///////// StateTransitionBufferIterator implementation /////////////
@@ -67,22 +68,23 @@ StateTransitionInputBufferIterator::StateTransitionInputBufferIterator(const Sta
 	m_haveFragment(true)
 {
 }
-StateTransitionInputIterator::StateTransitionInputBufferIterator(const StateTransitionInputBufferIterator& rhs) :
+StateTransitionInputBufferIterator::StateTransitionInputBufferIterator(const StateTransitionInputBufferIterator& rhs) :
 	m_Buffer(rhs.m_Buffer),
 	m_haveFragment(rhs.m_haveFragment)
 {
 
 }
 int 
-StateTransitionInputIterator::operator==(const StateTranstionInputBufferIterator& rhs) const
+StateTransitionInputBufferIterator::operator==(const StateTransitionInputBufferIterator& rhs) const
 {
-	return (&m_Buffer  == &(rhs.m_Buffer)          &&
-			(m_haveFragment == rhs.m_haveFragment);
+	return (&m_Buffer  == &(rhs.m_Buffer))          &&
+	      (m_haveFragment == rhs.m_haveFragment);
 }
 
-int operator!=(const StateTransitionInputBufferIterator& rhs) const
+int
+StateTransitionInputBufferIterator::operator!=(const StateTransitionInputBufferIterator& rhs) const
 {
-	return !(*this == rhs)
+  return !(*this == rhs);
 }
 /////////////////////////////////////////////////////////////////////
 /*!   
@@ -114,6 +116,5 @@ StateTransitionInputBufferIterator::operator*()
 	if (m_haveFragment) {
 		pResult = new StateTransitionFragment(m_Buffer.Pointer());
 	}
-	return m_haveFragment
-	}
+	return pResult;
 }

@@ -19,6 +19,7 @@
 
 #ifndef __INPUTBUFFER_H
 #include <InputBuffer.h>
+#endif
 
 /*!
  * Encapsulate a class for state transition buffers on the
@@ -50,17 +51,17 @@ class StateTransitionInputBufferIterator : public InputBufferIterator
 public:
 	StateTransitionInputBufferIterator(const StateTransitionInputBuffer& buf);
 	StateTransitionInputBufferIterator(const StateTransitionInputBufferIterator& rhs);
-	int operator==(const StateTranstionInputBufferIterator& rhs) const;
+	int operator==(const StateTransitionInputBufferIterator& rhs) const;
 	int operator!=(const StateTransitionInputBufferIterator& rhs) const;
 private:
 	StateTransitionInputBufferIterator& operator=(const StateTransitionInputBufferIterator& rhs);
 public:
-	virtual void Next()                 = 0;   //!< Advance to next event fragment.
-	virtual bool End()                  = 0;   //!< True if there is no next fragment.
-	virtual EventFragment*  operator*() = 0;   //!< Produce next fragment (NULL If none).
+	virtual void Next();	//!< Advance to next event fragment.
+	virtual bool End();	//!< True if there is no next fragment.
+	virtual EventFragment*  operator*(); //!< Produce next fragment (NULL If none).
 	
 };
 
-};
+
 
 #endif /*STATETRANSITIONINPUTBUFFER_H_*/
