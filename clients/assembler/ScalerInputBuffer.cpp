@@ -48,7 +48,7 @@ ScalerInputBuffer::ScalerInputBuffer(const ScalerInputBuffer& rhs) :
 {
 }
 ScalerInputBuffer&
-ScalerInputBufferIterator::operator=(const ScalerInputBuffer& rhs)
+ScalerInputBuffer::operator=(const ScalerInputBuffer& rhs)
 {
 	InputBuffer::operator=(rhs);
 	return *this;
@@ -98,7 +98,7 @@ ScalerInputBuffer::scalers() const
 	int    scalerCount = getEntityCount();
 	vector<uint32_t>     scalerValues;
 	
-	for (int = 0; i < scalerCount; i++) {
+	for (int i = 0; i < scalerCount; i++) {
 		scalerValues.push_back(getLongword(offset));
 		offset    += sizeof(uint32_t)/sizeof(uint16_t);
 	}
@@ -138,7 +138,7 @@ ScalerInputBufferIterator::ScalerInputBufferIterator(const ScalerInputBufferIter
 	
 }
 int
-ScalerInputBuferIterator::operator==(const ScalerInputBufferIterator& rhs) const
+ScalerInputBufferIterator::operator==(const ScalerInputBufferIterator& rhs) const
 {
 	return (&m_buffer == &rhs.m_buffer) &&
 	       (m_haveFragment == rhs.m_haveFragment);
@@ -190,18 +190,19 @@ ScalerInputBufferIterator::operator*()
 		// body in our byte order and constructing the scaler event
 		// around that.  Since scalers are infrequent this is probably ok.
 		int totalSize =  m_buffer.getSize();
-		int bodyOffset=  m_buffer.BodyOffset();
-		int type      =  m_buffer.getType();
-		int node      =  m_buffer.getNode();
-		int bodyLongs =  (totalSize - bodyOffset)* sizeof(uint16_t)/sizeof(uint32_t); 
+		int bodyOffset=  m_buffer.bodyOffset();
+		uint16_t type =  m_buffer.getType();
+		uint16_t node =  m_buffer.getNode();
+		uint16_t bodyLongs =  (totalSize - bodyOffset)* sizeof(uint16_t)/sizeof(uint32_t); 
 		
 		uint32_t* bodyCopy = new uint32_t[bodyLongs];
 		
 		for (int i=0; i < bodyLongs; i++) {
 			bodyCopy[i] = m_buffer.getLongword(bodyOffset + i);
 		}
-		pReturnValue = new ScalerFragment(type, node, bodyCopy, 
-										  bodyLongs * sizeof(uint32_t)/sizeof(uint16_t));
+		pReturnValue = new ScalerFragment(type, node, 
+						  reinterpret_cast<uint16_t*>(bodyCopy), 
+						  bodyLongs * sizeof(uint32_t)/sizeof(uint16_t));
 		delete []bodyCopy;
 	}
 	return pReturnValue;

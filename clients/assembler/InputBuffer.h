@@ -75,14 +75,18 @@ public:
 	bool isJumboBuffer()                    const;
 	uint32_t getLongword(size_t wordOffset) const;
 	uint16_t getWord(size_t wordOffset)     const;
+
+	const uint16_t* bodyPointer()          const;
+	int   bodyOffset()                     const;
+
 	
 	virtual InputBufferIterator* begin()    const =0;
+
+
 	
 	// These are utilities that probably are note needed
 	// by the derived classes but are provided 'just in case'.
 protected:
-	const uint16_t* bodyPointer()          const;
-	int   bodyOffset()                     const;
 	
 	uint32_t tohl(uint32_t datum)          const;
 	uint16_t tohs(uint16_t datum)          const;

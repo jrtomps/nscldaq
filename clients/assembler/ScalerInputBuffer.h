@@ -67,10 +67,10 @@ public:
  * it's related buffer holds.
  */
 
-class ScalerInputBufferIterator : public InputBufferitertor
+class ScalerInputBufferIterator : public InputBufferIterator
 {
 private:
-	ScalerInputBuffer& m_buffer;
+	const ScalerInputBuffer& m_buffer;
 	bool               m_haveFragment;
 	
 public:
