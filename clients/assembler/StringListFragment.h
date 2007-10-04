@@ -47,6 +47,7 @@ private:
   std::vector<std::string> m_strings;
 public:
   StringListFragment(uint16_t* pBuffer);
+  
 
   std::vector<std::string> strings() const;
 

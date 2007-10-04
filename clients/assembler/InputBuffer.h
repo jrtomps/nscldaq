@@ -75,7 +75,8 @@ public:
 	bool isJumboBuffer()                    const;
 	uint32_t getLongword(size_t wordOffset) const;
 	uint16_t getWord(size_t wordOffset)     const;
-
+	
+	uint16_t*       Pointer();
 	const uint16_t* bodyPointer()          const;
 	int   bodyOffset()                     const;
 

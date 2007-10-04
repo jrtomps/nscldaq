@@ -42,7 +42,7 @@ public:
 	
 	// Constructors and other canonicals.
 	
-	ScalerInputBuffer(uint16_t* pBuffer);
+	ScalerInputBuffer(void* pBuffer);
 	ScalerInputBuffer(const ScalerInputBuffer& rhs);
 	ScalerInputBuffer& operator=(const ScalerInputBuffer& rhs);
 	int operator==(const ScalerInputBuffer& rhs)  const;
