@@ -43,7 +43,11 @@
 #ifndef __MTYPES_H	
 #define __MTYPES_H
 #include <daqdatatypes.h>
-#define BUFFER_REVISION 4
+static const INT16 BUFFER_REVISION(6)
+
+static const INT16 JumboBufferRevLevel(6);  // Lowest rev level that is a jumbo buffer.
+
+
 /*		Absolute time:		*/
 
 struct bftime
@@ -73,7 +77,8 @@ struct bheader				/* Data buffer header	*/
 	INT16	buffmt;			/* Data format revision level */
 	INT16   ssignature;		/* Short byte order signature */
 	INT32   lsignature;		/* Long byte order signature  */
-	INT16	unused[2];		/* Pad out to 16 words.	    */
+	INT16   nwdsHigh;       /* High order word of jumbo buffer size */
+	INT16	unused;		/* Pad out to 16 words.	    */
     };
 
 struct ctlbody				/* Body of control buffer   */
