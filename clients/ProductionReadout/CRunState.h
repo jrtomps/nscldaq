@@ -58,7 +58,7 @@ public:
     Paused
   } RunState;
 private:
-  enum RunState m_eState; //!< Value of the state
+  RunState m_eState; //!< Value of the state
   STD(map)<int,STD(string)> 
          m_StatesByValue; //!< State names looked up by state value.
   STD(map)<STD(string), int> 
@@ -83,7 +83,7 @@ public:
 	// Selectors for class attributes:
 public:
 
-    enum RunState getState() const {
+    RunState getState() const {
        return m_eState;
     }
 
@@ -111,8 +111,8 @@ public:
   bool Allowed(RunState newstate);
   
   STD(string) getStateName ()  ;
-  STD(string) getStateName(enum RunState state);
-  void   SetStateVariable(enum RunState state);	
+  STD(string) getStateName(RunState state);
+  void   SetStateVariable(RunState state);	
 };
 
 #endif

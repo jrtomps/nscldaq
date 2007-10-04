@@ -4,12 +4,6 @@ TEMPLATE_IMPLEMENTATIONS= CArrayBinding.cpp                      \
 	CBufferEvent.cpp                                \
 	CBufferMonitor.cpp                              \
 	CBufferReactor.cpp                              \
-	CChangedPredicate.cpp                           \
-	CLocationMonitor.cpp                            \
-	CLocationEvent.cpp                             \
-	CLocationReactor.cpp                           \
-	CMaskedValuePredicate.cpp                       \
-	CPointerPredicate.cpp                           \
 	CVariableBinding.cpp      
 
 libEventFramework_la_SOURCES= CThreadRecursiveMutex.cpp  \
@@ -21,12 +15,9 @@ libEventFramework_la_SOURCES= CThreadRecursiveMutex.cpp  \
 	CInterpreterStartup.cpp CDAQTCLProcessor.cpp \
 	CTCLSynchronizeCommand.cpp \
 	CTCLInterpreterStartup.cpp CTKInterpreterStartup.cpp \
-	CLocationReactor.cpp \
 	CBufferReactor.cpp CEventMonitor.cpp CBufferMonitor.cpp\
-	CFdMonitor.cpp CTimerMonitor.cpp CEvent.cpp CLocationMonitor.cpp \
-	CPointerPredicate.cpp CChangedPredicate.cpp \
-	CMaskedValuePredicate.cpp  \
-	CFileEvent.cpp CLocationEvent.cpp CBufferEvent.cpp CTimerEvent.cpp \
+	CFdMonitor.cpp CTimerMonitor.cpp CEvent.cpp  \
+	CFileEvent.cpp  CBufferEvent.cpp CTimerEvent.cpp \
 	CServerConnectionEvent.cpp CServerInstance.cpp \
 	CVariableBinding.cpp CArrayBinding.cpp CAssocArrayBinding.cpp \
 	CConfigurationManager.cpp CLogger.cpp CAlarmLogger.cpp \
@@ -64,16 +55,11 @@ include_HEADERS= CAlarmLogger.h \
 	CIncompatibleMonitor.h \
 	CInterpreterStartup.h \
 	CLinkFailedException.h \
-	CLocationEvent.h \
-	CLocationMonitor.h \
-	CLocationReactor.h \
 	CLogger.h \
-	CMaskedValuePredicate.h \
 	CNamedObject.h \
 	CNoSuchLinkException.h \
 	CNoSuchObjectException.h \
 	CObjectRegistry.h \
-	CPointerPredicate.h \
 	CReactor.h \
 	CRefptr.h \
 	CRegisteredObject.h \

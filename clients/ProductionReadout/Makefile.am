@@ -138,7 +138,8 @@ EXTRA_DIST=$(OTHER_STUFF) $(PRODUCTIONSOURCES) $(PRODUCTIONHEADERS) \
 #
 install-data-local: documentation
 	$(mkinstalldirs) $(prefix)/Docs
-	$(mkinstalldirs) $(prefix)/man $(prefix)/man/man3
+	$(mkinstalldirs) $(prefix)/man 
+	$(MKDIR_P) $(prefix)/man/man3
 	-$(INSTALL_DATA) ScalerTriggerAppnote.pdf $(prefix)/Docs
 	-for f in *Trigger.3*; do $(INSTALL_DATA) $$f $(prefix)/man/man3; done
 

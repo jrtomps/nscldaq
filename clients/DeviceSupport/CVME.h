@@ -137,7 +137,7 @@ private:
 	 UInt_t crate   - VME Crate number.
  */
 template<class T>
-CVME<T>::CVME<T>(VmeSpace space, UInt_t base, UInt_t length, UInt_t crate) :
+CVME<T>::CVME(VmeSpace space, UInt_t base, UInt_t length, UInt_t crate) :
   m_nOffset(0)
 {
   CRefcountedPtr<CVMEptr<T> > p(new CVMEptr<T>(space, base, length, crate));
@@ -154,7 +154,7 @@ CVME<T>::CVME<T>(VmeSpace space, UInt_t base, UInt_t length, UInt_t crate) :
      Construct a CVME<T> which points to nothing.
 */
 template<class T>
-CVME<T>::CVME<T>() :
+CVME<T>::CVME() :
   m_nOffset(0)
 {
   m_pRCptr = 0;
@@ -172,7 +172,7 @@ CVME<T>::CVME<T>() :
   \param CVMEptr<T>& aCVMEptr - the CVMEptr from which to construct this
 */
 template<class T>
-CVME<T>::CVME<T>(CVMEptr<T>* aCVMEptr) :
+CVME<T>::CVME(CVMEptr<T>* aCVMEptr) :
   m_nOffset(0)
 {
   m_pRCptr = CRefcountedPtr<CVMEptr<T> >(aCVMEptr);
@@ -189,7 +189,7 @@ CVME<T>::CVME<T>(CVMEptr<T>* aCVMEptr) :
      Construct a CVME<T> by copying one.
 */
 template<class T>
-CVME<T>::CVME<T>(const CVME<T>& aCVME) :
+CVME<T>::CVME(const CVME<T>& aCVME) :
   m_pRCptr(aCVME.m_pRCptr),
   m_nOffset(aCVME.m_nOffset)
 {

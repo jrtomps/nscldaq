@@ -317,7 +317,7 @@ which is associated with a CBufferEvent.
 template <class T>
 template <class U>
 CBufferEvent<T>::CGenericBufferReactor<U>::
-CGenericBufferReactor<U>(CBufferEvent<U>& Owner)  :
+CGenericBufferReactor(CBufferEvent<U>& Owner)  :
   m_rOwner(Owner)
 {}
 /*!
@@ -422,7 +422,7 @@ void
 CBufferEvent<T>::AddLink(const string& url,unsigned int tag, 
 			 unsigned int mask, int reliability)
 {
-  CBufferEvent<T>::AddLinkRequest AddQueue;
+  AddLinkRequest AddQueue;
   
   AddQueue.s_url = url;
   AddQueue.s_tag = tag;
@@ -565,7 +565,7 @@ CBufferEvent<T>::DescribeSelf()
 
   string result(" Buffer event\n");
 
-  typename list<CBufferEvent<T>::AddLinkRequest>::iterator i;
+  typename list<AddLinkRequest>::iterator i;
 
 
   result += CEvent::DescribeSelf();

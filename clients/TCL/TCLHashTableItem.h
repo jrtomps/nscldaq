@@ -311,7 +311,7 @@ public:
 			//Copy constructor
 
   CTCLHashTableItem (const CTCLHashTableItem& aCTCLHashTableItem ) :
-    m_Item(aTCLHashTableItem.m_Item)
+    m_Item(aCTCLHashTableItem.m_Item)
   {
   }                                     
 

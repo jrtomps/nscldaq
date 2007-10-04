@@ -67,6 +67,7 @@
 #include <MmapError.h>
 #endif
 
+
 template<class T>
 class CVMEptr
 {
@@ -197,7 +198,7 @@ class CVMEptr
 */
 
 template<class T>
-CVMEptr<T>::CVMEptr<T>(UInt_t space, UInt_t base, UInt_t length,
+CVMEptr<T>::CVMEptr(UInt_t space, UInt_t base, UInt_t length,
 		       UInt_t crate) :
   m_nOffset(0),
   m_nLength(length),
@@ -210,7 +211,7 @@ CVMEptr<T>::CVMEptr<T>(UInt_t space, UInt_t base, UInt_t length,
   Same as above, but use Space instead of int:
 */
 template<class T>
-CVMEptr<T>::CVMEptr<T>(Space space, UInt_t base, UInt_t length,
+CVMEptr<T>::CVMEptr(Space space, UInt_t base, UInt_t length,
 		       UInt_t crate) :
   m_nOffset(0),
   m_nLength(length),
@@ -232,7 +233,7 @@ CVMEptr<T>::CVMEptr<T>(Space space, UInt_t base, UInt_t length,
      performed, and m_nOffset and m_nLength are both set to 0.
 */
 template<class T>
-CVMEptr<T>::CVMEptr<T>()
+CVMEptr<T>::CVMEptr()
 {
   m_nOffset = 0;
   m_nLength = 0;
@@ -247,7 +248,7 @@ CVMEptr<T>::CVMEptr<T>()
   \param CVMEptr aCVMEptr - the CVMEptr to copy
 */
 template<class T>
-CVMEptr<T>::CVMEptr<T>(const CVMEptr& aCVMEptr)
+CVMEptr<T>::CVMEptr(const CVMEptr& aCVMEptr)
 {
   m_nOffset = aCVMEptr.m_nOffset;
   m_nLength = aCVMEptr.m_nLength;
@@ -328,9 +329,9 @@ CVMEptr<T>::CreateMap(UInt_t space, UInt_t base, UInt_t length, UInt_t crate)
       m_pHandle = CVMEInterface::Open(CVMEInterface::GEO , crate);
       break;
     default:
-      cerr << "Default condition in CVMEptr<T> CreateMap switch " << space 
-	   << endl;
-      cerr.flush();
+      std::cerr << "Default condition in CVMEptr<T> CreateMap switch " << space 
+	   << std::endl;
+      std::cerr.flush();
       
       break;
     }

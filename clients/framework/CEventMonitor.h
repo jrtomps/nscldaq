@@ -360,7 +360,7 @@ class CEventMonitor : public CRegisteredObject
   //! Copy construction is forbidden for now.
   CEventMonitor(const CEventMonitor& aCEventMonitor);
   //! Assignment is forbidden for now
-  CEventMonitor operator= (const CRegisteredObject& aCEventMonitor);
+  CEventMonitor& operator= (const CRegisteredObject& aCEventMonitor);
 
  public:
   // Destructor

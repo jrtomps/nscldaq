@@ -45,12 +45,12 @@ CEventMonitor::result
 CBufferMonitor<T>::operator() ()
 { 
   m_Buffer.SetTag(m_nTag);
-  m_Buffer.SetMask(m_nMask);
+
   // If timeouts were enabled:
   if(getTimedWait()) {
     struct timeval timeout = getTimeout();
     // Accept a buffer
-    m_BufferOnAccept(&timeout);
+    m_Buffer.Accept(&timeout);
     if(m_Buffer.GetLen() != 0)
       return CEventMonitor::Occurred;
     else
@@ -117,17 +117,14 @@ CBufferMonitor<T>::RemoveLink (int linkid)
   LinkIterator linkIt;
   for(linkIt = m_lLinks.begin(); linkIt != m_lLinks.end(); linkIt++) {
     if ((*linkIt).linkid == linkid) {
-      if(!(daq_link_mgr.DeleteSink(linkid))) {
-	throw CNoSuchLinkException
-	  ("CBufferMonitor<T>::RemoveLink Removing link from list", 
-	   info.linkid);
-      }
+      daq_link_mgr.DeleteSink(linkid);
+
       m_lLinks.erase(linkIt);
     }
   }
   if(linkIt == m_lLinks.end())
     throw CNoSuchLinkException
-      ("CBufferMonitor<T>::RemoveLink Removing link from list", info.linkid);
+      ("CBufferMonitor<T>::RemoveLink Removing link from list", linkid);
 }
 
 /*!
@@ -146,10 +143,7 @@ void
 CBufferMonitor<T>::RemoveLink (LinkIterator link)
 {
   if(link != m_lLinks.end()) {
-    if(!(daq_link_mgr.DeleteSink((*link).linkid))) {
-      throw CNoSuchLinkException
-	("CBufferMonitor<T>::Remove Removing link from list", (*link).linkid);
-    }
+    daq_link_mgr.DeleteSink((*link).linkid);
     m_lLinks.erase(link);
   }
   else {
@@ -288,7 +282,7 @@ template<class T>
 void
 CBufferMonitor<T>::SetBufferMask (int nMask)
 {
-  m_Buffer.SetMask(nMask);
+
   m_nMask = nMask;
 
 }
@@ -317,10 +311,7 @@ CBufferMonitor<T>::DescribeSelf()
     char tagBuffer[20];
     sprintf(tagBuffer, "%d", m_Buffer.GetTag());
     Result += tagBuffer;
-    char maskBuffer[20];
-    sprintf(maskBuffer, "%d", m_Buffer.GetMask());
-    Result += "\n  Mask = ";
-    Result += maskBuffer;
+
     Result += "\n  Link info:";
     if(m_lLinks.size() > 0) {
       for(LinkIterator It = beginLinks(); It != endLinks(); It++) {

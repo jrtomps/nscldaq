@@ -296,6 +296,11 @@ DAMAGES.
 /*
  *   Change Log:
  *     $Log$
+ *     Revision 8.4  2007/10/04 14:02:52  ron-fox
+ *     Do what's necessary to get a good compilation on g++ 4.x
+ *     and to check that making the unused field of the buffer header
+ *     a scalar rather than an array is not fatal to other compilations.
+ *
  *     Revision 8.3  2006/03/16 16:57:50  ron-fox
  *     Import tclPlus (TCL DIr) from SpecTcl-3.1 where it tries to get rid
  *     of most deprecated calls and adds docbook -> manpage documentation for the
@@ -449,7 +454,7 @@ public:
   //  Protected utility functions:
 protected:
   void Initialize() {
-    m_pCurrentEntry = Tcl_FirstHashEntry(m_pTable, &m_Current);
+    m_pCurrentEntry = Tcl_FirstHashEntry(m_pHashTable, &m_pCurrentEntry);
   }
 };
 

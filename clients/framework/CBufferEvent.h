@@ -352,12 +352,12 @@ class CBufferEvent  : public CEvent
   // Private data structures:
 
   //!  Form of request to add a link to the link manager.
-  struct AddLinkRequest {
+  typedef struct _AddLinkRequest {
     STD(string)       s_url;		//!< URL of source system.
     unsigned int s_tag;		//!< tag to match against.
     unsigned int s_mask;	//!< Accpetance mask to apply to tags.
     unsigned int s_linktype;	//!< Type of link (COS_RELIABLE e.g.).
-  };
+  } AddLinkRequest;
 
   /*! The buffer reactor for CBufferEvent is actually a nested class:
       It relays all of the calls back to the event's virtual functions.

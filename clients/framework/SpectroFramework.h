@@ -39,7 +39,6 @@
 #include <CIncompatibleMonitor.h>
 #include <CInterpreterStartup.h>
 #include <CLinkFailedException.h>
-#include <CLocationEvent.h>
 #include <CLocationMonitor.h>
 #include <CLocationReactor.h>
 #include <CMaskedValuePredicate.h>

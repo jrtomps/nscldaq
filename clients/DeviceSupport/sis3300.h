@@ -287,7 +287,7 @@ public:
 
   // Configuration inquiry functions.
 
-  enum CSIS3300::ClockSource  getCurrentClockSource();
+  CSIS3300::ClockSource  getCurrentClockSource();
   bool         isStartDelayEnabled();
   unsigned int getStartDelayClocks();
   bool         isStopDelayEnabled();

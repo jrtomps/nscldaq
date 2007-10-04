@@ -376,8 +376,8 @@ public:
     return m_sName;
   }
   T getDefault(int n) const {
-    if(m_pInitialValue) {
-      return m_pInitialValue[n];
+    if(m_pInitialValues) {
+      return m_pInitialValues[n];
     }
     else {
       return T();		// T Requires default constructor.

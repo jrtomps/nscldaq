@@ -553,8 +553,7 @@ CLogger::RemoveHost(const string& oldHost)
     }
   }
   if(It == m_HostList.end()) {
-    CNoSuchObjectException nsoe
-      ("CLogger::RemoveHost - Host is not in hostlist", oldHost);
+    CNoSuchObjectException nsoe("CLogger::RemoveHost - Host is not in hostlist", oldHost);
     throw nsoe;
   }
 }

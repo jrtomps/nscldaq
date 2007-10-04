@@ -567,6 +567,7 @@ CTCLChannel::Read(void** pData, int nChars)
     unsigned char* pDataRead = Tcl_GetByteArrayFromObj(pObject, &nBytesRead);
     char* pUserBuffer = new char[nBytesRead];
     memcpy(pUserBuffer, pDataRead, nBytesRead);
+    *pData = pUserBuffer;
   }
   Tcl_DecrRefCount(pObject);
   return nRead;

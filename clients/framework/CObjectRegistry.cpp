@@ -370,10 +370,10 @@ CObjectRegistry::Remove(const CNamedObject& rObject)
 
   \param rObjectName The name of the object to find.
 */
-const ObjectIterator
-CObjectRegistry::Find(const string& rObjectName) const
+ObjectIterator
+CObjectRegistry::Find(const string& rObjectName) 
 {
-  const ObjectIterator It = (ObjectIterator&)(m_Objects.find(rObjectName));
+  const ObjectIterator It = (ObjectIterator)m_Objects.find(rObjectName);
   if(It != m_Objects.end())
     return It;
   else {

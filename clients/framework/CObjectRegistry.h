@@ -309,7 +309,6 @@ DAMAGES.
 #endif
 #endif
 
-typedef STD(map)<STD(string), CNamedObject*>::iterator ObjectIterator;
 
 /*!
   Implements a registry of named objects.  
@@ -327,7 +326,10 @@ class CObjectRegistry : public CNamedObject
   STD(map)<STD(string), CNamedObject*> m_Objects; /*! STD(Map) containing the name key and a
                                            pointer to the object.
 					 */
- public:
+public:
+  typedef STD(map)<STD(string), CNamedObject*>::iterator ObjectIterator;
+
+public:
 
   // Default constructor
   CObjectRegistry (STD(string) am_sName) :
@@ -359,10 +361,13 @@ class CObjectRegistry : public CNamedObject
   void Add(CNamedObject& rObject);
   void Remove(const STD(string)& rName);
   void Remove(const CNamedObject& rObject);
-  const ObjectIterator Find(const STD(string)& rObjectName) const;
+  ObjectIterator Find(const STD(string)& rObjectName);
   ObjectIterator begin();
   ObjectIterator end();
   virtual STD(string) DescribeSelf();
 };
+
+typedef CObjectRegistry::ObjectIterator ObjectIterator;
+
 
 #endif

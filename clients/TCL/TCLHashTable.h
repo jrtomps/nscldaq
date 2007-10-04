@@ -344,7 +344,7 @@ public:
     Tcl_InitHashTable(&m_HashTable, TCL_STRING_KEYS);
   } 
   virtual ~CTCLHashTable ( ) {        //Destructor
-    Tcl_DeleteHashTable(&m_Table);
+    Tcl_DeleteHashTable(&m_HashTable);
   }
 			//Constructor with arguments:
                         // Must be string type keys.
@@ -397,7 +397,7 @@ protected:
 public:                       
   void Enter (const STD(string)& rKey, rCTCLTHashTableItem rValue) {
     Int_t          nNew;
-    Tcl_HashEntry* pEntry = Tcl_CreateHashEntry(&m_Table,
+    Tcl_HashEntry* pEntry = Tcl_CreateHashEntry(&m_HashTable,
 						rKey.c_str(),
 						&nNew);
     assert(pEntry != kpNULL);
@@ -405,7 +405,7 @@ public:
     
   }
   const CTCLTHashTableItem* Find (const STD(string)& rsKeyword) const {
-    Tcl_HashEntry* pEntry = Tcl_FindHashEntry(&m_Table,
+    Tcl_HashEntry* pEntry = Tcl_FindHashEntry(&m_HashTable,
 					      rsKeyword.c_str());
     if(pEntry == kpNULL) return (pCTCLTHashTableItem) kpNULL;
     
@@ -413,7 +413,7 @@ public:
   }
   
   CTCLTHashTableItem* Delete (const STD(string)& rsKeyword) {
-    Tcl_HashEntry* pEntry = Tcl_FindHashEntry(&m_Table,
+    Tcl_HashEntry* pEntry = Tcl_FindHashEntry(&m_HashTable,
 					      rsKeyword.c_str());
     if(pEntry != kpNULL) {
       pCTCLTHashTableItem pItem = (pCTCLTHashTableItem)
@@ -426,19 +426,19 @@ public:
     }
   }
   CTCLTHashTableIterator begin () {
-    CTCLTHashTableIterator i(&m_Table);
+    CTCLTHashTableIterator i(&m_HashTable);
     return i;
   }
   
   CTCLTHashTableIterator end () {
-    CTCLTHashTableIterator i(&m_Table);
+    CTCLTHashTableIterator i(&m_HashTable);
     i.SetCurrentEntry((pCTCLTHashTableItem)kpNULL);
 
     return i;
   }
   
   STD(string) Statistics () {
-    STD(string) s(Tcl_HashStats(&m_Table));
+    STD(string) s(Tcl_HashStats(&m_HashTable));
     return s;
   }
   

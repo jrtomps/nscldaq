@@ -308,17 +308,17 @@ class CChangedPredicate : public CPointerPredicate<T>
   CChangedPredicate<T>(T am_TOldValue) :
     CPointerPredicate<T>(),
     m_TOldValue(am_TOldValue)
-    { AppendClassInfo(); }
+    { CNamedObject::AppendClassInfo(); }
 
   CChangedPredicate<T>(const STD(string)& rName, T am_TOldValue) :
     CPointerPredicate<T>(rName),
     m_TOldValue(am_TOldValue)
-    { AppendClassInfo(); }
+    { CNamedObject::AppendClassInfo(); }
 
   CChangedPredicate<T>(const char* pName, T am_TOldValue) :
     CPointerPredicate<T>(pName),
     m_TOldValue(am_TOldValue)
-    { AppendClassInfo(); }
+    { CNamedObject::AppendClassInfo(); }
   
   // Destructor
   ~CChangedPredicate<T>() { }

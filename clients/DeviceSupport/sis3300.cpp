@@ -490,7 +490,7 @@ CSIS3300::EnableWrap(bool Enable)
   Returns the current clock source as the enumerated value.
 
   */
-enum CSIS3300::ClockSource
+CSIS3300::ClockSource
 CSIS3300::getCurrentClockSource()
 {
   return m_eClock;

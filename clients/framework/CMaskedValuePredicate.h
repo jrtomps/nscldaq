@@ -313,25 +313,25 @@ class CMaskedValuePredicate : public CPointerPredicate<T>
  public:
 
   // Default constructor
-  CMaskedValuePredicate<T>(T am_TValue, T am_TMask = COS_ALLBITS) :
+  CMaskedValuePredicate<T>(T am_TValue, T am_TMask = 0xffffffff) :
     CPointerPredicate<T>(),
     m_TValue (am_TValue),
     m_TMask (am_TMask)
-    { AppendClassInfo(); }
+    { CNamedObject::AppendClassInfo(); }
 
   CMaskedValuePredicate<T>(const STD(string)& rName, T am_TValue, 
-			   T am_TMask = COS_ALLBITS) :
+			   T am_TMask = 0xffffffff) :
     CPointerPredicate<T>(rName),
     m_TValue(am_TValue),
     m_TMask(am_TMask)
-    { AppendClassInfo(); }
+    { CNamedObject::AppendClassInfo(); }
 
   CMaskedValuePredicate<T>(const char* pName, T am_TValue, 
-			   T am_TMask = COS_ALLBITS) :
+			   T am_TMask = 0xffffffff) :
     CPointerPredicate<T>(pName),
     m_TValue(am_TValue),
     m_TMask(am_TMask)
-    { AppendClassInfo(); }
+    { CNamedObject::AppendClassInfo(); }
 
   // Destructor
   ~CMaskedValuePredicate<T>() { }

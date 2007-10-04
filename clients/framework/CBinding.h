@@ -313,6 +313,11 @@ DAMAGES.
 #define __CRT_STDIO_H
 #endif
 
+#ifndef __CRANGEERROR_H
+#include <RangeError.h>
+#endif
+
+
 /*!
   This is an abstract base class for the Tcl configuration manager's bindings
   subsystem.  interfaces for the functions required of all bindings
