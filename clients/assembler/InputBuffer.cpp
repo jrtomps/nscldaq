@@ -226,7 +226,7 @@ InputBuffer::getWord(size_t wordOffset) const
  *  Return a pointer to the buffer.
  */
 uint16_t*
-InputBuffer::Pointer()
+InputBuffer::Pointer() const
 {
 	return m_pBuffer;
 }

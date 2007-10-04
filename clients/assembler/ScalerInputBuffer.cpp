@@ -38,7 +38,7 @@ static const size_t Scalers(27);
 // the base class methods since we have no additiona.
 // internal state.
 
-ScalerInputBuffer::ScalerInputBuffer(uint16_t* pBuffer) : 
+ScalerInputBuffer::ScalerInputBuffer(void* pBuffer) : 
 	InputBuffer(pBuffer)
 {
 	

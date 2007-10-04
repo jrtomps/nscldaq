@@ -15,6 +15,7 @@
 */
 #include <config.h>
 #include "StringListInputBuffer.h"
+#include <StringListFragment.h>
 
 //////////////////////////////////////////////////////////////////
 
@@ -32,7 +33,7 @@ StringListInputBuffer::StringListInputBuffer(const StringListInputBuffer& rhs) :
 StringListInputBuffer& 
 StringListInputBuffer::operator=(const StringListInputBuffer& rhs)
 {
-	IntpuBuffer::operator=(rhs);
+	InputBuffer::operator=(rhs);
 	return *this;
 }
 int 
@@ -81,7 +82,7 @@ StringListInputBufferIterator::operator==(const StringListInputBufferIterator& r
 		   (m_haveFragment == rhs.m_haveFragment);
 }
 int
-StringListInputBufferIterator::int operator!=(const StringListInputBufferIterator& rhs) const
+StringListInputBufferIterator::operator!=(const StringListInputBufferIterator& rhs) const
 {
 	return !(*this == rhs);
 }
@@ -112,11 +113,11 @@ StringListInputBufferIterator::End()
  * it back. If not, returns null.
  */
 EventFragment*
-StringListInputBufferIterator::oeprator*()
+StringListInputBufferIterator::operator*()
 {
 	EventFragment* pResult(0);
 	if (m_haveFragment) {
-		pResult  = newStringListFragment(m_buffer.Pointer());
+	  pResult  = new StringListFragment(m_buffer.Pointer());
 	}
 	return pResult;
 }

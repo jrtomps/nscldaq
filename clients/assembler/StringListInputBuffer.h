@@ -17,7 +17,9 @@
 #ifndef __STRINGLISTINPUTBUFFER_H
 #define __STRINGLISTINPUTBUFFER_H
 
-#ifndef
+#ifndef __INPUTBUFFER_H
+#include <InputBuffer.h>
+#endif
 
 class StringListInputBuffer  : public InputBuffer
 {
