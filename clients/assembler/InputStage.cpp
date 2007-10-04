@@ -162,15 +162,7 @@ InputStage::stop()
       stopNode(info->s_node);     // Also removes it from the list.
     }
     declareStopping();
-    for (int i=0; i < 0x1000; i++) {
-      FragmentQueue* q = m_queues[i];
-      if (q) {
-	while(q->size()) {
-	  delete(q->remove());	// Release a queue element and get rid of it.
-	}
-	delete q;		// Delete the queue object itself.
-      }
-    }
+
     m_running = false;
   }
 }
@@ -203,12 +195,7 @@ InputStage::clearStatistics()
 vector<InputStage::typeCountPair>
 InputStage::nodeFragmentCount() const
 {
-  vector<typeCountPair> result;
-  for (int i=0; i < 0x1000; i++) {
-    if (m_fragmentCounts[i]) {
-      result.push_back(typeCountPair(i, m_fragmentCounts[i]));
-    }
-  }
+
   return makeTypeCountVector(m_fragmentCounts, 0x1000);
 }
 //////////////////////////////////////////////////////////////////
@@ -400,7 +387,8 @@ InputStage::onBuffer(ClientData clientData, int eventMask)
 	uint8_t** pNew(0);	// Will hold the new data.
 	int bytesToRead   = BUFFERSIZE*(sizeof(uint16_t));
 	int bytesRead;
-	while (bytesToRead && (bytesRead = readyData->s_pChannel->Read((void**)pNew, bytesToRead))) {
+	while (bytesToRead && 
+	       (bytesRead = readyData->s_pChannel->Read((void**)pNew, bytesToRead))) {
 	  uint8_t* pData = *pNew;
 	  memcpy(p, pData, bytesRead);
 
