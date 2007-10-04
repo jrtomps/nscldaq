@@ -16,6 +16,7 @@ assembler_SOURCES =	AssemblerApplication.cpp	\
 			PhysicsFragment.cpp		\
 			ScalerFragment.cpp		\
 			StringListFragment.cpp		\
+			InputBuffer.cpp			\
 			StateTransitionFragment.cpp	\
 			InputStage.cpp 			\
 			InputStageCommand.cpp 		\
@@ -38,6 +39,7 @@ noinst_HEADERS = 	AssemblerApplication.h		\
 			ScalerFragment.h		\
 			StringListFragment.h		\
 			StateTransitionFragment.h	\
+			InputBuffer.h			\
 			InputStage.h			\
 			InputStageCommand.h		\
 			FragmentQueue.h
