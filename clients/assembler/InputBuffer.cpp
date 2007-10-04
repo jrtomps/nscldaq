@@ -137,7 +137,8 @@ InputBuffer::getType() const
  * \retval Size of the buffer in words.  
  * \note This member is smart enough to know about jumbo buffers.
  */
-int getSize() const
+int 
+InputBuffer::getSize() const
 {
 	BHEADER* pHeader(reinterpret_cast<BHEADER*>(m_pBuffer));
 	int      nWords  = tohs(pHeader->nwds);
@@ -185,7 +186,7 @@ InputBuffer::isJumboBuffer() const
 {
 	BHEADER* pHeader(reinterpret_cast<BHEADER*>(m_pBuffer));
 	uint16_t revlevel = tohs(pHeader->buffmt);
-	return (revlevel >= JumboBufferRevLevel)
+	return (revlevel >= JumboBufferRevLevel);
 }
 //////////////////////////////////////////////////////////////////////////
 /*!
@@ -228,7 +229,7 @@ const uint16_t*
 InputBuffer::bodyPointer() const
 {
 	const BHEADER* pHeader(reinterpret_cast<BHEADER*>(m_pBuffer));
-	return &(pHEader[1]); 
+	return reinterpret_cast<const uint16_t*>(&(pHeader[1])); 
 }
 /*
  * Return the offset in words to the body of the buffer (more practically
@@ -266,7 +267,7 @@ InputBuffer::tohl(uint32_t datum) const
  * Convert a short in buffer byte order to host byte order.
  */
 uint16_t
-InputBuffer::tohs(uint32_t datum) const
+InputBuffer::tohs(uint16_t datum) const
 {
 	if (m_ssig == 0x0102) return datum; // Our byte order.
 	

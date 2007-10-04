@@ -25,6 +25,15 @@
 #endif
 #endif
 
+#ifndef __CRT_STDLIB_H
+#include <stdlib.h>
+#ifndef __CRT_STDLIB_H
+#define __CRT_STDLIB_H
+#endif
+#endif
+
+
+
 class EventFragment;
 class InputBufferIterator;
 /*!

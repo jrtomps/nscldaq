@@ -152,7 +152,7 @@ EventFragment::extractSize(const uint16_t* rawBuffer)
     //
     return low;
   }
-  uint32_t high = tohs(pHeader->unused[0], pHeader->ssignature);
+  uint32_t high = tohs(pHeader->nwdsHigh, pHeader->ssignature);
   return (high << 16) | low;
 }
 //
