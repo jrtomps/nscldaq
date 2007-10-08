@@ -147,10 +147,6 @@ public:
 
   static void onBuffer(ClientData clientData, int eventMask);
 
-  void processPhysicsBuffer(uint16_t* pBuffer);
-  void processStateChangeBuffer(uint16_t* pBuffer);
-  void processStringlistBuffer(uint16_t* pBuffer);
-  void processScalerBuffer(uint16_t* pBuffer);
   
   void processInputFailure(uint16_t* pPartialBuffer, int bytesRead,
 		  				   uint16_t  node);

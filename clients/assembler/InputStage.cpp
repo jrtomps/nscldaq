@@ -31,6 +31,8 @@
 
 
 #include "AssemblerCommand.h"
+#include "InputBufferFactory.h"
+#include "InputBuffer.h"
 
 #include <buftypes.h>
 #include <buffer.h>
@@ -406,139 +408,27 @@ InputStage::onBuffer(ClientData clientData, int eventMask)
 							  readyData->s_node);
 	}
 	else {
-		// Full data buffer read. Dispatch depending on the
-		// buffer type.
+		// Full data buffer read. Our input buffer factory can
+		// generate the appropriate type of input buffer which,
+		// in turn, will generate an appropriate typeof iterator that
+		// will return the event fragments we need to insert in the
+		// event fragment queue.
+		// This code implicitly assumes that all fragments in a buffer
+		// are of the same type and from the same node ...when it comes
+		// to maintaining the statistics.
+
+		InputBuffer*         pInputBuffer = InputBufferFactory::create(pBuffer);
+		InputBufferIterator* pIterator    = pInputBuffer->begin();
+		uint16_t             node         = pInputBuffer->getNode();
+		uint16_t             type         = pInputBuffer->getType();
 		
-		uint16_t type = EventFragment::extractType(pBuffer);
-		switch (type) {
-		case DATABF:
-			readyData->s_pObject->processPhysicsBuffer(pBuffer);
-			break;
-		case SCALERBF:
-		case SNAPSCBF:
-			readyData->s_pObject->processScalerBuffer(pBuffer);
-			break;
-		case STATEVARBF:
-		case RUNVARBF:
-		case PKTDOCBF:
-			readyData->s_pObject->processStringlistBuffer(pBuffer);
-			break;
-		case BEGRUNBF:
-		case ENDRUNBF:
-		case PAUSEBF:
-		case RESUMEBF:
-			readyData->s_pObject->processStateChangeBuffer(pBuffer);
-			break;
+		while (!pIterator->End()) {
+			EventFragment* pFragment = *(*pIterator);
+			m_queues[node]->insert(*pFragment);
+			updateCounters(node, type);
+			pIterator->next();
 		}
 	}
-}
-/////////////////////////////////////////////////////////////
-/*!
- *   Process a physics buffer in to a bunch of physics event fragments.
- *   The event fragments are queued on the appropriate event queue.
- *   When all events have been queued declareNewFragments is invoked
- *   To indicate this.  Throughout this, statistics are updated 
- *   as well.
- *  \param pBuffer   - Pointer to the raw physics buffer.
- */
-void
-InputStage::processPhysicsBuffer(uint16_t* pBuffer)
-{
-	uint16_t   node = EventFragment::extractNode(pBuffer);
-	uint16_t   nevt = EventFragment::extractEntityCount(pBuffer);
-	uint16_t* pBody = const_cast<uint16_t*>(EventFragment::bodyPointer(pBuffer));
-	uint16_t   ssig = EventFragment::extractSsig(pBuffer);
-	uint32_t   lsig = EventFragment::extractLsig(pBuffer);
-	
-	BHEADER*   pHeader= reinterpret_cast<BHEADER*>(pBuffer);
-	uint16_t   rev    = EventFragment::tohs(pHeader->buffmt, ssig);
-	
-	off_t      offset= 0;
-	
-	for  (int i =0; i < nevt; i++) {	
-		size_t           eventSize;
-		size_t           body; // word offset to body (tag).
-		uint32_t         timestamp;
-		if (rev < 6) {
-			eventSize = EventFragment::getWord(pBuffer, offset, ssig);
-			body = 1; 
-			timestamp = EventFragment::getLongword(pBuffer, offset+2, lsig);
-		}
-		else {
-			eventSize = EventFragment::getLongword(pBuffer, offset, lsig);
-			body = 2; // jumbo.
-			timestamp = EventFragment::getLongword(pBuffer, offset+3, lsig);
-		}
-
-		// The fragment knows the size.. we factor it out of the body
-		// so there's no need to worry later on if it's a 16 or 32 bit
-		// size.
-
-		PhysicsFragment* pFragment = new PhysicsFragment(node,
-								 pBody,
-								 eventSize - body,
-								 offset + body,
-								 timestamp);
-		m_queues[node]->insert(*pFragment);
-		updateCounters(node, DATABF);
-		offset += eventSize;
-	}
-	declareNewFragments(node);
-}
-///////////////////////////////////////////////////////////////
-/*!
- * Process a state change buffer. This results in queueing a
- * single event change fragment to the node's queue.
- */
-void
-InputStage::processStateChangeBuffer(uint16_t* pBuffer)
-{
-	uint16_t   node = EventFragment::extractNode(pBuffer);
-	uint16_t   type = EventFragment::extractType(pBuffer);
-	StateTransitionFragment* frag = new StateTransitionFragment(pBuffer);
-	
-	m_queues[node]->insert(*frag);
-	
-	updateCounters(node, type);
-	
-	declareNewFragments(node);
-}
-////////////////////////////////////////////////////////////////
-/*!
- * Process a string list buffer.  This results in queueing a
- * single string list fragment to the appropriate node's queue.
- */
-void
-InputStage::processStringlistBuffer(uint16_t* pBuffer)
-{
-	uint16_t node = EventFragment::extractNode(pBuffer);
-	uint16_t type = EventFragment::extractType(pBuffer);
-	
-	StringListFragment* pFrag = new StringListFragment(pBuffer);
-	
-	m_queues[node]->insert(*pFrag);
-	
-	updateCounters(node,type);
-	declareNewFragments(node);
-	
-}
-///////////////////////////////////////////////////////////////
-/*!
- * Process a scaler or snapshot scaler buffer, creating a single
- * scaler event fragment and queuing it on the appropriate node's
- * fragment queue.
- */
-void
-InputStage::processScalerBuffer(uint16_t* pBuffer)
-{
-	uint16_t node = EventFragment::extractNode(pBuffer);
-	uint16_t type = EventFragment::extractType(pBuffer);
-	
-	ScalerFragment* pFrag = new ScalerFragment(pBuffer);
-	
-	m_queues[node]->insert(*pFrag);
-	updateCounters(node, type);
-	declareNewFragments(node);
 }
 /////////////////////////////////////////////////////////////////
 /*!
