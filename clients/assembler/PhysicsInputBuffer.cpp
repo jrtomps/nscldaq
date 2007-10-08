@@ -17,7 +17,7 @@
 
 #include "PhysicsInputBuffer.h"
 #include "EventFragment.h"
-#include "PhysicsEventFragment.h"
+#include "PhysicsFragment.h"
 
 /*
  *  The canonicals are quite trivial.
@@ -38,14 +38,23 @@ PhysicsInputBuffer::operator=(const PhysicsInputBuffer& rhs)
 	return *this;
 }
 int 
-PhysicsInputBuffer::operator==(const PhysicsInputBuffer& rhs)
+PhysicsInputBuffer::operator==(const PhysicsInputBuffer& rhs) const
 {
 	return InputBuffer::operator==(rhs);
 }
 int
-PhysicsInputBuffer::operator!=(const PhysicsInputBuffer& rhs)
+PhysicsInputBuffer::operator!=(const PhysicsInputBuffer& rhs) const
 {
 		return !(*this == rhs);
+}
+
+/*!
+    Create the iterator for this buffer:
+*/
+InputBufferIterator*
+PhysicsInputBuffer::begin() const
+{
+  return new PhysicsInputBufferIterator(const_cast<PhysicsInputBuffer*>(this));
 }
 //////////////////////////////////////////////////////////////////////
 
@@ -54,10 +63,10 @@ PhysicsInputBuffer::operator!=(const PhysicsInputBuffer& rhs)
  * retaining a reference to the buffer we'll set up the offset
  * and event count from the base buffer.
  */
-PhysicInputBufferIterator::PhysicsInputBufferIterator(const PhysicsInputBufferIterator & rhs) :
+PhysicsInputBufferIterator::PhysicsInputBufferIterator(PhysicsInputBuffer* pBuffer) :
 	m_Buffer(*pBuffer),
 	m_remaining(pBuffer->getEntityCount()),
-	m_currentOffset(pBuffer->bodyPointer())
+	m_currentOffset(pBuffer->bodyPointer() - pBuffer->Pointer())
 	{
 	
 	}
@@ -67,7 +76,7 @@ PhysicInputBufferIterator::PhysicsInputBufferIterator(const PhysicsInputBufferIt
 PhysicsInputBufferIterator::PhysicsInputBufferIterator(const PhysicsInputBufferIterator& rhs) :
 	m_Buffer(rhs.m_Buffer),
 	m_remaining(rhs.m_remaining),
-	m_currentOffset(rhs.currentOffset)
+	m_currentOffset(rhs.m_currentOffset)
 	{
 	
 	}
@@ -77,13 +86,13 @@ PhysicsInputBufferIterator::PhysicsInputBufferIterator(const PhysicsInputBufferI
  * offset is the same, the number of remining events must be the same.
  */
 int
-PhysicsInputBufferIterator::operator==(const PhysicsInputBufferIterator& rhs)
+PhysicsInputBufferIterator::operator==(const PhysicsInputBufferIterator& rhs) const
 {
 	return (&m_Buffer == &rhs.m_Buffer)  &&
 			(m_currentOffset == rhs.m_currentOffset);
 }
 int
-PhysicInputBufferIterator::operator!=(const PhysicsInputBufferIterator& rhs)
+PhysicsInputBufferIterator::operator!=(const PhysicsInputBufferIterator& rhs) const
 {
 	return !(*this == rhs);
 }
@@ -97,9 +106,9 @@ PhysicsInputBufferIterator::Next()
 	// This is a no-op if we are already at the end:
 	
 	if(m_remaining) {
-		size_t eventSize = eventSize();
+		size_t size = eventSize();
 		m_remaining--;
-		m_currentOffset += eventSize;
+		m_currentOffset += size;
 	}
 }
 /////////////////////////////////////////////////////////////////////
@@ -131,12 +140,12 @@ PhysicsInputBufferIterator::operator*()
 		size_t   size = eventSize();
 		uint32_t timestamp;
 		size_t   tsOffset;
-		if (m_Buffer.isJumboBuffer() {
+		if (m_Buffer.isJumboBuffer()) {
 			tsOffset = m_currentOffset + 2;
 		} else {
 			tsOffset = m_currentOffset + 1;
 		}
-		timestamp = getLongword(tsOffset);
+		timestamp = m_Buffer.getLongword(tsOffset);
 		pResult = new PhysicsFragment(m_Buffer.getNode(),
 									  m_Buffer.Pointer() + tsOffset,
 									  size - tsOffset,
@@ -157,6 +166,6 @@ PhysicsInputBufferIterator::eventSize()
 		return m_Buffer.getLongword(m_currentOffset);
 	}
 	else {
-		returnm_Buffer.getWord(m_currentOffset);
+		return m_Buffer.getWord(m_currentOffset);
 	}
 }

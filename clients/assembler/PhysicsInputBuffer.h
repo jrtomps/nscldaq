@@ -18,18 +18,20 @@
 
 #ifndef __INPUTBUFFER_H
 #include "InputBuffer.h"
+#endif
+
 
 /*!
  *   Encapsulates a physics input buffer so that
  *   the correct type of iterator can be created 
  */
 
-class PhysicsInputBuffer : public InputBuffer;
+class PhysicsInputBuffer : public InputBuffer
 {
 public:
 	PhysicsInputBuffer(void* pBuffer);
 	PhysicsInputBuffer(const PhysicsInputBuffer& rhs);
-	PhysicInputBuffer& operator=(const PhysicsInputBuffer& rhs);
+	PhysicsInputBuffer& operator=(const PhysicsInputBuffer& rhs);
 	int operator==(const PhysicsInputBuffer& rhs) const;
 	int operator!=(const PhysicsInputBuffer& rhs) const;
 	
@@ -44,7 +46,7 @@ public:
  * Iterates through a physics input buffer, creating
  * the event fragments it contains.
  */
-class PhysicInputBufferIterator : public InputBufferIterator
+class PhysicsInputBufferIterator : public InputBufferIterator
 {
 private:
 	PhysicsInputBuffer&  m_Buffer;

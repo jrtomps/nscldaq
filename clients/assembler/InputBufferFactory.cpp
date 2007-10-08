@@ -34,7 +34,7 @@ InputBufferFactory::create(void* pBuffer)
 	// wrap the buffer type on top of itself and then select only
 	// the bottom bits:
 	
-	uint16_t* pB = reinterpret_cast<uint16_t>(pBuffer);
+	uint16_t* pB = reinterpret_cast<uint16_t*>(pBuffer);
 	uint16_t type= pB[1];
 	uint16_t swappedType;
 	swab(&type, &swappedType, sizeof(uint16_t));
@@ -65,5 +65,5 @@ InputBufferFactory::create(void* pBuffer)
 		break;
 	}
 
-	return pFragment;
+	return pResult;
 }
