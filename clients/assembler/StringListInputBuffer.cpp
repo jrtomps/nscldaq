@@ -105,7 +105,7 @@ StringListInputBufferIterator::Next()
 bool
 StringListInputBufferIterator::End()
 {
-	return m_haveFragment;
+	return !m_haveFragment;
 }
 /////////////////////////////////////////////////////////////////////
 /*!

@@ -102,7 +102,7 @@ StateTransitionInputBufferIterator::Next()
 bool
 StateTransitionInputBufferIterator::End() 
 {
-	return m_haveFragment;
+	return !m_haveFragment;
 }
 ///////////////////////////////////////////////////////////////////////
 /*!

@@ -663,6 +663,8 @@ AssemblerCommand::getConfiguration()
 
     // Add to the result list.
 
+    result.push_back(nodeInfo);
+
     p++;
   }
   return result;

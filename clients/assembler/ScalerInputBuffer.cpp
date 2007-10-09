@@ -166,7 +166,7 @@ ScalerInputBufferIterator::Next()
 bool
 ScalerInputBufferIterator::End()
 {
-	return m_haveFragment;
+	return !m_haveFragment;
 }
 //////////////////////////////////////////////////////////////////////
 /*!

@@ -49,6 +49,7 @@ FragmentQueue::remove()
   }
   EventFragment* result = peek();
   m_queue.pop_front();
+  return result;
 }
 /*!
    Return the number of elements in the queue:

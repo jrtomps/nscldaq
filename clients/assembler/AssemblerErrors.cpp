@@ -47,6 +47,7 @@ static const char * const pErrorMessages[] =
     "Object is stopped",
     "Object does not exist",
     "Event queue has no events.",
+    "No Nodes Specified in the configuration",
     "INVALID ERROR CODE!"
 };
 static const unsigned int MESSAGECOUNT(sizeof(pErrorMessages)/sizeof(char*));

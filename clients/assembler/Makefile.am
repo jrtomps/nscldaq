@@ -73,8 +73,9 @@ INCLUDES	= 	-I@top_srcdir@/TCL		\
 			$(TCL_FLAGS)			\
 			$(SPECTRODAQ_FLAGS)
 
-EXTRA_DIST=configtests.tcl
+EXTRA_DIST=configtests.tcl outstagetests.tcl inputstagetests.tcl
 
 installcheck-local:
 	$(bindir)/assembler configtests.tcl
 	$(bindir)/assembler outstagetests.tcl
+	$(bindir)/assembler inputstagetests.tcl

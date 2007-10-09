@@ -22,6 +22,9 @@
 #include "AssemblerErrors.h"
 #include "EventFragment.h"
 #include "PhysicsFragment.h"
+#include "AssemblerCommand.h"
+
+#include <list>
 #include <buftypes.h>
 #include <stdint.h>
 
@@ -170,6 +173,15 @@ InputStageCommand::createInputStage(CTCLInterpreter& interp,
 					"(Configuration)");
   }
   else {
+    list<AssemblerCommand::EventFragmentContributor> nodeList;
+    nodeList = m_pConfiguration->getConfiguration();
+    if(nodeList.size() == 0) {
+      return AssemblerErrors::setErrorMsg(interp,
+					  AssemblerErrors::NoNodesSpecified,
+					  "(Configuration)");
+
+    }
+
     m_pInputStage = new InputStage(*m_pConfiguration);
     return TCL_OK;
   }
@@ -196,7 +208,7 @@ InputStageCommand::destroyInputStage(CTCLInterpreter& interp,
   if(m_pInputStage) {
     if (!m_pInputStage->isRunning()) {
       delete m_pInputStage;
-      m_pInputStage = static_cast<InputStage*>(m_pInputStage);
+      m_pInputStage = static_cast<InputStage*>(0);
       return TCL_OK;
     }
     else {
@@ -230,25 +242,25 @@ InputStageCommand::destroyInputStage(CTCLInterpreter& interp,
  */
 int
 InputStageCommand::startInputStage(CTCLInterpreter& interp,
-								   std::vector<CTCLObject>& objv)
+				   std::vector<CTCLObject>& objv)
 {
-	if (m_pInputStage) {
-		if (!m_pInputStage->isRunning()) {
-			m_pInputStage->start();
-			return TCL_OK;
-		}
-		else {
-			return AssemblerErrors::setErrorMsg(interp,
-							    AssemblerErrors::Running,
-							    "(InputStage)");
-			
-		}
-	} 
-	else {
-		return	AssemblerErrors::setErrorMsg(interp,
-							AssemblerErrors::DoesNotExist,
-							"(InputStage)");
-	}
+  if (m_pInputStage) {
+    if (!m_pInputStage->isRunning()) {
+      m_pInputStage->start();
+      return TCL_OK;
+    }
+    else {
+      return AssemblerErrors::setErrorMsg(interp,
+					  AssemblerErrors::Running,
+					  "(InputStage)");
+      
+    }
+  } 
+  else {
+    return	AssemblerErrors::setErrorMsg(interp,
+					     AssemblerErrors::DoesNotExist,
+					     "(InputStage)");
+  }
 }
 ////////////////////////////////////////////////////////////////
 /*!
@@ -267,25 +279,25 @@ InputStageCommand::startInputStage(CTCLInterpreter& interp,
  */
 int
 InputStageCommand::stopInputStage(CTCLInterpreter& interp,
- 		   						  std::vector<CTCLObject>& objv)
+				  std::vector<CTCLObject>& objv)
 {
-	if (m_pInputStage) {
-		if (m_pInputStage->isRunning()) {
-			m_pInputStage->stop();
-			return TCL_OK;
-			
-		}
-		else {
-			return AssemblerErrors::setErrorMsg(interp,
-							    AssemblerErrors::Stopped,
-							    "(InputStage)");
-		}
-	}
-	else {
-		return AssemblerErrors::setErrorMsg(interp,
-				AssemblerErrors::DoesNotExist,
-				"(InputStage)");
-	}
+  if (m_pInputStage) {
+    if (m_pInputStage->isRunning()) {
+      m_pInputStage->stop();
+      return TCL_OK;
+      
+    }
+    else {
+      return AssemblerErrors::setErrorMsg(interp,
+					  AssemblerErrors::Stopped,
+					  "(InputStage)");
+    }
+  }
+  else {
+    return AssemblerErrors::setErrorMsg(interp,
+					AssemblerErrors::DoesNotExist,
+					"(InputStage)");
+  }
 }
 ///////////////////////////////////////////////////////////////
 /*!
@@ -343,6 +355,9 @@ InputStageCommand::statistics(CTCLInterpreter& interp,
 		
 		//  Now do the types by node:
 		
+		CTCLObject nodeTypeCountList;
+		nodeTypeCountList.Bind(interp);
+
 		for (int i =0; i < nodebyfrags.size(); i++) {
 			uint16_t node = nodebyfrags[i].first;
 			CTCLObject* nodeList =
@@ -352,9 +367,11 @@ InputStageCommand::statistics(CTCLInterpreter& interp,
 			nodeItem.Bind(interp);
 			nodeItem += node;
 			nodeItem += *nodeList;
-			result   += nodeItem;
+			nodeTypeCountList += nodeItem;
 			delete nodeList;
 		}
+		result += nodeTypeCountList;
+
 		// All done set the result and return normal:
 		
 		interp.setResult(result);
@@ -407,7 +424,7 @@ InputStageCommand::clearStatistics(CTCLInterpreter& interp,
  * \pre m_pInputStage->isRunning is true.
  * \param interp - Interpreter that's running this command
  * \param objv   - Vector of object encapsulated Tcl_Obj's that
- *                 are the command line words (ignored)
+ *                 are the command line words
  * \return int
  * \retval TCL_ERROR - One of the following:
  *                    - DoesNotExist,
@@ -444,7 +461,7 @@ InputStageCommand::inject(CTCLInterpreter& interp,
 	// Now build the buffer:
 	
 	uint16_t   buffer[BUFFERSIZE];
-	uint16_t*  pDest;
+	uint16_t*  pDest(buffer);
 	
 	for (int i=0; i < objv[2].llength(); i++) {
 		CTCLObject bufferElement = objv[2].lindex(i);

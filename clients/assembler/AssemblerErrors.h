@@ -54,7 +54,8 @@ public:
 	Stopped,
 	DoesNotExist,
 	Empty,
-     INVALIDERRORCODE
+	NoNodesSpecified,
+	INVALIDERRORCODE
     } ErrorCode;
         
     static std::string errorText(ErrorCode code);

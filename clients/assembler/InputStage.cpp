@@ -92,19 +92,7 @@ InputStage::~InputStage()
   if (isRunning()) {
     stop();			// This cleans up a lot of stuff.
   }                             // and notifies clients.
-  
-  // Destroy the fragment queues:
-  // fragments are dynamically allocated so...
 
-  for (int i = 0; i < 0x1000; i++) {
-    if (m_queues[i]) {
-      FragmentQueue& queue(*(m_queues[i]));
-      while (EventFragment* frag = queue.remove()) {
-	delete frag;
-      }
-      delete m_queues[i];
-    }
-  }
 }
 
 /////////////////////////////////////////////////////////////////////////
@@ -499,12 +487,14 @@ InputStage::startNode(const char* nodeName, uint16_t nodeId)
 	string program = spectclDaqPath();
 	string url     = spectclDaqURL(nodeName);
 	
-	const char*    argv[2];
+	const char*    argv[3];
 	argv[0]      = program.c_str();
 	argv[1]      = url.c_str();
-	
+	argv[2]      = "-everything";
+
+
 	CTCLChannel* pChannel = new CTCLChannel(m_pConfig->getInterpreter(),
-						2,
+						3,
 						argv,
 						0);
 	pChannel->SetEncoding("binary");
@@ -558,6 +548,7 @@ InputStage::stopNode(uint16_t node)
 		pInputReadyData pData = *pChannel;
 		emptyQueue(node);
 		delete m_queues[node];
+		m_queues[node] = static_cast<FragmentQueue*>(0);
 		
 		CTCLChannel* pTclChannel = pData->s_pChannel;
 		m_channels.erase(pChannel);
@@ -667,7 +658,7 @@ void
 InputStage::updateCounters(uint16_t node, uint16_t type)
 {
 	m_fragmentCounts[node]++;
-	m_typeCounts[node]++;
+	m_typeCounts[type]++;
 	m_nodeTypeCounts[node][type]++;
 }
 /////////////////////////////////////////////////////////
