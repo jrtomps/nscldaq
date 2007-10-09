@@ -1,7 +1,10 @@
 package require tcltest
 namespace import ::tcltest::*
 
+set env(SILENT) quiet;     # Shuts up the spectlcdaq helper program.
+
 ################ Creating the input stage ###################
+
 
 
 proc setupConfiguration {} {
