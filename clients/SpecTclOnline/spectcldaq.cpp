@@ -31,6 +31,8 @@ static const char* Copyright= "(C) Copyright Michigan State University 2002, All
 #include <unistd.h>
 #include <CopyrightNotice.h>
 
+#include <fstream>
+
 #ifdef HAVE_STD_NAMESPACE
 using namespace std;
 #endif
@@ -99,14 +101,23 @@ class DAQBuff : public DAQROCNode {
 
     // Print out copyright information:
 
-    CopyrightNotice::Notice(cerr, argv[0], "2.0", "2002");
-    CopyrightNotice::AuthorCredit(cerr, argv[0],
-				  "Ron Fox", "Eric Kasten", NULL);
+
+    ofstream CERR;
+
+    if (getenv("SILENT")) {
+      CERR.open("/dev/null", ios::out);
+    } else {
+      CopyrightNotice::Notice(cerr, argv[0], "2.0", "2002");
+      CopyrightNotice::AuthorCredit(cerr, argv[0],
+				    "Ron Fox", "Eric Kasten", NULL);
+      CERR.open("/dev/tty", ios::out);
+    }
+
 
     // In case we're running spectrodaq on something other than
     // the default URL.
     if (argc > 1) {
-      cerr << "Using URL: " << argv[1] << endl;
+      CERR << "Using URL: " << argv[1] << endl;
       sinkurl = argv[1];
     } 
 
@@ -115,19 +126,30 @@ class DAQBuff : public DAQROCNode {
 
     // Add a sink for this tag
 
-    sinkid = daq_link_mgr.AddSink(sinkurl,2, ALLBITS_MASK, COS_UNRELIABLE);
+    string eventModeString("unreliable");
+    int    eventMode(COS_UNRELIABLE);
+
+    if (argc > 2) {
+      if (strcmp(argv[2], "-everything") == 0) {
+	eventModeString  = "reliable";
+	eventMode        = COS_RELIABLE;
+      }
+    }
+
+    sinkid = daq_link_mgr.AddSink(sinkurl,2, ALLBITS_MASK, eventMode);
     if(sinkid <= 0) {
-      cerr << "Failed to add unreliable sink\n";
+      CERR << "Failed to add " << eventModeString << " sink\n";
       exit(-1);
     }
-    cerr << "Added unreliable sink " << sinkid << endl;
+    CERR << "Added " << eventModeString << " sink " << sinkid << endl;
+
     sinkid = daq_link_mgr.AddSink(sinkurl,3, ALLBITS_MASK, COS_RELIABLE);
 
 
     // If the sinkid == 0, then the AddSink failed.
-    cerr << "Added Reliable Sink Id " << sinkid << endl;
+    CERR << "Added Reliable Sink Id " << sinkid << endl;
     if (sinkid <= 0) {
-      cerr << "Failed to add a sink." << endl;
+      CERR << "Failed to add a sink." << endl;
       exit(-1);
     }
 
@@ -140,14 +162,14 @@ class DAQBuff : public DAQROCNode {
     int fd = fileno(stdout);
     int flags = fcntl(fd, F_GETFL, 0);
     if(flags == -1) {
-      cerr << "Failed to read initial stdout flag set " << strerror(errno) << endl;
+      CERR << "Failed to read initial stdout flag set " << strerror(errno) << endl;
       exit(-1);
     }
 
     flags |= O_NONBLOCK;
     int stat = fcntl(fd, F_SETFL, flags);
     if(stat == -1) {
-      cerr << "Failed to set stdout to nonblocking mode " << strerror(errno) << endl;
+      CERR << "Failed to set stdout to nonblocking mode " << strerror(errno) << endl;
     }
 
     while(1) {

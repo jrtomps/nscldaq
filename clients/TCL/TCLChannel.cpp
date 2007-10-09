@@ -284,6 +284,7 @@ DAMAGES.
 #include <TCLVersionHacks.h>
 #include <TCLInterpreter.h>
 #include <TCLChannel.h>
+#include <TCLException.h>
 #include <tcl.h>
 #include <stdio.h>
 #include <string.h>
@@ -625,7 +626,16 @@ CTCLChannel::Flush()
 void
 CTCLChannel::Close()
 {
+
+
   if(m_fCloseOnDestroy) {
+
+    // Unless we set the state to nonblocking, a command channel
+    // will block until the subprocess dies...
+
+    Tcl_SetChannelOption(getInterpreter()->getInterpreter(),
+			 m_Channel, "-blocking", "0");
+
     if(m_fRegistered) {
       Tcl_UnregisterChannel(getInterpreter()->getInterpreter(), m_Channel);
     } 
@@ -650,13 +660,20 @@ CTCLChannel::Register()
     Set the input/output encoding of the channel (binary means no encoding).
     \param name (string):
         The name of the encoding.
+    \throw CTCLException - if the operation fails.
 */
 void
 CTCLChannel::SetEncoding(string name)
 {
-  Tcl_SetChannelOption(getInterpreter()->getInterpreter(),
-		       m_Channel, "-encoding", 
-		       (tclConstCharPtr)name.c_str());
+  int status = Tcl_SetChannelOption(getInterpreter()->getInterpreter(),
+				    m_Channel, "-encoding", 
+				    (tclConstCharPtr)name.c_str());
+  if (status != TCL_OK) {
+    throw CTCLException(*(getInterpreter()),
+			status,
+			string("Setting channel encoding to ") + 
+			name);
+  }
 }
 /*!
    Return the current encoding.
