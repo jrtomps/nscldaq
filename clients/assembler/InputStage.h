@@ -147,7 +147,7 @@ public:
 
   static void onBuffer(ClientData clientData, int eventMask);
 
-  
+  void processBuffer(void* pBuffer);
   void processInputFailure(uint16_t* pPartialBuffer, int bytesRead,
 		  				   uint16_t  node);
 

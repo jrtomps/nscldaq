@@ -390,7 +390,7 @@ InputStage::onBuffer(ClientData clientData, int eventMask)
 	int bytesToRead   = BUFFERSIZE*(sizeof(uint16_t));
 	int bytesRead;
 	while (bytesToRead && 
-	       (bytesRead = readyData->s_pChannel->Read((void**)pNew, bytesToRead))) {
+	       ((bytesRead = readyData->s_pChannel->Read((void**)pNew, bytesToRead)) > 0)) {
 	  uint8_t* pData = *pNew;
 	  memcpy(p, pData, bytesRead);
 
@@ -408,27 +408,38 @@ InputStage::onBuffer(ClientData clientData, int eventMask)
 							  readyData->s_node);
 	}
 	else {
-		// Full data buffer read. Our input buffer factory can
-		// generate the appropriate type of input buffer which,
-		// in turn, will generate an appropriate typeof iterator that
-		// will return the event fragments we need to insert in the
-		// event fragment queue.
-		// This code implicitly assumes that all fragments in a buffer
-		// are of the same type and from the same node ...when it comes
-		// to maintaining the statistics.
+		// Full data buffer read.
+	  readyData->s_pObject->processBuffer(pBuffer);
 
+
+
+	}
+}
+/////////////////////////////////////////////////////////////////////////////////
+/*!
+  Our input buffer factory can
+  generate the appropriate type of input buffer which,
+  in turn, will generate an appropriate typeof iterator that
+  will return the event fragments we need to insert in the
+  event fragment queue.
+  This code implicitly assumes that all fragments in a buffer
+  are of the same type and from the same node ...when it comes
+  to maintaining the statistics.
+  */
+void
+InputStage::processBuffer(void* pBuffer)
+{
 		InputBuffer*         pInputBuffer = InputBufferFactory::create(pBuffer);
 		InputBufferIterator* pIterator    = pInputBuffer->begin();
 		uint16_t             node         = pInputBuffer->getNode();
 		uint16_t             type         = pInputBuffer->getType();
 		
 		while (!pIterator->End()) {
-			EventFragment* pFragment = *(*pIterator);
-			m_queues[node]->insert(*pFragment);
-			updateCounters(node, type);
-			pIterator->next();
+		  EventFragment* pFragment = *(*pIterator);
+		  m_queues[node]->insert(*pFragment);
+		  updateCounters(node, type);
+		  pIterator->Next();
 		}
-	}
 }
 /////////////////////////////////////////////////////////////////
 /*!
@@ -496,6 +507,7 @@ InputStage::startNode(const char* nodeName, uint16_t nodeId)
 						2,
 						argv,
 						0);
+	pChannel->SetEncoding("binary");
 	m_queues[nodeId] = new FragmentQueue;
 	
 	// Create the callback for readability.
@@ -604,7 +616,7 @@ InputStage::declareStarting()
 }
 //////////////////////////////////////////////////////////////
 /*!
- * Declre a stopping event.
+ * Declare a stopping event.
  */
 void
 InputStage::declareStopping()
@@ -660,7 +672,7 @@ InputStage::updateCounters(uint16_t node, uint16_t type)
 }
 /////////////////////////////////////////////////////////
 /*
- * Compute the path to th3e spectcldaq program.
+ * Compute the path to the spectcldaq program.
  * This is a path join of the PREFIX externally defined
  * preprocessor variable, bin and spectcldaq.
  * We're just going to use PATHSEP as the path

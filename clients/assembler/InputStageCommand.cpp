@@ -467,36 +467,10 @@ InputStageCommand::inject(CTCLInterpreter& interp,
 	// Dispatch it to the right buffer processor based on type.
 	
 	uint16_t type = buffer[1];   // Buffer type...
+
 	
 	try {
-		switch (type) {
-		case DATABF:
-			m_pInputStage->processPhysicsBuffer(buffer);
-			break;
-		case SCALERBF:
-		case SNAPSCBF:
-			m_pInputStage->processScalerBuffer(buffer);
-			break;
-		case STATEVARBF:
-		case RUNVARBF:
-		case PKTDOCBF:
-		case PARAMDESCRIP:
-			m_pInputStage->processStringlistBuffer(buffer);
-			break;
-		case BEGRUNBF:
-		case ENDRUNBF:
-		case PAUSEBF:
-		case RESUMEBF:
-			m_pInputStage->processStateChangeBuffer(buffer);
-			break;
-		default:
-			// Bad buffer type...
-			{
-				string result = "Injecting an unrecognized buffer type";
-				interp.setResult(result);
-				return TCL_ERROR;
-			}
-		}
+	  m_pInputStage->processBuffer(buffer);
 	}
 	catch (...) {
 		return AssemblerErrors::setErrorMsg(interp,
