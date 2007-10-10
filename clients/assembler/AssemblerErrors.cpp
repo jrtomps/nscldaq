@@ -48,6 +48,7 @@ static const char * const pErrorMessages[] =
     "Object does not exist",
     "Event queue has no events.",
     "No Nodes Specified in the configuration",
+    "Event is too small to have a timestamp.",
     "INVALID ERROR CODE!"
 };
 static const unsigned int MESSAGECOUNT(sizeof(pErrorMessages)/sizeof(char*));

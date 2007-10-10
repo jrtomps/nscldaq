@@ -55,6 +55,7 @@ public:
 	DoesNotExist,
 	Empty,
 	NoNodesSpecified,
+	TooSmallForTimestamp,
 	INVALIDERRORCODE
     } ErrorCode;
         

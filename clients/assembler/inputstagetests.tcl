@@ -15,6 +15,15 @@ proc setupConfiguration {} {
 proc cleanupConfiguration {} {
     inputstage destroy
     assembler clear
+    catch {exec killall -9 spectcldaq}
+}
+
+proc countedString {string length} {
+    incr length -1
+    while {[string length $string] < $length} {
+	append string " "
+    }
+    return $string
 }
 
 
@@ -93,7 +102,7 @@ test start-3.1 {Start with normal completion}        \
     -cleanup {
 	inputstage stop
 	cleanupConfiguration
-	exec killall spectcldaq
+
     }
 
 test start-3.2 {Start a started stage is an error.} \
@@ -108,7 +117,6 @@ test start-3.2 {Start a started stage is an error.} \
     -cleanup {
 	inputstage stop
 	cleanupConfiguration
-	exec killall spectcldaq
     }                                 \
     -returnCodes error                \
     -result "Object is in the running state\n(InputStage)"
@@ -129,7 +137,7 @@ test start-3.3 {deleting a started input stage is an error} \
     -cleanup {
 	inputstage stop
 	cleanupConfiguration
-	exec killall spectcldaq
+
     }
 
 ################### stopping an input stage
@@ -198,7 +206,144 @@ test inject-6.0 {Inject statevar buffer} \
     -result {{{128 1}} {{4 1}} {{128 {{4 1}}}}}
 
 
+test inject-6.1 {Inject a state change buffer} \
+    -setup {
+	setupConfiguration
+	inputstage create
+	inputstage start
+    }          \
+    -body {
+	set header [list 64 11 0 1 1 0 0 0 0x80 0 6 0x0102 0x0304 0x0102 0 0]
+	set title [countedString "this is a title" 80]
+	set startTime [list 0 0]
+	set date [list 10 10 2007 9 17 0]
 
+	set buffer [concat $header $title $startTime $date]
+
+
+	inputstage inject $buffer
+	inputstage statistics
+    }                      \
+    -cleanup {
+	inputstage stop
+	cleanupConfiguration
+    }                      \
+    -result {{{128 1}} {{11 1}} {{128 {{11 1}}}}}
+
+test inject-6.2 {Inject a scaler buffer} \
+    -setup {
+	setupConfiguration
+	inputstage create
+	inputstage start
+    }          \
+    -body {
+	set header [list [expr 28+32] 2 0 1 1 0 32 0 0x80 0 6 0x0102 0x0304 0x0102 0 0]
+	set end    [list 10 0]
+	set start  [list 0 0]
+	set unused [list 0 0 0]
+	for {set i 0} {$i < 32} {incr i} {
+	    lappend scalers $i
+	}
+	set buffer [concat $header $end $unused $start $unused $scalers]
+
+	inputstage inject $buffer
+	inputstage statistics
+    }                      \
+    -cleanup {
+	inputstage stop
+	cleanupConfiguration
+    }                      \
+    -result {{{128 1}} {{2 1}} {{128 {{2 1}}}}}
+
+test inject-6.3 {Inject an event buffer with 3 events non jumbo buffers} \
+    -setup {
+	setupConfiguration
+	inputstage create
+	inputstage start
+    }          \
+    -body {
+	set header [list 46 1 0 1 1 0 3 0 0x80 0 5 0x0102 0x0304 0x0102 0 0]
+	set event  [list 10 0 1 2 3 4 5 6 7 8 9]
+	set buffer [concat $header $event $event $event]
+
+
+	inputstage inject $buffer
+	inputstage statistics
+    }                      \
+    -cleanup {
+	inputstage stop
+	cleanupConfiguration
+    }                      \
+    -result {{{128 3}} {{1 3}} {{128 {{1 3}}}}}
+
+test inject-6.4 {Inject a scaler buffer  with a bad node id.} \
+    -setup {
+	setupConfiguration
+	inputstage create
+	inputstage start
+    }          \
+    -body {
+	set header [list [expr 28+32] 2 0 1 1 0 32 0 0x81 0 6 0x0102 0x0304 0x0102 0 0]
+	set end    [list 10 0]
+	set start  [list 0 0]
+	set unused [list 0 0 0]
+	for {set i 0} {$i < 32} {incr i} {
+	    lappend scalers $i
+	}
+	set buffer [concat $header $end $unused $start $unused $scalers]
+
+	inputstage inject $buffer
+	inputstage statistics
+    }                      \
+    -cleanup {
+	inputstage stop
+	cleanupConfiguration
+    }                      \
+    -returnCodes error      \
+    -result "There is no node with this node id\nInjecting data"
+
+test inject-6.5 {Inject an event that is too small to have a timestamp} \
+    -setup {
+	setupConfiguration
+	inputstage create
+	inputstage start
+    }          \
+    -body {
+	set header [list 46 1 0 1 1 0 1 0 0x80 0 5 0x0102 0x0304 0x0102 0 0]
+	set event  [list 1]
+	set buffer [concat $header $event $event $event]
+
+
+	inputstage inject $buffer
+	inputstage statistics
+    }                      \
+    -cleanup {
+	inputstage stop
+	cleanupConfiguration
+    }  \
+    -returnCodes error \
+    -result "Event is too small to have a timestamp.\nInjecting data"
+
+test inject-6.6 {Inject events for a jumbo buffer} \
+    -setup {
+	setupConfiguration
+	inputstage create
+	inputstage start
+    }          \
+    -body {
+	set header [list 46 1 0 1 1 0 3 0 0x80 0 6 0x0102 0x0304 0x0102 0 0]
+	set event  [list 11 0 0 1 2 3 4 5 6 7 8 9]
+	set buffer [concat $header $event $event $event]
+
+
+	inputstage inject $buffer
+	inputstage statistics
+    }                      \
+    -cleanup {
+	inputstage stop
+	cleanupConfiguration
+    }                      \
+    -result {{{128 3}} {{1 3}} {{128 {{1 3}}}}}
 
 ############## Report results and exit ###################
 

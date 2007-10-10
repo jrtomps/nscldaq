@@ -120,11 +120,29 @@ int parseTime(const char* timeString,
   int hour, min, sec;
   int year;
 
+  // times could be 24 hr clock or could be 12 hr with AM/PM >sigh<
+  // First try 24 hr.
+
   int status = sscanf(timeString,
 		     "%s %s %d %d:%d:%d %s %d",
 		     wkday, month, &day, &hour, &min, &sec, tz, &year);
   if (status != 8) {
-    return 0;
+    // try 12 hr with AM/PM:
+
+    char ampm[5];
+    status = sscanf(timeString,
+		    "%s %s %d %d:%d:%d %s %s %d",
+		    wkday, month, &day, &hour, &min, &sec, ampm, tz, &year);
+    if (status == 9) {
+      if (strcmp(ampm, "PM") == 0) {
+	// Convert hours to 24 hr format:
+
+	hour +=  12;
+      }
+    } 
+    else {
+      return 0;
+    }
   }
 
   // Do the easy stuff first:
@@ -496,6 +514,8 @@ AssemblerOutputStage::controlEvent(CTCLInterpreter&      interp,
 
 
   // Now try to dispatch:
+
+  objv[4].Bind(interp);
 
   if (isStateTransitionEvent(eventType)) {
     return submitFakeStateTransition(interp, eventType, node, objv[4]);

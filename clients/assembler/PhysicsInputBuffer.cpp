@@ -18,7 +18,10 @@
 #include "PhysicsInputBuffer.h"
 #include "EventFragment.h"
 #include "PhysicsFragment.h"
+#include "EventTooSmallException.h"
+#include <string>
 
+using namespace std;
 /*
  *  The canonicals are quite trivial.
  */
@@ -135,24 +138,29 @@ PhysicsInputBufferIterator::End()
 EventFragment*
 PhysicsInputBufferIterator::operator*()
 {
-	EventFragment* pResult(0);
-	if(m_remaining) {
-		size_t   size = eventSize();
-		uint32_t timestamp;
-		size_t   tsOffset;
-		if (m_Buffer.isJumboBuffer()) {
-			tsOffset = m_currentOffset + 2;
-		} else {
-			tsOffset = m_currentOffset + 1;
-		}
-		timestamp = m_Buffer.getLongword(tsOffset);
-		pResult = new PhysicsFragment(m_Buffer.getNode(),
-									  m_Buffer.Pointer() + tsOffset,
-									  size - tsOffset,
-									  timestamp);
-									  
-	}
-	return pResult;
+  EventFragment* pResult(0);
+  if(m_remaining) {
+    size_t   size = eventSize();
+    uint32_t timestamp;
+    size_t   tsOffset;
+    if (m_Buffer.isJumboBuffer()) {
+      tsOffset = 2;
+    } else {
+      tsOffset =  1;
+    }
+    if (tsOffset >= size) {
+      throw EventTooSmallException(size,
+				   tsOffset,
+				   string("PhysicsInputBufferIterator::operator()"));
+    }
+    timestamp = m_Buffer.getLongword(m_currentOffset + tsOffset);
+    pResult = new PhysicsFragment(m_Buffer.getNode(),
+				  m_Buffer.Pointer()  + m_currentOffset + tsOffset,
+				  size - tsOffset,
+				  timestamp);
+    
+  }
+  return pResult;
 }
 /////////////////////////////////////////////////////////////////
 /*
@@ -162,10 +170,10 @@ PhysicsInputBufferIterator::operator*()
 size_t 
 PhysicsInputBufferIterator::eventSize()
 {
-	if (m_Buffer.isJumboBuffer()) {
-		return m_Buffer.getLongword(m_currentOffset);
-	}
-	else {
-		return m_Buffer.getWord(m_currentOffset);
-	}
+  if (m_Buffer.isJumboBuffer()) {
+    return m_Buffer.getLongword(m_currentOffset);
+  }
+  else {
+    return m_Buffer.getWord(m_currentOffset);
+  }
 }

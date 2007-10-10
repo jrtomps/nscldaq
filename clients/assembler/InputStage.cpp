@@ -421,12 +421,18 @@ InputStage::processBuffer(void* pBuffer)
 		InputBufferIterator* pIterator    = pInputBuffer->begin();
 		uint16_t             node         = pInputBuffer->getNode();
 		uint16_t             type         = pInputBuffer->getType();
-		
-		while (!pIterator->End()) {
-		  EventFragment* pFragment = *(*pIterator);
-		  m_queues[node]->insert(*pFragment);
-		  updateCounters(node, type);
-		  pIterator->Next();
+
+		if (m_queues[node]) {
+		  while (!pIterator->End()) {
+		    EventFragment* pFragment = *(*pIterator);
+		    m_queues[node]->insert(*pFragment);
+		    updateCounters(node, type);
+		    pIterator->Next();
+		  }
+		} 
+		else {
+		  throw InvalidNodeException(node,
+					     "processing buffer in input stage");
 		}
 }
 /////////////////////////////////////////////////////////////////

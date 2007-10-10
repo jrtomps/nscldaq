@@ -23,6 +23,8 @@
 #include "EventFragment.h"
 #include "PhysicsFragment.h"
 #include "AssemblerCommand.h"
+#include "InvalidNodeException.h"
+#include "EventTooSmallException.h"
 
 #include <list>
 #include <buftypes.h>
@@ -475,9 +477,9 @@ InputStageCommand::inject(CTCLInterpreter& interp,
 		}
 		catch(...)  {
 			// Not an int...
-			
-			string value = bufferElement;
-			pDest = static_cast<uint16_t*>(installString(pDest, value));
+		  string value = bufferElement;
+		  pDest = static_cast<uint16_t*>(installString(pDest, value));
+		  
 		}
 	}
 	
@@ -488,6 +490,16 @@ InputStageCommand::inject(CTCLInterpreter& interp,
 	
 	try {
 	  m_pInputStage->processBuffer(buffer);
+	}
+	catch(InvalidNodeException err) {
+	  return AssemblerErrors::setErrorMsg(interp,
+					      AssemblerErrors::NoSuchId,
+					      "Injecting data");
+	}
+	catch (EventTooSmallException err) {
+	  return AssemblerErrors::setErrorMsg(interp,
+					      AssemblerErrors::TooSmallForTimestamp,
+					      "Injecting data");
 	}
 	catch (...) {
 		return AssemblerErrors::setErrorMsg(interp,

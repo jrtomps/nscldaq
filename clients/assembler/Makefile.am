@@ -12,6 +12,7 @@ assembler_SOURCES =	AssemblerApplication.cpp	\
 			InvalidNodeException.cpp	\
 			AssemblerOutputStage.cpp	\
 			AssemblerWrongStateException.cpp \
+			EventTooSmallException.cpp	\
 			EventFragment.cpp		\
 			PhysicsFragment.cpp		\
 			ScalerFragment.cpp		\
@@ -39,6 +40,7 @@ noinst_HEADERS = 	AssemblerApplication.h		\
 			InvalidNodeException.h		\
 			AssemblerOutputStage.h		\
 			AssemblerWrongStateException.h	\
+			EventTooSmallException.h	\
 			EventFragment.h			\
 			PhysicsFragment.h		\
 			ScalerFragment.h		\
