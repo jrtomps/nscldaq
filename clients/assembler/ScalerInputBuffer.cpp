@@ -198,7 +198,8 @@ ScalerInputBufferIterator::operator*()
 		uint32_t* bodyCopy = new uint32_t[bodyLongs];
 		
 		for (int i=0; i < bodyLongs; i++) {
-			bodyCopy[i] = m_buffer.getLongword(bodyOffset + i);
+			bodyCopy[i] = m_buffer.getLongword(bodyOffset + 
+							   i*sizeof(uint32_t)/sizeof(uint16_t));
 		}
 		pReturnValue = new ScalerFragment(type, node, 
 						  reinterpret_cast<uint16_t*>(bodyCopy), 

@@ -114,7 +114,7 @@ StateTransitionInputBufferIterator::operator*()
 	EventFragment* pResult(0);
 	
 	if (m_haveFragment) {
-		pResult = new StateTransitionFragment(m_Buffer.Pointer());
+		pResult = new StateTransitionFragment(const_cast<uint16_t*>(m_Buffer.Pointer()));
 	}
 	return pResult;
 }

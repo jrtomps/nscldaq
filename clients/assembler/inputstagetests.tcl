@@ -3,7 +3,20 @@ namespace import ::tcltest::*
 
 set env(SILENT) quiet;     # Shuts up the spectlcdaq helper program.
 
+
+
 ################ Creating the input stage ###################
+
+set monitorEvent ""
+set monitorNode  ""
+
+proc monitorCallback {event node} {
+    global monitorEvent
+    global monitorNode
+
+    set monitorEvent $event
+    set monitorNode $node
+}
 
 
 
@@ -218,7 +231,7 @@ test inject-6.1 {Inject a state change buffer} \
 	set startTime [list 0 0]
 	set date [list 10 10 2007 9 17 0]
 
-	set buffer [concat $header $title $startTime $date]
+	set buffer [concat $header [list $title] $startTime $date]
 
 
 	inputstage inject $buffer
@@ -237,12 +250,12 @@ test inject-6.2 {Inject a scaler buffer} \
 	inputstage start
     }          \
     -body {
-	set header [list [expr 28+32] 2 0 1 1 0 32 0 0x80 0 6 0x0102 0x0304 0x0102 0 0]
+	set header [list [expr 26+64] 2 0 1 1 0 32 0 0x80 0 6 0x0102 0x0304 0x0102 0 0]
 	set end    [list 10 0]
 	set start  [list 0 0]
 	set unused [list 0 0 0]
 	for {set i 0} {$i < 32} {incr i} {
-	    lappend scalers $i
+	    lappend scalers $i 0 
 	}
 	set buffer [concat $header $end $unused $start $unused $scalers]
 
@@ -263,7 +276,7 @@ test inject-6.3 {Inject an event buffer with 3 events non jumbo buffers} \
     }          \
     -body {
 	set header [list 46 1 0 1 1 0 3 0 0x80 0 5 0x0102 0x0304 0x0102 0 0]
-	set event  [list 10 0 1 2 3 4 5 6 7 8 9]
+	set event  [list 11 0 1 2 3 4 5 6 7 8 9]
 	set buffer [concat $header $event $event $event]
 
 
@@ -283,12 +296,12 @@ test inject-6.4 {Inject a scaler buffer  with a bad node id.} \
 	inputstage start
     }          \
     -body {
-	set header [list [expr 28+32] 2 0 1 1 0 32 0 0x81 0 6 0x0102 0x0304 0x0102 0 0]
+	set header [list [expr 26+64] 2 0 1 1 0 32 0 0x81 0 6 0x0102 0x0304 0x0102 0 0]
 	set end    [list 10 0]
 	set start  [list 0 0]
 	set unused [list 0 0 0]
 	for {set i 0} {$i < 32} {incr i} {
-	    lappend scalers $i
+	    lappend scalers $i 0
 	}
 	set buffer [concat $header $end $unused $start $unused $scalers]
 
@@ -332,7 +345,7 @@ test inject-6.6 {Inject events for a jumbo buffer} \
     }          \
     -body {
 	set header [list 46 1 0 1 1 0 3 0 0x80 0 6 0x0102 0x0304 0x0102 0 0]
-	set event  [list 11 0 0 1 2 3 4 5 6 7 8 9]
+	set event  [list 12 0  0 1 2 3 4 5 6 7 8 9]
 	set buffer [concat $header $event $event $event]
 
 
@@ -344,6 +357,411 @@ test inject-6.6 {Inject events for a jumbo buffer} \
 	cleanupConfiguration
     }                      \
     -result {{{128 3}} {{1 3}} {{128 {{1 3}}}}}
+
+################ Monitor scripts #######################
+
+test monitor-7.0 {Monitor startup callback} \
+    -setup {
+	setupConfiguration
+	inputstage create
+	set monitorEvent ""
+	set monitorNode ""
+    }                               \
+    -body {
+	inputstage monitor monitorCallback
+	inputstage start
+
+	set monitorEvent
+    }                              \
+    -result startup               \
+    -cleanup {
+	inputstage unmonitor
+	inputstage stop
+	cleanupConfiguration
+    }
+
+
+test monitor-7.1 {Monitor stop callback} \
+    -setup {
+	setupConfiguration
+	inputstage create
+	set monitorEvent ""
+	set monitorNode ""
+	inputstage start
+    }                               \
+    -body {
+	inputstage monitor monitorCallback
+	inputstage stop
+	set monitorEvent
+    }                                 \
+    -result shutdown                 \
+    -cleanup {
+	inputstage unmonitor
+	cleanupConfiguration
+    }
+
+test monitor-7.2 {monitor new fragments callback}  \
+    -setup {
+	setupConfiguration
+	inputstage create
+	set monitorEvent ""
+	set monitorNode ""
+	inputstage start
+    }        \
+    -body {
+	inputstage monitor monitorCallback
+
+	# Create/inject the buffer.
+
+	set header [list [expr 26+64] 2 0 1 1 0 32 0 0x80 0 6 0x0102 0x0304 0x0102 0 0]
+	set end    [list 10 0]
+	set start  [list 0 0]
+	set unused [list 0 0 0]
+	for {set i 0} {$i < 32} {incr i} {
+	    lappend scalers $i 0
+	}
+	set buffer [concat $header $end $unused $start $unused $scalers]
+
+	inputstage inject $buffer
+
+	list $monitorEvent $monitorNode
+    }    \
+    -result {new 128}        \
+    -cleanup {
+	inputstage unmonitor
+	inputstage stop
+	cleanupConfiguration
+    }
+
+
+test monitor-7.3 {ensure unmonitor works}   \
+    -setup {
+	setupConfiguration
+	inputstage create
+	set monitorEvent ""
+	set monitorNode ""
+    }                               \
+    -body {
+	inputstage monitor monitorCallback
+	inputstage unmonitor
+	inputstage start
+
+	set monitorEvent
+    }                 \
+    -result {}         \
+    -cleanup {
+	inputstage stop
+	cleanupConfiguration
+    }
+
+
+################# get first event from a node ###########
+
+test get-8.0 {Get with no data} \
+    -setup {
+	setupConfiguration
+	inputstage create
+	inputstage start
+    }        \
+    -body {
+	inputstage get 0x80
+    }         \
+    -returnCodes error \
+    -result "Event queue has no events.\n(InputStage::get/pop)" \
+    -cleanup {
+	inputstage stop
+	cleanupConfiguration
+    }
+
+test get-8.1 {Get with bad node id} \
+    -setup {
+	setupConfiguration
+	inputstage create
+	inputstage start
+    }        \
+    -body {
+	inputstage get 0
+    }         \
+    -returnCodes error \
+    -result "There is no node with this node id\n(InputStage::get/pop)" \
+    -cleanup {
+	inputstage stop
+	cleanupConfiguration
+    }
+
+
+test get-8.2 {Get a scaler event} \
+    -setup {
+	setupConfiguration
+	inputstage create
+	inputstage start
+    }          \
+    -body {
+	set header [list [expr 26+64] 2 0 1 1 0 32 0 0x80 0 6 0x0102 0x0304 0x0102 0 0]
+	set end    [list 10 0]
+	set start  [list 0 0]
+	set unused [list 0 0 0]
+	for {set i 0} {$i < 32} {incr i} {
+	    lappend scalers $i 0
+	}
+	set buffer [concat $header $end $unused $start $unused $scalers]
+
+	inputstage inject $buffer
+
+
+
+	inputstage get 0x80
+
+
+    }                      \
+    -cleanup {
+	inputstage stop
+	cleanupConfiguration
+    }                      \
+    -result {2 0 128 {10 0 0 0 0 0 0 0 0 0 0 0 1 0 2 0 3 0 4 0 5 0 6 0 7 0 8 0 9 0 10 0 11 0 12 0 13 0 14 0 15 0 16 0 17 0 18 0 19 0 20 0 21 0 22 0 23 0 24 0 25 0 26 0 27 0 28 0 29 0 30 0 31 0}}
+
+
+test get-8.3 {Get a state transition event}  \
+    -setup {
+	setupConfiguration
+	inputstage create
+	inputstage start
+    }          \
+    -body {
+	set header [list 64 11 0 1 1 0 0 0 0x80 0 6 0x0102 0x0304 0x0102 0 0]
+	set title [countedString "this is a title" 80]
+	set startTime [list 0 0]
+	set date [list 10 10 2007 9 17 0]
+
+	set buffer [concat $header [list $title] $startTime $date]
+
+
+	inputstage inject $buffer
+
+	inputstage get 0x80
+    }                      \
+    -cleanup {
+	inputstage stop
+	cleanupConfiguration
+    }                      \
+    -result {128 0 11 {26740 29545 26912 8307 8289 26996 27764 8293 8224 8224 8224 8224 8224 8224 8224 8224 8224 8224 8224 8224 8224 8224 8224 8224 8224 8224 8224 8224 8224 8224 8224 8224 8224 8224 8224 8224 8224 8224 8224 32 0 0 10 10 2007 9 17 0}}
+
+
+test get-8.4 {Get a string list event} \
+    -setup {
+	setupConfiguration
+	inputstage create
+	inputstage start
+    }          \
+    -body {
+	set buffer [list 20 4 0 1 1 0 1 0 0x80 0 6 0x0102 0x0304 0x0102 0 0]
+	lappend buffer "set a b"
+
+	inputstage inject $buffer
+	inputstage get 0x80
+    }                      \
+    -cleanup {
+	inputstage stop
+	cleanupConfiguration
+    }                      \
+    -result {128 0 4 {25971 8308 8289 98}}
+
+test get-8.5 {Get a physics event (jumbo buffer)} \
+    -setup {
+	setupConfiguration
+	inputstage create
+	inputstage start
+    }          \
+    -body {
+	set header [list 46 1 0 1 1 0 3 0 0x80 0 6 0x0102 0x0304 0x0102 0 0]
+	set event  [list 12 0 0 1 2 3 4 5 6 7 8 9]
+	set buffer [concat $header $event $event $event]
+
+
+	inputstage inject $buffer
+
+	inputstage get 0x80
+
+    }                      \
+    -cleanup {
+	inputstage stop
+	cleanupConfiguration
+    }                      \
+    -result {128 65536 1 {0 1 2 3 4 5 6 7 8 9}}
+
+
+test get-8.6 {Get a physics event (non jumbo)} \
+    -setup {
+	setupConfiguration
+	inputstage create
+	inputstage start
+    }          \
+    -body {
+	set header [list 46 1 0 1 1 0 3 0 0x80 0 5 0x0102 0x0304 0x0102 0 0]
+	set event  [list 11 0 1 2 3 4 5 6 7 8 9]
+	set buffer [concat $header $event $event $event]
+
+
+	inputstage inject $buffer
+	inputstage get 0x80
+    }                      \
+    -cleanup {
+	inputstage stop
+	cleanupConfiguration
+    }                      \
+    -result {128 65536 1 {0 1 2 3 4 5 6 7 8 9}}
+
+#################### Test pop (destructive read of event fragments).
+
+test pop-9.0 {pop with no events.} \
+    -setup {
+	setupConfiguration
+	inputstage create
+	inputstage start
+    }        \
+    -body {
+	inputstage pop 0x80
+    }         \
+    -returnCodes error \
+    -result "Event queue has no events.\n(InputStage::get/pop)" \
+    -cleanup {
+	inputstage stop
+	cleanupConfiguration
+    }
+
+test pop-9.1 {pop to a bad node} \
+    -setup {
+	setupConfiguration
+	inputstage create
+	inputstage start
+    }        \
+    -body {
+	inputstage pop 0
+    }         \
+    -returnCodes error \
+    -result "There is no node with this node id\n(InputStage::get/pop)" \
+    -cleanup {
+	inputstage stop
+	cleanupConfiguration
+    }
+
+test pop-9.2 {Pop a scaler event gets right data leads to empty} \
+    -setup {
+	setupConfiguration
+	inputstage create
+	inputstage start
+    }          \
+    -body {
+	set header [list [expr 26+64] 2 0 1 1 0 32 0 0x80 0 6 0x0102 0x0304 0x0102 0 0]
+	set end    [list 10 0]
+	set start  [list 0 0]
+	set unused [list 0 0 0]
+	for {set i 0} {$i < 32} {incr i} {
+	    lappend scalers $i 0
+	}
+	set buffer [concat $header $end $unused $start $unused $scalers]
+
+	inputstage inject $buffer
+
+
+
+	set result [inputstage pop 0x80]
+
+	lappend result [catch {inputstage pop 0x80}]
+	set result
+
+    }                      \
+    -cleanup {
+	inputstage stop
+	cleanupConfiguration
+    }                      \
+    -result {2 0 128 {10 0 0 0 0 0 0 0 0 0 0 0 1 0 2 0 3 0 4 0 5 0 6 0 7 0 8 0 9 0 10 0 11 0 12 0 13 0 14 0 15 0 16 0 17 0 18 0 19 0 20 0 21 0 22 0 23 0 24 0 25 0 26 0 27 0 28 0 29 0 30 0 31 0} 1}
+
+test pop-9.3 {Pop a state transition event, gets right data leads to empty} \
+    -setup {
+	setupConfiguration
+	inputstage create
+	inputstage start
+    }          \
+    -body {
+	set header [list 64 11 0 1 1 0 0 0 0x80 0 6 0x0102 0x0304 0x0102 0 0]
+	set title [countedString "this is a title" 80]
+	set startTime [list 0 0]
+	set date [list 10 10 2007 9 17 0]
+
+	set buffer [concat $header [list $title] $startTime $date]
+
+
+	inputstage inject $buffer
+
+	set result [inputstage pop 0x80]
+	lappend result [catch {inputstage pop 0x80}]
+
+	set result
+    }                      \
+    -cleanup {
+	inputstage stop
+	cleanupConfiguration
+    }                      \
+    -result {128 0 11 {26740 29545 26912 8307 8289 26996 27764 8293 8224 8224 8224 8224 8224 8224 8224 8224 8224 8224 8224 8224 8224 8224 8224 8224 8224 8224 8224 8224 8224 8224 8224 8224 8224 8224 8224 8224 8224 8224 8224 32 0 0 10 10 2007 9 17 0} 1}
+
+test pop-9.4 {Pop a string list event, gets right data leads to empty} \
+    -setup {
+	setupConfiguration
+	inputstage create
+	inputstage start
+    }          \
+    -body {
+	set buffer [list 20 4 0 1 1 0 1 0 0x80 0 6 0x0102 0x0304 0x0102 0 0]
+	lappend buffer "set a b"
+
+	inputstage inject $buffer
+	set result [inputstage pop 0x80]
+	lappend result [catch {inputstage pop 0x80}]
+    }                      \
+    -cleanup {
+	inputstage stop
+	cleanupConfiguration
+    }                      \
+    -result {128 0 4 {25971 8308 8289 98} 1}
+
+test pop-9.5 {Can pop 3 events gets the right data, leads to empty (jumbo)} \
+    -setup {
+	setupConfiguration
+	inputstage create
+	inputstage start
+    }          \
+    -body {
+	set header [list 46 1 0 1 1 0 3 0 0x80 0 6 0x0102 0x0304 0x0102 0 0]
+	set event  [list 12 0 0 1 2 3 4 5 6 7 8 9]
+	set buffer [concat $header $event $event $event]
+
+
+	inputstage inject $buffer
+
+	set result [list [inputstage pop 0x80]]
+	lappend result [inputstage pop 0x80]
+	lappend result [inputstage pop 0x80]
+	lappend result [catch {inputstage pop 0x80}]
+
+    }                      \
+    -cleanup {
+	inputstage stop
+	cleanupConfiguration
+    }                      \
+    -result {{128 65536 1 {0 1 2 3 4 5 6 7 8 9}} {128 65536 1 {0 1 2 3 4 5 6 7 8 9}} {128 65536 1 {0 1 2 3 4 5 6 7 8 9}} 1}
+
+test pop-9.6 {Can pop 3 events gets the right data, leads to empty (non jumbo)}
+
+
+################### Test empty (clear event queue).
+
+test empty-10.0 {Empty bad node}
+test empty-10.1 {Empty empty node is ok}
+test empty-10.2 {Empty a node with a single event frag (scaler) leaves it empty}
+test empty-10.3 {Empty a node with multiple frags (phy) leaves it empty}
+
+
 
 ############## Report results and exit ###################
 

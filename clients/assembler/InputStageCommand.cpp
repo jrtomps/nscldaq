@@ -565,11 +565,12 @@ int
 InputStageCommand::unmonitor(CTCLInterpreter& interp,
 		                     std::vector<CTCLObject>& objv)
 {
-	if (m_pInputStage && m_pScript) {
-		m_pInputStage->removeCallback(dispatchMonitorScript, m_pScript);
-	}
-	delete m_pScript;
-	m_pScript=0;
+  if (m_pInputStage && m_pScript) {
+    m_pInputStage->removeCallback(dispatchMonitorScript, m_pScript);
+  }
+  delete m_pScript;
+  m_pScript=0;
+  return TCL_OK;
 }
 ///////////////////////////////////////////////////////////
 /*!
@@ -733,7 +734,7 @@ InputStageCommand::installString(void*   dest,
  *             shutdown - ShuttingDown
  *             startup  - Starting
  *             error    - Error.
- *             unknonw  - Should never happen, means the eventToString
+ *             unknown  - Should never happen, means the eventToString
  *                        function is not keeping pace with the
  *                        event type codes.
  *
@@ -808,18 +809,24 @@ InputStageCommand::getEvent(CTCLInterpreter& interp,
 	// The node parameter must be < 0x1000.
 	
 	if (node < 0x1000) {
-		EventFragment* pEvent = (m_pInputStage->*member)((uint16_t)node);
-		if (pEvent) {
-			CTCLObject* pDecodedEvent = eventToList(interp, *pEvent);
-			interp.setResult(*pDecodedEvent);
-			delete pDecodedEvent;
-			return TCL_OK;
-		}
-		else {
-			return AssemblerErrors::setErrorMsg(interp,
-					AssemblerErrors::Empty,
-					"(InputStage::get/pop)");
-		}
+	  try {
+	    EventFragment* pEvent = (m_pInputStage->*member)((uint16_t)node);
+	    if (pEvent) {
+	      CTCLObject* pDecodedEvent = eventToList(interp, *pEvent);
+	      interp.setResult(*pDecodedEvent);
+	      delete pDecodedEvent;
+	      return TCL_OK;
+	    }
+	    else {
+	      return AssemblerErrors::setErrorMsg(interp,
+						  AssemblerErrors::Empty,
+						  "(InputStage::get/pop)");
+	    }
+	  } catch(...) {
+	    return AssemblerErrors::setErrorMsg(interp,
+						AssemblerErrors::NoSuchId,
+						"(InputStage::get/pop)");
+	  }
 	}
 	else {
 		return AssemblerErrors::setErrorMsg(interp,

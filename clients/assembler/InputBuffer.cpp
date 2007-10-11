@@ -201,7 +201,8 @@ InputBuffer::isJumboBuffer() const
 uint32_t 
 InputBuffer::getLongword(size_t wordOffset) const
 {
-	return tohl(m_pBuffer[wordOffset]);
+  uint32_t* p = reinterpret_cast<uint32_t*>(&(m_pBuffer[wordOffset]));
+  return tohl(*p);
 }
 /////////////////////////////////////////////////////////////////////////
 /*!

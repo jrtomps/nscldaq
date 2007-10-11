@@ -155,8 +155,9 @@ PhysicsInputBufferIterator::operator*()
     }
     timestamp = m_Buffer.getLongword(m_currentOffset + tsOffset);
     pResult = new PhysicsFragment(m_Buffer.getNode(),
-				  m_Buffer.Pointer()  + m_currentOffset + tsOffset,
+				  m_Buffer.Pointer()  + m_currentOffset,
 				  size - tsOffset,
+				  tsOffset,
 				  timestamp);
     
   }

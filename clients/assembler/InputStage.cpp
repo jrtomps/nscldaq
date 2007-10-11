@@ -311,6 +311,10 @@ InputStage::peek(uint16_t node)
 	if (m_queues[node]) {
 		pResult = m_queues[node]->peek();
 	}
+	else {
+	  throw InvalidNodeException(node,
+				 "InputStage::peek");
+	}
 	return pResult;
 }
 //////////////////////////////////////////////////////////////
@@ -328,6 +332,10 @@ InputStage::pop(uint16_t node)
 	EventFragment* pResult = static_cast<EventFragment*>(NULL);
 	if (m_queues[node]) {
 		pResult = m_queues[node]->remove();
+	}
+	else {
+	  throw InvalidNodeException(node,
+				 "InputStage::pop");
 	}
 	return pResult;
 }
@@ -349,6 +357,10 @@ InputStage::clear(uint16_t node)
 		while ((frag = m_queues[node]->remove())) {
 			result.push_back(frag);
 		}
+	}
+	else {
+	  throw InvalidNodeException(node,
+				 "InputStage::clear");
 	}
 	return result;
 }
@@ -417,23 +429,24 @@ InputStage::onBuffer(ClientData clientData, int eventMask)
 void
 InputStage::processBuffer(void* pBuffer)
 {
-		InputBuffer*         pInputBuffer = InputBufferFactory::create(pBuffer);
-		InputBufferIterator* pIterator    = pInputBuffer->begin();
-		uint16_t             node         = pInputBuffer->getNode();
-		uint16_t             type         = pInputBuffer->getType();
-
-		if (m_queues[node]) {
-		  while (!pIterator->End()) {
-		    EventFragment* pFragment = *(*pIterator);
-		    m_queues[node]->insert(*pFragment);
-		    updateCounters(node, type);
-		    pIterator->Next();
-		  }
-		} 
-		else {
-		  throw InvalidNodeException(node,
-					     "processing buffer in input stage");
-		}
+  InputBuffer*         pInputBuffer = InputBufferFactory::create(pBuffer);
+  InputBufferIterator* pIterator    = pInputBuffer->begin();
+  uint16_t             node         = pInputBuffer->getNode();
+  uint16_t             type         = pInputBuffer->getType();
+  
+  if (m_queues[node]) {
+    while (!pIterator->End()) {
+      EventFragment* pFragment = *(*pIterator);
+      m_queues[node]->insert(*pFragment);
+      updateCounters(node, type);
+      pIterator->Next();
+    }
+  } 
+  else {
+    throw InvalidNodeException(node,
+			       "processing buffer in input stage");
+  }
+  declareNewFragments(node);
 }
 /////////////////////////////////////////////////////////////////
 /*!
@@ -600,6 +613,7 @@ InputStage::declareEvent(InputStage::event reason, uint16_t node)
 		void*            pData    = p->second;
 		FragmentCallback callback = p->first;
 		(*callback)(pData, reason, node);
+		p++;
 	}
 }
 /////////////////////////////////////////////////////////////

@@ -32,7 +32,7 @@ StateTransitionFragment::StateTransitionFragment(uint16_t* pBuffer)  :
   EventFragment(extractNode(pBuffer),
 		extractType(pBuffer),
 		bodyPointer(pBuffer),
-		extractSize(pBuffer) - sizeof(struct bheader)),
+		extractSize(pBuffer) - sizeof(struct bheader)/sizeof(uint16_t)),
   m_ssig(extractSsig(pBuffer)),
   m_lsig(extractLsig(pBuffer))
 {
