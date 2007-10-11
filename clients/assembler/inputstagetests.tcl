@@ -751,15 +751,143 @@ test pop-9.5 {Can pop 3 events gets the right data, leads to empty (jumbo)} \
     }                      \
     -result {{128 65536 1 {0 1 2 3 4 5 6 7 8 9}} {128 65536 1 {0 1 2 3 4 5 6 7 8 9}} {128 65536 1 {0 1 2 3 4 5 6 7 8 9}} 1}
 
-test pop-9.6 {Can pop 3 events gets the right data, leads to empty (non jumbo)}
+test pop-9.6 {Can pop 3 events gets the right data, leads to empty (non jumbo)} \
+    -setup {
+	setupConfiguration
+	inputstage create
+	inputstage start
+    }          \
+    -body {
+	set header [list 46 1 0 1 1 0 3 0 0x80 0 6 0x0102 0x0304 0x0102 0 0]
+	set event  [list 12 0 0 1 2 3 4 5 6 7 8 9]
+	set buffer [concat $header $event $event $event]
+
+
+	inputstage inject $buffer
+
+	set result [list [inputstage pop 0x80]]
+	lappend result [inputstage pop 0x80]
+	lappend result [inputstage pop 0x80]
+	lappend result [catch {inputstage pop 0x80}]
+
+
+    }                      \
+    -cleanup {
+	inputstage stop
+	cleanupConfiguration
+    }                      \
+    -result {{128 65536 1 {0 1 2 3 4 5 6 7 8 9}} {128 65536 1 {0 1 2 3 4 5 6 7 8 9}} {128 65536 1 {0 1 2 3 4 5 6 7 8 9}} 1}
+
+test getpop-9.7 {Get should not be destructive} \
+    -setup {
+	setupConfiguration
+	inputstage create
+	inputstage start
+    }          \
+    -body {
+	set header [list 64 11 0 1 1 0 0 0 0x80 0 6 0x0102 0x0304 0x0102 0 0]
+	set title [countedString "this is a title" 80]
+	set startTime [list 0 0]
+	set date [list 10 10 2007 9 17 0]
+
+	set buffer [concat $header [list $title] $startTime $date]
+
+
+	inputstage inject $buffer
+
+	inputstage get 0x80
+	inputstage pop 0x80
+    }                      \
+    -cleanup {
+	inputstage stop
+	cleanupConfiguration
+    }                      \
+    -result {128 0 11 {26740 29545 26912 8307 8289 26996 27764 8293 8224 8224 8224 8224 8224 8224 8224 8224 8224 8224 8224 8224 8224 8224 8224 8224 8224 8224 8224 8224 8224 8224 8224 8224 8224 8224 8224 8224 8224 8224 8224 32 0 0 10 10 2007 9 17 0}}
 
 
 ################### Test empty (clear event queue).
 
-test empty-10.0 {Empty bad node}
-test empty-10.1 {Empty empty node is ok}
-test empty-10.2 {Empty a node with a single event frag (scaler) leaves it empty}
-test empty-10.3 {Empty a node with multiple frags (phy) leaves it empty}
+test empty-10.0 {Empty bad node} \
+    -setup {
+	setupConfiguration
+	inputstage create
+	inputstage start
+    }        \
+    -body {
+	inputstage empty 0
+    }         \
+    -returnCodes ok \
+    -result {}   \
+    -cleanup {
+	inputstage stop
+	cleanupConfiguration
+    }
+
+test empty-10.1 {Empty empty node is ok} \
+    -setup {
+	setupConfiguration
+	inputstage create
+	inputstage start
+    }        \
+    -body {
+	inputstage empty 0x80
+    }         \
+    -returnCodes ok \
+    -result {} \
+    -cleanup {
+	inputstage stop
+	cleanupConfiguration
+    }
+
+
+test empty-10.2 {Empty a node with a single event frag (scaler) leaves it empty} \
+    -setup {
+	setupConfiguration
+	inputstage create
+	inputstage start
+    }          \
+    -body {
+	set header [list [expr 26+64] 2 0 1 1 0 32 0 0x80 0 6 0x0102 0x0304 0x0102 0 0]
+	set end    [list 10 0]
+	set start  [list 0 0]
+	set unused [list 0 0 0]
+	for {set i 0} {$i < 32} {incr i} {
+	    lappend scalers $i 0 
+	}
+	set buffer [concat $header $end $unused $start $unused $scalers]
+
+	inputstage inject $buffer
+	inputstage empty 0x80
+
+	inputstage pop 0x80
+    }                      \
+    -cleanup {
+	inputstage stop
+	cleanupConfiguration
+    }                      \
+    -returnCodes error \
+    -result "Event queue has no events.\n(InputStage::get/pop)" 
+
+test empty-10.3 {Empty a node with multiple frags (phy) leaves it empty} \
+    -setup {
+	setupConfiguration
+	inputstage create
+	inputstage start
+    }          \
+    -body {
+	set header [list 46 1 0 1 1 0 3 0 0x80 0 6 0x0102 0x0304 0x0102 0 0]
+	set event  [list 12 0 0 1 2 3 4 5 6 7 8 9]
+	set buffer [concat $header $event $event $event]
+
+
+	inputstage inject $buffer
+
+	inputstage empty 0x80
+	inputstage pop 0x80
+
+    }                      \
+    -returnCodes error    \
+    -result "Event queue has no events.\n(InputStage::get/pop)" 
 
 
 
