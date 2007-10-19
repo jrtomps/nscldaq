@@ -869,3 +869,4 @@ August 10, 2007 - Tighten up the CAENcard read event by assuming the user
                   firmware is good (later than 0x808).
 August 16, 2007 - BZ 317 - Add back the timestamped output.
                 - fix emergency end/orphan permissions problems.
+October 19, 2007 - Fix documentation typo in example that starts sclclient
