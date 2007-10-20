@@ -870,3 +870,5 @@ August 10, 2007 - Tighten up the CAENcard read event by assuming the user
 August 16, 2007 - BZ 317 - Add back the timestamped output.
                 - fix emergency end/orphan permissions problems.
 October 19, 2007 - Fix documentation typo in example that starts sclclient
+October 20, 2007 - Set SBS initial swap mode on open to 
+                   BT_SWAP_NONE which is evidently correct.
