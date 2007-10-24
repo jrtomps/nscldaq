@@ -872,3 +872,5 @@ August 16, 2007 - BZ 317 - Add back the timestamped output.
 October 19, 2007 - Fix documentation typo in example that starts sclclient
 October 20, 2007 - Set SBS initial swap mode on open to 
                    BT_SWAP_NONE which is evidently correct.
+October 24, 2007 - Added the event builder to the assembler.  This does
+                   not yet have a clean compile.
