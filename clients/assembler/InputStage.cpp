@@ -34,6 +34,7 @@
 #include "InputBufferFactory.h"
 #include "InputBuffer.h"
 
+
 #include <buftypes.h>
 #include <buffer.h>
 
@@ -47,7 +48,6 @@
 
 using namespace std;
 
-static const size_t  BUFFERSIZE(16*1024);
 
 static const string PATHSEP("/");
 
@@ -182,20 +182,20 @@ InputStage::clearStatistics()
    Return a vector of the non zero node fragment counters and their
    counts
 */
-vector<InputStage::typeCountPair>
+vector<AssemblerUtilities::typeCountPair>
 InputStage::nodeFragmentCount() const
 {
 
-  return makeTypeCountVector(m_fragmentCounts, 0x1000);
+  return AssemblerUtilities::makeTypeCountVector(m_fragmentCounts, 0x1000);
 }
 //////////////////////////////////////////////////////////////////
 /*!
    Returns a vector of the non zero type counters and their types.
 */
-vector<InputStage::typeCountPair>
+vector<AssemblerUtiltiites::typeCountPair>
 InputStage::perTypeFragmentCount() const
 {
-  return makeTypeCountVector(m_typeCounts, 0x1000);
+  return AssemblerUtilities::makeTypeCountVector(m_typeCounts, 0x1000);
 
 }
 /////////////////////////////////////////////////////////////////
@@ -203,19 +203,19 @@ InputStage::perTypeFragmentCount() const
     Return a vector of typecount pair vectors for
     each node that has nonzero types.
 */
-vector<pair<uint16_t, vector<InputStage::typeCountPair> > >
+vector<pair<uint16_t, vector<AssemblerUtilities::typeCountPair> > >
 InputStage::nodePerTypeFragmentCount() const
 {
   // This is just a matter of calling makeTypeCountVector for each
   // node index and selecting only the nonempty ones:
 
-  vector<pair<uint16_t, vector<typeCountPair> > > result;
+  vector<pair<uint16_t, vector<AssemblerUtilities::typeCountPair> > > result;
 
   for (int i= 0; i < 0x1000; i++) {
-    vector<typeCountPair> stats = makeTypeCountVector(m_nodeTypeCounts[i],
+    vector<AssemblerUtilities::typeCountPair> stats = AssemblerUtilities::makeTypeCountVector(m_nodeTypeCounts[i],
 						      0x1000);
     if (stats.size()) {
-      result.push_back(pair<uint16_t, vector<typeCountPair> >(i, stats));
+      result.push_back(pair<uint16_t, vector<AssemblerUtilities::typeCountPair> >(i, stats));
     }
   }
   return result;
@@ -652,23 +652,7 @@ InputStage::declareNewFragments(uint16_t node)
 {
 	declareEvent(NewFragments, node);
 }
-////////////////////////////////////////////////////////////////
-/*   Make a size reduced vector of typecount pairs.
-     The vector consists of a pair for each non zero  
-     element of the array that contains the index and value.
-*/
-vector<InputStage::typeCountPair>
-InputStage::makeTypeCountVector(const uint32_t* statistics,
-				size_t          size) const
-{
-  vector<typeCountPair> result;
-  for (int i = 0; i < size; i++) {
-    if (statistics[i] != 0) {
-      result.push_back(typeCountPair(i, statistics[i]));
-    }
-  }
-  return result;
-}
+
 //////////////////////////////////////////////////////////
 /*
  * Update appropriate statistics counters for a fragment

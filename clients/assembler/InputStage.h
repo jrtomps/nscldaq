@@ -16,6 +16,10 @@
 	     East Lansing, MI 48824-1321
 */
 
+#ifndef __ASSEMBLERUTILITIES_H
+#include "AssemblerUtilities.h"
+#endif
+
 #ifndef __STL_LIST
 #include <list>
 #ifndef __STL_LIST
@@ -85,7 +89,6 @@ public:
   } event;
   typedef void (*FragmentCallback)(void*, event, uint16_t);
 
-  typedef std::pair<uint16_t, uint32_t> typeCountPair;
 
   typedef struct {
 	  InputStage*   s_pObject;
@@ -129,9 +132,9 @@ public:
   bool isRunning() const;
 
   void clearStatistics();
-  std::vector<typeCountPair> nodeFragmentCount()     const;
-  std::vector<typeCountPair> perTypeFragmentCount() const;
-  std::vector<std::pair<uint16_t, std::vector<typeCountPair> > >
+  std::vector<AssemblerUtilities::typeCountPair> nodeFragmentCount()     const;
+  std::vector<AssemblerUtiltities::typeCountPair> perTypeFragmentCount() const;
+  std::vector<std::pair<uint16_t, std::vector<AssemblerUtilities::typeCountPair> > >
     nodePerTypeFragmentCount() const;
   
 
@@ -168,8 +171,7 @@ private:
 
   // Statistics utilities:
 
-  std::vector<typeCountPair> makeTypeCountVector(const uint32_t* statistics, 
-						 size_t          size) const;
+  
   void updateCounters(uint16_t node, uint16_t type);
   
   // Diddly utilities.

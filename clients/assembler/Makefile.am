@@ -26,7 +26,14 @@ assembler_SOURCES =	AssemblerApplication.cpp	\
 			StateTransitionFragment.cpp	\
 			InputStage.cpp 			\
 			InputStageCommand.cpp 		\
-			FragmentQueue.cpp
+			FragmentQueue.cpp		\
+			NodeScoreboard.cpp		\
+			AssemblyEvent.cpp		\
+			PhysicsAssemblyEvent.cpp	\
+			OutputPhysicsEvents.cpp		\
+			EventBuilderCommand.cpp		\
+			EventBuilder.cpp		\
+			AssemblerUtilities.cpp		
 
 noinst_HEADERS = 	AssemblerApplication.h		\
 			AssemblerCommand.h		\
@@ -54,7 +61,14 @@ noinst_HEADERS = 	AssemblerApplication.h		\
 			InputBufferFactory.h		\
 			InputStage.h			\
 			InputStageCommand.h		\
-			FragmentQueue.h
+			FragmentQueue.h			\
+			NodeScoreboard.h		\
+			AssemblyEvent.h			\
+			PhysicsAssemblyEvent.h		\
+			OutputPhysicsEvents.h		\
+			EventBuilderCommand.h		\
+			EventBuilder.h			\
+			AssemblerUtilities.h
 
 
 assembler_LDADD =	@top_srcdir@/TCL/libtclPlus.la	\

@@ -29,6 +29,7 @@
 #include "AssembledStateTransitionEvent.h"
 #include "AssembledStringArrayEvent.h"
 #include "AssemblerErrors.h"
+#include "AssemblerUtilities.h"
 
 #include "BadEventTypeException.h"
 
@@ -51,7 +52,6 @@ using namespace std;
 
 /// Manifest constants:
 
-static const unsigned BUFFERSIZE(16*1024); // Words in a buffer (bigger now!).
 
 ///////////////////// Static data initializations: ////////////////////////
 

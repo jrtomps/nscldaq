@@ -25,6 +25,7 @@
 #include "AssemblerCommand.h"
 #include "InvalidNodeException.h"
 #include "EventTooSmallException.h"
+#include "AssemblerUtilities.h"
 
 #include <list>
 #include <buftypes.h>
@@ -32,7 +33,6 @@
 
 using namespace std;
 
-static const size_t BUFFERSIZE(16*1024);
 
 /*
  * Initialize the dispatch table.  Each
@@ -345,13 +345,13 @@ InputStageCommand::statistics(CTCLInterpreter& interp,
 		// The first element of the list, fragment counts per node:
 		
 		CTCLObject* nodeFragcountList =
-			typeValuePairToList(interp, nodefrags);
+			AssemblerUtilities::typeValuePairToList(interp, nodefrags);
 		result += *nodeFragcountList;
 		delete nodeFragcountList;
 		
 		// The second element of the list is fragment counts per type:
 		
-		CTCLObject* typeCountList = typeValuePairToList(interp, typefrags);
+		CTCLObject* typeCountList = AssemblerUtilities::typeValuePairToList(interp, typefrags);
 		result += *typeCountList;
 		delete typeCountList;
 		
@@ -363,8 +363,8 @@ InputStageCommand::statistics(CTCLInterpreter& interp,
 		for (int i =0; i < nodebyfrags.size(); i++) {
 			uint16_t node = nodebyfrags[i].first;
 			CTCLObject* nodeList =
-				typeValuePairToList(interp, 
-						    nodebyfrags[i].second);
+				AssemblerUtilities::typeValuePairToList(interp, 
+						    							nodebyfrags[i].second);
 			CTCLObject nodeItem;
 			nodeItem.Bind(interp);
 			nodeItem += node;
@@ -655,34 +655,7 @@ InputStageCommand::Usage()
 	
 	return usage;
 }
-///////////////////////////////////////////////////////////
-/*
- * Convert a type/value vector to a Tcl list.
- * The list is dynamically created here and must be deleted
- * by the caller.
- * Parameters:
- *    interp  - Interpreter to which the list will be bound.
- *    stats   - vector of type value pairs to build into the list
- * Returns:
- *    A pointer to the stocked list.
- */
-CTCLObject*
-InputStageCommand::typeValuePairToList(CTCLInterpreter& interp,
-	                            vector<InputStage::typeCountPair>& stats)
-{
-	CTCLObject* pObject = new CTCLObject;
-	pObject->Bind(interp);
-	
-	for (int i=0; i < stats.size(); i++ ) {
-		CTCLObject pair;
-		pair.Bind(interp);
-		pair += stats[i].first;
-		pair += static_cast<int>(stats[i].second);
-		
-		(*pObject) += pair;
-	}
-	return pObject;
-}
+
 
 /*
 **  Install an integer int a test buffer.

@@ -137,8 +137,7 @@ private:
 	
 	// Private utilities.
 		
-	CTCLObject* typeValuePairToList(CTCLInterpreter& interp,
-					std::vector<InputStage::typeCountPair>& stats);
+
 	void*   installInt(void* dest, 
 			   int   value);
 	void*   installString(void* dest,
