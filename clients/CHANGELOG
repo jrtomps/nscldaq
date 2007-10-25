@@ -874,3 +874,7 @@ October 20, 2007 - Set SBS initial swap mode on open to
                    BT_SWAP_NONE which is evidently correct.
 October 24, 2007 - Added the event builder to the assembler.  This does
                    not yet have a clean compile.
+October 25, 2007 - Got clean compile of event builder with builder stage.
+                 - Allowed scaler output buffers to also have uint32's put in
+                   them (in addition to unsigned long)l
+
