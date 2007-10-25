@@ -330,11 +330,11 @@ InputStageCommand::statistics(CTCLInterpreter& interp,
 	 	   					  std::vector<CTCLObject>& objv)
 {
 	if (m_pInputStage) {
-		vector<InputStage::typeCountPair> nodefrags = 
+		vector<AssemblerUtilities::typeCountPair> nodefrags = 
 				m_pInputStage->nodeFragmentCount();
-		vector<InputStage::typeCountPair> typefrags = 
+		vector<AssemblerUtilities::typeCountPair> typefrags = 
 				m_pInputStage->perTypeFragmentCount();
-		vector<pair<uint16_t, std::vector<InputStage::typeCountPair> > >
+		vector<pair<uint16_t, std::vector<AssemblerUtilities::typeCountPair> > >
 			nodebyfrags = m_pInputStage->nodePerTypeFragmentCount();
 		
 		// Now build the lists:

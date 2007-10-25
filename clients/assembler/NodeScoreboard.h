@@ -72,12 +72,10 @@ public:
 	
 	// object level member functions:
 public:
-	void addNode(uint16_t ndoe);
+	void addNode(uint16_t node);
 	bool isComplete() const;
 	void clear();
 
-protected:
-	void addNode(uint16_t node);
 };
 
 #endif /*NODESCOREBOARD_H_*/

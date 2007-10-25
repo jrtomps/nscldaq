@@ -36,16 +36,23 @@
 
 
 
-struct AssemblerCommand::EventFragmentContributor;
-class InputStage;
+#ifndef __OUTPUTPHYSICSEVENTS_H
+#include "OutputPhysicsEvents.h"
+#endif
+
+#ifndef __INPUTSTAGE_H
+#include "InputStage.h"
+#endif
+
+
 class AssemblerOutputStage;
 class PhysicsFragment;
 class StateTransitionFragment;
 class EventFragment;
-class OutputPhysicsEvent;
-class StateTransitionEvent;
+class AssembledStateTransitionEvent;
 class AssembledEvent;
-class OutputPhysicsEvents;
+class AssembledPhysicsEvent;
+
 
 /*!
  *  This class is the core logical class for event building.
@@ -81,14 +88,14 @@ public:
 	} TimeWindow, *pTimeWindow;
 private:
 	InputStage&             m_fragmentSource;
-	AssembledOutputStage&	m_sink;
+	AssemblerOutputStage&	m_sink;
 	AssemblerCommand&		m_configuration;
 	Statistics              m_statistics;
 	
 	// Things go faster if we reconstruct the cofiguration node table
 	
 	std::list<AssemblerCommand::EventFragmentContributor> m_nodeList;
-	AssemblerCommand::EventFragmentContributor*            m_nodeTable[0x10000]''
+	AssemblerCommand::EventFragmentContributor*            m_nodeTable[0x10000];
 	OutputPhysicsEvents                                    m_inFlight;
 public:
 	EventBuilder(AssemblerCommand&     configuration,
@@ -104,9 +111,9 @@ public:
 	// Object operations
 	
 public:
-	static onInputStageEvent(void* pObject, 
-							 uint16_t InputStage::event why, 
-							 uint16_t which );
+	static void  onInputStageEvent(void* pObject, 
+				       InputStage::event why, 
+				       uint16_t which );
 	void clear();
 	Statistics statistics() const;
 	void reloadConfiguration();
@@ -118,7 +125,7 @@ private:
 	void onStateTransitionFragment(uint16_t node, StateTransitionFragment& fragment);
 	void onPassThroughFragment(uint16_t node, EventFragment& fragment);
 	void commitAssembledPhysicsEvent(AssembledPhysicsEvent& event);
-	void commitAssembledStateTransitionEvent(StateTransitionEvent& event);
+	void commitAssembledStateTransitionEvent(AssembledStateTransitionEvent& event);
 	void commitPassthroughEvent(AssembledEvent& event);
 	void onError(uint16_t node);
 	void onShutdown();
@@ -128,7 +135,7 @@ private:
 	void pruneNonTriggerNodes();
 	void pruneNode(uint16_t node);
 	static TimeWindow matchInterval(AssemblerCommand::EventFragmentContributor& nodeInfo,
-			                        PhysicsFragment&                            fragment);
+					PhysicsFragment&                            fragment);
 			                 
 };
 

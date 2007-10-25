@@ -192,7 +192,7 @@ InputStage::nodeFragmentCount() const
 /*!
    Returns a vector of the non zero type counters and their types.
 */
-vector<AssemblerUtiltiites::typeCountPair>
+vector<AssemblerUtilities::typeCountPair>
 InputStage::perTypeFragmentCount() const
 {
   return AssemblerUtilities::makeTypeCountVector(m_typeCounts, 0x1000);

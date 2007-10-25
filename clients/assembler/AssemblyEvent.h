@@ -36,32 +36,34 @@ class AssembledEvent;
 class AssemblyEvent
 {
 private:
-	uint32_t 			m_triggerTime;
-	NodeScoreboard&		m_scoreboard;
+  uint32_t 			m_triggerTime;
+  NodeScoreboard&		m_scoreboard;
 public:
-	
-	// Canonicals:
-	
-	AssemblyEvent(uint32_t triggerTime);
-	virtual ~AssemblyEvent();
+  
+  // Canonicals:
+  
+  AssemblyEvent(uint32_t triggerTime);
+  virtual ~AssemblyEvent();
 private:
-	AssemblyEvent(const AssemblyEvent& rhs);
-	AssemblyEvent& operator=(const AssemblyEvent& rhs);
-	int operator==(const AssemblyEvent& rhs);
-	int operator!=(const Assembly Event& rhs);
+  AssemblyEvent(const AssemblyEvent& rhs);
+  AssemblyEvent& operator=(const AssemblyEvent& rhs);
+  int operator==(const AssemblyEvent& rhs);
+  int operator!=(const AssemblyEvent& rhs);
 public:
-	
-	// class operations:
-	
-	uint32_t timestamp() const;
-	bool     isComplete() const;
-	
-	// Pure Virtual Interface:
-	
-	virtual bool isPhysics() const = 0;
-	virtual      add(EventFragment& frag) = 0;
-	virtual AssembledEvent* assembledEvent()  = 0;
-	virtual uint16_t type() const= 0;
+  
+  // class operations:
+  
+  uint32_t timestamp() const;
+  bool     isComplete() const;
+  
+  // Pure Virtual Interface:
+  
+  virtual bool isPhysics() const = 0;
+  virtual void add(EventFragment& frag) = 0;
+  virtual AssembledEvent* assembledEvent()  = 0;
+  virtual uint16_t type() const= 0;
+protected:
+  void addNode(uint16_t node);
 };
 
 #endif /*ASSEMBLYEVENT_H_*/

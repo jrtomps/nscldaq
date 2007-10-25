@@ -30,6 +30,7 @@ assembler_SOURCES =	AssemblerApplication.cpp	\
 			NodeScoreboard.cpp		\
 			AssemblyEvent.cpp		\
 			PhysicsAssemblyEvent.cpp	\
+			StateTransitionAssemblyEvent.cpp \
 			OutputPhysicsEvents.cpp		\
 			EventBuilderCommand.cpp		\
 			EventBuilder.cpp		\
@@ -65,6 +66,7 @@ noinst_HEADERS = 	AssemblerApplication.h		\
 			NodeScoreboard.h		\
 			AssemblyEvent.h			\
 			PhysicsAssemblyEvent.h		\
+			StateTransitionAssemblyEvent.h \
 			OutputPhysicsEvents.h		\
 			EventBuilderCommand.h		\
 			EventBuilder.h			\

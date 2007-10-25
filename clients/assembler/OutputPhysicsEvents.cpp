@@ -19,6 +19,8 @@
 #include "AssemblyEvent.h"
 #include "EventFragment.h"
 #include <limits.h>
+#include <algorithm>
+#include <functional>
 
 using namespace std;
 
@@ -161,7 +163,6 @@ OutputPhysicsEvents::size() const
 {
 	return m_assemblies.size();
 }
-}
 /////////////////////////////////////////////////////////////////////////////
 /*!
  * Finds the first event of a specific type.
@@ -174,7 +175,7 @@ OutputPhysicsEvents::size() const
 OutputPhysicsEvents::iterator
 OutputPhysicsEvents::findByType(uint16_t type)
 {
-	return findByType(type, begin());
+  return findByType(type, begin(), end());
 }
 ///////////////////////////////////////////////////////////////////////////////
 /*!
@@ -189,10 +190,10 @@ OutputPhysicsEvents::findByType(uint16_t type)
  */
 OutputPhysicsEvents::iterator
 OutputPhysicsEvents::findByType(uint16_t type, 
-								OutputPhysicsEvents::iterator start,
-								OutputPhysicsEvents::iterator stop)
+				OutputPhysicsEvents::iterator start,
+				OutputPhysicsEvents::iterator stop)
 {
-	return find_if(start, stop, bind2nd(matchType, type));
+  return find_if(start, stop, bind2nd(ptr_fun(matchType), type));
 }
 /////////////////////////////////////////////////////////////////////////////////
 /*!
@@ -226,7 +227,7 @@ OutputPhysicsEvents::findPhysByWindow(uint32_t windowStart, uint32_t windowStop,
 									  OutputPhysicsEvents::iterator stop)
 {
 	TimeWindow window = {windowStart, windowStop};
-	return find_if(start, stop, bind2nd(matchWindow, &window));
+	return find_if(start, stop, bind2nd(ptr_fun(matchWindow), &window));
 }
 //////////////////////////////////////////////////////////////////
 /*!
@@ -255,13 +256,13 @@ OutputPhysicsEvents::removePrior(OutputPhysicsEvents::iterator stop)
  *   \return OutputPhysicsEvents::AssemblyList
  *   \retval List of items removed.
  */
-OutputPhysicsEvents::Assemblylist
+OutputPhysicsEvents::AssemblyList
 OutputPhysicsEvents::remove(OutputPhysicsEvents::iterator start,
-		                    OutputPhysicsEvents::iterator stop)
+			    OutputPhysicsEvents::iterator stop)
 {
 	AssemblyList result;
 	iterator i = start;
-	while (i < stop) {
+	while (i != stop) {
 		result.push_back(*i);
 		i++;
 	}
@@ -280,7 +281,7 @@ OutputPhysicsEvents::remove(OutputPhysicsEvents::iterator start,
  * \note it is up to the caller to delete the event when it is no longer needed.
  */
 AssemblyEvent*
-OutputPhysicsEvents::removeItem(OutputPhysicsEvent::iterator item)
+OutputPhysicsEvents::removeItem(OutputPhysicsEvents::iterator item)
 {
 	AssemblyEvent* result = *item;
 	m_assemblies.erase(item);
@@ -311,5 +312,5 @@ size_t
 OutputPhysicsEvents::countRange(OutputPhysicsEvents::iterator start,
 								OutputPhysicsEvents::iterator stop)
 {
-	return coutn_if(start, stop, True);
+	return count_if(start, stop, True);
 }

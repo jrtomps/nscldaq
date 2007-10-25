@@ -106,14 +106,14 @@ NodeScoreboard::neededNodes(std::vector<uint16_t> nodes)
 void 
 NodeScoreboard::addNode(uint16_t node)
 {
-	uint32_t bit = m_nodeToBit[node];
-	if (bit) {
-		m_contributedNodes |= bit;
-	}
-	else {
-		throw InvalidNodeException(node,
-				                   string("NodeScoreboard::addNode - no map for node -> bitmask");
-	}
+  uint32_t bit = m_nodeToBit[node];
+  if (bit) {
+    m_contributedNodes |= bit;
+  }
+  else {
+    throw InvalidNodeException(node,
+			       string("NodeScoreboard::addNode - no map for node -> bitmask"));
+  }
 }
 /////////////////////////////////////////////////////////////
 /*!

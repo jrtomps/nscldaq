@@ -33,7 +33,7 @@ using namespace std;
  *                         This should be the fragment from the trigger node.
  */
 
-PhysicsAssemblyEvent::PhysicsAssemblyEvent(PhysicsAssemblyEvent* pFirstEvent) :
+PhysicsAssemblyEvent::PhysicsAssemblyEvent(PhysicsFragment* pFirstEvent) :
 	AssemblyEvent(pFirstEvent->getTimestamp())
 {
 	add(*pFirstEvent);
@@ -73,7 +73,7 @@ PhysicsAssemblyEvent::add(EventFragment& fragment)
 	// The cast below will throw if the fragment is not
 	// a physics event fragment:
 	
-	PhyscisFragment& frag(dynamic_cast<PhysicsFragment&>(frag));
+	PhysicsFragment& frag(dynamic_cast<PhysicsFragment&>(frag));
 	addNode(frag.node());
 	
 	m_fragments.push_back(&frag);
@@ -113,11 +113,11 @@ PhysicsAssemblyEvent::assembledEvent()
 		memcpy(pDest, &packetsize, sizeof(uint32_t));
 		pDest++; pDest++;
 		*pDest++ = node;
-		memcpy(pDest, &timestamp, sizeof(uint32_t));
+		memcpy(pDest, &stamp, sizeof(uint32_t));
 		pDest++; pDest++;
 		
 	
-		for (size_t i =0; i < bodSize; i++) {
+		for (size_t i =0; i < bodySize; i++) {
 			*pDest++ = (*p)[i];
 		}
 	

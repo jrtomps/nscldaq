@@ -41,15 +41,15 @@ class CTCLInterpreter;
 class AssemblerUtilities
 {
 public:
-    typedef std::pair<uint16_t, uint32_t> typeCountPair;
-
+  typedef std::pair<uint16_t, uint32_t> typeCountPair;
+  
 public:
-	static
-	std::vector<typeCountPair> makeTypeCountVector(const uint32_t* statistics, 
-			                       				   size_t          size) const;
-	static
-	CTCLObject* typeValuePairToList(CTCLInterpreter& interp,
-					std::vector<typeCountPair>& stats);
+  static
+    std::vector<typeCountPair> makeTypeCountVector(const uint32_t* statistics, 
+						   size_t          size);
+  static
+    CTCLObject* typeValuePairToList(CTCLInterpreter& interp,
+				    std::vector<typeCountPair>& stats);
 };
 
 #endif /*ASSEMBLERUTILITIES_H_*/

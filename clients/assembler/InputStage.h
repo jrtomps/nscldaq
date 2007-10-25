@@ -133,7 +133,7 @@ public:
 
   void clearStatistics();
   std::vector<AssemblerUtilities::typeCountPair> nodeFragmentCount()     const;
-  std::vector<AssemblerUtiltities::typeCountPair> perTypeFragmentCount() const;
+  std::vector<AssemblerUtilities::typeCountPair> perTypeFragmentCount() const;
   std::vector<std::pair<uint16_t, std::vector<AssemblerUtilities::typeCountPair> > >
     nodePerTypeFragmentCount() const;
   

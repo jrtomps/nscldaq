@@ -32,7 +32,7 @@
 class StateTransitionFragment;
 class AssembledEvent;
 
-class StateTranstionAssemblyEvent : public AssemblyEvent
+class StateTransitionAssemblyEvent : public AssemblyEvent
 {
 public:
 	typedef std::list<StateTransitionFragment*> FragmentList;
@@ -40,8 +40,8 @@ public:
 private:
 FragmentList  m_fragments;
 public:
-	StateTranstionAssemblyEvent(StateTransitionFragment& firstFragment);
-	virtual ~StateTranstionAssemblyEvent();
+	StateTransitionAssemblyEvent(StateTransitionFragment& firstFragment);
+	virtual ~StateTransitionAssemblyEvent();
 private:
 	StateTransitionAssemblyEvent(const StateTransitionAssemblyEvent& rhs);
 	StateTransitionAssemblyEvent& operator=(const StateTransitionAssemblyEvent& rhs);
@@ -51,7 +51,7 @@ public:
 	// Virtual functions that are implemented:
 	
 	virtual bool isPhysics() const;
-	virtual      add(EventFragment& frag);
+	virtual void add(EventFragment& frag);
 	virtual AssembledEvent* assembledEvent();	
 	virtual uint16_t type() const;
 };

@@ -41,10 +41,10 @@ using namespace std;
  *                  submitted.
  */
 EventBuilderCommand::EventBuilderCommand(CTCLInterpreter&      interpreter,
-										 AssemblerCommand&     configuration,
-										 InputStage&           fragmentSource,
-										 AssemblerOutputStage& eventSink) :
-    CTCLObjectCommand(interpreter, "eventbuilder"),
+					 AssemblerCommand&     configuration,
+					 InputStage&           fragmentSource,
+					 AssemblerOutputStage& eventSink) :
+    CTCLObjectProcessor(interpreter, "eventbuilder"),
     m_pBuilder(new EventBuilder(configuration, fragmentSource, eventSink))
 {
 }
@@ -84,7 +84,7 @@ EventBuilderCommand::operator()(CTCLInterpreter& interpreter,
 		return TCL_ERROR;
 		
 	}
-	objv[1].Bind(interpreter)
+	objv[1].Bind(interpreter);
 	string ensembleCommand = objv[1];
 	
 	if(ensembleCommand == "clear") {
@@ -138,13 +138,13 @@ EventBuilderCommand::stats(CTCLInterpreter& interpreter)
 	CTCLObject result;
 	result.Bind(interpreter);
 	
-	EventBuilder::Stastistics stats = m_pBuilder->statistics();
+	EventBuilder::Statistics stats = m_pBuilder->statistics();
 	
 	// Sub lists...
 	
 	CTCLObject fragmentsByNode;
 	fragmentsByNode.Bind(interpreter);
-	CTCLObject completeEventsByType
+	CTCLObject completeEventsByType;
 	completeEventsByType.Bind(interpreter);
 	CTCLObject unmatchedFragmentsByNode;
 	unmatchedFragmentsByNode.Bind(interpreter);
@@ -162,12 +162,12 @@ EventBuilderCommand::stats(CTCLInterpreter& interpreter)
 	delete statsList;
 	
 	statsSet = AssemblerUtilities::makeTypeCountVector(stats.eventsByType, 0x100);
-	statsList = AssemblerUtilities::typeValuePairTolist(interpreter, statsSet);
-	rsult += (*statsList);
+	statsList = AssemblerUtilities::typeValuePairToList(interpreter, statsSet);
+	result += (*statsList);
 	delete statsList;
 	
 	statsSet = AssemblerUtilities::makeTypeCountVector(stats.unmatchedByNode, 0x10000);
-	statsList= AssemblerUtilities::typeValuePairTolist(interpreter, statsSet);
+	statsList= AssemblerUtilities::typeValuePairToList(interpreter, statsSet);
 	result += (*statsList);
 	delete statsList;
 	
@@ -183,7 +183,7 @@ EventBuilderCommand::stats(CTCLInterpreter& interpreter)
  *   Reload the event builder configuration.
  */
 int
-EventBuilderCommand::reload()
+EventBuilderCommand::reload(CTCLInterpreter& interpreter)
 {
 	m_pBuilder->reloadConfiguration();
 	return TCL_OK;
@@ -196,4 +196,4 @@ EventBuilderCommand::usage()
 	result       += "  eventbuidler stats\n";
 	result       += "  eventbuilder reload\n";
 }
-}
+

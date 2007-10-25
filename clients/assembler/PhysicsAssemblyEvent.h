@@ -18,6 +18,7 @@
 
 #ifndef __ASSEMBLYEVENT_H
 #include "AssemblyEvent.h"
+#endif
 
 #ifndef __STL_LIST
 #include <list>
@@ -53,7 +54,7 @@ public:
 	// virtual overrides:
 	
 	virtual bool isPhysics() const;
-	virtual      add(EventFragment& frag);
+	virtual void add(EventFragment& frag);
 	virtual AssembledEvent* assembledEvent();
 	virtual uint16_t type() const;
 	

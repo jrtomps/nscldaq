@@ -1040,14 +1040,14 @@ AssemblerOutputStage::submitFakeScalerEvent(CTCLInterpreter&   interp,
 
   unsigned long startTime;
   unsigned long stopTime;
-  vector<unsigned long> scalers;
+  vector<uint32_t> scalers;
 
   try {
     startTime = (int)bodyList[0];
     stopTime  = (int)bodyList[1];
     for (int i = 2; i < bodyList.size(); i++) {
       bodyList[i].Bind(interp);
-      scalers.push_back((int)bodyList[i]);
+      scalers.push_back((uint32_t)(int)bodyList[i]);
     }
   }
   catch  (...) {

@@ -15,7 +15,7 @@
 	     East Lansing, MI 48824-1321
 */
 #include <config.h>
-#include "StateTranstionAssemblyEvent.h"
+#include "StateTransitionAssemblyEvent.h"
 #include "StateTransitionFragment.h"
 #include "AssembledStateTransitionEvent.h"
 #include <buftypes.h>
@@ -28,25 +28,25 @@ using namespace std;
  *   0 as the concept of a timestamp does not exist for state 
  *   transition events.
  */
-StateTranstionAssemblyEvent::StateTranstionAssemblyEvent(StateTransitionAssemblyEvent& firstFragment) :
+StateTransitionAssemblyEvent::StateTransitionAssemblyEvent(StateTransitionFragment& firstFragment) :
 	AssemblyEvent(0)
 {
-	add(FirstFragment);
+	add(firstFragment);
 }
 ///////////////////////////////////////////////////////////
 /*!
  *   Destroying the event will mean destroying the fragments that
  * make it up.
  */
-StateTranstionAssemblyEvent::~StateTranstionAssemblyEvent()
+StateTransitionAssemblyEvent::~StateTransitionAssemblyEvent()
 {
-	FragmentListIterator i = m_fragments.begin()
-	while (i != m_fragments.end()) {
-		delete *i;
-		i++;
+  FragmentListIterator i = m_fragments.begin();
+  while (i != m_fragments.end()) {
+    delete *i;
+    i++;
 	}
-	// The list knows how to clean itself up from here.
-	}
+  // The list knows how to clean itself up from here.
+
 }
 //////////////////////////////////////////////////////////////
 /*!
@@ -65,17 +65,17 @@ StateTransitionAssemblyEvent::isPhysics() const
 void
 StateTransitionAssemblyEvent::add(EventFragment& frag)
 {
-	// Errors in the underlying fragment type of frag will throw an exception
-	// below; where just casting to a pointer would not.
-	
-	StateTransitionAssemblyEvent& 
-		transitionFragment(dynamic_cast<StateTransitionFragment&>(frag));
-	
-	// Extract the node add it to the scoreboard and add the fragment to our  list.
-	
-	
-}	addNode(transitionFragment.node());
-	m_fragments.push_back(&transitionFragment);
+  // Errors in the underlying fragment type of frag will throw an exception
+  // below; where just casting to a pointer would not.
+  
+  StateTransitionFragment& 
+    transitionFragment(reinterpret_cast<StateTransitionFragment&>(frag));
+  
+  // Extract the node add it to the scoreboard and add the fragment to our  list.
+  
+  
+  addNode(transitionFragment.node());
+  m_fragments.push_back(&transitionFragment);
 }
 ///////////////////////////////////////////////////////////////
 /*!
@@ -89,7 +89,7 @@ StateTransitionAssemblyEvent::add(EventFragment& frag)
 AssembledEvent* 
 StateTransitionAssemblyEvent::assembledEvent()
 {
-	StateTransitionEvent* pFirstFragment = m_fragments.front();
+	StateTransitionFragment* pFirstFragment = m_fragments.front();
 	AssembledEvent::BufferType type;
 	
 	// Need to map the fragment type to a buffer type:
@@ -108,9 +108,9 @@ StateTransitionAssemblyEvent::assembledEvent()
 		break;
 	}
 	AssembledStateTransitionEvent* pEvent =new AssembledStateTransitionEvent(pFirstFragment->node(),
-																			type);
+	                                                                         type);
 	pEvent->setTitle(pFirstFragment->title());
-	pEvent->setElapsedTime(pFirstFragment->elapsedTime())
+	pEvent->setElapsedTime(pFirstFragment->elapsedTime());
 	pEvent->setTimestamp(pFirstFragment->absoluteTime());
 	
 	return pEvent;
@@ -126,5 +126,5 @@ StateTransitionAssemblyEvent::type() const
 {
 	return m_fragments.front()->type();
 }
-}
+
 

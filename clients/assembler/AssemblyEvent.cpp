@@ -13,7 +13,7 @@
 	     Michigan State University
 	     East Lansing, MI 48824-1321
 */
-#incclude <config.h>
+#include <config.h>
 #include "AssemblyEvent.h"
 #include "NodeScoreboard.h"
 #include "EventFragment.h"
@@ -59,12 +59,13 @@ AssemblyEvent::isComplete() const
 {
 	return m_scoreboard.isComplete();
 }
-////////////////////////////////////////////////////////////////////////////
+
+///////////////////////////////////////////////////////////////////////
 /*
- * add a node to the set of nodes seen
- */
+  Add a node to the scoreboard.
+*/
 void
 AssemblyEvent::addNode(uint16_t node)
 {
-	m_scoreboard.addNode(node)
+  m_scoreboard.addNode(node);
 }
