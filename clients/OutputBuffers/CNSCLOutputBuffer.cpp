@@ -232,10 +232,10 @@ CNSCLOutputBuffer::SetLamRegisters(unsigned short nLams)
 
 */
 void 
-CNSCLOutputBuffer::PutEntity(void* pEntity, unsigned int nWords)  
+CNSCLOutputBuffer::PutEntity(const void* pEntity, unsigned int nWords)  
 {
   DAQWordBufferPtr p = StartEntity();
-  unsigned short*  s = (unsigned short*)pEntity;
+  const unsigned short*  s = reinterpret_cast<const unsigned short*>(pEntity);
 
   while(nWords) {
     *p = *s++;

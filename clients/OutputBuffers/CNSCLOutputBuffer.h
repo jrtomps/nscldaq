@@ -116,7 +116,7 @@ public:
      void SetCpuNum (unsigned short nValue=0)  ;
      void SetNbitRegisters (unsigned  nBitReg=1)  ;
      void SetLamRegisters (unsigned short nLams=0)  ;
-     void PutEntity (void* pEntity, unsigned int nWords)  ;
+     void PutEntity (const void* pEntity, unsigned int nWords)  ;
      void PutLong (const unsigned long& rLong)  ;
      void PutWord (unsigned short nData)  ;
      void PutWords (const unsigned short* pWords, unsigned int nWords)  ;

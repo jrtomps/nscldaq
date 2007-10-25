@@ -60,12 +60,20 @@ CNSCLScalerBuffer::CNSCLScalerBuffer (unsigned nWords) :
 
 */
 void 
-CNSCLScalerBuffer::PutScalerVector(vector<unsigned long> vScalers)  
+CNSCLScalerBuffer::PutScalerVector(const vector<unsigned long>& vScalers)  
 {
   for(int i =0; i < vScalers.size(); i++) {
     PutEntity(&(vScalers[i]), sizeof(unsigned long)/sizeof(short));
   }
 }  
+
+void
+CNSCLScalerBuffer::PutScalerVector(const vector<uint32_t>& vScalers)
+{
+  for(int i =0; i < vScalers.size(); i++) {
+    PutEntity(&(vScalers[i]), sizeof(unsigned long)/sizeof(short));
+  }
+}
 
 /*!
     Sets the interval start time in the buffer.  
