@@ -262,6 +262,9 @@ CLLNLUnpacker::unpackModule(CEvent& rEvent)
     
     int channel = (datum & DATAH_CHANMASK) >> DATAH_CHANSHIFT;
     int value   = (datum & DATAL_DATAMASK);
+    bool overflow = (datum & DATAL_OVBIT) != 0;
+    bool underflow= (datum & DATAL_UNBIT) != 0;
+    bool valid    = (datum& DATAL_VBIT)  != 0;
 
     if (channel > 31) {
 #ifdef REPORT_BAD_EVENTS
@@ -282,7 +285,9 @@ CLLNLUnpacker::unpackModule(CEvent& rEvent)
     }
     if (theMap.size() > slot) { // Map must have the slot.
       int paramno = theMap[slot][channel];
-      if (paramno >= 0) rEvent[paramno] = value;
+      if ((paramno >= 0)    &&
+	  (!overflow)       && (!underflow)   && valid)
+	  rEvent[paramno] = value;
     }
     if (!m_event.empty()) {
       datum = getGoodl();		// This is ok since there should be a trailer.
