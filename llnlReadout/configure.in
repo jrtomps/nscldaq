@@ -340,8 +340,10 @@ then
   tcl_libname=$(basename $(basename $tcl_libname .a) .so)
   echo tcl libname $tcl_libname
 
+  tk_libname=tk$(echo $tcl_libname|cut -c 4-)   # trim off tc...and use tk
 
-  TCL_LDFLAGS="-L${tcl_libdir}  -l${tcl_libname}"
+
+  TCL_LDFLAGS="-L${tcl_libdir}  -l${tcl_libname} -l${tk_libname}"
 
 else
   AC_MSG_ERROR([Unable to find the tcl library, help me out with --with-tcl-libdir])
