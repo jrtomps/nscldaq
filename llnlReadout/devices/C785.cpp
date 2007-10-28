@@ -45,6 +45,7 @@ using namespace std;
 
 Const(initamod) CVMUSBReadoutList::a32UserData;
 Const(readamod) CVMUSBReadoutList::a32UserBlock;
+Const(cbltamod) CVMUSBReadoutList::a32UserBlock;
 
 // Register map (offsets in bytes) for the V785
 //   Not an exhaustive list as the various test registers are omitted.
@@ -84,6 +85,13 @@ Const(Thresholds)   0x1080;	// Continues through 10bf, 32 D16 words.
 Const(BoardIDHSB) 0x8036;	// Highest significant byte of the id
 Const(BoardIDMSB) 0x803a;	// Middle significant byte of the id.
 Const(BoardIDLSB) 0x803e;	// Lowest significant byte of the id.
+
+// Bits in the mcast/cblt control register:
+
+Const(CbltLeft)   2;
+Const(CbltMiddle) 3;
+Const(CbltRight)  1;
+Const(CbltDisabled) 0;
 
 // One last set of constants. This is the maximum number of longwords  a
 // module might store:
@@ -176,7 +184,73 @@ C785::operator=(const C785& rhs) {
 //////////////////////// object operations ////////////////////////////
 ///////////////////////////////////////////////////////////////////////
 
+/*!
+   This function requests the module to add itself as a 
+   member of a CBLT readout chain.  CBLT readout chain elements have the
+   following attributes:
+   - A base address used to read the chain as a whole.
+   - A position for each module in the chain as defined by the
+     C785::Position type.
+   
+  \note This function operates immediately on the hardware. 
+        therefore, the base address must already have been configured
+	in the module so that it can be located.  Typically this function
+	would, in fact, be called after module initialization by a chain
+        object.. e.g. the chain object would initialize all chain members
+	and then invoke this function for each chain members to get them
+	ready for action.
 
+   \param controller CVMUSB&
+          The VMUSB controller object used to interact with the VME bus
+	  and therefore the module.
+   \param mcstAddress uint32_t
+          The address to be programmed into the module's MCST/CBLT 
+	  address register (e.g. where the read will be directed.
+   \param where C785::Position
+          The position of the module in the chain.  This can be one of:
+	  C785::leftmost, C785::middle, or C785::rightmost.
+     and determines how the module's MCST/CBLT control register will be 
+     programmed.
+*/
+void
+C785::addToChain(CVMUSB& controller,
+		 uint32_t mcstAddress,
+		 C785::Position where)
+{
+  // Get the base address of the module:
+
+  uint32_t baseAddress = getIntegerParameter("-base");
+
+  // Set the MCST/CBLT register:
+
+  controller.vmeWrite16(baseAddress+McastAddr, initamod, 
+			 static_cast<uint16_t>(mcstAddress >> 16));
+
+  // Figure out the bits for the McastCtl register>
+
+  uint16_t controlWord;
+  switch (where) {
+  case  leftmost:
+    controlWord = CbltLeft;
+    break;
+  case rightmost:
+    controlWord = CbltRight;
+    break;
+  case middle:
+    controlWord = CbltMiddle;
+    break;
+  default:
+    // Disable:
+
+    controlWord = CbltDisabled;
+  }
+  controller.vmeWrite16(baseAddress+McastCtl, initamod, controlWord);
+  
+}
+
+/////////////////////////////////////////////////////////////////////////
+//////////////////////// overridable operations ////////////////////////
+////////////////////////////////////////////////////////////////////////
 /*!
    This is called when the configuration object is attached to us.
    what we need to do is create all of the parametrs and set their default

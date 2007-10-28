@@ -79,6 +79,13 @@ class CVMUSBReadoutList;
 */
 class C785 : public CReadoutHardware
 {
+  // Exported data types
+public:
+  typedef enum _Position {
+    leftmost,
+    middle,
+    rightmost
+  } Position;
 private:
   CReadoutModule*    m_pConfiguration;
 public:
@@ -92,13 +99,21 @@ private:
   int operator==(const C785& rhs) const;
   int operator!=(const C785& rhs) const;
 
-  // operations on constructed objectgs:
+  // operations specific to a C785 object:
+
+public:
+  void addToChain(CVMUSB& controller,
+		  uint32_t mcstAddress,
+		  Position where);
+
+  // overridable : operations on constructed objectgs:
 
 public:
   virtual void onAttach(CReadoutModule& configuration);
   virtual void Initialize(CVMUSB& controller);
   virtual void addReadoutList(CVMUSBReadoutList& list);
   virtual CReadoutHardware* clone() const;
+
 
   // utilities:
 private:
