@@ -176,7 +176,7 @@ C785::~C785() {}
 
 C785&
 C785::operator=(const C785& rhs) {
-  return *this;
+  return *this;			// Else infinite recursion loop.
 }
 
 

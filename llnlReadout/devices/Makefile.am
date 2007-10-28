@@ -2,10 +2,13 @@ lib_LTLIBRARIES 		= libVMUSBDevices.la
 libVMUSBDevices_la_SOURCES	= 	CConfigurableObject.cpp	\
 					CReadoutModule.cpp 	\
 					C3820.cpp		\
-					C785.cpp
+					C785.cpp		\
+					CCAENChain.cpp
 
 
-INCLUDES	= -I$(top_builddir)/vmusb @TCL_FLAGS@ $(SPECTRODAQ_FLAGS)
+INCLUDES	= 	-I$(top_builddir)/vmusb \
+			-I$(top_builddir)/daqconfig \
+			@TCL_FLAGS@ $(SPECTRODAQ_FLAGS)
 
 
 libVMUSBDevices_la_LIBADD	= $(top_builddir)/vmusb/libVMUSB.la \
@@ -15,7 +18,8 @@ include_HEADERS			= 	CConfigurableObject.h	\
 					CReadoutModule.h 	\
 					CReadoutHardware.h 	\
 					C3820.h			\
-					C785.h
+					C785.h			\
+					CCAENChain.h
 
 TESTS=configtest.cpp c785test.cpp c3820test.cpp
 
