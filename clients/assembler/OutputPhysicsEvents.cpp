@@ -30,10 +30,7 @@ using namespace std;
 //
 
 
-typedef struct _TimeWindow {
-	uint32_t start;
-	uint32_t stop;
-} TimeWindow, *pTimeWindow;
+
 
 bool
 matchType(AssemblyEvent* p, uint16_t type)

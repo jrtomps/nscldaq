@@ -84,4 +84,22 @@ public:
 
 };
 
+// Exported for testing
+
+typedef struct _TimeWindow {
+	uint32_t start;
+	uint32_t stop;
+} TimeWindow, *pTimeWindow;
+
+
+extern bool
+matchType(AssemblyEvent* p, uint16_t type);
+
+extern inline bool
+between(uint32_t value, uint32_t low, uint32_t high);
+
+
+extern bool
+matchWindow(AssemblyEvent* p, pTimeWindow window);
+
 #endif /*OUTPUTPHYSICSEVENTS_H_*/

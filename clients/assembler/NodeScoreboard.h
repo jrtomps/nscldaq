@@ -44,6 +44,7 @@
  */
 class NodeScoreboard
 {
+private:
 	// class level data
 	
 	static uint16_t m_nodeToBit[0x10000];  // Maps node ids -> mask bits.
@@ -54,7 +55,6 @@ private:
 	// Member data
 	
 	uint32_t m_contributedNodes;            // Nodes seen so far.
-private:
 public:
 	
 	// Canonical member functions:
