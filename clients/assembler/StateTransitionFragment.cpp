@@ -24,6 +24,8 @@
 
 using namespace std;
 
+static const int RUNNUMOFFSET(3);
+
 /*!
   Construct the buffer:
 
@@ -34,7 +36,9 @@ StateTransitionFragment::StateTransitionFragment(uint16_t* pBuffer)  :
 		bodyPointer(pBuffer),
 		extractSize(pBuffer) - sizeof(struct bheader)/sizeof(uint16_t)),
   m_ssig(extractSsig(pBuffer)),
-  m_lsig(extractLsig(pBuffer))
+  m_lsig(extractLsig(pBuffer)),
+  m_runNumber(getWord(pBuffer, RUNNUMOFFSET, m_ssig))
+
 {
 }
 
@@ -63,13 +67,23 @@ StateTransitionFragment::absoluteTime() const
   struct tm timestamp;
   memset(&timestamp, 0, sizeof(timestamp));
 
-  timestamp.tm_mon = tohs((*this)[42], m_ssig);
-  timestamp.tm_mday= tohs((*this)[43], m_ssig);
-  timestamp.tm_year= tohs((*this)[44], m_ssig);
-  timestamp.tm_hour= tohs((*this)[45], m_ssig);
-  timestamp.tm_min = tohs((*this)[46], m_ssig);
-  timestamp.tm_sec = tohs((*this)[47], m_ssig);
+  timestamp.tm_mon = tohs((*this)[58-16], m_ssig);
+  timestamp.tm_mday= tohs((*this)[59-16], m_ssig);
+  timestamp.tm_year= tohs((*this)[60-16], m_ssig);
+  timestamp.tm_hour= tohs((*this)[61-16], m_ssig);
+  timestamp.tm_min = tohs((*this)[62-16], m_ssig);
+  timestamp.tm_sec = tohs((*this)[63-16], m_ssig);
 
+
+  return timestamp;
+
+}
+// Return the  run number:
+
+uint16_t
+StateTransitionFragment::getRunNumber() const
+{
+  return m_runNumber;
 }
 /*!
   Return the elapsed time into the run (host byte order).

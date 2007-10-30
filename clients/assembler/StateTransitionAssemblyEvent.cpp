@@ -107,11 +107,13 @@ StateTransitionAssemblyEvent::assembledEvent()
 		type = AssembledEvent::ResumeRun;
 		break;
 	}
-	AssembledStateTransitionEvent* pEvent =new AssembledStateTransitionEvent(pFirstFragment->node(),
-	                                                                         type);
+	AssembledStateTransitionEvent* pEvent =
+	  new AssembledStateTransitionEvent(pFirstFragment->getRunNumber(),
+					    type);
 	pEvent->setTitle(pFirstFragment->title());
 	pEvent->setElapsedTime(pFirstFragment->elapsedTime());
 	pEvent->setTimestamp(pFirstFragment->absoluteTime());
+
 	
 	return pEvent;
 	

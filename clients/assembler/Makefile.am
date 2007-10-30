@@ -95,14 +95,30 @@ EXTRA_DIST=configtests.tcl outstagetests.tcl inputstagetests.tcl
 
 if CPPUNIT
 noinst_PROGRAMS = unittests
-unittests_SOURCES = TestRunner.cpp scoreboardTests.cpp
+unittests_SOURCES =	TestRunner.cpp 		\
+			scoreboardTests.cpp 	\
+			stateAssemblyTests.cpp
 
-unittests_LDADD = 	NodeScoreboard.o	\
-			InvalidNodeException.o	\
-			@top_srcdir@/Exception/libException.la \
+
+unittests_LDADD = 	NodeScoreboard.o				\
+			InvalidNodeException.o				\
+			StateTransitionFragment.o			\
+			StateTransitionAssemblyEvent.o			\
+			EventFragment.o					\
+			AssembledEvent.o				\
+			AssembledStateTransitionEvent.o			\
+			AssemblyEvent.o					\
+			@top_srcdir@/OutputBuffers/libOutputBuffers.la	\
+			@top_srcdir@/Exception/libException.la 		\
+			@top_srcdir@/SpectrodaqLite/libSpectrodaqCompatibility.la \
+			$(SPECTRODAQ_LDFLAGS)			\
 			$(CPPUNIT_LDFLAGS)
 
-unittests_DEPENDENCIES = NodeScoreboard.o InvalidNodeException.o
+
+unittests_DEPENDENCIES = NodeScoreboard.o InvalidNodeException.o	\
+			StateTransitionFragment.o StateTransitionAssemblyEvent.o \
+			EventFragment.o AssembledEvent.o			\
+			AssembledStateTransitionEvent.o AssemblyEvent.o
 
 cppunittests= cppunitTests
 

@@ -54,12 +54,14 @@ class StateTransitionFragment : public EventFragment
 {
   uint16_t m_ssig;
   uint32_t m_lsig;
+  uint16_t m_runNumber;
 public:
   StateTransitionFragment(uint16_t* pBuffer);
 
   std::string title() const;
   struct tm   absoluteTime() const;
   uint32_t    elapsedTime() const;
+  uint16_t    getRunNumber() const;
 };
 
 
