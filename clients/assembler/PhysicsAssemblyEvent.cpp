@@ -73,7 +73,7 @@ PhysicsAssemblyEvent::add(EventFragment& fragment)
 	// The cast below will throw if the fragment is not
 	// a physics event fragment:
 	
-	PhysicsFragment& frag(dynamic_cast<PhysicsFragment&>(frag));
+	PhysicsFragment& frag(reinterpret_cast<PhysicsFragment&>(fragment));
 	addNode(frag.node());
 	
 	m_fragments.push_back(&frag);
