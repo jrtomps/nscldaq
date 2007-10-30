@@ -53,24 +53,24 @@ using namespace std;
     - Register our callback with the input stage.
 */
 EventBuilder::EventBuilder(AssemblerCommand&     configuration,
-						   InputStage&           fragmentSource,
-						   AssemblerOutputStage& eventSink) :
-	m_fragmentSource(fragmentSource),
-	m_sink(eventSink),
-	m_configuration(configuration)
+			   InputStage&           fragmentSource,
+			   AssemblerOutputStage& eventSink) :
+  m_fragmentSource(fragmentSource),
+  m_sink(eventSink),
+  m_configuration(configuration)
 {
-	memset(&m_statistics, 0, sizeof(m_statistics));
-	reloadConfiguration();
-	m_fragmentSource.addCallback(EventBuilder::onInputStageEvent, this);
+  memset(&m_statistics, 0, sizeof(m_statistics));
+  reloadConfiguration();
+  m_fragmentSource.addCallback(EventBuilder::onInputStageEvent, this);
 }
 /*!
  *   Just need to get rid of the non-null entries in the m_nodeTable:
  */
 EventBuilder::~EventBuilder()
 {
-	for(int i =0; i < 0x10000; i++) {
-		delete m_nodeTable[i];
-	}
+  for(int i =0; i < 0x10000; i++) {
+    delete m_nodeTable[i];
+  }
 }
 //////////////////////////////////////////////////////////////////////////////////
 /*!
@@ -87,21 +87,21 @@ void
 EventBuilder::onInputStageEvent(void* pObject, 
 				InputStage::event why, uint16_t which )
 {
-	EventBuilder* pEventBuilder = reinterpret_cast<EventBuilder*>(pObject);
-	switch (why) {
-	case InputStage::NewFragments:
-		pEventBuilder->onFragments(which);
-		break;
-	case InputStage::ShuttingDown:
-		pEventBuilder->onShutdown();
-		break;
-	case InputStage::Error:
-		pEventBuilder->onError(which);
-		break;
-	default:
-		// ignore unexpected event types (e.g. don't care about startup).
-		break;
-	}
+  EventBuilder* pEventBuilder = reinterpret_cast<EventBuilder*>(pObject);
+  switch (why) {
+  case InputStage::NewFragments:
+    pEventBuilder->onFragments(which);
+    break;
+  case InputStage::ShuttingDown:
+    pEventBuilder->onShutdown();
+    break;
+  case InputStage::Error:
+    pEventBuilder->onError(which);
+    break;
+  default:
+    // ignore unexpected event types (e.g. don't care about startup).
+    break;
+  }
 }
 ////////////////////////////////////////////////////////////////////////////////
 /*!

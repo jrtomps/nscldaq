@@ -295,7 +295,7 @@ OutputPhysicsEvents::removeItem(OutputPhysicsEvents::iterator item)
 size_t 
 OutputPhysicsEvents::countPrior(OutputPhysicsEvents::iterator here)
 {
-	return count_if(begin(), here, True);
+	return countRange(begin(), here);
 }
 //////////////////////////////////////////////////////////////////////
 /*!

@@ -93,7 +93,29 @@ INCLUDES	= 	-I@top_srcdir@/TCL		\
 
 EXTRA_DIST=configtests.tcl outstagetests.tcl inputstagetests.tcl
 
-installcheck-local:
+if CPPUNIT
+noinst_PROGRAMS = unittests
+unittests_SOURCES = TestRunner.cpp scoreboardTests.cpp
+
+unittests_LDADD = 	NodeScoreboard.o	\
+			InvalidNodeException.o	\
+			@top_srcdir@/Exception/libException.la \
+			$(CPPUNIT_LDFLAGS)
+
+unittests_DEPENDENCIES = NodeScoreboard.o InvalidNodeException.o
+
+cppunittests= cppunitTests
+
+cppunitTests: unittests
+	./unittests
+
+
+
+endif
+
+installcheck-local: $(cppunittests)
 	$(bindir)/assembler configtests.tcl
 	$(bindir)/assembler outstagetests.tcl
 	$(bindir)/assembler inputstagetests.tcl
+
+
