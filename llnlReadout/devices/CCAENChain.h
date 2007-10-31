@@ -83,6 +83,9 @@ private:
   ChainList         m_Chain;
   CReadoutModule*   m_pConfiguration;
 
+  int               m_moduleCount; // Saved at init time.
+  uint32_t          m_baseAddress; // Saved at init time.
+
   // class canonicals:
 
 public:
@@ -109,7 +112,7 @@ public:
 
   // utilities:
 
-  uint32_t               getCBLTAddresss();
+  uint32_t               getCBLTAddress();
   std::list<std::string> getModules();
   
   static bool moduleChecker(std::string name, std::string value, void* arg);
