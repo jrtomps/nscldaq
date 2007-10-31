@@ -41,10 +41,13 @@ using std::vector;
        Tcl interpreter on which the command will be registered.
    \param config : CConfiguration& config
        The configuration of ADCs that will be manipulated by this command.
+   \param commandName std::string
+       Name of the command to register.
 */
 CADCCommand::CADCCommand(CTCLInterpreter& interp,
-			 CConfiguration&  config) : 
-  CTCLObjectProcessor(interp, string("adc")),
+			 CConfiguration&  config,
+			 std::string      commandName) : 
+  CTCLObjectProcessor(interp, commandName),
   m_Config(config)
 {
 }
@@ -267,6 +270,15 @@ CADCCommand::cget(CTCLInterpreter& interp, vector<CTCLObject>& objv)
   return TCL_OK;
 
 }
+/*
+  Return the configuration. This allows subclassed commands to function properly.
+*/
+CConfiguration* 
+CADCCommand::getConfiguration()
+{
+  return &m_Config;
+}
+
 ////////////////////////////////////////////////////////////////////////////////
 /////////////////////////// Utility function(s) ////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////

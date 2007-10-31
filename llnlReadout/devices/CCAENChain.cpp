@@ -131,7 +131,7 @@ CCAENChain::Initialize(CVMUSB& controller)
   bool                   isFirst = true;
   while (pName != moduleNames.end()) {
     CReadoutModule*  pModule = pModules->findAdc(*pName); // Locate the module.
-    C785*            pAdc    = dynamic_cast<C785*>(pAdc); // Should never fail so...
+    C785*            pAdc    = dynamic_cast<C785*>(pModule->getHardwarePointer()); // Should never fail so...
     assert(pAdc);
 
     pAdc->Initialize(controller);
@@ -289,7 +289,7 @@ CCAENChain::moduleChecker(string name, string value, void* arg)
   for (int i = 0; i < argc; i++) {
     string moduleName        = argv[i];
     CReadoutModule* pModule = pConfiguration->findAdc(moduleName);
-    if (!pModule || !dynamic_cast<C785*>(pModule)) { // Not found, or not a C785.
+    if (!pModule || !dynamic_cast<C785*>(pModule->getHardwarePointer())) { // Not found, or not a C785.
       Tcl_Free((char*) argv);
       return false;
     } 

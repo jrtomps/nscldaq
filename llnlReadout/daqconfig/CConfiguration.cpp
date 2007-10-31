@@ -18,6 +18,7 @@
 #include "CConfiguration.h"
 #include "CScalerCommand.h"
 #include "CADCCommand.h"
+#include "CCAENChainCommand.h"
 
 
 #include <CReadoutModule.h>
@@ -51,6 +52,7 @@ CConfiguration::CConfiguration() :
   // Register and keep the commands.
 
   m_Commands.push_back(new CADCCommand(*m_pInterp, *this));
+  m_Commands.push_back(new CCAENChainCommand(*m_pInterp, *this));
   m_Commands.push_back(new CScalerCommand(*m_pInterp, *this));
 
 

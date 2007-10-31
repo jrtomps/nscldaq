@@ -53,7 +53,7 @@ private:
   int operator!=(const CReadoutModule& rhs) const;
 
 public:
-
+  CReadoutHardware* getHardwarePointer();
   CReadoutHardware* getHardwareCopy() const;
   
 
