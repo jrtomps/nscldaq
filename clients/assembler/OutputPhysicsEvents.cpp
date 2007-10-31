@@ -108,27 +108,7 @@ OutputPhysicsEvents::add(AssemblyEvent& event)
 {
 	m_assemblies.push_back(&event);
 }
-/////////////////////////////////////////////////////////////////////////////
-/*!
- * Remove a specific event given an iterator 'pointing' to the event to remove.
- * A pointer to the removed event is returned.  The caller must manage storage
- * for that event e.g.:
- * \verbatim
- *    AssemblyEvent* pE = list.remove(iter);
- *    delete pE;
- * \endverbatim
- */
-AssemblyEvent*
-OutputPhysicsEvents::remove(OutputPhysicsEvents::iterator where)
-{
-	AssemblyEvent* pEvent(0);
-	if (where != end()) {
-		pEvent = *where;
-	}
-	m_assemblies.erase(where);
-	
-	return pEvent;
-}
+
 ////////////////////////////////////////////////////////////////////////////////
 /*!
  * \return OutputPhysicsEvents::iterator
@@ -260,8 +240,8 @@ OutputPhysicsEvents::remove(OutputPhysicsEvents::iterator start,
 	AssemblyList result;
 	iterator i = start;
 	while (i != stop) {
-		result.push_back(*i);
-		i++;
+	  result.push_back(*i);
+	  i++;
 	}
 	m_assemblies.erase(start,stop);
 	

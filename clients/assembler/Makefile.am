@@ -98,7 +98,8 @@ noinst_PROGRAMS = unittests
 unittests_SOURCES =	TestRunner.cpp 		\
 			scoreboardTests.cpp 	\
 			stateAssemblyTests.cpp	\
-			physicsAssemblyTests.cpp
+			physicsAssemblyTests.cpp \
+			testOutputEvents.cpp
 
 
 unittests_LDADD = 	NodeScoreboard.o				\
@@ -111,6 +112,7 @@ unittests_LDADD = 	NodeScoreboard.o				\
 			AssemblyEvent.o					\
 			PhysicsAssemblyEvent.o PhysicsFragment.o	\
 			AssembledPhysicsEvent.o				\
+			OutputPhysicsEvents.o				\
 			@top_srcdir@/OutputBuffers/libOutputBuffers.la	\
 			@top_srcdir@/Exception/libException.la 		\
 			@top_srcdir@/SpectrodaqLite/libSpectrodaqCompatibility.la \
@@ -123,7 +125,7 @@ unittests_DEPENDENCIES = NodeScoreboard.o InvalidNodeException.o	\
 			EventFragment.o AssembledEvent.o			\
 			AssembledStateTransitionEvent.o AssemblyEvent.o	\
 			PhysicsAssemblyEvent.o PhysicsFragment.o	\
-			AssembledPhysicsEvent.o
+			AssembledPhysicsEvent.o	OutputPhysicsEvents.o	
 
 cppunittests= cppunitTests
 

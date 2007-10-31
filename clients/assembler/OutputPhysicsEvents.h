@@ -67,7 +67,6 @@ public:
 		// Object operations:
 	
 	void add(AssemblyEvent& event);
-	AssemblyEvent* remove(iterator where);
 	iterator begin();
 	iterator end();
 	size_t size() const;

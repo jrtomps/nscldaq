@@ -895,5 +895,4 @@ test empty-10.3 {Empty a node with multiple frags (phy) leaves it empty} \
 
 after 1000
 cleanupTests
-exit
 
