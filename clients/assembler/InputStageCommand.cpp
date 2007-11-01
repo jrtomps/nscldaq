@@ -656,6 +656,19 @@ InputStageCommand::Usage()
 	return usage;
 }
 
+/*!
+   Return the input stage pointer.   Note that it is perfectly legitimate for
+   this to return a NULL in which case, the input stage has not yet been created.
+   (via the [inputstage create] command
+   \return InputStage*
+   \retval  NULL Input stage not yet created.
+   \retval  other Pointer to the current input stage.
+*/
+InputStage*
+InputStageCommand::getInputStage()
+{
+  return m_pInputStage;
+}
 
 /*
 **  Install an integer int a test buffer.

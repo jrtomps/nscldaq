@@ -42,7 +42,7 @@ using namespace std;
  */
 EventBuilderCommand::EventBuilderCommand(CTCLInterpreter&      interpreter,
 					 AssemblerCommand&     configuration,
-					 InputStage&           fragmentSource,
+					 InputStageCommand&    fragmentSource,
 					 AssemblerOutputStage& eventSink) :
     CTCLObjectProcessor(interpreter, "eventbuilder"),
     m_pBuilder(new EventBuilder(configuration, fragmentSource, eventSink))

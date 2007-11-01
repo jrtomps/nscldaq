@@ -39,7 +39,7 @@ class CTCLInterpreter;
 class CTCLObject;
 class AssemblerOutputStage;
 class AssemblerCommand;
-class InputStage;
+class InputStageCommand;
 
 /*!
  *   Provides a Tcl command interface to the event builder class.
@@ -59,9 +59,9 @@ public:
 	// Canonicals
 	
 	EventBuilderCommand(CTCLInterpreter&      interpreter,
-						AssemblerCommand&     configuration,
-						InputStage&           fragmentSource,
-						AssemblerOutputStage& eventSink);
+			    AssemblerCommand&     configuration,
+			    InputStageCommand&    fragmentSource,
+			    AssemblerOutputStage& eventSink);
 	virtual ~EventBuilderCommand();
 private:
 	EventBuilderCommand(const EventBuilderCommand& rhs);

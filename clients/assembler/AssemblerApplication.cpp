@@ -19,6 +19,7 @@
 #include "AssemblerCommand.h"
 #include "AssemblerOutputStage.h"
 #include "InputStageCommand.h"
+#include "EventBuilderCommand.h"
 
 
 
@@ -71,6 +72,10 @@ AssemblerApplication::operator()()
   AssemblerOutputStage* pOutput   = new AssemblerOutputStage(*pInterp);
   InputStageCommand*    pInputStage = new InputStageCommand(*pInterp,
 							    *pCommand);
+  EventBuilderCommand*  pBuilder  = new EventBuilderCommand(*pInterp,
+							    *pCommand,
+							    *pInputStage,
+							    *pOutput);
   return TCL_OK;
 }
 

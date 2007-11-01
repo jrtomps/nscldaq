@@ -35,6 +35,9 @@
 #include "AssembledPhysicsEvent.h"
 #include "PhysicsAssemblyEvent.h"
 
+#include "InputStage.h"
+#include "InputStageCommand.h"
+
 #include <buftypes.h>
 #include <string.h>
 #include <assert.h>
@@ -53,15 +56,16 @@ using namespace std;
     - Register our callback with the input stage.
 */
 EventBuilder::EventBuilder(AssemblerCommand&     configuration,
-			   InputStage&           fragmentSource,
+			   InputStageCommand&    fragmentSource,
 			   AssemblerOutputStage& eventSink) :
-  m_fragmentSource(fragmentSource),
+  m_InputStageCommand(fragmentSource),
+  m_pInputStage(0),
   m_sink(eventSink),
   m_configuration(configuration)
 {
   memset(&m_statistics, 0, sizeof(m_statistics));
   reloadConfiguration();
-  m_fragmentSource.addCallback(EventBuilder::onInputStageEvent, this);
+  
 }
 /*!
  *   Just need to get rid of the non-null entries in the m_nodeTable:
@@ -118,7 +122,7 @@ void
 EventBuilder::onFragments(uint16_t node)
 {
 	EventFragment* pFragment;
-	pFragment = m_fragmentSource.peek(node);
+	pFragment = m_pInputStage->peek(node);
 	switch (pFragment->type()) {
 	case DATABF:
 	  {
@@ -168,28 +172,38 @@ EventBuilder::statistics() const
 void
 EventBuilder::reloadConfiguration()
 {
-	// clear the old node-list/table.
-	// The table just has pointers back into the node list so it
-	// can just be zeroed.  The list, however has pNodeName strings that
-	// must be deleted before the list can be cleared:
-	
-	memset(m_nodeTable, 0, sizeof(m_nodeTable));
-	list<AssemblerCommand::EventFragmentContributor>::iterator p =
-		m_nodeList.begin();
-	while(p != m_nodeList.end()) {
-		delete []p->pNodeName;
-		p++;
-	}
-	m_nodeList.clear();
-	
-	// Build the new node-list/lookup table.
-	
-	m_nodeList = m_configuration.getConfiguration();
-	p          = m_nodeList.begin();
-	while (p != m_nodeList.end()) {
-		m_nodeTable[p->cpuId] = &(*p);  // Seems strange but p is an iterator not a ptr.
-		p++;
-	}
+  // clear the old node-list/table.
+  // The table just has pointers back into the node list so it
+  // can just be zeroed.  The list, however has pNodeName strings that
+  // must be deleted before the list can be cleared:
+  
+  memset(m_nodeTable, 0, sizeof(m_nodeTable));
+  list<AssemblerCommand::EventFragmentContributor>::iterator p =
+    m_nodeList.begin();
+  while(p != m_nodeList.end()) {
+    delete []p->pNodeName;
+    p++;
+  }
+  m_nodeList.clear();
+  
+  // Build the new node-list/lookup table.
+  
+  m_nodeList = m_configuration.getConfiguration();
+  p          = m_nodeList.begin();
+  while (p != m_nodeList.end()) {
+    m_nodeTable[p->cpuId] = &(*p);  // Seems strange but p is an iterator not a ptr.
+    p++;
+  }
+  // If possible get the input stage going:
+  
+  
+  InputStage* pNewStage = m_InputStageCommand.getInputStage();
+  if (pNewStage != m_pInputStage) {
+    m_pInputStage = pNewStage;
+    if (m_pInputStage) {
+      m_pInputStage->addCallback(EventBuilder::onInputStageEvent, this);
+    }
+  }
 }
 
 ///////////////////////////////////////////////////////////////////
@@ -308,7 +322,7 @@ void
 EventBuilder::onPassThroughFragment(uint16_t       node, 
 				    EventFragment& fragment)
 {
-	m_fragmentSource.pop(node);
+	m_pInputStage->pop(node);
 	
 	pruneNonTriggerNodes();               // Try to trash any fragments that are too old
 	checkMatchingFragments();             // Try to match any stragglers.
@@ -346,7 +360,7 @@ EventBuilder::onPassThroughFragment(uint16_t       node,
 	commitPassthroughEvent(*pAssembledEvent);
 	delete &fragment;
 
-	EventFragment* pNextFragment = m_fragmentSource.peek(node);
+	EventFragment* pNextFragment = m_pInputStage->peek(node);
 	if(pNextFragment) {
 		onFragments(node);                // Process more fragments.
 	}
@@ -450,7 +464,7 @@ EventBuilder::checkMatchingFragments(uint16_t node)
   //  note that only physics events are checked.. if a non-physics
   // event is seen, onFragments is recursively called to deal with it appropriately.
   //
-  EventFragment* pFragment = m_fragmentSource.peek(node);
+  EventFragment* pFragment = m_pInputStage->peek(node);
   OutputPhysicsEvents::iterator start = m_inFlight.begin();
   OutputPhysicsEvents::iterator stop  = m_inFlight.end();
   
@@ -477,12 +491,12 @@ EventBuilder::checkMatchingFragments(uint16_t node)
       else {
 	AssemblyEvent* pAssembly = *start;
 	pAssembly->add(*pEventFragment);             // Add fragment...
-	m_fragmentSource.pop(node);              // Remove from input queue
+	m_pInputStage->pop(node);              // Remove from input queue
 	if (pAssembly->isComplete()) {
 	  // Remove and commit the event.. and reset start as
 	  // removal can invalidate the iterator.
 	  
-	  m_inFlight.remove(start);          // Invalidates start so...
+	  m_inFlight.removeItem(start);          // Invalidates start so...
 	  start = m_inFlight.begin();        // reset search from beginning.
 	  
 	  commitAssembledPhysicsEvent(*reinterpret_cast<AssembledPhysicsEvent*>((pAssembly->assembledEvent())));
@@ -501,7 +515,7 @@ EventBuilder::checkMatchingFragments(uint16_t node)
       }
       
     }
-    pFragment = m_fragmentSource.peek(node); // Next fragment.
+    pFragment = m_pInputStage->peek(node); // Next fragment.
   }
 }
 ////////////////////////////////////////////////////////////////////////////////////
@@ -518,17 +532,17 @@ EventBuilder::createTriggerAssemblies(uint16_t node)
 	assert(pNodeInfo->isTrigger);
 	
 	EventFragment* pFragment;
-	while (pFragment = m_fragmentSource.peek(node)) {
+	while (pFragment = m_pInputStage->peek(node)) {
 		if (pFragment->type() == DATABF) {
 			PhysicsFragment* pPhysicsFragment = reinterpret_cast<PhysicsFragment*>(pFragment);
 			m_inFlight.add(*(new PhysicsAssemblyEvent(pPhysicsFragment)));
-			m_fragmentSource.pop(node);
+			m_pInputStage->pop(node);
 		}
 		else {
 			onFragments(node);       // should remove the fragment from the input queue.
 			
 		}
-		pFragment = m_fragmentSource.peek(node); // Look at the next fragment.
+		pFragment = m_pInputStage->peek(node); // Look at the next fragment.
 	}
 }
 /////////////////////////////////////////////////////////////////////////////////////
@@ -573,7 +587,7 @@ EventBuilder::pruneNode(uint16_t node)
   uint32_t timestamp = (*firstPhysics)->timestamp();	
   
   EventFragment* pFragment;
-  while(pFragment = m_fragmentSource.peek(node)) {
+  while(pFragment = m_pInputStage->peek(node)) {
     if(pFragment->type() == DATABF) {
       PhysicsFragment* p = reinterpret_cast<PhysicsFragment*>(pFragment);
       TimeWindow match = matchInterval(*pNodeInfo, *p);
@@ -589,7 +603,7 @@ EventBuilder::pruneNode(uint16_t node)
 	}
 	if (canPrune) {
 	  delete pFragment;
-	  m_fragmentSource.pop(node);
+	  m_pInputStage->pop(node);
 	}
 	else {
 	  return;

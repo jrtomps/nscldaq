@@ -133,6 +133,8 @@ public:
 	int empty(CTCLInterpreter& interp,
 	   		  std::vector<CTCLObject>& objv);
 	static std::string Usage();
+
+	InputStage* getInputStage();
 private:
 	
 	// Private utilities.

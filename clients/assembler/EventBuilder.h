@@ -52,7 +52,7 @@ class EventFragment;
 class AssembledStateTransitionEvent;
 class AssembledEvent;
 class AssembledPhysicsEvent;
-
+class InputStageCommand;
 
 /*!
  *  This class is the core logical class for event building.
@@ -87,7 +87,9 @@ public:
 		uint32_t endTime;
 	} TimeWindow, *pTimeWindow;
 private:
-	InputStage&             m_fragmentSource;
+	InputStageCommand&             m_InputStageCommand;
+	InputStage*                    m_pInputStage;
+	
 	AssemblerOutputStage&	m_sink;
 	AssemblerCommand&		m_configuration;
 	Statistics              m_statistics;
@@ -99,8 +101,8 @@ private:
 	OutputPhysicsEvents                                    m_inFlight;
 public:
 	EventBuilder(AssemblerCommand&     configuration,
-			 	 InputStage&           fragmentSource,
-			 	 AssemblerOutputStage& eventSink);
+		     InputStageCommand&    fragmentSource,
+		     AssemblerOutputStage& eventSink);
 	virtual ~EventBuilder();
 private:
 	EventBuilder(const EventBuilder& rhs);
