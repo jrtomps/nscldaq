@@ -175,6 +175,8 @@ EventBuilderCommand::stats(CTCLInterpreter& interpreter)
 	statsList=AssemblerUtilities::typeValuePairToList(interpreter, statsSet);
 	result += (*statsList);
 	delete statsList;
+
+	interpreter.setResult(result);
 	
 	return TCL_OK;
 }
@@ -195,5 +197,7 @@ EventBuilderCommand::usage()
 	result       += "  eventbuilder clear\n";
 	result       += "  eventbuidler stats\n";
 	result       += "  eventbuilder reload\n";
+
+	return result;
 }
 
