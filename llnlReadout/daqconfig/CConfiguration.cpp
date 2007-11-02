@@ -61,6 +61,7 @@ CConfiguration::CConfiguration() :
    Destruction must:
    - Destroy all the CReadoutModule object pointers that were added to m_Adcs
    - Destroy all the CReadoutModule object pointers that were added to m_Scalers.
+   - Destroy all readout stacks.
    - Destroy all the CTCLObjectProcessors that were added to m_Commands.
    - Destroy m_pInterp which will implicitly invoke Tcl_DeleteInterp() on
      the interpreter it wraps.
@@ -72,6 +73,9 @@ CConfiguration::~CConfiguration()
   }
   for (int i = 0; i < m_Scalers.size(); i++) {
     delete m_Scalers[i];
+  }
+  for (int i = 0; i < m_Stacks.size(); i++) {
+    delete m_Stacks[i];
   }
   for (int i = 0; i < m_Commands.size(); i++) {
     delete m_Commands[i];
@@ -142,6 +146,15 @@ CConfiguration::findScaler(string name)
 {
   return find(m_Scalers, name);
 }
+/*!
+   See findAdc above, but this version finds a readout stack.
+*/
+CReadoutModule*
+CConfiguration::findStack(string name)
+{
+  return find(m_Stacks, name);
+}
+
 
 /*!
    Add a new scaler module to the configuration.
@@ -165,6 +178,18 @@ void
 CConfiguration::addAdc(CReadoutModule* module)
 {
   m_Adcs.push_back(module);
+}
+
+/*!
+   Adds a new stack to the list of stacks.  Note that there a ton
+   of errors we could but don't check for:
+   - There should not be duplicate stack numbers.
+   - There should not be colliding vector/IPLS for triggered stacks etc.
+*/
+void
+CConfiguration::addStack(CReadoutModule* module)
+{
+  m_Stacks.push_back(module);
 }
 
 /*!
@@ -198,6 +223,15 @@ vector<CReadoutModule*>
 CConfiguration::getScalers()
 {
   return m_Scalers;
+}
+
+/*!
+  Return the stack configuration vector
+*/
+vector<CReadoutModule*>
+CConfiguration::getStacks()
+{
+  return m_Stacks;
 }
 
 ////////////////////////////////////////////////////////////////////////////

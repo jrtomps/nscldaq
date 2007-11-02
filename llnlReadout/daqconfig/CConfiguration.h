@@ -54,9 +54,11 @@ class CTCLObjectProcessor;
 class CConfiguration 
 {
 private:
-  std::vector<CReadoutModule*>   m_Adcs;
-  std::vector<CReadoutModule*>   m_Scalers;
-  CTCLInterpreter*               m_pInterp;
+  std::vector<CReadoutModule*>   m_Adcs; // event digitizers.
+  std::vector<CReadoutModule*>   m_Scalers; // Scalers ..no  real distinction now.
+  std::vector<CReadoutModule*>   m_Stacks; // This is what we load.
+
+  CTCLInterpreter*                    m_pInterp;
   std::vector<CTCLObjectProcessor*>   m_Commands;
   //
   // Canonicals:
@@ -79,12 +81,19 @@ public:
 
   CReadoutModule* findAdc(std::string name);
   CReadoutModule* findScaler(std::string name);
+  CReadoutModule* findStack(std::string name);
+
   void addScaler(CReadoutModule*);
   void addAdc(CReadoutModule*);
-  void setResult(std::string);
+  void addStack(CReadoutModule*);
+
   
   std::vector<CReadoutModule*> getAdcs();
   std::vector<CReadoutModule*> getScalers();
+  std::vector<CReadoutModule*> getStacks();
+
+  void setResult(std::string);
+
 
 
   // Utilties.
