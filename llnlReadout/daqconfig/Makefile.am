@@ -2,12 +2,14 @@ lib_LTLIBRARIES		= libConfig.la
 libConfig_la_SOURCES	= 	CADCCommand.cpp		\
 				CConfiguration.cpp	\
 				CScalerCommand.cpp	\
-				CCAENChainCommand.cpp
+				CCAENChainCommand.cpp	\
+				CStackCommand.cpp
 
 include_HEADERS		=	CADCCommand.h  		\
 				CConfiguration.h 	\
 				CScalerCommand.h	\
-				CCAENChainCommand.h
+				CCAENChainCommand.h	\
+				CStackCommand.h
 
 
 INCLUDES		= 	-I@top_srcdir@/devices	\
