@@ -232,16 +232,9 @@ COutputThread::formatBuffer(DataBuffer& buffer)
   if (listId == ScalerStack) {
     scaler(buffer);
   }
-  else if (listId == ReadoutStack) {
+  else {			// In this version any stack is fair game.
     events(buffer);
   } 
-  else {
-    static char msg[200];
-    sprintf(msg, 
-	    "unrecognized buffer type header: 0x%04x 1st event header 0x%04x",
-	    header, firstEvhdr);
-    throw msg;
-  }
 }
 
 /*

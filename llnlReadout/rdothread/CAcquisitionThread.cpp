@@ -17,6 +17,7 @@
 #include <config.h>
 #include "CAcquisitionThread.h"
 #include <CReadoutModule.h>
+#include <CStack.h>
 #include <CVMUSB.h>
 #include <CVMUSBReadoutList.h>
 #include <DataBuffer.h>
@@ -30,12 +31,10 @@
 
 #include <string.h>
 #include <errno.h>
+
 using namespace std;
 
-static const uint8_t vmeVector(0x80); // Some middle of the road vector.
-static const uint8_t vmeIPL(6);	      // not quite NMI.
-static const unsigned scalerPeriod(5);	      // Seconds between scaler readouts.
-static const unsigned scalerPeriodMultiplier(2); // period*this to get seconds.
+
 static const unsigned DRAINTIMEOUTS(5);	// # consecutive drain read timeouts before giving up.
 static const unsigned USBTIMEOUT(10);
 
@@ -94,17 +93,17 @@ CAcquisitionThread::getInstance()
 */
 void
 CAcquisitionThread::start(CVMUSB* usb,
-			 vector<CReadoutModule*> adcs,
-			 vector<CReadoutModule*> scalers)
+			  vector<CReadoutModule*> Stacks) 
 {
   CRunState* pState = CRunState::getInstance();
   pState->setState(CRunState::Active);
-  pState->setScalerPeriod(scalerPeriod);
+
 
   CAcquisitionThread* pThread = getInstance();
   m_pVme = usb;
-  pThread->m_adcs    = adcs;
-  pThread->m_scalers = scalers;
+  m_Stacks = Stacks;
+
+
 
   // starting the thread will eventually get operator() called and that
   // will do all the rest of the work in thread context.
@@ -284,14 +283,8 @@ CAcquisitionThread::processBuffer(DataBuffer* pBuffer)
   time(&acquiredTime);
   pBuffer->s_timeStamp  = acquiredTime;
 
-  // Sanity checking: see if the event in the buffer has one of our stack ids:
-  //
-  int stack = (pBuffer->s_rawData[1] & VMUSBStackIdMask) >> VMUSBStackIdShift;
-  if ((stack != ScalerStackNum) && (stack != ReadoutStackNum) && 
-      (pBuffer->s_bufferType == TYPE_EVENTS)) {
-    cerr << "Read a buffer with first event from a strange stack: " << stack << endl;
-    cerr << "1'st event 1'st word: " << hex << pBuffer->s_rawData[1] << dec  << endl;
-  }
+  // In this version, all stack ids are good.  The output thread will ensure that
+  // stack 1 completions are scalers and all others are events.
 
   gFilledBuffers.queue(pBuffer);	// Send it on to be routed to spectrodaq in another thread.
 }
@@ -317,40 +310,22 @@ CAcquisitionThread::startDaq()
   m_pVme->writeActionRegister(CVMUSB::ActionRegister::sysReset);
   m_pVme->writeActionRegister(0);
 
-  // Create the lists and size the event readout list.
 
-  CVMUSBReadoutList*  adcList    = createList(m_adcs);
-  CVMUSBReadoutList*  scalerList = createList(m_scalers);
+  //  Get all of the stacks.  load and enable them.  First we'll reset the
+  // stack load offset.
 
-  size_t adcListLines            = adcList->size()*sizeof(long) + 10; // offset to scaler list + slop
-  
-  m_pVme->writeActionRegister(0); // Ensure DAQ is stopped.
-
-  // Load the lists.
-
-  m_pVme->loadList(ReadoutStackNum, *adcList);	                 // Event readout list.
-  m_pVme->loadList(ScalerStackNum, *scalerList, adcListLines); // Scaler list.
-
-  // Set up the trigger for the event list; the A vector of 
-  // vector register 1; the B Vector is unused.
-
-  uint32_t vectorValue = (ReadoutStackNum << CVMUSB::ISVRegister::AStackIDShift)      |
-                         (vmeVector << CVMUSB::ISVRegister::AVectorShift)  |
-                         (vmeIPL << CVMUSB::ISVRegister::AIPLShift);
-
-
-  m_pVme->writeVector(1, vectorValue);
+  for(int i =0; i < m_Stacks.size(); i++) {
+    CStack* pStack = dynamic_cast<CStack*>(m_Stacks[i]->getHardwarePointer());
+    assert(pStack);
+    pStack->loadStack(*m_pVme);	    // Load into VM-USB
+    pStack->Initialize(*m_pVme);    // INitialize daq hardware associated with the stack.
+    pStack->enableStack(*m_pVme);   // Enable the trigger logic for the stack.
+  }
  
   // Set up the buffer size and mode:
 
   m_pVme->writeBulkXferSetup(0 << CVMUSB::TransferSetupRegister::timeoutShift); // don't want multibuffering...1sec timeout is fine.
 
-  // the DAQ settings;
-  //  - No trigger delay is needed since IRQ implies data.
-  //  - Scaler readout period scalerPeriod  seconds.
-
-  m_pVme->writeDAQSettings((scalerPeriod * scalerPeriodMultiplier) <<
-			   CVMUSB::DAQSettingsRegister::scalerReadoutPeriodShift);
 
   // The global mode:
   //   13k buffer
@@ -363,17 +338,12 @@ CAcquisitionThread::startDaq()
 			  (CVMUSB::GlobalModeRegister::bufferLen13K << 
 			   CVMUSB::GlobalModeRegister::bufferLenShift));
 
-  // initialize the hardware:
 
-  InitializeHardware(m_scalers);
-  InitializeHardware(m_adcs);
 
   // Star the VMUSB in data taking mode:
 
   VMusbToAutonomous();
 
-  delete adcList;
-  delete scalerList;
 }
 /*!
    Stop data taking this involves:
@@ -520,31 +490,4 @@ CAcquisitionThread::endRun()
   pBuffer->s_bufferType = TYPE_STOP;
   processBuffer(pBuffer);
 } 
-/*!
-   Create a VMUSB readout list from 
-   an array of readout modules.  This readout list can then be loaded into the
-   VM_usb for autonomous data taking.
-   The readout list is dynamically allocated and therefore must be deleted by the
-   caller.
-*/
-CVMUSBReadoutList*
-CAcquisitionThread::createList(vector<CReadoutModule*> modules)
-{
-  CVMUSBReadoutList *pList = new CVMUSBReadoutList;
 
-  for (int i = 0; i < modules.size(); i++) {
-    modules[i]->addReadoutList(*pList);
-  }
-  return pList;
-}
-/*!
-   Initialize a list of hardware modules by interacting with the
-   VMUSB:
-*/
-void
-CAcquisitionThread::InitializeHardware(vector<CReadoutModule*> modules)
-{
-  for (int i =0; i < modules.size();  i++) {
-    modules[i]->Initialize(*m_pVme);
-  }
-}

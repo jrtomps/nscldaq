@@ -65,8 +65,7 @@ private:
   static DAQThreadId            m_tid;          //!< ID of thread when running.
   static CVMUSB*                m_pVme;		//!< VME interface.
 
-  std::vector<CReadoutModule*>  m_adcs;
-  std::vector<CReadoutModule*>  m_scalers;
+  static std::vector<CReadoutModule*>  m_Stacks;       //!< the stacks to run.
 
   //Singleton pattern stuff:
 
@@ -82,8 +81,7 @@ public:
 
 public:
   static void start(CVMUSB* usb,
-		    std::vector<CReadoutModule*> adcs,
-		    std::vector<CReadoutModule*> scalers);
+		    std::vector<CReadoutModule*> Stacks);
   static bool isRunning();
   static void waitExit();	/* Wait for this thread to exit (join). */
 
@@ -100,8 +98,7 @@ private:
   void drainUsb();
   void beginRun();
   void endRun();
-  CVMUSBReadoutList* createList(std::vector<CReadoutModule*> modules);
-  void InitializeHardware(std::vector<CReadoutModule*> modules);
+
 };
 
 #endif
