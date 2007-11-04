@@ -272,13 +272,14 @@ CStack::loadStack(CVMUSB& controller)
 
   // The list nu
 
-  // Load the list:
+  // Load the list:... unless it has no elements!
 
-  controller.loadList(listNumber,
-		      readoutList,
-		      m_listOffset);
-  m_listOffset += readoutList.size();
-
+  if (readoutList.size() > 0) {
+    controller.loadList(listNumber,
+			readoutList,
+			m_listOffset);
+    m_listOffset += readoutList.size();
+  }
 }
 /*!
   To do this we need to get the stack number...
