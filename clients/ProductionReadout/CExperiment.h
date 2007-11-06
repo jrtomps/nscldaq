@@ -162,7 +162,9 @@ public:
   void setBufferSize(unsigned nBufferSize) {
     m_nBufferSize = nBufferSize;
   }
-  
+  unsigned int getBufferSize() const {
+    return m_nBufferSize;
+  }
   // Class operations:
 public:
   void Start (CStateTransitionCommand& rCommand)  ;

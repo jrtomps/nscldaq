@@ -94,6 +94,18 @@ static const unsigned int SECOND     = 1000000;    //!< usec /seconds.
 static const unsigned int MILISECOND = 1000; //!< usec/msec.
 
 
+static void
+tooLargeAnEvent(unsigned int eventSize, unsigned int bufferSize)
+{
+  cerr << "Experiment's readout code attempted to read an event that "
+       << " would not fit in a buffer\n";
+  cerr << "Event size: " << eventSize << " buffer Size: " << bufferSize << endl;
+  cerr << "The event will be discared.  If you get a lot of these messages, ";
+  cerr << "you should consider increasing the buffer size\n";
+}
+
+
+
 /*!
    >>>LOCAL CLASS TO CEXPERIMENT<<< Encapsulates the thread which
    checks for triggers.  This is a polling thread.  Assumption is that
@@ -584,11 +596,24 @@ CExperiment::ReadEvent()
   CVMEInterface::Unlock();
 
   m_nEventsAcquired++;
+  int nEventSize;
 #ifndef HIGH_PERFORMANCE
-  m_nWordsAcquired += ptr.GetIndex() - hdr.GetIndex();
+  nEventSize = ptr.GetIndex() - hdr.GetIndex();
+  if (nEventSize >= (m_nBufferSize - sizeof(bheader)/sizeof(unsigned short))) {
+    tooLargeAnEvent(nEventSize, m_nBufferSize);
+    ptr = hdr;
+    nEventSize = 0;
+  }
+  m_nWordsAcquired += nEventSize;
+
   if(ptr.GetIndex() > m_nBufferSize) {
 #else /* HIGH_PERFORMANCE */
-  int nEventSize = ptr - hdr + 1;
+  nEventSize = ptr - hdr + 1;
+  if (nEventSize >= (m_nBufferSize - sizeof(bheader)/sizeof(unsigned short))) {
+    tooLargeAnEvent(nEventSize, m_nBufferSize);
+    ptr = hdr;
+    nEventSize = 0;
+  }
   m_nWordsAcquired += nEventSize;
   if((m_EventBuffer->WordsInBody() + nEventSize) > (m_nBufferSize - sizeof(bheader)/sizeof(unsigned short))) {
 #endif /* HIGH_PERFORMANCE */
