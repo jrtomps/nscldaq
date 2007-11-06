@@ -22,7 +22,8 @@ if CPPUNIT
 noinst_PROGRAMS  = testdriver injector
 
 injector_SOURCES   = injector.cpp
-injector_LDADD     = $(SPECTRODAQ_LDFLAGS)
+injector_LDADD     = @top_srcdir@/SpectrodaqLite/libSpectrodaqCompatibility.la \
+			$(SPECTRODAQ_LDFLAGS)
 
 testdriver_SOURCES = TestRunner.cpp testSpectclDaq.cpp 
 testdriver_LDADD   = $(CPPUNIT_LDFLAGS)

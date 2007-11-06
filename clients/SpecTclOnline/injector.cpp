@@ -6,7 +6,7 @@
 using namespace std;
 #endif
 
-
+#include <stdint.h>
 #include <spectrodaq.h>
 
 static const int BufferSize(4096);
@@ -20,10 +20,12 @@ private:
 int
 DAQBuff::operator()(int argc, char** argv) 
 {
+  uint16_t buffer[BufferSize];
   DAQWordBuffer words(BufferSize);
   for(int i =0; i < BufferSize; i++) {
-    words[i] = i;
+    buffer[i] = i;
   }
+  words.CopyIn(buffer, 0, sizeof(buffer) /sizeof(uint16_t));
   words.SetTag(3);
   words.Route();
 
@@ -32,3 +34,4 @@ DAQBuff::operator()(int argc, char** argv)
 }
 
 DAQBuff TheInstance;
+
