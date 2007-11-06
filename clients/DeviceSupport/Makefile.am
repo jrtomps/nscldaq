@@ -80,6 +80,7 @@ caenv1x90test_DEPENDENCIES = CCAENV1x90.o VmeModule.o MmapError.o
 
 caenv1x90test_LDADD = $(caenv1x90test_DEPENDENCIES) \
 	-L@top_srcdir@/Exception -lException \
+	-L@top_srcdir@/VMEApi			\
 	$(VMEBUILDLIBS) -lVmeAPI  $(VMEBUILDLIBS) \
 	 $(SPECTRODAQ_LDFLAGS) $(CPPUNIT_LDFLAGS)
 
@@ -90,6 +91,7 @@ sis3600test_DEPENDENCIES = CSIS3600.o \
 
 sis3600test_LDADD = $(sis3600test_DEPENDENCIES) \
 	-L@top_srcdir@/Exception -lException \
+	-L@top_srcdir@/VMEApi			\
 	$(VMEBUILDLIBS) -lVmeAPI $(VMEBUILDLIBS) \
 	$(SPECTRODAQ_LDFLAGS) $(CPPUNIT_LDFLAGS)
 
@@ -99,6 +101,7 @@ sis3820test_SOURCES = sis3800TestRunner.cpp sis3820tests.cpp
 sis3820test_DEPENDENCIES = CSIS3820.o  VmeModule.o MmapError.o CModule32.o
 
 sis3820test_LDADD = $(sis3820test_DEPENDENCIES) -L@top_srcdir@/Exception -lException \
+	-L@top_srcdir@/VMEApi			\
 	$(VMEBUILDLIBS) -lVmeAPI $(VMEBUILDLIBS) \
 	$(SPECTRODAQ_LDFLAGS) $(CPPUNIT_LDFLAGS)
 
