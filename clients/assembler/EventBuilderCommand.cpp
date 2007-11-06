@@ -122,7 +122,7 @@ EventBuilderCommand::clear(CTCLInterpreter& interpreter)
  * The list consists of a set of type/value pair lists so that items
  * with no counts are removed:
    - Breakdown of fragments by node.
-   - Number of comlete events built, by type.
+   - Number of complete events built, by type.
    - Number of unmatched event fragments received discarded by node.
    - Number of unmatched state transition fragments received, discared by node.
    

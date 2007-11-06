@@ -1,4 +1,3 @@
-
 /*
     This software is Copyright by the Board of Trustees of Michigan
     State University (c) Copyright 2005.
@@ -34,6 +33,7 @@
 #include "AssembledScalerEvent.h"
 #include "AssembledPhysicsEvent.h"
 #include "PhysicsAssemblyEvent.h"
+#include "NodeScoreboard.h"
 
 #include "InputStage.h"
 #include "InputStageCommand.h"
@@ -146,6 +146,7 @@ EventBuilder::onFragments(uint16_t node)
 		onPassThroughFragment(node, *pFragment);
 		break;
 	}
+	m_statistics.fragmentsByNode[node]++;
 }
 ///////////////////////////////////////////////////////////////////
 /*!
@@ -187,13 +188,19 @@ EventBuilder::reloadConfiguration()
   m_nodeList.clear();
   
   // Build the new node-list/lookup table.
-  
+  // and setup the expected nodes in the nodescoreboard class.
+
+  vector<uint16_t> expectedNodes;
   m_nodeList = m_configuration.getConfiguration();
   p          = m_nodeList.begin();
   while (p != m_nodeList.end()) {
     m_nodeTable[p->cpuId] = &(*p);  // Seems strange but p is an iterator not a ptr.
+    expectedNodes.push_back(p->cpuId);
     p++;
   }
+  NodeScoreboard::neededNodes(expectedNodes);
+
+
   // If possible get the input stage going:
   
   
@@ -234,22 +241,23 @@ EventBuilder::reloadConfiguration()
  */
 void 
 EventBuilder::onPhysicsFragment(uint16_t         node, 
-							    PhysicsFragment& fragment)
+				PhysicsFragment& fragment)
 {
-	// node had better be in the configuration:
-	
-	AssemblerCommand::EventFragmentContributor* pNodeDescription = m_nodeTable[node];
-	assert(pNodeDescription);
-	
-	if(pNodeDescription->isTrigger) {  // Trigger node
-		createTriggerAssemblies(node);
-		checkMatchingFragments();
-	}
-	else{                                // non-trigger node
-		checkMatchingFragments(node);
-	}
-	pruneNonTriggerNodes();
-	
+  // node had better be in the configuration:
+  
+  AssemblerCommand::EventFragmentContributor* pNodeDescription = m_nodeTable[node];
+  assert(pNodeDescription);
+  
+  if(pNodeDescription->isTrigger) {  // Trigger node
+    createTriggerAssemblies(node);
+    checkMatchingFragments();
+  }
+  else{                                // non-trigger node
+    checkMatchingFragments(node);
+  }
+  pruneNonTriggerNodes();
+
+  
 }
 ////////////////////////////////////////////////////////////////////////
 /*!
@@ -268,40 +276,44 @@ EventBuilder::onPhysicsFragment(uint16_t         node,
  */
 void
 EventBuilder::onStateTransitionFragment(uint16_t node, 
-										StateTransitionFragment& fragment)
+					StateTransitionFragment& fragment)
 {
-	OutputPhysicsEvents::iterator p = m_inFlight.findByType(fragment.type());
-	StateTransitionAssemblyEvent* pEvent;
-	if (p == m_inFlight.end()) {    // New
-		pEvent = new StateTransitionAssemblyEvent(fragment);
-		m_inFlight.add(*pEvent);
-		
-	}
-	else {                          // Existing.
-		pEvent = dynamic_cast<StateTransitionAssemblyEvent*>(*p);
-		pEvent->add(fragment);
-	}
-	// At this time:
-	// We need to see if pEvent is complete if so;
-	// Avoid discarding as many events as possible by running a matching pass
-	// over all input queues.
-	// then discard the remnant events prior to the one we just inserted..
-	// which should we'll hunt down again, just in case.
-	// We can afford to spend this time re-hunting 'cause state transitions are rare.
-	
-	
-	if (pEvent->isComplete()) {
-		checkMatchingFragments();
-		
-		OutputPhysicsEvents::AssemblyList killList = m_inFlight.removePrior(p);
-		for (OutputPhysicsEvents::iterator i = killList.begin(); i != killList.end(); i++) {
-			delete *i;
-		}
-		commitAssembledStateTransitionEvent(*reinterpret_cast<AssembledStateTransitionEvent*>(pEvent->assembledEvent()));
-		p = find(m_inFlight.begin(), m_inFlight.end(), pEvent);
-		m_inFlight.removeItem(p);
-		delete pEvent;
-	}
+  m_pInputStage->pop(node);	// Remove the fragment from the input queue.
+
+  OutputPhysicsEvents::iterator p = m_inFlight.findByType(fragment.type());
+  StateTransitionAssemblyEvent* pEvent;
+  if (p == m_inFlight.end()) {    // New
+    pEvent = new StateTransitionAssemblyEvent(fragment);
+    m_inFlight.add(*pEvent);
+    p = m_inFlight.end();
+    p--;			// Points to last fragment (the one we just inserted).
+    
+  }
+  else {                          // Existing.
+    pEvent = dynamic_cast<StateTransitionAssemblyEvent*>(*p);
+    pEvent->add(fragment);
+  }
+  // At this time:
+  // We need to see if pEvent is complete if so;
+  // Avoid discarding as many events as possible by running a matching pass
+  // over all input queues.
+  // then discard the remnant events prior to the one we just inserted..
+  // which should we'll hunt down again, just in case.
+  // We can afford to spend this time re-hunting 'cause state transitions are rare.
+  
+  
+  if (pEvent->isComplete()) {
+    checkMatchingFragments();
+    
+    OutputPhysicsEvents::AssemblyList killList = m_inFlight.removePrior(p);
+    for (OutputPhysicsEvents::iterator i = killList.begin(); i != killList.end(); i++) {
+      delete *i;
+    }
+    commitAssembledStateTransitionEvent(*reinterpret_cast<AssembledStateTransitionEvent*>(pEvent->assembledEvent()));
+    p = find(m_inFlight.begin(), m_inFlight.end(), pEvent);
+    m_inFlight.removeItem(p);
+    delete pEvent;
+  }
 }
 ////////////////////////////////////////////////////////////////////////////
 /*!
@@ -322,48 +334,48 @@ void
 EventBuilder::onPassThroughFragment(uint16_t       node, 
 				    EventFragment& fragment)
 {
-	m_pInputStage->pop(node);
-	
-	pruneNonTriggerNodes();               // Try to trash any fragments that are too old
-	checkMatchingFragments();             // Try to match any stragglers.
-
-	AssembledEvent* pAssembledEvent;
-
-	// How we set pAssembledEvent depends on the fragment type:
-	//
-	uint16_t type = fragment.type();
-	if ((type == SCALERBF) || (type == SNAPSCBF))  {
-
-	  // Scaler fragment:
-
-	  ScalerFragment* pScalerFragment = reinterpret_cast<ScalerFragment*>(&fragment);
-	  AssembledScalerEvent* pScaler = new AssembledScalerEvent(fragment.node(),
-								  pScalerFragment->startTime(),
-								  pScalerFragment->endTime(),
-								  static_cast<AssembledEvent::BufferType>(type));
-	  pScaler->addScalers(pScalerFragment->scalers());
-
-	  pAssembledEvent = pScaler;
-								  
-	}
-	else {
-
-	  // String list fragment.
-
-	  StringListFragment* pStringListFragment = reinterpret_cast<StringListFragment*>(&fragment);
-	  AssembledStringArrayEvent* pStringArray = new AssembledStringArrayEvent(fragment.node(),
-										  static_cast<AssembledEvent::BufferType>(type));
-	  pStringArray->addStrings(pStringListFragment->strings());
-	  pAssembledEvent = pStringArray;
-	}
-	
-	commitPassthroughEvent(*pAssembledEvent);
-	delete &fragment;
-
-	EventFragment* pNextFragment = m_pInputStage->peek(node);
-	if(pNextFragment) {
-		onFragments(node);                // Process more fragments.
-	}
+  m_pInputStage->pop(node);
+  
+  pruneNonTriggerNodes();               // Try to trash any fragments that are too old
+  checkMatchingFragments();             // Try to match any stragglers.
+  
+  AssembledEvent* pAssembledEvent;
+  
+  // How we set pAssembledEvent depends on the fragment type:
+  //
+  uint16_t type = fragment.type();
+  if ((type == SCALERBF) || (type == SNAPSCBF))  {
+    
+    // Scaler fragment:
+    
+    ScalerFragment* pScalerFragment = reinterpret_cast<ScalerFragment*>(&fragment);
+    AssembledScalerEvent* pScaler = new AssembledScalerEvent(fragment.node(),
+							     pScalerFragment->startTime(),
+							     pScalerFragment->endTime(),
+							     static_cast<AssembledEvent::BufferType>(type));
+    pScaler->addScalers(pScalerFragment->scalers());
+    
+    pAssembledEvent = pScaler;
+    
+  }
+  else {
+    
+    // String list fragment.
+    
+    StringListFragment* pStringListFragment = reinterpret_cast<StringListFragment*>(&fragment);
+    AssembledStringArrayEvent* pStringArray = new AssembledStringArrayEvent(fragment.node(),
+									    static_cast<AssembledEvent::BufferType>(type));
+    pStringArray->addStrings(pStringListFragment->strings());
+    pAssembledEvent = pStringArray;
+  }
+  
+  commitPassthroughEvent(*pAssembledEvent);
+  delete &fragment;
+  
+  EventFragment* pNextFragment = m_pInputStage->peek(node);
+  if(pNextFragment) {
+    onFragments(node);                // Process more fragments.
+  }
 }
 /////////////////////////////////////////////////////////////////////////////
 /*!
@@ -435,15 +447,16 @@ EventBuilder::onShutdown()
 void
 EventBuilder::checkMatchingFragments()
 {
-	// just loop over the nodes calling the node specific overload
-	// for all non trigger cases:
-	
-	list<AssemblerCommand::EventFragmentContributor>::iterator p = m_nodeList.begin();
-	while (p != m_nodeList.end()) {
-		if (!p->isTrigger) {
-			checkMatchingFragments(p->cpuId);
-		}
-	}
+  // just loop over the nodes calling the node specific overload
+  // for all non trigger cases:
+  
+  list<AssemblerCommand::EventFragmentContributor>::iterator p = m_nodeList.begin();
+  while (p != m_nodeList.end()) {
+    if (!p->isTrigger) {
+      checkMatchingFragments(p->cpuId);
+    }
+    p++;
+  }
 }
 /////////////////////////////////////////////////////////////////////////////
 /*!
@@ -527,23 +540,33 @@ EventBuilder::checkMatchingFragments(uint16_t node)
 void
 EventBuilder::createTriggerAssemblies(uint16_t node)
 {
-	AssemblerCommand::EventFragmentContributor* pNodeInfo = m_nodeTable[node];
-	assert(pNodeInfo);
-	assert(pNodeInfo->isTrigger);
-	
-	EventFragment* pFragment;
-	while (pFragment = m_pInputStage->peek(node)) {
-		if (pFragment->type() == DATABF) {
-			PhysicsFragment* pPhysicsFragment = reinterpret_cast<PhysicsFragment*>(pFragment);
-			m_inFlight.add(*(new PhysicsAssemblyEvent(pPhysicsFragment)));
-			m_pInputStage->pop(node);
-		}
-		else {
-			onFragments(node);       // should remove the fragment from the input queue.
-			
-		}
-		pFragment = m_pInputStage->peek(node); // Look at the next fragment.
-	}
+  AssemblerCommand::EventFragmentContributor* pNodeInfo = m_nodeTable[node];
+  assert(pNodeInfo);
+  assert(pNodeInfo->isTrigger);
+  
+  int physicsFragments = -1;	// We'll count on in onFragments.
+  EventFragment* pFragment;
+  while (pFragment = m_pInputStage->peek(node)) {
+    if (pFragment->type() == DATABF) {
+      physicsFragments++;
+      PhysicsFragment* pPhysicsFragment = reinterpret_cast<PhysicsFragment*>(pFragment);
+      PhysicsAssemblyEvent* pAssembly = new PhysicsAssemblyEvent(pPhysicsFragment);
+      if (pAssembly->isComplete()) {
+	commitAssembledPhysicsEvent(*reinterpret_cast<AssembledPhysicsEvent*>(pAssembly->assembledEvent()));
+	delete pAssembly;
+      }
+      else {
+	m_inFlight.add(*pAssembly);
+      }
+      m_pInputStage->pop(node);
+    }
+    else {
+      onFragments(node);       // should remove the fragment from the input queue.
+      
+    }
+    pFragment = m_pInputStage->peek(node); // Look at the next fragment.
+  }
+  m_statistics.fragmentsByNode[node] += physicsFragments;
 }
 /////////////////////////////////////////////////////////////////////////////////////
 /*!
@@ -554,12 +577,13 @@ EventBuilder::createTriggerAssemblies(uint16_t node)
 void
 EventBuilder::pruneNonTriggerNodes()
 {
-	list<AssemblerCommand::EventFragmentContributor>::iterator  p = m_nodeList.begin();
-	while (p != m_nodeList.end()) {
-		if (!p->isTrigger) {
-			pruneNode(p->cpuId);
-		}
-	}
+  list<AssemblerCommand::EventFragmentContributor>::iterator  p = m_nodeList.begin();
+  while (p != m_nodeList.end()) {
+    if (!p->isTrigger) {
+      pruneNode(p->cpuId);
+    }
+    p++;
+  }
 }
 ///////////////////////////////////////////////////////////////////////
 /*!
