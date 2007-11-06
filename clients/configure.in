@@ -541,7 +541,7 @@ case "$vmeinterface" in
 
 	    # build/install the 2.6 driver (you must be root)
 
-	    (cd btdriver2.6;./configure --prefix=$prefix;make clean;make; make -k install)
+	    (cd btdriver2.6;./configure --prefix=$prefix;make clean;make KERNEL_SRC=${KERNEL_SRC}; make -k install)
 	    ;;
 	*)
 	    AC_MSG_ERROR([SBS bit3 driver can only be built on 2.4 or 2.6 kernel this is $kernel_version])

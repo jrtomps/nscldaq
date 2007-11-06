@@ -1,5 +1,6 @@
-SUBDIRS=lib include dd
+SUBDIRS=lib include
 all-local:
+	echo	./DriverBuild.sh  $(KERNEL_SRC)
 	./DriverBuild.sh  $(KERNEL_SRC)
 
 install-data-local:
