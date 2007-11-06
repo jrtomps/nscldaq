@@ -137,8 +137,10 @@ cppunitTests: unittests
 endif
 
 installcheck-local: $(cppunittests)
+	$(cppunitTests)
 	$(bindir)/assembler configtests.tcl
 	$(bindir)/assembler outstagetests.tcl
 	$(bindir)/assembler inputstagetests.tcl
+
 
 
