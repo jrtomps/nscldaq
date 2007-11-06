@@ -7,9 +7,10 @@ include_HEADERS = AccessListCheck.h AuthTokenCheck.h Authenticator.h \
 	DAQAuthTokenInteractor.h DaqSecurity.h FdInteractor.h HostListCheck.h \
 	IOInteractor.h Interactor.h PasswordCheck.h StringInteractor.h \
 	TclAccessListCheck.h UnixUserCheck.h
-libSecurity_la_LDFLAGS = -version-info $(SOVERSION):0 -Wl,"-rpath=$(libdir)"
+libSecurity_la_LDFLAGS = -version-info $(SOVERSION):0 -Wl,"-rpath=$(libdir)" -lcrypt
 
 INCLUDES = -I@top_srcdir@/Headers -I@top_srcdir@/TCL $(TCL_FLAGS) $(SPECTRODAQ_FLAGS)
+
 
 
 if CPPUNIT
@@ -24,7 +25,7 @@ unittests_DEPENDENCIES = AccessListCheck.o  \
 	StringInteractor.o TclAccessListCheck.o UnixUserCheck.o
 
 unittests_LDADD = $(unittests_DEPENDENCIES) -L@top_srcdir@/TCL -ltclPlus -L@top_srcdir@/Exception -lException \
-	$(SPECTRODAQ_LDFLAGS) $(TCL_LDFLAGS)
+	$(SPECTRODAQ_LDFLAGS) $(TCL_LDFLAGS) -lcrypt
 
 TESTS = ./unittests
 
