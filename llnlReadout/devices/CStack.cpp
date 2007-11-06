@@ -85,6 +85,8 @@ CStack::CStack(const CStack& rhs) :
   }
 }
 
+
+
 /*!
    Destruction is a no-op .. which, in the presence of copy construction
    can lead to memory leaks.
@@ -206,6 +208,15 @@ CStack::addReadoutList(CVMUSBReadoutList& list)
     
     p++;
   }
+}
+/*!
+  Clone virtualizes copy construction.
+
+*/
+CReadoutHardware*
+CStack::clone() const
+{
+  return new CStack(*this);
 }
 ////////////////////////////////////////////////////////////////////////////////
 ///////////////// Implementation of interfaces specific to CStack //////////////

@@ -49,6 +49,8 @@ static const unsigned ScalerStackNum(1);
 bool                CAcquisitionThread::m_Running(false);
 CVMUSB*             CAcquisitionThread::m_pVme(0);
 CAcquisitionThread* CAcquisitionThread::m_pTheInstance(0);
+vector<CReadoutModule*> CAcquisitionThread::m_Stacks;
+
 DAQThreadId CAcquisitionThread::m_tid; // Thread id of the running thread.
 
 
