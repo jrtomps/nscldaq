@@ -436,78 +436,78 @@ InputStageCommand::clearStatistics(CTCLInterpreter& interp,
  */
 int
 InputStageCommand::inject(CTCLInterpreter& interp,
-		   				  std::vector<CTCLObject>& objv)
+			  std::vector<CTCLObject>& objv)
 {
-	// Check the preconditions:
-	
-	if (!m_pInputStage) {
-		return AssemblerErrors::setErrorMsg(interp,
-											AssemblerErrors::DoesNotExist,
-											"(InputStage)");
-	}
-	if (!m_pInputStage->isRunning()) {
-		return AssemblerErrors::setErrorMsg(interp,
-							AssemblerErrors::Stopped,
-							"(InputStage)");
-	}
-	// The Buffer must at least be a full buffer:
-	
-	objv[2].Bind(interp);
-	if (objv[2].llength() < 16) {
-		string result;
-		result += "Attempting to inject and event that doesn't\n";
-		result += "even have a full header. Giving up";
-		interp.setResult(result);
-		return TCL_ERROR;
-	}
-	// Now build the buffer:
-	
-	uint16_t   buffer[BUFFERSIZE];
-	uint16_t*  pDest(buffer);
-	
-	for (int i=0; i < objv[2].llength(); i++) {
-		CTCLObject bufferElement = objv[2].lindex(i);
-		bufferElement.Bind(interp);
-		// If an integer install as an integer..otherwise
-		// install as a string:
-		
-		try {
-			int value = bufferElement;
-			pDest = static_cast<uint16_t*>(installInt(pDest, value));
+  // Check the preconditions:
+  
+  if (!m_pInputStage) {
+    return AssemblerErrors::setErrorMsg(interp,
+					AssemblerErrors::DoesNotExist,
+					"(InputStage)");
+  }
+  if (!m_pInputStage->isRunning()) {
+    return AssemblerErrors::setErrorMsg(interp,
+					AssemblerErrors::Stopped,
+					"(InputStage)");
+  }
+  // The Buffer must at least be a full buffer:
+  
+  objv[2].Bind(interp);
+  if (objv[2].llength() < 16) {
+    string result;
+    result += "Attempting to inject and event that doesn't\n";
+    result += "even have a full header. Giving up";
+    interp.setResult(result);
+    return TCL_ERROR;
+  }
+  // Now build the buffer:
+  
+  uint16_t   buffer[BUFFERSIZE];
+  uint16_t*  pDest(buffer);
+  
+  for (int i=0; i < objv[2].llength(); i++) {
+    CTCLObject bufferElement = objv[2].lindex(i);
+    bufferElement.Bind(interp);
+    // If an integer install as an integer..otherwise
+    // install as a string:
+    
+    try {
+      int value = bufferElement;
+      pDest = static_cast<uint16_t*>(installInt(pDest, value));
+    }
+    catch(...)  {
+      // Not an int...
+      string value = bufferElement;
+      pDest = static_cast<uint16_t*>(installString(pDest, value));
+      
 		}
-		catch(...)  {
-			// Not an int...
-		  string value = bufferElement;
-		  pDest = static_cast<uint16_t*>(installString(pDest, value));
-		  
-		}
-	}
-	
-	// Dispatch it to the right buffer processor based on type.
-	
-	uint16_t type = buffer[1];   // Buffer type...
-
-	
-	try {
-	  m_pInputStage->processBuffer(buffer);
-	}
-	catch(InvalidNodeException err) {
-	  return AssemblerErrors::setErrorMsg(interp,
-					      AssemblerErrors::NoSuchId,
-					      "Injecting data");
-	}
-	catch (EventTooSmallException err) {
-	  return AssemblerErrors::setErrorMsg(interp,
-					      AssemblerErrors::TooSmallForTimestamp,
-					      "Injecting data");
-	}
-	catch (...) {
-		return AssemblerErrors::setErrorMsg(interp,
-				         AssemblerErrors::ExceptionEvent,
-				         "InputStage threw exception on injected buffer");
-	}
-	return TCL_OK;
-	
+  }
+  
+  // Dispatch it to the right buffer processor based on type.
+  
+  uint16_t type = buffer[1];   // Buffer type...
+  
+  
+  try {
+    m_pInputStage->processBuffer(buffer);
+  }
+  catch(InvalidNodeException err) {
+    return AssemblerErrors::setErrorMsg(interp,
+					AssemblerErrors::NoSuchId,
+					"Injecting data");
+  }
+  catch (EventTooSmallException err) {
+    return AssemblerErrors::setErrorMsg(interp,
+					AssemblerErrors::TooSmallForTimestamp,
+					"Injecting data");
+  }
+  catch (...) {
+    return AssemblerErrors::setErrorMsg(interp,
+					AssemblerErrors::ExceptionEvent,
+					"InputStage threw exception on injected buffer");
+  }
+  return TCL_OK;
+  
 }
 ////////////////////////////////////////////////////////////////
 /*!
