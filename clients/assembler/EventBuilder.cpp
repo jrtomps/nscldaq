@@ -121,32 +121,33 @@ EventBuilder::onInputStageEvent(void* pObject,
 void
 EventBuilder::onFragments(uint16_t node)
 {
-	EventFragment* pFragment;
-	pFragment = m_pInputStage->peek(node);
-	switch (pFragment->type()) {
-	case DATABF:
-	  {
-	    PhysicsFragment* pPhysicsFragment = 
-	      reinterpret_cast<PhysicsFragment*>(pFragment);
-	    onPhysicsFragment(node, *pPhysicsFragment);
-	    break;
-	  }
-	case BEGRUNBF:
-	case ENDRUNBF:
-	case PAUSEBF:
-	case RESUMEBF:
-	  {
-	    StateTransitionFragment* pTransitionFragment = 
-	      reinterpret_cast<StateTransitionFragment*>(pFragment);
-
-	    onStateTransitionFragment(node, *pTransitionFragment);
-	    break;
-	  }
-	default:
-		onPassThroughFragment(node, *pFragment);
-		break;
-	}
-	m_statistics.fragmentsByNode[node]++;
+  EventFragment* pFragment;
+  pFragment = m_pInputStage->peek(node);
+  switch (pFragment->type()) {
+  case DATABF:
+    {
+      PhysicsFragment* pPhysicsFragment = 
+	reinterpret_cast<PhysicsFragment*>(pFragment);
+      onPhysicsFragment(node, *pPhysicsFragment);
+      break;
+    }
+  case BEGRUNBF:
+  case ENDRUNBF:
+  case PAUSEBF:
+  case RESUMEBF:
+    {
+      StateTransitionFragment* pTransitionFragment = 
+	reinterpret_cast<StateTransitionFragment*>(pFragment);
+      
+      onStateTransitionFragment(node, *pTransitionFragment);
+      m_statistics.fragmentsByNode[node]++;
+      break;
+    }
+  default:
+    onPassThroughFragment(node, *pFragment);
+    m_statistics.fragmentsByNode[node]++;
+    break;
+  }
 }
 ///////////////////////////////////////////////////////////////////
 /*!
@@ -489,6 +490,8 @@ EventBuilder::checkMatchingFragments(uint16_t node)
       
     }
     else {
+      m_statistics.fragmentsByNode[node]++;
+
       // Get the matching window
       
       
@@ -544,11 +547,10 @@ EventBuilder::createTriggerAssemblies(uint16_t node)
   assert(pNodeInfo);
   assert(pNodeInfo->isTrigger);
   
-  int physicsFragments = -1;	// We'll count on in onFragments.
   EventFragment* pFragment;
   while (pFragment = m_pInputStage->peek(node)) {
     if (pFragment->type() == DATABF) {
-      physicsFragments++;
+      m_statistics.fragmentsByNode[node]++;
       PhysicsFragment* pPhysicsFragment = reinterpret_cast<PhysicsFragment*>(pFragment);
       PhysicsAssemblyEvent* pAssembly = new PhysicsAssemblyEvent(pPhysicsFragment);
       if (pAssembly->isComplete()) {
@@ -566,7 +568,6 @@ EventBuilder::createTriggerAssemblies(uint16_t node)
     }
     pFragment = m_pInputStage->peek(node); // Look at the next fragment.
   }
-  m_statistics.fragmentsByNode[node] += physicsFragments;
 }
 /////////////////////////////////////////////////////////////////////////////////////
 /*!
