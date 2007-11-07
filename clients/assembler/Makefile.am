@@ -141,6 +141,7 @@ installcheck-local: $(cppunittests)
 	$(bindir)/assembler configtests.tcl
 	$(bindir)/assembler outstagetests.tcl
 	$(bindir)/assembler inputstagetests.tcl
+	$(bindir)/assembler eventbuilderTests.tcl
 
 
 
