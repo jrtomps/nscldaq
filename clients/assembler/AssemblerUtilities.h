@@ -29,6 +29,13 @@
 #endif
 #endif
 
+#ifndef __CRT_STDINT_H
+#include <stdint.h>
+#ifndef __CRT_STDINT_H
+#define __CRT_STDINT_H
+#endif
+#endif
+
 static const size_t BUFFERSIZE(16*1024);        // Size of a data buffer.
 
 class CTCLObject;

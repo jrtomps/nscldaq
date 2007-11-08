@@ -7,6 +7,17 @@ proc setupConfiguration {} {
     assembler node thechad.nscl.msu.edu 0x80
     assembler trigger 0x80
 }
+
+# Setup a configuration with 2 nodes.. however these two
+# nodes are really the test system and it's local host.
+#
+
+proc setupConfiguration2 {} {
+    setupConfiguration
+    assembler node 127.0.0.1 0x81
+    assembler window 0x81 100
+}
+
 proc cleanupConfiguration {} {
     inputstage destroy
     assembler clear
@@ -21,13 +32,24 @@ proc countedString {string length} {
     return $string
 }
 
+proc startup {} {
+    inputstage create
+    inputstage start
+    eventbuilder reload
+}
 
+proc stopall {} {
+    inputstage stop
+    cleanupConfiguration
+    eventbuilder clear
+    eventbuilder reload
+}
+
+########### Tests for simple assemblies involving a single node ##################
 test build-1.0 {Build a state transition event} \
     -setup {
 	setupConfiguration
-	inputstage create
-	inputstage start
-	eventbuilder reload
+	startup
     }                                            \
     -body {
 	set header [list 64 11 0 1 1 0 0 0 0x80 0 6 0x0102 0x0304 0x0102 0 0]
@@ -42,10 +64,7 @@ test build-1.0 {Build a state transition event} \
 	eventbuilder stats
     }                                             \
     -cleanup {
-	inputstage stop
-	cleanupConfiguration
-	eventbuilder clear
-	eventbuilder reload
+	stopall
     }                                               \
     -result {{{128 1}} {{11 1}} {} {}}
 
@@ -53,15 +72,10 @@ test build-1.0 {Build a state transition event} \
 test build-1.1 {Do a passthrough event} \
     -setup {
 	setupConfiguration
-	inputstage create
-	inputstage start
-	eventbuilder reload
+	startup
     }                                            \
     -cleanup {
-	inputstage stop
-	cleanupConfiguration
-	eventbuilder clear
-	eventbuilder reload
+	stopall
     }                                               \
     -body {
 	set buffer [list 20 4 0 1 1 0 1 0 0x80 0 6 0x0102 0x0304 0x0102 0 0]
@@ -75,15 +89,10 @@ test build-1.1 {Do a passthrough event} \
 test build-1.2 {Do a event buffer with 3 events} \
     -setup {
 	setupConfiguration
-	inputstage create
-	inputstage start
-	eventbuilder reload
+	startup
     }                                            \
     -cleanup {
-	inputstage stop
-	cleanupConfiguration
-	eventbuilder clear
-	eventbuilder reload
+	stopall
     }                                               \
     -body {
 	set header [list 46 1 0 1 1 0 3 0 0x80 0 5 0x0102 0x0304 0x0102 0 0]
@@ -95,6 +104,265 @@ test build-1.2 {Do a event buffer with 3 events} \
 	eventbuilder stats
     }                                               \
     -result {{{128 3}} {{1 3}} {} {}}
+
+################### Tests of assembly involving multiple nodes ######################
+
+test build-2.0 {Build state change buffer for 2 nodes. } \
+    -setup {
+	setupConfiguration2
+	startup
+    }                                       \
+    -cleanup {
+	stopall
+    }                                         \
+    -body {
+	set header [list 64 11 0 1 1 0 0 0 0x80 0 6 0x0102 0x0304 0x0102 0 0]
+	set title [countedString "this is a title" 80]
+	set startTime [list 0 0]
+	set date [list 10 10 2007 9 17 0]
+
+	set buffer [concat $header [list $title] $startTime $date]
+
+
+	inputstage inject $buffer
+	set header [lreplace $header 8 8 0x81];   # Turn it into a fragment from 0x81
+	inputstage inject [concat $header [list $title] $startTime $date]
+
+	# Should trigger the assembly.
+
+	eventbuilder stats
+    }                                           \
+    -result {{{128 1} {129 1}} {{11 1}} {} {}}
+
+test build-2.1 {Pass through events don't get assembled: } \
+    -setup {
+	setupConfiguration2
+	startup
+    }                                                           \
+    -cleanup {
+	stopall
+    }                                                \
+    -body {
+	set buffer [list 20 4 0 1 1 0 1 0 0x80 0 6 0x0102 0x0304 0x0102 0 0]
+	lappend buffer "set a b"
+
+	inputstage inject $buffer
+	inputstage inject [lreplace $buffer 8 8 0x81]
+	eventbuilder stats
+    }                                              \
+    -result {{{128 1} {129 1}} {{4 2}} {} {}}
+
+test build-2.2 {Events with the same timestamp from different nodes trivally assemble (trigger first)} \
+    -setup {
+	setupConfiguration2
+	startup
+    }                                                           \
+    -cleanup {
+	stopall
+    }                                                \
+    -body {
+	set header [list 46 1 0 1 1 0 3 0 0x80 0 5 0x0102 0x0304 0x0102 0 0]
+	set event  [list 11 0 1 2 3 4 5 6 7 8 9]
+	set buffer [concat $header $event $event $event]
+
+
+	inputstage inject $buffer
+	set buffer [lreplace $buffer 8 8 0x81]
+	inputstage inject $buffer
+
+	eventbuilder stats
+    }                                                \
+    -result {{{128 3} {129 3}} {{1 3}} {} {}}
+
+test build-2.3 {Events with the same timestamp from different nodes assemble if trigger is not first} \
+    -setup {
+	setupConfiguration2
+	startup
+    }                                                           \
+    -cleanup {
+	stopall
+    }                                                \
+    -body {
+	set header [list 46 1 0 1 1 0 3 0 0x81 0 5 0x0102 0x0304 0x0102 0 0]
+	set event  [list 11 0 1 2 3 4 5 6 7 8 9]
+	set buffer [concat $header $event $event $event]
+
+
+	inputstage inject $buffer
+	set buffer [lreplace $buffer 8 8 0x80]
+	inputstage inject $buffer
+
+	eventbuilder stats
+    }                                                \
+    -result {{{128 3} {129 3}} {{1 3}} {} {}}
+
+test build-2.4 {Events with inexact matching (trigger node first).} \
+    -setup {
+	setupConfiguration2
+	startup
+    }                                                           \
+    -cleanup {
+	stopall
+    }                                                \
+    -body {
+	set header [list 46 1 0 1 1 0 3 0 0x80 0 5 0x0102 0x0304 0x0102 0 0]
+	set event  [list 11 0 1 2 3 4 5 6 7 8 9]
+	set buffer [concat $header $event $event $event]
+
+
+	inputstage inject $buffer
+	set header [lreplace $buffer 8 8 0x81]
+	set event1 [lreplace $event 1 1 10]
+	set event2 [lreplace $event 1 2 0xfff0 0]
+	set event3 [lreplace $event 1 1 80]
+	inputstage inject [concat $header $event1 $event2 $event3]
+
+	eventbuilder stats
+    }                                                \
+    -result {{{128 3} {129 3}} {{1 3}} {} {}}
+test build-2.5 {Events with inexact matching (trigger node not first) } \
+    -setup {
+	setupConfiguration2
+	startup
+    }                                                           \
+    -cleanup {
+	stopall
+    }                                                \
+    -body {
+	set header [list 46 1 0 1 1 0 3 0 0x81 0 5 0x0102 0x0304 0x0102 0 0]
+	set event  [list 11 0 1 2 3 4 5 6 7 8 9]
+	set buffer [concat $header $event $event $event]
+
+
+	set event1 [lreplace $event 1 1 10]
+	set event2 [lreplace $event 1 2 0xfff0 0]
+	set event3 [lreplace $event 1 1 80]
+	inputstage inject [concat $header $event1 $event2 $event3]
+
+	set header [lreplace $header 8 8 0x80]
+	inputstage inject [concat $header $event $event $event]
+
+	eventbuilder stats
+    }                                                \
+    -result {{{128 3} {129 3}} {{1 3}} {} {}}
+
+test build-2.6 {Events with inexact matching where window spans zero (trigger first)} \
+    -setup {
+	setupConfiguration2
+	startup
+    }                                                           \
+    -cleanup {
+	stopall
+    }                                                \
+    -body {
+	set header81 [list 46 1 0 1 1 0 3 0 0x81 0 5 0x0102 0x0304 0x0102 0 0]
+	set header80 [lreplace $header81 8 8 0x80]
+
+	set triggerevent  [list 11 50 0  2 3 4 5 6 7 8 9] ; # t = 50.
+	set buffer80 [concat $header $event $event $event]
+
+
+	set event1 [lreplace $triggerevent 1 2 60 0];        # t = 60.
+	set event2 [lreplace $triggerevent 1 2 0xfff6 0xffff];    # t = -10
+	set event3 [lreplace $triggerevent 1 2 100 0];               # t = 100.
+
+
+
+	inputstage inject [concat $header80 $triggerevent $triggerevent $triggerevent]
+	inputstage inject [concat $header81 $event1 $event2 $event3]
+
+	eventbuilder stats
+    }                                                \
+    -result {{{128 3} {129 3}} {{1 3}} {} {}}
+
+
+test build-2.7 {Events with inexact matching where window spans zero (trigger not first)} \
+    -setup {
+	setupConfiguration2
+	startup
+    }                                                           \
+    -cleanup {
+	stopall
+    }                                                \
+    -body {
+	set header81 [list 46 1 0 1 1 0 3 0 0x81 0 5 0x0102 0x0304 0x0102 0 0]
+	set header80 [lreplace $header81 8 8 0x80]
+
+	set triggerevent  [list 11 50 0  2 3 4 5 6 7 8 9] ; # t = 50.
+	set buffer80 [concat $header $event $event $event]
+
+
+	set event1 [lreplace $triggerevent 1 2 60 0];        # t = 60.
+	set event2 [lreplace $triggerevent 1 2 0xfff6 0xffff];    # t = -10
+	set event3 [lreplace $triggerevent 1 2 100 0];               # t = 100.
+
+
+
+	inputstage inject [concat $header81 $event1 $event2 $event3]
+	inputstage inject [concat $header80 $triggerevent $triggerevent $triggerevent]
+
+	eventbuilder stats
+    }                                                \
+    -result {{{128 3} {129 3}} {{1 3}} {} {}}
+
+
+test build-2.8 {Event streams that have non-matches [trigger first failed match last]} \
+    -setup {
+	setupConfiguration2
+	startup
+    }                                                           \
+    -cleanup {
+	stopall
+    }                                                \
+    -body {
+	set header81 [list 46 1 0 1 1 0 3 0 0x81 0 5 0x0102 0x0304 0x0102 0 0]
+	set header80 [lreplace $header81 8 8 0x80]
+
+	set triggerevent  [list 11 50 0  2 3 4 5 6 7 8 9] ; # t = 50.
+	set buffer80 [concat $header $event $event $event]
+
+
+	set event1 [lreplace $triggerevent 1 2 0xfff6 0xffff ]; 
+	set event2 [lreplace $triggerevent 1 2 60 0];
+	set event3 [lreplace $triggerevent 1 2 0 1];
+
+
+
+	inputstage inject [concat $header80 $triggerevent $triggerevent $triggerevent]
+	inputstage inject [concat $header81 $event1 $event2 $event3]
+
+	eventbuilder stats
+    }                                                \
+    -result {{{128 3} {129 2}} {{1 2}} {} {}}
+
+test build-2.9 {Event streams that have non-matches, [trigger not first failed match last]} \
+    -setup {
+	setupConfiguration2
+	startup
+    }                                                           \
+    -cleanup {
+	stopall
+    }                                                \
+    -body {
+	set header81 [list 46 1 0 1 1 0 3 0 0x81 0 5 0x0102 0x0304 0x0102 0 0]
+	set header80 [lreplace $header81 8 8 0x80]
+
+	set triggerevent  [list 11 50 0  2 3 4 5 6 7 8 9] ; # t = 50.
+	set buffer80 [concat $header $event $event $event]
+
+
+	set event1 [lreplace $triggerevent 1 2 0xfff6 0xffff ]; 
+	set event2 [lreplace $triggerevent 1 2 60 0];
+	set event3 [lreplace $triggerevent 1 2 0 1];
+
+
+
+	inputstage inject [concat $header81 $event1 $event2 $event3]
+	inputstage inject [concat $header80 $triggerevent $triggerevent $triggerevent]
+
+	eventbuilder stats
+    }                                                \
+    -result {{{128 3} {129 2}} {{1 2}} {} {}}
 
 ######## Report the tests and exit.
 

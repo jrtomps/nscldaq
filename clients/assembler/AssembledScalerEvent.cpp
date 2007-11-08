@@ -94,7 +94,7 @@ AssembledScalerEvent::addScalers(void* pScalers, size_t count)
 
 */
 void
-AssembledScalerEvent::addScalers(vector<unsigned uint32_t> scalers)
+AssembledScalerEvent::addScalers(vector<uint32_t> scalers)
 {
   m_scalers.insert(end(),
 		   scalers.begin(),

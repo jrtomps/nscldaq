@@ -308,6 +308,7 @@ EventBuilder::onStateTransitionFragment(uint16_t node,
     
     OutputPhysicsEvents::AssemblyList killList = m_inFlight.removePrior(p);
     for (OutputPhysicsEvents::iterator i = killList.begin(); i != killList.end(); i++) {
+      
       delete *i;
     }
     commitAssembledStateTransitionEvent(*reinterpret_cast<AssembledStateTransitionEvent*>(pEvent->assembledEvent()));
@@ -490,7 +491,7 @@ EventBuilder::checkMatchingFragments(uint16_t node)
       
     }
     else {
-      m_statistics.fragmentsByNode[node]++;
+
 
       // Get the matching window
       
@@ -508,6 +509,8 @@ EventBuilder::checkMatchingFragments(uint16_t node)
 	AssemblyEvent* pAssembly = *start;
 	pAssembly->add(*pEventFragment);             // Add fragment...
 	m_pInputStage->pop(node);              // Remove from input queue
+	m_statistics.fragmentsByNode[node]++; //  Count only when consumed.
+      
 	if (pAssembly->isComplete()) {
 	  // Remove and commit the event.. and reset start as
 	  // removal can invalidate the iterator.
@@ -550,7 +553,6 @@ EventBuilder::createTriggerAssemblies(uint16_t node)
   EventFragment* pFragment;
   while (pFragment = m_pInputStage->peek(node)) {
     if (pFragment->type() == DATABF) {
-      m_statistics.fragmentsByNode[node]++;
       PhysicsFragment* pPhysicsFragment = reinterpret_cast<PhysicsFragment*>(pFragment);
       PhysicsAssemblyEvent* pAssembly = new PhysicsAssemblyEvent(pPhysicsFragment);
       if (pAssembly->isComplete()) {
@@ -561,6 +563,8 @@ EventBuilder::createTriggerAssemblies(uint16_t node)
 	m_inFlight.add(*pAssembly);
       }
       m_pInputStage->pop(node);
+      m_statistics.fragmentsByNode[node]++; // Count fragments when poppped.
+
     }
     else {
       onFragments(node);       // should remove the fragment from the input queue.
@@ -626,13 +630,14 @@ EventBuilder::pruneNode(uint16_t node)
 	else {
 	  canPrune = true;
 	}
-	if (canPrune) {
-	  delete pFragment;
-	  m_pInputStage->pop(node);
-	}
-	else {
-	  return;
-	}
+      }
+      if (canPrune) {
+	delete pFragment;
+	m_pInputStage->pop(node);
+	m_statistics.unmatchedByNode[node]++;
+      }
+      else {
+	return;
       }
     }
     else {
