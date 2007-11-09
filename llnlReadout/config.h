@@ -2,7 +2,7 @@
 /* config.h.in.  Generated from configure.in by autoheader.  */
 
 /* Define to 1 if you have the <cppunit/Test.h> header file. */
-/* #undef HAVE_CPPUNIT_TEST_H */
+#define HAVE_CPPUNIT_TEST_H 1
 
 /* Define to 1 if you have the <dlfcn.h> header file. */
 #define HAVE_DLFCN_H 1
@@ -101,7 +101,7 @@
 #define STDC_HEADERS 1
 
 /* Version number of package */
-#define VERSION "1.0"
+#define VERSION "2.0"
 
 
 /* Define STD macro according to HAVE_STD_NAMESPACE value */

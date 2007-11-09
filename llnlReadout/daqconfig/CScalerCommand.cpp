@@ -42,7 +42,7 @@ using std::vector;
        Configuration we will be maintaining.
 */
 CScalerCommand::  CScalerCommand(CTCLInterpreter& interp, CConfiguration& config) :
-  CTCLObjectProcessor(interp, "scaler"),
+  CTCLObjectProcessor(interp, "sis3820"),
   m_Config(config)
 {
 }

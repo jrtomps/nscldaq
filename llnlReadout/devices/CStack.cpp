@@ -59,6 +59,13 @@ static CConfigurableObject::limit vectorLow(0);
 static CConfigurableObject::limit vectorHigh(0x7f);
 static CConfigurableObject::Limits vectorRange(vectorLow, vectorHigh);
 
+// -delay is in the range 0 - 0xff  number of microseconds of delay 
+//        between trigger and list start (to allow for ADC conversinos).
+//
+static CConfigurableObject::limit delayLow(0);
+static CConfigurableObject::limit delayHigh(0xff);
+static CConfigurableObject::Limits delayRange(delayLow, delayHigh);
+
 ////////////////////////////////////////////////////////////////////////////////
 /////////////////////////// Canonicals /////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
@@ -126,6 +133,9 @@ Option           value type               Value meaning
                                           option is interrupt.  The stack number will determine
                                           which interrupt list register will be programmed
                                           to trigger this list.
+-delay            integer 0-0xff          Number of microseconds to delay between NIM 1
+                                          and stack 0 start (allowance for conversion times
+                                          of digitizers e.g.).
 -vector           integer 0-0xff          VME Interrupt status/ID that will be used to trigger this list.
                                           This is ignored if the trigger is not interrupt.
 -ipl              integer 1-7             Interrupt priority level of the interrupt that will trigger
@@ -162,6 +172,8 @@ CStack::onAttach(CReadoutModule& configuration)
 				 CConfigurableObject::isInteger, NULL, "2");
   m_pConfiguration->addParameter("-stack",
 				 CConfigurableObject::isInteger, &stackRange, "2");
+  m_pConfiguration->addParameter("-delay",
+				 CConfigurableObject::isInteger, &delayRange, "0");
   m_pConfiguration->addParameter("-vector",
 				 CConfigurableObject::isInteger, &vectorRange);
   m_pConfiguration->addParameter("-ipl",
@@ -310,9 +322,16 @@ CStack::enableStack(CVMUSB& controller)
 {
   uint8_t   listNumber  = getListNumber();
 
-  // If zero we're done:
+  // If zero, fetch the delay parameter and set it in the DAQ Settings register:
 
-  if (listNumber == 0) return;
+  if (listNumber == 0) {
+    uint32_t delay        = getIntegerParameter("-delay");
+    uint32_t daqsettings  = controller.readDAQSettings();
+    daqsettings           = daqsettings & (~CVMUSB::DAQSettingsRegister::readoutTriggerDelayMask); // Clear bit field.
+    daqsettings          |= (delay & CVMUSB::DAQSettingsRegister::readoutTriggerDelayMask);  // insert bit field.
+    controller.writeDAQSettings(daqsettings); // Write the new register value.
+    return;
+  }
 
   // If 1 set up the scaler parameters:
 

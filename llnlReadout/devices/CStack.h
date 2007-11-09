@@ -77,6 +77,8 @@ Option           value type               Value meaning
 -ipl              integer 1-7             Interrupt priority level of the interrupt that will trigger
                                           this stack.  This will be ignored if the trigger is not 
 					  interrupt.
+-delay            integer 0-255           For stack 0, Number of microseconds to delay between
+                                          NIM1 and starting the readout stack.
 -modules          stringlist              List of ADC, Scaler, Chain modules that will be read by
                                           this stack.
 \endverbatim

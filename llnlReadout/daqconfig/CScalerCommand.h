@@ -46,7 +46,7 @@ class CConfiguration;
    This class creates and configures SIS3820 scalers for the LLNL neutrons daq
    system.  The command supports the following syntaxes:
 \verbatim
-   scaler create module-name base-address
+   sis3820 create module-name base-address
 \endverbatim
     Unlike the 'normal' scripted readout. this software will read all defined
     scalers.  It will read them in the order in which they were defined.
