@@ -4,7 +4,7 @@
 spectcldaq \- Filter to take data from NSCL DAQ and send it to stdout.
 
 .SH SYNOPSIS
-.B spectcldaq [sinkurl]
+.B spectcldaq [sinkurl [-everything]]
 .SH  DESCRIPTION
 .PP
 This program is an adapter that allows non  NSCLDAQ aware programs to obtain
@@ -18,6 +18,9 @@ The \fIsinkurl\fR parameter is of the form tcp://host:2602/.  Note that event
 data is only accepted in 'unreliable mode' so that the programs receiving data
 will not be a system throughput limit.  If omitted the default value is
 tcp://localhost:2602/ 
+.PP
+If the -everything option is provided, all data are sent to stdout, rather than
+sampling the event data.
 .SH EXAMPLES
 .TP
 Crude hex dump of all data from spdaq16:
@@ -32,7 +35,3 @@ local system:
 spectcldaq |strings
 .fi
 
-.SH BUGS
-.PP 
-There is no way to run this program so that all of the data is routed to stdout
-(e.g. to write special purpose event loggers).

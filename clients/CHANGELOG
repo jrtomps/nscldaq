@@ -882,3 +882,6 @@ November 6, 2007 - Converted source code repositories to subversion at sourcefor
                  - Ensured the 2.6 sbs driver build script can inherit the KERNEL_SRC 
                    from the top-level configuration script .. improving the chances of 
                    a successful build of the driver.
+November 9, 2007 - Correct error in spectcldaq.1 the -everything switch now allows all
+                   data to go to stdout, not just a sample.
+
