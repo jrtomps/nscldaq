@@ -3,13 +3,15 @@ libConfig_la_SOURCES	= 	CADCCommand.cpp		\
 				CConfiguration.cpp	\
 				CScalerCommand.cpp	\
 				CCAENChainCommand.cpp	\
-				CStackCommand.cpp
+				CStackCommand.cpp	\
+				CCAENV830Command.cpp
 
 include_HEADERS		=	CADCCommand.h  		\
 				CConfiguration.h 	\
 				CScalerCommand.h	\
 				CCAENChainCommand.h	\
-				CStackCommand.h
+				CStackCommand.h		\
+				CCAENV830Command.h
 
 
 INCLUDES		= 	-I@top_srcdir@/devices	\
