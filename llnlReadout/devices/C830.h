@@ -45,13 +45,13 @@ class CVMUSBReadoutList;
 
 
 \verbatim
-c830 create name base-address
+v830 create name base-address
 \endverbatim
 
     Once created it can be configured via:
 
 \verbatim
-c830 config name option value ?...?
+v830 config name option value ?...?
 
 where the options/values are:
 
