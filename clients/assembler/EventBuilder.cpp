@@ -109,45 +109,52 @@ EventBuilder::onInputStageEvent(void* pObject,
 }
 ////////////////////////////////////////////////////////////////////////////////
 /*!
- * Processes fragments from an input queue.  What we are going to do is 
- * peek at the fragment from the node queue and dispatch to the appropriate
- * fragment handling function:
-    - onPhysicsFragment if the fragment is, as it will be the majority of the time,
-                        a physics fragment.
-    - onStateTransitionFragment  if the fragment is a state transition event.
-    - onPassThroughFragment for anything else.
-    \param node - Node that has new fragments ready.
-    */
+ * Processes fragments from an input queue.
+ * We will process fragments until the input queue is empty.
+ * Each fragment will be dispatched to its appropriate handler.
+ * - Event fragments to the onPhysicsFragment member,
+ * - State transition fragments to the onStateTransitionFragment handler.
+ * - All others to the onPassThroughFragment handler.
+ *
+ * \param node - The node from which the fragments have arrived.
+ *
+*/
 void
 EventBuilder::onFragments(uint16_t node)
 {
   EventFragment* pFragment;
-  pFragment = m_pInputStage->peek(node);
-  switch (pFragment->type()) {
-  case DATABF:
-    {
-      PhysicsFragment* pPhysicsFragment = 
-	reinterpret_cast<PhysicsFragment*>(pFragment);
-      onPhysicsFragment(node, *pPhysicsFragment);
+
+  while (pFragment = m_pInputStage->pop(node)) {
+    m_statistics.fragmentsByNode[node]++; //  Count before dispatching.
+    switch (pFragment->type()) {
+    case DATABF:
+      {
+	PhysicsFragment* pPhysicsFragment = 
+	  reinterpret_cast<PhysicsFragment*>(pFragment);
+	onPhysicsFragment(node, *pPhysicsFragment);
+	break;
+      }
+    case BEGRUNBF:
+    case ENDRUNBF:
+    case PAUSEBF:
+    case RESUMEBF:
+      {
+	StateTransitionFragment* pTransitionFragment = 
+	  reinterpret_cast<StateTransitionFragment*>(pFragment);	
+	onStateTransitionFragment(node, *pTransitionFragment);
+	break;
+      }
+    default:
+      onPassThroughFragment(node, *pFragment);
       break;
     }
-  case BEGRUNBF:
-  case ENDRUNBF:
-  case PAUSEBF:
-  case RESUMEBF:
-    {
-      StateTransitionFragment* pTransitionFragment = 
-	reinterpret_cast<StateTransitionFragment*>(pFragment);
-      
-      onStateTransitionFragment(node, *pTransitionFragment);
-      m_statistics.fragmentsByNode[node]++;
-      break;
-    }
-  default:
-    onPassThroughFragment(node, *pFragment);
-    m_statistics.fragmentsByNode[node]++;
-    break;
   }
+  // Now we rip through the unmatched queue attempting to match any
+  // unmatched fragments. State transition buffers may have already done this.
+
+
+  checkMatchingFragments();
+
 }
 ///////////////////////////////////////////////////////////////////
 /*!
@@ -212,32 +219,21 @@ EventBuilder::reloadConfiguration()
       m_pInputStage->addCallback(EventBuilder::onInputStageEvent, this);
     }
   }
+  // Finally clear out the input and assembly queues.
+
+  emptyUnmatchedQueue();
+  flushAssemblyQueue(m_inFlight.end());
 }
 
 ///////////////////////////////////////////////////////////////////
 /*!
- *   This is the hard one (well it's not actually that hard
- * as mostly we farm off the stuff to sub-functions.  
- * A physics fragment has arrived.
- * Two cases:
- * - From the trigger node, in which case we just need to make
- *   a new event assembly and insert it in our collection,
- *   Then check to see if there are already matching events in the
- *   list...we do that until the input queue for that node is empty.
- * - From a non trigger node, here we just match as many events as possible
- *   from the node that signalled with events in the in-flight assembly list.
- *   There's an assumption that the events in the in-flight list will be
- *   monotonically increasing in time (modulo wrapping), so if we fine a match
- *   for fragment i at in-flight event j, we can look for matches for i+1 starting
- *   with j+1...we do this until either the input queue is empty or we cannot match
- *   a fragment with an in-flight assembl.
- * Afterwards we do a 'prune pass' on all nodes.  This means that we discard all
- * events from the front of all event queues (except the trigger queue) which can
- * never possibly match the first event in the queue ever (e.g. the end of the window
- * for those events are prior to the trigger time of the first node in the in-flight
- * assembly list.
- * 
- * \param node     - The ndoe that has new fragments.
+ * Processes a physics fragment from an input node.
+ * - If the node was the trigger node, we just create a new
+ *   in-flight assembly for the fragment.
+ * - If the node was a non trigger node, it goes in the
+ *   unmatched fragment queue for later match.
+ *  
+ * \param node     - The node that has new fragments.
  * \param fragment - Reference to the first fragment in the list.
  */
 void 
@@ -250,27 +246,21 @@ EventBuilder::onPhysicsFragment(uint16_t         node,
   assert(pNodeDescription);
   
   if(pNodeDescription->isTrigger) {  // Trigger node
-    createTriggerAssemblies(node);
-    checkMatchingFragments();
+    createTriggerAssembly(fragment);
   }
   else{                                // non-trigger node
-    checkMatchingFragments(node);
+    m_unmatchedFragments.push_back(&fragment);
   }
-  pruneNonTriggerNodes();
 
   
 }
 ////////////////////////////////////////////////////////////////////////
 /*!
- * State transition fragment handling.  The assumption is that these are rare enough
- * there's only typically going to be one of these in flight at any given time.
- * If we can find a state transition fragment of our type we aggregate with it, otherwise
- * make a assembly.
- * If in the end we have a complete assembly we
- *  - flush all prior fragments from the event queue.
- *  - Commit the assembled state transition event to the outut stream
- *  - pop the completed assembly from the queue and delete it (and it's little fragments
- *    too).
+ * Handle a state transition fragment.
+ * - Attempt to create a complete transition fragment.
+ * - If the transition fragment completes a halting
+ *   transition (Pause or end run), all fragments in the
+ *   unmatched fragment queue are emptied.
  * \param node     - node that has signalled it has a fragment.
  * \param fragment - reference to the state transition fragment we got.
  *  
@@ -279,7 +269,6 @@ void
 EventBuilder::onStateTransitionFragment(uint16_t node, 
 					StateTransitionFragment& fragment)
 {
-  m_pInputStage->pop(node);	// Remove the fragment from the input queue.
 
   OutputPhysicsEvents::iterator p = m_inFlight.findByType(fragment.type());
   StateTransitionAssemblyEvent* pEvent;
@@ -304,15 +293,16 @@ EventBuilder::onStateTransitionFragment(uint16_t node,
   
   
   if (pEvent->isComplete()) {
-    checkMatchingFragments();
-    
-    OutputPhysicsEvents::AssemblyList killList = m_inFlight.removePrior(p);
-    for (OutputPhysicsEvents::iterator i = killList.begin(); i != killList.end(); i++) {
-      
-      delete *i;
+    checkMatchingFragments();	// This probably won't find anything...
+  
+    if ((fragment.type() == ENDRUNBF)  || (fragment.type() == PAUSEBF)) {
+      emptyUnmatchedQueue();
+      flushAssemblyQueue(p);	// Invalidates the p iterator.
     }
+
+
     commitAssembledStateTransitionEvent(*reinterpret_cast<AssembledStateTransitionEvent*>(pEvent->assembledEvent()));
-    p = find(m_inFlight.begin(), m_inFlight.end(), pEvent);
+    p = find(m_inFlight.begin(), m_inFlight.end(), pEvent); // probably the front element!
     m_inFlight.removeItem(p);
     delete pEvent;
   }
@@ -336,10 +326,6 @@ void
 EventBuilder::onPassThroughFragment(uint16_t       node, 
 				    EventFragment& fragment)
 {
-  m_pInputStage->pop(node);
-  
-  pruneNonTriggerNodes();               // Try to trash any fragments that are too old
-  checkMatchingFragments();             // Try to match any stragglers.
   
   AssembledEvent* pAssembledEvent;
   
@@ -370,14 +356,12 @@ EventBuilder::onPassThroughFragment(uint16_t       node,
     pStringArray->addStrings(pStringListFragment->strings());
     pAssembledEvent = pStringArray;
   }
+
+  // Commit the event to the output stage and delete the associated fragment.
   
   commitPassthroughEvent(*pAssembledEvent);
   delete &fragment;
-  
-  EventFragment* pNextFragment = m_pInputStage->peek(node);
-  if(pNextFragment) {
-    onFragments(node);                // Process more fragments.
-  }
+
 }
 /////////////////////////////////////////////////////////////////////////////
 /*!
@@ -387,8 +371,7 @@ EventBuilder::onPassThroughFragment(uint16_t       node,
 void
 EventBuilder::commitAssembledPhysicsEvent(AssembledPhysicsEvent& event)
 {
-	m_statistics.eventsByType[event.type()]++;
-	
+	m_statistics.eventsByType[event.type()]++;	
 	m_sink.submitEvent(event);
 }
 /////////////////////////////////////////////////////////////////////////////////
@@ -400,7 +383,6 @@ void
 EventBuilder::commitAssembledStateTransitionEvent(AssembledStateTransitionEvent& event)
 {
 	m_statistics.eventsByType[event.type()]++;
-	
 	m_sink.submitEvent(event);
 }
 /////////////////////////////////////////////////////////////////////////////
@@ -441,210 +423,105 @@ EventBuilder::onShutdown()
 {
 	
 }
-//////////////////////////////////////////////////////////////////////////////
-/*!
- * Check all nodes except the trigger node for fragments that match
- * in-flight assembly fragments. 
+
+////////////////////////////////////////////////////////////////////////////////
+/*
+ *  Take all fragments that are in the unmatched queue and match them
+ *  with in flight fragments. 
+ *  We exploit the fact that erasures from lists only invalidate the iterators
+ *  pointing to the deleted element.
  */
 void
 EventBuilder::checkMatchingFragments()
 {
-  // just loop over the nodes calling the node specific overload
-  // for all non trigger cases:
-  
-  list<AssemblerCommand::EventFragmentContributor>::iterator p = m_nodeList.begin();
-  while (p != m_nodeList.end()) {
-    if (!p->isTrigger) {
-      checkMatchingFragments(p->cpuId);
-    }
-    p++;
-  }
-}
-/////////////////////////////////////////////////////////////////////////////
-/*!
- *   Check for matches between physics fragments in this node's input queue
- *   with in flight assemblies.  If there are matches, the item is removed from
- *   the queue and added to the fragment.
- * \param node  The id of the node to check.
- */
-void
-EventBuilder::checkMatchingFragments(uint16_t node)
-{
-  AssemblerCommand::EventFragmentContributor* pSourceInfo = m_nodeTable[node];
-  assert(pSourceInfo);
-  
-  // We can break out of the loop below when we don't get a match.
-  // the loop computes the matching window for each fragment it
-  // inspects and sees if there are assemblies the event can be added to.
-  //  note that only physics events are checked.. if a non-physics
-  // event is seen, onFragments is recursively called to deal with it appropriately.
-  //
-  EventFragment* pFragment = m_pInputStage->peek(node);
-  OutputPhysicsEvents::iterator start = m_inFlight.begin();
-  OutputPhysicsEvents::iterator stop  = m_inFlight.end();
-  
-  while (pFragment) {
-    // If not physics deal with that
+  PhysicsFragmentList::iterator p = m_unmatchedFragments.begin();
+  while (p != m_unmatchedFragments.end()) {
+    PhysicsFragment* pFragment = *p;
+    PhysicsFragmentList::iterator pNext = p; pNext++; // Do this now so we can invalidate p.
     
-    if (pFragment->type() != DATABF) {
-      onFragments(node);                  // Redispatch the non physics fragment.
-      
-    }
-    else {
 
+    // See if this fragment matches any in the in-flight list:
 
-      // Get the matching window
-      
-      
-      PhysicsFragment* pEventFragment = reinterpret_cast<PhysicsFragment*>(pFragment);
-      TimeWindow interval = matchInterval(*pSourceInfo, *pEventFragment);
-      
-      
-      start = m_inFlight.findPhysByWindow(interval.startTime, 
-					  interval.endTime, start, stop);
-      if (start == stop) {
-	return;                   // No match
-      }
-      else {
-	AssemblyEvent* pAssembly = *start;
-	pAssembly->add(*pEventFragment);             // Add fragment...
-	m_pInputStage->pop(node);              // Remove from input queue
-	m_statistics.fragmentsByNode[node]++; //  Count only when consumed.
-      
+    OutputPhysicsEvents::iterator pOut = m_inFlight.begin();
+    while (pOut != m_inFlight.end()) {
+      AssemblyEvent* pAssembly = *pOut;
+      if (fragmentMatches(*pAssembly, pFragment)) {
+	pAssembly->add(*pFragment);
 	if (pAssembly->isComplete()) {
-	  // Remove and commit the event.. and reset start as
-	  // removal can invalidate the iterator.
-	  
-	  m_inFlight.removeItem(start);          // Invalidates start so...
-	  start = m_inFlight.begin();        // reset search from beginning.
-	  
-	  commitAssembledPhysicsEvent(*reinterpret_cast<AssembledPhysicsEvent*>((pAssembly->assembledEvent())));
-	  
+	  commitAssembledPhysicsEvent(*(reinterpret_cast<AssembledPhysicsEvent*>(pAssembly->assembledEvent())));
+	  m_inFlight.removeItem(pOut);
 	  delete pAssembly;
 	}
-	else {
-	  // start next search with next assembly...
-	  
-	  start++;
-	  if (start == stop) {
-	    return;                         // no more assemblies to match.
-	  }
-	}
-	
+	m_unmatchedFragments.erase(p); // Remove fragment from the queue.
+	break; 
       }
-      
+      pOut++;
     }
-    pFragment = m_pInputStage->peek(node); // Next fragment.
+    p = pNext;
   }
 }
-////////////////////////////////////////////////////////////////////////////////////
-/*!
- *  Create a trigger assembly for each physics fragment in the designated input
- * queue.  For any fragment that is not a physics event, we'll recurse to onFragments
- * \param node The node to process. This must be a trigger node.
+/////////////////////////////////////////////////////////////////////////////////
+/*
+ *  Create an in-flight assembly for a trigger event fragment, and add it to the
+ *  inflight list of assemblies in progress.
+ *
+ * Parameters:
+ *    PhysicsFragment& fragment  - The initial fragment.
  */
 void
-EventBuilder::createTriggerAssemblies(uint16_t node)
+EventBuilder::createTriggerAssembly(PhysicsFragment& fragment)
 {
-  AssemblerCommand::EventFragmentContributor* pNodeInfo = m_nodeTable[node];
-  assert(pNodeInfo);
-  assert(pNodeInfo->isTrigger);
-  
-  EventFragment* pFragment;
-  while (pFragment = m_pInputStage->peek(node)) {
-    if (pFragment->type() == DATABF) {
-      PhysicsFragment* pPhysicsFragment = reinterpret_cast<PhysicsFragment*>(pFragment);
-      PhysicsAssemblyEvent* pAssembly = new PhysicsAssemblyEvent(pPhysicsFragment);
-      if (pAssembly->isComplete()) {
-	commitAssembledPhysicsEvent(*reinterpret_cast<AssembledPhysicsEvent*>(pAssembly->assembledEvent()));
-	delete pAssembly;
-      }
-      else {
-	m_inFlight.add(*pAssembly);
-      }
-      m_pInputStage->pop(node);
-      m_statistics.fragmentsByNode[node]++; // Count fragments when poppped.
+  PhysicsAssemblyEvent* pEvent = new PhysicsAssemblyEvent(&fragment);
+  if (pEvent->isComplete()) {
+        commitAssembledPhysicsEvent(*(reinterpret_cast<AssembledPhysicsEvent*>(pEvent->assembledEvent())));
+  }
+  else {
+    m_inFlight.add(*pEvent);
+  }
+}
 
-    }
-    else {
-      onFragments(node);       // should remove the fragment from the input queue.
-      
-    }
-    pFragment = m_pInputStage->peek(node); // Look at the next fragment.
-  }
-}
-/////////////////////////////////////////////////////////////////////////////////////
-/*!
- *   Prune events from non trigger nodes.  See the comments to 
- * pruneNode for more information about what this means, other than
- * to get rid of fragments that could no longer possibly match.
+//////////////////////////////////////////////////////////////////////////////////
+/*
+ *  Clear all the events out of the unmatched event fragment queue.
+ *  For each event in the queue, we remove it, increment the associated
+ *  discardedByNode and unmatchedByNode counters and delete the fragment.
  */
 void
-EventBuilder::pruneNonTriggerNodes()
+EventBuilder::emptyUnmatchedQueue()
 {
-  list<AssemblerCommand::EventFragmentContributor>::iterator  p = m_nodeList.begin();
-  while (p != m_nodeList.end()) {
-    if (!p->isTrigger) {
-      pruneNode(p->cpuId);
-    }
-    p++;
+  PhysicsFragment* pFragment;
+  while (!m_unmatchedFragments.empty()) {
+    pFragment = m_unmatchedFragments.front();
+    m_unmatchedFragments.pop_front();
+
+    uint16_t node = pFragment->node();
+    m_statistics.unmatchedByNode[node]++;
+    m_statistics.discardedByNode[node]++;
+
+    delete pFragment;
   }
 }
-///////////////////////////////////////////////////////////////////////
-/*!
- * Prunes the fragments from a non-trigger node that cannot possibly
- * be matched.  These are fragments whose window end time is prior
- * to the trigger time of the first physics event in the in flight
- * assembly list (naturally if there are no in flight physics events,
- * nothing can be pruned.
- * \param node The node whose input queue will be pruned.
- * \note - there's an edge case for the condition where the trigger window
- *         wraps across zero...in that case the trigger time must also be less
- *         than the window start time.. the wrap is evident (for window << MAX_UINT)
- *         because the window end time will appear to be smaller than the start time.
- * \note - It is assumed the caller is handing us a valid, non-trigger node.
- * \note - We stop processing if either we find a fragment that could match, or
- *         we find a non physics fragment in the input queue, or we run out of
- *         input queue fragments.
+/////////////////////////////////////////////////////////////////////////////////
+/*
+ *    Flush the assembly queue of partial events up to but not including
+ *     an iterator.
+ *    Flush means remove these fragments from the queue and delete them.
+ *
+ * Parameters:
+ *   OutputPhysicsEvents::iterator p  - Iterator to the first item not to flush.
  */
 void
-EventBuilder::pruneNode(uint16_t node)
+EventBuilder::flushAssemblyQueue(OutputPhysicsEvents::iterator p)
 {
-  AssemblerCommand::EventFragmentContributor* pNodeInfo = m_nodeTable[node];
-  OutputPhysicsEvents::iterator firstPhysics = m_inFlight.findByType(DATABF);
-  if (firstPhysics == m_inFlight.end()) return;       // No physics fragments.
-  uint32_t timestamp = (*firstPhysics)->timestamp();	
-  
-  EventFragment* pFragment;
-  while(pFragment = m_pInputStage->peek(node)) {
-    if(pFragment->type() == DATABF) {
-      PhysicsFragment* p = reinterpret_cast<PhysicsFragment*>(pFragment);
-      TimeWindow match = matchInterval(*pNodeInfo, *p);
-      bool canPrune = false;
-      if (match.endTime < timestamp) {
-	if (match.endTime < match.startTime) {
-	  if (match.startTime > timestamp) {  // may need more smarts than this...
-	    canPrune = true;
-	  }
-	}
-	else {
-	  canPrune = true;
-	}
-      }
-      if (canPrune) {
-	delete pFragment;
-	m_pInputStage->pop(node);
-	m_statistics.unmatchedByNode[node]++;
-      }
-      else {
-	return;
-      }
-    }
-    else {
-      return;			// non physics.
-    }
+  OutputPhysicsEvents::AssemblyList listOfPartials = m_inFlight.removePrior(p);
+
+  OutputPhysicsEvents::AssemblyList::iterator i = listOfPartials.begin();
+  while(i != listOfPartials.end()) {
+    delete *i;
+    i++;
   }
-  
+  // The list itself knows how to clean up its nodes.
+
 }
 /////////////////////////////////////////////////////////////////////////////////
 /*!
@@ -657,7 +534,7 @@ EventBuilder::pruneNode(uint16_t node)
  */
 EventBuilder::TimeWindow
 EventBuilder::matchInterval(AssemblerCommand::EventFragmentContributor& nodeInfo,
-        				    PhysicsFragment&                            fragment)
+			    PhysicsFragment&                            fragment)
 {
 	uint32_t timestamp = fragment.getTimestamp();
 	if (nodeInfo.offsetDefined) timestamp += nodeInfo.offset;
@@ -667,4 +544,40 @@ EventBuilder::matchInterval(AssemblerCommand::EventFragmentContributor& nodeInfo
 	result.endTime   = timestamp + nodeInfo.windowWidth;
 	
 	return result;
+}
+//////////////////////////////////////////////////////////////////////////////////
+/*
+   Determine if a physics fragment matches a partial event.
+   This can only be the case if 
+   1. The partial event is a partial physics event.
+   2. The partial event's trigger time is in the fragment's matching window.
+
+  Note that timestamps can and will wrap (at 100Khz, every 74 min or so),
+       Suppose the trigger time is T and the window start time S and stop time
+       E.  A match occurs if:
+          S <= T <= E
+      or 
+          S > E && ( (S <= T ) || (0 <= T <= E))
+
+ Parameters:
+   
+*/
+bool
+EventBuilder::fragmentMatches(AssemblyEvent& partialEvent, PhysicsFragment* pFragment)
+{
+  if (partialEvent.isPhysics()) {
+    uint32_t triggerTime = partialEvent.timestamp();
+    TimeWindow window = matchInterval(*(m_nodeTable[pFragment->node()]), *pFragment);
+    if (window.startTime < window.endTime) {
+      return (window.startTime <= triggerTime) && (triggerTime <= window.endTime);
+    }
+    else {
+      return ((window.startTime <= triggerTime)  ||
+	       (triggerTime <= window.endTime));
+    }
+
+  }
+  else {
+    return false;
+  }
 }

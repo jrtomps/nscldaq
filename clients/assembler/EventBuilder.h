@@ -86,19 +86,22 @@ public:
 		uint32_t startTime;
 		uint32_t endTime;
 	} TimeWindow, *pTimeWindow;
+
+	typedef std::list<PhysicsFragment*> PhysicsFragmentList;
 private:
 	InputStageCommand&             m_InputStageCommand;
 	InputStage*                    m_pInputStage;
 	
 	AssemblerOutputStage&	m_sink;
-	AssemblerCommand&		m_configuration;
+	AssemblerCommand&	m_configuration;
 	Statistics              m_statistics;
 	
 	// Things go faster if we reconstruct the cofiguration node table
 	
-	std::list<AssemblerCommand::EventFragmentContributor> m_nodeList;
+	std::list<AssemblerCommand::EventFragmentContributor>  m_nodeList;
 	AssemblerCommand::EventFragmentContributor*            m_nodeTable[0x10000];
 	OutputPhysicsEvents                                    m_inFlight;
+	PhysicsFragmentList                                    m_unmatchedFragments;
 public:
 	EventBuilder(AssemblerCommand&     configuration,
 		     InputStageCommand&    fragmentSource,
@@ -131,14 +134,16 @@ private:
 	void commitPassthroughEvent(AssembledEvent& event);
 	void onError(uint16_t node);
 	void onShutdown();
+
 	void checkMatchingFragments();
-	void checkMatchingFragments(uint16_t node);
-	void createTriggerAssemblies(uint16_t node);
-	void pruneNonTriggerNodes();
-	void pruneNode(uint16_t node);
+	void createTriggerAssembly(PhysicsFragment& fragment);
+	void emptyUnmatchedQueue();   
+	void flushAssemblyQueue(OutputPhysicsEvents::iterator p);
+
 	static TimeWindow matchInterval(AssemblerCommand::EventFragmentContributor& nodeInfo,
 					PhysicsFragment&                            fragment);
-			                 
+	bool fragmentMatches(AssemblyEvent& partialEvent, PhysicsFragment* pFragment);
+
 };
 
 #endif /*EVENTBUILDER_H_*/

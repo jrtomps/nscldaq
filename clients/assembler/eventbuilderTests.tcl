@@ -36,6 +36,7 @@ proc startup {} {
     inputstage create
     inputstage start
     eventbuilder reload
+    eventbuilder clear
 }
 
 proc stopall {} {
@@ -45,8 +46,11 @@ proc stopall {} {
     eventbuilder reload
 }
 
+testConstraint runall 1
+
 ########### Tests for simple assemblies involving a single node ##################
 test build-1.0 {Build a state transition event} \
+    -constraints runall                       \
     -setup {
 	setupConfiguration
 	startup
@@ -70,6 +74,7 @@ test build-1.0 {Build a state transition event} \
 
 
 test build-1.1 {Do a passthrough event} \
+    -constraints runall                       \
     -setup {
 	setupConfiguration
 	startup
@@ -87,6 +92,7 @@ test build-1.1 {Do a passthrough event} \
     -result {{{128 1}} {{4 1}} {} {}}
 
 test build-1.2 {Do a event buffer with 3 events} \
+    -constraints runall                       \
     -setup {
 	setupConfiguration
 	startup
@@ -108,6 +114,7 @@ test build-1.2 {Do a event buffer with 3 events} \
 ################### Tests of assembly involving multiple nodes ######################
 
 test build-2.0 {Build state change buffer for 2 nodes. } \
+    -constraints runall                       \
     -setup {
 	setupConfiguration2
 	startup
@@ -135,6 +142,7 @@ test build-2.0 {Build state change buffer for 2 nodes. } \
     -result {{{128 1} {129 1}} {{11 1}} {} {}}
 
 test build-2.1 {Pass through events don't get assembled: } \
+    -constraints runall                       \
     -setup {
 	setupConfiguration2
 	startup
@@ -153,6 +161,7 @@ test build-2.1 {Pass through events don't get assembled: } \
     -result {{{128 1} {129 1}} {{4 2}} {} {}}
 
 test build-2.2 {Events with the same timestamp from different nodes trivally assemble (trigger first)} \
+    -constraints runall                       \
     -setup {
 	setupConfiguration2
 	startup
@@ -175,6 +184,7 @@ test build-2.2 {Events with the same timestamp from different nodes trivally ass
     -result {{{128 3} {129 3}} {{1 3}} {} {}}
 
 test build-2.3 {Events with the same timestamp from different nodes assemble if trigger is not first} \
+    -constraints runall                       \
     -setup {
 	setupConfiguration2
 	startup
@@ -197,6 +207,7 @@ test build-2.3 {Events with the same timestamp from different nodes assemble if 
     -result {{{128 3} {129 3}} {{1 3}} {} {}}
 
 test build-2.4 {Events with inexact matching (trigger node first).} \
+    -constraints runall                       \
     -setup {
 	setupConfiguration2
 	startup
@@ -221,6 +232,7 @@ test build-2.4 {Events with inexact matching (trigger node first).} \
     }                                                \
     -result {{{128 3} {129 3}} {{1 3}} {} {}}
 test build-2.5 {Events with inexact matching (trigger node not first) } \
+    -constraints runall                       \
     -setup {
 	setupConfiguration2
 	startup
@@ -247,6 +259,7 @@ test build-2.5 {Events with inexact matching (trigger node not first) } \
     -result {{{128 3} {129 3}} {{1 3}} {} {}}
 
 test build-2.6 {Events with inexact matching where window spans zero (trigger first)} \
+    -constraints runall                       \
     -setup {
 	setupConfiguration2
 	startup
@@ -259,7 +272,6 @@ test build-2.6 {Events with inexact matching where window spans zero (trigger fi
 	set header80 [lreplace $header81 8 8 0x80]
 
 	set triggerevent  [list 11 50 0  2 3 4 5 6 7 8 9] ; # t = 50.
-	set buffer80 [concat $header $event $event $event]
 
 
 	set event1 [lreplace $triggerevent 1 2 60 0];        # t = 60.
@@ -277,6 +289,7 @@ test build-2.6 {Events with inexact matching where window spans zero (trigger fi
 
 
 test build-2.7 {Events with inexact matching where window spans zero (trigger not first)} \
+    -constraints runall                       \
     -setup {
 	setupConfiguration2
 	startup
@@ -289,7 +302,6 @@ test build-2.7 {Events with inexact matching where window spans zero (trigger no
 	set header80 [lreplace $header81 8 8 0x80]
 
 	set triggerevent  [list 11 50 0  2 3 4 5 6 7 8 9] ; # t = 50.
-	set buffer80 [concat $header $event $event $event]
 
 
 	set event1 [lreplace $triggerevent 1 2 60 0];        # t = 60.
@@ -307,6 +319,7 @@ test build-2.7 {Events with inexact matching where window spans zero (trigger no
 
 
 test build-2.8 {Event streams that have non-matches [trigger first failed match last]} \
+    -constraints runall                       \
     -setup {
 	setupConfiguration2
 	startup
@@ -319,7 +332,6 @@ test build-2.8 {Event streams that have non-matches [trigger first failed match 
 	set header80 [lreplace $header81 8 8 0x80]
 
 	set triggerevent  [list 11 50 0  2 3 4 5 6 7 8 9] ; # t = 50.
-	set buffer80 [concat $header $event $event $event]
 
 
 	set event1 [lreplace $triggerevent 1 2 0xfff6 0xffff ]; 
@@ -333,9 +345,10 @@ test build-2.8 {Event streams that have non-matches [trigger first failed match 
 
 	eventbuilder stats
     }                                                \
-    -result {{{128 3} {129 2}} {{1 2}} {} {}}
+    -result {{{128 3} {129 3}} {{1 2}} {} {}}
 
 test build-2.9 {Event streams that have non-matches, [trigger not first failed match last]} \
+    -constraints runall                       \
     -setup {
 	setupConfiguration2
 	startup
@@ -348,7 +361,6 @@ test build-2.9 {Event streams that have non-matches, [trigger not first failed m
 	set header80 [lreplace $header81 8 8 0x80]
 
 	set triggerevent  [list 11 50 0  2 3 4 5 6 7 8 9] ; # t = 50.
-	set buffer80 [concat $header $event $event $event]
 
 
 	set event1 [lreplace $triggerevent 1 2 0xfff6 0xffff ]; 
@@ -362,7 +374,54 @@ test build-2.9 {Event streams that have non-matches, [trigger not first failed m
 
 	eventbuilder stats
     }                                                \
-    -result {{{128 3} {129 2}} {{1 2}} {} {}}
+    -result {{{128 3} {129 3}} {{1 2}} {} {}}
+
+
+#####################  Pushing out data via control buffers #############################
+
+test build-3.0 {Push out partial  event when trigger 1'st failed match last} \
+    -setup {
+	setupConfiguration2
+	startup
+    }                                                           \
+    -cleanup {
+	stopall
+    }                                                \
+    -body {
+	set header81 [list 46 1 0 1 1 0 3 0 0x81 0 5 0x0102 0x0304 0x0102 0 0]
+	set header80 [lreplace $header81 8 8 0x80]
+
+	set triggerevent  [list 11 50 0  2 3 4 5 6 7 8 9] ; # t = 50.
+
+
+	set event1 [lreplace $triggerevent 1 2 0xfff6 0xffff ]; 
+	set event2 [lreplace $triggerevent 1 2 60 0];
+	set event3 [lreplace $triggerevent 1 2 0 1];
+
+
+
+	inputstage inject [concat $header80 $triggerevent $triggerevent $triggerevent]
+	inputstage inject [concat $header81 $event1 $event2 $event3]
+
+
+	# Now the control buffer (end run):
+
+	set header [list 64 12 0 1 1 0 0 0 0x80 0 6 0x0102 0x0304 0x0102 0 0]
+	set title [countedString "this is a title" 80]
+	set startTime [list 0 0]
+	set date [list 10 10 2007 9 17 0]
+
+	set buffer [concat $header [list $title] $startTime $date]
+
+
+	inputstage inject $buffer
+	set header [lreplace $header 8 8 0x81];   # Turn it into a fragment from 0x81
+	inputstage inject [concat $header [list $title] $startTime $date]
+
+
+	eventbuilder stats
+    }                                                \
+    -result {{{128 4} {129 4}} {{1 2} {12 1}} {{129 1}} {{129 1}}}
 
 ######## Report the tests and exit.
 
