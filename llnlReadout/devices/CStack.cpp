@@ -26,6 +26,7 @@
 #include <Globals.h>
 #include <set>
 
+#include <iostream>
 using namespace std;
 
 
@@ -156,7 +157,7 @@ CStack::onAttach(CReadoutModule& configuration)
 
   // set up the trigger option.
 
-  CConfigurableObject::isEnumParameter validTriggers;
+  static CConfigurableObject::isEnumParameter validTriggers;
   validTriggers.insert("nim1");
   validTriggers.insert("scaler");
   validTriggers.insert("interrupt");

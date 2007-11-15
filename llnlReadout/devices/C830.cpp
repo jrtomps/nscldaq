@@ -171,7 +171,7 @@ void C830::onAttach(CReadoutModule& configuration)
 
   // Need the list oif valid trigger strings:
 
-  set<string> validTriggers;
+  static CConfigurableObject::isEnumParameter validTriggers;
   validTriggers.insert("random");
   validTriggers.insert("periodic");
   validTriggers.insert("vme");
