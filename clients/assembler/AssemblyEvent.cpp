@@ -26,8 +26,9 @@
  *    had is also created
  *  \param triggerTime - the trigger time to set for the purpose of matching.
  */
-AssemblyEvent::AssemblyEvent(uint32_t triggerTime) :
+AssemblyEvent::AssemblyEvent(uint32_t triggerTime, time_t receivedTime) :
 	m_triggerTime(triggerTime),
+	m_receivedTime(receivedTime),
 	m_scoreboard(*(new NodeScoreboard))
 {
 	
@@ -48,6 +49,15 @@ AssemblyEvent::timestamp() const
 {
 	return m_triggerTime;
 }
+///////////////////////////////////////////////////////////////////////
+/*!   Return the received time.
+ */
+time_t
+AssemblyEvent::receivedTime() const
+{
+  return m_receivedTime;
+}
+
 /////////////////////////////////////////////////////////////////////////
 /*!
  * Return true if the event has gotten contributions from all the

@@ -138,15 +138,15 @@ testOutputEvents::setupFindType()
   static uint16_t startBuffer[4096];
 
   vector<uint16_t> body = makeBody();
-  AssemblyEvent* pAssembly = new PhysicsAssemblyEvent(new PhysicsFragment(0x1234, body, 100));
+  AssemblyEvent* pAssembly = new PhysicsAssemblyEvent(new PhysicsFragment(0x1234, body, 100), 0);
   m_pAssemblers->add(*pAssembly);
 
   makeBeginBuffer(startBuffer);
-  pAssembly = new StateTransitionAssemblyEvent(*(new StateTransitionFragment(startBuffer)));
+  pAssembly = new StateTransitionAssemblyEvent(*(new StateTransitionFragment(startBuffer)), 0);
   m_pAssemblers->add(*pAssembly);
 
 
-  pAssembly = new PhysicsAssemblyEvent(new PhysicsFragment(0x4321, body, 300));
+  pAssembly = new PhysicsAssemblyEvent(new PhysicsFragment(0x4321, body, 300),0 );
   m_pAssemblers->add(*pAssembly);
 }
 
@@ -158,7 +158,7 @@ void testOutputEvents::setupWindowMatch()
   vector<uint16_t> body = makeBody();
   
   for (int i = 0; i < 10000; i += 1000) {
-    AssemblyEvent* pAssembly = new PhysicsAssemblyEvent(new PhysicsFragment(0x1234, body, i));
+    AssemblyEvent* pAssembly = new PhysicsAssemblyEvent(new PhysicsFragment(0x1234, body, i), 0);
     m_pAssemblers->add(*pAssembly);
   }
 }
@@ -192,7 +192,7 @@ testOutputEvents::insert1()
   vector<uint16_t> body = makeBody();
 
   pFragment = new PhysicsFragment(0x1234, body, 0x87654321);
-  pAssembly = new PhysicsAssemblyEvent(pFragment);
+  pAssembly = new PhysicsAssemblyEvent(pFragment, 0);
 
   m_pAssemblers->add(*pAssembly);
 
@@ -230,8 +230,8 @@ testOutputEvents::insert2()
   pFrag1 = new PhysicsFragment(0x1234, body, 0x100);
   pFrag2 = new PhysicsFragment(0x4321, body, 0x200);
 
-  pAss1  = new PhysicsAssemblyEvent(pFrag1);
-  pAss2  = new PhysicsAssemblyEvent(pFrag2);
+  pAss1  = new PhysicsAssemblyEvent(pFrag1, 0);
+  pAss2  = new PhysicsAssemblyEvent(pFrag2, 0);
 
   m_pAssemblers->add(*pAss1);
   m_pAssemblers->add(*pAss2);

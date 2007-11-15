@@ -31,10 +31,13 @@ using namespace std;
  *   event.
  * \param pFirstFragment - Pointer to the first fragment in the event.
  *                         This should be the fragment from the trigger node.
+ * \param receivedTime  - When the fragment was received.
  */
 
-PhysicsAssemblyEvent::PhysicsAssemblyEvent(PhysicsFragment* pFirstEvent) :
-	AssemblyEvent(pFirstEvent->getTimestamp())
+PhysicsAssemblyEvent::PhysicsAssemblyEvent(PhysicsFragment* pFirstEvent,
+					   time_t           receivedTime) :
+	AssemblyEvent(pFirstEvent->getTimestamp(),
+		      receivedTime)
 {
 	add(*pFirstEvent);
 }
@@ -141,4 +144,19 @@ uint16_t
 PhysicsAssemblyEvent::type() const
 {
 	return DATABF;
+}
+/*!
+  Return a list of the nodes that have been contributed so far.
+*/
+list<uint16_t>
+PhysicsAssemblyEvent::nodes()
+{
+  list<uint16_t> result;
+  FragmentListIterator p = m_fragments.begin();
+  while (p != m_fragments.end()) {
+    result.push_back((*p)->node());
+
+    p++;
+  }
+  return result;
 }

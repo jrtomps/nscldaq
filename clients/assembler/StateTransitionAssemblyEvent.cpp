@@ -28,8 +28,9 @@ using namespace std;
  *   0 as the concept of a timestamp does not exist for state 
  *   transition events.
  */
-StateTransitionAssemblyEvent::StateTransitionAssemblyEvent(StateTransitionFragment& firstFragment) :
-	AssemblyEvent(0)
+StateTransitionAssemblyEvent::StateTransitionAssemblyEvent(StateTransitionFragment& firstFragment,
+							   time_t                   receivedTime) :
+  AssemblyEvent(0, receivedTime)
 {
 	add(firstFragment);
 }

@@ -40,7 +40,8 @@ public:
 private:
 FragmentList  m_fragments;
 public:
-	StateTransitionAssemblyEvent(StateTransitionFragment& firstFragment);
+	StateTransitionAssemblyEvent(StateTransitionFragment& firstFragment,
+				     time_t                   receivedTime);
 	virtual ~StateTransitionAssemblyEvent();
 private:
 	StateTransitionAssemblyEvent(const StateTransitionAssemblyEvent& rhs);

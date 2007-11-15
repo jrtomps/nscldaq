@@ -65,7 +65,7 @@ public:
 
     // Create the assembly:
 
-    m_pAssembly = new StateTransitionAssemblyEvent(*m_pInitialFragment);
+    m_pAssembly = new StateTransitionAssemblyEvent(*m_pInitialFragment, 0);
 
   }
   void tearDown() {

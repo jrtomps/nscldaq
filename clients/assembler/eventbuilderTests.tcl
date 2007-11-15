@@ -318,6 +318,7 @@ test build-2.7 {Events with inexact matching where window spans zero (trigger no
     -result {{{128 3} {129 3}} {{1 3}} {} {}}
 
 
+
 test build-2.8 {Event streams that have non-matches [trigger first failed match last]} \
     -constraints runall                       \
     -setup {
@@ -379,7 +380,9 @@ test build-2.9 {Event streams that have non-matches, [trigger not first failed m
 
 #####################  Pushing out data via control buffers #############################
 
+
 test build-3.0 {Push out partial  event when trigger 1'st failed match last} \
+    -constraints runall                       \
     -setup {
 	setupConfiguration2
 	startup
@@ -422,6 +425,266 @@ test build-3.0 {Push out partial  event when trigger 1'st failed match last} \
 	eventbuilder stats
     }                                                \
     -result {{{128 4} {129 4}} {{1 2} {12 1}} {{129 1}} {{129 1}}}
+
+
+
+test build-3.1  {Push out partial event when trigger last, failed matchfirst.} \
+    -constraints runall                       \
+    -setup {
+	setupConfiguration2
+	startup
+    }                                                           \
+    -cleanup {
+	stopall
+    }                                                \
+    -body {
+	set header81 [list 46 1 0 1 1 0 3 0 0x81 0 5 0x0102 0x0304 0x0102 0 0]
+	set header80 [lreplace $header81 8 8 0x80]
+
+	set triggerevent  [list 11 50 0  2 3 4 5 6 7 8 9] ; # t = 50.
+
+
+	set event1 [lreplace $triggerevent 1 2 0xfff6 0xffff ]; 
+	set event2 [lreplace $triggerevent 1 2 60 0];
+	set event3 [lreplace $triggerevent 1 2 0 1];
+
+
+	inputstage inject [concat $header81 $event1 $event2 $event3]
+	inputstage inject [concat $header80 $triggerevent $triggerevent $triggerevent]
+
+
+	# Now the control buffer (end run):
+
+	set header [list 64 12 0 1 1 0 0 0 0x80 0 6 0x0102 0x0304 0x0102 0 0]
+	set title [countedString "this is a title" 80]
+	set startTime [list 0 0]
+	set date [list 10 10 2007 9 17 0]
+
+	set buffer [concat $header [list $title] $startTime $date]
+
+
+	inputstage inject $buffer
+	set header [lreplace $header 8 8 0x81];   # Turn it into a fragment from 0x81
+	inputstage inject [concat $header [list $title] $startTime $date]
+
+
+	eventbuilder stats
+    }                                                \
+    -result {{{128 4} {129 4}} {{1 2} {12 1}} {{129 1}} {{129 1}}}
+
+
+test build-3.2 {Push out partial when unmatching fragment is not the last (trigger first) } \
+    -constraints runall                       \
+    -setup {
+	setupConfiguration2
+	startup
+    }                                                           \
+    -cleanup {
+	stopall
+    }                                                \
+    -body {
+	set header81 [list 46 1 0 1 1 0 3 0 0x81 0 5 0x0102 0x0304 0x0102 0 0]
+	set header80 [lreplace $header81 8 8 0x80]
+
+	set triggerevent  [list 11 50 0  2 3 4 5 6 7 8 9] ; # t = 50.
+
+
+	set event1 [lreplace $triggerevent 1 2 0xfff6 0xffff ]; 
+	set event2 [lreplace $triggerevent 1 2 60 0];
+	set event3 [lreplace $triggerevent 1 2 0 1];
+
+
+	inputstage inject [concat $header80 $triggerevent $triggerevent $triggerevent]
+	inputstage inject [concat $header81 $event3 $event1 $event2]
+
+
+	# Now the control buffer (end run):
+
+	set header [list 64 12 0 1 1 0 0 0 0x80 0 6 0x0102 0x0304 0x0102 0 0]
+	set title [countedString "this is a title" 80]
+	set startTime [list 0 0]
+	set date [list 10 10 2007 9 17 0]
+
+	set buffer [concat $header [list $title] $startTime $date]
+
+
+	inputstage inject $buffer
+	set header [lreplace $header 8 8 0x81];   # Turn it into a fragment from 0x81
+	inputstage inject [concat $header [list $title] $startTime $date]
+
+
+	eventbuilder stats
+    }                                                \
+    -result {{{128 4} {129 4}} {{1 2} {12 1}} {{129 1}} {{129 1}}}
+
+
+test build-3.3 {Push out partial when unmatching fragment is not the last (trigger last) } \
+    -constraints runall         \
+    -setup {
+	setupConfiguration2
+	startup
+    }                                                           \
+    -cleanup {
+	stopall
+    }                                                \
+    -body {
+	set header81 [list 46 1 0 1 1 0 3 0 0x81 0 5 0x0102 0x0304 0x0102 0 0]
+	set header80 [lreplace $header81 8 8 0x80]
+
+	set triggerevent  [list 11 50 0  2 3 4 5 6 7 8 9] ; # t = 50.
+
+
+	set event1 [lreplace $triggerevent 1 2 0xfff6 0xffff ]; 
+	set event2 [lreplace $triggerevent 1 2 60 0];
+	set event3 [lreplace $triggerevent 1 2 0 1];
+
+
+	inputstage inject [concat $header81 $event3 $event1 $event2]
+	inputstage inject [concat $header80 $triggerevent $triggerevent $triggerevent]
+
+
+	# Now the control buffer (end run):
+
+	set header [list 64 12 0 1 1 0 0 0 0x80 0 6 0x0102 0x0304 0x0102 0 0]
+	set title [countedString "this is a title" 80]
+	set startTime [list 0 0]
+	set date [list 10 10 2007 9 17 0]
+
+	set buffer [concat $header [list $title] $startTime $date]
+
+
+	inputstage inject $buffer
+	set header [lreplace $header 8 8 0x81];   # Turn it into a fragment from 0x81
+	inputstage inject [concat $header [list $title] $startTime $date]
+
+
+	eventbuilder stats
+    }                                                \
+    -result {{{128 4} {129 4}} {{1 2} {12 1}} {{129 1}} {{129 1}}}
+
+
+test build-3.4 {Push out partial when unmatching fragment is not last (trigger first).} \
+    -constraints runall                       \
+    -setup {
+	setupConfiguration2
+	startup
+    }                                                           \
+    -cleanup {
+	stopall
+    }                                                \
+    -body {
+	set header81 [list 46 1 0 1 1 0 3 0 0x81 0 5 0x0102 0x0304 0x0102 0 0]
+	set header80 [lreplace $header81 8 8 0x80]
+
+	set triggerevent  [list 11 50 0  2 3 4 5 6 7 8 9] ; # t = 50.
+
+
+	set event1 [lreplace $triggerevent 1 2 0xfff6 0xffff ]; 
+	set event2 [lreplace $triggerevent 1 2 60 0];
+	set event3 [lreplace $triggerevent 1 2 0 1];
+
+
+	inputstage inject [concat $header80 $triggerevent $triggerevent $triggerevent]
+	inputstage inject [concat $header81 $event3 $event1 $event2]
+
+
+	# Now the control buffer (end run):
+
+	set header [list 64 12 0 1 1 0 0 0 0x80 0 6 0x0102 0x0304 0x0102 0 0]
+	set title [countedString "this is a title" 80]
+	set startTime [list 0 0]
+	set date [list 10 10 2007 9 17 0]
+
+	set buffer [concat $header [list $title] $startTime $date]
+
+
+	inputstage inject $buffer
+	set header [lreplace $header 8 8 0x81];   # Turn it into a fragment from 0x81
+	inputstage inject [concat $header [list $title] $startTime $date]
+
+
+	eventbuilder stats
+    }                                                \
+    -result {{{128 4} {129 4}} {{1 2} {12 1}} {{129 1}} {{129 1}}}
+
+########################################### Tests for orphaned fragment recovery #####
+
+
+test build-4.0 {fragments are orphaned} \
+    -constraints runall                       \
+     -setup {
+	setupConfiguration2
+	startup
+    }                                                           \
+    -cleanup {
+	stopall
+    }                                                \
+   -body {
+	set header81 [list 46 1 0 1 1 0 3 0 0x81 0 5 0x0102 0x0304 0x0102 0 0]
+	set header80 [lreplace $header81 8 8 0x80]
+
+	set triggerevent  [list 11 50 0  2 3 4 5 6 7 8 9] ; # t = 50.
+
+
+	set event1 [lreplace $triggerevent 1 2 0xfff6 0xffff ]; 
+	set event2 [lreplace $triggerevent 1 2 60 0];
+	set event3 [lreplace $triggerevent 1 2 0 1];
+       
+
+       # We're going to inject a fragment buffer , wait 3 seconds then
+       # inject a second fragment buffer with different timestamps.
+       # That should declare the first buffer orphaned.
+       # We look at the stats to verify that.
+
+       inputstage inject [concat $header81 $event1 $event2 $event3]
+       
+       set event1 [lreplace $triggerevent 1 2 0 1]
+       set event2 [lreplace $triggerevent 1 2 50 1]
+       set event3 [lreplace $triggerevent 1 2 100 1]
+
+       after 3000;             # Waiting 3 seconds.
+       inputstage inject [concat $header81 $event1 $event2 $event3]
+
+       eventbuilder stats
+
+    }                                   \
+    -result {{{129 6}} {} {{129 3}} {{129 3}}}
+
+
+test build-4.1 {triggers are orphaned} \
+     -setup {
+	setupConfiguration2
+	startup
+    }                                                           \
+    -cleanup {
+	stopall
+    }                                                \
+     -body {
+	set header81 [list 46 1 0 1 1 0 3 0 0x81 0 5 0x0102 0x0304 0x0102 0 0]
+	set header80 [lreplace $header81 8 8 0x80]
+
+	set triggerevent  [list 11 50 0  2 3 4 5 6 7 8 9] ; # t = 50.
+
+
+	set event1 [lreplace $triggerevent 1 2 0xfff6 0xffff ]; 
+	set event2 [lreplace $triggerevent 1 2 60 0];
+	set event3 [lreplace $triggerevent 1 2 0 1];
+
+	 # We are going to inject a fragment buffer from the trigger node.  Wait 3 seconds
+	 # then inject another set of trigger fragments.  This should declare the
+	 # fragments in the first buffer to be obsolete and trigger a prune.
+	 #
+
+	 inputstage inject [concat $header80 $triggerevent $triggerevent $triggerevent]
+
+	 after 3000
+	 inputstage inject [concat $header80 $triggerevent $triggerevent $triggerevent]
+
+	 eventbuilder stats
+   }                                               \
+    -result {{{128 6}} {} {{128 3}} {{128 3}}}
+
+
 
 ######## Report the tests and exit.
 

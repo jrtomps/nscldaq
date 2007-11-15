@@ -45,6 +45,10 @@
 
 using namespace std;
 
+time_t EventBuilder::m_currentTime; // Time is time.
+
+static const time_t TOO_OLD(2);	   // Number of second's we'll keep fragments.
+
 ////////////////////////////////////////////////////////////////
 /*!
  *   In addition to setting the member variables that
@@ -92,6 +96,8 @@ EventBuilder::onInputStageEvent(void* pObject,
 				InputStage::event why, uint16_t which )
 {
   EventBuilder* pEventBuilder = reinterpret_cast<EventBuilder*>(pObject);
+
+
   switch (why) {
   case InputStage::NewFragments:
     pEventBuilder->onFragments(which);
@@ -123,6 +129,9 @@ void
 EventBuilder::onFragments(uint16_t node)
 {
   EventFragment* pFragment;
+  time_t  prior = m_currentTime;
+  m_currentTime = time(NULL);
+
 
   while (pFragment = m_pInputStage->pop(node)) {
     m_statistics.fragmentsByNode[node]++; //  Count before dispatching.
@@ -154,6 +163,12 @@ EventBuilder::onFragments(uint16_t node)
 
 
   checkMatchingFragments();
+  
+  // Prune all fragments that are too old if the time has clicked:
+
+  if (prior != m_currentTime) {
+    pruneFragments();
+  }
 
 }
 ///////////////////////////////////////////////////////////////////
@@ -249,7 +264,8 @@ EventBuilder::onPhysicsFragment(uint16_t         node,
     createTriggerAssembly(fragment);
   }
   else{                                // non-trigger node
-    m_unmatchedFragments.push_back(&fragment);
+    
+    m_unmatchedFragments.push_back(new PendingFragment(m_currentTime, &fragment));
   }
 
   
@@ -273,7 +289,7 @@ EventBuilder::onStateTransitionFragment(uint16_t node,
   OutputPhysicsEvents::iterator p = m_inFlight.findByType(fragment.type());
   StateTransitionAssemblyEvent* pEvent;
   if (p == m_inFlight.end()) {    // New
-    pEvent = new StateTransitionAssemblyEvent(fragment);
+    pEvent = new StateTransitionAssemblyEvent(fragment, m_currentTime);
     m_inFlight.add(*pEvent);
     p = m_inFlight.end();
     p--;			// Points to last fragment (the one we just inserted).
@@ -436,7 +452,7 @@ EventBuilder::checkMatchingFragments()
 {
   PhysicsFragmentList::iterator p = m_unmatchedFragments.begin();
   while (p != m_unmatchedFragments.end()) {
-    PhysicsFragment* pFragment = *p;
+    PhysicsFragment* pFragment = (*p)->fragment;
     PhysicsFragmentList::iterator pNext = p; pNext++; // Do this now so we can invalidate p.
     
 
@@ -471,7 +487,7 @@ EventBuilder::checkMatchingFragments()
 void
 EventBuilder::createTriggerAssembly(PhysicsFragment& fragment)
 {
-  PhysicsAssemblyEvent* pEvent = new PhysicsAssemblyEvent(&fragment);
+  PhysicsAssemblyEvent* pEvent = new PhysicsAssemblyEvent(&fragment, m_currentTime);
   if (pEvent->isComplete()) {
         commitAssembledPhysicsEvent(*(reinterpret_cast<AssembledPhysicsEvent*>(pEvent->assembledEvent())));
   }
@@ -490,15 +506,17 @@ void
 EventBuilder::emptyUnmatchedQueue()
 {
   PhysicsFragment* pFragment;
+  pPendingFragment pPending;
   while (!m_unmatchedFragments.empty()) {
-    pFragment = m_unmatchedFragments.front();
+    pPending = m_unmatchedFragments.front();
+    pFragment= pPending->fragment;
     m_unmatchedFragments.pop_front();
 
     uint16_t node = pFragment->node();
     m_statistics.unmatchedByNode[node]++;
     m_statistics.discardedByNode[node]++;
-
     delete pFragment;
+    delete pPending;
   }
 }
 /////////////////////////////////////////////////////////////////////////////////
@@ -579,5 +597,57 @@ EventBuilder::fragmentMatches(AssemblyEvent& partialEvent, PhysicsFragment* pFra
   }
   else {
     return false;
+  }
+}
+/*
+   Remove fragments that are too old.  Too old is defined as 
+   having a time difference that is more than TOO_OLD than
+   m_currentTime
+*/
+void
+EventBuilder::pruneFragments()
+{
+
+  // Prune the non trigger fragments:
+
+  PhysicsFragmentList::iterator p = m_unmatchedFragments.begin();
+  while (p != m_unmatchedFragments.end()) {
+    PhysicsFragmentList::iterator next = p; // Since we may invalidate p.
+    next++;
+    if ((m_currentTime - (*p)->receivedTime) > TOO_OLD) {
+      uint16_t node = (*p)->fragment->node();
+      m_statistics.unmatchedByNode[node]++;
+      m_statistics.discardedByNode[node]++;
+      delete (*p)->fragment;
+      delete (*p);
+      m_unmatchedFragments.erase(p); // Invalidates p.
+    }
+
+    p= next;
+  }
+  // prune the trigger fragments.  Note that since state transitions can take
+  // a significant amount of time, we never prune them.
+  
+  OutputPhysicsEvents::iterator i = m_inFlight.begin();
+  while (i != m_inFlight.end()) {
+    OutputPhysicsEvents::iterator next = i;
+    next++; 			// We may invalidate i.
+
+    AssemblyEvent* pTrigger = *i;
+    if (pTrigger->isPhysics()) {
+      if ((m_currentTime - pTrigger->receivedTime()) > TOO_OLD) {
+
+	PhysicsAssemblyEvent* pPhysics = dynamic_cast<PhysicsAssemblyEvent*>(pTrigger);
+	list<uint16_t> nodes = pPhysics->nodes();
+	for (list<uint16_t>::iterator n = nodes.begin(); n != nodes.end(); n++) {
+	  m_statistics.unmatchedByNode[*n]++;
+	  m_statistics.discardedByNode[*n]++;
+	}
+	  
+	delete pTrigger;
+	m_inFlight.removeItem(i); // Invalidates p.
+      }
+    }
+    i = next;
   }
 }

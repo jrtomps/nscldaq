@@ -45,6 +45,13 @@
 #endif
 
 
+#ifndef __CRT_TIME_H
+#include <time.h>
+#ifndef __CRT_TIME_H
+#define __CRT_TIME_H
+#endif
+#endif
+
 class AssemblerOutputStage;
 class PhysicsFragment;
 class StateTransitionFragment;
@@ -82,12 +89,23 @@ public:
 		uint32_t unmatchedByNode[0x10000];
 		uint32_t discardedByNode[0x10000];
 	} Statistics, *pStatistics;
+
 	typedef struct _TimeWindow {
 		uint32_t startTime;
 		uint32_t endTime;
 	} TimeWindow, *pTimeWindow;
 
-	typedef std::list<PhysicsFragment*> PhysicsFragmentList;
+	typedef struct _PendingFragment {
+	  time_t           receivedTime;
+	  PhysicsFragment* fragment;
+
+	  _PendingFragment(time_t when, PhysicsFragment* frag) :
+	    receivedTime(when),
+	    fragment(frag) {}
+
+	} PendingFragment, *pPendingFragment;
+
+	typedef std::list<pPendingFragment> PhysicsFragmentList;
 private:
 	InputStageCommand&             m_InputStageCommand;
 	InputStage*                    m_pInputStage;
@@ -102,6 +120,8 @@ private:
 	AssemblerCommand::EventFragmentContributor*            m_nodeTable[0x10000];
 	OutputPhysicsEvents                                    m_inFlight;
 	PhysicsFragmentList                                    m_unmatchedFragments;
+
+	static time_t          m_currentTime;
 public:
 	EventBuilder(AssemblerCommand&     configuration,
 		     InputStageCommand&    fragmentSource,
@@ -143,6 +163,7 @@ private:
 	static TimeWindow matchInterval(AssemblerCommand::EventFragmentContributor& nodeInfo,
 					PhysicsFragment&                            fragment);
 	bool fragmentMatches(AssemblyEvent& partialEvent, PhysicsFragment* pFragment);
+	void pruneFragments();
 
 };
 

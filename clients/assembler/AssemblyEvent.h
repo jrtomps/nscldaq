@@ -23,6 +23,15 @@
 #endif
 #endif
 
+
+#ifndef __CRT_TIME_H
+#include <time.h>
+#ifndef __CRT_TIME_H
+#define __CRT_TIME_H
+#endif
+#endif
+
+
 class NodeScoreboard;
 class EventFragment;
 class AssembledEvent;
@@ -37,12 +46,13 @@ class AssemblyEvent
 {
 private:
   uint32_t 			m_triggerTime;
+  time_t                        m_receivedTime;
   NodeScoreboard&		m_scoreboard;
 public:
   
   // Canonicals:
   
-  AssemblyEvent(uint32_t triggerTime);
+  AssemblyEvent(uint32_t triggerTime, time_t receivedTime);
   virtual ~AssemblyEvent();
 private:
   AssemblyEvent(const AssemblyEvent& rhs);
@@ -54,6 +64,7 @@ public:
   // class operations:
   
   uint32_t timestamp() const;
+  time_t   receivedTime() const;
   bool     isComplete() const;
   
   // Pure Virtual Interface:

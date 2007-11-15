@@ -56,7 +56,7 @@ public:
 
     // Create the assembly:
 
-    m_pAssembly = new PhysicsAssemblyEvent(m_pFirstFragment);
+    m_pAssembly = new PhysicsAssemblyEvent(m_pFirstFragment,0);
 
   }
   void tearDown() {

@@ -27,7 +27,12 @@
 #endif
 #endif
 
-
+#ifndef __CRT_STDINT_H
+#include <stdint.h>
+#ifndef __CRT_STDINT_H
+#define __CRT_STDINT_H
+#endif
+#endif
 
 class PhysicsFragment;
 
@@ -42,7 +47,7 @@ private:
 public:
 	// Canonicals
 	
-	PhysicsAssemblyEvent(PhysicsFragment* pFirstFragment);
+	PhysicsAssemblyEvent(PhysicsFragment* pFirstFragment, time_t receivedTime);
 	virtual ~PhysicsAssemblyEvent();
 private:
 	PhysicsAssemblyEvent(const PhysicsAssemblyEvent&);
@@ -57,6 +62,10 @@ public:
 	virtual void add(EventFragment& frag);
 	virtual AssembledEvent* assembledEvent();
 	virtual uint16_t type() const;
+
+	// Physics assembly event specific functions:
+
+	std::list<uint16_t> nodes();
 	
 	
 };
