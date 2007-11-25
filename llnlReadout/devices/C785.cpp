@@ -337,7 +337,8 @@ C785::Initialize(CVMUSB& controller)
   uint32_t base = getIntegerParameter("-base");	// Get the base address.
   int      type = getModuleType(controller, base);
 
-  if ((type != 785)  && (type != 775) && (type != 792)) { // 775 for testing!!.
+  if ((type != 785)  && (type != 775) && (type != 792) &&
+      (type != 862)) { // 775 for testing!!.
     char message[100];
     string name = m_pConfiguration->getName();
     sprintf(message, "Module %s at base 0x%x is not a supported module  but a %d",
