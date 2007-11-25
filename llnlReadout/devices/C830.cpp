@@ -284,23 +284,25 @@ C830::addReadoutList(CVMUSBReadoutList& list)
 {
   uint32_t baseAddress = getIntegerParameter("-base"); // Need to know where the module lives too.
   uint32_t enables     = getIntegerParameter("-channels");
-  TriggerSource trigger= getTriggerSource();
 
-  int transferCount = 0;
-  for (uint32_t i =0; i < 32; i++) {
-    if (enables & (1 << i)) transferCount++;
+  // for now this is a massive kludge due to  the lack of a delay capability
+  // on the VM-USB's stack.
+  // we are going to just read the 32 counter registers and then
+  // pop the clear data register.
+  // this should give us a skew of about 8usec between first read and clear.
+  // with 250ns register to register skew (or maybe twice that since we probably 
+  // have to address cycle each data cycle.
+  // We unconditionally read all registers.
+  //
+  
+  uint32_t counter = baseAddress + COUNTERS;
+
+  for (int i =0; i < 32; i++) {
+    list.addRead32(counter, CVMUSBReadoutList::a32UserData);
+    counter += 4;
   }
-  if(getBooleanParameter("-header")) transferCount++;
-
-  // Only really bother with the module if the transfer count is non zero:
-
-  if (transferCount) {
-    if (trigger == vme) {
-      list.addWrite16(baseAddress + TRIGGER, configAmod, 0); // VME Trigger the device.
-    }
-    list.addFifoRead32(baseAddress+MEB, readAmod, transferCount);
-  }
-
+  list.addWrite16(baseAddress + CLEAR, CVMUSBReadoutList::a32UserData, 0);
+  
 }
 
 /*!
