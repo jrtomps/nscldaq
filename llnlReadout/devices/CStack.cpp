@@ -294,7 +294,6 @@ CStack::loadStack(CVMUSB& controller)
   addReadoutList(readoutList);
   listNumber = getListNumber();
 
-  // The list nu
 
   // Load the list:... unless it has no elements!
 
@@ -302,7 +301,7 @@ CStack::loadStack(CVMUSB& controller)
     controller.loadList(listNumber,
 			readoutList,
 			m_listOffset);
-    m_listOffset += readoutList.size();
+    m_listOffset += readoutList.size() + 16;
   }
 }
 /*!

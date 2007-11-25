@@ -316,6 +316,9 @@ CAcquisitionThread::startDaq()
   //  Get all of the stacks.  load and enable them.  First we'll reset the
   // stack load offset.
 
+  CStack::resetStackOffset();
+
+  cerr << "Loading " << m_Stacks.size() << " Stacks to vm-usb\n";
   for(int i =0; i < m_Stacks.size(); i++) {
     CStack* pStack = dynamic_cast<CStack*>(m_Stacks[i]->getHardwarePointer());
     assert(pStack);
@@ -341,8 +344,12 @@ CAcquisitionThread::startDaq()
 			   CVMUSB::GlobalModeRegister::bufferLenShift));
 
 
+  // ensure that O1 is the Busy, and for the heck of it, let's make O2 AS.
 
-  // Star the VMUSB in data taking mode:
+  m_pVme->writeDeviceSource(CVMUSB::DeviceSourceRegister::nimO1Busy |
+			    CVMUSB::DeviceSourceRegister::nimO2VMEAS);
+
+  // Start the VMUSB in data taking mode:
 
   VMusbToAutonomous();
 

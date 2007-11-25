@@ -418,12 +418,12 @@ CXXFLAGS="$oldcxxflags"
 AC_LANG_POP(C++)
 
 #----------------------------------------------------------------
-#  NSCLDAQ  Look for either /usr/opt/daq/current or if that's
-#           not there, the highest version from
-#           8.2, 8.1, 8.0
+#  NSCLDAQ
+#           look for the  highest version from
+#           9.0 8.2, 8.1, 8.0
 #----------------------------------------------------------------
 
-subdirs="current 8.2 8.1 8.0"
+subdirs="9.0 8.2 8.1 8.0"
 daqfound="no"
 
 AC_MSG_CHECKING([ for nscldaq ])

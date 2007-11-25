@@ -224,7 +224,7 @@ C785::addToChain(CVMUSB& controller,
   // Set the MCST/CBLT register:
 
   controller.vmeWrite16(baseAddress+McastAddr, initamod, 
-			 static_cast<uint16_t>(mcstAddress >> 16));
+			 static_cast<uint16_t>(mcstAddress >> 24));
 
   // Figure out the bits for the McastCtl register>
 
@@ -337,10 +337,10 @@ C785::Initialize(CVMUSB& controller)
   uint32_t base = getIntegerParameter("-base");	// Get the base address.
   int      type = getModuleType(controller, base);
 
-  if ((type != 785)  && (type != 775)) { // 775 for testing!!.
+  if ((type != 785)  && (type != 775) && (type != 792)) { // 775 for testing!!.
     char message[100];
     string name = m_pConfiguration->getName();
-    sprintf(message, "Module %s at base 0x%x is not a 785 but a %d",
+    sprintf(message, "Module %s at base 0x%x is not a supported module  but a %d",
 	    name.c_str(), base, type);
     throw string(message);
   }

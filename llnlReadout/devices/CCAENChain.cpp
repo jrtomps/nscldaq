@@ -27,9 +27,14 @@
 
 using namespace std;
 
-static const unsigned int LongwordsPerModule(34); // Maximum # longwords/module.
+static const unsigned int LongwordsPerModule(36); // Maximum # longwords/module.
 
 static const int cbltamod(CVMUSBReadoutList::a32UserBlock);
+static const int mcstamod(CVMUSBReadoutList::a32UserData);
+
+static const uint32_t BSET2(0x1032); // Offset to the bit set 2 register.
+static const uint32_t BCLR2(0x1034); // Offset t the bit clear 2 register.
+static const uint16_t CLEAR_DATA(0x4); // The clear data bit in the above.
 
 /////////////////////////////////////////////////////////////////
 /////////////// Canonical class/object implementations /////////
@@ -155,6 +160,15 @@ CCAENChain::Initialize(CVMUSB& controller)
     pAdc->addToChain(controller, m_baseAddress, where);
 
   }
+  //By this time all of the modules have had their MCST/CBLT address set.
+  // and enabled.  We're going to do an MCST data reset to the chain.
+  // this will ensure that all devices have got a simultaneously zeroed
+  // event counter and the event buffers are simultaneously cleared.
+  // this is needed to ensure event coherency in the event that triggers
+  // are going into the system prior to startup.
+
+  controller.vmeWrite16(m_baseAddress + BSET2, mcstamod, CLEAR_DATA);
+  controller.vmeWrite16(m_baseAddress + BCLR2, mcstamod, CLEAR_DATA);
  
 }
 /*!
@@ -173,9 +187,12 @@ CCAENChain::Initialize(CVMUSB& controller)
 void
 CCAENChain::addReadoutList(CVMUSBReadoutList& list)
 {
+  m_baseAddress               = getCBLTAddress();
+  m_moduleCount               = getModules().size(); // Assume they're all good 
+
   unsigned int transferCount  = m_moduleCount * LongwordsPerModule;
 
-  list.addFifoRead32(m_baseAddress, cbltamod, transferCount); // Thwack the 'that was easy (TM)' button.
+  list.addBlockRead32(m_baseAddress, cbltamod, transferCount); // Thwack the 'that was easy (TM)' button.
 
 }
 
