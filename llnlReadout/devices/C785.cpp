@@ -272,6 +272,7 @@ C785::addToChain(CVMUSB& controller,
    -highwater       MEBDepth*3/4  (3/4 full event buffer).
    -fastclear       0
    -supressrange    true
+   -timescale       600 (ns).
 \endverbatim
 
    All others have no default values.   If, during initialization one of those
