@@ -77,6 +77,7 @@ Const(BSet2)       0x1032;
 Const(BClear2)     0x1034;
 Const(LogicalCrate) 0x103c;
 Const(ECountReset) 0x1040;
+Const(FSRange)     0x1060;
 Const(Thresholds)   0x1080;	// Continues through 10bf, 32 D16 words.
 
 // Prom locations: We'll want to be sure the module really is a V785:
@@ -150,6 +151,12 @@ static CConfigurableObject::Limits hwRange(hwlow, hwhigh);
 static CConfigurableObject::limit  fcLow(0);
 static CConfigurableObject::limit  fcHigh(0x3ff);
 static CConfigurableObject::Limits fcRange(fcLow, fcHigh);
+
+// -timescale is from 140-1200.
+
+static CConfigurableObject::limit tsLow(140);
+static CConfigurableObject::limit tsHigh(1200);
+static CConfigurableObject::Limits tsRange(tsLow, tsHigh);
 
 //////////////////////////////////////////////////////////////////////
 /////////////////// Canonical class/object operations ////////////////
@@ -307,6 +314,8 @@ C785::onAttach(CReadoutModule& configuration)
 				 &fcRange, "0");
   m_pConfiguration->addParameter("-supressrange", CConfigurableObject::isBool,
 				 NULL, "true");
+  m_pConfiguration->addParameter("-timescale", CConfigurableObject::isInteger,
+				 &tsRange, "600");
 }
 /*!
     Initialize the module prior to data taking. We get the parameters
@@ -407,6 +416,19 @@ C785::Initialize(CVMUSB& controller)
   }
   else {
     controller.vmeWrite16(base+BClear2, initamod, 0x38);
+  }
+
+
+  // If the module is a 775 write the timerange register.
+
+  if (type == 775) {
+    int    range   = getIntegerParameter("-timescale");
+    //
+    // Compute the register value (see 4.33 of the V775 manual).
+    //
+    float  nsRange = static_cast<float>(range);
+    float  rRange  = 36040.0/(rRange + 1.3333);
+    controller.vmeWrite16(base+FSRange, initamod, static_cast<uint16_t>(rRange + 0.5));
   }
 
   // Finally, ensure that at the end of a readout we'll get a BERR, rather than

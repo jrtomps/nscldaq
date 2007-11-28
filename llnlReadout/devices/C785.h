@@ -71,6 +71,10 @@ class CVMUSBReadoutList;
    -fastclear     integer             Fast clear interval values are in units of
                                       1/32 of a usec.
    -supressrange  bool                true to supress out of range data.
+   -timescale     int                 The full scale range in ns.  Note there is
+                                      a granularity of 35ps to the range.
+                                      this must be an integer between 140 and 1200.
+                                      Defaults to 600ns.
    \endverbatim
 
    These will also have reasonable defaults programmed into them.. see
