@@ -110,6 +110,12 @@ public:
   void addBlockRead32(uint32_t baseAddress, uint8_t amod, size_t transfers);
   void addFifoRead32(uint32_t  baseAddress, uint8_t amod, size_t transfers);
 
+
+  // Miscellaneous:
+
+  void addDelay(uint8_t clocks);
+
+
   // The following constants define address modifiers that are known to
   // VME Rev C.  There are other amods that are legal in newer revs of the
   // standard, since I don't know them, I don't list them :-).

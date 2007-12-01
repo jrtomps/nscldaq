@@ -39,7 +39,7 @@ offset(IPL)          0x1112;    // Interrupt level (16 bits)
 offset(VECTOR)       0x1114;    // Interrupt vector (16 bits)
 offset(RESET)        0x1120;    // Module reset (16 bit key).
 offset(CLEAR)        0x1122;    // Software clear (16 bit clear)
-offset(TRIGGER)      0x1128;    // VME trigger (16 bit)
+offset(TRIGGER)      0x1124;    // VME trigger (16 bit)
 offset(ALMOSTFULL)   0x112c;     // # events in MEB before firing irq.
 
 
@@ -56,7 +56,7 @@ static const uint16_t AUTORESET(0x40);
 // Adress modifiers:
 
 static const uint8_t configAmod(CVMUSBReadoutList::a32UserData);
-static const uint8_t readAmod(CVMUSBReadoutList::a32UserData);
+static const uint8_t readAmod(CVMUSBReadoutList::a32UserBlock);
 
 // Limits for the configuration parameters:
 
@@ -284,24 +284,25 @@ C830::addReadoutList(CVMUSBReadoutList& list)
 {
   uint32_t baseAddress = getIntegerParameter("-base"); // Need to know where the module lives too.
   uint32_t enables     = getIntegerParameter("-channels");
+  bool     headers     = getBooleanParameter("-header");
 
-  // for now this is a massive kludge due to  the lack of a delay capability
-  // on the VM-USB's stack.
-  // we are going to just read the 32 counter registers and then
-  // pop the clear data register.
-  // this should give us a skew of about 8usec between first read and clear.
-  // with 250ns register to register skew (or maybe twice that since we probably 
-  // have to address cycle each data cycle.
-  // We unconditionally read all registers.
-  //
-  
-  uint32_t counter = baseAddress + COUNTERS;
+  // compute the number of longwords to read from the MEB:
 
+  size_t readSize = headers ? 1 : 0; // Header or no header long...
   for (int i =0; i < 32; i++) {
-    list.addRead32(counter, CVMUSBReadoutList::a32UserData);
-    counter += 4;
+    if (enables & (1 << i)) readSize++;
   }
-  list.addWrite16(baseAddress + CLEAR, CVMUSBReadoutList::a32UserData, 0);
+
+  // If the trigger is VME, we do a latch and delay 1.2usec (1usec is enough).
+  // prior to doing the block read.
+
+  if (getTriggerSource() == vme) {
+    list.addWrite16(baseAddress + TRIGGER, configAmod, 0);
+    list.addDelay(6);		// 200ns units.
+  }
+  // Add the block transfer from the MEB
+
+  list.addBlockRead32(baseAddress + MEB, readAmod, readSize);
   
 }
 

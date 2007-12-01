@@ -31,6 +31,7 @@ static const int modeNW(0x100);
 static const int modeNA(0x400);
 static const int modeMB(0x800);
 static const int modeSLF(0x1000);
+static const int modeDelay(0x8000); 
 static const int modeBE(0x10000);
 static const int modeHD(0x20000);
 static const int modeND(0x40000);
@@ -39,6 +40,8 @@ static const int modeNTMask(0xc00000);
 static const int modeNTShift(22);
 static const int modeBLTMask(0xf0000000);
 static const int modeBLTShift(24);
+
+
 
 // The following bit must be set in the address stack line for non long
 // word transfers:
@@ -433,5 +436,17 @@ CVMUSBReadoutList::addBlockRead(uint32_t base, size_t transfers,
     m_list.push_back(mode);
     m_list.push_back(base);
   }
+
+}
+
+/*!
+   Add a delay in stack execution
+   \param clocks : uint8_t 
+    The number of 200ns clocks to delay the  stack execution for.
+*/
+void CVMUSBReadoutList::addDelay(uint8_t clocks)
+{
+  uint32_t line = modeDelay | clocks;
+  m_list.push_back(line);	// Add the delay to the stack.
 
 }

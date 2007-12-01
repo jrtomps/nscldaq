@@ -87,7 +87,7 @@ int
 CCAENV830Command:: operator()(CTCLInterpreter& interp, 
 			 std::vector<CTCLObject>& objv)
 {
-  if (objv.size() != 4) {
+  if (objv.size() < 4) {
     Usage("Invalid parameter count", objv);
     return TCL_ERROR;
   }
