@@ -301,7 +301,7 @@ CStack::loadStack(CVMUSB& controller)
     controller.loadList(listNumber,
 			readoutList,
 			m_listOffset);
-    m_listOffset += readoutList.size() + 16;
+    m_listOffset += readoutList.size() * sizeof(uint32_t)/sizeof(uint16_t)+4 ; // Stack locs are words.
   }
 }
 /*!
