@@ -338,8 +338,10 @@ CAcquisitionThread::startDaq()
   //   Aligned on 16 bits.
   //   Single header word.
   //   Bus request level 4.
+  //   Flush scalers on a single event.
   //
   m_pVme->writeGlobalMode((4 << CVMUSB::GlobalModeRegister::busReqLevelShift) | 
+			  CVMUSB::GlobalModeRegister::flushScalers            |
 			  (CVMUSB::GlobalModeRegister::bufferLen13K << 
 			   CVMUSB::GlobalModeRegister::bufferLenShift));
 

@@ -231,6 +231,7 @@ public:
 	static const uint16_t align32          = 0x80;
 	
 	static const uint16_t doubleHeader     = 0x100;
+	static const uint16_t flushScalers     = 0x200;
 	static const uint16_t busReqLevelMask  = 0x7000;
 	static const uint16_t busReqLevelShift = 12;
     };
