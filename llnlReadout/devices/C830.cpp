@@ -167,7 +167,7 @@ void C830::onAttach(CReadoutModule& configuration)
   m_pConfiguration->addParameter("-base",      CConfigurableObject::isInteger, NULL, "0");
   m_pConfiguration->addParameter("-channels",  CConfigurableObject::isInteger, NULL, "0xffffffff");
   m_pConfiguration->addParameter("-dwelltime", CConfigurableObject::isInteger, NULL, "0");
-  m_pConfiguration->addParameter("-header",    CConfigurableObject::isBool,    NULL, "true");
+  m_pConfiguration->addParameter("-header",    CConfigurableObject::isBool,    NULL, "false");
 
   // Need the list oif valid trigger strings:
 
