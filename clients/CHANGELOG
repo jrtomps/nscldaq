@@ -884,4 +884,4 @@ November 6, 2007 - Converted source code repositories to subversion at sourcefor
                    a successful build of the driver.
 November 9, 2007 - Correct error in spectcldaq.1 the -everything switch now allows all
                    data to go to stdout, not just a sample.
-
+December 4, 2007 - Add CCAENChain::lastModuleEmptyEnable/Disable members.
