@@ -31,6 +31,7 @@ static const int modeNW(0x100);
 static const int modeNA(0x400);
 static const int modeMB(0x800);
 static const int modeSLF(0x1000);
+static const int modeMarker(0x2000);
 static const int modeDelay(0x8000); 
 static const int modeBE(0x10000);
 static const int modeHD(0x20000);
@@ -444,9 +445,23 @@ CVMUSBReadoutList::addBlockRead(uint32_t base, size_t transfers,
    \param clocks : uint8_t 
     The number of 200ns clocks to delay the  stack execution for.
 */
-void CVMUSBReadoutList::addDelay(uint8_t clocks)
+void 
+CVMUSBReadoutList::addDelay(uint8_t clocks)
 {
   uint32_t line = modeDelay | clocks;
   m_list.push_back(line);	// Add the delay to the stack.
+
+}
+/*!
+  Add a marker word to the output buffer.   Marker words are just
+  16 bits of literal data.
+  \param uint16_t value    - the value to put in the buffer.
+*/
+void 
+CVMUSBReadoutList::addMarker(uint16_t value)
+{
+  uint32_t line = modeMarker;
+  m_list.push_back(line);
+  m_list.push_back(static_cast<uint32_t>(value));
 
 }

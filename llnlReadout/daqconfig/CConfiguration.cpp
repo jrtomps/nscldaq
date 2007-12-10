@@ -20,6 +20,7 @@
 #include "CADCCommand.h"
 #include "CCAENChainCommand.h"
 #include "CCAENV830Command.h"
+#include "CMarkerCommand.h"
 #include "CStackCommand.h"
 
 #include <CReadoutModule.h>
@@ -56,6 +57,7 @@ CConfiguration::CConfiguration() :
   m_Commands.push_back(new CCAENChainCommand(*m_pInterp, *this));
   m_Commands.push_back(new CScalerCommand(*m_pInterp, *this));
   m_Commands.push_back(new CCAENV830Command(*m_pInterp, *this));
+  m_Commands.push_back(new CMarkerCommand(*m_pInterp, *this));
   m_Commands.push_back(new CStackCommand(*m_pInterp, *this));
 
 }
