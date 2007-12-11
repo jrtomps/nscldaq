@@ -187,7 +187,7 @@ snit::type onlineDataSource {
     #                               system.
     #
     method open {} {
-
+	puts "In open"
         #  Check for the spectcldaq executable.
 
         set bindir [file join $options(-daqroot) bin]
@@ -200,9 +200,13 @@ snit::type onlineDataSource {
         #
         set host $options(-host)
         if {$havedns  && ($host ne "localhost") } {
+	    puts "Doing DNS query..."
             set query [::dns::resolve $host]
+	    dns::wait $query
             set result [::dns::address $query]
+	    puts "Got result: $result"
             ::dns::cleanup $query
+	    puts "Cleaned up"
             if {[llength $result] == 0}  {
                 error {No Such Host}
             }
@@ -214,9 +218,11 @@ snit::type onlineDataSource {
 	set port -1
 
 	if {[catch {socket $host sdlite-link} sock] eq 0} {
+	    puts "No sdaq-lite link"
 	    close $sock
 	    set port 2700
 	} elseif  {[catch {socket $host sdaq-link} msg]} {
+	    puts "No sdaq-link"
             error [list No DAQ on Remote Node]
         } else {
 	    set port 2602
@@ -225,6 +231,7 @@ snit::type onlineDataSource {
 	# The case below should not happen but...
 
 	if {$port == -1} {
+	    puts "No listeners"
 	    error "Could not form connection to spdaq-lite or spectrodaq"
 	}
         #  Now we can setup the online client piped through hexdump.
@@ -233,6 +240,8 @@ snit::type onlineDataSource {
         #
 
         set spectcldaq [file join $options(-daqroot) bin spectcldaq]
+	puts "Gonna start $spectcldaq"
+
 	set url "tcp://$host:$port/"
 
         set fd [open [list | $spectcldaq $url]  r]

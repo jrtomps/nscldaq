@@ -27,3 +27,7 @@ January 9, 2006
           www.sourceforge.net/projects/dqsoftware  so that Makefiles
           work with the current versions of sdx.kit (tcl 8.5).
 
+1.0-003 
+       - December 11, 2007
+         Ensure that dns query has finished  before checking result when
+         doing an online open.
