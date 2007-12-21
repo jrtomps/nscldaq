@@ -72,6 +72,7 @@ private:
 public:
   // Functions:
 
+  void        Initialize(CVMUSB& vme);
   std::string Update(CVMUSB& vme);
   std::string Set(CVMUSB& vme, const char* what, const char* value);
   std::string Get(CVMUSB& vme, const char* what);

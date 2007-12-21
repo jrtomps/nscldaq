@@ -71,6 +71,7 @@ public:
 
 public:
   virtual void onAttach(CControlModule& configuration);  //!< Create config.
+  virtual void Initialize(CVMUSB& vme);
   virtual std::string Update(CVMUSB& vme);               //!< Update module.
   virtual std::string Set(CVMUSB& vme, 
 			  std::string parameter, 

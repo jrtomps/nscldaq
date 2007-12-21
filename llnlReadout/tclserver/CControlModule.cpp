@@ -84,6 +84,25 @@ CControlHardware::getConfiguration()
 
 
 /*!
+  Do post configuration initialiation.
+*/
+void
+CControlModule::Initialize(CVMUSB& vme)
+{
+  bool mustRelease(false);
+  if (CRunState::getInstance()->getState() == CRunState::Active) {
+    mustRelease = true;
+    CControlQueues::getInstance()->AcquireUsb();
+  }
+  m_pHardware->Initialize(vme);
+
+  if (mustRelease) {
+    CControlQueues::getInstance()->ReleaseUsb();
+  }
+
+}
+
+/*!
    Update the module.  To do this we may need to acquire the
    Vmusb Interface from readout. 
    \param vme : CVMUSB&

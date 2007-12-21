@@ -273,6 +273,6 @@ void
 TclServer::initModules()
 {
   for (int i =0; i < m_Modules.size(); i++) {
-    m_Modules[i]->Update(*m_pVme);
+    m_Modules[i]->Initialize(*m_pVme);
   }
 }

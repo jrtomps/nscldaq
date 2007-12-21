@@ -190,6 +190,14 @@ CGDG::onAttach(CControlModule& configuration)
 
 }
 /*!
+  Initialization just calls update:
+*/
+void
+CGDG::Initialize(CVMUSB& vme)
+{
+  Update(vme);
+}
+/*!
    Update - This updates any internal state about the module that we would
    keep.  It may be, for example that for speed sake we'll cache all the
    module parameters and return them on a get... until one has been changed.

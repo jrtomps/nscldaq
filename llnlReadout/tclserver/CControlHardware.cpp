@@ -64,3 +64,11 @@ CControlHardware::operator!=(const CControlHardware& rhs) const
 {
   return !(*this == rhs);	// In case operator== becomes meaningful.
 }
+
+
+/*!
+  Default initialize is a no-op.
+*/
+void 
+CControlHardware::Initialize(CVMUSB& vme)
+{}
