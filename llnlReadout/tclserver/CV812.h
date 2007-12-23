@@ -79,6 +79,7 @@ private:
   uint16_t            m_widths[2];
   uint16_t            m_deadtimes[2];
   uint16_t            m_inhibits;
+  uint16_t            m_majority;
 
 public:
   // canonicals:
@@ -113,21 +114,28 @@ private:
 
   uint32_t base();
   std::string initializationFile();
+  void configFileToShadow();
+
 
   // Parameter setters.
   
   std::string setThreshold(CVMUSB& vme, unsigned int channel, uint16_t value);
-  std::string setDelay(CVMUSB& vme, unsigned int selector, uint16_t value);
+  std::string setWidth(CVMUSB& vme, unsigned int selector, uint16_t value);
   std::string setDeadtime(CVMUSB& vme, unsigned int selector, uint16_t value);
   std::string setMajority(CVMUSB& vme, uint16_t value);
+  std::string setInhibits(CVMUSB& vme, uint16_t value);
 
   // Parameter getters (operate on the shadow values):
 
   std::string getThreshold(unsigned int channel);
-  std::string getDelay(unsigned int selector);
+  std::string getWidth(unsigned int selector);
   std::string getDeadtime(unsigned int selector);
   std::string getMajority();
+  std::string getInhibits();
 
+ 
+  static std::string iToS(int value);
+  static uint16_t majorityToRegister(int value);
 
 };
 

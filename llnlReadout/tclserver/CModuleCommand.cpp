@@ -24,7 +24,7 @@ using namespace std;
 #include <CControlHardware.h>
 #include <TclServer.h>
 #include <CGDG.h>
-
+#include <CV812.h>
 
 
 /*!
@@ -113,14 +113,20 @@ CModuleCommand::create(CTCLInterpreter& interp,
   string type = objv[2];
   string name = objv[3];
 
-  if (type != "jtecgdg") {
+  CControlHardware* pModule;
+
+  if (type == "jtecgdg") {
+    pModule = new CGDG(name);
+  }
+  else if (type == "caenv812") {
+    pModule = new CV812(name);
+  }
+  else {
     m_Server.setResult("module create: Invalid type, must be jtecgdg");
     return TCL_ERROR;
   }
-  CControlHardware* pModule = new CGDG(name);
   CControlModule*   pConfig = pModule->getConfiguration();
   pModule->onAttach(*pConfig);
-
   m_Server.addModule(pConfig);
   m_Server.setResult(name);
   
