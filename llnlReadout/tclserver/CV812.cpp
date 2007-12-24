@@ -359,6 +359,9 @@ CV812::configFileToShadow()
   string filename = initializationFile();
 
   Tcl_Obj* pObj = Tcl_NewStringObj(filename.c_str(), strlen(filename.c_str()));
+
+  Tcl_IncrRefCount(pObj);	// Evidently FSAccess needs this.
+
   if (Tcl_FSAccess(pObj, R_OK)) {
     Tcl_DecrRefCount(pObj);
     return;			// Not allowed to read the file..or does not exist.
@@ -577,7 +580,7 @@ CV812::setMajority(CVMUSB& vme, uint16_t value)
 
   Parameters:
   vme      - VME controller object.
-  value    - New inhibits value [1..20].
+  value    - New inhibits value [0-255].
 
 
  Returns:
