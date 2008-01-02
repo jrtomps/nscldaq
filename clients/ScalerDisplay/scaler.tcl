@@ -119,6 +119,13 @@ set silentAlarms 0
 #
 #    timeVector          - Vector of elapsed run times at scaler readouts.
 #    legendPosition      - Position of legend (top bottom, left or right).
+#    maxStripPoints      - If non zero, the maximum number of strip chart points
+#                          that will be retained.
+#                          Pruning is logarithmic.  Whenever this value is exceeded,
+#                          Every other point in the first half of the remaining data
+#                          series is deleted.
+#
+#
 set stripchartChannels ""
 set stripchartRatios   ""
 set yAxisType          linear
@@ -130,7 +137,7 @@ set stripStyles { "" {5 5} {2 2} {5 5 2 2} {5 2} {5 5 2 5}}
 set stripColorIndex 0
 set stripStyleIndex 0
 set legendPosition top
-
+set maxStripPoints   0;             # 0 is infinite.
 
 # Alarm variables:
 #
@@ -269,6 +276,48 @@ proc clearStripChart {} {
         $name length 0
     }
 }
+#
+# Trim the strip chart data.
+# Every  other point in the first 1/2 of each
+# data series are deleted.. except for index 0 which
+# is retained so that there's a point at the origin.
+#
+
+proc trimStripChartData {} {
+    global maxStripPoints
+    global stripchartChannels
+    global stripchartRatios
+
+
+    # construct the list of indices that will be deleted:
+
+    set stripIndices [list]
+    set trimPoint [expr $maxStripPoints/2]
+    for {set i 2} {$i < $trimPoint} {incr i 2} {
+	lappend stripIndices $i
+    }
+    if {[llength $stripIndices] > 0} {
+
+	# trim the time vector...
+
+	eval timeVector delete $stripIndices
+
+	# Trim the rates:
+
+	foreach channel $stripchartChannels {
+
+	    eval $channel delete $stripIndices
+	}
+	# Trim the ratios:
+
+	foreach ratio $stripchartRatios {
+	    set numerator   [lindex $ratio 0]
+	    set denominator [lindex $ratio 1]
+	    set name        [ratioName $numerator $denominator]
+	    eval $name delete $stripIndices
+	}
+    }
+}
 
 # Flip the scale of the stripchart widget from
 # Auto x scale to strip chart mode.
@@ -394,6 +443,7 @@ proc updateStripChart {} {
     global stripchartRatios
     global timeVector
     global stripchartWidget
+    global maxStripPoints
 
     set timeVector(++end) $ElapsedRunTime
 
@@ -427,6 +477,12 @@ proc updateStripChart {} {
         set vecname [ratioName $numerator $denominator]
         global $vecname
         set ${vecname}(++end) $rate
+    }
+    # If the time vector now has more than maxStripPoints, delete 1/2 the points
+    # in the first 1/2 of the data series.
+
+    if {($maxStripPoints > 0)  && ([timeVector length ] > $maxStripPoints)} {
+	trimStripChartData
     }
 }
 

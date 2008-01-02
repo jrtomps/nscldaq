@@ -305,6 +305,7 @@ scalerWin
   This global is the name of the widget into which the scaler display
 will be drawn, or "" if the display is drawn into "."
 
+
 If you are adding more elements to the GUI you can use this to know
 where to manage these new elements.  For example:
 .nf
@@ -325,6 +326,15 @@ pop up in a separate top level.  For example:
 
 .fi
 Creates the scaler display in a new top level widget called .scaler
+
+.TP
+maxStripPoints
+   The maximum number of strip chart points that will be allowed in a 
+data series.  If this is zero (the default), there is no limit).  If
+nonzero, when the number of time points exceeds maxStripPoints, every other
+point in the first 1/2 of the time range will be deleted.  This causes the
+older data to be at an increasingly poorer resolution, while the latest 1/2 of 
+the time range will always be at fill resolution.
 
 .SH EXAMPLE(S)
 .nf
