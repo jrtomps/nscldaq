@@ -14,14 +14,12 @@
 	     East Lansing, MI 48824-1321
 */
 
+
 #define DMA_THRESHOLD 34*20*4	// Don't allow it to go DMA.
 
 /*
   Revision history:
   $Log$
-  Revision 8.3  2007/05/17 21:26:09  ron-fox
-  Work on porting to spectrodq-lite.
-
   Revision 8.2  2005/06/24 11:30:36  ron-fox
   Bring the entire world onto the 8.2 line
 
@@ -59,10 +57,24 @@
 #include <SBSBit3API.h>
 #endif
 
+#include <stdio.h>
+
 #ifdef HAVE_STD_NAMESPACE
 using namespace std;
 #endif
 
+
+static const int QualifyingFirmware(0x0904);
+
+
+static int fwMajor(int firmware) 
+{
+  return (firmware >> 8) & 0xff;
+}
+static int fwMinor(int firmware) 
+{
+  return firmware & 0xff;
+}
 /*!
    Construct a chain.  The chain can consist either of a
    set of slots defined by [nFirstSlot, nLastSlot] or it can
@@ -132,6 +144,33 @@ CCAENChain::CCAENChain(int nFirstSlot, int nLastSlot,
   catch(...) {			// On any exception:
     FreeModules();		// Free the modules already created
     throw;			// and rethrow.
+  }
+
+  // All of the modules in the chain must be at firmware 9.04 or higher
+  // at least.  This corresponds to a firmware value of
+  // 0x0904 or larger.
+
+  try {
+    for (int slot = 0; slot < m_vCards.size(); slot++) {
+      if (m_vCards[slot]->getFirmware() < QualifyingFirmware) {
+	unsigned long base    = m_vCards[slot]->getBase();
+	int           fw      = m_vCards[slot]->getFirmware();
+	int           major   = fwMajor(fw);
+	int           minor   = fwMinor(fw);
+	int           qmajor  = fwMajor(QualifyingFirmware);
+	int           qminor  = fwMinor(QualifyingFirmware);
+	char errorMessage[1000];
+	sprintf(errorMessage,
+		"All modules in the chain must have firmware rev at least %d.%d, the module base address 0x%08x (slot %d) has firmware rev %d.%d",
+		qmajor, qminor, base, m_vCards[slot]->getSlot(), major, minor);
+	throw(string(errorMessage));
+
+      }
+    }
+  }
+  catch (...) {
+    FreeModules();
+    throw;
   }
 
   //  The base address of the chain is essentially the first
@@ -242,7 +281,7 @@ CCAENChain::operator[](int index) throw (CRangeError)
 int
 CCAENChain::ReadEvent(void* pBuffer)
 {
-
+  int nCards = m_vCards.size();
   int nRead = 0;
   try {
     nRead = CVMEInterface::Read(m_pHandle,
@@ -289,6 +328,7 @@ CCAENChain::FreeModules()
   }
   m_vCards.erase(m_vCards.begin(), m_vCards.end());
 }
+
 /*!
    Turns on the EMPTY_PROG bit of the Bit2 control/status register on the right most module in the chain..
    When enabled, this bit implies that the last module in the chain will
