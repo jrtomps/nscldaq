@@ -31,3 +31,8 @@ January 9, 2006
        - December 11, 2007
          Ensure that dns query has finished  before checking result when
          doing an online open.
+
+Finalize 1.0-003 January 3, 2008
+Starting edit level 1.1-001
+
+January 3, 2008 - Ensuring that the next tarball has the 1.1-001 suffix.
