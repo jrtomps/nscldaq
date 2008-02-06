@@ -887,4 +887,4 @@ November 9, 2007 - Correct error in spectcldaq.1 the -everything switch now allo
 December 4, 2007 - Add CCAENChain::lastModuleEmptyEnable/Disable members.
 
 January 2, 2008  -BZ315 logarithmically trim scaler data.
- 
+February 6, 2008 - Fix some make errors.
