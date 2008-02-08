@@ -1,0 +1,1905 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.3//EN"
+                      "file:///usr/share/xml/docbook/schema/dtd/4.3/docbookx.dtd"
+
+>
+<book>
+   <bookinfo>
+      <title>UMass Lowell CC-USB based Data Acquisition System</title>
+      <author><firstname>Ron</firstname><surname>Fox</surname></author>
+      <revhistory>
+          <revision>
+	     <revnumber>1.0</revnumber>
+	     <date>February 3, 2008</date>
+	     <authorinitials>RF</authorinitials>
+	     <revremark>Original Release</revremark>
+	  </revision>
+      </revhistory>
+   </bookinfo>
+   
+   <!-- Introductory material (chapter 1).  -->
+   
+   <chapter>
+      <title>Introduction</title>
+      <para>
+         This chapter is an orientation to the UMass Lowell CC-USB base data
+         acquisition system.
+         <itemizedlist>
+            <listitem>
+               <para>
+                  The Section "CC-USB description" provides an overview of the
+                  CC-USB controller module
+               </para>
+            </listitem>
+            <listitem>
+               <para>
+                  "Supported Devices" provides information about which
+                  data taking devices are supported by this release and
+                  any support restrictions.
+               </para>
+            </listitem>
+            <listitem>
+               <para>
+                  "Script organization" is an overview to how configuration
+                  scripts cooperate to supply configuration for readout,
+                  and SpecTcl from a common
+                  daq configuration script.
+               </para>
+            </listitem>
+         </itemizedlist>
+      </para>
+      <section>
+         <title>CC-USB description</title>
+         <para>
+            The CC-USB is a CAMAC interface that connects to a host system
+            via a USB-2 interface.  USB-2 is capable of trasnfer rates of
+            480Mb/sec, however the USB protocol has a very  high transfer initiation
+            latency.  This makes USB-2 unsuitable for directly interacting with
+            data taking devices on an event by event basis.  
+         </para>
+         <para>
+            The CC-USB implements local intelligence via a capability described
+            in its manual as a <firstterm>stack</firstterm>.  A stack is essentially
+            a list of CAMAC actions stored in the CC-USB and triggered by an external
+            condition.  Stacks run without host interaction, filling buffers of
+            data which can then be block transferred to the host computer.
+            Stacks are the CC-USB's way to work around the high latencies of
+            USB-2.  
+         </para>
+         <para>
+            The CC-USB supports two stacks, and event stack and a periodic stack.
+            The event stack is executed in response to an external trigger.
+            The external trigger can be a CAMAC LAM (look at me) or, more commonly,
+            a NIM logic true pulse on IN 1.   The periodic stack can be execute
+            either time or event periodically (by event periodic I mean that after
+            some number of event triggers have been accepted, the periodic stack
+            is executed).  The periodic stack is intended to be used to read
+            scalers, as some system use these counters to monitor detector and
+            beam rates.
+         </para> 
+         <para>
+            Stacks are rather hard to construct by hand. The UMass Lowell CC-USB system
+            automates stack construction using a two level scheme:
+            <orderedlist>
+               <listitem>
+                  <para>
+                     A C++ class library provices software that constructs
+                     stack elements (called lines in the CC-USB manual)
+                     from meaningful member function calls. The library supports
+                     both individual CAMAC actions as well as the creation of
+                     stacks which can be executed immediately or downloaded
+                     to the CC-USB for triggered execution.
+                  </para>
+               </listitem>
+               <listitem>
+                  <para>
+                     The Readout application provided includes support for
+                     the data taking devices used by the UMass Lowell group.
+                     Simple configuration script files provide a high level
+                     description of the hardware in use and drive a completely
+                     automated creation of the appropriate stacks.  
+                  </para>
+               </listitem>
+            </orderedlist>
+         </para>
+         <para>
+            In short, you will not need to know the details of constructing a
+            CC-USB stack.  You just need to know the devices you want to read,
+            and the software will construct the stacks for you.
+         </para>
+      </section>
+      <section>
+         <title>Supported Devices</title>
+         <para>
+            The following devices are supported:
+           <orderedlist>
+               <listitem>
+                  <para>
+                     Phillips 7164/7164H.  This is a 16 channel peak
+                     sensing adc.
+                  </para>
+               </listitem>
+               <listitem>
+                  <para>
+                     Phillips 7166/7166H. This is a 16 Channel charge integrating
+                     ADC (QDC).
+                  </para>
+               </listitem>
+               <listitem>
+                  <para>
+                     Phillips 7167/7167H. This is a 16 channel individually gated
+                     charge integrating ADC (QDC).
+                  </para>
+               </listitem>
+               <listitem>
+                  <para>
+                     Phillips 7186/7186/H.  This is a 16 channel time digitizer
+                     (TDC).
+                  </para>
+               </listitem>
+            </orderedlist>
+         </para>
+         <para>
+            The architecture of the system is such that additional module types
+            can be supported at a later time if desired.
+         </para>
+      </section>
+      <section>
+         <title>Script organization</title>
+         <para>
+            Configuration files that drive the UMass Lowell data taking application
+            are stored in the <filename>~/config</filename> directory of the
+            account that is taking data.  This allows applications to locate them,
+            and scripts that depend on each other to locate each other.
+            (~ means the home directory of the user that is running the data taking
+            system).
+         </para>
+         <para>
+            The file <filename>~/config/daqconfig.tcl</filename> is the
+            file that describes the hardware, the stacks and is used to drive
+            the  applications;
+            <application>Readout</application>,
+            <application>SpecTcl</application> and
+             that need to know the
+            hardware organization.
+         </para>
+         <para>
+            The figure below shows pictorially how all of this hangs together.
+         </para>
+         <figure>
+           <title>Script organization</title>
+
+           <mediaobject>
+             <imageobject>
+               <imagedata fileref="scripts.gif" format="GIF" />
+             </imageobject>
+
+             <imageobject>
+               <imagedata fileref="scripts.eps" format="EPS" />
+             </imageobject>
+           </mediaobject>
+         </figure>
+         <para>
+            This figure shows that the
+            <filename>daqconfig.tcl</filename> file is directly interpreted
+            by the Readout program (the data taking application).   Readout
+            accomplishes this by includeing a Tcl interpreter that has been
+            extended to understand the the full specification and configuration
+            language supported by the
+            <filename>daqconfig.tcl</filename> script.
+         </para>
+         <note>
+            <para>
+               <filename>daqconfig.tcl</filename> is re-interpreted each time
+               a new run is started.  It is therefore not necessary to
+               restart the Reaout program if the configuration file is changed.
+            </para>
+         </note>
+         <para>
+            SpecTcl does not need to know the full details of the experiment
+            as defined by the
+            <filename>daqconfig.tcl</filename> file.  It only needs to know
+            the order in which the modules have been read, and the names of
+            the parameters that correspond to each input channel of each
+            module.  When SpecTcl starts, it automatically runs a script named
+            <filename>SpecTclRC.tcl</filename>.  This script sets up the
+            graphical user interface as well as a defining a few of the
+            SpecTcl commands that are actually scripts.  For the UMass Lowell
+            configuration, it executes the script:
+            <filename>spectclconfig.tcl</filename>.
+            This script extracts the information needed from daqconfig.tcl,
+            defines parameters, defines the mapping of parameters to elements of
+            the event data stream, and creates 1-d histograms for each of the
+            parameters specified.
+         </para>
+         <warning>
+            <para>
+               SpecTcl only interprets the <filename>daqconfig.tcl</filename> file
+               when it starts.  Any changes to the set of modules read out, 
+               their order, or the name of parameters in a moduel will require
+               a restart of SpecTcl.
+            </para>
+         </warning>
+      </section>
+   </chapter>
+   <chapter>
+      <title>Getting Started</title>
+      <para>
+         For people who don't want to wade through a bunch of documentation,
+         this chapter is a how to to get you up and taking data in a hurry.
+         Where relevent, references to more detailed descriptions of the software
+         are provided.
+      </para>
+      <para>
+         When you've finished reading this material, you should understand
+         <itemizedlist>
+         <listitem>
+            <para>
+               How to prepare a data acquisition user account.
+            </para>
+         </listitem>
+         <listitem>
+            <para>
+               How to start the components of the data acquisition system.
+            </para>
+         </listitem>
+         <listitem>
+            <para>
+               How to save data to DVD
+            </para>
+         </listitem>
+         </itemizedlist>
+      </para>
+      <para>
+         The systems come with two pre-created accounts.  The first, is the
+         <literal>root</literal> account, which should only be used for system
+         management and maintenance.  The second, the <literal>daquser</literal>
+         account is an ordinary account that should not be used for data acquisition,
+         but can be used to login to the console and, via root consoles, or su,
+         create data acquisition accounts.  Both accounts have the password
+         <literal>nscldaq</literal>.  You are <emphasis>strongly</emphasis>
+         encouraged to change these passwords as soon as possible.
+      </para>
+      <para>
+         Let's go through the steps needed to create a data acquisition account.
+         Fist login to the system and gain root access.  You can either do this
+         by logging in via ssh directly to root, or logging into the nscldaq
+         account and using su to gain access to the root account.  If you log in
+         to the console, you can also use the
+         <menuchoice><guimenu>Accessories</guimenu><guimenuitem>Root Console</guimenuitem></menuchoice>
+         menu entry to gain root access.  In either case, you'll need to provide
+         the root password.
+      </para>
+      <para>
+         Once you have gained root access enter the command:
+         <programlisting>
+<command>adduser <replaceable>username</replaceable></command>
+         </programlisting>
+         where <replaceable>username</replaceable> is the name of the new user.
+         The <command>adduser</command> command has been extended so that:
+         <itemizedlist>
+            <listitem>
+               <para>
+                  An event area is created on the data disk (<literal>/dev/sdb1</literal>
+                  mounted on <literal>/events</literal>), and a
+                  <filename>stagearea</filename>
+                  link created to point to it.
+               </para>
+            </listitem>
+            <listitem>
+               <para>
+                  Sample configuration files are copied to <filename>~/config</filename>.
+                  For more information about configuration files see
+                  the chapter
+                  <link linkend="configfiles">Configuration Files</link>.
+               </para>
+            </listitem>
+            <listitem>
+               <para>
+                  Scripts are copied into <filename>~/bin</filename> so that
+                  you can easily start components of the data acquisition
+                  system without needing to know parameters each component needs.
+               </para>
+            </listitem>
+            <listitem>
+               <para>
+                  A <filename>~/spectcl</filename> directory is created and
+                  a <filename>SpecTclRC.tcl</filename> file planted there that
+                  will correctly initialize SpecTcl to analyze data from
+                  the CC-USB.
+               </para>
+            </listitem>
+            <listitem>
+               <para>
+                  Various configuration files are placed that inform the
+                  data acquisition system and SpecTcl that the default buffersize
+                  is 8224 bytes rather than the more normal 8192 bytes.  The extra
+                  buffer size allows the Readout program to wrap the CC-USB
+                  8192 byte data buffers in the header information expected by
+                  the remainder of the NSCL data acquisition system.
+               </para>
+            </listitem>
+            <listitem>
+               <para>
+                  SSH keys are created to allow you to ssh to <literal>localhost</literal>
+                  without providing a password.  The NSCL data acquisition system
+                  is a distributed system and assumes that the Readout software might
+                  need to run anywhere on the network.  It therefore uses SSH to
+                  start the Readout component even if it runs on the local system.
+               </para>
+            </listitem>
+         </itemizedlist>
+      </para>
+      <para>
+         Once the account is created, login to it.  The first time ssh is used
+         with a new system (even the local one), you will be prompted to accept
+         a host key that identifies that system.  When the Readout program is
+         run it won't be able to respond to that prompt therefore you should
+         <programlisting>
+<command>ssh localhost</command>
+         </programlisting>
+         and accept the host key manually. 
+         Logout of the ssh session you started.  You are now ready to start
+         the data acquisition system components.
+      </para>
+      <para>
+         The NSCL Data acquisition system consists of the following user
+         started components:
+         <variablelist>
+            <varlistentry>
+               <term><application>Readout</application></term>
+               <listitem>
+                  <para>
+                     <application>Readout</application> is the program for
+                        that reads data
+                        from the CC-USB.  It uses a configuration file
+                        (see <link linkend="configfiles">Configuration Files</link>
+                        for more information about the structure of these configuration
+                        files.
+                  </para>
+                  <para>
+                     The command <command>startReadout</command> starts the
+                     readout program and its GUI control panel.  You can use
+                     the window manager to create a Desktop short cut to this
+                     script that you can click to start the readout program.
+                     <footnote id="gui">
+                        <para>
+                           Actually, the <command>startReadout</command>
+                           command starts a GUI that wraps itself around the
+                           readout program and supports additional options
+                           that are useful in day to day data taking.
+                        </para>
+                     </footnote>
+                  </para>
+               </listitem>
+            </varlistentry>
+            <varlistentry>
+               <term><application>SpecTcl</application></term>
+               <listitem>
+                  <para>
+                     <application>SpecTcl</application> is the histogramming
+                     program and its display program.  Information about how
+                     SpecTcl is configured is provided in
+                     <link linkend="spectcl">SpecTcl</link>,
+                     as well as in the chapter
+                     <link linkend="configfiles">Configuration Files</link>.
+                  </para>
+                  <para>
+                     The command <command>startSpecTcl</command> starts the
+                     SpecTcl application.  As with Readout, you can create a
+                     desktop shortcut you can click on with the mouse to
+                     start this application.
+                  </para>
+               </listitem>
+            </varlistentry>
+            <varlistentry>
+               <term><application>Shaper Control Panel</application></term>
+               <listitem>
+                  <para>
+                     The <application>Shaper Control Panel</application> is
+                     a graphical user interface that can control a set of
+                     CAEN N568B/LC shaping amplifiers.  This script will
+                     start up the control panel using the configuration file
+                     <filename>~/config/shapers.tcl</filename>.  This file
+                     and its format are described more completely in
+                     <link linkend="ch.shaper"> the chapter
+                     The Shaper Control Panel</link>
+                  </para>
+               </listitem>
+            </varlistentry>
+         </variablelist>
+
+         You can start these applications in any order, you can choose to
+         start only the ones you need.  For example, to do offline analysis,
+         you only need to run <application>SpecTcl</application>.
+      </para>
+      <para>
+         Having taken data you will eventually want to write it to DVD.
+         The <application>brasero</application> application allows you to
+         specify the file and directory structure of a DVD and to write the
+         data to DVD.  This application is described at:
+         <ulink url="http://www.gnome.org/projects/brasero/">http://www.gnome.org/projects/brasero/</ulink>.
+         Sample session screen-shots are at:
+         <ulink url="http://www.gnome.org/projects/brasero/screenshots.html">http://www.gnome.org/projects/brasero/screenshots.html</ulink>.
+      </para>
+   </chapter>
+   
+   <!-- Desscribe the configuration files.. probably the longest chunk -->
+   
+   <chapter id="configfiles">
+      <title>Configuration Files.</title>
+      <para>
+         This chapter describes the configuration files that drive
+         Readout and SpecTcl.  The end of this chapter
+         contains reference material that describes the extensions to Tcl that
+         have been incorporated into the Readout configuration script engine
+         to support building CC-USB stacks directly from the
+         configuration file <filename>~/config/daqconfig.tcl</filename>.
+      </para>
+      <section>
+         <title><filename>daqconfig.tcl</filename> The readout config file</title>
+         <para>
+            The <filename>~/config/daqconfig.tcl</filename> file is the
+            basis for configuring the Reaout (directly), and SpecTcl (indirectly).
+            This file is a script for a Tcl
+            interpreter that has been extended with additional commands that
+            support describing the hardware to be readout and how to aggregate
+            that hardware into stacks.
+         </para>
+         <para>
+            Extensions to Tcl for configuration are a group of commands.
+            The command keyword for each command indicates the type of
+            device or item it manipulates.  For example the
+            <command>ph7xxx</command> command creates, configures or gets
+            the configuration of the various supported Phillips digitizer
+            modules.
+         </para>
+         <para>
+            The extensions to Tcl are what Tcl calls
+            <firstterm>command ensembles</firstterm>.
+            A command ensemble is a command with subcommands.  Each
+            extension has three subcommands:
+            <variablelist>
+               <varlistentry>
+                  <term><command>create</command></term>
+                  <listitem>
+                     <para>Creates an item of the type associated with a command
+                     </para>
+                  </listitem>
+               </varlistentry>
+               <varlistentry>
+                  <term><command>config</command></term>
+                  <listitem>
+                     <para>Configures an item of the type associated with a command
+                     </para>
+                  </listitem>
+               </varlistentry>
+               <varlistentry>
+                  <term><command>cget</command></term>
+                  <listitem>
+                     <para>Returns configuration information about an item
+                        of the type associated with a command.
+                     </para>
+                  </listitem>
+               </varlistentry>
+            </variablelist>
+         </para>
+         <para>
+            The following are the commands that have been added to the
+            Tcl interpreter.  See the command reference at the end of this chapter
+            for documentation of each command.
+         </para>
+         <variablelist>
+            <varlistentry>
+               <term><command>ph7xxx</command></term>
+               <listitem>
+                  <para>
+                     Manages Phillips 16 channel digitizers.  These include
+                     the 7164 (ADC), 7166, 7167 (QDCs), and 7186 (TDC) modules.
+                  </para>
+               </listitem>
+            </varlistentry>
+            <varlistentry>
+               <term><command>stack</command></term>
+               <listitem>
+                  <para>Used to construct readout and scaler stacks.
+                  </para>
+               </listitem>
+            </varlistentry>
+         </variablelist>
+      </section>
+      <section>
+         <title>Configuring SpecTcl</title>
+         <para>
+            Using the helper file
+            <filename>~/config/spectclconfig.tcl</filename>,
+            SpecTcl's startup scripts are able to process enough of the
+            <filename>~/config/daqconfig.tcl</filename> to be able to
+            create a correspondence between module channel numbers and
+            parameter names. The <filename>~/config/spectclconfig.tcl</filename>
+            script provides Tcl <command>proc</command>s extract the order
+            in which the modules have been added to the event readout stack.
+         </para>
+         <para>
+            The gobal variable <varname>parameters</varname> must be filled in
+            by you.  This array, also indexed by adc name, contains a list of names
+            of the channels for each adc you are using.  Each of these lists can
+            terminate early if the last channels in an adc are not used.  Intermediate
+            unused channels should be named <literal>""</literal>, and empty string.
+            <footnote id="tclarrays">
+               <para>
+                  Unlike C, C++ or Fortran, Tcl arrays are indexed by strings.
+                  thus you can say things like:
+                  <programlisting>
+set parameters(adc1) "a b c d e f g h i j k l m n o p"
+                  </programlisting>
+                  and create an array element indexed by the string
+                  <literal>"adc1"</literal>.
+               </para>
+            </footnote>
+         </para>
+         <example>
+            <title>Sample configuration and <varname>parameters definnitions</varname></title>
+            <programlisting>
+ph7xxx create adc1 -slot 6
+ph7xxx create adc2 -slot 7
+
+
+stack create events 
+stack config events -type event -modules [list adc1 adc2] -delay 10 -lamtimeout 8
+
+
+set parameters(adc1) [list ph1.00 ph1.01 ph1.02 ph1.03  \
+                           ph1.04 ph1.05 ph1.06 ph1.07  \
+                           ph1.08 ph1.09 ph1.10 ph1.11  \
+                           ph1.12 ph1.13 ph1.14 ph1.15]
+
+set parameters(adc2) [list ph2.00 ph2.01 ph2.02 ph2.03  \
+                           ph2.04 ph2.05 ph2.06 ph2.07  \
+                           ph2.08 ph2.09 ph2.10 ph2.11  \
+                           ph2.12 ph2.13 ph2.14 ph2.15]
+
+
+            </programlisting>
+         </example>
+         <para>
+            In the example above, two adcs named <literal>adc1</literal>
+                                                 and
+                                                   <literal>adc2</literal>
+            are created.
+            At the bottom of the file we can see that for each adc
+            named adc<emphasis>n</emphasis>, we have defined the names of
+            all 16 channels to be:
+            ph<emphasis>n</emphasis>.00 through
+            ph<emphasis>n</emphasis>.16
+            The tcl <command>list</command> command creates a list of items.
+            the <command>[...]</command> in Tcl substitutes the results of
+            the command enclosed in the square brackets in place on the
+            current command.
+         </para>
+         <para>
+            The SpecTcl initialization file <filename>spectclconfig.tcl</filename>
+            processes this configuration to produce SpecTcl parameters and
+            1-d spectra for each of these parameters.
+         </para>
+      </section>
+ 
+      
+      <section>
+         <title>Script Reference</title>
+         <para>
+            This section contains reference information about the commands
+            that have been added to Tcl to support configuring U. Mass. Lowell.
+            data taking.  In addition a reference to the set of meaningful
+            script variables is supplied.
+         </para>
+         <para>
+            Please note that in some cases you must either specify specific
+            options for SpecTcl to be able to decode the data or allow those
+            options to default.  When this is the case, the correct settings
+            are indicated.
+         </para>
+         <refentry id="ph7xxx">
+           <refmeta>
+              <refentrytitle>ph7xxx</refentrytitle>
+              <manvolnum>1ccusbReadout</manvolnum>
+           </refmeta>
+           <refnamediv>
+              <refname>ph7xxx</refname>
+              <refpurpose>Define Phillips ADC/TDC/QDC modules</refpurpose>
+           </refnamediv>
+           
+           <refsynopsisdiv>
+             <cmdsynopsis>
+         	<command>
+ph7xxx create <replaceable>name</replaceable> <optional>?option value ...?</optional>         	
+         	</command>
+             </cmdsynopsis>
+                 <cmdsynopsis>
+                     <command>
+ph7xxx config <replaceable>name  option value...</replaceable>
+                     </command>
+                 </cmdsynopsis>
+                  <cmdsynopsis>
+                      <command>
+ph7xxx cget <replaceable>name</replaceable>
+                      </command>
+                  </cmdsynopsis>
+                
+           </refsynopsisdiv>
+           <refsect1>
+              <title>DESCRIPTION</title>
+              <para>
+               Creates, configures and interrogates the configuration of Philips
+               CAMAC digitizers.
+              </para>
+              <para>
+               The <command>create</command> command creates
+               a new digitizer <replaceable>name</replaceable> configuration.
+               The <replaceable>name</replaceable> parameter must be unique.
+               The optional <optional>option value</optional> pairs that follow
+               specify the configuration for that module.  This configuration
+               can  be supplemented or overridden by subsequent
+               <command>config</command> operations on the module.
+              </para>
+               <para>
+                  The <command>config</command> subcommand configures the existing
+                  module <replaceable>name</replaceable>.  The remainder of the
+                  command line are option value pairs described in the section
+                  OPTIONS below.  The module <replaceable>name</replaceable> must
+                  have already been created via the <command>create</command>
+                  subcommand.  Note that configuration options are processed
+                  from left to right, if a configuration option appears more than
+                  once, the last instance takes effect.
+               </para>
+               <para>
+                  The <command>cget</command> subcommand returns the configuration
+                  of the module.  This can be used in more advanced scripts to
+                  analyze the configuration of the system.  The configuration of
+                  a module <replaceable>name</replaceable> is returned as a
+                  properly formatted Tcl list.  Each element of the list is itself
+                  a pair (a two element sublist).  The first element of each pair
+                  is the configuration parameter name, the second element the
+                  value, which may itself be  a list (e.g. for the
+                  <literal>-llt</literal> option.
+               </para>
+           </refsect1>
+           <refsect1>
+              <title>
+         	OPTIONS
+              </title>
+              <variablelist>
+         	<varlistentry>
+         	    <term><option>-slot</option> <replaceable>slotnumber</replaceable></term>
+         	    <listitem>
+         		<para>
+                           This option configures the slot in which the module
+                           will be installed.  All modules must be in unique slots,
+                           although that is not verified by the configuration manager.
+                           The slot must be an integer number from one through 23
+                           (slot 24/25 holds the CAMAC crate controller).
+         		</para>
+                        <para>
+                           The default value for this parameter is illegal (0),
+                           so you must specify this parameter.
+                        </para>
+         	    </listitem>
+         	</varlistentry>
+                <varlistentry>
+                  <term><option>-sparse</option> <replaceable>bool</replaceable></term>
+                  <listitem>
+                     <para>
+                        If the value of this configuration is true, the module
+                        is read in sparse readout mode (A Q-Stop of F4@A0).
+                        SpecTcl expects this to be true and that is also the default
+                        value.
+                     </para>
+                     <para>
+                        The values
+                        <literal>true</literal>,
+                        <literal>yes</literal>,
+                        <literal>1</literal>,
+                        <literal>on</literal> and
+                        <literal>enabled</literal> are all recognized as true
+                        values while the values
+                        <literal>false</literal>,
+                        <literal>no</literal>,
+                        <literal>0</literal>,
+                        <literal>off</literal>, and
+                        <literal>disabled</literal> are all recognized as false
+                        values.
+                     </para>
+                  </listitem>
+                  </varlistentry>
+                  <varlistentry>
+                     <term><option>-readhits</option> <replaceable>bool</replaceable></term>
+                     <listitem>
+                        <para>
+                           If the value of this configuration is true,the module's
+                           hit register is read prior to the channels (F6@A1).
+                           SpecTcl requires this parameter to be true, and that's the
+                           default value.
+                        </para>
+                        <para>
+                           SpecTcl will use this value to determine the number of
+                           digitizer data words that follow for this module.
+                        </para>
+                        <para>
+                        The values
+                        <literal>true</literal>,
+                        <literal>yes</literal>,
+                        <literal>1</literal>,
+                        <literal>on</literal> and
+                        <literal>enabled</literal> are all recognized as true
+                        values while the values
+                        <literal>false</literal>,
+                        <literal>no</literal>,
+                        <literal>0</literal>,
+                        <literal>off</literal>, and
+                        <literal>disabled</literal> are all recognized as false
+                        values.
+                     </para>
+                     </listitem>
+                  </varlistentry>
+                  <varlistentry>
+                     <term><option>-pedestals</option> <replaceable>int[16]</replaceable></term>
+                     <listitem>
+                        <para>
+                           Supplies the pedestals for each channel.  This must be
+                           a 16 element list of integers.  These values are
+                           initialized to zero.  Note that the pedestals are
+                           ignored unless <option>-usepdestals</option> is true.
+                        </para>
+                        <para>
+                           The best way to construct this list of pedestals is to
+                           use the Tcl <command>list</command> command for example:
+                        </para>
+                        <example>
+                           <title>Using the <command>list</command> command to
+                                  construct pedestals</title>
+                           <programlisting>
+                           <command>
+ph7xxx config someadc -pedestals [list 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20]
+                           </command>
+                           </programlisting>
+                        </example>
+                        <para>
+                           Note that pedestals can be specified as decimal values
+                           (as shown in the example above), hexadecimal value
+                           by preceding a number with the text <literal>0x</literal>
+                           or octal by preceding the number with a leading <literal>0</literal>.
+                        </para>
+                     </listitem>
+                  </varlistentry>
+                  <varlistentry>
+                     <term><option>-llt</option> <replaceable>int[16]</replaceable></term>
+                     <listitem>
+                        <para>
+                           Supplies the low level thresholds for each channel.  This must
+                           be a 16 element list of integers.  These values are initialized
+                           to zero.  Note that the low level thresholds are ignored unless
+                           <option>-usellt</option> is true.
+                        </para>
+                        <para>
+                           See the description of <option>-pedestals</option> above
+                           for more information about how to construct this list.
+                        </para>
+                     </listitem>
+                  </varlistentry>
+                  <varlistentry>
+                     <term><option>-hlt</option> <replaceable>int[16]</replaceable></term>
+                     <listitem>
+                        <para>
+                           Supplies the high level thresholds for each channel. This
+                           must be a 16 element list of integers.  These values
+                           are initialized to full scale (<literal>4095</literal>).
+                           The high level thresholds are ignored unless the
+                           parameter <option>-usehlt</option> is true.
+                        </para>
+                        <para>
+                           See the description of <option>-pedestals</option>
+                           above for more information about how to construct
+                           this list.
+                        </para>
+                     </listitem>
+                  </varlistentry>
+                  <varlistentry>
+                     <term><option>-usellt</option> <replaceable>boolean</replaceable></term>
+                     <listitem>
+                        <para>
+                           Enables or disables the low level threshold (sets or clears
+                           the <literal>LT Enable</literal> bit in the control
+                           register).  This is useful if
+                           <option>-llt</option> has been used to program
+                           low level thresholds and <option>-sparse</option>
+                           has been set to true.
+                        </para>
+                       <para>
+                        The values
+                        <literal>true</literal>,
+                        <literal>yes</literal>,
+                        <literal>1</literal>,
+                        <literal>on</literal> and
+                        <literal>enabled</literal> are all recognized as true
+                        values while the values
+                        <literal>false</literal>,
+                        <literal>no</literal>,
+                        <literal>0</literal>,
+                        <literal>off</literal>, and
+                        <literal>disabled</literal> are all recognized as false
+                        values.
+                     </para>
+                     </listitem>
+                  </varlistentry>
+                  <varlistentry>
+                     <term><option>-usehlt</option> <replaceable>bool</replaceable></term>
+                     <listitem>
+                        <para>
+                           Enables or disables the high level threshold (sets or
+                           clears the <literal>UT Enable</literal> bit in the
+                           module control register).  This is useful if
+                           <option>-hlt</option> has been used to set the high
+                           level thresholds and <option>-sparse</option> has
+                           been set to true.
+                        </para>
+                       <para>
+                        The values
+                        <literal>true</literal>,
+                        <literal>yes</literal>,
+                        <literal>1</literal>,
+                        <literal>on</literal> and
+                        <literal>enabled</literal> are all recognized as true
+                        values while the values
+                        <literal>false</literal>,
+                        <literal>no</literal>,
+                        <literal>0</literal>,
+                        <literal>off</literal>, and
+                        <literal>disabled</literal> are all recognized as false
+                        values.
+                     </para>
+                     </listitem>
+                  </varlistentry>
+                  <varlistentry>
+                     <term><option>-usepedestals</option> <replaceable>bool</replaceable></term>
+                     <listitem>
+                        <para>
+                           Enables or disables per chanel pedestal subtraction.
+                           This is most useful when <option>-pedestals</option>
+                           has been used to program a set of pedestals into
+                           the module.
+                        </para>
+                       <para>
+                        The values
+                        <literal>true</literal>,
+                        <literal>yes</literal>,
+                        <literal>1</literal>,
+                        <literal>on</literal> and
+                        <literal>enabled</literal> are all recognized as true
+                        values while the values
+                        <literal>false</literal>,
+                        <literal>no</literal>,
+                        <literal>0</literal>,
+                        <literal>off</literal>, and
+                        <literal>disabled</literal> are all recognized as false
+                        values.
+                     </para>
+                     </listitem>
+                  </varlistentry>
+              </variablelist>
+           </refsect1>
+           <refsect1>
+              <title>EXAMPLES</title>
+              <para>
+                  The example below creates a Phillips module named
+                  <literal>adc1</literal> and programs all of the configuration
+                  options.  Note that in many cases you won't need to do this
+                  (e.g. for ADC's the high level thresholds usually can be left
+                  up at <literal>4095</literal>
+              </para>
+              <example>
+                  <title>Sample <command>ph7xxx</command> commands</title>
+                  <programlisting>
+ph7xxx create adc1 -slot 5
+ph7xxx config adc1 -sparse enabled -readhits true -usellt true -usehlt false
+ph7xxx config adc1 -usepedestals enabled
+ph7xxx config adc1 -pedestals [list 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 ]
+ph7xxx config adc1 -llt [list 10 10 10 10 10 10 10 10 10 10 10 10 10 10 10 10]
+ph7xxx config adc1 -hlt [list 3000 3000 3000 3000 3000 3000 3000 \
+                              3000 3000 3000 3000 3000 3000 3000 3000 3000 ]
+                  </programlisting>
+              </example>
+           </refsect1>
+
+         </refentry>
+         <refentry id="stack">
+           <refmeta>
+              <refentrytitle>stack</refentrytitle>
+              <manvolnum>1ccusbReadout</manvolnum>
+           </refmeta>
+           <refnamediv>
+              <refname>stack</refname>
+              <refpurpose>Create and configure CC-USB stacks.</refpurpose>
+           </refnamediv>
+           
+           <refsynopsisdiv>
+             <cmdsynopsis>
+         	<command>
+stack create <replaceable>name</replaceable>
+
+         	</command>
+             </cmdsynopsis>
+               <cmdsynopsis>
+                   <command>
+stack config <replaceable>name option value...</replaceable>
+                   </command>
+               </cmdsynopsis>
+            <cmdsynopsis>
+                <command>
+stack cget <replaceable>name</replaceable>
+                </command>
+            </cmdsynopsis>
+           
+           </refsynopsisdiv>
+           <refsect1>
+              <title>DESCRIPTION</title>
+              <para>
+         	Creates and configures CC-USB stacks.  Stacks are lists of
+                CAMAC operations that are loaded into the CC-USB for autonomous
+                execution.  There are two types of stacks; an
+                <firstterm>event</firstterm> stack that is executed when
+                a front panel trigger or a specified LAM is detected, and
+                a <firstterm>scaler</firstterm> stack that can be periodically
+                triggered.
+              </para>
+               <para>
+                  Stacks contain lists of modules.  The modules themselves
+                  determine the set of readout instructions that make up each
+                  stack.  
+               </para>
+               <note>
+                  <para>
+                     In this version of the U. Mass. Lowell software, no
+                     CAMAC scaler modules are supported, so the scaler stack
+                     is not very useful.
+                  </para>
+               </note>
+               <para>
+                  The <command>create</command> subcommand creates a new stack.
+                  The name of the new stack is <replaceable>name</replaceable>.
+                  This <replaceable>name</replaceable> will be used to refer to
+                  this stack in future configuration commands.
+               </para>
+               <para>
+                  The <command>config</command> subcommand configures the stack
+                  <replaceable>name</replaceable>.  The configuration is
+                  specified as a set of option value pairs.  The options
+                  are described in the section OPTIONS below.
+               </para>
+               <para>
+                  The <command>cget</command> subcommand returns the configuration
+                  of the stack <replaceable>name</replaceable> as its command value.
+                  This subcommand is intended for advanced applications that may
+                  analyze the configuration of the stack.  The configuration is
+                  returned as a properly formatted Tcl list.  Each element of the list
+                  is itself a two element sublist (pair).  The first element of each
+                  pair is the name of a configuration parameter the second, that
+                  configuration parameter's value.  Note that the value may itself
+                  be a list.
+               </para>
+           </refsect1>
+           <refsect1>
+              <title>
+         	OPTIONS
+              </title>
+               <para>
+                  Options are used to configure the stack.  Each option has associated
+                  with it a keyword that selects it and a value.  The option s supported
+                  by the <command>stack</command> command are subdivided into three groups:
+                  <orderedlist>
+                     <listitem>
+                        <para>Options used for both event and scaler stacks.</para>
+                     </listitem>
+                     <listitem>
+                        <para>Options that are only used for event stacks and are ignored
+                           for scaler stacks</para>
+                     </listitem>
+                     <listitem>
+                        <para>Options that are only used for scaler stacks, and are
+                           ignored for event stacks.
+                        </para>
+                     </listitem>
+                  </orderedlist>
+               </para>
+               <formalpara>
+                  <title>Options for all stack types</title>
+                  <para>
+                  </para>
+               </formalpara>
+               <variablelist>
+                  <varlistentry>
+         	     <term><option>-type</option> <replaceable>stack-type</replaceable></term>
+         	     <listitem>
+         		<para>
+                           Defines the type of stack that is being used.  This
+                           can be one of the keywords
+                           <literal>event</literal> for event stacks or
+                           <literal>scaler</literal> for scaler stacks.
+                           The CC-USB only supports one scaler and one event stack.
+                           The current version of the configuration engine allows
+                           you to create more than one of each stack. In that case,
+                           it is not well defined which stacks are actually loaded.
+         		</para>
+                        <para>
+                           The default <option>-type</option> is <literal>event</literal>.
+                        </para>
+         	     </listitem>
+                  </varlistentry>
+                  <varlistentry>
+                     <term><option>-modules</option> <replaceable>module-list</replaceable></term>
+                     <listitem>
+                        <para>
+                           This option defines the set of modules that are added
+                           to the stack.  <replaceable>module-list</replaceable> is a
+                           properly formatted Tcl list of names of modules
+                           (ph7xxx's in this implementation) that will be read
+                           by this stack.  See the EXAMPLES section below
+                           for more information.
+                        </para>
+                     </listitem>
+                  </varlistentry>
+               </variablelist>
+               <formalpara>
+                  <title>Event stack options</title>
+                  <para>
+                  </para>
+               </formalpara>
+               <variablelist>
+                  <varlistentry>
+                     <term><option>-lams</option>   <replaceable>mask</replaceable></term>
+                     <listitem>
+                        <para>
+                           Specifies the mask of LAMs that can trigger the list.
+                           I suggest leaving this value at zero, and deriving a
+                           trigger signal for the NIM IN1 input as the readout
+                           trigger.
+                        </para>
+                     </listitem>
+                  </varlistentry>
+                  <varlistentry>
+                     <term><option>-lamtimeout</option> <replaceable>microseconds</replaceable></term>
+                     <listitem>
+                        <para>
+                           The <command>ph7xxx</command> command delays the read
+                           of the module until it is signalling a LAM.
+                           <replaceable>microseconds</replaceable> specifies the
+                           total number of microseconds the stack should wait for
+                           this LAM.  The value should be on the order of the
+                           conversion time of the module.  Defaults to zero.
+                        </para>
+                     </listitem>
+                  </varlistentry>
+                  <varlistentry>
+                     <term><option>-delay</option> <replaceable>microseconds</replaceable></term>
+                     <listitem>
+                        <para>
+                           Delays the execution of the stack for <replaceable>microseconds</replaceable>
+                           microseconds after the trigger condition is detected.
+                           This can be used to ensure the digitization hardware
+                           has sufficient time to complete its digitization prior
+                           to stack execution. Defaults to zero.
+                        </para>
+                     </listitem>
+                  </varlistentry>
+               </variablelist>
+               <formalpara>
+                  <title>Options only available for scalers stacks</title>
+                  <para>
+                     The options below are only legal for stacks of
+                     <option>-type</option> <literal>scaler</literal>
+                  </para>
+               </formalpara>
+               <variablelist>
+                  <varlistentry>
+                     <term><option>-period</option> <replaceable>seconds</replaceable></term>
+                     <listitem>
+                        <para>
+                           Number of seconds between execution of the scaler stack.
+                           This defaults to 2.
+                        </para>
+                     </listitem>
+                  </varlistentry>
+               </variablelist>
+            
+           </refsect1>
+           <refsect1>
+               <title>EXAMPLES</title>
+               <para>
+                  The example below extends the example in the
+                  <link linkend="ph7xxx">ph7xxx</link> command reference
+                  reading the defined modules in an event stack:
+               </para>
+               <example>
+                  <title>Example of the <command>stack</command> command.</title>
+                  <programlisting>
+ph7xxx create adc1 -slot 6
+ph7xxx create adc2 -slot 7                                  <co id="defmodules" />
+
+
+stack create events                                         <co id="stackdef" />
+stack config events -type event -modules [list adc1 adc2]   <co id="typemods" />
+stack config events -delay 10 -lamtimeout 8                 <co id ="timing" />
+                  </programlisting>
+               </example>
+               <calloutlist>
+                  <callout arearefs="defmodules">
+                     <para>
+                        These two lines define the modules that we will be using
+                        for the experimental setup.
+                     </para>
+                  </callout>
+                  <callout arearefs="stackdef">
+                     <para>
+                        Creates a new stack called <literal>events</literal>
+                        In subsequent lines I'm going to configure this stack
+                        to handle the event trigger.
+                     </para>
+                  </callout>
+                  <callout arearefs="typemods">
+                     <para>
+                        The stack is configured to be the event stack, and
+                        the two modules we created <literal>adc1</literal>
+                        and <literal>adc2</literal> are added to the stack
+                        in that order.  When the stack is loaded, it will
+                        contain the instructions to read out these two modules.
+                     </para>
+                  </callout>
+                  <callout arearefs="timing">
+                     <para>
+                        Configures the stack so that the CC-USB will start
+                        stack execution 10 microseconds after the IN1 trigger.
+                        Stack instructions that wait for a lam on their target
+                        module will wait at most 8 microseconds.  Since the
+                        <option>-lams</option> option is left to default to zero,
+                        CAMAC lams will not be able to trigger the list.
+                     </para>
+                  </callout>
+               </calloutlist>
+               
+                  
+           </refsect1>
+         </refentry>
+            <refentry id="variables">
+              <refmeta>
+                 <refentrytitle>Variables</refentrytitle>
+                 <manvolnum>1ccusbReadout</manvolnum>
+              </refmeta>
+              <refnamediv>
+                 <refname>Variables</refname>
+                 <refpurpose>Variables to set in the script</refpurpose>
+              </refnamediv>
+              
+              <refsynopsisdiv>
+                <cmdsynopsis>
+            	<command>
+set parameters(<replaceable>module-name</replaceable>) <replaceable>channel-list</replaceable>
+            	</command>
+                </cmdsynopsis>
+              </refsynopsisdiv>
+              <refsect1>
+                 <title>DESCRIPTION</title>
+                  <para>
+                     When SpecTcl sets up its event decode software, it needs to
+                     know how to unpack specific channels of a CAMAC module into
+                     meaningful parameters.  SpecTcl parameters have names,
+                     therefore, this means assigning SpecTcl parameter names
+                     to specific input channels of each module. So that
+                     <filename>~/config/spectclconfig.tcl</filename> can
+                     issue SpecTcl commands that create this channel to
+                     parameter name correspondence.
+                  </para>
+                  <para>
+                     <filename>~/config/spectclconfig.tcl</filename> does this
+                     by using a Tcl array.  In Tcl, array indices are text strings,
+                     not numbers. It makes sense, therefore, to create an
+                     array, named <varname>parameters</varname>
+                     whose indices are the names of the modules that
+                     are being read out, and whose contents are a list of the
+                     channel names in that module.  
+                  </para>
+                  <para>
+                     Given this arrangement, SpecTcl can examine the
+                     <option>-modules</option> configuration of the event stack
+                     to determine the order in which modules will appear in
+                     the event, and then use the <varname>parameters</varname> array
+                     contents to know how to map each digitizer channel in the
+                     event to a SpecTcl parameter.
+                  </para>
+              </refsect1>
+              <refsect1>
+                 <title>EXAMPLES</title>
+                 <para>
+                     This example shows how to set up the <varname>parameters</varname>
+                     array to define a correspondence between the channels of
+                     the modules defined in the <link linkend="ph7xxx">ph7xxx</link>
+                     reference page example, and SpecTcl parameters.
+                 </para>
+                 <para>
+                     Note that SpecTcl parameter names can be essentially any
+                     string.  Periods in the string are used to define a parameter
+                     hierarchy that is reflected in the SpecTcl GUI.
+                 </para>
+                 <example>
+                  <title>Making a corresopndence between module channels and parameters</title>
+                  <programlisting>
+ph7xxx create adc1 -slot 6
+ph7xxx create adc2 -slot 7                                  <co id="adcdef" />
+
+...
+
+set parameters(adc1) [list ph1.00 ph1.01 ph1.02 ph1.03  \
+                           ph1.04 ph1.05 ph1.06 ph1.07  \  <co id="adc1params" />
+                           ph1.08 ph1.09 ph1.10 ph1.11  \
+                           ph1.12 ph1.13 ph1.14 ph1.15]
+
+set parameters(adc2) [list ph2.00 ph2.01 ph2.02 ph2.03  \
+                           ph2.04 ph2.05 ph2.06 ph2.07  \ <co id="adc2params" />
+                           ph2.08 ph2.09 ph2.10 ph2.11  \
+                           ph2.12 ph2.13 ph2.14 ph2.15]
+                  </programlisting>
+                 </example>
+                  <calloutlist>
+                     <callout arearefs="adcdef" >
+                        <para>
+                           Defines the two adc modules from the original example.
+                           I'm going to assume that at some point these adc
+                           modules are put in the event stack in some order.
+                        </para>
+                     </callout>
+                     <callout arearefs="adc1params">
+                        <para>
+                           Defines the parameter names that will be assigned to
+                           each of the 16 channels of the module
+                           <literal>adc1</literal>.  If you don't want a channel
+                           to be assigned a parameter specify it's name as
+                           <literal>""</literal>, and empty string.
+                           If the last several channels of a module will not
+                           be used, simply specify a shorter list.
+                        </para>
+                        <para>
+                           In this example, channel 0 of adc1 will be called
+                           <literal>ph1.00</literal> and so on.
+                        </para>
+                     </callout>
+                     <callout arearefs="adc2params">
+                        <para>
+                           Similarly, the parameter names for the channels in the
+                           <literal>adc2</literal> module are defined.
+                        </para>
+                     </callout>
+                  </calloutlist>
+                 <para>
+                  I want to reiterate at this point that when
+                  <filename>~/config/spectclconfig.tcl</filename> runs it
+                  will actually create the parameters you specify as well as a
+                  1-d spectrum for each raw parameter created.
+                 </para>
+              </refsect1>
+
+            </refentry>
+            
+
+      </section>
+         <section>
+            <title>A complete <filename>daqconfig.tcl</filename> file</title>
+            <para>
+               In this section I will present a complete sample
+               <filename>~/config/daqconfig.tcl</filename> configuration file.
+            </para>
+            <example>
+               <title>A complete <filename>daqconfig.tcl</filename> file</title>
+               <programlisting>
+ph7xxx create adc1 -slot 6
+ph7xxx create adc2 -slot 7                              <co id="modules" />
+
+
+stack create events 
+stack config events -type event -modules [list adc1 adc2] \ <co id="stacks" />
+                    -delay 10 -lamtimeout 8
+
+
+set parameters(adc1) [list ph1.00 ph1.01 ph1.02 ph1.03  \
+                           ph1.04 ph1.05 ph1.06 ph1.07  \
+                           ph1.08 ph1.09 ph1.10 ph1.11  \
+                           ph1.12 ph1.13 ph1.14 ph1.15]    <co id="params" />
+
+set parameters(adc2) [list ph2.00 ph2.01 ph2.02 ph2.03  \
+                           ph2.04 ph2.05 ph2.06 ph2.07  \
+                           ph2.08 ph2.09 ph2.10 ph2.11  \
+                           ph2.12 ph2.13 ph2.14 ph2.15]
+               </programlisting>
+            </example>
+            <calloutlist>
+               <callout arearefs="modules">
+                  <para>
+                     This section of the configuration file defines the modules
+                  </para>
+               </callout>
+               <callout arearefs="stacks">
+                  <para>
+                     This section defines the <literal>events</literal> stack to
+                     read the two modules defined previously.
+                  </para>
+               </callout>
+               <callout arearefs="params">
+                  <para>
+                     This section tells SpecTcl's configuration scripts
+                     the paramter names to assign to each channel of the
+                     ADC modules. Note that spectra named
+                     <literal>ph1.00</literal> ... <literal>ph1.15</literal>
+                     and <literal>ph2.00</literal> ... <literal>ph2.15</literal>
+                     will be created that are 1-d spectra on the
+                     raw parameters.
+                  </para>
+               </callout>
+            </calloutlist>
+         </section>
+   </chapter>   
+   <chapter id="spectcl">
+      <title>SpecTcl</title>
+      <para>
+         <application>SpecTcl</application> is the histogramming component of the NSCL data acquision system.
+         It uses an application called <application>Xamine</application> to
+         display spectra that have been created.
+      </para>
+      <para>
+         SpecTcl is actually a library not a program.  To make it work with a specific
+         data set, the experimenter, in general must supply software that takes as
+         input raw events, and produces as output parameters from which <application>SpecTcl</application>
+         can increment the appropriate histograms. 
+      </para>
+      <para>
+         For general applications, this user supplied software is organized as a logical pipeline
+         of <firstterm>Event Processors</firstterm>.  Event processors are run sequentially,
+         each event processor has access to the raw event and to the parameters that have been
+         computed by event processors that executed prior to it.  Normally the first
+         set of event processors operate on the raw event to produce raw parameters.
+         Once this has been done, additional event processors can operate on the
+         raw parameters to produce additional parameters without needing to know
+         the form of the raw event.
+      </para>
+      <para>
+         An example of an event processor that might operate
+         on decoded parameters would be a calibrator.  A calibrator would take
+         a set of raw parameters, and apply a calibration function to each of them
+         to produce calibrated parameters (e.g. taking raw ADC values and producing
+         energies).
+      </para>
+      <para>
+         The <application>SpecTcl</application> provided with this software
+         includes a first stage event processor that knows how to unpack the
+         raw events from the CC-USB for any set of stacks that can be defined
+         by the <filename>daqconfig.tcl</filename> file we have described into
+         a set of <application>SpecTcl</application> parameters.
+      </para>
+      <para>
+         This chapter describes how SpecTcl's initialization scripts use the
+         <filename>daqconfig.tcl</filename> definitions and variables to create
+         parameter definitions and an initial set of spectra. 
+      </para>
+      <section>
+         <title>Using <filename>daqconfig.tcl</filename> to drive event decoding</title>
+         <para>
+            SpecTcl needs to know two thing for each module:
+            <itemizedlist>
+               <listitem>
+                  <para>The order of appearance of each module in the event stack.</para>
+               </listitem>
+               <listitem>
+                  <para>The names to be given to parameters from each channel of a module.
+                  </para>
+               </listitem>
+            </itemizedlist>
+         </para>
+         <para>
+            The reference section of the
+            <link linkend="configfiles">Configuration Files</link> chapter
+            describes the <varname>parameters</varname> array.
+            Recall that Tcl arrays are indexed by strings not numbers.
+            Each element the <varname>parameters</varname> array should be
+            a Tcl list that describes the names of the channels of a module.
+            The index of each element is the name of a module created with
+            the <command>ph7xxx create</command> command in the <filename>daqconfig.tcl</filename>
+            file.
+         </para>
+         <para>
+            The <command>list</command> command is a Tcl command that will build lists
+            with proper quoting and bracketing.  Surround each list element that has
+            spaces or {} brackets with quotes.  Surround each list element that has
+            [] brackets or $'s. with {}'s.
+            For example:
+         </para>
+         <example>
+            <title>Using the Tcl <command>list</command> command</title>
+            <programlisting>
+set parameters(someAdc) [list simple "has spaces or {" {has [tcl special] $characters} <replaceable>...</replaceable>]
+            </programlisting>
+         </example>
+         <para>
+            I strongly encourage you not to use Tcl special characters in parameter
+            names, and to avoid spaces as well.
+         </para>
+         <para>
+            The config directory that is installed when you create a new account
+            for data taking includes two scripts
+            <filename>daqconfig.tcl</filename> and <filename>spectclconfig.tcl</filename>.
+            <filename>daqconfig.tcl</filename> is a sample configuration script.
+            <filename>spectclconfig.tcl</filename> is an initialization script for
+            SpecTcl that knows how to process <filename>daqconfig.tcl</filename>.
+         </para>
+         <para>
+            SpecTcl can be told to use <filename>spectclconfig.tcl</filename> to process <filename>daqconfig.tcl</filename>
+            when it starts.
+         </para>
+         <para>
+            Let's conclude this section with an example of some code in the
+            <filename>SpecTclRC.tcl</filename> initialization file that
+            makes use of all this:
+         </para>
+         <example>
+            <title>Incorporating automatic parameter/spectrum generation into SpecTcl</title>
+            <programlisting>
+set setupFilename [file join ~ config spectclconfig.tcl]
+source $setupFilename
+            </programlisting>
+         </example>
+         <para>
+            This setup code is included in the <filename>SpecTclRC.tcl</filename>
+            file that is installed in the data taking accounts you create.
+         </para>
+      </section>
+      
+   </chapter>
+
+   
+   <chapter id="ch.shaper">
+      <title>The Shaper Control Panel</title>
+      <para>
+         The U. Mass. Lowell data acquisition system has support for the
+         CAEN N568 shaper module.  This module is controlled via a PCI/CAENnet
+         interface plugged into the data taking computer.
+         This chapter gives:
+         <itemizedlist>
+            <listitem>
+               <para>
+                  A description of how to start and use the control panel.
+               </para>
+            </listitem>
+            <listitem>
+               <para>
+                  Reference information that describes the configuration
+                  file(s) you need to create to use the panel.
+               </para>
+            </listitem>
+         </itemizedlist>
+      </para>
+      <section>
+         <title>An overview of the shaper control panel</title>
+         <para>
+            The shaper control panel is a Tcl Script.  It can be started
+            in the experiment account by running the script
+            <filename>~/bin/shaper</filename>.  A desktop shortcut can be created
+            so that you can start the script by clicking on the shortcut with the
+            mouse.
+         </para>
+         <para>
+            The Tcl script can accept a list of configuration files on its command
+            line.   Once you have made a working configuration script, you
+            may want to edit <filename>~bin/shaper</filename> to automatically
+            load the configuration file, rather than prompting you for it.
+         </para>
+         <para>
+            To do this, locate the line in the <filename>~/bin/shaper</filename>
+            script that reads:
+            <programlisting>
+/usr/opt/daq/current/bin/n568Control &
+            </programlisting>
+            and add the paths to configuration files on that line for example,
+            suppose you have two shapers, each with a configuration file
+            <filename>~/config/shaper1.n568</filename> and
+            <filename>~/config/shaper2.n568</filename>:
+            <programlisting>
+/usr/opt/daq/current/bin/n568Control ~/config/shaper1.n568 ~/config/shaper2.n568 &
+            </programlisting>
+            starts a control panel for each shaper as described in these two
+            configuration files.
+         </para>
+         <para>
+            Once started, each shaper has its own control panel GUI.
+            The GUI of the shaper is divided into several sections.
+         </para>
+         <itemizedlist>
+            <listitem>
+               <para>
+                  At the top of the gui is the menu bar. The menubar contains
+                  two menus the File menu which contains commands that
+                  read/write and manipulate configuration files, and the Help
+                  menu which allows you to access the online help and program
+                  version information.
+               </para>
+            </listitem>
+            <listitem>
+               <para>
+                  Below the menu bar is the module identification area. This
+                  area displays the name you have given the shaper as well as
+                  the VME crate and base address of its controller. This area
+                  allows you to distinguish between individual modules in a
+                  system with multiple control panels.
+               </para>
+            </listitem>
+            <listitem>
+               <para>
+                  Below the id bar is a frame that allows you to select and
+                  control the settings of a single channel of the shaper.
+                  This area includes spinboxes, checkbuttons and a set of radio
+                  buttons. Spinboxes can be adjusted either by clicking, or
+                  holding down the left mouse button over the up or down arrow
+                  of the box, or by typing a new value and hitting either the
+                  enter, or the tab key. The controls in this frame have labels
+                  on their right sides and are:
+                  <itemizedlist>
+                     <listitem>
+                        <para>
+                           Channel Selects which channel is being controlled.
+                           When you change the channel, the current settings
+                           for the new channel are loaded into the GUI.
+                        </para>
+                     </listitem>
+                     <listitem>
+                        <para>
+                           Coarse GainSets the coarse gain for the currently
+                           selected channel. The coarse gain is an input
+                           multiplier. Valid values are power of two up to
+                           128 (e.g. 1, 2, 4, 8, 16, 32, 64, 128).
+                        </para>
+                     </listitem>
+                     <listitem>
+                        <para>
+                           Fine GainSets the fine-gain for the currently
+                           selected channel. the fine gain is a value in
+                           arbitrary units in the range 0 through 255 inclusive.
+                        </para>
+                     </listitem>
+                     <listitem>
+                        <para>
+                           Pole 0 adjust Sets the magnitude of the pole0 adjust
+                           of the amplifier. Pole 0 adjustment is used to deal
+                           with discontinuities (poles) in the amplifier
+                           transfer function. In particular, almost all
+                           amplifiers have a discontinuity about a zero input.
+                           This leads to undershoots and overshoots as the
+                           input pulse decays towards zero. The Pole 0
+                           adjustment compensates for this effect.
+                           The magnitude of the pole 0 adjust is an arbitrary
+                           value between 0 and 255 inclusive. If you see
+                           excessive over or undershoot in the output signal r
+                           elative to the input signal see if adjusting this
+                           parameter improves this.
+                        </para>
+                     </listitem>
+                     <listitem>
+                        <para>
+                           Invert Outpout Controls the output inversion. The
+                           output polarity
+                           is either inverted or the direct output of the
+                           amplifier. This is a check box that, when lit
+                           indicates the output should be inverted.
+                        </para>
+                     </listitem>
+                     <listitem>
+                        <para>
+                           Polarity Indicates whether or not the input signal
+                           is a positive or negative signal. If lit, the input
+                           signal is negative.
+                        </para>
+                     </listitem>
+                     <listitem>
+                        <para>
+                           Shaping Time This radio button set adjusts the
+                           shaping time of the amplifier.
+                        </para>
+                     </listitem>
+                  </itemizedlist>
+               </para>
+            </listitem>
+            <listitem>
+               <para>
+                  Below the channel frame, is a strip of controls for the
+                  module global settings:
+                  <itemizedlist>
+                  <listitem>
+                     <para>
+                        Common Offset (mV) Controls and displays the common
+                        DC offset that will be applied to the channel in mV.
+                     </para>
+                  </listitem>
+                  <listitem>
+                     <para>
+                        Monitor channel. The amplifier has multiplexed outputs
+                        for the output and fast output. If Monitor channel is
+                        lit, these will reflect the outputs of the channel
+                        selected in the channel frame, usually used to view
+                        output waveforms with an oscilloscope. Note that
+                        enabling the multiplexed output does cause some noise
+                        to couple to the actual outputs, the CAEN manual
+                        suggests turning this output off when it is not in use.
+                     </para>
+                  </listitem>
+                  </itemizedlist>
+               </para>
+            </listitem>
+         </itemizedlist>
+         
+      </section>
+      <section>
+         <title>Shaper configuration file reference</title>
+         <para>
+            This section provides reference material for shaper configuration
+            files.  Shaper configurationfiles describe a shaper to the
+            GUI and optionally provide saved state.
+         </para>
+         <para>
+            The <guimenu>File</guimenu>
+            menu allows you to write and read shaper configuration files.
+            If you write a configuration file, the entire state of the shaping
+            amplifier is stored in that file.  If you subsequently start
+            the shaper GUI with that configuration file, the shaper will be restored
+            to the state at the time the file was saved.  If you read a configuration
+            file from the shaper <guimenu>File</guimenu> menu.  Only state
+            information is processed (you can't read a shaper configuration file
+            to switch the GUI to a different amplifier).
+         </para>
+         <para>
+            Shaper configuration files are Tcl scripts that set varialbes
+            that describe the shaper and its current state.
+         </para>
+         <formalpara>
+            <title>Descriptive variables</title>
+            <para>
+               These variables describe the shaper to you and to the computer.
+            </para>
+         </formalpara>
+            <variablelist>
+               <varlistentry>
+                  <term><varname>name</varname></term>
+                  <listitem>
+                     <para>
+                        Provides a text string that will appear on the
+                        control panel to identify the shaper to you the human user.
+                        This is especiall important if you have more than one
+                        shaper control panel up at a time.
+                     </para>
+                  </listitem>
+               </varlistentry>
+               <varlistentry>
+                  <term><varname>nodeid</varname></term>
+                  <listitem>
+                     <para>The CAENNet node ide set on the front panel of the
+                        shaper.  This is used by the shaper program to communicate
+                        with the module.
+                     </para>
+                  </listitem>
+               </varlistentry>
+            </variablelist>
+            <formalpara>
+               <title>State variables</title>
+               <para>
+                  These variables describe the module state.  When a file
+                  is loaded, the variables that have been set are loaded
+                  into the shaper module.
+               </para>
+            </formalpara>
+            <variablelist>
+               <varlistentry>
+               <term><varname>offset</varname></term>
+               <listitem>
+                  <para>
+                     Contains the common offset for the module.
+                     Specify the common offset in millivolts.  This offset
+                     is applied to all channels  of the module.
+                  </para>
+               </listitem>
+               </varlistentry>
+               <varlistentry>
+               <term><varname>finegain(i)</varname></term>
+               <listitem>
+                  <para>
+                     For channel <varname>i</varname> (i numbering from zero
+                     to 15), this specifies the fine gain in arbitrary units
+                     from <literal>0</literal> - <literal>255</literal>.
+                  </para>
+               </listitem>
+               </varlistentry>
+               <varlistentry>
+               <term><varname>polezero(i)</varname></term>
+               <listitem>
+                  <para>
+                     Specifies the magnitude of the pole zero adjustment
+                     for channel <varname>i</varname> in
+                     arbitrary units from 0 through 255 inclusive.  This
+                     adjustment helps to compensate for over and undershoot
+                     conditions that are common in amplifiers as the signal
+                     comes close to zero.
+                  </para>
+               </listitem>
+               </varlistentry>
+               <varlistentry>
+               <term><varname>outpolarity(i)</varname></term>
+               <listitem>
+                  <para>
+                     Specfies the output polarity for channel <varname>i</varname>.
+                     The value <literal>0</literal> means positive, the
+                     value <literal>1</literal> menas negative.
+                  </para>
+               </listitem>
+               </varlistentry>
+               <varlistentry>
+                  <term><varname>outconfig(i)</varname></term>
+                  <listitem>
+                     <para>
+                        Specifies the output configuration for channel
+                        <varname>i</varname>.  0 means direct and 1
+                        means inverted.
+                     </para>
+                  </listitem>
+               </varlistentry>
+               <varlistentry>
+                  <term><varname>shapetime(i)</varname></term>
+                  <listitem>
+                     <para>
+                        Specifies the shaping time for channel
+                        <varname>i</varname>.
+                        This value is specified in microseconds and
+                        must be one of the values
+                        <literal>0.1, 1.0, 3.0</literal> or
+                        <literal>6.0</literal>.
+                     </para>
+                  </listitem>
+               </varlistentry>
+               <varlistentry>
+                  <term><varname>coarsegain(i)</varname></term>
+                  <listitem>
+                     <para>
+                        Specifies the coarse gain of channel
+                        <varname>i</varname>.  This can be any of the
+                        values
+                        <literal>1, 2, 4, 8 ,16 ,32, 64</literal>
+                        or <literal>128</literal>
+                     </para>
+                  </listitem>
+               </varlistentry>
+            </variablelist>
+            <para>
+               Let's conclude this section with a sample configuration file.
+               This was written by the shaper GUI, which includes a comment
+               identifying when the file was written:
+            </para>
+            <example>
+               <title>Shaper configuration file</title>
+               <programlisting>
+# N568b configuration file written by n568Control.tcl Wed Nov 09 09:14:10 EST 2005
+set name    seeshaper
+set nodeid  1
+set offset 1.00
+set finegain(0) 128
+set polezero(0) 119
+set outpolarity(0) 1
+set outconfig(0) 0
+set shapetime(0) 1.0
+set coarsegain(0) 2.0
+set finegain(1) 128
+set polezero(1) 128
+set outpolarity(1) 0
+set outconfig(1) 0
+set shapetime(1) 1.0
+set coarsegain(1) 2.0
+set finegain(2) 128
+set polezero(2) 128
+set outpolarity(2) 1
+set outconfig(2) 0
+set shapetime(2) 1.0
+set coarsegain(2) 2.0
+set finegain(3) 128
+set polezero(3) 128
+set outpolarity(3) 0
+set outconfig(3) 0
+set shapetime(3) 1.0
+set coarsegain(3) 2.0
+set finegain(4) 128
+set polezero(4) 119
+set outpolarity(4) 1
+set outconfig(4) 1
+set shapetime(4) 1.0
+set coarsegain(4) 2.0
+set finegain(5) 128
+set polezero(5) 128
+set outpolarity(5) 0
+set outconfig(5) 0
+set shapetime(5) 1.0
+set coarsegain(5) 2.0
+set finegain(6) 128
+set polezero(6) 128
+set outpolarity(6) 1
+set outconfig(6) 0
+set shapetime(6) 1.0
+set coarsegain(6) 2.0
+set finegain(7) 128
+set polezero(7) 128
+set outpolarity(7) 1
+set outconfig(7) 0
+set shapetime(7) 1.0
+set coarsegain(7) 2.0
+set finegain(8) 128
+set polezero(8) 128
+set outpolarity(8) 1
+set outconfig(8) 0
+set shapetime(8) 1.0
+set coarsegain(8) 2.0
+set finegain(9) 128
+set polezero(9) 128
+set outpolarity(9) 1
+set outconfig(9) 0
+set shapetime(9) 1.0
+set coarsegain(9) 2.0
+set finegain(10) 128
+set polezero(10) 128
+set outpolarity(10) 1
+set outconfig(10) 0
+set shapetime(10) 1.0
+set coarsegain(10) 2.0
+set finegain(11) 128
+set polezero(11) 128
+set outpolarity(11) 1
+set outconfig(11) 0
+set shapetime(11) 1.0
+set coarsegain(11) 2.0
+set finegain(12) 128
+set polezero(12) 128
+set outpolarity(12) 1
+set outconfig(12) 0
+set shapetime(12) 1.0
+set coarsegain(12) 2.0
+set finegain(13) 128
+set polezero(13) 128
+set outpolarity(13) 1
+set outconfig(13) 0
+set shapetime(13) 1.0
+set coarsegain(13) 2.0
+set outconfig(13) 0
+set shapetime(13) 1.0
+set coarsegain(13) 2.0
+set finegain(14) 128
+set polezero(14) 128
+set outpolarity(14) 1
+set outconfig(14) 0
+set shapetime(14) 1.0
+set coarsegain(14) 2.0
+set finegain(15) 128
+set polezero(15) 128
+set outpolarity(15) 1
+set outconfig(15) 0
+set shapetime(15) 1.0
+set coarsegain(15) 2.0
+            </programlisting>
+         </example>
+         <para>
+            If this file seems quite a handful to type, I want to remind you that
+            normally you will use the shaper GUI to set up a module and then
+            let it create a file like this by using the
+            <menuchoice><guimenu>File</guimenu><guimenuitem>Save...</guimenuitem></menuchoice>
+            menu command.
+         </para>
+      </section>
+   
+   </chapter>
+ 
+</book>
