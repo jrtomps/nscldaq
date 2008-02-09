@@ -8,7 +8,7 @@ AM_CONFIG_HEADER(config.h)
 
 #    Separate device libraries.
 
-AM_INIT_AUTOMAKE(llnlReadout, 2.0)  
+AM_INIT_AUTOMAKE(llnlReadout, 2.1)  
 
 #
 #   The variable below should track the
@@ -423,7 +423,7 @@ AC_LANG_POP(C++)
 #           9.0 8.2, 8.1, 8.0
 #----------------------------------------------------------------
 
-subdirs="9.0 8.2 8.1 8.0"
+subdirs="8.2 8.1 8.0"
 daqfound="no"
 
 AC_MSG_CHECKING([ for nscldaq ])

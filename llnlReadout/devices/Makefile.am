@@ -6,7 +6,8 @@ libVMUSBDevices_la_SOURCES	= 	CConfigurableObject.cpp	\
 					CCAENChain.cpp		\
 					CStack.cpp		\
 					C830.cpp		\
-					CMarker.cpp
+					CMarker.cpp		\
+					C3804.cpp
 
 
 INCLUDES	= 	-I$(top_builddir)/vmusb \
@@ -25,7 +26,9 @@ include_HEADERS			= 	CConfigurableObject.h	\
 					CCAENChain.h		\
 					CStack.h		\
 					C830.h			\
-					CMarker.h
+					CMarker.h		\
+					C3804.h
+
 
 
 TESTS=configtest.cpp c785test.cpp c3820test.cpp
