@@ -5,7 +5,8 @@ libConfig_la_SOURCES	= 	CADCCommand.cpp		\
 				CCAENChainCommand.cpp	\
 				CStackCommand.cpp	\
 				CCAENV830Command.cpp	\
-				CMarkerCommand.cpp
+				CMarkerCommand.cpp	\
+				CSIS3804Command.cpp
 
 
 include_HEADERS		=	CADCCommand.h  		\
@@ -14,7 +15,8 @@ include_HEADERS		=	CADCCommand.h  		\
 				CCAENChainCommand.h	\
 				CStackCommand.h		\
 				CCAENV830Command.h	\
-				CMarkerCommand.h
+				CMarkerCommand.h	\
+				CSIS3804Command.h
 
 
 

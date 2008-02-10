@@ -49,9 +49,9 @@ class CConfiguration;
    sis3820 create module-name base-address
 \endverbatim
     Unlike the 'normal' scripted readout. this software will read all defined
-    scalers.  It will read them in the order in which they were defined.
-    Furthermore, scalers do not require any configuration.  They are automatically
-    set up properly to serve as 'event counters' for periodic scaler readout.
+    scalers. Currently scaler stacks are supported as first class stacks.
+    This module does not require configuration.
+
 */
 class CScalerCommand : public CTCLObjectProcessor
 {
