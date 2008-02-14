@@ -22,6 +22,7 @@
 #include "CCAENV830Command.h"
 #include "CMarkerCommand.h"
 #include "CStackCommand.h"
+#include "CSIS3804Command.h"
 
 #include <CReadoutModule.h>
 #include <TCLInterpreter.h>
@@ -59,7 +60,7 @@ CConfiguration::CConfiguration() :
   m_Commands.push_back(new CCAENV830Command(*m_pInterp, *this));
   m_Commands.push_back(new CMarkerCommand(*m_pInterp, *this));
   m_Commands.push_back(new CStackCommand(*m_pInterp, *this));
-
+  m_Commands.push_back(new CSIS3804Command(*m_pInterp, *this));
 }
 /*!
    Destruction must:

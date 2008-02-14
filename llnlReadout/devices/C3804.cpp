@@ -221,13 +221,17 @@ C3804::addReadoutList(CVMUSBReadoutList& list)
   bool     clear = getBoolParameter("-autoclear");
   uint32_t base  = getIntegerParameter("-base");
 
+  
   if (clear) {
-    list.addBlockRead32(base + RDCLEAR, READAMOD, 8);
+    list.addRead32(base+RDCLEAR, CONTROLAMOD);
   }
   else {
-    list.addWrite32(base +  LATCH, CONTROLAMOD, 0); // force latch.
-    list.addBlockRead32(base + SHADOW, READAMOD, 8); // Read the shadow registers.
+    list.addRead32(base+SHADOW, CONTROLAMOD);
   }
+  for (int i =1; i < 8; i++) {
+    list.addRead32(base+SHADOW+i*sizeof(uint32_t), CONTROLAMOD);
+  }
+
 }
 
 /*!

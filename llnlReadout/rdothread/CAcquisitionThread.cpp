@@ -309,6 +309,21 @@ void
 CAcquisitionThread::startDaq()
 {
 
+  //  First do a bulk read just to flush any crap that's in the VM-USB
+  // output fifo..as it appears to sometimes leave crap there.
+  // ignore any error status, and use a short timeout:
+
+  cerr << "Flushing any garbage in the VM-USB fifo...\n";
+
+  char junk[1000];
+  size_t moreJunk;
+  m_pVme->usbRead(junk, sizeof(junk), &moreJunk, 1*1000); // One second timeout.
+  
+  cerr << "Starting VM-USB initialization\n";
+
+
+  // Now we can start preparing to read...
+
   m_pVme->writeActionRegister(CVMUSB::ActionRegister::sysReset);
   m_pVme->writeActionRegister(0);
 
