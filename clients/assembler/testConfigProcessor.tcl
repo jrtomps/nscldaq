@@ -14,9 +14,15 @@ proc createConfig2 {} {
     lappend config [list thechad.nscl.msu.edu 1 /some/where/something [list arg list] 1 0 0]
     lappend config [list spdaq22.nscl.msu.edu 2 /some/where/something/else [list arg list 2] 0 1 0]
 
-    puts [llength $config]
 
     return [evbConfiguration %AUTO% -config $config]
+}
+
+set storedCommands [list]
+
+proc storeCommands command {
+    global storedCommands 
+    lappend storedCommands $command
 }
 
 #------------------------ The tests -----------------------------
@@ -81,7 +87,7 @@ test config-1.4 {Extract element 1 from a 2 node config} \
     }                                                      \
     -result {spdaq22.nscl.msu.edu 2 /some/where/something/else {arg list 2} 0 1 0}
 
-test config-1.5 {Errors should be thrown for out of ragen getNodes} \
+test config-1.5 {Errors should be thrown for out of range getNodes} \
     -setup {
 	set config [createConfig2] 
     }                                                               \
@@ -101,7 +107,27 @@ test config-1.5 {Errors should be thrown for out of ragen getNodes} \
     -result 2
 
 
+#--- Test command generation.
+lappend expectedCommands [list assembler node thechad.nscl.msu.edu 1]
+lappend expectedCommands [list assembler trigger 1]
+lappend expectedCommands [list assembler node spdaq22.nscl.msu.edu 2]
+lappend expectedCommands [list assembler window 2 1 0]
 
+test config-2.0  {See if commands generted are correct} \
+    -setup {
+	set config [createConfig2]
+	
+    } \
+    -body {
+	set storedCommands [list]
+	$config configBuilder storeCommands
+
+	set storedCommands
+    } \
+    -result $expectedCommands \
+    -cleanup {
+	$config destroy
+    }
 
 cleanupTests
 

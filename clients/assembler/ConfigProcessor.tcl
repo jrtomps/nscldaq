@@ -65,11 +65,11 @@ snit::type evbConfiguration {
 
 	    # Create the node:
 
-	    eval $command [list assembler node $nodeName $nodeId]
+	    $command [list assembler node $nodeName $nodeId]
 	    if {$isTrigger} {
-		eval $command [list assembler trigger $nodeId]
+		$command [list assembler trigger $nodeId]
 	    } else {
-		eval $command [list assembler window $nodeId $window $offset]
+		$command [list assembler window $nodeId $window $offset]
 	    }
 	}
 
