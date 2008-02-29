@@ -186,7 +186,7 @@ snit::type fileMenu {
 	}
 	
 	# Everything worked if we got here:
-
+d
 
 	puts "Got config: $config"
 	set $options(-configvar) $config
