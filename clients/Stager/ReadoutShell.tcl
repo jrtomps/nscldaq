@@ -282,7 +282,18 @@ proc setupConfiguration arglist {
                 DAQParameters::sourceHostIs $value
             }
             -path {
-                DAQParameters::readoutPathIs $value
+               if {[catch {DAQParameters::readoutPathIs $value} msg]} {
+		    if {$msg eq "DAQParameters::NotFound"} {
+			set errorMsg "-path=$value : File could not be found"
+		    } elseif {$msg eq "DAQParameters::NotExecutable"} {
+			set errorMsg "-path=$value : File is not executable"
+		    } else {
+			set errorMsg "-path=$value : Unanticipated error processing this flag"
+		    }
+		    tk_messageBox -icon error -type ok -title {Error in -host} \
+			-message $errorMsg
+		    exit
+	       }
             }
             -ftphost {
                 DAQParameters::ftpHostIs $value
