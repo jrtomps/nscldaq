@@ -45,7 +45,7 @@ if {[lsearch -exact $auto_path $libdir] == -1} {
     set auto_path [concat $here $libdir $auto_path]
 }
 puts $auto_path
-package require Tcl
+package require Tk
 
 puts [package version ReadoutGui]
 
@@ -389,6 +389,7 @@ setupConfiguration $argv
 #}
 
 if {$CanWrite} {
+    ExpFileSystem::Convert
     ExpFileSystem::CreateHierarchy
     Experiment::CleanOrphans
 }

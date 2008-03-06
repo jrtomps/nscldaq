@@ -188,3 +188,27 @@ proc ExpFileSystem::WhereisStagedMetaData {} {
     set stagedir [ExpFileSystemConfig::getStageArea]
     return [file join $stagedir staged]
 }
+
+#
+#   If an old-style file organization exists attempt to convert it:
+#
+proc ExpFileSystem::Convert {} {
+    set expdir [ExpFileSystemConfig::getExperimentDirectory]
+    if {[file isdirectory $expdir]} {
+	set answer [tk_messageBox -type okcancel -title {Import Old style} \
+			-message \
+			{The structure of experiment files has changed slightly.
+It looks like you may have an old experiment file scheme. If you click ok below,
+We'll convert it to a new style scheme.  If you click cancel we'll exit so you can
+think about what you really want to do}]
+	if {$answer eq "cancel"} exit
+	
+	# Conversion consists of moving the expdir -> stagedir.
+	
+	set stagearea [ExpFileSystemConfig::getStageArea]
+	file mkdir $stagearea
+	exec mv $expdir $stagearea
+
+    }
+}
+		      

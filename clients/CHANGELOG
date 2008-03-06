@@ -888,3 +888,4 @@ December 4, 2007 - Add CCAENChain::lastModuleEmptyEnable/Disable members.
 
 January 2, 2008  -BZ315 logarithmically trim scaler data.
 February 6, 2008 - Fix some make errors.
+March 6, 2008    - Attempt to convert old dir structures -> new ones in readout shell.
