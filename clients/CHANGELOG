@@ -891,3 +891,8 @@ February 6, 2008 - Fix some make errors.
 March 6, 2008    - Attempt to convert old dir structures -> new ones in readout shell.
                  - Produce a better error message if the -path value is bad on 
                    Readout Gui.
+March 10, 2008   - Ensure logger pid is 0 when non recording run is started.
+                 - If ~/experiment is a link, then don't convert.
+                 - If ~/experiment and ~/stagearea/experiment exist and
+                   ~/experiment is not a link, warn that conversions will
+                   kill the stagearea and let the user sort it out (exit).

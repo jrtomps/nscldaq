@@ -194,7 +194,7 @@ proc ExpFileSystem::WhereisStagedMetaData {} {
 #
 proc ExpFileSystem::Convert {} {
     set expdir [ExpFileSystemConfig::getExperimentDirectory]
-    if {[file isdirectory $expdir]} {
+    if {[file isdirectory $expdir] && [catch {file readlink $expdir}]} {
 	set answer [tk_messageBox -type okcancel -title {Import Old style} \
 			-message \
 			{The structure of experiment files has changed slightly.
@@ -207,6 +207,15 @@ think about what you really want to do}]
 	
 	set stagearea [ExpFileSystemConfig::getStageArea]
 	file mkdir $stagearea
+
+	set destdir [file join $stagearea [file tail $expdir]]
+	if {[file exists $destdir]} {
+	    tk_messageBox -type ok -title {Double dealing} \
+		-message \
+		"The conversion would move $expdir to $destdir, however
+$destdir already exists.  Exiting to give you a chance to decide what to do.
+if $destdir is empty you should just delete it"
+	}
 	exec mv $expdir $stagearea
 
     }

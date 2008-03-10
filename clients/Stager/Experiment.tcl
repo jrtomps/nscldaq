@@ -273,6 +273,8 @@ proc Experiment::RunBeginning {} {
 	    Error "The event logger is not yet ready after a very long time"
 	}
 	file delete -force .ready
+    } else {
+	set EventlogPid 0;		# So emergency end won't make abnormal end file.
     }
     Experiment::callback OnBegin $nrun
 }
@@ -352,7 +354,7 @@ proc Experiment::EmergencyEnd {} {
     file mkdir  $rundir
     file attributes $rundir -permissions 0750
     exec touch $rundir/000RunAbnormallyEnded
-    file attributes $rundir/000RunAbnormallyEnded 0440
+    file attributes $rundir/000RunAbnormallyEnded -permissions 0440
     file attributes $rundir -permissions 0550
 }
 #Experiment::CleanOrphans
