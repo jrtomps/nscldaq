@@ -896,3 +896,6 @@ March 10, 2008   - Ensure logger pid is 0 when non recording run is started.
                  - If ~/experiment and ~/stagearea/experiment exist and
                    ~/experiment is not a link, warn that conversions will
                    kill the stagearea and let the user sort it out (exit).
+		- Manage the permissions on the stagearea/complete directory
+                  so that links can be made to the event files and the
+                  directory re-protected.

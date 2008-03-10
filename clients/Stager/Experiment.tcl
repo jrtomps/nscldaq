@@ -208,6 +208,7 @@ proc Experiment::finalizeEventData run {
     # Ensure the targetdir is writable...
    
     file attributes $targetdir -permissions 0750;   # rwxr-x---
+    file attributes $complete  -permissions 0750;   # Allow me to write the link.
 
     set segment 0
     while {1} {
@@ -228,6 +229,7 @@ proc Experiment::finalizeEventData run {
     # Remove writability from the target dir so Dirk can't screw up.
 
     file attributes $targetdir -permissions 0550;   # r-xr-x---
+    file attributes $complete  -permissions 0550;   # and the complete directory too.
 }
 
 #------------ The procs below should be considered public -------------
