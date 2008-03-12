@@ -9,7 +9,6 @@
  # http://wikit.tcl.tk/13615
  #
 
-package provide snitwiz 1.0
 package require snit
 package require msgcat
 
@@ -127,6 +126,13 @@ if {[package present msgcat] != "package msgcat not present"} {namespace import 
 	     -relief raised \
 	     -command [mymethod cancel]
 
+
+	 # Must configure now so that this is all known prior to 
+	 # layout.
+
+	 $self configurelist $args
+
+
 	 # pack the buttons
 	 if {[$self cget -showhelp]} {
 	     pack $helpButton -side left -padx 4 -pady 8
@@ -139,7 +145,6 @@ if {[package present msgcat] != "package msgcat not present"} {namespace import 
 	 wm title $self [$self cget -title]
 	 wm minsize $self 550 430
 
-	 $self configurelist $args
      }
 
      method layoutFrame {} {
@@ -184,7 +189,7 @@ if {[package present msgcat] != "package msgcat not present"} {namespace import 
      }
 
      method cancel {} {
-	 exit
+	 event generate $self <<WizCancel>>
      }
 
      method buttonstate {name state} {
@@ -386,8 +391,12 @@ if {[package present msgcat] != "package msgcat not present"} {namespace import 
 	 ## the containing wizard
 	 set win [$layout layoutFrame]
 
-	 # now render the step itself
-	 eval [$self cget -body]
+	 # now render the step itself.  The step is assumed to
+	 # be an object that has a renderForm method that takes
+	 # as an argument the enclosing frame
+
+	 set form [$self cget -body]
+	 $form renderForm $win $wizard
      }
  }
 
