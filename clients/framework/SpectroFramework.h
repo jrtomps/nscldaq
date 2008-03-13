@@ -46,7 +46,6 @@
 #include <CNoSuchLinkException.h>
 #include <CNoSuchObjectException.h>
 #include <CObjectRegistry.h>
-#include <CPointerPredicate.h>
 #include <RangeError.h>
 #include <CReactor.h>
 #include <CRefptr.h>
