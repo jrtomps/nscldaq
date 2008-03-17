@@ -37,11 +37,28 @@ package require snit
 # OPTIONS:
 #    -configvar     - Name of global variable with configuration.
 #    -menu          - File menu widget path.
+#    -newcommand    - Command that's executed when the New command is accepted.
+#    -opencommand   - Command that's executed when the Open command read a new config.
+#    -savecommand   - Command that's executed when the Save command saved a config.
+#    -exitcommand   - Command that's executed just prior to the Exit command exiting.
+#
+# EVENT SUBSTITUTIONS:
+#    The command scripts accept the following substitutions:
+#      %W      - The name of this menu widget.
+#      %V      - The name of the configuration variable.
 #
 
 snit::type fileMenu {
     option  -configvar
     option  -menu
+
+# The options below alow the application to gain control when file related
+# events happen.
+
+    option  -newcommand
+    option  -opencommand
+    option  -savecommand
+    option  -exitcommand
 
     variable lastSavedConfig
     variable lastFileDirectory .
@@ -102,6 +119,7 @@ snit::type fileMenu {
 	}
 	set $options(-configvar) [list]
 	set lastSavedConfig      [list]
+	$self Dispatch -newcommand
     }
     # Process The Save command... The configuration is saved to file
     # as a set command. The lastSavedConfig is made to be the same as the configuration
@@ -134,6 +152,7 @@ snit::type fileMenu {
 	puts  $fd "set $options(-configvar) [list $config]"
 	close $fd
 	set lastSavedConfig $config
+	$self Dispatch -savecommand
     }
     # Handles the open menu.  If necessary confirm that we will be
     # destroying a saved configuration.
@@ -191,6 +210,7 @@ snit::type fileMenu {
 	set lastSavedConfig      $config
 
 	interp delete $slave
+	$self Dispatch -opencommand
     }
     #  Processes the exit command.  Confirms this if the configuration has been
     #  modified since the last save, recovery or new.
@@ -202,6 +222,23 @@ snit::type fileMenu {
 	    set goAhead [$self ConfirmDestroy exit]
 	    if {$goAhead ne "ok"} return
 	}
+	$self Dispatch -exitcommand
 	exit 0
+    }
+
+    #  Dispatch a command  processing script.
+    #  this common code includes all the checking to see if
+    #  the command can be dispatched as well as doing the command substitutions
+    #  supported by the widget.
+    #
+
+    method Dispatch option {
+	set script $options($option)
+	if {$script ne ""} {
+	    regsub %W $script $win script
+	    regsub %V $script $options(-configvar) script
+
+	    eval $script
+	}
     }
 }
