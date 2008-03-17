@@ -26,14 +26,54 @@ set Configuration [list];		# The configuration variable.
 set HelpDirectory .;
 
 
-# Stubs:
-
+#--------------------------------------------------------------------
+#
+#  Returns the row number of a node that matches the given node.
+#  used to determine if a node is a duplicate of an existing one.
+#
+# Parameters:
+#   node   - Name of the node.
+# Returns:
+#   Row number of 'node' else "" if 'node' is not in the table
+# IMPLICIT INPUTS:
+#   ::configArray - Table Contents.
+#
 proc dupeNode node {
+    set row 1
+    while {[array name ::configArray $row,0] ne ""} {
+	set oldNode $::configArray($row,0)
+	if {$oldNode eq $node} {
+	    return $row
+	}
+	incr row
+    }
+
     return ""
 }
-
+#--------------------------------------------------------------------
+#
+# Returns the row containing the specified ID or
+# "" if there is no row with that id:
+#
+# Parameters
+#   id    - Node id to look for.
+# Returns:
+#   Row number - if found.
+#   ""         - if not found.
+# IMPLICIT INPUTS:
+#   ::configArray - Table contents.
+#
 proc dupeId id {
+    set row 1
+    while {[array name ::configArray $row,0] ne "" } {
+	set oldId $::configArray($row,1)
+	if {$oldId == $id} {
+	    return $row
+	}
+	incr row
+    }
     return ""
+
 }
 #------------------------------------------------------------------
 #
@@ -49,7 +89,7 @@ proc dupeId id {
 #   ::configArray - Table contents.
 #
 proc dupeTrigger {node istrigger} {
-    if {$istrigger} {
+    if {!$istrigger} {
 	return ""
     }
     set row 1
@@ -178,8 +218,10 @@ proc newNode table {
 	}
 
 	set noderow [dupeNode $node]
-	set idrow   [dupeId   $node]
+	set idrow   [dupeId   $id]
 	set trigrow [dupeTrigger $node  $istrigger]
+
+
 
 	# If we have both a duplicate node and a duplicate id,
 	# they must be the same row, else replacement is not possible.
@@ -189,6 +231,7 @@ proc newNode table {
 		-message {Both the Node name and Id duplicate existing ones, but not in the same row}
 	    return 
 	}
+
 
 	# If we have a duplicate trigger and a duplicate node, or duplicate id they
 	# must be the same row, or again, replacement is not possible.
