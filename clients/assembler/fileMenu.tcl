@@ -170,7 +170,7 @@ snit::type fileMenu {
 	$slave expose source
 
 	if {[catch {$slave eval source $fileName} msg]} {
-	    puts "sourc error $msg"
+	    puts "source error $msg"
 	}
 
 	# Try to get the config variable from the file:
@@ -186,9 +186,7 @@ snit::type fileMenu {
 	}
 	
 	# Everything worked if we got here:
-d
 
-	puts "Got config: $config"
 	set $options(-configvar) $config
 	set lastSavedConfig      $config
 
