@@ -20,6 +20,8 @@ package require evbFileMenu
 package require evbHelpMenu
 package require Tktable
 package require NodeWizard  
+package require dialog
+package require EnterNode
 
 
 set Configuration [list];		# The configuration variable.
@@ -137,6 +139,7 @@ proc updateConfigurationList {table} {
 	lappend ::Configuration $item
     }
 }
+
 
 
 #----------------------------------------------------------------
@@ -294,16 +297,204 @@ proc newNode table {
 
 #----------------------------------------------------------------
 #
+#   OnNew - This is called when the user accepts the new
+#           command.  The table widget contolling this
+#           configuration is set back to a single row (the titles).
+#
+# Parametrs:
+#   table   - The name of the table widget.
+#
+proc onNew table {
+
+
+    # Unfortunately there does not seem to be a way to kill off from
+    # 1 -> end... at least not as simply as the code below.
+
+    while {[$table cget -rows] > 1} {
+	$table delete rows 1 1
+    }
+
+    
+}
+#----------------------------------------------------------------
+#
+#  A new file has been read in.  We must:
+#  - Clear our self
+#  - Convert the configuration listing into
+#    the table format.
+# Parameters:
+#    table   - The configuration table.
+#
+#
+proc onOpen {table} {
+    onNew $table
+
+    set row 1
+    foreach item $::Configuration {
+	set node    [lindex $item 0]
+	set id      [lindex $item 1]
+	set readout [lindex $item 2]
+	set rdoargs [lindex $item 3]
+	set istrig  [lindex $item 4]
+	set window  [lindex $item 5]
+	set offset  [lindex $item 6]
+	
+	$table insert rows end
+	$table set row $row,0 [list $node $id $readout $rdoargs \
+				  [matchInfo $istrig $window $offset]]
+
+	incr row
+    }
+}
+#----------------------------------------------------------------
+#
+#   User has requested to edit the node on a specific row.
+#   we've been dispatched to by a right click.
+#
+# Parameters:
+#   table  - The table widget on which the right click was done.
+#   row    - The row in which the right click was done.
+# Implicit Inputs/Outputs
+#   configArray - The backing store array for the table.
+#
+#
+proc newNodeId {table row} {
+    global configArray
+
+    puts "New node id..."
+
+    # Create a dialog whose work area is an EnterNode widget
+    # to prompt for the new node info:
+
+    dialog .newnode -buttons [list Ok Cancel] -title {New Node Information}
+    set    workarea   [.newnode workArea]
+
+    EnterNode $workarea.nodeinfo -node $configArray($row,0)   \
+	-id $configArray($row,1)
+    .newnode configure -workarea $workarea.nodeinfo
+    
+    puts "Dialog created.. executing.."
+
+    set result [.newnode execute]
+
+    puts "done.. $result"
+
+    #   If the user clicked the ok button. We can accept the results
+    #   of the dialog.  It is an error to have duplicated a node or id.
+    #   as a result of the edit.
+
+    if {$result eq "Ok"} {
+	set node [$workarea.nodeinfo cget -node]
+	set id   [$workarea.nodeinfo cget -id]
+	set path $configArray($row,2)
+	set args $configArray($row,3)
+	set triginfo $configArray($row,4)
+	if {$triginfo eq "Trigger"} {
+	    set istrigger 1
+	    set window    0
+	    set offset    0
+	} else {
+	    set istrigger 0
+	    set triglist [split $triginfo /]
+	    set window   [lindex $triglist 0]
+	    set offset   [lindex $triglist 1]
+	}
+	set noderow [dupeNode $node]
+	set idrow   [dupeId   $id]
+
+	# If there's another node or id by that name,
+	# reject in error... otherwise update the row
+
+	if {($noderow ne "") && ($noderow != $row)} {
+	    tk_dialog .dupname \
+		{Duplicate node} \
+		"$node is a node naame that's already in the configuration" \
+		error 0 Dismiss
+	} elseif {($idrow ne "") && ($idrow != $row)} {
+	    tk_dialog .dupid      \
+		{Duplicate id}    \
+		"$id is a node id that's already in the configuration" \
+		error 0 Dismiss
+	} else {
+	    set configArray($row,0) $node
+	    set configArray($row,1) $id
+	}
+	
+    }
+    destroy $workarea.nodinfo
+    destroy .newnode
+
+}
+
+#----------------------------------------------------------------
+#
+#  Process right clicks in the table.
+#
+# Parameters:
+#   widget    - The table widget.
+#   x         - The window x coordinate of the click.
+#   y         - The window y coordinate of the click.
+# Implicit inputs/outputs:
+#   configArray - The backing store for the table.
+#
+proc onRightClick {widget x y} {
+    global configArray
+
+    # Convert to a row/column.
+    
+    set tableIndex [split [$widget index @$x,$y] ,]
+    set row        [lindex $tableIndex 0]
+    set column     [lindex $tableIndex 1]
+
+    # If the index to the array does not exist,
+    # just return.
+
+    if {[array name ::configArray $row,$column] eq ""} {
+	return
+    }
+    # If the row is 0, that's the title row, so return:
+
+    if {$row == 0} {
+	return
+    }
+    #  We now will dispatch to the appropriate processor depending on the
+    # column.
+    # here are the column definitions:
+
+    set NODE    0
+    set ID      1
+    set PROGRAM 2
+    set ARGS    3
+    set MATCH   4
+
+    switch -exact -- $column       \
+	$NODE - $ID {
+	    newNodeId      $widget $row
+	}                       \
+	$PROGRAM - ARGS {
+	    newProgramArgs $widget $row
+	}                       \
+	$MATCH {
+	    newMatching    $widet $row
+	}                       \
+	default {
+	}
+
+    # By this time the data may have changed, so update the
+    # config list:
+
+    updateConfigurationList $widget
+
+}
+
+#----------------------------------------------------------------
+#
 #  Create the configuration user interface
 #
 # Parameters:
 #   top    - this is the top level widget in which the 
 #            GUI will be built (may be . or another toplevel).
 #
-
-
-
-
 
 proc createUI top {
     global HelpDirectory
@@ -330,13 +521,17 @@ proc createUI top {
     $menubar add cascade -label Help -menu $menubar.help
 
 
-    fileMenu %AUTO%   -menu $menubar.file -configvar Configuration
+    set fm [fileMenu %AUTO%   -menu $menubar.file -configvar ::Configuration ]
+
     helpMenu %AUTO%   -menu $menubar.help -helpdir  $HelpDirectory \
 	-abouttext "Event builder configuration builder version $configVersion"
 
     set table [table $prefix.table  -cols 5 -titlerows 1 \
 		   -variable ::configArray -rows 1 -colwidth 20 -ellipsis ...] 
     $table set row 0,0 [list Node Id [list Readout Program] [list Readout args] Window/Offset]
+
+    $fm configure  -newcommand [list onNew $table] \
+	-opencommand [list onOpen $table]
 
     # the new button...
 
@@ -352,5 +547,10 @@ proc createUI top {
 
     set ::configGui(table) $table
     set ::configGui(new)   $new
+
+    # Bind the table right click to uh.. onRightClick so that individual cells can be
+    # edited appropriately.
+
+    bind $table <Button-3> [list onRightClick $table %x %y]
 
 }
