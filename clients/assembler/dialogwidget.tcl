@@ -108,6 +108,7 @@ snit::widget dialog {
 	}
 
 	wm deiconify $win
+	tkwait visibility $win
 
 	# manage the work area so it fills the frame:
 
