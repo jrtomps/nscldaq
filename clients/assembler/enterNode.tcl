@@ -46,6 +46,8 @@ snit::widget EnterNode {
 
 	grid $win.nodelabel $win.node -sticky w
 	grid $win.idlabel   $win.id   -sticky w
+	$self configurelist $args
+
 
     }
 }
