@@ -22,7 +22,8 @@ package require Tktable
 package require NodeWizard  
 package require dialog
 package require EnterNode
-
+package require EnterReadout
+package require NodeTimingEntry
 
 set Configuration [list];		# The configuration variable.
 set HelpDirectory .;
@@ -361,8 +362,6 @@ proc onOpen {table} {
 proc newNodeId {table row} {
     global configArray
 
-    puts "New node id..."
-
     # Create a dialog whose work area is an EnterNode widget
     # to prompt for the new node info:
 
@@ -373,11 +372,8 @@ proc newNodeId {table row} {
 	-id $configArray($row,1)
     .newnode configure -workarea $workarea.nodeinfo
     
-    puts "Dialog created.. executing.."
-
     set result [.newnode execute]
 
-    puts "done.. $result"
 
     #   If the user clicked the ok button. We can accept the results
     #   of the dialog.  It is an error to have duplicated a node or id.
@@ -424,6 +420,118 @@ proc newNodeId {table row} {
     destroy $workarea.nodinfo
     destroy .newnode
 
+}
+
+#----------------------------------------------------------------
+#
+#  Processes right clicks in the table on the program path
+#  or the program arguments columns.  This action prompts
+#  for a replacement to the current values of those two columns.
+#  We do this by bringing up a dialog containing an EnterReadout
+#  widget in its work area.
+#
+# Parameters:
+#   table     - The table in which the right click happened.
+#   row       - The row of the table that was hit.
+#
+# Implicit Inputs/Outputs:
+#   configArray  - The array that contains the table backing store.
+#
+proc newProgramArgs {widget row} {
+    global configArray
+
+    # Create the dialog and insert the EnterReadout node inside it.
+
+    dialog .newpath -buttons [list Ok Cancel] -title {Path/args}
+    set workarea [.newpath workArea]
+
+    EnterReadout $workarea.readout -path $configArray($row,2) \
+	-args $configArray($row,3)
+    .newpath configure -workarea $workarea.readout
+
+    set result [.newpath execute]
+
+    #  this requires no real validation. If the user clicked
+    #  Ok, then we can load up the configuration array with the
+    #  new values of the path and args:
+
+    if {$result eq "Ok"} {
+	set configArray($row,2) [$workarea.readout cget -path]
+	set configArray($row,3) [$workarea.readout cget -args]
+    }
+
+    destroy $workarea.readout
+    destroy .newpath
+}
+
+#----------------------------------------------------------------
+#
+#  Process right clicks in a table cell that has matching information.
+#  The cell contents will either be "Trigger" or a / separated list
+#  of the window width and offset.  These will be used
+#  to set up a dialog whose work area is a nodeTimingEntry widget.
+#  If the user accepts this, and no other node is currently the trigger,
+#  we will accept the edit.
+#
+# Parameters:
+#   table       - Widget in which the right click was done.
+#   row         - Row in which the click was done.. implicitly this is
+#                 column 4.
+# Implicit Inputs/Outputs:
+#   configArray - The configuration array that is the table backing store.
+#
+proc newMatching {table row} {
+    global configArray
+    
+    # Figure out the current values:
+
+    set node $configArray($row,0)
+    set timingInfo $configArray($row,4)
+    if {$timingInfo eq "Trigger"} {
+	set isTrigger   1
+	set width       1
+	set offset      0
+    } else {
+	set isTrigger   0
+	set width       [lindex [split $timingInfo /] 0]
+	set offset      [lindex [split $timingInfo /] 1]
+    }
+
+    # Create the dialog and insert a nodeTimingEntry 
+    # item in the work area, the nodeTimingEntry will be configured
+    # as per the current table values, which have been pulled out into
+    #  isTrigger, width and offset.
+    
+    dialog .newmatch -buttons [list Ok Cancel] -title {Trigger Match Info}
+    set workarea [.newmatch workArea]
+    nodeTimingEntry $workarea.timing     \
+	-istrigger $isTrigger            \
+	-matchwindow $width              \
+	-matchoffset $offset
+    .newmatch configure -workarea $workarea.timing
+
+    set result [.newmatch execute]
+
+    if {$result eq "Ok"} {
+	set isTrigger [$workarea.timing cget -istrigger]
+	set width     [$workarea.timing cget -matchwindow]
+	set offset    [$workarea.timing cget -matchoffset]
+
+	set dupRow [dupeTrigger $node $isTrigger]
+	if {($dupRow ne "") && ($dupRow != $row)} {
+	    tk_dialog .duptrigger  \
+		{Duplicate Trigger node} \
+		"There is already a trigger node in the configuration and there can be only one" \
+		error 0 Dismiss
+	    
+	} else {
+	    set configArray($row,4) [matchInfo $isTrigger $width $offset]
+	}
+
+    }
+
+    destroy $workarea.timing
+    destroy .newmatch
 }
 
 #----------------------------------------------------------------
@@ -475,7 +583,7 @@ proc onRightClick {widget x y} {
 	    newProgramArgs $widget $row
 	}                       \
 	$MATCH {
-	    newMatching    $widet $row
+	    newMatching    $widget $row
 	}                       \
 	default {
 	}
