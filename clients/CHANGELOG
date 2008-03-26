@@ -903,6 +903,9 @@ March 13, 2008 - Remove predicate includes from the master framework header;
                  they've been deprecated
 March 26, 2008 - Initial port of run time synch from 8.1 to here.
                - Remove old N568Panel from svn.. the new stuff is still there.
+               - Fix incorrect link in <a> tag for n568 control panel top
+                 level help page so the link to the config file page 
+                 works.
 
 
           
