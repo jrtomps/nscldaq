@@ -479,18 +479,14 @@ proc ReadougGUIPanel::outputText text {
     $widget configure -state disabled
 
 }
-# ReadougGUIPanel::setActiveTime days hours minutes seconds
+# ReadougGUIPanel::setActiveTime stamp
 #     Sets the contents of the elapsed active run time label.
 #     This will contain a representation of the time for  which
 #     the run has actually been taking data.
 # Parameters:
-#     days    - Number of elapsed days.
-#     hours   - Number of elapsed hours.
-#     minutes - Number of elapsed minutes.
-#     seconds - NUmber of elapsed seconds.
+#    stamp  The formatted time stamp to put in the widget.
 #
-proc ::ReadougGUIPanel::setActiveTime {days hours minutes seconds} {
-    set stamp [format %d-%02d:%02d:%02d $days $hours $minutes $seconds]
+proc ::ReadougGUIPanel::setActiveTime stamp {
     append widget $::ReadougGUIPanel::ROOT . elapsed
     $widget configure -text $stamp
 }

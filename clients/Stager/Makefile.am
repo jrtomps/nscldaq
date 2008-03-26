@@ -3,6 +3,7 @@ install-exec-local:
 	$(mkinstalldirs) $(prefix)/TclLibs/Stager
 	$(INSTALL_SCRIPT) $(TCLPACKAGES) $(prefix)/TclLibs/Stager
 	$(INSTALL_SCRIPT) InstallRoot.tcl $(prefix)/TclLibs/Stager
+	$(INSTALL_SCRIPT) ReadoutShell.tcl $(prefix)/bin
 	for f in $(TCLAPPS); do $(INSTALL_SCRIPT) $$f  $(prefix)/bin/`basename $$f .tcl`; done
 	$(INSTALL_SCRIPT) StagerGui.tcl $(prefix)/bin/Stager
 	$(INSTALL_SCRIPT) RunReadout.sh  $(prefix)/TclLibs
@@ -40,9 +41,10 @@ TCLPACKAGES=Configuration.tcl \
 	selectReadout.tcl selectReadout_ui.tcl \
 	selectReadoutDialog.tcl \
 	warning.tcl \
-	bells.tcl
+	bells.tcl \
+	RunTime.tcl
 
-TCLAPPS=ReadoutShell.tcl \
+TCLAPPS=ReadoutShell \
 	StagerGui.tcl
 
 TCLTESTS = daqparameters.test directories.test experiment.test filesystem.test \
@@ -52,6 +54,7 @@ TCLTESTS = daqparameters.test directories.test experiment.test filesystem.test \
 	testrunner.tk tests.test
 
 EXTRA_DIST = $(TCLPACKAGES) $(TCLAPPS) $(TCLTESTS) \
+	ReadoutShell.tcl
 	ReadougGUIPanel.ui \
 	Retain.tcl \
 	RunReadout.sh \

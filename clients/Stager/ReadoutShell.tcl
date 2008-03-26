@@ -49,6 +49,8 @@ package require Tk
 
 puts [package version ReadoutGui]
 
+namespace eval ReadougGUIPanel {}
+
 package require ReadoutGui
 package require Experiment
 package require ExpFileSystem
@@ -274,6 +276,19 @@ proc SourceExperimentFiles {} {
 #
 proc setupConfiguration arglist {
     foreach item $arglist {
+
+	#  If we're running in a tcl server, 
+	#  we need to discard the -p and -a switches.
+	#  as they are for the Tcl server not us.
+
+
+
+	set threechars [string range $item 0 2]
+	if {($threechars eq "-pM") || ($threechars eq {-aR})} {
+	    continue
+	}
+
+
         set flagvalue [split $item =]
         set flag   [lindex $flagvalue 0]
         set value  [lindex $flagvalue 1]

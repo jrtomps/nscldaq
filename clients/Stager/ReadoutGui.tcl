@@ -34,6 +34,7 @@ package require ReadoutState
 package require DAQParameters
 package require Experiment
 package require bells
+package require RunTime
 
 namespace eval ReadoutGui {
     variable ElapsedTimer     0;        #Number of seconds in run so far.
@@ -209,8 +210,9 @@ proc ReadoutGui::TimeToEndRun {seconds} {
 #   Clear the elapsed time label in the readout gui panel.
 #
 proc ReadoutGui::ClearElapsedTime {} {
-    ::ReadougGUIPanel::setActiveTime 0 0 0 0
+    ::ReadougGUIPanel::setActiveTime "0 0:0:0.0"
     set ::ReadoutGui::TotalSegmentTime 0
+    ::BeginRun
 }
 # ReadoutGui::StartElapsedTimer
 #      Starts the elapsed timer. This can be called
@@ -219,7 +221,7 @@ proc ReadoutGui::ClearElapsedTime {} {
 #
 proc ReadoutGui::StartElapsedTimer {} {
     set ::ReadoutGui::RunStartedTime [clock seconds]
-    set ::ReadoutGui::ElapsedTimer [after 1000 ReadoutGui::SecondElapsed]
+    set ::ReadoutGui::ElapsedTimer [after 100 ReadoutGui::SecondElapsed]
 }
 # ReadoutGui::StopElapsedTimer
 #      - The elapsed timer is cancelled.
@@ -249,17 +251,10 @@ proc ReadoutGui::SecondElapsed {} {
 
     # Figure out how long we've run.
 
-    set now [clock seconds]
-    set elapsed [expr {$now - $::ReadoutGui::RunStartedTime
-			    + $::ReadoutGui::TotalSegmentTime}]
-    set elapsedSeconds $elapsed
-    set Sec     [expr {$elapsed % 60}]
-    set elapsed [expr {$elapsed/60}]
-    set Min     [expr {$elapsed % 60}]
-    set elapsed [expr {$elapsed/60}]
-    set Hrs     [expr {$elapsed % 24}]
-    set Days    [expr {$elapsed / 24}]
-    ::ReadougGUIPanel::setActiveTime $Days $Hrs $Min $Sec
+    set elapsedSeconds [::RunTime::elapsedTime]
+    set formatted [::RunTime::formattedTime]
+    
+    ::ReadougGUIPanel::setActiveTime $formatted
 
     #
     #  Update the status line for the event file:
@@ -294,15 +289,16 @@ proc ReadoutGui::SecondElapsed {} {
     #
     # Repropagate self:
     #
-    set ReadoutGui::ElapsedTimer [after 1000 ReadoutGui::SecondElapsed]
+    set ReadoutGui::ElapsedTimer [after 100 ReadoutGui::SecondElapsed]
 
     #
     #  If the run is timed, see if it's time to end it:
     #  Note that End stops the elapsed time timer.  That's why we
     #  repropogated first.
     #
-
-    if {[ReadougGUIPanel::isTimed]} {
+    if {[ReadougGUIPanel::isTimed] && 
+	(([ReadoutControl::getReadoutState] eq "Active") || 
+         ([ReadoutControl::getReadoutState] eq "Paused"))} {
 	if {[ReadoutGui::TimeToEndRun $elapsedSeconds]} {
 	    ReadoutGui::End
 	}
@@ -349,7 +345,7 @@ proc ReadoutGui::onExit {} {
     ReadoutGui::SaveSettings
     ReadoutControl::SetOnExit ::ReadoutGui::NoOp
     ReadoutControl::ExitReadoutProgram
-    exit
+    exit 0
 }
 # ReadoutGui::CleanupRun State
 #  This is called when the readout program exits.  It determines
@@ -402,11 +398,13 @@ proc ReadoutGui::ReadoutExited {RunStateonExit} {
 # ReadoutGui::EmergencyExit
 #    Callback hooked to widget deletion.
 #
-proc ReadoutGui::EmergencyExit {} {
-    ReadoutGui::CleanupRun [ReadoutControl::getReadoutState]
-    ReadoutControl::SetOnExit ::ReadoutGui::NoOp
-    ReadoutControl::ExitReadoutProgram
-    exit
+proc ReadoutGui::EmergencyExit {widget top} {
+    if {$widget eq $top} {
+	ReadoutGui::CleanupRun [ReadoutControl::getReadoutState]
+	ReadoutControl::SetOnExit ::ReadoutGui::NoOp
+	ReadoutControl::ExitReadoutProgram
+	exit 0
+    }
 }
 # ReadoutGui::Start
 #  Starts/restarts the front end program.
@@ -420,6 +418,7 @@ proc ReadoutGui::Start {} {
     if {![ReadoutGui::SaveSettings]} {
 	return
     }
+
     ReadoutControl::SetReadoutProgram [DAQParameters::getSourceHost] \
 				      [DAQParameters::getReadoutPath]
 	timestampOutput "%s : Starting the Readout program."
@@ -439,7 +438,7 @@ proc ReadoutGui::doRestart {} {
     }
     ReadoutControl::SetOnExit ::ReadoutGui::NoOp
     ReadoutControl::ExitReadoutProgram
-    ReadoutGui::StopRunTimers
+#    ReadoutGui::StopRunTimers
     ReadoutGui::Start
 
 }
@@ -533,15 +532,13 @@ proc ReadoutGui::Begin {} {
     # increment the elapsed run time.
 
     if {[ReadougGUIPanel::isTimed]} {
-	puts "Timed"
 	ReadoutState::TimedRun
 	ReadoutState::setTimedLength [ReadougGUIPanel::getRequestedRunTime]
     } else {
-	puts Untimed
 	ReadoutState::notTimedRun
     }
     ReadoutGui::ClearElapsedTime;    # NO paused segments, new run.
-    ::ReadoutGui::StartRunTimers
+#    ::ReadoutGui::StartRunTimers
 
 }
 # ReadoutGui::Pause
@@ -550,7 +547,7 @@ proc ReadoutGui::Begin {} {
 #    of a timed pause.
 #
 proc ReadoutGui::Pause {} {
-    ReadoutGui::StopRunTimers
+#    ReadoutGui::StopRunTimers
     ReadougGUIPanel::runIsPaused
     ReadougGUIPanel::setStatusLine {Run paused}
 	timestampOutput "%s : Pausing the run"
@@ -580,7 +577,7 @@ proc ReadoutGui::StopRunTimers {} {
 #    being done.
 #
 proc ReadoutGui::End {} {
-    ReadoutGui::StopRunTimers
+#    ReadoutGui::StopRunTimers
     ReadougGUIPanel::runIsHalted
 	timestampOutput "%s : Ending the run"
     ReadoutControl::End
@@ -615,10 +612,10 @@ proc ReadoutGui::ReadoutController {topname} {
     #
     if {$topname ne ""} {
 	toplevel $topname
-	bind $topname <Destroy> ::ReadoutGui::EmergencyExit
-	set topprefix $topname
+	bind $topname <Destroy> [list ::ReadoutGui::EmergencyExit  %W $topname]
+	set topprefix $topname 
     } else {
-	bind . <Destroy> ::ReadoutGui::EmergencyExit
+	bind . <Destroy> [list ::ReadoutGui::EmergencyExit %W  $topname
 	set topprefix ""
 	set topname .
     }
@@ -667,7 +664,7 @@ proc ReadoutGui::ReadoutController {topname} {
     ReadoutControl::SetTitle $title
     ReadoutControl::SetRun   $run
 
-
+	::ReadoutGui::StartRunTimers
 
 
     # Establish callback handlers for input from the Readout Program:
