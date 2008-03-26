@@ -902,7 +902,7 @@ March 10, 2008   - Ensure logger pid is 0 when non recording run is started.
 March 13, 2008 - Remove predicate includes from the master framework header;
                  they've been deprecated
 March 26, 2008 - Initial port of run time synch from 8.1 to here.
-
+               - Remove old N568Panel from svn.. the new stuff is still there.
 
 
           
