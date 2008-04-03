@@ -54,7 +54,7 @@ TCLTESTS = daqparameters.test directories.test experiment.test filesystem.test \
 	testrunner.tk tests.test
 
 EXTRA_DIST = $(TCLPACKAGES) $(TCLAPPS) $(TCLTESTS) \
-	ReadoutShell.tcl
+	ReadoutShell.tcl \
 	ReadougGUIPanel.ui \
 	Retain.tcl \
 	RunReadout.sh \
