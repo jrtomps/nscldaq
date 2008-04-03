@@ -23,7 +23,6 @@
 #include <CBufferEvent.h>
 #include <CBufferMonitor.h>
 #include <CBufferReactor.h>
-#include <CChangedPredicate.h>
 #include <CClassifiedObjectRegistry.h>
 #include <CDAQTCLProcessor.h>
 #include <CDuplicateNameException.h>
@@ -39,9 +38,6 @@
 #include <CIncompatibleMonitor.h>
 #include <CInterpreterStartup.h>
 #include <CLinkFailedException.h>
-#include <CLocationMonitor.h>
-#include <CLocationReactor.h>
-#include <CMaskedValuePredicate.h>
 #include <CNamedObject.h>
 #include <CNoSuchLinkException.h>
 #include <CNoSuchObjectException.h>

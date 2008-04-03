@@ -51,6 +51,8 @@ using namespace std;
 
 static const long VMETRIGGERBASE(0x444400);
 
+static const unsigned int JUMBOTHRESHOLD(32*1024-1);
+
 
 extern CReadoutMain MyApp;
 
@@ -415,6 +417,19 @@ CReadoutMain::Exit()
   CReaper::getInstance()->clear(); // Don't reap threads that are being
   m_fExit = true;		// destroyed.
 }
+
+/*--------------------------------------------------------------
+ * 
+ * Return true if the buffers are jumbo:
+ */
+bool
+daq_isJumboBuffer()
+{
+  CExperiment* pExp = CReadoutMain::getInstance()->getExperiment();
+  unsigned     size = pExp->getBufferSize();
+  return size > JUMBOTHRESHOLD;
+}
+
 
 // I need to define main here
 // here to ensure that TCL++'s main is not pulled in by mistake.

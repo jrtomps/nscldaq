@@ -33,6 +33,7 @@
 #include    <ctype.h>
 #include    <time.h>
 #include    <stdio.h>
+#include    <string.h>
 #include    "daqdatatypes.h"
 #include    "cmdio.h"
 
@@ -283,7 +284,7 @@ fndkey(const char* key, const char** tbl, unsigned nkeys)
     int    i;
     int    lastfnd, numfound;
     int    len;
-    int    strcmp();
+
 
     lastfnd = -1;			    /* Most recent match.	 */
     numfound = 0;			    /* Number of matches	 */
@@ -337,7 +338,7 @@ fndkey(const char* key, const char** tbl, unsigned nkeys)
 int    fndkeyex(const char* key, const char** tbl,  unsigned nkeys)
 {
     int    i;
-    int    strcmp();
+
 
     for (i=0;  i < nkeys;  i++)
 	if (strcmp(key, *tbl) == 0)	    /* Return index when match	*/

@@ -63,6 +63,9 @@ static char* Copyright =
 #ifndef FALSE
 #define FALSE     0
 #endif
+
+#define JUMBOTHRESHOLD (1024*32-1)
+
 /*
 **  Local data types:
 */
@@ -1046,6 +1049,16 @@ void daq_SetBufferSize(int newsize)
 int daq_GetBufferSize()
 {
   return daqBufferSize;
+}
+/*----------------------------------------------------------
+** 
+** daq_isJumboBuffer:
+**   Returns true if the buffer size indicates this is a jumbo buffer.
+*/
+bool
+daq_isJumboBuffer() 
+{
+  return (daqBufferSize > JUMBOTHRESHOLD);
 }
 
 

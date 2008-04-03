@@ -23,7 +23,7 @@ using namespace std;
 
 // Local definitions:
 
-static const int myBit(0x8000);
+static const unsigned short myBit(0x8000);
 
 /*!
    Creation requires creation of the underlying module.

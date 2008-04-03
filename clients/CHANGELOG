@@ -906,6 +906,12 @@ March 26, 2008 - Initial port of run time synch from 8.1 to here.
                - Fix incorrect link in <a> tag for n568 control panel top
                  level help page so the link to the config file page 
                  works.
+April 3, 2008 - Fix error in Stager Makefile.am -missing \ for continuation.
+              - Add support for jumbo buffers. Note that at some point
+                I need to figure out how to make the event assembler buffer
+                size aware.  Presumably, each data source can have it's own
+                buffer size (potentially jumbo or not), and the output
+                data sink must also be settable.
+                In any event jumbo buffer support extends to the
+                Readouts of all flavors and to the bufdump application.
 
-
-          

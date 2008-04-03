@@ -19,6 +19,8 @@ libScriptedRdo_la_SOURCES = CBoolConfigParam.cpp \
 	CCAENV830.cpp \
 	CCAENV830Creator.cpp \
 	CCAENV830Module.cpp \
+	CSIS3300Creator.cpp \
+	CSIS3300Module.cpp  \
 	CConfigurationParameter.cpp \
 	CDigitizerDictionary.cpp \
 	CDigitizerModule.cpp \
@@ -61,6 +63,8 @@ noinst_HEADERS=CBoolConfigParam.h \
 	CCAENV830.h \
 	CCAENV830Creator.h \
 	CCAENV830Module.h \
+	CSIS3300Creator.h \
+	CSIS3300Module.h \
 	CConfigurationParameter.h \
 	CDigitizerDictionary.h \
 	CDigitizerModule.h \

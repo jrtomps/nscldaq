@@ -40,7 +40,6 @@ include_HEADERS= CAlarmLogger.h \
 	CBufferEvent.h \
 	CBufferMonitor.h \
 	CBufferReactor.h \
-	CChangedPredicate.h \
 	CClassifiedObjectRegistry.h \
 	CConfigurationManager.h \
 	CDAQTCLProcessor.h \

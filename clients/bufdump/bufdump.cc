@@ -26,6 +26,7 @@ static const char* Copyright= "(C) Copyright Michigan State University 2002, All
 #include <Iostream.h>
 #include <Iomanip.h>
 #include <buftypes.h>
+#include <buffer.h>
 #include <daqdatatypes.h>
 #include <buffer.h>
 #include <assert.h>
@@ -133,12 +134,21 @@ class DAQBuff : public DAQROCNode {
 
 	SetProcessTitle(process);
       }
+      bool jumbo = false;
       struct bheader* pHeader = (struct bheader*)pLocalBuffer;
       if(pHeader->type == DATABF) { // Data buffer
+	if (pHeader->buffmt >= JumboBufferRevLevel) jumbo = true;
       
         if(pHeader->nevt != 0) {
 	   cout << "-------------------------- Event (first Event) -------------------\n";
-	   unsigned short size    = pLocalBuffer[16];
+
+	   // For now assumming the buffers are little endian;
+
+	   unsigned int size    = pLocalBuffer[16];
+	   if (jumbo) {
+	     size  |= ((unsigned int)(pLocalBuffer[17]) << 16);
+	   }
+
 	   cout << dec <<   " Header: \n";
 	   for(int i =0; i < 16; i ++) {
 	     cout << pLocalBuffer[i] << " "; 

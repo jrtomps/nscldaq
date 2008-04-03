@@ -39,8 +39,10 @@
 //
 /* Change log:
       $Log$
-      Revision 8.3  2007/05/17 21:26:15  ron-fox
-      Work on porting to spectrodq-lite.
+      Revision 8.2.2.1  2007/08/15 18:37:03  ron-fox
+      BZ 319 - Collisions in class names between the trigger class
+      hierachy defined here and that prmoted into the device support
+      directory caused segfaluts for some users
 
       Revision 8.2  2005/06/24 11:32:03  ron-fox
       Bring the entire world onto the 8.2 line
@@ -152,6 +154,7 @@ public:
   CBusy* getBusy() const {
     return m_pBusy;
   }
+
 
   // Simple mutators:
 

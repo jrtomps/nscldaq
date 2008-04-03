@@ -23,6 +23,8 @@ static const char* Copyright = "(C) Copyright Michigan State University 2002, Al
 #include <RangeError.h>
 #include <unistd.h>
 
+extern bool daq_isJumboBuffer();
+
 #ifdef HAVE_STD_NAMESPACE
 using namespace std;
 #endif
@@ -71,19 +73,18 @@ unsigned short*
 #endif /* HIGH_PERFORMANCE */
 CNSCLPhysicsBuffer::StartEvent()  
 {
+  bool jumbo = daq_isJumboBuffer();
 #ifndef HIGH_PERFORMANCE
   m_EventStartPtr = StartEntity(); // Start the buffer entity.
   DAQWordBufferPtr p = m_EventStartPtr;
-  p++;
+  ++p;
+  if (jumbo) ++p;
   return p;
 #else /* HIGH_PERFORMANCE */
-  return (m_pBufferCursor + 1);	// Hold space for the word count
+  return jumbo ? (m_pBufferCursor + 2) : 
+    (m_pBufferCursor + 1);	// Hold space for the word count long or short as case may be.
 #endif /* HIGH_PERFORMANCE */
   
-#ifndef HIGH_PERFORMANCE
-  //  return m_EventStartPtr + 1;	// Reserve space for the event counter.
-#endif /* ! HIGH_PERFORMANCE */
-
 }  
 
 /*!
@@ -103,6 +104,14 @@ CNSCLPhysicsBuffer::EndEvent(DAQWordBufferPtr& rPtr)
 CNSCLPhysicsBuffer::EndEvent(unsigned short* pEnd)
 #endif /* HIGH_PERFORMANCE */
 {
+
+  bool jumbo = daq_isJumboBuffer();
+  union {
+    unsigned int l;
+    unsigned short w[2];
+  } lw;
+
+
 #ifndef HIGH_PERFORMANCE
   if(rPtr.GetIndex() >= getWords()) {
     throw CRangeError(0, getWords(), rPtr.GetIndex(),
@@ -117,9 +126,24 @@ CNSCLPhysicsBuffer::EndEvent(unsigned short* pEnd)
   }
 #ifndef HIGH_PERFORMANCE
   unsigned nSize = rPtr.GetIndex() - m_EventStartPtr.GetIndex();
-  *m_EventStartPtr = nSize;
+  if (jumbo) {
+    lw.l = nSize;
+    *m_EventStartPtr = lw.w[0];
+    m_EventStartPtr[1] = lw.w[1];
+  }
+  else {
+    *m_EventStartPtr = nSize;
+  }
 #else /* HIGH_PERFORMANCE */
-  *m_pBufferCursor = (pEnd - m_pBufferCursor); // Event size.
+  unsigned nSize = (pEnd - m_pBufferCursor); // Event size.
+  if (jumbo) {
+    lw.l = nSize;
+    *m_pBufferCursor = lw.w[0];
+    m_pBufferCursor[1] = lw.w[1];
+  }
+  else {
+    *m_pBufferCursor = nSize;
+  }
   m_pBufferCursor  = pEnd;
   m_nEntityCount++;
 #endif /* HIGH_PERFORMANCE */
@@ -127,6 +151,7 @@ CNSCLPhysicsBuffer::EndEvent(unsigned short* pEnd)
 #ifndef HIGH_PERFORMANCE
   EndEntity(rPtr);		// Add to entity count and update ptr.
 #endif /* ! HIGH_PERFORMANCE */
+
 }  
 
 /*!

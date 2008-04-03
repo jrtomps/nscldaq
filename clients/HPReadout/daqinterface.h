@@ -127,6 +127,12 @@ bool   daq_IsPaused();
 void     daq_SetBufferSize(int newSize);
 int      daq_GetBufferSize();
 
+/*
+ *  Determine if jumbo buffer formatting is required:
+*/
+
+bool daq_isJumboBuffer();
+
 #ifdef __cplusplus
 }
 #endif

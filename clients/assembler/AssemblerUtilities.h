@@ -59,4 +59,6 @@ public:
 				    std::vector<typeCountPair>& stats);
 };
 
+bool daq_isJumboBuffer();
+
 #endif /*ASSEMBLERUTILITIES_H_*/

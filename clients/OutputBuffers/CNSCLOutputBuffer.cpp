@@ -26,6 +26,8 @@
 using namespace std;
 #endif
 
+extern bool daq_isJumboBuffer();
+
 // Manifest constants:
 
 static const int hdrWSIZE = 0;	// Offset to size in header (Word).
@@ -40,13 +42,23 @@ static const int hdrWUNUSED2 = 9; // Decomisioned bitregister count.
 static const int hdrWBUFFMT = 10; // Buffer format indicator.
 static const int hdrWSIG   = 11; // Short signature.
 static const int hdrLSIG   = 12; // Long signature.
-static const int hdrWUNUSED3 =14; // 14,15, are both unused.
+static const int hdrWJUMBOHIGH = 14;
+static const int hdrWUNUSED3 =15; // 14,15, are both unused.
 static const int BODYOFFSET = 16;
 
 static const short SSIGNATURE = 0x0102;
 static const long  LSIGNATURE = 0x01020304;
 
 static const short REVLEVEL = 5; // lvl 5 - removes unused header items.
+static const short JUMBOLEVEL=6;
+
+// Convert int <-> shorts.
+
+union intConvert {
+  unsigned int   l;
+  unsigned short w[2];
+};
+
 
 // Static class members.
 
@@ -85,7 +97,16 @@ CNSCLOutputBuffer::CNSCLOutputBuffer (unsigned nWords)
 void 
 CNSCLOutputBuffer::ComputeSize()  
 {
-  m_Buffer[hdrWSIZE] = m_BufferPtr.GetIndex();
+  if (daq_isJumboBuffer()) {
+    union intConvert lw;
+    lw.l = m_BufferPtr.GetIndex();
+    m_Buffer[hdrWSIZE]       = lw.w[0];
+    m_Buffer[hdrWJUMBOHIGH] = lw.w[1];
+  }
+  else {
+    m_Buffer[hdrWSIZE] = m_BufferPtr.GetIndex();
+  }
+
 }  
 
 /*!
@@ -119,7 +140,18 @@ void
 CNSCLOutputBuffer::ComputeChecksum()  
 {
   m_Buffer[hdrWCKS] = 0;	// Don't let old cks contribute if set.
-  int nWords = m_Buffer[hdrWSIZE];
+ 
+  int nWords;
+  if (daq_isJumboBuffer()) {
+    intConvert lw;
+    lw.w[0] = m_Buffer[hdrWSIZE];
+    lw.w[1] = m_Buffer[hdrWJUMBOHIGH];
+    nWords = lw.l;
+  }
+  else {
+    nWords = m_Buffer[hdrWSIZE];
+  }
+
   short cks(0);
 
   DAQWordBufferPtr p(&m_Buffer); // Pointer iteration much better than idx.
@@ -532,7 +564,14 @@ CNSCLOutputBuffer::InitializeHeader()
   longbuffer.l         = m_nSequence;
   m_Buffer[hdrLSEQ]    = longbuffer.w[0];
   m_Buffer[hdrLSEQ+1]  = longbuffer.w[1];
-  m_Buffer[hdrWBUFFMT] = REVLEVEL;
+  
+  if (daq_isJumboBuffer()) {
+    m_Buffer[hdrWBUFFMT]= JUMBOLEVEL;
+  }
+  else {
+    m_Buffer[hdrWBUFFMT] = REVLEVEL;
+  }
+
   m_Buffer[hdrWSIG]    = SSIGNATURE;
   longbuffer.l         = LSIGNATURE;
   m_Buffer[hdrLSIG]    = longbuffer.w[0];

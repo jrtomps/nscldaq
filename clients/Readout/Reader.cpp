@@ -14,7 +14,8 @@
 	     East Lansing, MI 48824-1321
 */
 
-static const char* Copyright= "(C) Copyright Michigan State University 2002, All rights reserved";/*!
+static const char* Copyright= "(C) Copyright Michigan State University 2002, All rights reserved";
+/*!
   \file Reader.cpp
   Implements the functionality of the Reader class.  Reader objects
   provide the experiment specific part of the readout skeleton.
@@ -32,10 +33,16 @@ static const char* Copyright= "(C) Copyright Michigan State University 2002, All
 #include <string>
 #include <buftypes.h>
 #include <CVMEInterface.h>
+#include <stdint.h>
 #ifdef HAVE_STD_NAMESPACE
 using namespace std;
 #endif
 
+
+union longword {
+  uint32_t   l;
+  uint16_t   s[2];
+};
 
 /*!
    Construct a Reader object.  Note that tyipcally the Reader object is 
@@ -109,7 +116,10 @@ CReader::Disable()
 
 /*!
    Manages the overall flow of checking for triggers and reading events.
-   In order to amortize the call overhead and other checks that are performed
+union longword {
+  uint32_t   l;
+  uint16_t   s[2];
+}   In order to amortize the call overhead and other checks that are performed
    over multiple potential trigger checks, nPasses through the trigger
    check and readout code will be performed.
    
@@ -119,9 +129,10 @@ CReader::Disable()
    \param nPasses int [in] - Number of passes through the trigger check loop.
 */
 void
-CReader::
-ReadSomeEvents(unsigned int nPasses)
+CReader::ReadSomeEvents(unsigned int nPasses)
 {
+
+  bool jumbo = daq_isJumboBuffer(); // Big buffers?
 
   // The trigger and busy managers must have been installed:
 
@@ -146,11 +157,24 @@ ReadSomeEvents(unsigned int nPasses)
 	m_pTrigger->Clear();
 	DAQWordBufferPtr hdr = m_BufferPtr;
 	m_BufferPtr++;		// Reserve space for event size.
+	if (jumbo) {
+	  m_BufferPtr++;	// longword for jumbo buffers.
+	}
 	
 	nEventSize = ::readevt(m_BufferPtr);
 	if(nEventSize > 0) {
-	  *hdr       = nEventSize + 1; // Fill in the size header.
-	  m_nWords  += nEventSize + 1;   // Fill in the buffer index.
+	  if (jumbo) {
+	    union longword lw;
+	    lw.l = nEventSize +2;
+	    hdr[0]      = lw.s[0];
+	    hdr[1]      = lw.s[1];
+
+	    m_nWords += lw.l;
+	  } 
+	  else {
+	    *hdr       = nEventSize + 1; // Fill in the size header.
+	    m_nWords  += nEventSize + 1;   // Fill in the buffer index.
+	  }
 	  m_nEvents++;
 	}
 	else {			// Rejected (zero length) event.
@@ -275,9 +299,23 @@ CReader::OverFlow(DAQWordBufferPtr& rLastEventPtr)
   //
   // Retract the last event from the buffer:
 
-  unsigned int nWords = *rLastEventPtr;
-  unsigned int nNewSize = nWords;
+  bool jumbo = daq_isJumboBuffer();
 
+  unsigned nWords;
+  unsigned nNewSize;
+
+  if (jumbo) {
+    union longword lw;
+    lw.s[0]   = *rLastEventPtr;
+    lw.s[1]   =  rLastEventPtr[1];
+
+    nWords    = lw.l;
+    nNewSize  = nWords;
+  }
+  else {
+    nWords   = *rLastEventPtr;
+    nNewSize = nWords;
+  }
   m_nWords -= nWords;
   m_nEvents--;
 
@@ -287,12 +325,14 @@ CReader::OverFlow(DAQWordBufferPtr& rLastEventPtr)
   // because in general they will be faster for objects since they avoid
   // copy construction.
   
-  while(nWords) {
-    *EventPtr = *rLastEventPtr;
-    ++EventPtr;
-    ++rLastEventPtr;
-    nWords--;
-  }
+  // Use copy in/copy out to do this.. most quickly...
+
+  uint16_t *pTempBuffer = new uint16_t[nWords];
+  rLastEventPtr.CopyOut(pTempBuffer, 0, nWords);
+  EventPtr.CopyIn(pTempBuffer, 0, nWords);
+  delete []pTempBuffer;
+
+
   // Flush the existing buffer:
 
   FlushBuffer();
@@ -307,3 +347,4 @@ CReader::OverFlow(DAQWordBufferPtr& rLastEventPtr)
                   m_rManager.GetBody(pNewBuffer).GetIndex();
   
 }
+

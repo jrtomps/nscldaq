@@ -187,7 +187,7 @@ public:
 
   DAQWordBufferPtr GetBody(DAQWordBuffer* pBuffer); // Returns ptr to body.
   void FormatHeader(DAQWordBuffer* pBuffer, 
-		    UINT16 nWords, UINT16 nType, UINT16 nEntities);
+		    UINT32 nWords, UINT16 nType, UINT16 nEntities);
   void UpdateRunTime();
   void NewRunSegment();	//!< Diddle clock for Begin or Resume.
 

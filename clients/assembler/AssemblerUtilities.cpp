@@ -70,3 +70,11 @@ AssemblerUtilities::typeValuePairToList(CTCLInterpreter& interp,
 	}
 	return pObject;
 }
+
+
+//
+bool
+daq_isJumboBuffer()
+{
+  return false;
+}

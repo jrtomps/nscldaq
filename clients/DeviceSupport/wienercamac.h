@@ -25,12 +25,7 @@ static inline UINT32 getlong(volatile void* a) {
 };
 */
 
-#define getlong(ptr) ( *(volatile UINT32 *)(ptr) )
 
-
-static inline void putlong(UINT32 v,volatile void *a) {
-    *(volatile UINT32*)a = v;
-};
 
 
 /* 

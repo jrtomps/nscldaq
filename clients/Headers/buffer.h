@@ -43,7 +43,7 @@
 #ifndef __MTYPES_H	
 #define __MTYPES_H
 #include <daqdatatypes.h>
-static const INT16 BUFFER_REVISION(6);
+static const INT16 BUFFER_REVISION(5);
 
 static const INT16 JumboBufferRevLevel(6);  // Lowest rev level that is a jumbo buffer.
 

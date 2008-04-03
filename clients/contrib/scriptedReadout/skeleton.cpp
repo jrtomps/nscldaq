@@ -355,7 +355,9 @@ INCLUDE FILES
 #include "CCAENV792Creator.h"
 #include "CCAENV775Creator.h"
 #include "CPacketCreator.h"
+#include "CSIS3300Creator.h"
 #include "CAENcard.h"
+
 
 #include "CCAENV830.h"
 #include "CCAENV830Creator.h"
@@ -621,6 +623,7 @@ CCAENV775Creator*     p775(0);	        // Creator for V775.
 CCAENV785Creator*     p785(0);          // Creator for V785.
 CCAENV785Creator*     p1785(0);         // Creator for V785
 CCAENV792Creator*     p792(0);	        // Creator for V792.
+CSIS3300Creator*      p3300(0);         // SIS3300 FADC.
 CPacketCreator*       pPacket(0);       // Creator for subpackets.
 
 // The following constitute the configurable scaler readout engine.
@@ -639,8 +642,8 @@ void DestroyConfigurator()
 
   // The Event readout infrastructure...
 
-  /// Can't get the delete go go quite right... for now put up with
-  //  a minor memory leak so they can run.
+  // kill off the configuration:
+
 
    if(pCreator)    delete pCreator;
    if(pReader)     delete pReader;
@@ -649,6 +652,7 @@ void DestroyConfigurator()
    if(p785)        delete p785;
    if(p1785)       delete p1785;
    if(p792)        delete p792;
+   if(p3300)       delete p3300;
    if(pInterp)     delete pInterp;
 
 
@@ -660,6 +664,7 @@ void DestroyConfigurator()
   p785        = 0;
   p1785       = 0;
   p792        = 0;
+  p3300       = 0;
   pPacket     = 0;
 
 
@@ -711,6 +716,8 @@ void InitializeConfigurator()
   pCreator->AddCreator(p785 = new CCAENV785Creator);
   pCreator->AddCreator(p1785 = new CCAENV785Creator("caenv1785"));
   pCreator->AddCreator(p792 = new CCAENV792Creator);
+  pCreator->AddCreator(p3300 = new CSIS3300Creator);
+
   pCreator->AddCreator(pPacket = new CPacketCreator("packet",pDictionary));
 
   // Create the scaler module creation/readout infrastructure:

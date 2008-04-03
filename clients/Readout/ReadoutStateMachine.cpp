@@ -914,7 +914,7 @@ ReadoutStateMachine::GetBody(DAQWordBuffer* pBuffer)
 //
 void
 ReadoutStateMachine::FormatHeader(DAQWordBuffer* pBuffer, 
-				  UINT16 nWords, 
+				  UINT32 nWords, 
 				  UINT16 nType, 
 				  UINT16 nEntities)
 {
@@ -931,9 +931,19 @@ ReadoutStateMachine::FormatHeader(DAQWordBuffer* pBuffer,
   //    UINT16 nEntities:
   //      Number of 'things' in the buffer.
   //
+  union longword {
+    UINT32  l;
+    UINT16  w[2];
+  } lw;;
+
+  bool    jumbo     = daq_isJumboBuffer();
+  UINT32  usedWords = sizeof(bheader)/sizeof(INT16) + nWords;
+  lw.l  = usedWords;
 
   DAQWordBufferPtr p = &(*pBuffer);
-  *p++ = (INT16)(nWords + (sizeof(bheader)/sizeof(INT16))); // Size of buffer.
+
+
+  *p++ = lw.w[0];
   *p++ = nType;			// Type of buffer.
   *p++ = 0;			// For now checksum is not computed.
   *p++ = daq_GetRunNumber();
@@ -947,6 +957,11 @@ ReadoutStateMachine::FormatHeader(DAQWordBuffer* pBuffer,
   *p++ = 0x0102;		// Word Signature.
   INT32 lsig = 0x01020304;
   CopyIn(p, &lsig, sizeof(INT32)/sizeof(INT16));
+
+  if (jumbo) {
+    *p = lw.w[1];
+  }
+
 }
 
 /*!
