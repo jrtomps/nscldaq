@@ -97,14 +97,18 @@ CCUSBUnpacker::operator()(const Address_t pEvent,
   //  that extra word, and therefore we know to unconditionally
   //  skip it.
 
-  while (nWords) {
-    int hitPattern         = *p++;
-    nWords--;
+  // Modified to not have a hit pattern, but expect all 16 channels
+  // from each module:
+  // 
 
-    int hits               = bitsInMask(hitPattern);
+  while (nWords) {
+    //    int hitPattern         = *p++;
+    //    nWords--;
+
+    //     int hits               = bitsInMask(hitPattern);
     vector<int>* moduleMap = pMap->getModuleMap(module);
 
-
+    int hits = 16;		// Always all 16 channels.
 
     // For now we'll just decode the event and at each step check the moduleMap..could tune this.
 
@@ -127,10 +131,10 @@ CCUSBUnpacker::operator()(const Address_t pEvent,
 
       
     }
-    // Skip the extra word at the end of the q-stop.
-
-    p++;
-    nWords--;
+    // Skip the extra word at the end of the q-stop. 
+    // NO such extra word in unsupressed mode.
+    //     p++;
+    //    nWords--;
 
     // On to the next module.
 
