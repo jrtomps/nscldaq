@@ -1,0 +1,4 @@
+April 16, 2008:
+ 	- Don't allow daq 9.0 to be used. Not quite compatible.
+ 	- In router/COutputStage.cpp, event buffers were not encoding
+ 	  the run number in the run number field.

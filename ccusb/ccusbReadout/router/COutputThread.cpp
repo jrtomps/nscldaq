@@ -383,6 +383,7 @@ COutputThread::events(DataBuffer& buffer)
   p->s_header.nwds   = finalLength;
   p->s_header.type   = DATABF;
   p->s_header.cks    = 0;
+  p->s_header.run    = m_runNumber;
   p->s_header.seq    = m_sequence++;
   p->s_header.nlam   = 0;
   p->s_header.nbit   = 0;
