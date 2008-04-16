@@ -5,3 +5,7 @@ February 10, 2008
 Februrary 14, 2008
 - Debugged support for the SIS3804 scaler.
 
+April 16, 2008
+- Don't allow linkage to nscldaq-9.0 it's not compatible.
+- Fix error in router/COutputThread.cpp.  Was not inserting the run number into the buffer header
+  for physics buffers. Others were ok.
