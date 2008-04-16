@@ -75,22 +75,22 @@ HEADERS = $(include_HEADERS)
 ETAGS = etags
 CTAGS = ctags
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
-ACLOCAL = ${SHELL} /user/fox/Wincluster/Personal/umassLowell/code/ccusbReadout/config/missing --run aclocal-1.10
-AMTAR = ${SHELL} /user/fox/Wincluster/Personal/umassLowell/code/ccusbReadout/config/missing --run tar
+ACLOCAL = ${SHELL} /scratch/fox/daq/nscldaq/trunk/ccusb/ccusbReadout/config/missing --run aclocal-1.10
+AMTAR = ${SHELL} /scratch/fox/daq/nscldaq/trunk/ccusb/ccusbReadout/config/missing --run tar
 AR = ar
-AUTOCONF = ${SHELL} /user/fox/Wincluster/Personal/umassLowell/code/ccusbReadout/config/missing --run autoconf
-AUTOHEADER = ${SHELL} /user/fox/Wincluster/Personal/umassLowell/code/ccusbReadout/config/missing --run autoheader
-AUTOMAKE = ${SHELL} /user/fox/Wincluster/Personal/umassLowell/code/ccusbReadout/config/missing --run automake-1.10
-AWK = mawk
-CC = gcc
+AUTOCONF = ${SHELL} /scratch/fox/daq/nscldaq/trunk/ccusb/ccusbReadout/config/missing --run autoconf
+AUTOHEADER = ${SHELL} /scratch/fox/daq/nscldaq/trunk/ccusb/ccusbReadout/config/missing --run autoheader
+AUTOMAKE = ${SHELL} /scratch/fox/daq/nscldaq/trunk/ccusb/ccusbReadout/config/missing --run automake-1.10
+AWK = gawk
+CC = /usr/bin/gcc-3.3
 CCDEPMODE = depmode=gcc3
 CFLAGS = -g -O2
-CPP = gcc -E
+CPP = /usr/bin/gcc-3.3 -E
 CPPFLAGS = 
 CPPUNIT_INCLUDES = 
 CPPUNIT_LDFLAGS = -lcppunit -ldl
-CXX = g++
-CXXCPP = g++ -E
+CXX = /usr/bin/g++-3.3
+CXXCPP = /usr/bin/g++-3.3 -E
 CXXDEPMODE = depmode=gcc3
 CXXFLAGS = -g -O2
 CYGPATH_W = echo
@@ -126,12 +126,12 @@ LIBS =
 LIBTOOL = $(SHELL) $(top_builddir)/libtool
 LN_S = ln -s
 LTLIBOBJS = 
-MAKEINFO = ${SHELL} /user/fox/Wincluster/Personal/umassLowell/code/ccusbReadout/config/missing --run makeinfo
+MAKEINFO = ${SHELL} /scratch/fox/daq/nscldaq/trunk/ccusb/ccusbReadout/config/missing --run makeinfo
 MANDB = /usr/bin/mandb
 MANDOCBOOK = /usr/bin/xmlto
 MKDIR_P = /bin/mkdir -p
-NSCLDAQ_FLAGS = -I/usr/opt/daq/9.0/include
-NSCLDAQ_LIB = -L/usr/opt/daq/9.0/lib
+NSCLDAQ_FLAGS = -I/usr/opt/daq/8.1/include
+NSCLDAQ_LIB = -L/usr/opt/daq/8.1/lib
 OBJEXT = o
 PACKAGE = ccusbReadout
 PACKAGE_BUGREPORT = 
@@ -144,20 +144,20 @@ RANLIB = ranlib
 SET_MAKE = 
 SHELL = /bin/sh
 SOVERSION = 1:0
-SPECTRODAQ_FLAGS = -D_REENTRANT=1 -I/usr/opt-new/spectrodaq/include -I/usr/opt-new/spectrodaq/include/nscl -I/usr/opt-new/spectrodaq/include/xmloop
-SPECTRODAQ_LDFLAGS = -L/usr/opt-new/spectrodaq/lib -lspectrodaq -ldaqclient -lnetio -ldaqthreads -lxmloop -lxmlparse -lxmltok -lpthread -lcrypt -L/usr/opt-new/spectrodaq/lib -lNSCLException
+SPECTRODAQ_FLAGS = -D_REENTRANT=1 -I/usr/opt/spectrodaq-pregt/include -I/usr/opt/spectrodaq-pregt/include/nscl -I/usr/opt/spectrodaq-pregt/include/xmloop
+SPECTRODAQ_LDFLAGS = -L/usr/opt/spectrodaq-pregt/lib -lspectrodaq -ldaqclient -lnetio -ldaqthreads -lxmloop -lxmlparse -lxmltok -lpthread -lcrypt -L/usr/opt/spectrodaq-pregt/lib -lNSCLException
 STRIP = strip
 TCL_FLAGS = -I/usr/include/tcl
 TCL_LDFLAGS = -L/usr/lib  -ltcl -ltk
 USBSWITCHES = -I/usr/include
 USB_LIBS = -L/usr/lib -lusb
 VERSION = 1.0
-abs_builddir = /user/fox/Wincluster/Personal/umassLowell/code/ccusbReadout/threadcomm
-abs_srcdir = /user/fox/Wincluster/Personal/umassLowell/code/ccusbReadout/threadcomm
-abs_top_builddir = /user/fox/Wincluster/Personal/umassLowell/code/ccusbReadout
-abs_top_srcdir = /user/fox/Wincluster/Personal/umassLowell/code/ccusbReadout
-ac_ct_CC = gcc
-ac_ct_CXX = g++
+abs_builddir = /scratch/fox/daq/nscldaq/trunk/ccusb/ccusbReadout/threadcomm
+abs_srcdir = /scratch/fox/daq/nscldaq/trunk/ccusb/ccusbReadout/threadcomm
+abs_top_builddir = /scratch/fox/daq/nscldaq/trunk/ccusb/ccusbReadout
+abs_top_srcdir = /scratch/fox/daq/nscldaq/trunk/ccusb/ccusbReadout
+ac_ct_CC = /usr/bin/gcc-3.3
+ac_ct_CXX = 
 ac_ct_F77 = g77
 am__include = include
 am__leading_dot = .
@@ -184,7 +184,7 @@ host_vendor = pc
 htmldir = ${docdir}
 includedir = ${prefix}/include
 infodir = ${datarootdir}/info
-install_sh = $(SHELL) /user/fox/Wincluster/Personal/umassLowell/code/ccusbReadout/config/install-sh
+install_sh = $(SHELL) /scratch/fox/daq/nscldaq/trunk/ccusb/ccusbReadout/config/install-sh
 libdir = ${exec_prefix}/lib
 libexecdir = ${exec_prefix}/libexec
 localedir = ${datarootdir}/locale
@@ -193,7 +193,7 @@ mandir = ${datarootdir}/man
 mkdir_p = /bin/mkdir -p
 oldincludedir = /usr/include
 pdfdir = ${docdir}
-prefix = /usr/local
+prefix = /usr/opt/daq/ccusbreadout
 program_transform_name = s,x,x,
 psdir = ${docdir}
 sbindir = ${exec_prefix}/sbin
@@ -506,7 +506,7 @@ uninstall-am: uninstall-includeHEADERS uninstall-libLTLIBRARIES
 
 
 install-data:
-	$(INSTALL_DATA) .CBufferQueue.cpp /usr/local/include
+	$(INSTALL_DATA) .CBufferQueue.cpp /usr/opt/daq/ccusbreadout/include
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.
 .NOEXPORT:
