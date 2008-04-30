@@ -115,6 +115,20 @@ public:
     TypeCheckInfo      s_checker;
   } isListParameter;
 
+
+  struct  flimit {
+    bool   s_checkMe;
+    double s_value;
+    flimit() :
+      s_checkMe(false) {}
+    flimit(float value) :
+      s_checkMe(true), 
+      s_value(value) {}
+  };
+
+  typedef std::pair<flimit, flimit> FloatingLimits;
+
+
   // Internal typedefs
 private:
   typedef std::pair<std::string, TypeCheckInfo> ConfigData;
@@ -142,6 +156,12 @@ public:
   std::string getName() const;
   std::string cget(std::string name) ;
   ConfigurationArray cget();
+
+  // Convenience functions that get common conversions:
+
+  int    getIntegerParameter (std::string name);
+  bool   getBoolParameter    (std::string name);
+  double getFloatParameter   (std::string name);
   
   // Operations:
 
@@ -164,10 +184,17 @@ public:
   static bool isInteger(std::string name, std::string value, void* arg);
   static bool isBool(   std::string name, std::string value, void* arg);
   static bool isEnum(   std::string name, std::string value, void* arg);
+  static bool isFloat(  std::string name, std::string value, void* arg);
   static bool isList(   std::string name, std::string value, void* arg);
   static bool isBoolList(std::string name,std::string value, void* arg);
   static bool isIntList(std::string name, std::string value, void* arg);
   static bool isStringList(std::string name, std::string value, void* arg);
+
+ 
+  // utilities:
+private:
+  static void addTrueValues(std::set<std::string>& values);
+  static void addFalseValues(std::set<std::string>& values);
   
 };
 

@@ -16,7 +16,8 @@ INCLUDES	= 	-I$(top_builddir)/vmusb \
 
 
 libVMUSBDevices_la_LIBADD	= $(top_builddir)/vmusb/libVMUSB.la \
-				  @TCL_LDFLAGS@ $(SPECTRODAQ_LDFLAGS)
+				  @TCL_LDFLAGS@ $(SPECTRODAQ_LDFLAGS) \
+				-lm
 
 include_HEADERS			= 	CConfigurableObject.h	\
 					CReadoutModule.h 	\
@@ -35,9 +36,18 @@ TESTS=configtest.cpp c785test.cpp c3820test.cpp
 
 tests: TestRunner.cpp $(TESTS)
 	$(CXX) -g -o tests -I. -I$(prefix)/include $(CPPUNIT_INCLUDES) \
-	TestRunner.cpp  $(TESTS) -L$(prefix)/lib -lVMUSBDevices -lVMUSB \
-	-Wl,"-rpath=$(prefix)/lib"   \
+	TestRunner.cpp  $(TESTS) -L$(prefix)/lib -lVMUSBDevices -lVMUSB -lConfig \
+	$(NSCLDAQ_LIB) -ltclPlus -lException  $(TCL_LDFLAGS) \
+	-Wl,"-rpath=$(libdir)" -Wl,"-rpath=$(daqdir)/lib" \
 	$(CPPUNIT_LDFLAGS)
+
+configtests:	TestRunner.cpp configtest.cpp
+	$(CXX) -g -o configtests -I. -I$(prefix)/include $(CPPUNIT_INCLUDES) \
+	TestRunner.cpp  configtest.cpp -L$(prefix)/lib -lVMUSBDevices -lVMUSB -lConfig \
+	$(NSCLDAQ_LIB) -ltclPlus -lException  $(TCL_LDFLAGS) \
+	-Wl,"-rpath=$(libdir)" -Wl,"-rpath=$(daqdir)/lib" \
+	$(CPPUNIT_LDFLAGS)
+
 
 installcheck-local:	tests
 	./tests

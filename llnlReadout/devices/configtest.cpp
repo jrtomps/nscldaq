@@ -24,6 +24,7 @@ class configtest : public CppUnit::TestFixture {
   CPPUNIT_TEST(boollistparam);
   CPPUNIT_TEST(intlistparam);
   CPPUNIT_TEST(stringlist);
+  CPPUNIT_TEST(fpvalid);
   CPPUNIT_TEST_SUITE_END();
 
 
@@ -48,6 +49,7 @@ protected:
   void boollistparam();
   void intlistparam();
   void stringlist();
+  void fpvalid();
 };
 
 CPPUNIT_TEST_SUITE_REGISTRATION(configtest);
@@ -398,4 +400,37 @@ void configtest::stringlist()
     thrown = true;
   }
   EQMSG(message, false, thrown);
+}
+
+// Check the floating point validity checker given valid values:
+
+void configtest::fpvalid()
+{
+
+  // limit contituents.
+
+  CConfigurableObject::flimit low(1.0), high(2.0);
+  CConfigurableObject::flimit nolow, nohigh;
+
+  // none       --  Fully open limits.
+  // lowOpen    --  Limits open on the low end.
+  // highOpen   --  Limits open onthe high end.
+  // fullClosed --  Fully closed limit set.
+
+  CConfigurableObject::FloatingLimits none(nolow, nohigh);
+  CConfigurableObject::FloatingLimits lowOpen(nolow, high);
+  CConfigurableObject::FloatingLimits highOpen(low, nohigh);
+  CConfigurableObject::FloatingLimits fullClosed(low, high);
+
+  // add parameters to check against, one for each of the limits above,
+  // and one with no checker provided.
+
+  m_pObject->addParameter("norange", CConfigurableObject::isFloat, (void*)NULL);
+  m_pObject->addParameter("none", CConfigurableObject::isFloat, &none);
+  m_pObject->addParameter("lowopen", CConfigurableObject::isFloat, &lowOpen);
+  m_pObject->addParameter("highopen", CConfigurableObject::isFloat, &highOpen);
+  m_pObject->addParameter("closed",   CConfigurableObject::isFloat, &fullClosed);
+  
+  
+  
 }

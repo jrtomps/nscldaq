@@ -20,6 +20,7 @@
 #include <stdlib.h>
 #include <errno.h>
 #include <tcl.h>
+#include <math.h>
 
 using namespace std;
 
@@ -143,6 +144,8 @@ CConfigurableObject::cget(string name)
   ConfigData data = found->second;
   return data.first;
 }
+
+
 /*!
    Get the values of all the configuration parameters.
    \return CCOnfigurableObject::ConfigurationArray
@@ -169,6 +172,73 @@ CConfigurableObject::cget()
   }
   return result;
 }
+/////////////////////////////////////////////////////////////////////////////
+///////////////////// convenience functions /////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////
+
+// Convenience functions return the value of a parameter converted to one
+// a commonly used form.  The caller is responsible for ensuring that the
+// parameter is type checked to that form prior to using these functions,
+// as they do not report conversion errors...but instead return some
+// value that may or may not make sense.
+
+
+/*!
+    Return the value of an integer parameter.
+    \param name : std::string
+       Name of the value.
+
+    \return int
+    \retval the integer equivalent of the config paramter.
+
+*/
+int
+CConfigurableObject::getIntegerParameter(string name)
+{
+  string value = cget(name);
+
+  return atoi(name.c_str());
+}
+/*!
+  Return the value of a bool parameter.
+  This uses the same set of true values as the checker.. however
+  any other value is assumed to be false.
+
+  \param name : std::string
+     Name of the value.
+  
+  \return bool
+  \retval the boolean equivalent of the config param
+*/
+bool
+CConfigurableObject::getBoolParameter(string name)
+{
+  string value = cget(name);
+  set<string> trueValues;
+  addTrueValues(trueValues);
+
+  // Is enum does what we want if we pass it the set of true values...
+  // it'll give us a true if the value is in the set of legal trues and false otherwise:
+
+  return isEnum(name, value, &trueValues);
+}
+
+/*!
+   Return a parameter decoded as a double.
+
+   \param name : std::string
+     Name of the parameter
+
+   \return double
+
+*/
+double
+CConfigurableObject::getFloatParameter(string name)
+{
+  string value = cget(name);
+  return atof(name.c_str());
+}
+
 ///////////////////////////////////////////////////////////////////////////
 /////////////////////// Establishing he configuration /////////////////////
 ///////////////////////////////////////////////////////////////////////////
@@ -325,20 +395,80 @@ CConfigurableObject::isBool(string name, string value, void* ignored)
   // Build the set required by isEnum:
 
   set<string> allowedValues;
-  allowedValues.insert("true");  // True values:
-  allowedValues.insert("yes");
-  allowedValues.insert("1");
-  allowedValues.insert("on");
-  allowedValues.insert("enabled");
+  addTrueValues(allowedValues);
+  addFalseValues(allowedValues);
 
-  allowedValues.insert("false"); // False values.
-  allowedValues.insert("no");
-  allowedValues.insert("0");
-  allowedValues.insert("off");
-  allowedValues.insert("disabled");
+
 
   return isEnum(name, value, &allowedValues);
 }
+
+/*!
+  Validate a floating point parameter.  Floating parameters allow the implementor of a device
+  to let the user specify values in 'real units' which are then converted transparently to device
+  register values.  Floating point values are actually handled as doubles, since C/C++ likes to 
+  upconvert floats to doubles in any event.  The conversion fails if the string does not
+  convert to a floating point value or the etire string is not used in the conversion.
+  NAN's are also considered invali, and isnan is used to determine if the conversion resulted
+  in an NAN.  
+
+  The application can place limits on the floating point value as well.  See
+  the parameters below:
+
+  \param name : std::string
+     Parameter name (ignored).
+  \param value : std::string
+     The value of the paramter.
+  \param values : void*
+     Actually a ppointer to a FloatingLimits type which sets the limits
+     on the parameter.  If the FloatingLimits type is NULL, all floating
+     values are allowed...except for NAN's... which are never allowed.
+
+  \return bool
+  \retval true  - if Valid.
+  \retval false - if not Valid.
+
+*/
+bool
+CConfigurableObject::isFloat(string name, string value, void* values)
+{
+  FloatingLimits* pLimits = static_cast<FloatingLimits*>(values);
+
+  // Do the conversion..and check the basic legality
+
+  const char* start(value.c_str());
+  char* endptr;
+  double fValue = strtod(start, &endptr);
+  if((strlen(start) != (endptr - start))) {
+    return false;		// Did not convert entire string e.g. 1.0garbage
+  }
+  if(isnan(fValue)) {
+    return false;
+  }
+
+  // If a range was supplied check it:
+
+  if (pLimits) {
+    if (pLimits->first.s_checkMe) {
+      if (fValue < (pLimits->first.s_value)) {
+	return false;
+      }
+    }
+    if (pLimits->second.s_checkMe) {
+      if (fValue > (pLimits->second.s_value)) {
+	return false;
+      }
+    }
+  }
+  
+  // All tests passed:
+
+  return true;
+
+
+}
+
+
 /*!
    Validate an enum parameter.
    An enumerated parameter is one that can be a string drawn from a limited
@@ -541,4 +671,31 @@ CConfigurableObject::isStringList(string name, string value, void* validSizes)
   }
 
   return isList(name, value, &validator);
+}
+
+////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////// Utilities ///////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////
+
+// Add the legal true value strings to a set of strings:
+
+void
+CConfigurableObject::addTrueValues(set<string>& values)
+{
+  values.insert("true");  // True values:
+  values.insert("yes");
+  values.insert("1");
+  values.insert("on");
+  values.insert("enabled");
+}
+// Add the legal false value strings to a set of strings.
+
+void
+CConfigurableObject::addFalseValues(set<string>& values)
+{
+  values.insert("false"); // False values.
+  values.insert("no");
+  values.insert("0");
+  values.insert("off");
+  values.insert("disabled");
 }
