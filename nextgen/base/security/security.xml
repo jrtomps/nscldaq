@@ -1,0 +1,2368 @@
+<!-- chapter libraries -->
+
+<chapter id="chapter.security">
+    <title>Access control and security</title>
+    <para>
+        Security consists of authentication, and authorization.
+        Authentication determines who the entity requesting service is.
+        Authorization determines if the authenticated entity has a right to
+        request the service it has requested.
+    </para>
+    <para>
+        The NSCLDAQ security software helps your application to perform simple
+        authentication and authorization according to policies set by your application.
+        The NSCLDAQ security software is not a high security system.  It is
+        primarily intended to avoid errors on multi users data taking systems.
+        It is not intended to secure against malicious attacks.
+    </para>
+    <para>
+        The assumption is that your data acquisition system is already secured,
+        from unauthorized users either by living behind a firewall, or by security
+        management in the system itself.
+    </para>
+    <para>
+        Two class hierarchies work together to do authentication.  Authenticators,
+        and Interactors.  Interactors accept authentication credentials from
+        some source (credentials are anything that identify an entity within some
+        authentication scheme).  Authenticators examine those credentials to determine
+        if they are legitimate.
+    </para>
+    <section>
+        <title>Incorporting the software into your code</title>
+        <para>
+            In order to incorporate this software into your application you will
+            need to include various header files.  The reference section for
+            each class describes the headers you need.  The headers live in the
+            <filename>include</filename> subdirectory of the nscldaq installation.
+            Suppose you have an environment variable <literal>DAQROOT</literal>
+            defined that points to the top level directory of the NSCL DAQ installation
+            (at the NSCL, this is <filename>/usr/opt/daq/someversion</filename> where
+            <literal>someversion</literal> is the version installed), to compile
+            modules that include headers from this library you must:
+        </para>
+        <example>
+            <title>Compilation switches for the security includes</title>
+            <screen>
+g++ -c -I$DAQROOT/include ...
+            </screen>
+        </example>
+        <para>
+            At link time, you must link the security library into your
+            application.  To do this you must supply switches to help the
+            linker locate the library at both link and run time, as the
+            library is typically a shared library.  For example:
+        </para>
+        <example>
+            <title>Link switches for the security library</title>
+            <screen>
+g++ -o myapplication ... -L$DAQROOT/lib -lSecurity -Wl,"-rpath=$DAQROOT/lib"...
+            </screen>
+        </example>
+    </section>
+    <section>
+        <title>Authenticators</title>
+        <para>
+            The
+            <classname>CAuthenticator</classname>
+            class is the abstract base class of all authenticators.
+            It provides an interface that all authenticators must meet.
+            In typical operation, an application will select a concrete authenticator,
+            and pair it with a concrete interactor.  The application will then
+            authenticate requestors using this pair of objects.
+            Here's some sample boilerplate code:
+        </para>
+        <example>
+            <title>Boilerplate DAQ Authorization code </title>
+            <programlisting>
+#include &lt;Authenticator.h&gt;
+#include &lt;Interactor&gt;
+
+...
+    CAutenticator* pAuthenticator =  selectAuthenticator();
+    CInteractor*   pInteractor    =  selectInteractor();
+    if (pAuthenticator-&gt;Authenticate(*pInteractor)) {
+        // Authorized to use the service.
+        ...
+     }
+    else {
+     // Not authorized to use the service.
+     ...
+    }
+    // Assuming the interactor an authenticator are dynamically allocated
+    // by the selection functions.
+    
+    delete pAuthenticator;
+    delete pInteractor;
+            </programlisting>
+        </example>
+        <para>
+            In the example above, the functions not shown,
+            <function>selectAuthenticator</function>
+            and
+            <function>selectInteractor</function>
+            determine the actual authentication method and authorization policy.
+            The implementation of these functions will vary from application to
+            application.
+        </para>
+        <para>
+            The complete definitinon of
+            <classname>CAuthenticator</classname> is provided in
+            <link linkend="manpage.cauthenticator">its reference pages</link>.
+            The library provides the following concrete authentication classes:
+        </para>
+        <variablelist>
+            <varlistentry>
+                <term><link linkend="manpage.cpasswordcheck"><classname>CPasswordCheck</classname></link></term>
+                <listitem><para>
+                    The entity must provide a correct password.  Note that the current
+                    set of interactors do not support encrypted interactors.  This can be
+                    extended if required.
+                </para></listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><link linkend="manpage.cunixusercheck"><classname>CUnixUserCheck</classname></link></term>
+                <listitem>
+                    <para>
+                        The entity must provide a valid username and password
+                        that is could login to the local unix system.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><link linkend="manpage.ctclaccesslistcheck"><classname>CTclAccesListCheck</classname></link></term>
+                <listitem>
+                    <para>
+                        Intended for use within a Tcl interpreter.  The entity must
+                        supply some string that is an element of a Tcl list
+                        held in a Tcl variable.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><link linkend="manpage.caccesslistcheck"><classname>CAccessListCheck</classname></link></term>
+                <listitem>
+                    <para>
+                        The entity must supply a string that is one of a set of strings
+                            given to the authenticator.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><link linkend="manpage.chostlistcheck"><classname>CHostListCheck</classname></link></term>
+                <listitem>
+                    <para>
+                        Same as <classname>CAccessListCheck</classname> but the
+                        access list is a set of IP addresses.  The entity's
+                        credentials are translated to an IP address and looked up
+                        in the set of allowed items.
+                    </para>
+                </listitem>
+            </varlistentry>
+        </variablelist>
+    </section>
+    <section>
+        <title>Interactors</title>
+        <para>
+            Interactors are classes that are concrete classes derived
+            from the abstract base class
+            <link linkend="manpage.cinteractor"><classname>CInteractor</classname></link>.
+            They are intended to obtain the authentication credentials from the
+            entity requesting service.  If the interactor is in some way
+            interactive, it may also prompt the user for the elements of the
+            credentials required.
+        </para>
+        <para>
+            The abstract base class
+            <classname>CInteractor</classname> provides the following
+            member functions as abstract virtual functions that will be
+            implemented differently in each concrete interactor class:
+        </para>
+        <methodsynopsis>
+            <modifier>virtual</modifier>
+            <type>int</type> <methodname>Read</methodname>
+            <methodparam>
+                <type>Uint_t</type> <parameter>nBytes</parameter>
+            </methodparam>
+            <methodparam>
+                <type>void*</type> <parameter>pData</parameter>
+            </methodparam>
+        </methodsynopsis>
+        <para>
+            Reads data from the interactor.  The
+            <classname>CAuthenticator</classname>
+            base class provides a convenience method that reads an entire
+            line of text from the requestor.
+        </para>
+        
+            
+        <methodsynopsis>
+            <modifier>virtual</modifier> <type>int</type> <methodname>Write</methodname>
+            <methodparam>
+                <type>UInt_t</type> <parameter>nBytes</parameter>
+            </methodparam>
+            <methodparam>
+                <type>void*</type> <parameter>pData</parameter>
+            </methodparam>
+        </methodsynopsis>
+        <para>
+            Writes data to the entity that's behind the interactor.
+        </para>
+        <methodsynopsis>
+            <modifier>virtual</modifier> <type>int</type> <methodname>ReadWithPrompt</methodname>
+            <methodparam>
+                <type>Uint_t</type> <parameter>nPromptSize</parameter>
+            </methodparam>
+            <methodparam>
+                <type>void*</type> <parameter>pPrompt</parameter>
+            </methodparam>
+            <methodparam>
+                <type>UInt_t</type> <parameter>nReadSize</parameter>
+            </methodparam>
+            <methodparam>
+                <type>void*</type> <parameter>pReadData</parameter>
+            </methodparam>
+        </methodsynopsis>
+        <para>
+            Prompts for input if the interactor supports prompting and then
+            accepts data from the entitiy.
+        </para>
+        <para>
+            In addition to
+            <link linkend="manpage.cinteractor">CInteractor</link>, the following
+            concrete interactors have been supplied.
+        </para>
+        <variablelist>
+            <varlistentry>
+                <term><link linkend="manpage.cstringinteractor"><classname>CStringInteractor</classname></link></term>
+                <listitem>
+                    <para>
+                        This interactor supplies a string that you have gotten by
+                        whatever means you got it.  It can be used when interactors
+                        are not suitable for acquiring the stringified credentials.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><link linkend="manpage.cfdinteractor"><classname>CFdInteractor</classname></link></term>
+                <listitem>
+                    <para>
+                        This interactor accepts the credentials via an open file
+                        descriptor.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><link linkend="manpage.ciointeractor"><classname>CIOInteractor</classname></link></term>
+                <listitem>
+                    <para>
+                        This interator uses a pair of other interactors, an output and
+                        an input interactor. Prompting is done on the output interactor and
+                        the credentials read from the input interactor.
+                    </para>
+                </listitem>
+            </varlistentry>
+        </variablelist>
+    </section>
+        
+</chapter>
+
+<!-- /chapter -->
+
+<!-- manpage 3daq -->
+
+<!-- Interactors: -->
+
+    <refentry id="manpage.cauthenticator">
+      <refmeta>
+         <refentrytitle>CAuthenticator</refentrytitle>
+         <manvolnum>3daq</manvolnum>
+      </refmeta>
+      <refnamediv>
+         <refname>CAuthenticator</refname>
+	 <refpurpose>Abstract base authenticator class.</refpurpose>
+      </refnamediv>
+      
+      <refsynopsisdiv>
+         <programlisting>
+#include &lt;Authenticator.h&gt;
+         </programlisting>
+         <classsynopsis>
+            <ooclass><classname>CAuthenticator</classname></ooclass>
+            <constructorsynopsis>
+                <methodname>CAuthenticator</methodname> <void />
+            </constructorsynopsis>
+            <constructorsynopsis>
+                <methodname>CAuthenticator</methodname>
+                <methodparam>
+                    <type>const CAuthenticator&amp;</type> <parameter>rhs</parameter>
+                </methodparam>
+            </constructorsynopsis>
+            <destructorsynopsis>
+                <modifier>virtual</modifier> <methodname>~CAuthenticator</methodname>
+                                             <void />
+            </destructorsynopsis>
+            <methodsynopsis>
+                <type>CAuthenticator&amp;</type> <methodname>operator=</methodname>
+                <methodparam>
+                    <type>const CAuthenticator&amp;</type> <parameter>rhs</parameter>
+                </methodparam>
+            </methodsynopsis>
+            <methodsynopsis>
+                <modifier>virtual</modifier> <type>Bool_t</type> <methodname>Authenticate</methodname>
+                <methodparam>
+                    <type>CInteractor&amp;</type> <parameter>interactor</parameter>
+                </methodparam>
+                <modifier> = 0</modifier>
+            </methodsynopsis>
+            <methodsynopsis>
+                <modifier>protected:</modifier> <type>std::string</type> <methodname>GetLine</methodname>
+                <methodparam>
+                    <type>CInteractor&amp;</type> <parameter>interactor</parameter>
+                </methodparam>
+            </methodsynopsis>
+         </classsynopsis>
+      </refsynopsisdiv>
+      <refsect1>
+         <title>Description</title>
+         <para>
+            <classname>CAuthenticator</classname> is the base class for all
+            authenticators.  You can use any of the authenticators described in
+            these reference pages, or you can create your own by deriving a new
+            authenticator from this base class.
+         </para>
+         <para>
+            The class provides a public interface and protected services for
+            derived classes.  These will be described in
+            "Member functions" below.
+         </para>
+      </refsect1>
+      <refsect1>
+         <title>
+            Member functions
+         </title>
+           <constructorsynopsis>
+                <methodname>CAuthenticator</methodname> <void />
+            </constructorsynopsis>
+           <para>
+                Default construtor.  This is supplied so the compiler
+                won't complain if derived class constructors don't explcitly
+                chain to their base class constructor.
+           </para>
+            <constructorsynopsis>
+                <methodname>CAuthenticator</methodname>
+                <methodparam>
+                    <type>const CAuthenticator&amp;</type> <parameter>rhs</parameter>
+                </methodparam>
+            </constructorsynopsis>
+            <para>
+                Copy constructor this is supplied so that derived classes can
+                implement a copy constructor.  In the future, if additional
+                services are added to the base class that require state,
+                this constructor can be chained to by derived classes to ensure
+                that the appropriate deep copy is done.
+            </para>
+            <destructorsynopsis>
+                <modifier>virtual</modifier> <methodname>~CAuthenticator</methodname>
+                                             <void />
+            </destructorsynopsis>
+            <para>
+                Destructor is provide as virtual to ensure that destructors
+                automatically chain up the class hierarchy.
+            </para>
+            <methodsynopsis>
+                <type>CAuthenticator&amp;</type> <methodname>operator=</methodname>
+                <methodparam>
+                    <type>const CAuthenticator&amp;</type> <parameter>rhs</parameter>
+                </methodparam>
+            </methodsynopsis>
+            <para>
+                Assignment operator is supplied for much the same reason as the
+                copy constructor.
+            </para>
+            <methodsynopsis>
+                <modifier>virtual</modifier> <type>Bool_t</type> <methodname>Authenticate</methodname>
+                <methodparam>
+                    <type>CInteractor&amp;</type> <parameter>interactor</parameter>
+                </methodparam>
+                <modifier> = 0</modifier>
+            </methodsynopsis>
+            <para>
+                <methodname>Authenticate</methodname> is the interface that
+                derived classes must implement.  The method must obtain
+                credentials from the entity that want service via the
+                <parameter>interactor</parameter> object supplied.
+                If the entity supplies authorized credentials, the function
+                should return <literal>kfTRUE</literal>.  If the entity
+                supplies bad or unauthorized credentials,
+                <literal>kfFALSE</literal>
+                should be returned.
+            </para>
+            <methodsynopsis>
+                <modifier>protected:</modifier> <type>std::string</type> <methodname>GetLine</methodname>
+                <methodparam>
+                    <type>CInteractor&amp;</type> <parameter>interactor</parameter>
+                </methodparam>
+            </methodsynopsis>
+            <para>
+                This protected service reads a complete line of text from the
+                <parameter>interactor</parameter>.  The newline at the end of
+                the input line is absorbed from the interactor but silently
+                discarded.
+            </para>
+      </refsect1>
+      <refsect1>
+         <title>Types and public data</title>
+         <para>
+            The
+            <link linkend="manpage.cinteractor"><classname>CInteractor</classname></link>
+            object is an object that is intended to obtain credentials from some
+            source.  Other sections of this manpage describe interactors, both their
+            abstract base class (<classname>CInteractor</classname>), and
+            derived concrete classes.
+         </para>
+         <para>
+            The <link linkend="chapter.security">Security chapter</link>
+            of the full documentation manual describes the entire authentication
+            package and how to use it as well as providing a brief listing of
+            the various authenticators and interactors that are currently
+            implemented.
+         </para>
+      </refsect1>
+
+   </refentry>
+    <refentry id="manpage.cpasswordcheck">
+      <refmeta>
+         <refentrytitle>CPasswordCheck</refentrytitle>
+         <manvolnum>3daq</manvolnum>
+      </refmeta>
+      <refnamediv>
+         <refname>CPasswordCheck</refname>
+	 <refpurpose>Authenticate against a stored password.</refpurpose>
+      </refnamediv>
+      
+      <refsynopsisdiv>
+         <programlisting>
+#include &lt;PasswordCheck.h&gt;
+         </programlisting>
+         <classsynopsis>
+            <ooclass><classname>CPasswordCheck</classname></ooclass>
+            <constructorsynopsis>
+                <methodname>CPasswordCheck</methodname>
+                <methodparam>
+                    <type>const std::string&amp;</type> <parameter>password</parameter>
+                </methodparam>
+                <methodparam>
+                    <type>const std::string</type> <parameter>prompt = std::string("")</parameter>
+                </methodparam>
+                <methodparam>
+                    <type>Bool_t</type> <parameter>WithPrompt = kfFALSE</parameter>
+                </methodparam>
+            </constructorsynopsis>
+            <constructorsynopsis>
+                <methodname>CPasswordCheck</methodname>
+                <methodparam>
+                    <type>const CPasswordCheck&amp;</type> <parameter>rhs</parameter>
+                </methodparam>
+            </constructorsynopsis>
+            <destructorsynopsis>
+                <methodname>~CPasswordCheck</methodname> <void />
+            </destructorsynopsis>
+            <methodsynopsis>
+                <type>CPasswordCheck&amp;</type> <methodname>operator=</methodname>
+                <methodparam>
+                    <type>const CPassswordCheck&amp;</type> <parameter>rhs</parameter>
+                </methodparam>
+            </methodsynopsis>
+            <methodsynopsis>
+                <type>std::string</type> <methodname>getPassword</methodname>
+                                         <void /> <modifier>const</modifier>
+            </methodsynopsis>
+            <methodsynopsis>
+                <type>std::string</type> <methodname>getPromptString</methodname>
+                                         <void /> <modifier>const</modifier>
+            </methodsynopsis>
+            <methodsynopsis>
+                <type>Bool_t</type> <methodname>getWithPrompt</methodname>
+                                    <void /> <modifier>const</modifier>
+            </methodsynopsis>
+            <methodsynopsis>
+                <type>void</type> <methodname>setPassword</methodname>
+                <methodparam>
+                    <type>const std::string</type> <parameter>password</parameter>
+                </methodparam>
+            </methodsynopsis>
+            <methodsynopsis>
+                <type>void</type>
+                <methodname>setPromptString</methodname>
+                <methodparam>
+                    <type>const std::string</type> <parameter>prompt</parameter>
+                </methodparam>
+            </methodsynopsis>
+            <methodsynopsis>
+                <modifier>virtual</modifier> <type>Bool_t</type>
+                <methodname>Authenticate</methodname>
+                <methodparam>
+                    <type>CInteractor&amp;</type> <parameter>interactor</parameter>
+                </methodparam>
+            </methodsynopsis>
+            <methodsynopsis>
+                <type>void</type> <methodname>DisablePrompt</methodname> <void />
+            </methodsynopsis>
+            <methodsynopsis>
+                <type>void</type> <methodname>EnablePrompt</methodname> <void />
+            </methodsynopsis>
+         </classsynopsis>
+      </refsynopsisdiv>
+      <refsect1>
+         <title>Description</title>
+         <para>
+            Authenticators of type <classname>CPasswordCheck</classname> assume
+            that the credential is a string that must exactly match some passphrase
+            string.  The passphrase can be dynamically modified if desired, according
+            to the authentication policy of the application.
+         </para>
+         <para>
+            The passphase credential is gotten via an interactor.  It is possible
+            to control whether or not the credential is prompted for or not.
+            If prompted, it is also possible to control the prompt string.
+         </para>
+      </refsect1>
+      <refsect1>
+         <title>
+            Public member functions
+         </title>
+           <constructorsynopsis>
+                <methodname>CPasswordCheck</methodname>
+                <methodparam>
+                    <type>const std::string&amp;</type> <parameter>password</parameter>
+                </methodparam>
+                <methodparam>
+                    <type>const std::string</type> <parameter>prompt = std::string("")</parameter>
+                </methodparam>
+                <methodparam>
+                    <type>Bool_t</type> <parameter>WithPrompt = kfFALSE</parameter>
+                </methodparam>
+            </constructorsynopsis>
+            <para>
+                Constructor for the password checking authenticator.  The
+                <parameter>password</parameter>
+                parameter provides the initial password which can be changed
+                by later calling the
+                <methodname>setPassword</methodname> member function.
+                The <parameter>prompt</parameter> and <parameter>WithPrompt</parameter>
+                parameters control prompting on the interactor.
+                If <parameter>WithPrompt</parameter> is <literal>kfFALSE</literal>,
+                no prompting will be done.
+                If <parameter>WithPrompt</parameter> is <literal>kfTRUE</literal>,
+                <parameter>prompt</parameter> will be used as the prompt string.
+            </para>
+            <constructorsynopsis>
+                <methodname>CPasswordCheck</methodname>
+                <methodparam>
+                    <type>const CPasswordCheck&amp;</type> <parameter>rhs</parameter>
+                </methodparam>
+            </constructorsynopsis>
+            <para>
+                Does a copy construction of a
+                <classname>CPasswordCheck</classname> object.
+                This is a deep copy.
+            </para>
+            <destructorsynopsis>
+                <methodname>~CPasswordCheck</methodname> <void />
+            </destructorsynopsis>
+            <para>
+                Cleans up any storage or other resources allocated by the
+                object.
+            </para>
+            <methodsynopsis>
+                <type>CPasswordCheck&amp;</type> <methodname>operator=</methodname>
+                <methodparam>
+                    <type>const CPassswordCheck&amp;</type> <parameter>rhs</parameter>
+                </methodparam>
+            </methodsynopsis>
+            <para>
+                Assignment operator.  The <parameter>rhs</parameter> object is
+                the source (right hand side) of the assignement operator.
+                When complete, the object is an identical copy of the
+                <parameter>rhs</parameter>.
+            </para>
+            <methodsynopsis>
+                <type>std::string</type> <methodname>getPassword</methodname>
+                                         <void /> <modifier>const</modifier>
+            </methodsynopsis>
+            <para>
+                Returns the current passphrase string.
+            </para>
+            <methodsynopsis>
+                <type>std::string</type> <methodname>getPromptString</methodname>
+                                         <void /> <modifier>const</modifier>
+            </methodsynopsis>
+            <para>
+                Returns the current prompt string.
+            </para>
+            <methodsynopsis>
+                <type>Bool_t</type> <methodname>getWithPrompt</methodname>
+                                    <void /> <modifier>const</modifier>
+            </methodsynopsis>
+            <para>
+                Returns <literal>kfTRUE</literal> if prompting for the passphrase
+                is enabled.
+                <literal>kfFALSE</literal>
+                otherwise.
+            </para>
+            <methodsynopsis>
+                <type>void</type> <methodname>setPassword</methodname>
+                <methodparam>
+                    <type>const std::string</type> <parameter>password</parameter>
+                </methodparam>
+            </methodsynopsis>
+            <para>
+                Changes the passphrase.  Future calls to
+                <methodname>Authenticate</methodname> must obtain a credential
+                string that matches the new passphrase
+                <parameter>password</parameter>
+            </para>
+            <methodsynopsis>
+                <type>void</type>
+                <methodname>setPromptString</methodname>
+                <methodparam>
+                    <type>const std::string</type> <parameter>prompt</parameter>
+                </methodparam>
+            </methodsynopsis>
+            <para>
+                Providses a new prompt string:
+                <parameter>prompt</parameter>.  This only matters if prompting
+                is enabled.
+            </para>
+            <methodsynopsis>
+                <modifier>virtual</modifier> <type>Bool_t</type>
+                <methodname>Authenticate</methodname>
+                <methodparam>
+                    <type>CInteractor&amp;</type> <parameter>interactor</parameter>
+                </methodparam>
+            </methodsynopsis>
+            <para>
+                Authenticates, using <parameter>interactor</parameter>
+                to obtain the candidate passphrase from the entity
+                requesting service.
+            </para>
+            <methodsynopsis>
+                <type>void</type> <methodname>DisablePrompt</methodname> <void />
+            </methodsynopsis>
+            <para>
+                Disables passphrase prompting.
+            </para>
+            <methodsynopsis>
+                <type>void</type> <methodname>EnablePrompt</methodname> <void />
+            </methodsynopsis>
+            <para>
+                Enables passphrase prompting.  The most recently set value of the
+                prompt string will be used with the interactor to prompt for a
+                password.
+            </para>
+      </refsect1>
+      <refsect1>
+         <title>
+            SEE ALSO
+         </title>
+	 <para>
+            <link linkend="manpage.cauthenticator">CAuthenticator(3daq)</link>,
+            <link linkend="manpage.cinteractor">CInteractor(3daq)</link>
+	 </para>
+      </refsect1>
+   </refentry>
+
+    <refentry id="manpage.cunixusercheck">
+      <refmeta>
+         <refentrytitle>CUnixUserCheck</refentrytitle>
+         <manvolnum>3daq</manvolnum>
+      </refmeta>
+      <refnamediv>
+         <refname>CUnixUserCheck</refname>
+	 <refpurpose>Authenticate against a unix user name and password.</refpurpose>
+      </refnamediv>
+      
+      <refsynopsisdiv>
+         <programlisting>
+#include &lt;UnixUserCheck.h&gt;
+         </programlisting>
+         <classsynopsis>
+            <ooclass><classname>CUnixUserCheck</classname></ooclass>
+            <constructorsynopsis>
+                <methodname>CUnixUserCheck</methodname>
+                <void />
+            </constructorsynopsis>
+            <constructorsynopsis>
+                <methodname>CUnixUserCheck</methodname>
+                <methodparam>
+                    <type>const std::string&amp;</type> <parameter>usernamePrompt</parameter>
+                </methodparam>
+                <methodparam>
+                    <type>const std::string&amp;</type> <parameter>passwordPrompt</parameter>
+                </methodparam>
+                <methodparam>
+                    <type>Bool_t</type> <parameter>promptUser</parameter>
+                </methodparam>
+                <methodparam>
+                    <type>Bool_t</type> <parameter>promptPassword</parameter>
+                </methodparam>
+            </constructorsynopsis>
+            <constructorsynopsis>
+                <methodname>CUnixUserCheck</methodname>
+                <methodparam>
+                    <type>const CUnixUserCheck&amp;</type> <parameter>rhs</parameter>
+                </methodparam>
+            </constructorsynopsis>
+            <destructorsynopsis>
+                <methodname>~CUnixUserCheck</methodname> <void />
+            </destructorsynopsis>
+            <methodsynopsis>
+                <type>CUnixUserCheck&amp;</type> <methodname>operator=</methodname>
+                <methodparam>
+                    <type>const CUnixUserCheck&amp;</type> <parameter>rhs</parameter>
+                </methodparam>
+            </methodsynopsis>
+            <methodsynopsis>
+                <type>std::string</type> <methodname>getUserPrompt</methodname>
+                                    <void />     <modifier>const</modifier>
+            </methodsynopsis>
+            <methodsynopsis>
+                <type>std::string</type> <methodname>getPasswordPrompt</methodname>
+                                   <void/> <modifier>const</modifier>
+            </methodsynopsis>
+            <methodsynopsis>
+                <type>Bool_t</type> <methodname>getPromptUser</methodname>
+                                    <void /> <modifier>const</modifier>
+            </methodsynopsis>
+            <methodsynopsis>
+                <type>Bool_t</type> <methodname>getPromptPassword</methodname>
+                        <void /> <modifier>const</modifier>
+            </methodsynopsis>
+            <methodsynopsis>
+                <modifier>virtual</modifier> <type>Bool_t</type> <methodname>Authenticate</methodname>
+                <methodparam>
+                    <type>CInteractor&amp;</type> <parameter>interactor</parameter>
+                </methodparam>
+            </methodsynopsis>
+            <methodsynopsis>
+                <type>void</type> <methodname>setPrompting</methodname>
+                <methodparam>
+                    <type>Bool_t</type> <parameter>fUserPrompt = kfTrue</parameter>
+                </methodparam>
+                <methodparam>
+                    <type>Bool_t</type> <parameter>fPasswordPrompt = kfTrue</parameter>
+                </methodparam>
+            </methodsynopsis>
+            <methodsynopsis>
+                <type>void</type> <methodname>SetUserPrompt</methodname>
+                <methodparam>
+                    <type>const std::string&amp;</type> <parameter>rNewPrompt = std::string("Username: ")</parameter>
+                </methodparam>
+            </methodsynopsis>
+            <methodsynopsis>
+                <type>void</type> <methodname>SetPasswordPrompt</methodname>
+		<methodparam>
+                   <type>const std::string&amp;</type> 
+		   <parameter>rNewPrompt = std::string("Password: ")</parameter>
+	         </methodparam>
+            </methodsynopsis>
+            
+         </classsynopsis>
+      </refsynopsisdiv>
+      <refsect1>
+         <title>Description</title>
+         <para>
+            Authenticates any user whose encrypted password can be retrieved by
+            <function>getpwnam</function>.  The meaning of this may differ depending
+            on whether or not NIS is used to do authentication, and may vary
+            from operating system to operating system.
+         </para>
+      </refsect1>
+      <refsect1>
+         <title>
+            Public member functions
+         </title>
+        <constructorsynopsis>
+           <methodname>CUnixUserCheck</methodname>
+           <void />
+       </constructorsynopsis>
+        <para>
+            Constructs a default
+            <classname>CUnixUserCheck</classname>
+            object.  The object is construted with both username and password
+            prompting enabled with suitable default prompt strings.
+            You may modify these prompt strings after construction, as well as
+            the prompting behavior.  See below for more information.
+        </para>
+       <constructorsynopsis>
+           <methodname>CUnixUserCheck</methodname>
+           <methodparam>
+               <type>const std::string&amp;</type> <parameter>usernamePrompt</parameter>
+           </methodparam>
+           <methodparam>
+               <type>const std::string&amp;</type> <parameter>passwordPrompt</parameter>
+           </methodparam>
+           <methodparam>
+               <type>Bool_t</type> <parameter>promptUser</parameter>
+           </methodparam>
+           <methodparam>
+               <type>Bool_t</type> <parameter>promptPassword</parameter>
+           </methodparam>
+       </constructorsynopsis>
+       <para>
+            Full bodied construction of a
+            <classname>CUnixUserCheck</classname> object.   The username and
+            password prompts are provided by <parameter>usernamePrompt</parameter>
+            and
+            <parameter>passwordPrompt</parameter>
+            respectively. While
+            <parameter>promptUser</parameter>
+            and
+            <parameter>promptPassword</parameter>
+            control which prompts are acutally emitted.
+        </para>
+       <constructorsynopsis>
+           <methodname>CUnixUserCheck</methodname>
+           <methodparam>
+               <type>const CUnixUserCheck&amp;</type> <parameter>rhs</parameter>
+           </methodparam>
+       </constructorsynopsis>
+            <para>
+                Copy constructor, creates a news object that is identical to
+                <parameter>rhs</parameter>
+            </para>
+       <destructorsynopsis>
+           <methodname>~CUnixUserCheck</methodname> <void />
+       </destructorsynopsis>
+            <para>
+                Destroys the object and release any resources that were allocated
+                by the object.
+            </para>
+       <methodsynopsis>
+           <type>CUnixUserCheck&amp;</type> <methodname>operator=</methodname>
+           <methodparam>
+               <type>const CUnixUserCheck&amp;</type> <parameter>rhs</parameter>
+           </methodparam>
+       </methodsynopsis>
+            <para>
+                Assigns to the object from the <parameter>rhs</parameter> object.
+            </para>
+       <methodsynopsis>
+           <type>std::string</type> <methodname>getUserPrompt</methodname>
+                               <void />     <modifier>const</modifier>
+       </methodsynopsis>
+            <para>
+                Returns the current value of the user name prompt string.
+            </para>
+       <methodsynopsis>
+           <type>std::string</type> <methodname>getPasswordPrompt</methodname>
+                              <void/> <modifier>const</modifier>
+       </methodsynopsis>
+            <para>
+                Returns the current value of the password prompt string.
+            </para>
+       <methodsynopsis>
+           <type>Bool_t</type> <methodname>getPromptUser</methodname>
+                               <void /> <modifier>const</modifier>
+       </methodsynopsis>
+            <para>
+                Returns <literal>kfTRUE</literal> if the user name prompt
+                is enabled, and
+                <literal>kfFALSE</literal>
+                if the user name prompt is disabled.
+            </para>
+       <methodsynopsis>
+           <type>Bool_t</type> <methodname>getPromptPassword</methodname>
+                   <void /> <modifier>const</modifier>
+       </methodsynopsis>
+            <para>
+                Returns <literal>kfTRUE</literal> if the password prompt
+                is enabled, and
+                <literal>kfFALSE</literal>
+                if the username prompt is disabled.
+            </para>
+       <methodsynopsis>
+           <modifier>virtual</modifier> <type>Bool_t</type> <methodname>Authenticate</methodname>
+           <methodparam>
+               <type>CInteractor&amp;</type> <parameter>interactor</parameter>
+           </methodparam>
+       </methodsynopsis>
+       <para>
+            Authenticates the requestor using the
+            <parameter>interactor</parameter>
+            to obtain a username and password.  Dependig on the state of the
+            prompt flags, the username and password may be prompted for with prompt
+            strings.  See the constructors and the functions below for more
+            on prompt strings.
+        </para>
+       <methodsynopsis>
+           <type>void</type> <methodname>setPrompting</methodname>
+           <methodparam>
+               <type>Bool_t</type> <parameter>fUserPrompt = kfTrue</parameter>
+           </methodparam>
+           <methodparam>
+               <type>Bool_t</type> <parameter>fPasswordPrompt = kfTrue</parameter>
+           </methodparam>
+       </methodsynopsis>
+            <para>
+                If
+                <parameter>fUserPrompt</parameter>
+                is
+                <literal>kfTRUE</literal>,
+                the user name is prompted for.  If
+                <literal>kfFALSE</literal>,
+                the username is read without prompting.
+            </para>
+            <para>
+                If
+                <parameter>fPasswordPrompt</parameter>
+                is
+                <literal>kfTRUE</literal>,
+                authentication will prompt for a password. If
+                <literal>kfFALSE</literal>,
+                the password will be read without prompting.
+            </para>
+       <methodsynopsis>
+           <type>void</type> <methodname>SetUserPrompt</methodname>
+           <methodparam>
+               <type>const std::string&amp;</type> <parameter>rNewPrompt = std::string("Username: ")</parameter>
+           </methodparam>
+       </methodsynopsis>
+        <para>
+            <parameter>rNewPrompt</parameter>
+            replaces the user prompt string.  If username prompting is enabled,
+            this string will be used as the prompt in future authentications.
+        </para>
+       <methodsynopsis>
+           <type>void</type> <methodname>SetPasswordPrompt</methodname>
+	   <methodparam>
+              <type>const std::string&amp;</type> 
+	      <parameter>rNewPrompt = std::string("Password: ")</parameter>
+	   </methodparam>
+       </methodsynopsis>
+        <para>
+            <parameter>rNewPrompt</parameter>
+            replaces the current password prompt string.  If password prompting is
+            enabled, the new string will be used to prompt for passwords
+            in future authentications.
+        </para>
+      </refsect1>
+   </refentry>
+    <refentry id="manpage.ctclaccesslistcheck">
+      <refmeta>
+         <refentrytitle>CTclAccessListCheck</refentrytitle>
+         <manvolnum>3daq</manvolnum>
+      </refmeta>
+      <refnamediv>
+         <refname>CTclAccessListCheck</refname>
+	 <refpurpose>Authenticate against a Tcl List.</refpurpose>
+      </refnamediv>
+      
+      <refsynopsisdiv>
+         <programlisting>
+#include &lt;TclAccessListCheck.h&gt;
+         </programlisting>
+         <classsynopsis>
+            <ooclass><classname>CTclAccessListCheck</classname></ooclass>
+            <constructorsynopsis>
+                <methodname>CTclAccessListCheck </methodname>
+                <methodparam>
+                    <type>Tcl_Interp*</type> <parameter>pInterp</parameter>
+                </methodparam>
+                <methodparam>
+                    <type>const std::string&amp;</type> <parameter>rName</parameter>
+                </methodparam>
+            </constructorsynopsis>
+            <destructorsynopsis>
+                <methodname>~CTclAccessListCheck</methodname>
+            </destructorsynopsis>
+            <methodsynopsis>
+                <type>CTCLVariable*</type> <methodname>getVariable</methodname>
+                                           <void /> <modifier>const</modifier>
+            </methodsynopsis>
+            <methodsynopsis>
+                <type>CTCLInterpreter*</type> <methodname>getInterpreter</methodname>
+                                              <void /> <modifier>const</modifier>
+            </methodsynopsis>
+            <methodsynopsis>
+                <modifier>virtual</modifier>
+                <type>Bool_t</type> <methodname>Authenticate</methodname>
+                <methodparam>
+                    <type>CInteractor&amp;</type> <parameter>rInteractor</parameter>
+                </methodparam>
+            </methodsynopsis>
+         </classsynopsis>
+      </refsynopsisdiv>
+      <refsect1>
+         <title>Description</title>
+         <para>
+            This authenticator is intended to be used in conjunction with
+            Tcl scripts and Tcl servers.  The authenticator uses a Tcl variable
+            that contains a list of  values.  The entity that desires service
+            must present one of the values in that list as its credential.
+         </para>
+      </refsect1>
+      <refsect1>
+         <title>
+            Public member functions
+         </title>
+           <constructorsynopsis>
+                <methodname>CTclAccessListCheck </methodname>
+                <methodparam>
+                    <type>Tcl_Interp*</type> <parameter>pInterp</parameter>
+                </methodparam>
+                <methodparam>
+                    <type>const std::string&amp;</type> <parameter>rName</parameter>
+                </methodparam>
+            </constructorsynopsis>
+            <para>
+                Constructs a Tcl Access list authenticator.
+                <parameter>pInterp</parameter>
+                is the interpreter handle pointer.  This will be wrapped
+                in a
+                <classname>CTCLInterpreter</classname>
+                object.  For more information about
+                <classname>CTCLInterpreter</classname>,
+                See the
+                <link linkend="chapter.tclplus">Tcl++ chapter</link>
+                and the
+                <link linkend="manpage.CTCLInterpreter">CTCLInterpreter reference page</link>.
+            </para>
+            <para>
+                The <parameter>rName</parameter> parameter is the name of the
+                TCL variable that contains the list of allowed credentials. Note that
+                the list does not yet need to have been created and, in fact, the
+                variable
+                <parameter>rName</parameter>
+                need not yet exist.  The variable and list only need to exist
+                at authentication time.
+            </para>
+            <destructorsynopsis>
+                <methodname>~CTclAccessListCheck</methodname>
+            </destructorsynopsis>
+            <para>
+                Releases any resources allocatd by the authenticator as it's destroyed.
+            </para>
+            <methodsynopsis>
+                <type>CTCLVariable*</type> <methodname>getVariable</methodname>
+                                           <void /> <modifier>const</modifier>
+            </methodsynopsis>
+            <para>
+                Returns a pointer to the
+                <classname>CTCLVariable</classname>
+                that wraps the Tcl variable.  For more information about
+                <classname>CTCLVariable</classname>
+                objects, see
+               <link linkend="chapter.tclplus">Tcl++ chapter</link> and the
+                <link linkend="manpage.CTCLVariable">CTCLVariable reference page</link>.
+            </para>
+            <methodsynopsis>
+                <type>CTCLInterpreter*</type> <methodname>getInterpreter</methodname>
+                                              <void /> <modifier>const</modifier>
+            </methodsynopsis>
+            <para>
+                Retrieves a pointer to the Tcl Interpreter wrapped in a
+                <classname>CTCLInterpreter</classname>
+                object.
+            </para>
+            <methodsynopsis>
+                <modifier>virtual</modifier>
+                <type>Bool_t</type> <methodname>Authenticate</methodname>
+                <methodparam>
+                    <type>CInteractor&amp;</type> <parameter>rInteractor</parameter>
+                </methodparam>
+            </methodsynopsis>
+            <para>
+                Uses the
+                <parameter>rInteractor</parameter>
+                to fetch a credential from the requestor.  If the credential is
+                a member of the list in the Tcl variable with which the authenticator
+                was constructed, this method will return
+                <literal>kfTRUE</literal>
+                If not,
+                <literal>kfFALSE</literal>
+            </para>
+      </refsect1>
+      <refsect1>
+         <title>Types and public data</title>
+         <para>
+            <classname>CTCLInterpreter</classname>
+            and
+            <classname>CTCLVariable</classname>
+            are objects that are part of the Tcl++ library. See the
+            <link linkend="chapter.tclplus">Tcl++ chapter</link> of the
+            documentation for more information about them.
+         </para>
+      </refsect1>
+   </refentry>
+    <refentry id="manpage.caccesslistcheck">
+      <refmeta>
+         <refentrytitle>CAccessListCheck</refentrytitle>
+         <manvolnum>3daq</manvolnum>
+      </refmeta>
+      <refnamediv>
+         <refname>CAccessListCheck</refname>
+	 <refpurpose>Authenticate against a list of allowed credentials.</refpurpose>
+      </refnamediv>
+      
+      <refsynopsisdiv>
+         <programlisting>
+#include &lt;AccessListCheck.h&gt;
+         </programlisting>
+         <classsynopsis>
+            <ooclass><classname>CAccessListCheck</classname></ooclass>
+            <constructorsynopsis>
+                <methodname>CAccessListCheck</methodname>
+                <void />
+            </constructorsynopsis>
+            <constructorsynopsis>
+                <methodname> CAccessListCheck</methodname>
+                <methodparam>
+                    <type>const CAccessListCheck::StringMap&amp;</type>
+                    <parameter>rSourceMap</parameter>
+                </methodparam>
+            </constructorsynopsis>
+            <constructorsynopsis>
+                <methodname>CAccessListCheck</methodname>
+                <methodparam>
+                    <type>const CAccessListCheck&amp;</type> <parameter>aCAccessListCheck</parameter>
+                </methodparam>
+            </constructorsynopsis>
+            <destructorsynopsis>
+                <methodname>~CAccessListCheck</methodname>
+                <void />
+            </destructorsynopsis>
+            <methodsynopsis>
+                <type>CAccessListCheck&amp;</type> <methodname>operator=</methodname>
+                <methodparam>
+                    <type>const CAccessListCheck&amp;</type> <parameter>aCAccessListCheck</parameter>
+                </methodparam>
+            </methodsynopsis>
+            <methodsynopsis>
+                <type>StringMap</type> <methodname>getAccessList</methodname>
+                                       <void /> <modifier>const</modifier>
+            </methodsynopsis>
+            <methodsynopsis>
+                <modifier> virtual</modifier> <type>Bool_t</type> <methodname>Authenticate</methodname>
+                <methodparam>
+                    <type>CInteractor&amp;</type> <parameter>rInteractor</parameter>
+                </methodparam>
+            </methodsynopsis>
+            <methodsynopsis>
+                <modifier>virtual</modifier> <type>void</type> <methodname>AddAclEntry</methodname>
+                <methodparam>
+                    <type>const std::string&amp;</type> <parameter>rEntry</parameter>
+                </methodparam>
+            </methodsynopsis>
+            <methodsynopsis>
+                <modifier>virtual</modifier> <type>void</type> <methodname>DeleteAclEntry</methodname>
+                <methodparam>
+                    <type>const std::string&amp;</type> <parameter>rEntry</parameter>
+                </methodparam>
+            </methodsynopsis>
+         </classsynopsis>
+      </refsynopsisdiv>
+      <refsect1>
+         <title>Description</title>
+         <para>
+            The
+            <classname>CAccessListCheck</classname>
+            class implements authentication against one of a set of legal
+            credentials.  This is simlar in nature to the
+            <link linkend="manpage.ctclaccesslistcheck">CTclAccessListCheck</link>
+            class, however the list is stored internally in the class rather than
+            in a Tcl variable.
+         </para>
+      </refsect1>
+      <refsect1>
+         <title>
+            Public member functions
+         </title>
+        <constructorsynopsis>
+            <methodname>CAccessListCheck</methodname>
+            <void />
+        </constructorsynopsis>
+        <para>
+            Constructs an access listchecking authenticator with an empty
+            access control list.  The functions
+            <methodname>AddAclEntry</methodname> and
+            <methodname>DeleteAclEntry</methodname>
+            can be used to maintaint the contents of the access list.
+        </para>
+        <constructorsynopsis>
+            <methodname> CAccessListCheck</methodname>
+            <methodparam>
+                <type>const CAccessListCheck::StringMap&amp;</type>
+                <parameter>rSourceMap</parameter>
+            </methodparam>
+        </constructorsynopsis>
+        <para>
+            Creates an access list checking authenticator.
+            The initial contents of the access control list are
+            <parameter>rSourceMap</parameter>.
+            See "Types and public data" below for information about the
+            <type>StringMap</type> data tpe.
+        </para>
+        <constructorsynopsis>
+            <methodname>CAccessListCheck</methodname>
+            <methodparam>
+                <type>const CAccessListCheck&amp;</type> <parameter>aCAccessListCheck</parameter>
+            </methodparam>
+        </constructorsynopsis>
+        <para>
+            Constructs an access list chekcing authenticator. The
+            access list is a copy of the one from
+            <parameter>aCAccessListCheck</parameter>
+        </para>
+        <destructorsynopsis>
+            <methodname>~CAccessListCheck</methodname>
+            <void />
+        </destructorsynopsis>
+        <para>
+            Releases any storage or resources that were allocated by the
+            object.
+        </para>
+        <methodsynopsis>
+            <type>CAccessListCheck&amp;</type> <methodname>operator=</methodname>
+            <methodparam>
+                <type>const CAccessListCheck&amp;</type> <parameter>aCAccessListCheck</parameter>
+            </methodparam>
+        </methodsynopsis>
+        <para>
+            Assigns the current access list authenticator from <parameter>aCAccessListCheck</parameter>
+        </para>
+        <methodsynopsis>
+            <type>CAccessListCheck::StringMap</type> <methodname>getAccessList</methodname>
+                                   <void /> <modifier>const</modifier>
+        </methodsynopsis>
+        <para>
+            Returns a copy of the current access list.  See
+            "Types and public data" below for a description of the
+            <type>StringMap</type> data type.
+        </para>
+        <methodsynopsis>
+            <modifier> virtual</modifier> <type>Bool_t</type> <methodname>Authenticate</methodname>
+            <methodparam>
+                <type>CInteractor&amp;</type> <parameter>rInteractor</parameter>
+            </methodparam>
+        </methodsynopsis>
+        <para>
+            Obtains the credentials string from the
+            <parameter>rInteractor</parameter>
+            and determines if there is match for it in the current
+            access control list.
+            If there is,
+            <literal>kfTRUE</literal>
+            is returned.
+            If not,
+            <literal>kfFALSE</literal>
+            is returned.
+        </para>
+        <methodsynopsis>
+            <modifier>virtual</modifier> <type>void</type> <methodname>AddAclEntry</methodname>
+            <methodparam>
+                <type>const std::string&amp;</type> <parameter>rEntry</parameter>
+            </methodparam>
+        </methodsynopsis>
+        <para>
+            Adds an access control entry to he list.  This is virtual to
+            allow derived classes to override how this is done.
+            the
+            <parameter>rEntry</parameter>
+            string is added to the access control list.
+        </para>
+        <methodsynopsis>
+            <modifier>virtual</modifier> <type>void</type> <methodname>DeleteAclEntry</methodname>
+            <methodparam>
+                <type>const std::string&amp;</type> <parameter>rEntry</parameter>
+            </methodparam>
+        </methodsynopsis>
+        <para>
+            Removes the access control entry
+            <parameter>rEntry</parameter>
+            from the access control list.
+        </para>
+      </refsect1>
+      <refsect1>
+         <title>Types and public data</title>
+         <para>
+            <type>CAccessListCheck::StringMap</type> contains the access control
+            list entries.  This is a type that is defined in the
+            <filename>AccessListCheck.h</filename> header as:
+            <programlisting>
+class CAccessListCheck  : public CAuthenticator        
+{                       
+public:
+  typedef std::set&lt;std::string&gt; StringMap;
+...
+};
+            </programlisting>
+         </para>
+      </refsect1>
+   </refentry>
+
+    <refentry id="manpage.chostlistcheck">
+      <refmeta>
+         <refentrytitle>CHostListCheck</refentrytitle>
+         <manvolnum>3daq</manvolnum>
+      </refmeta>
+      <refnamediv>
+         <refname>CHostListCheck</refname>
+	 <refpurpose>Authenticate from a list of TCP/IP hosts</refpurpose>
+      </refnamediv>
+      
+      <refsynopsisdiv>
+         <programlisting>
+#include &lt;HostListCheck.h&gt;
+         </programlisting>
+         <classsynopsis>
+            <ooclass><classname>CHostListCheck</classname></ooclass>
+            <constructorsynopsis>
+                <methodname>CHostListCheck</methodname>
+                <void/>
+            </constructorsynopsis>
+            <constructorsynopsis>
+                <methodname> CHostListCheck </methodname>
+                 <methodparam>
+                     <type>const CHostListCheck&amp;</type> <parameter>aCHostListCheck</parameter>
+                 </methodparam>
+            </constructorsynopsis>
+            <destructorsynopsis>
+                <methodname>~CHostListCheck</methodname>
+                <void />
+            </destructorsynopsis>
+            <methodsynopsis>
+                <type> CHostListCheck&amp;</type> <methodname>operator=</methodname>
+                <methodparam>
+                    <type>const CHostListCheck&amp;</type> <parameter>aCHostListCheck</parameter>
+                </methodparam>
+            </methodsynopsis>
+            <methodsynopsis>
+                <modifier>virtual</modifier> <type>Bool_t</type> <methodname>Authenticate</methodname>
+                <methodparam>
+                    <type>CInteractor&amp;</type> <parameter>rInteractor</parameter>
+                </methodparam>
+            </methodsynopsis>
+            <methodsynopsis>
+                <type> Bool_t</type> <methodname>Authenticate</methodname>
+                <methodparam>
+                    <type>const std::string&amp;</type> <parameter>rHostname</parameter>
+                </methodparam>
+            </methodsynopsis>
+            <methodsynopsis>
+                <modifier> virtual</modifier> <type>void</type> <methodname>AddAclEntry</methodname>
+                <methodparam>
+                    <type>const std::string&amp;</type> <parameter>rHostname</parameter>
+                </methodparam>
+            </methodsynopsis>
+            <methodsynopsis>
+                <modifier>virtual</modifier> <type>void</type> <methodname>DeleteAclEntry</methodname>
+                <methodparam>
+                    <type>const std::string&amp;</type> <parameter>rHostname</parameter>
+                </methodparam>
+            </methodsynopsis>
+            <methodsynopsis>
+                <type>Bool_t</type> <methodname>Authenticate</methodname>
+                <methodparam>
+                    <type>in_addr</type> <parameter>Address</parameter>
+                </methodparam>
+            </methodsynopsis>
+            <methodsynopsis>
+                <type>void</type> <methodname>AddIpAddress</methodname>
+                <methodparam>
+                    <type>in_addr</type> <parameter>Address</parameter>
+                </methodparam>
+            </methodsynopsis>
+            <methodsynopsis>
+                <type>void</type> <methodname>DeleteIpAddress</methodname>
+                <methodparam>
+                    <type>in_addr</type> <parameter>address</parameter>
+                </methodparam>
+            </methodsynopsis>
+         </classsynopsis>
+      </refsynopsisdiv>
+      <refsect1>
+         <title>Description</title>
+         <para>
+            <classname>CHostListCheck</classname> is derived from the
+            <link linkend="manpage.caccesslistcheck"><classname>CAccessListCheck</classname></link>.
+            The difference between the two classes is that
+            <classname>CHostListCheck</classname> maintains an access control list
+            made up of internet IP addresses.  The credentials fetched from the
+            interactor must be a host name that translates to an IP address, or
+            a dotted IP address string that matches an address in the access
+            control list.
+         </para>
+         <para>
+            Note that while the class allows users to invoke the
+            original set of ACL Maintenance functions, calling these
+            produces a warning on stderr.  The preferred way to maintain
+            the access control list is via the
+            <methodname>AddIpAddress</methodname> and
+            <methodname>DeleteIpAddress</methodname> member functions.
+         </para>
+      </refsect1>
+      <refsect1>
+         <title>
+            Public member functions
+         </title>
+        <constructorsynopsis>
+            <methodname>CHostListCheck</methodname>
+            <void/>
+        </constructorsynopsis>
+        <para>
+            Creates a
+            <classname>CHostListCheck</classname>
+            object with an empty access control list.
+        </para>
+        <constructorsynopsis>
+            <methodname> CHostListCheck </methodname>
+             <methodparam>
+                 <type>const CHostListCheck&amp;</type> <parameter>aCHostListCheck</parameter>
+             </methodparam>
+        </constructorsynopsis>
+        <para>
+            Constructs a
+            <classname>CHostListCheck</classname>
+            object that is an exact copy of
+            <parameter>aCHostListCheck</parameter>.
+        </para>
+        <destructorsynopsis>
+            <methodname>~CHostListCheck</methodname>
+            <void />
+        </destructorsynopsis>
+        <para>
+            Releases all storage and any other resources that have been allocated
+            by the object.
+        </para>
+        <methodsynopsis>
+            <type> CHostListCheck&amp;</type> <methodname>operator=</methodname>
+            <methodparam>
+                <type>const CHostListCheck&amp;</type> <parameter>aCHostListCheck</parameter>
+            </methodparam>
+        </methodsynopsis>
+        <para>
+            Assigns
+            <parameter>aCHostListCheck</parameter>
+            to the object. This currently implies a deep copy of all member data.
+        </para>
+        <methodsynopsis>
+            <modifier>virtual</modifier> <type>Bool_t</type> <methodname>Authenticate</methodname>
+            <methodparam>
+                <type>CInteractor&amp;</type> <parameter>rInteractor</parameter>
+            </methodparam>
+        </methodsynopsis>
+        <para>
+            Fetches a host name or dotted IP address string from
+            <parameter>rInteractor</parameter>.
+            If the host fetched translates to an IP address that is in the
+            access control list, the method returns
+            <literal>kfTRUE</literal>
+            otherwise,
+            <literal>kfFALSE</literal>
+            is returned.
+            Host names, or addresses that cannot map to IP addresses will naturally
+            return
+            <literal>kfFALSE</literal>.
+        </para>
+        <methodsynopsis>
+            <type> Bool_t</type> <methodname>Authenticate</methodname>
+            <methodparam>
+                <type>const std::string&amp;</type> <parameter>rHostname</parameter>
+            </methodparam>
+        </methodsynopsis>
+            <para>
+                Same as above, however authentication is done with a host string
+                <parameter>rHostname</parameter>
+                that is already available to the application.
+            </para>
+        <methodsynopsis>
+            <modifier> virtual</modifier> <type>void</type> <methodname>AddAclEntry</methodname>
+            <methodparam>
+                <type>const std::string&amp;</type> <parameter>rHostname</parameter>
+            </methodparam>
+        </methodsynopsis>
+        <para>
+            Warns via stderr, that this is not the preferred way to add an IP
+            address to the host list, and then adds the string
+            <parameter>rHostname</parameter>
+            without interpretation to the access control list.
+            To fit in with the rest of the class,
+            <parameter>rHostname</parameter>
+            should be a string of the form
+            <literal>0xaaaaaaaa</literal>
+            where
+            <literal>aaaaaaaa</literal>
+            is the IP address in network byte order, with sufficient leading
+            zeroes to ensure that there are eight digits.
+        </para>
+        <methodsynopsis>
+            <modifier>virtual</modifier> <type>void</type> <methodname>DeleteAclEntry</methodname>
+            <methodparam>
+                <type>const std::string&amp;</type> <parameter>rHostname</parameter>
+            </methodparam>
+        </methodsynopsis>
+        <para>
+            Warns the user that this is not the preferred way to manage the
+            acdess control list and then deletes
+            <parameter>rHostname</parameter>
+            from the list if it exists.
+            See <methodname>AddAclEntry</methodname> for a discussion of the
+            correct form of Acl entries.
+        </para>
+        <methodsynopsis>
+            <type>Bool_t</type> <methodname>Authenticate</methodname>
+            <methodparam>
+                <type>in_addr</type> <parameter>Address</parameter>
+            </methodparam>
+        </methodsynopsis>
+        <para>
+            Authenticates given the IP address
+            <parameter>Address</parameter>
+            in network byte order.
+        </para>    
+        <methodsynopsis>
+            <type>void</type> <methodname>AddIpAddress</methodname>
+            <methodparam>
+                <type>in_addr</type> <parameter>Address</parameter>
+            </methodparam>
+        </methodsynopsis>
+        <para>
+            Adds an IP address to the access control list.
+        </para>
+        <methodsynopsis>
+            <type>void</type> <methodname>DeleteIpAddress</methodname>
+            <methodparam>
+                <type>in_addr</type> <parameter>address</parameter>
+            </methodparam>
+        </methodsynopsis>
+        <para>
+            Removes an IP address from the access control list.
+        </para>
+      </refsect1>
+      <refsect1>
+         <title>Types and public data</title>
+         <para>
+            In all cases <type>in_addr</type> is the IP address in
+            <firstterm>network byte order</firstterm>.
+         </para>
+      </refsect1>
+   </refentry>
+
+    <refentry id="manpage.cinteractor">
+      <refmeta>
+         <refentrytitle>CInteractor</refentrytitle>
+         <manvolnum>3daq</manvolnum>
+      </refmeta>
+      <refnamediv>
+         <refname>CInteractor</refname>
+	 <refpurpose>Base class for security interactions.</refpurpose>
+      </refnamediv>
+      
+      <refsynopsisdiv>
+         <programlisting>
+#include &lt;Interactor.h&gt;
+         </programlisting>
+         <classsynopsis>
+            <ooclass><classname>CInteractor</classname></ooclass>
+            <constructorsynopsis>
+                <methodname>CInteractor</methodname>
+                <void />
+            </constructorsynopsis>
+            <constructorsynopsis>
+                <methodname>CInteractor</methodname>
+                <methodparam>
+                    <modifier>const</modifier> <type>CInteractor&amp;</type> <parameter>aCInteractor</parameter>
+                </methodparam>
+            </constructorsynopsis>
+            <destructorsynopsis>
+                <modifier>virtual</modifier> <methodname>~CInteractor</methodname>
+                    <void />
+            </destructorsynopsis>
+            <methodsynopsis>
+                <type>CInteractor&amp;</type>
+                <methodname>operator=</methodname>
+                <methodparam>
+                    <modifier>const</modifier>
+                    <type>CInteractor&amp;</type>
+                    <parameter>aCInteractor</parameter>
+                </methodparam>
+            </methodsynopsis>
+            <methodsynopsis>
+                <modifier>virtual</modifier>
+                <type>int</type>
+                <methodname>Read</methodname>
+                <methodparam>
+                    <type>UInt_t</type> <parameter>nBytes</parameter>
+                </methodparam>
+                <methodparam>
+                    <type>void*</type> <parameter>pData</parameter>
+                </methodparam>
+                <modifier> = 0</modifier>
+            </methodsynopsis>
+            <methodsynopsis>
+                <modifier>virtual</modifier> <type>int</type> <methodname>Write</methodname>
+                <methodparam>
+                    <type>UInt_t</type> <parameter>nbytes</parameter>
+                </methodparam>
+                <methodparam>
+                    <type>void*</type> <parameter>pData</parameter>
+                </methodparam>
+                <modifier> = 0 </modifier>
+            </methodsynopsis>
+            <methodsynopsis>
+                <modifier>virtual</modifier> <type>int</type> <methodname>ReadWithPrompt</methodname>
+                <methodparam>
+                    <type>UInt_t</type> <parameter>nPromptSize</parameter>
+                </methodparam>
+                <methodparam>
+                    <type>void*</type> <parameter>pPrompt</parameter>
+                </methodparam>
+                <methodparam>
+                    <type>UInt_t</type> <parameter>nReadSize</parameter>
+                </methodparam>
+                <methodparam>
+                    <type>void*</type> <parameter>pReadData</parameter>
+                </methodparam>
+            </methodsynopsis>
+            <methodsynopsis>
+                <modifier>virtual</modifier> <type>void</type> <methodname>Flush</methodname>
+                                    <void />
+            </methodsynopsis>
+         </classsynopsis>
+      </refsynopsisdiv>
+      <refsect1>
+         <title>Description</title>
+         <para>
+            <classname>CInteractor</classname> is an abstract base class for the
+            objects that authentication objects use to acquire credentials
+            from clients.  The class provides a set of interfaces
+            that all concrete interactor classes must implement.
+         </para>
+         <para>
+            In one sense, the
+            <classname>CInteractor</classname> hierarchy models obtaining
+            credentials from a client as operations on a bi-directional byte stream.
+            <methodname>Read</methodname>, and <methodname>Write</methodname> methods
+            allow the application to read and write data from the credential.
+         </para>
+      </refsect1>
+      <refsect1>
+         <title>
+            Public member functions
+         </title>
+        <constructorsynopsis>
+            <methodname>CInteractor</methodname>
+            <void />
+        </constructorsynopsis>
+        <para>
+            Place holder for constructors.
+        </para>
+        <constructorsynopsis>
+            <methodname>CInteractor</methodname>
+            <methodparam>
+                <modifier>const</modifier> <type>CInteractor&amp;</type> <parameter>aCInteractor</parameter>
+            </methodparam>
+        </constructorsynopsis>
+        <para>
+            Place holder for copy constructors.
+        </para>
+        <destructorsynopsis>
+            <modifier>virtual</modifier> <methodname>~CInteractor</methodname>
+                <void />
+        </destructorsynopsis>
+        <para>
+            Establishes destructor chaining through the class hierarchy.
+        </para>
+        <methodsynopsis>
+            <type>CInteractor&amp;</type>
+            <methodname>operator=</methodname>
+            <methodparam>
+                <modifier>const</modifier>
+                <type>CInteractor&amp;</type>
+                <parameter>aCInteractor</parameter>
+            </methodparam>
+        </methodsynopsis>
+        <para>
+            Declares the intent of the class hierarchy to offer an assignment
+            operator.
+        </para>
+        <methodsynopsis>
+            <modifier>virtual</modifier>
+            <type>int</type>
+            <methodname>Read</methodname>
+            <methodparam>
+                <type>UInt_t</type> <parameter>nBytes</parameter>
+            </methodparam>
+            <methodparam>
+                <type>void*</type> <parameter>pData</parameter>
+            </methodparam>
+            <modifier> = 0</modifier>
+        </methodsynopsis>
+        <para>
+            Interface declaration for reading data from the interactor.
+            <parameter>nBytes</parameter>
+            is the number of bytes to attempt to read.
+            <parameter>pData</parameter>
+            Is a pointer to an output buffer into which the data will be read.
+            The method is supposed to return the number of bytes that were
+            actually read into <parameter>pData</parameter>.
+            This may be no more than
+            <parameter>nBytes</parameter>.
+            In general, negative values indicate an error, and
+            zero indicates that there is no data to read.
+        </para>
+            
+        <methodsynopsis>
+            <modifier>virtual</modifier> <type>int</type> <methodname>Write</methodname>
+            <methodparam>
+                <type>UInt_t</type> <parameter>nbytes</parameter>
+            </methodparam>
+            <methodparam>
+                <type>void*</type> <parameter>pData</parameter>
+            </methodparam>
+            <modifier> = 0 </modifier>
+        </methodsynopsis>
+        <para>
+            Provides the interface for a method to write data to the interactor.
+            <parameter>nbytes</parameter> is the number of bytes to write, while
+            <parameter>pData</parameter> points to a buffer from which the
+            data are written.
+            The return value is the number of bytes actually written.
+            This will be negative for errors, zero if no data could be written,
+            and some number that is at most
+            <parameter>nbytes</parameter>
+            if data transfer took place.
+        </para>
+        <methodsynopsis>
+            <modifier>virtual</modifier> <type>int</type> <methodname>ReadWithPrompt</methodname>
+            <methodparam>
+                <type>UInt_t</type> <parameter>nPromptSize</parameter>
+            </methodparam>
+            <methodparam>
+                <type>void*</type> <parameter>pPrompt</parameter>
+            </methodparam>
+            <methodparam>
+                <type>UInt_t</type> <parameter>nReadSize</parameter>
+            </methodparam>
+            <methodparam>
+                <type>void*</type> <parameter>pReadData</parameter>
+            </methodparam>
+        </methodsynopsis>
+        <para>
+            A convenienece method for first writing a prompt string and then
+            reading a response from the interactor.
+            <parameter>nPromptSize</parameter>
+            and <parameter>pPrompt</parameter>
+            describe the prompt string and
+            <parameter>nReadSize</parameter>
+            and
+            <parameter>pReadData</parameter>
+            the input buffer for the response.
+            The method is supposed to return the number of bytes read from the
+            interactor.  This will be have values like those of
+            the
+            <methodname>Read</methodname> method.
+        </para>
+        <para>
+            The default implementation is a write followed by a read.
+        </para>
+        <methodsynopsis>
+            <modifier>virtual</modifier> <type>void</type> <methodname>Flush</methodname>
+                                <void />
+        </methodsynopsis>
+        <para>
+            This member function supports flushing any output buffered in the
+            interactor.  The default implementation does nothing which is suitable
+            for unbuffered interactors.
+        </para>
+      </refsect1>
+   </refentry>
+    <refentry id="manpage.cstringinteractor">
+      <refmeta>
+         <refentrytitle>CStringInteractor</refentrytitle>
+         <manvolnum>3daq</manvolnum>
+      </refmeta>
+      <refnamediv>
+         <refname>CStringInteractor</refname>
+	 <refpurpose>Provide an interactor that processes strings.</refpurpose>
+      </refnamediv>
+      
+      <refsynopsisdiv>
+         <programlisting>
+#include &lt;CStringInteractor.h&gt;
+         </programlisting>
+         <classsynopsis>
+            <ooclass><classname>CStringInteractor</classname></ooclass>
+            <constructorsynopsis>
+                <methodname>CStringInteractor</methodname>
+                <methodparam>
+                    <modifier>const</modifier> <type>std::string&amp;</type> <parameter>am_sString</parameter>
+                </methodparam>
+            </constructorsynopsis>
+            <constructorsynopsis>
+                <methodname>CStringInteractor</methodname>
+                <methodparam>
+                    <modifier>const</modifier> <type>CStringInteractor&amp;</type> <parameter>aCStringInteractor</parameter>
+                </methodparam>
+            </constructorsynopsis>
+            <destructorsynopsis>
+                <methodname>~CStringInteractor</methodname>
+                <void />
+            </destructorsynopsis>
+            <methodsynopsis>
+                <type>int</type> <methodname>operator==</methodname>
+                <methodparam>
+                    <modifier>const</modifier> <type>CStringInteractor&amp;</type> <parameter>aCStringInteractor</parameter>
+                </methodparam>
+                <modifier>const</modifier>
+            </methodsynopsis>
+            <methodsynopsis>
+                <type>std::string</type> <methodname>getString</methodname>
+                                         <void /> <modifier>const</modifier>
+            </methodsynopsis>
+            <methodsynopsis>
+                <type>int</type> <methodname>getReadCursor</methodname>
+                                 <void /> <modifier>const</modifier>
+            </methodsynopsis>
+            <methodsynopsis>
+                <type>void</type> <methodname>Rewind</methodname>
+                                  <void />
+            </methodsynopsis>
+            <methodsynopsis>
+                <modifier>virtual</modifier> <type>int</type> <methodname>Read</methodname>
+                <methodparam>
+                    <type>UInt_t</type> <parameter>nBytes</parameter>
+                </methodparam>
+                <methodparam>
+                    <type>void*</type> <parameter>pBuffer</parameter>
+                </methodparam>
+            </methodsynopsis>
+            <methodsynopsis>
+                <modifier>virtual</modifier> <type>int</type> <methodname>Write</methodname>
+                <methodparam>
+                    <type>UInt_t</type> <parameter>nBytes</parameter>
+                </methodparam>
+                <methodparam>
+                    <type>void*</type> <parameter>pBuffer</parameter>
+                </methodparam>
+            </methodsynopsis>
+ 
+         </classsynopsis>
+      </refsynopsisdiv>
+      <refsect1>
+         <title>Description</title>
+         <para>
+            String interactors allow you to treat strings gotten by whatever means
+            as sources for interactors.  Note that writes to a string interactor
+            are not errors, they just don't do anything.  This makes string interactors
+            behave consistently if used as interactive entitites.
+         </para>
+	 <para>
+	    While string interactors behave exactly like any other interactor,
+	    they have additional member functions that recognize their string
+	    nature.
+         </para>
+      </refsect1>
+      <refsect1>
+         <title>
+            Public member functions
+         </title>
+            <constructorsynopsis>
+                <methodname>CStringInteractor</methodname>
+                <methodparam>
+                    <modifier>const</modifier> <type>std::string&amp;</type> <parameter>am_sString</parameter>
+                </methodparam>
+
+            </constructorsynopsis>
+		<para>
+		   Constructs a string interactor given a string
+		   <parameter>am_sString</parameter>. The string
+                   will be the data 'read' by the interactor.
+		</para>
+            <constructorsynopsis>
+                <methodname>CStringInteractor</methodname>
+                <methodparam>
+                    <modifier>const</modifier> <type>CStringInteractor&amp;</type> <parameter>aCStringInteractor</parameter>
+                </methodparam>
+	
+            </constructorsynopsis>
+		<para>
+		   Constructs a string interactor that is an exact state
+		   duplicate of 
+		   <parameter>aCStringInteractor</parameter>.
+		   The duplication extends not only to the string but to the
+		   position within the string from which data will be returned
+		   to satisfy read operations (the cursor).
+		</para>	
+            <destructorsynopsis>
+                <methodname>~CStringInteractor</methodname>
+                <void />
+            </destructorsynopsis>
+	    <para>
+	       Releases all storage and resources required by the
+	       interactor prior to its finaly destruction.
+	    </para>
+            <methodsynopsis>
+                <type>int</type> <methodname>operator==</methodname>
+                <methodparam>
+                    <modifier>const</modifier> <type>CStringInteractor&amp;</type> <parameter>aCStringInteractor</parameter>
+                </methodparam>
+                <modifier>const</modifier>
+            </methodsynopsis>
+	    <para>
+	       Assignment operator.  The object will become an exact duplicate
+	       of the <parameter>aCStringInteractor</parameter>.
+	       This duplication extends to the cursor.
+	    </para>
+            <methodsynopsis>
+                <type>std::string</type> <methodname>getString</methodname>
+                                         <void /> <modifier>const</modifier>
+            </methodsynopsis>
+	    <para>
+	       Informational method that returns the full string managed by
+	       the interactor.
+            </para>
+            <methodsynopsis>
+                <type>int</type> <methodname>getReadCursor</methodname>
+                                 <void /> <modifier>const</modifier>
+            </methodsynopsis>
+	    <para>
+	       Informational method that returns the read cursor.  The read
+	       is the offset into the string managed by the interactor from
+	       which the next read will be satisfied.  If, for example,
+	       an interactor <varname>*interactor</varname>
+	       was constructed on the string
+		   <varname>astring</varname>,
+	       the first character of the next read will be
+               <varname>astring[interactor->getReadCursor()]</varname>
+	    </para>
+            <methodsynopsis>
+                <type>void</type> <methodname>Rewind</methodname>
+                                  <void />
+            </methodsynopsis>
+	    <para>
+	       Resets the read  cursor to zero, allowing the string to be
+		   re-read.
+            </para>
+            <methodsynopsis>
+                <modifier>virtual</modifier> <type>int</type> <methodname>Read</methodname>
+                <methodparam>
+                    <type>UInt_t</type> <parameter>nBytes</parameter>
+                </methodparam>
+                <methodparam>
+                    <type>void*</type> <parameter>pBuffer</parameter>
+                </methodparam>
+            </methodsynopsis>
+	    <para>
+	       Returns data from the string.  At most
+		   <parameter>nBytes</parameter>
+	       of data are read beginning at the read cursor.  If there are
+		   fewer, than <parameter>nBytes</parameter> of data left in
+		   the string, the entire remainder of the string is read.
+		   The data is copied from the string to 
+		   <parameter>pBuffer</parameter>.
+		   The number of bytes actually read is returned as the
+		   method's function value.
+	    </para>
+	    <para>
+	       After the read has been completed, the read cursor is advanced
+	       by the number of bytes returned.  If there are no more bytes
+		   available in the string, the function will return
+		   <literal>0</literal> and no data will be transfered to 
+		   <parameter>pBuffer</parameter>
+	    </para>
+            <methodsynopsis>
+                <modifier>virtual</modifier> <type>int</type> <methodname>Write</methodname>
+                <methodparam>
+                    <type>UInt_t</type> <parameter>nBytes</parameter>
+                </methodparam>
+                <methodparam>
+                    <type>void*</type> <parameter>pBuffer</parameter>
+                </methodparam>
+            </methodsynopsis>
+	    <para>
+	       This function simply returns the value of
+	       <parameter>nBytes</parameter>.  This simulates successful
+	       completion of the write, although no data will actually be
+		   transferred.
+	   </para>
+ 
+      </refsect1>
+      <refsect1>
+         <title>EXAMPLES</title>
+         <para>
+	    This example shows how to determine that an interactor is a string
+	    interactor and if so, rewind it:
+         </para>
+	 <example>
+	    <title>Calling <classname>CStringInteractor</classname> specific
+         members</title>
+	     <programlisting>
+CInteractor*       pAnInteractor = getInteractor();
+...
+CStringIteractor*  pString       =
+         dynamic_cast&lt;CStringInteractor*&gt;(pAnInteractor);
+if (pString) {
+   pString->Rewind(); 
+}
+	     </programlisting>
+	  </example>
+      </refsect1>
+   </refentry>
+   <refentry id="manpage.cfdinteractor">
+      <refmeta>
+         <refentrytitle>CFdInteractor</refentrytitle>
+	 <manvolnum>3daq</manvolnum>
+      </refmeta>
+      <refnamediv>
+         <refname>CFdInteractor</refname>
+	 <refpurpose>Interact with  file descriptor</refpurpose>
+      </refnamediv>
+      <refsynopsisdiv>
+         <programlisting>
+#include &lt;FdInteractor.h&gt;
+         </programlisting>
+	 <classsynopsis>
+	   <ooclass><classname>CFdInteractor</classname></ooclass>
+	   <constructorsynopsis>
+	      <methodname>CFdInteractor</methodname>
+	      <methodparam>
+	         <type>int</type> <parameter>fd</parameter>
+	      </methodparam>
+           </constructorsynopsis>
+	   <constructorsynopsis>
+	      <methodname>CFdInteractor</methodname>
+	      <methodparam>
+	         <modifier>const</modifier> <type>CFdInteractor&amp;</type>
+		 <parameter>rhs</parameter>
+	      </methodparam>
+           </constructorsynopsis>
+	   <methodsynopsis>
+	      <type>CFdInteractor&amp;</type>
+                   <methodname>operator=</methodname>
+	      <methodparam>
+	         <modifier>const</modifier>
+		 <type>CFdInteractor&amp;</type> <parameter>rhs</parameter>
+               </methodparam>
+           </methodsynopsis>
+	   <methodsynopsis>
+	      <type>int</type> <methodname>getFd</methodname>
+	      <void /> <modifier>const</modifier>
+	   </methodsynopsis>
+	   <methodsynopsis>
+	      <type>int</type> <methodname>Read</methodname>
+	      <methodparam>
+	         <type>UInt_t</type> <parameter>nBytes</parameter>
+              </methodparam>
+	      <methodparam>
+	         <type>void*</type> <parameter>pBuffer</parameter>
+             </methodparam>
+           </methodsynopsis>
+	   <methodsynopsis>
+	      <type>int</type> <methodname>Write</methodname>
+	      <methodparam>
+	         <type>UInt_t</type> <parameter>nBytes</parameter>
+             </methodparam>
+	     <methodparam>
+                 <type>void*</type> <parameter>pData</parameter>
+             </methodparam>
+           </methodsynopsis>
+	   <methodsynopsis>
+	      <type>void</type> <methodname>Flush</methodname>
+	      <void />
+           </methodsynopsis>
+	</classsynopsis>
+      </refsynopsisdiv>
+      <refsect1>
+         <title>DESCRIPTION</title>
+	 <para>
+	    The <classname>CFdInteractor</classname> is an interactor that
+	    accepts and, if requested, provides data to anything that can be
+	    represented by a file descriptor.   Reads and writes 
+	    go directly to the file descriptor, the only buffering that is
+	    done is what is done by whatever handles the file descriptor at the
+	    operating system level.
+         </para>
+      </refsect1>
+      <refsect1>
+         <title>PUBLIC MEMBER FUNCTIONS</title>
+	   <constructorsynopsis>
+	      <methodname>CFdInteractor</methodname>
+	      <methodparam>
+	         <type>int</type> <parameter>fd</parameter>
+	      </methodparam>
+           </constructorsynopsis>
+	   <para>
+	     Construct an object of this class connected to the
+	     file descriptor <parameter>fd</parameter>.
+           </para>
+	   <constructorsynopsis>
+	      <methodname>CFdInteractor</methodname>
+	      <methodparam>
+	         <modifier>const</modifier> <type>CFdInteractor&amp;</type>
+		 <parameter>rhs</parameter>
+	      </methodparam>
+           </constructorsynopsis>
+	   <para>
+	      Constructs a copy of the file descriptor
+	      <parameter>rhs</parameter>.  The underlying file descriptor
+	      is duped so that the original one can be closed without 
+	      affecting the copy.
+	   </para>
+	   <methodsynopsis>
+	      <type>CFdInteractor&amp;</type>
+                   <methodname>operator=</methodname>
+	      <methodparam>
+	         <modifier>const</modifier>
+		 <type>CFdInteractor&amp;</type> <parameter>rhs</parameter>
+               </methodparam>
+           </methodsynopsis>
+	   <para>
+	      Assigns to this from the <parameter>rhs</parameter>.
+	      The existing file descriptor is closed, and the file descriptor
+	      associted with <parameter>rhs</parameter> is duped so that
+	      actions by this object will be independent of those of the 
+	      <parameter>rhs</parameter>
+           </para>
+	   <methodsynopsis>
+	      <type>int</type> <methodname>getFd</methodname>
+	      <void /> <modifier>const</modifier>
+	   </methodsynopsis>
+	   <para>
+	       This informational member returns the file descriptor associated
+	       with the object.
+	   </para>
+	   <methodsynopsis>
+	      <type>int</type> <methodname>Read</methodname>
+	      <methodparam>
+	         <type>UInt_t</type> <parameter>nBytes</parameter>
+              </methodparam>
+	      <methodparam>
+	         <type>void*</type> <parameter>pBuffer</parameter>
+             </methodparam>
+           </methodsynopsis>
+            <para>
+              Attempts to read
+              <parameter>nBytes</parameter> of data from the file into
+              <parameter>pBuffer</parameter>.  The actual number of bytes read
+                is returned as the value of the method.  If <literal>0</literal>
+                is returned, the fd has hit an eof or is in non-blocking mode with
+                no data ready to be read.  If negative, an error condition
+                exists and the reason for the error will be in the global
+                variable/macro <varname>errno</varname>
+            </para>
+	   <methodsynopsis>
+	      <type>int</type> <methodname>Write</methodname>
+	      <methodparam>
+	         <type>UInt_t</type> <parameter>nBytes</parameter>
+             </methodparam>
+	     <methodparam>
+                 <type>void*</type> <parameter>pData</parameter>
+             </methodparam>
+           </methodsynopsis>
+           <para>
+                Attempts to write
+                <parameter>nBytes</parameter>
+                of data from <parameter>pData</parameter>
+                to the file.  The actual number of bytes of data written are
+                returned to the caller.  If an error has occured, the result will
+                be negative.  If the result is zero, likely the file descriptor
+                is open in non=blocking mode,  but cannot now be written to
+                (e.g. it's a pipe without a reader).
+            </para>
+	   <methodsynopsis>
+	      <type>void</type> <methodname>Flush</methodname>
+	      <void />
+           </methodsynopsis>
+           <para>
+                Flushes any buffered output to the file.  In practice this
+                does nothing for file descriptors.
+           </para>
+       </refsect1>
+   </refentry>
+    <refentry id="manpage.ciointeractor">
+      <refmeta>
+         <refentrytitle>CIOInteractor</refentrytitle>
+         <manvolnum>3daq</manvolnum>
+      </refmeta>
+      <refnamediv>
+         <refname>CIOInteractor</refname>
+	 <refpurpose>Separate prompt and input interactors.</refpurpose>
+      </refnamediv>
+      
+      <refsynopsisdiv>
+         <programlisting>
+#include &lt;IOInteractor.h&gt;
+         </programlisting>
+         <classsynopsis>
+            <ooclass><classname>CIOInteractor</classname></ooclass>
+            <constructorsynopsis>
+                <methodname>CIOInteractor</methodname>
+                <methodparam>
+                    <type>CInteractor&amp;</type> <parameter>rInput</parameter>
+                </methodparam>
+                <methodparam>
+                    <type>CInteractor&amp;</type> <parameter>rOutput</parameter>
+                </methodparam>
+            </constructorsynopsis>
+            <destructorsynopsis>
+                <modifier>virtual</modifier>
+                <methodname>~CIOInteractor</methodname> <void />
+            </destructorsynopsis>
+            <methodsynopsis>
+                <type>CInteractor*</type>
+                <methodname>getOutput</methodname>
+                <void /> <modifier>const</modifier>
+            </methodsynopsis>
+            <methodsynopsis>
+                <type>CInteractor*</type>
+                <methodname>getInput</methodname>
+                <void />
+                <modifier>const</modifier>
+            </methodsynopsis>
+            <methodsynopsis>
+                <modifier>virtual</modifier>
+                <type>int</type> <methodname>Read</methodname>
+                <methodparam>
+                    <type>UInt_t</type> <parameter>nBytes</parameter>
+                </methodparam>
+                <methodparam>
+                    <type>void*</type> <parameter>pBuffer</parameter>
+                </methodparam>
+            </methodsynopsis>
+            <methodsynopsis>
+                <modifier>virtual</modifier>
+                <type>int</type> <methodname>Write</methodname>
+                <methodparam>
+                    <type>UInt_t</type> <parameter>nBytes</parameter>
+                </methodparam>
+                <methodparam>
+                    <type>void*</type> <parameter>pBuffer</parameter>
+                </methodparam>
+            </methodsynopsis>
+            <methodsynopsis>
+                <modifier>virtual</modifier>
+                <type>void</type>
+                <methodname>Flush</methodname> <void />
+            </methodsynopsis>
+         </classsynopsis>
+      </refsynopsisdiv>
+      <refsect1>
+         <title>Description</title>
+         <para>
+            This class models an interactor that is made up of a read-only and
+            a write-only interactor.  Prompt/written data goes to the write-only
+            interactor while reads go to the read-only interactor.
+            A sample usage would be for an interactive application where
+            the output interactor would be a
+            <classname>CFdInteractor</classname>
+            connected to <literal>stdout</literal>,
+            and the input interactor
+            <classname>CFdInteractor</classname>
+            connected to <literal>stdin</literal>
+         </para>
+         <para>
+            Note that this class has no copy constructor as it is not possible
+            to ensure that all iteractor classes now and in the future will
+            have copy constructors.  In most cases, this is not a restriction.
+         </para>
+      </refsect1>
+      <refsect1>
+         <title>
+            Public member functions
+         </title>
+            <constructorsynopsis>
+                <methodname>CIOInteractor</methodname>
+                <methodparam>
+                    <type>CInteractor&amp;</type> <parameter>rInput</parameter>
+                </methodparam>
+                <methodparam>
+                    <type>CInteractor&amp;</type> <parameter>rOutput</parameter>
+                </methodparam>
+            </constructorsynopsis>
+            <para>
+                Constructs the interactor,
+                <parameter>rInput</parameter>
+                is the interactor that will be used to get the input credentials.
+                <parameter>rOutput</parameter>
+                the interator to which prompts will be sent.
+            </para>
+            <methodsynopsis>
+                <type>CInteractor*</type>
+                <methodname>getOutput</methodname>
+                <void /> <modifier>const</modifier>
+            </methodsynopsis>
+            <para>
+                Informational function that returns a pointer to the output
+                interactor used to construct this object.
+            </para>
+            <methodsynopsis>
+                <type>CInteractor*</type>
+                <methodname>getInput</methodname>
+                <void />
+                <modifier>const</modifier>
+            </methodsynopsis>
+            <para>
+                Informational function that returns a pointer to the input
+                interactor used to construct this object.
+            </para>
+            <methodsynopsis>
+                <modifier>virtual</modifier>
+                <type>int</type> <methodname>Read</methodname>
+                <methodparam>
+                    <type>UInt_t</type> <parameter>nBytes</parameter>
+                </methodparam>
+                <methodparam>
+                    <type>void*</type> <parameter>pBuffer</parameter>
+                </methodparam>
+            </methodsynopsis>
+            <para>
+                Attempts to read
+                <parameter>nBytes</parameter>
+                from the input interactor into the buffer pointed to by
+                <parameter>pBuffer</parameter>.  The return value is determined
+                by the type of the actual interactor, but generally is the actual
+                number of bytes read.  Usually a negative value indicates an error
+                condition of some sort, and a zero indicates there is no data
+                to be read, either because the end of the data source has been
+                reached or because the input source is a non-blocking entity.
+            </para>
+            <methodsynopsis>
+                <modifier>virtual</modifier>
+                <type>int</type> <methodname>Write</methodname>
+                <methodparam>
+                    <type>UInt_t</type> <parameter>nBytes</parameter>
+                </methodparam>
+                <methodparam>
+                    <type>void*</type> <parameter>pBuffer</parameter>
+                </methodparam>
+            </methodsynopsis>
+            <para>
+                Writes
+                <parameter>nBytes</parameter> of data from
+                <parameter>pBuffer</parameter>
+                to the output interactor.
+                The return value depends on the actual interactor.
+                Usually negative values indicate an error,
+                zero usually indicates output to a non-blocking entity that
+                is not able to accept output at that time, and values
+                less than
+                <parameter>nBytes</parameter>
+                represent devices with some blocking/buffering
+                factor that has been
+                exceeded by the write.
+            </para>
+            <methodsynopsis>
+                <modifier>virtual</modifier>
+                <type>void</type>
+                <methodname>Flush</methodname> <void />
+            </methodsynopsis>
+            <para>
+                Flushes data in output buffes the output interactor may have.
+            </para>
+
+      </refsect1>
+   </refentry>
+
+<!-- /manpage -->

@@ -1,0 +1,135 @@
+#!/bin/sh
+# start wish: \
+exec wish ${0} ${@}
+
+
+set scriptDir [file dirname [info script]]
+
+# Canonicalize the TclLibs tree and prepend it to auto_path if not already there.
+
+set libDir [file join $scriptDir .. TclLibs]
+set wd [pwd]
+cd $libDir
+set libDir [pwd]
+cd $wd
+
+if {[lsearch -exact $auto_path $libDir] == -1} {
+	set auto_path [concat $libDir $auto_path]
+}
+
+#
+# Sourcein the guis:
+#
+
+source [file join $libDir dvdburn TopGUi.ui.tcl]
+source [file join $libDir dvdburn dvdburnoutput.ui.tcl]
+
+set burning 0
+set burnfd ""
+
+# Set up the initial prompting GUI:
+
+frame .top
+
+TopGUi_ui .top
+
+pack .top
+#
+#   This is called when the user is ready to do the burn.
+#   Pop up the output catpure gui, figure out the parameters and start
+#   The burn job.
+#
+
+proc Burn {} {
+    global FirstRun
+    global LastRun
+    global all
+
+    destroy .top
+
+    # Put up the caputure GUI:
+
+    frame .capture
+    seeburnoutput_ui .capture
+    pack .capture
+    wm   geometry . 500x500
+
+    set runrange ""
+
+    if {!$all} {
+	if {$FirstRun != ""} {
+	    lappend runrange $FirstRun
+	    if {$LastRun != ""} {
+		lappend runrange $LastRun
+	    }
+	}
+    }
+
+    BurnRange $runrange
+}
+#
+#   Called to cancel the burn in the middle of the operation.
+#
+proc KillBurn {} {
+    global burning
+    global burnfd
+
+    if {! $burning } {
+	exit
+    } else {
+	close $burnfd
+	exit
+    }
+}
+#
+#   Start the burn off with output captured by 
+#   .capture.output
+#
+proc BurnRange {range} {
+    global burning
+    global burnfd
+    global scriptDir
+
+
+    set burnfd [open "| $scriptDir/dvdburn [lindex $range 0] [lindex $range 1]" r+]
+    fconfigure $burnfd -blocking 0
+    fileevent $burnfd readable CaptureOutput
+    set burning 1
+
+}
+#
+#  Capture output from the pipe:
+#
+proc CaptureOutput {} {
+    global burnfd
+    global burning
+
+
+    if {[eof $burnfd]} {
+	close $burnfd
+	set   burning 0
+	.capture.cancel config -text "Dismiss"
+	.capture.output insert end \
+	    "DONE!!! Check the log for errors before dismissing"
+	.capture.output see end
+    } else {
+
+	set line [gets $burnfd]
+	append line "\n"
+	.capture.output insert end $line
+	.capture.output see end
+	#
+	# Is it a disk prompt?
+    #
+	if {[regexp BURNDVD: $line]} {
+	    
+	    tk_dialog .next "Next DVD" "Put a blank DVD in the burner" \
+		questhead 0 "Ready to Burn"
+	    puts -nonewline $burnfd "\n"
+	    flush $burnfd
+	}
+    }
+}
+
+
+

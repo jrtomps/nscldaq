@@ -1,0 +1,434 @@
+<!-- chapter libraries -->
+<chapter>
+    <title>Integer byte order conversion library</title>
+    <para>
+        The <application>cvt</application> package provides functions that convert
+        data from foreign host to local host integer formats and back.
+        These functions are designed to make use of a byte order signature
+        that describes the byte order of the foreign host.
+    </para>
+    <para>
+        Reference material for this library is available in the
+        <link linkend="manpage.cvt">reference manual page for cvt </link>.
+    </para>
+    <para>
+        This chapter gives an high level view of how the
+        library should be used.
+    </para>
+    <section>
+        <title>Using the conversion library in your code</title>
+        <para>
+            The conversion library is a set of C functions.  To use it,
+            you will need to include the library header in your source code
+            with a line like:
+            <example>
+                <title>Including the cvt header</title>
+                <programlisting>
+#include &lt;cvt.h&gt;
+                </programlisting>
+            </example>
+        </para>
+        <para>
+            You will also need to link the conversion library into your executable
+            program.  Since the conversion headers and libraries are generally
+            not installed in the normal search paths for headers and libraries,
+            you will need to help the compiler find them at compile and link time.
+            In this discussion, we will assume you have defined an environment
+            variable DAQROOT to point to he NSCL DAQ installation directory
+            (at the NSCL this will typically be in
+            <filename>/usr/opt/daq/some-version</filename>
+            where <literal>some-version</literal> is the version of the NSCLDAQ
+            you are selecting.
+        </para>
+        <example>
+            <title>Compiling a C or C++ source file that includes <filename>cvt.h</filename></title>
+            <programlisting>
+gcc -c -I$DAQROOT/include myprogram.c
+
+or
+
+g++ -c -I$DAQROOT/include myprogram.cpp
+
+            </programlisting>
+        </example>
+        <example>
+            <title>A makefile rule that builds a C++ program using the
+                <application>cvt</application> package</title>
+            <programlisting>
+theprogram: $(OBJECTS)
+    g++ -o theprogram $(OBJECTS) -L$(DAQROOT)/lib -lcvt -Wl,"-rpath=$(DAQROOT)/lib"
+            </programlisting>
+        </example>
+    </section>
+    <section>
+        <title>Byte order signatures and conversion blocks</title>
+        <para>
+            Byte order signatures are known integer values that are available
+            in the foreign system's byte oder.  By examining these on a byte by byte
+            basis, the byte ordering of the remote system can be determined.
+            While typically systems have a consistent ordering of bytes in words
+            and words in longwords, the library does not assume that.
+        </para>
+        <para>
+            A system that is supplying data to be converted with this library
+            must provide a 16 bit and a 32 bit signature.  These are the
+            values <literal>0x0102</literal> and <literal>0x01020304</literal>
+            repsectively written in that system's native byte ordering.
+        </para>
+        <para>
+            The function <function>makecvtblock</function> takes those signatures
+            and delivers a <type>DaqConversion</type> block.  The
+            <type>DaqConversion</type> block is a data structure that provides
+            conversion tables for foreign to host and host to foreign conversions.
+        </para>
+        <para>
+            Suppose you have data in a structure that contains these signatures
+            as fields named <varname>s_ssig</varname> and
+            <varname>s_lsig</varname>.  The example below shows how to
+            create a conversion block:
+        </para>
+        <example>
+            <title>Creating a <type>DaqConversion</type></title>
+            <programlisting>
+#include &lt;cvt.h&gt;
+...
+DaqConversion conversionBlock;
+makecvtblock(data.s_lsig, data.s_ssig, &amp;conversionBlock);
+...
+            </programlisting>
+        </example>
+        <para>
+            The <type>DaqConversion</type> block
+            <varname>conversionBlock</varname>
+            can be used in subsequent calls to do byte order conversions.
+        </para>
+    </section>
+    <section>
+        <title>Data conversion</title>
+        <para>
+            Data conversion functions are provided to convert both from
+            the foreign system to the host, and from the host to the foreign
+            system.  Before we look at these functions, some definitions:
+        </para>
+        <variablelist>
+            <varlistentry>
+                <term><firstterm>host</firstterm></term>
+                <listitem><para>
+                    The system that is running our program.
+                </para></listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><firstterm>foreign system</firstterm></term>
+                <listitem><para>
+                    The system that produced the data we are trying to process.
+                    This could be the same system as the host or a different system.
+                    This could have the same or different native byte ordering
+                    than the host.
+                </para></listitem>
+            </varlistentry>
+        </variablelist>
+        <para>
+            Functions are provided that allow you to convert shorts and longs
+            in either direction.  These functions are described more completely
+            in the
+            <link linkend="manpage.cvt">cvt reference page</link>.
+            Briefly however:
+        </para>
+        <variablelist>
+            <varlistentry>
+                <term><function>ftohl</function></term>
+                <listitem><para>
+                            Converts a longword (32 bit integer) from foreign
+                            to host format.
+                </para></listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><function>ftohw</function></term>
+                <listitem><para>
+                            Converts a short (16 bit word) from foreign to host
+                            format.
+                </para></listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><function>htofl</function></term>
+                <listitem><para>
+                            Converts a longword (32 bit integer)
+                            from host to foreign system format.
+                          </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><function>htofs</function></term>
+                <listitem><para>
+                            Converts a short (16 bit integer)
+                            from host to foreign system format.
+                          </para>
+                </listitem>
+            </varlistentry>
+        </variablelist>
+            
+    </section>
+</chapter>
+
+<!-- /chapter -->
+
+<!-- manpage 3daq -->
+
+<refentry id="manpage.cvt">
+    <refmeta>
+         <refentrytitle>cvt</refentrytitle>
+         <manvolnum>3daq</manvolnum>
+    </refmeta>
+    <refnamediv>
+       <refname>cvt</refname>
+       <refpurpose>Integer byte order conversions</refpurpose>
+    </refnamediv>
+    
+    <refsynopsisdiv>
+       <programlisting>
+#include &lt;cvt.h&gt;
+       </programlisting>
+       <funcsynopsis>
+        <funcprototype>
+            <funcdef><type>void</type> <function>makecvtblock</function></funcdef>
+            <paramdef>
+                <type>uint32_t</type> <parameter>lsig</parameter>
+            </paramdef>
+            <paramdef>
+                <type>uint16_t</type> <parameter>ssig</parameter>
+            </paramdef>
+            <paramdef>
+                <type>DaqConversion*</type> <parameter>conversion</parameter>
+            </paramdef>
+        </funcprototype>
+       </funcsynopsis>
+       <funcsynopsis>
+            <funcprototype>
+                <funcdef><type>bool</type> <function>hostsameasforeign</function></funcdef>
+                <paramdef>
+                    <type>DaqConversion*</type> <parameter>conversion</parameter>
+                </paramdef>
+            </funcprototype>
+       </funcsynopsis>
+       <funcsynopsis>
+        <funcprototype>
+            <funcdef><type>uint32_t</type> <function>ftohl</function></funcdef>
+            <paramdef>
+                <type>DaqConversion*</type> <parameter>convertdata</parameter>
+            </paramdef>
+            <paramdef>
+                <type>uint32_t</type> <parameter>datum</parameter>
+            </paramdef>
+        </funcprototype>
+       </funcsynopsis>
+       <funcsynopsis>
+        <funcprototype>
+            <funcdef><type>uint16_t</type> <function>ftohs</function></funcdef>
+            <paramdef>
+                <type>DaqConversion*</type> <parameter>convertdata</parameter>
+            </paramdef>
+            <paramdef>
+                <type>uint1y_t</type> <parameter>datum</parameter>
+            </paramdef>
+        </funcprototype>
+       </funcsynopsis>
+       <funcsynopsis>
+       <funcprototype>
+        <funcdef><type>uint32_t></type> <function>htofl</function></funcdef>
+            <paramdef>
+                <type>DaqConversion*</type> <parameter>convertdata</parameter>
+            </paramdef>
+            <paramdef>
+                <type>uint32_t</type> <parameter>datum</parameter>
+            </paramdef>
+        </funcprototype>
+       </funcsynopsis>
+       <funcsynopsis>
+       <funcprototype>
+        <funcdef><type>uint16_t</type> <function>htofs</function></funcdef>
+            <paramdef>
+                <type>DaqConversion*</type> <parameter>convertdata</parameter>
+            </paramdef>
+            <paramdef>
+                <type>uint16_t</type> <parameter>datum</parameter>
+            </paramdef>
+        </funcprototype>
+       </funcsynopsis>
+    </refsynopsisdiv>
+    <refsect1>
+       <title>Description</title>
+       <para>
+          This library provides a suite of functions that do integer conversions
+          between the native integer formats of different systems.
+          Typically systems are classified as 
+          <firstterm>big-endian</firstterm> or
+          <firstterm>little-endian</firstterm>.
+       </para>
+       <para>
+        Big-endian systems store their data with the most significant bytes of
+        a multi-byte integer in lower addresses, while little-endian systems
+        least significant bytes in lower addresses.
+        This library uses <firstterm>signature</firstterm> data in the
+        data to determine the byte ordering of foreign host (the host that
+        created the data), and how it differs from the local byte ordering.
+       </para>
+       <para>
+            Signature data are data that have a known value, stored in the
+            system's native byte order.  Analyzing these values byte by byte
+            allows the software to determine the byte order of the foreign system.
+            The code defines the values:
+            <literal>CVT_WORDSIGNATURE</literal>
+            and
+            <literal>CVT_LONGSIGNATURE</literal>
+            respectively to be <type>uint16_t</type> and
+            <type>uint32_t</type>
+            signatures respectively.
+            Separate 16 and 32 bit signatures allows the library to deal with
+            any pathalogical systems that may have word orders that differ from
+            byte ordering.
+	</para>
+    </refsect1>
+    <refsect1>
+       <title>
+          Public functions
+       </title>
+       <funcsynopsis>
+        <funcprototype>
+            <funcdef><type>void</type> <function>makecvtblock</function></funcdef>
+            <paramdef>
+                <type>uint32_t</type> <parameter>lsig</parameter>
+            </paramdef>
+            <paramdef>
+                <type>uint16_t</type> <parameter>ssig</parameter>
+            </paramdef>
+            <paramdef>
+                <type>DaqConversion*</type> <parameter>conversion</parameter>
+            </paramdef>
+        </funcprototype>
+       </funcsynopsis>
+       <para>
+            Creates a conversion block from the foreign system signatures you've
+            extracted from the data.  Note that NSCLDAQ control data includes byte
+            and long signatures you can use for this purpose.
+            <parameter>lsig</parameter> and
+            <parameter>ssig</parameter>
+            are the 32 and 16 bit signatures respectively.
+        </para>
+        <para>    
+            <parameter>conversion</parameter>
+            must point to a <type>DaqConversion</type> structure that will be
+            over-written with the conversion block that describes how to
+            convert from the byte order described by
+            <parameter>lsig</parameter>
+            and
+            <parameter>ssig</parameter>
+            to the host's byte order.
+        </para>
+       <funcsynopsis>
+            <funcprototype>
+                <funcdef><type>bool</type> <function>hostsameasforeign</function></funcdef>
+                <paramdef>
+                    <type>DaqConversion*</type> <parameter>conversion</parameter>
+                </paramdef>
+            </funcprototype>
+       </funcsynopsis>
+       <para>
+        Determines if the conversion block pointed to by
+        <parameter>conversion</parameter>
+        describes a system with the same byte order as the host system.
+        </para>
+       <funcsynopsis>
+        <funcprototype>
+            <funcdef><type>uint32_t</type> <function>ftohl</function></funcdef>
+            <paramdef>
+                <type>DaqConversion*</type> <parameter>convertdata</parameter>
+            </paramdef>
+            <paramdef>
+                <type>uint32_t</type> <parameter>datum</parameter>
+            </paramdef>
+        </funcprototype>
+       </funcsynopsis>
+        <para>
+            Converts a 32 bit value
+            <parameter>datum</parameter>
+            from the byte order of the foreign host used to produce the
+            <type>DaqConversion</type>
+            structer pointed to by <parameter>convertdata</parameter> to the
+            local host's byte order. The converted value is returned.
+        </para>
+       <funcsynopsis>
+        <funcprototype>
+            <funcdef><type>uint16_t</type> <function>ftohs</function></funcdef>
+            <paramdef>
+                <type>DaqConversion*</type> <parameter>convertdata</parameter>
+            </paramdef>
+            <paramdef>
+                <type>uint1y_t</type> <parameter>datum</parameter>
+            </paramdef>
+        </funcprototype>
+       </funcsynopsis>
+        <para>
+            Converts a 16 bit integer
+            <parameter>datum</parameter> from the byte order described by
+            the system used to produce the
+            <type>DaqConversion</type>
+            block pointed to by
+            <parameter>convertdata</parameter> into the local system's byte order
+            and returns that 16 bit integer.
+        </para>
+       <funcsynopsis>
+       <funcprototype>
+        <funcdef><type>uint32_t></type> <function>htofl</function></funcdef>
+            <paramdef>
+                <type>DaqConversion*</type> <parameter>convertdata</parameter>
+            </paramdef>
+            <paramdef>
+                <type>uint32_t</type> <parameter>datum</parameter>
+            </paramdef>
+        </funcprototype>
+       </funcsynopsis>
+       <para>
+            Converts the 32 bit integer
+            <parameter>datum</parameter>
+            from the local host's native byte order to the byte order described
+            by the foreign host used to create the 
+            <type>DaqConversion</type>
+            conversion block
+            <parameter>convertdata</parameter>,
+            and returns the converted value.
+        </para>
+       <funcsynopsis>
+       <funcprototype>
+        <funcdef><type>uint16_t</type> <function>htofs</function></funcdef>
+            <paramdef>
+                <type>DaqConversion*</type> <parameter>convertdata</parameter>
+            </paramdef>
+            <paramdef>
+                <type>uint16_t</type> <parameter>datum</parameter>
+            </paramdef>
+        </funcprototype>
+       </funcsynopsis>
+       <para>
+           Converts the 16 bit integer
+            <parameter>datum</parameter>
+            from the local host's native byte order to the byte order described
+            by the foreign host used to create the 
+            <type>DaqConversion</type>
+            conversion block
+            <parameter>convertdata</parameter>,
+            and returns the converted value.
+        </para>
+    </refsect1>
+    <refsect1>
+       <title>Types and public data</title>
+       <para>
+        <literal>CVT_WORDSIGNATURE</literal> is a 16 bit byte order signature you will
+            need to supply in any data you originate, and
+        <literal>CVT_LONGSIGNATURE</literal> is a 32 bit byte order signature you will
+            need to supply in any data you originate.
+       </para>
+    </refsect1>
+</refentry>
+
+<!-- /manpage -->
+
