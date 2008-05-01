@@ -1,0 +1,978 @@
+
+    
+<!-- chapter servers -->
+<chapter id="chapter.daqportmanager">
+    <title>Service Port Manager.</title>
+       <para>
+            The TclServer application makes it trivial for users
+            to create and use application specific servers.  When doing so,
+            however one problem that crops up is which service port should be
+            used by the service when it listens for connections.  The service
+            port used must be unique across all servers within a specific system.
+       </para>
+       <para>
+          The NSCL <application>PortManager</application> application attempts to
+            solve this by managing a block of ports on behalf of servers running in a
+            specific system and advertising the application and user names associated with
+            ports that it has allocated.  By interacting with the port manager, servers
+            can be assured of getting a unique port.  By interacting with the port manager,
+            clients can determine the likely port on which a server they are interested in is
+            listening.
+       </para>
+       <para>
+            The Port manager conists of the following components, which are described in this
+            reference material:
+            <itemizedlist>
+                <listitem>
+                    <para>The
+                        <link linkend="manpage.DaqPortManager">port manager daemon</link>
+                        manages a block of ports for the
+                        system in which it is run.  The reference material for the application
+                        describes the switches that control the port manager's operation,
+                        the log/status files it creates and the protocol that should be used to
+                        interact with the daemon.
+                    </para>
+                </listitem>
+                <listitem>
+                    <para>
+                        A
+                        <link linkend="manpage.CPortManager">C++ class library</link>
+                        that allows C++ software to interact with the
+                        port manager either as a server or as a client.
+                    </para>
+                </listitem>
+                <listitem>
+                    <para>
+                    The
+                    <link linkend="manpage.portAllocator">portAllocator package</link>,
+                    which allows Tcl scripts to interact with a
+                    port manager either as a server or a client.
+                    </para>
+                </listitem>
+            </itemizedlist>
+       </para>
+</chapter>
+
+<!-- /chapter -->
+
+<!-- manpage 1tcl -->
+
+<refentry id="manpage.DaqPortManager">
+  <refmeta>
+     <refentrytitle>DaqPortManager</refentrytitle>
+     <manvolnum>1tcl</manvolnum>
+  </refmeta>
+  <refnamediv>
+     <refname>TCP/IP service port manager.</refname>
+     <refpurpose>Manage TCP/IP service ports and advertise their allocations</refpurpose>
+  </refnamediv>
+  
+  <refsynopsisdiv>
+    <cmdsynopsis>
+	<command>
+tclsh DaqPortManager <replaceable>options...</replaceable>
+	</command>
+    </cmdsynopsis>
+  </refsynopsisdiv>
+  <refsect1>
+     <title>DESCRIPTION</title>
+     <para>
+       DaqPortManager  is  a  persistent  server that should be run at system startup
+       time.  The program manages a block of TCP/IP ports.   Clients connect  to  the
+       server  to  request  ports  as well as to ask the server to return the current
+       port assignments.
+     </para>
+     <para>
+       Command options (see OPTIONS) describe how th eprogram starts up.  The command
+       options  allow  the user to define the block of ports that will be managed, to
+       determine which port the port manager itself will listen  on  for  connections
+       and  to define where the software will writ its log file.  Several other files
+       are maintained by the program (see FILES).
+	
+     </para>
+  </refsect1>
+  <refsect1>
+     <title>
+	OPTIONS
+     </title>
+     <variablelist>
+	<varlistentry>
+	    <term><option>-ports</option> <replaceable>range</replaceable></term>
+	    <listitem>
+		<para>
+                    Defines the range of ports that will be managed by the
+                    port manager program.  This should be specified as a pair
+                    of integer number separated by a <literal>-</literal> (dash).
+                    e.g. <literal>30001-31000</literal>.  If not provided defaults
+                    to <literal>30001-31000</literal>.
+		</para>
+	    </listitem>
+	</varlistentry>
+        <varlistentry>
+            <term><option>-listen</option> <replaceable>port</replaceable></term>
+            <listitem>
+                <para>
+                    Defines the port on which the port manager itself will listen for
+                    connections.  This defaults to <literal>30000</literal>.  The port manager
+                    is itself a server.  Most of the software that connects to it assumes the
+                    default port will be used to communicate with it, therefore, changing this
+                    value will most likely require other changes elsewhere in the NSCLDAQ software
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term><option>-log</option> <replaceable>logfile</replaceable></term>
+            <listitem>
+                <para>
+                    The  <option>-log</option> switch  is followed by a path to a file
+               that will be used to
+              log the server&#039;s actions.  The server logs  connections,  port  allocations,
+              port allocation failures, port releases and illegal requests by
+              clients.  The default log file is
+              <filename>/var/log/nscldaq/portmanager.log</filename>
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term><option>-usagefile</option> <replaceable>usagefilename</replaceable></term>
+            <listitem>
+                <para>
+                    The
+                    <option>-usagefile</option>
+                    switch is followed by a path to a file that will be used
+              to  hold  the  instantaneous  port usage.  This file can be examined to
+              show the current port usage. Each line in this file is a three  element
+              TCL  list of port, application and user for an allocated port.   If the
+              <option>-usagefile</option> switch is not provided, the server defaults to
+              <filename>/var/tmp/daqportmgr/ports.txt</filename>.
+                </para>
+            </listitem>
+        </varlistentry>
+     </variablelist>
+  </refsect1>
+  <refsect1>
+        <title>PROTOCOL</title>
+        <para>
+       The server protocol is quite simple. Once connected, two transactions are recognized.
+       Each transaction is requested by the client  and  fulfilled  by  the
+       server.   Requests are a single line (terminated with a <literal>\n</literal>) and
+       cann be one of the following:
+          </para>
+        <variablelist>
+        <varlistentry>
+            <term><command>GIMME <replaceable>appname user</replaceable></command></term>
+            <listitem>
+                <para>
+              <command>GIMME</command>  requests the server allocate a port.  When allocated, the server
+              will believe that the  port  is  allocated  to  the  application  named
+              appname run by the user user. If successful, the server replies:
+                </para>
+            
+            <variablelist>
+                <varlistentry>
+                    <term>OK portnum</term>
+                    <listitem>
+                        <para>
+                            Where  the  OK  indicates  success and the
+                            portnum is the number of the
+                            port allocated.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>FAIL reason</term>
+                    <listitem>
+                        <para>
+                            Indicates a failure where reason is a TCL quoted
+                            item describing why the port could not  be
+                            allocated.
+                        </para>
+                    </listitem>
+                </varlistentry>
+            </variablelist>
+            <para>
+                       Once a client has allocated a port it must hold a persistent connection to the
+       server.  When a client owning ports drops this connection its ports are  freed
+       by  the  server.  While  possibly inconvenient, this protocol prevents clients
+       from accidently holding on to ports past exit.
+            </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+            <term>LIST</term>
+            <listitem>
+                <para>
+                  Requests that the server list port usage.  The server will issue
+                  a multiline reply to this request.  The first line will be of the form:
+                </para>
+                <variablelist>
+                    <varlistentry>
+                    <term>OK n</term>
+                    <listitem>
+                        <para>
+                Where  n  is  the number of ports that are currently allocated.   The n
+              lines that follow each consists of a 3 element TCL list  containing  in
+              order,  the  port number, the application name and the name of the user
+              that is running the application.   Note  that  if  there  are  multiple
+              instances  of  the  same application run by the same user, They will be
+              qualified by appending an underscore and an application  instance  num?
+              ber.
+                          </para>
+                      </listitem>
+                    </varlistentry>
+                  </variablelist>
+                      </listitem>
+                  </varlistentry>
+    </variablelist>
+
+
+  </refsect1>
+  <refsect1>
+        <title>EXAMPLES</title>
+        <programlisting>
+           tclsh8.4 /usr/opt/daq/current/bin/DaqPortManager -ports 31000-40000 &amp;    
+        </programlisting>
+        <para>
+       Starts  the  port  manager listening on port 30000 managing ports in the range
+       31000 through 40000.  The port manager is run in the background as a daemon process.
+        </para>
+  </refsect1>
+  <refsect1>
+        <title>FILES</title>
+        <para>
+            The server maintains:
+        </para>
+        <programlisting>
+       /var/run/nscldaq/daqportmgr.pid  - contains the port manager#033;s process id.
+       /var/log/nscldaq/portmanager.log - Default logfile
+       /var/tmp/daqportmgr/listen.port  - Contains the listen port for the server.
+       /var/tmp/daqportmgr/ports.txt    - Default port usage file.
+        </programlisting>
+  </refsect1>
+  <refsect1>
+        <title>KNOWN DEFECTS</title>
+        <para>
+       The server should be able to default to listen on the  service  daqportmgr  in
+       /etc/services if present before falling back on port 30000
+        </para>
+        <para>
+       The  &#033;uniquification&#033;  of  the  application name for the LIST command may vary
+       from query to query as applications drop out.
+    </para>
+        <para>
+       Only connections to/from "localhost" are considered local.   The  server  does
+       not  bother  to  determine if any other sources are local even though they may
+       be.
+        </para>
+        <para>
+       If multiple instances of the port manager are run, only last one started  will
+       be listed in <literal>/var/run/nscldaq/daqportmgr.pid</literal>
+        </para>
+  </refsect1>
+  <refsect1>
+    <title>SEE ALSO</title>
+    <para>
+        <link linkend="manpage.CPortManager">CPortManager(3daq)</link>
+        <link linkend="manpage.CPortManagerException">CPortManagerException(3daq)</link>
+        <link linkend="manpage.portAllocator">portAllocator(3tcl)</link>
+    </para>
+  </refsect1>
+</refentry>
+
+<!-- /manpage -->
+<!-- The c++ API -->
+
+<!-- manpage 3daq -->
+
+    <refentry id="manpage.CPortManager">
+      <refmeta>
+         <refentrytitle>CPortManager</refentrytitle>
+         <manvolnum>3daq</manvolnum>
+      </refmeta>
+      <refnamediv>
+         <refname>CPortManager</refname>
+	 <refpurpose>Provide a C++ interface to the server port manager daemon.</refpurpose>
+      </refnamediv>
+      
+      <refsynopsisdiv>
+         <programlisting>
+#include &lt;config.h&gt;
+#include &lt;CPortManager.h&gt;
+#include &lt;CPortManagerException.h&gt;
+         </programlisting>
+         <classsynopsis>
+            <ooclass><classname>CPortManager</classname></ooclass>
+            <constructorsynopsis>
+                <methodname>CPortManager</methodname>
+                <methodparam>
+                    <type>std::string</type> <parameter>host</parameter>
+                                             <initializer>string("localhost")</initializer>
+                </methodparam>
+            </constructorsynopsis>
+            <constructorsynopsis>
+                <methodname>CPortManager</methodname>
+                <methodparam>
+                    <type>std::string</type> <parameter>host</parameter>
+                </methodparam>
+                <methodparam>
+                    <type>int</type> <parameter>Port</parameter>
+                </methodparam>
+            </constructorsynopsis>
+            <methodsynopsis>
+                <type>int</type>
+                <methodname>allocatePort</methodname>
+                <methodparam>
+                    <type>std::string</type> <parameter>application</parameter>
+                </methodparam>
+            </methodsynopsis>
+            <methodsynopsis>
+                    <type>std::vector&lt;portInfo&gt;</type> <methodname>getPortUsage</methodname>
+                    <void />
+            </methodsynopsis>
+
+         </classsynopsis>
+      </refsynopsisdiv>
+      <refsect1>
+         <title>Description</title>
+         <para>
+             
+       <classname>CPortManager</classname>
+       provides  a  C++ application programming interface into the NSCL
+       port manager server.  This class serves as a proxy for communication with port
+       management  servers.  Once you have created a
+       <classname>CPortManager</classname> object, you can use
+       it to allocate ports (if the server is local), and to list port usage  of  any
+       server on the network.
+         </para>
+         <para>
+       Note  that  members of this class can throw exceptions of type
+       <classname>CPortManagerException</classname>.
+        See the <link linkend="manpage.CPortManagerException">CPortManagerException(3)</link> for
+        more informationa bout that.
+         </para>
+         <para>
+            To include the headers required you, or the Makefile skeleton you are using must
+            have added the <filename>include</filename> subdirectory ofthe NSCLDAQ installation
+            directory tree to the include paths for the compile e.g.:
+            <literal>-I/usr/opt/daq/current/include</literal>.
+         </para>
+         <para>
+            To link you must include the NSCL DAQ lib subdirectory in the library search path,
+            link in the library and ensure that the shared library can be found at load time.
+            For example:
+            <programlisting>
+-L/usr/opt/daq/current/lib \
+-lPortManager \
+-Wl,"-rpath=/usr/opt/daq/current/lib"
+            </programlisting>
+         </para>
+      </refsect1>
+      <refsect1>
+         <title>
+            Public member functions
+         </title>
+           <methodsynopsis>
+                <methodname>CPortManager</methodname>
+                <methodparam>
+                    <type>std::string</type> <parameter>host</parameter>
+                                             <initializer>string("localhost")</initializer>
+                </methodparam>
+            </methodsynopsis>
+           <para>
+              Constructs a port manager interface object.  The object connects to the
+              port manager running on the host <parameter>host</parameter>, using the
+                default port (<literal>30000</literal>) to form the connection.  If the
+                <parameter>host</parameter> parameter is omitted, it defaults to
+                <literal>localhost</literal>
+            </para>
+            <methodsynopsis>
+                <methodname>CPortManager</methodname>
+                <methodparam>
+                    <type>std::string</type> <parameter>host</parameter>
+                </methodparam>
+                <methodparam>
+                    <type>int</type> <parameter>Port</parameter>
+                </methodparam>
+            </methodsynopsis>
+            <para>
+                Constructs a port manager interfaceobject.  The object connects
+                to the host manager running on <parameter>host</parameter> via the
+                connection port <parameter>Port</parameter>.
+            </para>
+            <methodsynopsis>
+                <type>int</type>
+                <methodname>allocatePort</methodname>
+                <methodparam>
+                    <type>std::string</type> <parameter>application</parameter>
+                </methodparam>
+            </methodsynopsis>
+            <para>
+                Allocates a port from the port manager.  On success the return value is the
+                port number allocated in local machine byte order.  Note that when interacting
+                with the network functions, in general, this will have to be converted to network
+                byte ordering.
+            </para>
+            <para>
+                Once the port is allocated, it remains allocated until the program exits.
+                This is because a connection will be held with the port manager and cannot
+                be closed by the user.
+            </para>
+            <para>
+                If a port could not be allocated (e.g. all are in use or the port manager could
+                not be contacted, a <classname>CPortManagerException</classname> described
+                in "Types and public data" below and completely in
+                <link linkend="manpage.CPortManagerException">CPortManagerException</link>.
+            </para>
+            <methodsynopsis>
+                    <type>std::vector&lt;portInfo&gt;</type> <methodname>getPortUsage</methodname>
+                    <void />
+            </methodsynopsis>
+            <para>
+                Returns a vector of <type>portInfo</type> structs that describes
+                the current port allocations of the port allocator.  The most common use case
+                for this is to locate a specific service offered by a remote port manager.
+            </para>
+            <para>
+                If the interaction with the server failed,
+                a <classname>CPortManagerException</classname> described
+                in "Types and public data" below and completely in
+                <link linkend="manpage.CPortManagerException">CPortManagerException</link>.
+            </para>
+      </refsect1>
+      <refsect1>
+         <title>Types and public data</title>
+         <para>
+            The set of port allocations is described by an STL vector of
+            <type>portInfo</type> structs.  The <classname>std::vector</classname>
+            is described in any C++ reference that contains a description of the Standard
+            Template Library (STL).
+         </para>
+         <para>
+            <type>portInfo</type> structs have the following fields:
+            <segmentedlist>
+                <segtitle>Type</segtitle>
+                <segtitle>Name</segtitle>
+                <segtitle>Description</segtitle>
+                <seglistitem>
+                    <seg><type>int</type></seg><seg><varname>s_Port</varname></seg>
+                    <seg>
+                        
+                            The port number that this object describes. The port number is
+                            provided in the byte order of the local system.   Note that when used
+                            to provide a port number to Unix/Linux network functions in general
+                            this number will have to be converted to network byte order.
+                        
+                    </seg>
+                </seglistitem>
+                <seglistitem>
+                    <seg><type>std::string</type></seg><seg><varname>s_Application</varname></seg>
+                    <seg>
+                        
+                            The name of the application that requested this port.  The application
+                            name represents some service that is being offered.  Usually (but not
+                            always), the application name and the <varname>s_User</varname> fields
+                            together are unique  system wide.
+                        
+                    </seg>
+                </seglistitem>
+                <seglistitem>
+                    <seg><type>std::string</type></seg><seg><varname>s_User</varname></seg>
+                    <seg>
+                        
+                            The name of the user that was running the application that reserved
+                            this port.  In the event that several users have run the same
+                            application on a single system, this identifies which user ran
+                            the application that requested this port.
+                        
+                    </seg>
+                </seglistitem>
+            </segmentedlist>
+        </para>
+        <para>
+            <classname>CPortManagerException</classname> objects are thrown in most cases
+            the library encounters an exception.
+         </para>
+      </refsect1>
+      <refsect1>
+         <title>Exceptions</title>
+         <para>
+            The <classname>CPortManagerException</classname> is thrown to inform the
+            program of most errors dected by this API.  For more information about
+            this exception, see:  <link linkend="manpage.CPortManagerException">CPortManagerException(3)</link>.
+         </para>
+      </refsect1>
+      <refsect1>
+         <title>EXAMPLES</title>
+         <para>
+            Allocates a port to <application>MyApplication</application>
+         </para>
+         <example>
+            <title>Allocating a port with the port manager</title>
+            <programlisting>
+&hellip;
+CPortManager pm;
+int port;
+try {
+ port = pm.allocatePort("MyApplication");
+ ListenOnPort(port);                      // Not shown for brevity
+}
+catch (CPortManagerException&amp; error) {
+ cerr &lt;&lt; "Could not allocate a port: " &lt;&lt; error &lt;&lt; endl;
+ exit(-1);
+}
+&hellip;
+
+            </programlisting>
+         </example>
+         <para>
+            Lists to cout the  port allocations on the system:
+            ahost.nscl.msuedu
+            
+         </para>
+         <example>
+            <title>Listing the port allocatiosn on a system.</title>
+            <programlisting>
+    &hellip;
+   CPortManager pm("ahost.nscl.msu.edu");
+   vector&lt;CPortManager::portInfo&gt; info = pm.getPortUsage();
+   for(int i =0; i &lt; info.size(); i++) {
+      cout &lt;&lt; "Port " &lt;&lt; info.s_Port
+           &lt;&lt; " allocated to " &lt;&lt; info.s_Application
+           &lt;&lt; " run by " &lt;&lt; info.s_User &lt;&lt; endl;
+   }
+    &hellip;
+
+            </programlisting>
+         </example>
+      </refsect1>
+      <refsect1>
+         <title>
+            SEE ALSO
+         </title>
+	 <para>
+            <link linkend="manpage.portAllocator">portAllocator(3tcl)</link>,
+            <link linkend="manpage.CPortManagerException">CPortManagerException(3daq)</link>,
+            <link linkend="manpage.DaqPortManager">DaqPortManager(1tcl)</link>
+	 </para>
+      </refsect1>
+   </refentry>
+
+<!-- /manpage -->
+
+<!-- The additional exception -->
+    
+<!-- manpage 3daq -->
+    <refentry id="manpage.CPortManagerException">
+      <refmeta>
+         <refentrytitle>CPortManagerException</refentrytitle>
+         <manvolnum>3daq</manvolnum>
+      </refmeta>
+      <refnamediv>
+         <refname>CPortManagerException</refname>
+	 <refpurpose>Report errors conditions in port manager transactions</refpurpose>
+      </refnamediv>
+      
+      <refsynopsisdiv>
+         <programlisting>
+#include &lt;config.h&lt;
+#include &lt;histotypes.h&lt;
+#include &lt;CPortManagerException.h&lt;
+
+
+         </programlisting>
+         <classsynopsis>
+            <ooclass><classname>CPortManagerException</classname></ooclass>
+            <constructorsynopsis>
+                <methodname>CPortManagerException</methodname>
+                <methodparam>
+                    <type>std::string</type> <parameter>host</parameter>
+                </methodparam>
+                <methodparam>
+                    <type>Reason</type> <parameter>why</parameter>
+                </methodparam>
+                <methodparam>
+                    <type>std::string</type> <parameter>doing</parameter>
+                </methodparam>
+            </constructorsynopsis>
+            <methodsynopsis>
+                <modifier>virtual const</modifier>
+                <type>char*</type> <methodname>ReasonText</methodname>
+                                   <void /><modifier>const</modifier>
+            </methodsynopsis>
+            <methodsynopsis>
+                <modifier>virtual</modifier> <type>Int_t</type>
+                <methodname>ReasonCode</methodname>
+                <void /><modifier>const</modifier>
+            </methodsynopsis>
+            <methodsynopsis>
+                <modifier>static</modifier> <type>string</type>
+                    <methodname>ReasonCodeToText</methodname>
+                <methodparam>
+                    <type>int</type> <parameter>code</parameter>
+                </methodparam>
+            </methodsynopsis>
+
+
+
+
+         </classsynopsis>
+         <funcsynopsis>
+            <funcprototype>
+                <funcdef><type>ostream&amp;</type>
+                    <function>operator&lt;&lt;</function>
+                </funcdef>
+                <paramdef>
+                    <type>ostream&amp;</type> <parameter>f</parameter>
+                </paramdef>
+                <paramdef>
+                    
+                    <type>const CPortManagerException&amp;</type> <parameter>e</parameter>
+                </paramdef>
+            </funcprototype>
+         </funcsynopsis>
+
+      </refsynopsisdiv>
+      <refsect1>
+         <title>Description</title>
+         <para>
+       <classname>CPortManagerException</classname>
+       is  an exception that can be thrown by the port manager
+       class <classname>CPortManager</classname>
+        see <link linkend="manpage.CPortManager">the man page for that class</link>).
+        Since it  is  derived
+       from
+       <classname>CException</classname>,
+       it can be caught as a generic error.  In addition to the base
+       class members, the class supports insertion into an output stream.
+         </para>
+      </refsect1>
+      <refsect1>
+         <title>
+            Public member functions
+         </title>
+           <methodsynopsis>
+                <methodname>CPortManagerException</methodname>
+                <methodparam>
+                    <type>std::string</type> <parameter>host</parameter>
+                </methodparam>
+                <methodparam>
+                    <type>Reason</type> <parameter>why</parameter>
+                </methodparam>
+                <methodparam>
+                    <type>std::string</type> <parameter>doing</parameter>
+                </methodparam>
+            </methodsynopsis>
+           <para>
+                Constructs the exception.  <parameter>host</parameter> is the host that
+                the object was connected to, or attempted to connect to when the
+                error was detected.  <parameter>why</parameter>Is the reason for
+                the exception. See "Types and public data" below for more information
+                about the possible values the <type>Reason</type> type can take.
+                <parameter>doing</parameter> provides context information that describes
+                what the object was attempting to do when the error was detected.
+            </para>
+            <methodsynopsis>
+                <modifier>virtual const</modifier>
+                <type>char*</type> <methodname>ReasonText</methodname>
+                                   <void /><modifier>const</modifier>
+            </methodsynopsis>
+            <para>
+                Returns comprehensive human readable text that describes the
+                reason this operation failed.
+            </para>
+            <methodsynopsis>
+                <modifier>virtual</modifier> <type>Int_t</type>
+                <methodname>ReasonCode</methodname>
+                <void /><modifier>const</modifier>
+            </methodsynopsis>
+            <para>
+                Returns the reason code.  The reason code is just the <type>Reason</type>
+                cast to an integer.
+            </para>
+            <methodsynopsis>
+                <modifier>static</modifier> <type>string</type>
+                    <methodname>ReasonCodeToText</methodname>
+                <methodparam>
+                    <type>int</type> <parameter>code</parameter>
+                </methodparam>
+            </methodsynopsis>
+            <para>
+                Converts a reason code into a text string that describes the reason.
+            </para>
+         <funcsynopsis>
+            <funcprototype>
+                <funcdef><type>ostream&amp;</type>
+                    <function>operator&lt;&lt;</function>
+                </funcdef>
+                <paramdef>
+                    <type>ostream&amp;</type> <parameter>f</parameter>
+                </paramdef>
+                <paramdef>
+                     
+                    <type>const CPortManagerException&amp;</type> <parameter>e</parameter>
+                </paramdef>
+            </funcprototype>
+         </funcsynopsis>
+         <para>
+            Formats the exception object <parameter>e</parameter> and writes it to the
+            output stream <parameter>f</parameter>. A reference to the output stream
+            is returned allowing the normal sorts of cascading of the
+            <function>operator&lt;&lt;</function> function.
+         </para>
+      </refsect1>
+      <refsect1>
+         <title>Types and public data</title>
+         <para>
+            <type>Reason</type>
+            is an enumerated type that describes the actual error condition that
+            was detected:
+            <variablelist>
+                <varlistentry>
+                    <term>NoPorts</term>
+                    <listitem>
+                        <para>
+                            When attempting to allocate a service port, thee daemon reported
+                            that all available service ports in the block it is managing
+                            are in use.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>NotLocal</term>
+                    <listitem>
+                        <para>
+                            You are attempting to allocate a port on a remote
+                            system.  Service ports can only be allocated by programs
+                            running on the same system as the port manager daemon.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>ConnectionFailed</term>
+                    <listitem>
+                        <para>
+                            An attempt to connect to the daemon failed.
+                        </para>
+                    </listitem>
+                </varlistentry>
+            </variablelist>
+         </para>
+      </refsect1>
+      <refsect1>
+         <title>EXAMPLES</title>
+         <para>
+       The  example  below catches an exception.  If the exception was thrown because
+       of a Connection failure. it is just printed to cerr.   Otherwise,  The  reason
+       text  is printed along with a message idicating that a port allocation failed.
+         </para>
+         <example>
+            <title>Catching a CPortManagerException</title>
+            <programlisting>
+&hellip;
+try {
+&hellip;
+}
+catch (CPortManagerException&amp; e) {
+  int why = e.ReasonCode();
+  if((CPortManagerException::Reason)why ==
+                  CPortManagerException::ConnectionFailed) {
+     cerr &lt;&lt; e &lt;&lt; endl;
+  }
+  else {
+     cerr &lt;&lt; "Port Allocation Failed: " &lt;&lt; e.ReasonText() &lt;&lt; endl;
+  }
+}
+
+&hellip;
+                
+            </programlisting>
+         </example>
+      </refsect1>
+      <refsect1>
+         <title>
+            SEE ALSO
+         </title>
+	 <para>
+            <link linkend="manpage.portAllocator">portAllocator(3tcl)</link>,
+            <link linkend="manpage.CPortManager">CPortManager(3daq)</link>,
+            <link linkend="manpage.DaqPortManager">DaqPortManager(1tcl)</link>
+            <link linkend="manpage.cexception">CException(3tcl)</link>
+	 </para>
+      </refsect1>
+   </refentry>
+
+<!-- /manpage -->
+
+<!-- The Tcl API -->
+
+<!-- manpage 3tcl -->
+
+<refentry id="manpage.portAllocator">
+  <refmeta>
+     <refentrytitle>portAllocator</refentrytitle>
+     <manvolnum>3tcl</manvolnum>
+  </refmeta>
+  <refnamediv>
+     <refname>portAllocator</refname>
+     <refpurpose>Tcl API for the DaqPortManager daemon.</refpurpose>
+  </refnamediv>
+  
+  <refsynopsisdiv>
+    <cmdsynopsis>
+	<command>
+package require portAllocator
+	</command>
+    </cmdsynopsis>
+    <cmdsynopsis>
+        <command>
+::portAllocator create name <replaceable>?-hostname host? ?-port port</replaceable>
+        </command>
+    </cmdsynopsis>
+    <cmdsynopsis>
+        <command>
+<replaceable>::name</replaceable> listPorts
+        </command>
+    </cmdsynopsis>
+    <cmdsynopsis>
+        <command>
+<replaceable>::name</replaceable> allocatePort <replaceable>application</replaceable>
+        </command>
+    </cmdsynopsis>
+    <cmdsynopsis>
+        <command>
+<replaceable>::name</replaceable> destroy
+        </command>
+    </cmdsynopsis>
+  </refsynopsisdiv>
+  <refsect1>
+     <title>DESCRIPTION</title>
+     <para>
+        The
+        <command>portAllocator</command>
+        package provides access to the NSCL TCP/IP port management
+       server.  It can be used by TCP/IP server applications t obtain a server listen
+       port.   The package follows an object oriented model.  The application creates
+       a
+       <classname>portAllocator</classname>
+       object, which stands as a proxy between the application and  a
+       port  manager  server.   Using  this  object the application can allocated and
+       deallocate ports, as well as request port allocation information.
+     </para>
+     <para>
+       Once your application has finished interacting with a
+       <classname>portAllocator</classname> object, it
+       can  destroy  it.   If the application must hold a connection to the server in
+       order to maintain one or more allocated ports, destruction of  the  requesting
+       object will not result in that connection being closed, ensuring that the port will
+       remain allocated.
+     </para>
+  </refsect1>
+  <refsect1>
+     <title>
+	COMMANDS
+     </title>
+     <variablelist>
+        <varlistentry>
+            <term><command>::portAllocator create</command>
+                  <replaceable>name ?-hostname host? ?-port port</replaceable></term>
+            <listitem>
+                <para>
+              Creates  a port allocator with the specified name.  The optional
+              <option>-hostname</option>
+              option allows you to specify with which host you want the
+              allocator  to communicate.
+              If not supplied, this defaults to localhost.  The
+              optional <option>-port</option>
+                switch allows you to specify a port on which to connect.
+              If not specified,the allocator will first attempt to read the port
+              number from the file
+              <filename>/var/tmp/daqportmgr/listen.port</filename>
+              before  falling  back
+              to port number 30000.
+                </para>
+                <para>
+              The  command  returns  the fully qualified name of the allocator.  This
+              name can be stored in a variable for later use (see EXAMPLES).
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term><command><replaceable>::name</replaceable> listPorts</command></term>
+            <listitem>
+                <para>
+              Returns a TCL formatted list that describes the  ports  that  are  cur?
+              rently  allocated  by  the server.  Each element of the list is a three
+              element sublist containing in order, the allocated port,  the  name  of
+              the application holding the port, and the name of the user that is run?
+              ning the application.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term><command><replaceable>::name</replaceable> allocatePort
+                <replaceable>application</replaceable></command></term>
+            <listitem>
+                <para>
+              Attempts to allocate a port from the server.  Note  that  the  protocol
+              only  allows  you to allocate ports from a server running on localhost.
+              application is the name of the application under which you  would  like
+              to register port ownership.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term><command><replaceable>::name</replaceable> destroy</command></term>
+            <listitem>
+                <para>
+              Destroys  a portAllocator.  If the portAllocator is holding open a
+              connection to the server because the application  has  allocated  a  port,
+              this connection will remain open.
+                </para>
+            </listitem>
+        </varlistentry>
+     </variablelist>
+  </refsect1>
+  <refsect1>
+     <title>EXAMPLES</title>
+     <para>
+        The  example  below allocates a port from the localhost, and starts listening
+       for connections.
+     </para>
+     <example>
+        <title>Allocating a service port in Tcl</title>
+        <programlisting>
+package require portAllocator
+set p [::portAllocator create local]
+set port [$p allocatePort]
+socket -server handleConnections $port
+        </programlisting>
+     </example>
+     <para>
+       The example below requests that the host somehost.nscl.msu.edu return  a  list
+       of the ports in use.  The port usage is then printed at stdout:
+     </para>
+     <example>
+        <title>Listing allocated ports in Tcl</title>
+        <programlisting>
+package require portAllocator
+set p [::portAllocator create remote -hostname somehost.nscl.msu.edu]
+set usage [$p listPorts]
+foreach allocation $usage {
+  set port        [lindex $allocation 0]
+  set application [lindex $allocation 1]
+  set user        [lindex $allocation 2]
+  puts "Port $port allocated to $application run by $user"
+}
+        </programlisting>
+     </example>
+  </refsect1>
+  <refsect1>
+        <title>SEE ALSO</title>
+        <para>
+            <link linkend="manpage.CPortManager">CPortManager(3daq)</link>,
+            <link linkend="manpage.CPortManagerException">CPortManagerException(3daq)</link>,
+            <link linkend="manpage.DaqPortManager">DaqPortManager(1tcl)</link>
+        </para>
+    </refsect1>
+</refentry>
+<!-- /manpage -->

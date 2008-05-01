@@ -1,0 +1,63 @@
+The software in this directory originated from 
+outside the NSCL.  This file describes the license 
+status of the files from this directory as it is known 
+as of 4/23/2008.
+
+The files 
+notebook.tcl and tabnbook.tcl
+
+Come from the source code for the book Effective
+Tcl.  This source code is available for download
+from http://www.sourceforge.net/projects/efftcl
+with project admins that match the names of the 
+authors but SF.net gives  no license.
+
+Author contacted (Harrison):
+
+Ron Fox wrote:
+> I've got a package that makes use of the software above. 
+> As you are one  of the holder of the copyright on the 
+> software, and no redistribution terms and conditions 
+> are described, and the sf.net page for efftcl lists no 
+> license, I was wondering if there are specific redistribution
+> terms and conditions that I must adhere to.
+>
+> Thanks,
+
+Hi Ron,
+
+Sorry this wasn't clear... at the time we were working on this there
+wasn't much awareness of licensing issues, etc.
+
+You can use the MIT license, which pretty much gives you permission
+to redistribute freely without conditions.
+
+http://en.wikipedia.org/wiki/MIT_License
+
+Remember us if this makes you rich and famous!
+
+Cheers,
+Mark 
+
+--------------------------------------------------------------------------
+
+The files:
+mwutil.tcl, tablelistSortByColumn.tcl tablelist.tcl and tablelistWidget.tcl
+
+Support table like widgets.  They were written by Csaba Nemethi
+and can be redistributed as long as the internal copy right notice
+is retained and the following text is part of the re-distrbibution:
+
+
+Multi-column listbox package Tablelist, version 4.8
+Copyright (c) 2000-2007  Csaba Nemethi (E-mail: csaba.nemethi@t-online.de)
+
+This library is free software; you can use, modify, and redistribute it
+for any purpose, provided that existing copyright notices are retained
+in all copies and that this notice is included verbatim in any
+distributions.
+
+This software is distributed WITHOUT ANY WARRANTY; without even the
+implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+
