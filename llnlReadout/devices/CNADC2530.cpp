@@ -92,8 +92,8 @@ static CConfigurableObject::Limits IPLLimits(zero, maxIPL);
 
 // The 16 bit vector must be in the range [0..7].
 
-static CConfigurableObject::maxVector(0xffff);
-static CConfigurableObject::VectorLimits(zero, maxVector);
+static CConfigurableObject::limit maxVector(0xffff);
+static CConfigurableObject::Limits VectorLimits(zero, maxVector);
 
 // For now we won't accept more than 
 
@@ -125,7 +125,7 @@ static CConfigurableObject::FloatingLimits hldLimits(fzero, hldhigh);
   and sets up the parameters it recognizes.
 */
 CNADC2530::CNADC2530() : 
-  m_pConfiguration(0),
+  m_pConfiguration(0)
 {
 }
 /*!
@@ -226,7 +226,7 @@ CNADC2530::onAttach(CReadoutModule& configuration)
   // analysis software to deal with the fact that multiple events can occur in one VM-USB superevent.
   //
 
-  m_pConfiguration->addParameter("-events", CConfigurabelObject::isInteger,
+  m_pConfiguration->addParameter("-events", CConfigurableObject::isInteger,
 				 static_cast<void*>(&EventLimits), "1");
 
 
@@ -267,10 +267,10 @@ CNADC2530::Initialize(CVMUSB& controller)
   if (status) {
     throw "Could not read TYPE register of NADC 2530";
   }
-  if ((id != ID_VALUE) || (type != TYPE_VALUE)) {
+  if ((id != ID_VALUE) || (model != TYPE_VALUE)) {
     char message[1024];
     sprintf(message,"Module at 0x%08x has an invalid ID (was %x sb %x) or Model (was %d sb %d)",
-	    csr, id, ID_VALUE, type, TYPE_VALUE);
+	    csr, id, ID_VALUE, model, TYPE_VALUE);
     throw string(message);
   }
 
@@ -289,12 +289,12 @@ CNADC2530::Initialize(CVMUSB& controller)
 
   int vector = m_pConfiguration->getIntegerParameter("-vector");
   int events = m_pConfiguration->getIntegerParameter("-events");
-  double lld = m_pConfgiuration->getFloatParameter("-lld");
+  double lld = m_pConfiguration->getFloatParameter("-lld");
   double hld = m_pConfiguration->getFloatParameter("-hld");
 
   controller.vmeWrite16(csr + REG_VECTOR, initamod, vector);
   controller.vmeWrite16(csr + REG_EVENTSREQ, initamod, events);
-  controller.vmeWrite16(csr + REG_LLD, initamod, lldToRegisteer(lld));
+  controller.vmeWrite16(csr + REG_LLD, initamod, lldToRegister(lld));
   controller.vmeWrite16(csr + REG_HLD, initamod, hldToRegister(hld));
   controller.vmeWrite16(csr + REG_FULLNESS, initamod, 0);
 
@@ -336,7 +336,7 @@ CNADC2530::addReadoutList(CVMUSBReadoutList& list)
 
   // Disarm for the durationof the read:
 
-  list.addWRite16(m_csr + REG_CSR, initamod, m_csr & (~CSR_ARM));
+  list.addWrite16(m_csr + REG_CSR, initamod, m_csr & (~CSR_ARM));
 
 
   // The number of events between interrupts is used to determine the number of longs to 
@@ -384,7 +384,7 @@ CNADC2530::lldToRegister(double lld)
 
   // This is taken from section 5.11 of the hytec manual.
 
-  int intermdiate = (int)((volt/3.2764)/(0.25/4095));
+  int intermediate = (int)((volts/3.2764)/(0.25/4095));
   return (uint16_t)((intermediate << 2) & 0x3ffc);
 }
 /*
@@ -396,6 +396,6 @@ CNADC2530::hldToRegister(double hld)
 {
   // hld is already in volts:
 
-  int intermediate = ((hld/3.2764) - 2)/(0.5/4095);
-  return (uint16_t)((intermediate << 2) & 0x3ffc;
+  int intermediate = (int)(((hld/3.2764) - 2)/(0.5/4095));
+  return (uint16_t)((intermediate << 2) & 0x3ffc);
 }
