@@ -17,9 +17,9 @@
 
 
 
-pkgdatadir = $(datadir)/full-package-name
-pkglibdir = $(libdir)/full-package-name
-pkgincludedir = $(includedir)/full-package-name
+pkgdatadir = $(datadir)/nscldaq
+pkglibdir = $(libdir)/nscldaq
+pkgincludedir = $(includedir)/nscldaq
 am__cd = CDPATH="$${ZSH_VERSION+.}$(PATH_SEPARATOR)" && cd
 install_sh_DATA = $(install_sh) -c -m 644
 install_sh_PROGRAM = $(install_sh) -c
@@ -126,18 +126,19 @@ LTLIBOBJS =
 MAKEINFO = ${SHELL} /scratch/fox/daq/nextgen/missing --run makeinfo
 MKDIR_P = /bin/mkdir -p
 OBJEXT = o
-PACKAGE = full-package-name
-PACKAGE_BUGREPORT = BUG-REPORT-ADDRESS
-PACKAGE_NAME = FULL-PACKAGE-NAME
-PACKAGE_STRING = FULL-PACKAGE-NAME VERSION
-PACKAGE_TARNAME = full-package-name
-PACKAGE_VERSION = VERSION
+PACKAGE = nscldaq
+PACKAGE_BUGREPORT = fox@nscl.msu.edu
+PACKAGE_NAME = nscldaq
+PACKAGE_STRING = nscldaq 10.0
+PACKAGE_TARNAME = nscldaq
+PACKAGE_VERSION = 10.0
 PATH_SEPARATOR = :
 RANLIB = ranlib
 SET_MAKE = 
 SHELL = /bin/sh
+SOVERSION = 10:0:0
 STRIP = strip
-VERSION = VERSION
+VERSION = 10.0
 abs_builddir = /scratch/fox/daq/nextgen/servers/portmanager
 abs_srcdir = /scratch/fox/daq/nextgen/servers/portmanager
 abs_top_builddir = /scratch/fox/daq/nextgen

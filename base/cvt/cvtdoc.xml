@@ -204,7 +204,7 @@ makecvtblock(data.s_lsig, data.s_ssig, &amp;conversionBlock);
        </funcsynopsis>
        <funcsynopsis>
             <funcprototype>
-                <funcdef><type>bool</type> <function>hostsameasforeign</function></funcdef>
+                <funcdef><type>int</type> <function>hostsameasforeign</function></funcdef>
                 <paramdef>
                     <type>DaqConversion*</type> <parameter>conversion</parameter>
                 </paramdef>
@@ -326,7 +326,7 @@ makecvtblock(data.s_lsig, data.s_ssig, &amp;conversionBlock);
         </para>
        <funcsynopsis>
             <funcprototype>
-                <funcdef><type>bool</type> <function>hostsameasforeign</function></funcdef>
+                <funcdef><type>int</type> <function>hostsameasforeign</function></funcdef>
                 <paramdef>
                     <type>DaqConversion*</type> <parameter>conversion</parameter>
                 </paramdef>

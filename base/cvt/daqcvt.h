@@ -67,7 +67,7 @@ typedef struct {
 
       /* Routines to create conversion blocks */
 
-bool hostsameasforeign(DaqConversion *conversion);  /* TRUE if conversion same as host */
+int hostsameasforeign(DaqConversion *conversion);  /* TRUE if conversion same as host */
 void makecvtblock(uint32_t lsig, uint16_t ssig,           /* Create a conversion block */
                   DaqConversion *conversion);      /* Given foreign signatures */
 
@@ -84,7 +84,7 @@ uint32_t  htofl(DaqConversion *convertdata, /* Convert longword datum to */
 	    uint32_t datum);		/* foreign from host format  */
 
 uint16_t htofw(DaqConversion *convertdata, /* Convert short datum from host */
-	       utin16_t datum);		/* to foreign format 		*/
+	       uint16_t datum);		/* to foreign format 		*/
 
 #ifdef __cplusplus
 }
