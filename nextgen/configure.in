@@ -2,7 +2,7 @@
 # Process this file with autoconf to produce a configure script.
 
 AC_PREREQ(2.61)
-AC_INIT(FULL-PACKAGE-NAME, VERSION, BUG-REPORT-ADDRESS)
+AC_INIT(nscldaq, 10.0, fox@nscl.msu.edu)
 AC_CONFIG_SRCDIR([utilities/controlpush/CSocket.cpp])
 AC_CONFIG_HEADER([config.h])
 
@@ -50,7 +50,21 @@ AC_CHECK_FUNCS([dup2 gethostbyaddr gethostbyname gettimeofday inet_ntoa memmove 
 
 AM_INIT_AUTOMAKE([])
 
+# Makefile exports:
+
+SOVERSION="10:0:0"
+
+# Substitions in .in files:
+
+AC_SUBST(SOVERSION)
+
+
+# Generate the following from their .in's (note that Automake takes
+# *.am -> *.in.
+#
+
 AC_CONFIG_FILES([Makefile
+		base/Makefile
                  base/CopyrightTools/Makefile
                  base/cvt/Makefile
                  base/exception/Makefile

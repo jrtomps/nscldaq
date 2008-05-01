@@ -42,6 +42,14 @@
 
 #include "daqcvt.h"
 
+#ifndef TRUE
+#define TRUE 1
+#endif
+
+#ifndef FALSE
+#define FALSE 0
+#endif
+
 /*
 **  Locally used data types:
 */
@@ -120,7 +128,7 @@ static void DeriveTranslation(uint8_t* fromsigw,
 **	DaqConversion *conversion:
 **  Pointer to translation tables.
 */
-bool hostsameasforeign(conversion)
+int hostsameasforeign(conversion)
 DaqConversion *conversion;
 {
     int i;
@@ -132,18 +140,18 @@ DaqConversion *conversion;
     for(i = 0; i < 2; i++)
 	if((conversion->HostToForeignWord[i] != i) ||
 	   (conversion->ForeignToHostWord[i] != i)  )
-	    return false;
+	    return FALSE;
 
 	/* Apply the same check for longs:  */
 
     for(i = 0; i < 4; i++)
 	if( (conversion->HostToForeignLong[i] != i) ||
 	    (conversion->ForeignToHostLong[i] != i)  )
-		return false;
+		return FALSE;
 
 	/* If we get this far, the mapping is unity */
 
-    return true;
+    return TRUE;
 }
 
 
@@ -162,11 +170,8 @@ DaqConversion *conversion;
 **  Pointer to a buffer to hold the mapping arrays.
 **/
 void makecvtblock(uint32_t lsig, 
-		  uint32_t ssig, 
+		  uint16_t ssig, 
 		  DaqConversion* conversion)
-long lsig;
-short ssig;
-DaqConversion *conversion;
 {
     uint32_t hostsigl;
     uint16_t hostsigw;
