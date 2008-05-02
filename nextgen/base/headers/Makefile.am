@@ -1,2 +1,1 @@
-include_HEADERS = daqdatatypes.h  buffer.h buftypes.h Refptr.h  \
-	DesignByContract.h 
+include_HEADERS = buffer.h buftypes.h daqdatatypes.h DesignByContract.h Refptr.h fdstream.h
