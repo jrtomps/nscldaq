@@ -11,9 +11,9 @@
 
 #include <vector>
 
-#ifdef HAVE_STD_NAMESPACE
+
 using namespace std;
-#endif
+
 
 // The CTCLObjectProcessor class is abstract and therefore cannot be directly
 // tested.  Below is the definition and implementation of an object oriented

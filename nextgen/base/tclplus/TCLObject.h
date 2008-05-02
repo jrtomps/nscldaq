@@ -149,7 +149,7 @@ public:
 
   // Assignments to this object 
 
-   CTCLObject& operator= (const STD(string)& rSource)    ;
+   CTCLObject& operator= (const std::string& rSource)    ;
    CTCLObject& operator= (const char* pSource)    ;
    CTCLObject& operator= (int nSource)    ;
    CTCLObject& operator= (const CTCLList& rList)    ;
@@ -158,7 +158,7 @@ public:
 
   // Implcit conversions which access the object's ports.
 
-  operator STD(string) ()    ;
+  operator std::string ()    ;
   operator int ()    ;
   operator CTCLList ()    ;
   operator double ()    ;
@@ -169,7 +169,7 @@ public:
 
   CTCLObject& operator+= (const CTCLObject& rObject)    ;
   CTCLObject& operator+= (int nItem)    ;
-  CTCLObject& operator+= (const STD(string)& rItem)    ;
+  CTCLObject& operator+= (const std::string& rItem)    ;
   CTCLObject& operator+= (const char* pItem)    ;
   CTCLObject& operator+= (double  Item)    ;
 
@@ -177,7 +177,7 @@ public:
 
   CTCLObject clone ()    ;
 
-  // Evaulate the object as a script returning the result STD(string) as
+  // Evaulate the object as a script returning the result std::string as
   // an object.  throws TCLException on error.
 
   CTCLObject operator() ()    ;
@@ -190,11 +190,11 @@ public:
 
 
   CTCLObject&  concat(CTCLObject& rhs);	// Concat lists.
-  STD(vector)<CTCLObject>  getListElements();
-  CTCLObject&  setList(STD(vector)<CTCLObject> elements);
+  std::vector<CTCLObject>  getListElements();
+  CTCLObject&  setList(std::vector<CTCLObject> elements);
   int          llength();
   CTCLObject   lindex(int index);
-  CTCLObject&  lreplace(int first, int count, STD(vector)<CTCLObject> newElements);
+  CTCLObject&  lreplace(int first, int count, std::vector<CTCLObject> newElements);
 
 protected:
   void DupIfMust() {		// Duplicates object if needed for eval.

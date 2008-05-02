@@ -304,9 +304,7 @@ DAMAGES.
 #include <assert.h>
 #include <malloc.h>		// Since Tcl uses malloc/free
 
-#ifdef HAVE_STD_NAMESPACE
 using namespace std;
-#endif
 
 typedef char *pChar;
 

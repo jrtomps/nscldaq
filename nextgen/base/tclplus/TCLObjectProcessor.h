@@ -60,12 +60,12 @@ class CTCLObjectProcessor : public CTCLInterpreterObject
 private:
   Tcl_Command m_Token;		// Command token.
   bool        m_fRegistered;	// True if command was registered.
-  STD(string) m_Name;		// Initial name of the command.
+  std::string m_Name;		// Initial name of the command.
 public:
   // Constructors and other canonical operations:
 
   CTCLObjectProcessor(CTCLInterpreter& interp,
-		      STD(string)      name,
+		      std::string      name,
 		      bool             registerMe=true);
   virtual ~CTCLObjectProcessor();
   // Illegal canonicals:
@@ -81,14 +81,14 @@ public:
 public:
   void Register();		// Register command on the interpreter.
   void unregister();		// Unregister command from the interp.
-  STD(string) getName() const;	// Return the name of the object.
+  std::string getName() const;	// Return the name of the object.
   Tcl_CmdInfo getInfo() const;	// Return info about the command.
 
   // Replaceable functionality:0
 
 protected:
   virtual int operator()(CTCLInterpreter& interp,
-			 STD(vector)<CTCLObject>& objv) = 0;
+			 std::vector<CTCLObject>& objv) = 0;
   virtual void onUnregister();
 
   // Static callback relays:

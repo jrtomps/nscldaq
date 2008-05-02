@@ -59,12 +59,12 @@ class CTCLProcessor : public CTCLInterpreterObject
 {
   // Data members:
 private:
-  STD(string)                  m_Command;	   // (initial) Name of the command.
+  std::string                  m_Command;	   // (initial) Name of the command.
   CTCLCompatibilityProcessor*  m_pObjectProcessor; // Adaptor.
 
   // Constructors and other canonicals.
 public:
-  CTCLProcessor(const STD(string) sCommand, CTCLInterpreter* pInterp);
+  CTCLProcessor(const std::string sCommand, CTCLInterpreter* pInterp);
   CTCLProcessor(const char*       pCommand, CTCLInterpreter* pInterp);
   virtual ~CTCLProcessor();
 
@@ -82,7 +82,7 @@ public:
   // we omitted begin()/end() as they no longer have meaning,
   // and will have to deal with any usage we see in SpecTcl e.g.
 
-  STD(string) getCommandName() const;
+  std::string getCommandName() const;
 
   // Operations and overrides:
 
@@ -98,25 +98,25 @@ public:
 
   // The functions below should be refactorable into the interpreter object:
 
-  static  STD(string) ConcatenateParameters (int nArguments, 
+  static  std::string ConcatenateParameters (int nArguments, 
 					      char* pArguments[])  ;
   int ParseInt (const char* pString, int* pInteger)  ;
-  int ParseInt (const STD(string)& rString, int* pInteger) {
+  int ParseInt (const std::string& rString, int* pInteger) {
     return ParseInt(rString.c_str(), pInteger);
   }
 
   int ParseDouble (const char* pString, double* pDouble)  ;
-  int ParseDouble (const STD(string)& rString, double* pDouble) {
+  int ParseDouble (const std::string& rString, double* pDouble) {
     return ParseDouble(rString.c_str(), pDouble);
   }
 
   int ParseBoolean (const char* pString, Bool_t* pBoolean)  ;
-  int ParseBoolean (const STD(string)& rString, Bool_t* pBoolean) {
+  int ParseBoolean (const std::string& rString, Bool_t* pBoolean) {
     return ParseBoolean(rString.c_str(), pBoolean);
   }
 
-  static int MatchKeyword(STD(vector)<STD(string)>& MatchTable, 
-			  const STD(string)& rValue, 
+  static int MatchKeyword(std::vector<std::string>& MatchTable, 
+			  const std::string& rValue, 
 			  int NoMatch = -1);
   virtual void preCommand();	// Called just prior to operator()
   virtual void postCommand();	// Called on return from operator()

@@ -325,8 +325,8 @@ DAMAGES.
 #endif
 #endif
 
-#ifndef __HISTOTYPES_H
-#include <histotypes.h>
+#ifndef __DAQTYPES_H
+#include <daqdatatypes.h>
 #endif
 
                                
@@ -339,7 +339,7 @@ class CTCLException  : public CTCLInterpreterObject ,public CException
 				// TCL_RETURN   - fuction return.
 				// NOTE: Really no business throwing anything
 				//       but TCL_ERRORs.
-   STD(string) m_ResultText;		// Cached result text at construction time.
+   std::string m_ResultText;		// Cached result text at construction time.
 public:
 			//Default constructor
 
@@ -350,16 +350,16 @@ public:
     CException(pString),
     m_nReason(am_nReason)
   {
-    m_ResultText = STD(string)(Tcl_GetStringResult(am_rInterpreter.getInterpreter()));
+    m_ResultText = std::string(Tcl_GetStringResult(am_rInterpreter.getInterpreter()));
   }
   CTCLException(CTCLInterpreter& am_rInterpreter,
 		Int_t am_nReason,
-		const STD(string)& rString) : 
+		const std::string& rString) : 
     CTCLInterpreterObject(&am_rInterpreter),
     CException(rString),
     m_nReason(am_nReason)
   {
-    m_ResultText = STD(string)(Tcl_GetStringResult(am_rInterpreter.getInterpreter()));
+    m_ResultText = std::string(Tcl_GetStringResult(am_rInterpreter.getInterpreter()));
   }
   virtual ~CTCLException ( ) { }       //Destructor
 	
@@ -424,7 +424,7 @@ protected:
   //
 public:
   void AddErrorInfo (const char* pMessage)  ;
-  void AddErrorInfo(const STD(string)& rMessage) {
+  void AddErrorInfo(const std::string& rMessage) {
     AddErrorInfo(rMessage.c_str());
   }
   void AddErrorInfo(const CTCLString& rMessage) {
@@ -435,10 +435,10 @@ public:
 		     const char* pMnemonic="???", 
 		     const char* pFacility="TCL", 
 		     const char* pSeverity="FATAL")  ;
-  void SetErrorCode(const STD(string) rMessage,
-		    const STD(string) &rMnemonic=STD(string)("???"),
-		    const STD(string) &rFacility=STD(string)("TCL"),
-		    const STD(string) &rSeverity=STD(string)("FATAL")) {
+  void SetErrorCode(const std::string rMessage,
+		    const std::string &rMnemonic=std::string("???"),
+		    const std::string &rFacility=std::string("TCL"),
+		    const std::string &rSeverity=std::string("FATAL")) {
     SetErrorCode(rMessage.c_str(), rMnemonic.c_str(),
 		 rFacility.c_str(), rSeverity.c_str());
   }

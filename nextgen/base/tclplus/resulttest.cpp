@@ -10,9 +10,8 @@
 #include "TCLResult.h"
 
 
-#ifdef HAVE_STD_NAMESPACE
+
 using namespace std;
-#endif
 
 
 class resultTest : public CppUnit::TestFixture {

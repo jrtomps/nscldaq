@@ -360,7 +360,7 @@ DAMAGES.
 #endif
 #endif
 
-typedef STD(vector)<STD(string)> StringArray;
+typedef std::vector<std::string> StringArray;
 typedef StringArray::iterator StringArrayIterator;
 
 class CTCLList  : public CTCLInterpreterObject        
@@ -379,7 +379,7 @@ public:
 			//Constructors with arguments
 
   CTCLList (CTCLInterpreter* pInterp, const  char* am_pList  );       
-  CTCLList (CTCLInterpreter* pInterp, const STD(string)& rList);
+  CTCLList (CTCLInterpreter* pInterp, const std::string& rList);
 	
 			//Copy constructor
 

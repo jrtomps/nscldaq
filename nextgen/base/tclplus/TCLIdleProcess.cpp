@@ -296,9 +296,9 @@ static const char* Copyright = "(C) Copyright Michigan State University 2015, Al
 /////////////////////////////////////////////////////////////////////////////
 
 #include <config.h>
-#ifdef HAVE_STD_NAMESPACE
+
 using namespace std;
-#endif
+
 #include "TCLIdleProcess.h"
 
 

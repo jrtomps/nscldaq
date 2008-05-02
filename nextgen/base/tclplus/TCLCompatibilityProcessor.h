@@ -73,7 +73,7 @@ public:
   // overrides to the CTCLObjectProcessor definitions (adaptors).
 public:
   virtual int operator()(CTCLInterpreter& interp,
-			 STD(vector)<CTCLObject>& objv);
+			 std::vector<CTCLObject>& objv);
   virtual void onUnregister();
   
 };

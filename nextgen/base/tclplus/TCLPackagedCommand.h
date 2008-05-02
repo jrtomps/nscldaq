@@ -317,7 +317,7 @@ class CTCLPackagedCommand   : public CTCLProcessor
 public:
 
 			//Constructor with arguments
-  CTCLPackagedCommand (const STD(string)& sCommand, CTCLInterpreter* pInterp,
+  CTCLPackagedCommand (const std::string& sCommand, CTCLInterpreter* pInterp,
 		       CTCLCommandPackage& rPackage) :
     CTCLProcessor(sCommand, pInterp),
     m_rMyPackage(rPackage)

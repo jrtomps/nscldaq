@@ -298,7 +298,7 @@ DAMAGES.
 #endif                            
 
 #ifndef __HISTOTYPES_H
-#include <histotypes.h>
+#include <daqdatatypes.h>
 #endif
 
 #ifndef __CRT_UNISTD_H
