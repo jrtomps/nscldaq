@@ -43,10 +43,11 @@ class Synchronizable;
 * @author  Eric Kasten
 * @version 1.0.0
 */
-class SyncGuard : public daqhwyapi::Object {
+class SyncGuard
+{
   // Member data:
 private:
-    daqhwyapi::Synchronizable& syncer; 
+    Synchronizable& syncer; 
 
 public:
   SyncGuard();			// Constructor 

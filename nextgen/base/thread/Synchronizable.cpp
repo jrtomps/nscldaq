@@ -31,7 +31,7 @@ using namespace std;
 * @return this                 
 */      
 _SyncStruct::_SyncStruct() :
-  __lock_depth(0)
+  __lock_depth__(0)
 { 
   dshwrapthread_mutex_init(&__guard_mutex__);
   dshwrapthread_mutex_init(&__monitor_mutex__);
@@ -214,7 +214,7 @@ void Synchronizable::waitFor(long timeout) {
 void Synchronizable::notify() {
 
   if ((sync->__lock_depth__ <= 0)||(sync->__guard_mutex__.lastmod != dshwrapthread_self())) {
-    throw CMonitorException((int)dshwrapthread_self(),(int)sync->__guard_mutex__.lastmod, __FILE__, __LINE__);
+    throw CMonitorException((int)dshwrapthread_self(),(int)sync->__guard_mutex__.lastmod, __FILE__, "__LINE__");
 
   } 
   dshwrapthread_cond_signal(&sync->__notify_cond__);
@@ -240,7 +240,7 @@ void Synchronizable::notify() {
 void Synchronizable::notifyAll() {
 
   if ((sync->__lock_depth__ <= 0)||(sync->__guard_mutex__.lastmod != dshwrapthread_self())) {
-    throw CMonitorException((int)dshwrapthread_self(),(int)sync->__guard_mutex__.lastmod, __FILE__, __LINE);
+    throw CMonitorException((int)dshwrapthread_self(),(int)sync->__guard_mutex__.lastmod, __FILE__, "__LINE__");
   } 
   dshwrapthread_cond_broadcast(&sync->__notify_cond__);
 }
@@ -253,7 +253,7 @@ int
 Synchronizable::Lock()
 {
   if ((sync->__lock_depth__ <= 0)||(sync->__guard_mutex__.lastmod != dshwrapthread_self())) {
-    throw CMonitorException( (int)dshwrapthread_self(),(int)sync->__guard_mutex__.lastmod, __FILE__, __LINE__);
+    throw CMonitorException( (int)dshwrapthread_self(),(int)sync->__guard_mutex__.lastmod, __FILE__, "__LINE__");
 
   } 
 

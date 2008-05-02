@@ -1,4 +1,4 @@
-a/*=========================================================================*\
+/*=========================================================================*\
 | Copyright (C) 2005 by the Board of Trustees of Michigan State University. |
 | You may use this software under the terms of the GNU public license       |
 | (GPL).  The terms of this license are described at:                       |
@@ -7,7 +7,6 @@ a/*=========================================================================*\
 | Written by: E. Kasten                                                     |
 \*=========================================================================*/
 
-using namespace std;
 
 
 #ifdef USE_PTHREADS
