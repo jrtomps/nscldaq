@@ -9,9 +9,9 @@
 #include "TCLResult.h"
 
 
-#ifdef HAVE_STD_NAMESPACE
+
 using namespace std;
-#endif
+
 
 
 /*  The CTCLProcessor is an abstract base class.  It is therefore necessary

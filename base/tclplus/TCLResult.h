@@ -68,7 +68,7 @@ public:
   CTCLResult (const CTCLResult& aCTCLResult );
   CTCLResult& operator= (const CTCLResult& aCTCLResult);
   CTCLResult& operator= (const char* rhs);
-  CTCLResult& operator=(STD(string)    rhs) {
+  CTCLResult& operator=(std::string    rhs) {
     return operator=(rhs.c_str());
   }
 
@@ -87,7 +87,7 @@ public:
   // This is >BAD< but we're stuck with it at this time.
 
   CTCLResult& operator+= (const char* pString);
-  CTCLResult& operator+= (const STD(string)& rString) {
+  CTCLResult& operator+= (const std::string& rString) {
     return operator+=(rString.c_str());
   }
 
@@ -97,9 +97,9 @@ public:
 public:
   void Clear ()  ;  
   void AppendElement (const char* pString)  ; // Base class +=
-  void AppendElement (const STD(string)& rString); // Base class +=
+  void AppendElement (const std::string& rString); // Base class +=
   void commit() const;		// Commit this -> Result.
-  STD(string) getString();      // Commit and return the result.
+  std::string getString();      // Commit and return the result.
 
 
 };

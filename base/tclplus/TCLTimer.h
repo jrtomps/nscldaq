@@ -307,8 +307,8 @@ DAMAGES.
 #define _TCL_TK_H
 #endif
 
-#ifndef __HISTOTYPES_H
-#include <histotypes.h>
+#ifndef __DAQTYPES_H
+#include <daqdatatypes.h>
 #endif
                   
                                

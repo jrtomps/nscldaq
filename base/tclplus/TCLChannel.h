@@ -351,24 +351,24 @@ private:
 public:
 
   CTCLChannel(CTCLInterpreter* pInterp, 
-	      STD(string)      Filename,
+	      std::string      Filename,
 	      const char*      pMode,
 	      int              permissions) 
-                        throw (STD(string)); //!< Construct file channel.
+                        throw (std::string); //!< Construct file channel.
   CTCLChannel(CTCLInterpreter* pInterp,
 	      int              argc,
 	      const char**           pargv,
 	      int              flags)
-                        throw (STD(string)); //!< Construct command pipeline. 
+                        throw (std::string); //!< Construct command pipeline. 
   CTCLChannel(CTCLInterpreter* pInterp,
 	      int              port,
-	      STD(string)      host) 
-                        throw (STD(string)); //!< Construct a TCP/Client channel.
+	      std::string      host) 
+                        throw (std::string); //!< Construct a TCP/Client channel.
   CTCLChannel(CTCLInterpreter* pInterp,
 	      int              port,
 	      Tcl_TcpAcceptProc* proc,
 	      ClientData       AppData) 
-                     throw(STD(string));     //!< Create a TCP/IP server listener.
+                     throw(std::string);     //!< Create a TCP/IP server listener.
   CTCLChannel(CTCLInterpreter* pInterp,
 	      Tcl_Channel      Channel);     //!< Construct from existing channel.
   CTCLChannel(const CTCLChannel& rhs);   //!< Copy construction.
@@ -412,7 +412,7 @@ public:
   void Flush();			//!< Flush channel data buffers.
   void Close();			//!< Close channel (dangerous!!!).
   void Register();	//!< Expose channel name to scripts (dangerous!!)
-  void SetEncoding(STD(string) Name);
-  STD(string) GetEncoding();
+  void SetEncoding(std::string Name);
+  std::string GetEncoding();
 };
 #endif

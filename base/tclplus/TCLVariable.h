@@ -301,8 +301,8 @@ DAMAGES.
 #include "TCLInterpreterObject.h"
 #endif                               
 
-#ifndef __HISTOTYPES_H
-#include <histotypes.h>
+#ifndef __DAQTYPES_H
+#include <daqdatatypes.h>
 #endif
 
 
@@ -315,21 +315,21 @@ DAMAGES.
                                
 class CTCLVariable  : public CTCLInterpreterObject        
 {
-  STD(string) m_sVariable;	// Name of the variable represented.
+  std::string m_sVariable;	// Name of the variable represented.
   Bool_t m_fTracing;		// kfTRUE if tracing is enabled.
   Int_t  m_nTraceFlags;		// Set of trace flags for variable.
-  STD(string) m_sTraceIndex;
+  std::string m_sTraceIndex;
 public:
 
 			//Constructor with arguments
 
-  CTCLVariable (STD(string) am_sVariable,  Bool_t am_fTracing  )  :   
+  CTCLVariable (std::string am_sVariable,  Bool_t am_fTracing  )  :   
     CTCLInterpreterObject(),
     m_sVariable (am_sVariable),  
     m_fTracing (am_fTracing)  
   { }         
   CTCLVariable (CTCLInterpreter* pInterp, 
-		STD(string) am_sVariable,  Bool_t am_fTracing  )  :   
+		std::string am_sVariable,  Bool_t am_fTracing  )  :   
     CTCLInterpreterObject(pInterp),
     m_sVariable (am_sVariable),  
     m_fTracing (am_fTracing)  
@@ -370,7 +370,7 @@ public:
 
 public:
 
-  STD(string) getVariableName() const
+  std::string getVariableName() const
   {
     return m_sVariable;
   }
@@ -382,7 +382,7 @@ public:
 
 public:
 
-  void setVariableName (const STD(string) am_sVariable)
+  void setVariableName (const std::string am_sVariable)
   { 
     if(IsTracing()) UnTrace();
     m_sVariable = am_sVariable;

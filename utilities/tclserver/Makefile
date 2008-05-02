@@ -51,7 +51,8 @@ am_tclserver_OBJECTS = TclAuthorizer.$(OBJEXT) \
 	serverinstance.$(OBJEXT) tclAppInit.$(OBJEXT) \
 	tkAppInit.$(OBJEXT) Server.$(OBJEXT)
 tclserver_OBJECTS = $(am_tclserver_OBJECTS)
-tclserver_DEPENDENCIES =
+am__DEPENDENCIES_1 =
+tclserver_DEPENDENCIES = $(am__DEPENDENCIES_1)
 tclserver_LINK = $(LIBTOOL) --tag=CXX $(AM_LIBTOOLFLAGS) \
 	$(LIBTOOLFLAGS) --mode=link $(CXXLD) $(AM_CXXFLAGS) \
 	$(CXXFLAGS) $(tclserver_LDFLAGS) $(LDFLAGS) -o $@
@@ -127,6 +128,9 @@ SET_MAKE =
 SHELL = /bin/sh
 SOVERSION = 10:0:0
 STRIP = strip
+TCLSH_CMD = tclsh8.4
+TCL_FLAGS = -I/usr/include/tcl
+TCL_LDFLAGS = -L/usr/lib -ltk  -ltcl
 VERSION = 10.0
 abs_builddir = /scratch/fox/daq/nextgen/utilities/tclserver
 abs_srcdir = /scratch/fox/daq/nextgen/utilities/tclserver

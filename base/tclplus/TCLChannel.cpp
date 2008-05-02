@@ -288,9 +288,7 @@ DAMAGES.
 #include <stdio.h>
 #include <string.h>
 
-#ifdef HAVE_STD_NAMESPACE
 using namespace std;
-#endif
 
 /*!
   Construct a File channel.  A file channel is a TCL abstraction on top of the
@@ -462,7 +460,7 @@ CTCLChannel::CTCLChannel(CTCLInterpreter* pInterp,
 CTCLChannel::CTCLChannel(CTCLInterpreter* pInterp,
 	      int              port,
 	      Tcl_TcpAcceptProc* proc,
-			 ClientData       AppData)   throw(STD(string)) :
+			 ClientData       AppData)   throw(std::string) :
   CTCLInterpreterObject(pInterp),
   m_fCloseOnDestroy(true),
   m_fRegistered(false)

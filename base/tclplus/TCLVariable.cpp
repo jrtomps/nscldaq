@@ -301,12 +301,12 @@ static const char* Copyright = "(C) Copyright Michigan State University 2015, Al
 #include "TCLVariable.h"                               
 #include "TCLInterpreter.h"
 #include <tcl.h>
-#include <histotypes.h>
+#include <daqdatatypes.h>
 #include <assert.h>
 
-#ifdef HAVE_STD_NAMESPACE
+
 using namespace std;
-#endif
+
 
 // Functions for class CTCLVariable
 

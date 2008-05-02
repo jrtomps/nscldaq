@@ -12,9 +12,7 @@
 #include "CLanguageTraceCallbacks.h"
 #include "TCLInterpreter.h"
 
-#ifdef HAVE_STD_NAMESPACE
 using namespace std;
-#endif
 
 /*!
    Constrution just means save the parameters in the member data:

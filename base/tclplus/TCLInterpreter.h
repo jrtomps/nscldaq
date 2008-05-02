@@ -66,8 +66,8 @@
 #include "TCLString.h"
 #endif
 
-#ifndef __HISTOTYPES_H
-#include <histotypes.h>
+#ifndef __DAQTYPES_H
+#include <daqdatatypes.h>
 #endif
 
 class CTCLObject;
@@ -127,58 +127,58 @@ protected:
 public:                       
   // Evaluate script from a string:
 
-  STD(string) Eval (const char* pScript) ;
-  STD(string) Eval(const CTCLString& rScript)  {
+  std::string Eval (const char* pScript) ;
+  std::string Eval(const CTCLString& rScript)  {
     return Eval((const char*)rScript);
   }
-  STD(string) Eval(const STD(string)& rScript)  {
+  std::string Eval(const std::string& rScript)  {
     return Eval(rScript.c_str()); 
   }
   //
   // Evaluate a scripts stored in a file.
   //
-  STD(string) EvalFile (const char* pFilename)   ;
-  STD(string) EvalFile(const CTCLString& rFilename)  {
+  std::string EvalFile (const char* pFilename)   ;
+  std::string EvalFile(const CTCLString& rFilename)  {
     return EvalFile((const char*)(rFilename));
   }
-  STD(string) EvalFile(const STD(string)& rFilename)  {
+  std::string EvalFile(const std::string& rFilename)  {
     return EvalFile(rFilename.c_str());
   }
   //  Evaluate a script at the global level (stack empty context).
   //
-  STD(string) GlobalEval (const char* pScript)   ;
-  STD(string) GlobalEval (const CTCLString& rScript)  {
+  std::string GlobalEval (const char* pScript)   ;
+  std::string GlobalEval (const CTCLString& rScript)  {
     return GlobalEval((const char*)rScript);
   }
-  STD(string) GlobalEval(const STD(string)& rScript)  {
+  std::string GlobalEval(const std::string& rScript)  {
     return GlobalEval(rScript.c_str());
   }
   // Evaluate a script and store it it's commands in the 
   // history list for later retrieval
   //
-  STD(string) RecordAndEval (const char* pScript, Bool_t fEval=kfFALSE);
-  STD(string) RecordAndEval(const CTCLString& rScript, 
+  std::string RecordAndEval (const char* pScript, Bool_t fEval=kfFALSE);
+  std::string RecordAndEval(const CTCLString& rScript, 
 			    Bool_t fEval=kfFALSE)  {
     return RecordAndEval((const char*)(rScript), fEval);
   }
-  STD(string) RecordAndEval(const STD(string)& rScript,
+  std::string RecordAndEval(const std::string& rScript,
 			    Bool_t fEval = kfFALSE)  {
     return RecordAndEval(rScript.c_str(), fEval);
   }
   //
   // Evaluate and expression with a string result:
   //
-  STD(string) ExprString (const char* pExpression)   ;
-  STD(string) ExprString(const CTCLString& rExpr)  {
+  std::string ExprString (const char* pExpression)   ;
+  std::string ExprString(const CTCLString& rExpr)  {
     return ExprString((const char*)(rExpr));
   }
-  STD(string) ExprString(const STD(string)& rExpr)  {
+  std::string ExprString(const std::string& rExpr)  {
     return ExprString(rExpr.c_str());
   }
   //  Evaluate string 
   //
   Long_t ExprLong (const char* pExpression)   ;
-  Long_t ExprLong (STD(string)& rExpression) {
+  Long_t ExprLong (std::string& rExpression) {
     return ExprLong(rExpression.c_str());
   }
   Long_t ExprLong (const CTCLString& rExpr)  {
@@ -190,7 +190,7 @@ public:
   DFloat_t ExprDouble (const CTCLString& rExpression)  {
     return ExprDouble ((const char*)(rExpression));
   }
-  DFloat_t ExprDouble(const STD(string)& rExpression)  {
+  DFloat_t ExprDouble(const std::string& rExpression)  {
     return ExprDouble(rExpression.c_str());
   }
   // Evaluate a boolean:
@@ -199,24 +199,24 @@ public:
   Bool_t ExprBoolean (const CTCLString& rExpression)  {
     return ExprBoolean((const char*)(rExpression));
   }
-  Bool_t ExprBoolean(const STD(string)& rExpression)  {
+  Bool_t ExprBoolean(const std::string& rExpression)  {
     return ExprBoolean(rExpression.c_str());
   }
   // Substitute for tilde in some filename.
   // 
-  STD(string) TildeSubst (const char* pFilename) const  ;
-  STD(string) TildeSubst (const CTCLString& rName) const {
+  std::string TildeSubst (const char* pFilename) const  ;
+  std::string TildeSubst (const CTCLString& rName) const {
     return TildeSubst((const char*)(rName));
   }
-  STD(string) TildeSubst (const STD(string)& rName) const {
+  std::string TildeSubst (const std::string& rName) const {
     return TildeSubst(rName.c_str());
   }
   
-  STD(string) PosixError () const  ;
-  static  STD(string) ErrnoId ()   ;
-  static  STD(string) SignalId (UInt_t nSignal)   ;
-  static  STD(string) SignalMsg (UInt_t nSignal)   ;
-  void DetachProcess (const STD(vector)<UInt_t>& rPids) const  ;
+  std::string PosixError () const  ;
+  static  std::string ErrnoId ()   ;
+  static  std::string SignalId (UInt_t nSignal)   ;
+  static  std::string SignalMsg (UInt_t nSignal)   ;
+  void DetachProcess (const std::vector<UInt_t>& rPids) const  ;
   void DetachProcess(UInt_t nPids, Int_t* pPids) const {
     Tcl_DetachPids(nPids, (Tcl_Pid*)pPids);
   }
@@ -228,7 +228,7 @@ public:
 		   ClientData pData, 
 		   Tcl_CmdDeleteProc* pDeleteProcessor=
 		                       (Tcl_CmdDeleteProc*)kpNULL) const  ;
-  void AddCommand(const STD(string)& rCommandName,
+  void AddCommand(const std::string& rCommandName,
 		  Tcl_CmdProc* pCommandProcessor,
 		  ClientData pData,
 		  Tcl_CmdDeleteProc* pDeleteProcessor = 
@@ -245,18 +245,18 @@ public:
 	       pData, pDeleteProcessor);
   }
   void UnregisterCommand (const char* pCommandName) const  ;
-  void UnregisterCommand (const STD(string)& rCommandName) const {
+  void UnregisterCommand (const std::string& rCommandName) const {
     UnregisterCommand(rCommandName.c_str());
   }
   void UnregisterCommand (const CTCLString& rCommandName) const {
     UnregisterCommand((const char*)(rCommandName));
   }
-  STD(string) GetResultString () const  ;
+  std::string GetResultString () const  ;
 
   // Access to Tcl Channels inquiry:
   //
-  Tcl_Channel GetChannel(const STD(string)& rName, Int_t* pMode=(Int_t*)kpNULL);
-  STD(vector)<STD(string)> GetChannelNames(const STD(string)& rPattern);
+  Tcl_Channel GetChannel(const std::string& rName, Int_t* pMode=(Int_t*)kpNULL);
+  std::vector<std::string> GetChannelNames(const std::string& rPattern);
 
 
   //
@@ -273,7 +273,7 @@ public:
   // Modern support to set the interpreter result:
 
   void setResult(const char* resultString);
-  void setResult(STD(string) resultString);
+  void setResult(std::string resultString);
   void setResult(Tcl_Obj*    resultObj);
   void setResult(CTCLObject& resultObj);
 };

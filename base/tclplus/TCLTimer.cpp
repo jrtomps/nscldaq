@@ -304,9 +304,7 @@ static const char* Copyright = "(C) Copyright Michigan State University 2015, Al
 #include <config.h>
 #include "TCLTimer.h"                               
 
-#ifdef HAVE_STD_NAMESPACE
 using namespace std;
-#endif
 
 // Functions for class CTCLTimer
 

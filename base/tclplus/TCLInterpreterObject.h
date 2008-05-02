@@ -298,8 +298,8 @@ DAMAGES.
 #define __TCL_H
 #endif                               
 
-#ifndef __HISTOTYPES_H
-#include <histotypes.h>
+#ifndef __DAQTYPES_H
+#include <daqdatatypes.h>
 #endif
 
 #ifndef __CRT_ASSERT_H

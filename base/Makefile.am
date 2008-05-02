@@ -1,1 +1,3 @@
-SUBDIRS = 	cvt exception uri thread headers
+SUBDIRS = 	cvt exception uri thread headers tclwidgets \
+		tclplus
+

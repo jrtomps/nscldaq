@@ -6,9 +6,9 @@
 #include "Asserts.h"
 
 
-#ifdef HAVE_STD_NAMESPACE
+
 using namespace std;
-#endif
+
 
 #include "TCLInterpreter.h"
 #include "TCLTracedVariable.h"

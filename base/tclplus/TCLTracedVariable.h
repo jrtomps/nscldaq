@@ -42,7 +42,7 @@ private:
   CVariableTraceCallback*    m_pCallback; //!< the callback object.
 public:
   CTCLTracedVariable(CTCLInterpreter*           pInterp,
-		  STD(string)                Name,
+		  std::string                Name,
 		  CVariableTraceCallback&    Trace,
 		  int                        flags = (TCL_TRACE_READS  |
 						      TCL_TRACE_WRITES | 

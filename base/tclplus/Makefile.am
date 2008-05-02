@@ -1,13 +1,11 @@
-ommand does not exist.
 
-# DEFS = @WCHAR_T_DEF@
-INCLUDES = -I.. -I. @TCL_FLAGS@ -I../Headers -I../Exception @X11INCS@
+INCLUDES = -I$(top_srcdir)/base/headers @TCL_FLAGS@ -I$(top_srcdir)/base/exception
 LDADD = -ltclPlus -lException -lXt -lX11 $(X11EXTRA_LDFLAGS)
-AM_LDFLAGS = -L. @TCL_LDFLAGS@
+AM_LDFLAGS = -L. @TCL_LDFLAGS@ -L$(top_srcdir)/base/exception
 
 lib_LTLIBRARIES = libtclPlus.la
 
-libtclPlus_la_LDFLAGS = -version-info $(SOVERSION):0 \
+libtclPlus_la_LDFLAGS = -version-info $(SOVERSION) \
 	-Wl,"-rpath-link=$(libdir)"
 
 testableSources = TCLInterpreter.cpp TCLProcessor.cpp  \
@@ -63,7 +61,7 @@ tracetests_SOURCES = TestRunner.cpp \
 tracetests_DEPENDENCIES = $(testableObjects)
 
 TestLdflags = $(testableObjects) $(CPPUNIT_LDFLAGS) $(X11EXTRA_LDFLAGS) \
-	-L@top_srcdir@/Exception -lException
+	-L@top_srcdir@/base/exception -lException
 
 
 tracetests_LDADD = $(TestLdflags)

@@ -10,9 +10,9 @@
 
 #include <tcl.h>
 
-#ifdef HAVE_STD_NAMESPACE
+
 using namespace std;
-#endif
+
 
 class objects : public CppUnit::TestFixture {
   CPPUNIT_TEST_SUITE(objects);

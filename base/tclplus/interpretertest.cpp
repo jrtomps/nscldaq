@@ -13,9 +13,9 @@
 
 #include <tcl.h>
 
-#ifdef HAVE_STD_NAMESPACE
+
 using namespace std;
-#endif
+
 
 // Test the CTCLInterpreter object.
 
