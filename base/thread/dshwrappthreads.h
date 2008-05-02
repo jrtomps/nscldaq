@@ -1,4 +1,4 @@
-I #ifndef DSHWRAPPTHREADS_H
+#ifndef DSHWRAPPTHREADS_H
 #define DSHWRAPPTHREADS_H
 
 /*=========================================================================*\
@@ -10,8 +10,7 @@ I #ifndef DSHWRAPPTHREADS_H
 | Written by: E. Kasten                                                     |
 \*=========================================================================*/
 
-#ifndef __DSHWRAPPTHREADS_H
-#define __DSHWRAPPTHREAD_H
+
 
 #ifdef USE_PTHREADS
 

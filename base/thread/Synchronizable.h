@@ -86,11 +86,11 @@ class _SyncStruct {
 * @author  Eric Kasten
 * @version 1.0.0
 */
-class Synchronizable : 
+class Synchronizable 
 {
 
  private:   
-  daqhwyapi::_SyncStruct *sync;
+  _SyncStruct *sync;
 
   
 public:
@@ -110,7 +110,7 @@ private:
   void Unlock(int);
 
 protected:
-  static _SyncStruct* _create_sync(daqhwyapi::_SyncStruct*);  
+  static _SyncStruct* _create_sync(_SyncStruct*);  
 
   friend class SyncGuard;
 

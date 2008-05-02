@@ -9,7 +9,7 @@
 
 
 
-#include <dshapi/Thread.h>
+#include <Thread.h>
 
 #include <netdb.h>
 #include <sys/socket.h>
@@ -165,7 +165,7 @@ void Thread::join() {
 * @param rName A new name for this thread.
 * @return None
 */      
-void Thread::setName(const String& rName) {
+void Thread::setName(const string rName) {
   threadname = rName;
 }
 
@@ -178,7 +178,7 @@ void Thread::setName(const String& rName) {
 * @param None
 * @return This thread's name.
 */      
-const String& Thread::getName() const {
+string Thread::getName() const {
   return(threadname);
 }
 
@@ -195,9 +195,8 @@ void Thread::start() {
   int rc = 0;
   dshwrapthread_t newtid;
   if ((rc = dshwrapthread_create(&newtid,NULL,Thread::threadStarter,(void *)this)) < 0) {
-    char buf[NL_TEXTMAX+1];
     errno = rc;
-    throw ErrnoException("Starting thread, unable to do so.");
+    throw CErrnoException("Starting thread, unable to do so.");
 
   }
 }
