@@ -31,9 +31,7 @@ static const char* Copyright= "(C) Copyright Michigan State University 2002, All
 #include <winsock.h>
 #endif
 
-#ifdef HAVE_STD_NAMESPACE
 using namespace std;
-#endif
 
 CTclAuthorizer* pAuthenticator = 0;
 

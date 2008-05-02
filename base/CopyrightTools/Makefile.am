@@ -1,12 +1,12 @@
 lib_LTLIBRARIES = libLicense.la
 libLicense_la_SOURCES = CopyrightNotice.cpp
 
-INCLUDES = -I@top_srcdir@ -I@top_srcdir@/Headers
+INCLUDES =  -I@top_srcdir@/base/headers
 
 
 
 include_HEADERS = CopyrightNotice.h
-libLicense_la_LDFLAGS =  -version-info $(SOVERSION):0 \
+libLicense_la_LDFLAGS =  -version-info $(SOVERSION) \
 	-Wl,"-rpath-link=$(libdir)"
 
 TESTS = ./test

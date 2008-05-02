@@ -10,9 +10,9 @@
 #include <config.h>
 #include "CPortManagerException.h"
 
-#ifdef HAVE_STD_NAMESPACE
+
 using namespace std;
-#endif
+
 
 //  String table for the reason code:
 

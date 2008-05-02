@@ -257,6 +257,8 @@ AC_CONFIG_FILES([Makefile
                  base/tclplus/Makefile
                  base/tclwidgets/Makefile
                  base/uri/Makefile
+		 servers/Makefile
+		 servers/tclserver/Makefile
                  servers/portmanager/Makefile
                  utilities/chanlog/Makefile
                  utilities/controlpush/Makefile
@@ -264,7 +266,7 @@ AC_CONFIG_FILES([Makefile
                  utilities/dvdburn/Makefile
                  utilities/epicsdisplay/Makefile
                  utilities/scalerdisplay/Makefile
-                 utilities/sequencer/Makefile
-                 utilities/tclserver/Makefile])
+                 utilities/sequencer/Makefile])
+
 AC_OUTPUT
 

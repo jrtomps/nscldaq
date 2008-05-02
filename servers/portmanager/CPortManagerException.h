@@ -25,7 +25,7 @@
 #endif
 
 #ifndef OSTREAM_DAQH
-#include <Ostream.h>
+#include <ostream>
 #endif
 
 class CPortManagerException : public CException
@@ -37,16 +37,16 @@ public:
 		ConnectionFailed
 	} Reason;
 private:
-	STD(string)    m_sHost;            //!< Host with the server.
+	std::string    m_sHost;            //!< Host with the server.
 	Reason         m_eReason;          //!< Why the operation threw.
-	mutable STD(string) m_sReasonText; //!< Scratch storage fro ReasonText()
+	mutable std::string m_sReasonText; //!< Scratch storage fro ReasonText()
 
 	// Constructors and other canonical operations:
 	
 public:
-	CPortManagerException(STD(string) host,
+	CPortManagerException(std::string host,
 						  Reason      why,
-						  STD(string) doing);
+						  std::string doing);
 	CPortManagerException(const CPortManagerException& rhs);			
 	virtual ~CPortManagerException();
 	
@@ -59,12 +59,12 @@ public:
     virtual const char* ReasonText() const;
     virtual Int_t       ReasonCode() const;
     
-    static STD(string)  ReasonCodeToText(int code);
+    static std::string  ReasonCodeToText(int code);
    
  	
 };
 // Handy stream put operator for formatting the exception.
 
-STD(ostream)& operator<<(STD(ostream)& f, const CPortManagerException& e); 
+std::ostream& operator<<(std::ostream& f, const CPortManagerException& e); 
 
 #endif

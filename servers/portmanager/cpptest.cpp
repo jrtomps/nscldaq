@@ -7,13 +7,13 @@
 #include <config.h>
 #include "CPortManager.h"
 #include "CPortManagerException.h"
-#include <Iostream.h>
+#include <iostream>
 #include <vector>
 
 
-#ifdef HAVE_STD_NAMESPACE
+
 using namespace std;
-#endif
+
 /*
    test1: 
      Construct a port manager on port 1234 (wrong port) for localhost.

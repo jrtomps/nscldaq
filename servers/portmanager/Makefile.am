@@ -3,16 +3,17 @@
 #
 lib_LTLIBRARIES=libPortManager.la
 libPortManager_la_SOURCES = CPortManagerException.cpp \
-						    CPortManager.cpp
+			    CPortManager.cpp
 
 include_HEADERS = CPortManagerException.h \
-				  CPortManager.h
-libPortManager_la_LDFLAGS = -L@top_srcdir@/Exception \
+		  CPortManager.h
+
+libPortManager_la_LDFLAGS = -L@top_srcdir@/base/exception \
 			-lException   \
-			-version-info $(SOVERSION):0 \
+			-version-info $(SOVERSION) \
 			-Wl,"-rpath=$(libdir)"
 
-INCLUDES = -I@top_srcdir@/Headers -I@top_srcdir@/Exception \
+INCLUDES = -I@top_srcdir@/base/headers -I@top_srcdir@/base/exception \
 		-DHOME=\"$(prefix)\"
 
 TCLPACKAGES=ConnectionManager.tcl \
@@ -50,7 +51,7 @@ EXTRA_DIST =$(TCLPACKAGES) $(TCLAPPS) $(TCLTESTS)  portmanager.xml
 noinst_PROGRAMS = cpptest
 
 cpptest_SOURCES = cpptest.cpp
-cpptest_LDADD= -L. -lPortManager -L@top_srcdir@/Exception -lException
+cpptest_LDADD= -L. -lPortManager -L@top_srcdir@/base/exception -lException
 
 check-TESTS: cpptest
 	for f in *.test;do $(TCLSH_CMD) $f; done

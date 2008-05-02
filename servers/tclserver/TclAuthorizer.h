@@ -293,8 +293,8 @@ DAMAGES.
 #ifndef __TCLAUTHORIZER_H  //Required for current class
 #define __TCLAUTHORIZER_H
 
-#ifndef __HISTOTYPES_H
-#include "histotypes.h"
+#ifndef __DAQTYPES_H
+#include "daqdatatypes.h"
 #endif
 
 #ifndef __STL_STRING
@@ -381,22 +381,22 @@ public:
 
   virtual   int operator() (CTCLInterpreter& rInterp, CTCLResult& rResult, 
 			    int nArgs, char* pArgs[])    ;
-  Bool_t AddHost (const STD(string)& HostOrIp)    ;
-  Bool_t RemoveHost (const STD(string)& NameOrIP)    ;
-  STD(string) ListHosts ()    ;
-  Bool_t Authenticate (const STD(string)& rNameOrIp)    ;
+  Bool_t AddHost (const std::string& HostOrIp)    ;
+  Bool_t RemoveHost (const std::string& NameOrIP)    ;
+  std::string ListHosts ()    ;
+  Bool_t Authenticate (const std::string& rNameOrIp)    ;
 
 protected:
   int   Process(CTCLInterpreter& rInterp, CTCLResult& rResult, 
 		  int nArgs, char* pArgs[])    ;
-  Bool_t  HostToIp(STD(string)& rName);
-  Int_t   GetIndex (const STD(string)& rHostOrIp)   ;
-  Bool_t ConvertHost(const STD(string)& rInName, 
-	                 STD(string)& rOutname, STD(string)& rCanonicalIP)   ;
+  Bool_t  HostToIp(std::string& rName);
+  Int_t   GetIndex (const std::string& rHostOrIp)   ;
+  Bool_t ConvertHost(const std::string& rInName, 
+	                 std::string& rOutname, std::string& rCanonicalIP)   ;
 
   Int_t   Usage(CTCLResult& rResult);
 private:
-	void setResult(const STD(string)& rResult) {
+	void setResult(const std::string& rResult) {
     if(m_pResult) *m_pResult = rResult;
   }
   void setResult(const char* pResult) {

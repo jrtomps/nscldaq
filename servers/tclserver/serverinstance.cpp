@@ -31,14 +31,14 @@ static const char* Copyright= "(C) Copyright Michigan State University 2002, All
 #include "serverinstance.h"
 #include <string.h>
 #include <tk.h>
-#include <Iostream.h>
+#include <iostream>
 #include <unistd.h>
 #include <sys/types.h>
 #include <pwd.h>
 
-#ifdef HAVE_STD_NAMESPACE
+
 using namespace std;
-#endif
+
 
 char *eol = "\n";
 extern bool userauth;

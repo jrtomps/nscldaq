@@ -2,15 +2,15 @@ bin_PROGRAMS = tclserver
 tclserver_SOURCES = TclAuthorizer.cpp serverinstance.cpp tclAppInit.cpp \
 	tkAppInit.cpp Server.cpp
 
-tclserver_LDADD = -L@top_srcdir@/TCL -ltclPlus -L@top_srcdir@/Exception \
-	-L@top_srcdir@/PortManager \
-	-L@top_srcdir@/CopyrightTools -lPortManager -lLicense -lException $(TCL_LDFLAGS) \
+tclserver_LDADD = -L@top_srcdir@/base/tclplus -ltclPlus -L@top_srcdir@/base/exception \
+	-L@top_srcdir@/servers/portmanager \
+	-L@top_srcdir@/base/CopyrightTools -lPortManager -lLicense -lException $(TCL_LDFLAGS) \
 	$(X11LIBS)  
 tclserver_LDFLAGS=-Wl,"-rpath=$(libdir)"
 
-INCLUDES = -I@top_srcdir@/Headers -I@top_srcdir@/Exception \
-	-I@top_srcdir@/PortManager \
-	-I@top_srcdir@/TCL -I@top_srcdir@/CopyrightTools $(TCL_FLAGS)
+INCLUDES = -I@top_srcdir@/base/headers -I@top_srcdir@/base/exception \
+	-I@top_srcdir@/servers/portmanager \
+	-I@top_srcdir@/base/tclplus -I@top_srcdir@/base/CopyrightTools $(TCL_FLAGS)
 
 noinst_HEADERS = TclAuthorizer.h \
 	server.h \
