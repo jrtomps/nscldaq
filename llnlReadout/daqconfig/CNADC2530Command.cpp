@@ -87,7 +87,7 @@ CNADC2530Command::operator()(CTCLInterpreter& interp,
   // require at least 3 parameters.
 
   if (objv.size() < 3) {
-    Usage("Insufficient command parameters", objv);
+    Usage(string("Insufficient command parameters"), objv);
     return TCL_ERROR;
   }
   // Get the subcommand keyword and dispatch or error:
@@ -127,7 +127,7 @@ CNADC2530Command::getConfiguration()
   Parameters and return value are as for operator()
 */
 int
-CNADC2530Command::create(CTCLInterpreter& interp, vector<CTCLObject>& obvj)
+CNADC2530Command::create(CTCLInterpreter& interp, vector<CTCLObject>& objv)
 {
   // We already know we have at least three elements...
 
@@ -183,7 +183,7 @@ CNADC2530Command::config(CTCLInterpreter& interp,
 {
   if (objv.size() < 4) {
     Usage("Insufficient parameters to do a configuration", objv);
-    return TCL_ERROR:
+    return TCL_ERROR;
   }
 
 
@@ -278,7 +278,7 @@ CNADC2530Command::Usage(string msg, std::vector<CTCLObject>& objv)
 
 int
 CNADC2530Command::configure(CTCLInterpreter& interp,
-			    std::vetor<CTCLOjbect>& objv,
+			    std::vector<CTCLObject>& objv,
 			    CReadoutModule* pModule,
 			    int startAt)
 {

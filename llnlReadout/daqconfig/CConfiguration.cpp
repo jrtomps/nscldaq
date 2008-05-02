@@ -62,7 +62,7 @@ CConfiguration::CConfiguration() :
   m_Commands.push_back(new CMarkerCommand(*m_pInterp, *this));
   m_Commands.push_back(new CStackCommand(*m_pInterp, *this));
   m_Commands.push_back(new CSIS3804Command(*m_pInterp, *this));
-  m_Commands.push_back(new CSIS2530Command(*m_pInterp, *this));
+  m_Commands.push_back(new CNADC2530Command(*m_pInterp, *this));
 
 }
 /*!

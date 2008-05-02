@@ -40,6 +40,7 @@
 class CTCLInterpreter;
 class CTCLObject;
 class CConfiguration;
+class CReadoutModule;
 
 /*!
   The hytec command creates and configures hytec NADC 2530 adcs.
@@ -109,7 +110,7 @@ public:
 	     std::vector<CTCLObject>& objv);
   int cget(CTCLInterpreter& interp,
 	   std::vector<CTCLObject>& objv);
-  void Usage(std::string msg, std::vector<CTCLObjet>& objv);
+  void Usage(std::string msg, std::vector<CTCLObject>& objv);
 
 private:
   int configure(CTCLInterpreter& interp,
