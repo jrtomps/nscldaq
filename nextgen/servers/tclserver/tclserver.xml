@@ -1,0 +1,221 @@
+<!-- chapter utilities -->
+    
+<chapter id="chapter.tclserver">
+    <title>The tcl server application</title>
+    <para>
+        TclServer is a deceptively simple program.  It is a wish (Tk) interpreter
+        that allows Tcp/IP connections from a local or remote client.
+        Once connected, the client can send messages consisting of Tcl commands
+        and receive the result of executing those commands from the server.
+    </para>
+    <para>
+        TclServer is used as the basis of a number of applications in the
+        NSCLDAQ system including the scaler display program, the epicsdisplay
+        program and other software written by specific groups. Tcl servers can
+        be used as distributed data repositories (store data in server Tcl variables and/or
+        arrays and get them back out), or as display programs that can be remote-controlled.
+        The production readout framework has a Tcl Server component that can be enabled.
+    </para>
+    <para>
+        This chapter contains:
+	A description of the TclServer protection model.  For complete
+    information about the TclServer see
+    <link linkend="manpage.tclserver"> the TclServer reference pages
+    </link>.
+    </para>
+        <para>
+            The TclServer protection model is not very stringent.  The assumption
+            is that TclServers can only be reached by trusted systems.  Specifically
+            systems that have not been broken into and will not spoof host names.
+            When a TclServer starts, it will only allow connections from
+            <literal>localhost</literal>.
+        </para>
+        <para>
+            The TclServer extends the Tcl/Tk command set with the command
+            <command>serverauth</command> this command allows you to authorize
+            additional systems to connect  to the server.  The complete form
+            of the <command>serverauth</command> command is described in
+            the <link linkend="manpage.serverauth"> reference page for the
+	    <command>serverauth</command> command.</link>.
+            section.
+        </para>
+        <para>
+            The following command adds the node <literal>spdaq20.nscl.msu.edu</literal>
+            to the set of hosts that are allowed to connnect to the server.
+        </para>
+        <example>
+            <title>Using <command>serverauth</command> to authorize a node</title>
+            <programlisting>
+serverauth add spdaq20.nscl.msu.edu
+            </programlisting>
+        </example>
+</chapter>
+
+<!-- /chapter -->
+<!-- manpage 1tcl -->
+
+
+<refentry id="manpage.tclserver">
+  <refmeta>
+     <refentrytitle>tclserver</refentrytitle>
+     <manvolnum>1tcl</manvolnum>
+  </refmeta>
+  <refnamediv>
+     <refname>tclserver</refname>
+     <refpurpose>Start a Tcl Server.</refpurpose>
+  </refnamediv>
+  
+  <refsynopsisdiv>
+    <cmdsynopsis>
+	<command>
+tclserver <optional><option>-p<replaceable>port</replaceable></option> <option>-userauth</option></optional>
+	</command>
+    </cmdsynopsis>
+  </refsynopsisdiv>
+  <refsect1>
+     <title>DESCRIPTION</title>
+     <para>
+	Starts a Tcl server.   The server will listen for connections.  Authorized
+        connections will be allowed to 'poke' Tcl commands to the server which will
+        execute them and return the result to the client.
+     </para>
+  </refsect1>
+  <refsect1>
+     <title>
+	OPTIONS
+     </title>
+     <variablelist>
+	<varlistentry>
+	    <term><option>-p<replaceable>port</replaceable></option></term>
+	    <listitem>
+		<para>
+                    Specifies the port on which the server will listen.
+                    <itemizedlist>
+                        <listitem>
+                            <para>
+                                If omitted this defaults to 2048.
+                            </para>
+                        </listitem>
+                        <listitem>
+                            <para>
+                                If <replaceable>port</replaceable> is the
+                                text string <literal>Managed</literal>,
+                                the daq port manager is contacted to allocated
+                                a free port on which to listen.
+                            </para>
+                        </listitem>
+                        <listitem>
+                            <para>
+                                If <replaceable>port</replaceable> is an integer,
+                                it is taken as th eport on which to listen.
+                            </para>
+                        </listitem>
+                    </itemizedlist>
+		</para>
+	    </listitem>
+                        
+	</varlistentry>
+        <varlistentry>
+            <term><option>-userauth</option></term>
+            <listitem>
+                <para>
+                    If present, the client must, in addition to being authorized
+                    via the <command>serverauth</command> command send as the first
+                    line of text the name of the user running the client.
+                    This username must match the name of the uyser that is running
+                    the server.
+                </para>
+                <para>
+                    This is intended to reduce the chances that more than one user
+                    on the same system might cause problems by talking with each other's
+                    tclservers.
+                </para>
+            </listitem>
+        </varlistentry>
+     </variablelist>
+  </refsect1>
+
+</refentry>
+<refentry id="manpage.serverauth">
+  <refmeta>
+     <refentrytitle>serverauth</refentrytitle>
+     <manvolnum>1tcl(tclserver)</manvolnum>
+  </refmeta>
+  <refnamediv>
+     <refname>serverauth</refname>
+     <refpurpose>Control tcl server authorization.</refpurpose>
+  </refnamediv>
+  
+  <refsynopsisdiv>
+    <cmdsynopsis>
+	<command>
+serverauth add <replaceable>hostorip</replaceable>
+	</command>
+    </cmdsynopsis>
+    <cmdsynopsis>
+        <command>
+serverauth remove <replaceable>hostorip</replaceable>
+        </command>
+    </cmdsynopsis>
+    <cmdsynopsis>
+        <command>
+serverauth list
+        </command>
+    </cmdsynopsis>
+
+  </refsynopsisdiv>
+  <refsect1>
+     <title>DESCRIPTION</title>
+     <para>
+	Manipulates the server authorization database.  The server authorization
+        database determines which nodes are allowed to connect to the tcl server.
+        This command lives in the tclserver itself.  Usually a startup script
+        or GUI element projected by the server sets up the appropriate authorization
+        lists.
+     </para>
+     <para>
+        <command>serverauth</command> is an ensemble of commands that has
+        the following ensemble commands:
+     </para>
+     <variablelist>
+        <varlistentry>
+            <term><command>serverauth add <replaceable>hostorip</replaceable></command></term>
+            <listitem>
+                <para>
+                    Adds <parameter>hostorip</parameter> to the set of hosts
+                    that are allowed to connect to this instance of the server.
+                    <parameter>hostorip</parameter> can be either a DNS hostname
+                    like <literal>spdaq22.nscl.msu.edu</literal> or it can
+                    be a dotted IP address like: <literal>35.8.35.123</literal>.
+                    </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term><command>serverauth remove <replaceable>hostorip</replaceable></command></term>
+            <listitem>
+                <para>
+                    Removes the host <parameter>hostorip</parameter> from the set of
+                    systems that are authorized to connect as clients to the tcl server.
+                    <parameter>hostorip</parameter> is a DNS name or dotted IP, as for
+                    the <command>serverauth add</command> command.  Matching is based on
+                    the IP address so the command should work just fine in the presence of e.g. CNAMEs.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term><command>serverauth list</command></term>
+            <listitem>
+                <para>
+                    Lists the systems that are authorized to connect.  The command
+                    returns as a result a Tcl list. Each element of the list is a pair.
+                    The first element of the pair is the hostname of a host authorized
+                    to connect (actually a hostorip provided).  The second element
+                    of the list is the IP address of the associated host.
+                </para>
+            </listitem>
+        </varlistentry>
+     </variablelist>
+  </refsect1>
+ 
+</refentry>
+<!-- /manpage -->
