@@ -1,6 +1,6 @@
 #include <config.h>
 #include "CopyrightNotice.h"
-#include <Iostream.h>
+#include <iostream>
 
 using namespace std;
 

@@ -38,12 +38,10 @@
 // #include <publib.h>
 #include <ctype.h>
 
-#include <Fstream.h>
-#include <Sstream.h>
+#include <fstream>
+#include <sstream>
 
-#ifdef HAVE_STD_NAMESPACE
 using namespace std;
-#endif
 
 //  consts:
 

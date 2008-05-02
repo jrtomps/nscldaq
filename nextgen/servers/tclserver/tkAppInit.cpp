@@ -31,7 +31,7 @@ static const char* Copyright= "(C) Copyright Michigan State University 2002, All
 
 #include <config.h>
 #include <stdio.h>
-#include <Iostream.h>
+#include <iostream>
 #include "tk.h"
 
 #include <string>
@@ -55,9 +55,9 @@ int *tclDummyMathPtr = (int *) matherr;
 EXTERN int		Tktest_Init _ANSI_ARGS_((Tcl_Interp *interp));
 #endif /* TK_TEST */
 
-#ifdef HAVE_STD_NAMESPACE
+
 using namespace std;
-#endif
+
 
 
 /*

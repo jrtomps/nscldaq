@@ -47,19 +47,19 @@ public:
 	//! portInfo lists the information about a single port.
 	typedef struct _portInfo {
 		int         s_Port;                 //!< Number of a port.
-		STD(string) s_Application;          //!< Application owning the port.
-		STD(string) s_User;					//!< User running the application
+		std::string s_Application;          //!< Application owning the port.
+		std::string s_User;					//!< User running the application
 	} portInfo;
 private:
-	STD(string)     m_sHost;                //!< Host we're talking to
+	std::string     m_sHost;                //!< Host we're talking to
 	int             m_nPort;                //!< Port to connect to.
 	bool            m_fisConnected;         //!< holding persistent connection?
 	int             m_nSocket;              //!< current socket.
 
     // Construction:
 public:   
-    CPortManager(STD(string) host = STD(string)("localhost"));
-    CPortManager(STD(string) host, int Port);
+    CPortManager(std::string host = std::string("localhost"));
+    CPortManager(std::string host, int Port);
     ~CPortManager();
     
     // Cannonical operations:
@@ -76,17 +76,17 @@ public:
 	
     // Class operations:
 public:
-    int allocatePort(STD(string) application);
-    STD(vector)<portInfo> getPortUsage();
+    int allocatePort(std::string application);
+    std::vector<portInfo> getPortUsage();
 	// Utility functions
 private:
 	void Connect(); 
 	void Disconnect();
 	static int DetermineDefaultPort();
 	void GetNetworkAddress(sockaddr_in& addr) const;
-	STD(string) GetLine() const;
-	void    GetPortInfo(portInfo& info, STD(string) line);
-	static STD(string) GetUsername();
+	std::string GetLine() const;
+	void    GetPortInfo(portInfo& info, std::string line);
+	static std::string GetUsername();
 	static int tcp();
 };
 

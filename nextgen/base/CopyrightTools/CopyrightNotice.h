@@ -3,9 +3,7 @@
 
 /// Requires include of config.h by parent.
 
-#ifndef __OSTREAM_DAQH
-#include <Ostream.h>
-#endif
+#include <ostream>
 
 
 /*!
