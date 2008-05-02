@@ -8,10 +8,10 @@ include_HEADERS = ErrnoException.h Exception.h  StreamIOError.h \
 	RangeError.h StateException.h URIFormatException.h \
 	MonitorException.h
 
-libException_la_LDFLAGS = -version-info $(SOVERSION):0 \
+libException_la_LDFLAGS = -version-info $(SOVERSION) \
 	-Wl,"-rpath-link=$(libdir)"
 
-INCLUDES = -I@top_srcdir@/Headers
+INCLUDES = -I@top_srcdir@/base/headers
 
 install-data-local:
 	rm -f $(prefix)/include/CErrnoException.h

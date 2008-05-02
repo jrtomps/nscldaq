@@ -203,10 +203,10 @@ include_HEADERS = ErrnoException.h Exception.h  StreamIOError.h \
 	RangeError.h StateException.h URIFormatException.h \
 	MonitorException.h
 
-libException_la_LDFLAGS = -version-info $(SOVERSION):0 \
+libException_la_LDFLAGS = -version-info $(SOVERSION) \
 	-Wl,"-rpath-link=$(libdir)"
 
-INCLUDES = -I../../Headers
+INCLUDES = -I../../base/headers
 EXTRA_DIST = exceptions.xml
 unittests_SOURCES = TestRunner.cpp testException.cpp testErrnoException.cpp \
 	testStreamIOError.cpp testRangeError.cpp

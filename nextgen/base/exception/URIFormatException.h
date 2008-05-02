@@ -39,7 +39,8 @@
     file where the actual exception was constructed.
 
 */
-class  CURIFormatException {
+class  CURIFormatException : public CException
+{
 private:
   std::string  m_Reason;
 
@@ -51,7 +52,7 @@ public:
   CURIFormatException(std::string uri, std::string port,
 		      const char* file, int line);                  //!< Port is not a port.
   CURIFormatException(std::string uri, const char* host,
-		      const char* file int line);                   //!< Host fails validity check.
+		      const char* file, int line);                   //!< Host fails validity check.
   CURIFormatException(const CURIFormatException& rhs);              // copy construction
 
   virtual ~CURIFormatException();
@@ -67,4 +68,4 @@ public:
   virtual const char* ReasonText() const;
   virtual Int_t       ReasonCode() const;
 
-}
+};

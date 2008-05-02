@@ -41,7 +41,7 @@
 class CStateException : public CException
 {
 private:
-  STD(string) m_Reason;
+  std::string m_Reason;
 public:
   // Constructors and other canonicals:
 

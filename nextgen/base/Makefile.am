@@ -1,1 +1,1 @@
-SUBDIRS = 	cvt
+SUBDIRS = 	cvt exception uri

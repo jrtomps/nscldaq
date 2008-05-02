@@ -9,9 +9,9 @@
 
 #include <string>
 
-#ifdef HAVE_STD_NAMESPACE
+
 using namespace std;
-#endif
+
 
 
 class testErrnoException : public CppUnit::TestFixture {

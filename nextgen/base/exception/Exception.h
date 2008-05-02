@@ -34,7 +34,7 @@
 #define __EXCEPTION_H
 
 #ifndef __HISTOTYPES_H
-#include <histotypes.h>
+#include <daqdatatypes.h>
 #endif
 
 #ifndef __STL_STRING
@@ -49,8 +49,7 @@ class CException
 private:
   char m_szAction[kACTIONSIZE] ;   // Saved action in progress when
 					               // exception was thrown.
-  
- operator==(const MonitorException& rhs) const;public:
+public:  
 			//Default constructor
 
   virtual ~ CException ( ) { }       //Destructor
@@ -58,7 +57,7 @@ private:
 			//Constructors with arguments
 
   CException (const char* pszAction  );
-  CException (const STD(string)& rsAction);
+  CException (const std::string& rsAction);
   
 			//Copy constructor
 
@@ -87,7 +86,7 @@ public:
 
 protected:
   void setAction (const char* pszAction);
-  void setAction (const STD(string)& rsAction);
+  void setAction (const std::string& rsAction);
 
   // Selectors which depend on the actual exception type:
 

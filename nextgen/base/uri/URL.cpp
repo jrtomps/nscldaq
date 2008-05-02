@@ -9,6 +9,8 @@
 
 using namespace std;
 
+#include "URL.h"
+
 #include <unistd.h>
 #include <sys/types.h>
 #include <netdb.h>
@@ -67,9 +69,9 @@ URL::URL(const URL& rhs) :
 */                                                             
 URL& URL::operator=(const URL& rURL) {
   my_port = rURL.my_port;
-  my_addr = rURL.my_addr;
   my_path = rURL.my_path;
   my_proto = rURL.my_proto;
+  my_namestr = rURL.my_namestr;
   return (*this);
 }
 
@@ -84,11 +86,11 @@ URL& URL::operator=(const URL& rURL) {
 * @return If the specified address is equal to this one.
 */                                                             
 int
- URL::operator==(const URL& rURL) const {
-  return ((my_port == rURL.my_port)&&
-          my_proto.equalsIgnoreCase(rURL.my_proto)&&
-          my_path.equalsIgnoreCase(rURL.my_path)&&
-          my_addr.equals(rURL.my_addr));
+URL::operator==(const URL& rURL) const {
+  return ((my_port    == rURL.my_port)&&
+          (my_proto   == rURL.my_proto) &&
+          (my_path    == rURL.my_path)&&
+          (my_namestr == rURL.my_namestr));
 }
 
 /*==============================================================*/
@@ -121,7 +123,7 @@ URL::operator!=(const URL& rhs) const
 * @param None
 * @return The hostname of this address.
 */                                                             
-const string& URL::getHostName() const {
+string URL::getHostName() const {
   return my_namestr;
 }
 
@@ -147,7 +149,7 @@ int URL::getPort() const {
 * @param None
 * @return The protocol of this URL.
 */                                                             
-const string& URL::getProto() const {
+string URL::getProto() const {
   return my_proto;
 }
 
@@ -160,12 +162,12 @@ const string& URL::getProto() const {
 * @param None
 * @return The path of this URL.
 */                                                             
-const string URL::getPath() const {
+string URL::getPath() const {
   return my_path;
 }
 
 /*==============================================================*/
-/** @fn std::string operator std::string()
+/** operator std::string()
 * @brief Stringify this URL.
 *
 * Stringify this URL in proto://host:port/path format. 
@@ -173,15 +175,14 @@ const string URL::getPath() const {
 * @param None
 * @return The stringified URL.
 */                                                             
-string
-URI::operator string() const
+URL::operator string() const
 {
 
   char   urlString[PATH_MAX];
   
   snprintf(urlString, sizeof(urlString),
 	   "%s://%s/%s:%d",
-	   my_proto, my_namestr, my_path, my_port);
+	   my_proto.c_str(), my_namestr.c_str(), my_path.c_str(), my_port);
 
   return string(urlString);
 }
@@ -228,7 +229,7 @@ void URL::parseString(string rStr) {
   // There must be a colon, and there must be text after the :
 
   if (!protocolEnd  || (strlen(protocolEnd) == 0)) {
-    throw URIFormatException(rStr, __FILE__, __LINE__);
+    throw CURIFormatException(rStr, __FILE__, __LINE__);
   }
   protocolLength = protocolEnd - protocolStart;
 
@@ -249,12 +250,12 @@ void URL::parseString(string rStr) {
   hostStart = protocolEnd + 1;	// Skip the colon.
   numSlashes= strspn(hostStart, slash);	// count the slashes...
   if (numSlashes < 2) {
-    throw URIFormatException(rStr, __FILE__, __LINE__);	// need at least 2 slashes.
+    throw CURIFormatException(rStr, __FILE__, __LINE__);	// need at least 2 slashes.
   }
   hostStart += numSlashes;	                        // The real start of the host.
   hostEnd    = strchr(hostStart, ':');                  // We require a port, and thus a ':'.
   if (!hostEnd) {
-    throw URIFormatException(rStr, __FILE__, __LINE__);
+    throw CURIFormatException(rStr, __FILE__, __LINE__);
   }
   nhostStart = hostStart - rStr.c_str();
   hostLength = hostEnd - hostStart;
@@ -265,9 +266,9 @@ void URL::parseString(string rStr) {
   // end of the string.
 
   string portString;
-  char*  portStart;
-  char*  portEnd;
-  char*  portIntegerEnd;
+  const char*  portStart;
+  const char*  portEnd;
+  const char*  portIntegerEnd;
   off_t  nPortStart;
   size_t nPortSize;
   int    port;
@@ -282,8 +283,10 @@ void URL::parseString(string rStr) {
   nPortStart = portStart - rStr.c_str();
   nPortSize  = portEnd   - portStart;
   portString.assign(rStr, nPortStart, nPortSize);
-  
-  port = strtol(portString.c_str(), &portEnd, 0);
+
+  char* pEnd;
+  port = strtol(portString.c_str(), &pEnd, 0);
+  portEnd = const_cast<const char*>(pEnd);
   
   // The entire string must have been gobbled up...when portEnd -> 0.
 
@@ -296,7 +299,7 @@ void URL::parseString(string rStr) {
   // validity checking on the path.
 
   string path;
-  char*  pathStart;
+  const char*  pathStart;
 
   if(havePath) {
     path = portEnd;		// includes all leading '/'-es there may be.

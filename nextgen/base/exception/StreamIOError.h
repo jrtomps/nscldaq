@@ -62,7 +62,7 @@ public:				// Data types;
 
 private:  
   IoStreamConditions m_eReason; //Reason for the throw
-  STD(ios)&               m_rStream; //Reference to stream <may be invalid>
+  std::ios&               m_rStream; //Reference to stream <may be invalid>
   char               m_sReasonText[1000]; // Reason for failure built here.
   static char**      m_svErrorMessages; //Pointer to error message table.      
 
@@ -70,14 +70,14 @@ private:
 public:
 
   CStreamIOError(IoStreamConditions eReason,
-		 const  char* pDoing, STD(ios)& rStream) :
+		 const  char* pDoing, std::ios& rStream) :
     CException(pDoing),
     m_eReason(eReason),
     m_rStream(rStream)
   {}
 
   CStreamIOError(IoStreamConditions eReason,
-	  const STD(string)&  rDoing, STD(ios)& rStream) :
+	  const std::string&  rDoing, std::ios& rStream) :
     CException(rDoing),
     m_eReason(eReason),
     m_rStream(rStream)
@@ -126,7 +126,7 @@ public:
   { 
     return m_eReason;
   }
-  STD(ios)& getStream()
+  std::ios& getStream()
   { 
     return m_rStream;
   }
