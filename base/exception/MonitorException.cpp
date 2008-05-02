@@ -42,7 +42,7 @@ CMonitorException::CMonitorException(int correctOwner, int actualOwner,
 				     const char* file, const char* line) :
   CException("Performing operations on a synchrnonizeable object")
 {
-  char s[NL_TEXTMAX+1];
+  char s[1000];
   snprintf(s, sizeof(s), 
 	   "Mutex should be owned by %d but was owned by %d at %s:%s",
 	   correctOwner, actualOwner, file, line);
@@ -77,7 +77,7 @@ CMonitorException::operator=(const CMonitorException& rhs)
    Comparison for equality.
 */
 int
-CMonitorException::operator==(const CMonitorException& rhs)
+CMonitorException::operator==(const CMonitorException& rhs) const
 {
   return (CException::operator==(rhs)                  &&
 	  (m_MessageText == rhs.m_MessageText));
@@ -86,7 +86,7 @@ CMonitorException::operator==(const CMonitorException& rhs)
    Inequality is when equality is not true:
 */
 int
-CMonitorException::operator!=(const CMonitorException& rhs)
+CMonitorException::operator!=(const CMonitorException& rhs) const
 {
   return !(*this == rhs);
 }

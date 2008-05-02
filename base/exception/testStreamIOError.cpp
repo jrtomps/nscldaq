@@ -1,16 +1,16 @@
 // Template for a test suite.
 #include <config.h>
 #include <StreamIOError.h>
-#include <Iostream.h>
+#include <iostream>
 
 #include <cppunit/extensions/HelperMacros.h>
 #include <cppunit/Asserter.h>
 #include "Asserts.h"
 
 
-#ifdef HAVE_STD_NAMESPACE
+
 using namespace std;
-#endif
+
 
 
 class testStreamException : public CppUnit::TestFixture {

@@ -20,6 +20,7 @@
 
 using namespace std;
 
+
 //////////////////////////////////////////////////////////////////////////////////////////
 //   Constructors:
 
@@ -38,9 +39,9 @@ CURIFormatException::CURIFormatException(string URI, const char* file, int line)
 	   "URI Format Incorrect: Cannot parse %s as a URI : thrown at %s:%d", 
 	   URI.c_str(), file, line);
   m_Reason = reason;
-  SetAction("Parsing URI");
+  setAction("Parsing URI");
   m_Reason += " while ";
-  m_Reason += getReason();
+  m_Reason += WasDoing();
 }
 /*!
   Construct the exception for a port that is not valid (probably not an integer).
@@ -58,9 +59,9 @@ CURIFormatException::CURIFormatException(string URI, string port,
 	   "URI Format Incorrect: URI %s,  %s is not a valid port : thrown at %s:%d",
 	   URI.c_str(), port.c_str(), file, line);
   m_Reason = reason;
-  SetAction("Parsing URI Port string");
+  setAction("Parsing URI Port string");
   m_Reason += " while ";
-  m_Reason += getReason();
+  m_Reason += WasDoing();
 
 }
 /*!
@@ -73,18 +74,18 @@ CURIFormatException::CURIFormatException(string URI, string port,
   \param file - The file in which the exception was thrown.
   \param line  - The line number.
 */
-CUIRFormatException::CURIFormatException(string URI, const char* host, 
+CURIFormatException::CURIFormatException(string URI, const char* host, 
 					 const char* file, int line) :
   CException("")
 {
-  string reason[1000];
+  char reason[1000];
   snprintf(reason, sizeof(reason),
 	   "URI Format Incorrect: %s has an invalid host %s : thrown at %s:%d",
 	   URI.c_str(), host, file, line);
   m_Reason = reason;
-  SetAction("Validating host");
+  setAction("Validating host");
   m_Reason += " while ";
-  m_Reason += getReason();
+  m_Reason += WasDoing();
 }
 
 /*!
@@ -109,7 +110,7 @@ CURIFormatException&
 CURIFormatException::operator=(const CURIFormatException& rhs) 
 {
   if (this != &rhs) {
-    CException::operator=(&rhs);
+    CException::operator=(rhs);
     m_Reason = rhs.m_Reason;
     
   }

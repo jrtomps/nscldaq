@@ -183,6 +183,7 @@ top_srcdir = ../..
 lib_LTLIBRARIES = liburl.la
 liburl_la_SOURCES = URL.cpp
 include_HEADERS = URL.h
+INCLUDES = -I../../base/headers -I../../base/exception 
 EXTRA_DIST = URL.xml
 all: all-am
 

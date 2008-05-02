@@ -47,7 +47,7 @@
 * @author  Eric Kasten, R. Fox
 * @version 2.0.0
 */
-class URL : {
+class URL  {
   
   // Object private data:
 
@@ -64,8 +64,8 @@ public:
   URL(const URL&);		// Copy constructor.
   
   URL& operator=(const URL&);	// Assign
-  bool operator==(const URL&) const; // Comparison for equality
-  bool operator!=(const URL&) const; // and inequality.
+  int operator==(const URL&) const; // Comparison for equality
+  int operator!=(const URL&) const; // and inequality.
 
   // Get elements of the URI:
 
@@ -73,7 +73,7 @@ public:
   std::string getHostName() const; // Get the host name
   int getPort()             const; // Get the port
   std::string getPath()     const; // Get the path
-  std::string operator std::string()    const; // Stringify the url.
+  operator std::string()    const; // Stringify the url.
 
 private:
 

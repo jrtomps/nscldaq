@@ -39,7 +39,7 @@
 #endif                               
   
 #ifndef __HISTOTYPES_H
-#include <histotypes.h>
+#include <daqdatatypes.h>
 #endif
 
 #ifndef __CRTL_ERRNO_H
@@ -64,7 +64,7 @@ public:
   CErrnoException(const char* pszAction) :
     m_nErrno(errno),
     CException(pszAction) {}
-  CErrnoException(const STD(string)& rsAction) :
+  CErrnoException(const std::string& rsAction) :
     m_nErrno(errno),
     CException(rsAction) {}
   ~CErrnoException ( ) { }       //Destructor

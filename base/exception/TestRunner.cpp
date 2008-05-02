@@ -2,11 +2,9 @@
 #include <cppunit/extensions/TestFactoryRegistry.h>
 #include <cppunit/ui/text/TestRunner.h>
 #include <string>
-#include <Iostream.h>
+#include <iostream>
 
-#ifdef  HAVE_STD_NAMESPACE
 using namespace std;
-#endif
 
 int main(int argc, char** argv)
 {

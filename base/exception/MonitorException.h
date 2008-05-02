@@ -44,16 +44,16 @@ private:
 
   // Constructors
 public:
-  MonitorException(int correctOwner, int actualOwner, const char* file, const char* line);
-  MonitorException(const MonitorException& rhs);
-  virtual ~MonitorException();
+  CMonitorException(int correctOwner, int actualOwner, const char* file, const char* line);
+  CMonitorException(const CMonitorException& rhs);
+  virtual ~CMonitorException() {}
 
   // Canonicals:
 
 public:
-  MonitorException& operator=(const MonitorException& rhs);
-  int operator==(const MonitorException& rhs) const;
-  int operator!=(const MonitorException& rhs) const;
+  CMonitorException& operator=(const CMonitorException& rhs);
+  int operator==(const CMonitorException& rhs) const;
+  int operator!=(const CMonitorException& rhs) const;
 
   // The Exception interface:
 
