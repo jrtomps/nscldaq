@@ -13,7 +13,7 @@
 #include <DesignByContract.h>
 #include <ErrnoException.h>
 
-#include <Iostream.h>
+#include <iostream>
 
 #include <fcntl.h>
 #include <unistd.h>   				
@@ -26,9 +26,9 @@
 #include <sys/wait.h>
 #include <sys/poll.h>
 
-#ifdef HAVE_STD_NAMESPACE
+
 using namespace std;
-#endif
+
 
 // Static attribute storage and initialization for CLocalMonitoredProgram
 

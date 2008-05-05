@@ -12,6 +12,6 @@
 // prototype of grep function.
 
 bool
-grep(string str, string pattern);
+grep(std::string str, std::string pattern);
 
 #endif

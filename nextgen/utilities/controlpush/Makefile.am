@@ -12,6 +12,10 @@
 #	     Michigan State University
 #	     East Lansing, MI 48824-1321
 
+
+#  This application requires epics:
+
+if EPICS
 LIBDIR=$(prefix)/TclLibs
 
 bin_PROGRAMS        = controlpush
@@ -35,18 +39,19 @@ noinst_HEADERS= cmdline.h CApplication.h CChannelList.h \
 			CLookupVisitor.h CChannel.h CUnitChannel.h \
 			CApplicationSerializer.h CBuildChannelData.h
 
-controlpush_LDADD   = CChannel.o -L@top_srcdir@/Exception -lException \
-			-L@top_srcdir@/CopyrightTools -lLicense \
+controlpush_LDADD   =  -L@top_srcdir@/base/exception -lException \
+			-L@top_srcdir@/base/CopyrightTools -lLicense \
 			$(EPICS_LDFLAGS) 
 controlpush_LDFLAGS= -Wl,"-rpath=$(libdir)"
-INCLUDES            =   -I@top_srcdir@/Exception \
-			-I@top_srcdir@/CopyrightTools \
-			-I@top_srcdir@/Headers        \
+
+INCLUDES            =	-I@top_srcdir@/base/exception		\
+			-I@top_srcdir@/base/CopyrightTools	\
+			-I@top_srcdir@/base/headers		\
 			$(EPICS_BIN) $(EPICS_INCLUDES) 
 
 
 cmdline.c: options.ggo
-	gengetopt --unamed-opts <options.ggo
+	$(GENGETOPT) --unamed-opts <options.ggo
 
 EXTRA_DIST=options.ggo  Channels.dat  controlpush.xml
 
@@ -61,3 +66,4 @@ unittests_LDADD = $(CPPUNIT_LDFLAGS) $(controlpush_LDADD)
 
 TESTS=./unittests
 
+endif

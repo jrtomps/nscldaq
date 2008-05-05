@@ -2,9 +2,9 @@
 #include "CChannel.h"
 #include <stdio.h>
 
-#ifdef HAVE_STD_NAMESPACE
+
 using namespace std;
-#endif
+
 
 
 

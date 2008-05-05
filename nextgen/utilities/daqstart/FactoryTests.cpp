@@ -10,6 +10,8 @@
 #include <string.h>
 #include <unistd.h>
 
+using namespace std;
+
 static const string FileType("file");
 static const string Filename("test.log");
 static const string Command("testing");

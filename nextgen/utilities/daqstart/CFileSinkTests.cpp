@@ -12,6 +12,8 @@
 #include <fstream>
 
 
+using namespace std;
+
 static const string Command("testing");
 static const string LogName("testlog.log");
 static const string EmptyLog("empty.log");

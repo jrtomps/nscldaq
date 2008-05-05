@@ -296,13 +296,13 @@ DAMAGES.
 #include <unistd.h>
 #include <sys/types.h>
 #include <CopyrightNotice.h>
-#include <Iostream.h>
+#include <iostream>
 #include <string>
 #include <Exception.h>
 
-#ifdef HAVE_STD_NAMESPACE
+
 using namespace std;
-#endif
+
 
 
 /*!

@@ -35,9 +35,9 @@ static const char* Copyright= "(C) Copyright Michigan State University 2002, All
 #include <CApplicationSerializer.h>
 #include <stdio.h>
 
-#ifdef HAVE_STD_NAMESPACE
+
 using namespace std;
-#endif
+
 
 // Constructors and related operations.
 

@@ -5,9 +5,9 @@
 #include "CFileSinkCreator.h"    				
 #include "CFileSink.h"
 
-#ifdef HAVE_STD_NAMESPACE
+
 using namespace std;
-#endif
+
 
 // Static attribute storage and initialization for CFileSinkCreator
 
@@ -84,7 +84,7 @@ Parameters:
 
 */
 bool 
-CFileSinkCreator::isNameLegal(STD(string) Name)  
+CFileSinkCreator::isNameLegal(std::string Name)  
 {
   return true;
 }  

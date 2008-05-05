@@ -8,15 +8,15 @@ noinst_HEADERS = cmdline.h CDAQStart.h  CFileSinkCreator.h \
 		CFileSink.h  CLocalMonitoredProgram.h  CSink.h \
 		CSinkFactory.h
 
-INCLUDES	= -I@top_srcdir@/Headers -I@top_srcdir@/Exception -I.
+INCLUDES	= -I@top_srcdir@/base/headers -I@top_srcdir@/base/exception -I.
 
-daqstart_LDADD = -L@top_srcdir@/Exception -lException
+daqstart_LDADD = -L@top_srcdir@/base/exception -lException
 
 AM_CXXFLAGS	= -D_GNU_SOURCE
 
 
 cmdline.c: daqstart.ggo
-	gengetopt --unamed-opts <daqstart.ggo
+	$(GENGETOPT) --unamed-opts <daqstart.ggo
 
 EXTRA_DIST=daqstart.ggo popup.tcl daqstart.xml Makefile.am
 
@@ -30,7 +30,7 @@ noinst_PROGRAMS = unittests
 unittests_SOURCES = $(TESTABLEUNITS) CFileSinkTests.cpp SinkCreatorTests.cpp \
 	FactoryTests.cpp LocalMonitoredProgram.cpp  grep.cpp TestRunner.cpp
 
-unittests_LDADD = $(CPPUNIT_LDFLAGS) -L@top_srcdir@/Exception -lException -lpub
+unittests_LDADD = $(CPPUNIT_LDFLAGS) -L@top_srcdir@/base/exception -lException -lpub
 
 
 TESTS = ./unittests

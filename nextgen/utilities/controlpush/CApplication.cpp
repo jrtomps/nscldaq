@@ -56,9 +56,9 @@ While true {
 
 
 #include <utility>
-#include <Fstream.h>  
-#include <Iostream.h> 
-#include <Sstream.h>
+#include <fstream>  
+#include <iostream> 
+#include <sstream>
 
 #include <errno.h>
 #include <string.h>
@@ -67,9 +67,7 @@ While true {
 #include <sys/types.h>
 #include <pwd.h>
 
-#ifdef HAVE_STD_NAMESPACE
 using namespace std;
-#endif
 
 static const int    YEARBASE(1900);           // Base year of struct tm.tm_year
 
