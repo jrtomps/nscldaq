@@ -1,6 +1,6 @@
 
 
 
-SUBDIRS = scalerdisplay chanlog controlpush daqstart dvdburn
+SUBDIRS = scalerdisplay chanlog controlpush daqstart dvdburn epicsdisplay
 
 
