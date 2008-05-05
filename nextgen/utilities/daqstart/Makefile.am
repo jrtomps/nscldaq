@@ -6,7 +6,7 @@ daqstart_SOURCES= cmdline.c daqstart.cpp CDAQStart.cpp $(TESTABLEUNITS)
 noinst_HEADERS = cmdline.h CDAQStart.h  CFileSinkCreator.h \
 		CMonitoredProgram.h  CSinkCreator.h \
 		CFileSink.h  CLocalMonitoredProgram.h  CSink.h \
-		CSinkFactory.h
+		CSinkFactory.h grep.h
 
 INCLUDES	= -I@top_srcdir@/base/headers -I@top_srcdir@/base/exception -I.
 

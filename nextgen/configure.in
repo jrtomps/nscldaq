@@ -360,6 +360,7 @@ AC_CONFIG_FILES([Makefile
                  utilities/daqstart/Makefile
                  utilities/dvdburn/Makefile
                  utilities/epicsdisplay/Makefile
+		 utilities/epicsdisplay/epicsdisplay
                  utilities/scalerdisplay/Makefile 
 		 utilities/scalerdisplay/ScalerDisplay
                  utilities/sequencer/Makefile
