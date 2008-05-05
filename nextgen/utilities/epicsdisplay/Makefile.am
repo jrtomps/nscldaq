@@ -1,3 +1,5 @@
+if EPICS
+
 HELPFILES=add.html alarmconfig.html channelmenu.html \
 	config.html filemenu.html gui.html \
 	helpmenu.html overview.html
@@ -16,8 +18,9 @@ install-exec-local:
 	$(INSTALL_SCRIPT)  epicsdisplay     $(bindir)
 	$(INSTALL_DATA)    $(HELPFILES) $(HELPDIR)
 
-man_MANS = EpicsDisplay.1
 
 EXTRA_DIST = channels.txt  EpicsDisplay.tcl displayepics.tcl \
 	epicsdisplay.xml epicsdisplay.in \
 	$(HELPFILES)
+
+endif
