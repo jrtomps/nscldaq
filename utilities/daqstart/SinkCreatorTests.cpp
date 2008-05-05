@@ -12,6 +12,8 @@
 #include <unistd.h>
 #include <fstream>
 
+using namespace std;
+
 static const string Command("testing");
 static const string Logfile("test.log");
 static const string testmsg1("This is a test string\n");

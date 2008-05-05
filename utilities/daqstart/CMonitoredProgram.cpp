@@ -15,9 +15,9 @@
 #include <unistd.h>
 #include <string.h>
 
-#ifdef HAVE_STD_NAMESPACE
+
 using namespace std;
-#endif
+
 
 // Static attribute storage and initialization for CMonitoredProgram
 

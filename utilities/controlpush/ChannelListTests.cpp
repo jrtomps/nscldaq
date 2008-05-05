@@ -11,9 +11,9 @@
 #include <iostream>
 #include <time.h>
 
-#ifdef HAVE_STD_NAMESPACE
+
 using namespace std;
-#endif
+
 
 class ChannelListTests : public CppUnit::TestFixture {
   CPPUNIT_TEST_SUITE(ChannelListTests);

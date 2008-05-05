@@ -29,9 +29,9 @@
 #include <cadef.h>		// EPICS
 
 
-#ifdef HAVE_STD_NAMESPACE
+
 using namespace std;
-#endif
+
 
 // Note epics defines assert for now.
 

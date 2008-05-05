@@ -18,11 +18,11 @@
 #include "CLookupVisitor.h"    
 #include "CChannel.h"
 
-#include <Iostream.h>
+#include <iostream>
 
-#ifdef HAVE_STD_NAMESPACE
+
 using namespace std;
-#endif
+
 				
 
 // Functions for class CLookupVisitor

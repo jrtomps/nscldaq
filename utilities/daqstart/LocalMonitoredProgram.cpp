@@ -15,6 +15,8 @@
 #include <unistd.h>
 #include <fstream>
 
+using namespace std;
+
 class LocalMonitorTest : public CppUnit::TestFixture {
   CPPUNIT_TEST_SUITE(LocalMonitorTest);
   CPPUNIT_TEST(Construction);

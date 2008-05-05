@@ -1,1 +1,1 @@
-SUBDIRS =	base servers
+SUBDIRS =	base servers utilities

@@ -17,9 +17,9 @@
 
 #include <ErrnoException.h>
 
-#ifdef HAVE_STD_NAMESPACE
+
 using namespace std;
-#endif
+
 
 // Static attribute storage and initialization for CFileSink
 
@@ -133,9 +133,9 @@ Parameters:
 
 */
 bool 
-CFileSink::Log(const STD(string)& Message)  
+CFileSink::Log(const std::string& Message)  
 {
-  STD(string)line = FormatLine(Message);
+  std::string line = FormatLine(Message);
   write(m_nFd, line.c_str(), line.size());
   
 }

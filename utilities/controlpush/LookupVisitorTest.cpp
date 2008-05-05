@@ -8,9 +8,10 @@
 #include "CChannelList.h"
 #include "CLookupVisitor.h"
 #include "CBuildChannelData.h"
-#ifdef HAVE_STD_NAMESPACE
+
+
 using namespace std;
-#endif
+
 
 
 

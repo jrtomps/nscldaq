@@ -56,9 +56,8 @@ to start the application.
 #endif
 #endif
 
-#ifndef __ISTREAM_DAQH
-#include <Istream.h>
-#endif
+#include <istream>
+
 
 #ifndef __CRT_TIME_H
 #include <time.h>

@@ -6,9 +6,9 @@
 
 #include "CChannel.h"
 
-#ifdef HAVE_STD_NAMESPACE
+
 using namespace std;
-#endif
+
 
 
 // Tests for the channel class.

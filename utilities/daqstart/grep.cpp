@@ -2,6 +2,8 @@
 #include <regex.h>
 #include <string>
 
+using namespace std;
+
 // True if pattern regexp has at least one match for str.
 
 bool 
