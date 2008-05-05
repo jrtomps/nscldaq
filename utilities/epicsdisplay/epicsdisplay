@@ -1,6 +1,0 @@
-#!/bin/bash
-
-prefix=/usr/opt/daq/8.1j
-
-$prefix/bin/tclserver $prefix/bin/EpicsDisplay.tcl $1 \
-			-pManaged -a"Epics Display"
