@@ -36,7 +36,7 @@
 #ifndef __INTERACTOR_H  //Required for current class
 #define __INTERACTOR_H
 
-#include <histotypes.h>        //Required for include files
+#include <daqdatatypes.h>        //Required for include files
                                
 class CInteractor      
 {                       
