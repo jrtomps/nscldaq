@@ -139,7 +139,7 @@ tclserver <optional><option>-p<replaceable>port</replaceable></option> <option>-
 <refentry id="manpage.serverauth">
   <refmeta>
      <refentrytitle>serverauth</refentrytitle>
-     <manvolnum>1tcl(tclserver)</manvolnum>
+     <manvolnum>1tclserver</manvolnum>
   </refmeta>
   <refnamediv>
      <refname>serverauth</refname>

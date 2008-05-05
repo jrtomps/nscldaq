@@ -1,1 +1,1 @@
-SUBDIRS =	base servers utilities
+SUBDIRS =	base servers utilities docbuild docconfig
