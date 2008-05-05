@@ -7,3 +7,6 @@ INCLUDES = -I$(top_srcdir)/base/headers -I$(top_srcdir)/base/exception -DUSE_PTH
 
 libdaqthreads_la_LDFLAGS = -version-info $(SOVERSION) \
 		-Wl,"-rpath-link=$(libdir)"
+
+
+EXTRA_DIST=thread.xml
