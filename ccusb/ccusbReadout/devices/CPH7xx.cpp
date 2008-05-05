@@ -384,7 +384,7 @@ CPH7xx::getArray(string name, vector<uint16_t>& value)
   string sValue = m_pConfiguration->cget(name);
   Tcl_SplitList(NULL, sValue.c_str(), &argc, &argv);
 
-  assert(argc == 32);		// Validator should have done this.
+  assert(argc == 16);		// Validator should have done this.
 
   for(int i =0; i < 32; i++) {
     value.push_back(static_cast<uint16_t>(strtol(argv[i], NULL, 0)));
