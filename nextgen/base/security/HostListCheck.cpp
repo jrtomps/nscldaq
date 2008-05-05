@@ -40,9 +40,9 @@ static const char* Copyright= "(C) Copyright Michigan State University 1936, All
 #endif
 
 #include <stdio.h>
-#ifdef HAVE_STD_NAMESPACE
+
 using namespace std;
-#endif
+
 
 static char* pCopyrightNotice = 
 "(C) Copyright 1999 NSCL, All rights reserved HostListCheck.cpp \n";

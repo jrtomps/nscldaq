@@ -41,7 +41,7 @@
 #endif
 
 #ifndef __HISTOTYPES_H
-#include <histotypes.h>
+#include <daqdatatypes.h>
 #endif
 
 #ifndef __STL_STRING

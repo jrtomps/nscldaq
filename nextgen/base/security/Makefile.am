@@ -7,9 +7,9 @@ include_HEADERS = AccessListCheck.h  Authenticator.h \
 	FdInteractor.h HostListCheck.h \
 	IOInteractor.h Interactor.h PasswordCheck.h StringInteractor.h \
 	TclAccessListCheck.h UnixUserCheck.h
-libSecurity_la_LDFLAGS = -version-info $(SOVERSION):0 -Wl,"-rpath=$(libdir)"
+libSecurity_la_LDFLAGS = -version-info $(SOVERSION) -Wl,"-rpath=$(libdir)"
 
-INCLUDES = -I@top_srcdir@/Headers -I@top_srcdir@/TCL $(TCL_FLAGS) $(SPECTRODAQ_FLAGS)
+INCLUDES = -I@top_srcdir@/base/headers -I@top_srcdir@/base/tclplus $(TCL_FLAGS) $(SPECTRODAQ_FLAGS)
 
 EXTRA_DIS= security.xml
 
@@ -24,8 +24,9 @@ unittests_DEPENDENCIES = AccessListCheck.o  \
 	IOInteractor.o Interactor.o PasswordCheck.o  \
 	StringInteractor.o TclAccessListCheck.o UnixUserCheck.o
 
-unittests_LDADD = $(unittests_DEPENDENCIES) -L@top_srcdir@/TCL -ltclPlus -L@top_srcdir@/Exception -lException \
-	$(SPECTRODAQ_LDFLAGS) $(TCL_LDFLAGS)
+unittests_LDADD = $(unittests_DEPENDENCIES) -L@top_srcdir@/base/tclplus \
+	-ltclPlus -L@top_srcdir@/base/exception -lException \
+	$(SPECTRODAQ_LDFLAGS) $(TCL_LDFLAGS) -lcrypt
 
 TESTS = ./unittests
 
