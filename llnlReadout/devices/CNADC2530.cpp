@@ -205,9 +205,9 @@ CNADC2530::onAttach(CReadoutModule& configuration)
   // 
 
   m_pConfiguration->addParameter("-ipl", CConfigurableObject::isInteger,
-				 static_cast<void*>(&IPLLimits), 0);
+				 static_cast<void*>(&IPLLimits), "0");
   m_pConfiguration->addParameter("-vector", CConfigurableObject::isInteger,
-				 static_cast<void*>(&VectorLimits), 0);
+				 static_cast<void*>(&VectorLimits), "0");
 
   //  Set up the discriminator values.
   // -lld  - The low level discriminator.

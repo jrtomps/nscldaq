@@ -118,7 +118,7 @@ public:
 
   struct  flimit {
     bool   s_checkMe;
-    double s_value;
+    float s_value;
     flimit() :
       s_checkMe(false) {}
     flimit(float value) :
