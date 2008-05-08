@@ -110,8 +110,8 @@ static CConfigurableObject::Limits EventLimits(minEvents, maxEvents);
 
 
 CConfigurableObject::flimit fzero(0.0);
-CConfigurableObject::flimit lldhigh(819.1);
-CConfigurableObject::flimit hldhigh(8.191);
+CConfigurableObject::flimit lldhigh(819.2); // some slop for fp compares
+CConfigurableObject::flimit hldhigh(8.192); // some slop for fp compares.
 
 static CConfigurableObject::FloatingLimits lldLimits(fzero, lldhigh);
 static CConfigurableObject::FloatingLimits hldLimits(fzero, hldhigh);
@@ -343,7 +343,18 @@ CNADC2530::addReadoutList(CVMUSBReadoutList& list)
   // read from the module.  There's a header long, trailer long and 8 channels for each
   // event (not zero suppression mode yet).
 
-  int transfers = m_eventCount*8;
+  int transfers = m_eventCount*(8+2);
+
+  // The version of the firmware I have at this time for the VM-USB appears to
+  // delete the last word of a block transfer.  This is probably a hold-over
+  // from how Jan fixed the extra word inserted by a BERR end of transfer..
+  // If this is still the case, add an extra longword to the transfer.
+  // This means that now we'll get an extra word but that's probably better
+  // than missing the trailer >sigh<
+
+#ifndef VM_USB_BLKREADOK
+  transfers++;
+#endif
 
   list.addBlockRead32(m_eventBase, readamod, transfers);
   

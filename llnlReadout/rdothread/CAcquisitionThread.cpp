@@ -337,8 +337,8 @@ CAcquisitionThread::startDaq()
   for(int i =0; i < m_Stacks.size(); i++) {
     CStack* pStack = dynamic_cast<CStack*>(m_Stacks[i]->getHardwarePointer());
     assert(pStack);
-    pStack->loadStack(*m_pVme);	    // Load into VM-USB
     pStack->Initialize(*m_pVme);    // INitialize daq hardware associated with the stack.
+    pStack->loadStack(*m_pVme);	    // Load into VM-USB
     pStack->enableStack(*m_pVme);   // Enable the trigger logic for the stack.
   }
  

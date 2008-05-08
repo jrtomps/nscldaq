@@ -197,7 +197,16 @@ CConfigurableObject::getIntegerParameter(string name)
 {
   string value = cget(name);
 
-  return atoi(name.c_str());
+  char* end;
+  int iValue = strtol(value.c_str(), &end, 0);
+  if (end == value.c_str()) {
+    string msg = "Expected an integer parameter value for config. parameter ";
+    msg += name;
+    msg += "got: ";
+    msg += value;
+    throw msg;
+  }
+  return iValue;
 }
 /*!
   Return the value of a bool parameter.
