@@ -9,3 +9,12 @@ April 16, 2008
 - Don't allow linkage to nscldaq-9.0 it's not compatible.
 - Fix error in router/COutputThread.cpp.  Was not inserting the run number into the buffer header
   for physics buffers. Others were ok.
+May 8, 2008
+  - Create a validator for floats in CConfigurableObject
+  - Create convenience routines for getting integer, bools,
+    floats from a config in CConfigurableObject
+  - Support the hytec 2530 adc.
+May 9, 2008
+  - Add -requiredata boolean flag to C785 which controls the
+    EMPTY_PROG bit in the BSet/BClear 2 registers.
+

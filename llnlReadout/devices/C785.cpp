@@ -317,6 +317,10 @@ C785::onAttach(CReadoutModule& configuration)
 				 NULL, "true");
   m_pConfiguration->addParameter("-timescale", CConfigurableObject::isInteger,
 				 &tsRange, "600");
+
+  m_pConfiguration->addParameter("-requiredata", CConfigurableObject::isBool,
+				 NULL, "true");
+  
 }
 /*!
     Initialize the module prior to data taking. We get the parameters
@@ -419,6 +423,16 @@ C785::Initialize(CVMUSB& controller)
     controller.vmeWrite16(base+BClear2, initamod, 0x38);
   }
 
+  // If the user chooses to require data even if the module
+  // is 'empty' take care of that too:
+
+  bool requireData = getBoolParameter("-requiredata");
+  if (requireData) {
+    controller.vmeWrite16(base+BSet2, initamod, 0x1000);
+  } 
+  else {
+    controller.vmeWrite16(base+BClear2, initamod, 0x1000);
+  }
 
   // If the module is a 775 write the timerange register.
 
