@@ -15,17 +15,26 @@
 */
 
 #ifndef __CPARAMMAPCOMMAND_H
+#define __CPARAMMAPCOMMAND_H
 
 #ifndef __TCLOBJECTCOMMAND_H
 #include <TCLObjectProcessor.h>
 #endif
 
-#ifndef __STL_VECTOR
-#include <vector>
-#ifndef __STL_VECTOR
-#define __STL_VECTOR
+#ifndef __STL_STRING
+#include <string>
+#ifndef __STL_STRING
+#define __STL_STRING
 #endif
 #endif
+
+#ifndef __STL_MAP
+#include <map>
+#ifndef __STL_MAP
+#define __STL_MAP
+#endif
+#endif
+
 
 #ifdef HAVE_STD_NAMESPACE
 using namespace std;
@@ -46,18 +55,19 @@ class CTCLInterpreter;
    The command form is:
   
 \verbatim
-   paramMap slot channel name
+   paramMap modulename moduletype slot channels
 \endverbatim
 
    Where:
-   - slot    - is the adc slot number
-   - channel - is the channel within the slot.
-   - name    - is the name of the parameter at that slot.
+    - modulename is the name of the module whose channel map is being created.
+    - moduletype is a integer that represents the type of the module to the unpacker.
+    - slot       is the virtual slot of the module if it has one.
+    - channels   is the list of channel names to enter into the map.
 
    Note that at the time the paramMap command is issued, the parameter
-   name must have already been defined.  In this way we are able to put
+   names in channels  must have already been defined.  In this way we are able to put
    parameter numbers in the mapping so that at unpack time we don't have
-   to manipulate pesky strings.
+   to manipulate pesky strings and do time consuming lookups.
 
 */
 class CParamMapCommand : public CTCLObjectProcessor
@@ -67,19 +77,27 @@ class CParamMapCommand : public CTCLObjectProcessor
 public:
   struct AdcMapping
   {
-    int map[32];
+    int vsn;
+    int type;
+    int map[128];		// big enough to handle CAEN V1190's.
 
-    AdcMapping() { for(int i=0; i < 32; i++) map[i] = -1;}
-    AdcMapping(const AdcMapping& rhs) {
+    AdcMapping() :
+       vsn(-1), type(-1) { for(int i=0; i < 32; i++) map[i] = -1;}
+    AdcMapping(const AdcMapping& rhs) : vsn(rhs.vsn), type(rhs.type) {
+      
       for(int i =0; i < 32; i++) map[i] = rhs.map[i];
     }
     AdcMapping& operator=(const AdcMapping& rhs) {
+      vsn = rhs.vsn;
+      type= rhs.type;
       for (int i =0; i < 32; i++) map[i] = rhs.map[i];
     }
     int& operator[](int i) { return map[i]; }
 
   };
-  typedef STD(vector)<AdcMapping> ParameterMap;
+  typedef std::map<std::string, AdcMapping> ParameterMap;
+  typedef ParameterMap::iterator            ParameterMapIterator;
+
 private:
   static ParameterMap   m_theMap;
 
@@ -105,9 +123,7 @@ protected:
   // utilities:
 
 private:
-  void createEntry(unsigned slot);
   static STD(string) Usage();
-  static void setResult(CTCLInterpreter& interp, STD(string) result);
 };
 
 #endif

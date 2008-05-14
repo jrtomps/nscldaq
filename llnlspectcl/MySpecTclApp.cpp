@@ -31,7 +31,8 @@ static const char* Copyright = "(C) Copyright Michigan State University 2008, Al
 
 
 #include "CParamMapCommand.h"
-#include "CLLNLUnpacker.h"
+#include "CStackMapCommand.h"
+#include "CStackUnpacker.h"
 #include "CRateCommand.h"
 #include "CFitButton.h"
 
@@ -91,7 +92,7 @@ elements 1 and 2 and putting the result into element 0.
 void 
 CMySpecTclApp::CreateAnalysisPipeline(CAnalyzer& rAnalyzer)  
 { 
-  RegisterEventProcessor(*(new CLLNLUnpacker), "adc-data");
+  RegisterEventProcessor(*(new CStackUnpacker), "adc-data");
   RegisterEventProcessor(*(new CScalerProcessor), "scalers");
   
 }  
@@ -304,6 +305,7 @@ CMySpecTclApp::AddCommands(CTCLInterpreter& rInterp)
 { 
   CTclGrammerApp::AddCommands(rInterp);
   new CParamMapCommand(rInterp);
+  new CStackMapCommand(rInterp);
   new CRateCommand(rInterp);
 }  
 

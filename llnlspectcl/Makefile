@@ -11,6 +11,7 @@ USERCXXFLAGS=
 #  Uncomment the next line to enable reportage of bad events to stderr.
 #USERCXXFLAGS=-DREPORT_BAD_EVENTS
 
+
 #  If you have any switches you need to add to the default c compilation rules,
 #  add them to the defintion below:
 
@@ -24,8 +25,11 @@ USERLDFLAGS=
 #   Append your objects to the definitions below:
 #
 
-OBJECTS=MySpecTclApp.o CParamMapCommand.o CLLNLUnpacker.o	\
-	CRateProcessor.o CRateList.o CRateCommand.o CFitButton.o
+OBJECTS=MySpecTclApp.o CParamMapCommand.o	\
+	CRateProcessor.o CRateList.o CRateCommand.o CFitButton.o \
+	CStackMapCommand.o CModuleUnpacker.o C785Unpacker.o CNADC2530Unpacker.o \
+	CStackUnpacker.o
+
 
 #
 #  Finally the makefile targets.

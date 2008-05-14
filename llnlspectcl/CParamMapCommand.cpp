@@ -61,88 +61,66 @@ int
 CParamMapCommand::operator()(CTCLInterpreter& interp,
 			     vector<CTCLObject>& objv)
 {
-  // Need to have 4 command words:
+  // We need to have all the parameters (5 counting the command):
 
-  if (objv.size() != 4) {
-    string error = "paramMap - incorrect parameter word count\n";
+  if (objv.size() != 5) {
+    string error = "paramMap - incorrect number of parameters.\n";
     error       += Usage();
-    setResult(interp, error);
+    interp.setResult(error);
     return TCL_ERROR;
   }
+  // Bind the parameters to the interpreter prior to doing any conversions.
 
-  // Now get the following items:
-  //    - slot (integer)
-  //    - channel (integer)
-  //    - name (string)
-  //
-  // failure to do these conversions is an exception.
-  // note that the objects are not bound to an interpreter yet so we must bind them.
+  for (int i=1; i < 5; i++) {
+    objv[i].Bind(interp);
+  }
+  string moduleName;
+  int type;
+  int slot;
+  vector<CTCLObject> parameterList;
 
-  objv[1].Bind(interp);
-  objv[2].Bind(interp);
-  objv[3].Bind(interp);
-
-
-  int    slot;
-  int    channel;
-  string name;
   try {
-    slot    = objv[1];
-    channel = objv[2];
-    name    = (string)(objv[3]);
+    moduleName = string(objv[1]);
+    type       = objv[2];
+    slot       = objv[3];
+    parameterList = objv[4].getListElements();
   }
-  catch (CException& reason) {
-    string error = "Invalid parameter: ";
-    error += reason.ReasonText();
-    error += " while ";
-    error += reason.WasDoing();
-    error += "\n";
-    error += Usage();
-    setResult(interp, error);
+  catch(...) {
+    string error = "Invalid parameter type\n";
+    error       += Usage();
+    interp.setResult(error);
     return TCL_ERROR;
   }
-  catch (...) {
-    string error = "Invalid parameter\n";
-    error += Usage();
-    setResult(interp, error);
-    return TCL_ERROR;
+  // The only errors we know are that parameter names may not be defined.
+
+  SpecTcl* api = SpecTcl::getInstance();
+  AdcMapping mapping;
+  mapping.vsn = slot;
+  mapping.type= type;
+
+  for (int i =0; i < parameterList.size(); i++) {
+    parameterList[i].Bind(interp);
+
+    CParameter* pParam  = api->FindParameter(string(parameterList[i]));
+    if (!pParam) {
+      string error = string(parameterList[i]);
+      error       += " is not a defined parameter";
+      error       += Usage();
+      interp.setResult(error);
+      return TCL_ERROR;
+    }
+    mapping.map[i] = pParam->getNumber();
   }
+  // If we survived this far, we have a mapping.  create/replace the 
+  // mapping for moduleName
 
-  // The parameter name must translate to a SpecTcl parameter.
-  
-  SpecTcl* pApi = SpecTcl::getInstance();
-  CParameter* pParam = pApi->FindParameter(name);
-  if (!pParam) {
-    string error = "Parameter: ";
-    error   += name;
-    error   += " has not been defined yet and must be\n";
-    error   += Usage();
-    setResult(interp, error);
-    return TCL_ERROR;
-  }
+  m_theMap[moduleName] = mapping;
 
-  //  Now make the entry:
-
-  createEntry(slot);
-  m_theMap[slot][channel] = pParam->getNumber();
-  setResult(interp, string(""));
+  interp.setResult(moduleName);
   return TCL_OK;
+
 }
 
-/* 
-  Create a map entry.  If  the map entry already exists, this is a no-op.
-  if not we create enough 'empty' map entries to ensure that it does exist.
-  An empty map entry is one where all elements are -1.
-
-*/
-void
-CParamMapCommand::createEntry(unsigned slot)
-{
-  while (m_theMap.size() < slot+1) { // until m_theMap[slot] exists...
-    AdcMapping item;
-    m_theMap.push_back(item);	// Pushing a copy of this empty item.
-  }
-}
 
 /*
     Return a usage string.
@@ -151,19 +129,11 @@ string
 CParamMapCommand::Usage() 
 {
   string result = "Usage: \n";
-  result       += "   paramMap slot channel name\n";
-  result       += "      slot    - An ADC Virtual slot number\n";
-  result       += "      channel - A channel number within the module\n";
-  result       += "      name    - name of SpecTcl parameter to stuff data into\n";
-
+  result       += "   paramMap moduleName moduleType slot channels\n";
+  result       += "     moduleName  - The name of a digitizer module\n";
+  result       += "     moduleType  - The integer module type that selects an unpacker\n";
+  result       += "     slot        - Virtual slot number (may no always be meaningful\n";
+  result       += "     channels    - List of names of parameters for each channel\n";
+    
   return result;
-}
-/*
-   Set the interpreter result from a string.
-*/
-void
-CParamMapCommand::setResult(CTCLInterpreter& interp, string result)
-{
-  Tcl_Obj* objr = Tcl_NewStringObj(result.c_str(), -1);
-  Tcl_SetObjResult(interp.getInterpreter(), objr);
 }
