@@ -310,27 +310,16 @@ puts -nonewline "Starting treeparamgui..."
 source $SpecTclHome/Script/newGui.tcl
 puts " Done"
 
+puts "Adding SpecTcl exec directory to auto_path"
+
 set llnlSpecTcl [file dirname $argv0]
 lappend auto_path $llnlSpecTcl
 
-
-source [file join $llnlSpecTcl configFile.tcl]
-
-configClear
-configRead [file join ~ config daqconfig.tcl]
-
-puts -nonewline "Starting scaler display.."
-set scalerWin [toplevel .scalers]
-source /usr/opt/daq/current/TclLibs/ScalerDisplay/scaler.tcl
-if {[file exists [file join ~/config scalerdisplay.tcl]]} {
-    source [file join ~/config scalerdisplay.tcl]
-}
-puts " done"
-
+puts "done"
 
 tk appname SpecTcl-[exec hostname]-[pid]
 
-puts $argv0
-source [file join $llnlSpecTcl setup.tcl]
-source [file join $llnlSpecTcl fom.tcl]
-source [file join $llnlSpecTcl project.tcl]
+puts "Sourcing histogram config file"
+
+source [file join ~ config spectclSetup.tcl]
+puts "done"

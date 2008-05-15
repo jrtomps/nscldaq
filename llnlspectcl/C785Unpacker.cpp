@@ -147,7 +147,7 @@ C785Unpacker::operator()(CEvent&                       rEvent,
   }
   // An extra 16 bits was read...
   
-  return offset+1;
+  return offset+2;
 }
 ///////////////////////////////////////////////////////////////////
 //   utility functions
