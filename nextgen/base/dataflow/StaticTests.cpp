@@ -12,17 +12,11 @@
 #include <fcntl.h>
 
 #include "ringbufint.h"
+#include "testcommon.h"
 
 using namespace std;
 
-//  Default the directory that has shared memory special files
-//  to the one used by linux.
-//  This can be overridden for other systems and places.
-//
 
-#ifndef SHM_DIRECTORY
-#define SHM_DIRECTORY "/dev/shm"
-#endif
 
 // Default name of shared memory special file:
 
@@ -34,7 +28,7 @@ using namespace std;
 static string getFullName()
 {
   string fullname(SHM_DIRECTORY);
-  fullname += "/";
+
   fullname += SHM_TESTFILE;
   return fullname;
 }
@@ -58,8 +52,7 @@ public:
     // hopefully this gets called on failure too:
     // get rid of any shared memory file that might be lying around.
     
-    string fullname  = getFullName();
-    unlink(fullname.c_str());
+    shm_unlink(shmName(SHM_TESTFILE).c_str());
   }
 protected:
   void defaults();
@@ -125,9 +118,7 @@ void StaticRingTest::create() {
 
   EQMSG("mode check", (mode_t)0666, buf.st_mode & 0777);
   
-  // Get rid of the special file.
 
-  unlink(fullname.c_str());
   
 }
 
@@ -136,21 +127,14 @@ void StaticRingTest::create() {
 void StaticRingTest::format()
 {
   CRingBuffer::create(string(SHM_TESTFILE)); // also formats.
+  struct stat buf;
+  if(stat(getFullName().c_str(), &buf) == -1) {
+    FAIL("stat failed");
+  }
 
   // independently map and check the header...
 
-  int fd = shm_open(SHM_TESTFILE, O_RDONLY, 0666);
-  ASSERT(fd >= 0);
-  struct stat buf;
-
-  fstat(fd, &buf);
-
-  void* map = mmap(0, buf.st_size, PROT_READ, MAP_SHARED,
-		   fd, 0);
-  close(fd);
-
-  ASSERT(map != MAP_FAILED);
-  
+  void* map = mapRingBuffer(SHM_TESTFILE);
   
   pRingBuffer        pRing         = reinterpret_cast<pRingBuffer>(map);
   pRingHeader        pHeader       = &(pRing->s_header);

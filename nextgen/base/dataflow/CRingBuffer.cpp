@@ -59,7 +59,7 @@ private:
 public:
   CRingFreeSpacePredicate(size_t size) : m_sizeRequired(size) {}
   virtual bool operator()(CRingBuffer& ring) {
-    return m_sizeRequired <= ring.availablePutSpace();
+    return m_sizeRequired > ring.availablePutSpace();
   }
 
 };
@@ -76,7 +76,7 @@ private:
 public:
   CRingDataAvailablePredicate(size_t size) : m_sizeRequired(size) {}
   virtual bool operator()(CRingBuffer& ring) {
-    return m_sizeRequired <= ring.availableData();
+    return m_sizeRequired > ring.availableData();
   }
 };
 
@@ -368,19 +368,20 @@ CRingBuffer::put(void* pBuffer, size_t nBytes, unsigned timeout)
   off_t ringBase = m_pRing->s_header.s_dataOffset;
   off_t ringTop  = m_pRing->s_header.s_topOffset;
   char* pDataBase= reinterpret_cast<char*>(m_pRing) + ringBase;
-  char* pPut     = pDataBase + m_pClientInfo->s_offset;	// Put data starting here.
+  char* pPut     = reinterpret_cast<char*>(m_pRing) + m_pClientInfo->s_offset;
 
-  if ((m_pClientInfo->s_offset + nBytes) <=  ringTop) {
+  if ((m_pClientInfo->s_offset + nBytes) <=  (ringTop+1)) {
+
     // Can move all at once...
 
     memcpy(pPut, pBuffer, nBytes);
-    m_pClientInfo->s_offset += nBytes;
+
 
   }
   else {
     // Need to move in two chunks:
 
-    size_t firstSize = ringTop - m_pClientInfo->s_offset;
+    size_t firstSize = ringTop+1 - m_pClientInfo->s_offset;
     size_t secondSize= nBytes - firstSize;
 
     
@@ -454,9 +455,14 @@ CRingBuffer:: get(void*        pBuffer,
   // Figure out how much data we'll transfer:
 
   size_t transferSize =availableData();
+  if (transferSize > maxBytes) {
+    transferSize = maxBytes;
+  }
+
   peek(pBuffer, transferSize);
   Skip(transferSize);
 
+  return transferSize;
   
 }
 /*!
@@ -493,11 +499,12 @@ CRingBuffer::peek(void*   pBuffer,
   off_t ringBase = m_pRing->s_header.s_dataOffset;
   off_t ringTop  = m_pRing->s_header.s_topOffset;
   char* pDataBase= reinterpret_cast<char*>(m_pRing) + ringBase;
-  char* pGet     = pDataBase + m_pClientInfo->s_offset;	// Put data starting here.
+  char* pGet     = reinterpret_cast<char*>(m_pRing) + 
+                   m_pClientInfo->s_offset;	// Put data starting here.
 
   // Decide if this can be transferred in one or two chunks:
 
-  if (m_pClientInfo->s_offset + transferSize <= ringTop) {
+  if (m_pClientInfo->s_offset + transferSize <= (ringTop+1)) {
 
     // only need a single transfer:
 
@@ -507,7 +514,7 @@ CRingBuffer::peek(void*   pBuffer,
   else {
     // Need two chunks worth of transfer.
 
-    size_t firstSize = ringTop - m_pClientInfo->s_offset;
+    size_t firstSize = ringTop+1 - m_pClientInfo->s_offset;
     size_t secondSize= transferSize - firstSize;
 
     memcpy(pBuffer, pGet, firstSize);
@@ -840,12 +847,12 @@ CRingBuffer::difference(ClientInformation& producer, ClientInformation& consumer
   }
   // Otherwise, the answer is the sum of how far the consumer offset is from the
   // top of the ring and how far the producer is from the bottom.
-
+  // +1.
   pRingHeader pHeader = &(m_pRing->s_header);
 
   size_t topSize = pHeader->s_topOffset - consumer.s_offset;
   size_t botSize = producer.s_offset   - pHeader->s_dataOffset;
-  return topSize + botSize;
+  return topSize + botSize+1;
 }
 
 /******************************************************************/
@@ -860,6 +867,6 @@ CRingBuffer::Skip(size_t nBytes)
   m_pClientInfo->s_offset += nBytes;
   if (m_pClientInfo->s_offset > pHeader->s_topOffset) {
     m_pClientInfo->s_offset = (m_pClientInfo->s_offset - pHeader->s_topOffset) +
-                              pHeader->s_dataOffset;
+                              pHeader->s_dataOffset - 1;
   }
 }
