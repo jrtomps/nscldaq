@@ -338,7 +338,7 @@ CRingBuffer::~CRingBuffer()
 */
 
 size_t
-CRingBuffer::put(void* pBuffer, size_t nBytes, unsigned timeout)
+CRingBuffer::put(void* pBuffer, size_t nBytes, unsigned long timeout)
 {
   // Require that we are the producer:
 
@@ -429,7 +429,7 @@ size_t
 CRingBuffer:: get(void*        pBuffer, 
 		  size_t       maxBytes, 
 		  size_t       minBytes, 
-		  unsigned int timeout)
+		  unsigned long timeout)
 {
   // Ensure we are a consumer:
 
@@ -562,6 +562,7 @@ CRingBuffer::setPollInterval(unsigned long newValue)
 {
   unsigned long ret = m_pollInterval;
   m_pollInterval = newValue;
+  return ret;
 }
 /*!
     \return unsigned long
@@ -592,7 +593,7 @@ CRingBuffer::availablePutSpace()
 
   // figure out the minimum free space:
 
-  size_t minFree =  pHeader->s_dataBytes;
+  size_t minFree =  pHeader->s_dataBytes-1;
   for (int i = 0; i < consumers;  i++) {
     if(pClients->s_pid != -1) {
       size_t avail     = availableData(pClients);
@@ -696,7 +697,7 @@ CRingBuffer::getUsage()
     \retval -1   - Blocking timed out.
 */
 int 
-CRingBuffer::blockWhile(CRingBuffer::CRingBufferPredicate& pred, unsigned int timeout)
+CRingBuffer::blockWhile(CRingBuffer::CRingBufferPredicate& pred, unsigned long timeout)
 {
   // Lower the latencey be special casing the timeout == 0:
 

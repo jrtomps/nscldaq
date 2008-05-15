@@ -15,7 +15,7 @@ libDataFlow_la_LIBADD  = @top_srcdir@/base/exception/libException.la
 noinst_PROGRAMS = unittests
 
 unittests_SOURCES = TestRunner.cpp StaticTests.cpp TransferTests.cpp testcommon.cpp \
-		DifferenceTests.cpp BlockingTests.cpp
+		DifferenceTests.cpp BlockingTests.cpp InfoTests.cpp
 
 unittests_LDADD   = -L@prefix@/lib $(CPPUNIT_LDFLAGS) -lDataFlow -lException  
 
