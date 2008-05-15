@@ -1,12 +1,12 @@
 #include <cppunit/extensions/TestFactoryRegistry.h>
-#include <cppunit/ui/text/TestRunner.h>
+#include <cppunit/ui/text/TextTestRunner.h>
 #include <string>
 #include <iostream>
 using namespace std;
 
 int main(int argc, char** argv)
 {
-  CppUnit::TextUi::TestRunner   
+  CppUnit::TextTestRunner   
                runner; // Control tests.
   CppUnit::TestFactoryRegistry& 
                registry(CppUnit::TestFactoryRegistry::getRegistry());
