@@ -382,13 +382,13 @@ int main(int argc, char** argv)
             <type>size_t</type> <parameter>maxConsumer</parameter> <initializer>m_defaultMaxConsumers</initializer>
         </methodparam>
       </methodsynopsis>
-      <methdodsynopsis>
+      <methodsynopsis>
         <modifier>static</modifier> <type>void</type>
                                     <methodname>setDefaultRingSize</methodname>
         <methodparam>
             <type>size_t</type> <parameter>byteCount</parameter>
         </methodparam>
-      </methdodsynopsis>
+      </methodsynopsis>
       <methodsynopsis>
         <modifier>static</modifier> <type>size_t</type> <methodname>getDefaultRingSize</methodname>
                                                         <void />
@@ -464,9 +464,9 @@ int main(int argc, char** argv)
       </methodsynopsis>
       <methodsynopsis>
         <type>unsigned long</type> <methodname>setPollInterval</methodname>
-        <methodname>
+        <methodparam>
             <type>unsigned long</type> <parameter>newValue</parameter>
-        </methodname>
+        </methodparam>
       </methodsynopsis>
       <methodsynopsis>
         <type>unsigned long</type> <methodname>getPollInterval</methodname>
@@ -555,7 +555,7 @@ int main(int argc, char** argv)
       </para>
     <variablelist>
         <varlistentry>
-            <term><type>std::string <parameter>name</parameter></term>
+            <term><type>std::string</type> <parameter>name</parameter></term>
             <listitem>
                 <para>The name of the ring buffer.  If you call this for a
                     ring buffer that already exists, the ring buffer will
@@ -565,7 +565,7 @@ int main(int argc, char** argv)
             </listitem>
         </varlistentry>
         <varlistentry>
-            <term>type>size_t</type> <parameter>dataBytes</parameter></term>
+            <term><type>size_t</type> <parameter>dataBytes</parameter></term>
             <listitem>
                 <para>
                     Determines the number of bytes of data that can exist
@@ -623,7 +623,7 @@ int main(int argc, char** argv)
       </para>
       <variablelist>
         <varlistentry>
-            <term>type>std::string</type> <parameter>name</parameter></term>
+            <term><type>std::string</type> <parameter>name</parameter></term>
             <listitem>
                 <para>
                     Provides the name of the ring buffer.  This must be the
@@ -653,13 +653,13 @@ int main(int argc, char** argv)
         data will change if the number of consumers is changed from the value
         used to create the initial ring. 
       </para>
-      <methdodsynopsis>
+      <methodsynopsis>
         <modifier>static</modifier> <type>void</type>
                                     <methodname>setDefaultRingSize</methodname>
         <methodparam>
             <type>size_t</type> <parameter>byteCount</parameter>
         </methodparam>
-      </methdodsynopsis>
+      </methodsynopsis>
       <para>
         Provides a new value, <parameter>byteCount</parameter> for the default
         ring data size.  The function returns the prior default value.
@@ -752,7 +752,7 @@ int main(int argc, char** argv)
       </para>
       <variablelist>
         <varlistentry>
-            <term>type>void*</type> <parameter>pBuffer</parameter></term>
+            <term><type>void*</type> <parameter>pBuffer</parameter></term>
             <listitem>
                 <para>
                     Pointer to the data to be transferred to the ring buffer.
@@ -910,9 +910,9 @@ int main(int argc, char** argv)
       </para>
       <methodsynopsis>
         <type>unsigned long</type> <methodname>setPollInterval</methodname>
-        <methodname>
+        <methodparam>
             <type>unsigned long</type> <parameter>newValue</parameter>
-        </methodname>
+        </methodparam>
       </methodsynopsis>
       <para>
         The
@@ -1070,7 +1070,7 @@ int main(int argc, char** argv)
                     </listitem>
                 </varlistentry>
                 <varlistentry>
-                    <term><type>std::vector&lt;std::pid_t, std::pair&lt;pid_t, size_t &t; &gt;</type>
+                    <term><type>std::vector&lt;std::pid_t, std::pair&lt;pid_t, size_t &gt; &gt;</type>
                           <structfield>s_consumers</structfield></term>
                     <listitem>
                         <para>
@@ -1090,7 +1090,7 @@ int main(int argc, char** argv)
                 <classname>CRingBuffer::CRingBufferPredicate</classname> provides an abstract
                 baseclass taht defines an interface for blocking predicate.
                 A blocking predicate is a function like object that can be used
-                by <methodname>blockWhiel</methodname> to know how long to block.
+                by <methodname>blockWhile</methodname> to know how long to block.
             </para>
             <para>
                 The
@@ -1100,8 +1100,8 @@ int main(int argc, char** argv)
             <methodsynopsis>
                 <type>bool</type> <methodname>operator()</methodname>
                 <methodparam>
-                    <modifier>virtual
-                        <type><CRingBuffer&</CRingBuffer> <parameter>ring</parameter></type>
+                    <modifier>virtual</modifier>
+                        <type>CRingBuffer&amp;</type> <parameter>ring</parameter>
                 </methodparam>
             </methodsynopsis>
             <para>
@@ -1109,6 +1109,7 @@ int main(int argc, char** argv)
                 <methodname>blockWhile</methodname> invokes its predicates
                 <methodname>operator()</methodname> and continues blocking if
                 that method returns <literal>true</literal>.
+            </para>
          </refsect2>
       </refsect1>
       <refsect1>
@@ -1119,7 +1120,7 @@ int main(int argc, char** argv)
             
          </para>
          <variablelist>
-            <varlistitem>
+            <varlistentry>
             <term><classname>CErrnoException</classname></term>
             <listitem>
                 <para>
@@ -1128,8 +1129,8 @@ int main(int argc, char** argv)
                     the <varname>errno</varname> variable.
                 </para>
             </listitem>
-            </varlistitem>
-            <varlistitem>
+            </varlistentry>
+            <varlistentry>
                 <term><classname>CRangeException</classname></term>
                 <listitem>
                     <para>
@@ -1140,8 +1141,8 @@ int main(int argc, char** argv)
                         Rather than blocking forever, this exception is thrown.
                     </para>
                 </listitem>
-            </varlistitem>
-            <varlistitem>
+            </varlistentry>
+            <varlistentry>
                 <term><classname>CStateException</classname></term>
                 <listitem>
                     <para>
@@ -1149,7 +1150,7 @@ int main(int argc, char** argv)
                         that are only allowed to producers, and vica versa.
                     </para>
                 </listitem>
-            </varlistitem>
+            </varlistentry>
          </variablelist>
       </refsect1>
       <refsect1>
@@ -1177,15 +1178,15 @@ public:
     CMessageFilterPredicate(long desiredType) :
         m_desiredType(desiredType)                                <co id="ringman.filter.savetype" />
         {}
-    virtual bool operator()(CRingBuffer& ring);
+    virtual bool operator()(CRingBuffer&amp; ring);
 };
 bool
-CMessageFilterPredicate::operator()(CRingBuffer& ring)            <co id="ringman.filter.function" />
+CMessageFilterPredicate::operator()(CRingBuffer&amp; ring)            <co id="ringman.filter.function" />
 {
     // peek the header:
     
     struct header hdr;
-    size_t numRead = ring.peek(&hdr, sizeof(hdr));                <co id="ringman.filter.peek" />
+    size_t numRead = ring.peek(&amp;hdr, sizeof(hdr));                <co id="ringman.filter.peek" />
     
     if(numRead != sizeof(hdr)) return true;                       <co id="ringman.filter.noheader" />
     
@@ -1206,10 +1207,10 @@ CRingBuffer myring(string("myring"));
 // then read it.
 CMessageFilterPredicate filter(3);                                <co id="ringman.predicate" />
 myring.blockWhile(filter);                                        <co id="ringman.skipsome" />
-struct header &hdr;
-myring.peek(&hdr, sizeof(hdr));                                   <co id="ringman.peekheader" />
+struct header &amp;hdr;
+myring.peek(&amp;hdr, sizeof(hdr));                                   <co id="ringman.peekheader" />
 char* message = new message[hdr.s_size];
-myring.get(message, hdr.s_size, hdr.s_size);                      <co id="ringman.peekheader" />
+myring.get(message, hdr.s_size, hdr.s_size);                      <co id="ringman.readmsg" />
 
 ...
 
@@ -1307,7 +1308,7 @@ myring.get(message, hdr.s_size, hdr.s_size);                      <co id="ringma
                     message atomically.
                 </para>
             </callout>
-            <callout arearefs="ringman.peekheader">
+            <callout arearefs="ringman.readmsg">
                 <para>
                     Reads the message.
                 </para>
