@@ -23,3 +23,4 @@ May 14, 2008
    - Added support for Hytec NADC2530 list mode.
 May 17, 2008
    - Added support for Mesytec MADC module.
+   - Added command to configure in Mesytec MADC 32 modules.
