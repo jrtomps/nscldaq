@@ -18,3 +18,8 @@ May 9, 2008
   - Add -requiredata boolean flag to C785 which controls the
     EMPTY_PROG bit in the BSet/BClear 2 registers.
 
+May 14, 2008
+   - Factored out some conversion functions to CConfigurableObject
+   - Added support for Hytec NADC2530 list mode.
+May 17, 2008
+   - Added support for Mesytec MADC module.
