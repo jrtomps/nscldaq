@@ -21,6 +21,7 @@
 #include <errno.h>
 #include <tcl.h>
 #include <math.h>
+#include <tcl.h>
 
 using namespace std;
 
@@ -248,6 +249,30 @@ CConfigurableObject::getFloatParameter(string name)
   return atof(name.c_str());
 }
 
+/*!
+  Return a parameter that is a list of integers.
+  \param name - name of the parameter.
+  \return vector<int>
+  \retval Vector containing the integers in the list.
+
+*/
+vector<int>
+CConfigurableObject::getIntegerList(string name)
+{
+  string value = cget(name);
+  int argc;
+  const char** argv;
+  vector<int> result;
+
+  Tcl_SplitList(NULL, value.c_str(), &argc, &argv);
+
+  for (int i =0; i < argc; i++) {
+    result.push_back(static_cast<int>(strtol(argv[i], NULL, 0)));
+  }
+  Tcl_Free((char*)argv);
+  return result;
+
+}
 ///////////////////////////////////////////////////////////////////////////
 /////////////////////// Establishing he configuration /////////////////////
 ///////////////////////////////////////////////////////////////////////////

@@ -355,7 +355,7 @@ C785::Initialize(CVMUSB& controller)
       (type != 862)) { // 775 for testing!!.
     char message[100];
     string name = m_pConfiguration->getName();
-    sprintf(message, "Module %s at base 0x%x is not a supported module  but a %d",
+    sprintf(message, "Module %s at base 0x%x is not a CAEN 32 channel digitizer  but a %d",
 	    name.c_str(), base, type);
     throw string(message);
   }

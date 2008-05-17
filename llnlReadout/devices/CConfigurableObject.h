@@ -159,9 +159,10 @@ public:
 
   // Convenience functions that get common conversions:
 
-  int    getIntegerParameter (std::string name);
-  bool   getBoolParameter    (std::string name);
-  double getFloatParameter   (std::string name);
+  int              getIntegerParameter (std::string name);
+  bool             getBoolParameter    (std::string name);
+  double           getFloatParameter   (std::string name);
+  std::vector<int> getIntegerList      (std::string name);
   
   // Operations:
 
