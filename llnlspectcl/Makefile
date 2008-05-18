@@ -28,7 +28,7 @@ USERLDFLAGS=
 OBJECTS=MySpecTclApp.o CParamMapCommand.o	\
 	CRateProcessor.o CRateList.o CRateCommand.o CFitButton.o \
 	CStackMapCommand.o CModuleUnpacker.o C785Unpacker.o CNADC2530Unpacker.o \
-	CStackUnpacker.o
+	CStackUnpacker.o CMADC32Unpacker.o
 
 
 #

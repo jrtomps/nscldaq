@@ -108,18 +108,3 @@ CNADC2530Unpacker::operator()(CEvent&                       rEvent,
 
 
 
-///////////////////////////////////////////////////////////////////
-//   utility functions
-
-/*
-  Returns a longword from the event.  The data are assumed to be 
-  little endian.
-*/
-unsigned long
-CNADC2530Unpacker::getLong(vector<unsigned short>& event, unsigned int offset)
-{
-  unsigned long low = event[offset];
-  unsigned long hi  = event[offset+1];
-
-  return low | (hi << 16);
-}

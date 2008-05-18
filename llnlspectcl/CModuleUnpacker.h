@@ -57,6 +57,10 @@ public:
 				  std::vector<unsigned short>&  event,
 				  unsigned int                  offset,
 				  CParamMapCommand::AdcMapping* pMap) = 0;
+
+protected:
+  static  unsigned long getLong(std::vector<unsigned short>& event, 
+				unsigned int offset);
 };
 
 

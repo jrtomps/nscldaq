@@ -145,22 +145,7 @@ C785Unpacker::operator()(CEvent&                       rEvent,
     datum = getLong(event, offset);
     offset += 2;
   }
-  // An extra 16 bits was read...
+  // An extra 32 bits was read...
   
   return offset+2;
-}
-///////////////////////////////////////////////////////////////////
-//   utility functions
-
-/*
-  Returns a longword from the event.  The data are assumed to be 
-  little endian.
-*/
-unsigned long
-C785Unpacker::getLong(vector<unsigned short>& event, unsigned int offset)
-{
-  unsigned long low = event[offset];
-  unsigned long hi  = event[offset+1];
-
-  return low | (hi << 16);
 }

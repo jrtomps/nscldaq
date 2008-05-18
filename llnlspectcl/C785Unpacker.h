@@ -46,9 +46,7 @@ public:
 				  unsigned int                  offset,
 				  CParamMapCommand::AdcMapping* pMap);
 
-private:
-  unsigned long getLong(std::vector<unsigned short>& event, 
-			unsigned int offset);
+
 };
 
 #endif
