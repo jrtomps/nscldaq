@@ -4,11 +4,13 @@ include_HEADERS        = CRingBuffer.h
 noinst_HEADERS         = ringbufint.h Asserts.h testcommon.h
 
 INCLUDES = -I@top_srcdir@/base/exception \
-	   -I@top_srcdir@/base/headers 
+	   -I@top_srcdir@/base/headers 	\
+	   -I@top_srcdir@/servers/portmanager
 
 libDataFlow_la_LDFLAGS =  -version-info $(SOVERSION) \
 	                  -Wl,"-rpath-link=$(libdir)" -lrt
-libDataFlow_la_LIBADD  = @top_srcdir@/base/exception/libException.la
+libDataFlow_la_LIBADD  = @top_srcdir@/base/exception/libException.la \
+			@top_srcdir@/servers/portmanager/libPortManager.la
 
 
 
@@ -30,4 +32,9 @@ consumer_LDFLAGS  = -Wl,"-rpath-link=$(libdir)"
 
 TESTS=./unittests
 
-EXTRA_DIST=ringprimitives.xml
+EXTRA_DIST=ringprimitives.xml RingMaster.tcl
+
+
+install-exec-local: 
+	$(INSTALL_SCRIPT) RingMaster.tcl @bindir@
+

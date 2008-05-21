@@ -58,13 +58,13 @@ typedef struct __ClientInformation ClientInformation;
 */
 class CRingBuffer
 {
-
   // Public data/type definitions:
 
 public:
   typedef enum __ClientMode {
     producer,
-    consumer
+    consumer,
+    manager
   } ClientMode;
 
   struct Usage {
@@ -85,12 +85,15 @@ public:
 private:
   static size_t m_defaultDataSize;     // Default ring buffer data segment size. 
   static size_t m_defaultMaxConsumers; // Default for maximun consumers allowed.
+  static bool   m_connectedToRingMaster; // True if ring master socket is open.
+  static int    m_ringMasterSocket;    // Ring master socket if m_connectedToRingMaseter.
   // Member data
 private:
   RingBuffer*         m_pRing;	       // Pointer to the actual ring.
   ClientInformation*  m_pClientInfo;   // Pointer to the object owner's client info.
   ClientMode          m_mode;	       // What sort of client this is.
   unsigned long       m_pollInterval;  // ms between blocking polls.
+  std::string         m_ringName;      // Name of ring we're connected to.
 
   // Static member functions,
 public:
@@ -127,12 +130,23 @@ public:
   unsigned long setPollInterval(unsigned long newValue);
   unsigned long getPollInterval();
 
+  // Inquiry functions.
+
   size_t availablePutSpace();
   size_t availableData();
 
   Usage getUsage();
 
+  off_t getSlot();
+
+  // blocking.
+
   int blockWhile(CRingBufferPredicate& pred, unsigned long timeout=ULONG_MAX);
+
+  // management functions:
+
+  void forceProducerRelease();
+  void forceConsumerRelease(unsigned slot);
 
   // Utility funcionts:
 
@@ -145,6 +159,11 @@ private:
 
   static std::string shmName(std::string rawName);
   static RingBuffer* mapRingBuffer(std::string fullName);
+  std::string        modeString() const;
+
+  void        connectToRingMaster();
+  void        notifyConnection();
+  void        notifyDisconnection();
 
 };
 

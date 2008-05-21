@@ -1006,6 +1006,17 @@ int main(int argc, char** argv)
                         </para>
                     </listitem>
                 </varlistentry>
+                <varlistentry>
+                    <term><literal>CRingBuffer::manager</literal></term>
+                    <listitem>
+                         <para>
+                            Requests a manager connection to the ring buffer.
+                            normal user code should not do this.  This sort of 
+			    connection allows force disconnection of existing 
+			    connection.
+                         </para>
+                    </listitem>
+                 </varlistentry>
             </variablelist>
          </refsect2>
          <refsect2>
