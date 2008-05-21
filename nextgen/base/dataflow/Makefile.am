@@ -15,7 +15,8 @@ libDataFlow_la_LIBADD  = @top_srcdir@/base/exception/libException.la
 noinst_PROGRAMS = unittests producer consumer
 
 unittests_SOURCES = TestRunner.cpp StaticTests.cpp TransferTests.cpp testcommon.cpp \
-		DifferenceTests.cpp BlockingTests.cpp InfoTests.cpp
+		DifferenceTests.cpp BlockingTests.cpp InfoTests.cpp \
+		ManageTest.cpp
 
 unittests_LDADD   = -L@prefix@/lib $(CPPUNIT_LDFLAGS) -lDataFlow 
 

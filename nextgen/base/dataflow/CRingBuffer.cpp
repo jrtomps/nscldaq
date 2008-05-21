@@ -260,6 +260,7 @@ CRingBuffer::getDefaultMaxConsumers()
     \throw CErrnoException Some special errnos though:
     - ENOMEM - No free consumer data structs for consumer access.
     - EACCES - Producer access requested but there's already a producer. connected.
+    - EINVAL - The connection mode is invalid.
 
 */
 CRingBuffer::CRingBuffer(string name, CRingBuffer::ClientMode mode) :
@@ -285,8 +286,15 @@ CRingBuffer::CRingBuffer(string name, CRingBuffer::ClientMode mode) :
 	throw CErrnoException("CRingBuffer::CRingBuffer - already a producer");
       }
     } 
-    else {
+    else if (m_mode == consumer) {
       allocateConsumer();
+    }
+    else if (m_mode == manager) {
+      
+    }
+    else {			// Invalid connection mode.
+      errno = EINVAL;
+      throw CErrnoException("CRingBuffer::CRingBuffer - invalid connection mode");
     }
   }
   catch (...) {
@@ -299,7 +307,9 @@ CRingBuffer::CRingBuffer(string name, CRingBuffer::ClientMode mode) :
 */
 CRingBuffer::~CRingBuffer()
 {
-  m_pClientInfo->s_pid = -1;
+  if (m_mode != manager) {
+    m_pClientInfo->s_pid = -1;
+  }
   unMapRing();
 
   // Zeroing pointers ensures that attempts to use this object will segflt.
@@ -343,7 +353,7 @@ CRingBuffer::put(void* pBuffer, size_t nBytes, unsigned long timeout)
   // Require that we are the producer:
 
   if (m_mode != producer) {
-    throw CStateException("consumer", "producer", 
+    throw CStateException(modeString().c_str(), "producer", 
 			  "CRingBuffer::put");
   }
 
@@ -434,7 +444,7 @@ CRingBuffer:: get(void*        pBuffer,
   // Ensure we are a consumer:
 
   if (m_mode != consumer) {
-    throw CStateException("producer", "consuemer",
+    throw CStateException(modeString().c_str(), "consuemer",
 			  "CRingBuffer::get");
   }
   // Ensure that we won't block forever:
@@ -540,7 +550,7 @@ void
 CRingBuffer:: skip(size_t nBytes)
 {
   if (m_mode != consumer) {
-    throw CStateException("producer", "consumer",
+    throw CStateException(modeString().c_str(), "consumer",
 			  "CRingBuffer::skip");
 
   }
@@ -718,6 +728,46 @@ CRingBuffer::blockWhile(CRingBuffer::CRingBufferPredicate& pred, unsigned long t
 }
 
 //////////////////////////////////////////////////////////////////////////////
+//  Management functions:
+
+/*!
+   Force the release of the producer.  This requires that we are connected as a manager.
+   
+*/
+void
+CRingBuffer::forceProducerRelease()
+{
+  if (m_mode != manager) {
+    throw CStateException(modeString().c_str(), "manager",
+			  "CRingBuffer::forceProducerRelease");
+  }
+  m_pRing->s_producer.s_pid = -1;
+}
+
+/*!
+  Force the release of a consumer.  This requires that we are connected as a manager.
+  \param slot - the number of the slot of the consumer to release. 
+
+ \throw CStateException - the mode is not manager.
+ \trhow CRangeException - the slot is out of range.
+
+*/
+void
+CRingBuffer::forceConsumerRelease(unsigned slot)
+{
+  if (m_mode != manager) {
+    throw CStateException(modeString().c_str(), "manager",
+			  "CRingBuffer::forceConsumerRelease");
+  }
+  if (slot >= m_pRing->s_header.s_maxConsumer) {
+    throw CRangeError(0, m_pRing->s_header.s_maxConsumer -1, 
+		      slot,
+		      "CRingBuffer::forceConsumerRelease");
+  }
+  m_pRing->s_consumers[slot].s_pid = -1;
+}
+
+//////////////////////////////////////////////////////////////////////////////
 // Private utility functions
 
 /*******************************************************************/
@@ -870,4 +920,22 @@ CRingBuffer::Skip(size_t nBytes)
     m_pClientInfo->s_offset = (m_pClientInfo->s_offset - pHeader->s_topOffset) +
                               pHeader->s_dataOffset - 1;
   }
+}
+/***************************************************************/
+/* Return the stringified mode                                 */
+/**************************************************************/
+string
+CRingBuffer::modeString() const
+{
+  switch (m_mode) {
+  case consumer:
+    return string("consumer");
+  case producer:
+    return string("producer");
+  case manager:
+    return string("manager");
+  default:
+    return string("*INVALID MODE*");
+  }
+
 }
