@@ -27,6 +27,8 @@ using namespace std;
 class ManageTests : public CppUnit::TestFixture {
   CPPUNIT_TEST_SUITE(ManageTests);
   CPPUNIT_TEST(attach);
+  CPPUNIT_TEST(forceproducer);
+  CPPUNIT_TEST(forceconsumer);
   CPPUNIT_TEST_SUITE_END();
 
 
@@ -41,6 +43,8 @@ public:
   }
 protected:
   void attach();
+  void forceproducer();
+  void forceconsumer();
 };
 
 CPPUNIT_TEST_SUITE_REGISTRATION(ManageTests);
@@ -73,4 +77,40 @@ void ManageTests::attach() {
   }
 
   ASSERT(caught);
+}
+
+// Should be able to force the disconnect of a producer.
+// that would allow another producer to connect:
+
+void ManageTests::forceproducer()
+{
+  CRingBuffer p1(string(SHM_TESTFILE), CRingBuffer::producer);
+  CRingBuffer mgr(string(SHM_TESTFILE), CRingBuffer::manager);
+
+  // Disconnect the producer.
+
+  mgr.forceProducerRelease();
+
+  bool caught = false;
+
+  try {
+    CRingBuffer p2(string(SHM_TESTFILE), CRingBuffer::producer); // should be possible.
+  }
+  catch (...) {
+    caught = true;
+  }
+  ASSERT(!caught);
+}
+
+// If I force a consumer to release, it's slot should get re-used.
+//
+void ManageTests::forceconsumer()
+{
+  CRingBuffer c1(string(SHM_TESTFILE), CRingBuffer::consumer);
+  CRingBuffer mgr(string(SHM_TESTFILE), CRingBuffer::manager);
+
+  mgr.forceConsumerRelease(0);
+
+  CRingBuffer c2(string(SHM_TESTFILE), CRingBuffer::consumer);
+  EQ((off_t)0, c2.getSlot());
 }

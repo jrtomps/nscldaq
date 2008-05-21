@@ -32,7 +32,19 @@
 #include <time.h>
 #include <sys/mman.h>
 
+#include <CPortManager.h>
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+
+
+
 using namespace std;
+
+// constants;
+
+static string localhost("127.0.0.1");
 
 
 /*
@@ -45,6 +57,9 @@ using namespace std;
 
 size_t CRingBuffer::m_defaultDataSize(DEFAULT_DATASIZE);
 size_t CRingBuffer::m_defaultMaxConsumers(DEFAULT_MAX_CONSUMERS);
+
+bool   CRingBuffer::m_connectedToRingMaster(false);
+int    CRingBuffer::m_ringMasterSocket(-1);
 
 
 //////////////////////////////////////////////////////////////////////////////
@@ -267,7 +282,8 @@ CRingBuffer::CRingBuffer(string name, CRingBuffer::ClientMode mode) :
   m_pRing(0),
   m_pClientInfo(0),
   m_mode(mode),
-  m_pollInterval(DEFAULT_POLLMS)
+  m_pollInterval(DEFAULT_POLLMS),
+  m_ringName(name)
 {
   m_pRing = mapRingBuffer(shmName(name));
 
@@ -301,21 +317,41 @@ CRingBuffer::CRingBuffer(string name, CRingBuffer::ClientMode mode) :
     unMapRing();
     throw;
   }
+  // We got this far we have a connection.  If this is not a manager connection,
+  // we can register with the ringmaster:
+
+  if (mode != manager) {
+    connectToRingMaster();	// This will only really connect the first time.
+    notifyConnection();		// Let the ring master know of our connection
+  }
 }
 /*!
    Destructor ... release our our client info and unmap.
 */
 CRingBuffer::~CRingBuffer()
 {
+
+  string ringname = m_ringName;
   if (m_mode != manager) {
     m_pClientInfo->s_pid = -1;
+    // Let the ringmaster know we're disconnecting.
+    // the client pointer is still valid as is the map so the notification
+    // can still find the 'slot number.
+
+    notifyDisconnection();
   }
+
+  
+  
+  // Unmap the ring and ensure that any use of this ring will fail utterly.
+
   unMapRing();
 
   // Zeroing pointers ensures that attempts to use this object will segflt.
 
   m_pRing       = 0;	      
   m_pClientInfo = 0;
+
 }
 /////////////////////////////////////////////////////////////////////////
 // Member functions that manipulate the ring buffer.
@@ -688,6 +724,25 @@ CRingBuffer::getUsage()
 }
 
 
+/*!
+  Return the client slot.
+  \return off_t
+  \retval  -1   - The slot is a producer, or manager.
+  \retval  >= 0 - The consumer slot number.
+*/
+off_t
+CRingBuffer::getSlot() 
+{
+  if (m_mode == producer) return -1;
+  if (m_mode == manager)  return -1;
+
+  for (int i = 0; i < m_pRing->s_header.s_maxConsumer; i++) {
+    pClientInformation p = &(m_pRing->s_consumers[i]);
+    if (p == m_pClientInfo) return i;
+  }
+  return -2;			// Really 'impossible'.
+}
+
 ///////////////////////////////////////////////////////////////////////////////
 //  Blocking functions:
 
@@ -938,4 +993,150 @@ CRingBuffer::modeString() const
     return string("*INVALID MODE*");
   }
 
+}
+/*****************************************************************/
+/* Connect to the ring master if we are not already connected    */
+/*****************************************************************/
+
+void CRingBuffer::connectToRingMaster()
+{
+  if (m_connectedToRingMaster) return; // Only connect once, at the class level.
+
+  // Figure out where the ring master is listening...
+
+  int                ringMasterPort(-1);
+  CPortManager       portManager;
+  vector<CPortManager::portInfo>   servers = portManager.getPortUsage();
+  for (int i =0; i < servers.size(); i++) {
+    if(servers[i].s_Application == string("RingMaster")) {
+      ringMasterPort = servers[i].s_Port;
+      break;
+    }
+  }
+  // If the RingMaster is not known, throw an exception.
+
+  if(ringMasterPort == -1) {
+    errno = ECONNREFUSED;	// Connection refused is appropriate.
+    throw CErrnoException("CRingBuffer::connectToRingMaster - translate port");
+  }
+  // Now make the socket and connect to the ring master.
+  // errors result in CErrnoExceptions...
+
+  m_ringMasterSocket = socket(PF_INET, SOCK_STREAM, 0);
+  if (m_ringMasterSocket == -1) {
+    throw CErrnoException ("CRingBuffer::connectToRingMaster - socket");
+  }
+ 
+  sockaddr_in Peer;
+  Peer.sin_port    = htons(ringMasterPort);
+  Peer.sin_family  = AF_INET;
+  inet_aton(localhost.c_str(), &(Peer.sin_addr));
+
+  if (connect(m_ringMasterSocket, (sockaddr*)&Peer, sizeof(Peer)) == -1) {
+    int e = errno;		// save for exception...
+    close(m_ringMasterSocket);
+    m_ringMasterSocket = -1;
+    errno = e;
+    throw CErrnoException("CRingBuffer::connectToRingMaster - connect");
+  }
+
+  // Done. We now have a socket m_ringMasterSocket connected to the ring master.
+
+  m_connectedToRingMaster = true; // don't connect again, for this image.
+
+  
+}
+/***********************************************************************/
+/*  notify the ring master we are connecting to a ring.  We send the   */
+/*  CONNECT ringname type  pid {RingBuffer client connection}          */
+/*  message to the ring master and expect the OK result back.          */
+/*  type depends on the consumer/producer-ness of the connection.      */
+/*  consumers include a consumer slot number on the type.              */
+/*  Faiulure to communicate results in errno exceptions being thrown   */
+/***********************************************************************/
+
+void
+CRingBuffer::notifyConnection()
+{
+  // Figure out the message to the ringmaster:
+
+  char message[128];
+  if(m_mode == producer) {
+    sprintf(message, "CONNECT {%s} producer %d {CRingBuffer Client Connection}\n",
+	    m_ringName.c_str(), getpid());
+  }
+  else {
+    sprintf(message, "CONNECT {%s} consumer.%d %d {CRingBuffer Client Connection}\n",
+	    m_ringName.c_str(), getSlot(), getpid());
+  }
+  // Send the message:
+
+  ssize_t nsent = send(m_ringMasterSocket, message, strlen(message), 0);
+  if (nsent == -1) {
+    throw CErrnoException("CRingBuffer::notifyConnection - send");
+  }
+
+  // Receive the reply.
+
+  memset(message, 0, sizeof(message)); // ensure null terminated string.
+  ssize_t nrecv = recv(m_ringMasterSocket, message, sizeof(message), 0);
+  if (nrecv == -1) {
+    throw CErrnoException("CRingBuffer::notifyConnection - recv");
+  }
+  // Response back should be an "OK\r\n".
+
+  if (string("OK\r\n") != string(message)) {
+    string exception;
+    exception += "Invalid response: ";
+    exception += "message";
+    exception += " when expecting 'OK'";
+    throw exception;
+  }
+
+}
+
+/**********************************************************************/
+/* Notify the ring master that we are disconnecting from a ring.  We  */
+/* Send the message:                                                  */
+/* DISCONNECT ringname connecttype pid                                */
+/* And expect "OK\r\n" in response.                                     */
+/**********************************************************************/
+
+void
+CRingBuffer::notifyDisconnection()
+{
+  // First create the message tothe ring master.
+
+  char message[128];
+  if(m_mode == producer) {
+    sprintf(message, "DISCONNECT {%s} producer %d\n",
+	    m_ringName.c_str(), getpid());
+  }
+  else {
+    sprintf(message, "DISCONNECT {%s} consumer.%d %d\n",
+	    m_ringName.c_str(), getSlot(), getpid());
+  }
+  // Send the message:
+
+  ssize_t nsent = send(m_ringMasterSocket, message, strlen(message), 0);
+  if (nsent == -1) {
+    throw CErrnoException("CRingBuffer::notifyDisconnection - send ");
+  }
+  // Get the reply:
+
+  memset(message, 0, sizeof(message));
+  ssize_t nrecv = recv(m_ringMasterSocket, message, sizeof(message), 0);
+  if (nrecv == -1) {
+    throw CErrnoException("CRingBuffer::notifyConnection - recv");
+  }
+
+  // reply must be "OK\n".
+
+  if (string("OK\r\n") != string(message)) {
+    string exception;
+    exception += "Invalid response: ";
+    exception += "message";
+    exception += " when expecting 'OK'";
+    throw exception;
+  }
 }
