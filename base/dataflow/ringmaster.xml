@@ -1,0 +1,230 @@
+<!-- chapter servers -->
+<chapter id="chapter.ringmaster">
+    <title>The RingMaster server</title>
+    <para>
+        The NSCL data acquisition system uses single producer multi-consumer
+        ring buffers at the core of its data flow system.  These ring buffers
+        provide a single put 'pointer' for the single producer and an array
+        of get 'pointers' for consumers.  Processes that attach to ring buffers
+        as producers or consumers, allocate their own pointers without the
+        benefit of a coordinating server. 
+    </para>
+    <para>
+        These pointers are allocated by the creation of a
+        <classname>CRingBuffer</classname> object and deallocated by
+        the destruction of such an object.
+        This means that if a program that is a client exits without destroying
+        all of its
+        <classname>CRingBuffer</classname> objects, the corresponding pointers
+        would be lost.
+    </para>
+    <para>
+        The <application>RingMaster</application> server is a persistent server
+        that eliminates this problem.
+        <classname>CRingBuffer</classname>
+        communicates with the
+        <application>RingMaster</application> in such a way that the
+        <application>RingMaster</application>
+        knows which clients exist, which ring pointers they are using and
+        when they exit, normally or abnormally.
+    </para>
+    <para>
+        If a client exits abnormally, the
+        <application>RingMaster</application>
+        forces the pointers left dangling to be free again.
+    </para>
+    <section>
+        <title>The <application>RingMaster</application> Protocol</title>
+        <para>
+            This section describes the protocol supported by the
+            <application>RingMaster</application>.
+            The <application>RingMaster</application> server uses the NSCL
+            <application>PortManager</application> to allocate its listen port.
+            The application name it uses is
+            <literal>RingMaster</literal>.
+            To connect to he
+            <application>RingMaster</application>
+            an application must first locate it using the programmatic
+            interface to the
+            <application>PortManager</application>. The starting point for
+            <application>PortManager</application>
+            is the
+            <link linkend="chapter.daqportmanager">Service Port Manager</link>
+            chapter.
+        </para>
+        <para>
+            The first time an application creates a producer or consumer client
+            for any ring buffer,
+            <classname>CRingBuffer</classname> connects to the
+            <application>RingMaster</application>.  This connection is held open
+            for the lifetime of the client application.  It is the loss of this
+            connection that informs the
+            <application>RingMaster</application>
+            of the exit of a client.  The loss of a connection triggers the
+            <application>RingMaster</application>
+            to release all ring resources held by the application that formed
+            the link.
+        </para>
+        <para>
+            Construction of a
+            <classname>CRingBuffer</classname> object
+            registers the put/get pointer allocated with the
+            <application>RingMaster</application>
+            destruction of an object informs the
+            <application>RingMaster</application>
+            which pointer is no longer allocated.
+        </para>
+        <para>
+            Registration involves sending a message of the form:
+            <example>
+                <title>The CONNECT message format</title>
+                <programlisting>
+<command>CONNECT <replaceable>ringname connecttype pid comment</replaceable></command>
+                </programlisting>
+            </example>
+        </para>
+        <para>
+            The command should be a valid Tcl list, using quoting where needed
+            (e.g. surround the comment with {}'s if it has spaces.
+        </para>
+        <para>
+            <replaceable>ringname</replaceable> is the name of the ring to
+            which the client is rattaching.
+            <replaceable>connecttype</replaceable> identifies the type of
+            connection being formed.  This can be either the text
+            <literal>producer</literal> for a producer connection or
+            <literal>conumer.nnn</literal>.  Where nnn is the index of the
+            consumer pointer allocated for consumer connections.
+        </para>
+        <para>
+            On success, the server replies <literal>"OK\r\n</literal>.
+            The client must be local else the server will drop the connection.
+        </para>
+        <para>
+            Destruction sends a <literal>DISCONNECT</literal> message
+            The form of this messge is:
+        </para>
+        <example>
+            <title>Format of the DISCONNECT message</title>
+            <programlisting>
+<command> DISCONNECT   <replaceable>ringname connecttype pid</replaceable></command>
+            </programlisting>
+        </example>
+        <para>
+            The <parameter>ringname</parameter> is the name of the ring buffer,
+            <parameter>connecttype</parameter> is the connection type passed in
+            the <literal>CONNECT</literal> command that is being 'undone'.  The
+            <parameter>pid</parameter> argument is similarly  the pid that
+            was used in the <literal>CONNECT</literal> commnd being undone.
+        </para>
+        <para>
+            On success, the server replies with
+            <literal>"OK\r\n"</literal>.  If the client is not from localhost,
+            the connection is immediatel closed.
+        </para>
+        <para>
+            Clients can also probe ring buffer usage.  This is done via a command of the
+            form
+        </para>
+        <example>
+            <title>Format of the LIST command</title>
+            <programlisting>
+<command>LIST</command>
+            </programlisting>
+        </example>
+        <para>
+            This message is acceptable from both local and remote hosts.
+            It is used to inquire about rings and ring usage.  Note that only
+            rings that have producer or consumer clients will be reported.
+            The reply from this will be a line that reads
+            <literal>OK</literal>
+            followed by a properly formatte Tcl list of ring information.
+        </para>
+        <para>
+            Each element of the list reports on the usage of a single ring.
+            Each list element is a pair.  The first element of the pair is
+            the ring name.  The second element, the ring usage as returned
+            from the
+            <link linkend="manpage.cringbuffer">Tcl ring package's ringbuffer
+                usage</link> command.
+        </para>
+        <para>
+                   This is returned as a Tcl list that has the following
+                    elements:
+        </para>
+        <variablelist>
+            <varlistentry>
+                <term><varname>size</varname></term>
+                <listitem>
+                    <para>
+                        The number of data bytes in the ring buffer.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><varname>putAvailable</varname></term>
+                <listitem>
+                    <para>
+                        The number of bytes that can be put by the
+                        producer without blocking.  Note that in order
+                        to be able to distinguish between the full and empty
+                        ring buffer cases, this can never be larger than
+                        <literal>size - 1</literal>
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><varname>maxConsumers</varname></term>
+                <listitem>
+                    <para>
+                        Returns the maximum number of clients that can
+                        connect to the ring buffer at any given time.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><varname>producer</varname></term>
+                <listitem>
+                    <para>
+                        The PID of the producer process. This is -1 if
+                        there is no producer.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><varname>maxGet</varname></term>
+                <listitem>
+                    <para>
+                        The amount of data that can be gotten without
+                        blocking by the consumer that is most caught up.
+                        (maximum that can be gotten by any consumer).
+                        If no consumers are connected, this returns 0.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><varname>minGet</varname></term>
+                <listitem>
+                    <para>
+                        Same as for <varname>maxGet</varname> but gives
+                        the amount of data that can be gotten by the
+                        consumer that is least caught up.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><varname>consumers</varname></term>
+                <listitem>
+                    <para>This is a list of consumers attached to the
+                        ring buffer.  Each consumer is represented by a pair of
+                        values.  The first, the consumer's pocess ID.
+                        The second, the amount of data that consumer could
+                        get without blocking.
+                    </para>
+                </listitem>
+            </varlistentry>
+        </variablelist>        
+    </section>
+</chapter>
+        
+<!-- /chapter -->
