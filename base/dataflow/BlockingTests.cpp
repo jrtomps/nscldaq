@@ -94,13 +94,15 @@ void BlockTest::blocktilwrite()
     }
   }
   else {			// child.
-    CRingBuffer ring(string(SHM_TESTFILE), CRingBuffer::producer);
-    sleep(2);			// force parent to block for 2 seconds...
-    char buffer[100];
-    for (int i =0; i < 100; i ++) {
-      buffer[i] = i;
+    {
+      CRingBuffer ring(string(SHM_TESTFILE), CRingBuffer::producer);
+      sleep(2);			// force parent to block for 2 seconds...
+      char buffer[100];
+      for (int i =0; i < 100; i ++) {
+	buffer[i] = i;
+      }
+      ring.put(buffer, sizeof(buffer));
     }
-    ring.put(buffer, sizeof(buffer));
     exit(0);			// othewise we'll double report the test results to date.
   }
   int status;

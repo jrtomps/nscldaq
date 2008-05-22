@@ -61,15 +61,231 @@ exec tclsh ${0} ${@}
 #
 #-------------------------------------------------------------------------------
 
+
 # Additional packages required:
+
+set libdir [file join [file dirname [info script]] .. TclLibs]
+set libdir [file normalize $libdir]
+
+lappend auto_path $libdir
 
 package require portAllocator
 package require log
+package require ring
+
 
 # Global variables/constants:
 
 
 set localhost   127.0.0.1;		# IP address of localhost connections.
+
+#-------------------------------------------------------------------------------
+#
+#  Figure out the known rings.. return them alphabetized.
+#
+proc listRings {} {
+    ::log::log debug listRings
+    set sockets [array names ::RingUsage]
+    foreach socket $sockets {
+	set usage $::RingUsage($socket)
+	foreach item $usage {
+	    set ring [lindex $item 0]
+	    set rings($ring) $ring
+	}
+    }
+    # The indices of the rings array are the known rings:
+
+    return [lsort [array names rings]]
+}
+
+#--------------------------------------------------------------------------------
+# 
+# Remove a usage entry from the RingUsage array.  It is a non-error no-op to
+# request the removal of a nonexistent item.
+#
+# Parameters:
+#   socket  - The socket from which the entry is removed.
+#   name    - Name of the ring buffer.
+#   type    - Type of connection.
+#   pid     - Process id of the client.
+#
+proc removeUsageEntry {socket name type pid}  {
+    ::log::log debug removeUsageEntry
+
+    if {[array names ::RingUsage $socket] ne ""} {
+	set usage $::RingUsage($socket)
+	::log::log debug "initial usage: $usage"
+	set index 0
+	foreach item $usage {
+	    set uname [lindex $item 0]
+	    set utype [lindex $item 1]
+	    set upid  [lindex $item 2]
+	    if {($uname eq $name)      &&
+		($utype eq $type)      &&
+		($upid  eq $pid)} {
+		set usage [lreplace $usage $index $index]
+		::log::log debug "final usage: $usage"
+		set ::RingUsage($socket) $usage
+		return
+	    }
+	    
+	    incr index
+	}
+    }
+}
+
+#---------------------------------------------------------------------------------
+#
+#  The socket must be closed.  If the client on the socket owns any resources,
+#  the must be disconnected.
+#
+#  Parameters:
+#    socket - The socket to close
+#    host   - The host the socket was connecte to.
+#
+proc releaseResources {socket host} {
+    ::log::log debug releaseResources
+
+    if {[array names ::RingUsage $socket] ne ""} {
+	# There are resources to kill off:
+
+	set usage $::RingUsage($socket)
+	unset ::RingUsage($socket)
+	::log::log debug $usage
+
+	foreach connection $usage {
+	    set ring   [lindex $connection 0]
+	    set type   [lindex $connection 1]
+
+	    if {$type eq "producer"} {
+		::log::log debug "Disconnecting producer from $ring"
+		catch {ringbuffer disconnect producer $ring}
+	    } else {
+		set typeList [split $type .]
+		set index [lindex $typeList 1]
+		::log::log debug "Disconnecting consumer $index from $ring"
+		catch {ringbuffer disconnect consumer $ring $index}
+	    }
+
+	}
+    }
+
+    close $socket
+}
+#---------------------------------------------------------------------------------
+#
+#   Process connect messagse.  The form of this message, is:
+#   CONNECT rigname connecttype pid comment
+#
+#   This information is recorded in the socket's entry in the RingUsage array.
+# Parameter:
+#   socket   - the socket that sent the CONNECT message.
+#   client   - IP address of the client.
+#   message  - The full message.
+#
+proc Connect {socket client message} {
+    ::log::log debug Connect
+
+     # The client must be local:
+
+    if {$client ne $::localhost} {
+	::log::log info "$message from non local host $client"
+	releaseResources $socket $client
+	return
+    }
+    #  The message must have a ringname, a connection type a pid and a comment:
+
+    if {[llength $message] != 5} {
+	::log::log info "$message not valid"
+	releaseResources $socket $client
+    }
+
+    # Pull out the pieces of the message:
+
+    set name     [lindex $message 1]
+    set type     [lindex $message 2]
+    set pid      [lindex $message 3]
+    set comment  [lindex $message 4]
+
+    # Just record this:
+
+    ::log::log debug "Connect added entry for $socket : [list $name $type $pid $comment]"
+
+    lappend ::RingUsage($socket) [list $name $type $pid $comment]
+
+    puts $socket "OK"
+}
+
+#---------------------------------------------------------------------------------
+# Disconnect
+#   Process a disconnect message.  The form of this message is:
+# DISCONNECT ringname client message
+#
+#  All we do is remove the information about this entry from the
+#  socket's entry in the RingUsage array.
+# 
+# Parameters:
+#   socket       - The socket that received the message.
+proc Disconnect {socket client message} {
+    ::log::log debug Disconnect
+
+    # The client must be local:
+
+    if {$client ne $::localhost} {
+	::log::log inf  "$message from non local host $client"
+	releaseResrouces $socket $client
+    }
+    # The message must have a rigname an connection type and a pid.
+
+    if {[llength $message] ne 4} {
+	::log::log info "$message not valid"
+	releaseResources $socket $client
+    }
+
+    # pull out the pieces we need:
+
+    set name    [lindex $message 1]
+    set type    [lindex $message 2]
+    set pid     [lindex $message 3]
+
+    ::log::log debug "Removing entry from $socket : $name $type $pid"
+
+    removeUsageEntry $socket $name $type $pid
+
+    puts $socket "OK"
+}
+#--------------------------------------------------------------------------------
+#
+#  Process the LIST command.  This command has the form:
+#  LIST
+#
+#   It returns the string OK\r\n followed by the usage from the
+#   ring buffer Tcl command's usage for each known ring buffer.
+#
+#
+# Parameters:
+#   socket      - connection to the client.
+#   client      - host f the client.
+#   message     - Full message text.
+proc List {socket client message} {
+
+    # The message text can be only the LIST command:
+
+    if {$message ne "LIST"} {
+	releaseResources $socket $client
+	return
+    }
+    set rings [listRings]
+    set result [list]
+    foreach ring $rings {
+	if {![catch {ringbuffer usage $ring} usage]} {
+	    lappend result [list $ring $usage]
+	}
+    }
+    puts "OK"
+    puts $result
+}
+
 
 #---------------------------------------------------------------------------------
 #
@@ -85,7 +301,7 @@ set localhost   127.0.0.1;		# IP address of localhost connections.
 proc onMessage {socket client} {
     if {[eof $socket]} {
 	::log::log info "Connection lost from $client"
-	close $socket
+	releaseResources $socket $client
 	return
     }
     set message [gets $socket]
@@ -98,9 +314,25 @@ proc onMessage {socket client} {
 
     # Process log and acknowledge the client's message.
 
-    puts $socket "OK"
+    set message [string trimright $message];# chop off carriage control chars.
+    set command [lindex $message 0]
 
-    ::log::log info "Processed '$message' from client at $client"
+    if       {$command eq "CONNECT"} {
+	Connect $socket $client $message
+
+    } elseif {$command eq "DISCONNECT"} {
+	Disconnect $socket $client $message
+
+    } elseif {$command eq "LIST" } {
+	List $socket $client $message
+    } else {
+	# Bad command means close the socket:
+
+	::log::log info "Invalid command $command from $socket closing"
+	releaseResources $socket $client
+	
+    }
+    ::log::log debug "Processed '$message' from client at $client"
 }
 
 
@@ -143,14 +375,22 @@ set listenPort [$allocator allocatePort "RingMaster"]
 
 ::log::lvChannelForall stderr
 
+# First enable all logging levels:
+
 foreach level {emergency alert critical error warning notice info debug} {
     ::log::lvSuppress $level  0 
 }
 
+#  Disable the ones I don't want:
+
+::log::lvSuppress debug
+
+
+
 
 socket -server onConnection $listenPort
 
-::log::log info "Server listen established on port $listenPort entering event loop"
+::log::log debug "Server listen established on port $listenPort entering event loop"
 
 
 vwait forever;				# Start the event loop.
