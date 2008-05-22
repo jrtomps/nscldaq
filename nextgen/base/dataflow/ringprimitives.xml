@@ -493,6 +493,22 @@ int main(int argc, char** argv)
             <type>unsigned long</type> <parameter>timeout</parameter> <initializer>ULONG_MAX</initializer>
         </methodparam>
       </methodsynopsis>
+<!-- new -->
+      <methodsynopsis>
+        <type>off_t</type> <methodname>getSlot</methodname>
+                           <void />
+      </methodsynopsis>
+      <methodsynopsis>
+        <type>void</type> <methodname>forceProducerRelease</methodname>
+                          <void />
+      </methodsynopsis>
+      <methodsynopsis>
+        <type>void</type> <methodname>forceConsumerRelease</methodname>
+        <methodparam>
+            <type>unsigned</type> <parameter>slot</parameter>
+        </methodparam>
+      </methodsynopsis>
+<!-- /new -->
      </classsynopsis>
       </refsynopsisdiv>
       <refsect1>
@@ -705,9 +721,10 @@ int main(int argc, char** argv)
         Creates a new ring buffer object.  Ring buffer objects are used to
         connect clients to ring buffers created via
         <methodname>CRingBuffer::create</methodname>.
-        A client can be either a producer or a consumer.
+        A client can be  a manager, a producer or a consumer.
         Only one producer can be attached to the ring buffer at a time.
-        Several consumers can attache simlutaneously.
+        Several consumers and an unlimited number of managers
+        can attach simlutaneously.
       </para>
       <para>
         The <parameter>name</parameter> parameter is the name of the ring
@@ -720,6 +737,8 @@ int main(int argc, char** argv)
         attachment. The value
         <literal>CRingBuffer::producer</literal>
         creates a producer attachment.
+        <literal>CRingBuffer::manager</literal>
+        creates a manager attachment.
       </para>
             
       <destructorsynopsis>
@@ -973,6 +992,36 @@ int main(int argc, char** argv)
         <parameter>timeout</parameter> is an optional parameter that defaults to
         136 years (or essentially forever).
       </para>
+<!-- new -->
+      <methodsynopsis>
+        <type>off_t</type> <methodname>getSlot</methodname>
+                           <void />
+      </methodsynopsis>
+      <para>
+        Returns the consumer slot that corresponds to the object.
+        If the object is a producer or a manager object, the return value
+        is <literal>-1</literal>.
+      </para>
+      <methodsynopsis>
+        <type>void</type> <methodname>forceProducerRelease</methodname>
+                          <void />
+      </methodsynopsis>
+      <para>
+        Forces the ring to no longer have a producer attachment.
+        This is intended to remove producers that have exited abnormally.
+      </para>
+      <methodsynopsis>
+        <type>void</type> <methodname>forceConsumerRelease</methodname>
+        <methodparam>
+            <type>unsigned</type> <parameter>slot</parameter>
+        </methodparam>
+      </methodsynopsis>
+      <para>
+        Forces the consumer slot <parameter>slot</parameter> to be freee for
+        reallocation.  This is intended to be used to remove consumers that
+        have exited abnormally.
+      </para>
+<!-- /new -->
       </refsect1>
       <refsect1>
          <title>Types and public data</title>

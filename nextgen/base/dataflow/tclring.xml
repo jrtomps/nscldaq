@@ -1,0 +1,256 @@
+<!-- chapter libraries -->
+
+<chapter id="chapter.tclring">
+    <title>The Tcl ring package</title>
+    <para>
+        The Tcl ring package provides access to ring buffers.  For more on
+        ring buffers see the chapter
+        <link linkend="chapter.ringprimitives">Ring Buffer Primitives</link>.
+        For reference information on the Tcl ring package see the
+        <link linkend="manpage.tclring">Tcl ring pacakge reference page</link>.
+    </para>
+    <para>
+        The Tcl ring package must be incorporated into Tcl scripts
+        in order to be used.   If you have defined an evironment variable
+        <literal>NSCLDAQROOT</literal> that points to the top level of the
+        NSCL DAQ software, the following code can load the package:
+    </para>
+    <example>
+        <title>Incorporating the ring package in your scripts</title>
+        <programlisting>
+set libpath [file join $NSCLDAQROOT TclLibs]\
+lappend auto_path $libpath
+
+package require ring
+        </programlisting>
+    </example>
+    <para>
+        All NSCL DAQ Tcl loadable packages are in the
+        <filename>TclLibs</filename> directory subtree of the NSCL DAQ
+        installation.  Adding the path to that directory to the
+        <varname>auto_path</varname> Tcl list enables the Tcl package
+        command to locate that package.
+    </para>
+    <para>
+        The <command>package require ring</command> locates and loads the
+        command.
+    </para>
+</chapter>
+
+<!-- /chapter -->
+
+<!-- manpage 1tcl -->
+<refentry id="manpage.tclring">
+  <refmeta>
+     <refentrytitle>TCL Ring package.</refentrytitle>
+     <manvolnum>1tcl</manvolnum>
+  </refmeta>
+  <refnamediv>
+     <refname>ringbuffer</refname>
+     <refpurpose>Access Rings from tcl.</refpurpose>
+  </refnamediv>
+  
+  <refsynopsisdiv>
+    <cmdsynopsis>
+	<command>
+package require ring
+	</command>
+    </cmdsynopsis>
+    <cmdsynopsis>
+    <command>
+ringbuffer create <replaceable>name ?size? ?maxconsumers??</replaceable>
+    </command>
+</cmdsynopsis>
+<cmdsynopsis>
+    <command>
+ringbuffer format <replaceable>name ?maxconsumers?</replaceable>
+    </command>
+</cmdsynopsis>
+<cmdsynopsis>
+    <command>
+ringbuffer disconnect <replaceable>producer name</replaceable>
+    </command>
+</cmdsynopsis>
+<cmdsynopsis>
+    <command>
+ringbuffer disconnect <replaceable>consumer name index</replaceable>
+    </command>
+</cmdsynopsis>
+<cmdsynopsis>
+    <command>
+ringbuffer <replaceable>usage name</replaceable>
+    </command>
+</cmdsynopsis>
+
+  </refsynopsisdiv>
+  
+  <refsect1>
+     <title>DESCRIPTION</title>
+     <para>
+	The <command>ringbuffer</command> command is a
+        <firstterm>command ensemble</firstterm>. Command ensembles are a set of
+        related commands
+        that have a subcommand that actually defines the action of the command.
+        An example of a Tcl core command ensemble is the Tcl
+        <command>string</command> command.
+     </para>
+     <para>
+        The <command>ringbuffer</command> subcommands provide management access
+        to ring buffers used for primary data flow in the NSCL data acquisition
+        system.
+     </para>
+  </refsect1>
+  <refsect1>
+     <title>
+	SUBCOMMANDS
+     </title>
+     <variablelist>
+	<varlistentry>
+	    <term><command>ringbuffer create <replaceable>name ?size ?maxconsumers??</replaceable></command></term>
+	    <listitem>
+		<para>
+                    Creates a new ring buffer named <parameter>name</parameter>.
+                    The optional <parameter>size</parameter> command parameter
+                    sets the number of bytes of data storage in the ring.  The
+                    <parameter>maxconsumers</parameter> the maximum number of
+                    simultaneously attached consumers.
+		</para>
+	    </listitem>
+	</varlistentry>
+        <varlistentry>
+            <term><command>ringbuffer format <replaceable>name ?maxconsumers?</replaceable></command></term>
+            <listitem>
+                <para>
+                    Formats an existing ring buffer named <parameter>name</parameter>.
+                    Formatting a ring buffer rewrites the header in the ring buffer.
+                    The ring buffer header includes control information that describes
+                    the ring buffer as well as the put and get pointers for the
+                    producer and consumer clients.  It is not safe to do this
+                    when the ring buffer is active.
+                </para>
+                <para>
+                    The <parameter>maxconsumers</parameter> optional parameter
+                    sets the maximum number of consumer get pointers that will
+                    be created.  If this value is larger than the original value
+                    when the ring buffer was created, the extra space is taken from
+                    the data area.  If smaller, the data area will grow accordingly
+                    as well.  Each consumer pointer requires a
+                    <type>pid_t</type> and a <type>off_t</type> of storage.
+                </para>
+        
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term><command>ringbuffer disconnect <replaceable>producer name</replaceable></command></term>
+            <listitem>
+                <para>
+                    Forces a disconnect of the producer client of the ring named
+                    <parameter>name</parameter>.  This does not
+                    actually kill any active producer client, but just marks the
+                    producer pointer as available.  This is intended to be used
+                    if you suspect that a producer has exited in a way that
+                    left its put pointer marked as in use.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term><command>ringbuffer disconnect <replaceable>consumer name index</replaceable></command></term>
+            <listitem>
+                <para>
+                    Forces a disconnect of a consumer client of the ring named
+                    <parameter>name</parameter>.  The get pointer selected by
+                    <parameter>index</parameter> is marked as free.  This should
+                    only be used if you suspect that a program has exited without
+                    freeing its client consumer ring buffer poniter.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term><command>ringbuffer usage <replaceable>name</replaceable></command></term>
+            <listitem>
+                <para>
+                    Returns (as the command result), the ring buffer usage
+                    information.
+                    This is returned as a Tcl list that has the following
+                    elements:
+                </para>
+                <variablelist>
+                    <varlistentry>
+                        <term><varname>size</varname></term>
+                        <listitem>
+                            <para>
+                                The number of data bytes in the ring buffer.
+                            </para>
+                        </listitem>
+                    </varlistentry>
+                    <varlistentry>
+                        <term><varname>putAvailable</varname></term>
+                        <listitem>
+                            <para>
+                                The number of bytes that can be put by the
+                                producer without blocking.  Note that in order
+                                to be able to distinguish between the full and empty
+                                ring buffer cases, this can never be larger than
+                                <literal>size - 1</literal>
+                            </para>
+                        </listitem>
+                    </varlistentry>
+                    <varlistentry>
+                        <term><varname>maxConsumers</varname></term>
+                        <listitem>
+                            <para>
+                                Returns the maximum number of clients that can
+                                connect to the ring buffer at any given time.
+                            </para>
+                        </listitem>
+                    </varlistentry>
+                    <varlistentry>
+                        <term><varname>producer</varname></term>
+                        <listitem>
+                            <para>
+                                The PID of the producer process. This is -1 if
+                                there is no producer.
+                            </para>
+                        </listitem>
+                    </varlistentry>
+                    <varlistentry>
+                        <term><varname>maxGet</varname></term>
+                        <listitem>
+                            <para>
+                                The amount of data that can be gotten without
+                                blocking by the consumer that is most caught up.
+                                (maximum that can be gotten by any consumer).
+                                If no consumers are connected, this returns 0.
+                            </para>
+                        </listitem>
+                    </varlistentry>
+                    <varlistentry>
+                        <term><varname>minGet</varname></term>
+                        <listitem>
+                            <para>
+                                Same as for <varname>maxGet</varname> but gives
+                                the amount of data that can be gotten by the
+                                consumer that is least caught up.
+                            </para>
+                        </listitem>
+                    </varlistentry>
+                    <varlistentry>
+                        <term><varname>consumers</varname></term>
+                        <listitem>
+                            <para>This is a list of consumers attached to the
+                                ring buffer.  Each consumer is represented by a pair of
+                                values.  The first, the consumer's pocess ID.
+                                The second, the amount of data that consumer could
+                                get without blocking.
+                            </para>
+                        </listitem>
+                    </varlistentry>
+                </variablelist>
+            </listitem>
+        </varlistentry>
+     </variablelist>
+  </refsect1>
+
+</refentry>
+
+<!-- /manpage -->
