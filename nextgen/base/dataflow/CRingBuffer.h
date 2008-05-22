@@ -74,7 +74,7 @@ public:
     pid_t                                  s_producer;
     size_t                                 s_maxGetSpace;
     size_t                                 s_minGetSpace;
-     std::vector<std::pair<pid_t, size_t> > s_consumers;
+    std::vector<std::pair<pid_t, size_t> > s_consumers;
   };
 
   class CRingBufferPredicate {
