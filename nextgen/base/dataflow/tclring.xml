@@ -18,7 +18,7 @@
     <example>
         <title>Incorporating the ring package in your scripts</title>
         <programlisting>
-set libpath [file join $NSCLDAQROOT TclLibs]\
+set libpath [file join $::env($NSCLDAQROOT) TclLibs]\
 lappend auto_path $libpath
 
 package require ring
