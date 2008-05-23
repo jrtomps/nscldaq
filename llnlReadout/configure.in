@@ -77,19 +77,31 @@ AC_C_INLINE
 # Checks for header files.
 
 AC_HEADER_STDC
-AC_CHECK_HEADERS([stdint.h string.h])
+AC_CHECK_HEADERS([malloc.h stdint.h stdlib.h string.h unistd.h])
 AC_HEADER_STDBOOL
 
 # Checks for typedefs, structures, and compiler characteristics.
+
+AC_HEADER_STDBOOL
 AC_C_CONST
+AC_C_INLINE
+AC_TYPE_INT8_T
 AC_TYPE_OFF_T
 AC_TYPE_SIZE_T
+AC_STRUCT_TM
+AC_TYPE_UID_T
+AC_TYPE_UINT16_T
+AC_TYPE_UINT32_T
+AC_TYPE_UINT8_T
 
 # Checks for library functions.
 
+AC_FUNC_MALLOC
+AC_FUNC_STRTOD
 AC_CHECK_FUNCS([strerror])
 AC_CHECK_FUNCS([strtol])
 AC_CHECK_FUNCS([strtoul])
+AC_CHECK_FUNCS([localtime_r memset])
 
 #  See if the C++ runtime libs have .h's on them or
 #  if h-less versions can be used for what we need:
@@ -185,7 +197,7 @@ then
 	USBSWITCHES="-I${usbheaderdir}"
 	AC_MSG_RESULT([found in $usbheaderdir])
 else
-	AC_MSG_ERROR([Can't find usb.h install libusb development or try using --with-tcl-header-dir to help me find it])
+	AC_MSG_ERROR([Can't find usb.h install libusb development or try using --with-usb-header-dir to help me find it])
 fi
 
 AC_MSG_CHECKING([for libusb library]) 
