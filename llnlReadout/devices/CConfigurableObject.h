@@ -160,6 +160,7 @@ public:
   // Convenience functions that get common conversions:
 
   int              getIntegerParameter (std::string name);
+  unsigned int     getUnsignedParameter(std::string name);
   bool             getBoolParameter    (std::string name);
   double           getFloatParameter   (std::string name);
   std::vector<int> getIntegerList      (std::string name);

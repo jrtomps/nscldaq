@@ -57,11 +57,13 @@ Const(Reset)                0x6008; // write anything here to reset the module.
 Const(Ipl)                  0x6010;
 Const(Vector)               0x6012;
 
+Const(LongCount)            0x6030;
 Const(DataFormat)           0x6032;
 Const(ReadoutReset)         0x6034;
 Const(MarkType)             0x6038;
 Const(StartAcq)             0x603A;
 Const(InitFifo)             0x603c;
+Const(DataReady)            0x603e;
 
 Const(BankOperation)        0x6040;
 Const(Resolution)           0x6042;
@@ -285,9 +287,10 @@ CMADC32::Initialize(CVMUSB& controller)
   // a list so that they don't take so damned much time.
  
 
-  uint32_t base = m_pConfiguration->getIntegerParameter("-base");
-  controller.vmeWrite16(base + Reset,    initamod, 0);
-  controller.vmeWrite16(base + InitFifo, initamod, 0);
+  uint32_t base = m_pConfiguration->getUnsignedParameter("-base");
+  controller.vmeWrite16(base + Reset,    initamod, 1);
+  controller.vmeWrite16(base + StartAcq, initamod, 0);
+  controller.vmeWrite16(base + ReadoutReset, initamod, 1);
 
   CVMUSBReadoutList list;	// Initialization instructions will be added to this.
 
@@ -403,6 +406,13 @@ CMADC32::Initialize(CVMUSB& controller)
 
   list.addWrite16(base + Ipl, initamod, ipl);
 
+
+  // Now reset again and start daq:
+
+  list.addWrite16(base + ReadoutReset, initamod, 1);
+  list.addWrite16(base + StartAcq, initamod, 1 );
+
+
   //  Execute the list to initialize the module:
 
 
@@ -410,8 +420,8 @@ CMADC32::Initialize(CVMUSB& controller)
   size_t bytesRead;
   int status = controller.executeList(list, readBuffer, sizeof(readBuffer), &bytesRead);
   if (status != 0) {
-    throw string("List excecution to initialize an MADC32 failed");
-  }
+     throw string("List excecution to initialize an MADC32 failed");
+   }
 
 }
 /*!
@@ -426,9 +436,10 @@ CMADC32::addReadoutList(CVMUSBReadoutList& list)
 {
   // Need the base:
 
-  int base = m_pConfiguration->getIntegerParameter("-base");
+  int base = m_pConfiguration->getUnsignedParameter("-base");
 
-  list.addBlockRead32(base + eventBuffer, readamod, 40);
+  list.addFifoRead32(base + eventBuffer, readamod, 40);
+  list.addWrite16(base + ReadoutReset, initamod, 1);
 }
 
 // Cloning supports a virtual copy constructor.

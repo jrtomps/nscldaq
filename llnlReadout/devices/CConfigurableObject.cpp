@@ -209,6 +209,27 @@ CConfigurableObject::getIntegerParameter(string name)
   }
   return iValue;
 }
+/*! 
+  Same as above but for an integer.  Needed because strtol for something
+  bigger than MAXINT returns MAXINT.
+*/
+unsigned int
+CConfigurableObject::getUnsignedParameter(string name)
+{
+  string value = cget(name);
+
+  char* end;
+  int iValue = strtoul(value.c_str(), &end, 0);
+  if (end == value.c_str()) {
+    string msg = "Expected an integer parameter value for config. parameter ";
+    msg += name;
+    msg += "got: ";
+    msg += value;
+    throw msg;
+  }
+  return iValue;
+}
+
 /*!
   Return the value of a bool parameter.
   This uses the same set of true values as the checker.. however
