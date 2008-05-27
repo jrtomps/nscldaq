@@ -30,12 +30,24 @@ int main(int argc, char**argv)
 {
   string ringname("timing");
 
-  CRingBuffer::create(ringname);
-  CRingBuffer ring(ringname, CRingBuffer::consumer);
+
+  // If the ring buffer does not exist, create it too:
+
+  CRingBuffer* pRing(0);
+  try {
+    pRing = new CRingBuffer(ringname, CRingBuffer::consumer);
+  }
+  catch (...) {
+    CRingBuffer::create(ringname);
+    pRing = new CRingBuffer(ringname, CRingBuffer::consumer);
+  }
+  CRingBuffer& ring(*pRing);
+
   ring.setPollInterval(1);
 
   char buffer[1024*1024]; 
   while(1) {
     ring.get(buffer, sizeof(buffer), sizeof(buffer));
   }
+  delete pRing;
 }
