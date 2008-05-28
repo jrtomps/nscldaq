@@ -78,7 +78,12 @@ ringbuffer disconnect <replaceable>consumer name index</replaceable>
 </cmdsynopsis>
 <cmdsynopsis>
     <command>
-ringbuffer <replaceable>usage name</replaceable>
+ringbuffer usage<replaceable> name</replaceable>
+    </command>
+</cmdsynopsis>
+<cmdsynopsis>
+    <command>
+<command>ringbuffer delete <replaceable>ringname</replaceable></command>
     </command>
 </cmdsynopsis>
 
@@ -246,6 +251,18 @@ ringbuffer <replaceable>usage name</replaceable>
                         </listitem>
                     </varlistentry>
                 </variablelist>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term><command>ringbuffer delete <replaceable>ring</replaceable></command></term>
+            <listitem>
+                <para>
+                    Deletes the shared memory region associated with the ring buffer
+                    <replaceable>ring</replaceable>.  When the last client detaches
+                    from the ring buffer, the ring buffer will cease to exist.
+                    This makes the semantics of this operation very much like that
+                    of the Unix <command>rm</command> command.
+                </para>
             </listitem>
         </varlistentry>
      </variablelist>

@@ -36,7 +36,7 @@ noinst_PROGRAMS = unittests producer consumer
 
 unittests_SOURCES = TestRunner.cpp StaticTests.cpp TransferTests.cpp testcommon.cpp \
 		DifferenceTests.cpp BlockingTests.cpp InfoTests.cpp \
-		ManageTest.cpp
+		ManageTest.cpp WhilePredTest.cpp
 
 unittests_LDADD   = -L@prefix@/lib $(CPPUNIT_LDFLAGS) -lDataFlow 
 
@@ -50,7 +50,7 @@ consumer_LDFLAGS  = -Wl,"-rpath-link=$(libdir)"
 
 TESTS=./unittests
 
-EXTRA_DIST=ringprimitives.xml RingMaster.tcl
+EXTRA_DIST=ringprimitives.xml RingMaster.tcl ringbuffer.tcl
 
 #-------------- My installation.
 
@@ -58,3 +58,5 @@ install-exec-local:
 	$(INSTALL_SCRIPT) RingMaster.tcl @bindir@/RingMaster
 	$(mkinstalldirs)  @prefix@/TclLibs
 	$(INSTALL_SCRIPT) .libs/libRingBuffer.* @prefix@/TclLibs
+	$(INSTALL_SCRIPT) ringbuffer.tcl @bindir@/ringbuffer
+
