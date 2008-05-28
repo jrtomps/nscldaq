@@ -374,6 +374,13 @@ int main(int argc, char** argv)
         </methodparam>
       </methodsynopsis>
       <methodsynopsis>
+        <modifier>static</modifier>
+        <type>void</type> <methodname>remove</methodname>
+        <methodparam>
+            <type>std::string</type> <parameter>name</parameter>
+        </methodparam>
+      </methodsynopsis>
+      <methodsynopsis>
         <modifier>static</modifier> <type>void</type> <methodname>format</methodname>
         <methodparam>
             <type>std::string</type> <parameter>name</parameter>
@@ -491,6 +498,13 @@ int main(int argc, char** argv)
         </methodparam>
         <methodparam>
             <type>unsigned long</type> <parameter>timeout</parameter> <initializer>ULONG_MAX</initializer>
+        </methodparam>
+      </methodsynopsis>
+      <methodsynopsis>
+        <type>void</type>
+        <methodname>While</methodname>
+        <methodparam>
+            <type>CRingBufferPredicate&amp;</type> <parameter>pred</parameter>
         </methodparam>
       </methodsynopsis>
 <!-- new -->
@@ -622,7 +636,19 @@ int main(int argc, char** argv)
         which is encapsulated in a POSIX shared memory file,
         has the permissions mode <literal>0666</literal>.
     </para>
-        
+      <methodsynopsis>
+        <modifier>static</modifier>
+        <type>void</type> <methodname>remove</methodname>
+        <methodparam>
+            <type>std::string</type> <parameter>name</parameter>
+        </methodparam>
+      </methodsynopsis>
+        <para>
+            Marks the shared memory region assocaited with a ring buffer
+            for deletion.  Once no more processes are attached to the ring buffer,
+            or have file descriptors open on the ring buffer, the shared memory
+            region is deleted.
+        </para>
       <methodsynopsis>
         <modifier>static</modifier> <type>void</type> <methodname>format</methodname>
         <methodparam>
@@ -993,6 +1019,20 @@ int main(int argc, char** argv)
         136 years (or essentially forever).
       </para>
 <!-- new -->
+     <methodsynopsis>
+        <type>void</type>
+        <methodname>While</methodname>
+        <methodparam>
+            <type>CRingBufferPredicate&amp;</type> <parameter>pred</parameter>
+        </methodparam>
+      </methodsynopsis>
+     <para>
+        Repeatedly calls the predicate <parameter>pred</parameter> until it returns
+        <literal>false</literal>.  The method polls the predicate rather than
+        blocking between calls.  One use of this function is to skip forward
+        through the ring buffer until a message that matches some specific
+        pattern is encountered.
+     </para>
       <methodsynopsis>
         <type>off_t</type> <methodname>getSlot</methodname>
                            <void />

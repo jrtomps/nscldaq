@@ -100,6 +100,7 @@ public:
   static void create(std::string name, 
 		     size_t dataBytes = m_defaultDataSize,
 		     size_t maxConsumer = m_defaultMaxConsumers);
+  static void remove(std::string name);
   static void format(std::string name,
 		     size_t maxConsumer = m_defaultMaxConsumers);
   static void   setDefaultRingSize(size_t byteCount);
@@ -142,6 +143,10 @@ public:
   // blocking.
 
   int blockWhile(CRingBufferPredicate& pred, unsigned long timeout=ULONG_MAX);
+
+  // Iteration (e.g. searching).
+
+  void While(CRingBufferPredicate& pred);
 
   // management functions:
 

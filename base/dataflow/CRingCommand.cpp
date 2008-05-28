@@ -17,9 +17,13 @@
 #include "CRingCommand.h"
 #include <CRingBuffer.h>
 #include <Exception.h>
+#include <ErrnoException.h>
+#include <errno.h>
 
 #include "TCLInterpreter.h"
 #include "TCLObject.h"
+
+
 
 using namespace std;
 
@@ -98,6 +102,9 @@ CRingCommand::operator()(CTCLInterpreter&    interp,
   }
   else if (subCommand == string("usage")) {
     return usage(interp, objv);
+  }
+  else if (subCommand == string("remove")) {
+    return remove(interp,objv);
   }
   else {
     string result;
@@ -546,6 +553,75 @@ CRingCommand::usage(CTCLInterpreter&    interp,
   return TCL_OK;
 
 }
+/**************************************************************************/
+/*  Remove a ring buffer.  The usual stuff. we need a ring name           */
+/*  ringbuffer remove name                                                */
+/**************************************************************************/
+int
+CRingCommand::remove(CTCLInterpreter&    interp, 
+		     vector<CTCLObject>& objv)
+{
+  if (objv.size() != 3) {
+    string result;
+    result += "Insufficent command parameters for remove\n";
+    result += CommandUsage();
+    interp.setResult(result);
+    return TCL_ERROR;
+  }
+  string name = objv[2];
+
+  try {
+    CRingBuffer::remove(name);
+  }
+  catch(CErrnoException& except) {
+    string result;
+    if (except.ReasonCode() == ENOENT) { // We can get a good error message here:
+      result += "Ring buffer ";
+      result += name;
+      result += " does not exist";
+   
+    } 
+    else {
+      result = except.ReasonText();
+    }
+    interp.setResult(result);
+    return TCL_ERROR;
+  }
+  catch (CException& except) {
+    string result = except.ReasonText();
+    interp.setResult(result);
+    return TCL_ERROR;
+  }
+  catch (string msg) {
+    string result;
+    result += "Failed to delete ring ";
+    result += name;
+    result += msg;
+    interp.setResult(result);
+    return TCL_ERROR;
+  }
+  catch (const char* msg) {
+    string result;
+    result += "Failed to delete ring ";
+    result += name;
+    result += msg;
+    interp.setResult(result);
+    return TCL_ERROR;
+  }
+  catch (...) {
+    string result;
+    result += "Failed to delete ring ";
+    result += name;
+    result += " due to an unanticipated excpetion type";
+    interp.setResult(result);
+    return TCL_ERROR;
+  }
+
+  interp.setResult(name);
+  return TCL_OK;
+
+}
+
 ////////////////////////////////////////////////////////////////////////////
 // Private utility functions.
 
@@ -563,6 +639,7 @@ CRingCommand::CommandUsage()
   usage += "  ringbuffer disconnect producer name\n";
   usage += "  ringbuffer disconnect consumer name index\n";
   usage += "  ringbuffer usage name\n";
+  usage += "  ringbuffer remove name\n";
   usage += "Where\n";
   usage += "  name         - Is the name of a ring buffer\n";
   usage += "  size         - Is the number of data bytes a ring buffer can have\n";

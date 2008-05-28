@@ -282,8 +282,8 @@ proc List {socket client message} {
 	    lappend result [list $ring $usage]
 	}
     }
-    puts "OK"
-    puts $result
+    puts $socket "OK"
+    puts $socket $result
 }
 
 

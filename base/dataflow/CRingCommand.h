@@ -33,6 +33,7 @@ class CTCLObject;
    ringbuffer disconnect producer name
    ringbuffer disconnect consumer name index
    ringbuffer usage name
+   ringbuffer remove name
 \endverbatim
 
   The meaning of these should be reasonably obvious...though the actual data returned by the
@@ -80,6 +81,8 @@ protected:
 		 std::vector<CTCLObject>& objv);
   int usage(CTCLInterpreter& interp,
 	    std::vector<CTCLObject>& objv);
+  int remove(CTCLInterpreter& interp,
+	     std::vector<CTCLObject>& objv);
 
   // private utilities:
 private:

@@ -151,6 +151,29 @@ CRingBuffer:: create(std::string name,
   close(fd);
   format(name, maxConsumer);
 }
+
+/*!
+   Destroy an existing ring buffer.  Note that the shared memory segment 
+   actually continues to live until all processes that hold maps and fds open
+   unmap/close their fds.
+   \param name - The ring buffer name.
+
+   \throw CErrnoException if the shm_unlink fails.
+
+*/
+void
+CRingBuffer::remove(string name)
+{
+  string fullName = shmName(name);
+  int    status   = shm_unlink(fullName.c_str());
+
+  if (status == -1) {
+    throw CErrnoException("CRingBuffer::remove - shm_unlink failed");
+  }
+}
+
+
+
 /*!
    Format an existing ring buffer.
    - Open the shared memory segment
@@ -780,6 +803,21 @@ CRingBuffer::blockWhile(CRingBuffer::CRingBufferPredicate& pred, unsigned long t
   else {
     return pred(*this) ? -1 : 0;
   }
+}
+/*!
+   Iterate in some way while a predicate is true.  This can be used
+   to skip forward in the ring buffer until a specific chunk of data
+   is found e.g.
+   \param pred   - the predicate.  The predicate is an object of class
+                   derived from the abstract base class of 
+                   CRingBufferPredicate.
+
+*/
+void
+CRingBuffer::While(CRingBuffer::CRingBufferPredicate& pred)
+{
+  while(pred(*this)) 
+    ;
 }
 
 //////////////////////////////////////////////////////////////////////////////

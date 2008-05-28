@@ -10,6 +10,9 @@
 #include <unistd.h>
 #include <sys/mman.h>
 #include <fcntl.h>
+#include <errno.h>
+
+#include <ErrnoException.h>
 
 #include "ringbufint.h"
 #include "testcommon.h"
@@ -38,6 +41,7 @@ class StaticRingTest : public CppUnit::TestFixture {
   CPPUNIT_TEST(defaults);
   CPPUNIT_TEST(create);
   CPPUNIT_TEST(format);
+  CPPUNIT_TEST(remove);
   CPPUNIT_TEST_SUITE_END();
 
 
@@ -58,6 +62,7 @@ protected:
   void defaults();
   void create();
   void format();
+  void remove();
 };
 
 CPPUNIT_TEST_SUITE_REGISTRATION(StaticRingTest);
@@ -155,4 +160,38 @@ void StaticRingTest::format()
   munmap(map, buf.st_size);
   
   
+}
+
+
+// Remove function
+// - called on a nonexistent ring should throw an exception.
+// - called on an existing ring should remove it.
+
+void StaticRingTest::remove()
+{
+  bool thrown(false);
+
+  try {
+    CRingBuffer::remove(string(SHM_TESTFILE));
+  }
+  catch (CErrnoException& except) {
+    thrown = true;
+  }
+  catch (...) {
+    ASSERT(0);			// wrong type of exception.
+  }
+
+  ASSERT(thrown);
+
+  CRingBuffer::create(string(SHM_TESTFILE));
+
+
+  CRingBuffer::remove(string(SHM_TESTFILE));
+
+  string fullname = getFullName();
+  struct stat buf;
+  int status = stat(fullname.c_str(), &buf);
+  EQ(ENOENT, errno);
+  EQ(-1, status);
+
 }
