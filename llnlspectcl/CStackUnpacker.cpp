@@ -18,6 +18,7 @@
 #include "CModuleUnpacker.h"
 #include "C785Unpacker.h"
 #include "CNADC2530Unpacker.h"
+#include "CMADC32Unpacker.h"
 #include "CParamMapCommand.h"
 #include "CStackMapCommand.h"
 
@@ -43,10 +44,14 @@ static const UShort_t VMUSB_LENGTH(0x0fff);
 
 static C785Unpacker       unpack785;
 static CNADC2530Unpacker  unpackNADC2530;
+static CMADC32Unpacker    unpackMADC32;
 
 // table of unpackers for each type of module.
 
-CModuleUnpacker* CStackUnpacker::m_unpackers[] = {&unpack785, &unpackNADC2530};
+CModuleUnpacker* CStackUnpacker::m_unpackers[] = 
+  {&unpack785, 
+   &unpackNADC2530,
+   &unpackMADC32};
 
 //////////////////////////////////////////////////////////////////////////////////
 //  Canonicals:

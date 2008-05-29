@@ -44,6 +44,8 @@
 
 set typeCAEN  0;			# CAEN V775,785,792,862
 set typeHYTEC 1;			# Hytec NADC 2530.
+set typeMADC32 2;			# Mesytec MADC 32.
+
 
 #  We create as well spectra for each single parameter, and corresponding
 #  pairs of n's.
@@ -128,6 +130,27 @@ proc hytec args {
     set ::adcConfiguration($name)  -1;	# There is no geo associated with this adc.
 }
 
+#---------------------------------------------------------------
+# The madc command processes the creation and configuration of
+# Mesytec 32 channel ADC modulees.
+#
+proc madc args {
+    set subcommand [lindex $args 0]
+    set name       [lindex $args 1]
+
+    set ::readoutDeviceType($name) $::typeMADC32
+
+    # The config or create subcommand have the 
+    # -id config which sets the 'vsn' for this module.
+
+    if {($subcommand eq "create") || ($subcommand eq "config")} {
+	set ididx [lsearch -exact $args "-id"]
+	if {$ididx != -1} {
+	    incr ididx
+	    set ::adcConfiguration($name) [lindex $args $ididx]
+	}
+    }
+}
 #---------------------------------------------------------------
 #  We need to use this command to fill in the chainOrder array of 
 #  the order of modules in the chain.  This allows the stack command

@@ -33,7 +33,7 @@ configRead [file join $here daqconfig.tcl]
 
 set channelCount($typeCAEN)   4096
 set channelCount($typeHYTEC)  8192
-
+set channelCount($typeMADC32) 4096;	# Currently only 12 chans.
 
 
 #-----------------------------------------------------------------------------
