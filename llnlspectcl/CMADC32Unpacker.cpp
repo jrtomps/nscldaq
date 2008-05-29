@@ -106,13 +106,26 @@ CMADC32Unpacker::operator()(CEvent&                       rEvent,
 			    unsigned int                  offset,
 			    CParamMapCommand::AdcMapping* pMap)
 {
-  // Get the 'header' and be sure it actually is a heade and for our module id.
+
+  // For now, the MADC and VM-usb are not cooperating on 
+  // ending the event on BERR.  For each BERR 'transfer' the
+  // VM-USB puts a 16 bit word of 0xffff in the event.
+  // we need to ensure that we'll skip these.
+  //
+  // Get the 'header' and be sure it actually is a header and for our module id.
 
   unsigned long header = getLong(event, offset);
-  uint32_t      type   = (header &  ALL_TYPEMASK) & ALL_TYPESHFT;
+  if (header == 0xffffffff) {	// ADC had no data there will be 35 words of ffff
+    return offset + 35;
+  }
+
+
+  uint32_t      type   = (header &  ALL_TYPEMASK) >> ALL_TYPESHFT;
   if (type != TYPE_HEADER) return offset;
 
-  int           id     = (header & HDR_IDMASK) & HDR_IDSHFT;
+  int longsRead = 1;		// Count the longwords processed:
+
+  int           id     = (header & HDR_IDMASK) >> HDR_IDSHFT;
   if (id != pMap->vsn) return offset;
 
   // We've established this is our data.
@@ -121,6 +134,7 @@ CMADC32Unpacker::operator()(CEvent&                       rEvent,
 
   offset += 2;
   unsigned long datum = getLong(event, offset);
+  longsRead++;
   offset += 2;
   while (((datum & ALL_TYPEMASK) >> ALL_TYPESHFT) == TYPE_DATA) {
     bool overflow = (datum & DATA_ISOVERFLOW) != 0;
@@ -133,6 +147,7 @@ CMADC32Unpacker::operator()(CEvent&                       rEvent,
       }
     }
     datum   = getLong(event, offset);
+    longsRead++;
     offset += 2;
   }
   // The datum should be the trailer.. verify this.. If so,
@@ -145,10 +160,13 @@ CMADC32Unpacker::operator()(CEvent&                       rEvent,
       rEvent[id] = value;
     }
   }
+  else {
+    longsRead--;		// Really should not happen!!
+  }
     
-  // The BUSERR will leave an extra longword of 0xffffffff
+  // There will be an unconditional 35 transfers, but the BERR's
+  // will only put a word in the buffer, rather than a long >sigh<
 
-  offset += 2;
-
-  return offset;
+  int residual = 35 - longsRead;
+  return offset + residual;
 }

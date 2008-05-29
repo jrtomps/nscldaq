@@ -82,15 +82,15 @@ public:
     int map[128];		// big enough to handle CAEN V1190's.
 
     AdcMapping() :
-       vsn(-1), type(-1) { for(int i=0; i < 32; i++) map[i] = -1;}
+       vsn(-1), type(-1) { for(int i=0; i < 128; i++) map[i] = -1;}
     AdcMapping(const AdcMapping& rhs) : vsn(rhs.vsn), type(rhs.type) {
       
-      for(int i =0; i < 32; i++) map[i] = rhs.map[i];
+      for(int i =0; i < 128; i++) map[i] = rhs.map[i];
     }
     AdcMapping& operator=(const AdcMapping& rhs) {
       vsn = rhs.vsn;
       type= rhs.type;
-      for (int i =0; i < 32; i++) map[i] = rhs.map[i];
+      for (int i =0; i < 128; i++) map[i] = rhs.map[i];
     }
     int& operator[](int i) { return map[i]; }
 
