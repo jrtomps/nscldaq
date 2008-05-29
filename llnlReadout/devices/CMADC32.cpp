@@ -84,6 +84,8 @@ Const(NIMFCOrTimeReset)     0x606c;
 Const(NIMBusyFunction)      0x606e;
 
 Const(TimingSource)         0x6096;
+Const(TimingDivisor)        0x6098;
+Const(TimestampReset)       0x609a;
 
 Const(TestPulser)           0x6070; // In order to ensure it's off !
 
@@ -155,6 +157,10 @@ const int   InputRangeNumValues = sizeof(InputRangeValues)/sizeof(char*);
 const char* TimingSourceValues[2] = {"vme", "external"};
 const int   TimingSourceNumValues = sizeof(TimingSourceValues)/sizeof(char*);
 
+// Legal values for the timing divisor (0-15)
+
+static CConfigurableObject::limit divisorLimit(15);
+static CConfigurableObject::Limits DivisorLimits(Zero, divisorLimit);
 
 ////////////////////////////////////////////////////////////////////////////////
 // Constructors and implemented canonical operations:
@@ -260,6 +266,9 @@ CMADC32::onAttach(CReadoutModule& configuration)
   m_pConfiguration->addParameter("-timingsource", CConfigurableObject::isEnum,
 				 &ValidTimingSource, TimingSourceValues[0]);
 
+  m_pConfiguration->addParameter("-timingdivisor", CConfigurableObject::isInteger,
+				 &DivisorLimits, "15");
+
 
   m_pConfiguration->addParameter("-thresholds", CConfigurableObject::isIntList,
 				 &ThresholdValidity, "0");
@@ -313,6 +322,7 @@ CMADC32::Initialize(CVMUSB& controller)
   bool        ecltimeinput= m_pConfiguration->getBoolParameter("-ecltiming");
   bool        nimtimeinput= m_pConfiguration->getBoolParameter("-nimtiming");
   string      timesource  = m_pConfiguration->cget("-timingsource");
+  int         timedivisor = m_pConfiguration->getIntegerParameter("-timingdivisor");
   vector<int> thresholds  = m_pConfiguration->getIntegerList("-thresholds");
 
   // Write the thresholds.
@@ -358,6 +368,14 @@ CMADC32::Initialize(CVMUSB& controller)
   else {			// 10V
     list.addWrite16(base + InputRange, initamod, 2);
   }
+
+  // Set the timing divisor, and clear the timestamp:
+
+
+  list.addWrite16(base + TimingDivisor, initamod, timedivisor);
+  list.addWrite16(base + TimestampReset, initamod, 1);
+
+
   // Turn on or off ECL termination.  In fact the module provides much more control
   // over this featuer.. but for now we're all or nothing.
 

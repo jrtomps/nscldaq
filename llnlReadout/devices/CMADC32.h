@@ -75,6 +75,7 @@ class CVMUSBReadoutList;
    -nimtiming           bool                Enables NIM input for timestamp inputs
                                             (oscillator & rset).
    -timingsource        enum (vme,external)  Determines where timestamp source is.
+   -timingdivisor       int [0-15]          Divisor (2^n) of timestamp clock
    -thresholds          int[32] [0-4095]    Threshold settings (0 means unused).
 \endverbatim
 */
