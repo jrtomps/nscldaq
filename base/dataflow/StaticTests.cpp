@@ -42,6 +42,7 @@ class StaticRingTest : public CppUnit::TestFixture {
   CPPUNIT_TEST(create);
   CPPUNIT_TEST(format);
   CPPUNIT_TEST(remove);
+  CPPUNIT_TEST(isring);
   CPPUNIT_TEST_SUITE_END();
 
 
@@ -55,14 +56,18 @@ public:
   void tearDown() {
     // hopefully this gets called on failure too:
     // get rid of any shared memory file that might be lying around.
-    
-    shm_unlink(shmName(SHM_TESTFILE).c_str());
+    try {
+      CRingBuffer::remove(SHM_TESTFILE);
+    }
+    catch (...) {
+    }
   }
 protected:
   void defaults();
   void create();
   void format();
   void remove();
+  void isring();
 };
 
 CPPUNIT_TEST_SUITE_REGISTRATION(StaticRingTest);
@@ -124,7 +129,7 @@ void StaticRingTest::create() {
   EQMSG("mode check", (mode_t)0666, buf.st_mode & 0777);
   
 
-  
+
 }
 
 // Check that a ring is well formatted:
@@ -194,4 +199,21 @@ void StaticRingTest::remove()
   EQ(ENOENT, errno);
   EQ(-1, status);
 
+}
+// Check isring... if I make a ring, it should be a ring.
+// if I just make some random file shared memory region it should not be.
+//
+void
+StaticRingTest::isring()
+{
+  CRingBuffer::create(string(SHM_TESTFILE));
+  ASSERT(CRingBuffer::isRing(string(SHM_TESTFILE)));
+  CRingBuffer::remove(string(SHM_TESTFILE));
+
+  string full = getFullName();
+  int fd = shm_open(full.c_str(), O_RDWR, 0);
+  ftruncate(fd, 100);
+
+  ASSERT(!CRingBuffer::isRing(string(SHM_TESTFILE)));
+ 
 }

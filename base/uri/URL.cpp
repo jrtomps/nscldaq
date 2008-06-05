@@ -255,13 +255,16 @@ void URL::parseString(string rStr) {
   hostStart += numSlashes;	                        // The real start of the host.
   hostEnd    = strchr(hostStart, ':');                  // We require a port, and thus a ':'.
   if (!hostEnd) {
+    hostEnd = strchr(hostStart, '/'); // Might not be a port... but must be a trailing slash.
+  }
+  if (!hostEnd) {
     throw CURIFormatException(rStr, __FILE__, __LINE__);
   }
   nhostStart = hostStart - rStr.c_str();
   hostLength = hostEnd - hostStart;
   host.assign(rStr, nhostStart, hostLength);
 
-  // Next is the port.  It must follow exactly on the heels of the 
+  // Next might be the  the port.  It must follow exactly on the heels of the 
   // host, and terminate either in a / or in the 
   // end of the string.
 
@@ -271,28 +274,36 @@ void URL::parseString(string rStr) {
   const char*  portIntegerEnd;
   off_t  nPortStart;
   size_t nPortSize;
-  int    port;
+  int    port(-1);
   bool   havePath(true);
 
-  portStart = hostEnd+1;	// Past colon...
-  portEnd   = strchr(portStart, '/');
-  if (!portEnd) {		// no path...
-    havePath = false;
-    portEnd = rStr.c_str() + rStr.length(); // Ends in trailing null..
-  }
-  nPortStart = portStart - rStr.c_str();
-  nPortSize  = portEnd   - portStart;
-  portString.assign(rStr, nPortStart, nPortSize);
-
-  char* pEnd;
-  port = strtol(portString.c_str(), &pEnd, 0);
-  portEnd = const_cast<const char*>(pEnd);
-  
+  if (*hostEnd == ':') {
+    portStart = hostEnd+1;	// Past colon...
+    portEnd   = strchr(portStart, '/');
+    if (!portEnd) {		// no path...
+      havePath = false;
+      portEnd = rStr.c_str() + rStr.length(); // Ends in trailing null..
+    }
+    nPortStart = portStart - rStr.c_str();
+    nPortSize  = portEnd   - portStart;
+    portString.assign(rStr, nPortStart, nPortSize);
+    
+    char* pEnd;
+    port = strtol(portString.c_str(), &pEnd, 0);
+    portEnd = const_cast<const char*>(pEnd);
   // The entire string must have been gobbled up...when portEnd -> 0.
 
-  if (*portEnd) {
-    throw CURIFormatException(rStr, portString, __FILE__, __LINE__);
+    if (*portEnd) {
+      throw CURIFormatException(rStr, portString, __FILE__, __LINE__);
+    }
   }
+  else {
+    portEnd = hostEnd;
+    portEnd++;
+    havePath = (*portEnd != '\0');
+  }
+
+
   
   // The path is either empty, in which case it gets filled with
   // a "/" or it is the remainder of the string.  We don't do any

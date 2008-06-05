@@ -16,6 +16,7 @@
 */
 
 #include "CRingBuffer.h"
+#include "CRingMaster.h"
 #include "ringbufint.h"
 
 #include <ErrnoException.h>
@@ -58,9 +59,8 @@ static string localhost("127.0.0.1");
 size_t CRingBuffer::m_defaultDataSize(DEFAULT_DATASIZE);
 size_t CRingBuffer::m_defaultMaxConsumers(DEFAULT_MAX_CONSUMERS);
 
-bool   CRingBuffer::m_connectedToRingMaster(false);
-int    CRingBuffer::m_ringMasterSocket(-1);
-
+CRingMaster* CRingBuffer::m_pMaster(NULL);
+pid_t        CRingBuffer::m_myPid(-1); // no pid has this.
 
 //////////////////////////////////////////////////////////////////////////////
 // 
@@ -150,6 +150,8 @@ CRingBuffer:: create(std::string name,
 
   close(fd);
   format(name, maxConsumer);
+  connectToRingMaster();
+  m_pMaster->notifyCreate(name);
 }
 
 /*!
@@ -164,12 +166,21 @@ CRingBuffer:: create(std::string name,
 void
 CRingBuffer::remove(string name)
 {
-  string fullName = shmName(name);
-  int    status   = shm_unlink(fullName.c_str());
+
+
+  if (!isRing(name)) {
+    errno = ENOENT;
+    throw CErrnoException("CRingBuffer::remove - not a ring");
+  }
+
+  string fullName   = shmName(name);
+  int    status     = shm_unlink(fullName.c_str());
 
   if (status == -1) {
     throw CErrnoException("CRingBuffer::remove - shm_unlink failed");
   }
+  connectToRingMaster();
+  m_pMaster->notifyDestroy(name);
 }
 
 
@@ -192,33 +203,27 @@ CRingBuffer::format(std::string name,
 		    size_t maxConsumer)
 {
 
+  // need the memory size for initialization.
+
   string fullName = shmName(name);
+  int fd         = openShared(name);
+  size_t memSize = sharedSize(fd);
 
-  int fd = shm_open(fullName.c_str(), 
-		    O_RDONLY, 0 );	// Don't assum where shm files are
-  if (fd < 0) {
-    throw CErrnoException("CRingBuffer::Format - open failed");
-  }
+  // Now map the ring:
 
-  // Get the size of the shared memory regino.
-
-  struct stat info;
-  if (fstat(fd, &info) < 0) {
-    close(fd);
-    throw CErrnoException("CRingBuffer::format - stat failed");
-  }
-  off_t memSize = info.st_size;
+  pRingBuffer      pRing      = reinterpret_cast<pRingBuffer>(mapShared(fd, memSize));
   close(fd);
 
 
   // Map the ring:
 
-  pRingBuffer        pRing     = mapRingBuffer(fullName);
   pRingHeader        pHeader   = reinterpret_cast<pRingHeader>(pRing);
   pClientInformation pProducer = reinterpret_cast<pClientInformation>(pHeader + 1);
   pClientInformation pClients  = pProducer + 1;
 
   // Fill in the header:
+
+  strcpy(pHeader->s_magicString, MAGICSTRING);
 
   pHeader->s_maxConsumer       = maxConsumer;
   pHeader->s_producerInfo      = (reinterpret_cast<char*>(pProducer) - 
@@ -242,6 +247,31 @@ CRingBuffer::format(std::string name,
   }
 
 }
+/*!
+  Determine if a name corresponds to a ring buffer.
+  \param name - the candidate name of the ring buffer.
+  \return bool
+  \retval true - Is a ring buffer.
+  \retval false- Is not a ring buffer.
+*/
+bool
+CRingBuffer::isRing(string name)
+{
+  try {
+    string      fullName = shmName(name);
+    int         fd       = openShared(fullName);
+    size_t      size     = sharedSize(fd);
+    pRingBuffer p        = reinterpret_cast<pRingBuffer>(mapShared(fd, size));
+    bool        result   = ringHeader(p);
+    unmap(p, size);
+    close(fd);
+
+    return result;
+  }
+  catch (...) {
+    return false;
+  }
+}				
 /*!
   Set the defafult ring size.  This will be the amount of data the ring can hold
   if that's not supplied at creation time.
@@ -308,6 +338,10 @@ CRingBuffer::CRingBuffer(string name, CRingBuffer::ClientMode mode) :
   m_pollInterval(DEFAULT_POLLMS),
   m_ringName(name)
 {
+  if (!isRing(name)) {
+    errno = ENOENT;
+    throw CErrnoException("CRingBuffer::CRingBuffer - not a ring");
+  }
   m_pRing = mapRingBuffer(shmName(name));
 
   // Now that we're mapped the remainder of the constructor must execute in a try
@@ -898,28 +932,17 @@ CRingBuffer::shmName(string rawName)
 RingBuffer* 
 CRingBuffer::mapRingBuffer(std::string fullName)
 {
-  // Open the shared mem special file.
 
-  int fd = shm_open(fullName.c_str(), O_RDWR, 0);
-  if (fd < 0) {
-    throw CErrnoException("CRingBuffer::mapRingBuffer failed shm_open");
-  }
-  
+  int fd = openShared(fullName);
+
   // Figure out how big it is... assume that it's a multiple of
   // pagesize:
 
-  struct stat info;
-  if(fstat(fd, &info) < 0) {
-    throw CErrnoException("CRingBuffer::mapRingBuffer failed fstat");
-  }
+  size_t size = sharedSize(fd);
 
   //  Map it:
 
-  void* pMem = mmap(0, info.st_size, PROT_READ | PROT_WRITE,  MAP_SHARED,
-		    fd, 0);
-  if (pMem == MAP_FAILED) {
-    throw CErrnoException("CRingBuffer::mapRingBuffer failed mmap");
-  }
+  void* pMem = mapShared(fd, size);
 
   // Close the file.
 
@@ -928,6 +951,57 @@ CRingBuffer::mapRingBuffer(std::string fullName)
 
   return reinterpret_cast<RingBuffer*>(pMem);
 
+}
+/******************************************************************/
+/* Open a shared memory file                                      */
+/******************************************************************/
+int 
+CRingBuffer::openShared(string fullName)
+{
+  // Open the shared mem special file.
+
+  int fd = shm_open(fullName.c_str(), O_RDWR, 0);
+  if (fd < 0) {
+    throw CErrnoException("CRingBuffer::openShared failed shm_open");
+  }
+  return fd;
+}
+
+/******************************************************************/
+/* Return the shared memory region size given its fd.             */
+/******************************************************************/
+size_t
+CRingBuffer::sharedSize(int fd)
+{
+  // Figure out how big it is... assume that it's a multiple of
+  // pagesize:
+
+  struct stat info;
+  if(fstat(fd, &info) < 0) {
+    throw CErrnoException("CRingBuffer::sharedSize failed fstat");
+  }
+  return info.st_size;
+}
+/******************************************************************/
+/*  Map a shared memory region                                    */
+/******************************************************************/
+void*
+CRingBuffer::mapShared(int fd, size_t size)
+{
+  void* pMem = mmap(0, size, PROT_READ | PROT_WRITE,  MAP_SHARED,
+		    fd, 0);
+  if (pMem == MAP_FAILED) {
+    throw CErrnoException("CRingBuffer::mapRingBuffer failed mmap");
+  }
+  return pMem;
+}
+/******************************************************************/
+/*  Unmap a region of memory                                      */
+/******************************************************************/
+void
+CRingBuffer::unmap(void* pMemory, size_t size)
+{
+  munmap(pMemory, size);
 }
 /******************************************************************/
 /* Unmap the ring buffer.                                         */
@@ -942,7 +1016,7 @@ CRingBuffer::unMapRing()
 
   size_t ringSize = pHeader->s_dataBytes + sizeof(RingHeader) +
                    (pHeader->s_maxConsumer+1)*sizeof(ClientInformation);
-  munmap(m_pRing, ringSize);
+  unmap(m_pRing, ringSize);
   
 }
 /******************************************************************/
@@ -1038,50 +1112,12 @@ CRingBuffer::modeString() const
 
 void CRingBuffer::connectToRingMaster()
 {
-  if (m_connectedToRingMaster) return; // Only connect once, at the class level.
-
-  // Figure out where the ring master is listening...
-
-  int                ringMasterPort(-1);
-  CPortManager       portManager;
-  vector<CPortManager::portInfo>   servers = portManager.getPortUsage();
-  for (int i =0; i < servers.size(); i++) {
-    if(servers[i].s_Application == string("RingMaster")) {
-      ringMasterPort = servers[i].s_Port;
-      break;
-    }
+  pid_t pid = getpid();
+  if (m_pMaster && (pid == m_myPid)) {
+    return;		  // Only connect once per process, at the class level.
   }
-  // If the RingMaster is not known, throw an exception.
-
-  if(ringMasterPort == -1) {
-    errno = ECONNREFUSED;	// Connection refused is appropriate.
-    throw CErrnoException("CRingBuffer::connectToRingMaster - translate port");
-  }
-  // Now make the socket and connect to the ring master.
-  // errors result in CErrnoExceptions...
-
-  m_ringMasterSocket = socket(PF_INET, SOCK_STREAM, 0);
-  if (m_ringMasterSocket == -1) {
-    throw CErrnoException ("CRingBuffer::connectToRingMaster - socket");
-  }
- 
-  sockaddr_in Peer;
-  Peer.sin_port    = htons(ringMasterPort);
-  Peer.sin_family  = AF_INET;
-  inet_aton(localhost.c_str(), &(Peer.sin_addr));
-
-  if (connect(m_ringMasterSocket, (sockaddr*)&Peer, sizeof(Peer)) == -1) {
-    int e = errno;		// save for exception...
-    close(m_ringMasterSocket);
-    m_ringMasterSocket = -1;
-    errno = e;
-    throw CErrnoException("CRingBuffer::connectToRingMaster - connect");
-  }
-
-  // Done. We now have a socket m_ringMasterSocket connected to the ring master.
-
-  m_connectedToRingMaster = true; // don't connect again, for this image.
-
+  m_myPid  = pid;
+  m_pMaster = new CRingMaster;
   
 }
 /***********************************************************************/
@@ -1096,41 +1132,13 @@ void CRingBuffer::connectToRingMaster()
 void
 CRingBuffer::notifyConnection()
 {
-  // Figure out the message to the ringmaster:
-
-  char message[128];
-  if(m_mode == producer) {
-    sprintf(message, "CONNECT {%s} producer %d {CRingBuffer Client Connection}\n",
-	    m_ringName.c_str(), getpid());
+  if (m_mode == producer) {
+    m_pMaster->notifyProducerConnection(m_ringName, "CRingBuffer:: client connection");
   }
   else {
-    sprintf(message, "CONNECT {%s} consumer.%d %d {CRingBuffer Client Connection}\n",
-	    m_ringName.c_str(), getSlot(), getpid());
+    m_pMaster->notifyConsumerConnection(m_ringName, getSlot(), 
+				      "CRingBuffer:: client connection");
   }
-  // Send the message:
-
-  ssize_t nsent = send(m_ringMasterSocket, message, strlen(message), 0);
-  if (nsent == -1) {
-    throw CErrnoException("CRingBuffer::notifyConnection - send");
-  }
-
-  // Receive the reply.
-
-  memset(message, 0, sizeof(message)); // ensure null terminated string.
-  ssize_t nrecv = recv(m_ringMasterSocket, message, sizeof(message), 0);
-  if (nrecv == -1) {
-    throw CErrnoException("CRingBuffer::notifyConnection - recv");
-  }
-  // Response back should be an "OK\r\n".
-
-  if (string("OK\r\n") != string(message)) {
-    string exception;
-    exception += "Invalid response: ";
-    exception += "message";
-    exception += " when expecting 'OK'";
-    throw exception;
-  }
-
 }
 
 /**********************************************************************/
@@ -1143,38 +1151,21 @@ CRingBuffer::notifyConnection()
 void
 CRingBuffer::notifyDisconnection()
 {
-  // First create the message tothe ring master.
 
-  char message[128];
-  if(m_mode == producer) {
-    sprintf(message, "DISCONNECT {%s} producer %d\n",
-	    m_ringName.c_str(), getpid());
+
+  if (m_mode == producer) {
+    m_pMaster->notifyProducerDisconnection(m_ringName);
   }
   else {
-    sprintf(message, "DISCONNECT {%s} consumer.%d %d\n",
-	    m_ringName.c_str(), getSlot(), getpid());
+    m_pMaster->notifyConsumerDisconnection(m_ringName, getSlot());
   }
-  // Send the message:
-
-  ssize_t nsent = send(m_ringMasterSocket, message, strlen(message), 0);
-  if (nsent == -1) {
-    throw CErrnoException("CRingBuffer::notifyDisconnection - send ");
-  }
-  // Get the reply:
-
-  memset(message, 0, sizeof(message));
-  ssize_t nrecv = recv(m_ringMasterSocket, message, sizeof(message), 0);
-  if (nrecv == -1) {
-    throw CErrnoException("CRingBuffer::notifyConnection - recv");
-  }
-
-  // reply must be "OK\n".
-
-  if (string("OK\r\n") != string(message)) {
-    string exception;
-    exception += "Invalid response: ";
-    exception += "message";
-    exception += " when expecting 'OK'";
-    throw exception;
-  }
+}
+/**********************************************************************/
+/* Return true if the pointer passed in points to a ring header       */
+/**********************************************************************/
+bool
+CRingBuffer::ringHeader(RingBuffer* p)
+{
+return strncmp(p->s_header.s_magicString, 
+	       MAGICSTRING, strlen(MAGICSTRING)) == 0;
 }

@@ -42,6 +42,12 @@ exec tclsh ${0} ${@}
 #   LIST
 #
 #     Lists information about the ring usage.
+#  REGISTER ring
+#     Reports the creation of a new ring.
+#  UNREGISTER ring
+#     Reports the deletion of an existing ring.
+#  REMOTE ring
+#     Requests ring from the data to be hoisted via a socket.
 #
 #  On success, CONNECT and DISCONNECT reply with
 #    "OK\n"
@@ -74,28 +80,163 @@ package require log
 package require ring
 
 
+#  Locate the directory in which the hoister lives and
+#  build a full path for it:
+
+set bindir [file join [file dirname [info script]] .. bin]
+set bindir [file normalize $bindir]
+set hoisterProgram [file join $bindir ringtostdout]
+
+
+# Provide the shared memory directory.. This may need to be changed if the code s ported
+# to a non linux system:
+
+set shmDirectory [file join / dev shm]
+
 # Global variables/constants:
 
 
 set localhost   127.0.0.1;		# IP address of localhost connections.
+set knownRings  [list];			# Registered rings.
 
+
+
+#-------------------------------------------------------------------------------
+#
+# Enumerate the existing rings.  The rings are assumed to be in device special
+# files located in 'shmdir'.  For each regular file in that directory, we will
+# ask for the usage from the ring buffer.  If that fails, then the shared memory
+# region is assumed not to be a ring buffer.
+# The rings are enuemrated into the global variable ::knownRings above.
+#
+proc enumerateRings {} {
+    set files [glob -nocomplain [file join $::shmDirectory *]]
+    set ::knownRings [list]
+
+    puts "Initial file list: $files"
+
+    foreach file $files {
+	puts "Trying $file"
+	if {[file type $file] eq "file"} {
+	    puts "Is ordinary"
+	    set shmname [file tail $file]
+	    puts "ring name: $shmname"
+	    if {[catch {ringbuffer usage $shmname} data] == 0} {
+		lappend ::knownRings $shmname
+	    } else {
+		puts $data
+	    }
+	}
+    }
+	       
+}
+
+
+#-------------------------------------------------------------------------------
+#
+# Start hoisting data to a remote client.  The remote client has specified
+# REMOTE ringname.  If the ring exists, we will start an instance of 
+# ringtostdout that is pointed at the socket as stdout.  Once started,
+# we rundown all the resources associated with the socket and close it.
+#
+# Parameters:
+#   socket    - The socket requesting remote access to the ring data.
+#   client    - The IP address of the client.
+#   tail      - The command.. should look like REMOTE ringname.
+#
+proc RemoteHoist {socket client tail} {
+    ::log::log debug "REMOTE from $client : $tail"
+    # Ensure client provided a ring:
+
+    if {[llength $tail] != 2} {
+	::log::log info "$tail not valid"
+	releaseResources $socket $client
+	return
+    }
+    # Ensure the ring exists.
+    
+    set ringname [lindex $tail 1]
+    if {[lsearch -exact $::knownRings $ringname] == -1} {
+	puts $socket "ERROR $ringname does not exist"
+    } else {
+	puts $socket "OK BINARY FOLLOWS"
+	exec $::hoisterProgram $ringname >@ $socket &
+	releaseResources $socket $client
+    }
+
+
+}
+#-------------------------------------------------------------------------------
+#
+#  Unregister an existing ring.  If the ring is known, it is removed from the
+#  ::knowRings list.  Otherwise an error messagse is returned to the client.
+#  this sort of error is not sufficient to disconnect the client.
+#
+# Parameters:
+#   socket - Socket connected to the client.
+#   client - IP address of the client.
+#   tail   - the message.
+#
+proc Unregister {socket client tail} {
+    ::log::log debug "Unregister from $client : $tail"
+    if {[llength $tail] != 2} {
+	::log::log info "$tail not valid"
+	releaseResources $socket $client
+	return
+    }
+
+    set ring  [lindex $tail 1]
+    set which [lsearch -exact $::knownRings $ring]
+    if {$which != -1} {
+	::log::log debug "Removing $ring from $::knownRings"
+	set ::knownRings [lreplace $::knownRings $which $which]
+	puts $socket "OK"
+    } else {
+	::log::log info "Attempted remove of nonexistent $ring"
+	puts $socket "ERROR $ring does not exist"
+    }
+
+}
+
+#-------------------------------------------------------------------------------
+#
+#   Register a new ring. If the ring is unknown it is added to the
+#   ::knownRing list.  If it is known that's an error, but not
+#  sufficient to kill the connection to the client.
+#
+#
+# Parameters:
+#   socket - Socket connected to the client
+#   client - Client ip.
+#   tail   - The full message we received.
+# 
+
+proc Register {socket client tail} {
+    ::log::log debug "Register from $client : $tail"
+    if {[llength $tail] != 2} {
+	::log::log info "$tail not valid"
+	releaseResources $socket $client
+	return
+    }
+    set ring [lindex $tail 1]
+    if {[lsearch -exact $::knownRings $ring] == -1} {
+	::log::log debug "Appending $ring -> $::knownRings"
+	lappend ::knownRings $ring
+	puts $socket "OK"
+    } else {
+	::log::log info "Attempted duplicate registration of $ring"
+	puts $socket "ERROR $ring is already registered"
+    }
+
+}
 #-------------------------------------------------------------------------------
 #
 #  Figure out the known rings.. return them alphabetized.
 #
 proc listRings {} {
     ::log::log debug listRings
-    set sockets [array names ::RingUsage]
-    foreach socket $sockets {
-	set usage $::RingUsage($socket)
-	foreach item $usage {
-	    set ring [lindex $item 0]
-	    set rings($ring) $ring
-	}
-    }
-    # The indices of the rings array are the known rings:
 
-    return [lsort [array names rings]]
+    return [lsort $::knownRings]
 }
 
 #--------------------------------------------------------------------------------
@@ -237,7 +378,7 @@ proc Disconnect {socket client message} {
     }
     # The message must have a rigname an connection type and a pid.
 
-    if {[llength $message] ne 4} {
+    if {[llength $message] != 4} {
 	::log::log info "$message not valid"
 	releaseResources $socket $client
     }
@@ -322,9 +463,14 @@ proc onMessage {socket client} {
 
     } elseif {$command eq "DISCONNECT"} {
 	Disconnect $socket $client $message
-
     } elseif {$command eq "LIST" } {
 	List $socket $client $message
+    } elseif {$command eq "REGISTER"} {
+	Register $socket $client $message
+    } elseif {$command eq "UNREGISTER"} {
+	Unregister $socket $client $message
+    } elseif {$command eq "REMOTE"} {
+	RemoteHoist $socket $client $message
     } else {
 	# Bad command means close the socket:
 
@@ -385,7 +531,7 @@ foreach level {emergency alert critical error warning notice info debug} {
 
 ::log::lvSuppress debug
 
-
+enumerateRings
 
 
 socket -server onConnection $listenPort

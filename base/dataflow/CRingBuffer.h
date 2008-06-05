@@ -51,6 +51,7 @@
 
 typedef struct __RingBuffer        RingBuffer;
 typedef struct __ClientInformation ClientInformation;
+class CRingMaster;
 
 /*!
    The ring buffer class manages a single producer multi-consumer ring  buffer.
@@ -85,8 +86,8 @@ public:
 private:
   static size_t m_defaultDataSize;     // Default ring buffer data segment size. 
   static size_t m_defaultMaxConsumers; // Default for maximun consumers allowed.
-  static bool   m_connectedToRingMaster; // True if ring master socket is open.
-  static int    m_ringMasterSocket;    // Ring master socket if m_connectedToRingMaseter.
+  static CRingMaster* m_pMaster;	       // Connection to the ring master daemon.
+  static pid_t        m_myPid;	       // Pid so forks will make new ringmaster conns.
   // Member data
 private:
   RingBuffer*         m_pRing;	       // Pointer to the actual ring.
@@ -103,6 +104,7 @@ public:
   static void remove(std::string name);
   static void format(std::string name,
 		     size_t maxConsumer = m_defaultMaxConsumers);
+  static bool isRing(std::string name);
   static void   setDefaultRingSize(size_t byteCount);
   static size_t getDefaultRingSize();
   static void   setDefaultMaxConsumers(size_t numConsumers);
@@ -164,9 +166,15 @@ private:
 
   static std::string shmName(std::string rawName);
   static RingBuffer* mapRingBuffer(std::string fullName);
+  static int         openShared(std::string fullName);
+  static size_t      sharedSize(int fd);
+  static void*       mapShared(int fd, size_t size);
+  static void        unmap(void* pMem, size_t size);
+  static bool        ringHeader(RingBuffer* p);
+
   std::string        modeString() const;
 
-  void        connectToRingMaster();
+  static void connectToRingMaster();
   void        notifyConnection();
   void        notifyDisconnection();
 

@@ -390,6 +390,12 @@ int main(int argc, char** argv)
         </methodparam>
       </methodsynopsis>
       <methodsynopsis>
+            <modifier>static</modifier> <type>bool</type> <methodname>isRing</methodname>
+            <methodparam>
+                <type>std::string</type> <parameter>name</parameter>
+            </methodparam>
+      </methodsynopsis>
+      <methodsynopsis>
         <modifier>static</modifier> <type>void</type>
                                     <methodname>setDefaultRingSize</methodname>
         <methodparam>
@@ -695,6 +701,28 @@ int main(int argc, char** argv)
         data will change if the number of consumers is changed from the value
         used to create the initial ring. 
       </para>
+      <methodsynopsis>
+            <modifier>static</modifier> <type>bool</type> <methodname>isRing</methodname>
+            <methodparam>
+                <type>std::string</type> <parameter>name</parameter>
+            </methodparam>
+      </methodsynopsis>
+        <para>
+            Ring buffers are shared memory segments, but not all shared memory
+            segments are rings.  Ring buffers have signature bytes in their headers
+            that allow software to unambiguously determine if a shared memory
+            region is a ring buffer or something else.
+        </para>
+        <para>
+            This function returns <literal>true</literal>
+            If a ring named
+            <parameter>name</parameter>
+            exists.  If it does not (either there's no corresponding shared
+            memory region or there is one, but it does not have the correct
+            signature bytes to qualify as a ring buffer), the function
+            returns
+            <literal>false</literal>
+        </para>
       <methodsynopsis>
         <modifier>static</modifier> <type>void</type>
                                     <methodname>setDefaultRingSize</methodname>

@@ -163,8 +163,8 @@ CPortManager::allocatePort(string application)
 		doing += " to the port manager server : ";
 		doing += strerror(status);
 		throw CPortManagerException(m_sHost,
-									CPortManagerException::ConnectionFailed,
-									doing);
+					    CPortManagerException::ConnectionFailed,
+					    doing);
 		
 	}
 	
@@ -403,11 +403,11 @@ CPortManager::GetNetworkAddress(sockaddr_in& result) const
 	
 	struct hostent* pEntry = gethostbyname(m_sHost.c_str());
 	if(pEntry) {
-		if(pEntry->h_addrtype != AF_INET) {
-			throw CPortManagerException(m_sHost,
-			                            CPortManagerException::ConnectionFailed,
+	  if(pEntry->h_addrtype != AF_INET) {
+	    throw CPortManagerException(m_sHost,
+					CPortManagerException::ConnectionFailed,
 			                            " Host is not AF_INET ");
-		}
+	  }
 		memcpy(&(result.sin_addr), pEntry->h_addr, pEntry->h_length);
 		return;
 	}
@@ -415,9 +415,9 @@ CPortManager::GetNetworkAddress(sockaddr_in& result) const
 	// try by number:
 	
 	if(!inet_aton(m_sHost.c_str(), &(result.sin_addr))) {
-		throw CPortManagerException(m_sHost,
-									CPortManagerException::ConnectionFailed,
-									"Host lookup failed");	
+	  throw CPortManagerException(m_sHost,
+				      CPortManagerException::ConnectionFailed,
+				      "Host lookup failed");	
 	}	
 }
 /*!
