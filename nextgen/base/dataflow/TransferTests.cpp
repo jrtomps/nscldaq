@@ -52,7 +52,11 @@ public:
     CRingBuffer::create(SHM_TESTFILE);
   }
   void tearDown() {
-    shm_unlink(shmName(SHM_TESTFILE).c_str());
+    try {
+      CRingBuffer::remove(SHM_TESTFILE);
+    }
+    catch (...) {}
+
   }
 protected:
   void simpleput();

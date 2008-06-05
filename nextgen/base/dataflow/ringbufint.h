@@ -52,7 +52,10 @@
    buffer as well as to know how big the buffer itself is:
 */
 
+#define MAGICSTRING "NSCLRing"
+
 typedef struct __RingHeader {
+  char       s_magicString[32];	/* Should contain the text "NSCLRing" */
   size_t     s_maxConsumer;	/* Maximum # of consumers. allowed by the ring.  */
   size_t     s_dataBytes;      	/* Number of bytes of data in the data segment.  */
   off_t      s_producerInfo;    /* Offset to the producer descriptor.            */

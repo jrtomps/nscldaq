@@ -1,0 +1,7 @@
+package "ringtostdin"
+purpose "Put data from stdin to a ring."
+
+option "mindata" m "stdin read  chunking factor" string optional default="1m"
+option "timeout" t "stdin read timeout timeout in seconds"   int    optional default="1"
+
+ 

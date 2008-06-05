@@ -223,7 +223,97 @@
                     </para>
                 </listitem>
             </varlistentry>
-        </variablelist>        
+        </variablelist>
+        <para>
+            The <application>RingMaster</application> process keeps track of
+            all rings on the host system.  When it starts, it enumerates
+            the rings that have persisted since the last time it ran.
+            When new rings are created, a
+            <literal>REGISTER</literal>
+            message informs the RingMaster of that fact.  This message is
+            transparently sent by the
+            <classname>CRingBuffer</classname>::<methodname>create</methodname>
+            call.
+        </para>
+        <example>
+            <title>Format of the REGISTER command</title>
+            <programlisting>
+<command>REGISTER <replaceable>newRingName</replaceable></command>
+            </programlisting>
+        </example>
+        <para>
+            When a ring is destroyed, the
+            <classname>CRingBuffer</classname>::<methodname>remove</methodname>
+            member function transparently contacts the
+            <application>RingMaster</application>
+            process and sends it a
+            <literal>UNREGISTER</literal>
+            message so that the server forgets about the existence of the
+            ring.
+        </para>
+        <example>
+            <title>Format of the UNREGISTER message</title>
+            <programlisting>
+<command>UNREGISTER <replaceable>destroyedRingName</replaceable></command>
+            </programlisting>
+        </example>
+        <para>
+            The
+            <application>RingMaster</application>
+            allows applications on remote systems to get data from the ring bufffers
+            it manages.  The
+            <classname>CRingAccess</classname>
+            class is the preferred method to gain access to remote data.  It ensures
+            that data are not repetitively sent if several consumers from the same
+            remote host want data from a ring buffer.
+            It does this by creating a proxy ring to which all consumers attach
+            and arranging for data from the ring to be copied to the proxy ring.
+        </para>
+        <para>
+            The
+            <literal>REMOTE</literal>
+            command requests data from a ring.  If successful, the
+            RingMaster replies:
+            <literal>OK BINARY FOLLOWS</literal>.  After that message,
+            the client process should no longer use that socket to send data
+            to the ring master.  Instead, the RingMaster will arrange for
+            all data submitted to the target ring to be transmitted to the client
+            on that socket.
+        </para>
+        <example>
+            <title>Format of the REMOTE message</title>
+            <programlisting>
+<command>REMOTE <replaceable>sourceRingName</replaceable>
+</command>
+            </programlisting>
+        </example>
+        <para>
+            Once the socket to the ring master has become a data transfer socket:
+            <orderedlist>
+                <listitem>
+                    <para>
+                        No further commands can be sent to the RingMaster.
+                    </para>
+                </listitem>
+                <listitem>
+                    <para>
+                        The ring master will have treated a request for
+                        REMOTE data to be identical to a disconnection of the
+                        socket, releasing any resources that were allocated
+                        via that socket.
+                    </para>
+                </listitem>
+            </orderedlist>
+        </para>
+        <para>
+            I recommend that if you are requesting remote data, you open a separate
+            socket to the ring master and only use it for that purpose.
+            I further recommend, that you use the
+            <classname>CRingAccess</classname>
+            class to do this rather than directly interacting with the
+            ring master, or rather than interacting via the
+            <classname>CRingMaster</classname> class.
+        </para>
     </section>
 </chapter>
         

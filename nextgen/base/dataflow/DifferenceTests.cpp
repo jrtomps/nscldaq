@@ -60,8 +60,11 @@ public:
       munmap(m_pRing, m_pRing->s_header.s_topOffset+1);
       delete m_pProducer;
       delete m_pConsumer;
-      shm_unlink(shmName(SHM_TESTFILE).c_str());
     }
+    try {
+      CRingBuffer::remove(SHM_TESTFILE);
+    }
+    catch (...) {}
   }
 protected:
   void simple();
