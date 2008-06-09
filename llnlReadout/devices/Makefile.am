@@ -9,7 +9,8 @@ libVMUSBDevices_la_SOURCES	= 	CConfigurableObject.cpp	\
 					CMarker.cpp		\
 					C3804.cpp		\
 					CNADC2530.cpp		\
-					CMADC32.cpp
+					CMADC32.cpp		\
+					CMADCScaler.cpp
 
 
 INCLUDES	= 	-I$(top_builddir)/vmusb \
@@ -32,7 +33,8 @@ include_HEADERS			= 	CConfigurableObject.h	\
 					CMarker.h		\
 					C3804.h			\
 					CNADC2530.h		\
-					CMADC32.h
+					CMADC32.h		\
+					CMADCScaler.h
 
 
 
