@@ -73,7 +73,7 @@ private:
 public:
   CMADCScalerCommand(CTCLInterpreter& interp,
 	       CConfiguration& config,
-	       std::string commandName = std::string("madc"));
+	       std::string commandName = std::string("madcscaler"));
   virtual ~CMADCScalerCommand();
 
 private:
