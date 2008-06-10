@@ -25,6 +25,8 @@
 #include "CSIS3804Command.h"
 #include "CNADC2530Command.h"
 #include "CMADCCommand.h"
+#include "CMADCScalerCommand.h"
+
 
 #include <CReadoutModule.h>
 #include <TCLInterpreter.h>
@@ -65,6 +67,7 @@ CConfiguration::CConfiguration() :
   m_Commands.push_back(new CSIS3804Command(*m_pInterp, *this));
   m_Commands.push_back(new CNADC2530Command(*m_pInterp, *this));
   m_Commands.push_back(new CMADCCommand(*m_pInterp, *this));
+  m_Commands.push_back(new CMADCScalerCommand(*m_pInterp, *this));
 
 }
 /*!

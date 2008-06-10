@@ -8,7 +8,8 @@ libConfig_la_SOURCES	= 	CADCCommand.cpp		\
 				CMarkerCommand.cpp	\
 				CSIS3804Command.cpp	\
 				CNADC2530Command.cpp	\
-				CMADCCommand.cpp
+				CMADCCommand.cpp	\
+				CMADCScalerCommand.cpp
 
 
 include_HEADERS		=	CADCCommand.h  		\
@@ -20,7 +21,8 @@ include_HEADERS		=	CADCCommand.h  		\
 				CMarkerCommand.h	\
 				CSIS3804Command.h	\
 				CNADC2530Command.h	\
-				CMADCCommand.h
+				CMADCCommand.h		\
+				CMADCScalerCommand.h
 
 
 
