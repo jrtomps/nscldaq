@@ -41,8 +41,8 @@ using namespace std;
 
 static const int amod(CVMUSBReadoutList::a32UserData);
 
-static const int daq_time_lo(0x60a4);
-static const int daq_time_hi(0x60a6);
+static const int daq_time_lo(0x60a0);
+static const int daq_time_hi(0x60a2);
 
 static const int time_0(0x60a8);
 static const int time_1(0x60aa);
