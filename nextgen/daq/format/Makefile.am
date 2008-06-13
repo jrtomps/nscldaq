@@ -2,9 +2,11 @@
 
 lib_LTLIBRARIES	=	libdataformat.la
 
-libdataformat_la_SOURCES = CRingSelectionPredicate.cpp
+libdataformat_la_SOURCES = CRingSelectionPredicate.cpp	\
+			   CDesiredTypesPredicate.cpp
 
-include_HEADERS		= CRingSelectionPredicate.h
+include_HEADERS		= CRingSelectionPredicate.h	\
+			  CDesiredTypesPredicate.h
 
 INCLUDES	= -I@top_srcdir@/base/dataflow
 
@@ -18,7 +20,8 @@ libdataformat_la_LIBADD	= @top_srcdir@/base/dataflow/libDataFlow.la
 
 noinst_PROGRAMS = unittests
 
-unittests_SOURCES	= TestRunner.cpp selecttest.cpp
+unittests_SOURCES	= TestRunner.cpp selecttest.cpp desiredtests.cpp
+
 unittests_LDADD		= -L$(libdir) $(CPPUNIT_LDFLAGS) -ldataformat -lDataFlow
 unittests_LDFLAGS	= -Wl,"-rpath-link=$(libdir)"
 
