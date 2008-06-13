@@ -456,7 +456,7 @@ CMADC32::addReadoutList(CVMUSBReadoutList& list)
 
   int base = m_pConfiguration->getUnsignedParameter("-base");
 
-  list.addFifoRead32(base + eventBuffer, readamod, 35);
+  list.addFifoRead32(base + eventBuffer, readamod, 45);
   list.addWrite16(base + ReadoutReset, initamod, 1);
 }
 
