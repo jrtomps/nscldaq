@@ -5,19 +5,22 @@ lib_LTLIBRARIES	=	libdataformat.la
 libdataformat_la_SOURCES = CRingSelectionPredicate.cpp	\
 			   CDesiredTypesPredicate.cpp	\
 			   CAllButPredicate.cpp	\
-			CRingItem.cpp
+			CRingItem.cpp CRingStateChangeItem.cpp
 
 include_HEADERS		= CRingSelectionPredicate.h	\
 			  CDesiredTypesPredicate.h	\
 			  CAllButPredicate.h	\
-			 CRingItem.h
+			 CRingItem.h CRingStateChangeItem.h
 
-INCLUDES	= -I@top_srcdir@/base/dataflow
+INCLUDES	= -I@top_srcdir@/base/dataflow	\
+		  -I@top_srcdir@/base/exception	\
+		-I@top_srcdir@/base/headers
 
 libdataformat_la_LDFLAGS	= -version-info $(SOVERSION)	\
 				-Wl,"-rpath-link=$(libdir)" -lrt
 
-libdataformat_la_LIBADD	= @top_srcdir@/base/dataflow/libDataFlow.la
+libdataformat_la_LIBADD	= @top_srcdir@/base/dataflow/libDataFlow.la \
+			@top_srcdir@/base/exception/
 
 
 #------------------- Tests:
