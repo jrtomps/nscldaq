@@ -1,0 +1,144 @@
+// Template for a test suite.
+
+#include <cppunit/extensions/HelperMacros.h>
+#include <cppunit/Asserter.h>
+#include "Asserts.h"
+
+#define private public
+#define protected public
+#include <CRingScalerItem.h>
+#undef private
+#undef protected
+
+#include <DataFormat.h>
+#include <time.h>
+
+using namespace std;
+
+class scltests : public CppUnit::TestFixture {
+  CPPUNIT_TEST_SUITE(scltests);
+  CPPUNIT_TEST(simplecons);
+  CPPUNIT_TEST(fullcons);
+  CPPUNIT_TEST(castcons);
+  CPPUNIT_TEST(accessors);
+  CPPUNIT_TEST_SUITE_END();
+
+
+private:
+
+public:
+  void setUp() {
+  }
+  void tearDown() {
+  }
+protected:
+  void simplecons();
+  void fullcons();
+  void castcons();
+  void accessors();
+};
+
+CPPUNIT_TEST_SUITE_REGISTRATION(scltests);
+
+
+// Test the simple constructor.
+
+void scltests::simplecons() {
+  CRingScalerItem s(32);
+
+  EQ(INCREMENTAL_SCALERS, s.type());
+  uint32_t zero(0);
+  EQ(zero, s.m_pScalers->s_intervalStartOffset);
+  EQ(zero, s.m_pScalers->s_intervalEndOffset);
+  EQ(time(NULL), s.m_pScalers->s_timestamp);
+  EQ((uint32_t)32, s.m_pScalers->s_scalerCount);
+
+}
+// Exercise the fully specifying constructor.
+
+void scltests::fullcons()
+{
+  
+  vector<uint32_t> scalerValues;
+  for(uint32_t i = 0; i < 32; i++) {
+    scalerValues.push_back(i);
+  }
+  CRingScalerItem s(10, 12, time(NULL), scalerValues);
+
+  EQ(INCREMENTAL_SCALERS, s.type());
+  EQ((uint32_t)10, s.m_pScalers->s_intervalStartOffset);
+  EQ((uint32_t)12, s.m_pScalers->s_intervalEndOffset);
+  EQ(time(NULL),   s.m_pScalers->s_timestamp);
+  EQ((uint32_t)32, s.m_pScalers->s_scalerCount);
+  for (int i =0; i < 32; i++) {
+    EQ(scalerValues[i], s.m_pScalers->s_scalers[i]);
+  }
+ 
+}
+// Exercise the 'downcast'  construction from an existing ring buffer.
+//  This also exercises the getter accessors.
+void scltests::castcons()
+{
+  CRingItem s(INCREMENTAL_SCALERS,
+	      sizeof(ScalerItem) + 31*sizeof(uint32_t) - sizeof(RingItemHeader));
+  pScalerItem p = reinterpret_cast<pScalerItem>(s.getItemPointer());
+
+  p->s_intervalStartOffset = 10;
+  p->s_intervalEndOffset   = 15;
+  time(&(p->s_timestamp));
+  p->s_scalerCount = 32;
+  for (int i =0; i < 32; i++) {
+    p->s_scalers[i] = i;
+  }
+
+  // Now the item is prepared, construct the scaler from it:
+
+  bool thrown = false;
+  try {
+    CRingScalerItem sc(s);
+    EQ((uint32_t)10, sc.getStartTime());
+    EQ((uint32_t)15, sc.getEndTime());
+    for (int i = 0; i < 32; i++) {
+      EQ((uint32_t)i, sc.getScaler(i));
+    }
+  }
+  catch (bad_cast) {
+    thrown = true;
+  }
+  catch (CRangeError& re) {
+    thrown = true;
+  }
+  ASSERT(!thrown);
+
+  // Now let's force a throw:
+
+  CRingItem bad(BEGIN_RUN);
+  thrown = false;
+  try {
+    CRingScalerItem sc(bad);
+  }
+  catch (bad_cast) {
+    thrown = true;
+  }
+  ASSERT(thrown);
+  
+}
+
+
+// Test the setting accessors.
+
+void scltests::accessors()
+{
+  CRingScalerItem s(32);
+  s.setStartTime(100);
+  s.setEndTime(105);
+  for (int i = 0; i < 32; i++) {
+    s.setScaler(i, i);
+  }
+
+  EQ((uint32_t)100, s.getStartTime());
+  EQ((uint32_t)105, s.getEndTime());
+  for (uint32_t i = 0; i < 32; i++) {
+    EQ(i, s.getScaler(i));
+  }
+}
