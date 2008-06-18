@@ -258,3 +258,18 @@ CRingStateChangeItem::init()
   setBodyCursor(pCursor);
 
 }
+
+/*
+ * Evaluate wheter or the type of the current ring item is 
+ * a state change or not.
+ */
+bool
+CRingStateChangeItem::isStateChange()
+{
+  int t = type();
+  return (
+	  (t == BEGIN_RUN )              ||
+	  (t == END_RUN)                 ||
+	  (t == PAUSE_RUN)               ||
+	  (t == RESUME_RUN));
+}
