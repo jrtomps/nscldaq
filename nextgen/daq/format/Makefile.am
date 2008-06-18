@@ -5,12 +5,16 @@ lib_LTLIBRARIES	=	libdataformat.la
 libdataformat_la_SOURCES = CRingSelectionPredicate.cpp	\
 			   CDesiredTypesPredicate.cpp	\
 			   CAllButPredicate.cpp	\
-			CRingItem.cpp CRingStateChangeItem.cpp
+			CRingItem.cpp \
+			CRingStateChangeItem.cpp	\
+			CRingScalerItem.cpp
 
 include_HEADERS		= CRingSelectionPredicate.h	\
 			  CDesiredTypesPredicate.h	\
 			  CAllButPredicate.h	\
-			 CRingItem.h CRingStateChangeItem.h
+			 CRingItem.h \
+			CRingStateChangeItem.h	\
+			CRingScalerItem.cpp
 
 INCLUDES	= -I@top_srcdir@/base/dataflow	\
 		  -I@top_srcdir@/base/exception	\
