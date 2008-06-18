@@ -207,7 +207,7 @@ CRingItem::type() const
  
 */
 void
-CRingIgem::setBodyCursor(void* pNewCursor)
+CRingItem::setBodyCursor(void* pNewCursor)
 {
   m_pCursor = reinterpret_cast<uint8_t*>(pNewCursor);
 }
@@ -231,10 +231,10 @@ CRingIgem::setBodyCursor(void* pNewCursor)
    
 */
 void
-CRingItem::comitToRing(CRingBuffer& ring)
+CRingItem::commitToRing(CRingBuffer& ring)
 {
-  m_pItem->s_header.size = sizeof(RingItemHeader) + getBodySize();
-  ring.put(m_pItem, m_pItem.s_header.size);
+  m_pItem->s_header.s_size = sizeof(RingItemHeader) + getBodySize();
+  ring.put(m_pItem, m_pItem->s_header.s_size);
 }
 
 /*!
@@ -304,7 +304,7 @@ CRingItem::getFromRing(CRingBuffer& ring, CRingSelectionPredicate& predicate)
   // Create the item and fill it in:
 
   CRingItem* pItem = new CRingItem(size);
-  ring.get(pitem->m_pItem, size); // Read the item from the ring.
+  ring.get(pItem->m_pItem, size); // Read the item from the ring.
   pItem->m_pCursor += (size - sizeof(RingItemHeader));
   pItem->m_swapNeeded = otherOrder;
 
@@ -340,7 +340,7 @@ void
 CRingItem::deleteIfNecessary()
 {
   if (m_storageSize > CRingItemStaticBufferSize) {
-    delete [](reinterpret_cast<uchar_t*>(m_pItem));
+    delete [](reinterpret_cast<uint8_t*>(m_pItem));
   }
 }
 /*
@@ -351,8 +351,8 @@ void
 CRingItem::newIfNecessary(size_t size)
 {
   if (size > CRingItemStaticBufferSize) {
-    m_pItem  = reinterpret_cast<RingItem*>(new uchar_t[m_storageSize + sizeof(RingItemHeader)]);
-    m_pCursor= m_pItem->s_body;
-
+    m_pItem  = reinterpret_cast<RingItem*>(new uint8_t[m_storageSize + sizeof(RingItemHeader)]);
   }
+  m_pCursor= m_pItem->s_body;
+
 }
