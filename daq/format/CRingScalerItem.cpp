@@ -92,6 +92,12 @@ CRingScalerItem::CRingScalerItem(const CRingScalerItem& rhs) :
 }
 
 /*!
+  Destruction just delegates.
+*/
+CRingScalerItem::~CRingScalerItem()
+{}
+
+/*!
    Assignment.. just the base class assignment with init():
 
   \param rhs - The item being assigned to *this.
