@@ -103,7 +103,7 @@ typedef struct _RingItemHeader {
 
 /*!
   This  is the most basic item.. a generic item.  It consists only of the
-  header and a generi body
+  header and a generic body
 */
 
 typedef struct _RingItem {

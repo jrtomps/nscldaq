@@ -24,13 +24,20 @@
 #endif
 #endif
 
+#ifndef __CRT_STDINT_H
+#include <stdint.h>
+#ifndef __CRT_STDINT_H
+#define __CRT_STDINT_H
+#endif
+#endif
+
 struct _RingItem;
 class CRingBuffer;
 class CRingSelectionPredicate;
 
 // Constants:
 
-static const CRingItemStaticBufferSize(8192);
+static const uint32_t CRingItemStaticBufferSize(8192);
 
 /*!  
   This class is a base class for objects that encapsulate ring buffer items
@@ -50,11 +57,11 @@ class CRingItem {
   // Private data:
 
 private:
-  RingItem*     m_pItem;
+  _RingItem*     m_pItem;
   uint8_t*      m_pCursor;
   uint32_t      m_storageSize;
-  uint32_t      m_swapNeeded;
-  uchar_t       m_staticBuffer[CRingItemStaticBufferSize + 100];
+  bool          m_swapNeeded;
+  uint8_t       m_staticBuffer[CRingItemStaticBufferSize + 100];
 
   // Constructors and canonicals.
 
@@ -73,10 +80,10 @@ public:
 
 public:
   size_t getStorageSize() const;
-  size_t getBodysize()    const;
+  size_t getBodySize()    const;
   void*  getBodyPointer();
   void*  getBodyCursor();
-  struct RingItem*  getItemPointer();
+  _RingItem*  getItemPointer();
   uint32_t type() const;
 
   // Mutators:
