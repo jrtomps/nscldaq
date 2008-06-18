@@ -353,6 +353,9 @@ CRingItem::newIfNecessary(size_t size)
   if (size > CRingItemStaticBufferSize) {
     m_pItem  = reinterpret_cast<RingItem*>(new uint8_t[m_storageSize + sizeof(RingItemHeader)]);
   }
+  else {
+    m_pItem = reinterpret_cast<RingItem*>(m_staticBuffer);
+  }
   m_pCursor= m_pItem->s_body;
 
 }

@@ -28,7 +28,7 @@ libdataformat_la_LIBADD	= @top_srcdir@/base/dataflow/libDataFlow.la \
 noinst_PROGRAMS = unittests
 
 unittests_SOURCES	= TestRunner.cpp selecttest.cpp desiredtests.cpp	\
-			  allbuttests.cpp ringitemtests.cpp
+			  allbuttests.cpp ringitemtests.cpp teststate.cpp
 
 unittests_LDADD		= -L$(libdir) $(CPPUNIT_LDFLAGS) -ldataformat -lDataFlow
 unittests_LDFLAGS	= -Wl,"-rpath-link=$(libdir)"
