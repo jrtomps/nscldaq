@@ -7,14 +7,16 @@ libdataformat_la_SOURCES = CRingSelectionPredicate.cpp	\
 			   CAllButPredicate.cpp	\
 			CRingItem.cpp \
 			CRingStateChangeItem.cpp	\
-			CRingScalerItem.cpp
+			CRingScalerItem.cpp		\
+			CRingTextItem.cpp
 
 include_HEADERS		= CRingSelectionPredicate.h	\
 			  CDesiredTypesPredicate.h	\
 			  CAllButPredicate.h	\
 			 CRingItem.h \
 			CRingStateChangeItem.h	\
-			CRingScalerItem.cpp
+			CRingScalerItem.h	\
+			CRingTextItem.h
 
 INCLUDES	= -I@top_srcdir@/base/dataflow	\
 		  -I@top_srcdir@/base/exception	\
@@ -33,7 +35,7 @@ noinst_PROGRAMS = unittests
 
 unittests_SOURCES	= TestRunner.cpp selecttest.cpp desiredtests.cpp	\
 			  allbuttests.cpp ringitemtests.cpp teststate.cpp	\
-			scalertests.cpp
+			scalertests.cpp texttest.cpp
 
 unittests_LDADD		= -L$(libdir) $(CPPUNIT_LDFLAGS) -ldataformat -lDataFlow
 unittests_LDFLAGS	= -Wl,"-rpath-link=$(libdir)"
