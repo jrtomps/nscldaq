@@ -374,6 +374,8 @@ AC_CONFIG_FILES([Makefile
                  utilities/scalerdisplay/Makefile 
 		 utilities/scalerdisplay/ScalerDisplay
                  utilities/sequencer/Makefile
+		 daq/Makefile
+		 daq/format/Makefile
 		 docbuild/Makefile
 		 docconfig/Makefile])
 

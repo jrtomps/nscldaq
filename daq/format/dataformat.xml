@@ -1,0 +1,3074 @@
+<!-- chapter libraries -->
+
+<chapter id="chapter.ringformat">
+    <title>Format of Event Data In Ring Buffers</title>
+    <para>
+        The NSCL Ring buffer based data distribution scheme ia a very flexible
+        data distribution scheme that makes no restrictions on the format
+        of the data it transmits.  This section describes the format of data
+        that is placed in the ring buffer by NSCL DAQ readout software.
+        These data are formatted in a consistent way so that consumer programs
+        know what to expect and so that library functions can (and have been) be
+        written that can select specific data record types in specific ways from
+        the data stream.
+    </para>
+    <para>
+        This chapter is divided into these sections:
+        <itemizedlist>
+            <listitem>
+                <para>
+                    A description of the data records that will be put in
+                    ring buffers, and how to incorporate definitions of these
+                    structures in your software.
+                </para>
+            </listitem>
+            <listitem>
+                <para>
+                    A description of the mechanisms that are available to selectively
+                    get data from ring buffers.
+                </para>
+            </listitem>
+            <listitem>
+                <para>
+                    A description of the class library that helps you build and
+                    decode items in the ring buffer in the format described in
+                    this chapter.
+                </para>
+            </listitem>
+        </itemizedlist>
+    </para>
+    <para>
+        Reference material is provided in in the 3daq section that describes the
+        class library.
+    </para>
+
+    <section>
+        <title>The basic data formats</title>
+        <para>
+            Data placed in the ring buffer consists of 'items'.   Items have a
+            header, which has the same shape from item type to item type and
+            an item body whose format varies from type to type.
+        </para>
+        <para>
+            The header <filename>DataFormat.h</filename> contains, among other
+            things, the <literal>struct</literal> definitions that define
+            the shapes of each item.  These structs are given typenames via
+            the <literal>typedef</literal> statement.  The remaining
+            discussion will use these typenames, rather than the names of the
+            underlying structs.
+        </para>
+        <para>
+            The header of each item type is of type <structname>RingItemHeader</structname>
+            for convenience, the type <structname>pRingItemHeader</structname> is defined
+            to be a pointer to a <structname>RingItemHeader</structname>.  This is a
+            common pattern in the <filename>DataFormat.h</filename> header.
+        </para>
+        <para>
+            The header has the following fields:
+            <variablelist>
+                <varlistentry>
+                    <term>uint32_t <structfield>s_size</structfield></term>
+                    <listitem>
+                        <para>Contains the size of the item in bytes.
+                            <structfield>s_size</structfield> should include the
+                            size of the header as well
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>uint32_t <structfield>s_type</structfield></term>
+                    <listitem>
+                        <para>
+                            Contains a value that uniquely defines the type of
+                            datain the item.  While this is a 32 bit field,
+                            the actual type values a 16 bits wide, with the
+                            remaining 16 bit set to zero.  This allows consumer
+                            software to detect byte order differences between
+                            systems that generate the data and consumer systems.
+                        </para>
+                        <para>
+                            The NSCL DAQ reserves types 1 through 32767
+                            for itself.  Type 0 is illegal, as it's byte order
+                            is indeterminate.  Types
+                            37678 through 65535 are available for user applications.
+                            The constant <varname>FIRST_USER_ITEM_CODE</varname>
+                            provides the symbolic value for the first item code
+                            available for user applications.
+                        </para>
+                        <para>
+                            The NSCL DAQ is currently using the following
+                            item codes, defined in the <filename>DataFormat.h</filename>
+                            header:
+                        </para>
+                        <variablelist>
+                            <varlistentry>
+                            <term><varname>BEGIN_RUN</varname></term>
+                            <listitem>
+                                <para>
+                                    The item describes the beginning of a data
+                                    taking run.
+                                </para>
+                            </listitem>
+                            </varlistentry>
+                            <varlistentry>
+                                <term><varname>END_RUN</varname></term>
+                                <listitem>
+                                    <para>
+                                        The item descdribes the end of a data taking
+                                        run.
+                                    </para>
+                                </listitem>
+                            </varlistentry>
+                            <varlistentry>
+                                <term><varname>PAUSE_RUN</varname></term>
+                                <listitem>
+                                    <para>
+                                        The item describes a temporary pause in
+                                        data taking.  This item must be followed
+                                        immediately by either a
+                                        <varname>RESUME_RUN</varname> item,
+                                        or an <varname>END_RUN</varname> item.
+                                    </para>
+                                </listitem>
+                            </varlistentry>
+                            <varlistentry>
+                                <term><varname>RESUME_RUN</varname></term>
+                                <listitem>
+                                    <para>
+                                        This item describes the resumption of
+                                        data taking after a temporary pause.
+                                        Barring user defined types that may
+                                        follow a
+                                        <varname>PAUSE_RUN</varname>, this
+                                        item will always follow a
+                                        <varname>PAUSE_RUN</varname> item.
+                                    </para>
+                                </listitem>
+                            </varlistentry>
+                            <varlistentry>
+                                <term><varname>PACKET_TYPES</varname></term>
+                                <listitem>
+                                    <para>
+                                        NSCL DAQ readout frameworks can package
+                                        chunks of a physics event into packets.
+                                        Packets have essentially the same
+                                        format as ring buffer items.
+                                        The frameworks also support documenting
+                                        the packet types that can occur in a
+                                        data taking run.  This item supplies that
+                                        documentation to interested consumers.
+                                    </para>
+                                </listitem>
+                            </varlistentry>
+                            <varlistentry>
+                                <term><varname>MONITORED_VARIABLES</varname></term>
+                                <listitem>
+                                    <para>
+                                        Some readout frameworks support the creation
+                                        of variables that can monitor external
+                                        conditions such as EPICS channels.
+                                        This item contains information about the
+                                        latest state of a monitored variable.
+                                    </para>
+                                </listitem>
+                            </varlistentry>
+                            <varlistentry>
+                                <term><varname>INCREMENTAL_SCALERS</varname></term>
+                                <listitem>
+                                    <para>
+                                        NSCL DAQ readout frameworks support the
+                                        periodic readout of counters.  These counters
+                                        are called <firstterm>scalers</firstterm> by
+                                        the experimental community and are used to
+                                        monitor the rates of trigger components,
+                                        detector systems, or system live-time.
+                                        Data from these are put in
+                                        <varname>INCREMENTAL_SCALERS</varname> items.
+                                    </para>
+                                </listitem>
+                            </varlistentry>
+                            <varlistentry>
+                                <term><varname>PHYSICS_EVENT</varname></term>
+                                <listitem>
+                                    <para>
+                                        The purpose of NSCL DAQ readout frameworks,
+                                        is to respond to event triggers and read out
+                                        digitizer hardware that has captured the data
+                                        from a nucleus-nucleus collision.
+                                        These data are placed in
+                                        <varname>PHYSICS_EVENT</varname> items.
+                                    </para>
+                                </listitem>
+                            </varlistentry>
+                        </variablelist>
+                    </listitem>
+                </varlistentry>        
+            </variablelist>
+        </para>
+        <para>
+            These item types break down in to four distinct categories of
+            item which will be described in the remaining subsections of this
+            section.
+        </para>
+        <section>
+            <title>State Change Items</title>
+            <para>
+                State change items are those with types
+                <varname>BEGIN_RUN</varname>, <varname>END_RUN</varname>,
+                <varname>PAUSE_RUN</varname>, and <varname>RESUME_RUN</varname>.
+                As the type names imply, these signal state transitions in
+                data taking. 
+            </para>
+            <para>
+                State change items have the type
+                <structname>StateChangeItem</structname>.  This item has the
+                following fields:
+            </para>
+            <variablelist>
+                <varlistentry>
+                    <term>uint32_t <structfield>s_runNumber</structfield></term>
+                    <listitem>
+                        <para>
+                            Is the number of the run for which this state transition
+                            is being documented.  Typically, run numbers are
+                            unique, for recorded runs, as the run number is encoded
+                            into the name of the run's event file.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>uint32_t <structfield>s_timeOffset</structfield></term>
+                    <listitem>
+                        <para>
+                            Is the number of seconds the run has been active prior
+                            to this state transition.  Clearly if the type of the
+                            item is <varname>BEGIN_RUN</varname> this will be zero.
+                            For the NSCLDAQ frameworks, the time offset only
+                            counts seconds during which the run was active (time
+                            during which the run was paused are not counted).
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>time_t <structfield>s_Timestamp</structfield></term>
+                    <listitem>
+                        <para>
+                            Is the absolute time at which the transition
+                            occured. This is represented in seconds since
+                            the Unix epoch of
+                            <literal>00:00:00 UTC, January 1, 1970</literal>.
+                            Once translated into the host's byte order, it can
+                            be passed to any of the time formatting functions
+                            (e.g. <function>asctime</function>).
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>char <structfield>s_title</structfield>[TITLE_MAXSIZE+1]</term>
+                    <listitem>
+                        <para>
+                            Holds the run title.  Run titles are restricted in
+                            size to <varname>TITLE_MAXSIZE</varname> characters,
+                            with the <literal>+1</literal> to accomodate the
+                            trailing <literal>'\0'</literal>.
+                            <varname>TITLE_MAXSIZE</varname>
+                            is also defined in
+                            <filename>DataFormat.h</filename>.
+                        </para>
+                    </listitem>
+                </varlistentry>
+            </variablelist>
+            <para>
+                All item types have a field
+                <structfield>s_header</structfield> of type
+                RingItemHeader that holds the item header.
+            </para>
+        </section>
+        <section>
+            <title>Text List Items</title>
+            <para>
+                Text list items contain a list of null terminated strings.
+                They are usually used to provide metadata for the run.  At present,
+                two types of text list items are defined.
+                <varname>PACKET_TYPES</varname> and
+                <varname>MONITORED_VARIABLES</varname>.
+            </para>
+            <para>
+                <varname>PACKET_TYPES</varname> document the packets you might
+                expect to find in a run's <varname>PHYSICS_EVENT</varname> items.
+                Creating instances of the
+                <classname>CDocumentedPacket</classname> object
+                automatically generates these.  Each packet is documented with a
+                single string.  The string consists of five colon separated fields.
+                These fields contain, in order:
+                <orderedlist>
+                    <listitem>
+                        <para>The Name the packet.</para>
+                    </listitem>
+                    <listitem>
+                        <para>The id of the packet given as a hex string e.g.
+                            "0x1234"
+                        </para>
+                    </listitem>
+                    <listitem>
+                        <para>A desription of the packet.</para>
+                    </listitem>
+                    <listitem>
+                        <para>A version string for the packet.  Presumably this
+                            will change if the packet with this type ever
+                            changes 'shape'>
+                        </para>
+                    </listitem>
+                    <listitem>
+                        <para>The date and time at which the
+                            <classname>CDocumentedPacket</classname> object
+                            creating this entry was created.
+                        </para>
+                    </listitem>
+                </orderedlist>
+            </para>
+            <para>
+                <varname>MONITORED_VARIABLES</varname> items contains a snapshot
+                of the values of process variables that have been declared
+                by the readout software.   Each variable takes up one string and is
+                formatted like a Tcl <command>set</command> command that, if executed,
+                would define that variable to the value it had when the item was created.
+            </para>
+            <para>
+                String list items have type <structname>TextItem</structname>.
+                This item has the following fields:
+            </para>
+            <variablelist>
+                <varlistentry>
+                    <term>uint32_t <structfield>s_timeOffset</structfield></term>
+                    <listitem>
+                        <para>
+                            The number of seconds of data taking that have gone on
+                            in this run prior to the generation of this item.
+                            This time offset does not count time in the paused
+                            state.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>time_t <structfield>s_timestamp</structfield></term>
+                    <listitem>
+                        <para>
+                            Is the absolute time at which the item was 
+                            created. This is represented in seconds since
+                            the Unix epoch of
+                            <literal>00:00:00 UTC, January 1, 1970</literal>.
+                            Once translated into the host's byte order, it can
+                            be passed to any of the time formatting functions
+                            (e.g. <function>asctime</function>).
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>uint32_t <structfield>s_stringCount</structfield></term>
+                    <listitem>
+                        <para>
+                            Number of strings in the item.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>char <structfield>s_scalers[]</structfield></term>
+                    <listitem>
+                        <para>
+                            An array of characters large enough to hold all
+                            the strings.  Each string is a null terminated set
+                            of characters immediately followed by the next
+                            string.
+                        </para>
+                    </listitem>
+                </varlistentry>
+            </variablelist>
+        </section>
+        <section>
+            <title>Scaler Items</title>
+            <para>
+                NSCLDAQ readout frameworks support periodically reading scaler
+                data.  These data are represented as
+                <structname>ScalerItem</structname> items in ring buffers.
+                These items have the following fields:
+            </para>
+            <variablelist>
+                <varlistentry>
+                    <term>uint32_t <structfield>s_intervalStartTime</structfield></term>
+                    <listitem>
+                        <para>
+                            The number of seconds of active data taking prior
+                            the start of the time period represented by the counts
+                            in this scaler item.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>uint32_t <structfield>s_intervalEndTime</structfield></term>
+                    <listitem>
+                        <para>
+                            The number of seconds of active data taking prior to
+                            the end of the time period represented by the counts
+                            in this scaler item.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>time_t   <structfield>s_timestamp</structfield></term>
+                    <listitem>
+                        <para>
+                            Is the absolute time of the end of the
+                            scaler counting period.
+                            This is represented in seconds since
+                            the Unix epoch of
+                            <literal>00:00:00 UTC, January 1, 1970</literal>.
+                            Once translated into the host's byte order, it can
+                            be passed to any of the time formatting functions
+                            (e.g. <function>asctime</function>).
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>uint32_t <structfield>s_scalerCount</structfield></term>
+                    <listitem>
+                        <para>
+                            The number of scalers in the item.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>uint32_t <structfield>s_scalers</structfield>[]</term>
+                    <listitem>
+                        <para>
+                            The array of scaler counts.  This contains
+                            <structfield>s_scalerCount</structfield> elements.
+                        </para>
+                    </listitem>
+                </varlistentry>
+            </variablelist>
+        </section>
+        <section>
+            <title>Event Data Items</title>
+            <para>
+                These items are of type
+                <varname>PHYSICS_EVENT</varname>.
+                The contain the data read from the hardware.  Depending on the
+                readout framework, this can be the response to one trigger or to
+                a block of triggers. It is up to the analysis software to know
+                which is which.
+            </para>
+            <para>
+                This item is of type <structname>PhysicsEventItem</structname>
+                and contains the field
+                uint16_t <structfield>s_body</structfield> that is the data
+                from the event.
+            </para>
+
+        </section>
+            
+    </section>
+    
+    <section>
+        <title>Selecting Data From a Ring Buffer</title>
+        <para>
+            Many data consumers are not interested in all of the
+            item types that could be put in a ring buffer.   This section
+            describes the infrastructure for selecting subsets of the data
+            from ring buffers that are formatted as described in this chapter.
+        </para>
+        <para>
+            The ring buffer low level access library provides
+            two powerful mechanisms for manipulating ring buffers based
+            the concept of <firstterm>predicates</firstterm>.
+            A predicate is a function that implement the
+            <methodname>operator()</methodname> method in a way that it returns
+            a <literal>bool</literal>.
+            Predicate objects can therefore be thought of as functions that can
+            have state that persists between calls.
+        </para>
+        <para>
+            <classname>CRingBuffer</classname> has two member functions
+            <methodname>blockWhile</methodname> which periodically
+            invokes a predicate until it returns <literal>false</literal>
+            blocking for a settable time period between calls, and for a
+            maximum timeout.
+            <methodname>While</methodname> which simply repeatedly calls
+            a predicate until it returns <literal>false</literal>.
+            (like <methodname>blockWhile</methodname> but without blocking
+            between calls to the predicate.
+        </para>
+        <para>
+            Armed with predicates, these two member functions an an understanding
+            that items in the ring will have the item format described in the
+            previous section, it is possible to implement a scheme for selectively
+            obtaining data from a ring buffer.
+        </para>
+        <para>
+            The base class for this selectivity is
+            <classname>CRingSelectionPredicate</classname>
+            defined in
+            <filename>CRingSelectionPredicate.h</filename>.  It provides
+            base classes with the capability of specifying a list of item types
+            called a <firstterm>selection  map</firstterm>.  Elements of this
+            map consist of an item type and a flag.  The virtual function
+            <methodname>selectThis</methodname> is given an item type peeked from
+            the ring buffer and returns <literal>false</literal> if the item
+            is acceptable.  Unacceptable items are skipped, and true is returned
+            so that <methodname>While</methodname> continues to loop.
+        </para>
+        <para>
+            If <methodname>selectThis</methodname> returns true, the framework
+            insepcts the type's flag.  If false, the predicate as a whole
+            returns true. I false, the predicate skips the item if it is not
+            the last one in the ring.
+        </para>
+        <para>
+            Two pre-packaged specific derivations of
+            <classname>CRingSelectionPredicate</classname> have been built.
+            In
+            <classname>CDesiredTypesPredicate</classname>, any type not in the
+            list is assumed to be undesirable and skipped.   In
+            <classname>CAllButPredicate</classname>, the list of types define
+            exceptiosn to the rule that all items are desired without sampling.
+            Items in the list with the sample flag false, are assumed to be
+            undesirable and are skipped.  items in the list with the sample flag
+            true, are assumed to be wanted but only in sample mode.
+        </para>
+    </section>
+    <section>
+        <title>Incorporating the headers and libraries into your applications.</title>
+        <para>
+            NSCL DAQ provides a class library that allows you to encapsulate
+            ring buffer data items in objects from which you can get/set data.
+            Ring buffer item objects are intended both for producers and consumers
+            of data.  See the 3daq section of the reference material for
+            detailed per class documentation.
+        </para>
+        <para>
+            Each class has a header file that is named the same as the
+            class with a <filename>.h</filename> appended. Thus to incorporate
+            the definitions for the
+            <classname>CRingItem</classname> base class in your source code you would
+            add the line:
+        </para>
+        <example>
+            <title>Including a ring item class </title>
+            <programlisting>
+#include &lt;CRingItem.h&gt;
+            </programlisting>
+        </example>
+        <para>
+            To your source files.
+        </para>
+        <para>
+            At compile time you would need to add a <literal>-I</literal> switch
+            to tell the compiler where these headers are.  If the
+            environment variable
+            <literal>DAQROOT</literal>
+            points to the top level of the NSCLDAQ installation tree you might
+            do this as shown below:
+        </para>
+        <example>
+            <title>Telling the compiler where to find Ring Item headers</title>
+            <screen><command>
+g++ -c -I$DAQROOT/include mymodule.cpp
+            </command></screen>
+        </example>
+        <para>
+            At link time you need to provide the location of the libraries as
+            well as to specify the set of libraries that must be included.
+            Note that as the example below shows, normally using the
+            data format library implies you will need the data flow library as well:
+        </para>
+        <example>
+            <title>Linking the ring item format libraries</title>
+            <screen><command>
+g++ -o myApplication src1.o src2.o ... -L$DAQROOT/lib \
+        -ldataformat -lDataFlow -Wl,"-rpath=$DAQROOT/lib"
+            </command></screen>
+        </example>
+        <para>
+            The following classes manage data formatting:
+        </para>
+        <variablelist>
+            <varlistentry>
+                <term><link linkend="manpage.cringitem"><classname>CRingItem</classname></link></term>
+                <listitem>
+                    <para>
+                        Base class for all the ring data item format classes.
+                        This class also has the static member
+                        <methodname>getFromRing</methodname> which accepts a
+                        ring object reference and a
+                        <classname>CRingSelectionPredicate</classname> reference,
+                        and returns a pointer to the next ring item that matches
+                        the predicate's match criteria.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><link linkend="manpage.cringstatechangeitem"><classname>CRingStateChangeItem</classname></link></term>
+                <listitem>
+                    <para>
+                        Represents a state change item.  Given a reference to
+                        a <classname>CRingItem</classname> (e.g. one just gotten
+                        from <classname>CRingItem</classname>::<methodname>getFromRing</methodname>),
+                        one of the constructors constructs an equivalent ring state change object or
+                        throws a <classname>std::bad_cast</classname> exception
+                        if the item is not a valid state change.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><link linkend="manpage.cringscaleritem"><classname>CRingScalerItem</classname></link></term>
+                <listitem>
+                    <para>
+                        Represents a state change item.  Given a reference to a
+                        <classname>CRingItem</classname> one of the constructors
+                        can produce a <classname>CRingScalerItem</classname> object
+                        or throw a <classname>std::bad_cast</classname> exception
+                        if the item was not actually a scaler item.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><link linkend="manpage.cringtextitem"><classname>CRingTextItem</classname></link></term>
+                <listitem>
+                    <para>
+                        Encapsulates a text list item.  As with all the above
+                        classes, a constructor exists that converts a
+                        <classname>CRingItem</classname> to a
+                        <classname>CRingTextItem</classname> or throws a
+                        <classname>std::bad_cast</classname> if that's not legal.
+                    </para>
+                </listitem>
+            </varlistentry>
+        </variablelist>
+        <para>
+            Note that there is no class encapsulation of an event as these are
+            most conveniently manipulated via the
+            <classname>CRingItem</classname> base class.
+        </para>
+    </section>
+        
+</chapter>
+
+<!-- /chapter -->
+
+<!-- manpage 3daq -->
+
+    <refentry id="manpage.cringitem">
+      <refmeta>
+         <refentrytitle>CRingItem</refentrytitle>
+         <manvolnum>3daq</manvolnum>
+      </refmeta>
+      <refnamediv>
+         <refname>CRingItem</refname>
+	 <refpurpose>Encapsulates an item in a ring buffer.</refpurpose>
+      </refnamediv>
+      
+      <refsynopsisdiv>
+         <programlisting>
+#include &lt;CRingItem.h&gt;
+         </programlisting>
+         <classsynopsis>
+            <ooclass><classname>CRingITem</classname></ooclass>
+            <constructorsynopsis>
+                <methodname>CRingItem</methodname>
+                <methodparam>
+                    <type>uint16_t</type> <parameter>type</parameter>
+                </methodparam>
+                <methodparam>
+                    <type>size_t</type> <parameter>maxBody</parameter>
+                                        <initializer>8192</initializer>
+                </methodparam>
+            </constructorsynopsis>
+            <constructorsynopsis>
+                <methodname>CRingItem</methodname>
+                <methodparam>
+                    <modifier>const</modifier> <type>CRingItem&amp;</type> <parameter>rhs</parameter>
+                </methodparam>
+            </constructorsynopsis>
+            <destructorsynopsis>
+                <modifier>virtual</modifier>
+                <methodname>~CRingItem</methodname>
+                <void />
+            </destructorsynopsis>
+            <methodsynopsis>
+                <type>CRingItem&amp;</type>
+                <methodname>operator=</methodname>
+                <methodparam>
+                    <modifier>const</modifier> <type>CRingItem&amp;</type> <parameter>rhs</parameter>
+                </methodparam>
+            </methodsynopsis>
+            <methodsynopsis>
+                <type>int</type> <methodname>operator==</methodname>
+                <methodparam>
+                    <modifier>const</modifier> <type>CRingItem&amp;</type> <parameter>rhs</parameter>
+                </methodparam>
+                <modifier>const</modifier>
+            </methodsynopsis>
+            <methodsynopsis>
+                <type>int</type> <methodname>operator!=</methodname>
+                <methodparam>
+                    <modifier>const</modifier> <type>CRingItem&amp;</type> <parameter>rhs</parameter>
+                </methodparam>
+                <modifier>const</modifier>
+            </methodsynopsis>
+            <methodsynopsis>
+                <type>size_t</type> <methodname>getStorageSize</methodname>
+                                    <void /><modifier>const</modifier>
+            </methodsynopsis>
+            <methodsynopsis>
+                <type>size_t</type> <methodname>getBodySize</methodname>
+                                    <void /><modifier> const</modifier>
+            </methodsynopsis>
+            <methodsynopsis>
+                <type>void*</type> <methodname>getBodyPointer</methodname>
+                                   <void />
+            </methodsynopsis>
+            <methodsynopsis>
+                <type>void*</type> <methodname> getBodyCursor</methodname>
+                                   <void />
+            </methodsynopsis>
+            <methodsynopsis>
+                <type>_RingItem*</type>
+                <methodname>getItemPointer</methodname> <void />
+            </methodsynopsis>
+            <methodsynopsis>
+                <type>uint32_t</type> <methodname>type</methodname>
+                                        <void /> <modifier>const</modifier>
+            </methodsynopsis>
+            <methodsynopsis>
+                <type>void</type> <methodname>setBodyCursor</methodname>
+                <methodparam>
+                    <type>void*</type> <parameter>pNewCursor</parameter>
+                </methodparam>
+            </methodsynopsis>
+            <methodsynopsis>
+                <type>void</type>
+                <methodname>commitToRing</methodname>
+                <methodparam>
+                    <type>CRingBuffer&amp;</type> <parameter>ring</parameter>
+                </methodparam>
+            </methodsynopsis>
+            <methodsynopsis>
+                <type>bool</type>
+                <methodname>mustSwap</methodname>
+                <void /><modifier>const</modifier>
+            </methodsynopsis>
+            <methodsynopsis>
+                <modifier>static</modifier>
+                <type>CRingItem*</type>
+                <methodname>getFromRing</methodname>
+                <methodparam>
+                    <type>CRingBuffer&amp;</type> <parameter>ring</parameter>
+                </methodparam>
+            
+                <methodparam>
+                    <type>CRingSelectionPredicate&amp;</type> <parameter>predicate</parameter>
+                </methodparam>
+            </methodsynopsis>
+
+         </classsynopsis>
+      </refsynopsisdiv>
+      <refsect1>
+         <title>Description</title>
+         <para>
+            <classname>CRingItem</classname> is the base class of a hierarchy
+            of classes that encapsulate the format of items put in ring buffers
+            by the NSCL DAQ readout frameworks.  
+         </para>
+         <para>
+            The class hierarchy as a whole is intended both to help application
+            writers format item to be submitted to a ring buffer and to
+            fetch and decode items from a ring buffer.  The fetch logic works
+            closely with the set of classes derived from
+            <classname>CRingSelectionPredicate</classname>
+            to support selective reception of data inserted by a producer program.
+         </para>
+      </refsect1>
+      <refsect1>
+         <title>
+            Public member functions
+         </title>
+        <constructorsynopsis>
+             <methodname>CRingItem</methodname>
+             <methodparam>
+                 <type>uint16_t</type> <parameter>type</parameter>
+             </methodparam>
+             <methodparam>
+                 <type>size_t</type> <parameter>maxBody</parameter>
+                                     <initializer>8192</initializer>
+             </methodparam>
+         </constructorsynopsis>
+        <para>
+            Constructs a Ring Item.  <parameter>type</parameter> initializes the
+            type field of the item, and maximum size of the body is
+            set to be <parameter>maxBody</parameter>.
+        </para>
+        <para>
+            The size of the actual ring buffer item placed in a ring
+            via <methodname>commitToRing</methodname> is computed from the
+            position of the <firstterm>body cursor</firstterm> as set by the
+            last invocation of <methodname>setBodyCursor</methodname>.
+        </para>
+        <para>
+            In order to reduce the amount of dynamic memory management required
+            for ring buffer items, a static buffer of size
+            <varname>CRingItemStaticBufferSize</varname> is carried by
+            all objects.  Only if the maximum size is requested to be larger than
+            that is a dynamically allocated body produced by the constructor
+            and deleted by the destructor.
+        </para>
+         <constructorsynopsis>
+             <methodname>CRingItem</methodname>
+             <methodparam>
+                 <modifier>const</modifier> <type>CRingItem&amp;</type> <parameter>rhs</parameter>
+             </methodparam>
+         </constructorsynopsis>
+         <para>
+            Constructs a ring item by creating a functional copy of
+            <parameter>rhs</parameter> (copy construction).
+         </para>
+
+         <methodsynopsis>
+             <type>CRingItem&amp;</type>
+             <methodname>operator=</methodname>
+             <methodparam>
+                 <modifier>const</modifier> <type>CRingItem&amp;</type> <parameter>rhs</parameter>
+             </methodparam>
+         </methodsynopsis>
+         <para>
+            Makes the current object (on the left hand side of an assignment statement)
+            a functional equivalent of <parameter>rhs</parameter>.
+         </para>
+         <methodsynopsis>
+             <type>int</type> <methodname>operator==</methodname>
+             <methodparam>
+                 <modifier>const</modifier> <type>CRingItem&amp;</type> <parameter>rhs</parameter>
+             </methodparam>
+             <modifier>const</modifier>
+         </methodsynopsis>
+         <para>
+            Compares the object on the left hand side of an <literal>==</literal>
+            to <parameter>rhs</parameter> for functional equivalence.
+            If the two objects reasonably represent the same ring item, returns
+            nonzero, else returns zero.
+         </para>
+         <methodsynopsis>
+             <type>int</type> <methodname>operator!=</methodname>
+             <methodparam>
+                 <modifier>const</modifier> <type>CRingItem&amp;</type> <parameter>rhs</parameter>
+             </methodparam>
+             <modifier>const</modifier>
+         </methodsynopsis>
+         <para>
+            Computes the logical inverse of <methodname>operator==</methodname>
+         </para>
+         <methodsynopsis>
+             <type>size_t</type> <methodname>getStorageSize</methodname>
+                                 <void /><modifier>const</modifier>
+         </methodsynopsis>
+         <para>
+            Returns the total size available for the ring item, header and body
+            together.
+         </para>
+         <methodsynopsis>
+             <type>size_t</type> <methodname>getBodySize</methodname>
+                                 <void /><modifier> const</modifier>
+         </methodsynopsis>
+         <para>
+            Returns the amount of data in the body of the ring.
+         </para>
+         <methodsynopsis>
+             <type>void*</type> <methodname>getBodyPointer</methodname>
+                                <void />
+         </methodsynopsis>
+         <para>
+            Returns a pointer to the start of the body.
+         </para>
+         <methodsynopsis>
+             <type>void*</type> <methodname> getBodyCursor</methodname>
+                                <void />
+         </methodsynopsis>
+         <para>
+            Returns the last stored body cursor.  This is intended to allow you
+            (along with <methodname>setBodyCursor</methodname>) to keep track of
+            where you should next add information to a ring item.
+         </para>
+         <methodsynopsis>
+             <type>_RingItem*</type>
+             <methodname>getItemPointer</methodname> <void />
+         </methodsynopsis>
+         <para>
+            Returns a pointer to the items storage.  This should be a
+            <type>RingItemHeader</type> followed by whatever has been
+            put in the body.
+         </para>
+         <methodsynopsis>
+             <type>uint32_t</type> <methodname>type</methodname>
+                                     <void /> <modifier>const</modifier>
+         </methodsynopsis>
+         <para>
+            Returns the type of the item encapsulated by the object.
+            This member does account for byte order mismatches in the event the
+            generating system had a different byte order than the system running
+            the object.
+         </para>
+         <methodsynopsis>
+             <type>void</type> <methodname>setBodyCursor</methodname>
+             <methodparam>
+                 <type>void*</type> <parameter>pNewCursor</parameter>
+             </methodparam>
+         </methodsynopsis>
+         <para>
+            Items have a <firstterm>bodyCursor</firstterm>.  This is intended
+            to allow software that is building up an item to keep track of
+            the next free hunk of memory in the item.  The cusor can be
+            fetched via <methodname>getBodyCursor</methodname> and stored
+            back via <methodname>setBodyCursor</methodname> which sets the
+            body cursor to <parameter>pNewCursor</parameter>
+         </para>
+         <para>
+            This is intended as  a performance compromise that enables
+            data such as physics events to insert data into items with no
+            penalty other than a pointer dereference.  The
+            body cursor is also used to compute the size of an item when it
+            is requested, and when or if it is committed to a ring buffer.
+         </para>
+         <methodsynopsis>
+             <type>void</type>
+             <methodname>commitToRing</methodname>
+             <methodparam>
+                 <type>CRingBuffer&amp;</type> <parameter>ring</parameter>
+             </methodparam>
+         </methodsynopsis>
+         <para>
+            Inserts the item that is encapsulated by the object into the
+            ring buffer represented by the object <parameter>ring</parameter>.
+            At this time, the body cursor must point to the first unused
+            byte following the body, as it is used to calculate the size field
+            of the item.
+        </para>
+        <para>
+            This call may block indefinitely if space is not available in the ring.
+        </para>
+         <methodsynopsis>
+             <type>bool</type>
+             <methodname>mustSwap</methodname>
+             <void /><modifier>const</modifier>
+         </methodsynopsis>
+         <para>
+            Returns true if the byte order of the object is the opposite of the
+            running system.  Two assumptions are used to derive this result.
+            First, that all ring items that are formatted in the local host
+            will have local host byte ordering and therefore should return
+            <literal>false</literal>
+            for <methodname>mustSwap</methodname>.
+            Second, that the top 16 bits of the data type are always zero
+            and that this can be used to determine the byte ordering of an item.
+         </para>
+         <methodsynopsis>
+             <modifier>static</modifier>
+             <type>CRingItem*</type>
+             <methodname>getFromRing</methodname>
+             <methodparam>
+                 <type>CRingBuffer&amp;</type> <parameter>ring</parameter>
+             </methodparam>
+             <methodparam>
+                 <type>CRingSelectionPredicate&amp;</type> <parameter>predicate</parameter>
+             </methodparam>
+         </methodsynopsis>
+         <para>
+            Returns a pointer to a dynamically allocated ring item that was
+            fetched from the ring buffer <parameter>ring</parameter>.
+            The item must satisfy the selection criteria defined by
+            <parameter>predicate</parameter>.
+            If you want all items, simply pass in an un-reconfigured
+            <classname>CAllButPredicate</classname> object.
+         </para>
+        <para>
+            Predicates provide a powerful mechanism for selecting and sampling
+            data from ring buffers.  For more information about them,
+            see the chapter
+            <link linkend="chapter.ringformat">Ring Format</link>
+            which provides background information about ring buffer predicates.
+            For reference information, see the reference pages for:
+            <link linkend="manpage.cringselectionpredicate"><classname>CRingSelectionPredicate</classname></link>,
+            <link linkend="manpage.callbutpredicate"><classname>CAllButPredicate</classname></link>,
+            and
+            <link linkend="manpage.cdesiredtypespredicate"><classname>CDesiredTypesPredicate</classname></link>.
+            Note that you may also construct your own predicate classes should
+            these not be sufficient to meet your needs.
+        </para>
+        <para>
+            The caller is responsible for deleting the object.
+        </para>
+      </refsect1>
+      <refsect1>
+         <title>Types and public data</title>
+         <para>
+            While not explicitly referenced in the public interfaces
+            of
+            <classname>CRingItem</classname>, if you use this class directly,
+            you should be familiar with the data types defined in the header
+            <filename>DataFormat.h</filename>.  These are described fully in
+            the chapter:
+            <link linkend="chapter.ringformat">Ring Format</link>.
+         </para>
+      </refsect1>
+      <refsect1>
+         <title>EXAMPLES</title>
+         <para>
+            The code fragment below shows how to sample the next physics buffer
+            from a ring which is represented by the object <varname>ring</varname>
+         </para>
+         <example>
+            <title>Selecting sampled event from a ring.</title>
+            <programlisting>
+#include &lt;DataFormat.h&gt;                            <co id="cringitem.include" />
+...
+CDesiredTypesPredicate sampledEventsOnly;                <co id="cringitem.predicate" />
+sampledEventsOnly.addDesiredType(PHYSICS_EVENT, true);   <co id="cringitem.addtype" />
+CRingItem* item = CRingItem::getFromRing(ring, sampledEventsOnly); <co id="cringitem.get" />
+
+// work with the item...
+                                                        <co id="cringitem.process" />
+//  Done with the item.
+
+delete item;                                           <co id="cringitem.delete" />
+            </programlisting>
+         </example>
+         <calloutlist>
+            <callout arearefs="cringitem.include">
+                <para>
+                    This <literal>#include</literal> obtains the data type and
+                    constant definitions for ring items.  Specifically, we wil
+                    need at least the <literal>PHYSICS_EVENT</literal>
+                    constant.
+                </para>
+            </callout>
+            <callout arearefs="cringitem.predicate">
+                <para>
+                    We will limit the ring items processed to the most recently
+                    inserted physics event items.  This requires a predicate
+                    that will select those items.  The simplest one to use
+                    is the <classname>CDesiredTypesPredicate</classname> which
+                    selects only the types we tell it to in the mode requested.
+                </para>
+            </callout>
+            <callout arearefs="cringitem.addtype">
+                <para>
+                    This line informs the predicate that we want to select
+                    ring items of type
+                    <literal>PHYSICS_EVENT</literal> only and in sampled mode
+                    meaning the predicate will skip all but the most recently
+                    inserted physics event.
+                </para>
+            </callout>
+            <callout arearefs="cringitem.get">
+                <para>
+                    This gets a pointer to the ring item that satisfies our
+                    selection criteria.  Note that given our predicate,
+                    we are assured that
+                    <literal>item->type()</literal> would return
+                    <literal>PHYSICS_EVENT</literal>.
+                </para>
+            </callout>
+            <callout arearefs="cringitem.process">
+                <para>
+                    I'm omitting what you do to process the item as that's application
+                    dependent.
+                </para>
+            </callout>
+            <callout arearefs="cringitem.delete">
+                <para>
+                    Once you are done processing the ring item, it's storage
+                    must be deleted or else eventually the memory leak
+                    you would introduce will cause your program to fail.
+                </para>
+            </callout>
+         </calloutlist>
+      </refsect1>
+   </refentry>
+    <refentry id="manpage.cringscaleritem">
+      <refmeta>
+         <refentrytitle>CRingScalerItem</refentrytitle>
+         <manvolnum>3daq</manvolnum>
+      </refmeta>
+      <refnamediv>
+         <refname>CRingScalerItem</refname>
+	 <refpurpose>Encapsulate ring buffer scaler items.</refpurpose>
+      </refnamediv>
+      
+      <refsynopsisdiv>
+         <programlisting>
+#include &lt;CRingScaleritem.h&gt;
+         </programlisting>
+         <classsynopsis>
+            <ooclass><classname>CRingScalerItem</classname></ooclass>
+            <constructorsynopsis>
+                <methodname>CRingScalerItem</methodname>
+                <methodparam>
+                    <type>size_t</type> <parameter>numScalers</parameter>
+                </methodparam>
+            </constructorsynopsis>
+            <constructorsynopsis>
+                <methodname>CRingScalerItem</methodname>
+                <methodparam>
+                    <type>uint32_t</type> <parameter>startTime</parameter>
+                </methodparam>
+                <methodparam>
+                    <type>uint32_t</type> <parameter>stopTime</parameter>
+                </methodparam>
+                <methodparam>
+                    <type>time_t</type>   <parameter>timestamp</parameter>
+                </methodparam>
+                <methodparam>
+                    <type>std::vector&lt;uint32_t&gt;</type> <parameter>scalers</parameter>
+                </methodparam>
+            </constructorsynopsis>
+            <constructorsynopsis>
+                <methodname>CRingScalerItem</methodname>
+                <methodparam>
+                    <modifier>const</modifier> <type>CRingItem&amp;</type> <parameter>rhs</parameter>
+                </methodparam>
+                <exceptionname>std::bad_cast</exceptionname>
+            </constructorsynopsis>
+            <constructorsynopsis>
+                <methodname>CRingScalerItem</methodname>
+                <methodparam>
+                    <modifier>const</modifier> <type>CRingScalerItem&amp;</type> <parameter>rhs</parameter>
+                </methodparam>
+            </constructorsynopsis>
+            <destructorsynopsis>
+                <modifier>virtual</modifier>
+                <methodname>~CRingScalerItem</methodname>
+                <void />
+            </destructorsynopsis>
+            <methodsynopsis>
+                <type>CRingScalerItem&amp;</type> <methodname>operator=</methodname>
+                <methodparam>
+                    <modifier>const</modifier> <type>CRingScalerItem&amp;</type> <parameter>rhs</parameter>
+                </methodparam>
+            </methodsynopsis>
+            <methodsynopsis>
+                <type>int</type> <methodname>operator==</methodname>
+                <methodparam>
+                    <modifier>const</modifier><type>CRingScalerItem&amp;</type> <parameter>rhs</parameter>
+                </methodparam>
+                <modifier>const</modifier>
+            </methodsynopsis>
+            <methodsynopsis>
+                <type>int</type> <methodname>operator!=</methodname>
+                <methodparam>
+                    <modifier>const</modifier> <type>CRingScalerItem&amp;</type> <parameter>rhs</parameter>
+                                                        <modifier>const</modifier>
+                </methodparam>
+            </methodsynopsis>
+            <methodsynopsis>
+                <type>void</type>
+                <methodname>setStartTime</methodname>
+                <methodparam><type>uint32_t</type> <parameter>startTime</parameter></methodparam>
+            </methodsynopsis>
+            <methodsynopsis>
+                <type>uint32_t</type> <methodname>getStartTime</methodname>
+                                      <void /><modifier>const</modifier>
+            </methodsynopsis>
+            <methodsynopsis>
+                <type>void</type> <methodname>setEndTime</methodname>
+                <methodparam>
+                    <type>uint32_t</type> <parameter>endTime</parameter>
+                </methodparam>
+            </methodsynopsis>
+            <methodsynopsis>
+                <type>uint32_t</type> <methodname>getEndTime</methodname>
+                <void /> <modifier>const</modifier>
+            </methodsynopsis>
+            <methodsynopsis>
+                <type>void</type>
+                <methodname>setTimestamp</methodname>
+                <methodparam>
+                    <type>time_t</type> <parameter>stamp</parameter>
+                </methodparam>
+            </methodsynopsis>
+            <methodsynopsis>
+                <type>time_t</type> <methodname>getTimestamp</methodname>
+                <void /><modifier>const</modifier>
+            </methodsynopsis>
+            <methodsynopsis>
+                <type>void</type> <methodname>setScaler</methodname>
+                <methodparam>
+                    <type>uint32_t</type> <parameter>channel</parameter>
+                </methodparam>
+                <methodparam>
+                    <type>uint32_t</type> <parameter>value</parameter>
+                </methodparam>
+                <exceptionname>CRangeError</exceptionname>
+            </methodsynopsis>
+            <methodsynopsis>
+                <type>uint32_t</type>
+                <methodname>getScaler</methodname>
+                <methodparam>
+                    <type>uint32_t</type> <parameter>channel</parameter>
+                </methodparam>
+                <exceptionname>CRangeError</exceptionname>
+                <modifier>const</modifier>
+            </methodsynopsis>
+         </classsynopsis>
+      </refsynopsisdiv>
+      <refsect1>
+         <title>Description</title>
+         <para>
+            <classname>CRingScalerItem</classname> encapsulates scaler items
+            that either have been gotten from a ring or are being formatted
+            to be inserted into a ring.
+         </para>
+      </refsect1>
+      <refsect1>
+         <title>
+            Public member functions
+         </title>
+        <constructorsynopsis>
+            <methodname>CRingScalerItem</methodname>
+            <methodparam>
+                <type>size_t</type> <parameter>numScalers</parameter>
+            </methodparam>
+        </constructorsynopsis>
+        <para>
+            Constructor for a ring scaler item that will hold
+            <parameter>numScalers</parameter>
+            incremental scaler values.
+            The interval start and stop times are set to zero and the
+            timestamp to the current time. Scaler values are not initialized
+            (specifically don't assume they are zero).
+        </para>
+        <constructorsynopsis>
+            <methodname>CRingScalerItem</methodname>
+            <methodparam>
+                <type>uint32_t</type> <parameter>startTime</parameter>
+            </methodparam>
+            <methodparam>
+                <type>uint32_t</type> <parameter>stopTime</parameter>
+            </methodparam>
+            <methodparam>
+                <type>time_t</type>   <parameter>timestamp</parameter>
+            </methodparam>
+            <methodparam>
+                <type>std::vector&lt;uint32_t&gt;</type> <parameter>scalers</parameter>
+            </methodparam>
+        </constructorsynopsis>
+        <para>
+            Full constructor for a scaler ring item.
+            <parameter>startTime</parameter>
+            is the number of seconds of active run time at the start of the
+            interval measured by these scalers, and
+            <parameter>stopTime</parameter> the end.
+            <parameter>timestamp</parameter> is the absolute time of the end of
+            the measurement interval (or more accurately, the time at which
+            the scaler item was formatted).
+            <parameter>sclaers</parameter> are a vector of scaler values.
+        </para>
+        <constructorsynopsis>
+            <methodname>CRingScalerItem</methodname>
+            <methodparam>
+                <modifier>const</modifier> <type>CRingItem&amp;</type> <parameter>rhs</parameter>
+            </methodparam>
+            <exceptionname>std::bad_cast</exceptionname>
+        </constructorsynopsis>
+        <para>
+            Constructs a scaler item from an existing ring item
+            <parameter>rhs</parameter>.
+            If <parameter>rsh</parameter>'s type is not
+            <literal>INCREMENTAL_SCALERS</literal>,
+            a <type>std::bad_cast</type> exception is thrown.
+        </para>
+        <constructorsynopsis>
+            <methodname>CRingScalerItem</methodname>
+            <methodparam>
+                <modifier>const</modifier> <type>CRingScalerItem&amp;</type> <parameter>rhs</parameter>
+            </methodparam>
+        </constructorsynopsis>
+        <para>
+            Constructs a functional duplicate of the scaler item
+            <parameter>rhs</parameter> (copy construction).
+        </para>
+        <methodsynopsis>
+            <type>CRingScalerItem&amp;</type> <methodname>operator=</methodname>
+            <methodparam>
+                <modifier>const</modifier> <type>CRingScalerItem&amp;</type> <parameter>rhs</parameter>
+            </methodparam>
+        </methodsynopsis>
+        <para>
+            Assigns to this object from <parameter>rhs</parameter>.
+            The object will become a functional equivalent of <parameter>rhs</parameter>.
+            If later compared to <parameter>rhs</parameter> equality will be true.
+        </para>
+        <methodsynopsis>
+            <type>int</type> <methodname>operator==</methodname>
+            <methodparam>
+                <modifier>const</modifier><type>CRingScalerItem&amp;</type> <parameter>rhs</parameter>
+            </methodparam>
+            <modifier>const</modifier>
+        </methodsynopsis>
+        <para>
+            Compares <parameter>rhs</parameter> with the object for
+            functional equivalency.
+        </para>
+        <methodsynopsis>
+            <type>int</type> <methodname>operator!=</methodname>
+            <methodparam>
+                <modifier>const</modifier> <type>CRingScalerItem&amp;</type> <parameter>rhs</parameter>
+                                                    <modifier>const</modifier>
+            </methodparam>
+        </methodsynopsis>
+        <para>
+            Compares the item for functional equivalency and returns the
+            logical inverse of the result.
+        </para>
+        <methodsynopsis>
+            <type>void</type>
+            <methodname>setStartTime</methodname>
+            <methodparam><type>uint32_t</type> <parameter>startTime</parameter></methodparam>
+        </methodsynopsis>
+        <para>
+            Sets the interval start time offset to
+            <parameter>startTime</parameter>.  This is supposed to be the
+            time into the run at which this set of scalers started counting.
+            Inactive run time is not  counted.
+        </para>
+        <methodsynopsis>
+            <type>uint32_t</type> <methodname>getStartTime</methodname>
+                                  <void /><modifier>const</modifier>
+        </methodsynopsis>
+        <para>
+            Returns the counting interval start time.
+        </para>
+        <methodsynopsis>
+            <type>void</type> <methodname>setEndTime</methodname>
+            <methodparam>
+                <type>uint32_t</type> <parameter>endTime</parameter>
+            </methodparam>
+        </methodsynopsis>
+        <para>
+            Sets the intervale end time to
+            <parameter>endTime</parameter>.
+            This is supposed to be the number of seconds in to the run
+            at which the scalers for this item were read and cleared.
+            Note that only active seconds are acounted.
+        </para>
+        <methodsynopsis>
+            <type>uint32_t</type> <methodname>getEndTime</methodname>
+            <void /> <modifier>const</modifier>
+        </methodsynopsis>
+        <para>
+            Returns the time offset into the run at which the scalers were read.
+            For a properly formatted item, this value should be larger than
+            that returned by <methodname>getStartTime</methodname>.
+        </para>
+        <methodsynopsis>
+            <type>void</type>
+            <methodname>setTimestamp</methodname>
+            <methodparam>
+                <type>time_t</type> <parameter>stamp</parameter>
+            </methodparam>
+        </methodsynopsis>
+        <para>
+            Sets the timestamp for the item.  This should be the time at which
+            the buffer was formatted.  It is a <type>time_t</type> as described
+            in documentation of the unix <function>time</function> function.
+        </para>
+        <methodsynopsis>
+            <type>time_t</type> <methodname>getTimestamp</methodname>
+            <void /><modifier>const</modifier>
+        </methodsynopsis>
+        <para>
+            Returns the timestamp for an item.  This is supopsed to be
+            compatible for the argument to e.g. <function>ctime</function>
+            in the byte order of the creating system.
+        </para>
+        <methodsynopsis>
+            <type>void</type> <methodname>setScaler</methodname>
+            <methodparam>
+                <type>uint32_t</type> <parameter>channel</parameter>
+            </methodparam>
+            <methodparam>
+                <type>uint32_t</type> <parameter>value</parameter>
+            </methodparam>
+            <exceptionname>CRangeError</exceptionname>
+        </methodsynopsis>
+        <para>
+            Sets the value of scaler number <parameter>channel</parameter>
+            to <parameter>value</parameter>.  If <parameter>channel</parameter>
+            is larger than the number of scalers the item was constructed with,
+            <type>CRangError</type> is thrown.
+        </para>
+        <methodsynopsis>
+            <type>uint32_t</type>
+            <methodname>getScaler</methodname>
+            <methodparam>
+                <type>uint32_t</type> <parameter>channel</parameter>
+            </methodparam>
+            <exceptionname>CRangeError</exceptionname>
+            <modifier>const</modifier>
+        </methodsynopsis>
+        <para>
+            Returns the value of the scaler channel <parameter>channel</parameter>.
+            If the <parameter>channel</parameter> is too large a
+            <type>CRangeError</type> is thrown.
+        </para>
+      </refsect1>
+      <refsect1>
+         <title>Types and public data</title>
+         <para>
+            See the <type>ScalerItem</type> type in
+            <filename>&lt;DataFormat.h&gt;</filename>.
+         </para>
+      </refsect1>
+      <refsect1>
+         <title>Exceptions</title>
+         <variablelist>
+            <varlistentry>
+                <term><type>std::bad_cast</type></term>
+                <listitem>
+                    <para>This is thrown in the event an attempt is made
+                        to construct a
+                        <classname>CRingScalerItem</classname> object
+                        from a
+                        <classname>CRingItem</classname> whose type is not
+                        <literal>INCREMENTAL_SCALERS</literal>.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><type>CRangeError</type></term>
+                <listitem>
+                    <para>
+                        Thrown in the event an effort is made to access a scaler
+                        channel that does not exist.
+                    </para>
+                </listitem>
+            </varlistentry>
+         </variablelist>
+      </refsect1>
+      <refsect1>
+         <title>EXAMPLES</title>
+         <para>
+            In the following example, an item is gotten from a ring buffer.
+            If it is a scaler item, it is used to construct a new scaler
+            item.  <literal>ring</literal> is assumed to be a
+            <classname>CRingBuffer</classname>
+            object or a reference to one.
+         </para>
+         <example>
+            <title>Constructing a scaler item from an item gotten from a ring</title>
+            <programlisting>
+#include &lt;DataFormat.h&gt;
+#include &lt;CRingItem.h&gt;
+#include &lt;CRingScalerItem&gt;
+...
+
+CAllButPredicate  all;                                        <co id="scaler.allpred" />
+CRingItem*        pItem = CRingItem::getFromRing(ring, all);  <co id="scaler.get" />
+
+if (pItem->type() == INCREMENTAL_SCALERS) {                   <co id="scaler.isscaler" />
+   CRingScalerItem scalers(*pItem);                           <co id="scaler.construct" />
+   ...
+}
+else {
+...
+}
+delete pItem;                                                <co id="scaler.delete" />
+ 
+            </programlisting>
+         </example>
+         <calloutlist>
+            <callout arearefs="scaler.allpred">
+                <para>
+                    This predicate accepts all ring buffer item types without
+                    sampling.  The
+                    <classname>CAllButPredicate</classname> accepts all ring
+                    types without sampling except those explicitly defined.
+                </para>
+            </callout>
+            <callout arearefs="scaler.get">
+                <para>
+                    Gets the next item from the ring, regardless of type.
+                </para>
+            </callout>
+            <callout arearefs="scaler.isscaler">
+                <para>
+                    Before constructing a
+                    <classname>CRingScalerItem</classname> object, it's important
+                    to ensure the object is atually a scaler item.  Without this
+                    check it would be necessary to wrap this code in a
+                    <literal>try/catch</literal> block for <type>std::bad_cast</type>.
+                </para>
+            </callout>
+            <callout arearefs="scaler.construct">
+                <para>
+                    If the item is a scaler item, it is converted into a
+                    <classname>CScalerItem</classname>
+                    and processed.
+                </para>
+            </callout>
+            <callout arearefs="scaler.delete">
+                <para>
+                    Regardless, the original
+                    <classname>CRingItem</classname> object must be deleted.
+                </para>
+            </callout>
+         </calloutlist>
+      </refsect1>
+   </refentry>
+    <refentry id="manpage.cringstatechangeitem">
+      <refmeta>
+         <refentrytitle>CRingStateChangeItem</refentrytitle>
+         <manvolnum>3daq</manvolnum>
+      </refmeta>
+      <refnamediv>
+         <refname>CRingStateChangeItem</refname>
+	 <refpurpose>Encapsulate a ring buffer state change item.</refpurpose>
+      </refnamediv>
+      
+      <refsynopsisdiv>
+         <programlisting>
+#include &lt;CRingStateChangeItem&gt;
+         </programlisting>
+         <classsynopsis>
+            <ooclass><classname>CRingStateChangeItem</classname></ooclass>
+            <constructorsynopsis>
+                <methodname>CRingStateChangeItem</methodname>
+                <methodparam>
+                    <type>uint16_t</type> <parameter>reason</parameter><initializer> BEGIN_RUN</initializer>
+                </methodparam>
+            </constructorsynopsis>
+            <constructorsynopsis>
+                <methodname>CRingStateChangeItem</methodname>
+                <methodparam>
+                    <type>uint16_t</type> <parameter>reason</parameter>
+                </methodparam>
+                <methodparam>
+                    <type>uint32_t</type> <parameter>runNumber</parameter>
+                </methodparam>
+                <methodparam>
+                    <type>uint32_t</type> <parameter>timeOffset</parameter>
+                </methodparam>
+                <methodparam>
+                    <type>time_t</type> <parameter>timestamp</parameter>
+                </methodparam>
+                <methodparam>
+                    <type>std::string</type> <parameter>title</parameter>
+                </methodparam>
+                <exceptionname>CRangeError</exceptionname>
+            </constructorsynopsis>
+            <constructorsynopsis>
+                <methodname>CRingStateChangeItem</methodname>
+                <methodparam>
+                    <modifier>const</modifier> <type>CRingItem&amp;</type> <parameter>item</parameter>
+                </methodparam>
+                <exceptionname>std::bad_cast</exceptionname>
+            </constructorsynopsis>
+            <constructorsynopsis>
+                <methodname>CRingStateChangeItem</methodname>
+                <methodparam>
+                    <modifier>const</modifier> <type>CRingStateChangeItem&amp;</type> <parameter>rhs</parameter>
+                </methodparam>
+            </constructorsynopsis>
+            <destructorsynopsis>
+                <modifier>virtual</modifier>
+                <methodname>~CRingStateChangeItem</methodname>
+                <void />
+            </destructorsynopsis>
+            <methodsynopsis>
+                <type>CRingStateChangeItem&amp;</type>
+                <methodname>operator=</methodname>
+                <methodparam>
+                    <modifier>const</modifier> <type>CRingStateChangeItem&amp;</type>
+                                               <parameter>rhs</parameter>
+                </methodparam>
+            </methodsynopsis>
+            <methodsynopsis>
+                <type>int</type>
+                <methodname>operator==</methodname>
+                <methodparam>
+                    <modifier>const</modifier> <type>CRingStateChangeItem&amp;</type>
+                                               <parameter>rhs</parameter>
+                </methodparam>
+                <modifier>const</modifier>
+            </methodsynopsis>
+            <methodsynopsis>
+                <type>int</type> <methodname>operator!=</methodname>
+                <methodparam>
+                    <modifier>const</modifier> <type>CRingStateChangeItem&amp;</type>
+                                               <parameter>rhs</parameter>
+                </methodparam>
+                <modifier>const</modifier>
+            </methodsynopsis>
+            <methodsynopsis>
+                <type>void</type>
+                <methodname>setRunNumber</methodname>
+                <methodparam>
+                    <type>uint32_t</type> <parameter>run</parameter>
+                </methodparam>
+            </methodsynopsis>
+            <methodsynopsis>
+                <type>uint32_t</type> <methodname>getRunNumber</methodname>
+                <void /> <modifier>const</modifier>
+            </methodsynopsis>
+            <methodsynopsis>
+                <type>void</type> <methodname>setElapsedTime</methodname>
+                <methodparam>
+                    <type>uint32_t</type> <parameter>offset</parameter>
+                </methodparam>
+            </methodsynopsis>
+            <methodsynopsis>
+                <type>uint32_t</type> <methodname>getElapsedTime</methodname>
+                                      <void /><modifier>const</modifier>
+            </methodsynopsis>
+            <methodsynopsis>
+                <type>void</type> <methodname>setTitle</methodname>
+                <methodparam>
+                    <type>std::string</type> <parameter>title</parameter>
+                </methodparam>
+                <exceptionname>CRangeError</exceptionname>
+            </methodsynopsis>
+            <methodsynopsis>
+                <type>std::string</type>
+                <methodname>getTitle</methodname>
+                <void /> <modifier>const</modifier>
+            </methodsynopsis>
+            <methodsynopsis>
+                <type>void</type> <methodname>setTimestamp</methodname>
+                <methodparam>
+                    <type>time_t</type> <parameter>stamp</parameter>
+                </methodparam>
+            </methodsynopsis>
+            <methodsynopsis>
+                <type>time_t</type> <methodname>getTimestamp</methodname>
+                                    <void /> <modifier>const</modifier>
+            </methodsynopsis>
+
+         </classsynopsis>
+      </refsynopsisdiv>
+      <refsect1>
+         <title>Description</title>
+         <para>
+            Encapsulates a ring buffer item for the ring items that represent
+            changes in state of a data taking run.  These are specifically
+            ring items of the type:
+            <literal>BEGIN_RUN</literal>,
+            <literal>END_RUN</literal>,
+            <literal>PAUSE_RUN</literal>,
+            and <literal>RESUME_RUN</literal>.
+         </para>
+         <para>
+            In a ring buffer, these items take the form of a
+            <type>StateChangeItem</type> as defined in
+            <filename>&lt;DataFormat.h&gt;</filename>.
+         </para>
+         <para>
+            The class can be used both to format state change items for later
+            insertion into a ring, or to decode existing state change items.
+         </para>
+      </refsect1>
+      <refsect1>
+         <title>
+            Public member functions
+         </title>
+        <constructorsynopsis>
+            <methodname>CRingStateChangeItem</methodname>
+            <methodparam>
+                <type>uint16_t</type> <parameter>reason</parameter><initializer> BEGIN_RUN</initializer>
+            </methodparam>
+        </constructorsynopsis>
+        <para>
+            Constructs a state change item with the type <parameter>reason</parameter>.
+            The run number, and time offset will be set to zero.  The
+            timestamp will be set to the current time, and the title will be
+            empty.
+        </para>
+        <constructorsynopsis>
+            <methodname>CRingStateChangeItem</methodname>
+            <methodparam>
+                <type>uint16_tM</type> <parameter>reason</parameter>
+            </methodparam>
+            <methodparam>
+                <type>uint32_t</type> <parameter>runNumber</parameter>
+            </methodparam>
+            <methodparam>
+                <type>uint32_t</type> <parameter>timeOffset</parameter>
+            </methodparam>
+            <methodparam>
+                <type>time_t</type> <parameter>timestamp</parameter>
+            </methodparam>
+            <methodparam>
+                <type>std::string</type> <parameter>title</parameter>
+            </methodparam>
+            <exceptionname>CRangeError</exceptionname>
+        </constructorsynopsis>
+        <para>
+            Constructs a run state change item in a fully specified way.
+            <parameter>reason</parameter> is the actual type of the item.
+            <parameter>runNumber</parameter> will be stored in the item as
+            the number of the run undergoing state change.
+            <parameter>timeOffset</parameter> should be the time in the run
+            at which the state change occured in seconds.  This time should not
+            include time spent in the paused state, and the begin run is always
+            emitted at <parameter>timeOffset</parameter> zero.
+            <parameter>timestamp</parameter> is an absolute time at which the
+            transition occured.  This can be gotten via the POSIX
+            <function>time(2)</function> function.
+            <parameter>title</parameter> is the title string.
+        </para>
+        <para>
+            The <parameter>title</parameter> string must be at most
+            <literal>TITLE_MAXSIZE</literal> characters long.  If it is longer
+            than that, a <classname>CRangeError</classname> will be thrown.
+
+        </para>
+        <constructorsynopsis>
+            <methodname>CRingStateChangeItem</methodname>
+            <methodparam>
+                <modifier>const</modifier> <type>CRingItem&amp;</type> <parameter>item</parameter>
+            </methodparam>
+            <exceptionname>std::bad_cast</exceptionname>
+        </constructorsynopsis>
+        <para>
+            Attempts to construct a <classname>CRingStateChangeItem</classname>
+            from a reference to an existing
+            <classname>CRingItem</classname>; <parameter>item</parameter>.
+            If <parameter>item</parameter> is not a value state change
+            item, a
+            <type>std::bad_cast</type> exception will be thrown.
+        </para>
+        <constructorsynopsis>
+            <methodname>CRingStateChangeItem</methodname>
+            <methodparam>
+                <modifier>const</modifier> <type>CRingStateChangeItem&amp;</type> <parameter>rhs</parameter>
+            </methodparam>
+        </constructorsynopsis>
+        <para>
+            Constructs an object that is a functional copy of
+            <parameter>rhs</parameter>.
+        </para>
+        <methodsynopsis>
+            <type>CRingStateChangeItem&amp;</type>
+            <methodname>operator=</methodname>
+            <methodparam>
+                <modifier>const</modifier> <type>CRingStateChangeItem&amp;</type>
+                                           <parameter>rhs</parameter>
+            </methodparam>
+        </methodsynopsis>
+        <para>
+            Provides assignment to <classname>CRingStateChangeItem</classname> objects
+            from other <classname>CRingStateChangeItem</classname>s.
+            After assignment is done the object on the left side of the
+            <literal>=</literal> is a functional equivalent of
+            <parameter>rhs</parameter>.
+        </para>
+        <methodsynopsis>
+            <type>int</type>
+            <methodname>operator==</methodname>
+            <methodparam>
+                <modifier>const</modifier> <type>CRingStateChangeItem&amp;</type>
+                                           <parameter>rhs</parameter>
+            </methodparam>
+            <modifier>const</modifier>
+        </methodsynopsis>
+        <para>
+            Compares the object on the left hand side of the
+            <literal>==</literal> for functional equivalence with the
+            <parameter>rhs</parameter> object.
+        </para>
+        <methodsynopsis>
+            <type>int</type> <methodname>operator!=</methodname>
+            <methodparam>
+                <modifier>const</modifier> <type>CRingStateChangeItem&amp;</type>
+                                           <parameter>rhs</parameter>
+            </methodparam>
+            <modifier>const</modifier>
+        </methodsynopsis>
+        <para>
+            Compares the object for functional equivalence with
+            <parameter>rhs</parameter>.
+            Returns the logical inverse of the comparison.
+        </para>
+        <methodsynopsis>
+            <type>void</type>
+            <methodname>setRunNumber</methodname>
+            <methodparam>
+                <type>uint32_t</type> <parameter>run</parameter>
+            </methodparam>
+        </methodsynopsis>
+        <para>
+            Sets the run number of the item to
+            <parameter>run</parameter>.
+        </para>
+        <methodsynopsis>
+            <type>uint32_t</type> <methodname>getRunNumber</methodname>
+            <void /> <modifier>const</modifier>
+        </methodsynopsis>
+        <para>
+            Returns the current value of the run number.
+        </para>
+        <methodsynopsis>
+            <type>void</type> <methodname>setElapsedTime</methodname>
+            <methodparam>
+                <type>uint32_t</type> <parameter>offset</parameter>
+            </methodparam>
+        </methodsynopsis>
+        <para>
+            Set the elapsed time for the item to <parameter>offset</parameter>.
+            This value is supposed to represent the number of active seconds
+            into the run at which the state transition occured.
+        </para>
+        <methodsynopsis>
+            <type>uint32_t</type> <methodname>getElapsedTime</methodname>
+                                  <void /><modifier>const</modifier>
+        </methodsynopsis>
+        <para>
+            Returns the object's current elapsed run time value.
+        </para>
+        <methodsynopsis>
+            <type>void</type> <methodname>setTitle</methodname>
+            <methodparam>
+                <type>std::string</type> <parameter>title</parameter>
+            </methodparam>
+            <exceptionname>CRangeError</exceptionname>
+        </methodsynopsis>
+        <para>
+            Sets a new value for the title of the run.
+            If the title is longer than
+            <literal>TITLE_MAXSIZE</literal> characters,
+            a <classname>CRangeError</classname> will be thrown.
+        </para>
+        <methodsynopsis>
+            <type>std::string</type>
+            <methodname>getTitle</methodname>
+            <void /> <modifier>const</modifier>
+        </methodsynopsis>
+        <para>
+            Returns the value of the title string.
+        </para>
+        <methodsynopsis>
+            <type>void</type> <methodname>setTimestamp</methodname>
+            <methodparam>
+                <type>time_t</type> <parameter>stamp</parameter>
+            </methodparam>
+        </methodsynopsis>
+        <para>
+            Sets the absolute time of the state transition to
+            <parameter>stamp</parameter>.
+            This is a value that might be gotten via the
+            Unix <function>time(2)</function> function
+        </para>
+        <methodsynopsis>
+            <type>time_t</type> <methodname>getTimestamp</methodname>
+                                <void /> <modifier>const</modifier>
+        </methodsynopsis>
+        <para>
+            Returns the value of the absolute run time.
+        </para>
+      </refsect1>
+      <refsect1>
+         <title>Types and public data</title>
+         <para>
+            The underlying item encapsulated by this class is a
+            <type>StateChangeItem</type> which is defined in
+            <filename>&lt;DataFormat.h&gt;</filename>.
+         </para>
+      </refsect1>
+      <refsect1>
+         <title>Exceptions</title>
+         <variablelist>
+            <varlistentry>
+                <term><type>std::bad_cast</type></term>
+                <listitem>
+                    <para>
+                        Called if an attempt is made to construct from
+                        a <classname>CRingItem</classname> that is not
+                        a valid run state transition item.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><classname>CRangeError</classname></term>
+                <listitem>
+                    <para>
+                        Thrown if an attempt is made to provide a title string
+                        that is longer than allowed by run-state transition
+                        items.  The maximum title string length is
+                        <literal>TITLE_MAXSIZE</literal>.
+                    </para>
+                </listitem>
+            </varlistentry>
+         </variablelist>
+      </refsect1>
+      <refsect1>
+         <title>EXAMPLES</title>
+         <para>
+            The example below creates a begin run and informs a ring about this.
+         </para>
+         <example>
+            <title>Creating a begin run state transition item</title>
+            <programlisting>
+#include &lt;DataFormat.h&gt;
+#include &lt;CRingStateChange.h&gt;
+
+CRingStateChange item;
+item.setTitle(string("This is the run title"));
+item.setRunNumber(1234);
+
+item.commitToRing(aring);
+
+            </programlisting>
+         </example>
+      </refsect1>
+   </refentry>
+
+    <refentry id="manpage.cringtextitem">
+      <refmeta>
+         <refentrytitle>CRingTextItem</refentrytitle>
+         <manvolnum>3daq</manvolnum>
+      </refmeta>
+      <refnamediv>
+         <refname>CRingTextItem</refname>
+	 <refpurpose>Encapsulate ring items that are lists of text strings.</refpurpose>
+      </refnamediv>
+      
+      <refsynopsisdiv>
+         <programlisting>
+#include &lt;CRingTextItem&gt;
+         </programlisting>
+         <classsynopsis>
+            <ooclass><classname>CRingTextItem</classname></ooclass>
+            <constructorsynopsis>
+                <methodname>CRingTextItem</methodname>
+                <methodparam>
+                    <type>uint16_t</type> <parameter>type</parameter>
+                </methodparam>
+                <methodparam>
+                    <type>std::vector&lt;std::string&gt;</type> <parameter>theStrings</parameter>
+                </methodparam>
+            </constructorsynopsis>
+            <constructorsynopsis>
+                <methodname>CRingTextItem</methodname>
+                <methodparam>
+                    <type>uint16_t</type> <parameter>type</parameter>
+                </methodparam>
+                <methodparam>
+                    <type>std::vector&lt;std::string&gt;</type> <parameter>theStrings</parameter>
+                </methodparam>
+                <methodparam>
+                    <type>uint32_t</type> <parameter>offsetTime</parameter>
+                </methodparam>
+                <methodparam>
+                    <type>time_t</type> <parameter>timestamp</parameter>
+                </methodparam>
+            </constructorsynopsis>
+            <constructorsynopsis>
+                <methodname>CRingTextItem</methodname>
+                <methodparam>
+                    <modifier>const</modifier> <type>CRingItem&amp;</type> <parameter>rhs</parameter>
+                </methodparam>
+                <exceptionname>std::bad_cast</exceptionname>
+            </constructorsynopsis>
+            <constructorsynopsis>
+                <methodname>CRingTextItem</methodname>
+                <methodparam>
+                    <modifier>const</modifier> <type>CRingTextItem&amp;</type> <parameter>rhs</parameter>
+                </methodparam>
+            </constructorsynopsis>
+            <destructorsynopsis>
+                <modifier>virtual</modifier> <methodname>~CRingTextItem</methodname>
+                                             <void />
+            </destructorsynopsis>
+            <methodsynopsis>
+                <type>CRingTextItem&amp;</type> <methodname>operator=</methodname>
+                <methodparam>
+                    <modifier>const</modifier> <type>CRingTextItem&amp;</type> <parameter>rhs</parameter>
+                </methodparam>
+            </methodsynopsis>
+            <methodsynopsis>
+                <type>int</type> <methodname>operator==</methodname>
+                <methodparam>
+                    <modifier>const</modifier> <type>CRingTextItem&amp;</type> <parameter>rhs</parameter>
+                </methodparam>
+                <modifier>const</modifier>
+            </methodsynopsis>
+            <methodsynopsis>
+                <type>int</type>
+                <methodname>operator!=</methodname>
+                <methodparam>
+                    <modifier>const</modifier> <type>CRingTextItem&amp;</type> <parameter>rhs</parameter>
+                </methodparam>
+                <modifier>const</modifier>
+            </methodsynopsis>
+            <methodsynopsis>
+                <type>std::vector&lt;std::string&gt;</type>
+                <methodname>getStrings</methodname>
+                <void />
+                <modifier>const</modifier>
+            </methodsynopsis>
+            <methodsynopsis>
+                <type>void</type> <methodname>setTimeOffset</methodname>
+                <methodparam>
+                    <type>uint32_t</type> <parameter>offset</parameter>
+                </methodparam>
+            </methodsynopsis>
+            <methodsynopsis>
+                <type>uint32_t</type> <methodname>getTimeOffset</methodname>
+                                      <void /><modifier>const</modifier>
+            </methodsynopsis>
+            <methodsynopsis>
+                <type>void</type> <methodname>setTimestamp</methodname>
+                <methodparam>
+                    <type>time_t</type> <parameter>stamp</parameter>
+                </methodparam>
+            </methodsynopsis>
+            <methodsynopsis>
+                <type>time_t</type> <methodname>getTimestamp</methodname>
+                                    <void /><modifier>const</modifier>
+            </methodsynopsis>
+         </classsynopsis>
+      </refsynopsisdiv>
+      <refsect1>
+         <title>Description</title>
+         <para>
+            Text string items contain lists of null terminated documentation strings.
+            These are stored in ring buffers in structures of the type:
+            <type>TextItem</type>.  These items have a type code of
+            <literal>PACKET_TYPES</literal> or
+            <literal>MONITORED_VARIABLES</literal>.  These items are used to
+            document the set of packets you can expect to see in
+            a <literal>PHYSICS_EVENT</literal> and provide the value of monitored
+            process variables respectively.
+         </para>
+      </refsect1>
+      <refsect1>
+         <title>
+            Public member functions
+         </title>
+        <constructorsynopsis>
+            <methodname>CRingTextItem</methodname>
+            <methodparam>
+                <type>uint16_t</type> <parameter>type</parameter>
+            </methodparam>
+            <methodparam>
+                <type>std::vector&lt;std::string&gt;</type> <parameter>theStrings</parameter>
+            </methodparam>
+        </constructorsynopsis>
+        <para>
+            Constructs a ring text item of the type specified by
+            <parameter>type</parameter>.  The text strings will be filled in with
+            the values of the individual strings in <parameter>theStrings</parameter>.
+        </para>
+        <para>
+            The run offset time will be initialized to zero, and the
+            absolute timestamp to the construction time of the object.
+        </para>
+        <constructorsynopsis>
+            <methodname>CRingTextItem</methodname>
+            <methodparam>
+                <type>uint16_t</type> <parameter>type</parameter>
+            </methodparam>
+            <methodparam>
+                <type>std::vector&lt;std::string&gt;</type> <parameter>theStrings</parameter>
+            </methodparam>
+            <methodparam>
+                <type>uint32_t</type> <parameter>offsetTime</parameter>
+            </methodparam>
+            <methodparam>
+                <type>time_t</type> <parameter>timestamp</parameter>
+            </methodparam>
+        </constructorsynopsis>
+        <para>
+            Constructs a text item in a fully specified way.
+            In addition to <parameter>type</parameter> and <parameter>theStrings</parameter>
+            providing the item type and the strings for the item respectively,
+            <parameter>offsetTime</parameter>, and <parameter>timestamp</parameter>
+            provide the run time offset and absolute timestamp values respectively.
+        </para>
+        <constructorsynopsis>
+            <methodname>CRingTextItem</methodname>
+            <methodparam>
+                <modifier>const</modifier> <type>CRingItem&amp;</type> <parameter>rhs</parameter>
+            </methodparam>
+            <exceptionname>std::bad_cast</exceptionname>
+        </constructorsynopsis>
+        <para>
+            Constructs a text item from a reference to an existing ring item;
+            <parameter>rhs</parameter>.
+            If the ring item is not of an appropriate type for a text item,
+            a <type>std::bad_cast</type> exception is thrown.
+        </para>
+        <constructorsynopsis>
+            <methodname>CRingTextItem</methodname>
+            <methodparam>
+                <modifier>const</modifier> <type>CRingTextItem&amp;</type> <parameter>rhs</parameter>
+            </methodparam>
+        </constructorsynopsis>
+        <para>
+            Constructs a functional copy of of an existing text ring item;
+            <parameter>rhs</parameter>.
+        </para>
+        <methodsynopsis>
+            <type>CRingTextItem&amp;</type> <methodname>operator=</methodname>
+            <methodparam>
+                <modifier>const</modifier> <type>CRingTextItem&amp;</type> <parameter>rhs</parameter>
+            </methodparam>
+        </methodsynopsis>
+        <para>
+            Provides for assignment between ring text items.  When done, the object
+            that is acted on will be a functional copy of the
+            <parameter>rhs</parameter>  object.
+        </para>
+        <methodsynopsis>
+            <type>int</type> <methodname>operator==</methodname>
+            <methodparam>
+                <modifier>const</modifier> <type>CRingTextItem&amp;</type> <parameter>rhs</parameter>
+            </methodparam>
+            <modifier>const</modifier>
+        </methodsynopsis>
+        <para>
+            Provides for comparison for functional equivalence between two
+            ring text items.  The item is compared with
+            <parameter>rhs</parameter>.
+            The comparison returns non zero if there is functioal equivalence.
+        </para>
+        <methodsynopsis>
+            <type>int</type>
+            <methodname>operator!=</methodname>
+            <methodparam>
+                <modifier>const</modifier> <type>CRingTextItem&amp;</type> <parameter>rhs</parameter>
+            </methodparam>
+            <modifier>const</modifier>
+        </methodsynopsis>
+        <para>
+            Returns the logical inverse  of
+            <methodname>operator==</methodname>.
+        </para>
+        <methodsynopsis>
+            <type>std::vector&lt;std::string&gt;</type>
+            <methodname>getStrings</methodname>
+            <void />
+            <modifier>const</modifier>
+        </methodsynopsis>
+        <para>
+            Returns the strings in the string list as a vector of strings.
+        </para>
+        <methodsynopsis>
+            <type>void</type> <methodname>setTimeOffset</methodname>
+            <methodparam>
+                <type>uint32_t</type> <parameter>offset</parameter>
+            </methodparam>
+        </methodsynopsis>
+        <para>
+            Sets the time offset at which the item was created to
+            <parameter>offset</parameter>.  
+        </para>
+        <methodsynopsis>
+            <type>uint32_t</type> <methodname>getTimeOffset</methodname>
+                                  <void /><modifier>const</modifier>
+        </methodsynopsis>
+        <para>
+            Returns the most recently set time offset for the item.
+        </para>
+        <methodsynopsis>
+            <type>void</type> <methodname>setTimestamp</methodname>
+            <methodparam>
+                <type>time_t</type> <parameter>stamp</parameter>
+            </methodparam>
+        </methodsynopsis>
+        <para>
+            Sets an absolute timestamp for the item.
+        </para>
+        <methodsynopsis>
+            <type>time_t</type> <methodname>getTimestamp</methodname>
+                                <void /><modifier>const</modifier>
+        </methodsynopsis>
+        <para>
+            Returns the item's absolute timestamp.
+        </para>
+      </refsect1>
+      <refsect1>
+        <title>Exceptions</title>
+        <para>
+            Construction from a list item can throw a
+            <type>std::bad_cast</type> exception if the underlying
+            ring item is not either a
+            <literal>PACKET_TYPES</literal> or
+            <literal>MONITORED_VARIABLES</literal> item.
+        </para>
+      </refsect1>
+
+   </refentry>
+    <refentry id="manpage.cringselectionpredicate">
+      <refmeta>
+         <refentrytitle>CRingSelectionPredicate</refentrytitle>
+         <manvolnum>3daq</manvolnum>
+      </refmeta>
+      <refnamediv>
+         <refname>CRingSelectionPredicate</refname>
+	 <refpurpose>Base class for predicates that select items from
+            ring buffers.</refpurpose>
+      </refnamediv>
+      
+      <refsynopsisdiv>
+         <programlisting>
+#include &lt;CRingSelectionPredicate.h&gt;
+         </programlisting>
+         <classsynopsis>
+            <ooclass><classname>CRingSelectionPredicate</classname></ooclass>
+            <constructorsynopsis>
+                <methodname>CRingSelectionPredicate</methodname>
+                <void />
+            </constructorsynopsis>
+            <constructorsynopsis>
+                <methodname>CRingSelectionPredicate</methodname>
+                <methodparam>
+                    <type>unsigned int</type> <parameter>nType</parameter>
+                </methodparam>
+                <methodparam>
+                    <type>uint32_t*</type> <parameter>types</parameter>
+                </methodparam>
+            </constructorsynopsis>
+            <constructorsynopsis>
+                <methodname>CRingSelectionPredicate</methodname>
+                <methodparam>
+                    <type>unsigned int</type> <parameter>nType</parameter>
+                </methodparam>
+                <methodparam>
+                    <type>uint32_t*</type> <parameter>type</parameter>
+                </methodparam>
+                <methodparam>
+                    <type>bool*</type> <parameter>sample</parameter>
+                </methodparam>
+            </constructorsynopsis>
+            <constructorsynopsis>
+                <methodname>CRingSelectionPredicate</methodname>
+                <methodparam>
+                    <modifier>const</modifier> <type>CRingSelectionPredicate&amp;</type>
+                                               <parameter>rhs</parameter>
+                </methodparam>
+            </constructorsynopsis>
+            <destructorsynopsis>
+                <modifier>virtual</modifier>
+                <methodname>~CRingSelectionPredicate</methodname>
+                <void />
+            </destructorsynopsis>
+            <methodsynopsis>
+                <type>CRingSelectionPredicate&amp;</type>
+                <methodname>operator=</methodname>
+                <methodparam>
+                    <modifier>const</modifier> <type>CRingSelectionPredicate&amp;</type>
+                                               <parameter>rhs</parameter>
+                </methodparam>
+            </methodsynopsis>
+            <methodsynopsis>
+                <type>int</type> <methodname>operator==</methodname>
+                <methodparam>
+                    <modifier>const</modifier> <type>CRingSelectionPredicate&amp;</type>
+                                               <parameter>rhs</parameter>
+                </methodparam>
+                <modifier>const</modifier>
+            </methodsynopsis>
+            <methodsynopsis>
+                <type>int</type> <methodname>operator!=</methodname>
+                <methodparam>
+                    <modifier>const</modifier> <type>CRingSelectionPredicate&amp;</type>
+                                               <parameter>rhs</parameter>
+                </methodparam>
+                <modifier>const</modifier>
+            </methodsynopsis>
+            <methodsynopsis>
+                <modifier>virtual</modifier> <type>bool</type>
+                                             <methodname>operator()</methodname>
+                <methodparam>
+                    <type>CRingBuffer&amp;</type> <parameter>ring</parameter>
+                </methodparam>
+            </methodsynopsis>
+            <methodsynopsis>
+                <modifier>virtual</modifier> <type>bool</type>
+                                             <methodname>selectThis</methodname>
+                <methodparam>
+                    <type>uint32_t</type> <parameter>type</parameter>
+                </methodparam>
+                <modifier>= 0</modifier>
+            </methodsynopsis>
+            <methodsynopsis>
+                <type>void</type> <methodname>selectItem</methodname>
+                <methodparam><type>CRingBuffer&amp;</type><parameter>ring</parameter>
+                </methodparam>
+            </methodsynopsis>
+            <methodsynopsis>
+                <modifier>protected</modifier>
+                <type>void</type> <methodname>addSelectionItem</methodname>
+                <methodparam>
+                    <type>uint32_t</type> <parameter>type</parameter>
+                </methodparam>
+                <methodparam>
+                    <type>bool</type> <parameter>sample</parameter><initializer> false</initializer>
+                </methodparam>
+            </methodsynopsis>
+            <methodsynopsis>
+                <modifier>protected</modifier>
+                <type>SelectionMapIterator</type> <methodname>find</methodname>
+                <methodparam><type>uint32_t</type> <parameter>type</parameter></methodparam>
+            </methodsynopsis>
+            <methodsynopsis>
+                <modifier>protected</modifier>
+                <type>SelectionMapIterator</type>
+                <methodname>end</methodname>
+                <void />
+            </methodsynopsis>
+            <methodsynopsis>
+                <modifier>protected</modifier>
+                <type>uint32_t</type> <methodname>longswap</methodname>
+                <methodparam>
+                    <type>uint32_t</type> <parameter>input</parameter>
+                </methodparam>
+            </methodsynopsis>
+            <methodsynopsis>
+                <modifier>protected</modifier>
+                <type>void</type> <methodname>addSelectionItems</methodname>
+                <methodparam>
+                    <type>std::vector&lt;ItemType&gt;</type> <parameter>selections</parameter>
+                </methodparam>
+            </methodsynopsis>
+
+         </classsynopsis>
+      </refsynopsisdiv>
+      <refsect1>
+         <title>Description</title>
+         <para>
+            <classname>CRingSelectionPredicate</classname> is an abstract base
+            class that can be subclassed to create specific predicates to selectively
+            grab items from a ring buffer via
+            <classname>CRingItem</classname>::<methodname>getFromRing</methodname>.
+         </para>
+         <para>
+            The base class provides a set of item types and flags, and functions
+            to maintain that set.  The meaning of those are up to the specific concrete
+            predicate.  The <methodname>operator()</methodname> is provided that
+            is sufficient for predicates that treat the flag as a request to
+            sample data of that type by checking if a type is acceptable or not
+            via the pure virtual function <methodname>selectThis</methodname>.
+         </para>
+      </refsect1>
+      <refsect1>
+         <title>
+           Member functions
+         </title>
+         <refsect2>
+            <title>Public members</title>
+           <constructorsynopsis>
+                <methodname>CRingSelectionPredicate</methodname>
+                <void />
+            </constructorsynopsis>
+            <para>
+                Default constructor for a the base class, the list of
+                type/flag pairs remains empty.
+            </para>
+            <constructorsynopsis>
+                <methodname>CRingSelectionPredicate</methodname>
+                <methodparam>
+                    <type>unsigned int</type> <parameter>nType</parameter>
+                </methodparam>
+                <methodparam>
+                    <type>uint32_t*</type> <parameter>types</parameter>
+                </methodparam>
+            </constructorsynopsis>
+            <para>
+                Constructs the base class with
+                <parameter>nType</parameter> type/flag pairs where
+                <parameter>types</parameter> is an array of types and all of
+                the flags are set to be <literal>false</literal>.
+            </para>
+            <constructorsynopsis>
+                <methodname>CRingSelectionPredicate</methodname>
+                <methodparam>
+                    <type>unsigned int</type> <parameter>nType</parameter>
+                </methodparam>
+                <methodparam>
+                    <type>uint32_t*</type> <parameter>type</parameter>
+                </methodparam>
+                <methodparam>
+                    <type>bool*</type> <parameter>sample</parameter>
+                </methodparam>
+            </constructorsynopsis>
+            <para>
+                Constructs a base class as above, however the state of the
+                flag that corresponds to each <parameter>type</parameter>
+                is specfied in the corresponding element of <parameter>sample</parameter>.
+            </para>
+            <constructorsynopsis>
+                <methodname>CRingSelectionPredicate</methodname>
+                <methodparam>
+                    <modifier>const</modifier> <type>CRingSelectionPredicate&amp;</type>
+                                               <parameter>rhs</parameter>
+                </methodparam>
+            </constructorsynopsis>
+            <para>
+                Provides support for copy construction of an object derived
+                from <classname>CRingSelectionPredicate</classname> by copying the
+                type/flag pairs from <parameter>rhs</parameter>.
+            </para>
+
+            <methodsynopsis>
+                <type>CRingSelectionPredicate&amp;</type>
+                <methodname>operator=</methodname>
+                <methodparam>
+                    <modifier>const</modifier> <type>CRingSelectionPredicate&amp;</type>
+                                               <parameter>rhs</parameter>
+                </methodparam>
+            </methodsynopsis>
+            <para>
+                Provides support for assignment in selection predicates, by
+                assigning the type/flag set of <parameter>rhs</parameter> to
+                those of the object.
+            </para>
+            <methodsynopsis>
+                <type>int</type> <methodname>operator==</methodname>
+                <methodparam>
+                    <modifier>const</modifier> <type>CRingSelectionPredicate&amp;</type>
+                                               <parameter>rhs</parameter>
+                </methodparam>
+                <modifier>const</modifier>
+            </methodsynopsis>
+            <para>
+                Provides support for equality comparison of
+                selection predicates by comparing the type/flag pairs of
+                <parameter>rhs</parameter> to those of the object.
+            </para>
+            <methodsynopsis>
+                <type>int</type> <methodname>operator!=</methodname>
+                <methodparam>
+                    <modifier>const</modifier> <type>CRingSelectionPredicate&amp;</type>
+                                               <parameter>rhs</parameter>
+                </methodparam>
+                <modifier>const</modifier>
+            </methodsynopsis>
+            <para>
+                Provides support for inequality comparisons of selection predicates
+                by comparing for equality and returning the boolean inverse of
+                the result.
+            </para>
+            <methodsynopsis>
+                <modifier>virtual</modifier> <type>bool</type>
+                                             <methodname>operator()</methodname>
+                <methodparam>
+                    <type>CRingBuffer&amp;</type> <parameter>ring</parameter>
+                </methodparam>
+            </methodsynopsis>
+            <para>
+                Provides a default predicate call for
+                <classname>CRingBuffer</classname>::<methodname>blockWhile</methodname>.
+                The default action is to block until an item is in the ring.
+                when an item is in the ring, its type is retrieved and passed to
+                <methodname>selectThis</methodname>.  If that function returns
+                <literal>true</literal> the item is skipped.  If
+                <literal>false</literal> is returned, and either the item type
+                is not in the item list or is in the item list but with its flag
+                false, then <literal>false</literal> is returned, ending the
+                block and allowing the caller to retrieve the selected item.
+                If the item is in the list an has a true flag, the item is skipped
+                if it is not the most recently inserted item in the ring, otherwise
+                blocking is terminated.
+            </para>
+            <methodsynopsis>
+                <modifier>virtual</modifier> <type>bool</type>
+                                             <methodname>selectThis</methodname>
+                <methodparam>
+                    <type>uint32_t</type> <parameter>type</parameter>
+                </methodparam>
+                <modifier>= 0</modifier>
+            </methodsynopsis>
+            <para>
+                This is a pure virtual member that must be implemented by
+                concrete classes.  <parameter>type</parameter> is the item type
+                of an item in the ring buffer.  The function should return
+                <literal>true</literal> to skip the item,and
+                <literal>false</literal> if the item is of an acceptable type.
+                See, however the description of
+                <methodname>operator()</methodname>
+                to see how that item type's flag can modify the interpretation
+                of this return value.
+            </para>
+            <methodsynopsis>
+                <type>void</type> <methodname>selectItem</methodname>
+                <methodparam><type>CRingBuffer&amp;</type> <parameter>ring</parameter>
+                </methodparam>
+            </methodsynopsis>
+            <para>
+                This member function interacts with the ring buffer
+                <parameter>ring</parameter> to block the caller, skipping
+                items inserted in the ring until one that matches the predicate
+                is available. 
+            </para>
+            <para>
+                Normally, this is intended to be called from
+                <classname>CRingItem</classname>::<methodname>getFromRing</methodname>.
+            </para>
+         </refsect2>
+         <refsect2>
+            <title>Protected members</title>
+            <para>
+                Protected member functions are utilities that area
+                available to derived classes.  Note that since the
+                <classname>CRingSelectionPredicate</classname> class is
+                an abstract base class, there can never be instances of it.
+            </para>
+            <methodsynopsis>
+                <modifier>protected</modifier>
+                <type>void</type> <methodname>addSelectionItem</methodname>
+                <methodparam>
+                    <type>uint32_t</type> <parameter>type</parameter>
+                </methodparam>
+                <methodparam>
+                    <type>bool</type> <parameter>sample</parameter><initializer> false</initializer>
+                </methodparam>
+            </methodsynopsis>
+            <para>
+                Adds an item <parameter>type</parameter> and <parameter>sample</parameter>
+                flag to the set of type/flag pairs maintained by this base class.
+                As the actual interpretation of this list is partially up to
+                the <methodname>selectThis</methodname> method, this is not exposed
+                to the public. Concrete class implementations are expected to provide
+                an appropriately named member function that delegates to this.
+            </para>
+            <methodsynopsis>
+                <modifier>protected</modifier>
+                <type>SelectionMapIterator</type> <methodname>find</methodname>
+                <methodparam><type>uint32_t</type> <parameter>type</parameter></methodparam>
+            </methodsynopsis>
+            <para>
+                Locates <parameter>type</parameter> in the list of type/flag pairs.
+                Returns a pointer like object <type>SelectionMapIterator</type>.
+                This 'points' to a <type>std::pair&lt;uint32_t, ItemType&gt;</type>.
+                If the item is not found, the iterator will compare as
+                <literal>==</literal> to the value returned from
+                <methodname>end</methodname>.
+            </para>
+            <methodsynopsis>
+                <modifier>protected</modifier>
+                <type>SelectionMapIterator</type>
+                <methodname>end</methodname>
+                <void />
+            </methodsynopsis>
+            <para>
+                Returns the value that <methodname>find</methodname> returns if
+                the item type searched for is not found.
+            </para>
+            <methodsynopsis>
+                <modifier>protected</modifier>
+                <type>uint32_t</type> <methodname>longswap</methodname>
+                <methodparam>
+                    <type>uint32_t</type> <parameter>input</parameter>
+                </methodparam>
+            </methodsynopsis>
+            <para>
+                Swaps bytes in the longword <parameter>input</parameter> and
+                returns the result.
+            </para>
+            <methodsynopsis>
+                <modifier>protected</modifier>
+                <type>void</type> <methodname>addSelectionItems</methodname>
+                <methodparam>
+                    <type>std::vector&lt;ItemType&gt;</type> <parameter>selections</parameter>
+                </methodparam>
+            </methodsynopsis>
+            <para>
+                Calls <methodname>addSelectionItem</methodname> once for each item
+                in <parameter>selections</parameter>.
+            </para>
+         </refsect2>
+      </refsect1>
+      <refsect1>
+         <title>Types and public data</title>
+         <para>
+            While the class does not export any public data or data types,
+            it does provide several protected data types that are important
+            to know about if you are deriving a class from
+            <classname>CRingSelectionPredicate</classname>.  All of the type
+            names are in the scope of <classname>CRingSelectionPredicate</classname>::.
+         </para>
+         <variablelist>
+            <varlistentry>
+                <term><structname>ItemType</structname></term>
+                <listitem>
+                    <para>
+                        This is the structure that holds type/value pairs.
+                        It contains the fields
+                        <structfield>s_sampled</structfield>, which is the flag, and
+                        <structfield>s_itemType</structfield>, which is the item
+                        type.
+                    </para>
+                    <para>
+                        While <structfield>s_sampled</structfield> is intended
+                        to convey that tiems of that <structfield>s_itemType</structfield>
+                        should be sampled, this is not required if the concrete class
+                        overrides <methodname>operator()</methodname>
+                    </para>
+                    <para>
+                        This struct supports equality and inequality comparision.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><type>SelectionMap</type></term>
+                <listitem>
+                    <para>
+                        This is a typedef for
+                        <type>std::map&lt;uint32_t, ItemType&gt;</type>.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><type>SelectionMapIterator</type></term>
+                <listitem>
+                    <para>
+                        This is a typedef for
+                        <type>SelectionMap::iterator</type>.
+                    </para>
+                </listitem>
+            </varlistentry>
+         </variablelist>
+      </refsect1>
+   </refentry>
+    <refentry id="manpage.callbutpredicate">
+      <refmeta>
+         <refentrytitle>CAllButPredicate</refentrytitle>
+         <manvolnum>3daq</manvolnum>
+      </refmeta>
+      <refnamediv>
+         <refname>CAllButPredicate</refname>
+	 <refpurpose>Select all ring items except some.</refpurpose>
+      </refnamediv>
+      
+      <refsynopsisdiv>
+         <programlisting>
+#include &lt;CAllButPredicate&gt;
+         </programlisting>
+         <classsynopsis>
+            <ooclass><classname>CAllButPredicate</classname></ooclass>
+            <constructorsynopsis>
+                <methodname>CAllButPredicate</methodname>
+                <void />
+            </constructorsynopsis>
+            <constructorsynopsis>
+                <methodname>CAllButPredicate</methodname>
+                <methodparam>
+                    <type>unsigned int</type> <parameter>nType</parameter>
+                </methodparam>
+                <methodparam>
+                    <type>uint32_t*</type> <parameter>types</parameter>
+                </methodparam>
+            </constructorsynopsis>
+            <constructorsynopsis>
+                <methodname>CAllButPredicate</methodname>
+                <methodparam>
+                    <type>unsigned int</type> <parameter>nType</parameter>
+                </methodparam>
+                <methodparam>
+                    <type>uint32_t*</type> <parameter>types</parameter>
+                </methodparam>
+                <methodparam>
+                    <type>bool*</type> <parameter>sample</parameter>
+                </methodparam>
+            </constructorsynopsis>
+            <constructorsynopsis>
+                <methodname>CAllButPredicate</methodname>
+                <methodparam>
+                    <modifier>const</modifier> <type>CAllButPredicate&amp;</type> <parameter>rhs</parameter>
+                </methodparam>
+            </constructorsynopsis>
+            <destructorsynopsis>
+                <modifier>virtual</modifier>
+                <methodname>~CAllButPredicate</methodname> <void />
+            </destructorsynopsis>
+            <methodsynopsis>
+                <type>CAllButPredicate&amp;</type>
+                <methodname>operator=</methodname>
+                <methodparam>
+                    <modifier>const</modifier> <type>CAllButPredicate&amp;</type>
+                                               <parameter>rhs</parameter>
+                </methodparam>
+            </methodsynopsis>
+            <methodsynopsis>
+                <type>int</type> <methodname>operator==</methodname>
+                <methodparam>
+                    <modifier>const</modifier> <type>CAllButPredicate&amp;</type> <parameter>rhs</parameter>
+                </methodparam>
+                <modifier>const</modifier>
+            </methodsynopsis>
+            <methodsynopsis>
+                <type>int</type> <methodname>operator!=</methodname>
+                <methodparam>
+                    <modifier>const</modifier> <type>CAllButPredicate&amp;</type> <parameter>rhs</parameter>
+                </methodparam>
+                <modifier>const</modifier>
+            </methodsynopsis>
+            <methodsynopsis>
+                <type>void</type> <methodname>addExceptionType</methodname>
+                <methodparam>
+                    <type>uint32_t</type>
+                    <parameter>type</parameter>
+                </methodparam>
+                <methodparam>
+                    <type>bool</type> <parameter>sample</parameter><initializer>false</initializer>
+                </methodparam>
+            </methodsynopsis>
+            <methodsynopsis>
+                <modifier>virtual</modifier> <type>bool</type> <methodname>selectThis</methodname>
+                <methodparam>
+                    <type>uint32_t</type> <parameter>type</parameter>
+                </methodparam>
+            </methodsynopsis>
+         </classsynopsis>
+      </refsynopsisdiv>
+      <refsect1>
+         <title>Description</title>
+         <para>
+            <classname>CAllButPredicate</classname> is a ring selection predicate
+            whose list of type/flag pairs are treated as exceptions to the rule
+            that all types are wanted with no sampling.
+         </para>
+         <para>
+            If an item is in the exception list and has the flag false, it will
+            be skipped by the predicate when encountered in the ring buffe while
+            blocking on the predicate.  If an item is in the exception ilst, but
+            the flag is true, the item will be skipped unless it's the last one
+            in the ring buffer.  Any item not in the list is accepted.
+         </para>
+      </refsect1>
+      <refsect1>
+        <title>
+            Public member functions
+        </title>
+            <constructorsynopsis>
+               <methodname>CAllButPredicate</methodname>
+               <void />
+           </constructorsynopsis>
+            <para>
+                Constructs the predicate.  When constructed in this way,
+                all ring buffer item types are accepted without sampling unless
+                the application makes a subsequent call to
+                <methodname>addExceptionType</methodname>.
+            </para>
+           <constructorsynopsis>
+               <methodname>CAllButPredicate</methodname>
+               <methodparam>
+                   <type>unsigned int</type> <parameter>nType</parameter>
+               </methodparam>
+               <methodparam>
+                   <type>uint32_t*</type> <parameter>types</parameter>
+               </methodparam>
+           </constructorsynopsis>
+           <para>
+            Constructs the predicate so that the <parameter>nType</parameter>
+            parameters in the array <parameter>types</parameter> of item types
+            are not skipped by the predicate.
+           </para>
+           <constructorsynopsis>
+               <methodname>CAllButPredicate</methodname>
+               <methodparam>
+                   <type>unsigned int</type> <parameter>nType</parameter>
+               </methodparam>
+               <methodparam>
+                   <type>uint32_t*</type> <parameter>types</parameter>
+               </methodparam>
+               <methodparam>
+                   <type>bool*</type> <parameter>sample</parameter>
+               </methodparam>
+           </constructorsynopsis>
+           <para>
+            Constructs the predicate so that the <parameter>nType</parameter>
+            exceptions described by <parameter>types</parameter> and
+            <parameter>sample</parameter> are either skipped (if their
+            <parameter>sample</parameter> element is <literal>false</literal>,
+            or sampled if their <parameter>sample</parameter> element is true.
+           </para>
+           <constructorsynopsis>
+               <methodname>CAllButPredicate</methodname>
+               <methodparam>
+                   <modifier>const</modifier> <type>CAllButPredicate&amp;</type> <parameter>rhs</parameter>
+               </methodparam>
+           </constructorsynopsis>
+           <para>
+            Supports copy construction of the predicate.
+           </para>
+           <methodsynopsis>
+               <type>CAllButPredicate&amp;</type>
+               <methodname>operator=</methodname>
+               <methodparam>
+                   <modifier>const</modifier> <type>CAllButPredicate&amp;</type>
+                                              <parameter>rhs</parameter>
+               </methodparam>
+           </methodsynopsis>
+           <para>
+            Supports assignment of the predicate.
+           </para>
+           <methodsynopsis>
+               <type>int</type> <methodname>operator==</methodname>
+               <methodparam>
+                   <modifier>const</modifier> <type>CAllButPredicate&amp;</type> <parameter>rhs</parameter>
+               </methodparam>
+               <modifier>const</modifier>
+           </methodsynopsis>
+           <para>
+            Supports testing for equality of the predicate with another.
+           </para>
+           <methodsynopsis>
+               <type>int</type> <methodname>operator!=</methodname>
+               <methodparam>
+                   <modifier>const</modifier> <type>CAllButPredicate&amp;</type> <parameter>rhs</parameter>
+               </methodparam>
+               <modifier>const</modifier>
+           </methodsynopsis>
+           <para>
+            Supports testing for inequality between the predicate and another.
+           </para>
+           <methodsynopsis>
+               <type>void</type> <methodname>addExceptionType</methodname>
+               <methodparam>
+                   <type>uint32_t</type>
+                   <parameter>type</parameter>
+               </methodparam>
+               <methodparam>
+                   <type>bool</type> <parameter>sample</parameter><initializer>false</initializer>
+               </methodparam>
+           </methodsynopsis>
+            <para>
+                Adds an excpetion to the list of exceptions to the rule that
+                all item types are accepted without sampling.  If
+                <parameter>sample</parameter> is <literal>false</literal>,
+                ring items of type <parameter>type</parameter> will be skipped.
+                If <parameter>sample</parameter> is <literal>true</literal>
+                Items of that type will be sampled.
+            </para>
+            <para>
+                Specifying a type already in the exculsion list will
+                overwrite the existing definition (e.g. you can change
+                the state of the sampling flag).  It is not possible, however
+                to remove an entry from the exception list.
+            </para>
+      </refsect1>
+
+   </refentry>
+    <refentry id="manpage.cdesiredtypespredicate">
+      <refmeta>
+         <refentrytitle>CDesiredTypesPredicate</refentrytitle>
+         <manvolnum>3daq</manvolnum>
+      </refmeta>
+      <refnamediv>
+         <refname>CDesiredTypesPredicate</refname>
+	 <refpurpose>Only accept specified ring item types.</refpurpose>
+      </refnamediv>
+      
+      <refsynopsisdiv>
+         <programlisting>
+#include &lt;CDesiredTypesPredicate&gt;
+         </programlisting>
+         <classsynopsis>
+            <ooclass><classname>CDesiredTypesPredicate</classname></ooclass>
+            <constructorsynopsis>
+                <methodname>CDesiredTypesPredicate</methodname> <void />
+            </constructorsynopsis>
+            <constructorsynopsis>
+                <methodname>CDesiredTypesPredicate</methodname>
+                <methodparam>
+                    <type>unsigned int</type> <parameter>nType</parameter>
+                </methodparam>
+                <methodparam>
+                    <type>uint32_t*</type> <parameter>types</parameter>
+                </methodparam>
+            </constructorsynopsis>
+            <constructorsynopsis>
+                <methodname>CDesiredTypesPredicate</methodname>
+                <methodparam>
+                    <type>unsigned int</type> <parameter>nType</parameter>
+                </methodparam>
+                <methodparam>
+                    <type>uint32_t*</type> <parameter>types</parameter>
+                </methodparam>
+                <methodparam>
+                    <type>bool*</type> <parameter>sample</parameter>
+                </methodparam>
+            </constructorsynopsis>
+            <constructorsynopsis>
+                <methodname>CDesiredTypesPredicate</methodname>
+                <methodparam>
+                    <modifier>const</modifier> <type>CDesiredTypesPredicate&amp;</type>
+                                               <parameter>rhs</parameter>
+                </methodparam>
+            </constructorsynopsis>
+            <destructorsynopsis>
+                <modifier>virtual</modifier> <methodname>~CDesiredTypesPredicate</methodname>
+                                             <void />
+            </destructorsynopsis>
+            <methodsynopsis>
+                <type>CDesiredTypesPredicate&amp;</type> <methodname>operator=</methodname>
+                <methodparam>
+                    <modifier>const</modifier> <type>CDesiredTypesPredicate&amp;</type>
+                                               <parameter>rhs</parameter>
+                </methodparam>
+            </methodsynopsis>
+            <methodsynopsis>
+                <type>int</type> <methodname>operator==</methodname>
+                <methodparam>
+                    <modifier>const</modifier>
+                    <type>CDesiredTypesPredicate&amp;</type> <parameter>rhs</parameter>
+                </methodparam>
+                <modifier>const</modifier>
+            </methodsynopsis>
+            <methodsynopsis>
+                <type>int</type>
+                <methodname>operator!=</methodname>
+                <methodparam>
+                    <modifier>const</modifier> <type>CDesiredTypesPredicate&amp;</type>
+                    <parameter>rhs</parameter>
+                </methodparam>
+                <modifier>const</modifier>
+            </methodsynopsis>
+            <methodsynopsis>
+                <type>void</type>
+                <methodname>addDesiredType</methodname>
+                <methodparam>
+                    <type>uint32_t</type> <parameter>type</parameter>
+                </methodparam>
+                <methodparam>
+                    <type>bool</type> <parameter>sample</parameter><initializer>false</initializer>
+                </methodparam>
+            </methodsynopsis>
+
+         </classsynopsis>
+      </refsynopsisdiv>
+      <refsect1>
+         <title>Description</title>
+         <para>
+            The <classname>CDesiredTypes</classname> predicate is a ring item
+            type selector that skips all ring item types except those in its
+            item/flag list.  The flag determines if the data for that item type are
+            sampled (if <literal>true</literal>) or if all items of that type are
+            accepted (if <literal>false</literal>).
+         </para>
+         <para>
+            <methodname>addDesiredType</methodname> is used to build up the list
+            of desired item types. 
+         </para>
+      </refsect1>
+      <refsect1>
+         <title>
+            Public member functions
+         </title>
+        <constructorsynopsis>
+            <methodname>CDesiredTypesPredicate</methodname> <void />
+        </constructorsynopsis>
+        <para>
+            Constructs the predicate with an empty list of desired types.
+            If no types are added via <methodname>addDesiredType</methodname>,
+            the predicate will skip all of the data in the ring
+            (not very useful).
+        </para>  
+        <constructorsynopsis>
+            <methodname>CDesiredTypesPredicate</methodname>
+            <methodparam>
+                <type>unsigned int</type> <parameter>nType</parameter>
+            </methodparam>
+            <methodparam>
+                <type>uint32_t*</type> <parameter>types</parameter>
+            </methodparam>
+        </constructorsynopsis>
+        <para>
+            Constructs the predicate with <parameter>nType</parameter> types
+            in its acceptance list.  These types are specified in the
+            array <parameter>types</parameter>.  The sample flags on all of these
+            types is set to <literal>false</literal>
+            so that all items of these types are accepted.
+        </para>
+        <constructorsynopsis>
+            <methodname>CDesiredTypesPredicate</methodname>
+            <methodparam>
+                <type>unsigned int</type> <parameter>nType</parameter>
+            </methodparam>
+            <methodparam>
+                <type>uint32_t*</type> <parameter>types</parameter>
+            </methodparam>
+            <methodparam>
+                <type>bool*</type> <parameter>sample</parameter>
+            </methodparam>
+        </constructorsynopsis>
+        <para>
+            Same as the previous constructor, however the sample flags for
+            each item type are explicitly specified by the
+            <parameter>sample</parameter>
+            array.
+        </para>
+        <constructorsynopsis>
+            <methodname>CDesiredTypesPredicate</methodname>
+            <methodparam>
+                <modifier>const</modifier> <type>CDesiredTypesPredicate&amp;</type>
+                                           <parameter>rhs</parameter>
+            </methodparam>
+        </constructorsynopsis>
+        <para>
+            Provides support for creating a new predicate by copying a previously
+            existing one.
+        </para>
+        <methodsynopsis>
+            <type>CDesiredTypesPredicate&amp;</type> <methodname>operator=</methodname>
+            <methodparam>
+                <modifier>const</modifier> <type>CDesiredTypesPredicate&amp;</type>
+                                           <parameter>rhs</parameter>
+            </methodparam>
+        </methodsynopsis>
+        <para>
+            Provides support for replacing the acceptance list of an existing
+            object with the acceptance list of <parameter>rhs</parameter>.
+        </para>
+        <methodsynopsis>
+            <type>int</type> <methodname>operator==</methodname>
+            <methodparam>
+                <modifier>const</modifier>
+                <type>CDesiredTypesPredicate&amp;</type> <parameter>rhs</parameter>
+            </methodparam>
+            <modifier>const</modifier>
+        </methodsynopsis>
+        <para>
+            Provides a mechanism for comparing two predicates for equality.
+        </para>
+        <methodsynopsis>
+            <type>int</type>
+            <methodname>operator!=</methodname>
+            <methodparam>
+                <modifier>const</modifier> <type>CDesiredTypesPredicate&amp;</type>
+                <parameter>rhs</parameter>
+            </methodparam>
+            <modifier>const</modifier>
+        </methodsynopsis>
+        <para>
+            Provides the mechanism for comparing two predicates for inequality.
+        </para>
+        <methodsynopsis>
+            <type>void</type>
+            <methodname>addDesiredType</methodname>
+            <methodparam>
+                <type>uint32_t</type> <parameter>type</parameter>
+            </methodparam>
+            <methodparam>
+                <type>bool</type> <parameter>sample</parameter><initializer>false</initializer>
+            </methodparam>
+        </methodsynopsis>
+        <para>
+            Adds a type to the set of item types that  may be accepteed by the
+            predicate.  <parameter>type</parameter> is the type id, and
+            <parameter>sample</parameter> the flag that determines if the types
+            are accepted in sampled mode.
+        </para>
+      </refsect1>
+   </refentry>
+
+<!-- /manpage  -->
