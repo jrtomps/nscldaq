@@ -101,6 +101,11 @@ public:
 
   static CRingItem* getFromRing(CRingBuffer& ring, CRingSelectionPredicate& predicate);
 
+  // Utilities anyone might want:
+
+protected:
+  static uint32_t  swal(uint32_t datum); // Swap the bytes in a longword.
+
   // Utilities.
 private:
   void copyIn(const CRingItem& rhs);

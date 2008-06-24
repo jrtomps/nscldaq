@@ -1,4 +1,4 @@
-SUBDIRS =	base servers utilities docbuild docconfig
+SUBDIRS =	base/CopyrightTools base/exception base/tclplus servers base  utilities docbuild docconfig
 
 install-data-local:
 	$(mkinstalldirs) @prefix@/TclLibs
