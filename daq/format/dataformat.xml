@@ -200,6 +200,20 @@
                                     </para>
                                 </listitem>
                             </varlistentry>
+                            <varlistentry>
+                                <term><varname>PHYSICS_EVENT_COUNT</varname></term>
+                                <listitem>
+                                    <para>
+                                        Periodically emitted to tell clients how
+                                        many <varname>PHYSICS_EVENT</varname>
+                                        items have been inserted in the
+                                        ring.  This is can be used to
+                                        determine sampling efficiency for
+                                        analysis consumers, as well as to
+                                        compute event rates.
+                                    </para>
+                                </listitem>
+                            </varlistentry>
                         </variablelist>
                     </listitem>
                 </varlistentry>        
@@ -465,6 +479,19 @@
                 from the event.
             </para>
 
+        </section>
+        <section>
+            <title>Event count items</title>
+            <para>
+                These items are of type <structname>PhysicsEventCountItem</structname>.
+                <type>uint32_t</type> <structfield>s_timeOffset</structfield> is
+                the number of seconds into the active run the event occured.
+                <type>time_t</type> <structfield>s_timesamp</structfield>
+                is the absolute timestamp indicating when this item was created.
+                <type>uint64_t</type> <structfield>s_eventCount</structfield> is
+                the total number of events that have been contributed to this
+                ring for this run.
+            </para>
         </section>
             
     </section>
@@ -2205,6 +2232,304 @@ item.commitToRing(aring);
       </refsect1>
 
    </refentry>
+    <refentry id="manpage.cringphysicseventcountitem">
+      <refmeta>
+         <refentrytitle>CRingPhysicsEventCountItem</refentrytitle>
+         <manvolnum>3daq</manvolnum>
+      </refmeta>
+      <refnamediv>
+         <refname>CRingPhysicsEventCountItem</refname>
+	 <refpurpose>Provides statistics regarding the number of events produced.</refpurpose>
+      </refnamediv>
+      
+      <refsynopsisdiv>
+         <programlisting>
+#include &lt;CRingPhysicsEventCountItem.h&gt;
+         </programlisting>
+         <classsynopsis>
+            <ooclass><classname>CRingPhysicsEventCountItem</classname></ooclass>
+            <constructorsynopsis>
+                <methodname>CRingPhysicsEventCountItem</methodname>
+                <void />
+            </constructorsynopsis>
+            <constructorsynopsis>
+                <methodname>CRingPhysicsEventCountItem</methodname>
+                <methodparam>
+                    <type>uint64_t</type> <parameter>count</parameter>
+                </methodparam>
+                <methodparam>
+                    <type>uint32_t</type> <parameter>timeOffset</parameter>
+                </methodparam>
+            </constructorsynopsis>
+            <constructorsynopsis>
+                <methodname>CRingPhysicsEventCountItem</methodname>
+                <methodparam>
+                    <type>uint64_t</type> <parameter>count</parameter>
+                </methodparam>
+                <methodparam>
+                    <type>uint32_t</type> <parameter>timeoffset</parameter>
+                </methodparam>
+                <methodparam>
+                    <type>time_t</type> <parameter>stamp</parameter>
+                </methodparam>
+            </constructorsynopsis>
+            <constructorsynopsis>
+                <methodname>CRingPhysicsEventCountItem</methodname>
+                <methodparam>
+                    <modifier>const</modifier> <type>CRingItem&amp;</type>
+                                               <parameter>rhs</parameter>
+                </methodparam>
+                <exceptionname>std::bad_cast</exceptionname>
+            </constructorsynopsis>
+            <constructorsynopsis>
+                <methodname>CRingPhysicsEventCountItem</methodname>
+                <methodparam>
+                    <modifier>const</modifier> <type>CRingPhysicsEventCountItem&amp;</type>
+                                               <parameter>rhs</parameter>
+                </methodparam>
+            </constructorsynopsis>
+            <destructorsynopsis>
+                <modifier>virtual</modifier>
+                <methodname>~CRingPhysicsEventCountItem</methodname>
+                <void />
+            </destructorsynopsis>
+            <methodsynopsis>
+                <type>CRingPhysicsEventCountItem&amp;</type>
+                <methodname>operator=</methodname>
+                <methodparam>
+                    <modifier>const</modifier> <type>CRingPhysicsEventCountItem&amp;</type>
+                                               <parameter>rhs</parameter>
+                </methodparam>
+            </methodsynopsis>
+            <methodsynopsis>
+                <type>int</type> <methodname>operator==</methodname>
+                <methodparam>
+                    <modifier>const</modifier> <type>CRingPhysicsEventCountItem&amp;</type>
+                                               <parameter>rhs</parameter>
+                </methodparam>
+                <modifier>const</modifier>
+            </methodsynopsis>
+            <methodsynopsis>
+                <type>int</type> <methodname>operator!=</methodname>
+                <methodparam>
+                    <modifier>const</modifier> <type>CRingPhysicsEventCountItem&amp;</type>
+                                               <parameter>rhs</parameter>
+                </methodparam>
+                <modifier>const</modifier>
+            </methodsynopsis>
+            <methodsynopsis>
+                <type>uint32_t</type> <methodname>getTimeOffset</methodname>
+                                      <void /> <modifier>const</modifier>
+            </methodsynopsis>
+            <methodsynopsis>
+                <type>void</type> <methodname>setTimeOffset</methodname>
+                <methodparam>
+                    <type>uint32_t</type> <parameter>offset</parameter>
+                </methodparam>
+            </methodsynopsis>
+            <methodsynopsis>
+                <type>time_t</type>   <methodname>getTimestamp</methodname>
+                                      <void />
+                                      <modifier>const</modifier>
+            </methodsynopsis>
+            <methodsynopsis>
+                <type>void</type>     <methodname>setTimestamp</methodname>
+                <methodparam>
+                    <type>time_t</type> <parameter>stamp</parameter>
+                </methodparam>
+            </methodsynopsis>
+            <methodsynopsis>
+                <type>uint64_t</type> <methodname>getEventCount</methodname>
+                                      <void /><modifier>const</modifier>
+            </methodsynopsis>
+            <methodsynopsis>
+                <type>void</type>     <methodname>setEventCount</methodname>
+                <methodparam>
+                    <type>uint64_t</type> <parameter>count</parameter>
+                </methodparam>
+            </methodsynopsis>
+
+
+         </classsynopsis>
+      </refsynopsisdiv>
+      <refsect1>
+         <title>Description</title>
+         <para>
+            This class encapsulates the
+            <type>PhysicsEventCountItem</type> ring item.  That item is used
+            to indicate how many events have been acquired so far this run.
+            Timestamps and run time offset allow this to be used to compute
+            trigger rates.   Clients that need to know the fraction of
+            <varname>PHYSICS_EVENT</varname> items they are receiving
+            can also use this.
+         </para>
+      </refsect1>
+      <refsect1>
+         <title>
+            Public member functions
+         </title>
+        <constructorsynopsis>
+            <methodname>CRingPhysicsEventCountItem</methodname>
+            <void />
+        </constructorsynopsis>
+        <para>
+            Default constructor.  The event count and time offset will be
+            zeroed.  The timestamp will be the time the constructor was called.
+        </para>
+        <constructorsynopsis>
+            <methodname>CRingPhysicsEventCountItem</methodname>
+            <methodparam>
+                <type>uint64_t</type> <parameter>count</parameter>
+            </methodparam>
+            <methodparam>
+                <type>uint32_t</type> <parameter>timeOffset</parameter>
+            </methodparam>
+        </constructorsynopsis>
+        <para>
+            Constructs an event count item which is initialized with the
+            specified <parameter>count</parameter> of triggers and is
+            said to have occured <parameter>timeOffset</parameter> seconds
+            into the run.
+        </para>
+        <constructorsynopsis>
+            <methodname>CRingPhysicsEventCountItem</methodname>
+            <methodparam>
+                <type>uint64_t</type> <parameter>count</parameter>
+            </methodparam>
+            <methodparam>
+                <type>uint32_t</type> <parameter>timeoffset</parameter>
+            </methodparam>
+            <methodparam>
+                <type>time_t</type> <parameter>stamp</parameter>
+            </methodparam>
+        </constructorsynopsis>
+        <para>
+            Same as the previous constructor with the added initialization of
+            the item's timestamp to <parameter>stamp</parameter>.
+        </para>
+        <constructorsynopsis>
+            <methodname>CRingPhysicsEventCountItem</methodname>
+            <methodparam>
+                <modifier>const</modifier> <type>CRingItem&amp;</type>
+                                           <parameter>rhs</parameter>
+            </methodparam>
+            <exceptionname>std::bad_cast</exceptionname>
+        </constructorsynopsis>
+        <para>
+            Constructs an event count item from an existing ring item;
+            <parameter>rhs</parameter>.
+            If <parameter>rhs</parameter> is not of type
+            <literal>PHYSICS_EVENT_COUNT</literal>, a
+            <classname>std::bad_cast</classname> exception is thrown.
+        </para>
+        <constructorsynopsis>
+            <methodname>CRingPhysicsEventCountItem</methodname>
+            <methodparam>
+                <modifier>const</modifier> <type>CRingPhysicsEventCountItem&amp;</type>
+                                           <parameter>rhs</parameter>
+            </methodparam>
+        </constructorsynopsis>
+        <para>
+            Provides support for copy construction.
+        </para>
+        <methodsynopsis>
+            <type>CRingPhysicsEventCountItem&amp;</type>
+            <methodname>operator=</methodname>
+            <methodparam>
+                <modifier>const</modifier> <type>CRingPhysicsEventCountItem&amp;</type>
+                                           <parameter>rhs</parameter>
+            </methodparam>
+        </methodsynopsis>
+        <para>
+            Provides support for assignment of another event count item,
+            <parameter>rhs</parameter> to the object.
+        </para>
+        <methodsynopsis>
+            <type>int</type> <methodname>operator==</methodname>
+            <methodparam>
+                <modifier>const</modifier> <type>CRingPhysicsEventCountItem&amp;</type>
+                                           <parameter>rhs</parameter>
+            </methodparam>
+            <modifier>const</modifier>
+        </methodsynopsis>
+        <para>
+            Provides support for comparing two event count items to each other
+            for functional equality.
+        </para>
+        <methodsynopsis>
+            <type>int</type> <methodname>operator!=</methodname>
+            <methodparam>
+                <modifier>const</modifier> <type>CRingPhysicsEventCountItem&amp;</type>
+                                           <parameter>rhs</parameter>
+            </methodparam>
+            <modifier>const</modifier>
+        </methodsynopsis>
+        <para>
+            Compares two items for functional equality and returns the logical
+            inverse of the result.
+        </para>
+        <methodsynopsis>
+            <type>uint32_t</type> <methodname>getTimeOffset</methodname>
+                                  <void /> <modifier>const</modifier>
+        </methodsynopsis>
+        <para>
+            Returns the current value of the time offset field of the item.
+        </para>
+        <methodsynopsis>
+            <type>void</type> <methodname>setTimeOffset</methodname>
+            <methodparam>
+                <type>uint32_t</type> <parameter>offset</parameter>
+            </methodparam>
+        </methodsynopsis>
+        <para>
+            Sets the value of the time offset field of the item to
+            <parameter>offset</parameter>.
+        </para>
+        <methodsynopsis>
+            <type>time_t</type>   <methodname>getTimestamp</methodname>
+                                  <void />
+                                  <modifier>const</modifier>
+        </methodsynopsis>
+        <para>
+            Returns the current timestamp of the item.
+        </para>
+        <methodsynopsis>
+            <type>void</type>     <methodname>setTimestamp</methodname>
+            <methodparam>
+                <type>time_t</type> <parameter>stamp</parameter>
+            </methodparam>
+        </methodsynopsis>
+        <para>
+            Sets the object's absolute timestamp to <parameter>stamp</parameter>.
+        </para>
+        <methodsynopsis>
+            <type>uint64_t</type> <methodname>getEventCount</methodname>
+                                  <void /><modifier>const</modifier>
+        </methodsynopsis>
+        <para>
+            Returns the count of the number of eveents that have been
+            accepted in the run so far (according to this item).
+        </para>
+        <methodsynopsis>
+            <type>void</type>     <methodname>setEventCount</methodname>
+            <methodparam>
+                <type>uint64_t</type> <parameter>count</parameter>
+            </methodparam>
+        </methodsynopsis>
+        <para>
+            Sets the event count field of the item to <parameter>count</parameter>.
+        </para>
+      </refsect1>
+      <refsect1>
+         <title>Exceptions</title>
+         <para>
+            <type>std::bad_cast</type> is thrown on an attempt to construct
+            an event count item out of an item that is not of type
+            <literal>PHYSICS_EVENT_COUNT</literal>.
+         </para>
+      </refsect1>
+   </refentry>
+
     <refentry id="manpage.cringselectionpredicate">
       <refmeta>
          <refentrytitle>CRingSelectionPredicate</refentrytitle>
