@@ -80,6 +80,7 @@ static const uint32_t INCREMENTAL_SCALERS(20);
 // Physics events:
 
 static const uint32_t PHYSICS_EVENT(30);
+static const uint32_t PHYSICS_EVENT_COUNT(31);
 
 // User defined item codes
 
@@ -152,7 +153,7 @@ typedef struct _TextItem {
 } TextItem, *pTextItem;
 
 /*!
-  For now a physics event is just a heder and a body of uint16_t's.
+  For now a physics event is just a header and a body of uint16_t's.
 */
 
 typedef struct _PhysicsEventItem {
@@ -160,6 +161,17 @@ typedef struct _PhysicsEventItem {
   uint16_t       s_body[1];
 } PhysicsEventItem, *pPhysicsEventItem;
 
+/*!
+   Clients that sample physics events will often
+   need to know how many physics events have been produced
+   so that they can figure out the sampling fraction.
+*/
+typedef struct __PhysicsEventCountItem {
+  RingItemHeader s_header;
+  uint32_t       s_timeOffset;
+  time_t         s_timestamp;
+  uint64_t       s_eventCount;	/* Maybe 4Gevents is too small ;-) */
+} PhysicsEventCountItem, *pPhysicsEventCountItem;
 
 
 #endif
