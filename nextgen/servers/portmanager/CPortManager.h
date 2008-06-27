@@ -44,50 +44,53 @@ struct sockaddr_in;
 
 class CPortManager {
 public:
-	//! portInfo lists the information about a single port.
-	typedef struct _portInfo {
-		int         s_Port;                 //!< Number of a port.
-		std::string s_Application;          //!< Application owning the port.
-		std::string s_User;					//!< User running the application
-	} portInfo;
+  //! portInfo lists the information about a single port.
+  typedef struct _portInfo {
+    int         s_Port;                 //!< Number of a port.
+    std::string s_Application;          //!< Application owning the port.
+    std::string s_User;					//!< User running the application
+  } portInfo;
 private:
-	std::string     m_sHost;                //!< Host we're talking to
-	int             m_nPort;                //!< Port to connect to.
-	bool            m_fisConnected;         //!< holding persistent connection?
-	int             m_nSocket;              //!< current socket.
-
-    // Construction:
+  std::string     m_sHost;                //!< Host we're talking to
+  int             m_nPort;                //!< Port to connect to.
+  bool            m_fisConnected;         //!< holding persistent connection?
+  int             m_nSocket;              //!< current socket.
+  
+  // Construction:
 public:   
-    CPortManager(std::string host = std::string("localhost"));
-    CPortManager(std::string host, int Port);
-    ~CPortManager();
-    
-    // Cannonical operations:
-    
-    // Copy construction is illegal.
+  CPortManager(std::string host = std::string("localhost"));
+  CPortManager(std::string host, int Port);
+  ~CPortManager();
+  
+  // Cannonical operations:
+  
+  // Copy construction is illegal.
 private:
-	CPortManager(const CPortManager& rhs);
-	CPortManager& operator=(const CPortManager& rhs);
+  CPortManager(const CPortManager& rhs);
+  CPortManager& operator=(const CPortManager& rhs);
 public:
-	// But comparison does make sense.
-	
-	int operator==(const CPortManager& rhs) const;
-	int operator!=(const CPortManager& rhs) const;
-	
-    // Class operations:
+  // But comparison does make sense.
+  
+  int operator==(const CPortManager& rhs) const;
+  int operator!=(const CPortManager& rhs) const;
+  
+  // Class operations:
 public:
-    int allocatePort(std::string application);
-    std::vector<portInfo> getPortUsage();
-	// Utility functions
+  int allocatePort(std::string application);
+  std::vector<portInfo> getPortUsage();
+
+  static std::string GetUsername();
+
+
+  // Utility functions
 private:
-	void Connect(); 
-	void Disconnect();
-	static int DetermineDefaultPort();
-	void GetNetworkAddress(sockaddr_in& addr) const;
-	std::string GetLine() const;
-	void    GetPortInfo(portInfo& info, std::string line);
-	static std::string GetUsername();
-	static int tcp();
+  void Connect(); 
+  void Disconnect();
+  static int DetermineDefaultPort();
+  void GetNetworkAddress(sockaddr_in& addr) const;
+  std::string GetLine() const;
+  void    GetPortInfo(portInfo& info, std::string line);
+  static int tcp();
 };
 
 #endif
