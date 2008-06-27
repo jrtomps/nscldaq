@@ -84,42 +84,59 @@ bool userauth=true;		// Require user authentication.
 ** GetServerPort:  Search for -pnum and if present, modify serverport
 **
 */
-
 static void GetServerPort(int argc, char** argv)
 {
   cerr << "Getserver port\n";
   argc--; argv++;
   string AppName("TclServer");
+  string thePort = "";
+
+  int    port;
   for(int i =0; i < argc; i++) {
     string param(argv[i]);
     cerr << "Processing parameter: '" << param << "'\n";
     if( (param[0] == '-') && (param[1] == 'a')) {
+      cerr << "Setting appname. \n";
       AppName.assign(param, 2, param.size()-1);
+      cerr << "Appname is now: " << AppName << endl;
     }
     if (param == "-userauth") {
       cerr << "Setting userauth true\n";
       userauth = true;
     }
-    if((param[0] == '-') && (param[1] == 'p')) {
-      int port;
-      if(param == string("-pManaged")) {
-	CPortManager manager("localhost");
-	serverport = manager.allocatePort(AppName);
-      } 
-      else {
-	if(sscanf(param.c_str(), "-p%d", &port) != 1) {
-	  fprintf(stderr, 
-		  "Warning ignored improperly formatted port switch: '%s'\n",
-		  param.c_str());
-	} else
-	  serverport = port;
-      }
+    if ((param[0] == '-') && (param[1] == 'p')) {
+      thePort.assign(param, 2, param.size() - 1);
     }
+
   }
 
+  // Now assign the port pased on the values of thePort and
+  // if needed appname:
 
+  // Empty port : default value:
 
+  if (thePort == "") {
+    return;
+  }
+  // Port == Managed - use the port manager:
+
+  if (thePort == string("Managed")) {
+    CPortManager manager("localhost");
+    cerr << "Allocating a port for " << AppName << endl;
+    serverport = manager.allocatePort(AppName);
+    return;
+  }
+
+  // Otherwise needs to be a number:
+  
+  if(sscanf(thePort.c_str(), "-p%d", &port) != 1) {
+    fprintf(stderr, 
+	    "Warning ignored improperly formatted port switch: '%s'\n",
+	    thePort.c_str());
+  } else
+    serverport = port;
 }
+
 int
 main(int argc,char** argv)
 {
