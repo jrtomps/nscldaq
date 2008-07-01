@@ -18,8 +18,52 @@
 #include "StringsToIntegers.h"
 #include <stdio.h>
 #include <stdlib.h>
+#include <DataFormat.h>
+
+#include <map>
 
 using namespace std;
+
+static bool initialized = false;
+static map<string, int>   textToInt;
+
+
+static void initialize()
+{
+  textToInt["BEGIN_RUN"]           = BEGIN_RUN;
+  textToInt["END_RUN"]             = END_RUN;
+  textToInt["PAUSE_RUN"]           = PAUSE_RUN;
+  textToInt["RESUME_RUN"]          = RESUME_RUN;
+  textToInt["PACKET_TYPE"]         = PACKET_TYPES;
+  textToInt["MONITORED_VARIABLES"] = MONITORED_VARIABLES;
+  textToInt["INCREMENTAL_SCALERS"] = INCREMENTAL_SCALERS;
+  textToInt["PHYSICS_EVENT"]       = PHYSICS_EVENT;
+  textToInt["PHYSICS_EVENT_COUNT"] = PHYSICS_EVENT_COUNT;
+
+}
+
+// 
+//
+static int
+convertOne(string aNumber)
+{
+  char *end;
+
+  int  value = strtol(aNumber.c_str(), &end, 0);
+  if (*end != '\0') {
+    if (textToInt.find(aNumber) != textToInt.end()) {
+      return textToInt[aNumber];
+    }
+    else {
+      string whyBad  = " must be an integer or a symbolic item type but was ";
+      whyBad        += aNumber;
+      throw CInvalidArgumentException(aNumber, whyBad,
+				      string("Converting a list to integers"));
+    }
+  }
+  return value;
+}
+
 ////////////////////////////////////////////////////////////////////////////////
 /*!
  *  This header rovides an unbound function that takes a comma separated
@@ -41,19 +85,22 @@ stringListToIntegers(string items) throw(CInvalidArgumentException)
 {
     size_t      start = 0;
     vector<int> result;
-    
-    while(size_t comma = items.find(string(","), start) != string::npos) {
+    size_t comma;
+
+    if (!initialized) initialize();
+
+    while ((comma = items.find(string(","), start)) != string::npos) {
         string aNumber;
 	aNumber.assign(items, start, comma - start);
-        char *end;
-        int  value = strtol(aNumber.c_str(), &end, 0);
-        if (*end != '\0') {
-            string whyBad  = " must be an integer but was ";
-            whyBad        += aNumber;
-            throw CInvalidArgumentException(aNumber, whyBad,
-					    string("Converting a list to integers"));
-        }
-	result.push_back(value);
+
+	result.push_back(convertOne(aNumber));
+	start = comma+1;
     }
+    // There's one last string that does not terminate in a comma:
+
+    string aNumber;
+    aNumber.assign(items, start, items.size() - start);
+    result.push_back(convertOne(aNumber));
+
     return result;
 }
