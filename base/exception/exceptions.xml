@@ -1230,6 +1230,181 @@ catch (CStreamIOError&amp; error) {
                 <literal>-1</literal>.
             </para>
       </refsect1>
+    </refentry>
+    <refentry id="manpage.cinvalidargumentexception">
+      <refmeta>
+         <refentrytitle>CInvalidArgumentException</refentrytitle>
+         <manvolnum>3daq</manvolnum>
+      </refmeta>
+      <refnamediv>
+         <refname>CInvalidArgumentException</refname>
+	 <refpurpose>Report invalid function arguments.</refpurpose>
+      </refnamediv>
+      
+      <refsynopsisdiv>
+         <programlisting>
+#include &lt;CInvalidArgumentException.h&gt;
+         </programlisting>
+         <classsynopsis>
+            <ooclass><classname>CInvalidArgumentException</classname></ooclass>
+            <constructorsynopsis>
+                <methodname>CInvalidArgumentException</methodname>
+                <methodparam>
+                    <type>std::string</type> <parameter>argument</parameter>
+                </methodparam>
+                <methodparam>
+                    <type>std::string</type> <parameter>whybad</parameter>
+                </methodparam>
+                <methodparam>
+                    <type>std::string</type> <parameter>wasDoing</parameter>
+                </methodparam>
+            </constructorsynopsis>
+            <constructorsynopsis>
+                <methodname>CInvalidArgumentException</methodname>
+                <methodparam>
+                    <modifier>const</modifier> <type>CInvalidArgumentException&amp;</type>
+                                               <parameter>rhs</parameter>
+                </methodparam>
+            </constructorsynopsis>
+            <destructorsynopsis>
+                <modifier>virtual</modifier> <methodname>~CInvalidArgumentException</methodname>
+                                             <void />
+            </destructorsynopsis>
+            <methodsynopsis>
+                <type>CInvalidArgumentException&amp;</type> <methodname>operator=</methodname>
+                <methodparam>
+                    <modifier>const</modifier> <type>CInvalidArgumentException&amp;</type>
+                                               <parameter>rhs</parameter>
+                </methodparam>
+            </methodsynopsis>
+            <methodsynopsis>
+                <type>int</type> <methodname>operator==</methodname>
+                <methodparam>
+                    <modifier>const</modifier>
+                    <type>CInvalidArgumentException&amp;</type> <parameter>rhs</parameter>
+                </methodparam>
+                <modifier>const</modifier>
+            </methodsynopsis>
+            <methodsynopsis>
+                <type>int</type> <methodname>operator!=</methodname>
+                <methodparam>
+                    <modifier>const</modifier> <type>CInvalidArgumentException&amp;</type>
+                                               <parameter>rhs</parameter>
+                </methodparam>
+                <modifier>const</modifier>
+            </methodsynopsis>
+            <methodsynopsis>
+                <modifier>virtual const</modifier>
+                <type>char*</type> <methodname>ReasonText</methodname>
+                <void /> <modifier>const</modifier>
+            </methodsynopsis>
+
+         </classsynopsis>
+      </refsynopsisdiv>
+      <refsect1>
+         <title>Description</title>
+         <para>
+            While
+            <link linkend="manpage.CRangeError"><classname>CRangeError</classname></link>
+            provides an exception that can be thrown if values passed to a function
+            are out of bounds, other argument errors are possible.
+            Consider a function that takes a string and converts it to an integer.
+            If the string cannot be converted, this represents an error in the
+            argument, but <classname>CRangeError</classname> is not the
+            appropriate exception.
+            <classname>CInvalidArgumentException</classname> provides a
+            class that can be thrown for arbitrary problems with parameters.
+         </para>
+         <para>
+            The thrower must be able to create  a textual
+            equivalent of the bad argument, a string that describes why the argument
+            is bad as well as supplying the usual context string.
+         </para>
+      </refsect1>
+      <refsect1>
+         <title>
+            Public member functions
+         </title>
+        <constructorsynopsis>
+            <methodname>CInvalidArgumentException</methodname>
+            <methodparam>
+                <type>std::string</type> <parameter>argument</parameter>
+            </methodparam>
+            <methodparam>
+                <type>std::string</type> <parameter>whybad</parameter>
+            </methodparam>
+            <methodparam>
+                <type>std::string</type> <parameter>wasDoing</parameter>
+            </methodparam>
+        </constructorsynopsis>
+        <para>
+            This is the constructor typically used to create a
+            <classname>CInvalidArgumentException</classname>.
+            <parameter>argument</parameter> is a textual representation of the
+            bad argument.
+            <parameter>whybad</parameter> is a text string that describes
+            why the argument was bad.  <parameter>wasDoing</parameter>
+            is the context string that all exception objects require.
+        </para>
+        <constructorsynopsis>
+            <methodname>CInvalidArgumentException</methodname>
+            <methodparam>
+                <modifier>const</modifier> <type>CInvalidArgumentException&amp;</type>
+                                           <parameter>rhs</parameter>
+            </methodparam>
+        </constructorsynopsis>
+        <para>
+            Provides for copy construction of
+            <classname>CInvalidArgumentException</classname>
+            objects.
+        </para>
+        <methodsynopsis>
+            <type>CInvalidArgumentException&amp;</type> <methodname>operator=</methodname>
+            <methodparam>
+                <modifier>const</modifier> <type>CInvalidArgumentException&amp;</type>
+                                           <parameter>rhs</parameter>
+            </methodparam>
+        </methodsynopsis>
+        <para>
+            Provides for assignment to an object from another
+            <classname>CInvalidArgumentException</classname> object;
+            <parameter>rhs</parameter>.
+        </para>
+        <methodsynopsis>
+            <type>int</type> <methodname>operator==</methodname>
+            <methodparam>
+                <modifier>const</modifier>
+                <type>CInvalidArgumentException&amp;</type> <parameter>rhs</parameter>
+            </methodparam>
+            <modifier>const</modifier>
+        </methodsynopsis>
+        <para>
+            Provides for the ability to check for equality between
+            <parameter>rhs</parameter> and a left hand side object.
+        </para>
+        <methodsynopsis>
+            <type>int</type> <methodname>operator!=</methodname>
+            <methodparam>
+                <modifier>const</modifier> <type>CInvalidArgumentException&amp;</type>
+                                           <parameter>rhs</parameter>
+            </methodparam>
+            <modifier>const</modifier>
+        </methodsynopsis>
+        <para>
+            Provides for the ability to check for inequality.
+        </para>
+        <methodsynopsis>
+            <modifier>virtual const</modifier>
+            <type>char*</type> <methodname>ReasonText</methodname>
+            <void /> <modifier>const</modifier>
+        </methodsynopsis>
+        <para>
+            Constructs and returns a pointer to a string that describes
+            the error.  This string should <emphasis>not</emphasis>
+            be <literal>delete</literal>d by the caller.
+        </para>  
+      </refsect1>
+
    </refentry>
 
 <!-- /manpage -->
