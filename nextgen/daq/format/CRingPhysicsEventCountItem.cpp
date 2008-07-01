@@ -209,7 +209,7 @@ CRingPhysicsEventCountItem::setEventCount(uint64_t count)
 void
 CRingPhysicsEventCountItem::init()
 {
-  m_pItem = reinterpret_cast<pPhysicsEventCountItem>(getBodyPointer());
+  m_pItem = reinterpret_cast<pPhysicsEventCountItem>(getItemPointer());
 
   uint8_t* pCursor = reinterpret_cast<uint8_t*>(getBodyCursor());
   pCursor         += sizeof(PhysicsEventCountItem) - sizeof(RingItemHeader);
