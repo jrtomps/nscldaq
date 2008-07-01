@@ -231,6 +231,29 @@ CRingScalerItem::getScaler(uint32_t channel) const throw(CRangeError)
   
   return m_pScalers->s_scalers[channel];
 }
+/*!
+    \return std::vector<uint32_t>
+    \retval - the scalers.
+*/
+vector<uint32_t>
+CRingScalerItem::getScalers() const
+{
+  vector<uint32_t> result;
+  for (int i =0; i < m_pScalers->s_scalerCount; i++) {
+    result.push_back(m_pScalers->s_scalers[i]);
+  }
+  return result;
+}
+
+/*!
+   \return uint32_t
+   \retval number of scalers
+*/
+uint32_t
+CRingScalerItem::getScalerCount() const
+{
+  return m_pScalers->s_scalerCount;
+}
   
 /////////////////////////////////////////////////////////////////////////////////////
 //

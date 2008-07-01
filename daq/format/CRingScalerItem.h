@@ -86,6 +86,10 @@ public:
 
   void     setScaler(uint32_t channel, uint32_t value) throw(CRangeError);
   uint32_t getScaler(uint32_t channel) const throw(CRangeError);
+  std::vector<uint32_t> getScalers() const;
+
+  uint32_t getScalerCount() const;
+
 
   // utility.
 
