@@ -1,0 +1,9 @@
+package "RingSelector"
+version "1.0"
+purpose "Select data from a ring buffer to stdout"
+
+option "source"  s "URL of source ring"           string optional
+option "sample"  S "List item types for sampling" string optional
+option "exclude" e "List item types to exclude"   string optional
+option "accept"  a "List item types to accept"    string optional
+
