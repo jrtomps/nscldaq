@@ -1,0 +1,355 @@
+<!-- chapter utilities -->
+<chapter id="chapter.ringselector">
+    <title>The <application>ringselector</application> application</title>
+    <para>
+        The <application>ringselector</application> application is very
+        similar in nature ot
+        <link linkend="manpage.ringtostdout"><application>ringtostdout</application></link>
+        application.  Both
+        <application>ringselector</application> and <application>ringtostdout</application>
+        accept data from ring buffers and pipe them to their <literal>stdout</literal>.
+        Both are intended for use when setting up pipelines.
+    </para>
+    <para>
+        <application>ringselector</application>
+        differs in that you can select the types of data that will be accepted
+        from the ring.  You may also select which event types will be sampled,
+        and which type must be reliably delivered.
+    </para>
+    <para>
+        To understand <application>ringselector</application> it's helpful
+        to understand how applications select data from a ring buffer.
+        Applications can provide a <firstterm>predicate</firstterm> object
+        that filters items.  A predicate is an object from a class that has
+        an <function>operator()</function> virtual member that returns
+        a <type>bool</type>.
+    </para>
+    <para>
+        There are two pre-canned predicate classses:
+        <link linkend="manpage.cdesiredtypespredicate"><classname>CDesiredTypesPredicate</classname></link>,
+        which accepts only the set of item type specified, and
+        <link linkend="manpage.callbutpredicate"><classname>CAllButPredicate</classname></link>
+        which only accepts the est of item types specified.
+    </para>
+    <para>
+        Both predicates support specifying that an item type should be sampled.
+        Sampled item type are only delivered if they are the last item in the
+        ring, that is sampled items may be skipped if the consumer application is
+        not fast enough to keep up with the flow of items.
+    </para>
+    <para>
+        <application>ringselector</application> has three options that
+        control the type of predicate that is used to select data from the ring:
+        <variablelist>
+            <varlistentry>
+                <term><option>--accept</option>=<replaceable>item-type-list</replaceable></term>
+                <listitem>
+                    <para>
+                        Provides a list of item types that must be accepted.
+                        Using this option is exclusive of use of the
+                        <option>--exclude</option> switch.  Using
+                        <option>--accept</option> forces the use of a
+                        <classname>CDesiredTypesPredicate</classname>.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><option>--exclude</option>=<replaceable>item-type-list</replaceable></term>
+                <listitem>
+                    <para>
+                        Provides a list of item types that must not be
+                        accepted.  Using this option is exclusive of the
+                        <option>--accept</option> switch, and selects the
+                        use of a
+                        <classname>CAllButPredicate</classname>.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><option>--sample</option>=<replaceable>item-type-list</replaceable></term>
+                <listitem>
+                    <para>
+                        Provides a list of item types that are accepted with
+                        sampling.  This modifies the behavior of the
+                        predicate selected by <option>--accept</option>
+                                              or <option>--exclude</option>.
+                    </para>
+                </listitem>
+            </varlistentry>
+        </variablelist>
+    </para>
+    <para>
+        Let's look at a few examples.  First let's take data from
+        from a ring buffer with our username on spdaq22.nscl.msu.edu.
+        We'll just pipe this into the od utility.  We will only be interested
+        in state transition items and sampled event data (a
+        <classname>CDesiredTypesPredicate</classname>).
+    </para>
+    <example>
+        <title>Dumping state changes and sampled event data with od</title>
+        <screen>
+<command>
+    ringselector --accept=BEGIN_RUN,END_RUN,PAUSE_RUN,RESUME_RUN \
+                 --sample=PHYSICS_EVENT                          \
+                 --source=tcp://spdaq22.nscl.msu.edu/`whoami` | od -xa
+</command>
+        </screen>
+    </example>
+    <para>
+        Note how the <command>whoami</command> command is used to
+        make this work independent of the actual user running the
+        program.
+    </para>
+    <para>
+        Let's take data from the same ring buffer. Now we'll
+        specify that we want all data items, except for the packet type
+        documentation.  We will still sample physics events. This produces
+        a <classname>CAllButPredicate</classname>.
+    </para>
+    <example>
+        <title>Dumping all but packet types</title>
+        <screen>
+<command>
+    ringselector --exclude=PACKET_TYPES --sample=PHYSICS_EVENT \
+                 --source=tcp://spdaq22.nscl.msu.edu/`whoami` | od -xa
+</command>
+        </screen>
+    </example>
+    <para>
+        If neither <option>--exclude</option> nor <option>--accept</option>
+        is provided on the commandline, the predicate used is
+        a <classname>CAllButPredicate</classname>.
+        The following attaches SpecTcl to data from the ring we've been
+        using as an example, in the normal way.
+    </para>
+    <example>
+        <title>Attaching SpecTcl</title>
+        <screen>
+<command>
+attach -format nsclitems -pipe \
+        ringselector --source=tcp://spdaq22.nscl.msu.edu/$tcl_platform(user) \
+                     --sample=PHYSICS_EVENT
+start
+</command>
+        </screen>
+    </example>
+    <para>
+        For a complete reference on the command see the
+        <link linkend="manpage.ringselector">ringselector reference page</link>.
+    </para>
+</chapter>
+
+<!-- /chapter -->
+
+
+<!-- manpage 1daq -->
+    <refentry id="manpage.ringselector">
+      <refmeta>
+         <refentrytitle>ringselector</refentrytitle>
+         <manvolnum>1daq</manvolnum>
+      </refmeta>
+      <refnamediv>
+         <refname>ringselector</refname>
+         <refpurpose>Provide selected ring data to non NSCL DAQ aware clients</refpurpose>
+      </refnamediv>
+      
+      <refsynopsisdiv>
+        <cmdsynopsis>
+            <command>
+ringselector <replaceable>options</replaceable>
+            </command>
+        </cmdsynopsis>
+      </refsynopsisdiv>
+      <refsect1>
+         <title>DESCRIPTION</title>
+         <para>
+            The NSCL DAQ recognizes that you may want to supply data from the
+            NSCL DAQ system to non NSCL DAQ aware clients.  The most important
+            clients of this sort are <application>SpecTcl</application> ore
+            <application>root</application> which an be used to analyze data
+            from the online system.
+         </para>
+         <para>
+            <command>ringselector</command> selects items from a ring buffer
+            data source and copies them unmodified (binary) to its stdout.
+            It can be run in a command line pipeline (e.g.
+            with od to get a simple undecoded dump of the data), or on the
+            other end of a pipe from an application to provide event data
+            to that application.
+         </para>
+         <para>
+            Command line options provide a mechanism for to configure a
+            predicate that will be used to select the type of items
+            copied as well as whether or not all specified itesm or only
+            a sample of the specified items will be copied to the  output.
+         </para>
+         <para>
+            See OPTIONS below for information on how to configure this program.
+         </para>
+      </refsect1>
+      <refsect1>
+         <title>
+            OPTIONS
+         </title>
+         <variablelist>
+            <varlistentry>
+                <term><option>--source</option>=<replaceable>ringurl</replaceable></term>
+                <listitem>
+                    <para>
+                        Determines the ring buffer from which data is taken.
+                        Most NSCL readout software create, if necessary, and
+                        produces data into a local ring buffer that matches
+                        the user name of the user running that program.
+                    </para>
+                    <para>
+                        By default, therefore, unless <option>--source</option>
+                        is specified, the
+                        <application>ringselector</application> data source
+                        is tcp://localhost/<replaceable>username</replaceable>
+                        where <replaceable>username</replaceable> is the
+                        username running the program.
+                    </para>
+                    <para>
+                        If <option>--source</option> is provided, its value
+                        is the URI of a ring buffer.  The URI of a ring buffer
+                        is of the form:
+                        tcp://<replaceable>hostname</replaceable>/<replaceable>ringname</replaceable>
+                        where <replaceable>hostname</replaceable> is the host
+                        on which the ring lives (<literal>localhost</literal> for
+                        local rings), and <replaceable>ringname</replaceable> is
+                        the name of the ring on that host.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><option>--sample</option>=<replaceable>typeList</replaceable></term>
+                <listitem>
+                    <para>
+                        If specified, the <parameter>typeList</parameter> item types
+                        are only sampled.  <parameter>typeList</parameter> is a
+                        comma separated list of item types.  Item types can
+                        be specified numerically or symbolically.  The
+                        type symbols and value scan be found in the
+                        <filename>$daqroot/include/DataFormat.h</filename>
+                        header file.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><option>--exclude</option>=<replaceable>typeList</replaceable></term>
+                <listitem>
+                    <para>
+                        Specifies the set of ring item types that will not be
+                        accepted for copy to <literal>stdout</literal>.  If this
+                        option is present, the <option>--accept</option> option
+                        may not be presnt.
+                    </para>
+                    <para>
+                        <parameter>typeList</parameter> is a
+                        comma separated list of item types.  Item types can
+                        be specified numerically or symbolically.  The
+                        type symbols and value scan be found in the
+                        <filename>$daqroot/include/DataFormat.h</filename>
+                        header file.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><option>--accept</option>=<replaceable>typeList</replaceable></term>
+                <listitem>
+                    <para>
+                        Specifies the set of ring bufer types that are accepted.
+                        If this option is present, the <option>--exclude</option>
+                        option may not be.
+                    </para>
+                    <para>
+                        <parameter>typeList</parameter> is a
+                        comma separated list of item types.  Item types can
+                        be specified numerically or symbolically.  The
+                        type symbols and value scan be found in the
+                        <filename>$daqroot/include/DataFormat.h</filename>
+                        header file.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><option>--version</option></term>
+                <listitem>
+                    <para>
+                        Prints out the version of the program and exists.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><option>--help</option></term>
+                <listitem>
+                    <para>
+                        Prints out program usage information  and exits.
+                    </para>
+                </listitem>
+            </varlistentry>
+         </variablelist>
+      </refsect1>
+
+      <refsect1>
+         <title>EXAMPLES</title>
+    <para>
+        Let's look at a few examples.  First let's take data from
+        from a ring buffer with our username on spdaq22.nscl.msu.edu.
+        We'll just pipe this into the od utility.  We will only be interested
+        in state transition items and sampled event data (a
+        <classname>CDesiredTypesPredicate</classname>).
+    </para>
+    <example>
+        <title>Dumping state changes and sampled event data with od</title>
+        <screen>
+<command>
+    ringselector --accept=BEGIN_RUN,END_RUN,PAUSE_RUN,RESUME_RUN \
+                 --sample=PHYSICS_EVENT                          \
+                 --source=tcp://spdaq22.nscl.msu.edu/`whoami` | od -xa
+</command>
+        </screen>
+    </example>
+    <para>
+        Note how the <command>whoami</command> command is used to
+        make this work independent of the actual user running the
+        program.
+    </para>
+    <para>
+        Let's take data from the same ring buffer. Now we'll
+        specify that we want all data items, except for the packet type
+        documentation.  We will still sample physics events. This produces
+        a <classname>CAllButPredicate</classname>.
+    </para>
+    <example>
+        <title>Dumping all but packet types</title>
+        <screen>
+<command>
+    ringselector --exclude=PACKET_TYPES --sample=PHYSICS_EVENT \
+                 --source=tcp://spdaq22.nscl.msu.edu/`whoami` | od -xa
+</command>
+        </screen>
+    </example>
+    <para>
+        If neither <option>--exclude</option> nor <option>--accept</option>
+        is provided on the commandline, the predicate used is
+        a <classname>CAllButPredicate</classname>.
+        The following attaches SpecTcl to data from the ring we've been
+        using as an example, in the normal way.
+    </para>
+    <example>
+        <title>Attaching SpecTcl</title>
+        <screen>
+<command>
+attach -format nsclitems -pipe \
+        ringselector --source=tcp://spdaq22.nscl.msu.edu/$tcl_platform(user) \
+                     --sample=PHYSICS_EVENT
+start
+</command>
+        </screen>
+    </example>
+    </refsect1>
+    
+    </refentry>
+
+<!-- /manpage -->
