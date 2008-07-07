@@ -100,6 +100,33 @@ set localhost   127.0.0.1;		# IP address of localhost connections.
 set knownRings  [list];			# Registered rings.
 
 
+#----------------------------------------------------------------------
+#
+#  Determine if a ring name is a remote proxy.
+#
+# parameters:
+#    name - Name of the remote ring.
+# Returns:
+#    true if so
+#    false if not.
+#
+# If the host translates we'll assume this is a proxy.
+#
+proc isRemoteProxy name {
+    set host [file rootname $name]
+    set ring [file extension $name]
+
+    # Must have a non-blank extension:
+
+    if {$ring eq ""} {
+	return "false"
+    }
+
+    if {![catch {exec host $host} ip]} {
+	return "true"
+    }
+    return "false"
+}
 
 #-------------------------------------------------------------------------------
 #
@@ -107,6 +134,10 @@ set knownRings  [list];			# Registered rings.
 # files located in 'shmdir'.  For each regular file in that directory, we will
 # ask for the usage from the ring buffer.  If that fails, then the shared memory
 # region is assumed not to be a ring buffer.
+# If the ring has a . in it, and the stuff prior to it is a valid
+# hostname, We assume that this is a defunct proxy ring and
+# remove it.
+#
 # The rings are enuemrated into the global variable ::knownRings above.
 #
 proc enumerateRings {} {
@@ -122,7 +153,15 @@ proc enumerateRings {} {
 	    set shmname [file tail $file]
 	    puts "ring name: $shmname"
 	    if {[catch {ringbuffer usage $shmname} data] == 0} {
-		lappend ::knownRings $shmname
+		puts "Is a ring"
+		# See if this is a defunct proxy ring:
+		#
+		if {[isRemoteProxy $shmname]} { 
+		    puts "Deleting remote proxy $file"
+		    catch {file delete -force $file}
+		} else {
+		    lappend ::knownRings $shmname
+		}
 	    } else {
 		puts $data
 	    }
