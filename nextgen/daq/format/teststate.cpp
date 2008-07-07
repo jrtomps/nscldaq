@@ -104,11 +104,15 @@ teststate::castcons()
 
   try {
     CRingStateChangeItem state(ok);
+    size_t itemSize = state.getBodySize() + sizeof(RingItemHeader);
+    EQ(sizeof(StateChangeItem), itemSize);
   }
   catch (bad_cast c) {
     threw = true;
   }
   ASSERT(!threw);
+
+
 
   threw = false;
   try {

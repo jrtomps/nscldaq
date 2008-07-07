@@ -106,7 +106,8 @@ CRingStateChangeItem::CRingStateChangeItem(const CRingItem& item) throw(std::bad
 CRingStateChangeItem::CRingStateChangeItem(const CRingStateChangeItem& rhs) :
   CRingItem(rhs)
 {
-  m_pItem = reinterpret_cast<pStateChangeItem>(getItemPointer());
+
+  init();
 
 }
 
