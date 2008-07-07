@@ -310,7 +310,7 @@ CRingItem::getFromRing(CRingBuffer& ring, CRingSelectionPredicate& predicate)
   // Create the item and fill it in:
 
   CRingItem* pItem = new CRingItem(size);
-  ring.get(pItem->m_pItem, size); // Read the item from the ring.
+  ring.get(pItem->m_pItem, size, size); // Read the item from the ring.
   pItem->m_pCursor += (size - sizeof(RingItemHeader));
   pItem->m_swapNeeded = otherOrder;
 
