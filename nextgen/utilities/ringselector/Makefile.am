@@ -24,9 +24,9 @@ parser.o: parser.ggo
 	$(GENGETOPT) <parser.ggo --file=parser 
 	$(CC) -c parser.c
 
-#----------------------- doc sources
+#----------------------- extra files to distribute.
 
-EXTRA_DIST	=	ringselector.xml
+EXTRA_DIST	=	ringselector.xml parser.ggo
 
 #----------------------- Tests:
 #  Since this is the first guy written to use it, the tests for
