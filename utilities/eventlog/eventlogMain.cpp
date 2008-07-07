@@ -175,8 +175,8 @@ EventLogMain::recordData()
     // Now we have the begin run item:
     
     CRingStateChangeItem item(*pItem);
-    delete pItem;    
     recordRun(item);
+    delete pItem;    
     
     // Return/exit after making our .exited file if this is a one-shot.
 
@@ -190,6 +190,7 @@ EventLogMain::recordData()
 	exit(EXIT_FAILURE);
 	return;
       }
+      return;
     }
 
 
@@ -219,7 +220,7 @@ EventLogMain::recordRun(const CRingStateChangeItem& item)
   CRingItem*   pItem = new CRingStateChangeItem(item);
   uint16_t     itemType;
 
-  do {
+  while(1) {
 
     size_t size    = pItem->getBodySize() + sizeof(RingItemHeader);
     itemType       = pItem->type();
@@ -237,9 +238,12 @@ EventLogMain::recordRun(const CRingStateChangeItem& item)
     bytesInSegment  += size;
 
     delete pItem;
+
+    if(itemType == END_RUN) break;
+
     pItem =  CRingItem::getFromRing(*m_pRing, p);
 
-  } while (itemType != END_RUN);
+  } 
 
   close(fd);
 

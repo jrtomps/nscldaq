@@ -26,3 +26,16 @@ eventlogargs.o: eventlogargs.ggo
 # Extra files to distribute.
 
 EXTRA_DIST		=	eventlogargs.ggo
+
+
+#-------------------------------------------------------------
+#
+# Test programs.
+#
+noinst_PROGRAMS		=	fakeruns
+
+fakeruns_SOURCES	= 	fakeruns.cpp
+
+fakeruns_LDADD		=	@top_srcdir@/daq/format/libdataformat.la	\
+				@top_srcdir@/base/dataflow/libDataFlow.la	\
+				@top_srcdir@/base/exception/libException.la
