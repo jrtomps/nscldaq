@@ -1,6 +1,7 @@
 
 
 
-SUBDIRS = scalerdisplay chanlog controlpush daqstart dvdburn epicsdisplay sequencer
+SUBDIRS = scalerdisplay chanlog controlpush daqstart dvdburn \
+	epicsdisplay sequencer ringselector eventlog
 
 
