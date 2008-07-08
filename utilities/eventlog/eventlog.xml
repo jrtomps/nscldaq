@@ -1,0 +1,195 @@
+<!-- chapter utilities -->
+<chapter id="chap.eventlog">
+    <title>The Event log program</title>
+    <para>
+        Most experiments will record event data.  Event data files are
+        record the data taken from the experiment event by event.
+        The format of event data files is identical to the format of data in
+        ring buffers.
+        See the chapter:
+        <link linkend="chapter.ringformat">Format of EventData In Ring Buffers</link>
+        for a description of what to expect in an event file.   The
+        <filename>$DAQROOT/include/DataFormat.h</filename> header is
+        also helpful as it provides C/C++ structure definitions for
+        data in ring buffers and event files.
+    </para>
+    <para>
+        The event logger takes data from any ring (local or remote via the
+        networked proxy ring subsystem).  When a begin run item is seen,
+        a new event file is started.  Event files are broken into segments.
+        This is done to ensure that files do not exceed maximum sizes set
+        by some filesystems and NFS.  By default, the segment size is a bit
+        less than 2Gbytes. When replaying data it is important to keep this in 
+        mind, and replay all segments of a run.
+    </para>
+    <para>
+        The Event logger places output files in a specified directory.
+        By default, this directory is the working directory at the time the
+        application was started.  The default ring from which the program
+        accepts data is <literal>tcp://localhost/</literal><replaceable>username</replaceable>
+        where <replaceable>username</replaceable> is the name of the user running
+        the program.
+    </para>
+    <para>
+        The event log program includes a <option>--oneshot</option> option that
+        records a single run and then exits.  The <option>--oneshot</option>
+        option also creates synchronization files in the event file directory that
+        allow a controlling program to know when the event logger is
+        running and when it is about to exit.
+    </para>
+    <para>
+        The control files are:
+        <variablelist>
+            <varlistentry>
+                <term><filename>.started</filename></term>
+                <listitem>
+                    <para>
+                        Created when the program is ready to record data.
+                        The controlling program can then start a run.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><filename>.exited</filename></term>
+                <listitem>
+                    <para>
+                        Created when the program has closed the event file and
+                        is about to exit.  The controlling program can move
+                        any event files to a final directory if desired.
+                    </para>
+                </listitem>
+            </varlistentry>
+        </variablelist>
+    </para>
+    <example>
+        <title>Taking data from a remote ring</title>
+        <programlisting>
+eventlog --source=tcp://spdaq22/fox --path=/user/0400x/stagearea/current --oneshot
+        </programlisting>
+    </example>
+    <para>
+        The full reference documentation for the program is in the
+        <link linkend="manpage.eventlog">event log reference page</link>.
+    </para>
+</chapter>
+    
+<!-- /chapter -->
+
+<!-- manpage 1daq -->
+
+<refentry id="manpage.eventlog">
+  <refmeta>
+     <refentrytitle>eventlog</refentrytitle>
+     <manvolnum>1daq</manvolnum>
+  </refmeta>
+  <refnamediv>
+     <refname>eventlog</refname>
+     <refpurpose>Record Event Data to Disk.</refpurpose>
+  </refnamediv>
+  
+  <refsynopsisdiv>
+    <cmdsynopsis>
+	<command>
+eventlog <optional>options...</optional>
+	</command>
+    </cmdsynopsis>
+  </refsynopsisdiv>
+  <refsect1>
+     <title>DESCRIPTION</title>
+     <para>
+	Records event data verbatim from ring buffers to disk files.
+        The program monitors the source ring buffer for a begin run item.
+        At that point it opens an event file for that run and begins to record
+        data from the ring.  
+     </para>
+     <para>
+        Runs are recorded in files in the target directory.
+        Event files are named
+        <filename>run-runnumber-segment.evt</filename> where
+        <literal>runnumber</literal> is the run number of the run
+        taken from the begin run item, <literal>segment</literal> is a file
+        segment numbered from zero.
+     </para>
+     <para>
+        Runs are segmented in file that are no larger than a segment size.
+        This is done to avoid creating files that are too large for a file system
+        to handle or too large for NFS to accurately serve.
+     </para>
+     <para>
+        An option allows the program to be started by a controlling program
+        for a single run (e.g. by the readout GUI).
+     </para>
+     <para>
+        Options have sensible defaults.  See OPTIONS below.
+     </para>
+  </refsect1>
+  <refsect1>
+     <title>
+	OPTIONS
+     </title>
+     <variablelist>
+	<varlistentry>
+	    <term><option>--source</option>=<replaceable>ringuri</replaceable></term>
+	    <listitem>
+		<para>
+                    Defines the event source as a Ring buffer Uniform Resource
+                    Identifier (URI).  The URI can be for a local or a remote
+                    ring buffer.  By default the ring:
+                    <literal>tcp://localhost/</literal><replaceable>username</replaceable>
+                    where <replaceable>username</replaceable> is the username
+                    of the account running the program.
+		</para>
+	    </listitem>
+	</varlistentry>
+        <varlistentry>
+            <term><option>--path</option>=<replaceable>dir</replaceable></term>
+            <listitem>
+                <para>
+                    Provides the path to the directory in which the program will
+                    write its event files. By default, this is
+                    current working directory at the time <application>eventlog</application>
+                    is started.
+                </para>
+                <para>
+                    <application>eventlog</application> ensures that the path is
+                    a directory and is writable.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term><option>--segmentsize</option>=<replaceable>size-spec</replaceable></term>
+            <listitem>
+                <para>
+                    Specifies the size of the files segments created.
+                    <parameter>size-spec</parameter> can be any of an integer number
+                    of bytes or an integer followed by one of the suffixes:
+                    <literal>g</literal>, <literal>m</literal>, <literal>k</literal>
+                    that multiply the integer by a gigabyte, a megabyte and a kilobyte
+                    repsectively.
+                </para>
+                <para>
+                    The default value is a <literal>1900m</literal>, which should
+                    be suitable for most operating environments.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term><option>--oneshot</option></term>
+            <listitem>
+                <para>
+                    When present, the program only records a single run, then
+                    exits.  The program will also create the
+                    <filename>.started</filename> file in the target directory
+                    when it's ready to record data, and the
+                    <filename>.exited</filename> file when it's about to exit.
+                </para>
+            </listitem>
+        </varlistentry>
+     </variablelist>
+  </refsect1>
+
+
+</refentry>
+
+
+<!-- /manpage -->
