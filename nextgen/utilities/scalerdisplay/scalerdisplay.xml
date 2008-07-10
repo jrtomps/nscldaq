@@ -688,7 +688,7 @@ stripconfig <optional>?-log 0|1?</optional>  <optional>?-timeaxis seconds?</opti
             </listitem>
         </varlistentry>
         <varlistentry>
-            <term><varname>ScalerDletaTime</varname></term>
+            <term><varname>ScalerDeltaTime</varname></term>
             <listitem>
                 <para>
                  The number of seconds of counts represented by the Scaler_Increments
