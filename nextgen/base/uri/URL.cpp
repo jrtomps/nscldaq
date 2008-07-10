@@ -181,8 +181,8 @@ URL::operator string() const
   char   urlString[PATH_MAX];
   
   snprintf(urlString, sizeof(urlString),
-	   "%s://%s/%s:%d",
-	   my_proto.c_str(), my_namestr.c_str(), my_path.c_str(), my_port);
+	   "%s://%s:%d/%s",
+	   my_proto.c_str(), my_namestr.c_str(), my_port, my_path.c_str());
 
   return string(urlString);
 }
@@ -290,10 +290,11 @@ void URL::parseString(string rStr) {
     
     char* pEnd;
     port = strtol(portString.c_str(), &pEnd, 0);
-    portEnd = const_cast<const char*>(pEnd);
+    portEnd++;
+
   // The entire string must have been gobbled up...when portEnd -> 0.
 
-    if (*portEnd) {
+    if (*pEnd) {
       throw CURIFormatException(rStr, portString, __FILE__, __LINE__);
     }
   }
@@ -317,6 +318,20 @@ void URL::parseString(string rStr) {
   }
   else {
     path = "/";
+  }
+
+  // If the protocol is file.. then the 
+  // path is the host + path and host does not exist nor does it
+  // require validation:
+
+  if (protocol == string("file")) {
+    my_port = 0;
+    my_proto= protocol;
+    my_path = host;
+    my_path += "/";
+    my_path += path;
+    my_namestr = "";
+    return;
   }
 
   // One last error check.  The host must translate.

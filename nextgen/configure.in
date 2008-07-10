@@ -375,6 +375,7 @@ AC_CONFIG_FILES([Makefile
 		 utilities/scalerdisplay/ScalerDisplay
                  utilities/sequencer/Makefile
 		 utilities/ringselector/Makefile
+		 utilities/bufdump/Makefile
 		 utilities/eventlog/Makefile
 		 daq/Makefile
 		 daq/format/Makefile
