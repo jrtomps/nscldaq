@@ -424,7 +424,7 @@ BufdumpMain::dumpEventCountItem(ostream& out, const CRingPhysicsEventCountItem& 
   uint64_t events = item.getEventCount();
 
 
-  out << time << " : " << events << " Triggers accepeted as of " 
+  out << time << " : " << events << " Triggers accepted as of " 
       << offset << " seconds into the run\n";
   out << " Average accepted trigger rate: " 
       <<  (static_cast<double>(events)/static_cast<double>(offset))
