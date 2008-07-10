@@ -190,6 +190,7 @@ BufdumpMain::operator()(int argc, char** argv)
   while (m_skipCount) {
     CRingItem* pSkip = pSource->getItem();
     delete pSkip;
+    m_skipCount--;
   }
 
   size_t numToDo = m_itemCount;
