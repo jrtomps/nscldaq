@@ -19,6 +19,7 @@
 #include <CRingStateChangeItem.h>
 #include <CRingTextItem.h>
 #include <CRingScalerItem.h>
+#include <CRingPhysicsEventCountItem.h>
 
 #include <pwd.h>
 #include <unistd.h>
@@ -97,13 +98,38 @@ static void event(CRingBuffer& ring)
 
 static void scaler(CRingBuffer& ring)
 {
+  static int offset = 0;
   vector<uint32_t> scalers;
   for (int i=0; i < 31; i++) {
     scalers.push_back(i*32);
   }
-  CRingScalerItem i(0, 10, time(NULL), scalers);
+  CRingScalerItem i(offset, offset+10, time(NULL), scalers);
+  offset += 10;
   i.commitToRing(ring);
 
+}
+
+static void eventcount(CRingBuffer& ring, int count)
+{
+  static int offset = 10;
+  CRingPhysicsEventCountItem item;
+  item.setEventCount(count);
+  item.setTimeOffset(offset);
+  offset += 10;
+
+  item.commitToRing(ring);
+}
+
+static void userItem(CRingBuffer& ring)
+{
+  CRingItem item(1234, 500);
+  uint8_t*  p = reinterpret_cast<uint8_t*>(item.getBodyCursor());
+
+  for (int i = 0; i < 256; i++) {
+    *p++ = i;
+  }
+  item.setBodyCursor(p);
+  item.commitToRing(ring);
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////
@@ -149,6 +175,8 @@ int main(int argc, char**argv)
 
   beginRun(run, ring);
 
+  userItem(ring);
+
   // The strings item:
 
   stringItem(strings, ring);
@@ -158,6 +186,8 @@ int main(int argc, char**argv)
   for (int i =1; i < events; i++) {
     event(ring);
     if (i % period == 0) {
+      sleep(2);
+      eventcount(ring,i);
       scaler(ring);
     }
   }
