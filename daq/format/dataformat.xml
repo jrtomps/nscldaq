@@ -1243,6 +1243,15 @@ delete item;                                           <co id="cringitem.delete"
                 <exceptionname>CRangeError</exceptionname>
                 <modifier>const</modifier>
             </methodsynopsis>
+            
+            <methodsynopsis>
+                <type>std::vector&lt;uint32_t&gt;</type> <methodname>getScalers</methodname>
+                                                         <void /> <modifier>const</modifier>
+            </methodsynopsis>
+            <methodsynopsis>
+                <type>uint32_t</type> <methodname>getScalerCount</methodname>
+                                      <void /> <modifier>const</modifier>
+            </methodsynopsis>
          </classsynopsis>
       </refsynopsisdiv>
       <refsect1>
@@ -1444,6 +1453,21 @@ delete item;                                           <co id="cringitem.delete"
             Returns the value of the scaler channel <parameter>channel</parameter>.
             If the <parameter>channel</parameter> is too large a
             <type>CRangeError</type> is thrown.
+        </para>
+        <methodsynopsis>
+            <type>std::vector&lt;uint32_t&gt;</type> <methodname>getScalers</methodname>
+                                                     <void /> <modifier>const</modifier>
+        </methodsynopsis>
+        <para>
+            Returns a vector that consists of the values of all of the incremental
+            scalers in the item.
+        </para>
+        <methodsynopsis>
+            <type>uint32_t</type> <methodname>getScalerCount</methodname>
+                                  <void /> <modifier>const</modifier>
+        </methodsynopsis>
+        <para>
+            Returns the number of scalers in the item.
         </para>
       </refsect1>
       <refsect1>
