@@ -377,6 +377,7 @@ AC_CONFIG_FILES([Makefile
 		 utilities/ringselector/Makefile
 		 utilities/bufdump/Makefile
 		 utilities/eventlog/Makefile
+		 utilities/sclclient/Makefile
 		 daq/Makefile
 		 daq/format/Makefile
 		 docbuild/Makefile

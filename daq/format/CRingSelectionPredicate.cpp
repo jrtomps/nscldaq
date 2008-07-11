@@ -135,6 +135,9 @@ CRingSelectionPredicate::operator!=(const CRingSelectionPredicate& rhs) const
    telling us if the type should be skipped (true) or returned (false).
    And we'll be responsible for skipping the type if needed.
 
+   Any blocking is done here so that we don't block for each
+   item checked.
+
    \param ring - reference to the ring buffer we are acting on.
 
 
@@ -159,6 +162,9 @@ CRingSelectionPredicate::operator()(CRingBuffer& ring)
   
   if (selectThis(header.s_type)) {
     ring.skip(header.s_size);
+    if (!ring.availableData()) {
+      usleep(ring.getPollInterval()*1000);
+    }
     return true;
   }
   else {
@@ -178,6 +184,9 @@ CRingSelectionPredicate::operator()(CRingBuffer& ring)
       } 
       else {
 	ring.skip(header.s_size);
+	if (!ring.availableData()) {
+	  usleep(ring.getPollInterval()*1000);
+	}
 	return true;
       }
     } else {
@@ -200,7 +209,7 @@ CRingSelectionPredicate::operator()(CRingBuffer& ring)
 void
 CRingSelectionPredicate::selectItem(CRingBuffer& ring)
 {
-  ring.blockWhile(*this);
+  ring.While(*this);
 
 }
 

@@ -289,7 +289,7 @@ void
 CRingScalerItem::throwIfInvalidChannel(uint32_t channel,
 				       const char* message) const throw(CRangeError)
 {
-  if (channel > m_pScalers->s_scalerCount) {
+  if (channel >= m_pScalers->s_scalerCount) {
     throw CRangeError(0, m_pScalers->s_scalerCount, channel,
 		      message);
   }
