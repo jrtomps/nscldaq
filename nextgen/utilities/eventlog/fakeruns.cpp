@@ -100,7 +100,7 @@ static void scaler(CRingBuffer& ring)
 {
   static int offset = 0;
   vector<uint32_t> scalers;
-  for (int i=0; i < 31; i++) {
+  for (int i=0; i < 32; i++) {
     scalers.push_back(i*32);
   }
   CRingScalerItem i(offset, offset+10, time(NULL), scalers);
@@ -199,3 +199,4 @@ int main(int argc, char**argv)
   exit(0);
 
 }
+

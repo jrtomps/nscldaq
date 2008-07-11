@@ -19,7 +19,6 @@ if {[array names env DAQHOST] == ""} {
 	exit -1
 }
 set spdaq  $env(DAQHOST)
-set spdaqurl tcp://$spdaq:2602/
 
 
 #  The user must have supplied a command line argument 
@@ -86,8 +85,12 @@ proc StartClient {} {
     global bindir
     global TclServerPort
     global clientpid
-    global spdaqurl
-    set clientpid [exec $bindir/sclclient -p $TclServerPort  -s $spdaqurl & ]
+    global spdaq
+    global tcl_platform
+
+    set spdaqurl "tcp://$spdaq/$tcl_platform(user)";    # The ring url
+
+    set clientpid [exec $bindir/sclclient --source=$spdaqurl --host=localhost --port=$TclServerPort &]
     bind . <Destroy> "Cleanup %W $clientpid"
 
 }
