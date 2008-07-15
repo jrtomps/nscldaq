@@ -380,6 +380,8 @@ AC_CONFIG_FILES([Makefile
 		 utilities/sclclient/Makefile
 		 daq/Makefile
 		 daq/format/Makefile
+		 usb/Makefile
+		 usb/threadcom/Makefile
 		 docbuild/Makefile
 		 docconfig/Makefile])
 

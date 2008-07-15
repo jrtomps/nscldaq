@@ -53,7 +53,7 @@ struct CMutexAttr
 */
 class CMutex
 {
-private:
+public:
   pthread_mutex_t      m_mutex;            //  The underlying mutex.
   
 public:
