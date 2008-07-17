@@ -19,7 +19,6 @@
 #include <unistd.h>
 #include <errno.h>
 
-#ifdef USE_PTHREADS
   #include <dshwrappthreads.h>
   #define dshwrapthread_create dshwrappthread_create
   #define dshwrapthread_exit dshwrappthread_exit
@@ -39,6 +38,6 @@
   #define dshwrapthread_cond_timedwait dshwrappthread_cond_timedwait
   #define dshwrapthread_tostr dshwrappthread_tostr
   #define dshwrapthread_mutex_lastmod dshwrappthread_mutex_lastmod
-#endif /* USE_PTHREADS */
+
 
 #endif

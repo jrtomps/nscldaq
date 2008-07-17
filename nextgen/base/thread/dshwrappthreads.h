@@ -12,7 +12,7 @@
 
 
 
-#ifdef USE_PTHREADS
+
 
 
 
@@ -73,6 +73,6 @@ int dshwrappthread_cond_timedwait(dshwrapthread_cond_t*,dshwrapthread_mutex_t*,c
 // How do we display this thing? 
 char *dshwrappthread_tostr(char*,int,dshwrapthread_t);
 
-#endif
+
 
 #endif
