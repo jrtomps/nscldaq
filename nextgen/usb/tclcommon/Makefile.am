@@ -1,0 +1,23 @@
+lib_LTLIBRARIES			=	libusbtclcommon.la
+libusbtclcommon_la_SOURCES	=	CConfigurableObject.cpp	\
+					CItemConfiguration.cpp	\
+					CConfiguration.cpp	\
+					tclUtil.cpp
+
+noinst_HEADERS			=	CConfigurableObject.h	\
+					CItemConfiguration.h	\
+					tclUtil.h		\
+					CConfiguration.h
+
+INCLUDES			=	-I@top_srcdir@/base/tclplus	\
+					-I@top_srcdir@/base/headers	\
+					-I@top_srcdir@/base/exception	\
+					-I@top_srcdir@/usb/threadcom	\
+					-I@top_srcdir@/base/thread	\
+					@TCL_FLAGS@
+
+libusbtclcommon_la_LDFLAGS	=	@top_srcdir@/base/tclplus/libtclPlus.la	\
+					@top_srcdir@/base/exception/libException.la	\
+					@top_srcdir@/usb/threadcom/libThreadComm.la	\
+					@top_srcdir@/base/thread/libdaqthreads.la	\
+					@TCL_LDFLAGS@
