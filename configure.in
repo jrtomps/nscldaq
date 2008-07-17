@@ -382,6 +382,9 @@ AC_CONFIG_FILES([Makefile
 		 daq/format/Makefile
 		 usb/Makefile
 		 usb/threadcom/Makefile
+		 usb/tclcommon/Makefile
+		 usb/tclserver/Makefile
+		 usb/output/Makefile
 		 docbuild/Makefile
 		 docconfig/Makefile])
 

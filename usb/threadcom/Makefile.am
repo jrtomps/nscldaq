@@ -1,6 +1,11 @@
 lib_LTLIBRARIES		= libThreadComm.la
-libThreadComm_la_SOURCES = CGaurdedObject.cpp CBufferQueue.cpp
-include_HEADERS		= CGaurdedObject.h CBufferQueue.h
+libThreadComm_la_SOURCES = CGaurdedObject.cpp CBufferQueue.cpp \
+				CControlQueues.cpp		\
+				CRunState.cpp
+
+noinst_HEADERS		= CGaurdedObject.h CBufferQueue.h	\
+			CControlQueues.h			\
+			CRunState.h
 
 INCLUDES	=	-I@top_srcdir@/base/thread
 

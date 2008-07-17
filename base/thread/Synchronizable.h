@@ -18,9 +18,7 @@
 #include <iostream>
 #include <sstream>
 
-#ifndef DSHWRAPTHREADS_H
 #include <dshwrapthreads.h>
-#endif
 
 // forward class references.
 
