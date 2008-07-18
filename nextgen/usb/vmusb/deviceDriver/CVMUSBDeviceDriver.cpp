@@ -18,10 +18,14 @@
 #include "CVMUSBDeviceDriver.h"
 #include "CVMUSB.h"
 #include "CVMUSBReadoutList.h"
+#include "CStack.h"
+#include <CConfiguration.h>
 #include <DataBuffer.h>
+#include <Globals.h>
 #include <stdint.h>
 #include <unistd.h>
 
+using namespace std;
 
 static const size_t VMUSBBufferSize = 13*1024*sizeof(uint16_t);
 static const int    DRAINTIMEOUT    = 5*1000;
@@ -36,7 +40,7 @@ CVMUSBDeviceDriver::CVMUSBDeviceDriver(CVMUSB* pDevice) :
 
 /*!
    Return the device, for any other chunks of external code that
-   may need to fiddle/diddle the VM-USB:
+   may need tofiddle/diddle the VM-USB:
    \return CVMUSB*
    \retval VMUSB device pointer we use internally.
 */
@@ -86,7 +90,6 @@ CVMUSBDeviceDriver::usbReadBuffer(void*   pBuffer,
    VM-USB, iterates through them, initializing the modules in them,
    and loading htem into the VM-USB.
 
-   \todo Code this but I need the device support first.
 
    \note Implicit input is our specific version of the configuration.
 
@@ -95,6 +98,57 @@ CVMUSBDeviceDriver::usbReadBuffer(void*   pBuffer,
 void
 CVMUSBDeviceDriver::usbSetup()
 {
+
+  // First a final special flush of the USB FIFOS:
+
+  usbReadTrash(FLUSHTIMEOUT);
+
+  // Rest the device:
+
+  m_pInterface->writeActionRegister(CVMUSB::ActionRegister::sysReset);
+  m_pInterface->writeActionRegister(0);
+  CStack::resetStackOffset();	// Start loads at location 0 on stack.
+
+  // Find and load the stacks.  Stacks are objects in the configuration
+  // of type uhh....stack.
+  //
+  CConfiguration* pC = Globals::pConfig;
+
+
+  // Find the stacks that have been defined, and for each non zero length stack, 
+  // initialize the modules it uses and load/enable it:
+
+  vector<CConfiguration::ConfigItem> stacks  = pC->getObjectsOfType("stack");
+  for (int  i = 0; i < stacks.size(); i++) {
+    CStack* pStack = reinterpret_cast<CStack*>(stacks[i].s_pObject);
+    pStack->Initialize(*m_pInterface);
+    pStack->loadStack(*m_pInterface);
+    pStack->enableStack(*m_pInterface);
+  }
+ // Set up the buffer size and mode:
+
+  m_pInterface->writeBulkXferSetup(0 << CVMUSB::TransferSetupRegister::timeoutShift); // don't want multibuffering...1sec timeout is fine.
+
+
+  // The global mode:
+  //   13k buffer
+  //   Single event seperator.
+  //   Aligned on 16 bits.
+  //   Single header word.
+  //   Bus request level 4.
+  //   Flush scalers on a single event.
+  //
+  m_pInterface->writeGlobalMode((4 << CVMUSB::GlobalModeRegister::busReqLevelShift) | 
+			  CVMUSB::GlobalModeRegister::flushScalers            |
+			  (CVMUSB::GlobalModeRegister::bufferLen13K << 
+			   CVMUSB::GlobalModeRegister::bufferLenShift));
+
+
+  // ensure that O1 is the Busy, and for the heck of it, let's make O2 AS.
+
+  m_pInterface->writeDeviceSource(CVMUSB::DeviceSourceRegister::nimO1Busy |
+			    CVMUSB::DeviceSourceRegister::nimO2VMEAS);
+
 }
 /*!
    \return size_t

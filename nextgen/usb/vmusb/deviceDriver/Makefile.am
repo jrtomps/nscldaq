@@ -1,11 +1,11 @@
 lib_LTLIBRARIES			=	libvmUsbSpecific.la
 
 libvmUsbSpecific_la_SOURCES	= 	CVMUSB.cpp CVMUSBReadoutList.cpp CVMUSBDeviceDriver.cpp	\
-					C785.cpp
+					C785.cpp CStack.cpp
 
 noinst_HEADERS			=	CVMUSB.h CVMUSBReadoutList.h CVMUSBDeviceDriver.h	\
 					CVMUSBConfigurableObject.h			\
-					C785.h
+					C785.h CStack.h
 
 INCLUDES			=	-I@top_srcdir@/usb/acqcommon	\
 					-I@top_srcdir@/usb/threadcom	\

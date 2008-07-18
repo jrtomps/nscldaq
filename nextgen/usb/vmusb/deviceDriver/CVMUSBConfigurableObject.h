@@ -40,7 +40,7 @@ class CVMUSBConfigurableObject : public CConfigurableObject
   // The following are in addtion to void OnAttach() which is mandated by the
   // base class, and called just after a brand new configuration item has been
   // attached to us.
-
+public:
   virtual void Initialize(CVMUSB& controller) = 0; //!< init module in accordance with config.
   virtual void addReadoutList(CVMUSBReadoutList& list) = 0; //!< add readout list fragment to list.
   virtual CConfigurableObject* clone() const  = 0;
