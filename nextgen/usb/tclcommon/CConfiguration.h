@@ -98,18 +98,10 @@ public:
 
 protected:
   void addCommand(CTCLObjectProcessor& processor);
-
+  void clearConfiguration();
 
   
 };
-
-
-
-
-
-
-
-
 
 
 #endif
