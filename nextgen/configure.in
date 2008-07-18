@@ -386,6 +386,8 @@ AC_CONFIG_FILES([Makefile
 		 usb/tclserver/Makefile
 		 usb/output/Makefile
 		 usb/acqcommon/Makefile
+		 usb/vmusb/Makefile
+		 usb/vmusb/deviceDriver/Makefile
 		 docbuild/Makefile
 		 docconfig/Makefile])
 
