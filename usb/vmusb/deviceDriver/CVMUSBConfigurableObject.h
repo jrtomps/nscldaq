@@ -1,5 +1,5 @@
 #ifndef __CVMUSBCONFIGURABLEOBJECT_H
-#define __CVMUSBCONFIGURABLEOBJECT_h
+#define __CVMUSBCONFIGURABLEOBJECT_H
 
 /*
     This software is Copyright by the Board of Trustees of Michigan
@@ -43,7 +43,7 @@ class CVMUSBConfigurableObject : public CConfigurableObject
 public:
   virtual void Initialize(CVMUSB& controller) = 0; //!< init module in accordance with config.
   virtual void addReadoutList(CVMUSBReadoutList& list) = 0; //!< add readout list fragment to list.
-  virtual CConfigurableObject* clone() const  = 0;
+  virtual CVMUSBConfigurableObject* clone() const = 0;
   
 };
 

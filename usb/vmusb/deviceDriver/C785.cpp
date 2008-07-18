@@ -459,7 +459,7 @@ C785::addReadoutList(CVMUSBReadoutList& list)
 /*!
    Create a dynamically allocated copy of *this.
 */
-CConfigurableObject*
+CVMUSBConfigurableObject*
 C785::clone() const
 {
   return new C785(*this);
