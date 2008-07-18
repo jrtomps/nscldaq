@@ -63,9 +63,8 @@ CConfiguration::~CConfiguration()
   // Delete the configurable objects that have been created.
   // vector is perfectly capable of cleaning itself up.
 
-  for (int i=0; i < m_Objects.size(); i++) {
-    delete m_Objects[i].s_pObject;
-  }
+  clearConfiguration();
+
   delete m_pInterp;
 }
 
@@ -83,6 +82,14 @@ CConfiguration::~CConfiguration()
 void
 CConfiguration::processConfiguration(string configFile)
 {
+
+  // Clear the configuration:
+
+  clearConfiguration();
+
+
+  // Process the file:
+
   try {
     m_pInterp->EvalFile(configFile);
   }
@@ -211,4 +218,13 @@ void
 CConfiguration::addCommand(CTCLObjectProcessor& processor)
 {
   m_Commands.push_back(&processor);
+}
+
+void
+CConfiguration::clearConfiguration()
+{
+  for (int i=0; i < m_Objects.size(); i++) {
+    delete m_Objects[i].s_pObject;
+  }
+  m_Objects.clear();
 }
