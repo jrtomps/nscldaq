@@ -111,7 +111,7 @@ public:
   virtual void onAttach();
   virtual void Initialize(CVMUSB& controller);
   virtual void addReadoutList(CVMUSBReadoutList& list);
-  virtual CConfigurableObject* clone() const;
+  virtual CVMUSBConfigurableObject* clone() const;
 
 
   // utilities:
