@@ -186,6 +186,12 @@ public:
 
     void setDefaultTimeout(int ms); // Can alter internally used timeouts.
 
+
+    // Useful constants:
+
+public:
+  static const uint16_t LastBuffer      = 0x8000;
+
     // Register bit definintions.
 
 public: 
