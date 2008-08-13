@@ -82,14 +82,13 @@ Const(ECLFCOrTimeReset)     0x6066;
 Const(NIMGate1OrTiming)      0x606a;
 Const(NIMFCOrTimeReset)     0x606c;
 Const(NIMBusyFunction)      0x606e;
-
+Const(EventCounterReset)    0x6090;
 Const(TimingSource)         0x6096;
 Const(TimingDivisor)        0x6098;
-Const(TimestampReset)       0x609a;
+Const(TimestampReset)       EventCounterReset; // As of firmware 5.
 
 Const(TestPulser)           0x6070; // In order to ensure it's off !
 
-Const(EventCounterReset)    0x6090;
 
 /////////////////////////////////////////////////////////////////////////////////
 // Data that drives parameter validity checks.
@@ -159,7 +158,7 @@ const int   TimingSourceNumValues = sizeof(TimingSourceValues)/sizeof(char*);
 
 // Legal values for the timing divisor (0-15)
 
-static CConfigurableObject::limit divisorLimit(15);
+static CConfigurableObject::limit divisorLimit(0xffff);
 static CConfigurableObject::Limits DivisorLimits(Zero, divisorLimit);
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -373,7 +372,7 @@ CMADC32::Initialize(CVMUSB& controller)
 
 
   list.addWrite16(base + TimingDivisor, initamod, timedivisor);
-  list.addWrite16(base + TimestampReset, initamod, 1);
+  list.addWrite16(base + TimestampReset, initamod, 3); // Reset both counters.
 
 
   // Turn on or off ECL termination.  In fact the module provides much more control
@@ -458,6 +457,7 @@ CMADC32::addReadoutList(CVMUSBReadoutList& list)
 
   list.addFifoRead32(base + eventBuffer, readamod, 45);
   list.addWrite16(base + ReadoutReset, initamod, 1);
+  list.addDelay(5);
 }
 
 // Cloning supports a virtual copy constructor.
