@@ -16,8 +16,7 @@
 
 #include <config.h>
 #include "CMADC32.h"
-#include "CVMUSBConfigurableObject.h"
-#include <CItemConfiguration.h>
+
 #include <CVMUSB.h>
 #include <CVMUSBReadoutList.h>
 
@@ -83,14 +82,13 @@ Const(ECLFCOrTimeReset)     0x6066;
 Const(NIMGate1OrTiming)      0x606a;
 Const(NIMFCOrTimeReset)     0x606c;
 Const(NIMBusyFunction)      0x606e;
-
+Const(EventCounterReset)    0x6090;
 Const(TimingSource)         0x6096;
 Const(TimingDivisor)        0x6098;
-Const(TimestampReset)       0x609a;
+Const(TimestampReset)       EventCounterReset; // As of firmware 5.
 
 Const(TestPulser)           0x6070; // In order to ensure it's off !
 
-Const(EventCounterReset)    0x6090;
 
 /////////////////////////////////////////////////////////////////////////////////
 // Data that drives parameter validity checks.
@@ -158,17 +156,10 @@ const int   InputRangeNumValues = sizeof(InputRangeValues)/sizeof(char*);
 const char* TimingSourceValues[2] = {"vme", "external"};
 const int   TimingSourceNumValues = sizeof(TimingSourceValues)/sizeof(char*);
 
-
 // Legal values for the timing divisor (0-15)
 
-static CItemConfiguration::limit divisorLimit(15);
+static CItemConfiguration::limit divisorLimit(0xffff);
 static CItemConfiguration::Limits DivisorLimits(Zero, divisorLimit);
-
-// Legal values for th NIM busy; don't change the order as
-// the indices are also the register values!!
-
-const char*  NIMBusyValues[] = {"busy", "gate0", "gate1", "cbus"};
-static int  NIMBusyNumValues = sizeof(NIMBusyValues)/sizeof(char*);
 
 
 /////////////////////////////////////////////////////////////////////////////////
@@ -255,15 +246,6 @@ CMADC32::onAttach()
 				 &ThresholdValidity, "0");
 
 
-  // -nimbusy controls the possible values for the NIM busy signal
-
-  static CItemConfiguration::isEnumParameter ValidNIMBusy;
-  for (int i=0; i< NIMBusyNumValues; i++) {
-    ValidNIMBusy.insert(NIMBusyValues[i]);
-  }
-  m_pConfiguration->addParameter("-nimbusy", CItemConfiguration::isEnum,
-				 &ValidNIMBusy, NIMBusyValues[0]);
-
 }
 /*!
    Initialize the module prior to data taking.  We will get the initialization
@@ -314,7 +296,6 @@ CMADC32::Initialize(CVMUSB& controller)
   string      timesource  = m_pConfiguration->cget("-timingsource");
   int         timedivisor = m_pConfiguration->getIntegerParameter("-timingdivisor");
   vector<int> thresholds  = m_pConfiguration->getIntegerList("-thresholds");
-  string      nimbusy     = m_pConfiguration->cget("-nimbusy");
 
   // Write the thresholds.
 
@@ -364,7 +345,7 @@ CMADC32::Initialize(CVMUSB& controller)
 
 
   list.addWrite16(base + TimingDivisor, initamod, timedivisor);
-  list.addWrite16(base + TimestampReset, initamod, 1);
+  list.addWrite16(base + TimestampReset, initamod, 3); // Reset both counters.
 
 
   // Turn on or off ECL termination.  In fact the module provides much more control
@@ -406,18 +387,6 @@ CMADC32::Initialize(CVMUSB& controller)
     list.addWrite16(base + TimingSource, initamod, 1);
   }
   
-
-  // Set the NIM busy output as selected.
-  // the index of the enumerated value in the NIMBusyValues is the
-  // value to which the register needs to be programmed.
-  //
-
-  for (int i =0; i < NIMBusyNumValues; i++) {
-    if (nimbusy == string(NIMBusyValues[i])) {
-      list.addWrite16(base + NIMBusyFunction, initamod, i);
-      break;
-    }
-  }
 
   // Finally clear the converter and set the IPL which enables interrupts if
   // the IPL is non-zero, and does no harm if it is zero.
@@ -461,6 +430,7 @@ CMADC32::addReadoutList(CVMUSBReadoutList& list)
 
   list.addFifoRead32(base + eventBuffer, readamod, 45);
   list.addWrite16(base + ReadoutReset, initamod, 1);
+  list.addDelay(5);
 }
 
 // Cloning supports a virtual copy constructor.
