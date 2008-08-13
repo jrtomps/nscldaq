@@ -16,8 +16,7 @@
 #ifndef __CMADCSCALER_H
 #define __CMADCSCALER_h
 
-
-#ifndef __CVMEUSBCONFIGURABLEOBJECT_H
+#ifndef __CVMUSBCONFIGURABLEOBJECT_H
 #include "CVMUSBConfigurableObject.h"
 #endif
 
@@ -45,7 +44,6 @@
 
 // Forward class definitions:
 
-
 class CVMUSB;
 class CVMUSBReadoutList;
 
@@ -67,6 +65,7 @@ Configuration parameters:
 */
 class CMADCScaler : public CVMUSBConfigurableObject
 {
+
 
 private:
   int operator==(CMADCScaler& rhs) const;

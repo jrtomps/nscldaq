@@ -45,6 +45,7 @@
 
 // Forward class definitions:
 
+class CReadoutModule;
 class CVMUSB;
 class CVMUSBReadoutList;
 
@@ -76,12 +77,11 @@ class CVMUSBReadoutList;
    -timingsource        enum (vme,external)  Determines where timestamp source is.
    -timingdivisor       int [0-15]          Divisor (2^n) of timestamp clock
    -thresholds          int[32] [0-4095]    Threshold settings (0 means unused).
-   -nimbusy             enum (busy, gate0, gate1 cbus) Sets what comes out the nim busy.
-                                            default is ..well.. busy.
 \endverbatim
 */
 class CMADC32 : public CVMUSBConfigurableObject
 {
+
 private:
   int operator==(CMADC32& rhs) const;
   int operator!=(CMADC32& rhs) const;
@@ -93,7 +93,6 @@ public:
   virtual void Initialize(CVMUSB& controller);
   virtual void addReadoutList(CVMUSBReadoutList& list);
   virtual CVMUSBConfigurableObject* clone() const;
-
 
 };
 

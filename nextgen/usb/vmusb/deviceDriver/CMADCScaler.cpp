@@ -16,7 +16,7 @@
 
 #include <config.h>
 #include "CMADCScaler.h"
-#include <CItemConfiguration.h>
+
 #include <CVMUSB.h>
 #include <CVMUSBReadoutList.h>
 
@@ -47,8 +47,7 @@ static const int daq_time_hi(0x60a2);
 static const int time_0(0x60a8);
 static const int time_1(0x60aa);
 
-static const int time_reset(0x60ae);
-
+static const int time_reset(0x6090);
 
 
 
@@ -80,7 +79,7 @@ CMADCScaler::Initialize(CVMUSB& controller)
 {
   uint32_t base = m_pConfiguration->getUnsignedParameter("-base");
 
-  controller.vmeWrite16(base + time_reset, amod, 0);
+  controller.vmeWrite16(base + time_reset, amod, 2); // Reset the ctr b block.
 }
 /*!
   Add the instructions to the readout list that actually read the module.
@@ -100,7 +99,7 @@ CMADCScaler::addReadoutList(CVMUSBReadoutList& list)
 
   // reset the time for incremental scalers....
   
-  list.addWrite16(base+time_reset, amod, 0);
+  list.addWrite16(base+time_reset, amod, 2);
 
 }
 
