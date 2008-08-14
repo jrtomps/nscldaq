@@ -12,14 +12,15 @@ libdataformat_la_SOURCES = CRingSelectionPredicate.cpp	\
 			CRingPhysicsEventCountItem.cpp
 
 
-include_HEADERS		= CRingSelectionPredicate.h	\
+include_HEADERS	= CRingSelectionPredicate.h	\
 			  CDesiredTypesPredicate.h	\
 			  CAllButPredicate.h	\
 			 CRingItem.h \
 			CRingStateChangeItem.h	\
 			CRingScalerItem.h	\
 			CRingTextItem.h	\
-			CRingPhysicsEventCountItem.h
+			CRingPhysicsEventCountItem.h	\
+			DataFormat.h
 
 INCLUDES	= -I@top_srcdir@/base/dataflow	\
 		  -I@top_srcdir@/base/exception	\

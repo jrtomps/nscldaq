@@ -25,7 +25,7 @@ libDataFlow_la_LIBADD  = @top_srcdir@/base/exception/libException.la \
 
 
 libRingBuffer_la_SOURCES = ringPackage.cpp CRingCommand.cpp
-libRingBuffer_la_DEPENDENCIES = libDataFlow.la
+libRingBuffer_la_DEPENDENCIES = libDataFlow.la ringtostdoutsw.o stdintoringsw.o
 
 libRingBuffer_la_LIBADD  = 	@top_srcdir@/base/tclplus/libtclPlus.la \
 				@top_srcdir@/base/dataflow/libDataFlow.la \
@@ -42,20 +42,21 @@ bin_PROGRAMS 	= ringtostdout stdintoring
 
 ringtostdout_SOURCES = ringtostdout.cpp
 
-ringtostdout_DEPENDENCIES = ringtostdoutsw.o libRingBuffer.la
+ringtostdout_DEPENDENCIES =  libRingBuffer.la
+
 
 ringtostdoutsw.o: ringtostdoutsw.ggo
 	$(GENGETOPT) <ringtostdoutsw.ggo --file=ringtostdoutsw --unamed-opts
-	$(COMPILE) -c ringtostdoutsw.c
+	$(CC) -c ringtostdoutsw.c
 
 ringtostdout_LDADD	= ringtostdoutsw.o libRingBuffer.la
 
 stdintoring_SOURCES = stdintoring.cpp
-stdintoring_DEPENDENCIES = stdintoringsw.o libRingBuffer.la
+stdintoring_DEPENDENCIES = libRingBuffer.la 
 
 stdintoringsw.o: stdintoringsw.ggo
 	$(GENGETOPT) <stdintoringsw.ggo --file=stdintoringsw --unamed-opts
-	$(COMPILE) -c stdintoringsw.c
+	$(CC) -c stdintoringsw.c
 
 stdintoring_LDADD	= stdintoringsw.o libRingBuffer.la
 
@@ -74,9 +75,12 @@ unittests_LDADD   = -L@prefix@/lib $(CPPUNIT_LDFLAGS) -lDataFlow
 
 unittests_LDFLAGS = -Wl,"-rpath-link=$(libdir)"
 
+
+producer_SOURCES	=	producer.cpp
 producer_LDADD    = -L@prefix@/lib -lDataFlow
 producer_LDFLAGS  = -Wl,"-rpath-link=$(libdir)"
 
+consumer_SOURCES	=	consumer.cpp
 consumer_LDADD    = -L@prefix@/lib -lDataFlow
 consumer_LDFLAGS  = -Wl,"-rpath-link=$(libdir)"
 

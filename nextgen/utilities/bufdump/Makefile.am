@@ -14,7 +14,8 @@ noinst_HEADERS	=	CDataSource.h		\
 			CRingDataSource.h	\
 			CFileDataSource.h	\
 			BufdumpMain.h		\
-			../StringsToIntegers.h
+			../StringsToIntegers.h	\
+			dumperargs.h
 
 
 
@@ -30,6 +31,15 @@ dumper_LDADD		=	dumperargs.o	\
 				@top_srcdir@/base/dataflow/libDataFlow.la	\
 				@top_srcdir@/base/exception/libException.la
 
+
+dumperargs.h: dumperargs.ggo
+	$(GENGETOPT) <dumperargs.ggo --file=dumperargs
+	$(CC) -c -I. dumperargs.c
+
+
 dumperargs.o: dumperargs.ggo
 	$(GENGETOPT) <dumperargs.ggo --file=dumperargs
 	$(CC) -c -I. dumperargs.c
+
+
+EXTRA_DIST=dumperargs.ggo

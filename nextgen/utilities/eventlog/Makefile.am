@@ -2,7 +2,7 @@ bin_PROGRAMS		=	eventlog
 
 eventlog_SOURCES	=	eventlog.cpp eventlogMain.cpp
 
-noinst_HEADERS		= 	eventlogMain.h
+noinst_HEADERS		= 	eventlogargs.h eventlogMain.h
 
 eventlog_DEPENDENCIES	=	eventlogargs.o
 
@@ -18,6 +18,11 @@ eventlog_LDADD		=	eventlogargs.o	\
 				@top_srcdir@/base/exception/libException.la
 
 # Gengetopt stuff.
+
+eventlogsargs.h: eventlogargs.ggo
+	$(GENGETOPT) <eventlogargs.ggo --file=eventlogargs
+	$(CC) -c -I. eventlogargs.c
+
 
 eventlogargs.o: eventlogargs.ggo
 	$(GENGETOPT) <eventlogargs.ggo --file=eventlogargs

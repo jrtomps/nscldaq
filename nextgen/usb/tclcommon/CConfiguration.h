@@ -94,11 +94,9 @@ public:
   ConfigurationIterator             findObjectByName(std::string name);
   ConfigurationIterator             end();
 
-  // For derived classes:
-
-protected:
   void addCommand(CTCLObjectProcessor& processor);
   void clearConfiguration();
+  CTCLInterpreter* getInterpreter();
 
   
 };

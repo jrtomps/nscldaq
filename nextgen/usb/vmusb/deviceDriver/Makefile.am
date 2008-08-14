@@ -1,6 +1,6 @@
-lib_LTLIBRARIES			=	libvmUsbSpecific.la
+lib_LTLIBRARIES			=	libvmUsbDeviceDrivers.la
 
-libvmUsbSpecific_la_SOURCES	= 	CVMUSB.cpp CVMUSBReadoutList.cpp CVMUSBDeviceDriver.cpp	\
+libvmUsbDeviceDrivers_la_SOURCES	= 	CVMUSB.cpp CVMUSBReadoutList.cpp CVMUSBDeviceDriver.cpp	\
 					C785.cpp CStack.cpp C3804.cpp C3820.cpp C830.cpp	\
 					CCAENChain.cpp CMADC32.cpp CMADCScaler.cpp CMarker.cpp	\
 					CNADC2530.cpp
@@ -18,7 +18,7 @@ INCLUDES			=	-I@top_srcdir@/usb/acqcommon	\
 					-I@top_srcdir@/base/thread	\
 					@TCL_FLAGS@
 
-libvmUsbSpecific_la_LDFLAGS	=	@top_srcdir@/usb/acqcommon/libusbacqcommon.la	\
+libvmUsbDeviceDrivers_la_LDFLAGS =	@top_srcdir@/usb/acqcommon/libusbacqcommon.la	\
 					@top_srcdir@/usb/tclcommon/libusbtclcommon.la	\
 					@top_srcdir@/usb/threadcom/libThreadComm.la	\
 					@top_srcdir@/usb/output/libOutputStage.la	\
