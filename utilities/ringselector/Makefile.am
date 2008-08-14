@@ -4,7 +4,7 @@ ringselector_SOURCES 	= 	ringselector.cpp RingSelectorMain.cpp ../StringsToInteg
 
 ringselector_DEPENDENCIES =	parser.o
 
-noinst_HEADERS		=	../StringsToIntegers.h RingSelectorMain.h
+noinst_HEADERS		=	parser.h ../StringsToIntegers.h RingSelectorMain.h
 
 INCLUDES		= 	-I@top_srcdir@/base/exception	\
 				-I@top_srcdir@/base/headers	\
@@ -19,6 +19,10 @@ ringselector_LDADD	=  	parser.o 					\
 
 
 #----------------------- Gengetopt stuff:
+
+parser.h: parser.ggo
+	$(GENGETOPT) <parser.ggo --file=parser
+	$(CC)  -c parser.c
 
 parser.o: parser.ggo
 	$(GENGETOPT) <parser.ggo --file=parser 

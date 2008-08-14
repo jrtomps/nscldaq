@@ -205,21 +205,24 @@ CConfiguration::end()
 
 
 
-///////////////////////////////////////////////////////////////////////////
-/////////////////////// Protected utilities ///////////////////////////////
-///////////////////////////////////////////////////////////////////////////
 
 
-/*
-** Register a dynamically allocated extension command so that it
-** will be automatically deleted when we are destroyed:
+
+/*!
+ Register a dynamically allocated extension command so that it
+ will be automatically deleted when we are destroyed:
+
+ \param processor - reference to the processor to add.
+
 */
 void
 CConfiguration::addCommand(CTCLObjectProcessor& processor)
 {
   m_Commands.push_back(&processor);
 }
-
+/*!
+  Clear the configuration.
+*/
 void
 CConfiguration::clearConfiguration()
 {
@@ -227,4 +230,13 @@ CConfiguration::clearConfiguration()
     delete m_Objects[i].s_pObject;
   }
   m_Objects.clear();
+}
+/*!
+  \return CTCLInterpreter* 
+  \retval Pointer to the interpreter that this configuration object runs on.
+*/
+CTCLInterpreter*
+CConfiguration::getInterpreter()
+{
+  return m_pInterp;
 }
