@@ -36,8 +36,11 @@ using namespace std;
    run-time class, and therefore, the wrong onAttach will get called.
 
 */
-CControlModule::CControlModule()
+CControlModule::CControlModule(string name) :
+  m_name(name)
 {}
+
+
 
 CControlModule::~CControlModule()
 {}
@@ -80,3 +83,12 @@ CControlModule::Initialize()
 
 
    
+/*!
+  \return std::string
+  \retval name of module.
+*/
+string
+CControlModule::getName() const
+{
+  return m_name;
+}

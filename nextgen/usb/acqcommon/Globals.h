@@ -36,7 +36,6 @@ class CConfiguration;
   - configurationFilename : std::string  Holds the daq configuration filename
   - controlConfigFilename : std::string  Holds the controllable object configuration 
                                          filename.
-  - pUSBController        : CVMUSB*      Points to the VMUSB controller object.
 */
 
 namespace Globals {
