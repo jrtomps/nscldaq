@@ -69,17 +69,16 @@
 */
 class CControlModule : public CConfigurableObject
 {
-
+private:
+  std::string  m_name;
 public:
 
   // Canonicals
 
-  CControlModule();
+  CControlModule(std::string name);
   virtual ~CControlModule();
   CControlModule(const CControlModule& rhs);
   CControlModule& operator=(const CControlModule& rhs);
-
-private:
   int operator==(const CControlModule& rhs) const;
   int operator!=(const CControlModule& rhs) const;
 public:
@@ -92,6 +91,8 @@ public:
 			  const char* value) = 0; // Set a device parameter.
   virtual std::string Get(const char* what) = 0; // Return a device parameter.
   virtual CControlModule* clone() = 0; // Virtual copy constructor.
+
+  std::string        getName() const;
 };
 
 
