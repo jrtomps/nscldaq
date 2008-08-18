@@ -29,3 +29,7 @@ libusbapplication_la_LDFLAGS	=	@top_srcdir@/usb/tclcommon/libusbtclcommon.la	\
 usbReadoutOptions.h:	usbReadout.ggo
 	$(GENGETOPT)	<usbReadout.ggo --file=usbReadoutOptions
 	$(CC) -c usbReadoutOptions.o  usbReadoutOptions.c
+
+usbReadoutOptions.o:	usbReadout.ggo
+	$(GENGETOPT)	<usbReadout.ggo --file=usbReadoutOptions
+	$(CC) -c   usbReadoutOptions.c
