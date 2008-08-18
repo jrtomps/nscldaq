@@ -1,0 +1,11 @@
+package "usbReadout"
+version "1.0"
+purpose "USB controller readout skeleton"
+
+option "daqconfig" d "Path to DAQ configuration file"     string optional
+option "ctlconfig" c "Path to control configuration file" string optional
+option "device"    u "Specification of USB device to use" string optional
+option "port"      p "Slow control Tcl server port"       string optional
+option "application" a "Port Manager application name"    string optional
+
+
