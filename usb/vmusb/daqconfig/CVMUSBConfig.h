@@ -35,6 +35,7 @@ class CVMUSBConfig
 {
 public:
   static CConfiguration* create();
+  static void            configure(CConfiguration* pConfig);
   static void            destroy();
   static bool            exists();
 };
