@@ -59,6 +59,20 @@ CVMUSBConfig::create()
   CConfiguration* p = new CConfiguration();
   Globals::pConfig  = p;
 
+  configure(p);
+  return p;
+}
+
+/*!
+  Load a configuration with commands needed to read a VMUSB configuration file.
+  \param pConfig - Pointer to tyhe configuration to uh...configure.
+
+*/
+void
+CVMUSBConfig::configure(CConfiguration* pConfig)
+{
+  CConfiguration* p = pConfig;
+
   //  This section stocks the configuration with commands.
   //  Add code here to add new commands.
   //
@@ -77,7 +91,7 @@ CVMUSBConfig::create()
   p->addCommand(*(new CStackCommand(interp, *p)));      // stack command
 
 
-  return p;
+
  
 } 
 /*!
