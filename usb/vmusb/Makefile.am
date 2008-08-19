@@ -1,1 +1,1 @@
-SUBDIRS	=	deviceDriver daqconfig
+SUBDIRS	=	deviceDriver daqconfig app

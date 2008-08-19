@@ -1,4 +1,4 @@
-#ifndef __CAPPLICATION_h
+#ifndef __CAPPLICATION_H
 #define __CAPPLICATION_H
 
 /*

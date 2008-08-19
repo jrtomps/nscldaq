@@ -50,6 +50,8 @@ using namespace std;
 static DataBuffer* lastBuffer(0);
 static const unsigned ReadoutStack(0);
 static const unsigned ScalerStack(1);
+static const unsigned EventCountMask(0xfff);
+static const unsigned Continuation(0x1000);
 
 
 ////////////////////////////////////////////////////////////////////////
@@ -259,7 +261,7 @@ COutputThread::scaler(time_t when, int number, uint32_t* pScalers)
 void
 COutputThread::event(uint32_t size, void* pData)
 {
-  uint32_t bytes = size*sizeof(uint16_t);
+  uint32_t bytes = size*sizeof(uint16_t); // USB device sizes are not self inclusive.
   CRingItem item(PHYSICS_EVENT, bytes);
 
   uint8_t* pDest = reinterpret_cast<uint8_t*>(item.getBodyCursor());
@@ -288,6 +290,39 @@ COutputThread::eventCount(time_t when)
 
 }
 
+/*!
+   Process data from a VM/CC-USB event buffer.  We're going to collect
+   events and pass them on to the event function until we run out of data.
+   For buffers that don't match, this can be overridden.
+   \param buffer -Reference to the data buffer struct.
+
+*/
+void 
+COutputThread::processUSBData(DataBuffer& buffer)
+{
+  uint32_t  nWordsLeft = buffer.s_bufferSize/sizeof(uint16_t); // Words not yet processed.
+  uint16_t* pData      = buffer.s_rawData;
+  unsigned  nEvents    = *pData & EventCountMask;
+  pData++;
+  nWordsLeft--;
+
+  while (nWordsLeft && nEvents) {
+    uint32_t nWords = eventSize(pData);
+    event(nWords, pData);
+
+    pData += nWords;
+    nWordsLeft -= nWords;
+  }
+  // Note that both nWordsLeft and nEvents should hit zero at the same time!!
+
+  if (nWordsLeft != nEvents) {
+    cerr << "Words in buffer not consistent with events in buffer:\n";
+    cerr << "Both should now be zero but WordsLeft = " << nWordsLeft << endl;
+    cerr << "                            EventsLeft= " << nEvents << endl;
+    cerr << "Continuing with the next buffer\n";
+  }
+}
+
 //////////////////////////////////////////////////////////////////////////////////
 //
 // Utilities.
@@ -304,4 +339,25 @@ COutputThread::openRing()
   string name(pPass->pw_name);
 
   m_pRing = new CRingBuffer(name, CRingBuffer::producer);
+}
+/*
+** Figure out how many words are in an event.
+** note that event word counts are not self inclusive for
+** VM/CC-USB devices.
+*/
+uint32_t
+COutputThread::eventSize(uint16_t* pEvent)
+{
+  uint32_t size(0);
+  uint16_t segmentHeader;
+  do {
+    segmentHeader        = *pEvent;
+    uint32_t segmentSize = segmentHeader & EventCountMask;
+    pEvent              += segmentSize;
+    size                += segmentSize;
+
+  } while (segmentHeader & Continuation);
+
+  return size;
+    
 }

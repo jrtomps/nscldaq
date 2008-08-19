@@ -71,7 +71,7 @@ public:
 
   // Now here's the thing our facade is in front of:
 
-  virtual void Initialize(CVMUSB& vme);
+  virtual void Initialize(CVMUSB& vme) = 0;
   virtual std::string Update(CVMUSB& vme) = 0;               //!< Update module.
   virtual std::string Set(CVMUSB& vme, 
 			  std::string parameter, 
