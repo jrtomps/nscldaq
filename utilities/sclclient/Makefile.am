@@ -7,7 +7,8 @@ sclclient_SOURCES	=	TclServerConnection.cpp		\
 
 noinst_HEADERS		=	TclServerConnection.h		\
 				TcpClient.h			\
-				sclclientMain.h
+				sclclientMain.h			\
+				sclclientargs.h
 
 INCLUDES		=	-I@top_srcdir@/base/headers	\
 				-I@top_srcdir@/base/dataflow	\
@@ -28,4 +29,9 @@ sclclientargs.o: sclclientargs.ggo
 	$(GENGETOPT) <sclclientargs.ggo --file sclclientargs
 	$(CC) -c -I. sclclientargs.c
 
+sclclientargs.h: sclclientargs.ggo
+	$(GENGETOPT) <sclclientargs.ggo --file sclclientargs
 
+
+EXTRA_DIST		= 	sclclientargs.ggo	\
+				sclclient.xml
