@@ -143,6 +143,7 @@ protected:
 
 private: 
   void openRing();
+  uint32_t eventSize(uint16_t* pData);
 
 };
 

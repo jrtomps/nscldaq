@@ -390,6 +390,7 @@ AC_CONFIG_FILES([Makefile
 		 usb/vmusb/Makefile
 		 usb/vmusb/deviceDriver/Makefile
 		 usb/vmusb/daqconfig/Makefile
+		 usb/vmusb/app/Makefile
 		 docbuild/Makefile
 		 docconfig/Makefile])
 
