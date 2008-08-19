@@ -114,6 +114,15 @@ CConditionVariable::CConditionVariable(CConditionAttributes& attr)
 }
 
 /*!
+  Destructor destroys the condition variable. We will ignore the return status.
+
+*/
+CConditionVariable::~CConditionVariable()
+{
+  pthread_cond_destroy(&m_condition);
+}
+
+/*!
    Signal a condition variable unblocking one thread...the unblocked thread
    will come out of the block holding the mutex it associated with its wait.
 */
