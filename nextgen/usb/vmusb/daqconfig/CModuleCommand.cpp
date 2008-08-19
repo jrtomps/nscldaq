@@ -41,7 +41,7 @@ using std::vector;
                     module objects.
    \param name    - The name of the command.
 */
-CModuleCommand::CModuleCommand(CTCLInterpreter& interp, CConfiguration& config, string name) :
+CDAQModuleCommand::CDAQModuleCommand(CTCLInterpreter& interp, CConfiguration& config, string name) :
   CTCLObjectProcessor(interp, name),
   m_config(config)
 {}
@@ -49,7 +49,7 @@ CModuleCommand::CModuleCommand(CTCLInterpreter& interp, CConfiguration& config, 
 /*!
    Chain to the base class destructor which will unregister the command.
 */
-CModuleCommand::~CModuleCommand()
+CDAQModuleCommand::~CDAQModuleCommand()
 {}
 
 //////////////////////////////////////////////////////////////////////////////////////////////
@@ -79,7 +79,7 @@ CModuleCommand::~CModuleCommand()
 
 */
 int
-CModuleCommand::operator()(CTCLInterpreter& interp, vector<CTCLObject>& objv)
+CDAQModuleCommand::operator()(CTCLInterpreter& interp, vector<CTCLObject>& objv)
 {
   // require at least 3 parameters.
 
@@ -129,7 +129,7 @@ CModuleCommand::operator()(CTCLInterpreter& interp, vector<CTCLObject>& objv)
        adc config [adc create adc1 0x80000000] ....
 */
 int
-CModuleCommand::create(CTCLInterpreter& interp, vector<CTCLObject>& objv)
+CDAQModuleCommand::create(CTCLInterpreter& interp, vector<CTCLObject>& objv)
 {
   if (objv.size() < 3) {
     Usage("not enough parameters for the create subcommand", objv);
@@ -200,7 +200,7 @@ CModuleCommand::create(CTCLInterpreter& interp, vector<CTCLObject>& objv)
      Note that all error messages will start with the text "ERROR:"
 */
 int
-CModuleCommand::config(CTCLInterpreter& interp, vector<CTCLObject>& objv)
+CDAQModuleCommand::config(CTCLInterpreter& interp, vector<CTCLObject>& objv)
 {
   if ((objv.size() < 5) || ((objv.size() % 2) != 1)) {
     Usage("Incorrect number of command parameters in ", objv);
@@ -244,7 +244,7 @@ CModuleCommand::config(CTCLInterpreter& interp, vector<CTCLObject>& objv)
      value pair...e.g. {-base 0x80000000} ...
 */
 int
-CModuleCommand::cget(CTCLInterpreter& interp, vector<CTCLObject>& objv)
+CDAQModuleCommand::cget(CTCLInterpreter& interp, vector<CTCLObject>& objv)
 {
   if (objv.size() != 3) {
     Usage("Invalid command parameter count for cget", objv);
@@ -276,7 +276,7 @@ CModuleCommand::cget(CTCLInterpreter& interp, vector<CTCLObject>& objv)
    Create error message text, and set it as the interpreter result.
 */
 void
-CModuleCommand::Usage(std::string msg, std::vector<CTCLObject>& objv)
+CDAQModuleCommand::Usage(std::string msg, std::vector<CTCLObject>& objv)
 {
   string result("ERROR: ");
   result += msg;
@@ -314,7 +314,7 @@ CModuleCommand::Usage(std::string msg, std::vector<CTCLObject>& objv)
         at this time.
 */
 void
-CModuleCommand::addObjectToConfiguration(CConfiguration& config,
+CDAQModuleCommand::addObjectToConfiguration(CConfiguration& config,
 					 std::string     name,
 					 std::string     type,
 					 CConfigurableObject* object)
@@ -334,7 +334,7 @@ CModuleCommand::addObjectToConfiguration(CConfiguration& config,
   If found, a pointer to the module is returned, if not a NULL.
 */
 CConfigurableObject*
-CModuleCommand::findModule(string name)
+CDAQModuleCommand::findModule(string name)
 {
   CConfiguration::ConfigurationIterator p = m_config.findObjectByName(name);
   if (p == m_config.end()) {
@@ -348,7 +348,7 @@ CModuleCommand::findModule(string name)
   type of module we're managing
 */
 CConfigurableObject*
-CModuleCommand::findModuleOfMyType(string name)
+CDAQModuleCommand::findModuleOfMyType(string name)
 {  CConfiguration::ConfigurationIterator p = m_config.findObjectByName(name);
   if (p == m_config.end()) {
     return reinterpret_cast<CConfigurableObject*>(0);
@@ -370,7 +370,7 @@ CModuleCommand::findModuleOfMyType(string name)
      TCL_ERROR - failure.
 */
 int
-CModuleCommand::Configure(CTCLInterpreter&         interp,
+CDAQModuleCommand::Configure(CTCLInterpreter&         interp,
 		std::vector<CTCLObject>& objv,
 		CConfigurableObject*     pObject,
 		unsigned                 startAt)

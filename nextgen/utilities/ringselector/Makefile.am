@@ -4,7 +4,9 @@ ringselector_SOURCES 	= 	ringselector.cpp RingSelectorMain.cpp ../StringsToInteg
 
 ringselector_DEPENDENCIES =	parser.o
 
-noinst_HEADERS		=	parser.h ../StringsToIntegers.h RingSelectorMain.h
+noinst_HEADERS		=	 ../StringsToIntegers.h RingSelectorMain.h
+
+BUILT_SOURCES	= parser.h
 
 INCLUDES		= 	-I@top_srcdir@/base/exception	\
 				-I@top_srcdir@/base/headers	\

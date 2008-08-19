@@ -38,7 +38,7 @@ using std::string;
 CStackCommand::CStackCommand(CTCLInterpreter& interp,
 			 CConfiguration&  config,
 			 std::string      commandName) : 
-  CModuleCommand(interp, config, commandName)
+  CDAQModuleCommand(interp, config, commandName)
 
 {
 }

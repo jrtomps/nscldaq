@@ -42,7 +42,7 @@ using std::string;
 CMarkerCommand::CMarkerCommand(CTCLInterpreter&   interp,
 			       CConfiguration&    config,
 			       std::string        commandName) :
-  CModuleCommand(interp,config, commandName)
+  CDAQModuleCommand(interp,config, commandName)
 {}
 
 /*!

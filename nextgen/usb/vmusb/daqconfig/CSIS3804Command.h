@@ -35,7 +35,7 @@
    are acceptable.
 
 */
-class CSIS3804Command : public CModuleCommand
+class CSIS3804Command : public CDAQModuleCommand
 {
 public:
   CSIS3804Command(CTCLInterpreter& interp, CConfiguration& config);

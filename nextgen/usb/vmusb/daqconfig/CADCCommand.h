@@ -75,7 +75,7 @@ puts [adc cget adc1]
 \endverbatim
 
 */
-class CADCCommand : public CModuleCommand
+class CADCCommand : public CDAQModuleCommand
 {
 public:
   CADCCommand(CTCLInterpreter& interp,

@@ -56,7 +56,7 @@ foreach pair $hconf {
 
 */
 
-class CNADC2530Command : public CModuleCommand
+class CNADC2530Command : public CDAQModuleCommand
 {
 
 public:

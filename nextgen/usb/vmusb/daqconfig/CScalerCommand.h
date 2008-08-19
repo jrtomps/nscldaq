@@ -33,7 +33,7 @@
     This module does not require configuration.
 
 */
-class CScalerCommand : public CModuleCommand
+class CScalerCommand : public CDAQModuleCommand
 {
 public:
   CScalerCommand(CTCLInterpreter& interp, CConfiguration& config);

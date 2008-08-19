@@ -68,7 +68,7 @@ CModuleCommand::operator()(CTCLInterpreter& interp,
   // validate the parameter count.
 
   if (objv.size() < 2) {
-    m_Server.setResult("module: Insufficient parameters need module create | config | cget");
+    interp.setResult("module: Insufficient parameters need module create | config | cget");
     return TCL_ERROR;
   }
 
@@ -85,7 +85,7 @@ CModuleCommand::operator()(CTCLInterpreter& interp,
     return cget(interp, objv);
   }
   else {
-    m_Server.setResult("module: Invalid subcommand need module create | config |cget");
+    interp.setResult("module: Invalid subcommand need module create | config |cget");
     return TCL_ERROR;
   }
 }
@@ -105,7 +105,7 @@ CModuleCommand::create(CTCLInterpreter& interp,
 		       vector<CTCLObject>& objv)
 {
   if (objv.size() != 4) {
-    m_Server.setResult("module create: Wrong number of params need: module create type name");
+    interp.setResult("module create: Wrong number of params need: module create type name");
     return TCL_ERROR;
   }
   string type = objv[2];
@@ -126,7 +126,7 @@ CModuleCommand::create(CTCLInterpreter& interp,
   m_Server.addModule(pModule);
 
 
-  m_Server.setResult(name);
+  interp.setResult(name);
   
 
   return TCL_OK;
@@ -147,7 +147,7 @@ CModuleCommand::configure(CTCLInterpreter& interp,
 
   size_t nelements = objv.size();
   if ((nelements < 3) || ((nelements % 2) == 0)) {
-    m_Server.setResult("module config : invalid number of command elements.");
+    interp.setResult("module config : invalid number of command elements.");
     return TCL_ERROR;
   }
   string name = objv[2];
@@ -157,7 +157,7 @@ CModuleCommand::configure(CTCLInterpreter& interp,
     string msg("module config: ");
     msg += name;
     msg += " not found.";
-    m_Server.setResult(msg);
+    interp.setResult(msg);
     return TCL_ERROR;
   }
   for (int i = 3; i < nelements; i+=2) {
@@ -175,7 +175,7 @@ CModuleCommand::configure(CTCLInterpreter& interp,
       msg += value;
       msg += " because: ";
       msg += failmsg;
-      m_Server.setResult( msg);
+      interp.setResult( msg);
       return TCL_ERROR;
     }
   }
@@ -199,7 +199,7 @@ int
 CModuleCommand::cget(CTCLInterpreter& interp, vector<CTCLObject>& objv)
 {
   if ((objv.size() < 3) || (objv.size() > 4)) {
-    m_Server.setResult("module cget : invalid number of parameters; need module cget name ?key?");
+    interp.setResult("module cget : invalid number of parameters; need module cget name ?key?");
     return TCL_ERROR;
   }
 
@@ -209,7 +209,7 @@ CModuleCommand::cget(CTCLInterpreter& interp, vector<CTCLObject>& objv)
     string msg("module cget ");
     msg += name;
     msg += " module not found";
-    m_Server.setResult( msg);
+    interp.setResult( msg);
     return TCL_ERROR;
   }
 
@@ -243,10 +243,10 @@ CModuleCommand::cget(CTCLInterpreter& interp, vector<CTCLObject>& objv)
       msg += key;
       msg += " because: ";
       msg += failmsg;
-      m_Server.setResult( msg);
+      interp.setResult( msg);
       return TCL_ERROR;
     }
-    m_Server.setResult(value);
+    interp.setResult(value);
     return TCL_OK;
     
   }

@@ -35,7 +35,7 @@ using namespace std;
 CCAENChainCommand::CCAENChainCommand(CTCLInterpreter& interp,
 				     CConfiguration&  config,
 				     string           commandName) :
-  CModuleCommand(interp, config, commandName)
+  CDAQModuleCommand(interp, config, commandName)
 {}
 
 /*!
