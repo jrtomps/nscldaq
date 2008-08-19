@@ -41,8 +41,14 @@ unittests_SOURCES	= TestRunner.cpp selecttest.cpp desiredtests.cpp	\
 			  allbuttests.cpp ringitemtests.cpp teststate.cpp	\
 			scalertests.cpp texttest.cpp physcounttests.cpp
 
-unittests_LDADD		= -L$(libdir) $(CPPUNIT_LDFLAGS) -ldataformat -lDataFlow
+unittests_LDADD		= -L$(libdir) $(CPPUNIT_LDFLAGS) 		\
+			@top_srcdir@/base/dataflow/libDataFlow.la 	\
+			@top_srcdir@/daq/format/libdataformat.la	
+
+
 unittests_LDFLAGS	= -Wl,"-rpath-link=$(libdir)"
 
 
 TESTS=./unittests
+
+EXTRA_DIST		=	dataformat.xml
