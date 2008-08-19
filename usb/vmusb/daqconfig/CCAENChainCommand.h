@@ -52,7 +52,7 @@
 
 */
 
-class CCAENChainCommand : public CModuleCommand
+class CCAENChainCommand : public CDAQModuleCommand
 {
 public:
   CCAENChainCommand(CTCLInterpreter& interp,

@@ -37,7 +37,7 @@ using std::string;
 CNADC2530Command::CNADC2530Command(CTCLInterpreter&   interp,
 				   CConfiguration&    config,
 				   std::string        commandName) :
-  CModuleCommand(interp, config, commandName)
+  CDAQModuleCommand(interp, config, commandName)
 {
 }
 /*!  

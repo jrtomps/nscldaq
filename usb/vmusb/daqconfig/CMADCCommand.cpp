@@ -33,7 +33,7 @@ using std::string;
 CMADCCommand::CMADCCommand(CTCLInterpreter& interp,
 			   CConfiguration&  config,
 			   std::string      commandName) :
-  CModuleCommand(interp, config, commandName)
+  CDAQModuleCommand(interp, config, commandName)
 {}
 
 /*!

@@ -43,7 +43,7 @@
 
 */
 
-class CMADCScalerCommand : public CModuleCommand
+class CMADCScalerCommand : public CDAQModuleCommand
 {
 
 public:

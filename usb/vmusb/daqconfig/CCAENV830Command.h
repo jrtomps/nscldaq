@@ -86,7 +86,7 @@ puts [v830 cget scaler1]
 \endverbatim
 
 */
-class CCAENV830Command : public CModuleCommand
+class CCAENV830Command : public CDAQModuleCommand
 {
 
 public:

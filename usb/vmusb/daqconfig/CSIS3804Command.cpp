@@ -35,7 +35,7 @@ using std::string;
 */
 CSIS3804Command::CSIS3804Command(CTCLInterpreter& interp,
 				 CConfiguration&  config) :
-  CModuleCommand(interp, config, string("sis3804"))
+  CDAQModuleCommand(interp, config, string("sis3804"))
 {
 }
 

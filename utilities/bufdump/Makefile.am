@@ -14,9 +14,9 @@ noinst_HEADERS	=	CDataSource.h		\
 			CRingDataSource.h	\
 			CFileDataSource.h	\
 			BufdumpMain.h		\
-			../StringsToIntegers.h	\
-			dumperargs.h
+			../StringsToIntegers.h
 
+BUILT_SOURCES	=	dumperargs.h
 
 
 INCLUDES 		=	-I.. 					\

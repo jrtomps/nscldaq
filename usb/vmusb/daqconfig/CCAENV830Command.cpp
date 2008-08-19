@@ -34,7 +34,7 @@ using std::string;
 */
 CCAENV830Command::CCAENV830Command(CTCLInterpreter& interp, CConfiguration& config,
 				   string name) :
-  CModuleCommand(interp, config, name)
+  CDAQModuleCommand(interp, config, name)
 {
 }
 /*!

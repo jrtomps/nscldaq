@@ -33,7 +33,7 @@ using std::string;
 CMADCScalerCommand::CMADCScalerCommand(CTCLInterpreter& interp,
 			   CConfiguration&  config,
 			   std::string      commandName) :
-  CModuleCommand(interp, config, commandName)
+  CDAQModuleCommand(interp, config, commandName)
 
 {}
 

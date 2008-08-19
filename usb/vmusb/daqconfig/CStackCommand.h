@@ -77,7 +77,7 @@ Note that while no two stack can have the same number or trigger conditions this
 programmatically enforced.  
 
 */
-class CStackCommand : public CModuleCommand
+class CStackCommand : public CDAQModuleCommand
 {
 
 

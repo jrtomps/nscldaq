@@ -1,5 +1,5 @@
-#ifndef __CMODULECOMMAND_H
-#define __CMODULECOMMAND_H
+#ifndef __CDAQMODULECOMMAND_H
+#define __CDAQMODULECOMMAND_H
 
 /*
     This software is Copyright by the Board of Trustees of Michigan
@@ -66,21 +66,21 @@ class CConfigurableObject;
   The preceding members are also virtual so that module commands with special needs can
   override or extend them.
 */
-class CModuleCommand : public CTCLObjectProcessor // >>>ABSTRACT BASE CLASS<<<
+class CDAQModuleCommand : public CTCLObjectProcessor // >>>ABSTRACT BASE CLASS<<<
 {
 protected:
   CConfiguration&  m_config;
 public:
-  CModuleCommand(CTCLInterpreter& interp,
+  CDAQModuleCommand(CTCLInterpreter& interp,
 		 CConfiguration&  config,
 		 std::string      name);
-  virtual ~CModuleCommand();
+  virtual ~CDAQModuleCommand();
 
 private:
-  CModuleCommand(const CModuleCommand& rhs);
-  CModuleCommand& operator=(const CModuleCommand& rhs);
-  int operator==(const CModuleCommand& rhs) const;
-  int operator!=(const CModuleCommand& rhs) const;
+  CDAQModuleCommand(const CDAQModuleCommand& rhs);
+  CDAQModuleCommand& operator=(const CDAQModuleCommand& rhs);
+  int operator==(const CDAQModuleCommand& rhs) const;
+  int operator!=(const CDAQModuleCommand& rhs) const;
 
 
   // This class implements the following methods, although they can be

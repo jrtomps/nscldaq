@@ -43,7 +43,7 @@
 the value is mandatory
 */
 
-class CMarkerCommand : public CModuleCommand
+class CMarkerCommand : public CDAQModuleCommand
 {
 
 public:

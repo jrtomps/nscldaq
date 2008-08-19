@@ -42,7 +42,7 @@
 
 */
 
-class CMADCCommand : public CModuleCommand
+class CMADCCommand : public CDAQModuleCommand
 {
 
 public:

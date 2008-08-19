@@ -34,7 +34,7 @@ using std::string;
        Configuration we will be maintaining.
 */
 CScalerCommand::  CScalerCommand(CTCLInterpreter& interp, CConfiguration& config) :
-  CModuleCommand(interp, config, string("sis3820"))
+  CDAQModuleCommand(interp, config, string("sis3820"))
 {
 }
 /*!

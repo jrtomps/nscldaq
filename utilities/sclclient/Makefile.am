@@ -18,6 +18,7 @@ INCLUDES		=	-I@top_srcdir@/base/headers	\
 
 sclclient_DEPENDENCIES	=	sclclientargs.o
 
+BUILT_SOURCES		= 	sclclientargs.o
 
 sclclient_LDADD		=	sclclientargs.o			\
 				@top_srcdir@/daq/format/libdataformat.la	\

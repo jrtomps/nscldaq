@@ -4,7 +4,7 @@ libusbapplication_la_SOURCES	=	CApplication.cpp
 
 libusbapplication_la_DEPENDENCIES = usbReadoutOptions.o
 
-noinst_HEADERS			=	CApplication.h usbReadoutOptions.h
+noinst_HEADERS			=	CApplication.h
 
 INCLUDES			=	-I@top_srcdir@/base/headers		\
 					-I@top_srcdir@/usb/tclcommon		\
@@ -26,9 +26,11 @@ libusbapplication_la_LDFLAGS	=	@top_srcdir@/usb/tclcommon/libusbtclcommon.la	\
 					@top_srcdir@/base/thread/libdaqthreads.la	\
 					@TCL_LDFLAGS@
 
+BUILT_SOURCES			= 	usbReadoutOptions.h
+
 usbReadoutOptions.h:	usbReadout.ggo
 	$(GENGETOPT)	<usbReadout.ggo --file=usbReadoutOptions
-	$(CC) -c usbReadoutOptions.o  usbReadoutOptions.c
+	$(CC) -c   usbReadoutOptions.c
 
 usbReadoutOptions.o:	usbReadout.ggo
 	$(GENGETOPT)	<usbReadout.ggo --file=usbReadoutOptions
