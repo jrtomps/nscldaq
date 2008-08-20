@@ -63,7 +63,7 @@ CEndRun::operator()(CTCLInterpreter& interp,
   if (objv.size() != 1) {
     string msg = "end -- incorrect number of command parameters\n";
     msg       += usage;
-    interp.setResult(usage);
+    interp.setResult(msg);
     return TCL_ERROR;
   }
   CRunState* pState = CRunState::getInstance();
@@ -71,7 +71,7 @@ CEndRun::operator()(CTCLInterpreter& interp,
 
     string msg = "end - Invalid state for end run.  Must not already be idle\n";
     msg      += usage;
-    interp.setResult(usage);
+    interp.setResult(msg);
     return TCL_ERROR;
   }
   // Now stop the run.

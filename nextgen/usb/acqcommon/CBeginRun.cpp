@@ -120,7 +120,7 @@ CBeginRun::operator()(CTCLInterpreter& interp,
   }
 
   CAcquisitionThread* pReadout = CAcquisitionThread::getInstance();
-  pReadout->start();
+  pReadout->Start();
 
   interp.setResult("Begin - Run started");
   return TCL_OK;

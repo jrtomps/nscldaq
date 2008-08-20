@@ -71,6 +71,7 @@ class TclServer;
     supported device objects can be created and configured.
   - setupTclServer - add device types to the Tcl server so that slow control devices
     can be specified and configured.
+  - startOutputThread - Create/start the output thread (derivation of COutputThread).
   - createBuffers() - Must set up the buffer pool with sufficient buffers
                       of the correct size for the interface.
 
@@ -103,6 +104,7 @@ public:
   virtual void selectInterface(std::string specification)        = 0;
   virtual void setupConfiguration(CConfiguration& configuration) = 0;
   virtual void setupTclServer(TclServer& server)                 = 0;
+  virtual void startOutputThread()                               = 0;
   virtual void createBuffers()                                   = 0;
 
 
