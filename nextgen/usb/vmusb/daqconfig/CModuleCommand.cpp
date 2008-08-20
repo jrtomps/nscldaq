@@ -19,6 +19,7 @@
 #include <TCLObject.h>
 #include <CConfiguration.h>
 #include <CConfigurableObject.h>
+#include <CItemConfiguration.h>
 
 using std::string;
 using std::vector;
@@ -161,7 +162,7 @@ CDAQModuleCommand::create(CTCLInterpreter& interp, vector<CTCLObject>& objv)
   // Create configure and insert the module in the configuration.
 
   CConfigurableObject* pModule = createObject();
-  pModule->onAttach();
+  pModule->Attach(new CItemConfiguration(name), true);
 
   addObjectToConfiguration(m_config, name, getType(), pModule);
 

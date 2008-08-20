@@ -28,6 +28,7 @@
 #include <CResumeRun.h>
 
 #include <CPortManager.h>
+#include <COutputThread.h>
 
 #include <stdlib.h>
 #include <unistd.h>
@@ -78,10 +79,14 @@ CApplication::main(int argc, char** argv)
   // Got all we need to get the application put together:
 
   selectInterface(deviceSpecification);
+
   selectDAQConfigFile(daqConfigFile);
   selectControlConfigFile(ctlConfigFile);
   createConfiguration();
   createTclServer(port, application);
+  createBuffers();
+  COutputThread* pRouter = new COutputThread();
+  pRouter->start();
   createMainInterpreter(argc, argv); // MUST BE LAST!!!!!!
 
 
