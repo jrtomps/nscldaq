@@ -22,6 +22,7 @@
 #include <CAcquisitionThread.h>
 #include <CVMUSBConfig.h>
 #include <CVMUSBControlConfig.h>
+#include <CVMUSBOutputThread.h>
 #include <DataBuffer.h>
 #include <CBufferQueue.h>
 
@@ -114,6 +115,15 @@ void
 App::setupTclServer(TclServer& pServer)
 {
   CVMUSBControlConfig::configure(&pServer);
+}
+/*!
+  Create and start the output thread, which is a CVMUSBOutputThread object:
+*/
+void
+App::startOutputThread()
+{
+  CVMUSBOutputThread* pOutput = new CVMUSBOutputThread();
+  pOutput->start();
 }
 
 /*!

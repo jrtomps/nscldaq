@@ -87,6 +87,21 @@ class CRingBuffer;
   \note There is no need to start/stop thread each run.   Once a run is over,
         this thread will simply block on the buffer queue until the next run
         emits the begin run buffer.
+  
+  This is an abstract base class as there are some elements of the
+  output thread that are device specific.  The device specific elements are
+  captured in the pure virtual functions:
+  - bodySize   - Returns the number of words in a buffer body.
+  - eventCount - Given a DataBuffer*, this should return the number of events in 
+    the body part of the buffer.
+  - headerSize - Given a DataBuffer*, returns the number of words prior to the
+    first event in the buffer.
+  - eventSize - Given a pointer to an event within the buffer, returns the number
+    of words in the event.
+  - processEvent - Called for each event in the buffer, this is expected to call
+    back to event or scaler to create/dispose of the appropriate ring item.
+
+
 */
 
 class COutputThread  : public Thread
@@ -136,14 +151,26 @@ protected:
   void scaler(time_t when, 
 	      int    number,
 	      uint32_t* pScalers);
-  void event(uint32_t size,
-	     void*    pData);
+  void event(uint32_t size, void* pBody);
   void eventCount(time_t when);
 
+  // The concrete interface specific implementation must
+  // provide the following:
+
+  virtual unsigned bodySize(DataBuffer& buffer)    = 0;
+  virtual unsigned eventCount(DataBuffer& buffer) = 0;
+  virtual unsigned headerSize(DataBuffer& buffer) = 0;
+  virtual uint32_t eventSize(uint16_t* pEvent)    = 0;
+  virtual void     processEvent(time_t when, 
+				uint32_t size, 
+				uint16_t* pEvent) = 0;
+
+
+    // utilities.
 
 private: 
   void openRing();
-  uint32_t eventSize(uint16_t* pData);
+
 
 };
 

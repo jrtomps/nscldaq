@@ -44,14 +44,11 @@
 #include <sys/types.h>
 
 
+static const uint64_t eventCountRate(2000);
+
 
 using namespace std;
 
-static DataBuffer* lastBuffer(0);
-static const unsigned ReadoutStack(0);
-static const unsigned ScalerStack(1);
-static const unsigned EventCountMask(0xfff);
-static const unsigned Continuation(0x1000);
 
 
 ////////////////////////////////////////////////////////////////////////
@@ -237,8 +234,8 @@ void
 COutputThread::scaler(time_t when, int number, uint32_t* pScalers)
 {
   
-  uint32_t startTime = m_lastStampedBuffer;
-  uint32_t endTime   = when;
+  uint32_t startTime = m_lastStampedBuffer - m_startTimestamp;
+  uint32_t endTime   = when - m_startTimestamp;;
   m_lastStampedBuffer= when;
 
   CRingScalerItem  item(number);
@@ -277,7 +274,7 @@ COutputThread::event(uint32_t size, void* pData)
 /*!
    Produce an event count item on behalf of the client.
    We've been maintaining a count of the events in a run for the caller.
-   \param when -tim3 when this should be emitted.
+   \param when -time when this should be emitted.
 
 */
 void
@@ -300,18 +297,23 @@ COutputThread::eventCount(time_t when)
 void 
 COutputThread::processUSBData(DataBuffer& buffer)
 {
-  uint32_t  nWordsLeft = buffer.s_bufferSize/sizeof(uint16_t); // Words not yet processed.
+  uint32_t  nWordsLeft = bodySize(buffer);
   uint16_t* pData      = buffer.s_rawData;
-  unsigned  nEvents    = *pData & EventCountMask;
-  pData++;
-  nWordsLeft--;
+  unsigned  nEvents    = eventCount(buffer);
+  unsigned  hWords     = headerSize(buffer);
+  nWordsLeft -= hWords;
+  pData      += hWords;
+  time_t    timestamp  = buffer.s_timeStamp;
 
-  while (nWordsLeft && nEvents) {
+
+  while (nWordsLeft && nEvents) { // Exit either if out of events or out of data;
+
     uint32_t nWords = eventSize(pData);
-    event(nWords, pData);
+    processEvent(timestamp, nWords, pData);
 
     pData += nWords;
     nWordsLeft -= nWords;
+    nEvents--;
   }
   // Note that both nWordsLeft and nEvents should hit zero at the same time!!
 
@@ -321,6 +323,11 @@ COutputThread::processUSBData(DataBuffer& buffer)
     cerr << "                            EventsLeft= " << nEvents << endl;
     cerr << "Continuing with the next buffer\n";
   }
+
+  // After the buffer, put out an event count record:
+
+  eventCount(timestamp);
+
 }
 
 //////////////////////////////////////////////////////////////////////////////////
@@ -345,25 +352,4 @@ COutputThread::openRing()
   }
 
   m_pRing = new CRingBuffer(name, CRingBuffer::producer);
-}
-/*
-** Figure out how many words are in an event.
-** note that event word counts are not self inclusive for
-** VM/CC-USB devices.
-*/
-uint32_t
-COutputThread::eventSize(uint16_t* pEvent)
-{
-  uint32_t size(0);
-  uint16_t segmentHeader;
-  do {
-    segmentHeader        = *pEvent;
-    uint32_t segmentSize = segmentHeader & EventCountMask;
-    pEvent              += segmentSize;
-    size                += segmentSize;
-
-  } while (segmentHeader & Continuation);
-
-  return size;
-    
 }

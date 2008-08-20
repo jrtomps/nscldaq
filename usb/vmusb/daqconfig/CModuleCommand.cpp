@@ -280,6 +280,7 @@ void
 CDAQModuleCommand::Usage(std::string msg, std::vector<CTCLObject>& objv)
 {
   string result("ERROR: ");
+  string cmd = objv[0];
   result += msg;
   result += "\n";
   for (int i = 0; i < objv.size(); i++) {
@@ -288,9 +289,15 @@ CDAQModuleCommand::Usage(std::string msg, std::vector<CTCLObject>& objv)
   }
   result += "\n";
   result += "Usage\n";
-  result += "    adc create name base-address\n";
-  result += "    adc config name config-params...\n";
-  result += "    adc cget name";
+  result += "    ";
+  result += cmd;
+  result += "  create name base-address\n";
+  result += "    ";
+  result += cmd;
+  result += " config name config-params...\n";
+  result += "    ";
+  result += cmd;
+  result += " cget name";
 
   getInterpreter()->setResult(result);
 }

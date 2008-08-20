@@ -203,7 +203,7 @@ BufdumpMain::operator()(int argc, char** argv)
       
       numToDo--;
       
-      if (m_itemCount != 0 && (numToDo == 0)) done = true;
+      if ((m_itemCount != 0) && (numToDo == 0)) done = true;
     } else {
       done = true;
     }
