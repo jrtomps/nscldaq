@@ -10,6 +10,7 @@ INCLUDES			=	-I@top_srcdir@/base/headers		\
 					-I@top_srcdir@/usb/tclcommon		\
 					-I@top_srcdir@/usb/tclserver		\
 					-I@top_srcdir@/usb/acqcommon		\
+					-I@top_srcdir@/usb/output		\
 					-I@top_srcdir@/base/tclplus		\
 					-I@top_srcdir@/servers/portmanager	\
 					-I@top_srcdir@/base/thread		\
@@ -20,6 +21,7 @@ libusbapplication_la_LIBADD		=	usbReadoutOptions.o
 libusbapplication_la_LDFLAGS	=	@top_srcdir@/usb/tclcommon/libusbtclcommon.la	\
 					@top_srcdir@//usb/tclserver/libControlServer.la	\
 					@top_srcdir@/usb/acqcommon/libusbacqcommon.la		\
+					@top_srcdir@/usb/output/libOutputStage.la
 					@top_srcdir@/base/tclplus/libtclPlus.la		\
 					@top_srcdir@/servers/portmanager/libPortManager.la	\
 					@top_srcdir@/base/exception/libException.la	\

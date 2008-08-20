@@ -41,7 +41,7 @@ public:
   virtual void selectInterface(std::string specification)        ;
   virtual void setupConfiguration(CConfiguration& configuration) ;
   virtual void setupTclServer(TclServer& server)                 ;
-
+  virtual void createBuffers()                                   ;
 };
 
 #endif

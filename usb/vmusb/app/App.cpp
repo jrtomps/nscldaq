@@ -22,10 +22,14 @@
 #include <CAcquisitionThread.h>
 #include <CVMUSBConfig.h>
 #include <CVMUSBControlConfig.h>
+#include <DataBuffer.h>
+#include <CBufferQueue.h>
 
 #include <usb.h>
 #include <iostream>
 #include <stdlib.h>
+
+static const uint32_t BufferSize(13*1024);
 
 
 /*!
@@ -110,6 +114,20 @@ void
 App::setupTclServer(TclServer& pServer)
 {
   CVMUSBControlConfig::configure(&pServer);
+}
+
+/*!
+   Create the buffer pool for the system.
+   This is device dependent, because the VM-USB and CC-USB e.g. use different
+   sized buffers
+*/
+void
+App::createBuffers()
+{
+  for (int i =0; i < 32; i++) {
+    DataBuffer* pBuffer = createDataBuffer(BufferSize);
+    gFreeBuffers.queue(pBuffer);
+  }
 }
 /////////////////////////////////////////////////////////////////////////////
 

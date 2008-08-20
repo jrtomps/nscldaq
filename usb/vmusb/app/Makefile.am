@@ -12,6 +12,7 @@ INCLUDES		=	-I@top_srcdir@/usb/acqcommon		\
 				-I@top_srcdir@/usb/commands		\
 				-I@top_srcdir@/usb/tclcommon		\
 				-I@top_srcdir@/usb/tclserver		\
+				-I@top_srcdir@/usb/output		\
 				-I@top_srcdir@/usb/threadcom		\
 				-I@top_srcdir@/usb/vmusb/daqconfig	\
 				-I@top_srcdir@/usb/vmusb/deviceDriver	\
@@ -20,6 +21,7 @@ INCLUDES		=	-I@top_srcdir@/usb/acqcommon		\
 
 VMUSBReadout_LDADD	=	@top_srcdir@/usb/acqcommon/libusbacqcommon.la	\
 				@top_srcdir@/usb/tclcommon/libusbtclcommon.la	\
+				@top_srcdir@/usb/output/libOutputStage.la	\
 				@top_srcdir@/usb/threadcom/libThreadComm.la	\
 				@top_srcdir@/usb/output/libOutputStage.la	\
 				@top_srcdir@/usb/app/libusbapplication.la	\

@@ -45,7 +45,7 @@ CBufferQueue<DataBuffer*> gFreeBuffers;
 DataBuffer*
 createDataBuffer(uint32_t bodySize)
 {
-  size_t bytes = sizeof(struct DataBuffer) +  (bodySize-1)*sizeof(uint16_t);
+  size_t bytes = sizeof(struct DataBuffer) +  (bodySize)*sizeof(uint16_t);
   DataBuffer* p =  static_cast<DataBuffer*>(malloc(bytes));
   p->s_storageSize = bodySize;
   return p;

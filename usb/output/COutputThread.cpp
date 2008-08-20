@@ -74,7 +74,7 @@ static const unsigned Continuation(0x1000);
 COutputThread::COutputThread() : 
   m_pRing(0)
 {
-  openRing();			// Open ring named after the user in localhost.
+ openRing();			// Open ring named after the user in localhost.
                                 // the ring is created if necessary.
 }
 /*!
@@ -337,6 +337,12 @@ COutputThread::openRing()
   uid_t uid = getuid();
   passwd* pPass = getpwuid(uid);
   string name(pPass->pw_name);
+
+  // If necessary create the ring:.. for now with default characteristics.
+
+  if (!CRingBuffer::isRing(name)) {
+    CRingBuffer::create(name);
+  }
 
   m_pRing = new CRingBuffer(name, CRingBuffer::producer);
 }
