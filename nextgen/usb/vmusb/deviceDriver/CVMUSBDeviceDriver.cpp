@@ -169,7 +169,7 @@ void
 CVMUSBDeviceDriver::usbStopAutonomous()
 {
   m_pInterface->writeActionRegister(CVMUSB::ActionRegister::scalerDump);
-  m_pInterface->writeActionRegister(0);
+
   
 }
 /*!
