@@ -377,9 +377,18 @@ CRingBuffer::CRingBuffer(string name, CRingBuffer::ClientMode mode) :
   // We got this far we have a connection.  If this is not a manager connection,
   // we can register with the ringmaster:
 
-  if (mode != manager) {
-    connectToRingMaster();	// This will only really connect the first time.
-    notifyConnection();		// Let the ring master know of our connection
+  try {
+    if (mode != manager) {
+      connectToRingMaster();	// This will only really connect the first time.
+      notifyConnection();		// Let the ring master know of our connection
+    }
+  }
+  catch(...) {
+    // on any failure, we give up the ring and throw:
+
+    m_pClientInfo->s_pid = -1;
+    unMapRing();
+    throw;
   }
 }
 /*!
