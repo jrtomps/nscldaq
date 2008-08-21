@@ -1,5 +1,3 @@
-
-
 /*
     This software is Copyright by the Board of Trustees of Michigan
     State University (c) Copyright 2005.
@@ -71,8 +69,6 @@ using namespace std;
 COutputThread::COutputThread() : 
   m_pRing(0)
 {
- openRing();			// Open ring named after the user in localhost.
-                                // the ring is created if necessary.
 }
 /*!
    Disconnect from the ring.
@@ -92,6 +88,12 @@ COutputThread::~COutputThread()
 void
 COutputThread::run()
 {
+
+  // the ring is created if necessary.
+
+
+ openRing();			// Open ring named after the user in localhost.
+
   // Main loop is pretty simple.
   try {
     while(1) {
