@@ -295,10 +295,23 @@ CItemConfiguration::getIntegerList(string name)
   const char** argv;
   vector<int> result;
 
-  Tcl_SplitList(NULL, value.c_str(), &argc, &argv);
+  if(Tcl_SplitList(NULL, value.c_str(), &argc, &argv) != TCL_OK) {
+    string msg  = "Expected a Tcl list for parameter ";
+    msg        += name;
+    msg        += " got: ";
+    msg        += value;
+    throw msg;
+  }
 
   for (int i =0; i < argc; i++) {
-    result.push_back(static_cast<int>(strtol(argv[i], NULL, 0)));
+    char *end;
+    result.push_back(static_cast<int>(strtol(argv[i], &end, 0)));
+    if (*end != '\0') {
+      Tcl_Free((char*) argv);
+      string msg = "Expected an integer list element but got ";
+      msg       +=  string(argv[i]);
+      throw msg;
+    }
   }
   Tcl_Free((char*)argv);
   return result;
