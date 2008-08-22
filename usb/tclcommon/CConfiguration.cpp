@@ -43,8 +43,6 @@ using namespace std;
 CConfiguration::CConfiguration() :
   m_pInterp(0)
 {
-  Tcl_Interp* pInterp = Tcl_CreateInterp();
-  m_pInterp = new CTCLInterpreter(pInterp);
 
 
 

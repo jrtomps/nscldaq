@@ -267,7 +267,17 @@ double
 CItemConfiguration::getFloatParameter(string name)
 {
   string value = cget(name);
-  return atof(name.c_str());
+  char* end;
+  double result = strtod(value.c_str(), &end);
+  if (end == value.c_str()) {
+    string error = "Expected a floating point parameter value for config paramteter ";
+    error       += name;
+    error       += " got: ";
+    error       += value;
+    throw error;
+  }
+  return result;
+
 }
 
 /*!
