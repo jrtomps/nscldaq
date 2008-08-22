@@ -270,7 +270,7 @@ CItemConfiguration::getFloatParameter(string name)
   char* end;
   double result = strtod(value.c_str(), &end);
   if (end == value.c_str()) {
-    string error = "Expected a floating point parameter value for config paramteter ";
+    string error = "Expected a floating point parameter value for config parameter ";
     error       += name;
     error       += " got: ";
     error       += value;
