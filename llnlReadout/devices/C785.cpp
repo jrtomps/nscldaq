@@ -123,9 +123,9 @@ static CConfigurableObject::ListSizeConstraint threshListSize = {thresholdSize,
                                                                  thresholdSize};
 CConfigurableObject::TypeCheckInfo threshValueOk(CConfigurableObject::isInteger,
 						 &ThreshLimits);
-static CConfigurableObject::isListParameter threshValidity = 
-  {threshListSize,
-   threshValueOk};
+static CConfigurableObject::isListParameter threshValidity(thresholdSize,
+							   thresholdSize,
+							   threshValueOk);
 
 							      
 // -ipl is in the range 0-7

@@ -728,6 +728,23 @@ CConfigurableObject::isStringList(string name, string value, void* validSizes)
   return isList(name, value, &validator);
 }
 
+/*!
+  Helper static member function to construct an isEnumParam set
+  from an array of char* pointers terminated in a NULL.
+
+   \param values - the values to put in the set:
+*/
+CConfigurableObject::isEnumParameter
+CConfigurableObject::makeEnumSet(const char** values)
+{
+  isEnumParameter result;
+  while (*values) {
+    result.insert(string(*values));
+    values++;
+  }
+  return result;
+}
+
 ////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////// Utilities ///////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////

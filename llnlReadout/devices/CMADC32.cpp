@@ -121,9 +121,8 @@ static CConfigurableObject::Limits ThresholdLimits(Zero, ThresholdMax);
 static CConfigurableObject::ListSizeConstraint ThresholdListSize = {32, 32};
 static CConfigurableObject::TypeCheckInfo ThresholdValuesOk(CConfigurableObject::isInteger,
 							    &ThresholdLimits);
-static CConfigurableObject::isListParameter ThresholdValidity = 
-  {ThresholdListSize,
-   ThresholdValuesOk};
+static CConfigurableObject::isListParameter ThresholdValidity(ThresholdListSize,
+							      ThresholdValuesOk);
 
 
 // hold delays are a two element integer array, with no limits.
@@ -133,9 +132,8 @@ static CConfigurableObject::ListSizeConstraint HoldListSize = {2, 2};
 static CConfigurableObject::Limits HoldLimits(Zero, Byte);
 static CConfigurableObject::TypeCheckInfo HoldValueOk(CConfigurableObject::isInteger,
 						      &HoldLimits);
-static CConfigurableObject::isListParameter HoldValidity =
-  {HoldListSize,
-   HoldValueOk};
+static CConfigurableObject::isListParameter HoldValidity(Zero, Byte, 
+							 HoldValueOk);
 
 
 // Note for all enums, the first item in the list is the default.

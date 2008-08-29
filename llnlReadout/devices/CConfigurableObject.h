@@ -110,10 +110,20 @@ public:
     limit s_atMost;
   } ListSizeConstraint;
 
-  typedef struct _isListParameter {
+  struct isListParameter {
     ListSizeConstraint s_allowedSize;
     TypeCheckInfo      s_checker;
-  } isListParameter;
+    isListParameter(limit atLeast, limit atMost, TypeCheckInfo checker) {
+      s_allowedSize.s_atLeast = atLeast;
+      s_allowedSize.s_atMost  = atMost;
+      s_checker               = checker;
+    }
+    isListParameter(ListSizeConstraint limits, TypeCheckInfo checker) {
+      s_allowedSize = limits;
+      s_checker     = checker;
+    }
+    isListParameter() {}
+  } ;
 
 
   struct  flimit {
@@ -192,6 +202,9 @@ public:
   static bool isIntList(std::string name, std::string value, void* arg);
   static bool isStringList(std::string name, std::string value, void* arg);
 
+  // Build enum set from a list of char*'s:
+
+  static isEnumParameter makeEnumSet(const char** values);
  
   // utilities:
 private:

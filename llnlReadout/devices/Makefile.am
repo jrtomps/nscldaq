@@ -10,11 +10,13 @@ libVMUSBDevices_la_SOURCES	= 	CConfigurableObject.cpp	\
 					C3804.cpp		\
 					CNADC2530.cpp		\
 					CMADC32.cpp		\
-					CMADCScaler.cpp
+					CMADCScaler.cpp		\
+					CV1x90.cpp
 
 
-INCLUDES	= 	-I$(top_builddir)/vmusb \
-			-I$(top_builddir)/daqconfig \
+INCLUDES	= 	-I$(top_builddir)/vmusb 	\
+			-I$(top_builddir)/daqconfig 	\
+			-I$(daqdir)/include		\
 			@TCL_FLAGS@ $(SPECTRODAQ_FLAGS)
 
 
@@ -34,7 +36,8 @@ include_HEADERS			= 	CConfigurableObject.h	\
 					C3804.h			\
 					CNADC2530.h		\
 					CMADC32.h		\
-					CMADCScaler.h
+					CMADCScaler.h		\
+					CV1x90.h
 
 
 
