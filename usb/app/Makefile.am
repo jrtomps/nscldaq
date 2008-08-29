@@ -37,3 +37,5 @@ usbReadoutOptions.h:	usbReadout.ggo
 usbReadoutOptions.o:	usbReadout.ggo
 	$(GENGETOPT)	<usbReadout.ggo --file=usbReadoutOptions
 	$(CC) -c   usbReadoutOptions.c
+
+EXTRA_DIST	= usbReadout.ggo

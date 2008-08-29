@@ -3,3 +3,5 @@
 #   code first:
 #
 SUBDIRS	= threadcom tclcommon tclserver output acqcommon app vmusb 
+
+EXTRA_DIST	=	usbFramework.xml
