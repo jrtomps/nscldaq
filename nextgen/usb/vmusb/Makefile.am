@@ -1,1 +1,5 @@
-SUBDIRS	=	deviceDriver daqconfig app
+SUBDIRS	=	deviceDriver daqconfig app 
+
+EXTRA_DIST	=	vmusbreadout.xml
+
+
