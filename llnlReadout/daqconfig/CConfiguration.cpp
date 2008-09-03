@@ -26,6 +26,7 @@
 #include "CNADC2530Command.h"
 #include "CMADCCommand.h"
 #include "CMADCScalerCommand.h"
+#include "CV1x90Command.h"
 
 
 #include <CReadoutModule.h>
@@ -68,6 +69,7 @@ CConfiguration::CConfiguration() :
   m_Commands.push_back(new CNADC2530Command(*m_pInterp, *this));
   m_Commands.push_back(new CMADCCommand(*m_pInterp, *this));
   m_Commands.push_back(new CMADCScalerCommand(*m_pInterp, *this));
+  m_Commands.push_back(new CV1x90Command(*m_pInterp, *this));
 
 }
 /*!

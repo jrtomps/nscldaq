@@ -199,6 +199,11 @@ CV1x90::CV1x90(const CV1x90& rhs) :
   m_nChannelCount = rhs.m_nChannelCount;
 }
 
+/*! null copy construction */
+
+CV1x90::~CV1x90() {}
+
+
 CV1x90&
 CV1x90::operator=(const CV1x90& rhs)
 {
@@ -253,7 +258,7 @@ CV1x90::Initialize(CVMUSB& controller)
 {
   // Get all the configuration parameters:
 
-  uint32_t base            = m_pConfiguration->getIntegerParameter("-base");
+  uint32_t base            = m_pConfiguration->getUnsignedParameter("-base");
   int      vsn             = m_pConfiguration->getIntegerParameter("-vsn");
   int      ipl             = m_pConfiguration->getIntegerParameter("-ipl");
   int      ivector         = m_pConfiguration->getIntegerParameter("-vector");
@@ -271,7 +276,7 @@ CV1x90::Initialize(CVMUSB& controller)
   string   leResolution    = m_pConfiguration->cget("-leresolution");
   string   widthResolution = m_pConfiguration->cget("-widthresolution");
   string   deadtime        = m_pConfiguration->cget("-deadtime");
-  bool     encapsulateChip = m_pConfiguration->getBoolParameter("-encappsulatechip");
+  bool     encapsulateChip = m_pConfiguration->getBoolParameter("-encapsulatechip");
   string   maxHits         = m_pConfiguration->cget("-maxhits");
   bool     markErrors      = m_pConfiguration->getBoolParameter("-errormark");
   bool     bypassOnError   = m_pConfiguration->getBoolParameter("-errorbypass");
@@ -615,11 +620,16 @@ CV1x90::moduleType(CVMUSB& controller, uint32_t base)
   
   // Get the model number:
 
-  controller.vmeRead16(base + CCAENV1x90Registers::WModelNumber0, 
+  
+
+  controller.vmeRead16(base + CCAENV1x90Registers::ConfigRom
+		            + CCAENV1x90Registers::WModelNumber0, 
 		       initamod, &modelLow);
-  controller.vmeRead16(base + CCAENV1x90Registers::WModelNumber1, 
+  controller.vmeRead16(base + CCAENV1x90Registers::ConfigRom
+		            + CCAENV1x90Registers::WModelNumber1, 
 		       initamod, &modelMiddle);
-  controller.vmeRead16(base + CCAENV1x90Registers::WModelNumber2, 
+  controller.vmeRead16(base + CCAENV1x90Registers::ConfigRom
+		            + CCAENV1x90Registers::WModelNumber2, 
 		       initamod, &modelHigh);
 
   // I've had bad experience on some modles with trash in the upper bits.
@@ -632,10 +642,14 @@ CV1x90::moduleType(CVMUSB& controller, uint32_t base)
   model       = (model << 8) | modelMiddle;
   model       = (model << 8) | modelLow;
 
+
+  m_Model     = model;
+
   // Now figure out the subtype:
 
   uint16_t subType;
-  controller.vmeRead16(base + CCAENV1x90Registers::WBoardVersion, 
+  controller.vmeRead16(base + CCAENV1x90Registers::ConfigRom
+                            + CCAENV1x90Registers::WBoardVersion, 
 		       initamod, &version);
   version &= 0xff;
 
