@@ -1,0 +1,3184 @@
+<!-- chapter frameworks -->
+
+<chapter id="ch.vmusbreadout">
+    <title>VM-USB readout program.</title>
+    <para>
+        The VM-USB readout program is a specialization of
+        the usb readout framework described in the chapter:
+        <link linkend="ch.usbframework">Framework for xx-USB readout software</link>.
+        This chapter describes the capabilities of the VM-USB, how the
+        software supports these capabilities and the set of electronics modules
+        supported by the software for both data taking and slow control.
+    </para>
+    <para>
+        The VM-USB is a USB to VME module manufactured by Jtec and sold exclusively
+        by Wiener Plein Baus.  The module features an FPGA which can execute
+        scripts of VME operations in response to trigger conditions.
+        This relieves the host of the responsibility for responding to
+        individual event triggers.
+    </para>
+    <para>
+        The VM-USB supports 8 VME scripts, which the VM-USB manual refers to as
+        <firstterm>stacks</firstterm>.  The VMUSBReadout program supports all 8
+        of these lists.  Of these lists the first can be triggered by an
+        external input, the second by a periodic trigger, and the remaining
+        6 by backplane interrupts.
+    </para>
+    <section>
+        <title>Supporte modules</title>
+    <para>
+        The following devices are supported by this framework:
+    </para>
+    <itemizedlist>
+        <listitem>
+            <para><emphasis>SIS 3804</emphasis> The Struck SIS 3804 scaler
+                module.
+            </para>
+        </listitem>
+        <listitem>
+            <para><emphasis>SIS 3820</emphasis> The Struck SIS 3820 scaler
+                    module.
+            </para>
+        </listitem>
+        <listitem>
+            <para><emphasis>CAENV 775, 785, 792, 862</emphasis>
+                This is a family of 32 channel digitizers. the 775 is a
+                TDC, the 785 a peak sensing ADC, and the 792 and 862 are
+                charge integrating ADCs (QDCs).  These modules are software
+                compatible and therefore share a common support module and
+                configuration command.  Support is included to combine these
+                modules into one or more Chained Block transfer chains
+                (CBLT chains) for more efficient readout..
+            </para>
+        </listitem>
+        <listitem>
+            <para><emphasis>CAEN V830</emphasis> A 32 channel latching scaler.
+            </para>
+        </listitem>
+        <listitem>
+            <para><emphasis>JTEC gate and delay generator</emphasis> this is
+                actually a more general logic module that is sold as mostly
+                a gate and delay module.
+            </para>
+        </listitem>
+        <listitem>
+            <para><emphasis>Mesytec MADC32</emphasis> this is a 32 channel
+                peak sensing ADC with timestamping capabilities.
+            </para>
+        </listitem>
+        <listitem>
+            <para><emphasis>Hytec NADC2530</emphasis></para> this is a high
+            resolution/precision 8 channel ADC module.
+        </listitem>
+    </itemizedlist>
+    <para>
+        See the reference pages for section 1usbReadout for reference information.
+        The support for all of these modules in in the form of a commands that can
+        be added to the DAQ configuration file.  All modules implement the same
+        conceptual model.  A module is defined and associated with a name.
+        The module's programmable characteristics are <firstterm>configured</firstterm>.
+        The module is then added to a <command>stack</command>, which is a special
+        type of module that can contain other modules and knows how to build the
+        VME script needed to read out an ordered sequence of modules.
+    </para>
+    <para>
+        Let's look at how this all works for a CAEN V785 ADC. We want to define
+        a module at base address 0x80000000 give it a geographical address
+        of 16, set it to discard data that is lower than 100, as well as
+        overflow data.  We will add this module to a VME script that is
+        triggered by the <listeral>NIM1</listeral> VM-USB front panel input.
+    </para>
+    <example>
+        <title>Sample VM-USB configuration script.</title>
+        <programlisting>
+adc create myadc -base 0x80000000                                <co id="vmusb.create" />
+adc config myadc -smallthresholds enable -geo 16 -supressrange on <co id="vmusb.config1" />
+set thresholds [list]                                             <co id="vmusb.emptylist" />
+for {set i 0} {$i &lt; 32} {incr i} {
+  lappend thresholds 50                                           <co id="vmusb.50" />
+}
+adc config myadc -thresholds $thresholds                          <co id="vmsub.config2" />
+
+stack create event -trigger nim1 -modules myadc                  <co id="vmusb.stack" />
+
+        </programlisting>
+    </example>
+    <calloutlist>
+        <callout arearefs="vmusb.create">
+            <para>
+                Creates a new module. The module is named
+                <literal>myadc</literal> it has the base address
+                <literal>0x8000000</literal>.  The pair of command arguments
+                <literal>-base 0x80000000</literal> is called a
+                <firstterm>configuration item</firstterm>.  Configuration
+                items are a name value pair.  The name describes what is being
+                configured and the value the new value to give that item.
+            </para>
+        </callout>
+        <callout arearefs="vmusb.config1">
+            <para>
+                Configures the module <literal>myadc</literal> created in the
+                previous line so that threshold values will only be shifted by
+                2 before being applied to the data, so that the module has a
+                geographic address of <literal>16</literal> and so that
+                over and underanged values will be supressed from the
+                data.
+            </para>
+        </callout>
+        <callout arearefs="vmusb.emptylist">
+            <para>
+                Creates an empty Tcl list that will hold the module threshold
+                values.  While the <command>lappend</command> command
+                will create the variable if needed, the configuration script
+                gets re-read for each run start and will be re-run in the same
+                interpreter.  If this command was not present,  the first time
+                the list would be correct, with 32 elements, but the second time,
+                it would have 64 elements and so on.
+            </para>
+            <para>
+                This line also illustrates the important point that configuration
+                commands can be freely intermixed with standard Tcl commands.
+            </para>
+        </callout>
+        <callout arearefs="vmusb.50">
+            <para>
+                Since we enabled the small threshold option, our
+                threshold values get multiplied by two. Therfore,
+                the threshold list variable gets stocked with 32 copies of 50.
+                One 50 for each channel of the ADC.
+            </para>
+            <para>
+                The CAEN modules supported by the <command>adc</command> command
+                always have 32 channels.  Even if they are 16 channel modules,
+                as 16 channel modules are implemented by 'cabling' the 16 inputs
+                to every other (the even numbered) channels of the module.
+            </para>
+        </callout>
+        <callout arearefs="vmusb.config2">
+            <para>
+                Configures the module's thresholds to be the values in the
+                <varname>thresholds</varname> variable.
+            </para>
+        </callout>
+        <callout arearefs="vmusb.stack">
+            <para>
+                Creates a stack named <literal>event</literal>
+                and configures it to be triggered when a NIM true pulse
+                is detected by the module on the <literal>NIM1</literal> input.
+                the stack's <option>-modules</option> option value is a list of
+                the modules to read when that trigger is detected.
+                In this case we are just reading the single module
+                <literal>myadc</literal>
+            </para>
+        </callout>
+    </calloutlist>
+    <para>
+        It is instructive to look at the
+        <citerefentry><refentrytitle>adc</refentrytitle><manvolnum>1usbReadout</manvolnum></citerefentry>
+        and the
+        <citerefentry><refentrytitle>stack</refentrytitle><manvolnum>1usbReadout</manvolnum></citerefentry>
+        reference pages for an exhaustive list of the configuration items supported
+        by these two commands.  This section of the reference material (1usbReadout)
+        includes reference information for the commands that create and configure
+        all module types.
+    </para>
+    </section>
+    <section>
+        <title>Supporting new data acquisition modules</title>
+        <para>
+            Supporting a new module involves the following steps:
+            <orderedlist>
+                <listitem>
+                    <para>Creating a driver class for the module.
+                    </para>
+                </listitem>
+                <listitem>
+                    <para>
+                        Creating a command class for the module.
+                    </para>
+                </listitem>
+                <listitem>
+                    <para>
+                        Ensuring the command class is registered with the
+                        <classname>CConfiguration</classname> interpreter
+                        at system startup time.
+                    </para>
+                </listitem>
+            </orderedlist>
+        </para>
+        <para>
+            The VM-USB extends the <classname>CConfigurableObject</classname>
+            by defining a <classname>CVMUSBConfigurableObject</classname>.
+            This class adds three new pure virtual methods that must be implemented.
+            See
+            <citerefentry><refentrytitle>CVMUSBConfigurableObject</refentrytitle><manvolume>3usbReadout</manvolume></citerefentry>
+            for detailed information as well as the various module driver classes also documented in the
+            (3usbReadout) reference section.
+        </para>
+        <para>
+            The three methods are:
+        </para>
+        <variablelist>
+            <varlistentry>
+                <term><methodname>Initialize(CVMUSB&amp; controller)</methodname></term>
+                <listitem>
+                    <para>
+                        Called to setup the module.  This function should process
+                        the values in the module's configuration database
+                        and interact with the module to set it up in
+                        accordance with the configuratino via the
+                        <classname>CVMUSB</classname> controller object.
+                        See
+                        <citerefentry><refentrytitle>CVMUSB</refentrytitle>
+                        <manvolnum>3usbReadout</manvolnum></citerefentry>
+                        for details on the <classname>CVMUSB</classname>
+                        class.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><methodname>addReadoutList(CVMUSBReadoutList&amp; list)</methodname></term>
+                      <listitem>
+                        <para>
+                            This is called to allow the module to make the appropriate
+                            calls to the <parameter>list</parameter>
+                            <classname>CVMUSBReadoutList</classname> so that it
+                            will be read out if added to a stack.
+                        </para>
+                       </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><methodname>CVMUSBConfigurableObject* clone() const</methodname></term>
+                <listitem>
+                    <para>
+                        The object should produce a faithful copy of itself.
+                        Typically this means it should just do (if the class
+                        is <classname>CMyClass</classname>):
+                        <programlisting>
+                            return new CMyClass(*this);
+                        </programlisting>
+                    </para>
+                </listitem>
+            </varlistentry>
+        </variablelist>
+        <para>
+            The command object is supposed to produce and configure modules.
+            A command object must be written for each supported module.
+            The command objects for the VM-USB are instances of the
+            <classname>CDAQModuleCommand</classname>.  See
+            <citerefentry><refentrytitle>CDAQModuleCommand</refentrytitle><manvolnum>3usbReadout</manvolnum></citerefentry>
+            for details.
+        </para>
+        <para>
+            <classname>CDAQModuleCommand</classname> is a subclass of
+            <classname>CTCLObjectProcessor</classname>.  For the most part the
+            code in the <classname>CDAQModuleCommand</classname> does everything
+            needed to suport the module.  Creation, however is a template method
+            pattern that requires concrete subclasses to implement the following
+            pure virtual methods:
+        </para>
+        <variablelist>
+            <varlistentry>
+                <term><type>CConfigurableObject*</type> <methodname>createObject</methodname>()</term>
+                <listitem>
+                    <para>
+                        Should create a new instance of the module being supoprted and return
+                        a poniter to it.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><type>std::string</type> <methodname>getType</methodname>()</term>
+                <listitem>
+                    <para>
+                        Modules have a type.  This function is supposed to return
+                        the module's type.  This is used as the type under which
+                        the module is entered in the configuration's module database.
+                        Types can be used to search for modules.  For example,
+                        At startup, the VM-USB framework locates all modules of type
+                        <literal>stack</literal> initializes them, creates their
+                        readout lists, and asks them to load them.
+                    </para>
+                </listitem>
+            </varlistentry>
+        </variablelist>
+        
+        <para>
+            Finally, the new command object must be registered with the configuration
+            so that it's command can be used in daq configuration scripts.
+            This is done by modifying the source file in:
+            <filename>$srcdir/usb/vmusb/daqconfig/CVMUSBConfig.cpp</filename>.
+            where <filename>$srdir</filename> is a directory into which the
+            NSCLDAQ software has been checked out from the source code repository.
+        </para>
+        <para>
+            Add an <literal>#include</literal> directive to include your
+            command's header.
+            Locate the function named
+            <membername>CVMUSBConfig::configure</membername>, and add an
+            instance of your command to the configuration. If, for example,
+            your command class name is CMyModuleCommand, you would add a line
+            much like:
+            <programlisting>
+                p-&gt;addCommand(*(new CMyModuleCommand(interp, *p)));
+            </programlisting>
+        </para>
+        <para>
+            In the line above, you may need to modify the constructor to
+            match your constructor's argument signature.
+        </para>
+    </section>
+</chapter>
+<!-- /chapter -->
+
+<!-- manpage 1usbReadout -->
+
+<refentry id="manpage.vmusbreadout">
+  <refmeta>
+     <refentrytitle>VMUSBReadout</refentrytitle>
+     <manvolnum>1usbReadout</manvolnum>
+  </refmeta>
+  <refnamediv>
+     <refname>VMUSBReadout</refname>
+     <refpurpose>Start the VM-USB Readout software</refpurpose>
+  </refnamediv>
+  
+  <refsynopsisdiv>
+    <cmdsynopsis>
+	<command>
+VMSUBReadout <option>options...</option>	
+	</command>
+    </cmdsynopsis>
+  </refsynopsisdiv>
+  <refsect1>
+     <title>DESCRIPTION</title>
+     <para>
+	Starts the VM-USB readout software.  This is derived from the usbReadout
+        framework.  A such, this is documented in:
+        <link linkend="manpage.vmusbreadout"><citerefentry><refentrytitle>xxusbReadout</refentrytitle><manvolnum>1usbReadout</manvolnum></citerefentry></link>.
+     </para>
+  </refsect1>
+
+</refentry>
+
+<refentry id="manpage.adc">
+  <refmeta>
+     <refentrytitle>adc</refentrytitle>
+     <manvolnum>1usbReadout</manvolnum>
+  </refmeta>
+  <refnamediv>
+     <refname>adc</refname>
+     <refpurpose>Create and configure an object that controls CAEN V775, V785, V792, V862 (VM-USB)</refpurpose>
+  </refnamediv>
+  
+  <refsynopsisdiv>
+    <cmdsynopsis>
+	<command>
+adc create <replaceable>name ?options?</replaceable>
+	</command>
+    </cmdsynopsis>
+<cmdsynopsis>
+    <command>
+adc config <replaceable>name options</replaceable>.
+    </command>
+</cmdsynopsis>
+<cmdsynopsis>
+    <command>
+adc cget <replaceable>name</replaceable>
+    </command>
+</cmdsynopsis>
+
+  </refsynopsisdiv>
+  <refsect1>
+     <title>DESCRIPTION</title>
+     <para>
+	This command creates, configures and retrieves the configuration of
+        CAEN V775, V785, V792, and V862 digitizer modules.
+     </para>
+     <para>
+         Use the <command>create</command> subcommand to create a new adc
+         providing it with a unique <parameter>name</parameter> that will
+         be used to identify it in future commands.  The optional
+         <replaceable>options</replaceable> are configuration options.
+        See the <command>config</command> command and the OPTIONS
+        section below.
+     </para>
+      <para>
+         Use the <command>config</command> subcommand to configure
+         a module named <parameter>name</parameter>  the <parameter>option</parameter>
+         options and legal values are described in the section OPTIONS below.
+      </para>
+      <para>
+         The <command>cget</command> subcommand returns as its value the configuration
+         of the module <parameter>name</parameter>.  The configuration is
+         returned as a list of two element sublists where each sublist
+         contains, in order, an option from OPTIONS below, and its value.
+         Note that some values may themselves be lists.
+      </para>
+  </refsect1>
+  <refsect1>
+     <title>
+	OPTIONS
+     </title>
+     <variablelist>
+	<varlistentry>
+	    <term><command>-base</command> <replaceable>value</replaceable></term>
+	    <listitem>
+		<para>
+                  Allows you to reconfigure the base address of a module.
+		</para>
+	    </listitem>
+	 </varlistentry>
+         <varlistentry>
+            <term><command>-thresholds</command> <replaceable>values</replaceable></term>
+            <listitem>
+               <para>
+                  The value is a list of 32 values that are the module 
+                  thresholds.  Unless <option>-smallthresholds</option> has been
+                  configured to be <literal>true</literal>, these values
+                  are multiplied by 16 before being applied as the channel
+                  threshold values.
+               </para>
+            </listitem>
+         </varlistentry>
+         <varlistentry>
+            <term><command>-smallthresholds</command> <replaceable>bool</replaceable></term>
+            <listitem>
+               <para>
+                  The value is a boolean (e.g. <emphasis>on</emphasis> or
+                  <emphasis>off</emphasis>).
+                  A true boolean means that the threshold is applied as is
+                  a false boolean means the threshold value is multiplied by 16
+                  and then applied.
+               </para>
+            </listitem>
+         </varlistentry>
+         <varlistentry>
+            <term><command>-ipl</command> <replaceable>0-7</replaceable></term>
+            <listitem>
+               <para>
+                  The interrupt priority level the module should use to request
+                  a VME bus interrupt.  This defaults to 6 and should be set to
+                  zero to disable interrupts.  Normally interrupts will be used
+                  to trigger an interrupt triggered stack.  The default of 6
+                  is historical in nature, in most cases for,
+                  the default should be overridden to zero.
+               </para>
+            </listitem>
+         </varlistentry>
+         <varlistentry>
+            <term><command>-vector</command> <replaceable>0-255</replaceable></term>
+            <listitem>
+               <para>
+                  The interrupt vector the module should use. This is an integer
+                  and defaults to 0x80.  The vector value is ignored if the
+                  module interrupts are disabled.
+               </para>
+            </listitem>
+         </varlistentry>
+         <varlistentry>
+            <term><command>-highwater</command> <replaceable>0-31</replaceable></term>
+            <listitem>
+               <para>
+                  Defines how many events the module should accumulate before
+                  it interrutps.  A value of zero also disables interrupts.
+                  The default value is 24 evetns.  This is best suited for
+                  singles applications where allowing the module to accumulate
+                  a few events before being read is a good thing.
+                  This value will be ignored if the <option>-ipl</option> option
+                  has been configured to zero as that also disables module interrupts.
+               </para>
+            </listitem>
+         </varlistentry>
+         <varlistentry>
+            <term><command>-geo</command> <replaceable>0-31</replaceable></term>
+            <listitem>
+               <para>
+                  Defines the geographical address that will be set in the module.
+                  If the module has a PAUX connector, this must be set to be
+                  the module's physical location in the crate.  This option must
+                  be correctly programmed in order to help SpecTcl form a mapping
+                  between data values and parameter names.
+               </para>
+            </listitem>
+         </varlistentry>
+         <varlistentry>
+            <term><command>-fastclear</command> <replaceable>value</replaceable></term>
+            <listitem>
+               <para>
+                  Defines the fast clear window for the module.
+               </para>
+            </listitem>
+         </varlistentry>
+         <varlistentry>
+            <term><command>-supressrange</command> <replaceable>bool</replaceable></term>
+            <listitem>
+               <para>
+                  If <literal>true</literal> the module will supress overflows
+                  and underthreshold conversions.  If not all channels will
+                  supply data for an event.  In most cases, this should be set to
+                  <literal>false</literal>.
+               </para>
+            </listitem>
+         </varlistentry>
+         <varlistentry>
+            <term><command>-timescale</command> <replaceable>ns</replaceable></term>
+            <listitem>
+               <para>
+                  Sets the full scale range of the module if it is a V775.
+                  If the module is not a V775 TDC, this configuration parameter
+                  is silently ignored (the hardware allows the software to
+                  determine the module type).  <parameter>ns</parameter> is the
+                  range of the TDC in nanoseconds and must be between
+                  <literal>140</literal> and <literal>1200</literal>.
+               </para>
+            </listitem>
+         </varlistentry>
+     </variablelist>
+  </refsect1>
+  <refsect1>
+      <title>EXAMPLES</title>
+      <example>
+         <title>Sample ADC commands</title>
+         <programlisting>
+adc create adc1    -base 0x04000000
+adc config adc1    -geo 12 -supressrange off  -ipl 0 -vector 0
+         </programlisting>
+      </example>
+      <para>
+         Defines a module with base address 0x04000000 to be in geographical
+         address 12.  Range supression and interrupts are disabled.
+      </para>
+  </refsect1>
+  <refsect1>
+     <title>DEFECTS AND ISSUES</title>
+     <para>
+        The command name <command>adc</command> is legacy and really should
+        be changed to something like <command>caenvxxx</command>.  The
+        command is so named because it was the first one produced in a system
+        that only supported the CAEN V785.  That is to say, incorrect naming
+        for historical reasons.
+     </para>
+  </refsect1>
+
+</refentry>
+
+<refentry id="manpage.caenchain">
+  <refmeta>
+     <refentrytitle>caenchain</refentrytitle>
+     <manvolnum>1usbReadout</manvolnum>
+  </refmeta>
+  <refnamediv>
+     <refname>caenchain</refname>
+     <refpurpose>VM-USB DAQ configuration extension to manipulate CAEN CBLT readout chains</refpurpose>
+  </refnamediv>
+  
+     <refsynopsisdiv>
+       <cmdsynopsis>
+   	<command>
+caenchain create <replaceable>name</replaceable>
+   	</command>
+       </cmdsynopsis>
+           <cmdsynopsis>
+               <command>
+caenchain config <replaceable>name option value...</replaceable>
+               </command>
+         </cmdsynopsis>
+             <cmdsynopsis>
+                 <command>
+caenchain cget <replaceable>name</replaceable>
+                 </command>
+             </cmdsynopsis>
+         
+     </refsynopsisdiv>
+     <refsect1>
+        <title>DESCRIPTION</title>
+        <para>
+            The CAEN family of 32 channel digitizers (V775, V785, V792, V862)
+            can be aggreaged into CBLT readout chains.  A CBLT readout chain can
+            then be read at high performance using a single block read operation.
+        </para>
+        <para>
+            A CBLT chain consists of a set of at least two modules in consecutive
+            VME bus slots.  From the point of view of defining the crate the
+            left most and right most modules are special.  (See OPTIONS below,
+            the <option>-module</option> option). 
+        </para>
+        <para>
+            CBLT chains require an additional base address that is used to read
+            the modules.  This address is also used as a multicast address to
+            do a simultaneous clear of all modules in the chain as the readout
+            is initialized (at the beginning of a run). 
+        </para>
+     </refsect1>
+     <refsect1>
+        <title>
+   	OPTIONS
+        </title>
+        <variablelist>
+   	<varlistentry>
+   	    <term><option>-base</option> <replaceable>integer</replaceable></term>
+   	    <listitem>
+   		<para>
+                  Provides the base address to be used to program the CBLT
+                  address of the module.  Only the top two hexadecimal digits
+                  of an 8 digit hexadecimal address should be non zero. e.g.
+                  <literal>0x12000000</literal> is ok, but
+                  <literal>0x12340000</literal> is not.
+   		</para>
+   	    </listitem>
+   	</varlistentry>
+        <varlistentry>
+            <term><option>-modules</option> <replaceable>module-names</replaceable></term>
+            <listitem>
+            <para>
+               Supplies the list of modules that should make up the chain. The
+               firs module must be the left most in the chain, the last module the
+               right most.  Other than that order is unimportant, however note that
+               CBLT readouts always will go from left to right in VME crate. I therefore
+               suggest that you supply the modules in left to right order.
+               The modules must be a valid TCL list, e.g.:
+               <literal>-modules [list adc1 adc2 adc3]</literal> is ok,
+               <literal>-modules adc1 adc2 adc3</literal> is not.
+            </para>
+            </listitem>
+         </varlistentry>
+        </variablelist>
+     </refsect1>
+
+     <refsect1>
+        <title>EXAMPLES</title>
+        <para>
+            The example below takes three ADC modules and aggregates them
+            into a chain for readout.
+            <example>
+               <title>Using the <command>caenchain</command> command.</title>
+               <programlisting>
+adc create adc1    -base 0x04000000
+adc config adc1    -geo 12 -supressrange off  -ipl 0 -vector 0
+
+adc create adc2    -base 0x05000000
+adc config adc2    -geo 13 -supressrange off  -ipl 0 -vector 0
+
+adc create adc3    -base 0x06000000
+adc config adc3    -geo 14 -supressrange off -ipl 0 -vector 0
+
+
+caenchain create chain
+
+caenchain config chain -base 0x10000000 -modules [list adc1 adc2 adc3]
+               </programlisting>
+               <para>
+                  Note that since <literal>adc1</literal> will be the
+                  leftmost module in the chain and <literal>adc3</literal>
+                    will be programmed to be the right most module in the
+                    chain, the  modules must be stuffed in the crate from
+                    left to right: <literal>adc1</literal>, <literal>adc2</literal>,
+                    <literal>adc3</literal>.
+               </para>
+            </example>
+        </para>
+     </refsect1>
+
+</refentry>
+      <refentry id="manpage.v830">
+        <refmeta>
+           <refentrytitle>v830</refentrytitle>
+           <manvolnum>1usbReadout</manvolnum>
+        </refmeta>
+        <refnamediv>
+           <refname>v830</refname>
+           <refpurpose>VM-USB daq configuration script command to create and configure CAEN V830 32 channel scalers.</refpurpose>
+        </refnamediv>
+        
+        <refsynopsisdiv>
+          <cmdsynopsis>
+      	<command>
+v830 create <replaceable>name base</replaceable>
+      	</command>
+          </cmdsynopsis>
+             <cmdsynopsis>
+                 <command>
+v830 config <replaceable>name option value...</replaceable>
+                 </command>
+             </cmdsynopsis>
+             <cmdsynopsis>
+                 <command>
+v830 cget <replaceable>name</replaceable>
+                 </command>
+             </cmdsynopsis>
+         
+        </refsynopsisdiv>
+        <refsect1>
+           <title>DESCRIPTION</title>
+           <para>
+               This command creates, configures and queries the configuration of
+               CAEN V830 scaler modules.  This is a latching scaler module.
+               At present, not all functionality has been enabled. Specifically,
+               the module code is now tailored to the typical use case of a
+               run-time scaler module in the scaler stack.
+           </para>
+
+           <para>
+               The <command>create</command> subcommand creates a new module.
+               The <parameter>base</parameter> address should be the VME base
+               address of the module, as configured in the module's
+               rotary switches.  The <parameter>name</parameter> parameter is
+               a name that you assign to the module, and will be used to
+               refer to the module in future <command>config</command> or
+               <command>cget</command> commands.
+            </para>
+            <para>
+               The <command>config</command> subcommand configures the module
+               <parameter>name</parameter>.  The configuration is supplied as a
+               set of <parameter>option value</parameter> pairs.  More than one
+               pair can appear on the same line, any number of <command>config</command>
+               commands can be used and those that execute later can override
+               those that execute earlier.
+            </para>
+            <para>
+               The <command>cget</command> subcommand returns the configuration
+               of the module <parameter>name</parameter> as a list of
+               <parameter>option value</parameter> pairs.  You should not
+               rely on the list being in any specific order.  While the list
+               order is determinstic within a version of the program it is possible
+               that later versions will return the list in a different order.
+            </para>
+        </refsect1>
+        <refsect1>
+           <title>
+      	OPTIONS
+           </title>
+           <variablelist>
+      	<varlistentry>
+      	    <term><option>-base</option> <replaceable>address</replaceable></term>
+      	    <listitem>
+      		<para>
+                  Allows you to override the base address of the module set at
+                  creation time with a new base <parameter>address</parameter>.
+      		</para>
+      	    </listitem>
+      	</varlistentry>
+         <varlistentry>
+            <term><option>-channels</option> <replaceable>mask</replaceable></term>
+            <listitem>
+               <para>
+                  Provides a mask of enabled channels.  The low order bit represents
+                  channel zero the high order bit, channel 31.  Each channel for which
+                  a bit is present is enabled to count.  The default value for this
+                  mask is <literal>0xffffffff</literal> which enables all channels.
+               </para>
+            </listitem>
+            </varlistentry>
+            <varlistentry>
+               <term><option>-dwelltime</option> <replaceable>value</replaceable></term>
+               <listitem>
+                  <para>
+                     This is used only if the <option>-trigger</option> is set
+                     to <literal>periodic</literal> and is the time between
+                     triggers in 400ns units.  Each trigger will latch the
+                     current counter values into the MEB and, if
+                     <option>-autoreset</option> is true, clear them.
+                     If the <option>-ipl</option> and <option>-vector</option>
+                     are set, this can produce a backplane interrupt which, in turn,
+                     can trigger execution of a stack. The default value is zero
+                     which disables the periodic trigger.
+                  </para>
+               </listitem>
+            </varlistentry>
+            <varlistentry>
+               <term><option>-header</option> <replaceable>bool</replaceable></term>
+               <listitem>
+                  <para>
+                     Enables or disables the inclusion of a header on data read from
+                     the MEB.  For the format of the header, see figure 3.1 of the
+                     CAEN V820/V830 manual.  Note that this header will only be present
+                     if the MEB is read out.  A value of <literal>true</literal>
+                     enables the header while a value of <literal>false</literal> disables it.
+                     The default value is <literal>false</literal> which is appropriate
+                     for the case where this module will be used in a scaler stack.
+                  </para>
+               </listitem>
+            </varlistentry>
+            <varlistentry>
+               <term><option>-trigger</option> <replaceable>random | periodic | vme</replaceable></term>
+               <listitem>
+                  <para>
+                     Determines the source the latch trigger.  The values are
+                     as follows:
+                     <variablelist>
+                        <varlistentry>
+                           <term><literal>random</literal></term>
+                           <listitem>
+                              <para>The external trigger input is used to
+                                 trigger the latch.
+                              </para>
+                           </listitem>
+                        </varlistentry>
+                        <varlistentry>
+                           <term><literal>periodic</literal></term>
+                           <listitem>
+                              <para>The module will have a periodic trigger that
+                                 is governed by the value of the <option>-dwelltime</option>
+                                 option.
+                              </para>
+                           </listitem>
+                        </varlistentry>
+                        <varlistentry>
+                           <term><literal>vme</literal> (default)</term>
+                           <listitem>
+                              <para>Triggers will be supplied by the stack that'
+                                 reads the module out.
+                              </para>
+                           </listitem>
+                        </varlistentry>
+                     </variablelist>
+                  </para>
+               </listitem>
+            </varlistentry>
+            <varlistentry>
+               <term><option>-wide</option>  <replaceable>bool</replaceable></term>
+               <listitem>
+                  <para>
+                     Determines if, when the MEB is read, the scalers will be
+                     wide (32 bit counters) or narrow (24 bit counters tagged
+                     with the channel number).  See figures 3.2 and 3.3 in
+                     the CAEN V820/830 manual for the data forma in both
+                     cases.
+                  </para>
+                  <para>
+                     A value of <literal>true</literal> enables wide
+                     (32 bit) mode. A value of <literal>false</literal> requests
+                     narrow (24 bit) mode.  This only affects data read from the
+                     MEB.  The counter data are always wide.
+                     The default value is <literal>true</literal>.
+                  </para>
+               </listitem>
+            </varlistentry>
+            <varlistentry>
+               <term><option>-autoreset</option>  <replaceable>bool</replaceable></term>
+               <listitem>
+                  <para>
+                     Configures the scaler to reset its counters after storing the data in the
+                     MEB or not.  If <literal>true</literal> the counters are
+                     cleared after latching the data.  If <literal>false</literal> not.
+                     The defeault value is <literal>true</literal>.
+                  </para>
+               </listitem>
+            </varlistentry>
+            <varlistentry>
+               <term><option>-geo</option>  <replaceable>slot</replaceable></term>
+               <listitem>
+                  <para>
+                     Programs the module geographical address.  This value is only
+                     relevant if <option>-header</option> is <literal>true</literal>
+                     or <option>-wide</option> is <literal>false</literal>.
+                     The value can only be programmed for modules that do not have
+                     the PAUX connector.  Modules with the PAUX connector read their
+                     geographical address from the backplane, and this value,
+                     if used in other places, must be set to the physical slot number
+                     the scaler is using (not a bad idea in any event).
+                  </para>
+               </listitem>
+            </varlistentry>
+            <varlistentry>
+               <term><option>-setgeo</option> <replaceable>bool</replaceable></term>
+               <listitem>
+                  <para>
+                     If <literal>true</literal> the configuration code attempts
+                     to set the module's GEO value from the <option>-geo</option>
+                     parameter.  If not, the <option>-geo</option> value is
+                     simply assumed to document the position of the module to other
+                     software, and is ignored.  The default value is <literal>false</literal>
+                     which is suitable for modules without a PAUX connector and
+                     for the normal use case of a module in the scaler stack where
+                     the GEO address is not relevant.
+                  </para>
+               </listitem>
+            </varlistentry>
+            <varlistentry>
+               <term><option>-ipl</option>  <replaceable>priority</replaceable></term>
+               <listitem>
+                  <para>
+                     Provides the interrupt priority level for the module's
+                     VME interrupt.  The V830 can interrupt when it has at least
+                     <option>-highwatermark</option> events in its MEB.
+                     This interrupt can be used to trigger a VM-USB stack.
+                  </para>
+                  <para>
+                     VME bus interrupts are prioritized with the priority value
+                     ranging from <literal>1</literal> through <literal>7</literal>.
+                     This priority determines the service order of simultaneous interrupts.
+                     Larger numbers are higher priorities.   A value of
+                     <literal>0</literal> disables module interrupts.  The
+                     default value is <literal>0</literal>
+                  </para>
+               </listitem>
+            </varlistentry>
+            <varlistentry>
+               <term><option>-vector</option>  <replaceable>statusid</replaceable></term>
+               <listitem>
+                  <para>
+                     VME interrupts are identified via a <firstterm>status-id</firstterm>
+                     value presented by the interrupting device when the interrupt is
+                     acknowledged by the <firstterm>interrupt responder</firstterm>
+                     (VM-USB).  In the case of the CAEN V830, this is a value
+                     from <literal>0</literal> through <literal>255</literal>.
+                  </para>
+                  <para>
+                     For historical reasons, this status-id value is also called the
+                     <firstterm>interrupt vector</firstterm>.  The <option>-vector</option>
+                     option sets the value of the interrupt vector presented by the
+                     CAEN V830 when it interrupts.  To interrupt, the module must also
+                     be configured with a nonzero <option>-ipl</option> and
+                     nonzero <option>-highwatermark</option> value.
+                  </para>
+                  <para>
+                     Module interrupts can be used to triggers VM-USB stack
+                     execution. 
+                  </para>
+               </listitem>
+            </varlistentry>
+            <varlistentry>
+               <term><option>-highwatermakr</option> <replaceable>value</replaceable></term>
+               <listitem>
+                  <para>
+                     Configures the value of the V830 <firstterm>Almost Full Level</firstterm>
+                     register.  When non zero, if <option>-ipl</option> is also non-zero,
+                     and <option>-vector</option> is also non zero, when there is at least
+                     <parameter>value</parameter> events in the MEB, the module
+                     will initiate a VME bus interrupt.  VME interrupts can be
+                     used to trigger VM-USB stacks.  The default value is 1.
+                  </para>
+               </listitem>
+            </varlistentry>
+            </variablelist>
+        </refsect1>
+
+        <refsect1>
+           <title>EXAMPLES</title>
+           <para>
+               The following example shows how to set up a CAEN V830 scaler
+               for inclusion in the scaler stack.  The base address of the
+               scaler is <literal>0x80000000</literal>.  The default configuration
+               values are suitable for the scaler stack.
+           </para>
+           <example>
+            <title>Configuring a CAEN V830 scaler</title>
+               <programlisting>
+v830 create scaler 0x80000000
+               </programlisting>
+           </example>
+        </refsect1>
+
+      </refentry>
+
+      <refentry id="manpage.madc">
+        <refmeta>
+           <refentrytitle>madc</refentrytitle>
+           <manvolnum>1usbReadout</manvolnum>
+        </refmeta>
+        <refnamediv>
+           <refname>madc</refname>
+           <refpurpose>VM-USB DAQ configuration script extension to support the Mesytec MADC32 module.</refpurpose>
+        </refnamediv>
+        
+        <refsynopsisdiv>
+          <cmdsynopsis>
+              <command>
+madc create <replaceable>name ?options?</replaceable>              
+              </command>
+          </cmdsynopsis>
+         <cmdsynopsis>
+             <command>
+madc config <replaceable>name ?options?</replaceable>
+             </command>
+         </cmdsynopsis>
+         <cmdsynopsis>
+             <command>
+madc cget <replaceable>name</replaceable>         
+             </command>
+         </cmdsynopsis>
+
+        </refsynopsisdiv>
+        <refsect1>
+         
+           <title>DESCRIPTION</title>
+           <para>
+              The <command>madc</command> command provides scripted support
+               for the Mesytec 32 channel peak sensing adc module.  For scaler
+               support for this module's dead time counters, see the
+               <link linkend="madcscaler">madcscaler</link> command.
+           </para>
+           <para>
+               As with all VM-USB module support commands, <command>madc</command>
+               is a command ensemble with subcommands that
+               <command>create</command> and
+               <command>config</command>ure modules as well as
+               <command>cget</command> which introspects a module configuration.
+           </para>
+           <para>
+               <command>create</command> creates an object with the specified
+               <parameter>name</parameter>. Additional options are treated like
+               configuration options.  <command>config</command> configures
+               an existing module, and <command>cget</command> returns a list of
+               configuration name/value pairs that describe the configuration of
+               the module.
+           </para>
+            <para>
+               It is important to note that the module configuration does not
+               actually get loaded until the run is initialized.  The order in
+               which configuration parameter are supplied is therefore unimportant.
+               Think of the configuration options as being accumulated and then
+               applied as the run starts.  Only modules that are in
+               <command>stack</command> are configured.
+            </para>
+        </refsect1>
+        <refsect1>
+           <title>
+              OPTIONS
+           </title>
+           <variablelist>
+              <varlistentry>
+                  <term><option>-base</option> <replaceable>address</replaceable></term>
+                  <listitem>
+                      <para>
+                        <parameter>address</parameter> must be the module base
+                        address as configured in its rotary switches.
+                        This base address is used to access the module's register
+                        and event memory.
+                      </para>
+                     <para>
+                        Each module must be programmed and hardware configured
+                        with a different base address. The address used will be
+                        an A32 VME address.
+                     </para>
+                  </listitem>
+              </varlistentry>
+               <varlistentry>
+                  <term><option>-id</option> <replaceable>vsn</replaceable></term>
+                  <listitem>
+                     <para>
+                        <parameter>vsn</parameter> will be used as the module's
+                        identifier or <firstterm>virtual slot number</firstterm>.
+                        The <parameter>vsn</parameter> will be encoded into the
+                        event data that is returned by the module.  This, in turn
+                        is normally used by event decoders to determine which parameters
+                        the channels of the module should be unpacked into.
+                     </para>
+                     <para>
+                        Each module should be given a unique <parameter>vsn</parameter>.
+                     </para>
+                  </listitem>
+               </varlistentry>
+               <varlistentry>
+                  <term><option>-ipl</option> <replaceable>irqlevel</replaceable></term>
+                  <listitem>
+                     <para>
+                        If the module will be used to trigger an interrupt driven
+                        stack, the <parameter>irqlevel</parameter> parameter must
+                        be programmed to a valid non zero interrupt priority level
+                        (<literal>1</literal> through <literal>7</literal>).
+                        This must match the interrupt priority level used to trigger
+                        the stack.
+                     </para>
+                     <para>
+                        The default value of <literal>0</literal> disables module
+                        interrupts.
+                     </para>
+                  </listitem>
+               </varlistentry>
+               <varlistentry>
+                  <term><option>-vector</option> <replaceable>statusId</replaceable></term>
+                  <listitem>
+                     <para>
+                        If the module will be used to trigger an interrupt driven
+                        stack, the <parameter>statusId</parameter> must be programmed
+                        to a non zero 8 bit status id, or <firstterm>vector</firstterm>
+                        (between <literal>1</literal> and <literal>255</literal>
+                     </para>
+                     <para>
+                        The value used must match the value of the
+                        <option>-vector</option> configuration parameter used to
+                        trigger the stack.
+                     </para>
+                  </listitem>
+               </varlistentry>
+               <varlistentry>
+                  <term><option>-timestamp</option>  <replaceable>onoff</replaceable></term>
+                  <listitem>
+                     <para>
+                        This option controls whether or not the
+                        module tags each event with a trigger number or with a
+                        timestamp (see also the
+                        <option>-timingsource</option> and
+                        <option>-timingdivisor</option> options).
+                     </para>
+                     <para>
+                        The <replaceable>onoff</replaceable> is a boolean value.
+                        If true, the module tags events with a timestamp.  If
+                        false, with a trigger number.
+                     </para>
+                  </listitem>
+               </varlistentry>
+               <varlistentry>
+                  <term><option>-gatemode</option>  <replaceable>mode</replaceable></term>
+                  <listitem>
+                     <para>
+                        The MADC32 has a pair of gate inputs.  The inputs may
+                        be used either as <literal>separate</literal> gates,
+                        where each gate controlls 16 of the 32 channels, or
+                        as <literal>common</literal> where either input will
+                        gate all 32 channels.
+                     </para>
+                     <para>
+                        The value <parameter>mode</parameter> should be either
+                        <literal>separate</literal> or <literal>common</literal>.
+                     </para>
+                  </listitem>
+               </varlistentry>
+               <varlistentry>
+                  <term><option>-gategenerator</option> <replaceable>onoff</replaceable></term>
+                  <listitem>
+                     <para>
+                        The module can either use the gates as provided or can
+                        insert a gate and delay generator between the gate inputs
+                        and the actual gates seen by the ADCs.  Since in most cases,
+                        gate must be stretched and timed to match the ADC inputs,
+                        this feature can reduce the external electronics needed to
+                        properly gate the adc.
+                     </para>
+                     <para>
+                        The <parameter>onoff</parameter> is a boolean that if
+                        true enables this gate generator, if false, disables it.
+                        See also the <option>-holddelays</option> and
+                        <option>-holdwidths</option> configuration parameters
+                        that control the gate and delay parameters for each of these
+                        resources.
+                     </para>
+                  </listitem>
+               </varlistentry>
+               <varlistentry>
+                  <term><option>-holddelays</option> <replaceable>delayList</replaceable></term>
+                  <listitem>
+                     <para>
+                        If the gate generators are enabled (see
+                        <option>-gategenerator</option> above), the
+                        <parameter>delayList</parameter> is a Tcl list consisting of
+                        the two delay parameters, one for each of the gate and
+                        delay generators. See the MADC32 manual for a description of
+                        the meaning of these values, which are just the values
+                        programmed into the module registers.
+                     </para>
+                  </listitem>
+               </varlistentry>
+               <varlistentry>
+                  <term><option>-holdwidths</option> <replaceable>widthList</replaceable></term>
+                  <listitem>
+                     <para>
+                        If the gate generators are enabled (see
+                        <option>-gategenerator</option> above), the
+                        <parameter>widthList</parameter> is a Tcl l ilst
+                        consisting of the two gate and delay generator width
+                        parameters.  See the MADC32 manual for a description
+                        of the meaning of these values, which are just the
+                        values programmed into the module registers.
+                     </para>
+                  </listitem>
+               </varlistentry>
+               <varlistentry>
+                  <term><option>-inputrange</option> <replaceable>rangeSelector</replaceable></term>
+                  <listitem>
+                     <para>
+                        Programs the input range for the module.
+                        The <parameter>rangeSelector</parameter> must
+                        <literal>4v</literal>, <literal>8v</literal>,
+                        or <literal>10v</literal>.  Where the selector
+                        represents the input range in volts.
+                     </para>
+                  </listitem>
+               </varlistentry>
+               <varlistentry>
+                  <term><option>-ecltermination</option> <replaceable>onoff</replaceable></term>
+                  <listitem>
+                     <para>
+                        This parameter when true enables the ECL input termination.
+                        If disabled, the termination is off.  If you are bussing
+                        the ECL inputs, only the final module in the bus should
+                        have terminatinon enabled, all other modules, should
+                        have termination turned off.
+                     </para>
+                  </listitem>
+               </varlistentry>
+               <varlistentry>
+                  <term><option>-ecltiming</option> <replaceable>onoff</replaceable></term>
+                  <listitem>
+                     <para>
+                        This parameter, when true enables tge gate1 ECL input to
+                        to be a clock source for the timestamp if true.  If false,
+                        The ECL G1 input is an ECL gate1.
+                     </para>
+                  </listitem>
+               </varlistentry>
+               <varlistentry>
+                  <term><option>-nimtiming</option> <replaceable>onoff</replaceable></term>
+                  <listitem>
+                     <para>
+                        If true, enables the NIM Gate1 input to be a clock source
+                        for the timestamp.  If not, the NIM Gate1 input is an adc gate.
+                     </para>
+                  </listitem>
+               </varlistentry>
+               <varlistentry>
+                  <term><option>-timingsource</option> <replaceable>sourceName</replaceable></term>
+                  <listitem>
+                     <para>
+                        Specifies the source of the clock for timestamps.
+                        If <literal>external</literal>, whichever of the NIM or
+                        ECL GATE1 inputs are enabled is the clock source.
+                        If <literal>vme</literal> the VME 16Mhz backplane
+                        clock is the clockk.
+                     </para>
+                  </listitem>
+               </varlistentry>
+               <varlistentry>
+                  <term><option>-timingdivisor</option> <replaceable>log2</replaceable></term>
+                  <listitem>
+                     <para>
+                        Specifies a scale-down value for the timestamp clock.
+                        At the time I'm typing this, this value is log base
+                        2 of the scale down, that is
+                        the final scale down is 1 &lt;&lt; <parameter>log2</parameter>.
+                        By the time we get installed, I am supposed to have
+                        some firwmare that will allow this to be a 16 bit
+                        direct scaledown (e.g. the scaledown would be between 1 and
+                        65535).
+                     </para>
+                  </listitem>
+               </varlistentry>
+               <varlistentry>
+                  <term><option>-thresholds</option> <replaceable>valueList</replaceable></term>
+                  <listitem>
+                     <para>
+                        Supplies the per channel thresholds for the adc.
+                        Channels which convert below their threshold are suppressed
+                        from the data stream reducing both data volume and
+                        dead-time.  The <parameter>valueList</parameter> is a
+                        32 element Tcl  list of the integer thresholds.
+                     </para>
+                     <para>
+                        Note that at the time I'm typing this, channel thresholds
+                        have not yet been implemented in the firmware.
+                        The firmware I bring with me at installation time
+                        will hopefully implement this feature.
+                     </para>
+                  </listitem>
+               </varlistentry>
+               <varlistentry>
+                  <term><option>-nimbusy</option> <replaceable>busyselect</replaceable></term>
+                  <listitem>
+                     <para>
+                        This option selects which signal is presented at the
+                        NIM busy output lemo connector.  By default, this will
+                        be the module busy.  The <parameter>busyselect</parameter> can
+                        be any of the following strings:
+                     </para>
+                     <variablelist>
+                        <varlistentry>
+                           <term><literal>busy</literal></term>
+                           <listitem>
+                              <para>The module busy is output.  This is the
+                                 default.
+                              </para>
+                           </listitem>
+                        </varlistentry>
+                        <varlistentry>
+                           <term><literal>gate0</literal></term>
+                           <listitem>
+                              <para>
+                                 The Gate0 signal is output. If the internal gate
+                                 and delay generator is enabled for Gate0,
+                                 the output will be the output of the gate and
+                                 delay generator.  This provides a mechanism
+                                 to check the gate timing on a scope if you are
+                                 using the internal gate and delay generators.
+                              </para>
+                           </listitem>
+                        </varlistentry>
+                        <varlistentry>
+                           <term><literal>gate1</literal></term>
+                           <listitem>
+                              <para>
+                                 The Gate1 signal is output.  If the internal gate
+                                 and delay generator is enabled for Gate1,
+                                 the output will be the output of the gate and
+                                 delay generator.  This provides a mechanism
+                                 to check the gate timing on a scope if you are
+                                 using the internal gate and delay generators.
+                              </para>
+                              <para>
+                                 It is not clear to me what happens if you are using
+                                 module common gates.
+                              </para>
+                           </listitem>
+                        </varlistentry>
+                        <varlistentry>
+                           <term><literal>cbus</literal></term>
+                           <listitem>
+                              <para>
+                                 The CBUS output is reflected here.
+                              </para>
+                           </listitem>
+                        </varlistentry>
+                     </variablelist>
+                  </listitem>
+               </varlistentry>
+            </variablelist>
+        </refsect1>
+
+        <refsect1>
+           <title>EXAMPLES</title>
+           <example>
+            <title>Sample use of madc command</title>
+            <programlisting>
+set madcTimeDivisor 14
+
+madc create adc -base 0x40000000 -id 5 -ipl 0             <co id="madccreate" />
+madc config adc -gatemode common -gategenerator disabled
+madc config adc -inputrange 8v
+madc config adc -timestamp on -timingsource vme -timingdivisor $madcTimeDivisor  <co id="madcsubst" />
+
+for {set i 0} {$i < 32} {incr i} {
+    lappend thresholds 0                                 <co id="madcmakethresh" />
+}
+madc config adc -thresholds $thresholds                  <co id="madcthresholds" />
+
+            </programlisting>
+           </example>
+            <calloutlist>
+               <callout arearefs="madccreate">
+                  <para>
+                     This command creates an object to manage an MADC 32
+                     whose base address is <literal>0x40000000</literal>.
+                     The module will be referred to by the symbolic name:
+                     <literal>adc</literal>
+                  </para>
+               </callout>
+               <callout arearefs="madcsubst">
+                  <para>
+                     This line illustrates substitution of a Tcl variable for
+                     a parameter value.  Tcl variable substition is textual,
+                     so you can also use varibles to hold option names, though
+                     that may be  a bit odd.
+                  </para>
+               </callout>
+               <callout arearefs="madcmakethresh">
+                  <para>
+                     This highlights the fact that the configuration file is
+                     really a configuration program.  The loop creates a
+                     varaiable named <varname>thresholds</varname> that
+                     contains a list of 32 zeroes.  This list will be used
+                     to program the <literal>adc</literal> thresholds.
+                     Normally these values will neither be zero nor uniform
+                     from channel to channel.  It may be best to read them from
+                     some external file.
+                  </para>
+               </callout>
+               <callout arearefs="madcthresholds" >
+                  <para>
+                     This command uses the <varname>thresholds</varname> variable
+                     and programs the channel thresholds of the ADC.
+                  </para>
+               </callout>
+            </calloutlist>
+        </refsect1>
+    </refentry>
+           
+      <refentry id="manpage.madcscaler">
+        <refmeta>
+           <refentrytitle>madcscaler</refentrytitle>
+           <manvolnum>1usbReadout</manvolnum>
+        </refmeta>
+        <refnamediv>
+           <refname>madcscaler</refname>
+           <refpurpose>VM-USB DAQ config command to support dead-time counters in the Mesytec MADC32 as scalers.</refpurpose>
+        </refnamediv>
+        
+        <refsynopsisdiv>
+          <cmdsynopsis>
+              <command>
+madcscaler create <replaceable>name ?options?</replaceable>              
+              </command>
+          </cmdsynopsis>
+         <cmdsynopsis>
+             <command>
+madcscaler config <replaceable>name ?options?</replaceable>
+             </command>
+         </cmdsynopsis>
+         <cmdsynopsis>
+             <command>
+madcscaler cget <replaceable>name</replaceable>         
+             </command>
+         </cmdsynopsis>
+
+        </refsynopsisdiv>
+        <refsect1>
+           <title>DESCRIPTION</title>
+           <para>
+              The Mesytec MADC 32 module provides two counters. These counters
+              count time and ADC busy time (time between the adc gate and
+              readout completion).  Reading these two values as periodic scalers
+              in a scaler stack, allows for the computation of dead-time ratios
+              without the use of an additional external scaler module..
+           </para>
+           <para>
+               The <command>madcscaler</command> command supports configuring
+               MADC32 modules for use as dead-time scalers.
+           </para>
+           <para>
+            The <command>madcscaler</command> command provides the usual
+            ensemble of subcommands;
+            <command>create</command> to create a named module object,
+            <command>config</command> to configure a previously existing object
+            by name, and
+            <command>cget</command> to obtain the configuration of an existing
+            named object.
+           </para>
+           <para>
+             OPTIONS below describes the configuration options.
+           </para>
+        </refsect1>
+        <refsect1>
+           <title>
+              OPTIONS
+           </title>
+           <variablelist>
+              <varlistentry>
+                  <term><option>-base</option> <replaceable>baseAddress</replaceable></term>
+                  <listitem>
+                      <para>
+                        Provides the base address of the module as configured
+                        in its rotary switches.
+                      </para>
+                  </listitem>
+              </varlistentry>
+           </variablelist>
+        </refsect1>
+
+      </refentry>
+
+<refentry id="manpage.marker">
+  <refmeta>
+     <refentrytitle>marker</refentrytitle>
+     <manvolnum>1usbReadout</manvolnum>
+  </refmeta>
+  <refnamediv>
+     <refname>marker</refname>
+     <refpurpose>VM-USB insert a literal value in the output data</refpurpose>
+  </refnamediv>
+  
+  <refsynopsisdiv>
+    <cmdsynopsis>
+	<command>
+marker create <replaceable>name ?-value number?</replaceable> 	
+	</command>
+    </cmdsynopsis>
+<cmdsynopsis>
+    <command>
+marker config <replaceable>name -value number</replaceable>
+    </command>
+</cmdsynopsis>
+<cmdsynopsis>
+    <command>
+marker cget <replaceable>name</replaceable>
+    </command>
+</cmdsynopsis>
+
+  </refsynopsisdiv>
+  <refsect1>
+     <title>DESCRIPTION</title>
+     <para>
+	A marker is a literal value that can be placed in the data stream.
+        One use for a marker can be to flag boundaries between data from
+        modules that is not sufficiently self describing for the
+        analysis software to mechanically determine the structure of the data.
+     </para>
+     <para>
+        The <command>marker</command> command is like all other VM-USB
+        DAQ configuration commands. It is a command ensemble with the following
+        sub-commands:
+     </para>
+     <variablelist>
+        <varlistentry>
+            <term><command>create</command> <replacable>name ?-value number?</replacable></term>
+            <listitem>
+                <para>
+                    Creates a new marker object named <replaceable>name</replaceable>.
+                    Marker objects operate exactly like all other modules.  When
+                    placed in a stack, however they contribute exactly one
+                    word to the output stream.  The contents of that word is
+                    configurable and is called the marker's <firstterm>value</firstterm>.
+                </para>
+                <para>
+                    See <command>config</command> below for information
+                    about the optional parameters.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term><command>config</command> <replaceable>name -value number</replaceable></term>
+            <listitem>
+                <para>
+                    Provides the value for the marker.  The marker <replaceable>name</replaceable>
+                    will be configured to have the value <replaceable>number</replaceable>.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term><command>cget</command> <replaceable>name</replaceable></term>
+            <listitem>
+                <para>
+                    Introspects the configuration of the module.  The result is a
+                    single element Tcl list.  The element contains a 2 element
+                    sublist with the elements <literal>-value</literal> and
+                    <replaceable>number</replaceable> where
+                    <replaceable>number</replaceable> is the value the marker
+                    will insert in the outupt stream.
+                </para>
+            </listitem>
+        </varlistentry>
+     </variablelist>
+  </refsect1>
+  <refsect1>
+     <title>
+	OPTIONS
+     </title>
+     <variablelist>
+	<varlistentry>
+	    <term><option>-value</option> <replaceable>integer</replaceable></term>
+	    <listitem>
+		<para>
+                    Configures the number the marker will insert in the output
+                    stream.
+		</para>
+	    </listitem>
+	</varlistentry>
+     </variablelist>
+  </refsect1>
+  <refsect1>
+     <title>EXAMPLES</title>
+     <para>
+        The following example inserts the hex word 0xaaaa between two
+        CAEN V785 modules:
+     </para>
+     <example>
+        <title>Using the VM-USB <command>marker</command> command</title>
+        <programlisting>
+adc create adc1 -base -0x10000000
+...
+adc create adc2 -base -0x20000000
+...
+marker create m -value 0xaaaa
+
+stack crate event -modules [list adc1 m adc2]
+...
+
+        </programlisting>
+     </example>
+  </refsect1>
+
+</refentry>
+
+
+      <refentry id="manpage.hytec">
+        <refmeta>
+           <refentrytitle>hytec</refentrytitle>
+           <manvolnum>1usbReadout</manvolnum>
+        </refmeta>
+        <refnamediv>
+           <refname>hytec</refname>
+           <refpurpose>VM-USB DAQ config support the Hytec NADC 2530 adc module.</refpurpose>
+        </refnamediv>
+        
+        <refsynopsisdiv>
+          <cmdsynopsis>
+              <command>
+hytec create <replaceable>name ?options?</replaceable>
+              </command>
+          </cmdsynopsis>
+<cmdsynopsis>
+    <command>
+hytec <replaceable>config name ?options?</replaceable>
+    </command>
+</cmdsynopsis>
+<cmdsynopsis>
+    <command>
+hytec cget <replaceable>name</replaceable>
+    </command>
+</cmdsynopsis>
+
+        </refsynopsisdiv>
+        <refsect1>
+           <title>DESCRIPTION</title>
+           <para>
+              This command provides support for the Hytec NADC2530.  The NADC2530
+              is an 8 channel multi-event peak sensing adc.  While the module
+              is capable of autonomously creating histograms, this software does
+              not support that capability as it's much easier to treat that
+              module differently if used in that way.
+           </para>
+           <para>
+               As for all VM-USB module support commands, <command>hytec</command>
+               is a command ensemble with the subcommands
+               <variablelist>
+                  <varlistentry>
+                     <term><command>create</command></term>
+                     <listitem>
+                        <para>Which creates an object for an NADC2530 adc
+                           which can be referred to by the name <parameter>name</parameter>.
+                           Additional options can provide device configuration.
+                        </para>
+                     </listitem>
+                  </varlistentry>
+                  <varlistentry>
+                     <term><command>config</command></term>
+                     <listitem>
+                        <para>
+                           Which configures the existing device object
+                           <parameter>name</parameter>
+                        </para>
+                     </listitem>
+                  </varlistentry>
+                  <varlistentry>
+                     <term><command>cget</command></term>
+                     <listitem>
+                        <para>
+                           Which returns the module <parameter>name</parameter>'s
+                           configuration as an item list of name value pairs.
+                        </para>
+                     </listitem>
+                  </varlistentry>
+               </variablelist>
+                                                                
+           </para>
+            <para>
+               Configuration options are described in the OPTIONS section below.
+            </para>
+        </refsect1>
+        <refsect1>
+           <title>
+              OPTIONS
+           </title>
+           <variablelist>
+              <varlistentry>
+                  <term><option>-csr</option> <replaceable>address</replaceable></term>
+                  <listitem>
+                      <para>
+                           This option must appear somewhere in the module configuration.
+                           It establishes the base address of the module's
+                           register space.  The NADC 2530 has two address spaces,
+                           register space, used to configure and control the module,
+                           and memory space where events get stored.
+                      </para>
+                      <para>
+                        The <parameter>address</parameter> is an A24 address.
+                        this means it must be in the range
+                        <literal>0x000000</literal> through <literal>0xffffff</literal>.
+                        Each module must have a unique base address, and the address
+                        configured in the software must match the address configured
+                        in the module's address jumpers.
+                      </para>
+                  </listitem>
+              </varlistentry>
+              <varlistentry>
+               <term><option>-memory</option> <replaceable>address</replaceable></term>
+               <listitem>
+                  <para>
+                     This option must appear somewhere in the module configuration.
+                     It establishes the base address of the module's event buffer
+                     memory. Each module's event memory must carve out a unique
+                     slice of A32 address space (values between
+                     <literal>0x00000000</literal> and <literal>0xffffffff</literal>).
+                  </para>
+                  <para>
+                     The buffer memory address space is software programmable.
+                     See the NADC2530 manual for the size of this address space
+                     as any overlap can cause corrupted data to be read from the
+                     modules.
+                  </para>
+               </listitem>
+              </varlistentry>
+               <varlistentry>
+                  <term><option>-ipl</option> <replaceable>irqlevel</replaceable></term>
+                  <listitem>
+                     <para>
+                        If you are using the module's interrupt to trigger
+                        a stack execution, <parameter>irqlevel</parameter> must
+                        be a nonzero value between <literal>1</literal> and
+                        <literal>7</literal>, and will be the interrupt priority
+                        level on which the module will generate an iterrupt request.
+                     </para>
+                     <para>
+                        The value of this parameter defaults to <literal>0</literal>
+                        which disables module interrupts.  See also the
+                        <option>-vector</option> option below.
+                     </para>
+                  </listitem>
+               </varlistentry>
+               <varlistentry>
+                  <term><option>-vector</option> <replaceable>statusid</replaceable></term>
+                  <listitem>
+                     <para>
+                        If the module is being used to trigger a stack,
+                        <parameter>statusid</parameter> should be the value the
+                        module will use to reply to the interrupt acknowledge cycle's
+                        request for a status/id from the module.
+                     </para>
+                     <para>
+                        The NADC2530 has a status/id 16 bits wide
+                        (between <literal>1</literal> and <literal>65535</literal>
+                        where zero disables the interrupt).  The VM-USB, however
+                        only triggers on the bottom 8 bits of the status id field.
+                        therefore you should use values between
+                        <literal>1</literal> and <literal>255</literal> unless
+                        you are directing the interrupt at other modules in the VME
+                        crate.
+                     </para>
+                  </listitem>
+               </varlistentry>
+               <varlistentry>
+                  <term><option>-lld</option> <replaceable>millivolts</replaceable></term>
+                  <listitem>
+                     <para>
+                        Provides the low level threshold value in <parameter>millivolts</parameter>.
+                        Due to the resolution of the threshold DAQ, the actual threshold
+                        value programmed may be slightly different than the one requested.
+                        See the manual for the relationship between
+                        <parameter>millivolts</parameter> and threshold DAC values.
+                     </para>
+                  </listitem>
+               </varlistentry>
+               <varlistentry>
+                  <term><option>-hld</option> <replaceable>volts</replaceable></term>
+                  <listitem>
+                     <para>
+                        Provides the high level discriminator value in floating
+                        point <parameter>volts</parameter>.  Due to the
+                        Due to the resolution of the threshold DAQ, the actual threshold
+                        value programmed may be slightly different than the one requested.
+                        See the manual for the relationship between
+                        <parameter>volts</parameter> and threshold DAC values.
+                     </para>
+                  </listitem>
+               </varlistentry>
+               <varlistentry>
+                  <term><option>-events</option> <parameter>count</parameter></term>
+                  <listitem>
+                     <para>
+                        Indicates that <parameter>count</parameter> events must
+                        be in the event buffer before an interrupt will be
+                        signalled on the VME backplane.  This item also configures
+                        how many events are required for the module to indicate
+                        that it has data.  Therefore, if not being used with interrupts,
+                        this value should be programmed to its default value of
+                        <literal>1</literal>
+                     </para>
+                  </listitem>
+               </varlistentry>
+           </variablelist>
+        </refsect1>
+        <refsect1>
+           <title>EXAMPLES</title>
+           <para>
+               The example below configures an NADC 2530 with a register base
+               address of <literal>0x400000</literal>, and a buffer address
+               of <literal>0x10000000</literal>.  It leaves the thresholds
+               wide open and does not enable module interrupts:
+           </para>
+           <example>
+            <title>Sample Hytec 2530 configuration</title>
+            <programlisting>
+hytec create adc
+hytec config adc  -csr 0x400000 -memory 0x10000000 
+hytec config adc -lld 0.0 -hld 8.191 -events 1
+            </programlisting>
+           </example>
+        </refsect1>
+   
+      </refentry>
+
+      <refentry id="manpage.sis3820">
+         <refmeta>
+           <refentrytitle>sis3820</refentrytitle>
+           <manvolnum>1usbReadout</manvolnum>
+         </refmeta>
+         <refnamediv>
+           <refname>sis3820</refname>
+           <refpurpose>Create and configure SIS 3820 scaler modules in VM-USB DAQ config files</refpurpose>
+         </refnamediv>
+        
+         <refsynopsisdiv>
+           <cmdsynopsis>
+      	 <command>
+sis3820 create <replaceable>name ?option  value...?</replaceable>
+      	 </command>
+          </cmdsynopsis>
+             <cmdsynopsis>
+                 <command>
+sis3820 config <replaceable>name option value ...</replaceable>
+                 </command>
+             </cmdsynopsis>
+                <cmdsynopsis>
+                    <command>
+sis3820 cget <replaceable>name</replaceable>
+                    </command>
+                </cmdsynopsis>
+            
+         </refsynopsisdiv>
+         <refsect1>
+           <title>DESCRIPTION</title>
+           <para>
+               Creates and configures the SIS3820 32 channel scaler for use in
+               a stack.   The <command>create</command> subcommand creates a new
+               module with 
+               a name <parameter>name</parameter> which will be used to refer
+               to this module in later configuration commands.  Additional
+               command parameters can optionally configure the module.
+               See <command>config</command> and the OPTIONS section below
+                for more information about this.
+           </para>
+            <para>
+               The scaler readout will result in an array of 32 channels
+               of scaler data placed in the buffer.  The first longword of this
+               data is channel 0, the last, channel 1.
+            </para>
+            <para>
+               The <command>config</command> sub-command configures the options
+               for the scaler <parameter>name</parameter>.  The configuration
+               is expressed as a series of one or more
+               <parameter>option value</parameter> pairs.  Options may have
+               default values and are validity checked to ensure that
+               valid values are supplied.  See OPTIONS below for more information
+               about the option keywords that are supported and their legal values.
+            </para>
+            <para>
+               The <command>cget</command> sub-command returns the current module
+               configuration.  The configuration is returned as a Tcl list of
+               <parameter>option value</parameter> pairs.  See
+               OPTIONS below for a description of the options ans values
+               that are returned.  You should not rely on the list being in any
+               specific order.  While the list will have a deterministic order,
+               if additional option keywords are added later on, this order may
+               change.
+            </para>
+         </refsect1>
+         <refsect1>
+           <title>
+      	OPTIONS
+           </title>
+           <variablelist>
+      	 <varlistentry>
+      	    <term><option>-base</option> <parameter>value</parameter></term>
+      	    <listitem>
+      		<para>
+                  Allows you to override the initial base address of the module,
+                  specified when the module was created.
+      		</para>
+      	    </listitem>
+      	 </varlistentry>
+           </variablelist>
+         </refsect1>
+         <refsect1>
+           <title>EXAMPLES</title>
+           <para>
+               The example below configures an SIS 3820 scaler to have a base
+               address of 0x38000000
+           </para>
+            <example>
+               <title>Configuring an SIS3820 scaler module</title>
+               <programlisting>
+sis3820 scaler1 -base 0x38000000
+               </programlisting>
+            </example>
+         </refsect1>
+
+      </refentry>
+
+      <refentry id="manpage.sis3804command">
+        <refmeta>
+           <refentrytitle>sis3804</refentrytitle>
+           <manvolnum>1usbReadout</manvolnum>
+        </refmeta>
+        <refnamediv>
+           <refname>sis3804</refname>
+           <refpurpose>Create and configure SIS 3804 scalers</refpurpose>
+        </refnamediv>
+        
+        <refsynopsisdiv>
+          <cmdsynopsis>
+              <command>
+sis3804 create <replaceable>name ?options...?</replaceable>
+              </command>
+          </cmdsynopsis>
+    <cmdsynopsis>
+        <command>
+sis3804 config <replaceable>name options...</replaceable>
+        </command>
+    </cmdsynopsis>
+    <cmdsynopsis>
+      <command>
+sis3804 cget <replaceable>name option</replaceable>
+      </command>
+    </cmdsynopsis>
+        </refsynopsisdiv>
+        <refsect1>
+           <title>DESCRIPTION</title>
+           <para>
+              This command creats and manipulates SIS3804 objects.  The SIS3804
+              is an 8 channel latching scaler manufactured by Struck.  The
+              SIS3804 objects can configure and add readout instructions for this
+              hardware to VM-USB stacks.
+           </para>
+        </refsect1>
+        <refsect1>
+           <title>
+              OPTIONS
+           </title>
+           <variablelist>
+              <varlistentry>
+                  <term><option>-base</option> <replaceable>base-address</replaceable></term>
+                  <listitem>
+                      <para>
+                        Sets the base address of the module. This must match the
+                        value selected by  the rotary switches on the module.
+                        The default for this option is 0, which is typically not
+                        what you want.
+                      </para>
+                  </listitem>
+              </varlistentry>
+              <varlistentry>
+               <term><option>-refpulser</option> <replaceable>boolean</replaceable></term>
+               <listitem>
+                  <para>
+                     Enables or disables the reference pulser.  When enabled,
+                     the reference pulser disables the input to channel 1 and
+                     supplies a 25Mhz pulse frequency to that channel.
+                  </para>
+                  <para>
+                     A value of <literal>true</literal> enables the pulser while
+                     <literal>false</literal> (the default) disables the reference
+                     pulser.
+                  </para>
+               </listitem>
+              </varlistentry>
+              <varlistentry>
+                  <term><option>-disables</option> <replaceable>mask</replaceable></term>
+                  <listitem>
+                     <para>
+                        Allows you to disable specific channels from counting.
+                        The bottom 8 bits if set disable the corresponding channel
+                        of the pulse.  For example if mask &amp; 1 is nonzero,
+                        channel 1 (numbered from 1) is disabled, while if
+                        mask &amp; 0x10 is nonzero, channel 8 is disasbled.
+                     </para>
+                     <para>
+                        The default value is zero which enables all channels.
+                     </para>
+                  </listitem>
+              </varlistentry>
+              <varlistentry>
+               <term><option>-autoclear</option> <replaceable>boolean</replaceable></term>
+               <listitem>
+                  <para>
+                     If this option is <literal>true</literal> (the default),
+                     scalers are cleared atomically after being latched for readout.
+                     The NSCL data acquisition system scaler display program
+                     expects the scaler counters to be incremental values  with
+                     the sums computed in software (so that overflows can be
+                     explicitly managed).  If you have a special application for this
+                     scaler, e.g. to provide timestamps in an event, for which you
+                     do not want this behavior, you can set this option to <literal>false</literal>
+                  </para>
+               </listitem>
+              </varlistentry>
+           </variablelist>
+        </refsect1>
+        <refsect1>
+           <title>EXAMPLES</title>
+           <para>
+            The example below creatse a scaler at the manufacturer's setting
+            for the base address and configures it to have the 25Mhz
+            reference pulser in channel 1:
+           </para>
+           <example>
+            <title>Configuring the SIS 3804 scaler</title>
+            <programlisting>
+sis3804 create scaler1 -base 0x38383800
+sis3804 config scaler1 -refpulser true
+            </programlisting>
+           </example>
+        </refsect1>
+      
+      </refentry>
+       <refentry id="manpage.stack">
+        <refmeta>
+           <refentrytitle>stack</refentrytitle>
+           <manvolnum>1usbReadout</manvolnum>
+        </refmeta>
+        <refnamediv>
+           <refname>stack</refname>
+           <refpurpose>Compose and configure VM-USB readout stacks in DAQ configuration files</refpurpose>
+        </refnamediv>
+        
+        <refsynopsisdiv>
+          <cmdsynopsis>
+      	<command>
+stack create <replaceable>name</replaceable>
+      	</command>
+          </cmdsynopsis>
+             <cmdsynopsis>
+                 <command>
+stack config <replaceable>name option value...</replaceable>
+                 </command>
+             </cmdsynopsis>
+             <cmdsynopsis>
+                 <command>
+stack cget <replaceable>name</replaceable>
+                 </command>
+             </cmdsynopsis>
+         
+        </refsynopsisdiv>
+        <refsect1>
+           <title>DESCRIPTION</title>
+           <para>
+               The VM-USB supports eight readout <firstterm>stacks</firstterm>.
+               A stack can be thought of as a set of VME operations the
+               VM-USB should perform in response to some trigger condition.
+               Reads performed by a stack are placed in an event buffer. Writes
+               occure but result in no data.  At appropriate times, the VM-USB
+               transmits buffers of read events to the host computer over its USB
+               interface. Stacks provide avoid the high latency of the USB bus
+               by pushing the readout intelligence for events into the VM-USB, and
+               out of the host.
+           </para>
+           <para>
+               The VM-USB supports 8 stacks, and  three kinds of triggers for stacks.
+               While all stacks can be
+               interrupt triggered, we simplify the VM-USB usage by only allowing
+               stacks 2-7 to accept interrupt triggers, defining stack 0 to be
+               only triggerable on the <literal>NIM1</literal> input, and stack
+               1 to only be triggered with some time periodicity.
+           </para>
+            <para>
+               The <command>stack</command> command allows you to compose stacks
+               and specify their trigger conditions.  When data taking is
+               enabled, all defined stacks are loaded into the VM-USB and
+               their triggers set up.  Stacks are composed by specifying the
+               set of modules they should read via the <option>-modules</option>
+               configuration option.  All modules in a stack are initialized
+               at stack load time and read when the stack is triggered, in the
+               order in which they were specified.
+            </para>
+            <para>
+               The <command>create</command> subcommand creates a stack named
+               <parameter>name </parameter>.  <parameter>name</parameter>
+               will be used by you in future <command>config</command> and
+               <command>cget</command> subcommands to refer to this stack.
+            </para>
+            <para>
+               The <command>config</command> subcommand allows you to configure
+               the stack contents and trigger conditions of the stack.
+               <parameter>name</parameter> determines which stack will be configured.
+               The configuration is specified via a set of <replaceable>option value</replaceable>
+               pairs.  These are described in OPTIONS below.
+            </para>
+            <para>
+               The <command>cget</command> command returns the configuration of
+               the stack as a well formed Tcl list of <replaceable>option value</replaceable>
+               pairs.
+            </para>
+        </refsect1>
+        <refsect1>
+           <title>
+      	OPTIONS
+           </title>
+           <variablelist>
+      	<varlistentry>
+      	    <term><option>-trigger</option> <replaceable>nim1 | scaler | interrupt</replaceable></term>
+      	    <listitem>
+      		<para>
+                  Defines the strigger source for the stack.  When the designated
+                  trigger is present, the stack will execute.
+                  <literal>nim1</literal> triggers the stack on a nim logic true pulse
+                  to the IN1 input of the VM-USB.  This forces the stack to be 
+                  VM-USB stack number zero as that is the only stack that can be
+                  triggered by the IN1.
+      		</para>
+                <para>
+                  <literal>scaler</literal>
+                  triggers the stack on the periodic scaler.  This forces the stack
+                  to be stack number 1 as that is the only peridically triggerable stack.
+                  We restrict periodic triggers to time based periodicity rather than
+                  event division periodicity.  The <option>-period</option> option
+                  defined below must be configured as well to define the periodicity
+                  of the scaler stack.
+                </para>
+                <para>
+                  <literal>interrupt</literal>
+                  indicates the stack will be interrupt triggered. This can be
+                  used for stacks 2 through 7 as defined by the <option>-stack</option>
+                  configuration parameter.   The actual VME interrupt that will trigger
+                  the stack is defined by both its interrupt priority level
+                  <option>-ipl</option> and the status id the interrupt source
+                  places on the backplane in response to the interrupt acknowledge
+                  cycle, and specified with the <option>-vector</option> configuration
+                  parameter.
+                </para>
+      	    </listitem>
+      	</varlistentry>
+         <varlistentry>
+            <term><option>-period</option> <replaceable>seconds</replaceable></term>
+            <listitem>
+               <para>
+                  Defines the number of seconds (integer) between scaler stack triggers.
+                  This is ignored for all stacks that are not <literal>scaler</literal>
+                  <option>-trigger</option>-ed.  The VM-USB manual defines the range of legal
+                  values for this option.
+               </para>
+            </listitem>
+         </varlistentry>
+         <varlistentry>
+            <term><option>-stack</option> <replaceable>seconds</replaceable></term>
+            <listitem>
+               <para>
+                  Defines the stack number for <literal>interrupt</literal>
+                  <option>-trigger</option>-ed stacks.  This is an integer value
+                  in the range 2-7 inclusive. This will also select the
+                  interrupt register used to define the trigger for the stack.
+               </para>
+            </listitem>
+         </varlistentry>
+         <varlistentry>
+            <term><option>-vector</option> <replaceable>status-id</replaceable></term>
+            <listitem>
+               <para>
+                  For <literal>interrupt</literal> <option>-trigger</option>-ed
+                  stacks, this defines the status Id that must be presented by
+                  the interrupt source in response to an interrupt acknowledge
+                  to trigger the list.  This taken together with the value of the
+                  <option>-ipl</option> configuration option defines the trigger
+                  condition for these stacks. The <parameter>status-id</parameter>
+                  must be a value between 0 and 255.
+               </para>
+            </listitem>
+         </varlistentry>
+         <varlistentry>
+            <term><option>-ipl</option> <replaceable>priority</replaceable></term>
+            <listitem>
+               <para>
+                  Defines the interrupt priority level that of the interrupt
+                  that will trigger the stack.  An iterrupter places a 3 bit
+                  interrupt priority level (IPL) on the VME bus when it requests
+                  an interrupt.  The IPL must be nonzero and is intended to reflect
+                  the priority of the interrupt (7 highest, 1 lowest), although, in fact,
+                  the VME standard allows interrupt responders to treat this value
+                  in any way they want.
+               </para>
+               <para>
+                  The VM-USB uses the specified <parameter>priority</parameter> as
+                  part of the trigger condition for an <literal>interrupt</literal>
+                  <option>-trigger</option>-ed stack.  When an acknowledged interrupt
+                  matches both the <option>-ipl</option>, and the <option>-vector</option>
+                  configuration parameters of a stack the stack is triggered.
+                                                </para>
+            </listitem>
+         </varlistentry>
+         <varlistentry>
+            <term><option>-delay</option> <replaceable>microseconds</replaceable></term>
+            <listitem>
+               <para>
+                  The VM-USB allows you to define a delay between the stack trigger condition
+                  and the actual start of stack execution.  This is normally intended to be used
+                  with stacks that are triggered on <literal>nim1</literal>, as there may be
+                  a significant time between the generation of an external trigger and the
+                  conversion of the digitizers associated with the trigger.  As I read the
+                  VM-USB manual, however this delay applies to <emphasis>all</emphasis> stacks.
+               </para>
+               <para>
+                  The <parameter>microseconds</parameter> is the number of microseconds to delay
+                  (0-255) between triggers and stack executions.  Because of my understanding of the
+                  <emphasis>intent</emphasis> of this delay, the <option>-delay</option> option
+                  is ignored for all stacks that are not <literal>nim1</literal>
+                  <option>-trigger</option>-ed.
+               </para>
+               <para>
+                  In the very unlikely event that you need to apply a trigger delay
+                  to interrupt triggered stacks (most hardware interrupts when data
+                  are ready not on a trigger), and you are not using <literal>nim1</literal>
+                  triggered stacks, simply build a non-empty <literal>nim1</literal> triggered
+                  stack, set it's
+                  <option>-delay</option> option to the required delay and never trigger
+                  that stack (don't cable anything to the IN1 input).
+               </para>
+            </listitem>
+         </varlistentry>
+         <varlistentry>
+            <term><option>-modules</option>  <replaceable>module-list</replaceable></term>
+            <listitem>
+               <para>
+                  Defines the set of modules that will be read out. This can be
+                  a valid Tcl list of any set of modules that have been defined
+                  so far.  The modules are specified in the order in which readout
+                  commands for them will be added to the stack.  If you have
+                  built a <command>caenchain</command> add that to the stack rather
+                  than adding the individual modules.
+               </para>
+               <para>
+                  Lists of modules must be valid Tcl lists thus:
+                  <programlisting>
+stack config astack -modules adc1 adc2 adc3  ;      # Incorrect
+stack config astack -modules [list adc1 adc2 adc3]; # Correct.
+                  </programlisting>
+               </para>
+            </listitem>
+         </varlistentry>
+           </variablelist>
+        </refsect1>
+        <refsect1>
+           <title>EXAMPLES</title>
+           <para>
+               The example below is a rather complete demonstration of how to
+               define a set of modules, adc's and scalers, aggregate the
+               three adc's into a caenchain, and read that chain as a stack
+               triggered on NIM1, and read a pair of scalers triggered every two seconds.
+           </para>
+           <example>
+            <title>Building Stacks</title>
+            <programlisting>
+adc create adc1    0x04000000
+adc config adc1    -geo 12 -supressrange off  -ipl 0 -vector 0
+
+adc create adc2    0x05000000
+adc config adc2    -geo 13 -supressrange off  -ipl 0 -vector 0
+
+adc create adc3    0x06000000
+adc config adc3    -geo 14 -supressrange off -ipl 0 -vector 0
+
+
+caenchain create chain
+
+caenchain config chain -base 0x10000000 -modules [list adc1 adc2 adc3]
+
+
+sis3820 create scaler1 0x35000000
+v830    create scaler2 0x80000000
+sis3804 create scaler3 -base 0x38383800
+
+
+
+stack create events
+stack config events -trigger nim1   -modules chain -delay 12
+
+set scalers [list scaler1 scaler2 scaler3]
+
+
+stack create scalers
+
+
+stack config scalers -trigger scaler -modules $scalers -period 2
+
+            </programlisting>
+           </example>
+        </refsect1>
+
+      </refentry>     
+
+<!-- /manpage -->
+
+
+<!-- manpage 3usbReadout -->
+
+<!-- the base classes for the main tailored classes and the app -->
+
+<refentry id="manpage.cmodulecommand">
+  <refmeta>
+     <refentrytitle>CModuleCommand</refentrytitle>
+     <manvolnum>3usbReadout</manvolnum>
+  </refmeta>
+  <refnamediv>
+     <refname>CModuleCommand</refname>
+     <refpurpose>Abstract base class for the module support command classes.</refpurpose>
+  </refnamediv>
+  
+  <refsynopsisdiv>
+     <programlisting>
+#include &lt;CModuleCommand.h&gt;
+     </programlisting>
+     <classsynopsis>
+        <ooclass><classname>CModuleCommand : public CTCLObjectProcessor</classname></ooclass>
+        <constructorsynopsis>
+            <methodname>CDAQModuleCommand</methodname>
+            <methodparam>
+                <type>CTCLInterpreter&amp;</type> <parameter>interp</parameter>
+            </methodparam>
+            <methodparam>
+                <type>CConfiguration&amp;</type> <parameter>config</parameter>
+            </methodparam>
+            <methodparam>
+                <type>std::string</type> <parameter>name</parameter>
+            </methodparam>
+        </constructorsynopsis>
+        <destructorsynopsis>
+            <modifier>virtual</modifier> <methodname>~CDAQModuleCommand()</methodname>
+        </destructorsynopsis>
+        <methodsynopsis>
+            <type>int</type> <methodname>operator()</methodname>
+            <methodparam>
+                <type>CTCLInterpreter&amp;</type> <parameter>interp</parameter>
+            </methodparam>
+            <methodparam>
+                <type>std::vector&lt;CTCLObject&gt;&amp;</type> <parameter>objv</parameter>
+            </methodparam>
+        </methodsynopsis>
+        <methodsynopsis>
+            <modifier>protected virtual</modifier>
+            <type>int</type> <methodname>create</methodname>
+            <methodparam>
+                <type>CTCLInterpreter&amp;</type> <parameter>interp</parameter>
+            </methodparam>
+            <methodparam>
+                <type>std::vector&lt;CTCLObject&gt;&amp;</type> <parameter>objv</parameter>
+            </methodparam>
+        </methodsynopsis>
+        <methodsynopsis>
+            <modifier>protected virtual</modifier>
+            <type>int</type> <methodname>config</methodname>
+            <methodparam>
+                <type>CTCLInterpreter&amp;</type> <parameter>interp</parameter>
+            </methodparam>
+            <methodparam>
+                <type>std::vector&lt;CTCLObject&gt;&amp;</type> <parameter>objv</parameter>
+            </methodparam>
+        </methodsynopsis>
+        <methodsynopsis>
+            <modifier>protected virtual</modifier>
+            <type>int</type> <methodname>cget</methodname>
+            <methodparam>
+                <type>CTCLInterpreter&amp;</type> <parameter>interp</parameter>
+            </methodparam>
+            <methodparam>
+                <type>std::vector&lt;CTCLObject&gt;&amp;</type> <parameter>objv</parameter>
+            </methodparam>
+        </methodsynopsis>
+        <methodsynopsis>
+            <modifier>protected virtual</modifier>
+            <type>void</type> <methodname>Usage</methodname>
+            <methodparam>
+                <type>std::string</type> <parameter>msg</parameter>
+            </methodparam>
+            <methodparam>
+                <type>std::vector&lt;CTCLObject&gt;&amp;</type> <parameter>objv</parameter>
+            </methodparam>
+        </methodsynopsis>
+       <methodsynopsis>
+            <modifier>protected virtual</modifier>
+            <type>CConfigurableObject*</type> <methodname>createObject</methodname>
+                                              <void /><modifier> = 0 </modifier>
+        </methodsynopsis>
+        <methodsynopsis>
+            <modifier>protected virtual</modifier>
+            <type>std::string</type> <methodname>getType</methodname>
+                                     <void />
+                                     <modifier> = 0</modifier>
+        </methodsynopsis>
+
+     </classsynopsis>
+  </refsynopsisdiv>
+  <refsect1>
+     <title>Description</title>
+     <para>
+        The commomnality of the VM-USB command classes lends itself to 
+        a factorization of the logic of those classes into this abstract base
+        class.  Since the logic of all of those classes is essentially identical,
+        except for object creation and object type suggestion (for the configuration
+        database), this base class uses a template method pattern to implement
+        the logic of VM-USB daq configuration file command classes.
+     </para>
+     <para>
+        The two template methods are:
+        <variablelist>
+            <varlistentry>
+            <term><methodname>createObject</methodname></term>
+            <listitem>
+                <para>
+                    This is actually a factory method that produces the
+                    right kind of driver object given the actual class.
+                </para>
+            </listitem>
+            </varlistentry>
+        <varlistentry>>
+            <term><methodname>getType</methodname></term>
+            <listitem>
+                <para>
+                    This is a template method that suggests the type string that
+                    should be associated with objects of this tyep when inserting
+                    them in the configuration.
+                </para>
+            </listitem>
+        </varlistentry>
+        </variablelist>
+     </para>
+  </refsect1>
+  <refsect1>
+     <title>
+        Public member functions
+     </title>
+    <methodsynopsis>
+         <methodname>CDAQModuleCommand</methodname>
+         <methodparam>
+             <type>CTCLInterpreter&amp;</type> <parameter>interp</parameter>
+         </methodparam>
+         <methodparam>
+             <type>CConfiguration&amp;</type> <parameter>config</parameter>
+         </methodparam>
+         <methodparam>
+             <type>std::string</type> <parameter>name</parameter>
+         </methodparam>
+     </methodsynopsis>
+     <para>
+        Constructor.  This creates the new module command. Typically,
+        when deriving a subclass,
+        you can just provide as a default <parameter>name</parameter> the
+        command string you'd like to use, then chain to the base class
+        constructor and let it worry about everything.
+     </para>
+        <para>
+            The <parameter>interp</parameter> parameter is the Tcl interpreter
+            on which you want the command registered while the
+            <parameter>config</parameter> parameter is a reference to the
+            configuration object.  This will be saved by the base class
+            constructor in the protected reference variable
+            <varname>m_config</varname>.
+        </para>
+     <methodsynopsis>
+         <modifier>virtual</modifier> <methodname>~CDAQModuleCommand()</methodname>
+     </methodsynopsis>
+     <para>
+        Destructor.
+     </para>
+     <methodsynopsis>
+         <type>int</type> <methodname>operator()</methodname>
+         <methodparam>
+             <type>CTCLInterpreter&amp;</type> <parameter>interp</parameter>
+         </methodparam>
+         <methodparam>
+             <type>std::vector&lt;CTCLObject&gt;&amp;</type> <parameter>objv</parameter>
+         </methodparam>
+     </methodsynopsis>
+     <para>
+        Called when the command is executed.  You will typically not have to
+        override this.  That's the point of the template method pattern.
+        The default implementation dispatches the command to the appropriate
+        command handler (see below).  If you wanted to add a subcommand to the
+        command ensemble for your command, you could override this as shown
+        in the examples section.
+     </para>
+     <para>
+        <parameter>interp</parameter> is the Tcl interpreter object that is
+        executing the command. <parameter>objv</parameter> is a
+        STL vector of <classname>CTCLObject</classname> objects that
+        are the command parameters.
+     </para>
+     <methodsynopsis>
+         <modifier>protected virtual</modifier>
+         <type>int</type> <methodname>create</methodname>
+         <methodparam>
+             <type>CTCLInterpreter&amp;</type> <parameter>interp</parameter>
+         </methodparam>
+         <methodparam>
+             <type>std::vector&lt;CTCLObject&gt;&amp;</type> <parameter>objv</parameter>
+         </methodparam>
+     </methodsynopsis>
+     <para>
+        Command processor for the <command>create</command> subcommand.
+        Normall you won't have to override this. The software
+        ensures that the name is unique.  It invokes the pure virtual
+        <methodname>createObject</methodname> method to get the subclass
+        to provide the right type of driver.  If there are remaining
+        command line parameters, it attempt to configure the object
+        using those.
+     </para>
+     <para>
+        On success this should return <literal>TCL_OK</literal>
+        on failure, <literal>TCL_ERROR</literal>. The interpreter
+        result can be set using <methodname>interp.setResult()</methodname>
+     </para>
+     <methodsynopsis>
+         <modifier>protected virtual</modifier>
+         <type>int</type> <methodname>config</methodname>
+         <methodparam>
+             <type>CTCLInterpreter&amp;</type> <parameter>interp</parameter>
+         </methodparam>
+         <methodparam>
+             <type>std::vector&lt;CTCLObject&gt;&amp;</type> <parameter>objv</parameter>
+         </methodparam>
+     </methodsynopsis>
+     <para>
+        Processes the <command>config</command> subcommand of the
+        ensemble.  <parameter>interp</parameter> is the interpreter
+        that is running the command and <parameter>objv</parameter> the
+        vector of command words
+    </para>
+        <para>
+            This is normally sufficient for subclasses, however it can be
+            overridden if you have special needs. The function should return
+            <literal>TCL_OK</literal> on success or
+            <literal>TCL_ERROR</literal> if there's a failure.  The
+            <methodname>interp.setResult()</methodname> function can
+            be used to set the interpreter result.
+        </para>
+     <methodsynopsis>
+         <modifier>protected virtual</modifier>
+         <type>int</type> <methodname>cget</methodname>
+         <methodparam>
+             <type>CTCLInterpreter&amp;</type> <parameter>interp</parameter>
+         </methodparam>
+         <methodparam>
+             <type>std::vector&lt;CTCLObject&gt;&amp;</type> <parameter>objv</parameter>
+         </methodparam>
+     </methodsynopsis>
+        <para>
+            Processes the <command>cget</command> sub command.  This just
+            gets the configuration from the object and formats it into
+            a list of name/value pairs. It is quite independent of the
+            actual underlying object.
+        </para>
+
+     <methodsynopsis>
+         <modifier>protected virtual</modifier>
+         <type>void</type> <methodname>Usage</methodname>
+         <methodparam>
+             <type>std::string</type> <parameter>msg</parameter>
+         </methodparam>
+         <methodparam>
+             <type>std::vector&lt;CTCLObject&gt;&amp;</type> <parameter>objv</parameter>
+         </methodparam>
+     </methodsynopsis>
+        <para>
+            Returns a string that is the command usage.   This can be overridden
+            but given that <varname>objv[0]</varname> is the
+            command, in most cases it does not need to be.
+        </para>
+ 
+     <methodsynopsis>
+         <modifier>protected virtual</modifier>
+         <type>CConfigurableObject*</type> <methodname>createObject</methodname>
+                                           <void /><modifier> = 0 </modifier>
+     </methodsynopsis>
+        <para>
+            Pure virtual method that should dynamically create an object
+            derived from
+            <classname>CConfigurableObject</classname>
+            and return a pointer to it.
+        </para>
+
+     <methodsynopsis>
+         <modifier>protected virtual</modifier>
+         <type>std::string</type> <methodname>getType</methodname>
+                                  <void />
+                                  <modifier> = 0</modifier>
+     </methodsynopsis>
+        <para>
+            Pure virtual member that suggests a type name under which a
+            newly created object should be registered in the
+            configuration.
+        </para>     
+  </refsect1>
+  
+  <refsect1>
+     <title>EXAMPLES</title>
+     <para>
+        This example shows how to write an <methodname>operator()</methodname>
+        that adds a new subcommand.  The subcommand we are adding is
+        called <literal>fileconfig</literal> and we leave its execution
+        to another member function called...welll
+        <methodname>fileconfig</methodname>.
+     </para>
+     <example>
+        <title>Adding a new subcommand to <classname>CModuleCommand</classname></title>
+        <programlisting>
+<![CDATA]
+int
+CMyModuleCommand::operator()(CTCLInterpreter& interp, vector<CTCLObject>& objv)
+{
+  // require at least 3 parameters.
+
+  if (objv.size() < 3) {
+    Usage("Insufficient command parameters", objv);
+    return TCL_ERROR;
+  }
+  // Get the subcommand keyword and dispatch
+
+  string subcommand = objv[1];
+  if (subcommand == string("fileconfig")) {
+    return fileconfig(interp, objv);
+  }
+  else {
+  
+    // If we don't match the subcommand, let the base class try it.
+  
+    return CModuleCommand::operator()(interp, objv);
+  }
+]]>
+        </programlisting>
+     </example>                                  
+  </refsect1>
+</refentry>
+
+    <refentry id="manpage.cvmusbconfig">
+      <refmeta>
+         <refentrytitle>CVMUSBConfig</refentrytitle>
+         <manvolnum>3usbReadout</manvolnum>
+      </refmeta>
+      <refnamediv>
+         <refname>CVMUSBConfig</refname>
+	 <refpurpose>Encapsulate VM-USB configuration creation</refpurpose>
+      </refnamediv>
+      
+      <refsynopsisdiv>
+         <programlisting>
+#include &lt;CVMUSBConfig.h&gt;
+         </programlisting>
+         <classsynopsis>
+            <ooclass><classname>CVMUSBConfig</classname></ooclass>
+            <methodsynopsis>
+                <modifier>static</modifier>
+                <type>CConfiguration*</type> <methodname>create</methodname>
+                                             <void />
+            </methodsynopsis>
+            <methodsynopsis>
+                <modifier>static</modifier> <type>void</type>
+                <methodname>configure</methodname>
+                <methodparam>
+                    <type>CConfiguration*</type> <parameter>pConfig</parameter>
+                </methodparam>
+            </methodsynopsis>
+            <methodsynopsis>
+                <modifier>static</modifier> <type>void</type>
+                                            <methodname>destroy</methodname>
+                                            <void />
+            </methodsynopsis>
+            <methodsynopsis>
+                <modifier>static</modifier> <type>bool</type>
+                                            <methodname>exists</methodname>
+                                            <void />
+            </methodsynopsis>
+
+         </classsynopsis>
+      </refsynopsisdiv>
+      <refsect1>
+         <title>Description</title>
+         <para>
+            The <classname>CConfiguration</classname> object used by the
+            VM-USB readout software must be configured by adding the
+            VM-USB configuration file commands to the interpreter
+            it encapsulates.
+         </para>
+         <para>
+            The <classname>CVMUSBConfiguration</classname> class provides
+            namespace that contains a set of static functions that
+            ensure that this is done correctly (if the configuration is
+            created and destroyed via these functions
+         </para>
+      </refsect1>
+      <refsect1>
+         <title>
+            Public member functions
+         </title>
+
+        <methodsynopsis>
+            <modifier>static</modifier>
+            <type>CConfiguration*</type> <methodname>create</methodname>
+                                         <void />
+        </methodsynopsis>
+        <para>
+            Creates a configuration object and passes it ot
+            <methodname>configure</methodname> to set it up.
+            A pointer to the configuration objecty is returned.
+            The configuration itself is saved in
+            <varname>Globals::pConfig</varname>.
+        </para>
+        <methodsynopsis>
+            <modifier>static</modifier> <type>void</type>
+            <methodname>configure</methodname>
+            <methodparam>
+                <type>CConfiguration*</type> <parameter>pConfig</parameter>
+            </methodparam>
+        </methodsynopsis>
+        <para>
+            Given a configuration pointer <parameter>pConfig</parameter>,
+            adds the set of Tcl commands needed to support processing of
+            the configuration file.
+        </para>
+        <methodsynopsis>
+            <modifier>static</modifier> <type>void</type>
+                                        <methodname>destroy</methodname>
+                                        <void />
+        </methodsynopsis>
+        <para>
+            Destroys the instance of the configuration in
+            <varname>Globals::pConfig</varname>.
+        </para>
+        <methodsynopsis>
+            <modifier>static</modifier> <type>bool</type>
+                                        <methodname>exists</methodname>
+                                        <void />
+        </methodsynopsis>
+        <para>
+            Returns <literal>true</literal> if the configuration has been created.
+        </para>
+      </refsect1>
+   </refentry>
+
+    <refentry id="manpage.cvmusbcontrolconfig">
+      <refmeta>
+         <refentrytitle>CVMUSBControlConfig</refentrytitle>
+         <manvolnum>3usbReadout</manvolnum>
+      </refmeta>
+      <refnamediv>
+         <refname>CVMUSBControlConfig</refname>
+	 <refpurpose>Configure the VM-USB Tcl server interpreter</refpurpose>
+      </refnamediv>
+      
+      <refsynopsisdiv>
+         <programlisting>
+#include &lt;header_file&gt;
+         </programlisting>
+         <classsynopsis>
+            <ooclass><classname>CVMUSBControlConfig</classname></ooclass>
+            <methodsynopsis>
+                <modifier>static</modifier><type>void</type>
+                <methodname>configure</methodname>
+                <methodparam>
+                    <type>TclServer*</type> <parameter>pServer</parameter>
+                </methodparam>
+            </methodsynopsis>
+         </classsynopsis>
+      </refsynopsisdiv>
+      <refsect1>
+         <title>Description</title>
+         <para>
+            The <methodname>configure</methodname> static member
+            adds an appropriate set of driver prototypes for the VM-USB
+            readout software to the Tcl server, <parameter>pServer</parameter>,
+            that is running the slow controls service.
+         </para>
+      </refsect1>
+   </refentry>
+
+    <refentry id="manpage.cvmusbconfigurableobject">
+      <refmeta>
+         <refentrytitle>CVMUSBConfigurableObject</refentrytitle>
+         <manvolnum>3usbReadout</manvolnum>
+      </refmeta>
+      <refnamediv>
+         <refname>CVMUSBConfigurableObject</refname>
+	 <refpurpose>Base class for VM-USB configurable DAQ modules.</refpurpose>
+      </refnamediv>
+      
+      <refsynopsisdiv>
+         <programlisting>
+#include &lt;CVMUSBConfigurableObject.h&gt;
+         </programlisting>
+         <classsynopsis>
+            <ooclass><classname>CVMUSBConfigurableObject : public CConfigurableObject</classname></ooclass>
+            <methodsynopsis>
+                <modifier>virtual</modifier> <type>void</type>
+                <methodname>Initialize</methodname>
+                <methodparam>
+                    <type>CVMUSB&amp;</type> <parameter>controller</parameter>
+                </methodparam>
+                <modifier> = 0</modifier>
+            </methodsynopsis>
+            <methodsynopsis>
+                <modifier>virtual</modifier> <type>void</type>
+                <methodname>addReadoutList</methodname>
+                <methodparam>
+                    <type>CVMUSBReadoutList&amp;</type> <parameter>list</parameter>
+                </methodparam>
+                <modifier> = 0</modifier>
+            </methodsynopsis>
+            <methodsynopsis>
+                <modifier>virtual</modifier> <type>CVMUSBConfigurableObject*</type>
+                <methodname>clone</methodname>
+                <void />
+                <modifier> = 0</modifier>
+            </methodsynopsis>
+         </classsynopsis>
+      </refsynopsisdiv>
+      <refsect1>
+         <title>Description</title>
+         <para>
+            This extension of the <classname>CConfigurableObject</classname>
+            is an abstract base class for VM-USB configurable data taking
+            drivers.  The value added by this class is its ability to adapt
+            the pure virtual calls of <classname>CConfigurableObject</classname>
+            to  calls to pure virtual member functions that are parameterized
+            by the controller or lists of controller operations.
+         </para>
+         <para>
+            This class does not implement <methodname>OnAttach</methodname> implying
+            that any concrete sublcasses of this class must.  That member is the
+            appropriate place to register configuration options and their
+            constraints with the encapsulated configuration object.
+         </para>
+      </refsect1>
+      <refsect1>
+         <title>
+            Public member functions
+         </title>
+
+        <methodsynopsis>
+            <modifier>virtual</modifier> <type>void</type>
+            <methodname>Initialize</methodname>
+            <methodparam>
+                <type>CVMUSB&amp;</type> <parameter>controller</parameter>
+            </methodparam>
+            <modifier> = 0</modifier>
+        </methodsynopsis>
+        <para>
+            This must be implemehted by concrete classes. Interact with
+            the VM-USB controller object; <parameter>controller</parameter>
+            to set up the module for data taking in accordance with the
+            configuration.
+        </para>
+        <methodsynopsis>
+            <modifier>virtual</modifier> <type>void</type>
+            <methodname>addReadoutList</methodname>
+            <methodparam>
+                <type>CVMUSBReadoutList&amp;</type> <parameter>list</parameter>
+            </methodparam>
+            <modifier> = 0</modifier>
+        </methodsynopsis>
+        <para>
+            This method must be implemented by concrete classes.
+            Call member functions of the VM-USB stack <parameter>list</parameter>
+            object to add the instructions needed to read out the module
+            in the mode specified by the configuration.
+        </para>
+        <methodsynopsis>
+            <modifier>virtual</modifier> <type>CVMUSBConfigurableObject*</type>
+            <methodname>clone</methodname>
+            <void />
+            <modifier> = 0</modifier>
+        </methodsynopsis>
+        <para>
+            Return a pointer to a dynamically allocated duplicate of this
+            object. Usually this can be implemented as:
+            <programlisting>
+                ...
+                return new CMyModule(*this);
+            </programlisting>
+            That is just an invocation of the copy constructor.
+        </para>
+      </refsect1>
+   </refentry>
+    <refentry id="manpage.cvmusbcontrolmodule">
+      <refmeta>
+         <refentrytitle>CVMUSBControlModule</refentrytitle>
+         <manvolnum>3usbReadout</manvolnum>
+      </refmeta>
+      <refnamediv>
+         <refname>CVMUSBControlModule</refname>
+	 <refpurpose>Abstract base class for VM-USB slow control drivers.</refpurpose>
+      </refnamediv>
+      
+      <refsynopsisdiv>
+         <programlisting>
+#include &lt;CVMUSBControlModule.h&gt;
+         </programlisting>
+         <classsynopsis>
+            <ooclass><classname>CVMUSBControlModule : public CControlModule</classname></ooclass>
+            <constructorsynopsis>
+                <methodname>CVMUSBControlModule</methodname>
+                <methodparam>
+                    <type>std::string</type> <parameter>name</parameter>
+                </methodparam>
+            </constructorsynopsis>
+            <constructorsynopsis>
+                <methodname>CVMUSBControlModule</methodname>
+                <methodparam>
+                    <modifier>const</modifier> <type>CVMUSBControlModule&amp;</type>
+                    <parameter>rhs</parameter>
+                </methodparam>
+            </constructorsynopsis>
+            <methodsynopsis>
+                <type>CVMUSBControlModule&amp;</type>
+                <methodname>operator=</methodname>
+                <methodparam>
+                    <modifier>const</modifier> <type>CVMUSBControlModule&amp;</type>
+                    <parameter>rhs</parameter>
+                </methodparam>
+            </methodsynopsis>
+            <methodsynopsis>
+                <type>int</type> <methodname>operator==</methodname>
+                <methodparam>
+                    <modifier>const</modifier> <type>CVMUSBControlModule&amp;</type>
+                    <parameter>rhs</parameter>
+                </methodparam>
+                <modifier>const</modifier>
+            </methodsynopsis>
+            <methodsynopsis>
+                <type>int</type> <methodname>operator!=</methodname>
+                <methodparam>
+                    <modifier>const</modifier> <type>CVMUSBControlModule&amp;</type>
+                    <parameter>rhs</parameter>
+                </methodparam>
+                <modifier>const</modifier>
+            </methodsynopsis>
+            <methodsynopsis>
+                <modifier>virtual</modifier> <type>void</type>
+                <methodname>Initialize</methodname>
+                <void />
+            </methodsynopsis>
+            <methodsynopsis>
+                <modifier>virtual</modifier> <type>std::string</type>
+                <methodname>Update</methodname>
+                <void />
+            </methodsynopsis>
+            <methodsynopsis>
+                <modifier>virtual</modifier> <type>std::string</type>
+                <methodname>Set</methodname>
+                <methodparam>
+                    <modifier>const</modifier> <type>char*</type> <parameter>what</parameter>
+                </methodparam>
+                <methodparam>
+                    <modifier>const</modifier> <type>char*</type>
+                        <parameter>value</parameter>
+                </methodparam>
+            </methodsynopsis>
+            <methodsynopsis>
+                <modifier>virtual</modifier>
+                <type>std::string</type> <methodname>Get</methodname>
+                <methodparam>
+                    <modifier>const</modifier> <type>char*</type> <parameter>what</parameter>
+                </methodparam>
+            </methodsynopsis>
+            <methodsynopsis>
+                <modifier>virtual</modifier> <type>void</type>
+                <methodname>Initialize</methodname>
+                <methodparam>
+                    <type>CVMUSB&amp;</type> <parameter>vme</parameter>
+                </methodparam>
+                <modifier> = 0</modifier>
+            </methodsynopsis>
+            <methodsynopsis>
+                <modifier>virtual</modifier>
+                <type>std::string</type> <methodname>Update</methodname>
+                <methodparam>
+                    <type>CVMUSB&amp;</type> <parameter>vme</parameter>
+                </methodparam>
+                <modifier> = 0</modifier>
+            </methodsynopsis>
+            <methodsynopsis>
+                <modifier>virtual</modifier>
+                <type>std::string</type> <methodname>Set</methodname>
+                <methodparam>
+                    <type>CVMUSB&amp;</type> <parameter>vme</parameter>
+                </methodparam>
+                <methodparam>
+                    <type>std::string</type> <parameter>parameter</parameter>
+                </methodparam>
+                <methodparam>
+                    <type>std::string</type> <parameter>value</parameter>
+                </methodparam>
+                <modifier> = 0</modifier>
+            </methodsynopsis>
+            <methodsynopsis>
+                <modifier>virtual</modifier>
+                <type>std::string</type> <methodname>Get</methodname>
+                <methodparam>
+                    <type>CVMUSB&amp;</type> <parameter>vme</parameter>
+                </methodparam>
+                <methodparam>
+                    <type>std::string</type> <parameter>parameter</parameter>
+                </methodparam>
+                <modifier> = 0</modifier>
+            </methodsynopsis>
+
+         </classsynopsis>
+      </refsynopsisdiv>
+      <refsect1>
+         <title>Description</title>
+         <para>
+            This class is a specialization of the <classname>CControlModule</classname>.
+            It intercepts the pure virtual functions exported by that class
+            and maps them into calls to new pure virtual functions that
+            have parameters that allow access to the hardware via a VM-USB
+            controller object.
+         </para>
+        <para>
+            Prototype device driver objects for the VM-USB should be derived
+            from this class.
+        </para>
+      </refsect1>
+      <refsect1>
+         <title>
+            Public member functions
+         </title>
+         <para>
+            In this section we will only document the
+            non-cannonical member functions, as the purpose and
+            parameterization of all the others should be clear.
+         </para>
+            <methodsynopsis>
+                <modifier>virtual</modifier> <type>void</type>
+                <methodname>Initialize</methodname>
+                <void />
+            </methodsynopsis>
+            <para>
+                Called to initialize access to the module.  The
+                function locates the VM-USB object and invokes the
+                pure virtual overload of this function.
+            </para>
+            <methodsynopsis>
+                <modifier>virtual</modifier> <type>std::string</type>
+                <methodname>Update</methodname>
+                <void />
+            </methodsynopsis>
+            <para>
+                Called when it's appropriate to update an internal image of
+                the device to the device hardware itself.  This is intended
+                to allow for some normal initial state to be selected for
+                devices that are significantly write only.
+            </para>
+            <para>
+                This function locates the VM-USB controller object and
+                invokes the pure virtual overload of this function.
+            </para>
+            <methodsynopsis>
+                <modifier>virtual</modifier> <type>std::string</type>
+                <methodname>Set</methodname>
+                <methodparam>
+                    <modifier>const</modifier> <type>char*</type> <parameter>what</parameter>
+                </methodparam>
+                <methodparam>
+                    <modifier>const</modifier> <type>char*</type>
+                        <parameter>value</parameter>
+                </methodparam>
+            </methodsynopsis>
+            <para>
+                Called to set the value of a slow control parameter that is
+                managed by this driver.  The
+                <parameter>what</parameter> is a string that is driver
+                specific that selects as parameter to modify.  For example, for
+                a dual channel bias supply module,
+                <literal>V0</literal> might set the bias voltage
+                for channel 0.
+                <parameter>value</parameter> is the new value to set.
+            </para>
+            <para>
+                The return value is tyically the string <literal>OK</literal>
+                on success and a string that starts with the text
+                <literal>ERROR</literal> on failure.  The remainder of the
+                error string describes the error.  For example:
+                <literal>ERROR - invalid channel</literal>.
+            </para>
+            <para>
+                This calls and returns the value from the overloaded
+                <methodname>Set</methodname> member that includes
+                a VM-USB controller object in its parameter list.
+            </para>
+            <methodsynopsis>
+                <modifier>virtual</modifier>
+                <type>std::string</type> <methodname>Get</methodname>
+                <methodparam>
+                    <modifier>const</modifier> <type>char*</type> <parameter>what</parameter>
+                </methodparam>
+            </methodsynopsis>
+            <para>
+                Returns the value of the paarmater <parameter>what</parameter>
+                from the module.  This really calls the overloaded
+                <parameter>Get</parameter> function.
+            </para>
+            <para>
+                On success, the function returns the value of the parameter.
+                On failure a string that starts with <literal>ERROR</literal>.
+                For example:
+                <literal>ERROR - invalid channel</literal>.
+            </para>  
+            <methodsynopsis>
+                <modifier>virtual</modifier> <type>void</type>
+                <methodname>Initialize</methodname>
+                <methodparam>
+                    <type>CVMUSB&amp;</type> <parameter>vme</parameter>
+                </methodparam>
+                <modifier> = 0</modifier>
+            </methodsynopsis>
+            <para>
+                Pure virtual member function that must be implemented by
+                concrete sub-classes.  The <parameter>vme</parameter>
+                argument is a contoller object that can be used to interact
+                with the device.  When this is called, you don't have to worry
+                about synchronizing access with the readout thread.
+            </para>
+            <methodsynopsis>
+                <modifier>virtual</modifier>
+                <type>std::string</type> <methodname>Update</methodname>
+                <methodparam>
+                    <type>CVMUSB&amp;</type> <parameter>vme</parameter>
+                </methodparam>
+                <modifier> = 0</modifier>
+            </methodsynopsis>
+            <para>
+                A pure virtual member function that is called by the other
+                <methodname>Update</methodname> member function.
+                <parameter>vme</parameter> is the controller through which you
+                can interact with the device. When this is called, you don't have to worry
+                about synchronizing access with the readout thread.
+            </para>
+            <methodsynopsis>
+                <modifier>virtual</modifier>
+                <type>std::string</type> <methodname>Set</methodname>
+                <methodparam>
+                    <type>CVMUSB&amp;</type> <parameter>vme</parameter>
+                </methodparam>
+                <methodparam>
+                    <type>std::string</type> <parameter>parameter</parameter>
+                </methodparam>
+                <methodparam>
+                    <type>std::string</type> <parameter>value</parameter>
+                </methodparam>
+                <modifier> = 0</modifier>
+            </methodsynopsis>
+            <para>
+                A pure virtual member function that is called by the other
+                <methodname>Set</methodname> member function.
+                The additional parameter
+                <parameter>vme</parameter> is a VM-USB controller object
+                the method can use to communicate with the module.
+            </para>
+            <methodsynopsis>
+                <modifier>virtual</modifier>
+                <type>std::string</type> <methodname>Get</methodname>
+                <methodparam>
+                    <type>CVMUSB&amp;</type> <parameter>vme</parameter>
+                </methodparam>
+                <methodparam>
+                    <type>std::string</type> <parameter>parameter</parameter>
+                </methodparam>
+                <modifier> = 0</modifier>
+            </methodsynopsis>
+            <para>
+                A pure virtual member function that is called by the other
+                <methodname>Get</methodname> method.  The additional
+                <parameter>vme</parameter> parameter is the
+                VM-USB controller object through which this function can
+                communicate with the module.
+            </para>
+      </refsect1>
+   </refentry>
+
+
+<!-- /manpage -->
+
