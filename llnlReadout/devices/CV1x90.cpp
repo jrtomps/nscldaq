@@ -155,6 +155,7 @@ static const CConfigurableObject::limit listSize(2);
 static  CConfigurableObject::ListSizeConstraint globalListSize = {listSize, listSize};
 
 
+
 // Static member data:
 
 // These are maps that convert an enumerated string to a parameter value to write
@@ -281,6 +282,7 @@ CV1x90::Initialize(CVMUSB& controller)
   bool     markErrors      = m_pConfiguration->getBoolParameter("-errormark");
   bool     bypassOnError   = m_pConfiguration->getBoolParameter("-errorbypass");
   vector<int> offset       = m_pConfiguration->getIntegerList("-globaloffset");
+
 
   vector<pair<int, int> > adjusts = getChannelAdjustments();
 
@@ -601,6 +603,11 @@ CV1x90::createConfiguration()
   m_pConfiguration->addParameter("-channeladjusts", 
 				 validateChannelOffsets, NULL, "");
     
+
+  m_pConfiguration->addParameter("-refchannel", 
+				 CConfigurableObject::isInteger, NULL, "0");
+  m_pConfiguration->addParameter("-depth", 
+				 CConfigurableObject::isInteger, NULL, "16");
 
 }
 /*

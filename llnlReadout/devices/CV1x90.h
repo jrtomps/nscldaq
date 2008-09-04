@@ -199,9 +199,21 @@ Parameter Name      Value Type     Value Meaning
                                    offset to them.  The value of this is a list of two element
                                    lists where each element consist of a channel number and
                                    its offset. e.g. {{10 6} {32 5}}  sets the channel
+                                   offsets for channel 10 to 6 and for channel 32 to 5.
+\endverbatim
+The following configuration parameters are simply hunted for by SpecTcl and not actually
+used in the configuration of the module:
+
+\verbatim
+  -refchannel    int               Sets the reference channel.  The value of this channel
+                                   is subtracted from all other channels to produce
+                                   high precision times.  Defaults to 0.
+  -depth         int               Sets the number of hits to retain for each channel
+                                   for the purposes of histogramming.
+                                   Defaults to 16.
 
 \endverbatim
-                                   offsets for channel 10 to 6 and for channel 32 to 5.
+
 */
 class CV1x90 : public CReadoutHardware
 {
