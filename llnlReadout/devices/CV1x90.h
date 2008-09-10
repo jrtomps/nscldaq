@@ -211,6 +211,9 @@ used in the configuration of the module:
   -depth         int               Sets the number of hits to retain for each channel
                                    for the purposes of histogramming.
                                    Defaults to 16.
+  -channelcount  int               Sets the number of channels in the
+                                   TDC.. should be 16, 32, 64, or 128
+                                   we'll accept any int however.
 
 \endverbatim
 

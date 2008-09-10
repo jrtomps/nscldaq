@@ -51,7 +51,7 @@ static const uint16_t PERIODICTRIGGER(2);
 
 static const uint16_t NARROW(4);
 static const uint16_t HEADER(0x20);
-static const uint16_t AUTORESET(0x40);
+static const uint16_t AUTORESET(0x80);
 
 // Adress modifiers:
 
@@ -214,7 +214,7 @@ C830::Initialize(CVMUSB& controller)
   bool      enableHeaders     = getBooleanParameter("-header");
   TriggerSource latchSource   = getTriggerSource();
   bool      isWide            = getBooleanParameter("-wide");
-  bool      autoReset         = getBooleanParameter("-wide");
+  bool      autoReset         = getBooleanParameter("-autoreset");
   uint32_t  geo               = getIntegerParameter("-geo");
   bool      setGeo            = getBooleanParameter("-setgeo"); 
   uint32_t  ipl               = getIntegerParameter("-ipl");
@@ -246,7 +246,7 @@ C830::Initialize(CVMUSB& controller)
     break;
   }
   if (!isWide)   controlRegister |= NARROW;
-  if (autoReset) controlRegister |= AUTORESET;
+  //  if (autoReset) controlRegister |= AUTORESET;
 
   initList.addWrite16(baseAddress+CONTROL, configAmod, controlRegister);
   if(setGeo) {
@@ -288,21 +288,30 @@ C830::addReadoutList(CVMUSBReadoutList& list)
 
   // compute the number of longwords to read from the MEB:
 
-  size_t readSize = headers ? 1 : 0; // Header or no header long...
+
+  size_t readSize = headers ? 1 : 0;  // Header or no header long.
   for (int i =0; i < 32; i++) {
     if (enables & (1 << i)) readSize++;
   }
+
+  //  readSize += 32;		// Assume all channels enabled.
 
   // If the trigger is VME, we do a latch and delay 1.2usec (1usec is enough).
   // prior to doing the block read.
 
   if (getTriggerSource() == vme) {
     list.addWrite16(baseAddress + TRIGGER, configAmod, 0);
-    list.addDelay(6);		// 200ns units.
+    list.addDelay(24);		// 200ns units.
   }
   // Add the block transfer from the MEB
 
-  list.addBlockRead32(baseAddress + MEB, readAmod, readSize);
+  //  list.addBlockRead32(baseAddress + MEB, readAmod, readSize);
+
+  for (int i =0; i < readSize; i++) {
+    list.addRead32(baseAddress + MEB + i*sizeof(long),
+		   configAmod);
+  }
+  list.addWrite16(baseAddress + CLEAR, configAmod, 0);
   
 }
 

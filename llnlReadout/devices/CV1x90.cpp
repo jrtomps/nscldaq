@@ -608,6 +608,9 @@ CV1x90::createConfiguration()
 				 CConfigurableObject::isInteger, NULL, "0");
   m_pConfiguration->addParameter("-depth", 
 				 CConfigurableObject::isInteger, NULL, "16");
+  m_pConfiguration->addParameter("-channelcount",
+				 CConfigurableObject::isInteger, NULL,
+				 "");
 
 }
 /*
