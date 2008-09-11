@@ -341,7 +341,7 @@ public:
 	static const uint32_t scalerADisabled           = (0   << 16);
 	static const uint32_t scalerANIMI1              = (1   << 16);
 	static const uint32_t scalerANIMI2              = (2   << 16);
-	static const uint32_t scalerAEvent              = (2   << 16);
+	static const uint32_t scalerAEvent              = (3   << 16);
 	static const uint32_t scalerAEnable             = (8   << 16);
 	static const uint32_t scalerAReset              = (0x10 << 16);
 
