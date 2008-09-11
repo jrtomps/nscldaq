@@ -3179,6 +3179,3403 @@ CMyModuleCommand::operator()(CTCLInterpreter& interp, vector<CTCLObject>& objv)
       </refsect1>
    </refentry>
 
+    <refentry id="manpage.cvmusbdevicedriver">
+      <refmeta>
+         <refentrytitle>CVMUSBDeviceDriver</refentrytitle>
+         <manvolnum>3usbReadout</manvolnum>
+      </refmeta>
+      <refnamediv>
+         <refname>CVMUSBDeviceDriver</refname>
+	 <refpurpose>VM-USB strategy callouts for the readout thread.</refpurpose>
+      </refnamediv>
+      
+      <refsynopsisdiv>
+         <programlisting>
+#include &lt;CVMUSBReadout.h&gt;
+         </programlisting>
+         <classsynopsis>
+            <ooclass><classname>CVMUSBReadout : public CUSBDeviceDriver</classname></ooclass>
+            <constructorsynopsis>
+                <methodname>CVMUSBDeviceDriver</methodname>
+                <methodparam>
+                    <type>CVMUSB*</type> <parameter>pInterface</parameter>
+                </methodparam>
+            </constructorsynopsis>
+            <methodsynopsis>
+                <type>CVMUSB*</type>
+                <methodname>getInterface</methodname>
+                <void />
+            </methodsynopsis>
+            <methodsynopsis>
+                <modifier>virtual</modifier> <type>void</type>
+                <methodname>usbToAutonomous</methodname>
+                <void />
+            </methodsynopsis>
+            <methodsynopsis>
+                <modifier>virtual</modifier> <type>int</type>
+                <methodname>usbReadBuffer</methodname>
+                <methodparam>
+                    <type>void*</type> <parameter>pBuffer</parameter>
+                </methodparam>
+                <methodparam>
+                    <type>size_t</type> <parameter>bytesToRead</parameter>
+                </methodparam>
+                <methodparam>
+                    <type>size_t*</type> <parameter>bytesRead</parameter>
+                </methodparam>
+                <methodparam>
+                    <type>int</type> <parameter>timeoutInSeconds</parameter>
+                </methodparam>
+            </methodsynopsis>
+            <methodsynopsis>
+                <modifier>virtual</modifier> <type>void</type>
+                <methodname>usbSetup</methodname>
+                <void />
+            </methodsynopsis>
+            <methodsynopsis>
+                <modifier>virtual</modifier> <type>size_t</type>
+                <methodname>usbGetBufferSize</methodname>
+                <void />
+            </methodsynopsis>
+            <methodsynopsis>
+                <modifier>virtual</modifier> <type>void</type>
+                <methodname>usbStopAutonomous</methodname>
+                <void />
+            </methodsynopsis>
+            <methodsynopsis>
+                <modifier>virtual</modifier> <type>bool</type>
+                <methodname>isusbLastBuffer</methodname>
+                <methodparam>
+                    <type>DataBuffer*</type> <parameter>pBuffer</parameter>
+                </methodparam>
+            </methodsynopsis>
+            <methodsynopsis>
+                <modifier>virtual</modifier> <type>void</type>
+                <methodname>usbGroinKick</methodname>
+                <void />
+            </methodsynopsis>
+            <methodsynopsis>
+                <modifier>virtual</modifier> <type>void</type>
+                <methodname>usbFlushGarbage</methodname>
+            </methodsynopsis>
+
+         </classsynopsis>
+      </refsynopsisdiv>
+      <refsect1>
+         <title>Description</title>
+         <para>
+            The readout thread uses a strategy pattern to be able to extract
+            the common code and encapsulate the interface specific code of the
+            readout.  The strategy object is an object from a class derived from
+            <classname>CUSBDeviceDriver</classname>.
+            <classname>CVMUSBDeviceDriver</classname> implements this interface
+            by providing code that is sufficent and proper for the VM-USB
+            controller.
+         </para>
+      </refsect1>
+      <refsect1>
+         <title>
+            Public member functions
+         </title>
+        <methodsynopsis>
+            <methodname>CVMUSBDeviceDriver</methodname>
+            <methodparam>
+                <type>CVMUSB*</type> <parameter>pInterface</parameter>
+            </methodparam>
+        </methodsynopsis>
+        <para>
+            Constructs the driver object.  The driver will need a
+            <classname>CVMUSB</classname> object with which to communicate
+            with the experiment. <parameter>pInterface</parameter> is a pointer
+            to the interface object.
+        </para>
+        <methodsynopsis>
+            <type>CVMUSB*</type>
+            <methodname>getInterface</methodname>
+            <void />
+        </methodsynopsis>
+        <para>
+            Allows client software to retrieve a pointer to the
+            <classname>CVMUSB</classname> interface object that
+            represents the physical VM-USB controller.
+        </para>  
+        <methodsynopsis>
+            <modifier>virtual</modifier> <type>void</type>
+            <methodname>usbToAutonomous</methodname>
+            <void />
+        </methodsynopsis>
+        <para>
+            Switches the interface to autonomous data taking mode.  For the
+            VM-USB this means setting the <literal>CVMUSB::ActionRegister::startDAQ</literal>
+            bit in the action register.
+        </para>
+        <methodsynopsis>
+            <modifier>virtual</modifier> <type>int</type>
+            <methodname>usbReadBuffer</methodname>
+            <methodparam>
+                <type>void*</type> <parameter>pBuffer</parameter>
+            </methodparam>
+            <methodparam>
+                <type>size_t</type> <parameter>bytesToRead</parameter>
+            </methodparam>
+            <methodparam>
+                <type>size_t*</type> <parameter>bytesRead</parameter>
+            </methodparam>
+            <methodparam>
+                <type>int</type> <parameter>timeoutInSeconds</parameter>
+            </methodparam>
+        </methodsynopsis>
+        <para>
+            Reads a block of data from the VM-USB. In this case,
+            <parameter>pBuffer</parameter> is a pointer to storage that
+            will receive the data.
+            <parameter>bytesToRead</parameter> is the size of that buffer
+            (or more accurately the maximum number of bytes to read).
+            <parameter>bytsRead</parameter>
+            will be written with the number of bytes actually read from the device.
+            <parameter>timeoutInSeconds</parameter> is how long
+            the software will wait for the read to complete.
+        </para>
+        <para>
+            The method returns 0 on success and something negative on failure.
+            On failure, the <varname>errno</varname> global will contain the
+            reason for the failure.
+        </para>
+        <para>
+            This function is normally used during data taking to
+            accept autonomously acquired data from the VM-USB.
+            See also <methodname>usbGetBufferSize</methodname>.
+        </para>
+        <methodsynopsis>
+            <modifier>virtual</modifier> <type>void</type>
+            <methodname>usbSetup</methodname>
+            <void />
+        </methodsynopsis>
+        <para>
+            Programs the VM-USB so that all that needs to be done to
+            start data taking is to call
+            <methodname>usbToAutonomous</methodname>.
+            This method locates the stacks in the configuration,
+            load them and sets up their trigger conditions.
+        </para>
+        <methodsynopsis>
+            <modifier>virtual</modifier> <type>size_t</type>
+            <methodname>usbGetBufferSize</methodname>
+            <void />
+        </methodsynopsis>
+        <para>
+            Returns the number of bytes that should be allocated for a data
+            buffer from the interface.
+        </para>
+        <methodsynopsis>
+            <modifier>virtual</modifier> <type>void</type>
+            <methodname>usbStopAutonomous</methodname>
+            <void />
+        </methodsynopsis>
+        <para>
+            Halts autonomous data taking mode.
+        </para>
+        <methodsynopsis>
+            <modifier>virtual</modifier> <type>bool</type>
+            <methodname>isusbLastBuffer</methodname>
+            <methodparam>
+                <type>DataBuffer*</type> <parameter>pBuffer</parameter>
+            </methodparam>
+        </methodsynopsis>
+        <para>
+            Given a pointer <parameter>pBuffer</parameter> to a
+            <structname>DataBuffer</structname> object, determines
+            if this is the last one from an autonomous run.  This is called for
+            all buffers that arrive after the interface has been asked to
+            stop taking data (via a call to <methodname>usbStopAutonomous</methodname>).
+            Once the last buffer is received, the readout thread can take
+            the necessary steps to close the run.
+        </para>
+        <methodsynopsis>
+            <modifier>virtual</modifier> <type>void</type>
+            <methodname>usbGroinKick</methodname>
+            <void />
+        </methodsynopsis>
+        <para>
+            There are cases where USB interfaces can get hung. If that happens,
+            this function is called to do what ever drastic things can be done
+            to try to uhang the VM-USB.  The assumption is that on exit,
+            data taking is halted.
+        </para>
+        <methodsynopsis>
+            <modifier>virtual</modifier> <type>void</type>
+            <methodname>usbFlushGarbage</methodname>
+        </methodsynopsis>
+        <para>
+            Sometimes, (especially after a run that required a
+            <methodname>usbGroinKick</methodname> call to terminate),
+            some trash is left in the VM-USB output buffers.
+            This call flushes those buffers.
+        </para>
+      </refsect1>
+   </refentry>
+    <refentry id="manpage.cvmusb">
+      <refmeta>
+         <refentrytitle>CVMUSB</refentrytitle>
+         <manvolnum>3usbReadout</manvolnum>
+      </refmeta>
+      <refnamediv>
+         <refname>CVMUSB</refname>
+	 <refpurpose>Proxy for a VM-USB module.</refpurpose>
+      </refnamediv>
+      
+      <refsynopsisdiv>
+         <programlisting>
+#include &lt;CVMUSB.h&gt;
+         </programlisting>
+         <classsynopsis>
+            <ooclass><classname>CVMUSB</classname></ooclass>
+            <methodsynopsis>
+                <modifier>static</modifier> <type>std::vector&lt;struct usb_device*&gt;</type>
+                <methodname>enumerate</methodname>
+                <void />
+            </methodsynopsis>
+            <methodsynopsis>
+                <modifier>static</modifier> <type>std::string</type>
+                <methodname>getSerial</methodname>
+                <methodparam>
+                    <type>struct usb_device*</type> <parameter>aDevice</parameter>
+                </methodparam>
+            </methodsynopsis>
+            <constructorsynopsis>
+                <methodname>CVMUSB</methodname>
+                <methodparam>
+                    <type>struct usb_device*</type> <parameter>vmUsbDevice</parameter>
+                </methodparam>
+            </constructorsynopsis>
+            <destructorsynopsis>
+                <modifier>virtual</modifier> <methodname>~CVMUSB</methodname>
+            </destructorsynopsis>
+            <constructorsynopsis>
+            <methodsynopsis>
+                <type>void</type>
+                <methodname>writeActionRegister</methodname>
+                <methodparam>
+                    <type>uint16_t</type>
+                    <parameter>value</parameter>
+                </methodparam>
+            </methodsynopsis>
+            <methodsynopsis>
+                <type>uint32_t</type> <methodname>readFirmwareID</methodname>
+                                      <void />
+            </methodsynopsis>
+            <methodsynopsis>
+                <type>void</type>
+                <methodname>writeGlobalMode</methodname>
+                <methodparam>
+                    <type>uint16_t</type> <parameter>value</parameter>
+                </methodparam>
+            </methodsynopsis>
+            <methodsynopsis>
+                <type>uint16_t</type> <methodname>readGlobalMode</methodname>
+                <void />
+            </methodsynopsis>
+            <methodsynopsis>
+                <type>void</type> <methodname>writeDAQSettings</methodname>
+                <methodparam>
+                    <type>uint32_t</type> <parameter>value</parameter>
+                </methodparam>
+            </methodsynopsis>
+            <methodsynopsis>
+                <type>uint32_t</type> <methodname>readDAQSettings</methodname>
+                                      <void />
+            </methodsynopsis>
+            <methodsynopsis>
+                <type>void</type> <methodname>writeLEDSource</methodname>
+                <methodparam>
+                    <type>uint32_t</type> <parameter>value</parameter>
+                </methodparam>
+            </methodsynopsis>
+            <methodsynopsis>
+                <type>uint32_t</type>
+                <methodname>readLEDSource</methodname>
+                <void />
+            </methodsynopsis>
+            <methodsysnopsis>
+                <type>void</type> <methodname>writeDeviceSource</methodname>
+                <mehodparam>
+                    <type>uint32_t</type> <parameter>value</parameter>
+                </mehodparam>
+            </methodsysnopsis>
+            <methodsynopsis>
+                <type>uint32_t</type> <methodname>readDeviceSource</methodname>
+                                      <void />
+            </methodsynopsis>
+            <methodsynopsis>
+                <type>void</type> <methodname>writeDGG_A</methodname>
+                <methodparam>
+                    <type>uint32_t</type> <parameter>value</parameter>
+                </methodparam>
+            </methodsynopsis>
+            <methodsynopsis>
+                <type>uint32_t</type> <methodname>readDGG_A</methodname>
+                <void />
+            </methodsynopsis>
+            <methodsynopsis>
+                <type>void</type> <methodname>writeDGG_B</methodname>
+                <methodparam>
+                    <type>uint32_t</type> <parameter>value</parameter>
+                </methodparam>
+            </methodsynopsis>
+            <methodsynopsis>
+                <type>uint32_t</type> <methodname>readDGG_B</methodname>
+                                      <void />
+            </methodsynopsis>
+            <methodsynopsis>
+                <type>void</type> <methodname>writeDGG_Extended</methodname>
+                <methodparam>
+                    <type>uint32_t</type> <parameter>value</parameter>
+                </methodparam>
+            </methodsynopsis>
+            <methodsynopsis>
+                <type>uint32_t</type> <methodname>readDGG_Extended</methodname>
+                                      <void />
+            </methodsynopsis>
+            <methodsynopsis>
+                <type>uint32_t</type> <methodname>readScalerA</methodname>
+                    <void />
+            </methodsynopsis>
+            <methodsynopsis>
+                <type>uint32_t</type> <methodname>readScalerB</methodname>
+                                      <void />
+            </methodsynopsis>
+            <methodsynopsis>
+                <type>void</type> <methodname>writeCountExtractMask</methodname>
+                <methodparam>
+                    <type>uint32_t</type> <parameter>value</parameter>
+                </methodparam>
+            </methodsynopsis>
+            <methodsynopsis>
+                <type>uint32_t</type> <methodname>readCountExtractMask</methodname>
+                                      <void />
+            </methodsynopsis>
+            <methodsynopsis>
+                <type>void</type>
+                <methodname>writeVector</methodname>
+                <methodparam>
+                    <type>int</type> <parameter>which</parameter>
+                </methodparam>
+                <methodparam>
+                    <type>uint32_t</type> <parameter>value</parameter>
+                </methodparam>
+            </methodsynopsis>
+            <methodsynopsis>
+                <type>uint32_t</type> <methodname>readVector</methodname>
+                <methodparam>
+                    <type>int</type> <parameter>which</parameter>
+                </methodparam>
+            </methodsynopsis>
+            <methodsynopsis>
+                <type>void</type> <methodname>writeBulkXferSetup</methodname>
+                <methodparam>
+                    <type>uint32_t</type> <parameter>value</parameter>
+                </methodparam>
+            </methodsynopsis>
+            <methodsynopsis>
+                <type>uint32_t</type> <methodname>readBulkXferSetup</methodname>
+                                      <void />
+            </methodsynopsis>
+            <methodsynopsis>
+                <type>int</type> <methodname>vmeWrite32</methodname>
+                <methodparam>
+                    <type>uint32_t</type> <parameter>address</parameter>
+                </methodparam>
+                <methodparam>
+                    <type>uint8_t</type> <parameter>aModifier</parameter>
+                </methodparam>
+                <methodparam>
+                    <type>uint32_t</type> <parameter>data</parameter>
+                </methodparam>
+            </methodsynopsis>
+            <methodsynopsis>
+                <type>int</type> <methodname>vmeRead32</methodname>
+                <methodparam>
+                    <type>uint32_t</type> <parameter>address</parameter>
+                </methodparam>
+                <methodparam>
+                    <type>uint8_t</type> <parameter>aModifier</parameter>
+                </methodparam>
+                <methodname>
+                    <type>uint32_t*</type> <parameter>data</parameter>
+                </methodname>
+            </methodsynopsis>
+            <methodsynopsis>
+                <type>int</type> <methodname>vmeWrite16</methodname>
+                <methodparam>
+                    <type>uint32_t</type> <parameter>address</parameter>
+                </methodparam>
+                <methodparam>
+                    <type>uint8_t</type> <parameter>aModifier</parameter>
+                </methodparam>
+                <methodparam>
+                    <type>uint16_t</type> <parameter>data</parameter>
+                </methodparam>
+            </methodsynopsis>
+            <methodsynopsis>
+                <type>int</type> <methodname>vmeRead16</methodname>
+                <methodparam>
+                    <type>uint32_t</type> <parameter>address</parameter>
+                </methodparam>
+                <methodparam>
+                    <type>uint8_t</type> <parameter>aModifier</parameter>
+                </methodparam>
+                <methodparam>
+                    <type>uint16_t*</type> <parameter>data</parameter>
+                </methodparam>
+            </methodsynopsis>
+            <methodsynopsis>
+                <type>int</type> <methodname>vmeWrite8</methodname>
+                <methodparam>
+                    <type>uint32_t</type> <parameter>address</parameter>
+                </methodparam>
+                <methodparam>
+                    <type>uint8_t</type> <parameter>aModifier</parameter>
+                </methodparam>
+                <methodparam>
+                    <type>uint8_t</type> <parameter>data</parameter>
+                </methodparam>
+            </methodsynopsis>
+            <methodsynopsis>
+                <type>int</type> <methodname>vmeRead8</methodname>
+                <methodparam>
+                    <type>uint32_t</type> <parameter>address</parameter>
+                </methodparam>
+                <methodparam>
+                    <type>uint8_t</type> <parameter>aModifier</parameter>
+                </methodparam>
+                <methodparam>
+                    <type>uint8_t*</type> <parameter>data</parameter>
+                </methodparam>
+            </methodsynopsis>
+            <methodsynopsis>
+                <type>int</type> <methodname>vmeBlockRead</methodname>
+                <methodparam>
+                    <type>uint32_t</type> <parameter>baseAddress</parameter>
+                </methodparam>
+                <methopdaram>
+                    <type>uint8_t</type> <parameter>aModifier</parameter>
+                </methopdaram>
+                <methodparam>
+                    <type>void*</type> <parameter>data</parameter>
+                </methodparam>
+                <methodparam>
+                    <type>size_t</type> <parameter>transferCount</parameter>
+                </methodparam>
+                <methodparam>
+                    <type>size_t*</type> <parameter>countTransferred</parameter>
+                </methodparam>
+            </methodsynopsis>
+            <methodsynopsis>
+                    <type>int</type> <methodname>vmeFifoRead</methodname>
+                    <methodparam>
+                        <type>uint32_t</type> <parameter>address</parameter>
+                    </methodparam>
+                    <methodparam>
+                        <type>int8_t</type> <parameter>aModifier</parameter>
+                    </methodparam>
+                    <methodparam>
+                        <type>void*</type> <parameter>data</parameter>
+                    </methodparam>
+                    <methodparam>
+                        <type>size_t</type> <parameter>transferCount</parameter>
+                    </methodparam>
+                    <methodparam>
+                        <type>size_t*</type> <parameter>countTransferred</parameter>
+                    </methodparam>
+            </methodsynopsis>
+            <methodsynopsis>
+                <type>int</type> <methodname>executeList</methodname>
+                <methodparam>
+                    <type>CVMUSBReadoutList&amp;</type> <parameter>list</parameter>
+                </methodparam>
+                <methodparam>
+                    <type>void*</type> <parameter>pReadBuffer</parameter>
+                </methodparam>
+                <methodparam>
+                    <type>size_t</type> <parameter>readBufferSize</parameter>
+                </methodparam>
+                <methodparam>
+                    <type>size_t*</type> <parameter>bytesRead</parameter>
+                </methodparam>
+            </methodsynopsis>
+            <methodsynopsis>
+                <type>int</type> <methodname>loadList</methodname>
+                <methodparam>
+                    <type>uint8_t</type> <parameter>listNumber</parameter>
+                </methodparam>
+                <methodparam>
+                    <type>CVMUSBReadoutList&amp;</type> <parameter>list</parameter>
+                </methodparam>
+                <methodparam>
+                    <type>off_t</type> <parameter>listOffset</parameter>
+                                       <initializer> = 0</initializer>
+                </methodparam>
+            </methodsynopsis>
+            <methodsynopsis>
+                <type>int</type> <methodname>usbRead</methodname>
+                <methodparam>
+                    <type>void*</type> <parameter>data</parameter>
+                </methodparam>
+                <methodparam>
+                    <type>size_t</type> <parameter>bufferSize</parameter>
+                </methodparam>
+                <methodparam>
+                    <type>size_t*</type> <parameter>transferCount</parameter>
+                </methodparam>
+                <methodparam>
+                    <type>int</type> <parameter>timeout</parameter>
+                                     <initializer> = 2000</initializer>
+                </methodparam>
+            </methodsynopsis>
+            <methodsynopsis>
+                <type>void</type> <methodname>setDefaultTimeout</methodname>
+                <methodparam>
+                    <type>int</type> <parameter>ms</parameter>
+                </methodparam>
+            </methodsynopsis>
+
+
+         </classsynopsis>
+      </refsynopsisdiv>
+      <refsect1>
+
+         <title>Description</title>
+         <para>
+            The <classname>CVMUSB</classname> class provides a programmatic
+            representation of a VM-USB interface.  It provides access to
+            essentially all of the interface's capabilities.  Additionally,
+            static member functions are used to enumerate the set of
+            VM-USB interfaces attached to a system and to distinguish between
+            them.
+         </para>
+         <para>
+            The <classname>CVMUSBReadoutList</classname> class documented in
+            <link linkend="manpage.cvmusbreadout">
+            <citerefentry><refentrytitle>CVMUSBReadoutlist</refentrytitle><manvolnum>3usbReadout</manvolnum></citerefentry>
+            </link>
+            provides a convenient mechanisms for building lists of operations
+            called <firstterm>stack</firstterm>s. that can either be executed
+            immediately or stored as programs that are executed when a specific
+            trigger is received in autonomous data taking mode.
+         </para>
+      </refsect1>
+      <refsect1>
+         <title>
+            Public member functions
+         </title>
+            <methodsynopsis>
+                <modifier>static</modifier> <type>std::vector&lt;struct usb_device*&gt;</type>
+                <methodname>enumerate</methodname>
+                <void />
+            </methodsynopsis>
+            <para>
+                Produces a vector that contains information about all of the
+                VM-USB controllers that are attached to the system's USB subsystem.
+                The <structname>usb_device</structname> pointer points to an
+                opaque type that is used by the <application>libusb</application>
+                library to identify and refer to a specific USB device.
+            </para>  
+            <methodsynopsis>
+                <modifier>static</modifier> <type>std::string</type>
+                <methodname>getSerial</methodname>
+                <methodparam>
+                    <type>struct usb_device*</type> <parameter>aDevice</parameter>
+                </methodparam>
+            </methodsynopsis>
+            <para>
+                Given a <structname>usb_device</structname> pointer (e.g. from
+                the <methodname>enumerate</methodname> method, returns the
+                serial string for the USB device that <structname>usb_device</structname>
+                data structure refers to.  For VM-USB modules, the serial string
+                is of the form <literal>VM</literal><replaceable>nnnn</replaceable>
+                where <replacable>nnnn</replacable> is a unique number for
+                that distinguishes the device from all other VM-USBs that have
+                been produced.
+            </para>
+            <methodsynopsis>
+                <methodname>CVMUSB</methodname>
+                <methodparam>
+                    <type>struct usb_device*</type> <parameter>vmUsbDevice</parameter>
+                </methodparam>
+            </methodsynopsis>
+            <para>
+                Constructor for <classname>CVMUSB</classname> objects.
+                <parameter>vmUsbDevice</parameter> is a
+                <structname>usb_device</structname> pointer to the
+                device that is being associated with the new object.
+            </para>
+            <methodsynopsis>
+                <modifier>virtual</modifier> <methodname>~CVMUSB</methodname>
+            </methodsynopsis>
+            <para>
+                The destructor releases the device making it usable by other
+                software.
+            </para>
+            <methodsynopsis>
+                <type>void</type>
+                <methodname>writeActionRegister</methodname>
+                <methodparam>
+                    <type>uint16_t</type>
+                    <parameter>value</parameter>
+                </methodparam>
+            </methodsynopsis>
+            <para>
+                Writes <parameter>value</parameter> to the VM-USB's action
+                register.  See Types and public data, for a description of
+                the <classname>CVMUSB::ActionRegister</classname> class which
+                contains public static data definitions whose values correspond
+                to bits in the action register.
+            </para>
+
+            <para>
+                The action register is write only.
+            </para>
+            <methodsynopsis>
+                <type>uint32_t</type> <methodname>readFirmwareID</methodname>
+                                      <void />
+            </methodsynopsis>
+            <para>
+                Returns the firmware Id of the module.
+                See <classname>CVMUSB::FirmwareRegister</classname> for
+                in Types and public data below for definitions of the bit
+                fields in this register.
+            </para>
+            <methodsynopsis>
+                <type>void</type>
+                <methodname>writeGlobalMode</methodname>
+                <methodparam>
+                    <type>uint16_t</type> <parameter>value</parameter>
+                </methodparam>
+            </methodsynopsis>
+            <para>
+                Writes <parameter>value</parameter> to the VM-USB global mode
+                register.  The
+                <classname>CVMUSB::GlobalModeRegister</classname>
+                described in "Types and public data" below provides symbolic
+                definitions within this register.
+            </para>
+            <methodsynopsis>
+                <type>uint16_t</type> <methodname>readGlobalMode</methodname>
+                <void />
+            </methodsynopsis>
+            <para>
+                Read the global mode register of the VM-USB.
+            </para>
+            <methodsynopsis>
+                <type>void</type> <methodname>writeDAQSettings</methodname>
+                <methodparam>
+                    <type>uint32_t</type> <parameter>value</parameter>
+                </methodparam>
+            </methodsynopsis>
+            <para>
+                Writes <parameter>value</parameter> to the module's
+                DAQ settings register.  The
+                <classname>CVMUSB::DAQsettingsRegister</classname>
+                class described in "Types  and public data below
+                provides definitions that are useful when constructing the
+                <parameter>value</parameter> to be written.
+            </para>
+            <methodsynopsis>
+                <type>uint32_t</type> <methodname>readDAQSettings</methodname>
+                                      <void />
+            </methodsynopsis>
+            <para>
+                Returns the current value stored in the
+                DAQ settings register.
+            </para>
+            <methodsynopsis>
+                <type>void</type> <methodname>writeLEDSource</methodname>
+                <methodparam>
+                    <type>uint32_t</type> <parameter>value</parameter>
+                </methodparam>
+            </methodsynopsis>
+            <para>
+                Writes <parameter>value</parameter> to the LED source
+                register.  This register determines which conditions
+                light the LEDs on the VM-USB front panel.
+                The bit fields for this register are defined symbolically
+                in
+                <classname>CVMUSB::LedSourceRegister</classname> which is
+                documented in "Types and public data" below.
+            </para>
+            <methodsynopsis>
+                <type>uint32_t</type>
+                <methodname>readLEDSource</methodname>
+                <void />
+            </methodsynopsis>
+            <para>
+                Returns the current contents of the LED source register.
+            </para>
+            <methodsysnopsis>
+                <type>void</type> <methodname>writeDeviceSource</methodname>
+                <mehodparam>
+                    <type>uint32_t</type> <parameter>value</parameter>
+                </mehodparam>
+            </methodsysnopsis>
+            <para>
+                Writes <parameter>value</ to
+                the device source register.  This register configures
+                some of the on-board logic units that the VM-USB supplies
+                (e.g. the gate generator inputs, the scaler inputs etc).
+                The <classname>CVMUSB::DeviceSourceRegister</classname>
+                documented in "Types and pulbic data".
+            </para>
+            <methodsynopsis>
+                <type>uint32_t</type> <methodname>readDeviceSource</methodname>
+                                      <void />
+            </methodsynopsis>
+            <para>
+                Reads and returns the value of the device source register.
+                
+            </para>
+            <methodsynopsis>
+                <type>void</type> <methodname>writeDGG_A</methodname>
+                <methodparam>
+                    <type>uint32_t</type> <parameter>value</parameter>
+                </methodparam>
+            </methodsynopsis>
+            <para>
+                Writes the <parameter>value</parameter> to the
+                A gate and delay generator.  Bit fields for this
+                are described in
+                <classname>>CVMUSB::DGGAndPulserRegister</classname> described
+                in the "Types and public data" section below.
+            </para>
+            <methodsynopsis>
+                <type>uint32_t</type> <methodname>readDGG_A</methodname>
+                <void />
+            </methodsynopsis>
+            <para>
+                Returns the current value of the A gate and delay
+                register.
+            </para>
+            <methodsynopsis>
+                <type>void</type> <methodname>writeDGG_B</methodname>
+                <methodparam>
+                    <type>uint32_t</type> <parameter>value</parameter>
+                </methodparam>
+            </methodsynopsis>
+            <para>
+                Writes <parameter>value</parameter>
+                to the B gate and delay register.
+            </para>
+            <methodsynopsis>
+                <type>uint32_t</type> <methodname>readDGG_B</methodname>
+                                      <void />
+            </methodsynopsis>
+            <para>
+                Reads and returns the current value of the B
+                gate and delay generator.
+            </para>
+            <methodsynopsis>
+                <type>void</type> <methodname>writeDGG_Extended</methodname>
+                <methodparam>
+                    <type>uint32_t</type> <parameter>value</parameter>
+                </methodparam>
+            </methodsynopsis>
+            <para>
+                Writes
+                <parameter>value</parameter> to the Delay and Gate Generator
+                extended register.  The
+                <classname>CVMUSB::DGGCoarseRegister</classname> class
+                described in "Types and public data" below provides values
+                that that aide you in constructing the <parameter>value.
+                
+            </para>
+            <methodsynopsis>
+                <type>uint32_t</type> <methodname>readDGG_Extended</methodname>
+                                      <void />
+            </methodsynopsis>
+            <para>
+                Reads the DGG extended register and returns it.
+            </para>
+            <methodsynopsis>
+                <type>uint32_t</type> <methodname>readScalerA</methodname>
+                    <void />
+            </methodsynopsis>
+            <para>
+                Reads scaler A and returns its value.
+            </para>
+            <methodsynopsis>
+                <type>uint32_t</type> <methodname>readScalerB</methodname>
+                                      <void />
+            </methodsynopsis>
+            <para>
+                Reads scaler B and returns its value.
+            </para>
+            <methodsynopsis>
+                <type>void</type> <methodname>writeCountExtractMask</methodname>
+                <methodparam>
+                    <type>uint32_t</type> <parameter>value</parameter>
+                </methodparam>
+            </methodsynopsis>
+            <para>
+                Write the count extraction register with <parameter> value</parameter>.
+            </para>
+            <methodsynopsis>
+                <type>uint32_t</type> <methodname>readCountExtractMask</methodname>
+                                      <void />
+            </methodsynopsis>
+            <para>
+                Reads the count extraction register and returns its value.
+            </para>
+            <methodsynopsis>
+                <type>void</type>
+                <methodname>writeVector</methodname>
+                <methodparam>
+                    <type>int</type> <parameter>which</parameter>
+                </methodparam>
+                <methodparam>
+                    <type>uint32_t</type> <parameter>value</parameter>
+                </methodparam>
+            </methodsynopsis>
+            <para>
+                Writes one of the vector registers (indexed by <parameter>which</parameter>)
+                with the value <parameter>value</parameter>.  The bit fields that make up these
+                list trigger registers are defined in
+                <classname>CVMUSB::ISVRegister</classname> described in
+                Types and public data below.
+            </para>
+            <methodsynopsis>
+                <type>uint32_t</type> <methodname>readVector</methodname>
+                <methodparam>
+                    <type>int</type> <parameter>which</parameter>
+                </methodparam>
+            </methodsynopsis>
+            <para>
+                Reads and returns the value of the vector register indexed by
+                <parameter>which</parameter>.
+            </para>
+            <methodsynopsis>
+                <type>void</type> <methodname>writeBulkXferSetup</methodname>
+                <methodparam>
+                    <type>uint32_t</type> <parameter>value</parameter>
+                </methodparam>
+            </methodsynopsis>
+            <para>
+                Writes <parameter>value</parameter> to the
+                bulk transfer setup register. The
+                <classname>CVMUSB::TransferSetupRegsiter</classname>
+                class, documented in "Types and public data"
+                describe the bits and bit fields that are
+                defined in this register.
+            </para> 
+            <methodsynopsis>
+                <type>uint32_t</type> <methodname>readBulkXferSetup</methodname>
+                                      <void />
+            </methodsynopsis>
+            <para>
+                Returns the value of the bulk transfer steup register.
+            </para>
+            <methodsynopsis>
+                <type>int</type> <methodname>vmeWrite32</methodname>
+                <methodparam>
+                    <type>uint32_t</type> <parameter>address</parameter>
+                </methodparam>
+                <methodparam>
+                    <type>uint8_t</type> <parameter>aModifier</parameter>
+                </methodparam>
+                <methodparam>
+                    <type>uint32_t</type> <parameter>data</parameter>
+                </methodparam>
+            </methodsynopsis>
+            <para>
+                Performs a single shot 32 bit VME write.
+                <parameter>addresss</parameter> is the VME address within
+                the address space defined by the address modifier
+                <parameter>amod</parameter>.  <parameter>data</parameter> is
+                written.  <literal>0</literal> is returned on success and
+                some negative number is returned on failure, with the reason
+                for failure in <varname>errno</varname>.
+            </para>
+            <methodsynopsis>
+                <type>int</type> <methodname>vmeRead32</methodname>
+                <methodparam>
+                    <type>uint32_t</type> <parameter>address</parameter>
+                </methodparam>
+                <methodparam>
+                    <type>uint8_t</type> <parameter>aModifier</parameter>
+                </methodparam>
+                <methodname>
+                    <type>uint32_t*</type> <parameter>data</parameter>
+                </methodname>
+            </methodsynopsis>
+            <para>
+                Performs a single shot 32 bit VME read operation.
+                <parameter>address</parameter> is the VME address
+                from which the read will be performed with the
+                address modifier <parameter>aModifier</parameter>.
+                The data will be stored in the 32 bit value
+                pointed to by <parameter>data</parameter>.
+            </para>
+            <para>
+                The function return value is the same as for
+                <methodname>vmeWrite32</methodname>
+            </para>
+            <methodsynopsis>
+                <type>int</type> <methodname>vmeWrite16</methodname>
+                <methodparam>
+                    <type>uint32_t</type> <parameter>address</parameter>
+                </methodparam>
+                <methodparam>
+                    <type>uint8_t</type> <parameter>aModifier</parameter>
+                </methodparam>
+                <methodparam>
+                    <type>uint16_t</type> <parameter>data</parameter>
+                </methodparam>
+            </methodsynopsis>
+            <para>
+                Performs a 16 bit VME write to <parameter>address</parameter>
+                with <parameter>aModifier</parameter> selecting the
+                address modifier.  The <parameter>data</parameter> parameter
+                supplies the 16 bits to write.
+            </para>
+            <para>
+                Return value is the same as for <methodname>vmeWrite32</methodname>.
+            </para>
+            <methodsynopsis>
+                <type>int</type> <methodname>vmeRead16</methodname>
+                <methodparam>
+                    <type>uint32_t</type> <parameter>address</parameter>
+                </methodparam>
+                <methodparam>
+                    <type>uint8_t</type> <parameter>aModifier</parameter>
+                </methodparam>
+                <methodparam>
+                    <type>uint16_t*</type> <parameter>data</parameter>
+                </methodparam>
+            </methodsynopsis>
+            <para>
+                Reads a 16 bit value from the VME bus,  The parameters
+                and return value are the same as for <methodname>vmeRead32</methodname>
+                however the <parameter>data</parameter> parameter points to a
+                16 bit value that will receive the data.
+            </para>
+            <methodsynopsis>
+                <type>int</type> <methodname>vmeWrite8</methodname>
+                <methodparam>
+                    <type>uint32_t</type> <parameter>address</parameter>
+                </methodparam>
+                <methodparam>
+                    <type>uint8_t</type> <parameter>aModifier</parameter>
+                </methodparam>
+                <methodparam>
+                    <type>uint8_t</type> <parameter>data</parameter>
+                </methodparam>
+            </methodsynopsis>
+            <para>
+                Writes an 8 bit value to the VME bus. The parameters
+                and return value are the same as for
+                <methodname>vmeWrite32</methodname> however the
+                <parameter>data</parameter> parameter is an 8 bit byte.
+            </para>
+            <methodsynopsis>
+                <type>int</type> <methodname>vmeRead8</methodname>
+                <methodparam>
+                    <type>uint32_t</type> <parameter>address</parameter>
+                </methodparam>
+                <methodparam>
+                    <type>uint8_t</type> <parameter>aModifier</parameter>
+                </methodparam>
+                <methodparam>
+                    <type>uint8_t*</type> <parameter>data</parameter>
+                </methodparam>
+            </methodsynopsis>
+            <para>
+                Reads an 8 bit value in to the 8 bits of data pointed to by
+                <parameter>data</parameter>.  The remainder of the parameters
+                and the return values are the same as for
+                <methodname>vmeRead32</methodname>.
+            </para>
+            <methodsynopsis>
+                <type>int</type> <methodname>vmeBlockRead</methodname>
+                <methodparam>
+                    <type>uint32_t</type> <parameter>baseAddress</parameter>
+                </methodparam>
+                <methopdaram>
+                    <type>uint8_t</type> <parameter>aModifier</parameter>
+                </methopdaram>
+                <methodparam>
+                    <type>void*</type> <parameter>data</parameter>
+                </methodparam>
+                <methodparam>
+                    <type>size_t</type> <parameter>transferCount</parameter>
+                </methodparam>
+                <methodparam>
+                    <type>size_t*</type> <parameter>countTransferred</parameter>
+                </methodparam>
+            </methodsynopsis>
+            <para>
+                Does a block read from the VME bus into the buffer pointed to by
+                <parameter>data</parameter>.  The width of the read will be 32
+                bits.  <parameter>baseAddress</parameter>, and the associated
+                <parameter>aModifier</parameter> address modifier determine the
+                starting location for the transfers.  The number of
+                requested transfers
+                is determined by the value of <parameter>transferCount</parameter>.
+                The actual number of transfers is stored in the <type>size_t</type>
+                pointed to by <parameter>countTransferred</parameter>.
+            </para>
+            <para>
+                The return value is the same as for
+                <methodname>vmeRead32</methodname>.
+            </para>
+            <methodsynopsis>
+                    <type>int</type> <methodname>vmeFifoRead</methodname>
+                    <methodparam>
+                        <type>uint32_t</type> <parameter>address</parameter>
+                    </methodparam>
+                    <methodparam>
+                        <type>int8_t</type> <parameter>aModifier</parameter>
+                    </methodparam>
+                    <methodparam>
+                        <type>void*</type> <parameter>data</parameter>
+                    </methodparam>
+                    <methodparam>
+                        <type>size_t</type> <parameter>transferCount</parameter>
+                    </methodparam>
+                    <methodparam>
+                        <type>size_t*</type> <parameter>countTransferred</parameter>
+                    </methodparam>
+            </methodsynopsis>
+            <para>
+                Same as <methodname>vmeBlockRead</methodname> however the address
+                is not incremented between reads, resulting in all of the transfers
+                being performed from the same location. 
+            </para>
+            <methodsynopsis>
+                <type>int</type> <methodname>executeList</methodname>
+                <methodparam>
+                    <type>CVMUSBReadoutList&amp;</type> <parameter>list</parameter>
+                </methodparam>
+                <methodparam>
+                    <type>void*</type> <parameter>pReadBuffer</parameter>
+                </methodparam>
+                <methodparam>
+                    <type>size_t</type> <parameter>readBufferSize</parameter>
+                </methodparam>
+                <methodparam>
+                    <type>size_t*</type> <parameter>bytesRead</parameter>
+                </methodparam>
+            </methodsynopsis>
+            <para>
+                Performs a VME readout list.  The list is defined by the
+                <parameter>list</parameter> object.  See
+                <link linkend="manpage.cvmusbreadoutlist">
+                <citerefentry><refentrytitle>CVMUSBReadoutList</refentrytitle><manvolnum>3usbReadout</manvolnum></citerefentry>
+                </link>
+                for more information about the <classname>CVMUSBReadoutList</classname> class.
+            </para>
+            <para>
+                If data is read by the list it is stored in the buffer pointed to
+                by <parameter>pReadBuffer</parameter>.  The maximum number
+                of bytes that can be transferred to that buffer should be
+                specified by you in the <parameter>readBufferSize</parameter>.
+                The actual number of bytes transferred to
+                <parameter>pReadBuffer</parameter> will be stored in
+                <parameter>bytesRead</parameter>.
+            </para>
+            <para>
+                The return value is the same as for
+                <methodname>vmeWrite32</methodname>.
+            </para>
+            <methodsynopsis>
+                <type>int</type> <methodname>loadList</methodname>
+                <methodparam>
+                    <type>uint8_t</type> <parameter>listNumber</parameter>
+                </methodparam>
+                <methodparam>
+                    <type>CVMUSBReadoutList&amp;</type> <parameter>list</parameter>
+                </methodparam>
+                <methodparam>
+                    <type>off_t</type> <parameter>listOffset</parameter>
+                                       <initializer> = 0</initializer>
+                </methodparam>
+            </methodsynopsis>
+            <para>
+                Loads a list of VME operations <parameter>list</parameter>
+                into a VM-USB controller for later triggered execution in
+                autonomous data taking mode.  All read operations will wind up
+                in an event for that list.
+                <parameter>listNumber</parameter> is the list number to be
+                associated with that list.  <parameter>listNumber can be
+                in the range 0..7 inclusive.  The
+                <parameter>listOffset</parameter> determines where the list is
+                loaded in VM-USB memory.
+            </para>
+            <para>
+                See the implementation of the <classname>CStack</classname>
+                class to see how to pack lists together into the VM-USB
+                list memory.
+            </para>
+            <note>
+                <title>NOTE:</title>
+                <para>
+                    The VM-USB documentation refers to lists as
+                    <firstterm>stack</firstterm>s.  It is not clear where
+                    that term comes from.  The term list comes from the
+                    history of intelligent CAMAC controllers which
+                    were called <firstterm>list processors</firstterm>.
+                </para>
+            </note>
+
+            <methodsynopsis>
+                <type>int</type> <methodname>usbRead</methodname>
+                <methodparam>
+                    <type>void*</type> <parameter>data</parameter>
+                </methodparam>
+                <methodparam>
+                    <type>size_t</type> <parameter>bufferSize</parameter>
+                </methodparam>
+                <methodparam>
+                    <type>size_t*</type> <parameter>transferCount</parameter>
+                </methodparam>
+                <methodparam>
+                    <type>int</type> <parameter>timeout</parameter>
+                                     <initializer> = 2000</initializer>
+                </methodparam>
+            </methodsynopsis>
+            <para>
+                Reads a block from the VM-USB into <parameter>data</parameter>.
+                At most <parameter>bufferSize</parameter> bytes will be read.
+                The actual number of bytes read is stored in the
+                <type>size_t</type> pointed to by <parameter>transferCount</parameter>.
+            </para>
+            <para>
+                The <parameter>timeout</parameter> parameter determines the maximum
+                number of milliseconds the call will block before timing out.
+            </para>
+            <para>
+                The return value is the same as for
+                <methodname>vmeRead32</methodname>.  Note that
+                <literal>ETIMEDOUT</literal> is put in
+                <varname>errno</varname> if the read timed out.
+            </para>
+            <para>
+                This method is usually invoked to read a block of autonomously
+                acquired event data.
+            </para>
+            <methodsynopsis>
+                <type>void</type> <methodname>setDefaultTimeout</methodname>
+                <methodparam>
+                    <type>int</type> <parameter>ms</parameter>
+                </methodparam>
+            </methodsynopsis>
+            <para>
+                Sets the timeout for single shot VME opearations and register
+                writes to <parameter>ms</parameter> milliseconds.
+                The initial value is <literal>2000</literal>.  Note that the
+                timeout is a per <classname>CVMUSB</classname> object value.
+            </para>
+      </refsect1>
+      <refsect1>
+         <title>Types and public data</title>
+         <para>
+            The <classname>CVMUSB</classname> class defines several nested
+            classes whose sole purupose is to define constants that are useful
+            in building up register values.  In addition to this, the
+            <type>uint16_t</type> public variable
+            <varname>LastBuffer</varname> is defined to be the last buffer bit
+            in the buffer header of data taking buffers.
+         </para>
+         <para>
+            The remainder of this section provides documentation for the nested
+            classes.
+         </para>
+         <refsect2>
+            <title><classname>CVMUSB::ActionRegister</classname></title>
+            <para>
+                This class provides symbolic names for the
+                bits in the action register. It is best to attempt only one
+                action at a time with action register writes as otherwise the
+                order in which the actinos are peformed is not well defined.
+            </para>
+            <variablelist>
+                <varlistentry>
+                    <term><varname>CVMUSB::ActionRegister::startDAQ</varname></term>
+                    <listitem>
+                        <para>
+                            Writing a word to the action register with this bit
+                            set will force the VM-USB into autonomous data taking
+                            mode.  Writing a word with this bit zeroed will
+                            turn autonomous data taking off.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><varname>CVMUSB::ActionRegister::usbTrigger</varname></term>
+                    <listitem>
+                        <para>
+                            Writing a 1 to this bit provides a 150 ns wide signal
+                            that can be routed to any ofthe NIM outs, or used as an
+                            input to the on board logic resources such as the
+                            module scalers, or routed to a front panel LED.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><varname>CVMUSB::ActionRegister::clear</varname></term>
+                    <listitem>
+                        <para>
+                            Writing the action register with this bit set peforms
+                            an internal VM-USB clear.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><varname>CVMUSB::ActionRegister::sysReset</varname></term>
+                    <listitem>
+                        <para>
+                            Peforms a VME bus reset when 1 is written. The VME
+                            reset is held asserted until a 0 is written.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><varname>CVMUSB::ActionRegister::scalerDump</varname></term>
+                    <listitem>
+                        <para>
+                            Triggers a scaler (list 1) readout.  Note that since
+                            this is typically done in autonomous data taking mode,
+                            typically you would do this by writing
+                            <literal>CVMUSB::ActionRegister::scalerDump | CVMUSB::ActionRegister::startDAQ</literal>
+                            to the action registe to prevent the end of data taking.
+                        </para>
+                    </listitem>
+                </varlistentry>
+            </variablelist>
+         </refsect2>
+         <refsect2>
+            <title><classname>CVMUSB::FirmwareRegister</classname></title>
+            <para>
+                The firmware register is made up of several bit fields.  The
+                bit fields are not totally documented however this class provides
+                my best guess for masks and shift counts.  Masks are intended to be
+                applied before shifting.  Thus for a firmeware register read into
+                <varname>firmwareRegister</varname> arthe major revision is:
+                <literal>(firmwareRegister & CVMUSB::FirmwareRegister::majorRevMask) >> CVMUSB::FirmwareRegister::majorRevShift
+            </para>
+            <variablelist>
+                <term><varname>CVMUSB::FirmwareRegister::minorRevMask</varname></term>
+                <listitem>
+                    <para>The mask that will extract the minor revision.
+                        </para>
+                </listitem>
+                <varlistentry>
+                    <term><varname>CVMUSB::FirmwareRegister::minorRevShift</varname></term>
+                    <listitem>
+                        <para>
+                            The shift count for the minor revision field of the firmware
+                            register.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><varname>CVMUSB::FirmwareRegister::majorRevMask</varname></term>
+                    <listitem>
+                        <para>
+                            The mask that will extract the major revision number
+                            of the firmware.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><varname>CVMUSB::FirmwareRegister::majorRevShfit</varname></term>
+                    <listitem>
+                        <para>
+                               The right shift count that will low bit justify
+                               the major revision.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><varname>CVMUSB::FirmwareRegister::betaVersionMask</varname></term>
+                    <listitem>
+                        <para>
+                            The mask that will extract the part of the firmware
+                            version that I spectulate is non-zero if this
+                            is a beta test version.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><varname>CVMUSB::FirmwareRegister::betaVersionShift</varname></term>
+                    <listitem>
+                        <para>
+                            The right shift count that will low order justify the beta vrsion
+                            field.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><varname>CVMUSB::FirmwareRegister::yearMask</varname></term>
+                    <listitem>
+                        <para>
+                            The mask that will extract the year in which the
+                            firmware was written.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><varname>CVMUSB::FirmwareRegister::yearShift</varname></term>
+                    <listitem>
+                        <para>
+                            The shift count that will right shift the year field to
+                            the lower bits of a word.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><varname>CVMUSB::FirmwareRegister::monthMask</varname></term>
+                    <listitem>
+                        <para>
+                            Defines the field that will have the month the firmware
+                            was written.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><varname>CVMUSB::FirmwareRegister::monthShift</varname></term>
+                    <listitem>
+                        <para>
+                            Shift count to position the month field low order
+                            bit justified.
+                        </para>
+                    </listitem>
+                </varlistentry>
+            </variablelist>
+         </refsect2>
+         <refsect2>
+            <title><classname>CVMUSB::GlobalModeRegister</classname></title>
+            <para>
+                Provides bit fields, and values for the global mode register.
+            </para>
+            <variablelist>
+                <varlistentry>
+                <term><varname>CVMUSB::GlobalModeRegister::bufferLenMask</varname></term>
+                <listitem>
+                    <para>
+                        Mask that allows one to extract the buffer length field from
+                        this register.
+                    </para>
+                </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><varname>CVMUSB::GlobalModeRegister::bufferLenShift</varname></term>
+                    <listitem>
+                        <para>
+                            Shift count to right shift an extracted buffer length
+                            to the least significant bits of a word.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><varname>CVMUSB::GlobalModeRegister::bufferLen13K</varname></term>
+                    <listitem>
+                        <para>
+                            Value for the buffer length field that results in
+                            13Kword buffers.  To use this and other
+                            buffer length values:
+                            <programlisting>
+                            (CVMUSB::GlobalModeRegister::bufferLen13K &lt;&lt; CVMUSB::GlobalModeRegister::bufferLenShift) | otherStuff
+                            </programlisting>
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><varname>CVMUSB::GlobalModeRegister::bufferLen8K</varname></term>
+                    <listitem>
+                        <para>
+                            Buffer length field value that results in 8Kword buffers.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><varname>CVMUSB::GlobalModeRegister::bufferLen4K</varname></term>
+                    <listitem>
+                        <para>
+                            Buffer length field value that results in 4Kword buffers.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><varname>CVMUSB::GlobalModeRegister::bufferLen2K</varname></term>
+                    <listitem>
+                        <para>
+                            Buffer length field value that results in 2K word buffers.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><varname>CVMUSB::GlobalModeRegister::bufferLen1K</varname></term>
+                    <listitem>
+                        <para>
+                            Buffer length field value that results in 1K word buffers.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><varname>CVMUSB::GlobalModeRegister::bufferLen512</varname></term>
+                    <listitem>
+                        <para>
+                            Buffer length field that results in 512 word buffers.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><varname>CVMUSB::GlobalModeRegister::bufferLen256</varname></term>
+                    <listitem>
+                        <para>Buffer length field value that results in 256 word buffers.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><varname>CVMUSB::GlobalModeRegister::bufferLen128</varname></term>
+                    <listitem>
+                        <para>
+                            Buffer length field value that results in 128 word buffers.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><varname>CVMUSB::GlobalModeRegister::bufferLen64</varname></term>
+                    <listitem>
+                        <para>
+                            Buffer length field value that results in 64 word buffers.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><varname>CVMUSB::GlobalModeRegister::bufferLenSingle</varname></term>
+                    <listitem>
+                        <para>
+                            Buffer length will only hold one event (not sure what happens if the
+                            length of the event is bigger than 13Kwords).
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><varname>CVMUSB::GlobalModeRegister::mixedBuffers</varname></term>
+                    <listitem>
+                        <para>
+                            When this bit is set, buffers can contain data from
+                            a mix of triggers.  Otherwise each buffer will contain
+                            a homogeneous set of triggers.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><varname>CVMUSB::GlobalModeRegister::doubleSeparator</varname></term>
+                    <listitem>
+                        <para>
+                            In older firmware this could set the number of separator words
+                            between events.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><varname>CVMUSB::GlobalModeRegister::flushScalers</varname></term>
+                    <listitem>
+                        <para>
+                            When set, scaler data are flushed after each read.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><varname>CVMUSB::GlobalModeRegister::busReqLevelMask</varname></term>
+                    <listitem>
+                        <para>
+                            Mask that allows the extraction of the VM-USB bus request
+                            level from the global mode register.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><varname>CVMUSB::GlobalModeRegister::busReqLevelShift</varname></term>
+                    <listitem>
+                        <para>
+                            Shift count that allows the bus request level to be
+                            positioned to the lowest bits of the 16 bit word.
+                            If, for example
+                            <varname>reg</varname> contains a global mode register value:
+                            <programlisting>
+                                busReqLevel = (reg & CVMUSB::GlobalModeRegister::busReqLevelMask)
+                                              >> CVMUSB::GlobalModeRegister::busReqLevelshift;
+                            </programlisting>
+                        </para>
+                    </listitem>
+                </varlistentry>
+            </variablelist>
+         </refsect2>
+         <refsect2>
+            <title><classname>CVMUSB::DAQSettingsRegister</classname></title>
+            <para>
+                This class defines constants that are useful when building up or
+                interpreting DAQ settings register values.  This register contains
+                several parameters of interest to data taking:
+            </para>
+            <variablelist>
+                <varlistentry>
+                    <term><varname>CVMUSB::DAQSettingsRegister::readoutTriggerDelayMask</varname></term>
+                    <listitem>
+                        <para>
+                            Mask to extract the readout trigger delay from the
+                            register.  This value is the number of microseconds
+                            between a list trigger and the beginning of list execution.
+                            This is intended to allow devices to finish converting
+                            prior to reading them out.  This value can be
+                            0 through 255 microseconds.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><varname>CVMUSB::DAQSettingsRegister::readoutTriggerDelayShift</varname></term>
+                    <listitem>
+                        <para>
+                            Number of bits to shift the readout trigger either
+                            to the right after masking to low end justify it,
+                            or to the left to position a trigger delay to the
+                            correct bits of the register.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><varname>CVMUSB::DAQSettingsRegister::scalerReadoutPeriodMask</varname></term>
+                    <listitem>
+                        <para>
+                            Scaler lists (list number 1) can be triggered either
+                            every few events, or on a timed basis or both.
+                            The scaler period is a value in 0.5 second units
+                            that determines the time interval between
+                            time triggered scaler readouts.  This value
+                            can be between 0 and 255 inclusive.  If
+                            0, timed readout is disabled.
+                        </para>
+                        <para>
+                            This mask allows you to extract the readout period
+                            field from a register value.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><varname>CVMUSB::DAQSettingsRegister::scalerReadoutPeriodShift</varname></term>
+                    <listitem>
+                        <para>
+                            Shift count to either position an extracted readout period field to the
+                            lowest bits (right shift) or to position a value to the correct bit positions
+                            (left shift).
+                        </para>
+                    </listitem>
+            
+                <varlistentry>
+                    <term><varname>CVMUSB::DAQSettingsRegister::scalerFrequencyPeriodMask</varname></term>
+                    <listitem>
+                        <para>
+                            This value allows you to extract the number of events
+                            between event triggered scaler readouts.
+                            If zero, event triggered readouts are supressed.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><varname>CVMUSB::DAQSettingsRegister::scalerReadoutFrequencyShift</varname>
+                    </term>
+                    <listitem>
+                        <para>
+                            Shift count to either position an extracted readout
+                            frequency field  to the lower bits (right shift)
+                            or to position a value to the
+                            bit field (left shift).
+                        </para>
+                    </listitem>
+                </varlistentry>
+            </variablelist>
+         </refsect2>
+         <refsect2>
+            <title><classname>CVMUSB::LedSourceRegister</classname></title>
+            <para>
+                The LED source register determines the set of conditions that
+                light each of the lights on the VM-USB front panel.  The VM-USB
+                has two yellow LEDs, the top and bottom yellow LEDS,  a red LED,
+                and a Green LED.
+            </para>
+            <para>
+                The LED source register is divided into four 8 bit fields.
+                The fields each contain a code to control the led, and
+                bits that can invert the state of the LED or latch the LED.
+                Bit-wise or-ing the values in these fields together
+                results in a specification for the LEDs.
+            </para>
+            <para>
+                For example:
+                <programlisting>
+CVMUSB::LedSourceRegister::topYellowDTACK | CVMUSB::LedSourceRegister::redEventTrigger |
+CVMUSB::LedSourceRegister::greenEventReady | CVMUSB::LedSourceRegister::greenInvert    |
+CVMUSB::LedSourceRegister::bottomYellowBusGranted
+                </programlisting>
+                Specifies that the top Yellow led is lit when the VME bus DTACK
+                signal is asserted.  That the red LED is lit when an event triggger fires.
+                That the green LED is lit whenver no event is ready, and that the
+                bottom yellow LED is lit when the bus has been granted to a VME
+                bus master.
+            </para>
+            <para>
+                The full set of bits are:
+            </para>
+            <variablelist>
+                <varlistentry>
+                    <term><varname>CVMUSB::LedSourceRegister::topYellowOutFifoNotEmpty</varname></term>
+                    <listitem>
+                        <para>
+                            Lights the yellow LED whenever the output FIFO is not
+                            empty (whenever the VM-USB has data for the host).
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><varname>CVMUSB::LedSourceRegister::topYellowInFiFoNotEmpty</varname></term>
+                    <listentry>
+                        <para>
+                            Lights the top yellow LED whenver the input FIFO is not
+                            empty (whenever the VM-USB's USB interface is holding
+                            unprocessed commands from the host to the VM-USB).
+                        </para>
+                    </listentry>
+                </varlistentry>
+                <varlistentry>
+                    <term><varname>CVMUSB::LedSourceRegister::topYellowScalerEvent</varname></term>
+                    <listitem>
+                        <para>
+                            Lights the top yellow LED whenever the VM-USB is processing
+                            the scaler list.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><varname>CVMUSB::LedSourceRegister::topYellowInFifoFull</varname></term>
+                    <listitem>
+                        <para>
+                            Lights the top yellow LED whenever the VM-USB's input
+                            input FIFO is full.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><varname>CVMUSB::LedSourceRegister::topYellowDTACK</varname></term>
+                    <listitem>
+                        <para>
+                            Lights the top yellow LED whenever the VME bus DTACK
+                            (data transfer acknowledge) line is asserted.  This
+                            makes the LED a measure of VME bus traffic as all
+                            valid bus cycles will assert DTACK.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><varname>CVMUSB::LedSourceRegister::topYellowBERR</varname></term>
+                    <listitem>
+                        <para>
+                            Lights the top yellow LED whenever the VME backplane
+                            BERR is asserted.  In many cases, this will be asserted
+                            at the end of the readout of a module.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><varname>CVMUSB::LedSourceRegister::topYellowBusRequest</varname></term>
+                    <listitem>
+                        <para>
+                            Lights the top yellow LED whenever there is a bus
+                            request on the backplane.  This is another indicator
+                            of bus traffic.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><varname>CVMUSB::LedSourceRegister::topYellowBusGranted</varname></term>
+                    <listitem>
+                        <para>
+                            Lights the top yellow LED whenever one of the
+                            VME BGn lines is asserted.  This means that
+                            the bus has been granted to a bus master.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><varname>CVMUSB::LedSourceRegister::topYellowInvert</varname></term>
+                    <listitem>
+                        <para>
+                            Reverses the condition for lighting the LED from
+                            what was specified in the previous codes.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><varname>CVMUSB::LedSourceRegister::topYellowLatch</varname></term>
+                    <listitem>
+                        <para>
+                            Latches the state of the top yellow LED when it
+                            is lit.  It's not clear what, if anything will ever
+                            turn the LED off.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><varname>CVMUSB::LedSourceRegister::redEventTrigger</varname></term>
+                    <listitem>
+                        <para>
+                            Light the red LED when an event trigger has been received.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><varname>CVMUSB::LedSourceRegister::redNimInput1</varname></term>
+                    <listitem>
+                        <para>
+                            Lights the red LED when the N1 input is asserted.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><varname>CVMUSB::LedSourceRegister::redNimInput2</varname></term>
+                    <listitem>
+                        <para>
+                            Turns on the red light when the NIM2 input is asserted.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><varname>CVMUSB::LedSourceRegister::redBusy</varname></term>
+                    <listitem>
+                        <para>
+                            Turns on the Red LED when the VM-USB is busy executing a
+                            stack (is busy).
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><varname>CVMUSB::LedSourceRegister::redDTACK</varname></term>
+                    <listitem>
+                        <para>
+                            Lights the red LED when DTACK is asserted.  DTACK
+                            is asserted  during a VME bus data transfer operation.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><varname>CVMUSB::LedSourceRegister::redBERR</varname></term>
+                    <listitem>
+                        <para>
+                            Lights the red LED when the VME bus error line is asserted.
+                            This usually indicats a VME transaction that failed, however
+                            it may also indicate the end of a block transfer
+                            for some devices in some modes.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><varname>CVMUSB::LedSourceRegister::redBusRequest</varname></term>
+                    <listitem>
+                        <para>
+                            Lights the read LED whenever the VME bus has a bus request
+                            line active. This means a master is attempting to get
+                            access to the VME bus.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><varname>CVMUSB::LedSourceRegister::redBusGranted</varname></term>
+                    <listitem>
+                        <para>
+                            Lights the red LED when the bus has been granted to
+                            master.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><varname>CVMUSB::LedSourceRegister::redInvert</varname></term>
+                    <listitem>
+                        <para>
+                            Inverts the sense of the LED.  That is the light will
+                            be on when the condition selected by one of the previous
+                            codes is <emphasis>not</emphasis> true.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><varname>CVMUSB::LedSourceRegister::redLatch</varname></term>
+                    <listitem>
+                        <para>
+                            Keeps the red LED until it is turned off. It is not clear
+                            from the VM-USB manual exactly how that is done however.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><varname>CVMUSB::LedSourceRegister::greenAcquire</varname></term>
+                    <listitem>
+                        Lights the green LED when autonomous mode acquisition is
+                        active.
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><varname>CVMUSB::LedSourceRegister::greenStackNotEmpty</varname></term>
+                    <listitem><para>
+                        Lights the green LED when at least one stack has been
+                        loaded (?).
+                    </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><varname>CVMUSB::LedSourceRegister::greenEventReady</varname></term>
+                    <listitem>
+                        <para>
+                            Lights the green LED when an event is pending.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><varname>CVMUSB::LedSourceRegister::greenDTACK</varname></term>
+                    <listitem>
+                        <para>
+                            Lights the green LED when DTACK is asserted.  DTACK
+                            is asserted  during a VME bus data transfer operation.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><varname>CVMUSB::LedSourceRegister::greenBERR</varname></term>
+                    <listitem>
+                        <para>
+                            Lights the green LED when there's abus error.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><varname>CVMUSB::LedSourceRegister::greenBusRequest</varname></term>
+                    <listitem>
+                        <para>
+                            Lights the green led when a VME master is requesting
+                            the bus.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><varname>CVMUSB::LedSourceRegister::greenBusGranted</varname></term>
+                    <listitem>
+                        <para>
+                            Lights the green LED when the bus has been granted to
+                            a bus master.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><varname>CVMUSB::LedSourceRegister::greenInvert</varname></term>
+                    <listitem>
+                        <para>
+                            Lights the green LED when the opposite of the condition
+                            desribed in the previous codes is true.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><varname>CVMUSB::LedSourceRegister::greenLatch</varname></term>
+                    <listitem>
+                        <para>
+                            Latches the gree LED when lit until it is reset.
+                            It's not clear from the VM-USB documentation exactly
+                            how to reset a latched LED (though most likely
+                            turning off this bit would do it.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><varname>CVMUSB::LedSourceRegister::bottomYellowNotArbiter</varname></term>
+                    <listitem>
+                        <para>
+                            This is lit when the VM-USB is not functioning as the
+                            bus arbiter.  That is a jumper setting and requires
+                            that the VM-USB not be placed in slot 1, if so configured.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><varname>CVMUSB::LedSourceRegister::bottomYellowUsbTrigger</varname></term>
+                    <listitem>
+                        <para>
+                            Lights when the module is programmatically triggerd
+                            by a host write to the action register.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><varname>CVMUSB::LedSourceRegister::bottomYellowUSBReset</varname></term>
+                    <listitem>
+                        <para>
+                            Lit while the module is being reset via the USB via a
+                            write to the action register.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><varname>CVMUSB::LedSourceRegister::bottomYellowBERR1</varname></term>
+                    <listitem>
+                        <para>
+                            Lights the bottom yellow LED whe the VME BERR line
+                            is asserted. This is a different code but has the
+                            same functionality as   
+                            <varname>CVMUSB::LedSourceRegister::bottomYellowBERR</varname>
+                            below.
+                        </para>         
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><varname>CVMUSB::LedSourceRegister::bottomYellowDTACK</varname></term>
+                    <listitem>
+                        <para>
+                            Lights the bottom Yellow LED when the VME DTACK signal
+                            is asserted.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><varname>CVMUSB::LedSourceRegister::bottomYellowBERR</varname></term>
+                    <listitem>
+                        <para>
+                            Lights the bottom Yellow LED when the VME Bus error
+                            signal is asserted.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><varname>CVMUSB::LedSourceRegister::bottomYellowBusRequest</varname></term>
+                    <listitem>
+                        <para>
+                            Lights the bottom yellow LED when a VME bus master is
+                            requesting the bus.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><varname>CVMUSB::LedSourceRegister::bottomYellowBusGranted</varname></term>
+                    <listitem>
+                        <para>
+                            Lights the bottom yellow led when the VME  bus has
+                            been granted to a master.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><varname>CVMUSB::LedSourceRegister::bottomYellowInvert</varname></term>
+                    <listitem>
+                        <para>
+                            Lights the bottom LED when the condition selected by the
+                            codes described previously is not met.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><varname>CVMUSB::LedSourceRegister::bottomYellowLatch</varname></term>
+                    <listitem>
+                        <para>
+                            Latches the bottom yellow light in the lit state until
+                            it is reset.
+                        </para>
+                    </listitem>
+                </varlistentry>
+            </variablelist>
+         </refsect2>
+         <refsect2>
+            <title><class>CVMUSB::DeviceSourceRegister</class></title>
+            <para>
+                The VM-USB features two NIM outputs, an internal pair of gate and delay generators,
+                two scalers and a pulser.  The Device Source Register determines
+                what resources are inputs to these logic blocks and where the outputs
+                go.  As with the LED source register, source can be inverted and
+                output states latched.
+            </para>
+            <para>
+                The values in this register come in two groups. Bits which invert
+                or latch the device, and codes which describe the signal source.
+                For each resource chose one source and or in the desired
+                invert/latch bits along with the codes.
+            </para>
+            <variablelist>
+                <varlistentry>
+                    <term><varname>CVMUSB::DeviceSourceRegister::nimO1Busy</varname></term>
+                    <listitem>
+                        <para>
+                            NIM output 1 will reflect the state of the module busy.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><varname>CVMUSB::DeviceSourceRegister::nimO1Trigger</varname></term>
+                    <listitem>
+                        <para>
+                            The NIM output 1 will parrot the state of the list 0 trigger.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><varname>CVMUSB::DeviceSourceRegister::nimO1BusRequest</varname></term>
+                    <listitem>
+                        <para>
+                            NIM output 1 will be true when a master is requesting the
+                            VME bus.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><varname>CVMUSB::DeviceSourceRegister::nimO1EventToBuffer</varname></term>
+                    <listitem>
+                        <para>
+                            NIM output 1 will pulse when the VM-USB closes off
+                            a buffer and sends it to the VME output stream.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><varname>CVMUSB::DeviceSourceRegister::nimO1DGGA</varname></term>
+                    <listitem>
+                        <para>
+                            NIM output 1 reflects the output of the VM-USB
+                            gate and delay generator A.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><varname>CVMUSB::DeviceSourceRegister::nimO1DGGB</varname></term>
+                    <listitem>
+                        <para>
+                            NIM Output 1 reflects the output of the VM-USB
+                            gate and delay generator B.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><varname>CVMUSB::DeviceSourceRegister::nimO1EndOfEvent</varname></term>
+                    <listitem>
+                        <para>
+                            NIM output 1 pulses at the end of list execution.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><varname>CVMUSB::DeviceSourceRegister::nimO1UsbTrigger</varname></term>
+                    <listitem>
+                        <para>
+                            Pulses when the master demands a trigger via the
+                            action register.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><varname>CVMUSB::DeviceSourceRegister::nimO1Invert</varname></term>
+                    <listitem>
+                        <para>
+                            Inverts the state of the output.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><varname>CVMUSB::DeviceSourceRegister::nimO1Latch</varname></term>
+                    <listitem>
+                        <para>
+                            Latches this output.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><varname>CVMUSB::DeviceSourceRegister::nimO2UsbTrigger1</varname></term>
+                    <listitem>
+                        <para>
+                            NIM output 2 pulses when the host requests a trigger
+                            via a write to the action register.
+                            This has the same effect as
+                            <varname>CVMUSB::DeviceSourceRegister::nimO2UsbTrigger</varname>
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><varname>CVMUSB::DeviceSourceRegister::nimO2VMEExecuting</varname></term>
+                    <listitem>
+                        <para>
+                            NIM output 2 is aserted if the module is executing a VME
+                            list.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><varname>CVMUSB::DeviceSourceRegister::nimO2VMEAS</varname></term>
+                    <listitem>
+                        <para>
+                            This output reflects the state of the VME
+                            address strobe line.  This is asserted when a data
+                            transfer operation places a valid address on the
+                            data way.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><varname>CVMUSB::DeviceSourceRegister::nimO2DataToUsbFIFO</varname></term>
+                    <listitem>
+                        <para>
+                            True when the VM-USB is transferring data to the
+                            USB FIFOs.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><varname>CVMUSB::DeviceSourceRegister::nimO2DGGA</varname></term>
+                    <listitem>
+                        <para>
+                            The output of Gate and delay generator A is shunted
+                            to NIM out 2.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><varname>CVMUSB::DeviceSourceRegister::nimO2DGGB</varname></term>
+                    <listitem>
+                        <para>
+                            The output of gate and delay generator B is shunted
+                            to NIM out 2.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <variablelist>
+                    <term><varname>CVMUSB::DeviceSourceRegister::nimO2EndOfEvent</varname></term>
+                    <listitem>
+                        <para>
+                            NIM Output 2 is asserted at end of event readout.
+                        </para>
+                    </listitem>
+                </variablelist>
+                <varlistentry>
+                    <term><varname>CVMUSB::DeviceSourceRegister::nimO2UsbTrigger</varname></term>
+                    <listitem>
+                        <para>
+                            NIM output 2 is asserted when a USB trigger
+                            occured. See
+                            <varname>CVMUSB::DeviceSourceRegister::nimO2UsbTrigger1</varname></para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><varname>CVMUSB::DeviceSourceRegister::nimO2Invert</varname></term>
+                    <listitem>
+                        <para>
+                            Inverts the sense of the output.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><varname>CVMUSB::DeviceSourceRegister::nimO2Latch</varname></term>
+                    <listitem>
+                        <para>
+                            Latches the output so that it remains asserted after
+                            the condition is removed.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><varname>CVMUSB::DeviceSourceRegister::scalerADisabled</varname></term>
+                    <listitem>
+                        <para>
+                            Disables the A scaler (by ensuring it does not
+                            have any inputs.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><varname>CVMUSB::DeviceSourceRegister::scalerANIM1</varname></term>
+                    <listitem>
+                        <para>
+                            Increments scaler A whenever NIM 1 is pulsed.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><varname>CVMUSB::DeviceSourceRegister::scalerANIM2</varname></term>
+                    <listitem>
+                        <para>
+                            Increments scaler A whenever NIM 2 is pulsed.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><varname>CVMUSB::DeviceSourceRegister::scalerAEvent</varname></term>
+                    <listitem>
+                        <para>
+                            Increments scaler A when an event occurs. I believe this
+                            means when any list other than list 1 is triggered?
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><varname>CVMUSB::DeviceSourceRegister::scalerAEnable</varname></term>
+                    <listitem>
+                        <para>
+                            This bit must be set to enable the scaler to count.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><varname>CVMUSB::DeviceSourceRegister::scalerAReset</varname></term>
+                    <listitem>
+                        <para>
+                            Set this bit to reset Scaler A
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><varname>CVMUSB::DeviceSourceRegister::scalerBDisabled</varname></term>
+                    <listitem>
+                        <para>
+                            Disable scaler B.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><varname>CVMUSB::DeviceSourceRegister::scalerBNIMI1</varname></term>
+                    <listitem>
+                        <para>
+                            Increment scaler B when NIM input 1 is pulsed.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><varname>CVMUSB::DeviceSourceRegister::scalerBNIMI2</varname></term>
+                    <listitem>
+                        <para>
+                            Incremenet scaler B when NIM input 2 is pulsed.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><varname>CVMUSB::DeviceSourceRegister::scalerBEventTrigger</varname></term>
+                    <listitem>
+                        <para>
+                            Increments the scaler on an event trigger.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><varname>CVMUSB::DeviceSourceRegister::scalerBEnable</varname></term>
+                    <listitem>
+                        <para>
+                            This bit must be set to enable the scaler to count.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><varname>CVMUSB::DeviceSourceRegister::scalerBReset</varname></term>
+                    <listitem>
+                        <para>
+                                Setting this bit resets the value of scaler B.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><varname>CVMUSB::DeviceSourceRegister::dggADisabled</varname></term>
+                    <listitem>
+                        <para>
+                            Disables gate and delay generator A
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><varname>CVMUSB::DeviceSourceRegister::dggANIMI1</varname></term>
+                    <listitem>
+                        <para>
+                            DGG A's input will be NIM input 1.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><varname>CVMUSB::DeviceSourceRegister::dggANIMI2</varname></term>
+                    <listitem>
+                        <para>
+                            DGG A's input will be NIM input 2.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><varname>CVMUSB::DeviceSourceRegister::dggAEventTrigger</varname></term>
+                    <listitem>
+                        <para>
+                            DGG A's input will be an event trigger
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><varname>CVMUSB::DeviceSourceRegister::dggAEndOfEvent</varname></term>
+                    <listitem>
+                        <para>
+                            DGG A's input will be the end of an event.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><varname>CVMUSB::DeviceSourceRegister::dggAUSBTrigger</varname></term>
+                    <listitem>
+                        <para>
+                            The DGG A's input will be the USB trigger. A USB
+                            trigger occurs as a result of the host writing
+                            bit
+                            <varname>CVMUSB::ActionRegister::usbTrigger</varname>
+                            in the action register.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><varname>CVMUSB::DeviceSourceRegister::dggAPulser</varname></term>
+                    <listitem>
+                        <para>
+                            The DGG A is used to provide a pulser.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><varname>CVMUSB::DeviceSourceRegister::dggBDisabled</varname></term>
+                    <listitem>
+                        <para>
+                            The B gate and delay generator is disabled.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><varname>CVMUSB::DeviceSourceRegister::dggANIMI1</varname></term>
+                    <listitem>
+                        <para>
+                            The B DGG input is the NIM Input 1.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><varname>CVMUSB::DeviceSourceRegister::dggBNIMI2</varname></term>
+                    <listitem>
+                        <para>
+                            The B DGG input is the NIM input 2.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><varname>CVMUSB::DeviceSourceRegister::dggBEventTrigger</varname></term>
+                    <listitem>
+                        <para>
+                            The B DGG is triggered when there's an even trigger.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><varname>CVMUSB::DeviceSourceRegister::dggBEndOfEvent</varname></term>
+                    <listitem>
+                        <para>
+                            The B DGG input is the end of event condition.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><varname>CVMUSB::DeviceSourceRegister::dggBUsbTrigger</varname></term>
+                    <listitem>
+                        <para>
+                            Triggers the B DGG when a USB trigger is requested by
+                            the host.  This is done by writing the action register
+                            with the
+                            <varname>CVMUSB::ActionRegister::usbTrigger</varname>
+                            bit set.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><varname>CVMUSB::DeviceSourceRegister::dggBPulser</varname></term>
+                    <listitem>
+                        <para>
+                            The B DGG is used to provide a pulser.
+                        </para>
+                    </listitem>
+                </varlistentry>
+            </variablelist>
+         </refsect2>
+         <refsect2>
+            <title><classname>CVMSUSB::DGGAndPulserRegister</classname></title>
+            <para>
+                The VM-USB has two onboard Delay and Gate Generators.  Either
+                or both of these can also function as pulsers, depending on the
+                settings in the Device source register.  Each DGG has associated
+                with it a register in which the delay time and gate width can
+                be set.  Each of these is set in units of 12.5ns.  If a
+                DGG is configured to be a pulser, the pulser on time is
+                determined by the gate width, while the off time is
+                determined by the delay.  This allows for arbitrary
+                duty factors and repetition rates.
+            </para>
+            <para>
+                Eachgate and delay register contains two fields 
+                described below:
+            </para>
+            <variablelist>
+                <varlistentry>
+                <term><varname>CVMSUSB::DGGAndPulserRegister::dggFineDelayMask</varname></term>
+                <listitem>
+                    <para>
+                        Mask for the bit field that contains the least significant
+                        bits of the delay for DGG A.  The most significant
+                        bits are in the DGG Coarse register.
+                    </para>
+                </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><varname>CVMSUSB::DGGAndPulserRegister::dggFineDelayShift</varname></term>
+                    <listitem>
+                        <para>
+                            Shift field that positions the delay field at the bottom
+                            bits (right shift) or positions them into the
+                            correct bits in the register.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><varname>CVMSUSB::DGGAndPulserRegister::dggGateWidthMask</varname></term>
+                    <listitem>
+                        <para>
+                            Mask to extract the gate width from the register.
+                            Once extracted it must sill be shifted down to the lower
+                            bits of the word to be interpreted (see below).
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><varname>CVMSUSB::DGGAndPulserRegister::dggGateWidthShift</varname></term>
+                    <listitem>
+                        <para>
+                            Shift count for the gate width.  As a right shift count,
+                            it positions the bit field in the low order bits
+                            of the longword.  As a left shift count, it positions
+                            the gate width value in the correct field.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                
+            </variablelist>
+         </refsect2>
+         <refsect2>
+            <title><classname>CVMUSB::DGGCoarseRegister</classname></title>
+            <para>
+                The original specification of the VM-USB only allowed 16 bits for
+                the delay for DGG A and DGGB.  A later modification provided an
+                additional 16 bits for both in an additional register.  This class
+                provides definitions of the two 16 bit fields in that register.
+            </para>
+            <variablelist>
+                <varlistentry>
+                    <term><variable>CVMUSB::DGGCoarseRegister::ACoarseMask</variable></term>
+                    <listitem>
+                        <para>
+                            Mask for the top 16 bits of the delay for DGG A.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><variable>CVMUSB::DGGCoarseRegister::ACoarseShift</variable></term>
+                    <listitem>
+                        <para>
+                            Shift count for the top 16 bits of the delay for
+                            DGG A.  When used as a right shift count, this
+                            shifts an extracted field to the bottom bits.
+                            When used as a left shift count, this shifts
+                            a value to the A coarse delay field.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><variable>CVMUSB::DGGCoarseRegister::BCoarseMask</variable>
+                    </term>
+                    <listitem>
+                        <para>
+                            Mask to extract the top 16 bits of the delay for DGG B.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><variable>CVMUSB::DGGCoarseRegister::BCoarseShift</variable></term>
+                    <listitem>
+                        <para>
+                            Shift count for the top 16 bits of the delay for
+                            DGG B.  When used as a right shift count, this
+                            shifts an extracted field to the bottom bits.
+                            When used as a left shift count, this shifts
+                            a value to the B coarse delay field.
+                        </para>
+                    </listitem>
+                </varlistentry>
+            </variablelist>
+         </refsect2>
+         <refsect2>
+            <title><classname>CVMUSB::ISVRegister</classname></title>
+            <para>
+                The VM-USB supports 8 lists (stacks).  The first  list,
+                list zero, can be triggered by NIM input 1.  The second,
+                periodically either after every few events or every few
+                seconds.
+            </para>
+            <para>
+                VME interrupts can also be used to trigger lists.
+                VME interrupt triggers are established via two interrupt
+                service vector registers.  Each of these registers contains
+                bit fields sufficient to describe two VME interrupts, allowing
+                four such triggers to be established.
+            </para>
+            <para>
+                While the VM-USB readout framework uses a fixed assignment of
+                list number to ISV descriptors, the VM-USB itself, does not
+                restrict the assignment of interrupts to list triggers.  It is
+                legal, for example to associate list 0 with the NIM I1, and four
+                distinct VME interrupts as event triggers.
+            </para>
+            <para>
+                The <classname>CVMUSB::ISVRegister</classname> class provides
+                mask and shift count definitions for the fields in the ISV
+                registers. Each register is defined to describe two interrupts,
+                an A and a B interrupt.
+            </para>
+            <para>
+                This class defines the following public data:
+            </para>
+            <variablelist>
+                <varlistentry>
+                <term><varname>CVMUSB::ISVRegister::AVectorMask</varname></term>
+                <listitem>
+                    <para>
+                        Masks the VME status/ID field of the first interrupt
+                        description in one of the ISV registers.
+                        This is an 8 bit field that specifies the VME interrupt
+                        vector (status ID values are often also called
+                        interrupt vectors), that will trigger the list.
+                    </para>
+                </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><varname>CVMUSB::ISVRegister::AVectorShift</varname></term>
+                    <listitem>
+                        <para>
+                            The usual positioning shift count for the A status ID.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><varname>CVMUSB::ISVRegister::AIPLMask</varname></term>
+                    <listitem>
+                        <para>
+                            Mask to extract the Interrupt Priority Level field
+                            of the first interrupt description in an ISV register.
+                            The interrupt vector together with an interrupt priority
+                            specify a trigger condition.
+                            Valid IPL values are 1 through 7 inclusive.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><varname>CVMUSB::ISVRegister::AIPLShift</varname></term>
+                    <listitem>
+                        <para>
+                            The shift count to position the IPL for the first
+                            interrupt in an ISV register.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><varname>CVMUSB::ISVRegister::AStackIDMask</varname></term>
+                    <listitem>
+                        <para>
+                            Mask to extract the stack Id of the stack (list)
+                            to trigger.
+                            This can be a value 0 through 7 inclusive and
+                            specifies which stack is triggered when the
+                            interrupt specified by the Vector and IPL
+                            fields is seen on the backplane.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><varname>CVMUSB::ISVRegister::AStackIDShift</varname></term>
+                    <listitem>
+                    <para>
+                        The usual bit field positioning shift count for the stack
+                        ID field.
+                    </para>
+                    </listitem>
+                </varlistentry>
+    
+            </variablelist>
+            <para>
+                In addition to the symbos defined above, those with identical
+                names that begin <varname>CVMUSB::ISVRegister::B...</varname>
+                rather thabn <varname>CVMUSB::ISVRegiseter::A...</varname>
+                are defined for the second interrupt description in one of the
+                registers.
+            </para>
+         </refsect2>
+         <refsect2>
+            <title><classname>CVMUSB::TransferSetupRegister</classname></title>
+            <para>
+                The VM-USB can aggregate several buffers into a single USB-2
+                transfer.  In USB-2 a transfer ends when the transmitter
+                transmits a "packet end" condition.  The transfer setup
+                register allows one to set the number of buffers that will
+                be transmitted prior to the "packet end" condition, as well as
+                a timeout that forces a "packet end" in case the data rate is low.
+            </para>
+            <para>
+                This class defines the masks and shift counts for the bit fields
+                in this register:
+            </para>
+            <variablelist>
+                <varlistentry>
+                <term><varname>CVMUSB::TransferSetupRegister::multiBufferCountMask</varname></term>
+                <listitem>
+                    <para>
+                        Mask to extract the multibuffer count field.
+                        This field holds the 
+                        number of buffers that can be aggregated into a single bulk
+                        transfer. Once this number of bufers have been transmitted,
+                        the VM-USB forces a "packet end" condition.
+                    </para>
+                </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><varname>CVMUSB::TransferSetupRegister::multiBufferCountShift</varname></term>
+                    <listitem>
+                        <para>
+                            The shift count to position the multi-buffer
+                            count field.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><varname>CVMUSB::TransferSetupRegister::timeoutMask</varname></term>
+                    <listitem>
+                        <para>
+                            Mask to extract the timeout field.  The timeout field
+                            specifies the number of seconds in excess of 1 that
+                            elapse after which if the multi buffer count has not
+                            been hit, a "packet end" is forced.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><varname>CVMUSB::TransferSetupRegister::timeoutShift</varname></term>
+                    <listitem>
+                        <para>
+                            Shift count to position the extracted fiel.
+                        </para>
+                    </listitem>
+                </varlistentry>
+
+            </variablelist>
+         </refsect2>
+      </refsect1>
+ 
+      <refsect1>
+         <title>
+            SEE ALSO
+         </title>
+	 <para>
+            <citerefentry><refentrytitle>CVMUSBReadoutList</refentrytitle><manvolume></manvolume></citerefentry>
+	 </para>
+      </refsect1>
+   </refentry>
+    <refentry id="manpage.cvmusbreadoutlist">
+      <refmeta>
+         <refentrytitle>CVMUSBReadoutList</refentrytitle>
+         <manvolnum>3usbReadout</manvolnum>
+      </refmeta>
+      <refnamediv>
+         <refname>CVMUSBreadoutList</refname>
+	 <refpurpose>Construct VM-USB lists for immediate or triggered execution.</refpurpose>
+      </refnamediv>
+      
+      <refsynopsisdiv>
+         <programlisting>
+#include &lt&;CVMUSBReadoutList.h&gt;
+         </programlisting>
+         <classsynopsis>
+            <ooclass><classname>CVMUSBReadoutList</classname></ooclass>
+            <constructorsynopsis>
+                <methodname>CVMUSBReadoutList</methodname>
+                <void />
+            </constructorsynopsis>
+            <constructorsynopsis>
+                <methodname>CVMUSBReadoutList</methodname>
+                <methodparam>
+                    <modifier>const</modifier> <type>CVMUSBReadoutList&amp;</type>
+                                               <parameter>rhs</parameter>
+                </methodparam>
+            </constructorsynopsis>
+            <destructorsynopsis>
+                <modifier>virtual</modifier> <methodname>~CVMUSBReadoutList</methodname>
+                                             <void />
+            </destructorsynopsis>
+            <methodsynopsis>
+                <type>CVMUSBReadoutList&amp;</type>
+                <methodname>operator=</methodname>
+                <methodparam>
+                    <modifier>const</modifier> <type>CVMUSBReadoutList&amp;</type>
+                    <parameter>rhs</parameter>
+                </methodparam>
+            </methodsynopsis>
+            <methodsynopsis>
+                <type>int</type>
+                <methodname>operator==</methodname>
+                <methodparam>
+                    <modifier>const</modifier> <type>CVMUSBReadoutList&amp;</type>
+                    <parameter>rhs</parameter>
+                </methodparam>
+                <modifier>const</modifier>
+            </methodsynopsis>
+            <methodsynopsis>
+                <type>int</type>
+                <methodname>operator!=</methodname>
+                <methodparam>
+                    <modifier>const</modifier>
+                    <type>CVMUSBReadoutList&amp;</type> <parameter>rhs</parameter>
+                </methodparam>
+                <modifier>const</modifier>
+            </methodsynopsis>
+            <methodsynopsis>
+                <type>void</type> <methodname>clear</methodname>
+                                  <void />
+            </methodsynopsis>
+            <methodsynopsis>
+                <type>size_t</type>
+                <methodname>size</methodname>
+                <void />
+                <modifier>const</modifier>
+            </methodsynopsis>
+            <methodsynopsis>
+                <type>std::vector&lt;uint32_t&gt;</type>
+                    <methodname>get</methodname>
+                    <void />
+                    <modifier>const</modifier>
+                
+            </methodsynopsis>
+            <methodsynopsis>
+                <type>void</type>
+                <methodname>addRegisterRead</methodname>
+                <methodparam>
+                    <type>unsigned int</type> <parameter>address</parameter>
+                </methodparam>
+            </methodsynopsis>
+            <methodsynopsis>
+                <type>void</type>
+                <methodname>addRegisterWrite</methodname>
+                <methodparam>
+                    <type>unsigned int</type> <parameter>address</parameter>
+                </methodparam>
+                <methodparam>
+                    <type>uint32_t</type> <parameter>data</parameter>
+                </methodparam>
+            </methodsynopsis>
+            <methodsynopsis>
+                <type>void</type> <methodname>addWrite32</methodname>
+                <methodparam>
+                    <type>uint32_t</type> <parameter>address</parameter>
+                </methodparam>
+                <methodparam>
+                    <type>uint8_t</type> <parameter>amod</parameter>
+                </methodparam>
+                <methodparam>
+                    <type>uint32_t</type> <parameter>datum</parameter>
+                </methodparam>
+            </methodsynopsis>
+            <methodsynopsis>
+                <type>void</type> <methodname>addWrite16</methodname>
+                <methodparam>
+                    <type>uint32_t</type> <parameter>address</parameter>
+                </methodparam>
+                <methodparam>
+                    <type>uint8_t</type> <parameter>amod</parameter>
+                </methodparam>
+                <methodparam>
+                    <type>uint16_t</type> <parameter>datum</parameter>
+                </methodparam>
+            </methodsynopsis>
+            <methodsynopsis>
+                <type>void</type> <methodname>addWrite8</methodname>
+                <methodparam>
+                    <type>uint32_t</type> <parameter>address</parameter>
+                </methodparam>
+                <methodparam>
+                    <type>uint8_t</type> <parameter>amod</parameter>
+                </methodparam>
+                <methodparam>
+                    <type>uint8_t</type> <parameter>datum</parameter>
+                </methodparam>
+            </methodsynopsis>
+            <methodsynopsis>
+                <type>void</type> <methodname>addRead32</methodname>
+                <methodparam>
+                    <type>uint32_t</type> <parameter>address</parameter>
+                </methodparam>
+                <methodparam>
+                    <type>uint8_t</type> <parameter>amod</parameter>
+                </methodparam>
+            </methodsynopsis>
+            <methodsynopsis>
+                <type>void</type> <methodname>addRead16</methodname>
+                <methodparam>
+                    <type>uint32_t</type> <parameter>address</parameter>
+                </methodparam>
+                <methodparam>
+                    <type>uint8_t</type> <parameter>amod</parameter>
+                </methodparam>
+            </methodsynopsis>
+            <methodsynopsis>
+                <type>void</type> <methodname>addRead8</methodname>
+                <methodparam>
+                    <type>uint32_t</type> <parameter>address</parameter>
+                </methodparam>
+                <methodparam>
+                    <type>uint8_t</type> <parameter>amod</parameter>
+                </methodparam>
+            </methodsynopsis>
+            <methodsynopsis>
+                <type>void</type> <methodname>addBlockRead32</methodname>
+                <methodparam>
+                    <type>uint32_t</type> <parameter>baseAddress</parameter>
+                </methodparam>
+                <methodparam>
+                    <type>uint8_t</type> <parameter>amod</parameter>
+                </methodparam>
+                <methoparam>
+                    <type>size_t</type> <parameter>transfers</parameter>
+                </methoparam>
+            </methodsynopsis>
+            <methodsynopsis>
+                <type>void</type> <methodname>addFifoRead32</methodname>
+                <methodparam>
+                    <type>uint32_t</type> <parameter>baseAddress</parameter>
+                </methodparam>
+                <methodparam>
+                    <type>uint8_t</type> <parameter>amod</parameter>
+                </methodparam>
+                <methodparam>
+                    <type>size_t</type> <parameter>transfers</parameter>
+                </methodparam>
+            </methodsynopsis>
+            <methodsynopsis>
+                <type>void</type> <methodname>addDelay</methodname>
+                <methodparam>
+                    <type>uint8_t</type> <parameter>clocks</parameter>
+                </methodparam>
+            </methodsynopsis>
+            <methodsynopsis>
+                <type>void</type> <methodname>addMarker</methodname>
+                <methodparam>
+                    <type>uint16_t</type> <parameter>value</parameter>
+                </methodparam>
+            </methodsynopsis>
+            <fieldsynopsis>
+                <modifier>static const</modifier> <type>uint8_t</type>
+                <varname>a32UserData</varname><initializer>0x09</initializer>
+            </fieldsynopsis>
+            <fieldsynopsis>
+                <modifier>static const</modifier>
+                <type>uint8_t</type> <varname>a32UserProgram</varname><initializer>0xa</initializer>
+            </fieldsynopsis>
+            <fieldsynopsis>
+                <modifier>static const</modifier>
+                <type>uint8_t</type>
+                <varname>a32UserBlock</varname> <initializer>0x0b</initializer>
+            </fieldsynopsis>
+            <fieldsynopsis>
+                <modifier>static const</modifier>
+                <type>uint8_t</type> <varname>a32PrivData</varname><initializer>0x0d</initializer>
+            </fieldsynopsis>
+            <fieldsynopsis>
+                <modifier>static const</modifier>
+                <type>uint8_t</type> <varname>a32PrivProgram</varname><initializer> 0x0e</initializer>
+            </fieldsynopsis>
+            <fieldsynopsis>
+                <modifier>static const</modifier>
+                <type>uint8_t</type> <varname>a32PrivBlock</varname><initializer>0x0f</initializer>
+            </fieldsynopsis>
+            <fieldsynopsis>
+                <modifier>static const</modifier> <type>uint8_t</type> <varname>a16User</varname><initializer>0x29</initializer>
+            </fieldsynopsis>
+            <fieldsynopsis>
+                <modifier>static const</modifier> <type>uint8_t</type>
+                    <varname>a16Priv</varname><initializer>0x2d</initializer>
+            </fieldsynopsis>
+            <fieldsynopsis>
+                <modifier>static const</modifier>
+                <type>uint8_t</type> <varname>a24UserData</varname> <initializer>0x39</initializer>
+            </fieldsynopsis>
+            <fieldsynopsis>
+                <modifier>static const</modifier>
+                <type>uint8_t</type> <varname>a24UserProgram</varname> <initializer>0x3a</initializer>
+            </fieldsynopsis>
+            <fieldsynopsis>
+                <modifier>static const</modifier> <type>uint8_t</type>
+                <varname>a24UserBlock</varname><initializer>0x3b</initializer>
+            </fieldsynopsis>
+            <fieldsynopsis>
+                <modifier>static const</modifier> <type>uint8_t</type>
+                <varname>a24PrivData</varname> <initializer>0x3d</initializer>
+            </fieldsynopsis>
+            <fieldsynopsis>
+                <modifier>static const</modifier>
+                <type>uint8_t</type> <varname>a24PrivProgram</varname>
+                                     <initializer>0x3e</initializer>
+            </fieldsynopsis>
+            <fieldsynopsis>
+                <modifier>static const</modifier>
+                <type>uint8_t</type>
+                <varname>a24PrivBlock</varname>
+                <initializer>0x3f</initializer>
+            </fieldsynopsis>
+         </classsynopsis>
+      </refsynopsisdiv>
+      <refsect1>
+         <title>Description</title>
+         <para>
+            The VM-USB modules is capable of processing lists of VME operations.
+            A VME operation list, or stack as the manual calls it, can be
+            run immediately or saved inside the VM-USB wher eit can be
+            executed in response to a trigger.
+         </para>
+         <para>
+            <classname>CVMUSBReadoutList</classname> allows you to build up
+            these lists.  The <classname>CVMUSB</classname> class supports
+            immediate list execution as well as storing lists in anticipation
+            of changing to data taking mode.  In general it is much faster to
+            perform an immediate list than to do the same set of single shot
+            operations.
+         </para>
+
+      </refsect1>
+      <refsect1>
+         <title>
+            Public member functions
+         </title>
+
+            <methodsynopsis>
+                <methodname>CVMUSBReadoutList</methodname>
+                <void />
+            </methodsynopsis>
+            <para>
+                Constructs an empty VM-USB stack object.
+            </para>
+            <methodsynopsis>
+                <methodname>CVMUSBReadoutList</methodname>
+                <methodparam>
+                    <modifier>const</modifier> <type>CVMUSBReadoutList&amp;</type>
+                                               <parameter>rhs</parameter>
+                </methodparam>
+            </methodsynopsis>
+            <para>
+                Constructs a VM-USB stack object that is a faithful copy of
+                <parameter>rhs</parameter>.
+            </para>
+            <methodsynopsis>
+                <modifier>virtual</modifier> <methodname>~CVMUSBReadoutList</methodname>
+                                             <void />
+            </methodsynopsis>
+            <para>
+                Destructor
+            </para>
+            <methodsynopsis>
+                <type>CVMUSBReadoutList&amp;</type>
+                <methodname>operator=</methodname>
+                <methodparam>
+                    <modifier>const</modifier> <type>CVMUSBReadoutList&amp;</type>
+                    <parameter>rhs</parameter>
+                </methodparam>
+            </methodsynopsis>
+            <para>
+                Clears the stack this is operating on and fill it with a
+                faithful copy of the <parameter>rhs</parameter> stack.
+            </para>
+            <methodsynopsis>
+                <type>int</type>
+                <methodname>operator==</methodname>
+                <methodparam>
+                    <modifier>const</modifier> <type>CVMUSBReadoutList&amp;</type>
+                    <parameter>rhs</parameter>
+                </methodparam>
+                <modifier>const</modifier>
+            </methodsynopsis>
+            <para>
+                Returns nonzero if this stack is equal to
+                <parameter>rhs</parameter>.  Equality in this case
+                means the elements in this stack are the same and in the same
+                order as those in <parameter>rhs</parameter>.
+            </para>  
+            <methodsynopsis>
+                <type>int</type>
+                <methodname>operator!=</methodname>
+                <methodparam>
+                    <modifier>const</modifier>
+                    <type>CVMUSBReadoutList&amp;</type> <parameter>rhs</parameter>
+                </methodparam>
+                <modifier>const</modifier>
+            </methodsynopsis>
+            <para>
+                Returns the logical inverse of
+                <methodname>operator=</methodname>.
+            </para>
+            <methodsynopsis>
+                <type>void</type> <methodname>clear</methodname>
+                                  <void />
+            </methodsynopsis>
+            <para>
+                Removes all elements from the stack.
+            </para>
+            <methodsynopsis>
+                <type>size_t</type>
+                <methodname>size</methodname>
+                <void />
+                <modifier>const</modifier>
+            </methodsynopsis>
+            <para>
+                Returns the number of lines (longwords) in the stack.
+            </para>
+            <methodsynopsis>
+                <type>std::vector&lt;uint32_t&gt;</type>
+                    <methodname>get</methodname>
+                    <void />
+                    <modifier>const</modifier>
+                
+            </methodsynopsis>
+            <para>
+                The return value of this is a
+                <classname>std::vector&lt;uint32_t&gt;</classname>
+                of the stack lines.  The vector is in the same order
+                as the stack itelf.
+            </para>  
+            <methodsynopsis>
+                <type>void</type>
+                <methodname>addRegisterRead</methodname>
+                <methodparam>
+                    <type>unsigned int</type> <parameter>address</parameter>
+                </methodparam>
+            </methodsynopsis>
+            <para>
+                Adds a register read to the stack.
+                <parameter>address</parameter> is the address of the
+                register within the VM-USB.  The VM-USB register
+                offsets are descried in VM-USB manual.  When executed, the data
+                read wil go into the output bufffer.
+            </para>
+            <methodsynopsis>
+                <type>void</type>
+                <methodname>addRegisterWrite</methodname>
+                <methodparam>
+                    <type>unsigned int</type> <parameter>address</parameter>
+                </methodparam>
+                <methodparam>
+                    <type>uint32_t</type> <parameter>data</parameter>
+                </methodparam>
+            </methodsynopsis>
+            <para>
+                Writes to the register at <parameter>address</parameter> with
+                the value <parameter>data</parameter>. 
+            </para>
+            <methodsynopsis>
+                <type>void</type> <methodname>addWrite32</methodname>
+                <methodparam>
+                    <type>uint32_t</type> <parameter>address</parameter>
+                </methodparam>
+                <methodparam>
+                    <type>uint8_t</type> <parameter>amod</parameter>
+                </methodparam>
+                <methodparam>
+                    <type>uint32_t</type> <parameter>datum</parameter>
+                </methodparam>
+            </methodsynopsis>
+            <para>
+                Adds a 32 bit write to the stack.  The write will be to
+                <parameter>address</parameter> with an offset of
+                </para>The <parameter>datum</parameter> is the longword
+                that is written.
+                The
+                <parameter>amod</parameter> parameter is the address
+                modifier for the VME transaction. see
+                "Type and public data" where a set of constant
+                definitions for this are defined.
+            </para>
+            <methodsynopsis>
+                <type>void</type> <methodname>addWrite16</methodname>
+                <methodparam>
+                    <type>uint32_t</type> <parameter>address</parameter>
+                </methodparam>
+                <methodparam>
+                    <type>uint8_t</type> <parameter>amod</parameter>
+                </methodparam>
+                <methodparam>
+                    <type>uint16_t</type> <parameter>datum</parameter>
+                </methodparam>
+            </methodsynopsis>
+            <para>
+                Adds a 16 bit write to the stack.  The parameters are the
+                same as for <classname>CVMUSBReadoutList::addWr</classname>
+                            
+            </para>  
+            <methodsynopsis>
+                <type>void</type> <methodname>addWrite8</methodname>
+                <methodparam>
+                    <type>uint32_t</type> <parameter>address</parameter>
+                </methodparam>
+                <methodparam>
+                    <type>uint8_t</type> <parameter>amod</parameter>
+                </methodparam>
+                <methodparam>
+                    <type>uint8_t</type> <parameter>datum</parameter>
+                </methodparam>
+            </methodsynopsis>
+            <para>
+                Adds an 8 bit write to the stack. The paramters are the same
+                as for the
+                <methodname>CVMUSBReadoutList::adddWrite16</methodname>
+            <methodsynopsis>
+                <type>void</type> <methodname>addRead32</methodname>
+                <methodparam>
+                    <type>uint32_t</type> <parameter>address</parameter>
+                </methodparam>
+                <methodparam>
+                    <type>uint8_t</type> <parameter>amod</parameter>
+                </methodparam>
+            </methodsynopsis>
+            </para>
+                adds a 32 bit read to the stck.  The
+                parameters are the same as for
+                <methodname>CVUMUSBReaduoutList:addWrite32</methodname>
+                    Except that the transfer is a read so there is no
+                    <parameter>datum parameter.  The data read is added
+                    to the input buffer. 
+            <methodsynopsis>
+                <type>void</type> <methodname>addRead16</methodname>
+                <methodparam>
+                    <type>uint32_t</type> <parameter>address</parameter>
+                </methodparam>
+                <methodparam>
+                    <type>uint8_t</type> <parameter>amod</parameter>
+                </methodparam>
+            </methodsynopsis>
+            <para>
+                Add a 16 bit read to the stack.
+            </para>
+            <methodsynopsis>
+                <type>void</type> <methodname>addRead8</methodname>
+                <methodparam>
+                    <type>uint32_t</type> <parameter>address</parameter>
+                </methodparam>
+                <methodparam>
+                    <type>uint8_t</type> <parameter>amod</parameter>
+                </methodparam>
+            </methodsynopsis>
+            <para>
+                Add an 8 bit read to the stack.
+            </para>
+            <methodsynopsis>
+                <type>void</type> <methodname>addBlockRead32</methodname>
+                <methodparam>
+                    <type>uint32_t</type> <parameter>baseAddress</parameter>
+                </methodparam>
+                <methodparam>
+                    <type>uint8_t</type> <parameter>amod</parameter>
+                </methodparam>
+                <methoparam>
+                    <type>size_t</type> <parameter>transfers</parameter>
+                </methoparam>
+            </methodsynopsis>
+            <para>
+                Adds a 32 bit block read to the stack. Block reads are
+                a set of reads from consecutive addresses on the VME bus.
+                One of the block read address modifiers must be used.
+            </para>
+            <para>
+                In a block read, only one address cycle needs to be
+                performed for several transactions.  This improves the
+                performance of the read tremendously.
+            </para>
+            <methodsynopsis>
+                <type>void</type> <methodname>addFifoRead32</methodname>
+                <methodparam>
+                    <type>uint32_t</type> <parameter>baseAddress</parameter>
+                </methodparam>
+                <methodparam>
+                    <type>uint8_t</type> <parameter>amod</parameter>
+                </methodparam>
+                <methodparam>
+                    <type>size_t</type> <parameter>transfers</parameter>
+                </methodparam>
+            </methodsynopsis>
+            <para>
+                Same as <methodname>CVMUSBReadoutList::addBlockRead32</methodname>
+                however all address cycles result in the same address.  This
+                makes the read suitable for emtpying a FIFO that supports
+                block mode operations.
+            </para>
+            <methodsynopsis>
+                <type>void</type> <methodname>addDelay</methodname>
+                <methodparam>
+                    <type>uint8_t</type> <parameter>clocks</parameter>
+                </methodparam>
+            </methodsynopsis>
+            <para>
+                Delays execution of the stack for <parameter>clocks</parameter>*200ns.
+            </para>  
+            <methodsynopsis>
+                <type>void</type> <methodname>addMarker</methodname>
+                <methodparam>
+                    <type>uint16_t</type> <parameter>value</parameter>
+                </methodparam>
+            </methodsynopsis>
+            <para>
+                Adds a marker word to the data stream. The word added
+                will be <parameter>value</parameter>
+            </para>
+         </classsynopsis>
+
+      </refsect1>
+      <refsect1>
+         <title>Types and public data</title>
+         <para>
+            The <class>CVMUSBReadoutList</class> defines a set of static constants
+            that provide useful symbolic definitions for the legal VME address
+            modifiers.  These are described in this section.  When reading this
+            section it's important to keep in mind that address modifiers determine
+            the number of bits of address that are used by the data way during a
+            data transfer.
+         </para>
+        <para>
+            By convention, the address width is describe as
+            <literal>An</literal> where <literal>n</literal> is
+            one of 16, 24, or 32.  And these numbers specify the
+            number of bits of address that matter.  Thus A24 means only the lower
+            24 bits address in an address longword matter.
+        </para>  
+        
+            <fieldsynopsis>
+               <modifier>static const</modifier> <type>uint8_t</type>
+               <varname>a32UserData</varname><initializer>0x09</initializer>
+           </fieldsynopsis>
+            <para>
+                Selects an A32 transfer from user data space.  This represents
+                a non-privileged access mode to what is assumed to be data rather
+                than instructions.  A32 transfers are normally called extended
+                transfers because the original VME bus only had 24 bits of
+                address space.
+            </para>
+           <fieldsynopsis>
+               <modifier>static const</modifier>
+               <type>uint8_t</type> <varname>a32UserProgram</varname><initializer>0xa</initializer>
+           </fieldsynopsis>
+           <para>
+                Same as above, but the access is to what are normally
+                instructions for a processor rather than data.
+           </para>
+           <fieldsynopsis>
+               <modifier>static const</modifier>
+               <type>uint8_t</type>
+               <varname>a32UserBlock</varname> <initializer>0x0b</initializer>
+           </fieldsynopsis>
+           <para>
+            Selects an A32 block transfer in non-rpvileged mode.
+           </para>
+           <fieldsynopsis>
+               <modifier>static const</modifier>
+               <type>uint8_t</type> <varname>a32PrivData</varname><initializer>0x0d</initializer>
+           </fieldsynopsis>
+           <para>
+            Selects an a32 transfer in privileged mode (what an operating system
+            might use), from data space.
+           </para>
+           <fieldsynopsis>
+               <modifier>static const</modifier>
+               <type>uint8_t</type> <varname>a32PrivProgram</varname><initializer> 0x0e</initializer>
+           </fieldsynopsis>
+           <para>
+            Same as above but from memory that's assumed to contain program instructions.
+           </para>
+           <fieldsynopsis>
+               <modifier>static const</modifier>
+               <type>uint8_t</type> <varname>a32PrivBlock</varname><initializer>0x0f</initializer>
+           </fieldsynopsis>
+           <para>
+            Selects a32 block transfers in privileged mode.
+           </para>
+           <fieldsynopsis>
+               <modifier>static const</modifier> <type>uint8_t</type> <varname>a16User</varname><initializer>0x29</initializer>
+           </fieldsynopsis>
+           <para>
+            Selecs an 16 transfer in user mode.  A16 is sometimes called short
+            IO space, and is always assumed to not have instructions.
+           </para>
+           <fieldsynopsis>
+               <modifier>static const</modifier> <type>uint8_t</type>
+                   <varname>a16Priv</varname><initializer>0x2d</initializer>
+           </fieldsynopsis>
+           <para>
+            A16 transfer in privileged mode.
+           </para>
+           <fieldsynopsis>
+               <modifier>static const</modifier>
+               <type>uint8_t</type> <varname>a24UserData</varname> <initializer>0x39</initializer>
+           </fieldsynopsis>
+           <para>
+            A24 transfer from non-privileged data space.  Since the original VME
+            bus had only 24 bits of address this is sometimes called
+            standard addressing.
+           </para>  
+           <fieldsynopsis>
+               <modifier>static const</modifier>
+               <type>uint8_t</type> <varname>a24UserProgram</varname> <initializer>0x3a</initializer>
+           </fieldsynopsis>
+           <para>
+            A24 transfers in User program space.
+           </para>
+           <fieldsynopsis>
+               <modifier>static const</modifier> <type>uint8_t</type>
+               <varname>a24UserBlock</varname><initializer>0x3b</initializer>
+           </fieldsynopsis>
+           <para>
+            Selects A24 block transfers.
+           </para>
+           <fieldsynopsis>
+               <modifier>static const</modifier> <type>uint8_t</type>
+               <varname>a24PrivData</varname> <initializer>0x3d</initializer>
+           </fieldsynopsis>
+           <para>
+            Selects A24 transfers in privileged data space.
+           </para>
+           <fieldsynopsis>
+               <modifier>static const</modifier>
+               <type>uint8_t</type> <varname>a24PrivProgram</varname>
+                                    <initializer>0x3e</initializer>
+           </fieldsynopsis>
+           <para>
+            Selects A24 transfers in Privileged program space.
+           </para>
+           <fieldsynopsis>
+               <modifier>static const</modifier>
+               <type>uint8_t</type>
+               <varname>a24PrivBlock</varname>
+               <initializer>0x3f</initializer>
+           </fieldsynopsis>
+            <para>
+                Selects a24 privileged block transfers.
+            </para>
+      </refsect1>
+   </refentry>
+
 
 <!-- /manpage -->
 
