@@ -67,8 +67,9 @@
             </para>
         </listitem>
         <listitem>
-            <para><emphasis>Hytec NADC2530</emphasis></para> this is a high
+            <para><emphasis>Hytec NADC2530</emphasis> this is a high
             resolution/precision 8 channel ADC module.
+            </para>
         </listitem>
     </itemizedlist>
     <para>
@@ -86,7 +87,7 @@
         a module at base address 0x80000000 give it a geographical address
         of 16, set it to discard data that is lower than 100, as well as
         overflow data.  We will add this module to a VME script that is
-        triggered by the <listeral>NIM1</listeral> VM-USB front panel input.
+        triggered by the <literal>NIM1</literal> VM-USB front panel input.
     </para>
     <example>
         <title>Sample VM-USB configuration script.</title>
@@ -97,7 +98,7 @@ set thresholds [list]                                             <co id="vmusb.
 for {set i 0} {$i &lt; 32} {incr i} {
   lappend thresholds 50                                           <co id="vmusb.50" />
 }
-adc config myadc -thresholds $thresholds                          <co id="vmsub.config2" />
+adc config myadc -thresholds $thresholds                          <co id="vmusb.config2" />
 
 stack create event -trigger nim1 -modules myadc                  <co id="vmusb.stack" />
 
@@ -211,7 +212,7 @@ stack create event -trigger nim1 -modules myadc                  <co id="vmusb.s
             by defining a <classname>CVMUSBConfigurableObject</classname>.
             This class adds three new pure virtual methods that must be implemented.
             See
-            <citerefentry><refentrytitle>CVMUSBConfigurableObject</refentrytitle><manvolume>3usbReadout</manvolume></citerefentry>
+            <citerefentry><refentrytitle>CVMUSBConfigurableObject</refentrytitle><manvolnum>3usbReadout</manvolnum></citerefentry>
             for detailed information as well as the various module driver classes also documented in the
             (3usbReadout) reference section.
         </para>
@@ -315,7 +316,7 @@ stack create event -trigger nim1 -modules myadc                  <co id="vmusb.s
             Add an <literal>#include</literal> directive to include your
             command's header.
             Locate the function named
-            <membername>CVMUSBConfig::configure</membername>, and add an
+            <methodname>CVMUSBConfig::configure</methodname>, and add an
             instance of your command to the configuration. If, for example,
             your command class name is CMyModuleCommand, you would add a line
             much like:
@@ -1008,7 +1009,7 @@ madc cget <replaceable>name</replaceable>
               The <command>madc</command> command provides scripted support
                for the Mesytec 32 channel peak sensing adc module.  For scaler
                support for this module's dead time counters, see the
-               <link linkend="madcscaler">madcscaler</link> command.
+               <link linkend="manpage.madcscaler">madcscaler</link> command.
            </para>
            <para>
                As with all VM-USB module support commands, <command>madc</command>
@@ -1510,7 +1511,7 @@ marker cget <replaceable>name</replaceable>
      </para>
      <variablelist>
         <varlistentry>
-            <term><command>create</command> <replacable>name ?-value number?</replacable></term>
+            <term><command>create</command> <replaceable>name ?-value number?</replaceable></term>
             <listitem>
                 <para>
                     Creates a new marker object named <replaceable>name</replaceable>.
@@ -2416,7 +2417,7 @@ stack config scalers -trigger scaler -modules $scalers -period 2
                 </para>
             </listitem>
             </varlistentry>
-        <varlistentry>>
+        <varlistentry>
             <term><methodname>getType</methodname></term>
             <listitem>
                 <para>
@@ -2607,7 +2608,7 @@ stack config scalers -trigger scaler -modules $scalers -period 2
      <example>
         <title>Adding a new subcommand to <classname>CModuleCommand</classname></title>
         <programlisting>
-<![CDATA]
+<![CDATA[
 int
 CMyModuleCommand::operator()(CTCLInterpreter& interp, vector<CTCLObject>& objv)
 {
@@ -3179,7 +3180,7 @@ CMyModuleCommand::operator()(CTCLInterpreter& interp, vector<CTCLObject>& objv)
       </refsect1>
    </refentry>
 
-    <refentry id="manpage.cvmusbdevicedriver">
+    <refentry id="manpage.cvmusbreadout">
       <refmeta>
          <refentrytitle>CVMUSBDeviceDriver</refentrytitle>
          <manvolnum>3usbReadout</manvolnum>
@@ -3451,7 +3452,6 @@ CMyModuleCommand::operator()(CTCLInterpreter& interp, vector<CTCLObject>& objv)
             <destructorsynopsis>
                 <modifier>virtual</modifier> <methodname>~CVMUSB</methodname>
             </destructorsynopsis>
-            <constructorsynopsis>
             <methodsynopsis>
                 <type>void</type>
                 <methodname>writeActionRegister</methodname>
@@ -3496,12 +3496,12 @@ CMyModuleCommand::operator()(CTCLInterpreter& interp, vector<CTCLObject>& objv)
                 <methodname>readLEDSource</methodname>
                 <void />
             </methodsynopsis>
-            <methodsysnopsis>
+            <methodsynopsis>
                 <type>void</type> <methodname>writeDeviceSource</methodname>
-                <mehodparam>
+                <methodparam>
                     <type>uint32_t</type> <parameter>value</parameter>
-                </mehodparam>
-            </methodsysnopsis>
+                </methodparam>
+            </methodsynopsis>
             <methodsynopsis>
                 <type>uint32_t</type> <methodname>readDeviceSource</methodname>
                                       <void />
@@ -3600,9 +3600,9 @@ CMyModuleCommand::operator()(CTCLInterpreter& interp, vector<CTCLObject>& objv)
                 <methodparam>
                     <type>uint8_t</type> <parameter>aModifier</parameter>
                 </methodparam>
-                <methodname>
+                <methodparam>
                     <type>uint32_t*</type> <parameter>data</parameter>
-                </methodname>
+                </methodparam>
             </methodsynopsis>
             <methodsynopsis>
                 <type>int</type> <methodname>vmeWrite16</methodname>
@@ -3657,9 +3657,9 @@ CMyModuleCommand::operator()(CTCLInterpreter& interp, vector<CTCLObject>& objv)
                 <methodparam>
                     <type>uint32_t</type> <parameter>baseAddress</parameter>
                 </methodparam>
-                <methopdaram>
+                <methodparam>
                     <type>uint8_t</type> <parameter>aModifier</parameter>
-                </methopdaram>
+                </methodparam>
                 <methodparam>
                     <type>void*</type> <parameter>data</parameter>
                 </methodparam>
@@ -3793,7 +3793,7 @@ CMyModuleCommand::operator()(CTCLInterpreter& interp, vector<CTCLObject>& objv)
                 serial string for the USB device that <structname>usb_device</structname>
                 data structure refers to.  For VM-USB modules, the serial string
                 is of the form <literal>VM</literal><replaceable>nnnn</replaceable>
-                where <replacable>nnnn</replacable> is a unique number for
+                where <replaceable>nnnn</replaceable> is a unique number for
                 that distinguishes the device from all other VM-USBs that have
                 been produced.
             </para>
@@ -3911,14 +3911,14 @@ CMyModuleCommand::operator()(CTCLInterpreter& interp, vector<CTCLObject>& objv)
             <para>
                 Returns the current contents of the LED source register.
             </para>
-            <methodsysnopsis>
+            <methodsynopsis>
                 <type>void</type> <methodname>writeDeviceSource</methodname>
-                <mehodparam>
+                <methodparam>
                     <type>uint32_t</type> <parameter>value</parameter>
-                </mehodparam>
-            </methodsysnopsis>
+                </methodparam>
+            </methodsynopsis>
             <para>
-                Writes <parameter>value</ to
+                Writes <parameter>value</parameter> to
                 the device source register.  This register configures
                 some of the on-board logic units that the VM-USB supplies
                 (e.g. the gate generator inputs, the scaler inputs etc).
@@ -3984,7 +3984,7 @@ CMyModuleCommand::operator()(CTCLInterpreter& interp, vector<CTCLObject>& objv)
                 extended register.  The
                 <classname>CVMUSB::DGGCoarseRegister</classname> class
                 described in "Types and public data" below provides values
-                that that aide you in constructing the <parameter>value.
+                that that aide you in constructing the <parameter>value</parameter>.
                 
             </para>
             <methodsynopsis>
@@ -4101,9 +4101,9 @@ CMyModuleCommand::operator()(CTCLInterpreter& interp, vector<CTCLObject>& objv)
                 <methodparam>
                     <type>uint8_t</type> <parameter>aModifier</parameter>
                 </methodparam>
-                <methodname>
+                <methodparam>
                     <type>uint32_t*</type> <parameter>data</parameter>
-                </methodname>
+                </methodparam>
             </methodsynopsis>
             <para>
                 Performs a single shot 32 bit VME read operation.
@@ -4197,9 +4197,9 @@ CMyModuleCommand::operator()(CTCLInterpreter& interp, vector<CTCLObject>& objv)
                 <methodparam>
                     <type>uint32_t</type> <parameter>baseAddress</parameter>
                 </methodparam>
-                <methopdaram>
+                <methodparam>
                     <type>uint8_t</type> <parameter>aModifier</parameter>
-                </methopdaram>
+                </methodparam>
                 <methodparam>
                     <type>void*</type> <parameter>data</parameter>
                 </methodparam>
@@ -4303,7 +4303,8 @@ CMyModuleCommand::operator()(CTCLInterpreter& interp, vector<CTCLObject>& objv)
                 autonomous data taking mode.  All read operations will wind up
                 in an event for that list.
                 <parameter>listNumber</parameter> is the list number to be
-                associated with that list.  <parameter>listNumber can be
+                associated with that list.  <parameter>listNumber</parameter>
+                can be
                 in the range 0..7 inclusive.  The
                 <parameter>listOffset</parameter> determines where the list is
                 loaded in VM-USB memory.
@@ -4457,15 +4458,17 @@ CMyModuleCommand::operator()(CTCLInterpreter& interp, vector<CTCLObject>& objv)
                 bit fields are not totally documented however this class provides
                 my best guess for masks and shift counts.  Masks are intended to be
                 applied before shifting.  Thus for a firmeware register read into
-                <varname>firmwareRegister</varname> arthe major revision is:
-                <literal>(firmwareRegister & CVMUSB::FirmwareRegister::majorRevMask) >> CVMUSB::FirmwareRegister::majorRevShift
+                <varname>firmwareRegister</varname> the major revision is:
+                <literal>(firmwareRegister & CVMUSB::FirmwareRegister::majorRevMask) &gt;&gt; CVMUSB::FirmwareRegister::majorRevShift</literal>
             </para>
             <variablelist>
+                <varlistentry>
                 <term><varname>CVMUSB::FirmwareRegister::minorRevMask</varname></term>
                 <listitem>
                     <para>The mask that will extract the minor revision.
                         </para>
                 </listitem>
+                </varlistentry>
                 <varlistentry>
                     <term><varname>CVMUSB::FirmwareRegister::minorRevShift</varname></term>
                     <listitem>
@@ -4771,7 +4774,7 @@ CMyModuleCommand::operator()(CTCLInterpreter& interp, vector<CTCLObject>& objv)
                             (left shift).
                         </para>
                     </listitem>
-            
+                </varlistentry>
                 <varlistentry>
                     <term><varname>CVMUSB::DAQSettingsRegister::scalerFrequencyPeriodMask</varname></term>
                     <listitem>
@@ -4839,13 +4842,13 @@ CVMUSB::LedSourceRegister::bottomYellowBusGranted
                 </varlistentry>
                 <varlistentry>
                     <term><varname>CVMUSB::LedSourceRegister::topYellowInFiFoNotEmpty</varname></term>
-                    <listentry>
+                    <listitem>
                         <para>
                             Lights the top yellow LED whenver the input FIFO is not
                             empty (whenever the VM-USB's USB interface is holding
                             unprocessed commands from the host to the VM-USB).
                         </para>
-                    </listentry>
+                    </listitem>
                 </varlistentry>
                 <varlistentry>
                     <term><varname>CVMUSB::LedSourceRegister::topYellowScalerEvent</varname></term>
@@ -5019,8 +5022,10 @@ CVMUSB::LedSourceRegister::bottomYellowBusGranted
                 <varlistentry>
                     <term><varname>CVMUSB::LedSourceRegister::greenAcquire</varname></term>
                     <listitem>
+                        <para>
                         Lights the green LED when autonomous mode acquisition is
                         active.
+                        </para>
                     </listitem>
                 </varlistentry>
                 <varlistentry>
@@ -5191,7 +5196,7 @@ CVMUSB::LedSourceRegister::bottomYellowBusGranted
             </variablelist>
          </refsect2>
          <refsect2>
-            <title><class>CVMUSB::DeviceSourceRegister</class></title>
+            <title><classname>CVMUSB::DeviceSourceRegister</classname></title>
             <para>
                 The VM-USB features two NIM outputs, an internal pair of gate and delay generators,
                 two scalers and a pulser.  The Device Source Register determines
@@ -5349,14 +5354,14 @@ CVMUSB::LedSourceRegister::bottomYellowBusGranted
                         </para>
                     </listitem>
                 </varlistentry>
-                <variablelist>
+                <varlistentry>
                     <term><varname>CVMUSB::DeviceSourceRegister::nimO2EndOfEvent</varname></term>
                     <listitem>
                         <para>
                             NIM Output 2 is asserted at end of event readout.
                         </para>
                     </listitem>
-                </variablelist>
+                </varlistentry>
                 <varlistentry>
                     <term><varname>CVMUSB::DeviceSourceRegister::nimO2UsbTrigger</varname></term>
                     <listitem>
@@ -5675,7 +5680,7 @@ CVMUSB::LedSourceRegister::bottomYellowBusGranted
             </para>
             <variablelist>
                 <varlistentry>
-                    <term><variable>CVMUSB::DGGCoarseRegister::ACoarseMask</variable></term>
+                    <term><varname>CVMUSB::DGGCoarseRegister::ACoarseMask</varname></term>
                     <listitem>
                         <para>
                             Mask for the top 16 bits of the delay for DGG A.
@@ -5683,7 +5688,7 @@ CVMUSB::LedSourceRegister::bottomYellowBusGranted
                     </listitem>
                 </varlistentry>
                 <varlistentry>
-                    <term><variable>CVMUSB::DGGCoarseRegister::ACoarseShift</variable></term>
+                    <term><varname>CVMUSB::DGGCoarseRegister::ACoarseShift</varname></term>
                     <listitem>
                         <para>
                             Shift count for the top 16 bits of the delay for
@@ -5695,7 +5700,7 @@ CVMUSB::LedSourceRegister::bottomYellowBusGranted
                     </listitem>
                 </varlistentry>
                 <varlistentry>
-                    <term><variable>CVMUSB::DGGCoarseRegister::BCoarseMask</variable>
+                    <term><varname>CVMUSB::DGGCoarseRegister::BCoarseMask</varname>
                     </term>
                     <listitem>
                         <para>
@@ -5704,7 +5709,7 @@ CVMUSB::LedSourceRegister::bottomYellowBusGranted
                     </listitem>
                 </varlistentry>
                 <varlistentry>
-                    <term><variable>CVMUSB::DGGCoarseRegister::BCoarseShift</variable></term>
+                    <term><varname>CVMUSB::DGGCoarseRegister::BCoarseShift</varname></term>
                     <listitem>
                         <para>
                             Shift count for the top 16 bits of the delay for
@@ -5887,7 +5892,7 @@ CVMUSB::LedSourceRegister::bottomYellowBusGranted
             SEE ALSO
          </title>
 	 <para>
-            <citerefentry><refentrytitle>CVMUSBReadoutList</refentrytitle><manvolume></manvolume></citerefentry>
+            <citerefentry><refentrytitle>CVMUSBReadoutList</refentrytitle><manvolnum>3</manvolnum></citerefentry>
 	 </para>
       </refsect1>
    </refentry>
@@ -6053,9 +6058,9 @@ CVMUSB::LedSourceRegister::bottomYellowBusGranted
                 <methodparam>
                     <type>uint8_t</type> <parameter>amod</parameter>
                 </methodparam>
-                <methoparam>
+                <methodparam>
                     <type>size_t</type> <parameter>transfers</parameter>
-                </methoparam>
+                </methodparam>
             </methodsynopsis>
             <methodsynopsis>
                 <type>void</type> <methodname>addFifoRead32</methodname>
@@ -6301,8 +6306,8 @@ CVMUSB::LedSourceRegister::bottomYellowBusGranted
             </methodsynopsis>
             <para>
                 Adds a 32 bit write to the stack.  The write will be to
-                <parameter>address</parameter> with an offset of
-                </para>The <parameter>datum</parameter> is the longword
+                <parameter>address</parameter>.
+                The <parameter>datum</parameter> is the longword
                 that is written.
                 The
                 <parameter>amod</parameter> parameter is the address
@@ -6324,8 +6329,7 @@ CVMUSB::LedSourceRegister::bottomYellowBusGranted
             </methodsynopsis>
             <para>
                 Adds a 16 bit write to the stack.  The parameters are the
-                same as for <classname>CVMUSBReadoutList::addWr</classname>
-                            
+                same as for <classname>CVMUSBReadoutList::addWr</classname>  
             </para>  
             <methodsynopsis>
                 <type>void</type> <methodname>addWrite8</methodname>
@@ -6343,6 +6347,7 @@ CVMUSB::LedSourceRegister::bottomYellowBusGranted
                 Adds an 8 bit write to the stack. The paramters are the same
                 as for the
                 <methodname>CVMUSBReadoutList::adddWrite16</methodname>
+            </para>
             <methodsynopsis>
                 <type>void</type> <methodname>addRead32</methodname>
                 <methodparam>
@@ -6352,13 +6357,14 @@ CVMUSB::LedSourceRegister::bottomYellowBusGranted
                     <type>uint8_t</type> <parameter>amod</parameter>
                 </methodparam>
             </methodsynopsis>
-            </para>
-                adds a 32 bit read to the stck.  The
+            <para>
+                adds a 32 bit read to the stack.  The
                 parameters are the same as for
                 <methodname>CVUMUSBReaduoutList:addWrite32</methodname>
                     Except that the transfer is a read so there is no
-                    <parameter>datum parameter.  The data read is added
-                    to the input buffer. 
+                    <parameter>datum</parameter> parameter.  The data read is added
+                    to the input buffer.
+            </para>
             <methodsynopsis>
                 <type>void</type> <methodname>addRead16</methodname>
                 <methodparam>
@@ -6391,9 +6397,9 @@ CVMUSB::LedSourceRegister::bottomYellowBusGranted
                 <methodparam>
                     <type>uint8_t</type> <parameter>amod</parameter>
                 </methodparam>
-                <methoparam>
+                <methodparam>
                     <type>size_t</type> <parameter>transfers</parameter>
-                </methoparam>
+                </methodparam>
             </methodsynopsis>
             <para>
                 Adds a 32 bit block read to the stack. Block reads are
@@ -6442,13 +6448,13 @@ CVMUSB::LedSourceRegister::bottomYellowBusGranted
                 Adds a marker word to the data stream. The word added
                 will be <parameter>value</parameter>
             </para>
-         </classsynopsis>
+
 
       </refsect1>
       <refsect1>
          <title>Types and public data</title>
          <para>
-            The <class>CVMUSBReadoutList</class> defines a set of static constants
+            The <classname>CVMUSBReadoutList</classname> defines a set of static constants
             that provide useful symbolic definitions for the legal VME address
             modifiers.  These are described in this section.  When reading this
             section it's important to keep in mind that address modifiers determine
