@@ -44,7 +44,7 @@ CConfiguration::CConfiguration() :
   m_pInterp(0)
 {
 
-
+  m_pInterp = new CTCLInterpreter();
 
 }
 /*!
@@ -228,6 +228,9 @@ CConfiguration::clearConfiguration()
     delete m_Objects[i].s_pObject;
   }
   m_Objects.clear();
+
+
+
 }
 /*!
   \return CTCLInterpreter* 
