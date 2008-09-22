@@ -206,7 +206,7 @@ RingSelectorMain::processData()
     size_t     size  = pItem->getBodySize() + sizeof(RingItemHeader);
     RingItem*  pData = pItem->getItemPointer();
     writeBlock(STDOUT_FILENO, pData, size);
-    
+    delete pItem;
   }
 }
 
