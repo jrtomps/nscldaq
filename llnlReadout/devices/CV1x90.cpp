@@ -542,7 +542,7 @@ CV1x90::Initialize(CVMUSB& controller)
 void
 CV1x90::addReadoutList(CVMUSBReadoutList& list)
 {
-  uint32_t base = m_pConfiguration->getIntegerParameter("-base");
+  uint32_t base = m_pConfiguration->getUnsignedParameter("-base");
 
   list.addBlockRead32(base, readamod, 1024);
 }

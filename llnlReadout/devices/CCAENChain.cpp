@@ -193,6 +193,8 @@ CCAENChain::addReadoutList(CVMUSBReadoutList& list)
   unsigned int transferCount  = m_moduleCount * LongwordsPerModule;
 
   list.addBlockRead32(m_baseAddress, cbltamod, transferCount); // Thwack the 'that was easy (TM)' button.
+  list.addWrite16(m_baseAddress + BSET2, mcstamod, CLEAR_DATA);
+  list.addWrite16(m_baseAddress + BCLR2, mcstamod, CLEAR_DATA);
 
 }
 
