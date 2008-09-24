@@ -291,6 +291,8 @@ CV1x90::Initialize(CVMUSB& controller)
 
   controller.vmeWrite16(base + CCAENV1x90Registers::WReset, initamod, 0);
   WaitMicro(controller, base);
+  usleep(1000);			// Wait another msec just in case.
+  WaitMicro(controller,base);	// ..and wait for the micro to be ready.
 
   // Figure out m_Model, m_Suffix, m_nChipCount, and m_nChannelCount
 
@@ -528,7 +530,7 @@ CV1x90::Initialize(CVMUSB& controller)
 	       CCAENV1x90Opcodes::SET_ADJUST_CH | channel,
 	       &value, 1);
   }
-  
+  controller.vmeWrite16(base + CCAENV1x90Registers::WClear, initamod, 0); // Clear pending events.
 
 }
 /*!
@@ -545,6 +547,7 @@ CV1x90::addReadoutList(CVMUSBReadoutList& list)
   uint32_t base = m_pConfiguration->getUnsignedParameter("-base");
 
   list.addBlockRead32(base, readamod, 1024);
+  list.addWrite16(base + CCAENV1x90Registers::WClear, initamod, 0);
 }
 /*!
    Clone oursevles.. well this is really just a virtual copy constructor:
@@ -727,7 +730,10 @@ CV1x90::WaitMicro(CVMUSB& controller, uint32_t base)
 
   while (1) {
     uint16_t status;
-    controller.vmeRead16(address, initamod, &status);
+    int ok = controller.vmeRead16(address, initamod, &status);
+    if (ok != 0) {
+      throw string("VME Read of mdiro handshake register failed");
+    }
     if (status & CCAENV1x90Registers::MicroHandshake::WRITE_OK) return;
     
   }
@@ -756,13 +762,19 @@ CV1x90::WriteMicro(CVMUSB&  controller,
   // The opcode:
 
   WaitMicro(controller, base);
-  controller.vmeWrite16(address, initamod, opcode);
+  int status = controller.vmeWrite16(address, initamod, opcode);
+  if (status != 0) {
+    throw string("Write of opcode to micro register failed");
+  }
 
   // Now the data words:
 
   while (words > 0) {
     WaitMicro(controller, base);
-    controller.vmeWrite16(address, initamod, *data);
+    status = controller.vmeWrite16(address, initamod, *data);
+    if (status != 0) {
+      throw string("Write of data to micro register failed");
+    }
     words--; data++;
   }
 
