@@ -39,6 +39,10 @@
 
 struct DataBuffer;
 class CRingBuffer;
+class CMutex;
+class CConditionVariable;
+
+
 /*!
     This class bridges the gap between the buffer format of the
     USB devices and ring buffers.  
@@ -119,6 +123,8 @@ private:
   time_t      m_lastStampedBuffer; //!< Seconds into run of last stamped buffer
   uint64_t    m_eventCount;	   //!< Number of events this run.
   CRingBuffer* m_pRing;            // Where the data goes..
+  CMutex      *m_pInitMutex;
+  CConditionVariable *m_pInitialized; 
 
   // Constuctors and other canonicals.
 
@@ -131,13 +137,13 @@ private:
   int operator==(const COutputThread& rhs) const;
   int operator!=(const COutputThread& rhs) const;
 public:
+  void         Start();		/* Start the application. */
 
   // Thread operations are all non-public in fact.. don't want to call them
   // from outside this class.. only from within the thread.. This includes the
   // thread entry point.
 
 protected:
-
   virtual void run();
 
   DataBuffer& getBuffer();

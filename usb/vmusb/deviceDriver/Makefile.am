@@ -27,4 +27,6 @@ libvmUsbDeviceDrivers_la_LDFLAGS =	@top_srcdir@/usb/acqcommon/libusbacqcommon.la
 					@top_srcdir@/usb/threadcom/libThreadComm.la	\
 					@top_srcdir@/usb/output/libOutputStage.la	\
 					@top_srcdir@/base/thread/libdaqthreads.la	\
-					@TCL_LDFLAGS@
+					@TCL_LDFLAGS@ $(THREADLD_FLAGS)
+
+libvmUsbDeviceDrivers_la_CXXFLAGS = $(THREADCXX_FLAGS) $(AM_CXXFLAGS)

@@ -10,9 +10,11 @@ noinst_HEADERS = cmdline.h CDAQStart.h  CFileSinkCreator.h \
 
 INCLUDES	= -I@top_srcdir@/base/headers -I@top_srcdir@/base/exception -I.
 
-daqstart_LDADD = -L@top_srcdir@/base/exception -lException
+daqstart_LDADD = -L@top_srcdir@/base/exception -lException	\
+		$(THREADLD_FLAGS)
 
-AM_CXXFLAGS	= -D_GNU_SOURCE
+daqstart_CXXFLAGS=$(THREADCXX_FLAGS) -D_GNU_SOURCE $(AM_CXXFLAGS)
+
 
 
 cmdline.c: daqstart.ggo

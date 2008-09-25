@@ -29,6 +29,8 @@ VMUSBReadout_LDADD	=	@top_srcdir@/usb/acqcommon/libusbacqcommon.la	\
 				@top_srcdir@/usb/vmusb/deviceDriver/libvmUsbDeviceDrivers.la \
 				@top_srcdir@/usb/vmusb/daqconfig/libvmUsbConfigCommands.la	\
 				@top_srcdir@/base/thread/libdaqthreads.la	\
-				@TCL_LDFLAGS@ -lusb
+				@TCL_LDFLAGS@ -lusb $(THREADLD_FLAGS)
+
+VMUSBReadout_CXXFLAGS	=	$(THREADCXX_FLAGS) $(AM_CXXFLAGS)
 
 

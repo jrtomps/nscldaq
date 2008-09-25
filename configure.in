@@ -344,6 +344,19 @@ AC_SUBST(GENGETOPT)
 AM_CONDITIONAL([PDFDOCS], [test x$HAVE_DOCBOOK2PDF = xtrue])
 AM_CONDITIONAL([XMLMANS], [test x$HAVE_XMLTO = xtrue])
 
+#
+#  Threading is hard coded to -pthread now.
+#
+THREADCXX_FLAGS="-pthread"
+THREADC_FLAGS="-pthread"
+THREADLD_FLAGS="-lpthread"
+
+AC_SUBST(THREADCXX_FLAGS)
+AC_SUBST(THREADC_FLAGS)
+AC_SUBST(THREADLD_FLAGS)
+
+
+
 #---------------------------------------------------------------------------
 # Generate the following from their .in's (note that Automake takes
 # *.am -> *.in.

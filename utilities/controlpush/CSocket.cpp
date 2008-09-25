@@ -213,8 +213,18 @@ CSocket::Connect(const string& host, const string& service)
     {				                   // (3) calls not threadsafe.
       ipaddr = inet_addr(host.c_str());
       if(ipaddr == INADDR_NONE) {	// Need to translate the name...
-	pEntry = gethostbyname(host.c_str());
-	if(pEntry) memcpy(&ipaddr, pEntry->h_addr, 4);
+
+	struct hostent entry;
+	char   buffer [1024];
+	int    error;
+	if (!gethostbyname_r(host.c_str(),
+			     &entry, buffer, sizeof(buffer),
+			     &pEntry,  &error)) {
+	  memcpy(&ipaddr, &(entry.h_addr), 4);
+	}
+	else {
+	  pEntry = reinterpret_cast<struct hostent*>(NULL);
+	}
       }                                              // <-- End Critical region
       CApplicationSerializer::Unlock();
       if(!pEntry) throw CTCPNoSuchHost(host, 

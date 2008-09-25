@@ -348,9 +348,18 @@ TcpClientConnection::MakeSocketAddress()
     // If that doesn't work use DNS to resolve as a hostname, or throw 
     // no such host exception.
 
-    struct hostent* pHostEntry = gethostbyname(m_sRemoteHost.c_str());
-    if(!pHostEntry) throw (string("No such host: ") + m_sRemoteHost) ;
-    memcpy(&result.sin_addr.s_addr, pHostEntry->h_addr, sizeof (in_addr));
+
+
+    struct hostent* pHostEntry;
+    struct hostent  entry;
+    char            data[1024];
+    int             error;
+    if (gethostbyname_r(m_sRemoteHost.c_str(),
+			&entry, data, sizeof(data),
+			&pHostEntry, &error)) {
+      throw (string("No such host: ") + m_sRemoteHost) ;
+    }
+    memcpy(&result.sin_addr.s_addr, entry.h_addr, sizeof (in_addr));
   }
 
   result.sin_port = htons(m_nRemotePort);

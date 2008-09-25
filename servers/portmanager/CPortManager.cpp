@@ -35,6 +35,10 @@
 #include <pwd.h>
 #include <regex.h>
 #include <stdlib.h>
+
+#include <tcl.h>
+
+
 // #include <publib.h>
 #include <ctype.h>
 
@@ -141,7 +145,9 @@ CPortManager::operator!=(const CPortManager& rhs) const
 int
 CPortManager::allocatePort(string application)
 {
+
 	Connect();
+
 	
 	// Build up the command and send it.
 	
@@ -171,6 +177,7 @@ CPortManager::allocatePort(string application)
 	// Get the reply: 
 	
 	string reply = GetLine();
+
 	
 	// Simplest decode is with an istringstream:
 	
@@ -257,7 +264,8 @@ CPortManager::allocatePort(string application)
  	vector<portInfo> result;
  	for(int i =0; i < nlines; i++) {
 	  portInfo info;
-	  GetPortInfo(info, GetLine());
+	  string  data = GetLine();
+	  info = GetPortInfo(data);
 	  result.push_back(info);
  	}
  	Disconnect();
@@ -295,9 +303,11 @@ CPortManager::Connect()
     // Translate the host and port to a sockaddr_in structure:
     
     sockaddr_in remoteAddress;
+    memset(&remoteAddress, 0, sizeof(remoteAddress));
     
     try {
       GetNetworkAddress(remoteAddress);      // Throws on error.
+
     }
     catch (...) {
       close(m_nSocket);                       // prevent socket leaks.
@@ -400,25 +410,38 @@ CPortManager::GetNetworkAddress(sockaddr_in& result) const
 	result.sin_port   = htons(m_nPort);
 	
 	// Attempt to translate the hostname:
+
+
+
+	struct hostent entry;
+	struct hostent *pEntry;
+	char           otherData[1024];
+	int            herrno;
+	if(!gethostbyname_r(m_sHost.c_str(),
+			    &entry,
+			    otherData, sizeof(otherData),
+			    &pEntry, &herrno)) {
+
 	
-	struct hostent* pEntry = gethostbyname(m_sHost.c_str());
-	if(pEntry) {
-	  if(pEntry->h_addrtype != AF_INET) {
+	  if(entry.h_addrtype != AF_INET) {
 	    throw CPortManagerException(m_sHost,
 					CPortManagerException::ConnectionFailed,
 			                            " Host is not AF_INET ");
 	  }
-		memcpy(&(result.sin_addr), pEntry->h_addr, pEntry->h_length);
-		return;
+	  
+	  memcpy(&(result.sin_addr.s_addr), entry.h_addr_list[0], entry.h_length);
+	  return;
 	}
-	// For whatever reason, we could not translate the host by name.
-	// try by number:
-	
-	if(!inet_aton(m_sHost.c_str(), &(result.sin_addr))) {
-	  throw CPortManagerException(m_sHost,
-				      CPortManagerException::ConnectionFailed,
-				      "Host lookup failed");	
-	}	
+	else {
+	  // For whatever reason, we could not translate the host by name.
+	  // try by number:
+	  
+	  if(!inet_aton(m_sHost.c_str(), &(result.sin_addr))) {
+	    throw CPortManagerException(m_sHost,
+					CPortManagerException::ConnectionFailed,
+					"Host lookup failed");	
+	  }	
+	}
 }
 /*!
  * Get a line of text from the socket.  Unfortunately, the only way to do this
@@ -476,63 +499,45 @@ CPortManager::GetLine() const
 	The third chunk is the stuff in the middle with leading and trailing 
 	whitespace stripped off.
 */
-void
-CPortManager::GetPortInfo(CPortManager::portInfo& result, string l)
+CPortManager::portInfo 
+CPortManager::GetPortInfo(string l)
 {
-  string line(l);
+
+  portInfo result;
+
+  // Ok I tried to do this with regular expressions, but on debian
+  // etch I caught regcomp in the act of smashing the heap
+  // so we'll decode the line as a Tcl list which, in fact, it is.
+
+
+  int argc;
+  const char **argv;
+
+  string copy;
+  copy.assign(l);
+  const char* list = copy.c_str();
+
   
-  // Regular expressions we will use:
-  
-  string leadingnumber("^[0-9]+");
-  string trailingusername("([a-z])([a-z,0-9]*)$");
-  
-  regex_t lnumber;
-  regex_t tusername;
-  
-  assert(regcomp(&lnumber, leadingnumber.c_str(), REG_EXTENDED) == 0);
-  assert(regcomp(&tusername, trailingusername.c_str(), REG_EXTENDED) == 0);
-  
-  // Get the port number extent and convert the substring to the port.
-  
-  regmatch_t portextent;
-  assert(regexec(&lnumber, line.c_str(), 1, &portextent,0) == 0);
-  string port;
-  port.assign(line, portextent.rm_so,
-	      portextent.rm_eo - portextent.rm_so);
-  result.s_Port = atoi(port.c_str());
-  
-  // Get the username extent and convert the substring into a username.
-  // we assume usernames are of the form [a-z][a-z,0-9]* 
-  // and are butted right up to the end of the string.
-  
-  regmatch_t userextent;
-  assert(regexec(&tusername, line.c_str(), 1, &userextent, 0) == 0);
-  result.s_User.assign(line, userextent.rm_so,
-		       userextent.rm_eo - userextent.rm_so);
-  
-  
-  regfree(&lnumber);
-  regfree(&tusername);
-  // The string between the two starts is most of the application name.
-  // we need to trim whitespace off the front and back of this.
-  
-  int start = portextent.rm_eo + 1; // string starts earliest here.
-  int end   = userextent.rm_so - 1; // and ends earliest here.
-  
-  while(start <= end) {
-    if(!isspace(line[start])) {
-      break;
-    }
-    start++;
+  int ok = Tcl_SplitList(reinterpret_cast<Tcl_Interp*>(NULL), 
+			 list,
+			 &argc, &argv);
+
+  if (ok != TCL_OK) {
+    throw std::string("CPortManager::GetPortInfo - string is not a good list");
   }
-  while(end >= start) {
-    if(!isspace(line[end])) {
-      break;
-    }
-    end--;
+  if (argc != 3) {
+    throw std::string("CPortManager::GetPortInfo - list does not have 3 elements");
   }
-  result.s_Application.assign(line, start, end-start+1);
-  
+
+  result.s_Port        = atoi(argv[0]);
+  result.s_Application = argv[1];
+  result.s_User        = argv[2];
+
+  Tcl_Free((char*)argv);
+
+
+  return result;
+
 }
 /*!  Get and return the name of the user that corresponds to the current
   effective userid.

@@ -324,12 +324,18 @@ Bool_t CTclAuthorizer::HostToIp(string& rName)
   // First the string is treated as a hostname for the resolver to
   // turn into an IP address:
 
-  struct hostent* pHostInfo = gethostbyname(rName.c_str());
-  if(! pHostInfo) {		// Try as dotted ip
+  struct hostent* pHostInfo;
+  struct hostent  entry;
+  char            buffer[1024];
+  int             error;
+  if (gethostbyname_r(rName.c_str(),
+		      &entry, buffer, sizeof(buffer),
+		       &pHostInfo, &error)) {
+
     IpAddress.s_addr = inet_addr(rName.c_str());
   }
   else {
-    memcpy(&IpAddress, pHostInfo->h_addr,4);
+    memcpy(&IpAddress, entry.h_addr, sizeof(IpAddress));
   }
   union {
     uint32_t along;
@@ -395,8 +401,18 @@ CTclAuthorizer::ConvertHost(const string& rInName,
   rCanonicalIP = rInName;
   if(!HostToIp(rCanonicalIP)) return kfFALSE;
 
-  struct hostent* pEntry = gethostbyname(myname.c_str());
-  rOutname = pEntry ? myname : string(">unresolved<");
+  struct hostent* pEntry;
+  struct hostent  entry;
+  char            data[1024];
+  int             error;
+  int status = gethostbyname_r(myname.c_str(),
+			       &entry, data, sizeof(data),
+			       &pEntry, &error);
+
+
+
+
+  rOutname = status ? string(">unresolved<") : myname;
   return kfTRUE;
 }
 /////////////////////////////////////////////////////////////////////

@@ -123,7 +123,7 @@ void
 App::startOutputThread()
 {
   CVMUSBOutputThread* pOutput = new CVMUSBOutputThread();
-  pOutput->start();
+  pOutput->Start();
 }
 
 /*!

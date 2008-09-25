@@ -45,4 +45,6 @@ libvmUsbConfigCommands_la_LDFLAGS	=	@top_srcdir@/base/tclplus/libtclPlus.la	\
 						@top_srcdir@/usb/vmusb/deviceDriver/libvmUsbDeviceDrivers.la	\
 						@top_srcdir@/usb/acqcommon/libusbacqcommon.la			\
 						@top_srcdir@/base/thread/libdaqthreads.la	\
-						@TCL_LDFLAGS@
+						@TCL_LDFLAGS@ $(THREADLD_FLAGS)
+
+libvmUsbConfigCommands_la_CXXFLAGS	= $(THREADCXX_FLAGS) $(AM_CXXFLAGS)

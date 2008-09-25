@@ -9,7 +9,10 @@ include_HEADERS = ErrnoException.h Exception.h  StreamIOError.h \
 	MonitorException.h CInvalidArgumentException.h
 
 libException_la_LDFLAGS = -version-info $(SOVERSION) \
-	-Wl,"-rpath-link=$(libdir)"
+	-Wl,"-rpath-link=$(libdir)" $(THREADLD_FLAGS)
+
+libException_la_CXXFLAGS	= $(THREADCXX_FLAGS) 	\
+				$(AM_CXXFLAGS)
 
 INCLUDES = -I@top_srcdir@/base/headers
 

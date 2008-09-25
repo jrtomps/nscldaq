@@ -26,7 +26,8 @@ libusbapplication_la_LDFLAGS	=	@top_srcdir@/usb/tclcommon/libusbtclcommon.la	\
 					@top_srcdir@/servers/portmanager/libPortManager.la	\
 					@top_srcdir@/base/exception/libException.la	\
 					@top_srcdir@/base/thread/libdaqthreads.la	\
-					@TCL_LDFLAGS@
+					@TCL_LDFLAGS@ $(THREADLD_FLAGS)
+libusbapplication_la_CXXFLAGS	=	$(THREADCXX_FLAGS)
 
 BUILT_SOURCES			= 	usbReadoutOptions.h
 

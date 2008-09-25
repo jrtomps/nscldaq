@@ -29,17 +29,19 @@ INCLUDES 		=	-I.. 					\
 dumper_LDADD		=	dumperargs.o	\
 				@top_srcdir@/daq/format/libdataformat.la	\
 				@top_srcdir@/base/dataflow/libDataFlow.la	\
-				@top_srcdir@/base/exception/libException.la
+				@top_srcdir@/base/exception/libException.la	\
+				$(THREADLD_FLAGS)
 
+dumper_CXXFLAGS = $(THREADCXX_FLAGS) $(AM_CXXFLAGS)
 
 dumperargs.h: dumperargs.ggo
 	$(GENGETOPT) <dumperargs.ggo --file=dumperargs
-	$(CC) -c -I. dumperargs.c
+	$(CC) -c -I. dumperargs.c $(THREADCFLAGS)
 
 
 dumperargs.o: dumperargs.ggo
 	$(GENGETOPT) <dumperargs.ggo --file=dumperargs
-	$(CC) -c -I. dumperargs.c
+	$(CC) -c -I. dumperargs.c $(THREADCFLAGS)
 
 
 EXTRA_DIST=dumperargs.ggo

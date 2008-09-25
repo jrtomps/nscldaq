@@ -343,7 +343,14 @@ void URL::parseString(string rStr) {
 
     // Host is a DNS or bad:
 
-    if (!(gethostbyname(host.c_str()))) {
+    struct hostent entry;
+    struct hostent *pEntry;
+    char            buffer[1024];
+    int             error;
+    int status  = gethostbyname_r(host.c_str(),
+				  &entry, buffer, sizeof(buffer),
+				  &pEntry, &error);
+    if (status) {
       throw
 	CURIFormatException(rStr, host.c_str(),
 			    __FILE__, __LINE__);

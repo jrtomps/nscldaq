@@ -6,7 +6,9 @@ AM_LDFLAGS = -L. @TCL_LDFLAGS@ -L$(top_srcdir)/base/exception
 lib_LTLIBRARIES = libtclPlus.la
 
 libtclPlus_la_LDFLAGS = -version-info $(SOVERSION) \
-	-Wl,"-rpath-link=$(libdir)"
+	-Wl,"-rpath-link=$(libdir)" $(THREADLD_FLAGS)
+
+libtclPlus_la_CXXFLAGS = $(THREADCXX_FLAGS) $(AM_CXXFLAGS)
 
 testableSources = TCLInterpreter.cpp TCLProcessor.cpp  \
 	TCLVariable.cpp TCLString.cpp  \

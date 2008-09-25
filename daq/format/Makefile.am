@@ -27,11 +27,14 @@ INCLUDES	= -I@top_srcdir@/base/dataflow	\
 		-I@top_srcdir@/base/headers
 
 libdataformat_la_LDFLAGS	= -version-info $(SOVERSION)	\
-				-Wl,"-rpath-link=$(libdir)" -lrt
+				-Wl,"-rpath-link=$(libdir)" -lrt \
+				$(THREADLD_FLAGS)
 
 libdataformat_la_LIBADD	= @top_srcdir@/base/dataflow/libDataFlow.la \
 			@top_srcdir@/base/exception/
 
+
+libdataformat_la_CXXFLAGS = $(THREADCXX_FLAGS) $(AM_CXXFLAGS)
 
 #------------------- Tests:
 

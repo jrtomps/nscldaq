@@ -89,7 +89,7 @@ private:
   static int DetermineDefaultPort();
   void GetNetworkAddress(sockaddr_in& addr) const;
   std::string GetLine() const;
-  void    GetPortInfo(portInfo& info, std::string line);
+  portInfo    GetPortInfo(std::string line);
   static int tcp();
 };
 

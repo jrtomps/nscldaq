@@ -36,6 +36,8 @@
 #include <CRingStateChangeItem.h>
 #include <DataFormat.h>
 
+#include <CMutex.h>
+#include <CCondition.h>
 
 #include <unistd.h>
 #include <pwd.h>
@@ -78,6 +80,27 @@ COutputThread::~COutputThread()
   delete m_pRing;
 }
 
+/*!
+   Start the thread.  We block until the main loop is entered
+   using the condition variables in the member data:
+*/
+void
+COutputThread::Start()
+{
+
+  m_pInitMutex   = new CMutex();
+  m_pInitialized = new CConditionVariable();
+
+  m_pInitMutex->lock();		// Need to hold this when waiting on condition...
+  start();			// start the output thread.
+
+  m_pInitialized->wait(*m_pInitMutex);	// Wait for initialization to be complete.
+  m_pInitMutex->unlock();	// We're in the main loop now.
+
+
+}
+
+
 ////////////////////////////////////////////////////////////////////////
 ////////////////////// Thread entry point... ///////////////////////////
 ////////////////////////////////////////////////////////////////////////
@@ -89,13 +112,15 @@ void
 COutputThread::run()
 {
 
+
+  try {
   // the ring is created if necessary.
 
-
- openRing();			// Open ring named after the user in localhost.
+    openRing();			// Open ring named after the user in localhost.
+    m_pInitialized->signal();
 
   // Main loop is pretty simple.
-  try {
+
     while(1) {
       
       DataBuffer& buffer(getBuffer());

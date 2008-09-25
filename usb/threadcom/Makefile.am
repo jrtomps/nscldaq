@@ -10,7 +10,10 @@ noinst_HEADERS		= CGaurdedObject.h CBufferQueue.h	\
 INCLUDES	=	-I@top_srcdir@/base/thread
 
 libThreadComm_la_LIBADD 	=	@top_srcdir@/base/thread/libdaqthreads.la	\
-					@top_srcdir@/base/exception/libException.la
+					@top_srcdir@/base/exception/libException.la	\
+					$(THREADLD_FLAGS)
+
+libThreadComm_la_CXXLFAGS	= $(THREADCXX_FLAGS) $(AM_CXXFLAGS)
 
 
 install-data:

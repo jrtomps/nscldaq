@@ -83,11 +83,8 @@ CApplication::main(int argc, char** argv)
   selectControlConfigFile(ctlConfigFile);
   createConfiguration();
   createTclServer(port, application);
-  usleep(500);			// Give it time to start and settle.
   createBuffers();
   startOutputThread();
-  usleep(500);			// Give it time to start and settle.
-
   createMainInterpreter(argc, argv); // MUST BE LAST!!!!!! does not return!!
 
 

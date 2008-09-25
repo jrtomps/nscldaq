@@ -20,6 +20,7 @@ include_HEADERS			=	CSetCommand.h		\
 INCLUDES			=	-I@top_srcdir@/base/headers	\
 					-I@top_srcdir@/usb/tclcommon	\
 					-I@top_srcdir@/usb/threadcom	\
+					-I@top_srcdir@/base/thread	\
 					-I@top_srcdir@/base/tclplus	\
 					-I@top_srcdir@/base/exception	\
 					-I@top_srcdir@/base/thread	\
@@ -32,4 +33,6 @@ libControlServer_la_LIBADD	= @top_srcdir@/usb/tclcommon/libusbtclcommon.la	\
 				@top_srcdir@/base/tclplus/libtclPlus.la		\
 				@top_srcdir@/base/exception/libException.la	\
 				@top_srcdir@/base/thread/libdaqthreads.la	\
-				@TCL_LDFLAGS@
+				@TCL_LDFLAGS@ $(THREADLD_FLAGS)
+
+libControlServer_la_CXXFLAGS	= $(THREAD_CXXFLAGS) $(AM_CXXFLAGS)
