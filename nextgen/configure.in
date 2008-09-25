@@ -20,8 +20,8 @@ AC_CHECK_PROG(HAVE_XMLTO, [xmlto], true, false)
 
 AC_CHECK_LIB([X11], [XSetWindowBackground])
 AC_CHECK_LIB([Xt], [XtManage])
-AC_CHECK_LIB([cppunit], [_ZN7CppUnit12XmlOutputterD1Ev])
-AC_CHECK_LIB([pub], [xrealloc])
+AC_CHECK_LIB([cppunit], [_ZN7CppUnit12XmlOutputterD1Ev], [])
+AC_CHECK_LIB([pub], [xrealloc], [])
 
 
 
