@@ -7,7 +7,9 @@ INCLUDES =  -I@top_srcdir@/base/headers
 
 include_HEADERS = CopyrightNotice.h
 libLicense_la_LDFLAGS =  -version-info $(SOVERSION) \
-	-Wl,"-rpath-link=$(libdir)"
+	-Wl,"-rpath-link=$(libdir)"	\
+	$(THREADLD_FLAGS)
+libLicense_la_CXXLFLAGS = $(THREADCXX_FLAGS) $(AM_CXXFLAGS)
 
 TESTS = ./test
 

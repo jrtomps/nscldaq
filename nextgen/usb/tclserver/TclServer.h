@@ -47,7 +47,8 @@ using namespace std;
 
 class CControlModule;
 class CTCLInterpreter;
-
+class CConditionVariable;
+class CMutex;
 /*!
   The TclServer class implements a little Tcl server for our readout software.
   The server is intended to allow external software to perform control operations
@@ -86,6 +87,8 @@ private:
   Prototypes                   m_modulePrototypes;
   CTCLInterpreter*             m_pInterpreter;
   unsigned long                m_tid;
+  CMutex*                      m_pMutex;
+  CConditionVariable*          m_pInitialized;
 
 public:
   TclServer();

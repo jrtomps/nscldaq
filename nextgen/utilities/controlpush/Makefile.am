@@ -41,13 +41,15 @@ noinst_HEADERS= cmdline.h CApplication.h CChannelList.h \
 
 controlpush_LDADD   =  -L@top_srcdir@/base/exception -lException \
 			-L@top_srcdir@/base/CopyrightTools -lLicense \
-			$(EPICS_LDFLAGS) 
+			$(EPICS_LDFLAGS)  $(THREADLD_FLAGS)
 controlpush_LDFLAGS= -Wl,"-rpath=$(libdir)"
 
 INCLUDES            =	-I@top_srcdir@/base/exception		\
 			-I@top_srcdir@/base/CopyrightTools	\
 			-I@top_srcdir@/base/headers		\
 			$(EPICS_BIN) $(EPICS_INCLUDES) 
+
+controlpush_CXXFLAGS = $(THREADCXX_FLAGS) $(AM_CXXFLAGS)
 
 
 cmdline.c: options.ggo

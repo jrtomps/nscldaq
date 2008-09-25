@@ -20,4 +20,6 @@ libusbtclcommon_la_LDFLAGS	=	@top_srcdir@/base/tclplus/libtclPlus.la	\
 					@top_srcdir@/base/exception/libException.la	\
 					@top_srcdir@/usb/threadcom/libThreadComm.la	\
 					@top_srcdir@/base/thread/libdaqthreads.la	\
-					@TCL_LDFLAGS@
+					@TCL_LDFLAGS@ $(THREADLD_LFAGS)
+
+libusbtclcommon_la_CXXFLAGS	=	$(THREADCXX_FLAGS)

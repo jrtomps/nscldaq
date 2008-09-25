@@ -401,8 +401,13 @@ CRingMaster::simpleTransaction(string line)
 string
 CRingMaster::ipAddress(string host)
 {
-  struct hostent* pEntry = gethostbyname(host.c_str());
-  if (pEntry) {
+  struct hostent* pEntry;
+  struct hostent  entry;
+  char            buffer[1024];
+  int             errno;
+  if (!gethostbyname_r(host.c_str(), 
+		       &entry, buffer, sizeof(buffer),
+		       &pEntry, &errno)) {
     // pEntry->h_addr_list[0] has a longword IP address in network byte order:
     //
  

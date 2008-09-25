@@ -269,7 +269,6 @@ CRingAccess::startFeeder(string proxyName, int socket)
 
   // Take care of our standard files...
 
-  cerr << "In subprocess\n";
 
   int status = dup2(socket, STDIN_FILENO);
   status = close(STDOUT_FILENO);

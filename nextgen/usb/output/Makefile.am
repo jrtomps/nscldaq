@@ -18,4 +18,6 @@ libOutputStage_la_LIBADD	=	@top_srcdir@/daq/format/libdataformat.la	\
 					@top_srcdir@/base/dataflow/libDataFlow.la	\
 					@top_srcdir@/base/exception/libException.la	\
 					@top_srcdir@/base/thread/libdaqthreads.la	\
-					@top_srcdir@/usb/threadcom/libThreadComm.la
+					@top_srcdir@/usb/threadcom/libThreadComm.la	\
+					$(THREADLD_FLAGS)
+libOutputSTage_la_CXXFLAGS	=	$(THREADCXX_FLAGS)

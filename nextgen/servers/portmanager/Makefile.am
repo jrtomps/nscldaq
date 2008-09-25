@@ -11,7 +11,13 @@ include_HEADERS = CPortManagerException.h \
 libPortManager_la_LDFLAGS = -L@top_srcdir@/base/exception \
 			-lException   \
 			-version-info $(SOVERSION) \
-			-Wl,"-rpath=$(libdir)"
+			-Wl,"-rpath=$(libdir)"	\
+			$(TCL_LDFLAGS)		\
+			$(THREADLD_FLAGS)
+
+libPortManager_la_CXXFLAGS = $(THREADCXX_FLAGS) 	\
+				$(TCL_FLAGS)		\
+				$(AM_CXXFLAGS)
 
 INCLUDES = -I@top_srcdir@/base/headers -I@top_srcdir@/base/exception \
 		-DHOME=\"$(prefix)\"

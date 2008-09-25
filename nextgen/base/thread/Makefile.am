@@ -11,7 +11,10 @@ include_HEADERS = dshwrappthreads.h  dshwrapthreads.h  Runnable.h  SyncGuard.h  
 INCLUDES = -I$(top_srcdir)/base/headers -I$(top_srcdir)/base/exception -DUSE_PTHREADS
 
 libdaqthreads_la_LDFLAGS = -version-info $(SOVERSION) \
-		-Wl,"-rpath-link=$(libdir)"
+		-Wl,"-rpath-link=$(libdir)"	\
+		$(THREADLD_FLAGS)
+libdaqthreads_la_CXXFLAGS=$(THREADCXX_FLAGS)
+
 
 
 EXTRA_DIST=thread.xml

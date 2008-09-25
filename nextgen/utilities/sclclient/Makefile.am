@@ -23,7 +23,10 @@ BUILT_SOURCES		= 	sclclientargs.o
 sclclient_LDADD		=	sclclientargs.o			\
 				@top_srcdir@/daq/format/libdataformat.la	\
 				@top_srcdir@/base/dataflow/libDataFlow.la	\
-				@top_srcdir@/base/exception/libException.la
+				@top_srcdir@/base/exception/libException.la	\
+				$(THREADLD_FLAGS)
+
+sclclient_CXXFLAGS	=	$(THREADCXX_FLAGS) $(AM_CXXFLAGS)
 
 
 sclclientargs.o: sclclientargs.ggo

@@ -234,7 +234,6 @@ proc Unregister {socket client tail} {
 	::log::log info "Attempted remove of nonexistent $ring"
 	puts $socket "ERROR $ring does not exist"
     }
-
 }
 
 #-------------------------------------------------------------------------------
@@ -382,7 +381,7 @@ proc Connect {socket client message} {
 
     # Pull out the pieces of the message:
 
-    set name     [lindex $message 1]
+    set name     [lindex [lindex $message 1] 0];# Strips the {}'s sent in.
     set type     [lindex $message 2]
     set pid      [lindex $message 3]
     set comment  [lindex $message 4]
@@ -510,6 +509,10 @@ proc onMessage {socket client} {
 	Unregister $socket $client $message
     } elseif {$command eq "REMOTE"} {
 	RemoteHoist $socket $client $message
+    } elseif {$command eq "DEBUG"} {
+	# Enable/disable debug logging.
+	set state [lindex $message 1]
+	::log::lvSuppress debug  $state
     } else {
 	# Bad command means close the socket:
 

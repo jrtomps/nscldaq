@@ -16,7 +16,10 @@ INCLUDES		= 	-I@top_srcdir@/base/exception	\
 ringselector_LDADD	=  	parser.o 					\
 				@top_srcdir@/daq/format/libdataformat.la	\
 				@top_srcdir@/base/dataflow/libDataFlow.la	\
-				@top_srcdir@/base/exception/libException.la
+				@top_srcdir@/base/exception/libException.la	\
+				$(THREADLD_FLAGS)
+
+ringselector_CXXFLAGS	=	$(THREADCXX_FLAGS) $(AM_CXXFLAGS)
 
 
 

@@ -16,7 +16,10 @@ INCLUDES 		=	-I@top_srcdir@/base/headers		\
 eventlog_LDADD		=	eventlogargs.o	\
 				@top_srcdir@/daq/format/libdataformat.la	\
 				@top_srcdir@/base/dataflow/libDataFlow.la	\
-				@top_srcdir@/base/exception/libException.la
+				@top_srcdir@/base/exception/libException.la	\
+				$(THREADLD_FLAGS)
+
+eventlog_CXXFLAGS	=	$(THREADCXX_FLAGS) $(AM_CXXFLAGS)
 
 # Gengetopt stuff.
 

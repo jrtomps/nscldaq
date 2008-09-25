@@ -25,6 +25,8 @@ using namespace std;
 #include "CGetCommand.h"
 #include "CUpdateCommand.h"
 
+#include <CMutex.h>
+#include <CCondition.h>
 
 #include <tcl.h>
 #include <TCLInterpreter.h>
@@ -69,6 +71,10 @@ TclServer::~TclServer()
 unsigned long
 TclServer::start(int port, const char* configFile)
 {
+  m_pMutex       = new CMutex;
+  m_pInitialized = new CConditionVariable;
+  m_pMutex->lock();
+
   // Set up the member data needed to run the thread...
 
   m_port           = port;
@@ -77,6 +83,8 @@ TclServer::start(int port, const char* configFile)
   // Schedule the thread for execution:
 
   Thread::start();
+  m_pInitialized->wait(*m_pMutex);
+  m_pMutex->unlock();
   m_tid = getId();
   return m_tid;
 }
@@ -175,6 +183,7 @@ TclServer::run()
     readConfigFile();		// Initialize the modules.
     initModules();              // Initialize the fully configured modules.
     startTcpServer();		// Set up the Tcp/Ip listener event.
+    m_pInitialized->signal();
     EventLoop();			// Run the Tcl event loop forever.
   }
   catch (string msg) {

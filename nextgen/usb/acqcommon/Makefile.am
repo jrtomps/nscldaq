@@ -32,5 +32,7 @@ libusbacqcommon_la_LDFLAGS		=	@top_srcdir@/base/thread/libdaqthreads.la	\
 					@top_srcdir@/base/exception/libException.la	\
 					@top_srcdir@/base/tclplus/libtclPlus.la		\
 					@top_srcdir@/usb/tclcommon/libusbtclcommon.la	\
-					@TCL_LDFLAGS@
+					@TCL_LDFLAGS@ $(THREADLD_FLAGS)
+
+libusbacqcommon_la_CXXFLAGS	= $(THREADCXX_FLAGS)
 

@@ -59,9 +59,17 @@ Bool_t
 CHostListCheck::Authenticate(const std::string& rHostname)
 {
   in_addr Address;
-  struct hostent* pEntry = gethostbyname(rHostname.c_str());
-  if(!pEntry) return kfFALSE;
-  Address.s_addr = ((struct in_addr*)pEntry->h_addr)->s_addr;
+  struct hostent* pEntry;
+  struct hostent  entry;
+  char            buffer[1024];
+  int             error;
+  
+  int status = gethostbyname_r(rHostname.c_str(),
+			       &entry, buffer, sizeof(buffer),
+			       &pEntry, &error);
+  if (status) return kfFALSE;
+  Address.s_addr = ((struct in_addr*)(entry.h_addr))->s_addr;
+
   return Authenticate(Address);
 }
 //////////////////////////////////////////////////////////////////////////////
