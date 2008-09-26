@@ -233,9 +233,14 @@ CRingAccess::daqConsumeFrom(string uri)
     return new CRingBuffer(proxyRingName, CRingBuffer::consumer);
   }
   // The ring is remote.  We need help from the remote ringmaster:
+  // We want to shut down our connection with the ring master prior
+  // to forking the proxy so that 
 
-  CRingMaster master(host);
-  int socket = master.requestData(ring);
+  int socket;
+  {
+    CRingMaster master(host);
+    socket = master.requestData(ring);
+  }
 
   // We have a socket on which data will be sent.
   // - create the proxy ring.
@@ -243,7 +248,7 @@ CRingAccess::daqConsumeFrom(string uri)
   // - close the socket.
   // - Return a consumer connection to the proxy ring.
 
-  CRingBuffer::create(proxyRingName, m_proxyRingSize, m_proxyMaxConsumers);
+  CRingBuffer::create(proxyRingName, m_proxyRingSize, m_proxyMaxConsumers, true);
 
   startFeeder(proxyRingName, socket);
 

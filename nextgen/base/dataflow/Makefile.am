@@ -51,26 +51,26 @@ bin_PROGRAMS 	= ringtostdout stdintoring
 
 ringtostdout_SOURCES = ringtostdout.cpp
 
-ringtostdout_DEPENDENCIES =  libRingBuffer.la
+ringtostdout_DEPENDENCIES =  libDataFlow.la
 
 
 ringtostdoutsw.o: ringtostdoutsw.ggo
 	$(GENGETOPT) <ringtostdoutsw.ggo --file=ringtostdoutsw --unamed-opts
 	$(CC) -c ringtostdoutsw.c $(THREADC_FLAGS)
 
-ringtostdout_LDADD	= ringtostdoutsw.o libRingBuffer.la \
+ringtostdout_LDADD	= ringtostdoutsw.o libDataFlow.la \
 			$(THREADLD_FLAGS)
 
 ringtostdout_CXXFLAGS	= $(THREADCXX_FLAGS) $(AM_CXXFLAGS)
 
 stdintoring_SOURCES = stdintoring.cpp
-stdintoring_DEPENDENCIES = libRingBuffer.la 
+stdintoring_DEPENDENCIES = libDataFlow.la 
 
 stdintoringsw.o: stdintoringsw.ggo
 	$(GENGETOPT) <stdintoringsw.ggo --file=stdintoringsw --unamed-opts
 	$(CC) -c stdintoringsw.c $(THREADC_FLAGS)
 
-stdintoring_LDADD	= stdintoringsw.o libRingBuffer.la	\
+stdintoring_LDADD	= stdintoringsw.o libDataFlow.la	\
 			$(THREADLD_FLAGS)
 
 stdintoring_CXXFLAGS =	$(THREADCXX_FLAGS) $(AM_CXXFLAGS)

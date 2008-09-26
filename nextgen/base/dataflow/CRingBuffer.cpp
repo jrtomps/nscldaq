@@ -108,6 +108,11 @@ public:
                       page size.
   \param maxConsumers - Maximum number of consumers allowed (number of 
                       consumer ClientInformation entries in the ring buffer.
+  \param tempMasterConnection  - 
+                      A temporary connection to the ring master is formed and
+                      then destroyed to register this ring.  This is done when
+                      the client does not want the ring master fd to be
+                      inherited by child processes that may be created.
 
   \throw CErrnoException
 
@@ -115,7 +120,8 @@ public:
 void
 CRingBuffer:: create(std::string name, 
 		     size_t dataBytes,
-		     size_t maxConsumer)
+		     size_t maxConsumer,
+		     bool   tempMasterConnection)
 {
   string fullName = shmName(name);
 
@@ -150,8 +156,14 @@ CRingBuffer:: create(std::string name,
 
   close(fd);
   format(name, maxConsumer);
+  CRingMaster* pOld = m_pMaster;
   connectToRingMaster();
   m_pMaster->notifyCreate(name);
+
+  if (tempMasterConnection) {
+    delete m_pMaster;
+    m_pMaster = pOld;
+  }
 }
 
 /*!

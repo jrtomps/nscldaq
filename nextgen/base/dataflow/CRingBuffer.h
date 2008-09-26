@@ -100,7 +100,8 @@ private:
 public:
   static void create(std::string name, 
 		     size_t dataBytes = m_defaultDataSize,
-		     size_t maxConsumer = m_defaultMaxConsumers);
+		     size_t maxConsumer = m_defaultMaxConsumers,
+		     bool   tempMasterConnection = false);
   static void remove(std::string name);
   static void format(std::string name,
 		     size_t maxConsumer = m_defaultMaxConsumers);
