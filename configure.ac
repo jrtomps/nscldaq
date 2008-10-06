@@ -280,6 +280,7 @@ fi
 epicstestdirs="/usr/local/epics /opt/epics /soft/intel/epics"
 haveepics="no"
 
+
 AC_MSG_CHECKING([ for epics includes, libs and binaries])
 
 #  Check for --with-epics-rootdir....
@@ -321,6 +322,33 @@ else
 fi
 
 
+#
+#  The SBS software will only be built if
+#  --enable-sbs=kernel-source-dir was supplied.
+#  In that case, the configured kernel source is assumed to be in 
+#  kernel-source-dir and that will be used to compile the device driver
+#  as well.  
+#  The default is to _not_ build the sbs stuff.
+#
+
+BUILD_SBS="no"
+
+AC_ARG_ENABLE([sbs], 
+	      AS_HELP_STRING([--enable-sbs=kernel-source-dir], [Build SBS software using kernel-source-dir as directory with configured kernel source]),
+	      [BUILD_SBS="yes"
+	       KERNEL_SOURCE_DIR="$enableval"])
+
+
+if test "$BUILD_SBS" == "yes"
+then
+  echo Building SBS software with kernel source at: $KERNEL_SOURCE_DIR
+else
+  echo SBS software support not selected!
+fi
+
+
+
+
 #----------------------------------------------------------------------------
 
 # Exports to the makefiles:
@@ -354,6 +382,12 @@ THREADLD_FLAGS="-lpthread"
 AC_SUBST(THREADCXX_FLAGS)
 AC_SUBST(THREADC_FLAGS)
 AC_SUBST(THREADLD_FLAGS)
+
+# SBS stuff:
+
+AC_SUBST(KERNEL_SOURCE_DIR)
+AM_CONDITIONAL([BUILD_SBS_DRIVER], [test "$BUILD_SBS" == "yes"])
+
 
 
 
