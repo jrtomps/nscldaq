@@ -157,6 +157,7 @@ CRingBuffer:: create(std::string name,
   close(fd);
   format(name, maxConsumer);
   CRingMaster* pOld = m_pMaster;
+  m_pMaster = 0;
   connectToRingMaster();
   m_pMaster->notifyCreate(name);
 

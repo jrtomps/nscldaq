@@ -1,5 +1,5 @@
 SUBDIRS =	base/CopyrightTools base/exception base/tclplus servers base  \
-		daq utilities docbuild docconfig usb
+		daq utilities docbuild docconfig usb sbs
 
 
 install-data-local:
