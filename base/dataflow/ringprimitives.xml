@@ -345,7 +345,7 @@ int main(int argc, char** argv)
 <!-- manpage 3daq -->
     <refentry id="manpage.cringbuffer">
       <refmeta>
-         <refentrytitle>CRingBufer</refentrytitle>
+         <refentrytitle>CRingBuffer</refentrytitle>
          <manvolnum>3daq</manvolnum>
       </refmeta>
       <refnamediv>
@@ -372,6 +372,10 @@ int main(int argc, char** argv)
         <methodparam>
             <type>size_t</type> <parameter>maxConsumer</parameter> <initializer>m_defaultMaxConsumers</initializer>
         </methodparam>
+	<methodparam>
+            <type>bool</type>
+         <parameter>tempConnection</parameter><initializer>false</initializer>
+	 </methodparam>
       </methodsynopsis>
       <methodsynopsis>
         <modifier>static</modifier>
@@ -583,6 +587,10 @@ int main(int argc, char** argv)
         <methodparam>
             <type>size_t</type> <parameter>maxConsumer</parameter> <initializer>m_defaultMaxConsumers</initializer>
         </methodparam>
+	<methodparam>
+	   <type>bool</type> <parameter>tempConnection</parameter>
+	   <initializer>false</initializer>
+        </methodparam>
       </methodsynopsis>
       <para>
         Creates a new ring buffer.  Each ring buffer has a distinct name.
@@ -635,6 +643,19 @@ int main(int argc, char** argv)
                 </para>
             </listitem>
         </varlistentry>
+        <varlistentry>
+            <term><type>bool</type>
+         <parameter>tempConnection</parameter></term>
+	 <listitem>
+	   <para>
+	      If this is true, the ring buffer is registered with the
+	      Ring master using a temporary, one-time connection which is
+              closed down immediately after registration.  This allows
+              children to be created that don't inherit an open socket if done
+              early enough in the game.
+	   </para>
+	 </listitem>
+       </varlistentry>
     </variablelist>
     <para>
         Note that no restrictions are imposed on which users can
@@ -1352,7 +1373,7 @@ myring.get(message, hdr.s_size, hdr.s_size);                      <co id="ringma
                     <classname>CRingBuffer::CRingPRedicate</classname> base class.
                     Objects that are <classname>CMessageFilterPredicate</classname>
                     objects can therefore be passed as predicates to the
-                    <methodname>CRingBufer::blockWhile</methodname> method.
+                    <methodname>CRingBuffer::blockWhile</methodname> method.
                 </para>
             </callout>
             <callout arearefs="ringman.filter.savetype">

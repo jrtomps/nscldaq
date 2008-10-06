@@ -739,7 +739,7 @@ g++ -o myapp myapp.cpp -L$DAQROOT/lib -lDataFlow -Wl,"-rpath=$DAQROOT/lib"
 #include &lt;CRemoteAccess&gt;
 ...
 
-CRingBuffer* pRing = CRingAccess::daqConsmeFrom("tcp://localhost/daqring");
+CRingBuffer* pRing = CRingAccess::daqConsumeFrom("tcp://localhost/daqring");
 ...
             </programlisting>
          </example>
