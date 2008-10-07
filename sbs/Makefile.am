@@ -1,1 +1,1 @@
-SUBDIRS = driver nsclapi
+SUBDIRS = driver nsclapi tclpackage
