@@ -1,1 +1,1 @@
-SUBDIRS = driver nsclapi tclpackage
+SUBDIRS = driver nsclapi tclpackage puretcl
