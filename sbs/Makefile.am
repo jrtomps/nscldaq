@@ -1,1 +1,1 @@
-SUBDIRS = driver
+SUBDIRS = driver nsclapi

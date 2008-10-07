@@ -443,6 +443,7 @@ AC_CONFIG_FILES([Makefile
 		 sbs/driver/src/Makefile
 		 sbs/driver/include/Makefile
 		 sbs/driver/dd/GNUmakefile
+		 sbs/nsclapi/Makefile
 		 docbuild/Makefile
 		 docconfig/Makefile])
 
