@@ -8,9 +8,14 @@ all-local:
 clean-local:
 	rm -f *.o *.ko
 
-
-
-
+install-exec-local:
+	if test `id -u` == 0; then					\
+		install btp.ko mkbtp /lib/modules/`uname -r`;	\
+		-rmmod btp;				\
+		(cd /lib/modules/`uname -r`; ./mkbtp 5);	\
+	else						\
+		echo "\a\a" Must be root to install kernel module;	\
+	fi
 
 EXTRA_DIST= bt_bit.c \
 bt_delay.c \
@@ -38,6 +43,7 @@ bt_setup.c \
 bt_xfer.c \
 btdd.h \
 btpdd.h \
-mkbtp
+mkbtp	\
+Makefile
 
 
