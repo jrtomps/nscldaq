@@ -1,0 +1,43 @@
+
+BTDRIVER=$(shell pwd)
+
+
+all-local:
+	make -C @KERNEL_SOURCE_DIR@ SUBDIRS=$(BTDRIVER) modules BTDRIVER=$(BTDRIVER)/..
+
+clean-local:
+	rm -f *.o *.ko
+
+
+
+
+
+EXTRA_DIST= bt_bit.c \
+bt_delay.c \
+bt_diag.c \
+bt_event.c \
+bt_icbr_thread.c \
+bt_isr.c \
+bt_llist.c \
+bt_mem.c \
+bt_mutex.c \
+bt_nbus.c \
+bt_param.c \
+btp_bind.c \
+btp_cfg.c \
+btp_ioctl.c \
+btp_kernel.c \
+btp_lowio.c \
+btp_mmap.c \
+btp.mod.c \
+btp_open.c \
+btp_rdwr.c \
+btp_version.c \
+bt_rwlck.c \
+bt_setup.c \
+bt_xfer.c \
+btdd.h \
+btpdd.h \
+mkbtp
+
+
