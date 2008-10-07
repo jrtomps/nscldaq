@@ -442,7 +442,7 @@ AC_CONFIG_FILES([Makefile
 		 sbs/driver/Makefile
 		 sbs/driver/src/Makefile
 		 sbs/driver/include/Makefile
-		 sbs/driver/dd/Makefile
+		 sbs/driver/dd/GNUmakefile
 		 docbuild/Makefile
 		 docconfig/Makefile])
 
