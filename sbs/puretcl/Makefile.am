@@ -1,5 +1,6 @@
 EXTRA_DIST  = 	camac.tcl	\
-		wienercamac.tcl
+		wienercamac.tcl	\
+		caennet.tcl
 
 PACKAGE	=	@prefix@/TclLibs/sbspuretcl
 
@@ -8,4 +9,5 @@ install-exec-local:
 	$(INSTALL_SCRIPT) *.tcl $(PACKAGE)
 	echo package ifneeded camac 1.1 [list source [file join \$$dir camac.tcl]] > $(PACKAGE)/pkgIndex.tcl
 	echo package ifneeded wienercamac 1.1 [list source [file join \$$dir wienercamac.tcl]] >> $(PACKAGE)/pkgIndex.tcl
+	echo package ifneeded caennet 1.5 [list source [file join \$$dir caennet.tcl]] >> $(PACKAGE)/pkgIndex.tcl
 
