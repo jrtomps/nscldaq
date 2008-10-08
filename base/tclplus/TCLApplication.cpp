@@ -331,9 +331,7 @@ CTCLInterpreter*        gpTCLInterpreter; // Globally available interpreter.
 //
 
 
-#ifdef TK_TEST
-EXTERN int		Tktest_Init _ANSI_ARGS_((Tcl_Interp *interp));
-#endif /* TK_TEST */
+
 
 /*
  *----------------------------------------------------------------------
@@ -356,7 +354,7 @@ int
 main(int argc,char** argv)
 {
   try {
-    Tk_Main(argc, argv, Tcl_AppInit);
+    Tcl_Main(argc, argv, Tcl_AppInit);
     return 0;			/* Needed only to prevent compiler warning. */
   }
   catch (string msg) {
@@ -384,13 +382,6 @@ extern "C" {
       return TCL_ERROR;
     Tcl_StaticPackage(interp, "Tk", Tk_Init, Tk_SafeInit);
 
-#ifdef TK_TEST
-    if (Tktest_Init(interp) == TCL_ERROR) {
-	return TCL_ERROR;
-    }
-    Tcl_StaticPackage(interp, "Tktest", Tktest_Init,
-            (Tcl_PackageInitProc *) NULL);
-#endif /* TK_TEST */
 
     gpTCLInterpreter = new CTCLInterpreter(interp); 
     assert(gpTCLInterpreter != (CTCLInterpreter*)kpNULL);

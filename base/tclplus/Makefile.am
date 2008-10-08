@@ -17,7 +17,7 @@ testableSources = TCLInterpreter.cpp TCLProcessor.cpp  \
 	TCLCommandPackage.cpp TCLIdleProcess.cpp \
 	TCLObject.cpp TCLChannel.cpp TCLTracedVariable.cpp \
 	CLanguageTraceCallbacks.cpp TCLObjectProcessor.cpp \
-	TCLCompatibilityProcessor.cpp 
+	TCLCompatibilityProcessor.cpp TCLLiveEventLoop.cpp
 
 testableObjects = TCLInterpreter.o   TCLProcessor.o    \
 	TCLVariable.o   TCLString.o    \
@@ -40,7 +40,8 @@ include_HEADERS = TCLApplication.h TCLCommandPackage.h TCLException.h \
 	TCLProcessor.h TCLResult.h TCLString.h TCLTimer.h TCLVariable.h \
 	TCLChannel.h TCLVersionHacks.h TCLTracedVariable.h \
 	VariableTraceCallback.h CLanguageTraceCallbacks.h \
-	TCLObjectProcessor.h TCLCompatibilityProcessor.h 
+	TCLObjectProcessor.h TCLCompatibilityProcessor.h 	\
+	TCLLiveEventLoop.h
 
 
 
