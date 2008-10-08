@@ -8,8 +8,7 @@ include_HEADERS = CVMEInterface.h SBSBit3API.h CVME.h \
 # Locking.cpp
 
 
-libSBSVmeAPI_la_LDFLAGS =  -version-info 1:0:0  \
-	-Wl"-rpath=$(libdir)"
+libSBSVmeAPI_la_LDFLAGS =  -version-info 1:0:0
 
 libSBSVmeAPI_la_LIBADD = @top_srcdir@/base/exception/libException.la	\
 			@top_srcdir@/sbs/driver/src/libbtp.la
