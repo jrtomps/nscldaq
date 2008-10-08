@@ -1,4 +1,6 @@
 
+
+
 INCLUDES = -I$(top_srcdir)/base/headers @TCL_FLAGS@ -I$(top_srcdir)/base/exception
 LDADD = -ltclPlus -lException -lXt -lX11 $(X11EXTRA_LDFLAGS)
 AM_LDFLAGS = -L. @TCL_LDFLAGS@ -L$(top_srcdir)/base/exception
@@ -44,6 +46,17 @@ include_HEADERS = TCLApplication.h TCLCommandPackage.h TCLException.h \
 	TCLLiveEventLoop.h
 
 
+# evttclsh - a tclsh that has an event loop constantly running.
+
+
+bin_PROGRAMS		=	evttclsh
+
+evttclsh_SOURCES	= 	evttclsh.cpp
+evttclsh_DEPENDENCIES	= 	libtclPlus.la
+
+evttclsh_LDADD		= 	libtclPlus.la	\
+				@top_srcdir@/base/exception/libException.la
+evttclsh_LDFLAGS	= 	-Wl,"-rpath-link=$(libdir)" $(TCL_LDFLAGS)
 
 clean-local:
 	-rm -f $(XMLMANS)

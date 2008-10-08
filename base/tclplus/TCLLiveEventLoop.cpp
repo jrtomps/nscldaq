@@ -29,7 +29,7 @@ using namespace std;
 
 // Externals:
 
-extern CTCLApplication* gpApplication;
+extern CTCLApplication* gpTCLApplication;
 
 
 /*  The default stop latency.          */
@@ -101,8 +101,8 @@ CTCLLiveEventLoop::start()
   // a CTCLApplication.
   //
 
-  if (gpApplication) {
-    CTCLInterpreter* pInterp = gpApplication->getInterpreter();
+  if (gpTCLApplication) {
+    CTCLInterpreter* pInterp = gpTCLApplication->getInterpreter();
     start(pInterp);
   }
   else {
@@ -229,6 +229,7 @@ CTCLLiveEventLoop::prompt1()
     m_prompt1->Bind(m_pStdinTarget);
   }
 
+  prompt(m_prompt1, defaultPrompt1);
 
 
 
