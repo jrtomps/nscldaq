@@ -143,6 +143,7 @@ public:
   CTCLApplication ();
   ~CTCLApplication ( );
   virtual   int operator() ()  =0;
+  void      getProgramArguments(int&amp;, char**&amp; argv);
 };
         </programlisting>
     </refsynopsisdiv>
@@ -195,6 +196,21 @@ CTCLApplication* gpTCLApplication = &amp;app;  // Pointer expected by framework.
             <literal>TCL_OK</literal> if the application was successfully initialized
             or <literal>TCL_ERROR</literal> if the program encountered an error that
             should prevent the interpreter main loop from starting
+        </para>
+
+        <methodsynopsis>
+            <type>void</type> <function>getProgramArgs</function>
+            <methodparam>
+                <type>int&amp;</type> <parameter>argc</parameter>
+            </methodparam>
+            <methodparam>
+                <type>char**&amp;</type> <parameter>argv</parameter>
+            </methodparam>
+        </methodsynopsis>
+        <para>
+            Provides a mechanism for the concrete class to get the program
+            arguments. This allows the program arguments to be parsed for
+            application specific switches and arguments.
         </para>
     </refsect1>
     <refsect1>
@@ -4376,6 +4392,7 @@ CTCLApplication* gpTCLApplication = new evttclsh;
       </refsect1>
    </refentry>
 
+
 <!-- /manpage -->
 
 
@@ -4406,4 +4423,6 @@ evttclsh
   </refsect1>
 
 </refentry>
+
+<!-- /manpage -->
 

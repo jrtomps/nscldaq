@@ -297,6 +297,7 @@ CTCLLiveEventLoop::eventLoop()
 {
   prompt1();
   while (m_isRunning) {
+    Tcl_ReapDetachedProcs();
     struct Tcl_Time timeout;
     timeout.sec = m_stopLatency/1000;
     timeout.usec= (m_stopLatency % 1000) * 1000;
