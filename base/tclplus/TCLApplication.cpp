@@ -70,6 +70,9 @@ CTCLInterpreter*        gpTCLInterpreter; // Globally available interpreter.
 //
 
 
+static int    savedArgc;
+static char** savedArgv;
+
 
 
 /*
@@ -89,9 +92,14 @@ CTCLInterpreter*        gpTCLInterpreter; // Globally available interpreter.
  *----------------------------------------------------------------------
  */
 
+
 int
 main(int argc,char** argv)
 {
+  savedArgc = argc;
+  savedArgv = argv;
+
+
   try {
     Tcl_Main(argc, argv, Tcl_AppInit);
     return 0;			/* Needed only to prevent compiler warning. */
@@ -127,4 +135,16 @@ extern "C" {
     return (*gpTCLApplication)();
 
   }
+}
+
+/*!
+   Provide a hook for the application to get the program arguments.
+   \param argc   - reference to integer that will get the argument count.
+   \param argv   - reference to char** that will get the argument count.
+*/
+void
+CTCLApplication::getProgramArguments(int& argc, char**& argv)
+{
+  argc = savedArgc;
+  argv = savedArgv;
 }

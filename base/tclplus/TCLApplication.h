@@ -78,6 +78,8 @@ public:
   }                             
                        
   virtual   int operator() ()  =0;
+
+  void getProgramArguments(int& argc, char**& argv);
  
 };
 
