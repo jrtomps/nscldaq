@@ -71,15 +71,14 @@ private:
 
 
   // Public interface:
-
+public:
   virtual void start();			// Add to Tcl Event loop.
   virtual void stop();			// Remove from event loop.
   Tcl_Channel  getChannel() const;
-
-
+  
   // static members:
 
-protected:
+public:
   static void inputRelay(ClientData pData, int mask);
 
   // Overridables:
