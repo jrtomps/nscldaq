@@ -21,7 +21,7 @@ testableSources = TCLInterpreter.cpp TCLProcessor.cpp  \
 	CLanguageTraceCallbacks.cpp TCLObjectProcessor.cpp \
 	TCLCompatibilityProcessor.cpp TCLLiveEventLoop.cpp	\
 	CTCLChannelCommander.cpp CTCLStdioCommander.cpp	\
-	CTCLTcpServerInstance.cpp
+	CTCLTcpServerInstance.cpp CTCLServer.cpp
 
 testableObjects = TCLInterpreter.o   TCLProcessor.o    \
 	TCLVariable.o   TCLString.o    \
@@ -46,7 +46,7 @@ include_HEADERS = TCLApplication.h TCLCommandPackage.h TCLException.h \
 	VariableTraceCallback.h CLanguageTraceCallbacks.h \
 	TCLObjectProcessor.h TCLCompatibilityProcessor.h 	\
 	TCLLiveEventLoop.h CTCLChannelCommander.h	\
-	CTCLStdioCommander.h CTCLTcpServerInstance.h
+	CTCLStdioCommander.h CTCLTcpServerInstance.h CTCLServer.h
 
 
 # evttclsh - a tclsh that has an event loop constantly running.
