@@ -14,7 +14,7 @@
 	     East Lansing, MI 48824-1321
 */
 
-static const char* Copyright = "(C) Copyright Michigan State University 2002, All rights reserved";// Class: CTclAuthorizer
+static const char* Copyright = "(C) Copyright Michigan State University 2002, All rights reserved";// Class: CTCLAuthorizer
 
 //////////////////////////.cpp file/////////////////////////////////////////////////////
 #include <config.h>
@@ -40,7 +40,7 @@ using namespace std;
 static char* pCopyrightNotice = 
 "(C) Copyright 1999 NSCL, All rights reserved TclAuthorizer.cpp \n";
 
-// Functions for class CTclAuthorizer
+// Functions for class CTCLAuthorizer
 
 static const std::string NameVariable("ServerHostNames");
 static const std::string IPVariable("ServerHostIps");
@@ -49,11 +49,11 @@ static const std::string IPVariable("ServerHostIps");
 //////////////////////////////////////////////////////////////////////////////
 //
 //  Function:
-//     CTclAuthorizer (Tcl_Interp* pInterp)
+//     CTCLAuthorizer (Tcl_Interp* pInterp)
 //  Operation Type:
 //     Constructor.
 //
-CTclAuthorizer::CTclAuthorizer(CTCLInterpreter* pInterp) :
+CTCLAuthorizer::CTCLAuthorizer(CTCLInterpreter* pInterp) :
   CTCLProcessor("serverauth", 
 		   pInterp),
   m_pInterpreter(pInterp)
@@ -69,13 +69,13 @@ CTclAuthorizer::CTclAuthorizer(CTCLInterpreter* pInterp) :
 //                int nArgs, char* pArgs[])
 //  Operation Type: 
 //     Behavioral override.
-int CTclAuthorizer::operator()(CTCLInterpreter& rInterp, CTCLResult& rResult, 
+int CTCLAuthorizer::operator()(CTCLInterpreter& rInterp, CTCLResult& rResult, 
 			       int nArgs, char* pArgs[])
 {
   int         retval = Process(rInterp, nArgs, pArgs);
   return retval;
 }
-int CTclAuthorizer::Process(CTCLInterpreter& rInterp,
+int CTCLAuthorizer::Process(CTCLInterpreter& rInterp,
 			       int nArgs, char* pArgs[])  
 {
   // Processes the serverauth command.
@@ -117,7 +117,7 @@ int CTclAuthorizer::Process(CTCLInterpreter& rInterp,
   else {
     return Usage(rInterp);
   }
-  rInterp.setResult(std::string("Bug in CTclAuthorizer::operator() decode section"));
+  rInterp.setResult(std::string("Bug in CTCLAuthorizer::operator() decode section"));
   return TCL_ERROR;
   
 }
@@ -127,7 +127,7 @@ int CTclAuthorizer::Process(CTCLInterpreter& rInterp,
 //     AddHost(const string& HostOrIp)
 //  Operation Type: 
 //     
-Bool_t CTclAuthorizer::AddHost( const std::string& HostOrIp)  
+Bool_t CTCLAuthorizer::AddHost( const std::string& HostOrIp)  
 {
   // Adds a specified host to the access lists.
   // The parameter is first analyzed as a host name.
@@ -180,7 +180,7 @@ Bool_t CTclAuthorizer::AddHost( const std::string& HostOrIp)
 //     RemoveHost(const string& NameOrIP)
 //  Operation Type: 
 //     
-Bool_t CTclAuthorizer::RemoveHost(const std::string& NameOrIp)  
+Bool_t CTCLAuthorizer::RemoveHost(const std::string& NameOrIp)  
 {
   // An attempt is made to locate the host in 
   // the name list.  If it is found it and the 
@@ -230,7 +230,7 @@ Bool_t CTclAuthorizer::RemoveHost(const std::string& NameOrIp)
 //     ListHosts()
 //  Operation Type: 
 //     
-std::string CTclAuthorizer::ListHosts()  
+std::string CTCLAuthorizer::ListHosts()  
 {
   // Returns a TCL formatted list whose elements are two entry
   // lists containing {hostname ipaddress}
@@ -271,7 +271,7 @@ std::string CTclAuthorizer::ListHosts()
 //     Authenticate(const string& rNameOrIp)
 //  Operation Type: 
 //     
-Bool_t CTclAuthorizer::Authenticate(const std::string& rNameOrIp)  
+Bool_t CTCLAuthorizer::Authenticate(const std::string& rNameOrIp)  
 {
   // The parameter is converted to canonical ip form
   // and searched for in the ip list.
@@ -288,7 +288,7 @@ Bool_t CTclAuthorizer::Authenticate(const std::string& rNameOrIp)
 //     HostToIp(string& rName)
 //  Operation Type: 
 //     
-Bool_t CTclAuthorizer::HostToIp(std::string& rName)  
+Bool_t CTCLAuthorizer::HostToIp(std::string& rName)  
 {
   // Converts a string to IP address in 'canonical dotted' form
   // Cannonical dotted form is:  %03d.%03d.%03d.%03d
@@ -334,7 +334,7 @@ Bool_t CTclAuthorizer::HostToIp(std::string& rName)
 //     GetIndex(const string& rHostOrIp)
 //  Operation Type: 
 //     
-Int_t CTclAuthorizer::GetIndex(const std::string& rHostOrIp)  
+Int_t CTCLAuthorizer::GetIndex(const std::string& rHostOrIp)  
 {
   // Returns the index of the entry corresponding
   // to an input IP name or Address or -1 if no match.
@@ -364,7 +364,7 @@ Int_t CTclAuthorizer::GetIndex(const std::string& rHostOrIp)
 //   Utility:
 //
 Bool_t 
-CTclAuthorizer::ConvertHost(const std::string& rInName, 
+CTCLAuthorizer::ConvertHost(const std::string& rInName, 
 							std::string& rOutname, 
 							std::string& rCanonicalIP)
 {
@@ -387,7 +387,7 @@ CTclAuthorizer::ConvertHost(const std::string& rInName,
 //   Utility
 //
 int
-CTclAuthorizer::Usage(CTCLInterpreter& interp)
+CTCLAuthorizer::Usage(CTCLInterpreter& interp)
 {
   // Fills the result string with command usage information.
   // returns TCL_ERROR making calls like

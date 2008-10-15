@@ -15,8 +15,8 @@
 */
 
 
-#ifndef __TCLAUTHORIZER_H  //Required for current class
-#define __TCLAUTHORIZER_H
+#ifndef __CTCLAUTHORIZER_H  //Required for current class
+#define __CTCLAUTHORIZER_H
 
 #ifndef __DAQTYPES_H
 #include <daqdatatypes.h>
@@ -51,7 +51,7 @@
 #include <TCLResult.h>        //Required for include files
 #endif
                                
-class CTclAuthorizer : public CTCLProcessor     
+class CTCLAuthorizer : public CTCLProcessor     
 {                       
   CTCLInterpreter* m_pInterpreter;
   CTCLVariable* m_pHostNames; //List of allowed hostnames.
@@ -63,8 +63,8 @@ public:
 
    // Constructors and other cannonical operations:
 
-  CTclAuthorizer (CTCLInterpreter* pInterp);
-  ~ CTclAuthorizer ( )  // Destructor 
+  CTCLAuthorizer (CTCLInterpreter* pInterp);
+  ~ CTCLAuthorizer ( )  // Destructor 
   {
     delete m_pHostNames;
     delete m_pHostIps;
@@ -73,9 +73,9 @@ public:
   
    //Copy constructor 
 private:
-  CTclAuthorizer (const CTclAuthorizer& aCTclAuthorizer ) ;
-  CTclAuthorizer& operator= (const CTclAuthorizer& aCTclAuthorizer);
-  int operator== (const CTclAuthorizer& aCTclAuthorizer) const;
+  CTCLAuthorizer (const CTCLAuthorizer& aCTCLAuthorizer ) ;
+  CTCLAuthorizer& operator= (const CTCLAuthorizer& aCTCLAuthorizer);
+  int operator== (const CTCLAuthorizer& aCTCLAuthorizer) const;
 public:
 	
 // Selectors:
