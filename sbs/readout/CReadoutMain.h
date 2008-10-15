@@ -20,10 +20,34 @@
 #include <TCLApplication.h>
 #endif
 
+#ifndef __STL_STRING
+#include <string>
+#ifndef __STL_STRING
+#define __STL_STRING
+#endif
+#endif
+
+// Forward class definitions.
+
+class CTCLServer;
+
+/*!
+
+  This class is the entry point class for the
+  production readout software.   It is  subclassed
+  (see Skeleton.cpp) by the user who must provide the
+  SetupReadout virtual member.
+
+*/
 
 class CReadoutMain : public CTCLApplication
 {
+  CTCLServer*   m_pTclServer;
 public:
+  CReadoutMain();
+  virtual ~CReadoutMain();
+
+
   virtual int operator()();
 protected:
   virtual void SetupRunVariables();
@@ -31,9 +55,9 @@ protected:
   virtual void SetupReadout() = 0;
   virtual void SetupScalers();
 
+private:
+  void startTclServer(std::string port);
+
 };
-
-
-
 
 #endif

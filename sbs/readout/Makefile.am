@@ -10,10 +10,13 @@ noinst_HEADERS	=	CReadoutMain.h Skeleton.h
 INCLUDES	=	-I@top_srcdir@/base/exception	\
 			-I@top_srcdir@/base/tclplus	\
 			-I@top_srcdir@/base/headers	\
+			-I@top_srcdir@/servers/portmanager	\
 			$(TCL_FLAGS)
 
 libSBSProductionReadout_la_LIBADD	=	@top_srcdir@/base/exception/libException.la	\
-						@top_srcdir@/base/tclplus/libtclPlus.la
+						@top_srcdir@/base/tclplus/libtclPlus.la		\
+						@top_srcdir@/servers/portmanager/libPortManager.la
+
 
 libSBSProductionReadout_la_LDFLAGS	=	-version-info	1:0:0	\
 						$(TCL_LDFLAGS)
