@@ -199,7 +199,7 @@ CTCLApplication* gpTCLApplication = &amp;app;  // Pointer expected by framework.
         </para>
 
         <methodsynopsis>
-            <type>void</type> <function>getProgramArgs</function>
+            <type>void</type> <methodname>getProgramArgs</methodname>
             <methodparam>
                 <type>int&amp;</type> <parameter>argc</parameter>
             </methodparam>
@@ -4210,7 +4210,7 @@ See section 2.4 for a description and discussion of function objects.
       
       <refsynopsisdiv>
          <programlisting>
-#include &lt;CTCLLiveEventLoop&gt;
+#include &lt;CTCLLiveEventLoop.h&gt;
          </programlisting>
          <classsynopsis>
             <ooclass><classname>CTCLLiveEventLoop</classname></ooclass>
@@ -4393,8 +4393,732 @@ CTCLApplication* gpTCLApplication = new evttclsh;
    </refentry>
 
 
-<!-- /manpage -->
+    <refentry id="manpage.ctclchannelcommander">
+      <refmeta>
+         <refentrytitle>CTCLChannelCommander</refentrytitle>
+         <manvolnum>3daq</manvolnum>
+      </refmeta>
+      <refnamediv>
+         <refname>CTCLChannelCommander</refname>
+	 <refpurpose>Accept commands on a Tcl channel from the event loop.</refpurpose>
+      </refnamediv>
+      
+      <refsynopsisdiv>
+         <programlisting>
+#include &lt;CTCLChannelCommander.h&gt;
+         </programlisting>
+         <classsynopsis>
+            <ooclass><classname>CTCLChannelCommander</classname></ooclass>
+            <constructorsynopsis>
+                <methodname>CTCLChannelCommander</methodname>
+                <methodparam>
+                    <type>CTCLInterpreter*</type> <parameter>interp</parameter>
+                </methodparam>
+                <methodparam>
+                    <type>Tcl_Channel</type>      <parameter>channel</parameter>
+                </methodparam>
+            </constructorsynopsis>
+            <destructorsynopsis>
+                <modifier>virtual</modifier> <methodname>~CTCLChannelCommander</methodname>
+                                             <void />
+            </destructorsynopsis>
+            <methodsynopsis>
+                <modifier>virtual</modifier> <type>void</type>
+                <methodname>start</methodname>
+                <void />
+            </methodsynopsis>
+            <methodsynopsis>
+                <modifier>virtual</modifier> <type>void</type>
+                                             <methodname>stop</methodname>
+                                             <void />
+            </methodsynopsis>
+            <methodsynopsis>
+                <type>Tcl_Channel</type>  <methodname>getChannel</methodname>
+                                          <void /> <modifier>const</modifier>
+            </methodsynopsis>
+            <methodsynopsis>
+                <modifier>virtual</modifier> <type>void</type>
+                                             <methodname>onInput</methodname>
+                                             <void />
+            </methodsynopsis>
+            <methodsynopsis>
+                <modifier>virtual</modifier> <type>void</type> <methodname>onInputException</methodname>
+                                                               <void />
+            </methodsynopsis>
+            <methodsynopsis>
+                <modifier>virtual</modifier> <type>void</type> <methodname>onEndFile</methodname>
+                                                               <void />
+            </methodsynopsis>
+            <methodsynopsis>
+                <modifier>virtual</modifier> <type>void</type>
+                                             <methodname>onCommand</methodname>
+                                             <void />
+            </methodsynopsis>
+            <methodsynopsis>
+                <modifier>virtual</modifier> <type>void</type>
+                                             <methodname>returnResult</methodname>
+                                             <void />
+            </methodsynopsis>
+            <methodsynopsis>
+                <modifier>virtual</modifier> <type>void</type> <methodname>prompt1</methodname>
+                                <void />
+            </methodsynopsis>
+            <methodsynopsis>
+                <modifier>virtual</modifier> <type>void</type>
+                                             <methodname>prompt2</methodname>
+                                             <void />
+            </methodsynopsis>
+            <methodsynopsis>
+                <modifier>virtual</modifier>
+                <type>void</type> <methodname>sendPrompt</methodname>
+                <methodparam>
+                    <type>std::string</type> <parameter>prompt</parameter>
+                </methodparam>
+            </methodsynopsis>
 
+
+         </classsynopsis>
+      </refsynopsisdiv>
+      <refsect1>
+         <title>Description</title>
+         <para>
+            The <classname>CTCLChannelCommander</classname> is a class that
+            registers an input event handler for a Tcl channel.  When input
+            is available on the channel, a line of text is read, and appended
+            to a command under construction.  When the command is syntactically
+            complete, it is dispatched to a Tcl interpreter for execution.
+         </para>
+         <para>
+            The subclass <classname>CTCLStdioCommander</classname> is specifically
+            tailored to accept commands on stdin.  ALong with the server listener
+            <classname>CTCLServer</classname>, <classname>CTCLTcpServerInstance</classname>
+            is tailored to accpet commands on a socket.
+         </para>
+         <para>
+            Many aspects of the class are tailorable by overriding the various
+            methods in derived classes.  The class is capable of generating prompts
+            in case the channel is interactive.  The classs can also return the
+            results of commands to the client over the medium of its choice.
+            End file and exception handling can be simlarly tailored.
+         </para>
+         <para>
+            When deriving a specific class be sure you understand the default actions
+            of all of the base class members. You may save a great deal of work by
+            carefully chosing exactly which members to override, or generate a
+            great deal of work by making poor choices.
+         </para>
+      </refsect1>
+      <refsect1>
+         <title>
+            Public member functions
+         </title>
+           <methodsynopsis>
+                <methodname>CTCLChannelCommander</methodname>
+                <methodparam>
+                    <type>CTCLInterpreter*</type> <parameter>interp</parameter>
+                </methodparam>
+                <methodparam>
+                    <type>Tcl_Channel</type>      <parameter>channel</parameter>
+                </methodparam>
+            </methodsynopsis>
+           <para>
+            Constructs a new channel commander. Activation of the commander is
+            a two step process.  First the commander is constructed, second
+            it <methodname>start</methodname> method is called to register the
+            event handlers.  
+           </para>
+           <para>
+            <parameter>interp</parameter> is a pointer to the interpreter
+            channel on to which the commands will be dispatched.
+            <parameter>channel</parameter> is the channel from which commands
+            will be accepted.
+           </para>
+           <para>
+            The application must also be visiting the event loop for
+            commands to be processed from the
+            <parameter>channel</parameter>.
+            Tk applications automatically run the event loop.
+            Pure Tcl applications run the event loop only when
+            <command>vwait</command> is waiting, while the
+            special shell or tcl applications based around
+            <classname>CTCLLiveEventLoop</classname> run the
+            event loop automatically just like Tk does.
+           </para>
+            <methodsynopsis>
+                <modifier>virtual</modifier> <type>void</type>
+                <methodname>start</methodname>
+                <void />
+            </methodsynopsis>
+            <para>
+                Enables processing of commands from the channel.  When
+                the event loop is entered, if the channel is readable,
+                control will be to
+                <methodname>onInput</methodname> in object context.
+                It is not considered an error to call
+                <methodname>start</methodname> when event processing
+                is in progress.
+            </para>
+            <methodsynopsis>
+                <modifier>virtual</modifier> <type>void</type>
+                                             <methodname>stop</methodname>
+                                             <void />
+            </methodsynopsis>
+            <para>
+                Requests channel processing be disabled.  The event handlers
+                that arrange for control to be dispatched to the
+                <methodname>onInput</methodname>
+                method are disabled.  The channel remains open and must
+                be closed (if desired) by any client software.
+            </para>
+            <methodsynopsis>
+                <type>Tcl_Channel</type>  <methodname>getChannel</methodname>
+                                          <void /> <modifier>const</modifier>
+            </methodsynopsis>
+            <para>
+                Returns the channel from which commands are being accepted.
+            </para>
+            <methodsynopsis>
+                <modifier>virtual</modifier> <type>void</type>
+                                             <methodname>onInput</methodname>
+                                             <void />
+            </methodsynopsis>
+            <para>
+                This member function is called when data can be read from the
+                input channel.  The function attempts to read a line of text.
+                The text is appended to a command under construction and,
+                if <function>Tcl_CommandComplete</function> says that
+                string is a syntactically complete command,
+                <methodname>onCommand</methodname> is invoked to execute the
+                command.  
+            </para>
+            <para>
+                All of this command acquisition and exection is also mixed up
+                with prompting.
+                <methodname>prompt1</methodname>
+                is called when the object is ready to get  a new command, and
+                <methodname>prompt2</methodname> is called when the
+                object is ready to accept the next line of a multi-line command.
+            </para>
+            <methodsynopsis>
+                <modifier>virtual</modifier> <type>void</type> <methodname>onInputException</methodname>
+                                                               <void />
+            </methodsynopsis>
+            <para>
+                Called when an exception condition is detected on the channel. The default implementation
+                calls
+                <methodname>onEndFile</methodname>
+            </para>
+            <methodsynopsis>
+                <modifier>virtual</modifier> <type>void</type> <methodname>onEndFile</methodname>
+                                                               <void />
+            </methodsynopsis>
+            <para>
+                Called when reads of the channel indicate an end file condition.
+                <methodname>onInputException</methodname>'s default implementation
+                also calls this.  The default behavior is to invoke
+                <methodname>stop</methodname> so that no additional events will
+                be posted.  This is the normal and reasonable behavior because
+                a channel with an endfile condition continously generates
+                readable events.
+            </para>
+            <para>
+                The channel remains open.  It is always up to client software to
+                close the channel.
+            </para>
+            <methodsynopsis>
+                <modifier>virtual</modifier> <type>void</type>
+                                             <methodname>onCommand</methodname>
+                                             <void />
+            </methodsynopsis>
+            <para>
+                Called when a complete command has been accepted.  Complete in this
+                case means syntactically complete.  It does not imply correctness,
+                or even proper number of arguments.
+            </para>
+            <para>
+                Default behavior is to submit the command string to the
+                interpreter. Once the command has been executed,
+                <methodname>returnResult</methodname>
+                is executed to allow the command result to be reported
+                if desired.
+            </para>
+            <methodsynopsis>
+                <modifier>virtual</modifier> <type>void</type>
+                                             <methodname>returnResult</methodname>
+                                             <void />
+            </methodsynopsis>
+            <para>
+                By default this does nothing.  It is provided to allow subclasses
+                to tailore what is done with command results.  For example,
+                the
+                <classname>CTCLStdioCommander</classname>
+                class reports the result on
+                <literal>stdout</literal>.
+                <classname>CTCLTcpServerInstance</classname> on the other hand
+                reports the result back to the client over the socket.
+            </para>
+            <para>
+                The <methodname>GetResultString</methodname> method of the
+                interpreter object (the pointer <varname>m_pInterp</varname>
+                is a pointer to the interpreter object) should be used to
+                get the result string.
+            </para>
+            <methodsynopsis>
+                <modifier>virtual</modifier> <type>void</type> <methodname>prompt1</methodname>
+                                <void />
+            </methodsynopsis>
+            <para>
+                Called when its time to prompt for the first line of a command.
+                This calls
+                <methodname>prompt1String</methodname> to get the prompt string,
+                and calls
+                <methodname>sendPrompt</methodname> to actually emit the prompt.
+            </para>
+            <methodsynopsis>
+                <modifier>virtual</modifier> <type>void</type>
+                                             <methodname>prompt2</methodname>
+                                             <void />
+            </methodsynopsis>
+            <para>
+                Called when its time to prompt for additional linesof a command.
+                This calls
+                <methodname>prompt2String</methodname> to get the prompt string
+                and calls
+                <methodname>sendPrompt</methodname> to actually emit the prompt.
+            </para>
+            <methodsynopsis>
+                <modifier>virtual</modifier>
+                <type>void</type> <methodname>sendPrompt</methodname>
+                <methodparam>
+                    <type>std::string</type> <parameter>prompt</parameter>
+                </methodparam>
+            </methodsynopsis>
+       </refsect1>
+      <refsect1>
+        <title>Prompting</title>
+        <para>
+            The class provides a framework for prompting interactive channels.
+            This frameworks is based on two prompt strings that can be gotten
+            via calls to
+            <methodname>prompt1String</methodname> and
+            <methodname>prompt2String</methodname>
+            respectively.
+        </para>
+        <para>
+            The first of these prompts is emitted when the software is
+            ready to accept the first line of a new command.
+            By default it is the text "<literal>% </literal>".  Scripts
+            can customize this prompt by defining the
+            variable <varname>tcl_prompt1</varname> to be a script
+            whose returned value is the prompt.
+        </para>
+        <para>
+            The second of these prompts is emitted when the software
+            is ready to accept continuation lines of multiline commands.
+            By default it is the text "<literal>%_ </literal>".
+            Scripts can customize this prompt by defining the
+            variable <varname>tcl_prompt2</varname> to be a script
+            whose returned value is the desired prompt.
+        </para>
+      </refsect1>
+   </refentry>
+    <refentry id="manpage.CTCLStdioCommander">
+      <refmeta>
+         <refentrytitle>CTCLStdioCommander</refentrytitle>
+         <manvolnum>3daq</manvolnum>
+      </refmeta>
+      <refnamediv>
+         <refname>CTCLStdioCommander</refname>
+	 <refpurpose>Event driven command input on stdin/stdout</refpurpose>
+      </refnamediv>
+      
+      <refsynopsisdiv>
+         <programlisting>
+#include &lt;CTCLStdioCommander.h&gt;
+         </programlisting>
+         <classsynopsis>
+            <ooclass><classname>CTCLStdioCommander</classname></ooclass>
+            <constructorsynopsis>
+                <methodname>CTCLStdioCommander</methodname>
+                <methodparam>
+                    <type>CTCLInterpreter*</type> <parameter>pInterp</parameter>
+                </methodparam>
+            </constructorsynopsis>
+            <destructorsynopsis>
+                <modifier>virtual</modifier> <methodname>~CTCLStdioCommander</methodname>
+                                             <void />
+            </destructorsynopsis>
+            <methodsynopsis>
+                <modifier>virtual</modifier>
+                <type>void</type> <methodname>sendPrompt</methodname>
+                <methodparam>
+                    <type>std::string</type> <parameter>prompt</parameter>
+                </methodparam>
+            </methodsynopsis>
+            <methodsynopsis>
+                <modifier>virtual</modifier> <type>void</type>
+                                             <methodname>returnResult</methodname>
+                                             <void />
+            </methodsynopsis>
+
+         </classsynopsis>
+      </refsynopsisdiv>
+      <refsect1>
+         <title>Description</title>
+         <para>
+            Provides a commander that can be hooked to the event loop to allow
+            event loop driven applications to continue to process commands on
+            stdin/stdout as interactive shells do.
+         </para>
+      </refsect1>
+      <refsect1>
+         <title>
+            Public member functions
+         </title>
+            <methodsynopsis>
+                <methodname>CTCLStdioCommander</methodname>
+                <methodparam>
+                    <type>CTCLInterpreter*</type> <parameter>pInterp</parameter>
+                </methodparam>
+            </methodsynopsis>
+            <para>
+                Constructs a commander.  <parameter>pInterp</parameter> is the
+                interpreter to which the complete commands will be submitted.
+            </para>
+            <methodsynopsis>
+                <modifier>virtual</modifier>
+                <type>void</type> <methodname>sendPrompt</methodname>
+                <methodparam>
+                    <type>std::string</type> <parameter>prompt</parameter>
+                </methodparam>
+            </methodsynopsis>
+            <para>
+                Overrides the base class <methodname>sendPrompt</methodname>
+                method by sending the requested <parameter>prompt</parameter>
+                string to the <type>Tcl_Channel</type> Tcl has open on
+                <literal>stdout</literal>. The channel is also flushed to
+                ensure that the prompt is made immediately visible.
+            </para>
+            <methodsynopsis>
+                <modifier>virtual</modifier> <type>void</type>
+                                             <methodname>returnResult</methodname>
+                                             <void />
+            </methodsynopsis>
+            <para>
+                Overrides the base class member.
+                Retrieves the result from the interpreter, appends a newline
+                character and passes the resulting string to
+                <methodname>sendPrompt</methodname> which makes the result
+                visible on stdout.
+            </para>
+      </refsect1>
+   </refentry>
+
+
+    <refentry id="manpage.CTCLServer">
+      <refmeta>
+         <refentrytitle>CTCLServer</refentrytitle>
+         <manvolnum>3daq</manvolnum>
+      </refmeta>
+      <refnamediv>
+         <refname>CTCLServer</refname>
+	 <refpurpose>Listener for a Tcl server.</refpurpose>
+      </refnamediv>     
+      <refsynopsisdiv>
+         <programlisting>
+#include &lt;CTCLServer.h&gt;
+         </programlisting>
+         <classsynopsis>
+            <ooclass><classname>CTCLServer</classname></ooclass>
+            <constructorsynopsis>
+                <methodname>CTCLServer</methodname>
+                <methodparam>
+                    <type>CTCLInterpreter*</type> <parameter>pInterp</parameter>
+                </methodparam>
+                <methodparam>
+                    <type>int</type> <parameter>port</parameter>
+                </methodparam>
+            </constructorsynopsis>
+            <destructorsynopsis>
+                <modifier>virtual</modifier> <methodname>~CTCLServer</methodname>
+                                             <void />
+            </destructorsynopsis>
+            <methodsynopsis>
+                <type>void</type>
+                <methodname>instanceExit</methodname>
+                <methodparam>
+                    <type>CTCLTcpServerInstance*</type> <parameter>pInstance</parameter>
+                </methodparam>
+            </methodsynopsis>
+            <methodsynopsis>
+                <type>void</type>
+                <methodname>shutdown</methodname>
+                <void />
+            </methodsynopsis>
+            <methodsynopsis>
+                <modifier>protected virtual</modifier>
+                <type>bool</type> <methodname>allowConnection</methodname>
+                <methodparam>
+                    <type>Tcl_Channel</type> <parameter>connection</parameter>
+                </methodparam>
+                <methodparam>
+                    <type>std::string</type> <parameter>hostname</parameter>
+                </methodparam>
+            </methodsynopsis>
+            <methodsynopsis>
+                <modifier>protected virtual</modifier>
+                <type>CTCLTcpServerInstance*</type>
+                <methodname>createInstance</methodname>
+                <methodparam>
+                    <type>Tcl_Channel</type> <parameter>connection</parameter>
+                </methodparam>
+                <methodparam>
+                    <type>std::string</type> <parameter>hostname</parameter>
+                </methodparam>
+            </methodsynopsis>
+ 
+         </classsynopsis>
+      </refsynopsisdiv>
+      <refsect1>
+         <title>Description</title>
+         <para>
+            Tcl servers allow a Tcp/Ip client to connect to a tcl application
+            and poke commands at it.  While this is a very powerful communications
+            mechanism, it should be used very cautiously as it can also be quite
+            dangerous (imagine a client pushing a command like
+            <command>exec /bin/bash -c rm -rf ~</command> for example).
+         </para>
+         <para>
+            <classname>CTCLServer</classname> is a class that provides the listener
+            portion of the server.  The application that uses this must execute
+            a Tcl event loop in a timely fashion.
+            <classname>CTCLServer</classname> processes connections and creates,
+            where appropriate <classname>CTCLTcpServerInstance</classname> objects
+            that handle communication with clients.
+            The server object maintains a directory of server instances so that when
+            asked to shutdown it can shutdown all server instances as well.
+         </para>
+         <para>
+            The class provides strategy pattern hooks to support arbitrary
+            authorization models, as well as the production of any subclass
+            of <classname>CTCLTcpServerInstance</classname> to process
+            the commands.
+         </para>
+      </refsect1>
+      <refsect1>
+         <title>
+            Public member functions
+         </title>
+            <methodsynopsis>
+                <methodname>CTCLServer</methodname>
+                <methodparam>
+                    <type>CTCLInterpreter*</type> <parameter>pInterp</parameter>
+                </methodparam>
+                <methodparam>
+                    <type>int</type> <parameter>port</parameter>
+                </methodparam>
+            </methodsynopsis>
+            <para>
+                Constructs and activates a server object. Activation means that
+                the Tcl event loop can dispatch events for client connections
+                to the object for processing.
+                <parameter>pInterp</parameter> is the interpreter this server
+                is supposed to be servicing.  In the standard scheme, this is
+                the interpreter to which commands will be dispatched.
+                <parameter>port</parameter> is the Tcp/IP port on which the
+                server will listen for connections.
+            </para>
+            <methodsynopsis>
+                <type>void</type>
+                <methodname>instanceExit</methodname>
+                <methodparam>
+                    <type>CTCLTcpServerInstance*</type> <parameter>pInstance</parameter>
+                </methodparam>
+            </methodsynopsis>
+            <para>
+                The server maintains a directory of server instances.  When server
+                instances exit they must call this function in the server listener
+                passing a pointer to themselves (<varname>this</varname>) as a
+                parameter.  This function locates the instance in the
+                directory, removes it from the directory and
+                <emphasis>deletes that object</emphasis>.
+            </para>
+            <para>
+                Having called this, the server instance should return
+                immediately as its object context has become invalid.
+                If the server listener object is asked to shutdown, it will
+                also call <methodname>instanceExit</methodname> on all
+                instances to shut them down as well.
+            </para>
+            <methodsynopsis>
+                <type>void</type>
+                <methodname>shutdown</methodname>
+                <void />
+            </methodsynopsis>
+            <para>
+                Stops listening for connections on the server port and
+                shuts down all instances by invoking
+                <methodname>instanceExit</methodname> on them.
+            </para>
+            <methodsynopsis>
+                <modifier>protected virtual</modifier>
+                <type>bool</type> <methodname>allowConnection</methodname>
+                <methodparam>
+                    <type>Tcl_Channel</type> <parameter>connection</parameter>
+                </methodparam>
+                <methodparam>
+                    <type>std::string</type> <parameter>hostname</parameter>
+                </methodparam>
+            </methodsynopsis>
+            <para>
+                Called at connection time to determine if the connection should
+                be allowed.  <parameter>connection</parameter> is the
+                <type>Tcl_Channel</type> that is open on the client.
+                overrides of this are perfectly free to do any sort of
+                communication back and fort with the client to determine
+                its elligibility to connect. 
+            </para>
+            <para>
+                <parameter>hostname</parameter> is the name of the host
+                that is connecting.  This allows a host based authentication
+                scheme to be developed.
+            </para>
+            <para>
+                The function must return <literal>true</literal> to accept the
+                connection and <literal>false</literal> to deny it.
+            </para>
+            <methodsynopsis>
+                <modifier>protected virtual</modifier>
+                <type>CTCLTcpServerInstance*</type>
+                <methodname>createInstance</methodname>
+                <methodparam>
+                    <type>Tcl_Channel</type> <parameter>connection</parameter>
+                </methodparam>
+                <methodparam>
+                    <type>std::string</type> <parameter>hostname</parameter>
+                </methodparam>
+            </methodsynopsis>
+            <para>
+                Called to create a client instance.  The client instance is responsible
+                for interacting with the client to do whatever communication is needed.
+                By making this virtual, any type descended from
+                <classname>CTCLTcpServerInstance</classname> can be created.
+            </para>
+            <para>
+                <parameter>connection</parameter> is the <type>Tcl_Channel</type>
+                open on the client.
+                <parameter>hostname</parameter> is the host that is connecting.
+            </para>
+      </refsect1>
+
+   </refentry>
+
+    <refentry id="manpage.CTCLTcpServerInstance">
+      <refmeta>
+         <refentrytitle>CTCLTcpServerInstance</refentrytitle>
+         <manvolnum>3daq</manvolnum>
+      </refmeta>
+      <refnamediv>
+         <refname>CTCLTcpServerInstance</refname>
+	 <refpurpose>Channel commander that is a server instance for <classname>CTCLServer</classname></refpurpose>
+      </refnamediv>
+      
+      <refsynopsisdiv>
+         <programlisting>
+#include &lt;CTCLTcpServerInstance.h&gt;
+         </programlisting>
+         <classsynopsis>
+            <ooclass><classname>CTCLTcpServerInstance : public CTCLChannelCommander</classname></ooclass>
+            <constructorsynopsis>
+                <methodname>CTCLTcpServerInstance</methodname>
+                <methodparam>
+                    <type>CTCLInterpreter*</type> <parameter>pInterp</parameter>
+                </methodparam>
+                <methodparam>
+                    <type>Tcl_Channel</type> <parameter>connection</parameter>
+                </methodparam>
+                <methodparam>
+                    <type>CTCLServer*</type> <parameter>pServer</parameter>
+                </methodparam>
+            </constructorsynopsis>
+            <destructorsynopsis>
+                <modifier>virtual</modifier> <methodname>~CTCLTcpServerInstance</methodname>
+                                             <void />
+            </destructorsynopsis>
+            <methodsynopsis>
+                <modifier>virtual</modifier> <type>void</type>
+                            <methodname>onEndFile</methodname>
+                            <void />
+            </methodsynopsis>
+            <methodsynopsis>
+                <modifier>virtual</modifier> <type>void</type>
+                                        <methodname>returnResult</methodname>
+                                        <void />
+            </methodsynopsis>
+
+         </classsynopsis>
+      </refsynopsisdiv>
+      <refsect1>
+         <title>Description</title>
+         <para>
+            Server instance that takes client commands and submits them to
+            an interpreter.  The results of each command are sent back to the
+            client. At this point the client can only look at the
+            result value to determine if there was an error as no error indication
+            is passed back.
+         </para>
+      </refsect1>
+      <refsect1>
+         <title>
+            Public member functions
+         </title>
+            <constructorsynopsis>
+                <methodname>CTCLTcpServerInstance</methodname>
+                <methodparam>
+                    <type>CTCLInterpreter*</type> <parameter>pInterp</parameter>
+                </methodparam>
+                <methodparam>
+                    <type>Tcl_Channel</type> <parameter>connection</parameter>
+                </methodparam>
+                <methodparam>
+                    <type>CTCLServer*</type> <parameter>pServer</parameter>
+                </methodparam>
+            </constructorsynopsis>
+            <para>
+                Constructs a new server instance.
+                <parameter>pInterp</parameter> is the interpreter to which
+                commands should be directed.
+                <parameter>connection</parameter> is the <type>Tcl_Channel</type>
+                that represents the Tcp/IP connection to the client.
+                <parameter>pServer</parameter> is the TCL server object
+                that starts us.  That server's
+                <methodname>instanceExit</methodname> member should be called
+                to shut down and clean up this object.
+            </para>
+            <methodsynopsis>
+                <modifier>virtual</modifier> <type>void</type>
+                            <methodname>onEndFile</methodname>
+                            <void />
+            </methodsynopsis>
+            <para>
+                Override to end of file handling.  Closes the
+                channel and invokes the
+                server listener's <methodname>instanceExit</methodname>
+                method to get ourselves deleted.
+            </para>
+            <methodsynopsis>
+                <modifier>virtual</modifier> <type>void</type>
+                                        <methodname>returnResult</methodname>
+                                        <void />
+            </methodsynopsis>
+            <para>
+                Returns a command result by fetching it from the interpreter
+                and sending it back to the client on the socket.
+            </para>
+      </refsect1>
+   </refentry>
+
+<!-- /manpage -->
 
 <!-- manpage 1daq -->
 
