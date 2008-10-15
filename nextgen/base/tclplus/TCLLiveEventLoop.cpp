@@ -19,6 +19,7 @@
 #include "TCLVariable.h"
 #include <StateException.h>
 #include "TCLApplication.h"
+#include "CTCLStdioCommander.h"
 
 #include <unistd.h>
 #include <stdio.h>
@@ -35,8 +36,6 @@ extern CTCLApplication* gpTCLApplication;
 /*  The default stop latency.          */
 
 static const long DEFAULT_STOP_LATENCY(100); // in ms.
-static const char* defaultPrompt1 = "\n% ";
-static const char* defaultPrompt2 = "-- ";
 
 /*  Pointer to the singleton instance: */
 
@@ -68,10 +67,9 @@ CTCLLiveEventLoop::getInstance()
 */
 CTCLLiveEventLoop::CTCLLiveEventLoop() :
   m_pStdinTarget(0),
-  m_prompt1(0),
-  m_prompt2(0),
   m_isRunning(false),
-  m_stopLatency(DEFAULT_STOP_LATENCY)
+  m_stopLatency(DEFAULT_STOP_LATENCY),
+  m_pEventCommander(0)
 {
 }
 
@@ -124,14 +122,10 @@ CTCLLiveEventLoop::start(CTCLInterpreter* pInterp)
 {
   if (!m_isRunning) {
     m_pStdinTarget = pInterp;
-    delete m_prompt1;
-    delete m_prompt2;
-    m_prompt1 = m_prompt2 = 0;
-    m_command = "";
-    m_isRunning = true;
+    m_pEventCommander = new CTCLStdioCommander(pInterp);
+    m_pEventCommander->start();
 
-    setupEvents();
-    prompt1();
+    m_isRunning = true;
     eventLoop();
 
 
@@ -207,80 +201,6 @@ CTCLLiveEventLoop::getStopLatency() const
 {
   return m_stopLatency;
 }
-/*-----------------------------------------------------------------------------------*/
-/*   Utilities:                                                                      */
-/*      Prompting                                                                    */
-/*-----------------------------------------------------------------------------------*/
-
-/*
-** prompt1:
-**   Issues an initial command prompt.  This is issued prior to the first
-**   command word. The default is "\n% ".  If the variable tcl_prompt1 is defined
-**   it is assumed to be a command that can be run to output the prompt.
-*/
-
-void
-CTCLLiveEventLoop::prompt1() 
-{
-  // If necessary, we need a new CTCLVariable pointing at tcl_prompt
-
-  if (!m_prompt1) {
-    m_prompt1 = new CTCLVariable("tcl_prompt1", false);
-    m_prompt1->Bind(m_pStdinTarget);
-  }
-
-  prompt(m_prompt1, defaultPrompt1);
-
-
-
-
-}
-
-/*
-** prompt2:
-**   Same as for prompt1, however the prompt is issued for
-**   command continuations.  tcl_prompt2 is the
-**   variable that might have a prompt command.
-*/
-void
-CTCLLiveEventLoop::prompt2()
-{
-  if (!m_prompt2) {
-    m_prompt2 = new CTCLVariable("tcl_prompt2", false);
-    m_prompt2->Bind(m_pStdinTarget);
-  }
-
-  prompt(m_prompt2, defaultPrompt2);
-
-}
-/*
-** prompt
-**   Utility used to prompt either from a script in a variable
-**   of from a default prompt if that is not defined.
-**Parameters:
-**  pVar    -  Pointer to the CTCLVariable wrapper around the variable.
-**  default - const char* default prompt if the var isn't defined.
-*/
-void
-CTCLLiveEventLoop::prompt(CTCLVariable* pVar, const char* defaultPrompt) const
-{
-  // Try to issue the prompt from the var.
-
-  const char* pPromptCommand = pVar->Get();
-  string result;
-  if (pPromptCommand) {
-    try {
-      result = m_pStdinTarget->Eval(pPromptCommand);
-      return;			// Successful proc based prompt.
-    }
-    catch(...) {
-      result = m_pStdinTarget->GetResultString();
-      write(STDOUT_FILENO, result.c_str(), result.size());
-    }
-  }
-  write(STDOUT_FILENO, defaultPrompt, strlen(defaultPrompt));
-
-}
 
 /*----------------------------------------------------------------------*/
 /*  Utilities:                                                          */
@@ -295,7 +215,8 @@ CTCLLiveEventLoop::prompt(CTCLVariable* pVar, const char* defaultPrompt) const
 void
 CTCLLiveEventLoop::eventLoop()
 {
-  prompt1();
+
+  m_pEventCommander->prompt1();
   while (m_isRunning) {
     Tcl_ReapDetachedProcs();
     struct Tcl_Time timeout;
@@ -317,63 +238,7 @@ CTCLLiveEventLoop::eventLoop()
   }
   stopEvents();
 }
-/*
-** Handles the condition that data can be read from stdin.
-** We'll read a bunch of bytes and append it to the m_command string.
-** when that's a 'complete' command, we'll attempt to execute it.
-** Parameters:
-**    pData  - Client data passed to file handling functions.
-**             This is actually a pointer to the singleton.
-**    mask   - Mask of fired events (ignored).
-*/
-void
-CTCLLiveEventLoop::stdinHandler(ClientData pData, int mask)
-{
-  char input[80];
-  memset(input, 0, sizeof(input)); //  ensure this is a C string.
-  ssize_t bytes = read(STDIN_FILENO, input, sizeof(input) - 1 );
-  if (bytes == 0) {
-    Tcl_Exit(0);		// EOF fired, so we exit.
-  }
-  if (bytes < 0) {
-    int e = errno;
-    perror("Stdin read failed"); // Maybe stdin closed?  For now exit.
-    Tcl_Exit(e);
-  }
 
-  CTCLLiveEventLoop* pObject = reinterpret_cast<CTCLLiveEventLoop*>(pData);
-  string&            command(pObject->m_command);
-  command     += input;
-
-
-  if(Tcl_CommandComplete(command.c_str())) {
-    Tcl_Interp* pInterp = pObject->m_pStdinTarget->getInterpreter();
-
-    Tcl_Eval(pInterp, command.c_str());
-    CONST char* pResult = Tcl_GetStringResult(pInterp);
-    if (pResult) {
-      write(STDOUT_FILENO, pResult, strlen(pResult));
-    }
-    command = "";
-    pObject->prompt1();
-  }
-  else {
-    pObject->prompt2();
-  }
-  
-}
-/*
-** Enables event processing.
-** In this case, we're just going to create a file handler on STDIN_FILENO
-** sensitive to readability and exceptional conditions.
-** 
-*/
-void
-CTCLLiveEventLoop::setupEvents()
-{
-  Tcl_CreateFileHandler(STDIN_FILENO, TCL_READABLE | TCL_EXCEPTION,
-			stdinHandler, reinterpret_cast<ClientData>(this));
-}
 /*
  *  Turns off event processing by calling Tcl_DeleteFileHandler on STDIN_FILENO.
  * This may be a bad thing if the Tk event loop got started (via e.g..
@@ -382,7 +247,8 @@ CTCLLiveEventLoop::setupEvents()
 void
 CTCLLiveEventLoop::stopEvents()
 {
-  Tcl_DeleteFileHandler(STDIN_FILENO);
+  delete m_pEventCommander;
+  m_pEventCommander = 0;
 }
 
 

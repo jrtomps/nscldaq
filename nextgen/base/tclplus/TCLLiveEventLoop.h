@@ -24,20 +24,13 @@
 #endif
 #endif
 
-#ifndef __TCL_H
-#include <tcl.h>
-#ifndef __TCL_H
-#define __TCL_H
-#endif
-#endif
-
 
 
 // Forward definitions:
 
 class CTCLInterpreter;
 class CTCLVariable;
-
+class CTCLStdioCommander;
 
 
 /*!
@@ -69,11 +62,9 @@ private:
 
   static CTCLLiveEventLoop* m_pTheInstance;
   CTCLInterpreter*         m_pStdinTarget;
-  std::string              m_command;
-  CTCLVariable*            m_prompt1;
-  CTCLVariable*            m_prompt2;
   bool                     m_isRunning;
   long                     m_stopLatency;
+  CTCLStdioCommander*      m_pEventCommander;
 
   // constructors are private to support singleton enforcement:
 
@@ -105,16 +96,9 @@ public:
   // Utilities:
 
 private:
-  void prompt1();		// Issue initial command prompt.
-  void prompt2();		// Issue middle of command prompt.
-  void prompt(CTCLVariable* pVar, const char* defaultPrompt) const;
 
   void eventLoop();		// The event loop itself.
-
-
-  static void stdinHandler(ClientData pData, int mask);
-  void        setupEvents();
-  void        stopEvents();
+  void stopEvents();
 
 };
 
