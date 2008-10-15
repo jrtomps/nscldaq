@@ -71,5 +71,6 @@ void
 CTCLStdioCommander::returnResult()
 {
   string result = m_pInterp->GetResultString();
+  result += "\n";
   sendPrompt(result);
 }

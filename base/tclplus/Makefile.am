@@ -61,13 +61,14 @@ evttclsh_LDADD		= 	libtclPlus.la	\
 				@top_srcdir@/base/exception/libException.la
 evttclsh_LDFLAGS	= 	-Wl,"-rpath-link=$(libdir)" $(TCL_LDFLAGS)
 
+
 clean-local:
 	-rm -f $(XMLMANS)
 
 EXTRA_DIST = tkAppInit.c tclplus.xml
 
 
-noinst_PROGRAMS = tracetests interptests
+noinst_PROGRAMS = tracetests interptests tcpservertest
 
 noinst_HEADERS = Asserts.h
 
@@ -93,6 +94,14 @@ interptests_LDADD = TestRunner.o $(TestLdflags)
 
 
 interptests_DEPENDENCIES = $(testableObjects) TestRunner.o
+
+tcpservertest_SOURCES	= 	tcpservertest.cpp
+tcpservertest_DEPENDENCIES	= 	libtclPlus.la
+
+tcpservertest_LDADD		= 	libtclPlus.la	\
+				@top_srcdir@/base/exception/libException.la
+tcpservertest_LDFLAGS	= 	-Wl,"-rpath-link=$(libdir)" $(TCL_LDFLAGS)
+
 
 
 TESTS = ./tracetests ./interptests

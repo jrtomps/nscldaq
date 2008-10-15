@@ -156,12 +156,13 @@ void
 CTCLChannelCommander::onInput()
 {
   CTCLObject theLine;
-  Tcl_Obj*   theObject;
+  Tcl_Obj*   theObject = theLine.getObject();
 
   if (Tcl_GetsObj(m_channel, theObject) != -1) {
     // Data:
 
     string fragment = (string)(theLine);
+    fragment += "\n";		// Newlines get filtered out by getsobj.
     m_command += fragment;
 
     if (Tcl_CommandComplete(m_command.c_str())) {

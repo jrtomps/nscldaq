@@ -18,6 +18,9 @@
 #include "CTCLTcpServerInstance.h"
 #include "CTCLServer.h"
 #include "TCLInterpreter.h"
+#include <string>
+
+using namespace std;
 
 
 /////////////////////////////////////////////////////////////////////////
@@ -69,6 +72,8 @@ CTCLTcpServerInstance::returnResult()
 {
   Tcl_Interp*  pInterp = m_pInterp->getInterpreter();
   const char*  pResult = Tcl_GetStringResult(pInterp);
-  Tcl_WriteChars(getChannel(), pResult, -1);
+  string result(pResult);
+  result += "\n";		// So we can ensure this is one message to the socket.
+  Tcl_WriteChars(getChannel(), result.c_str(), -1);
   Tcl_Flush(getChannel());
 }
