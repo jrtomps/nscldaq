@@ -1,1 +1,1 @@
-SUBDIRS = driver nsclapi tclpackage puretcl vmemodules
+SUBDIRS = driver nsclapi tclpackage puretcl vmemodules readout

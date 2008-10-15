@@ -29,6 +29,7 @@ libbtp_la_LDFLAGS = -version-info 1:0:0
 INCLUDES = -I. -I../include \
 	-DBT1003 -DNDEBUG -DBT_INLINE \
 	-D_POSIX_C_SOURCE -D_POSIX_THREAD_SEMANTICS \
+	-D_XOPEN_SOURCE	\
 	-O2 -Wall -Wstrict-prototypes
 
 include_HEADERS = btpiflib.h

@@ -447,6 +447,7 @@ AC_CONFIG_FILES([Makefile
 		 sbs/tclpackage/Makefile
 		 sbs/puretcl/Makefile
 		 sbs/vmemodules/Makefile
+		 sbs/readout/Makefile
 		 docbuild/Makefile
 		 docconfig/Makefile])
 
