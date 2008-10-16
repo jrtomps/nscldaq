@@ -19,7 +19,7 @@
 
 #include "CReadoutMain.h"
 #include <TCLLiveEventLoop.h>
-#include <CTCLServer.h>
+#include <CAuthorizedTclServer.h>
 #include <Exception.h>
 #include <CInvalidArgumentException.h>
 #include <CPortManager.h>
@@ -182,5 +182,5 @@ CReadoutMain::startTclServer(string port)
 				      "Starting tcp/tcl server component");
     }
   }
-  m_pTclServer = new CTCLServer(getInterpreter(), thePort);
+  m_pTclServer = new CAuthorizedTclServer(getInterpreter(), thePort);
 }

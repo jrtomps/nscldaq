@@ -18,6 +18,11 @@
 #ifndef __CTCLAUTHORIZER_H  //Required for current class
 #define __CTCLAUTHORIZER_H
 
+
+#ifndef __TCOBJECTLPROCESSOR_H
+#include <TCLObjectProcessor.h>
+#endif
+
 #ifndef __DAQTYPES_H
 #include <daqdatatypes.h>
 #endif
@@ -29,29 +34,35 @@
 #endif
 #endif
 
-#ifndef __TCLINTERPRETER_H
-#include <TCLInterpreter.h>        //Required for include files
-#define __TCLINTERPRETER_H
+
+#ifndef __STL_VECTOR
+#include <vector>
+#ifndef __STL_VECTOR
+#define __STL_VECTOR
+#endif
 #endif
 
-#ifndef __TCLPROCESSOR_H
-#include <TCLProcessor.h>
-#endif
+class CTCLObject;
+class CTCLVariable;
+class CTCLInterpreter;
 
+/*!
+ Provides an authorizer for tcl server based on the
+ userauth command.
 
-#ifndef __TCLVARIABLE_H
-#include <TCLVariable.h>        //Required for include files
-#endif
+\verbatim
+userauth add host-or-ip
+userauth list
+userauth delete host-or-ip
 
-#ifndef __TCLLIST_H
-#include <TCLList.h>        //Required for include files
-#endif
+\endverbatim
 
-#ifndef __TCLRESULT_H
-#include <TCLResult.h>        //Required for include files
-#endif
-                               
-class CTCLAuthorizer : public CTCLProcessor     
+The Authenticate member determines if a candidate host is allowed 
+to connect.
+
+*/
+            
+class CTCLAuthorizer : public CTCLObjectProcessor     
 {                       
   CTCLInterpreter* m_pInterpreter;
   CTCLVariable* m_pHostNames; //List of allowed hostnames.
@@ -64,11 +75,7 @@ public:
    // Constructors and other cannonical operations:
 
   CTCLAuthorizer (CTCLInterpreter* pInterp);
-  ~ CTCLAuthorizer ( )  // Destructor 
-  {
-    delete m_pHostNames;
-    delete m_pHostIps;
-  }  
+  ~ CTCLAuthorizer ( );
 
   
    //Copy constructor 
@@ -106,16 +113,15 @@ protected:
        
 public:
 
-  virtual   int operator() (CTCLInterpreter& rInterp, CTCLResult& rResult, 
-			    int nArgs, char* pArgs[])    ;
+  virtual   int operator() (CTCLInterpreter& rInterp,
+			    std::vector<CTCLObject>& objv)    ;
   Bool_t AddHost (const std::string& HostOrIp)    ;
   Bool_t RemoveHost (const std::string& NameOrIP)    ;
   std::string ListHosts ()    ;
   Bool_t Authenticate (const std::string& rNameOrIp)    ;
 
 protected:
-  int   Process(CTCLInterpreter& rInterp, 
-		  int nArgs, char* pArgs[])    ;
+
   Bool_t  HostToIp(std::string& rName);
   Int_t   GetIndex (const std::string& rHostOrIp)   ;
   Bool_t ConvertHost(const std::string& rInName, 

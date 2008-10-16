@@ -20,6 +20,11 @@ static const char* Copyright = "(C) Copyright Michigan State University 2002, Al
 #include <config.h>
 #include "CTCLAuthorizer.h"    				
 #include <TCLString.h>
+#include <TCLVariable.h>        
+#include <TCLInterpreter.h>     
+#include <TCLObject.h>
+#include <TCLList.h> 
+
 
 #include <string.h>
 #include <assert.h>
@@ -54,14 +59,29 @@ static const std::string IPVariable("ServerHostIps");
 //     Constructor.
 //
 CTCLAuthorizer::CTCLAuthorizer(CTCLInterpreter* pInterp) :
-  CTCLProcessor("serverauth", 
-		   pInterp),
+  CTCLObjectProcessor(*pInterp, "serverauth"),
   m_pInterpreter(pInterp)
 {
   m_pHostNames = new CTCLVariable(m_pInterpreter, NameVariable, kfFALSE);
   m_pHostIps   = new CTCLVariable(m_pInterpreter, IPVariable, kfFALSE);
-  Register();
+
+  // If those variables are not yet defined, make them empty strings:
+
+  if (!m_pHostNames->Get()) {
+    m_pHostNames->Set("");
+  }
+  if (!m_pHostIps->Get()) {
+    m_pHostIps->Set("");
+  }
 }
+
+CTCLAuthorizer::~CTCLAuthorizer()
+{
+  delete m_pHostNames;
+  delete m_pHostIps;
+}  
+
+
 //////////////////////////////////////////////////////////////////////////////
 //
 //  Function:       
@@ -69,14 +89,20 @@ CTCLAuthorizer::CTCLAuthorizer(CTCLInterpreter* pInterp) :
 //                int nArgs, char* pArgs[])
 //  Operation Type: 
 //     Behavioral override.
-int CTCLAuthorizer::operator()(CTCLInterpreter& rInterp, CTCLResult& rResult, 
-			       int nArgs, char* pArgs[])
-{
-  int         retval = Process(rInterp, nArgs, pArgs);
-  return retval;
-}
-int CTCLAuthorizer::Process(CTCLInterpreter& rInterp,
-			       int nArgs, char* pArgs[])  
+
+/*!
+   Gets control when the userauth command is received. Dispatches
+   control the the appropriate AddHost, RemoveHost, or ListHosts
+   member depending on the subcommand.
+   \param interp - Interpreter that is exeucting this command.
+   \param objv   - Encapsulated Tcl_Obj's that make up the
+                   command line.
+*/
+
+
+int CTCLAuthorizer::operator()(CTCLInterpreter& rInterp,
+			       vector<CTCLObject>& objv)
+
 {
   // Processes the serverauth command.
   //  This command has the forms:
@@ -85,30 +111,31 @@ int CTCLAuthorizer::Process(CTCLInterpreter& rInterp,
   //   serverauth remove hostorip    ;# Disallows host or IP address
   //   serverauth list                         ;# Lists the authorized set.
   //
-  nArgs--; pArgs++;
-  if(nArgs < 1) {
+
+  if(objv.size() < 2) {
     return Usage(rInterp);
   }
-  if(strcmp("add", pArgs[0]) == 0) {
-    nArgs--;
-    pArgs++;
-    if(nArgs != 1) {
+
+  for (int i =0; i < objv.size(); i++) {
+    objv[i].Bind(rInterp);
+  }
+
+  string subcommand = objv[1];
+
+  if (subcommand == string("add")) {
+    if(objv.size() != 3) {
       return Usage(rInterp);
     }
-    return AddHost(std::string(pArgs[0])) ? TCL_OK : TCL_ERROR;
+    return AddHost((string)objv[2]) ? TCL_OK : TCL_ERROR;
   }
-  else if (strcmp("remove", pArgs[0]) == 0) {
-    nArgs--;
-    pArgs++;
-    if(nArgs != 1) {
+  else if (subcommand == string("remove")) {
+    if(objv.size() != 3) {
       return Usage(rInterp);
     }
-    return RemoveHost(std::string(pArgs[0])) ? TCL_OK : TCL_ERROR;
+    return RemoveHost(std::string(objv[2])) ? TCL_OK: TCL_ERROR;
   }
-  else if (strcmp("list", pArgs[0]) == 0) {
-    nArgs--;
-    pArgs++;
-    if(nArgs != 0) {
+  else if (subcommand == string("list")) {
+    if(objv.size() != 2) {
       return Usage(rInterp);
     }
     rInterp.setResult(ListHosts());
