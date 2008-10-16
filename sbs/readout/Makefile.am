@@ -2,10 +2,12 @@ lib_LTLIBRARIES	=	libSBSProductionReadout.la
 
 libSBSProductionReadout_la_SOURCES	=	options.c \
 						CReadoutMain.cpp	\
-						CTCLAuthorizer.cpp
+						CTCLAuthorizer.cpp	\
+						CAuthorizedTclServer.cpp
 
 
-noinst_HEADERS	=	CReadoutMain.h Skeleton.h CTCLAuthorizer.h
+noinst_HEADERS	=	CReadoutMain.h Skeleton.h CTCLAuthorizer.h	\
+			CAuthorizedTclServer.h
 
 
 INCLUDES	=	-I@top_srcdir@/base/exception	\
