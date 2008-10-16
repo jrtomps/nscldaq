@@ -15,7 +15,8 @@
 */
 #include <config.h>
 #include <Skeleton.h>
-
+#include <CExperiment.h>
+#include <TCLInterpreter.h>
 
 /*
 /*
@@ -82,12 +83,12 @@ CTCLApplication* gpTCLApplication = new Skeleton;
    - CV262Trigger  - Uses the CAEN V262 as a trigger module.
    - CV977Trigger  - Uses the CAEN V977 as a trigger module.
 
-
+   \param pExperiment - Pointer to the experiment object.
 
 */
 
 void
-Skeleton::SetupReadout()
+Skeleton::SetupReadout(CExperiment* pExperiment)
 {
   // Establish your trigger here by creating a trigger object
   // and establishing it.
@@ -108,11 +109,13 @@ Skeleton::SetupReadout()
 
   You may replace this default trigger by creating a CEventTrigger derived object
   and passing it to the experiment's setScalerTrigger member function.
+
+  \param pExperiment - Pointer to the experiment object.
 */
 void
-Skeleton::SetupScalers() 
+Skeleton::SetupScalers(CExperiment* pExperiment) 
 {
-  CReadoutMain::SetupScalers();	// Establishes the default scaler trigger.
+  CReadoutMain::SetupScalers(pExperiment);	// Establishes the default scaler trigger.
 
 
   // Create and add your scaler modules here.
@@ -135,12 +138,14 @@ Skeleton::SetupScalers()
   See also:
 
      SetupStateVariables
+
+     \param pInterp - pointer to the TCL interpreter.
 */
 
 void
-Skeleton::SetupRunVariables()
+Skeleton::SetupRunVariables(CTCLInterpreter* pInterp)
 {
-  CReadoutMain::SetupRunVariables();
+  CReadoutMain::SetupRunVariables(pInterp);
 
   // Add any run variable definitions below.
 
@@ -160,12 +165,14 @@ Skeleton::SetupRunVariables()
   See also
 
   SetupRunVariables
+
+  \param pInterp - Pointer to the tcl interpreter.
  
 */
 void
-Skeleton::SetupStateVariables()
+Skeleton::SetupStateVariables(CTCLInterpreter* pInterp)
 {
-  CReadoutMain::SetupStateVariables();
+  CReadoutMain::SetupStateVariables(pInterp);
 
   // Add any state variable definitions below:
 

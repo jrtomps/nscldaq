@@ -3,22 +3,25 @@ lib_LTLIBRARIES	=	libSBSProductionReadout.la
 libSBSProductionReadout_la_SOURCES	=	options.c \
 						CReadoutMain.cpp	\
 						CTCLAuthorizer.cpp	\
-						CAuthorizedTclServer.cpp
+						CAuthorizedTclServer.cpp	\
+						CExperiment.cpp
 
 
 noinst_HEADERS	=	CReadoutMain.h Skeleton.h CTCLAuthorizer.h	\
-			CAuthorizedTclServer.h
+			CAuthorizedTclServer.h	CExperiment.h
 
 
 INCLUDES	=	-I@top_srcdir@/base/exception	\
 			-I@top_srcdir@/base/tclplus	\
 			-I@top_srcdir@/base/headers	\
 			-I@top_srcdir@/servers/portmanager	\
+			-I@top_srcdir@/base/dataflow		\
 			$(TCL_FLAGS)
 
 libSBSProductionReadout_la_LIBADD	=	@top_srcdir@/base/exception/libException.la	\
 						@top_srcdir@/base/tclplus/libtclPlus.la		\
-						@top_srcdir@/servers/portmanager/libPortManager.la
+						@top_srcdir@/servers/portmanager/libPortManager.la \
+						@top_srcdir@/base/dataflow/libDataFlow.la
 
 
 libSBSProductionReadout_la_LDFLAGS	=	-version-info	1:0:0	\

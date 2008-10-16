@@ -18,13 +18,20 @@
 
 
 #include "CReadoutMain.h"
+#include "CExperiment.h"
+
 #include <TCLLiveEventLoop.h>
 #include <CAuthorizedTclServer.h>
 #include <Exception.h>
 #include <CInvalidArgumentException.h>
+#include <ErrnoException.h>
 #include <CPortManager.h>
+
 #include <netdb.h>
 #include <stdlib.h>
+#include <unistd.h>
+#include <pwd.h>
+#include <sys/types.h>
 
 #include <iostream>
 
@@ -73,11 +80,20 @@ CReadoutMain::operator()()
     
     // Initialize the application;
     // this include user initialization.
+
+
+    // Create the experiment. Object. 
+
+    std::string ringname = getRingName(parsedArgs);
+    CExperiment* pExperiment = new CExperiment(ringname);
     
-    SetupRunVariables();
-    SetupStateVariables();
-    SetupReadout();		// From derived class.
-    SetupScalers();	   	// Allowed to be null (the default).
+
+    // Now initialize via the virtual functions.
+
+    SetupRunVariables(getInterpreter());
+    SetupStateVariables(getInterpreter());
+    SetupReadout(pExperiment);		// From derived class.
+    SetupScalers(pExperiment);	   	// Allowed to be null (the default).
     
     
     // If asked to, create the Tcl server component and hook it into the event loop
@@ -89,6 +105,7 @@ CReadoutMain::operator()()
     startTclServer(string(parsedArgs.port_arg));
 
     }
+
     
     // Setup our eventloop.
     
@@ -122,7 +139,7 @@ CReadoutMain::operator()()
    Setup the built-in run variables.
 */
 void
-CReadoutMain::SetupRunVariables()
+CReadoutMain::SetupRunVariables(CTCLInterpreter* pInterp)
 {
 }
 
@@ -130,14 +147,14 @@ CReadoutMain::SetupRunVariables()
    Setup the built-in state variables.
 */
 void
-CReadoutMain::SetupStateVariables()
+CReadoutMain::SetupStateVariables(CTCLInterpreter* pInterp)
 {
 }
 /*!
   Setup the scaler default trigger.
 */
 void
-CReadoutMain::SetupScalers()
+CReadoutMain::SetupScalers(CExperiment* pExperiment)
 {
 }
 
@@ -183,4 +200,33 @@ CReadoutMain::startTclServer(string port)
     }
   }
   m_pTclServer = new CAuthorizedTclServer(getInterpreter(), thePort);
+}
+
+/* 
+   Determine the ring name.  If the user provided the --ring=name option, that's the
+   name we use. Otherwise we use the username under which the program is running.
+
+*/
+string
+CReadoutMain::getRingName(struct gengetopt_args_info& args)
+{
+  if (args.ring_given) {
+    return string(args.ring_arg);
+  }
+
+  // Figure out our username by looking up our uid and our pwentry from the
+  // uid:
+
+  uid_t uid = getuid();
+  struct passwd Entry;
+  struct passwd* pEntry;
+  char          stuff[100];
+  
+  if (getpwuid_r(uid, &Entry, stuff, sizeof(stuff), &pEntry)) {
+    throw CErrnoException("Getting password entry for this user");
+  }
+  else {
+    return string(Entry.pw_name);
+  }
+
 }
