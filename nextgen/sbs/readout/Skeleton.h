@@ -21,6 +21,8 @@
 #include <CReadoutMain.h>
 #endif
 
+class CTCLInterpreter;
+class CExperiment;
 
 /*
 ** This file is a skeleton for the production readout software for
@@ -59,10 +61,10 @@ private:
 public:
   // Overrides for the base class members described above.
 
-  virtual void SetupRunVariables();
-  virtual void SetupStateVariables();
-  virtual void SetupReadout();
-  virtual void SetupScalers();
+  virtual void SetupRunVariables(CTCLInterpreter* pInterp);
+  virtual void SetupStateVariables(CTCLInterpreter* pInterp);
+  virtual void SetupReadout(CExperiment* pExperiment);
+  virtual void SetupScalers(CExperiment* pExperiment);
 
 private:
   // If you want to define some private member utilities, define them here.

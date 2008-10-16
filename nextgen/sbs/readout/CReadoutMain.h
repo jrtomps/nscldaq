@@ -27,9 +27,15 @@
 #endif
 #endif
 
+#ifndef OPTIONS_H
+#include "options.h"
+#endif
+
 // Forward class definitions.
 
 class CTCLServer;
+class CTCLInterpreter;
+class CExperiment;
 
 /*!
 
@@ -50,14 +56,14 @@ public:
 
   virtual int operator()();
 protected:
-  virtual void SetupRunVariables();
-  virtual void SetupStateVariables();
-  virtual void SetupReadout() = 0;
-  virtual void SetupScalers();
+  virtual void SetupRunVariables(CTCLInterpreter* pInterp);
+  virtual void SetupStateVariables(CTCLInterpreter* pInerp);
+  virtual void SetupReadout(CExperiment* pExperiment) = 0;
+  virtual void SetupScalers(CExperiment* pExperiment);
 
 private:
   void startTclServer(std::string port);
-
+  std::string getRingName(struct gengetopt_args_info& arguments);
 };
 
 #endif
