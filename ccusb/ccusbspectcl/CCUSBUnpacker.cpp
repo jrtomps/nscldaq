@@ -82,6 +82,7 @@ CCUSBUnpacker::operator()(const Address_t pEvent,
   CTclAnalyzer&            rAna((CTclAnalyzer&)rAnalyzer);
   UShort_t               nWords = *p++;   	// Word count and pointer to body.
   rAna.SetEventSize((nWords+1)*sizeof(UShort_t));
+
   
   // Note in the CCUSB the word count is not self inclusive!
 
@@ -97,19 +98,23 @@ CCUSBUnpacker::operator()(const Address_t pEvent,
   //  that extra word, and therefore we know to unconditionally
   //  skip it.
 
-  // Modified to not have a hit pattern, but expect all 16 channels
-  // from each module:
-  // 
+  while (nWords > 0) {
 
-  while (nWords) {
-    //    int hitPattern         = *p++;
-    //    nWords--;
+    const CParamMapCommand::ParameterMap* moduleInfo= pMap->getModuleMap(module);
 
-    //     int hits               = bitsInMask(hitPattern);
-    vector<int>* moduleMap = pMap->getModuleMap(module);
+    CParamMapCommand::ModuleType type = moduleInfo->s_type;
+    const vector<int>* moduleMap = &(moduleInfo->s_parameterIds); 
 
-    int hits = 16;		// Always all 16 channels.
+    if (module > pMap->getMapSize()) {
+      return kfFALSE;		// bad event!
+    }
 
+   
+    if (type == 0)
+    { 
+    int hitPattern         = *p++;
+    nWords--;
+    int hits               = bitsInMask(hitPattern);
     // For now we'll just decode the event and at each step check the moduleMap..could tune this.
 
     while (hits) {
@@ -127,23 +132,29 @@ CCUSBUnpacker::operator()(const Address_t pEvent,
 	  rEvent[param] = value;
 	}
       }
-
-
-      
-    }
-    // Skip the extra word at the end of the q-stop. 
-    // NO such extra word in unsupressed mode.
-    //     p++;
-    //    nWords--;
-
+   }
+    // Skip the extra word at the end of the q-stop.
+    p++;
+    nWords--;
     // On to the next module.
-
     module++;
+    }
 
+  if (type  == 1)
+   {
+      for (int param =0; param < 8; param++)
+      {     
+      UShort_t word     = *p++;    
+      nWords--;
+      UShort_t value    = ( (word >> 5) & 0x7ff);
+       rEvent[param] = value;
+      }      
+    p++;
+    module++;
+   }
   }
 
   // Must return true to histogram.
-
 
   return kfTRUE;
 }

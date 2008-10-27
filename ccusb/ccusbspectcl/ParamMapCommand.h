@@ -61,7 +61,17 @@ class CParamMapCommand : public CTCLObjectProcessor
 {
   // exported types:
 public:
-  typedef std::vector<int>           ParameterMap;
+
+  typedef enum _moduletype{
+        Phillips,
+        Ortec
+    } ModuleType;
+
+  typedef struct _ParameterMap{
+         ModuleType 	      s_type;
+         std::vector<int>     s_parameterIds;
+    } ParameterMap;
+
   typedef std::vector<ParameterMap>  ModuleMap;
 
   // Internal data:
@@ -104,7 +114,10 @@ private:
   // Data accessors.
 public:
 
-  std::vector<int>* getModuleMap(unsigned int moduleNumber);
+//  std::vector<int>* getModuleMap(unsigned int moduleNumber);
+//  std::vector<ParameterMap>* getModuleMap(unsigned int moduleNumber);
+  ParameterMap* getModuleMap(unsigned int moduleNumber);
+  size_t            getMapSize() const;
 
   // Utilities:
 private:

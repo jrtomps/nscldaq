@@ -150,7 +150,7 @@ CParamMapCommand::operator()(CTCLInterpreter& interp,
    Syntax:
 \verbatim
 
-parammap -add module-number [list name1 ...]
+parammap -add module-number module-type [list name1 ...]
 
    module-number   - The module number starting from zero 
    name1 ..        - Names of the parameters.  
@@ -178,9 +178,9 @@ int
 CParamMapCommand::add(CTCLInterpreter& interp, 
 		      vector<CTCLObject>& objv)
 {
-  // need 4 command words command, "-add" module-number, {list of parameternames}
+  // need 5 command words command, "-add" module-number, module-type, {list of parameternames}
 
-  if (objv.size() != 4) {
+  if (objv.size() != 5) {
     string result = "Incorrect number of parameters for an -add subcommand: \n";
     result      += Usage();
     interp.setResult(result);
@@ -203,16 +203,31 @@ CParamMapCommand::add(CTCLInterpreter& interp,
     return TCL_ERROR;
   }
 
+  int moduleType;
+  try {
+    moduleType = objv[3];         // Throws if this is not an integer.
+    if (moduleType < 0) throw 0; // To get to common error code in the catch block.
+  }
+  catch (...) {
+    string result = "Module type parameter for -add was : ";
+    result       += (string)(objv[3]);
+    result       += " must be a positive integer\n";
+    result       += Usage();
+    interp.setResult(result);
+    return TCL_ERROR;
+  }
+	
+
   // Get the list of parameter names now:
 
   vector<CTCLObject> parameterList;
   try {
-    parameterList = objv[3].getListElements();
+    parameterList = objv[4].getListElements();
   }
   catch(...) {
     string result;
     result   += "Module parameters are not a valid list: ";
-    result   += string(objv[3]);
+    result   += string(objv[4]);
     result   += "\n";
     result   += Usage();
     interp.setResult(result);
@@ -225,15 +240,25 @@ CParamMapCommand::add(CTCLInterpreter& interp,
   // vector.
 
   ParameterMap  map;
+  
+  if (moduleType == 0)
+     { 
+        map.s_type = Phillips;
+      }
+  else { map.s_type = Ortec;
+       }
+  
   for (int i=0; i < parameterList.size(); i++) {
     string name = parameterList[i]; // The parameter name.
     if (name != string("")) {
       CTreeParameter* pParam = new CTreeParameter(name, 4096, 0.0, 4095.0, string("channels"));
       pParam->Bind();		// Bind to a spectcl parameter, creating if needed.
-      map.push_back(pParam->getId());
+  //    map.push_back(pParam->getId());
+	map.s_parameterIds.push_back(pParam->getId());
     }
     else {
-      map.push_back(-1);	// no parameter.
+   //   map.push_back(-1);	// no parameter.
+      map.s_parameterIds.push_back(-1);	// no parameter.
     }
 
   }
@@ -303,7 +328,8 @@ CParamMapCommand::remove(CTCLInterpreter& interp, vector<CTCLObject>& objv)
   }
   // If we don't have this module that's an error too:
 
-  if((moduleNumber < m_modules.size()) && (m_modules[moduleNumber].size())) {
+//  if((moduleNumber < m_modules.size()) && (m_modules[moduleNumber].size())) {
+  if((moduleNumber < m_modules.size()) && (m_modules[moduleNumber].s_parameterIds.size())) {
     ParameterMap empty;
     m_modules[moduleNumber] = empty; // clear the map
   }
@@ -371,7 +397,8 @@ CParamMapCommand::list(CTCLInterpreter& interp,
       moduleNumber = objv[2];
       if (moduleNumber < 0) throw 0;
       if (!(moduleNumber < m_modules.size())) throw 1;
-      if (m_modules[moduleNumber].size() == 0) throw 2;
+  //    if (m_modules[moduleNumber].size() == 0) throw 2;
+      if (m_modules[moduleNumber].s_parameterIds.size() == 0) throw 2;
 
       // Ok so we have a non empty map for moduleNumber:
       
@@ -394,7 +421,8 @@ CParamMapCommand::list(CTCLInterpreter& interp,
   result.Bind(getInterpreter());
 
   for (int i = first; i < end; i++) {
-    if (m_modules[i].size()) {
+  //  if (m_modules[i].size()) {
+    if (m_modules[i].s_parameterIds.size()) {
 
       CTCLObject item;
       item.Bind(getInterpreter());
@@ -417,20 +445,28 @@ CParamMapCommand::list(CTCLInterpreter& interp,
     \retval NULL        - There is no map (or the map is empty).
     \retval other       - Pointer to the map.
 */
-vector<int>*
+
+CParamMapCommand::ParameterMap*
 CParamMapCommand::getModuleMap(unsigned int moduleNumber)
 {
   if (moduleNumber < m_modules.size()) {
-    if (m_modules[moduleNumber].size()) {
+    if (m_modules[moduleNumber].s_parameterIds.size()) {
       return &(m_modules[moduleNumber]);
     }
     else {
-      return reinterpret_cast<vector<int>*>(0);
+      return reinterpret_cast<ParameterMap*>(0);
     }
   }
   else {
-    return reinterpret_cast<vector<int>*>(0);
+    return reinterpret_cast<ParameterMap*>(0);
+
   }
+}
+
+size_t
+CParamMapCommand::getMapSize() const
+{
+  return m_modules.size();
 }
 ///////////////////////////////////////////////////////////////////////////////////////////
 /*
@@ -451,8 +487,10 @@ CParamMapCommand::listModule(unsigned int moduleNumber)
 
   CTCLObject map;
   map.Bind(getInterpreter());
-  for (int i=0; i < m_modules[moduleNumber].size(); i++) {
-    map += (int)(m_modules[moduleNumber][i]);
+//  for (int i=0; i < m_modules[moduleNumber].size(); i++) {
+  for (int i=0; i < m_modules[moduleNumber].s_parameterIds.size(); i++) {
+//    map += (int)(m_modules[moduleNumber][i]);
+    map += (int)(m_modules[moduleNumber].s_parameterIds[i]);
   }
   result += map;
   return map;
