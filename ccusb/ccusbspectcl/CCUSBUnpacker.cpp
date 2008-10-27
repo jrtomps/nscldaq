@@ -110,52 +110,51 @@ CCUSBUnpacker::operator()(const Address_t pEvent,
     }
 
    
-    if (type == 0)
-    { 
-    int hitPattern         = *p++;
-    nWords--;
-    int hits               = bitsInMask(hitPattern);
-    // For now we'll just decode the event and at each step check the moduleMap..could tune this.
+    if (type == CParamMapCommand::Phillips) {
 
-    while (hits) {
-
-      UShort_t word     = *p++;
-      hits--;
+      int hitPattern         = *p++;
       nWords--;
-
-      UShort_t channel  = (word >> 12) & 0xf;
-      UShort_t value    = (word & 0xfff);
-
-      if (moduleMap  && (channel < moduleMap->size())) {
-	int param  = (*moduleMap)[channel];
-	if (param >= 0) {
-	  rEvent[param] = value;
+      int hits               = bitsInMask(hitPattern);
+      // For now we'll just decode the event and at each step check the moduleMap..could tune this.
+      
+      while (hits) {
+	
+	UShort_t word     = *p++;
+	hits--;
+	nWords--;
+	
+	UShort_t channel  = (word >> 12) & 0xf;
+	UShort_t value    = (word & 0xfff);
+	
+	if (moduleMap  && (channel < moduleMap->size())) {
+	  int param  = (*moduleMap)[channel];
+	  if (param >= 0) {
+	    rEvent[param] = value;
+	  }
 	}
       }
-   }
-    // Skip the extra word at the end of the q-stop.
-    p++;
-    nWords--;
-    // On to the next module.
-    module++;
-    }
-
-  if (type  == 1)
-   {
-      for (int param =0; param < 8; param++)
-      {     
-      UShort_t word     = *p++;    
+      // Skip the extra word at the end of the q-stop.
+      p++;
       nWords--;
-      UShort_t value    = ( (word >> 5) & 0x7ff);
-       rEvent[param] = value;
-      }      
-    p++;
-    module++;
-   }
+      // On to the next module.
+      module++;
+    }
+    
+    if (type  == CParamMapCommand::Ortec) {
+      for (int param =0; param < 8; param++)
+	{     
+	  UShort_t word     = *p++;    
+	  nWords--;
+	  UShort_t value    = ( (word >> 5) & 0x7ff);
+	  rEvent[param] = value;
+	}      
+      p++;
+      module++;
+    }
   }
-
+  
   // Must return true to histogram.
-
+  
   return kfTRUE;
 }
 

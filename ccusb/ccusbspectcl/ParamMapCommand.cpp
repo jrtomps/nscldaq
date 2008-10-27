@@ -241,23 +241,21 @@ CParamMapCommand::add(CTCLInterpreter& interp,
 
   ParameterMap  map;
   
-  if (moduleType == 0)
-     { 
-        map.s_type = Phillips;
-      }
-  else { map.s_type = Ortec;
-       }
+  if (moduleType == 0) {
+    map.s_type = Phillips;
+  }
+  else {
+    map.s_type = Ortec;
+  }
   
   for (int i=0; i < parameterList.size(); i++) {
     string name = parameterList[i]; // The parameter name.
     if (name != string("")) {
       CTreeParameter* pParam = new CTreeParameter(name, 4096, 0.0, 4095.0, string("channels"));
       pParam->Bind();		// Bind to a spectcl parameter, creating if needed.
-  //    map.push_back(pParam->getId());
-	map.s_parameterIds.push_back(pParam->getId());
+      map.s_parameterIds.push_back(pParam->getId());
     }
     else {
-   //   map.push_back(-1);	// no parameter.
       map.s_parameterIds.push_back(-1);	// no parameter.
     }
 
