@@ -17,7 +17,10 @@
 #include <config.h>
 #include "CExperiment.h"
 #include <CRingBuffer.h>
-
+#include <CRingStateChangeItem.h>
+#include <RunState.h>
+#include <StateException.h>
+#include <string.h>
 
 using namespace std;
 
@@ -49,6 +52,8 @@ CExperiment::CExperiment(string ringName,
 
   m_pRing = new CRingBuffer(ringName, CRingBuffer::producer);
 
+  m_pRunState = RunState::getInstance();
+
 }
 
 /*!
@@ -59,7 +64,6 @@ CExperiment::~CExperiment()
 {
   delete m_pRing;
 #if 0				// These types/classes are not yet defined :-(
-  delete m_pRunState;
   delete m_pScalers;
   delete m_pReadout;
   delete m_pBusy;
@@ -98,11 +102,40 @@ CExperiment::getBufferSize() const
   - This is illegal if a run is active.
   - Writes a begin to the ring.
   - This creates and starts a new trigger thread, which can dispatch triggers to us.
+
+  \param resume - true if this is actually a resume run.
 */
 void
-CExperiment::Start()
+CExperiment::Start(bool resume)
 {
-  // TODO:  Write the body of this stub function.
+  // The run must be in the correct state:
+
+  if (resume && (m_pRunState->m_state != RunState::paused)) {
+    throw CStateException(m_pRunState->stateName().c_str(),
+			  RunState::stateName(RunState::paused).c_str(),
+			  "Starting data taking");
+  }
+  if (!resume && (m_pRunState->m_state != RunState::inactive)) {
+    throw CStateException(m_pRunState->stateName().c_str(),
+			  RunState::stateName(RunState::inactive).c_str(),
+			  "Starting data taking");
+  }
+      
+  time_t  now;
+  time(&now);
+  CRingStateChangeItem item(resume ? PAUSE_RUN : BEGIN_RUN, 
+			    m_pRunState->m_runNumber,
+			    m_pRunState->m_timeOffset = (resume ? m_pRunState->m_timeOffset : 0),
+			    now,
+			    std::string(m_pRunState->m_pTitle));
+  item.commitToRing(*m_pRing);
+
+  // TODO: Start the trigger thread:
+
+  // The run is now active if looked at by the outside world:
+
+  m_pRunState->m_state = RunState::active;
+
 }
 /*!
   End an existing run.  
@@ -110,11 +143,55 @@ CExperiment::Start()
   - This marks the event trigger thread for exit and 
     joins with it to ensure that it does actually exit.
   - Writes an end run record to the ring.
+
+  \param pause - true if this is actually a pause run.
 */
 void
-CExperiment::Stop()
+CExperiment::Stop(bool pause)
 {
-  // TODO:  Write the body of this stub function.
+  if (pause && (m_pRunState->m_state != RunState::active)) {
+    throw CStateException(m_pRunState->stateName().c_str(),
+			  RunState::stateName(RunState::active).c_str(),
+			  "Stopping data taking");
+  }
+  if (!pause && (m_pRunState->m_state == RunState::inactive)) {
+    string validStates;
+    validStates  = RunState::stateName(RunState::active);
+    validStates += ", ";
+    validStates += RunState::stateName(RunState::paused);
+
+    throw CStateException(m_pRunState->stateName().c_str(),
+			  validStates.c_str(), 
+			  "Stopping data taking");
+  }
+
+  // Create the run state item and commit it to the ring.
+
+  time_t now;
+  time(&now);
+  uint16_t        itemType;
+  RunState::State finalState;
+  if (pause) {
+    itemType   = PAUSE_RUN;
+    finalState = RunState::paused;
+  }
+  else {
+    itemType   = END_RUN;
+    finalState = RunState::inactive;
+  }
+
+  CRingStateChangeItem item(itemType, 
+			    m_pRunState->m_runNumber,
+			    m_pRunState->m_timeOffset,
+			    now,
+			    std::string(m_pRunState->m_pTitle));
+  item.commitToRing(*m_pRing);
+
+  // TODO:  stop the trigger thread
+
+  // The run is in the appropriate inactive state if looked at by the outside world
+
+  m_pRunState->m_state = finalState;
 }
 
 //////////////////////////////////////////////////////////////////////////////////////
