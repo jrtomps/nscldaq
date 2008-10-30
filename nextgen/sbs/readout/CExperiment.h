@@ -32,7 +32,7 @@
 
 // Forwared definitions:
 
-struct State;			
+class RunState;			
 class CScalerBank;
 class CCompoundEventSegment;
 class CBusy;
@@ -60,7 +60,7 @@ class CExperiment // (final).
 
 private:
   CRingBuffer*           m_pRing;	//!< Where event data eventually goes.
-  State*                 m_pRunState;   //!< state information about the run.
+  RunState*              m_pRunState;   //!< state information about the run.
   CScalerBank*           m_pScalers;    //!< The scalers to read.
   CCompoundEventSegment* m_pReadout;    //!< The event segment root.
   CBusy*                 m_pBusy;       //!< The busy module.
@@ -88,8 +88,8 @@ private:
 public:
   void   setBufferSize(size_t newSize);
   size_t getBufferSize() const;
-  void   Start();
-  void   Stop();
+  void   Start(bool resume=false);
+  void   Stop(bool pause=false);
   void   AddEventSegment(CEventSegment*    pSegment);
   void   RemoveEventSegment(CEventSegment* pSegment);
   void   AddScalerModule(CScalerModule*    pModule);

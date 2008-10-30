@@ -4,11 +4,13 @@ libSBSProductionReadout_la_SOURCES	=	options.c \
 						CReadoutMain.cpp	\
 						CTCLAuthorizer.cpp	\
 						CAuthorizedTclServer.cpp	\
-						CExperiment.cpp
+						CExperiment.cpp			\
+						RunState.cpp
 
 
 noinst_HEADERS	=	CReadoutMain.h Skeleton.h CTCLAuthorizer.h	\
-			CAuthorizedTclServer.h	CExperiment.h
+			CAuthorizedTclServer.h	CExperiment.h Asserts.h	\
+			RunState.h
 
 
 INCLUDES	=	-I@top_srcdir@/base/exception	\
@@ -16,9 +18,11 @@ INCLUDES	=	-I@top_srcdir@/base/exception	\
 			-I@top_srcdir@/base/headers	\
 			-I@top_srcdir@/servers/portmanager	\
 			-I@top_srcdir@/base/dataflow		\
+			-I@top_srcdir@/daq/format		\
 			$(TCL_FLAGS)
 
-libSBSProductionReadout_la_LIBADD	=	@top_srcdir@/base/exception/libException.la	\
+libSBSProductionReadout_la_LIBADD	=	@top_srcdir@/daq/format/libdataformat.la		\
+						@top_srcdir@/base/exception/libException.la	\
 						@top_srcdir@/base/tclplus/libtclPlus.la		\
 						@top_srcdir@/servers/portmanager/libPortManager.la \
 						@top_srcdir@/base/dataflow/libDataFlow.la
@@ -29,7 +33,7 @@ libSBSProductionReadout_la_LDFLAGS	=	-version-info	1:0:0	\
 
 EXTRA_DIST	=	options.ggo Skeleton.cpp
 
-noinst_PROGRAMS	= Readout
+noinst_PROGRAMS	= Readout tests
 
 Readout_SOURCES = Skeleton.cpp
 
@@ -47,3 +51,16 @@ options.c:	options.ggo
 
 clean-local:
 	-rm -f options.c options.h
+
+tests_SOURCES=TestRunner.cpp experimentTests.cpp 
+
+tests_LDADD = 	CExperiment.lo	\
+		RunState.lo	\
+		@top_srcdir@/daq/format/libdataformat.la	\
+		@top_srcdir@/base/dataflow/libDataFlow.la	\
+		@top_srcdir@/base/exception/libException.la	\
+		$(CPPUNIT_LDFLAGS)
+
+tests_LDFLAGS=-Wl,"-rpath-link=$(libdir)"
+
+TESTS=./tests
