@@ -10,7 +10,10 @@ libSBSProductionReadout_la_SOURCES	=	options.c \
 
 noinst_HEADERS	=	CReadoutMain.h Skeleton.h CTCLAuthorizer.h	\
 			CAuthorizedTclServer.h	CExperiment.h Asserts.h	\
-			RunState.h
+			RunState.h CObject.h
+
+
+
 
 
 INCLUDES	=	-I@top_srcdir@/base/exception	\
