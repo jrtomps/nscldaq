@@ -6,12 +6,13 @@ libSBSProductionReadout_la_SOURCES	=	options.c \
 						CAuthorizedTclServer.cpp	\
 						CExperiment.cpp			\
 						RunState.cpp			\
-						CComposite.cpp
+						CComposite.cpp			\
+						CScaler.cpp
 
 
 noinst_HEADERS	=	CReadoutMain.h Skeleton.h CTCLAuthorizer.h	\
 			CAuthorizedTclServer.h	CExperiment.h Asserts.h	\
-			RunState.h CObject.h CComposite.h
+			RunState.h CObject.h CComposite.h CScaler.h
 
 
 
