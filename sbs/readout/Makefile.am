@@ -1,18 +1,20 @@
 lib_LTLIBRARIES	=	libSBSProductionReadout.la
 
-libSBSProductionReadout_la_SOURCES	=	options.c \
-						CReadoutMain.cpp	\
-						CTCLAuthorizer.cpp	\
+libSBSProductionReadout_la_SOURCES	=	options.c 			\
+						CReadoutMain.cpp		\
+						CTCLAuthorizer.cpp		\
 						CAuthorizedTclServer.cpp	\
 						CExperiment.cpp			\
 						RunState.cpp			\
 						CComposite.cpp			\
-						CScaler.cpp
+						CScaler.cpp			\
+						CEventSegment.cpp
 
 
 noinst_HEADERS	=	CReadoutMain.h Skeleton.h CTCLAuthorizer.h	\
 			CAuthorizedTclServer.h	CExperiment.h Asserts.h	\
-			RunState.h CObject.h CComposite.h CScaler.h
+			RunState.h CObject.h CComposite.h CScaler.h	\
+			CEventSegment.h
 
 
 
