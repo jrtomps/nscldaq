@@ -25,6 +25,6 @@
 class CObject
 {
 public:
-  virtual bool isComposite() = 0;
+  virtual bool isComposite() const = 0;
 };
 #endif

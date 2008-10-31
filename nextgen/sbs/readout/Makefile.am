@@ -5,12 +5,13 @@ libSBSProductionReadout_la_SOURCES	=	options.c \
 						CTCLAuthorizer.cpp	\
 						CAuthorizedTclServer.cpp	\
 						CExperiment.cpp			\
-						RunState.cpp
+						RunState.cpp			\
+						CComposite.cpp
 
 
 noinst_HEADERS	=	CReadoutMain.h Skeleton.h CTCLAuthorizer.h	\
 			CAuthorizedTclServer.h	CExperiment.h Asserts.h	\
-			RunState.h CObject.h
+			RunState.h CObject.h CComposite.h
 
 
 
@@ -55,9 +56,11 @@ options.c:	options.ggo
 clean-local:
 	-rm -f options.c options.h
 
-tests_SOURCES=TestRunner.cpp experimentTests.cpp 
+tests_SOURCES=TestRunner.cpp experimentTests.cpp \
+		compositeTests.cpp
 
 tests_LDADD = 	CExperiment.lo	\
+		CComposite.lo	\
 		RunState.lo	\
 		@top_srcdir@/daq/format/libdataformat.la	\
 		@top_srcdir@/base/dataflow/libDataFlow.la	\
