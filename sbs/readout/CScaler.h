@@ -58,6 +58,8 @@ public:
   virtual void clear();
   virtual void disable();
   virtual std::vector<uint32_t> read() = 0;
+
+  virtual bool isComposite() const;
 };
 
 #endif

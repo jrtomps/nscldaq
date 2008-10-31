@@ -43,6 +43,8 @@ public:
   virtual void   clear();
   virtual void   disable();
   virtual size_t read(void* pBuffer, size_t maxwords) = 0;
+
+  virtual bool isComposite() const;
 };
 
 

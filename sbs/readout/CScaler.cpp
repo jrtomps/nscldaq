@@ -71,3 +71,13 @@ CScaler::read()
   return result;
 }
   
+
+/*!
+  Scaler modules are not composites:
+
+*/
+bool
+CScaler::isComposite() const
+{
+  return false;
+}
