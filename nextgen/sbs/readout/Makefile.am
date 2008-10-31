@@ -8,13 +8,14 @@ libSBSProductionReadout_la_SOURCES	=	options.c 			\
 						RunState.cpp			\
 						CComposite.cpp			\
 						CScaler.cpp			\
-						CEventSegment.cpp
+						CEventSegment.cpp		\
+						CScalerBank.cpp
 
 
 noinst_HEADERS	=	CReadoutMain.h Skeleton.h CTCLAuthorizer.h	\
 			CAuthorizedTclServer.h	CExperiment.h Asserts.h	\
 			RunState.h CObject.h CComposite.h CScaler.h	\
-			CEventSegment.h
+			CEventSegment.h CScalerBank.h
 
 
 
@@ -60,10 +61,11 @@ clean-local:
 	-rm -f options.c options.h
 
 tests_SOURCES=TestRunner.cpp experimentTests.cpp \
-		compositeTests.cpp
+		compositeTests.cpp scalerbankTests.cpp
 
 tests_LDADD = 	CExperiment.lo	\
 		CComposite.lo	\
+		CScaler.lo CScalerBank.lo	\
 		RunState.lo	\
 		@top_srcdir@/daq/format/libdataformat.la	\
 		@top_srcdir@/base/dataflow/libDataFlow.la	\

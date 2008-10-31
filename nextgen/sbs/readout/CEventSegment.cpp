@@ -67,3 +67,12 @@ CEventSegment::read(void* pBuffer, size_t maxwords)
 {
   return 0;
 }
+
+/*!
+   Event segments are not composites:
+*/
+bool
+CEventSegment::isComposite() const
+{
+  return false;
+}
