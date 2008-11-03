@@ -80,9 +80,7 @@ public:
   void DeleteScaler(CScaler* pScaler);
   ScalerIterator begin();
   ScalerIterator end();
-  size_t         size() const;
-  size_t         leafCount();
-  size_t         fullCount();
+
   virtual bool   isComposite() const;
   
   void visit(CVisitor& visitor); //!< shallow visitation.

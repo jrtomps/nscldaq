@@ -162,34 +162,8 @@ CScalerBank::end()
   CScalerBank::ScalerIterator p = CComposite::end();
   return p;
 }
-size_t
-/*!
-  Returns a shallow count of the number of elements in the container:
-*/
-CScalerBank::size() const
-{
-  return CComposite::size();
-}
-/*!
-  Returns a deep count of the total number of leaf elements
-  this composite controls via it's sub-hierarchy:
-*/
-size_t
-CScalerBank::leafCount()
-{
-  return CComposite::leafCount();
-}
-/*!
-  Returns a deep count of the total number of scaler objects
-  (scaler banks included) this composite controls via its
-  sub-hierarchy
-*/
 
-size_t
-CScalerBank::fullCount()
-{
-  return CComposite::fullCount();
-}
+
 /*!
    This is a composite:
 */
