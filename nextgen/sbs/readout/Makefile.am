@@ -11,14 +11,15 @@ libSBSProductionReadout_la_SOURCES	=	options.c 			\
 						CEventSegment.cpp		\
 						CScalerBank.cpp			\
 						CCompoundEventSegment.cpp	\
-						CEventTrigger.cpp
+						CEventTrigger.cpp		\
+						CNullTrigger.cpp
 
 
 noinst_HEADERS	=	CReadoutMain.h Skeleton.h CTCLAuthorizer.h	\
 			CAuthorizedTclServer.h	CExperiment.h Asserts.h	\
 			RunState.h CObject.h CComposite.h CScaler.h	\
 			CEventSegment.h CScalerBank.h CCompoundEventSegment.h	\
-			CEventTrigger.h
+			CEventTrigger.h CNullTrigger.h
 
 
 
