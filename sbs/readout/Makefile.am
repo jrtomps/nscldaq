@@ -63,7 +63,8 @@ clean-local:
 
 tests_SOURCES=TestRunner.cpp experimentTests.cpp \
 		compositeTests.cpp scalerbankTests.cpp	\
-		compoundevsegTest.cpp
+		compoundevsegTest.cpp			\
+		triggerresponseTests.cpp
 
 tests_LDADD = 	CExperiment.lo	\
 		CComposite.lo	\

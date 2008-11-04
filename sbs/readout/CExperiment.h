@@ -40,7 +40,7 @@ class CEventTrigger;
 class CTriggerLoop;
 class CRingBuffer;
 class CEventSegment;
-class CScalerModule;
+class CScaler;
 
 /*!
   This class controls the experiment.  The experiment consists of two major
@@ -69,7 +69,8 @@ private:
   CTriggerLoop*          m_pTriggerLoop; //!< Thread that runs the trigger.
 
   size_t                 m_nDataBufferSize; //!< current event buffer size.
-  uint16_t*              m_pDataBuffer; //!< where events get read.
+
+  uint32_t               m_nLastScalerTime; //
 
   // Canonicals:
 
@@ -92,8 +93,8 @@ public:
   void   Stop(bool pause=false);
   void   AddEventSegment(CEventSegment*    pSegment);
   void   RemoveEventSegment(CEventSegment* pSegment);
-  void   AddScalerModule(CScalerModule*    pModule);
-  void   RemoveScalerModule(CScalerModule* pModule);
+  void   AddScalerModule(CScaler*    pModule);
+  void   RemoveScalerModule(CScaler* pModule);
 
   void   EstablishTrigger(CEventTrigger* pEventTrigger);
   void   setScalerTrigger(CEventTrigger* pScalerTrigger);
