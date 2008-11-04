@@ -113,12 +113,8 @@ void experimentTests::buffersize()
 {
   EQ(static_cast<size_t>(4096), m_pExperiment->getBufferSize());
   
-  // provide a dummy buffer:
-
-  m_pExperiment->m_pDataBuffer = new uint16_t[4096];
-
   m_pExperiment->setBufferSize(8192);
-  ASSERT(!m_pExperiment->m_pDataBuffer);
+
   EQ(static_cast<size_t>(8192), m_pExperiment->getBufferSize());
 }
 

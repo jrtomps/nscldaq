@@ -12,6 +12,18 @@
 using namespace std;
 
 
+
+class compoundevTest : public CppUnit::TestFixture {
+  CPPUNIT_TEST_SUITE(compoundevTest);
+  CPPUNIT_TEST(construct);
+  CPPUNIT_TEST(add);
+  CPPUNIT_TEST(Delete);
+  CPPUNIT_TEST(visitors);
+  CPPUNIT_TEST(readover);
+  CPPUNIT_TEST_SUITE_END();
+
+
+private:
 // concrete Event segment class that will be used in testing:
 //
 class TestSegment : public CEventSegment
@@ -41,19 +53,7 @@ public:
   virtual void clear() { isCleared = true; }
   virtual void disable() { isDisabled = true; }
 };
-uint16_t TestSegment::next;
 
-class compoundevTest : public CppUnit::TestFixture {
-  CPPUNIT_TEST_SUITE(compoundevTest);
-  CPPUNIT_TEST(construct);
-  CPPUNIT_TEST(add);
-  CPPUNIT_TEST(Delete);
-  CPPUNIT_TEST(visitors);
-  CPPUNIT_TEST(readover);
-  CPPUNIT_TEST_SUITE_END();
-
-
-private:
 
 public:
   void setUp() {
@@ -69,6 +69,8 @@ protected:
 };
 
 CPPUNIT_TEST_SUITE_REGISTRATION(compoundevTest);
+
+uint16_t compoundevTest::TestSegment::next;
 
 
 // Construction should give the usual answers:

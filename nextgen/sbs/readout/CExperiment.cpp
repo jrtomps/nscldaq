@@ -18,10 +18,13 @@
 #include "CExperiment.h"
 #include <CRingBuffer.h>
 #include <CRingStateChangeItem.h>
+#include <CRingScalerItem.h>
+#include <CRingItem.h>
 #include <RunState.h>
 #include <StateException.h>
 #include <string.h>
-
+#include <CCompoundEventSegment.h>
+#include <CScalerBank.h>
 using namespace std;
 
 ///////////////////////////////////////////////////////////////////////////////////////////
@@ -42,8 +45,8 @@ CExperiment::CExperiment(string ringName,
   m_pBusy(0),
   m_pEventTrigger(0),
   m_pScalerTrigger(0),
-  m_nDataBufferSize(eventBufferSize),
-  m_pDataBuffer(0)
+  m_nDataBufferSize(eventBufferSize)
+
 
 {
   if (!CRingBuffer::isRing(ringName)) {
@@ -63,14 +66,14 @@ CExperiment::CExperiment(string ringName,
 CExperiment::~CExperiment()
 {
   delete m_pRing;
-#if 0				// These types/classes are not yet defined :-(
   delete m_pScalers;
   delete m_pReadout;
+#if 0				// These types/classes are not yet defined :-(
   delete m_pBusy;
   delete m_pEventTrigger;
   delete m_pScalerTrigger;
 #endif
-  delete m_pDataBuffer;
+
 }
 /////////////////////////////////////////////////////////////////////////////////////////
 
@@ -82,8 +85,6 @@ CExperiment::~CExperiment()
 void
 CExperiment::setBufferSize(size_t newSize)
 {
-  delete []m_pDataBuffer;
-  m_pDataBuffer     = 0;
   m_nDataBufferSize = newSize;
 }
 /*!
@@ -119,6 +120,11 @@ CExperiment::Start(bool resume)
     throw CStateException(m_pRunState->stateName().c_str(),
 			  RunState::stateName(RunState::inactive).c_str(),
 			  "Starting data taking");
+  }
+  // Begin run zeroes the previous scaler time.
+  //
+  if (m_pRunState->m_state != RunState::paused) {
+    m_nLastScalerTime = 0;
   }
       
   time_t  now;
@@ -205,7 +211,10 @@ CExperiment::Stop(bool pause)
 void
 CExperiment::AddEventSegment(CEventSegment* pSegment)
 {
-  // TODO:  Write the body of this stub fucntion
+  if (! m_pReadout) {
+    m_pReadout = new CCompoundEventSegment;
+  }
+  m_pReadout->AddEventSegment(pSegment);
 }
 /*!
   Remove an existing event segment from the readout.  Note that if the event 
@@ -218,7 +227,11 @@ CExperiment::AddEventSegment(CEventSegment* pSegment)
 void
 CExperiment::RemoveEventSegment(CEventSegment* pSegment)
 {
-  // TODO: Write the body of this stub function.
+  // If the root event segment does not exist, there's nothing to delete:
+
+  if (m_pReadout) {
+    m_pReadout->DeleteEventSegment(pSegment);
+  }
 }
 /*!
    Add a scaler module to the end of the root scaler bank.  
@@ -228,9 +241,16 @@ CExperiment::RemoveEventSegment(CEventSegment* pSegment)
    \param pScalerModule - pointer to the module to add.
 */
 void
-CExperiment::AddScalerModule(CScalerModule* pScalerModule)
+CExperiment::AddScalerModule(CScaler* pScalerModule)
 {
-  // TODO: Write the body of his stub function.
+  // if the root scaler module has not yet been created create it:
+
+  if (!m_pScalers) {
+    m_pScalers = new CScalerBank;
+  }
+  // Add the new module:
+
+  m_pScalers->AddScalerModule(pScalerModule);
 }
 /*!
    Remove a scaler module from the scaler hierarchy.  
@@ -241,9 +261,13 @@ CExperiment::AddScalerModule(CScalerModule* pScalerModule)
      management is the job of higher level code.
 */
 void
-CExperiment::RemoveScalerModule(CScalerModule* pScalerModule)
+CExperiment::RemoveScalerModule(CScaler* pScalerModule)
 {
-  // TODO:  Write the body of this stub function.
+  // remove the module from the root level scaler bank, if it exists.
+
+  if (m_pScalers) {
+    m_pScalers->DeleteScaler(pScalerModule);
+  }
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////
@@ -275,7 +299,7 @@ CExperiment::setScalerTrigger(CEventTrigger* pScalerTrigger)
   Establishes the busy module. The busy module represents hardware that 
   describes to the outside world when the system is unable to react to any triggers.
 
-  \param pBusyModule
+  \param pBusyModul
 
 */
 void
@@ -288,14 +312,29 @@ CExperiment::EstablishBusy(CBusy* pBusyModule)
 
 /*!
    Reads an event. If the root event segment exists it is asked to read its
-   data into the m_pDataBuffer (which is created if not yet allocated).
+   data into the a physics ring item.
    The resulting event is placed in the ring buffer.
 
 */
 void
 CExperiment::ReadEvent()
 {
-  // TODO:  Write the body of this stub function.
+
+  
+
+  // If the root event segment exists, read it into the data buffer
+  // and put the resulting event in the ring buffer:
+  //
+  if (m_pReadout) {
+    CRingItem item(PHYSICS_EVENT, m_nDataBufferSize);
+    uint16_t* pBuffer = reinterpret_cast<uint16_t*>(item.getBodyPointer());
+    size_t nWords = m_pReadout->read(pBuffer, m_nDataBufferSize);
+    item.setBodyCursor(pBuffer + nWords);
+    item.commitToRing(*m_pRing);
+
+  }
+  // TODO: Need to keep track of trigger counts and from time to time emit a 
+  //      trigger count item.
 }
 
 /*!
@@ -307,7 +346,21 @@ CExperiment::ReadEvent()
 
 void CExperiment::TriggerScalerReadout()
 {
-  // TODO: Write the body of this stub function.
+  // can only do scaler readout if we have a root scaler bank:
+
+  if (m_pScalers) {
+    vector<uint32_t> scalers = m_pScalers->read();
+    time_t           now     = time(&now);
+    
+
+    CRingScalerItem  item(m_nLastScalerTime,
+			  m_pRunState->m_timeOffset,
+			  now,
+			  scalers);
+    item.commitToRing(*m_pRing);
+    m_nLastScalerTime = m_pRunState->m_timeOffset;
+			  
+  }
 
 }
 
