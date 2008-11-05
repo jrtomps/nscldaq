@@ -68,13 +68,15 @@ clean-local:
 tests_SOURCES=TestRunner.cpp experimentTests.cpp \
 		compositeTests.cpp scalerbankTests.cpp	\
 		compoundevsegTest.cpp			\
-		triggerresponseTests.cpp
+		triggerresponseTests.cpp 	\
+		timedtriggerTest.cpp
 
 tests_LDADD = 	CExperiment.lo	\
 		CComposite.lo	\
 		CScaler.lo CScalerBank.lo	\
 		CEventSegment.lo CCompoundEventSegment.lo \
 		RunState.lo	\
+		CEventTrigger.lo CTimedTrigger.lo	\
 		@top_srcdir@/daq/format/libdataformat.la	\
 		@top_srcdir@/base/dataflow/libDataFlow.la	\
 		@top_srcdir@/base/exception/libException.la	\
