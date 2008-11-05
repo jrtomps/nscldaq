@@ -71,13 +71,9 @@ operator>=(const timespec& t1,const timespec& t2)
 
   // Now we can trivially compare:
 
-  if (left == right) return true;
-  if (left.tv_sec > right.tv_sec) return true;
-  if (left.tv_sec == right.tv_sec) {
-    return left.tv_nsec > right.tv_nsec;
-  }
-
-  return false;
+  if (left.tv_sec < right.tv_sec) return false;
+  if (left.tv_nsec  < right.tv_nsec)  return false;
+  return true;
 }
 /*!
   This unbound function compares for equality.
