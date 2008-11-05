@@ -24,7 +24,8 @@ libSBSDeviceSupport_la_SOURCES =	CADC2530.cpp		\
 					CVMEScalerLRS1151.cpp	\
 					Nimout.cpp	\
 					sis3300.cpp	\
-					v890.cpp
+					v890.cpp	\
+					VmeModule.cpp
 
 
 include_HEADERS =	CADC2530.h	\
@@ -62,7 +63,9 @@ include_HEADERS =	CADC2530.h	\
 			sis3300.h	\
 			v890.h		\
 			wienercamac.h	\
-			wienermacros.h
+			wienermacros.h	\
+			VmeModule.h	\
+			CVME.h CVMEptr.h
 
 INCLUDES	=	-I@top_srcdir@/base/headers 	\
 			-I@top_srcdir@/base/exception	\
