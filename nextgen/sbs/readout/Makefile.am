@@ -13,36 +13,43 @@ libSBSProductionReadout_la_SOURCES	=	options.c 			\
 						CCompoundEventSegment.cpp	\
 						CEventTrigger.cpp		\
 						CNullTrigger.cpp		\
-						CTimedTrigger.cpp
+						CTimedTrigger.cpp		\
+						CCAENV262Trigger.cpp
 
 
 noinst_HEADERS	=	CReadoutMain.h Skeleton.h CTCLAuthorizer.h	\
 			CAuthorizedTclServer.h	CExperiment.h Asserts.h	\
 			RunState.h CObject.h CComposite.h CScaler.h	\
 			CEventSegment.h CScalerBank.h CCompoundEventSegment.h	\
-			CEventTrigger.h CNullTrigger.h CTimedTrigger.h
+			CEventTrigger.h CNullTrigger.h CTimedTrigger.h	\
+			CCAENV262Trigger.h
 
 
 
 
 
-INCLUDES	=	-I@top_srcdir@/base/exception	\
+INCLUDES	=	-I@top_srcdir@/sbs/vmemodules	\
+			-I@top_srcdir@/sbs/nsclapi	\
+			-I@top_srcdir@/base/exception	\
 			-I@top_srcdir@/base/tclplus	\
 			-I@top_srcdir@/base/headers	\
 			-I@top_srcdir@/servers/portmanager	\
 			-I@top_srcdir@/base/dataflow		\
 			-I@top_srcdir@/daq/format		\
-			$(TCL_FLAGS)
+			$(TCL_FLAGS) $(THREADCXX_FLAGS)
 
-libSBSProductionReadout_la_LIBADD	=	@top_srcdir@/daq/format/libdataformat.la		\
+libSBSProductionReadout_la_LIBADD	=	@top_srcdir@/sbs/vmemodules/libSBSDeviceSupport.la	\
+						@top_srcdir@/sbs/nsclapi/libSBSVmeAPI.la		\
+						@top_srcdir@/daq/format/libdataformat.la		\
 						@top_srcdir@/base/exception/libException.la	\
 						@top_srcdir@/base/tclplus/libtclPlus.la		\
 						@top_srcdir@/servers/portmanager/libPortManager.la \
-						@top_srcdir@/base/dataflow/libDataFlow.la
+						@top_srcdir@/base/dataflow/libDataFlow.la	\
+						@top_srcdir@/sbs/driver/src/libbtp.la
 
 
 libSBSProductionReadout_la_LDFLAGS	=	-version-info	1:0:0	\
-						$(TCL_LDFLAGS)
+						$(TCL_LDFLAGS) $(THREADLD_FLAGS)
 
 EXTRA_DIST	=	options.ggo Skeleton.cpp
 
@@ -53,7 +60,7 @@ Readout_SOURCES = Skeleton.cpp
 Readout_DEPENDENCIES = libSBSProductionReadout.la
 Readout_LDADD	= libSBSProductionReadout.la	\
 		  @top_srcdir@/base/exception/libException.la	\
-		  @top_srcdir@/base/tclplus/libtclPlus.la
+		  @top_srcdir@/base/tclplus/libtclPlus.la $(THREADLD_FLAGS)
 
 
 options.o:	options.c
@@ -80,7 +87,7 @@ tests_LDADD = 	CExperiment.lo	\
 		@top_srcdir@/daq/format/libdataformat.la	\
 		@top_srcdir@/base/dataflow/libDataFlow.la	\
 		@top_srcdir@/base/exception/libException.la	\
-		$(CPPUNIT_LDFLAGS)
+		$(CPPUNIT_LDFLAGS)  $(THREADLD_FLAGS)
 
 tests_LDFLAGS=-Wl,"-rpath-link=$(libdir)"
 
