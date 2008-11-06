@@ -14,7 +14,8 @@ libSBSProductionReadout_la_SOURCES	=	options.c 			\
 						CEventTrigger.cpp		\
 						CNullTrigger.cpp		\
 						CTimedTrigger.cpp		\
-						CCAENV262Trigger.cpp
+						CCAENV262Trigger.cpp		\
+						CV977Trigger.cpp
 
 
 noinst_HEADERS	=	CReadoutMain.h Skeleton.h CTCLAuthorizer.h	\
@@ -22,7 +23,7 @@ noinst_HEADERS	=	CReadoutMain.h Skeleton.h CTCLAuthorizer.h	\
 			RunState.h CObject.h CComposite.h CScaler.h	\
 			CEventSegment.h CScalerBank.h CCompoundEventSegment.h	\
 			CEventTrigger.h CNullTrigger.h CTimedTrigger.h	\
-			CCAENV262Trigger.h
+			CCAENV262Trigger.h CV977Trigger.h
 
 
 
@@ -36,7 +37,8 @@ INCLUDES	=	-I@top_srcdir@/sbs/vmemodules	\
 			-I@top_srcdir@/servers/portmanager	\
 			-I@top_srcdir@/base/dataflow		\
 			-I@top_srcdir@/daq/format		\
-			$(TCL_FLAGS) $(THREADCXX_FLAGS)
+			$(TCL_FLAGS) $(THREADCXX_FLAGS)	\
+			-DHAVE_VME_MAPPING -DHAVE_SBSVME_INTERFACE
 
 libSBSProductionReadout_la_LIBADD	=	@top_srcdir@/sbs/vmemodules/libSBSDeviceSupport.la	\
 						@top_srcdir@/sbs/nsclapi/libSBSVmeAPI.la		\

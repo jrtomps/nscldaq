@@ -5,18 +5,11 @@ libSBSDeviceSupport_la_SOURCES =	CADC2530.cpp		\
 					CAENcard.cpp		\
 					CaenIO.cpp		\
 					camacmap.cpp		\
-					CBD8210.cpp		\
 					CCAENChain.cpp		\
 					CCAENV1x90.cpp		\
 					CCAENV560.cpp		\
 					CCAENV830.cpp		\
 					CCAENV977.cpp		\
-					CCamac.cpp		\
-					CCamacModule.cpp	\
-					CCamacNimout.cpp	\
-					CCAMACScalerLRS2551.cpp	\
-					CCAMACScalerLRS4434.cpp	\
-					CCrateController.cpp	\
 					CModule32.cpp	\
 					CScaler.cpp	\
 					CSIS3600.cpp	\
@@ -34,7 +27,6 @@ include_HEADERS =	CADC2530.h	\
 			CaenIO.h	\
 			camac.h		\
 			camacmap.h	\
-			CBD8210.h	\
 			CCAENChain.h	\
 			CCAENV1x90Data.h	\
 			CCAENV1x90.h	\
@@ -45,12 +37,6 @@ include_HEADERS =	CADC2530.h	\
 		 	CCAENV820Registers.h	\
 			CCAENV830.h	\
 			CCAENV977.h	\
-			CCamac.h	\
-			CCamacModule.h	\
-			CCamacNimout.h	\
-			CCAMACScalerLRS2551.h	\
-			CCAMACScalerLRS4434.h	\
-			CCrateController.h	\
 			cescamac.h		\
 			cesmacros.h	\
 			CModule32.h	\
@@ -70,7 +56,8 @@ include_HEADERS =	CADC2530.h	\
 INCLUDES	=	-I@top_srcdir@/base/headers 	\
 			-I@top_srcdir@/base/exception	\
 			-I@top_srcdir@/sbs/nsclapi	\
-			-I@top_srcdir@/sbs/driver/include
+			-I@top_srcdir@/sbs/driver/include \
+			-DHAVE_VME_MAPPING -DHAVE_SBSVME_INTERFACE
 
 
 libSBSDeviceSupport_la_LIBADD =	@top_srcdir@/base/exception/libException.la	\

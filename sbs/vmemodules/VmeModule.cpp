@@ -1,5 +1,3 @@
-#define HAVE_SBSVME_INTERFACE
-#define HAVE_VME_MAPPING
 /*
 		    GNU GENERAL PUBLIC LICENSE
 		       Version 2, June 1991
