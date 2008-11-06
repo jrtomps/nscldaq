@@ -19,7 +19,8 @@ libSBSDeviceSupport_la_SOURCES =	CADC2530.cpp		\
 					sis3300.cpp	\
 					v890.cpp	\
 					VmeModule.cpp	\
-					CMemoryMappedCAMACBranch.cpp
+					CMemoryMappedCAMACBranch.cpp	\
+					CESCBD8210.cpp
 
 
 include_HEADERS =	CADC2530.h	\
@@ -54,7 +55,8 @@ include_HEADERS =	CADC2530.h	\
 			VmeModule.h	\
 			CVME.h CVMEptr.h \
 			CCAMACBranch.h	\
-			CMemoryMappedCAMACBranch.h
+			CMemoryMappedCAMACBranch.h \
+			CESCBD8210.h
 
 INCLUDES	=	-I@top_srcdir@/base/headers 	\
 			-I@top_srcdir@/base/exception	\
