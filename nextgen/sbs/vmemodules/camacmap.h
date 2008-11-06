@@ -27,4 +27,5 @@ void  daq_UnmapCamacSpace(void* fid,void* pSpace); /* Unmap CAMAC address space.
 void  daq_CloseCamacDriver(void* fid);    /* deaccess the CAMAC.           */
 
 
+
 #endif
