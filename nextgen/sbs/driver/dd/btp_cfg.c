@@ -7,7 +7,7 @@
 **
 **      Functions:      init_module(), cleanup_module()
 **
-**      $Revision: 1625 $
+**      $Revision: 2042 $
 **
 ******************************************************************************/
 /*****************************************************************************
@@ -19,7 +19,7 @@
 *****************************************************************************/
 
 #ifndef LINT
-static const char revcntrl[] = "@(#)"__FILE__"  $Revision: 1625 $" __DATE__;
+static const char revcntrl[] = "@(#)"__FILE__"  $Revision: 2042 $" __DATE__;
 #endif  /* LINT */
 static const char driver_version[] = "$Name:  $";
 
@@ -288,7 +288,13 @@ int init_module(
     TRC_MSG(BT_TRC_CFG|BT_TRC_DETAIL, (LOG_FMT "Trace level = 0x%lx.\n",
         LOG_ARG, bt_trace_lvl_g));
 
+    /* SET_MODULE_OWNER gets deprecated at some point */
+
+#ifdef SET_MODULE_OWNER
     SET_MODULE_OWNER(&btp_fops);
+#else
+    (&btp_fops)->owner = THIS_MODULE;
+#endif
 
     /* 
     ** Initialize our memory handling routines 
