@@ -128,15 +128,14 @@ mainLoop(string ring, int timeout, int mindata)
   // In order to deal with timeouts reasonably well, we need to turn off
   // blocking on stdout.
 
-#ifdef NONBLOCKING
+  // #define NONBLOCKING6
   long flags = fcntl(STDIN_FILENO, F_GETFL, &flags);
   flags   |= O_NONBLOCK;
   int stat= fcntl(STDIN_FILENO, F_SETFL, flags);
   if (stat == -1) {
-    perror("stdintoring Failed to set stdout nonblocking");
+    perror("stdintoring Failed to set stin nonblocking");
     exit(EXIT_FAILURE);
   }
-#endif
 
   while (1) {
     char* pBuffer = new char[mindata];
@@ -155,7 +154,6 @@ mainLoop(string ring, int timeout, int mindata)
     selectTimeout.tv_sec = timeout;
     selectTimeout.tv_usec= 0;
     int stat = select(STDIN_FILENO+1, &readfds, &writefds, &exceptfds, &selectTimeout);
-    
     // Three cases:
     // stat = 0... just do the next pass of the loop.
     // stat = -1   an error detected by select, but could be EINTR which is ok.
@@ -177,12 +175,17 @@ mainLoop(string ring, int timeout, int mindata)
 	  perror("read failed");
 	  exit(EXIT_FAILURE);
 	}
+	if (nread == 0) {
+	  cerr << "Exiting due to eof\n";
+	  exit(EXIT_SUCCESS);	// eof on stdin.
+	}
       }
       else {
-	cerr << "Select had invalid return value: " << stat << endl;
+	cerr << "Exiting due to select fail " << errno << endl;
 	exit(EXIT_FAILURE);
       }
-    }
+    } 
+
   }
   
 
@@ -215,6 +218,7 @@ int main(int argc, char** argv)
   string ringname = parsed.inputs[0];
   int    timeout  = parsed.timeout_arg;
   size_t mindata  = integerize(parsed.mindata_arg);
+
 
   mainLoop(ringname, timeout, mindata);
 }

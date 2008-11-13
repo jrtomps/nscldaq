@@ -26,6 +26,7 @@
 #include <stdio.h>
 #include <iostream>
 #include <errno.h>
+#include <unistd.h>
 
 using namespace std;
 
@@ -233,27 +234,30 @@ CRingAccess::daqConsumeFrom(string uri)
     return new CRingBuffer(proxyRingName, CRingBuffer::consumer);
   }
   // The ring is remote.  We need help from the remote ringmaster:
-  // We want to shut down our connection with the ring master prior
-  // to forking the proxy so that 
+
 
   int socket;
-  {
-    CRingMaster master(host);
-    socket = master.requestData(ring);
-  }
+  CRingMaster master(host);
+  socket = master.requestData(ring);
 
   // We have a socket on which data will be sent.
+
+
+  startFeeder(proxyRingName, socket); // do this now so the feeder doesn't inherit the
+  close(socket);		// But don't shutdown.
+
+
+
   // - create the proxy ring.
   // - get our feeder process going.
   // - close the socket.
   // - Return a consumer connection to the proxy ring.
 
   CRingBuffer::create(proxyRingName, m_proxyRingSize, m_proxyMaxConsumers, true);
+  CRingBuffer* proxy = new CRingBuffer(proxyRingName, CRingBuffer::consumer);
 
-  startFeeder(proxyRingName, socket);
 
-  close(socket);
-  return new CRingBuffer(proxyRingName, CRingBuffer::consumer);
+  return proxy;
 }
 //////////////////////////////////////////////////////////////////////////////
 //  Utilities:
@@ -275,13 +279,16 @@ CRingAccess::startFeeder(string proxyName, int socket)
   // Take care of our standard files...
 
 
+  close(STDIN_FILENO);
   int status = dup2(socket, STDIN_FILENO);
-  status = close(STDOUT_FILENO);
-  close(STDERR_FILENO);
+
+
+  //  close(STDOUT_FILENO);
+  //  close(STDERR_FILENO);
 
   // Detach from the current terminal
 
-  pid_t newSession =  setsid();
+  daemon(1,1);			// TODO: Figure out posix way to do this.
 
   // Construct the path to stdintoring;
 

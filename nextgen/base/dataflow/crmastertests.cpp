@@ -238,5 +238,6 @@ rmasterTests::getdata()
   string textaddr(inet_ntoa(peer.sin_addr));
   EQ(string("127.0.0.1"), textaddr);
 
+  shutdown(socket, SHUT_RDWR);
   CRingBuffer::remove("remote");
 }

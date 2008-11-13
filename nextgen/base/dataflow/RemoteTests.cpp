@@ -173,6 +173,7 @@ RemoteTests::urlremote()
     url += "/urllocal";
     pConsumer = CRingAccess::daqConsumeFrom(url);
    
+    sleep(1);			//  Let everything settle in and start.
     ASSERT(pConsumer);
 
     char putBuffer[100];
