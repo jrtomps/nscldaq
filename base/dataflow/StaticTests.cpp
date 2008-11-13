@@ -153,13 +153,16 @@ void StaticRingTest::format()
 
   // Verify the header fields :
 
-  EQ(CRingBuffer::getDefaultMaxConsumers(), pHeader->s_maxConsumer);
+  size_t max = pHeader->s_maxConsumer;
+
+  EQ(CRingBuffer::getDefaultMaxConsumers(), max);
   EQ(sizeof(RingHeader), (unsigned int)pHeader->s_producerInfo);
   EQ(sizeof(RingHeader)+sizeof(ClientInformation), (unsigned int)pHeader->s_firstConsumer);
   EQ(sizeof(RingHeader) + (pHeader->s_maxConsumer+1)*sizeof(ClientInformation),
      (unsigned int)pHeader->s_dataOffset);
   EQ(buf.st_size - pHeader->s_dataOffset, (long int)pHeader->s_dataBytes);
-  EQ(buf.st_size -1, pHeader->s_topOffset);
+  off_t topoff = pHeader->s_topOffset;
+  EQ(buf.st_size -1, topoff);
 
 
   munmap(map, buf.st_size);

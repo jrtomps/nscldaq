@@ -325,6 +325,7 @@ CRingBuffer::getDefaultMaxConsumers()
   return m_defaultMaxConsumers;
 }
 
+
 ///////////////////////////////////////////////////////////////////////////////////////
 // Constructors and canonicals.
 
@@ -551,10 +552,10 @@ CRingBuffer::put(void* pBuffer, size_t nBytes, unsigned long timeout)
                               block forever.
 */
 size_t
-CRingBuffer:: get(void*        pBuffer, 
-		  size_t       maxBytes, 
-		  size_t       minBytes, 
-		  unsigned long timeout)
+CRingBuffer::get(void*        pBuffer, 
+		 size_t       maxBytes, 
+		 size_t       minBytes, 
+		 unsigned long timeout)
 {
   // Ensure we are a consumer:
 

@@ -3,7 +3,7 @@
 lib_LTLIBRARIES = libDataFlow.la \
 		libRingBuffer.la
 
-libDataFlow_la_SOURCES = CRingBuffer.cpp CRingMaster.cpp CRemoteAccess.cpp
+libDataFlow_la_SOURCES = CRingBuffer.cpp  CRemoteAccess.cpp CRingMaster.cpp
 include_HEADERS        = CRingBuffer.h CRingMaster.h CRemoteAccess.h
 
 noinst_HEADERS         = ringbufint.h Asserts.h testcommon.h CRingCommand.h
@@ -17,8 +17,8 @@ INCLUDES = -I@top_srcdir@/base/exception \
 	-DBINDIR='"@prefix@/bin"'
 
 libDataFlow_la_LDFLAGS =  -version-info $(SOVERSION) \
-	                  -Wl,"-rpath-link=$(libdir)" -lrt	\
-			$(THREADLD_FLAGS)
+	                  -Wl,"-rpath-link=$(libdir)" 	\
+			-lrt $(THREADLD_FLAGS)
 
 libDataFlow_la_LIBADD  = @top_srcdir@/base/exception/libException.la \
 			@top_srcdir@/servers/portmanager/libPortManager.la \
@@ -61,7 +61,7 @@ ringtostdoutsw.o: ringtostdoutsw.ggo
 ringtostdout_LDADD	= ringtostdoutsw.o libDataFlow.la \
 			$(THREADLD_FLAGS)
 
-ringtostdout_CXXFLAGS	= $(THREADCXX_FLAGS) $(AM_CXXFLAGS)
+ringtostdout_CXXFLAGS	=  $(AM_CXXFLAGS) $(THREADCXX_FLAGS)
 
 stdintoring_SOURCES = stdintoring.cpp
 stdintoring_DEPENDENCIES = libDataFlow.la 

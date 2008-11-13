@@ -14,13 +14,14 @@
 	     East Lansing, MI 48824-1321
 */
 
+#include <errno.h>
 #include <config.h>
 #include "CRingMaster.h"
+
 #include "CRingBuffer.h"
 #include <CPortManager.h>
 #include <ErrnoException.h>
 
-#include <errno.h>
 #include <vector>
 #include <sys/types.h>
 #include <sys/socket.h>
@@ -29,6 +30,9 @@
 #include <netdb.h>
 #include <arpa/inet.h>
 #include <stdio.h>
+#include <unistd.h>
+#include <fcntl.h>
+
 
 #include <iostream>
 
@@ -78,15 +82,26 @@ CRingMaster::CRingMaster(string host) :
   peer.sin_family = AF_INET;
   inet_aton(ip.c_str(), &(peer.sin_addr));
 
-  if (connect(m_socket, (sockaddr*)&peer, sizeof(peer)) == -1) {
-    int e = errno;
-    close(m_socket);
-    errno = e;
-    throw CErrnoException("CRingMaster::CRingMaster - connecting");
+  try {
+    if (connect(m_socket, (sockaddr*)&peer, sizeof(peer)) == -1) {
+      throw CErrnoException("CRingMaster::CRingMaster - connecting");
+    }
   }
+  catch (...) {
+    close(m_socket);
+    throw;
+  }
+   
 
   m_isConnected  = true;
   
+  // We don't want ringmaster connections to be inherited across execs..
+  // bad enough they may be inherited across forks:
+
+  long flags = fcntl(m_socket, F_GETFD, &flags);
+  flags |= FD_CLOEXEC;
+  fcntl(m_socket, F_SETFD, flags);
+
 }
 
 /*!
@@ -94,7 +109,7 @@ CRingMaster::CRingMaster(string host) :
 */
 CRingMaster::~CRingMaster() 
 {
-  if (m_isConnected) {
+  if (m_isConnected && !m_isDataConnection) {
     shutdown(m_socket, SHUT_RDWR);
     close(m_socket);
   }
@@ -250,6 +265,8 @@ CRingMaster::notifyDestroy(string ringname)
 int
 CRingMaster::requestData(string ringname)
 {
+
+
   transactionOk();		// need not be and usually is not localhost.
 
   string message;
@@ -328,10 +345,15 @@ CRingMaster::sendLine(std::string line)
       pBuf      += sent;
     }
     else {
-      if (badErrno()) {
+      try {
+	if (badErrno()) {
+	  throw CErrnoException("CRingMaster sending a message to the server");
+	}
+      }
+      catch (...) {
 	m_isConnected = false;	// Lost connection
 	close(m_socket);
-	throw CErrnoException("CRingMaster sending a message to the server");
+	throw;
       }
     }
   }
@@ -362,10 +384,17 @@ CRingMaster::getLine()
       if (data == '\n') return result;
     }
     else if (status < 0) {
-      if (badErrno()) {
+      try {
+	if (badErrno()) {
+
+	  throw CErrnoException("CRingMaster receiving a message from the server");
+	}
+      }
+      catch(...) {
 	m_isConnected = false;
 	close(m_socket);
-	throw CErrnoException("CRingMaster receiving a message from the server");
+	throw;
+	
       }
     }
   }
@@ -404,10 +433,10 @@ CRingMaster::ipAddress(string host)
   struct hostent* pEntry;
   struct hostent  entry;
   char            buffer[1024];
-  int             errno;
+  int             e;
   if (!gethostbyname_r(host.c_str(), 
 		       &entry, buffer, sizeof(buffer),
-		       &pEntry, &errno)) {
+		       &pEntry, &e)) {
     // pEntry->h_addr_list[0] has a longword IP address in network byte order:
     //
  

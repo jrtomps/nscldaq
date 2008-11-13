@@ -82,7 +82,8 @@ void XferTests::simpleput() {
   // Check the initial format of the put 'pointer'
 
   pid_t mypid = getpid();
-  EQ(mypid, pPut->s_pid); 
+  pid_t ppid = pPut->s_pid;
+  EQ(mypid, ppid); 
   EQ(pBuffer->s_header.s_dataOffset, pPut->s_offset);
 
   // Put 100 bytes of memory... counting pattern.
@@ -96,7 +97,8 @@ void XferTests::simpleput() {
 
   // The put pointer should have advanced and the data should be in the ring:
 
-  EQ(pBuffer->s_header.s_dataOffset + 100, pPut->s_offset);
+  off_t offset = pPut->s_offset;
+  EQ(pBuffer->s_header.s_dataOffset + 100, offset);
   
   int index = pBuffer->s_header.s_dataOffset;
   char* p   = reinterpret_cast<char*>(pBuffer);
@@ -142,7 +144,8 @@ void XferTests::wrapput()
   ring.put(msg, sizeof(msg));
 
   off_t shouldBe = pHeader->s_dataOffset +  (sizeof(msg) - sizeof(msg)/2) - 1;
-  EQ(shouldBe, pPut->s_offset);
+  off_t isOffset = pPut->s_offset;
+  EQ(shouldBe, isOffset);
 
   // Check the contents of the ring buffer.
 
@@ -231,7 +234,8 @@ void XferTests::simpleget()
 
   pClientInformation pGet = pBuffer->s_consumers;
   pid_t pid = getpid();
-  EQ(pid, pGet->s_pid);
+  pid_t cpid = pGet->s_pid;
+  EQ(pid, cpid);
   EQ(pHeader->s_dataOffset, pGet->s_offset);
   
 

@@ -55,13 +55,13 @@
 #define MAGICSTRING "NSCLRing"
 
 typedef struct __RingHeader {
-  char       s_magicString[32];	/* Should contain the text "NSCLRing" */
-  size_t     s_maxConsumer;	/* Maximum # of consumers. allowed by the ring.  */
-  size_t     s_dataBytes;      	/* Number of bytes of data in the data segment.  */
-  off_t      s_producerInfo;    /* Offset to the producer descriptor.            */
-  off_t      s_firstConsumer;	/* Offset to the first consumer descriptor       */
-  off_t      s_dataOffset;	/* Offset to the data segment                    */
-  off_t      s_topOffset;	/* Offset to the top of the storage.             */
+   char       s_magicString[32];	/* Should contain the text "NSCLRing" */
+  volatile size_t     s_maxConsumer;	/* Maximum # of consumers. allowed by the ring.  */
+  volatile size_t     s_dataBytes;      	/* Number of bytes of data in the data segment.  */
+  volatile off_t      s_producerInfo;    /* Offset to the producer descriptor.            */
+  volatile off_t      s_firstConsumer;	/* Offset to the first consumer descriptor       */
+  volatile off_t      s_dataOffset;	/* Offset to the data segment                    */
+  volatile off_t      s_topOffset;	/* Offset to the top of the storage.             */
 } RingHeader, *pRingHeader;
 
 /*
@@ -70,8 +70,8 @@ typedef struct __RingHeader {
 
 */
 typedef struct __ClientInformation {
-  off_t      s_offset;          /* Put/get offset into the buffer for consumer. */
-  pid_t      s_pid;		/* Process Id of the client.                    */
+  volatile off_t      s_offset;          /* Put/get offset into the buffer for consumer. */
+  volatile pid_t      s_pid;		/* Process Id of the client.                    */
 } ClientInformation, *pClientInformation;
 
 /*

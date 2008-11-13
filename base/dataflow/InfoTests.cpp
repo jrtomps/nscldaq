@@ -79,9 +79,11 @@ void InfoTests::usageempty()
   pRingBuffer pRing = reinterpret_cast<pRingBuffer>(mapRingBuffer(SHM_TESTFILE));
   RingHeader& header(pRing->s_header);
 
-  EQ(header.s_dataBytes,   use.s_bufferSpace);
+  size_t bufferSpace = header.s_dataBytes;
+  size_t maxConsumers= header.s_maxConsumer;
+  EQ(bufferSpace,   use.s_bufferSpace);
   EQ(header.s_dataBytes-1, use.s_putSpace);
-  EQ(header.s_maxConsumer, use.s_maxConsumers);
+  EQ(maxConsumers, use.s_maxConsumers);
   EQ(getpid(),             use.s_producer);
   EQ(size_t(0),            use.s_maxGetSpace);
   EQ(size_t(0),            use.s_minGetSpace);
@@ -111,7 +113,8 @@ void InfoTests::usage1consumer()
   pRingBuffer pRing = reinterpret_cast<pRingBuffer>(mapRingBuffer(SHM_TESTFILE));
   RingHeader& header(pRing->s_header);
 
-  EQ(header.s_dataBytes,  use.s_bufferSpace);
+  size_t bufferSpace = header.s_dataBytes;
+  EQ(bufferSpace,  use.s_bufferSpace);
   EQ(header.s_dataBytes - sizeof(msg) -1, use.s_putSpace);
   EQ(getpid(),            use.s_producer);
   EQ(sizeof(msg),         use.s_maxGetSpace);

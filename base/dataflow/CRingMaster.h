@@ -47,7 +47,7 @@ class CRingMaster
   // Instance data:
 private:
   int      m_socket;		// Socket connected to the server.
-  bool     m_isConnected ;      // True if the object is still connected.
+  bool     m_isConnected ;      // True if the object is still 
   bool     m_isDataConnection;  // True if the object holds data connection.
   bool     m_isLocal;           // True if connected to localhost.
 

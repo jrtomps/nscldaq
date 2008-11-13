@@ -199,7 +199,7 @@ proc RemoteHoist {socket client tail} {
 	puts $socket "ERROR $ringname does not exist"
     } else {
 	puts $socket "OK BINARY FOLLOWS"
-	exec $::hoisterProgram $ringname >@ $socket &
+	exec $::hoisterProgram $ringname >@ $socket  &
 	releaseResources $socket $client
     }
 
@@ -571,7 +571,7 @@ foreach level {emergency alert critical error warning notice info debug} {
 
 #  Disable the ones I don't want:
 
-::log::lvSuppress debug
+# ::log::lvSuppress debug
 
 enumerateRings
 
