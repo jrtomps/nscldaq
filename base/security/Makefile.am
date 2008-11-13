@@ -18,18 +18,3 @@ EXTRA_DIS= security.xml
 
 
 
-noinst_PROGRAMS = unittests
-
-unittests_SOURCES = test.cpp 
-
-unittests_DEPENDENCIES = AccessListCheck.o  \
-	FdInteractor.o  HostListCheck.o \
-	IOInteractor.o Interactor.o PasswordCheck.o  \
-	StringInteractor.o TclAccessListCheck.o UnixUserCheck.o
-
-unittests_LDADD = $(unittests_DEPENDENCIES) -L@top_srcdir@/base/tclplus \
-	-ltclPlus -L@top_srcdir@/base/exception -lException \
-	$(SPECTRODAQ_LDFLAGS) $(TCL_LDFLAGS) -lcrypt
-
-TESTS = ./unittests
-
