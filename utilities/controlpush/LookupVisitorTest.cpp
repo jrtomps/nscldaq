@@ -45,8 +45,6 @@ CPPUNIT_TEST_SUITE_REGISTRATION(LookupVisitorTests);
 const string Names[] = {
   "Z002DH",
   "Z001DV",
-  "STRCHAN50",
-  "STRCHAN40",
   "FLTCHAN59",
   "FLTCHAN67",
   "FLTCHAN70"  
