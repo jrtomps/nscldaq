@@ -60,5 +60,5 @@ cpptest_SOURCES = cpptest.cpp
 cpptest_LDADD= -L. -lPortManager -L@top_srcdir@/base/exception -lException
 
 check-TESTS: cpptest
-	for f in *.test;do $(TCLSH_CMD) $f; done
+	for f in *.test;do $(TCLSH_CMD) $$f; done
 	cpptest

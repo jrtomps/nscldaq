@@ -12,6 +12,11 @@ if {[lsearch [namespace children] ::tcltest] == -1} {
 
 lappend auto_path .
 
+source Log.tcl
+source PortManager.tcl
+source ConnectionManager.tcl
+source portAllocator.tcl
+
 package require Log
 package require PortManager
 package require ConnectionManager

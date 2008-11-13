@@ -6,7 +6,7 @@ if {[lsearch [namespace children] ::tcltest] == -1} {
     package require tcltest
     namespace import ::tcltest::*
 }
-
+source ./Log.tcl
 source ./PortManager.tcl
 package require PortManager
 
@@ -45,7 +45,7 @@ test 1.4 {construct with backwards range} {} {
         set pm "Construction did not fail!!"
     }
     set pm
-} {Error in constructor: Invalid port range.}
+} {Error in constructor: Invalid port range. 1010 - 1000}
 #  Post test cleanup:
 
 test 1.5 {late configuration} {} {
