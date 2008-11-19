@@ -20,7 +20,7 @@ AC_CHECK_PROG(HAVE_XMLTO, [xmlto], true, false)
 
 AC_CHECK_LIB([X11], [XSetWindowBackground])
 AC_CHECK_LIB([Xt], [XtManage])
-AC_CHECK_LIB([cppunit], [_ZN7CppUnit12XmlOutputterD1Ev], [])
+AC_CHECK_LIB([cppunit], [_ZN7CppUnit12XmlOutputterD1Ev], [CPPUNIT_LDFLAGS=-lcppunit])
 AC_CHECK_LIB([pub], [xrealloc], [])
 
 
@@ -368,6 +368,8 @@ AC_SUBST(EPICS_BIN)
 
 
 AC_SUBST(GENGETOPT)
+
+AC_SUBST(CPPUNIT_LDFLAGS)
 
 AM_CONDITIONAL([PDFDOCS], [test x$HAVE_DOCBOOK2PDF = xtrue])
 AM_CONDITIONAL([XMLMANS], [test x$HAVE_XMLTO = xtrue])
