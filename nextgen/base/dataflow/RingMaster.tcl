@@ -571,7 +571,7 @@ foreach level {emergency alert critical error warning notice info debug} {
 
 #  Disable the ones I don't want:
 
-# ::log::lvSuppress debug
+ ::log::lvSuppress debug
 
 enumerateRings
 
