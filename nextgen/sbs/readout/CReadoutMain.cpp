@@ -42,7 +42,8 @@ using namespace std;
 
 */
 CReadoutMain::CReadoutMain() :
-  m_pTclServer(0)
+  m_pTclServer(0),
+  m_pExperiment(0)
 {
 }
 
@@ -82,18 +83,15 @@ CReadoutMain::operator()()
     // this include user initialization.
 
 
-    // Create the experiment. Object. 
-
-    std::string ringname = getRingName(parsedArgs);
-    CExperiment* pExperiment = new CExperiment(ringname);
+    m_pExperiment = CreateExperiment(&parsedArgs);
     
 
     // Now initialize via the virtual functions.
 
     SetupRunVariables(getInterpreter());
     SetupStateVariables(getInterpreter());
-    SetupReadout(pExperiment);		// From derived class.
-    SetupScalers(pExperiment);	   	// Allowed to be null (the default).
+    SetupReadout(m_pExperiment);		// From derived class.
+    SetupScalers(m_pExperiment);	   	// Allowed to be null (the default).
     
     
     // If asked to, create the Tcl server component and hook it into the event loop
@@ -105,6 +103,10 @@ CReadoutMain::operator()()
     startTclServer(string(parsedArgs.port_arg));
 
     }
+
+    // Add the application specific commands:
+
+    addCommands();
 
     
     // Setup our eventloop.
@@ -134,6 +136,27 @@ CReadoutMain::operator()()
   
 ///////////////////////////////////////////////////////////////////////////////////////////
 
+/*!
+  Create the experiment object:
+  @param parsed - void cast of pointer to gengetopt_args_info describing the 
+                  command line arguments.
+  @return CExperiment*
+  @retval Pointer to the newly created experiment.
+
+   This is virtual so users can override this for whatever nefarious reasons they choose.
+*/
+CExperiment*
+CReadoutMain::CreateExperiment(void* parsed)
+{
+
+  struct gengetopt_args_info& parsedArgs(*(reinterpret_cast<gengetopt_args_info*>(parsed)));
+  // Create the experiment. Object.
+  
+  std::string ringname = getRingName(parsedArgs);
+  return new CExperiment(ringname);
+
+
+}
 
 /*!
    Setup the built-in run variables.
@@ -157,6 +180,15 @@ void
 CReadoutMain::SetupScalers(CExperiment* pExperiment)
 {
 }
+
+/*!
+  Add the commands that drive the application.
+*/
+void
+CReadoutMain::addCommands()
+{
+}
+
 
 //////////////////////////////////////////////////////////////////////////////////////////////
 
