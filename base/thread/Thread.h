@@ -75,6 +75,8 @@ class Thread : public daqhwyapi::Runnable {
     std::string getName() const; // Get this thread's name
     virtual void run() = 0;       // Run this thread
 
+    static int runningThread();	  // Get id of running thread.
+
   // Utilities.
 
 private:

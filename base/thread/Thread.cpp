@@ -61,6 +61,18 @@ Thread::threadStarter(void *aThread) {
   return(NULL);
 }
 
+/*!
+    Static method to return the id of the running thread.
+
+    @return int
+    @retval Id of currently running thread.
+*/
+int
+Thread::runningThread() 
+{
+  return (int)(dshwrapthread_self());
+}
+
 
 /*===================================================================*/
 /** @fn Thread::Thread()
