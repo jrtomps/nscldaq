@@ -49,6 +49,7 @@ class CExperiment;
 class CReadoutMain : public CTCLApplication
 {
   CTCLServer*   m_pTclServer;
+  CExperiment*  m_pExperiment;
 public:
   CReadoutMain();
   virtual ~CReadoutMain();
@@ -56,12 +57,14 @@ public:
 
   virtual int operator()();
 protected:
-  virtual void SetupRunVariables(CTCLInterpreter* pInterp);
-  virtual void SetupStateVariables(CTCLInterpreter* pInerp);
-  virtual void SetupReadout(CExperiment* pExperiment) = 0;
-  virtual void SetupScalers(CExperiment* pExperiment);
+  virtual CExperiment*  CreateExperiment(void* parsed);
+  virtual void          SetupRunVariables(CTCLInterpreter* pInterp);
+  virtual void          SetupStateVariables(CTCLInterpreter* pInerp);
+  virtual void          SetupReadout(CExperiment* pExperiment) = 0;
+  virtual void          SetupScalers(CExperiment* pExperiment);
+  virtual void          addCommands();
 
-private:
+protected:
   void startTclServer(std::string port);
   std::string getRingName(struct gengetopt_args_info& arguments);
 };

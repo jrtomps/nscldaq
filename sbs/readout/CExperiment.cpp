@@ -387,3 +387,21 @@ CExperiment::ScheduleRunVariableDump()
 {
   // TODO: Write the body of this stub function.
 }
+
+
+/*!
+  Return the current event trigger:
+*/
+CEventTrigger*
+CExperiment::getEventTrigger()
+{
+  return m_pEventTrigger;
+}
+/*!
+  Returnthe current scaler trigger:
+*/
+CEventTrigger*
+CExperiment::getScalerTrigger()
+{
+  return m_pScalerTrigger;
+}

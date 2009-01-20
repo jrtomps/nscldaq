@@ -84,6 +84,12 @@ private:
   int operator==(const CExperiment&) const;
   int operator!=(const CExperiment&) const;
 
+  // Selectors needed by other classes:
+
+public:
+  CEventTrigger*      getEventTrigger();
+  CEventTrigger*      getScalerTrigger();
+
   // Member functions:
 
 public:
