@@ -32,7 +32,8 @@ testableObjects = TCLInterpreter.lo   TCLProcessor.lo    \
 	TCLCommandPackage.lo   TCLIdleProcess.lo   \
 	TCLObject.lo   TCLChannel.lo   TCLTracedVariable.lo   \
 	CLanguageTraceCallbacks.lo  TCLObjectProcessor.lo \
-	TCLCompatibilityProcessor.lo
+	TCLCompatibilityProcessor.lo TCLPackagedObjectProcessor.lo \
+	TCLObjectPackage.lo
 
 
 libtclPlus_la_SOURCES = TCLApplication.cpp $(testableSources)
@@ -90,7 +91,7 @@ TestLdflags = $(testableObjects) $(CPPUNIT_LDFLAGS) $(X11EXTRA_LDFLAGS) \
 tracetests_LDADD = $(TestLdflags)
 
 interptests_SOURCES=interpretertest.cpp objecttest.cpp resulttest.cpp \
-	objcommandtest.cpp compatcommand.cpp
+	objcommandtest.cpp compatcommand.cpp packagetests.cpp
 
 
 interptests_LDADD = TestRunner.lo $(TestLdflags)
