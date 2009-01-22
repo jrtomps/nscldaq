@@ -41,10 +41,10 @@ class CTCLPackagedObjectProcessor;
 class CTCLObjectPackage
 {
 public:
-  typedef std::list<CTCLPackagedObjectProcesor*> Commands;
+  typedef std::list<CTCLPackagedObjectProcessor*> Commands;
   typedef Commands::iterator CommandIterator;
 private:
-  Command  m_commands;
+  Commands  m_commands;
 
   // Common services for all packages:
 
