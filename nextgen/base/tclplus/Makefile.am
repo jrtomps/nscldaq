@@ -21,17 +21,19 @@ testableSources = TCLInterpreter.cpp TCLProcessor.cpp  \
 	CLanguageTraceCallbacks.cpp TCLObjectProcessor.cpp \
 	TCLCompatibilityProcessor.cpp TCLLiveEventLoop.cpp	\
 	CTCLChannelCommander.cpp CTCLStdioCommander.cpp	\
-	CTCLTcpServerInstance.cpp CTCLServer.cpp
+	CTCLTcpServerInstance.cpp CTCLServer.cpp TCLObjectPackage.cpp \
+	TCLPackagedObjectProcessor.cpp
 
-testableObjects = TCLInterpreter.o   TCLProcessor.o    \
-	TCLVariable.o   TCLString.o    \
-	TCLResult.o   TCLTimer.o   TCLFileHandler.o   \
-	TCLList.o   TCLException.o \
-	TCLInterpreterObject.o   \
-	TCLCommandPackage.o   TCLIdleProcess.o   \
-	TCLObject.o   TCLChannel.o   TCLTracedVariable.o   \
-	CLanguageTraceCallbacks.o  TCLObjectProcessor.o \
-	TCLCompatibilityProcessor.o
+testableObjects = TCLInterpreter.lo   TCLProcessor.lo    \
+	TCLVariable.lo   TCLString.lo    \
+	TCLResult.lo   TCLTimer.lo   TCLFileHandler.lo   \
+	TCLList.lo   TCLException.lo \
+	TCLInterpreterObject.lo   \
+	TCLCommandPackage.lo   TCLIdleProcess.lo   \
+	TCLObject.lo   TCLChannel.lo   TCLTracedVariable.lo   \
+	CLanguageTraceCallbacks.lo  TCLObjectProcessor.lo \
+	TCLCompatibilityProcessor.lo
+
 
 libtclPlus_la_SOURCES = TCLApplication.cpp $(testableSources)
 
@@ -46,7 +48,8 @@ include_HEADERS = TCLApplication.h TCLCommandPackage.h TCLException.h \
 	VariableTraceCallback.h CLanguageTraceCallbacks.h \
 	TCLObjectProcessor.h TCLCompatibilityProcessor.h 	\
 	TCLLiveEventLoop.h CTCLChannelCommander.h	\
-	CTCLStdioCommander.h CTCLTcpServerInstance.h CTCLServer.h
+	CTCLStdioCommander.h CTCLTcpServerInstance.h CTCLServer.h	\
+	TCLObjectPackage.h TCLPackagedObjectProcessor.h
 
 
 # evttclsh - a tclsh that has an event loop constantly running.
@@ -90,10 +93,10 @@ interptests_SOURCES=interpretertest.cpp objecttest.cpp resulttest.cpp \
 	objcommandtest.cpp compatcommand.cpp
 
 
-interptests_LDADD = TestRunner.o $(TestLdflags)
+interptests_LDADD = TestRunner.lo $(TestLdflags)
 
 
-interptests_DEPENDENCIES = $(testableObjects) TestRunner.o
+interptests_DEPENDENCIES = $(testableObjects) TestRunner.lo
 
 tcpservertest_SOURCES	= 	tcpservertest.cpp
 tcpservertest_DEPENDENCIES	= 	libtclPlus.la

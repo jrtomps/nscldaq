@@ -146,7 +146,7 @@ public:
 
   const char* Set (const char* pValue, int flags=TCL_LEAVE_ERR_MSG | 
 		                                 TCL_GLOBAL_ONLY)  ;
-  const char* Set (const char* pSubscript, char* pValue, 
+  const char* Set (const char* pSubscript, const char* pValue, 
 		   int flags=TCL_LEAVE_ERR_MSG | TCL_GLOBAL_ONLY)  ;
   const char* Get (int flags=TCL_LEAVE_ERR_MSG | TCL_GLOBAL_ONLY, 
 		   char* pIndex=0)  ;

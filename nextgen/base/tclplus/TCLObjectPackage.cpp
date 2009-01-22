@@ -30,7 +30,7 @@ void
 CTCLObjectPackage::addCommand(CTCLPackagedObjectProcessor* processor)
 {
   m_commands.push_back(processor);
-  processor->onAttach(*this);
+  processor->onAttach(this);
 }
 
 /*!
@@ -50,7 +50,7 @@ CTCLObjectPackage::begin()
    @return CTCLObjectPackage::CommandIterator
    @retval end of iteration iterator.
 */
-CTCLObjectPacakge::CommandIterator
+CTCLObjectPackage::CommandIterator
 CTCLObjectPackage::end()
 {
   return m_commands.end();

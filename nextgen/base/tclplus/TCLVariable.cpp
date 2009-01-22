@@ -443,7 +443,7 @@ CTCLVariable::Set(const char* pValue, int flags)
 //     Modifier
 //
 const char* 
-CTCLVariable::Set(const char* pSubscript, char* pValue, int flags) 
+CTCLVariable::Set(const char* pSubscript, const char* pValue, int flags) 
 {
 // See Set(char* pName, int flags) for most of the details, this function
 // accepts an additional string parameter (first one) which is either the index
