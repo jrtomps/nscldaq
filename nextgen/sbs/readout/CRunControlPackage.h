@@ -23,12 +23,17 @@
 #endif
 #endif
 
+#ifndef __TCLOBJECTPACKAGE_H
+#include <TCLObjectPackage.h>
+#endif
+
+
 //
 
 class RunState;
 class CExperiment;
 class CTCLInterpreter;
-class CTCLObjectProcessor;
+
 
 /*!
   This class is a container for run control operations.
@@ -46,7 +51,7 @@ class CTCLObjectProcessor;
   - resume - Resume an paused run.
 
 */
-class CRunControlPackage 
+class CRunControlPackage  : public CTCLObjectPackage
 {
   // Class level data:
 
@@ -58,7 +63,7 @@ private:
 private:
   RunState*    m_pTheState;
   CExperiment* m_pTheExperiment;
-  std::list<CTCLObjectProcessor*>   m_theCommands;
+ 
   
   // Canonicals are all private so that this can enforce the singleton pattern.
 
@@ -73,18 +78,19 @@ private:
   // Completeing the singleton pattern:
 
 public:
-  static CRunControlPackage* getInstance(); // constructs if neededd.
+  static CRunControlPackage* getInstance(CTCLInterpreter& interp);
 
   // The following are useful functions both for the individual commands, and perhaps
   // for application extensions:
 public:
-  void start();			// Start data taking
-  void stop();			// stop data taking
   void begin();			// Begin a new run.
   void end();			// End an active run.
   void pause();			// Pause an active run.,
   void resume();		// Resume an active run.
+  const RunState* getState() const; // Return the run state.
 
+private:
+  void createCommands(CTCLInterpreter& Interp);
 
 
 };

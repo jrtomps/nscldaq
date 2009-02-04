@@ -55,6 +55,13 @@ public:
   virtual ~CReadoutMain();
 
 
+  // Selectors:
+
+  CTCLServer*  getTclServer();
+  CExperiment* getExperiment();
+
+  // Entry point
+
   virtual int operator()();
 protected:
   virtual CExperiment*  CreateExperiment(void* parsed);

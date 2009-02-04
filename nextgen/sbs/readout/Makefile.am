@@ -18,7 +18,9 @@ libSBSProductionReadout_la_SOURCES	=				\
 						CTimedTrigger.cpp		\
 						CCAENV262Trigger.cpp		\
 						CV977Trigger.cpp		\
-						CTriggerLoop.cpp
+						CTriggerLoop.cpp		\
+						CRunControlPackage.cpp		\
+						options.c
 
 
 noinst_HEADERS	=	CReadoutMain.h Skeleton.h CTCLAuthorizer.h	\
@@ -27,7 +29,7 @@ noinst_HEADERS	=	CReadoutMain.h Skeleton.h CTCLAuthorizer.h	\
 			CEventSegment.h CScalerBank.h CCompoundEventSegment.h	\
 			CEventTrigger.h CNullTrigger.h CTimedTrigger.h	\
 			CCAENV262Trigger.h CV977Trigger.h 	\
-			CTriggerLoop.h
+			CTriggerLoop.h CRunControlPackage.h options.h
 
 
 
@@ -52,8 +54,7 @@ libSBSProductionReadout_la_LIBADD	=	@top_srcdir@/sbs/vmemodules/libSBSDeviceSupp
 						@top_srcdir@/base/tclplus/libtclPlus.la		\
 						@top_srcdir@/servers/portmanager/libPortManager.la \
 						@top_srcdir@/base/dataflow/libDataFlow.la	\
-						@top_srcdir@/sbs/driver/src/libbtp.la \
-						options.o
+						@top_srcdir@/sbs/driver/src/libbtp.la
 
 
 libSBSProductionReadout_la_LDFLAGS	=	-version-info	1:0:0	\
@@ -73,13 +74,14 @@ Readout_LDADD	= libSBSProductionReadout.la	\
 
 CLEANFILES = options.c
 
-BUILT_SOURCES = options.o
 
-options.o:	options.c
-	$(CC) -c -I. options.c
 
 options.c:	options.ggo
 	$(GENGETOPT) <options.ggo --file=options
+
+
+options.h:	options.ggo
+	$(GENGETOPT) < options.ggo --file=options
 
 clean-local:
 	-rm -f options.c options.h

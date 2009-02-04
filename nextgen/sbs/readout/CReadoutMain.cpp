@@ -56,6 +56,30 @@ CReadoutMain::~CReadoutMain()
   delete m_pTclServer;
 }
 
+
+////////////////////////////////////////////////////////////////////////////////////
+/*!
+   \return CTCLServer*
+   \retval Pointer to the Tcl server object.  If this has not yet been created,
+           a null pointer will be returned.
+*/
+CTCLServer*
+CReadoutMain::getTclServer()
+{
+  return m_pTclServer;
+}
+/*!
+     \return CExperiment*
+     \retval a pointer to the experiment object.  This will be null
+             if the experiment object has not yet been created.
+*/
+CExperiment*
+CReadoutMain::getExperiment()
+{
+  return m_pExperiment;
+}
+
+
 ///////////////////////////////////////////////////////////////////////////////////////////
 
 /*!

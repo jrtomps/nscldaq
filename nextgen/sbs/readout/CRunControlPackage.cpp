@@ -20,6 +20,10 @@
 #include "CExperiment.h"
 #include <TCLInterpreter.h>
 #include <TCLObjectProcessor.h>
+#include <TCLApplication.h>
+#include <CReadoutMain.h>
+#include <StateException.h>
+
 
 using namespace std;
 
@@ -27,19 +31,138 @@ using namespace std;
 
 CRunControlPackage*  CRunControlPackage::m_pInstance(0);
 
+// Application global data:
 
+extern CTCLApplication* gpTCLApplication;
 
 /*!
   Constructs the singleton.  This is private so that nobody
   but getInstance() can invoke it.
-  \param CTCLInterpreter& interp Interpreter to which the commands will be bound:
+  \param Interp Interpreter to which the commands will be bound:
 
 */
 
-CRunControlPackage::CRunControlPackage(CTCLInterpreter* pInterp) :
+CRunControlPackage::CRunControlPackage(CTCLInterpreter& Interp) :
   m_pTheState(RunState::getInstance()),
-  m_pTheExperiment(0)		// Need to figure this one out.
+  m_pTheExperiment(0)
 {
+
+  CReadoutMain* pReadout = reinterpret_cast<CReadoutMain*>(gpTCLApplication);
+  m_pTheExperiment = pReadout->getExperiment();
+  createCommands(Interp);
 }
 /*!
-   I think I May need a destructor to avoid 
+   I think I May need a destructor to avoid undefined globals:
+
+*/
+CRunControlPackage::~CRunControlPackage()
+{}
+
+/*!
+    Return the singleton instance of the package,createing it if necessary:
+    \param interp - interpreter on which commands are registered.
+
+    \note while this is a true singleton, the inclusion of the interp parameter
+          opens the door architecturally to a per interpreter singleton instead
+          (where perhaps only the run state and experiment objects are singleton).
+
+*/
+CRunControlPackage*
+CRunControlPackage::getInstance(CTCLInterpreter& interp)
+{
+  if (!m_pInstance) {
+    m_pInstance = new CRunControlPackage(interp);
+  }
+  return m_pInstance;
+}
+
+/*!
+   Start a new run; Run state must be halted.
+*/
+void
+CRunControlPackage::begin()
+{
+  if (m_pTheState->m_state == RunState::inactive) {
+    m_pTheExperiment->Start(false);	// not a resume.
+    m_pTheState->m_state = RunState::active;
+  }
+  else {
+    throw CStateException(m_pTheState->stateName().c_str(),
+			 RunState::stateName(RunState::inactive).c_str(),
+			 "Attempting to start a run");
+			 
+  }
+}
+/*!
+   Halt a run.  The state must be activfe or paused for this to be legal.
+*/
+void
+CRunControlPackage::end()
+{
+  RunState::State state = m_pTheState->m_state;
+  if((state == RunState::active) || (state == RunState::paused)) {
+    m_pTheExperiment->Stop(false);	// Not a pause.
+    m_pTheState->m_state = RunState::inactive;
+  }
+  else {
+    string validstates = RunState::stateName(RunState::active);
+    validstates += " or ";
+    validstates += RunState::stateName(RunState::paused);
+    throw CStateException(m_pTheState->stateName().c_str(),
+			 validstates.c_str(),
+			 "Attempting to end a run.");
+  }
+}
+/*!
+    Pause a run.  The run state must be active.
+*/
+void
+CRunControlPackage::pause()
+{
+  if(m_pTheState->m_state == RunState::active) {
+    m_pTheExperiment->Stop(true);
+    m_pTheState->m_state = RunState::paused;
+  }
+  else {
+    throw CStateException(m_pTheState->stateName().c_str(),
+			 m_pTheState->stateName(RunState::active).c_str(),
+			 "Attempting to pause a run");
+  }
+}
+
+/*!
+   Resume a run --state willing.  The state must be paused.
+*/
+void
+CRunControlPackage::resume()
+{
+  if (m_pTheState->m_state == RunState::paused) {
+    m_pTheExperiment->Start(true);
+    m_pTheState->m_state = RunState::active;
+  }
+  else {
+    throw CStateException(m_pTheState->stateName().c_str(),
+			  m_pTheState->stateName(RunState::paused).c_str(),
+			  "Attempting to resume a run");
+  }
+}
+
+
+/*!
+  Return the state object. This can be done via the state singleton, or
+  via the run control package in case in the future the run state somehow 
+  stops being a singleton.
+  \return RunState*
+  \retval The saved pointer to the run state object.
+*/
+const RunState*
+CRunControlPackage::getState() const
+{
+  return m_pTheState;
+}
+
+// Stubs:
+
+void CRunControlPackage::createCommands(CTCLInterpreter& interp)
+{
+}
