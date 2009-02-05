@@ -14,8 +14,8 @@
 	     East Lansing, MI 48824-1321
 */
 
-#ifndef __CBEGINCOMMAND_H
-#define __CBEGINCOMMAND_H
+#ifndef __CPAUSECOMMAND_H
+#define __CPAUSECOMMAND_H
 
 
 #ifndef __TCLPACKAGEDOBJECTPROCESSOR_H
@@ -44,26 +44,25 @@ class CTCLInterpreter;
 class CTCLObject;
 
 /*!
-   This class provides the begin command.  The begin command
-   starts a new data taking run.  We are a packaged command
-   that is part of the Run Control package.
+   This class provides the pause command.  The pause command is valid only during
+   an active run.  It temprorarily halts data taking.  Paused runs can either be 
+   permanently ended ('end' command). Or resumed ('resume' command).
 
 */
-class CBeginCommand : public CTCLPackagedObjectProcessor
+class CPauseCommand : public CTCLPackagedObjectProcessor
 {
-  // Canonicals, the various copy like things are not allowed:
-
+  // Canonicals. Copy etc. are not allowed:
 public:
-  CBeginCommand(CTCLInterpreter& interp);
-  virtual ~CBeginCommand();
+  CPauseCommand(CTCLInterpreter& interp);
+  virtual ~CPauseCommand();
 
 private:
-  CBeginCommand(const CBeginCommand& rhs);
-  CBeginCommand& operator=(const CBeginCommand& rhs);
-  int operator==(const CBeginCommand& rhs) const;
-  int operator!=(const CBeginCommand& rhs) const;
+  CPauseCommand(const CPauseCommand& rhs);
+  CPauseCommand& operator=(const CPauseCommand& rhs);
+  int operator==(const CPauseCommand& rhs) const;
+  int operator!=(const CPauseCommand& rhs) const;
 
-  // Command entry point:
+  // command entry point:
 
 public:
   virtual int operator()(CTCLInterpreter& interp,
@@ -72,5 +71,7 @@ public:
 private:
   std::string usage();
 };
+
+
 
 #endif
