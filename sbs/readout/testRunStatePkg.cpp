@@ -82,6 +82,8 @@ class TestRctlPackage : public CppUnit::TestFixture {
   CPPUNIT_TEST(resume);
   CPPUNIT_TEST(end);
   CPPUNIT_TEST(begincommand);
+  CPPUNIT_TEST(pausecommand);
+  CPPUNIT_TEST(resumecommand);
   CPPUNIT_TEST_SUITE_END();
 
 
@@ -119,6 +121,8 @@ protected:
   void resume();
   void end();
   void begincommand();
+  void pausecommand();
+  void resumecommand();
 };
 
 CTCLInterpreter* TestRctlPackage::m_pInterp(0);
@@ -351,6 +355,112 @@ void TestRctlPackage::begincommand()
 
   try {
     result = m_pInterp->Eval("begin");
+  }
+  catch (CTCLException& e) {
+    threw = true;
+    tcl   = true;
+  }
+  catch (...) {
+    threw = true;
+  }
+  ASSERT(threw);
+  ASSERT(tcl);
+
+}
+//
+// Check the pause command it operates under the same constraints
+// as the pause operation directly applied to the package but
+// the exceptions will be CTCLExceptions not CStateExceptions.
+//
+void TestRctlPackage::pausecommand()
+{
+  CRunControlPackage *pkg = CRunControlPackage::getInstance(*m_pInterp);
+  string              result;
+  bool                threw = false;
+  bool                tcl   = false;
+
+  result = m_pInterp->Eval("begin"); // start the run.
+
+  // Pause should be allowed:
+
+  result = m_pInterp->Eval("pause");
+  EQ(RunState::paused, m_pRunState->m_state);
+  
+  // Pause should not be allowed in the pause state:
+
+  try {
+    result = m_pInterp->Eval("pause");
+  }
+  catch (CTCLException& e) {
+    threw = true;
+    tcl   = true;
+  }
+  catch (...) {
+    threw = true;
+  }
+  ASSERT(threw);
+  ASSERT(tcl);
+
+  pkg->end();
+  threw = false;
+  tcl   = false;
+
+  // Pause not allowed in the inactive state too:'
+
+  try {
+    result = m_pInterp->Eval("pause");
+  }
+  catch (CTCLException& e) {
+    threw = true;
+    tcl   = true;
+  }
+  catch (...) {
+    threw = true;
+  }
+  ASSERT(threw);
+  ASSERT(tcl);
+}
+
+// Check the resume command.  It operates under the same constraints
+// as the resuem operation, except that any exceptions will be
+// CTCLException s rather than CStateException.
+//
+void TestRctlPackage::resumecommand()
+{
+  CRunControlPackage* pkg = CRunControlPackage::getInstance(*m_pInterp);
+  string              result;
+  bool                threw = false;
+  bool                tcl   = false;
+
+  result = m_pInterp->Eval("begin");
+  result = m_pInterp->Eval("pause"); // Now resume is legal:
+
+  result = m_pInterp->Eval("resume");
+  EQ(RunState::active, m_pRunState->m_state);
+
+  // Now let's try some illegals:
+  // Can't resum an active run:
+  try {
+    result = m_pInterp->Eval("resume");
+  }
+  catch (CTCLException& e) {
+    threw = true;
+    tcl   = true;
+  }
+  catch (...) {
+    threw = true;
+  }
+  ASSERT(threw);
+  ASSERT(tcl);
+
+  // Can't resume an inactive run:
+
+  pkg->end();
+  threw = false;
+  tcl   = false;
+
+  try {
+    result = m_pInterp->Eval("resume");
   }
   catch (CTCLException& e) {
     threw = true;

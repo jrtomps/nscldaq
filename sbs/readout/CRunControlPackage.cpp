@@ -24,6 +24,7 @@
 #include <CReadoutMain.h>
 #include <StateException.h>
 #include "CBeginCommand.h"
+#include "CPauseCommand.h"
 
 using namespace std;
 
@@ -169,4 +170,5 @@ CRunControlPackage::getState() const
 void CRunControlPackage::createCommands(CTCLInterpreter& interp)
 {
   addCommand(new CBeginCommand(interp));
+  addCommand(new CPauseCommand(interp));
 }
