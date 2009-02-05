@@ -23,7 +23,7 @@
 #include <TCLApplication.h>
 #include <CReadoutMain.h>
 #include <StateException.h>
-
+#include "CBeginCommand.h"
 
 using namespace std;
 
@@ -56,7 +56,8 @@ CRunControlPackage::CRunControlPackage(CTCLInterpreter& Interp) :
 
 */
 CRunControlPackage::~CRunControlPackage()
-{}
+{
+}
 
 /*!
     Return the singleton instance of the package,createing it if necessary:
@@ -161,8 +162,11 @@ CRunControlPackage::getState() const
   return m_pTheState;
 }
 
-// Stubs:
+/*!
+  Create all the commands in the package and add them:
+*/
 
 void CRunControlPackage::createCommands(CTCLInterpreter& interp)
 {
+  addCommand(new CBeginCommand(interp));
 }

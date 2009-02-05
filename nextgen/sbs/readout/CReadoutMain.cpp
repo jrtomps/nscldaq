@@ -26,6 +26,7 @@
 #include <CInvalidArgumentException.h>
 #include <ErrnoException.h>
 #include <CPortManager.h>
+#include <CRunControlPackage.h>
 
 #include <netdb.h>
 #include <stdlib.h>
@@ -54,6 +55,7 @@ CReadoutMain::CReadoutMain() :
 CReadoutMain::~CReadoutMain()
 {
   delete m_pTclServer;
+  delete m_pExperiment;
 }
 
 
@@ -211,6 +213,7 @@ CReadoutMain::SetupScalers(CExperiment* pExperiment)
 void
 CReadoutMain::addCommands()
 {
+   CRunControlPackage::getInstance(*getInterpreter());
 }
 
 
