@@ -159,11 +159,10 @@ void timedtrig::setup()
   CTimedTrigger   trig(period);
   struct timespec now;
   struct timespec res;
+  trig.setup();
   clock_getres(CLOCK_REALTIME, &res); //>> There could be one rt tick between.
   clock_gettime(CLOCK_REALTIME, &now); //>> Internals knowledge here
-  trig.setup();
   ASSERT((now + res) >= trig.m_lastTrigger);
-  ASSERT(trig.m_lastTrigger >= now);
   ASSERT((now + period + res) >= trig.m_nextTrigger);
   ASSERT(trig.m_nextTrigger >= now);
 
@@ -219,11 +218,10 @@ void timedtrig::setperiod()
   period.tv_sec++;
   struct timespec now;
   struct timespec res;
+  trig.setPeriod(period);
   clock_getres(CLOCK_REALTIME, &res); //>> There could be one rt tick between.
   clock_gettime(CLOCK_REALTIME, &now); //>> Internals knowledge here
-  trig.setPeriod(period);
   ASSERT((now + res) >= trig.m_lastTrigger);
-  ASSERT(trig.m_lastTrigger >= now);
   ASSERT((now + period + res) >= trig.m_nextTrigger);
   ASSERT(trig.m_nextTrigger >= now);
   

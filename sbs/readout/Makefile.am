@@ -20,7 +20,8 @@ libSBSProductionReadout_la_SOURCES	=				\
 						CV977Trigger.cpp		\
 						CTriggerLoop.cpp		\
 						CRunControlPackage.cpp		\
-						options.c
+						options.c			\
+						CBeginCommand.cpp
 
 
 noinst_HEADERS	=	CReadoutMain.h Skeleton.h CTCLAuthorizer.h	\
@@ -29,7 +30,8 @@ noinst_HEADERS	=	CReadoutMain.h Skeleton.h CTCLAuthorizer.h	\
 			CEventSegment.h CScalerBank.h CCompoundEventSegment.h	\
 			CEventTrigger.h CNullTrigger.h CTimedTrigger.h	\
 			CCAENV262Trigger.h CV977Trigger.h 	\
-			CTriggerLoop.h CRunControlPackage.h options.h
+			CTriggerLoop.h CRunControlPackage.h options.h	\
+			CBeginCommand.h
 
 
 
@@ -72,7 +74,7 @@ Readout_LDADD	= libSBSProductionReadout.la	\
 		  @top_srcdir@/base/thread/libdaqthreads.la \
 		  @top_srcdir@/base/tclplus/libtclPlus.la $(THREADLD_FLAGS)
 
-CLEANFILES = options.c
+CLEANFILES = options.c options.h
 
 
 
@@ -90,7 +92,8 @@ tests_SOURCES=TestRunner.cpp experimentTests.cpp \
 		compositeTests.cpp scalerbankTests.cpp	\
 		compoundevsegTest.cpp			\
 		triggerresponseTests.cpp 	\
-		timedtriggerTest.cpp
+		timedtriggerTest.cpp		\
+		testRunStatePkg.cpp
 
 
 tests_LDADD = 	CExperiment.lo	\
@@ -99,8 +102,11 @@ tests_LDADD = 	CExperiment.lo	\
 		CEventSegment.lo CCompoundEventSegment.lo \
 		RunState.lo	\
 		CEventTrigger.lo CTimedTrigger.lo	\
+		CNullTrigger.lo	CRunControlPackage.lo		\
+		CBeginCommand.lo				\
 		@top_srcdir@/daq/format/libdataformat.la	\
 		@top_srcdir@/base/dataflow/libDataFlow.la	\
+		@top_srcdir@/base/tclplus/libtclPlus.la	\
 		@top_srcdir@/base/exception/libException.la	\
 		$(CPPUNIT_LDFLAGS)  $(THREADLD_FLAGS)
 
