@@ -22,7 +22,8 @@ libSBSProductionReadout_la_SOURCES	=				\
 						CRunControlPackage.cpp		\
 						options.c			\
 						CBeginCommand.cpp		\
-						CPauseCommand.cpp
+						CPauseCommand.cpp		\
+						CResumeCommand.cpp
 
 
 noinst_HEADERS	=	CReadoutMain.h Skeleton.h CTCLAuthorizer.h	\
@@ -32,7 +33,7 @@ noinst_HEADERS	=	CReadoutMain.h Skeleton.h CTCLAuthorizer.h	\
 			CEventTrigger.h CNullTrigger.h CTimedTrigger.h	\
 			CCAENV262Trigger.h CV977Trigger.h 	\
 			CTriggerLoop.h CRunControlPackage.h options.h	\
-			CBeginCommand.h CPauseCommand.h
+			CBeginCommand.h CPauseCommand.h CResumeCommand.h
 
 
 
@@ -106,6 +107,7 @@ tests_LDADD = 	CExperiment.lo	\
 		CNullTrigger.lo	CRunControlPackage.lo		\
 		CBeginCommand.lo				\
 		CPauseCommand.lo				\
+		CResumeCommand.lo				\
 		@top_srcdir@/daq/format/libdataformat.la	\
 		@top_srcdir@/base/dataflow/libDataFlow.la	\
 		@top_srcdir@/base/tclplus/libtclPlus.la	\

@@ -25,6 +25,7 @@
 #include <StateException.h>
 #include "CBeginCommand.h"
 #include "CPauseCommand.h"
+#include "CResumeCommand.h"
 
 using namespace std;
 
@@ -171,4 +172,5 @@ void CRunControlPackage::createCommands(CTCLInterpreter& interp)
 {
   addCommand(new CBeginCommand(interp));
   addCommand(new CPauseCommand(interp));
+  addCommand(new CResumeCommand(interp));
 }
