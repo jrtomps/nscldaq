@@ -44,7 +44,7 @@ private:
   CExperiment*       m_pExperiment;
 
 
-  bool               m_running;
+  volatile bool      m_running;
   volatile bool      m_stopping;  // Shared between threads.
 
 public:

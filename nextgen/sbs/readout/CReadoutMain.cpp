@@ -27,6 +27,7 @@
 #include <ErrnoException.h>
 #include <CPortManager.h>
 #include <CRunControlPackage.h>
+#include <CNullTrigger.h>
 
 #include <netdb.h>
 #include <stdlib.h>
@@ -179,7 +180,10 @@ CReadoutMain::CreateExperiment(void* parsed)
   // Create the experiment. Object.
   
   std::string ringname = getRingName(parsedArgs);
-  return new CExperiment(ringname);
+
+  CExperiment* pExperiment = new CExperiment(ringname);
+  return pExperiment;
+
 
 
 }
@@ -205,6 +209,17 @@ CReadoutMain::SetupStateVariables(CTCLInterpreter* pInterp)
 void
 CReadoutMain::SetupScalers(CExperiment* pExperiment)
 {
+  pExperiment->setScalerTrigger(new CNullTrigger);
+}
+
+/*!
+  Setup the readout default trigger:
+*/
+void 
+CReadoutMain::SetupReadout(CExperiment* pExperiment)
+{
+  pExperiment->EstablishTrigger(new CNullTrigger);
+
 }
 
 /*!

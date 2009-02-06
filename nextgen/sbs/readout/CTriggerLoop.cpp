@@ -22,6 +22,7 @@
 #include <StateException.h>
 #include <CInvalidArgumentException.h>
 #include <string>
+#include <stdlib.h>
 
 #include <stdio.h>
 
@@ -52,6 +53,9 @@ CTriggerLoop::~CTriggerLoop()
     Start - ensure that we are not running.
             initialize the running/stopping vars
             and chain to the base class which actually starts the thread.
+
+    \note By the time this exits, the trigger thread will have been scheduled
+         at least once.
 */
 void 
 CTriggerLoop::start()
@@ -60,6 +64,12 @@ CTriggerLoop::start()
     m_running = false;
     m_stopping = false;
     Thread::start();
+
+    // Now wait here until we know the thread is running
+    
+    while (!m_running) {
+      usleep(500);
+    }
   }
   else {
     throw CStateException("running", "stopped", "While starting trigger thread");
@@ -128,4 +138,5 @@ CTriggerLoop::mainLoop()
     }
   }
   while(!m_stopping);
+  return;
 }

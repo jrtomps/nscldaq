@@ -67,7 +67,7 @@ protected:
   virtual CExperiment*  CreateExperiment(void* parsed);
   virtual void          SetupRunVariables(CTCLInterpreter* pInterp);
   virtual void          SetupStateVariables(CTCLInterpreter* pInerp);
-  virtual void          SetupReadout(CExperiment* pExperiment) = 0;
+  virtual void          SetupReadout(CExperiment* pExperiment);
   virtual void          SetupScalers(CExperiment* pExperiment);
   virtual void          addCommands();
 

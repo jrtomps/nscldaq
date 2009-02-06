@@ -23,7 +23,8 @@ libSBSProductionReadout_la_SOURCES	=				\
 						options.c			\
 						CBeginCommand.cpp		\
 						CPauseCommand.cpp		\
-						CResumeCommand.cpp
+						CResumeCommand.cpp		\
+						CEndCommand.cpp
 
 
 noinst_HEADERS	=	CReadoutMain.h Skeleton.h CTCLAuthorizer.h	\
@@ -33,7 +34,8 @@ noinst_HEADERS	=	CReadoutMain.h Skeleton.h CTCLAuthorizer.h	\
 			CEventTrigger.h CNullTrigger.h CTimedTrigger.h	\
 			CCAENV262Trigger.h CV977Trigger.h 	\
 			CTriggerLoop.h CRunControlPackage.h options.h	\
-			CBeginCommand.h CPauseCommand.h CResumeCommand.h
+			CBeginCommand.h CPauseCommand.h CResumeCommand.h	\
+			CEndCommand.h
 
 
 
@@ -108,10 +110,13 @@ tests_LDADD = 	CExperiment.lo	\
 		CBeginCommand.lo				\
 		CPauseCommand.lo				\
 		CResumeCommand.lo				\
+		CEndCommand.lo					\
+		CTriggerLoop.lo					\
 		@top_srcdir@/daq/format/libdataformat.la	\
 		@top_srcdir@/base/dataflow/libDataFlow.la	\
-		@top_srcdir@/base/tclplus/libtclPlus.la	\
+		@top_srcdir@/base/tclplus/libtclPlus.la		\
 		@top_srcdir@/base/exception/libException.la	\
+		@top_srcdir@/base/thread/libdaqthreads.la	\
 		$(CPPUNIT_LDFLAGS)  $(THREADLD_FLAGS)
 
 tests_LDFLAGS=-Wl,"-rpath-link=$(libdir)"

@@ -25,6 +25,8 @@
 #include <string.h>
 #include <CCompoundEventSegment.h>
 #include <CScalerBank.h>
+#include <CTriggerLoop.h>
+
 using namespace std;
 
 ///////////////////////////////////////////////////////////////////////////////////////////
@@ -45,6 +47,7 @@ CExperiment::CExperiment(string ringName,
   m_pBusy(0),
   m_pEventTrigger(0),
   m_pScalerTrigger(0),
+  m_pTriggerLoop(0),
   m_nDataBufferSize(eventBufferSize)
 
 
@@ -136,7 +139,17 @@ CExperiment::Start(bool resume)
 			    std::string(m_pRunState->m_pTitle));
   item.commitToRing(*m_pRing);
 
-  // TODO: Start the trigger thread:
+  // Start the trigger loop:
+
+  if (!m_pTriggerLoop) {
+    m_pTriggerLoop = new CTriggerLoop(*this);
+  }
+
+  // Can only start it if the triggers have been established:
+  
+  if (m_pEventTrigger && m_pScalerTrigger) {
+    m_pTriggerLoop->start();
+  }
 
   // The run is now active if looked at by the outside world:
 
@@ -170,6 +183,11 @@ CExperiment::Stop(bool pause)
 			  validStates.c_str(), 
 			  "Stopping data taking");
   }
+  // Stop the trigger thread and wait for it to stop.
+
+  if (m_pTriggerLoop) {
+    m_pTriggerLoop->stop();
+  }
 
   // Create the run state item and commit it to the ring.
 
@@ -193,7 +211,6 @@ CExperiment::Stop(bool pause)
 			    std::string(m_pRunState->m_pTitle));
   item.commitToRing(*m_pRing);
 
-  // TODO:  stop the trigger thread
 
   // The run is in the appropriate inactive state if looked at by the outside world
 
