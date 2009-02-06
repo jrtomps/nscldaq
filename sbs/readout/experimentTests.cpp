@@ -13,7 +13,7 @@
 #include <CAllButPredicate.h>
 #include <string.h>
 #include <string>
-
+#include <CNullTrigger.h>
 
 // class under test gets its member data exposed for me:
 //
@@ -44,6 +44,8 @@ public:
       CRingBuffer::remove(ringName); // In case it already exists, remove it
     }
     m_pExperiment = new CExperiment(ringName, 4096);
+    m_pExperiment->EstablishTrigger(new CNullTrigger);
+    m_pExperiment->setScalerTrigger(new CNullTrigger);
   }
   void tearDown() {
     delete m_pExperiment;

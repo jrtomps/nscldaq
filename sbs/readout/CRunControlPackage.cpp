@@ -26,6 +26,7 @@
 #include "CBeginCommand.h"
 #include "CPauseCommand.h"
 #include "CResumeCommand.h"
+#include "CEndCommand.h"
 
 using namespace std;
 
@@ -87,7 +88,6 @@ CRunControlPackage::begin()
 {
   if (m_pTheState->m_state == RunState::inactive) {
     m_pTheExperiment->Start(false);	// not a resume.
-    m_pTheState->m_state = RunState::active;
   }
   else {
     throw CStateException(m_pTheState->stateName().c_str(),
@@ -105,7 +105,6 @@ CRunControlPackage::end()
   RunState::State state = m_pTheState->m_state;
   if((state == RunState::active) || (state == RunState::paused)) {
     m_pTheExperiment->Stop(false);	// Not a pause.
-    m_pTheState->m_state = RunState::inactive;
   }
   else {
     string validstates = RunState::stateName(RunState::active);
@@ -124,7 +123,6 @@ CRunControlPackage::pause()
 {
   if(m_pTheState->m_state == RunState::active) {
     m_pTheExperiment->Stop(true);
-    m_pTheState->m_state = RunState::paused;
   }
   else {
     throw CStateException(m_pTheState->stateName().c_str(),
@@ -141,7 +139,6 @@ CRunControlPackage::resume()
 {
   if (m_pTheState->m_state == RunState::paused) {
     m_pTheExperiment->Start(true);
-    m_pTheState->m_state = RunState::active;
   }
   else {
     throw CStateException(m_pTheState->stateName().c_str(),
@@ -173,4 +170,5 @@ void CRunControlPackage::createCommands(CTCLInterpreter& interp)
   addCommand(new CBeginCommand(interp));
   addCommand(new CPauseCommand(interp));
   addCommand(new CResumeCommand(interp));
+  addCommand(new CEndCommand(interp));
 }

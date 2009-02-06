@@ -90,6 +90,8 @@ CTCLApplication* gpTCLApplication = new Skeleton;
 void
 Skeleton::SetupReadout(CExperiment* pExperiment)
 {
+  CReadoutMain::SetupReadout(pExperiment);
+
   // Establish your trigger here by creating a trigger object
   // and establishing it.
 

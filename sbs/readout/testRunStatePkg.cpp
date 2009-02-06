@@ -63,6 +63,8 @@ void
 CReadoutMain::SetupStateVariables(CTCLInterpreter* pInterp) {}
 void 
 CReadoutMain::SetupScalers(CExperiment* p) {}
+void
+CReadoutMain::SetupReadout(CExperiment* p) {}
 void 
 CReadoutMain::addCommands() {}
 
@@ -84,6 +86,7 @@ class TestRctlPackage : public CppUnit::TestFixture {
   CPPUNIT_TEST(begincommand);
   CPPUNIT_TEST(pausecommand);
   CPPUNIT_TEST(resumecommand);
+  CPPUNIT_TEST(endcommand);
   CPPUNIT_TEST_SUITE_END();
 
 
@@ -111,8 +114,6 @@ public:
     
   }
   void tearDown() {
-    //    delete gpTCLApplication;
-    //    gpTCLApplication = reinterpret_cast<CTCLApplication*>(NULL);
 
   }
 protected:
@@ -123,6 +124,7 @@ protected:
   void begincommand();
   void pausecommand();
   void resumecommand();
+  void endcommand();
 };
 
 CTCLInterpreter* TestRctlPackage::m_pInterp(0);
@@ -225,6 +227,8 @@ void TestRctlPackage::pause()
   }
   ASSERT(threw);
   ASSERT(state);
+
+
 
 }
 
@@ -347,7 +351,7 @@ void TestRctlPackage::begincommand()
   ASSERT(threw);
   ASSERT(tcl);
 
-  m_pRunState->m_state = RunState::paused;
+  pkg->pause();
   threw  = false;
   tcl    = false;
 
@@ -365,6 +369,8 @@ void TestRctlPackage::begincommand()
   }
   ASSERT(threw);
   ASSERT(tcl);
+
+  pkg->end();			// end the run.
 
 }
 //
@@ -419,6 +425,7 @@ void TestRctlPackage::pausecommand()
   }
   ASSERT(threw);
   ASSERT(tcl);
+
 }
 
 // Check the resume command.  It operates under the same constraints
@@ -471,5 +478,43 @@ void TestRctlPackage::resumecommand()
   }
   ASSERT(threw);
   ASSERT(tcl);
+
+}
+// Check the end command. It operates under the same constraints
+// as the end operation.  Exceptions are CTCLExceptions.
+//
+void TestRctlPackage::endcommand()
+{
+  CRunControlPackage* pkg = CRunControlPackage::getInstance(*m_pInterp);
+  string              result;
+  bool                threw = false;
+  bool                tcl   = false;
+
+  result = m_pInterp->Eval("begin"); // end is legal now:
+
+  result = m_pInterp->Eval("end");
+  EQ(RunState::inactive, m_pRunState->m_state);
+
+  // After the run is inactive, end is not legal:
+
+  try {
+    result = m_pInterp->Eval("end");
+  }
+  catch (CTCLException& e) {
+    threw = true;
+    tcl   = true;
+  }
+  catch (...) {
+    threw = true;
+  }
+  ASSERT(threw);
+  ASSERT(tcl);
+
+  // Paused runs, on the other hand, can be ended:
+
+  pkg->begin();
+  pkg->pause();
+  result = m_pInterp->Eval("end");
+  EQ(RunState::inactive, m_pRunState->m_state);
 
 }
