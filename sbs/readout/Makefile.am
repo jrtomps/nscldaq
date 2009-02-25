@@ -24,7 +24,11 @@ libSBSProductionReadout_la_SOURCES	=				\
 						CBeginCommand.cpp		\
 						CPauseCommand.cpp		\
 						CResumeCommand.cpp		\
-						CEndCommand.cpp
+						CEndCommand.cpp			\
+						CDocumentedPacket.cpp		\
+						CDocumentedPacketManager.cpp	\
+						CReadoutException.cpp	\
+						CInvalidPacketStateException.cpp 
 
 
 noinst_HEADERS	=	CReadoutMain.h Skeleton.h CTCLAuthorizer.h	\
@@ -35,7 +39,8 @@ noinst_HEADERS	=	CReadoutMain.h Skeleton.h CTCLAuthorizer.h	\
 			CCAENV262Trigger.h CV977Trigger.h 	\
 			CTriggerLoop.h CRunControlPackage.h options.h	\
 			CBeginCommand.h CPauseCommand.h CResumeCommand.h	\
-			CEndCommand.h
+			CEndCommand.h CDocumentedPacket.h CDocumentedPacketManager.h \
+			CReadoutException.h CInvalidPacketStateException.h
 
 
 
