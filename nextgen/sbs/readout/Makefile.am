@@ -102,7 +102,8 @@ tests_SOURCES=TestRunner.cpp experimentTests.cpp \
 		compoundevsegTest.cpp			\
 		triggerresponseTests.cpp 	\
 		timedtriggerTest.cpp		\
-		testRunStatePkg.cpp
+		testRunStatePkg.cpp		\
+		packettests.cpp
 
 
 tests_LDADD = 	CExperiment.lo	\
@@ -117,6 +118,8 @@ tests_LDADD = 	CExperiment.lo	\
 		CResumeCommand.lo				\
 		CEndCommand.lo					\
 		CTriggerLoop.lo					\
+		CDocumentedPacket.lo CDocumentedPacketManager.lo \
+		CReadoutException.lo CInvalidPacketStateException.lo \
 		@top_srcdir@/daq/format/libdataformat.la	\
 		@top_srcdir@/base/dataflow/libDataFlow.la	\
 		@top_srcdir@/base/tclplus/libtclPlus.la		\

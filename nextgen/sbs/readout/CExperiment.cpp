@@ -20,12 +20,18 @@
 #include <CRingStateChangeItem.h>
 #include <CRingScalerItem.h>
 #include <CRingItem.h>
+#include <CRingTextItem.h>
+
 #include <RunState.h>
 #include <StateException.h>
 #include <string.h>
 #include <CCompoundEventSegment.h>
 #include <CScalerBank.h>
 #include <CTriggerLoop.h>
+#include <CDocumentedPacketManager.h>
+
+#include <vector>
+#include <string>
 
 using namespace std;
 
@@ -138,6 +144,8 @@ CExperiment::Start(bool resume)
 			    now,
 			    std::string(m_pRunState->m_pTitle));
   item.commitToRing(*m_pRing);
+  
+  DocumentPackets();		// output a documentation packet.
 
   // Start the trigger loop:
 
@@ -384,12 +392,25 @@ void CExperiment::TriggerScalerReadout()
 /*!
    Dumps a documentation event that describes the documented packets to the ring
    buffer.  This usually happens as the run becomes active again.
+   Implicit inputs are the documented packet manager which can produce the information we need.
+
 
 */
 void
 CExperiment::DocumentPackets()
 {
-  // TODO:  Write the body of this stub function.
+  CDocumentedPacketManager* pMgr = CDocumentedPacketManager::getInstance();
+  vector<string> packetDefs = pMgr->Format();
+
+  // only emit a record if there are documented packets:
+
+  if (packetDefs.size()) {
+    time_t           now     = time(&now);
+    CRingTextItem item(PACKET_TYPES, packetDefs,
+		       m_pRunState->m_timeOffset,
+		       now);
+    item.commitToRing(*m_pRing);
+  }
 }
 
 /*!
