@@ -5118,6 +5118,268 @@ CTCLApplication* gpTCLApplication = new evttclsh;
       </refsect1>
    </refentry>
 
+    <refentry id="manpage.CTCLObjectPackage">
+      <refmeta>
+         <refentrytitle>CTCLObjectPackage</refentrytitle>
+         <manvolnum>3daq</manvolnum>
+      </refmeta>
+      <refnamediv>
+         <refname>CTCLObjectPackage</refname>
+	 <refpurpose>Provide common functionality for a set of
+                related commands.</refpurpose>
+      </refnamediv>
+      
+      <refsynopsisdiv>
+         <programlisting>
+#include &lt;TCLObjectPackage.h&gt;
+         </programlisting>
+         <classsynopsis>
+            <ooclass><classname>CTCLObjectPackage</classname></ooclass>
+            <methodsynopsis>
+                <type>void</type><methodname>addCommand</methodname>
+                <methodparam>
+                    <type>CTCLPackagedObjectProcessor*</type> <parameter>processor</parameter>
+                </methodparam>
+            </methodsynopsis>
+            <methodsynopsis>
+                <type>CTCLObjectPackage::CommandIterator</type>
+                <methodname>begin</methodname>
+                <void />
+            </methodsynopsis>
+            <methodsynopsis>
+                <type>CTCLObjectPackage::CommandIterator</type>
+                <methodname>end</methodname>
+                <void />
+            </methodsynopsis>
+         </classsynopsis>
+      </refsynopsisdiv>
+      <refsect1>
+         <title>Description</title>
+         <para>
+            This class is a base class for a set of common services that
+            can be offered to a set of related commands.  The commands themselves
+            must be derived from CTCLPackagedObjectProcessor.  
+         </para>
+         <para>
+            The base class provides the infrastructor for maintaining the list
+            of command objects that participate in the package, for associating
+            a command with the package, and for iterating through associated
+            command objects.
+         </para>
+      </refsect1>
+      <refsect1>
+         <title>
+            Public member functions
+         </title>
+           <methodsynopsis>
+                <type>void</type><methodname>addCommand</methodname>
+                <methodparam>
+                    <type>CTCLPackagedObjectProcessor*</type> <parameter>processor</parameter>
+                </methodparam>
+            </methodsynopsis>
+           <para>
+                Adds a new command object to the package.  The command object
+                will have its <methodname>onAttache</methodname> method
+                invoked, which allows it to save the command package (passed in
+                as a parameter), and to do any initialization that requires
+                the command package services.
+           </para>
+            <methodsynopsis>
+                <type>CTCLObjectPackage::CommandIterator</type>
+                <methodname>begin</methodname>
+                <void />
+            </methodsynopsis>
+            <para>
+                Returns an iterator for the first command object associated
+                with the object.  The iterator is a pointer like object in the
+                sense that dereferencing it will yield a pointer to ta
+                command object.  The iterator can be stepped through the
+                collection via the incremenet operator (<literal>++</literal>).
+                Iteration is complete when the iterator is equal to
+                <methodname>end()</methodname> see below.
+            </para>
+            <methodsynopsis>
+                <type>CTCLObjectPackage::CommandIterator</type>
+                <methodname>end</methodname>
+                <void />
+            </methodsynopsis>
+            <para>
+                Provides an end iterator against which to compare an iterator
+                over the commands to determine if all of them have been
+                visited.
+            </para>
+      </refsect1>
+      <refsect1>
+         <title>Types and public data</title>
+         <para>
+            <classname>CTCLObjectPackage::CommandIterator</classname> is a
+            pointer like object returned by the
+            <methodname>begin</methodname> and <methodname>end</methodname>
+            methods to allow iteration through the set of command objects
+            associated with this package.
+         </para>
+      </refsect1>
+ 
+      <refsect1>
+         <title>
+            SEE ALSO
+         </title>
+	 <para>
+            <link linkend="manpage.CTCLPackagedObjectProcessor">
+                CTCLPackagedObjectProcessor(3daq)</link>
+	 </para>
+      </refsect1>
+   </refentry>
+
+    <refentry id="manpage.CTCLPackagedObjectProcessor">
+      <refmeta>
+         <refentrytitle>CTCLPackagedObjectProcessor</refentrytitle>
+         <manvolnum>3daq</manvolnum>
+      </refmeta>
+      <refnamediv>
+         <refname>CTCLPackagedObjectProcessor</refname>
+	 <refpurpose>Base class for commands living in a
+                    <classname>CTCLObjectPackage</classname>
+         </refpurpose>
+      </refnamediv>
+      
+      <refsynopsisdiv>
+         <programlisting>
+#include &lt;TCLPackagedObjectProcessor.h&gt;
+         </programlisting>
+         <classsynopsis>
+            <ooclass><classname>CTCLPackagedObjectProcessor</classname></ooclass>
+            <constructorsynopsis>
+                <methodname>CTCLPackagedObjectProcessor</methodname>
+                <methodparam><type>CTCLInterpreter&amp;</type>
+                             <parameter>interp</parameter>
+                </methodparam>
+                <methodparam><type>std::string</type>
+                             <parameter>command</parameter>
+                </methodparam>
+                <methodparam><type>bool</type>
+                             <parameter>registerMe</parameter>
+                             <initializer>true</initializer>
+                </methodparam>
+            </constructorsynopsis>
+            <methodsynopsis>
+                <type>void</type> <methodname>onAttach</methodname>
+                <methodparam>
+                    <type>CTCLObjectPackage*</type> <parameter>package</parameter>
+                </methodparam>
+            </methodsynopsis>
+            <methodsynopsis>
+                <modifier>protected</modifier>
+                <type>CTCLObjectPackage*</type>  <methodname>getPackage</methodname>
+                <void />
+            </methodsynopsis>
+            <methodsynopsis>
+                <modifier>protected virtual</modifier>
+                <type>void</type> <methodname>Initialize</methodname>
+                <void />
+            </methodsynopsis>
+         </classsynopsis>
+      </refsynopsisdiv>
+      <refsect1>
+         <title>Description</title>
+         <para>
+            A packaged object command is a <classname>CTCLObjectProcessor</classname>
+            that can draw on a set of services shared between it and a
+            set of related commands.  The set of commands and the common set
+            of services is called a <firstterm>package</firstterm>.
+         </para>
+         <para>
+            The <classname>CTCLPackagedObjectProcessor</classname> class
+            described here provides a base class for such commands.  The base
+            class provides mechanisms for the package to associate the object
+            that contains the shared services with the command, and a mechanism
+            for the subclass that actually implements real commands to access this
+            associated object.
+         </para>
+      </refsect1>
+      <refsect1>
+         <title>
+            Public member functions
+         </title>
+           <methodsynopsis>
+                <methodname>CTCLPackagedObjectProcessor</methodname>
+                <methodparam><type>CTCLInterpreter&amp;</type>
+                             <parameter>interp</parameter>
+                </methodparam>
+                <methodparam><type>std::string</type>
+                             <parameter>command</parameter>
+                </methodparam>
+                <methodparam><type>bool</type>
+                             <parameter>registerMe</parameter>
+                             <initializer>true</initializer>
+                </methodparam>
+            </methodsynopsis>
+            <para>
+                Construct the object.  The parameters are the same as for
+                a <classname>CTCLObjectProcessor</classname>;
+                <parameter>interp</parameter> is a reference to the TCL interpreter
+                to which the command will be added.  <parameter>command</parameter>
+                is the command keyword that will invoke the object's
+                <methodname>operator()</methodname>.
+                <parameter>regsiterMe</parameter> is
+                <literal>true</literal> if the
+                command should be registered on the interpreter immediately
+                (this is usually the case and hence the parameter is optional,
+                defaulting to <literal>true</literal>
+            </para>
+            <methodsynopsis>
+                <type>void</type> <methodname>onAttach</methodname>
+                <methodparam>
+                    <type>CTCLObjectPackage*</type> <parameter>package</parameter>
+                </methodparam>
+            </methodsynopsis>
+            <para>
+                This method is called by the package when the command object is
+                added to the package.  <parameter>package</parameter> is a pointer
+                to the package object, which contains its shared services.
+                This is saved and can be retrieved by subclass objects via
+                <methodname>getPackage</methodname>.
+            </para>
+            <methodsynopsis>
+                <modifier>protected</modifier>
+                <type>CTCLObjectPackage*</type>  <methodname>getPackage</methodname>
+                <void />
+            </methodsynopsis>
+            <para>
+                Returns the package object pointer supplied to
+                <methodname>onAttach</methodname>
+                by the package.  Normally this will need to be cast to a
+                specific concrete package type by the caller so that its methods
+                can be accessed.
+            </para>
+            <para>
+                If called prior to the
+                <methodname>onAttach</methodname> call, this returns
+                a null pointer.
+            </para>
+            <methodsynopsis>
+                <modifier>protected virtual</modifier>
+                <type>void</type> <methodname>Initialize</methodname>
+                <void />
+            </methodsynopsis>
+            <para>
+                Called by <methodname>onAttach</methodname> after the
+                package has been saved (and is therefore accessible by
+                <methodname>getPackage</methodname>.  This does nothing in the
+                base class but can be overidden in subclasses to allow
+                for initialization that requires access to the package services.
+            </para>
+      </refsect1>
+      <refsect1>
+         <title>
+            SEE ALSO
+         </title>
+	 <para>
+            <link linkend="manpage.CTCLObjectPackage">CTCLObjectPackage(3daq)</link>
+	 </para>
+      </refsect1>
+   </refentry>
+
 <!-- /manpage -->
 
 <!-- manpage 1daq -->
