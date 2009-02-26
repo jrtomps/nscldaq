@@ -52,6 +52,9 @@ public:
   void addCommand(CTCLPackagedObjectProcessor* processor);
   CommandIterator begin();
   CommandIterator end();
+
+
+
 };
    
 
