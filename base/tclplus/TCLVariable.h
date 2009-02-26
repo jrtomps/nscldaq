@@ -60,8 +60,16 @@ class CTCLVariable  : public CTCLInterpreterObject
   Int_t  m_nTraceFlags;		// Set of trace flags for variable.
   std::string m_sTraceIndex;
 public:
+  // Default construtor needed to allow use in STL container.
+
+  CTCLVariable() :
+    m_fTracing(false),
+    m_nTraceFlags(0)
+    {}
+
 
 			//Constructor with arguments
+
 
   CTCLVariable (std::string am_sVariable,  Bool_t am_fTracing  )  :   
     CTCLInterpreterObject(),
