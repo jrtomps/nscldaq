@@ -28,7 +28,8 @@ libSBSProductionReadout_la_SOURCES	=				\
 						CDocumentedPacket.cpp		\
 						CDocumentedPacketManager.cpp	\
 						CReadoutException.cpp	\
-						CInvalidPacketStateException.cpp 
+						CInvalidPacketStateException.cpp \
+						CEventPacket.cpp 
 
 
 noinst_HEADERS	=	CReadoutMain.h Skeleton.h CTCLAuthorizer.h	\
@@ -40,7 +41,8 @@ noinst_HEADERS	=	CReadoutMain.h Skeleton.h CTCLAuthorizer.h	\
 			CTriggerLoop.h CRunControlPackage.h options.h	\
 			CBeginCommand.h CPauseCommand.h CResumeCommand.h	\
 			CEndCommand.h CDocumentedPacket.h CDocumentedPacketManager.h \
-			CReadoutException.h CInvalidPacketStateException.h
+			CReadoutException.h CInvalidPacketStateException.h	\
+			CEventPacket.h
 
 
 
@@ -103,7 +105,8 @@ tests_SOURCES=TestRunner.cpp experimentTests.cpp \
 		triggerresponseTests.cpp 	\
 		timedtriggerTest.cpp		\
 		testRunStatePkg.cpp		\
-		packettests.cpp
+		packettests.cpp			\
+		eventpackettests.cpp
 
 
 tests_LDADD = 	CExperiment.lo	\
@@ -120,6 +123,7 @@ tests_LDADD = 	CExperiment.lo	\
 		CTriggerLoop.lo					\
 		CDocumentedPacket.lo CDocumentedPacketManager.lo \
 		CReadoutException.lo CInvalidPacketStateException.lo \
+		CEventPacket.lo					\
 		@top_srcdir@/daq/format/libdataformat.la	\
 		@top_srcdir@/base/dataflow/libDataFlow.la	\
 		@top_srcdir@/base/tclplus/libtclPlus.la		\
