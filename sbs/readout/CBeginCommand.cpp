@@ -16,9 +16,14 @@
 #include <config.h>
 #include "CBeginCommand.h"
 #include "CRunControlPackage.h"
+#include "RunState.h"
 #include <TCLInterpreter.h>
 #include <TCLObject.h>
+#include <TCLVariable.h>
 #include <StateException.h>
+#include <string>
+#include <string.h>
+#include <stdlib.h>
 #include <tcl.h>
 
 using namespace std;
@@ -77,6 +82,32 @@ CBeginCommand::operator()(CTCLInterpreter&    interp,
   bool error = false;
   string result;
   try {
+    // Set values for the title and run number if these Tcl variables are set:
+
+    RunState* pState =  RunState::getInstance();
+
+    CTCLVariable run(&interp, string("run"), kfFALSE);
+    CTCLVariable title(&interp, string("title"), kfFALSE);
+
+    const char* runValue = run.Get();
+    const char* titleValue = title.Get();
+
+    if (runValue && (pState->m_state == RunState::inactive)) {
+      uint32_t newValue;
+      char*    endptr;
+      newValue = strtoul(runValue, &endptr, 0);
+      if (runValue != endptr) {
+	pState->m_runNumber = newValue;
+      }
+
+    }
+    if (titleValue && (pState->m_state == RunState::inactive)) {
+      delete []pState->m_pTitle;
+      pState->m_pTitle = new char[strlen(titleValue)+1];
+      strcpy(pState->m_pTitle, titleValue);
+      
+    }
+    
     pRunControl.begin();
   }
   catch (CStateException& e) {
