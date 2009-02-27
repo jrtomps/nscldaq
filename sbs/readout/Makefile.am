@@ -30,7 +30,8 @@ libSBSProductionReadout_la_SOURCES	=				\
 						CReadoutException.cpp	\
 						CInvalidPacketStateException.cpp \
 						CEventPacket.cpp 	\
-						CVarList.cpp
+						CVarList.cpp	\
+						CDocumentedVars.cpp
 
 
 noinst_HEADERS	=	CReadoutMain.h Skeleton.h CTCLAuthorizer.h	\
@@ -43,7 +44,7 @@ noinst_HEADERS	=	CReadoutMain.h Skeleton.h CTCLAuthorizer.h	\
 			CBeginCommand.h CPauseCommand.h CResumeCommand.h	\
 			CEndCommand.h CDocumentedPacket.h CDocumentedPacketManager.h \
 			CReadoutException.h CInvalidPacketStateException.h	\
-			CEventPacket.h CVarList.h
+			CEventPacket.h CVarList.h CDocumentedVars.h
 
 
 INCLUDES	=	-I@top_srcdir@/sbs/vmemodules	\
@@ -123,6 +124,7 @@ tests_LDADD = 	CExperiment.lo	\
 		CDocumentedPacket.lo CDocumentedPacketManager.lo \
 		CReadoutException.lo CInvalidPacketStateException.lo \
 		CEventPacket.lo					\
+		CDocumentedVars.lo				\
 		CVarList.lo					\
 		@top_srcdir@/daq/format/libdataformat.la	\
 		@top_srcdir@/base/dataflow/libDataFlow.la	\
