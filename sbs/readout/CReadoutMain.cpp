@@ -27,6 +27,7 @@
 #include <ErrnoException.h>
 #include <CPortManager.h>
 #include <CRunControlPackage.h>
+#include <CDocumentedVars.h>
 #include <CNullTrigger.h>
 
 
@@ -231,7 +232,9 @@ CReadoutMain::SetupReadout(CExperiment* pExperiment)
 void
 CReadoutMain::addCommands()
 {
-   CRunControlPackage::getInstance(*getInterpreter());
+  CTCLInterpreter& interp(*getInterpreter());
+  CRunControlPackage::getInstance(interp);
+  new CDocumentedVars(interp);
 }
 
 
