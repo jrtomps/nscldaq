@@ -60,9 +60,10 @@ private:
   CVarList&               m_RunVariables;
   
   Tcl_Command             m_statevarToken;
-  std::map<string,string> m_PriorValues;
+  std::map<std::string, std::string*> m_PriorValues;
   
   // Canonicals:  The base class does not support deep canonicals so we can't either.
+
 public:
   CDocumentedVars(CTCLInterpreter& interp);
   virtual ~CDocumentedVars();
@@ -74,7 +75,6 @@ private:
   int operator!=(const CDocumentedVars& rhs) const;
 
 
-protected:
   
 protected:
   virtual int operator()(CTCLInterpreter& interp,
@@ -96,14 +96,15 @@ private:
   CVarList*  whichVariableList(std::vector<CTCLObject>& objv);
   void writeProtectVariable(std::string name);
   void unprotectVariable(std::string name);
+  bool runActive();
 
   // Static member function that processes write protection:
 
-  static char* writeProtectionTrace(ClientData  cd,
-				    Tcl_Interp* interp,
-				    char*       name1,
-				    char*       name2,
-				    int         flags);
+  static char* writeProtectionTrace(ClientData       cd,
+				    Tcl_Interp*      interp,
+				    const char*       name1,
+				    const char*       name2,
+				    int               flags);
 
   static std::string usage(std::vector<CTCLObject>& objv);
   

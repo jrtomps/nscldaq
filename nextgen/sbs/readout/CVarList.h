@@ -45,7 +45,7 @@ class CTCLInterpreter;
 /*!
    This class contains a map of Tcl variables and management
    functions for those variables.  Typically a varmap will be used
-   to maintaina a set of variables that will be written to the output
+   to maintain a a set of variables that will be written to the output
    stream of the program to document the values of those variables at
    some chosen time.
 

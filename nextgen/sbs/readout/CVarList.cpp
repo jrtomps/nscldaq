@@ -140,6 +140,8 @@ CVarList::end()
   return m_Variables.end();
 }
 
+
+
 /*!
   \return size_t
   \retval number of elements in the list.

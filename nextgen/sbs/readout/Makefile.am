@@ -106,7 +106,7 @@ tests_SOURCES=TestRunner.cpp experimentTests.cpp \
 		testRunStatePkg.cpp		\
 		packettests.cpp			\
 		eventpackettests.cpp		\
-		varlisttest.cpp
+		varlisttest.cpp docvartests.cpp
 
 
 tests_LDADD = 	CExperiment.lo	\
