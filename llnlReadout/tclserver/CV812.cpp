@@ -24,6 +24,8 @@
 #include <stdio.h>
 #include <tcl.h>
 
+#include <iostream>
+
 using namespace std;
 
 // Register offsets:
@@ -44,12 +46,27 @@ Const(FixedCode)    0xfa;
 Const(MfgAndModel)  0xfc;
 Const(VersionAndSerial) 0xfe;
 
+// Fields in the discription block.
+
+Const(VersionMask)  0xf000;
+Const(SerialMask)   0x0fff;
+Const(VersionShift) 12;
+
+Const(MfgMask)      0xfc00;
+Const(MfgValue)     0x0800;	// unshifted
+Const(TypeMask)     0x03ff;
+Const(V812Type)     0x0051;
+Const(V895Type)     0x0053;
+
+Const(FixedCodeValue) 0xfaf5;
+
 /*!
    construct the beast.. The shadow registers will all get set to zero
 */
 CV812::CV812(string name) :
   CControlHardware(name),
-  m_pConfiguration(0)
+  m_pConfiguration(0),
+  m_is812(true)
 {
   for (int i =0; i < 16; i++) {
     m_thresholds[i] = 0;
@@ -140,6 +157,55 @@ CV812::onAttach(CControlModule& configuration)
 void
 CV812::Initialize(CVMUSB& vme)
 {
+  // Figure out the model type.
+
+  uint16_t serialVersion;
+  uint16_t mfgType;
+  uint16_t fixedCode;
+  int stat1,stat2,stat3;
+
+  stat1 = vme.vmeRead16(base() + VersionAndSerial, am, &serialVersion);
+  stat2 = vme.vmeRead16(base() + MfgAndModel,      am, &mfgType);
+  stat3 = vme.vmeRead16(base() + FixedCode,        am, &fixedCode);
+
+  if(stat1 | stat2 | stat3) {
+    cerr << "V812/V895 failed to read the module descriptor block for base: "
+	 << hex << base() << dec << endl;
+  }
+  else {
+    // Describe the module:
+
+    if (fixedCode != FixedCodeValue) {
+      cerr << "V812/V895 fixed code value was : " << hex << fixedCode 
+	   << " should have been: " << FixedCodeValue 
+	   << " base address " << base() << dec << endl;
+    }
+    else {
+      uint16_t serial  = serialVersion & SerialMask;
+      uint16_t version = (serialVersion & VersionMask) >> VersionShift;
+      uint16_t mfg     = mfgType & MfgMask;
+      uint16_t type    = mfgType & TypeMask;
+
+      if ((mfg != MfgValue) || 
+	  ((type != V812Type) && (type != V895Type))) {
+	cerr << "V812/V895 has bad Manufacturer or type code\n";
+	cerr << "Manufacturer should be " << MfgValue << " was " << mfg << endl;
+	cerr << "Type was " << hex << type 
+	     << "should be one of " << V812Type << " or " << V895Type 
+	     << " base address: " << base() << dec << endl;
+      }
+      else {
+	m_is812 = (type == V812Type) ? true : false;
+
+	cerr << "Located valid CAEN V" 
+	     << (m_is812 ? "812" : "895 module Serial number: ") << serial 
+	     << " version " << version << " at base address " 
+	     << hex << base() << dec << endl;
+      }
+    }
+  }
+  // Initialize the configuration:
+
   configFileToShadow();		// Process the config file if necessary.
   Update(vme);			// Load the shadow registers into the device.
 }
@@ -399,12 +465,15 @@ CV812::configFileToShadow()
   }
   // Deadtimes:
 
-  for (int i=0; i < 2; i++) {
-    const char* value = Tcl_GetVar2(pInterp, "deadtime", iToS(i).c_str(), TCL_GLOBAL_ONLY);
-    if (value) {
-      int iValue;
-      if (sscanf(value, "%i", &iValue) == 1) {
-	m_deadtimes[i] = iValue;
+  if (m_is812) {
+
+    for (int i=0; i < 2; i++) {
+      const char* value = Tcl_GetVar2(pInterp, "deadtime", iToS(i).c_str(), TCL_GLOBAL_ONLY);
+      if (value) {
+	int iValue;
+	if (sscanf(value, "%i", &iValue) == 1) {
+	  m_deadtimes[i] = iValue;
+      }
       }
     }
   }
@@ -519,6 +588,10 @@ string
 CV812::setDeadtime(CVMUSB& vme, unsigned int selector, uint16_t value)
 {
   // validation:
+
+  if (!m_is812) {
+    return string("ERROR - CAEN V895 modules have no deadtime");
+  }
 
   if (selector > 1) {
     return string("ERROR - Invalid deadtime selector");
@@ -641,6 +714,9 @@ CV812::getWidth(unsigned int selector)
 string
 CV812::getDeadtime(unsigned int selector)
 {
+  if (!m_is812) {
+    return string("ERROR - CAEN V895 modules have no deadtime");
+  }
   if (selector > 1) {
     return string("ERROR - invalid deadtime selector");
   }

@@ -81,6 +81,8 @@ private:
   uint16_t            m_inhibits;
   uint16_t            m_majority;
 
+  bool                m_is812;	// V895 supported by this but it has n deadtime registers
+
 public:
   // canonicals:
 
