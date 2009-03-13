@@ -71,6 +71,30 @@ CDocumentedVars::~CDocumentedVars()
 }
 
 /*!
+   Return the state variables as a vector of name value pairs.
+   
+   @return CDocumentedVars::NameValuePairs (vector<pair<string, string> >)
+   @retval Each element of the return vector is a pair. The first element
+           of each pair is the name of a state variable. The second element
+	   it's value.  If the variable has not yet been set it will have a value
+	   *Not Set*
+*/
+CDocumentedVars::NameValuePairs
+CDocumentedVars::getStateVars() const
+{
+  return getVars(m_StateVariables);
+}
+
+/*!
+  Same as getStateVars but gets the run variables instead.
+*/
+CDocumentedVars::NameValuePairs
+CDocumentedVars::getRunVars() const
+{
+  return getVars(m_RunVariables);
+}
+
+/*!
    This function takes over when either the runvar or the statevar command
    is input.  The commands have the following form:
 \verbatim
@@ -545,4 +569,27 @@ CDocumentedVars::writeProtectionTrace(ClientData       cd,
     o.m_PriorValues[name1] = new string(Tcl_GetVar(interp, name1, TCL_GLOBAL_ONLY));
     return reinterpret_cast<char*>(NULL);
   } 
+}
+
+/*
+** Return a variable list as a set of name value pairs.  If the value is not
+** defined the value *Not Set* will be used.
+*/
+CDocumentedVars::NameValuePairs
+CDocumentedVars::getVars(CVarList& list) const
+{
+  CVarList::VariableIterator p;
+  NameValuePairs             result;
+
+  for (p =  list.begin(); p != list.end(); p++) {
+    string        name  = p->first;
+    const char*  value = p->second.Get();
+    if (!value) {
+      value = "*Not Set*";
+    }
+    pair<string, string> item(name, string(value));
+    result.push_back(item);
+  }
+
+  return result;
 }
