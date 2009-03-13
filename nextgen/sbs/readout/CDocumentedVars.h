@@ -55,6 +55,8 @@ class CVarList;
 */
 class CDocumentedVars : public CTCLObjectProcessor
 {
+public:
+  typedef std::vector<std::pair<std::string, std::string> > NameValuePairs;
 private:
   CVarList&               m_StateVariables;
   CVarList&               m_RunVariables;
@@ -68,13 +70,19 @@ public:
   CDocumentedVars(CTCLInterpreter& interp);
   virtual ~CDocumentedVars();
 
+
 private:
   CDocumentedVars(const CDocumentedVars& rhs);
   CDocumentedVars& operator=(const CDocumentedVars& rhs);
   int operator==(const CDocumentedVars& rhs) const;
   int operator!=(const CDocumentedVars& rhs) const;
 
+  // Selectors that allow the production of state variable and run variable
+  // events.
 
+public:
+  NameValuePairs getStateVars() const;
+  NameValuePairs getRunVars()   const;
   
 protected:
   virtual int operator()(CTCLInterpreter& interp,
@@ -107,6 +115,8 @@ private:
 				    int               flags);
 
   static std::string usage(std::vector<CTCLObject>& objv);
+
+  NameValuePairs getVars(CVarList& list) const;
   
 };
 
