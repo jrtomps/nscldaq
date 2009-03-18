@@ -78,15 +78,25 @@ CTCLObjectProcessor::Register()
 			  "Registering a CTCLObjectCommand - already registered");
   }
   else {
-    CTCLInterpreter* pInterp = getInterpreter();
-    m_Token = Tcl_CreateObjCommand(pInterp->getInterpreter(),
-				   m_Name.c_str(),
-				   CTCLObjectProcessor::commandRelay,
-				   static_cast<ClientData>(this),
-				   CTCLObjectProcessor::unregisterRelay);
+    m_Token = RegisterAs(m_Name);
     m_fRegistered = true;
   }
 }
+/*!
+  Register the command with a specific name.  This allows objects to field
+  more than one command.
+*/
+Tcl_Command CTCLObjectProcessor::RegisterAs(string name)
+{
+  CTCLInterpreter* pInterp = getInterpreter();
+  return  Tcl_CreateObjCommand(pInterp->getInterpreter(),
+			       name.c_str(),
+			       CTCLObjectProcessor::commandRelay,
+			       static_cast<ClientData>(this),
+			       CTCLObjectProcessor::unregisterRelay);
+}
+
+
 //////////////////////////////////////////////////////////////////////////
 /*!
     Delete a command.   
@@ -97,13 +107,7 @@ void
 CTCLObjectProcessor::unregister()
 {
   if(m_fRegistered) {
-    CTCLInterpreter* pInterp = getInterpreter();
-    int status = Tcl_DeleteCommandFromToken(pInterp->getInterpreter(),
-					    m_Token);
-    if(status != TCL_OK) {
-      throw CTCLException(*pInterp, status,
-			  "Unregistering object command");
-    }
+    unregisterAs(m_Token);
     m_fRegistered = false;
 				   
   }
@@ -111,6 +115,21 @@ CTCLObjectProcessor::unregister()
     throw CStateException("false", "true",
 			  "Unregistering a CTCLObjectCommand - not registered");
   }
+}
+/*!
+   Unregister the command object from a specific command name
+   \param name - THe name to unregister as.
+*/
+void
+CTCLObjectProcessor::unregisterAs(Tcl_Command token)
+{
+    CTCLInterpreter* pInterp = getInterpreter();
+    int status = Tcl_DeleteCommandFromToken(pInterp->getInterpreter(),
+					    token);
+    if(status != TCL_OK) {
+      throw CTCLException(*pInterp, status,
+			  "Unregistering object command");
+    }
 }
 ///////////////////////////////////////////////////////////////////////////////
 /*!
