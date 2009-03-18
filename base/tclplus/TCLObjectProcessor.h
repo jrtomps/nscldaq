@@ -80,7 +80,9 @@ public:
 
 public:
   void Register();		// Register command on the interpreter.
+  Tcl_Command RegisterAs(std::string name); // register with a specific name.
   void unregister();		// Unregister command from the interp.
+  void unregisterAs(Tcl_Command token); // unregister given command token.
   std::string getName() const;	// Return the name of the object.
   Tcl_CmdInfo getInfo() const;	// Return info about the command.
 
