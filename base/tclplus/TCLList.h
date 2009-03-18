@@ -418,7 +418,7 @@ public:
   }
   // Mutators:
 
-protected:                
+public:                
   void setList (const char* am_pList);
   
   // Operations:
