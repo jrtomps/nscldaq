@@ -119,8 +119,13 @@ CReadoutMain::operator()()
 
     // Now initialize via the virtual functions.
 
+
+    // State and run variables require the state/runvar manager
+
+    new CDocumentedVars(*(getInterpreter()));
     SetupRunVariables(getInterpreter());
     SetupStateVariables(getInterpreter());
+
     SetupReadout(m_pExperiment);		// From derived class.
     SetupScalers(m_pExperiment);	   	// Allowed to be null (the default).
     
@@ -234,7 +239,6 @@ CReadoutMain::addCommands()
 {
   CTCLInterpreter& interp(*getInterpreter());
   CRunControlPackage::getInstance(interp);
-  new CDocumentedVars(interp);
 }
 
 

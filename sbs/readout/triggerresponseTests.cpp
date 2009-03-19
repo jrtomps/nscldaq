@@ -18,6 +18,8 @@
 #include <RunState.h>
 #include <stdint.h>
 #include <vector>
+#include <TCLInterpreter.h>
+#include <CVariableBuffers.h>
 
 #define private public
 #include "CExperiment.h"
@@ -77,13 +79,22 @@ public:
 
 
 public:
+  CTCLInterpreter* m_pInterp;
+  CVariableBuffers* m_pBufs;
   void setUp() {    
+    m_pInterp = new CTCLInterpreter;
+    m_pBufs   = new CVariableBuffers(*m_pInterp);
+    
     if (CRingBuffer::isRing(ringName)) {
       CRingBuffer::remove(ringName); // In case it already exists, remove it
     }
     m_pExperiment = new CExperiment(ringName, 4096);
+
   }
   void tearDown() {
+    delete m_pBufs;
+    delete m_pInterp;
+
     delete m_pExperiment;
     m_pExperiment = reinterpret_cast<CExperiment*>(0);
     CRingBuffer::remove(ringName);
