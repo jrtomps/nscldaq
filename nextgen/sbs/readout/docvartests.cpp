@@ -17,7 +17,7 @@
 
 #include "RunState.h"
 #include <vector>
-
+#include <set>
 #include <string>
 
 
@@ -29,6 +29,7 @@ class DocVars : public CppUnit::TestFixture {
   CPPUNIT_TEST(create1ofeach);
   CPPUNIT_TEST(createdups);
   CPPUNIT_TEST(deleteExisting);
+  CPPUNIT_TEST(listAll);
   CPPUNIT_TEST_SUITE_END();
 
 
@@ -49,6 +50,7 @@ protected:
   void create1ofeach();
   void createdups();
   void deleteExisting();
+  void listAll();
 };
 
 CPPUNIT_TEST_SUITE_REGISTRATION(DocVars);
@@ -69,8 +71,8 @@ void DocVars::construction() {
 
 /*
   Creating one of each should put an entry in each of the variable lists and one
-  in the prior values map.  We're not going to try to build the variable itself nor give it
-  an initial value
+  in the prior values map.  We're not going to try to build the variable 
+  itself nor give it  an initial value
   prior value map entry should be a null pointer.
 */
 void DocVars::create1ofeach()
@@ -244,4 +246,58 @@ void DocVars::deleteExisting()
   status = (*m_pVars)(*m_pInterp, command);
   EQMSG("deleting statevar as runvar", TCL_ERROR, status);
   
+}
+/*!
+   Make a set of runvars and list them all. We assume if one works both work.
+*/
+void DocVars::listAll()
+{
+  CTCLObject word;
+  vector<CTCLObject> command;
+  word = "runvar";
+  command.push_back(word);
+  word = "george";
+  command.push_back(word);
+  (*m_pVars)(*m_pInterp, command);
+
+  word = "harry";
+  command[1] = word;
+  (*m_pVars)(*m_pInterp, command);
+
+  word = "moe";
+  command[1] = word;
+  (*m_pVars)(*m_pInterp, command);
+
+  // Construct/issue runvar -list
+
+  int status;
+  word = "-list";
+  command[1] = word;
+  status = (*m_pVars)(*m_pInterp, command);
+  ASSERT(status == TCL_OK);
+
+  // Get the interp result .. convert to a set of strings.
+
+  const char* result = Tcl_GetStringResult(m_pInterp->getInterpreter());
+
+  CTCLList list(m_pInterp);
+  list.setList(result);
+  StringArray lResult;
+  list.Split(lResult);
+  set<string> sResult;
+
+  for (int i =0; i < lResult.size(); i++) {
+    sResult.insert(lResult[i]);
+  }
+
+  // Ensure all elements are in the set.  This way it works regarless
+  // of the list order;
+
+  ASSERT(sResult.find("george") != sResult.end());
+  ASSERT(sResult.find("harry") != sResult.end());
+  ASSERT(sResult.find("moe") != sResult.end());
+  
+  // and only those items:
+
+  ASSERT(sResult.size() == 3);
 }

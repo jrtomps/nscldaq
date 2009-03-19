@@ -53,12 +53,10 @@ CDocumentedVars::~CDocumentedVars()
   // Unregister traces and.
   // deallocate string pointers.  The map itself gets destroyed automatically.
   
-  map<string, string*>::iterator i = m_PriorValues.begin();
-  while (i != m_PriorValues.end()) {
+  while (! m_PriorValues.empty()) {
+    map<string, string*>::iterator i = m_PriorValues.begin();
     string name = i->first;
-    unprotectVariable(name);
-    delete i->second;
-    i++;
+    unprotectVariable(name);	// Deletes the storage and entry.
   }
 
   unregisterAs(m_statevarToken);

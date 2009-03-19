@@ -1,6 +1,7 @@
 lib_LTLIBRARIES	=	libSBSProductionReadout.la
 
 
+BUILD_SOURCES=options.c options.h
 
 libSBSProductionReadout_la_SOURCES	=				\
 						CReadoutMain.cpp		\
@@ -31,7 +32,8 @@ libSBSProductionReadout_la_SOURCES	=				\
 						CInvalidPacketStateException.cpp \
 						CEventPacket.cpp 	\
 						CVarList.cpp	\
-						CDocumentedVars.cpp
+						CDocumentedVars.cpp		\
+						CVariableBuffers.cpp
 
 
 noinst_HEADERS	=	CReadoutMain.h Skeleton.h CTCLAuthorizer.h	\
@@ -44,7 +46,8 @@ noinst_HEADERS	=	CReadoutMain.h Skeleton.h CTCLAuthorizer.h	\
 			CBeginCommand.h CPauseCommand.h CResumeCommand.h	\
 			CEndCommand.h CDocumentedPacket.h CDocumentedPacketManager.h \
 			CReadoutException.h CInvalidPacketStateException.h	\
-			CEventPacket.h CVarList.h CDocumentedVars.h
+			CEventPacket.h CVarList.h CDocumentedVars.h CVariableBuffers.h
+
 
 
 INCLUDES	=	-I@top_srcdir@/sbs/vmemodules	\
@@ -106,7 +109,8 @@ tests_SOURCES=TestRunner.cpp experimentTests.cpp \
 		testRunStatePkg.cpp		\
 		packettests.cpp			\
 		eventpackettests.cpp		\
-		varlisttest.cpp docvartests.cpp
+		varlisttest.cpp docvartests.cpp	\
+		testVariableBuffers.cpp
 
 
 tests_LDADD = 	CExperiment.lo	\
@@ -126,6 +130,7 @@ tests_LDADD = 	CExperiment.lo	\
 		CEventPacket.lo					\
 		CDocumentedVars.lo				\
 		CVarList.lo					\
+		CVariableBuffers.lo				\
 		@top_srcdir@/daq/format/libdataformat.la	\
 		@top_srcdir@/base/dataflow/libDataFlow.la	\
 		@top_srcdir@/base/tclplus/libtclPlus.la		\
