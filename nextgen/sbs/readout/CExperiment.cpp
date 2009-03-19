@@ -29,6 +29,7 @@
 #include <CScalerBank.h>
 #include <CTriggerLoop.h>
 #include <CDocumentedPacketManager.h>
+#include <CVariableBuffers.h>
 
 #include <vector>
 #include <string>
@@ -386,6 +387,9 @@ void CExperiment::TriggerScalerReadout()
     m_nLastScalerTime = m_pRunState->m_timeOffset;
 			  
   }
+  // For now documented variables are tied to this trigger too:
+
+  ScheduleRunVariableDump();
 
 }
 
@@ -423,7 +427,9 @@ CExperiment::DocumentPackets()
 void
 CExperiment::ScheduleRunVariableDump()
 {
-  // TODO: Write the body of this stub function.
+  CVariableBuffers* pVars = CVariableBuffers::getInstance();
+  pVars->triggerRunVariableBuffer(m_pRing);
+  pVars->triggerStateVariableBuffer(m_pRing);
 }
 
 
