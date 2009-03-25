@@ -20,10 +20,11 @@ package require Tk
 
 
 
-# Implements a control panel for a single CAEN V812 CFD.
+# Implements a control panel for a single CAEN V812 CFD or 895
 # Invoke as follows:
 #
 #   v812usbcontrol  filename
+#   v895usbcontrol  filename
 #
 #  Where filename is the name of the configuration file the CFD has been
 #  configured with. This file must also include
@@ -40,6 +41,8 @@ package require Tk
 # - Hook into the -command switch to keep track of changes the gui makes.
 # - Add a "Commit" button that makes the changes.
 #
+#  The only difference between the 895 and the 812 is that the 895, a leading
+#  edge discriminator has no dead-time setting.
 
 
 
@@ -90,8 +93,12 @@ proc CFD812::GetBase {name} {return -Unknown-}
 #
 
 proc changed {action id value} {
-    set ::changed($action$id) $value
-    .commit config -activebackground red -background red
+    global disableDeadtime
+
+    if {($action ne "deadtime") || (!$disableDeadtime)} {
+	set ::changed($action$id) $value
+	.commit config -activebackground red -background red
+    }
 
 
     
@@ -104,6 +111,7 @@ proc changed {action id value} {
 #
 
 proc loadState name {
+    global disableDeadtime
 
     # Thresholds
 
@@ -123,9 +131,11 @@ proc loadState name {
 
     # Deadtimes
 
-    for {set d 0} {$d < 2} {incr d} {
-	if {[array name ::deadtimes $d] ne ""} {
-	    .panel setProperties [list [list deadtime$d $::deadtimes($d)]]
+    if {!$disableDeadTtime} {
+	for {set d 0} {$d < 2} {incr d} {
+	    if {[array name ::deadtimes $d] ne ""} {
+		.panel setProperties [list [list deadtime$d $::deadtimes($d)]]
+	    }
 	}
     }
 
@@ -188,7 +198,7 @@ proc updateDevice sock {
 #
 
 proc commit {} {
-
+    global disableDeadtime
     # Write the configuration file:
 
     set fd [open $::configFile w]
@@ -203,7 +213,9 @@ proc commit {} {
     }
     for {set s 0} {$s < 2} {incr s} {
 	puts $fd "set widths($s) [CFDState::GetWidth CFD $s]"
-	puts $fd "set deadtimes($s) [CFDState::GetDeadtime CFD $s]"
+	if {!$disableDeadtime} {
+	    puts $fd "set deadtimes(`$s) [CFDState::GetDeadtime CFD $s]"
+	}
     }
 
     puts $fd "set majority [CFDState::GetMultiplicity CFD]"
@@ -238,6 +250,15 @@ proc commit {} {
 #-------------------------- Entry point: --------------------------
 
 
+# Depending on the type of module (depending on the program run)
+# disable or not, the deadtime.
+
+$myProgram = [file tail $argv0]
+if {$myProgram eq "v895usbcontrol"} {
+    set disableDeadtime 1
+} else {
+    set disableDeadtime 0
+}
 
 if {[llength $argv] != 1} {
     error "Usage:\n     v812usbcontrol config-file"
@@ -262,8 +283,11 @@ cfdv812Gui .panel   -base $base -name CFD
 
 button      .commit  -text "Commit" -command commit
 loadState CFD;                    # Load the state data from the file.
-.panel configure  -command changed
+.panel configure  -command changed 
 
+if  {$disableDeadtime} {
+    .panel configure -disable deadtimes
+}
 
 
 pack .panel .commit
