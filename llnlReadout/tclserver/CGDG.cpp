@@ -377,8 +377,8 @@ CGDG::base()
 {
   if (m_pConfiguration) {
     string strBase = m_pConfiguration->cget("-base");
-    unsigned int base;
-    sscanf(strBase.c_str(), "%i", &base);
+    unsigned long base;
+    base = strtoul(strBase.c_str(), NULL, 0);
     return static_cast<uint32_t>(base);
   } 
   else {

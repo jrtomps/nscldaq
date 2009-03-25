@@ -64,7 +64,7 @@ class CVMUSB;
   Configuration parameters include:
 
   -base         - Base address of the module.
-  -initfile     - Initialization file that describes how to load the module initial state.
+  -file     - Initialization file that describes how to load the module initial state.
 
 */
 
