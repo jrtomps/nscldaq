@@ -29,7 +29,8 @@
 #include <CRunControlPackage.h>
 #include <CDocumentedVars.h>
 #include <CNullTrigger.h>
-
+#include <CVariableBuffers.h>
+#include <TCLInterpreter.h>
 
 
 #include <netdb.h>
@@ -122,7 +123,7 @@ CReadoutMain::operator()()
 
     // State and run variables require the state/runvar manager
 
-    new CDocumentedVars(*(getInterpreter()));
+    CVariableBuffers* pVarbufs = new CVariableBuffers(*(getInterpreter()));
     SetupRunVariables(getInterpreter());
     SetupStateVariables(getInterpreter());
 
@@ -203,6 +204,8 @@ CReadoutMain::CreateExperiment(void* parsed)
 void
 CReadoutMain::SetupRunVariables(CTCLInterpreter* pInterp)
 {
+  pInterp->Eval("runvar title");
+  pInterp->Eval("runvar run");
 }
 
 /*!

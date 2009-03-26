@@ -33,7 +33,7 @@
 class RunState;
 class CExperiment;
 class CTCLInterpreter;
-
+class RunTimer;
 
 /*!
   This class is a container for run control operations.
@@ -61,9 +61,11 @@ private:
   // Object level data:
 
 private:
-  RunState*    m_pTheState;
-  CExperiment* m_pTheExperiment;
- 
+  RunState*        m_pTheState;
+  CExperiment*     m_pTheExperiment;
+  CTCLInterpreter* m_pInterp;
+  RunTimer*        m_pTimer;
+  
   
   // Canonicals are all private so that this can enforce the singleton pattern.
 
