@@ -17,6 +17,7 @@
 #include <Skeleton.h>
 #include <CExperiment.h>
 #include <TCLInterpreter.h>
+#include <CTimedTrigger.h>
 
 /*
 /*
@@ -119,6 +120,13 @@ Skeleton::SetupScalers(CExperiment* pExperiment)
 {
   CReadoutMain::SetupScalers(pExperiment);	// Establishes the default scaler trigger.
 
+  // The default triggers is null. I want a timed trigger:
+
+  timespec t;
+  t.tv_sec  = 2;
+  t.tv_nsec = 0;
+  CTimedTrigger* pTrigger = new CTimedTrigger(t);
+  pExperiment->setScalerTrigger(pTrigger);
 
   // Create and add your scaler modules here.
 

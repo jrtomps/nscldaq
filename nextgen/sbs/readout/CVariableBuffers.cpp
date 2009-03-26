@@ -23,9 +23,12 @@
 #include <CDuplicateSingleton.h>
 #include <CRingBuffer.h>
 #include <CRingTextItem.h>
+#include <RunState.h>
+
 
 #include <vector>
 #include <string>
+#include <time.h>
 
 using namespace std;
 
@@ -221,7 +224,13 @@ CVariableBuffers::createDocEvent(CRingBuffer* pRing,
 
     elements.push_back(string(command));
   }
-  CRingTextItem item(eventType, elements);
+  RunState* pState = RunState::getInstance();
+  time_t timestamp;
+  time(&timestamp);
+
+  CRingTextItem item(eventType, elements,
+		     pState->m_timeOffset,
+		     timestamp);
   item.commitToRing(*pRing);
 
 }

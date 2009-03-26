@@ -129,6 +129,9 @@ CTriggerLoop::mainLoop()
   CEventTrigger* pEvent = m_pExperiment->getEventTrigger();
   CEventTrigger* pScaler= m_pExperiment->getScalerTrigger();
 
+  if (pEvent)  pEvent->setup();
+  if (pScaler) pScaler->setup();
+
   do {
     if ((*pEvent)()) {
       m_pExperiment->ReadEvent();

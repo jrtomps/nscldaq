@@ -27,8 +27,28 @@
 #include "CPauseCommand.h"
 #include "CResumeCommand.h"
 #include "CEndCommand.h"
+#include <TCLTimer.h>
 
 using namespace std;
+
+/*------------------------------------------------
+ * Helper class: Extends TCLTimer to maintain the
+ * elapsed run time in the run state.
+ */
+class RunTimer : public CTCLTimer
+{
+public:
+  RunTimer(CTCLInterpreter* pInterp) :
+    CTCLTimer(pInterp, 1000)
+  {
+    Set();
+  }
+  virtual void operator()() {
+    RunState* pState = RunState::getInstance();
+    pState->m_timeOffset++;
+    Set();
+  }
+};
 
 // Static member data:
 
@@ -37,6 +57,8 @@ CRunControlPackage*  CRunControlPackage::m_pInstance(0);
 // Application global data:
 
 extern CTCLApplication* gpTCLApplication;
+
+
 
 /*!
   Constructs the singleton.  This is private so that nobody
@@ -47,7 +69,9 @@ extern CTCLApplication* gpTCLApplication;
 
 CRunControlPackage::CRunControlPackage(CTCLInterpreter& Interp) :
   m_pTheState(RunState::getInstance()),
-  m_pTheExperiment(0)
+  m_pTheExperiment(0),
+  m_pInterp(&Interp),
+  m_pTimer(0)
 {
 
   CReadoutMain* pReadout = reinterpret_cast<CReadoutMain*>(gpTCLApplication);
@@ -88,6 +112,7 @@ CRunControlPackage::begin()
 {
   if (m_pTheState->m_state == RunState::inactive) {
     m_pTheExperiment->Start(false);	// not a resume.
+    m_pTimer = new RunTimer(m_pInterp);
   }
   else {
     throw CStateException(m_pTheState->stateName().c_str(),
@@ -105,6 +130,8 @@ CRunControlPackage::end()
   RunState::State state = m_pTheState->m_state;
   if((state == RunState::active) || (state == RunState::paused)) {
     m_pTheExperiment->Stop(false);	// Not a pause.
+    delete m_pTimer;
+    m_pTimer = reinterpret_cast<RunTimer*>(0);
   }
   else {
     string validstates = RunState::stateName(RunState::active);
@@ -123,6 +150,8 @@ CRunControlPackage::pause()
 {
   if(m_pTheState->m_state == RunState::active) {
     m_pTheExperiment->Stop(true);
+    delete m_pTimer;
+    m_pTimer = reinterpret_cast<RunTimer*>(0);
   }
   else {
     throw CStateException(m_pTheState->stateName().c_str(),
@@ -139,6 +168,7 @@ CRunControlPackage::resume()
 {
   if (m_pTheState->m_state == RunState::paused) {
     m_pTheExperiment->Start(true);
+    m_pTimer = new RunTimer(m_pInterp);
   }
   else {
     throw CStateException(m_pTheState->stateName().c_str(),
