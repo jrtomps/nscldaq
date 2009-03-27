@@ -429,6 +429,7 @@ AC_CONFIG_FILES([Makefile
 		 utilities/sclclient/Makefile
 		 daq/Makefile
 		 daq/format/Makefile
+		 daq/readoutgui/Makefile
 		 usb/Makefile
 		 usb/threadcom/Makefile
 		 usb/tclcommon/Makefile

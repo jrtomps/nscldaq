@@ -1,7 +1,7 @@
 lib_LTLIBRARIES	=	libSBSProductionReadout.la
 
 
-BUILD_SOURCES=options.c options.h
+BUILT_SOURCES=options.c options.h
 
 libSBSProductionReadout_la_SOURCES	=				\
 						CReadoutMain.cpp		\
