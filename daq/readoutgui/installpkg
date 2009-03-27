@@ -1,0 +1,15 @@
+#!/bin/sh
+# Start tclsh: \
+exec tclsh ${0} ${@}
+set liblist ""
+foreach lib {libVme.so libWait.so} {
+    if {[file exists $argv/lib/$lib]} {
+    lappend liblist $lib
+  }
+}
+puts "+++++++++ pkg_mkIndex ++++++++++"
+pkg_mkIndex -verbose $argv/Scripts *.tcl
+puts "++++++++++ auto_mkindex +++++++"
+auto_mkindex $argv/Scripts  *.tcl
+
+eval pkg_mkIndex -verbose $argv/lib $liblist
