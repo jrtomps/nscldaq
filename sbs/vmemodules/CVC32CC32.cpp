@@ -20,6 +20,7 @@
 uint8_t* CVC32CC32::m_pBranches[CVC32CC32::BRANCHES][CVC32CC32::VMECRATES];
 
 static const unsigned WIENER_SIZE   = (1UL << 16);
+static const unsigned WIENER_SHIFT  = 16;
 
 static const unsigned    CAMF =  2;              /* Shift count to F field. */
 static const unsigned    CAMA =  6;              /* Shift count to A field  */
@@ -33,6 +34,8 @@ static const unsigned STATUSF =  0;
 
 static const unsigned STATUS_Q = 0x08;
 static const unsigned STATUS_X = 0x04;
+
+
 
 /*!
    Create a 'branch' the branche memory maps are cached.  They are never destroyed
@@ -99,4 +102,29 @@ CVC32CC32::xtest()
 {
   uint16_t status = read16(0, STATUSN, STATUSA, STATUSF);
   return (status & STATUS_X) != 0;
+}
+/*
+** Map a branch and put a pointer to its mapping in m_pBranches.
+** there is an assumption that the branch will be aligned on page boundaries,
+** and that it is an even number of pages long.
+**
+** Parameters:
+**  branch     - Controller number...0-7
+**  vmeCrate   - VME crate number 0 - 15
+*/
+void
+CVC32CC32::mapBranch(unsigned branch, unsigned vmeCrate)
+{
+  void * fd = CVMEInterface::Open(CVMEInterface::Standard, vmeCrate);
+  long base = 0x800000 + (branch << WIENER_SHIFT);
+  
+  try {
+    m_pBranches[branch][vmeCrate] = 
+      reinterpret_cast<uint8_t*>(CVMEInterface::Map(fd, base, WIENER_SIZE));
+  } 
+  catch (...) {
+    CVMEInterface::Close(fd);
+    throw;
+  }
+  CVMEInterface::Close(fd);
 }
