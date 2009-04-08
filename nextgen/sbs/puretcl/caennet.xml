@@ -1,0 +1,244 @@
+<!-- chapter libraries -->
+<chapter>
+    <title>Tcl CAENet package</title>
+    <para>
+        CAENet is a serial proprietary device control network developed by
+        CAEN to control power supplies and NIM amplifiers.  CAENet should not
+        be confused with CANnet which is a completely different device control
+        network.
+        </para>
+    <para>
+        This chapter describes how to incorporate a pure Tcl package
+        <literal>caennet</literal> built on top
+        of the
+        <link linkend="vmetclintro"> the TCL Vme package</link> that provides
+        access to the CAEN VME CAENet controller (V288).   For reference
+        information see
+        <link linkend="manpage.caennet">caenet(3tcl)</link>
+        </para>
+    <para>
+        Incorporating the package into your Tcl scripts requires that you
+        <orderedlist>
+            <listitem>
+                <para>
+                    Add the NSCLDAQ Tcl package repository to the Tcl
+                    directory searc list.
+                    </para>
+                </listitem>
+            <listitem>
+                <para>
+                    Explicitly load the package.
+                    </para>
+                </listitem>
+            <listitem>
+                <para>
+                    Optionally import the commands fromt he
+                    <literal>caennet</literal> namespace.
+                    </para>
+                </listitem>
+            </orderedlist>
+        </para>
+    <para>
+        The remainder of this chapter describes how to perform these steps.
+        </para>
+    <para>
+        You can incorporate the NSCL DAQ Tcl pacakge repository in the Tcl
+        package search list either by setting an environment variable, or by
+        adding it to the list of directories in the Tcl global variable
+        <varname>auto_path</varname>.
+        </para>
+    <para>
+        Suppose you have defined the environment variable
+        <varname>DAQROOT</varname> to point to the top level directory in which
+        NSCLDAQ has been installed.  To add the DAQ Tcl package repository to the
+        search path via an environment variable with the <application>bash</application>
+        shell:
+        <informalexample>
+            <programlisting>
+export TCLLIBPATH="$TCLLIBPATH $DAQROOT/TclLibs"
+                </programlisting>
+            </informalexample>
+        </para>
+    <para>
+        The Tcl global variable <varname>auto_path</varname> specifies a list of
+        directories that are also searched for packages.  The same effect can be
+        gotten via:
+        <informalexample>
+            <programlisting>
+global env
+global auto_path
+lappend auto_path [file join $env(DAQROOT) TclLibs]
+                </programlisting>
+            </informalexample>
+        </para>
+    <para>
+        Once the path to the NSCLDAQ Tcl library directory has been established,
+        you must load the package.  This is done via the <command>package require</command>
+        command:
+        <informalexample>
+            <programlisting>
+package require caennet
+                </programlisting>
+            </informalexample>
+        </para>
+    <para>
+        All of the <command>caennet</command> commands are located in the
+        <literal>caennet</literal> namespace.  You can use these commands
+        directly e.g.:
+        <informalexample>
+            <programlisting>
+set cn [caennet::create 0x200000];    # Talk to the controller a 0x200000
+...
+                </programlisting>
+            </informalexample>
+        You can also <firstterm>import</firstterm> these commands so that
+        you con't have to qualify them with the <literal>caennet::</literal>
+        prefix:
+        <informalexample>
+            <programlisting>
+namespace import caennet::*
+...
+set cn [create 0x200000];    # caennet::create
+reset $cn;                   # caennet::reset
+...                          # Other caennet ops.
+delete $cn;                  # caennet::delete
+                </programlisting>
+            </informalexample>
+        </para>
+    </chapter>
+
+<!-- /chapter -->
+
+<!-- manpage 3tcl -->
+
+<refentry id="manpage.caennet">
+  <refmeta>
+     <refentrytitle>caennet</refentrytitle>
+     <manvolnum>3tcl</manvolnum>
+  </refmeta>
+  <refnamediv>
+     <refname>caennet</refname>
+     <refpurpose>Access CAENnet from Tcl scripts.</refpurpose>
+  </refnamediv>
+  
+  <refsynopsisdiv>
+    <cmdsynopsis>
+    <command>
+package require caennet    
+    </command>
+    </cmdsynopsis>
+    <cmdsynopsis>
+    <command>
+caennet::create <replaceable>baseaddr   ?vmecrate?</replaceable>
+    </command>
+</cmdsynopsis>
+    <cmdsynopsis>
+    <command>
+caennet::delete <replaceable>controller</replaceable>
+    </command>
+</cmdsynopsis>
+
+<cmdsynopsis>
+    <command>
+caennet::reset <replaceable>controller</replaceable>
+    </command>
+</cmdsynopsis>
+<cmdsynopsis>
+    <command>
+caennet::send <replaceable>controller slave code ?data?</replaceable>
+    </command>
+</cmdsynopsis>
+
+
+  </refsynopsisdiv>
+  <refsect1>
+     <title>DESCRIPTION</title>
+     <para>
+        The <command>caennet</command> package provides Tcl scripted access to
+        modules that are controlled by CAEN's proprietary device control network.
+        The package requires a CAEN V288 Caennet controller be installed in at
+        least one of the VME crates attached to the host.
+     </para>
+     <para>
+        All package commands are defined in the <literal>caennet</literal>
+        namespace.  This can be imported into the current or global namespace
+        via the <command>namespace import</command> command.
+        </para>
+  </refsect1>
+  <refsect1>
+     <title>
+    PACKAGE COMMANDS
+     </title>
+    <cmdsynopsis>
+    <command>
+package require caennet    
+    </command>
+    </cmdsynopsis>
+    <para>
+        Loads the <literal>caennet</literal> package.  This is required to make
+        the package commands known to the Tcl interpreter.
+        </para>
+    <cmdsynopsis>
+    <command>
+caennet::create <replaceable>baseaddr   ?vmecrate?</replaceable>
+    </command>
+</cmdsynopsis>
+    <para>
+        Connects to the CAEN V288 controller at <parameter>baseaddr</parameter>
+        in the VME create specified by <parameter>vmecrate</parameter>.  If
+        <parameter>vmecrate</parameter> is not provided, it defaults to zero.
+        The command returns a string that identifies the controller in subsequent
+        operations.
+        </para>
+    <cmdsynopsis>
+    <command>
+caennet::delete <replaceable>controller</replaceable>
+    </command>
+</cmdsynopsis>
+    <para>
+        Deletes the connection to a CAEN V288 controller for which
+        <command>caennet::create</command> returned the string
+        <parameter>controller</parameter>.
+        </para>
+<cmdsynopsis>
+    <command>
+caennet::reset <replaceable>controller</replaceable>
+    </command>
+</cmdsynopsis>
+    <para>
+        Resets a CAENnet controller.  <parameter>controller</parameter>
+        is a string that was returned from a previous invocation of
+        <command>caennet::create</command>.
+        </para>
+
+<cmdsynopsis>
+    <command>
+caennet::send <replaceable>controller slave code ?data?</replaceable>
+    </command>
+</cmdsynopsis>
+    <para>
+        Peforms a CAENnet transaction.  Each transaction consists of a message
+        sent to a node on the network, and a response either from the node or
+        from the controller, if the node does not exist.
+        <parameter>
+            controller</parameter> is the controller handle that was returned
+            by the call to <command>caennet::create</command>.
+        <parameter>slave</parameter> is the slave address on the network.  This is
+        usually encoded in thumbwheels or rotary switches on the slaves front panel.
+        <parameter>code</parameter> is the operation code of the message.  The
+        operation code uasually selects the operation and meaning/presence of any
+        subsequent data.
+        <parameter>code</parameter> is the function code to perform.  This will
+        be slave specific and will determine the amount and meaning of the
+        <parameter>data</parameter> parameter, which can be thought of as parameters
+        to the function code.
+            </para>
+    <para>
+        The operation returns the data sent back by the slave as a list of
+        decimal integers.  Each integer is a byte of data.
+    </para>
+  </refsect1>
+</refentry>
+
+
+<!-- /manpage -->
