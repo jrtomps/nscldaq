@@ -57,7 +57,6 @@ package require ExpFileSystem
 package require Configuration
 package require DAQParameters
 package require InitializeConfiguration
-package require spdaqwidgets
 
 
 

@@ -1544,12 +1544,13 @@
                 </methodsynopsis>
             <methodsynopsis>
                 <type>CVME&lt;T&gt;&amp;</type> <methodname>operator++</methodname>
-                <methodparam><type>Int_t</type>
+                <methodparam><type>Int_t</type> <parameter>dummy</parameter>
                 </methodparam>
                 </methodsynopsis>
             <methodsynopsis>
                 <type>CVME&lt;T&gt;&amp;</type> <methodname>operator--</methodname>
-                <methodparam><type>Int_t</type></methodparam>
+                <methodparam><type>Int_t</type> <parameter>dummy</parameter>
+                </methodparam> 
                 </methodsynopsis>
             <methodsynopsis>
                 <modifier>volatile</modifier> <type>UChar_t*</type>
@@ -1800,6 +1801,7 @@
                 to the current pointer and returns that pointer.  Note that as with
                 the <literal>+=</literal> operator on normal pointers, the
                 object this is applied to is modified.
+                </para>
             <methodsynopsis>
                 <type>CVME&lt;T&gt;&amp;</type> <methodname>operator-=</methodname>
                 <methodparam>
@@ -1837,7 +1839,7 @@
 		</para>
             <methodsynopsis>
                 <type>CVME&lt;T&gt;&amp;</type> <methodname>operator++</methodname>
-                <methodparam><type>Int_t</type>
+                <methodparam><type>Int_t</type> <parameter>dummy</parameter>
                 </methodparam>
                 </methodsynopsis>
 	    <para>
@@ -1849,7 +1851,8 @@
 		</para>
             <methodsynopsis>
                 <type>CVME&lt;T&gt;&amp;</type> <methodname>operator--</methodname>
-                <methodparam><type>Int_t</type></methodparam>
+                <methodparam><type>Int_t</type> <parameter>dummy</parameter>
+                </methodparam>
                 </methodsynopsis>
             <para>
 	        Implements the post decrement operator
@@ -2250,12 +2253,12 @@
                 <type>UInt_t</type> <parameter>nOffset</parameter>
                 </methodparam>
             </methodsynopsis>
-        <parameter>
+        <para>
             Same as <methodname>pokeb</methodname> however a 32 bit
             <parameter>lword</parameter> is written to
             <parameter>nOffset</parameter> longwords fromt he base
             address of the address window.
-            </parameter>
+            </para>
         
         <methodsynopsis>
             <type>UInt_t</type> <methodname>readl</methodname>
@@ -2281,7 +2284,7 @@
             Where possible, this function performs each read at a longword
             width.
             </para>
-        <methosynopsis>
+        <methodsynopsis>
             <type>UInt_t</type> <methodname>readw</methodname>
             <methodparam>
                 <type>void*</type> <parameter>pBuffer</parameter>
@@ -2292,7 +2295,7 @@
             <methodparam>
                 <type>size_t</type> <parameter>words</parameter>
                 </methodparam>
-            </methosynopsis>
+            </methodsynopsis>
         <para>
             Same as <methodname>readl</methodname> however,
             <parameter>nOffset</parameter> is a word (16 bit) offset and
@@ -2431,7 +2434,7 @@
          <para>
             This class is an exception that can be thrown by the
             <methodname>CVMEInterface::Map</methodname> method.  It is derived
-            from the <link linkend="CException"><classname>CException</classname></link>
+            from the <link linkend="manpage.cexception"><classname>CException</classname></link>
             class.  See that page for full documentation on exception objects.
          </para>
       </refsect1>

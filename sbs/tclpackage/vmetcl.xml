@@ -1,6 +1,6 @@
 <!-- chapter commands -->
 
-<chapter>
+<chapter id="vmetclintro">
     <title>Tcl access to the VME via the SBS interface</title>
     <para>
         The NSCL uses the Tcl/Tk scripting language to provide user interfaces
