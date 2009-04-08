@@ -315,8 +315,8 @@ proc ReadougGUIPanel::setHost host {
     append w $base . host
     $w configure -text $host
 
-    append status $base . monitor
-    $status configure -host $host
+#    append status $base . monitor
+#    $status configure -host $host
 }
 #  ReadougGUIPanel::setPath    $path
 #     Set the readout path for the gui.

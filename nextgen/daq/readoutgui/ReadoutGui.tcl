@@ -34,7 +34,6 @@ package require ReadoutState
 package require DAQParameters
 package require Experiment
 package require bells
-package require spdaqwidgets
 package require RunTime
 package require InstallRoot
 

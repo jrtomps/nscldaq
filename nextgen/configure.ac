@@ -430,6 +430,7 @@ AC_CONFIG_FILES([Makefile
 		 daq/Makefile
 		 daq/format/Makefile
 		 daq/readoutgui/Makefile
+		 daq/readoutgui/InstallRoot.tcl
 		 usb/Makefile
 		 usb/threadcom/Makefile
 		 usb/tclcommon/Makefile

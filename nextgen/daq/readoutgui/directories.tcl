@@ -96,11 +96,11 @@ proc ExpFileSystem::WhereisRun {num} {
 #  GenRunFileBase
 #     Returns the basename of a run file.
 #     A run filename has the form:
-#         [format run%d_%d-%d.evt  run segment buffersize]
+#         [format run%d-%d.evt  run segment]
 #     We're going to return the run%d part of this.
 #
 proc ExpFileSystem::GenRunFileBase {num} {
-    return [format run%d $num]
+    return [format run-%04d $num]
 }
 # GenRunFile
 #    Generate the full name of a run file.
@@ -114,16 +114,11 @@ proc ExpFileSystem::GenRunFileBase {num} {
 proc ExpFileSystem::GenRunFile {num {seq 0}} {
 
     set fname [GenRunFileBase $num]
-    set buffer [DAQParameters::getBufferSize]
-    set buffer [expr {$buffer/2}]
 
-    #  The form of the name depends on the sequence:
 
-    if {$seq} {
-        set fname [format %s_%d-%d.evt $fname $seq $buffer]
-    } else {
-        set fname [format %s-%d.evt $fname $buffer]
-    }
+
+    set fname [format %s-%02d.evt $fname  $seq]
+
     return $fname
 }
 # WhereisRunFile

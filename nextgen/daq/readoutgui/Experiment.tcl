@@ -59,27 +59,16 @@ proc Experiment::runcompare {r1 r2} {
 # Parameters:
 #   system   - The ip address or dns of the system;.
 proc Experiment::spectrodaqURL {system} {
-    set sfd [open /etc/services r]
-    set services [read $sfd]
-    close $sfd
-    set services [split $services "\n"]
-    foreach service $services {
-        set name      [lindex $service 0]
-        set portproto [split [lindex $service 1] /]
-        set port      [lindex $portproto 0]
-        set proto     [lindex $portproto 1]
-        append name : proto
-        lappend servicelist $name $port
-    }
-    array set servicearray $servicelist
+    global tcl_platform
+    #
+    # URl is of the form:
+    #  tcp://host/username
+    #
 
-    if {[array names servicearray sdaq-link:tcp] == ""} {
-        set port 2602
-    } else {
-        set port $servicearray(sdaq-link)
-    }
+    set user $tcl_platform(user)
 
-    append url tcp:// $system : $port /
+    set url "tcp://$system/$user"
+
     return $url
 }
 # Experiment::waitFile name ?granularity ?timeout??
@@ -192,6 +181,7 @@ proc Experiment::finalizeEventData run {
 
     set segment 0
     set name [file join $current [ExpFileSystem::GenRunFile $run $segment]]
+    puts "Looking at $name"
     while {[file exists $name]} {
         file delete -force $name
         incr segment
@@ -199,6 +189,7 @@ proc Experiment::finalizeEventData run {
     }
     # Now we can create the target dir and tar the contents of experiment current to it.
 
+    puts "Creating $targetdir"
     file mkdir $targetdir
     catch {
         exec sh << \
@@ -214,13 +205,17 @@ proc Experiment::finalizeEventData run {
 
     set segment 0
     while {1} {
+	puts "Segment $segment"
         set file [ExpFileSystem::GenRunFile $run $segment]
         set srcfile [file join $eventdir  $file]
+	puts "Ready to copy $srcfile"
         if {![file exists $srcfile]} {
             break
         }
         set dstfile [file join $targetdir $file]
+	puts "..to $dstfile"
         set linkfile [file join $complete $file]
+	puts "..with a link $linkfile"
         file rename -force $srcfile $dstfile
 	file attributes $dstfile -permissions 0440;   # Make the saved file read-only
         catch {exec ln -s $dstfile $linkfile};#   On overwrite links may exist.
@@ -262,21 +257,20 @@ proc Experiment::RunBeginning {} {
 	set user         $::tcl_platform(user)
 	set sourceHost   [DAQParameters::getSourceHost]
 	set SourceURL    [Experiment::spectrodaqURL $sourceHost]
-	set ftpLoghost   [DAQParameters::getFtpHost]
-	set ftpLogpasswd [DAQParameters::getPassword]
+
+
+	set EventlogPid [exec $Logrecorder --oneshot --path=$Stagedir --source=$SourceURL &]
 	
-	cd $Stagedir
-	
-	
-	set EventlogPid [exec $Logrecorder -one -source $SourceURL &]
 	
 	Experiment::makeEventLink $nrun
+
+	set startFile [file join $Stagedir .started]
 	
-	Experiment::waitFile .ready 1000 $fileWaitTimeout
-	if {![file exists .ready]} {
-	    Error "The event logger is not yet ready after a very long time"
+	Experiment::waitFile $startFile 1000 $fileWaitTimeout
+	if {![file exists $startFile]} {
+	    error "The event logger is not yet ready after a very long time"
 	}
-	file delete -force .ready
+	file delete -force $startFile
     } else {
 	set EventlogPid 0;		# So emergency end won't make abnormal end file.
     }
@@ -305,13 +299,16 @@ proc Experiment::RunEnded {} {
     if {[ReadoutControl::isTapeOn]} {
         #
         # Wait for eventlog to finish.
-        Experiment::waitFile .done 1000 $fileWaitTimeout
-        if {![file exists .done]} {
+
+	set donefile [file join [ExpFileSystem::WhereisCurrentEventData] .exited]
+
+        Experiment::waitFile $donefile 1000 $fileWaitTimeout
+        if {![file exists $donefile]} {
             Diagnostics::Warning "eventlog may not have finished normally continuing with post run actions"
         }
         #  TODO:   Perhaps we should force event log to end if .done is not present yet?
 
-        file delete -force  .done
+        file delete -force  $donefile
 	set EventlogPid     0
 
 
