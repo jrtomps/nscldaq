@@ -1,0 +1,634 @@
+<!-- chapter libraries -->
+
+<chapter id='intro.wienercamac'>
+    <title>The Wienercamac Tcl package </title>
+    <para>
+        This chapter describes the <literal>wienercamac</literal> Tcl
+        loadable package.  <literal>wienercamac</literal> allows Tcl scripts
+        to perform CAMAC operations on CAMAC crates that are connected to A VME
+        crate via a Wiener VC32/CC32 board set. This board set is a single crate
+        CAMAC controller solution.  In order to provide compatibility with
+        the <literal>camac</literal> package, each crate is considered to be
+        a CAMAC Branch that has a single crate installed.
+        </para>
+    <para>
+        The remainder of this chapter describes:
+        <itemizedlist>
+            <listitem>
+                <para>
+                    How to incorporate this package in your scripts.
+                    </para>
+                </listitem>
+            <listitem>
+                <para>
+                    How to use the package itself, with some notes about how to
+                    physically set up the VC32 module and how to manage branch and crate
+                    addressing.
+                    </para>
+                </listitem>
+            </itemizedlist>
+        </para>
+    <para>
+        Reference material is available at
+        <link linkend="manpage.wienercamac">wienercamac(3tcl)</link>.
+        </para>
+    <section>
+        <title>Incorporating wienercamac in your scripts.</title>
+        <para>
+            Incorporating <literal>wienercamac</literal> in your scripts is a
+            two step process:
+            <orderedlist>
+                <listitem>
+                    <para>
+                        The NSCLDAQ Tcl package repository must be added to the
+                        Tcl interpreter's package search path.
+                        </para>
+                    </listitem>
+                <listitem>
+                    <para>
+                        The wienercamac package must be loaded into the interpreter
+                        via an explicit <command>package require</command> command.
+                        </para>
+                    </listitem>
+                </orderedlist>
+            </para>
+        <para>
+            There are two ways to manipulate the Tcl interpreter package load
+            search path.  The environment variable <varname>TCLLIBPATH</varname>
+            is a space separated set of additionall directories to search for packages.
+            The Tcl global variable <varname>auto_path</varname> is one of the
+            several Tcl variables that control the package search path.
+            </para>
+        <para>
+            From now on we will assume that the environment variable
+            <varname>DAQROOT</varname> has been defined to point to the
+            top level of the NSCLDAQ installation directory tree.
+            A bash shell script fragment that shows how to append the
+            NSCLDAQ Tcl package repository to the <varname>TCLLIBPATH</varname>
+            environment variable is shown below:
+            </para>
+        <informalexample>
+            <programlisting>
+export TCLLIBPATH="$TCLLIBPATH $DAQROOT/TclLibs"
+                </programlisting>
+            </informalexample>
+            <para>
+                Similarly the code to add the NSCLDAQ Tcl package repository to
+                to the <varname>auto_path</varname> interpreter global is shown
+                below:
+                </para>
+            <informalexample>
+                <programlisting>
+global env
+global auto_path
+lappend auto_path [file join $env(DAQROOT) TclLibs]
+
+                    </programlisting>
+                </informalexample>
+            <para>
+                Once the NSCLDAQ Tcl package repository has been added to the
+                repository search path, an explicit <command>package require</command>
+                as shown below must be issued prior to using the package commands:
+                </para>
+            <informalexample>
+                <programlisting>
+package require wienercamac
+                    </programlisting>
+                </informalexample>
+            <para>
+                The commands defined by <literal>wienercamac</literal> are
+                defined in the <literal>::wienercamac::</literal> namespace.
+                The examples in the next section will use fully qualified command
+                names (e.g. <command>::wienercamac::cdreg 1 1</command>).  It is
+                also possible to import the commands from that namespace
+                using the <command>namespace import</command> command.
+                If you are also using the <literal>camac</literal> package this is
+                not advisable as both packages share many of the same command names.
+                </para>
+        </section>
+    <section>
+        <title>Using wienercamac</title>
+        <para>
+            The Wiener CC32 module addressing is controlled by jumpers on that
+            module's circuit board.  We have chosen and addressing standard that
+            allows for up to 8 Wiener VC32/CC32 modules in a VME crate.  Each of these
+            modules is a CAMAC branch that has a single crate installed, crate 0.
+            </para>
+        <para>
+            The jumpers JA13 through JA23 define the base address for the module.
+            Eachj jumper represents an address bit.  If the jumper is in, the
+            corresponding address bit is 0. If out, 1.  The table below
+            shows the address conventions we use for these modules:
+            </para>
+        <table frame='all'>
+                <title>Wiener CC32 addressing convention</title>
+                <tgroup cols='13'>
+                    <thead>
+                        <row>
+                            <entry>Branch</entry>
+                            <entry>ja23</entry>
+                            <entry>ja22</entry>
+                            <entry>ja21</entry>
+                            <entry>ja20</entry>
+                            <entry>ja19</entry>
+                            <entry>ja18</entry>
+                            <entry>ja17</entry>
+                            <entry>ja16</entry>
+                            <entry>ja15</entry>
+                            <entry>ja14</entry>
+                            <entry>ja13</entry>
+                            <entry>base addreess</entry>
+                            </row>
+                        </thead>
+                    <tbody>
+                        <row>
+                            <entry>0</entry>
+                            <entry>out</entry>
+                            <entry>in</entry>
+                            <entry>in</entry>
+                            <entry>in</entry>
+                            <entry>in</entry>
+                            <entry>in</entry>
+                            <entry>in</entry>
+                            <entry>in</entry>
+                            <entry>in</entry>
+                            <entry>in</entry>
+                            <entry>in</entry>
+                            <entry>0x800000</entry>
+                            </row>
+                        <row>
+                            <entry>1</entry>
+                            <entry>out</entry>
+                            <entry>in</entry>
+                            <entry>in</entry>
+                            <entry>in</entry>
+                            <entry>in</entry>
+                            <entry>in</entry>
+                            <entry>in</entry>
+
+                            <entry>out</entry>
+                            <entry>in</entry>
+                            <entry>in</entry>
+                            <entry>in</entry>
+                            <entry>0x810000</entry>
+                            </row>
+                        <row>
+                            <entry>2</entry>
+                            <entry>out</entry>
+                            <entry>in</entry>
+                            <entry>in</entry>
+                            <entry>in</entry>
+                            <entry>in</entry>
+                            <entry>in</entry>
+                            <entry>out</entry>
+                            <entry>in</entry>
+                            <entry>in</entry>
+                            <entry>in</entry>
+                            <entry>in</entry>
+                            <entry>0x820000</entry>
+                            </row>
+                        <row>
+                            <entry>3</entry>
+                            <entry>out</entry>
+                            <entry>in</entry>
+                            <entry>in</entry>
+                            <entry>in</entry>
+                            <entry>in</entry>
+                            <entry>in</entry>
+                            <entry>out</entry>
+                            <entry>out</entry>
+                            <entry>in</entry>
+                            <entry>in</entry>
+                            <entry>in</entry>
+                            <entry>0x830000</entry>
+                            </row>
+                        <row>
+                            <entry>4</entry>
+                            <entry>out</entry>
+                            <entry>in</entry>
+                            <entry>in</entry>
+                            <entry>in</entry>
+                            <entry>in</entry>
+                            <entry>in</entry>
+                            <entry>out</entry>
+                            <entry>in</entry>
+                            <entry>in</entry>
+                            <entry>in</entry>
+                            <entry>in</entry>
+                            <entry>0x840000</entry>
+                            </row>
+                        <row>
+                            <entry>5</entry>
+                            <entry>out</entry>
+                            <entry>in</entry>
+                            <entry>in</entry>
+                            <entry>in</entry>
+                            <entry>in</entry>
+                            <entry>in</entry>
+                            <entry>out</entry>
+                            <entry>in</entry>
+                            <entry>out</entry>
+                            <entry>in</entry>
+                            <entry>in</entry>
+                            <entry>0x850000</entry>
+                            </row>
+                        <row>
+                            <entry>6</entry>
+                            <entry>out</entry>
+                            <entry>in</entry>
+                            <entry>in</entry>
+                            <entry>in</entry>
+                            <entry>in</entry>
+                            <entry>in</entry>
+                            <entry>out</entry>
+                            <entry>out</entry>
+                            <entry>in</entry>
+                            <entry>in</entry>
+                            <entry>in</entry>
+                            <entry>0x860000</entry>
+                            </row>
+                        <row>
+                            <entry>7</entry>
+                            <entry>out</entry>
+                            <entry>in</entry>
+                            <entry>in</entry>
+                            <entry>in</entry>
+                            <entry>in</entry>
+                            <entry>in</entry>
+                            <entry>out</entry>
+                            <entry>out</entry>
+                            <entry>out</entry>
+                            <entry>in</entry>
+                            <entry>in</entry>
+                            <entry>0x870000</entry>
+                            </row>
+                        </tbody>
+                    </tgroup>
+            </table>
+        <para>
+            The commands in the package are loosely based on a subset of the
+            ESONE CAMAC function standard (IEEE 785).  In that standard, the unit
+            of address is a single CAMAC module.  The <command>cdreg</command>
+            produces a handle to a module which is then used in subsequent
+            commands that operate on that module.  Extensions to the standard
+            include commands that allow you to get the graded lam register values,
+            sense and control the inhibit and determine if the crate is online.
+            </para>
+        <para>
+            While the ESONE block transfer functions are supported, connecting
+            a LAM to a script is not.  The example below enables the LAM on a module
+            in Slot 15 of the first controler in VME crate 0.
+            </para>
+        <example>
+            <title>Enabling a module Lam with <literal>wienercamac</literal></title>
+            <programlisting>
+
+# Load the package.
+
+lappend auto_path [file join $env(DAQROOT) TclLibs]
+package require wienercamac
+
+#  Initialize the crate and uninhibit it
+
+wienercamac::C 0 0
+wienercamac::Z 0 0
+wienercamac::Inhibit 0 0 false
+
+# Make the module handle:
+
+set module [wienercamac::cdreg 0 0 15]
+
+# F26 at any subaddress normally enables LAM:
+
+wienercamac::cssa $module 26 0
+                </programlisting>
+            </example>
+        
+        </section>
+    </chapter>
+
+
+<!-- /chapter -->
+
+
+<!-- manpage 3tcl -->
+
+<refentry id="manpage.wienercamac">
+  <refmeta>
+     <refentrytitle>wienercamac</refentrytitle>
+     <manvolnum>3tcl</manvolnum>
+  </refmeta>
+  <refnamediv>
+     <refname>wienercamac</refname>
+     <refpurpose>Tcl Script CAMAC access via VC32/CC32 boardset.</refpurpose>
+  </refnamediv>
+  
+  <refsynopsisdiv>
+    <cmdsynopsis>
+    <command>
+package require wienercamac
+    </command>
+    </cmdsynopsis>
+
+    <cmdsynopsis>
+        <command>
+wienercamac::cdreg  b c n ?vme?
+</command>
+    </cmdsynopsis>
+    <cmdsynopsis>
+    <command>
+wienercamac::cfsa   reg f a ?d?       
+    </command>
+</cmdsynopsis>
+<cmdsynopsis>
+    <command>
+wienercamac::cssa   reg f a ?d?       
+    </command>
+</cmdsynopsis>
+    <cmdsynopsis>
+    <command>
+wienercamac::qstop  reg f a ?maxn?    
+    </command>
+</cmdsynopsis>
+    <cmdsynopsis>
+    <command>
+wienercamac::qscan  reg f a ?maxn?    
+    </command>
+</cmdsynopsis>
+<cmdsynopsis>
+    <command>
+wienercamac::cblock reg f a num      
+    </command>
+</cmdsynopsis>
+<cmdsynopsis>
+    <command>
+wienercamac::isOnline b c ?vme? 
+    </command>
+</cmdsynopsis>
+<cmdsynopsis>
+    <command>
+wienercamac::getGl    b  ?vme?   
+    </command>
+</cmdsynopsis>
+<cmdsynopsis>
+    <command>
+wienercamac::C        b c ?vme?  
+    </command>
+</cmdsynopsis>
+<cmdsynopsis>
+    <command>
+wienercamac::Z        b c ?vme?  
+    </command>
+</cmdsynopsis>
+<cmdsynopsis>
+    <command>
+wienercamac::isInhibited b c   ?vme?   
+    </command>
+</cmdsynopsis>
+<cmdsynopsis>
+    <command>
+wienercamac::Inhibit  b c  bool ?vme?    
+    </command>
+</cmdsynopsis>
+<cmdsynopsis>
+    <command>
+wienercamac::ReadLams b c   ?vme?        
+    </command>
+</cmdsynopsis>
+  </refsynopsisdiv>
+  <refsect1>
+     <title>DESCRIPTION</title>
+     <para>
+    Summary of the command
+     </para>
+  </refsect1>
+  <refsect1>
+    <title>
+    PACKAGE COMMANDS
+    </title>
+      <para>
+        The commands below share many of the same parameters:
+        <variablelist>
+            <varlistentry>
+                <term><replaceable>b</replaceable></term>
+                <listitem>
+                    <para>
+                        Is a branch number.  For the CES CBD 8210 this is the
+                        number set in the front panel branch number switch.
+                        </para>
+                    </listitem>
+                </varlistentry>
+            <varlistentry>
+                <term><replaceable>c</replaceable></term>
+                <listitem>
+                    <para>
+                        A CAMAC crate number on some branch.  This is set in the
+                        front panel rotary switch of the A1 or A2 crate controller
+                        installed in the right-most pair of slots of the crate.
+                        </para>
+                    </listitem>
+                </varlistentry>
+            <varlistentry>
+                <term><replaceable>n</replaceable></term>
+                <listitem>
+                    <para>
+                        The slot number of a module in a CAMAC crate.  Slots in
+                        a CAMAC crate are numbered from 1 starting at the left.
+                        </para>
+                    </listitem>
+                </varlistentry>
+            <varlistentry>
+                <term><replaceable>a</replaceable></term>
+                <listitem>
+                    <para>
+                        The subaddress within a module.   A CAMAC modules is
+                        defined to have 16 subaddresses numbered 0-15.
+                        Each module uses this set of subaddresses differently.\
+                        </para>
+                    </listitem>
+                </varlistentry>
+            <varlistentry>
+                <term><replaceable>vmecrate</replaceable></term>
+                <listitem>
+                    <para>
+                        A VME crate number in which at least one
+                        CES CBD 8210 module has been installed.
+                        </para>
+                    </listitem>
+                </varlistentry>
+            <varlistentry>
+                <term><replaceable>reg</replaceable></term>
+                <listitem>
+                    <para>
+                        A CAMAC module handle.  These are produced using the
+                        <command>camac::cdreg</command> command below.  This is
+                        used to select the CAMAC module operated on by several
+                        of the commands.
+                        </para>
+                    </listitem>
+                </varlistentry>
+            </variablelist>
+        </para>
+    <cmdsynopsis>
+    <command>
+package require wienercamac
+    </command>
+    </cmdsynopsis>
+<para>
+    Loads the commands in the <literal>wienercamac</literal> package
+    into the interpreter provided that the NSCLDAQ Tcl package repository
+    is in the interpreter search path.  See
+    <link linkend='intro.wienercamac'>The wienercamac Tcl Package</link> chapter
+    for information about how to add the NSCLDAQ Tcl package repository to
+    the interpreter search path.
+    </para>
+    <cmdsynopsis>
+        <command>
+wienercamac::cdreg  b c n ?vme?        
+</command>
+    </cmdsynopsis>
+<para>
+    Creates a handle to a module in the CAMAC system.  If the optional
+    <parameter>vme</parameter> parameter is not supplied, VME crate number
+    0 is used.  The command returns a handle which is the <parameter>reg</parameter>
+    parameter in subsequent commands that operate on a module.
+    </para>
+    <cmdsynopsis>
+    <command>
+wienercamac::cfsa   reg f a ?d?       
+    </command>
+</cmdsynopsis>
+    <para>
+        Performs a CAMAC operation on the module <parameter>reg</parameter>.
+        <parameter>reg</parameter> is a module handle created by a call to
+        <command>cdreg</command>.  If the function transfers data the least
+        significant 24 bits of data are transferred.  If the function is a write
+        operation, the <parameter>d</parameter> parameter is required and is the
+        data to write.
+        </para>
+    <para>
+        The return value is a 3 element Tcl list.  The second element of the list
+        is the Q response.  The third element of the list is the X response. The
+        meaning of the first element of the list depends on the <parameter>f</parameter>
+        parameter.  If <parameter>f</parameter> is the read operation, this
+        will be the value read from the module.  If <parameter>f</parameter> is
+        a write operation, this will be the <parameter>d</parameter> parameter.
+        If <parameter>f</parameter> is a control operation (non data transfer),
+        this will be zero.
+        </para>
+<cmdsynopsis>
+    <command>
+wienercamac::cssa   reg f a ?d?       - perform a 16 bit camac operation
+    </command>
+</cmdsynopsis>
+    <para>
+        Identical to <command>wienercamac::cfsa</command> however all data transfers
+        only transfer the least significant 16 bits.  Since the data path to the
+        controller is only 16 bits, this is significantly faster than 24 bit transfers
+        when the top bits are not required.
+        </para>
+    <cmdsynopsis>
+    <command>
+wienercamac::qstop  reg f a ?maxn?    
+    </command>
+</cmdsynopsis>
+    <para>
+        Performs the same read operation until the operation no longer returns
+        a Q.  If the optional <parameter>maxn</parameter> parameter is present
+        this also sets an upper limit in the number of transferrs.  The return
+        value from this is a list of the data read from the module.  Only read functions
+        are suportedby this and all block functions.
+        </para>
+    <cmdsynopsis>
+    <command>
+wienercamac::qscan  reg f a ?maxn?    
+    </command>
+</cmdsynopsis>
+    <para>
+        Performs a Qscan block transfer.  After each read operation,
+        the subaddress is incremented.  Once a module no longer responds
+        with a Q, the subaddress is reset to zero and the slot is incremented.
+        This continues until no X response is returned.  If the optional
+        parameter <parameter>maxn</parameter> is provided, it limits the
+        maximum transfer count to <parameter>maxn</parameter>.
+        </para>
+    <para>
+        The return value is a list of data that was returned from the module.
+        These are textual ascii values, not a binary block.
+        </para>
+<cmdsynopsis>
+    <command>
+wienercamac::cblock reg f a num       
+    </command>
+</cmdsynopsis>
+<para>
+    Peforms <parameter>num</parameter> read operations on the module
+    specified by <parameter>reg</parameter>.  Data read are returned as the
+    module's result in a Tcl list.
+    </para>
+<cmdsynopsis>
+    <command>
+wienercamac::isOnline b c ?vme?       
+    </command>
+</cmdsynopsis>
+<para>
+    Returns true if the specified VME create is online (attached to the
+    controller and powered up).
+    </para>  
+<cmdsynopsis>
+    <command>
+wienercamac::getGl    b  ?vme?        
+    </command>
+</cmdsynopsis>
+<para>
+    Reads the graded lam register for the controller.  
+    </para>
+<cmdsynopsis>
+    <command>
+wienercamac::C        b c ?vme?       
+    </command>
+</cmdsynopsis>
+<para>
+    Peforms a C cycle on the selected crate
+    </para>
+<cmdsynopsis>
+    <command>
+wienercamac::Z        b c ?vme?       
+    </command>
+</cmdsynopsis>
+<para>
+    Performs a Z cycle on the selected crate.
+    </para>
+<cmdsynopsis>
+    <command>
+wienercamac::isInhibited b c   ?vme?     
+    </command>
+</cmdsynopsis>
+<para>
+    Returns non zero if te specified crate is inhibited
+    </para>
+<cmdsynopsis>
+    <command>
+wienercamac::Inhibit  b c  bool ?vme?    
+    </command>
+</cmdsynopsis>
+<para>
+    Sets or clears the inhibits for the selected crate.
+    If <parameter>bool</parameter> is on zero the crate is
+    inhibited otherwise it's uninhibited.
+    </para>
+<cmdsynopsis>
+    <command>
+wienercamac::ReadLams b c   ?vme?  
+    </command>
+</cmdsynopsis>
+<para>
+    Reads the crate LAM register.
+    </para>
+  </refsect1>
+
+</refentry>
+
+
+<!-- /manpage -->
+
