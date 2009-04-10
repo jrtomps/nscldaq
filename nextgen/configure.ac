@@ -452,6 +452,8 @@ AC_CONFIG_FILES([Makefile
 		 sbs/puretcl/Makefile
 		 sbs/vmemodules/Makefile
 		 sbs/readout/Makefile
+		 sbs/readout/UserMakefile
+		 sbs/readout/SBSRdoMakeIncludes
 		 docbuild/Makefile
 		 docconfig/Makefile])
 

@@ -1,0 +1,15 @@
+#
+#  Establish the compilers
+#
+
+CC=@CC@
+CXX=@CXX@
+CXXLD=@CXX@
+CCLD=@CC@
+
+CXXFLAGS=-g -I. -I@prefix@/include -I@prefix@/include/sbsreadout \
+	@TCL_FLAGS@ @THREADCXX_FLAGS@
+CCFLAGS=$(CXXFLAGS)
+
+LDFLAGS=-L@prefix@/lib -lSBSProductionReadout -lException -ldaqthreads -ltclPlus  \
+		@TCL_LDFLAGS@ @THREADLD_FLAGS@ -Wl,"-rpath=@prefix@/lib"

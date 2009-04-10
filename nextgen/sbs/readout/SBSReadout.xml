@@ -1,0 +1,32 @@
+<!-- chapter frameworks -->
+<chapter>
+    <title>The SBS Readout framework</title>
+    <para>
+        This chapter describes a framework for reading out events via the SBS
+        PCI/VME bus bridge interface.  This chapter describes
+        <itemizedlist>
+            <listitem>
+                <para>Basic concepts that underlie the framework</para>
+                </listitem>
+            <listitem>
+                <para>How to obtain a skeleton application which you can expand
+                    into a real application, and build it.</para>
+                </listitem>
+            <listitem>
+                <para>
+                    What parts of the skeleton application you will most likely
+                    have to modify to produce a real application.
+                    </para>
+                </listitem>
+            </itemizedlist>
+        </para>
+    <para>
+        Complete reference information is available in the 3sbsreadout part of
+        this manual.
+        </para>
+    
+<!-- /chapter -->
+
+<!-- manpage 3sbsReadout -->
+
+<!-- /manpage -->
