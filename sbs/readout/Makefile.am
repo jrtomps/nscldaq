@@ -75,7 +75,7 @@ libSBSProductionReadout_la_LIBADD	=	@top_srcdir@/sbs/vmemodules/libSBSDeviceSupp
 libSBSProductionReadout_la_LDFLAGS	=	-version-info	1:0:0	\
 						$(TCL_LDFLAGS) $(THREADLD_FLAGS)
 
-EXTRA_DIST	=	options.ggo Skeleton.cpp
+EXTRA_DIST	=	options.ggo Skeleton.cpp UserMakefile.in SBSRdoMakeIncludes.in
 
 noinst_PROGRAMS	= Readout tests triggertests
 
@@ -89,6 +89,15 @@ Readout_LDADD	= libSBSProductionReadout.la	\
 
 CLEANFILES = options.c options.h
 
+install-exec-local:
+	$(mkinstalldirs) @prefix@/skeletons/sbs
+	$(mkinstalldirs) @prefix@/etc
+	$(mkinstalldirs) @prefix@/include/sbsreadout
+	$(INSTALL_SCRIPT) Skeleton.cpp @prefix@/skeletons/sbs
+	$(INSTALL_SCRIPT) Skeleton.h @prefix@/skeletons/sbs
+	$(INSTALL_SCRIPT) UserMakefile @prefix@/skeletons/sbs/Makefile
+	$(INSTALL_SCRIPT) SBSRdoMakeIncludes @prefix@/etc
+	$(INSTALL_SCRIPT) *.h @prefix@/include/sbsreadout
 
 
 options.c:	options.ggo
