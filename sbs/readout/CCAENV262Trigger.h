@@ -59,13 +59,16 @@ private:
   // Canonicals:
 public:
   CCAENV262Trigger(uint32_t base, unsigned crate = 0);
+  CCAENV262Trigger(CCaenIO& module);
+
   CCAENV262Trigger(const CCAENV262Trigger& rhs);
-  CCAENV262Trigger& operator=(const CCAENV262Trigger& rhs);
+
 
   // comparisons don't make sense really.
 private:
-  int operator==(const CCAENV262Trigger& rhs);
-  int operator!=(const CCAENV262Trigger& rhs);
+  CCAENV262Trigger& operator=(const CCAENV262Trigger& rhs);
+  int operator==(const CCAENV262Trigger& rhs) const;
+  int operator!=(const CCAENV262Trigger& rhs) const;
 
   // operations on the trigger:
 
