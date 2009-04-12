@@ -24,6 +24,545 @@
         Complete reference information is available in the 3sbsreadout part of
         this manual.
         </para>
+    <section>
+        <title>SBS Readout concepts</title>
+        <para>
+            The SBS readout is an application framework.  Application frameworks
+            are nice because they already supply the main flow of control.  Your
+            job as an application programmer is to fill in the experiment specific
+            pieces of the framework.
+            </para>
+        <para>
+            The disadvantage of an application framework is that it can be hard
+            to figure out how to get started without a good orientation.  This
+            section aims to be that orientation.  We will describe the flow
+            of the application and the concepts you'll have to deal with.
+            </para>
+        <para>
+            Normally you will only need to be concerned with how the framework
+            operates when data taking is active.  When data taking is active,
+            An independent thread loops checking a pair of
+            <firstterm>triggers</firstterm>.  These
+            triggers are called the
+            <firstterm>event trigger</firstterm> and tthe
+            <firstterm>scaler triger</firstterm>.
+            Each trigger has associated with it a set of code to execute.
+            This code is organized hierarchically as <firstterm>event segments</firstterm>
+            in the case of the event trigger and <firstterm>scaler banks</firstterm>
+            in the case of the scaler trigger.
+            </para>
+        <para>
+            Triggers and the code that responds to them must be registered with
+            the framework if it is to know about it.  The specific triggers
+            themselves must also be registered.
+            </para>
+        <para>
+            This section therefore will discuss the following objects:
+            <itemizedlist>
+                <listitem>
+                    <para>
+                        Event segments.
+                        </para>
+                    </listitem>
+                <listitem>
+                    <para>
+                        Scaler banks
+                        </para>
+                    </listitem>
+                <listitem>
+                    <para>
+                        Triggers
+                        </para>
+                    </listitem>
+                <listitem>
+                    <para>
+                        Busys
+                        </para>
+                    </listitem>
+                </itemizedlist>
+            </para>
+        <formalpara>
+            <title>Event Segments</title>
+            <para>
+                An event segment is a logical unit of data acquisitition. There
+                are two useful base classes:
+                <classname>CEventSegment</classname> provides a primitive segment.
+                You extend <classname>CEventSegment</classname> to build a class
+                that actually initializes, reads and clears some digitizer modules.
+                <classname>CCompoundEventSegment</classname> provides a container
+                for other event segments (including other
+                <classname>CCompoundEventSegment</classname> objects).
+                <classname>CCompoundEventSegment</classname> provides the
+                glue that allows you to build an experiment readout from logical
+                chunks.
+                </para>
+            </formalpara>
+        <para>
+            To use the <classname>CEventSegment</classname> class, you create
+            a derived class and implement the pure virtual methods of 
+            <classname>CEventSegment</classname>.  You can optionally override
+            the virtual methods supplied by <classname>CEvenSegment</classname>
+            (which are implemented to do nothing) if your electronics requires this.
+            </para>
+        <para>
+            The virtual methods you can implement are:
+            </para>
+        <variablelist>
+            <varlistentry>
+                <term><type>void</type> <methodname>initialize</methodname>()</term>
+                <listitem>
+                    <para>
+                        This method is called once as data taking transitions to
+                        the active state (resume or begin).  It is expected to perform
+                        any one-time initialization of the hardware managed by this
+                        event segment.  This includes returning the module to a known
+                        state, reading setup files and applying them to the module,
+                        enabling data taking and so on.
+                        </para>
+                    </listitem>
+                </varlistentry>
+            <varlistentry>
+                <term><type>void</type> <methodname>clear</methodname>()</term>
+                <listitem>
+                    <para>
+                        Clears any pending data from the module.  This is called
+                        after <methodname>initialize</methodname> during startup.
+                        It is also called after each event has been read.
+                        You should implement this if the hardware this segment is reading
+                        requires any post readout attention to be made ready for
+                        the next event.
+                        </para>
+                    </listitem>
+                </varlistentry>
+            <varlistentry>
+                <term><type>void</type> <methodname>disable</methodname>() </term>
+                <listitem>
+                    <para>
+                        Called as data taking is being transitioned to an inactive
+                        state (paused or ended).  This is expected to do any
+                        work needed to disable dat taking in the modules managed
+                        by this segment.
+                        </para>
+                    </listitem>
+                </varlistentry>
+            <varlistentry>
+                <term><type>size_t</type> <methodname>read</methodname>(
+                <type>void*</type> <parameter>pBuffer</parameter>,
+                <type>size_t</type> <parameter>maxwords</parameter>)</term>
+                <listitem>
+                    <para>
+                        Called in response to a trigger. This function is expected
+                        to read the hardware directly into <parameter>pBuffer</parameter>
+                        which has <parameter>maxwords</parameter> of 16 bit words
+                        available.  On return, the actual number of 16 bit words read
+                        should be returned.
+                        </para>
+                    </listitem>
+                </varlistentry>
+            </variablelist>
+        <para>
+            For reference information on this class see:
+            <link linkend='manpage.ceventsegment'>CEventSegment(3sbsreadout)</link>.
+            Closely allied with this is the concept of packets.  Packets are supported
+            via the <link linkend='manpage.cdocumentedpacket'>CDocumentedPacket(3sbsreadout)</link>.
+            The <link linkend='manpage.ceventpacket'>CEventPacket(3sbsreadout)</link>
+            class extends  <classname>CEventSegment</classname> to provide a base
+            class for event segments that are wrapped in a packet.
+            </para>
+        <para>
+            Event segments are organized by placing them in <classname>CCompoundEventSegment</classname>
+            objects. <classname>CCompoundEventSegment</classname> is itself an
+            <classname>CEventSegment</classname> and therefore can contain other
+            compounds, which supports a hierarchical organization of the
+            experimental readout.
+            </para>
+        <para>
+            Ordinarily you will use a <classname>CCompoundEventSegment</classname>
+            by creating an instance of it and inserting other segments into it.
+            Here are the methods that allow you to manipulate the event segments
+            in a compound event segment.
+            </para>
+        <variablelist>
+            <varlistentry>
+                <term><type>void</type> <methodname>AddEventSegment</methodname>(
+                <type>CEventSegment*</type> <parameter>pSegment</parameter>
+                )</term>
+                <listitem>
+                    <para>
+                        Adds an event segment to the end of the ordered collection
+                        of event segments in the list.  Whenever a method like
+                        <methodname>initialize</methodname> or<methodname>read</methodname>
+                        is invoked on a compound event segment it will invoke the
+                        corresponding method in the elements it contains in
+                        the order in which they were added.
+                        </para>
+                    </listitem>
+                </varlistentry>
+            <varlistentry>
+                <term><type>void</type> <methodname>DeleteEventSegment</methodname>
+                (
+                    <type>CEventSegment*</type> <parameter>pSegment</parameter>
+                )</term>
+                <listitem>
+                    <para>
+                        If <parameter>pSegment</parameter> is contained by
+                        the compound, it will be removed from the container.
+                        If not this method does nothing.
+                        </para>
+                    </listitem>
+                </varlistentry>
+            <varlistentry>
+                <term><type>CCompoundEventSegment::EventSegmentIterator</type>
+                <methodname>begin</methodname>()</term>
+                <listitemm>
+                    <para>
+                        Returns an iterator which 'points' to the beginning of the
+                        collection.  Refer to the description below for information
+                        about iterators.  
+                        </para>
+                    </listitemm>
+                </varlistentry>
+            <varlistentry>
+                <term><type>CCompoundEventSegment::EventSegmentIterator</type>
+                <methodname>end</methodname>()</term>
+                <listitem>
+                    <para>
+                        Returns an iterator that points just off the end of
+                        the collection.  A typical usage pattern is shown below
+                        <informalexample>
+                            <programlisting>
+CCompoundEventSegment seg;
+...
+CCompoundEventSegment::EventIterator p = seg.begin();
+while (p != seg.end()) {
+   // Do something with the event segment pointed to by *p
+   
+   p++;
+}
+                                </programlisting>
+                            </informalexample>
+                        </para>
+                    </listitem>
+                </varlistentry>
+            </variablelist>
+        <para>
+            The <type>CCompoundEventSegment::EventSegmentIterator</type>
+            data typeis a pointer like object within the collection of
+            event segments.  Dereferencing it gives you a pointer to the
+            event segmet at the current location. Increment advances the
+            iterator to the next element of the collection.
+            </para>
+        <para>
+            For reference information about the <classname>CCompoundEventSegment</classname>
+            class see
+            <link linkend='manpage.ccompoundeventsegment'>CCompoundEventSegment(3sbsreadout)</link>.
+            </para>
+        <para>
+            The readout software has a single object from the
+            <link linkend='manpage.cexperiment'>CExperiment(3sbsreadout)</link>
+            class.   This object contains a top level <classname>CCompoundEventSegment</classname>.
+            It also provides a member function <methodname>AddEventSegment</methodname> that
+            allows you to add an event segment (or compound event segment) to
+            that top level segment.
+            </para>
+        <para>
+            See the section:
+            <link linkend='sbsrdo.sec.skeleton'>Modifying the skeleton application to meet your needs</link>
+            for information about where to add event segments.
+            </para>
+        <formalpara>
+            <title>Scaler banks</title>
+            <para>
+                The Readout program supports a second trigger that reads out scaler
+                banks.  Scaler banks usually read out a set of counters that
+                describe the rates in various detectors subsystems and other
+                items of interest.   Scaler banks operate in a manner analagous
+                to the event segments we have just described.
+                </para>
+            
+            </formalpara>
+        <para>
+            The <classname>CScaler</classname> class is intended to read a single
+            scaler module.  <classname>CScalerBank</classname> is a container for
+            other <classname>CScaler</classname> objects including other
+            <classname>CScalerBank</classname> objects.  This pair of classes
+            allows you to build a modular hierarchy of scalers to read in
+            response to the scaler trigger.  The scaler trigger is assumed
+            to come at a much lower rate than the event trigger and therefore can
+            tolerate alonger deadtime.
+            </para>
+        <para>
+            <classname>CScaler</classname> is an abstract base class.  You use
+            it by extending it by supplying code for the pure virtual methods,
+            and overriding the other virtual methods you need to override.
+            The virtual methods that are fair game to be overidden are:
+            </para>
+        <variablelist>
+            <varlistentry>
+                <term><type>void</type> <methodname>initialize</methodname>()</term>
+                <listitem>
+                    <para>
+                        Invoked once as the readout program begins taking data.
+                        This happens after a begin and after a resume.
+                        The code you supply here is supposed to prepare modules
+                        for data taking.  The base class implementation does nothing
+                        </para>
+                    </listitem>
+                </varlistentry>
+            <varlistentry>
+                <term><type>void</type> <methodname>clear</methodname>()</term>
+                <listitem>
+                    <para>
+                        Invoked once as data taking becomes active (begin or resume),
+                        and after the scaler is read.  If something must be done
+                        to clear  a scaler after it has been read write this method
+                        and put that code here.  Note that many scalers have a destructive
+                        read method and that should be used by preference as it ensures
+                        that scaler counts will not be lost (those accepted between
+                        read and clear).
+                        </para>
+                    </listitem>
+                </varlistentry>
+            <varlistentry>
+                <term><type>void</type> <methodname>disable</methodname>()</term>
+                <listitem>
+                    <para>
+                        Called as data taking is halted (due to an end or pause).
+                        If a module requires special handling to disable it
+                        implement this method.
+                        </para>
+                    </listitem>
+                </varlistentry>
+            <varlistentry>
+                <term><type>std::vector&lt;uint32_t&gt;</type>
+                <methodname>read</methodname>
+                </term>
+                <listitem>
+                    <para>
+                        Reads the scaler(s) managed by this class.  The
+                        scalers are returned as an STL vector of 32 bit
+                        unsigned values.
+                        </para>
+                    </listitem>
+                </varlistentry>
+            </variablelist>
+        <para>
+            The <classname>CScalerBank</classname> class is a parallel to the
+            <classname>CCompoundEventSegment</classname>.  It is a
+            <classname>CScaler</classname> that contains other
+            <classname>CScaler</classname> objects, including
+            <classname>CCompoundEventSegment</classname> objects.
+            </para>
+        <para>
+            The following methods allow you to manipulate the container
+            in a <classname>CScalerBank</classname> object:
+            </para>
+        <variablelist>
+            <varlistentry>
+                <term><type>void</type> <methodname>AddScalerModule</methodname>(
+                    <type>CScaler*</type> <parameter>pScaler</parameter>
+                )
+                </term>
+                <listitem>
+                    <para>
+                        Adds a scaler module to the end of the ordered container
+                        of scaler modules that is managed by this object. The
+                        virtual functions that make this module look like a
+                        <classname>CScaler</classname> iterate through the
+                        set of scaler objects in the container in the order in
+                        which they were added and invoke the corresponding
+                        function in those objects.
+                        </para>
+                    </listitem>
+                </varlistentry>
+            <varlistentry>
+                <term><type>void</type> <methodname>DeleteScaler</methodname>(
+                <type>CScaler*</type> <parameter>pScaler</parameter>
+                )
+                </term>
+                <listitem>
+                    <para>
+                        If the scaler pointed to by <parameter>pScaler</parameter>
+                        is in the container (shallow inclusion), it is removed
+                        from the container.  Note that the object is not destroyed.
+                        IF <parameter>pScaler</parameter> is not in the collection
+                        this function does nothing.
+                        </para>  
+                    </listitem>
+                </varlistentry>
+            <varlistentry>
+                <term><type>CScalerBank::ScalerIterator</type>
+                <methodname>begin</methodname>()</term>
+                <listitem>
+                    <para>
+                        Returns an iterator that 'points' to the first item in
+                        the container.  Dereferencing a
+                        <type>CScalerBank::ScalerIterator</type> will
+                        result in a <type>CScaler*</type>.  Incrementing the
+                        iterator will make it 'point' to the next object in the
+                        container.
+                        </para>
+                    </listitem>
+                </varlistentry>
+            <varlistentry>
+                <term><type>CScalerBank::ScalerIterator</type>
+                <methodname>end</methodname>()</term>
+                <listitem>
+                    <para>
+                        Returns an iterator that points just off the end of the
+                        collection.  A typical use for this is:
+                        <informalexample>
+                            <programlisting>
+CScalerBank bank;
+...
+CScalerBank::ScalerIterator p = bank.begin();
+while (p != bank.end()) {
+    CScaler* pScaler = *p;
+    
+    // do something with the scaler.
+    
+    p++;            // Next scaler.
+}
+                                </programlisting>
+                            </informalexample>
+                        </para>
+                    </listitem>
+                </varlistentry>
+            </variablelist>
+        <para>
+            For reference information see
+            <link linkend='manpage.cscalerbank'>CScalerBank</link>
+            </para>
+        <para>
+            As with event segments, the <classname>CExperiment</classname>
+            encapsulate as <classname>ScalerBank</classname> that is the
+            top level of the scaler readout hierarchy.
+            <classname>CExperiment</classname> exports methods that
+            allow you to add and remove scaler modules (including scaler banks)
+            to this top level scaler bank.  See
+            <link linkend='sbsrdo.sec.skeleton'>Modifying the skeleton application to meet your needs</link>
+            for iformation about how to use these.
+            </para>
+        <formalpara>
+            <title>Triggers</title>
+            <para>
+                We have seen how to build the list of stuff the readout program
+                will read.  <firstterm>Triggers</firstterm> determine when the
+                top level event segment and scaler bank are read.  In order to
+                make Readout to do anything with these you must supply appropriate
+                trigger objects and register them with the <classname>CExperiment</classname>
+                object.  This registration is described in
+                <link linkend='sbsrdo.sec.skeleton'>"Modifying the skeleton application to meet your needs"</link>
+                below.
+                </para>
+            </formalpara>
+        <para>
+            All triggers are subclasses of <classname>CEventTrigger</classname>.
+            Several of the commonly used triggers have been defined for you.  You
+            can also build custom triggers by extending <classname>CEventTrigger</classname>
+            or any of the prebuilt classes that are close to what you want.
+            </para>
+        <para>
+            You write a trigger class by overriding the virtual methods in
+            <classname>CEventTrigger</classname> supplying code that is
+            appropriate to your needs.  You must define and implement
+            <methodname>operator()</methodname> which is a pure virtual
+            method of <classname>CEventTrigger</classname>.
+            </para>
+        <para>
+            The virtual member functions in the <classname>CEventTrigger</classname>
+            class are:
+            </para>
+        <variablelist>
+            <varlistentry>
+                <term><type>void</type> <methodname>setup</methodname>()</term>
+                <listitem>
+                    <para>
+                        Called when data taking becomes active (begin or resume).
+                        This should perform any initialization of the trigger
+                        hardware or software.
+                        </para>
+                    </listitem>
+                </varlistentry>
+            <varlistentry>
+                <term><type>void</type> <methodname>teardown</methodname>()</term>
+                <listitem>
+                    <para>
+                        Called as data taking halts (end or pause).  Any code
+                        required to make the trigger hardware or software
+                        insenstive to additional triggers should be supplied here.
+                        </para>
+                    </listitem>
+                </varlistentry>
+            <varlistentry>
+                <term><type>bool</type> <methodname>operator()</methodname>()</term>
+                <listitem>
+                    <para>
+                        This is periodically called and should return
+                        <literal>true</literal> if the trigger actions should
+                        be peformed.
+                        </para>
+                    </listitem>
+                </varlistentry>
+            </variablelist>
+        <para>
+            The following trigger classes are in the Readout library and can be
+            used simplly by instantiatig and registering them.
+            </para>
+        <variablelist>
+            <varlistentry>
+                <term><classname>CCAENV262Trigger</classname></term>
+                <listitem>
+                    <para>
+                        Triggers using the CAEN V262 module.
+                        </para>
+                    </listitem>
+                </varlistentry>
+            <varlistentry>
+                <term><classname>CNullTrigger</classname></term>
+                <listitem>
+                    <para>
+                        Trigger that never fires.
+                        </para>
+                    </listitem>
+                </varlistentry>
+            <varlistentry>
+                <term><classname>CTimedTrigger</classname></term>
+                <listitem>
+                    <para>
+                        Trigger that fires periodically
+                        </para>
+                    </listitem>
+                </varlistentry>
+            <varlistentry>
+                <term><classname>CV977Trigger</classname></term>
+                <listitem>
+                    <para>
+                        Trigger that uses the CAEN V977 module.
+                        </para>
+                    </listitem>
+                </varlistentry>
+            </variablelist>
+        <formalpara>
+            <title>Busys</title>
+            <para>
+                
+                </para>
+            </formalpara>
+        
+        </section>
+    <section>
+        <title>Obtaining and building the skeleton application</title>
+        <para>
+            </para>
+        </section>
+    <section id='sbsrdo.sec.skeleton'>
+        <title>Modifying the skeleton application to meet your needs</title>
+        <para>
+            </para>
+        </section>
+    </chapter>
+    
     
 <!-- /chapter -->
 
