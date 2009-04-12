@@ -34,7 +34,8 @@ libSBSProductionReadout_la_SOURCES	=				\
 						CVarList.cpp	\
 						CDocumentedVars.cpp		\
 						CVariableBuffers.cpp		\
-						CBusy.cpp
+						CBusy.cpp			\
+						CCAENV262Busy.cpp
 
 
 noinst_HEADERS	=	CReadoutMain.h Skeleton.h CTCLAuthorizer.h	\
@@ -48,7 +49,7 @@ noinst_HEADERS	=	CReadoutMain.h Skeleton.h CTCLAuthorizer.h	\
 			CEndCommand.h CDocumentedPacket.h CDocumentedPacketManager.h \
 			CReadoutException.h CInvalidPacketStateException.h	\
 			CEventPacket.h CVarList.h CDocumentedVars.h CVariableBuffers.h \
-			CBusy.h
+			CBusy.h CCAENV262Busy.cpp
 
 
 

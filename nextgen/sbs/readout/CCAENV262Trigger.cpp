@@ -35,6 +35,15 @@ CCAENV262Trigger::CCAENV262Trigger(uint32_t base, unsigned crate) :
   m_TriggerModule(*(new CCaenIO(base, crate)))
 {
 }
+
+/*!
+  Construct from an existing IO Module
+  \param module - THe module to be used for trigger.
+*/
+CCAENV262Trigger::CCAENV262Trigger(CCaenIO& module) :
+  m_TriggerModule(module)
+{}
+
 /*!
   Copy construction works because CCaenIO has a copy constructor:
 */
@@ -42,15 +51,7 @@ CCAENV262Trigger::CCAENV262Trigger(const CCAENV262Trigger& rhs) :
   m_TriggerModule(*(new CCaenIO(rhs.m_TriggerModule)))
 {
 }
-/*!
-  Similarly assignment works because it works for I/O modules.
-*/
-CCAENV262Trigger&
-CCAENV262Trigger::operator=(const CCAENV262Trigger& rhs) 
-{
-  m_TriggerModule = rhs.m_TriggerModule;
-  return *this;
-}
+
 
 /*!
   Check for true on input 1.. if found,
