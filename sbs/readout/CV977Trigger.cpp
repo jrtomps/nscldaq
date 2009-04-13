@@ -92,23 +92,15 @@ CV977Trigger::setup()
 }
 /*!
    Check for the trigger.. If the trigger fires;
-   clear the bottom bit of the output register and return true,
+   return true,
    else return false.
 
-   \note - there is a race condition possible if other software uses
-           the output register of this module in a manner that is not
-	   synchronized to the trigger;  Specifically clearing a bit in the
-	   output register is a read followed by a write.. if the output register
-	   is modified between those operations, the modifications will be lsot.
+ 
 */
 bool
 CV977Trigger::operator()()
 {
   bool triggered = (m_pModule->singleHitRead() & 1) != 0;
-  if (triggered) {
-    UShort_t outputs = m_pModule->outputSet();  /// Race...
-    outputs         &= 0xfffe;                  /// Condition
-    m_pModule->outputSet(outputs);              /// Potential.
-  }
+
   return triggered;
 }
