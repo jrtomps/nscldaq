@@ -70,6 +70,7 @@ protected:
   virtual void          SetupReadout(CExperiment* pExperiment);
   virtual void          SetupScalers(CExperiment* pExperiment);
   virtual void          addCommands();
+  virtual void          addCommands(CTCLInterpreter* pInterp);
 
 protected:
   void startTclServer(std::string port);

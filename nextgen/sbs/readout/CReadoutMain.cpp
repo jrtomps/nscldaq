@@ -116,14 +116,14 @@ CReadoutMain::operator()()
 
     m_pExperiment = CreateExperiment(&parsedArgs);
     
+    // Add the application specific commands:
 
+    
 
     // Now initialize via the virtual functions.
 
+    addCommands();
 
-    // State and run variables require the state/runvar manager
-
-    CVariableBuffers* pVarbufs = new CVariableBuffers(*(getInterpreter()));
     SetupRunVariables(getInterpreter());
     SetupStateVariables(getInterpreter());
 
@@ -141,9 +141,6 @@ CReadoutMain::operator()()
 
     }
 
-    // Add the application specific commands:
-
-    addCommands();
 
     
     // Setup our eventloop.
@@ -241,9 +238,16 @@ void
 CReadoutMain::addCommands()
 {
   CTCLInterpreter& interp(*getInterpreter());
-  CRunControlPackage::getInstance(interp);
+  addCommands(&interp);		// Trampoline to user's commands.
 }
 
+
+void 
+CReadoutMain::addCommands(CTCLInterpreter* pInterp) {
+  CRunControlPackage::getInstance(*pInterp);
+  CVariableBuffers* pVarbufs = new CVariableBuffers(*pInterp);
+
+}
 
 //////////////////////////////////////////////////////////////////////////////////////////////
 
