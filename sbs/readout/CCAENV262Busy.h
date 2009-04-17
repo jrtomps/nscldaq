@@ -43,7 +43,7 @@ class CCAENV262Busy : public CBusy
 private:
   CCaenIO&   m_busy;
 public:
-  CCAENV262Busy(uint32_t base, unsigned crate);
+  CCAENV262Busy(uint32_t base, unsigned crate = 0);
   CCAENV262Busy(CCaenIO&  module);
   CCAENV262Busy(const CCAENV262Busy& rhs);
 

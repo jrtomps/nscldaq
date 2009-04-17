@@ -42,6 +42,7 @@ class CExperiment;
 **  The application class has several member functions you can override
 **  and implement to perform user specific initialization.
 **  These are:
+**    AddCommands         - Extend the Tcl interpreter with additional commands.
 **    SetupRunVariables   - Creates an initial set of run variables.
 **    SetupStateVariables - Creates an initial set of state variables.
 **    SetupReadout        - Sets up the software's trigger and its response to 
@@ -61,6 +62,7 @@ private:
 public:
   // Overrides for the base class members described above.
 
+  virtual void addCommands(CTCLInterpreter* pInterp);
   virtual void SetupRunVariables(CTCLInterpreter* pInterp);
   virtual void SetupStateVariables(CTCLInterpreter* pInterp);
   virtual void SetupReadout(CExperiment* pExperiment);

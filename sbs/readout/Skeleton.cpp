@@ -120,7 +120,7 @@ Skeleton::SetupScalers(CExperiment* pExperiment)
 {
   CReadoutMain::SetupScalers(pExperiment);	// Establishes the default scaler trigger.
 
-  // The default triggers is null. I want a timed trigger:
+  // Sample: Set up a timed trigger at 2 second intervals.
 
   timespec t;
   t.tv_sec  = 2;
@@ -132,7 +132,24 @@ Skeleton::SetupScalers(CExperiment* pExperiment)
 
 
 }
+/*!
+   Add new Tcl Commands here.  See the CTCLObjectProcessor class.  You can create new
+   command by deriving a subclass from this abstract base class.  The base class
+   will automatically register itself with the interpreter.  If you have some
+   procedural commands you registered with Tcl_CreateCommand or Tcl_CreateObjCommand, 
+   you can obtain the raw interpreter (Tcl_Interp*) of a CTCLInterpreter by calling
+   its getInterp() member.
 
+   \param pInterp - Pointer to the CTCLInterpreter object that encapsulates the
+                    Tcl_Interp* of our main interpreter.
+
+*/
+
+void
+Skeleton::addCommands(CTCLInterpreter* pInterp)
+{
+  CReadoutMain::addCommands(pInterp); // Add standard commands.
+}
 
 /*!
   Setup run variables:  A run variable is a Tcl variable whose value is periodically
@@ -155,6 +172,9 @@ Skeleton::SetupScalers(CExperiment* pExperiment)
 void
 Skeleton::SetupRunVariables(CTCLInterpreter* pInterp)
 {
+  // Base class will create the standard commands like begin,end,pause,resume
+  // runvar/statevar.
+
   CReadoutMain::SetupRunVariables(pInterp);
 
   // Add any run variable definitions below.
