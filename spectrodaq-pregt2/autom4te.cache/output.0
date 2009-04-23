@@ -1277,7 +1277,6 @@ Optional Features:
   --enable-FEATURE[=ARG]  include FEATURE [ARG=yes]
   --enable-gdb-debugging (disabled by default) Use full gdb debugging when compiling
   --enable-gprof-profiling (disabled by default) Create gprof profiling data while compiling
-  --enable-verbose-build (disabled by default) Allow compilation commands to be displayed while compiling
   --enable-force-build (disabled by default) force build with wrong compiler/versions
   --disable-set-procname (enabled by default) Set process status line name
   --enable-daq-track-file (disabled by default) Track file names and line numbers
@@ -1801,20 +1800,8 @@ if test "$gprof_profiling" = "yes"; then
   CXXFLAGS="$CXXFLAGS -pg"
 fi
 
-build_verbose="no"
-AT_BUILD="@"
 
-# Check whether --enable-verbose-build was given.
-if test "${enable_verbose_build+set}" = set; then
-  enableval=$enable_verbose_build; build_verbose="$enableval"
-else
-  build_verbose="no"
-fi
-
-
-if test "$build_verbose" = "yes"; then
-  AT_BUILD=""
-fi
+AT_BUILD=""
 
 cat >>confdefs.h <<_ACEOF
 @%:@define AT_BUILD "$AT_BUILD"

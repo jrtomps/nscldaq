@@ -19,14 +19,14 @@ mandir = ${prefix}/share/man
 includedir = ${prefix}/include
 threadlibs = -lpthread
 
-TOPDIR=/scratch/fox/spectrodaq/spectrodaq-pregt2-2.3_2.3
+TOPDIR=/scratch/fox/spectrodaq-pregt2
 THREADLIBS=-lpthread
 
-XMLTOKLIB=/scratch/fox/spectrodaq/spectrodaq-pregt2-2.3_2.3/src/lib/libxmltok.a
-XMLPARSELIB=/scratch/fox/spectrodaq/spectrodaq-pregt2-2.3_2.3/src/lib/libxmlparse.a
-XMLPLIB=/scratch/fox/spectrodaq/spectrodaq-pregt2-2.3_2.3/src/lib/libxmloop.a
-XMLINCDIR=/scratch/fox/spectrodaq/spectrodaq-pregt2-2.3_2.3/src/include/xmloop
-XMLBASEINCDIR=/scratch/fox/spectrodaq/spectrodaq-pregt2-2.3_2.3/src/include
+XMLTOKLIB=/scratch/fox/spectrodaq-pregt2/src/lib/libxmltok.a
+XMLPARSELIB=/scratch/fox/spectrodaq-pregt2/src/lib/libxmlparse.a
+XMLPLIB=/scratch/fox/spectrodaq-pregt2/src/lib/libxmloop.a
+XMLINCDIR=/scratch/fox/spectrodaq-pregt2/src/include/xmloop
+XMLBASEINCDIR=/scratch/fox/spectrodaq-pregt2/src/include
 
 INST_LIBDIR=/usr/opt/spectrodaq/lib/
 INST_BINDIR=/usr/opt/spectrodaq/bin/
@@ -52,15 +52,15 @@ MKDIR=mkdir -p
 
 %.o: %.cpp
 	@echo "Compiling(xmloop): $<"
-	@$(CXX) -c $(CXXFLAGS) $(CPPFLAGS) -o $@ $<
+	$(CXX) -c $(CXXFLAGS) $(CPPFLAGS) -o $@ $<
 
 %.o: %.cc
 	@echo "Compiling(xmloop): $<"
-	@$(CXX) -c $(CXXFLAGS) $(CPPFLAGS) -o $@ $<
+	$(CXX) -c $(CXXFLAGS) $(CPPFLAGS) -o $@ $<
 
 %.o: %.c
 	@echo "Compiling(xmloop): $<"
-	@$(CXX) -c $(CXXFLAGS) $(CPPFLAGS) -o $@ $<
+	$(CXX) -c $(CXXFLAGS) $(CPPFLAGS) -o $@ $<
 
 O_FILES=$(addsuffix .o,$(FILES))
 C_FILES=$(addsuffix .cc,$(FILES))

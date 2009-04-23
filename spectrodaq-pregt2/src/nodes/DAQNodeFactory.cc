@@ -334,11 +334,12 @@ DAQNodeId DAQNodeFactory::Create(DAQNode& node,int argc,char **argv)
   pid_t pid;
 
   node.nodeid.Reset();
-
+#ifdef  FORK
   if ((pid = ::fork()) < 0) {
     node.nodeid.location.val.pid = pid;
     LOG_AND_THROW(os_exception_factory.CreateBaseSystemException(DAQCSTR("DAQNodeFactory::CreateNode() fork failure")));
   } else if (pid == 0) { // Child
+#endif
     node.Initialize();
 
     try {
@@ -349,8 +350,10 @@ DAQNodeId DAQNodeFactory::Create(DAQNode& node,int argc,char **argv)
       THROW(e);  // Throw it again
     } catch (...) {
       LOG_AND_THROW(daq_exception_factory.CreateException(DAQCSTR("DAQNodeFactory::CreateNode(): run() problem")));
-    }
+    } 
+#ifdef FORK   
   } 
+#endif
 
   node.nodeid.location.val.pid = pid;
   return(node.GetId());

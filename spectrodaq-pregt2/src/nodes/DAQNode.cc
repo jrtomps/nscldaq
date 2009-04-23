@@ -756,7 +756,7 @@ bool DAQNode::SetProcessTitle(const char *aName)
    DAQExecTrackEntry_eyecatch(trackent,aName);
    return(SetProcessTitle(str));
 #else
-   return(false)
+   return(false);
 #endif
 }
 

@@ -59,14 +59,9 @@ if test "$gprof_profiling" = "yes"; then
 fi
 
 dnl Should we display compilation commands
-build_verbose="no"
-AT_BUILD="@"
+dnl Yes always damnit
 
-AC_ARG_ENABLE(verbose-build,[  --enable-verbose-build (disabled by default) Allow compilation commands to be displayed while compiling],build_verbose="$enableval",build_verbose="no")
-
-if test "$build_verbose" = "yes"; then
-  AT_BUILD=""
-fi
+AT_BUILD=""
 
 AC_DEFINE_UNQUOTED(AT_BUILD,"$AT_BUILD")
 AC_SUBST(AT_BUILD)

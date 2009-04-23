@@ -308,7 +308,7 @@ using namespace std;
 #endif
 
 #define PEVENTS_PER_THREAD 5
-#define PERIODICEVENT_TIMEOUT_USECS_MIN 200000
+#define PERIODICEVENT_TIMEOUT_USECS_MIN 1000000  // was 200000
 #define PERIODICEVENT_USECS_PER_SEC 1000000
 
 /*===================================================================*/
@@ -373,7 +373,10 @@ int DAQPeriodicEventMgr::operator()(int aArgc,char** aArgv)
       timeout.tv_nsec = (now.tv_usec + PERIODICEVENT_TIMEOUT_USECS_MIN - PERIODICEVENT_USECS_PER_SEC) * 1000;
     }
     MARK(5013);
-    workcond.TimedWait(workmutex,&timeout);
+    //    workcond.TimedWait(workmutex,&timeout);
+    workmutex.UnLock();
+    usleep(PERIODICEVENT_TIMEOUT_USECS_MIN);
+    workmutex.Lock();
     MARK(6013);
     nowusecs = ((now.tv_sec - adjsecs) * 1000000) + now.tv_usec;
 
@@ -446,6 +449,7 @@ int DAQPeriodicEventMgr::operator()(int aArgc,char** aArgv)
 
         // Try to find an idle thread and schedule the event
         pThread = (DAQPeriodicEventThread*)(threadqueue.GetHead());
+	int tries = 0;
         do {
           if (pThread == NULL) break; 
           MARK(19);
@@ -466,7 +470,9 @@ int DAQPeriodicEventMgr::operator()(int aArgc,char** aArgv)
           }
  
           pThread = (DAQPeriodicEventThread*)(threadqueue.GetNext());
+	  tries++;
         } while ((!threadqueue.AtHead())&&(!sched));
+	
 
         MARK(21);
         // If there were no idle threads, start a new thread and schedule it

@@ -314,7 +314,7 @@ using namespace std;
 extern DAQServClock ThreadMgrClock;
 extern int daq_debug_level;
 
-#define STALL_DELAY_USECS 10
+#define STALL_DELAY_USECS 18000
 
 /*===================================================================*/
 // DAQLinkInbThread::DAQLinkInbThread

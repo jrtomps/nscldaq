@@ -297,7 +297,7 @@ DAMAGES.
 /* #undef NO_DAQ_TRACK_FILE */
 
 /* Define NO_SET_PROCNAME if setting of process name disabled */
-/* #undef NO_SET_PROCNAME */
+#define NO_SET_PROCNAME 1
 
 /* Define NO_DELETE_STRSTREAM if deletion of dynamic strstream disabled */
 #define NO_DELETE_STRSTREAM 1

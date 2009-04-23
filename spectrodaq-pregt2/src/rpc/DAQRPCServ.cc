@@ -329,7 +329,7 @@ using namespace std;
 
 extern int daq_debug_level;
 
-#define DAQRPCSERV_POOL_TIMEOUT 1000
+#define DAQRPCSERV_POOL_TIMEOUT 5000
 
 /*===================================================================*/
 // DAQRPCServ::DAQRPCServ       
