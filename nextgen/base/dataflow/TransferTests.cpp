@@ -11,6 +11,8 @@
 #include <unistd.h>
 #include <sys/mman.h>
 #include <fcntl.h>
+#include <string.h>
+
 #include "testcommon.h"
 
 using namespace std;

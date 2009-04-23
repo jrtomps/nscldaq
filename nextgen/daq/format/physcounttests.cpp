@@ -8,6 +8,9 @@
 #include <CRingPhysicsEventCountItem.h>
 #include <CRingStateChangeItem.h>
 
+#include <string.h>
+
+
 class physcounttests : public CppUnit::TestFixture {
   CPPUNIT_TEST_SUITE(physcounttests);
   CPPUNIT_TEST(simplecons);

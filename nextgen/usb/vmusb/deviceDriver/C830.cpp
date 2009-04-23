@@ -18,6 +18,8 @@
 #include <CItemConfiguration.h>
 #include <CVMUSB.h>
 #include <CVMUSBReadoutList.h>
+#include <string.h>
+#include <stdlib.h>
 
 #include <assert.h>
 #include <set>

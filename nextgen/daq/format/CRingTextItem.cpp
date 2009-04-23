@@ -17,7 +17,7 @@
 
 #include <config.h>
 #include "CRingTextItem.h"
-
+#include <string.h>
 
 using namespace std;
 
