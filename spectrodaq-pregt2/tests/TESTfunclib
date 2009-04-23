@@ -1,0 +1,107 @@
+#------------------------------------------------------------------
+function println()
+{
+  OUTFN=$1
+  shift 1 
+
+  STAT=`echo $* | awk '{print $1}'`
+
+  if [ ! -f "$OUTFN" ]; then
+    touch $OUTFN
+  fi
+
+  echo $* >> $OUTFN
+  if [ "$STAT" == "FAIL:" -o "$STAT" == "ERROR:" -o "$STAT" == "STAT:" ]; then
+    echo $*
+  fi 
+
+  if [ "$STAT" == "FAIL:" -o "$STAT" == "ERROR:" ]; then
+    TESTFAILED=1
+  fi
+}
+
+#------------------------------------------------------------------
+function teeout()
+{
+  OUTFN=$1
+
+  (
+    while read LN; do
+      println $OUTFN "$LN"
+    done
+  )
+}
+
+#------------------------------------------------------------------
+function printfinalstat()
+{
+  OUTFN=$1
+  TESTN=$2
+
+  if [ "$TESTFAILED" == "1" ]; then
+    println $OUTFN "STAT: ************ TEST $TESTN FAILED ************"
+  else
+    println $OUTFN "STAT: -------------- TEST $TESTN OK --------------"
+  fi
+
+  println $OUTFN "STAT: $TESTN complete." 
+}
+
+#------------------------------------------------------------------
+function readywait()
+{
+  OUTFN=$1
+  DONE="0"
+
+  while [ "$DONE" == "0" ]; do
+    LN=`tail -1 $OUTFN`
+    STAT1=`echo $LN | awk '{print $1}'`
+    STAT=`echo $LN | awk '{print $2}'`
+
+    if [ "$STAT1" == "MSG:" -a "$STAT" == "READY" ]; then
+      SPID=`echo $LN | awk '{print $3}'`
+      echo $SPID
+      DONE="1"   
+    fi 
+
+    if [ "$STAT1" == "ERROR:" -o "$STAT1" == "FAIL:" ]; then
+      echo "FAIL"
+      DONE="1"
+    fi
+    if [ "$DONE" == "0" ]; then
+      sleep 1s
+    fi
+  done
+}
+
+#------------------------------------------------------------------
+function getseconds()
+{
+  date "+%s"
+}
+
+#------------------------------------------------------------------
+function timestats()
+{
+  if [ -z "$2" ]; then
+    echo "00:00:00"
+    return 0
+  fi
+
+  let DIFF=$2-$1
+  echo "$1 $2" | awk '{
+    tsecs = $2 - $1;
+    tmins  = int(tsecs / 60);
+    hh = int(tmins / 60);
+    if (hh < 0) { hh = 0; };
+    mm = tmins - (hh * 60);
+    if (mm < 0) { mm = 0; };
+    ss = tsecs - ((hh * 3600) + (mm * 60));
+    if (ss < 0) { ss = 0; };
+
+    printf("%02d:%02d:%02d\n",hh,mm,ss);
+  }'
+
+  return $DIFF
+}
+

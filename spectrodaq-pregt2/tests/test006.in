@@ -1,0 +1,101 @@
+#!/bin/bash
+
+PATH=/bin:/usr/bin:/usr/local/bin:@prefix@/bin
+export PATH
+
+if [ -z "$1" ]; then
+  LOOPS=1000
+else
+  LOOPS=$1
+fi
+
+#-----------------------------------------------------------------------
+TESTN="006"
+TESTDSC="Send/Receive Buffer Object"
+TOPDIR="@TOPDIR@"
+TESTDIR="$TOPDIR/tests"
+TOOLDIR="$TOPDIR/tools"
+OUTFNR="/tmp/test$TESTN""r.$$"
+OUTFNS="/tmp/test$TESTN""s.$$"
+PROGR="test$TESTN""r_prog"
+PROGS="test$TESTN""s_prog"
+
+TESTFAILED=0
+. $TESTDIR/TESTfunclib
+
+#-----------------------------------------------------------------------
+SIGOK="used=0 work=0 tused=0 tdel=0"
+
+#-----------------------------------------------------------------------
+function getsignature() {
+ $TOOLDIR/tsstat | grep DAQLinkThreadMgr | awk -F'(' '{print $2}' | awk -F',' '{print $1,$2,$4,$5}'
+}
+
+#-----------------------------------------------------------------------
+function testsignature() {
+  if [ "$*" == "$SIGOK" ]; then
+    echo "0"
+  else
+    echo "1"
+  fi 
+}
+
+#-----------------------------------------------------------------------
+rm -f $OUTFNR $OUTFNS
+touch $OUTFNR $OUTFNS
+
+println $OUTFNR "STAT: Starting test $TESTN \"$TESTDSC\"" 
+println $OUTFNS "STAT: Starting test $TESTN \"$TESTDSC\"" 
+println $OUTFNR "STAT: Using output file \"$OUTFNR:$OUTFNS\""
+println $OUTFNS "STAT: Using output file \"$OUTFNR:$OUTFNS\""
+
+SIG=`getsignature`
+TSIG=`testsignature "$SIG"`
+
+if [ "$TSIG" != "0" ]; then
+  println $OUTFNR "ERROR: Starting signature \"$SIG\" != \"$SIGOK\""
+  println $OUTFNR "FAIL: Test $TESTN failed" 
+  println $OUTFNR "FAIL: See file \"$OUTFNR:$OUTFNS\" for details"
+  exit 1
+fi
+
+println $OUTFNR "INFO: Starting signature is \"$SIG\""
+println $OUTFNS "INFO: Starting signature is \"$SIG\""
+
+START=`getseconds`
+($TESTDIR/$PROGR $LOOPS 2>&1 | teeout $OUTFNR)&
+($TESTDIR/$PROGS $LOOPS 2>&1 | teeout $OUTFNS)&
+SPID=`readywait $OUTFNS`
+RPID=`readywait $OUTFNR`
+STOP=`getseconds`
+
+if [ "$SPID" != "FAIL" ]; then 
+  # Sleep to let the server quiesce
+  sleep 90s
+
+  SIG=`getsignature`
+  TSIG=`testsignature $SIG`
+
+  println $OUTFNS "INFO: Sending signal to $SPID"
+  ps $SPID 2>&1 >> $OUTFNS
+  kill -TERM $SPID 2>&1 >> $OUTFNS
+
+  println $OUTFNR "INFO: Sending signal to $RPID"
+  ps $RPID 2>&1 >> $OUTFNR
+  kill -TERM $RPID 2>&1 >> $OUTFNR
+
+  if [ "$TSIG" != "0" ]; then
+    println $OUTFNR "ERROR: Completion signature \"$SIG\" != \"$SIGOK\""
+    println $OUTFNR "FAIL: Test $TESTN failed" 
+    println $OUTFNR "FAIL: See file \"$OUTFNR\" for details"
+    exit 1
+  fi
+fi
+
+TIMESTR=`timestats $START $STOP`
+println $OUTFNR "STAT: Test ran for $TIMESTR"
+printfinalstat $OUTFNR $TESTN
+println $OUTFNS "STAT: Test ran for $TIMESTR"
+printfinalstat $OUTFNS $TESTN
+
+exit 0 
