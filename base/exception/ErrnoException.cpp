@@ -298,7 +298,7 @@ DAMAGES.
 #include <config.h>
 #include "ErrnoException.h"                               
 #include <errno.h>
-
+#include <string.h>
 static const char* Copyright = 
 "CErrnoException.cpp: Copyright 1999 NSCL, All rights reserved\n";
 

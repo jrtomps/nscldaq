@@ -26,5 +26,5 @@ noinst_HEADERS = VMECommand.h VMEMapCommand.h
 install-exec-local:
 	$(mkinstalldirs) $(PKGDIR)
 	$(INSTALL_PROGRAM) .libs/libSBSVme.a $(PKGDIR)
-	$(INSTALL_PROGRAM) .libs/libSBSVme.so.* $(PKGDIR)
+	$(INSTALL_PROGRAM) .libs/libSBSVme.so* $(PKGDIR)
 	echo "package ifneeded Vme 2.0 [list load [file join \$$dir libSBSVme.so]]" >> $(PKGDIR)/pkgIndex.tcl

@@ -22,6 +22,7 @@
 #include <tcl.h>
 #include <math.h>
 #include <tcl.h>
+#include <string.h>
 
 using namespace std;
 

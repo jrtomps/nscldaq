@@ -49,12 +49,28 @@ int remap_page_range(struct vm_area_struct *vma, unsigned long uvaddr,
 
 #endif
 
+// Don't see a def for header for this:
+#if LINUX_VERSION_CODE > KERNEL_VERSION(2,6,25)
+ struct fault_data {
+	struct vm_area_struct *vma;
+	unsigned long address;
+	pgoff_t pgoff;
+	unsigned int flags;
+
+	int type;
+    };
+unsigned long bt_vmnopage(struct vm_area_struct *vma_p, struct fault_data* fdata);
+
+#else
+unsigned long bt_vmnopage(struct vm_area_struct *vma_p, unsigned long address, int write_access);
+#endif
+
 /*
 ** Local function prototypes
 */
 void bt_vmopen(struct vm_area_struct *vma_p);
 void bt_vmclose(struct vm_area_struct *vma_p);
-unsigned long bt_vmnopage(struct vm_area_struct *vma_p, unsigned long address, int write_access);
+
 
 /*
 **  Structure to search mmap requests for
@@ -65,6 +81,8 @@ typedef struct {
     unsigned long   vm_length;
     caddr_t         vm_p;
 } search_t;
+
+
 
 /* 
 ** Structure defining the valid operations 
@@ -80,7 +98,11 @@ struct vm_operations_struct btp_vm_ops = {
 #if     LINUX_VERSION_CODE >= KERNEL_VERSION(2,4,0)
     open:	bt_vmopen,
     close:	bt_vmclose,
+#if LINUX_VERSION_CODE > KERNEL_VERSION(2,6,25)
+    nopfn:     (void *)bt_vmnopage,
+#else
     nopage:     (void *)bt_vmnopage,
+#endif
 #else   /* LINUX_VERSION_CODE < KERNEL_VERSION(2,4,0) */
     bt_vmopen,          /* open */
     bt_vmclose,         /* close */
@@ -604,15 +626,23 @@ bt_vmclose_end:
 
 unsigned long bt_vmnopage(
     struct vm_area_struct *vma_p,
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,25)
+    struct fault_data* fdata
+#else
     unsigned long address, 
     int write_access
+#endif
     )
 {
     FUNCTION("bt_vmnopage");
     LOG_DEVID(vma_p->vm_file);
     bt_unit_t           *unit_p = GET_UNIT_PTR(vma_p->vm_file);
     bt_dev_t            type = GET_LDEV_TYPE(vma_p->vm_file);
+#if LINUX_VERSION_CODE > KERNEL_VERSION(2,6,25)
+    unsigned long       dest_addr      = fdata->address - vma_p->vm_start + vma_p->vm_offset;
+#else
     unsigned long       dest_addr = address - vma_p->vm_start + vma_p->vm_offset;
+#endif
     unsigned long       page;
     pgd_t               *pgd_p;
     pmd_t               *pmd_p;

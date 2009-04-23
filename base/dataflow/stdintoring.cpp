@@ -8,6 +8,7 @@
 #include <iostream>
 #include <errno.h>
 #include <fcntl.h>
+#include <string.h>
 #include <sys/select.h>
 
 

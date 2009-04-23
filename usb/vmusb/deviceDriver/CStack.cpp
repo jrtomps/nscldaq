@@ -24,6 +24,8 @@
 #include <tcl.h>
 #include <Globals.h>
 #include <set>
+#include <string.h>
+#include <stdlib.h>
 
 #include <iostream>
 using namespace std;

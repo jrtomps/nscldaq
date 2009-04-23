@@ -74,7 +74,7 @@ static const char* Copyright= "(C) Copyright Michigan State University 2002, All
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <netdb.h>
-
+#include <string.h>
 
 #include <sys/poll.h>
 

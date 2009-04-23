@@ -25,6 +25,8 @@
 #include <Globals.h>
 #include <tcl.h>
 #include <assert.h>
+#include <string.h>
+#include <stdlib.h>
 
 using namespace std;
 

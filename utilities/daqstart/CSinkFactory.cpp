@@ -15,7 +15,7 @@
 #include "CSinkCreator.h"
 #include "CSink.h"
 
-
+#include <string.h>
 
 using namespace std;
 

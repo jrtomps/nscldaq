@@ -16,6 +16,7 @@
 #include <config.h>
 #include "CRingScalerItem.h"
 #include <time.h>
+#include <string.h>
 
 using namespace std;
 
