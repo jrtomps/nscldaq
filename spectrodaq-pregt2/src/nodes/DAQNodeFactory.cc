@@ -279,6 +279,13 @@ static const char* Copyright = "(C) Copyright Michigan State University 2002, Al
 
 using namespace std;
 
+// Commenting out the following definition causes spectrodaq e.g. to 
+// not fork/daemonize itself.  This allows it to be directly run under
+// e.g. gdb for debugging and analysis.
+//
+
+#define FORK
+
 /*=========================================================================*/
 // DAQNodeFactory.cc 
 //
