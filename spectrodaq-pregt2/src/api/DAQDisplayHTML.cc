@@ -406,43 +406,43 @@ DAQDisplayHTML::DAQDisplayHTML(XMLOut& aOut)
   parser->ExpandInternal(true);
 
   // Add all the start and end handlers
-  hs_informaltable = new DAQHtmlInformalTableStartHandler("informaltable");
-  he_informaltable = new DAQHtmlInformalTableEndHandler("informaltable");
+  hs_informaltable = new DAQHtmlInformalTableStartHandler(const_cast<char*>("informaltable"));
+  he_informaltable = new DAQHtmlInformalTableEndHandler(const_cast<char*>("informaltable"));
   parser->AddStartHandler(hs_informaltable);
   parser->AddEndHandler(he_informaltable);
 
-  hs_row = new DAQHtmlRowStartHandler("row");
-  he_row = new DAQHtmlRowEndHandler("row");
+  hs_row = new DAQHtmlRowStartHandler(const_cast<char*>("row"));
+  he_row = new DAQHtmlRowEndHandler(const_cast<char*>("row"));
   parser->AddStartHandler(hs_row);
   parser->AddEndHandler(he_row);
 
-  hs_col = new DAQHtmlColStartHandler("col");
-  he_col = new DAQHtmlColEndHandler("col");
+  hs_col = new DAQHtmlColStartHandler(const_cast<char*>("col"));
+  he_col = new DAQHtmlColEndHandler(const_cast<char*>("col"));
   parser->AddStartHandler(hs_col);
   parser->AddEndHandler(he_col);
 
-  hs_entry = new DAQHtmlColStartHandler("entry");
-  he_entry = new DAQHtmlColEndHandler("entry");
+  hs_entry = new DAQHtmlColStartHandler(const_cast<char*>("entry"));
+  he_entry = new DAQHtmlColEndHandler(const_cast<char*>("entry"));
   parser->AddStartHandler(hs_entry);
   parser->AddEndHandler(he_entry);
 
-  hs_font = new DAQHtmlFontStartHandler("font");
-  he_font = new DAQHtmlFontEndHandler("font");
+  hs_font = new DAQHtmlFontStartHandler(const_cast<char*>("font"));
+  he_font = new DAQHtmlFontEndHandler(const_cast<char*>("font"));
   parser->AddStartHandler(hs_font);
   parser->AddEndHandler(he_font);
 
-  hs_para = new DAQHtmlParaStartHandler("p");
-  he_para = new DAQHtmlParaEndHandler("p");
+  hs_para = new DAQHtmlParaStartHandler(const_cast<char*>("p"));
+  he_para = new DAQHtmlParaEndHandler(const_cast<char*>("p"));
   parser->AddStartHandler(hs_para);
   parser->AddEndHandler(he_para);
 
-  hs_line = new DAQHtmlLineStartHandler("br");
-  he_line = new DAQHtmlLineEndHandler("br");
+  hs_line = new DAQHtmlLineStartHandler(const_cast<char*>("br"));
+  he_line = new DAQHtmlLineEndHandler(const_cast<char*>("br"));
   parser->AddStartHandler(hs_line);
   parser->AddEndHandler(he_line);
 
-  hs_object = new DAQHtmlObjectStartHandler("object");
-  he_object = new DAQHtmlObjectEndHandler("object");
+  hs_object = new DAQHtmlObjectStartHandler(const_cast<char*>("object"));
+  he_object = new DAQHtmlObjectEndHandler(const_cast<char*>("object"));
   parser->AddStartHandler(hs_object);
   parser->AddEndHandler(he_object);
 

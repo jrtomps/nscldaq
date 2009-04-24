@@ -398,18 +398,18 @@ DAQConfigParser::DAQConfigParser(XMLOut& aOut)
   parser->ExpandInternal(true);
 
   // Add all the start and end handlers
-  hs_server = new DAQConfParserServerStartHandler("server");
-  he_server = new DAQConfParserServerEndHandler("server");
+  hs_server = new DAQConfParserServerStartHandler(const_cast<char*>("server"));
+  he_server = new DAQConfParserServerEndHandler(const_cast<char*>("server"));
   parser->AddStartHandler(hs_server);
   parser->AddEndHandler(he_server);
 
-  hs_url = new DAQConfParserURLStartHandler("url");
-  he_url = new DAQConfParserURLEndHandler("url");
+  hs_url = new DAQConfParserURLStartHandler(const_cast<char*>("url"));
+  he_url = new DAQConfParserURLEndHandler(const_cast<char*>("url"));
   parser->AddStartHandler(hs_url);
   parser->AddEndHandler(he_url);
 
-  hs_param = new DAQConfParserParamStartHandler("param");
-  he_param = new DAQConfParserParamEndHandler("param");
+  hs_param = new DAQConfParserParamStartHandler(const_cast<char*>("param"));
+  he_param = new DAQConfParserParamEndHandler(const_cast<char*>("param"));
   parser->AddStartHandler(hs_param);
   parser->AddEndHandler(he_param);
 

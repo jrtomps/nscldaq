@@ -348,7 +348,9 @@ extern char **environ;
 */      
 static void daqmain_sigfunc_Terminate(int sig)
 {
-  LOG((const_cast<char*>("daqmain_sigfunc_Terminate() process %d terminating on signal %d %s\n"),getpid(),sig,DAQCSTR("")));
+  LOG((const_cast<char*>("daqmain_sigfunc_Terminate() process %d terminating on signal %d %s\n"),
+       getpid(),
+       sig,DAQCSTR("")));
 
   exit(0);
 }
@@ -365,7 +367,7 @@ static void daqmain_sigfunc_Terminate(int sig)
 */      
 static void daqmain_sigfunc_Segv(int sig)
 {
-  LOG((const_cast<char*>("daqmain_sigfunc_Segv() process %d caught a SEGV (signal %d) %s\n"),
+  LOG(("daqmain_sigfunc_Segv() process %d caught a SEGV (signal %d) %s\n",
        getpid(),sig,DAQCSTR("")));
 
   abort();
@@ -542,7 +544,7 @@ bool DAQMain::ReadConfig(char *pFileName)
   ifstream cfile(pFileName);
   char buf[100];
   bool done = false;
-  char *fname = pFileName;
+  const char *fname = pFileName;
   DAQCParserOut aOut(daq_server_config);
   DAQConfigParser aCP(aOut);
 
@@ -567,7 +569,7 @@ bool DAQMain::ReadConfig(char *pFileName)
     done = (!cfile)||aCP.Halted();
   } while (!done);
 
-  aCP.Puts("",1);  // Tell the parser we're done
+  aCP.Puts(const_cast<char*>(""),1);  // Tell the parser we're done
   cfile.close();   // Close the config file
 
   if (aCP.Halted()) {

@@ -321,7 +321,7 @@ DAMAGES.
 
 #ifndef __LINE__
 #ifndef __FILE__
-  #define DAQ_CREATE_CSTR daq_create_cstr(char *str,char *msg)
+  #define DAQ_CREATE_CSTR daq_create_cstr(char *str,const char *msg)
   #define DAQCSTR(s) #s
   #ifdef HAVE_SNPRINTF
     #define DAQCSTR_FMT snprintf(str,MAX_DAQCSTR,"%s (pid=%d " DAQ_MODE ")" ,msg,getpid())
@@ -329,7 +329,7 @@ DAMAGES.
     #define DAQCSTR_FMT sprintf(str,"%s (pid=%d " DAQ_MODE ")",msg,getpid())
   #endif
 #endif /* ifndef __FILE__ */ 
-  #define DAQ_CREATE_CSTR daq_create_cstr(char *str,char *msg,char *fnam)
+  #define DAQ_CREATE_CSTR daq_create_cstr(char *str,const char *msg,const char *fnam)
   #define DAQCSTR(s) daq_create_cstr(work_area,s,__FILE__)
   #ifdef HAVE_SNPRINTF
     #define DAQCSTR_FMT snprintf(str,MAX_DAQCSTR,"%s (\"%s\" pid=%d " DAQ_MODE ")",msg,fnam,getpid())
@@ -337,7 +337,7 @@ DAMAGES.
     #define DAQCSTR_FMT sprintf(str,"%s (\"%s\" pid=%d " DAQ_MODE ")",msg,fnam,getpid())
   #endif
 #else  /* ifndef __LINE__ */
-  #define DAQ_CREATE_CSTR daq_create_cstr(char *str,char *msg,char *fnam,int lnum)
+  #define DAQ_CREATE_CSTR daq_create_cstr(char *str,const char *msg,const char *fnam,int lnum)
   #define DAQCSTR(s) daq_create_cstr(work_area,s,__FILE__,__LINE__)
   #ifdef HAVE_SNPRINTF
     #define DAQCSTR_FMT snprintf(str,MAX_DAQCSTR,"%s (line %d of \"%s\" pid=%d " DAQ_MODE ")",msg,lnum,fnam,getpid())
