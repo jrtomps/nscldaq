@@ -1,1 +1,1 @@
-SUBDIRS = format readoutgui
+SUBDIRS = format readoutgui builder
