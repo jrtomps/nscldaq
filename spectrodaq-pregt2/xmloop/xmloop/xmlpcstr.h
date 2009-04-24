@@ -311,7 +311,7 @@ static char xmlp_work_area[MAX_XMLPCSTR+1];
 
 #ifndef __LINE__
 #ifndef __FILE__
-  #define XMLP_CREATE_CSTR xmlp_create_cstr(char *str,char *msg)
+  #define XMLP_CREATE_CSTR xmlp_create_cstr(char *str,const char *msg)
   #define XMLPCSTR(s) #s
   #ifdef HAVE_SNPRINTF
     #define XMLPCSTR_FMT snprintf(str,MAX_XMLPCSTR,"%s",msg)
@@ -319,7 +319,7 @@ static char xmlp_work_area[MAX_XMLPCSTR+1];
     #define XMLPCSTR_FMT sprintf(str,"%s",msg)
   #endif
 #endif /* ifndef __FILE__ */ 
-  #define XMLP_CREATE_CSTR xmlp_create_cstr(char *str,char *msg,char *fnam)
+  #define XMLP_CREATE_CSTR xmlp_create_cstr(char *str,char *msg,const char *fnam)
   #define XMLPCSTR(s) xmlp_create_cstr(xmlp_work_area,s,__FILE__)
   #ifdef HAVE_SNPRINTF
     #define XMLPCSTR_FMT snprintf(str,MAX_XMLPCSTR,"%s (\"%s\")",msg,fnam)
@@ -327,7 +327,7 @@ static char xmlp_work_area[MAX_XMLPCSTR+1];
     #define XMLPCSTR_FMT sprintf(str,"%s (\"%s\")",msg,fnam)
   #endif
 #else  /* ifndef __LINE__ */
-  #define XMLP_CREATE_CSTR xmlp_create_cstr(char *str,char *msg,char *fnam,int lnum)
+  #define XMLP_CREATE_CSTR xmlp_create_cstr(char *str,char *msg,const char *fnam,int lnum)
   #define XMLPCSTR(s) xmlp_create_cstr(xmlp_work_area,s,__FILE__,__LINE__)
   #ifdef HAVE_SNPRINTF
     #define XMLPCSTR_FMT snprintf(str,MAX_XMLPCSTR,"%s (line %d of \"%s\")",msg,lnum,fnam)
@@ -338,7 +338,7 @@ static char xmlp_work_area[MAX_XMLPCSTR+1];
 
 static inline char * XMLP_CREATE_CSTR
 {
-  static char *garbage = " <!!NULL string passed to xmlp_create_cstr()!!> ";
+  static char *garbage = const_cast<char*>(" <!!NULL string passed to xmlp_create_cstr()!!> ");
   if (str == NULL) return(garbage);
   XMLPCSTR_FMT;
   return(str);

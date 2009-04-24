@@ -346,7 +346,7 @@ ostream& XMLOut::Print(ostream& aStream) {
 //                            
 // Put a string to output.
 //
-bool XMLOut::Puts(char *aStr) {
+bool XMLOut::Puts(const char *aStr) {
   cout << aStr;
   cout.flush();
   return(true);

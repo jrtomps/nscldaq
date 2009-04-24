@@ -348,7 +348,7 @@ extern char **environ;
 */      
 static void daqmain_sigfunc_Terminate(int sig)
 {
-  LOG(("daqmain_sigfunc_Terminate() process %d terminating on signal %d %s\n",getpid(),sig,DAQCSTR("")));
+  LOG((const_cast<char*>("daqmain_sigfunc_Terminate() process %d terminating on signal %d %s\n"),getpid(),sig,DAQCSTR("")));
 
   exit(0);
 }
@@ -365,7 +365,8 @@ static void daqmain_sigfunc_Terminate(int sig)
 */      
 static void daqmain_sigfunc_Segv(int sig)
 {
-  LOG(("daqmain_sigfunc_Segv() process %d caught a SEGV (signal %d) %s\n",getpid(),sig,DAQCSTR("")));
+  LOG((const_cast<char*>("daqmain_sigfunc_Segv() process %d caught a SEGV (signal %d) %s\n"),
+       getpid(),sig,DAQCSTR("")));
 
   abort();
   exit(-1);
@@ -455,10 +456,11 @@ void DAQMain::Boot(int argc,char **argv,char **envp)
 
   try {
     rc = (*this)(argc,argv);
-    LOG(("DAQMain::Boot() process %d normal termination with rc=%d %s\n",getpid(),rc,DAQCSTR("")));
+    LOG((const_cast<char*>("DAQMain::Boot() process %d normal termination with rc=%d %s\n"),
+	 getpid(),rc,DAQCSTR("")));
   } catch(DAQException& e) {
     cerr << "*** DAQ Exception caught: " << e.GetErrorCode() << " " << e.GetContextString() << " : \"" << e.GetErrorString() << "\"" << endl;
-    LOG((DAQCSTR("DAQMain::Boot(DAQException)"),e));
+    LOG((DAQCSTR(const_cast<char*>("DAQMain::Boot(DAQException)")),e));
     THROW(e);
   } catch (OSException& e) {
     cerr << "*** OS Exception caught: " << e.GetErrorCode() << " " << e.GetContextString() << " : \"" << e.GetErrorString() << "\"" << endl;

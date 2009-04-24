@@ -358,7 +358,7 @@ class XMLParser {
     bool OutputReady();              // Return true if output device is ready  
     void SetOutput(XMLOut&);         // Set the output to an XMLOut&
 
-    bool Puts(char *);               // Put a char* to the output
+    bool Puts(const char *);               // Put a char* to the output
 
     bool Parse(istream&);            // Parse a stream
     bool Parse(FILE *);              // Parse a FILE*
