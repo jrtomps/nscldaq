@@ -23,6 +23,8 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <tcl.h>
+#include <string.h>
+#include <stdlib.h>
 
 #include <iostream>
 
@@ -444,7 +446,7 @@ CV812::configFileToShadow()
   // The threshold array:
 
   for (int i=0; i < 16; i++) {
-    const char* value = Tcl_GetVar2(pInterp, "threshold", iToS(i).c_str(), TCL_GLOBAL_ONLY);
+    const char* value = Tcl_GetVar2(pInterp, "thresholds", iToS(i).c_str(), TCL_GLOBAL_ONLY);
     if (value) {
       int iValue;
       if (sscanf(value, "%i", &iValue) == 1) {
@@ -455,7 +457,7 @@ CV812::configFileToShadow()
   // The widths array:
 
   for (int i=0; i < 2; i++) {
-    const char* value = Tcl_GetVar2(pInterp, "width", iToS(i).c_str(), TCL_GLOBAL_ONLY);
+    const char* value = Tcl_GetVar2(pInterp, "widths", iToS(i).c_str(), TCL_GLOBAL_ONLY);
     if (value) {
       int iValue;
       if (sscanf(value, "%i", &iValue) == 1) {
@@ -465,21 +467,23 @@ CV812::configFileToShadow()
   }
   // Deadtimes:
 
+
   if (m_is812) {
 
     for (int i=0; i < 2; i++) {
-      const char* value = Tcl_GetVar2(pInterp, "deadtime", iToS(i).c_str(), TCL_GLOBAL_ONLY);
+      const char* value = Tcl_GetVar2(pInterp, "deadtimes", iToS(i).c_str(), TCL_GLOBAL_ONLY);
       if (value) {
 	int iValue;
 	if (sscanf(value, "%i", &iValue) == 1) {
 	  m_deadtimes[i] = iValue;
-      }
+	}
       }
     }
   }
+
   // enables and majority
 
-  const char* value = Tcl_GetVar(pInterp, "inhibits", TCL_GLOBAL_ONLY);
+  const char* value = Tcl_GetVar(pInterp, "enables", TCL_GLOBAL_ONLY);
   if (value) {
     int iValue;
     if (sscanf(value, "%i", &iValue) == 1) {
