@@ -1,12 +1,8 @@
 lib_LTLIBRARIES			=	libusbtclcommon.la
-libusbtclcommon_la_SOURCES	=	CConfigurableObject.cpp	\
-					CItemConfiguration.cpp	\
-					CConfiguration.cpp	\
+libusbtclcommon_la_SOURCES	=	CConfiguration.cpp	\
 					tclUtil.cpp
 
-noinst_HEADERS			=	CConfigurableObject.h	\
-					CItemConfiguration.h	\
-					tclUtil.h		\
+noinst_HEADERS			=	tclUtil.h		\
 					CConfiguration.h
 
 INCLUDES			=	-I@top_srcdir@/base/tclplus	\

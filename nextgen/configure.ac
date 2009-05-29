@@ -454,6 +454,7 @@ AC_CONFIG_FILES([Makefile
 		 sbs/readout/Makefile
 		 sbs/readout/UserMakefile
 		 sbs/readout/SBSRdoMakeIncludes
+		 daq/builder/Makefile
 		 docbuild/Makefile
 		 docconfig/Makefile])
 
