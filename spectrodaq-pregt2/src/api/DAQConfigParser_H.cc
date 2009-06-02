@@ -353,7 +353,7 @@ void DAQConfParserServerStartHandler::operator()(XMLParser *parser,const char *p
       s += *p; 
     }
 
-    parser->Puts((char*)(s.Get()));
+    parser->Puts((s.Get()));
     p++; 
   }
 }
@@ -429,7 +429,7 @@ void DAQConfParserURLStartHandler::operator()(XMLParser *parser,const char *pTar
  
   s += path;   
 
-  parser->Puts((char*)(s.Get()));
+  parser->Puts((s.Get()));
 }
 
 /*===================================================================*/
@@ -467,7 +467,7 @@ void DAQConfParserParamStartHandler::operator()(XMLParser *parser,const char *pT
     } else if ((*p) != NULL) {
       s = "server:param:"; s += name; s += ":"; s += *p; s +=  "=";
       p++; s += *p;
-      parser->Puts((char*)(s.Get()));
+      parser->Puts((s.Get()));
     } 
     p++;
   }

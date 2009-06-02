@@ -444,22 +444,22 @@ void XMLStartHandler::operator()(XMLParser *parser,const char *pTarget,void *pUs
   depth = parser->GetDepth();
   for (i = 0; i < depth; i++) parser->Puts("  ");
   parser->Puts("<");
-  parser->Puts((const char *)pTarget);
+  parser->Puts((char *)pTarget);
 
   p = (char **)pAttribs;
   while ((*p) != NULL) {
-    parser->Puts(const_cast<char*>(" "));
+    parser->Puts(" ");
     parser->Puts((char *)(*p));  // Attribute name
-    parser->Puts(const_cast<char*>("=")); 
+    parser->Puts("="); 
     p++; 
-    parser->Puts(const_cast<char*>("\"")); 
+    parser->Puts("\""); 
     if ((*p) != NULL) parser->Puts((char *)(*p)); // Attrigute value
-    parser->Puts(const_cast<char*>("\"")); 
+    parser->Puts("\""); 
     p++; 
   }
 
-  parser->Puts(const_cast<char*>(">"));
-  parser->Puts(const_cast<char*>("\n"));
+  parser->Puts(">");
+  parser->Puts("\n");
 }
 
 /*===================================================================*/         
@@ -556,11 +556,11 @@ void XMLEndHandler::operator()(XMLParser *parser,const char *pTarget,void *pUser
   int i,depth;
 
   depth = parser->GetDepth();
-  for (i = 0; i < (depth-1); i++) parser->Puts(const_cast<char*>("  "));
-  parser->Puts(const_cast<char*>("</"));
+  for (i = 0; i < (depth-1); i++) parser->Puts("  ");
+  parser->Puts("</");
   parser->Puts((char *)pTarget);
-  parser->Puts(const_cast<char*>(">"));
-  parser->Puts(const_cast<char*>("\n"));
+  parser->Puts(">");
+  parser->Puts("\n");
 }
 
 /*===================================================================*/         
@@ -657,12 +657,12 @@ void XMLCharacterDataHandler::operator()(XMLParser *parser,void *pUserData,const
   lastdepth = depth;
 
   if ((char)(*pData) != '\n') {
-    for (i = 0; i < (depth-1); i++) parser->Puts(const_cast<char*>("  "));
+    for (i = 0; i < (depth-1); i++) parser->Puts("  ");
     p = new char[aLen+1];
     strncpy(p,(char *)pData,aLen);
     p[aLen] = '\0';
     parser->Puts(p);
-    parser->Puts(const_cast<char*>("\n"));
+    parser->Puts("\n");
     delete[] p;
   }
 }
@@ -722,13 +722,13 @@ void XMLPIHandler::operator()(XMLParser *parser,const char *pTarget,void *pUserD
   int i,depth;
 
   depth = parser->GetDepth();
-  for (i = 0; i < (depth-1); i++) parser->Puts(const_cast<char*>("  "));
-  parser->Puts(const_cast<char*>("<?"));
+  for (i = 0; i < (depth-1); i++) parser->Puts("  ");
+  parser->Puts("<?");
   parser->Puts((char *)pTarget);
-  parser->Puts(const_cast<char*>(" "));
+  parser->Puts(" ");
   parser->Puts((char *)pData);
-  parser->Puts(const_cast<char*>("?>"));
-  parser->Puts(const_cast<char*>("\n"));
+  parser->Puts("?>");
+  parser->Puts("\n");
 }
 
 /*===================================================================*/         
@@ -827,12 +827,12 @@ void XMLDefaultHandler::operator()(XMLParser *parser,void *pUserData,const char 
   // Only print the &stuff; entities
   if (aLen > 0) {
     if ((pData[0] == '&')&&(pData[aLen-1] == ';')) {
-      for (i = 0; i < (depth-1); i++) parser->Puts(const_cast<char*>("  "));
+      for (i = 0; i < (depth-1); i++) parser->Puts("  ");
       p = new char[aLen+1];
       strncpy(p,(char *)pData,aLen);
       p[aLen] = '\0';
       parser->Puts(p);
-      parser->Puts(const_cast<char*>("\n"));
+      parser->Puts("\n");
       delete[] p;
     }
   }
@@ -880,7 +880,9 @@ ostream& XMLExternalEntityHandler::Print(ostream& aStream) {
 //                            
 // Parse a FILE*
 //                          
-int XMLExternalEntityHandler::Parse(FILE *fp,XMLParser *parser,const char *pContext,const char *pBase,const char *pSystemId,const char *pPublicId) {
+int XMLExternalEntityHandler::Parse(FILE *fp,XMLParser *parser,
+				    const char *pContext,const char *pBase,
+				    const char *pSystemId,const char *pPublicId) {
   char wrkstr[512];
   bool rc = 0;  // true --> OK, false --> failure
   XMLParser *extparser = NULL; 
@@ -893,7 +895,7 @@ int XMLExternalEntityHandler::Parse(FILE *fp,XMLParser *parser,const char *pCont
           snprintf(wrkstr,sizeof(wrkstr)-1,"parsing external entity (systemId: \"%s\")",pSystemId); 
           wrkstr[sizeof(wrkstr)-1] = '\0';
           parser->SetError(extparser->GetErrorLineNumber(),extparser->GetErrorColumnNumber(),
-			   (XMLPCSTR((wrkstr))),extparser->GetErrorText());
+			   XMLPCSTR(wrkstr),extparser->GetErrorText());
         }
         delete extparser;
       }
@@ -1041,7 +1043,7 @@ void XMLCommentHandler::operator()(XMLParser *parser,void *pUserData,const char 
   p[len] = '\0';
   parser->Puts("<!--");
   parser->Puts(p);
-	       parser->Puts("-->\n");
+  parser->Puts("-->\n");
   delete[] p;
 }
 
@@ -1279,7 +1281,7 @@ void XMLStartNamespaceDeclHandler::operator()(XMLParser *parser,void *pUserData,
 
   depth = parser->GetDepth();
   for (i = 0; i < (depth-1); i++) parser->Puts("  ");
-  
+
   parser->Puts("<!--");
   parser->Puts(" Entering Namespace: prefix=");
   if (pPrefix != NULL) parser->Puts((char *)pPrefix);

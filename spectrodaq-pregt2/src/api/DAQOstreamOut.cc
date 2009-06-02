@@ -356,7 +356,7 @@ void DAQOstreamOut::toStream(PrintStreamIface& aStream) {
 //                            
 // Put a string to output.
 //
-bool DAQOstreamOut::Puts(char *aStr) {
+bool DAQOstreamOut::Puts(const char *aStr) {
   if (aStr == NULL) return(true);  // Ok, no string
   if (thestream == NULL) return(false);
 

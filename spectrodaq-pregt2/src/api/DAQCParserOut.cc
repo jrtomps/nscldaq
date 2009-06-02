@@ -358,13 +358,14 @@ void DAQCParserOut::toStream(PrintStreamIface& aStream) {
 //                            
 // Put a string to output.
 //
-bool DAQCParserOut::Puts(char *aStr) {
-  char *tok = NULL,*val = NULL;
+bool DAQCParserOut::Puts(const char *aStr) {
+  const char *tok = NULL;
+  char*       val = NULL;
   int wval;
 
   if (aStr == NULL) return(true);  // Ok, no string
 
-  tok = aStr;
+  tok = (aStr);
 
   val = strchr(aStr,'=');
   if (val == NULL) return(false);  // No value

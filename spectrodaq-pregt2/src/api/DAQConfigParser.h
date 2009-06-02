@@ -389,7 +389,7 @@ class DAQConfigParser : public PrintStream, public DAQDisplayProto {
     DAQConfigParser(XMLOut&);            // Constructor
     ~DAQConfigParser();                  // Destructor
     bool Put(char *,int,int = 0);      // Output n bytes 
-    bool Puts(char *,int = 0);         // Output a null terminated string
+    bool Puts(const char *,int = 0);         // Output a null terminated string
     bool Reset();                      // Reset a halted parser
     void toStream(PrintStreamIface&);  // Print to a PrintStream
 

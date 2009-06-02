@@ -315,7 +315,7 @@ class DAQOstreamOut : public XMLOut {
     DAQOstreamOut(std::ostream&);   // Constructor
     ~DAQOstreamOut();          // Destructor
 
-    bool Puts(char *);         // Put a char* to the output
+    bool Puts(const char *);         // Put a char* to the output
     void toStream(PrintStreamIface&); // Print on a PrintStream 
 
   protected:

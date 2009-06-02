@@ -355,7 +355,7 @@ void DAQCommunicatorOut::toStream(PrintStreamIface& aStream) {
 //                            
 // Put a string to output.
 //
-bool DAQCommunicatorOut::Puts(char *aStr) {
+bool DAQCommunicatorOut::Puts(const char *aStr) {
   if (aStr == NULL) return(true);  // Ok, no string
 
   try { 

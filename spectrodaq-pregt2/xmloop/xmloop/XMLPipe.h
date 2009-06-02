@@ -310,7 +310,7 @@ class XMLPipe {
     ~XMLPipe();                        // Destructor
 
     virtual bool Put(char *,int,int);  // Put data out to this pipe
-    virtual bool Puts(char *,int);     // Put a null term. string
+    virtual bool Puts(const char *,int);     // Put a null term. string
     virtual ostream& Print(ostream&);  // Print 
 
   protected:

@@ -836,9 +836,7 @@ bool XMLParser::Puts(const char *aStr) {
 
   if (!Output->Puts(aStr)) {
     OutReady = false;
-    SetError(XML_GetCurrentLineNumber(parser),XML_GetCurrentColumnNumber(parser),
-	     XMLPCSTR(const_cast<char*>("output failure")),
-	     const_cast<char*>("Could not put string to XMLOut device"));
+    SetError(XML_GetCurrentLineNumber(parser),XML_GetCurrentColumnNumber(parser),XMLPCSTR("output failure"),"Could not put string to XMLOut device");
   }
 
   return(OutReady);
@@ -849,14 +847,14 @@ bool XMLParser::Puts(const char *aStr) {
 //                            
 // Set the error line and text.
 //                          
-void XMLParser::SetError(int aLine,int aColumn,char *pContext,char *pText) {
+void XMLParser::SetError(int aLine,int aColumn,const char *pContext,const char *pText) {
   int siz = 0;
 
   ErrorLine = aLine;
   ErrorColumn = aColumn;
 
   if (ErrorString != NULL) delete[] ErrorString;
-  ErrorString = NULL; 
+  ErrorString = NULL;
 
   if (ErrorContext != NULL) delete[] ErrorContext;
   ErrorContext = NULL; 
@@ -899,9 +897,7 @@ bool XMLParser::XMLParse(char *pBuf,int aLen,int done) {
     // If we were parsing an external entity then keep the 
     // error generated there.
     if (XML_GetErrorCode(parser) != XML_ERROR_EXTERNAL_ENTITY_HANDLING) {
-      SetError(XML_GetErrorLineNumber(parser),XML_GetErrorColumnNumber(parser),
-	       XMLPCSTR(const_cast<char*>("parsing internal entity")),
-	       (char *)XML_ErrorString(XML_GetErrorCode(parser)));
+      SetError(XML_GetErrorLineNumber(parser),XML_GetErrorColumnNumber(parser),XMLPCSTR("parsing internal entity"),(char *)XML_ErrorString(XML_GetErrorCode(parser)));
     }
 
     XMLOOP_Parser = oldparser;
@@ -928,9 +924,7 @@ bool XMLParser::Parse(istream& aStream) {
   char buf[BUFSIZ];
 
   if (!aStream) {
-    SetError(0,0,
-	     XMLPCSTR(const_cast<char*>("attempting to parse a stream")),
-	     const_cast<char*>("Input stream is empty"));
+    SetError(0,0,XMLPCSTR("attempting to parse a stream"),"Input stream is empty");
     return(false);
   }
 
@@ -956,9 +950,7 @@ bool XMLParser::Parse(FILE *fp) {
   char buf[BUFSIZ];
 
   if (fp == NULL) {
-    SetError(0,0,
-	     XMLPCSTR(const_cast<char*>("attempting to parse a file pointer")),
-	     const_cast<char*>("File pointer is NULL"));
+    SetError(0,0,XMLPCSTR("attempting to parse a file pointer"),"File pointer is NULL");
     return(false);
   }
 
@@ -983,9 +975,7 @@ bool XMLParser::Parse(int fd) {
   char buf[BUFSIZ];
 
   if (fd < 0) {
-    SetError(0,0,
-	     XMLPCSTR(const_cast<char*>("attempting to parse a file descriptor")),
-	     const_cast<char*>("File descriptor < 0"));
+    SetError(0,0,XMLPCSTR("attempting to parse a file descriptor"),"File descriptor < 0");
     return(false);
   }
 

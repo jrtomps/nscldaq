@@ -911,10 +911,10 @@ class DAQKickOff : public DAQServNode {
     char *wp = NULL;
 
     // Set the default URLs
-    daq_server_config.SetStatusURL(SRV_STATUS_REQUEST_URL);
-    daq_server_config.SetBufferURL(SRV_BUFFER_REQUEST_URL);
-    daq_server_config.SetLinkURL(SRV_LINK_REQUEST_URL);
-    daq_server_config.SetSinkURL(SRV_SINK_REQUEST_URL);
+    daq_server_config.SetStatusURL(const_cast<char*>(SRV_STATUS_REQUEST_URL));
+    daq_server_config.SetBufferURL(const_cast<char*>(SRV_BUFFER_REQUEST_URL));
+    daq_server_config.SetLinkURL(const_cast<char*>(SRV_LINK_REQUEST_URL));
+    daq_server_config.SetSinkURL(const_cast<char*>(SRV_SINK_REQUEST_URL));
 
     // We want to do exec tracking
     DAQInitializeExecTracker();

@@ -321,7 +321,7 @@ class DAQLinkInbThread : public DAQLinkThread {
   public:
     DAQLinkInbThread();
     ~DAQLinkInbThread();
-    void SetMyTitle(char *);
+    void SetMyTitle(const char *);
     int operator()(int = 0,char** = NULL);
 
   private:

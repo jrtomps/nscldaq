@@ -313,7 +313,7 @@ class DAQCParserOut : public XMLOut {
     DAQCParserOut(DAQServConfig&);          // Constructor
     ~DAQCParserOut();                         // Destructor
 
-    bool Puts(char *);         // Put a char* to the output
+    bool Puts(const char *);         // Put a char* to the output
     void toStream(PrintStreamIface&); // Print to a PrintStream
 
   protected:

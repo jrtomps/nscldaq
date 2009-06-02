@@ -370,11 +370,11 @@ bool XMLPipe::Put(char *aStr,int aLen,int done) {
 //                            
 // Put a string to output.
 //
-bool XMLPipe::Puts(char *aStr,int done) {
+bool XMLPipe::Puts(const char *aStr,int done) {
   int l;
   if (aStr == NULL) return(true);
   l = strlen(aStr);
-  return(parser->XMLParse(aStr,l,done));
+  return(parser->XMLParse(const_cast<char*>(aStr),l,done));
 }
 
 /*===================================================================*/

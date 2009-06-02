@@ -436,7 +436,7 @@ DAQDisplayXML::~DAQDisplayXML()
 * @param done  If parsing has concluded.
 * @return If the bytes were parsed.
 */                                                                  
-bool DAQDisplayXML::Puts(char *aStr,int done)
+bool DAQDisplayXML::Puts(const char *aStr,int done)
 {
   bool rc;
 

@@ -353,7 +353,7 @@ DAQLinkInbThread::~DAQLinkInbThread()
 //                                                                  
 // Set the thread title with a status string.
 //                                                                  
-void DAQLinkInbThread::SetMyTitle(char *pStatus)
+void DAQLinkInbThread::SetMyTitle(const char *pStatus)
 {
   DAQString namestr;
 
