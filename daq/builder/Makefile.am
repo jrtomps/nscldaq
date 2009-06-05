@@ -1,10 +1,13 @@
 lib_LTLIBRARIES 	= libBuilder.la
 
 libBuilder_la_SOURCES 	= CFragmentSource.cpp	\
-			CSourceException.cpp
+			CSourceException.cpp	\
+			CInvalidObjectType.cpp
 
-include_HEADERS	        = CFragmentSource.h	\
-			CSourceException.h
+include_HEADERS	        = BuilderContants.h	\ 
+			CFragmentSource.h	\
+			CSourceException.h	\
+			CInvalidObjectType.h
 
 INCLUDES		= -I@top_srcdir@/base/thread
 

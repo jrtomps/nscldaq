@@ -1,6 +1,6 @@
 /*
     This software is Copyright by the Board of Trustees of Michigan
-    State University (c) Copyright 2005.
+    State University (c) Copyright 2009.
 
     You may use this software under the terms of the GNU public license
     (GPL).  The terms of this license are described at:
@@ -41,25 +41,9 @@
 #include <CConfigurableObject.h>
 #endif
 
-/*!
-   TODO: This does not belong here but in a separate file along with other
-   constants etc:
-*/
-class CBuilderConstant {
-public:
-  typedef enum _EventType_ {
-    PHYSICS,
-    SCALER,
-    BEGIN,
-    END,
-    PAUSE,
-    RESUME,
-    PACKETDOCS,
-    VARIABLES,
-    TRIGGERCOUNT,
-    NOEVENT
-  } EventType;
-};
+#ifndef __BUILDERCONSTANTS_H
+#include <BuilderConstants.h>
+#endif
 
 /*!
    Abstract base class for a source of event fragments.  Event fragment
