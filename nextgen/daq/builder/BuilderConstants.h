@@ -34,7 +34,8 @@ public:
 };
 
 typedef enum _ExceptionReasonCodes {
-  INVALID_OBJECT_TYPE_EXCEPTION
+  INVALID_OBJECT_TYPE_EXCEPTION,
+  INVALID_CONFIG_PARAM_NAME
 } ExceptionReasonCode;
 
 #endif
