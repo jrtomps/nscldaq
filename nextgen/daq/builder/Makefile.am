@@ -3,13 +3,15 @@ lib_LTLIBRARIES 	= libBuilder.la
 libBuilder_la_SOURCES 	= CFragmentSource.cpp	\
 			CSourceException.cpp	\
 			CInvalidObjectType.cpp	\
-			CNoSuchConfigurationParameter.cpp
+			CNoSuchConfigurationParameter.cpp	\
+			CInvalidConfigurationValue.cpp
 
 include_HEADERS	        = BuilderContants.h	\ 
 			CFragmentSource.h	\
 			CSourceException.h	\
 			CInvalidObjectType.h	\
-			CNoSuchConfiguratinoParameter.h
+			CNoSuchConfiguratinoParameter.h	\
+			CInvalidConfigurationValue.h
 
 INCLUDES		= -I@top_srcdir@/base/thread
 
