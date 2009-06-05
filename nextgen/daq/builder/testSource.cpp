@@ -32,6 +32,7 @@ protected:
   virtual void*    addNextFragment(void *pData) ;
   virtual uint64_t provideTimestamp()           ;
   virtual bool     dataPresent()                ;
+  virtual void     onAttach();
 public:
   NULLFragmentSource() : mtimes(0) {}
 
@@ -70,6 +71,11 @@ uint64_t NULLFragmentSource::provideTimestamp() {
 bool NULLFragmentSource::dataPresent() {
   attempt();
   return false;
+}
+
+void
+CNULLFragmentSource::onAttach()
+{
 }
 
 

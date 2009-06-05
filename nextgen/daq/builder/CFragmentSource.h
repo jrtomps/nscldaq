@@ -37,6 +37,10 @@
 #endif
 
 
+#ifndef __CCONFIGURABLEOBJECT_H
+#include <CConfigurableObject.h>
+#endif
+
 /*!
    TODO: This does not belong here but in a separate file along with other
    constants etc:
