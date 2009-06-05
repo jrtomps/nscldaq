@@ -1,8 +1,8 @@
 #ifndef __CSOURCEEXCEPTION_H
-#define __CSOURCEEXCEPTION_h
+#define __CSOURCEEXCEPTION_H
 /*
     This software is Copyright by the Board of Trustees of Michigan
-    State University (c) Copyright 2005.
+    State University (c) Copyright 2009.
 
     You may use this software under the terms of the GNU public license
     (GPL).  The terms of this license are described at:
@@ -53,7 +53,12 @@ private:
   // Selectors (getters to the java folks)
 
   std::string getManager() const;
+  std::string getInstance() const;
 
+  // Message formatting utility for derived classes:
+
+protected:
+  std::string messageTrailer() const;
 
 };
 

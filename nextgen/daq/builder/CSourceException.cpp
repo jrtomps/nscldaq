@@ -79,10 +79,11 @@ CSourceException::operator==(const CSourceException& rhs)
     Logical inverse of equality:
 */
 int
-CSourceException::operator==(const CSourceException& rhs)
+CSourceException::operator!=(const CSourceException& rhs)
 {
   return !(*this == rhs);
 }
+/
 
 /*!
   Return the name of the manager.  This could be a blank string if the
@@ -92,4 +93,35 @@ std::string
 CSourceException::getManager() const
 {
   return m_managerName;
-}y
+}
+/*!
+   Return the name of the driver instance associated with the exception.
+   If this is not known, or if this is inapproprioate, an empty string can
+   be returned.
+*/
+ std::string 
+CSourceExceptiongetInstance() const
+ {
+   return m_instanceName;
+ }
+
+
+/*!
+  Most error messages in this exception hierarchy will use the same
+  trailer string.  This function is  utility that provides that string.
+*/
+std::string 
+CSourceException messageTrailer() const
+{
+  string resultString;
+  resultString    = "Manager name(if known):   ";
+  resultString   += m_managerName;
+  resultString   += '\n';
+  resultString   += "Instance name (if known): ";
+  resultString   += m_instanceName;
+  resultString   += '\n';
+  resultString   += "While:                  : ";
+  resultString   += WasDoing();
+
+  return resultString;
+}
