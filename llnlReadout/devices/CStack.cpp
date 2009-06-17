@@ -24,6 +24,8 @@
 #include <assert.h>
 #include <tcl.h>
 #include <Globals.h>
+#include <stdlib.h>
+
 #include <set>
 
 #include <iostream>

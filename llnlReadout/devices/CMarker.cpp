@@ -23,7 +23,7 @@
 
 #include "CReadoutModule.h"
 #include <CVMUSBReadoutList.h>
-
+#include <stdlib.h>
 
 using namespace std;
 

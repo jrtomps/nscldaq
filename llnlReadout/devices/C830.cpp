@@ -19,6 +19,7 @@
 #include <CVMUSB.h>
 #include <CVMUSBReadoutList.h>
 #include <CConfiguration.h>
+#include <stdlib.h>
 #include <assert.h>
 #include <set>
 
@@ -290,7 +291,7 @@ C830::addReadoutList(CVMUSBReadoutList& list)
 
 
   size_t readSize = headers ? 1 : 0;  // Header or no header long.
-  for (int i =0; i < 32; i++) {
+  for (uint32_t i =0; i < 32; i++) {
     if (enables & (1 << i)) readSize++;
   }
 
@@ -301,7 +302,7 @@ C830::addReadoutList(CVMUSBReadoutList& list)
 
   if (getTriggerSource() == vme) {
     list.addWrite16(baseAddress + TRIGGER, configAmod, 0);
-    list.addDelay(24);		// 200ns units.
+    list.addDelay(50);		// 200ns units.
   }
   // Add the block transfer from the MEB
 

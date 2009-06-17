@@ -459,6 +459,7 @@ CAcquisitionThread::drainUsb()
       pBuffer->s_bufferType   = TYPE_EVENTS;
       cerr << "Got a buffer, with type header: " << hex << pBuffer->s_rawData[0] << endl;
       if (pBuffer->s_rawData[0] & VMUSBLastBuffer) {
+	bootToTheHead();
 	cerr << "Done\n";
 	done = true;
       }
@@ -470,16 +471,7 @@ CAcquisitionThread::drainUsb()
       cerr << "Read timed out\n";
       if(timeouts >= DRAINTIMEOUTS) {
 	cerr << "Warning: drainUsb() persistent timeout assuming already drained\n";
-	uint32_t junk;
-	cerr << "Desparate measures being employed to attempt final drain\n";
-	m_pVme->writeActionRegister(CVMUSB::ActionRegister::sysReset);
-	m_pVme->writeActionRegister(0);
-	usleep(100);
-	m_pVme->vmeRead32(0, CVMUSBReadoutList::a32UserData, &junk);
-	status = m_pVme->usbRead(pBuffer->s_rawData, pBuffer->s_storageSize,
-				 &bytesRead, DRAINTIMEOUTS*1000);
-	cerr << "Final desparate attempt to flush usb fifo got status: " 
-	     << status << endl;
+	bootToTheHead();
 	done = true;
       }
     }
@@ -517,3 +509,23 @@ CAcquisitionThread::endRun()
   processBuffer(pBuffer);
 } 
 
+/*!
+  Do a 'drastic purge' of the VM-USB.
+*/
+void
+CAcquisitionThread::bootToTheHead()
+{
+	uint32_t junk;
+	cerr << "Desparate measures being employed to attempt final drain\n";
+	m_pVme->writeActionRegister(CVMUSB::ActionRegister::sysReset);
+	m_pVme->writeActionRegister(0);
+	usleep(100);
+	m_pVme->vmeRead32(0, CVMUSBReadoutList::a32UserData, &junk);
+	uint8_t buffer[13*1024*2];
+	size_t  bytesRead;
+	int status = m_pVme->usbRead(buffer,
+		 		     sizeof(buffer),
+				     &bytesRead, DRAINTIMEOUTS*1000);
+	cerr << "Final desparate attempt to flush usb fifo got status: " 
+	     << status << endl;
+}

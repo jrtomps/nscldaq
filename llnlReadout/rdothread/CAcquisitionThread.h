@@ -98,6 +98,7 @@ private:
   void drainUsb();
   void beginRun();
   void endRun();
+  void bootToTheHead();
 
 };
 
