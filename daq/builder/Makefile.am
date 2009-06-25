@@ -5,7 +5,8 @@ libBuilder_la_SOURCES 	= CFragmentSource.cpp	\
 			CInvalidObjectType.cpp	\
 			CNoSuchConfigurationParameter.cpp	\
 			CInvalidConfigurationValue.cpp	\
-			CInvalidObjectState.cpp
+			CInvalidObjectState.cpp	\
+			CNoSuchManager.cpp
 
 include_HEADERS	        = BuilderContants.h	\ 
 			CFragmentSource.h	\
@@ -13,7 +14,8 @@ include_HEADERS	        = BuilderContants.h	\
 			CInvalidObjectType.h	\
 			CNoSuchConfiguratinoParameter.h	\
 			CInvalidConfigurationValue.h	\
-			CInvalidObjectState.h
+			CInvalidObjectState.h	\
+			CNoSuchManager.h
 
 
 INCLUDES		= -I@top_srcdir@/base/thread
