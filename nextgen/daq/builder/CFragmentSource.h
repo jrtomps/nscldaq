@@ -45,6 +45,8 @@
 #include <BuilderConstants.h>
 #endif
 
+
+
 /*!
    Abstract base class for a source of event fragments.  Event fragment
    sources are responsible for getting event fragments from somewhere and
