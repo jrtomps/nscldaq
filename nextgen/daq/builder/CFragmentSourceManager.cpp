@@ -19,6 +19,8 @@
 #include <Exception.h>
 #include "CNoSuchConfgurationParameter.h"
 #include "CInvalidConfigurationValue.h"
+#include "CInvalidObjectType.h"
+#include "CInvalidObjectState.h"
 
 using namespace std;
 /*!
