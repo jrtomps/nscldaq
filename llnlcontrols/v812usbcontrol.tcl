@@ -253,7 +253,7 @@ proc commit {} {
 # Depending on the type of module (depending on the program run)
 # disable or not, the deadtime.
 
-$myProgram = [file tail $argv0]
+set myProgram [file tail $argv0]
 if {$myProgram eq "v895usbcontrol"} {
     set disableDeadtime 1
 } else {
