@@ -131,7 +131,7 @@ proc loadState name {
 
     # Deadtimes
 
-    if {!$disableDeadTtime} {
+    if {!$disableDeadtime} {
 	for {set d 0} {$d < 2} {incr d} {
 	    if {[array name ::deadtimes $d] ne ""} {
 		.panel setProperties [list [list deadtime$d $::deadtimes($d)]]
