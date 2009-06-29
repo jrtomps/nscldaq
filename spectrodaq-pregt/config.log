@@ -1,0 +1,77 @@
+This file contains any messages produced by compilers while
+running configure, to aid debugging if configure makes a mistake.
+
+configure:654: checking for gcc
+configure:767: checking whether the C compiler (/usr/bin/gcc-3.3  ) works
+configure:783: /usr/bin/gcc-3.3 -o conftest    conftest.c  1>&5
+configure:809: checking whether the C compiler (/usr/bin/gcc-3.3  ) is a cross-compiler
+configure:814: checking whether we are using GNU C
+configure:842: checking whether /usr/bin/gcc-3.3 accepts -g
+configure:878: checking for c++
+configure:910: checking whether the C++ compiler (/usr/bin/g++-3.3  ) works
+configure:926: /usr/bin/g++-3.3 -o conftest    conftest.C  1>&5
+configure:952: checking whether the C++ compiler (/usr/bin/g++-3.3  ) is a cross-compiler
+configure:957: checking whether we are using GNU C++
+configure:985: checking whether /usr/bin/g++-3.3 accepts -g
+configure:1017: checking how to run the C++ preprocessor
+configure:1062: checking for ranlib
+configure:1092: checking for ar
+configure:1122: checking for cp
+configure:1152: checking for makedepend
+configure:1182: checking for touch
+configure:1212: checking for install
+configure:1242: checking for install
+configure:1272: checking for install
+configure:1302: checking for mkdir
+configure:1332: checking for doxygen
+configure:1393: checking for compiler Version flag
+configure:1445: checking size of int
+configure:1488: checking size of long
+configure:1531: checking size of void *
+configure:1574: checking whether byte ordering is bigendian
+configure:1669: checking for ANSI C header files
+configure:1776: checking for sys/wait.h that is POSIX.1 compatible
+configure:1821: checking for sys/stat.h
+configure:1821: checking for sys/types.h
+configure:1821: checking for sys/mman.h
+configure:1861: checking for fcntl.h
+configure:1861: checking for limits.h
+configure:1861: checking for unistd.h
+configure:1861: checking for errno.h
+configure:1861: checking for math.h
+configure:1861: checking for ctype.h
+configure:1901: checking for malloc.h
+configure:1901: checking for netdb.h
+configure:1939: checking for pid_t
+configure:1976: checking for unistd.h
+configure:2015: checking for getpagesize
+configure:2071: checking for working mmap
+configure:2247: checking for mmap
+configure:2305: checking for strerror
+configure:2363: checking for snprintf
+configure:2421: checking for set_new_handler
+configure:2479: checking for set_unexpected
+configure:2537: checking for set_terminate
+configure:2595: checking for abort
+configure:2653: checking for malloc
+configure:2711: checking for realloc
+configure:2769: checking for calloc
+configure:2827: checking for free
+configure:2961: checking for g++-v3/iostream.h
+configure:2994: checking for g++/iostream.h
+configure:3027: checking for c++/iostream.h
+configure:3060: checking for cxx/iostream.h
+configure:3093: checking for h++/iostream.h
+configure:3126: checking for hxx/iostream.h
+configure:3161: checking for sys/pstat.h
+configure:3199: checking for sys/ipc.h
+configure:3236: checking for sys/shm.h
+configure:3273: checking for sys/sem.h
+configure:3310: checking for asm/shmparam.h
+configure:3347: checking for SysV shared memory
+configure:3371: checking for pthread.h
+configure:3410: checking for pthread_create
+configure:3478: checking for pthread_create in -lpthread
+configure:3585: checking for crypt in -lc
+configure:3627: checking for crypt in -lcrypt
+configure:3787: checking for NSCL code directory

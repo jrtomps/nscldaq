@@ -1,0 +1,1248 @@
+
+
+<HTML>
+<HEAD>
+<TITLE>With Class Script Detail for HTML</TITLE>
+</HEAD>
+<BODY>
+
+<H1><A NAME = "DuplexConnection">DuplexConnection</A></H1>
+
+<H2>Attribute Table of Class DuplexConnection</H2>
+
+<TABLE BORDER>
+<TR>
+<TH>NAME</TH>
+<TH>TYPE</TH>	
+<TH>VISIBILITY</TH>
+<TH>DESCRIPTION</TH>
+</TR>
+<TR>
+<TD>LogString</TD>
+<TD>strostream</TD>	
+<TD>private</TD>
+<TD>String output stream which can be used as an output stream when the user passes in a null stream for output.</TD>
+</TR>
+</TABLE>
+
+<H2>Class operations for DuplexConnection</H2>
+
+<H3>protected void InitializeConnection(const char* const pConnectionString)</H3>
+<P>
+
+   This function is called from the constructor and is expected to initialize a connection to the
+peer.  This initialization includes opening whatever connections are required by the underlying 
+operating system as well as performing any initial negotiations with the connected peer to enable
+data to flow between host and peer.
+   Function is pure virtual.<BR>
+<BR>
+<BR>
+</P>
+
+<H3>public int WaitCharacter(unsigned long nTimeout)</H3>
+<P>
+
+  Defines an interface which allows the calller to wait for input to be ready on the connection. 
+The wait is for on the order of nTimeout milliseconds, subject to the granularities of the timings
+of the underlying operating system.   
+Special values of nTimeout include:
+       0                      - poll.
+      0xffffffff             - Indefinite wait.
+
+
+Returns:
+      -1      - Data is availalbe
+       0      - No data within timeout.<BR>
+<BR>
+<BR>
+</P>
+
+<H3>public char GetCharacter()</H3>
+<P>
+
+  This interface allows the caller to get a single character from the peer.  Note that this function
+will block until data is available.  Therefore, if non-blocking is desired, the client should consider
+first calling WaitCharacter().
+
+Returns:
+   The character recieved.<BR>
+<BR>
+<BR>
+</P>
+
+<H3>public void PutCharacter(char c)</H3>
+<P>
+
+  Writes a character (c) to the peer.  If necessary, the caller will block until all data is transferred.
+<BR>
+<BR>
+<BR>
+</P>
+
+<H3>public void PutString(const char* const pString)</H3>
+<P>
+
+   This interface allows the client to put a null terminated string of characters to the peer.  If
+necessary, the caller will block until the output is complete.  <BR>
+<BR>
+<BR>
+</P>
+
+<H3>public ostream& Drain(ostream* pLog=0)</H3>
+<P>
+
+  Drains the connection to the specified stream.   In this case to drain means that data is read
+from the connection to pOutput until a poll of characters would result in a timeout.  Optionally, the 
+connection may wait for some short time for characters (intended for direct serial connections).
+   If pOutput is null, then the LogString strostream is used as the member output stream.
+   This base class implementation will simply determine which ostream to use and return it.
+Therefore user code to implement this function can just look like:
+
+ostream& log = DuplexConnection::Drain(pOutput); 
+
+   and subsequent code sends drained data to the log stream.
+
+A reference to the actual output stream used is returned (the reason that LogString must be
+a member).<BR>
+<BR>
+<BR>
+</P>
+
+<H1><A NAME = "TelnetConnection">TelnetConnection</A></H1>
+
+<H2>Attribute Table of Class TelnetConnection</H2>
+
+<TABLE BORDER>
+<TR>
+<TH>NAME</TH>
+<TH>TYPE</TH>	
+<TH>VISIBILITY</TH>
+<TH>DESCRIPTION</TH>
+</TR>
+<TR>
+<TD>socket</TD>
+<TD>CRefcountedPtr<TcpConnection></TD>	
+<TD>private</TD>
+<TD>   A reference counted pointer to the socket which is open on the connection.  Using a reference counted pointer allows trivial implementation of the assignment operator as well as the copy constructor without memory leaks.
+</TD>
+</TR>
+</TABLE>
+
+<H2>Class operations for TelnetConnection</H2>
+
+<H3>public void InitializeConnection(const char* const pConnectionString)</H3>
+<P>
+
+   Initializes the TcpIp connection with the peer.  The connection string consists of host:port  This
+string is broken apart and a TcpConnection object created and and pointed to by the socket
+member data item.   The TcpConnection is connected with the remote system and, if the
+connection was successful, NegotiateOptions() is called to do option negotiation with the remote
+telnet peer.
+
+>>> NOTE <<< 
+Will probably need to modify the CReferenceCounted class to support assignment to underlying
+pointer.<BR>
+<BR>
+<BR>
+</P>
+
+<H3>public void WaitCharacter(unsigned long nTimeout=0)</H3>
+<P>
+ 
+   Instantiates a SocketList object and adds our socket to the list.  We then wait for the 
+appropriate number of milliseconds. 
+>>> NOTE <<< 
+   WIll need modifications to the SelectionLIst implementation to support sub-second delays.
+
+Special Values of nTimeout:
+  0                   - Poll for data.
+0xffffffff           - Wait until data is available,  with no timeout.
+
+Returns:
+       0          - If the wait timed out.
+     -1           - If data became available.
+
+Exceptions:
+    ConnectionException can be produced if there is an error waiting for data (e.g. select() fails).
+<BR>
+<BR>
+<BR>
+</P>
+
+<H3>public char * GetCharacter()</H3>
+<P>
+
+   Produces the next character from the tcp/ip socket.  Blocks until the character is present, so 
+you should call WaitCharacter if you want to be conditional.
+
+Returns:
+    The character read.
+
+Exceptions:
+    ConnectionException can be produced if there is an error reading the socket.<BR>
+<BR>
+<BR>
+</P>
+
+<H3>public void PutCharacter(char c)</H3>
+<P>
+
+Writes a character to the connection.  This function may block until the character is transmitted.
+
+Exceptions:
+   Can throw ConnectionException if there was a socket error detected transmitting the data.<BR>
+<BR>
+<BR>
+</P>
+
+<H3>public void PutString(const char* const pString)</H3>
+<P>
+
+ Writes a null terminated string to the connection.  This function will block until the string is 
+completely written.
+
+Exceptions:
+    If a socket error occurs transmitting the data, throws a ConnectionException.
+<BR>
+<BR>
+<BR>
+</P>
+
+<H3>public ostream& Drain(ostream* pLog=0)</H3>
+<P>
+
+   Reads characters from the socket until there are no more characters to read.  No more is 
+defined as a poll on WaitCharacter timing out.  The characters are inserted into the output
+stream pLog provided by the user.  If the user does not provide this stream, the internal
+LogStream is used instead.   LogStream is a string stream.
+  
+Returns:
+    A reference to the stream actually used.
+
+Exceptions:
+    Errors on the socket while reading the data throw a Connection Exception.<BR>
+<BR>
+<BR>
+</P>
+
+<H3>private void NegotiateOptions()</H3>
+<P>
+
+  Negotiates the telnet options with the peer.  We don' t actually request anything, but the peer's 
+negotiations are consistently handled to bring up the minimal "SVT".    This function is private
+and called by InitializeConnection  at connection time.
+
+<BR>
+<BR>
+<BR>
+</P>
+
+<H1><A NAME = "ConnectionFactory">ConnectionFactory</A></H1>
+
+<H2>Attribute Table of Class ConnectionFactory</H2>
+
+<TABLE BORDER>
+<TR>
+<TH>NAME</TH>
+<TH>TYPE</TH>	
+<TH>VISIBILITY</TH>
+<TH>DESCRIPTION</TH>
+</TR>
+
+</TABLE>
+
+<H2>Class operations for ConnectionFactory</H2>
+
+<H3>public DuplexConnecion* MakeConnection(const char* const pConnectionString)</H3>
+<P>
+
+   Parses the connection string to determine what type of connection object should be instantiated,
+and creates the appropriate connection using MakeSerial, or MakeTelent member functions.
+
+Returns:
+    A DuplexConnection object pointer (reference?).
+
+Throws:
+      ConnectionFactoryException  - If the connection string doesn't match any of the possible
+      connection types.<BR>
+<BR>
+<BR>
+</P>
+
+<H3>public DuplexConnection* MakeSerial(const char* const pConnectionString)</H3>
+<P>
+
+Pure virtual interface specification which creates a connection over a direct serial port.
+
+Returns:
+    Pointer (Reference?) to a DuplexConnection object.
+
+Exceptions:
+     ConnectionFactoryException  - If unable to create the object, or if there's a problem with
+                                                      the connection string.<BR>
+<BR>
+<BR>
+</P>
+
+<H3>public DuplexConnection * MakeTelnet(const char* const  pConnectionString)</H3>
+<P>
+
+Creates a connection via a telnet TCP/IP connection.  This includes initial, minimal
+connection parameter negotiation.  Note this is a pure virtual and only describes an interface.
+
+Returns:
+         Pointer (Reference?) to a DuplexConnection object.
+
+Throws:
+        ConnectionFactoryException if unable to create a connection, or if the connection string
+        is not valid.<BR>
+<BR>
+<BR>
+</P>
+
+<H1><A NAME = "ErrnoException">ErrnoException</A></H1>
+
+<H2>Attribute Table of Class ErrnoException</H2>
+
+<TABLE BORDER>
+<TR>
+<TH>NAME</TH>
+<TH>TYPE</TH>	
+<TH>VISIBILITY</TH>
+<TH>DESCRIPTION</TH>
+</TR>
+
+</TABLE>
+
+<H2>Class operations for ErrnoException</H2>
+
+<H3>protected void InitErrorCode(int nError=0)</H3>
+<P>
+
+  Updates the current value of ErrorCode from errno.  The parameter is ignored.<BR>
+<BR>
+<BR>
+</P>
+
+<H3>protected void InitErrorString(const char* const pErrorString=0)</H3>
+<P>
+
+  Updates the ErrorString from the current value of ErrorCode (copy of errno).  This involves 
+calling strerror() and copying it into the error string.  The parameter is ignored.<BR>
+<BR>
+<BR>
+</P>
+
+<H1><A NAME = "NTException">NTException</A></H1>
+
+<H2>Attribute Table of Class NTException</H2>
+
+<TABLE BORDER>
+<TR>
+<TH>NAME</TH>
+<TH>TYPE</TH>	
+<TH>VISIBILITY</TH>
+<TH>DESCRIPTION</TH>
+</TR>
+<TR>
+<TD>ErrorList[]</TD>
+<TD>char*</TD>	
+<TD>private</TD>
+<TD>List of error strings associated with NT error codes... Note that this is a large array and doesn't
+to my understanding exist in NT software somewhere (arrrghh).</TD>
+</TR>
+</TABLE>
+
+<H2>Class operations for NTException</H2>
+
+<H3>protected void InitErrorCode(int nError=0)</H3>
+<P>
+
+  Sets the current error code value with the value returned from the NT GetLastError()
+function.   The Error parameter is ignored.<BR>
+<BR>
+<BR>
+</P>
+
+<H3>protected void InitErrorString(const char* const pErrorString=0)</H3>
+<P>
+
+  Updates the ErrorString variable to reflect the current value of the ErrorCode.  This function does
+not pay any attention to the parameter.  The Error string is fetched from the ErrorList static class 
+scoped array.  The copy is protected as is attempts to invoke this when ErrorCode does not have
+a corresponding string array element.<BR>
+<BR>
+<BR>
+</P>
+
+<H1><A NAME = "WinsockException">WinsockException</A></H1>
+
+<H2>Attribute Table of Class WinsockException</H2>
+
+<TABLE BORDER>
+<TR>
+<TH>NAME</TH>
+<TH>TYPE</TH>	
+<TH>VISIBILITY</TH>
+<TH>DESCRIPTION</TH>
+</TR>
+<TR>
+<TD>ErrorList[]</TD>
+<TD>char*</TD>	
+<TD>private</TD>
+<TD>List of text strings describing possible socket errors.  As far as I know, this list does not exist within NT other than as comments in header files (arrrggghh).</TD>
+</TR>
+</TABLE>
+
+<H2>Class operations for WinsockException</H2>
+
+<H3>protected void InitErrorCode(int nError=0)</H3>
+<P>
+
+  Ignores the parameter and calls WSAGetLastError , using the return value to update the
+current value of the ErrorCode member variable.<BR>
+<BR>
+<BR>
+</P>
+
+<H3>protected void InitErrorString(const char* const pError=0)</H3>
+<P>
+
+  Looks up the error string associated with ErrorCode in the ErrorList[] and transfers as much of it
+as will fit into the ErrorString member variable.  The input paramter is ignored.<BR>
+<BR>
+<BR>
+</P>
+
+<H1><A NAME = "SCC1600">SCC1600</A></H1>
+
+<H2>Attribute Table of Class SCC1600</H2>
+
+<TABLE BORDER>
+<TR>
+<TH>NAME</TH>
+<TH>TYPE</TH>	
+<TH>VISIBILITY</TH>
+<TH>DESCRIPTION</TH>
+</TR>
+<TR>
+<TD>nPromptTimeout</TD>
+<TD>unsigned</TD>	
+<TD>private</TD>
+<TD>Number of milliseconds to wait for a prompt after a prompt request.</TD>
+</TR>
+</TABLE>
+
+<H2>Class operations for SCC1600</H2>
+
+<H3>public void Load(istream& LoadFile, ostream* LogFile=0)</H3>
+<P>
+
+Loads an S-record file into the SCC1600 using the debug monitor LM command.
+<BR>
+
+Exceptions generated directly by this can be due to the following circumstances:
+1. Not at debugger prompt initially.
+2. Not at debugger prompt finally.
+3. Problem seen in the load process (this is detected by the SCC sending a message
+    string with a leading '?' character.
+<BR>
+<BR>
+</P>
+
+<H3>public void GetPrompt(ostream& log, unsigned nRetries, char cPromptRequest, char cPrompt)</H3>
+<P>
+
+Attempt to return the SCC1600 to a known prompting state.<BR>
+
+Exceptions which can be directly thrown are due to:
+1. Inability to detect a prompt after the retry count is exhausted.
+<BR>
+<BR>
+</P>
+
+<H3>public void SendString(char* pString)</H3>
+<P>
+
+Sends a character string to the SCC1600.  To get any echo, the caller will need to 
+either call Drain or get the characters.<BR>
+<BR>
+<BR>
+</P>
+
+<H3>public void SendCharacter(char c)</H3>
+<P>
+
+Sends a single character to the SCC 1600  To get any echo, the caller must call GetCharacter.<BR>
+<BR>
+<BR>
+</P>
+
+<H3>public int GetCharacter(char& c, unsigned long nTimeout=0)</H3>
+<P>
+
+If a character becomes available within the timeout period, it is retrieved and returned.
+The following timeouts have special meaning:
+0           - Poll.
+0xffffffff  - No timeout (Wait until character is ready by god).
+<BR>
+
+Return Values Include:
+     1                    - A character was received.
+     0                    - No characters were received within the timeout.
+
+Note that the timeout is expressed in milliseconds.<BR>
+<BR>
+</P>
+
+<H3>public int GetString(char* pBuffer, unsigned  nSize, unsigned nTimeout=0)</H3>
+<P>
+
+Gets a character string of data.  At most nSize characters are read.  The pString buffer should be 
+large enough to handle this 'load'.   If any single character read requires more than nTimeout 
+milliseconds to complete, the function returns the set of characters returned so far.
+Special values of nTimeout are:
+
+0            - Poll.
+0xffffffff  - Infinite wait... until the entire string is filled.<BR>
+<BR>
+<BR>
+</P>
+
+<H1><A NAME = "SCC1600Exception">SCC1600Exception</A></H1>
+
+<H2>Attribute Table of Class SCC1600Exception</H2>
+
+<TABLE BORDER>
+<TR>
+<TH>NAME</TH>
+<TH>TYPE</TH>	
+<TH>VISIBILITY</TH>
+<TH>DESCRIPTION</TH>
+</TR>
+<TR>
+<TD>ErrorList[]</TD>
+<TD>char*</TD>	
+<TD>private</TD>
+<TD>  List of error texts associated with possible values of the ErrorCode instance member.</TD>
+</TR>
+</TABLE>
+
+<H2>Class operations for SCC1600Exception</H2>
+
+<H3>protected void InitErrorString(const char* const pError=0)</H3>
+<P>
+
+Looks up the error string associated with ErrorCode in the ErrorList[] array, and copies it into
+the current ErrorString member.  This function ignores its parameters.<BR>
+<BR>
+<BR>
+</P>
+
+<H1><A NAME = "UnixSerialConnection">UnixSerialConnection</A></H1>
+
+<H2>Attribute Table of Class UnixSerialConnection</H2>
+
+<TABLE BORDER>
+<TR>
+<TH>NAME</TH>
+<TH>TYPE</TH>	
+<TH>VISIBILITY</TH>
+<TH>DESCRIPTION</TH>
+</TR>
+<TR>
+<TD>int fileid</TD>
+<TD>int</TD>	
+<TD>private</TD>
+<TD>File identifier opened on the serial port.</TD>
+</TR>
+</TABLE>
+
+<H2>Class operations for UnixSerialConnection</H2>
+
+<H3>protected void InitializeConnection(const char* const pConnectionString)</H3>
+<P>
+
+  The connection is 'negotiated' with the peer.  In this case, the conneciton string is read to 
+determine which device special file to open, and how set the terminal characteristics for that 
+device.
+  The connection string for a terminal is of the form:
+
+"/dev/special:parametername=parameter_value:...",
+
+that is the parameter name followed by a colon separated list of paramtername = parameter value 
+pairs.<BR>
+   
+  Paramter names and their default values are:
+
+Parameter                                Parameter
+Name                                       Default value
+baudrate                                  9600
+parity                                        none   (Can be one of { none | even | odd }).
+bits                                           8
+stopbits                                    1
+
+<BR>
+<BR>
+</P>
+
+<H3>public int WaitCharacter(unsigned long nTimeout)</H3>
+<P>
+
+Allows the calller to wait for input to be ready on the connection. 
+The wait is for on the order of nTimeout milliseconds, subject to the granularities of the timings
+of the underlying operating system.   
+Special values of nTimeout include:
+       0                      - poll.
+      0xffffffff             - Indefinite wait.
+
+
+Returns:
+      -1      - Data is availalbe
+       0      - No data within timeout.<BR>
+<BR>
+<BR>
+</P>
+
+<H3>public char  GetCharacter()</H3>
+<P>
+
+  This interface allows the caller to get a single character from the peer.  Note that this function
+will block until data is available.  Therefore, if non-blocking is desired, the client should consider
+first calling WaitCharacter().
+
+Returns:
+   The character recieved.<BR>
+<BR>
+<BR>
+</P>
+
+<H3>public void PutCharacter(char c)</H3>
+<P>
+
+  Writes a character (c) to the peer.  If necessary, the caller will block until all data is transferred.
+<BR>
+<BR>
+<BR>
+</P>
+
+<H3>public void PutString(const char* const pString)</H3>
+<P>
+
+Puts a null terminated string of characters to the peer.  If
+necessary, the caller will block until the output is complete.  <BR>
+<BR>
+<BR>
+</P>
+
+<H3>public ostream& Drain(ostream* pLog=0)</H3>
+<P>
+
+  Drains the connection to the specified stream.   In this case to drain means that data is read
+from the connection to pOutput until a poll of characters would result in a timeout.  Optionally, the 
+connection may wait for some short time for characters (intended for direct serial connections).
+   If pOutput is null, then the LogString strostream is used as the member output stream.
+   This base class implementation will simply determine which ostream to use and return it.
+Therefore user code to implement this function can just look like:
+
+ostream& log = DuplexConnection::Drain(pOutput); 
+
+   and subsequent code sends drained data to the log stream.
+
+A reference to the actual output stream used is returned (the reason that LogString must be
+a member).  This allows code such as:
+
+Connection.Drain(&cout) << " Characters drained from device " << endl;
+
+<BR>
+<BR>
+<BR>
+</P>
+
+<H1><A NAME = "NTSerialConnection">NTSerialConnection</A></H1>
+
+<H2>Attribute Table of Class NTSerialConnection</H2>
+
+<TABLE BORDER>
+<TR>
+<TH>NAME</TH>
+<TH>TYPE</TH>	
+<TH>VISIBILITY</TH>
+<TH>DESCRIPTION</TH>
+</TR>
+<TR>
+<TD>handle</TD>
+<TD>HFILE</TD>	
+<TD>private</TD>
+<TD>Handle which will be open on the file.</TD>
+</TR>
+</TABLE>
+
+<H2>Class operations for NTSerialConnection</H2>
+
+<H3>protected void InitializeConnection(const char* const pConnectionString)</H3>
+<P>
+
+   This function is called from the constructor and is expected to initialize a connection to the
+peer.  This initialization includes opening whatever connections are required by the underlying 
+operating system as well as performing any initial negotiations with the connected peer to enable
+data to flow between host and peer.
+   The connection string is of the form:
+
+DEVICE:parameter=parameter_value:...
+
+That is the physical device (e.g. COM1) followed by a colon separated list of connection parameters
+<BR>
+
+  The parameters and their defaults are shown in the table below:
+
+Parameter                                Parameter
+Name                                       Default value
+baudrate                                  9600
+parity                                        none   (Can be one of { none | even | odd }).
+bits                                           8
+stopbits                                    1
+<BR>
+<BR>
+</P>
+
+<H3>public int WaitCharacter(unsigned long nTimeout)</H3>
+<P>
+
+  Defines an interface which allows the calller to wait for input to be ready on the connection. 
+The wait is for on the order of nTimeout milliseconds, subject to the granularities of the timings
+of the underlying operating system.   
+Special values of nTimeout include:
+       0                      - poll.
+      0xffffffff             - Indefinite wait.
+
+
+Returns:
+      -1      - Data is availalbe
+       0      - No data within timeout.<BR>
+<BR>
+<BR>
+</P>
+
+<H3>public char  GetCharacter()</H3>
+<P>
+
+  This interface allows the caller to get a single character from the peer.  Note that this function
+will block until data is available.  Therefore, if non-blocking is desired, the client should consider
+first calling WaitCharacter().
+
+Returns:
+   The character recieved.<BR>
+<BR>
+<BR>
+</P>
+
+<H3>public void PutCharacter(char c)</H3>
+<P>
+
+  Writes a character (c) to the peer.  If necessary, the caller will block until all data is transferred.
+<BR>
+<BR>
+<BR>
+</P>
+
+<H3>public void PutString(const char* const pString)</H3>
+<P>
+
+   This interface allows the client to put a null terminated string of characters to the peer.  If
+necessary, the caller will block until the output is complete.  <BR>
+<BR>
+<BR>
+</P>
+
+<H3>public ostream& Drain(ostream* pLog=0)</H3>
+<P>
+
+  Drains the connection to the specified stream.   In this case to drain means that data is read
+from the connection to pOutput until a poll of characters would result in a timeout.  Optionally, the 
+connection may wait for some short time for characters (intended for direct serial connections).
+   If pOutput is null, then the LogString strostream is used as the member output stream.
+   This base class implementation will simply determine which ostream to use and return it.
+Therefore user code to implement this function can just look like:
+
+ostream& log = DuplexConnection::Drain(pOutput); 
+
+   and subsequent code sends drained data to the log stream.
+
+A reference to the actual output stream used is returned (the reason that LogString must be
+a member), allowing code like:
+
+Object.Drain(&cout) << "\nDrained from connection\n";
+<BR>
+<BR>
+<BR>
+</P>
+
+<H1><A NAME = "UnixConnectionFactory">UnixConnectionFactory</A></H1>
+
+<H2>Attribute Table of Class UnixConnectionFactory</H2>
+
+<TABLE BORDER>
+<TR>
+<TH>NAME</TH>
+<TH>TYPE</TH>	
+<TH>VISIBILITY</TH>
+<TH>DESCRIPTION</TH>
+</TR>
+
+</TABLE>
+
+<H2>Class operations for UnixConnectionFactory</H2>
+
+<H3>public DuplexConnection* MakeSerial(const char* const pConnectionString)</H3>
+<P>
+
+Creates a connection over a direct serial port.  See the documentation for the InitializeConnection 
+member function of the UnixSerialConnection or NTSerialConnection for an explanation of the
+syntax and semantics of the connection string.
+
+Returns:
+    Pointer (Reference?) to a DuplexConnection object.
+
+Exceptions:
+     ConnectionFactoryException  - If unable to create the object, or if there's a problem with
+                                                      the connection string.<BR>
+<BR>
+<BR>
+</P>
+
+<H3>public DuplexConnection * MakeTelnet(const char* const  pConnectionString)</H3>
+<P>
+
+Creates a connection via a telnet TCP/IP connection.  This includes initial, minimal
+connection parameter negotiation.  See the TelnetConnection class for information about the 
+syntax and semantics of the connection string..
+
+Returns:
+         Pointer (Reference?) to a DuplexConnection object.
+
+Throws:
+        ConnectionFactoryException if unable to create a connection, or if the connection string
+        is not valid.<BR>
+<BR>
+<BR>
+</P>
+
+<H1><A NAME = "NTConnectionFactory">NTConnectionFactory</A></H1>
+
+<H2>Attribute Table of Class NTConnectionFactory</H2>
+
+<TABLE BORDER>
+<TR>
+<TH>NAME</TH>
+<TH>TYPE</TH>	
+<TH>VISIBILITY</TH>
+<TH>DESCRIPTION</TH>
+</TR>
+<TR>
+<TD>WinSockAlive</TD>
+<TD>int</TD>	
+<TD>private</TD>
+<TD>TRUE if the Winsock stack has already been initialized, and FALSE otherwise.  In NT, the application must initialize access to the Wiinsock library.  This static member function indicates if this has already been done.  WSA Initialization will be done by the constructor of this class.  Staticness ensures only one initialization will be performed.</TD>
+</TR>
+</TABLE>
+
+<H2>Class operations for NTConnectionFactory</H2>
+
+<H3>public DuplexConnection* MakeSerial(const char* const pConnectionString)</H3>
+<P>
+
+Creates a connection over a direct serial port.
+
+Returns:
+    Pointer (Reference?) to a DuplexConnection object.
+
+Exceptions:
+     ConnectionFactoryException  - If unable to create the object, or if there's a problem with
+                                                      the connection string.<BR>
+<BR>
+<BR>
+</P>
+
+<H3>public DuplexConnection * MakeTelnet(const char* const  pConnectionString)</H3>
+<P>
+
+Creates a connection via a telnet TCP/IP connection.  This includes initial, minimal
+connection parameter negotiation.  
+
+Returns:
+         Pointer (Reference?) to a DuplexConnection object.
+
+Throws:
+        ConnectionFactoryException if unable to create a connection, or if the connection string
+        is not valid.<BR>
+<BR>
+<BR>
+</P>
+
+<H3>protected void InitializeWinsock()</H3>
+<P>
+
+Initializes the winsock protocol stack., and sets WinSockAlive to TRUE.
+
+Throws:
+    ConnectionFactoryException if not able to init winsock.
+    <BR>
+<BR>
+<BR>
+</P>
+
+<H1><A NAME = "NSCLException">NSCLException</A></H1>
+
+<H2>Attribute Table of Class NSCLException</H2>
+
+<TABLE BORDER>
+<TR>
+<TH>NAME</TH>
+<TH>TYPE</TH>	
+<TH>VISIBILITY</TH>
+<TH>DESCRIPTION</TH>
+</TR>
+<TR>
+<TD>ErrorCode</TD>
+<TD>int</TD>	
+<TD>protected</TD>
+<TD>   A facility specific error code.  Note that in general the value of this error code can only be interpreted in the context of knowning the actual class type.  For example, some error codes may be UNIX errno values which may collide with possible error codes produced by e.g. the class loader.
+   Design Question:
+     In VMS, the error code is a longword with several fields including:
+           Severity            - How bad the error is.
+           Value                - What happened.
+           Facility              - Context within which it happened (needed to interpret the value).
+
+  Should we adopt this?  It's possibly practical if the value is in the bottom bits, and severities of 0 mean
+fatal, and facility of 0 mean Operating System. 
+Plusses:
+  Facility registration/allocation can ensure that error codes can always be unambiguously interpreted
+  regardless of what sorts of type casting games have been done on the enclosing exception object.
+Minusses:
+   May have to play some mapping games in NT where WSA exceptions are also simple integers and
+  would need to have a facility field inserted, and NT errors are modelled closely after VMS errors
+  (severity fields etc).
+</TD>
+</TR>
+<TR>
+<TD>ErrorString</TD>
+<TD>ExceptionString</TD>	
+<TD>protected</TD>
+<TD>A fixed length character string which can be used to hold the error text associated with the ErrorCode member. </TD>
+</TR>
+<TR>
+<TD>ContextString</TD>
+<TD>ExceptionString</TD>	
+<TD>protected</TD>
+<TD>Contains a fixed length context string which indicates where in the program the exception was thrown.  This can be used by the thrower to provide additional information about the error.</TD>
+</TR>
+</TABLE>
+
+<H2>Class operations for NSCLException</H2>
+
+<H3>public int GetErrorCode()</H3>
+<P>
+
+   Returns the value of the ErrorCode member.  This value describes the error within the context
+of the actual type of the exception.  An appropriately 'detailed' exception catch block can use this
+information to select an appropriate error recovery procedure.<BR>
+<BR>
+<BR>
+</P>
+
+<H3>public const ExceptionString& GetErrorString()</H3>
+<P>
+
+  Returns the current value of the ErrorString attribute.  The error string attribute describes in
+human readable terms what condition the exception represents.  It can be used to construct an
+appropriate error message to an output device.  Note that the ErrorMessage function constructs 
+an error string in a standard form, and could be used to get full error information.<BR>
+<BR>
+<BR>
+</P>
+
+<H3>public const ExceptionString& GetContextString()</H3>
+<P>
+
+  Returns the current Context string value.  The context string provides information about where
+in the program the exception was thrown as well as additional information about the condition
+which led to the throw.  It can be used to construct human readable error messages.  Note that
+the ErrorMessage function will construct an error reporting string in a standard format, and can be 
+used rather than piecemeal obtaining information from GetErrorCode, GetErrorString and
+GetContextString.<BR>
+<BR>
+<BR>
+</P>
+
+<H3>public char* ErrorMessage(char* pStringBuffer, unsigned nSize)</H3>
+<P>
+
+  Constructs an error string in standard format into the user's buffer.  Note that if the user's buffer is 
+too small, the string will be truncated.  The string will include the ErrorString, the ContextString,
+and the error code with appropriate window dressing to tie these elements together in a readable
+manner.
+
+Returns:
+   A pointer to the constructed stream (same as input pointer in fact).<BR>
+<BR>
+<BR>
+</P>
+
+<H3>public ostream& ErrorMessage(ostream& ostr)</H3>
+<P>
+
+   Constructs an error string into the output stream supplied.   The error string willl consist of the
+ErrorCode, the ErrorString, and the ContextString tied together with window dressing text which
+creates a human readable error string.
+
+Returns:
+   Reference to the output stream supplied.<BR>
+<BR>
+<BR>
+</P>
+
+<H3>protected void InitErrorCode(int nNewError=0)</H3>
+<P>
+
+  Updates the error code attirbute.  The base class mechanism just copies the provided error 
+value into ErrorCode, while derived classes may use a different mechanism (e.g. fetching errno 
+and storing it instead).<BR>
+<BR>
+<BR>
+</P>
+
+<H3>protected void InitErrorString(const char* const pNewErrorString=0)</H3>
+<P>
+
+  Modifies the current value of the ErrorString attribute.  The base clase default, just copies in
+a newly supplied string unless a NULL Pointer is provided, in which case the string:
+-Unknown Error- is copied in.
+   Subclasses may well have their own mechanisms for getting the error code bsed on e.g. the 
+current value of the ErrorCode attribute.<BR>
+<BR>
+<BR>
+</P>
+
+<H3>protected void InitContextString(const char* const pNewContext=0)</H3>
+<P>
+
+   This function updates the current value of the context string.  The default behavior is to copy 
+the new context string into the ContextString attribute.  While this member may be overridden, 
+typically the default behavior is adequate.
+   If a NULL pointer is supplied, then the string "-Unkown Context-" is used instead.<BR>
+<BR>
+<BR>
+</P>
+
+<H3>public void UpdateException(const char* const pContextString=0, int nErrorCode=0, const char* const pMessageString=0)</H3>
+<P>
+
+   Calls in this order:
+     GetErrorCode, GetErrorString and GetContext string  Parameters all include defaults so that 
+the thrower if appropriate an guide the object in performing the update.  Parameters are ordered in
+'likely order of need'.<BR>
+<BR>
+<BR>
+</P>
+
+<H1><A NAME = "ConnectionFactoryException">ConnectionFactoryException</A></H1>
+
+<H2>Attribute Table of Class ConnectionFactoryException</H2>
+
+<TABLE BORDER>
+<TR>
+<TH>NAME</TH>
+<TH>TYPE</TH>	
+<TH>VISIBILITY</TH>
+<TH>DESCRIPTION</TH>
+</TR>
+<TR>
+<TD>ErrorList[]</TD>
+<TD>char*</TD>	
+<TD>private</TD>
+<TD>An table of error strings corresponding to each error code.</TD>
+</TR>
+</TABLE>
+
+<H2>Class operations for ConnectionFactoryException</H2>
+
+<H3>protected void InitErrorString(const char* const pNewErrorString=0)</H3>
+<P>
+
+   Uses the current ErrorCode value to update the value of the ErrorString member.  A static list of
+error strings (beyond the scope of this model) is used to determine the error string which is 
+associated with the current error code.<BR>
+
+Note the parameters are ignored.<BR>
+<BR>
+</P>
+
+<H1><A NAME = "OSException">OSException</A></H1>
+
+<H2>Attribute Table of Class OSException</H2>
+
+<TABLE BORDER>
+<TR>
+<TH>NAME</TH>
+<TH>TYPE</TH>	
+<TH>VISIBILITY</TH>
+<TH>DESCRIPTION</TH>
+</TR>
+
+</TABLE>
+
+<H2>Class operations for OSException</H2>
+
+<H1><A NAME = "OSExceptionFactory">OSExceptionFactory</A></H1>
+
+<H2>Attribute Table of Class OSExceptionFactory</H2>
+
+<TABLE BORDER>
+<TR>
+<TH>NAME</TH>
+<TH>TYPE</TH>	
+<TH>VISIBILITY</TH>
+<TH>DESCRIPTION</TH>
+</TR>
+<TR>
+<TD>Initialized</TD>
+<TD>int</TD>	
+<TD>private</TD>
+<TD>  When this is nonzero, an ActualFactory has already been constructed.  This is needed to avoid
+recursion loops which otherwise would occur when the Actual factory is constructed and attempts to 
+construct the base class.</TD>
+</TR>
+</TABLE>
+
+<H2>Class operations for OSExceptionFactory</H2>
+
+<H3>public OSException& CreateBaseSystemException()</H3>
+<P>
+
+Creates an instance of a BaseSystemException.  In order to deal with cases where the reason the 
+exception is being created is that memory is exhausted, the creational actually simply updates the
+state of  an existing statically created OSException derived object and passses back a reference
+to this object..  The present implementation does not allow several active OSExceptions to run 
+simultaneously... Adding a virtual clone() member to OSException would remove that restriction,
+however that would require dynamic memory use.<BR>
+<BR>
+<BR>
+</P>
+
+<H3>public OSException& CreateSocketException()</H3>
+<P>
+
+Constructs an instance of an OSException derived object. 
+The exception describes a socket communications error.
+ Which class the object belongs to is
+determined by the ActualFactory member to whom this operation is delegated.  Note that since 
+the exception may be required to deal with a lack of memory situation, in fact the instance is 
+pre-existing, and updated.  A reference is then returned.  This design restricts the user to one
+active exception of that type at a time.  While this restriction could be lifted by adding a virtual
+clone() member to the OSException class tree,  that would require dynamic memory use.<BR>
+<BR>
+<BR>
+</P>
+
+<H3>public OSException& CreateIOException()</H3>
+<P>
+This function creates an exception derived from OSException suitable for describing I/O library
+errors in e.g. write().  The actual type of the object returned is determined by the ActualFactory to
+which this operation is delegated.  In fact, a reference to a pre-existing static exception is returned
+after updating that exception.  This eliminates the use of dynamic memory, the lack of which may
+be responsible for the exception in the first place.  This fact limits clients to one active exception of 
+type OSException at any given time.  This restriction could be removed by adding a clone() virtual
+member function in OSException, however this would require dynamic memory use.<BR>
+<BR>
+<BR>
+</P>
+
+<H1><A NAME = "UNIXExceptionFactory">UNIXExceptionFactory</A></H1>
+
+<H2>Attribute Table of Class UNIXExceptionFactory</H2>
+
+<TABLE BORDER>
+<TR>
+<TH>NAME</TH>
+<TH>TYPE</TH>	
+<TH>VISIBILITY</TH>
+<TH>DESCRIPTION</TH>
+</TR>
+
+</TABLE>
+
+<H2>Class operations for UNIXExceptionFactory</H2>
+
+<H3>public OSException& CreateBaseSystemException()</H3>
+<P>
+
+Returns a reference to what is actuallly an ErrnoException object.  The exception is statically 
+allocated and is updated to represent the current state of the errno.<BR>
+<BR>
+<BR>
+</P>
+
+<H3>public OSException& CreateSocketException()</H3>
+<P>
+
+Returns a reference to a staticallly allocated ErrnoException.  The exception is first updated to 
+reflect the current state of the errno global.<BR>
+<BR>
+<BR>
+</P>
+
+<H3>public OSException& CreateIOException()</H3>
+<P>
+
+Returns a reference to a statically allocated ErrnoException.  The exception is updated to
+reflect the current state of the errno global.<BR>
+<BR>
+<BR>
+</P>
+
+<H1><A NAME = "NTExceptionFactory">NTExceptionFactory</A></H1>
+
+<H2>Attribute Table of Class NTExceptionFactory</H2>
+
+<TABLE BORDER>
+<TR>
+<TH>NAME</TH>
+<TH>TYPE</TH>	
+<TH>VISIBILITY</TH>
+<TH>DESCRIPTION</TH>
+</TR>
+
+</TABLE>
+
+<H2>Class operations for NTExceptionFactory</H2>
+
+<H3>public OSException& CreateBaseSystemException()</H3>
+<P>
+
+Returns a reference to a statically allocated NTException  The exception is updated to reflect the
+most recent error state.<BR>
+<BR>
+<BR>
+</P>
+
+<H3>public OSException& CreateSocketException()</H3>
+<P>
+
+Returns a reference to a statically allocated WinsockException object.  The object is updated to
+reflect the most recent winsock status.<BR>
+<BR>
+<BR>
+</P>
+
+<H3>public OSException& CreateIOException()</H3>
+<P>
+
+Returns a reference to a staticallly allocated ErrnoException .  The exception is updated to reflect
+the most recent value of the global errno.<BR>
+<BR>
+<BR>
+</P>
+
+</BODY>
+</HTML>

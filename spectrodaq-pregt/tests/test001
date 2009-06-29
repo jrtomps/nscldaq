@@ -1,0 +1,89 @@
+#!/bin/bash
+
+PATH=/bin:/usr/bin:/usr/local/bin:/usr/opt/spectrodaq-pregt/bin
+export PATH
+
+if [ -z "$1" ]; then
+  LOOPS=1000
+else
+  LOOPS=$1
+fi
+
+#-----------------------------------------------------------------------
+TESTN="001"
+TESTDSC="Release Buffer Pointer"
+TOPDIR="/scratch/fox/spectrodaq/spectrodaq-pregt"
+TESTDIR="$TOPDIR/tests"
+TOOLDIR="$TOPDIR/tools"
+OUTFN="/tmp/test$TESTN.$$"
+PROG="test$TESTN""_prog"
+
+TESTFAILED=0
+. $TESTDIR/TESTfunclib
+
+#-----------------------------------------------------------------------
+SIGOK="used=0 work=0 tused=0 tdel=0"
+
+#-----------------------------------------------------------------------
+function getsignature() {
+ $TOOLDIR/tsstat | grep DAQLinkThreadMgr | awk -F'(' '{print $2}' | awk -F',' '{print $1,$2,$4,$5}'
+}
+
+#-----------------------------------------------------------------------
+function testsignature() {
+  if [ "$*" == "$SIGOK" ]; then
+    echo "0"
+  else
+    echo "1"
+  fi 
+}
+
+#-----------------------------------------------------------------------
+rm -f $OUTFN
+touch $OUTFN
+
+println $OUTFN "STAT: Starting test $TESTN \"$TESTDSC\"" 
+println $OUTFN "STAT: Using output file \"$OUTFN\""
+
+SIG=`getsignature`
+TSIG=`testsignature "$SIG"`
+
+if [ "$TSIG" != "0" ]; then
+  println $OUTFN "ERROR: Starting signature \"$SIG\" != \"$SIGOK\""
+  println $OUTFN "FAIL: Test $TESTN failed" 
+  println $OUTFN "FAIL: See file \"$OUTFN\" for details"
+  exit 1
+fi
+
+println $OUTFN "INFO: Starting signature is \"$SIG\""
+
+START=`getseconds`
+($TESTDIR/$PROG $LOOPS 2>&1 | teeout $OUTFN)&
+
+SPID=`readywait $OUTFN`
+STOP=`getseconds`
+
+if [ "$SPID" != "FAIL" ]; then 
+  # Sleep to let the server quiesce
+  sleep 90s
+
+  SIG=`getsignature`
+  TSIG=`testsignature $SIG`
+
+  println $OUTFN "INFO: Sending signal to $SPID"
+  ps $SPID 2>&1 >> $OUTFN
+  kill -TERM $SPID 2>&1 >> $OUTFN
+
+  if [ "$TSIG" != "0" ]; then
+    println $OUTFN "ERROR: Completion signature \"$SIG\" != \"$SIGOK\""
+    println $OUTFN "FAIL: Test $TESTN failed" 
+    println $OUTFN "FAIL: See file \"$OUTFN\" for details"
+    exit 1
+  fi
+fi
+
+TIMESTR=`timestats $START $STOP`
+println $OUTFN "STAT: Test ran for $TIMESTR"
+printfinalstat $OUTFN $TESTN
+
+exit 0 

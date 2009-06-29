@@ -1,0 +1,20 @@
+include ../config.make
+
+FILES = Makefile daqbuffer.cc bufferrecv.cc buffersend.cc
+
+all: 
+
+prog:: 
+
+include::
+
+lib::
+
+install: include lib prog
+	$(DIRINST) $(INST_EXMPDIR)
+	$(INSTALL) $(FILES) $(INST_EXMPDIR)
+
+clean::
+
+realclean: clean
+	rm -f Makefile
