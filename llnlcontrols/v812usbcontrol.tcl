@@ -177,14 +177,15 @@ proc updateDevice sock {
 	if {$item eq "mask"} {
 	    set item inhibits
 	}
-
-	puts $sock "Set $::name $item $value"
-	flush $sock
-	set result [gets $sock]
-
-	if {[string range $result 0 4] eq "ERROR"} {
-	    tk_messageBox -icon error -title "Comm error" -type ok \
-		-message "Got an error from the device:\n $result \n Click OK to continue"
+	if {$item ne "deadtime"} {
+	    puts $sock "Set $::name $item $value"
+	    flush $sock
+	    set result [gets $sock]
+	    
+	    if {[string range $result 0 4] eq "ERROR"} {
+		tk_messageBox -icon error -title "Comm error" -type ok \
+		    -message "Got an error from the device:\n $result \n Click OK to continue"
+	    }
 	}
     }
     
