@@ -12,7 +12,7 @@ fi
 #-----------------------------------------------------------------------
 TESTN="010"
 TESTDSC="Time Operations"
-TOPDIR="/scratch/fox/spectrodaq/spectrodaq-pregt"
+TOPDIR="/scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt"
 TESTDIR="$TOPDIR/tests"
 TOOLDIR="$TOPDIR/tools"
 OUTFN="/tmp/test$TESTN.$$"

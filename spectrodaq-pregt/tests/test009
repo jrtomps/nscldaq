@@ -12,7 +12,7 @@ fi
 #-----------------------------------------------------------------------
 TESTN="009"
 TESTDSC="Send/Receive(n) no data"
-TOPDIR="/scratch/fox/spectrodaq/spectrodaq-pregt"
+TOPDIR="/scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt"
 TESTDIR="$TOPDIR/tests"
 TOOLDIR="$TOPDIR/tools"
 OUTFNR1="/tmp/test$TESTN""r1.$$"

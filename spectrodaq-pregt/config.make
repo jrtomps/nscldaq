@@ -2,6 +2,7 @@ SHELL = /bin/sh -e
 
 srcdir = .
 
+
 prefix = /usr/opt/spectrodaq-pregt
 exec_prefix = ${prefix}
 
@@ -13,37 +14,37 @@ sysconfdir = ${prefix}/etc
 sharedstatedir = ${prefix}/com
 localstatedir = ${prefix}/var
 libdir = ${exec_prefix}/lib
-infodir = ${prefix}/info
-mandir = ${prefix}/man
+infodir = ${prefix}/share/info
+mandir = ${prefix}/share/man
 includedir = ${prefix}/include
 threadlibs = -lpthread
 cryptlibs = -lcrypt
 gtk_libs = 
 gtk_cflags = 
 
-TOPDIR=/scratch/fox/spectrodaq/spectrodaq-pregt
+TOPDIR=/scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt
 THREADLIBS=-lpthread
 CRYPTLIBS=-lcrypt
 NSCL_CODE=/usr/opt/spectrodaq-pregt
 NSCL_CODE_INC=/usr/opt/spectrodaq-pregt/include/nscl
 NSCL_CODE_LIB=/usr/opt/spectrodaq-pregt/lib/libNSCLException.a
 
-DAQLIB=/scratch/fox/spectrodaq/spectrodaq-pregt/src/lib/libspectrodaq.a
-MPILIB=/scratch/fox/spectrodaq/spectrodaq-pregt/src/lib/libnsclmpi.a
-NETIOLIB=/scratch/fox/spectrodaq/spectrodaq-pregt/src/lib/libnetio.a
-DAQTHREADSLIB=/scratch/fox/spectrodaq/spectrodaq-pregt/src/lib/libdaqthreads.a
-CLIENTLIB=/scratch/fox/spectrodaq/spectrodaq-pregt/src/lib/libdaqclient.a
-SERVLIB=/scratch/fox/spectrodaq/spectrodaq-pregt/src/lib/libdaqserv.a
-NSCLLIB=/scratch/fox/spectrodaq/spectrodaq-pregt/src/lib/libNSCLException.a
-XMLOOPLIB=/scratch/fox/spectrodaq/spectrodaq-pregt/src/lib/libxmloop.a
-XMLPARSELIB=/scratch/fox/spectrodaq/spectrodaq-pregt/src/lib/libxmlparse.a
-XMLTOKLIB=/scratch/fox/spectrodaq/spectrodaq-pregt/src/lib/libxmltok.a
-DAQINCDIR=/scratch/fox/spectrodaq/spectrodaq-pregt/src/include/
-NSCLINCDIR=/scratch/fox/spectrodaq/spectrodaq-pregt/src/include/nscl
-MPIINCDIR=/scratch/fox/spectrodaq/spectrodaq-pregt/src/include/mpi
-NETIOINCDIR=/scratch/fox/spectrodaq/spectrodaq-pregt/src/include/netio
-DAQTHREADSINCDIR=/scratch/fox/spectrodaq/spectrodaq-pregt/src/include/threads
-XMLINCDIR=/scratch/fox/spectrodaq/spectrodaq-pregt/src/include/xmloop
+DAQLIB=/scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/lib/libspectrodaq.a
+MPILIB=/scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/lib/libnsclmpi.a
+NETIOLIB=/scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/lib/libnetio.a
+DAQTHREADSLIB=/scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/lib/libdaqthreads.a
+CLIENTLIB=/scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/lib/libdaqclient.a
+SERVLIB=/scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/lib/libdaqserv.a
+NSCLLIB=/scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/lib/libNSCLException.a
+XMLOOPLIB=/scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/lib/libxmloop.a
+XMLPARSELIB=/scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/lib/libxmlparse.a
+XMLTOKLIB=/scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/lib/libxmltok.a
+DAQINCDIR=/scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/
+NSCLINCDIR=/scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/nscl
+MPIINCDIR=/scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/mpi
+NETIOINCDIR=/scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/netio
+DAQTHREADSINCDIR=/scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/threads
+XMLINCDIR=/scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/xmloop
 
 XMLLIBS=$(XMLOOPLIB) $(XMLPARSELIB) $(XMLTOKLIB)
 
@@ -76,12 +77,12 @@ FLAGS= -g -O2 -D_REENTRANT=1 -I$(DAQINCDIR) -I$(NSCLINCDIR) -I$(XMLINCDIR)
 CFLAGS= -g -O2 -D_REENTRANT=1 -I$(DAQINCDIR) -I$(NSCLINCDIR) -I$(XMLINCDIR)
 CXXFLAGS= -g -O2 -D_REENTRANT=1 -I$(DAQINCDIR) -I$(NSCLINCDIR) -I$(XMLINCDIR)
 COMPILER_VERSION=
-CC=/usr/bin/g++-3.3
-CXX=/usr/bin/g++-3.3
+CC=g++
+CXX=g++
 RANLIB=ranlib
 AR=ar rs
 CP=cp -f
-MAKEDEP=makedepend -f .depend 
+MAKEDEP=: 
 TOUCH=touch
 BININST=install -m 0755
 DIRINST=install -d -m 0755
@@ -93,16 +94,13 @@ LIBS=$(NSCLLIB)
 LDFLAGS=$(NSCLLIB)
 
 %.o: %.cpp
-	@echo "Compiling 3.3.6: $<"
-	@$(CXX) -c $(CXXFLAGS) $(CPPFLAGS) -o $@ $<
+	$(CXX) -c $(CXXFLAGS) $(CPPFLAGS) -o $@ $<
 
 %.o: %.cc
-	@echo "Compiling 3.3.6: $<"
-	@$(CXX) -c $(CXXFLAGS) $(CPPFLAGS) -o $@ $<
+	$(CXX) -c $(CXXFLAGS) $(CPPFLAGS) -o $@ $<
 
 %.o: %.c
-	@echo "Compiling 3.3.6: $<"
-	@$(CXX) -c $(CXXFLAGS) $(CPPFLAGS) -o $@ $<
+	$(CXX) -c $(CXXFLAGS) $(CPPFLAGS) -o $@ $<
 
 O_FILES=$(addsuffix .o,$(FILES))
 C_FILES=$(addsuffix .cc,$(FILES))
@@ -112,7 +110,7 @@ build: all
 depend::
 	@echo "Creating Dependencies in: $(shell pwd)"
 	@:> .depend
-	@$(MAKEDEP) -- $(CFLAGS) -- $(C_FILES) 1>/dev/null 2>&1
+	$(MAKEDEP) -- $(CFLAGS) -- $(C_FILES) 1>/dev/null 2>&1
 ifneq (,$(strip $(SUB_DIRS)))
 	for i in $(SUB_DIRS); do \
           echo "Making $@ in $$i..."; \

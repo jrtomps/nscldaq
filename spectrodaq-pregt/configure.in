@@ -130,31 +130,6 @@ CPP_STR_VERSION=`$CXXCPP $COMPILER_VERSION -dumpversion`
 AC_DEFINE_UNQUOTED(CPP_STR_VERSION,"$CPP_STR_VERSION")
 AC_SUBST(CPP_STR_VERSION)
 
-dnl Check if c++ version is ok
-CXXVEROK="no"
-AC_GXX_VERSION_CHECK($CXX_STR_VERSION)
-if test "x$CXXVEROK" != "xyes" -a "x$force_build" != "xyes"; then
-  AC_MSG_ERROR([
-***********************************************************************
-*** compilation of this program has only been tested for g++ versions:
-***   $GXX_TESTED_VERSIONS
-*** Please check that you are using a tested version of g++.  
-*** Force using --enable-force-build.
-***********************************************************************])
-fi
-
-dnl Check if cpp version is ok
-CPPVEROK="no"
-AC_CPP_VERSION_CHECK($CPP_STR_VERSION)
-if test "x$CPPVEROK" != "xyes" -a "x$force_build" != "xyes"; then
-  AC_MSG_ERROR([
-***********************************************************************
-*** compilation of this program has only been tested for cpp versions:
-***   $GXX_TESTED_VERSIONS
-*** Please check that you are using a tested version of GNU cpp.  
-*** Force using --enable-force-build.
-***********************************************************************])
-fi
 
 dnl Checks for compiler/system peculiarities
 AC_CHECK_SIZEOF(int)

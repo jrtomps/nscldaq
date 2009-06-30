@@ -12,7 +12,7 @@ fi
 #-----------------------------------------------------------------------
 TESTN="005"
 TESTDSC="Send/Receive Buffer Pointer"
-TOPDIR="/scratch/fox/spectrodaq/spectrodaq-pregt"
+TOPDIR="/scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt"
 TESTDIR="$TOPDIR/tests"
 TOOLDIR="$TOPDIR/tools"
 OUTFNR="/tmp/test$TESTN""r.$$"

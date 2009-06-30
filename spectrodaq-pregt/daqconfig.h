@@ -1,4 +1,4 @@
-/* daqconfig.h.  Generated automatically by configure.  */
+/* daqconfig.h.  Generated from daqconfig.h.in by configure.  */
 /*
 		    GNU GENERAL PUBLIC LICENSE
 		       Version 2, June 1991
@@ -282,10 +282,10 @@ DAMAGES.
 #define __DAQ_CONFIG_H 1
 
 /* Define the SpectroDAQ version */
-#define SPECTRODAQ_VERSION "1.68c-pregt" 
+#define SPECTRODAQ_VERSION "1.68c-pregt"
 
 /* Define the SpectroDAQ client version */
-#define SPECTRODAQ_CLIENT_VERSION "1.68c-pregt" 
+#define SPECTRODAQ_CLIENT_VERSION "1.68c-pregt"
 
 /* Define the SpectroDAQ default config */
 #define SPECTRODAQ_CONFIG "/usr/opt/spectrodaq-pregt/etc/spectrodaq.conf"
@@ -330,7 +330,7 @@ DAMAGES.
 #define HAVE_IPC_H 1
 #define HAVE_SHM_H 1
 #define HAVE_SEM_H 1
-#define HAVE_SHMPARAM_H 1
+/* #undef HAVE_SHMPARAM_H */
 #define HAVE_MALLOC_H 1
 #define HAVE_NETDB_H 1
 #define SYSV_IPC_SHM 1

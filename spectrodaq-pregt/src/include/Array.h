@@ -312,9 +312,11 @@ DAMAGES.
 #include <ArrayAllocator.h> 
 #endif
 
-#ifndef POINTER_H
+
+
 #include <Pointer.h> 
-#endif
+
+
 
 #ifndef POINTERBAG_H
 #include <PointerBag.h> 

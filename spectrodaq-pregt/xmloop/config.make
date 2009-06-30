@@ -2,6 +2,7 @@ SHELL = /bin/sh
 
 srcdir = .
 
+
 prefix = /usr/opt/spectrodaq-pregt
 exec_prefix = ${prefix}
 
@@ -13,19 +14,19 @@ sysconfdir = ${prefix}/etc
 sharedstatedir = ${prefix}/com
 localstatedir = ${prefix}/var
 libdir = ${exec_prefix}/lib
-infodir = ${prefix}/info
-mandir = ${prefix}/man
+infodir = ${prefix}/share/info
+mandir = ${prefix}/share/man
 includedir = ${prefix}/include
 threadlibs = -lpthread
 
-TOPDIR=/scratch/fox/spectrodaq/spectrodaq-pregt
+TOPDIR=/scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt
 THREADLIBS=-lpthread
 
-XMLTOKLIB=/scratch/fox/spectrodaq/spectrodaq-pregt/src/lib/libxmltok.a
-XMLPARSELIB=/scratch/fox/spectrodaq/spectrodaq-pregt/src/lib/libxmlparse.a
-XMLPLIB=/scratch/fox/spectrodaq/spectrodaq-pregt/src/lib/libxmloop.a
-XMLINCDIR=/scratch/fox/spectrodaq/spectrodaq-pregt/src/include/xmloop
-XMLBASEINCDIR=/scratch/fox/spectrodaq/spectrodaq-pregt/src/include
+XMLTOKLIB=/scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/lib/libxmltok.a
+XMLPARSELIB=/scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/lib/libxmlparse.a
+XMLPLIB=/scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/lib/libxmloop.a
+XMLINCDIR=/scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/xmloop
+XMLBASEINCDIR=/scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include
 
 INST_LIBDIR=/usr/opt/spectrodaq-pregt/lib/
 INST_BINDIR=/usr/opt/spectrodaq-pregt/bin/
@@ -37,12 +38,12 @@ INST_XMLINCDIR=/usr/opt/spectrodaq-pregt/include/xmloop
 FLAGS=-g -O2 -D_REENTRANT=1 -DXML_NS=1 -DXML_DTD=1 -I$(XMLINCDIR) -I$(XMLBASEINCDIR)
 CFLAGS=-g -O2 -D_REENTRANT=1 -DXML_NS=1 -DXML_DTD=1 -I$(XMLINCDIR) -I$(XMLBASEINCDIR)
 CXXFLAGS=-g -O2 -D_REENTRANT=1 -DXML_NS=1 -DXML_DTD=1 -I$(XMLINCDIR) -I$(XMLBASEINCDIR)
-CC=/usr/bin/g++-3.3
-CXX=/usr/bin/g++-3.3
+CC=g++
+CXX=g++
 RANLIB=ranlib
 AR=ar rs
 CP=cp -f
-MAKEDEP=makedepend -f .depend 
+MAKEDEP=: 
 TOUCH=touch
 BININST=install -m 0755
 DIRINST=install -d -m 0755

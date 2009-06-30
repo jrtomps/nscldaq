@@ -304,6 +304,9 @@ DAMAGES.
 #include <unistd.h>
 #include <string.h>
 
+#include <maindefs.h>
+#include <mainexterns.h>
+
 #define BASIC_ARRAY_BLOCK_SIZE 25
 
 /*=====================================================================*/
@@ -468,7 +471,9 @@ class Pointer : public BasicPointer {
     */                                                             
     size_t CopyIn(void *pMem,size_t aOset,size_t aLen) {
       if (ptr == NULL) {
-        LOG_AND_THROW(daq_exception_factory.CreateException(DAQCSTR("Pointer::CopyIn() Null pointer access"),DAQEXCPID(DAQOutOfBounds)));
+        LOG_AND_THROW(daq_exception_factory.CreateException(
+							    DAQCSTR("Pointer::CopyIn() Null pointer access"),
+							    DAQEXCPID(DAQOutOfBounds)));
         return(-DAQEXCPID(DAQOutOfBounds));
       }
       return ptr->CopyIn(pMem,pos+aOset,aLen); 

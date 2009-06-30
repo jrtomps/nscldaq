@@ -347,6 +347,6 @@ extern char *work_area;          // Main/main.cc
 extern int  daq_debug_level;     // Main/main.cc 
 
 bool DAQIsInitialized(void);
-DAQNodeContext& DAQGetMainContext(void);
+DAQNodeContext& ::DAQGetMainContext(void);
 
 #endif

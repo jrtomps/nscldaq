@@ -5,7 +5,7 @@
 
 #undef XMLALLOC_DEBUG
 
-static inline void FREE(char *eyecatch,void *p) { 
+static inline void FREE(const char *eyecatch,void *p) { 
 #ifdef XMLALLOC_DEBUG
   fprintf(stderr,"FREE(%s): %p\n",eyecatch,p); 
 #endif
@@ -13,7 +13,7 @@ static inline void FREE(char *eyecatch,void *p) {
   p = NULL;
 }
 
-static inline void *MALLOC(char *eyecatch,size_t s) { 
+static inline void *MALLOC(const char *eyecatch,size_t s) { 
   void *p;
   p = malloc(s);  
 #ifdef XMLALLOC_DEBUG
@@ -22,7 +22,7 @@ static inline void *MALLOC(char *eyecatch,size_t s) {
   return(p);
 }
 
-static inline void *REALLOC(char *eyecatch,void *p,size_t s) { 
+static inline void *REALLOC(const char *eyecatch,void *p,size_t s) { 
   void *origp = NULL,*newp = NULL;
   origp = p;
   newp = realloc(p,s); 
@@ -32,7 +32,7 @@ static inline void *REALLOC(char *eyecatch,void *p,size_t s) {
   return(newp);
 }
 
-static inline void *CALLOC(char *eyecatch,size_t n,size_t s) { 
+static inline void *CALLOC(const char *eyecatch,size_t n,size_t s) { 
   void *p = NULL;
   p = calloc(n,s); 
 #ifdef XMLALLOC_DEBUG

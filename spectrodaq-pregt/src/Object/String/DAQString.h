@@ -315,9 +315,9 @@ using namespace std;
 #include <Array.h> 
 #endif
 
-#ifndef DAQ_POINTER_H
+// #ifndef DAQ_POINTER_H
 #include <Pointer.h> 
-#endif
+// #endif
 
 #ifndef DAQ_PRINTSTREAM_H
 #include <PrintStream.h> 

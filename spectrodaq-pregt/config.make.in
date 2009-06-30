@@ -94,16 +94,13 @@ LIBS=$(NSCLLIB)
 LDFLAGS=$(NSCLLIB)
 
 %.o: %.cpp
-	@echo "Compiling @CXX_STR_VERSION@: $<"
-	@AT_BUILD@$(CXX) -c $(CXXFLAGS) $(CPPFLAGS) -o $@ $<
+	$(CXX) -c $(CXXFLAGS) $(CPPFLAGS) -o $@ $<
 
 %.o: %.cc
-	@echo "Compiling @CXX_STR_VERSION@: $<"
-	@AT_BUILD@$(CXX) -c $(CXXFLAGS) $(CPPFLAGS) -o $@ $<
+	$(CXX) -c $(CXXFLAGS) $(CPPFLAGS) -o $@ $<
 
 %.o: %.c
-	@echo "Compiling @CXX_STR_VERSION@: $<"
-	@AT_BUILD@$(CXX) -c $(CXXFLAGS) $(CPPFLAGS) -o $@ $<
+	$(CXX) -c $(CXXFLAGS) $(CPPFLAGS) -o $@ $<
 
 O_FILES=$(addsuffix .o,$(FILES))
 C_FILES=$(addsuffix .cc,$(FILES))
@@ -113,7 +110,7 @@ build: all
 depend::
 	@echo "Creating Dependencies in: $(shell pwd)"
 	@:> .depend
-	@AT_BUILD@$(MAKEDEP) -- $(CFLAGS) -- $(C_FILES) 1>/dev/null 2>&1
+	$(MAKEDEP) -- $(CFLAGS) -- $(C_FILES) 1>/dev/null 2>&1
 ifneq (,$(strip $(SUB_DIRS)))
 	for i in $(SUB_DIRS); do \
           echo "Making $@ in $$i..."; \

@@ -1,4 +1,3 @@
-# Generated automatically from Makefile.in by configure.
 SPECTRO_FLAGS=$(shell /usr/opt/spectrodaq-pregt/bin/spectrodaq-conf --cflags)
 SPECTRO_LDFLAGS=$(shell /usr/opt/spectrodaq-pregt/bin/spectrodaq-conf --libs)
 
@@ -12,8 +11,8 @@ CFLAGS=-g -O2 $(SPECTRO_FLAGS) $(TESTFLAGS)
 CXXFLAGS=-g -O2 $(SPECTRO_FLAGS) $(TESTFLAGS)
 LDFLAGS=$(SPECTRO_LDFLAGS)
 
-CC=/usr/bin/g++-3.3
-CXX=/usr/bin/g++-3.3
+CC=g++
+CXX=g++
 
 prog_files=daqbuffer bufferrecv buffersend
 

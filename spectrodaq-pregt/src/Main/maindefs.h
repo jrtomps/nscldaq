@@ -285,7 +285,7 @@ DAMAGES.
 //		East Lansing, MI 48824-1321
 //		mailto:kasten@nscl.msu.edu
 //
-// Copyright NSCL 1998, All rights reserved.
+// Copyright NSCL 1998, All rights reserved
 
 #ifndef DAQ_MAINDEFS_H
 #define DAQ_MAINDEFS_H
@@ -303,7 +303,7 @@ DAMAGES.
 #endif
 
 
-#define daq_logger (*(DAQGetMainContext().Logger))
+#define daq_logger (*(::DAQGetMainContext().Logger))
 #define daq_exception_factory (*(DAQGetMainContext().DAQ_Exception_Factory))
 #define os_exception_factory (*(DAQGetMainContext().OS_Exception_Factory))
 #define daq_track_mem (*(DAQGetMainContext().DAQ_Track_Mem))
