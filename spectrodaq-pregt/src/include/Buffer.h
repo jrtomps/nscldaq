@@ -721,8 +721,8 @@ class Buffer : public ALLOC, virtual public Printable, public Synchronizable {
 */
       } 
 
-      if (w) lst = Request(siz - cmax);
-      else lst = Try(siz - cmax);
+      if (w) lst = this->Request(siz - cmax);
+      else lst = this->Try(siz - cmax);
 
       if (lst != NULL) {
         blocks.Append(*lst);
@@ -1554,7 +1554,7 @@ class Buffer : public ALLOC, virtual public Printable, public Synchronizable {
       lastblk = NULL;
 
       if (l > 0) {
-        lst = Request(l); 
+        lst = this->Request(l); 
         if (lst != NULL) {
           blocks.Append(*lst);
           cmax = CountList(blocks);

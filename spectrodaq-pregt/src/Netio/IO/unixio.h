@@ -313,6 +313,10 @@ DAMAGES.
 #include <netio/netio_parms.h>
 #endif
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 int unix_servinit(int *,sockaddr_netio *,netio_parms);
 int unix_accept(int,sockaddr_netio *,netio_parms);
 int unix_open(char *,char *,int,sockaddr_netio *,sockaddr_netio *,netio_parms);
@@ -329,5 +333,9 @@ int unix_getportbyname(const char *);
 int unix_isreadable(int);
 int unix_iswritable(int);
 short unix_poll(int,short,int);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

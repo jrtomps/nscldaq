@@ -307,7 +307,7 @@ class XMLOut {
     XMLOut();                          // Constructor
     ~XMLOut();                         // Destructor
 
-    virtual bool Puts(char *);         // Put a char* to the output
+    virtual bool Puts(const char *);         // Put a char* to the output
     virtual ostream& Print(ostream&);  // Print 
 };
 

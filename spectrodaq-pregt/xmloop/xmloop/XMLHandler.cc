@@ -394,7 +394,7 @@ ostream& operator << (ostream& s,XMLHandler& v)
 //                                                                  
 // Constructor.                                                     
 //                                                                  
-XMLStartHandler::XMLStartHandler(char *pTarget) 
+XMLStartHandler::XMLStartHandler(const char *pTarget) 
 {
   target = NULL;
 
@@ -509,7 +509,7 @@ const char *XMLStartHandler::GetTarget() {
 //                                                                  
 // Constructor.                                                     
 //                                                                  
-XMLEndHandler::XMLEndHandler(char *pTarget) 
+XMLEndHandler::XMLEndHandler(const char *pTarget) 
 {
   target = NULL;
 
@@ -675,7 +675,7 @@ void XMLCharacterDataHandler::operator()(XMLParser *parser,void *pUserData,const
 //                                                                  
 // Constructor.                                                     
 //                                                                  
-XMLPIHandler::XMLPIHandler(char *pTarget) 
+XMLPIHandler::XMLPIHandler(const char *pTarget) 
 {
   target = NULL;
 
@@ -953,7 +953,9 @@ int XMLExternalEntityHandler::Parse(istream &aStream,XMLParser *parser,const cha
           wrkstr[0] = '\0';
           snprintf(wrkstr,sizeof(wrkstr)-1,"parsing external entity (systemId: \"%s\")",pSystemId); 
           wrkstr[sizeof(wrkstr)-1] = '\0';
-          parser->SetError(extparser->GetErrorLineNumber(),extparser->GetErrorColumnNumber(),XMLPCSTR(wrkstr),extparser->GetErrorText());
+          parser->SetError(extparser->GetErrorLineNumber(),
+			   extparser->GetErrorColumnNumber(),
+			   XMLPCSTR(wrkstr),extparser->GetErrorText());
         }
         delete extparser;
       }

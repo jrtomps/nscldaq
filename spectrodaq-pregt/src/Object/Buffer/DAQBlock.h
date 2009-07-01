@@ -374,9 +374,9 @@ class DAQBlock : public Block<BTYPE>, virtual public DAQObject {
     */                                                             
     DAQBlock(BTYPE *d,int l) {
       SetType(DAQTYPEID(DAQBlock));
-      data = d;
-      len = l;
-      if (data == NULL) len = 0;
+      this->data = d;
+      this->len = l;
+      if (this->data == NULL) this->len = 0;
       refcnt = 1;
     }
 
@@ -405,8 +405,8 @@ class DAQBlock : public Block<BTYPE>, virtual public DAQObject {
     */                                                             
     ~DAQBlock() {
       CheckReference();
-      data = NULL;
-      len = 0;
+      this->data = NULL;
+      this->len = 0;
     }
 
     /*==============================================================*/
@@ -436,9 +436,9 @@ class DAQBlock : public Block<BTYPE>, virtual public DAQObject {
     * @return None
     */                                                             
     void ReleaseData() {
-      if (data != NULL) delete data;
-      data = NULL;
-      len = 0;
+      if (this->data != NULL) delete this->data;
+      this->data = NULL;
+      this->len = 0;
     }
 
     /*==============================================================*/
@@ -473,8 +473,8 @@ class DAQBlock : public Block<BTYPE>, virtual public DAQObject {
     */                                                             
     DAQBlock<BTYPE>& CopyToThis(const DAQBlock<BTYPE>& blk) {
       CheckReference();
-      data = blk.data;
-      len = blk.len; 
+      this->data = blk.data;
+      this->len = blk.len; 
 
       refcnt = blk.refcnt;                 // There can be only one
       refcnt++;                            // Increment new counter;

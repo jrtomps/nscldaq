@@ -830,7 +830,7 @@ class DAQPriorityBuffer_tplt : public DAQBasePriorityBuffer_d(BTYPE) {
     // Constructor.
     //                                                             
     DAQPriorityBuffer_tplt() {
-      Init(0);
+      this->Init(0);
     }
 
     /*==============================================================*/
@@ -839,7 +839,7 @@ class DAQPriorityBuffer_tplt : public DAQBasePriorityBuffer_d(BTYPE) {
     // Expand to current page size.
     //                                                             
     int Expand() {
-      return ExpandToPageSize();
+      return this->ExpandToPageSize();
     }
 
     /*==============================================================*/

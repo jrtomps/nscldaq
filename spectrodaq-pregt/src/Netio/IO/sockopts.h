@@ -290,6 +290,10 @@ DAMAGES.
 #ifndef NETIO_SOCKOPTS_H
 #define NETIO_SOCKOPTS_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 int setsndbufsize(int,int);
 int getsndbufsize(int);
 int setrcvbufsize(int,int);
@@ -299,5 +303,9 @@ int setnodelay(int);
 int setreuseaddr(int);
 int setnonblock(int);
 int setblock(int);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

@@ -77,12 +77,12 @@ FLAGS= -g -O2 -D_REENTRANT=1 -I$(DAQINCDIR) -I$(NSCLINCDIR) -I$(XMLINCDIR)
 CFLAGS= -g -O2 -D_REENTRANT=1 -I$(DAQINCDIR) -I$(NSCLINCDIR) -I$(XMLINCDIR)
 CXXFLAGS= -g -O2 -D_REENTRANT=1 -I$(DAQINCDIR) -I$(NSCLINCDIR) -I$(XMLINCDIR)
 COMPILER_VERSION=
-CC=g++
+CC=gcc
 CXX=g++
 RANLIB=ranlib
 AR=ar rs
 CP=cp -f
-MAKEDEP=: 
+MAKEDEP=makedepend -f .depend 
 TOUCH=touch
 BININST=install -m 0755
 DIRINST=install -d -m 0755
@@ -100,7 +100,7 @@ LDFLAGS=$(NSCLLIB)
 	$(CXX) -c $(CXXFLAGS) $(CPPFLAGS) -o $@ $<
 
 %.o: %.c
-	$(CXX) -c $(CXXFLAGS) $(CPPFLAGS) -o $@ $<
+	$(CC) -c $(CXXFLAGS) $(CPPFLAGS) -o $@ $<
 
 O_FILES=$(addsuffix .o,$(FILES))
 C_FILES=$(addsuffix .cc,$(FILES))

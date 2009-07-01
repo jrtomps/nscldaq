@@ -296,6 +296,8 @@ DAMAGES.
 #include <daqconfig.h>
 #endif
 
+#include <Pointer.h> 
+
 #ifndef MAINDEFS_H
 #include <maindefs.h>
 #endif
@@ -308,13 +310,13 @@ DAMAGES.
 #include <string.h>
 #include <ctype.h>
 
+
 #ifndef ARRAYALLOCATOR_H
 #include <ArrayAllocator.h> 
 #endif
 
 
 
-#include <Pointer.h> 
 
 
 
@@ -328,6 +330,11 @@ DAMAGES.
 
 #ifndef DAQ_PRINTABLE_H
 #include <DAQPrintable.h> 
+#endif
+
+
+#ifdef BasicPointer
+#undef BasicPointer
 #endif
 
 // Too early to use the exception factory
@@ -393,8 +400,8 @@ class Array : public ArrayAllocator<STYPE>, virtual public Printable {
     * @return None
     */                                                             
     Array() {
-      if (Alloc(1) == NULL) throw(array_bad_alloc.set_msg("Array::Array()",1));
-      scnt = 0;
+      if (this->Alloc(1) == NULL) throw(array_bad_alloc.set_msg("Array::Array()",1));
+      this->scnt = 0;
     }; 
 
     /*==============================================================*/
@@ -412,12 +419,12 @@ class Array : public ArrayAllocator<STYPE>, virtual public Printable {
       int i;
 
       if (s == NULL) {
-        if (Alloc(1) == NULL) throw(array_bad_alloc.set_msg("Array::Array()",1));
-        scnt = 0;
+        if (this->Alloc(1) == NULL) throw(array_bad_alloc.set_msg("Array::Array()",1));
+        this->scnt = 0;
       } else {
-        if (Alloc(l) == NULL) throw(array_bad_alloc.set_msg("Array::Array()",l));
-        scnt = l; 
-        for (i = 0; i < l; i++) vals[i] = s[i];
+        if (this->Alloc(l) == NULL) throw(array_bad_alloc.set_msg("Array::Array()",l));
+        this->scnt = l; 
+        for (i = 0; i < l; i++) this->vals[i] = s[i];
       }
     }; 
 
@@ -432,11 +439,11 @@ class Array : public ArrayAllocator<STYPE>, virtual public Printable {
     */                                                             
     Array(int l) {
       if (l <= 0) {
-        if (Alloc(1) == NULL) throw(array_bad_alloc.set_msg("Array::Array()",1));
-        scnt = 0;
+        if (this->Alloc(1) == NULL) throw(array_bad_alloc.set_msg("Array::Array()",1));
+        this->scnt = 0;
       } else {
-        if (Alloc(l) == NULL) throw(array_bad_alloc.set_msg("Array::Array()",l));
-        scnt = l;
+        if (this->Alloc(l) == NULL) throw(array_bad_alloc.set_msg("Array::Array()",l));
+        this->scnt = l;
       }
     }; 
 
@@ -452,9 +459,9 @@ class Array : public ArrayAllocator<STYPE>, virtual public Printable {
     Array(const Array<STYPE>& s) {
       int i;
 
-      if (Alloc(s.scnt) == NULL) throw(array_bad_alloc.set_msg("Array::Array()",s.scnt));
-      scnt = s.scnt;
-      for (i = 0; i < scnt+1; i++) vals[i] = s.vals[i];
+      if (this->Alloc(s.scnt) == NULL) throw(array_bad_alloc.set_msg("Array::Array()",s.scnt));
+      this->scnt = s.scnt;
+      for (i = 0; i < this->scnt+1; i++) this->vals[i] = s.vals[i];
     }; 
 
     /*==============================================================*/
@@ -468,10 +475,10 @@ class Array : public ArrayAllocator<STYPE>, virtual public Printable {
     */                                                             
     ~Array() {
        Nullify();
-       cmax = 0;
-       scnt = 0;
-       if (vals != NULL) delete[] vals;
-       vals = NULL;
+       this->cmax = 0;
+       this->scnt = 0;
+       if (this->vals != NULL) delete[] this->vals;
+       this->vals = NULL;
      };
 
     /*==============================================================*/
@@ -518,17 +525,17 @@ class Array : public ArrayAllocator<STYPE>, virtual public Printable {
     */                                                             
     void Set(const Array<STYPE>& s) {
        int i;
-       cmax = 0; scnt = 0;
-       if (vals != NULL) delete[] vals;
-       vals = NULL;
+       this->cmax = 0; this->scnt = 0;
+       if (this->vals != NULL) delete[] this->vals;
+       this->vals = NULL;
 
        if (s.scnt > 0) {
-         if (Alloc(s.scnt) == NULL) throw(array_bad_alloc.set_msg("Array::Set()",s.scnt));
-         scnt = s.scnt;
-         for (i = 0; i < scnt+1; i++) vals[i] = s.vals[i];
+         if (this->Alloc(s.scnt) == NULL) throw(array_bad_alloc.set_msg("Array::Set()",s.scnt));
+         this->scnt = s.scnt;
+         for (i = 0; i < this->scnt+1; i++) this->vals[i] = s.vals[i];
        } else {
-         if (Alloc(1) == NULL) throw(array_bad_alloc.set_msg("Array::Set()",1));
-         scnt = 0; 
+         if (this->Alloc(1) == NULL) throw(array_bad_alloc.set_msg("Array::Set()",1));
+         this->scnt = 0; 
        }
     }
 
@@ -545,17 +552,17 @@ class Array : public ArrayAllocator<STYPE>, virtual public Printable {
     */                                                             
     void Set(const STYPE *s,int l) {
        int i;
-       cmax = 0; scnt = 0;
-       if (vals != NULL) delete[] vals;
-       vals = NULL;
+       this->cmax = 0; this->scnt = 0;
+       if (this->vals != NULL) delete[] this->vals;
+       this->vals = NULL;
 
        if ((l > 0)&&(s != NULL)) {
-         if (Alloc(l) == NULL) throw(array_bad_alloc.set_msg("Array::Set()",l));
-         scnt = l;
-         for (i = 0; i < scnt+1; i++) vals[i] = s[i];
+         if (this->Alloc(l) == NULL) throw(array_bad_alloc.set_msg("Array::Set()",l));
+         this->scnt = l;
+         for (i = 0; i < this->scnt+1; i++) this->vals[i] = s[i];
        } else {
-         if (Alloc(1) == NULL) throw(array_bad_alloc.set_msg("Array::Set()",l));
-         scnt = 0; 
+         if (this->Alloc(1) == NULL) throw(array_bad_alloc.set_msg("Array::Set()",l));
+         this->scnt = 0; 
        }
     }
 
@@ -569,9 +576,9 @@ class Array : public ArrayAllocator<STYPE>, virtual public Printable {
     * @return None
     */                                                             
     void Resize(int siz) {
-      if (Alloc(siz) == NULL) throw(array_bad_alloc.set_msg("Array::Resize()",siz));
-      if (siz > 0) scnt = siz;
-      else scnt = 0;
+      if (this->Alloc(siz) == NULL) throw(array_bad_alloc.set_msg("Array::Resize()",siz));
+      if (siz > 0) this->scnt = siz;
+      else this->scnt = 0;
     }
 
     /*==============================================================*/
@@ -607,10 +614,10 @@ class Array : public ArrayAllocator<STYPE>, virtual public Printable {
       if (s == NULL) return;  // Append the NULL string
 
       if (l > 0) {
-        if (Alloc(l+scnt) == NULL) throw(array_bad_alloc.set_msg("Array::Append()",l+scnt));
-        i = scnt;
-        for (j = 0;j < l; j++) vals[i++] = s[j];
-        scnt += l;
+        if (this->Alloc(l+this->scnt) == NULL) throw(array_bad_alloc.set_msg("Array::Append()",l+this->scnt));
+        i = this->scnt;
+        for (j = 0;j < l; j++) this->vals[i++] = s[j];
+        this->scnt += l;
       }
     };
 
@@ -627,9 +634,9 @@ class Array : public ArrayAllocator<STYPE>, virtual public Printable {
       STYPE *ns;
       int blks;
 
-      if (Alloc(scnt+1) == NULL) throw(array_bad_alloc.set_msg("Array::Append()",scnt+1));
-      vals[scnt] = s;
-      scnt++;
+      if (this->Alloc(this->scnt+1) == NULL) throw(array_bad_alloc.set_msg("Array::Append()",this->scnt+1));
+      this->vals[this->scnt] = s;
+      this->scnt++;
     };
 
     /*==============================================================*/
@@ -648,10 +655,10 @@ class Array : public ArrayAllocator<STYPE>, virtual public Printable {
       int blks;
 
       if (s.scnt > 0) {
-        if (Alloc(s.scnt+scnt) == NULL) throw(array_bad_alloc.set_msg("Array::Append()",s.scnt+scnt));
-        i = scnt;
-        for (j = 0;j < s.scnt; j++) vals[i++] = s.vals[j];
-        scnt += s.scnt;
+        if (this->Alloc(s.scnt+this->scnt) == NULL) throw(array_bad_alloc.set_msg("Array::Append()",s.scnt+this->scnt));
+        i = this->scnt;
+        for (j = 0;j < s.scnt; j++) this->vals[i++] = s.vals[j];
+        this->scnt += s.scnt;
       }
     };
 
@@ -684,9 +691,9 @@ class Array : public ArrayAllocator<STYPE>, virtual public Printable {
     int operator== (const Array<STYPE>& s) const {
       int i;
 
-      if (s.scnt != scnt) return(0);
-      for (i = 0; i < scnt; i++) {
-        if (vals[i] != s.vals[i]) return(0);
+      if (s.scnt != this->scnt) return(0);
+      for (i = 0; i < this->scnt; i++) {
+        if (this->vals[i] != s.vals[i]) return(0);
       }
 
       return(1);
@@ -706,9 +713,9 @@ class Array : public ArrayAllocator<STYPE>, virtual public Printable {
     int operator!= (const Array<STYPE>& s) const {
       int i;
 
-      if (s.scnt != scnt) return(1);
-      for (i = 0; i < scnt; i++) {
-        if (vals[i] != s.vals[i]) return(1);
+      if (s.scnt != this->scnt) return(1);
+      for (i = 0; i < this->scnt; i++) {
+        if (this->vals[i] != s.vals[i]) return(1);
       }
 
       return(0);
@@ -760,12 +767,12 @@ class Array : public ArrayAllocator<STYPE>, virtual public Printable {
         errno = EFAULT;
         throw(EFAULT);  // Out of bounds
         return(garbage); 
-      } else if (idx >= cmax) {
-        if (Alloc(idx+1) == NULL) throw(array_bad_alloc.set_msg("Array::operator[]()",idx+1));
+      } else if (idx >= this->cmax) {
+        if (this->Alloc(idx+1) == NULL) throw(array_bad_alloc.set_msg("Array::operator[]()",idx+1));
       } 
 
-      if (scnt <= idx) scnt = idx+1;
-      return(vals[idx]);
+      if (this->scnt <= idx) this->scnt = idx+1;
+      return(this->vals[idx]);
     }
 
     /*==============================================================*/
@@ -777,7 +784,7 @@ class Array : public ArrayAllocator<STYPE>, virtual public Printable {
     * @param None
     * @return A C array of values.
     */                                                             
-    STYPE *Get() const {return(vals);}; 
+    STYPE *Get() const {return(this->vals);}; 
   
     /*==============================================================*/
     /** @fn GetLen()
@@ -788,7 +795,7 @@ class Array : public ArrayAllocator<STYPE>, virtual public Printable {
     * @param None
     * @return The length of the Array.
     */                                                             
-    int GetLen() const {return(scnt);};
+    int GetLen() const {return(this->scnt);};
 
     /*==============================================================*/
     /** @fn void DumpNative(PrintStreamIface& aStream,int aCnt)
@@ -806,7 +813,7 @@ class Array : public ArrayAllocator<STYPE>, virtual public Printable {
       int i,len;
    
       flags = aStream.flags();
-      len = aCnt < scnt ? aCnt : scnt;
+      len = aCnt < this->scnt ? aCnt : this->scnt;
 
       for (i = 0; i < len; i++) {
         aStream.println();
@@ -833,7 +840,7 @@ class Array : public ArrayAllocator<STYPE>, virtual public Printable {
     */                                                             
     void DumpNative(PrintStreamIface& aStream)
     {
-      DumpNative(aStream,scnt);
+      DumpNative(aStream,this->scnt);
     }
 
     /*==============================================================*/
@@ -856,8 +863,8 @@ class Array : public ArrayAllocator<STYPE>, virtual public Printable {
       unsigned char *p,tmp[ARRAY_DUMP_CHARCOUNT+1];
    
       flags = aStream.flags();
-      len = aCnt < scnt ? aCnt : scnt;
-      p = (unsigned char *)vals;
+      len = aCnt < this->scnt ? aCnt : this->scnt;
+      p = (unsigned char *)this->vals;
       aStream.hex();
       aStream.width(8);
       aStream.fill('0');
@@ -872,7 +879,7 @@ class Array : public ArrayAllocator<STYPE>, virtual public Printable {
           for (j = 0; j < cnt; j++) {
             ch = tmp[j];
     
-            if (isprint(ch)&&(!iscntrl(ch))) aStream.print(" %c",ch);
+            if (isprint(ch)&&(!iscntrl(ch))) aStream.printf(" %c",ch);
             else aStream.printf("  ");
           }
    
@@ -922,7 +929,7 @@ class Array : public ArrayAllocator<STYPE>, virtual public Printable {
     */                                                             
     void Dump(PrintStreamIface& aStream)
     {
-      Dump(aStream,scnt);
+      Dump(aStream,this->scnt);
     }
 
     /*==============================================================*/

@@ -1,0 +1,56 @@
+# DO NOT DELETE
+
+ConnectionFactoryException.o: ConnectionFactoryException.h NSCLException.h
+ConnectionFactoryException.o: /usr/include/string.h /usr/include/features.h
+ConnectionFactoryException.o: /usr/include/sys/cdefs.h
+ConnectionFactoryException.o: /usr/include/bits/wordsize.h
+ConnectionFactoryException.o: /usr/include/gnu/stubs.h
+ConnectionFactoryException.o: /usr/include/gnu/stubs-32.h
+ErrnoException.o: ErrnoException.h OSException.h NSCLException.h
+ErrnoException.o: /usr/include/errno.h /usr/include/features.h
+ErrnoException.o: /usr/include/sys/cdefs.h /usr/include/bits/wordsize.h
+ErrnoException.o: /usr/include/gnu/stubs.h /usr/include/gnu/stubs-32.h
+ErrnoException.o: /usr/include/bits/errno.h /usr/include/linux/errno.h
+ErrnoException.o: /usr/include/asm/errno.h /usr/include/asm-generic/errno.h
+ErrnoException.o: /usr/include/asm-generic/errno-base.h /usr/include/string.h
+NSCLException.o: NSCLException.h /usr/include/string.h
+NSCLException.o: /usr/include/features.h /usr/include/sys/cdefs.h
+NSCLException.o: /usr/include/bits/wordsize.h /usr/include/gnu/stubs.h
+NSCLException.o: /usr/include/gnu/stubs-32.h
+OSExceptionFactory.o: OSExceptionFactory.h OSException.h NSCLException.h
+ResolvException.o: ResolvException.h OSException.h NSCLException.h
+ResolvException.o: /usr/include/netdb.h /usr/include/features.h
+ResolvException.o: /usr/include/sys/cdefs.h /usr/include/bits/wordsize.h
+ResolvException.o: /usr/include/gnu/stubs.h /usr/include/gnu/stubs-32.h
+ResolvException.o: /usr/include/netinet/in.h /usr/include/stdint.h
+ResolvException.o: /usr/include/bits/wchar.h /usr/include/sys/socket.h
+ResolvException.o: /usr/include/sys/uio.h /usr/include/sys/types.h
+ResolvException.o: /usr/include/bits/types.h /usr/include/bits/typesizes.h
+ResolvException.o: /usr/include/time.h /usr/include/endian.h
+ResolvException.o: /usr/include/bits/endian.h /usr/include/sys/select.h
+ResolvException.o: /usr/include/bits/select.h /usr/include/bits/sigset.h
+ResolvException.o: /usr/include/bits/time.h /usr/include/sys/sysmacros.h
+ResolvException.o: /usr/include/bits/pthreadtypes.h /usr/include/bits/uio.h
+ResolvException.o: /usr/include/bits/socket.h /usr/include/limits.h
+ResolvException.o: /usr/include/bits/posix1_lim.h
+ResolvException.o: /usr/include/bits/local_lim.h /usr/include/linux/limits.h
+ResolvException.o: /usr/include/bits/posix2_lim.h
+ResolvException.o: /usr/include/bits/sockaddr.h /usr/include/asm/socket.h
+ResolvException.o: /usr/include/asm/sockios.h /usr/include/bits/in.h
+ResolvException.o: /usr/include/bits/byteswap.h /usr/include/rpc/netdb.h
+ResolvException.o: /usr/include/bits/netdb.h /usr/include/errno.h
+ResolvException.o: /usr/include/bits/errno.h /usr/include/linux/errno.h
+ResolvException.o: /usr/include/asm/errno.h /usr/include/asm-generic/errno.h
+ResolvException.o: /usr/include/asm-generic/errno-base.h
+ResolvException.o: /usr/include/string.h
+SCC1600Exception.o: SCC1600Exception.h NSCLException.h
+UNIXExceptionFactory.o: UNIXExceptionFactory.h OSExceptionFactory.h
+UNIXExceptionFactory.o: OSException.h NSCLException.h ErrnoException.h
+UNIXExceptionFactory.o: /usr/include/errno.h /usr/include/features.h
+UNIXExceptionFactory.o: /usr/include/sys/cdefs.h /usr/include/bits/wordsize.h
+UNIXExceptionFactory.o: /usr/include/gnu/stubs.h /usr/include/gnu/stubs-32.h
+UNIXExceptionFactory.o: /usr/include/bits/errno.h /usr/include/linux/errno.h
+UNIXExceptionFactory.o: /usr/include/asm/errno.h
+UNIXExceptionFactory.o: /usr/include/asm-generic/errno.h
+UNIXExceptionFactory.o: /usr/include/asm-generic/errno-base.h
+UNIXExceptionFactory.o: /usr/include/string.h ResolvException.h

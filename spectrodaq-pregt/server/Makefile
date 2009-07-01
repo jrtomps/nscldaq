@@ -18,7 +18,7 @@ include::
 lib::
 
 prog: spectrodaq.cc $(O_FILES)
-	$(CXX) $(CXXFLAGS) -o spectrodaq spectrodaq.cc $(O_FILES) $(NETIOLIB) $(SERVLIB) $(DAQLIB) $(DAQTHREADSLIB) $(XMLLIBS) $(tcl_libs) $(THREADLIBS) $(CRYPTLIBS) $(LDFLAGS)
+	$(CXX) $(CXXFLAGS) -o spectrodaq spectrodaq.cc $(O_FILES) $(NETIOLIB) $(SERVLIB) $(DAQLIB) $(DAQTHREADSLIB) $(XMLLIBS) $(tcl_libs) $(THREADLIBS) $(CRYPTLIBS) $(LDFLAGS) $(NETIOLIB)
 
 install: $(O_FILES)
 	$(DIRINST) $(INST_BINDIR)

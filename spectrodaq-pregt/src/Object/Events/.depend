@@ -1,0 +1,42 @@
+# DO NOT DELETE
+
+DAQEvent.o: /usr/include/stdlib.h /usr/include/features.h
+DAQEvent.o: /usr/include/sys/cdefs.h /usr/include/bits/wordsize.h
+DAQEvent.o: /usr/include/gnu/stubs.h /usr/include/gnu/stubs-32.h
+DAQEvent.o: /usr/include/sys/types.h /usr/include/bits/types.h
+DAQEvent.o: /usr/include/bits/typesizes.h /usr/include/time.h
+DAQEvent.o: /usr/include/endian.h /usr/include/bits/endian.h
+DAQEvent.o: /usr/include/sys/select.h /usr/include/bits/select.h
+DAQEvent.o: /usr/include/bits/sigset.h /usr/include/bits/time.h
+DAQEvent.o: /usr/include/sys/sysmacros.h /usr/include/bits/pthreadtypes.h
+DAQEvent.o: /usr/include/alloca.h /usr/include/stdio.h /usr/include/libio.h
+DAQEvent.o: /usr/include/_G_config.h /usr/include/wchar.h
+DAQEvent.o: /usr/include/bits/stdio_lim.h /usr/include/bits/sys_errlist.h
+DAQEvent.o: /usr/include/setjmp.h /usr/include/bits/setjmp.h
+DAQEvent.o: /usr/include/sys/time.h /usr/include/unistd.h
+DAQEvent.o: /usr/include/bits/posix_opt.h /usr/include/bits/confname.h
+DAQEvent.o: /usr/include/getopt.h /usr/include/errno.h
+DAQEvent.o: /usr/include/bits/errno.h /usr/include/linux/errno.h
+DAQEvent.o: /usr/include/asm/errno.h /usr/include/asm-generic/errno.h
+DAQEvent.o: /usr/include/asm-generic/errno-base.h /usr/include/string.h
+DAQEvent.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQEvent.h
+DAQEvent.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/daqconfig.h
+DAQEvent.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQObject.h
+DAQEvent.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQTrackMap.h
+DAQEvent.o: /usr/include/syslog.h /usr/include/sys/syslog.h
+DAQEvent.o: /usr/include/bits/syslog-path.h
+DAQEvent.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/threads/daqthreads.h
+DAQEvent.o: /usr/include/signal.h /usr/include/bits/signum.h
+DAQEvent.o: /usr/include/bits/siginfo.h /usr/include/bits/sigaction.h
+DAQEvent.o: /usr/include/bits/sigcontext.h /usr/include/bits/sigstack.h
+DAQEvent.o: /usr/include/bits/sigthread.h
+DAQEvent.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/threads/daqpthreads.h
+DAQEvent.o: /usr/include/pthread.h /usr/include/sched.h
+DAQEvent.o: /usr/include/bits/sched.h
+DAQEvent.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQTrackMemory.h
+DAQEvent.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQObjectType.h
+DAQEvent.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/Printable.h
+DAQEvent.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/genmacros.h
+DAQEvent.o: /usr/include/ctype.h
+DAQEvent.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/PrintStreamIface.h
+DAQEvent.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/OstreamCompat.h

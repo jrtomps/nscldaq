@@ -314,6 +314,10 @@ DAMAGES.
 #include <netio/netio_parms.h>
 #endif
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 int tcp_servinit(int *,sockaddr_netio *,netio_parms);
 int tcp_accept(int,sockaddr_netio *,netio_parms);
 int tcp_open(char *,char *,int,sockaddr_netio *,sockaddr_netio *,netio_parms);
@@ -330,5 +334,10 @@ int tcp_getportbyname(const char *);
 int tcp_isreadable(int);
 int tcp_iswritable(int);
 short tcp_poll(int,short,int);
+
+#ifdef __cplusplus
+}
+#endif
+
 
 #endif

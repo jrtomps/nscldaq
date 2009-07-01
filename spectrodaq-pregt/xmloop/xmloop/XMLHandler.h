@@ -328,7 +328,7 @@ ostream& operator << (ostream&,XMLHandler&);
 /*=========================================================================*/
 class XMLStartHandler : public XMLHandler {
   public: 
-    XMLStartHandler(char *);               // Constructor
+    XMLStartHandler(const char *);               // Constructor
     XMLStartHandler() {XMLStartHandler(NULL); target = NULL;} // constructor
     ~XMLStartHandler();                    // Destructor
 
@@ -346,7 +346,7 @@ class XMLStartHandler : public XMLHandler {
 /*=========================================================================*/
 class XMLEndHandler : public XMLHandler {
   public: 
-    XMLEndHandler(char *);               // Constructor
+    XMLEndHandler(const char *);               // Constructor
     XMLEndHandler() {XMLEndHandler(NULL);} // Constructor
     ~XMLEndHandler();                    // Destructor
 
@@ -374,7 +374,7 @@ class XMLCharacterDataHandler : public XMLHandler {
 /*=========================================================================*/
 class XMLPIHandler : public XMLHandler {
   public: 
-    XMLPIHandler(char *); // Constructor
+    XMLPIHandler(const char *); // Constructor
     XMLPIHandler() {XMLPIHandler(NULL);} // Constructor
     ~XMLPIHandler();      // Destructor
 

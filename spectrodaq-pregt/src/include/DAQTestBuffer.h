@@ -449,7 +449,7 @@ class DAQTestBuffer : public DAQBaseBuffer_test(BTYPE) {
     // Constructor.
     //                                                             
     DAQTestBuffer() {
-      Init(0);
+      this->Init(0);
     }
 
     /*==============================================================*/
@@ -458,7 +458,7 @@ class DAQTestBuffer : public DAQBaseBuffer_test(BTYPE) {
     // Constructor with size
     //                                                             
     DAQTestBuffer(int l) {
-      Init(l);
+      this->Init(l);
     }
 
     /*==============================================================*/

@@ -309,6 +309,11 @@ DAMAGES.
 #ifdef HAVE_PTHREAD_H
 #include <pthread.h>
 #endif
+#ifdef __cplusplus
+
+extern "C" {
+
+#endif     /* __cplusplus  */
 
 typedef pthread_t daqthread_t; 
 typedef pthread_attr_t daqthread_attr_t; 
@@ -325,6 +330,7 @@ typedef struct _daqthread_mutex_t_struct daqthread_mutex_t;
 
 #define DAQTHREAD_MUTEX_INITIALIZER PTHREAD_MUTEX_INITIALIZER
 #define DAQTHREAD_COND_INITIALIZER PTHREAD_COND_INITIALIZER
+
 
 // Basic functions
 int daqpthread_create(daqthread_t*,daqthread_attr_t*,daqthread_start_routine,void*);
@@ -353,6 +359,10 @@ int daqpthread_cond_timedwait(daqthread_cond_t*,daqthread_mutex_t*,const struct 
 
 // How do we display this thing? 
 char *daqpthread_tostr(char*,int,daqthread_t);
+
+#ifdef __cplusplus
+}
+#endif    /* __cplusplus */
 
 #endif
 

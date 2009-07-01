@@ -332,6 +332,10 @@ DAMAGES.
 #include <sys/wait.h>
 #include <errno.h>
 
+// Forward class definitions:
+
+class DAQThread;
+
 /*===================================================================*/
 class DAQThreadFactory : public DAQExecFactory {
   public: 

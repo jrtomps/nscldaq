@@ -350,7 +350,7 @@ DAMAGES.
 /*=========================================================================*/
 class DAQConfParserServerStartHandler : public XMLStartHandler {
   public: 
-    DAQConfParserServerStartHandler(char *pTarget) : XMLStartHandler(pTarget) { }
+    DAQConfParserServerStartHandler(const char *pTarget) : XMLStartHandler(pTarget) { }
     ~DAQConfParserServerStartHandler() { };
     void operator()(XMLParser*,const char *,void *,const char **); // Handler method
 };
@@ -358,7 +358,7 @@ class DAQConfParserServerStartHandler : public XMLStartHandler {
 /*=========================================================================*/
 class DAQConfParserServerEndHandler : public XMLEndHandler {
   public: 
-    DAQConfParserServerEndHandler(char *pTarget) : XMLEndHandler(pTarget) { }
+    DAQConfParserServerEndHandler(const char *pTarget) : XMLEndHandler(pTarget) { }
     ~DAQConfParserServerEndHandler() { };
     void operator()(XMLParser*,const char *,void *); // Handler method
 };
@@ -366,7 +366,7 @@ class DAQConfParserServerEndHandler : public XMLEndHandler {
 /*=========================================================================*/
 class DAQConfParserURLStartHandler : public XMLStartHandler {
   public: 
-    DAQConfParserURLStartHandler(char *pTarget) : XMLStartHandler(pTarget) { }
+    DAQConfParserURLStartHandler(const char *pTarget) : XMLStartHandler(pTarget) { }
     ~DAQConfParserURLStartHandler() { };
     void operator()(XMLParser*,const char *,void *,const char **); // Handler method
 };
@@ -374,7 +374,7 @@ class DAQConfParserURLStartHandler : public XMLStartHandler {
 /*=========================================================================*/
 class DAQConfParserURLEndHandler : public XMLEndHandler {
   public: 
-    DAQConfParserURLEndHandler(char *pTarget) : XMLEndHandler(pTarget) { }
+    DAQConfParserURLEndHandler(const char *pTarget) : XMLEndHandler(pTarget) { }
     ~DAQConfParserURLEndHandler()  { };
     void operator()(XMLParser*,const char *,void *); // Handler method
 };
@@ -382,7 +382,7 @@ class DAQConfParserURLEndHandler : public XMLEndHandler {
 /*=========================================================================*/
 class DAQConfParserParamStartHandler : public XMLStartHandler {
   public: 
-    DAQConfParserParamStartHandler(char *pTarget) : XMLStartHandler(pTarget) { }
+    DAQConfParserParamStartHandler(const char *pTarget) : XMLStartHandler(pTarget) { }
     ~DAQConfParserParamStartHandler() { };
     void operator()(XMLParser*,const char *,void *,const char **); // Handler method
 };
@@ -390,7 +390,7 @@ class DAQConfParserParamStartHandler : public XMLStartHandler {
 /*=========================================================================*/
 class DAQConfParserParamEndHandler : public XMLEndHandler {
   public: 
-    DAQConfParserParamEndHandler(char *pTarget) : XMLEndHandler(pTarget) { }
+    DAQConfParserParamEndHandler(const char *pTarget) : XMLEndHandler(pTarget) { }
     ~DAQConfParserParamEndHandler()  { };
     void operator()(XMLParser*,const char *,void *); // Handler method
 };
@@ -398,7 +398,7 @@ class DAQConfParserParamEndHandler : public XMLEndHandler {
 /*=========================================================================*/
 class DAQConfParserDefaultStartHandler : public XMLStartHandler {
   public: 
-    DAQConfParserDefaultStartHandler(char *pTarget) : XMLStartHandler(pTarget) { }
+    DAQConfParserDefaultStartHandler(const char *pTarget) : XMLStartHandler(pTarget) { }
     ~DAQConfParserDefaultStartHandler() { };
     void operator()(XMLParser*,const char *,void *,const char **); // Handler method
 };
@@ -406,7 +406,7 @@ class DAQConfParserDefaultStartHandler : public XMLStartHandler {
 /*=========================================================================*/
 class DAQConfParserDefaultEndHandler : public XMLEndHandler {
   public: 
-    DAQConfParserDefaultEndHandler(char *pTarget) : XMLEndHandler(pTarget) { };
+    DAQConfParserDefaultEndHandler(const char *pTarget) : XMLEndHandler(pTarget) { };
     ~DAQConfParserDefaultEndHandler() { };
     void operator()(XMLParser*,const char *,void *); // Handler method
 };
@@ -420,7 +420,7 @@ class DAQConfParserCharacterDataHandler : public XMLCharacterDataHandler {
 /*=========================================================================*/
 class DAQConfParserPIHandler : public XMLPIHandler {
   public: 
-    DAQConfParserPIHandler(char *pTarget) : XMLPIHandler(pTarget) { };
+    DAQConfParserPIHandler(const char *pTarget) : XMLPIHandler(pTarget) { };
     ~DAQConfParserPIHandler() { };
     void operator()(XMLParser*,const char *,void *,const char *); // Handler method
 };

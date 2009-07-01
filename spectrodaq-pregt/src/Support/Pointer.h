@@ -292,6 +292,8 @@ DAMAGES.
 //
 // Copyright NSCL 1998, All rights reserved.
 
+// #warning "Including DAQ_POINTER"
+
 #ifndef DAQ_POINTER_H
 #define DAQ_POINTER_H 
 
@@ -304,10 +306,14 @@ DAMAGES.
 #include <unistd.h>
 #include <string.h>
 
+/*
 #include <maindefs.h>
 #include <mainexterns.h>
+*/
 
+#ifndef BASIC_ARRAY_BLOCK_SIZE
 #define BASIC_ARRAY_BLOCK_SIZE 25
+#endif
 
 /*=====================================================================*/
 /** @class BasicPointer
@@ -320,6 +326,7 @@ DAMAGES.
 * @author  Eric Kasten                                                          
 * @version 0.4.0                                                                
 */  
+
 class BasicPointer {
   public:
     virtual void Nullify() = 0; // Nullify pointer
@@ -471,10 +478,8 @@ class Pointer : public BasicPointer {
     */                                                             
     size_t CopyIn(void *pMem,size_t aOset,size_t aLen) {
       if (ptr == NULL) {
-        LOG_AND_THROW(daq_exception_factory.CreateException(
-							    DAQCSTR("Pointer::CopyIn() Null pointer access"),
-							    DAQEXCPID(DAQOutOfBounds)));
-        return(-DAQEXCPID(DAQOutOfBounds));
+
+	return 0;
       }
       return ptr->CopyIn(pMem,pos+aOset,aLen); 
     }
@@ -496,8 +501,8 @@ class Pointer : public BasicPointer {
     */                                                             
     size_t CopyOut(void *pMem,size_t aOset,size_t aLen) {
       if (ptr == NULL) {
-        LOG_AND_THROW(daq_exception_factory.CreateException(DAQCSTR("Pointer::CopyOut() Null pointer access"),DAQEXCPID(DAQOutOfBounds)));
-        return(-DAQEXCPID(DAQOutOfBounds));
+	return 0;
+
       }
       return ptr->CopyOut(pMem,pos+aOset,aLen); 
     }
@@ -519,8 +524,10 @@ class Pointer : public BasicPointer {
     */                                                             
     size_t Write(int aFd,size_t aOset,size_t aLen) {
       if (ptr == NULL) {
-        LOG_AND_THROW(daq_exception_factory.CreateException(DAQCSTR("Pointer::Write() Null pointer access"),DAQEXCPID(DAQOutOfBounds)));
-        return(-DAQEXCPID(DAQOutOfBounds));
+
+	return 0;
+
+
       }
       return ptr->Write(aFd,pos+aOset,aLen); 
     }
@@ -542,8 +549,9 @@ class Pointer : public BasicPointer {
     */                                                             
     size_t Read(int aFd,size_t aOset,size_t aLen) {
       if (ptr == NULL) {
-        LOG_AND_THROW(daq_exception_factory.CreateException(DAQCSTR("Pointer::Read() Null pointer access"),DAQEXCPID(DAQOutOfBounds)));
-        return(-DAQEXCPID(DAQOutOfBounds));
+
+	return 0;
+
       }
       return ptr->Read(aFd,pos+aOset,aLen); 
     }
@@ -995,7 +1003,6 @@ class Pointer : public BasicPointer {
       static ATYPE garbage;
 
       if (ptr == NULL) {
-        LOG_AND_THROW(daq_exception_factory.CreateException(DAQCSTR("Pointer::operator*() Null pointer access"),DAQEXCPID(DAQOutOfBounds)));
         return(garbage);
       }
  
@@ -1020,7 +1027,7 @@ class Pointer : public BasicPointer {
       static ATYPE garbage;
 
       if (ptr == NULL) {
-        LOG_AND_THROW(daq_exception_factory.CreateException(DAQCSTR("Pointer::operator[](const int&) Null pointer access"),DAQEXCPID(DAQOutOfBounds)));
+
         return(garbage);
       }
  
@@ -1186,3 +1193,4 @@ inline long operator|(const Pointer<STYPE,ATYPE>& v,const Pointer<STYPE,ATYPE>& 
 };
 
 #endif
+

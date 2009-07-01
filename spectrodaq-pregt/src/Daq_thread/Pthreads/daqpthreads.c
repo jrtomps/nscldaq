@@ -277,7 +277,7 @@ DAMAGES.
 */
 static const char* Copyright = "(C) Copyright Michigan State University 2002, All rights reserved";
 
-using namespace std;
+// using namespace std;
 
 /*=========================================================================*/
 // daqpthreads.c:

@@ -752,7 +752,7 @@ class Stack : virtual public Printable {
 
       p = stackbot;
       for (i = 0; i < scnt; i++) { 
-        str << "  Item " << i << ": ";
+        this->str << "  Item " << i << ": ";
         if (p != NULL) {
           aStream.println(*p);
         } else {

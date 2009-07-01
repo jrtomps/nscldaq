@@ -823,7 +823,7 @@ bool XMLParser::OutputReady() {
 //                            
 // Put a string to output.
 //
-bool XMLParser::Puts(char *aStr) {
+bool XMLParser::Puts(const char *aStr) {
   if (!OutReady) return(false);
 
   if (Output == NULL) {
@@ -847,7 +847,8 @@ bool XMLParser::Puts(char *aStr) {
 //                            
 // Set the error line and text.
 //                          
-void XMLParser::SetError(int aLine,int aColumn,char *pContext,char *pText) {
+void XMLParser::SetError(int aLine,int aColumn,
+			 const char *pContext, const char *pText) {
   int siz = 0;
 
   ErrorLine = aLine;
@@ -886,7 +887,7 @@ void XMLParser::SetError(int aLine,int aColumn,char *pContext,char *pText) {
 //   done - Set when parsing is finished -- no more data following
 //          current buffer.
 //                          
-bool XMLParser::XMLParse(char *pBuf,int aLen,int done) {
+bool XMLParser::XMLParse(const char *pBuf,int aLen,int done) {
   XMLParser *oldparser = NULL;
 
   // MUTEX_LOCK

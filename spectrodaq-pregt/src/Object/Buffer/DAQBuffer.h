@@ -984,7 +984,7 @@ class DAQBuffer : public DAQBaseBuffer_d(BTYPE) {
     * @return this
     */                                                             
     DAQBuffer() {
-      Init(0);
+      this->Init(0);
     }
 
     /*==============================================================*/
@@ -997,7 +997,7 @@ class DAQBuffer : public DAQBaseBuffer_d(BTYPE) {
     * @return this
     */                                                             
     DAQBuffer(int l) {
-      Init(l);
+      this->Init(l);
     }
 
     /*==============================================================*/

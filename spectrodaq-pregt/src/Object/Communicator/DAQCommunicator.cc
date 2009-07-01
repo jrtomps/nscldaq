@@ -309,9 +309,11 @@ using namespace std;
 #include <maindefs.h>
 #endif
 
+extern "C" {
 #ifndef NETIO_H
 #include <netio/netio.h>
 #endif
+}
 
 #ifndef DAQCOMMUNICATOR_H
 #include <DAQCommunicator.h>

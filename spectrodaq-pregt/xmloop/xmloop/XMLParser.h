@@ -360,7 +360,7 @@ class XMLParser {
     bool OutputReady();              // Return true if output device is ready  
     void SetOutput(XMLOut&);         // Set the output to an XMLOut&
 
-    bool Puts(char *);               // Put a char* to the output
+    bool Puts(const char *);               // Put a char* to the output
 
     bool Parse(istream&);            // Parse a stream
     bool Parse(FILE *);              // Parse a FILE*
@@ -430,7 +430,7 @@ class XMLParser {
     XMLEndNamespaceDeclHandler *DelEndNamespaceDeclHandler(const char*);     // Del a NS handler 
     XMLEndNamespaceDeclHandler* FindEndNamespaceDeclHandler(const char*); // Find a NS handler
 
-    void SetError(int,int,char *,char *);
+    void SetError(int,int, const char *, const char *);
  
     bool PushNamespace(const char *,const char *); // Create and Push a new namespace
     bool PopNamespace();                     // Pop the top namespace
@@ -443,7 +443,7 @@ class XMLParser {
     friend class XMLPipe;
 
     XMLParser(XML_Parser,XMLParser&);        // Special constructor
-    bool XMLParse(char *,int,int);           // Internal parser
+    bool XMLParse(const char *,int,int);           // Internal parser
 
   private:
     int parserdepth;

@@ -554,7 +554,7 @@ s,@CXXCPP@,|#_!!_#|g++ -E,g
 s,@RANLIB@,|#_!!_#|ranlib,g
 s,@AR@,|#_!!_#|ar rs,g
 s,@CP@,|#_!!_#|cp -f,g
-s,@MAKEDEP@,|#_!!_#|:,g
+s,@MAKEDEP@,|#_!!_#|makedepend -f .depend,g
 s,@TOUCH@,|#_!!_#|touch,g
 s,@INSTALL@,|#_!!_#|install -m 0644,g
 s,@DIRINST@,|#_!!_#|install -d -m 0755,g

@@ -385,7 +385,7 @@ bool DAQServConfig::SetWorldAccess(bool aWS)
 //                                   
 // Set the buffer url.
 //                                 
-bool DAQServConfig::SetBufferURL(char *pUrl)
+bool DAQServConfig::SetBufferURL(const char *pUrl)
 {
   bufferurl = pUrl;
   return(true);
@@ -396,7 +396,7 @@ bool DAQServConfig::SetBufferURL(char *pUrl)
 //                                   
 // Set the buffer url.
 //                                 
-bool DAQServConfig::SetStatusURL(char *pUrl)
+bool DAQServConfig::SetStatusURL(const char *pUrl)
 {
   statusurl = pUrl;
   return(true);
@@ -407,7 +407,7 @@ bool DAQServConfig::SetStatusURL(char *pUrl)
 //                                   
 // Set the link url.
 //                                 
-bool DAQServConfig::SetLinkURL(char *pUrl)
+bool DAQServConfig::SetLinkURL(const char *pUrl)
 {
   linkurl = pUrl;
   return(true);
@@ -418,7 +418,7 @@ bool DAQServConfig::SetLinkURL(char *pUrl)
 //                                   
 // Set the sink url.
 //                                 
-bool DAQServConfig::SetSinkURL(char *pUrl)
+bool DAQServConfig::SetSinkURL(const char *pUrl)
 {
   sinkurl = pUrl;
   return(true);

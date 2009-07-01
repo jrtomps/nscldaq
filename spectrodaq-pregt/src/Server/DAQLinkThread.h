@@ -344,7 +344,7 @@ class DAQLinkThread : public DAQThread {
     // Return true if there is a client accepting a matching buffer
     // in the queue.
     //                                                                  
-    bool DAQLinkThread::IsAccepting(unsigned int aTag,unsigned int aPid) {
+    bool IsAccepting(unsigned int aTag,unsigned int aPid) {
       DAQBufferAcceptQueueItem *qitm = NULL;
       unsigned int mask = 0;
       bool rc = false;

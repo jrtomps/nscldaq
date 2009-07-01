@@ -337,10 +337,10 @@ class DAQServConfig : public DAQObject {
 
     bool SetDebug(int);         // Set debug level
     bool SetWorldAccess(bool);  // Set world access rights 
-    bool SetBufferURL(char *);  // Set the buffer URL 
-    bool SetStatusURL(char *);  // Set the status URL 
-    bool SetLinkURL(char *);    // Set the link URL 
-    bool SetSinkURL(char *);    // Set the sink URL 
+    bool SetBufferURL(const char *);  // Set the buffer URL 
+    bool SetStatusURL(const char *);  // Set the status URL 
+    bool SetLinkURL(const char *);    // Set the link URL 
+    bool SetSinkURL(const char *);    // Set the sink URL 
     bool SetPageDataSize(int);  // Set the page data size
     bool SetPagesPerCycle(int); // Set the number of pages to schedule
                                 // for transmission per cycle

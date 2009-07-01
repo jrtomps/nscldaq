@@ -397,11 +397,11 @@ class DAQPageBlock : public Block<BTYPE>, public DAQBufferPage {
 
       if (aStart >= 0) {
         DAQBufferPage::Init(aSeg,aStart,aLen);
-        data = (char *)(aSeg.GetSeg()+aStart);
-        len = aLen/sizeof(BTYPE);
+        this->data = (char *)(aSeg.GetSeg()+aStart);
+        this->len = aLen/sizeof(BTYPE);
       } else {
-        data = NULL;
-        len = 0;
+        this->data = NULL;
+        this->len = 0;
       }
 
       refcnt = 1; 
@@ -429,8 +429,8 @@ class DAQPageBlock : public Block<BTYPE>, public DAQBufferPage {
       if (port > 0) url.SetPort(port);
 
       DAQBufferPage::Init(aPage);
-      data = (BTYPE *)(aPage.GetSeg().GetSeg()+aPage.GetStart());
-      len = aPage.GetLength()/sizeof(BTYPE);
+      this->data = (BTYPE *)(aPage.GetSeg().GetSeg()+aPage.GetStart());
+      this->len = aPage.GetLength()/sizeof(BTYPE);
       refcnt = 1; 
     }
 
@@ -461,8 +461,8 @@ class DAQPageBlock : public Block<BTYPE>, public DAQBufferPage {
     */                                                             
     ~DAQPageBlock() {
       CheckReference();
-      data = NULL;
-      len = 0;
+      this->data = NULL;
+      this->len = 0;
     }
 
     /*==============================================================*/
@@ -494,7 +494,7 @@ class DAQPageBlock : public Block<BTYPE>, public DAQBufferPage {
     * @return A count of native units.
     */                                                             
     int GetLength() {
-      return(len);
+      return(this->len);
     }
 
     /*==============================================================*/
@@ -1038,7 +1038,7 @@ class DAQPageBlock : public Block<BTYPE>, public DAQBufferPage {
     * @return None
     */                                                             
     virtual void toStream(PrintStreamIface& aStream) {
-      aStream.printf("Data=0x%p,TypedLength=%d,",(void *)data,len);
+      aStream.printf("Data=0x%p,TypedLength=%d,",(void *)this->data, this->len);
       DAQBufferPage::toStream(aStream); 
     }
 
@@ -1055,8 +1055,8 @@ class DAQPageBlock : public Block<BTYPE>, public DAQBufferPage {
     void ReleaseData() {
       SetRelease(); 
       ResetInUse(); 
-      data = NULL;
-      len = 0;
+      this->data = NULL;
+      this->len = 0;
     }
 
     /*==============================================================*/
@@ -1096,8 +1096,8 @@ class DAQPageBlock : public Block<BTYPE>, public DAQBufferPage {
 
       url = blk.url;
 
-      data = blk.data;
-      len = blk.len; 
+      this->data = blk.data;
+      this->len = blk.len; 
 
       refcnt = blk.refcnt;                 // There can be only one
       refcnt++;                            // Increment new counter;

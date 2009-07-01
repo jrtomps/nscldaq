@@ -570,7 +570,7 @@ bool DAQMain::ReadConfig(char *pFileName)
   ifstream cfile(pFileName);
   char buf[100];
   bool done = false;
-  char *fname = pFileName;
+  const char *fname = pFileName;
   DAQCParserOut aOut(daq_server_config);
   DAQConfigParser aCP(aOut);
 

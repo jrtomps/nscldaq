@@ -1,0 +1,43 @@
+# DO NOT DELETE
+
+DAQMemory.o: /usr/include/stdlib.h /usr/include/features.h
+DAQMemory.o: /usr/include/sys/cdefs.h /usr/include/bits/wordsize.h
+DAQMemory.o: /usr/include/gnu/stubs.h /usr/include/gnu/stubs-32.h
+DAQMemory.o: /usr/include/sys/types.h /usr/include/bits/types.h
+DAQMemory.o: /usr/include/bits/typesizes.h /usr/include/time.h
+DAQMemory.o: /usr/include/endian.h /usr/include/bits/endian.h
+DAQMemory.o: /usr/include/sys/select.h /usr/include/bits/select.h
+DAQMemory.o: /usr/include/bits/sigset.h /usr/include/bits/time.h
+DAQMemory.o: /usr/include/sys/sysmacros.h /usr/include/bits/pthreadtypes.h
+DAQMemory.o: /usr/include/alloca.h /usr/include/stdio.h /usr/include/libio.h
+DAQMemory.o: /usr/include/_G_config.h /usr/include/wchar.h
+DAQMemory.o: /usr/include/bits/stdio_lim.h /usr/include/bits/sys_errlist.h
+DAQMemory.o: /usr/include/unistd.h /usr/include/bits/posix_opt.h
+DAQMemory.o: /usr/include/bits/confname.h /usr/include/getopt.h
+DAQMemory.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQMemory.h
+DAQMemory.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/daqconfig.h
+DAQMemory.o: /usr/include/string.h
+DAQMemory.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQObject.h
+DAQMemory.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQTrackMap.h
+DAQMemory.o: /usr/include/errno.h /usr/include/bits/errno.h
+DAQMemory.o: /usr/include/linux/errno.h /usr/include/asm/errno.h
+DAQMemory.o: /usr/include/asm-generic/errno.h
+DAQMemory.o: /usr/include/asm-generic/errno-base.h /usr/include/syslog.h
+DAQMemory.o: /usr/include/sys/syslog.h /usr/include/bits/syslog-path.h
+DAQMemory.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/threads/daqthreads.h
+DAQMemory.o: /usr/include/signal.h /usr/include/bits/signum.h
+DAQMemory.o: /usr/include/bits/siginfo.h /usr/include/bits/sigaction.h
+DAQMemory.o: /usr/include/bits/sigcontext.h /usr/include/bits/sigstack.h
+DAQMemory.o: /usr/include/bits/sigthread.h
+DAQMemory.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/threads/daqpthreads.h
+DAQMemory.o: /usr/include/pthread.h /usr/include/sched.h
+DAQMemory.o: /usr/include/bits/sched.h /usr/include/bits/setjmp.h
+DAQMemory.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQTrackMemory.h
+DAQMemory.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQObjectType.h
+DAQMemory.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/Printable.h
+DAQMemory.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/genmacros.h
+DAQMemory.o: /usr/include/ctype.h
+DAQMemory.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/PrintStreamIface.h
+DAQMemory.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/OstreamCompat.h
+DAQMemory.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/maindefs.h
+DAQMemory.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/daqcstr.h

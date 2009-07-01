@@ -327,6 +327,10 @@ DAMAGES.
 #include <sys/types.h>
 #include <sys/wait.h>
 
+// Forward class defs:
+
+class DAQNode;
+
 class DAQNodeFactory : public DAQExecFactory {
   public: 
     DAQNodeFactory();                // Constructor

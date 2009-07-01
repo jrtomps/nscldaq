@@ -1,0 +1,154 @@
+# DO NOT DELETE
+
+XMLHandler.o: /usr/include/stdlib.h /usr/include/features.h
+XMLHandler.o: /usr/include/sys/cdefs.h /usr/include/bits/wordsize.h
+XMLHandler.o: /usr/include/gnu/stubs.h /usr/include/gnu/stubs-32.h
+XMLHandler.o: /usr/include/sys/types.h /usr/include/bits/types.h
+XMLHandler.o: /usr/include/bits/typesizes.h /usr/include/time.h
+XMLHandler.o: /usr/include/endian.h /usr/include/bits/endian.h
+XMLHandler.o: /usr/include/sys/select.h /usr/include/bits/select.h
+XMLHandler.o: /usr/include/bits/sigset.h /usr/include/bits/time.h
+XMLHandler.o: /usr/include/sys/sysmacros.h /usr/include/bits/pthreadtypes.h
+XMLHandler.o: /usr/include/alloca.h /usr/include/stdio.h /usr/include/libio.h
+XMLHandler.o: /usr/include/_G_config.h /usr/include/wchar.h
+XMLHandler.o: /usr/include/bits/stdio_lim.h /usr/include/bits/sys_errlist.h
+XMLHandler.o: /usr/include/setjmp.h /usr/include/bits/setjmp.h
+XMLHandler.o: /usr/include/sys/time.h /usr/include/unistd.h
+XMLHandler.o: /usr/include/bits/posix_opt.h /usr/include/bits/confname.h
+XMLHandler.o: /usr/include/getopt.h /usr/include/string.h
+XMLHandler.o: /usr/include/ctype.h
+XMLHandler.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/xmloop/XMLHandler.h
+XMLHandler.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/xmloop/xmlpconfig.h
+XMLHandler.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/daqconfig.h
+XMLHandler.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/xmloop/xmlparse.h
+XMLHandler.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/xmloop/XMLParser.h
+XMLHandler.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/xmloop/XMLLinkedList.h
+XMLHandler.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/xmloop/XMLOut.h
+XMLHandler.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/xmloop/XMLPipe.h
+XMLHandler.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/xmloop/XMLStack.h
+XMLHandler.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/xmloop/XMLNamespace.h
+XMLHandler.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/xmloop/XMLINSStack.h
+XMLHandler.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/xmloop/XMLPtrStack.h
+XMLHandler.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/xmloop/xmlpcstr.h
+XMLParser.o: /usr/include/stdlib.h /usr/include/features.h
+XMLParser.o: /usr/include/sys/cdefs.h /usr/include/bits/wordsize.h
+XMLParser.o: /usr/include/gnu/stubs.h /usr/include/gnu/stubs-32.h
+XMLParser.o: /usr/include/sys/types.h /usr/include/bits/types.h
+XMLParser.o: /usr/include/bits/typesizes.h /usr/include/time.h
+XMLParser.o: /usr/include/endian.h /usr/include/bits/endian.h
+XMLParser.o: /usr/include/sys/select.h /usr/include/bits/select.h
+XMLParser.o: /usr/include/bits/sigset.h /usr/include/bits/time.h
+XMLParser.o: /usr/include/sys/sysmacros.h /usr/include/bits/pthreadtypes.h
+XMLParser.o: /usr/include/alloca.h /usr/include/stdio.h /usr/include/libio.h
+XMLParser.o: /usr/include/_G_config.h /usr/include/wchar.h
+XMLParser.o: /usr/include/bits/stdio_lim.h /usr/include/bits/sys_errlist.h
+XMLParser.o: /usr/include/setjmp.h /usr/include/bits/setjmp.h
+XMLParser.o: /usr/include/sys/time.h /usr/include/unistd.h
+XMLParser.o: /usr/include/bits/posix_opt.h /usr/include/bits/confname.h
+XMLParser.o: /usr/include/getopt.h /usr/include/string.h
+XMLParser.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/xmloop/XMLParser.h
+XMLParser.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/xmloop/xmlpconfig.h
+XMLParser.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/daqconfig.h
+XMLParser.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/xmloop/XMLLinkedList.h
+XMLParser.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/xmloop/XMLOut.h
+XMLParser.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/xmloop/xmlparse.h
+XMLParser.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/xmloop/XMLPipe.h
+XMLParser.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/xmloop/XMLStack.h
+XMLParser.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/xmloop/XMLNamespace.h
+XMLParser.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/xmloop/XMLINSStack.h
+XMLParser.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/xmloop/XMLPtrStack.h
+XMLParser.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/xmloop/xmlpcstr.h
+XMLOut.o: /usr/include/stdlib.h /usr/include/features.h
+XMLOut.o: /usr/include/sys/cdefs.h /usr/include/bits/wordsize.h
+XMLOut.o: /usr/include/gnu/stubs.h /usr/include/gnu/stubs-32.h
+XMLOut.o: /usr/include/sys/types.h /usr/include/bits/types.h
+XMLOut.o: /usr/include/bits/typesizes.h /usr/include/time.h
+XMLOut.o: /usr/include/endian.h /usr/include/bits/endian.h
+XMLOut.o: /usr/include/sys/select.h /usr/include/bits/select.h
+XMLOut.o: /usr/include/bits/sigset.h /usr/include/bits/time.h
+XMLOut.o: /usr/include/sys/sysmacros.h /usr/include/bits/pthreadtypes.h
+XMLOut.o: /usr/include/alloca.h /usr/include/stdio.h /usr/include/libio.h
+XMLOut.o: /usr/include/_G_config.h /usr/include/wchar.h
+XMLOut.o: /usr/include/bits/stdio_lim.h /usr/include/bits/sys_errlist.h
+XMLOut.o: /usr/include/setjmp.h /usr/include/bits/setjmp.h
+XMLOut.o: /usr/include/sys/time.h /usr/include/unistd.h
+XMLOut.o: /usr/include/bits/posix_opt.h /usr/include/bits/confname.h
+XMLOut.o: /usr/include/getopt.h /usr/include/string.h
+XMLOut.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/xmloop/XMLOut.h
+XMLOut.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/xmloop/xmlpconfig.h
+XMLOut.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/daqconfig.h
+XMLOut.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/xmloop/xmlparse.h
+XMLOut.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/xmloop/xmlpcstr.h
+XMLPipe.o: /usr/include/stdlib.h /usr/include/features.h
+XMLPipe.o: /usr/include/sys/cdefs.h /usr/include/bits/wordsize.h
+XMLPipe.o: /usr/include/gnu/stubs.h /usr/include/gnu/stubs-32.h
+XMLPipe.o: /usr/include/sys/types.h /usr/include/bits/types.h
+XMLPipe.o: /usr/include/bits/typesizes.h /usr/include/time.h
+XMLPipe.o: /usr/include/endian.h /usr/include/bits/endian.h
+XMLPipe.o: /usr/include/sys/select.h /usr/include/bits/select.h
+XMLPipe.o: /usr/include/bits/sigset.h /usr/include/bits/time.h
+XMLPipe.o: /usr/include/sys/sysmacros.h /usr/include/bits/pthreadtypes.h
+XMLPipe.o: /usr/include/alloca.h /usr/include/stdio.h /usr/include/libio.h
+XMLPipe.o: /usr/include/_G_config.h /usr/include/wchar.h
+XMLPipe.o: /usr/include/bits/stdio_lim.h /usr/include/bits/sys_errlist.h
+XMLPipe.o: /usr/include/setjmp.h /usr/include/bits/setjmp.h
+XMLPipe.o: /usr/include/sys/time.h /usr/include/unistd.h
+XMLPipe.o: /usr/include/bits/posix_opt.h /usr/include/bits/confname.h
+XMLPipe.o: /usr/include/getopt.h /usr/include/string.h
+XMLPipe.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/xmloop/XMLPipe.h
+XMLPipe.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/xmloop/xmlpconfig.h
+XMLPipe.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/daqconfig.h
+XMLPipe.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/xmloop/xmlparse.h
+XMLPipe.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/xmloop/XMLParser.h
+XMLPipe.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/xmloop/XMLLinkedList.h
+XMLPipe.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/xmloop/XMLOut.h
+XMLPipe.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/xmloop/XMLStack.h
+XMLPipe.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/xmloop/XMLNamespace.h
+XMLPipe.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/xmloop/XMLINSStack.h
+XMLPipe.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/xmloop/XMLPtrStack.h
+XMLPipe.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/xmloop/xmlpcstr.h
+XMLNamespace.o: /usr/include/stdlib.h /usr/include/features.h
+XMLNamespace.o: /usr/include/sys/cdefs.h /usr/include/bits/wordsize.h
+XMLNamespace.o: /usr/include/gnu/stubs.h /usr/include/gnu/stubs-32.h
+XMLNamespace.o: /usr/include/sys/types.h /usr/include/bits/types.h
+XMLNamespace.o: /usr/include/bits/typesizes.h /usr/include/time.h
+XMLNamespace.o: /usr/include/endian.h /usr/include/bits/endian.h
+XMLNamespace.o: /usr/include/sys/select.h /usr/include/bits/select.h
+XMLNamespace.o: /usr/include/bits/sigset.h /usr/include/bits/time.h
+XMLNamespace.o: /usr/include/sys/sysmacros.h /usr/include/bits/pthreadtypes.h
+XMLNamespace.o: /usr/include/alloca.h /usr/include/stdio.h
+XMLNamespace.o: /usr/include/libio.h /usr/include/_G_config.h
+XMLNamespace.o: /usr/include/wchar.h /usr/include/bits/stdio_lim.h
+XMLNamespace.o: /usr/include/bits/sys_errlist.h /usr/include/setjmp.h
+XMLNamespace.o: /usr/include/bits/setjmp.h /usr/include/sys/time.h
+XMLNamespace.o: /usr/include/unistd.h /usr/include/bits/posix_opt.h
+XMLNamespace.o: /usr/include/bits/confname.h /usr/include/getopt.h
+XMLNamespace.o: /usr/include/string.h
+XMLNamespace.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/xmloop/XMLNamespace.h
+XMLNamespace.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/xmloop/xmlpconfig.h
+XMLNamespace.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/daqconfig.h
+XMLNamespace.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/xmloop/xmlparse.h
+XMLNamespace.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/xmloop/xmlpcstr.h
+XMLINSStack.o: /usr/include/stdlib.h /usr/include/features.h
+XMLINSStack.o: /usr/include/sys/cdefs.h /usr/include/bits/wordsize.h
+XMLINSStack.o: /usr/include/gnu/stubs.h /usr/include/gnu/stubs-32.h
+XMLINSStack.o: /usr/include/sys/types.h /usr/include/bits/types.h
+XMLINSStack.o: /usr/include/bits/typesizes.h /usr/include/time.h
+XMLINSStack.o: /usr/include/endian.h /usr/include/bits/endian.h
+XMLINSStack.o: /usr/include/sys/select.h /usr/include/bits/select.h
+XMLINSStack.o: /usr/include/bits/sigset.h /usr/include/bits/time.h
+XMLINSStack.o: /usr/include/sys/sysmacros.h /usr/include/bits/pthreadtypes.h
+XMLINSStack.o: /usr/include/alloca.h /usr/include/stdio.h
+XMLINSStack.o: /usr/include/libio.h /usr/include/_G_config.h
+XMLINSStack.o: /usr/include/wchar.h /usr/include/bits/stdio_lim.h
+XMLINSStack.o: /usr/include/bits/sys_errlist.h /usr/include/setjmp.h
+XMLINSStack.o: /usr/include/bits/setjmp.h /usr/include/sys/time.h
+XMLINSStack.o: /usr/include/unistd.h /usr/include/bits/posix_opt.h
+XMLINSStack.o: /usr/include/bits/confname.h /usr/include/getopt.h
+XMLINSStack.o: /usr/include/string.h
+XMLINSStack.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/xmloop/XMLINSStack.h
+XMLINSStack.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/xmloop/xmlpconfig.h
+XMLINSStack.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/daqconfig.h
+XMLINSStack.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/xmloop/XMLPtrStack.h
+XMLINSStack.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/xmloop/xmlparse.h
+XMLINSStack.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/xmloop/xmlpcstr.h

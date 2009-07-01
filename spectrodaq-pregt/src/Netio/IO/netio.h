@@ -454,7 +454,7 @@ static void netio_printprotos(FILE *fp)
 }
 
 /*=====================================================================*/
-static int netio_strtoproto(char *s)
+static int netio_strtoproto(const char *s)
 {
   if (s == NULL) return(NETIO_UNKNOWN);
 

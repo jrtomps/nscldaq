@@ -311,13 +311,15 @@ using namespace std;
 #include <DAQObject.h> 
 #endif
 
+#ifndef DAQ_POINTER_H
+#include <Pointer.h> 
+#endif
+
 #ifndef DAQ_ARRAY_H
 #include <Array.h> 
 #endif
 
-// #ifndef DAQ_POINTER_H
-#include <Pointer.h> 
-// #endif
+
 
 #ifndef DAQ_PRINTSTREAM_H
 #include <PrintStream.h> 

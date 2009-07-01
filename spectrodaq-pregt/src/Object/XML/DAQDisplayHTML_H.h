@@ -350,7 +350,7 @@ DAMAGES.
 /*=========================================================================*/
 class DAQHtmlInformalTableStartHandler : public XMLStartHandler {
   public: 
-    DAQHtmlInformalTableStartHandler(char *pTarget) : XMLStartHandler(pTarget) { }
+    DAQHtmlInformalTableStartHandler(const char *pTarget) : XMLStartHandler(pTarget) { }
     ~DAQHtmlInformalTableStartHandler() { };
     void operator()(XMLParser*,const char *,void *,const char **); // Handler method
 };
@@ -358,7 +358,7 @@ class DAQHtmlInformalTableStartHandler : public XMLStartHandler {
 /*=========================================================================*/
 class DAQHtmlInformalTableEndHandler : public XMLEndHandler {
   public: 
-    DAQHtmlInformalTableEndHandler(char *pTarget) : XMLEndHandler(pTarget) { }
+    DAQHtmlInformalTableEndHandler(const char *pTarget) : XMLEndHandler(pTarget) { }
     ~DAQHtmlInformalTableEndHandler() { };
     void operator()(XMLParser*,const char *,void *); // Handler method
 };
@@ -366,7 +366,7 @@ class DAQHtmlInformalTableEndHandler : public XMLEndHandler {
 /*=========================================================================*/
 class DAQHtmlRowStartHandler : public XMLStartHandler {
   public: 
-    DAQHtmlRowStartHandler(char *pTarget) : XMLStartHandler(pTarget) { }
+    DAQHtmlRowStartHandler(const char *pTarget) : XMLStartHandler(pTarget) { }
     ~DAQHtmlRowStartHandler() { };
     void operator()(XMLParser*,const char *,void *,const char **); // Handler method
 };
@@ -374,7 +374,7 @@ class DAQHtmlRowStartHandler : public XMLStartHandler {
 /*=========================================================================*/
 class DAQHtmlRowEndHandler : public XMLEndHandler {
   public: 
-    DAQHtmlRowEndHandler(char *pTarget) : XMLEndHandler(pTarget) { }
+    DAQHtmlRowEndHandler(const char *pTarget) : XMLEndHandler(pTarget) { }
     ~DAQHtmlRowEndHandler() { };
     void operator()(XMLParser*,const char *,void *); // Handler method
 };
@@ -382,7 +382,7 @@ class DAQHtmlRowEndHandler : public XMLEndHandler {
 /*=========================================================================*/
 class DAQHtmlColStartHandler : public XMLStartHandler {
   public: 
-    DAQHtmlColStartHandler(char *pTarget) : XMLStartHandler(pTarget) { }
+    DAQHtmlColStartHandler(const char *pTarget) : XMLStartHandler(pTarget) { }
     ~DAQHtmlColStartHandler() { };
     void operator()(XMLParser*,const char *,void *,const char **); // Handler method
 };
@@ -390,7 +390,7 @@ class DAQHtmlColStartHandler : public XMLStartHandler {
 /*=========================================================================*/
 class DAQHtmlColEndHandler : public XMLEndHandler {
   public: 
-    DAQHtmlColEndHandler(char *pTarget) : XMLEndHandler(pTarget) { }
+    DAQHtmlColEndHandler(const char *pTarget) : XMLEndHandler(pTarget) { }
     ~DAQHtmlColEndHandler()  { };
     void operator()(XMLParser*,const char *,void *); // Handler method
 };
@@ -398,7 +398,7 @@ class DAQHtmlColEndHandler : public XMLEndHandler {
 /*=========================================================================*/
 class DAQHtmlFontStartHandler : public XMLStartHandler {
   public: 
-    DAQHtmlFontStartHandler(char *pTarget) : XMLStartHandler(pTarget) { }
+    DAQHtmlFontStartHandler(const char *pTarget) : XMLStartHandler(pTarget) { }
     ~DAQHtmlFontStartHandler() { };
     void operator()(XMLParser*,const char *,void *,const char **); // Handler method
 };
@@ -406,7 +406,7 @@ class DAQHtmlFontStartHandler : public XMLStartHandler {
 /*=========================================================================*/
 class DAQHtmlFontEndHandler : public XMLEndHandler {
   public: 
-    DAQHtmlFontEndHandler(char *pTarget) : XMLEndHandler(pTarget) { }
+    DAQHtmlFontEndHandler(const char *pTarget) : XMLEndHandler(pTarget) { }
     ~DAQHtmlFontEndHandler() { };
     void operator()(XMLParser*,const char *,void *); // Handler method
 };
@@ -414,7 +414,7 @@ class DAQHtmlFontEndHandler : public XMLEndHandler {
 /*=========================================================================*/
 class DAQHtmlParaStartHandler : public XMLStartHandler {
   public: 
-    DAQHtmlParaStartHandler(char *pTarget) : XMLStartHandler(pTarget) { }
+    DAQHtmlParaStartHandler(const char *pTarget) : XMLStartHandler(pTarget) { }
     ~DAQHtmlParaStartHandler() { };
     void operator()(XMLParser*,const char *,void *,const char **); // Handler method
 };
@@ -422,7 +422,7 @@ class DAQHtmlParaStartHandler : public XMLStartHandler {
 /*=========================================================================*/
 class DAQHtmlParaEndHandler : public XMLEndHandler {
   public: 
-    DAQHtmlParaEndHandler(char *pTarget) : XMLEndHandler(pTarget) { }
+    DAQHtmlParaEndHandler(const char *pTarget) : XMLEndHandler(pTarget) { }
     ~DAQHtmlParaEndHandler() { };
     void operator()(XMLParser*,const char *,void *); // Handler method
 };
@@ -430,7 +430,7 @@ class DAQHtmlParaEndHandler : public XMLEndHandler {
 /*=========================================================================*/
 class DAQHtmlLineStartHandler : public XMLStartHandler {
   public: 
-    DAQHtmlLineStartHandler(char *pTarget) : XMLStartHandler(pTarget) { }
+    DAQHtmlLineStartHandler(const char *pTarget) : XMLStartHandler(pTarget) { }
     ~DAQHtmlLineStartHandler() { };
     void operator()(XMLParser*,const char *,void *,const char **); // Handler method
 };
@@ -438,7 +438,7 @@ class DAQHtmlLineStartHandler : public XMLStartHandler {
 /*=========================================================================*/
 class DAQHtmlLineEndHandler : public XMLEndHandler {
   public: 
-    DAQHtmlLineEndHandler(char *pTarget) : XMLEndHandler(pTarget) { }
+    DAQHtmlLineEndHandler(const char *pTarget) : XMLEndHandler(pTarget) { }
     ~DAQHtmlLineEndHandler() { };
     void operator()(XMLParser*,const char *,void *); // Handler method
 };
@@ -446,7 +446,7 @@ class DAQHtmlLineEndHandler : public XMLEndHandler {
 /*=========================================================================*/
 class DAQHtmlObjectStartHandler : public XMLStartHandler {
   public: 
-    DAQHtmlObjectStartHandler(char *pTarget) : XMLStartHandler(pTarget) { }
+    DAQHtmlObjectStartHandler(const char *pTarget) : XMLStartHandler(pTarget) { }
     ~DAQHtmlObjectStartHandler() { };
     void operator()(XMLParser*,const char *,void *,const char **); // Handler method
 };
@@ -454,7 +454,7 @@ class DAQHtmlObjectStartHandler : public XMLStartHandler {
 /*=========================================================================*/
 class DAQHtmlObjectEndHandler : public XMLEndHandler {
   public: 
-    DAQHtmlObjectEndHandler(char *pTarget) : XMLEndHandler(pTarget) { }
+    DAQHtmlObjectEndHandler(const char *pTarget) : XMLEndHandler(pTarget) { }
     ~DAQHtmlObjectEndHandler() { };
     void operator()(XMLParser*,const char *,void *); // Handler method
 };
@@ -462,7 +462,7 @@ class DAQHtmlObjectEndHandler : public XMLEndHandler {
 /*=========================================================================*/
 class DAQHtmlDefaultStartHandler : public XMLStartHandler {
   public: 
-    DAQHtmlDefaultStartHandler(char *pTarget) : XMLStartHandler(pTarget) { }
+    DAQHtmlDefaultStartHandler(const char *pTarget) : XMLStartHandler(pTarget) { }
     ~DAQHtmlDefaultStartHandler() { };
     void operator()(XMLParser*,const char *,void *,const char **); // Handler method
 };
@@ -470,7 +470,7 @@ class DAQHtmlDefaultStartHandler : public XMLStartHandler {
 /*=========================================================================*/
 class DAQHtmlDefaultEndHandler : public XMLEndHandler {
   public: 
-    DAQHtmlDefaultEndHandler(char *pTarget) : XMLEndHandler(pTarget) { };
+    DAQHtmlDefaultEndHandler(const char *pTarget) : XMLEndHandler(pTarget) { };
     ~DAQHtmlDefaultEndHandler() { };
     void operator()(XMLParser*,const char *,void *); // Handler method
 };
@@ -484,7 +484,7 @@ class DAQHtmlCharacterDataHandler : public XMLCharacterDataHandler {
 /*=========================================================================*/
 class DAQHtmlPIHandler : public XMLPIHandler {
   public: 
-    DAQHtmlPIHandler(char *pTarget) : XMLPIHandler(pTarget) { };
+    DAQHtmlPIHandler(const char *pTarget) : XMLPIHandler(pTarget) { };
     ~DAQHtmlPIHandler() { };
     void operator()(XMLParser*,const char *,void *,const char *); // Handler method
 };

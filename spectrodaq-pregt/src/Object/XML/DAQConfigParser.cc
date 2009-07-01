@@ -468,7 +468,7 @@ DAQConfigParser::~DAQConfigParser()
 * @param done  If parsing has concluded.
 * @return If the bytes were parsed.
 */                                                                  
-bool DAQConfigParser::Puts(char *aStr,int done)
+bool DAQConfigParser::Puts(const char *aStr,int done)
 {
   bool rc;
 
@@ -494,7 +494,7 @@ bool DAQConfigParser::Puts(char *aStr,int done)
 * @param done  If parsing has concluded.
 * @return If the bytes were parsed.
 */                                                                  
-bool DAQConfigParser::Put(char *aBuf,int nBytes,int done)
+bool DAQConfigParser::Put(const char *aBuf,int nBytes,int done)
 {
   bool rc;
   

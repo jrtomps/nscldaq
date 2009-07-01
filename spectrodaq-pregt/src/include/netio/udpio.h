@@ -314,6 +314,9 @@ DAMAGES.
 #include <netio/netio_parms.h>
 #endif
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 int udp_servinit(int *,sockaddr_netio *,netio_parms);
 int udp_accept(int,sockaddr_netio *,netio_parms);
@@ -331,5 +334,9 @@ int udp_getportbyname(const char *);
 int udp_isreadable(int);
 int udp_iswritable(int);
 short udp_poll(int,short,int);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

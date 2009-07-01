@@ -347,10 +347,11 @@ DAMAGES.
 #include <DebugMutex.h>
 #endif
 
+extern "C" {
 #ifndef NETIO_H
 #include <netio/netio.h>
 #endif
-
+}
 
 #ifndef MAINTYPES_H
 #include <maintypes.h>

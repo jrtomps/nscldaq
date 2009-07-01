@@ -326,9 +326,9 @@ using namespace std;
 #define DAQCONFPARSER_PARAM      (0x3)
 
 // Defaults
-static char *DAQCONFPARSER_PROTO = "tcp";
-static char *DAQCONFPARSER_HOST  = "localhost";
-static char *DAQCONFPARSER_PATH  = "/";
+static const char *DAQCONFPARSER_PROTO = "tcp";
+static const char *DAQCONFPARSER_HOST  = "localhost";
+static const char *DAQCONFPARSER_PATH  = "/";
 
 /*===================================================================*/
 /*                      DAQConfParserServerStartHandler              */
@@ -384,10 +384,10 @@ void DAQConfParserURLStartHandler::operator()(XMLParser *parser,const char *pTar
   netio_fptr net_funcs; 
   char **p = NULL;
   char *name = NULL;
-  char *proto = DAQCONFPARSER_PROTO;
-  char *host = DAQCONFPARSER_HOST;
+  const char *proto = DAQCONFPARSER_PROTO;
+  const char *host = DAQCONFPARSER_HOST;
   char *port = NULL;
-  char *path = DAQCONFPARSER_PATH;
+  const char *path = DAQCONFPARSER_PATH;
 
   parser->PushState(DAQCONFPARSER_URL);
 
@@ -455,7 +455,7 @@ void DAQConfParserURLEndHandler::operator()(XMLParser *parser,const char *pTarge
 void DAQConfParserParamStartHandler::operator()(XMLParser *parser,const char *pTarget,void *pUserData,const char **pAttribs) {
   DAQString s;
   char **p = NULL;
-  char *name = "NO_NAME";
+  const char *name = "NO_NAME";
 
   parser->PushState(DAQCONFPARSER_PARAM);
 

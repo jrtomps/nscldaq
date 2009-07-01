@@ -361,7 +361,7 @@ ostream& XMLPipe::Print(ostream& aStream) {
 //                            
 // Put a string to output.
 //
-bool XMLPipe::Put(char *aStr,int aLen,int done) {
+bool XMLPipe::Put(const char *aStr,int aLen,int done) {
   return(parser->XMLParse(aStr,aLen,done));
 }
 
@@ -370,7 +370,7 @@ bool XMLPipe::Put(char *aStr,int aLen,int done) {
 //                            
 // Put a string to output.
 //
-bool XMLPipe::Puts(char *aStr,int done) {
+bool XMLPipe::Puts(const char *aStr,int done) {
   int l;
   if (aStr == NULL) return(true);
   l = strlen(aStr);

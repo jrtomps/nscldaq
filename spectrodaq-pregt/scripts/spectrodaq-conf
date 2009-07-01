@@ -354,19 +354,19 @@ for arg in $*; do
     ARGS="$ARGS $NSCL_INC" 
     ;;
   --xmlclientlibs)
-    ARGS="$ARGS $THREADLIBS -L$SDAQ_LIB -lnetio -ldaqclient -lspectrodaq -ldaqthreads -lxmloop -lxmlparse -lxmltok $THREADLIBS -L$NSCL_DIR/lib -lNSCLException" 
+    ARGS="$ARGS $THREADLIBS -L$SDAQ_LIB -lnetio -ldaqclient -lspectrodaq -ldaqthreads -lxmloop -lxmlparse -lxmltok $THREADLIBS -L$NSCL_DIR/lib -lNSCLException -lnetio" 
     ;;
   --config)
     ARGS="$ARGS $SDAQ_CONFIG"
     ;;
   --clientlibs)
-    ARGS="$ARGS $THREADLIBS -L$SDAQ_LIB -lnetio -ldaqclient -lspectrodaq -ldaqthreads -lxmloop -lxmlparse -lxmltok $THREADLIBS -L$NSCL_DIR/lib -lNSCLException" 
+    ARGS="$ARGS $THREADLIBS -L$SDAQ_LIB -lnetio -ldaqclient -lspectrodaq -ldaqthreads -lxmloop -lxmlparse -lxmltok $THREADLIBS -L$NSCL_DIR/lib -lNSCLException -lnetio" 
     ;;
   --libs)
-    ARGS="$ARGS $THREADLIBS -L$SDAQ_LIB -lnetio -ldaqclient -lspectrodaq -ldaqthreads -lxmloop -lxmlparse -lxmltok $THREADLIBS $CRYPTLIBS -L$NSCL_DIR/lib -lNSCLException" 
+    ARGS="$ARGS $THREADLIBS -L$SDAQ_LIB -lnetio -ldaqclient -lspectrodaq -ldaqthreads -lxmloop -lxmlparse -lxmltok $THREADLIBS $CRYPTLIBS -L$NSCL_DIR/lib -lNSCLException -lnetio" 
     ;;
   --servlibs)
-    ARGS="$ARGS $THREADLIBS -L$SDAQ_LIB -lnetio -ldaqserv -lspectrodaq -ldaqthreads -lxmloop -lxmlparse -lxmltok $THREADLIBS $CRYPTLIBS -L$NSCL_DIR/lib -lNSCLException" 
+    ARGS="$ARGS $THREADLIBS -L$SDAQ_LIB -lnetio -ldaqserv -lspectrodaq -ldaqthreads -lxmloop -lxmlparse -lxmltok $THREADLIBS $CRYPTLIBS -L$NSCL_DIR/lib -lNSCLException -lnetio" 
     ;;
   --cflags)
     if [ "$SDAQ_INC" != "$NSCL_INC" ]; then 

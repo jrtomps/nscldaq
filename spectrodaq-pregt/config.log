@@ -178,7 +178,8 @@ configure:3275: checking for cp
 configure:3291: found /bin/cp
 configure:3303: result: cp -f
 configure:3313: checking for makedepend
-configure:3341: result: :
+configure:3329: found /usr/bin/makedepend
+configure:3341: result: makedepend -f .depend
 configure:3351: checking for touch
 configure:3367: found /bin/touch
 configure:3379: result: touch
@@ -451,7 +452,7 @@ configure:6920: $? = 0
 configure:6938: result: yes
 configure:6952: checking for set_new_handler
 configure:7008: g++ -o conftest -g -O2   conftest.cpp  >&5
-/tmp/ccoDoveM.o: In function `main':
+/tmp/ccstc3ub.o: In function `main':
 /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/conftest.cpp:82: undefined reference to `set_new_handler'
 collect2: ld returned 1 exit status
 configure:7014: $? = 1
@@ -544,7 +545,7 @@ configure: failed program was:
 configure:7032: result: no
 configure:7046: checking for set_unexpected
 configure:7102: g++ -o conftest -g -O2   conftest.cpp  >&5
-/tmp/cc07Z2gX.o: In function `main':
+/tmp/ccYC3TGj.o: In function `main':
 /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/conftest.cpp:82: undefined reference to `set_unexpected'
 collect2: ld returned 1 exit status
 configure:7108: $? = 1
@@ -637,7 +638,7 @@ configure: failed program was:
 configure:7126: result: no
 configure:7140: checking for set_terminate
 configure:7196: g++ -o conftest -g -O2   conftest.cpp  >&5
-/tmp/cccVNn17.o: In function `main':
+/tmp/cccvUeSw.o: In function `main':
 /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/conftest.cpp:82: undefined reference to `set_terminate'
 collect2: ld returned 1 exit status
 configure:7202: $? = 1
@@ -2102,7 +2103,7 @@ configure:9395: checking for pthread.h
 configure:9403: result: yes
 configure:9420: checking for pthread_create
 configure:9476: g++ -o conftest -g -O2   conftest.cpp  >&5
-/tmp/ccMR0Vay.o: In function `main':
+/tmp/ccCOCNef.o: In function `main':
 /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/conftest.cpp:97: undefined reference to `pthread_create'
 collect2: ld returned 1 exit status
 configure:9482: $? = 1
@@ -2214,7 +2215,7 @@ configure:9563: $? = 0
 configure:9581: result: yes
 configure:9679: checking for crypt in -lc
 configure:9714: g++ -o conftest -g -O2   conftest.cpp -lc   >&5
-/tmp/cc6px9yS.o: In function `main':
+/tmp/ccYaDzwg.o: In function `main':
 /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/conftest.cpp:75: undefined reference to `crypt'
 collect2: ld returned 1 exit status
 configure:9720: $? = 1
@@ -2433,7 +2434,7 @@ ac_cv_prog_CXXCPP='g++ -E'
 ac_cv_prog_DIRINST='install -d -m 0755'
 ac_cv_prog_DOXYGEN=doxygen
 ac_cv_prog_INSTALL='install -m 0644'
-ac_cv_prog_MAKEDEP=:
+ac_cv_prog_MAKEDEP='makedepend -f .depend'
 ac_cv_prog_MKDIR='mkdir -p'
 ac_cv_prog_TOUCH=touch
 ac_cv_prog_ac_ct_CC=gcc
@@ -2485,7 +2486,7 @@ LDFLAGS=''
 LIBOBJS=''
 LIBS=''
 LTLIBOBJS=''
-MAKEDEP=':'
+MAKEDEP='makedepend -f .depend'
 MKDIR='mkdir -p'
 NSCL_CODE='/usr/opt/spectrodaq-pregt'
 NSCL_CODE_INC='/usr/opt/spectrodaq-pregt/include'
