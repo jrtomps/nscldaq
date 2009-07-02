@@ -435,6 +435,7 @@ typedef Queue<DAQRPCServThread,DAQThreadMutex> DAQRPCThreadQueue;
 
 /*===================================================================*/
 class DAQRPCServ : public DAQRPCServStub, public DAQSelectable, public DAQObject, public Synchronizable {
+
   public: 
     DAQRPCServ(bool = false);      // Constructor
     DAQRPCServ(int,bool = false);  // Constructor with queue size
@@ -443,7 +444,7 @@ class DAQRPCServ : public DAQRPCServStub, public DAQSelectable, public DAQObject
     int UnRegister(const short);   // UnRegister an handler
     int Listen(DAQURL&);           // Start networking
     int Halt();                    // Cease networking
-    short Accept();                // Accept a new RPC call into queue
+    short Accept(int timeout = -1);                // Accept a new RPC call into queue
     int GetOutStanding();          // Return number of items in queue    
     DAQURL GetURL();               // Return the communicator URL
     short GetNextHandle();         // Return the next handle to be processed

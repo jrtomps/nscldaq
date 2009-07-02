@@ -413,10 +413,12 @@ int DAQDeliveryThread::operator()(int aArgc,char** aArgv)
   Detach();
 
   while(!killme) {
+    usleep(1000);
+#ifdef UPDATE_STATUS
     namestr = "";
     namestr = namestr + "DAQDeliveryThread: waiting (queue=" + _DAQBufferAcceptQueue.Count() + ")";
     SetThreadTitle(namestr);
-
+#endif
     MARK(2004);
 
     readymutex.Lock();
@@ -426,11 +428,11 @@ int DAQDeliveryThread::operator()(int aArgc,char** aArgv)
     _DAQBufferAcceptMutex.Lock();
 
     MARK(4004);
-
+#ifdef UPDATE_STATUS
     namestr = "";
     namestr = namestr + "DAQDeliveryThread: delivering (queue=" + _DAQBufferAcceptQueue.Count() + ")";
     SetThreadTitle(namestr);
-
+#endif
     try { 
       qitm = _DAQBufferAcceptQueue.GetHead();
       do {
@@ -496,9 +498,9 @@ int DAQDeliveryThread::operator()(int aArgc,char** aArgv)
         }
         qitm = _DAQBufferAcceptQueue.GetNext();
       } while (!_DAQBufferAcceptQueue.AtHead());
-
+#ifdef UPDATE_STATUS
       SetThreadTitle("DAQDeliveryThread: purging");
-
+#endif
       MARK(11);
       PurgeUnreliable();  
       MARK(12);

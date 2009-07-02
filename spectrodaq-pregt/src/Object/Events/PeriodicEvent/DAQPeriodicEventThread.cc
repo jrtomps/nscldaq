@@ -341,23 +341,29 @@ int DAQPeriodicEventThread::operator()(int aArgc,char** aArgv)
 
   Detach();
 
+  SetThreadTitle("DAQPeriodicEventThread: running");
+
   while(!killme) {
+    usleep(100000);
     MARK(2014);
     readymutex.Lock();
-    SetThreadTitle("DAQPeriodicEventThread: running");
     MARK(3014);
     if (event != NULL) {
       MARK(4014);
+#ifdef UPDATE_STATUS
       namestr = "";
       namestr.print("DAQPeriodicEventThread: ");
       namestr.print((*event).eventtitle.str());
       SetThreadTitle(namestr);
+#endif
       lastrc = (*event)();
     }
     MARK(5014);
+#ifdef UPDATE_STATUS
     namestr = "";
     namestr.printf("DAQPeriodicEventThread: idle lastrc=%d",lastrc);
     SetThreadTitle(namestr);
+#endif
     busymutex.UnLock(); 
   }
 

@@ -329,7 +329,8 @@ using namespace std;
 
 extern int daq_debug_level;
 
-#define DAQRPCSERV_POOL_TIMEOUT 1000
+
+#define  DAQRPCSERV_POOL_TIMEOUT 1000
 
 /*===================================================================*/
 // DAQRPCServ::DAQRPCServ       
@@ -619,7 +620,7 @@ short DAQRPCServ::GetNextHandle()
 // Wait for an RPC call and place in queue.  Return the handle of
 // the next request to be processed, or -1 on error.
 //                                 
-short DAQRPCServ::Accept()
+short DAQRPCServ::Accept(int timeout)
 {
   int rc = 0;
   short hand;
@@ -628,6 +629,10 @@ short DAQRPCServ::Accept()
   DAQCommInfo info;
   DAQCommMsg  msg;
   DAQRPCQueueItem *itm;
+
+  if (timeout == -1) {
+    timeout = DAQRPCSERV_POOL_TIMEOUT;
+  }
 
   if ((state != RPCSERV_LISTENING)&&(state != RPCSERV_PROCESSING)) {
     THROW(daq_exception_factory.CreateException(DAQCSTR("DAQRPCServ::Accept() Can't process without Listen()ing"),DAQEXCPID(DAQInval)));
@@ -643,7 +648,7 @@ short DAQRPCServ::Accept()
     if (IsPersistent()) {
       do {
         pollevts = POLLIN;
-        rpollevts = dcom.Poll(pollevts,DAQRPCSERV_POOL_TIMEOUT);
+        rpollevts = dcom.Poll(pollevts,timeout);
         if (rpollevts > 0) {
           ncom = dcom.Accept(info);
           break;

@@ -513,7 +513,7 @@ DAQDisplayHTML::~DAQDisplayHTML()
 * @param done  If parsing has concluded.
 * @return If the bytes were parsed.
 */                                                                  
-bool DAQDisplayHTML::Puts(char *aStr,int done)
+bool DAQDisplayHTML::Puts(const char *aStr,int done)
 {
   bool rc;
 
@@ -540,7 +540,7 @@ bool DAQDisplayHTML::Puts(char *aStr,int done)
 * @param done  If parsing has concluded.
 * @return If the bytes were parsed.
 */                                                                  
-bool DAQDisplayHTML::Put(char *aBuf,int nBytes,int done)
+bool DAQDisplayHTML::Put(const char *aBuf,int nBytes,int done)
 {
   bool rc;
   

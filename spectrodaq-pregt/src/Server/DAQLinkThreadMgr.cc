@@ -331,11 +331,11 @@ using namespace std;
 #include <DAQServClock.h>
 #endif
 
-#define LINKEVENT_TIMEOUT_USECS_MAX 100
-#define LINKEVENT_TIMEOUT_USECS_MIN 10
+#define LINKEVENT_TIMEOUT_USECS_MAX 10000
+#define LINKEVENT_TIMEOUT_USECS_MIN 10000
 #define LINKEVENT_TEST_SECS 5
 // #define LINKOUT_MAX_PAGES_PER_TICK 8
-#define LINKOUT_MAX_PAGES_PER_TICK 4
+#define LINKOUT_MAX_PAGES_PER_TICK 400
 #define LINKTICK_DELTA 10 
 
 extern int daq_debug_level;
@@ -443,11 +443,12 @@ int DAQLinkThreadMgr::operator()(int aArgc,char** aArgv)
   while(!killme) {
     MARK(6009);
     // Set the thread title
+#ifdef UPDATE_STATUS
     namestr = "";
     namestr = namestr + "DAQLinkThreadMgr: (used=" + (pager->GetUsedCount()) + ",work=" + (pager->GetWorkCount()) + ",free=" + (pager->GetFreeCount()) + ",tused=" + (pager->GetTempUsedCount()) + ",tdel=" + (pager->GetTempDelCount()) + ",frozen=" + (pager->GetFrozenCount()) + ",segs=" + (pager->GetSegCount()) + ",in=" + (inqueue.Count()) + ",out=" + (outqueue.Count()) + ",tick=" + curtick + "/" + mintick + ",hi=" + (pager->GetHighWaterMark()) + ",lo=" + (pager->GetLowWaterMark()) + ")";
 // if (strlen(namestr.Get()) < 10) cerr << "LENGTH: < 10 " << namestr.Get() << endl;
     SetThreadTitle(namestr);
-
+#endif
     MARK(7);
 
     test_outb = false;

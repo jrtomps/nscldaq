@@ -384,7 +384,7 @@ int DAQLinkRQThread::operator()(int aArgc,char** aArgv)
     sync_begin(rpc_linkrq);
       try {
         MARK(5008);
-        hand = rpc_linkrq.Accept();  // Wait for an RPC call
+        hand = rpc_linkrq.Accept(0x0fffffff);  // Wait for an RPC call
        
         switch(hand) {
           case LinkRQ_h:

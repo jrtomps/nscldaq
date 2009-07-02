@@ -409,6 +409,7 @@ int DAQLinkOutbThread::operator()(int aArgc,char** aArgv)
   SetThreadTitle(namestr);
 
   while(!killme) {
+    usleep(2000);		// 1ms per pass is fine.
     MARK(2007);
     readymutex.Lock();
     if (killme) continue;
@@ -420,6 +421,7 @@ int DAQLinkOutbThread::operator()(int aArgc,char** aArgv)
     if ((link != NULL)&&(pager != NULL)) {
       MARK(4007);
 
+#ifdef UPDATE_STATUS
       namestr = "DAQLinkOutbThread: ";
       if (link != NULL) {
         if (local_link) namestr += "L-";
@@ -428,7 +430,7 @@ int DAQLinkOutbThread::operator()(int aArgc,char** aArgv)
         namestr = namestr + " px=" + pxcount + " running tick=" + clocktick;
       }
       SetThreadTitle(namestr);
-
+#endif
       huntclock = clocktick; 
       tgttick = huntclock+1;
       worklist.Empty();
@@ -437,6 +439,7 @@ int DAQLinkOutbThread::operator()(int aArgc,char** aArgv)
       // Hunt for pages to send
       while ((huntclock < tgttick)&&(!killme)&&(!thawed)) {
         MARK(7);
+#ifdef UPDATE_STATUS
         namestr = "DAQLinkOutbThread: ";
         if (link != NULL) {
           if (local_link) namestr += "L-";
@@ -445,7 +448,7 @@ int DAQLinkOutbThread::operator()(int aArgc,char** aArgv)
           namestr = namestr + " px=" + pxcount + " hunting tick=" + huntclock;
         } 
         SetThreadTitle(namestr);
-
+#endif
         // Watch the use of iterators, the pager has been frozen
         // in the manager thread, and only reading takes place here.
         if (!pager->IsUsedListFrozen()) daq_logger.printf("DAQLinkOutbThread::operator(): Pager used list isn't frozen???. %s\n",DAQCSTR(""));
@@ -495,6 +498,7 @@ int DAQLinkOutbThread::operator()(int aArgc,char** aArgv)
 
       while ((pPage != NULL)&&(!linkfail)) {
         MARK(14);
+#ifdef UPDATE_STATUS
         namestr = "DAQLinkOutbThread: ";
         if (link != NULL) {
           if (local_link) namestr += "L-";
@@ -503,6 +507,7 @@ int DAQLinkOutbThread::operator()(int aArgc,char** aArgv)
           namestr = namestr + " px=" + pxcount + " sending tick=" + clocktick;
         }
         SetThreadTitle(namestr);
+#endif
 
         MARK(15);
         if (local_link) { // Can just replicate the page

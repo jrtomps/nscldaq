@@ -396,8 +396,8 @@ class DAQDisplayText : public PrintStream, public DAQDisplayProto {
   public: 
     DAQDisplayText(XMLOut&);            // Constructor
     ~DAQDisplayText();                  // Destructor
-    bool Put(char *,int,int = 0);      // Output n bytes 
-    bool Puts(char *,int = 0);         // Output a null terminated string
+    bool Put(const char *,int,int = 0);      // Output n bytes 
+    bool Puts(const char *,int = 0);         // Output a null terminated string
     bool Reset();                      // Reset a halted parser
     void toStream(PrintStreamIface&);  // Print on a stream
 

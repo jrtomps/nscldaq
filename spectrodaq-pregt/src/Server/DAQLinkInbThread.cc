@@ -318,7 +318,8 @@ extern DAQThreadMutex _DAQBufferAcceptMutex;
 extern DAQServClock ThreadMgrClock;
 extern int daq_debug_level;
 
-#define STALL_DELAY_USECS 10
+#define STALL_DELAY_USECS 1000
+#define STALL_HIGHTIDE_DELAY_USECS 100
 
 /*===================================================================*/
 // DAQLinkInbThread::DAQLinkInbThread
@@ -402,7 +403,9 @@ int DAQLinkInbThread::operator()(int aArgc,char** aArgv)
   readymutex.Lock();
 
   while(!killme) {
+#ifdef UPDATE_STATUS
     SetMyTitle("waiting");
+#endif
     MARK(3006);
     curtick = ThreadMgrClock.GetTick();
 
@@ -416,13 +419,16 @@ int DAQLinkInbThread::operator()(int aArgc,char** aArgv)
     if ((link != NULL)&&(pager != NULL)&&(!killme)&&(canrecv)) {
       /* Don't receive pages if the page pool is low */
       while ((pager->IsHighTide())&&(!killme)) { 
+#ifdef UPDATE_STATUS
         SetMyTitle("stalled");
-        usleep(STALL_DELAY_USECS);
+#endif
+        usleep(STALL_HIGHTIDE_DELAY_USECS);
       }
 
       if (killme) continue;
-
+#ifdef UPDATE_STATUS
       SetMyTitle("receiving");
+#endif
 
       cnt = 0;
       try {  // Receive the page header

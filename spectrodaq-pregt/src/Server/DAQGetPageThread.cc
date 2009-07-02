@@ -371,10 +371,12 @@ int DAQGetPageThread::operator()(int aArgc,char** aArgv)
   Detach();
 
   while(!killme) {
+    usleep(500);
+#ifdef UPDATE_STATUS
     namestr = "";
     namestr = namestr + "DAQGetPageThread: (queue=" + _DAQBufferGetPageQueue.Count() + ",tick=" + ThreadMgrClock.GetTick() + ")";
     SetThreadTitle(namestr);
-
+#endif
     MARK(2005);
 
     readymutex.Lock();
@@ -382,9 +384,9 @@ int DAQGetPageThread::operator()(int aArgc,char** aArgv)
     MARK(3005);
 
     _DAQBufferGetPageMutex.Lock();
-
+#ifdef UPDATE_STATUS
     SetThreadTitle("DAQGetPageThread: delivering");
-
+#endif
     MARK(4005);
 
     try {

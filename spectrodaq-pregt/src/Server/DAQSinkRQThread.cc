@@ -383,7 +383,7 @@ int DAQSinkRQThread::operator()(int aArgc,char** aArgv)
     sync_begin(rpc_sinkrq);
       try {
         MARK(5011);
-        hand = rpc_sinkrq.Accept();  // Wait for an RPC call
+        hand = rpc_sinkrq.Accept(0x0fffffff);  // Wait for an RPC call
        
         switch(hand) {
           case SinkRQ_h:

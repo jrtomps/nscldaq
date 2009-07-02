@@ -513,7 +513,7 @@ DAQDisplayText::~DAQDisplayText()
 * @param done  If parsing has concluded.
 * @return If the bytes were parsed.
 */                                                                  
-bool DAQDisplayText::Puts(char *aStr,int done)
+bool DAQDisplayText::Puts(const char *aStr,int done)
 {
   bool rc;
 
@@ -540,7 +540,7 @@ bool DAQDisplayText::Puts(char *aStr,int done)
 * @param done  If parsing has concluded.
 * @return If the bytes were parsed.
 */                                                                  
-bool DAQDisplayText::Put(char *aBuf,int nBytes,int done)
+bool DAQDisplayText::Put(const char *aBuf,int nBytes,int done)
 {
   char *p = NULL;
   bool rc;

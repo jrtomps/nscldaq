@@ -571,7 +571,7 @@ class StatusThread : public DAQThread {
       sync_begin(rpc_status);
         try {
           MARK(5001);
-          hand = rpc_status.Accept();  // Wait for an RPC call
+          hand = rpc_status.Accept(0x0fffffff);  // Wait for an RPC call
           MARK(6001);
        
           switch(hand) {
@@ -668,7 +668,7 @@ class PageMgrThread : public DAQThread {
       sync_begin(rpc_server);
         try {
           MARK(5002);
-          hand = rpc_server.Accept();  // Wait for an RPC call
+          hand = rpc_server.Accept(0x0fffffff);  // Wait for an RPC call..for essentially as long as needed.
           MARK(6002);
           hand = rpc_server.GetNextHandle(); // What handle should be process
           MARK(7);

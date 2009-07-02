@@ -315,7 +315,7 @@ class DAQCommunicatorOut : public XMLOut {
     DAQCommunicatorOut(DAQCommunicator&);          // Constructor
     ~DAQCommunicatorOut();                         // Destructor
 
-    bool Puts(char *);         // Put a char* to the output
+    bool Puts(const char *);         // Put a char* to the output
     void toStream(PrintStreamIface&); // Print on a PrintStream
 
     void Close();              // Close the communicator
