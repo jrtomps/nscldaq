@@ -272,7 +272,8 @@ C785::addToChain(CVMUSB& controller,
    -highwater       MEBDepth*3/4  (3/4 full event buffer).
    -fastclear       0
    -supressrange    true
-   -timescale       600 (ns).
+   -timescale       600 (ns).  (775 only)
+   -commonstop      false      (775 only)
 \endverbatim
 
    All others have no default values.   If, during initialization one of those
@@ -320,6 +321,8 @@ C785::onAttach(CReadoutModule& configuration)
 
   m_pConfiguration->addParameter("-requiredata", CConfigurableObject::isBool,
 				 NULL, "true");
+  m_pConfiguration->addParameter("-commonstop", CConfigurableObject::isBool,
+				 NULL, "false");
   
 }
 /*!
@@ -438,12 +441,26 @@ C785::Initialize(CVMUSB& controller)
 
   if (type == 775) {
     int    range   = getIntegerParameter("-timescale");
+    int    reg2Offset;
     //
     // Compute the register value (see 4.33 of the V775 manual).
     //
     float  nsRange = static_cast<float>(range);
     float  rRange  = 36040.0/(nsRange + 1.3333);
     controller.vmeWrite16(base+FSRange, initamod, static_cast<uint16_t>(rRange + 0.5));
+
+    // Set common start/stop mode.
+
+    bool commonStop = getBoolParameter("-commonstop");
+    if (commonStop) {
+      
+      reg2Offset = BSet2;
+    } 
+    else {
+      reg2Offset = BClear2;
+    }
+    controller.vmeWrite16(base + reg2Offset, initamod,
+			  static_cast<uint16_t>(0x400));
   }
 
   // Finally, ensure that at the end of a readout we'll get a BERR, rather than
