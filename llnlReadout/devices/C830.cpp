@@ -301,10 +301,11 @@ C830::addReadoutList(CVMUSBReadoutList& list)
   // prior to doing the block read.
 
   if (getTriggerSource() == vme) {
+    list.addDelay(50);		// Seems to need a settled bus?
     list.addWrite16(baseAddress + TRIGGER, configAmod, 0);
-    list.addDelay(50);		// 200ns units.
+    list.addDelay(75);		// 200ns units.
   }
-  // Add the block transfer from the MEB
+  // Add the transfer from the MEB
 
   //  list.addBlockRead32(baseAddress + MEB, readAmod, readSize);
 
