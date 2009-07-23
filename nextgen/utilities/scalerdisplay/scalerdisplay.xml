@@ -530,12 +530,12 @@ checkbutton $scalerWin.silence -text {Silence Alarms} -command [silence]
        #
        #   Define the scaler channels:
        #
-       #   These can be in any order, Iâm just copying the order from the original
+       #   These can be in any order, I'm just copying the order from the original
        #   file.  my preference in fact would be to go in channel order.
        #   This is a TCL script with
-       #    commands âchannelâ  - to define a chanel name/buffer position correspondence
-       #             âpageâ     - To define a scaler page.
-       #             âdisplay_singleâ - To define a single scaler line in a page.
+       #    commands 'channel'  - to define a chanel name/buffer position correspondence
+       #             'page'     - To define a scaler page.
+       #             'display_single' - To define a single scaler line in a page.
        #
 
        #
@@ -563,10 +563,10 @@ checkbutton $scalerWin.silence -text {Silence Alarms} -command [silence]
        #
        #  Next define the pages, their long titles and the tab name
        #  and their contents.
-       #  Iâve defined the page ALL to be the original page
+       #  I've defined the page ALL to be the original page
        #  as well as some additional pages so that you can get the
        #  idea of how you can use this to organize the display if you want to.
-       #  If you donât, you can rip out the extra pages.
+       #  If you don't, you can rip out the extra pages.
        #
        #
 

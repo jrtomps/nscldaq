@@ -1105,7 +1105,7 @@ void
 Skeleton::SetupReadout(CExperiment* pExperiment)
 {
    ...
-   pExperiment->EstablishBusy(new CCAENV262(0x444400));
+   pExperiment-&gt;EstablishBusy(new CCAENV262(0x444400));
    ...
 }
                 </programlisting>
@@ -1611,10 +1611,10 @@ while (p != es.end()) {
 */
 void doSomething(CCompoundEventSegment* pSegment)
 {
-    CCompoundEventSegment::EventSegmentIterator p = pSegment->begin();
-    while (p != pSegment->end()) {
+    CCompoundEventSegment::EventSegmentIterator p = pSegment-&gt;begin();
+    while (p != pSegment&gt;end()) {
         CEventSegment* pSeg = *p;
-        if (pSeg->isComposite()) {
+        if (pSeg&gt;isComposite()) {
             doSomething(pSeg);     // Recurse to go deep.
         }
         else {
@@ -1632,8 +1632,8 @@ class MyVisitor : public CCompoundEventSegment::CVisitor
 {
     virtual void operator()(CEventSegment* pSeg)
     {
-        if (pSeg->isCompound()) {
-            pSeg->visit(*this);
+        if (pSeg&gt;isCompound()) {
+            pSeg&gt;visit(*this);
         }
         else {
             // Do what needs doing to terminal nodes....
@@ -3254,10 +3254,10 @@ public:
     unsigned composites() {return m_composites;}
     
     virtual void operator(CScaler* pScaler) {
-        if (pScaler->isComposite()) {
+        if (pScaler&gt;isComposite()) {
             m_composites++;
             CScalerBank* pBank = reinterpret_cast&lt;ScalerBank*&gt;(pScaler);
-            pBank->visit(*this);
+            pBank&gt;visit(*this);
         } else {
             m_leaves++;
         }
@@ -3830,9 +3830,9 @@ public:
             <title>Outputting the state of the run</title>
             <programlisting>
 RunState* pState = RunState::getInstance();
-std::cout << " The run is currently "
-          << pState->stateName
-          << std::endl;
+std::cout &lt;&lt; " The run is currently "
+          &lt;&lt; pState-&gt;stateName
+          &lt; std::endl;
                 </programlisting>
             </example>
       </refsect1>

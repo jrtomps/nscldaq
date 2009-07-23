@@ -181,10 +181,10 @@ public:
 
   // Manipulating and querying the configuration:
 
+  bool isValid(std::string name, std::string value);
   void configure(std::string name, std::string value);
 
-
-
+ 
   // common type checkers:
 
   static bool isInteger(std::string name, std::string value, void* arg);
@@ -201,7 +201,7 @@ public:
 private:
   static void addTrueValues(std::set<std::string>& values);
   static void addFalseValues(std::set<std::string>& values);
-  
+  ConfigIterator findOrThrow(std::string name);
 };
 
 
