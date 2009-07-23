@@ -1,0 +1,46 @@
+<html>
+    <head>
+        <title>CAENV812 control overview</title>
+    </head>
+    <body>
+        <h1>
+            CAENV812 control panel overview
+        </h1>
+        <p>
+            The CAENV812 control panel allows you to control and
+            arbitrary number of CAEN V812 constant fraction discriminators.
+            <ul>
+                <li><a href="gui.html">The Gui topic</a> describes how to operate the
+                    control panel
+                </li>
+                <li><a href="filemenu.html">The filemenu topic</a> describes the
+                    commands available to you in the application's file menu.
+                </li>
+                <li><a href="helpmenu.html">The helpmenu topic</a> describes the
+                    commands available to you in the application's help menu.
+                </li>
+                <li><a href="config.html">The config topic</a> describes how to
+                    prepare and interpret the configuration files used by this program.
+                </li>
+            </ul>
+        </p>
+        <p>
+            The control panel can be started as follows:
+            <pre>
+$daqroot/Scripts/ControlGui/caenv812control.tcl [configfile...]
+            </pre>
+            Where:
+            <ul>
+                <li>$daqroot is where the NSCL Data acquisition system has been installed.
+                    at the NSCL, this is /usr/opt/daq/current
+                </li>
+                <li>configfile are <a href="config.html">configuration files</a>
+                    describing the initial set of
+                    CFDs you want to control.
+                </li>
+            </ul>
+        </p>
+        <hr />
+        <p>Please report all errors to http://daqbugs.nscl.msu.edu </p>
+    </body>
+</html>
