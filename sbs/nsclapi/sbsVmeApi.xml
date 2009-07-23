@@ -1456,7 +1456,7 @@
                     </methodparam>
                 </constructorsynopsis>
             <methodsynopsis>
-                <type>CVME&lt;T&gt;&amp</type>
+                <type>CVME&lt;T&gt;&amp;</type>
                 <methodname>operator=</methodname>
                 <methodparam>
                     <modifier>const</modifier> <type>CVME&lt;T&gt;&amp;</type>
@@ -1510,7 +1510,7 @@
                 <type>T&amp;</type> <methodname>operator[]</methodname>
                 </methodsynopsis>
             <methodsynopsis>
-                <type>CVME&lt;T&gt;&amp</type> <methodname>operator+</methodname>
+                <type>CVME&lt;T&gt;&amp;</type> <methodname>operator+</methodname>
                 <methodparam>
                     <type>UInt_t</type> <parameter>nOffset</parameter>
                     </methodparam>
@@ -1667,7 +1667,7 @@
                 value to a function (as if it were an ordinary pointer).
                 </para>
             <methodsynopsis>
-                <type>CVME&lt;T&gt;&amp</type>
+                <type>CVME&lt;T&gt;&amp;</type>
                 <methodname>operator=</methodname>
                 <methodparam>
                     <modifier>const</modifier> <type>CVME&lt;T&gt;&amp;</type>
@@ -1769,7 +1769,7 @@
                 <type>T</type> relative to the currnent pointer position.
                 </para>
             <methodsynopsis>
-                <type>CVME&lt;T&gt;&amp</type> <methodname>operator+</methodname>
+                <type>CVME&lt;T&gt;&amp;</type> <methodname>operator+</methodname>
                 <methodparam>
                     <type>UInt_t</type> <parameter>nOffset</parameter>
                     </methodparam>

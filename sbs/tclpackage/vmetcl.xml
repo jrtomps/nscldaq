@@ -115,7 +115,7 @@ proc is2530 {base {name hytec}} {
 #  Main program.
 
 set modules [list]
-for {set base 0} {$base < $f80000} {incr base 0x080000} {
+for {set base 0} {$base &lt; $f80000} {incr base 0x080000} {
     if  {[is2530 $base]} {
         lappend modules $base
     }

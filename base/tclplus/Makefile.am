@@ -22,7 +22,7 @@ testableSources = TCLInterpreter.cpp TCLProcessor.cpp  \
 	TCLCompatibilityProcessor.cpp TCLLiveEventLoop.cpp	\
 	CTCLChannelCommander.cpp CTCLStdioCommander.cpp	\
 	CTCLTcpServerInstance.cpp CTCLServer.cpp TCLObjectPackage.cpp \
-	TCLPackagedObjectProcessor.cpp CItemConfiguration.cpp \
+	TCLPackagedObjectProcessor.cpp  CItemConfiguration.cpp \
 	CConfigurableObject.cpp
 
 testableObjects = TCLInterpreter.lo   TCLProcessor.lo    \
@@ -52,7 +52,7 @@ include_HEADERS = TCLApplication.h TCLCommandPackage.h TCLException.h \
 	TCLLiveEventLoop.h CTCLChannelCommander.h	\
 	CTCLStdioCommander.h CTCLTcpServerInstance.h CTCLServer.h	\
 	TCLObjectPackage.h TCLPackagedObjectProcessor.h \
-	CItemConfiguration.h CConfigurableOjbect.h
+	CItemConfiguration.h CConfigurableObject.h
 
 
 # evttclsh - a tclsh that has an event loop constantly running.

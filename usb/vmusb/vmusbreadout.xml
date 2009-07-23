@@ -1349,7 +1349,7 @@ madc config adc -gatemode common -gategenerator disabled
 madc config adc -inputrange 8v
 madc config adc -timestamp on -timingsource vme -timingdivisor $madcTimeDivisor  <co id="madcsubst" />
 
-for {set i 0} {$i < 32} {incr i} {
+for {set i 0} {$i &lt; 32} {incr i} {
     lappend thresholds 0                                 <co id="madcmakethresh" />
 }
 madc config adc -thresholds $thresholds                  <co id="madcthresholds" />
@@ -4459,7 +4459,7 @@ CMyModuleCommand::operator()(CTCLInterpreter& interp, vector<CTCLObject>& objv)
                 my best guess for masks and shift counts.  Masks are intended to be
                 applied before shifting.  Thus for a firmeware register read into
                 <varname>firmwareRegister</varname> the major revision is:
-                <literal>(firmwareRegister & CVMUSB::FirmwareRegister::majorRevMask) &gt;&gt; CVMUSB::FirmwareRegister::majorRevShift</literal>
+                <literal>(firmwareRegister &amp; CVMUSB::FirmwareRegister::majorRevMask) &gt;&gt; CVMUSB::FirmwareRegister::majorRevShift</literal>
             </para>
             <variablelist>
                 <varlistentry>
@@ -4707,8 +4707,8 @@ CMyModuleCommand::operator()(CTCLInterpreter& interp, vector<CTCLObject>& objv)
                             If, for example
                             <varname>reg</varname> contains a global mode register value:
                             <programlisting>
-                                busReqLevel = (reg & CVMUSB::GlobalModeRegister::busReqLevelMask)
-                                              >> CVMUSB::GlobalModeRegister::busReqLevelshift;
+                                busReqLevel = (reg &amp; CVMUSB::GlobalModeRegister::busReqLevelMask)
+                                              &gt;&gt; CVMUSB::GlobalModeRegister::busReqLevelshift;
                             </programlisting>
                         </para>
                     </listitem>
@@ -5908,7 +5908,7 @@ CVMUSB::LedSourceRegister::bottomYellowBusGranted
       
       <refsynopsisdiv>
          <programlisting>
-#include &lt&;CVMUSBReadoutList.h&gt;
+#include &lt;CVMUSBReadoutList.h&gt;
          </programlisting>
          <classsynopsis>
             <ooclass><classname>CVMUSBReadoutList</classname></ooclass>

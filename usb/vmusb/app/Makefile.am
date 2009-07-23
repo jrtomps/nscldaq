@@ -26,6 +26,7 @@ VMUSBReadout_LDADD	=	@top_srcdir@/usb/acqcommon/libusbacqcommon.la	\
 				@top_srcdir@/usb/output/libOutputStage.la	\
 				@top_srcdir@/usb/app/libusbapplication.la	\
 				@top_srcdir@/usb/tclserver/libControlServer.la	\
+				@top_srcdir@/base/tclplus/libtclPlus.la         \
 				@top_srcdir@/usb/vmusb/deviceDriver/libvmUsbDeviceDrivers.la \
 				@top_srcdir@/usb/vmusb/daqconfig/libvmUsbConfigCommands.la	\
 				@top_srcdir@/base/thread/libdaqthreads.la	\

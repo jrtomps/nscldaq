@@ -13,12 +13,14 @@
             library.  It is therefore distributed with both prodcuts, from a common source base.
             Therefore, there are two ways to link to this library.
             First, using SpecTcl:
+            <informalexample>
             <programlisting>
             <command>
 g++ -o <replaceable>yourprogram yoursources</replaceable>  \
                -L${SPECTCLHOME}/lib -ltclPlus -lException
             </command>
             </programlisting>
+            </informalexample>
             where <literal>${SPECTCLHOME}</literal> represents the top level director of
             your SpecTcl installation.  At the NSCL, for example, this could be
             <filename>/usr/opt/spectcl/3.2</filename>
@@ -115,6 +117,21 @@ g++ -o <replaceable>yourprogram yoursources</replaceable>  \
             The <classname>CTCLVariable</classname> class provides access to
             Tcl script variables.
         </para>
+        <para>
+        <classname>CItemConfiguration</classname> and <classname>CConfigurableObject</classname>
+        while not actually Tcl objects provide infrastructure that is useful
+        in the context of extension to a Tcl interpreter.  Specifically the
+        creation and maintanance of commands that generate objects that have
+        some configuration associated with them.  Configuration is expressed
+        as a set of name value pairs. While all of the values have string
+        representation, validators can be associated with configuration parameters
+        to enforce type safeness, and range checking.  
+        </para>
+        <para>
+            A rich set of predefined validators are supplied with the package,
+            and custom validators can also be written and used.
+        </para>
+        
 </chapter>
 
 <!-- /chapter -->
@@ -171,6 +188,7 @@ public:
         </para>
         <para>
             For example, suppose you have created a class named MyTclApp:
+            <informalexample>
             <programlisting>
 // This code is at the global level:
 ...
@@ -178,6 +196,7 @@ MyTclApp app;                              // Makes an instance of this
 CTCLApplication* gpTCLApplication = &amp;app;  // Pointer expected by framework.
 ...
             </programlisting>
+            </informalexample>
             Will ensure that the <function>operator()</function> of your
             application object will be called with the interpreter already
             initialized.
@@ -285,6 +304,7 @@ public:
             The following example shows how to execute code that is aware of
             these exceptions.  In this case, the code just reports the error
             message and continues.
+            <informalexample>
             <programlisting>
     try {
         // In here is TclPlus invoking code.
@@ -293,6 +313,7 @@ public:
         cerr &lt;&lt; "TclPlus error caught: " &lt;&lt; e.ReasonText() &lt;&lt; endl;
     }
             </programlisting>
+            </informalexample>
         </para>
         <para>
             The following example shows a typical code segment that throws a
@@ -3943,33 +3964,34 @@ public:
         <para>
             Returns the number of characters in the string.
         </para>
-        <para>
+        <informalexample>
         <programlisting>
 CTCLString&amp; Truncate (UInt_t nNewLength)  ;
         </programlisting>
-        </para>
+        </informalexample>
         <para>
             Truncates the string to the first <parameter>nNewLength</parameter>
             characters.
         </para>
-        <para>
+    
+        <informalexample>
         <programlisting>
 <type>Bool_t</type> <function>isCommand</function> () const  ;
         </programlisting>
-        </para>
+        </informalexample>
         <para>
             Analyzes the string and returns <literal>kfTRUE</literal> if the
             string is a 'well formed command'.  Note that a well formed command
             may still have syntax and execution errors.  This just ensures that
             a string has a balanced set of quoting characters.
         </para>
-        <para>
+        <informalexample>
         <programlisting>
 <type>Bool_t</type> <function>Match</function> (const <type>char</type>*           <parameter>Pattern</parameter>) const;
 <type>Bool_t</type> <function>Match</function> (<type>std::string</type>&amp;      <parameter>Pattern</parameter>) const;
 <type>Bool_t</type> <function>Match</function> (const <type>CTCLString</type>&amp; <parameter>Pattern</parameter>) const;
         </programlisting>
-        </para>
+        </informalexample>
         <para>
             Returns <literal>kfTRUE</literal> if the contents of the string matches the
             <parameter>Pattern</parameter>
@@ -3977,13 +3999,13 @@ CTCLString&amp; Truncate (UInt_t nNewLength)  ;
             wildcards in <firstterm>glob</firstterm> style pattern matching.  See
             REFERENCES below for moer information about glob style matching.
         </para>
-        <para>
+        <informalexample>
         <programlisting>
 operator const char* () const;
 operator std::string () const;
 operator Tcl_DString* ();
     </programlisting>
-        </para>
+        </informalexample>
         <para>
             These operators are implicit and explicit type conversion operators that
             allow a <classname>CTCLString</classname> object to be treated as a
@@ -4008,12 +4030,12 @@ Tcl_DStringStartSublist(3tcl)
     </refsect1>
     <refsect1>
         <title>REFERENCES</title>
-        <para>
+        <informalexample>
             <programlisting>
 J.K. Ousterhout <parameter>Tcl and the Tk Toolkit</parameter>
 Addison-Wesley Professional Computing Series 1994 see section 9.2
             </programlisting>
-        </para>
+        </informalexample>
     </refsect1>
 </refentry>
 
@@ -4072,6 +4094,8 @@ public:
             example below shows how to do this
             to create a class that periodically emits the text "Tick" to stderr.
             Many #include directives are missing for brevity.
+            </para>
+            <informalexample>
             <programlisting>
 // Interface to <classname>Ticker</classname> normally goes in a header.
 class Ticker : public CTCLTimer
@@ -4107,17 +4131,18 @@ Ticker::operator()() {
 Ticker Tick(pInterp, 1);  // Tick every second.
 
             </programlisting>
-        </para>
+            </informalexample>
+        
     </refsect1>
     <refsect1>
         <title>METHODS</title>
-        <para>
+        <informalexample>
         <programlisting>
 <function>CTCLTimer</function> ();
 <function>CTCLTimer</function>(<type>CTCLInterpreter</type>* <parameter>pInterp</parameter>,
           <type>UInt_t</type> <parameter>nMsec</parameter> = <literal>0</literal>);
           </programlisting>
-          </para>
+        </informalexample>
           <para>
             Construct timer objects.  The first form of the constructor creates a timer
             object that must be later bound into an interpreter via a call to
@@ -4126,12 +4151,12 @@ Ticker Tick(pInterp, 1);  // Tick every second.
             bound to <parameter>pInterp</parameter> and has an initial schedule delay
             of <parameter>nMsec</parameter>.
           </para>
-          <para>
+          <informalexample>
           <programlisting>
   Tk_TimerToken getToken() const;
   UInt_t getMsec() const;
           </programlisting>
-          </para>
+          </informalexample>
           <para>
             These two members access internal state of the object.
             <function>getToken</function> returns the <type>Tk_TimerToken</type>
@@ -4140,23 +4165,25 @@ Ticker Tick(pInterp, 1);  // Tick every second.
             <function>getMsec</function> retrieves the current value of the delay parameter
             in milliseconds.
           </para>
-          <para>
+          <informalexample>
           <programlisting>
   virtual   void operator() ()   = 0;
         </programlisting>
-        </para>
+          </informalexample>
         <para>
             This function must be overidden and implemented in concrete timer classes.
             See the example in DESCRIPTION above.
         </para>
-        <para>
+        
+        <informalexample>
         <programlisting>
 
   void Set ()  ;
   void Set(UInt_t nms);
   Bool_t IsSet() const;
         </programlisting>
-        </para>
+        </informalexample>
+        
         <para>
             <function>Set</function> schedules the object for execution.  If
             <parameter>nms</parameter> is provided it is saved as the scheduling
@@ -4171,9 +4198,11 @@ Ticker Tick(pInterp, 1);  // Tick every second.
             timer request is active.
         </para>
         <para>
+        <informalexample>
         <programlisting>
   void Clear ()  ;
         </programlisting>
+        </informalexample>
         </para>
         <para>
            If a Timer request is pending, cancels it.  If no timer request is pending,
@@ -4189,11 +4218,13 @@ CTCLInterpreterObject(3)
     <refsect1>
         <title>REFERENCES</title>
         <para>
+            <informalexample>
             <programlisting>
 Musser, Derge, Saini: <parameter>STL Tutorial and Reference Guide</parameter>
 Addison-Wesley Professional Computing Series; 2001 ISBN 0-201-37923-6
 See section 2.4 for a description and discussion of function objects.
             </programlisting>
+            </informalexample>
         </para>
     </refsect1>
 </refentry>
@@ -5380,6 +5411,1277 @@ CTCLApplication* gpTCLApplication = new evttclsh;
       </refsect1>
    </refentry>
 
+    <refentry id="manpage.citemconfiguration">
+      <refmeta>
+         <refentrytitle>CItemConfiguration</refentrytitle>
+         <manvolnum>3tcl</manvolnum>
+      </refmeta>
+      <refnamediv>
+         <refname>CItemConfiguration</refname>
+     <refpurpose>Hold a configuration</refpurpose>
+      </refnamediv>
+      
+      <refsynopsisdiv>
+         <programlisting>
+#include &lt;CItemConfiguration.h&gt;
+         </programlisting>
+         <classsynopsis>
+            <ooclass><classname>CItemConfiguration</classname></ooclass>
+            <constructorsynopsis>
+                <methodname>CItemConfiguration</methodname>
+                <methodparam>
+                    <type>std::string</type> <parameter>name</parameter>
+                    </methodparam>
+                </constructorsynopsis>
+            <constructorsynopsis>
+                <methodname>CItemConfiguration</methodname>
+                <methodparam>
+                    <modifier>const</modifier> <type>CItemConfiguration&amp;</type>
+                    <parameter>rhs</parameter>
+                    </methodparam>
+                </constructorsynopsis>
+            <destructorsynopsis>
+                <modifier>virtual</modifier>   <methodname>~CItemConfiguration</methodname>
+                <void />
+                </destructorsynopsis>
+            <methodsynopsis>
+                <type>CItemConfiguration&amp;</type>
+                <methodname>operator=</methodname>
+                <methodparam>
+                    <modifier>const</modifier>
+                    <type>CItemConfiguration&amp;</type> <parameter>rhs</parameter>
+                    </methodparam>
+                </methodsynopsis>
+            <methodsynopsis>
+                <type>int</type>
+                <methodname>operator==</methodname>
+                <methodparam>
+                    <modifier>const</modifier> <type>CItemConfiguration&amp;</type>
+                    <parameter>rhs</parameter>
+                    </methodparam>
+                <modifier>const</modifier>
+                </methodsynopsis>
+            <methodsynopsis>
+                <type>int</type> <methodname>operator!=</methodname>
+                <methodparam>
+                    <modifier>const</modifier> <type>CItemConfiguration&amp;</type>
+                    <parameter>rhs</parameter>
+                    </methodparam>
+                <modifier>const</modifier>
+                </methodsynopsis>
+            <methodsynopsis>
+                <type>std::string</type>
+                <methodname>getName</methodname>
+                <void /><modifier>const</modifier>
+                </methodsynopsis>
+            <methodsynopsis>
+                <type>std::string</type> <methodname>cget</methodname>
+                <methodparam>
+                    <type>std::string</type> <parameter>name</parameter>
+                    </methodparam>
+                </methodsynopsis>
+            <methodsynopsis>
+                <type>ConfigurationArray</type> <methodname>cget</methodname>
+                <void />
+                </methodsynopsis>
+            <methodsynopsis>
+                <type>int</type> <methodname>getIntegerParameter</methodname>
+                <methodparam>
+                    <type>std::string</type> <parameter>name</parameter>
+                    </methodparam>
+                </methodsynopsis>
+            <methodsynopsis>
+                <type>unsigned int</type> <methodname>getUnsignedParameter</methodname>
+                <methodparam>
+                    <type>std::string</type> <parameter>name</parameter>
+                    </methodparam>
+                </methodsynopsis>
+            <methodsynopsis>
+                <type>bool</type>    <methodname>getBoolParameter</methodname>
+                <methodparam>
+                    <type>std::string</type> <parameter>name</parameter>
+                    </methodparam>
+                </methodsynopsis>
+            <methodsynopsis>
+                <type>double</type> <methodname>getFloatParameter</methodname>
+                <methodparam>
+                    <type>std::string</type> <parameter>name</parameter>
+                    </methodparam>
+                </methodsynopsis>
+            <methodsynopsis>
+                <type>std::vector&lt;int&gt;</type> <methodname>getIntegerList</methodname>
+                <methodparam>
+                    <type>std::string</type> <parameter>name</parameter>
+                    </methodparam>
+                </methodsynopsis>
+            <methodsynopsis>
+                <type>void</type> <methodname>addParameter</methodname>
+                <methodparam>
+                    <type>std::string</type> <parameter>name</parameter>
+                    </methodparam>
+                <methodparam>
+                    <type>typeChecker</type> <parameter>checker</parameter>
+                    </methodparam>
+                <methodparam>
+                    <type>void*</type> <parameter>arg</parameter>
+                    </methodparam>
+                <methodparam>
+                    <type>std::string</type>  <parameter>defaultValue</parameter>
+                    <initializer>std::string("")</initializer>
+                    </methodparam>
+                </methodsynopsis>
+            <methodsynopsis>
+                <type>void</type> <methodname>clearConfiguration</methodname>
+                <void />
+                </methodsynopsis>
+            <methodsynopsis>
+                <type>void</type> <methodname>configure</methodname>
+                <methodparam>
+                    <type>std::string</type> <parameter>name</parameter>
+                    </methodparam>
+                <methodparam>
+                    <type>std::string</type> <parameter>value</parameter>
+                    </methodparam>
+                </methodsynopsis>
+            <methodsynopsis>
+                <modifier>static</modifier>
+                <type>bool</type> <methodname>isInteger</methodname>
+                <methodparam>
+                    <type>std::string</type> <parameter>name</parameter>
+                    </methodparam>
+                <methodparam>
+                    <type>std::string</type>  <parameter>value</parameter>
+                    </methodparam>
+                <methodparam>
+                    <type>void*</type> <parameter>arg</parameter>
+                    </methodparam>
+                </methodsynopsis>
+            <methodsynopsis>
+                <modifier>static</modifier>
+                <type>bool</type> <methodname>isBool</methodname>
+                <methodparam>
+                    <type>std::string</type> <parameter>name</parameter>
+                    </methodparam>
+                <methodparam>
+                    <type>std::string</type>  <parameter>value</parameter>
+                    </methodparam>
+                <methodparam>
+                    <type>void*</type> <parameter>arg</parameter>
+                    </methodparam>
+                </methodsynopsis>
+            <methodsynopsis>
+                <modifier>static</modifier>
+                <type>bool</type> <methodname>isEnum</methodname>
+                <methodparam>
+                    <type>std::string</type> <parameter>name</parameter>
+                    </methodparam>
+                <methodparam>
+                    <type>std::string</type>  <parameter>value</parameter>
+                    </methodparam>
+                <methodparam>
+                    <type>void*</type> <parameter>arg</parameter>
+                    </methodparam>
+                </methodsynopsis>
+            <methodsynopsis>
+                <modifier>static</modifier>
+                <type>bool</type> <methodname>isFloat</methodname>
+                <methodparam>
+                    <type>std::string</type> <parameter>name</parameter>
+                    </methodparam>
+                <methodparam>
+                    <type>std::string</type>  <parameter>value</parameter>
+                    </methodparam>
+                <methodparam>
+                    <type>void*</type> <parameter>arg</parameter>
+                    </methodparam>
+                </methodsynopsis>
+            <methodsynopsis>
+                <modifier>static</modifier>
+                <type>bool</type> <methodname>isList</methodname>
+                <methodparam>
+                    <type>std::string</type> <parameter>name</parameter>
+                    </methodparam>
+                <methodparam>
+                    <type>std::string</type>  <parameter>value</parameter>
+                    </methodparam>
+                <methodparam>
+                    <type>void*</type> <parameter>arg</parameter>
+                    </methodparam>
+                </methodsynopsis>
+            <methodsynopsis>
+                <modifier>static</modifier> <type>bool</type>
+                <methodname>isBoolList</methodname>
+                <methodparam>
+                    <type>std::string</type> <parameter>name</parameter>
+                    </methodparam>
+                <methodparam>
+                    <type>std::string</type>  <parameter>value</parameter>
+                    </methodparam>
+                <methodparam>
+                    <type>void*</type> <parameter>arg</parameter>
+                    </methodparam>
+                </methodsynopsis>
+            <methodsynopsis>
+                <modifier>static</modifier>
+                <type>bool</type> <methodname>isIntList</methodname>
+                <methodparam>
+                    <type>std::string</type> <parameter>name</parameter>
+                    </methodparam>
+                <methodparam>
+                    <type>std::string</type>  <parameter>value</parameter>
+                    </methodparam>
+                <methodparam>
+                    <type>void*</type> <parameter>arg</parameter>
+                    </methodparam>
+                </methodsynopsis>
+            <methodsynopsis>
+                <modifier>static</modifier> <type>bool</type>
+                <methodname>isStringList</methodname>
+                <methodparam>
+                    <type>std::string</type> <parameter>name</parameter>
+                    </methodparam>
+                <methodparam>
+                    <type>std::string</type>  <parameter>value</parameter>
+                    </methodparam>
+                <methodparam>
+                    <type>void*</type> <parameter>arg</parameter>
+                    </methodparam>
+                </methodsynopsis>
+         </classsynopsis>
+      </refsynopsisdiv>
+      <refsect1>
+         <title>Description</title>
+         <para>
+            <classname>CItemConfiguration</classname> captures the configuration of an
+            item.   A configuration is a set of name-value pairs.  
+         </para>
+         <para>
+            While the values are all stored as strings, validators and type safe
+            'getters' allow you to store strictly typed data as well.  A validator
+            is a function that is called to ensure a proposed new value for a
+            parameter is suitable for the parameter.    Validators are described
+            in "Types and public data" below.  A rich set of pre-defined
+            validators should meet most needs, however it is possible to write
+            and use custom validators should the built in ones be insufficient for
+            your application.
+            </para>
+      </refsect1>
+      <refsect1>
+         <title>
+            Public member functions
+         </title>
+        <methodsynopsis>
+            <methodname>CItemConfiguration</methodname>
+            <methodparam>
+                <type>std::string</type> <parameter>name</parameter>
+                </methodparam>
+            </methodsynopsis>
+        <para>
+            Constructs the configuration.  <parameter>name</parameter> is just
+            any string you'd like to associate with the configuration.
+            <methodname>getName</methodname> can be used to fetch the value
+            of this string.  Names are used with collections of configurations
+            when they may be inserted in an STL Map with the item name as the
+            lookup key.
+            </para>
+        <methodsynopsis>
+            <methodname>CItemConfiguration</methodname>
+            <methodparam>
+                <modifier>const</modifier> <type>CItemConfiguration&amp;</type>
+                <parameter>rhs</parameter>
+                </methodparam>
+            </methodsynopsis>
+            <para>
+                Copy construction.  Note that if your application causes copy
+                construction several configurations with the same name can be
+                be created.  If you want to ensure that copy construction can't
+                exist, us a class derived from this in which the copy constructor
+                is declared <firstterm>private</firstterm> but never implemented.
+                </para>
+        <methodsynopsis>
+            <modifier>virtual</modifier>   <methodname>~CItemConfiguration</methodname>
+            <void />
+            </methodsynopsis>
+        <para>
+            Destructor.
+            </para>
+        <methodsynopsis>
+            <type>CItemConfiguration&amp;</type>
+            <methodname>operator=</methodname>
+            <methodparam>
+                <modifier>const</modifier>
+                <type>CItemConfiguration&amp;</type> <parameter>rhs</parameter>
+                </methodparam>
+            </methodsynopsis>
+        <para>
+            Assignment operator.  Note that in the presence of named
+            configuration items, this can result in objects with duplicate
+            names.  To avoid this derive from this class and set
+            the <literal>=</literal> operator to be private...without ever
+            Implementing it.
+            </para>
+        <methodsynopsis>
+            <type>int</type>
+            <methodname>operator==</methodname>
+            <methodparam>
+                <modifier>const</modifier> <type>CItemConfiguration&amp;</type>
+                <parameter>rhs</parameter>
+                </methodparam>
+            <modifier>const</modifier>
+            </methodsynopsis>
+        <para>
+            Compares two objects for equality.  Equality is defined as having
+            the same name, same set of configuration items with matching values.
+            </para>
+        <methodsynopsis>
+            <type>int</type> <methodname>operator!=</methodname>
+            <methodparam>
+                <modifier>const</modifier> <type>CItemConfiguration&amp;</type>
+                <parameter>rhs</parameter>
+                </methodparam>
+            <modifier>const</modifier>
+            </methodsynopsis>
+        <para>
+            Inequality test operator is the logical inverse of equality.
+            </para>
+        <methodsynopsis>
+            <type>std::string</type>
+            <methodname>getName</methodname>
+            <void /><modifier>const</modifier>
+            </methodsynopsis>
+        <para>
+            Returns the name string used to construct the object.
+            </para>
+        <methodsynopsis>
+            <type>std::string</type> <methodname>cget</methodname>
+            <methodparam>
+                <type>std::string</type> <parameter>name</parameter>
+                </methodparam>
+            </methodsynopsis>
+        <para>
+            Returns the string value of the configuration parameter
+            <parameter>name</parameter>.  If the name is not a defined
+            configuration parameter, this will throw an explanatory string exception.
+            See <methodname>addParameter</methodname> for information about how
+            to define configuration parameters.
+            </para>
+        <methodsynopsis>
+            <type>ConfigurationArray</type> <methodname>cget</methodname>
+            <void />
+            </methodsynopsis>
+        <para>
+            Returns a container <type>ConfigurationArray</type> that provides
+            the entire configuration.  See "Types and public data" for more
+            information about the <type>ConfigurationArray</type>
+            data type.
+            </para>
+        <methodsynopsis>
+            <type>int</type> <methodname>getIntegerParameter</methodname>
+            <methodparam>
+                <type>std::string</type> <parameter>name</parameter>
+                </methodparam>
+            </methodsynopsis>
+        <para>
+            Returns the value of a parameter <parameter>name</parameter> converted
+            to an integer.  This can throw an explanatory string exception either
+            if <parameter>name</parameter> is not a defined parameter or if its
+            current value does not translate to an integer
+            (using <function>strtoul</function>).  Typically <parameter>name</parameter>
+            should have been defined with a validator that will make sure the
+            value will always be a legal integer.
+            </para>
+        <methodsynopsis>
+            <type>unsigned int</type> <methodname>getUnsignedParameter</methodname>
+            <methodparam>
+                <type>std::string</type> <parameter>name</parameter>
+                </methodparam>
+            </methodsynopsis>
+        <para>
+            Same as <methodname>getIntegerParameter</methodname> however
+            <function>strtoul</function> is used to convert the string ot
+            an unsigned value.  Once more the configuration parameter
+            <parameter>name</parameter> should have a validator attached
+            to it to ensure that the value always represents a legal
+            unsigned integer.
+            </para>
+        <methodsynopsis>
+            <type>bool</type>    <methodname>getBoolParameter</methodname>
+            <methodparam>
+                <type>std::string</type> <parameter>name</parameter>
+                </methodparam>
+            </methodsynopsis>
+        <para>
+            Returns the value of <parameter>name</parameter> as a boolean.
+            This will throw a descriptive string exception if <parameter>name</parameter>
+            is not a define configuration parameter or if the value is not one of
+            <literal>true</literal>,
+            <literal>yes</literal>,
+            <literal>1</literal>,
+            <literal>on</literal>,
+            or <literal>enabled</literal> for true and
+            <literal>false</literal>,
+            <literal>no</literal>,
+            <literal>0</literal>,
+            <literal>off</literal> or
+            <literal>disabled</literal> for false.
+            </para>
+        <methodsynopsis>
+            <type>double</type> <methodname>getFloatParameter</methodname>
+            <methodparam>
+                <type>std::string</type> <parameter>name</parameter>
+                </methodparam>
+            </methodsynopsis>
+        <para>
+            Returns the value of a parameter <parameter>name</parameter>
+            as a floating point <type>double</type>
+            value.  If the parameter cannot be decoded as a floating point number
+            a string exception is thrown that describes this.
+            </para>
+
+        <methodsynopsis>
+            <type>std::vector&lt;int&gt;</type> <methodname>getIntegerList</methodname>
+            <methodparam>
+                <type>std::string</type> <parameter>name</parameter>
+                </methodparam>
+            </methodsynopsis>
+        <para>
+            Returns a parameter <parameter>name</parameter>
+            that is supposed to be a list of integers.
+            The list is returned as a <type>std::vector&lt;int&gt;</type>.
+            A string exception is thrown describing the error in the event
+            that either the parameter value is not a valid Tcl list or
+            any of the values does not decode as an integer.
+        </para>
+        <methodsynopsis>
+            <type>void</type> <methodname>addParameter</methodname>
+            <methodparam>
+                <type>std::string</type> <parameter>name</parameter>
+                </methodparam>
+            <methodparam>
+                <type>typeChecker</type> <parameter>checker</parameter>
+                </methodparam>
+            <methodparam>
+                <type>void*</type> <parameter>arg</parameter>
+                </methodparam>
+            <methodparam>
+                <type>std::string</type>  <parameter>defaultValue</parameter>
+                <initializer>std::string("")</initializer>
+                </methodparam>
+            </methodsynopsis>
+        <para>
+            Defines a new configuration parameter.  The value of this configuration
+            parameter is modified by calling <methodname>configure</methodname>
+            below.  <parameter>name</parameter> is the name of the new parameter.
+            This parameter definition is ovewritten if it already exists.
+            </para>
+        <para>
+            <parameter>checker</parameter> is a validation function that will be
+            called to approve or disapprove of changes to the configuration
+            value. Passing a <literal>NULL</literal> for <parameter>checker</parameter>
+            disables value checking.
+            <parameter>arg</parameter> is a parameter passed to the type checker.
+            See "Types and public data " below for a definition of the
+            <type>typeChecker</type> function prototype.
+            </para>
+        <para>
+            <parameter>default</parameter> is the initial value of the parameter.
+            This defaults to the empty string.  Note that <parameter>default</parameter>
+            is not passed through the <parameter>checker</parameter>, so it
+            is up to the definer to ensure this value is a legal value for
+            the functions used to fetch it from the parameter.
+            </para>
+        <methodsynopsis>
+            <type>void</type> <methodname>clearConfiguration</methodname>
+            <void />
+            </methodsynopsis>
+        <para>
+            Destroys all parameter definitions.  After this is called,
+            no configuration parameters are defined.
+            </para> 
+        <methodsynopsis>
+            <type>void</type> <methodname>configure</methodname>
+            <methodparam>
+                <type>std::string</type> <parameter>name</parameter>
+                </methodparam>
+            <methodparam>
+                <type>std::string</type> <parameter>value</parameter>
+                </methodparam>
+            </methodsynopsis>
+        <para>
+            Modifies the value of the configuration parameter
+            <parameter>name</parameter> to
+            <parameter>value</parameter>.  If either the
+            parameter <parameter>name</parameter> has not been defined, or
+            <parameter>value</parameter> fails checking, a string
+            exception is thrown to describe in human terms the problem.
+            </para>
+
+      </refsect1>
+      <refsect1>
+         <title>Types and public data</title>
+         <para>
+            This class exports several public data types.  For the sake of
+            brevity only the final typename is give, therefore, when you
+            use a type like <type>ConfigurationArray</type> remember that it
+            must be qualified with the <classname>CItemConfiguration</classname>
+            class name (e.g. referred to in your source code as
+            <type>CItemConfiguration::ConfigurationArray</type>)
+         </para>
+         <para>
+            One type is exported in the global (unqualified) namespace, this is
+            <type>typeChecker</type> which defines the function prototype for
+            a configuration parameter validity checker.  The prototype of
+            this function is:
+            </para>
+         <methodsynopsis>
+            <type>bool</type> <methodname>(*typeChecker)</methodname>
+            <methodparam>
+                <type>std::string</type> <parameter>name</parameter>
+                </methodparam>
+            <methodparam>
+                <type>std::string</type> <parameter>value</parameter>
+                </methodparam>
+            <methodparam>
+                <type>void*</type> <parameter>arg</parameter>
+                </methodparam>
+            </methodsynopsis>
+        <para>
+            Type checkers are registered when a configuration parameter is
+            created via <methodname>addParameter</methodname>.  When
+            <methodname>configure</methodname> is called and the parameter
+            has a type checker it is called.  <parameter>name</parameter> is the
+            name of the configuration parameter being configured,
+            <parameter>value</parameter> is the proposed new value for the
+            parameter.
+        </para>
+        <para>
+            <parameter>arg</parameter> is the <parameter>arg</parameter>
+            parameter specified in the call to <methodname>addParameter</methodname>
+            that created the configuration parameter in the first place.
+            Usually this is some additional information required to validate the
+            proposed value.
+        </para>
+        <para>
+            The function must return <literal>true</literal> in the event
+            the proposed <parameter>value</parameter> is acceptable and
+            <type>false</type> if not.
+            </para>
+        <refsect2>
+            <title>ConfigurationArray</title>
+            <para>
+                This type is defined as
+                <type>std::vector&lt;std::pair&lt;std::string, std::string&gt; &gt;</type>.
+                This is a vector that contains pairs of strings.  The first string of
+                each pair is the name of a configuration parameter.  The second
+                string is the configuration parameter's current value.
+                This type is returned from one of the overloaded <methodname>cget</methodname>
+                methods.
+                </para>
+            <para>
+                You cannot make any assumption about the order of the parameters
+                in this array.
+                </para>
+            </refsect2>
+        <refsect2>
+            <title>Pre-defined type checkers and related data types</title>
+            <para>
+                This section describes type checkers that are defined as
+                static member functions of the <classname>CItemConfiguration</classname>
+                class.  Each type checker's <parameter>arg</parameter> is also
+                described along with a description of the
+                checker.
+                </para>
+            <para>
+                Prior to writing your own type checker you should ensure that
+                a suitable one does not already exist.
+                </para>
+            <para>
+                For all of the type checkers the parameters have the same
+                names an meanings:
+                 </para>
+                <variablelist>
+                    <varlistentry>
+                        <term><type>std::string</type> <parameter>name</parameter></term>
+                        <listitem>
+                            <para>
+                                Name of the configuration parameter being checked.
+                                </para>
+                            </listitem>
+                        </varlistentry>
+                    <varlistentry>
+                        <term><type>std::string</type> <parameter>value</parameter></term>
+                        <listitem>
+                            <para>
+                                The proposed new value for the configuration
+                                parameter.  This is the value to be checked
+                                by the validation function.
+                                </para>
+                            </listitem>
+                        </varlistentry>
+                    <varlistentry>
+                        <term><type>void*</type> <parameter>arg</parameter></term>
+                        <listitem>
+                            <para>
+                                This anonymous pointer points to data that
+                                is used to further qualify type checking.
+                                For exmaple.  Integer type checkers can specify
+                                optional limits on the range of integers that
+                                are acceptable, for <methodname>isInteger</methodname>,
+                                therefore <parameter>arg</parameter> is actually
+                                a pointer to a data structure that specifies
+                                limit information.
+                                </para>
+                            </listitem>
+                        </varlistentry>
+                    </variablelist>
+               
+            
+            <methodsynopsis>
+            <modifier>static</modifier>
+            <type>bool</type> <methodname>isInteger</methodname>
+            <methodparam>
+                <type>std::string</type> <parameter>name</parameter>
+                </methodparam>
+            <methodparam>
+                <type>std::string</type>  <parameter>value</parameter>
+                </methodparam>
+            <methodparam>
+                <type>void*</type> <parameter>arg</parameter>
+                </methodparam>
+            </methodsynopsis>
+        <para>
+            Ensures that <parameter>value</parameter> is a legal integer value.
+            The <parameter>arg</parameter> parameter is a pointer to a
+            <type>Limits</type> type.  This is a
+            <type>std::pair&lt;limit, limit&gt;</type>.  Each <type>limit</type>
+            defines a limit on the range of acceptable values.  The first one
+            defines the lower end of the range, the second the high end of the
+            range.
+            </para>
+        <para>
+            If <parameter>arg</parameter> is <literal>NULL</literal> no
+            limit checking is performed.
+            </para>
+        <para>
+            The <type>limit</type> is, in turn a struct that has the following
+            members:
+            </para>
+            <informalexample>
+            <programlisting>
+                bool s_checkMe;          // Check this limit if true
+                long s_value             // Limit value
+                </programlisting>
+            </informalexample>
+            <para>
+                The <structname>limit</structname> structure also defines
+                two construtors:
+                <methodsynopsis>
+                    <type></type><methodname>limit()</methodname>
+                    <void />
+                    </methodsynopsis>
+                Defines a limit structure with <structfield>s_checkMe</structfield>
+                initialized to
+                <literal>false</literal> (that is a limit that will not be checked).
+                <methodsynopsis>
+                    <type></type><methodname>limit</methodname>
+                    <methodparam>
+                        <type>long</type> <parameter>value</parameter>
+                        </methodparam>
+                    </methodsynopsis>
+                defines a limit with <structfield>s_checkMe</structfield> set
+                to <literal>true</literal> and
+                <structfield>s_value</structfield> initialized to
+                <parameter>value</parameter>.
+            </para>
+        <methodsynopsis>
+            <modifier>static</modifier>
+            <type>bool</type> <methodname>isBool</methodname>
+            <methodparam>
+                <type>std::string</type> <parameter>name</parameter>
+                </methodparam>
+            <methodparam>
+                <type>std::string</type>  <parameter>value</parameter>
+                </methodparam>
+            <methodparam>
+                <type>void*</type> <parameter>arg</parameter>
+                </methodparam>
+            </methodsynopsis>
+        <para>
+            This type checker ensures that the proposed
+            <parameter>value</parameter> is a legal boolean value.
+            <methodname>isBool</methodname> does not use its
+            <parameter>arg</parameter> parameter.  Legal boolean values
+            are any text strings from the following set:
+            <literal>{true, yes, 1, on, enabled, false, no, 0, off,  disabled}</literal>.
+            Any string not in this set results in a failed type check.
+            </para>
+        <methodsynopsis>
+            <modifier>static</modifier>
+            <type>bool</type> <methodname>isEnum</methodname>
+            <methodparam>
+                <type>std::string</type> <parameter>name</parameter>
+                </methodparam>
+            <methodparam>
+                <type>std::string</type>  <parameter>value</parameter>
+                </methodparam>
+            <methodparam>
+                <type>void*</type> <parameter>arg</parameter>
+                </methodparam>
+            </methodsynopsis>
+        <para>
+            This is a type checker for enumerated parameters.  An enumerated
+            parameter is a parameter that is constrained to have specific
+            discrete values (A boolean is a special case of an enumerated
+            parameter).  The <parameter>arg</parameter> value is required and
+            must be a pointer to an
+            <type>std::set&lt;string&gt;</type>.  The elements you put in this
+            set define the allowed values for <parameter>value</parameter>.
+            </para>
+        <methodsynopsis>
+            <modifier>static</modifier>
+            <type>bool</type> <methodname>isFloat</methodname>
+            <methodparam>
+                <type>std::string</type> <parameter>name</parameter>
+                </methodparam>
+            <methodparam>
+                <type>std::string</type>  <parameter>value</parameter>
+                </methodparam>
+            <methodparam>
+                <type>void*</type> <parameter>arg</parameter>
+                </methodparam>
+            </methodsynopsis>
+        <para>
+            Checks that <parameter>value</parameter> decodes as a floating point
+            number and optionally peforms limit checks on the value.
+            </para>
+        <para>
+            <parameter>arg</parameter> is a pointer to a
+            <type>FloatingLimits</type>.  <type>FloatingLimits</type> in turn
+            is defined to be a <type>std::pair&lt;flimit, flimit&gt;</type>.
+            The first <type>flimit</type> of the pair specifies the lower limit
+            if any, while the second specifies the upper limit.  If
+            <parameter>arg</parameter> is <literal>NULL</literal> no
+            limit checking is performed.
+            </para>
+        <para>
+            <type>flimit</type> is a struct that has the following
+            members
+            </para>
+
+            <para>
+                Data members of <structname>flimit</structname> are:
+                <informalexample>
+                <programlisting>
+bool   s_checkMe;        // If true limit is checked.
+float  s_value;          // Limit value.
+                </programlisting>
+                </informalexample>
+                </para>
+            <para>
+                If <structfield>s_checkMe</structfield> is <literal>true</literal>,
+                then <structfield>s_value</structfield> is relevant and is the value
+                of the limit.
+                </para>
+            <para>
+                <structfield>flimit</structfield> defines a pair of constructors:
+                </para>
+            <methodsynopsis>
+                <type></type> <methodname>flimit</methodname>
+                <void />
+                </methodsynopsis>
+            <para>Initializes <structfield>s_checkMe</structfield> to
+            <literal>false</literal> disabling the limit.
+            </para>
+            <methodsynopsis>
+                <type></type> <methodname>flimit</methodname>
+                <methodparam>
+                    <type>float</type> <parameter>value</parameter>
+                    </methodparam>
+                </methodsynopsis>
+            <para>
+                Initializes <structfield>s_checkMe</structfield>
+                to <literal>true</literal> and sets
+                <structfield>s_value</structfield>
+                to <parameter>value</parameter>.  This enables the limit
+                and sets it's value to <parameter>value</parameter>.
+                </para>
+ 
+    
+        <methodsynopsis>
+            <modifier>static</modifier>
+            <type>bool</type> <methodname>isList</methodname>
+            <methodparam>
+                <type>std::string</type> <parameter>name</parameter>
+                </methodparam>
+            <methodparam>
+                <type>std::string</type>  <parameter>value</parameter>
+                </methodparam>
+            <methodparam>
+                <type>void*</type> <parameter>arg</parameter>
+                </methodparam>
+            </methodsynopsis>
+        <para>
+            This validation function ensures tht the proposed parameter is a
+            properly formatted Tcl list. <parameter>arg</parameter>, if supplied,
+            allows the list size to be constrained and optionally
+            elements of the list to be validated.  If <literal>NULL</literal>
+            no constraints are enforced on the contents of the list.
+            </para>
+        <para>
+            <parameter>arg</parameter> if not <literal>NULL</literal> is a pointer
+            to a <structname>isListParameter</structname> struct which contains
+            the following fields:
+            <informalexample>
+            <programlisting>
+ListSizeConstraint  s_allowedSize;   // Constraints on list size.
+TypeCheckInfo       s_checker;       // Element type checker.
+                </programlisting>
+            </informalexample>
+            </para>
+            <para>
+                <structfield>s_allowedSize</structfield> constrains the number
+                of elements in a list.  It is of type
+                <structname>ListSizeConstraint</structname> which is a struct
+                containing two <type>limit</type> element;
+                <structfield>s_atLeast</structfield> which describes the minimum
+                number of elements the list must contain and
+                <structfield>s_atMost</structfield> which specifies the maximum
+                numbger of elements the list must contain.  See
+                the <methodname>isInteger</methodname> function description above
+                for more information about the <type>limit</type> type.
+                </para>
+            <para>
+                <structfield>s_checker</structfield>, of type
+                <type>TypeCheckInfo</type> allows each element of the list to be
+                validated (e.g. to require that a list contain integers that are
+                all within some range).  
+                <type>TypeCheckInfo</type> is a
+                <type>std::pair&lt;typeChecker, void*&gt;</type>.  Where the
+                <type>typeChecker</type> function is given each list value to
+                validate and the <type>void*</type> element of the pair is the
+                <parameter>arg</parameter> parameter passed to that validator.
+                If <type>TypeCheckInfo</type> is <literal>NULL</literal> no per
+                element validation is performed, however the list size can be
+                constrained.
+                </para>
+            <para>
+                When elements are validated, the <parameter>name</parameter>
+                parameter passed to the element validator is the name of the
+                configuration parameter that contains the list.  The
+                <parameter>value</parameter> parameter is the proposed value
+                of a list element.
+                </para>
+        <methodsynopsis>
+            <modifier>static</modifier> <type>bool</type>
+            <methodname>isBoolList</methodname>
+            <methodparam>
+                <type>std::string</type> <parameter>name</parameter>
+                </methodparam>
+            <methodparam>
+                <type>std::string</type>  <parameter>value</parameter>
+                </methodparam>
+            <methodparam>
+                <type>void*</type> <parameter>arg</parameter>
+                </methodparam>
+            </methodsynopsis>
+        <para>
+            This is a specialization of <methodname>isList</methodname>.
+            <parameter>arg</parameter> shoule be either be a pointer to
+            a <type>ListSizeConstraint</type> to constrain the number of
+            elements in the list or <literal>NULL</literal> to keep the size
+            unsconstrained.  The method passes each list element through
+            <methodname>isBool</methodname> to ensure that the
+            list contains only boolean values.
+            </para>
+        <methodsynopsis>
+            <modifier>static</modifier>
+            <type>bool</type> <methodname>isIntList</methodname>
+            <methodparam>
+                <type>std::string</type> <parameter>name</parameter>
+                </methodparam>
+            <methodparam>
+                <type>std::string</type>  <parameter>value</parameter>
+                </methodparam>
+            <methodparam>
+                <type>void*</type> <parameter>arg</parameter>
+                </methodparam>
+            </methodsynopsis>
+        <para>
+            This is a specialization of the <methodname>isList</methodname>
+            function.  <parameter>arg</parameter> should either be
+            a pointer to a <type>ListSizeConstraint</type> or it should be a
+            <literal>NULL</literal>.
+            If <parameter>arg</parameter> is <literal>NULL</literal>,
+            the size of the list is unconstrained.  If not, the
+            <type>ListSizeConstraint</type> is used to validate the
+            size of the list.
+            </para>
+        <para>
+            The list items are checked via <methodname>isInteger</methodname>
+            to be sure they are legal integers.  No capability to set limits on
+            the integer values is provdided for at this time.
+            </para>
+        <methodsynopsis>
+            <modifier>static</modifier> <type>bool</type>
+            <methodname>isStringList</methodname>
+            <methodparam>
+                <type>std::string</type> <parameter>name</parameter>
+                </methodparam>
+            <methodparam>
+                <type>std::string</type>  <parameter>value</parameter>
+                </methodparam>
+            <methodparam>
+                <type>void*</type> <parameter>arg</parameter>
+                </methodparam>
+            </methodsynopsis>
+        <para>
+            This is a specialization of <methodname>isList</methodname>.  Any
+            string is allowed as a list item (if it has the necessary quoting to maintain
+            legal Tcl list syntax).   If not <literal>NULL</literal>,
+            <parameter>arg</parameter> is a poitner to a
+            <type>ListSizeConstraint</type> which can limit the number of elements
+            in the list.  If <literal>NULL</literal> no list size constraint
+            is enforced.
+            </para>
+        </refsect2>
+      </refsect1>
+      <refsect1>
+         <title>Exceptions</title>
+         <para>
+            In the event of error, the class thows exceptions of
+            type <type>std::string</type>.  The contents of the string are a
+            human readable message that explains the problem and when it was
+            detected.
+         </para>
+      </refsect1>
+      <refsect1>
+         <title>
+            SEE ALSO
+         </title>
+     <para>
+        <link linkend="manpage.cconfigurableobject">CConfigurableObject(3tcl)</link>
+     </para>
+      </refsect1>
+   </refentry>
+
+    <refentry id="manpage.cconfigurableobject">
+      <refmeta>
+         <refentrytitle>CConfigurableObject</refentrytitle>
+         <manvolnum>3tcl</manvolnum>
+      </refmeta>
+      <refnamediv>
+         <refname>CConfigurableObject</refname>
+     <refpurpose>Base class for objects tht have a configuration.</refpurpose>
+      </refnamediv>
+      
+      <refsynopsisdiv>
+         <programlisting>
+#include &lt;CConfigurableObject.h&gt;
+         </programlisting>
+         <classsynopsis>
+            <ooclass><classname>CConfigurableObject</classname></ooclass>
+            <constructorsynopsis>
+                <methodname>CConfigurableObject</methodname>
+                <void />
+                </constructorsynopsis>
+            <constructorsynopsis>
+                <methodname>CConfigurableObject</methodname>
+                <methodparam>
+                    <modifier>const</modifier>
+                    <type>CConfigurableObject&amp;</type> <parameter>rhs</parameter>
+                    </methodparam>
+                </constructorsynopsis>
+            <destructorsynopsis>
+                <modifier>virtual</modifier>
+                <methodname>~CConfigurableObject</methodname>
+                <void />
+                </destructorsynopsis>
+            <methodsynopsis>
+                <type>CConfigurableObject&amp;</type>
+                <methodname>operator=</methodname>
+                <methodparam>
+                    <modifier>const</modifier>
+                    <type>CConfigurableObject&amp;</type> <parameter>rsh</parameter>
+                    </methodparam>
+                </methodsynopsis>
+            <methodsynopsis>
+                <type>int</type> <methodname>operator==</methodname>
+                <methodparam>
+                    <modifier>const</modifier>
+                    <type>CConfigurableObject&amp;</type>
+                    <parameter>rhs</parameter>
+                    </methodparam>
+                <modifier>const</modifier>
+                </methodsynopsis>
+            <methodsynopsis>
+                <type>int</type>
+                <methodname>operator!=</methodname>
+                <methodparam>
+                    <modifier>const</modifier> <type>CConfigurableObject&amp;</type>
+                    <parameter>rhs</parameter>
+                    </methodparam>
+                <modifier>const</modifier>
+                </methodsynopsis>
+            <methodsynopsis>
+                <type>void</type> <methodname>Attach</methodname>
+                <methodparam>
+                    <type>CItemConfiguration*</type> <parameter>pConfiguration</parameter>
+                    </methodparam>
+                <methodparam>
+                    <type>bool</type> <parameter>dynamic</parameter>
+                    <initializer>true</initializer>
+                    </methodparam>
+                </methodsynopsis>
+            <methodsynopsis>
+                <type>void</type> <methodname>configure</methodname>
+                <methodparam>
+                    <type>std::string</type> <parameter>name</parameter>
+                    </methodparam>
+                <methodparam>
+                    <type>std::string</type> <parameter>value</parameter>
+                    </methodparam>
+                </methodsynopsis>
+            <methodsynopsis>
+                <type>std::string</type> <methodname>getName</methodname>
+                <void />
+                <modifier>const</modifier>
+                </methodsynopsis>
+            <methodsynopsis>
+                <type>std::string</type>
+                <methodname>cget</methodname>
+                <methodparam>
+                    <type>std::string</type> <parameter>name</parameter>
+                    </methodparam>
+                </methodsynopsis>
+            <methodsynopsis>
+                <type>CItemConfiguration::ConfigurationArray</type>
+                <methodname>cget</methodname>
+                <void />
+                </methodsynopsis>
+            <methodsynopsis>
+                <modifier>virtual</modifier>
+                <type>void</type> <methodname>onAttach</methodname>
+                <void /><modifier>=0</modifier>
+                </methodsynopsis>
+         </classsynopsis>
+      </refsynopsisdiv>
+      <refsect1>
+         <title>Description</title>
+         <para>
+            <classname>CConfigurableObject</classname> is an abstract base class
+            for objects
+            that contain configurations via the
+            <classname>CItemConfiguration</classname>
+            class.  The class embeds an <classname>CItemConfiguration</classname>
+            and provides a mechanism for initializing the configuration as it is
+            attached.
+         </para>
+        <para>
+            Due to the rules regarding virtual member use in constructors,
+            construction and initialization of a <classname>CConfigurableObject</classname>
+            is usually a two step process.  The object is constructed, and then
+            either an empty or initialized configuration is attached to the
+            object via  call to <methodname>Attach</methodname>.
+            </para>
+        <para>
+            When <methodname>Attach</methodname> is called it, in turn calls
+            the virtual method (pure/abstract in this base class), to
+            allow the actual concrete class to initialize the configuration
+            by defining an appropriate set of parameters and their constraints.
+            </para>
+        <para>
+            Once initialized, a partial facade is supplied that allows external
+            clients to configure and dump the configuration of an object.
+            </para>
+      </refsect1>
+      <refsect1>
+         <title>
+            Public member functions
+         </title>
+        <methodsynopsis>
+            <methodname>CConfigurableObject</methodname>
+            <void />
+            </methodsynopsis>
+        <para>
+            Construts a configurable object.  Note that this does not
+            create a configuration unless explicitly done by the constructor.
+            Normally due to restrictions in when virtual functions are actually
+            virtual (they are not in constructors), The client that constructs
+            this will also construct and attach a
+            <classname>CItemConfiguration</classname> via
+            <methodname>Attach</methodname> soon after constructing the object.
+            </para>
+        <methodsynopsis>
+            <methodname>CConfigurableObject</methodname>
+            <methodparam>
+                <modifier>const</modifier>
+                <type>CConfigurableObject&amp;</type> <parameter>rhs</parameter>
+                </methodparam>
+            </methodsynopsis>
+        <para>
+            Copy construction.  This results in a snapshot of the configuration
+            being dynamically made, and marked for deletion on destruction of
+            the object.  No attempt is made to synchronize the copy with the
+            original.
+            </para>
+        <methodsynopsis>
+            <modifier>virtual</modifier>
+            <methodname>~CConfigurableObject</methodname>
+            <void />
+            </methodsynopsis>
+        <para>
+            Destroys the configurable object.  If the configuration attached
+            was marked as dynamcially allocated it is deleted in order
+            to prevent memory leaks.  Dynamic marking is done either
+            by copy construction or by specifying at
+            <methodname>Attach</methodname> time that the object is responsible
+            for deleting <classname>ItemConfiguration</classname>
+            object being attached.
+            </para>
+        <methodsynopsis>
+            <type>CConfigurableObject&amp;</type>
+            <methodname>operator=</methodname>
+            <methodparam>
+                <modifier>const</modifier>
+                <type>CConfigurableObject&amp;</type> <parameter>rsh</parameter>
+                </methodparam>
+            </methodsynopsis>
+        <para>
+            Object assignment.  If the target object's configuration exists
+            and was dynamically attached, it is deleted.  Regardless, the source's
+            configuration cloned and assigned to the current configuration with
+            dynamic marking.
+            </para>
+        <methodsynopsis>
+            <type>int</type> <methodname>operator==</methodname>
+            <methodparam>
+                <modifier>const</modifier>
+                <type>CConfigurableObject&amp;</type>
+                <parameter>rhs</parameter>
+                </methodparam>
+            <modifier>const</modifier>
+            </methodsynopsis>
+        <para>
+            Returns nonzero if <parameter>rhs</parameter>'s configuration is
+            identical to that of <parameter>this</parameter>.
+            </para>
+        <methodsynopsis>
+            <type>int</type>
+            <methodname>operator!=</methodname>
+            <methodparam>
+                <modifier>const</modifier> <type>CConfigurableObject&amp;</type>
+                <parameter>rhs</parameter>
+                </methodparam>
+            <modifier>const</modifier>
+            </methodsynopsis>
+        <para>
+            Returns nonzero if <methodname>operator==</methodname> returns 0.
+            </para>
+        <methodsynopsis>
+            <type>void</type> <methodname>Attach</methodname>
+            <methodparam>
+                <type>CItemConfiguration*</type> <parameter>pConfiguration</parameter>
+                </methodparam>
+            <methodparam>
+                <type>bool</type> <parameter>dynamic</parameter>
+                <initializer>true</initializer>
+                </methodparam>
+            </methodsynopsis>
+        <para>
+            The client should call this to attach a configuration,
+            <parameter>pConfiguration</parameter>, (either
+            pre-configured or empty) to the object.
+            <parameter>dynamic</parameter> should be <literal>true</literal>
+            if <parameter>pConfiguration</parameter> should be
+            deleted when the object is destroyed.
+            </para>
+        <para>
+            The virtual function <methodname>onAttach</methodname> will be invoked
+            to allow the configuration to be set up for the object.
+            </para>
+        <methodsynopsis>
+            <type>void</type> <methodname>configure</methodname>
+            <methodparam>
+                <type>std::string</type> <parameter>name</parameter>
+                </methodparam>
+            <methodparam>
+                <type>std::string</type> <parameter>value</parameter>
+                </methodparam>
+            </methodsynopsis>
+        <para>
+            Passes the <parameter>name</parameter> and <parameter>value</parameter>
+            parameters on to the configuration object's
+            <classname>CItemConfiguration</classname> object.  If no configuration
+            has been attached to the object, a string exception is
+            thrown describing this fact.
+            </para>
+        <methodsynopsis>
+            <type>std::string</type> <methodname>getName</methodname>
+            <void />
+            <modifier>const</modifier>
+            </methodsynopsis>
+        <para>
+            Returns the configuration's name.  This will throw a string
+            exception if no configuration has been attached to the object.
+            </para>
+        <methodsynopsis>
+            <type>std::string</type>
+            <methodname>cget</methodname>
+            <methodparam>
+                <type>std::string</type> <parameter>name</parameter>
+                </methodparam>
+            </methodsynopsis>
+        <para>
+            Returns the value of a configuration option <parameter>name</parameter>.
+            The assumption is that clients only want to present configuration
+            option values to humans, or save them and therefore ther is only
+            a facade in front of the string value function.
+            </para>
+        <para>
+            In addition to the string exceptions that can be thrown by the
+            configuration object, an exception will be thrown if the
+            object has no attached configuration.
+            </para>
+        <methodsynopsis>
+            <type>CItemConfiguration::ConfigurationArray</type>
+            <methodname>cget</methodname>
+            <void />
+            </methodsynopsis>
+        <para>
+            Returns the entire configuration. Throws a string exception if no
+            configuration object has been attached.
+            </para>
+        <methodsynopsis>
+            <modifier>virtual</modifier>
+            <type>void</type> <methodname>onAttach</methodname>
+            <void /><modifier>=0</modifier>
+            </methodsynopsis>
+        <para>
+            Concrete base classes should supply and implement this. Normally
+            <methodname>onAttache</methodname> is used to initialize the
+            configuration which is stored in the protected data member
+            <varname>m_pConfiguration</varname>, a pointer to
+            <classname>CItemConfiguration</classname>.
+            </para>
+      </refsect1>
+      <refsect1>
+         <title>Exceptions</title>
+         <para>
+            <type>std::string</type> exceptions are thrown both from this and
+            the calls it makes to <classname>CItemConfiguration</classname>.
+         </para>
+      </refsect1>
+      <refsect1>
+         <title>
+            SEE ALSO
+         </title>
+     <para>
+        <link linkend='manpage.citemconfiguration'>CItemConfiguration</link>
+     </para>
+      </refsect1>
+   </refentry>
+
+
 <!-- /manpage -->
 
 <!-- manpage 1daq -->
@@ -5409,6 +6711,7 @@ evttclsh
   </refsect1>
 
 </refentry>
+
 
 <!-- /manpage -->
 

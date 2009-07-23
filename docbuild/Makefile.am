@@ -29,7 +29,6 @@ daq.pdf: daq.xml
 	$(DOCBOOK2PDF) daq.xml
 
 
-
 daq.mans: daq.xml
 	- $(DOCBOOK2MAN) daq.xml
 	touch daq.mans

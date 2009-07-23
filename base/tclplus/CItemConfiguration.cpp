@@ -136,13 +136,8 @@ CItemConfiguration::getName() const
 string
 CItemConfiguration::cget(string name) 
 {
-  ConfigIterator found = m_parameters.find(name);
-  if (found == m_parameters.end()) {
-    string msg("CItemConfiguration::cget was asked for parameter: ");
-    msg += name;
-    msg += " which is not defined";
-    throw msg;
-  }
+  ConfigIterator found = findOrThrow(name);
+
   ConfigData data = found->second;
   return data.first;
 }
@@ -349,6 +344,34 @@ CItemConfiguration::addParameter(string      name,
   m_parameters[name] = data;	// This overwrites any prior.
 }
 
+
+/*!
+  Returns true if a proposed configuration is valid.  This will
+  still throw if the name is not defined... but will 
+@return bool
+@retval true - The proposed configuration is acceptable.
+@retval false - The proposed configuration is not acceptable.
+
+@param name - of the parameter to validate.
+@param value - Proposed new value.
+*/
+bool
+CItemConfiguration::isValid(string name, string value)
+{
+  ConfigIterator item = findOrThrow(name);
+
+  // If the parameter has a validator get it and validate:
+
+  TypeCheckInfo checker = item->second.second;
+  typeChecker   pCheck  = checker.first;
+  if (pCheck) {			// No checker means no checkig.
+    if (! (*pCheck)(name, value, checker.second)) {
+      return false;
+    }
+  }
+  return true;
+}
+
 /*!
     Configure the value of a parameter.
     \param name : std::string
@@ -365,25 +388,18 @@ CItemConfiguration::configure(string name, string value)
 {
   // Locate the parameter and complain if it isn't in the map:
 
-  ConfigIterator item = m_parameters.find(name);
-  if(item == m_parameters.end()) {
-    string msg("No such parameter: ");
-    msg  += name;
-    throw msg;
-  }
-  // If the parameter has a validator get it and validate:
+  ConfigIterator item = findOrThrow(name);
 
-  TypeCheckInfo checker = item->second.second;
-  typeChecker   pCheck  = checker.first;
-  if (pCheck) {			// No checker means no checkig.
-    if (! (*pCheck)(name, value, checker.second)) {
+
+  if (!isValid(name, value)) {
+
       string msg("Validation failed for ");
       msg += name;
       msg += " <- ";
       msg += value;
       throw msg;
-    }
   }
+
   // Now set the new validated value:
 
   m_parameters[name].first = value;
@@ -398,6 +414,7 @@ CItemConfiguration::clearConfiguration()
 {
   m_parameters.clear();
 }
+
 ////////////////////////////////////////////////////////////////////////////
 /////////////////////  Stock type checkers //////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////
@@ -777,4 +794,19 @@ CItemConfiguration::addFalseValues(set<string>& values)
   values.insert("0");
   values.insert("off");
   values.insert("disabled");
+}
+// Locate an item in the configuration database or throw a standardized string exception
+// if it is not defined:
+
+CItemConfiguration::ConfigIterator
+CItemConfiguration::findOrThrow(string name)
+{
+  ConfigIterator item = m_parameters.find(name);
+  if(item == m_parameters.end()) {
+    string msg("No such parameter: ");
+    msg  += name;
+    throw msg;
+  }
+
+  return item;
 }

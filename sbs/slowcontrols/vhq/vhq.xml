@@ -1,0 +1,919 @@
+<!-- chapter utitities -->
+<chapter id="vhqsbscontrols">
+    <title>VHQ HV unit slow controls over the SBS VME interface</title>
+    <para>
+        The VHQ controls software supports manipulation of the iSeg VHQ202 series
+        of VME based 2 channel detector bias supplies.  Support is in the following layers:
+    </para>
+    <variablelist>
+        <varlistentry>
+            <term>Primitive device control</term>
+            <listitem>
+                <para>
+                    The <literal>vhq</literal> package provides primitive device
+                    control.  See <link linkend="manpage.vhq">vhq(3tcl)</link> for reference
+                    information.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>Device control widget</term>
+            <listitem>
+                <para>
+                    The <literal>vhqPanel</literal> package provides a
+                    megawidget that can be used by your Tcl applications to
+                    present a control panel for a VHQ 202 module.
+                    See <link linkend='manpage.vhqPanel'>vhqPanel(3tcl)</link>
+                    for reference information
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>Control Application</term>
+            <listitem>
+                <para>
+                    The vhqControl application provides a simple control application
+                    that uses an arbitrary number of vhqPanel widgets to control
+                    one or more modules.
+                </para>
+                <para>
+                    See <link linkend="manpage.vhqControl1">vhqControl(1tcl)</link>
+                    reference information about this application.   The application is
+                    driven by configuration files that are documented at
+                    <link linkend='manpage.vhqControl5'>vhqControl(5tcl)</link>
+                </para>
+            </listitem>
+        </varlistentry> 
+    </variablelist>
+</chapter>
+<!-- /chapter -->
+
+<!-- manpage 3tcl -->
+
+<!-- vhq -->
+
+<refentry id="manpage.vhq">
+  <refmeta>
+     <refentrytitle>vhq</refentrytitle>
+     <manvolnum>3tcl</manvolnum>
+  </refmeta>
+  <refnamediv>
+     <refname>vhq</refname>
+     <refpurpose>Low level Tcl access to iSEG VHQ2xxx units.</refpurpose>
+  </refnamediv>
+  
+  <refsynopsisdiv>
+    <cmdsynopsis>
+    <command>
+package require vhq
+    </command>
+    </cmdsynopsis>
+    <cmdsynopsis>
+    <command>
+::vhq::create base ?crate?
+    </command>
+</cmdsynopsis>
+<cmdsynopsis>
+    <command>
+::vhq::delete module
+    </command>
+</cmdsynopsis>
+<cmdsynopsis>
+    <command>
+::vhq::id module
+    </command>
+</cmdsynopsis>
+<cmdsynopsis>
+    <command>
+::vhq::id module
+    </command>
+</cmdsynopsis>
+<cmdsynopsis>
+    <command>
+::vhq::stat1 module
+    </command>
+</cmdsynopsis>
+<cmdsynopsis>
+    <command>
+::vhq::stat2 module
+    </command>
+</cmdsynopsis>
+<cmdsynopsis>
+    <command>
+::vhq::rampspeed  module a|b ?value?
+    </command>
+</cmdsynopsis>
+<cmdsynopsis>
+    <command>
+::vhq::setv module a|b ?value
+    </command>
+</cmdsynopsis>
+<cmdsynopsis>
+    <command>
+::vhq::limit module v|c|i a|b ?value?
+    </command>
+</cmdsynopsis>
+<cmdsynopsis>
+    <command>
+::vhq::actual module a|b
+    </command>
+</cmdsynopsis>
+
+       
+
+       
+
+  </refsynopsisdiv>
+  <refsect1>
+     <title>DESCRIPTION</title>
+     <para>
+       The  vhq  package  allows  you  to control the ISEG family of VME High detector bias supply controllers.
+       This package is built on top of the vme package.  Therefore, scripts that make use of  the  vhq  package
+       must  run  on systems that are physically connected to VME crates that have the ISEG controller(s) being
+       controlled.
+     </para>
+  </refsect1>
+  <refsect1>
+     <title>SUBCOMMANDS</title>
+     <variablelist>
+    <varlistentry>
+        <term><command>::vhq::create  <replaceable>base </replaceable><optional>?crate?</optional></command></term>
+        <listitem>
+        <para>
+            This command creates a handle to an ISEG power supply controller
+            and associates  it  with  a  VME
+            address range.  The handle is returned as the command value for the
+            supply where:
+        </para>
+        <para>
+            <parameter>base</parameter>   Is  the  base  address  of  the module
+            in VME space.  The module base address (in short IO
+            space) is set via a very strange procedure described in the module documentation.
+        </para>
+        <para>
+            <parameter>crate</parameter>
+            Is the number of the VME crate in which the module is inserted.
+            This value defaults to  0
+            which is suitable for use in systems with only  a single VME crate.
+        </para>
+        </listitem>
+    </varlistentry>
+    <varlistentry>
+        <term><command>::vhq::delete</command> <replaceable>module</replaceable></term>
+        <listitem>
+            <para>
+                Destroys  the  correspondence between a module handler returned
+                by <command>::vhq::create</command> and the
+                VME module.  Any resources required to maintain this
+                correspondence are released.
+            </para>
+            <para>
+                <parameter>module</parameter>
+                Is a controller that was returned from the
+                <command>::vhq::create</command> command.
+            </para>
+        </listitem>
+    </varlistentry>
+    <varlistentry>
+        <term><command>::vhq::id</command> <replaceable>module</replaceable></term>
+        <listitem>
+            <para>
+              Returns the serial number of the specified module.  The serial number is  returned  as  a  Binary
+              Coded Decimal (BCD) string.
+            </para>
+            <para>
+                <parameter>module</parameter>
+                Is a module handle that was returned from a ::vhq::create command.
+            </para>
+        </listitem>
+    </varlistentry>
+    <varlistentry>
+        <term><command>::vhq::stat1</command> <replaceable>module</replaceable></term>
+        <listitem>
+            <para>
+              Returns  the  information  from the module status register 1.  This register contains bit encoded
+              data for both of he two channels in the module.  The data are returned as a list of two elements.
+              Element  0  contains  status  for  chanel 0, element 1 the status for channel 1.  Each element is
+              itself a list of two element sublists.  Each of the two element sublists is a keyword value pair.
+              The keyword describes the bit and the value is 0 if the bit is clear an 1 if the bit is set.  The
+              keywords are:
+            </para>
+            <variablelist>
+                <varlistentry>
+                    <term>vz</term>
+                    <listitem>
+                        <para>
+                            The voltage value is currently zero.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>manual</term>
+                    <listitem>
+                        <para>The manual swithc is enabled.</para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>plus</term>
+                    <listitem>
+                        <para>
+                            The voltage output is positive.  The polarity of the module is controlled  by  a  hardware
+                            switch within the module itself.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>off</term>
+                    <listitem>
+                        <para>The High voltage is powered down.</para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>kill</term>
+                    <listitem>
+                        <para>Is true if the kill switch is on.  The kill switch enables various alarm status conditions
+                     to trip the voltage off (e.g. over current or undervoltage).</para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>rampup</term>
+                    <listitem>
+                        <para>True if the power supply is ramping to a new value.</para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>stable</term>
+                    <listitem>
+                        <para>True if the power supply has reached a stable voltage.</para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>error</term>
+                    <listitem>
+                    <para>
+                        True if some error is present in status register 2 for the channel.</para>
+                    </listitem>
+                </varlistentry>
+            </variablelist>
+        </listitem>
+    </varlistentry>
+    <varlistentry>
+        <term><command>::vhq::stat2</command>> <replaceable>module</replaceable></term>
+        <listitem>
+            <para>
+              Returns information from status register 2 of module.  The format of the returned value is  simi-
+              lar  to that of ::vhq::stat1, however the list is a three element list.  The first element of the
+              list is gives the status of the timeout bit as {tot 0|1}.  The second element of the  list  gives
+              channel  0  specific  status while the third element of the list goves channel 1 specific status.
+              As before, status is a list of keyword value pairs.  Valid keywords are:
+            </para>
+            <variablelist>
+                <varlistentry>
+                    <term>ilimit</term>
+                    <listitem><para>True if the supply is current limiting.</para></listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>OpComplete</term>
+                     <listitem><para>True if the last operation is complete.</para></listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>FpChanged</term>
+                    <listitem><para>True if a front panel switch has changed.</para></listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>Voverset</term>
+                     <listitem><para>True if the supply is in overvoltage.</para></listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>Inhibited</term>
+                        <listitem><para>True ifthe supply is inhibited.</para></listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>OverVorI</term>
+                     <listitem><para>True if there is either an over voltage or over current state.</para></listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>BadQuality</term>
+                     <listitem><para>True if the power voltage is not regulating well.</para></listitem>
+                </varlistentry>
+            </variablelist>
+        </listitem>
+    </varlistentry>
+    <varlistentry>
+        <term><command>::vhq::rampspeed</command> <replaceable>module a|b</replaceable> <optional>?value?</optional></term>
+        <listitem>
+            <para>
+                Returns the current ramp speed in 10V/sec units.  The optional value causes the ramp speed to  be
+                  reprogrammed.
+            </para>
+            <para>
+                <parameter>module</parameter> is the module handle returned from the ::vhq::create calls.
+            </para>
+            <para>
+                <parameter>a|b</parameter>
+                Selects which channel is operated on, channel A or B.
+            </para>
+        </listitem>
+    </varlistentry>
+    <varlistentry>
+        <term><command>::vhq::setv</command> <replaceable>module a|b</replaceable>   <optional>?value?</optional></term>
+        <listitem>
+            <para>
+                Retrieves  the  voltage  target.  If the optional value is supplied, it is taken as a new voltage
+                target and a ramp to that target is begun.
+            </para>
+            <para>
+                <parameter>module</parameter> is a module that was retunred from
+                <command>::vhq::create</command> and selects the supply that  is  operated
+                on.
+                <parameter>a|b</parameter> determines which channel,
+                <literal>a</literal> or <literal>b</literal> will be
+                read or set.
+            </para>
+        </listitem>
+    </varlistentry>
+    <varlistentry>
+        <term>
+            <command>::vhq::limit</command> <replaceable>module v|c|i a|b</replaceable> <optional>?value></optional></term>
+        <listitem>
+            <para>
+              Examines or modifies the voltage or current limit of a device.
+            </para>
+            <para>
+                <parameter>module</parameter> is  a  module handle returned from
+                <command>vhq::create</command> specifying which hardware is
+                being operated on.
+                <parameter>v|c|i</parameter>
+                Selects whether the voltage (<literal>v</literal>) or current
+                (<literal>c</literal> or <literal>i</literal>) limits are being
+                operated on.
+                <parameter>a|b</parameter> selects which channel (a or b) is affected.
+                <parameter>value</parameter>; 
+                     If present, this is the new value for the limit.
+            </para>
+        </listitem>
+    </varlistentry>
+    <varlistentry>
+        <term><command>::vhq::actual</command> <replaceable>module a|b</replaceable></term>
+        <listitem>
+            <para>        
+              Returns a two element list containing the voltage and current
+              for the specified channel (<literal>a</literal> or
+              <literal>b</literal>).
+            </para>
+        </listitem>
+    </varlistentry>
+     </variablelist>
+              
+  </refsect1>
+
+</refentry>
+
+
+<!-- vhqPanel -->
+
+<refentry id="manpage.vhqpanel">
+  <refmeta>
+     <refentrytitle>vhqPanel</refentrytitle>
+     <manvolnum>3tcl</manvolnum>
+  </refmeta>
+  <refnamediv>
+     <refname>vhqPanel</refname>
+     <refpurpose>Control widget for iSeg vhq2xx VME bias supply.</refpurpose>
+  </refnamediv>
+  
+  <refsynopsisdiv>
+    <cmdsynopsis>
+    <command>
+vhqPanel <optional>?option option ...?   </optional>
+    </command>
+    </cmdsynopsis>
+  </refsynopsisdiv>
+  <refsect1>
+     <title>DESCRIPTION</title>
+     <para>
+       The  megawidget  provides readouts for the actual current and voltage of each channel.  In addition, two
+       spinboxes allow the user to set voltage targets for each channel.  Each channel has a Ramp  button  that
+       initiates  a  ramp  to that channel's target.  Each channel has an Off button that initiates a top speed
+       ramp to 0 volts.
+     </para>
+     <para>
+       In the event a trip occurs, any alarm script provided by the user is called, and the background color of
+       the tripped channel is changed to red for the duration of the trip.  Once the trip condition is removed,
+       the background color is changed back to the normal widget background color.  For more information  about
+       alarm scripts, see the ALARM SCRIPTS section below.
+     </para>
+     <para>
+       In  the  event  of  an interesting change in the control panel, any user command script is invoked.  For
+       more information about command scripts, see the COMMAND SCRIPTS section below.
+     </para>
+  </refsect1>
+  <refsect1>
+     <title>
+    OPTIONS
+     </title>
+     <variablelist>
+    <varlistentry>
+        <term><option>-name</option></term>
+        <listitem>
+        <para>
+            Provides  a  name for the module that is meaningful to the user.  The name is displayed on the
+            megawidget.
+        </para>
+        </listitem>
+    </varlistentry>
+    <varlistentry>
+        <term><option>-crate</option></term>
+        <listitem>
+            <para>
+                Provides the number of the VME crate in which the VHQ module
+                controlled  by  this widget  lives.  Defaults to 0 if not
+                supplied.
+            </para>
+        </listitem>
+    </varlistentry>
+    <varlistentry>
+        <term><option>-base</option></term>
+        <listitem>
+            <para>
+                Provides the module base address within the VME
+                crate.
+            </para>
+        </listitem>
+    </varlistentry>
+    <varlistentry>
+        <term><option>-command</option></term>
+        <listitem>
+            <para>
+                Provides a script to be executed when the state of the module
+                is  changed  significantly  by  the  user.  See COMMAND SCRIPTS
+                below for more information about this.
+            </para>
+        </listitem>
+    </varlistentry>
+    <varlistentry>
+        <term><option>-alarmscript </option></term>
+        <listitem>
+            <para>Provides a script to be executed when an alarm condition
+            occurs or is cleared.  See ALARM SCRIPTS below for
+            more  information about alarm scripts.
+            </para>
+        </listitem>
+    </varlistentry>
+    <varlistentry>
+        <term><option>-model</option></term>
+        <listitem>
+            <para>
+                Provides the model  of the device.  See SUPPORTED MODELS below
+                for more information about the model.  If not supplied, this
+                defaults to 202M.
+            </para>
+        </listitem>
+        </varlistentry>
+    <varlistentry>
+        <term><option>-rampspeed</option></term>
+        <listitem>
+            <para>
+                Provides  a  2  element  list of chanel ramp speeds in
+                Volts/Second.  The first element will be the ramp
+                speed for channel A, the second the ramp speed for channel B.
+                If not supplied both speeds default to 10 Volts/second
+            </para>
+        </listitem>
+    </varlistentry>
+    <varlistentry>
+        <term><option>-ilimit</option></term>
+        <listitem>
+            <para>
+                Provides a 2 element list of soft current limits for the
+                channels in micro-Amps.  The first element of the list is the
+                current limit for channel A, the second for channel B.  element
+                is the  limit  for  channel B.  When the current sourced by a
+                channel exceeds either this or the hard limit set on the
+                device's front panel, a current limit alarm trip is performed
+                and the voltage is set to  zero by the hardware.  If not
+                supplied this defaulst to 50 micro-Amps for both channels.
+            </para>
+        </listitem>
+    </varlistentry>
+    
+    </variablelist>
+    
+  </refsect1>
+  <refsect1>
+     <title>COMMAND SCRIPTS</title>
+        <para>
+       Command scripts are invoked whenever an interesting action is performed  by  the  user  on  the  control
+       panel.   These  scripts  allow the user to maintain logs of changes, or perhaps create failsafe settings
+       files for the module.  Scripts are invoked with three action specific parameters appended to them:  who,
+       what, which, and value.
+        </para>
+        <para>
+       The who parameter is just the path to the widget that is invoking the script.  Providing this allows the
+       user to interrogate or control the widget as needed.  The remaining parameters depend on  the  value  of
+       the what parameter, which describes the action the user just took:
+        </para>
+        <variablelist>
+            <varlistentry>
+                <term><literal>ramp</literal></term>
+                <listitem>
+                    <para>The  user  just  initiated  a  ramp on one of the
+                    channels.  The
+                    <parameter>which</parameter> parameter is either
+                    <literal>a</literal> or <literal>b</literal>
+                    indicating which channel has started the ramp.  The
+                    <parameter>value</parameter>
+                    parameter gives the ramp target voltage in volts.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><literal>off</literal></term>
+                <listitem>
+                    <para>Indicates  the  user  has  clicked the off button on
+                    one of the channels.  The <parameter>which</parameter>
+                    parameter is
+                    either <literal>a</literal> or <literal>b</literal>
+                    indicating which channel has been turned off.
+                    The <parameter>value</parameter> parameter is
+                    <literal>0</literal>.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><literal>ilimit</literal></term>
+                <listitem>
+                    <para>Indicates the current limit for a channel has just
+                    been  changed  (using  e.g.
+                    <command>name  configure -ilimit <replaceable>nnn</replaceable></command>)
+                    which is either
+                    <literal>a</literal> or <literal>b</literal> indicating
+                    which channel had the current limit set.  Note that
+                    in the case that the current limit was set using the
+                    widget's configure command, you will  get  a
+                    command script call for each channel.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><literal>speed</literal></term>
+                <listitem>
+                    <para>Indicates  the ramp speed for a channel has just been
+                    changed.
+                    <parameter>which</parameter> is either
+                    <literal>a</literal> or <literal>b</literal> indicating
+                    which channel had the current limit set.  Note that in the
+                    case the speed was changed  using  the
+                    widgets's configure command, the command script is called
+                    twice, once for each channel.
+                    </para>
+                </listitem>
+            </varlistentry>
+        </variablelist>
+
+   
+  </refsect1>
+  <refsect1>
+     <title>ALARM SCRIPTS</title>
+     <para>
+       Alarm  scripts  are  invoked whenever the module enters or leaves a tripped state.  Alarm scripts enable
+       the surrounding program to provide application specific details about the alarm to the user  or  log  or
+       perform  any  other  application  specific operation desired.  For example vhqControl(1) maintains a log
+       window showing trip and recovery details and timestamps.
+     </para>
+     <para>
+       The alarm script has four parameters appended to it.  who is the object that  is  producing  the  alarm.
+       This  allows the alarm script to interrogate and control the widget. what describes the alarm condition.
+       which indicates the affected channel and is either a or b. value is either 1 or 0 indicating if the
+       condition described by what has been set (1)  or cleared (0).
+     </para>
+     <para>
+       The values for <parameter>what</parameter> are:
+     </para>
+     <variablelist>
+        <varlistentry>
+            <term><literal>manual</literal></term>
+            <listitem>
+                <para>The channel's DAC/Manual switch has been changed.
+                <parameter>value</parameter> <literal>1</literal> indicates the
+                channel is now in manual
+                  mode and cannot be controlled by the megawidget.
+                  </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term><literal>error</literal></term>
+            <listitem>
+                <para>
+                    The channel has raised or cleared an error bit.  This is
+                    usually followed by another alarm script
+                    call indicating the error condition that was raised or
+                    cleared.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term><literal>Voverset</literal></term>
+            <listitem>
+                <para>
+                    The  channel  is reporting a voltage that is over the
+                    voltage hard maximum set on the front panel
+                    for the module.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term><literal>OverVorI</literal></term>
+            <listitem>
+                <para>
+                    The channel has hit either the voltage hard limit, or the
+                    current hard or soft limit.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term><literal>ilimit</literal></term>
+            <listitem>
+                <para>
+                    The channel has hit the current hard or soft limit.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term><literal>BadQuality</literal></term>
+            <listitem>
+                <para>
+                    The output voltage is not well regulated.
+                </para>
+            </listitem>
+        </varlistentry>
+     </variablelist>
+  </refsect1>
+    <refsect1>
+        <title>SUPPORTED MODELS</title>
+        <segmentedlist>
+           <segtitle>Model Name</segtitle>
+           <segtitle>Max Voltage</segtitle>
+           <segtitle>Max Current</segtitle>
+           <segtitle>CurrentResolution</segtitle>
+            <seglistitem>
+                <seg>202L-s</seg>
+                <seg>2000 Volts</seg>
+                <seg>0.1 milli-Amps</seg>
+                <seg>0.5 micro-Amps</seg>
+            </seglistitem>
+            
+            <seglistitem>
+                <seg>202M</seg>
+                <seg>2000 Volts</seg>
+                <seg>3 milli-Amps</seg>
+                <seg>1.5 micro-Amps</seg>
+            </seglistitem>
+            
+            <seglistitem>
+                <seg>202M-h</seg>
+                <seg>2000 Volts</seg>
+                <seg>6 milli-Amps</seg>
+                <seg>2.0 micro-Amps</seg>
+            </seglistitem>
+            
+            <seglistitem>
+                <seg>203M</seg>
+                <seg>3000 Volts</seg>
+                <seg>2 milli-Amps</seg>
+                <seg>0.66 micro-Amps</seg>
+            </seglistitem>
+            <seglistitem>
+                <seg>203M-h</seg>
+                <seg>3000 Volts</seg>
+                <seg>4 milli-Amps</seg>
+                <seg>1.33 micro-Amps</seg>
+            </seglistitem>
+            <seglistitem>
+                <seg>204L</seg>
+                <seg>4000 Volts</seg>
+                <seg>1 milli-Amps</seg>
+                <seg>0.33 micro-Amps</seg>
+            </seglistitem>
+            <seglistitem>
+                <seg>204M-h</seg>
+                <seg>4000 Volts</seg>
+                <seg>3 milli-Amps</seg>
+                <seg>1.5 micro-Amps</seg>
+            </seglistitem>
+            <seglistitem>
+                <seg>205L</seg>
+                <seg>5000 Volts</seg>
+                <seg>1 milli-Amps</seg>
+                <seg>0.33 micro-Amps</seg>
+            </seglistitem>
+            <seglistitem>
+                <seg>205L-h</seg>
+                <seg>5000 Volts</seg>
+                <seg>2 milli-Amps</seg>
+                <seg>0.66 micro-Amps</seg>
+            </seglistitem>
+
+        </segmentedlist>
+        <para>
+            Note that the software is unable to determine the actual model
+            number of the device.  If your  model  is
+            not  in  the  supported list, file an enhancment request at
+            <ulink url='http://daqbugs.nscl.msu.edu'>http://daqbugs.nscl.msu.edu</ulink>
+            and in the meantime, use a model with
+            capabilities closest to the one you have.
+        </para>
+    </refsect1>
+
+
+</refentry>
+
+
+<!-- /manpage -->
+
+<!-- manpage 1tcl -->
+
+<!-- vhqControl1 -->
+
+<refentry id="manpage.vhqcontrol">
+  <refmeta>
+     <refentrytitle>vhqControl</refentrytitle>
+     <manvolnum>1tcl</manvolnum>
+  </refmeta>
+  <refnamediv>
+     <refname>vhqControl</refname>
+     <refpurpose>Control panel application for VHQ bias supply modules.</refpurpose>
+  </refnamediv>
+  
+  <refsynopsisdiv>
+    <cmdsynopsis>
+    <command>
+$DAQHOME/Scripts/ControlApplications/vhqControl.tcl <optional>?config config ...?</optional>    
+    </command>
+    </cmdsynopsis>
+  </refsynopsisdiv>
+  <refsect1>
+     <title>DESCRIPTION</title>
+     <para>
+        This  command  runs the vhq control program.   config are configuration files described by
+        <link linkend="manpage.vhqconfig">vhqconfig(5)</link>
+       If no configuration files are provided on the command line, the program will graphically prompt for one.
+     </para>
+     <para>
+       Refer to the extensive online help for further operational details.
+     </para>
+  </refsect1>
+</refentry>
+
+
+<!-- /manpage -->
+
+<!-- manpage 5tcl -->
+
+<!-- vhqconfig5 -->
+
+<refentry id="manpage.vhqconfig">
+    <refmeta>
+        <refentrytitle>vhqconfig</refentrytitle>
+        <manvolnum>5tcl</manvolnum>
+    </refmeta>
+    <refnamediv>
+        <refname>vhqconfig</refname>
+        <refpurpose> Config file for
+        </refpurpose>
+    </refnamediv>
+    <refsynopsisdiv>
+ <example>
+    <title>Sample configuration file</title>
+    <programlisting>
+# vhq configuration file saved Tue Nov 15  13:28:47 EST 2005
+       set  name  ppac_hv
+       set  crate 0
+       set base 0xdd00
+       set maxv 2000
+       set maxi 100
+       set ILimit(a) 50
+       set RampSpeed(a) 100
+       set SetPoint(a) 1000
+       set ILimit(b) 50
+       set RampSpeed(b) 250
+       set SetPoint(b) 1000
+    </programlisting>
+ </example>
+    </refsynopsisdiv>
+    <refsect1>
+        <title>DESCRIPTION</title>
+        <para>
+            The
+            <link linkend='manpage.vhqcontrol'>vhqControl(1)</link>
+            application uses configuration files both to form a connection to vhq 2xx modules it
+       is controlling and to load previously saved settings.  These configuration files are  Tcl  scripts  that
+       set agreed upon variables to the needed configuration values.
+
+       Configuration scripts have two sorts of variables Identification and Settings variables.  Identification
+       variables identify the module both to humans and to computers, providing the  necessary  information  to
+       connect  to  and  control the module.  Settings variables provide saved settings information that can be
+       restored into a module once a connection to it has been established.
+        </para>
+        <refsect2>
+            <title>Identification Variables</title>
+            <variablelist>
+                <varlistentry>
+                    <term><literal>name</literal></term>
+                    <listitem>
+                        <para>Provides a human readable name for the module.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><literal>crate</literal></term>
+                    <listitem>
+                        <para>
+                            Provides the number of the VME crate in which the
+                            module  is  stuffed.   If  not  provided,  this
+                            defaults to zero.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><literal>base</literal></term>
+                    <listitem>
+                        <para>
+                            Provides the base address (A16) at which the
+                            module has been configured.  See the VHQ manuals for
+                            more information on setting the module base address.
+                            It is important not to configure  two  modules at
+                            the same base address in the same VME crate.  This
+                            variable is mandatory.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><literal>maxv</literal></term>
+                    <listitem>
+                        <para>
+                            Defines the maximum voltage the module can output
+                            in volts.  This variable is mandatory.
+                        </para>
+                    </listitem>
+                    </varlistentry>
+                <varlistentry>
+                    <term><literal>maxi</literal></term>
+                    <listitem>
+                        <para>
+                            Defines the maxiumum current the module can
+                            output in micro-Amps.  This variable is mandatory.
+                        </para>
+                    </listitem>
+                </varlistentry>
+            </variablelist>
+        </refsect2>
+        <refsect2>
+            <title>Settings Variables</title>
+            <variablelist>
+                <varlistentry>
+                    <term><literal>Ilimit(channel)</literal></term>
+                    <listitem>
+                        <para>
+                            Sets  the current limit for channel.  The channel
+                            index can be either
+                            <literal>a</literal> or
+                            <literal>b</literal>.
+                            Recall that array
+                            indices in Tcl are strings.  The units of measure
+                            are micro-Amps
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><literal>RampSpeed(channel)</literal></term>
+                    <listitem>
+                        <para>
+                            Sets the ramp speed for channel.  The channel index
+                            can be either
+                            <literal>a</literal> or
+                            <literal>b</literal>.  The units  of  measure
+                            are Volts/Sec.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><literal>SetPoint(channel)</literal></term>
+                    <listitem>
+                        <para>
+                            Sets the target voltage for the channel.  The
+                            channel index can be either
+                            <literal>a</literal> or
+                            <literal>b</literal>.  Note that setting this
+                            variable does not cause the module to perform a
+                            ramp.  The units of measure are  Volts.
+                        </para>
+                    </listitem>
+                </varlistentry>
+            </variablelist>
+        </refsect2>
+    </refsect1>
+    
+</refentry>
+
+<!-- /manpage -->

@@ -1,23 +1,23 @@
 lib_LTLIBRARIES 	= libBuilder.la
 
-libBuilder_la_SOURCES 	= CFragmentSource.cpp	\
-			CSourceException.cpp	\
-			CInvalidObjectType.cpp	\
-			CNoSuchConfigurationParameter.cpp	\
-			CInvalidConfigurationValue.cpp	\
-			CInvalidObjectState.cpp	\
-			CNoSuchManager.cpp	\
-			CFragmentSourceManager.cpp
+libBuilder_la_SOURCES 	= CFragmentSource.cpp	
+#			CSourceException.cpp	\
+#			CInvalidObjectType.cpp	\
+#			CNoSuchConfigurationParameter.cpp	\
+#			CInvalidConfigurationValue.cpp	\
+#			CInvalidObjectState.cpp	\
+#			CNoSuchManager.cpp	\
+#			CFragmentSourceManager.cpp
 
-include_HEADERS	        = BuilderContants.h	\ 
-			CFragmentSource.h	\
-			CSourceException.h	\
-			CInvalidObjectType.h	\
-			CNoSuchConfiguratinoParameter.h	\
-			CInvalidConfigurationValue.h	\
-			CInvalidObjectState.h	\
-			CNoSuchManager.h	\
-			CFragmentSourceManager.h
+include_HEADERS	        = BuilderContants.h	\
+			CFragmentSource.h 
+#			CSourceException.h	\
+#			CInvalidObjectType.h	\
+#			CNoSuchConfiguratinoParameter.h	\
+#			CInvalidConfigurationValue.h	\
+#			CInvalidObjectState.h	\
+#			CNoSuchManager.h	\
+#			CFragmentSourceManager.h
 
 
 INCLUDES		= -I@top_srcdir@/base/thread
@@ -31,15 +31,15 @@ libBuilder_la_LIBADD	= @top_srcdir@/base/thread/libdaqthreads.la	\
 
 #---------- Test:
 
-noinst_PROGRAMS = unittests
+#noinst_PROGRAMS = unittests
 
-unittests_SOURCES	= TestRunner.cpp 		\
-			testSource.cpp
+#unittests_SOURCES	= TestRunner.cpp 		\
+#			testSource.cpp
 
-unittests_LDADD		= CFragmentSource.lo		\
-			@top_srcdir@/base/thread/libdaqthreads.la	\
-			@top_srcdir@/base/exception/libException.la	\
-			$(CPPUNIT_LDFLAGS)
-
-
-TESTS=./unittests
+#unittests_LDADD		= CFragmentSource.lo		\
+#			@top_srcdir@/base/thread/libdaqthreads.la	\
+#			@top_srcdir@/base/exception/libException.la	\
+#			$(CPPUNIT_LDFLAGS)
+#
+#
+#TESTS=./unittests
