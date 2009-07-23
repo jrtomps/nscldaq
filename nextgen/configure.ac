@@ -456,6 +456,7 @@ AC_CONFIG_FILES([Makefile
 		 sbs/readout/SBSRdoMakeIncludes
 		 sbs/slowcontrols/Makefile
 		 sbs/slowcontrols/vhq/Makefile
+		 sbs/slowcontrols/caenv812/Makefile
 		 daq/builder/Makefile
 		 docbuild/Makefile
 		 docconfig/Makefile])

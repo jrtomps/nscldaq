@@ -1,1 +1,1 @@
-SUBDIRS = vhq
+SUBDIRS = vhq caenv812

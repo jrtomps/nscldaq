@@ -21,5 +21,5 @@ install-exec-local:
 	$(TCLSH_CMD) <makeindex.tcl
 
 
-EXTRA_DIST= $(PACKAGES) $(APPS)  $(HELPFILES)
+EXTRA_DIST= $(PACKAGES) $(APPS)  $(HELPFILES) vhq.xml
 
