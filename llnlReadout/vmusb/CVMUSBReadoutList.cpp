@@ -15,6 +15,7 @@
 */
 
 #include "CVMUSBReadoutList.h"
+#include "CVMUSB.h"		//  I think this is ok.
 
 using namespace std;
 
@@ -158,6 +159,7 @@ CVMUSBReadoutList::addRegisterWrite(unsigned int address,
     m_list.push_back(data);
 
 }
+
 
 ////////////////////////////////////////////////////////////////////////////////
 // 
@@ -464,4 +466,93 @@ CVMUSBReadoutList::addMarker(uint16_t value)
   m_list.push_back(line);
   m_list.push_back(static_cast<uint32_t>(value));
 
+}
+
+//////////////////////////////////////////////////////////////////////////
+
+/* Variable block setup and readout instructions: */
+
+
+
+/*!
+   Add an 8 bit transfer that reads the number data for a variable
+   length transfer:
+   \param address (uint32_t) - Address from which the byte  is read.
+   \param amod    (uint8_t)  - Address modifier of the read..
+
+*/
+void
+CVMUSBReadoutList::addBlockCountRead8(uint32_t address, uint8_t amod)
+{
+  addRead8(address, amod);
+  lastTransferIsNumberData();
+}
+/*!
+   Add a 16 bit transfer that reads number data for a variable length
+   transfer:
+   \param address (uint32_t) - VME address from which the 16 bit word is read.
+   \param amod    (uint8_t)  - address modifier.
+
+*/
+void 
+CVMUSBReadoutList::addBlockCountRead16(uint32_t address, uint8_t amod)
+{
+  addRead16(address, amod);
+  lastTransferIsNumberData();
+}
+/*!
+   Add a 32 bit tranfer that reads number data for a variable length
+   transfer:
+   \param address (uint32_t)  - Vme address from which the 32 bit long is read.
+   \param amod    (uint8_t)   - address modifier.
+*/
+void
+CVMUSBReadoutList::addBlockCountRead32(uint32_t address, uint8_t amod)
+{
+  addRead32(address, amod);
+  lastTransferIsNumberData();
+}
+
+/*!
+   Add a variable length block transfer.  The length of this transfer is 
+   determined by the number data last read and the current value of the 
+   Number extract mask register. The stack setup is for a normal block transfer
+   followed by the mask that specifies the bit field that contains the transfer count.
+
+
+   \param address (uint32_t) Address of the transfer.
+   \param amod    (uint8_t_) address modifier to use for the transfers.
+   \param mask    (uint32_t) mask for transfer count extraction.
+*/
+void
+CVMUSBReadoutList::addMaskedCountBlockRead32(uint32_t address, uint8_t amod, uint32_t mask)
+{
+  addBlockRead32(address, amod, 0); // Count comes from ND and mask.
+  m_list.push_back(mask);	    // The extraction mask follows a normal block read setup.
+}
+/*!
+   Add a variable length block transfer from a FIFO. The list must contain a prior read of 
+   the number data (e.g. addBlockCountReadxx) prior to this with no intervening block transfers
+   \param address(uint32_t) address of the fifo.
+   \param amod   (uint8_t)  transfer address modifier.
+   \param mask   (uint32_t) mask for transfer count extraction.
+
+*/
+void
+CVMUSBReadoutList::addMaskedCountFifoRead32(uint32_t address, uint8_t amod, uint32_t mask)
+{
+  addFifoRead32(address, amod, 0);
+  m_list.push_back(mask);	// THe extraction mask follows a normal block read setup).
+}
+
+/*
+ * Utility function used to turn a single shot read in the list into
+ * a number data read.  The last two words in the stack are assumed to describe
+ * the transfer.  The mode word will get the modeND bit set:
+ */
+void
+CVMUSBReadoutList::lastTransferIsNumberData()
+{
+  size_t modeIndex = m_list.size() - 2;
+  m_list[modeIndex] |= modeND;
 }

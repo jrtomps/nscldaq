@@ -62,6 +62,7 @@ Const(CSR_IPLSHIFT) 9;            // Lowest bit position for IPL mask.
 Const(CSR_ARM)      0x0100;       // 1 ARM Cleared automatically when full in list mode.
 Const(CSR_IE)       0x0080;      // 1 Enable ineterrupts 0 disable.
 Const(CSR_IS)       0x0040;       // 1 if an interrupt condition is set.
+Const(CSR_CLTS)     0x0040;       // Set this to clear the timestamp.
 Const(CSR_FFCLR)    0x0010;       // Force a fast clear
 Const(CSR_SC)       0x0008;       // 1 Set in calibration mode.
 Const(CSR_iDR)      0x0004;       // 1 Data ready when event count hit else on fullness flags.
@@ -229,6 +230,12 @@ CNADC2530::onAttach(CReadoutModule& configuration)
   m_pConfiguration->addParameter("-events", CConfigurableObject::isInteger,
 				 static_cast<void*>(&EventLimits), "1");
 
+  // The module can zero suppress the data  That's controlled by the 
+  // -zerosuppress bool:
+
+  m_pConfiguration->addParameter("-zerosuppress", CConfigurableObject::isBool,
+				 static_cast<void*>(0), "on");
+
 
 }
 
@@ -276,7 +283,7 @@ CNADC2530::Initialize(CVMUSB& controller)
 
   // Disable the module and set its counters to something reasonable.
 
-  controller.vmeWrite16(csr + REG_CSR, initamod, CSR_RESET);
+  controller.vmeWrite16(csr + REG_CSR, initamod, CSR_RESET | CSR_CLTS);
   controller.vmeWrite16(csr + REG_MEM, initamod, listRegister);
   controller.vmeWrite16(csr + REG_LISTWL, initamod, 0);	// offset where data will be put.
   controller.vmeWrite16(csr + REG_LISTWH, initamod, 0);
@@ -287,10 +294,11 @@ CNADC2530::Initialize(CVMUSB& controller)
 
   // Set up all values but the CSR
 
-  int vector = m_pConfiguration->getIntegerParameter("-vector");
-  int events = m_pConfiguration->getIntegerParameter("-events");
-  double lld = m_pConfiguration->getFloatParameter("-lld");
-  double hld = m_pConfiguration->getFloatParameter("-hld");
+  int    vector       = m_pConfiguration->getIntegerParameter("-vector");
+  int    events       = m_pConfiguration->getIntegerParameter("-events");
+  double lld          = m_pConfiguration->getFloatParameter("-lld");
+  double hld          = m_pConfiguration->getFloatParameter("-hld");
+  bool   zerosuppress = m_pConfiguration->getBoolParameter("-zerosuppress");
 
   controller.vmeWrite16(csr + REG_VECTOR, initamod, vector);
   controller.vmeWrite16(csr + REG_EVENTSREQ, initamod, events);
@@ -302,7 +310,10 @@ CNADC2530::Initialize(CVMUSB& controller)
   // Figure out the CSR value based on the IPL etc, and set it.. which enables the module.
   // 
 
-  uint16_t csrValue = CSR_GE | CSR_ZE | CSR_IT | CSR_ARM;
+  uint16_t csrValue = CSR_GE | CSR_IT | CSR_ARM;
+  if (!zerosuppress) {
+    csrValue |= CSR_ZE;		// Setting this bit turns off zero suppression.
+  }
   int ipl = m_pConfiguration->getIntegerParameter("-ipl");
   if (ipl) {
     csrValue |= CSR_IE;
@@ -339,30 +350,22 @@ CNADC2530::addReadoutList(CVMUSBReadoutList& list)
   list.addWrite16(m_csr + REG_CSR, initamod, m_csr & (~CSR_ARM));
 
 
-  // The number of events between interrupts is used to determine the number of longs to 
-  // read from the module.  There's a header long, trailer long and 8 channels for each
-  // event (not zero suppression mode yet).
+  // The number of words to read is held by the List Mode Memory Address Counter 
+  // I'm going to make the assumption that only the low order 16 bits have set data
+  // as otherwise I can't make this work with the VM-USB
+  // 
 
-  int transfers = m_eventCount*(8+2);
+  list.addBlockCountRead16(m_csr + REG_CSR + REG_LISTWL, initamod); // Get the block read count
+  list.addMaskedCountBlockRead32(m_eventBase, readamod, 0xffff);	    // count set up above.
 
-  // The version of the firmware I have at this time for the VM-USB appears to
-  // delete the last word of a block transfer.  This is probably a hold-over
-  // from how Jan fixed the extra word inserted by a BERR end of transfer..
-  // If this is still the case, add an extra longword to the transfer.
-  // This means that now we'll get an extra word but that's probably better
-  // than missing the trailer >sigh<
-
-#ifndef VM_USB_BLKREADOK
-  transfers++;
-#endif
-
-  list.addBlockRead32(m_eventBase, readamod, transfers);
   
   // We're going to zero the offset regiseter so the next set of events is also
   // at the bottom of the memory, and then reset the CSR with the m_csrValue:
 
   list.addWrite16(m_csr + REG_LISTWL, initamod, 0);
   list.addWrite16(m_csr + REG_LISTWH, initamod, 0);
+
+  // Rearm the module.
 
   list.addWrite16(m_csr + REG_CSR, initamod, m_csr);
 }

@@ -693,6 +693,113 @@ CVMUSB::vmeFifoRead(uint32_t address, int8_t aModifier,
 }
 
 
+// Variable block read support:
+//
+
+/*!
+  Do an 8 bit read in to the number data regiser. I believe we don't
+  get this data into the output buffer.
+  \param address (uint32_t)   - Address from which the read is done.
+  \param amod    (uint8_t)    - Address modifier for the transfer.
+*/
+int
+CVMUSB::vmeReadBlockCount8(uint32_t address, uint8_t amod)
+{
+  CVMUSBReadoutList list;
+  uint8_t           data;
+  size_t            readCount;
+
+  list.addBlockCountRead8(address, amod);
+  int status = executeList(list, &data, sizeof(uint8_t), &readCount);
+  return status;
+}
+/*!
+  Do a 16 bit read to the number data register. See above.
+  \param address (uint32_t)   - Address from which the read is done.
+  \param amod    (uint8_t)    - Address modifier for the transfer.
+*/
+int
+CVMUSB::vmeReadBlockCount16(uint32_t address, uint8_t amod)
+{
+  CVMUSBReadoutList list;
+  uint8_t           data;
+  size_t            readCount;
+
+  list.addBlockCountRead16(address, amod);
+  int status = executeList(list, &data, sizeof(uint8_t), &readCount);
+  return status;
+}
+/*!
+    Do a 32 bit read to the number data register.  See above:
+
+  \param address (uint32_t)   - Address from which the read is done.
+  \param amod    (uint8_t)    - Address modifier for the transfer.
+*/
+int
+CVMUSB::vmeReadBlockCount32(uint32_t address, uint8_t amod)
+{
+  CVMUSBReadoutList list;
+  uint8_t           data;
+  size_t            readCount;
+
+  list.addBlockCountRead32(address, amod);
+  int status = executeList(list, &data, sizeof(uint8_t), &readCount);
+  return status;
+}
+/*!
+   Do a variable length block transfer.  This transfer must have been
+   set up by doing a call to one of the vmeReadBlockCountxx functions.
+   furthermore, no other block transfer can have taken place since that
+   operation.  It is _STRONGLY_ recommended that unless prohibited by the
+   hardware, a vmeReadBlockCountxx be _IMMEDIATELY_ followed by a
+   variable block read or variable fifo read.
+   \param address (uint32_t)  Starting address of the block transfer.
+   \param amod    (uint8_t)   Address modifier for the transfer.
+   \param mask    (uint32_t)  Mask that specifies where the count lives in
+                              the data read by vmeReadBlockCountxx
+   \param data    (void*)     Pointer to the buffer to receive the transfer.
+   \param maxCount (size_t)   Size of the buffer in longwords.
+   \param countTransferred (size_t*) Pointer to where the actual transfer count is stored.
+
+*/
+int 
+CVMUSB::vmeVariableBlockRead(uint32_t address, uint8_t amod, uint32_t mask,
+			      void* data, size_t maxCount, size_t* countTransferred)
+{
+  CVMUSBReadoutList list;
+  list.addMaskedCountBlockRead32(address, amod, mask);
+  *countTransferred = 0;	// In case of failure.
+  int status = executeList(list, data, maxCount*sizeof(uint32_t), countTransferred);
+  *countTransferred = *countTransferred/sizeof(uint32_t);
+
+  return status;
+}
+/*!
+   See above, however the address pointer is not incremented between block transfers.
+   \param address (uint32_t)  Starting address of the block transfer.  In this case, this is
+                              the only address from which data are transferred.
+   \param amod    (uint8_t)   Address modifier for the transfer.
+   \param mask    (uint32_t)  Mask that specifies where the count lives in
+                              the data read by vmeReadBlockCountxx
+   \param data    (void*)     Pointer to the buffer to receive the transfer.
+   \param maxCount (size_t)   Size of the buffer in longwords.
+   \param countTransferred (size_t*) Pointer to where the actual transfer count is stored.
+
+*/
+
+int 
+CVMUSB::vmeVariableFifoRead(uint32_t address, uint8_t amod, uint32_t mask,
+			    void* data, size_t maxCount, size_t* countTransferred)
+{
+  CVMUSBReadoutList list;
+  list.addMaskedCountFifoRead32(address, amod, mask);
+  *countTransferred = 0;	// In case of failure.
+  int status = executeList(list, data, maxCount*sizeof(uint32_t), countTransferred);
+  *countTransferred = *countTransferred/sizeof(uint32_t);
+
+  return status;
+}
+
 //////////////////////////////////////////////////////////////////////////
 /////////////////////////// List operations  ////////////////////////////
 /////////////////////////////////////////////////////////////////////////
@@ -842,6 +949,7 @@ CVMUSB::setDefaultTimeout(int ms)
 {
   m_timeout = ms;
 }
+
 
 ////////////////////////////////////////////////////////////////////////
 /////////////////////////////// Utility methods ////////////////////////

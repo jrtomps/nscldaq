@@ -24,3 +24,9 @@ May 14, 2008
 May 17, 2008
    - Added support for Mesytec MADC module.
    - Added command to configure in Mesytec MADC 32 modules.
+July 29, 2009
+   - Added support for variable length block reads to the VMUSB class library.
+   - Modify the NADC software to:
+     o Support zero supression
+     o Use the List Mode Memory Address Counter LS and a variable length 
+       block transfer to read the data from the module.

@@ -110,6 +110,20 @@ public:
   void addBlockRead32(uint32_t baseAddress, uint8_t amod, size_t transfers);
   void addFifoRead32(uint32_t  baseAddress, uint8_t amod, size_t transfers);
 
+  // VMEUSB supports getting the block readout count from a constant mask and
+  // a count read from a VME module.  This is supported in this software by
+  // providing functions to set the mask from a list, 
+  // to specify the readout of the count (8,16 or 32 bits).
+  // and to initiate the block transfer:
+  // as with all block reads, only 32 bit transfers are supported.
+  //
+
+  void addBlockCountRead8(uint32_t  address, uint8_t amod);
+  void addBlockCountRead16(uint32_t address, uint8_t amod);
+  void addBlockCountRead32(uint32_t address, uint8_t amod);
+  void addMaskedCountBlockRead32(uint32_t address, uint8_t amod, uint32_t mask);
+  void addMaskedCountFifoRead32(uint32_t address, uint8_t amod, uint32_t mask);
+
 
   // Miscellaneous:
 
@@ -154,6 +168,7 @@ private:
   uint32_t dataStrobes(uint32_t address);
   void     addBlockRead(uint32_t base, size_t transfers,
 			uint32_t startingMode);
+  void     lastTransferIsNumberData();
 
 };
 

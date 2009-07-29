@@ -156,6 +156,17 @@ public:
     int vmeFifoRead(uint32_t address, int8_t aModifier,
 		    void* data, size_t transferCount, size_t* countTransferred);
 
+    // Support for immediate counted VME variable block transfer operations:
+    // See comments prior to CVMEReadoutList::addBlockCountMask
+
+    int vmeReadBlockCount8(uint32_t address, uint8_t amod);
+    int vmeReadBlockCount16(uint32_t address, uint8_t amod);
+    int vmeReadBlockCount32(uint32_t address, uint8_t amod);
+    int vmeVariableBlockRead(uint32_t address, uint8_t amod, uint32_t mask,
+			     void* data, size_t maxCount, size_t* countTransferred);
+    int vmeVariableFifoRead(uint32_t address, uint8_t amod,  uint32_t mask,
+			    void* data, size_t maxCount,  size_t* countTransferred);
+    
     // List operations.
 
 public:
@@ -181,6 +192,28 @@ public:
     // Register bit definintions.
 
 public: 
+    class RegisterOffsets {
+      static const unsigned int FIDRegister = (0);       // Firmware id.
+      static const unsigned int GMODERegister = (4);     // Global mode register.
+      static const unsigned int DAQSetRegister = (8);    // DAQ settings register.
+      static const unsigned int LEDSrcRegister = (0xc);	// LED source register.
+      static const unsigned int DEVSrcRegister = (0x10);	// Device source register.
+      static const unsigned int DGGARegister = (0x14);   // GDD A settings.
+      static const unsigned int DGGBRegister = (0x18);   // GDD B settings.
+      static const unsigned int ScalerA = (0x1c);        // Scaler A counter.
+      static const unsigned int ScalerB = (0x20);        // Scaler B data.
+      static const unsigned int ExtractMask = (0x24);    // CountExtract mask.
+      static const unsigned int ISV12 = (0x28);          // Interrupt 1/2 dispatch.
+      static const unsigned int ISV34 = (0x2c);          // Interrupt 3/4 dispatch.
+      static const unsigned int ISV56 = (0x30);          // Interrupt 5/6 dispatch.
+      static const unsigned int ISV78 = (0x34);          //  Interrupt 7/8 dispatch.
+      static const unsigned int DGGExtended = (0x38);    // DGG Additional bits.
+      static const unsigned int USBSetup = (0x3c);       // USB Bulk transfer setup. 
+      static const unsigned int USBVHIGH1 = (0x40);      // High bits of ISV12/34.
+      static const unsigned int USBVHIGH2 = (0x44);      // High bits of ISV56/78.
+
+    };
+
     class ActionRegister {   // e.g. CVMUSB::ActionRegister::startDAQ is a bit.
     public:
 	static const uint16_t startDAQ   = 1;
