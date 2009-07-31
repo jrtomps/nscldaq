@@ -416,25 +416,7 @@ CVMUSB::readScalerB()
     return readRegister(ScalerB);
 }
 
-//////////////////////////////////////////////////////////////////////////
-/*!
-   Write the count extract register.  This register is a mask that
-   determines which bits of a datum read from the VME are a count
-   of the transfers to use for a subsequent block transfer.
 
-   \param value : uint32_t
-      new mask value.
-*/
-void
-CVMUSB::writeCountExtractMask(uint32_t value)
-{
-    writeRegister(ExtractMask, value);
-}
-uint32_t
-CVMUSB::readCountExtractMask()
-{
-    return readRegister(ExtractMask);
-}
 /////////////////////////////////////////////////////////////////////
 
 /*!
@@ -700,32 +682,34 @@ CVMUSB::vmeFifoRead(uint32_t address, int8_t aModifier,
   Do an 8 bit read in to the number data regiser. I believe we don't
   get this data into the output buffer.
   \param address (uint32_t)   - Address from which the read is done.
+  \param mask    (uint32_t)   - Count extract mask.
   \param amod    (uint8_t)    - Address modifier for the transfer.
 */
 int
-CVMUSB::vmeReadBlockCount8(uint32_t address, uint8_t amod)
+CVMUSB::vmeReadBlockCount8(uint32_t address, uint32_t mask, uint8_t amod)
 {
   CVMUSBReadoutList list;
   uint8_t           data;
   size_t            readCount;
 
-  list.addBlockCountRead8(address, amod);
+  list.addBlockCountRead8(address, mask, amod);
   int status = executeList(list, &data, sizeof(uint8_t), &readCount);
   return status;
 }
 /*!
   Do a 16 bit read to the number data register. See above.
   \param address (uint32_t)   - Address from which the read is done.
+  \param mask    (uint32_t)   - Count extract mask.
   \param amod    (uint8_t)    - Address modifier for the transfer.
 */
 int
-CVMUSB::vmeReadBlockCount16(uint32_t address, uint8_t amod)
+CVMUSB::vmeReadBlockCount16(uint32_t address, uint32_t mask, uint8_t amod)
 {
   CVMUSBReadoutList list;
   uint8_t           data;
   size_t            readCount;
 
-  list.addBlockCountRead16(address, amod);
+  list.addBlockCountRead16(address, mask, amod);
   int status = executeList(list, &data, sizeof(uint8_t), &readCount);
   return status;
 }
@@ -733,16 +717,17 @@ CVMUSB::vmeReadBlockCount16(uint32_t address, uint8_t amod)
     Do a 32 bit read to the number data register.  See above:
 
   \param address (uint32_t)   - Address from which the read is done.
+  \param mask    (uint32_t)   - Count extract mask.
   \param amod    (uint8_t)    - Address modifier for the transfer.
 */
 int
-CVMUSB::vmeReadBlockCount32(uint32_t address, uint8_t amod)
+CVMUSB::vmeReadBlockCount32(uint32_t address, uint32_t mask, uint8_t amod)
 {
   CVMUSBReadoutList list;
   uint8_t           data;
   size_t            readCount;
 
-  list.addBlockCountRead32(address, amod);
+  list.addBlockCountRead32(address, mask, amod);
   int status = executeList(list, &data, sizeof(uint8_t), &readCount);
   return status;
 }
@@ -755,19 +740,17 @@ CVMUSB::vmeReadBlockCount32(uint32_t address, uint8_t amod)
    variable block read or variable fifo read.
    \param address (uint32_t)  Starting address of the block transfer.
    \param amod    (uint8_t)   Address modifier for the transfer.
-   \param mask    (uint32_t)  Mask that specifies where the count lives in
-                              the data read by vmeReadBlockCountxx
    \param data    (void*)     Pointer to the buffer to receive the transfer.
    \param maxCount (size_t)   Size of the buffer in longwords.
    \param countTransferred (size_t*) Pointer to where the actual transfer count is stored.
 
 */
 int 
-CVMUSB::vmeVariableBlockRead(uint32_t address, uint8_t amod, uint32_t mask,
+CVMUSB::vmeVariableBlockRead(uint32_t address, uint8_t amod,
 			      void* data, size_t maxCount, size_t* countTransferred)
 {
   CVMUSBReadoutList list;
-  list.addMaskedCountBlockRead32(address, amod, mask);
+  list.addMaskedCountBlockRead32(address, amod);
   *countTransferred = 0;	// In case of failure.
   int status = executeList(list, data, maxCount*sizeof(uint32_t), countTransferred);
   *countTransferred = *countTransferred/sizeof(uint32_t);
@@ -779,8 +762,6 @@ CVMUSB::vmeVariableBlockRead(uint32_t address, uint8_t amod, uint32_t mask,
    \param address (uint32_t)  Starting address of the block transfer.  In this case, this is
                               the only address from which data are transferred.
    \param amod    (uint8_t)   Address modifier for the transfer.
-   \param mask    (uint32_t)  Mask that specifies where the count lives in
-                              the data read by vmeReadBlockCountxx
    \param data    (void*)     Pointer to the buffer to receive the transfer.
    \param maxCount (size_t)   Size of the buffer in longwords.
    \param countTransferred (size_t*) Pointer to where the actual transfer count is stored.
@@ -788,11 +769,11 @@ CVMUSB::vmeVariableBlockRead(uint32_t address, uint8_t amod, uint32_t mask,
 */
 
 int 
-CVMUSB::vmeVariableFifoRead(uint32_t address, uint8_t amod, uint32_t mask,
+CVMUSB::vmeVariableFifoRead(uint32_t address, uint8_t amod, 
 			    void* data, size_t maxCount, size_t* countTransferred)
 {
   CVMUSBReadoutList list;
-  list.addMaskedCountFifoRead32(address, amod, mask);
+  list.addMaskedCountFifoRead32(address, amod);
   *countTransferred = 0;	// In case of failure.
   int status = executeList(list, data, maxCount*sizeof(uint32_t), countTransferred);
   *countTransferred = *countTransferred/sizeof(uint32_t);

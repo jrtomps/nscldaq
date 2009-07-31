@@ -118,11 +118,11 @@ public:
   // as with all block reads, only 32 bit transfers are supported.
   //
 
-  void addBlockCountRead8(uint32_t  address, uint8_t amod);
-  void addBlockCountRead16(uint32_t address, uint8_t amod);
-  void addBlockCountRead32(uint32_t address, uint8_t amod);
-  void addMaskedCountBlockRead32(uint32_t address, uint8_t amod, uint32_t mask);
-  void addMaskedCountFifoRead32(uint32_t address, uint8_t amod, uint32_t mask);
+  void addBlockCountRead8(uint32_t  address, uint32_t mask, uint8_t amod);
+  void addBlockCountRead16(uint32_t address, uint32_t mask, uint8_t amod);
+  void addBlockCountRead32(uint32_t address, uint32_t mask, uint8_t amod);
+  void addMaskedCountBlockRead32(uint32_t address, uint8_t amod);
+  void addMaskedCountFifoRead32(uint32_t address, uint8_t amod);
 
 
   // Miscellaneous:
@@ -168,7 +168,7 @@ private:
   uint32_t dataStrobes(uint32_t address);
   void     addBlockRead(uint32_t base, size_t transfers,
 			uint32_t startingMode);
-  void     lastTransferIsNumberData();
+  void     lastTransferIsNumberData(uint32_t mask);
 
 };
 

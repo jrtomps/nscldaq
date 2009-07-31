@@ -127,8 +127,6 @@ public:
     uint32_t readScalerA();
     uint32_t readScalerB();
 
-    void     writeCountExtractMask(uint32_t value);
-    uint32_t readCountExtractMask();
 
     void     writeVector(int which, uint32_t value);
     uint32_t readVector(int which);
@@ -159,12 +157,12 @@ public:
     // Support for immediate counted VME variable block transfer operations:
     // See comments prior to CVMEReadoutList::addBlockCountMask
 
-    int vmeReadBlockCount8(uint32_t address, uint8_t amod);
-    int vmeReadBlockCount16(uint32_t address, uint8_t amod);
-    int vmeReadBlockCount32(uint32_t address, uint8_t amod);
-    int vmeVariableBlockRead(uint32_t address, uint8_t amod, uint32_t mask,
+    int vmeReadBlockCount8(uint32_t address,  uint32_t mask, uint8_t amod);
+    int vmeReadBlockCount16(uint32_t address, uint32_t mask, uint8_t amod);
+    int vmeReadBlockCount32(uint32_t address, uint32_t mask, uint8_t amod);
+    int vmeVariableBlockRead(uint32_t address, uint8_t amod, 
 			     void* data, size_t maxCount, size_t* countTransferred);
-    int vmeVariableFifoRead(uint32_t address, uint8_t amod,  uint32_t mask,
+    int vmeVariableFifoRead(uint32_t address, uint8_t amod,  
 			    void* data, size_t maxCount,  size_t* countTransferred);
     
     // List operations.

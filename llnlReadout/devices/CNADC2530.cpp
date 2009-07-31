@@ -257,8 +257,8 @@ CNADC2530::Initialize(CVMUSB& controller)
 {
   // Get the register page and list mode data addresses.
 
-  uint32_t csr  = m_pConfiguration->getIntegerParameter("-csr");
-  uint32_t list = m_pConfiguration->getIntegerParameter("-memory");
+  uint32_t csr  = m_pConfiguration->getUnsignedParameter("-csr");
+  uint32_t list = m_pConfiguration->getUnsignedParameter("-memory");
   uint16_t listRegister = (uint16_t)((list >> 16) & 0xffe0); // Value for list register.
 
   // Check the validity of the -csr. If valid, program the memory base.
@@ -301,7 +301,7 @@ CNADC2530::Initialize(CVMUSB& controller)
   bool   zerosuppress = m_pConfiguration->getBoolParameter("-zerosuppress");
 
   controller.vmeWrite16(csr + REG_VECTOR, initamod, vector);
-  controller.vmeWrite16(csr + REG_EVENTSREQ, initamod, events);
+  controller.vmeWrite16(csr + REG_EVENTSREQ, initamod, events - 1); // IRQ when > than this
   controller.vmeWrite16(csr + REG_LLD, initamod, lldToRegister(lld));
   controller.vmeWrite16(csr + REG_HLD, initamod, hldToRegister(hld));
   controller.vmeWrite16(csr + REG_FULLNESS, initamod, 0);
@@ -355,8 +355,9 @@ CNADC2530::addReadoutList(CVMUSBReadoutList& list)
   // as otherwise I can't make this work with the VM-USB
   // 
 
-  list.addBlockCountRead16(m_csr + REG_CSR + REG_LISTWL, initamod); // Get the block read count
-  list.addMaskedCountBlockRead32(m_eventBase, readamod, 0xffff);	    // count set up above.
+  list.addRead16(m_csr + REG_LISTWL, initamod);		   // Add length to buffer.
+  list.addBlockCountRead16(m_csr +  REG_LISTWL, 0xffff, initamod); // Get the block read count
+  list.addMaskedCountBlockRead32(m_eventBase, readamod);	    // count set up above.
 
   
   // We're going to zero the offset regiseter so the next set of events is also
@@ -365,9 +366,14 @@ CNADC2530::addReadoutList(CVMUSBReadoutList& list)
   list.addWrite16(m_csr + REG_LISTWL, initamod, 0);
   list.addWrite16(m_csr + REG_LISTWH, initamod, 0);
 
+  // Zero the event count register so we don't just interrupt again:
+
+  list.addWrite16(m_csr + REG_EVENTSL, initamod, 0);
+  list.addWrite16(m_csr + REG_EVENTSH, initamod, 0);
+
   // Rearm the module.
 
-  list.addWrite16(m_csr + REG_CSR, initamod, m_csr);
+  list.addWrite16(m_csr + REG_CSR, initamod, m_csrValue);
 }
 
 /*!
