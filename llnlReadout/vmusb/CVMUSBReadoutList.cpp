@@ -555,12 +555,17 @@ CVMUSBReadoutList::addMaskedCountFifoRead32(uint32_t address, uint8_t amod)
 /*
  * Utility function used to turn a single shot read in the list into
  * a number data read.  The last two words in the stack are assumed to describe
- * the transfer.  The mode word will get the modeND bit set:
+ * the transfer.  The mode word will get the modeND bit set,
+ * The mask word will be inserted between the mode and the address.
  */
 void
 CVMUSBReadoutList::lastTransferIsNumberData(uint32_t mask)
 {
   size_t modeIndex = m_list.size() - 2;
   m_list[modeIndex] |= modeND;
-  m_list.push_back(mask);
+  modeIndex++;             // Points to the address.
+  uint32_t address = m_list[modeIndex];
+  m_list[modeIndex] = mask;
+
+  m_list.push_back(address);
 }

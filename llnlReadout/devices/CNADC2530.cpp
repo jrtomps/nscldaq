@@ -347,7 +347,8 @@ CNADC2530::addReadoutList(CVMUSBReadoutList& list)
 
   // Disarm for the durationof the read:
 
-  list.addWrite16(m_csr + REG_CSR, initamod, m_csr & (~CSR_ARM));
+  list.addWrite16(m_csr + REG_CSR, initamod, m_csrValue & (~CSR_ARM));
+
 
 
   // The number of words to read is held by the List Mode Memory Address Counter 
@@ -355,7 +356,7 @@ CNADC2530::addReadoutList(CVMUSBReadoutList& list)
   // as otherwise I can't make this work with the VM-USB
   // 
 
-  list.addRead16(m_csr + REG_LISTWL, initamod);		   // Add length to buffer.
+
   list.addBlockCountRead16(m_csr +  REG_LISTWL, 0xffff, initamod); // Get the block read count
   list.addMaskedCountBlockRead32(m_eventBase, readamod);	    // count set up above.
 
@@ -366,10 +367,13 @@ CNADC2530::addReadoutList(CVMUSBReadoutList& list)
   list.addWrite16(m_csr + REG_LISTWL, initamod, 0);
   list.addWrite16(m_csr + REG_LISTWH, initamod, 0);
 
-  // Zero the event count register so we don't just interrupt again:
+  // if interruptiung: Zero the event count register so we don't just interrupt again:
 
-  list.addWrite16(m_csr + REG_EVENTSL, initamod, 0);
-  list.addWrite16(m_csr + REG_EVENTSH, initamod, 0);
+  if (m_pConfiguration->getIntegerParameter("-ipl") > 0) {
+
+    list.addWrite16(m_csr + REG_EVENTSL, initamod, 0);
+    list.addWrite16(m_csr + REG_EVENTSH, initamod, 0);
+  }
 
   // Rearm the module.
 

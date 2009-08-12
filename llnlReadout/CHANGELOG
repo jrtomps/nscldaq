@@ -30,3 +30,5 @@ July 29, 2009
      o Support zero supression
      o Use the List Mode Memory Address Counter LS and a variable length 
        block transfer to read the data from the module.
+August 12, 2009
+   -  >I< think the NADC read works correctly, but that the NADC does not.
