@@ -38,7 +38,7 @@ using namespace std;
 #endif
 #endif
 
-class CVMUSB;
+class CCCUSB;
 class CControlModule;
 class CTCLInterpreter;
 
@@ -69,7 +69,7 @@ class TclServer : public DAQThread
 private:
   int                          m_port;		// Port we are listening to for connections.
   std::string                  m_configFilename;
-  CVMUSB*                      m_pVme;		// VME controller.
+  CCCUSB*                      m_pVme;		// VME controller.
   std::vector<CControlModule*> m_Modules;       // Hardware we can access.
   CTCLInterpreter*             m_pInterpreter;
   DAQThreadId                  m_tid;
@@ -85,7 +85,7 @@ private:
 
 
 public:
-  DAQThreadId start(int port, const char* configFile, CVMUSB& vme);
+  DAQThreadId start(int port, const char* configFile, CCCUSB& vme);
   CControlModule* findModule(std::string name);
   void            addModule(CControlModule* pNewModule);
   void            setResult(std::string resultText);

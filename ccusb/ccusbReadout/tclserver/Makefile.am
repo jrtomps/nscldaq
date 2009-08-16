@@ -5,15 +5,11 @@ libControlServer_la_SOURCES	= 	CControlHardware.cpp	\
 					CControlModule.cpp	\
 					CSetCommand.cpp		\
 					serverinstance.cpp	\
-					CGDG.cpp		\
-					CV812.cpp		\
 					CUpdateCommand.cpp	\
 					CGetCommand.cpp		\
 					Server.cpp
 
-include_HEADERS			=	CGDG.h			\
-					CV812.h			\
-					CSetCommand.h		\
+include_HEADERS			=	CSetCommand.h		\
 					server.h		\
 					CControlHardware.h	\
 					CGetCommand.h		\
@@ -23,7 +19,7 @@ include_HEADERS			=	CGDG.h			\
 					CModuleCommand.h	\
 					TclServer.h
 
-INCLUDES			= 	-I$(top_builddir)/vmusb		\
+INCLUDES			= 	-I$(top_builddir)/ccusb		\
 					-I$(top_builddir)/devices	\
 					-I$(top_builddir)/threadcomm	\
 					-I$(top_builddir)/rdothread	\
@@ -31,7 +27,7 @@ INCLUDES			= 	-I$(top_builddir)/vmusb		\
 					@TCL_FLAGS@ @NSCLDAQ_FLAGS@	\
 					@SPECTRODAQ_FLAGS@
 
-libControlServer_la_LIBADD	= 	$(top_builddir)/vmusb/libVMUSB.la          \
+libControlServer_la_LIBADD	= 	$(top_builddir)/ccusb/libCCUSB.la          \
 					$(top_builddir)/devices/libVMUSBDevices.la \
 					$(top_builddir)/threadcomm/libThreadComm.la \
 					$(top_builddir)/rdothread/libRdoThread.la \

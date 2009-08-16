@@ -4,6 +4,7 @@ SUBDIRS = 	ccusb 		\
 		router		\
 		rdothread	\
 		daqconfig	\
+		tclserver		\
 		 commands
 
 

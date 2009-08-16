@@ -39,7 +39,7 @@
 class TclServer;
 class CTCLObject;
 class CTCLInterpreter;
-class CVMUSB;
+class CCCUSB;
 
 /*!
   CSetCommand implements the Set command.
@@ -64,11 +64,11 @@ class CSetCommand : public CTCLObjectProcessor
 {
 private:
   TclServer&   m_Server;	// Tcl server that is running us.
-  CVMUSB&      m_Vme;
+  CCCUSB&      m_Vme;
 public:
   CSetCommand(CTCLInterpreter&   interp,
 	      TclServer&         server,
-	      CVMUSB&            vme);
+	      CCCUSB&            vme);
   virtual ~CSetCommand();
 private:
   CSetCommand(const CSetCommand& rhs);

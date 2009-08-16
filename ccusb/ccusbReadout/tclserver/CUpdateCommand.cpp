@@ -20,7 +20,7 @@
 #include <TCLObject.h>
 #include <TCLInterpreter.h>
 #include "CControlModule.h"
-#include <CVMUSB.h>
+#include <CCCUSB.h>
 #include <tcl.h>
 
 using namespace std;
@@ -30,7 +30,7 @@ using namespace std;
 */
 CUpdateCommand::CUpdateCommand(CTCLInterpreter& interp,
 			 TclServer&       server,
-			 CVMUSB&          vme) :
+			 CCCUSB&          vme) :
   CTCLObjectProcessor(interp, "Update"),
   m_Server(server),
   m_Vme(vme)

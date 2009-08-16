@@ -38,7 +38,7 @@
 class TclServer;
 class CTCLObject;
 class CTCLInterpreter;
-class CVMUSB;
+class CCCUSB;
 
 /*!
    CGetCommand implements the Get command this command
@@ -55,11 +55,11 @@ class CVMUSB;
 class CGetCommand : public CTCLObjectProcessor
 {
   TclServer&   m_Server;	// Tcl server that is running us.
-  CVMUSB&      m_Vme;
+  CCCUSB&      m_Vme;
 public:
   CGetCommand(CTCLInterpreter&   interp,
 	      TclServer&         server,
-	      CVMUSB&            vme);
+	      CCCUSB&            vme);
   virtual ~CGetCommand();
 private:
   CGetCommand(const CGetCommand& rhs);

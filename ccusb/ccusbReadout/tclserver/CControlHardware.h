@@ -24,7 +24,7 @@
 #endif
 #endif
 
-class CVMUSB;
+class CCCUSB;
 class CControlModule;
 
 /*!
@@ -65,12 +65,12 @@ public:
 
 public:
   virtual void onAttach(CControlModule& configuration) = 0;  //!< Create config.
-  virtual void Initialize(CVMUSB& vme);	                     //!< Optional initialization.
-  virtual std::string Update(CVMUSB& vme) = 0;               //!< Update module.
-  virtual std::string Set(CVMUSB& vme, 
+  virtual void Initialize(CCCUSB& vme);	                     //!< Optional initialization.
+  virtual std::string Update(CCCUSB& vme) = 0;               //!< Update module.
+  virtual std::string Set(CCCUSB& vme, 
 			  std::string parameter, 
 			  std::string value) = 0;            //!< Set parameter value
-  virtual std::string Get(CVMUSB& vme, 
+  virtual std::string Get(CCCUSB& vme, 
 			  std::string parameter) = 0;        //!< Get parameter value.
   virtual void clone(const CControlHardware& rhs) = 0;	     //!< Virtual copy constr.
 

@@ -70,5 +70,5 @@ CControlHardware::operator!=(const CControlHardware& rhs) const
   Default initialize is a no-op.
 */
 void 
-CControlHardware::Initialize(CVMUSB& vme)
+CControlHardware::Initialize(CCCUSB& vme)
 {}

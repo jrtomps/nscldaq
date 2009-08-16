@@ -29,7 +29,7 @@
 #endif
 
 class CControlHardware;
-class CVMUSB;
+class CCCUSB;
 
 /*!
    A control module is a configurable object that is attached to an object
@@ -72,10 +72,10 @@ private:
 public:
   // Functions:
 
-  void        Initialize(CVMUSB& vme);
-  std::string Update(CVMUSB& vme);
-  std::string Set(CVMUSB& vme, const char* what, const char* value);
-  std::string Get(CVMUSB& vme, const char* what);
+  void        Initialize(CCCUSB& vme);
+  std::string Update(CCCUSB& vme);
+  std::string Set(CCCUSB& vme, const char* what, const char* value);
+  std::string Get(CCCUSB& vme, const char* what);
 
 };
 

@@ -26,6 +26,7 @@
 #include <Globals.h>
 #include <set>
 #include <assert.h>
+#include <stdlib.h>
 
 #include <iostream>
 using namespace std;

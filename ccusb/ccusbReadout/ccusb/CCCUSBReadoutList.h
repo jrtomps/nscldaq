@@ -17,6 +17,12 @@
 #ifndef __CCUSBREADOUTLIST_H
 #define __CCUSBREADOUTLIST_H
 
+#ifndef __STL_STRING
+#include <string>
+#ifndef __STL_STRING
+#define __STL_STRING
+#endif
+#endif
 
 #ifndef __STL_VECTOR
 #include <vector>
