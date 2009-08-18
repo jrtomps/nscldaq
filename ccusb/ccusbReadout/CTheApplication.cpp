@@ -31,6 +31,7 @@ static const char* versionString = "V2.0";
 #include <Exception.h>
 #include <tcl.h>
 #include <DataBuffer.h>
+#include <TclServer.h>
 
 #include <vector>
 
@@ -48,6 +49,7 @@ using namespace std;
 
 //   Configuration constants:
 
+static const int    tclServerPort(27000);
 static const string daqConfigBasename("daqconfig.tcl");
 static const string ctlConfigBasename("controlconfig.tcl");
 static const uint32_t bufferCount(32); // Number of buffers that can be inflight.
@@ -107,6 +109,7 @@ int CTheApplication::operator()(int argc, char** argv)
     setConfigFiles();
     initializeBufferPool();
     startOutputThread();
+    startTclServer();
     startInterpreter();
   }
   catch (string msg) {
@@ -256,4 +259,16 @@ CTheApplication::initializeBufferPool()
     DataBuffer* p = createDataBuffer(bufferSize);
     gFreeBuffers.queue(p);
   }
+}
+/* 
+   Start the Tcl server.  It will listen on port tclServerPort, seee above..
+   Again, the tcl server runs the lifetime of the program so we are 
+   sloppy about storage management.
+*/
+void
+CTheApplication::startTclServer()
+{
+  TclServer* pServer = new TclServer;
+  pServer->start(tclServerPort, Globals::controlConfigFilename.c_str(),
+		   *Globals::pUSBController);
 }

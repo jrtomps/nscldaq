@@ -73,6 +73,7 @@ protected:
 
 private:
   void startOutputThread();
+  void startTclServer();
   void startInterpreter();
   void createUsbController();
   void setConfigFiles();

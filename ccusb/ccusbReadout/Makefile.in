@@ -248,12 +248,12 @@ SUBDIRS = ccusb 		\
 Readout_SOURCES = CTheApplication.cpp Globals.cpp 
 include_HEADERS = CTheApplication.h Globals.h config.h
 INCLUDES = -Iccusb -Idevices -Ithreadcomm -Irouter -Irdothreaed \
-	 -Idaqconfig -Icommands $(SPECTRODAQ_FLAGS) $(TCL_FLAGS) \
+	 -Idaqconfig -Icommands -Itclserver $(SPECTRODAQ_FLAGS) $(TCL_FLAGS) \
 	$(NSCLDAQ_FLAGS)
 
 Readout_LDADD = -Lccusb -Ldevices -Lthreadcomm -Lrouter -Lrdothread \
 	-Ltclserver -Ldaqconfig -Lcommands 				\
-	-lCommands -lConfig  -lRdoThread -lRouter -lThreadComm \
+	-lCommands -lConfig  -lRdoThread -lRouter -lControlServer -lThreadComm \
 	-lVMUSBDevices -lCCUSB						\
 	$(NSCLDAQ_LIB) -ltclPlus -lException $(SPECTRODAQ_LDFLAGS) $(TCL_LDFLAGS)
 
