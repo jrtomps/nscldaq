@@ -281,8 +281,13 @@ COutputThread::startRun(DataBuffer& buffer)
   with a VMUSB is a data buffer.  We submit that data buffer.
   by calling events, and then we generate an end of run buffer.
   for the DAQ system to use to note the change of run state.
+
+
+
   Parameters:
   DataBuffer& buffer  - The data from the readout thread.
+
+
 */
 void
 COutputThread::endRun(DataBuffer& buffer)
@@ -365,11 +370,21 @@ COutputThread::scaler(DataBuffer& buffer)
    We know we've hit the end of a buffer when the first word of an event
    is 0xffff since we don't use stack id 0xe (otherwise this is ambiguous
    with a max length continuation field.
+
+  At present we can't deal with data that spans buffer boundaries
+... and most likely this is a startup issue with the dead time logic
+    for the setups we support..so if MB or CONT is set in the
+    buffer header.. throw the buffer away.
+
 */
 void 
 COutputThread::events(DataBuffer& buffer)
 {
+  uint16_t header = buffer.s_rawData[0];
 
+  if (header & 0x3000) {
+    return;
+  }
 
   //  Create the output buffer first; and copy the
   //  event data into it:
@@ -395,6 +410,11 @@ COutputThread::events(DataBuffer& buffer)
   // The event count
 
   p->s_header.nevt   = eventCount(p, buffer.s_bufferSize);
+  if (p->s_header.nevt == 0) {
+    // most likely VM-USB crap
+
+    return;
+  }
 
   // route the buffer and free it:
 
