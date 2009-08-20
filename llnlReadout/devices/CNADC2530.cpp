@@ -77,11 +77,17 @@ Const(readamod)   CVMUSBReadoutList::a32UserBlock;
 
 // Parameter limits:
 
+// Useful common values:
+
+static CConfigurableObject::limit zero(0);
+static CConfigurableObject::limit maxint16(0xffff);
+
 // The register base addresss is in A24 space so it must  live between
 // 0x00000000 and 0x00ffffff.
 //
 
-static CConfigurableObject::limit zero(0);
+
+
 static CConfigurableObject::limit maxCsr(0x00ffffff);
 static CConfigurableObject::Limits CsrLimits(zero, maxCsr);
 
@@ -93,8 +99,7 @@ static CConfigurableObject::Limits IPLLimits(zero, maxIPL);
 
 // The 16 bit vector must be in the range [0..7].
 
-static CConfigurableObject::limit maxVector(0xffff);
-static CConfigurableObject::Limits VectorLimits(zero, maxVector);
+static CConfigurableObject::Limits VectorLimits(zero, maxint16);
 
 // For now we won't accept more than 
 
@@ -116,6 +121,19 @@ CConfigurableObject::flimit hldhigh(8.192); // some slop for fp compares.
 
 static CConfigurableObject::FloatingLimits lldLimits(fzero, lldhigh);
 static CConfigurableObject::FloatingLimits hldLimits(fzero, hldhigh);
+
+// Limits on the value of the ID 16 bit word:
+
+static CConfigurableObject::Limits idLimits(zero, maxint16);
+
+
+// The mask on the word count.  A spectroscopy event should
+// have at most 8 channels a header, a trailer and 2 longs
+// of timestamp (12 longs)... however the ADC is a multhihit
+// adc so we'll allow up to 31 longs:
+//
+static const uint16_t transferMask(0x1f);
+
 
 ///////////////////////////////////////////////////////////////
 //   Constructors and other canonical methods
@@ -236,6 +254,11 @@ CNADC2530::onAttach(CReadoutModule& configuration)
   m_pConfiguration->addParameter("-zerosuppress", CConfigurableObject::isBool,
 				 static_cast<void*>(0), "on");
 
+  // A marker word will precede the ADC data in order to unambiguously identify
+  // the data from an adc:
+
+  m_pConfiguration->addParameter("-id", CConfigurableObject::isInteger,
+				static_cast<void*>(&idLimits), "0");
 
 }
 
@@ -350,6 +373,14 @@ CNADC2530::addReadoutList(CVMUSBReadoutList& list)
   list.addWrite16(m_csr + REG_CSR, initamod, m_csrValue & (~CSR_ARM));
 
 
+  // insert the marker words, the id and the transfer count mask:
+
+
+  list.addMarker(static_cast<uint16_t>(m_pConfiguration->getUnsignedParameter("-id")));
+  list.addDelay(1);
+  list.addMarker(transferMask);
+  //  list.addDelay(1);
+
 
   // The number of words to read is held by the List Mode Memory Address Counter 
   // I'm going to make the assumption that only the low order 16 bits have set data
@@ -357,7 +388,10 @@ CNADC2530::addReadoutList(CVMUSBReadoutList& list)
   // 
 
 
-  list.addBlockCountRead16(m_csr +  REG_LISTWL, 0xffff, initamod); // Get the block read count
+  list.addBlockCountRead16(m_csr +  REG_LISTWL, 
+			   static_cast<uint32_t>(transferMask), initamod); // Get the block read count
+
+
   list.addMaskedCountBlockRead32(m_eventBase, readamod);	    // count set up above.
 
   

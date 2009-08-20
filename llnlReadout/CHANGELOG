@@ -32,3 +32,11 @@ July 29, 2009
        block transfer to read the data from the module.
 August 12, 2009
    -  >I< think the NADC read works correctly, but that the NADC does not.
+August 20, 2009
+   - Since the first NADC2530 read has a bunch of data stacked up due to the
+     long startup time.. unless the deadtime logic is perfect,
+     make the NADC2530 read 
+     * length masked by 0x1f to limit to hopefully 1 event or less.
+     * Make output data of the form -id value, followed by mask value
+       followed by raw length followed by the data so this
+       can all be mechanically decoded.

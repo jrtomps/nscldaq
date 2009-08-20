@@ -68,9 +68,11 @@ Parameter        Value Type             Value meaning
 -hld             float(0?..8.191)       High level discrminator in V .1V resolution.
 -events          integer                Number of events between data ready interrupts.
                                         !!!!If not using interrupts set this to 1!!!!!!!
+                                        so that you can identify the ADC.
 // New!
 
 -zerosuppress    bool                   If true, enable zero supression (default true).
+-id              integer(0..65535)      16 bit marker word inserted in front of ADC data
 
 */
 
