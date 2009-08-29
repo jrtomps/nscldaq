@@ -7,6 +7,7 @@ libControlServer_la_SOURCES	= 	CControlHardware.cpp	\
 					serverinstance.cpp	\
 					CUpdateCommand.cpp	\
 					CGetCommand.cpp		\
+					DriverTemplate.cpp	\
 					Server.cpp
 
 include_HEADERS			=	CSetCommand.h		\
@@ -17,6 +18,7 @@ include_HEADERS			=	CSetCommand.h		\
 					serverinstance.h	\
 					CControlModule.h	\
 					CModuleCommand.h	\
+					DriverTemplate.h	\
 					TclServer.h
 
 INCLUDES			= 	-I$(top_builddir)/ccusb		\

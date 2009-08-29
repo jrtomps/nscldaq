@@ -59,7 +59,8 @@ libControlServer_la_DEPENDENCIES = $(top_builddir)/ccusb/libCCUSB.la \
 	$(top_builddir)/router/libRouter.la
 am_libControlServer_la_OBJECTS = CControlHardware.lo CModuleCommand.lo \
 	TclServer.lo CControlModule.lo CSetCommand.lo \
-	serverinstance.lo CUpdateCommand.lo CGetCommand.lo Server.lo
+	serverinstance.lo CUpdateCommand.lo CGetCommand.lo \
+	DriverTemplate.lo Server.lo
 libControlServer_la_OBJECTS = $(am_libControlServer_la_OBJECTS)
 DEFAULT_INCLUDES = -I. -I$(top_builddir)
 depcomp = $(SHELL) $(top_srcdir)/config/depcomp
@@ -220,6 +221,7 @@ libControlServer_la_SOURCES = CControlHardware.cpp	\
 					serverinstance.cpp	\
 					CUpdateCommand.cpp	\
 					CGetCommand.cpp		\
+					DriverTemplate.cpp	\
 					Server.cpp
 
 include_HEADERS = CSetCommand.h		\
@@ -230,6 +232,7 @@ include_HEADERS = CSetCommand.h		\
 					serverinstance.h	\
 					CControlModule.h	\
 					CModuleCommand.h	\
+					DriverTemplate.h	\
 					TclServer.h
 
 INCLUDES = -I$(top_builddir)/ccusb		\
@@ -324,6 +327,7 @@ include ./$(DEPDIR)/CGetCommand.Plo
 include ./$(DEPDIR)/CModuleCommand.Plo
 include ./$(DEPDIR)/CSetCommand.Plo
 include ./$(DEPDIR)/CUpdateCommand.Plo
+include ./$(DEPDIR)/DriverTemplate.Plo
 include ./$(DEPDIR)/Server.Plo
 include ./$(DEPDIR)/TclServer.Plo
 include ./$(DEPDIR)/serverinstance.Plo
