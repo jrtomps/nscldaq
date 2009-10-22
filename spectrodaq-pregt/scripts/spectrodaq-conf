@@ -1,6 +1,6 @@
 #!/bin/bash
 
-PATH=/bin:/usr/bin:/usr/local/bin:/usr/opt/spectrodaq-pregt/bin
+PATH=/bin:/usr/bin:/usr/local/bin:/usr/opt/spectrodaq/bin
 export PATH
 
 #-----------------------------------------------------------------------
@@ -309,18 +309,18 @@ if [ -z "$1" ]; then
   exit -1
 fi
 
-SDAQ_DIR=/usr/opt/spectrodaq-pregt
-SDAQ_CONFIG=/usr/opt/spectrodaq-pregt/etc/spectrodaq.conf
-NSCL_DIR=/usr/opt/spectrodaq-pregt
-NSCL_INC=/usr/opt/spectrodaq-pregt/include/nscl
-NSCL_LIB=/usr/opt/spectrodaq-pregt/lib/libNSCLException.a
-SDAQ_BIN=/usr/opt/spectrodaq-pregt/bin
-SDAQ_INC=/usr/opt/spectrodaq-pregt/include
-SDAQ_LIB=/usr/opt/spectrodaq-pregt/lib
-XML_INC=/usr/opt/spectrodaq-pregt/include/xmloop
-VERSION="1.68c-pregt/1.68c-pregt"
-VERSIONCLIENT="1.68c-pregt"
-VERSIONSERVER="1.68c-pregt"
+SDAQ_DIR=/usr/opt/spectrodaq
+SDAQ_CONFIG=/usr/opt/spectrodaq/etc/spectrodaq.conf
+NSCL_DIR=/usr/opt/spectrodaq
+NSCL_INC=/usr/opt/spectrodaq/include/nscl
+NSCL_LIB=/usr/opt/spectrodaq/lib/libNSCLException.a
+SDAQ_BIN=/usr/opt/spectrodaq/bin
+SDAQ_INC=/usr/opt/spectrodaq/include
+SDAQ_LIB=/usr/opt/spectrodaq/lib
+XML_INC=/usr/opt/spectrodaq/include/xmloop
+VERSION="1.68d-pregt/1.68d-pregt"
+VERSIONCLIENT="1.68d-pregt"
+VERSIONSERVER="1.68d-pregt"
 CXXVERSION="4.3.2"
 CPPVERSION="4.3.2"
 CXXPROG="g++"
@@ -360,10 +360,10 @@ for arg in $*; do
     ARGS="$ARGS $SDAQ_CONFIG"
     ;;
   --clientlibs)
-    ARGS="$ARGS $THREADLIBS -L$SDAQ_LIB -lnetio -ldaqclient -lspectrodaq -ldaqthreads -lxmloop -lxmlparse -lxmltok $THREADLIBS -L$NSCL_DIR/lib -lNSCLException -lnetio" 
+    ARGS="$ARGS $THREADLIBS -L$SDAQ_LIB -lnetio -ldaqclient -lspectrodaq -ldaqthreads -lxmloop -lxmlparse -lxmltok $THREADLIBS -L$NSCL_DIR/lib -lNSCLException -lnetio $DAQ_LIB/libspectrodaq.a" 
     ;;
   --libs)
-    ARGS="$ARGS $THREADLIBS -L$SDAQ_LIB -lnetio -ldaqclient -lspectrodaq -ldaqthreads -lxmloop -lxmlparse -lxmltok $THREADLIBS $CRYPTLIBS -L$NSCL_DIR/lib -lNSCLException -lnetio" 
+    ARGS="$ARGS $THREADLIBS -L$SDAQ_LIB -lnetio -ldaqclient -lspectrodaq -ldaqthreads -lxmloop -lxmlparse -lxmltok $THREADLIBS $CRYPTLIBS -L$NSCL_DIR/lib -lNSCLException -lnetio  $DAQ_LIB/libspectrodaq.a" 
     ;;
   --servlibs)
     ARGS="$ARGS $THREADLIBS -L$SDAQ_LIB -lnetio -ldaqserv -lspectrodaq -ldaqthreads -lxmloop -lxmlparse -lxmltok $THREADLIBS $CRYPTLIBS -L$NSCL_DIR/lib -lNSCLException -lnetio" 
