@@ -52,7 +52,7 @@ debuglevel: $(O_FILES) debuglevel.cc
 	$(CXX) $(CXXFLAGS) -o debuglevel debuglevel.cc $(O_FILES) $(NETIOLIB) $(CLIENTLIB) $(DAQLIB) $(DAQTHREADSLIB) $(XMLLIBS) $(THREADLIBS) $(LDFLAGS)  $(NETIOLIB)
 
 addlink: $(O_FILES) addlink.cc
-	$(CXX) $(CXXFLAGS) -o addlink addlink.cc $(O_FILES) $(NETIOLIB) $(CLIENTLIB) $(SERVLIB) $(DAQLIB) $(DAQTHREADSLIB) $(XMLLIBS) $(THREADLIBS) $(LDFLAGS)  $(NETIOLI)
+	$(CXX) $(CXXFLAGS) -o addlink addlink.cc $(O_FILES) $(NETIOLIB) $(CLIENTLIB) $(SERVLIB) $(DAQLIB) $(DAQTHREADSLIB) $(XMLLIBS) $(THREADLIBS) $(LDFLAGS)  $(NETIOLIB)
 
 dellink: $(O_FILES) dellink.cc
 	$(CXX) $(CXXFLAGS) -o dellink dellink.cc $(O_FILES) $(NETIOLIB) $(CLIENTLIB) $(SERVLIB) $(DAQLIB) $(DAQTHREADSLIB) $(XMLLIBS) $(THREADLIBS) $(LDFLAGS)  $(NETIOLIB)
