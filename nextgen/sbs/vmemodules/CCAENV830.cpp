@@ -43,7 +43,7 @@ using namespace std;
                                   LOffset(CAENV830Registers,field)))
 #define GetProm(m,field) (m.peekw(SOffset(CAENV830ROM,field)))
  
-static inline void ThrowIntString(char* formatstring, int value) 
+static inline void ThrowIntString(const char* formatstring, int value) 
   throw (string)
 {
   char msg[strlen(formatstring) + 100];
@@ -53,7 +53,7 @@ static inline void ThrowIntString(char* formatstring, int value)
 static inline void ThrowIfBadChannel(const char* pFunction,
 				   int nChannel)  throw (string)
 {
-  char* pFmtString=
+  const char* pFmtString=
     "CCAENV830::%s Invalid channel must be in [0,31] %d";
   if( (nChannel < 0) || (nChannel > 31)) {
     char msg[100 + strlen(pFunction) + strlen(pFmtString)];

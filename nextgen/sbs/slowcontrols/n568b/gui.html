@@ -1,0 +1,95 @@
+<html>
+    <head>
+        <title>The Shaper Gui.</title>
+    </head>
+    <body>
+        <h1>The Shaper Graphical user interface.</h1>
+        <p>
+            The GUI of the shaper is divided into several sections.
+            <ul>
+                <li>
+                    At the top of the gui is the menu bar. The menubar
+                    contains two menus the <a href="filemenu.html">File menu</a>
+                    which contains commands that read/write and manipulate
+                    <a href="config.html">configuration files</a>, and the
+                    <a href="helpmenu.html">Help menu</a> which allows you to
+                    access the online help and program version information.
+                </li>
+                <li>
+                    Below the menu bar is the module identification area.  This
+                    area displays the name you have given the shaper as well as the
+                    VME crate and base address of its controller.  This area allows you
+                    to distinguish between individual modules in a system with multiple
+                    control panels.
+                </li>
+                <li>
+                    Below the id bar is a frame that allows you to select and control the
+                    settings of a single channel of the shaper.  This area includes
+                    spinboxes, checkbuttons and a set of radio buttons.  Spinboxes can be
+                    adjusted either by clicking, or holding down the left mouse button over
+                    the up or down arrow of the box, or by typing a new value and hitting either
+                    the <em>enter</em>, or the <em>tab</em> key.  The controls in this frame
+                    have labels on their right sides and are:
+                    <ul>
+                        <li>
+                            <em>Channel</em> Selects which channel is being controlled.  When
+                            you change the channel, the current settings for the new channel are
+                            loaded into the GUI.
+                        </li>
+                        <li>
+                            <em>Coarse Gain</em>Sets the coarse gain for the currently selected channel.
+                            The coarse gain is an input multiplier.  Valid values are power of two
+                            up to 128 (e.g. 1, 2, 4, 8, 16, 32, 64, 128).
+                        </li>
+                        <li>
+                            <em>Fine Gain</em>Sets the fine-gain for the currently selected channel.
+                            the fine gain is a value in arbitrary units in the range 0 through 255 inclusive.
+                        </li>
+                        <li>
+                            <em>Pole 0 adjust</em> Sets the magnitude of the pole0 adjust of the amplifier.
+                            Pole 0 adjustment is used to deal with discontinuities (poles) in the amplifier transfer
+                            function. In particular, almost all amplifiers have a discontinuity about a zero
+                            input.  This leads to undershoots and overshoots as the input pulse decays towards
+                            zero.  The Pole 0 adjustment compensates for this effect.  The magnitude of the
+                            pole 0 adjust is an arbitrary value between 0 and 255 inclusive.  If you see
+                            excessive over or undershoot in the output signal relative to the input signal
+                            see if adjusting this parameter improves this.
+                        </li>
+                        <li>
+                            <em>Invert Outpout</em> Controls the output inversion.   The output polarity
+                            is either inverted or the direct output of the amplifier.  This is a check box
+                            that, when lit indicates the output should be inverted.
+                        </li>
+                        <li><em>- Polarity</em> Indicates whether or not the input signal is a positive or
+                            negative signal.  If lit, the input signal is negative.
+                        </li>
+                        <li>
+                            <em>Shaping Time</em>  This radio button set adjusts the shaping time of
+                            the amplifier.
+                        </li>
+                    </ul>
+                </li>
+                <li>
+                    Below the channel frame, is a strip of controls for the module global settings:
+                    <ul>
+                        <li>
+                            <em>Common Offset (mV)</em> Controls and displays the common DC offset that will
+                            be applied to the channel in mV.
+                        </li>
+                        <li>
+                            <em>Monitor channel</em>.  The amplifier has multiplexed outputs for the
+                                output and fast output.  If <em>Monitor channel</em> is lit, these will
+                                reflect the outputs of the channel selected in the channel frame, usually
+                                used to view output waveforms with an oscilloscope.  Note that enabling the
+                                multiplexed output does cause some noise to couple to the actual outputs,
+                                the CAEN manual suggests turning this output off when it is not in use.
+                        </li>
+                    </ul>
+                </li>
+            </ul>
+        </p>
+        <br /><a href="overview.html">Back to the overview</a>
+    <hr />
+    <p>Please report all errors to http://daqbugs.nscl.msu.edu </p>
+    </body>
+</html>

@@ -36,7 +36,7 @@ startRepeater(int argc, char** argv)
       perror("Child could not setsid");
       exit(errno);
     }
-    argv[0] = "caRepeater";
+    argv[0] = const_cast<char*>("caRepeater");
     int stat = execlp("caRepeater", 
 		      "caRepeater", NULL);
     perror("Child: execlp failed!!");

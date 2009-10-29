@@ -95,7 +95,7 @@ using namespace std;
 
 #define WIENER_SIZE (1UL << 10)
 
-static char *pCopyright = "(c) NSCL 1999, All rights reserved\n";
+static const char *pCopyright = "(c) NSCL 1999, All rights reserved\n";
 
 
 /*===================================================================*/

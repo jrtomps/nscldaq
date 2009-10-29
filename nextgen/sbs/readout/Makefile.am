@@ -123,7 +123,7 @@ tests_SOURCES=TestRunner.cpp experimentTests.cpp \
 		packettests.cpp			\
 		eventpackettests.cpp		\
 		varlisttest.cpp docvartests.cpp	\
-		testVariableBuffers.cpp
+		testVariableBuffers.cpp	
 
 
 tests_LDADD = 	CExperiment.lo	\

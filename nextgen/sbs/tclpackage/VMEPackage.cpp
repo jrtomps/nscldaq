@@ -36,7 +36,7 @@ using namespace std;
 static const char* pInstdir=HOME;
 static const char* pScriptSubdir="/Scripts"; // Where scripts may live.
 
-static char* version="2.0";
+static const char* version="2.0";
 extern "C" {
 int Sbsvme_Init(Tcl_Interp* pInterp)
 {

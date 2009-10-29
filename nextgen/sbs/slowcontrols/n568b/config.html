@@ -1,0 +1,57 @@
+<html>
+    <head>
+        <title>Configuration Files</title>
+    </head>
+    <body>
+        <h1>Configuration Files</h1>
+        <p>
+            Configuration files describe the module and, or a group of settings.
+            The module description includes identification meaningful to people, as well
+            as information that describes to the computer how to connect to the module.
+            The settings includes per channel and module global setings.
+        </p>
+        <p>
+            Configuration files are simpley Tcl scripts.  Configuration parameters are
+            just Tcl variables or Tcl array elements.
+        </p>
+        <h2>Module Identification</h2>
+        <p>
+            Module identification parameters are all scalar variables.  The following
+            Tcl variables identify the module to humans and the computer.
+            <ul>
+                <li><b>name</b>  Provides a human readable name for the module.</li>
+                <li><b>crate</b> Provides the number of the VME crate in which the
+                     CAENnet controller connected to the module is installed.</li>
+                <li><b>base</b>  Provides the VME base address of the controller connected]
+                    to the module </li>
+                <li><b>nodeid</li> Provides the CAENnet node id of the module.  This is
+                    visible on the front panel of the module.</li>
+            </ul>
+        </p>
+        <h2>Settings parameters</h2>
+        <p>
+            The N568B has both module global and per channel settings.  The module global
+            settings are stored in Tcl scalar variables.   Per channel settings are stored
+            in Tcl array elements indexed with the channel number (an integer from 0 through 15
+            inclusive):
+            <ul>
+                <li><b>offset</b> contains the common offset for the module.  This is a global parameter.</li>
+                <li><b>finegain(<em>i</em>)</b> is the fine gain for each channel in arbitrary units from
+                    0 through 255 inclusive.</li>
+                <li><b>coarsegain(<em>i</em>)</b> is the module coarse gain in mV. </li>
+                <li><b>polezero(<em>i</em>)</b> is the magnitude of the pole zero adjust in
+                    arbitrary units from 0 through 255 inclusive</li>
+                <li><b>outpolarity(<em>i</em>)</b> is the output polarity, <em>zero</em> means positive and
+                    <em>one</em> negative</li>
+                <li><b>outconfig(<em>i</em>)</b> is the output configuration.  <em>Zero</em> means
+                    direct while <em>one</em> means direct.</li>
+                <li><b>shapetime(<em>i</em>)</b> is the shaping time in &mu;Seconds.  Valid values are
+                    0.1, 1.0, 3.0, and 6.0</li>
+            </ul>
+        </p><br />
+        <a href="filemenu.html">File Menu</a> <a href="gui.html">Gui description</a>
+        <a href="overview.html">Overview</a> <a href="config.html">Configuration files</a>
+    <hr />
+    <p>Please report all errors to http://daqbugs.nscl.msu.edu </p>
+    </body>
+</html>
