@@ -1,1 +1,1 @@
-SUBDIRS = vhq caenv812
+SUBDIRS = vhq caenv812 n568b bcnaf vhs

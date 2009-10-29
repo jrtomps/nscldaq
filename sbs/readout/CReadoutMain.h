@@ -69,8 +69,8 @@ protected:
   virtual void          SetupStateVariables(CTCLInterpreter* pInerp);
   virtual void          SetupReadout(CExperiment* pExperiment);
   virtual void          SetupScalers(CExperiment* pExperiment);
-  virtual void          addCommands();
   virtual void          addCommands(CTCLInterpreter* pInterp);
+  virtual void          addCommands();
 
 protected:
   void startTclServer(std::string port);

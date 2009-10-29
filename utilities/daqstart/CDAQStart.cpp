@@ -322,7 +322,7 @@ CDAQStart::SinkName(char* name)
 {
   char *(elements[2]);
   if(CSinkFactory::SplitName(name, elements) != 2) {
-    return "";
+    return const_cast<char*>("");
   }
   else {
     return elements[1];

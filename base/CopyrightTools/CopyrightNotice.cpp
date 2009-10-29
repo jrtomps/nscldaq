@@ -23,7 +23,7 @@ CopyrightNotice::Notice(ostream& out, const char* program,
     is a set of char* strings that must be terminated by a NULL pointer.
 */
 void
-CopyrightNotice::AuthorCredit(ostream& out, char* program, ...)
+CopyrightNotice::AuthorCredit(ostream& out, const char* program, ...)
 {
   va_list ap;
   va_start(ap, program);

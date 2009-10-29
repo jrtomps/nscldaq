@@ -40,7 +40,7 @@ protected:
   void badtest();
 };
 
-static char* argv[]= {
+static const char* argv[]= {
   "echo",
   "this",
   "is",
@@ -48,7 +48,7 @@ static char* argv[]= {
   "test"
 };
 
-static char* badargv[] = {
+static const char* badargv[] = {
   "ehco",
   "this",
   "is",
@@ -68,7 +68,8 @@ CPPUNIT_TEST_SUITE_REGISTRATION(LocalMonitorTest);
 static CLocalMonitoredProgram*
 CreateProgram()
 {
-  CLocalMonitoredProgram* program = new CLocalMonitoredProgram(argc, argv);
+  CLocalMonitoredProgram* program = new CLocalMonitoredProgram(argc, 
+							       const_cast<char**>(argv));
   // Stdout:
 
   CSink* pOut = new CFileSink(argv[0], output);
@@ -111,7 +112,8 @@ Construct a CLocalMonitoredProgram
 
  */
 void LocalMonitorTest::Construction() {
-  CLocalMonitoredProgram program(argc, argv);
+  CLocalMonitoredProgram program(argc, 
+				 const_cast<char**>(argv));
 
   string echo("echo");
   string name(program.GetName());
@@ -230,7 +232,7 @@ LocalMonitorTest::echotest()
 void
 LocalMonitorTest::badtest()
 {
-  CLocalMonitoredProgram program(argc, badargv);
+  CLocalMonitoredProgram program(argc, const_cast<char**>(badargv));
   CSink* pOut  = new CFileSink(badargv[0], output);
   CSink* pErr  = new CFileSink(badargv[0], error);
 

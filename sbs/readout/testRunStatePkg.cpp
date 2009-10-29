@@ -13,6 +13,9 @@
 #include <StateException.h>
 #include <TCLException.h>
 #include <string>
+
+class CTCLInterpreter;
+
 using namespace std;
 
 // we have to pray that our main will overide the one in TCLApplication.cpp for any of this
@@ -68,6 +71,8 @@ CReadoutMain::SetupReadout(CExperiment* p) {}
 void 
 CReadoutMain::addCommands() {}
 
+void CReadoutMain::addCommands(CTCLInterpreter* p) {}
+
 
 class ReadoutTestHarness : public CReadoutMain
 {
@@ -107,7 +112,7 @@ public:
     pState->m_state      = RunState::inactive;
     pState->m_runNumber  = 0;
     pState->m_timeOffset = 0;
-    pState->m_pTitle     = "Test title";
+    pState->m_pTitle     = const_cast<char*>("Test title");
 
     m_pRunState = pState;
     m_pExperiment = m_pReadout->getExperiment();

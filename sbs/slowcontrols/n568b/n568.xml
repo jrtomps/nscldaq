@@ -1,0 +1,1101 @@
+<!-- chapter utilities -->
+
+<chapter id='chapter.n568b'>
+    <title>N568B CAENnet shaping amplifier</title>
+    <para>
+        The N568B is a 16 channel NIM shaping amplifier.  It features a CAENnet
+        interface which allows the module to be controlled remotely when a
+        VME crate in the setup contains a CAEN V288 CAENnet controller.
+    </para>
+    <para>
+        Support for this module comes in the form of:
+    </para>
+    <itemizedlist>
+        <listitem>
+            <para>A Tcl loadable package
+            <link linkend='manpage.n568b'>n568b(3tcl)</link>
+            that knows how to control the module, and can be used in an
+            arbitrary Tcl script.
+            </para>
+        </listitem>
+        <listitem>
+            <para>
+                A Tcl Loadable package
+                <link linkend='manpage.n568panel'>n568panel(3tcl)</link>
+                that implements a megawidget which can be used within a
+                slow controls GUI to control an N568 module.
+            </para>
+        </listitem>
+        <listitem>
+            <para>
+                A Tcl script
+                <link linkend='manpage.n568control'>n568control(1tcl)</link>
+                that uses the n568panel widget to implement a canned
+                application that controls any number of N568 modules.
+            </para>
+        </listitem>
+        <listitem>
+            <para>
+                A Tcl script
+                <link linkend='manpage.loadshaper'>loadshaper(1tcl)</link>
+                which allows you to load the settable parameters in a
+                shaper module.
+            </para>
+        </listitem>
+    </itemizedlist>
+    <para>
+        Refer to the reference material for more information about each of these
+        support packages.
+    </para>
+    <para>
+        If you want to make use of the <literal>n568b</literal> and/or
+        <literal>n568panel</literal> packages in your own scripts you will
+        need to be sure that the package diretory tree is in your package search path.
+        NSCLDAQ installs Tcl loadable packages in its <filename>TclLibs</filename>
+        directory tree.  Adding this directory to the Tcl package search path
+        makes all NSCLDAQ Tcl loadable packages available to your scripts.
+    </para>
+    <para>
+        The Tcl package search path can be extended in two ways.  First by
+        setting the <varname>TCLLIBS</varname> environment variable
+        and second b y appending directory names to the
+        <varname>auto_path</varname> Tcl global variable.
+    </para>
+    <para>
+        Suppose the envirionment variable <varname>DAQROOT</varname>
+        contains the top level installation directory of the
+        NSCLDAQ installation you are using.  In that case
+        at the <literal>bash</literal> shell you can:
+    </para>
+    <informalexample>
+        <programlisting>
+export TCLLIBPATH=$DAQROOT/TclLibs
+        </programlisting>
+    </informalexample>
+    <para>
+        Similarly within your script you can:
+    </para>
+    <informalexample>
+        <programlisting>
+lappend auto_path [file join $::env(DAQROOT) TclLibs]
+        </programlisting>
+    </informalexample>
+    <para>
+        Once the package load path has been established, you can use
+        the Tcl <command>package require</command> command to load the
+        package into your script.
+    </para>
+</chapter>
+
+<!-- /chapter -->
+
+<!-- manpage 1tcl -->
+
+<refentry id="manpage.loadshaper">
+  <refmeta>
+     <refentrytitle>loadshaper</refentrytitle>
+     <manvolnum>1tcl</manvolnum>
+  </refmeta>
+  <refnamediv>
+     <refname>loadshaper</refname>
+     <refpurpose>Load setttings into an N568 shaper via SBS/V288.</refpurpose>
+  </refnamediv>
+  
+  <refsynopsisdiv>
+    <cmdsynopsis>
+    <command>
+loadshaper config-file    
+    </command>
+    </cmdsynopsis>
+  </refsynopsisdiv>
+  <refsect1>
+     <title>DESCRIPTION</title>
+     <para>
+        This program is a command line utility to load settings into an
+        N568b shaper module connected to the system via a VME CAENnet controller.
+        The configuration file describes the shaper connection and identification as
+        well as settings the user wants to load into the shaper.  Any settings not
+        specified in the shaper module are not loaded. See the \fBn568configfile(5)\fR
+        manpage for more information about creating configuration files.
+     </para>
+     <para>
+        Note that the N568b holds its settings in non-volatile memory.  Therefore
+        settings are retained across power cycles of its NIM bin.
+     </para>
+  </refsect1>
+  <refsect1>
+     <title>SEE ALSO</title>
+     <para>
+        <link linkend='manpage.n568configfile'>n568configfile(5tcl)</link>
+     </para>
+  </refsect1>
+
+</refentry>
+
+
+<refentry id="manpage.n568control">
+  <refmeta>
+     <refentrytitle>n568Control</refentrytitle>
+     <manvolnum>1tcl</manvolnum>
+  </refmeta>
+  <refnamediv>
+     <refname>n568Control</refname>
+     <refpurpose>GUI for the n568 shaper.</refpurpose>
+  </refnamediv>
+  
+  <refsynopsisdiv>
+    <cmdsynopsis>
+    <command>
+n568Control.tcl <replaceable>?configFile ...?</replaceable>
+    </command>
+    </cmdsynopsis>
+  </refsynopsisdiv>
+  <refsect1>
+     <title>DESCRIPTION</title>
+     <para>
+        n568Control.tcl is a thin jacket around the
+        <link linkend="manpage.n568panel">n568Panel(3)</link>
+        shaper control megawidget.  For each configuration file on the command
+        line, a shaper control panel is created in a top-level window.
+        The  format  of
+       configuration files is described  in
+       <link linkend="manpage.n568configfile">n568configfile(5)</link>.
+     </para>
+    <para>
+       Since  the  jacket  program includes extensive online help menus,
+       this man page will not describe how to
+        operate the control panel.
+     </para>
+  </refsect1>
+  <refsect1>
+     <title>SEE ALSO</title>
+     <para>
+        <link linkend='manpage.n568configfile'>n568configfile(5)</link>,
+        <link linkend='manpage.n568b'>n568b(3tcl)</link>,
+        <link linkend='manpage.n568panel'>n568panel(3tcl)</link>
+     </para>
+  </refsect1>
+
+</refentry>
+
+
+<!-- /manpage -->
+
+
+<!-- manpage 3tcl -->
+<refentry id="manpage.n568b">
+  <refmeta>
+     <refentrytitle>n568b</refentrytitle>
+     <manvolnum>3tcl</manvolnum>
+  </refmeta>
+  <refnamediv>
+     <refname>n568b</refname>
+     <refpurpose>Support package for the CAEN N568B shaper.</refpurpose>
+  </refnamediv>
+  
+  <refsynopsisdiv>
+    <cmdsynopsis>
+    <command>
+package   require   n568b
+    </command>
+    </cmdsynopsis>
+<cmdsynopsis>
+<command>
+::n568b::Id   <replaceable>controller   node </replaceable>
+</command>
+</cmdsynopsis>
+<cmdsynopsis>
+<command>
+::n568b::GetAllParameters  <replaceable>controller  node</replaceable>
+</command>
+</cmdsynopsis>
+<cmdsynopsis>
+<command>
+::n568b::GetOffset <replaceable>controller node</replaceable>
+</command>
+</cmdsynopsis>
+<cmdsynopsis>
+<command>
+::n568b::GetChannelParameters <replaceable>controller node  channel</replaceable>
+</command>
+</cmdsynopsis>
+<cmdsynopsis>
+<command>
+::n568b::GetMuxStatus <replaceable>controller node</replaceable>
+</command>
+</cmdsynopsis>
+<cmdsynopsis>
+<command>
+::n568b::SetFineGain <replaceable>controller node channel value</replaceable>
+</command>
+</cmdsynopsis>
+<cmdsynopsis>
+<command>
+::n568b::SetCoarseGain <replaceable>controller node channel value</replaceable>
+</command>
+</cmdsynopsis>
+<cmdsynopsis>
+<command>
+::n568b::SetPole0 <replaceable>controller node channel value</replaceable>
+</command>
+</cmdsynopsis>
+<cmdsynopsis>
+<command>
+::n568b::SetShapingTime  <replaceable>controller node channel value</replaceable>
+</command>
+</cmdsynopsis>
+<cmdsynopsis>
+<command>
+::n568b::SetPolarity <replaceable>controller node channel value</replaceable>
+</command>
+</cmdsynopsis>
+<cmdsynopsis>
+<command>
+::n568b::SetOutputConfiguration <replaceable>controller node channel value</replaceable>
+</command>
+</cmdsynopsis>
+<cmdsynopsis>
+<command>
+::n568b::SetOffset <replaceable>controller node value</replaceable>
+</command>
+</cmdsynopsis>
+<cmdsynopsis>
+<command>
+::n568b::EnableMuxOut <replaceable>controller node</replaceable>
+</command>
+</cmdsynopsis>
+<cmdsynopsis>
+<command>
+::n568b::DisableMuxOut <replaceable>controller node</replaceable>
+</command>
+</cmdsynopsis>
+  </refsynopsisdiv>
+  <refsect1>
+     <title>DESCRIPTION</title>
+     <para>
+        The  n568b package provides support for controlling and monitoring the CAEN N568b shaping amplifier over
+       the CAEN V288 high speed VME CAENnet controller.  CAENnet support is in terms of controller handles.   A
+       controller  handle is obtained via the caennet::create procedure (see caennet(3)).  This controller rep-
+       resents a single CAEN V288 controller.  On the CAENnet run by that controller, each device must be  con-
+       figured  to  have  a uniqe node address or id.  In the case of the N568b module, this node id is set via
+       switches on the module front panel.  Thus we see that all of the procs in this package operate on a mod-
+       ule identifies by controller and node.
+     </para>
+     <para>
+       Subsequent paragraphs provide operational details for each procedure this package supports.
+     </para>
+     <variablelist>
+        <varlistentry>
+            <term><command>::n568b::Id <replaceable>controller node</replaceable></command></term>
+            <listitem>
+                <para>
+                    Returns the node id string of a module.  See the N568b manual
+                    for information about the structure
+                    of this string.
+                    <command>::n568b::GetAllParameters</command>  Returns
+                    information about all  parameters.
+                    The  return value is in the form of a proper Tcl list
+                    containing seventeen (17) elements.
+                    The last element is the module common offset value.
+                    Each of the other  16  elements  is  a  list
+                    describing  the parameters of each of the 16 channels
+                    in the module.  Each channel parameter list
+                    provides:
+                </para>
+                <itemizedlist>
+                    <listitem>
+                        <para>
+                            The channel fine gain.
+                        </para>
+                    </listitem>
+                    <listitem>
+                        <para>
+                            The channel pole 0 correction.
+                        </para>
+                    </listitem>
+                    <listitem>
+                        <para>
+                            The channel polarity (+ or -).
+                        </para>
+                    </listitem>
+                    <listitem>
+                        <para>
+                            The channel output configuration (normal or inverted).
+                        </para>
+                    </listitem>
+                    <listitem>
+                        <para>
+                            The shaping time in microseconds.
+                        </para>
+                    </listitem>
+                    <listitem>
+                        <para>
+                            The channel coarse gain.
+                        </para>
+                    </listitem>
+                </itemizedlist>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term><command>::n568b::GetOffset <replaceable>controller node</replaceable></command></term>
+            <listitem>
+                <para>
+                    Returns the current value of the  module's  common  offset.
+                    <command>::n568b::GetChannelParameters</command>
+                    returns the settings associated with channel.
+                    This is in the same form as
+                    the settings list for each channel returned by
+                    <command>::n568b::GetAllParameters</command>.
+                    Note that it is faster
+                    to do a call to
+                    <command>::n568b::GetAllParameters</command>
+                    than to do a call for each channel to
+                    <command>n568b::GetChannelParameters</command>.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term><command>::n568b::GetMuxStatus <replaceable>controller node</replaceable></command></term>
+            <listitem>
+                <para>
+                    Returns the output multiplexor status of the module.
+                    The return value  as  a  two  element  Tcl
+                    list.  The first element of the list is either
+                    <literal>on</literal> or
+                    <literal>off</literal>
+                    indicating the state of the multiplexor.
+                    The second element of the list is the channel being
+                    monitored by the output  multiplexor  and  is
+                    only meaningful if the first list element is
+                    <literal>on</literal>.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term><command>::n568b::SetFineGain <replaceable>controller node channel value</replaceable></command></term>
+            <listitem>
+                <para>
+                    Sets the fine gain for
+                    <parameter>channel</parameter> to
+                    <parameter>value</parameter>.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term><command>::n568b::SetCoarseGain <replaceable>controller node channel value</replaceable></command>
+            </term>
+            <listitem>
+                <para>
+                    Sets  the coarse gain for channel to value.
+                    Note that the coarse gain value is a value between
+                    <literal>0</literal>
+                    and
+                    <literal>7</literal> and that the actual coarse gain is
+                    approximately
+                    <literal>2**value</literal>.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term><command>::n568b::SetPole0 <replaceable>controller node channel value</replaceable></command></term>
+            <listitem>
+                <para>
+                    Set the pole 0 correction magnitude for
+                    <parameter>channel</parameter> to
+                    <parameter>value</parameter>.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term><command>::n568b::SetShapingTime <replaceable>controller node channel value</replaceable></command></term>
+            <listitem>
+                <para>
+                    Set the shaping time for channel to value.
+                    Valid value can be:
+                    <variablelist>
+                        <varlistentry>
+                            <term>0</term>
+                            <listitem>
+                                <para>
+                                    0.2 microseconds
+                                </para>
+                            </listitem>
+                        </varlistentry>
+                        <varlistentry>
+                            <term>1</term>
+                            <listitem>
+                                <para>
+                                    1.0 microseconds
+                                </para>
+                            </listitem>
+                        </varlistentry>
+                        <varlistentry>
+                            <term>2</term>
+                            <listitem>
+                                <para>
+                                    3.0 microseconds
+                                </para>
+                            </listitem>
+                        </varlistentry>
+                        <varlistentry>
+                            <term>3</term>
+                            <listitem>
+                                <para>6.0 microseconds
+                                </para>
+                            </listitem>
+                        </varlistentry>
+                    </variablelist>
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term><command>::n568b::SetPolarity <replaceable>controller node channel value</replaceable></command></term>
+            <listitem>
+                <para>
+                    Set the the polarity of
+                    <parameter>channel</parameter> to
+                    <parameter>value</parameter>.
+                    A value of
+                    <literal>0</literal> means positive,
+                    <literal>1</literal> means negative.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term><command>::n568b::SetOutputConfiguration <replaceable>controller node channel value</replaceable></command></term>
+            <listitem>
+                <para>
+                    Sets the output configuration of
+                    <parameter>channel</parameter>.  If
+                    <parameter>value</parameter> is
+                    <literal>0</literal>, the output is direct.  If 1,  inverted.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term><command>::n568b::SetOffset <replaceable>controller node value</replaceable></command></term>
+            <listitem>
+                <para>
+                    Sets the module common offset.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term><command>::n568b::EnableMuxOut <replaceable>controller node</replaceable></command></term>
+            <listitem>
+                <para>
+                    Enables  the multiplexed output.  Note that the channel
+                    that appears on the output multiplexor is
+                    the one last accessed, and that this will change
+                    dynamically if you access other  channels  after
+                    turning on the multiplexor.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term><command>::n568b::DisableMuxOut <replaceable>controller node</replaceable></command></term>
+            <listitem>
+                <para>
+                     Disables the multiplexor output
+                </para>
+            </listitem>
+        </varlistentry>
+     </variablelist>
+  </refsect1>
+  <refsect1>
+     <title>SEE ALSO</title>
+     <para>
+        <link linkend="manpage.loadshaper">loadshaper(1tcl)</link>,
+        <link linkend='manpage.n568control'>n568control(1tcl)</link>,
+        <link linkend='manpage.n568panel'>n568panel(3tcl)</link>,
+        <link linkend='manpage.caennet'>caennet(3tcl)</link>
+        
+     </para>
+  </refsect1>
+
+</refentry>
+
+<refentry id="manpage.n568panel">
+  <refmeta>
+     <refentrytitle>n568Panel</refentrytitle>
+     <manvolnum>3tcl</manvolnum>
+  </refmeta>
+  <refnamediv>
+     <refname>n568Panel</refname>
+     <refpurpose>Control panel megawidget for N568 shaping amplifier</refpurpose>
+  </refnamediv>
+  
+  <refsynopsisdiv>
+    <cmdsynopsis>
+    <command>
+package require n568Panel
+    </command>
+    </cmdsynopsis>
+    <cmdsynopsis>
+    <command>
+ n568Panel <replaceable>pathName ?options?</replaceable>
+    </command>
+    </cmdsynopsis>
+  </refsynopsisdiv>
+  <refsect1>
+     <title>DESCRIPTION</title>
+     <para>
+        This  package  provides a megawidget that is a control panel for a
+        single CAEN N568 module.  The control
+        panel can be used in user applications and is also used by the
+        <link linkend='manpage.n568control'>n568Control(1tcl)</link>
+        script.
+     </para>
+  </refsect1>
+    <refsect1>
+        <title>WIDGET SPECIFIC OPTIONS</title>
+        <para>
+            As with any Tk widget, the widget understands the
+            <command>config</command> and
+            <command>cget</command> commands.  These allow you to set and
+            query the values of the options described below:
+        </para>
+        <variablelist>
+            <varlistentry>
+                <term><option>-node</option> <replaceable>node-number</replaceable></term>
+                <listitem>
+                    <para>
+                        Specifies the CAENnet node of the shaper module to control.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><option>-controllercrate </option> <replaceable>vme-crate</replaceable></term>
+                <listitem>
+                    <para>
+                        Specifies  the
+                        VME  crate  number  in which the CAENnet
+                        controller connected to the shaper module resides.
+                        If not supplied, the VME crate number defaults to 0.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><option>-controllerbase</option> <replaceable>base-address</replaceable></term>
+                <listitem>
+                    <para>
+                        Specifies the base address of the CAENnet
+                        controller connected to the shaper module.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><option>-name</option> <replaceable>module-name</replaceable></term>
+                <listitem>
+                    <para>
+                        Provides a documentation name for the shaper.  This
+                        name appears in the control panel to help the user
+                        identify the shaper and how it is being used  in  the
+                        experiment.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><option>-command</option> <replaceable>script</replaceable></term>
+                <listitem>
+                    <para>
+                        Allows the user to provide a script that will be called
+                        whenever a shaper control parameter is modified.
+                        A three element list will be appended to the user's script,
+                        so it  is  usual
+                        for  the script ot be a
+                        <command>proc</command> name.
+                        The list contents are;
+                        <parameter>action</parameter>,
+                        <parameter>which</parameter> and
+                        <parameter>value</parameter>.
+                          The
+                    </para>
+                    <para>
+                          <parameter>action</parameter> specifies what
+                                        was changed, and can be any of:
+                                        <literal>coarse</literal>
+                                        indicating the Coarse gain changed,
+                                        <literal>fine</literal> Fine gain changed.
+                                        <literal>pole0</literal> Pole  0
+                                        correction  changed.
+                                        <literal>invert</literal> Output
+                                        configuration changed.
+                                        <literal>polarity</literal>
+                                        channel input polarity changed.
+                                        <literal>shapetime</literal> the shaping
+                                        time  constant  changed.
+                                        <literal>offset</literal> the  common  offset
+                                        changed.
+                    </para>
+                    <para>
+                        The <parameter>which</parameter> parameter
+                        is an empty string for <parameter>action</parameter> =
+                        <literal>offset</literal> and the number of the
+                        channel that
+                        was changed for any other action.
+                        The <parameter>value</parameter> is the new value of the parameter
+                        defined  by  <parameter>action</parameter>  and
+                        <parameter>which</parameter>. 
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><option>-alarmscript</option> <replaceable>script</replaceable></term>
+                <listitem>
+                    <para>
+                        Specifies a script to be executed if the controller
+                        detects an alarm condition.
+                        Note that at present, no alarmconditions are defined
+                        for the N568, however this is provided for compatibility
+                        with other megawidgets that do device control and do have
+                        defined alarm conditions.
+                    </para>
+                </listitem>
+            </varlistentry>
+        </variablelist>
+    </refsect1>
+    <refsect1>
+        <title>WIDGET COMMANDS</title>
+        <para>
+            The widget supports commands which are related to the management
+            of the module's property list.  A property list is a Tcl
+            list containing elements that are name, value pairs.  An element
+            of  a  propertylist
+            (property)  defines a piece of the state of the module.
+            See PROPERTIES below for more information about
+            the properties supported by the n568b.
+        </para>
+        <variablelist>
+            <varlistentry>
+                <term><replaceable>path</replaceable> <command>getProperties</command></term>
+                <listitem>
+                    <para>
+                        Returns the property list for <replaceable>path</replaceable>.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><replaceable>path</replaceable> <command>setProperties</command> <replaceable>propertyList</replaceable></term>
+                <listitem>
+                    <para>
+                        Loads the
+                        <parameter>propertyList</parameter> into the module.
+                        The module is restored to the state defined by the property
+                        list.  If any properties are omitted, that section of
+                        the module state is not modified.
+                    </para>
+                </listitem>
+            </varlistentry>
+        </variablelist>
+    </refsect1>
+    <refsect1>
+        <title>PROPERTIES</title>
+        <para>
+            The properties supported by the megawidget are:
+        </para>
+        <variablelist>
+            <varlistentry>
+                <term>offset </term>
+                <listitem>
+                    <para>
+                        The module common offset.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>coarsen</term>
+                <listitem>
+                    <para>
+                        The coarse gain of channel n.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>finen</term>
+                <listitem>
+                    <para>
+                        The fine gain of channel n.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>polezeron</term>
+                <listitem>
+                    <para>
+                        The pole zero adjust for channel n.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>invertn</term>
+                <listitem>
+                    <para>
+                        The output configuration state for channel n.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>polarityn</term>
+                <listitem>
+                    <para>
+                        The input polarity for channel n.
+                    </para>
+                </listitem>
+            </varlistentry>  
+            <varlistentry>
+                <term>shapetime</term>
+                <listitem>
+                    <para>
+                        The shaping time for cahnnel n.
+                    </para>
+                </listitem>
+            </varlistentry>
+        </variablelist>
+    </refsect1>
+    
+  <refsect1>
+     <title>SEE ALSO</title>
+     <para>
+        <link linkend="manpage.loadshaper">loadshaper(1)</link>,
+        <link linkend='manpage.n568b'>n568b(3)</link>,
+        <link linkend='manpage.n568configfile'>n568configfile(5)</link>
+        <link linkend='manpage.n568control'>n568control(1)</link>
+     </para>
+  </refsect1>
+
+</refentry>
+
+<!-- /manpage -->
+
+<!-- manpage 5tcl -->
+
+<refentry id="manpage.n568configfile">
+  <refmeta>
+     <refentrytitle>n568configfile</refentrytitle>
+     <manvolnum>5</manvolnum>
+  </refmeta>
+  <refnamediv>
+     <refname>n568configfile</refname>
+     <refpurpose>N568 shaper configuration file</refpurpose>
+  </refnamediv>
+  
+  <refsynopsisdiv>
+    <simplelist columns='4'>
+        <member>name</member>
+        <member>crate</member>
+        <member>base</member>
+        <member>nodeid</member>
+        <member>offset</member>
+        <member>finegain(i)</member>
+        <member>polezero(i)</member>
+        <member>outpolarity(i)</member>
+        <member>outconfig(i)</member>
+        <member>shapetime(i)</member>
+        <member>coarsegain(i)</member>
+    </simplelist>
+  </refsynopsisdiv>
+  <refsect1>
+     <title>DESCRIPTION</title>
+     <para>
+        The
+        <link linkend="manpage.loadshaper">loadshaper(1)</link> and
+        <link linkend='manpage.n568control'>n568control(1)</link>
+        programs rely on cofiguration files.  A configuration  file,  known
+        as  an  N568 configuration file, contains two sets of information.
+        Information about the addressing and
+        identification of the module and information about the module settings.
+     </para>
+     <para>
+        When initially connecting to the device, the software uses the
+        identification  and  connection  information.  When loading settings
+        files, only the settings information is meaningful.  It is thus
+        possible to
+        use a settings file saved by module A to load the settings
+        for module B.
+     </para>
+     <para>
+        N568 configuration files are Tcl scripts that just set a bunch of
+        variables and array elements.  Each  variable or array element is an
+        identification parameter or a single parameter setting. 
+     </para>
+  </refsect1>
+  <refsect1>
+      <title>IDENTIFICATION PARAMETERS</title>
+      <para>
+            Identification  parameters  provide both human and machine readable
+            identification for a shaper.  Humans
+            need to be able to refer to a module by a name that has something
+            to do with its function in an  experiment.    Machines  need to
+            know how to form a connection to the module in order to be able to
+            control it
+            or monitor it.
+      </para>
+      <para>
+            The identification parameters are represented by scalar Tcl
+            variables in the  N568  configuration  file.
+            Machine  readable configuration must specify how to access
+            the CAENnet controller to which the module is
+            connected as well as the node number of the module on that
+            CAENnet:
+      </para>
+        <variablelist>
+            <varlistentry>
+                <term><varname>name</varname></term>
+                <listitem>
+                    <para>
+                        A human readable name for the module.  This is for
+                        documentation purposes only.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><varname>crate</varname></term>
+                <listitem>
+                    <para>
+                        The number of the VME crate in which the CAENNet
+                        controller to which the module is  connected  is
+                        installed.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><varname>base</varname></term>
+                <listitem>
+                    <para>
+                        The VME base address of the CAENNet controller to which
+                        the module is connected.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><varname>nodeid</varname></term>
+                <listitem>
+                    <para>
+                        The  node  number  of  the  module  on the CAENnet.
+                        This is the two digit number between
+                        <literal>0</literal> and
+                        <literal>99</literal>
+                        inclusive on the front panel of the module.
+                    </para>
+                </listitem>
+            </varlistentry>
+        </variablelist>
+  </refsect1>
+    <refsect1>
+        <title>SETTINGS PARAMETERS</title>
+        <para>
+            With the exception of the common offset, the N568 has a group of
+            settings for each of its  16  channels.
+            The  common  offset is specified by a scalar Tcl variable, while the
+            channel specific settings are specified
+            by Tcl arrays with numeric indices in the range
+            <literal>0</literal> through
+            <literal>15</literal>
+            respectively, corresponding to the 16 channels of the module.
+        </para>
+        <variablelist>
+            <varlistentry>
+                <term><varname>offset</varname></term>
+                <listitem>
+                    <para>
+                        Specifies the commoon ofset in mV.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><varname>finegain(i)</varname></term>
+                <listitem>
+                    <para>
+                        Specifies the fine gain in arbitrary units from
+                        <literal>0</literal> through
+                        <literal>255</literal> inclusive.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><varname>polezero(i)</varname></term>
+                <listitem>
+                    <para>
+                        Specifies  the  magnitude  of  the  pole  0  correction for
+                        the channel in arbitrary units from
+                        <literal>0</literal>
+                        through <literal>255</literal> inclusive.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><varname>outpolarity(i)</varname></term>
+                <listitem>
+                    <para>
+                        Specifies the output polarity.
+                        <literal>0</literal> means positive and
+                        <literal>1</literal> negative.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><varname>outconfig(i)</varname></term>
+                <listitem>
+                    <para>
+                        Specifies the output configuration.
+                        <literal>0</literal> means direct, while
+                        <literal>1</literal> means inverted.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><varname>shapetime(i)</varname></term>
+                <listitem>
+                    <para>
+                        Specifies the shaping time.  This is specified in
+                        microseconds and can be any  of  the  following
+                        values:
+                        <literal>0.1, 1.0, 3.0</literal> or <literal>6.0</literal>.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><varname>coarsegain(i)</varname></term>
+                <listitem>
+                    <para>
+                        Specifies  the  coarse gain of the amplifier.  This can be
+                        any of the following:
+                        <literal>1 2 4 8 16 32 64 128</literal>
+                    </para>
+                </listitem>
+            </varlistentry>
+        </variablelist>
+    </refsect1>
+    <refsect1>
+        <title>EXAMPLE</title>
+        <example>
+            <title>Sample configuration file</title>
+            <programlisting>
+# N568b configuration file written by n568Control.tcl Wed Nov 09 09:14:10 EST 2005
+set name    seeshaper
+set crate   0
+set base    0x100000
+set nodeid  1
+set offset 1.00
+set finegain(0) 128
+set polezero(0) 119
+set outpolarity(0) 1
+set outconfig(0) 0
+set shapetime(0) 1.0
+set coarsegain(0) 2.0
+set finegain(1) 128
+set polezero(1) 128
+set outpolarity(1) 0
+set outconfig(1) 0
+set shapetime(1) 1.0
+set coarsegain(1) 2.0
+set finegain(2) 128
+set polezero(2) 128
+set outpolarity(2) 1
+set outconfig(2) 0
+set shapetime(2) 1.0
+set coarsegain(2) 2.0
+set finegain(3) 128
+set polezero(3) 128
+set outpolarity(3) 0
+set outconfig(3) 0
+set shapetime(3) 1.0
+set coarsegain(3) 2.0
+set finegain(4) 128
+set polezero(4) 119
+set outpolarity(4) 1
+set outconfig(4) 1
+set shapetime(4) 1.0
+set coarsegain(4) 2.0
+set finegain(5) 128
+set polezero(5) 128
+set outpolarity(5) 0
+set outconfig(5) 0
+set shapetime(5) 1.0
+set coarsegain(5) 2.0
+set finegain(6) 128
+set polezero(6) 128
+set outpolarity(6) 1
+set outconfig(6) 0
+set shapetime(6) 1.0
+set coarsegain(6) 2.0
+set finegain(7) 128
+set polezero(7) 128
+set outpolarity(7) 1
+set outconfig(7) 0
+set shapetime(7) 1.0
+set coarsegain(7) 2.0
+set finegain(8) 128
+set polezero(8) 128
+set outpolarity(8) 1
+set outconfig(8) 0
+set shapetime(8) 1.0
+set coarsegain(8) 2.0
+set finegain(9) 128
+set polezero(9) 128
+set outpolarity(9) 1
+set outconfig(9) 0
+set shapetime(9) 1.0
+set coarsegain(9) 2.0
+set finegain(10) 128
+set polezero(10) 128
+set outpolarity(10) 1
+set outconfig(10) 0
+set shapetime(10) 1.0
+set coarsegain(10) 2.0
+set finegain(11) 128
+set polezero(11) 128
+set outpolarity(11) 1
+set outconfig(11) 0
+set shapetime(11) 1.0
+set coarsegain(11) 2.0
+set finegain(12) 128
+set polezero(12) 128
+set outpolarity(12) 1
+set outconfig(12) 0
+set shapetime(12) 1.0
+set coarsegain(12) 2.0
+set finegain(13) 128
+set polezero(13) 128
+set outpolarity(13) 1
+set outconfig(13) 0
+set shapetime(13) 1.0
+set coarsegain(13) 2.0
+set outpolarity(12) 1
+set outconfig(12) 0
+set shapetime(12) 1.0
+set coarsegain(12) 2.0
+set finegain(13) 128
+set polezero(13) 128
+set outpolarity(13) 1
+set outconfig(13) 0
+set shapetime(13) 1.0
+set coarsegain(13) 2.0
+set finegain(14) 128
+set polezero(14) 128
+set outpolarity(14) 1
+set outconfig(14) 0
+set shapetime(14) 1.0
+set coarsegain(14) 2.0
+set finegain(15) 128
+set polezero(15) 128
+set outpolarity(15) 1
+set outconfig(15) 0
+set shapetime(15) 1.0
+set coarsegain(15) 2.0
+            </programlisting>
+        </example>
+    </refsect1>
+        
+    <refsect1>
+       <title>SEE ALSO</title>
+        <para>
+            <link linkend='manpage.loadshaper'>loadshaper(1)</link>,
+            <link linkend='manpage.n568control'>n568Control(1)</link>
+        </para>
+    </refsect1>
+
+</refentry>
+
+<!-- /manpage -->

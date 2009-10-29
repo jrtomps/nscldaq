@@ -240,7 +240,7 @@ void URL::parseString(string rStr) {
   //
 
   string host;
-  char*  slash = "/";		// For strspn.
+  const char*  slash = "/";		// For strspn.
   char*  hostStart;
   char*  hostEnd;
   off_t  nhostStart;

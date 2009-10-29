@@ -106,7 +106,7 @@ bt_error_t bt_mmap(
     /*
     ** Align the mmap to a page boundary
     */
-    size_of_page = getpagesize();
+    size_of_page = sysconf(_SC_PAGESIZE);
     req_offset = map_off - (map_off % size_of_page);
     req_length = map_len + (map_off % size_of_page);
 
@@ -211,7 +211,7 @@ bt_error_t bt_unmmap(
     ** Adjust the length based on whether we needed to
     ** adjust remote offset during the mmap call
     */
-    size_of_page = getpagesize();
+    size_of_page = sysconf(_SC_PAGESIZE);
     req_p = ((bt_data8_t *) mmap_p - ((bt_devaddr_t) mmap_p % size_of_page));
     req_length = map_len + ((bt_devaddr_t) mmap_p % size_of_page);
 

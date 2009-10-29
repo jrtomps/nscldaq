@@ -40,13 +40,13 @@ class CAENV890 {
 public:
   static const int m_nTdcClock;	// ns per tdc clock.
   static const int m_nTdcMaxVal; // Maximum tdc value.
-  typedef struct TriggerInfo {	//!< Struct returned by ReadTriggerConfig
+  typedef struct _TriggerInfo {	//!< Struct returned by ReadTriggerConfig
     unsigned short Window;
     short Offset;
     short ExtraSearchWindow;
     short RejectMargin;
     short SubtractionEnabled;
-  };
+  } TriggerInfo;
   typedef enum _EdgeDetectSelection {	
     EdgePairs     = 0,
     TrailingEdge  = 1,

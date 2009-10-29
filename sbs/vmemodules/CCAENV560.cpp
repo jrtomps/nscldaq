@@ -44,7 +44,7 @@ static const unsigned short Manufacturer(2);
 static const unsigned short ModelNumber(0x18);
 static const unsigned short FixedCode(0xfaf5);
 
-static inline void ThrowIntString(char* formatstring, int value) 
+static inline void ThrowIntString(const char* formatstring, int value) 
   throw (string)
 {
   char msg[strlen(formatstring) + 100];
@@ -54,7 +54,7 @@ static inline void ThrowIntString(char* formatstring, int value)
 static inline void ThrowIfBadChannel(const char* pFunction,
 				   int nChannel)  throw (string)
 {
-  char* pFmtString=
+  const char* pFmtString=
     "CCAENV560::%s Invalid channel must be in [0,15] %d";
   if( (nChannel < 0) || (nChannel > 15)) {
     char msg[100 + strlen(pFunction) + strlen(pFmtString)];
@@ -65,7 +65,7 @@ static inline void ThrowIfBadChannel(const char* pFunction,
 static inline void ThrowIfBadSection(const char* pFunction,
 	       			   int nSection) throw (string)
 {
-   char* pFmtString=
+   const char* pFmtString=
      "CCAENV560::%s Invalid section must be in [0,7] %d";
    if( (nSection < 0) || (nSection > 7)) {
      char msg[100 + strlen(pFunction) + strlen(pFmtString)];
