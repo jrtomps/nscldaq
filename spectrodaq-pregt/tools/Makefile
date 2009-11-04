@@ -63,6 +63,7 @@ install: $(O_FILES)
 
 clean::
 	rm -f *.o
+	rm -f $(PROG_FILES)
 
 realclean: clean
 	rm -f .depend
