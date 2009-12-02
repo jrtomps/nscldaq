@@ -1,8 +1,8 @@
 
 
 
-SUBDIRS = scalerdisplay chanlog controlpush daqstart dvdburn \
-	epicsdisplay sequencer ringselector eventlog bufdump	\
+SUBDIRS = scalerdisplay daqstart dvdburn \
+	sequencer ringselector eventlog bufdump	\
 	sclclient
 
 
