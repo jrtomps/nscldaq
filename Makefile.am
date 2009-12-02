@@ -2,8 +2,14 @@ if BUILD_SBS_DRIVER
   SBSDIRS=sbs
 endif
 
+if BUILD_EPICS_TOOLS
+if EPICS
+     EPICSDIRS=epics
+endif
+endif
+
 SUBDIRS =	base/CopyrightTools base/exception base/tclplus servers base  \
-		daq utilities docbuild docconfig usb $(SBSDIRS)
+		daq utilities docbuild docconfig usb $(SBSDIRS) $(EPICSDIRS)
 
 
 install-data-local:
