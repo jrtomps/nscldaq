@@ -3,7 +3,7 @@
 
 AC_PREREQ(2.61)
 AC_INIT(nscldaq, 10.0, fox@nscl.msu.edu)
-AC_CONFIG_SRCDIR([utilities/controlpush/CSocket.cpp])
+AC_CONFIG_SRCDIR([/utilities/StringsToIntegers.h])
 AC_CONFIG_HEADER([config.h])
 
 # Checks for programs.
@@ -264,7 +264,7 @@ fi
 
 # Epics:
 
-#
+#  Requires --enable-epics-tools=yes
 #   Look for epics in:
 #    /usr/local/epics
 #    /opt/epics
@@ -277,6 +277,15 @@ fi
 #    bin/linux-x86/caRepeater - The caRepeater program.
 #
 
+BUILD_EPICS_TOOLS=no
+AC_ARG_ENABLE([epics-tools],
+	AS_HELP_STRING([--enable-epics-tools=yes/no], 
+	[Build software that requires EPICS (default no)]),
+	[BUILD_EPICS_TOOLS="yes"])
+
+if test "$BUILD_EPICS_TOOLS" == "yes"
+then
+
 epicstestdirs="/usr/local/epics /opt/epics /soft/intel/epics"
 haveepics="no"
 
@@ -286,7 +295,7 @@ AC_MSG_CHECKING([ for epics includes, libs and binaries])
 #  Check for --with-epics-rootdir....
 
 AC_ARG_WITH(epics-rootdir,
-	[  --with-epics-rootdir=top level directory of EPICS install],
+	[  --with-epics-rootdir=top level directory of EPICS install (requires --enable-epics-tools)],
 	[haveepics="yes"
 	 epicsroot="$withval"],
 	[haveepics="no"])
@@ -321,6 +330,7 @@ else
    epics=false
 fi
 
+fi
 
 #
 #  The SBS software will only be built if
@@ -360,7 +370,8 @@ AC_SUBST(TCL_FLAGS)
 AC_SUBST(TCL_LDFLAGS)
 AC_SUBST(TCLSH_CMD)
 
-AM_CONDITIONAL([EPICS], [test x$epics = xtrue])
+AM_CONDITIONAL([EPICS], [test x$haveepics = xyes])
+AM_CONDITIONAL(BUILD_EPICS_TOOLS, [test x$BUILD_EPICS_TOOLS = xyes])
 
 AC_SUBST(EPICS_INCLUDES)
 AC_SUBST(EPICS_LDFLAGS)
@@ -414,12 +425,8 @@ AC_CONFIG_FILES([Makefile
 		 servers/tclserver/Makefile
                  servers/portmanager/Makefile
 		 utilities/Makefile
-                 utilities/chanlog/Makefile
-                 utilities/controlpush/Makefile
                  utilities/daqstart/Makefile
                  utilities/dvdburn/Makefile
-                 utilities/epicsdisplay/Makefile
-		 utilities/epicsdisplay/epicsdisplay
                  utilities/scalerdisplay/Makefile 
 		 utilities/scalerdisplay/ScalerDisplay
                  utilities/sequencer/Makefile
@@ -427,6 +434,11 @@ AC_CONFIG_FILES([Makefile
 		 utilities/bufdump/Makefile
 		 utilities/eventlog/Makefile
 		 utilities/sclclient/Makefile
+                 epics/chanlog/Makefile
+                 epics/controlpush/Makefile
+                 epics/epicsdisplay/Makefile
+		 epics/epicsdisplay/epicsdisplay
+		 epics/Makefile
 		 daq/Makefile
 		 daq/format/Makefile
 		 daq/readoutgui/Makefile
@@ -460,6 +472,7 @@ AC_CONFIG_FILES([Makefile
 		 sbs/slowcontrols/n568b/Makefile
 		 sbs/slowcontrols/bcnaf/Makefile
 		 sbs/slowcontrols/vhs/Makefile
+		 sbs/scripted/Makefile
 		 daq/builder/Makefile
 		 docbuild/Makefile
 		 docconfig/Makefile])
