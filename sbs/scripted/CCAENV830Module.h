@@ -383,7 +383,7 @@ class CCAENV830Module : public  CDigitizerModule
 public:
   // Constructors and other canonicals:
 
-  CCAENV830Module(const STD(string)& rName, CTCLInterpreter& rInterp);
+  CCAENV830Module(const std::string& rName, CTCLInterpreter& rInterp);
   virtual ~CCAENV830Module();
 private:
   CCAENV830Module(const CCAENV830Module& rhs);
@@ -401,8 +401,8 @@ public:
   virtual void Read(DAQWordBufferPtr& rBuffer);
   virtual int  Read(void* pBuffer);
   virtual void Clear();
-  virtual STD(string) getType() const {
-    return STD(string)("caenv830");
+  virtual std::string getType() const {
+    return std::string("caenv830");
   }
 
 };

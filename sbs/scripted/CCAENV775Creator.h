@@ -333,7 +333,7 @@ public:
   virtual   CReadableObject* Create (CTCLInterpreter& rInterp, 
 				      CTCLResult& rResult, 
 				      int nArgs, char** pArgs)   ; 
-  virtual   STD(string)  Help (); 
+  virtual   std::string  Help (); 
   
 };
 

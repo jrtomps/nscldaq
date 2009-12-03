@@ -306,9 +306,7 @@ static const char* Copyright = "(C) Copyright Ron Fox 2002, All rights reserved"
 ////////////////////////// FILE_NAME.cpp /////////////////////////////////////////////////////
 #include <config.h>
 #include "CDigitizerModule.h"    				
-#ifdef HAVE_STD_NAMESPACE
 using namespace std;
-#endif
 
 
 /*!

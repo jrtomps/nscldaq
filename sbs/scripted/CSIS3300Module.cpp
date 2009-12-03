@@ -26,6 +26,7 @@
 
 static const size_t LARGEST_SIZE(4*128*1024+1024); // largest buffer + slop.
 
+using namespace std;
 
 /*!
    Constructor for the CSIS3300Module class.  The constructor must

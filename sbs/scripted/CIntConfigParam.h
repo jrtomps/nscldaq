@@ -310,8 +310,8 @@ public:
   //  Constructors.  The first constructor is without
   //  range checking, the second with.
 
-  CIntConfigParam (const STD(string)& rName, int nDefault=0);
-  CIntConfigParam (const STD(string)& rName,
+  CIntConfigParam (const std::string& rName, int nDefault=0);
+  CIntConfigParam (const std::string& rName,
                    int nLow, int nHigh, int nDefault=0);
   // Destructor:
   virtual ~CIntConfigParam ( );  
@@ -374,7 +374,7 @@ public:
                           CTCLResult& rResult, 
                           const char* pValue)   ; //!< Parse/validate
 
-  virtual STD(string) GetParameterFormat();
+  virtual std::string GetParameterFormat();
   void setRange(int nLo, int nHi) {
       m_nLow  = nLo;
       m_nHigh = nHi;

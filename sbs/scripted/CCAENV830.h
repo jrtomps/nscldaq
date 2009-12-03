@@ -341,7 +341,7 @@ public:
   CCAENV830(int slot,
 	    int crate = 0,
 	    bool geo = true,
-	    unsigned long base = 0) throw (STD(string));
+	    unsigned long base = 0) throw (std::string);
 
   ~CCAENV830();
 
@@ -394,11 +394,11 @@ public:
   // Class operations.
 
 public:
-  void Enable(int nChannel) throw (STD(string));
-  void Disable(int nChannel) throw (STD(string));
+  void Enable(int nChannel) throw (std::string);
+  void Disable(int nChannel) throw (std::string);
   void SetEnableMask(int nMask);
   void SetDwellTime(int n400ns);
-  void SetTriggerMode(TriggerMode mode) throw (STD(string));
+  void SetTriggerMode(TriggerMode mode) throw (std::string);
   void SetWide();
   void SetNarrow();
   void EnableHeader();
@@ -428,7 +428,7 @@ public:
   // Utility functions:
 protected:
   void ComputeEventSize();
-  void MapModule() throw (STD(string));
+  void MapModule() throw (std::string);
   void InitModule();
   void UnmapModule();
 };

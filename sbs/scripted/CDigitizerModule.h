@@ -317,7 +317,7 @@ public:
 
 //   Construtors and other canonical operations.
 
-  CDigitizerModule (const string& rName,
+  CDigitizerModule (const std::string& rName,
                     CTCLInterpreter& rInterp); 
   virtual ~CDigitizerModule ( );
 

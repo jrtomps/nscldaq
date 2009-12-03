@@ -324,10 +324,10 @@ private:
 public:
 // Constructors and other canonical members:
 
-  CIntArrayParam (const STD(string)& rName, 
+  CIntArrayParam (const std::string& rName, 
                   unsigned int size,
                   int nDefault = 0);
-  CIntArrayParam (const STD(string)&, 
+  CIntArrayParam (const std::string&, 
                   unsigned int size,
                   int nLow, 
                   int nHigh, 
@@ -397,7 +397,7 @@ public:
   virtual int SetValue (CTCLInterpreter& rInterp, 
                         CTCLResult& rResult, 
                         const char* pValues);
-  virtual STD(string) GetParameterFormat();
+  virtual std::string GetParameterFormat();
   void setRange(int nLow, int nHigh)
   {
     m_nLow  = nLow;

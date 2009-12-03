@@ -23,13 +23,13 @@
 #include "CBoolConfigParam.h"
 #include "CIntArrayParam.h"
 #include <assert.h>
-#include <Iostream.h>
+#include <iostream>
 
 #include <stdint.h>
 
-#ifdef HAVE_STD_NAMESPACE
+
 using namespace std;
-#endif
+
 
 /*!
    Constructs a module. The main thing is to register all of the

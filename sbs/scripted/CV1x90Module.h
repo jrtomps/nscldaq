@@ -82,7 +82,7 @@ private:
 public:
   // constructors and other canonicals:
 
-  CV1x90Module(string rCommand,
+  CV1x90Module(std::string rCommand,
 	       CTCLInterpreter& interp);
   virtual ~CV1x90Module();
 

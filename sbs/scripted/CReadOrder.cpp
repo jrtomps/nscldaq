@@ -19,9 +19,9 @@ static const char* Copyright = "(C) Copyright Michigan State University 1977, Al
 ////////////////////////// FILE_NAME.cpp /////////////////////////////////////////////////////
 #include <config.h>
 #include "CReadOrder.h"    				
-#ifdef HAVE_STD_NAMESPACE
+
 using namespace std;
-#endif
+
 
 #include <spectrodaq.h>
 #include <string>

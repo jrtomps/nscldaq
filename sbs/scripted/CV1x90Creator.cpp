@@ -19,6 +19,8 @@
 #include <TCLInterpreter.h>
 #include <TCLResult.h>
 
+using namespace std;
+
 /*!
   Constructing the object delegates:
   \parm type - the type of object we create.

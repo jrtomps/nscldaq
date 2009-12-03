@@ -26,9 +26,9 @@ static const char* Copyright = "(C) Copyright Michigan State University 1977, Al
 
 
 #include <assert.h>
-#ifdef HAVE_STD_NAMESPACE
+
 using namespace std;
-#endif
+
  				
 /*!
     Constructor: Creates a module creator for CAEN v785 modules.  We just need

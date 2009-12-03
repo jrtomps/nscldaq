@@ -1,3 +1,19 @@
+/*
+    This software is Copyright by the Board of Trustees of Michigan
+    State University (c) Copyright 2009.
+
+    You may use this software under the terms of the GNU public license
+    (GPL).  The terms of this license are described at:
+
+     http://www.gnu.org/licenses/gpl.txt
+
+     Author:
+             Ron Fox
+	     NSCL
+	     Michigan State University
+	     East Lansing, MI 48824-1321
+*/
+
 /*! \class CScalerBank   
            CLASS_PACKAGE
            Encapsulates a scaler bank.  Scaler banks
@@ -15,9 +31,9 @@
 #include "CDigitizerDictionary.h"
 #include "CScalerModule.h"			
 #include <typeinfo>
-#ifdef HAVE_STD_NAMESPACE
+
 using namespace std;
-#endif
+
 
 /*!
       Construct a scaler bank.  All the real work

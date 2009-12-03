@@ -306,9 +306,7 @@ static const char* Copyright = "(C) Copyright Ron Fox 2002, All rights reserved"
 #include <assert.h>
 #include <TCLInterpreter.h>
 #include <TCLResult.h>
-#ifdef HAVE_STD_NAMESPACE
 using namespace std;
-#endif
 
 
 
@@ -537,7 +535,7 @@ CModuleCommand::List(CTCLInterpreter& rInterp,
    // Figure out the match
    // pattern.  If none is supplied, it's *.
    
-   char* pPattern = "*";
+   const char* pPattern = "*";
    if(nArgs > 1) {
       rResult =  "Too many parameters: \n";
       rResult += Usage();

@@ -93,6 +93,7 @@ noinst_HEADERS=CBoolConfigParam.h \
 
 
 INCLUDES=  $(VMEBUILDEADERS) \
+	-I@top_srcdir@/base/headers 	\
 	-I@top_srcdir@/base/exception \
 	-I@top_srcdir@/base/tclplus \
 	-I@top_srcdir@/sbs/nsclapi 	\

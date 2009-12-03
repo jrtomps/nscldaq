@@ -30,7 +30,7 @@ class CV1x90Creator : public CModuleCreator
 {
   // Constructors and canonicals.
 public:
-  CV1x90Creator(STD(string) type);
+  CV1x90Creator(std::string type);
   virtual ~CV1x90Creator();
   CV1x90Creator(const CV1x90Creator& rhs);
   CV1x90Creator& operator=(const CV1x90Creator& rhs);
@@ -45,7 +45,7 @@ public:
 	 int              nArgs,
 	 char**           pArgs);
 
-  virtual STD(string) Help();
+  virtual std::string Help();
     
 };
 

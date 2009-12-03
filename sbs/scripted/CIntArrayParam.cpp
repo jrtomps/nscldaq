@@ -299,9 +299,9 @@ static const char* Copyright = "(C) Copyright Ron Fox 2002, All rights reserved"
 #include <stdlib.h>
 
 
-#ifdef HAVE_STD_NAMESPACE
+
 using namespace std;
-#endif
+
 
 
 /*!
