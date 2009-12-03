@@ -297,7 +297,7 @@ using namespace std;
   \param fDefault bool [in]
       Default (initial) value of the parameter.
 */
-CBoolConfigParam::CBoolConfigParam (const string& rName,
+CBoolConfigParam::CBoolConfigParam (const std::string& rName,
                                     bool          fDefault) :
   CConfigurationParameter(rName),
   m_fValue(fDefault)
@@ -389,7 +389,7 @@ CBoolConfigParam::SetValue(CTCLInterpreter& rInterp,
     m_fValue = param;
   }
   catch (...) {
-    string Result;
+    std::string Result;
     Result += "Boolean parameter: ";
     Result += getSwitch();
     Result += " value ";
@@ -404,10 +404,10 @@ CBoolConfigParam::SetValue(CTCLInterpreter& rInterp,
    \return The format of the configuration parameter in this
         case "on | off"
 */
-string
+std::string
 CBoolConfigParam::GetParameterFormat()
 {
-  return string("on | off");
+  return std::string("on | off");
 }
 /*!
    Utility function to parse a boolean flag:
@@ -424,16 +424,16 @@ CBoolConfigParam::GetParameterFormat()
    \return Bool_t kfTRUE if parses as true, kfFALSE if as false, and an
    exception (char*) if no parse.
 */
-Bool_t
+bool
 CBoolConfigParam::ParseFlag(const char* value)
 {
-  string sValue(value);
-  if(  (sValue == string("true"))     ||
-       (sValue == string("on"))       ||
-       (sValue == string("enable"))) return kfTRUE;
-  else if ( (sValue == string("false"))   ||
-	    (sValue == string("off"))     ||
-	    (sValue == string("disable"))) return kfFALSE;
+  std::string sValue(value);
+  if(  (sValue == std::string("true"))     ||
+       (sValue == std::string("on"))       ||
+       (sValue == std::string("enable"))) return kfTRUE;
+  else if ( (sValue == std::string("false"))   ||
+	    (sValue == std::string("off"))     ||
+	    (sValue == std::string("disable"))) return kfFALSE;
   else 
     throw "Invalid boolean value.";
  

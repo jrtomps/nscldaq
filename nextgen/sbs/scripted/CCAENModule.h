@@ -88,7 +88,7 @@ private:
   int       m_nChannels;	//!< # channels this module.
 public:
   // Constructors:
-  CCAENModule(const string& rCommand,
+  CCAENModule(const std::string& rCommand,
 	      CTCLInterpreter& rInterp, int nChannels=32);
   virtual ~CCAENModule();
 private:

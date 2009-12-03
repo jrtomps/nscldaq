@@ -23,7 +23,7 @@
 #include "CBoolConfigParam.h"
 #include "CIntArrayParam.h"
 #include <assert.h>
-#include <Iostream.h>
+#include <iostream>
 
 #ifdef HAVE_STD_NAMESPACE
 using namespace std;
@@ -50,7 +50,7 @@ are recognized by all types of modules.
     some of the stranger dual range modules that CAEN is recently 
     putting out.
 */
-CCAENModule::CCAENModule(const string & rName,
+CCAENModule::CCAENModule(const std::string & rName,
 			CTCLInterpreter& rInterpreter, int nChannels) :
   CDigitizerModule(rName, rInterpreter),
   m_pCAENcard(0),
@@ -59,23 +59,23 @@ CCAENModule::CCAENModule(const string & rName,
 {
   // Setup our configuration parameters:
   
-  AddIntParam(string("crate"), 0);
-  AddIntParam(string("slot"), -1);   // Force legal config.
-  AddIntArrayParam(string("threshold"), m_nChannels, 0);
-  AddBoolParam(string("keepunder"), false);
-  AddBoolParam(string("keepoverflow"), false);
-  AddBoolParam(string("card"), true);
-  AddBoolParam(string("geo"),  true);    // Geographical addressing.
-  AddIntArrayParam(string("enable"), m_nChannels, 1);
-  AddIntParam(string("base"), 0);
-  AddBoolParam(string("multievent"), false);
-  AddIntParam(string("fastclearwindow"), 0);
-  AddIntParam(string("waitloops"), WAITLOOPS);
+  AddIntParam(std::string("crate"), 0);
+  AddIntParam(std::string("slot"), -1);   // Force legal config.
+  AddIntArrayParam(std::string("threshold"), m_nChannels, 0);
+  AddBoolParam(std::string("keepunder"), false);
+  AddBoolParam(std::string("keepoverflow"), false);
+  AddBoolParam(std::string("card"), true);
+  AddBoolParam(std::string("geo"),  true);    // Geographical addressing.
+  AddIntArrayParam(std::string("enable"), m_nChannels, 1);
+  AddIntParam(std::string("base"), 0);
+  AddBoolParam(std::string("multievent"), false);
+  AddIntParam(std::string("fastclearwindow"), 0);
+  AddIntParam(std::string("waitloops"), WAITLOOPS);
 
   // This parameter is added to allow us to source in 
   // SpecTcl configuration scripts too!!
 
-  AddStringArrayParam(string("parameters"), 32);
+  AddStringArrayParam(std::string("parameters"), 32);
   
   // Now set the appropriate ranges for the integer parameters.
   // This is a two step process for each parameter (or array).
@@ -102,7 +102,7 @@ CCAENModule::CCAENModule(const string & rName,
 
   // Crate numbers are in the range [0-7]:
 
-  i = Find(string("crate"));
+  i = Find(std::string("crate"));
   assert(i != end());
   pInt = (CIntConfigParam*)*i;
   pInt->setRange(0,7);
@@ -110,28 +110,28 @@ CCAENModule::CCAENModule(const string & rName,
   // Slot numbers range from 2 to 21 since
   // since slot 1 is a system controller.
   
-  i    = Find(string("slot"));
+  i    = Find(std::string("slot"));
   assert(i != end());
   pInt = (CIntConfigParam*)*i;
   pInt->setRange(1, 21);
    
   // Thresholds have the range 0 - 4000mV.
   
-  i      = Find(string("threshold"));
+  i      = Find(std::string("threshold"));
   assert(i != end());
   pArray = (CIntArrayParam*)*i;
   pArray->setRange(0, 4000);
   
   // Ranges have values 0 or 1 (really flags).
   
-  i      = Find(string("enable"));
+  i      = Find(std::string("enable"));
   assert(i != end());
   pArray = (CIntArrayParam*)*i;
   pArray->setRange(0,1);
 
   // Fast clear window runs from 0, 2000000:
 
-  i = Find(string("fastclearwindow"));
+  i = Find(std::string("fastclearwindow"));
   assert(i != end());
   pInt = (CIntConfigParam*)*i;
   pInt->setRange(0, 2000000);

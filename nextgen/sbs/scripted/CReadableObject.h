@@ -90,7 +90,7 @@ public:
 
   // Constructors and other canonical objects:
   //
-  CReadableObject (const STD(string)& rName,
+  CReadableObject (const std::string& rName,
 		   CTCLInterpreter& rInterp); //!< constructor.
  ~ CReadableObject ( ); 	//!< Destructor...
 
@@ -115,7 +115,7 @@ public:
   void             Link (CReadOrder* pReader)   ; //!< Link to a reader/packet. 
   void             Unlink ()   ;         //!< Unlink from reader/packet.
   bool             isLinked ()   ;       //!< Query am I linked? 
-  virtual   STD(string) getType () const  = 0 ;    //!< Return module type string (pure virt).
+  virtual   std::string getType () const  = 0 ;    //!< Return module type string (pure virt).
 
   virtual   void   OnDelete ()   ; // 
 

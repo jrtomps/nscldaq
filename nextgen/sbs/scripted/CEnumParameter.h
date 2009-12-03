@@ -55,18 +55,18 @@ class CTCLResult;
 */
 class CEnumParameter : public CConfigurationParameter {
 private:
-  STD(map)<STD(string), int> m_textToValue;
+  std::map<std::string, int> m_textToValue;
 public:
   struct enumeratorValue {
-    STD(string)    s_name;
+    std::string    s_name;
     int            s_value;
-    enumeratorValue(STD(string) name, int value) :
+    enumeratorValue(std::string name, int value) :
       s_name(name), s_value(value) {}
   }; 
 public:
-  CEnumParameter(STD(string) keyword,
-		 STD(vector)<CEnumParameter::enumeratorValue> values,
-		 STD(string) defaultValue);
+  CEnumParameter(std::string keyword,
+		 std::vector<CEnumParameter::enumeratorValue> values,
+		 std::string defaultValue);
   CEnumParameter(const CEnumParameter& rhs);
   virtual ~CEnumParameter();
 
@@ -81,11 +81,11 @@ public:
 public:
   virtual int SetValue(CTCLInterpreter& rInterp, CTCLResult& rResult,
 		       const char* pValue);
-  virtual STD(string) GetParameterFormat();
+  virtual std::string GetParameterFormat();
   int     GetEnumValue();
 
 protected:
-  bool checkValue(STD(string) newValue) const;
+  bool checkValue(std::string newValue) const;
 
 };
 

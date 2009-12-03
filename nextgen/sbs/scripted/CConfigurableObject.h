@@ -80,17 +80,17 @@ class CConfigurableObject : public  CTCLProcessor
 {
   // Public data types.
 public:
-  typedef STD(list)<CConfigurationParameter*> ConfigArray;
+  typedef std::list<CConfigurationParameter*> ConfigArray;
   typedef ConfigArray::iterator          ParameterIterator;
 private:
   
-  STD(string)          m_sName;	//!< Name of the command associated with the object.
+  std::string          m_sName;	//!< Name of the command associated with the object.
   ConfigArray     m_Configuration; //!< The configuration.
 
 
   // Constructors and other canonical operations.
 public:
-  CConfigurableObject (const STD(string)& rName,
+  CConfigurableObject (const std::string& rName,
 		       CTCLInterpreter& rInterp);
   virtual  ~ CConfigurableObject ( );  
 
@@ -106,7 +106,7 @@ public:
 
   //!  Retrieve a copy of the name:
 
-  STD(string) getName() const
+  std::string getName() const
   { 
     return m_sName;
   }   
@@ -127,37 +127,37 @@ public:
 				       CTCLResult& rResult, 
 				       int nArgs, char** pArgs); //!< list subcommand 
   ParameterIterator AddParameter(CConfigurationParameter* pConfigParam);
-  ParameterIterator AddIntParam (const STD(string)& sParamName, 
+  ParameterIterator AddIntParam (const std::string& sParamName, 
 				 int nDefault=0)   ; //!< Create an int.
-  ParameterIterator AddBoolParam (const STD(string)& rName,
+  ParameterIterator AddBoolParam (const std::string& rName,
 				  bool          fDefault)   ; //!< Create a boolean. 
-  ParameterIterator AddStringParam (const STD(string)& rName)   ; //!< Create string param. 
-  ParameterIterator AddIntArrayParam (const STD(string)&  rParameterName, 
+  ParameterIterator AddStringParam (const std::string& rName)   ; //!< Create string param. 
+  ParameterIterator AddIntArrayParam (const std::string&  rParameterName, 
 				      int nArraySize, 
 				      int nDefault=0)   ; //!< Create array of ints.
-  ParameterIterator AddStringArrayParam (const STD(string)& rName, 
+  ParameterIterator AddStringArrayParam (const std::string& rName, 
 					 int nArraySize)   ; //!< Create array of strings.
-  ParameterIterator AddEnumParam(STD(string) name,
-				 STD(vector)<STD(pair)<STD(string), int> > values,
-				 STD(string) defaultValue);
-  ParameterIterator Find (const STD(string)& rKeyword)   ; //!< Find a param 
+  ParameterIterator AddEnumParam(std::string name,
+				 std::vector<std::pair<std::string, int> > values,
+				 std::string defaultValue);
+  ParameterIterator Find (const std::string& rKeyword)   ; //!< Find a param 
   ParameterIterator begin ()   ; //!< Config param start iterator.
   ParameterIterator end ()   ;   //!< Config param end iterator.
   int size ()   ;                //!< Config param number of items.
-  STD(string) ListParameters (const STD(string)& rPattern)   ; //!< List configuration 
-  STD(string) ListKeywords ()   ;     //!< List keyword/type pairs.
+  std::string ListParameters (const std::string& rPattern)   ; //!< List configuration 
+  std::string ListKeywords ()   ;     //!< List keyword/type pairs.
 
   // Incomplete access to some configuratin parameter types by name.
 
-  int getIntegerValue(STD(string) name); //!< Get value of an integer config param.
-  bool getBoolValue(STD(string) name); //!< Get value of a bollean config param.
-  CIntArrayParam* getIntArray(STD(string) name); //!< Get ptr to int array param.
-  int             getEnumValue(STD(string) name);
+  int getIntegerValue(std::string name); //!< Get value of an integer config param.
+  bool getBoolValue(std::string name); //!< Get value of a bollean config param.
+  CIntArrayParam* getIntArray(std::string name); //!< Get ptr to int array param.
+  int             getEnumValue(std::string name);
 protected:
-  STD(string) Usage();
+  std::string Usage();
 private:
   void              DeleteParameters ()   ; //!< Delete all parameters. 
-  ParameterIterator FindOrThrow(STD(string) name, STD(string) type);
+  ParameterIterator FindOrThrow(std::string name, std::string type);
   
   
 };

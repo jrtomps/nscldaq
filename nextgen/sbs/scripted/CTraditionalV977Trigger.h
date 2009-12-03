@@ -22,8 +22,8 @@
 #include <Trigger.h>
 #endif
 
-#ifndef __HISTOTYPES_H
-#include <histotypes.h>
+#ifndef __DAQTYPES_H
+#include <daqdatatypes.h>
 #endif
 
 // Forward definitions.

@@ -344,7 +344,7 @@ private:
 public:
   // Construtors and other cannonical functions:
 
-  CCAENV785(const STD(string) &rName, CTCLInterpreter& rInterp,
+  CCAENV785(const std::string &rName, CTCLInterpreter& rInterp,
 	    int nChannels=32);
  ~CCAENV785 ( );
 private:
@@ -380,7 +380,7 @@ public:
   virtual   void Prepare (); // 
   virtual   void Read(DAQWordBufferPtr& rBuffer);
   virtual   void Clear ();
-  virtual   STD(string) getType() const {     return STD(string)("caenv785");
+  virtual   std::string getType() const {     return std::string("caenv785");
   }
 
 };

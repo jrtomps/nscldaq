@@ -45,7 +45,7 @@ class CReadableObject;
 class CDigitizerDictionary      
 {
 public:
-   typedef STD(map)<STD(string), CReadableObject*> DigitizerMap;
+   typedef std::map<std::string, CReadableObject*> DigitizerMap;
    typedef DigitizerMap::iterator ModuleIterator;
 private:
 	DigitizerMap m_Modules;
@@ -79,7 +79,7 @@ public:
    ModuleIterator DigitizerEnd ()   ; // 
    int DigitizerSize ()   ; // 
    void DigitizerAdd (CReadableObject* pDigitizer)   ; // 
-   ModuleIterator DigitizerFind (const STD(string)& rName)   ; // 
+   ModuleIterator DigitizerFind (const std::string& rName)   ; // 
    void Remove(ModuleIterator p) {
       m_Modules.erase(p);
    }

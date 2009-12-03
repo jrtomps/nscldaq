@@ -289,7 +289,7 @@ using namespace std;		// spectrodaq needs it here.
 
 #include <spectrodaq.h>
 #include <assert.h>
-#include <Iostream.h>
+#include <iostream>
 
 // constants:
 
@@ -316,7 +316,7 @@ static const int WAITLOOPS(10);
   
   \param rName const string& [in]  The name ofthis module.
 */
-CCAENV775::CCAENV775 (const string& rName, CTCLInterpreter& rInterp)
+CCAENV775::CCAENV775 (const std::string& rName, CTCLInterpreter& rInterp)
 
   : CCAENModule(rName, rInterp)
  
@@ -324,8 +324,8 @@ CCAENV775::CCAENV775 (const string& rName, CTCLInterpreter& rInterp)
   // Setup our configuration parameters:
   
 
-  AddIntParam(string("range"), DEFAULTRANGE);
-  AddBoolParam(string("commonstart"), true);
+  AddIntParam(std::string("range"), DEFAULTRANGE);
+  AddBoolParam(std::string("commonstart"), true);
   
   // For all the int params and intarray params, we need
   // to set valid ranges.  This  must be done by locating the
@@ -387,7 +387,7 @@ CCAENV775::Initialize()
   ParameterIterator  i;
   CIntConfigParam*   pInt;
   
-  i = Find(string("range"));
+  i = Find(std::string("range"));
   assert(i != end());
   pInt = (CIntConfigParam*) *i;
   int nRange = pInt->getOptionValue();  // ns.
@@ -398,7 +398,7 @@ CCAENV775::Initialize()
   // Set the module into common start or stop  mode depending on the mode setting.
 
   CBoolConfigParam* pBool;
-  i = Find(string("commonstart"));
+  i = Find(std::string("commonstart"));
   assert(i != end());
   pBool = (CBoolConfigParam*)(*i);
   if(pBool->getOptionValue()) {	// Common start...

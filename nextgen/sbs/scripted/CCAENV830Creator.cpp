@@ -9,9 +9,9 @@
 
 #include <assert.h>
 
-#ifdef HAVE_STD_NAMESPACE
+
 using namespace std;
-#endif
+
 
 /*!
    Creates a creational object for CAENV830 objects.

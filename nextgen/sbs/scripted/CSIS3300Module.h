@@ -54,7 +54,7 @@ class CSIS3300Module : public CDigitizerModule
   int          m_id;            // Packet id cached.
   bool         m_subpackets;	// Cached subpacket config parameter.
 public:
-  CSIS3300Module(const string&    name,
+  CSIS3300Module(const std::string&    name,
 		 CTCLInterpreter& interpreter);
   virtual ~CSIS3300Module();
 
@@ -70,11 +70,11 @@ public:
   virtual   void   Read (DAQWordBufferPtr& rBuffer); //!< Read to buffer.
   virtual   int    Read (void*  pBuffer); //!< Read to memory. (pure virt)
   virtual   void   Clear ();      //!< Clear (after read e.g.).(Pure virt) 
-  virtual   string getType () const;    //!< Return module type string (pure virt).
+  virtual   std::string getType () const;    //!< Return module type std::string (pure virt).
 private:
-  int       getIntValue(string name);
-  bool      getBoolValue(string name);
-  int       getEnumValue(string name);
+  int       getIntValue(std::string name);
+  bool      getBoolValue(std::string name);
+  int       getEnumValue(std::string name);
   CConfigurableObject::ParameterIterator AddConfigParam(CConfigurationParameter* param);
  
 };

@@ -319,12 +319,12 @@ class CConfigurationParameter
 private:
   
   // Private Member data:
-    STD(string) m_sSwitch;  //!  Switch keyword. e.g. -pedestal  
-    STD(string) m_sValue;  //!   Value of parameter in string form.  
+    std::string m_sSwitch;  //!  Switch keyword. e.g. -pedestal  
+    std::string m_sValue;  //!   Value of parameter in string form.  
    
 public:
   // Constructors and other canonical member functinos:
-  CConfigurationParameter (const STD(string)& keyword);
+  CConfigurationParameter (const std::string& keyword);
   virtual  ~ CConfigurationParameter ( );  
 
     //Copy Constructor 
@@ -340,12 +340,12 @@ public:
 public:
 
           //Get accessor function for non-static attribute data member
-  STD(string) getSwitch() const
+  std::string getSwitch() const
   {
     return m_sSwitch;
   }  
             //Get accessor function for non-static attribute data member
-  STD(string) getValue() const
+  std::string getValue() const
   {
     return m_sValue;
   }   
@@ -354,11 +354,11 @@ public:
 
 protected:
 
-  void setSwitch (const STD(string) am_sSwitch)
+  void setSwitch (const std::string am_sSwitch)
   { 
     m_sSwitch = am_sSwitch;
   }  
-  void setValue (const STD(string) am_sValue)
+  void setValue (const std::string am_sValue)
   {
     m_sValue = am_sValue;
   }   
@@ -367,15 +367,15 @@ protected:
 
 public:
 
-  bool Match (const STD(string)& rSwitch)   ; 
+  bool Match (const std::string& rSwitch)   ; 
   virtual   int operator() (CTCLInterpreter& rInterp, 
                             CTCLResult& rResult, 
                             const char* parameter)   ; 
-  STD(string) getOptionString () const   ; 
+  std::string getOptionString () const   ; 
   virtual   int SetValue (CTCLInterpreter& rInterp, 
                           CTCLResult& rResult, 
                           const char* pvalue)   = 0 ;
-  virtual STD(string) GetParameterFormat() = 0;
+  virtual std::string GetParameterFormat() = 0;
 
 };
 

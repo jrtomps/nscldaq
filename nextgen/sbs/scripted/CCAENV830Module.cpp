@@ -25,9 +25,8 @@
 #include <TCLInterpreter.h>
 #include <assert.h>
 
-#ifdef HAVE_STD_NAMESPACE
 using namespace std;
-#endif
+
 /*!
     Construct a scaler module reader.  This does not actually
     construct the underlying CCAENV830 module.  Instead it

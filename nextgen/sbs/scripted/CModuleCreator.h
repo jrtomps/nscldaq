@@ -63,12 +63,12 @@ private:
   
   // Private Member data:
 
-   STD(string) m_sModuleType;                  //!<  Module type string
+   std::string m_sModuleType;                  //!<  Module type string
    
 public:
 	// Constructors and other cannonical operations:
 	
-   CModuleCreator (const STD(string)& rType);
+   CModuleCreator (const std::string& rType);
    virtual  ~ CModuleCreator ( );  
    CModuleCreator (const CModuleCreator& aCModuleCreator );
    CModuleCreator& operator= (const CModuleCreator& rhs);
@@ -82,7 +82,7 @@ public:
 public:
 
           //Get accessor function for non-static attribute data member
-  STD(string) getModuleType() const
+  std::string getModuleType() const
   {
      return m_sModuleType;
   }   
@@ -92,7 +92,7 @@ public:
 protected:
 
           //Set accessor function for non-static attribute data member
-  void setModuleType (const STD(string) am_sModuleType)
+  void setModuleType (const std::string am_sModuleType)
   { 
      m_sModuleType = am_sModuleType;
   }   
@@ -101,13 +101,13 @@ protected:
 
 public:
 
-   bool    Match (const STD(string)& rType) const;
+   bool    Match (const std::string& rType) const;
    virtual CReadableObject* 
 	   Create (CTCLInterpreter& rInterp, 
 		   CTCLResult& rResult, 
 		   int nArgs, 
 		   char** pArgs)   = 0 ; 
-   virtual  STD(string)  Help ()   = 0 ; 
+   virtual  std::string  Help ()   = 0 ; 
 
 };
 
