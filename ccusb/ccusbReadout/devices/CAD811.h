@@ -51,37 +51,23 @@ class CCCUSB;
 class CCCUSBReadoutList;
 
 /*!
-  The PH7xx class is a CC-USB device class for a Phillips 71xx series
-CAMAC digizer.  This family includes the Ph7164 (ADC),  Ph 7186 (TDC) as
-well as a qdc model.  
+  CAD811 is a device class for the Ortec AD811 (note the TD811
+  should work as well for this class.  This is a very simple module.
+  All 8 channnels are read out regardless of the occupancy as the 
+  module does not support useful sparse readoutl.
 
-The options understood by the PH7xx module are:
+  Options supported are:
+
 \verbatim
-Name           Type      Initial           Meaning
--slot          int         0          Slot the module is installed in
--sparse        bool      true         Read in sparse mode 
--readhits      bool      true         Include hit register in the event stream
--pedestals     int[16]   0's          The channel pedestals.
--llt           int[16]   0's          The channel low level thresholds.
--hlt           int[16]   4095's       The channel high level thresholds.
--usellt        bool      false        Enable low level thresholds.
--usehlt        bool      false        Enable high level thresholds.
--usepedestals  bool      false        Enable pedestal subtraction.
--id            int16     0            Marker word to precede the data for identification.
+Name            Type       Initial           Meaning
+-slot           int         0      Slot module is installed in.
+-id             int16       0      Marker identifying the module.
 
-\endverbatim
-For some analysis systems, you may not be allowed to vary these parameters.
-For example, in the ccusbSpecTcl that understands data from this system,
-you should always set:
-\verbatim
-
--sparse    true
--readhits  true
 
 \endverbatim
 
 */
-class  CPH7xx : public CReadoutHardware
+class  CAD811 : public CReadoutHardware
 {
 private:
   CReadoutModule*  m_pConfiguration; // Where the configuration params live.
@@ -89,14 +75,14 @@ private:
   // class canonicals:
 
 public:
-  CPH7xx();
-  CPH7xx(const CPH7xx& rhs);
-  virtual ~CPH7xx();
-  CPH7xx& operator=(const CPH7xx& rhs);
+  CAD811();
+  CAD811(const CAD811& rhs);
+  virtual ~CAD811();
+  CAD811& operator=(const CAD811& rhs);
 
 private:
-  int operator==(const CPH7xx& rhs) const;
-  int operator!=(const CPH7xx& rhs) const;
+  int operator==(const CAD811& rhs) const;
+  int operator!=(const CAD811& rhs) const;
 
   // CReadoutHardware interface:
 
@@ -114,9 +100,6 @@ private:
   void         getArray(std::string name, std::vector<uint16_t>& values);
   void         checkedControl(CCCUSB& controller,
 			      int n, int a, int f, std::string msgFormat);
-  void         checkedWrite16(CCCUSB& controller,
-			      int n, int a, int f, uint16_t data,
-			      std::string msgFormat);
   void         check(int status, uint16_t qx, 
 		     int n, int a, int f, int d,
 		     std::string prefix, std::string format);

@@ -56,7 +56,7 @@ am__DEPENDENCIES_1 =
 libVMUSBDevices_la_DEPENDENCIES = $(top_builddir)/ccusb/libCCUSB.la \
 	$(am__DEPENDENCIES_1)
 am_libVMUSBDevices_la_OBJECTS = CConfigurableObject.lo \
-	CReadoutModule.lo CPH7xx.lo CStack.lo
+	CReadoutModule.lo CPH7xx.lo CAD811.lo CStack.lo
 libVMUSBDevices_la_OBJECTS = $(am_libVMUSBDevices_la_OBJECTS)
 DEFAULT_INCLUDES = -I.@am__isrc@ -I$(top_builddir)
 depcomp = $(SHELL) $(top_srcdir)/config/depcomp
@@ -212,6 +212,7 @@ lib_LTLIBRARIES = libVMUSBDevices.la
 libVMUSBDevices_la_SOURCES = CConfigurableObject.cpp	\
 					CReadoutModule.cpp	\
 					CPH7xx.cpp	\
+					CAD811.cpp	\
 					CStack.cpp
 
 INCLUDES = -I$(top_builddir)/ccusb \
@@ -225,6 +226,7 @@ include_HEADERS = CConfigurableObject.h	\
 					CReadoutModule.h 	\
 					CReadoutHardware.h 	\
 					CStack.h		\
+					CAD811.h		\
 					CPH7xx.h
 
 all: all-am
@@ -296,6 +298,7 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/CAD811.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/CConfigurableObject.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/CPH7xx.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/CReadoutModule.Plo@am__quote@

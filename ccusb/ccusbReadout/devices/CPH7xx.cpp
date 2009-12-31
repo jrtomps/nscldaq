@@ -54,11 +54,13 @@ static const uint16_t UT_ENABLE (0x04);
 static CConfigurableObject::limit One(1); 
 static CConfigurableObject::limit Zero(0);
 static CConfigurableObject::limit FourK(4095);
+static CConfigurableObject::limit FULL16(0xffff);
 static CConfigurableObject::limit LastSlot(23);
 static CConfigurableObject::limit ChannelCount(16);
 
 static CConfigurableObject::Limits SlotLimits(One, LastSlot); // CAMAC crate.
 static CConfigurableObject::Limits ParamLimits(Zero, FourK); // Ped, llt, hlt.
+static CConfigurableObject::Limits IdLimits(Zero, FULL16);
 
 // The parameter arrays need to be constrained to have exactly
 // ParamLimits elements, all of whom are in the range ParamLimits.
@@ -171,6 +173,8 @@ CPH7xx::onAttach(CReadoutModule& configuration)
 			     NULL, "false");
   configuration.addParameter("-usepedestals", CConfigurableObject::isBool,
 			     NULL, "false");
+  configuration.addParameter("-id", CConfigurableObject::isInteger,
+			     &IdLimits, "0");
 			 
 }
 /*!
@@ -304,8 +308,11 @@ CPH7xx::addReadoutList(CCCUSBReadoutList& list)
   int   slot   = getIntegerParameter("-slot");
   bool  hits   = getBoolParameter("-readhits");
   bool  sparse = getBoolParameter("-sparse");
+  int   id     = getIntegerParameter("-id");
 
   bool  waitLam= true;   	// First operation will wait for lam.
+
+  list.addMarker(id);
 
   if (hits) {
     list.addRead16(slot, 1, 6, waitLam); // read hit register.

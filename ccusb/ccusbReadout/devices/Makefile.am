@@ -2,6 +2,7 @@ lib_LTLIBRARIES 		= libVMUSBDevices.la
 libVMUSBDevices_la_SOURCES	= 	CConfigurableObject.cpp	\
 					CReadoutModule.cpp	\
 					CPH7xx.cpp	\
+					CAD811.cpp	\
 					CStack.cpp
 
 
@@ -17,6 +18,7 @@ include_HEADERS			= 	CConfigurableObject.h	\
 					CReadoutModule.h 	\
 					CReadoutHardware.h 	\
 					CStack.h		\
+					CAD811.h		\
 					CPH7xx.h
 
 
