@@ -268,7 +268,7 @@ double
 CConfigurableObject::getFloatParameter(string name)
 {
   string value = cget(name);
-  return atof(name.c_str());
+  return atof(value.c_str());
 }
 
 /*!

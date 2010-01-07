@@ -30,6 +30,8 @@
 #include <vector>
 #include <set>
 
+#include <iostream>
+
 using namespace std;
 
 //////////////////////////////////////////////////////////////////////
@@ -74,7 +76,6 @@ Const(HoldDelay1)           0x6052;
 Const(HoldWidth0)           0x6054;
 Const(HoldWidth1)           0x6056;
 Const(EnableGDG)            0x6058;
-
 Const(InputRange)           0x6060;
 Const(ECLTermination)       0x6062;
 Const(ECLGate1OrTiming)     0x6064;
@@ -270,6 +271,8 @@ CMADC32::onAttach(CReadoutModule& configuration)
   m_pConfiguration->addParameter("-thresholds", CConfigurableObject::isIntList,
 				 &ThresholdValidity, "0");
 
+  m_pConfiguration->addParameter("-pulser", CConfigurableObject::isBool,
+				 NULL, "false");
 
 }
 /*!
@@ -295,6 +298,7 @@ CMADC32::Initialize(CVMUSB& controller)
 
   uint32_t base = m_pConfiguration->getUnsignedParameter("-base");
   controller.vmeWrite16(base + Reset,    initamod, 1);
+  sleep(1);
   controller.vmeWrite16(base + StartAcq, initamod, 0);
   controller.vmeWrite16(base + ReadoutReset, initamod, 1);
 
@@ -303,7 +307,7 @@ CMADC32::Initialize(CVMUSB& controller)
   // First disable the interrupts so that we can't get any spurious ones during init.
 
   list.addWrite16(base + Ipl, initamod, 0);
-
+  list.addDelay(200);
   // Now retrieve the configuration parameters:
 
   uint16_t    id          = m_pConfiguration->getIntegerParameter("-id");
@@ -321,39 +325,59 @@ CMADC32::Initialize(CVMUSB& controller)
   string      timesource  = m_pConfiguration->cget("-timingsource");
   int         timedivisor = m_pConfiguration->getIntegerParameter("-timingdivisor");
   vector<int> thresholds  = m_pConfiguration->getIntegerList("-thresholds");
+  bool        pulser      = m_pConfiguration->getBoolParameter("-pulser");
 
   // Write the thresholds.
 
   for (int i =0; i < 32; i++) {
     list.addWrite16(base + Thresholds + i*sizeof(uint16_t), initamod, thresholds[i]);
+    list.addDelay(200);
   }
 
-  list.addWrite16(base + ModuleId, initamod, id); // Module id.
   list.addWrite16(base + Vector,   initamod, ivector);
+  list.addDelay(200);
 
   list.addWrite16(base + MarkType, initamod, timestamp ? 1 : 0); 
+  list.addDelay(200);
 
   if (gatemode == string("separate")) {
     list.addWrite16(base + BankOperation, initamod, 1);
   }
   else {
     list.addWrite16(base  + BankOperation, initamod, 0);
-  }
+  }									
+  list.addDelay(200);
+
   // If the gate generator is on, we need to program the hold delays and widths
   // as well as enable it.
 
   if(gdg) {
     list.addWrite16(base + HoldDelay0, initamod, holddelays[0]);
+    list.addDelay(200);
     list.addWrite16(base + HoldDelay1, initamod, holddelays[1]);
+    list.addDelay(200);
 
     list.addWrite16(base + HoldWidth0, initamod, holdwidths[0]);
+    list.addDelay(200);
     list.addWrite16(base + HoldWidth1, initamod, holdwidths[1]);
+    list.addDelay(200);
     
     list.addWrite16(base + EnableGDG, initamod, 1);
+    list.addDelay(200);
+
   } else {
     list.addWrite16(base + EnableGDG, initamod, 0);
+    list.addDelay(200);
   }
   
+  if (pulser) {
+    list.addWrite16(base+TestPulser, initamod, 2);
+  }
+  else {
+    list.addWrite16(base+TestPulser, initamod,0);
+  }
+  list.addDelay(200);
+
   // Set the input range:
 
   if (inputrange == string("4v")) {
@@ -365,13 +389,15 @@ CMADC32::Initialize(CVMUSB& controller)
   else {			// 10V
     list.addWrite16(base + InputRange, initamod, 2);
   }
+  list.addDelay(200);
 
   // Set the timing divisor, and clear the timestamp:
 
 
-  list.addWrite16(base + TimingDivisor, initamod, timedivisor);
-  list.addWrite16(base + TimestampReset, initamod, 3); // Reset both counters.
-
+    list.addWrite16(base + TimingDivisor, initamod, timedivisor);
+    list.addDelay(200);
+    list.addWrite16(base + TimestampReset, initamod, 3); // Reset both counters.
+    list.addDelay(200);
 
   // Turn on or off ECL termination.  In fact the module provides much more control
   // over this featuer.. but for now we're all or nothing.
@@ -382,25 +408,34 @@ CMADC32::Initialize(CVMUSB& controller)
   else {
     list.addWrite16(base + ECLTermination, initamod, 0);
   }
+  list.addDelay(200);
 
   // Control which external sources can provide the timebase for the timestamp:
 
   if (ecltimeinput) {
     list.addWrite16(base + ECLGate1OrTiming, initamod, 1);
+    list.addDelay(200);
     list.addWrite16(base + ECLFCOrTimeReset, initamod, 1);
+    list.addDelay(200);
   }
   else {
     list.addWrite16(base + ECLGate1OrTiming, initamod, 0);
+    list.addDelay(200);
     list.addWrite16(base + ECLFCOrTimeReset, initamod, 0);
+    list.addDelay(200);
   }
 
   if (nimtimeinput) {
     list.addWrite16(base + NIMGate1OrTiming, initamod, 1);
+    list.addDelay(200);
     list.addWrite16(base + NIMFCOrTimeReset, initamod, 1);
+    list.addDelay(200);
   }
   else {
     list.addWrite16(base + NIMGate1OrTiming, initamod, 0);
+    list.addDelay(200);
     list.addWrite16(base + NIMFCOrTimeReset, initamod, 0);
+    list.addDelay(200);
   }
 
   // Source of the timebase:
@@ -411,21 +446,31 @@ CMADC32::Initialize(CVMUSB& controller)
   else {
     list.addWrite16(base + TimingSource, initamod, 1);
   }
+  list.addDelay(200);
   
+  // Ensure that busy is on the busy connector:
+
+  list.addWrite16(base + NIMBusyFunction, initamod, 0);
+  list.addDelay(200);
 
   // Finally clear the converter and set the IPL which enables interrupts if
   // the IPL is non-zero, and does no harm if it is zero.
 
-  list.addWrite16(base + ReadoutReset, initamod, 0);
-  list.addWrite16(base + InitFifo,     initamod, 0);
 
   list.addWrite16(base + Ipl, initamod, ipl);
 
 
   // Now reset again and start daq:
 
+
+  list.addDelay(200);
+  list.addWrite16(base + ModuleId, initamod, id); // Module id.
   list.addWrite16(base + ReadoutReset, initamod, 1);
+  list.addDelay(200);
+  list.addWrite16(base + InitFifo,     initamod, 0);
+  list.addDelay(200);
   list.addWrite16(base + StartAcq, initamod, 1 );
+
 
 
   //  Execute the list to initialize the module:
@@ -438,6 +483,7 @@ CMADC32::Initialize(CVMUSB& controller)
      throw string("List excecution to initialize an MADC32 failed");
    }
 
+  
 }
 /*!
   Add instructions to read out the ADC for a event. Since we're only working in
