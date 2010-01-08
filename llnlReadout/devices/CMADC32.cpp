@@ -1,6 +1,6 @@
 /*
     This software is Copyright by the Board of Trustees of Michigan
-    State University (c) Copyright 2005.
+    State University (c) Copyright MADCDELAY5.
 
     You may use this software under the terms of the GNU public license
     (GPL).  The terms of this license are described at:
@@ -38,6 +38,8 @@ using namespace std;
 // Local constants.
 
 #define Const(name) static const int name =
+
+Const(MADCDELAY)  1;
 
 // The address modifiers that will be used to access the module:
 
@@ -307,7 +309,7 @@ CMADC32::Initialize(CVMUSB& controller)
   // First disable the interrupts so that we can't get any spurious ones during init.
 
   list.addWrite16(base + Ipl, initamod, 0);
-  list.addDelay(200);
+  list.addDelay(MADCDELAY);
   // Now retrieve the configuration parameters:
 
   uint16_t    id          = m_pConfiguration->getIntegerParameter("-id");
@@ -331,14 +333,14 @@ CMADC32::Initialize(CVMUSB& controller)
 
   for (int i =0; i < 32; i++) {
     list.addWrite16(base + Thresholds + i*sizeof(uint16_t), initamod, thresholds[i]);
-    list.addDelay(200);
+    list.addDelay(MADCDELAY);
   }
 
   list.addWrite16(base + Vector,   initamod, ivector);
-  list.addDelay(200);
+  list.addDelay(MADCDELAY);
 
   list.addWrite16(base + MarkType, initamod, timestamp ? 1 : 0); 
-  list.addDelay(200);
+  list.addDelay(MADCDELAY);
 
   if (gatemode == string("separate")) {
     list.addWrite16(base + BankOperation, initamod, 1);
@@ -346,28 +348,28 @@ CMADC32::Initialize(CVMUSB& controller)
   else {
     list.addWrite16(base  + BankOperation, initamod, 0);
   }									
-  list.addDelay(200);
+  list.addDelay(MADCDELAY);
 
   // If the gate generator is on, we need to program the hold delays and widths
   // as well as enable it.
 
   if(gdg) {
     list.addWrite16(base + HoldDelay0, initamod, holddelays[0]);
-    list.addDelay(200);
+    list.addDelay(MADCDELAY);
     list.addWrite16(base + HoldDelay1, initamod, holddelays[1]);
-    list.addDelay(200);
+    list.addDelay(MADCDELAY);
 
     list.addWrite16(base + HoldWidth0, initamod, holdwidths[0]);
-    list.addDelay(200);
+    list.addDelay(MADCDELAY);
     list.addWrite16(base + HoldWidth1, initamod, holdwidths[1]);
-    list.addDelay(200);
+    list.addDelay(MADCDELAY);
     
     list.addWrite16(base + EnableGDG, initamod, 1);
-    list.addDelay(200);
+    list.addDelay(MADCDELAY);
 
   } else {
     list.addWrite16(base + EnableGDG, initamod, 0);
-    list.addDelay(200);
+    list.addDelay(MADCDELAY);
   }
   
   if (pulser) {
@@ -376,7 +378,7 @@ CMADC32::Initialize(CVMUSB& controller)
   else {
     list.addWrite16(base+TestPulser, initamod,0);
   }
-  list.addDelay(200);
+  list.addDelay(MADCDELAY);
 
   // Set the input range:
 
@@ -389,15 +391,15 @@ CMADC32::Initialize(CVMUSB& controller)
   else {			// 10V
     list.addWrite16(base + InputRange, initamod, 2);
   }
-  list.addDelay(200);
+  list.addDelay(MADCDELAY);
 
   // Set the timing divisor, and clear the timestamp:
 
 
     list.addWrite16(base + TimingDivisor, initamod, timedivisor);
-    list.addDelay(200);
+    list.addDelay(MADCDELAY);
     list.addWrite16(base + TimestampReset, initamod, 3); // Reset both counters.
-    list.addDelay(200);
+    list.addDelay(MADCDELAY);
 
   // Turn on or off ECL termination.  In fact the module provides much more control
   // over this featuer.. but for now we're all or nothing.
@@ -408,34 +410,34 @@ CMADC32::Initialize(CVMUSB& controller)
   else {
     list.addWrite16(base + ECLTermination, initamod, 0);
   }
-  list.addDelay(200);
+  list.addDelay(MADCDELAY);
 
   // Control which external sources can provide the timebase for the timestamp:
 
   if (ecltimeinput) {
     list.addWrite16(base + ECLGate1OrTiming, initamod, 1);
-    list.addDelay(200);
+    list.addDelay(MADCDELAY);
     list.addWrite16(base + ECLFCOrTimeReset, initamod, 1);
-    list.addDelay(200);
+    list.addDelay(MADCDELAY);
   }
   else {
     list.addWrite16(base + ECLGate1OrTiming, initamod, 0);
-    list.addDelay(200);
+    list.addDelay(MADCDELAY);
     list.addWrite16(base + ECLFCOrTimeReset, initamod, 0);
-    list.addDelay(200);
+    list.addDelay(MADCDELAY);
   }
 
   if (nimtimeinput) {
     list.addWrite16(base + NIMGate1OrTiming, initamod, 1);
-    list.addDelay(200);
+    list.addDelay(MADCDELAY);
     list.addWrite16(base + NIMFCOrTimeReset, initamod, 1);
-    list.addDelay(200);
+    list.addDelay(MADCDELAY);
   }
   else {
     list.addWrite16(base + NIMGate1OrTiming, initamod, 0);
-    list.addDelay(200);
+    list.addDelay(MADCDELAY);
     list.addWrite16(base + NIMFCOrTimeReset, initamod, 0);
-    list.addDelay(200);
+    list.addDelay(MADCDELAY);
   }
 
   // Source of the timebase:
@@ -446,12 +448,12 @@ CMADC32::Initialize(CVMUSB& controller)
   else {
     list.addWrite16(base + TimingSource, initamod, 1);
   }
-  list.addDelay(200);
+  list.addDelay(MADCDELAY);
   
   // Ensure that busy is on the busy connector:
 
   list.addWrite16(base + NIMBusyFunction, initamod, 0);
-  list.addDelay(200);
+  list.addDelay(MADCDELAY);
 
   // Finally clear the converter and set the IPL which enables interrupts if
   // the IPL is non-zero, and does no harm if it is zero.
@@ -463,12 +465,12 @@ CMADC32::Initialize(CVMUSB& controller)
   // Now reset again and start daq:
 
 
-  list.addDelay(200);
+  list.addDelay(MADCDELAY);
   list.addWrite16(base + ModuleId, initamod, id); // Module id.
   list.addWrite16(base + ReadoutReset, initamod, 1);
-  list.addDelay(200);
+  list.addDelay(MADCDELAY);
   list.addWrite16(base + InitFifo,     initamod, 0);
-  list.addDelay(200);
+  list.addDelay(MADCDELAY);
   list.addWrite16(base + StartAcq, initamod, 1 );
 
 
