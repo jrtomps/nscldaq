@@ -375,6 +375,18 @@ CCCUSBReadoutList::addRepeat(int n, int a, int f, uint16_t count, bool lamWait)
   m_list.push_back(count);
 
 }
+/**********************************************************************
+/*!
+    Add a put marker to the stack.  This is just the same as doing
+    a 16 bit write to N =0 any subaddress (we'll use zero)
+    \param value  - 16 bit value to add to the event.
+*/
+void
+CCCUSBReadoutList::addMarker(uint16_t value)
+{
+  m_list.push_back(NAF(0,0,16));
+  m_list.push_back(value);
+}
 
 /****************************************************************************/
 /*                      Private utility functions.                          */

@@ -14,8 +14,8 @@
 	     East Lansing, MI 48824-1321
 */
 
-#ifndef CAD811_H
-#define CAD811_H
+#ifndef CLRS2551_H
+#define CLRS2551_H
 
 
 #ifndef __CREADOUTHARDWARE_H
@@ -51,7 +51,7 @@ class CCCUSB;
 class CCCUSBReadoutList;
 
 /*!
-  CAD811 is a device class for the Ortec AD811 (note the TD811
+  CLRS2551 is a device class for the Ortec LRS2551 (note the TD811
   should work as well for this class.  This is a very simple module.
   All 8 channnels are read out regardless of the occupancy as the 
   module does not support useful sparse readoutl.
@@ -62,26 +62,27 @@ class CCCUSBReadoutList;
 Name            Type       Initial           Meaning
 -slot           int         0      Slot module is installed in.
 -id             int16       0      Marker identifying the module.
+-insertid       bool       false   Insert the id (set true if event mode).
+-cummulative    bool       false   If true, scalers are not reset on read.
 
 
 \endverbatim
 
 */
-class  CAD811 : public CReadoutHardware
+class  CLRS2551 : public CReadoutHardware
 {
-private:
 
   // class canonicals:
 
 public:
-  CAD811();
-  CAD811(const CAD811& rhs);
-  virtual ~CAD811();
-  CAD811& operator=(const CAD811& rhs);
+  CLRS2551();
+  CLRS2551(const CLRS2551& rhs);
+  virtual ~CLRS2551();
+  CLRS2551& operator=(const CLRS2551& rhs);
 
 private:
-  int operator==(const CAD811& rhs) const;
-  int operator!=(const CAD811& rhs) const;
+  int operator==(const CLRS2551& rhs) const;
+  int operator!=(const CLRS2551& rhs) const;
 
   // CReadoutHardware interface:
 
@@ -90,6 +91,9 @@ public:
   virtual void Initialize(CCCUSB& controller);
   virtual void addReadoutList(CCCUSBReadoutList& list);
   virtual CReadoutHardware* clone() const;
-};
 
+
+
+};
 #endif
+

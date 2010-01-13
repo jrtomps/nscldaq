@@ -63,17 +63,18 @@ static CConfigurableObject::Limits IdLimits(Zero, FULL16);
    hooked to this modules at attachment time.
 
 */
-CAD811::CAD811()  :
-  m_pConfiguration(0)
+CAD811::CAD811() 
 {
+  m_pConfiguration = 0;
+
 }
 /*!
    Copy construction will copy the configuration and its values,
    if they have been produces in the rhs.
 */
-CAD811::CAD811(const CAD811& rhs) :
-  m_pConfiguration(0)
+CAD811::CAD811(const CAD811& rhs) 
 {
+  m_pConfiguration = 0;
   if (rhs.m_pConfiguration) {
     m_pConfiguration = new CReadoutModule(*(rhs.m_pConfiguration));
   }
@@ -200,137 +201,4 @@ CReadoutHardware*
 CAD811::clone() const
 {
   return new CAD811(*this);
-}
-/*********************************************************************/
-/*                Utilities to access the configuration              */
-/*********************************************************************/
-
-// Return the named integer parameter.
-// The configuration validators have ensured the parameter actually
-// is an integer.
-
-unsigned int
-CAD811::getIntegerParameter(string name)
-{
-  string value = m_pConfiguration->cget(name);
-  return strtoul(value.c_str(), NULL, 0);
-}
-
-// Get the value of a boolean parameter.
-// In this case, we create the set of valid true values.  If the
-// string matches at least on of them (is in the set), 
-// then we can return true.. otherwise false.
-// Once again, the validator, and our initial value, ensure the
-// string is a valid bool
-//
-bool
-CAD811::getBoolParameter(string name)
-{
-  string value = m_pConfiguration->cget(name);
-  set<string>  trueValues;
-  trueValues.insert("true");
-  trueValues.insert("yes");
-  trueValues.insert("yes");	// Valid true values.
-  trueValues.insert("1");
-  trueValues.insert("on");
-  trueValues.insert("enabled");
-
-  return (trueValues.count(value) != 0);	// value matches one of the set members.
-
-}
-// Retrieve an array of uint16_t values.
-// 
-void
-CAD811::getArray(string name, vector<uint16_t>& value)
-{
-  int    argc;
-  const char **argv;
-  string sValue = m_pConfiguration->cget(name);
-  Tcl_SplitList(NULL, sValue.c_str(), &argc, &argv);
-
-  assert(argc == 16);		// Validator should have done this.
-
-  for(int i =0; i < 16; i++) {
-    value.push_back(static_cast<uint16_t>(strtol(argv[i], NULL, 0)));
-  }
-  
-
-  Tcl_Free((char*)argv);
-
-   
-}
-
-/**********************************************************************/
-/*              Checked immediate CAMAC operations                    */
-/**********************************************************************/
-
-/*
-   This function performs an immediate control operation on the
-   CCUSB.  The return value and the q/x are checked.  If any of them
-   indicate the command could not be executed, a string exception
-   is thrown.  The user supplies a formatting string
-   that can contain appropriate sprintf control codes that insert
-   the slot, subaddress, and function code (in that order) into their
-   message.  The message is prepended with a stock message explaining
-   what went wrong (e.g. "Bad status on CCUSB control operation: user msg")
-   and then thrown as a string.
-
-   Parameter:
-    controller - Reference to the CCUSB controller object on which the
-                 operation will be attempted.
-    n          - Target Slot
-    a          - Target subadress
-    f          - Function code to do.
-    message    - Message template.
-
-*/
-void
-CAD811::checkedControl(CCCUSB& controller,
-		       int n, int a, int f, string message)
-{
-  uint16_t qx;
-  int      status = controller.simpleControl(n,a,f, qx);
-  check(status, qx, 
-	n,a,f,0,
-	string("Error in checkedControl: "), message);
-}/*
-   Checks the status of a camac function and if it has failed,
-   throws an appropriate string exception.
-   The string exception is constructed as follows:
-   prefix : reason : formatted-text.
-   where formatted-text is constructed by doing an 
-
-   sprintf(fomrmattedtext, format, n,a,f,d)
-   
-*/
-void
-CAD811::check(int status, uint16_t qx,
-	      int n, int a, int f, int d,
-	      string prefix, string format)
-{
-  string message = prefix;
-  bool   trouble = false;
-
-  if (status != 0) {
-    message += " CCUSB operation failed : ";
-    trouble = true;
-  }
-  // If q/x are missing, then the most serious would be a missing
-  // X and then finally a missing Q
-  //
-  if (!trouble && ((qx & (CCCUSB::Q | CCCUSB::X)) != (CCCUSB::Q | CCCUSB::X))) {
-    trouble = true;
-    if ((qx & CCCUSB::X) == 0) {
-      message += " No X response from module : ";
-    }
-    else {
-      message += " No Q response from module : ";
-    }
-  }
-  if (trouble) {
-    char formattedText[1000];
-    snprintf(formattedText, sizeof(formattedText), format.c_str(), n,a,f,d);
-    message += formattedText;
-    throw message;
-  }
 }

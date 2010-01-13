@@ -100,6 +100,10 @@ public:
   void addQScan(int n, int a, int f, uint16_t max, bool lamWait = false);
   void addRepeat(int n, int a, int f,uint16_t count, bool lamWait=false);
 
+  // Other:
+
+  void addMarker(uint16_t value);    // Add literal value to event.
+
   // 
 private:
   static std::string messageWithValue(const char* format, int value);

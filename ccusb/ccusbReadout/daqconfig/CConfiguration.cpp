@@ -24,6 +24,9 @@
 #include <TCLObjectProcessor.h>
 #include <Exception.h>
 #include <CPH7xxCommand.h>
+#include <CAD811Command.h>
+#include <CLRS2551Command.h>
+
 
 #include <tcl.h>
 #include <algorithm>
@@ -53,6 +56,8 @@ CConfiguration::CConfiguration() :
 
   m_Commands.push_back(new CStackCommand(*m_pInterp, *this));
   m_Commands.push_back(new CPH7xxCommand(*m_pInterp, *this));
+  m_Commands.push_back(new CAD811Command(*m_pInterp, *this));
+  m_Commands.push_back(new CLRS2551Command(*m_pInterp, *this));
 
 }
 /*!

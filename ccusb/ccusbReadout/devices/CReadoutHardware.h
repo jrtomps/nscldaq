@@ -10,12 +10,28 @@
      Author:
              Ron Fox
 	     NSCL
-	     Michigan State University
+	     Michigan State University`
 	     East Lansing, MI 48824-1321
 */
 
 #ifndef __CREADOUTHARDWARE_H
 #define __CREADOUTHARDWARE_H
+
+
+#ifndef __STL_STRING
+#include <string>
+#ifndef __STL_STRING
+#define __STL_STRING
+#endif
+#endif
+
+#ifndef __STL_VECTOR
+#include <vector>
+#ifndef __STL_VECTOR
+#define __STL_VECTOR
+#endif
+#endif
+
 
 // Forward class definitions:
 
@@ -41,6 +57,8 @@ class CReadoutModule;
 */
 class CReadoutHardware
 {
+protected:
+  CReadoutModule*  m_pConfiguration;
 public:
   virtual ~CReadoutHardware() {} // Needed to chain destructors.
   
@@ -50,6 +68,20 @@ public:
   virtual void Initialize(CCCUSB& controller) = 0;
   virtual void addReadoutList(CCCUSBReadoutList& list) = 0;
   virtual CReadoutHardware* clone() const = 0;
+
+  // Utilities factored out of derived classes:
+protected:
+  unsigned int getIntegerParameter(std::string name);
+  bool         getBoolParameter(std::string name);
+  void         getArray(std::string name, std::vector<uint16_t>& values);
+  void         checkedControl(CCCUSB& controller,
+			      int n, int a, int f, std::string msgFormat);
+  void         checkedWrite16(CCCUSB& controller,
+			      int n, int a, int f, uint16_t data,
+			      std::string msgFormat);
+  void         check(int status, uint16_t qx, 
+		     int n, int a, int f, int d,
+		     std::string prefix, std::string format);
 };
 
 #endif
