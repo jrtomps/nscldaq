@@ -323,7 +323,10 @@ COutputThread::scaler(DataBuffer& buffer)
     length*sizeof(uint32_t)/sizeof(uint16_t) - 1;
   
   pScalerBuffer outbuf  = static_cast<pScalerBuffer>(malloc(sizeof(ScalerBuffer)+m_outputBufferSize));
-  memcpy(outbuf->s_body.scalers, pScalers, length*sizeof(uint32_t));
+  uint32_t* pDest = reinterpret_cast<uint32_t*>(outbuf->s_body.scalers);
+  for (int i = 0; i < length; i++) {
+    *pDest++ = *pScalers++ & 0xffffff;     // only 24 bits of data mean anything.
+  }
   
   // fill in the header.
   

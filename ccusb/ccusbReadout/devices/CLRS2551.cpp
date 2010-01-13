@@ -112,12 +112,12 @@ CLRS2551::onAttach(CReadoutModule& configuration)
   // Create the configuration options:
 
   configuration.addParameter("-slot", CConfigurableObject::isInteger,
-			     &SlotLimits, 0);
+			     &SlotLimits, "0");
   configuration.addParameter("-id", CConfigurableObject::isInteger,
 			     &IdLimits,"0");
   configuration.addParameter("-insertid", CConfigurableObject::isBool,
 			     0, "false");
-  configuration.addParameter("-cummulative", CConfigurableObject::isBool,
+  configuration.addParameter("-cumulative", CConfigurableObject::isBool,
 			     0, "false");
 }
 
@@ -138,9 +138,18 @@ CLRS2551::Initialize(CCCUSB& controller)
   }
 
   // Clear the module counters.
+  // Can't use checked control because there's no Q:
 
-  checkedControl(controller, slot, 9, 0,
-		 string("Clearing an LRS2551's counters"));
+  uint16_t qx;
+  int status;
+  status = controller.simpleControl(slot, 0, 9, qx);
+
+  if (status != 0) {
+    throw "Nonzero status from scaler clear (CLRS2551)";
+  }
+  if ((qx & CCCUSB::X) != CCCUSB::X) {
+    throw "No X response while clearing (CLRS2551)";
+  }
 }
 /*!
    Add the readout commands to the readout list.
@@ -165,7 +174,9 @@ CLRS2551::addReadoutList(CCCUSBReadoutList& list)
   }
   // the read is just a q scan limited by the number of channels we have (12):
 
-  list.addQScan(slot, 0, function, 12, false);
+  for (int i = 0; i < 12; i++) {
+    list.addRead24(slot, i, function, false);
+  }
     
 }
 /*!
