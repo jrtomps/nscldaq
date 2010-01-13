@@ -141,9 +141,9 @@ CAcquisitionThread::operator()(int argc, char** argv)
   try {
     m_Running = true;		// Thread is off and running now.
     
-    beginRun();			// Emit begin run buffer.
     
     startDaq();  		        // Setup and start data taking.
+    beginRun();			// Emit begin run buffer.
     try {
       
       mainLoop();			// Enter the main processing loop.
