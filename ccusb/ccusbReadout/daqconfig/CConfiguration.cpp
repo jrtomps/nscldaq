@@ -27,6 +27,7 @@
 #include <CAD811Command.h>
 #include <CLRS2551Command.h>
 #include <CLRS2249Command.h>
+#include <CLRS2228Command.h>
 
 #include <tcl.h>
 #include <algorithm>
@@ -59,6 +60,7 @@ CConfiguration::CConfiguration() :
   m_Commands.push_back(new CAD811Command(*m_pInterp, *this));
   m_Commands.push_back(new CLRS2551Command(*m_pInterp, *this));
   m_Commands.push_back(new CLRS2249Command(*m_pInterp, *this));
+  m_Commands.push_back(new CLRS2228Command(*m_pInterp, *this));
 
 }
 /*!
