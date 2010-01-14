@@ -9,3 +9,5 @@ Auguset 29, 2009
         - Template controls driver.
 January 13, 2010
         - Adding LRS 2551 scaler support.
+January 14, 2010
+        - Adding LRS 2249 qdc support.
