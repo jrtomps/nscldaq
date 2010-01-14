@@ -14,8 +14,8 @@
 	     East Lansing, MI 48824-1321
 */
 
-#ifndef CLRS2551_H
-#define CLRS2551_H
+#ifndef CLRS2249_H
+#define CLRS2249_H
 
 
 #ifndef __CREADOUTHARDWARE_H
@@ -51,10 +51,10 @@ class CCCUSB;
 class CCCUSBReadoutList;
 
 /*!
-  CLRS2551 is a device class for the  LRS2551 scaler
-  This is a very simple module.
-  All 12 channnels are read out regardless of the occupancy as the 
-  module does not support useful sparse readoutl.
+  CLRS2249 is a device class for the  LRS2249 QDC module.
+  Each event trigger results in all 12 channels of the module
+  being read out.
+
 
   Options supported are:
 
@@ -62,27 +62,25 @@ class CCCUSBReadoutList;
 Name            Type       Initial           Meaning
 -slot           int         0      Slot module is installed in.
 -id             int16       0      Marker identifying the module.
--insertid       bool       false   Insert the id (set true if event mode).
--cummulative    bool       false   If true, scalers are not reset on read.
 
 
 \endverbatim
 
 */
-class  CLRS2551 : public CReadoutHardware
+class  CLRS2249 : public CReadoutHardware
 {
 
   // class canonicals:
 
 public:
-  CLRS2551();
-  CLRS2551(const CLRS2551& rhs);
-  virtual ~CLRS2551();
-  CLRS2551& operator=(const CLRS2551& rhs);
+  CLRS2249();
+  CLRS2249(const CLRS2249& rhs);
+  virtual ~CLRS2249();
+  CLRS2249& operator=(const CLRS2249& rhs);
 
 private:
-  int operator==(const CLRS2551& rhs) const;
-  int operator!=(const CLRS2551& rhs) const;
+  int operator==(const CLRS2249& rhs) const;
+  int operator!=(const CLRS2249& rhs) const;
 
   // CReadoutHardware interface:
 

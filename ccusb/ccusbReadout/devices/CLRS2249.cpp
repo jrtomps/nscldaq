@@ -18,7 +18,7 @@
 
 
 #include <config.h>
-#include "CLRS2551.h"
+#include "CLRS2249.h"
 
 #include "CReadoutModule.h"
 #include <CCCUSB.h>
@@ -59,7 +59,7 @@ static CConfigurableObject::Limits IdLimits(Zero, FULL16);
 /*!
    Construction - initialize the configuration to null
 */
-CLRS2551::CLRS2551()
+CLRS2249::CLRS2249()
 {
   m_pConfiguration = 0;
 
@@ -67,7 +67,7 @@ CLRS2551::CLRS2551()
 /*!
    Copy construction
 */
-CLRS2551::CLRS2551(const CLRS2551& rhs)
+CLRS2249::CLRS2249(const CLRS2249& rhs)
 {
   m_pConfiguration = 0;
 
@@ -79,8 +79,8 @@ CLRS2551::CLRS2551(const CLRS2551& rhs)
 /*!
    Assignemnt:
 */
-CLRS2551&
-CLRS2551::operator=(const CLRS2551& rhs)
+CLRS2249&
+CLRS2249::operator=(const CLRS2249& rhs)
 {
   if ((this != &rhs) && (rhs.m_pConfiguration)) {
     m_pConfiguration = new CReadoutModule(*(rhs.m_pConfiguration));
@@ -91,7 +91,7 @@ CLRS2551::operator=(const CLRS2551& rhs)
    Destruction is a no-op ast here are currently issues with deleting a
    configuration. This implies a memory leaK!!
 */
-CLRS2551::~CLRS2551()
+CLRS2249::~CLRS2249()
 {
 }
 
@@ -105,7 +105,7 @@ CLRS2551::~CLRS2551()
    @param configuration - Configuration object to be used by this object.
 */
 void
-CLRS2551::onAttach(CReadoutModule& configuration)
+CLRS2249::onAttach(CReadoutModule& configuration)
 {
   m_pConfiguration = &configuration; // store for later.
 
@@ -115,10 +115,6 @@ CLRS2551::onAttach(CReadoutModule& configuration)
 			     &SlotLimits, "0");
   configuration.addParameter("-id", CConfigurableObject::isInteger,
 			     &IdLimits,"0");
-  configuration.addParameter("-insertid", CConfigurableObject::isBool,
-			     0, "false");
-  configuration.addParameter("-cumulative", CConfigurableObject::isBool,
-			     0, "false");
 }
 
 /*!
@@ -128,13 +124,13 @@ CLRS2551::onAttach(CReadoutModule& configuration)
    @param controller CCUSB Controller object
 */
 void
-CLRS2551::Initialize(CCCUSB& controller)
+CLRS2249::Initialize(CCCUSB& controller)
 {
   // Validate parameters.
 
   int slot = getIntegerParameter("-slot");
   if(!slot) {
-    throw "An LRS2551 module has not had its slot configured (-slot missing)";
+    throw "An LRS2249 module has not had its slot configured (-slot missing)";
   }
 
   // Clear the module counters.
@@ -142,8 +138,9 @@ CLRS2551::Initialize(CCCUSB& controller)
 
   checkedControl(controller,
 		 slot, 0, 9,
-		 string("Failed to initialize LRS 2551 n=%d, a=%d f=%d (%d)"),
+		 string("Failed to initialize LRS 2249 n=%d, a=%d f=%d (%d)"),
 		 false);
+
 }
 /*!
    Add the readout commands to the readout list.
@@ -154,30 +151,26 @@ CLRS2551::Initialize(CCCUSB& controller)
    @param list CCUSBReadout list that drives the read.
 */
 void
-CLRS2551::addReadoutList(CCCUSBReadoutList& list)
+CLRS2249::addReadoutList(CCCUSBReadoutList& list)
 {
   int slot         = getIntegerParameter("-slot");
   int id           = getIntegerParameter("-id");
-  bool insertid    = getBoolParameter("-insertid");
-  bool cummulative = getBoolParameter("-cumulative");
 
-  int function     = cummulative ? 0 : 2;    // not cumulative f2 clears.
 
-  if(insertid) {
-    list.addMarker(id);
-  }
-  // Can't do a Q-scan as that is only 16 bits wide in software support.
+  list.addMarker(id);
 
-  for (int i = 0; i < 12; i++) {
-    list.addRead24(slot, i, function, false);
-  }
+  // Do a Qscan limited to 12 channels to read the data:
+
+  list.addQScan(slot, 0, 2, 12);
+
+
     
 }
 /*!
    Clone self:
 */
 CReadoutHardware*
-CLRS2551::clone() const
+CLRS2249::clone() const
 {
-  return new CLRS2551(*this);
+  return new CLRS2249(*this);
 }

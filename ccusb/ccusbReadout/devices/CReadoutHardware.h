@@ -75,13 +75,16 @@ protected:
   bool         getBoolParameter(std::string name);
   void         getArray(std::string name, std::vector<uint16_t>& values);
   void         checkedControl(CCCUSB& controller,
-			      int n, int a, int f, std::string msgFormat);
+			      int n, int a, int f, std::string msgFormat,
+			      bool needQ = true);
   void         checkedWrite16(CCCUSB& controller,
 			      int n, int a, int f, uint16_t data,
-			      std::string msgFormat);
+			      std::string msgFormat,
+			      bool needQ = true);
   void         check(int status, uint16_t qx, 
 		     int n, int a, int f, int d,
-		     std::string prefix, std::string format);
+		     std::string prefix, std::string format,
+		     bool needQ = true);
 };
 
 #endif

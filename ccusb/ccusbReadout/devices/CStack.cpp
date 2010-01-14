@@ -255,7 +255,7 @@ CStack::enableStack(CCCUSB& controller)
   }
   else {
     int period = getIntegerParameter("-period");
-    period     = period << 16;	// position to register.
+    period     = (period*2) << 16;	// position to register.
     controller.writeScalerControl(static_cast<uint32_t>(period));
   }
  

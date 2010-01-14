@@ -5,7 +5,8 @@ libVMUSBDevices_la_SOURCES	= 	CConfigurableObject.cpp	\
 					CPH7xx.cpp	\
 					CAD811.cpp	\
 					CStack.cpp	\
-					CLRS2551.cpp
+					CLRS2551.cpp	\
+					CLRS2249.cpp	
 
 
 INCLUDES	= 	-I$(top_builddir)/ccusb \
@@ -22,6 +23,7 @@ include_HEADERS			= 	CConfigurableObject.h	\
 					CStack.h		\
 					CAD811.h		\
 					CPH7xx.h		\
-					CLRS2551.h
+					CLRS2551.h		\
+					CLRS2249.h
 
 
