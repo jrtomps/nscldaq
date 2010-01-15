@@ -12,4 +12,8 @@ January 13, 2010
 January 14, 2010
         - Adding LRS 2249 qdc support.
         - Adding LRS 2228 tdc support.
+January 15, 2010
+        - Insert a nonsense CAMAC write after reading the Ph7xxx modules
+          as it appears that otherwise the next module's id is dropped
+          (workaround CC-USB firmware error).
 
