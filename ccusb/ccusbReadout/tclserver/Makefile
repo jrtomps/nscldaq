@@ -154,13 +154,13 @@ SET_MAKE =
 SHELL = /bin/sh
 SOVERSION = 1:0
 SPECTRODAQ_FLAGS = -D_REENTRANT=1 -I/usr/opt/spectrodaq/include -I/usr/opt/spectrodaq/include/nscl -I/usr/opt/spectrodaq/include/xmloop
-SPECTRODAQ_LDFLAGS = -L/usr/opt/spectrodaq/lib -lspectrodaq -ldaqclient -lnetio -ldaqthreads -lxmloop -lxmlparse -lxmltok -lpthread -lcrypt -L/usr/opt/spectrodaq/lib -lNSCLException
+SPECTRODAQ_LDFLAGS = -lpthread -L/usr/opt/spectrodaq/lib -lnetio -ldaqclient -lspectrodaq -ldaqthreads -lxmloop -lxmlparse -lxmltok -lpthread -lcrypt -L/usr/opt/spectrodaq/lib -lNSCLException -lnetio /usr/opt/spectrodaq/lib/libspectrodaq.a
 STRIP = strip
 TCL_FLAGS = -I/usr/include/tcl
 TCL_LDFLAGS = -L/usr/lib  -ltcl -ltk
 USBSWITCHES = -I/usr/include
 USB_LIBS = -L/usr/lib -lusb
-VERSION = 1.1
+VERSION = 1.2
 abs_builddir = /scratch/fox/daq/nscldaq/trunk/ccusb/ccusbReadout/tclserver
 abs_srcdir = /scratch/fox/daq/nscldaq/trunk/ccusb/ccusbReadout/tclserver
 abs_top_builddir = /scratch/fox/daq/nscldaq/trunk/ccusb/ccusbReadout
@@ -250,7 +250,7 @@ libControlServer_la_LIBADD = $(top_builddir)/ccusb/libCCUSB.la          \
 					$(top_builddir)/router/libRouter.la	\
 					-L/usr/lib  -ltcl -ltk				\
 					-L/usr/opt/daq/8.2/lib -lTclPlus -lException	\
-					-L/usr/opt/spectrodaq/lib -lspectrodaq -ldaqclient -lnetio -ldaqthreads -lxmloop -lxmlparse -lxmltok -lpthread -lcrypt -L/usr/opt/spectrodaq/lib -lNSCLException
+					-lpthread -L/usr/opt/spectrodaq/lib -lnetio -ldaqclient -lspectrodaq -ldaqthreads -lxmloop -lxmlparse -lxmltok -lpthread -lcrypt -L/usr/opt/spectrodaq/lib -lNSCLException -lnetio /usr/opt/spectrodaq/lib/libspectrodaq.a
 
 all: all-am
 
