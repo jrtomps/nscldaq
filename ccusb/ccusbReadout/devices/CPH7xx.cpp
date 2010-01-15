@@ -324,6 +324,8 @@ CPH7xx::addReadoutList(CCCUSBReadoutList& list)
 
   if (sparse) {
     list.addQStop(slot, 0, 4, 16+1); // At most 16 channels of data + no q.
+    list.addWrite16(slot, 0, 17, 0);    //  Needed to flush the read?
+
   }
   else {
     list.addQScan(slot, 0, 0, 16); // Read all 16 channels of data.
