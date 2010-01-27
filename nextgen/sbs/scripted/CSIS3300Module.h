@@ -74,7 +74,7 @@ private:
   int       getIntValue(std::string name);
   bool      getBoolValue(std::string name);
   int       getEnumValue(std::string name);
-  CConfigurableObject::ParameterIterator AddConfigParam(CConfigurationParameter* param);
+  SConfigurableObject::ParameterIterator AddConfigParam(CConfigurationParameter* param);
  
 };
 

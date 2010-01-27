@@ -141,5 +141,8 @@ CTriggerLoop::mainLoop()
     }
   }
   while(!m_stopping);
+  // End of run scaler:
+
+  m_pExperiment->TriggerScalerReadout();
   return;
 }

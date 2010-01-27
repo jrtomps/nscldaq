@@ -45,6 +45,7 @@ class CScriptedSegment : public CEventSegment
 {
   // Member data:
 private:
+  CTCLInterpreter*        m_pInterp;
   CDigitizerDictionary*   m_pDictionary;
   CReadOrder*             m_pReadOrder;
   CModuleCommand*         m_pModuleCommand;

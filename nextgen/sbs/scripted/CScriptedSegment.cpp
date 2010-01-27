@@ -58,8 +58,10 @@ using namespace std;
 
 */
 CScriptedSegment::CScriptedSegment() :
+  m_pInterp(0),
   m_pDictionary(0),
-  m_pReadOrder(0)
+  m_pReadOrder(0),
+  m_pModuleCommand(0)
 {}
 
 /*!
@@ -76,16 +78,17 @@ CScriptedSegment::initialize()
   // Remove the old infrastructure
 
   delete m_pModuleCommand;
-  delete m_pDictionary;
   delete m_pReadOrder;
+  delete m_pDictionary;
+  delete m_pInterp;
 
   // Create the new infrastructure:
 
-  CTCLInterpreter interp;
 
+  m_pInterp        = new CTCLInterpreter();
   m_pDictionary    = new CDigitizerDictionary();
-  m_pReadOrder     = new CReadOrder(&interp, m_pDictionary);
-  m_pModuleCommand = new CModuleCommand(&interp, m_pDictionary);
+  m_pReadOrder     = new CReadOrder(m_pInterp, m_pDictionary);
+  m_pModuleCommand = new CModuleCommand(m_pInterp, m_pDictionary);
 
 
   // Add standard and user written module creators.
@@ -95,9 +98,9 @@ CScriptedSegment::initialize()
 
   // figure out which file is the configuration file and process it.
 
-  string configFile = getConfigurationFile();
   try {
-    processHardwareFile(configFile.c_str(), interp);
+    string configFile = getConfigurationFile();
+    processHardwareFile(configFile.c_str(), *m_pInterp);
     
     // Initialize the read order that was created:
     
@@ -105,18 +108,24 @@ CScriptedSegment::initialize()
     clear();			// Clear everything for good measure
     m_pReadOrder->Prepare();	// Get ready for the first event.
   }
+  catch(CErrnoException& e) {
+    string error = "Configuration file processing failed\n";
+    error        += "Unable to open configuration file\n";
+    error        += e.ReasonText();
+    throw error;
+  }
   catch(string msg) {
     string error = "Configuration file processing failed:\n";
     error       += msg;
     error       += "\nAt: \n";
-    error       += CTCLException::getTraceback(interp);
+    error       += CTCLException::getTraceback(*m_pInterp);
     throw error;
   }
   catch(const char* msg) {
     string error = "Configuration file processing failed:\n";
     error       += msg;
     error       += "\nAt: \n";
-    error       += CTCLException::getTraceback(interp);
+    error       += CTCLException::getTraceback(*m_pInterp);
     throw error;
   }
   catch(CTCLException& tclfail) {
@@ -223,7 +232,7 @@ CScriptedSegment::getConfigurationFile()
     string path(here);
     path += "/hardware.tcl";
     if (access(path.c_str(), R_OK) == 0) {
-      return here;
+      return path;
     }
   }
   errno = ENOENT;
@@ -296,5 +305,5 @@ void
 CScriptedSegment::processHardwareFile(const char*      pFilename, 
 				      CTCLInterpreter& rInterp)
 {
-  rInterp.Eval(pFilename);
+  rInterp.EvalFile(pFilename);
 }

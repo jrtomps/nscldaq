@@ -40,7 +40,7 @@ using namespace std;
 */
 CReadableObject::CReadableObject (const string& rName,
 				  CTCLInterpreter& rInterp) :
-  CConfigurableObject(rName, rInterp),
+  SConfigurableObject(rName, rInterp),
   m_pOwner(0)
 {
 }
@@ -101,9 +101,11 @@ CReadableObject::Unlink()
   if(m_pOwner) {
     m_pOwner = (CReadOrder*)NULL;
   } 
+  /*
   else {
     throw string("CReadableObject::Unlink - object is not linked");
   }
+  */
 }  
 
 /*! 

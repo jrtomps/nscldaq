@@ -52,7 +52,7 @@ CReadOrder::CReadOrder (CTCLInterpreter* pInterp,
 	m_pPacketIdParam(0),
 	m_pPacketizeParam(0)
 {  
-  CConfigurableObject::ParameterIterator p;
+  SConfigurableObject::ParameterIterator p;
   p                 = AddBoolParam("packetize", false);
   m_pPacketizeParam = (CBoolConfigParam*)(*p);
   p                 = AddIntParam("id",-1); // Start with illegal id.
@@ -96,7 +96,7 @@ CReadOrder::Add(CReadableObject* pModule)
    Removes a module from the 
    readout list.  The module is selected by an iterator:
    
-   \param p  ModuleIterator [in]  'points' to the module to delete.  If end(),
+   \param p  ModuleIterator [in] 'points' to the module to delete.  If end(),
 	    this function is a noop.
 
 */
@@ -555,10 +555,9 @@ CReadOrder::OnDelete()
   ModuleIterator p = readerbegin();
   for(; p != readerend(); p++) {
     (*p)->Unlink();		// They must be linked or they would not be in
-  }                             // our module list! 
-  // Empty the list.
-
-  m_ReadoutList.erase(readerbegin(), readerend());
+  }                             // our module list!
+ 
+  // Let the list destructor delete the list itself.
 
 }
 /*!

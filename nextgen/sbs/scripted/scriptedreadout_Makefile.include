@@ -16,32 +16,19 @@
 #     $(INSTDIR)/etc/CompilationRules.include - defines how to do compiles.
 #
 
-include $(INSTDIR)/etc/Directories.include
+
+DAQLIBS=$(INSTDIR)/lib
+DAQINCLUDE=$(INSTDIR)/include
+SCRIPTINCLUDES=$(INSTDIR)/contrib/scriptedReadout/include
 
 
-#
-#   Build the compilation flags:
-#
+CXXFLAGS+= -D__UNIX__  $(TCL_FLAGS) \
+	  	-I$(DAQINCLUDE) -I$(SCRIPTINCLUDES) -pthread
 
-SPECTRO_FLAGS=   $(shell $(SPECTRODAQBINDIR)/spectrodaq-conf --cflags)
-
-SCRIPTEDINCLUDE=$(DAQCONTRIB)/scriptedReadout/include
+CCFLAGS = $(CXXFLAGS)
 
 
-CXXFLAGS= -D__UNIX__ $(VMETRIGGER) $(TCLHEADERS) \
-	-I$(DAQINCLUDE) -I$(SCRIPTEDINCLUDE) $(SPECTRO_FLAGS) $(VMEHEADERS)
-
-CCFLAGS= $(CXXFLAGS)
-
-#  Now the ld flags:
-
-SPECTRO_LDFLAGS= $(shell $(SPECTRODAQBINDIR)/spectrodaq-conf --libs)
-
-LDFLAGS=-L$(DAQLIBS) -lScriptedRdo -lReadout -lDeviceSupport -ltclPlus \
-	 -lVmeAPI -lException \
-	$(SPECTRO_LDFLAGS) $(VMELIBRARY) \
-	$(TCLLIBS) $(X11LIBS)  -Wl,"-rpath=$(DAQLIBS)"
+LDFLAGS+=-L$(DAQLIBS) -lScriptedRdo
 
 
 
-include $(DAQETC)/CompilationRules.include

@@ -22,7 +22,7 @@
 
 /*  Initialization */
 
-class InitializeVisitor : public CCompoundEventSegment::CVisitor
+class InitializeVisitorE : public CCompoundEventSegment::CVisitor
 {
 public:
   virtual void operator()(CEventSegment* pSegment) {
@@ -33,7 +33,7 @@ public:
 /*
   Visitor that clears the visited elements:
 */
-class ClearVisitor : public CCompoundEventSegment::CVisitor
+class ClearVisitorE : public CCompoundEventSegment::CVisitor
 {
 public:
   virtual void operator()(CEventSegment* pSegment) {
@@ -45,7 +45,7 @@ public:
 /* 
    Visitor that disables what it visits:
 */
-class DisableVisitor : public CCompoundEventSegment::CVisitor
+class DisableVisitorE : public CCompoundEventSegment::CVisitor
 {
 public:
   virtual void operator()(CEventSegment* pSegment) {
@@ -60,7 +60,7 @@ public:
 void   
 CCompoundEventSegment::initialize() 
 {
-  InitializeVisitor v;
+  InitializeVisitorE v;
   visit(v);
 }
 /*!
@@ -71,7 +71,7 @@ CCompoundEventSegment::initialize()
 void   
 CCompoundEventSegment::clear() 
 {
-  ClearVisitor v;
+  ClearVisitorE v;
   visit(v);
 }
 
@@ -83,7 +83,7 @@ CCompoundEventSegment::clear()
 void   
 CCompoundEventSegment::disable() 
 {
-  DisableVisitor v;
+  DisableVisitorE v;
   visit(v);
 }
 /*!

@@ -19,6 +19,7 @@
 #include <TCLInterpreter.h>
 #include <CTimedTrigger.h>
 
+#include "CScriptedSegment.h"
 /*
 /*
 ** This file is a skeleton for the production readout software for
@@ -99,6 +100,11 @@ Skeleton::SetupReadout(CExperiment* pExperiment)
   // Create and add your event segments here, by creating them and invoking CExperiment's 
   // AddEventSegment
 
+
+  // This creates a scripted segment.  You can register other segments fore and aft
+  // of this if you want.
+
+  pExperiment->AddEventSegment(new CScriptedSegment);
   
 }
 
