@@ -210,32 +210,21 @@ CSIS3300Module::getType() const
 {
   return string("sis3300");
 }
-/*!
-   Read into ordinary buffer.  This one is a bit backwards as
-   we will read into a daqwordbuffer and then copyout into the target.
-*/
-int
-CSIS3300Module::Read(void* pBuffer)
-{
-  DAQWordBuffer temp(LARGEST_SIZE);
-  DAQWordBufferPtr p(&temp);
-  Read(p);
-
-  temp.CopyOut(pBuffer, 0, p.GetIndex());
-  return p.GetIndex();
-}
 
 /*!
    Read into spectrodaq buffer. 
 */
-void
-CSIS3300Module::Read(DAQWordBufferPtr& p)
+int
+CSIS3300Module::Read(void* pBuffer)
 {
-  if(!m_pModule->WaitUntilDone(100)) return;
+  uint16_t* p = reinterpret_cast<uint16_t*>(pBuffer);
+  if(!m_pModule->WaitUntilDone(100)) {
+    return 0; // Nothing read in this case
+  }
 
   // We always put a jumbo packet structure around this;
 
-  DAQWordBufferPtr start = p;
+  uint16_t* start = p;
   p+=2;
   *p = m_id;
   ++p;
@@ -246,7 +235,7 @@ CSIS3300Module::Read(DAQWordBufferPtr& p)
   //
 
   if (m_groupsRead & 0x1) {
-    DAQWordBufferPtr pkstart = p;
+    uint16_t*  pkstart = p;
     int groupId              = 1;
     if(m_subpackets) {
       p += 2;
@@ -256,14 +245,14 @@ CSIS3300Module::Read(DAQWordBufferPtr& p)
     m_pModule->ReadGroup1(p);
 
     if(m_subpackets) {
-      int subsize =  (p.GetIndex() - pkstart.GetIndex());
+      int subsize =  (p - pkstart);
       *pkstart = (subsize & 0xffff);
       ++pkstart;
       *pkstart = (subsize >> 16) & 0xffff;
     }
   }
   if (m_groupsRead & 0x2) {
-    DAQWordBufferPtr pkstart = p;
+    uint16_t* pkstart = p;
     int groupId              = 2;
     if(m_subpackets) {
       p +=2;
@@ -273,14 +262,14 @@ CSIS3300Module::Read(DAQWordBufferPtr& p)
     m_pModule->ReadGroup2(p);
 
     if(m_subpackets) {
-      int subsize =  (p.GetIndex() - pkstart.GetIndex());
+      int subsize =  (p - pkstart);
       *pkstart = (subsize & 0xffff);
       ++pkstart;
       *pkstart = (subsize >> 16) & 0xffff;
     }
   }
   if (m_groupsRead & 0x4) {
-    DAQWordBufferPtr pkstart = p;
+    uint16_t* pkstart = p;
     int groupId              = 3;
     if(m_subpackets) {
       p +=2;
@@ -290,14 +279,14 @@ CSIS3300Module::Read(DAQWordBufferPtr& p)
     m_pModule->ReadGroup3(p);
 
     if(m_subpackets) {
-      int subsize =  (p.GetIndex() - pkstart.GetIndex());
+      int subsize =  (p - pkstart);
       *pkstart = (subsize & 0xffff);
       ++pkstart;
       *pkstart = (subsize >> 16) & 0xffff ;
     }
   }
   if (m_groupsRead & 0x8) {
-    DAQWordBufferPtr pkstart = p;
+    uint16_t* pkstart = p;
     int groupId              = 4;
     if(m_subpackets) {
       ++p;
@@ -307,7 +296,7 @@ CSIS3300Module::Read(DAQWordBufferPtr& p)
     m_pModule->ReadGroup4(p);
 
     if(m_subpackets) {
-      int subsize =  (p.GetIndex() - pkstart.GetIndex());
+      int subsize =  (p - pkstart);
       *pkstart = (subsize & 0xffff);
       ++pkstart;
       *pkstart = (subsize >> 16) & 0xffff ;
@@ -316,7 +305,7 @@ CSIS3300Module::Read(DAQWordBufferPtr& p)
 
   // Close the packet:
 
-  int wordsRead = (p.GetIndex() - start.GetIndex());
+  int wordsRead = (p - start);
   union {
     int    l;
     short  w[2];
@@ -324,6 +313,8 @@ CSIS3300Module::Read(DAQWordBufferPtr& p)
   lw.l = wordsRead;
   *start++ = lw.w[0];
   *start   = lw.w[1];
+
+  return wordsRead;
 
 }
 

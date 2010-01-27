@@ -23,7 +23,7 @@ static const char* Copyright = "(C) Copyright Michigan State University 1977, Al
 using namespace std;
 
 
-#include <spectrodaq.h>
+
 #include <string>
 #include <algorithm>
 #include <TCLInterpreter.h>
@@ -36,7 +36,6 @@ using namespace std;
 #include "CConfigurationParameter.h"
 #include "CIntConfigParam.h"
 #include "CBoolConfigParam.h"
-#include <daqinterface.h>
 
 /*!
 	Constructor: Creates an instance of a CReadOrder class.
@@ -156,67 +155,7 @@ CReadOrder::Prepare()
     for_each(readerbegin(), readerend(), prepare);
 }  
 
-/*!
-Reads out the event.
-\param p  DAQWordBufferptr& [modified] Refers to the pointer to the buffer 
-      where the data will be stored.
-      
-\return DAQWordBufferPtr - Points past the end of the stuff that was just
-      read out.
-*/
-void 
-CReadOrder::Read(DAQWordBufferPtr& p)  
-{ 
-  DAQWordBufferPtr size = p;
-  CReadException   except;
-  bool             jumbo = daq_isJumboBuffer();
 
-  if(m_fPacketize) {
-    ++p;
-    if (jumbo) ++p;
-
-    *p = m_nPacketId;
-    ++p;
-  }
-  try {
-    ModuleIterator pM = readerbegin();
-    while( pM != readerend()) {
-      CReadableObject* pModule = *pM;
-      pModule->Read(p);
-      pM++;
-    }
-  }
-  catch (string msg) {
-    except.Add(msg, p.GetIndex() - size.GetIndex());
-  }
-  catch (CReadException e) {
-    except.Add(e.GetString(), e.GetCount());
-  }
-  catch (...) {
-    except.Add("Unexpected exception",
-	       p.GetIndex()- size.GetIndex());
-  }
-  if(m_fPacketize) {
-    unsigned int wordCount = (p.GetIndex() - size.GetIndex());
-    if (jumbo) {
-      union {
-	unsigned int   l;
-	unsigned short w[2];
-      } lw;
-      lw.l = wordCount;
-      *size = lw.w[0];
-      ++size;
-      *size = lw.w[1];
-    }
-    else {
-      *size = wordCount;
-    }
-  }
-  if(except.GetCount()) {	// If anyone added an exception throw this.
-    throw except;
-  }
-
-}  
 /*!
   Reads an event into an ordinary buffer.
   \return the number of words read.
@@ -229,7 +168,7 @@ CReadOrder::Read(void* pBuf)
   short*         pwords((short*)pBuf);
   int            nRead(0);
   CReadException except;
-  bool           jumbo = daq_isJumboBuffer();
+  bool           jumbo = true; 	//  for now ring buffers counts are all 32 bit.
 
 
   if(m_fPacketize) {

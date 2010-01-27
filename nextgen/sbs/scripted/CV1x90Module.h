@@ -28,9 +28,6 @@ using namespace std;
 #endif
 
 
-#ifndef __SPECTRODAQ_H
-#include <spectrodaq.h>
-#endif
 
 #ifndef __STL_STRING
 #include <string>
@@ -96,7 +93,6 @@ private:
 
   virtual   void Initialize ();  
   virtual   void Prepare ();  
-  virtual   void Read (DAQWordBufferPtr& rBuffer); 
   virtual   int  Read(void*  pBuffer);
   virtual   void Clear ();
   virtual   std::string getType() const;

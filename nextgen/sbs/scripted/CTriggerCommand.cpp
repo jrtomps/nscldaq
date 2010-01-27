@@ -18,7 +18,6 @@
 #include "CTriggerCommand.h"
 #include "CCAENModule.h"
 #include <string>
-#include "CCAENTrigger.h"
 #include <TCLInterpreter.h>
 #include <TCLResult.h>
 #include "CDigitizerDictionary.h"

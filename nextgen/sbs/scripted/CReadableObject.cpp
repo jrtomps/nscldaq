@@ -24,7 +24,6 @@
 using namespace std;
 
 
-#include <spectrodaq.h>
 #include <TCLInterpreter.h>
 
 /*
