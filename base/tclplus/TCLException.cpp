@@ -296,6 +296,7 @@ static const char* Copyright = "(C) Copyright Michigan State University 2015, Al
 #include <config.h>
 #include "TCLException.h"                               
 #include "TCLInterpreter.h"
+#include "TCLVariable.h"
 #include <tcl.h>
 
 using namespace std;
@@ -416,25 +417,19 @@ CTCLException::GetResult()
   return result;
 
 }
+/*!
+   Return the command traceback from the global variable errorInfo.
+   @return std::string
+   @retval the contents of the global variable errorInfo converted to a string.
+*/
+string
+CTCLException::getTraceback() const
+{
+  CTCLVariable trace(getInterpreter(), string("errorInfo"), false);
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+  const char* pTrace = trace.Get(TCL_GLOBAL_ONLY);
+  if (!pTrace) {
+    pTrace = "no traceback available";
+  }
+  return string(pTrace);
+}
