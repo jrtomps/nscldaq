@@ -131,6 +131,13 @@ CExperiment::Start(bool resume)
 			  RunState::stateName(RunState::inactive).c_str(),
 			  "Starting data taking");
   }
+  // Initialize/clear the hardware:
+
+  m_pReadout->initialize();
+  m_pReadout->clear();
+  m_pScalers->initialize();
+  m_pScalers->clear();
+
   // Begin run zeroes the previous scaler time.
   //
   if (m_pRunState->m_state != RunState::paused) {
@@ -197,6 +204,11 @@ CExperiment::Stop(bool pause)
   if (m_pTriggerLoop) {
     m_pTriggerLoop->stop();
   }
+
+  // Disable the hardware:
+
+  m_pScalers->disable();
+  m_pReadout->disable();
 
   // Create the run state item and commit it to the ring.
 

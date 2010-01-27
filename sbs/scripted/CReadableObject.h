@@ -73,7 +73,7 @@ using namespace std;
 class CReadOrder;
 class CTCLInterpreter;
 
-class CReadableObject  : public CConfigurableObject       
+class CReadableObject  : public SConfigurableObject       
 {
 private:
   

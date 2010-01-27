@@ -352,7 +352,7 @@ CSIS3300Module::getEnumValue(string name)
 
 ////////////// horrible kludge:
 
-CConfigurableObject::ParameterIterator
+SConfigurableObject::ParameterIterator
 CSIS3300Module::AddConfigParam(CConfigurationParameter* param)
 {
   return AddParameter(param);

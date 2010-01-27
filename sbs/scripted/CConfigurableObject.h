@@ -37,8 +37,8 @@ Each of these represents a keyword/value pair.
 //
 // Copyright 
 
-#ifndef __CCONFIGURABLEOBJECT_H  //Required for current class
-#define __CCONFIGURABLEOBJECT_H
+#ifndef __SCONFIGURABLEOBJECT_H  //Required for current class
+#define __SCONFIGURABLEOBJECT_H
 
 //
 // Include files:
@@ -76,7 +76,7 @@ class CTCLResult;
 class CIntArrayParam;
 
 
-class CConfigurableObject : public  CTCLProcessor     
+class SConfigurableObject : public  CTCLProcessor     
 {
   // Public data types.
 public:
@@ -90,16 +90,16 @@ private:
 
   // Constructors and other canonical operations.
 public:
-  CConfigurableObject (const std::string& rName,
+  SConfigurableObject (const std::string& rName,
 		       CTCLInterpreter& rInterp);
-  virtual  ~ CConfigurableObject ( );  
+  virtual  ~ SConfigurableObject ( );  
 
   // The copy like operations are not supported on tcl command processing
   // objects:
 private:
-  CConfigurableObject (const CConfigurableObject& aCConfigurableObject );
-  CConfigurableObject& operator= (const CConfigurableObject& aCConfigurableObject);
-  int operator== (const CConfigurableObject& aCConfigurableObject) const;
+  SConfigurableObject (const SConfigurableObject& aSConfigurableObject );
+  SConfigurableObject& operator= (const SConfigurableObject& aSConfigurableObject);
+  int operator== (const SConfigurableObject& aSConfigurableObject) const;
 public:
 
   // Selectors:

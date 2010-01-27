@@ -16,7 +16,7 @@
 
 
 #include <config.h>
-#include <CConfigurableObject.h>
+#include "CConfigurableObject.h"
 #include <CConfigurationParameter.h>
 #include <TCLInterpreter.h>
 #include <TCLResult.h>
@@ -44,7 +44,7 @@ using namespace std;
   \param rInterp   (CTCLInterpreter):
       The TCL Interpreter on which this command will be registered.
 */
-CConfigurableObject::CConfigurableObject(const string&    rName,
+SConfigurableObject::SConfigurableObject(const string&    rName,
 					CTCLInterpreter& rInterp) :
   CTCLProcessor(rName.c_str(), &rInterp),
   m_sName(rName)
@@ -61,7 +61,7 @@ CConfigurableObject::CConfigurableObject(const string&    rName,
    The list elements themselves are assumed to be destroyed by the
    list destructors.
 */
-CConfigurableObject::~CConfigurableObject()
+SConfigurableObject::~SConfigurableObject()
 {
   DeleteParameters();
 }
@@ -100,7 +100,7 @@ pArgs[1] with:
       the unaltered parameters.
 */
 int 
-CConfigurableObject::operator()(CTCLInterpreter& rInterp, 
+SConfigurableObject::operator()(CTCLInterpreter& rInterp, 
                             CTCLResult& rResult, 
                             int nArgs, char** pArgs)  
 { 
@@ -176,7 +176,7 @@ stuff in the results string.
 \param pArgs char** [in] The text of the parameters.
 */
 int 
-CConfigurableObject::Configure(CTCLInterpreter& rInterp, 
+SConfigurableObject::Configure(CTCLInterpreter& rInterp, 
                             CTCLResult& rResult, 
                             int nArgs, char** pArgs)  
 {
@@ -249,7 +249,7 @@ m_BoolParameters producing pairs of {parametername values} such as:
             rResult is an error string.
 */
 int 
-CConfigurableObject::ListConfiguration(CTCLInterpreter& rInterp,
+SConfigurableObject::ListConfiguration(CTCLInterpreter& rInterp,
                                     CTCLResult& rResult, 
                                     int nArgs, char** pArgs)  
 { 
@@ -283,8 +283,8 @@ CConfigurableObject::ListConfiguration(CTCLInterpreter& rInterp,
   \retval An iterator that 'points' to the parameter within the configuration
           database.
 */
-CConfigurableObject::ParameterIterator
-CConfigurableObject::AddParameter(CConfigurationParameter* pConfigParam)
+SConfigurableObject::ParameterIterator
+SConfigurableObject::AddParameter(CConfigurationParameter* pConfigParam)
 {
   m_Configuration.push_back(pConfigParam);
   return Find(pConfigParam->getSwitch());
@@ -300,8 +300,8 @@ set recognized by the default configuration parser.
  \param nDefault int [in] = 0
       The default value of the parameter.
 */
-CConfigurableObject::ParameterIterator 
-CConfigurableObject::AddIntParam(const string& sParamName,
+SConfigurableObject::ParameterIterator 
+SConfigurableObject::AddIntParam(const string& sParamName,
                               int nDefault)  
 { 
   CIntConfigParam* pNewParam = new CIntConfigParam(sParamName,
@@ -322,8 +322,8 @@ Configure function.
   \param nDefault int [in] = 0
         Default value of the array elements.
 */
-CConfigurableObject::ParameterIterator 
-CConfigurableObject::AddIntArrayParam(const string& rParamName, 
+SConfigurableObject::ParameterIterator 
+SConfigurableObject::AddIntArrayParam(const string& rParamName, 
                                    int nArraySize,
                                    int nDefault)  
 { 
@@ -344,8 +344,8 @@ default Configure parser.
   \param fDefault bool [in] = false
       Defaults value of the parameter.
 */
-CConfigurableObject::ParameterIterator
-CConfigurableObject::AddBoolParam(const string& rName, 
+SConfigurableObject::ParameterIterator
+SConfigurableObject::AddBoolParam(const string& rName, 
                                bool fDefault)  
 { 
   CBoolConfigParam* pParam = new CBoolConfigParam(rName, 
@@ -362,8 +362,8 @@ CConfigurableObject::AddBoolParam(const string& rName,
    \param rName (const string& [in]):
       Name of the new parameter.
 */
-CConfigurableObject::ParameterIterator
-CConfigurableObject::AddStringParam(const string& rName)
+SConfigurableObject::ParameterIterator
+SConfigurableObject::AddStringParam(const string& rName)
 {
   CStringConfigParam *p = new CStringConfigParam(rName);
   return AddParameter(p);
@@ -381,8 +381,8 @@ CConfigurableObject::AddStringParam(const string& rName)
   \param nArrayAzie (int [in]):
      The number of elements in the array.
 */
-CConfigurableObject::ParameterIterator
-CConfigurableObject::AddStringArrayParam(const string& rName,
+SConfigurableObject::ParameterIterator
+SConfigurableObject::AddStringArrayParam(const string& rName,
 				     int nArraySize)
 {
   CStringArrayparam* p = new CStringArrayparam(rName, nArraySize);
@@ -395,8 +395,8 @@ CConfigurableObject::AddStringArrayParam(const string& rName,
   \param values  - Possible enumerated values and the integer values corresponding to them.
   \param default - The default value string.
 */
-CConfigurableObject::ParameterIterator
-CConfigurableObject::AddEnumParam(string                    name,
+SConfigurableObject::ParameterIterator
+SConfigurableObject::AddEnumParam(string                    name,
 				  vector<pair<string, int> > values,
 				  string                     Default)
 {
@@ -431,7 +431,7 @@ the name and the type expected e.g.:
 
 */
 string 
-CConfigurableObject::Usage()  
+SConfigurableObject::Usage()  
 {
   string help;
   help  = m_sName;
@@ -448,23 +448,23 @@ CConfigurableObject::Usage()
 
 /*!
 
-   \return CConfigurableObject::ParameterIterator
+   \return SConfigurableObject::ParameterIterator
    Returns a begin of loop iterator that 'points' to the first configuration
    parameter.
 */
-CConfigurableObject::ParameterIterator
-CConfigurableObject::begin()
+SConfigurableObject::ParameterIterator
+SConfigurableObject::begin()
 {
   return m_Configuration.begin();
 }
 
 /*!
-    \return CConfigurableObject::ParameterIterator
+    \return SConfigurableObject::ParameterIterator
     Returns an end of loop iterator that points just off the end of the
     m_Configuration collection.
 */
-CConfigurableObject::ParameterIterator
-CConfigurableObject::end()
+SConfigurableObject::ParameterIterator
+SConfigurableObject::end()
 {
   return m_Configuration.end();
 }
@@ -475,7 +475,7 @@ CConfigurableObject::end()
       m_Configuration collection.
 */
 int
-CConfigurableObject::size()
+SConfigurableObject::size()
 {
   return m_Configuration.size();
 }
@@ -488,7 +488,7 @@ the input pattern.
 */
 
 string
-CConfigurableObject::ListParameters(const string& rPattern)
+SConfigurableObject::ListParameters(const string& rPattern)
 {
   CTCLString result;
   ParameterIterator p = m_Configuration.begin();
@@ -515,7 +515,7 @@ CConfigurableObject::ListParameters(const string& rPattern)
   \return string - the results of the list.
 */
 string
-CConfigurableObject::ListKeywords()
+SConfigurableObject::ListKeywords()
 {
   string result;
   ParameterIterator p = m_Configuration.begin();
@@ -536,8 +536,8 @@ CConfigurableObject::ListKeywords()
   test string.
   \param rKeyword The keyword to check.
 */
-CConfigurableObject::ParameterIterator
-CConfigurableObject::Find(const string& rKeyword)
+SConfigurableObject::ParameterIterator
+SConfigurableObject::Find(const string& rKeyword)
 {
   ParameterIterator p = m_Configuration.begin();
   while(p != m_Configuration.end()) {
@@ -561,7 +561,7 @@ CConfigurableObject::Find(const string& rKeyword)
    \retval value of the parameter.
 */
 int 
-CConfigurableObject::getIntegerValue(string name)
+SConfigurableObject::getIntegerValue(string name)
 {
   ParameterIterator p = FindOrThrow(name, "integer");
   CIntConfigParam* pInt = (CIntConfigParam*)*p;
@@ -577,7 +577,7 @@ CConfigurableObject::getIntegerValue(string name)
    \retval the value of the parameter.
 */
 bool
-CConfigurableObject::getBoolValue(string name)
+SConfigurableObject::getBoolValue(string name)
 {
   ParameterIterator p = FindOrThrow(name, "boolean");
   CBoolConfigParam* pInt = (CBoolConfigParam*)*p;
@@ -596,7 +596,7 @@ CConfigurableObject::getBoolValue(string name)
           array like semanntics.
 */
 CIntArrayParam*
-CConfigurableObject::getIntArray(string name)
+SConfigurableObject::getIntArray(string name)
 {
   ParameterIterator p = FindOrThrow(name, "integer []");
   return (CIntArrayParam*)*p;
@@ -605,7 +605,7 @@ CConfigurableObject::getIntArray(string name)
   Return the value associated with an enumerated config parameter.
 */
 int
-CConfigurableObject::getEnumValue(string name)
+SConfigurableObject::getEnumValue(string name)
 {
   ParameterIterator p = FindOrThrow(name, "enum");
   CEnumParameter* pConfig = reinterpret_cast<CEnumParameter*>(*p);
@@ -618,7 +618,7 @@ CConfigurableObject::getEnumValue(string name)
    Delete the parameter arrays.
 */
 void
-CConfigurableObject::DeleteParameters()
+SConfigurableObject::DeleteParameters()
 {
   // Kill off the bool parameters.
   
@@ -628,7 +628,7 @@ CConfigurableObject::DeleteParameters()
     delete pParam;
     p++;
   }
-  while(m_Configuration.size()) {
+  if(!m_Configuration.empty()) {
     m_Configuration.erase(begin(), end());
   }
 }
@@ -636,8 +636,8 @@ CConfigurableObject::DeleteParameters()
 /*!
   Find the named parameter or throw a string exception.
 */
-CConfigurableObject::ParameterIterator
-CConfigurableObject::FindOrThrow(string name, string type)
+SConfigurableObject::ParameterIterator
+SConfigurableObject::FindOrThrow(string name, string type)
 {
   ParameterIterator p = Find(name);
   if( p == end()) {

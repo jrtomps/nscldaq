@@ -77,7 +77,8 @@ noinst_HEADERS= CScriptedSegment.h
 	CReadException.h	\
 	CPacketCreator.h       \
 	CEnumParameter.h	\
-	CV1x90Creator.h CV1x90Module.h
+	CV1x90Creator.h CV1x90Module.h \
+	Skeleton.h
 
 
 
@@ -90,7 +91,7 @@ INCLUDES=  $(VMEBUILDEADERS) \
 	-I@top_srcdir@/sbs/vmemodules\
 	-I@top_srcdir@/sbs/readout   \
 	-DVME $(TCL_FLAGS) \
-	$(SPECTRODAQ_FLAGS) -DINSTDIR=\"$(prefix)\" $(CAMAC) -g
+	-DINSTDIR=\"$(prefix)\" -g -pthread
 
 
 CXXFLAGS=-g
@@ -105,7 +106,7 @@ ScriptedReadout_LDADD = @top_srcdir@/sbs/scripted/libScriptedRdo.la   \
 	@top_srcdir@/base/tclplus/libtclPlus.la		\
 	@top_srcdir@/base/thread/libdaqthreads.la	\
 	@top_srcdir@/base/exception/libException.la $(TCL_LDFLAGS) \
-	$(SPECTRODAQ_LDFLAGS) $(VMELIBRARY) -lpthread
+	-lpthread
 
 EXTRA_DIST=Makefile.skel scriptedreadout_Makefile.include
 
@@ -134,7 +135,7 @@ install-exec-local:
 	$(mkinstalldirs)     $(prefix)/etc
 	$(INSTALL_DATA)   *.cpp $(prefix)/contrib/scriptedReadout/src
 	$(INSTALL_DATA)   *.h   $(prefix)/contrib/scriptedReadout/include
-	$(INSTALL_DATA)  skeleton.cpp  ReadoutMain.cpp \
+	$(INSTALL_DATA)    Skeleton.cpp Skeleton.h  \
 				$(prefix)/contrib/scriptedReadout/skel
 	echo INSTDIR=$(prefix)                                 > Makefile.user
 	cat  Makefile.skel                                    >> Makefile.user
