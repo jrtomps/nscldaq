@@ -406,6 +406,7 @@ public:
   {
     return m_nReason;
   }
+  std::string getTraceback() const;
   //
   //  Mutators:   Available to derivce classes only:
   //
