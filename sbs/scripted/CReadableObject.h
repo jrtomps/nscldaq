@@ -57,12 +57,7 @@ The ReadableObjerct class:
 using namespace std;
 #endif
 
-#ifndef __SPECTRODAQ_H
-#include <spectrodaq.h>
-#ifndef __SPECTRODAQ_H
-#define __SPECTRODAQ_H
-#endif
-#endif
+
  
 #ifndef __STL_STRING
 #include <string>        //Required for include files  
@@ -109,7 +104,7 @@ public:
 
   virtual   void   Initialize ()   = 0 ; //!< Initialize the readable (pure virt.).
   virtual   void   Prepare ()   = 0 ;    //!< Prepare module for readout (pure virt.). 
-  virtual   void   Read (DAQWordBufferPtr& rBuffer)   = 0 ; //!< Read to buffer.
+
   virtual   int    Read (void*  pBuffer)   = 0 ; //!< Read to memory. (pure virt)
   virtual   void   Clear ()   = 0 ;      //!< Clear (after read e.g.).(Pure virt)
   void             Link (CReadOrder* pReader)   ; //!< Link to a reader/packet. 

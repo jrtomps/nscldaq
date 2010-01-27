@@ -67,7 +67,6 @@ private:
 public:
   virtual   void   Initialize (); //!< Initialize the readable (pure virt.).
   virtual   void   Prepare ();    //!< Prepare module for readout (pure virt.). 
-  virtual   void   Read (DAQWordBufferPtr& rBuffer); //!< Read to buffer.
   virtual   int    Read (void*  pBuffer); //!< Read to memory. (pure virt)
   virtual   void   Clear ();      //!< Clear (after read e.g.).(Pure virt) 
   virtual   std::string getType () const;    //!< Return module type std::string (pure virt).

@@ -282,28 +282,7 @@ CCAENModule::Prepare()
   if(!m_fMultiEvent) 
     m_pCAENcard->clearData();
 }
-/*!
-  Reads an event from the card into the current event
-  buffer
-  \param rBuffer (DAQWordBufferPtr& [modified]).
-    Pointer like object to the target datat buffer.
-    Data wil be read from the ADC to the location 
-    'pointed to by the pointer.
-  
-  \note  The module is silently ignored if it has
-  not yet caused a card to be instantiated.
-*/
-void CCAENModule::Read(DAQWordBufferPtr& rBuffer)
-{
 
-  if(m_pCAENcard){
-    for(int i = 0; i < m_nLoopTime; i++) {
-      if(m_pCAENcard->dataPresent()) break;
-    }
-    if(m_pCAENcard->dataPresent()) 
-      m_pCAENcard->readEvent(rBuffer);
-  }
-}
 /*!
    Called to read an event into a nondaq buffer.
    this can be used for testing, but is really there

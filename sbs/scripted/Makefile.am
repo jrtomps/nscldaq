@@ -3,20 +3,19 @@ lib_LTLIBRARIES=libScriptedRdo.la
 
 
 
-ScriptedReadout_SOURCES = ReadoutMain.cpp  skeleton.cpp
+ScriptedReadout_SOURCES = Skeleton.cpp
 ScriptedReadout_DEPENDENCIES = libScriptedRdo.la
 
 
-libScriptedRdo_la_SOURCES = CBoolConfigParam.cpp \
+libScriptedRdo_la_SOURCES = 	CScriptedSegment.cpp		\
+	CBoolConfigParam.cpp \
 	CCAENModule.cpp \
-	CCAENTrigger.cpp \
 	CCAENV775.cpp \
 	CCAENV775Creator.cpp \
 	CCAENV785.cpp \
 	CCAENV785Creator.cpp \
 	CCAENV792.cpp \
 	CCAENV792Creator.cpp \
-	CCAENV830.cpp \
 	CCAENV830Creator.cpp \
 	CCAENV830Module.cpp \
 	CSIS3300Creator.cpp \
@@ -28,21 +27,17 @@ libScriptedRdo_la_SOURCES = CBoolConfigParam.cpp \
 	CIntConfigParam.cpp \
 	CModuleCommand.cpp \
 	CModuleCreator.cpp \
-	CNullBusy.cpp \
-	CReadOrder.cpp \
 	CScalerBank.cpp \
 	CScalerModule.cpp \
 	CStringArrayparam.cpp \
 	CStringConfigParam.cpp \
-	CTriggerCommand.cpp \
 	CConfigurableObject.cpp \
 	CReadableObject.cpp 	\
 	CReadException.cpp	\
 	CPacketCreator.cpp	\
-	CTraditionalV977Trigger.cpp \
-	CTraditionalV977Busy.cpp  \
 	CEnumParameter.cpp	\
-	CV1x90Creator.cpp CV1x90Module.cpp
+	CV1x90Creator.cpp CV1x90Module.cpp \
+	CReadOrder.cpp
 
 
 
@@ -51,9 +46,9 @@ libScriptedRdo_la_LDFLAGS = -version-info $(SOVERSION)
 ScriptedReadout_LDFLAGS = -Wl,"-rpath=$(prefix)/lib"
 
 
-noinst_HEADERS=CBoolConfigParam.h \
+noinst_HEADERS= CScriptedSegment.h
+	CBoolConfigParam.h \
 	CCAENModule.h \
-	CCAENTrigger.h \
 	CCAENV775.h \
 	CCAENV775Creator.h \
 	CCAENV785.h \
@@ -61,7 +56,6 @@ noinst_HEADERS=CBoolConfigParam.h \
 	CCAENV792.h \
 	CCAENV792Creator.h \
 	CCAENV820Registers.h \
-	CCAENV830.h \
 	CCAENV830Creator.h \
 	CCAENV830Module.h \
 	CSIS3300Creator.h \
@@ -73,19 +67,15 @@ noinst_HEADERS=CBoolConfigParam.h \
 	CIntConfigParam.h \
 	CModuleCommand.h \
 	CModuleCreator.h \
-	CNullBusy.h \
 	CReadOrder.h \
 	CScalerBank.h \
 	CScalerModule.h \
 	CStringArrayparam.h \
 	CStringConfigParam.h \
-	CTriggerCommand.h  \
 	CConfigurableObject.h	\
 	CReadableObject.h	\
 	CReadException.h	\
 	CPacketCreator.h       \
-	CTraditionalV977Trigger.h \
-	CTraditionalV977Busy.h   \
 	CEnumParameter.h	\
 	CV1x90Creator.h CV1x90Module.h
 
@@ -108,12 +98,13 @@ CCFLAGS=-g
 
 
 
-ScriptedReadout_LDADD = @top_srcdir@/sbs/scripted/libscripted.la   \
-	-L@top_srcdir@/sbs/readout/libReadout.la		\
-	-L@top_srcdir@/sbs/vmemodules/libSBSDeviceSupport.la	\
-	-L@top_srcdir@/sbs/nsclapi/libSBSVmeAPI.la		\
-	-L@top_srcdir@/base/tclplus/libtclPlus.la		\
-	-L@top_srcdir@/base/exception/libException.la $(TCL_LDFLAGS) \
+ScriptedReadout_LDADD = @top_srcdir@/sbs/scripted/libScriptedRdo.la   \
+	@top_srcdir@/sbs/readout/libSBSProductionReadout.la		\
+	@top_srcdir@/sbs/vmemodules/libSBSDeviceSupport.la	\
+	@top_srcdir@/sbs/nsclapi/libSBSVmeAPI.la		\
+	@top_srcdir@/base/tclplus/libtclPlus.la		\
+	@top_srcdir@/base/thread/libdaqthreads.la	\
+	@top_srcdir@/base/exception/libException.la $(TCL_LDFLAGS) \
 	$(SPECTRODAQ_LDFLAGS) $(VMELIBRARY) -lpthread
 
 EXTRA_DIST=Makefile.skel scriptedreadout_Makefile.include

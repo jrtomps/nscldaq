@@ -21,7 +21,6 @@
 #include "CIntConfigParam.h"
 #include "CIntArrayParam.h"
 
-#include <daqinterface.h>
 #include <TCLInterpreter.h>
 #include <assert.h>
 
@@ -264,46 +263,14 @@ CCAENV830Module::Initialize()
 void
 CCAENV830Module::Prepare()
 {}
-/*!
-   Read an Event from the module.  See the class documentation
-   for the data format.
-   
-   \param  rBuffer (DAQWordBufferPtr& [out]):
-      'pointer' to the buffer to fill with data.
 
-   \note
-       The buffer pointer is advanced beyond the data event to
-       point to the next free word.
-*/
-void
-CCAENV830Module::Read(DAQWordBufferPtr& rBuffer)
-{
-  // Maximum buffer is 32 channels (longs) 
-  //                 + 1  Their header (long)
-  //                 + 5  My max header size (words).
-
-  short Buffer[ 32+1*sizeof(long)/sizeof(short) + 5];
-
-  int nBytes = Read(Buffer);
-  int nWords = nBytes/sizeof(short);
-#ifdef CLIENT_HAS_POINTER_COPYIN
-  rBuffer.CopyIn(Buffer, 0, nWords);
-  rBuffer+= nWords;
-#else
-  for(int i =0; i < nWords; i++) {
-    *rBuffer = Buffer[i];
-    ++rBuffer;
-  }
-#endif
-
-}
 /*!
    Read the module into an ordinary buffer.
 */
 int
 CCAENV830Module::Read(void* pBuffer)
 {
-  bool jumbo = daq_isJumboBuffer();
+  bool jumbo = true;		// For now in ring buffers everythig is jumbo capable.
 
   short*  p((short*)pBuffer);
   int nHeaderWords = 0;

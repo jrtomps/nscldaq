@@ -271,20 +271,6 @@ CV1x90Module::Read(void* pBuffer)
   }
 }
 
-/*!
-  Read data into a DAQ buffer.
-*/
-void
-CV1x90Module::Read(DAQWordBufferPtr& rBuffer)
-{
-  
-  if (m_pModule->DataReady()) {
-    unsigned long buffer[1024];
-    int           nr = Read(buffer);
-    rBuffer.CopyIn(buffer, 0, nr*sizeof(uint32_t)/sizeof(uint16_t));
-
-  }
-}
 
 /*!
   Destructor must eliminat the module.

@@ -293,10 +293,7 @@ DAMAGES.
 using namespace std;
 #endif
 
-#ifndef __SPECTRODAQ_H
-#include <spectrodaq.h>
-#define __SPECTRODAQ_H
-#endif
+
 
 #ifndef __CCAENMODULE_H
 #include "CCAENModule.h"
@@ -378,7 +375,6 @@ public:
 
   virtual   void Initialize (); // 
   virtual   void Prepare (); // 
-  virtual   void Read(DAQWordBufferPtr& rBuffer);
   virtual   void Clear ();
   virtual   std::string getType() const {     return std::string("caenv785");
   }

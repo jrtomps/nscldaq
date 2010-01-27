@@ -43,12 +43,6 @@
 using namespace std;
 #endif
 
-#ifndef __SPECTRODAQ_H
-#include <spectrodaq.h>
-#ifndef __SPECTRODAQ_H
-#define __SPECTRODAQ_H
-#endif
-#endif
 
 
 #ifndef __STL_LIST
@@ -104,9 +98,9 @@ private:
   class ModuleRead 
   {
   private:
-    DAQWordBufferPtr& m_pBuffer;
+    uint16_t*  m_pBuffer;
   public:
-    ModuleRead(DAQWordBufferPtr& pBuf) :
+    ModuleRead(uint16_t* pBuf) :
       m_pBuffer(pBuf) {}
     void operator()(CReadableObject*  p) {
       p->Read(m_pBuffer);
@@ -219,7 +213,6 @@ public:
 
   virtual void   Initialize ()   ;            //!< 1-time Initialize our modules.
   virtual void   Prepare ()   ;               //!< Prepare modules for readout.  
-  virtual void   Read (DAQWordBufferPtr& p) ; //!< Read -> spectrodaq 
   virtual int    Read(void* pBuffer);         //!< Read to ordinary buffer. 
   virtual void   Clear ()   ;                 //!< Clear after read & @ Run start. 
   virtual std::string getType() const;	              //!< Return module type information. 

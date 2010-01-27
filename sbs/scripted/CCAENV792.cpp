@@ -26,7 +26,6 @@ static const char* Copyright = "(C) Copyright Michigan State University 1977, Al
 using namespace std;
 
 
-#include <spectrodaq.h>
 #include <assert.h>
 #include <iostream>
 
@@ -114,25 +113,6 @@ CCAENV792::Prepare()
   CCAENModule::Prepare();
 }  
 
-/*!  Function: 	
-
-  Reads an event from the card.  
-\param rBuffer DAQWordBufferPtr& [modified]
-    Pointer like object to the target data buffer.
-    data will be read from the ADC to the location
-  'pointed to' rBuffer.
-
-\return DAQWordBufferptr updated buffer pointer
-    after the read.
-
-\note  The module is silently ignored if the card
-    has not been instantiated yet.
-*/
-void
-CCAENV792::Read(DAQWordBufferPtr& rBuffer)  
-{ 
-  CCAENModule::Read(rBuffer);
-}  
 
 /*! 
   Called on a per event basis to clear the module after reading
