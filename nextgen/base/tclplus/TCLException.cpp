@@ -423,9 +423,20 @@ CTCLException::GetResult()
    @retval the contents of the global variable errorInfo converted to a string.
 */
 string
-CTCLException::getTraceback() const
+CTCLException::getTraceback()
 {
-  CTCLVariable trace(getInterpreter(), string("errorInfo"), false);
+  return CTCLException::getTraceback(*(getInterpreter()));
+}
+/*!
+   Return the command traceback given an interpreter (static).
+   @param interp  - Reference to the interpreter we're fetching error info for.
+   @return std::string
+   @retval the contents of the global variable errorInfo converted to a string.
+*/
+string
+CTCLException::getTraceback(CTCLInterpreter& interp)
+{
+  CTCLVariable trace(&interp, string("errorInfo"), false);
 
   const char* pTrace = trace.Get(TCL_GLOBAL_ONLY);
   if (!pTrace) {

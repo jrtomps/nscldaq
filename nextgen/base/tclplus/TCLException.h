@@ -406,7 +406,8 @@ public:
   {
     return m_nReason;
   }
-  std::string getTraceback() const;
+  std::string getTraceback();
+  std::string getTraceback(CTCLInterpreter& interp);
   //
   //  Mutators:   Available to derivce classes only:
   //
