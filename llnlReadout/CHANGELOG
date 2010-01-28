@@ -42,8 +42,9 @@ August 20, 2009
        can all be mechanically decoded.
 November 25, 2009
    - Emit begin run buffer only after the VM-USB is in acquisition mode.
-January 8, 2009
+January 8, 2010
    - Add a delay after each element of the MADC32 initialization list as that\
      seems to be needed now (firmware in MADC or VM-USB??).  Investigate
      those possibilities later.
-
+January 28, 2010
+   - Roll in fixes after working with Silvie and Mike from Indiana.
