@@ -24,6 +24,7 @@
 #include "CDigitizerDictionary.h"
 #include "CModuleCommand.h"
 #include "CReadOrder.h"
+#include "ScriptedBundle.h"
 #include <unistd.h>
 #include <stdlib.h>
 #include <limits.h>
@@ -58,38 +59,30 @@ using namespace std;
 
 */
 CScriptedSegment::CScriptedSegment() :
-  m_pInterp(0),
-  m_pDictionary(0),
-  m_pReadOrder(0),
-  m_pModuleCommand(0)
+  m_pBundle(0),
+  m_pInterp(0)
 {}
 
 /*!
    Initialization in our case involves
    - Deleting the old infrastructure and creating new.
    - Adding the supported modules to the new infrastructure.
-   - Process the configuration file.
+   - Getting the configuration filename.
    - Getting and processing the configuration file.
 
 */
 void
 CScriptedSegment::initialize()
 {
-  // Remove the old infrastructure
-
-  delete m_pModuleCommand;
-  delete m_pReadOrder;
-  delete m_pDictionary;
+  delete m_pBundle;
   delete m_pInterp;
 
   // Create the new infrastructure:
 
 
   m_pInterp        = new CTCLInterpreter();
-  m_pDictionary    = new CDigitizerDictionary();
-  m_pReadOrder     = new CReadOrder(m_pInterp, m_pDictionary);
-  m_pModuleCommand = new CModuleCommand(m_pInterp, m_pDictionary);
-
+  m_pBundle        = new ScriptedBundle(m_pInterp);
+  
 
   // Add standard and user written module creators.
 
@@ -100,13 +93,10 @@ CScriptedSegment::initialize()
 
   try {
     string configFile = getConfigurationFile();
-    processHardwareFile(configFile.c_str(), *m_pInterp);
-    
-    // Initialize the read order that was created:
-    
-    m_pReadOrder->Initialize();	// One-time intialization.
-    clear();			// Clear everything for good measure
-    m_pReadOrder->Prepare();	// Get ready for the first event.
+    m_pBundle->processHardwareFile(configFile.c_str(),
+				   *m_pInterp);
+    m_pBundle->initialize();
+
   }
   catch(CErrnoException& e) {
     string error = "Configuration file processing failed\n";
@@ -147,15 +137,15 @@ CScriptedSegment::initialize()
 void
 CScriptedSegment::clear()
 {
-  m_pReadOrder->Clear();	// Clear and...
-  m_pReadOrder->Prepare();	// Prepare for the next event.
+  m_pBundle->clear();
 }
 /*!
-   There's actually no way to disable in the CReadOrder..so this is a no-op
+   disable the bundle.
 */
 void
 CScriptedSegment::disable()
 {
+  m_pBundle->disable();
 }
 /*!
    To read we are just going to delegate to the read order:
@@ -172,7 +162,7 @@ CScriptedSegment::disable()
 size_t
 CScriptedSegment::read(void* pBuffer, size_t maxwords)
 {
-  int nWords = m_pReadOrder->Read(pBuffer);
+  int nWords = m_pBundle->m_pReadOrder->Read(pBuffer);
   if (nWords > maxwords) {
     throw CRangeError(0, maxwords, nWords,
 		      "Overflowed the event buffer in an event read");
@@ -252,7 +242,7 @@ CScriptedSegment::getConfigurationFile()
 void
 CScriptedSegment::addCreator(CModuleCreator& creator)
 {
-  m_pModuleCommand->AddCreator(&creator);
+  m_pBundle->addCreator(creator);
 }
 
 /*!
@@ -288,22 +278,4 @@ CScriptedSegment::addStandardCreators()
   addCreator(*(new CCAENV775Creator()));
   addCreator(*(new CCAENV785Creator()));
   addCreator(*(new CCAENV792Creator()));
-}
-/*
-  Process the hardware file.  This results in the creation of the elements of
-  this event segment that actually do the work of managing the specified hardware.
-  Parameters:
-      pFilename    - Pointer to the full path to the configuration file.
-      rInterp      - Refers to the Tcl interpreter that will be used to
-                     process the configuration file.
-  Throws: 
-     Various exceptions can be thrown from the configuration processors.
-     These are passed through without catch here.  Most likely exceptions
-     include CTCLException, const char*, and std::string in no particular order.
-*/
-void
-CScriptedSegment::processHardwareFile(const char*      pFilename, 
-				      CTCLInterpreter& rInterp)
-{
-  rInterp.EvalFile(pFilename);
 }

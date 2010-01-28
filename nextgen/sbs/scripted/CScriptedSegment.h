@@ -36,6 +36,8 @@ class CTCLInterpreter;
 class CModuleCommand;
 class CModuleCreator;
 
+struct ScriptedBundle;
+
 /*!
   Class that provides an event segment that is driven by the
   scripted readout software within the productino readout
@@ -45,10 +47,8 @@ class CScriptedSegment : public CEventSegment
 {
   // Member data:
 private:
-  CTCLInterpreter*        m_pInterp;
-  CDigitizerDictionary*   m_pDictionary;
-  CReadOrder*             m_pReadOrder;
-  CModuleCommand*         m_pModuleCommand;
+  ScriptedBundle*   m_pBundle;
+  CTCLInterpreter*  m_pInterp;
 
 public:
   CScriptedSegment();
@@ -62,7 +62,6 @@ public:
   // protected members:
 
 protected:
-  void processHardwareFile(const char* pFilename, CTCLInterpreter& rInterp);
   void addCreator(CModuleCreator& creator);
   void addStandardCreators();
   virtual void addUserWrittenCreators(); // Hook for user written readout modules.
