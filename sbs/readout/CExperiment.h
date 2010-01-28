@@ -30,6 +30,14 @@
 #endif
 #endif
 
+
+#ifndef __TCL_H
+#include <tcl.h>
+#ifndef __TCL_H
+#define __TCL_H
+#endif
+#endif
+
 // Forwared definitions:
 
 class RunState;			
@@ -109,6 +117,12 @@ public:
   void   TriggerScalerReadout();
   void   DocumentPackets();
   void   ScheduleRunVariableDump();
+  void   ScheduleEndRunBuffer(bool pause);
+
+private:
+  void readScalers();
+  void syncEndRun(bool pause);
+  static int HandleEndRunEvent(Tcl_Event* evPtr, int flags);
 
 };
 

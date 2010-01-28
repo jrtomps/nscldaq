@@ -24,7 +24,10 @@
 #include <string>
 #include <stdlib.h>
 
+
 #include <stdio.h>
+
+#include <iostream>
 
 using namespace std;
 
@@ -84,11 +87,11 @@ CTriggerLoop::start()
   The stop consists of setting the stopping member and joining the thread.
 */
 void
-CTriggerLoop::stop()
+CTriggerLoop::stop(bool pausing)
 {
   if (runningThread() != getId()) {
     m_stopping = true;
-    join();
+    m_pausing  = pausing;
   }
   else {
     char mypid[1000];
@@ -117,6 +120,7 @@ CTriggerLoop::run()
 
   m_running  = false;
   m_stopping = false;
+  cerr << "Trigger Loop exited\n";
 }
 
 /*!
@@ -143,6 +147,9 @@ CTriggerLoop::mainLoop()
   while(!m_stopping);
   // End of run scaler:
 
-  m_pExperiment->TriggerScalerReadout();
+  cerr << "Scheduling end of run scaler read\n";
+
+  m_pExperiment->ScheduleEndRunBuffer(m_pausing);
+
   return;
 }

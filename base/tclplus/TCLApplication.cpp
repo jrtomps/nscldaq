@@ -74,6 +74,15 @@ static int    savedArgc;
 static char** savedArgv;
 
 
+/*!
+  Construction of the application:
+*/
+CTCLApplication::CTCLApplication()
+{
+  m_pInit = (void*)Tcl_AppInit; 
+  m_thread = Tcl_GetCurrentThread(); // hopefully we can call this before interp created.
+} 
+
 
 /*
  *----------------------------------------------------------------------
@@ -147,4 +156,13 @@ CTCLApplication::getProgramArguments(int& argc, char**& argv)
 {
   argc = savedArgc;
   argv = savedArgv;
+}
+
+/*!
+  Get the thread for the interpreter/application:
+*/
+Tcl_ThreadId
+CTCLApplication::getThread() const
+{
+  return m_thread;
 }

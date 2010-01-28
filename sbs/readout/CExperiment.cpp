@@ -31,10 +31,25 @@
 #include <CDocumentedPacketManager.h>
 #include <CVariableBuffers.h>
 
+#include <TCLApplication.h>
+
 #include <vector>
 #include <string>
 
 using namespace std;
+
+
+//
+// This struct is used to the event used to schedule an end run with the interpreter.
+//
+typedef struct _EndRunEvent {
+  Tcl_Event     tclEvent;
+  bool         pause;
+  CExperiment* pExperiment;	// Pointer to the experiment object.
+
+} EndRunEvent, *pEndRunEvent;
+
+extern CTCLApplication* gpTCLApplication; // We need this to get the tcl interp.
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 
@@ -133,11 +148,14 @@ CExperiment::Start(bool resume)
   }
   // Initialize/clear the hardware:
 
-  m_pReadout->initialize();
-  m_pReadout->clear();
-  m_pScalers->initialize();
-  m_pScalers->clear();
-
+  if (m_pReadout) {
+    m_pReadout->initialize();
+    m_pReadout->clear();
+  }
+  if (m_pScalers) {
+    m_pScalers->initialize();
+    m_pScalers->clear();
+  }
   // Begin run zeroes the previous scaler time.
   //
   if (m_pRunState->m_state != RunState::paused) {
@@ -199,16 +217,41 @@ CExperiment::Stop(bool pause)
 			  validStates.c_str(), 
 			  "Stopping data taking");
   }
-  // Stop the trigger thread and wait for it to stop.
+  // Schedule the trigger thread to stop.
 
   if (m_pTriggerLoop) {
-    m_pTriggerLoop->stop();
+    if (m_pRunState->m_state == RunState::active) {
+      m_pTriggerLoop->stop(pause); // run is active
+    }
+    else {
+      ScheduleEndRunBuffer(false); // for ending paused we need to schedule.
+      
+    }
+
   }
+  // Everything else is scheduled by Tcl events from the trigger loop.
+
+}
+/*
+** Called (indirectly) by the Tcl interpreter event dispatcher
+** as a result of the trigger loops scheduling the end of run action.
+*/
+void
+CExperiment::syncEndRun(bool pause)
+{
+
+  readScalers();		// last scaler read.
 
   // Disable the hardware:
 
-  m_pScalers->disable();
-  m_pReadout->disable();
+  if (m_pScalers) {
+    m_pScalers->disable();
+  }
+  if (m_pReadout) {
+    m_pReadout->disable();
+  }
+    
+  // 
 
   // Create the run state item and commit it to the ring.
 
@@ -375,14 +418,11 @@ CExperiment::ReadEvent()
   //      trigger count item.
 }
 
-/*!
-  Reads scaler data.  If the root scaler bank exists, it is asked to read its
-  data and return a vector of uint32_t.  That vector is used as the scalers in a scaler
-  event that is submitted to the ring buffer.
-
-*/
-
-void CExperiment::TriggerScalerReadout()
+/*
+ * Read the scalers.
+ */
+void
+CExperiment::readScalers()
 {
   // can only do scaler readout if we have a root scaler bank:
 
@@ -399,6 +439,21 @@ void CExperiment::TriggerScalerReadout()
     m_nLastScalerTime = m_pRunState->m_timeOffset;
 			  
   }
+}
+
+/*!
+  Reads scaler data.  If the root scaler bank exists, it is asked to read its
+  data and return a vector of uint32_t.  That vector is used as the scalers in a scaler
+  event that is submitted to the ring buffer.
+
+*/
+
+void CExperiment::TriggerScalerReadout()
+{
+
+
+  readScalers();
+
   // For now documented variables are tied to this trigger too:
 
   ScheduleRunVariableDump();
@@ -461,3 +516,35 @@ CExperiment::getScalerTrigger()
 {
   return m_pScalerTrigger;
 }
+/*!
+   Schedule the end run buffer read out:
+   @param pause  - true if this is a pause run.
+*/
+void
+CExperiment::ScheduleEndRunBuffer(bool pause)
+{
+
+  pEndRunEvent pEvent = reinterpret_cast<pEndRunEvent>(Tcl_Alloc(sizeof(EndRunEvent)));
+  pEvent->tclEvent.proc = CExperiment::HandleEndRunEvent;
+  pEvent->pause         = pause;
+  pEvent->pExperiment   = this;
+
+  CTCLInterpreter* pInterp = gpTCLApplication->getInterpreter();
+  Tcl_ThreadId     thread  = gpTCLApplication->getThread();
+
+  Tcl_ThreadQueueEvent(thread, 
+		       reinterpret_cast<Tcl_Event*>(pEvent),
+		       TCL_QUEUE_TAIL);
+
+}
+/*!
+  Handle the end run event by getting object context and 
+ calling syncEndRun
+*/
+int CExperiment::HandleEndRunEvent(Tcl_Event* evPtr, int flags)
+{
+  pEndRunEvent pEvent = reinterpret_cast<pEndRunEvent>(evPtr);
+  CExperiment* pExperiment  = pEvent->pExperiment;
+  pExperiment->syncEndRun(pEvent->pause);
+}
+

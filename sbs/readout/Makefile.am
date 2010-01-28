@@ -81,7 +81,7 @@ libSBSProductionReadout_la_LDFLAGS	=	-version-info	1:0:0	\
 
 EXTRA_DIST	=	options.ggo Skeleton.cpp UserMakefile.in SBSRdoMakeIncludes.in
 
-noinst_PROGRAMS	= Readout tests triggertests
+noinst_PROGRAMS	= Readout tests
 
 Readout_SOURCES = Skeleton.cpp
 
@@ -154,14 +154,6 @@ tests_LDADD = 	CExperiment.lo	\
 tests_LDFLAGS=-Wl,"-rpath-link=$(libdir)"
 
 
-triggertests_SOURCES = TestRunner.cpp CTriggerLoopTests.cpp
-
-triggertests_LDADD = 	CTriggerLoop.lo	CEventTrigger.lo		\
-			@top_srcdir@/base/thread/libdaqthreads.la \
-			@top_srcdir@/base/exception/libException.la \
-			$(CPPUNIT_LDFLAGS) $(THREADLD_FLAGS)
-
-triggertests_LDFLAGS = -Wl,"-rpath-link=$(libdir)"
 
 
 
