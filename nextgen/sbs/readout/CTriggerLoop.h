@@ -46,6 +46,7 @@ private:
 
   volatile bool      m_running;
   volatile bool      m_stopping;  // Shared between threads.
+  volatile bool      m_pausing;   // Shared between threads.
 
 public:
   CTriggerLoop(CExperiment& experiment);
@@ -62,7 +63,7 @@ private:
   // Member functions externally available.
 public:
   virtual void start();
-  void         stop();          // stop/join.
+  void         stop(bool pausing);          // stop/join.
   virtual void run();
 
 protected:

@@ -40,11 +40,12 @@
                                
 class CTCLApplication  : public CTCLInterpreterObject        
 {
-  void* m_pInit;	  // Ensure app init pulled out of link.
+  void*        m_pInit;	  // Ensure app init pulled out of link.
+  Tcl_ThreadId m_thread;
 public:
 			//Default constructor
 
-  CTCLApplication ()   {m_pInit = (void*)Tcl_AppInit; } // Ensure TCLApplication.o
+  CTCLApplication ();
 				                  // is linked.
   ~CTCLApplication ( ) { }       //Destructor
 
@@ -80,6 +81,8 @@ public:
   virtual   int operator() ()  =0;
 
   void getProgramArguments(int& argc, char**& argv);
+
+  Tcl_ThreadId getThread() const;
  
 };
 

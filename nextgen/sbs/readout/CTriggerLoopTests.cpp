@@ -111,7 +111,7 @@ void TriggerLoopTests::theTest() {
   
   theTrigger.start();
   sleep(1);
-  theTrigger.stop();
+  theTrigger.stop(pause);
 
   ASSERT(scalerTriggers != 0);
   ASSERT(eventTriggers  != 0);
