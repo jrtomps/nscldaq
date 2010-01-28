@@ -38,7 +38,8 @@ libScriptedRdo_la_SOURCES = 	CScriptedSegment.cpp		\
 	CEnumParameter.cpp	\
 	CV1x90Creator.cpp CV1x90Module.cpp \
 	CReadOrder.cpp	\
-	CScriptedScalers.cpp
+	CScriptedScalers.cpp	\
+	ScriptedBundle.cpp
 
 
 
@@ -81,6 +82,7 @@ noinst_HEADERS= CScriptedSegment.h
 	CV1x90Creator.h CV1x90Module.h \
 	Skeleton.h	\
 	CScriptedScalers.h
+	ScriptedBundle.h
 
 
 
