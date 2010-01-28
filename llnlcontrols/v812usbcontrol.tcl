@@ -49,7 +49,7 @@ package require Tk
 package provide CFD812   2.0;             # Hokey.
 
 
-lappend auto_path  /usr/opt/daq/8.1/TclLibs
+lappend auto_path  /usr/opt/daq/current/TclLibs
 
 
 package require caenv812Gui;             # our widget.
@@ -221,6 +221,7 @@ proc commit {} {
 
     puts $fd "set majority [CFDState::GetMultiplicity CFD]"
     puts $fd "set enables  [CFDState::getMask CFD]"
+
 
     close $fd
 
