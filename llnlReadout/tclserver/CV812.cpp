@@ -226,6 +226,25 @@ CV812::Update(CVMUSB& vme)
 {
   uint32_t baseAddress = base();
 
+  for (int i=0; i < 16; i++) {
+    vme.vmeWrite16(baseAddress + Thresholds + (i*sizeof(uint16_t)),
+		   am,
+		   -m_thresholds[i]);
+  }
+  for (int i =0; i < 2; i++) {
+    vme.vmeWrite16(baseAddress + Widths + (i*sizeof(uint16_t)),
+		   am, m_widths[i]);
+    if (m_is812) {
+      vme.vmeWrite16(baseAddress + DeadTimes + (i*sizeof(uint16_t)),
+		     am, m_deadtimes[i]);
+    }
+  }
+  vme.vmeWrite16(baseAddress + Inhibits, am, m_inhibits);
+  vme.vmeWrite16(baseAddress+ Majority, am,
+		 majorityToRegister(m_majority));
+
+
+#if 0
   CVMUSBReadoutList list;
 
   // The thresholds:
@@ -233,7 +252,8 @@ CV812::Update(CVMUSB& vme)
   for (int i=0; i < 16; i ++) {
     list.addWrite16(baseAddress + Thresholds + (i*sizeof(uint16_t)),
 		    am,
-		    m_thresholds[i]);
+		    -m_thresholds[i]);
+    list.addDelay(1);
   }
   // The widths/deadtimes:
 
@@ -241,17 +261,24 @@ CV812::Update(CVMUSB& vme)
     list.addWrite16(baseAddress + Widths + (i*sizeof(uint16_t)),
 		    am, 
 		    m_widths[i]);
-    list.addWrite16(baseAddress + DeadTimes + (i*sizeof(uint16_t)),
-		    am,
-		    m_deadtimes[i]);
+    list.addDelay(1);
+    if (m_is812) {
+      list.addWrite16(baseAddress + DeadTimes + (i*sizeof(uint16_t)),
+		      am,
+		      m_deadtimes[i]);
+      list.addDelay(1);
+    }
     
   }
   // The enables:
 
   list.addWrite16(baseAddress + Inhibits, am,
 		  m_inhibits);
+  list.addDelay(1);
   list.addWrite16(baseAddress + Majority, am,
 		  majorityToRegister(m_majority));
+
+  list.addDelay(1);
 
   // Execute the list:
 
@@ -266,7 +293,8 @@ CV812::Update(CVMUSB& vme)
   else {
     return string("OK");
   }
-  
+#endif
+  return string("OK");
 }
 ///////////////////////////////////////////////////////////////////////////////////
 /*!

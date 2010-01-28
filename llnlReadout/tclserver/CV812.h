@@ -75,7 +75,7 @@ private:
 
   // shadow state:
 
-  uint16_t            m_thresholds[16];
+  int16_t             m_thresholds[16];
   uint16_t            m_widths[2];
   uint16_t            m_deadtimes[2];
   uint16_t            m_inhibits;
