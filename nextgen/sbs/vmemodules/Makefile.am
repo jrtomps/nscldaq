@@ -11,7 +11,7 @@ libSBSDeviceSupport_la_SOURCES =	CADC2530.cpp		\
 					CCAENV830.cpp		\
 					CCAENV977.cpp		\
 					CModule32.cpp	\
-					CScaler.cpp	\
+					CVMEScaler.cpp	\
 					CSIS3600.cpp	\
 					CSIS3820.cpp	\
 					CVMEScalerLRS1151.cpp	\
@@ -44,7 +44,7 @@ include_HEADERS =	CADC2530.h	\
 			cescamac.h		\
 			cesmacros.h	\
 			CModule32.h	\
-			CScaler.h	\
+			CVMEScaler.h	\
 			CSIS3600.h	\
 			CSIS3820.h	\
 			CVMEScalerLRS1151.h	\

@@ -21,7 +21,7 @@
 #define __CVMESCALERLRS1151_H
                                
 #ifndef __CSCALER_H
-#include "CScaler.h"
+#include "CVMEScaler.h"
 #endif
 
 #ifndef __VMEMODULE_H
@@ -35,7 +35,7 @@
    allows you to specify the camac address.
    
  */		
-class CVMEScalerLRS1151  : public CScaler        
+class CVMEScalerLRS1151  : public CVMEScaler        
 { 
 private:
   CVmeModule   m_Scaler;	//!< The scaler module representations.

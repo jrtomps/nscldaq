@@ -44,14 +44,14 @@ static const unsigned int ModIdL        = (0xfa/sizeof(long));
   Construct a module at the designated site:
   */
 CVMEScalerLRS1151::CVMEScalerLRS1151(UInt_t base, int crate) :
-  CScaler(),
+  CVMEScaler(),
   m_Scaler(CVmeModule::a24d32, base, nVmeMapSize, crate)
 {}
 /*!
    Copy construct a scaler from a right hand side (rhs):
    */
 CVMEScalerLRS1151::CVMEScalerLRS1151(const CVMEScalerLRS1151& rhs) :
-  CScaler(rhs),
+  CVMEScaler(rhs),
   m_Scaler(rhs.m_Scaler)
 {
   
@@ -63,7 +63,7 @@ CVMEScalerLRS1151&
 CVMEScalerLRS1151::operator=(const CVMEScalerLRS1151& rhs)
 {
   if(this != &rhs) {
-    CScaler::operator=(rhs);
+    CVMEScaler::operator=(rhs);
     m_Scaler = rhs.m_Scaler;
   }
   return *this;
@@ -75,7 +75,7 @@ int
 CVMEScalerLRS1151::operator==(const CVMEScalerLRS1151& rhs) 
 {
 	return ((m_Scaler == rhs.m_Scaler) &&
-		     CScaler::operator==(rhs));
+		     CVMEScaler::operator==(rhs));
 }
 /*
   Initialize the scaler.  All channels are cleared and put

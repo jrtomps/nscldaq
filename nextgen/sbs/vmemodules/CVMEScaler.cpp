@@ -15,9 +15,9 @@
 */
 
 static const char* Copyright = "(C) Copyright Michigan State University 2002, All rights reserved";   
-//////////////////////////CScaler.cpp file////////////////////////////////////
+//////////////////////////CVMEScaler.cpp file////////////////////////////////////
 #include <config.h>
-#include "CScaler.h"
+#include "CVMEScaler.h"
 
 #ifdef HAVE_STD_NAMESPACE
 using namespace std;
@@ -29,10 +29,10 @@ using namespace std;
 	//Association object data member pointers initialized to null association object 
 /*!
    Default constructor.  This is called when declarations of the form e.g.:
-   -  CScaler  object;
+   -  CVMEScaler  object;
    are performed.
 */
-CScaler::CScaler ()
+CVMEScaler::CVMEScaler ()
  
 {
 
@@ -41,7 +41,7 @@ CScaler::CScaler ()
    Copy construction. This is invoked when e.g. an object is passed by value
    to a function.  The copy constructor makes a clone of the rhs object.
 */
-CScaler::CScaler(const CScaler& rhs) 
+CVMEScaler::CVMEScaler(const CVMEScaler& rhs) 
 {
 
 }
@@ -52,9 +52,9 @@ CScaler::CScaler(const CScaler& rhs)
    Assignment operation.  This member function supports assignment of
    an object of this class to an object of the same class.
 */
-CScaler& CScaler::operator= (const CScaler& aCScaler)
+CVMEScaler& CVMEScaler::operator= (const CVMEScaler& aCVMEScaler)
 { 
-    if (this != &aCScaler) {
+    if (this != &aCVMEScaler) {
     }
     return *this;
 }
@@ -63,7 +63,7 @@ CScaler& CScaler::operator= (const CScaler& aCScaler)
    Comparison for equality.
    */
 int
-CScaler::operator==(const CScaler& rhs) const
+CVMEScaler::operator==(const CVMEScaler& rhs) const
 {
   return 1;
 }
