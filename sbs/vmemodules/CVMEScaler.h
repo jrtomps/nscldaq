@@ -15,10 +15,11 @@
 */
 
 
-//////////////////////////CScaler.h file//////////////////////////////////
+//////////////////////////CVMEScaler.h file//////////////////////////////////
 
-#ifndef __CSCALER_H  
-#define __CSCALER_H
+#ifndef __CVMESCALER_H  
+#define __CVMESCALER_H
+
 #ifndef __STL_VECTOR
 #include <vector>
 #define __STL_VECTOR
@@ -31,20 +32,20 @@
    high performance counters which can be
    sequentially read and cleared.
  */		
-class CScaler   
+class CVMEScaler   
 { 
 private:
 
 public:
 	// Constructors, destructors and other cannonical operations: 
 
-  CScaler ();                      //!< Default constructor.
-  CScaler(const CScaler& rhs); //!< Copy constructor.
-  ~ CScaler ( ) { } //!< Destructor.
+  CVMEScaler ();                      //!< Default constructor.
+  CVMEScaler(const CVMEScaler& rhs); //!< Copy constructor.
+  ~ CVMEScaler ( ) { } //!< Destructor.
   
-  CScaler& operator= (const CScaler& rhs); //!< Assignment
-  int         operator==(const CScaler& rhs) const; //!< Comparison for equality.
-  int         operator!=(const CScaler& rhs) const {
+  CVMEScaler& operator= (const CVMEScaler& rhs); //!< Assignment
+  int         operator==(const CVMEScaler& rhs) const; //!< Comparison for equality.
+  int         operator!=(const CVMEScaler& rhs) const {
     return !(operator==(rhs));
   }
   
