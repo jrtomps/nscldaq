@@ -79,6 +79,8 @@ private:
   size_t                 m_nDataBufferSize; //!< current event buffer size.
 
   uint32_t               m_nLastScalerTime; //
+  uint64_t               m_nEventsEmitted;
+
 
   // Canonicals:
 

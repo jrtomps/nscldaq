@@ -21,6 +21,7 @@
 #include <CRingScalerItem.h>
 #include <CRingItem.h>
 #include <CRingTextItem.h>
+#include <CRingPhysicsEventCountItem.h>
 
 #include <RunState.h>
 #include <StateException.h>
@@ -156,10 +157,13 @@ CExperiment::Start(bool resume)
     m_pScalers->initialize();
     m_pScalers->clear();
   }
-  // Begin run zeroes the previous scaler time.
+  // Begin run zeroes the previous scaler time, and ring buffer item sequence.
+  // 
   //
   if (m_pRunState->m_state != RunState::paused) {
+    m_nEventsEmitted  = 0;
     m_nLastScalerTime = 0;
+
   }
       
   time_t  now;
@@ -172,6 +176,14 @@ CExperiment::Start(bool resume)
   item.commitToRing(*m_pRing);
   
   DocumentPackets();		// output a documentation packet.
+
+  // emit a physics event count item that indicates no events have been sent yet
+  // if this is a start run:
+
+  if (!resume) {
+    CRingPhysicsEventCountItem count;
+    count.commitToRing(*m_pRing);
+  }
 
   // Start the trigger loop:
 
@@ -380,7 +392,7 @@ CExperiment::setScalerTrigger(CEventTrigger* pScalerTrigger)
   Establishes the busy module. The busy module represents hardware that 
   describes to the outside world when the system is unable to react to any triggers.
 
-  \param pBusyModul
+  \param pBusyModule
 
 */
 void
@@ -409,9 +421,12 @@ CExperiment::ReadEvent()
   if (m_pReadout) {
     CRingItem item(PHYSICS_EVENT, m_nDataBufferSize);
     uint16_t* pBuffer = reinterpret_cast<uint16_t*>(item.getBodyPointer());
-    size_t nWords = m_pReadout->read(pBuffer, m_nDataBufferSize);
-    item.setBodyCursor(pBuffer + nWords);
+    size_t nWords = m_pReadout->read(pBuffer +2 , m_nDataBufferSize);
+    *(reinterpret_cast<uint32_t*>(pBuffer)) = nWords +2;
+    m_pReadout->clear();	// do any post event clears.
+    item.setBodyCursor(pBuffer + nWords+2);
     item.commitToRing(*m_pRing);
+    m_nEventsEmitted++;
 
   }
   // TODO: Need to keep track of trigger counts and from time to time emit a 
@@ -424,11 +439,12 @@ CExperiment::ReadEvent()
 void
 CExperiment::readScalers()
 {
+  time_t           now     = time(&now);
+
   // can only do scaler readout if we have a root scaler bank:
 
   if (m_pScalers) {
     vector<uint32_t> scalers = m_pScalers->read();
-    time_t           now     = time(&now);
     
 
     CRingScalerItem  item(m_nLastScalerTime,
@@ -439,6 +455,12 @@ CExperiment::readScalers()
     m_nLastScalerTime = m_pRunState->m_timeOffset;
 			  
   }
+  // Regardless, let's emit a physics event count stamp:
+
+  CRingPhysicsEventCountItem item(m_nEventsEmitted,
+				  m_pRunState->m_timeOffset,
+				  now);
+  item.commitToRing(*m_pRing);
 }
 
 /*!

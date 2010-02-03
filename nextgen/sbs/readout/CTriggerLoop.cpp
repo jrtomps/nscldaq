@@ -120,7 +120,6 @@ CTriggerLoop::run()
 
   m_running  = false;
   m_stopping = false;
-  cerr << "Trigger Loop exited\n";
 }
 
 /*!
@@ -147,7 +146,6 @@ CTriggerLoop::mainLoop()
   while(!m_stopping);
   // End of run scaler:
 
-  cerr << "Scheduling end of run scaler read\n";
 
   m_pExperiment->ScheduleEndRunBuffer(m_pausing);
 

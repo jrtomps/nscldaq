@@ -20,6 +20,7 @@
 #include <CTimedTrigger.h>
 
 #include "CScriptedSegment.h"
+#include "CScriptedScalers.h"
 /*
 /*
 ** This file is a skeleton for the production readout software for
@@ -129,13 +130,15 @@ Skeleton::SetupScalers(CExperiment* pExperiment)
   // Sample: Set up a timed trigger at 2 second intervals.
 
   timespec t;
-  t.tv_sec  = 2;
-  t.tv_nsec = 0;
+  t.tv_sec  = 2;           // Seconds between triggers.
+  t.tv_nsec = 0;           // additional nanoseconds.. best to leave this zero.
   CTimedTrigger* pTrigger = new CTimedTrigger(t);
   pExperiment->setScalerTrigger(pTrigger);
 
   // Create and add your scaler modules here.
 
+
+  pExperiment->AddScalerModule(new CScriptedScalers);
 
 }
 /*!
