@@ -81,7 +81,7 @@ noinst_HEADERS= CScriptedSegment.h
 	CEnumParameter.h	\
 	CV1x90Creator.h CV1x90Module.h \
 	Skeleton.h	\
-	CScriptedScalers.h
+	CScriptedScalers.h \
 	ScriptedBundle.h
 
 

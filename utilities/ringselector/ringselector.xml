@@ -126,7 +126,7 @@
         <title>Attaching SpecTcl</title>
         <screen>
 <command>
-attach -format nsclitems -pipe \
+attach -format ring -pipe \
         ringselector --source=tcp://spdaq22.nscl.msu.edu/$tcl_platform(user) \
                      --sample=PHYSICS_EVENT
 start
@@ -341,7 +341,7 @@ ringselector <replaceable>options</replaceable>
         <title>Attaching SpecTcl</title>
         <screen>
 <command>
-attach -format nsclitems -pipe \
+attach -format ring -pipe \
         ringselector --source=tcp://spdaq22.nscl.msu.edu/$tcl_platform(user) \
                      --sample=PHYSICS_EVENT
 start
