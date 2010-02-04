@@ -16,4 +16,7 @@ January 15, 2010
         - Insert a nonsense CAMAC write after reading the Ph7xxx modules
           as it appears that otherwise the next module's id is dropped
           (workaround CC-USB firmware error).
+February 3, 2010  (1.2-002)
+        - Fold in Lakshmi SoundarPandian's support for the CAEN C894 
+          discrimnator (U-Mass Lowell).
 
