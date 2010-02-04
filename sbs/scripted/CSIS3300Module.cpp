@@ -21,6 +21,7 @@
 #include <CIntConfigParam.h>
 #include <CIntArrayParam.h>
 #include <CBoolConfigParam.h>
+#include <stdint.h>
 
 #include "CEnumParameter.h"
 
