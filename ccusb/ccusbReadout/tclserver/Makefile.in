@@ -60,7 +60,7 @@ libControlServer_la_DEPENDENCIES = $(top_builddir)/ccusb/libCCUSB.la \
 am_libControlServer_la_OBJECTS = CControlHardware.lo CModuleCommand.lo \
 	TclServer.lo CControlModule.lo CSetCommand.lo \
 	serverinstance.lo CUpdateCommand.lo CGetCommand.lo \
-	DriverTemplate.lo Server.lo
+	DriverTemplate.lo Server.lo C894.lo
 libControlServer_la_OBJECTS = $(am_libControlServer_la_OBJECTS)
 DEFAULT_INCLUDES = -I.@am__isrc@ -I$(top_builddir)
 depcomp = $(SHELL) $(top_srcdir)/config/depcomp
@@ -222,7 +222,8 @@ libControlServer_la_SOURCES = CControlHardware.cpp	\
 					CUpdateCommand.cpp	\
 					CGetCommand.cpp		\
 					DriverTemplate.cpp	\
-					Server.cpp
+					Server.cpp		\
+					C894.cpp
 
 include_HEADERS = CSetCommand.h		\
 					server.h		\
@@ -233,7 +234,8 @@ include_HEADERS = CSetCommand.h		\
 					CControlModule.h	\
 					CModuleCommand.h	\
 					DriverTemplate.h	\
-					TclServer.h
+					TclServer.h		\
+					C894.h
 
 INCLUDES = -I$(top_builddir)/ccusb		\
 					-I$(top_builddir)/devices	\
@@ -321,6 +323,7 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/C894.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/CControlHardware.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/CControlModule.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/CGetCommand.Plo@am__quote@

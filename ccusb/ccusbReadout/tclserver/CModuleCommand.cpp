@@ -24,7 +24,7 @@ using namespace std;
 #include <CControlHardware.h>
 #include <TclServer.h>
 
-#include "DriverTemplate.h"
+#include "C894.h"
 
 /*!
    Construct the command. 
@@ -114,11 +114,11 @@ CModuleCommand::create(CTCLInterpreter& interp,
 
   CControlHardware* pModule;
 
-  if (type == "testing") {
-    pModule = new CDriverTemplate(name);
+  if (type == "caen894") {
+    pModule = new C894(name);
   }
  else {
-   m_Server.setResult("module create: Invalid type, must be jtecgdg");
+   m_Server.setResult("module create: Invalid type, must be caen894");
    return TCL_ERROR;
  }
    

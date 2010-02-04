@@ -60,7 +60,7 @@ libControlServer_la_DEPENDENCIES = $(top_builddir)/ccusb/libCCUSB.la \
 am_libControlServer_la_OBJECTS = CControlHardware.lo CModuleCommand.lo \
 	TclServer.lo CControlModule.lo CSetCommand.lo \
 	serverinstance.lo CUpdateCommand.lo CGetCommand.lo \
-	DriverTemplate.lo Server.lo
+	DriverTemplate.lo Server.lo C894.lo
 libControlServer_la_OBJECTS = $(am_libControlServer_la_OBJECTS)
 DEFAULT_INCLUDES = -I. -I$(top_builddir)
 depcomp = $(SHELL) $(top_srcdir)/config/depcomp
@@ -160,7 +160,7 @@ TCL_FLAGS = -I/usr/include/tcl
 TCL_LDFLAGS = -L/usr/lib  -ltcl -ltk
 USBSWITCHES = -I/usr/include
 USB_LIBS = -L/usr/lib -lusb
-VERSION = 1.2-001
+VERSION = 1.2-002
 abs_builddir = /scratch/fox/daq/nscldaq/trunk/ccusb/ccusbReadout/tclserver
 abs_srcdir = /scratch/fox/daq/nscldaq/trunk/ccusb/ccusbReadout/tclserver
 abs_top_builddir = /scratch/fox/daq/nscldaq/trunk/ccusb/ccusbReadout
@@ -222,7 +222,8 @@ libControlServer_la_SOURCES = CControlHardware.cpp	\
 					CUpdateCommand.cpp	\
 					CGetCommand.cpp		\
 					DriverTemplate.cpp	\
-					Server.cpp
+					Server.cpp		\
+					C894.cpp
 
 include_HEADERS = CSetCommand.h		\
 					server.h		\
@@ -233,7 +234,8 @@ include_HEADERS = CSetCommand.h		\
 					CControlModule.h	\
 					CModuleCommand.h	\
 					DriverTemplate.h	\
-					TclServer.h
+					TclServer.h		\
+					C894.h
 
 INCLUDES = -I$(top_builddir)/ccusb		\
 					-I$(top_builddir)/devices	\
@@ -321,6 +323,7 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
+include ./$(DEPDIR)/C894.Plo
 include ./$(DEPDIR)/CControlHardware.Plo
 include ./$(DEPDIR)/CControlModule.Plo
 include ./$(DEPDIR)/CGetCommand.Plo
