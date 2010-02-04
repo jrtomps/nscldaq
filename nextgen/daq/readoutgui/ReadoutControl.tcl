@@ -304,8 +304,9 @@ proc ::ReadoutControl::StartReadoutProgram {} {
 	if {$::ReadoutControl::sclclientPid != 0} {
 	    catch {exec kill -9 $::ReadoutControl::sclclientPid};  # Kill and errors don't matter.
 	}
+	set whoami $::tcl_platform(user)
 	set ::ReadoutControl::sclclientPid \
-	    [exec $::bindir/sclclient -p $::TclServerPort -s tcp://$ReadoutHost:2602/ &]
+	    [exec $::bindir/sclclient -p $::TclServerPort -s tcp://$ReadoutHost/$whoami &]
 	
     } else {
         close $fd

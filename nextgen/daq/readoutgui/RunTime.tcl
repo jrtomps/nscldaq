@@ -13,6 +13,7 @@
 #
 
 package provide RunTime 1.0
+package require ReadoutGui
 namespace eval ::RunTime {
     variable timerId -1;                      # interpolation timer.
 }
@@ -70,8 +71,9 @@ proc ::RunTime::startClock {} {
 proc ::RunTime::stopClock {} {
     if {$::RunTime::timerId != -1} {
         after cancel $::RunTime::timerId
-        set ::RunTime::timerId -1
+        set ::RunTime::timerId -1I
     }
+    ReadoutGui::StopRunTimers
 }
 #  Periodic proc that adds 0.5 seconds to the ElapsedRunTime
 #  and reschedules itself for 0.5 seconds later.
@@ -101,6 +103,11 @@ proc ::RunTime::elapsedTime {} {
 proc ::RunTime::formattedTime {} {
     set time $::ElapsedRunTime
     
+
+    if {![string is double $time]} {
+	set time 0
+    }
+
     #  Seconds can include fractions:
     #
     
