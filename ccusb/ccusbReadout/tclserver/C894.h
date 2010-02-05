@@ -93,6 +93,12 @@ private:
   std::string  getWidth(unsigned int selector);
   std::string  getMajority();
   std::string  getInhibits();
+
+  // Configuration file handling:
+
+  void configFileToShadow();
+  std::string initializationFile();
+
 };
 
 

@@ -19,4 +19,6 @@ January 15, 2010
 February 3, 2010  (1.2-002)
         - Fold in Lakshmi SoundarPandian's support for the CAEN C894 
           discrimnator (U-Mass Lowell).
+February 5, 2010 (1.2-003)
+        - Add settings file processing to C894 slow controls driver.
 

@@ -25,6 +25,7 @@ Driver for CAEN C894 - CAEN 16 Channel LED
 #include <stdint.h>
 #include <stdio.h>
 #include <tcl.h>
+#include <string.h>
 
 using namespace std;
 
@@ -110,6 +111,8 @@ C894::operator!=(const C894& rhs) const
 /*!
    Attachment : We need to define our parameters which are:
    The template defines -slot for the CAMAC slot number.
+   We also define  a -file to hold the discriminator settings file that
+   is loaded into the module on startup:
 
  \param configure - Encapsulates the configuration for this module.
 
@@ -119,6 +122,7 @@ C894::onAttach(CControlModule& configuration)
 {
   m_pConfiguration = &configuration;
   configuration.addParameter("-slot", CConfigurableObject::isInteger, NULL, string("0"));
+  configuration.addParameter("-file", (typeChecker)NULL, NULL, string(""));
 
 
 }
@@ -133,7 +137,8 @@ C894::onAttach(CControlModule& configuration)
 void
 C894::Initialize(CCCUSB& camac)
 {
-Update(camac);
+  configFileToShadow();		// load the local config from file
+  Update(camac);		// update the module to match it.
 }
 
 /*!
@@ -158,7 +163,8 @@ C894::Update(CCCUSB& camac)
   // This executes the list and reports any errors.
 
   for (int i=0; i < 16; i ++) {
-    list.addWrite16(slotAddress, i, 16, m_thresholds[i]);
+    list.addWrite16(slotAddress, i, 16, \
+		    -m_thresholds[i]); // Thresholds in mV module wants 0-255
   }
 
   for (int i=0; i < 2; i++) {
@@ -530,3 +536,86 @@ C894::majorityToRegister(int value)
   return result;
 }
 /////////////////////////////////////////////////////////////////////
+
+/*
+   Configuration file processing:
+*/
+void
+C894::configFileToShadow()
+{
+  string filename = initializationFile();
+
+  Tcl_Obj* pObj = Tcl_NewStringObj(filename.c_str(), strlen(filename.c_str()));
+
+  Tcl_IncrRefCount(pObj);	// Evidently FSAccess needs this.
+
+  if (Tcl_FSAccess(pObj, R_OK)) {
+    Tcl_DecrRefCount(pObj);
+    return;			// Not allowed to read the file..or does not exist.
+  }
+  Tcl_DecrRefCount(pObj);
+
+  // Simplest actually to do this in a non  object manner:
+
+  Tcl_Interp* pInterp = Tcl_CreateInterp();
+  int status          = Tcl_EvalFile(pInterp, filename.c_str());
+
+  // Ignore errors as some items may have been set:
+
+  // The threshold array:
+
+  for (int i=0; i < 16; i++) {
+    const char* value = Tcl_GetVar2(pInterp, "thresholds", iToS(i).c_str(), TCL_GLOBAL_ONLY);
+    if (value) {
+      int iValue;
+      if (sscanf(value, "%i", &iValue) == 1) {
+	m_thresholds[i] = iValue;
+      }
+    }
+  }
+  // Widths:
+
+  for (int i =0; i < 2; i++) {
+    const char* value = Tcl_GetVar2(pInterp, "widths", iToS(i).c_str(),
+				    TCL_GLOBAL_ONLY);
+    if(value) {
+      int iValue;
+      if (sscanf(value, "%i", &iValue) == 1) {
+	m_widths[i] = iValue;
+      }
+    }
+  }
+
+  // enables and majority
+
+  const char* value = Tcl_GetVar(pInterp, "enables", TCL_GLOBAL_ONLY);
+  if (value) {
+    int iValue;
+    if (sscanf(value, "%i", &iValue) == 1) {
+      m_inhibits = iValue;
+    }
+  }
+  value = Tcl_GetVar(pInterp, "majority", TCL_GLOBAL_ONLY);
+  if (value) {
+    int iValue;
+    if (sscanf(value, "%i", &iValue) == 1) {
+      m_majority = iValue;
+    }
+  }
+  Tcl_DeleteInterp(pInterp);
+
+}
+/*
+  Return the name of the file to process for the initial values of the 
+  shadow register set:
+*/
+string
+C894::initializationFile()
+{
+  if (m_pConfiguration) {
+    return m_pConfiguration ->cget("-file");
+  } 
+  else {
+    return string("");
+  }
+}
