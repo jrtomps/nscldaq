@@ -108,6 +108,7 @@ protected:
 
   // Utilities.
 private:
+  static void blockUntilData(CRingBuffer& ring, size_t nbytes);
   void copyIn(const CRingItem& rhs);
   void deleteIfNecessary();
   void newIfNecessary(size_t size);
