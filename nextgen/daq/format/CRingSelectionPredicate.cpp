@@ -23,6 +23,7 @@
 
 using namespace std;
 
+static const size_t DEFAULT_HIGH_WATER(1*1024*1024); // Default high water mark.
 
 
 //////////////////////////////////////////////////////////////////////
@@ -34,7 +35,8 @@ using namespace std;
   Actual predicates will usually define a mechanism for manipulating the 
   selection that has an appropriate name for how the selection is used.
 */
-CRingSelectionPredicate::CRingSelectionPredicate()
+CRingSelectionPredicate::CRingSelectionPredicate() : 
+  m_highWaterMark(DEFAULT_HIGH_WATER)
 {
 }
 
@@ -127,6 +129,34 @@ CRingSelectionPredicate::operator!=(const CRingSelectionPredicate& rhs) const
 }
 
 /*!
+   This function gets the current high water mark for the predicate.
+   When one is getting a sampled data type from the ring and the 
+   free put space is less than this, the predicate will start skipping.
+   @return size_t
+   @retval the high watermark in bytes.
+*/
+size_t
+CRingSelectionPredicate::getHighWaterMark() const
+{
+  return m_highWaterMark;
+}
+
+/*!
+  Set a new high water mark.  See getHighWaterMark() for a description of this
+  tuning parameter.
+  @param newValue - New number of bytes in the high water mark value.
+  @return size_t
+  @retval number of bytes in previous high watermark.
+*/
+size_t
+CRingSelectionPredicate::setHighWaterMark(size_t newValue) 
+{
+  size_t old = m_highWaterMark;
+  m_highWaterMark = newValue;
+
+  return old;
+}
+/*!
    Called by the predicate evaluator.  Returns
    true if we need to be called again or false if not.
    The assumption is that this is a predicate defined on the 
@@ -160,36 +190,74 @@ CRingSelectionPredicate::operator()(CRingBuffer& ring)
     header.s_type = longswap(header.s_type);
   }
   
+  // Select this really is skip this.  If we should skip the item;
+  // - First if the entire item has not yet made it into the ring,
+  //   return true, sleep  a bit ant return true, as we'll get called
+  //   again to skip this item once it's all in.
+  // - If we do have the entire item, then skip it and:
+  //   * if the ring is empty wait a bit before returning to give more data
+  //     a chance to arrive else
+  //   * return again to get us called to look at the next item.
+  // 
   if (selectThis(header.s_type)) {
-    ring.skip(header.s_size);
-    if (!ring.availableData()) {
-      usleep(ring.getPollInterval()*1000);
+    if (ring.availableData() >= header.s_size) {
+
+      // full item in ring.
+
+      ring.skip(header.s_size);
+      if (!ring.availableData()) {
+	ring.pollblock();
+      }
+    } else {
+      ring.pollblock(); // wait to allow full item to get in.
     }
     return true;
   }
   else {
     // We have a type match.. What we do now depends on the state of the
-    // sample flag.  If consuming the item would empty the ring,
+    // sample flag.  If consuming the item would leave us with more putspace
+    // that the higgwater mark
     //  we can return false, otherwise, true.
     // If the type is not in the selection list we can also return false.
     //
+
+    CRingBuffer::Usage usage = ring.getUsage();
+    size_t freeSpace     = usage.s_putSpace;
+    size_t availableData = ring.availableData();
 
     SelectionMapIterator p = find(header.s_type);
     if (p == end()) {
       return false;
     }
     if (p->second.s_sampled) {
-      if (ring.availableData() == header.s_size) {
-	return false;
+      if ((availableData > header.s_size) && 
+	  (freeSpace     >= m_highWaterMark)) {
+	return false;		// full item is in ring, and below high water.
       } 
+      else if (availableData < header.s_size) {
+	// Full item not yet in ring so wait and return true to try again.
+
+	ring.pollblock();
+	return true;
+      }
       else {
 	ring.skip(header.s_size);
 	if (!ring.availableData()) {
-	  usleep(ring.getPollInterval()*1000);
+	  ring.pollblock();
 	}
 	return true;
       }
     } else {
+
+      // Not sampled but if the entire item is not in the ring, 
+      // we need to wait a bit and try again:
+
+      if (availableData < header.s_size) {
+	ring.pollblock();
+	return true;
+      }
+      // Else return false so that the ultimate caller can fetch the data:
+
       return false;
     }
   }

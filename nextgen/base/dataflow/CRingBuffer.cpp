@@ -852,7 +852,7 @@ CRingBuffer::blockWhile(CRingBuffer::CRingBufferPredicate& pred, unsigned long t
       time_t now = time(NULL);
       if ((now - start) >= timeout) 
 	return -1; // timeout
-      usleep(m_pollInterval * 1000); // wait a bit before checking condition.
+      pollblock(); // wait a bit before checking condition.
     }
     
     return 0;			// condition no longer true.
@@ -875,6 +875,15 @@ CRingBuffer::While(CRingBuffer::CRingBufferPredicate& pred)
 {
   while(pred(*this)) 
     ;
+}
+
+/*!
+  Block for the polling interval
+*/
+void
+CRingBuffer::pollblock()
+{
+  usleep(m_pollInterval * 1000); // wait a bit before checking condition.  
 }
 
 //////////////////////////////////////////////////////////////////////////////

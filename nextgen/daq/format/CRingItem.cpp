@@ -28,7 +28,7 @@
 //
 
 /*!
-   Construt the ring item:
+   Construct the ring item:
    - If the maxbody is larger than CRingItemStaticBufferSize, allocate
      a new buffer and point the item at that, otherwise point it at 
      m_staticBuffer.
@@ -286,11 +286,10 @@ CRingItem::getFromRing(CRingBuffer& ring, CRingSelectionPredicate& predicate)
   
   // look at the header, figure out the byte order and count so we can
   // create the item and fill it in.
-  // We know the full item is available both because of how
-  // ring items are inserted atomically and how the predicates work.
   //
 
   RingItemHeader header;
+  blockUntilData(ring, sizeof(header));	// Wait until we have at least a header.
   ring.peek(&header, sizeof(header)); 
 
   bool otherOrder(false);
@@ -310,6 +309,7 @@ CRingItem::getFromRing(CRingBuffer& ring, CRingSelectionPredicate& predicate)
   // Create the item and fill it in:
 
   CRingItem* pItem = new CRingItem(size);
+  blockUntilData(ring, size);	// Wait until all data in.
   ring.get(pItem->m_pItem, size, size); // Read the item from the ring.
   pItem->m_pCursor += (size - sizeof(RingItemHeader));
   pItem->m_swapNeeded = otherOrder;
@@ -380,4 +380,29 @@ CRingItem::swal(uint32_t datum)
   uint32_t result = swapper.bytes[3] | (swapper.bytes[2] << 8) | 
     (swapper.bytes[1] << 16) | (swapper.bytes[0] << 24);
 
+}
+/*
+ *  Blocks the caller until a ring has at least the minimum required
+ * amound of data.. note the use of a local predicate
+ */
+
+class RingHasNoMoreThan : public CRingBuffer::CRingBufferPredicate
+{
+private:
+  size_t   m_requiredBytes;
+public:
+  RingHasNoMoreThan(size_t required) :
+    m_requiredBytes(required)
+  {}
+
+  bool operator()(CRingBuffer& ring) {
+    return ring.availableData() < m_requiredBytes;
+  }
+};
+
+void 
+CRingItem::blockUntilData(CRingBuffer& ring, size_t nbytes)
+{
+  RingHasNoMoreThan p(nbytes);
+  ring.blockWhile(p);
 }

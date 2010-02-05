@@ -88,6 +88,7 @@ protected:
 
 private:
   SelectionMap  m_selections;
+  size_t        m_highWaterMark; // When to start skipping for sampled data.
 
   // Constructors and canonicals.
 
@@ -102,6 +103,11 @@ public:
   int operator==(const CRingSelectionPredicate& rhs) const;
   int operator!=(const CRingSelectionPredicate& rhs) const;
 
+
+  // Tuning parameters:
+
+  size_t getHighWaterMark() const;
+  size_t setHighWaterMark(size_t newValue);
 
   // Predicate virtual interface.
 

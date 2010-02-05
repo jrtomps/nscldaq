@@ -146,6 +146,7 @@ public:
   // blocking.
 
   int blockWhile(CRingBufferPredicate& pred, unsigned long timeout=ULONG_MAX);
+  void pollblock();		// Block for the current poll interval.
 
   // Iteration (e.g. searching).
 
