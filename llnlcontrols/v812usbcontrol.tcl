@@ -215,7 +215,7 @@ proc commit {} {
     for {set s 0} {$s < 2} {incr s} {
 	puts $fd "set widths($s) [CFDState::GetWidth CFD $s]"
 	if {!$disableDeadtime} {
-	    puts $fd "set deadtimes(`$s) [CFDState::GetDeadtime CFD $s]"
+	    puts $fd "set deadtimes($s) [CFDState::GetDeadtime CFD $s]"
 	}
     }
 
