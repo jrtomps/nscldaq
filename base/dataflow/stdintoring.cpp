@@ -137,9 +137,9 @@ mainLoop(string ring, int timeout, int mindata)
     perror("stdintoring Failed to set stin nonblocking");
     exit(EXIT_FAILURE);
   }
+  char* pBuffer = new char[mindata];
 
   while (1) {
-    char* pBuffer = new char[mindata];
 
     // Wait for stdin to be readable:
 
@@ -186,7 +186,6 @@ mainLoop(string ring, int timeout, int mindata)
 	exit(EXIT_FAILURE);
       }
     } 
-
   }
   
 
