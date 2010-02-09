@@ -370,6 +370,8 @@ AC_SUBST(TCL_FLAGS)
 AC_SUBST(TCL_LDFLAGS)
 AC_SUBST(TCLSH_CMD)
 
+echo "Epics: " x$haveepics
+
 AM_CONDITIONAL([EPICS], [test x$haveepics = xyes])
 AM_CONDITIONAL(BUILD_EPICS_TOOLS, [test x$BUILD_EPICS_TOOLS = xyes])
 
