@@ -308,7 +308,7 @@ CRingItem::getFromRing(CRingBuffer& ring, CRingSelectionPredicate& predicate)
   }
   // Create the item and fill it in:
 
-  CRingItem* pItem = new CRingItem(size);
+  CRingItem* pItem = new CRingItem(header.s_type, size);
   blockUntilData(ring, size);	// Wait until all data in.
   ring.get(pItem->m_pItem, size, size); // Read the item from the ring.
   pItem->m_pCursor += (size - sizeof(RingItemHeader));
@@ -357,7 +357,7 @@ void
 CRingItem::newIfNecessary(size_t size)
 {
   if (size > CRingItemStaticBufferSize) {
-    m_pItem  = reinterpret_cast<RingItem*>(new uint8_t[m_storageSize + sizeof(RingItemHeader)]);
+    m_pItem  = reinterpret_cast<RingItem*>(new uint8_t[size + sizeof(RingItemHeader) + 100]);
   }
   else {
     m_pItem = reinterpret_cast<RingItem*>(m_staticBuffer);
