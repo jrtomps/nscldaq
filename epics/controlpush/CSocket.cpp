@@ -220,7 +220,7 @@ CSocket::Connect(const string& host, const string& service)
 	if (!gethostbyname_r(host.c_str(),
 			     &entry, buffer, sizeof(buffer),
 			     &pEntry,  &error)) {
-	  memcpy(&ipaddr, &(entry.h_addr), 4);
+	  memcpy(&ipaddr, (entry.h_addr), 4);
 	}
 	else {
 	  pEntry = reinterpret_cast<struct hostent*>(NULL);
