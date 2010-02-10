@@ -1,0 +1,3 @@
+bin_PROGRAMS=VmeDevice
+
+VmeDevice_SOURCES=VmeDevice.cpp
