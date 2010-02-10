@@ -157,7 +157,7 @@ template<class T>
 CVME<T>::CVME() :
   m_nOffset(0)
 {
-  m_pRCptr = 0;
+
 }
 
 /*

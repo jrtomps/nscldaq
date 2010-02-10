@@ -327,19 +327,19 @@ SclClientMain::processStateChange(const CRingStateChangeItem& item)
   command = "set RunState ";
   switch (type) {
   case BEGIN_RUN:
-    command += "active";
+    command += "Active";
     stateproc = "BeginRun";
     break;
   case RESUME_RUN:
-    command += "active";
+    command += "Active";
     stateproc = "ResumeRun";
     break;
   case PAUSE_RUN:
-    command += "paused";
+    command += "Paused";
     stateproc = "PauseRun";
     break;
   case END_RUN:
-    command += "inactive";
+    command += "Inactive";
     stateproc= "EndRun";
     break;
   }

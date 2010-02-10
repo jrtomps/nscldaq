@@ -596,7 +596,7 @@ proc Update {} {
     }
     
     if {$State == "Active" } {
-        DoUpdate
+       DoUpdate
     } else {
         DoUpdate 1
     }
@@ -983,6 +983,7 @@ proc UpdateTable {widget page {average 0}} {
     global pageAlarmState
     global Notebook
 
+
     set pageAlarmState($page) 0
 
     set lines [$widget index end]
@@ -1269,7 +1270,6 @@ proc channel {args} {
         puts "command ignored"
         return
     }
-    puts "Setting scaler $name $id"
     set ScalerMap($name) $id
 }
 

@@ -39,6 +39,7 @@
 
 #ifndef __VMEMODULE_H
 #define __VMEMODULE_H
+#define HAVE_VME_MAPPING	/* This is the SBS interface thing after all. */
 
 #ifndef __CVME_H
 #include <CVME.h>
