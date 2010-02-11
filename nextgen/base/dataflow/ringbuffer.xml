@@ -59,7 +59,7 @@
      <manvolnum>1daq</manvolnum>
   </refmeta>
   <refnamediv>
-     <refname>ringubuffer</refname>
+     <refname>ringbuffer</refname>
      <refpurpose>Manage ring buffers.</refpurpose>
   </refnamediv>
   

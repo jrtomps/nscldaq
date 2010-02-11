@@ -17,6 +17,7 @@ AC_PROG_LIBTOOL
 AC_CHECK_PROG(HAVE_GENGETOPT, [gengetopt], true, false)
 AC_CHECK_PROG(HAVE_DOCBOOK2PDF, [docbook2pdf], true, false)
 AC_CHECK_PROG(HAVE_XMLTO, [xmlto], true, false)
+AC_CHECK_PROG(MANDB, mandb, mandb, echo)
 
 AC_CHECK_LIB([X11], [XSetWindowBackground])
 AC_CHECK_LIB([Xt], [XtManage])
@@ -364,7 +365,7 @@ fi
 # Exports to the makefiles:
 
 AC_SUBST(SOVERSION)
-
+AC_SUBST(MANDB)
 
 AC_SUBST(TCL_FLAGS)
 AC_SUBST(TCL_LDFLAGS)
