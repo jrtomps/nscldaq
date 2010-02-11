@@ -45,6 +45,7 @@ class RingSelectorMain {
 private:
   CRingBuffer*              m_pRing;          // Data source.
   CRingSelectionPredicate*  m_pPredicate;     // Predicate used to select data.
+  bool                      m_formatted;      // Format output.
 
   // Constructors..
 public:

@@ -11,6 +11,12 @@ install-exec-local: daq.pdf daq.mans
 	- for i in 1 2 3 4 5 6 7 8; do for f in *.$$i*; do  $(INSTALL_DATA) $$f $(prefix)/share/man/man$$i; done; done
 	$(INSTALL_DATA) daq.pdf $(prefix)/share
 
+clean-local:
+	-rm -f *.pdf
+	-rm -f *.[0-9]*
+	-rm -f daq.xml
+
+
 
 if PDFDOCS
 DOCBOOK2PDF = docbook2pdf

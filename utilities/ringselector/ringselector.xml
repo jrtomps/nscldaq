@@ -192,6 +192,23 @@ ringselector <replaceable>options</replaceable>
             OPTIONS
          </title>
          <variablelist>
+	   <varlistentry>
+	     <term><option>--formatted</option></term>
+	     <listitem>
+	       <para>
+		 If supplied the data this application sends to stdout will
+		 be formatted rather than binary.  Each item in the ring buffer
+		 will appear on a single line. Each 16 bit data entry for each
+		 ring item will be separated by a space from the others on the
+		 line.
+	       </para>
+	       <para>
+		 The intent of this switch is to allow ringselector to be used
+		 as a data source for Tcl scripts that are easier to write if
+		 the data is ascii.
+	       </para>
+	     </listitem>
+	   </varlistentry>
             <varlistentry>
                 <term><option>--source</option>=<replaceable>ringurl</replaceable></term>
                 <listitem>

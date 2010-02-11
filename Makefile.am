@@ -18,6 +18,7 @@ install-data-local:
 	echo "pkg_mkIndex @prefix@/TclLibs *.so" >makeindex.tcl
 	$(TCLSH_CMD) <makeindex.tcl
 	$(INSTALL_SCRIPT) config.h @prefix@/include
+	$(MANDB) $(prefix)/share/man
 
 EXTRA_DIST=dotests
 

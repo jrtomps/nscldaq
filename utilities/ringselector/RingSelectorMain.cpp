@@ -31,7 +31,7 @@
 #include <pwd.h>
 #include <sys/types.h>
 #include <errno.h>
-
+#include <stdint.h>
 
 #include "parser.h"
 
@@ -71,6 +71,7 @@ RingSelectorMain::operator()(int argc, char** argv)
   struct gengetopt_args_info parsedArgs;
   cmdline_parser(argc, argv, &parsedArgs);
 
+  m_formatted  = parsedArgs.formatted_given;
   m_pPredicate = createPredicate(&parsedArgs);
 
   m_pRing      = selectRing(&parsedArgs);
@@ -196,7 +197,7 @@ RingSelectorMain::selectRing(struct gengetopt_args_info* parse)
 
 /*
 ** Process the data from the ring.  In this case we just accept ring items
-** from the ring and pound them out to stdout unchanged (binary that is).
+** from the ring and pound them out to stdout unchanged.
 */
 void
 RingSelectorMain::processData()
@@ -244,14 +245,25 @@ RingSelectorMain::writeBlock(int fd, void* pData, size_t size)
 {
   const char* p = reinterpret_cast<const char*>(pData);
 
-  while (size) {
-    ssize_t n = write(fd, p, size);
-    if (n < 0 ) {
-      if ((errno != EAGAIN) && (errno != EINTR)) {
-	throw(CErrnoException("Writing data to output file"));
-      }
+  if (m_formatted) {
+    // output the data in words one line for the item
+
+    uint16_t* p = reinterpret_cast<uint16_t*>(pData);
+    for (int i =0; i < size/sizeof(uint16_t); i++) {
+      std::cout << *p++ << ' ';
     }
-    p    += n;
-    size -= n;
+    std::cout << std::endl;
+  }
+  else {
+    while (size) {
+      ssize_t n = write(fd, p, size);
+      if (n < 0 ) {
+	if ((errno != EAGAIN) && (errno != EINTR)) {
+	  throw(CErrnoException("Writing data to output file"));
+	}
+      }
+      p    += n;
+      size -= n;
+    }
   }
 }
