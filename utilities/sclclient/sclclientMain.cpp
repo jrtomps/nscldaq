@@ -329,6 +329,7 @@ SclClientMain::processStateChange(const CRingStateChangeItem& item)
   case BEGIN_RUN:
     command += "Active";
     stateproc = "BeginRun";
+    clearTotals();
     break;
   case RESUME_RUN:
     command += "Active";
@@ -484,4 +485,17 @@ SclClientMain::setDouble(string name, double value, int index)
   command = buffer;
 
   m_pServer->SendCommand(command);
+}
+/*
+** Clear the totals array both here and in the tclserver
+*/
+void
+SclClientMain::clearTotals()
+{
+  for (int i =0; i < m_Totals.size(); i++) {
+    m_Totals[i] = 0.0;
+    setDouble("Scaler_Totals", 0.0, i);
+    setInteger("Scaler_Increments", 0, i);
+  }
+  m_pServer->SendCommand("Update");
 }
