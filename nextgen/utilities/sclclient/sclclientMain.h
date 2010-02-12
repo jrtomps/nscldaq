@@ -51,6 +51,7 @@ private:
   int                  m_Port;
   TclServerConnection* m_pServer;
   std::vector<double>  m_Totals;
+
   // Constructors and canonicals.
 public:
   SclClientMain();
@@ -82,6 +83,7 @@ private:
 
   void setInteger(std::string name, int value, int index = -1);
   void setDouble(std::string name,  double value, int index = -1);
+  void clearTotals();
 };
 
 #endif
