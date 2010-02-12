@@ -27,7 +27,9 @@ package require Iwidgets
 #   Action handler methods:
 #    -okcommand      - Script to execute on ok.
 #    -cancelcommand  - Script to execute on cancel.
-
+# METHODS:
+#    modal   - Makes the dialog application modal.
+#    dismiss - Removes modality
 #
 snit::widget dataSourcePrompt {
     hulltype toplevel                   ;# dialogs live in top levels
