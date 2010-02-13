@@ -12,6 +12,7 @@ package require BWidget
 set here [file dirname [info script]]
 
 source [file join $here datasource.tcl]
+source [file join $here itemdefs.tcl]
 
 set daqbin /usr/opt/daq/10.0/bin
 
