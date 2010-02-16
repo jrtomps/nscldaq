@@ -16,6 +16,7 @@ source [file join $here itemdefs.tcl]
 source [file join $here controlformatter.tcl]
 source [file join $here unknownformatter.tcl]
 source [file join $here physicscountformatter.tcl]
+source [file join $here acceptall.tcl]
 
 
 set daqbin /usr/opt/daq/10.0/bin
@@ -45,6 +46,7 @@ snit::widget mainwindow {
     # Some saved widgets.
     
     variable statusbar
+    variable filter
     variable text
     
     # File descriptor open on pipe to event source.
@@ -60,6 +62,7 @@ snit::widget mainwindow {
     
     constructor {args} {
 
+	$self configurelist $args
 	
 	set top [winfo toplevel $win]
 	
@@ -103,6 +106,9 @@ snit::widget mainwindow {
 	pack $win.bottom.next     -side right
 	grid $win.bottom -sticky nsew
 	
+	# The filter starts out as the accept all filter
+	
+	set filter [AcceptAll %AUTO%]
 
     }
     #-------------------------------------------------------------------------
@@ -179,6 +185,33 @@ snit::widget mainwindow {
 	    fileevent $fd readable [mymethod event $fd]
 	}
     }
+    #  Returns a two item list of the item Type and the byte order
+    # Parameters:
+    #   The raw event.
+    #
+    method typeAndOrder event {
+	# Figure out the byte ordering.  'order' will be 1 for big endian
+	# 0 for little endian.  The type field will tell us the ordering.
+	# if the type field non zero in word 2 it's little endian else
+	# the type is in word 3 and the data are bigendian.
+	
+	set itemType [lindex $event 2]
+	if {$itemType == 0} {
+	    set order  1
+	    set itemType [lindex $event 3]
+	} else {
+	    set order 0
+	}
+	return [list $itemType $order]
+    }
+    # Return a list that is the body of an event.
+    #
+    method getBody event {
+	set body [lrange $event 4 end]
+	return $body
+    }
+    
+    
     #
     # Takes the current event and matches it against the filter criteria
     # returns 1 for a match 0 for no match
@@ -200,14 +233,12 @@ snit::widget mainwindow {
 	# if the type field non zero in word 2 it's little endian else
 	# the type is in word 3 and the data are bigendian.
 	
-	set itemType [lindex $event 2]
-	if {$itemType == 0} {
-	    set order  1
-	    set itemType [lindex $event 3]
-	} else {
-	    set order 0
-	}
-	set body [lrange $event 4 end]
+	set typeAndOrder [$self typeAndOrder $event]
+	set itemType [lindex $typeAndOrder 0]
+	set order    [lindex $typeAndOrder 1]
+	
+	set body [$self getBody $event]
+	
 	#   Format depending on the type ranges and type:
 	#
 	if {[lsearch $::ControlItems $itemType] != -1} {
