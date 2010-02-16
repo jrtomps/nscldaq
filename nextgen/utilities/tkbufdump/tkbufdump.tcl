@@ -13,6 +13,10 @@ set here [file dirname [info script]]
 
 source [file join $here datasource.tcl]
 source [file join $here itemdefs.tcl]
+source [file join $here controlformatter.tcl]
+source [file join $here unknownformatter.tcl]
+source [file join $here physicscountformatter.tcl]
+
 
 set daqbin /usr/opt/daq/10.0/bin
 
@@ -190,10 +194,32 @@ snit::widget mainwindow {
     #
     method formatEvent event {
 	$self add "---------------------"
-	foreach word $event {
-	    append line [format "%04x " $word]
+	
+	# Figure out the byte ordering.  'order' will be 1 for big endian
+	# 0 for little endian.  The type field will tell us the ordering.
+	# if the type field non zero in word 2 it's little endian else
+	# the type is in word 3 and the data are bigendian.
+	
+	set itemType [lindex $event 2]
+	if {$itemType == 0} {
+	    set order  1
+	    set itemType [lindex $event 3]
+	} else {
+	    set order 0
 	}
-	$self add $line
+	set body [lrange $event 4 end]
+	#   Format depending on the type ranges and type:
+	#
+	if {[lsearch $::ControlItems $itemType] != -1} {
+	    set formatter ControlFormatter
+	} elseif {$itemType == $::PHYSICS_EVENT_COUNT} {
+	    set formatter PhysicsCountFormatter
+	} else 	{
+	    set formatter UnknownFormatter
+	}
+	$formatter fmt -body $body -main $self -type $itemType -order $order
+	fmt format
+	fmt destroy
     }
     
     # event - Called whenthe data source becomes readable.  This will happen
@@ -208,10 +234,10 @@ snit::widget mainwindow {
 	    return
 	}
 	gets $f line
-	if {$sample} {
+	if {$sample > 0} {
 	    if {[$self matchFilter $line]} {
 		$self formatEvent $line
-		set sample 0
+		incr sample -1
 	    }
 	}
     }
@@ -220,7 +246,7 @@ snit::widget mainwindow {
     #                 be displayed on the text widget.
     #
     method requestSample {} {
-	set sample 1
+	incr sample
     }
 }
 
