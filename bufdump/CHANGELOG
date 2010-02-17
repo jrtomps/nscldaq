@@ -36,3 +36,5 @@ Finalize 1.0-003 January 3, 2008
 Starting edit level 1.1-001
 
 January 3, 2008 - Ensuring that the next tarball has the 1.1-001 suffix.
+
+July 14, 2008 - don't look for spectcldaq in 9.0 ..it's so much different.

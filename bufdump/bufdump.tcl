@@ -30,7 +30,7 @@
 
 set version 1.1
 
-set daqSearchList [list /usr/opt/daq/9.0 /usr/opt/daq/8.1 /usr/opt/daq/8.0 \
+set daqSearchList [list  /usr/opt/daq/8.1 /usr/opt/daq/8.0 \
 		       /usr/opt/daq/7.4  /usr/opt/daq/7.3 /usr/opt/daq]
 
 
