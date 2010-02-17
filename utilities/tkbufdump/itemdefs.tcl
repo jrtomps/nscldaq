@@ -24,6 +24,7 @@ set StringListItems [list $PACKET_TYPE $MONITORED_VARIABLES]
 
 # other types:
 
+set INCREMENTAL_SCALERS 20
 set PHYSICS_EVENT       30
 set PHYSICS_EVENT_COUNT 31
 

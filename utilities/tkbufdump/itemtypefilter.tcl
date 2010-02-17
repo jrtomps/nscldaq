@@ -17,10 +17,22 @@ source [file join $here itemdefs.tcl]
 #     appliFilter        - Returns true if the item matches the filter condition.
 #
 snit::type ItemTypeFilter {
-    option -itemtypes [list]
+    option -itemtypes  -default [list] -configuremethod buildArray
+    
+    variable itemhash -array {}
     
     constructor args {
         $self configurelist $args
+    }
+    #  Configuration means building the itemhash array:
+    #
+    method buildArray {name value} {
+        set options(-itemtypes) $value
+        foreach item $value {
+            lappend values $item 1
+        }
+        array set itemhash $values
+        puts "Set itemhash: $values"
     }
     
     #
@@ -32,7 +44,8 @@ snit::type ItemTypeFilter {
     #    body       - Item body.
     #
     method applyFilter {itemType body} {
-        return ([lsearch -exact $options(-itemtypes) $itemType] != 0)
+        set match [catch {set itemhash($itemType)} msg]
+        return [expr {$match == 0}]
     }
 }
 
