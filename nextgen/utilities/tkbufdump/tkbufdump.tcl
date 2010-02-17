@@ -17,6 +17,8 @@ source [file join $here controlformatter.tcl]
 source [file join $here unknownformatter.tcl]
 source [file join $here physicscountformatter.tcl]
 source [file join $here acceptall.tcl]
+source [file join $here typefilterdialog.tcl]
+source [file join $here itemtypefilter.tcl]
 
 
 set daqbin /usr/opt/daq/10.0/bin
@@ -51,6 +53,7 @@ snit::widget mainwindow {
     
     # File descriptor open on pipe to event source.
     
+
     variable fd {}
 
     # This variable is set to 1 when the user requests an event from
@@ -80,10 +83,14 @@ snit::widget mainwindow {
 	menu $menubar.help
 	$menubar add cascade -label Help -menu $menubar.help
 
-	$File add command -label Open -command [mymethod openSource]
+	$File add command -label Open... -command [mymethod openSource]
 	$File add separator 
 	$File add command -label Exit -command exit
 
+	$Filter add command -label "Filter Types..." -command [mymethod typeFilter]
+	$Filter add separator
+	$Filter add command -label "Remove Filter"   -command [mymethod removeFilter]
+	
 	#  The top of the frame is a big fat text widget
 	# 25 lines by 80 characters wide.
 	#
@@ -180,11 +187,87 @@ snit::widget mainwindow {
 	    
 	    destroy .p
 	    
-	    set fd [open "|$::daqbin/ringselector --formatted --sample=PHYSICS_EVENT" r]
+	    set url tcp://$host/$user
+	    
+	    set fd [open "|$::daqbin/ringselector --source=$url --formatted --sample=PHYSICS_EVENT" r]
 	    fconfigure $fd -buffering line
 	    fileevent $fd readable [mymethod event $fd]
 	}
     }
+    
+    # emoveFilter - Delete the current filter and set it back to the
+    #               default filter...which accepts everthing
+    #
+    method removeFilter {} {
+	$self replaceFilter [AcceptAll %AUTO%]
+    }
+    #
+    #  Prompt for and set the appropriate type filter.
+    #  Type filters require the data item to be drawn from a specific set of item
+    #  types.
+    #
+    method typeFilter {} {
+	TypeFilterDialog .filterprompt 	-okcommand [list %W dismiss]  \
+					-cancelcommand [list destroy %W]
+	.filterprompt modal
+	
+	# If not cancelled, the widget still exists.. process the filter.
+	#
+	
+	if {[winfo exists .filterprompt]} {
+	    set itemtexts [.filterprompt cget -itemtypes]
+	    set itemnums [list]
+	    foreach item $itemtexts {
+		lappend itemnums [.filterprompt nameToId $item]
+	    }
+	    destroy .filterprompt
+	    
+	    # Create the new filter and let it replace the old one:
+	    
+	    set newFilter [ItemTypeFilter %AUTO% -itemtypes $itemnums]
+
+	    $self replaceFilter $newFilter
+	}
+    }
+    
+    
+    # event - Called whenthe data source becomes readable.  This will happen
+    #         either as a result of an event, in which case the event is read,
+    #         or due to the data source being closed.
+    # Parameters:
+    #   The fd that was readable.
+    #
+    method event {f} {
+	if {[eof $f]} {
+	    close $f
+	    return
+	}
+	gets $f line
+	if {$sample > 0} {
+	    if {[$self matchFilter $line]} {
+		$self formatEvent $line
+		incr sample -1
+		
+		#  give a bit of a data handling hiatus to let things display
+		#  necessary at high event rates.
+		
+		fileevent $f readable [list]
+		after 100 [list fileevent $f readable [mymethod event $f]]
+	    }
+	}
+
+    }
+    #
+    # requestSample - Request the next event that matches the filter criteria
+    #                 be displayed on the text widget.
+    #
+    method requestSample {} {
+	incr sample
+    }
+    #-------------------------------------------------------------------------
+    #  Private utility functions
+    #
+    
     #  Returns a two item list of the item Type and the byte order
     # Parameters:
     #   The raw event.
@@ -219,7 +302,11 @@ snit::widget mainwindow {
     #   line - ASCII-zed event as a tcl list.
     #
     method matchFilter {line} {
-	return 1;                                   # Stub.
+	set tanda [$self typeAndOrder $line]
+	set type [lindex $tanda 0]
+	set body [$self getBody $line]
+	
+	return [$filter applyFilter $type $body]
     }
     #  Formats an event and adds it to the output window
     # Parameters:
@@ -252,33 +339,16 @@ snit::widget mainwindow {
 	fmt format
 	fmt destroy
     }
-    
-    # event - Called whenthe data source becomes readable.  This will happen
-    #         either as a result of an event, in which case the event is read,
-    #         or due to the data source being closed.
-    # Parameters:
-    #   The fd that was readable.
     #
-    method event {f} {
-	if {[eof $f]} {
-	    close $f
-	    return
+    #  Replace the current filter with the one passed in
+    #
+    method replaceFilter newFilter {
+	if {$filter ne ""} {
+	    $filter destroy
 	}
-	gets $f line
-	if {$sample > 0} {
-	    if {[$self matchFilter $line]} {
-		$self formatEvent $line
-		incr sample -1
-	    }
-	}
+	set filter $newFilter
     }
-    #
-    # requestSample - Request the next event that matches the filter criteria
-    #                 be displayed on the text widget.
-    #
-    method requestSample {} {
-	incr sample
-    }
+
 }
 
 

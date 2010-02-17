@@ -132,6 +132,7 @@ snit::widget TypeFilterDialog {
         "Variables"     $::MONITORED_VARIABLES      \
         "Event"         $::PHYSICS_EVENT            \
         "Triggers"      $::PHYSICS_EVENT_COUNT      \
+        "Scalers"       $::INCREMENTAL_SCALERS      \
     ]
         $self stockListBox $choices [lsort [array names knownItems]]
         
@@ -218,6 +219,12 @@ snit::widget TypeFilterDialog {
     #   item id or error if there is no match.
     #
     method nameToId name {
+        #
+        #   integer names are just the type number.
+        #
+        if {[string is  integer -strict $name]} {
+            return $name
+        }
         return $knownItems($name)
     }
     #-------------------------------------------------------------------------
@@ -360,6 +367,16 @@ snit::widget TypeFilterDialog {
         regsub -all {%W} $script $win script
         regsub -all {%A} $script [list [$acceptable get 0 end]] script
         return $script
+    }
+    #
+    #  Replace any current filter with the specified new filter:
+    #
+    method replaceFilter newfilt {
+	if {$filter ne ""} {
+	    $filter destroy
+	    set filter ""
+	}
+	set filter $newfilt
     }
 }
 
