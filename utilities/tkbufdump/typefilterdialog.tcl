@@ -1,5 +1,6 @@
 package require Tk
 package require BWidget
+package require Iwidgets
 package require snit
 
 set here [file dirname [info script]]
@@ -93,7 +94,8 @@ snit::widget TypeFilterDialog {
         scrollbar $action.ascroll -orient vertical -command [list $acceptable -yview]
         
         label $action.userlabel -text {User Item Type}
-        set user [entry $action.user -validatecommand [mymethod validateUserItem] ]
+        set user [entry $action.user]
+        button $action.adduser  -text Add -command [mymethod validateUserItem]
         
         
         grid $choices           -row 0 -column 0 -rowspan 2
@@ -104,11 +106,12 @@ snit::widget TypeFilterDialog {
         
         grid $action.userlabel  -row 2 -column 0
         grid $user              -row 2 -column 1
+        grid $action.adduser    -row 2 -column 2
         
         # Layout the command area
         
-        button $command.ok      -text Ok        -command [mymethod dispatch -ok]
-        button $command.cancel  -text Cancel    -command [mymethod dispatch -cancel]
+        button $command.ok      -text Ok        -command [mymethod dispatch -okcommand]
+        button $command.cancel  -text Cancel    -command [mymethod dispatch -cancelcommand]
         button $command.help    -text Help      -command [mymethod displayHelp]
         
         grid $command.ok $command.cancel $command.help -sticky w
@@ -130,9 +133,7 @@ snit::widget TypeFilterDialog {
         "Event"         $::PHYSICS_EVENT            \
         "Triggers"      $::PHYSICS_EVENT_COUNT      \
     ]
-        foreach item [lsort [array names knownItems]] {
-            $choices insert end $item
-        }
+        $self stockListBox $choices [lsort [array names knownItems]]
         
         # Establish event bindings.
         
@@ -259,12 +260,67 @@ snit::widget TypeFilterDialog {
             lappend current $selection
             set current [lsort $current]
             
-            $choices delete  0 end
-            foreach choice $current {
-                $choices insert end $choice
+            $self stockListBox $choices $current
+        }
+    }
+    #
+    #  Validate the user entry field an if it's a number insert it into
+    #  the acceptable list box.
+    #
+    method validateUserItem {} {
+        set text [$user get]
+        if {![string is integer -strict $text]} {
+            tk_messageBox   -icon error   \
+                            -message "User item type '$text' must be an integer and is not" \
+                            -parent $win    \
+                            -title  {Bad item type} \
+                            -type   ok
+        } else {
+            set current [$acceptable get 0 end]
+            $acceptable delete 0 end
+            
+            lappend current $text
+            set current [lsort $current]
+            $self stockListBox $acceptable $current
+            $user delete 0 end;                   # Clear the entry for next time.
+        }
+    }
+    #------------------------------------------------------------------------
+    #
+    #  Command area responders
+    
+    #  Append a help frame to the dialog.
+    #
+    method displayHelp {} {
+        if {![winfo exists $win.help]} {
+            set help [iwidgets::scrolledhtml $win.help]
+            $help render $options(-helptext)
+            grid $help
+        }
+    }
+    #
+    #  Dispatch a button hit to an external command processor.
+    #
+    #  The following substitutions are supported:
+    #    %W     - Our main widget name.
+    #    %A     - List of acceptable types.  This is just the list box text
+    #             so the script must distinguish between numeric (user) item types
+    #             and textual pre-defined types.
+    # Parameters:
+    #   why     - Name of the option that holds the script that will be
+    #              dispatched to.
+    #   
+    method dispatch why {
+        set script $options($why)
+        if {$script ne ""} {
+            set script [$self substitute $script];   # do the substitutions.
+            set result [catch {uplevel 0 $script} message]
+            if {$result} {
+                bgerror $message                          ;# error from target script.
             }
         }
     }
+    
     #------------------------------------------------------------------------
     #
     #  Private utility functions
@@ -280,6 +336,30 @@ snit::widget TypeFilterDialog {
         set selection   [$box get $i]
         $box delete $i
         return $selection
+    }
+    # Stock listbox from a list of text items
+    # Parameters:
+    #   widget    - Widget to stock.
+    #   list      - List of values to stock
+    method stockListBox {widget list} {
+        $widget delete 0 end
+        foreach item $list {
+            $widget insert end $item
+        }
+    }
+    # Perform script substitutions:
+    #   %W   -> $win
+    #   %A   -> Contents of the acceptable list box.  This is a properly
+    #           encapsulated list.
+    # Parameters:
+    #    script   - Script to substitute within.
+    # Returns:
+    #     script after all substitutions have been done.
+    #
+    method substitute script {
+        regsub -all {%W} $script $win script
+        regsub -all {%A} $script [list [$acceptable get 0 end]] script
+        return $script
     }
 }
 
