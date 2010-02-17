@@ -20,7 +20,7 @@ source [file join $here acceptall.tcl]
 source [file join $here typefilterdialog.tcl]
 source [file join $here itemtypefilter.tcl]
 source [file join $here scalerformatter.tcl]
-
+source [file join $here stringlistformatter.tcl]
 
 set daqbin /usr/opt/daq/10.0/bin
 
@@ -107,7 +107,8 @@ snit::widget mainwindow {
 
 	frame $win.bottom -relief ridge
 	set statusbar [label $win.bottom.statusbar]
-	ArrowButton $win.bottom.next -dir right -command [mymethod requestSample]
+	ArrowButton $win.bottom.next -dir right -command [mymethod requestSample] \
+		    -height 30 -width 30
 	
 	
 	pack $win.bottom.statusbar -side left
@@ -335,6 +336,8 @@ snit::widget mainwindow {
 	    set formatter PhysicsCountFormatter
 	} elseif {$itemType == $::INCREMENTAL_SCALERS} {
 	    set formatter ScalerFormatter
+	} elseif {[lsearch $::StringListItems $itemType] != -1} {
+	    set formatter StringListFormatter
 	} else 	{
 	    set formatter UnknownFormatter
 	}

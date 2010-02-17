@@ -83,13 +83,14 @@ snit::widget TypeFilterDialog {
         
         # Now layout the action area.
         
+        label  $action.choicelbl -text {Item types}
         set choices     [listbox $action.choices]
         
         ArrowButton $action.add     -command [mymethod addChoiceToAcceptable]  \
-                                    -dir right
+                                    -dir right -height 30 -width 30
         ArrowButton $action.remove  -command [mymethod removeChoiceFromAcceptable] \
-                                    -dir left
-        
+                                    -dir left -height 30 -width 30
+        label $action.acceptablelbl -text {Seleted Item types}
         set acceptable  [listbox $action.acceptable -yscrollcommand [list $action.ascroll set]]
         scrollbar $action.ascroll -orient vertical -command [list $acceptable -yview]
         
@@ -98,15 +99,18 @@ snit::widget TypeFilterDialog {
         button $action.adduser  -text Add -command [mymethod validateUserItem]
         
         
-        grid $choices           -row 0 -column 0 -rowspan 2
-        grid $action.add        -row 0 -column 1
-        grid $acceptable        -row 0 -column 2 -rowspan 2
-        grid $action.ascroll    -row 0 -column 3 -rowspan 2 -sticky nsw
-        grid $action.remove     -row 1 -column 1
         
-        grid $action.userlabel  -row 2 -column 0
-        grid $user              -row 2 -column 1
-        grid $action.adduser    -row 2 -column 2
+        grid $action.choicelbl  -row 0 -column 0 
+        grid $action.acceptablelbl -row 0 -column 2 
+        grid $choices           -row 1 -column 0 -rowspan 2
+        grid $action.add        -row 1 -column 1
+        grid $acceptable        -row 1 -column 2 -rowspan 2
+        grid $action.ascroll    -row 1 -column 3 -rowspan 2 -sticky nsw
+        grid $action.remove     -row 2 -column 1
+        
+        grid $action.userlabel  -row 3 -column 0
+        grid $user              -row 3 -column 1
+        grid $action.adduser    -row 3 -column 2
         
         # Layout the command area
         
