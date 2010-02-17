@@ -19,6 +19,7 @@ source [file join $here physicscountformatter.tcl]
 source [file join $here acceptall.tcl]
 source [file join $here typefilterdialog.tcl]
 source [file join $here itemtypefilter.tcl]
+source [file join $here scalerformatter.tcl]
 
 
 set daqbin /usr/opt/daq/10.0/bin
@@ -111,7 +112,7 @@ snit::widget mainwindow {
 	
 	pack $win.bottom.statusbar -side left
 	pack $win.bottom.next     -side right
-	grid $win.bottom -sticky nsew
+	grid $win.bottom -sticky sew
 	
 	# The filter starts out as the accept all filter
 	
@@ -332,6 +333,8 @@ snit::widget mainwindow {
 	    set formatter ControlFormatter
 	} elseif {$itemType == $::PHYSICS_EVENT_COUNT} {
 	    set formatter PhysicsCountFormatter
+	} elseif {$itemType == $::INCREMENTAL_SCALERS} {
+	    set formatter ScalerFormatter
 	} else 	{
 	    set formatter UnknownFormatter
 	}
