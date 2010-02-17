@@ -32,7 +32,7 @@ snit::type ItemTypeFilter {
             lappend values $item 1
         }
         array set itemhash $values
-        puts "Set itemhash: $values"
+
     }
     
     #
