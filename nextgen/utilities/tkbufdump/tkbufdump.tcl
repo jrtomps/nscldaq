@@ -21,6 +21,7 @@ source [file join $here typefilterdialog.tcl]
 source [file join $here itemtypefilter.tcl]
 source [file join $here scalerformatter.tcl]
 source [file join $here stringlistformatter.tcl]
+source [file join $here physicsformatter.tcl]
 
 set daqbin /usr/opt/daq/10.0/bin
 
@@ -151,7 +152,7 @@ snit::widget mainwindow {
     method addlines lines {
 	$win.dump configure -state normal
 	$win.dump insert end "$lines\n"
-	set lines [$win.dump count -lines 1.0 end]
+	set lines [lindex [split [$win.dump index end] .] 0]
 	if {$lines > $options(-maxlines)} {
 	    set deleteCount [expr {$lines - $options(-maxlines)}]
 	    $win.dump delete 1.0 $deleteCount.0
@@ -338,6 +339,8 @@ snit::widget mainwindow {
 	    set formatter ScalerFormatter
 	} elseif {[lsearch $::StringListItems $itemType] != -1} {
 	    set formatter StringListFormatter
+	} elseif {$itemType == $::PHYSICS_EVENT} {
+	    set formatter PhysicsFormatter
 	} else 	{
 	    set formatter UnknownFormatter
 	}
