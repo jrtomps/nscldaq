@@ -19,5 +19,5 @@ install-exec-local:
 	echo "pkg_mkIndex $(DRIVERDIR) *.tcl" > makeindex.tcl
 	$(TCLSH_CMD) <makeindex.tcl
 
-EXTRA_DIST= $(PACKAGES) $(APPS) $(MANPAGES) $(HELPFILES) n568b.xml
+EXTRA_DIST= $(PACKAGES) $(APPS) $(MANPAGES) $(HELPFILES) n568.xml
 
