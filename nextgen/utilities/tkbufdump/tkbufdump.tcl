@@ -8,6 +8,7 @@ set version "V1.0"
 package require Tk
 package require snit
 package require BWidget
+package require Iwidgets
 
 set here [file dirname [info script]]
 
@@ -293,7 +294,25 @@ snit::widget mainwindow {
 	    $self replaceFilter $newFilter
 	}
     }
+    #   Displays the application "About" help.
     
+    method about {} {
+	tk_messageBox	-icon	info						\
+			-title	"About tkdumper"				\
+			-message "tkdumper $::version\nAuthor: Ron Fox\n(c) 2010 Copyright MSU Board of Trustees All Righs Reserved"
+    }
+    # Brings up the hyperhelp widget:
+    
+    method helpTopics {} {
+	if {![winfo exists .onlineHelp]} {
+	    iwidgets::hyperhelp .onlineHelp 	-helpdir 	$::here			\
+						-topics		[list 	intro		\
+									menus		\
+									[list "Getting events" next.html]]
+	    .onlineHelp showtopic intro
+	    wm deiconify .onlineHelp
+	}
+    }
     
     # event - Called whenthe data source becomes readable.  This will happen
     #         either as a result of an event, in which case the event is read,
