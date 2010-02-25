@@ -1,5 +1,5 @@
 #! /usr/bin/tclsh
-
+set version "V1.0"
 #  This program is a GUI event inspector.
 #  It uses ringselector in sampling mode to accept events from an
 #  event source.  The software free runs event acceptance and, when requested,
@@ -78,11 +78,11 @@ snit::widget mainwindow {
 	
 	# top level menus in the bar:
 
-	foreach m [list File Edit Filter] {
+	foreach m [list File Filter] {
 	    set $m [menu $menubar.m$m]
 	    $menubar add cascade -label $m -menu $menubar.m$m
 	}
-	menu $menubar.help
+	set Help [menu $menubar.help]
 	$menubar add cascade -label Help -menu $menubar.help
 
 	$File add command -label Open... -command [mymethod openSource]
@@ -95,6 +95,9 @@ snit::widget mainwindow {
 	$Filter add command -label "Filter Types..." -command [mymethod typeFilter]
 	$Filter add separator
 	$Filter add command -label "Remove Filter"   -command [mymethod removeFilter]
+	
+	$Help add command -label About...  -command [mymethod about]
+	$Help add command -label Topics... -command [mymethod helpTopics]
 	
 	#  The top of the frame is a big fat text widget
 	# 25 lines by 80 characters wide.
@@ -227,7 +230,9 @@ snit::widget mainwindow {
     #               to accept data.
     #
     method openSource {} {
-	dataSourcePrompt .p -okcommand [list .p dismiss] -cancelcommand [list destroy .p]
+	dataSourcePrompt .p	-okcommand [list .p dismiss]		\
+				-cancelcommand [list destroy .p]	\
+				-helptext  [$self helpFile open]
 	.p modal
 	#
 	#  If .p does not exist it was cancelled, otherwise we can fetch the
@@ -265,8 +270,9 @@ snit::widget mainwindow {
     #  types.
     #
     method typeFilter {} {
-	TypeFilterDialog .filterprompt 	-okcommand [list %W dismiss]  \
-					-cancelcommand [list destroy %W]
+	TypeFilterDialog .filterprompt 	-okcommand [list %W dismiss]  		\
+					-cancelcommand [list destroy %W]	\
+					-helptext [$self helpFile filter]
 	.filterprompt modal
 	
 	# If not cancelled, the widget still exists.. process the filter.
@@ -411,6 +417,21 @@ snit::widget mainwindow {
 	    $filter destroy
 	}
 	set filter $newFilter
+    }
+    #
+    #  Return the help text associated with a topic.  The help files are
+    #  located in $here topic.html
+    #
+    method helpFile topic {
+	set filename [file join $::here $topic.html]
+	if {[file readable $filename]} {
+	    set fd [open $filename r]
+	    set text [read $fd]
+	    close $fd
+	    return $text
+	} else {
+	    return ""
+	}
     }
 
 }
