@@ -61,9 +61,9 @@ snit::type PhysicsFormatter {
         # NOTE:
         #   Normally packet formatters for non-standard packet types are used
         #   in conjuntion with custom packet definition files.
-        typemethod registerPacketFormater {id fmtcommand} {
+        typemethod registerPacketFormatter {id fmtcommand} {
             set normalizedId [expr $id]
-            set plugins($index) $fmtcommand
+            set plugins($normalizedId) $fmtcommand
         }
         #
         #  Read and process a packet definition file.
@@ -114,6 +114,7 @@ snit::type PhysicsFormatter {
     #        if we run into an unrecognized packet id, we will
     #        dump the rest of the event wordwise with a note that the
     #        packet is not recognized.
+    #  The body is preceded bya longword word count 
     #  Packets have the following format:
     #    +--------------------------+
     #    | uint32_t  words in packet|  (self inclusive)
@@ -131,6 +132,9 @@ snit::type PhysicsFormatter {
         set o $options(-order)
         set t $options(-type)
         
+        set bodyLen [get32 $b 0 $o]
+        set b       [lrange $b 2 end]
+        $w add "Total length of physics payload $bodyLen uint16_t words"
         set residual [llength $b]
         
         # Iterate over the event until it's exhausted.
@@ -235,5 +239,5 @@ snit::type PhysicsFormatter {
 #   fmtcmd   - Command that formats the packet.
 #
 proc registerPacketFormatter {id fmtcmd} {
-    PhysicsFormatter registerPacketFormatter $id $fmtcommand;  # Delegate to class.    
+    PhysicsFormatter registerPacketFormatter $id $fmtcmd;  # Delegate to class.    
 }
