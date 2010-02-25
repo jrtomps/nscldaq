@@ -1,0 +1,78 @@
+<html>
+    <head>
+        <title>Packet definition files</title>
+    </head>
+    <body>
+        <h2>Packet definition files</h2>
+        <p>
+            While the body of a physics event is completely up to the data source,
+            by convention most data source programs segment each event into packets.
+        </p>
+        <p>
+            A packet is a self describing segment of an event. The form of a packet
+            consists of:
+        </p>
+        <tt><pre>
++------------------------------+
+| Packet size in uint32_t      |
++------------------------------+
+| uint16_t packet id           |
++------------------------------+
+| Packet body.                 |
+     ...
++------------------------------+
+        </pre>
+        </tt>
+        <p>
+            In the figure above, the packet size is the number of 16 bit words in
+            the packet and includes itself as well as the packet id.  The packet
+            id is a 16 bit value that uniquely identifies the packet.  A
+            packet assignment authority at the NSCL allocates packet ids on request.
+            In addition the range of packet ids starting with 0x8000 and going to
+            0xffff is currently unassigned.
+        </p>
+        <p>
+            The tkdumper application understands the packet structure of physics
+            events and will attempt to break up the event into known packets indicating
+            which packets are present and dumping the body of each packet separately.
+        </p>
+        <p>
+            If tkdumper encounters an uknown packet type it will simply dump the
+            remainder of the event under the assumption the remainder of the event may
+            not be in actual packets.
+        </p>
+        <p>
+            Using the <tt>File->Packet Defs...</tt>  menu entry, you can add to
+            the set of packet definitions recognized by tkdumper.
+            <tt>File->Packet Defs...</tt> prompts for a packet definition file and
+            then loads it into its packet definition dictionary.
+        </p>
+        <p>
+            Packet definition files are text files.  Each line of the file
+            describes a single packet.  The description is a set of space
+            separated fields.  If a field has embedded whitespace it can be either
+            quoted with double quotes or placed inside curly brackets.
+            The fields in order are:
+        </p>
+        <dl>
+            <dd>Short Name</dd><dt> A short name for the packet (usually a single word).</dt>
+            <dd>Packet id</dd><dt> The id of the packet.  This can be any numerical
+            representation recognized by Tcl.
+            </dt>
+            <dd>Long Name</dd><dt>A long descriptive name for the packet.  This
+            is usually several words.
+            </dt>
+            <dd>Version</dd><dt>A string that provides versioning information for
+            the packet.
+            </dt>
+        </dl>
+        <h3>Sample packet definition</h3>
+        <p>
+            The line below defines a packet with the id 0x792 that is a test
+            packet with version 1.0:
+        </p>
+        <tt><pre>
+Test    0x792   {Ring buffer test packet} 1.0
+        </pre></tt>
+    </body>
+</html>

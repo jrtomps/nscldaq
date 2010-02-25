@@ -1,0 +1,34 @@
+<html>
+    <head>
+        <title>Extending tkdumper</title>
+    </head>
+    <body>
+        <h2>Extending tkdumper</h2>
+        <p>
+            The tkdumper program supports dynamic extension.  Dynamic extension
+            means that the functionality of the program can be extended while it
+            is running.  This is possible because the program is completely written
+            in Tcl/Tk.
+        </p>
+        <p>
+            The following can be extended:
+        </p>
+        <ul>
+            <li>
+                <a href="packet.html">Packet definitions</a> - Additional packet
+                types can be made known to tkdumper by using the
+                <tt>File->Packet Defs...</tt> menu command to read in a packet
+                definition.  Follow the link above to see what the format of a
+                packet definition file is.
+            </li>
+            <li>
+                <a href="plugin.html">Plugin packet formatters</a> - The body of a
+                packet can be formatted in whatever way you want by loading and
+                registering packet formatting plugins.  Plugins are loaded via
+                the <tt>File->Plugin...</tt> menu command.  To see how to write a
+                packet formatting plugin, follow the link above.
+            </li>
+        </ul>
+            
+    </body>
+</html>
