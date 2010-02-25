@@ -3,6 +3,6 @@
 
 SUBDIRS = scalerdisplay daqstart dvdburn \
 	sequencer ringselector eventlog bufdump	\
-	sclclient
+	sclclient tkbufdump
 
 

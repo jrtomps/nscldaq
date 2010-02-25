@@ -29,5 +29,6 @@ stringlistformatter.tcl		\
 tkbufdump.tcl			\
 typefilterdialog.tcl		\
 unknownformatter.tcl		\
-packets.def
+packets.def			\
+tkbufdump.xml
 
