@@ -86,7 +86,10 @@ snit::widget mainwindow {
 	$menubar add cascade -label Help -menu $menubar.help
 
 	$File add command -label Open... -command [mymethod openSource]
-	$File add separator 
+	$File add separator
+	$File add command -label {Packet Defs...} -command [mymethod readPackets]
+	$File add command -label {Plugin ...}     -command [mymethod sourcePlugin]
+	$File add separator
 	$File add command -label Exit -command exit
 
 	$Filter add command -label "Filter Types..." -command [mymethod typeFilter]
@@ -164,6 +167,58 @@ snit::widget mainwindow {
     #
     #  Action handlers:
     #
+    
+    # sourcePlugin - Called when File->Plugin.. is clicked. Prompts for the
+    #                name of a plugin file and sources it in at the global level.
+    #
+    method sourcePlugin {} {
+	set pluginFile [tk_getOpenFile	-defaultextension .tcl			\
+					-filetypes [list			\
+							[list {Plugin files} .plugin] \
+							[list {Tcl Files}    .tcl]	\
+							[list {Tk Files}     .tk]	\
+							[list {All Files}	*]	\
+						    ]				\
+					-title {Choose plugin file}		\
+			]
+	# Cancel will leave us with an empty plugin file..
+	# We also need to ensure the file is readable:
+	
+	if {$pluginFile ne ""} {
+	    if {[file readable $pluginFile]} {
+		uplevel #0 [list source $pluginFile]
+	    } else {
+		tk_messageBox	-icon	error					\
+				-message "Unable to open $pluginFile for read"	\
+				-title	"Plugin file open error"		\
+				-type	ok
+	    }
+	}
+    }
+    
+    # readPackets - Called when File->Packet Defs... is clicked.  Prompts for
+    #               a packet definition file which is then added to the standard
+    #               set of packets understood by the physics formatter.
+    #
+    method readPackets {} {
+	set packetFile [tk_getOpenFile	-defaultextension .def  		\
+					-filetypes [list			\
+							[list {Packet Files} {.def}] \
+							[list {All Files}    *	]] \
+					-title {Choose packet definition file}]
+	# Cancel will leave us with an empty packetFile:
+	
+	if {$packetFile ne ""} {
+	    if {![file readable $packetFile]} {
+		tk_messageBox	-icon error					\
+				-message "Unable to open $packetFile for read" 	\
+				-title "Packet file open error"			\
+				-type   ok
+	    } else {
+		PhysicsFormatter readPacketDefinitionFile $packetFile
+	    }
+	}
+    }
     
     #  openSource - This is called when the File->Open button is clicked.
     #               The user is prompted for the host and user name from which
