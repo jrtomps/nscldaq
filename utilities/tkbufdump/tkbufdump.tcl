@@ -445,10 +445,10 @@ snit::widget mainwindow {
     method helpFile topic {
 	set filename [file join $::here $topic.html]
 	if {[file readable $filename]} {
-	    set fd [open $filename r]
-	    set text [read $fd]
-	    close $fd
-	    return $text
+	    set f [open $filename r]
+	    set helpText [read $f]
+	    close $f
+	    return $helpText
 	} else {
 	    return ""
 	}
