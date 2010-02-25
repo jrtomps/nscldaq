@@ -310,8 +310,9 @@ snit::widget mainwindow {
 									menus		\
 									[list "Getting events" next.html]]
 	    .onlineHelp showtopic intro
-	    wm deiconify .onlineHelp
+	    
 	}
+	wm deiconify .onlineHelp
     }
     
     # event - Called whenthe data source becomes readable.  This will happen
