@@ -22,3 +22,9 @@ February 3, 2010  (1.2-002)
 February 5, 2010 (1.2-003)
         - Add settings file processing to C894 slow controls driver.
 
+March 4, 2010 (1.2-004)
+        - Make LEDS be diagnostics:
+          RED     : out FIFO not emtpy
+          GREEN   : Acquire enabled.
+          YELLOW  : Executing scaler stack.
+

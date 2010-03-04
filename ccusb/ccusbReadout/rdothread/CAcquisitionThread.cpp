@@ -358,6 +358,15 @@ CAcquisitionThread::startDaq()
 				CCCUSB::OutputSourceRegister::nimO2Acquire |
 				CCCUSB::OutputSourceRegister::nimO3EndOfBusy);
 
+  // Set up the LEDS for some diagnostics:
+  // Red LED   : USB Out FIFO not empty.
+  // Green LED : Acquire mode.
+  // Yellow LED: Executing scaler stack.
+  //
+  m_pCamac->writeLedSelector(CCCUSB::LedSourceRegister::redUSBOutFifoNotEmpty ||
+			     CCCUSB::LedSourceRegister::greenAcquire          ||
+			     CCCUSB::LedSourceRegister::yellowScalerReadout);
+
   // Start the VMUSB in data taking mode:
 
   CCusbToAutonomous();

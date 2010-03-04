@@ -271,7 +271,7 @@ public:
     static const uint32_t redBusy               = 1;
     static const uint32_t redUSBTrigger         = 2;
     static const uint32_t redUSBOutFifoNotEmpty = 3;
-    static const uint32_t redUSBOutFifoNotFull  = 4;
+    static const uint32_t redUSBInFifoNotFull  = 4;
     static const uint32_t redAcquire            = 6; // Yes 5 is skipped.
     static const uint32_t redCAMACF2            = 7;
     static const uint32_t redInvert             = 0x10;
