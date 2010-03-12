@@ -14,18 +14,20 @@
 	     East Lansing, MI 48824-1321
 */
 #include <config.h>
-#include "CAD811Command.h"
+#include "CCAEN257Command.h"
+
 
 #include <TCLInterpreter.h>
 #include <TCLObject.h>
 #include <CConfiguration.h>
 #include <CReadoutModule.h>
-#include <CAD811.h>
+#include <CCAEN257.h>
 #include <Exception.h>
 
 using namespace std;
 
-//   Implementation of the CAD811Command class.
+// Implementation of the CCAEN257Command class.
+
 
 /**************************************************************************/
 /*                 Implementations of canonical methods                   */
@@ -42,9 +44,10 @@ using namespace std;
    \param commandName std::string
        Name of the command to register.
 */
-CAD811Command::CAD811Command(CTCLInterpreter& interp,
-			     CConfiguration& config,
-			     std::string     commandName) :
+CCAEN257Command::CCAEN257Command(
+				 CTCLInterpreter& interp,
+				 CConfiguration& config,
+				 std::string     commandName) :
   CTCLObjectProcessor(interp, commandName),
   m_Config(config)
 {
@@ -53,9 +56,7 @@ CAD811Command::CAD811Command(CTCLInterpreter& interp,
 /*!
    The base class destructor will unregister us from the interpreter:
 */
-CAD811Command::~CAD811Command()
-{
-}
+CCAEN257Command::~CCAEN257Command() {}
 
 /*************************************************************************/
 /*                           Command Processing                          */
@@ -84,8 +85,9 @@ CAD811Command::~CAD811Command()
 
 */
 int
-CAD811Command::operator()(CTCLInterpreter& interp,
-			  std::vector<CTCLObject>& objv)
+CCAEN257Command::operator()(CTCLInterpreter& interp,
+			    std::vector<CTCLObject>& objv)
+
 {
   // require at least 3 parameters.
 
@@ -122,7 +124,7 @@ CAD811Command::operator()(CTCLInterpreter& interp,
    - Ensure that the first configuration pair is a -slot configuration so that
      the module is gaurenteed to live somewhere in the crate.
    - Ensure the module does not yet exist.
-   - Create a new ADC module.
+   - Create a new Scaler  module.
    - Add it to the configuration.
    - Process the remainder of the command line as configuration pairs.
 
@@ -141,8 +143,8 @@ CAD811Command::operator()(CTCLInterpreter& interp,
      turn them into error strings and TCL_ERROR returns.
 */
 int
-CAD811Command::create(CTCLInterpreter& interp,
-		       std::vector<CTCLObject>& objv)
+CCAEN257Command::create(CTCLInterpreter& interp,
+			std::vector<CTCLObject>& objv)
 {
   // Need to make sure the word count of the command is valid.
 
@@ -170,8 +172,8 @@ CAD811Command::create(CTCLInterpreter& interp,
   // Since the module is unique, we can create it we won't register it until
   // the configuration is successful;
 
-  CAD811* pAdc   = new CAD811;
-  pModule        = new CReadoutModule(name, *pAdc); // Also attaches pAdc to configuration.
+  CCAEN257* pScaler   = new CCAEN257();;
+  pModule             = new CReadoutModule(name, *pScaler); // Also attaches pAdc to configuration.
 
   int status     = configure(interp,
 			     pModule,
@@ -182,7 +184,7 @@ CAD811Command::create(CTCLInterpreter& interp,
   }
   else {
     delete pModule;
-    delete pAdc;
+    delete pScaler;
   }
   return status;
 }
@@ -210,8 +212,8 @@ CAD811Command::create(CTCLInterpreter& interp,
 
 */
 int
-CAD811Command::config(CTCLInterpreter& interp,
-		      std::vector<CTCLObject>& objv)
+CCAEN257Command::config(CTCLInterpreter& interp,
+			std::vector<CTCLObject>& objv)
 {
   // Ensure the parameter counts are valid:
 
@@ -225,7 +227,7 @@ CAD811Command::config(CTCLInterpreter& interp,
   string          name     = objv[2];
   CReadoutModule* pModule  = m_Config.findAdc(name);
   if(!pModule) {
-    Usage("ad811 module does not exist", objv);
+    Usage("c257  module does not exist", objv);
     return TCL_ERROR;
   }
   // and configure:
@@ -259,7 +261,7 @@ CAD811Command::config(CTCLInterpreter& interp,
      value pair...e.g. {-base 0x80000000} ...
 */
 int
-CAD811Command::cget(CTCLInterpreter& interp,
+CCAEN257Command::cget(CTCLInterpreter& interp,
 		    std::vector<CTCLObject>& objv)
 {
   if (objv.size() != 3) {
@@ -287,25 +289,26 @@ CAD811Command::cget(CTCLInterpreter& interp,
   Tcl_SetObjResult(interp.getInterpreter(), pResult);
   return TCL_OK;
 }
+
 /*!
    Return the confguration.
 */
 CConfiguration*
-CAD811Command::getConfiguration()
+CCAEN257Command::getConfiguration()
 {
   return &m_Config;
 }
 
-/***********************************************************************/
-/*  Produce an error message, set it in the interpreter result field.
-    Parameters:
-       msg  -  A string to put in the message.
-       objv -  The command words which are also put in the error message to 
-               help the user locate the problem.
 
-*/
+
+
+
+/*******************************************************************
+ **  Utility members:
+ ******************************************************************/
+
 void
-CAD811Command::Usage(std::string msg, std::vector<CTCLObject> objv)
+CCAEN257Command::Usage(std::string msg, std::vector<CTCLObject> objv)
 {
   string result("ERROR: ");
   result += msg;
@@ -316,12 +319,13 @@ CAD811Command::Usage(std::string msg, std::vector<CTCLObject> objv)
   }
   result += "\n";
   result += "Usage\n";
-  result += "    ad811 create name -slot n\n";
-  result += "    ad811 config name config-params...\n";
-  result += "    ad811 cget name";
+  result += "    c257 create name -slot n\n";
+  result += "    c257 config name config-params...\n";
+  result += "    c257 cget name";
   
   m_Config.setResult(result);  
 }
+
 /*******************************************************************/
 /*   Configures an object.  The caller is supposed to have
      validated that an even number of configuration parameters have
@@ -339,7 +343,7 @@ CAD811Command::Usage(std::string msg, std::vector<CTCLObject> objv)
     TCL_ERROR - The configuration failed...and the interpreter result says why.
 */
 int
-CAD811Command:: configure(CTCLInterpreter&         interp,
+CCAEN257Command:: configure(CTCLInterpreter&         interp,
 			  CReadoutModule*          pModule,
 			  std::vector<CTCLObject>& config,
 			  int                      firstPair)
@@ -385,7 +389,7 @@ CAD811Command:: configure(CTCLInterpreter&         interp,
   out of the various exception handlers:
 */
 string
-CAD811Command::configMessage(std::string base,
+CCAEN257Command::configMessage(std::string base,
 			    std::string key,
 			    std::string value,
 			    std::string errorMessage)

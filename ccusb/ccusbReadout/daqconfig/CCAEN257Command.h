@@ -13,8 +13,9 @@
 	     Michigan State University
 	     East Lansing, MI 48824-1321
 */
-#ifndef __CAD811COMMAND_H
-#define __CAD811COMMAND_H
+#ifndef __CCAEN257COMMAND_H
+#define __CCAEN257COMMAND_H
+
 
 #ifndef __TCLOBJECTPROCESSOR_H
 #include <TCLObjectProcessor.h>
@@ -42,50 +43,55 @@ class CConfiguration;
 class CReadoutModule;
 
 /*!
-   This class provides a command that creates the CAD811 class.  See
-   ../devices/CAD811.h for information about the configuration options
-   that device supports. 
+  This class provides the command that allows users to create and
+  manipulate CAEN C257 scaler modules in the daqconfig.tcl file.
+  See ../devices/CCAEN257.h for information about the configuration
+  options supported by these devices.
+
+  This command is an ensemble of the form:
+
 \verbatim
-   This command is an ensemble of the form:
-   ad811 create name -slot n
-   ad811 config name option-value-pairs
-   ad811 cget   name
+c257   create name -slot n
+c257   config name option-value-pairs
+c257   cget   name
+
 \endverbatim
 
-  Note that while we ensure you don't create two devices with the same name,
-  we don't prevent you from putting two devices in the same slot...which could
-  have amusing consequences.
-
-
+Note that while we ensure you don't create two devices with the same
+name, we don't ensure that you don't configure two devices in the same
+slot.
 */
-class CAD811Command : public CTCLObjectProcessor
+class CCAEN257Command : public CTCLObjectProcessor
 {
 private:
-  CConfiguration& m_Config;	// This is the global configuration of devices.
+  CConfiguration&    m_Config;	// Global device configuration.
 
-  // Allowed canonicals
+  // Canonicals:
 public:
-  CAD811Command(CTCLInterpreter& interp,
-		CConfiguration& config,
-		std::string     commandName = std::string("ad811"));
-  virtual ~CAD811Command();
+  CCAEN257Command(CTCLInterpreter& interp,
+		  CConfiguration&  config,
+		  std::string      commandName = std::string("c257"));
+  virtual ~CCAEN257Command();
 
   // Forbidden canonicals:
+
 private:
-  CAD811Command(const CAD811Command& rhs);
-  CAD811Command& operator=(const CAD811Command& rhs);
-  int operator==(const CAD811Command& rhs) const;
-  int operator!=(const CAD811Command& rhs) const;
+  CCAEN257Command(CCAEN257Command& rhs);
+  CCAEN257Command operator=(const CCAEN257Command& rhs);
+  int operator==(const CCAEN257Command& rhs) const;
+  int operator!=(const CCAEN257Command& rhs) const;
 public:
 
+  // public members like selectors and the command entry point:
 
-  // Public members like selectors and the command entry point:
+public:
+  CConfiguration*   getConfiguration();
+  virtual int       operator()(CTCLInterpreter& interp,
+			       std::vector<CTCLObject>& objv);
 
-  CConfiguration* getConfiguration();
-  virtual int operator()(CTCLInterpreter& interp,
-			 std::vector<CTCLObject>& objv);
+  // The specific subcommand functions are not exported to the world:
 
-  // Processors for the individual ensemble subcommands.
+private:
 private:
   int create(CTCLInterpreter& interp,
 	     std::vector<CTCLObject>& objv);
@@ -95,9 +101,10 @@ private:
 	   std::vector<CTCLObject>& objv);
 
 
-  // Utitilities:
-
+  // Utilities:
+  
 private:
+
   virtual void Usage(std::string msg, std::vector<CTCLObject> objv);
   int    configure(CTCLInterpreter&         interp,
 		   CReadoutModule*          pModule,
@@ -108,6 +115,6 @@ private:
 			    std::string value,
 			    std::string errorMessage);
 
-};
 
+};
 #endif
