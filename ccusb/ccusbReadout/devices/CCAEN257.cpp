@@ -14,11 +14,12 @@
 	     East Lansing, MI 48824-1321
 */
 
-// Implementation of the CAD811 Ortec AD811 module for the CC-USB DAQ
-
+//  Implementation of the CCAEN257 CAEN C257 scaler module support  for CC-USB DAQ
 
 #include <config.h>
-#include "CAD811.h"
+#include "CCAEN257.h"
+
+
 
 #include "CReadoutModule.h"
 #include <CCCUSB.h>
@@ -63,16 +64,15 @@ static CConfigurableObject::Limits IdLimits(Zero, FULL16);
    hooked to this modules at attachment time.
 
 */
-CAD811::CAD811() 
+CCAEN257::CCAEN257()
 {
-  m_pConfiguration = 0;
-
+  m_pConfiguration = 0;		// Attach will supply the configuration.
 }
 /*!
    Copy construction will copy the configuration and its values,
    if they have been produces in the rhs.
 */
-CAD811::CAD811(const CAD811& rhs) 
+CCAEN257::CCAEN257(const CCAEN257& rhs) 
 {
   m_pConfiguration = 0;
   if (rhs.m_pConfiguration) {
@@ -84,11 +84,11 @@ CAD811::CAD811(const CAD811& rhs)
   Assignment should probably have been made illegal.  We'll keep our
   current idea of the configuration.
   \param rhs  - The module that is being assigned to us.
-  \return CAD811&
+  \return CCAEN257&
   \retval *this
 */
-CAD811&
-CAD811::operator=(const CAD811& rhs)
+CCAEN257&
+CCAEN257::operator=(const CCAEN257& rhs)
 {
   return *this;
 }
@@ -99,13 +99,12 @@ CAD811::operator=(const CAD811& rhs)
   this implies a small memory leak.
 
 */
-CAD811::~CAD811()
+CCAEN257::~CCAEN257()
 {
 }
 /*************************************************************************/
 /*  Implementing the CReadoutHardware Interface                          */
 /*************************************************************************/
-
 
 /*!
    This function is called when the module is attached to its configuration.
@@ -122,14 +121,28 @@ CAD811::~CAD811()
 
 */
 void
-CAD811::onAttach(CReadoutModule& configuration)
+CCAEN257::onAttach(CReadoutModule& configuration)
 {
-  m_pConfiguration = &configuration;
+  m_pConfiguration = & configuration;
 
-  configuration.addParameter("-slot", CConfigurableObject::isInteger,
+  // Create the parameters:
+
+  configuration.addParameter("-slot",
+			     CConfigurableObject::isInteger,
 			     &SlotLimits, "0");
-  configuration.addParameter("-id", CConfigurableObject::isInteger,
+  configuration.addParameter("-id",
+			     CConfigurableObject::isInteger,
 			     &IdLimits, "0");
+
+  configuration.addParameter("-insertid",
+			     CConfigurableObject::isBool,
+			     NULL,
+			     "false"); // Typically scalers don't insert ids.
+  configuration.addParameter("-readinhibit",
+			     CConfigurableObject::isBool,
+			     NULL,
+			     "true"); // May be needed to get good reads.
+
 }
 /*!
    Just prior to data taking, the module is initialized in accordance
@@ -147,58 +160,88 @@ CAD811::onAttach(CReadoutModule& configuration)
 
 */
 void
-CAD811::Initialize(CCCUSB& controller)
+CCAEN257::Initialize(CCCUSB& controller)
 {
+  // The only initialization we need to do is to clear the scaler.
+  // The LAM will be disabled.
+
   int slot = getIntegerParameter("-slot");
 
-  // Slot must be non zero or the module was not configured:
+  // Slot must be non zero else it has not been set:
 
-  if(!slot) {
-    throw "An AD811 module has not been cofigured (-slot missing).";
+  if (slot  == 0) {
+    string name = m_pConfiguration->getName();
+    string error = "The CAEN C257 module: ";
+    error       += name;
+    error       += " did not have its mandatory -slot parameter specified";
+    throw error;
   }
-  // The module requires no hardware initialization..other than a clear.
 
-  
-  checkedControl(controller, slot, 12, 11,
-		 "Clearing AD811 in slot %d");
-  
+  //  Clear the module and see if there's a module plugged in:
+
+  uint16_t qx;
+  controller.simpleControl(slot, 0, 9, qx);
+
+  // Lack of an X indicates the module may not exist.. but we continue anyway:
+
+  if ((qx & CCCUSB::X) == 0) {
+    cerr << "Warning I got no X response from CAEN C257: " 
+	 << m_pConfiguration->getName() 
+	 << " Be sure the -slot parameter is correct\n";
+    cerr << "Continuing in spite of this\n";
+  }
+
+  // Disable the LAM:
+
+  controller.simpleControl(slot, 0, 24, qx);
+
 }
-
 /*!
    Add the commands required to read the module to a CCUSB readout list.
-   In our case we add the following:
-   - Insert the marker in the event.
-   - Read all registrees with f2 so the module auto-clears.
+   In our case the read has a few dependencies:
+   - If -insertid is true, we add the marker to the input stream.
+   - If -readinhibit is true we Inhibit, use F2 to do the reads then uninhibit
+   - If -readinhibit is false, we use F0 to do the reads and then manually clear
+     with F9.
+   
 
    \param list - the CCCUSBReadoutList into which to put the instructions.
+
+   \note Presumably the Initialize function has ensured the slot is defined
+         so we don't double check that:
+
 */
 void
-CAD811::addReadoutList(CCCUSBReadoutList& list)
+CCAEN257::addReadoutList(CCCUSBReadoutList& list)
 {
   int slot = getIntegerParameter("-slot");
-  int id   = getIntegerParameter("-id");
 
-  // Insert the markers:
+  // If -insertid insert the id marker:
 
-  list.addMarker(id);
-
-  // Read  & clear the channels:
-
-  for (int  i = 0; i < 8; i++) {
-    list.addRead16(slot, i, 2, false); // user must set the delay.
+  if  (getBoolParameter("-insertid")) {
+    uint16_t id = getIntegerParameter("-id");
+    list.addMarker(id);
   }
 
+  // Readout depends on -readinhibit:
+
+  if (getBoolParameter("readinhibit")) {
+    list.addControl(29, 9, 24);	// Inhibit crate.
+    list.addQScan(slot, 0, 2, 16); // Read all channels.. read of a15 clears.
+    list.addControl(29, 9, 26);	   // Uninhibit crate.
+  }
+  else {
+    list.addQScan(slot, 0, 0, 16); // Use F = 0 and...
+    list.addControl(slot, 0, 9);   // Manually clear the counters/lam.
+  }
 }
-
-
 /*!
-
-   Clone ourself.  This is essentially a virtual contstructor.
-   We just do a new *this
+  The interface requires that we know how to copy ourself for 
+  'virtual' copy construction e.g.:
 
 */
 CReadoutHardware*
-CAD811::clone() const
+CCAEN257::clone() const
 {
-  return new CAD811(*this);
+  return new CCAEN257(*this);
 }
