@@ -77,7 +77,7 @@ public:
   // Disallowed canonicals... comparison makes no sense for CAMAC modules:
 
 private:
-  int operator=(const CCAEN257& rhs) const;
+  int operator==(const CCAEN257& rhs) const;
   int operator!=(const CCAEN257& rhs) const;
 
   // This modules implements the CReadoutHardware INterface:
