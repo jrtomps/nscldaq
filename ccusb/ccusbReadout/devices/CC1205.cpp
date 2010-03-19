@@ -108,7 +108,8 @@ const  uint32_t ENABLEPedestal = 0x01000;
 const  uint32_t OVFIFNonZero   = 0x02000;
 const  uint32_t DIAGNOSTIC     = 0x04000;
 const  uint32_t BLOCKMODE      = 0x08000;
-const  uint32_t LAMHysteresis  = 0x10000;
+const  uint32_t LORESMode      = 0x10000;
+const  uint32_t LAMHysteresis  = 0x20000;
 
 /*!
    Construction is largely a no-op because the configuration is
@@ -321,4 +322,55 @@ CC1205::addReadoutList(CCCUSBReadoutList& list)
 
   list.addQStop(slot, 0, 0, 50);
   
+}
+/////////////////////////////////////////////////////////////////////////////
+//
+//                   Utility functions.
+
+
+/*
+ *   Determine the correct range mode in terms of bits in the
+ *   control register.  The rangemode enum is gotten and the
+ *   string looked up in the rang-emodes table.  An exception
+ *   is tossed if the range mode does not have a match in the table.
+ */
+uint32_t
+CC1205::rangeMode()
+{
+  string rangeValue = m_pConfiguration->cget("-rangemode");
+  for (enumValues* p = RangeModes; p->s_pName != 0; p++) {
+    if (rangeValue == string(p->s_pName)) {
+      return p->s_value;
+    }
+  }
+  string exception = "C1205 -rangemode parameter value: ";
+  exception       += rangeValue;
+  exception       += " does not translate to a known register value in module ";
+
+  throw exception;
+}
+/*
+ * Use the module configuration parameters to return the correct valud for the
+ * configuration register.
+ */
+uint32_t
+CC1205::configurationRegister()
+{
+  // Set the hard coded bits:
+
+  uint32_t reg   = DCCalibration | 
+                   ENABLESlider;
+
+  reg |= rangeMode();		// Set the operating mode bits.
+  
+  if (getBoolParameter("-usepedestals")) {
+    reg |= ENABLEPedestal;
+  }
+
+  if (!getBoolParameter("-hires")) {
+    reg |= LORESMode;
+  }
+  
+  return reg;
+                   
 }
