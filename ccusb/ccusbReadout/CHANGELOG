@@ -28,3 +28,7 @@ March 4, 2010 (1.2-004)
           GREEN   : Acquire enabled.
           YELLOW  : Executing scaler stack.
 
+March 19, 2010 (1.3)
+     - Added support for the CAEN C1204 QDC
+     - Added support for the CAEN C257 Scaler 
+

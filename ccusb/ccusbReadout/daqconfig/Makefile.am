@@ -6,7 +6,8 @@ libConfig_la_SOURCES	= 	CConfiguration.cpp	\
 				CLRS2551Command.cpp	\
 				CLRS2249Command.cpp	\
 				CLRS2228Command.cpp	\
-				CCAEN257Command.cpp
+				CCAEN257Command.cpp	\
+				C1205Command.cpp
 
 
 #				CScalerCommand.cpp
@@ -20,7 +21,8 @@ include_HEADERS		=	CConfiguration.h 	\
 				CLRS2551Command.h	\
 				CLRS2249Command.h	\
 				CLRS2228Command.h	\
-				CCAEN257Command.h
+				CCAEN257Command.h	\
+				C1205Command.h
 
 
 

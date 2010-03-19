@@ -323,6 +323,20 @@ CC1205::addReadoutList(CCCUSBReadoutList& list)
   list.addQStop(slot, 0, 0, 50);
   
 }
+
+
+/*!
+
+   Clone ourself.  This is essentially a virtual contstructor.
+   We just do a new *this
+
+*/
+CReadoutHardware*
+CC1205::clone() const
+{
+  return new CC1205(*this);
+}
+
 /////////////////////////////////////////////////////////////////////////////
 //
 //                   Utility functions.
