@@ -31,4 +31,4 @@ March 4, 2010 (1.2-004)
 March 19, 2010 (1.3)
      - Added support for the CAEN C1204 QDC
      - Added support for the CAEN C257 Scaler 
-
+     - Added support for 24 bit qstop. transfer.

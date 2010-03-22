@@ -97,7 +97,10 @@ public:
   // Block transfer operations:
 
   void addQStop(int n, int a, int f, uint16_t max, bool lamWait = false);
+  void addQStop24(int n, int a, int f, uint16_t max, bool lamWait = false);
+
   void addQScan(int n, int a, int f, uint16_t max, bool lamWait = false);
+
   void addRepeat(int n, int a, int f,uint16_t count, bool lamWait=false);
 
   // Other:

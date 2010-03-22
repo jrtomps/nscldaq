@@ -298,6 +298,29 @@ CCCUSBReadoutList::addQStop(int n, int a, int f, uint16_t max, bool lamWait)
   m_list.push_back(max);
 
 }
+
+/*!
+  Same as above but the readout is for 24 bit data.
+*/
+void
+CCCUSBReadoutList::addQStop24(int n, int a, int f, uint16_t max, bool lamWait)
+{
+  string msg;
+  if (!validRead(n,a,f,msg)) {
+    throw msg;
+  }
+
+  // build up the elements of the stack (three words, naf, mode, max-count).
+
+  uint16_t naf  = NAF(n,a,f) | CONTINUATION | NAFIsLong;
+  uint16_t mode = MODE_QSTOP | CONTINUATION;
+  if (lamWait) mode |= MODE_LAMWAIT;
+  
+  m_list.push_back(naf);
+  m_list.push_back(mode);
+  m_list.push_back(max);
+
+}
 /****************************************************************************/
 /*!
    Add a Q-scan operation to the stack.  QScan operations repeat the same

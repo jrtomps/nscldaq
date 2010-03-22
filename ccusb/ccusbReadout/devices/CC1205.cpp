@@ -320,7 +320,7 @@ CC1205::addReadoutList(CCCUSBReadoutList& list)
 
   // Read the module:
 
-  list.addQStop(slot, 0, 0, 50);
+  list.addQStop24(slot, 0, 0, 50);
   
 }
 
