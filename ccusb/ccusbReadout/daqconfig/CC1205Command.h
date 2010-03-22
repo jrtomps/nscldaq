@@ -67,7 +67,7 @@ private:
 public:
   CC1205Command(CTCLInterpreter& interp,
 		CConfiguration& config,
-		std::string     commandName = std::string("ad811"));
+		std::string     commandName = std::string("c1205"));
   virtual ~CC1205Command();
 
   // Forbidden canonicals:
