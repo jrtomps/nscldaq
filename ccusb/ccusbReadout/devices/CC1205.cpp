@@ -56,8 +56,8 @@ static CConfigurableObject::Limits SlotLimits(One, LastSlot); // CAMAC crate.
 
 static CConfigurableObject::limit  FourK(0xfff);
 static CConfigurableObject::Limits ThreshLimits(Zero, FourK);
-static CConfigurableObject::limit Loped(-8190);
-static CConfigurableObject::limit Hiped(8192);
+static CConfigurableObject::limit Loped(0);
+static CConfigurableObject::limit Hiped(4095);
 static CConfigurableObject::Limits PedLimits(Loped, Hiped);
 
 static CConfigurableObject::limit ChannelCount(16);
@@ -321,6 +321,12 @@ CC1205::addReadoutList(CCCUSBReadoutList& list)
   // Read the module:
 
   list.addQStop24(slot, 0, 0, 50);
+
+  // The CC-usb will not transfer the trailer word because it is the one
+  // that removes the Q rather than being the last one with Q valid.
+  // the next list item adds a 'fake' trailer word.
+
+  list.addMarker24(0x00c00000);
   
 }
 

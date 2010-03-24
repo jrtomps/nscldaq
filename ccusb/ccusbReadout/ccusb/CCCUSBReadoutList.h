@@ -106,6 +106,7 @@ public:
   // Other:
 
   void addMarker(uint16_t value);    // Add literal value to event.
+  void addMarker24(uint32_t value);  // Add long marker to event.
 
   // 
 private:
