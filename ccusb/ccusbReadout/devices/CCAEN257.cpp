@@ -231,7 +231,9 @@ CCAEN257::addReadoutList(CCCUSBReadoutList& list)
     list.addControl(29, 9, 26);	   // Uninhibit crate.
   }
   else {
-    list.addQScan(slot, 0, 0, 16); // Use F = 0 and...
+    for (int i=0; i < 16; i++) {
+      list.addRead24(slot, i, 0);
+    }
     list.addControl(slot, 0, 9);   // Manually clear the counters/lam.
   }
 }
