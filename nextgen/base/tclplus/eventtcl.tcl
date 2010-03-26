@@ -1,60 +1,479 @@
-package provide EventLoop 1.0
+package provide EventLoop 2.0
 
-set command ""
+#
+#   Encapsulating tcl interpreters in event loops and 
+#   supporting socket based connections to interpreters from
+#   remote systems.
+#
+#   This package consists of several snit::type (s)
+#   
+#   ChannelInterpeter - An object that allows the interpreter
+#                       to be run from a channel or channel pair.
+#   EventTcl          - Implements an object that allows an ordinary
+#                       Tcl interpreter to run an event loop but
+#                       remain live to stdin commands.
+#  TclServer          - Implements a socket server that creates
+#                       ChannelInterpreter's for each connection
+#  
 
-proc prompt {} {
-    if {$::command eq ""} {
-	eval $::tcl_prompt1
-    } else {
-	eval $::tcl_prompt2
-    }
-}
-proc processInput c {
-    if {![eof $c]} {
-	set line [gets $c]
-	set continuation 0
-	if {[regexp {\\$} $line]} {
-	    set line [string range $line 0 end-1]
-	    set continuation 1
+package require snit
+
+#
+#   ChannelInterpreter - Allows access to an interpreter
+#                        from a channel or channel pair.
+# OPTIONS:
+#   -inchannel        - The input channel
+#   -outchannel       - The output channel.  If not specified, the
+#                       outchannel is used.
+#   -prompt1          - Script to perform tcl_prompt1 handling
+#                       if not specified, no prompt is emitted.
+#   -prompt2          - Script to perform tcl_prompt2 handling
+#                       if not specified, no prompt is emitted.
+#
+# METHODS:
+#   Only construction/destruction are supported.
+#
+# EXAMPLE:
+#
+#    set h [ChannelInterpreter create %AUTO% -inchannel stdin      \
+#                                            -outchannel stdout    \
+#                                            -prompt1 $tcl_prompt1 \
+#                                            -prompt2 $tcl_prompt2]
+# 
+snit::type ChannelInterpreter {
+    option -inchannel ""
+    option -outchannel ""
+    option -prompt1    ""
+    option -prompt2    ""
+
+    variable buffer ""
+
+    constructor args {
+	$self configurelist $args
+
+	# We need at least an -inchannel:
+	
+	if {$options(-inchannel) eq ""} {
+	    error "ChannelInterpreter requires an -inchannel option"
 	}
-	append ::command $line
-	if {!$continuation && [info complete $::command]} {
-	    if {[string trimright $::command] ne ""} {
-		set result [catch {uplevel #0 $::command} msg]
-		if {$result} {
-		    puts "ERROR - $msg"
-		} else {
-		    puts $msg
-		}
+
+	#  Set input buffering on the input channel 
+	#  to line mode and set a readable file event.
+	#
+	fconfigure $options(-inchannel) -buffering line
+	fileevent  $options(-inchannel) readable [mymethod onInput]
+      
+    }
+    destructor {
+	fileevent $options(-inchannel) readable [list]
+    }
+    #
+    #  Reports EOF conditions on the input channel
+    #
+    method eof {} {
+	return [eof $options(-inchannel)]
+    }
+    #
+    #  Input handler, accumulate data into
+    #  the buffer variable and execute it in the global scope
+    #  when we have a complete line
+    #
+    method onInput {} {
+	set c $options(-inchannel)
+
+	if {![eof $c]} {
+	    set line [gets $c]
+	    set continuation 0
+	    if {[regexp {\\$} $line]} {
+		set line [string range $line 0 end-1]
+		set continuation 1
+	    } else {
+		append line "\n" ;   # put the newline back in.
 	    }
-	    set ::command ""
+	    append buffer $line
+	    if {!$continuation && [info complete $buffer]} {
+		if {[string trimright $buffer] ne ""} {
+		    set result [catch {uplevel #0 $buffer} msg]
+		    if {$result} {
+			$self output "ERROR - $msg"
+		    } else {
+			$self output $msg
+		    }
+		}
+		set buffer ""
+	    }
+	    $self prompt
+	} else {
+	    fileevent $options(-inchannel) readable [list]
 	}
-	prompt
-    } else {
-	exit 0
+    }
+
+    #----------------------------------------------------------------
+    #
+    #  Private methods clients should not call these.
+    #
+
+    # Send a string to the output channel with flush.
+    #
+    method output string {
+	set out $options(-outchannel)
+	if {$out eq ""} {
+	    set out $options(-inchannel)
+	}
+	puts $out $string
+	flush $out
+    }
+    # Prompt1:
+
+    method prompt1 {} {
+	if {$options(-prompt1) ne "" } {
+	    uplevel #0 $options(-prompt1)
+	}
+    }
+    # Prompt2:
+
+    method prompt2 {} {
+	if {$options(-prompt2) ne ""} {
+	    uplevel #0 $options(-prompt2)
+	}
+    }
+    #  Issue the prompt appropriate to the line buffer state:
+    #
+    method prompt {} {
+	if {$buffer eq ""} {
+	    $self prompt1
+	} else {
+	    $self prompt2
+	}
+    }
+}                               
+#
+#   EventTcl
+#     Encapsulates a ChannelInterpreter for stdin and stdout
+#     and provides methods for entering and exiting the Tcl event loop.
+#     This provides for a live stdin interpreter while still running the
+#     event loop
+#      All of methods and variables are implemented as class level
+#     rather than object level since as they say in highlander:
+#     "There can be only one".. and type methods are much easier to deal
+#     with than the singleton pattern.
+#
+#  TYPE METHODS:
+#    start  - Starts the event loop based interpreter.
+#    stop
+#  NOTES:
+#    write traces are established on tcl_prompt1 and tcl_prompt2 so that
+#  we can mimic tclsh's behavior with respect to those variables.
+#  
+#
+snit::type EventTcl {
+    typevariable  interp "";         # Will be our channel interpreter.
+    typevariable  finish 0;          # This is what we vwait on.
+    typevariable  afterId "";        # Used to exit if the interp gets an eof.
+    typevariable  afterInterval 100; # How often to probe for eof on stdin.    
+    #
+    #  Start the event loop driven interpreter.
+    #  - Create a channel interpretr on stdin/stdout
+    #  - Set up the prompting either as specified by tcl_prompt1/tcl_prompt2
+    #    or via our default prompters.
+    #  - Set traces on the tcl_prompt1/tcl_prompt2 vars so we can
+    #    dynamically update the prompting
+    #  - vwait on finish to get the loop rolling.
+    #
+    typemethod start {} {
+	
+	# Create the channel interpreter if we don't already have one:
+	
+	if {$interp ne ""} {
+	    error "Event loop based tclsh is already runninng"
+	}
+	set interp [ChannelInterpreter create %AUTO -inchannel stdin -outchannel stdout]
+	#
+	#  Set up the initial prompting.
+	#
+	if {[info globals tcl_prompt1] ne ""} {
+	    $interp configure -prompt1 $::tcl_prompt1
+	} else {
+	    $interp configure -prompt1 [list EventTcl defaultPrompt1]
+	}
+	if {[info globals tcl_prompt2] ne ""} {
+	    $interp configure -prompt2 $::tcl_prompt2
+	} else {
+	    $interp configure -prompt2 [list EventTcl defaultPrompt2]
+	}
+	# Set traces on tcl_prompt1 and tcl_prompt2
+	# so that we can reconfigure our interpreter's prompting as they
+	# change.
+	trace add variable ::tcl_prompt1 [list write unset] [list EventTcl onPromptChange]
+	trace add variable ::tcl_prompt2 [list write unset] [list EventTcl onPromptChange]
+	
+	# Establish a timed monitor for eofs on the interp.
+	
+	set afterId [after $afterInterval [list EventTcl checkEof]]
+	
+	#
+	#  Enter the event loop and stay there until finish is modified.
+	#
+	vwait [mytypevar finish]
+	
+	#
+	#  Now that the event loop has exited reverse everything we've done
+	#
+	
+	#  stop tracing tcl_prompt1/tcl_prompt2
+	
+	trace remove variable ::tcl_prompt1 [list write unset] [list EventTcl onPromptChange]
+	trace remove variable ::tcl_prompt2 [list write unset] [list EventTcl onPromptChange]
+	
+	# Destroy the ChannelInterpreter and set interp to "" marking us
+	# not running
+	
+	$interp destroy
+	set interp ""
+	
+	# Cancel the after:
+	
+	if {$afterId ne ""} {
+	    after cancel $afterId
+	    set afterId ""
+	}
+   }
+   #
+   #  Stop the event loop based interpreter:
+   #  - Trigger the end of the vwait and let that take care of everything else:
+    typemethod stop {} {
+	if {$interp eq ""} {
+	    error "EventTcl is not running"
+	}
+	incr finish    
+    }
+    #---------------------------------------------------------------------
+    #
+    #  Private typemethods
+    #
+    
+    
+    # Check for eof on interp:
+    #
+    typemethod checkEof {} {
+	if {[$interp eof]} {
+	    exit 0
+	}
+	set afterId [after $afterInterval [list EventTcl checkEof]]
+    }
+    #  Emit the default interpremter prompt1
+    #  This matches the tclsh prompt of "% ".
+    #
+    typemethod defaultPrompt1 {} {
+	set o [$interp cget -outchannel];
+	puts -nonewline $o "% "
+	flush $o
+    }
+    #
+    #  Emit the default interpreter prompt2
+    #  This matches the tclsh prompt of nothing.
+    typemethod defaultPrompt2 {} {
+    }
+
+    #
+    #  Trace called when one of the prompting variables was modified.
+    #  There are two possibilities:  The prompting variable was set to
+    #  something, in which case we establish that as the new prompt
+    #  or the prompting variable was unset in which case we re-establish
+    #  our default prompt.
+    #
+    typemethod onPromptChange {name1 name2 op} {
+	#
+	# Regularize the name by removing leading ::'s
+	#
+	set name1 [string trimleft $name1 :]
+	#
+	#  Set up the default and option based on the variable name:
+	#
+	if {$name1 eq "tcl_prompt1"} {
+	    set option   -prompt1
+	    set default  [list EventTcl defaultPromp1]
+	} else {
+	    set option   -prompt2
+	    set default [list EventTcl defaultPrompt2]
+	}
+	# If the op was write use $name1 as the option string:
+	# otherwise use $default
+	
+	if {$op eq "write"} {
+	    set name1 ::$name1
+	    set prompter [set $name1]
+	} else {
+	    set prompter $default
+	}
+	# Configure the interp:
+	
+	$interp configure $option $prompter
+	
+	return ""
     }
 }
 
+#
+#  TclServer Creates a server that creates a ChannelInterpreter for each
+#  connection request.
+#
+#  OPTIONS:
+#    -port        - Tcp/IP port on which connections are listened.
+#    -connection  - Script called on connection, if defined.
+#                   This is provided to allow the client to implement
+#                   some access control scheme. The connection script
+#                   is called just like the socket -server connection script
+#                   If it returns 1 the connection is allowed, 0, the connection
+#                   is closed and no ConnectionInterpreter Created.#
+#
+#                    The following exmple requires that connections only
+#                    come from the localhost (127.0.0.1)
+#
+#                   proc localOnly {channel clientaddr clientport} {
+#                       if {$clientaddr ne "127.0.0.1"} {
+#                          return 0
+#                       }
+#                       return 1
+#                   }
+#                   TclServer create %AUTO% -port 999 -connection localOnly
+#                   
+#  METHODS:
+#    stop       - Stops honoring new connections.
+#                 note that you should probably not destroy the object
+#                 but let it continue to destroy ChannelInterpreters
+#                 as they get disconnections.
+# REQUIREMENTS:
+#     The event loop must be running. That can be done however by
+#  EventTcl start
+#    if you want stdin/stdout to still work as interpreters.
+#
+snit::type TclServer {
+    variable listenSocket "";        # socket I listen on.
+    variable servers [list];         # list of servers.
+    variable afterId "";             # Id of periodic after reaper.
+    variable reapPollInterval 1000;  # ms Between reaper passes.
+    
+    option -port "";             # listen port
+    option -connection [list];   # Connection script.
+    
+    #
+    #  Construct the object.
+    #  start listening on the socket and dispatching connection
+    #  requests to 
+    constructor args {
+	$self configurelist $args
+	
+	if {$options(-port) eq ""} {
+	    error "TclServer must have a -port configured"
+	}
+	
+	set listenSocket [socket -server [mymethod onConnection] $options(-port)]
+	
+	set afterId [after $reapPollInterval [mymethod reap]]
+	
+    }
+    #
+    #  About all we can safely do is:
+    #  - stop listening.
+    #  - Make one more reaping pass
+    #  - kill the periodic reaper.
+    #  The servers that are still active will be a leak.
+    #
+    destructor {
+	#
+	#  In case stop was called:
+	#
+	if {$listenSocket ne ""} {
+	    close $listenSocket
+	}
 
-
-set tcl_prompt1 {
-    puts -nonewline "% "
-    flush stdout
-}
-set tcl_prompt2 {
-    puts -nonewline "_ "
-    flush stdout
-}
-
-
-proc startEventLoop {} {
-    fileevent stdin readable [list processInput stdin]
-    prompt
-    vwait ::forever
-}
-
-proc stopEventLoop {} {
-    set ::forever 1
-    fileevent stdin readable [list]
-    unset ::forever
+	$self reapServers
+	
+	
+	if {$afterId ne ""} {
+	    after cancel $afterId
+	}
+    }
+    
+    #  Stop listening for additional connections
+    #  The reaper continues to run.
+    method stop {} {
+	close $listenSocket
+	set listenSocket ""
+	
+    }
+    #-----------------------------------------------------------
+    #
+    #  Private methods:
+    #
+    
+    #  Honor a connection request
+    #  If there is a connection script it is called to see if we
+    #  should honor the connection.
+    #  If the connection can be honored, create a ChannelInterpreter
+    #  on the socket and add it to our list.
+    #
+    #  Parameters:
+    #    channel  - Socket connected to peer.
+    #    client   - Tcp/IP address of the client.
+    #    clientport - port of the client
+    #
+    method onConnection {channel client clientport} {
+	if {$options(-connection) ne ""} {
+	    set script $options(-connection)
+	    set result [uplevel #0 $script $channel $client $clientport]
+	    if {!$result} {
+		close $channel
+		return
+	    }
+	}
+	
+	#  The channel can be connected to an interpreter.
+	
+	set interp [ChannelInterpreter create %AUTO% -inchannel $channel]
+	lappend servers $interp
+    }
+    
+    #  Make a pass through the servers list.
+    #  If a server is at eof:
+    #  close its channel
+    #  destroy it
+    #  remove it from the list.
+    #  In order to not screw up the foreach loop, dead servers are first
+    #  marked and then searched/removed.
+    #
+    method reapServers {} {
+	
+	# Mark the dead ones
+	#
+	set dead [list]
+	foreach server $servers {
+	    if {[$server eof]} {
+		lappend dead $server
+	    }
+	}
+	# Kill/remove them:
+	
+	foreach server $dead {
+	    set socket [$server cget -inchannel]
+	    $server destroy
+	    close $socket
+	    
+	    set index [lsearch -exact $servers $server]
+	    
+	    if {$index != -1} {
+		set servers [lreplace $servers $index $index]
+	    }
+	}
+	
+    }
+    #
+    #  Periodic reaper:
+    #
+    method reap {} {
+	$self reapServers
+	set afterId [after $reapPollInterval [mymethod reap]]
+    }
+    
 }
