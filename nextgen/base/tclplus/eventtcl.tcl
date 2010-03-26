@@ -210,7 +210,11 @@ snit::type EventTcl {
 	# Establish a timed monitor for eofs on the interp.
 	
 	set afterId [after $afterInterval [list EventTcl checkEof]]
-	
+
+	# Outtput the prompt:
+
+	$interp prompt1
+
 	#
 	#  Enter the event loop and stay there until finish is modified.
 	#
