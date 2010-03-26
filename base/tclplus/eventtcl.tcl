@@ -29,7 +29,10 @@ package require snit
 #                       if not specified, no prompt is emitted.
 #   -prompt2          - Script to perform tcl_prompt2 handling
 #                       if not specified, no prompt is emitted.
-#
+#  -redirect          - if 1 (default) puts/gets/read are redefined to work
+#                       as if the channels are stdin/stdout while
+#                       commands are being executed. Otherwise
+#                       puts e.g. will output data to the actual stdout.
 # METHODS:
 #   Only construction/destruction are supported.
 #
@@ -41,10 +44,14 @@ package require snit
 #                                            -prompt2 $tcl_prompt2]
 # 
 snit::type ChannelInterpreter {
+    typevariable currentOutputChannel
+    typevariable currentInputChannel
+
     option -inchannel ""
     option -outchannel ""
     option -prompt1    ""
     option -prompt2    ""
+    option -redirect   1
 
     variable buffer ""
 
@@ -93,11 +100,24 @@ snit::type ChannelInterpreter {
 	    append buffer $line
 	    if {!$continuation && [info complete $buffer]} {
 		if {[string trimright $buffer] ne ""} {
+		    set redirected 0
+		    if {$options(-redirect)} {
+			set redirected 1
+			$self overrideStdio
+		    }
 		    set result [catch {uplevel #0 $buffer} msg]
+
+		    # After all the script could reconfigure us.
+
+		    if {$redirected} {
+			$self restoreStdio
+		    }
 		    if {$result} {
 			$self output "ERROR - $msg"
 		    } else {
-			$self output $msg
+			if {$msg ne ""} {
+			    $self output $msg
+			}
 		    }
 		}
 		set buffer ""
@@ -107,22 +127,123 @@ snit::type ChannelInterpreter {
 	    fileevent $options(-inchannel) readable [list]
 	}
     }
+    typemethod output {} {
+	return $currentOutputChannel
+    }
+    typemethod input {} {
+	return $currentInputChannel
+    }
 
     #----------------------------------------------------------------
     #
     #  Private methods clients should not call these.
     #
-
-    # Send a string to the output channel with flush.
+    # 
+    # Override standard I/O commands
     #
-    method output string {
+    method overrideStdio {} {
+	set currentOutputChannel [$self getOutput]
+	set currentInputChannel  $options(-inchannel)
+
+	# Replace puts:
+
+	rename ::puts ::_puts
+	proc ::puts {args} {
+	    set string [lindex $args end]
+	    set nonewline 0
+	    set channel ""
+	    if {[llength $args] > 1} {
+		if {[lindex $args 0] eq "-nonewline"} {
+		    set nonewline 1
+		    if {[llength $args] == 3} {
+			set channel [lindex $args 1]
+		    }
+		} else {
+		    set channel [lindex $args 0]
+		}
+	    } 
+	    if {($channel eq "") || ($channel eq "stdout")} {
+		set channel [ChannelInterpreter output]
+	    }
+	    if {$nonewline} {
+		_puts -nonewline $channel $string
+		flush $channel
+	    } else {
+		_puts $channel $string
+	    }
+	    
+	}
+	# replace gets:
+
+	rename ::gets ::_gets
+	proc ::gets args {
+	    if {[lindex $args 0] eq "stdin"} {
+		lreplace $args 0 0 [ChannelInterpreter input]
+	    }
+	    return [uplevel 1 ::_gets $args]
+	}
+
+	# replace read:
+
+	rename ::read ::_read
+	proc ::read args {
+	    if {[llength $args] == 1} {
+		if {$args eq "stdin"} {
+		    set args [ChannelInterpreter input]
+		}
+		return [::_read $args]
+	    }
+	    #  Either read -nonewline channel
+	    # or      read channel nchars
+	    #
+	    set arg1 [lindex $args 0]
+	    set arg2 [lindex $args 1]
+	    if {$arg1 eq "-nonewline"} {
+		# -nonewline channel
+		if {$arg2 eq "stdin"} {
+		    set arg2 [ChannelInterpreter input]
+		}
+		return [::_read $arg1 $arg2]
+	    }
+	    # channel count
+
+	    if {$arg1 eq "stdin"} {
+		set arg1 [ChannelInterpreter input]
+	    }
+	    return [::_read $arg1 $arg2]
+	}
+	
+    }
+    # put standard I/O commands back
+    #
+    method restoreStdio {} {
+	rename ::puts {}
+	rename ::_puts ::puts
+
+	rename ::gets {}
+	rename ::_gets ::gets
+
+	rename ::read {}
+	rename ::_read ::read
+    }
+    #
+    #  figure out the output channel
+    #
+    method getOutput {} {
 	set out $options(-outchannel)
 	if {$out eq ""} {
 	    set out $options(-inchannel)
 	}
+	return $out
+    }
+    # Send a string to the output channel with flush.
+    #
+    method output {string} {
+	set out [$self getOutput]
 	puts $out $string
 	flush $out
     }
+ 
     # Prompt1:
 
     method prompt1 {} {
@@ -146,6 +267,8 @@ snit::type ChannelInterpreter {
 	    $self prompt2
 	}
     }
+
+
 }                               
 #
 #   EventTcl
@@ -188,6 +311,7 @@ snit::type EventTcl {
 	    error "Event loop based tclsh is already runninng"
 	}
 	set interp [ChannelInterpreter create %AUTO -inchannel stdin -outchannel stdout]
+	$interp configure -redirect 0; # No need to redirect for stdin/stdout.
 	#
 	#  Set up the initial prompting.
 	#
@@ -341,6 +465,9 @@ snit::type EventTcl {
 #                       return 1
 #                   }
 #                   TclServer create %AUTO% -port 999 -connection localOnly
+#   -redirect     - defaults to 1 supplies the value of the -redirect option
+#                   for the ChannelInterpreters created to process clients.
+#
 #                   
 #  METHODS:
 #    stop       - Stops honoring new connections.
@@ -360,6 +487,7 @@ snit::type TclServer {
     
     option -port "";             # listen port
     option -connection [list];   # Connection script.
+    option -redirect 1;		 # Value of redirect option for ChannelInterpreters
     
     #
     #  Construct the object.
@@ -435,7 +563,8 @@ snit::type TclServer {
 	
 	#  The channel can be connected to an interpreter.
 	
-	set interp [ChannelInterpreter create %AUTO% -inchannel $channel]
+	set interp [ChannelInterpreter create %AUTO% -inchannel $channel \
+                                       -redirect $options(-redirect)]
 	lappend servers $interp
     }
     
