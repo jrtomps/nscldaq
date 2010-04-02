@@ -220,7 +220,7 @@ CC1205::onAttach(CReadoutModule& configuration)
   // If the valid values have not yet been set, set them up:
 
   if(rangeValues.empty()) {
-    for(const enumValues* pRange = RangeModes; *pRange->s_pName != 0; pRange++) {
+    for(const enumValues* pRange = RangeModes; pRange->s_pName != 0; pRange++) {
       string rangeName(pRange->s_pName);
       rangeValues.insert(rangeName);
     }
@@ -326,7 +326,8 @@ CC1205::addReadoutList(CCCUSBReadoutList& list)
   // that removes the Q rather than being the last one with Q valid.
   // the next list item adds a 'fake' trailer word.
 
-  list.addMarker24(0x00c00000);
+  list.addMarker(0x00ff);	// Low 16 bits.
+  list.addMarker(0x0040);	// Top 16 bits.
   
 }
 
@@ -390,7 +391,14 @@ CC1205::configurationRegister()
   if (!getBoolParameter("-hires")) {
     reg |= LORESMode;
   }
-  
+
+  // Fold in the bottom 8 bits of the -id:
+
+  uint32_t id = getIntegerParameter("-id");
+  reg        |= (id & 0xff);
+
+  cout << hex << " Control register: " << reg << endl << dec;
+
   return reg;
                    
 }
