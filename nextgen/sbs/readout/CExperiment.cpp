@@ -33,7 +33,7 @@
 #include <CVariableBuffers.h>
 
 #include <TCLApplication.h>
-
+#include <CBusy.h>
 #include <vector>
 #include <string>
 
@@ -195,6 +195,10 @@ CExperiment::Start(bool resume)
   
   if (m_pEventTrigger && m_pScalerTrigger) {
     m_pTriggerLoop->start();
+  }
+
+  if (m_pBusy) {
+    m_pBusy->GoClear();
   }
 
   // The run is now active if looked at by the outside world:
@@ -428,6 +432,9 @@ CExperiment::ReadEvent()
     item.commitToRing(*m_pRing);
     m_nEventsEmitted++;
 
+  }
+  if (m_pBusy) {
+    m_pBusy->GoClear();
   }
   // TODO: Need to keep track of trigger counts and from time to time emit a 
   //      trigger count item.

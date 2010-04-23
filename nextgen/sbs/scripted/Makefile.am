@@ -48,7 +48,7 @@ libScriptedRdo_la_LDFLAGS = -version-info $(SOVERSION)
 ScriptedReadout_LDFLAGS = -Wl,"-rpath=$(prefix)/lib"
 
 
-noinst_HEADERS= CScriptedSegment.h
+noinst_HEADERS= CScriptedSegment.h	\
 	CBoolConfigParam.h \
 	CCAENModule.h \
 	CCAENV775.h \
