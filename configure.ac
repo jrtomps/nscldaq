@@ -478,7 +478,6 @@ AC_CONFIG_FILES([Makefile
 		 sbs/slowcontrols/vhs/Makefile
 		 sbs/scripted/Makefile
 		 sbs/VmeDevice/Makefile
-		 daq/builder/Makefile
 		 docbuild/Makefile
 		 docconfig/Makefile])
 
