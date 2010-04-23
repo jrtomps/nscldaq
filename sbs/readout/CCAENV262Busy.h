@@ -58,6 +58,6 @@ private:
   // The busy module interface:
 public:
   virtual void GoBusy();
-  virtual void GoReady();
+  virtual void GoClear();
 };
 #endif

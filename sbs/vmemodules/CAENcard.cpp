@@ -23,6 +23,7 @@ static const char* Copyright= "(C) Copyright Michigan State University 2002, All
 #include "CAENcard.h"
 #include <string>
 #include <unistd.h>
+#include <stdint.h>
 
 #include <assert.h>
 
@@ -976,7 +977,7 @@ void CAENcard::MapCard()
 
    void* fd;
 
-   ROM *pRom;
+   volatile ROM *pRom;
 
    if( m_fGeo) {		// Geographical addressing...
 
@@ -1011,9 +1012,13 @@ void CAENcard::MapCard()
    // as that's all we use it for:
 
 
-   m_nCardType = (pRom->BoardIdMSB & 0xff) << 16 |
-                 (pRom->BoardId & 0xff)    <<  8 |
-                 (pRom->BoardIdLSB & 0xff);
+   unsigned int  msb = pRom->BoardIdMSB & 0xff;
+   unsigned int  mid = pRom->BoardId & 0xff;
+   unsigned int  lsb = pRom->BoardIdLSB & 0xff;
+
+   m_nCardType = (msb << 16) | (mid << 8) | lsb;
+
+
    m_nSerialno  = pRom->SerialMSB << 8 |
                  pRom->SerialLSB;
    m_nHardwareRev = pRom->Revision;
