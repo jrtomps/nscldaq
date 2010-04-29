@@ -51,7 +51,7 @@ struct DataBuffer {
   uint32_t   s_bufferSize;	//!< Bytes used in the buffer.
   uint32_t   s_storageSize;     //!< bytes in s_rawData[].
   uint32_t   s_bufferType;	//!< Type of buffer.
-  time_t     s_timeStamp;	//!< When the buffer was received.
+  timespec   s_timeStamp;	//!< When the buffer was received.
   uint16_t   s_rawData[1];	//!< Really larger than that
 
 };

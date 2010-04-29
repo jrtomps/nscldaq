@@ -31,6 +31,7 @@
 
 #include <string.h>
 #include <errno.h>
+#include <unistd.h>
 
 using namespace std;
 
@@ -40,6 +41,8 @@ static const unsigned USBTIMEOUT(10);
 
 static const unsigned ReadoutStackNum(0);
 static const unsigned ScalerStackNum(1);
+
+static const unsigned HungCount(3); // Hung if HungCount * USBTimeout seconds without data.
 
 
 // buffer types:
@@ -187,6 +190,7 @@ CAcquisitionThread::mainLoop()
   DataBuffer*     pBuffer   = gFreeBuffers.get();
   CControlQueues* pCommands = CControlQueues::getInstance(); 
   try {
+    unsigned int consecutiveTimeouts = 0;
     while (true) {
       
       // Event data from the VM-usb.
@@ -196,6 +200,7 @@ CAcquisitionThread::mainLoop()
 				   &bytesRead,
 				  USBTIMEOUT*1000 );
       if (status == 0) {
+	consecutiveTimeouts = 0;
 	pBuffer->s_bufferSize = bytesRead;
 	pBuffer->s_bufferType   = TYPE_EVENTS;
 	processBuffer(pBuffer);	// Submitted to output thread so...
@@ -205,6 +210,19 @@ CAcquisitionThread::mainLoop()
 #ifdef REPORT_ERRORS
 	cerr << "Bad status from usbread: " << strerror(errno) << endl;
 #endif
+	consecutiveTimeouts++;
+	// 
+	// The VM-USB can drop out of data taking mode.
+	// in that case all our reads will time out.
+	// so if we have a bunch of of timeouts in a row, restart the VM-USB
+
+	if(consecutiveTimeouts > HungCount) {
+	  cerr << "Looks like VM-USB may be hung.. attempting to restart\n";
+	  stopDaq();
+	  startDaq();
+	  consecutiveTimeouts = 0;
+
+	}
       }
       // Commands from our command queue.
       
@@ -281,8 +299,8 @@ CAcquisitionThread::processCommand(CControlQueues::opCode command)
 void
 CAcquisitionThread::processBuffer(DataBuffer* pBuffer)
 {
-  time_t acquiredTime;		// Need to generate  our own timestamps.
-  time(&acquiredTime);
+  timespec acquiredTime;
+  clock_gettime(CLOCK_REALTIME, &acquiredTime); // CLOCK_REALTIME is the only gaurantee
   pBuffer->s_timeStamp  = acquiredTime;
 
   // In this version, all stack ids are good.  The output thread will ensure that

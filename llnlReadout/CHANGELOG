@@ -48,3 +48,7 @@ January 8, 2010
      those possibilities later.
 January 28, 2010
    - Roll in fixes after working with Silvie and Mike from Indiana.
+January 31, 2010
+   - Use times with micro preceision.
+March 23, 2010
+   - Find Tcl from high to low not low to high.

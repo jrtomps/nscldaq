@@ -21,6 +21,6 @@ Readout_LDADD	= -Lvmusb -Ldevices -Lthreadcomm -Lrouter -Lrdothread \
 	-Ltclserver -Ldaqconfig -Lcommands 				\
 	-lCommands -lConfig -lControlServer -lRdoThread -lRouter -lThreadComm \
 	-lVMUSBDevices -lVMUSB						\
-	$(NSCLDAQ_LIB) -ltclPlus -lException $(SPECTRODAQ_LDFLAGS) $(TCL_LDFLAGS)
+	$(NSCLDAQ_LIB) -ltclPlus -lException $(SPECTRODAQ_LDFLAGS) $(TCL_LDFLAGS) -lrt
 
 Readout_LDFLAGS=-Wl,"-rpath=$(libdir)"

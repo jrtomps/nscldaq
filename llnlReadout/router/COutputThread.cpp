@@ -58,6 +58,30 @@ typedef struct _EventBuffer {
   BHEADER      s_header;
   uint16_t     s_body[1];
 } EventBuffer, *pEventBuffer;
+
+////////////////////////////////////////////////////////////////////////
+//   mytimersub - since BSD timeval is not the same as POSIX timespec:
+////////////////////////////////////////////////////////////////////////
+static inline void 
+mytimersub(timespec* minuend, timespec* subtrahend, timespec* difference)
+{
+  // We'll cheat and map these to timevals, use timersub and convert back:
+  // this means we're only good to a microsecond not a nanosecond _sigh_
+  // if this is not good enough we'll do the subtraction manually later.
+
+  timeval m,s,d;
+  m.tv_sec   = minuend->tv_sec;
+  m.tv_usec  = minuend->tv_nsec/1000;
+
+  s.tv_sec   = subtrahend->tv_sec;
+  s.tv_usec  = subtrahend->tv_nsec/1000;
+
+  timersub(&m, &s, &d);
+
+  difference->tv_sec  = d.tv_sec;
+  difference->tv_nsec = d.tv_usec * 1000;
+}
+
 ////////////////////////////////////////////////////////////////////////
 ///////////////////// Construction and destruction /////////////////////
 ////////////////////////////////////////////////////////////////////////
@@ -261,7 +285,8 @@ COutputThread::startRun(DataBuffer& buffer)
   m_sequence        = 0;
   m_outputBufferSize= buffer.s_bufferSize + sizeof(BHEADER);
   m_startTimestamp       = buffer.s_timeStamp;
-  m_lastStampedBuffer    = 0; 
+  m_lastStampedBuffer.tv_sec    = 0; 
+  m_lastStampedBuffer.tv_nsec   = 0;
 
   // Allocate the Begin run buffer and fill it in.
 
@@ -346,9 +371,16 @@ COutputThread::scaler(DataBuffer& buffer)
 
   // Now the body that does not have scaler data:
 
-  outbuf->s_body.btime    = m_lastStampedBuffer;
-  m_lastStampedBuffer     = buffer.s_timeStamp - m_startTimestamp;
-  outbuf->s_body.etime    = m_lastStampedBuffer;
+  outbuf->s_body.btime    = m_lastStampedBuffer.tv_sec;
+  if (m_lastStampedBuffer.tv_nsec > 500000000) {
+    outbuf->s_body.btime++;
+  }
+  mytimersub(&(buffer.s_timeStamp ), &m_startTimestamp, &m_lastStampedBuffer);
+  
+  outbuf->s_body.etime    = m_lastStampedBuffer.tv_sec;
+  if (m_lastStampedBuffer.tv_nsec > 500000000) {
+    outbuf->s_body.etime++;
+  }
   
   // Submit the buffer and free it:
 
@@ -460,8 +492,14 @@ COutputThread::formatControlBuffer(uint16_t type, void* buffer)
   time_t t;
   struct tm structuredtime;
   time(&t);
-
-  p->s_body.sortim    = t - m_startTimestamp;
+  timespec microtime;
+  clock_gettime(CLOCK_REALTIME, &microtime);
+  timespec microdiff;
+  mytimersub(&microtime, &m_startTimestamp, &microdiff);
+  p->s_body.sortim    = microdiff.tv_sec;
+  if (microdiff.tv_nsec > 500000000){
+    p->s_body.sortim++;
+  }
 
 
   localtime_r(&t, &structuredtime);

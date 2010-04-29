@@ -8,7 +8,7 @@ AM_CONFIG_HEADER(config.h)
 
 #    Separate device libraries.
 
-AM_INIT_AUTOMAKE(llnlReadout, 3.2-004, fox@nscl.msu.edu)  
+AM_INIT_AUTOMAKE(llnlReadout, 3.2-007, fox@nscl.msu.edu)  
 
 #
 #   The variable below should track the
@@ -237,8 +237,7 @@ fi
 #        variable tcl_versions  that variable is a list of version 
 #        number specifiers.
 #
-tcl_versions="8.0 8.1 8.2 8.3 8.4 8.5"
-
+tcl_versions="8.4 8.3 8.2 8.5"
 tcl_header_dir=""
 AC_MSG_CHECKING([for tcl headers])
 
