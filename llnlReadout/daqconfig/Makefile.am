@@ -10,7 +10,8 @@ libConfig_la_SOURCES	= 	CADCCommand.cpp		\
 				CNADC2530Command.cpp	\
 				CMADCCommand.cpp	\
 				CMADCScalerCommand.cpp	\
-				CV1x90Command.cpp
+				CV1x90Command.cpp	\
+				CV977Command.cpp
 
 
 include_HEADERS		=	CADCCommand.h  		\
@@ -24,7 +25,8 @@ include_HEADERS		=	CADCCommand.h  		\
 				CNADC2530Command.h	\
 				CMADCCommand.h		\
 				CMADCScalerCommand.h	\
-				CV1x90Command.h
+				CV1x90Command.h		\
+				CV977Command.h
 
 
 

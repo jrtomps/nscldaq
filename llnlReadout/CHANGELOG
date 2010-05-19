@@ -52,3 +52,6 @@ January 31, 2010
    - Use times with micro preceision.
 March 23, 2010
    - Find Tcl from high to low not low to high.
+3.2-008
+May 19, 2010 - Adding support for CAEN V977 input register.
+
