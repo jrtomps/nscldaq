@@ -172,7 +172,7 @@ void CV977::onAttach(CReadoutModule& configuration)
 			     &Short, "0");
   configuration.addParameter("-readmode", CConfigurableObject::isEnum,
 			     &readModeValues, "singlehit");
-  configuration.addParameter("-ouputmask", CConfigurableObject::isInteger,
+  configuration.addParameter("-outputmask", CConfigurableObject::isInteger,
 			     &Short, "0");
   configuration.addParameter("-interruptmask", CConfigurableObject::isInteger,
 			     &Short, "0");

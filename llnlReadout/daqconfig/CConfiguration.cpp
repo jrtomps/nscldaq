@@ -27,7 +27,7 @@
 #include "CMADCCommand.h"
 #include "CMADCScalerCommand.h"
 #include "CV1x90Command.h"
-
+#include "CV977Command.h"
 
 #include <CReadoutModule.h>
 #include <TCLInterpreter.h>
@@ -70,6 +70,7 @@ CConfiguration::CConfiguration() :
   m_Commands.push_back(new CMADCCommand(*m_pInterp, *this));
   m_Commands.push_back(new CMADCScalerCommand(*m_pInterp, *this));
   m_Commands.push_back(new CV1x90Command(*m_pInterp, *this));
+  m_Commands.push_back(new CV977Command(*m_pInterp, *this));
 
 }
 /*!
