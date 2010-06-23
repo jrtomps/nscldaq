@@ -368,6 +368,35 @@ CVMUSBReadoutList::addBlockRead32(uint32_t baseAddress, uint8_t amod,
 }
 
 /*!
+  Add a 32 block >write< to the list.
+  - The base address must be longword aligned.
+  - The address modifier must be one of the block transfer mode.
+  - At most 256 bytes can be transferred (256 bytes - 1 long).
+  @param baseAddress - Base of the target block.
+  @param amod        - address modifier.
+  @param data        - Data to transfer.
+  @param transfers   - Number of transfers to perform.
+*/
+void
+CVMUSBReadoutList::addBlockWrite32(uint32_t baseAddress, uint8_t amod,
+				   void* data, size_t transfers)
+{
+  uint32_t mode   = (static_cast<uint32_t>(amod) << modeAMShift) & modeAMMask;
+  mode           |= (transfers) << modeBLTShift;
+  m_list.push_back(mode);
+  m_list.push_back(baseAddress);
+  
+  // Put the data in the list too:
+  
+  uint32_t* src = reinterpret_cast<uint32_t*>(data);
+  while (transfers) {
+    m_list.push_back(*src++);
+    transfers--;
+  }
+  
+}
+
+/*!
    Add a read from a fifo.  This is identical to addBlockRead32, however
    the NA bit is set in the initial mode word to ensure that the actual
    address is not incremented.
