@@ -13,7 +13,8 @@ libVMUSBDevices_la_SOURCES	= 	CConfigurableObject.cpp	\
 					CMADCScaler.cpp		\
 					CV1x90.cpp		\
 					CV977.cpp		\
-					CXLM.cpp
+					CXLM.cpp		\
+					CMASE.cpp
 
 
 INCLUDES	= 	-I$(top_builddir)/vmusb 	\
@@ -41,7 +42,8 @@ include_HEADERS			= 	CConfigurableObject.h	\
 					CMADCScaler.h		\
 					CV1x90.h		\
 					CV977.h			\
-					CXLM.h
+					CXLM.h			\
+					CMASE.h
 
 
 

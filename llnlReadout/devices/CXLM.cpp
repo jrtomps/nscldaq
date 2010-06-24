@@ -14,7 +14,7 @@
 	     East Lansing, MI 48824-1321
 */
 #include <config.h>
-#include <CXLM.h>
+#include "CXLM.h"
 
 #include "CReadoutModule.h"
 
