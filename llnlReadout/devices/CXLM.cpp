@@ -414,7 +414,7 @@ CXLM::Interface()
 bool 
 CXLM::validFirmwareFile(string name, string value, void* arg)
 {
-  int status = access(name.c_str(), R_OK);
+  int status = access(value.c_str(), R_OK);
 
   // TODO: Some day we should figure out a better way for parameter checkers to get error information
   //       back to the configuration subsystem.. e.g. errno would exactly describe what was wrong here.
