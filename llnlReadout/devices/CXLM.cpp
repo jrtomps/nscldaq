@@ -30,6 +30,8 @@
 #include <unistd.h>
 #include <fcntl.h>
 
+#include<iostream>
+
 using namespace std;
 
 //////////////////////////////////////////////////////////////////////////////
@@ -50,8 +52,9 @@ const uint32_t CXLM::REQ_X(0x00010000);
 
 // Address modifiers we are going to use:
 
-static const uint8_t   registerAmod(CVMUSBReadoutList::a32PrivData);
-static const uint8_t   blockTransferAmod(CVMUSBReadoutList::a32PrivBlock); 
+static const uint8_t   registerAmod(CVMUSBReadoutList::a32UserData);
+static const uint8_t   sramaAmod(CVMUSBReadoutList::a32UserData);
+static const uint8_t   blockTransferAmod(CVMUSBReadoutList::a32UserBlock); 
 
 //  Base addresses of 'unstructured' areas.
 
@@ -70,8 +73,8 @@ static const uint32_t  ForceOffBus(0x80000c); // Register to force FPGA/DSP off 
 static const uint32_t  BUSAOwner  (0x810000); // Shows who has bus A (SRAM A)
 static const uint32_t  BUSBOwner  (0x810004); // Shows who has bus B (SRAM B)
 static const uint32_t  BUSXOwner  (0x810008); // Shows who has bus X (FPGA).
-static const uint32_t  IRQSerial  (0x820000); // Write for IRQ id reads serial number.
-static const uint32_t  POLLISR    (0x820024); // 'mailbox' betweenFPGA and DSP.
+static const uint32_t  IRQSerial  (0x820048); // Write for IRQ id reads serial number.
+static const uint32_t  POLLISR    (0x820824); // 'mailbox' betweenFPGA and DSP.
 
 // Note that the REQ_A/B/X definitions above define the bits in the bus request register
 // therefore we don't define these bits here.
@@ -212,7 +215,9 @@ CXLM::onAttach(CReadoutModule& configuration)
 void 
 CXLM::loadFirmware(CVMUSB& controller, string path) throw(std::string)
 {
-  uint32_t base = m_pConfiguration->getIntegerParameter("-base");
+  uint32_t base = m_pConfiguration->getUnsignedParameter("-base");
+
+  cerr << hex << "Loading firmware for XLM at " << base << endl << dec;
 
   // Prep the FPGA for loading.  Specifically:
   // 1. Set the load source to SRAMA
@@ -223,24 +228,22 @@ CXLM::loadFirmware(CVMUSB& controller, string path) throw(std::string)
   // With the exception of determining the state of the Interrupt/reset register so it can be manipulated,
   // these operations are done in an immediate list:
 
-  // Get the state of the interrupt register:
+  // Get the state of the interrupt register.. well it's another crappy write only reigster so
+  // let's assume everything is held reset and that we only want to start the fpga.
 
-  uint32_t interruptRegister;
-  controller.vmeRead32(base + Interrupt, registerAmod, &interruptRegister);
+  uint32_t interruptRegister = 0; /* InterruptResetFPGA | InterruptResetDSP |
+				     InterruptInterruptFPGA | InterruptInterruptDSP */
 
   // Build the list of operations:
   // Done in a block so the list is destroyed after it's executed:
 
   {
     CVMUSBReadoutList initList;
-    initList.addWrite32(base + FPGABootSrc, registerAmod, BootSrcSRAMA);
-    initList.addWrite32(base + Interrupt,   registerAmod, 
-			interruptRegister | InterruptResetFPGA); // Ensure falling edge:
-    initList.addWrite32(base + Interrupt, registerAmod,
-			interruptRegister & (InterruptResetDSP | InterruptInterruptFPGA
-					     | InterruptInterruptDSP)); //  hold FPGA reset for the load:
-    initList.addWrite32(base + ForceOffBus, registerAmod, ForceOffBusForce); // Make everyone go off bus.
-    addBusAccess(initList, REQ_A, 0);
+    initList.addWrite32(base + ForceOffBus, registerAmod, ForceOffBusForce); // Inhibit FPGA Bus access.
+    initList.addWrite32(base + Interrupt,   registerAmod,  InterruptResetFPGA); // Hold FPGA reset.
+    initList.addWrite32(base + FPGABootSrc, registerAmod, BootSrcSRAMA); // Set boot source
+    addBusAccess(initList,  REQ_A, 0);                                    //  Request bus A.
+
     
     // run the list:
 
@@ -255,6 +258,13 @@ CXLM::loadFirmware(CVMUSB& controller, string path) throw(std::string)
 
       throw msg;
     }
+
+    // I should have bus a:
+
+    uint32_t owner =0;
+    controller.vmeRead32(base + BUSAOwner, registerAmod, &owner);
+    cerr << "BUSA Owner is: " << owner << endl;
+
     // Open and read the entire fpga file into memory (can't be too large)
 
 
@@ -270,18 +280,28 @@ CXLM::loadFirmware(CVMUSB& controller, string path) throw(std::string)
       // Read the file, convert it to an sram a image and load it into SRAM A:
 
       loadFile(path, contents, bytesInFile);	// Read the file into memory.
-      remapBits(sramAImage, contents, bytesInFile);
+
+      // Skip the header:
+
+      uint8_t* pc = contents;
+      while (*pc != 0xff) {
+	pc++;
+	bytesInFile--;
+      }
+
+      remapBits(sramAImage, pc, bytesInFile);
       loadSRAMA(controller, sramAImage, bytesInFile*sizeof(uint32_t));
       
       // Release the SRAMA Bus, 
       // release the 'force'.
       // Remove the reset from the FPGA:
+      
+      cerr << "Firmware loaded in SRAMA\n";
 
       CVMUSBReadoutList  finalize;
-      finalize.addWrite32(base + ForceOffBus, registerAmod, 0); // Remove force
       finalize.addWrite32(base + BusRequest, registerAmod, 0);	// Release bus request.
-      finalize.addWrite32(base + Interrupt, registerAmod, 
-			  interruptRegister | InterruptResetFPGA);
+      finalize.addWrite32(base + ForceOffBus, registerAmod, 0); // Remove force
+      finalize.addWrite32(base + Interrupt, registerAmod, 0);	// Release FPGA reset 
       status = controller.executeList(finalize,
 				       &dummy, sizeof(dummy), &dummy);
 				       
@@ -299,6 +319,8 @@ CXLM::loadFirmware(CVMUSB& controller, string path) throw(std::string)
     }
     delete []contents;
     delete []sramAImage;
+    cerr << "FPGA Should now be started\n";
+
   }
   
 
@@ -323,7 +345,7 @@ CXLM::loadFirmware(CVMUSB& controller, string path) throw(std::string)
 void
 CXLM::accessBus(CVMUSB& controller, uint32_t accessPattern)
 {
-  uint32_t base = m_pConfiguration->getIntegerParameter("-base");
+  uint32_t base = m_pConfiguration->getUnsignedParameter("-base");
   controller.vmeWrite32(base + BusRequest, registerAmod, accessPattern);
 }
 
@@ -339,7 +361,7 @@ void
 CXLM::addBusAccess(CVMUSBReadoutList& list, uint32_t accessPattern,
 		   uint8_t delay)
 {
-  uint32_t base = m_pConfiguration->getIntegerParameter("-base");
+  uint32_t base = m_pConfiguration->getUnsignedParameter("-base");
 
   list.addWrite32(base + BusRequest, registerAmod, accessPattern);
   if ( delay > 0) {		// Don't delay if none requested.
@@ -357,7 +379,7 @@ CXLM::addBusAccess(CVMUSBReadoutList& list, uint32_t accessPattern,
 uint32_t
 CXLM::sramA()
 {
-  return m_pConfiguration->getIntegerParameter("-base") + SRAMA;
+  return m_pConfiguration->getUnsignedParameter("-base") + SRAMA;
 }
 /*!
   Convenience function to return the base address of SRAM B
@@ -367,7 +389,7 @@ CXLM::sramA()
 uint32_t 
 CXLM::sramB()
 {
-  return m_pConfiguration->getIntegerParameter("-base") + SRAMB;
+  return m_pConfiguration->getUnsignedParameter("-base") + SRAMB;
 }
 /*!
   Convenience function to return the base address of the FPGA register set.  These are the 
@@ -378,7 +400,7 @@ CXLM::sramB()
 uint32_t
 CXLM::FPGA()
 {
-  uint32_t b =    m_pConfiguration->getIntegerParameter("-base");
+  uint32_t b =    m_pConfiguration->getUnsignedParameter("-base");
   return b + FPGABase;
 }
 /*!
@@ -392,7 +414,7 @@ CXLM::FPGA()
 uint32_t
 CXLM::Interface()
 {
-  return m_pConfiguration->getIntegerParameter("-base")  + InterfaceBase;
+  return m_pConfiguration->getUnsignedParameter("-base")  + InterfaceBase;
 }
 //////////////////////////////////////////////////////////////////////////////////////////
 //
@@ -547,34 +569,101 @@ void
 CXLM::loadSRAMA(CVMUSB& controller, void* image, uint32_t bytes) throw(std::string)
 {
   static const size_t   blockSize = 256;
+  static const size_t   vblockSize = blockSize;
+  uint32_t              nBytes    = bytes;
 
-  CVMUSBReadoutList  loadList;
-  uint8_t*           p    = reinterpret_cast<uint8_t*>(image);
+  // for now load it one byte at a time... in 256 tansfer chunks:
+
+  
+
+  uint32_t*           p    = reinterpret_cast<uint32_t*>(image);
   static uint32_t    dest = sramA();
+
+  cerr << hex << "LOADSRAMA - SRAM A base addresss is " << dest << endl << dec;
 
   if (bytes == 0) return;	// Stupid edge case but we'll handle it correctly.
 
-  while (bytes > blockSize) {
-    loadList.addBlockWrite32(dest, blockTransferAmod, p, blockSize/sizeof(uint32_t));
-    p     += blockSize;
-    bytes -= blockSize;
-    dest  += blockSize;
+  while (bytes > blockSize*sizeof(uint32_t)) {
+    CVMUSBReadoutList  loadList;
+    for (int i =0; i < blockSize; i++) {
+      loadList.addWrite32(dest, sramaAmod,  *p++);
+      dest += sizeof(uint32_t);
+    }
+    bytes -= blockSize*sizeof(uint32_t);
+    // Write the block:
+
+    uint32_t data;
+    int status = controller.executeList(loadList,
+					&data,
+					sizeof(data), &data);
+    if (status < 0) {
+      string error = strerror(errno);
+      string msg   = "CXM::loadSRAMA - list execution failed to load the SRAM: ";
+      msg         += error;
+      throw msg;
+    }
+
   }
   // Handle any odd partial block:
 
   if (bytes > 0) {
-    loadList.addBlockWrite32(dest, blockTransferAmod, 
-			     p, bytes/sizeof(uint32_t));
-  }
+    CVMUSBReadoutList loadList;
+    while (bytes > 0) {
+      loadList.addWrite32(dest, sramaAmod, *p++);
+      dest += sizeof(uint32_t);
+      bytes -= sizeof(uint32_t);
+    }
+    // Write the block:
 
-  // Now that the list is built... execute it:
-
-  size_t readData;
-  int status = controller. executeList(loadList, &readData, sizeof(size_t), &readData);
-  if (status < 0) {
-    string error = strerror(errno);
-    string msg   = "CXM::loadSRAMA - list execution failed to load the SRAM: ";
-    msg         += error;
-    throw msg;
+    size_t readData;
+    int status = controller. executeList(loadList, &readData, sizeof(size_t), &readData);
+    if (status < 0) {
+      string error = strerror(errno);
+      string msg   = "CXM::loadSRAMA - list execution failed to load the SRAM: ";
+      msg         += error;
+      throw msg;
+    }
   }
+    // Verify the load:
+
+
+  cerr << "Verifying SRAMA contents\n";
+  p        = reinterpret_cast<uint32_t*>(image);
+  dest     = sramA();
+  uint32_t* pSram = new uint32_t[vblockSize];
+  size_t    xfered = 0;
+
+  while (nBytes > vblockSize * sizeof(uint32_t)) {
+    CVMUSBReadoutList vlist;
+    uint32_t  daddr = dest;
+    uint32_t* pr = pSram;
+    for (int i =0; i < vblockSize; i++) {
+      controller.vmeRead32(daddr,sramaAmod, pr);
+      daddr += sizeof(uint32_t);
+      pr++;
+    }
+    pr = pSram;
+
+    for (int i =0; i < vblockSize; i++) {
+      if (*p != *pr) {
+	cerr << hex << "Mismatch at address " << dest << ": SB: " << *p << " Was: " << *pr  << endl <<dec;
+      }
+
+      p++;
+      pr++;
+      dest += sizeof(uint32_t);
+    }
+
+    nBytes -= vblockSize*sizeof(uint32_t);
+    cout << '.';
+    cout.flush();
+
+  }
+  cout << '\n';
+  delete []pSram;
+
+
+  cerr << "Verification complete\n";
+
+
 }

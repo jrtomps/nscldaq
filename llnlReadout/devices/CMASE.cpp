@@ -32,8 +32,8 @@ using namespace std;
 
 // Address modifiers we are going to use:
 
-static const uint8_t   registerAmod(CVMUSBReadoutList::a32PrivData);
-static const uint8_t   blockTransferAmod(CVMUSBReadoutList::a32PrivBlock); 
+static const uint8_t   registerAmod(CVMUSBReadoutList::a32UserData);
+static const uint8_t   blockTransferAmod(CVMUSBReadoutList::a32UserBlock); 
 
 // Clock ns per VMUSB delay tick.
 

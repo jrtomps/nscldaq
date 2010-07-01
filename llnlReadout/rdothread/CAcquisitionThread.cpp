@@ -216,7 +216,7 @@ CAcquisitionThread::mainLoop()
 	// in that case all our reads will time out.
 	// so if we have a bunch of of timeouts in a row, restart the VM-USB
 
-	if(consecutiveTimeouts > HungCount) {
+	if((consecutiveTimeouts > HungCount) && 0) { // disable hung reset.
 	  cerr << "Looks like VM-USB may be hung.. attempting to restart\n";
 	  stopDaq();
 	  startDaq();
