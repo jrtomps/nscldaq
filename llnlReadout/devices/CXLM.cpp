@@ -624,8 +624,41 @@ CXLM::loadSRAMA(CVMUSB& controller, void* image, uint32_t bytes) throw(std::stri
       throw msg;
     }
   }
+
+  return;
+
+  /// Some tests for Jan.
+
+  uint32_t* compareData = new uint32_t[blockSize];
+  uint32_t src         = sramA();
+  uint32_t   bytesRead;
+  size_t   bytesLeft   = nBytes;
+
+  while(bytesLeft > blockSize * sizeof(uint32_t)) {
+    CVMUSBReadoutList verifyList;
+    verifyList.addBlockRead32(src, blockTransferAmod,
+			      blockSize);
+    verifyList.dump(cerr);
+    int stat = controller.executeList(verifyList,
+				      compareData,
+				      blockSize*sizeof(uint32_t),
+				      &bytesRead);
+    string msg = strerror(errno);
+    cerr << "Status " << stat 
+	 << " Read Size: " << blockSize*sizeof(uint32_t)
+	 << "Actual read " << bytesRead << endl;
+    if (stat != 0) {
+      cerr << "Failure reason: " << msg << endl;
+    }
+
+    bytesLeft -= blockSize*sizeof(uint32_t);
+    src       += blockSize*sizeof(uint32_t);
+  }
+  
+
     // Verify the load:
 
+  return;			// For now for speed.
 
   cerr << "Verifying SRAMA contents\n";
   p        = reinterpret_cast<uint32_t*>(image);
