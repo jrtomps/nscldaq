@@ -58,7 +58,7 @@ libVMUSBDevices_la_DEPENDENCIES = $(top_builddir)/ccusb/libCCUSB.la \
 am_libVMUSBDevices_la_OBJECTS = CConfigurableObject.lo \
 	CReadoutModule.lo CReadoutHardware.lo CPH7xx.lo CAD811.lo \
 	CStack.lo CLRS2551.lo CLRS2249.lo CLRS2228.lo CCAEN257.lo \
-	CC1205.lo
+	CC1205.lo CCCUSBModule.lo
 libVMUSBDevices_la_OBJECTS = $(am_libVMUSBDevices_la_OBJECTS)
 DEFAULT_INCLUDES = -I.@am__isrc@ -I$(top_builddir)
 depcomp = $(SHELL) $(top_srcdir)/config/depcomp
@@ -221,7 +221,8 @@ libVMUSBDevices_la_SOURCES = CConfigurableObject.cpp	\
 					CLRS2249.cpp	\
 					CLRS2228.cpp	\
 					CCAEN257.cpp	\
-					CC1205.cpp
+					CC1205.cpp	\
+					CCCUSBModule.cpp
 
 INCLUDES = -I$(top_builddir)/ccusb \
 			-I$(top_builddir)/daqconfig \
@@ -240,7 +241,8 @@ include_HEADERS = CConfigurableObject.h	\
 					CLRS2249.h		\
 					CLRS2228.h		\
 					CCAEN257.h		\
-					CC1205.h
+					CC1205.h		\
+					CCCUSBModule.h
 
 all: all-am
 
@@ -314,6 +316,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/CAD811.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/CC1205.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/CCAEN257.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/CCCUSBModule.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/CConfigurableObject.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/CLRS2228.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/CLRS2249.Plo@am__quote@
