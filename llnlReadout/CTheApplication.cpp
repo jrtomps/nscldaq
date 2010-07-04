@@ -208,6 +208,7 @@ CTheApplication::setConfigFiles()
 int
 CTheApplication::AppInit(Tcl_Interp* interp)
 {
+  Tcl_Init(interp);		// Get all the paths etc. setup.
   CTCLInterpreter* pInterp = new CTCLInterpreter(interp);
   new CBeginRun(*pInterp);
   new CEndRun(*pInterp);

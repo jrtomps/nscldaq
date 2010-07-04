@@ -16,7 +16,7 @@
 
 #include "CVMUSBReadoutList.h"
 #include "CVMUSB.h"		//  I think this is ok.
-
+#include <iostream>
 using namespace std;
 
 // The following are bits in the mode word that leads off each stack line.
@@ -597,4 +597,22 @@ CVMUSBReadoutList::lastTransferIsNumberData(uint32_t mask)
   m_list[modeIndex] = mask;
 
   m_list.push_back(address);
+}
+//////////////////////////////////////////////////////
+// Debugging.
+
+/*!
+  Dump the contents of a stack to the specified stream.
+  @param str  - An ostream& reference to which the
+                data are dumped.
+*/
+void
+CVMUSBReadoutList::dump(ostream& str)
+{
+  str << "---- Stack Dump: " << m_list.size() << " 32 bit elements ----\n";
+  str << hex;
+  for (int i=0; i < m_list.size(); i++) {
+    str << m_list[i] << endl;
+  }
+  str << dec;
 }

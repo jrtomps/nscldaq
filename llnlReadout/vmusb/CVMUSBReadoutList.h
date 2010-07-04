@@ -41,6 +41,13 @@
 #endif
 
 
+#ifndef __CPP_IOSTREAM
+#include <iostream>
+#ifndef __CPP_IOSTREAM
+#define __CPP_IOSTREAM
+#endif
+#endif
+
 /*!
    The best way to use the VM-USB involves building lists of VME
    operations, called \em stacks.  These stacks can either be submitted
@@ -134,6 +141,10 @@ public:
 
   void addMarker(uint16_t value);
 
+
+  // Debugging:
+
+  void dump(std::ostream& str);	/* Dump contents of stack. */
 
 
   // The following constants define address modifiers that are known to
