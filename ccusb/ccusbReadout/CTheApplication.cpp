@@ -24,6 +24,7 @@ static const char* versionString = "V2.0";
 #include <CCCUSB.h>
 
 #include <TCLInterpreter.h>
+#include <TCLException.h>
 #include <CBeginRun.h>
 #include <CEndRun.h>
 #include <CPauseRun.h>
@@ -40,6 +41,7 @@ static const char* versionString = "V2.0";
 #include <iostream>
 #include <stdlib.h>
 #include <stdint.h>
+#include <unistd.h>
 
 #ifndef NULL
 #define NULL ((void*)0)
@@ -204,6 +206,19 @@ CTheApplication::AppInit(Tcl_Interp* interp)
   new CPauseRun(*pInterp);
   new CResumeRun(*pInterp);
 
+
+  // Look for readoutRC.tcl in the config directory.  If it exists, run it.
+
+  string initScript = makeConfigFile(string("readoutRC.tcl"));
+  try {
+    if (access(initScript.c_str(), R_OK) == 0) {
+      pInterp->EvalFile(initScript.c_str());
+    }
+  }
+  catch (CTCLException except) {
+    cerr << "Failed to run initialization file.\n";
+    cerr << except.ReasonText() << endl;
+  }
 
   return TCL_OK;
 }

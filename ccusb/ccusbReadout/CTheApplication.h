@@ -82,7 +82,7 @@ private:
   // static functions:
 
   static int AppInit(Tcl_Interp* interp);
-  std::string makeConfigFile(std::string baseName);
+  static std::string makeConfigFile(std::string baseName);
 
 };
 #endif
