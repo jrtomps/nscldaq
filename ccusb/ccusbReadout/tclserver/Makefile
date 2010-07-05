@@ -60,7 +60,7 @@ libControlServer_la_DEPENDENCIES = $(top_builddir)/ccusb/libCCUSB.la \
 am_libControlServer_la_OBJECTS = CControlHardware.lo CModuleCommand.lo \
 	TclServer.lo CControlModule.lo CSetCommand.lo \
 	serverinstance.lo CUpdateCommand.lo CGetCommand.lo \
-	DriverTemplate.lo Server.lo C894.lo
+	DriverTemplate.lo Server.lo C894.lo CPH7106.lo
 libControlServer_la_OBJECTS = $(am_libControlServer_la_OBJECTS)
 DEFAULT_INCLUDES = -I. -I$(top_builddir)
 depcomp = $(SHELL) $(top_srcdir)/config/depcomp
@@ -160,7 +160,7 @@ TCL_FLAGS = -I/usr/include/tcl
 TCL_LDFLAGS = -L/usr/lib  -ltcl -ltk
 USBSWITCHES = -I/usr/include
 USB_LIBS = -L/usr/lib -lusb
-VERSION = 1.2-005
+VERSION = 2.0
 abs_builddir = /scratch/fox/daq/nscldaq/trunk/ccusb/ccusbReadout/tclserver
 abs_srcdir = /scratch/fox/daq/nscldaq/trunk/ccusb/ccusbReadout/tclserver
 abs_top_builddir = /scratch/fox/daq/nscldaq/trunk/ccusb/ccusbReadout
@@ -223,7 +223,8 @@ libControlServer_la_SOURCES = CControlHardware.cpp	\
 					CGetCommand.cpp		\
 					DriverTemplate.cpp	\
 					Server.cpp		\
-					C894.cpp
+					C894.cpp		\
+					CPH7106.cpp
 
 include_HEADERS = CSetCommand.h		\
 					server.h		\
@@ -235,7 +236,8 @@ include_HEADERS = CSetCommand.h		\
 					CModuleCommand.h	\
 					DriverTemplate.h	\
 					TclServer.h		\
-					C894.h
+					C894.h			\
+					CPH7106.h
 
 INCLUDES = -I$(top_builddir)/ccusb		\
 					-I$(top_builddir)/devices	\
@@ -328,6 +330,7 @@ include ./$(DEPDIR)/CControlHardware.Plo
 include ./$(DEPDIR)/CControlModule.Plo
 include ./$(DEPDIR)/CGetCommand.Plo
 include ./$(DEPDIR)/CModuleCommand.Plo
+include ./$(DEPDIR)/CPH7106.Plo
 include ./$(DEPDIR)/CSetCommand.Plo
 include ./$(DEPDIR)/CUpdateCommand.Plo
 include ./$(DEPDIR)/DriverTemplate.Plo

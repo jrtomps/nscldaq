@@ -25,6 +25,8 @@ using namespace std;
 #include <TclServer.h>
 
 #include "C894.h"
+#include "CPH7106.h"
+
 
 /*!
    Construct the command. 
@@ -117,10 +119,13 @@ CModuleCommand::create(CTCLInterpreter& interp,
   if (type == "caen894") {
     pModule = new C894(name);
   }
- else {
-   m_Server.setResult("module create: Invalid type, must be caen894");
-   return TCL_ERROR;
- }
+  else  if (type == "ph7106") {
+    pModule = new CPH7106(name);
+  }
+  else {
+    m_Server.setResult("module create: Invalid type, must be caen894");
+    return TCL_ERROR;
+  }
    
   CControlModule*   pConfig = pModule->getConfiguration();
   pModule->onAttach(*pConfig);
