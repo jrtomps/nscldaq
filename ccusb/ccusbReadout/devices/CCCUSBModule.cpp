@@ -52,18 +52,21 @@ const char* GdgSourceValues[] = {
 // Enumerator values for out1:
 
 const char* Out1Values[] = {
-  "busy", "event", "gdga", "gdgb", "fifonotempty", "acquire", "f2",
+  "busy", "event", "gdga", "gdgb",
   NULL
 };
 // out2:
 
 const char* Out2Values[] = {
-  "trigger", "f1", "n", "aquire", "gdga", "gdgb", "in1", "fifonotempty",
+  "acquire", "event", "gdga", "gdgb",
   NULL
 };
 const char* Out3Values[] = {
-  "busyend", "busy", "in2", "s1", "s2", "gdga", "gdgb", "usbtrigger",
+  "busyend", "busy", "gdga", "gdgb",
   NULL
+};
+static int outLookup[] = {
+  0, 1, 6, 7
 };
 
 // Range of gdg delays/widths
@@ -78,7 +81,7 @@ static CConfigurableObject::Limits WidthLimits(minwidth, maxwidth);
 // gdga delay:
 
 static CConfigurableObject::limit mindelay(0);
-static CConfigurableObject::limit maxdelaya(65535);
+static CConfigurableObject::limit maxdelaya(0x00ffffff);
 static CConfigurableObject::limit maxdelayb(0x00ffffff);
 static CConfigurableObject::Limits DelayA(mindelay, maxdelaya);
 static CConfigurableObject::Limits DelayB(mindelay, maxdelayb);
@@ -136,6 +139,11 @@ CCCUSBModule::~CCCUSBModule()
    are defined so that the configuration file can be processed.
    @param configuration - Reference to the module's configuration.
 */
+static set<string> gdgsources;
+static set<string> out1Values;
+static set<string> out2Values;
+static set<string> out3Values;
+
 void
 CCCUSBModule::onAttach(CReadoutModule& configuration)
 {
@@ -143,18 +151,17 @@ CCCUSBModule::onAttach(CReadoutModule& configuration)
 
   // gdga/bsource:
 
-  static set<string> gdgsources;
   if (gdgsources.empty() ) {
     for (const char** pSrc = GdgSourceValues; *pSrc; pSrc++) {
       gdgsources.insert(string(*pSrc));
     }
-    configuration.addParameter("-gdgasource",
-			       CConfigurableObject::isEnum,
-			       &gdgsources, "disabled");
-    configuration.addParameter("-gdgbsource",
-			       CConfigurableObject::isEnum,
-			       &gdgsources, "disabled");
   }
+  configuration.addParameter("-gdgasource",
+			     CConfigurableObject::isEnum,
+			     &gdgsources, "disabled");
+  configuration.addParameter("-gdgbsource",
+			     CConfigurableObject::isEnum,
+			     &gdgsources, "disabled");
   // The gate generator width/delay parameters:
 
   configuration.addParameter("-gdgawidth",
@@ -172,7 +179,6 @@ CCCUSBModule::onAttach(CReadoutModule& configuration)
 
   // Output 1:
 
-  static set<string> out1Values;
   if (out1Values.empty()) {
     for (const char** pValues = Out1Values; *pValues; pValues++) {
       out1Values.insert(string(*pValues));
@@ -184,13 +190,12 @@ CCCUSBModule::onAttach(CReadoutModule& configuration)
   configuration.addParameter("-out1latch",
 			     CConfigurableObject::isBool, 0,
 			     "false");
-  configuration.addParameter("-out1invertg",
+  configuration.addParameter("-out1invert",
 			     CConfigurableObject::isBool, 0, 
 			     "false");
 
   // Output 2:
  
-  static set<string> out2Values;
   if (out2Values.empty()) {
     for (const char** pValues = Out2Values; *pValues; pValues++) {
       out2Values.insert(string(*pValues));
@@ -207,10 +212,9 @@ CCCUSBModule::onAttach(CReadoutModule& configuration)
   // Output 3:
 
 
-  static set<string> out3Values;
   if (out3Values.empty()) {
-    for (const char** pValues = Out3Values; pValues; pValues++) {
-      out3Values.insert(*pValues);
+    for (const char** pValues = Out3Values; *pValues; pValues++) {
+      out3Values.insert(string(*pValues));
     }
   }
   configuration.addParameter("-out3",
@@ -219,8 +223,8 @@ CCCUSBModule::onAttach(CReadoutModule& configuration)
   configuration.addParameter("-out3latch",
 			     CConfigurableObject::isBool, 0, "false");
   configuration.addParameter("-out3invert",
-			     CConfigurableObject::isEnum, 0, "false");
-  
+			     CConfigurableObject::isBool, 0, "false");
+  //
 
 }
 /*!
@@ -294,7 +298,7 @@ CCCUSBModule::configureOutput(CCCUSB& controller)
   uint32_t registerValue = 0;
   
   // O1
-  uint32_t o1Register = enumIndex(Out1Values, m_pConfiguration->cget("-out1"));
+  uint32_t o1Register = outLookup[enumIndex(Out1Values, m_pConfiguration->cget("-out1"))];
   if (getBoolParameter("-out1latch")) {
     o1Register |= CCCUSB::OutputSourceRegister::nimO1Latch;
   }
@@ -306,7 +310,7 @@ CCCUSBModule::configureOutput(CCCUSB& controller)
 
   // O2
 
-  uint32_t o2Register = enumIndex(Out2Values, m_pConfiguration->cget("-out2")) << 8;
+  uint32_t o2Register = outLookup[enumIndex(Out2Values, m_pConfiguration->cget("-out2"))] << 8;
   if (getBoolParameter("-out2latch")) {
     o2Register |= CCCUSB::OutputSourceRegister::nimO2Latch;
   }
@@ -317,7 +321,7 @@ CCCUSBModule::configureOutput(CCCUSB& controller)
  
   // O3
 
-  uint32_t o3Register = enumIndex(Out3Values, m_pConfiguration->cget("-out3")) << 16;
+  uint32_t o3Register = outLookup[enumIndex(Out3Values, m_pConfiguration->cget("-out3"))] << 16;
   if (getBoolParameter("-out3latch")) {
     o3Register |= CCCUSB::OutputSourceRegister::nimO3Latch;
   }
@@ -329,6 +333,8 @@ CCCUSBModule::configureOutput(CCCUSB& controller)
 
   // write the register.
 
+  cerr << "Output selector: " << hex << registerValue 
+       << dec << endl;
   controller.writeOutputSelector(registerValue);
 }
 /**
@@ -339,7 +345,7 @@ CCCUSBModule::configureOutput(CCCUSB& controller)
 void
 CCCUSBModule::configureGdg1(CCCUSB& controller)
 {
-  uint32_t delay = getIntegerParameter("-gdgadelay");
+  uint32_t delay = getIntegerParameter("-gdgadelay") & 0xffff;
   uint32_t width = getIntegerParameter("-gdgawidth");
 
   uint32_t registerValue = (width << 16) | delay;
@@ -353,11 +359,16 @@ CCCUSBModule::configureGdg1(CCCUSB& controller)
 void
 CCCUSBModule::configureGdg2(CCCUSB& controller)
 {
-  uint32_t delay = getIntegerParameter("-gdgadelay");
-  uint32_t width = getIntegerParameter("-gdgawidth");
+  uint32_t delay = getIntegerParameter("-gdgbdelay");
+  uint32_t width = getIntegerParameter("-gdgbwidth");
+  uint32_t adelay= getIntegerParameter("-gdgadelay");
 
   uint32_t fineValue = (width << 16) | (delay & 0xffff);
-  uint32_t coarseValue = (delay >> 16) & 0xff;
+  uint32_t coarseValue    = (delay & 0xff0000) | ((delay >> 16) & 0xff);
+
+
+  cerr << "B fine value: " << hex << fineValue << endl;
+  cerr << "B Coarse value: " << coarseValue << dec << endl;
 
   controller.writeDGGB(fineValue);
   controller.writeDGGExt(coarseValue);
@@ -375,5 +386,7 @@ CCCUSBModule::configureDevices(CCCUSB& controller)
   int gdgbSource = enumIndex(GdgSourceValues, m_pConfiguration->cget("-gdgbsource"));
 
   uint32_t registerValue = (gdgaSource << 16) | (gdgbSource << 24);
+
+  cerr << hex << "Device source: " << registerValue << endl;
   controller.writeDeviceSourceSelectors(registerValue);
 }

@@ -354,9 +354,9 @@ CAcquisitionThread::startDaq()
   //  NIM 02  - Acquire
   //  NIM 03  - end of busy.
 
-  m_pCamac->writeOutputSelector(CCCUSB::OutputSourceRegister::nimO1Busy |
-				CCCUSB::OutputSourceRegister::nimO2Acquire |
-				CCCUSB::OutputSourceRegister::nimO3EndOfBusy);
+  //  m_pCamac->writeOutputSelector(CCCUSB::OutputSourceRegister::nimO1Busy |
+  //				CCCUSB::OutputSourceRegister::nimO2Acquire |
+  //				CCCUSB::OutputSourceRegister::nimO3EndOfBusy);
 
   // Set up the LEDS for some diagnostics:
   // Red LED   : USB Out FIFO not empty.

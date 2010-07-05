@@ -196,7 +196,7 @@ mandir = ${datarootdir}/man
 mkdir_p = /bin/mkdir -p
 oldincludedir = /usr/include
 pdfdir = ${docdir}
-prefix = /usr/opt/daq/ccusbreadout
+prefix = /usr/opt/daq/ccusbreadout/
 program_transform_name = s,x,x,
 psdir = ${docdir}
 sbindir = ${exec_prefix}/sbin
@@ -508,7 +508,7 @@ uninstall-am: uninstall-includeHEADERS uninstall-libLTLIBRARIES
 
 
 install-data:
-	$(INSTALL_DATA) .CBufferQueue.cpp /usr/opt/daq/ccusbreadout/include
+	$(INSTALL_DATA) .CBufferQueue.cpp /usr/opt/daq/ccusbreadout//include
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.
 .NOEXPORT:

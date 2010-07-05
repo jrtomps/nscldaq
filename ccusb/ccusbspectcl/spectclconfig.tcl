@@ -30,14 +30,22 @@ if {[info globals SpecTclHome] eq ""} {
 
 set daqconfig [file join ~ config daqconfig.tcl]
 
+#
+# Module type numbers:
+#
+set PH7xx   0
+set AD811   1
 
 
 # Process ph7xxx (phillips 7xxx series digitizers.
 
 proc ph7xxx args {
     global channelCounts
+    global moduleTypes
+
     set moduleName [lindex $args 1]
     set channelCounts($moduleName) 4096; # Number of channels in the spectrum.
+    set moduleTypes($moduleName)   $::PH7xx
     set idindex [lsearch  -exact $args "-id"]
     if {$idindex != -1} {
 	global moduleIds
@@ -49,10 +57,11 @@ proc ph7xxx args {
 
 proc ad811 args {
     global channelCounts
+    global moduleTypes
 
     set moduleName [lindex $args 1]
     set channelCounts($moduleName) 4096
-
+    set moduleTypes($moduleName)  $::AD811
 
     set idindex [lsearch  -exact $args "-id"]
     if {$idindex != -1} {
@@ -128,6 +137,13 @@ proc getChannels name {
     global channelCounts
     return $channelCounts($name); # must exist else stack is corrupt.
 }
+
+#
+#  Returns the type of a module
+
+proc getType name {
+    return $::moduleTypes($name)
+}
 #
 #   Create the parameter maps and spectra
 #   for the set of modules specified.
@@ -143,12 +159,14 @@ proc createMapAndSpectra modules {
     global parameters
     set moduleNumber 0
     foreach module $modules {
-	set id       [getId $module]
+	set id       [getId       $module]
 	set channels [getChannels $module]
+	set type     [getType     $module]
+
 	set axis [list 0 [expr $channels-1] $channels]
-	set axisspec [list [list $axis]]
+	set axisspec [list $axis]
 	if {[array names parameters $module] ne ""} {
-	    parammap -add $moduleNumber $id  $parameters($module)
+	    parammap -add $moduleNumber $type $id  $parameters($module)
 	    foreach parameter $parameters($module) {
 		spectrum $parameter 1 $parameter $axisspec
 	    }

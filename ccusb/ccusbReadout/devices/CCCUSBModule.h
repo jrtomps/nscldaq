@@ -65,21 +65,22 @@ Name             Type        Default         Meaning
 -gdbbsource      enum        disabled        Source of gate for GDG B start, can have any of the values
                                              as -gdgasource.
 -gdgawidth       integer     1               GDGA gate width in 10ns units. between (1 and 65535).
--gdgadelay       integer     0               GDGB gate delay in 10ns units between (0 and 65535).
--gdgbwidth       integer     1               GDB gate width in 10ns units, between 1 and 2^24-1
--gdgbdelay       integer     0               GDGB delay in 10ns units between 0 and 65535.
+-gdgadelay       integer     0               GDGB gate delay in 10ns units between (0 and 2^24-1).
+-gdgbwidth       integer     1               GDB gate width in 10ns units, between 1 and 65535
+-gdgbdelay       integer     0               GDGB delay in 10ns units between 0 and 2^24-1.
 -out1            enum        busy            Source of O1 signal one of:
-                                             busy, event, usbtrigger, gdga, gdgb, fifonotempy, acquire,
+                                             busy, event, gdga, gdgb
+				       
                                              or f2
 -out1latch       bool        false           Output 1 is latched.
 -out1invert      bool        false           Output 1 is inverted.
 
 -out2            enum        trigger         Source of O2 signal.  One of:
-                                             trigger, f1, n, acquire, gdga, gdgb, in1, fifonotempty.
+                                             acquire, event, gdga gdgb
 -out2latch       bool        false
 -out2invert      bool        false
 -out3            enum        busyend         Source of O3 trigger.. one of:
-                                             busyend, busy, in2, s1, s2, gdga, gdgb, usbtrigger.
+                                             busyend, busy, gdga, gdgb
 -out3latch       bool        false
 -out3invert      bool        false
 

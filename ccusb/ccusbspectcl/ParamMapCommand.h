@@ -43,7 +43,7 @@
 
    Command syntax is:
 \verbatim
-   parammap -add    module_number [list name1 ...]
+   parammap -add    module_number  module-type module-id [list name1 ...]
    parammap -delete module_number
    parammap -list   ?module_number?
 
@@ -62,15 +62,12 @@ class CParamMapCommand : public CTCLObjectProcessor
   // exported types:
 public:
 
-  typedef enum _moduletype{
-        Phillips,
-        Ortec
-    } ModuleType;
 
-  typedef struct _ParameterMap{
-         ModuleType 	      s_type;
-         std::vector<int>     s_parameterIds;
-    } ParameterMap;
+  typedef struct _ParameterMap {
+    int                  s_moduleType;
+    int                  s_id;
+    std::vector<int>     s_parameterIds;
+  } ParameterMap;
 
   typedef std::vector<ParameterMap>  ModuleMap;
 

@@ -310,40 +310,32 @@ public:
     
     static const uint32_t nimO1Busy              = 0x000000;
     static const uint32_t nimO1EventTrigger      = 0x000001;
-    static const uint32_t nimO1USBTrigger        = 0x000002;
-    static const uint32_t nimO1DGGA              = 0x000003;
-    static const uint32_t nimO1DGGB              = 0x000004;
-    static const uint32_t nimO1USBInFifoNotEmpty = 0x000005;
-    static const uint32_t nimO1Acquire           = 0x000006;
-    static const uint32_t nimO1CAMACF2           = 0x000007;
-    static const uint32_t nimO1Invert            = 0x000010;
-    static const uint32_t nimO1Latch             = 0x000020;
+    static const uint32_t nimO1DGGA              = 0x000002;
+    static const uint32_t nimO1DGGB              = 0x000003;
+    static const uint32_t nimO1Latch             = 0x000010;
+    static const uint32_t nimO1Invert            = 0x000020;
+
 
     // NIM O2
 
-    static const uint32_t nimO2EventTrigger      = 0x000000;
-    static const uint32_t nimO2CAMACF1           = 0x000100;
-    static const uint32_t nimO2CAMACN            = 0x000200;
-    static const uint32_t nimO2Acquire           = 0x000300;
+
+    static const uint32_t nimO2Acquire           = 0x000000;
+    static const uint32_t nimO2Event             = 0x000200;
     static const uint32_t nimO2DGGA              = 0x000400;
-    static const uint32_t nimO2DGGB              = 0x000500;
-    static const uint32_t nimO2I1                = 0x000600;
-    static const uint32_t nimO2USBInFifoNotEmpty = 0x000700;
-    static const uint32_t nim02Invert            = 0x001000;
-    static const uint32_t nim02Latch             = 0x002000;
+    static const uint32_t nimO2DGGB              = 0x000600;
+    static const uint32_t nimO2Latch             = 0x001000;
+    static const uint32_t nimO2Invert            = 0x002000;
+
 
     // NIM O3
 
     static const uint32_t nimO3EndOfBusy         = 0x000000;
-    static const uint32_t nimO3Busy              = 0x010000;
-    static const uint32_t nimO3I2                = 0x020000;
-    static const uint32_t nimO3CAMACS1           = 0x030000;
-    static const uint32_t nimO3CAMACS2           = 0x040000;
-    static const uint32_t nimO3DGGA              = 0x050000;
-    static const uint32_t nimO3DGGB              = 0x060000;
-    static const uint32_t nimO3USBTrigger        = 0x070000;
-    static const uint32_t nimO3Invert            = 0x100000;
-    static const uint32_t nimO3Latch             = 0x200000;
+    static const uint32_t nimO3Busy              = 0x020000;
+    static const uint32_t nimO3DGGA              = 0x040000;
+    static const uint32_t nim03DGGB              = 0x060000;
+    
+    static const uint32_t nimO3Latch             = 0x100000;
+    static const uint32_t nimO3Invert            = 0x200000;
 
   };
   //! Device source selector sets up the inputs to the internal devices:

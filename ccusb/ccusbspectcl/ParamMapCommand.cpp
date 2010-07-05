@@ -178,9 +178,10 @@ int
 CParamMapCommand::add(CTCLInterpreter& interp, 
 		      vector<CTCLObject>& objv)
 {
-  // need 5 command words command, "-add" module-number, module-type, {list of parameternames}
+  // need parammap -add number type id parameters 
+  // or 6 parameters:
 
-  if (objv.size() != 5) {
+  if (objv.size() != 6) {
     string result = "Incorrect number of parameters for an -add subcommand: \n";
     result      += Usage();
     interp.setResult(result);
@@ -216,18 +217,32 @@ CParamMapCommand::add(CTCLInterpreter& interp,
     interp.setResult(result);
     return TCL_ERROR;
   }
-	
+ 
+  int moduleId;
+
+  try {
+    moduleId = objv[4];         // Throws if this is not an integer.
+    if (moduleId < 0) throw 0;  // To get to common error handling code if value no good.
+  }
+  catch (...) {
+    string result = "Module type parameter for -add was : ";
+    result       += (string)(objv[4]);
+    result       += " must be a positive integer\n";
+    result       += Usage();
+    interp.setResult(result);
+    return TCL_ERROR;
+  }	
 
   // Get the list of parameter names now:
 
   vector<CTCLObject> parameterList;
   try {
-    parameterList = objv[4].getListElements();
+    parameterList = objv[5].getListElements();
   }
   catch(...) {
     string result;
     result   += "Module parameters are not a valid list: ";
-    result   += string(objv[4]);
+    result   += string(objv[5]);
     result   += "\n";
     result   += Usage();
     interp.setResult(result);
@@ -241,12 +256,8 @@ CParamMapCommand::add(CTCLInterpreter& interp,
 
   ParameterMap  map;
   
-  if (moduleType == 0) {
-    map.s_type = Phillips;
-  }
-  else {
-    map.s_type = Ortec;
-  }
+  map.s_moduleType = moduleType;
+  map.s_id         = moduleId;
   
   for (int i=0; i < parameterList.size(); i++) {
     string name = parameterList[i]; // The parameter name.
@@ -508,7 +519,7 @@ CParamMapCommand::Usage() const
 
   result += "    ";
   result += command;
-  result += " -add module_number [list name1 ... ]\n";
+  result += " -add module_number module_type module-id [list name1 ... ]\n";
 
   result += "    ";
   result += command;

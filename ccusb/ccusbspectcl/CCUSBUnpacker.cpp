@@ -20,6 +20,12 @@
 #include <BufferDecoder.h>
 #include <TCLAnalyzer.h>
 #include "ParamMapCommand.h"
+#include "CPh7xxUnpacker.h"
+#include "CAD811Unpacker.h"
+
+#include <string>
+#include <iostream>
+#include <stdio.h>
 
 using namespace std;
 
@@ -51,6 +57,13 @@ static int bitCount[16] = {
   3,                            // 1110
   4 };                          // 1111
 
+
+
+static const CPH7xxUnpacker     ph7xx;
+static const CAD811Unpacker     ad811;
+static  *CUSBPacket unpacker[] = {
+  &ph7xx, &ad811
+};				// Indices must match types in spectclsetup.tcl
 
 ///////////////////////////////////////////////////////////////////////////////////
 /*!
@@ -101,56 +114,46 @@ CCUSBUnpacker::operator()(const Address_t pEvent,
   while (nWords > 0) {
 
     const CParamMapCommand::ParameterMap* moduleInfo= pMap->getModuleMap(module);
+    int type    = moduleInfo->s_moduleType;
+    int id      = moduleInfo->s_id;
 
-    CParamMapCommand::ModuleType type = moduleInfo->s_type;
-    const vector<int>* moduleMap = &(moduleInfo->s_parameterIds); 
+    try {
 
-    if (module > pMap->getMapSize()) {
-      return kfFALSE;		// bad event!
-    }
-
-   
-    if (type == CParamMapCommand::Phillips) {
-
-      int hitPattern         = *p++;
-      nWords--;
-      int hits               = bitsInMask(hitPattern);
-      // For now we'll just decode the event and at each step check the moduleMap..could tune this.
-      
-      while (hits) {
-	
-	UShort_t word     = *p++;
-	hits--;
-	nWords--;
-	
-	UShort_t channel  = (word >> 12) & 0xf;
-	UShort_t value    = (word & 0xfff);
-	
-	if (moduleMap  && (channel < moduleMap->size())) {
-	  int param  = (*moduleMap)[channel];
-	  if (param >= 0) {
-	    rEvent[param] = value;
-	  }
-	}
+      // Do some sanity checking here specifically:
+      // - The type must be valid.
+      // - The id must match the id of the next unpacker because 
+      //   all readers must at least put their id in the buffer.
+      //
+      if ((type < 0) || (type >= sizeof(unpackers)/sizeof(CCUSBPacket*))) {
+	char message[100];
+	sprintf(message, "Module type %d is out of range", type);
+	throw string(message);
       }
-      // Skip the extra word at the end of the q-stop.
-      p++;
-      nWords--;
-      // On to the next module.
+      CUSBPacket* pUnpacker = unpackers[type];
+      if (!pUnpacker->matchId(id, p)) {
+	throw string("ID in buffer does not match that expected by unpacker");
+      }
+
+      int wordsConsumed = pUnpacker->unpack(p, moudleInfo);
+
+      p      += wordsConsumed;
+      nWords -= wordsConsumed;
       module++;
+
+    }
+    catch (string msg) {
+      cerr << "Error unpacking data: " << msg << " Event will be ignored " << endl;
+      return kfFALSE;
+    }
+    catch (const char* msg) {
+      cerr << "Error unpacking data: " << msg << " event will be ignored " << endl;
+      return kfFALSE;
+    }
+    catc (...) {
+      cerr << "Error unpacking data .. unable to determine cause event will be ignored\n";
+      return kfFALSE;
     }
     
-    if (type  == CParamMapCommand::Ortec) {
-      for (int param =0; param < 8; param++)
-	{     
-	  UShort_t word     = *p++;    
-	  nWords--;
-	  UShort_t value    = ( (word >> 5) & 0x7ff);
-	  rEvent[param] = value;
-	}      
-      p++;
-      module++;
-    }
   }
   
   // Must return true to histogram.
