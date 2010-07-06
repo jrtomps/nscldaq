@@ -58,7 +58,7 @@ libConfig_la_DEPENDENCIES = @top_srcdir@/devices/libVMUSBDevices.la \
 am_libConfig_la_OBJECTS = CConfiguration.lo CStackCommand.lo \
 	CPH7xxCommand.lo CAD811Command.lo CLRS2551Command.lo \
 	CLRS2249Command.lo CLRS2228Command.lo CCAEN257Command.lo \
-	C1205Command.lo CCCUSBCommand.lo
+	C1205Command.lo CCCUSBCommand.lo CPH7132Command.lo
 libConfig_la_OBJECTS = $(am_libConfig_la_OBJECTS)
 DEFAULT_INCLUDES = -I.@am__isrc@ -I$(top_builddir)
 depcomp = $(SHELL) $(top_srcdir)/config/depcomp
@@ -220,7 +220,8 @@ libConfig_la_SOURCES = CConfiguration.cpp	\
 				CLRS2228Command.cpp	\
 				CCAEN257Command.cpp	\
 				C1205Command.cpp	\
-				CCCUSBCommand.cpp
+				CCCUSBCommand.cpp	\
+				CPH7132Command.cpp
 
 
 #				CScalerCommand.cpp
@@ -234,7 +235,8 @@ include_HEADERS = CConfiguration.h 	\
 				CLRS2228Command.h	\
 				CCAEN257Command.h	\
 				C1205Command.h		\
-				CCCUSBCommand.h
+				CCCUSBCommand.h		\
+				CPH7132Command.h
 
 INCLUDES = -I@top_srcdir@/devices	\
 				$(NSCLDAQ_FLAGS) $(TCL_FLAGS) \
@@ -320,6 +322,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/CLRS2228Command.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/CLRS2249Command.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/CLRS2551Command.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/CPH7132Command.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/CPH7xxCommand.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/CStackCommand.Plo@am__quote@
 

@@ -101,7 +101,7 @@
 #define STDC_HEADERS 1
 
 /* Version number of package */
-#define VERSION "1.2-005"
+#define VERSION "2.0"
 
 
 /* Define STD macro according to HAVE_STD_NAMESPACE value */

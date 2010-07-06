@@ -59,7 +59,7 @@ class CPH7132 : public CReadoutHardware
 {
 
   // Implemented canonicals.
-private:
+public:
   CPH7132();
   CPH7132(const CPH7132& rhs);
   virtual ~CPH7132();

@@ -123,7 +123,7 @@ CModuleCommand::create(CTCLInterpreter& interp,
     pModule = new CPH7106(name);
   }
   else {
-    m_Server.setResult("module create: Invalid type, must be caen894");
+    m_Server.setResult("module create: Invalid type, must be caen894 or ph7106");
     return TCL_ERROR;
   }
    

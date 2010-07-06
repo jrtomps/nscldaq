@@ -30,6 +30,7 @@
 #include <CLRS2228Command.h>
 #include <C1205Command.h>
 #include <CCAEN257Command.h>
+#include <CPH7132Command.h>
 #include <CCCUSBCommand.h>
 
 #include <tcl.h>
@@ -67,6 +68,7 @@ CConfiguration::CConfiguration() :
   m_Commands.push_back(new C1205Command(*m_pInterp, *this));
   m_Commands.push_back(new CCAEN257Command(*m_pInterp, *this));
   m_Commands.push_back(new CCCUSBCommand(*m_pInterp, *this));
+  m_Commands.push_back(new CPH7132Command(*m_pInterp, *this));
 
 }
 /*!
