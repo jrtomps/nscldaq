@@ -1,0 +1,17 @@
+# DO NOT DELETE
+
+DAQMemory.o: /usr/include/stdlib.h /usr/include/features.h
+DAQMemory.o: /usr/include/bits/predefs.h /usr/include/sys/cdefs.h
+DAQMemory.o: /usr/include/bits/wordsize.h /usr/include/gnu/stubs.h
+DAQMemory.o: /usr/include/gnu/stubs-32.h /usr/include/sys/types.h
+DAQMemory.o: /usr/include/bits/types.h /usr/include/bits/typesizes.h
+DAQMemory.o: /usr/include/time.h /usr/include/endian.h
+DAQMemory.o: /usr/include/bits/endian.h /usr/include/bits/byteswap.h
+DAQMemory.o: /usr/include/sys/select.h /usr/include/bits/select.h
+DAQMemory.o: /usr/include/bits/sigset.h /usr/include/bits/time.h
+DAQMemory.o: /usr/include/sys/sysmacros.h /usr/include/bits/pthreadtypes.h
+DAQMemory.o: /usr/include/alloca.h /usr/include/stdio.h /usr/include/libio.h
+DAQMemory.o: /usr/include/_G_config.h /usr/include/wchar.h
+DAQMemory.o: /usr/include/bits/stdio_lim.h /usr/include/bits/sys_errlist.h
+DAQMemory.o: /usr/include/unistd.h /usr/include/bits/posix_opt.h
+DAQMemory.o: /usr/include/bits/confname.h /usr/include/getopt.h

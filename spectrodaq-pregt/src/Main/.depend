@@ -1,0 +1,100 @@
+# DO NOT DELETE
+
+DAQLogger.o: /usr/include/stdlib.h /usr/include/features.h
+DAQLogger.o: /usr/include/bits/predefs.h /usr/include/sys/cdefs.h
+DAQLogger.o: /usr/include/bits/wordsize.h /usr/include/gnu/stubs.h
+DAQLogger.o: /usr/include/gnu/stubs-32.h /usr/include/sys/types.h
+DAQLogger.o: /usr/include/bits/types.h /usr/include/bits/typesizes.h
+DAQLogger.o: /usr/include/time.h /usr/include/endian.h
+DAQLogger.o: /usr/include/bits/endian.h /usr/include/bits/byteswap.h
+DAQLogger.o: /usr/include/sys/select.h /usr/include/bits/select.h
+DAQLogger.o: /usr/include/bits/sigset.h /usr/include/bits/time.h
+DAQLogger.o: /usr/include/sys/sysmacros.h /usr/include/bits/pthreadtypes.h
+DAQLogger.o: /usr/include/alloca.h /usr/include/stdio.h /usr/include/libio.h
+DAQLogger.o: /usr/include/_G_config.h /usr/include/wchar.h
+DAQLogger.o: /usr/include/bits/stdio_lim.h /usr/include/bits/sys_errlist.h
+DAQLogger.o: /usr/include/setjmp.h /usr/include/bits/setjmp.h
+DAQLogger.o: /usr/include/sys/time.h /usr/include/unistd.h
+DAQLogger.o: /usr/include/bits/posix_opt.h /usr/include/bits/confname.h
+DAQLogger.o: /usr/include/getopt.h /usr/include/string.h
+DAQLogger.o: /usr/include/xlocale.h /usr/include/errno.h
+DAQLogger.o: /usr/include/bits/errno.h /usr/include/linux/errno.h
+DAQLogger.o: /usr/include/asm/errno.h /usr/include/asm-generic/errno.h
+DAQLogger.o: /usr/include/asm-generic/errno-base.h
+DAQMain.o: /usr/include/stdlib.h /usr/include/features.h
+DAQMain.o: /usr/include/bits/predefs.h /usr/include/sys/cdefs.h
+DAQMain.o: /usr/include/bits/wordsize.h /usr/include/gnu/stubs.h
+DAQMain.o: /usr/include/gnu/stubs-32.h /usr/include/sys/types.h
+DAQMain.o: /usr/include/bits/types.h /usr/include/bits/typesizes.h
+DAQMain.o: /usr/include/time.h /usr/include/endian.h
+DAQMain.o: /usr/include/bits/endian.h /usr/include/bits/byteswap.h
+DAQMain.o: /usr/include/sys/select.h /usr/include/bits/select.h
+DAQMain.o: /usr/include/bits/sigset.h /usr/include/bits/time.h
+DAQMain.o: /usr/include/sys/sysmacros.h /usr/include/bits/pthreadtypes.h
+DAQMain.o: /usr/include/alloca.h /usr/include/stdio.h /usr/include/libio.h
+DAQMain.o: /usr/include/_G_config.h /usr/include/wchar.h
+DAQMain.o: /usr/include/bits/stdio_lim.h /usr/include/bits/sys_errlist.h
+DAQMain.o: /usr/include/setjmp.h /usr/include/bits/setjmp.h
+DAQMain.o: /usr/include/sys/time.h /usr/include/unistd.h
+DAQMain.o: /usr/include/bits/posix_opt.h /usr/include/bits/confname.h
+DAQMain.o: /usr/include/getopt.h
+DAQTrackMap.o: /usr/include/stdlib.h /usr/include/features.h
+DAQTrackMap.o: /usr/include/bits/predefs.h /usr/include/sys/cdefs.h
+DAQTrackMap.o: /usr/include/bits/wordsize.h /usr/include/gnu/stubs.h
+DAQTrackMap.o: /usr/include/gnu/stubs-32.h /usr/include/sys/types.h
+DAQTrackMap.o: /usr/include/bits/types.h /usr/include/bits/typesizes.h
+DAQTrackMap.o: /usr/include/time.h /usr/include/endian.h
+DAQTrackMap.o: /usr/include/bits/endian.h /usr/include/bits/byteswap.h
+DAQTrackMap.o: /usr/include/sys/select.h /usr/include/bits/select.h
+DAQTrackMap.o: /usr/include/bits/sigset.h /usr/include/bits/time.h
+DAQTrackMap.o: /usr/include/sys/sysmacros.h /usr/include/bits/pthreadtypes.h
+DAQTrackMap.o: /usr/include/alloca.h /usr/include/stdio.h
+DAQTrackMap.o: /usr/include/libio.h /usr/include/_G_config.h
+DAQTrackMap.o: /usr/include/wchar.h /usr/include/bits/stdio_lim.h
+DAQTrackMap.o: /usr/include/bits/sys_errlist.h /usr/include/setjmp.h
+DAQTrackMap.o: /usr/include/bits/setjmp.h /usr/include/sys/time.h
+DAQTrackMap.o: /usr/include/unistd.h /usr/include/bits/posix_opt.h
+DAQTrackMap.o: /usr/include/bits/confname.h /usr/include/getopt.h
+DAQTrackMap.o: /usr/include/string.h /usr/include/xlocale.h
+DAQTrackMap.o: /usr/include/errno.h /usr/include/bits/errno.h
+DAQTrackMap.o: /usr/include/linux/errno.h /usr/include/asm/errno.h
+DAQTrackMap.o: /usr/include/asm-generic/errno.h
+DAQTrackMap.o: /usr/include/asm-generic/errno-base.h /usr/include/ctype.h
+DAQTrackMemory.o: /usr/include/stdlib.h /usr/include/features.h
+DAQTrackMemory.o: /usr/include/bits/predefs.h /usr/include/sys/cdefs.h
+DAQTrackMemory.o: /usr/include/bits/wordsize.h /usr/include/gnu/stubs.h
+DAQTrackMemory.o: /usr/include/gnu/stubs-32.h /usr/include/sys/types.h
+DAQTrackMemory.o: /usr/include/bits/types.h /usr/include/bits/typesizes.h
+DAQTrackMemory.o: /usr/include/time.h /usr/include/endian.h
+DAQTrackMemory.o: /usr/include/bits/endian.h /usr/include/bits/byteswap.h
+DAQTrackMemory.o: /usr/include/sys/select.h /usr/include/bits/select.h
+DAQTrackMemory.o: /usr/include/bits/sigset.h /usr/include/bits/time.h
+DAQTrackMemory.o: /usr/include/sys/sysmacros.h
+DAQTrackMemory.o: /usr/include/bits/pthreadtypes.h /usr/include/alloca.h
+DAQTrackMemory.o: /usr/include/stdio.h /usr/include/libio.h
+DAQTrackMemory.o: /usr/include/_G_config.h /usr/include/wchar.h
+DAQTrackMemory.o: /usr/include/bits/stdio_lim.h
+DAQTrackMemory.o: /usr/include/bits/sys_errlist.h /usr/include/setjmp.h
+DAQTrackMemory.o: /usr/include/bits/setjmp.h /usr/include/sys/time.h
+DAQTrackMemory.o: /usr/include/unistd.h /usr/include/bits/posix_opt.h
+DAQTrackMemory.o: /usr/include/bits/confname.h /usr/include/getopt.h
+DAQTrackMemory.o: /usr/include/string.h /usr/include/xlocale.h
+DAQTrackMemory.o: /usr/include/errno.h /usr/include/bits/errno.h
+DAQTrackMemory.o: /usr/include/linux/errno.h /usr/include/asm/errno.h
+DAQTrackMemory.o: /usr/include/asm-generic/errno.h
+DAQTrackMemory.o: /usr/include/asm-generic/errno-base.h /usr/include/ctype.h
+spectrodaq_main.o: /usr/include/stdlib.h /usr/include/features.h
+spectrodaq_main.o: /usr/include/bits/predefs.h /usr/include/sys/cdefs.h
+spectrodaq_main.o: /usr/include/bits/wordsize.h /usr/include/gnu/stubs.h
+spectrodaq_main.o: /usr/include/gnu/stubs-32.h /usr/include/sys/types.h
+spectrodaq_main.o: /usr/include/bits/types.h /usr/include/bits/typesizes.h
+spectrodaq_main.o: /usr/include/time.h /usr/include/endian.h
+spectrodaq_main.o: /usr/include/bits/endian.h /usr/include/bits/byteswap.h
+spectrodaq_main.o: /usr/include/sys/select.h /usr/include/bits/select.h
+spectrodaq_main.o: /usr/include/bits/sigset.h /usr/include/bits/time.h
+spectrodaq_main.o: /usr/include/sys/sysmacros.h
+spectrodaq_main.o: /usr/include/bits/pthreadtypes.h /usr/include/alloca.h
+spectrodaq_main.o: /usr/include/stdio.h /usr/include/libio.h
+spectrodaq_main.o: /usr/include/_G_config.h /usr/include/wchar.h
+spectrodaq_main.o: /usr/include/bits/stdio_lim.h
+spectrodaq_main.o: /usr/include/bits/sys_errlist.h

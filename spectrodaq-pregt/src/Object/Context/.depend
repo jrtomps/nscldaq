@@ -1,0 +1,15 @@
+# DO NOT DELETE
+
+DAQContext.o: /usr/include/stdlib.h /usr/include/features.h
+DAQContext.o: /usr/include/bits/predefs.h /usr/include/sys/cdefs.h
+DAQContext.o: /usr/include/bits/wordsize.h /usr/include/gnu/stubs.h
+DAQContext.o: /usr/include/gnu/stubs-32.h /usr/include/sys/types.h
+DAQContext.o: /usr/include/bits/types.h /usr/include/bits/typesizes.h
+DAQContext.o: /usr/include/time.h /usr/include/endian.h
+DAQContext.o: /usr/include/bits/endian.h /usr/include/bits/byteswap.h
+DAQContext.o: /usr/include/sys/select.h /usr/include/bits/select.h
+DAQContext.o: /usr/include/bits/sigset.h /usr/include/bits/time.h
+DAQContext.o: /usr/include/sys/sysmacros.h /usr/include/bits/pthreadtypes.h
+DAQContext.o: /usr/include/alloca.h /usr/include/stdio.h /usr/include/libio.h
+DAQContext.o: /usr/include/_G_config.h /usr/include/wchar.h
+DAQContext.o: /usr/include/bits/stdio_lim.h /usr/include/bits/sys_errlist.h

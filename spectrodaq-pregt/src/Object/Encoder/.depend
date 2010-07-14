@@ -1,0 +1,27 @@
+# DO NOT DELETE
+
+DAQEncoder.o: /usr/include/stdlib.h /usr/include/features.h
+DAQEncoder.o: /usr/include/bits/predefs.h /usr/include/sys/cdefs.h
+DAQEncoder.o: /usr/include/bits/wordsize.h /usr/include/gnu/stubs.h
+DAQEncoder.o: /usr/include/gnu/stubs-32.h /usr/include/sys/types.h
+DAQEncoder.o: /usr/include/bits/types.h /usr/include/bits/typesizes.h
+DAQEncoder.o: /usr/include/time.h /usr/include/endian.h
+DAQEncoder.o: /usr/include/bits/endian.h /usr/include/bits/byteswap.h
+DAQEncoder.o: /usr/include/sys/select.h /usr/include/bits/select.h
+DAQEncoder.o: /usr/include/bits/sigset.h /usr/include/bits/time.h
+DAQEncoder.o: /usr/include/sys/sysmacros.h /usr/include/bits/pthreadtypes.h
+DAQEncoder.o: /usr/include/alloca.h /usr/include/stdio.h /usr/include/libio.h
+DAQEncoder.o: /usr/include/_G_config.h /usr/include/wchar.h
+DAQEncoder.o: /usr/include/bits/stdio_lim.h /usr/include/bits/sys_errlist.h
+DAQEncoder.o: /usr/include/setjmp.h /usr/include/bits/setjmp.h
+DAQEncoder.o: /usr/include/sys/time.h /usr/include/unistd.h
+DAQEncoder.o: /usr/include/bits/posix_opt.h /usr/include/bits/confname.h
+DAQEncoder.o: /usr/include/getopt.h /usr/include/string.h
+DAQEncoder.o: /usr/include/xlocale.h /usr/include/ctype.h
+DAQEncoder.o: /usr/include/netinet/in.h /usr/include/stdint.h
+DAQEncoder.o: /usr/include/bits/wchar.h /usr/include/sys/socket.h
+DAQEncoder.o: /usr/include/sys/uio.h /usr/include/bits/uio.h
+DAQEncoder.o: /usr/include/bits/socket.h /usr/include/bits/sockaddr.h
+DAQEncoder.o: /usr/include/asm/socket.h /usr/include/asm-generic/socket.h
+DAQEncoder.o: /usr/include/asm/sockios.h /usr/include/asm-generic/sockios.h
+DAQEncoder.o: /usr/include/bits/in.h

@@ -1,0 +1,20 @@
+# DO NOT DELETE
+
+DAQString.o: /usr/include/stdlib.h /usr/include/features.h
+DAQString.o: /usr/include/bits/predefs.h /usr/include/sys/cdefs.h
+DAQString.o: /usr/include/bits/wordsize.h /usr/include/gnu/stubs.h
+DAQString.o: /usr/include/gnu/stubs-32.h /usr/include/sys/types.h
+DAQString.o: /usr/include/bits/types.h /usr/include/bits/typesizes.h
+DAQString.o: /usr/include/time.h /usr/include/endian.h
+DAQString.o: /usr/include/bits/endian.h /usr/include/bits/byteswap.h
+DAQString.o: /usr/include/sys/select.h /usr/include/bits/select.h
+DAQString.o: /usr/include/bits/sigset.h /usr/include/bits/time.h
+DAQString.o: /usr/include/sys/sysmacros.h /usr/include/bits/pthreadtypes.h
+DAQString.o: /usr/include/alloca.h /usr/include/stdio.h /usr/include/libio.h
+DAQString.o: /usr/include/_G_config.h /usr/include/wchar.h
+DAQString.o: /usr/include/bits/stdio_lim.h /usr/include/bits/sys_errlist.h
+DAQString.o: /usr/include/setjmp.h /usr/include/bits/setjmp.h
+DAQString.o: /usr/include/sys/time.h /usr/include/unistd.h
+DAQString.o: /usr/include/bits/posix_opt.h /usr/include/bits/confname.h
+DAQString.o: /usr/include/getopt.h /usr/include/string.h
+DAQString.o: /usr/include/xlocale.h /usr/include/ctype.h

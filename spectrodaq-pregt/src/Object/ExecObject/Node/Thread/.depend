@@ -1,0 +1,50 @@
+# DO NOT DELETE
+
+daqthreadjoin.o: /usr/include/stdlib.h /usr/include/features.h
+daqthreadjoin.o: /usr/include/bits/predefs.h /usr/include/sys/cdefs.h
+daqthreadjoin.o: /usr/include/bits/wordsize.h /usr/include/gnu/stubs.h
+daqthreadjoin.o: /usr/include/gnu/stubs-32.h /usr/include/sys/types.h
+daqthreadjoin.o: /usr/include/bits/types.h /usr/include/bits/typesizes.h
+daqthreadjoin.o: /usr/include/time.h /usr/include/endian.h
+daqthreadjoin.o: /usr/include/bits/endian.h /usr/include/bits/byteswap.h
+daqthreadjoin.o: /usr/include/sys/select.h /usr/include/bits/select.h
+daqthreadjoin.o: /usr/include/bits/sigset.h /usr/include/bits/time.h
+daqthreadjoin.o: /usr/include/sys/sysmacros.h
+daqthreadjoin.o: /usr/include/bits/pthreadtypes.h /usr/include/alloca.h
+daqthreadjoin.o: /usr/include/stdio.h /usr/include/libio.h
+daqthreadjoin.o: /usr/include/_G_config.h /usr/include/wchar.h
+daqthreadjoin.o: /usr/include/bits/stdio_lim.h
+daqthreadjoin.o: /usr/include/bits/sys_errlist.h /usr/include/setjmp.h
+daqthreadjoin.o: /usr/include/bits/setjmp.h /usr/include/sys/time.h
+daqthreadjoin.o: /usr/include/unistd.h /usr/include/bits/posix_opt.h
+daqthreadjoin.o: /usr/include/bits/confname.h /usr/include/getopt.h
+daqthreadjoin.o: /usr/include/netdb.h /usr/include/netinet/in.h
+daqthreadjoin.o: /usr/include/stdint.h /usr/include/bits/wchar.h
+daqthreadjoin.o: /usr/include/sys/socket.h /usr/include/sys/uio.h
+daqthreadjoin.o: /usr/include/bits/uio.h /usr/include/bits/socket.h
+daqthreadjoin.o: /usr/include/bits/sockaddr.h /usr/include/asm/socket.h
+daqthreadjoin.o: /usr/include/asm-generic/socket.h /usr/include/asm/sockios.h
+daqthreadjoin.o: /usr/include/asm-generic/sockios.h /usr/include/bits/in.h
+daqthreadjoin.o: /usr/include/rpc/netdb.h /usr/include/bits/netdb.h
+daqthreadjoin.o: /usr/include/errno.h /usr/include/bits/errno.h
+daqthreadjoin.o: /usr/include/linux/errno.h /usr/include/asm/errno.h
+daqthreadjoin.o: /usr/include/asm-generic/errno.h
+daqthreadjoin.o: /usr/include/asm-generic/errno-base.h
+DAQThread.o: /usr/include/netdb.h /usr/include/features.h
+DAQThread.o: /usr/include/bits/predefs.h /usr/include/sys/cdefs.h
+DAQThread.o: /usr/include/bits/wordsize.h /usr/include/gnu/stubs.h
+DAQThread.o: /usr/include/gnu/stubs-32.h /usr/include/netinet/in.h
+DAQThread.o: /usr/include/stdint.h /usr/include/bits/wchar.h
+DAQThread.o: /usr/include/sys/socket.h /usr/include/sys/uio.h
+DAQThread.o: /usr/include/sys/types.h /usr/include/bits/types.h
+DAQThread.o: /usr/include/bits/typesizes.h /usr/include/time.h
+DAQThread.o: /usr/include/endian.h /usr/include/bits/endian.h
+DAQThread.o: /usr/include/bits/byteswap.h /usr/include/sys/select.h
+DAQThread.o: /usr/include/bits/select.h /usr/include/bits/sigset.h
+DAQThread.o: /usr/include/bits/time.h /usr/include/sys/sysmacros.h
+DAQThread.o: /usr/include/bits/pthreadtypes.h /usr/include/bits/uio.h
+DAQThread.o: /usr/include/bits/socket.h /usr/include/bits/sockaddr.h
+DAQThread.o: /usr/include/asm/socket.h /usr/include/asm-generic/socket.h
+DAQThread.o: /usr/include/asm/sockios.h /usr/include/asm-generic/sockios.h
+DAQThread.o: /usr/include/bits/in.h /usr/include/rpc/netdb.h
+DAQThread.o: /usr/include/bits/netdb.h

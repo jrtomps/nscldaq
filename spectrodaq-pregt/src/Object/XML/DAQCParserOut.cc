@@ -367,7 +367,7 @@ bool DAQCParserOut::Puts(const char *aStr) {
 
   tok = aStr;
 
-  val = strchr(aStr,'=');
+  val = const_cast<char*>(strchr(aStr,'='));
   if (val == NULL) return(false);  // No value
   (*val) = '\0';
   val++; 

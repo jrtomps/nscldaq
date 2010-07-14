@@ -1,0 +1,90 @@
+# DO NOT DELETE
+
+DAQBufferPage.o: /usr/include/stdlib.h /usr/include/features.h
+DAQBufferPage.o: /usr/include/bits/predefs.h /usr/include/sys/cdefs.h
+DAQBufferPage.o: /usr/include/bits/wordsize.h /usr/include/gnu/stubs.h
+DAQBufferPage.o: /usr/include/gnu/stubs-32.h /usr/include/sys/types.h
+DAQBufferPage.o: /usr/include/bits/types.h /usr/include/bits/typesizes.h
+DAQBufferPage.o: /usr/include/time.h /usr/include/endian.h
+DAQBufferPage.o: /usr/include/bits/endian.h /usr/include/bits/byteswap.h
+DAQBufferPage.o: /usr/include/sys/select.h /usr/include/bits/select.h
+DAQBufferPage.o: /usr/include/bits/sigset.h /usr/include/bits/time.h
+DAQBufferPage.o: /usr/include/sys/sysmacros.h
+DAQBufferPage.o: /usr/include/bits/pthreadtypes.h /usr/include/alloca.h
+DAQBufferPage.o: /usr/include/stdio.h /usr/include/libio.h
+DAQBufferPage.o: /usr/include/_G_config.h /usr/include/wchar.h
+DAQBufferPage.o: /usr/include/bits/stdio_lim.h
+DAQBufferPage.o: /usr/include/bits/sys_errlist.h /usr/include/setjmp.h
+DAQBufferPage.o: /usr/include/bits/setjmp.h /usr/include/sys/time.h
+DAQBufferPage.o: /usr/include/unistd.h /usr/include/bits/posix_opt.h
+DAQBufferPage.o: /usr/include/bits/confname.h /usr/include/getopt.h
+DAQBufferPage.o: /usr/include/string.h /usr/include/xlocale.h
+DAQBufferPage.o: /usr/include/ctype.h /usr/include/sys/socket.h
+DAQBufferPage.o: /usr/include/sys/uio.h /usr/include/bits/uio.h
+DAQBufferPage.o: /usr/include/bits/socket.h /usr/include/bits/sockaddr.h
+DAQBufferPage.o: /usr/include/asm/socket.h /usr/include/asm-generic/socket.h
+DAQBufferPage.o: /usr/include/asm/sockios.h
+DAQBufferPage.o: /usr/include/asm-generic/sockios.h /usr/include/netinet/in.h
+DAQBufferPage.o: /usr/include/stdint.h /usr/include/bits/wchar.h
+DAQBufferPage.o: /usr/include/bits/in.h /usr/include/arpa/inet.h
+DAQBufferPager.o: /usr/include/stdlib.h /usr/include/features.h
+DAQBufferPager.o: /usr/include/bits/predefs.h /usr/include/sys/cdefs.h
+DAQBufferPager.o: /usr/include/bits/wordsize.h /usr/include/gnu/stubs.h
+DAQBufferPager.o: /usr/include/gnu/stubs-32.h /usr/include/sys/types.h
+DAQBufferPager.o: /usr/include/bits/types.h /usr/include/bits/typesizes.h
+DAQBufferPager.o: /usr/include/time.h /usr/include/endian.h
+DAQBufferPager.o: /usr/include/bits/endian.h /usr/include/bits/byteswap.h
+DAQBufferPager.o: /usr/include/sys/select.h /usr/include/bits/select.h
+DAQBufferPager.o: /usr/include/bits/sigset.h /usr/include/bits/time.h
+DAQBufferPager.o: /usr/include/sys/sysmacros.h
+DAQBufferPager.o: /usr/include/bits/pthreadtypes.h /usr/include/alloca.h
+DAQBufferPager.o: /usr/include/stdio.h /usr/include/libio.h
+DAQBufferPager.o: /usr/include/_G_config.h /usr/include/wchar.h
+DAQBufferPager.o: /usr/include/bits/stdio_lim.h
+DAQBufferPager.o: /usr/include/bits/sys_errlist.h /usr/include/setjmp.h
+DAQBufferPager.o: /usr/include/bits/setjmp.h /usr/include/sys/time.h
+DAQBufferPager.o: /usr/include/unistd.h /usr/include/bits/posix_opt.h
+DAQBufferPager.o: /usr/include/bits/confname.h /usr/include/getopt.h
+DAQBufferPager.o: /usr/include/string.h /usr/include/xlocale.h
+DAQBufferPager.o: /usr/include/ctype.h
+DAQBufferPageHeaderEncoder.o: /usr/include/stdlib.h /usr/include/features.h
+DAQBufferPageHeaderEncoder.o: /usr/include/bits/predefs.h
+DAQBufferPageHeaderEncoder.o: /usr/include/sys/cdefs.h
+DAQBufferPageHeaderEncoder.o: /usr/include/bits/wordsize.h
+DAQBufferPageHeaderEncoder.o: /usr/include/gnu/stubs.h
+DAQBufferPageHeaderEncoder.o: /usr/include/gnu/stubs-32.h
+DAQBufferPageHeaderEncoder.o: /usr/include/sys/types.h
+DAQBufferPageHeaderEncoder.o: /usr/include/bits/types.h
+DAQBufferPageHeaderEncoder.o: /usr/include/bits/typesizes.h
+DAQBufferPageHeaderEncoder.o: /usr/include/time.h /usr/include/endian.h
+DAQBufferPageHeaderEncoder.o: /usr/include/bits/endian.h
+DAQBufferPageHeaderEncoder.o: /usr/include/bits/byteswap.h
+DAQBufferPageHeaderEncoder.o: /usr/include/sys/select.h
+DAQBufferPageHeaderEncoder.o: /usr/include/bits/select.h
+DAQBufferPageHeaderEncoder.o: /usr/include/bits/sigset.h
+DAQBufferPageHeaderEncoder.o: /usr/include/bits/time.h
+DAQBufferPageHeaderEncoder.o: /usr/include/sys/sysmacros.h
+DAQBufferPageHeaderEncoder.o: /usr/include/bits/pthreadtypes.h
+DAQBufferPageHeaderEncoder.o: /usr/include/alloca.h /usr/include/stdio.h
+DAQBufferPageHeaderEncoder.o: /usr/include/libio.h /usr/include/_G_config.h
+DAQBufferPageHeaderEncoder.o: /usr/include/wchar.h
+DAQBufferPageHeaderEncoder.o: /usr/include/bits/stdio_lim.h
+DAQBufferPageHeaderEncoder.o: /usr/include/bits/sys_errlist.h
+DAQBufferPageHeaderEncoder.o: /usr/include/setjmp.h
+DAQBufferPageHeaderEncoder.o: /usr/include/bits/setjmp.h
+DAQBufferPageHeaderEncoder.o: /usr/include/sys/time.h /usr/include/unistd.h
+DAQBufferPageHeaderEncoder.o: /usr/include/bits/posix_opt.h
+DAQBufferPageHeaderEncoder.o: /usr/include/bits/confname.h
+DAQBufferPageHeaderEncoder.o: /usr/include/getopt.h /usr/include/string.h
+DAQBufferPageHeaderEncoder.o: /usr/include/xlocale.h /usr/include/ctype.h
+DAQBufferPageHeaderEncoder.o: /usr/include/sys/socket.h
+DAQBufferPageHeaderEncoder.o: /usr/include/sys/uio.h /usr/include/bits/uio.h
+DAQBufferPageHeaderEncoder.o: /usr/include/bits/socket.h
+DAQBufferPageHeaderEncoder.o: /usr/include/bits/sockaddr.h
+DAQBufferPageHeaderEncoder.o: /usr/include/asm/socket.h
+DAQBufferPageHeaderEncoder.o: /usr/include/asm-generic/socket.h
+DAQBufferPageHeaderEncoder.o: /usr/include/asm/sockios.h
+DAQBufferPageHeaderEncoder.o: /usr/include/asm-generic/sockios.h
+DAQBufferPageHeaderEncoder.o: /usr/include/netinet/in.h /usr/include/stdint.h
+DAQBufferPageHeaderEncoder.o: /usr/include/bits/wchar.h
+DAQBufferPageHeaderEncoder.o: /usr/include/bits/in.h /usr/include/arpa/inet.h

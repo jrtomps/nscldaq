@@ -1,6 +1,6 @@
 #!/bin/bash
 
-PATH=/bin:/usr/bin:/usr/local/bin:/usr/opt/spectrodaq-pregt/bin
+PATH=/bin:/usr/bin:/usr/local/bin:/usr/opt/spectrodaq/bin
 export PATH
 
 if [ -z "$1" ]; then
@@ -12,7 +12,7 @@ fi
 #-----------------------------------------------------------------------
 TESTN="006"
 TESTDSC="Send/Receive Buffer Object"
-TOPDIR="/scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt"
+TOPDIR="/usr/src/nscl/spectrodaq-pregt"
 TESTDIR="$TOPDIR/tests"
 TOOLDIR="$TOPDIR/tools"
 OUTFNR="/tmp/test$TESTN""r.$$"

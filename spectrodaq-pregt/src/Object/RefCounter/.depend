@@ -1,0 +1,22 @@
+# DO NOT DELETE
+
+DAQRefCounter.o: /usr/include/stdlib.h /usr/include/features.h
+DAQRefCounter.o: /usr/include/bits/predefs.h /usr/include/sys/cdefs.h
+DAQRefCounter.o: /usr/include/bits/wordsize.h /usr/include/gnu/stubs.h
+DAQRefCounter.o: /usr/include/gnu/stubs-32.h /usr/include/sys/types.h
+DAQRefCounter.o: /usr/include/bits/types.h /usr/include/bits/typesizes.h
+DAQRefCounter.o: /usr/include/time.h /usr/include/endian.h
+DAQRefCounter.o: /usr/include/bits/endian.h /usr/include/bits/byteswap.h
+DAQRefCounter.o: /usr/include/sys/select.h /usr/include/bits/select.h
+DAQRefCounter.o: /usr/include/bits/sigset.h /usr/include/bits/time.h
+DAQRefCounter.o: /usr/include/sys/sysmacros.h
+DAQRefCounter.o: /usr/include/bits/pthreadtypes.h /usr/include/alloca.h
+DAQRefCounter.o: /usr/include/stdio.h /usr/include/libio.h
+DAQRefCounter.o: /usr/include/_G_config.h /usr/include/wchar.h
+DAQRefCounter.o: /usr/include/bits/stdio_lim.h
+DAQRefCounter.o: /usr/include/bits/sys_errlist.h /usr/include/setjmp.h
+DAQRefCounter.o: /usr/include/bits/setjmp.h /usr/include/sys/time.h
+DAQRefCounter.o: /usr/include/unistd.h /usr/include/bits/posix_opt.h
+DAQRefCounter.o: /usr/include/bits/confname.h /usr/include/getopt.h
+DAQRefCounter.o: /usr/include/string.h /usr/include/xlocale.h
+DAQRefCounter.o: /usr/include/ctype.h

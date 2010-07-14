@@ -1,0 +1,105 @@
+# DO NOT DELETE
+
+DAQCommInfo.o: /usr/include/stdlib.h /usr/include/features.h
+DAQCommInfo.o: /usr/include/bits/predefs.h /usr/include/sys/cdefs.h
+DAQCommInfo.o: /usr/include/bits/wordsize.h /usr/include/gnu/stubs.h
+DAQCommInfo.o: /usr/include/gnu/stubs-32.h /usr/include/sys/types.h
+DAQCommInfo.o: /usr/include/bits/types.h /usr/include/bits/typesizes.h
+DAQCommInfo.o: /usr/include/time.h /usr/include/endian.h
+DAQCommInfo.o: /usr/include/bits/endian.h /usr/include/bits/byteswap.h
+DAQCommInfo.o: /usr/include/sys/select.h /usr/include/bits/select.h
+DAQCommInfo.o: /usr/include/bits/sigset.h /usr/include/bits/time.h
+DAQCommInfo.o: /usr/include/sys/sysmacros.h /usr/include/bits/pthreadtypes.h
+DAQCommInfo.o: /usr/include/alloca.h /usr/include/stdio.h
+DAQCommInfo.o: /usr/include/libio.h /usr/include/_G_config.h
+DAQCommInfo.o: /usr/include/wchar.h /usr/include/bits/stdio_lim.h
+DAQCommInfo.o: /usr/include/bits/sys_errlist.h /usr/include/setjmp.h
+DAQCommInfo.o: /usr/include/bits/setjmp.h /usr/include/sys/time.h
+DAQCommInfo.o: /usr/include/unistd.h /usr/include/bits/posix_opt.h
+DAQCommInfo.o: /usr/include/bits/confname.h /usr/include/getopt.h
+DAQCommInfo.o: /usr/include/string.h /usr/include/xlocale.h
+DAQCommInfo.o: /usr/include/ctype.h
+DAQCommMsgIface.o: /usr/include/stdlib.h /usr/include/features.h
+DAQCommMsgIface.o: /usr/include/bits/predefs.h /usr/include/sys/cdefs.h
+DAQCommMsgIface.o: /usr/include/bits/wordsize.h /usr/include/gnu/stubs.h
+DAQCommMsgIface.o: /usr/include/gnu/stubs-32.h /usr/include/sys/types.h
+DAQCommMsgIface.o: /usr/include/bits/types.h /usr/include/bits/typesizes.h
+DAQCommMsgIface.o: /usr/include/time.h /usr/include/endian.h
+DAQCommMsgIface.o: /usr/include/bits/endian.h /usr/include/bits/byteswap.h
+DAQCommMsgIface.o: /usr/include/sys/select.h /usr/include/bits/select.h
+DAQCommMsgIface.o: /usr/include/bits/sigset.h /usr/include/bits/time.h
+DAQCommMsgIface.o: /usr/include/sys/sysmacros.h
+DAQCommMsgIface.o: /usr/include/bits/pthreadtypes.h /usr/include/alloca.h
+DAQCommMsgIface.o: /usr/include/stdio.h /usr/include/libio.h
+DAQCommMsgIface.o: /usr/include/_G_config.h /usr/include/wchar.h
+DAQCommMsgIface.o: /usr/include/bits/stdio_lim.h
+DAQCommMsgIface.o: /usr/include/bits/sys_errlist.h /usr/include/setjmp.h
+DAQCommMsgIface.o: /usr/include/bits/setjmp.h /usr/include/sys/time.h
+DAQCommMsgIface.o: /usr/include/unistd.h /usr/include/bits/posix_opt.h
+DAQCommMsgIface.o: /usr/include/bits/confname.h /usr/include/getopt.h
+DAQCommMsgIface.o: /usr/include/string.h /usr/include/xlocale.h
+DAQCommMsgIface.o: /usr/include/ctype.h /usr/include/netinet/in.h
+DAQCommMsgIface.o: /usr/include/stdint.h /usr/include/bits/wchar.h
+DAQCommMsgIface.o: /usr/include/sys/socket.h /usr/include/sys/uio.h
+DAQCommMsgIface.o: /usr/include/bits/uio.h /usr/include/bits/socket.h
+DAQCommMsgIface.o: /usr/include/bits/sockaddr.h /usr/include/asm/socket.h
+DAQCommMsgIface.o: /usr/include/asm-generic/socket.h
+DAQCommMsgIface.o: /usr/include/asm/sockios.h
+DAQCommMsgIface.o: /usr/include/asm-generic/sockios.h /usr/include/bits/in.h
+DAQCommMsg.o: /usr/include/stdlib.h /usr/include/features.h
+DAQCommMsg.o: /usr/include/bits/predefs.h /usr/include/sys/cdefs.h
+DAQCommMsg.o: /usr/include/bits/wordsize.h /usr/include/gnu/stubs.h
+DAQCommMsg.o: /usr/include/gnu/stubs-32.h /usr/include/sys/types.h
+DAQCommMsg.o: /usr/include/bits/types.h /usr/include/bits/typesizes.h
+DAQCommMsg.o: /usr/include/time.h /usr/include/endian.h
+DAQCommMsg.o: /usr/include/bits/endian.h /usr/include/bits/byteswap.h
+DAQCommMsg.o: /usr/include/sys/select.h /usr/include/bits/select.h
+DAQCommMsg.o: /usr/include/bits/sigset.h /usr/include/bits/time.h
+DAQCommMsg.o: /usr/include/sys/sysmacros.h /usr/include/bits/pthreadtypes.h
+DAQCommMsg.o: /usr/include/alloca.h /usr/include/stdio.h /usr/include/libio.h
+DAQCommMsg.o: /usr/include/_G_config.h /usr/include/wchar.h
+DAQCommMsg.o: /usr/include/bits/stdio_lim.h /usr/include/bits/sys_errlist.h
+DAQCommMsg.o: /usr/include/setjmp.h /usr/include/bits/setjmp.h
+DAQCommMsg.o: /usr/include/sys/time.h /usr/include/unistd.h
+DAQCommMsg.o: /usr/include/bits/posix_opt.h /usr/include/bits/confname.h
+DAQCommMsg.o: /usr/include/getopt.h /usr/include/string.h
+DAQCommMsg.o: /usr/include/xlocale.h /usr/include/ctype.h
+DAQCommMsg.o: /usr/include/netinet/in.h /usr/include/stdint.h
+DAQCommMsg.o: /usr/include/bits/wchar.h /usr/include/sys/socket.h
+DAQCommMsg.o: /usr/include/sys/uio.h /usr/include/bits/uio.h
+DAQCommMsg.o: /usr/include/bits/socket.h /usr/include/bits/sockaddr.h
+DAQCommMsg.o: /usr/include/asm/socket.h /usr/include/asm-generic/socket.h
+DAQCommMsg.o: /usr/include/asm/sockios.h /usr/include/asm-generic/sockios.h
+DAQCommMsg.o: /usr/include/bits/in.h
+DAQCommunicator.o: /usr/include/stdlib.h /usr/include/features.h
+DAQCommunicator.o: /usr/include/bits/predefs.h /usr/include/sys/cdefs.h
+DAQCommunicator.o: /usr/include/bits/wordsize.h /usr/include/gnu/stubs.h
+DAQCommunicator.o: /usr/include/gnu/stubs-32.h /usr/include/sys/types.h
+DAQCommunicator.o: /usr/include/bits/types.h /usr/include/bits/typesizes.h
+DAQCommunicator.o: /usr/include/time.h /usr/include/endian.h
+DAQCommunicator.o: /usr/include/bits/endian.h /usr/include/bits/byteswap.h
+DAQCommunicator.o: /usr/include/sys/select.h /usr/include/bits/select.h
+DAQCommunicator.o: /usr/include/bits/sigset.h /usr/include/bits/time.h
+DAQCommunicator.o: /usr/include/sys/sysmacros.h
+DAQCommunicator.o: /usr/include/bits/pthreadtypes.h /usr/include/alloca.h
+DAQCommunicator.o: /usr/include/stdio.h /usr/include/libio.h
+DAQCommunicator.o: /usr/include/_G_config.h /usr/include/wchar.h
+DAQCommunicator.o: /usr/include/bits/stdio_lim.h
+DAQCommunicator.o: /usr/include/bits/sys_errlist.h /usr/include/setjmp.h
+DAQCommunicator.o: /usr/include/bits/setjmp.h /usr/include/sys/time.h
+DAQCommunicator.o: /usr/include/unistd.h /usr/include/bits/posix_opt.h
+DAQCommunicator.o: /usr/include/bits/confname.h /usr/include/getopt.h
+DAQCommunicator.o: /usr/include/string.h /usr/include/xlocale.h
+DAQCommunicator.o: /usr/include/errno.h /usr/include/bits/errno.h
+DAQCommunicator.o: /usr/include/linux/errno.h /usr/include/asm/errno.h
+DAQCommunicator.o: /usr/include/asm-generic/errno.h
+DAQCommunicator.o: /usr/include/asm-generic/errno-base.h
+DAQCommunicator.o: /usr/include/netinet/in.h /usr/include/stdint.h
+DAQCommunicator.o: /usr/include/bits/wchar.h /usr/include/sys/socket.h
+DAQCommunicator.o: /usr/include/sys/uio.h /usr/include/bits/uio.h
+DAQCommunicator.o: /usr/include/bits/socket.h /usr/include/bits/sockaddr.h
+DAQCommunicator.o: /usr/include/asm/socket.h
+DAQCommunicator.o: /usr/include/asm-generic/socket.h
+DAQCommunicator.o: /usr/include/asm/sockios.h
+DAQCommunicator.o: /usr/include/asm-generic/sockios.h /usr/include/bits/in.h
+DAQCommunicator.o: /usr/include/arpa/telnet.h

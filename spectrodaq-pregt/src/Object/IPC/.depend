@@ -1,0 +1,83 @@
+# DO NOT DELETE
+
+DAQKeyRing.o: /usr/include/stdlib.h /usr/include/features.h
+DAQKeyRing.o: /usr/include/bits/predefs.h /usr/include/sys/cdefs.h
+DAQKeyRing.o: /usr/include/bits/wordsize.h /usr/include/gnu/stubs.h
+DAQKeyRing.o: /usr/include/gnu/stubs-32.h /usr/include/sys/types.h
+DAQKeyRing.o: /usr/include/bits/types.h /usr/include/bits/typesizes.h
+DAQKeyRing.o: /usr/include/time.h /usr/include/endian.h
+DAQKeyRing.o: /usr/include/bits/endian.h /usr/include/bits/byteswap.h
+DAQKeyRing.o: /usr/include/sys/select.h /usr/include/bits/select.h
+DAQKeyRing.o: /usr/include/bits/sigset.h /usr/include/bits/time.h
+DAQKeyRing.o: /usr/include/sys/sysmacros.h /usr/include/bits/pthreadtypes.h
+DAQKeyRing.o: /usr/include/alloca.h /usr/include/stdio.h /usr/include/libio.h
+DAQKeyRing.o: /usr/include/_G_config.h /usr/include/wchar.h
+DAQKeyRing.o: /usr/include/bits/stdio_lim.h /usr/include/bits/sys_errlist.h
+DAQKeyRing.o: /usr/include/setjmp.h /usr/include/bits/setjmp.h
+DAQKeyRing.o: /usr/include/sys/time.h /usr/include/unistd.h
+DAQKeyRing.o: /usr/include/bits/posix_opt.h /usr/include/bits/confname.h
+DAQKeyRing.o: /usr/include/getopt.h /usr/include/string.h
+DAQKeyRing.o: /usr/include/xlocale.h /usr/include/ctype.h
+DAQShmsegData.o: /usr/include/stdlib.h /usr/include/features.h
+DAQShmsegData.o: /usr/include/bits/predefs.h /usr/include/sys/cdefs.h
+DAQShmsegData.o: /usr/include/bits/wordsize.h /usr/include/gnu/stubs.h
+DAQShmsegData.o: /usr/include/gnu/stubs-32.h /usr/include/sys/types.h
+DAQShmsegData.o: /usr/include/bits/types.h /usr/include/bits/typesizes.h
+DAQShmsegData.o: /usr/include/time.h /usr/include/endian.h
+DAQShmsegData.o: /usr/include/bits/endian.h /usr/include/bits/byteswap.h
+DAQShmsegData.o: /usr/include/sys/select.h /usr/include/bits/select.h
+DAQShmsegData.o: /usr/include/bits/sigset.h /usr/include/bits/time.h
+DAQShmsegData.o: /usr/include/sys/sysmacros.h
+DAQShmsegData.o: /usr/include/bits/pthreadtypes.h /usr/include/alloca.h
+DAQShmsegData.o: /usr/include/stdio.h /usr/include/libio.h
+DAQShmsegData.o: /usr/include/_G_config.h /usr/include/wchar.h
+DAQShmsegData.o: /usr/include/bits/stdio_lim.h
+DAQShmsegData.o: /usr/include/bits/sys_errlist.h /usr/include/setjmp.h
+DAQShmsegData.o: /usr/include/bits/setjmp.h /usr/include/sys/time.h
+DAQShmsegData.o: /usr/include/unistd.h /usr/include/bits/posix_opt.h
+DAQShmsegData.o: /usr/include/bits/confname.h /usr/include/getopt.h
+DAQShmsegData.o: /usr/include/string.h /usr/include/xlocale.h
+DAQShmsegData.o: /usr/include/ctype.h
+DAQShmseg.o: /usr/include/stdlib.h /usr/include/features.h
+DAQShmseg.o: /usr/include/bits/predefs.h /usr/include/sys/cdefs.h
+DAQShmseg.o: /usr/include/bits/wordsize.h /usr/include/gnu/stubs.h
+DAQShmseg.o: /usr/include/gnu/stubs-32.h /usr/include/sys/types.h
+DAQShmseg.o: /usr/include/bits/types.h /usr/include/bits/typesizes.h
+DAQShmseg.o: /usr/include/time.h /usr/include/endian.h
+DAQShmseg.o: /usr/include/bits/endian.h /usr/include/bits/byteswap.h
+DAQShmseg.o: /usr/include/sys/select.h /usr/include/bits/select.h
+DAQShmseg.o: /usr/include/bits/sigset.h /usr/include/bits/time.h
+DAQShmseg.o: /usr/include/sys/sysmacros.h /usr/include/bits/pthreadtypes.h
+DAQShmseg.o: /usr/include/alloca.h /usr/include/stdio.h /usr/include/libio.h
+DAQShmseg.o: /usr/include/_G_config.h /usr/include/wchar.h
+DAQShmseg.o: /usr/include/bits/stdio_lim.h /usr/include/bits/sys_errlist.h
+DAQShmseg.o: /usr/include/setjmp.h /usr/include/bits/setjmp.h
+DAQShmseg.o: /usr/include/errno.h /usr/include/bits/errno.h
+DAQShmseg.o: /usr/include/linux/errno.h /usr/include/asm/errno.h
+DAQShmseg.o: /usr/include/asm-generic/errno.h
+DAQShmseg.o: /usr/include/asm-generic/errno-base.h /usr/include/sys/time.h
+DAQShmseg.o: /usr/include/unistd.h /usr/include/bits/posix_opt.h
+DAQShmseg.o: /usr/include/bits/confname.h /usr/include/getopt.h
+DAQShmseg.o: /usr/include/string.h /usr/include/xlocale.h
+DAQShmseg.o: /usr/include/ctype.h
+DAQSemset.o: /usr/include/stdlib.h /usr/include/features.h
+DAQSemset.o: /usr/include/bits/predefs.h /usr/include/sys/cdefs.h
+DAQSemset.o: /usr/include/bits/wordsize.h /usr/include/gnu/stubs.h
+DAQSemset.o: /usr/include/gnu/stubs-32.h /usr/include/sys/types.h
+DAQSemset.o: /usr/include/bits/types.h /usr/include/bits/typesizes.h
+DAQSemset.o: /usr/include/time.h /usr/include/endian.h
+DAQSemset.o: /usr/include/bits/endian.h /usr/include/bits/byteswap.h
+DAQSemset.o: /usr/include/sys/select.h /usr/include/bits/select.h
+DAQSemset.o: /usr/include/bits/sigset.h /usr/include/bits/time.h
+DAQSemset.o: /usr/include/sys/sysmacros.h /usr/include/bits/pthreadtypes.h
+DAQSemset.o: /usr/include/alloca.h /usr/include/stdio.h /usr/include/libio.h
+DAQSemset.o: /usr/include/_G_config.h /usr/include/wchar.h
+DAQSemset.o: /usr/include/bits/stdio_lim.h /usr/include/bits/sys_errlist.h
+DAQSemset.o: /usr/include/setjmp.h /usr/include/bits/setjmp.h
+DAQSemset.o: /usr/include/sys/time.h /usr/include/unistd.h
+DAQSemset.o: /usr/include/bits/posix_opt.h /usr/include/bits/confname.h
+DAQSemset.o: /usr/include/getopt.h /usr/include/string.h
+DAQSemset.o: /usr/include/xlocale.h /usr/include/ctype.h /usr/include/errno.h
+DAQSemset.o: /usr/include/bits/errno.h /usr/include/linux/errno.h
+DAQSemset.o: /usr/include/asm/errno.h /usr/include/asm-generic/errno.h
+DAQSemset.o: /usr/include/asm-generic/errno-base.h

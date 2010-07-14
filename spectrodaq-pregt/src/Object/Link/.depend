@@ -1,0 +1,27 @@
+# DO NOT DELETE
+
+DAQLink.o: /usr/include/stdlib.h /usr/include/features.h
+DAQLink.o: /usr/include/bits/predefs.h /usr/include/sys/cdefs.h
+DAQLink.o: /usr/include/bits/wordsize.h /usr/include/gnu/stubs.h
+DAQLink.o: /usr/include/gnu/stubs-32.h /usr/include/sys/types.h
+DAQLink.o: /usr/include/bits/types.h /usr/include/bits/typesizes.h
+DAQLink.o: /usr/include/time.h /usr/include/endian.h
+DAQLink.o: /usr/include/bits/endian.h /usr/include/bits/byteswap.h
+DAQLink.o: /usr/include/sys/select.h /usr/include/bits/select.h
+DAQLink.o: /usr/include/bits/sigset.h /usr/include/bits/time.h
+DAQLink.o: /usr/include/sys/sysmacros.h /usr/include/bits/pthreadtypes.h
+DAQLink.o: /usr/include/alloca.h /usr/include/stdio.h /usr/include/libio.h
+DAQLink.o: /usr/include/_G_config.h /usr/include/wchar.h
+DAQLink.o: /usr/include/bits/stdio_lim.h /usr/include/bits/sys_errlist.h
+DAQLink.o: /usr/include/setjmp.h /usr/include/bits/setjmp.h
+DAQLink.o: /usr/include/sys/time.h /usr/include/unistd.h
+DAQLink.o: /usr/include/bits/posix_opt.h /usr/include/bits/confname.h
+DAQLink.o: /usr/include/getopt.h /usr/include/string.h /usr/include/xlocale.h
+DAQLink.o: /usr/include/ctype.h /usr/include/sys/socket.h
+DAQLink.o: /usr/include/sys/uio.h /usr/include/bits/uio.h
+DAQLink.o: /usr/include/bits/socket.h /usr/include/bits/sockaddr.h
+DAQLink.o: /usr/include/asm/socket.h /usr/include/asm-generic/socket.h
+DAQLink.o: /usr/include/asm/sockios.h /usr/include/asm-generic/sockios.h
+DAQLink.o: /usr/include/netinet/in.h /usr/include/stdint.h
+DAQLink.o: /usr/include/bits/wchar.h /usr/include/bits/in.h
+DAQLink.o: /usr/include/arpa/inet.h

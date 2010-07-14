@@ -1,0 +1,41 @@
+# DO NOT DELETE
+
+OstreamCompat.o: /usr/include/stdlib.h /usr/include/features.h
+OstreamCompat.o: /usr/include/bits/predefs.h /usr/include/sys/cdefs.h
+OstreamCompat.o: /usr/include/bits/wordsize.h /usr/include/gnu/stubs.h
+OstreamCompat.o: /usr/include/gnu/stubs-32.h /usr/include/sys/types.h
+OstreamCompat.o: /usr/include/bits/types.h /usr/include/bits/typesizes.h
+OstreamCompat.o: /usr/include/time.h /usr/include/endian.h
+OstreamCompat.o: /usr/include/bits/endian.h /usr/include/bits/byteswap.h
+OstreamCompat.o: /usr/include/sys/select.h /usr/include/bits/select.h
+OstreamCompat.o: /usr/include/bits/sigset.h /usr/include/bits/time.h
+OstreamCompat.o: /usr/include/sys/sysmacros.h
+OstreamCompat.o: /usr/include/bits/pthreadtypes.h /usr/include/alloca.h
+OstreamCompat.o: /usr/include/stdio.h /usr/include/libio.h
+OstreamCompat.o: /usr/include/_G_config.h /usr/include/wchar.h
+OstreamCompat.o: /usr/include/bits/stdio_lim.h
+OstreamCompat.o: /usr/include/bits/sys_errlist.h /usr/include/setjmp.h
+OstreamCompat.o: /usr/include/bits/setjmp.h /usr/include/sys/time.h
+OstreamCompat.o: /usr/include/unistd.h /usr/include/bits/posix_opt.h
+OstreamCompat.o: /usr/include/bits/confname.h /usr/include/getopt.h
+OstreamCompat.o: /usr/include/string.h /usr/include/xlocale.h
+OstreamCompat.o: /usr/include/ctype.h
+PrintStream.o: /usr/include/stdlib.h /usr/include/features.h
+PrintStream.o: /usr/include/bits/predefs.h /usr/include/sys/cdefs.h
+PrintStream.o: /usr/include/bits/wordsize.h /usr/include/gnu/stubs.h
+PrintStream.o: /usr/include/gnu/stubs-32.h /usr/include/sys/types.h
+PrintStream.o: /usr/include/bits/types.h /usr/include/bits/typesizes.h
+PrintStream.o: /usr/include/time.h /usr/include/endian.h
+PrintStream.o: /usr/include/bits/endian.h /usr/include/bits/byteswap.h
+PrintStream.o: /usr/include/sys/select.h /usr/include/bits/select.h
+PrintStream.o: /usr/include/bits/sigset.h /usr/include/bits/time.h
+PrintStream.o: /usr/include/sys/sysmacros.h /usr/include/bits/pthreadtypes.h
+PrintStream.o: /usr/include/alloca.h /usr/include/stdio.h
+PrintStream.o: /usr/include/libio.h /usr/include/_G_config.h
+PrintStream.o: /usr/include/wchar.h /usr/include/bits/stdio_lim.h
+PrintStream.o: /usr/include/bits/sys_errlist.h /usr/include/setjmp.h
+PrintStream.o: /usr/include/bits/setjmp.h /usr/include/sys/time.h
+PrintStream.o: /usr/include/unistd.h /usr/include/bits/posix_opt.h
+PrintStream.o: /usr/include/bits/confname.h /usr/include/getopt.h
+PrintStream.o: /usr/include/string.h /usr/include/xlocale.h
+PrintStream.o: /usr/include/ctype.h

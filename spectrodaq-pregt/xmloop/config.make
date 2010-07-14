@@ -3,7 +3,7 @@ SHELL = /bin/sh
 srcdir = .
 
 
-prefix = /usr/opt/spectrodaq-pregt
+prefix = /usr/opt/spectrodaq
 exec_prefix = ${prefix}
 
 bindir = ${exec_prefix}/bin
@@ -19,21 +19,21 @@ mandir = ${prefix}/share/man
 includedir = ${prefix}/include
 threadlibs = -lpthread
 
-TOPDIR=/scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt
+TOPDIR=/usr/src/nscl/spectrodaq-pregt
 THREADLIBS=-lpthread
 
-XMLTOKLIB=/scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/lib/libxmltok.a
-XMLPARSELIB=/scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/lib/libxmlparse.a
-XMLPLIB=/scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/lib/libxmloop.a
-XMLINCDIR=/scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/xmloop
-XMLBASEINCDIR=/scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include
+XMLTOKLIB=/usr/src/nscl/spectrodaq-pregt/src/lib/libxmltok.a
+XMLPARSELIB=/usr/src/nscl/spectrodaq-pregt/src/lib/libxmlparse.a
+XMLPLIB=/usr/src/nscl/spectrodaq-pregt/src/lib/libxmloop.a
+XMLINCDIR=/usr/src/nscl/spectrodaq-pregt/src/include/xmloop
+XMLBASEINCDIR=/usr/src/nscl/spectrodaq-pregt/src/include
 
-INST_LIBDIR=/usr/opt/spectrodaq-pregt/lib/
-INST_BINDIR=/usr/opt/spectrodaq-pregt/bin/
-INST_XMLTOKLIB=/usr/opt/spectrodaq-pregt/lib/libxmltok.a
-INST_XMLPARSELIB=/usr/opt/spectrodaq-pregt/lib/libxmlparse.a
-INST_XMLPLIB=/usr/opt/spectrodaq-pregt/lib/libxmloop.a
-INST_XMLINCDIR=/usr/opt/spectrodaq-pregt/include/xmloop
+INST_LIBDIR=/usr/opt/spectrodaq/lib/
+INST_BINDIR=/usr/opt/spectrodaq/bin/
+INST_XMLTOKLIB=/usr/opt/spectrodaq/lib/libxmltok.a
+INST_XMLPARSELIB=/usr/opt/spectrodaq/lib/libxmlparse.a
+INST_XMLPLIB=/usr/opt/spectrodaq/lib/libxmloop.a
+INST_XMLINCDIR=/usr/opt/spectrodaq/include/xmloop
 
 FLAGS=-g -O2 -D_REENTRANT=1 -DXML_NS=1 -DXML_DTD=1 -I$(XMLINCDIR) -I$(XMLBASEINCDIR)
 CFLAGS=-g -O2 -D_REENTRANT=1 -DXML_NS=1 -DXML_DTD=1 -I$(XMLINCDIR) -I$(XMLBASEINCDIR)

@@ -1,0 +1,76 @@
+# DO NOT DELETE
+
+DAQPeriodicEvent.o: /usr/include/stdlib.h /usr/include/features.h
+DAQPeriodicEvent.o: /usr/include/bits/predefs.h /usr/include/sys/cdefs.h
+DAQPeriodicEvent.o: /usr/include/bits/wordsize.h /usr/include/gnu/stubs.h
+DAQPeriodicEvent.o: /usr/include/gnu/stubs-32.h /usr/include/sys/types.h
+DAQPeriodicEvent.o: /usr/include/bits/types.h /usr/include/bits/typesizes.h
+DAQPeriodicEvent.o: /usr/include/time.h /usr/include/endian.h
+DAQPeriodicEvent.o: /usr/include/bits/endian.h /usr/include/bits/byteswap.h
+DAQPeriodicEvent.o: /usr/include/sys/select.h /usr/include/bits/select.h
+DAQPeriodicEvent.o: /usr/include/bits/sigset.h /usr/include/bits/time.h
+DAQPeriodicEvent.o: /usr/include/sys/sysmacros.h
+DAQPeriodicEvent.o: /usr/include/bits/pthreadtypes.h /usr/include/alloca.h
+DAQPeriodicEvent.o: /usr/include/stdio.h /usr/include/libio.h
+DAQPeriodicEvent.o: /usr/include/_G_config.h /usr/include/wchar.h
+DAQPeriodicEvent.o: /usr/include/bits/stdio_lim.h
+DAQPeriodicEvent.o: /usr/include/bits/sys_errlist.h /usr/include/setjmp.h
+DAQPeriodicEvent.o: /usr/include/bits/setjmp.h /usr/include/sys/time.h
+DAQPeriodicEvent.o: /usr/include/unistd.h /usr/include/bits/posix_opt.h
+DAQPeriodicEvent.o: /usr/include/bits/confname.h /usr/include/getopt.h
+DAQPeriodicEvent.o: /usr/include/errno.h /usr/include/bits/errno.h
+DAQPeriodicEvent.o: /usr/include/linux/errno.h /usr/include/asm/errno.h
+DAQPeriodicEvent.o: /usr/include/asm-generic/errno.h
+DAQPeriodicEvent.o: /usr/include/asm-generic/errno-base.h
+DAQPeriodicEvent.o: /usr/include/string.h /usr/include/xlocale.h
+DAQPeriodicEventThread.o: /usr/include/stdlib.h /usr/include/features.h
+DAQPeriodicEventThread.o: /usr/include/bits/predefs.h
+DAQPeriodicEventThread.o: /usr/include/sys/cdefs.h
+DAQPeriodicEventThread.o: /usr/include/bits/wordsize.h
+DAQPeriodicEventThread.o: /usr/include/gnu/stubs.h
+DAQPeriodicEventThread.o: /usr/include/gnu/stubs-32.h
+DAQPeriodicEventThread.o: /usr/include/sys/types.h /usr/include/bits/types.h
+DAQPeriodicEventThread.o: /usr/include/bits/typesizes.h /usr/include/time.h
+DAQPeriodicEventThread.o: /usr/include/endian.h /usr/include/bits/endian.h
+DAQPeriodicEventThread.o: /usr/include/bits/byteswap.h
+DAQPeriodicEventThread.o: /usr/include/sys/select.h
+DAQPeriodicEventThread.o: /usr/include/bits/select.h
+DAQPeriodicEventThread.o: /usr/include/bits/sigset.h /usr/include/bits/time.h
+DAQPeriodicEventThread.o: /usr/include/sys/sysmacros.h
+DAQPeriodicEventThread.o: /usr/include/bits/pthreadtypes.h
+DAQPeriodicEventThread.o: /usr/include/alloca.h /usr/include/stdio.h
+DAQPeriodicEventThread.o: /usr/include/libio.h /usr/include/_G_config.h
+DAQPeriodicEventThread.o: /usr/include/wchar.h /usr/include/bits/stdio_lim.h
+DAQPeriodicEventThread.o: /usr/include/bits/sys_errlist.h
+DAQPeriodicEventThread.o: /usr/include/setjmp.h /usr/include/bits/setjmp.h
+DAQPeriodicEventThread.o: /usr/include/sys/time.h /usr/include/unistd.h
+DAQPeriodicEventThread.o: /usr/include/bits/posix_opt.h
+DAQPeriodicEventThread.o: /usr/include/bits/confname.h /usr/include/getopt.h
+DAQPeriodicEventThread.o: /usr/include/errno.h /usr/include/bits/errno.h
+DAQPeriodicEventThread.o: /usr/include/linux/errno.h /usr/include/asm/errno.h
+DAQPeriodicEventThread.o: /usr/include/asm-generic/errno.h
+DAQPeriodicEventThread.o: /usr/include/asm-generic/errno-base.h
+DAQPeriodicEventThread.o: /usr/include/string.h /usr/include/xlocale.h
+DAQPeriodicEventMgr.o: /usr/include/stdlib.h /usr/include/features.h
+DAQPeriodicEventMgr.o: /usr/include/bits/predefs.h /usr/include/sys/cdefs.h
+DAQPeriodicEventMgr.o: /usr/include/bits/wordsize.h /usr/include/gnu/stubs.h
+DAQPeriodicEventMgr.o: /usr/include/gnu/stubs-32.h /usr/include/sys/types.h
+DAQPeriodicEventMgr.o: /usr/include/bits/types.h
+DAQPeriodicEventMgr.o: /usr/include/bits/typesizes.h /usr/include/time.h
+DAQPeriodicEventMgr.o: /usr/include/endian.h /usr/include/bits/endian.h
+DAQPeriodicEventMgr.o: /usr/include/bits/byteswap.h /usr/include/sys/select.h
+DAQPeriodicEventMgr.o: /usr/include/bits/select.h /usr/include/bits/sigset.h
+DAQPeriodicEventMgr.o: /usr/include/bits/time.h /usr/include/sys/sysmacros.h
+DAQPeriodicEventMgr.o: /usr/include/bits/pthreadtypes.h /usr/include/alloca.h
+DAQPeriodicEventMgr.o: /usr/include/stdio.h /usr/include/libio.h
+DAQPeriodicEventMgr.o: /usr/include/_G_config.h /usr/include/wchar.h
+DAQPeriodicEventMgr.o: /usr/include/bits/stdio_lim.h
+DAQPeriodicEventMgr.o: /usr/include/bits/sys_errlist.h /usr/include/setjmp.h
+DAQPeriodicEventMgr.o: /usr/include/bits/setjmp.h /usr/include/sys/time.h
+DAQPeriodicEventMgr.o: /usr/include/unistd.h /usr/include/bits/posix_opt.h
+DAQPeriodicEventMgr.o: /usr/include/bits/confname.h /usr/include/getopt.h
+DAQPeriodicEventMgr.o: /usr/include/errno.h /usr/include/bits/errno.h
+DAQPeriodicEventMgr.o: /usr/include/linux/errno.h /usr/include/asm/errno.h
+DAQPeriodicEventMgr.o: /usr/include/asm-generic/errno.h
+DAQPeriodicEventMgr.o: /usr/include/asm-generic/errno-base.h
+DAQPeriodicEventMgr.o: /usr/include/string.h /usr/include/xlocale.h

@@ -1,0 +1,57 @@
+# DO NOT DELETE
+
+DAQAlarmMsg.o: /usr/include/stdlib.h /usr/include/features.h
+DAQAlarmMsg.o: /usr/include/bits/predefs.h /usr/include/sys/cdefs.h
+DAQAlarmMsg.o: /usr/include/bits/wordsize.h /usr/include/gnu/stubs.h
+DAQAlarmMsg.o: /usr/include/gnu/stubs-32.h /usr/include/sys/types.h
+DAQAlarmMsg.o: /usr/include/bits/types.h /usr/include/bits/typesizes.h
+DAQAlarmMsg.o: /usr/include/time.h /usr/include/endian.h
+DAQAlarmMsg.o: /usr/include/bits/endian.h /usr/include/bits/byteswap.h
+DAQAlarmMsg.o: /usr/include/sys/select.h /usr/include/bits/select.h
+DAQAlarmMsg.o: /usr/include/bits/sigset.h /usr/include/bits/time.h
+DAQAlarmMsg.o: /usr/include/sys/sysmacros.h /usr/include/bits/pthreadtypes.h
+DAQAlarmMsg.o: /usr/include/alloca.h /usr/include/stdio.h
+DAQAlarmMsg.o: /usr/include/libio.h /usr/include/_G_config.h
+DAQAlarmMsg.o: /usr/include/wchar.h /usr/include/bits/stdio_lim.h
+DAQAlarmMsg.o: /usr/include/bits/sys_errlist.h /usr/include/setjmp.h
+DAQAlarmMsg.o: /usr/include/bits/setjmp.h /usr/include/sys/time.h
+DAQAlarmMsg.o: /usr/include/unistd.h /usr/include/bits/posix_opt.h
+DAQAlarmMsg.o: /usr/include/bits/confname.h /usr/include/getopt.h
+DAQAlarmMsg.o: /usr/include/string.h /usr/include/xlocale.h
+DAQAlarmMsg.o: /usr/include/ctype.h
+DAQAlarm.o: /usr/include/stdlib.h /usr/include/features.h
+DAQAlarm.o: /usr/include/bits/predefs.h /usr/include/sys/cdefs.h
+DAQAlarm.o: /usr/include/bits/wordsize.h /usr/include/gnu/stubs.h
+DAQAlarm.o: /usr/include/gnu/stubs-32.h /usr/include/sys/types.h
+DAQAlarm.o: /usr/include/bits/types.h /usr/include/bits/typesizes.h
+DAQAlarm.o: /usr/include/time.h /usr/include/endian.h
+DAQAlarm.o: /usr/include/bits/endian.h /usr/include/bits/byteswap.h
+DAQAlarm.o: /usr/include/sys/select.h /usr/include/bits/select.h
+DAQAlarm.o: /usr/include/bits/sigset.h /usr/include/bits/time.h
+DAQAlarm.o: /usr/include/sys/sysmacros.h /usr/include/bits/pthreadtypes.h
+DAQAlarm.o: /usr/include/alloca.h /usr/include/stdio.h /usr/include/libio.h
+DAQAlarm.o: /usr/include/_G_config.h /usr/include/wchar.h
+DAQAlarm.o: /usr/include/bits/stdio_lim.h /usr/include/bits/sys_errlist.h
+DAQAlarm.o: /usr/include/setjmp.h /usr/include/bits/setjmp.h
+DAQAlarm.o: /usr/include/sys/time.h /usr/include/unistd.h
+DAQAlarm.o: /usr/include/bits/posix_opt.h /usr/include/bits/confname.h
+DAQAlarm.o: /usr/include/getopt.h /usr/include/string.h
+DAQAlarm.o: /usr/include/xlocale.h /usr/include/ctype.h
+DAQTrap.o: /usr/include/stdlib.h /usr/include/features.h
+DAQTrap.o: /usr/include/bits/predefs.h /usr/include/sys/cdefs.h
+DAQTrap.o: /usr/include/bits/wordsize.h /usr/include/gnu/stubs.h
+DAQTrap.o: /usr/include/gnu/stubs-32.h /usr/include/sys/types.h
+DAQTrap.o: /usr/include/bits/types.h /usr/include/bits/typesizes.h
+DAQTrap.o: /usr/include/time.h /usr/include/endian.h
+DAQTrap.o: /usr/include/bits/endian.h /usr/include/bits/byteswap.h
+DAQTrap.o: /usr/include/sys/select.h /usr/include/bits/select.h
+DAQTrap.o: /usr/include/bits/sigset.h /usr/include/bits/time.h
+DAQTrap.o: /usr/include/sys/sysmacros.h /usr/include/bits/pthreadtypes.h
+DAQTrap.o: /usr/include/alloca.h /usr/include/stdio.h /usr/include/libio.h
+DAQTrap.o: /usr/include/_G_config.h /usr/include/wchar.h
+DAQTrap.o: /usr/include/bits/stdio_lim.h /usr/include/bits/sys_errlist.h
+DAQTrap.o: /usr/include/setjmp.h /usr/include/bits/setjmp.h
+DAQTrap.o: /usr/include/sys/time.h /usr/include/unistd.h
+DAQTrap.o: /usr/include/bits/posix_opt.h /usr/include/bits/confname.h
+DAQTrap.o: /usr/include/getopt.h /usr/include/string.h /usr/include/xlocale.h
+DAQTrap.o: /usr/include/ctype.h

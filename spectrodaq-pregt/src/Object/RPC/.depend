@@ -1,0 +1,126 @@
+# DO NOT DELETE
+
+DAQRPCStub.o: /usr/include/stdlib.h /usr/include/features.h
+DAQRPCStub.o: /usr/include/bits/predefs.h /usr/include/sys/cdefs.h
+DAQRPCStub.o: /usr/include/bits/wordsize.h /usr/include/gnu/stubs.h
+DAQRPCStub.o: /usr/include/gnu/stubs-32.h /usr/include/sys/types.h
+DAQRPCStub.o: /usr/include/bits/types.h /usr/include/bits/typesizes.h
+DAQRPCStub.o: /usr/include/time.h /usr/include/endian.h
+DAQRPCStub.o: /usr/include/bits/endian.h /usr/include/bits/byteswap.h
+DAQRPCStub.o: /usr/include/sys/select.h /usr/include/bits/select.h
+DAQRPCStub.o: /usr/include/bits/sigset.h /usr/include/bits/time.h
+DAQRPCStub.o: /usr/include/sys/sysmacros.h /usr/include/bits/pthreadtypes.h
+DAQRPCStub.o: /usr/include/alloca.h /usr/include/stdio.h /usr/include/libio.h
+DAQRPCStub.o: /usr/include/_G_config.h /usr/include/wchar.h
+DAQRPCStub.o: /usr/include/bits/stdio_lim.h /usr/include/bits/sys_errlist.h
+DAQRPCStub.o: /usr/include/setjmp.h /usr/include/bits/setjmp.h
+DAQRPCStub.o: /usr/include/sys/time.h /usr/include/unistd.h
+DAQRPCStub.o: /usr/include/bits/posix_opt.h /usr/include/bits/confname.h
+DAQRPCStub.o: /usr/include/getopt.h /usr/include/string.h
+DAQRPCStub.o: /usr/include/xlocale.h /usr/include/ctype.h
+DAQRPCServStub.o: /usr/include/stdlib.h /usr/include/features.h
+DAQRPCServStub.o: /usr/include/bits/predefs.h /usr/include/sys/cdefs.h
+DAQRPCServStub.o: /usr/include/bits/wordsize.h /usr/include/gnu/stubs.h
+DAQRPCServStub.o: /usr/include/gnu/stubs-32.h /usr/include/sys/types.h
+DAQRPCServStub.o: /usr/include/bits/types.h /usr/include/bits/typesizes.h
+DAQRPCServStub.o: /usr/include/time.h /usr/include/endian.h
+DAQRPCServStub.o: /usr/include/bits/endian.h /usr/include/bits/byteswap.h
+DAQRPCServStub.o: /usr/include/sys/select.h /usr/include/bits/select.h
+DAQRPCServStub.o: /usr/include/bits/sigset.h /usr/include/bits/time.h
+DAQRPCServStub.o: /usr/include/sys/sysmacros.h
+DAQRPCServStub.o: /usr/include/bits/pthreadtypes.h /usr/include/alloca.h
+DAQRPCServStub.o: /usr/include/stdio.h /usr/include/libio.h
+DAQRPCServStub.o: /usr/include/_G_config.h /usr/include/wchar.h
+DAQRPCServStub.o: /usr/include/bits/stdio_lim.h
+DAQRPCServStub.o: /usr/include/bits/sys_errlist.h /usr/include/setjmp.h
+DAQRPCServStub.o: /usr/include/bits/setjmp.h /usr/include/sys/time.h
+DAQRPCServStub.o: /usr/include/unistd.h /usr/include/bits/posix_opt.h
+DAQRPCServStub.o: /usr/include/bits/confname.h /usr/include/getopt.h
+DAQRPCServStub.o: /usr/include/string.h /usr/include/xlocale.h
+DAQRPCServStub.o: /usr/include/ctype.h /usr/include/netinet/in.h
+DAQRPCServStub.o: /usr/include/stdint.h /usr/include/bits/wchar.h
+DAQRPCServStub.o: /usr/include/sys/socket.h /usr/include/sys/uio.h
+DAQRPCServStub.o: /usr/include/bits/uio.h /usr/include/bits/socket.h
+DAQRPCServStub.o: /usr/include/bits/sockaddr.h /usr/include/asm/socket.h
+DAQRPCServStub.o: /usr/include/asm-generic/socket.h
+DAQRPCServStub.o: /usr/include/asm/sockios.h
+DAQRPCServStub.o: /usr/include/asm-generic/sockios.h /usr/include/bits/in.h
+DAQRPC.o: /usr/include/stdlib.h /usr/include/features.h
+DAQRPC.o: /usr/include/bits/predefs.h /usr/include/sys/cdefs.h
+DAQRPC.o: /usr/include/bits/wordsize.h /usr/include/gnu/stubs.h
+DAQRPC.o: /usr/include/gnu/stubs-32.h /usr/include/sys/types.h
+DAQRPC.o: /usr/include/bits/types.h /usr/include/bits/typesizes.h
+DAQRPC.o: /usr/include/time.h /usr/include/endian.h
+DAQRPC.o: /usr/include/bits/endian.h /usr/include/bits/byteswap.h
+DAQRPC.o: /usr/include/sys/select.h /usr/include/bits/select.h
+DAQRPC.o: /usr/include/bits/sigset.h /usr/include/bits/time.h
+DAQRPC.o: /usr/include/sys/sysmacros.h /usr/include/bits/pthreadtypes.h
+DAQRPC.o: /usr/include/alloca.h /usr/include/stdio.h /usr/include/libio.h
+DAQRPC.o: /usr/include/_G_config.h /usr/include/wchar.h
+DAQRPC.o: /usr/include/bits/stdio_lim.h /usr/include/bits/sys_errlist.h
+DAQRPC.o: /usr/include/setjmp.h /usr/include/bits/setjmp.h
+DAQRPC.o: /usr/include/sys/time.h /usr/include/unistd.h
+DAQRPC.o: /usr/include/bits/posix_opt.h /usr/include/bits/confname.h
+DAQRPC.o: /usr/include/getopt.h /usr/include/string.h /usr/include/xlocale.h
+DAQRPC.o: /usr/include/ctype.h
+DAQRPCHandler.o: /usr/include/stdlib.h /usr/include/features.h
+DAQRPCHandler.o: /usr/include/bits/predefs.h /usr/include/sys/cdefs.h
+DAQRPCHandler.o: /usr/include/bits/wordsize.h /usr/include/gnu/stubs.h
+DAQRPCHandler.o: /usr/include/gnu/stubs-32.h /usr/include/sys/types.h
+DAQRPCHandler.o: /usr/include/bits/types.h /usr/include/bits/typesizes.h
+DAQRPCHandler.o: /usr/include/time.h /usr/include/endian.h
+DAQRPCHandler.o: /usr/include/bits/endian.h /usr/include/bits/byteswap.h
+DAQRPCHandler.o: /usr/include/sys/select.h /usr/include/bits/select.h
+DAQRPCHandler.o: /usr/include/bits/sigset.h /usr/include/bits/time.h
+DAQRPCHandler.o: /usr/include/sys/sysmacros.h
+DAQRPCHandler.o: /usr/include/bits/pthreadtypes.h /usr/include/alloca.h
+DAQRPCHandler.o: /usr/include/stdio.h /usr/include/libio.h
+DAQRPCHandler.o: /usr/include/_G_config.h /usr/include/wchar.h
+DAQRPCHandler.o: /usr/include/bits/stdio_lim.h
+DAQRPCHandler.o: /usr/include/bits/sys_errlist.h /usr/include/setjmp.h
+DAQRPCHandler.o: /usr/include/bits/setjmp.h /usr/include/sys/time.h
+DAQRPCHandler.o: /usr/include/unistd.h /usr/include/bits/posix_opt.h
+DAQRPCHandler.o: /usr/include/bits/confname.h /usr/include/getopt.h
+DAQRPCHandler.o: /usr/include/string.h /usr/include/xlocale.h
+DAQRPCHandler.o: /usr/include/ctype.h
+DAQRPCServ.o: /usr/include/stdlib.h /usr/include/features.h
+DAQRPCServ.o: /usr/include/bits/predefs.h /usr/include/sys/cdefs.h
+DAQRPCServ.o: /usr/include/bits/wordsize.h /usr/include/gnu/stubs.h
+DAQRPCServ.o: /usr/include/gnu/stubs-32.h /usr/include/sys/types.h
+DAQRPCServ.o: /usr/include/bits/types.h /usr/include/bits/typesizes.h
+DAQRPCServ.o: /usr/include/time.h /usr/include/endian.h
+DAQRPCServ.o: /usr/include/bits/endian.h /usr/include/bits/byteswap.h
+DAQRPCServ.o: /usr/include/sys/select.h /usr/include/bits/select.h
+DAQRPCServ.o: /usr/include/bits/sigset.h /usr/include/bits/time.h
+DAQRPCServ.o: /usr/include/sys/sysmacros.h /usr/include/bits/pthreadtypes.h
+DAQRPCServ.o: /usr/include/alloca.h /usr/include/stdio.h /usr/include/libio.h
+DAQRPCServ.o: /usr/include/_G_config.h /usr/include/wchar.h
+DAQRPCServ.o: /usr/include/bits/stdio_lim.h /usr/include/bits/sys_errlist.h
+DAQRPCServ.o: /usr/include/setjmp.h /usr/include/bits/setjmp.h
+DAQRPCServ.o: /usr/include/sys/time.h /usr/include/unistd.h
+DAQRPCServ.o: /usr/include/bits/posix_opt.h /usr/include/bits/confname.h
+DAQRPCServ.o: /usr/include/getopt.h /usr/include/string.h
+DAQRPCServ.o: /usr/include/xlocale.h /usr/include/ctype.h
+DAQRPCServThread.o: /usr/include/stdlib.h /usr/include/features.h
+DAQRPCServThread.o: /usr/include/bits/predefs.h /usr/include/sys/cdefs.h
+DAQRPCServThread.o: /usr/include/bits/wordsize.h /usr/include/gnu/stubs.h
+DAQRPCServThread.o: /usr/include/gnu/stubs-32.h /usr/include/sys/types.h
+DAQRPCServThread.o: /usr/include/bits/types.h /usr/include/bits/typesizes.h
+DAQRPCServThread.o: /usr/include/time.h /usr/include/endian.h
+DAQRPCServThread.o: /usr/include/bits/endian.h /usr/include/bits/byteswap.h
+DAQRPCServThread.o: /usr/include/sys/select.h /usr/include/bits/select.h
+DAQRPCServThread.o: /usr/include/bits/sigset.h /usr/include/bits/time.h
+DAQRPCServThread.o: /usr/include/sys/sysmacros.h
+DAQRPCServThread.o: /usr/include/bits/pthreadtypes.h /usr/include/alloca.h
+DAQRPCServThread.o: /usr/include/stdio.h /usr/include/libio.h
+DAQRPCServThread.o: /usr/include/_G_config.h /usr/include/wchar.h
+DAQRPCServThread.o: /usr/include/bits/stdio_lim.h
+DAQRPCServThread.o: /usr/include/bits/sys_errlist.h /usr/include/setjmp.h
+DAQRPCServThread.o: /usr/include/bits/setjmp.h /usr/include/sys/time.h
+DAQRPCServThread.o: /usr/include/unistd.h /usr/include/bits/posix_opt.h
+DAQRPCServThread.o: /usr/include/bits/confname.h /usr/include/getopt.h
+DAQRPCServThread.o: /usr/include/errno.h /usr/include/bits/errno.h
+DAQRPCServThread.o: /usr/include/linux/errno.h /usr/include/asm/errno.h
+DAQRPCServThread.o: /usr/include/asm-generic/errno.h
+DAQRPCServThread.o: /usr/include/asm-generic/errno-base.h
+DAQRPCServThread.o: /usr/include/string.h /usr/include/xlocale.h

@@ -1,5 +1,5 @@
-SPECTRO_FLAGS=$(shell /usr/opt/spectrodaq-pregt/bin/spectrodaq-conf --cflags)
-SPECTRO_LDFLAGS=$(shell /usr/opt/spectrodaq-pregt/bin/spectrodaq-conf --libs)
+SPECTRO_FLAGS=$(shell /usr/opt/spectrodaq/bin/spectrodaq-conf --cflags)
+SPECTRO_LDFLAGS=$(shell /usr/opt/spectrodaq/bin/spectrodaq-conf --libs)
 
 # If you want to run the program in test mode, uncomment
 # the second definition of TESTFLAGS below.

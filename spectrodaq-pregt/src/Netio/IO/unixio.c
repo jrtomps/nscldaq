@@ -397,7 +397,11 @@ static int unix_locksock(int port)
   } else {
     pidstr[0] = '\0';
     sprintf(pidstr,"%d\n",getpid()); 
-    write(fd,pidstr,strlen(pidstr));
+    int status = write(fd,pidstr,strlen(pidstr));
+    if (status < 0) {
+      perror("Unable to write lock pid file");
+      return -1;
+    }
 
     sprintf(lockpath,UNIX_SOCKET_FORMAT,_unix_socket_dir_pfix_,port);
     unlink(lockpath); 

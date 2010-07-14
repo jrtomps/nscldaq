@@ -499,7 +499,7 @@ static void log_usage(const char *tag)
   char cmd[80];
   char wrk[513];
 
-  sprintf(cmd,"ps avmwx %ld",getpid());
+  sprintf(cmd,"ps avmwx %ld",static_cast<long>(getpid()));
   
   if ((fp = popen(cmd,"r")) != NULL) {
     daq_logger.printf("USAGE(%d): ",tag);

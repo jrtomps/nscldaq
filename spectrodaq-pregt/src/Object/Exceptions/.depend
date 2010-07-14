@@ -1,0 +1,24 @@
+# DO NOT DELETE
+
+DAQException.o: /usr/include/stdlib.h /usr/include/features.h
+DAQException.o: /usr/include/bits/predefs.h /usr/include/sys/cdefs.h
+DAQException.o: /usr/include/bits/wordsize.h /usr/include/gnu/stubs.h
+DAQException.o: /usr/include/gnu/stubs-32.h /usr/include/sys/types.h
+DAQException.o: /usr/include/bits/types.h /usr/include/bits/typesizes.h
+DAQException.o: /usr/include/time.h /usr/include/endian.h
+DAQException.o: /usr/include/bits/endian.h /usr/include/bits/byteswap.h
+DAQException.o: /usr/include/sys/select.h /usr/include/bits/select.h
+DAQException.o: /usr/include/bits/sigset.h /usr/include/bits/time.h
+DAQException.o: /usr/include/sys/sysmacros.h /usr/include/bits/pthreadtypes.h
+DAQException.o: /usr/include/alloca.h /usr/include/stdio.h
+DAQException.o: /usr/include/libio.h /usr/include/_G_config.h
+DAQException.o: /usr/include/wchar.h /usr/include/bits/stdio_lim.h
+DAQException.o: /usr/include/bits/sys_errlist.h /usr/include/setjmp.h
+DAQException.o: /usr/include/bits/setjmp.h /usr/include/sys/time.h
+DAQException.o: /usr/include/unistd.h /usr/include/bits/posix_opt.h
+DAQException.o: /usr/include/bits/confname.h /usr/include/getopt.h
+DAQException.o: /usr/include/errno.h /usr/include/bits/errno.h
+DAQException.o: /usr/include/linux/errno.h /usr/include/asm/errno.h
+DAQException.o: /usr/include/asm-generic/errno.h
+DAQException.o: /usr/include/asm-generic/errno-base.h /usr/include/string.h
+DAQException.o: /usr/include/xlocale.h
