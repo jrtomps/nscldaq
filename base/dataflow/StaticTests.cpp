@@ -11,6 +11,7 @@
 #include <sys/mman.h>
 #include <fcntl.h>
 #include <errno.h>
+#include <string.h>
 
 #include <ErrnoException.h>
 
@@ -213,9 +214,13 @@ StaticRingTest::isring()
   ASSERT(CRingBuffer::isRing(string(SHM_TESTFILE)));
   CRingBuffer::remove(string(SHM_TESTFILE));
 
-  string full = getFullName();
-  int fd = shm_open(full.c_str(), O_RDWR, 0);
-  EQ(0,  ftruncate(fd, 100));
+  string full = "/";
+  full       += SHM_TESTFILE;
+  int fd = shm_open(full.c_str(), O_RDWR | O_CREAT, 0);
+  ASSERT(fd != -1);
+  int stat = ftruncate(fd, 100);
+  int e    = errno;
+  EQMSG(strerror(e), 0,  ftruncate(fd, 100));
     
   ASSERT(!CRingBuffer::isRing(string(SHM_TESTFILE)));
  
