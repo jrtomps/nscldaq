@@ -98,7 +98,7 @@ CTriggerLoop::stop(bool pausing)
     char whybad[1000];
 
     sprintf(mypid, "%x", runningThread());
-    sprintf(whybad, "stopping thread must not have thread id: %x", 
+    sprintf(whybad, "stopping thread must not have thread id: %lx", 
 	    getId());
     throw CInvalidArgumentException(string(mypid), string(whybad),
 				    string("Scheduling a stop of data taking"));

@@ -23,6 +23,7 @@
 #include <string.h>
 #include <string>
 #include <unistd.h>
+#include <stdio.h>
 
 using namespace std;
 

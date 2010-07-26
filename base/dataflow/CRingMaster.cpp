@@ -33,6 +33,7 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <string.h>
+#include <stdint.h>
 
 
 #include <iostream>
@@ -441,7 +442,7 @@ CRingMaster::ipAddress(string host)
     // pEntry->h_addr_list[0] has a longword IP address in network byte order:
     //
  
-    long ipaddr = ntohl(*((long*)(pEntry->h_addr_list[0])));
+    uint32_t ipaddr = ntohl(*((long*)(pEntry->h_addr_list[0])));
     
     char encodedIp[32];
     sprintf(encodedIp, "%d.%d.%d.%d",

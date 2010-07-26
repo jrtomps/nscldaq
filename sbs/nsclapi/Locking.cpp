@@ -1,6 +1,6 @@
 /*
     This software is Copyright by the Board of Trustees of Michigan
-    State University (c) Copyright 2005.
+    State University (c) Copyright 2008
 
     You may use this software under the terms of the GNU public license
     (GPL).  The terms of this license are described at:
@@ -26,7 +26,9 @@
 #include <assert.h>
 #include <string>
 
+
 using namespace std;
+
 
 // In some cases we need to define the semun union:
 
@@ -67,8 +69,8 @@ static int semkey= 0x564d4520;  // "VME " :-).
       If an error occured on any of the system calls.
 
 */
-static void
-AttachSemaphore()
+void
+CVMEInterface::AttachSemaphore()
 {
   // Retry loop in case anybody makes and then kills it:
 
@@ -84,7 +86,7 @@ AttachSemaphore()
     // Sempahore does not exist.  Try to be the only guy to 
     // create it:
 
-    semid = semget(semkey, 1, 0777 | IPC_CREAT | IPC_EXCL);
+    semid = semget(semkey, 8, 0777 | IPC_CREAT | IPC_EXCL);
     if(semid >= 0) {
       // We're the creator... initialize the sempahore, and return.
 
@@ -114,6 +116,23 @@ AttachSemaphore()
   return;
 }
 /*!
+  Lock the transfer semaphore (semaphore 0).
+
+*/
+
+void CVMEInterface::Lock()
+{
+  Lock(0);
+}
+/*!
+  Unlock the transfer semaphore (semaphore 0).
+*/
+void CVMEInterface::Unlock()
+{
+  Unlock(0);
+}
+
+/*!
     Lock the semaphore.  If the semid is -1, the
     semaphore is created first.  
 
@@ -122,7 +141,7 @@ AttachSemaphore()
        - From failures in semop.
 */
 void 
-CVMEInterface::Lock() 
+CVMEInterface::Lock(int semnum) 
 {
   // If necessary, get the semaphore id..
 
@@ -130,7 +149,7 @@ CVMEInterface::Lock()
   assert(semid >= 0);		// Otherwise attach.. throws.
 
   struct sembuf buf;
-  buf.sem_num = 0;		// Only one semaphore.
+  buf.sem_num = semnum;		
   buf.sem_op  = -1;		// Want to take the semaphore.
   buf.sem_flg = SEM_UNDO;	// For process exit.
 
@@ -157,13 +176,13 @@ CVMEInterface::Lock()
      If the semaphore did not yet exist.
 */
 void
-CVMEInterface::Unlock()
+CVMEInterface::Unlock(int semnum)
 {
   if(semid == -1) {
     throw string("Attempt to unlock the semaphore before it was created");
   }
   struct sembuf buf;
-  buf.sem_num = 0;
+  buf.sem_num = semnum;
   buf.sem_op  = 1;
   buf.sem_flg= SEM_UNDO;	// Undoes the locking undo.
 

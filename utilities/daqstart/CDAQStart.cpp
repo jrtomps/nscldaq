@@ -22,6 +22,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include <errno.h>
 
 #include "cmdline.h"
 
@@ -411,6 +412,13 @@ CDAQStart::ReportExit()
     string Command("PopUp \"");
     Command += ExitMessage;
     Command += "\"";
-    system(Command.c_str());
+    if (system(Command.c_str())) {
+      int err = errno;
+      fprintf(stderr,"%s %s : %s\n",
+		    "Unable to start error dialog program ",
+		    Command.c_str(),
+		    strerror(err));
+      exit(-1);
+    }
   }
 }
