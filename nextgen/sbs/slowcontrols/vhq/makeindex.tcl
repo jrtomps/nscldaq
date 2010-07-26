@@ -1,1 +1,1 @@
-pkg_mkIndex /usr/local/TclLibs/vhq *.tcl
+pkg_mkIndex /usr/opt/daq/10.0/TclLibs/vhq *.tcl
