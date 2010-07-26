@@ -1,9 +1,10 @@
 lib_LTLIBRARIES = libbtp.la
-libbtp_la_SOURCES = bt_bind.c \
+libbtp_la_SOURCES =bt_bind.c \
 bt_cas.c \
 bt_chke.c \
 bt_clre.c \
 bt_ctrl.c \
+bt_hw_diag.c \
 bt_icbr.c \
 bt_info.c \
 bt_init.c \
@@ -33,4 +34,5 @@ INCLUDES = -I. -I../include \
 	-D_XOPEN_SOURCE	\
 	-O2 -Wall -Wstrict-prototypes
 
-include_HEADERS = btpiflib.h
+include_HEADERS =  btpiflib.h
+
