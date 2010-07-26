@@ -17,19 +17,29 @@ install-exec-local:
 		echo "\a\a" Must be root to install kernel module;	\
 	fi
 
-EXTRA_DIST= bt_bit.c \
+EXTRA_DIST=bt_assert.h \
+bt_bit.c \
+bt_bit.h \
+btdd.h \
 bt_delay.c \
+bt_delay.h \
 bt_diag.c \
 bt_event.c \
+bt_event.h \
 bt_icbr_thread.c \
 bt_isr.c \
 bt_llist.c \
+bt_llist.h \
 bt_mem.c \
+bt_mem.h \
 bt_mutex.c \
+bt_mutex.h \
 bt_nbus.c \
+bt_notrace.h \
 bt_param.c \
 btp_bind.c \
 btp_cfg.c \
+btpdd.h \
 btp_ioctl.c \
 btp_kernel.c \
 btp_lowio.c \
@@ -39,10 +49,11 @@ btp_open.c \
 btp_rdwr.c \
 btp_version.c \
 bt_rwlck.c \
+bt_rwlck.h \
 bt_setup.c \
+bt_trace.h \
+btunit.h \
 bt_xfer.c \
-btdd.h \
-btpdd.h \
 mkbtp	\
 Makefile
 
