@@ -28,6 +28,7 @@
 #include <errno.h>
 #include <unistd.h>
 #include <stdlib.h>
+#include <string.h>
 
 using namespace std;
 
@@ -289,7 +290,11 @@ CRingAccess::startFeeder(string proxyName, int socket)
 
   // Detach from the current terminal
 
-  daemon(1,1);			// TODO: Figure out posix way to do this.
+  if (daemon(1,1)) {
+    int err = errno;
+    cerr << "Unable to daemonize the feeder process. " << strerror(err) << endl;
+    exit(-1);
+  }			// TODO: Figure out posix way to do this.
 
   // Construct the path to stdintoring;
 

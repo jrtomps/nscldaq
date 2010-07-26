@@ -17,6 +17,8 @@
 #include "eventlogMain.h"
 #include "eventlogargs.h"
 
+
+
 #include <CRingBuffer.h>
 
 #include <CRingItem.h>
@@ -234,7 +236,12 @@ EventLogMain::recordRun(const CRingStateChangeItem& item)
 
       fd = openEventSegment(runNumber, segment);
     }
-    write(fd, pItem->getItemPointer(), size);
+    ssize_t n = write(fd, pItem->getItemPointer(), size);
+    if (n != size) {
+      int err =errno;
+      cerr << "Unable to output a ringbuffer item : "  << strerror(err) << endl;
+      exit(-1);
+    }
     bytesInSegment  += size;
 
     delete pItem;

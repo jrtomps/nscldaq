@@ -1055,7 +1055,7 @@ void CAENcard::MapCard()
      CVMEInterface::Close(fd);
 
      char buffer[128];
-     sprintf(buffer, "Card in crate %d, slot %d is incompatible or missing %d\n",
+     sprintf(buffer, "Card in crate %d, slot %d is incompatible or missing %ld\n",
 	     m_nCrate, m_nSlot, m_nCardType);
      throw string(buffer);
        

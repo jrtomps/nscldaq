@@ -215,8 +215,8 @@ StaticRingTest::isring()
 
   string full = getFullName();
   int fd = shm_open(full.c_str(), O_RDWR, 0);
-  ftruncate(fd, 100);
-
+  EQ(0,  ftruncate(fd, 100));
+    
   ASSERT(!CRingBuffer::isRing(string(SHM_TESTFILE)));
  
 }

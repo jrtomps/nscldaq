@@ -319,7 +319,7 @@ int CVmeCommand::ListMaps(CTCLInterpreter& rInterp,
 
     ResultString.StartSublist();
     ResultString.AppendElement(p->first);
-    sprintf(start, "0x%x", pMap->getBase());
+    sprintf(start, "0x%lx", pMap->getBase());
     ResultString.AppendElement(start);
     ResultString.EndSublist();
   }

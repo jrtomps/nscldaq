@@ -3,7 +3,7 @@ libSBSVmeAPI_la_SOURCES = SBSBIT3API.cpp Locking.cpp	\
 	VmeModule.cpp MmapError.cpp
 
 include_HEADERS = CVMEInterface.h SBSBit3API.h CVME.h \
-		CVMEInterface.h CVMEptr.h VmeModule.h MmapError.h
+		CVMEptr.h VmeModule.h MmapError.h
 
 # Locking.cpp
 

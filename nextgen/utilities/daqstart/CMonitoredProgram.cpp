@@ -12,7 +12,11 @@
 #include "CMonitoredProgram.h"    				
 #include "CSink.h"
 
+#include <iostream>
+
+
 #include <unistd.h>
+#include <errno.h>
 #include <string.h>
 #include <stdlib.h>
 
@@ -386,7 +390,11 @@ CMonitoredProgram::CopyIn(const CMonitoredProgram& rhs)
 void
 CMonitoredProgram::Log(int fd, CSink* pSink, string sLine)
 {
-  write(fd, sLine.c_str(), sLine.size());
+  ssize_t n = write(fd, sLine.c_str(), sLine.size());
+  if (n != sLine.size()) {
+    int e = errno;
+    cerr << "Unable to write a log entry " << strerror(e) << endl;
+  }
   if(pSink) {
     pSink->Log(sLine);
   }

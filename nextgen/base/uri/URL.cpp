@@ -18,6 +18,7 @@ using namespace std;
 #include <string.h>
 #include <limits.h>
 #include <stdlib.h>
+#include <stdio.h>
 
 #include <URIFormatException.h>
 
@@ -220,7 +221,7 @@ void URL::parseString(string rStr) {
 
   string protocol;
   const char* protocolStart;
-  char*       protocolEnd;
+  const char* protocolEnd;
   size_t      protocolLength;
 
   protocolStart = rStr.c_str();
@@ -241,8 +242,8 @@ void URL::parseString(string rStr) {
 
   string host;
   const char*  slash = "/";		// For strspn.
-  char*  hostStart;
-  char*  hostEnd;
+  const char*  hostStart;
+  const char*  hostEnd;
   off_t  nhostStart;
   size_t hostLength;
   size_t numSlashes;
