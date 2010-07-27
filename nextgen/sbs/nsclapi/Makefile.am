@@ -14,8 +14,10 @@ libSBSVmeAPI_la_LIBADD = @top_srcdir@/base/exception/libException.la	\
 			@top_srcdir@/sbs/driver/src/libbtp.la
 
 
+
 INCLUDES = -I@top_srcdir@/base/headers -I@top_srcdir@/base/exception	\
-	-I@top_srcdir@/sbs/driver/include
+	-I@top_srcdir@/sbs/driver/include	\
+	-I@top_srcdir@/sbs/driver/dd
 
 LDFLAGS = -lpthread
 

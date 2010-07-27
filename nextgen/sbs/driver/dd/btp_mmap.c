@@ -48,9 +48,13 @@ static inline int io_remap_page_range(struct vm_area_struct* vma,
 				      unsigned long          size, 
 				      pgprot_t               prot)
 {
+
+  return remap_pfn_range(vma, start, busaddr >> PAGE_SHIFT, size, prot);
+  /*
   void * va         = (void __force*)ioremap(busaddr, size);
   unsigned long pfn = virt_to_phys(va) >> PAGE_SHIFT;
-  return remap_pfn_range(vma, start, pfn, size, prot);
+  return io_remap_pfn_range(vma, start, pfn, size, prot);
+  */
 }
 
 #endif

@@ -17,6 +17,10 @@ install-exec-local:
 		echo "\a\a" Must be root to install kernel module;	\
 	fi
 
+install-data-local:
+	$(mkinstalldirs) $(prefix)/include
+	$(INSTALL_DATA) *.h $(prefix)/include
+
 EXTRA_DIST=bt_assert.h \
 bt_bit.c \
 bt_bit.h \
