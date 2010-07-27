@@ -93,11 +93,14 @@ CVMEInterface::AttachSemaphore()
       union semun data;
       data.val = 1;
 
-      int istat = semctl(semid, 0, SETVAL, data); // Allow 1 holder
-      if(istat < 0) {
-	throw CErrnoException("AttachSemaphore - semctl error unexpected");
-      }
+      for (int i = 0; i < 8; i++) {
 
+	int istat = semctl(semid, i, SETVAL, data); // Allow 1 holder
+	if(istat < 0) {
+	  throw CErrnoException("AttachSemaphore - semctl error unexpected");
+	}
+	
+      }
       break;
     }
     if(errno != EEXIST) {

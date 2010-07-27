@@ -11,6 +11,7 @@ static const char* Copyright= "(C) Copyright Michigan State University 2002, All
 #endif
 extern "C" {
 #include <btapi.h>
+#include <bt_trace.h>
 }
 #include <string>
 #include <string.h>
@@ -158,12 +159,19 @@ static bt_devdata_t
 setAmod(pDevHandle pHandle, bt_info_t which)
 {
   bt_devdata_t oldAmod(UINT_MAX);
-  if (pHandle->dmaAmod() != UINT_MAX) {
+  bt_devdata_t newAmod;
+  if ((which == BT_INFO_MMAP_AMOD) || (which == BT_INFO_PIO_AMOD))  {
+    newAmod = pHandle->pioAmod();
+  }
+  else {
+    newAmod = pHandle->dmaAmod();
+  }
+  if (newAmod != UINT_MAX) {
     bt_error_t err =  bt_get_info(pHandle->s_handle, which, &oldAmod);
     assert(err == BT_SUCCESS);
-    err = bt_set_info(pHandle->s_handle, which, pHandle->dmaAmod());
-    assert(err == BT_SUCCESS);
     CVMEInterface::Lock(AMOD_LOCK);
+    err = bt_set_info(pHandle->s_handle, which, newAmod);
+    assert(err == BT_SUCCESS);
   }
   return oldAmod;
 
@@ -232,7 +240,7 @@ CVMEInterface::Open(AddressMode eMode,
 
     // Set the appropriate byte swap mode for block transfers.
 
-    CSBSBit3VmeInterface::SetSwapMode(pHandle->s_handle, BT_SWAP_NONE);
+    CSBSBit3VmeInterface::SetSwapMode(pHandle, BT_SWAP_NONE);
 
   }
   catch(...) {
@@ -311,13 +319,13 @@ CVMEInterface::Map(void* pDeviceHandle,
   // then return it.. All of this is done with the AMOD lock held.
   //
   bt_devdata_t oldValue;
-  oldValue = setAmod(pHandle, BT_INFO_PIO_AMOD);
+  oldValue = setAmod(pHandle, BT_INFO_MMAP_AMOD);
 
   bt_error_t err = bt_mmap(*p,
 			   &pSpace, nBase, nBytes,
 			   BT_RDWR, BT_SWAP_NONE);
 
-  restoreAmod(pHandle, BT_INFO_PIO_AMOD, oldValue);
+  restoreAmod(pHandle, BT_INFO_MMAP_AMOD, oldValue);
 
   CheckError(p, err, "CVMEInterface[SBSBit3]::Map - bt_mmap failed : ");
   return pSpace;
