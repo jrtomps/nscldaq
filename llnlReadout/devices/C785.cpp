@@ -490,12 +490,20 @@ C785::Initialize(CVMUSB& controller)
 void
 C785::addReadoutList(CVMUSBReadoutList& list)
 {
+  uint32_t base = getUnsignedParameter("-base");
   // only read 1 event.
   //
   for (int i =0; i < EventsPerRead; i++) {
 
-    list.addFifoRead32(static_cast<uint32_t>(getIntegerParameter("-base")),
+    list.addFifoRead32(base,
 		       readamod, static_cast<size_t>(MaxEventSize+16));
+
+    // Clear event buffers:
+
+    list.addWrite32(base + BSet2,
+		    initamod, 4);
+    list.addWrite32(base + BClear2,
+		    initamod, 4);
   }
 }
 
