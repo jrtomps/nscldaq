@@ -17,7 +17,8 @@ extern "C" {
 #include <string.h>
 #include <limits.h>
 #include <assert.h>
-
+#include <unistd.h>
+#include <stdlib.h>
 
 using namespace std;
 
@@ -50,8 +51,20 @@ static const DeviceEntry kaDeviceTable[] = {
 */
 
 typedef struct _DevHandle {
-  bt_desc_t          s_handle;		// SBS device handle.
+  bt_desc_t           s_handle;		        // SBS device handle.
   const DeviceEntry*  s_description;		// Corresponding entry in kaDeviceTable.
+  size_t              s_fullBufferSize;         // Allocation size of transfer buffer.
+  uint8_t*            s_rawBuffer;              // Pointer to full buffer.
+  uint8_t*            s_alignedBuffer;          // page aligned buffer.
+
+  _DevHandle() :
+    s_fullBufferSize(0),
+    s_rawBuffer(0),
+    s_alignedBuffer(0) {}
+  ~_DevHandle() {
+    delete []s_rawBuffer;
+  }
+
   int  pioAmod() {
     return s_description->s_pioAmod;
   }
@@ -61,6 +74,7 @@ typedef struct _DevHandle {
   bt_dev_t device() {
     return s_description->s_eLogicalDevice;
   }
+  uint8_t* getBuffer(size_t nBytes);
 
 } DevHandle, *pDevHandle;
 
@@ -72,6 +86,47 @@ static const unsigned int BTERRORLENGTH(100); // Length of an error string.
 static const int      AMOD_LOCK(1);           // Semaphore number for lock when diddling the amod.
 
 // Local private 'static' functions.
+
+
+/*!
+  Return a pointer to a page aligned buffer for a handle that can 
+  hold at least the requested number of bytes.  If necessary
+  the buffer is allocated/reallocated to correct size.
+  @param nBytes - Required bytes.
+*/
+uint8_t*
+_DevHandle::getBuffer(size_t nBytes)
+{
+  int pageSize = getpagesize();
+  int pageMask = pageSize - 1;	// Assumes pageSize is a power of 2.
+
+  // Total size we need:
+
+  size_t requiredBytes  = nBytes +  pageSize;		// To  ensure we can align.
+
+  if (requiredBytes > s_fullBufferSize) {
+    s_rawBuffer        = reinterpret_cast<uint8_t*>(realloc(s_rawBuffer, requiredBytes));
+    s_fullBufferSize   = requiredBytes;
+    // Realloc is not gauranteed to give the same pointer so
+    // - recompute the page aligned buffer and size.
+    // - visit each page and make it differ so that we avoid
+    //   linux's memory compression which migh leave us with
+    //   all our pointers pointing to the same page-frame.
+    //
+    s_alignedBuffer = reinterpret_cast<uint8_t*>(reinterpret_cast<uint32_t>(s_rawBuffer + pageMask) 
+						 & ~pageMask); // Start of next page unless we're already aligned.
+    uint8_t* p     = s_rawBuffer;
+    uint8_t* e     = s_rawBuffer + s_fullBufferSize;
+    uint8_t  i     = 0;
+    while(p < e) {
+      *p   = i;
+      p   += pageSize;
+    }
+  }
+  return s_alignedBuffer;
+  
+}
+
 
 /*!
    Translate an address space selector into a logical device
@@ -247,7 +302,17 @@ CVMEInterface::Open(AddressMode eMode,
     delete pHandle;
     throw;
   }
-  
+   CSBSBit3VmeInterface::SetTraceMask( pHandle,
+				      BT_TRC_RD_WR |
+				      BT_TRC_DMA   |
+				      BT_TRC_PIO   |
+				      BT_TRC_RD_WR |
+				      BT_TRC_INFO |
+				      BT_TRC_DETAIL |
+				      BT_TRC_LIO    |
+				      BT_TRC_MAPREG |
+				      BT_TRC_FUNC);
+ 
   return (void*)pHandle;
 }
 /*!
@@ -412,14 +477,26 @@ CVMEInterface::Read(void* pDeviceHandle,
   bt_devdata_t oldAmod;
   oldAmod = setAmod(pHandle, BT_INFO_DMA_AMOD);
 
+  CSBSBit3VmeInterface::SetTraceMask( pHandle,
+				      BT_TRC_RD_WR |
+				      BT_TRC_DMA   |
+				      BT_TRC_PIO   |
+				      BT_TRC_RD_WR |
+				      BT_TRC_INFO |
+				      BT_TRC_DETAIL |
+				      BT_TRC_FUNC);
 
-  bt_error_t err = bt_read(*p, pBuffer, nOffset, nBytes,
+  // Buffer the read through a page aligned buffer:
+
+  uint8_t*     pLocalBuffer = pHandle->getBuffer(nBytes);
+  bt_error_t err = bt_read(*p, pLocalBuffer, nOffset, nBytes,
 			   &nTransferred);
 
   restoreAmod(pHandle, BT_INFO_DMA_AMOD, oldAmod);
 
 
   CheckError(p, err, "CVMEInterface[SBSBit3]::Read - bt_read failed : ");
+  memcpy(pBuffer, pLocalBuffer, nTransferred);
   return nTransferred;
      
 
@@ -466,8 +543,11 @@ CVMEInterface::Write(void* pDeviceHandle,
   bt_devdata_t oldAmod;
   oldAmod = setAmod(pHandle, BT_INFO_DMA_AMOD);
 
+  // Buffer the write through a page aligned buffer:
 
-  bt_error_t err = bt_write(*p, pBuffer, nOffset, nBytes,
+  uint8_t* pLocalBuffer = pHandle->getBuffer(nBytes);
+  memcpy(pLocalBuffer, pBuffer, nBytes);
+  bt_error_t err = bt_write(*p, pLocalBuffer, nOffset, nBytes,
 			   &nTransferred);
 
   restoreAmod(pHandle, BT_INFO_DMA_AMOD, oldAmod);
