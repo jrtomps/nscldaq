@@ -99,11 +99,14 @@ namespace eval tablelist {
 	variable helpLabel
 	variable configSpecs
 
+	# Kludges for 8.5:
+
 	#
 	# Append the default values of the configuration options
 	# of a temporary, invisible listbox widget to the values
 	# of the corresponding elements of the array configSpecs
 	#
+	
 	set helpListbox .__helpListbox
 	for {set n 0} {[winfo exists $helpListbox]} {incr n} {
 	    set helpListbox .__helpListbox$n
@@ -313,7 +316,7 @@ namespace eval tablelist {
     #
     # Use lists to facilitate the handling of miscellaneous options
     #
-    variable activeStyles	[list underline frame]
+    variable activeStyles	[list underline frame dotbox]
     variable alignments		[list left right center]
     variable arrowTypes		[list up down]
     variable states		[list disabled normal]
@@ -394,6 +397,8 @@ proc tablelist::tablelist args {
     variable configSpecs
     variable configOpts
 
+
+
     if {[llength $args] == 0} {
 	mwutil::wrongNumArgs "tablelist pathName ?options?"
     }
@@ -446,7 +451,6 @@ proc tablelist::tablelist args {
 	#
 	variable attribVals
     }
-
     #
     # Initialize some further components of data
     #
@@ -554,6 +558,7 @@ proc tablelist::tablelist args {
 	destroy $win
 	return -code error $result
     }
+
 
     #
     # Move the original widget command into the current namespace
@@ -800,6 +805,7 @@ proc tablelist::doConfig {win opt val} {
 		    # Configure the "active" tag and save the
 		    # properly formatted value of val in data($opt)
 		    #
+
 		    variable activeStyles
 		    set val [mwutil::fullOpt "active style" $val $activeStyles]
 		    set w $data(body)
@@ -810,6 +816,7 @@ proc tablelist::doConfig {win opt val} {
 			frame {
 			    $w tag configure active -relief solid -underline 0
 			}
+
 		    }
 		    set data($opt) $val
 		}
