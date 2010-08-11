@@ -168,7 +168,7 @@ int TcpClientConnection::GetLine(string& rBuffer)
   //  The text is *appended* to the rBuffer parameter
   // Returns:
   //    Number of characters read.
-  //    0  - End of file encountered at first read.
+  //    0  - End of file encountered at first read. -- or line consisting only of \n.
   //   -1  - errno based problem.
   //   >0  - Number of bytes read.
 
@@ -179,25 +179,30 @@ int TcpClientConnection::GetLine(string& rBuffer)
 
   Bool_t fDone = kfFALSE;
   int    nBytes= 0;
-  char   Buffer[100];		// Internal buffer for peekahead.
+  char   Buffer[1000];		// Internal buffer for peekahead.
   Bool_t fGotBytes = kfFALSE;	// To deal with empty lines.
   while(!fDone) {
     int nAvail = recv(m_nFd, Buffer, sizeof(Buffer-1), MSG_PEEK);
+    int nBytesAdded = 0;
     if(nAvail >0) fGotBytes = kfTRUE;
     if(nAvail ==0) return nBytes; // End of file (socket closed).
     if(nAvail < 0) return nAvail; // Error.
     Buffer[nAvail] = 0;		// Ensure null termination.
     char* pEol = index(Buffer, '\n');
-    if(pEol) {
+    if(pEol && (pEol != Buffer)) {
       pEol--;			// Don't include the eol character.
       AppendString(rBuffer, Buffer, pEol);
-      nAvail = ((unsigned long)pEol - (unsigned long)Buffer);
+      nBytesAdded = ((unsigned long)pEol - (unsigned long)Buffer);
       fDone = kfTRUE;		// Done at end of line.
     }
-    else {
+    else if (!pEol) {
+      nBytesAdded  = nAvail;
       rBuffer += Buffer;
     }
-    nBytes += nAvail;		// Update the number of bytes read.
+    else {			// Bare end of line:
+      fDone = kfTRUE;
+    }
+    nBytes += nBytesAdded;		// Update the number of bytes read.
     recv(m_nFd, Buffer, nAvail, 0); // Flush them from the input.
   }
   if((nBytes <= 0) && (!fGotBytes)) DisconnectSensed();
