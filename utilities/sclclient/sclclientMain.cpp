@@ -225,6 +225,7 @@ SclClientMain::processItems()
 
 	  
 	  if (!beginSeen) {
+	    m_pServer->SendCommand("set RunState Active");
 	    m_pServer->SendCommand("RunInProgress");
 	    clearTotals();
 	    beginSeen = true;	// only do this once though.
