@@ -575,5 +575,6 @@ int CExperiment::HandleEndRunEvent(Tcl_Event* evPtr, int flags)
   pEndRunEvent pEvent = reinterpret_cast<pEndRunEvent>(evPtr);
   CExperiment* pExperiment  = pEvent->pExperiment;
   pExperiment->syncEndRun(pEvent->pause);
+  return 1;
 }
 
