@@ -6,5 +6,5 @@ option "source"  s "URL of source ring"           string optional
 option "sample"  S "List item types for sampling" string optional
 option "exclude" e "List item types to exclude"   string optional
 option "accept"  a "List item types to accept"    string optional
-option "formatted" F "Format data"
+option "formatted" F "Format data" optional
 
