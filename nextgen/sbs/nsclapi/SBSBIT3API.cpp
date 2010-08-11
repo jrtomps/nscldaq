@@ -302,16 +302,6 @@ CVMEInterface::Open(AddressMode eMode,
     delete pHandle;
     throw;
   }
-   CSBSBit3VmeInterface::SetTraceMask( pHandle,
-				      BT_TRC_RD_WR |
-				      BT_TRC_DMA   |
-				      BT_TRC_PIO   |
-				      BT_TRC_RD_WR |
-				      BT_TRC_INFO |
-				      BT_TRC_DETAIL |
-				      BT_TRC_LIO    |
-				      BT_TRC_MAPREG |
-				      BT_TRC_FUNC);
  
   return (void*)pHandle;
 }
