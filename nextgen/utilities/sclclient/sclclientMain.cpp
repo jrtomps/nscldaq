@@ -226,6 +226,7 @@ SclClientMain::processItems()
 	  
 	  if (!beginSeen) {
 	    m_pServer->SendCommand("RunInProgress");
+	    clearTotals();
 	    beginSeen = true;	// only do this once though.
 	  }
 	  CRingScalerItem item(*pItem);
@@ -497,5 +498,12 @@ SclClientMain::clearTotals()
     setDouble("Scaler_Totals", 0.0, i);
     setInteger("Scaler_Increments", 0, i);
   }
-  m_pServer->SendCommand("Update");
+  //
+  // At the very beginning of the first run,
+  // the scaler display program won't have any scaler array elements.
+  // not until the first update in any event.
+  //
+  if (m_Totals.size() > 0) {
+    m_pServer->SendCommand("Update");
+  }
 }
