@@ -490,7 +490,7 @@ C785::Initialize(CVMUSB& controller)
 void
 C785::addReadoutList(CVMUSBReadoutList& list)
 {
-  uint32_t base = getUnsignedParameter("-base");
+  uint32_t base = m_pConfiguration->getUnsignedParameter("-base");
   // only read 1 event.
   //
   for (int i =0; i < EventsPerRead; i++) {

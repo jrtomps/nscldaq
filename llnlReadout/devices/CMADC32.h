@@ -77,10 +77,21 @@ class CVMUSBReadoutList;
    -timingsource        enum (vme,external)  Determines where timestamp source is.
    -timingdivisor       int [0-15]          Divisor (2^n) of timestamp clock
    -thresholds          int[32] [0-4095]    Threshold settings (0 means unused).
+   -multievent          bool (false)        Enable/disablen multi-event mode.
+   -irqthreshold        integer 0           # Events before interrupt.
+   -resolution          enum (8k)           2k 4k 4khires 8k 8khires ..
+                                            possible ADC resolution values.
+
 \endverbatim
 */
 class CMADC32 : public CReadoutHardware
 {
+public:
+  enum ChainPosition {
+    first,
+    middle,
+    last
+  };
 private:
   CReadoutModule*     m_pConfiguration;
 public:
@@ -100,7 +111,17 @@ public:
   virtual void addReadoutList(CVMUSBReadoutList& list);
   virtual CReadoutHardware* clone() const;
 
+  // The following functions are used by the madcchain module.
+  //
+  void setChainAddresses(CVMUSB& controller,
+			 ChainPosition position,
+			 uint32_t      cbltBase,
+			 uint32_t      mcastBase);
 
+
+  // Utilities:
+
+  int resolutionValue(std::string selector); // Resolution string to register value.
 };
 
 

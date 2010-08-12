@@ -60,10 +60,20 @@ Const(Reset)                0x6008; // write anything here to reset the module.
 
 Const(Ipl)                  0x6010;
 Const(Vector)               0x6012;
+Const(IrqReset)             0x6016;
+Const(IrqThreshold)         0x6018;
+Const(MaxTransfer)          0x601a;
+Const(WithdrawIrqOnEmpty)   0x601c;
+
+Const(CbltMcstControl)      0x6020;
+Const(CbltAddress)          0x6022;
+Const(McstAddress)          0x6024;
+
 
 Const(LongCount)            0x6030;
 Const(DataFormat)           0x6032;
 Const(ReadoutReset)         0x6034;
+Const(MultiEvent)           0x6036;
 Const(MarkType)             0x6038;
 Const(StartAcq)             0x603A;
 Const(InitFifo)             0x603c;
@@ -92,6 +102,17 @@ Const(TimestampReset)       EventCounterReset; // As of firmware 5.
 
 Const(TestPulser)           0x6070; // In order to ensure it's off !
 
+
+// Mcast/CBLT control register bits:
+
+Const(MCSTENB)              0x80;
+Const(MCSTDIS)              0x40;
+Const(FIRSTENB)             0x20;
+Const(FIRSTDIS)             0x10;
+Const(LASTENB)              0x08;
+Const(LASTDIS)              0x04;
+Const(CBLTENB)              0x02;
+Const(CBLTDIS)              0x01;
 
 /////////////////////////////////////////////////////////////////////////////////
 // Data that drives parameter validity checks.
@@ -138,29 +159,47 @@ static CConfigurableObject::TypeCheckInfo HoldValueOk(CConfigurableObject::isInt
 static CConfigurableObject::isListParameter HoldValidity(Zero, Byte, 
 							 HoldValueOk);
 
+// Limits on irqthreshold:
+
+static CConfigurableObject::limit irqThresholdMax(956); // that's what the manual says 
+static CConfigurableObject::Limits irqThresholdLimits(Zero, irqThresholdMax);
+
+
+
 
 // Note for all enums, the first item in the list is the default.
 
 
 // Legal gatemode values for the enumerator:
 
-const char* GateModeValues[2] = {"common", "separate"};
-const int   GateModeNumValues = sizeof(GateModeValues)/sizeof(char*);
+static const char* GateModeValues[2] = {"common", "separate"};
+static const int   GateModeNumValues = sizeof(GateModeValues)/sizeof(char*);
 
 // Legal values for the adc input range:
 
-const char* InputRangeValues[3] = {"4v", "8v", "10v"};
-const int   InputRangeNumValues = sizeof(InputRangeValues)/sizeof(char*);
+static const char* InputRangeValues[3] = {"4v", "8v", "10v"};
+static const int   InputRangeNumValues = sizeof(InputRangeValues)/sizeof(char*);
 
 // Legal values for the timing source.
 
-const char* TimingSourceValues[2] = {"vme", "external"};
-const int   TimingSourceNumValues = sizeof(TimingSourceValues)/sizeof(char*);
+static const char* TimingSourceValues[2] = {"vme", "external"};
+static const int   TimingSourceNumValues = sizeof(TimingSourceValues)/sizeof(char*);
 
 // Legal values for the timing divisor (0-15)
 
 static CConfigurableObject::limit divisorLimit(0xffff);
 static CConfigurableObject::Limits DivisorLimits(Zero, divisorLimit);
+
+// Legal values for the resolution...note in this case the default is explicitly defined as 8k
+
+static const char* resolutions[5] = {
+  "2k",
+  "4k",
+  "4khires",
+  "8k",
+  "8khires"
+};
+static const int resolutionsNumValues = sizeof(resolutions)/sizeof(char*);
 
 ////////////////////////////////////////////////////////////////////////////////
 // Constructors and implemented canonical operations:
@@ -276,6 +315,21 @@ CMADC32::onAttach(CReadoutModule& configuration)
   m_pConfiguration->addParameter("-pulser", CConfigurableObject::isBool,
 				 NULL, "false");
 
+
+  // Parameters to support multi-event/irq mode
+
+  m_pConfiguration->addParameter("-multievent", CConfigurableObject::isBool,
+				 NULL, "false");
+  m_pConfiguration->addParameter("-irqthreshold", CConfigurableObject::isInteger,
+				 &irqThresholdLimits, "0");
+
+  static CConfigurableObject::isEnumParameter validResolution;
+  for(int i = 0; i < resolutionsNumValues; i++) {
+    validResolution.insert(resolutions[i]);
+  }
+  m_pConfiguration->addParameter("-resolution", CConfigurableObject::isEnum,
+				 &validResolution, "8k");
+
 }
 /*!
    Initialize the module prior to data taking.  We will get the initialization
@@ -328,6 +382,9 @@ CMADC32::Initialize(CVMUSB& controller)
   int         timedivisor = m_pConfiguration->getIntegerParameter("-timingdivisor");
   vector<int> thresholds  = m_pConfiguration->getIntegerList("-thresholds");
   bool        pulser      = m_pConfiguration->getBoolParameter("-pulser");
+  bool        multiEvent  = m_pConfiguration->getBoolParameter("-multievent");
+  string      resolution  = m_pConfiguration->cget("-resolution");
+  int         irqThreshold= m_pConfiguration->getIntegerParameter("-irqthreshold");
 
   // Write the thresholds.
 
@@ -455,6 +512,18 @@ CMADC32::Initialize(CVMUSB& controller)
   list.addWrite16(base + NIMBusyFunction, initamod, 0);
   list.addDelay(MADCDELAY);
 
+  // Process -resolution, -irqthreshold and -multievent
+
+  list.addWrite16(base + Resolution, initamod, resolutionValue(resolution));
+  list.addWrite16(base + IrqThreshold, initamod, irqThreshold);
+  list.addWrite16(base + WithdrawIrqOnEmpty, initamod, 1);
+  if(multiEvent) {
+    list.addWrite16(base + MultiEvent, initamod, 3);
+  }
+  else {
+    list.addWrite16(base + MultiEvent, initamod, 0);
+  }
+
   // Finally clear the converter and set the IPL which enables interrupts if
   // the IPL is non-zero, and does no harm if it is zero.
 
@@ -472,6 +541,7 @@ CMADC32::Initialize(CVMUSB& controller)
   list.addWrite16(base + InitFifo,     initamod, 0);
   list.addDelay(MADCDELAY);
   list.addWrite16(base + StartAcq, initamod, 1 );
+
 
 
 
@@ -512,4 +582,72 @@ CReadoutHardware*
 CMADC32::clone() const
 {
   return new CMADC32(*this);
+}
+////////////////////////////////////////////////////////////////////////////////////////////
+//
+// Code here provides support for the madcchain pseudo module that use these devices
+// in CBLT mode.
+//
+
+/*!
+   Set up the chain/mcast addresses.
+   @param controller - Handle to VM_USB controller object.
+   @param position   - A value from the position enumerator CMADC32::ChainPosition
+   @param cbltBase   - Base address for CBLT transfers.
+   @param mcastBase  - Base address for multicast transfers.
+
+   Note that both mcast and cblt are enabled for now.
+*/
+void
+CMADC32::setChainAddresses(CVMUSB&                controller,
+			   CMADC32::ChainPosition position,
+			   uint32_t               cbltBase,
+			   uint32_t               mcastBase)
+{
+
+  uint32_t base = m_pConfiguration->getIntegerParameter("-base");
+
+  // Compute the value of the control register..though we will first program
+  // the addresses then the control register:
+
+  uint16_t controlRegister = MCSTENB | CBLTENB; // This much is invariant.
+  switch (position) {
+  first:
+    controlRegister |= FIRSTENB | LASTDIS;
+    break;
+  middle:
+    controlRegister |= FIRSTDIS | LASTDIS;
+    break;
+  last:
+    controlRegister |= FIRSTDIS | LASTENB;
+  }
+
+  // program the registers, note that the address registers take only the top 8 bits.
+
+  controller.vmeWrite16(base + CbltAddress, initamod, cbltBase >> 24);
+  controller.vmeWrite16(base + McstAddress, initamod, mcastBase >> 24);
+  controller.vmeWrite16(base + CbltMcstControl, initamod, controlRegister);
+
+}
+///////////////////////////////////////////////////////////////////////////////////////////////
+//
+// Private utilities:
+//
+
+/*
+** convert the resolution string into a register value.
+*/
+int
+CMADC32::resolutionValue(string selector)
+{
+  for (int i =0; i < resolutionsNumValues; i++) {
+    if (selector == resolutions[i]) {
+      return i;
+    }
+  }
+  // enum checking should prevent this so:
+
+  string msg = "Invalid value for resolution parameter: ";
+  msg       +=  selector;
+  throw msg;
 }
