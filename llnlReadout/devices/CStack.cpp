@@ -59,7 +59,7 @@ static CConfigurableObject::Limits stackRange(stackLow, stackHigh);
 //         mulitiply it by 2.
 
 static CConfigurableObject::limit vectorLow(0);
-static CConfigurableObject::limit vectorHigh(0x7f);
+static CConfigurableObject::limit vectorHigh(0xff);
 static CConfigurableObject::Limits vectorRange(vectorLow, vectorHigh);
 
 // -delay is in the range 0 - 0xff  number of microseconds of delay 
@@ -360,7 +360,7 @@ CStack::enableStack(CVMUSB& controller)
   //   ISV78 is not used.     (which == 4).
   //
   //
-  int which     = (listNumber - 2)/2; // the ISV pair number.
+  int which     = (listNumber - 2)/2 + 1; // the ISV pair number.
   bool highHalf = (listNumber % 2) == 0;   // evens are in the low 1/2 odds the top  1/2.
 
   uint32_t isvValue = controller.readVector(which); // manipulate the current value.
@@ -397,6 +397,11 @@ CStack::enableStack(CVMUSB& controller)
 
   controller.writeVector(which, isvValue);
 
+  // Ensure the IPL's bit is not set in the interrupt mask:
+
+  uint8_t irqmask = controller.readIrqMask();
+  irqmask        &= ~(1 << irq);
+  controller.writeIrqMask(irqmask);
 }
 
 ////////////////////////////////////////////////////////////////////////////////

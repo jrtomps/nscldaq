@@ -194,6 +194,15 @@ CMADCChain::addReadoutList(CVMUSBReadoutList& rdolist)
 
   rdolist.addFifoRead32(location, cbltamod, size);
 }
+/*!
+ * Virtual copy constructor.
+ */
+CReadoutHardware*
+CMADCChain::clone() const
+{
+  return new CMADCChain(*this);
+}
+
 /////////////////////////////////////////////////////////////////////////////////////////
 // Utility functions (private).
 /////////////////////////////////////////////////////////////////////////////////////////
@@ -242,7 +251,7 @@ CMADCChain::namesToList(list<string> moduleNames)
   while(pName != moduleNames.end()) {
     string name = *pName;
     CReadoutModule* pModule = pModules->findAdc(name);
-    CMADC32*        pAdc    = dynamic_cast<CMADC32*>(pModule);
+    CMADC32*        pAdc    = dynamic_cast<CMADC32*>(pModule->getHardwarePointer());
     assert(pAdc);
     m_Chain.push_back(pAdc);
 

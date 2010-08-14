@@ -58,7 +58,7 @@ static CConfigurableObject::Limits IPLLimit(Zero, IPLMax);
 // Interrupt vector:
 
 static CConfigurableObject::limit VectorMax(255);
-static CConfigurableObject::Limits VectorLimit(Zero, IPLMax);
+static CConfigurableObject::Limits VectorLimit(Zero, VectorMax);
 
 // List parameters have constraints on their sizes (HoldListSize),
 // Value types, and parameters to the type checker (e.g. range limitations).

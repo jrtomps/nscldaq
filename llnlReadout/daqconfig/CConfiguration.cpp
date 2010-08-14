@@ -29,6 +29,7 @@
 #include "CV1x90Command.h"
 #include "CV977Command.h"
 #include "CMASECommand.h"
+#include "CMADCChainCommand.h"
 
 #include <CReadoutModule.h>
 #include <TCLInterpreter.h>
@@ -73,6 +74,7 @@ CConfiguration::CConfiguration() :
   m_Commands.push_back(new CV1x90Command(*m_pInterp, *this));
   m_Commands.push_back(new CV977Command(*m_pInterp, *this));
   m_Commands.push_back(new CMASECommand(*m_pInterp, *this));
+  m_Commands.push_back(new CMADCChainCommand(*m_pInterp, *this));
 
 }
 /*!

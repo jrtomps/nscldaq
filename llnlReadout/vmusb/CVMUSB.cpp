@@ -60,8 +60,9 @@ static const unsigned int ISV56(0x30);          // Interrupt 5/6 dispatch.
 static const unsigned int ISV78(0x34);          //  Interrupt 7/8 dispatch.
 static const unsigned int DGGExtended(0x38);    // DGG Additional bits.
 static const unsigned int USBSetup(0x3c);       // USB Bulk transfer setup. 
-static const unsigned int USBVHIGH1(0x40);      // High bits of ISV12/34.
-static const unsigned int USBVHIGH2(0x44);      // High bits of ISV56/78.
+static const unsigned int USBVHIGH1(0x40);       // additional bits of some of the interrupt vectors.
+static const unsigned int USBVHIGH2(0x44);       // additional bits of the other interrupt vectors.
+
 
 // Bits in the list target address word:
 
@@ -158,6 +159,12 @@ CVMUSB::CVMUSB(struct usb_device* device) :
     usb_clear_halt(m_handle, ENDPOINT_OUT);
 
     usleep(100);
+    
+    // Now set the irq mask so that all bits are set..that:
+    // - is the only way to ensure the m_irqMask value matche the register.
+    // - Nesures m_irqMask actually gets set:
+
+    writeIrqMask(0xff);
 }
 ////////////////////////////////////////////////////////////////
 /*!
@@ -440,12 +447,14 @@ CVMUSB::writeVector(int which, uint32_t value)
     unsigned int regno = whichToISV(which);
     writeRegister(regno, value);
     
-    // Horrible kluge... zero the top parts of all VM-USB interrupt
-    // vectors for now. 
+    // Horrible kluge... 
+    // set the tops of the vectors to 0xfffffff in keeping with what 8bit
+    // interrupters (the only type  I know of) require).
 
-    writeRegister(USBVHIGH1, 0);
-    writeRegister(USBVHIGH2, 0);
+    writeRegister(USBVHIGH1, 0xffffffff);
+    writeRegister(USBVHIGH2, 0xffffffff);
 }
+
 
 /*!
   Read an interrupt service vector register.  See writeVector for
@@ -462,6 +471,48 @@ CVMUSB::readVector(int which)
 {
     unsigned int regno = whichToISV(which);
     return readRegister(regno);
+}
+
+/*!
+   Write the interrupt mask.  This 8 bit register has bits that are set for
+   each interrupt level that should be ignored by the VM-USB.
+   @param mask Interrupt mask to write.
+*/
+void
+CVMUSB::writeIrqMask(uint8_t mask)
+{
+  // Well this is a typical VM-USB abomination:
+  // - First save the global (mode?) register as we're going to wipe it out
+  // - Next write the irqmask | 0x8000 to the glboal mode register.
+  // - Write a USB trigger to the action register.
+  // - Clear the action register(?)
+  // - Write 0 to the global mode register.
+  // - restore the saved global mode register.
+
+  uint16_t oldGlobalMode = readGlobalMode();
+  uint16_t gblmask      = mask;
+  gblmask              |= 0x8000;
+  writeGlobalMode(gblmask);
+  writeActionRegister(2);	// Hopefully bit 1 numbered from zero not one.
+  writeActionRegister(0);
+  writeGlobalMode(oldGlobalMode); //sheesh.
+
+  m_irqMask = mask;
+}
+/*!
+   Read the interrupt mask.  This 8 bit register has bits set for each
+   interrupt level that should be ignoered by the VM-USB.
+   @return uint8_t
+   @retval contents of the mask register.
+*/;
+uint8_t
+CVMUSB::readIrqMask()
+{
+  // Since the interrupt mask register appears cleverly crafted so that you
+  // can't actually read it without destroying it, we're just going to use
+  // a copy of the value:
+
+  return m_irqMask;
 }
 ///////////////////////////////////////////////////////////////////////
 /*!

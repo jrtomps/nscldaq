@@ -72,7 +72,8 @@ class CVMUSB
 private:
     struct usb_dev_handle*  m_handle;	// Handle open on the device.
     struct usb_device*      m_device;   // Device we are open on.
-    int              m_timeout; // Timeout used when user doesn't give one.
+    int                     m_timeout; // Timeout used when user doesn't give one.
+    uint16_t                m_irqMask; // interrupt mask shadow register.
 
     // Static functions.
 public:
@@ -130,6 +131,10 @@ public:
 
     void     writeVector(int which, uint32_t value);
     uint32_t readVector(int which);
+
+
+    void     writeIrqMask(uint8_t mask);
+    uint8_t  readIrqMask();
 
     void     writeBulkXferSetup(uint32_t value);
     uint32_t readBulkXferSetup();
