@@ -118,7 +118,7 @@ public:
 			 uint32_t      cbltBase,
 			 uint32_t      mcastBase);
 
-
+  void initCBLTReadout(CVMUSB& controller, uint32_t cbltAddress, int wordsPermodule);
   // Utilities:
 
   int resolutionValue(std::string selector); // Resolution string to register value.

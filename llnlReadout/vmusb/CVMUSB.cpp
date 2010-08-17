@@ -494,8 +494,10 @@ CVMUSB::writeIrqMask(uint8_t mask)
   gblmask              |= 0x8000;
   writeGlobalMode(gblmask);
   writeActionRegister(2);	// Hopefully bit 1 numbered from zero not one.
-  writeActionRegister(0);
-  writeGlobalMode(oldGlobalMode); //sheesh.
+  uint32_t maskValue         = readFirmwareID(); // should have the mask.
+  writeGlobalMode(0);			    // Turn off this nonesense
+
+  writeGlobalMode(oldGlobalMode); // restor the old globalmode.
 
   m_irqMask = mask;
 }
@@ -667,7 +669,7 @@ CVMUSB::vmeRead8(uint32_t address, uint8_t aModifier, uint8_t* data)
     transfers are done in 32 bit width.
 
     \param baseAddress : uint32_t
-      First transfer address of the transfer.
+      Fisrt transfer address of the transfer.
     \param aModifier   : uint8_t
       Address modifier of the transfer.  See above for restrictions.
     \param data        : void*

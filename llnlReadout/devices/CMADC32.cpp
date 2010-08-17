@@ -1,6 +1,6 @@
 /*
     This software is Copyright by the Board of Trustees of Michigan
-    State University (c) Copyright MADCDELAY5.
+
 
     You may use this software under the terms of the GNU public license
     (GPL).  The terms of this license are described at:
@@ -312,6 +312,12 @@ CMADC32::Initialize(CVMUSB& controller)
   string      resolution  = m_pConfiguration->cget("-resolution");
   int         irqThreshold= m_pConfiguration->getIntegerParameter("-irqthreshold");
 
+  // module ID:
+
+  list.addWrite16(base + ModuleId, initamod, id); // Module id.
+  list.addDelay(MADCDELAY);
+
+
   // Write the thresholds.
 
   for (int i =0; i < 32; i++) {
@@ -319,8 +325,6 @@ CMADC32::Initialize(CVMUSB& controller)
     list.addDelay(MADCDELAY);
   }
 
-  list.addWrite16(base + Vector,   initamod, ivector);
-  list.addDelay(MADCDELAY);
 
   list.addWrite16(base + MarkType, initamod, timestamp ? 1 : 0); 
   list.addDelay(MADCDELAY);
@@ -441,27 +445,30 @@ CMADC32::Initialize(CVMUSB& controller)
   // Process -resolution, -irqthreshold and -multievent
 
   list.addWrite16(base + Resolution, initamod, resolutionValue(resolution));
-  list.addWrite16(base + IrqThreshold, initamod, irqThreshold);
+  list.addDelay(MADCDELAY);
   list.addWrite16(base + WithdrawIrqOnEmpty, initamod, 1);
   if(multiEvent) {
-    list.addWrite16(base + MultiEvent, initamod, 3);
+    list.addWrite16(base + MultiEvent, initamod, 7);
   }
   else {
     list.addWrite16(base + MultiEvent, initamod, 0);
   }
+  list.addDelay(MADCDELAY);
 
   // Finally clear the converter and set the IPL which enables interrupts if
   // the IPL is non-zero, and does no harm if it is zero.
 
 
+  list.addWrite16(base + Vector,   initamod, ivector);
+  list.addDelay(MADCDELAY);
   list.addWrite16(base + Ipl, initamod, ipl);
+  list.addWrite16(base + IrqThreshold, initamod, irqThreshold);
+  list.addDelay(MADCDELAY);
 
 
   // Now reset again and start daq:
 
 
-  list.addDelay(MADCDELAY);
-  list.addWrite16(base + ModuleId, initamod, id); // Module id.
   list.addWrite16(base + ReadoutReset, initamod, 1);
   list.addDelay(MADCDELAY);
   list.addWrite16(base + InitFifo,     initamod, 0);
@@ -533,20 +540,27 @@ CMADC32::setChainAddresses(CVMUSB&                controller,
 
   uint32_t base = m_pConfiguration->getIntegerParameter("-base");
 
+  cerr << "Position: " << position << endl;
+
   // Compute the value of the control register..though we will first program
   // the addresses then the control register:
 
   uint16_t controlRegister = MCSTENB | CBLTENB; // This much is invariant.
   switch (position) {
-  first:
+  case first:
     controlRegister |= FIRSTENB | LASTDIS;
+    cerr << "First\n";
     break;
-  middle:
+  case middle:
     controlRegister |= FIRSTDIS | LASTDIS;
+    cerr << "Middle\n";
     break;
-  last:
+  case last:
     controlRegister |= FIRSTDIS | LASTENB;
+    cerr << "Last\n";
+    break;
   }
+  cerr << "Setting chain address with " << hex << controlRegister << dec << endl;
 
   // program the registers, note that the address registers take only the top 8 bits.
 
@@ -555,6 +569,71 @@ CMADC32::setChainAddresses(CVMUSB&                controller,
   controller.vmeWrite16(base + CbltMcstControl, initamod, controlRegister);
 
 }
+
+/*!
+   Set up data taking for CBLT readout with the timestamp parameters we are using and
+   the mcast address for the chain
+   @param controller - CVMUSB controller reference.
+   @param mcast  - Multicast address used to program the chain.
+   @param rdoSize - Words per module.
+*/
+void
+CMADC32::initCBLTReadout(CVMUSB& controller, uint32_t mcast, int rdoSize)
+{
+  // We need our timing source
+  // IRQThreshold
+  // VECTOR
+  // IPL
+  // Timestamp on/off
+
+  // Assumptions:  Internal oscillator reset if using timestamp
+  //               ..else no reset.
+  //               most modulep arameters are already set up.
+
+
+  int irqThreshold   = m_pConfiguration->getIntegerParameter("-irqthreshold");
+  int vector         = m_pConfiguration->getIntegerParameter("-vector");
+  int ipl            = m_pConfiguration->getIntegerParameter("-ipl");
+  bool timestamping  = m_pConfiguration->getBoolParameter("-timestamp");
+  
+  // Stop acquistiion
+  // ..and clear buffer memory:
+  controller.vmeWrite16(mcast + StartAcq, initamod, 0);
+  controller.vmeWrite16(mcast + InitFifo, initamod, 0);
+
+  // Set stamping
+
+  if(timestamping) {
+    // Oscillator sources are assumed to already be set.
+    // Reset the timer:
+
+    controller.vmeWrite16(mcast + MarkType,       initamod, 1); // Show timestamp, not event count.
+    controller.vmeWrite16(mcast + TimestampReset, initamod, 3); // reset all counter.
+  }
+  else {
+    controller.vmeWrite16(mcast + MarkType,       initamod, 0); // Use Eventcounter.
+    controller.vmeWrite16(mcast + EventCounterReset, initamod, 0); // Reset al event counters.
+  }
+  // Set multievent mode
+  
+  controller.vmeWrite16(mcast + MultiEvent, initamod, 3);      // Multi event mode 3.
+  controller.vmeWrite16(mcast + IrqThreshold, initamod, irqThreshold);
+  controller.vmeWrite16(mcast + MaxTransfer, initamod,  rdoSize);
+
+  // Set the IRQ
+
+  controller.vmeWrite16(mcast + Vector, initamod, vector);
+  controller.vmeWrite16(mcast + Ipl,    initamod, ipl);
+  controller.vmeWrite16(mcast + IrqThreshold, initamod, irqThreshold);
+
+  // Init the buffer and start data taking.
+
+  controller.vmeWrite16(mcast + InitFifo, initamod, 0);
+  controller.vmeWrite16(mcast + ReadoutReset, initamod, 0);
+  controller.vmeWrite16(mcast + StartAcq , initamod, 1);
+}
+
+
 ///////////////////////////////////////////////////////////////////////////////////////////////
 //
 // Private utilities:

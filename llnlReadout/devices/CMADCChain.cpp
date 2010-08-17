@@ -131,7 +131,7 @@ CMADCChain::Initialize(CVMUSB& controller)
   list<string>  moduleNames = getModules();
   namesToList(moduleNames);
 
-  // Visit each module and program/enable it's mcast/cblt addresses:
+  // Visit each module initialize it  and program/enable it's mcast/cblt addresses:
 
   for (ChainListIterator i = m_Chain.begin(); i != m_Chain.end(); i++) {
     // Figure out the chain position value:
@@ -139,42 +139,27 @@ CMADCChain::Initialize(CVMUSB& controller)
     CMADC32::ChainPosition pos = CMADC32::middle; // Most common case:
     ChainListIterator     next = i; next++;
     if(i == m_Chain.begin()) {
+      cerr << "First in chain\n";
       pos = CMADC32::first;
     }
-    if (i == m_Chain.end()) {
+  
+    if (next  == m_Chain.end()) {
+      cerr << "Last In chain\n";
       pos = CMADC32::last;
     }
-
+    (*i)->Initialize(controller);
     (*i)->setChainAddresses(controller, pos, cbltAddress, mcastAddress);
 
   }
   // Now we can prep the modules  via MCAST addressing.
+  // This is done by having the first module in the chain use it's
+  // timing settings, its multievent settings, our max transfer,
+  // and its interrupt information
+  //
 
-  CVMUSBReadoutList list;
-  list.addWrite16(mcastAddress + StartAcq, initamod, 0); // Turn off acq.
-  list.addWrite16(mcastAddress + MaxTransfer, initamod, wordsPerModule);
-  list.addWrite16(mcastAddress + InitFifo,    initamod, 1);
-  list.addWrite16(mcastAddress + TimestampReset, initamod, 3);
-  list.addWrite16(mcastAddress + ReadoutReset, initamod, 1);
-  list.addWrite16(mcastAddress + StartAcq, initamod, 1);
+  ChainListIterator first = m_Chain.begin();
+  (*first)->initCBLTReadout(controller, mcastAddress, wordsPerModule);
 
-  size_t readBuffer;
-
-
-  int status = controller.executeList(list, &readBuffer, sizeof(readBuffer), &readBuffer);
-  if (status != 0) {
-    string which = "usb_bulk_read";
-    if (status == 1) {
-      which = "usb_bulk_write";
-    }
-    int error = errno;
-    string message = "CMADCChain unable to execute initialization list because: ";
-    message       += which;
-    message       += "\n - ";
-    message       += strerror(error);
-    throw message;
-  }
-  // Should be ready to rock.
   
 }
 /*!
@@ -187,12 +172,18 @@ void
 CMADCChain::addReadoutList(CVMUSBReadoutList& rdolist)
 {
   uint32_t location = m_pConfig->getUnsignedParameter("-cbltaddress");
+  uint32_t mcast    = m_pConfig->getUnsignedParameter("-mcastaddress");
+
   size_t   size     = m_pConfig->getIntegerParameter("-maxwordspermodule");
   list<string>  modnames;
   modnames = getModules();
   size              = size * 36 * (modnames.size() + 1);
 
   rdolist.addFifoRead32(location, cbltamod, size);
+
+  // Broadcast readout_reswet:
+
+  rdolist.addWrite16(mcast + ReadoutReset, initamod, 1);
 }
 /*!
  * Virtual copy constructor.
