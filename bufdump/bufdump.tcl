@@ -30,8 +30,9 @@
 
 set version 1.1
 
-set daqSearchList [list  /usr/opt/daq/8.1 /usr/opt/daq/8.0 \
-		       /usr/opt/daq/7.4  /usr/opt/daq/7.3 /usr/opt/daq]
+set daqSearchList [list /usr/opt/daq/current \
+    /usr/opt/daq/8.2 /usr/opt/daq/8.1 /usr/opt/daq/8.0 \
+    /usr/opt/daq/7.4  /usr/opt/daq/7.3 /usr/opt/daq]
 
 
 # Add the canonicalized path to the script to the front of auto_path.
