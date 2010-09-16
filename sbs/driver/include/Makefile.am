@@ -4,10 +4,14 @@ install-data-local:
 	  $(INSTALL_DATA) $$f $(prefix)/include; \
         done
 
-EXTRA_DIST = btapi.h \
-btdef.h \
+EXTRA_DIST =btapi.h \
+btdbpci.h \
+btdef.h   \
+bt_error.h \
 btio.h \
-btngpci.h \
 btpapi.h \
 btpdef.h \
-btpio.h
+btpio.h \
+bt_time.h \
+btuisr.h 
+
