@@ -381,7 +381,7 @@ CAcquisitionThread::startDaq()
 void
 CAcquisitionThread::stopDaq()
 {
-  m_pCamac->writeActionRegister(CCCUSB::ActionRegister::scalerDump);
+  // m_pCamac->writeActionRegister(CCCUSB::ActionRegister::scalerDump);
   m_pCamac->writeActionRegister(0);
   drainUsb();
 }

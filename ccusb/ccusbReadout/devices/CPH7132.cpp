@@ -137,9 +137,11 @@ CPH7132::Initialize(CCCUSB& controller)
   // this mode value prevents scalers from inhibiting on overflow.
 
   uint16_t qx;
+  controller.inhibit();
   controller.simpleWrite16(slot, 0, 17, 0x30, qx);
   controller.simpleControl(slot, 4, 11, qx);
-
+  controller.simpleControl(slot, 12, 11, qx);
+  controller.uninhibit();
 }
 
 /*!
@@ -158,9 +160,14 @@ CPH7132::addReadoutList(CCCUSBReadoutList& list)
 
   // there will be skew, lost counts due to the lack of a latch.
   
+  list.addControl(29, 9, 29);	// I on
   list.addWrite16(slot, 1, 17, 0);
-  list.addRepeat(slot, 15, 4, 32); // Read the scalers.
+  //  list.addRepeat(slot, 15, 4, 32); // Read the scalers.
+  for (int i =0; i < 32; i++) {
+    list.addRead24(slot, 15, 4);
+  }
   list.addControl(slot, 4, 11);
+  list.addControl(29, 9, 26);	// I off
 }
 /*!
   Clone self:

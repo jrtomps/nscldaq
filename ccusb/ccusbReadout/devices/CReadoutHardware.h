@@ -32,6 +32,14 @@
 #endif
 #endif
 
+#ifndef __CRTL_STDINT_H
+#include <stdint.h>
+#ifndef __CRTL_STDINT_H
+#define __CRTL_STDINT_H
+#endif
+#endif
+
+
 
 // Forward class definitions:
 

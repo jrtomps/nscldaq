@@ -17,6 +17,7 @@
 #include <config.h>
 #include "CCCUSBReadoutList.h"
 #include <string>
+#include <stdio.h>
 
 using namespace std;
 

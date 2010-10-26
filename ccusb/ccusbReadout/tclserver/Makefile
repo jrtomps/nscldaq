@@ -120,7 +120,7 @@ HAVEKPATHSEA = yes
 HAVELATEX = yes
 HCDOCBOOK = /usr/bin/docbook2dvi
 HTMLDOCBOOK = /usr/bin/docbook2html
-HYPERLATEX = /usr/bin/hyperlatex
+HYPERLATEX = /opt/bin/hyperlatex
 INSTALL = /usr/bin/install -c
 INSTALL_DATA = ${INSTALL} -m 644
 INSTALL_PROGRAM = ${INSTALL}
@@ -135,7 +135,7 @@ LN_S = ln -s
 LTLIBOBJS = 
 MAKEINFO = ${SHELL} /scratch/fox/daq/nscldaq/trunk/ccusb/ccusbReadout/config/missing --run makeinfo
 MANDB = /usr/bin/mandb
-MANDOCBOOK = /usr/bin/xmlto
+MANDOCBOOK = echo
 MKDIR_P = /bin/mkdir -p
 NMEDIT = 
 NSCLDAQ_FLAGS = -I/usr/opt/daq/8.2/include
@@ -154,10 +154,10 @@ SET_MAKE =
 SHELL = /bin/sh
 SOVERSION = 1:0
 SPECTRODAQ_FLAGS = -D_REENTRANT=1 -I/usr/opt/spectrodaq/include -I/usr/opt/spectrodaq/include/nscl -I/usr/opt/spectrodaq/include/xmloop
-SPECTRODAQ_LDFLAGS = -lpthread -L/usr/opt/spectrodaq/lib -lnetio -ldaqclient -lspectrodaq -ldaqthreads -lxmloop -lxmlparse -lxmltok -lpthread -lcrypt -L/usr/opt/spectrodaq/lib -lNSCLException -lnetio /usr/opt/spectrodaq/lib/libspectrodaq.a
+SPECTRODAQ_LDFLAGS = -lpthread -L/usr/opt/spectrodaq/lib -lnetio -ldaqclient -lspectrodaq -ldaqthreads -lxmloop -lxmlparse -lxmltok -lpthread -lcrypt -L/usr/opt/spectrodaq/lib -lNSCLException -lnetio -lspectrodaq -ldaqthreads -lxmloop -lxmlparse -lxmltok -lNSCLException -ldaqthreads -lxmloop -lxmlparse -lxmltok -lNSCLException
 STRIP = strip
-TCL_FLAGS = -I/usr/include/tcl
-TCL_LDFLAGS = -L/usr/lib  -ltcl -ltk
+TCL_FLAGS = -I/usr/include/tcl8.4
+TCL_LDFLAGS = -L/usr/lib  -ltcl8.4 -ltk8.4
 USBSWITCHES = -I/usr/include
 USB_LIBS = -L/usr/lib -lusb
 VERSION = 2.0
@@ -202,7 +202,7 @@ mandir = ${datarootdir}/man
 mkdir_p = /bin/mkdir -p
 oldincludedir = /usr/include
 pdfdir = ${docdir}
-prefix = /usr/opt/daq/ccusbreadout/
+prefix = /usr/opt/daq/ccusbReadout
 program_transform_name = s,x,x,
 psdir = ${docdir}
 sbindir = ${exec_prefix}/sbin
@@ -244,7 +244,7 @@ INCLUDES = -I$(top_builddir)/ccusb		\
 					-I$(top_builddir)/threadcomm	\
 					-I$(top_builddir)/rdothread	\
 					-I$(top_builddir)/router	\
-					-I/usr/include/tcl -I/usr/opt/daq/8.2/include	\
+					-I/usr/include/tcl8.4 -I/usr/opt/daq/8.2/include	\
 					-D_REENTRANT=1 -I/usr/opt/spectrodaq/include -I/usr/opt/spectrodaq/include/nscl -I/usr/opt/spectrodaq/include/xmloop
 
 libControlServer_la_LIBADD = $(top_builddir)/ccusb/libCCUSB.la          \
@@ -252,9 +252,9 @@ libControlServer_la_LIBADD = $(top_builddir)/ccusb/libCCUSB.la          \
 					$(top_builddir)/threadcomm/libThreadComm.la \
 					$(top_builddir)/rdothread/libRdoThread.la \
 					$(top_builddir)/router/libRouter.la	\
-					-L/usr/lib  -ltcl -ltk				\
+					-L/usr/lib  -ltcl8.4 -ltk8.4				\
 					-L/usr/opt/daq/8.2/lib -lTclPlus -lException	\
-					-lpthread -L/usr/opt/spectrodaq/lib -lnetio -ldaqclient -lspectrodaq -ldaqthreads -lxmloop -lxmlparse -lxmltok -lpthread -lcrypt -L/usr/opt/spectrodaq/lib -lNSCLException -lnetio /usr/opt/spectrodaq/lib/libspectrodaq.a
+					-lpthread -L/usr/opt/spectrodaq/lib -lnetio -ldaqclient -lspectrodaq -ldaqthreads -lxmloop -lxmlparse -lxmltok -lpthread -lcrypt -L/usr/opt/spectrodaq/lib -lNSCLException -lnetio -lspectrodaq -ldaqthreads -lxmloop -lxmlparse -lxmltok -lNSCLException -ldaqthreads -lxmloop -lxmlparse -lxmltok -lNSCLException
 
 all: all-am
 
