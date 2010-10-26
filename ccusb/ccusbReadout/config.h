@@ -94,6 +94,9 @@
 /* Define to the one symbol short name of this package. */
 #define PACKAGE_TARNAME ""
 
+/* Define to the home page for this package. */
+#define PACKAGE_URL ""
+
 /* Define to the version of this package. */
 #define PACKAGE_VERSION ""
 
@@ -101,7 +104,7 @@
 #define STDC_HEADERS 1
 
 /* Version number of package */
-#define VERSION "2.0"
+#define VERSION "2.0-001"
 
 
 /* Define STD macro according to HAVE_STD_NAMESPACE value */

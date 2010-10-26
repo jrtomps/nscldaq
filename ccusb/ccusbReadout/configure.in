@@ -8,7 +8,7 @@ AM_CONFIG_HEADER(config.h)
 
 #    Separate device libraries.
 
-AM_INIT_AUTOMAKE(ccusbReadout, 2.0)  
+AM_INIT_AUTOMAKE(ccusbReadout, 2.0-001)  
 
 #
 #   The variable below should track the
