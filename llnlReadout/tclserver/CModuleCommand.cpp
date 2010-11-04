@@ -25,7 +25,7 @@ using namespace std;
 #include <TclServer.h>
 #include <CGDG.h>
 #include <CV812.h>
-
+#include <CVMUSBModule.h>
 
 /*!
    Construct the command. 
@@ -123,6 +123,9 @@ CModuleCommand::create(CTCLInterpreter& interp,
   }
   else if (type == "caenv895") {
     pModule = new CV812(name);	// Not a typo.  the 895/812 module are the same.
+  }
+  else if (type == "vmusb") {
+    pModule = new CVMUSBModule(name);
   }
   else {
     m_Server.setResult("module create: Invalid type, must be jtecgdg");

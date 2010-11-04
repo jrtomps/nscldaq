@@ -123,10 +123,16 @@ CMASE::addReadoutList(CVMUSBReadoutList& list)
   addBusAccess(list, CXLM::REQ_B,
 	       static_cast<uint8_t>(busDelayTicks));
   uint32_t sram = sramB();	// Base address of sram B:
-  list.addBlockCountRead32(sram, 0xffffffff, registerAmod); // Transfer count for remaining stuff.
-  list.addMaskedCountBlockRead32(sram + sizeof(uint32_t), blockTransferAmod);
+  list.addBlockCountRead32(sram, 0xffffffff, registerAmod); // Transfer count for block read./
+  list.addMaskedCountBlockRead32(sram, blockTransferAmod);  // transfer count includes self.
+
+  // Just for fun set a known pattern in the SRAM data part of the next event..
+  // it should get overwritten...
+
+  list.addWrite32(sram, registerAmod, 0); // In case there's no data next event.
+
   addBusAccess(list, CXLM::REQ_X,
-	       static_cast<uint8_t>(busDelayTicks)); //  Switch to xbus.
+	       static_cast<uint8_t>(busDelayTicks)); //  Switch to xbus...while holding B bus??
   list.addWrite32(FPGA(), registerAmod, 0);
   addBusAccess(list, 0, static_cast<uint8_t>(0)); // Release all busses and off we go.
 

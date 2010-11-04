@@ -59,6 +59,13 @@ static const int addrNotLong(1);
 */
 CVMUSBReadoutList::CVMUSBReadoutList()
 {}
+/*!
+  Construct a list from a bunch of integers:
+  @param list - the list as a vector.
+*/
+CVMUSBReadoutList::CVMUSBReadoutList(vector<uint32_t>& list) :
+  m_list(list)
+{}
 
 /*!
    Copy construction requires a copy construction of the list data.

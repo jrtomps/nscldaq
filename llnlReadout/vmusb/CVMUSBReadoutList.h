@@ -74,7 +74,9 @@ private:
   std::vector<uint32_t> m_list; // Stack lines are all 32 bits wide.
 public:
   CVMUSBReadoutList();
+  CVMUSBReadoutList(std::vector<uint32_t>& list);
   CVMUSBReadoutList(const CVMUSBReadoutList& rhs);
+
   virtual ~CVMUSBReadoutList();
   
   CVMUSBReadoutList& operator=(const CVMUSBReadoutList& rhs);
@@ -138,6 +140,7 @@ public:
   // Miscellaneous:
 
   void addDelay(uint8_t clocks);
+
 
   void addMarker(uint16_t value);
 

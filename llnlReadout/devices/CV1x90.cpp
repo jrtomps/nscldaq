@@ -886,8 +886,8 @@ CV1x90::validateChannelOffsets(string name, string value, void* arg)
 
     char* chanEnd;
     char* valEnd;
-    strtoul(argv[0], &chanEnd, 0);
-    strtoul(argv[1], &valEnd, 0);
+    unsigned long value =  strtoul(argv[0], &chanEnd, 0);
+    value = strtoul(argv[1], &valEnd, 0);
 
     bool ok = (*chanEnd == '\0') && (*valEnd == '\0');
     Tcl_Free((char*)argv);  
