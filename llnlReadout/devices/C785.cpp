@@ -78,6 +78,7 @@ Const(BClear2)     0x1034;
 Const(LogicalCrate) 0x103c;
 Const(ECountReset) 0x1040;
 Const(FSRange)     0x1060;
+Const(Iped)        0x1060;
 Const(Thresholds)   0x1080;	// Continues through 10bf, 32 D16 words.
 
 // Prom locations: We'll want to be sure the module really is a V785:
@@ -157,6 +158,12 @@ static CConfigurableObject::Limits fcRange(fcLow, fcHigh);
 static CConfigurableObject::limit tsLow(140);
 static CConfigurableObject::limit tsHigh(1200);
 static CConfigurableObject::Limits tsRange(tsLow, tsHigh);
+
+// -iped is from 0-255.
+
+static CConfigurableObject::limit ipedLow(0);
+static CConfigurableObject::limit ipedHigh(255);
+static CConfigurableObject::Limits ipedRange(ipedLow, ipedHigh);
 
 //////////////////////////////////////////////////////////////////////
 /////////////////// Canonical class/object operations ////////////////
@@ -319,6 +326,9 @@ C785::onAttach(CReadoutModule& configuration)
   m_pConfiguration->addParameter("-timescale", CConfigurableObject::isInteger,
 				 &tsRange, "600");
 
+  m_pConfiguration->addParameter("-iped", CConfigurableObject::isInteger,
+				 &ipedRange, "180");
+
   m_pConfiguration->addParameter("-requiredata", CConfigurableObject::isBool,
 				 NULL, "true");
   m_pConfiguration->addParameter("-commonstop", CConfigurableObject::isBool,
@@ -355,7 +365,7 @@ C785::Initialize(CVMUSB& controller)
   int      type = getModuleType(controller, base);
 
   if ((type != 785)  && (type != 775) && (type != 792) &&
-      (type != 862)) { // 775 for testing!!.
+      (type != 862)  && (type != 965)) { // 775 for testing!!.
     char message[100];
     string name = m_pConfiguration->getName();
     sprintf(message, "Module %s at base 0x%x is not a CAEN 32 channel digitizer  but a %d",
@@ -461,6 +471,11 @@ C785::Initialize(CVMUSB& controller)
     }
     controller.vmeWrite16(base + reg2Offset, initamod,
 			  static_cast<uint16_t>(0x400));
+  }
+  // QDC specific settings:
+  if ((type == 792) || (type == 862) || (type == 965)) {
+    int iped = getIntegerParameter("-iped");
+    controller.vmeWrite16(base + Iped, initamod, static_cast<uint16_t>(iped));
   }
 
   // Finally, ensure that at the end of a readout we'll get a BERR, rather than

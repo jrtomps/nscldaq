@@ -8,7 +8,7 @@ AM_CONFIG_HEADER(config.h)
 
 #    Separate device libraries.
 
-AM_INIT_AUTOMAKE(llnlReadout, 3.4, fox@nscl.msu.edu)  
+AM_INIT_AUTOMAKE(llnlReadout, 3.4-001, fox@nscl.msu.edu)  
 
 #
 #   The variable below should track the

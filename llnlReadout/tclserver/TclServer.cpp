@@ -140,7 +140,7 @@ TclServer::operator()(int argc, char** argv)
     readConfigFile();		// Initialize the modules.
     initModules();              // Initialize the fully configured modules.
     startTcpServer();		// Set up the Tcp/Ip listener event.
-    EventLoop();			// Run the Tcl event loop forever.
+    EventLoop();		// Run the Tcl event loop forever.
   }
   catch (string msg) {
     cerr << "TclServer thread caught a string exception: " << msg << endl;
