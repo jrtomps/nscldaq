@@ -281,6 +281,7 @@ C785::addToChain(CVMUSB& controller,
    -supressrange    true
    -timescale       600 (ns).  (775 only)
    -commonstop      false      (775 only)
+   -iped            180        (QDC's only).
 \endverbatim
 
    All others have no default values.   If, during initialization one of those
@@ -515,9 +516,9 @@ C785::addReadoutList(CVMUSBReadoutList& list)
 
     // Clear event buffers:
 
-    list.addWrite32(base + BSet2,
+    list.addWrite16(base + BSet2,
 		    initamod, 4);
-    list.addWrite32(base + BClear2,
+    list.addWrite16(base + BClear2,
 		    initamod, 4);
   }
 }
