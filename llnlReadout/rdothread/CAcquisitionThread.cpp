@@ -354,6 +354,7 @@ CAcquisitionThread::startDaq()
   cerr << "Loading " << m_Stacks.size() << " Stacks to vm-usb\n";
   for(int i =0; i < m_Stacks.size(); i++) {
     CStack* pStack = dynamic_cast<CStack*>(m_Stacks[i]->getHardwarePointer());
+    
     assert(pStack);
     pStack->Initialize(*m_pVme);    // INitialize daq hardware associated with the stack.
     pStack->loadStack(*m_pVme);	    // Load into VM-USB

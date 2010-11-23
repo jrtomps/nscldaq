@@ -184,6 +184,9 @@ CTheApplication::createUsbController()
   }
   Globals::pUSBController = new CVMUSB(controllers[0]);
 
+  cerr << "Found a controller, firmware: " << hex << Globals::pUSBController->readFirmwareID()
+       << dec << endl;
+
 }
 /* 
   Set the configuration files to the global storage

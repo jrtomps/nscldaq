@@ -44,8 +44,8 @@ using namespace std;
 // Address modifiers used to access the module:
 
 Const(initamod) CVMUSBReadoutList::a32UserData;
-Const(readamod) CVMUSBReadoutList::a32UserBlock;
-Const(cbltamod) CVMUSBReadoutList::a32UserBlock;
+Const(readamod) CVMUSBReadoutList::a32PrivBlock;
+Const(cbltamod) CVMUSBReadoutList::a32PrivBlock;
 
 // Register map (offsets in bytes) for the V785
 //   Not an exhaustive list as the various test registers are omitted.
@@ -382,6 +382,13 @@ C785::Initialize(CVMUSB& controller)
 
   controller.vmeWrite16(base+BSet1, initamod, 0x80);
   controller.vmeWrite16(base+BClear1, initamod, 0x80);
+
+  // turn off multicast and set the mcast address to zero...
+  // this latter because that tries to ensure there's not a collision between
+  // The mcast and rotary base addresses.
+  //
+  controller.vmeWrite16(base+McastAddr, initamod, 0);
+  controller.vmeWrite16(base+McastCtl, initamod, 0);
 
   // Set the GEOgraphical address of the module.
 
