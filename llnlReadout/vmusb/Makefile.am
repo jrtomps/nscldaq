@@ -1,6 +1,32 @@
-lib_LTLIBRARIES		= libVMUSB.la
+lib_LTLIBRARIES		= libVMUSB.la libVMUSBRemote.la
 libVMUSB_la_SOURCES 	= CVMUSB.cpp CVMUSBReadoutList.cpp
-include_HEADERS		= CVMUSB.h   CVMUSBReadoutList.h 
+
+libVMUSBRemote_la_SOURCES = CVMUSBReadoutList.cpp \
+	CVMUSBRemote.cpp \
+	CSocket.cpp	\
+	CTCPBadSocketState.cpp \
+	CTCPConnectionFailed.cpp \
+	CTCPConnectionLost.cpp \
+	CTCPNoSuchHost.cpp \
+	CTCPNoSuchService.cpp	\
+	ErrnoException.h	\
+	Exception.cpp
+
+
+include_HEADERS		= CVMUSB.h   \
+	CVMUSBReadoutList.h  \
+	CVMUSBRemote.h       \
+	histotypes.h	\
+	CSocket.h		\
+	CTCPBadSocketState.h	\
+	CTCPConnectionFailed.h	\
+	CTCPConnectionLost.h	\
+	CTCPNoSuchHost.h	\
+	CTCPNoSuchService.h	\
+	ErrnoException.h	\
+	Exception.h	
+
+
 INCLUDES		= $(USBSWITCHES) $(SPECTRODAQ_FLAGS)
 
 libVMUSB_la_LIBADD       = $(USB_LIBS)  $(SPECTRODAQ_LDFLAGS)
