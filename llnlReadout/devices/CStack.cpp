@@ -295,8 +295,7 @@ CStack::loadStack(CVMUSB& controller)
 
   addReadoutList(readoutList);
   listNumber = getListNumber();
-  cerr << "Loading stack number " << listNumber << endl;
-  cerr << "Contents: \n";
+
 
 
   // Load the list:... unless it has no elements!

@@ -29,6 +29,7 @@
 #include <string>
 #include <unistd.h>
 #include <stdio.h>
+#include <stdlib.h>
 
 using namespace std;
 
@@ -91,9 +92,11 @@ static bool usbInitialized(false);
   Construct the CVMUSBRemote object.  This involves storing the
   device descriptor we are given, opening the device and
   claiming it.  Any errors are signalled via const char* exceptions.
+  @param deviceName - Name of the VMUSB Module in the controlconfig.tcl file.
+                      defaults to vmusb
   @param host   - Name of the host to which we are connecting.  This
                   defaults to localhost.
-  @param        - port port on which the tcl server is running.  This
+  @param port   - port port on which the tcl server is running.  This
                   defaults to 27000
 
   In a single machine environment you should not need to modify these
@@ -103,7 +106,8 @@ static bool usbInitialized(false);
   @note - A Tcl server must be running else an exception is thrown.
 
 */
-CVMUSBRemote::CVMUSBRemote(string host, unsigned int port) :
+CVMUSBRemote::CVMUSBRemote(string deviceName, string host, unsigned int port) :
+  m_deviceName(deviceName),
   m_pSocket(0),
   m_pInterp(0)
 {
@@ -735,6 +739,7 @@ CVMUSBRemote::vmeVariableFifoRead(uint32_t address, uint8_t amod,
     \retval  0    - All went well.
     \retval -1    - The Set to the server failed.
     \retval -2    - The Receive of data from the server indicated an error.
+    \retval -3    - The server returned an error, use getLastError to retrieve it.
 
     In case of failure, the reason for failure is stored in the
     errno global variable.
@@ -747,6 +752,9 @@ CVMUSBRemote::executeList(CVMUSBReadoutList&     list,
 		   size_t                 readBufferSize,
 		   size_t*                bytesRead)
 {
+
+  m_lastError = "";
+
   string vmeList      = marshallList(list);
   CTCLObject datalist;
   datalist.Bind(m_pInterp);
@@ -756,8 +764,11 @@ CVMUSBRemote::executeList(CVMUSBReadoutList&     list,
 
   // Send the list to the remote with a "\n" on the back end of it:
 
-  string request = (string)datalist;
-  request       += "\n";
+  string request = "Set ";
+  request       += m_deviceName;
+  request       += " list {";
+  request += (string)datalist;
+  request       += "}\n";
   try {
     m_pSocket->Write(request.c_str(), request.size());
   }
@@ -783,7 +794,7 @@ CVMUSBRemote::executeList(CVMUSBReadoutList&     list,
       return -2;
     }
     response[offset+nread] = 0;	// Null terminate the data...
-    if (!strchr( response, '\n')) {
+    if (strchr( response, '\n')) {
       done = true;
     } 
     else {
@@ -793,8 +804,13 @@ CVMUSBRemote::executeList(CVMUSBReadoutList&     list,
   }
   // The entire response is here... marshall the respones into the output buffer
 
-  *bytesRead = marshallOutputData(pReadoutBuffer, response, readBufferSize);
-
+  try {
+    *bytesRead = marshallOutputData(pReadoutBuffer, response, readBufferSize);
+  }
+  catch (...) {
+    delete []response;
+    return -3;
+  }
   delete[]response;
   return 0;
 }
@@ -965,6 +981,21 @@ CVMUSBRemote::marshallOutputData(void* pOutputBuffer, const char* reply, size_t 
   StringArray list;
   tclList.Split(list);
 
+  // The first element is the status.
+  // if it is OK no problems. if it is ERROR set the error informatino.
+  //
+
+  if (list[0] == "ERROR") {
+    m_lastError = reply;
+    throw m_lastError;		// Error in reply.
+  }
+
+  //  OK second element is  '-' and third element is the response data: 
+
+  CTCLList resultList(m_pInterp, list[2]);
+  list.clear();
+  resultList.Split(list);
+
   // Figure out how many bytes the user gets...
 
   size_t actualSize = list.size();
@@ -973,10 +1004,13 @@ CVMUSBRemote::marshallOutputData(void* pOutputBuffer, const char* reply, size_t 
   // Each list element is an ascii encoded byte:
 
   for (int i =0; i < actualSize; i++) {
-    unsigned int aByte;
-    sscanf(list[i].c_str(), "%ud", &aByte);
+    unsigned long aByte;
+    aByte = strtoul(list[i].c_str(), NULL, 0);
     *o++ = static_cast<uint8_t>(aByte & 0xff);
   }
 
   return actualSize;
 }
+
+
+void* gpTCLApplication(0);

@@ -74,8 +74,10 @@ class CVMUSBRemote
 
     // Class member data.
 private:
+  std::string      m_deviceName;
   CSocket*         m_pSocket;	/* Connection with remote system. */
   CTCLInterpreter* m_pInterp;	/* Having this makes TclList processing easier. */
+  std::string      m_lastError;
 public:
 
     // Constructors and other canonical functions.
@@ -86,8 +88,9 @@ public:
     // and destruction implies a usb_release_interface(),
     // equality comparison has no useful meaning either:
 
-  CVMUSBRemote(std::string host = "localhost",
-	 unsigned int port = 27000);
+  CVMUSBRemote(std::string deviceName = "vmusb", 
+	       std::string host = "localhost",
+	       unsigned int port = 27000);
     virtual ~CVMUSBRemote();		// Although this is probably a final class.
 
     // Disallowed functions as described above.
@@ -97,7 +100,9 @@ private:
     int operator==(const CVMUSBRemote& rhs) const;
     int operator!=(const CVMUSBRemote& rhs) const;
 public:
-
+    std::string getLastError() {
+      return m_lastError;
+    }
     // Register I/O operations.
 public:
 

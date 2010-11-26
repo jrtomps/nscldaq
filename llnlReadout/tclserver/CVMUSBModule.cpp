@@ -271,7 +271,7 @@ CVMUSBModule::marshallOutput(uint8_t* buffer, size_t numBytes)
     char valueBuffer[8];
     uint8_t value = *buffer++;
     unsigned uValue = value;
-    sprintf(valueBuffer, "0x02%hhx ", uValue);
+    sprintf(valueBuffer, "0x%02hhx ", uValue);
     result += valueBuffer;
     
   }

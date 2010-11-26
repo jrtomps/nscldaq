@@ -1317,7 +1317,7 @@ CSocket::OpenSocket()
 
   if(!pEntry) throw 
 	      CErrnoException("Getting TCP protocol num from getprotoent(3)");
-
+  protocol = pEntry->p_proto;
   m_Fd = socket(PF_INET, SOCK_STREAM, protocol);
   if(m_Fd == -1) throw
 		   CErrnoException("Creating socket with socket(2)");
