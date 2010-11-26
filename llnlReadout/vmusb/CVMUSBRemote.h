@@ -51,6 +51,7 @@
 
 class CVMUSBReadoutList;
 class CSocket;
+class CTCLInterpreter;
 
 /**
  *  This class provides remote access to the VM-USB through the
@@ -73,7 +74,8 @@ class CVMUSBRemote
 
     // Class member data.
 private:
-  CSocket* m_pSocket;		/* Connection with remote system. */
+  CSocket*         m_pSocket;	/* Connection with remote system. */
+  CTCLInterpreter* m_pInterp;	/* Having this makes TclList processing easier. */
 public:
 
     // Constructors and other canonical functions.
@@ -429,6 +431,10 @@ private:
     unsigned int whichToISV(int which);
     int   doVMEWrite(CVMUSBReadoutList& list);
     int   doVMERead(CVMUSBReadoutList&  list, uint32_t* datum);
+
+    std::string marshallList(CVMUSBReadoutList& list);
+    size_t      marshallOutputData(void* pOutputBuffer, const char* reply, size_t maxOutputSize);
+
 
 };
 

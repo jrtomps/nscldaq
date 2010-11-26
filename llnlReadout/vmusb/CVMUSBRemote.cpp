@@ -16,8 +16,12 @@
 
 // Implementation of the CVMUSB class.
 
+#include <config.h>
 #include "CVMUSBRemote.h"
 #include "CVMUSBReadoutList.h"
+#include <TCLInterpreter.h>
+#include <TCLObject.h>
+#include <TCLList.h>
 #include "CSocket.h"
 
 #include <errno.h>
@@ -39,7 +43,6 @@ static const short USB_VMUSB_PRODUCT_ID(0xb);
 
 static const int ENDPOINT_OUT(2);
 static const int ENDPOINT_IN(0x86);
-
 // Timeouts:
 
 static const int DEFAULT_TIMEOUT(2000);	// ms.
@@ -101,17 +104,21 @@ static bool usbInitialized(false);
 
 */
 CVMUSBRemote::CVMUSBRemote(string host, unsigned int port) :
-  m_pSocket(0)
+  m_pSocket(0),
+  m_pInterp(0)
 {
   try {
     char portNumber[100];
     sprintf(portNumber, "%d", port);
     m_pSocket = new CSocket;
     m_pSocket->Connect(host, string(portNumber));
+    m_pInterp = new CTCLInterpreter();
   }
   catch (...) {			// Exception catch prevents memory leaks and...
     delete m_pSocket;
     m_pSocket = 0;
+    delete m_pInterp;
+    m_pInterp = 0;
     throw;			// lets the caller deal with the error.
   }
 }
@@ -127,6 +134,7 @@ CVMUSBRemote::~CVMUSBRemote()
     m_pSocket->Shutdown();
     delete m_pSocket;
   }
+  delete m_pInterp;
 }
 
 ////////////////////////////////////////////////////////////////////
@@ -730,11 +738,7 @@ CVMUSBRemote::vmeVariableFifoRead(uint32_t address, uint8_t amod,
 
     In case of failure, the reason for failure is stored in the
     errno global variable.
-    The error string can be gotten from us via the 
-    getLastErrorString() function.
 
-    TODO:  Implement this
-    TODO:  Define/Implement getLastErrorString();
 
 */
 int
@@ -743,8 +747,56 @@ CVMUSBRemote::executeList(CVMUSBReadoutList&     list,
 		   size_t                 readBufferSize,
 		   size_t*                bytesRead)
 {
-  
-  
+  string vmeList      = marshallList(list);
+  CTCLObject datalist;
+  datalist.Bind(m_pInterp);
+  datalist += static_cast<int>(readBufferSize);
+  datalist += vmeList;
+
+
+  // Send the list to the remote with a "\n" on the back end of it:
+
+  string request = (string)datalist;
+  request       += "\n";
+  try {
+    m_pSocket->Write(request.c_str(), request.size());
+  }
+  catch(...) {
+    return -1;
+  }
+
+  // Get the reply  data back.. each  of the read buffer can be at most
+  // {127 } So allow 8 chars just for fun for each byte in allocating the receive buffer:
+  // In getting the reply we keep reading until we get a \n in the input buffer.
+  //
+  char* response = new char[readBufferSize*8];
+  size_t remaining = readBufferSize*8 - 8; // Safety buffer.
+  int   offset   = 0;
+  bool  done     = false;
+  int   nread;
+  while(!done && (remaining > 0)  ) {
+    try {
+       nread = m_pSocket->Read(&(response[offset]), readBufferSize*8);
+    }
+    catch (...) {
+      delete []response;
+      return -2;
+    }
+    response[offset+nread] = 0;	// Null terminate the data...
+    if (!strchr( response, '\n')) {
+      done = true;
+    } 
+    else {
+      offset    += nread;
+      remaining -= nread;
+    }
+  }
+  // The entire response is here... marshall the respones into the output buffer
+
+  *bytesRead = marshallOutputData(pReadoutBuffer, response, readBufferSize);
+
+  delete[]response;
+  return 0;
 }
 
 ////////////////////////////////////////////////////////////////////////
@@ -780,6 +832,7 @@ CVMUSBRemote::readRegister(unsigned int address)
 	throw string(message);
 
     }
+
 
     return data;
 			     
@@ -872,3 +925,58 @@ CVMUSBRemote::doVMERead(CVMUSBReadoutList& list, uint32_t* datum)
   return status;
 }
 
+/**
+ *  Marshall a CVMEReadoutList into a string that is a Tcl list of integers representing the
+ *  contents of the list.
+ *  @param list  - The CVMEReadoutList object.
+ *  @return string
+ *  @retval the Tcl list constructed from the vme readout list.
+ */
+string
+CVMUSBRemote::marshallList(CVMUSBReadoutList& list)
+{
+  vector<uint32_t> listVect = list.get();
+  CTCLObject       TclList;
+  TclList.Bind(m_pInterp);
+  for (int i =0; i < listVect.size(); i++) {
+    char item[100];
+    sprintf(item, "0x%x", listVect[i]);
+    TclList += item;
+  }
+  return (string)TclList;
+}
+/**
+ *  Marshall a reply buffer from the server into the user's buffer.
+ *  @param pOutputBuffer - Pointer to the  user's output buffer.
+ *  @param reply         - Pointer to the server's reply, a Tcl list.
+ *  @param maxOutputSize - Size of the output buffer... no more than this number of bytes will be
+ *                         written to the output buffer.
+ * @return size_t
+ * @retval Actual number of bytes written to the output buffer.
+ */
+size_t
+CVMUSBRemote::marshallOutputData(void* pOutputBuffer, const char* reply, size_t maxOutputSize)
+{
+  uint8_t* o = reinterpret_cast<uint8_t*>(pOutputBuffer);
+
+  //  throw the reply data into a list and split it:
+
+  CTCLList tclList(m_pInterp, reply);
+  StringArray list;
+  tclList.Split(list);
+
+  // Figure out how many bytes the user gets...
+
+  size_t actualSize = list.size();
+  if (actualSize > maxOutputSize) actualSize = maxOutputSize;
+
+  // Each list element is an ascii encoded byte:
+
+  for (int i =0; i < actualSize; i++) {
+    unsigned int aByte;
+    sscanf(list[i].c_str(), "%ud", &aByte);
+    *o++ = static_cast<uint8_t>(aByte & 0xff);
+  }
+
+  return actualSize;
+}

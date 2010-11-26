@@ -8,28 +8,27 @@ libVMUSBRemote_la_SOURCES = CVMUSBReadoutList.cpp \
 	CTCPConnectionFailed.cpp \
 	CTCPConnectionLost.cpp \
 	CTCPNoSuchHost.cpp \
-	CTCPNoSuchService.cpp	\
-	ErrnoException.h	\
-	Exception.cpp
+	CTCPNoSuchService.cpp
+
 
 
 include_HEADERS		= CVMUSB.h   \
 	CVMUSBReadoutList.h  \
 	CVMUSBRemote.h       \
-	histotypes.h	\
 	CSocket.h		\
 	CTCPBadSocketState.h	\
 	CTCPConnectionFailed.h	\
 	CTCPConnectionLost.h	\
 	CTCPNoSuchHost.h	\
-	CTCPNoSuchService.h	\
-	ErrnoException.h	\
-	Exception.h	
+	CTCPNoSuchService.h
 
 
-INCLUDES		= $(USBSWITCHES) $(SPECTRODAQ_FLAGS)
 
-libVMUSB_la_LIBADD       = $(USB_LIBS)  $(SPECTRODAQ_LDFLAGS)
+INCLUDES		= $(USBSWITCHES) @TCL_FLAGS@ @NSCLDAQ_FLAGS@
+
+libVMUSB_la_LIBADD       = $(USB_LIBS)  
+
+libVMUSBRemote_la_LIBADD = @TCL_LDFLAGS@ @NSCLDAQ_LIB@ -lTclPlus -lException
 
 #IVP tests:
 

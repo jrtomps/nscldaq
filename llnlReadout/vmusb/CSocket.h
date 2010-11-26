@@ -157,7 +157,7 @@ public:
   CSocket*  Accept (std::string& client)   ;
   void Shutdown ()   ;
   int Read (void* pBuffer, size_t nBytes)   ;
-  int Write (void* pBuffer, size_t nBytes)   ;
+  int Write (const void* pBuffer, size_t nBytes)   ;
   void getPeer (unsigned short& port, std::string& peer)   ;
   void OOBInline (bool State=TRUE)   ;
   bool isOOBInline ()   ;

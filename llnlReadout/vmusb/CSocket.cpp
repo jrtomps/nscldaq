@@ -51,6 +51,8 @@ static const char* Copyright= "(C) Copyright Michigan State University 2002, All
 
 ////////////////////////// FILE_NAME.cpp /////////////////////////////////////////////////////
 
+
+
 #include <config.h>
 #include "CSocket.h"    
 
@@ -558,7 +560,7 @@ Exceptions:
 
 */
 int 
-CSocket::Write(void* pBuffer, size_t nBytes)  
+CSocket::Write(const void* pBuffer, size_t nBytes)  
 {
   // Require that the socket is connected:
 
