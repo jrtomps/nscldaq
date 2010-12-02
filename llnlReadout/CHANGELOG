@@ -56,3 +56,5 @@ March 23, 2010
 May 19, 2010 - Adding support for CAEN V977 input register.
 
 Nov 11, 2010 - Adding support for CAEN V965 multirange qdc.
+
+Dec 2, 2010 - Fixed block transfer base address. had been getting block aligned.
