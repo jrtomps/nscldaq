@@ -444,14 +444,34 @@ void
 CVMUSBReadoutList::addBlockRead(uint32_t base, size_t transfers, 
 				uint32_t startingMode)
 {
-  // There are two cases, transfers are larger than a block,
+  // There are several nasty edge cases cases to deal with.
+  // If the base address is not block aligned, a partial transfer
+  // of size min(remaining_blocksize, transfers) must first be dnoe.
+
+
+  if ((base & 0xff) != 0) {
+    size_t aligningTransfers = (base - (base & 0xff))/sizeof(uint32_t);
+    if (transfers < aligningTransfers) aligningTransfers = transfers;
+    uint32_t mode  = startingMode;
+    mode          |= (aligningTransfers) << modeBLTShift;
+    m_list.push_back(mode);
+    m_list.push_back(base);
+
+    base      += aligningTransfers * sizeof(uint32_t); //  This should align the base.
+    transfers -= aligningTransfers; 
+
+  }
+  if (transfers == 0) return;	// itty bitty  unaligned xfer or masked count.
+  
+
+  // There are two cases, remaining transfers are larger than a block,
   // or transfers are le a block.
   // The first case requires an MB and possibly a single BLT transfer.
   // the secod just a BLT...
   // The maximum number of transfers in a block is 256/sizeof(uint32_t)
-  // Regardless, the base address is block justified.:
+  // by now the transfer  base address 'base' is block justified.:
 
-  base     &= 0xffffff00;		// Block justify the address.
+  // base &= 0xffffff00;
   size_t  fullBlocks   = transfers/(256/sizeof(uint32_t));
   size_t  partialBlock = transfers % (256/sizeof(uint32_t));
 
