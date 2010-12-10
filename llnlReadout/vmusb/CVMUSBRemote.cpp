@@ -780,8 +780,8 @@ CVMUSBRemote::executeList(CVMUSBReadoutList&     list,
   // {127 } So allow 8 chars just for fun for each byte in allocating the receive buffer:
   // In getting the reply we keep reading until we get a \n in the input buffer.
   //
-  char* response = new char[readBufferSize*8];
-  size_t remaining = readBufferSize*8 - 8; // Safety buffer.
+  char* response = new char[readBufferSize*8+256];
+  size_t remaining = readBufferSize*8 + 200; // Safety buffer.
   int   offset   = 0;
   bool  done     = false;
   int   nread;
