@@ -30,6 +30,7 @@
 #include "CV977Command.h"
 #include "CMASECommand.h"
 #include "CMADCChainCommand.h"
+#include "CHINPCommand.h"
 
 #include <CReadoutModule.h>
 #include <TCLInterpreter.h>
@@ -62,7 +63,6 @@ CConfiguration::CConfiguration() :
   // Register and keep the commands.
 
   m_Commands.push_back(new CADCCommand(*m_pInterp, *this));
-  m_Commands.push_back(new CADCCommand(*m_pInterp, *this, "caenv965")); // Needs to be distinguishable
   m_Commands.push_back(new CCAENChainCommand(*m_pInterp, *this));
   m_Commands.push_back(new CScalerCommand(*m_pInterp, *this));
   m_Commands.push_back(new CCAENV830Command(*m_pInterp, *this));
@@ -76,6 +76,7 @@ CConfiguration::CConfiguration() :
   m_Commands.push_back(new CV977Command(*m_pInterp, *this));
   m_Commands.push_back(new CMASECommand(*m_pInterp, *this));
   m_Commands.push_back(new CMADCChainCommand(*m_pInterp, *this));
+  m_Commands.push_back(new CHINPCommand(*m_pInterp, *this));
 
 }
 /*!
@@ -101,7 +102,6 @@ CConfiguration::~CConfiguration()
   for (int i = 0; i < m_Commands.size(); i++) {
     delete m_Commands[i];
   }
-
   delete m_pInterp;
 }
 

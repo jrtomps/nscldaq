@@ -13,7 +13,8 @@ libConfig_la_SOURCES	= 	CADCCommand.cpp		\
 				CV1x90Command.cpp	\
 				CV977Command.cpp	\
 				CMASECommand.cpp	\
-				CMADCChainCommand.cpp
+				CMADCChainCommand.cpp   \
+				CHINPCommand.cpp
 
 
 include_HEADERS		=	CADCCommand.h  		\
@@ -30,7 +31,8 @@ include_HEADERS		=	CADCCommand.h  		\
 				CV1x90Command.h		\
 				CV977Command.h		\
 				CMASECommand.h		\
-				CMADCChainCommand.h
+				CMADCChainCommand.h	\
+				CHINPCommand.h
 
 
 
