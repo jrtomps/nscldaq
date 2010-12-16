@@ -41,6 +41,7 @@ public:
   }
 protected:
   void construct();
+  void copyconstruct();
   void selectors();
   void cursor();
   void toring();
@@ -77,6 +78,27 @@ void ritemtests::construct() {
   EQ(CRingItemStaticBufferSize*2, big.m_storageSize);
   EQ(false, big.m_swapNeeded);
 }
+
+// Test that we've fixed the error in copy construction that did not
+// get the cursor right:
+//
+void ritemtests::copyconstruct()
+{
+  // Make the source ring and put something in it:
+  CRingItem source(100);
+  uint8_t  *payload = reinterpret_cast<uint8_t*>(source.getBodyCursor());
+  for (int i =0; i < 16; i++) {
+    *payload++ = i;
+  }
+
+  // Copy the ring... the item, the bodysizes should match:
+
+  CRingItem copy(source);
+
+  EQ(source.getBodySize(), copy.getBodySize());
+
+}
+
 //
 // Tests the various selector  member functions.
 //

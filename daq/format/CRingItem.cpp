@@ -335,7 +335,14 @@ CRingItem::copyIn(const CRingItem& rhs)
 {
   m_storageSize   = rhs.m_storageSize;
   m_swapNeeded  = rhs.m_swapNeeded;
-  memcpy(m_pItem, rhs.m_pItem, m_storageSize + sizeof(RingItemHeader));
+  memcpy(m_pItem, rhs.m_pItem, 
+	 rhs.m_pItem->s_header.s_size); ///   m_storageSize + sizeof(RingItemHeader));
+
+  // where copyin is used, our cursor is already pointing at the body of the item.
+  // therefore when updating it we need to allow for that in the arithmetic below.
+
+  m_pCursor    +=  m_pItem->s_header.s_size 
+                  - sizeof(RingItemHeader); // Add the size of the body to the cursor position.
 }
 
 
