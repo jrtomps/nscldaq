@@ -95,7 +95,7 @@ public:
 
   void commitToRing(CRingBuffer& ring);
   bool mustSwap() const;
-  
+  void updateSize();		/* Set the header size given the cursor. */
 
   // class level methods:
 
