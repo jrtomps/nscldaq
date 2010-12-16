@@ -70,7 +70,6 @@ CRingStateChangeItem::CRingStateChangeItem(uint16_t reason,
   m_pItem(0)
 
 {
-
   init();
 
   // Everything should work just fine now:
@@ -255,7 +254,7 @@ CRingStateChangeItem::init()
 {
   m_pItem = reinterpret_cast<pStateChangeItem>(getItemPointer());
   uint8_t* pCursor = reinterpret_cast<uint8_t*>(getBodyCursor());
-  pCursor         += sizeof(StateChangeItem) - sizeof(RingItemHeader);
+  pCursor         += sizeof(StateChangeItem);
   setBodyCursor(pCursor);
 
 }

@@ -1,6 +1,12 @@
-Dec 16, 2010 - Fix error in CRingItem copy construction ... if there was a
+Dec 16, 2010 
+      - Fix error in CRingItem copy construction ... if there was a
 	payload, the m_pCursor member was not being set to point to the
 	end of that payload...leading the CRingItem target to think the
 	item was empty.  This was also a problem with operator= which also
 	used CRingItem::copyin where the problem lay.
+      - Fix various copy in issues with CRingBuffer and subclasses.
+	make all the tests pass that should pass and remove those that
+	should no longer pass due to changes in the way sampling
+	has been done.
+	
 	

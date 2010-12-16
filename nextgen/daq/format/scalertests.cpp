@@ -87,9 +87,13 @@ void scltests::castcons()
   p->s_intervalEndOffset   = 15;
   time(&(p->s_timestamp));
   p->s_scalerCount = 32;
-  for (int i =0; i < 32; i++) {
+  int i;
+  for (i =0; i < 32; i++) {
     p->s_scalers[i] = i;
   }
+  s.setBodyCursor(&(p->s_scalers[i]));
+  s.updateSize();
+
 
   // Now the item is prepared, construct the scaler from it:
 

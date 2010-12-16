@@ -218,6 +218,14 @@ CRingItem::setBodyCursor(void* pNewCursor)
   m_pCursor = reinterpret_cast<uint8_t*>(pNewCursor);
 }
 
+/*!
+** Given the current item cursor set the size of the item.
+*/
+void
+CRingItem::updateSize()
+{
+  m_pItem->s_header.s_size = sizeof(RingItemHeader) + getBodySize();
+}
 ///////////////////////////////////////////////////////////////////////////////////////
 //
 //   Object operations.
@@ -239,7 +247,7 @@ CRingItem::setBodyCursor(void* pNewCursor)
 void
 CRingItem::commitToRing(CRingBuffer& ring)
 {
-  m_pItem->s_header.s_size = sizeof(RingItemHeader) + getBodySize();
+  updateSize();
   ring.put(m_pItem, m_pItem->s_header.s_size);
 }
 
@@ -336,7 +344,7 @@ CRingItem::copyIn(const CRingItem& rhs)
   m_storageSize   = rhs.m_storageSize;
   m_swapNeeded  = rhs.m_swapNeeded;
   memcpy(m_pItem, rhs.m_pItem, 
-	 rhs.m_pItem->s_header.s_size); ///   m_storageSize + sizeof(RingItemHeader));
+	 rhs.m_pItem->s_header.s_size + sizeof(RingItemHeader)); ///   m_storageSize + sizeof(RingItemHeader));
 
   // where copyin is used, our cursor is already pointing at the body of the item.
   // therefore when updating it we need to allow for that in the arithmetic below.

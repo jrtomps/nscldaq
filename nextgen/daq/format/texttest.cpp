@@ -141,6 +141,7 @@ void texttests::castcons()
   strcpy(p, s4.c_str());
   p += strlen(p)+1;
   ritem.setBodyCursor(p);
+  ritem.updateSize();
 
   bool thrown = false;
 
