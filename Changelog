@@ -8,5 +8,7 @@ Dec 16, 2010
 	make all the tests pass that should pass and remove those that
 	should no longer pass due to changes in the way sampling
 	has been done.
-	
+Dec 20,2010
+      - Fix error in URL parsing that made absolute file urls fail.
+	(removed the leading /).
 	
