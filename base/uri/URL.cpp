@@ -236,8 +236,8 @@ void URL::parseString(string rStr) {
 
   protocol.assign(rStr, 0, protocolLength);
 
-  // A bit of relaxation.  The host starts after the
-  // : and an arbitrary number of '/' characters.
+  // A bit of relaxation.  The 'host; starts after the
+  // : and two / characters.
   //
 
   string host;
@@ -253,7 +253,7 @@ void URL::parseString(string rStr) {
   if (numSlashes < 2) {
     throw CURIFormatException(rStr, __FILE__, __LINE__);	// need at least 2 slashes.
   }
-  hostStart += numSlashes;	                        // The real start of the host.
+  hostStart += 2;		       // The real start of the host.
   hostEnd    = strchr(hostStart, ':');                  // We require a port, and thus a ':'.
   if (!hostEnd) {
     hostEnd = strchr(hostStart, '/'); // Might not be a port... but must be a trailing slash.
