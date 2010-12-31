@@ -1,4 +1,4 @@
-#
+
 #    This software is Copyright by the Board of Trustees of Michigan
 #    State University (c) Copyright 2005.
 #
@@ -22,7 +22,7 @@ package require ReadoutControl
 package require InstallRoot
 package require DAQParameters
 package require Diagnostics
-
+package require fileutil
 
 namespace eval  Experiment {
     variable Logrecorder "[InstallRoot::Where]/bin/eventlog"
@@ -40,7 +40,32 @@ namespace eval  Experiment {
 
 
 }
+
 #-------------- The procs below should be considered local to Experiment:: ---
+#
+#  Utility to make a filesystem link from source -> destination.
+#  - link is made relative so that the link ports in the presence of backup
+#    and restoration in a different filesystem (as happens in NSCL experiments
+#    as part of finalizing the experiment
+# Parameters:
+#    destination  - The real file (target of the link)
+#    source       - The link to be made.
+proc Experiment::link {destination source} {
+    #  fileutil::relative needs absolute paths:
+
+    set absDest [file normalize $destination]
+    set absLink [file normalize $source]
+
+    set relTarget [::fileutil::relative \
+		       [file dirname $absLink]  [file dirname $absDest]]
+
+    set name [file tail $destination]
+
+
+
+    exec touch $absDest; # Force the existence of the target.
+    file link -symbolic $absLink [file join $relTarget $name]
+}
 
 # Experiment::runcompare
 #    Compares two run files and determines which
@@ -122,7 +147,8 @@ proc Experiment::makeEventLink run {
     if {[file exists $linkname] || ([catch {file readlink $linkname}] == 0)} {
         file delete -force $linkname
     }
-    exec ln -s [file join $filepath $filename] $linkname
+    ::Experiment::link [file join $filepath $filename] $linkname
+
 
 }
 # Experiment::callback cbproc arg...
@@ -218,7 +244,7 @@ proc Experiment::finalizeEventData run {
 	puts "..with a link $linkfile"
         file rename -force $srcfile $dstfile
 	file attributes $dstfile -permissions 0440;   # Make the saved file read-only
-        catch {exec ln -s $dstfile $linkfile};#   On overwrite links may exist.
+	::Experiment::link $dstfile $linkfile
 
         incr segment
 
