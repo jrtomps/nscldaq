@@ -280,7 +280,11 @@ proc ReadoutGui::SecondElapsed {} {
     set eventDir [ExpFileSystem::WhereisCurrentEventData]
     set run [::ReadoutState::getRun]
     set filepat [file join $eventDir [::ExpFileSystem::GenRunFileBase $run]]
+
+
     append filepat * .evt
+
+
     set    segments [glob -nocomplain $filepat]
     set    size     0.0
     set    nsegments [llength $segments]
@@ -292,7 +296,7 @@ proc ReadoutGui::SecondElapsed {} {
     set size [expr {$size/1024.0}]
     if {$nsegments > 0} {
 	ReadoutGui::UpdateLinks $segments
-	set status [format "Run %d recorded in %d segments totalling %9.2f Mbytes" \
+	set status [format "Run %d recorded in %d segments totalling %9.3f Mbytes" \
 			 $run $nsegments $size]
     } else {
 	set status "No run file segments for run $run yet"
