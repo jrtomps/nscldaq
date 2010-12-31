@@ -11,4 +11,10 @@ Dec 16, 2010
 Dec 20,2010
       - Fix error in URL parsing that made absolute file urls fail.
 	(removed the leading /).
+      - Fix error in Gui that prevented event file segments from
+	showing up on the status strip.
+Dec 31, 2010
+      - In readout gui, make links between files symbolic so that they
+	port across backup and restores in a different directory tree as
+	happens during NSCL experiment closeout.
 	
