@@ -58,6 +58,7 @@ private:
   std::vector<CReadoutModule*>   m_Scalers; // Scalers ..no  real distinction now.
   std::vector<CReadoutModule*>   m_Stacks; // This is what we load.
   std::vector<CReadoutModule*>   m_HINPs; // This is what we load.
+  std::vector<CReadoutModule*>   m_PSDs; // This is what we load.
 
   CTCLInterpreter*                    m_pInterp;
   std::vector<CTCLObjectProcessor*>   m_Commands;
@@ -84,17 +85,20 @@ public:
   CReadoutModule* findScaler(std::string name);
   CReadoutModule* findStack(std::string name);
   CReadoutModule* findHINP(std::string name);
+  CReadoutModule* findPSD(std::string name);
 
   void addScaler(CReadoutModule*);
   void addAdc(CReadoutModule*);
   void addStack(CReadoutModule*);
   void addHINP(CReadoutModule*);
+  void addPSD(CReadoutModule*);
 
   
   std::vector<CReadoutModule*> getAdcs();
   std::vector<CReadoutModule*> getScalers();
   std::vector<CReadoutModule*> getStacks();
   std::vector<CReadoutModule*> getHINPs();
+  std::vector<CReadoutModule*> getPSDs();
 
   void setResult(std::string);
 
@@ -120,14 +124,5 @@ private:
   };
   
 };
-
-
-
-
-
-
-
-
-
 
 #endif
