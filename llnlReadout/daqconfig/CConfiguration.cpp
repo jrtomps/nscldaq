@@ -31,6 +31,7 @@
 #include "CMASECommand.h"
 #include "CMADCChainCommand.h"
 #include "CHINPCommand.h"
+#include "CPSDCommand.h"
 
 #include <CReadoutModule.h>
 #include <TCLInterpreter.h>
@@ -77,6 +78,7 @@ CConfiguration::CConfiguration() :
   m_Commands.push_back(new CMASECommand(*m_pInterp, *this));
   m_Commands.push_back(new CMADCChainCommand(*m_pInterp, *this));
   m_Commands.push_back(new CHINPCommand(*m_pInterp, *this));
+  m_Commands.push_back(new CPSDCommand(*m_pInterp, *this));
 
 }
 /*!
