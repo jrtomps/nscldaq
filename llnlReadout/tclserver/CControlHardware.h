@@ -25,6 +25,7 @@
 #endif
 
 class CVMUSB;
+class CVMUSBReadoutList;
 class CControlModule;
 
 /*!
@@ -74,6 +75,11 @@ public:
 			  std::string parameter) = 0;        //!< Get parameter value.
   virtual void clone(const CControlHardware& rhs) = 0;	     //!< Virtual copy constr.
 
+  // Interface to support monitoring.
+
+  virtual void addMonitorList(CVMUSBReadoutList& vmeList);     //!< add items to the monitor list.
+  virtual void* processMonitorList(void* pData, size_t remaining);
+  
 };
 
 #endif

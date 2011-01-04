@@ -72,3 +72,34 @@ CControlHardware::operator!=(const CControlHardware& rhs) const
 void 
 CControlHardware::Initialize(CVMUSB& vme)
 {}
+
+/*------------------------------------- Default implementations of virtual functions -*/
+
+/**
+ ** addMonitorList is supposed to add elements to a list of VME operations that will be
+ ** periodically performed to monitor device status.  As many/most devices will not
+ ** need to do this, the default implementation adds nothing to the list.
+ ** @param vmeList - References the vmusb list to append to.  This is passed by reference
+ **                  so that it can be modified by this method.
+ */
+void
+CControlHardware::addMonitorList(CVMUSBReadoutList& vmeList)
+{
+}
+
+/** processMonitorList is called whenever data is available from a monitor list.
+ ** the device driver is expected to fish its data out of the buffer and return
+ ** a pointer to the next unhandled part of the list.
+ ** As many device drivers do not require monitor data, the default 
+ ** for this method consumes no data.
+ **
+ ** @param pData     - Pointer to the first unconsumed chunk of data from the monitor list.
+ ** @param remaining - Number of unprocessed bytes in the monitor list.
+ ** @return void*
+ ** @retval Pointer to the next unconsumed byte in the list after the data we processed.
+ */ 
+void* 
+CControlHardware::processMonitorList(void* pData, size_t remaining)
+{
+  return pData;
+}
