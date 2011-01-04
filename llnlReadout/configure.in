@@ -5,10 +5,13 @@ AC_PREREQ(2.59)
 AC_INIT(configure.in)
 AC_CONFIG_AUX_DIR(config)
 AM_CONFIG_HEADER(config.h)
+AC_CONFIG_MACRO_DIR([m4])
+
 
 #    Separate device libraries.
 
 AM_INIT_AUTOMAKE(llnlReadout, 3.5, fox@nscl.msu.edu)  
+LT_INIT
 
 #
 #   The variable below should track the
@@ -49,7 +52,6 @@ AC_PROG_CPP
 AC_PROG_INSTALL
 AC_PROG_LN_S
 AC_PROG_LIBTOOL
-AC_PROG_RANLIB
 AC_PATH_PROG(DOXYGEN, doxygen, echo)
 
 # Documentation tools:

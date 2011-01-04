@@ -1,8 +1,2 @@
 #!/bin/sh
-find . -name .deps -exec rm -rf {} \;
-set -x
-aclocal -I config
-libtoolize --force --copy
-autoheader
-automake --foreign --add-missing --copy
-autoconf
+autoreconf
