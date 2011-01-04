@@ -179,3 +179,29 @@ CControlModule::Get(CVMUSB& vme, const char* what)
   return reply;
     
 }
+
+
+/*----------------------------- Support for periodic monitoring --------------------*/
+
+/**
+ ** addMonitorList allows the encapsulated hardware driver to add entries to
+ ** a VMUSBReadoutList (presumably the monitoring list
+ ** @param vmeList  The list to add to (passed by reference so that it can be modified).
+ */
+void
+CControlModule::addMonitorList(CVMUSBReadoutList& vmeList)
+{
+  m_pHardware->addMonitorList(vmeList);
+}
+/**
+ ** process the monitor list... again delegated to the encapsluated driver.
+ ** @param pData    - Pointer to the first unused byte of the data from the list.
+ ** @param remaining- Number of bytes remaining in the list that have not yet been processed.
+ ** @return void*
+ ** @retval pointer to the first byte of data unconsumed by this driver.
+ */
+void* 
+CControlModule::processMonitorList(void* pData, size_t remaining)
+{
+  return m_pHardware->processMonitorList(pData, remaining);
+}
