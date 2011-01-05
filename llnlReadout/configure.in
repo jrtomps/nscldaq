@@ -401,6 +401,7 @@ if test $spectrodaq_found == "no"; then
 	AC_MSG_ERROR([ Cannot locate spectrodaq-conf help me by using --with-spectrodaq-home])
 else
 SPECTRODAQ_FLAGS=$($spectrodaq_conf_dir/spectrodaq-conf --cflags)
+SPECTRODAQ_FLAGS="$SPECTRODAQ_FLAGS -pthread"
 SPECTRODAQ_LDFLAGS=$($spectrodaq_conf_dir/spectrodaq-conf --libs)
 AC_MSG_RESULT([ found in $spectrodaq_conf_dir ])
 fi

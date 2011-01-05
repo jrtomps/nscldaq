@@ -81,6 +81,14 @@ CVMUSBReadoutList::CVMUSBReadoutList(const CVMUSBReadoutList& rhs) :
 CVMUSBReadoutList::~CVMUSBReadoutList()
 {}
 
+CVMUSBReadoutList& 
+CVMUSBReadoutList::operator=(const CVMUSBReadoutList& rhs)
+{
+  if (this != &rhs) {
+    m_list = rhs.m_list;
+  }
+  return *this;
+}
 /*!
    Comparison is based on  comparison of the list contents.
 */

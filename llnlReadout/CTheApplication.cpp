@@ -72,6 +72,8 @@ CTheApplication::CTheApplication()
   }
   m_Exists = true;
   m_pInterpreter = static_cast<CTCLInterpreter*>(NULL);
+  Globals::running = false;
+  
 }
 /*!
    Destruction is a no-op since it happens at program exit.

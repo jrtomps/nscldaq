@@ -23,6 +23,7 @@
 #include <DataBuffer.h>
 #include <CControlQueues.h>
 #include "../router/CRunState.h" // else pick up the daq one by mistake.
+#include <Globals.h>		 // Need to maintain the running global. 
 #include <assert.h>
 #include <time.h>
 #include <string>
@@ -141,6 +142,7 @@ CAcquisitionThread::waitExit()
 int
 CAcquisitionThread::operator()(int argc, char** argv)
 {
+  Globals::running = true;
   try {
     m_Running = true;		// Thread is off and running now.
     
@@ -153,29 +155,34 @@ CAcquisitionThread::operator()(int argc, char** argv)
     }
     catch (...) {			// exceptions are used to exit the main loop.?
     }
-    
+    Globals::running = false;
     endRun();			// Emit end run buffer.
     
     m_Running = false;		// Exiting.
     return      0;		// Successful exit I suppose.
   }
   catch (string msg) {
+    Globals::running = false;
     cerr << "CAcquisition thread caught a string exception: " << msg << endl;
     throw;
   }
   catch (char* msg) {
+    Globals::running = false;
     cerr << "CAcquisition thread caught a char* exception: " << msg << endl;
     throw;
   }
   catch (CException& err) {
+    Globals::running = false;
     cerr << "CAcquisitino thread caught a daq exception: "
 	 << err.ReasonText() << " while " << err.WasDoing() << endl;
     throw;
   }
   catch (...) {
+    Globals::running = false;
     cerr << "CAcquisition thread caught some other exception type.\n";
     throw;
   }
+  Globals::running = false;
   return -1;
 }
 

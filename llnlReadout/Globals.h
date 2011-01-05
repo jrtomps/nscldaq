@@ -44,6 +44,7 @@ namespace Globals {
   extern std::string     configurationFilename;
   extern std::string     controlConfigFilename;
   extern CVMUSB*         pUSBController;
+  extern bool           running;
 };
 
 #endif

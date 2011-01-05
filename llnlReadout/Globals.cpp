@@ -25,5 +25,6 @@ namespace Globals {
   string             configurationFilename;
   string             controlConfigFilename;
   CVMUSB*            pUSBController;
+  bool               running;
 
 };

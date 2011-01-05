@@ -30,6 +30,7 @@
 
 class CControlHardware;
 class CVMUSB;
+class CVMUSBReadoutList;
 
 /*!
    A control module is a configurable object that is attached to an object
@@ -77,7 +78,13 @@ public:
   std::string Set(CVMUSB& vme, const char* what, const char* value);
   std::string Get(CVMUSB& vme, const char* what);
 
+  // Monitor list handling methods:
+
+  void addMonitorList(CVMUSBReadoutList& vmeList);
+  void* processMonitorList(void* pData, size_t remaining);
+
 };
+
 
 
 #endif

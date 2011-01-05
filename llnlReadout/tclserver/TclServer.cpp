@@ -29,6 +29,7 @@ using namespace std;
 #include <tcl.h>
 #include <TCLInterpreter.h>
 #include <CVMUSB.h>
+#include <CVMUSBReadoutList.h>
 #include "CControlModule.h"
 #include <Exception.h>
 #include <string>
@@ -41,7 +42,8 @@ TclServer::TclServer() :
   m_port(-1),
   m_configFilename(string("")),
   m_pVme(0),
-  m_pInterpreter(0)
+  m_pInterpreter(0),
+  m_pMonitorList(0)
 {}
 /*!
   These threads are built to live 'forever' so the destructor is also 
@@ -235,6 +237,8 @@ TclServer::readConfigFile()
     cerr << "TclServer::readConfigFile - unanticipated exception type\n";
     throw;
   }
+  /** Now build the monitor list from the modules that have been configured */
+
 }
 /*
    Start the Tcl server.
@@ -278,4 +282,35 @@ TclServer::initModules()
   for (int i =0; i < m_Modules.size(); i++) {
     m_Modules[i]->Initialize(*m_pVme);
   }
+}
+
+/**
+ ** Create the monitor list and populate it with contributions from the 
+ ** modules that have been created.  
+ ** @note Site effect: m_pMonitorList is constructed and, potentially
+ **       filled in.
+ */
+void
+TclServer::createMonitorList()
+{
+  m_pMonitorList = new CVMUSBReadoutList;
+  for (int i =0; i < m_Modules.size(); i++) {
+    m_Modules[i]->addMonitorList(*m_pMonitorList);
+  }
+}
+/**
+ ** Provide a copy of the monitor list to a client.
+ ** if m_pModules is null an empty list will be returned.
+ ** @return CVMUSBReadoutList
+ ** @retval Copy of the local monitor list.
+ **
+ */
+CVMUSBReadoutList
+TclServer::getMonitorList()
+{
+  CVMUSBReadoutList result;
+  if (m_pMonitorList) {
+    result = *m_pMonitorList;
+  }
+  return result;
 }

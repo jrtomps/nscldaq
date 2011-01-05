@@ -38,9 +38,14 @@ using namespace std;
 #endif
 #endif
 
+#ifndef __CVMUSBREADOUTLIST_H
+#include <CVMUSBReadoutList.h>
+#endif
+
 class CVMUSB;
 class CControlModule;
 class CTCLInterpreter;
+
 
 /*!
   The TclServer class implements a little Tcl server for our readout software.
@@ -73,6 +78,7 @@ private:
   std::vector<CControlModule*> m_Modules;       // Hardware we can access.
   CTCLInterpreter*             m_pInterpreter;
   DAQThreadId                  m_tid;
+  CVMUSBReadoutList*           m_pMonitorList; /* List to perform periodically. */
 
 public:
   TclServer();
@@ -89,6 +95,11 @@ public:
   CControlModule* findModule(std::string name);
   void            addModule(CControlModule* pNewModule);
   void            setResult(std::string resultText);
+
+  // selectors:
+
+  CVMUSBReadoutList getMonitorList(); /* Allow rdothread to get a copy. */
+
 protected:
   int operator()(int argc, char** argv);
 
@@ -97,6 +108,7 @@ private:
   void readConfigFile();
   void initModules();
   void startTcpServer();
+  void createMonitorList();
   void EventLoop();
 
 };
