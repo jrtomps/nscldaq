@@ -93,6 +93,10 @@
 #define GD_DELAY         0x10        // GLOBAL DISABLE DELAY REGISTER
 #define FAST_SERA        0x11        // fast serial A (16 bits at a time)
 #define FAST_SERB        0x12        // fast serial B (16 bits at a time)
+#define FPGA_FRC         0x13        // a free-running counter
+#define FPGA_TEST        0x15        // a read-write test register
+#define FPGA_ID          0x16        // FPGA version ID
+#define ReadoutMode      0x18        // select legacy or unified readout mode
 
 // Forward class definitions:
 
