@@ -116,6 +116,9 @@ CPSD::Initialize(CVMUSB& controller)
   controller.vmeWrite32(fpga+FPGA_ABus*4, registerAmod, forcereset); // reset the chips
   controller.vmeWrite32(fpga+FPGA_enblA*4, registerAmod, 1); // turn on ext enbl
   controller.vmeWrite32(fpga+FPGA_ABus*4, registerAmod, glbl_enable); // turn on glbl_enbl
+  // now set XLM to Unified readout mode, without internal ADC
+  controller.vmeWrite32(fpga+ReadoutMode*4, registerAmod, 1); // ADC off, Unified On
+
   CXLM::accessBus(controller, static_cast<uint32_t>(0)); // release bus
 
 }
@@ -148,8 +151,10 @@ CPSD::addReadoutList(CVMUSBReadoutList& list)
   list.addWrite32(fpga+FPGA_ABus*4, registerAmod, 0); // turn off glbl_enbl
   uint32_t srama = sramA();	// Base address of sram A
   uint32_t sramb = sramB();	// Base address of sram B
+  // note that first word of memory is count of 16-bit elements of sata
+  //  by masking off LSB, we get a count of 32-bit words to read
+  list.addBlockCountRead32(srama, 0x00000ffe, registerAmod); // Transfer count for combined tag/data
   //  read chip ID and channel address
-  list.addBlockCountRead32(srama, 0x00000fff, registerAmod); // Transfer count for combined tag/data
   list.addMaskedCountBlockRead32(srama + sizeof(uint32_t), blockTransferAmod);
   list.addWrite32(fpga+FPGA_ABus*4, registerAmod, forcereset); // reset the chips
   list.addWrite32(fpga+FPGA_enblA*4, registerAmod, 1); // turn on ext enbl
