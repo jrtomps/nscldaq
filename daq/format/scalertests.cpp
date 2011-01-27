@@ -21,6 +21,7 @@ class scltests : public CppUnit::TestFixture {
   CPPUNIT_TEST(fullcons);
   CPPUNIT_TEST(castcons);
   CPPUNIT_TEST(accessors);
+  CPPUNIT_TEST(copycons);
   CPPUNIT_TEST_SUITE_END();
 
 
@@ -36,6 +37,7 @@ protected:
   void fullcons();
   void castcons();
   void accessors();
+  void copycons();
 };
 
 CPPUNIT_TEST_SUITE_REGISTRATION(scltests);
@@ -145,4 +147,37 @@ void scltests::accessors()
   for (uint32_t i = 0; i < 32; i++) {
     EQ(i, s.getScaler(i));
   }
+}
+// Test copy construction.
+
+void scltests::copycons()
+{
+  vector<uint32_t> simulatedScaler;
+  for (uint32_t i=0; i < 64; i++) {
+    simulatedScaler.push_back(i);
+  }
+
+  CRingScalerItem original(0, 10, 12345, simulatedScaler);
+  CRingScalerItem copy(original);
+
+  EQ(original.getBodySize(), copy.getBodySize());
+  _RingItem* porig = original.getItemPointer();
+  _RingItem* pcopy = copy.getItemPointer();
+
+  // headers must match 
+
+  EQ(porig->s_header.s_size, pcopy->s_header.s_size);
+  EQ(porig->s_header.s_type, pcopy->s_header.s_type);
+
+  // Contents must match:
+
+
+  EQ(original.getStartTime(),   copy.getStartTime());
+  EQ(original.getEndTime(),    copy.getEndTime());
+  EQ(original.getTimestamp(),  copy .getTimestamp());
+  EQ(original.getScalerCount(), copy.getScalerCount());
+  for (uint32_t i =0; i < 64; i++) {
+    EQ(i, copy.getScaler(i));
+  }
+  
 }

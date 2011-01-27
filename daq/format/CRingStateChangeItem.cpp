@@ -79,6 +79,7 @@ CRingStateChangeItem::CRingStateChangeItem(uint16_t reason,
   m_pItem->s_Timestamp = timestamp;
   setTitle(title);		// takes care of the exception.
 
+
 }
 
 /*!
@@ -253,9 +254,10 @@ void
 CRingStateChangeItem::init()
 {
   m_pItem = reinterpret_cast<pStateChangeItem>(getItemPointer());
-  uint8_t* pCursor = reinterpret_cast<uint8_t*>(getBodyCursor());
-  pCursor         += sizeof(StateChangeItem);
+  uint8_t* pCursor = reinterpret_cast<uint8_t*>(getBodyPointer());
+  pCursor         += sizeof(StateChangeItem) - sizeof(RingItemHeader);
   setBodyCursor(pCursor);
+  updateSize();
 
 }
 

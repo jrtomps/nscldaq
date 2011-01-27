@@ -349,8 +349,9 @@ CRingItem::copyIn(const CRingItem& rhs)
   // where copyin is used, our cursor is already pointing at the body of the item.
   // therefore when updating it we need to allow for that in the arithmetic below.
 
-  m_pCursor    +=  m_pItem->s_header.s_size 
-                  - sizeof(RingItemHeader); // Add the size of the body to the cursor position.
+  m_pCursor    =  reinterpret_cast<uint8_t*>(getBodyPointer())
+                 +  m_pItem->s_header.s_size 
+                 - sizeof(RingItemHeader); // Add the size of the body to the cursor position.
 }
 
 

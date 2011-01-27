@@ -15,7 +15,6 @@
 #
 
 
-
 package provide Experiment 2.0
 package require ExpFileSystem
 package require ReadoutControl
@@ -23,6 +22,67 @@ package require InstallRoot
 package require DAQParameters
 package require Diagnostics
 package require fileutil
+
+#
+#  Horrid kludge for etch systems that don't have fileutil::relative:
+#
+if {[info proc ::fileutil::relative] eq ""} {
+    # ::fileutil::relative --
+    #
+    #	Taking two _directory_ paths, a base and a destination, computes the path
+    #	of the destination relative to the base.
+    #
+    # Arguments:
+    #	base	The path to make the destination relative to.
+    #	dst	The destination path
+    #
+    # Results:
+    #	The path of the destination, relative to the base.
+
+    proc ::fileutil::relative {base dst} {
+	# Ensure that the link to directory 'dst' is properly done relative to
+	# the directory 'base'.
+
+	if {![string equal [file pathtype $base] [file pathtype $dst]]} {
+	    return -code error "Unable to compute relation for paths of different pathtypes: [file pathtype $base] vs. [file pathtype $dst]"
+	}
+
+	set save $dst
+	set base [file split $base]
+	set dst  [file split $dst]
+
+	while {[string equal [lindex $dst 0] [lindex $base 0]]} {
+	    set dst  [lrange $dst  1 end]
+	    set base [lrange $base 1 end]
+	    if {![llength $dst]} {break}
+	}
+
+	set dstlen [llength $dst]
+	set baselen [llength $base]
+
+	if {($dstlen == 0) && ($baselen == 0)} {
+	    # Cases:
+	    # (a) base == dst
+
+	    set dst .
+	} else {
+	    # Cases:
+	    # (b) base is: base/sub = sub
+	    #     dst  is: base     = {}
+
+	    # (c) base is: base     = {}
+	    #     dst  is: base/sub = sub
+
+	    while {$baselen > 0} {
+		set dst [linsert $dst 0 ..]
+		incr baselen -1
+	    }
+	    set dst [eval file join $dst]
+	}
+
+	return $dst
+    }
+}
 
 namespace eval  Experiment {
     variable Logrecorder "[InstallRoot::Where]/bin/eventlog"
@@ -56,15 +116,21 @@ proc Experiment::link {destination source} {
     set absDest [file normalize $destination]
     set absLink [file normalize $source]
 
+    puts "absDest: $absDest \nabsLink $absLink"
+
     set relTarget [::fileutil::relative \
 		       [file dirname $absLink]  [file dirname $absDest]]
 
-    set name [file tail $destination]
+    puts "relTarget: $relTarget"
+    #set name [file tail $destination]
+    set name $destination
+    puts "name: $name"
 
 
-
-    exec touch $absDest; # Force the existence of the target.
-    file link -symbolic $absLink [file join $relTarget $name]
+    # exec touch $absDest; # Force the existence of the target.
+    puts "linking: $absLink to [file join $relTarget $name]"
+    exec ln -s [file join $relTarget $name] $absLink
+    # file link -symbolic $absLink [file join $relTarget $name]
 }
 
 # Experiment::runcompare
@@ -147,7 +213,9 @@ proc Experiment::makeEventLink run {
     if {[file exists $linkname] || ([catch {file readlink $linkname}] == 0)} {
         file delete -force $linkname
     }
-    ::Experiment::link [file join $filepath $filename] $linkname
+    set targetAbsPath [file join $filepath $filename]
+    puts "makeEventLink: $targetAbsPath $linkname"
+    ::Experiment::link $targetAbsPath $linkname
 
 
 }
@@ -244,6 +312,7 @@ proc Experiment::finalizeEventData run {
 	puts "..with a link $linkfile"
         file rename -force $srcfile $dstfile
 	file attributes $dstfile -permissions 0440;   # Make the saved file read-only
+	puts "FinalizeRun $dstfile $linkfile"
 	::Experiment::link $dstfile $linkfile
 
         incr segment
@@ -408,7 +477,7 @@ proc Experiment::CleanOrphans {} {
         if {[llength $orphans] == 0} {
             break
         }
-        scan [file tail [lindex $orphans 0]] run%d run
+        scan [file tail [lindex $orphans 0]] run-%d run
         finalizeEventData $run
 
         set target [ExpFileSystem::WhereisRun $run]

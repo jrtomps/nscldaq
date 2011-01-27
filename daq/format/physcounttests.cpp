@@ -18,6 +18,7 @@ class physcounttests : public CppUnit::TestFixture {
   CPPUNIT_TEST(fullcons);
   CPPUNIT_TEST(castcons);
   CPPUNIT_TEST(accessors);
+  CPPUNIT_TEST(copycons);
   CPPUNIT_TEST_SUITE_END();
 
 
@@ -34,6 +35,7 @@ protected:
   void fullcons();
   void castcons();
   void accessors();
+  void copycons();
 };
 
 CPPUNIT_TEST_SUITE_REGISTRATION(physcounttests);
@@ -134,4 +136,26 @@ void physcounttests::accessors()
   EQ((uint32_t)1234, i.getTimeOffset());
   EQ(now, i.getTimestamp());
   EQ((uint64_t)12345678, i.getEventCount());
+}
+// Test copy construction
+
+void physcounttests::copycons()
+{
+  CRingPhysicsEventCountItem original(1234, 10, 5678);
+  CRingPhysicsEventCountItem copy(original);
+
+  EQ(original.getBodySize(), copy.getBodySize());
+  _RingItem* porig = original.getItemPointer();
+  _RingItem* pcopy = copy.getItemPointer();
+
+  // headers must match 
+
+  EQ(porig->s_header.s_size, pcopy->s_header.s_size);
+  EQ(porig->s_header.s_type, pcopy->s_header.s_type);
+
+  // Contents must match:
+
+  EQ(original.getTimeOffset(),    copy.getTimeOffset());
+  EQ(original.getTimestamp(),     copy.getTimestamp());
+  EQ(original.getEventCount(),    copy.getEventCount());
 }
