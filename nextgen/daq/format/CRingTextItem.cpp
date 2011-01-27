@@ -256,6 +256,7 @@ CRingTextItem::copyStrings(vector<string> strings)
     p += strings[i].size() + 1;
   }
   setBodyCursor(p);
+  updateSize();
 }
 /*
 ** Initialize m_pItem from the underlying item.

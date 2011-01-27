@@ -25,6 +25,7 @@ class texttests : public CppUnit::TestFixture {
   CPPUNIT_TEST(fullcons);
   CPPUNIT_TEST(castcons);
   CPPUNIT_TEST(accessors);
+  CPPUNIT_TEST(copycons);
   CPPUNIT_TEST_SUITE_END();
 
 
@@ -40,6 +41,7 @@ protected:
   void fullcons();
   void castcons();
   void accessors();
+  void copycons();
 };
 
 CPPUNIT_TEST_SUITE_REGISTRATION(texttests);
@@ -213,4 +215,42 @@ void texttests::accessors()
  item.setTimestamp(66776);
  EQ((time_t)66776, item.getTimestamp());
 
+}
+// test coyp construction.
+
+void texttests::copycons()
+{
+  vector<std::string> testStrings; // With apologies to Theo Geissle aka Dr. Seuss.
+  testStrings.push_back("one string");
+  testStrings.push_back("two strings");
+  testStrings.push_back("three strings more");
+  testStrings.push_back("red string");
+  testStrings.push_back("blue string");
+  size_t stringCount = testStrings.size();
+
+  CRingTextItem original(MONITORED_VARIABLES,
+			 testStrings,
+			 1234, 5678);
+  CRingTextItem copy(original);
+
+  EQ(original.getBodySize(), copy.getBodySize());
+  _RingItem* porig = original.getItemPointer();
+  _RingItem* pcopy = copy.getItemPointer();
+
+  // headers must match 
+
+  EQ(porig->s_header.s_size, pcopy->s_header.s_size);
+  EQ(porig->s_header.s_type, pcopy->s_header.s_type);
+
+  // Contents must match:
+
+  EQ(original.getTimeOffset(), copy.getTimeOffset());
+  EQ(original.getTimestamp(),  copy.getTimestamp());
+  
+  vector<string> copiedStrings = copy.getStrings();
+  EQ(stringCount, copiedStrings.size());
+  for (int i = 0; i < stringCount; i++ ) {
+    EQ (testStrings[i], copiedStrings[i]);
+  }
+  
 }

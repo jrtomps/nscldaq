@@ -66,7 +66,6 @@ CRingPhysicsEventCountItem::CRingPhysicsEventCountItem(uint64_t count,
   m_pItem->s_timeOffset  = timeOffset;
   m_pItem->s_timestamp  = stamp;
   m_pItem->s_eventCount = count;
-
 }
 /*!
   Construction from an existing ring item.
@@ -211,8 +210,9 @@ CRingPhysicsEventCountItem::init()
 {
   m_pItem = reinterpret_cast<pPhysicsEventCountItem>(getItemPointer());
 
-  uint8_t* pCursor = reinterpret_cast<uint8_t*>(getBodyCursor());
+  uint8_t* pCursor = reinterpret_cast<uint8_t*>(getBodyPointer());
   pCursor         += sizeof(PhysicsEventCountItem) - sizeof(RingItemHeader);
   setBodyCursor(pCursor);
+  updateSize();
 
 }

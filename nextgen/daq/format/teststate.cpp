@@ -22,6 +22,7 @@ class teststate : public CppUnit::TestFixture {
   CPPUNIT_TEST(fullcons);
   CPPUNIT_TEST(castcons);
   CPPUNIT_TEST(accessors);
+  CPPUNIT_TEST(copycons);
   CPPUNIT_TEST_SUITE_END();
 
 
@@ -37,6 +38,7 @@ protected:
   void fullcons();
   void castcons();
   void accessors();
+  void copycons();
 };
 
 CPPUNIT_TEST_SUITE_REGISTRATION(teststate);
@@ -144,4 +146,32 @@ teststate::accessors()
   empty.setTimestamp(314159);
   EQ((time_t)(314159), empty.getTimestamp());
   
+}
+/**
+ ** test copy construction.. need to wind up with the same sizes and contents as before.
+ */
+void teststate::copycons()
+{
+  std::string title("This is a test title");
+
+  CRingStateChangeItem original(BEGIN_RUN,
+				1234, 0, (time_t)(56789),
+				title);
+  CRingStateChangeItem copy(original); // Copy construction.
+
+  EQ(original.getBodySize(), copy.getBodySize());
+  _RingItem* porig = original.getItemPointer();
+  _RingItem* pcopy = copy.getItemPointer();
+
+  // headers must match 
+
+  EQ(porig->s_header.s_size, pcopy->s_header.s_size);
+  EQ(porig->s_header.s_type, pcopy->s_header.s_type);
+
+  // Contents must match:
+
+  EQ(original.getRunNumber(),   copy.getRunNumber());
+  EQ(original.getElapsedTime(), copy.getElapsedTime());
+  EQ(original.getTitle(),         copy.getTitle());
+  EQ(original.getTimestamp(),   copy.getTimestamp());
 }

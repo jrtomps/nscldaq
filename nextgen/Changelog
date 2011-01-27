@@ -17,4 +17,8 @@ Dec 31, 2010
       - In readout gui, make links between files symbolic so that they
 	port across backup and restores in a different directory tree as
 	happens during NSCL experiment closeout.
+January 27, 2011
+	- Fix up Experiment.tcl so things work on etch systems (for now).
+	- Fix errors in copy construction in daq/format.
+	
 	

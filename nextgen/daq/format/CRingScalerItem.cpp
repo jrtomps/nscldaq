@@ -272,6 +272,7 @@ CRingScalerItem::init(size_t n)
   uint8_t* pCursor = reinterpret_cast<uint8_t*>(getBodyPointer());
   pCursor         += size;
   setBodyCursor(pCursor);
+  updateSize();
     
 }
 /*

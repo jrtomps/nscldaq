@@ -28,7 +28,7 @@ class ritemtests : public CppUnit::TestFixture {
   CPPUNIT_TEST(toring);
   CPPUNIT_TEST(fromring);
   CPPUNIT_TEST(selection);
-  //  CPPUNIT_TEST(sampling); /* Changed how sampling works, invalidates */
+  CPPUNIT_TEST(copyconstruct);
   CPPUNIT_TEST_SUITE_END();
 
 
@@ -90,12 +90,30 @@ void ritemtests::copyconstruct()
   for (int i =0; i < 16; i++) {
     *payload++ = i;
   }
-
-  // Copy the ring... the item, the bodysizes should match:
+  source.setBodyCursor(payload);
+  source.updateSize();
 
   CRingItem copy(source);
 
   EQ(source.getBodySize(), copy.getBodySize());
+  _RingItem* porig = source.getItemPointer();
+  _RingItem* pcopy = copy.getItemPointer();
+
+  // headers must match 
+
+  EQ(porig->s_header.s_size, pcopy->s_header.s_size);
+  EQ(porig->s_header.s_type, pcopy->s_header.s_type);
+
+  // contents must match:
+
+  uint8_t* pSource = reinterpret_cast<uint8_t*>(source.getBodyPointer());
+  uint8_t* pCopy   = reinterpret_cast<uint8_t*>(copy.getBodyPointer());
+  for (int i = 0; i < 16; i++) {
+    EQ((int)*pSource, (int)*pCopy);
+    pSource++;
+    pCopy++;
+  }
+
 
 }
 
