@@ -27,6 +27,7 @@ package require fileutil
 #  Horrid kludge for etch systems that don't have fileutil::relative:
 #
 if {[info proc ::fileutil::relative] eq ""} {
+    namespace eval ::fileutil {}; # Otherwise pkg_mkIndex fails.
     # ::fileutil::relative --
     #
     #	Taking two _directory_ paths, a base and a destination, computes the path
