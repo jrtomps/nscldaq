@@ -20,5 +20,7 @@ Dec 31, 2010
 January 27, 2011
 	- Fix up Experiment.tcl so things work on etch systems (for now).
 	- Fix errors in copy construction in daq/format.
-	
+February 17, 2011	
+	- Fix error in event file overwite handling in readoutgui:
+	  the softlink must be deleted before being made.
 	
