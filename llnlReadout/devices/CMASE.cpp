@@ -124,7 +124,7 @@ CMASE::addReadoutList(CVMUSBReadoutList& list)
 	       static_cast<uint8_t>(busDelayTicks));
   uint32_t sram = sramB();	// Base address of sram B:
   list.addBlockCountRead32(sram, 0xffffffff, registerAmod); // Transfer count for block read./
-  list.addMaskedCountBlockRead32(sram, blockTransferAmod);  // transfer count includes self.
+  list.addMaskedCountBlockRead32(sram + sizeof(uint32_t), blockTransferAmod);  // transfer count includes self.
 
   // Just for fun set a known pattern in the SRAM data part of the next event..
   // it should get overwritten...

@@ -43,8 +43,7 @@ class TclServer;
     Implements the module command.  This class is subclassed from 
     CTclObjectProcessor  The module command is the command that
     each setup script uses to define the set of contrrol modules
-    that exist.  At present, only a single type of control module
-    is supported: CJTECGDG  Jtec/Wiener Gate and Delay generator.
+    that exist.  
 */
 class CModuleCommand : public CTCLObjectProcessor
 {

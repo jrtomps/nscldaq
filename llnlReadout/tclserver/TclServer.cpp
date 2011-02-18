@@ -34,6 +34,9 @@ using namespace std;
 #include <Exception.h>
 #include <string>
 #include <iostream>
+#include <CRunState.h>
+
+static const int MonitorInterval(1); // Number of seconds between monitor interval.
 
 /*!  Constructor is not very interesting 'cause all the action is in 
     start and operator()
@@ -264,6 +267,13 @@ TclServer::startTcpServer()
 void
 TclServer::EventLoop()
 {
+  // If there's a nonempty monitor list we need to start its periodic execution
+
+  if (m_pMonitorList->size()) {
+    MonitorDevices(this);	// Allow it to locate us.
+  }
+  // Start the event loop:
+
   while(1) {
     Tcl_WaitForEvent(NULL);
     Tcl_SetServiceMode(TCL_SERVICE_ALL);
@@ -313,4 +323,67 @@ TclServer::getMonitorList()
     result = *m_pMonitorList;
   }
   return result;
+}
+/**
+ ** Monitor devices:
+ ** If the run is inactive, the list is done in immediate mode, and the data are dispatched
+ ** Directly to the device handlers.
+ ** If the run is active, the list is popped off and the readout thread will do that dispatch for us.
+ ** Regardless, we reschedule ourself via Tcl_CreateTimerHandler.
+ ** @param pData - Void pointer that is really a TclServer pointer that allows us to gain object
+ **                context.
+ */
+void
+TclServer::MonitorDevices(void* pData)
+{
+  TclServer* pObject = reinterpret_cast<TclServer*>(pData);
+
+  // If the run is active  we just trigger list 7.
+  // otherwise we execute the list immediate and ship the data around
+  // to the various devices.
+
+  CVMUSB* pController = pObject->m_pVme;
+  if (CRunState::getInstance()->getState() == CRunState::Active) {
+    pController->writeActionRegister( CVMUSB::ActionRegister::triggerL7 | 
+				      CVMUSB::ActionRegister::startDAQ); // StartDAQ keeps acquisition alive.
+  }
+  else {
+    uint16_t readData[13*1024];	// Big data pot...ought to be big enough...one event buffer worth?
+    size_t   dataRead(0);
+    CVMUSBReadoutList* pList  = pObject->m_pMonitorList;
+    int                status = pController->executeList(*pList, readData, sizeof(readData), &dataRead);
+    if (status != 0) {
+      cerr << "Warning: Monitor list read failed\n";
+      
+    }
+    else {
+      pObject->processMonitorList(readData, dataRead);
+    }
+							 
+  }
+
+  Tcl_Interp* pInterp = pObject->m_pInterpreter->getInterpreter();
+  Tcl_CreateTimerHandler(MonitorInterval*1000, TclServer::MonitorDevices, pData);
+}
+/*
+** Process control module data:
+**
+** @param pData   - Pointer to the data read from the moduels.
+** @param nBytes  - Number of bytes of data to process.
+*/
+void
+TclServer::processMonitorList(void* pData, size_t nBytes)
+{
+  // It will be easier to track the progress through the list
+  // by treating the data as uint8_t*
+
+  uint8_t* p = reinterpret_cast<uint8_t*>(pData);
+  for (int i =0; i < m_Modules.size(); i++) {
+    uint8_t* pNewPosition;
+    pNewPosition = reinterpret_cast<uint8_t*>(m_Modules[i]->processMonitorList(p, nBytes));
+    nBytes      -= (pNewPosition - p);
+    p            = pNewPosition;
+    if (nBytes ==0) break;	// Short circuit once we're out of bytes.
+					      
+  }
 }

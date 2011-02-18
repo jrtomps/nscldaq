@@ -224,6 +224,14 @@ public:
 	static const uint16_t clear      = 4;
 	static const uint16_t sysReset   = 8;
 	static const uint16_t scalerDump = 0x10;
+	static const uint16_t triggerL0  = 0x100;
+	static const uint16_t triggerL1  = 0x200;
+	static const uint16_t triggerL2  = 0x400;
+	static const uint16_t triggerL3  = 0x800;
+	static const uint16_t triggerL4  = 0x1000;
+	static const uint16_t triggerL5  = 0x2000;
+	static const uint16_t triggerL6  = 0x4000;
+	static const uint16_t triggerL7  = 0x8000;
     };
     
     class FirmwareRegister {

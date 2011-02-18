@@ -95,6 +95,7 @@ public:
   CControlModule* findModule(std::string name);
   void            addModule(CControlModule* pNewModule);
   void            setResult(std::string resultText);
+  void            processMonitorList(void* pData, size_t nBytes);
 
   // selectors:
 
@@ -110,6 +111,8 @@ private:
   void startTcpServer();
   void createMonitorList();
   void EventLoop();
+  static void MonitorDevices(void* pData); /* void* to avoid including tcl.h */
+  
 
 };
  
