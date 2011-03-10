@@ -555,9 +555,15 @@ proc onConnection {channel clientaddr clientport} {
 #
 #
 
-
 set allocator [portAllocator new]
-set listenPort [$allocator allocatePort "RingMaster"]
+
+while {1} {
+    if {[catch {set listenPort [$allocator allocatePort "RingMaster"]}] == 0} {
+	break
+    }
+    after 1000;			# Retry connection in a second.
+}
+::log::log debug "Obtained a listen port: $listenPort"
 
 # Establish the log destination:
 
