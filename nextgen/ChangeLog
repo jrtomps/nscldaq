@@ -24,3 +24,9 @@ February 17, 2011
 	- Fix error in event file overwite handling in readoutgui:
 	  the softlink must be deleted before being made.
 	
+March 10, 2011 10.0-004
+	- Make ring master wait until the port manager is actually alive
+	rather than dying if it isn't.
+	- Install VERSION file in make install target.
+	- Misc. changes to Makefile.am's and configure.ac so that
+	autoreconf isn't so bitchy.

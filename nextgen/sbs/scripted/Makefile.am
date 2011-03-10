@@ -98,8 +98,6 @@ INCLUDES=  $(VMEBUILDEADERS) \
 	-DINSTDIR=\"$(prefix)\" -g -pthread
 
 
-CXXFLAGS=-g
-CCFLAGS=-g
 
 
 
