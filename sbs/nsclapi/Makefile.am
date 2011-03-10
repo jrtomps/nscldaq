@@ -19,7 +19,7 @@ INCLUDES = -I@top_srcdir@/base/headers -I@top_srcdir@/base/exception	\
 	-I@top_srcdir@/sbs/driver/include	\
 	-I@top_srcdir@/sbs/driver/dd
 
-LDFLAGS = -lpthread
+AM_LDFLAGS = -lpthread
 
 
 

@@ -1,3 +1,4 @@
+ACLOCAL_AMFLAGS=-I m4
 if BUILD_SBS_DRIVER
   SBSDIRS=sbs
 endif
@@ -19,6 +20,8 @@ install-data-local:
 	$(TCLSH_CMD) <makeindex.tcl
 	$(INSTALL_SCRIPT) config.h @prefix@/include
 	$(MANDB) $(prefix)/share/man
+	echo "Version: " $(VERSION) build on `hostname` `date` > $(prefix)/VERSION
+	
 
 EXTRA_DIST=dotests
 
