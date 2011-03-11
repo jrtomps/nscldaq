@@ -298,6 +298,8 @@ CStack::loadStack(CVMUSB& controller)
 
 
 
+  
+
   // Load the list:... unless it has no elements!
 
   if (readoutList.size() > 0) {

@@ -11,7 +11,8 @@ include_HEADERS		= CAcquisitionThread.h		\
 INCLUDES		= $(SPECTRODAQ_FLAGS) $(NSCLDAQ_FLAGS) -I@top_srcdir@/threadcomm \
 			-I@top_srcdir@/router				\
 			-I@top_srcdir@/devices				\
-			-I@top_srcdir@/vmusb
+			-I@top_srcdir@/vmusb				\
+			-I@top_srcdir@/tclserver @TCL_FLAGS@
 
 
 libRdoThread_la_LIBADD	= @top_srcdir@/threadcomm/libThreadComm.la	\

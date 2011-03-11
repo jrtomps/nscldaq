@@ -284,6 +284,8 @@ CMADC32::Initialize(CVMUSB& controller)
   controller.vmeWrite16(base + StartAcq, initamod, 0);
   controller.vmeWrite16(base + ReadoutReset, initamod, 1);
 
+
+
   CVMUSBReadoutList list;	// Initialization instructions will be added to this.
 
   // First disable the interrupts so that we can't get any spurious ones during init.
@@ -488,7 +490,6 @@ CMADC32::Initialize(CVMUSB& controller)
      throw string("List excecution to initialize an MADC32 failed");
    }
 
-  
 }
 /*!
   Add instructions to read out the ADC for a event. Since we're only working in

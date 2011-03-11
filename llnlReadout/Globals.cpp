@@ -19,12 +19,12 @@ using std::string;
 
 class CConfiguration;
 class CVMUSB;
-
+class TclServer;
 namespace Globals {
   CConfiguration*    pConfig;
   string             configurationFilename;
   string             controlConfigFilename;
   CVMUSB*            pUSBController;
   bool               running;
-
+  TclServer*         pTclServer;     
 };

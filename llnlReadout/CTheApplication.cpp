@@ -159,6 +159,7 @@ CTheApplication::startTclServer()
   TclServer* pServer = new TclServer;
   pServer->start(tclServerPort, Globals::controlConfigFilename.c_str(),
 		   *Globals::pUSBController);
+  Globals::pTclServer = pServer; // Save for readout.
 }
 /*
     Start the Tcl interpreter, we use the static AppInit as a trampoline into the

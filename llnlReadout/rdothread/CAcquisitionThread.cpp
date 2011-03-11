@@ -28,6 +28,8 @@
 #include <time.h>
 #include <string>
 #include <Exception.h>
+#include <TclServer.h>
+
 #include <iostream>
 
 #include <string.h>
@@ -310,10 +312,18 @@ CAcquisitionThread::processBuffer(DataBuffer* pBuffer)
   clock_gettime(CLOCK_REALTIME, &acquiredTime); // CLOCK_REALTIME is the only gaurantee
   pBuffer->s_timeStamp  = acquiredTime;
 
-  // In this version, all stack ids are good.  The output thread will ensure that
+  // In this version, all stack ids are good. 
+  // stack 7 is queued as an event to the tcl server as it contains monitor events.
+  //
+  // The output thread get all other stack data and will ensure that
   // stack 1 completions are scalers and all others are events.
 
-  gFilledBuffers.queue(pBuffer);	// Send it on to be routed to spectrodaq in another thread.
+  if (((pBuffer->s_rawData[0] >> 13) & 0x7) == 7) {
+    ::Globals::pTclServer->QueueBuffer(pBuffer);
+  } 
+  else {
+    gFilledBuffers.queue(pBuffer);	// Send it on to be routed to spectrodaq in another thread.
+  }
 }
 /*!
     startDaq start data acquisition from a standing stop. To do this we need to:
@@ -366,8 +376,19 @@ CAcquisitionThread::startDaq()
     pStack->Initialize(*m_pVme);    // INitialize daq hardware associated with the stack.
     pStack->loadStack(*m_pVme);	    // Load into VM-USB
     pStack->enableStack(*m_pVme);   // Enable the trigger logic for the stack.
+
+    
   }
- 
+
+  // there could be a TclServer stack as well:
+
+  TclServer*          pServer = ::Globals::pTclServer;
+  CVMUSBReadoutList   list    = pServer->getMonitorList();
+  if (list.size() != 0) {
+    size_t currentOffset = CStack::getOffset();
+    m_pVme->loadList(7, list, currentOffset); // The tcl server will periodically trigger the list.
+  }
+
   // Set up the buffer size and mode:
 
   m_pVme->writeBulkXferSetup(0 << CVMUSB::TransferSetupRegister::timeoutShift); // don't want multibuffering...1sec timeout is fine.

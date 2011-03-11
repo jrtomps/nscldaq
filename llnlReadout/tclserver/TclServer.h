@@ -42,6 +42,14 @@ using namespace std;
 #include <CVMUSBReadoutList.h>
 #endif
 
+
+#ifndef _TCL_H
+#include <tcl.h>
+#ifndef _TCL_H
+#define _TCL_h
+#endif
+#endif
+
 class CVMUSB;
 class CControlModule;
 class CTCLInterpreter;
@@ -79,6 +87,7 @@ private:
   CTCLInterpreter*             m_pInterpreter;
   DAQThreadId                  m_tid;
   CVMUSBReadoutList*           m_pMonitorList; /* List to perform periodically. */
+  Tcl_ThreadId                 m_threadId;
 
 public:
   TclServer();
@@ -96,6 +105,7 @@ public:
   void            addModule(CControlModule* pNewModule);
   void            setResult(std::string resultText);
   void            processMonitorList(void* pData, size_t nBytes);
+  void QueueBuffer(void* pBuffer);
 
   // selectors:
 
@@ -111,8 +121,8 @@ private:
   void startTcpServer();
   void createMonitorList();
   void EventLoop();
-  static void MonitorDevices(void* pData); /* void* to avoid including tcl.h */
-  
+  static void MonitorDevices(ClientData pData); 
+  static int  receiveMonitorData(Tcl_Event* pEvent, int flags); /* Gets status buffers when run active */  
 
 };
  

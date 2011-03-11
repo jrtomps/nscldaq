@@ -38,6 +38,15 @@ using namespace std;
 
 static const int MonitorInterval(1); // Number of seconds between monitor interval.
 
+
+/**
+ ** This strruct is used to pass data between the readout thread and us:
+ */
+struct TclServerEvent {
+  struct Tcl_Event event;
+  void*            pData;
+};
+
 /*!  Constructor is not very interesting 'cause all the action is in 
     start and operator()
 */
@@ -140,6 +149,7 @@ TclServer::setResult(string msg)
 int
 TclServer::operator()(int argc, char** argv)
 {
+  m_threadId = Tcl_GetCurrentThread(); // Save for later use.
   try {
     initInterpreter();		// Create interp and add commands.
     readConfigFile();		// Initialize the modules.
@@ -269,7 +279,7 @@ TclServer::EventLoop()
 {
   // If there's a nonempty monitor list we need to start its periodic execution
 
-  if (m_pMonitorList->size()) {
+  if (m_pMonitorList && m_pMonitorList->size()) {
     MonitorDevices(this);	// Allow it to locate us.
   }
   // Start the event loop:
@@ -324,6 +334,27 @@ TclServer::getMonitorList()
   }
   return result;
 }
+/*
+** This function queues an event to the tclserver thread.  It is intended to be
+** called by other threads.  The event indicates the arrival of a monitor
+** buffer when the run is active.  The event handling function
+** will have to funge stuff up to allow processMonitorData to be
+** executed on the received data.
+** @param pBuffer - Actually a DataBufer* which contains the data gotten from
+**                  the vmusb.
+*/
+void
+TclServer::QueueBuffer(void* pBuffer)
+{
+  TclServerEvent* pEvent = reinterpret_cast<TclServerEvent*>(Tcl_Alloc(sizeof(TclServerEvent)));
+  pEvent->event.proc = receiveMonitorData;
+  pEvent->pData      = pBuffer;
+
+  Tcl_ThreadQueueEvent(m_threadId, 
+		       reinterpret_cast<Tcl_Event*>(pEvent), 
+		       TCL_QUEUE_HEAD); // out of band processing.
+}
+
 /**
  ** Monitor devices:
  ** If the run is inactive, the list is done in immediate mode, and the data are dispatched
@@ -351,15 +382,17 @@ TclServer::MonitorDevices(void* pData)
     uint16_t readData[13*1024];	// Big data pot...ought to be big enough...one event buffer worth?
     size_t   dataRead(0);
     CVMUSBReadoutList* pList  = pObject->m_pMonitorList;
-    int                status = pController->executeList(*pList, readData, sizeof(readData), &dataRead);
-    if (status != 0) {
-      cerr << "Warning: Monitor list read failed\n";
-      
-    }
-    else {
-      pObject->processMonitorList(readData, dataRead);
-    }
-							 
+    if (pList->size() > 0) {
+      int                status = pController->executeList(*pList, readData, sizeof(readData), &dataRead);
+      if (status != 0) {
+	cerr << "Warning: Monitor list read failed\n";
+	
+      }
+      else {
+	pObject->processMonitorList(readData, dataRead);
+      }
+	
+    }						 
   }
 
   Tcl_Interp* pInterp = pObject->m_pInterpreter->getInterpreter();
@@ -386,4 +419,13 @@ TclServer::processMonitorList(void* pData, size_t nBytes)
     if (nBytes ==0) break;	// Short circuit once we're out of bytes.
 					      
   }
+}
+/**
+ ** When a buffer of monitor data arrives an event is queued to this thread.
+ ** the event invokes this function.
+ */
+int
+TclServer::receiveMonitorData(Tcl_Event* pEvent, int flags)
+{
+  return 1;			// Done with the event.
 }

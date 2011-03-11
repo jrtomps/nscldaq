@@ -27,6 +27,7 @@
 
 class CConfiguration;
 class CVMUSB;
+class TclServer;
 
 /*!
   This namespace defines global variables.  We've tried to keep this to minimum.
@@ -44,7 +45,8 @@ namespace Globals {
   extern std::string     configurationFilename;
   extern std::string     controlConfigFilename;
   extern CVMUSB*         pUSBController;
-  extern bool           running;
+  extern bool            running;
+  extern TclServer*      pTclServer;
 };
 
 #endif
