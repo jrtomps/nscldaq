@@ -99,3 +99,107 @@ Const(OverPower)    0x0200;
 Const(Disabled)     0x0400;
 Const(Interlocked)  0x0800;
 Const(Uncalibrated) 0x1000;
+
+
+/*------------------------------------- Canonical methods */
+
+/**
+ * Construct the object.  For now we won't do anything
+ * with the monitored registers.  We will just let those
+ * populate as the update/monitor list runs.
+ */
+CV6533::CV6533(string name) :
+  CControlHardware(name),
+  m_pConfiguration(0)
+{
+}
+/**
+ * Copy construction; clone already does what we need
+ * just invoke it:
+ */
+CV6533::CV6533(const CV6533& rhs) :
+  CControlHardware(rhs)
+{
+  *this = clone(rhs);
+}
+/**
+ * Destruction is not really needed since we are not going to be
+ * destroyed for the life of the program.
+ */
+CV6533::~CV6533()
+{
+}
+/**
+ *  Assignment is also taken care of by clone for the most part.
+ * Just need to be sure we don't do anything on a self assign.
+ * @param rhs - The object being assigned to us.
+ * @return CV6533
+ * @retval *this
+ */
+CV6533&
+CV6533::operator=(const CV6533& rhs)
+{
+  if (this != &rhs) {
+    clone(rhs);
+  }
+  return *this;
+}
+/**
+ * Equal configuration implies equality.
+ * @param rhs  - The object to check with.
+ */
+int
+CV6533::operator==(const CV6533& rhs) const
+{
+  return CControlHardware::operator==(rhs);
+}
+/**
+ ** Inequality as usual is the inverse of equality:
+ ** @param rhs - the object to compare with *this
+ */
+int
+CV6533::operator!=(const CV6533& rhs) const
+{
+  return !(*this == rhs);
+}
+/*------------------ Operations for running the module -----*/
+
+
+/**
+ * This function is called when the object is attached
+ * to its configuration.  We must save the configuration
+ * and register our parameters.  At present, for HV
+ * units we are not going to save any configuration.
+ * that would be the responsibility of the GUI the user
+ * interacts with
+ * @param configuration - Configuration object that will
+ *                        maintain our object's configuration.
+ */
+void
+CV6533::onAttach(CControlModule& configuration)
+{
+  m_pConfiguration = &configuration;
+  configuration.addParameter("-base", \
+			     CConfigurableObject::isInteger,
+			     NULL, string("0"));
+}
+/**
+ * Called to initalize the module.  For us initialization is
+ * playing it safe: All the voltages are set to zero.
+ * Each channel is turned off.
+ * @param vme   - Object that proxies for the VM-USB 
+ *                controller module.
+ */
+void
+CV6533::Initialize(CVMUSB& vme)
+{
+
+
+  CVMUSBReadoutList list;	// List of configuration ops.
+  for (int i =0; i < 6; i++) {
+    turnOff(list, i);
+    setRequestVoltage(list, i, 0.0);
+  }
+  // Execute the list.
+
+}
