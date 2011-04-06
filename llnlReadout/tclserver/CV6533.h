@@ -58,7 +58,7 @@ class CVMUSB;
  *   - tempn         - Temperature of channel n.
  */
 
-class CV6533 : puoblic CControlHardware
+class CV6533 : public CControlHardware
 {
 private:
   CControlModule*    m_pConfiguration;
@@ -97,6 +97,21 @@ private:
 
   virtual void addMonitorList(CVMUSBReadoutList& vmeList);     //!< add items to the monitor list.
   virtual void* processMonitorList(void* pData, size_t remaining);  
+
+
+  // Local utilities: 
+
+private:
+  uint32_t* getBase();		// Get the base address of the module from config
+  void turnOff(CVMUSBReadoutlist& list, unsigned int channel);
+  void setRequestVoltage(CVMUSBReadoutList& list, unsigned int channel, float value);
+  void setRequestCurrent(CVMUSBReadoutList& list, unsigned int channel, float value);
+  void setChannelOnOff(CVMUSBReadoutList& list, unsigned int channel, bool value);
+
+
+  bool strToBool(std::string value);
+
+
 
 };
 

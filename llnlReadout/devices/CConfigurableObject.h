@@ -205,6 +205,10 @@ public:
   // Build enum set from a list of char*'s:
 
   static isEnumParameter makeEnumSet(const char** values);
+
+  // Utility to convert a validated string to a bool:
+
+  static bool strToBool(std::string value);
  
   // utilities:
 private:

@@ -101,6 +101,10 @@ Const(Interlocked)  0x0800;
 Const(Uncalibrated) 0x1000;
 
 
+//  Address modifier to use when accessing the board:
+
+static const uint8_t amod = CVMUSBReadoutList::a32PrivData;
+
 /*------------------------------------- Canonical methods */
 
 /**
@@ -248,13 +252,8 @@ CV6533::Set(CVMUSB& vme, string parameter, string value)
   unsigned channelNumber;
   CVMUSBReadoutList list;
   try {
-    if (parameter == "globalmaxv") {
-      setGlobalMaxVoltage(vme, value);
-    }
-    else if (parameter == "globalmaxI") {
-      setGlobalMaxCurrent(vme, value);
-    }
-    else if (sscanf(parameter.c_str(), "v%u", &channelNumber) == 1) {
+
+    if (sscanf(parameter.c_str(), "v%u", &channelNumber) == 1) {
       setRequestVoltage(list, channelNumber, atof(value.c_str()));
     }
     else if (sscanf(parameter.c_str(), "i%u",
@@ -279,9 +278,6 @@ CV6533::Set(CVMUSB& vme, string parameter, string value)
     else if (sscanf(parameter.c_str(), "pdownomode&u", &channelNumber) ==1 ) {
       setPowerDownMode(list, channelNumber, value);
     }
-    else if (sscanf(parameter.c_str(), "polarity%u", &channelNumber) == 1) {
-      setPolarity(list, channelNumber, value);
-    }
     else {
       throw string("Unrecognized parameter");
     }
@@ -297,10 +293,256 @@ CV6533::Set(CVMUSB& vme, string parameter, string value)
 	throw string("VME list execution failed");
       }
     }
-    catch(string msg) {
-      string error = "ERROR - ";
-      error += msg;
-      return error;
+  }
+  catch(string msg) {
+    string error = "ERROR - ";
+    error += msg;
+    return error;
+  }
+  
+  return string("OK");
+}
+/**
+ * Get - this function retrieves the value of a parameter from the device.
+ *       note that if a parameter is in the monitor set it will still be read from the device
+ *       though the monitored data will be updated by the read that results.
+ *       For readings that are per channel, we are going to save some time by 
+ *       reading all values from all channels.. When data taking is in progress, this will
+ *       reduce the number of times the Get needs to be invoked and hence the number
+ *       of times the DAQ needs to be stopped.
+ *  @param vme        - Object that stands in for the VM-USB controller.
+ *  @param parameter  - Name of the paramter to get.. in the case of the per channel parameters
+ *                      leave off the channel number as all channesl will be read and returned
+ *                      as a Tcl List.
+ * @return string
+ * @retval "ERROR -..." An error occured, the remainder of the text string is a human readable
+ *                      error message.
+ * @retval "OK xxx"   Everything worked.  If xxx represents a single paramter (e.g. globalmaxv
+ *                    this will just be a number.  If the requested parameter was a per channel value
+ *                    xxx will be a correctly formatted Tcl list that contains the per channel
+ *                    values of the parameter.
+ */
+string
+CV6533::Get(CVMUSB& vme, string parameter)
+{
+  // error handing in the utilities means tossing exceptions with the error message.
+  // the individual utilities will return the correct appropriate output (not the ok)
+
+  string ok = "OK ";
+  string result;
+  try {
+    // Big honking if/else to deal with all the parameters... all oparameters are readable
+    // and the utilities will take care of updating the member variables:
+
+    if (parameter == "globalmaxv") {
+      result = getGlobalMaxV(vme);
     }
-    return string("OK");
+    else if (parameter == "globalmaxI") {
+      result = getGlobalMaxI(vme);
+    }
+    else if (parameter == "v") {
+      result = getChannelVoltages(vme);
+    }
+    else if (parameter == "i") {
+      result = getChannelCurrents(vme);
+    }
+    else if (parameter == "on") {
+      result = getOnOfRequest(vme);
+    }
+    else if (parameter == "vact") {
+      result = getActualVoltages(vme);
+    }
+    else if (parameter == "iact") {
+      result = getActualCurrents(vme);
+    }
+    else if (parameter == "status") {
+      result = getChannelStatuses(vme);
+    }
+    else if (parameter == "ttrip") {
+      result = getTripTimes(vme);
+    }
+    else if (parameter == "svmax") {
+      result = getSoftwareVmax(vme);
+    }
+    else if (parameter == "rdown") {
+      result = getRampDownRates(vme);
+    }
+    else if (parameter == "rup") {
+      result = getRampUpRates(vme);
+    }
+    else if (parameter == "pdownmode") {
+      result = getPowerDownModes(vme);
+    }
+    else if (parameter == "polarity") {
+      result = getPolarities(vme);
+    }
+    else if (parameter == "temp") {
+      result = getTemperatures(vme);
+    }
+    else {
+      throw "Invalid parameter";
+    }
+  }
+  catch(string msg) {
+    string error = "ERROR - ";
+    error       += msg;
+    return error;
+  }
+  ok += result;
+  return result;
+}
+/**
+ * clone another CV6533 into this...this implements a virtual copy constructor.
+ *
+ * @param rhs - the object to clone into *this
+ */
+void
+CV6533::clone(const CControlHardware& rhs)
+{
+  m_pConfiguration = new CControlHardware(rhs.m_pConfiguration); // Already has has config params registered.
+  m_globalStatus   = rhs.m_globalStatus;
+  memcpy(m_channelStatus, rhs.m_channelStatus, sizeof(m_channelStatus));
+  memcpy(m_voltages,      rhs.m_voltages,      sizeof(m_voltages));
+  memcpy(m_currents,      rhs.m_currents,      sizeof(m_currents));
+  memcpy(m_temperatures,  rhs.m_temperatures,  sizeof(m_temperatures));
+								  
+}
+
+/*----------------------------------  Monitoring --------------------------*/
+
+/**
+ * Add our list to the monitoring functions.  Unfortunately, the whole
+ * layout of the register set and 16 bitedness means we're going to be doing
+ * single shot transfers rather than blocks.
+ * @param vmeList - VME readout list to which we will be adding data.
+ */
+void
+CV6533::addMonitorList(CVMUSBReadoutList& vmeList)
+{
+  uint32_t base  = getBase();
+  // Global status:
+
+  vmeList.addRead16(base + BoardStatus, amod);
+  
+  // Channel stuff will be grouped by channel so that looping can be done both here and
+  // when unpacking:
+
+  for(int i =0; i < 6; i++) {
+    vmeList.addRead16(base + Channels[i] + ChStatus, amod); // Channel status.
+    vmeList.addRead16(base + Channels[i] + VMon,     amod); // Actual voltage.
+    vmeList.addRead16(base + Channels[i] + IMon,     amod); // Monitored voltage.
+    vmeList.addRead16(base + Channels[i] + Temp,     amod); // Channel temperature.
+  }
+
+}
+/**
+ * Unpack the data from the monitor list into our member data.
+ * @param pData      - Pointer to where in the buffer to start.
+ * @param remaining  - Words of data left in the list.
+ * @return void*
+ * @retval pointer to the next unused part of pData.
+ */
+void
+CV6533::processMonitorList(void* pData, size_t remaining)
+{
+  // For now don't bother with remaining... TODO: Figure out some sort of
+  // error handling strategy if remaining is too small to satisfy our needs.
+
+  uint16_t*   p = reinterpret_cast<uint16_t*>(pData);
+
+  m_globalStatus = *p++;		// The global status register is first.
+  for (int i = 0; i < 6; i++) {		// followed by per channel data.
+    m_channelStatus[i] = *p++;
+    m_voltages[i]      = *p++;
+    m_currents[i]      = *p++;
+    m_temperatures[i]  = *p++;
+  }
+  return p;
+}  
+
+
+/*----------------------------- Utility functions ----------------------------- */
+
+/**
+ * Get the base address of the module from the configuration.
+ * @return uint32_t
+ * @retval - Value of the -base configuration value.
+ */
+uint32_t
+CV6533::getBase()
+{
+  return m_pConfiguration->getUnsignedParameter("-base");
+}
+
+/**
+ * Add a command to turn a specified channel off to a VME list.
+ * @param list    - CVMUSBReadoutList to which to add the command.
+ * @param channel - Channel to which to add the command (not range checked).
+ */
+void
+CV6533::turnOff(CVMUSBReadoutList& list, unsigned int channel)
+{
+  list.addWrite16(getBase() + Channels[channel] + PW , amod, 0);
+}
+/**
+ * Add a request to set the requested voltage for a channel to a VME operation list.
+ * @param list     - CVMUSBReadoutList& to which the request is added.
+ * @param channel  - Channel number whose request voltage will be modified.
+ * @param value    - Floating point voltage to request.
+ *
+ * @note Channel and value are not range checked.
+ */
+void
+CV6533::setRequestVoltage(CVMUSBReadoutList& list, unsigned int channel, float value)
+{
+  uint16_t vrequest = (uint16_t)(value * 10.0); // Request resolution is .1 V  see manual 3.2.2.1
+
+  list.addWrite16(getBase() + Channels[channel] + Vset, amod, vrequest);
+}
+/**
+ * Add a request to set the requested current max for a specified channel to a VME operation list.
+ * @param list    - The CVMUSBReadoutList& to add to.
+ * @param channel - Number of the channel to modify.
+ * @param value   - The micro-amp current limit.
+ * 
+ * @note neither value nor channel are range checked.
+ */
+void
+CV6533::setRequestCurrent(CVMUSBReadoutList& list, unsigned int channel, float value)
+{
+  uint16_t irequest = (uint16_t)(value/0.05); // Register value.
+  list.addWrite16(getBase() + Channels[channel] + Iset, amod, irequest);
+} 
+/**
+ * Add a request to turn a channel on or off to a readout list.
+ * @param list     - CVMUSBReadoutList& to which the request will be added.
+ * @param channel  - Number of the channel to set.
+ * @param on       - true to turn channel on or false to turn it off.
+ *
+ * @note The channel number is not range checked.
+ */
+void
+CV6533::setChannelOnOff(CVMUSBReadoutList& list, unsigned int channel, bool value)
+{
+  list.addWrite16(getBase() + Channels[channel] + PW, amod, 
+		  value ? 1 : 0); // Not going to assume anything about true/false representation.
+}
+
+
+
+/**
+ * Convert a string to a boolean..throws an exception if the string is not a valid bool.
+ * @param value - value to convert.
+ * @return bool
+ * @retval true - if the string is a valid representation of true (as defined by CConfigurableObject).
+ * @retval false - if the string is a valid representatino of false (as defined by CConfigurableObject).
+ * @throw string if the string is not a valid bool.
+ */
+bool
+CV6533::strToBool(string value)
+{
+  if (!CConfigurableObject::("null", value, NULL)) {
+    throw string(" Invalid booleanvalue");
+  }
+  return CConfigurableObject::strToBool(value);
 }

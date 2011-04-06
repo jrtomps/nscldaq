@@ -246,13 +246,9 @@ bool
 CConfigurableObject::getBoolParameter(string name)
 {
   string value = cget(name);
-  set<string> trueValues;
-  addTrueValues(trueValues);
+  return strToBool(value);
 
-  // Is enum does what we want if we pass it the set of true values...
-  // it'll give us a true if the value is in the set of legal trues and false otherwise:
 
-  return isEnum(name, value, &trueValues);
 }
 
 /*!
@@ -746,6 +742,24 @@ CConfigurableObject::makeEnumSet(const char** values)
   return result;
 }
 
+/**
+ * Convert a string to a bool...once the string has been validated.
+ * @param value - Value to convert.
+ * @return bool
+ * @retval true - if value is in the set of strings that represent true
+ * @retval false - if not.
+ */
+bool
+CConfigurableObject::strToBool(string value)
+{
+  set<string> trueValues;
+  addTrueValues(trueValues);
+
+  // Is enum does what we want if we pass it the set of true values...
+  // it'll give us a true if the value is in the set of legal trues and false otherwise:
+
+  return isEnum("null", value, &trueValues);
+}
 ////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////// Utilities ///////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////
