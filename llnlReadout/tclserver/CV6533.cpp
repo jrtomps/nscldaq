@@ -201,5 +201,106 @@ CV6533::Initialize(CVMUSB& vme)
     setRequestVoltage(list, i, 0.0);
   }
   // Execute the list.
+  size_t buffer;		// No actual reads..
+  int status = vme.executeList(list,
+			       &buffer, sizeof(buffer),
+			       &buffer);
 
+}
+/**
+ * For devices with write-only registers, this function
+ * would set the device to a configuration that matches
+ * state held in the driver.  This function serves
+ * no purpose for the CAEN V6533 and thus is a no-op.
+ * @param vme - VM-USB proxy object.
+ * @return string
+ * @retval OK
+ */
+string
+CV6533::Update(CVMUSB& vme)
+{
+  return "OK";
+}
+/**
+ *  Processes set operations for the device.  See
+ * the header for a description of the supported 
+ * parameters.
+ * @param vme         - Proxy object for the VM-USB controller.
+ * @param parameter   - Name of the parameter to set.
+ *                      in the parmeter set described in the
+ *                      header the n trailing each paramter name
+ *                      is the channel number (0-5).
+ * @param value       - Value of the parameter.
+ * @return string
+ * @retval "OK"   - The set worked correctly.
+ * @retval "ERROR - ..." Some error occured. The remainder
+ *                       of the string describes
+ *                       the error
+ */
+string
+CV6533::Set(CVMUSB& vme, string parameter, string value)
+{
+  // The meaning of the value depends on the actual parameter
+  // type.  What this function does is determine the
+  // root parameter name and the channel number (if
+  // applicable) and dispatch to the appropriate function.
+
+  unsigned channelNumber;
+  CVMUSBReadoutList list;
+  try {
+    if (parameter == "globalmaxv") {
+      setGlobalMaxVoltage(vme, value);
+    }
+    else if (parameter == "globalmaxI") {
+      setGlobalMaxCurrent(vme, value);
+    }
+    else if (sscanf(parameter.c_str(), "v%u", &channelNumber) == 1) {
+      setRequestVoltage(list, channelNumber, atof(value.c_str()));
+    }
+    else if (sscanf(parameter.c_str(), "i%u",
+		    &channelNumber) == 1) {
+      setRequestCurrent(list, channelNumber, atof(value.c_str()));
+    }
+    else if(sscanf(parameter.c_str(), "on%u", &channelNumber) == 1) {
+      setChannelOnOff(list, channelNumber, strToBool(value));
+    }
+    else if (sscanf(parameter.c_str(), "ttrip%u", &channelNumber) == 1) {
+      setTripTime(list, channelNumber, atof(value.c_str()));
+    }
+    else if (sscanf(parameter.c_str(), "svmax%u", &channelNumber) == 1) {
+      setMaxVoltage(list, channelNumber, atof(value.c_str()));
+    }
+    else if (sscanf(parameter.c_str(), "rdown%u", &channelNumber) == 1) {
+      setRampDownRate(list, channelNumber, atof(value.c_str()));
+    } 
+    else if (sscanf(parameter.c_str(), "rup%u", &channelNumber) == 1) {
+      setRampUpRate(list, channelNumber, atof(value.c_str()));
+    }
+    else if (sscanf(parameter.c_str(), "pdownomode&u", &channelNumber) ==1 ) {
+      setPowerDownMode(list, channelNumber, value);
+    }
+    else if (sscanf(parameter.c_str(), "polarity%u", &channelNumber) == 1) {
+      setPolarity(list, channelNumber, value);
+    }
+    else {
+      throw string("Unrecognized parameter");
+    }
+
+    // If there's a non zero length list, execute it.
+    
+    if (list.size() > 0) {
+      size_t buffer;
+      int status= vme.executeList(list,
+				  buffer, sizeof(buffer),
+				  &buffer);
+      if (status != 0) {
+	throw string("VME list execution failed");
+      }
+    }
+    catch(string msg) {
+      string error = "ERROR - ";
+      error += msg;
+      return error;
+    }
+    return string("OK");
 }
