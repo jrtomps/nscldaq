@@ -451,6 +451,7 @@ CV6533::processMonitorList(void* pData, size_t remaining)
   uint16_t*   p = reinterpret_cast<uint16_t*>(pData);
 
   m_globalStatus = *p++;		// The global status register is first.
+
   for (int i = 0; i < 6; i++) {		// followed by per channel data.
     m_channelStatus[i] = *p++;
     m_voltages[i]      = *p++;
@@ -462,6 +463,24 @@ CV6533::processMonitorList(void* pData, size_t remaining)
 
 
 /*----------------------------- Utility functions ----------------------------- */
+/**
+ * Convert a string to a boolean..throws an exception if the string is not a valid bool.
+ * @param value - value to convert.
+ * @return bool
+ * @retval true - if the string is a valid representation of true (as defined by CConfigurableObject).
+ * @retval false - if the string is a valid representatino of false (as defined by CConfigurableObject).
+ * @throw string if the string is not a valid bool.
+ */
+bool
+CV6533::strToBool(string value)
+{
+  if (!CConfigurableObject::("null", value, NULL)) {
+    throw string(" Invalid booleanvalue");
+  }
+  return CConfigurableObject::strToBool(value);
+}
+
+/*--------------- Setting the device registers -------------------------------*/
 
 /**
  * Get the base address of the module from the configuration.
@@ -614,19 +633,69 @@ CV6533::setPowerDownMode(CVMUSBReadoutList& list,
 		  amod, modeVal);
 
 }
+/*--------------------------- Getting device register values ----------------------*/
+
 /**
- * Convert a string to a boolean..throws an exception if the string is not a valid bool.
- * @param value - value to convert.
- * @return bool
- * @retval true - if the string is a valid representation of true (as defined by CConfigurableObject).
- * @retval false - if the string is a valid representatino of false (as defined by CConfigurableObject).
- * @throw string if the string is not a valid bool.
+ * Get the value of the global Voltage max regsiter.  This register defines
+ * the maximum voltage capability of the module.
+ * @param vme  - Object that represents the VME controller.
+ * @return string
+ * @retval Stringified maximum voltage in volts.
  */
-bool
-CV6533::strToBool(string value)
+string
+CV6533::getGlobalMaxV(CVMUSB& vme)
 {
-  if (!CConfigurableObject::("null", value, NULL)) {
-    throw string(" Invalid booleanvalue");
+  int status;
+
+  uint16_t value;
+  status = vme.vmeRead16(getBase() + BoardVmax,
+			 amod, &value);
+  if (status != 0) {
+    throw string("VME Read of Global max voltage failed");
   }
-  return CConfigurableObject::strToBool(value);
+  return fToString((float)value);
+}
+/**
+ * Return the global maximum current in microamps.
+ * @param vme  - Object that represents the VME controller.
+ * @return string
+ * @retval Stringified maximum current in micro-Amps.
+ */
+string
+CV6533::getGlobalMaxI(CVMUSB& vme)
+{
+  int status;
+  uint16_t value;
+  status = vme.vmeRead16(getBase() + BoardImax,
+			 amod, &value);
+  if (status != 0) {
+    throw string("VME Read of Global max current failed");
+  }
+  return fToString((float)value);
+}
+/**
+ * Retrieve the channel voltage request values. This will update the contents of m_voltage
+ * as well.
+ * @param vme   - VM-USB controller object.
+ * @return string
+ * @retval 6-element Tcl list containing the actual voltages.
+ */
+string
+CV6533::getChannelVoltages(CVMUSB& vme)
+{
+  uint16_t requests[16];
+  int      status;
+  size_t   nread;
+
+  CVMUSBReadoutList list;
+
+  for (int i=0; i < 6; i++) {
+    list.addRead16(getBase() + Channels[i] + Vset,
+		   amod);
+  }
+  status = vme.executeList(list, requests, sizeof(requests), &nread);
+  if (status != 0) {
+    throw string("Could not read voltage requests");
+  }
+  return scaledIToString(requests, 0.1);
 }

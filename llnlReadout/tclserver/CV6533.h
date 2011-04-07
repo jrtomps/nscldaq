@@ -133,7 +133,8 @@ private:
   std::string getTemperatures(CVMUSB& vme);
 
   bool strToBool(std::string value);
-
+  std::string fToString(float value);
+  std::string scaledIToString(uint16* value, float scaleFactor);
 
 
 };
