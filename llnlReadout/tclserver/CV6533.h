@@ -103,11 +103,34 @@ private:
 
 private:
   uint32_t* getBase();		// Get the base address of the module from config
+
+  // Functions used to set the module parameters.
+
   void turnOff(CVMUSBReadoutlist& list, unsigned int channel);
   void setRequestVoltage(CVMUSBReadoutList& list, unsigned int channel, float value);
   void setRequestCurrent(CVMUSBReadoutList& list, unsigned int channel, float value);
   void setChannelOnOff(CVMUSBReadoutList& list, unsigned int channel, bool value);
+  void setTripTime(CVMUSBReadoutList& list, unsigned int channel, float time);
+  void setMaxVoltage(CVMUSBReadoutList& list, unsigned int channel, float value);
+  void setRampDownRate(CVMUSBReadoutList& list, unsigned int channel, float rate);
+  void setRampUpRate(CVMUSBReadoutList& list, unsigned int channel, float rate);
+  void setPowerDownMode(CVMUSBReadoutList& list, unsigned channel, std:string mode);
 
+  // functions used to read module parameters.
+
+  std::string getGlobalMaxV(CVMUSB& vme);
+  std::string getGlobalMaxI(CVMUSB& vme);
+  std::string getChannelVoltages(CVMUSB& vme);
+  std::string getChannelCurrents(CVMUSB& vme);
+  std::string getOnOffRequest(CVMUSB& vme);
+  std::string getActualVoltages(CVMUSB& vme);
+  std::string getAtualCurrents(CVMUSB& vme);
+  std::string getChannelStatuses(CVMUSB& vme);
+  std::string getTripTimes(CVMUSB& vme);
+  std::string getSoftwareVmax(CVMUSB& vme);
+  std::string getRampDownRates(CVMUSB& vme);
+  std::string getRampUpRates(CVMUSB& vme);
+  std::string getTemperatures(CVMUSB& vme);
 
   bool strToBool(std::string value);
 

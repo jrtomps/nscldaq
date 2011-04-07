@@ -347,7 +347,7 @@ CV6533::Get(CVMUSB& vme, string parameter)
       result = getChannelCurrents(vme);
     }
     else if (parameter == "on") {
-      result = getOnOfRequest(vme);
+      result = getOnOffRequest(vme);
     }
     else if (parameter == "vact") {
       result = getActualVoltages(vme);
@@ -527,9 +527,93 @@ CV6533::setChannelOnOff(CVMUSBReadoutList& list, unsigned int channel, bool valu
   list.addWrite16(getBase() + Channels[channel] + PW, amod, 
 		  value ? 1 : 0); // Not going to assume anything about true/false representation.
 }
+/**
+ * Set the trip time.  Presumably this is the amount of time
+ * an out of condition state is allowed to persist
+ * before the channel trips off.
+ * @param list   - VMUSB list to which the request will
+ *                 be added.
+ * @param channel - Which channel should be affected.
+ * @param time    - Time in seconds.
+ *
+ */
+void 
+CV6553::SetTripTime(CVMUSBReadoutList& list, unsigned int channel, float time)
+{
+  uint16_t timeval = (uint16_t)(time/0.1); // register value.
+  list.addWrite16(getBase() + Channels[channel] + TripTime,
+		  amod, timeval);
+}
+/**
+ * Set the maximum allowed voltage (software voltage limit)
+ * for the channel.  If a voltage setting is made above
+ * this limit, the setting is limited to this level.
+ * @param list    - VMUSB list to which the request is added
+ * @param channel - Channel that should be affected.
+ * @param voltage - Voltage limit (in volts).
+ */
+void
+CVM6533::setMaxVoltage(CVMUSBReadoutList& list,
+		       unsigned int channel, float voltage)
+{
+  uint16_t voltval = (uint16_t)(voltage/.1);
+  list.addWrite16(getBase() + Channels[channel] + SVMax,
+		  amod, voltval);
+}
+/**
+ * Set the rate at which a channel ramps down.
+ * @param list    - VMUSB list to which to add the request.
+ * @param channel - Channel to modify.
+ * @param rate    - Rate in Volts/sec
+ */
+void
+CV6533::setRampDownRate(CVMUSBReadoutList& list,
+			unsigned int channel, float rate)
+{
+  uint16_t rateVal = (uint16_t)rate;
+  list.addWrite16(getBase() + Channels[channel] + RampDown,
+		  channel, rateVal);
+}
+/**
+ * set the rate at which a channel ramps up in voltage.
+ * @param list    - VMUSB list to which to add the request.
+ * @param channel - Channel number affected.
+ * @param rate    - Ramp rate in Volts/sec.
+ */
+void
+CV6533::setRampDownRate(CVMUSBReadoutList& list,
+			unsigned int channel,
+			float rate)
+{
+  uint16_t rateVal = (uint16_t)rate;
+  list.addWrite16(getBase() + Channels[channel] + RampUp);
+}
+/**
+ * Set the power down mode.
+ * @param list   - VMUSB list to which the request is added.
+ * @param channel- Number of the channel to modify.
+ * @param mode   - Mode to use  This can be one of two values:
+ *                 - kill : power off in a hurry.
+ *                 - ramp : Ramp down at the ramp down rate.
+ */
+void
+CV6533::setPowerDownMode(CVMUSBReadoutList& list,
+			 unsigned int chanel, string mode)
+{
+  uint16_t modeVal;
+  if (mode == "kill") {
+    modeVal = 0;
+  }
+  else if (mode == "ramp")  {
+    modeVal = 1;
+  }
+  else {
+    throw string("Illegal mode value");
+  }
+  list.addWrite16(getBase() + Channels[channel] + PwDown,
+		  amod, modeVal);
 
-
-
+}
 /**
  * Convert a string to a boolean..throws an exception if the string is not a valid bool.
  * @param value - value to convert.
