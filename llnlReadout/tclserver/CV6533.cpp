@@ -21,6 +21,9 @@
 #include "CVMUSB.h"
 #include "CVMUSBReadoutList.h"	// for the AM codes.
 
+#include <TCLInterpreter.h>
+#include <TCLObject.h>
+
 #include <stdint.h>
 #include <stdio.h>
 #include <tcl.h>
@@ -674,7 +677,7 @@ CV6533::getGlobalMaxI(CVMUSB& vme)
   return fToString((float)value);
 }
 /**
- * Retrieve the channel voltage request values. This will update the contents of m_voltage
+ * Retrieve the channel voltage request values. 
  * as well.
  * @param vme   - VM-USB controller object.
  * @return string
@@ -683,7 +686,7 @@ CV6533::getGlobalMaxI(CVMUSB& vme)
 string
 CV6533::getChannelVoltages(CVMUSB& vme)
 {
-  uint16_t requests[16];
+  uint16_t requests[6];
   int      status;
   size_t   nread;
 
@@ -698,4 +701,139 @@ CV6533::getChannelVoltages(CVMUSB& vme)
     throw string("Could not read voltage requests");
   }
   return scaledIToString(requests, 0.1);
+}
+/**
+ *  Retrieve the channel requested currents.
+ * @param vme - The VME controller object.
+ * @return string
+ * @retval A properly formatted Tcl list of the currents in uA.
+ */
+string
+CV6533::getChannelCurrents(CVMUSB& vme)
+{
+  int16_t requests[6];
+  int     status;
+  size_t  nread;
+
+  CVMUSBReadoutList list;
+  for (int i=0; i < 6; i++) {
+    list.addRead16(getBase() + Channels[i] + Iset, 
+		   amod);
+  }
+  status = vme.executeList(list, requests, sizeof(requests), &nread);
+  if (status != 0) {
+    throw string("Could not read current requests");
+  }
+
+  return scaledIToString(requests, 0.05);
+}
+/**
+ * Get the on off request values.  This is a set of values that determines if a
+ * channel is requested to be on or off.  
+ * @param vme   - The VME controller object.
+ * @return string
+ * @retval a properly formatted TCl list of values for each channel. 0 means off is requested
+ *         1 means on is requested.
+ */
+string
+CV6533::getChannelOnOffRequests(CVMUSB& vme)
+{
+  uint16_t requests[6];
+  size_t   nRead;
+  int      status;
+  CVMUSBReaoutList list;
+
+  for(int i=0; i < 6; i++) {
+    list.addRead16(getBase() + Channels[i]  + PW,
+		   amod);
+  }
+  status = vme.executeList(list, requests, sizeof(requests), &nread);
+
+  if (status != 0) {
+    throw string("Unable to read channel power on/off requests");
+  }
+  return scaledIToString(requests, 1.0);
+}
+/**
+ * Get the actual voltages asserted on the channel by the module.
+ * This will update the m_channelStatus values as well.
+ * @param vme - VMUSB controller object.
+ * @return string
+ * @retval Tcl formatted list of output voltages in floating point V.
+ */
+string
+CV6533::getActualVoltages(CVMUSB& vme)
+{
+  size_t nRead;
+  int    status;
+  CVMUSBReadoutList list;
+
+  for (int i=0; i < 6; i++) {
+    list.addRead16(getBase() + Channels[i] + VMon,
+		   amod);
+  }
+  status = vme.executeList(list, m_voltages, sizeof(m_voltages), &nRead);
+  if (status != 0) {
+    throw string("Unable to read channel output voltages monitors");
+  }
+  return scaledIToString(m_voltages, 0.1);
+}
+/**
+ * Get the current sourced by each channel.  These are actuals not limits.
+ * Note that m_currents will be updated as well by this.
+ * @param vme   - VMUSB controller object.
+ * @return string
+ * @retval Tcl formatted list of currents in uAmp.
+ */
+string
+CV6533::getActualCurrents(CVMUSB& vme)
+{
+  size_t nRead;
+  int    status;
+  CVMUSBReadoutList list;
+
+  for (int i =0; i < 6; i++) {
+    list.addRead16(getBase() + Channels[i] + Imon, amod);
+  }
+  status = vme.executeList(list, m_currents, sizeof(m_currents), &nRead);
+  if (status != 0) {
+    throw stringt("Unable to read the channel output currents");
+  }
+  return scaledIToString(m_currents, 0.1);
+}
+/**
+ * Get the current values of the channel status registers.
+ * This will update the values of m_chanelStatus.
+ * @param vme - The CVMUSB controller object.
+ * @return string
+ * @retval a tcl formatted list of integer encoded strings of the register values.
+ *         see the manual 3.2.2.6 for a bit by bit breakdown of the register values.
+ */
+string
+CV6533::getChannelStatuses(CVMUSB& vme)
+{
+  size_t nRead;
+  int    status;
+  CVMUSBReadoutList list;
+
+  for (int i =0; i < 6; i++) {
+    list.addRead16(getBase() + Channels[i] + ChStatus, amod);
+  }
+  status = vme.executeList(list, m_channelStatus, sizeof(m_channelStatus), &nRead);
+  if (status != 0) {
+    throw string("Unable to read the channel status registers");
+  }
+  // Use a captive interpreter to do the list formatting:
+
+  CTCLInterpreter interp;
+  CTCLObject      resultList;
+  resultList.Bind(interp);
+
+  for (int i=0; i < 6; i++) {
+    resultList += m_channelStatus[i];
+  }
+  string result = (string)(resultList);
+  return result;
+
+  
 }

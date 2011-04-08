@@ -134,7 +134,7 @@ private:
 
   bool strToBool(std::string value);
   std::string fToString(float value);
-  std::string scaledIToString(uint16* value, float scaleFactor);
+  std::string scaledIToString(uint16* values, float scaleFactor);
 
 
 };
