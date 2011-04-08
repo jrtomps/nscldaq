@@ -30,3 +30,7 @@ March 10, 2011 10.0-004
 	- Install VERSION file in make install target.
 	- Misc. changes to Makefile.am's and configure.ac so that
 	autoreconf isn't so bitchy.
+April 8 2011 10.0-005
+	- Stop elapsed run timer in readout gui when the run ends.
+
+	
