@@ -583,6 +583,7 @@ proc ReadoutGui::Pause {} {
     ReadougGUIPanel::setStatusLine {Run paused}
 	timestampOutput "%s : Pausing the run"
     ReadoutControl::Pause
+    ReadoutGui::StopRunTimers
 }
 # ReadoutGui::Resume
 #   Called to resume a run via the GUI.
@@ -621,7 +622,7 @@ proc ReadoutGui::End {} {
     ReadougGUIPanel::setStatusLine {Run Ended}
     ReadoutControl::ShowAll
     ReadoutGui::SaveSettings
-    ReadoutGui::StopElapsedTimer
+    ReadoutGui::StopRunTimers
 
 }
 #
