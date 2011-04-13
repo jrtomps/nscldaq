@@ -26,25 +26,25 @@ set ElapsedRunTime 0
 #
 #   Entries required by sclclient:
 #
-proc BeginRun {} {
+proc ::BeginRun {} {
     set ::ElapsedRunTime 0
     ::RunTime::startClock
 }
-proc Update {} {
+proc ::Update {} {
 }
-proc EndRun {} {
+proc ::EndRun {} {
     ::RunTime::stopClock
 }
-proc ResumeRun {} {
+proc ::ResumeRun {} {
     ::RunTime::startClock
 }
-proc PauseRun {} {
+proc ::PauseRun {} {
     ::RunTime::stopClock
 }
 
 # Since we start/stop the clock this should not happen.
 
-proc RunInprogress {} {
+proc ::RunInprogress {} {
 }
 
 #------------------------------------------------------------------------------
@@ -71,16 +71,16 @@ proc ::RunTime::startClock {} {
 proc ::RunTime::stopClock {} {
     if {$::RunTime::timerId != -1} {
         after cancel $::RunTime::timerId
-        set ::RunTime::timerId -1I
+        set ::RunTime::timerId -1
     }
-    ReadoutGui::StopRunTimers
+#    ReadoutGui::StopRunTimers
 }
 #  Periodic proc that adds 0.5 seconds to the ElapsedRunTime
 #  and reschedules itself for 0.5 seconds later.
 #
 proc ::RunTime::interpolate {} {
     set ::RunTime::timerId [after 500 ::RunTime::interpolate]
-    set ::ElapsedRunTime [expr {$::ElapsedRunTime + 0.5}]
+    set ::ElapsedRunTime [expr {double($::ElapsedRunTime) + 0.5}]
 }
 
 #------------------------------------------------------------------------------

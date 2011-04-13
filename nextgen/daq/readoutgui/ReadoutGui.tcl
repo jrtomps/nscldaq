@@ -246,6 +246,7 @@ proc ReadoutGui::StartElapsedTimer {} {
 # time the timer was disabled.
 #
 proc ReadoutGui::StopElapsedTimer {} {
+    puts "Cancelling elapsed timer"
     if {$::ReadoutGui::ElapsedTimer !=0} {
 	after cancel $::ReadoutGui::ElapsedTimer
 	set ::ReadoutGui::ElapsedTimer 0
@@ -583,7 +584,6 @@ proc ReadoutGui::Pause {} {
     ReadougGUIPanel::setStatusLine {Run paused}
 	timestampOutput "%s : Pausing the run"
     ReadoutControl::Pause
-    ReadoutGui::StopRunTimers
 }
 # ReadoutGui::Resume
 #   Called to resume a run via the GUI.
@@ -622,7 +622,6 @@ proc ReadoutGui::End {} {
     ReadougGUIPanel::setStatusLine {Run Ended}
     ReadoutControl::ShowAll
     ReadoutGui::SaveSettings
-    ReadoutGui::StopRunTimers
 
 }
 #

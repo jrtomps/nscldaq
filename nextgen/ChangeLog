@@ -32,5 +32,9 @@ March 10, 2011 10.0-004
 	autoreconf isn't so bitchy.
 April 8 2011 10.0-005
 	- Stop elapsed run timer in readout gui when the run ends.
+April 13, 2011 10.0-006
+	- Really get the elapsed run timer logic right ...with
+	interpolation from the scaler buffers.
+	
 
 	
