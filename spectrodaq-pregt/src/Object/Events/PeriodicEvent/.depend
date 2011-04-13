@@ -23,6 +23,44 @@ DAQPeriodicEvent.o: /usr/include/linux/errno.h /usr/include/asm/errno.h
 DAQPeriodicEvent.o: /usr/include/asm-generic/errno.h
 DAQPeriodicEvent.o: /usr/include/asm-generic/errno-base.h
 DAQPeriodicEvent.o: /usr/include/string.h /usr/include/xlocale.h
+DAQPeriodicEvent.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQPeriodicEvent.h
+DAQPeriodicEvent.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/daqconfig.h
+DAQPeriodicEvent.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQEvent.h
+DAQPeriodicEvent.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQObject.h
+DAQPeriodicEvent.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQTrackMap.h
+DAQPeriodicEvent.o: /usr/include/syslog.h /usr/include/sys/syslog.h
+DAQPeriodicEvent.o: /usr/include/bits/syslog-path.h
+DAQPeriodicEvent.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/threads/daqthreads.h
+DAQPeriodicEvent.o: /usr/include/signal.h /usr/include/bits/signum.h
+DAQPeriodicEvent.o: /usr/include/bits/siginfo.h /usr/include/bits/sigaction.h
+DAQPeriodicEvent.o: /usr/include/bits/sigcontext.h
+DAQPeriodicEvent.o: /usr/include/bits/sigstack.h
+DAQPeriodicEvent.o: /usr/include/bits/sigthread.h
+DAQPeriodicEvent.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/threads/daqpthreads.h
+DAQPeriodicEvent.o: /usr/include/pthread.h /usr/include/sched.h
+DAQPeriodicEvent.o: /usr/include/bits/sched.h
+DAQPeriodicEvent.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQTrackMemory.h
+DAQPeriodicEvent.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQObjectType.h
+DAQPeriodicEvent.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/Printable.h
+DAQPeriodicEvent.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/genmacros.h
+DAQPeriodicEvent.o: /usr/include/ctype.h
+DAQPeriodicEvent.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/PrintStreamIface.h
+DAQPeriodicEvent.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/OstreamCompat.h
+DAQPeriodicEvent.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQString.h
+DAQPeriodicEvent.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/Pointer.h
+DAQPeriodicEvent.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/Array.h
+DAQPeriodicEvent.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/maindefs.h
+DAQPeriodicEvent.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/daqcstr.h
+DAQPeriodicEvent.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/ArrayAllocator.h
+DAQPeriodicEvent.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/PointerBag.h
+DAQPeriodicEvent.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQException.h
+DAQPeriodicEvent.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/nscl/NSCLException.h
+DAQPeriodicEvent.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQExceptionType.h
+DAQPeriodicEvent.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/PrintStream.h
+DAQPeriodicEvent.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/CharArray.h
+DAQPeriodicEvent.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/CharArrayAllocator.h
+DAQPeriodicEvent.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/Synchronizable.h
+DAQPeriodicEvent.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/SyncGuard.h
 DAQPeriodicEventThread.o: /usr/include/stdlib.h /usr/include/features.h
 DAQPeriodicEventThread.o: /usr/include/bits/predefs.h
 DAQPeriodicEventThread.o: /usr/include/sys/cdefs.h
@@ -51,6 +89,88 @@ DAQPeriodicEventThread.o: /usr/include/linux/errno.h /usr/include/asm/errno.h
 DAQPeriodicEventThread.o: /usr/include/asm-generic/errno.h
 DAQPeriodicEventThread.o: /usr/include/asm-generic/errno-base.h
 DAQPeriodicEventThread.o: /usr/include/string.h /usr/include/xlocale.h
+DAQPeriodicEventThread.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQPeriodicEventThread.h
+DAQPeriodicEventThread.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/daqconfig.h
+DAQPeriodicEventThread.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQPeriodicEvent.h
+DAQPeriodicEventThread.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQEvent.h
+DAQPeriodicEventThread.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQObject.h
+DAQPeriodicEventThread.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQTrackMap.h
+DAQPeriodicEventThread.o: /usr/include/syslog.h /usr/include/sys/syslog.h
+DAQPeriodicEventThread.o: /usr/include/bits/syslog-path.h
+DAQPeriodicEventThread.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/threads/daqthreads.h
+DAQPeriodicEventThread.o: /usr/include/signal.h /usr/include/bits/signum.h
+DAQPeriodicEventThread.o: /usr/include/bits/siginfo.h
+DAQPeriodicEventThread.o: /usr/include/bits/sigaction.h
+DAQPeriodicEventThread.o: /usr/include/bits/sigcontext.h
+DAQPeriodicEventThread.o: /usr/include/bits/sigstack.h
+DAQPeriodicEventThread.o: /usr/include/bits/sigthread.h
+DAQPeriodicEventThread.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/threads/daqpthreads.h
+DAQPeriodicEventThread.o: /usr/include/pthread.h /usr/include/sched.h
+DAQPeriodicEventThread.o: /usr/include/bits/sched.h
+DAQPeriodicEventThread.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQTrackMemory.h
+DAQPeriodicEventThread.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQObjectType.h
+DAQPeriodicEventThread.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/Printable.h
+DAQPeriodicEventThread.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/genmacros.h
+DAQPeriodicEventThread.o: /usr/include/ctype.h
+DAQPeriodicEventThread.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/PrintStreamIface.h
+DAQPeriodicEventThread.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/OstreamCompat.h
+DAQPeriodicEventThread.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQString.h
+DAQPeriodicEventThread.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/Pointer.h
+DAQPeriodicEventThread.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/Array.h
+DAQPeriodicEventThread.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/maindefs.h
+DAQPeriodicEventThread.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/daqcstr.h
+DAQPeriodicEventThread.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/ArrayAllocator.h
+DAQPeriodicEventThread.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/PointerBag.h
+DAQPeriodicEventThread.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQException.h
+DAQPeriodicEventThread.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/nscl/NSCLException.h
+DAQPeriodicEventThread.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQExceptionType.h
+DAQPeriodicEventThread.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/PrintStream.h
+DAQPeriodicEventThread.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/CharArray.h
+DAQPeriodicEventThread.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/CharArrayAllocator.h
+DAQPeriodicEventThread.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/Synchronizable.h
+DAQPeriodicEventThread.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/SyncGuard.h
+DAQPeriodicEventThread.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQThread.h
+DAQPeriodicEventThread.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQExecObject.h
+DAQPeriodicEventThread.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQStatus.h
+DAQPeriodicEventThread.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQExecTrack.h
+DAQPeriodicEventThread.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/LinkedList.h
+DAQPeriodicEventThread.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/NullMutex.h
+DAQPeriodicEventThread.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/MutexIface.h
+DAQPeriodicEventThread.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQShmseg.h
+DAQPeriodicEventThread.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQShmsegData.h
+DAQPeriodicEventThread.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQRefCounter.h
+DAQPeriodicEventThread.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQRefObject.h
+DAQPeriodicEventThread.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/maintypes.h
+DAQPeriodicEventThread.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/daqtypes.h
+DAQPeriodicEventThread.o: /usr/include/sys/stat.h /usr/include/bits/stat.h
+DAQPeriodicEventThread.o: /usr/include/sys/wait.h /usr/include/sys/resource.h
+DAQPeriodicEventThread.o: /usr/include/bits/resource.h
+DAQPeriodicEventThread.o: /usr/include/bits/waitflags.h
+DAQPeriodicEventThread.o: /usr/include/bits/waitstatus.h
+DAQPeriodicEventThread.o: /usr/include/sys/ipc.h /usr/include/bits/ipctypes.h
+DAQPeriodicEventThread.o: /usr/include/bits/ipc.h /usr/include/sys/shm.h
+DAQPeriodicEventThread.o: /usr/include/bits/shm.h /usr/include/sys/sem.h
+DAQPeriodicEventThread.o: /usr/include/bits/sem.h
+DAQPeriodicEventThread.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQExecTrackEntry.h
+DAQPeriodicEventThread.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQThreadMutex.h
+DAQPeriodicEventThread.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQThreadId.h
+DAQPeriodicEventThread.o: /usr/include/sys/socket.h /usr/include/sys/uio.h
+DAQPeriodicEventThread.o: /usr/include/bits/uio.h /usr/include/bits/socket.h
+DAQPeriodicEventThread.o: /usr/include/bits/sockaddr.h
+DAQPeriodicEventThread.o: /usr/include/asm/socket.h
+DAQPeriodicEventThread.o: /usr/include/asm-generic/socket.h
+DAQPeriodicEventThread.o: /usr/include/asm/sockios.h
+DAQPeriodicEventThread.o: /usr/include/asm-generic/sockios.h
+DAQPeriodicEventThread.o: /usr/include/netinet/in.h /usr/include/stdint.h
+DAQPeriodicEventThread.o: /usr/include/bits/wchar.h /usr/include/bits/in.h
+DAQPeriodicEventThread.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQExecId.h
+DAQPeriodicEventThread.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQNodeId.h
+DAQPeriodicEventThread.o: /usr/include/fcntl.h /usr/include/bits/fcntl.h
+DAQPeriodicEventThread.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQThreadFactory.h
+DAQPeriodicEventThread.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQExecFactory.h
+DAQPeriodicEventThread.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQThreadDebugMutex.h
+DAQPeriodicEventThread.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQNode.h
+DAQPeriodicEventThread.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQNodeFactory.h
 DAQPeriodicEventMgr.o: /usr/include/stdlib.h /usr/include/features.h
 DAQPeriodicEventMgr.o: /usr/include/bits/predefs.h /usr/include/sys/cdefs.h
 DAQPeriodicEventMgr.o: /usr/include/bits/wordsize.h /usr/include/gnu/stubs.h
@@ -74,3 +194,101 @@ DAQPeriodicEventMgr.o: /usr/include/linux/errno.h /usr/include/asm/errno.h
 DAQPeriodicEventMgr.o: /usr/include/asm-generic/errno.h
 DAQPeriodicEventMgr.o: /usr/include/asm-generic/errno-base.h
 DAQPeriodicEventMgr.o: /usr/include/string.h /usr/include/xlocale.h
+DAQPeriodicEventMgr.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQPeriodicEventMgr.h
+DAQPeriodicEventMgr.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/daqconfig.h
+DAQPeriodicEventMgr.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/mainexterns.h
+DAQPeriodicEventMgr.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/daqcstr.h
+DAQPeriodicEventMgr.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/maindefs.h
+DAQPeriodicEventMgr.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQTrackMap.h
+DAQPeriodicEventMgr.o: /usr/include/syslog.h /usr/include/sys/syslog.h
+DAQPeriodicEventMgr.o: /usr/include/bits/syslog-path.h
+DAQPeriodicEventMgr.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/threads/daqthreads.h
+DAQPeriodicEventMgr.o: /usr/include/signal.h /usr/include/bits/signum.h
+DAQPeriodicEventMgr.o: /usr/include/bits/siginfo.h
+DAQPeriodicEventMgr.o: /usr/include/bits/sigaction.h
+DAQPeriodicEventMgr.o: /usr/include/bits/sigcontext.h
+DAQPeriodicEventMgr.o: /usr/include/bits/sigstack.h
+DAQPeriodicEventMgr.o: /usr/include/bits/sigthread.h
+DAQPeriodicEventMgr.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/threads/daqpthreads.h
+DAQPeriodicEventMgr.o: /usr/include/pthread.h /usr/include/sched.h
+DAQPeriodicEventMgr.o: /usr/include/bits/sched.h
+DAQPeriodicEventMgr.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQTrackMemory.h
+DAQPeriodicEventMgr.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQObjectType.h
+DAQPeriodicEventMgr.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/nscl/ErrnoException.h
+DAQPeriodicEventMgr.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/nscl/OSException.h
+DAQPeriodicEventMgr.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/nscl/NSCLException.h
+DAQPeriodicEventMgr.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/nscl/UNIXExceptionFactory.h
+DAQPeriodicEventMgr.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/nscl/OSExceptionFactory.h
+DAQPeriodicEventMgr.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQNodeContext.h
+DAQPeriodicEventMgr.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQObject.h
+DAQPeriodicEventMgr.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/Printable.h
+DAQPeriodicEventMgr.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/genmacros.h
+DAQPeriodicEventMgr.o: /usr/include/ctype.h
+DAQPeriodicEventMgr.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/PrintStreamIface.h
+DAQPeriodicEventMgr.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/OstreamCompat.h
+DAQPeriodicEventMgr.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQContext.h
+DAQPeriodicEventMgr.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQException.h
+DAQPeriodicEventMgr.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQExceptionType.h
+DAQPeriodicEventMgr.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQStatus.h
+DAQPeriodicEventMgr.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/maintypes.h
+DAQPeriodicEventMgr.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/daqtypes.h
+DAQPeriodicEventMgr.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQLogger.h
+DAQPeriodicEventMgr.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/PrintStream.h
+DAQPeriodicEventMgr.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/CharArray.h
+DAQPeriodicEventMgr.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/CharArrayAllocator.h
+DAQPeriodicEventMgr.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/Pointer.h
+DAQPeriodicEventMgr.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/PointerBag.h
+DAQPeriodicEventMgr.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQThreadMutex.h
+DAQPeriodicEventMgr.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/MutexIface.h
+DAQPeriodicEventMgr.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQThreadId.h
+DAQPeriodicEventMgr.o: /usr/include/sys/socket.h /usr/include/sys/uio.h
+DAQPeriodicEventMgr.o: /usr/include/bits/uio.h /usr/include/bits/socket.h
+DAQPeriodicEventMgr.o: /usr/include/bits/sockaddr.h /usr/include/asm/socket.h
+DAQPeriodicEventMgr.o: /usr/include/asm-generic/socket.h
+DAQPeriodicEventMgr.o: /usr/include/asm/sockios.h
+DAQPeriodicEventMgr.o: /usr/include/asm-generic/sockios.h
+DAQPeriodicEventMgr.o: /usr/include/netinet/in.h /usr/include/stdint.h
+DAQPeriodicEventMgr.o: /usr/include/bits/wchar.h /usr/include/bits/in.h
+DAQPeriodicEventMgr.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQExecId.h
+DAQPeriodicEventMgr.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQNodeId.h
+DAQPeriodicEventMgr.o: /usr/include/sys/stat.h /usr/include/bits/stat.h
+DAQPeriodicEventMgr.o: /usr/include/sys/wait.h /usr/include/sys/resource.h
+DAQPeriodicEventMgr.o: /usr/include/bits/resource.h
+DAQPeriodicEventMgr.o: /usr/include/bits/waitflags.h
+DAQPeriodicEventMgr.o: /usr/include/bits/waitstatus.h
+DAQPeriodicEventMgr.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQExecFactory.h
+DAQPeriodicEventMgr.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQExceptionFactory.h
+DAQPeriodicEventMgr.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQThreadHashTable.h
+DAQPeriodicEventMgr.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQThread.h
+DAQPeriodicEventMgr.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQExecObject.h
+DAQPeriodicEventMgr.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQExecTrack.h
+DAQPeriodicEventMgr.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/LinkedList.h
+DAQPeriodicEventMgr.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/NullMutex.h
+DAQPeriodicEventMgr.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQShmseg.h
+DAQPeriodicEventMgr.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQShmsegData.h
+DAQPeriodicEventMgr.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQRefCounter.h
+DAQPeriodicEventMgr.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQRefObject.h
+DAQPeriodicEventMgr.o: /usr/include/sys/ipc.h /usr/include/bits/ipctypes.h
+DAQPeriodicEventMgr.o: /usr/include/bits/ipc.h /usr/include/sys/shm.h
+DAQPeriodicEventMgr.o: /usr/include/bits/shm.h /usr/include/sys/sem.h
+DAQPeriodicEventMgr.o: /usr/include/bits/sem.h
+DAQPeriodicEventMgr.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQExecTrackEntry.h
+DAQPeriodicEventMgr.o: /usr/include/fcntl.h /usr/include/bits/fcntl.h
+DAQPeriodicEventMgr.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQThreadFactory.h
+DAQPeriodicEventMgr.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQThreadDebugMutex.h
+DAQPeriodicEventMgr.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQNode.h
+DAQPeriodicEventMgr.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQNodeFactory.h
+DAQPeriodicEventMgr.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/HashTable.h
+DAQPeriodicEventMgr.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/Array.h
+DAQPeriodicEventMgr.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/ArrayAllocator.h
+DAQPeriodicEventMgr.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQString.h
+DAQPeriodicEventMgr.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/Synchronizable.h
+DAQPeriodicEventMgr.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/SyncGuard.h
+DAQPeriodicEventMgr.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQServConfig.h
+DAQPeriodicEventMgr.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQURL.h
+DAQPeriodicEventMgr.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/Queue.h
+DAQPeriodicEventMgr.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQPeriodicEvent.h
+DAQPeriodicEventMgr.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQEvent.h
+DAQPeriodicEventMgr.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQPeriodicEventThread.h
+DAQPeriodicEventMgr.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQThreadCond.h
+DAQPeriodicEventMgr.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQDispatcher.h

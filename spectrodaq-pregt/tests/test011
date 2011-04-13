@@ -12,7 +12,7 @@ fi
 #-----------------------------------------------------------------------
 TESTN="011"
 TESTDSC="Link Delete/Add"
-TOPDIR="/usr/src/nscl/spectrodaq-pregt"
+TOPDIR="/scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt"
 TESTDIR="$TOPDIR/tests"
 TOOLDIR="$TOPDIR/tools"
 OUTFNR="/tmp/test$TESTN""r.$$"

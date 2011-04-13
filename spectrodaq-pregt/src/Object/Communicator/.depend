@@ -19,6 +19,98 @@ DAQCommInfo.o: /usr/include/unistd.h /usr/include/bits/posix_opt.h
 DAQCommInfo.o: /usr/include/bits/confname.h /usr/include/getopt.h
 DAQCommInfo.o: /usr/include/string.h /usr/include/xlocale.h
 DAQCommInfo.o: /usr/include/ctype.h
+DAQCommInfo.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/mainexterns.h
+DAQCommInfo.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/daqconfig.h
+DAQCommInfo.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/daqcstr.h
+DAQCommInfo.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/maindefs.h
+DAQCommInfo.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/genmacros.h
+DAQCommInfo.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQTrackMap.h
+DAQCommInfo.o: /usr/include/errno.h /usr/include/bits/errno.h
+DAQCommInfo.o: /usr/include/linux/errno.h /usr/include/asm/errno.h
+DAQCommInfo.o: /usr/include/asm-generic/errno.h
+DAQCommInfo.o: /usr/include/asm-generic/errno-base.h /usr/include/syslog.h
+DAQCommInfo.o: /usr/include/sys/syslog.h /usr/include/bits/syslog-path.h
+DAQCommInfo.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/threads/daqthreads.h
+DAQCommInfo.o: /usr/include/signal.h /usr/include/bits/signum.h
+DAQCommInfo.o: /usr/include/bits/siginfo.h /usr/include/bits/sigaction.h
+DAQCommInfo.o: /usr/include/bits/sigcontext.h /usr/include/bits/sigstack.h
+DAQCommInfo.o: /usr/include/bits/sigthread.h
+DAQCommInfo.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/threads/daqpthreads.h
+DAQCommInfo.o: /usr/include/pthread.h /usr/include/sched.h
+DAQCommInfo.o: /usr/include/bits/sched.h
+DAQCommInfo.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQObject.h
+DAQCommInfo.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/Printable.h
+DAQCommInfo.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/PrintStreamIface.h
+DAQCommInfo.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/OstreamCompat.h
+DAQCommInfo.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQTrackMemory.h
+DAQCommInfo.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQObjectType.h
+DAQCommInfo.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/nscl/ErrnoException.h
+DAQCommInfo.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/nscl/OSException.h
+DAQCommInfo.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/nscl/NSCLException.h
+DAQCommInfo.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/nscl/UNIXExceptionFactory.h
+DAQCommInfo.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/nscl/OSExceptionFactory.h
+DAQCommInfo.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQNodeContext.h
+DAQCommInfo.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQContext.h
+DAQCommInfo.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQException.h
+DAQCommInfo.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQEvent.h
+DAQCommInfo.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQExceptionType.h
+DAQCommInfo.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQStatus.h
+DAQCommInfo.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/maintypes.h
+DAQCommInfo.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/daqtypes.h
+DAQCommInfo.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQLogger.h
+DAQCommInfo.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/PrintStream.h
+DAQCommInfo.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/CharArray.h
+DAQCommInfo.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/CharArrayAllocator.h
+DAQCommInfo.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/Pointer.h
+DAQCommInfo.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/PointerBag.h
+DAQCommInfo.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQThreadMutex.h
+DAQCommInfo.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQExecObject.h
+DAQCommInfo.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/Synchronizable.h
+DAQCommInfo.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/SyncGuard.h
+DAQCommInfo.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQExecTrack.h
+DAQCommInfo.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/LinkedList.h
+DAQCommInfo.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/NullMutex.h
+DAQCommInfo.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/MutexIface.h
+DAQCommInfo.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQString.h
+DAQCommInfo.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/Array.h
+DAQCommInfo.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/ArrayAllocator.h
+DAQCommInfo.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQShmseg.h
+DAQCommInfo.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQShmsegData.h
+DAQCommInfo.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQRefCounter.h
+DAQCommInfo.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQRefObject.h
+DAQCommInfo.o: /usr/include/sys/stat.h /usr/include/bits/stat.h
+DAQCommInfo.o: /usr/include/sys/wait.h /usr/include/sys/resource.h
+DAQCommInfo.o: /usr/include/bits/resource.h /usr/include/bits/waitflags.h
+DAQCommInfo.o: /usr/include/bits/waitstatus.h /usr/include/sys/ipc.h
+DAQCommInfo.o: /usr/include/bits/ipctypes.h /usr/include/bits/ipc.h
+DAQCommInfo.o: /usr/include/sys/shm.h /usr/include/bits/shm.h
+DAQCommInfo.o: /usr/include/sys/sem.h /usr/include/bits/sem.h
+DAQCommInfo.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQExecTrackEntry.h
+DAQCommInfo.o: /usr/include/fcntl.h /usr/include/bits/fcntl.h
+DAQCommInfo.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQThreadId.h
+DAQCommInfo.o: /usr/include/sys/socket.h /usr/include/sys/uio.h
+DAQCommInfo.o: /usr/include/bits/uio.h /usr/include/bits/socket.h
+DAQCommInfo.o: /usr/include/bits/sockaddr.h /usr/include/asm/socket.h
+DAQCommInfo.o: /usr/include/asm-generic/socket.h /usr/include/asm/sockios.h
+DAQCommInfo.o: /usr/include/asm-generic/sockios.h /usr/include/netinet/in.h
+DAQCommInfo.o: /usr/include/stdint.h /usr/include/bits/wchar.h
+DAQCommInfo.o: /usr/include/bits/in.h
+DAQCommInfo.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQExecId.h
+DAQCommInfo.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQNodeId.h
+DAQCommInfo.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQExecFactory.h
+DAQCommInfo.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQExceptionFactory.h
+DAQCommInfo.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQThreadHashTable.h
+DAQCommInfo.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQThread.h
+DAQCommInfo.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQThreadFactory.h
+DAQCommInfo.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQThreadDebugMutex.h
+DAQCommInfo.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQNode.h
+DAQCommInfo.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQNodeFactory.h
+DAQCommInfo.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/HashTable.h
+DAQCommInfo.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQServConfig.h
+DAQCommInfo.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQURL.h
+DAQCommInfo.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQCommInfo.h
+DAQCommInfo.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQMain.h
+DAQCommMsgIface.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/daqconfig.h
 DAQCommMsgIface.o: /usr/include/stdlib.h /usr/include/features.h
 DAQCommMsgIface.o: /usr/include/bits/predefs.h /usr/include/sys/cdefs.h
 DAQCommMsgIface.o: /usr/include/bits/wordsize.h /usr/include/gnu/stubs.h
@@ -46,6 +138,90 @@ DAQCommMsgIface.o: /usr/include/bits/sockaddr.h /usr/include/asm/socket.h
 DAQCommMsgIface.o: /usr/include/asm-generic/socket.h
 DAQCommMsgIface.o: /usr/include/asm/sockios.h
 DAQCommMsgIface.o: /usr/include/asm-generic/sockios.h /usr/include/bits/in.h
+DAQCommMsgIface.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/mainexterns.h
+DAQCommMsgIface.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/daqcstr.h
+DAQCommMsgIface.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/maindefs.h
+DAQCommMsgIface.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/genmacros.h
+DAQCommMsgIface.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQTrackMap.h
+DAQCommMsgIface.o: /usr/include/errno.h /usr/include/bits/errno.h
+DAQCommMsgIface.o: /usr/include/linux/errno.h /usr/include/asm/errno.h
+DAQCommMsgIface.o: /usr/include/asm-generic/errno.h
+DAQCommMsgIface.o: /usr/include/asm-generic/errno-base.h
+DAQCommMsgIface.o: /usr/include/syslog.h /usr/include/sys/syslog.h
+DAQCommMsgIface.o: /usr/include/bits/syslog-path.h
+DAQCommMsgIface.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/threads/daqthreads.h
+DAQCommMsgIface.o: /usr/include/signal.h /usr/include/bits/signum.h
+DAQCommMsgIface.o: /usr/include/bits/siginfo.h /usr/include/bits/sigaction.h
+DAQCommMsgIface.o: /usr/include/bits/sigcontext.h
+DAQCommMsgIface.o: /usr/include/bits/sigstack.h /usr/include/bits/sigthread.h
+DAQCommMsgIface.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/threads/daqpthreads.h
+DAQCommMsgIface.o: /usr/include/pthread.h /usr/include/sched.h
+DAQCommMsgIface.o: /usr/include/bits/sched.h
+DAQCommMsgIface.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQObject.h
+DAQCommMsgIface.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/Printable.h
+DAQCommMsgIface.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/PrintStreamIface.h
+DAQCommMsgIface.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/OstreamCompat.h
+DAQCommMsgIface.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQTrackMemory.h
+DAQCommMsgIface.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQObjectType.h
+DAQCommMsgIface.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/nscl/ErrnoException.h
+DAQCommMsgIface.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/nscl/OSException.h
+DAQCommMsgIface.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/nscl/NSCLException.h
+DAQCommMsgIface.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/nscl/UNIXExceptionFactory.h
+DAQCommMsgIface.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/nscl/OSExceptionFactory.h
+DAQCommMsgIface.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQNodeContext.h
+DAQCommMsgIface.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQContext.h
+DAQCommMsgIface.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQException.h
+DAQCommMsgIface.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQEvent.h
+DAQCommMsgIface.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQExceptionType.h
+DAQCommMsgIface.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQStatus.h
+DAQCommMsgIface.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/maintypes.h
+DAQCommMsgIface.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/daqtypes.h
+DAQCommMsgIface.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQLogger.h
+DAQCommMsgIface.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/PrintStream.h
+DAQCommMsgIface.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/CharArray.h
+DAQCommMsgIface.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/CharArrayAllocator.h
+DAQCommMsgIface.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/Pointer.h
+DAQCommMsgIface.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/PointerBag.h
+DAQCommMsgIface.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQThreadMutex.h
+DAQCommMsgIface.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQExecObject.h
+DAQCommMsgIface.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/Synchronizable.h
+DAQCommMsgIface.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/SyncGuard.h
+DAQCommMsgIface.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQExecTrack.h
+DAQCommMsgIface.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/LinkedList.h
+DAQCommMsgIface.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/NullMutex.h
+DAQCommMsgIface.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/MutexIface.h
+DAQCommMsgIface.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQString.h
+DAQCommMsgIface.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/Array.h
+DAQCommMsgIface.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/ArrayAllocator.h
+DAQCommMsgIface.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQShmseg.h
+DAQCommMsgIface.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQShmsegData.h
+DAQCommMsgIface.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQRefCounter.h
+DAQCommMsgIface.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQRefObject.h
+DAQCommMsgIface.o: /usr/include/sys/stat.h /usr/include/bits/stat.h
+DAQCommMsgIface.o: /usr/include/sys/wait.h /usr/include/sys/resource.h
+DAQCommMsgIface.o: /usr/include/bits/resource.h /usr/include/bits/waitflags.h
+DAQCommMsgIface.o: /usr/include/bits/waitstatus.h /usr/include/sys/ipc.h
+DAQCommMsgIface.o: /usr/include/bits/ipctypes.h /usr/include/bits/ipc.h
+DAQCommMsgIface.o: /usr/include/sys/shm.h /usr/include/bits/shm.h
+DAQCommMsgIface.o: /usr/include/sys/sem.h /usr/include/bits/sem.h
+DAQCommMsgIface.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQExecTrackEntry.h
+DAQCommMsgIface.o: /usr/include/fcntl.h /usr/include/bits/fcntl.h
+DAQCommMsgIface.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQThreadId.h
+DAQCommMsgIface.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQExecId.h
+DAQCommMsgIface.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQNodeId.h
+DAQCommMsgIface.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQExecFactory.h
+DAQCommMsgIface.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQExceptionFactory.h
+DAQCommMsgIface.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQThreadHashTable.h
+DAQCommMsgIface.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQThread.h
+DAQCommMsgIface.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQThreadFactory.h
+DAQCommMsgIface.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQThreadDebugMutex.h
+DAQCommMsgIface.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQNode.h
+DAQCommMsgIface.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQNodeFactory.h
+DAQCommMsgIface.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/HashTable.h
+DAQCommMsgIface.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQServConfig.h
+DAQCommMsgIface.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQURL.h
+DAQCommMsgIface.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQCommMsgIface.h
+DAQCommMsgIface.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQMain.h
 DAQCommMsg.o: /usr/include/stdlib.h /usr/include/features.h
 DAQCommMsg.o: /usr/include/bits/predefs.h /usr/include/sys/cdefs.h
 DAQCommMsg.o: /usr/include/bits/wordsize.h /usr/include/gnu/stubs.h
@@ -71,6 +247,91 @@ DAQCommMsg.o: /usr/include/bits/socket.h /usr/include/bits/sockaddr.h
 DAQCommMsg.o: /usr/include/asm/socket.h /usr/include/asm-generic/socket.h
 DAQCommMsg.o: /usr/include/asm/sockios.h /usr/include/asm-generic/sockios.h
 DAQCommMsg.o: /usr/include/bits/in.h
+DAQCommMsg.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/mainexterns.h
+DAQCommMsg.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/daqconfig.h
+DAQCommMsg.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/daqcstr.h
+DAQCommMsg.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/maindefs.h
+DAQCommMsg.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/genmacros.h
+DAQCommMsg.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQTrackMap.h
+DAQCommMsg.o: /usr/include/errno.h /usr/include/bits/errno.h
+DAQCommMsg.o: /usr/include/linux/errno.h /usr/include/asm/errno.h
+DAQCommMsg.o: /usr/include/asm-generic/errno.h
+DAQCommMsg.o: /usr/include/asm-generic/errno-base.h /usr/include/syslog.h
+DAQCommMsg.o: /usr/include/sys/syslog.h /usr/include/bits/syslog-path.h
+DAQCommMsg.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/threads/daqthreads.h
+DAQCommMsg.o: /usr/include/signal.h /usr/include/bits/signum.h
+DAQCommMsg.o: /usr/include/bits/siginfo.h /usr/include/bits/sigaction.h
+DAQCommMsg.o: /usr/include/bits/sigcontext.h /usr/include/bits/sigstack.h
+DAQCommMsg.o: /usr/include/bits/sigthread.h
+DAQCommMsg.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/threads/daqpthreads.h
+DAQCommMsg.o: /usr/include/pthread.h /usr/include/sched.h
+DAQCommMsg.o: /usr/include/bits/sched.h
+DAQCommMsg.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQObject.h
+DAQCommMsg.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/Printable.h
+DAQCommMsg.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/PrintStreamIface.h
+DAQCommMsg.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/OstreamCompat.h
+DAQCommMsg.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQTrackMemory.h
+DAQCommMsg.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQObjectType.h
+DAQCommMsg.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/nscl/ErrnoException.h
+DAQCommMsg.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/nscl/OSException.h
+DAQCommMsg.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/nscl/NSCLException.h
+DAQCommMsg.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/nscl/UNIXExceptionFactory.h
+DAQCommMsg.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/nscl/OSExceptionFactory.h
+DAQCommMsg.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQNodeContext.h
+DAQCommMsg.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQContext.h
+DAQCommMsg.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQException.h
+DAQCommMsg.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQEvent.h
+DAQCommMsg.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQExceptionType.h
+DAQCommMsg.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQStatus.h
+DAQCommMsg.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/maintypes.h
+DAQCommMsg.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/daqtypes.h
+DAQCommMsg.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQLogger.h
+DAQCommMsg.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/PrintStream.h
+DAQCommMsg.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/CharArray.h
+DAQCommMsg.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/CharArrayAllocator.h
+DAQCommMsg.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/Pointer.h
+DAQCommMsg.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/PointerBag.h
+DAQCommMsg.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQThreadMutex.h
+DAQCommMsg.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQExecObject.h
+DAQCommMsg.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/Synchronizable.h
+DAQCommMsg.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/SyncGuard.h
+DAQCommMsg.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQExecTrack.h
+DAQCommMsg.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/LinkedList.h
+DAQCommMsg.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/NullMutex.h
+DAQCommMsg.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/MutexIface.h
+DAQCommMsg.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQString.h
+DAQCommMsg.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/Array.h
+DAQCommMsg.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/ArrayAllocator.h
+DAQCommMsg.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQShmseg.h
+DAQCommMsg.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQShmsegData.h
+DAQCommMsg.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQRefCounter.h
+DAQCommMsg.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQRefObject.h
+DAQCommMsg.o: /usr/include/sys/stat.h /usr/include/bits/stat.h
+DAQCommMsg.o: /usr/include/sys/wait.h /usr/include/sys/resource.h
+DAQCommMsg.o: /usr/include/bits/resource.h /usr/include/bits/waitflags.h
+DAQCommMsg.o: /usr/include/bits/waitstatus.h /usr/include/sys/ipc.h
+DAQCommMsg.o: /usr/include/bits/ipctypes.h /usr/include/bits/ipc.h
+DAQCommMsg.o: /usr/include/sys/shm.h /usr/include/bits/shm.h
+DAQCommMsg.o: /usr/include/sys/sem.h /usr/include/bits/sem.h
+DAQCommMsg.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQExecTrackEntry.h
+DAQCommMsg.o: /usr/include/fcntl.h /usr/include/bits/fcntl.h
+DAQCommMsg.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQThreadId.h
+DAQCommMsg.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQExecId.h
+DAQCommMsg.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQNodeId.h
+DAQCommMsg.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQExecFactory.h
+DAQCommMsg.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQExceptionFactory.h
+DAQCommMsg.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQThreadHashTable.h
+DAQCommMsg.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQThread.h
+DAQCommMsg.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQThreadFactory.h
+DAQCommMsg.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQThreadDebugMutex.h
+DAQCommMsg.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQNode.h
+DAQCommMsg.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQNodeFactory.h
+DAQCommMsg.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/HashTable.h
+DAQCommMsg.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQServConfig.h
+DAQCommMsg.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQURL.h
+DAQCommMsg.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQCommMsg.h
+DAQCommMsg.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQCommMsgIface.h
+DAQCommMsg.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQMain.h
 DAQCommunicator.o: /usr/include/stdlib.h /usr/include/features.h
 DAQCommunicator.o: /usr/include/bits/predefs.h /usr/include/sys/cdefs.h
 DAQCommunicator.o: /usr/include/bits/wordsize.h /usr/include/gnu/stubs.h
@@ -103,3 +364,103 @@ DAQCommunicator.o: /usr/include/asm-generic/socket.h
 DAQCommunicator.o: /usr/include/asm/sockios.h
 DAQCommunicator.o: /usr/include/asm-generic/sockios.h /usr/include/bits/in.h
 DAQCommunicator.o: /usr/include/arpa/telnet.h
+DAQCommunicator.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/mainexterns.h
+DAQCommunicator.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/daqconfig.h
+DAQCommunicator.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/daqcstr.h
+DAQCommunicator.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/maindefs.h
+DAQCommunicator.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/genmacros.h
+DAQCommunicator.o: /usr/include/ctype.h
+DAQCommunicator.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQTrackMap.h
+DAQCommunicator.o: /usr/include/syslog.h /usr/include/sys/syslog.h
+DAQCommunicator.o: /usr/include/bits/syslog-path.h
+DAQCommunicator.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/threads/daqthreads.h
+DAQCommunicator.o: /usr/include/signal.h /usr/include/bits/signum.h
+DAQCommunicator.o: /usr/include/bits/siginfo.h /usr/include/bits/sigaction.h
+DAQCommunicator.o: /usr/include/bits/sigcontext.h
+DAQCommunicator.o: /usr/include/bits/sigstack.h /usr/include/bits/sigthread.h
+DAQCommunicator.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/threads/daqpthreads.h
+DAQCommunicator.o: /usr/include/pthread.h /usr/include/sched.h
+DAQCommunicator.o: /usr/include/bits/sched.h
+DAQCommunicator.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQObject.h
+DAQCommunicator.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/Printable.h
+DAQCommunicator.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/PrintStreamIface.h
+DAQCommunicator.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/OstreamCompat.h
+DAQCommunicator.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQTrackMemory.h
+DAQCommunicator.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQObjectType.h
+DAQCommunicator.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/nscl/ErrnoException.h
+DAQCommunicator.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/nscl/OSException.h
+DAQCommunicator.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/nscl/NSCLException.h
+DAQCommunicator.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/nscl/UNIXExceptionFactory.h
+DAQCommunicator.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/nscl/OSExceptionFactory.h
+DAQCommunicator.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQNodeContext.h
+DAQCommunicator.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQContext.h
+DAQCommunicator.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQException.h
+DAQCommunicator.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQEvent.h
+DAQCommunicator.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQExceptionType.h
+DAQCommunicator.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQStatus.h
+DAQCommunicator.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/maintypes.h
+DAQCommunicator.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/daqtypes.h
+DAQCommunicator.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQLogger.h
+DAQCommunicator.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/PrintStream.h
+DAQCommunicator.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/CharArray.h
+DAQCommunicator.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/CharArrayAllocator.h
+DAQCommunicator.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/Pointer.h
+DAQCommunicator.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/PointerBag.h
+DAQCommunicator.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQThreadMutex.h
+DAQCommunicator.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQExecObject.h
+DAQCommunicator.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/Synchronizable.h
+DAQCommunicator.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/SyncGuard.h
+DAQCommunicator.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQExecTrack.h
+DAQCommunicator.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/LinkedList.h
+DAQCommunicator.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/NullMutex.h
+DAQCommunicator.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/MutexIface.h
+DAQCommunicator.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQString.h
+DAQCommunicator.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/Array.h
+DAQCommunicator.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/ArrayAllocator.h
+DAQCommunicator.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQShmseg.h
+DAQCommunicator.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQShmsegData.h
+DAQCommunicator.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQRefCounter.h
+DAQCommunicator.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQRefObject.h
+DAQCommunicator.o: /usr/include/sys/stat.h /usr/include/bits/stat.h
+DAQCommunicator.o: /usr/include/sys/wait.h /usr/include/sys/resource.h
+DAQCommunicator.o: /usr/include/bits/resource.h /usr/include/bits/waitflags.h
+DAQCommunicator.o: /usr/include/bits/waitstatus.h /usr/include/sys/ipc.h
+DAQCommunicator.o: /usr/include/bits/ipctypes.h /usr/include/bits/ipc.h
+DAQCommunicator.o: /usr/include/sys/shm.h /usr/include/bits/shm.h
+DAQCommunicator.o: /usr/include/sys/sem.h /usr/include/bits/sem.h
+DAQCommunicator.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQExecTrackEntry.h
+DAQCommunicator.o: /usr/include/fcntl.h /usr/include/bits/fcntl.h
+DAQCommunicator.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQThreadId.h
+DAQCommunicator.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQExecId.h
+DAQCommunicator.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQNodeId.h
+DAQCommunicator.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQExecFactory.h
+DAQCommunicator.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQExceptionFactory.h
+DAQCommunicator.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQThreadHashTable.h
+DAQCommunicator.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQThread.h
+DAQCommunicator.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQThreadFactory.h
+DAQCommunicator.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQThreadDebugMutex.h
+DAQCommunicator.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQNode.h
+DAQCommunicator.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQNodeFactory.h
+DAQCommunicator.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/HashTable.h
+DAQCommunicator.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQServConfig.h
+DAQCommunicator.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQURL.h
+DAQCommunicator.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/netio/netio.h
+DAQCommunicator.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/netio/netio_parms.h
+DAQCommunicator.o: /usr/include/sys/un.h
+DAQCommunicator.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/netio/sockopts.h
+DAQCommunicator.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/netio/tcpio.h
+DAQCommunicator.o: /usr/include/netdb.h /usr/include/rpc/netdb.h
+DAQCommunicator.o: /usr/include/bits/netdb.h
+DAQCommunicator.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/netio/udpio.h
+DAQCommunicator.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/netio/unixio.h
+DAQCommunicator.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQCommunicator.h
+DAQCommunicator.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQCommInfo.h
+DAQCommunicator.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQCommMsgIface.h
+DAQCommunicator.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQCommMsg.h
+DAQCommunicator.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQSelectable.h
+DAQCommunicator.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQSelectObj.h
+DAQCommunicator.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DebugMutex.h
+DAQCommunicator.o: /usr/include/arpa/inet.h /usr/include/sys/poll.h
+DAQCommunicator.o: /usr/include/bits/poll.h
+DAQCommunicator.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQMain.h
+DAQCommunicator.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQMemory.h

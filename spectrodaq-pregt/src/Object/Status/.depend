@@ -1,5 +1,7 @@
 # DO NOT DELETE
 
+DAQStatus.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQStatus.h
+DAQStatus.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/daqconfig.h
 DAQStatus.o: /usr/include/string.h /usr/include/features.h
 DAQStatus.o: /usr/include/bits/predefs.h /usr/include/sys/cdefs.h
 DAQStatus.o: /usr/include/bits/wordsize.h /usr/include/gnu/stubs.h

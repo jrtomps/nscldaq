@@ -19,14 +19,14 @@ mandir = ${prefix}/share/man
 includedir = ${prefix}/include
 threadlibs = -lpthread
 
-TOPDIR=/usr/src/nscl/spectrodaq-pregt
+TOPDIR=/scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt
 THREADLIBS=-lpthread
 
-XMLTOKLIB=/usr/src/nscl/spectrodaq-pregt/src/lib/libxmltok.a
-XMLPARSELIB=/usr/src/nscl/spectrodaq-pregt/src/lib/libxmlparse.a
-XMLPLIB=/usr/src/nscl/spectrodaq-pregt/src/lib/libxmloop.a
-XMLINCDIR=/usr/src/nscl/spectrodaq-pregt/src/include/xmloop
-XMLBASEINCDIR=/usr/src/nscl/spectrodaq-pregt/src/include
+XMLTOKLIB=/scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/lib/libxmltok.a
+XMLPARSELIB=/scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/lib/libxmlparse.a
+XMLPLIB=/scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/lib/libxmloop.a
+XMLINCDIR=/scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/xmloop
+XMLBASEINCDIR=/scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include
 
 INST_LIBDIR=/usr/opt/spectrodaq/lib/
 INST_BINDIR=/usr/opt/spectrodaq/bin/

@@ -21,3 +21,24 @@ DAQEvent.o: /usr/include/bits/errno.h /usr/include/linux/errno.h
 DAQEvent.o: /usr/include/asm/errno.h /usr/include/asm-generic/errno.h
 DAQEvent.o: /usr/include/asm-generic/errno-base.h /usr/include/string.h
 DAQEvent.o: /usr/include/xlocale.h
+DAQEvent.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQEvent.h
+DAQEvent.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/daqconfig.h
+DAQEvent.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQObject.h
+DAQEvent.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQTrackMap.h
+DAQEvent.o: /usr/include/syslog.h /usr/include/sys/syslog.h
+DAQEvent.o: /usr/include/bits/syslog-path.h
+DAQEvent.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/threads/daqthreads.h
+DAQEvent.o: /usr/include/signal.h /usr/include/bits/signum.h
+DAQEvent.o: /usr/include/bits/siginfo.h /usr/include/bits/sigaction.h
+DAQEvent.o: /usr/include/bits/sigcontext.h /usr/include/bits/sigstack.h
+DAQEvent.o: /usr/include/bits/sigthread.h
+DAQEvent.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/threads/daqpthreads.h
+DAQEvent.o: /usr/include/pthread.h /usr/include/sched.h
+DAQEvent.o: /usr/include/bits/sched.h
+DAQEvent.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQTrackMemory.h
+DAQEvent.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQObjectType.h
+DAQEvent.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/Printable.h
+DAQEvent.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/genmacros.h
+DAQEvent.o: /usr/include/ctype.h
+DAQEvent.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/PrintStreamIface.h
+DAQEvent.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/OstreamCompat.h

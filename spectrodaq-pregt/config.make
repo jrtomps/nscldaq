@@ -22,29 +22,29 @@ cryptlibs = -lcrypt
 gtk_libs = 
 gtk_cflags = 
 
-TOPDIR=/usr/src/nscl/spectrodaq-pregt
+TOPDIR=/scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt
 THREADLIBS=-lpthread
 CRYPTLIBS=-lcrypt
 NSCL_CODE=/usr/opt/spectrodaq
 NSCL_CODE_INC=/usr/opt/spectrodaq/include/nscl
 NSCL_CODE_LIB=/usr/opt/spectrodaq/lib/libNSCLException.a
 
-DAQLIB=/usr/src/nscl/spectrodaq-pregt/src/lib/libspectrodaq.a
-MPILIB=/usr/src/nscl/spectrodaq-pregt/src/lib/libnsclmpi.a
-NETIOLIB=/usr/src/nscl/spectrodaq-pregt/src/lib/libnetio.a
-DAQTHREADSLIB=/usr/src/nscl/spectrodaq-pregt/src/lib/libdaqthreads.a
-CLIENTLIB=/usr/src/nscl/spectrodaq-pregt/src/lib/libdaqclient.a
-SERVLIB=/usr/src/nscl/spectrodaq-pregt/src/lib/libdaqserv.a
-NSCLLIB=/usr/src/nscl/spectrodaq-pregt/src/lib/libNSCLException.a
-XMLOOPLIB=/usr/src/nscl/spectrodaq-pregt/src/lib/libxmloop.a
-XMLPARSELIB=/usr/src/nscl/spectrodaq-pregt/src/lib/libxmlparse.a
-XMLTOKLIB=/usr/src/nscl/spectrodaq-pregt/src/lib/libxmltok.a
-DAQINCDIR=/usr/src/nscl/spectrodaq-pregt/src/include/
-NSCLINCDIR=/usr/src/nscl/spectrodaq-pregt/src/include/nscl
-MPIINCDIR=/usr/src/nscl/spectrodaq-pregt/src/include/mpi
-NETIOINCDIR=/usr/src/nscl/spectrodaq-pregt/src/include/netio
-DAQTHREADSINCDIR=/usr/src/nscl/spectrodaq-pregt/src/include/threads
-XMLINCDIR=/usr/src/nscl/spectrodaq-pregt/src/include/xmloop
+DAQLIB=/scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/lib/libspectrodaq.a
+MPILIB=/scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/lib/libnsclmpi.a
+NETIOLIB=/scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/lib/libnetio.a
+DAQTHREADSLIB=/scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/lib/libdaqthreads.a
+CLIENTLIB=/scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/lib/libdaqclient.a
+SERVLIB=/scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/lib/libdaqserv.a
+NSCLLIB=/scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/lib/libNSCLException.a
+XMLOOPLIB=/scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/lib/libxmloop.a
+XMLPARSELIB=/scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/lib/libxmlparse.a
+XMLTOKLIB=/scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/lib/libxmltok.a
+DAQINCDIR=/scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/
+NSCLINCDIR=/scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/nscl
+MPIINCDIR=/scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/mpi
+NETIOINCDIR=/scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/netio
+DAQTHREADSINCDIR=/scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/threads
+XMLINCDIR=/scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/xmloop
 
 XMLLIBS=$(XMLOOPLIB) $(XMLPARSELIB) $(XMLTOKLIB)
 

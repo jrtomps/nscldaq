@@ -12,7 +12,7 @@ fi
 #-----------------------------------------------------------------------
 TESTN="003"
 TESTDSC="Route Buffer to /dev/null Pointer"
-TOPDIR="/usr/src/nscl/spectrodaq-pregt"
+TOPDIR="/scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt"
 TESTDIR="$TOPDIR/tests"
 TOOLDIR="$TOPDIR/tools"
 OUTFN="/tmp/test$TESTN.$$"

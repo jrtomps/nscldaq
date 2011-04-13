@@ -342,13 +342,14 @@ int DAQLinkRQ_H::operator()(DAQCommunicator& dcom,DAQCommMsg& msg,int argc,char 
        lclid = pLink->GetLinkId();
      }
 
-     EncodeRsp(auth,msg,RPCSERV_REQ_OK,1,lclid);
-     Respond(dcom,msg);
 
      if (linkmgr != NULL) {
        linkmgr->Schedule(*pLink);
        delete pLink;
      }
+     EncodeRsp(auth,msg,RPCSERV_REQ_OK,1,lclid); // Even this is not so good
+     Respond(dcom,msg);				 // as there's still async completion.
+
    } catch(DAQException& de) {
      LOGX(de);
      return(RPCSERV_REQ_TERM);  // Exception -- terminate request

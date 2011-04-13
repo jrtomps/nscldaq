@@ -27,6 +27,115 @@ DAQBufferPage.o: /usr/include/asm/sockios.h
 DAQBufferPage.o: /usr/include/asm-generic/sockios.h /usr/include/netinet/in.h
 DAQBufferPage.o: /usr/include/stdint.h /usr/include/bits/wchar.h
 DAQBufferPage.o: /usr/include/bits/in.h /usr/include/arpa/inet.h
+DAQBufferPage.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/mainexterns.h
+DAQBufferPage.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/daqconfig.h
+DAQBufferPage.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/daqcstr.h
+DAQBufferPage.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/maindefs.h
+DAQBufferPage.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/genmacros.h
+DAQBufferPage.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQTrackMap.h
+DAQBufferPage.o: /usr/include/errno.h /usr/include/bits/errno.h
+DAQBufferPage.o: /usr/include/linux/errno.h /usr/include/asm/errno.h
+DAQBufferPage.o: /usr/include/asm-generic/errno.h
+DAQBufferPage.o: /usr/include/asm-generic/errno-base.h /usr/include/syslog.h
+DAQBufferPage.o: /usr/include/sys/syslog.h /usr/include/bits/syslog-path.h
+DAQBufferPage.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/threads/daqthreads.h
+DAQBufferPage.o: /usr/include/signal.h /usr/include/bits/signum.h
+DAQBufferPage.o: /usr/include/bits/siginfo.h /usr/include/bits/sigaction.h
+DAQBufferPage.o: /usr/include/bits/sigcontext.h /usr/include/bits/sigstack.h
+DAQBufferPage.o: /usr/include/bits/sigthread.h
+DAQBufferPage.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/threads/daqpthreads.h
+DAQBufferPage.o: /usr/include/pthread.h /usr/include/sched.h
+DAQBufferPage.o: /usr/include/bits/sched.h
+DAQBufferPage.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQObject.h
+DAQBufferPage.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/Printable.h
+DAQBufferPage.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/PrintStreamIface.h
+DAQBufferPage.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/OstreamCompat.h
+DAQBufferPage.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQTrackMemory.h
+DAQBufferPage.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQObjectType.h
+DAQBufferPage.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/nscl/ErrnoException.h
+DAQBufferPage.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/nscl/OSException.h
+DAQBufferPage.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/nscl/NSCLException.h
+DAQBufferPage.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/nscl/UNIXExceptionFactory.h
+DAQBufferPage.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/nscl/OSExceptionFactory.h
+DAQBufferPage.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQNodeContext.h
+DAQBufferPage.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQContext.h
+DAQBufferPage.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQException.h
+DAQBufferPage.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQEvent.h
+DAQBufferPage.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQExceptionType.h
+DAQBufferPage.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQStatus.h
+DAQBufferPage.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/maintypes.h
+DAQBufferPage.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/daqtypes.h
+DAQBufferPage.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQLogger.h
+DAQBufferPage.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/PrintStream.h
+DAQBufferPage.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/CharArray.h
+DAQBufferPage.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/CharArrayAllocator.h
+DAQBufferPage.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/Pointer.h
+DAQBufferPage.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/PointerBag.h
+DAQBufferPage.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQThreadMutex.h
+DAQBufferPage.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQExecObject.h
+DAQBufferPage.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/Synchronizable.h
+DAQBufferPage.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/SyncGuard.h
+DAQBufferPage.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQExecTrack.h
+DAQBufferPage.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/LinkedList.h
+DAQBufferPage.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/NullMutex.h
+DAQBufferPage.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/MutexIface.h
+DAQBufferPage.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQString.h
+DAQBufferPage.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/Array.h
+DAQBufferPage.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/ArrayAllocator.h
+DAQBufferPage.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQShmseg.h
+DAQBufferPage.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQShmsegData.h
+DAQBufferPage.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQRefCounter.h
+DAQBufferPage.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQRefObject.h
+DAQBufferPage.o: /usr/include/sys/stat.h /usr/include/bits/stat.h
+DAQBufferPage.o: /usr/include/sys/wait.h /usr/include/sys/resource.h
+DAQBufferPage.o: /usr/include/bits/resource.h /usr/include/bits/waitflags.h
+DAQBufferPage.o: /usr/include/bits/waitstatus.h /usr/include/sys/ipc.h
+DAQBufferPage.o: /usr/include/bits/ipctypes.h /usr/include/bits/ipc.h
+DAQBufferPage.o: /usr/include/sys/shm.h /usr/include/bits/shm.h
+DAQBufferPage.o: /usr/include/sys/sem.h /usr/include/bits/sem.h
+DAQBufferPage.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQExecTrackEntry.h
+DAQBufferPage.o: /usr/include/fcntl.h /usr/include/bits/fcntl.h
+DAQBufferPage.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQThreadId.h
+DAQBufferPage.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQExecId.h
+DAQBufferPage.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQNodeId.h
+DAQBufferPage.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQExecFactory.h
+DAQBufferPage.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQExceptionFactory.h
+DAQBufferPage.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQThreadHashTable.h
+DAQBufferPage.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQThread.h
+DAQBufferPage.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQThreadFactory.h
+DAQBufferPage.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQThreadDebugMutex.h
+DAQBufferPage.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQNode.h
+DAQBufferPage.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQNodeFactory.h
+DAQBufferPage.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/HashTable.h
+DAQBufferPage.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQServConfig.h
+DAQBufferPage.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQURL.h
+DAQBufferPage.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQKeyRing.h
+DAQBufferPage.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQBufferPage.h
+DAQBufferPage.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQBlock.h
+DAQBufferPage.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/BufferAllocator.h
+DAQBufferPage.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/Buffer.h
+DAQBufferPage.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQCommMsgIface.h
+DAQBufferPage.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQBufferPageHeaderEncoder.h
+DAQBufferPage.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQEncoder.h
+DAQBufferPage.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQServClock.h
+DAQBufferPage.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQMain.h
+DAQBufferPage.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQLink.h
+DAQBufferPage.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQCommunicator.h
+DAQBufferPage.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQCommInfo.h
+DAQBufferPage.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQCommMsg.h
+DAQBufferPage.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQSelectable.h
+DAQBufferPage.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQSelectObj.h
+DAQBufferPage.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DebugMutex.h
+DAQBufferPage.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/netio/netio.h
+DAQBufferPage.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/netio/netio_parms.h
+DAQBufferPage.o: /usr/include/sys/un.h
+DAQBufferPage.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/netio/sockopts.h
+DAQBufferPage.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/netio/tcpio.h
+DAQBufferPage.o: /usr/include/netdb.h /usr/include/rpc/netdb.h
+DAQBufferPage.o: /usr/include/bits/netdb.h
+DAQBufferPage.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/netio/udpio.h
+DAQBufferPage.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/netio/unixio.h
+DAQBufferPage.o: /usr/include/sys/poll.h /usr/include/bits/poll.h
 DAQBufferPager.o: /usr/include/stdlib.h /usr/include/features.h
 DAQBufferPager.o: /usr/include/bits/predefs.h /usr/include/sys/cdefs.h
 DAQBufferPager.o: /usr/include/bits/wordsize.h /usr/include/gnu/stubs.h
@@ -47,6 +156,138 @@ DAQBufferPager.o: /usr/include/unistd.h /usr/include/bits/posix_opt.h
 DAQBufferPager.o: /usr/include/bits/confname.h /usr/include/getopt.h
 DAQBufferPager.o: /usr/include/string.h /usr/include/xlocale.h
 DAQBufferPager.o: /usr/include/ctype.h
+DAQBufferPager.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/mainexterns.h
+DAQBufferPager.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/daqconfig.h
+DAQBufferPager.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/daqcstr.h
+DAQBufferPager.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/maindefs.h
+DAQBufferPager.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/genmacros.h
+DAQBufferPager.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQTrackMap.h
+DAQBufferPager.o: /usr/include/errno.h /usr/include/bits/errno.h
+DAQBufferPager.o: /usr/include/linux/errno.h /usr/include/asm/errno.h
+DAQBufferPager.o: /usr/include/asm-generic/errno.h
+DAQBufferPager.o: /usr/include/asm-generic/errno-base.h /usr/include/syslog.h
+DAQBufferPager.o: /usr/include/sys/syslog.h /usr/include/bits/syslog-path.h
+DAQBufferPager.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/threads/daqthreads.h
+DAQBufferPager.o: /usr/include/signal.h /usr/include/bits/signum.h
+DAQBufferPager.o: /usr/include/bits/siginfo.h /usr/include/bits/sigaction.h
+DAQBufferPager.o: /usr/include/bits/sigcontext.h /usr/include/bits/sigstack.h
+DAQBufferPager.o: /usr/include/bits/sigthread.h
+DAQBufferPager.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/threads/daqpthreads.h
+DAQBufferPager.o: /usr/include/pthread.h /usr/include/sched.h
+DAQBufferPager.o: /usr/include/bits/sched.h
+DAQBufferPager.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQObject.h
+DAQBufferPager.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/Printable.h
+DAQBufferPager.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/PrintStreamIface.h
+DAQBufferPager.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/OstreamCompat.h
+DAQBufferPager.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQTrackMemory.h
+DAQBufferPager.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQObjectType.h
+DAQBufferPager.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/nscl/ErrnoException.h
+DAQBufferPager.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/nscl/OSException.h
+DAQBufferPager.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/nscl/NSCLException.h
+DAQBufferPager.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/nscl/UNIXExceptionFactory.h
+DAQBufferPager.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/nscl/OSExceptionFactory.h
+DAQBufferPager.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQNodeContext.h
+DAQBufferPager.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQContext.h
+DAQBufferPager.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQException.h
+DAQBufferPager.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQEvent.h
+DAQBufferPager.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQExceptionType.h
+DAQBufferPager.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQStatus.h
+DAQBufferPager.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/maintypes.h
+DAQBufferPager.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/daqtypes.h
+DAQBufferPager.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQLogger.h
+DAQBufferPager.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/PrintStream.h
+DAQBufferPager.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/CharArray.h
+DAQBufferPager.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/CharArrayAllocator.h
+DAQBufferPager.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/Pointer.h
+DAQBufferPager.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/PointerBag.h
+DAQBufferPager.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQThreadMutex.h
+DAQBufferPager.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQExecObject.h
+DAQBufferPager.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/Synchronizable.h
+DAQBufferPager.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/SyncGuard.h
+DAQBufferPager.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQExecTrack.h
+DAQBufferPager.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/LinkedList.h
+DAQBufferPager.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/NullMutex.h
+DAQBufferPager.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/MutexIface.h
+DAQBufferPager.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQString.h
+DAQBufferPager.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/Array.h
+DAQBufferPager.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/ArrayAllocator.h
+DAQBufferPager.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQShmseg.h
+DAQBufferPager.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQShmsegData.h
+DAQBufferPager.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQRefCounter.h
+DAQBufferPager.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQRefObject.h
+DAQBufferPager.o: /usr/include/sys/stat.h /usr/include/bits/stat.h
+DAQBufferPager.o: /usr/include/sys/wait.h /usr/include/sys/resource.h
+DAQBufferPager.o: /usr/include/bits/resource.h /usr/include/bits/waitflags.h
+DAQBufferPager.o: /usr/include/bits/waitstatus.h /usr/include/sys/ipc.h
+DAQBufferPager.o: /usr/include/bits/ipctypes.h /usr/include/bits/ipc.h
+DAQBufferPager.o: /usr/include/sys/shm.h /usr/include/bits/shm.h
+DAQBufferPager.o: /usr/include/sys/sem.h /usr/include/bits/sem.h
+DAQBufferPager.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQExecTrackEntry.h
+DAQBufferPager.o: /usr/include/fcntl.h /usr/include/bits/fcntl.h
+DAQBufferPager.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQThreadId.h
+DAQBufferPager.o: /usr/include/sys/socket.h /usr/include/sys/uio.h
+DAQBufferPager.o: /usr/include/bits/uio.h /usr/include/bits/socket.h
+DAQBufferPager.o: /usr/include/bits/sockaddr.h /usr/include/asm/socket.h
+DAQBufferPager.o: /usr/include/asm-generic/socket.h
+DAQBufferPager.o: /usr/include/asm/sockios.h
+DAQBufferPager.o: /usr/include/asm-generic/sockios.h
+DAQBufferPager.o: /usr/include/netinet/in.h /usr/include/stdint.h
+DAQBufferPager.o: /usr/include/bits/wchar.h /usr/include/bits/in.h
+DAQBufferPager.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQExecId.h
+DAQBufferPager.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQNodeId.h
+DAQBufferPager.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQExecFactory.h
+DAQBufferPager.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQExceptionFactory.h
+DAQBufferPager.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQThreadHashTable.h
+DAQBufferPager.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQThread.h
+DAQBufferPager.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQThreadFactory.h
+DAQBufferPager.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQThreadDebugMutex.h
+DAQBufferPager.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQNode.h
+DAQBufferPager.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQNodeFactory.h
+DAQBufferPager.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/HashTable.h
+DAQBufferPager.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQServConfig.h
+DAQBufferPager.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQURL.h
+DAQBufferPager.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQKeyRing.h
+DAQBufferPager.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQBufferPager.h
+DAQBufferPager.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQBlock.h
+DAQBufferPager.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/BufferAllocator.h
+DAQBufferPager.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/Buffer.h
+DAQBufferPager.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQBuffer.h
+DAQBufferPager.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/netio/netio.h
+DAQBufferPager.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/netio/netio_parms.h
+DAQBufferPager.o: /usr/include/sys/un.h
+DAQBufferPager.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/netio/sockopts.h
+DAQBufferPager.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/netio/tcpio.h
+DAQBufferPager.o: /usr/include/netdb.h /usr/include/rpc/netdb.h
+DAQBufferPager.o: /usr/include/bits/netdb.h
+DAQBufferPager.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/netio/udpio.h
+DAQBufferPager.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/netio/unixio.h
+DAQBufferPager.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQPageBlock.h
+DAQBufferPager.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQBufferPage.h
+DAQBufferPager.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQCommMsgIface.h
+DAQBufferPager.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQBufferPageHeaderEncoder.h
+DAQBufferPager.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQEncoder.h
+DAQBufferPager.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQServClock.h
+DAQBufferPager.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQThreadCond.h
+DAQBufferPager.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQBufferGetPage.h
+DAQBufferPager.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQRPC.h
+DAQBufferPager.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQRPCStub.h
+DAQBufferPager.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQRPCHandles.h
+DAQBufferPager.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQCommunicator.h
+DAQBufferPager.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQCommInfo.h
+DAQBufferPager.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQCommMsg.h
+DAQBufferPager.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQSelectable.h
+DAQBufferPager.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQSelectObj.h
+DAQBufferPager.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DebugMutex.h
+DAQBufferPager.o: /usr/include/arpa/inet.h /usr/include/sys/poll.h
+DAQBufferPager.o: /usr/include/bits/poll.h
+DAQBufferPager.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQAuthToken.h
+DAQBufferPager.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQRPCServ.h
+DAQBufferPager.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQRPCHandler.h
+DAQBufferPager.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQRPCServStub.h
+DAQBufferPager.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/Queue.h
+DAQBufferPager.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQRPCServThread.h
+DAQBufferPager.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQBufferAccept.h
+DAQBufferPager.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQMain.h
 DAQBufferPageHeaderEncoder.o: /usr/include/stdlib.h /usr/include/features.h
 DAQBufferPageHeaderEncoder.o: /usr/include/bits/predefs.h
 DAQBufferPageHeaderEncoder.o: /usr/include/sys/cdefs.h
@@ -88,3 +329,100 @@ DAQBufferPageHeaderEncoder.o: /usr/include/asm-generic/sockios.h
 DAQBufferPageHeaderEncoder.o: /usr/include/netinet/in.h /usr/include/stdint.h
 DAQBufferPageHeaderEncoder.o: /usr/include/bits/wchar.h
 DAQBufferPageHeaderEncoder.o: /usr/include/bits/in.h /usr/include/arpa/inet.h
+DAQBufferPageHeaderEncoder.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/mainexterns.h
+DAQBufferPageHeaderEncoder.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/daqconfig.h
+DAQBufferPageHeaderEncoder.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/daqcstr.h
+DAQBufferPageHeaderEncoder.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/maindefs.h
+DAQBufferPageHeaderEncoder.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/genmacros.h
+DAQBufferPageHeaderEncoder.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQTrackMap.h
+DAQBufferPageHeaderEncoder.o: /usr/include/errno.h /usr/include/bits/errno.h
+DAQBufferPageHeaderEncoder.o: /usr/include/linux/errno.h
+DAQBufferPageHeaderEncoder.o: /usr/include/asm/errno.h
+DAQBufferPageHeaderEncoder.o: /usr/include/asm-generic/errno.h
+DAQBufferPageHeaderEncoder.o: /usr/include/asm-generic/errno-base.h
+DAQBufferPageHeaderEncoder.o: /usr/include/syslog.h /usr/include/sys/syslog.h
+DAQBufferPageHeaderEncoder.o: /usr/include/bits/syslog-path.h
+DAQBufferPageHeaderEncoder.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/threads/daqthreads.h
+DAQBufferPageHeaderEncoder.o: /usr/include/signal.h
+DAQBufferPageHeaderEncoder.o: /usr/include/bits/signum.h
+DAQBufferPageHeaderEncoder.o: /usr/include/bits/siginfo.h
+DAQBufferPageHeaderEncoder.o: /usr/include/bits/sigaction.h
+DAQBufferPageHeaderEncoder.o: /usr/include/bits/sigcontext.h
+DAQBufferPageHeaderEncoder.o: /usr/include/bits/sigstack.h
+DAQBufferPageHeaderEncoder.o: /usr/include/bits/sigthread.h
+DAQBufferPageHeaderEncoder.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/threads/daqpthreads.h
+DAQBufferPageHeaderEncoder.o: /usr/include/pthread.h /usr/include/sched.h
+DAQBufferPageHeaderEncoder.o: /usr/include/bits/sched.h
+DAQBufferPageHeaderEncoder.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQObject.h
+DAQBufferPageHeaderEncoder.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/Printable.h
+DAQBufferPageHeaderEncoder.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/PrintStreamIface.h
+DAQBufferPageHeaderEncoder.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/OstreamCompat.h
+DAQBufferPageHeaderEncoder.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQTrackMemory.h
+DAQBufferPageHeaderEncoder.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQObjectType.h
+DAQBufferPageHeaderEncoder.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/nscl/ErrnoException.h
+DAQBufferPageHeaderEncoder.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/nscl/OSException.h
+DAQBufferPageHeaderEncoder.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/nscl/NSCLException.h
+DAQBufferPageHeaderEncoder.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/nscl/UNIXExceptionFactory.h
+DAQBufferPageHeaderEncoder.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/nscl/OSExceptionFactory.h
+DAQBufferPageHeaderEncoder.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQNodeContext.h
+DAQBufferPageHeaderEncoder.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQContext.h
+DAQBufferPageHeaderEncoder.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQException.h
+DAQBufferPageHeaderEncoder.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQEvent.h
+DAQBufferPageHeaderEncoder.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQExceptionType.h
+DAQBufferPageHeaderEncoder.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQStatus.h
+DAQBufferPageHeaderEncoder.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/maintypes.h
+DAQBufferPageHeaderEncoder.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/daqtypes.h
+DAQBufferPageHeaderEncoder.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQLogger.h
+DAQBufferPageHeaderEncoder.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/PrintStream.h
+DAQBufferPageHeaderEncoder.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/CharArray.h
+DAQBufferPageHeaderEncoder.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/CharArrayAllocator.h
+DAQBufferPageHeaderEncoder.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/Pointer.h
+DAQBufferPageHeaderEncoder.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/PointerBag.h
+DAQBufferPageHeaderEncoder.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQThreadMutex.h
+DAQBufferPageHeaderEncoder.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQExecObject.h
+DAQBufferPageHeaderEncoder.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/Synchronizable.h
+DAQBufferPageHeaderEncoder.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/SyncGuard.h
+DAQBufferPageHeaderEncoder.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQExecTrack.h
+DAQBufferPageHeaderEncoder.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/LinkedList.h
+DAQBufferPageHeaderEncoder.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/NullMutex.h
+DAQBufferPageHeaderEncoder.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/MutexIface.h
+DAQBufferPageHeaderEncoder.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQString.h
+DAQBufferPageHeaderEncoder.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/Array.h
+DAQBufferPageHeaderEncoder.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/ArrayAllocator.h
+DAQBufferPageHeaderEncoder.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQShmseg.h
+DAQBufferPageHeaderEncoder.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQShmsegData.h
+DAQBufferPageHeaderEncoder.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQRefCounter.h
+DAQBufferPageHeaderEncoder.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQRefObject.h
+DAQBufferPageHeaderEncoder.o: /usr/include/sys/stat.h
+DAQBufferPageHeaderEncoder.o: /usr/include/bits/stat.h
+DAQBufferPageHeaderEncoder.o: /usr/include/sys/wait.h
+DAQBufferPageHeaderEncoder.o: /usr/include/sys/resource.h
+DAQBufferPageHeaderEncoder.o: /usr/include/bits/resource.h
+DAQBufferPageHeaderEncoder.o: /usr/include/bits/waitflags.h
+DAQBufferPageHeaderEncoder.o: /usr/include/bits/waitstatus.h
+DAQBufferPageHeaderEncoder.o: /usr/include/sys/ipc.h
+DAQBufferPageHeaderEncoder.o: /usr/include/bits/ipctypes.h
+DAQBufferPageHeaderEncoder.o: /usr/include/bits/ipc.h /usr/include/sys/shm.h
+DAQBufferPageHeaderEncoder.o: /usr/include/bits/shm.h /usr/include/sys/sem.h
+DAQBufferPageHeaderEncoder.o: /usr/include/bits/sem.h
+DAQBufferPageHeaderEncoder.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQExecTrackEntry.h
+DAQBufferPageHeaderEncoder.o: /usr/include/fcntl.h /usr/include/bits/fcntl.h
+DAQBufferPageHeaderEncoder.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQThreadId.h
+DAQBufferPageHeaderEncoder.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQExecId.h
+DAQBufferPageHeaderEncoder.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQNodeId.h
+DAQBufferPageHeaderEncoder.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQExecFactory.h
+DAQBufferPageHeaderEncoder.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQExceptionFactory.h
+DAQBufferPageHeaderEncoder.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQThreadHashTable.h
+DAQBufferPageHeaderEncoder.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQThread.h
+DAQBufferPageHeaderEncoder.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQThreadFactory.h
+DAQBufferPageHeaderEncoder.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQThreadDebugMutex.h
+DAQBufferPageHeaderEncoder.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQNode.h
+DAQBufferPageHeaderEncoder.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQNodeFactory.h
+DAQBufferPageHeaderEncoder.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/HashTable.h
+DAQBufferPageHeaderEncoder.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQServConfig.h
+DAQBufferPageHeaderEncoder.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQURL.h
+DAQBufferPageHeaderEncoder.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQBufferPageHeaderEncoder.h
+DAQBufferPageHeaderEncoder.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQEncoder.h
+DAQBufferPageHeaderEncoder.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/Buffer.h
+DAQBufferPageHeaderEncoder.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/BufferAllocator.h
+DAQBufferPageHeaderEncoder.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/DAQMain.h

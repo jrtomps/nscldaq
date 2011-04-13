@@ -18,6 +18,19 @@ XMLHandler.o: /usr/include/sys/time.h /usr/include/unistd.h
 XMLHandler.o: /usr/include/bits/posix_opt.h /usr/include/bits/confname.h
 XMLHandler.o: /usr/include/getopt.h /usr/include/string.h
 XMLHandler.o: /usr/include/xlocale.h /usr/include/ctype.h
+XMLHandler.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/xmloop/XMLHandler.h
+XMLHandler.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/xmloop/xmlpconfig.h
+XMLHandler.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/daqconfig.h
+XMLHandler.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/xmloop/xmlparse.h
+XMLHandler.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/xmloop/XMLParser.h
+XMLHandler.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/xmloop/XMLLinkedList.h
+XMLHandler.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/xmloop/XMLOut.h
+XMLHandler.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/xmloop/XMLPipe.h
+XMLHandler.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/xmloop/XMLStack.h
+XMLHandler.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/xmloop/XMLNamespace.h
+XMLHandler.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/xmloop/XMLINSStack.h
+XMLHandler.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/xmloop/XMLPtrStack.h
+XMLHandler.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/xmloop/xmlpcstr.h
 XMLParser.o: /usr/include/stdlib.h /usr/include/features.h
 XMLParser.o: /usr/include/bits/predefs.h /usr/include/sys/cdefs.h
 XMLParser.o: /usr/include/bits/wordsize.h /usr/include/gnu/stubs.h
@@ -36,6 +49,18 @@ XMLParser.o: /usr/include/sys/time.h /usr/include/unistd.h
 XMLParser.o: /usr/include/bits/posix_opt.h /usr/include/bits/confname.h
 XMLParser.o: /usr/include/getopt.h /usr/include/string.h
 XMLParser.o: /usr/include/xlocale.h
+XMLParser.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/xmloop/XMLParser.h
+XMLParser.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/xmloop/xmlpconfig.h
+XMLParser.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/daqconfig.h
+XMLParser.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/xmloop/XMLLinkedList.h
+XMLParser.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/xmloop/XMLOut.h
+XMLParser.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/xmloop/xmlparse.h
+XMLParser.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/xmloop/XMLPipe.h
+XMLParser.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/xmloop/XMLStack.h
+XMLParser.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/xmloop/XMLNamespace.h
+XMLParser.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/xmloop/XMLINSStack.h
+XMLParser.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/xmloop/XMLPtrStack.h
+XMLParser.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/xmloop/xmlpcstr.h
 XMLOut.o: /usr/include/stdlib.h /usr/include/features.h
 XMLOut.o: /usr/include/bits/predefs.h /usr/include/sys/cdefs.h
 XMLOut.o: /usr/include/bits/wordsize.h /usr/include/gnu/stubs.h
@@ -53,6 +78,11 @@ XMLOut.o: /usr/include/setjmp.h /usr/include/bits/setjmp.h
 XMLOut.o: /usr/include/sys/time.h /usr/include/unistd.h
 XMLOut.o: /usr/include/bits/posix_opt.h /usr/include/bits/confname.h
 XMLOut.o: /usr/include/getopt.h /usr/include/string.h /usr/include/xlocale.h
+XMLOut.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/xmloop/XMLOut.h
+XMLOut.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/xmloop/xmlpconfig.h
+XMLOut.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/daqconfig.h
+XMLOut.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/xmloop/xmlparse.h
+XMLOut.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/xmloop/xmlpcstr.h
 XMLPipe.o: /usr/include/stdlib.h /usr/include/features.h
 XMLPipe.o: /usr/include/bits/predefs.h /usr/include/sys/cdefs.h
 XMLPipe.o: /usr/include/bits/wordsize.h /usr/include/gnu/stubs.h
@@ -70,6 +100,18 @@ XMLPipe.o: /usr/include/setjmp.h /usr/include/bits/setjmp.h
 XMLPipe.o: /usr/include/sys/time.h /usr/include/unistd.h
 XMLPipe.o: /usr/include/bits/posix_opt.h /usr/include/bits/confname.h
 XMLPipe.o: /usr/include/getopt.h /usr/include/string.h /usr/include/xlocale.h
+XMLPipe.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/xmloop/XMLPipe.h
+XMLPipe.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/xmloop/xmlpconfig.h
+XMLPipe.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/daqconfig.h
+XMLPipe.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/xmloop/xmlparse.h
+XMLPipe.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/xmloop/XMLParser.h
+XMLPipe.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/xmloop/XMLLinkedList.h
+XMLPipe.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/xmloop/XMLOut.h
+XMLPipe.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/xmloop/XMLStack.h
+XMLPipe.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/xmloop/XMLNamespace.h
+XMLPipe.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/xmloop/XMLINSStack.h
+XMLPipe.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/xmloop/XMLPtrStack.h
+XMLPipe.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/xmloop/xmlpcstr.h
 XMLNamespace.o: /usr/include/stdlib.h /usr/include/features.h
 XMLNamespace.o: /usr/include/bits/predefs.h /usr/include/sys/cdefs.h
 XMLNamespace.o: /usr/include/bits/wordsize.h /usr/include/gnu/stubs.h
@@ -88,6 +130,11 @@ XMLNamespace.o: /usr/include/bits/setjmp.h /usr/include/sys/time.h
 XMLNamespace.o: /usr/include/unistd.h /usr/include/bits/posix_opt.h
 XMLNamespace.o: /usr/include/bits/confname.h /usr/include/getopt.h
 XMLNamespace.o: /usr/include/string.h /usr/include/xlocale.h
+XMLNamespace.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/xmloop/XMLNamespace.h
+XMLNamespace.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/xmloop/xmlpconfig.h
+XMLNamespace.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/daqconfig.h
+XMLNamespace.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/xmloop/xmlparse.h
+XMLNamespace.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/xmloop/xmlpcstr.h
 XMLINSStack.o: /usr/include/stdlib.h /usr/include/features.h
 XMLINSStack.o: /usr/include/bits/predefs.h /usr/include/sys/cdefs.h
 XMLINSStack.o: /usr/include/bits/wordsize.h /usr/include/gnu/stubs.h
@@ -106,3 +153,9 @@ XMLINSStack.o: /usr/include/bits/setjmp.h /usr/include/sys/time.h
 XMLINSStack.o: /usr/include/unistd.h /usr/include/bits/posix_opt.h
 XMLINSStack.o: /usr/include/bits/confname.h /usr/include/getopt.h
 XMLINSStack.o: /usr/include/string.h /usr/include/xlocale.h
+XMLINSStack.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/xmloop/XMLINSStack.h
+XMLINSStack.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/xmloop/xmlpconfig.h
+XMLINSStack.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/daqconfig.h
+XMLINSStack.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/xmloop/XMLPtrStack.h
+XMLINSStack.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/xmloop/xmlparse.h
+XMLINSStack.o: /scratch/fox/daq/nscldaq/trunk/spectrodaq-pregt/src/include/xmloop/xmlpcstr.h
