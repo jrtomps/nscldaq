@@ -103,3 +103,16 @@ CControlHardware::processMonitorList(void* pData, size_t remaining)
 {
   return pData;
 }
+/**
+ ** Return the most recent data that is being monitored.  It's up to the
+ ** concrete implementation to figure out how to represent that data.
+ ** a most likely representation is a well formatted Tcl List of some sort.
+ ** This implementation is provided to ensure that no existing drivers are invalidated
+ ** by adding the monitor interface.
+ */
+string
+CControlHardware::getMonitoredData()
+{
+  string result;
+  return result;
+}

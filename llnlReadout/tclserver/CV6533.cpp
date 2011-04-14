@@ -14,6 +14,10 @@
 	     East Lansing, MI 48824-1321
 */
 
+
+//TODO: Factor the getters so that we just need to hand them the offset within the
+//      channel and the factored code will hand us the 6 values.
+
 #include <config.h>
 #include "CV6533.h"
 
@@ -482,9 +486,6 @@ CV6533::strToBool(string value)
   }
   return CConfigurableObject::strToBool(value);
 }
-
-/*--------------- Setting the device registers -------------------------------*/
-
 /**
  * Get the base address of the module from the configuration.
  * @return uint32_t
@@ -495,6 +496,52 @@ CV6533::getBase()
 {
   return m_pConfiguration->getUnsignedParameter("-base");
 }
+
+
+/**
+ * Convert a floating point value to a string.
+ * @param value
+ * @return string
+ * @retval the string representation of the value.
+ */
+string
+CV6533::fToString(float value)
+{
+  char cValue[100];
+  sprintf(cValue, "%f", value);
+  return string(cValue);
+}
+
+/**
+ * Convert an array of 6 uint16_t values to a properly formatted list of 
+ * floats after applying a scale factor.
+ * @param values      - Pointer to the array of uint16_t's to convert.
+ * @param scaleFactor - Foating point scale factor used to convert the values to floats.
+ * @return string
+ * @retval Properly formatted Tcl list of scaled floats. 
+ */
+string
+CV6533::scaledIToString(uint16_t* values, float scaleFactor)
+{
+  float           scaledValue;
+  CTCLInterpreter interp;
+  CTCLObject      objResult;
+  string          stringResult;
+  
+  objResult.Bind(interp);
+  for (int i=0; i < 6; i ++) {
+    scaledValue = values[i];
+    scaledValue *= scaleFactor;
+    objResult += scaledValue;
+  }
+  stringResult = static_cast<string>(objResult);
+  return stringResult;
+
+}
+
+
+/*--------------- Setting the device registers -------------------------------*/
+
 
 /**
  * Add a command to turn a specified channel off to a VME list.
@@ -836,4 +883,162 @@ CV6533::getChannelStatuses(CVMUSB& vme)
   return result;
 
   
+}
+/**
+ * Get the trip times for all of the channels. This is the amount of time
+ * in seconds a limit condition can be violated on a channel before the channel is
+ * turned off.
+ * @param vme   - VM-USB controller object.
+ * @return string
+ * @retval  A properly formatted Tcl lists whose elements are the trip times 
+ *          in secondes.
+ */
+string
+CV6533::getTripTimes(CVMUSB& vme)
+{
+  size_t            nRead;
+  int               status;
+  CVMUSBReadoutList list;
+  uint16_t          tripTimes[6];
+
+  for (int i =0; i < 6; i++) {
+    list.addRead16(getBase() + Channels[i] + TripTime,
+		   amod);
+  }
+  status = vme.executeList(list, tripTimes, sizeof(tripTimes), &nRead);
+  if (status != 0) {
+    throw string("Unable to read trip times");
+  }
+  return scaledIToSTring(tripTimes, 0.1);
+}
+/**
+ * Get the software VMax values from all the channels.
+ * @param vme   - VM-USB controller object.  
+ * @return string
+ * @retval Properly formatted Tcl list that contains the 
+ *         software voltage limits for each channel.
+ *         Note that these values limit the requested voltage not the 
+ *         actual voltage.  Any VSET > SVMAX is turned into an SVMAX setting.
+ */
+string
+CV6533::getSoftwareVmax(CVMUSB& vme)
+{
+  size_t            nRead;
+  int               status;
+  CVMUSBReadoutList list;
+  uint6_t           sVmax[6];
+  
+  for (int i=0; i < 6; i++) {
+    list.addRead16(getBase() +  Channels[i] + SVMax, amod);
+  }
+  status = vme.executeList(list, sVmax, sizeof(sVmax), &nRead);
+  if (status != 0) {
+    throw string("Unable to read software VMAX registeres in list");
+  }
+  return scaledIToString(sVmax, 0.1);
+}
+/**
+ * Get the ramp down rates.
+ * @param vme  - VM-USB controller object.
+ * @return string
+ * @retval Tcl list that contains the ramp down rates in V/seconds for each channel.
+ */
+string
+CV6533::getRampDownRates(CVMUSB& vme)
+{
+  size_t            nRead;
+  int               status;
+  CVMUSBReadoutList list;
+  uint16_t          rdRates[6];
+
+  for (int i=0; i < 6; i++) {
+    list.addRead16(getBase() + Channels[i] + RampDown, amod);
+  }
+  status = executeList(list, rdRates, sizeof(rdRates), &nRead);
+  if (status != 0) {
+    throw string("Unable to read ramp down rates via list");
+  } 
+  return scaledIToString(rdRates,1.0);
+}
+/**
+ * Get the ramp up rates.
+ * @param vme   - VM-USB controller object.
+ * @return string
+ * @retval Tcl list that contains the ramp up rates in V/seconds 
+ *         for each channel.
+ */
+string
+CV6533::getRampUpRates(CVMUSB& vme)
+{
+  size_t            nRead;
+  int               status;
+  CVMUSBReadoutList list;
+  uint16_t          rupRates[6];
+
+  for (int i= 0; i < 6; i++) {
+    list.addRead16(getBase() + Channels[i] + rampDown, amod);
+  }
+  status = vme.executeList(list, rupRates, sizeof(rupRates), &nRead);
+  if (status != 0) {
+    throw string("Unable to read ramp up rates from list");
+  }
+  return scaledIToString(rupRates, 1.0);
+}
+/**
+ * Get the temperatures for each channel.  This will also update the
+ * m_tempuratures member so that if there are requests for monitored value
+ * between the time we are called and the next monitor list execution,
+ * the updated values will be used.
+ * @param vme  - The VM-USB controller object.
+ * @return string
+ * @retval Properly formatted Tcl list of temperatures for each channel.
+ */
+string
+CV6533::getTemperatures(CVMUSB& vme)
+{
+  size_t             nRead
+  int                status;
+  CVMUSBReadoutList  list;
+  
+  for (int i =0; i < 6; i++) {
+    list.addRead16(getBase() + Channels[i] + Temp, amod);
+  }
+  status = vme.executeList(list, &m_temperatures, sizeof(m_temperatures), &nRead);
+  if (status != 0) {
+    throw string("Unable to read temperatures in getTemperatures list");
+  }
+  return scaledIToString(m_temperatures, 1.0);
+}
+
+/**
+ * Get the channel polarities.
+ * @param vme
+ * @return string
+ * @retval Tcl list of strings "+" for positive "-" for negative.
+ */
+string
+CV6533::getPolarities(CVMUSB& vme)
+{
+  size_t             nRead;
+  int                status;
+  CVMUSBReadoutList  list;
+  uint16_t           polarityValues[6];
+  CTCLInterpreter    interp;	// captive interpreter for formattting.
+  CTCLObject         objResult;
+  string             stringResult;
+
+  for (int i=0; i < 16; i++) {
+    list.addRead16(getBase() + Channels[i] + Polarity, amod);
+  }
+  status = vme.executeList(list, polarityValues, sizeof(polarityValues), & nRead);
+  if (status != 0) {
+    throw string("Unable to read the channel polarity values via list");
+  }
+
+  objResult.Bind(interp);
+  for (int i =0; i < 6; i++) {
+    objResult += polarityValues[6] ? string("+") : string("-");
+  }
+  stringResult = static_cast<string>(objResult);
+  return stringResult;
 }

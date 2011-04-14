@@ -98,6 +98,7 @@ private:
   virtual void addMonitorList(CVMUSBReadoutList& vmeList);     //!< add items to the monitor list.
   virtual void* processMonitorList(void* pData, size_t remaining);  
 
+  virtual std::string getMonitoredData();
 
   // Local utilities: 
 
@@ -131,6 +132,7 @@ private:
   std::string getRampDownRates(CVMUSB& vme);
   std::string getRampUpRates(CVMUSB& vme);
   std::string getTemperatures(CVMUSB& vme);
+  std::string getPolarities(CVMUSB& vme);
 
   bool strToBool(std::string value);
   std::string fToString(float value);

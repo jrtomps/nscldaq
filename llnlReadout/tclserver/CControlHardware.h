@@ -79,6 +79,7 @@ public:
 
   virtual void addMonitorList(CVMUSBReadoutList& vmeList);     //!< add items to the monitor list.
   virtual void* processMonitorList(void* pData, size_t remaining);
+  virtual std::string getMonitoredData();
   
 };
 
