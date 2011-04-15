@@ -8,12 +8,14 @@ libControlServer_la_SOURCES	= 	CControlHardware.cpp	\
 					CGDG.cpp		\
 					CV812.cpp		\
 					CVMUSBModule.cpp	\
+					CV6533.cpp		\
 					CUpdateCommand.cpp	\
 					CGetCommand.cpp		\
 					Server.cpp
 
 include_HEADERS			=	CGDG.h			\
 					CV812.h			\
+					CV6533.h		\
 					CVMUSBModule.h		\
 					CSetCommand.h		\
 					server.h		\

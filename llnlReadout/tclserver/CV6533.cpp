@@ -467,7 +467,66 @@ CV6533::processMonitorList(void* pData, size_t remaining)
   }
   return p;
 }  
+/**
+ * This function is called when a client wants our most
+ * recent version of monitored data.
+ * We are not allowed todo any VME actions as we are
+ * explicitly not synchronized with the 
+ * data taking.  We will instead return the 
+ * most recent copy of the monitored data.
+ * @return string
+ * @retval A properly formatted tcl list that consists
+ *         of the following elements:
+ *         - Most recent value of the global status
+ *           register.
+ *         - 6 element list of most recent values of
+ *           the channel status registers.
+ *         - 6 element list of the most recent values of the
+ *           actual voltages.
+ *         - 6 element list of the most recent values of
+ *           the actual channel currents.
+ *         - 6 element list of the most recent values of
+ *           the channel temperatures.
+ */
+string
+CV6533::getMonitoredData()
+{
+  CTCLInterpreter interp;	// Captive interpeter..fmt.
+  CTCLObject      objResult; 	// Top level list result.
+  CTCLObject      statusList;   // List for status vals.
 
+  objResult.Bind(interp);
+
+  // Global status element:
+
+  objResult += m_globalStatus;
+
+  // Channel statuses:
+
+  statusList.Bind(interp);
+  for(int i = 0; i < 6; i++) {
+    statusList += m_channelStatus[i];
+  }
+  objResult += statusList;
+
+  //  Channel voltages:
+
+  objResult += scaledIToString(m_voltages, 0.1);
+
+  // Channel Currents:
+
+  objResult += scaledIToStrinng(m_currents, 0.05);
+  
+  // Temperatures:
+
+  objResult += scaledIToString(m_temperatures, 1.0);
+
+  // Return as string:
+
+  string result = static_cast<string>(objResult);
+  reeturn result;
+
+}
 
 /*----------------------------- Utility functions ----------------------------- */
 /**
