@@ -205,3 +205,15 @@ CControlModule::processMonitorList(void* pData, size_t remaining)
 {
   return m_pHardware->processMonitorList(pData, remaining);
 }
+/**
+ * Return the data monitored by the driver.
+ * @return string
+ * @retval monitored data in form and content that is
+ *         driver dependent.
+ */
+string 
+ControlModule::getMonitoredData()
+{
+  return m_pHardware->getMonitoredData();
+
+}

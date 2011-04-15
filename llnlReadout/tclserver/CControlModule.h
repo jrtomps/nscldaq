@@ -82,6 +82,7 @@ public:
 
   void addMonitorList(CVMUSBReadoutList& vmeList);
   void* processMonitorList(void* pData, size_t remaining);
+  std::string getMonitoredData();
 
 };
 
