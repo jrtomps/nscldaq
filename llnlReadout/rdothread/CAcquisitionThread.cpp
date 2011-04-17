@@ -359,7 +359,7 @@ CAcquisitionThread::startDaq()
 
   // Now we can start preparing to read...
 
-  m_pVme->writeActionRegister(CVMUSB::ActionRegister::sysReset);
+  //  m_pVme->writeActionRegister(CVMUSB::ActionRegister::sysReset);
   m_pVme->writeActionRegister(0);
 
 
