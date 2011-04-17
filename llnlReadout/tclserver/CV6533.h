@@ -72,7 +72,7 @@ private:
   uint16_t          m_temperatures[6];
 
   // Canonical methods:
-
+public:
   CV6533(std::string name);
   CV6533(const CV6533& rhs);
   virtual ~CV6533();
@@ -131,7 +131,7 @@ private:
   std::string getSoftwareVmax(CVMUSB& vme);
   std::string getRampDownRates(CVMUSB& vme);
   std::string getRampUpRates(CVMUSB& vme);
-  std::string getPowerdownModes(CVMUSB& vme); /* TODO: implement */
+  std::string getPowerdownModes(CVMUSB& vme);
   std::string getTemperatures(CVMUSB& vme);
   std::string getPolarities(CVMUSB& vme);
 

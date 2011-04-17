@@ -25,6 +25,7 @@ using namespace std;
 #include <TclServer.h>
 #include <CGDG.h>
 #include <CV812.h>
+#include <CV6533.h>
 #include <CVMUSBModule.h>
 
 /*!
@@ -126,6 +127,9 @@ CModuleCommand::create(CTCLInterpreter& interp,
   }
   else if (type == "vmusb") {
     pModule = new CVMUSBModule(name);
+  }
+  else if (type == "v6533") {
+    pModule = new CV6533(name);
   }
   else {
     m_Server.setResult("module create: Invalid type, must be jtecgdg");
