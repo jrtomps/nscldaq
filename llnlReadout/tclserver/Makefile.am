@@ -11,6 +11,7 @@ libControlServer_la_SOURCES	= 	CControlHardware.cpp	\
 					CV6533.cpp		\
 					CUpdateCommand.cpp	\
 					CGetCommand.cpp		\
+					CMonCommand.cpp         \
 					Server.cpp
 
 include_HEADERS			=	CGDG.h			\
@@ -25,6 +26,7 @@ include_HEADERS			=	CGDG.h			\
 					serverinstance.h	\
 					CControlModule.h	\
 					CModuleCommand.h	\
+					CMonCommand.h          \
 					TclServer.h
 
 INCLUDES			= 	-I$(top_builddir)/vmusb		\

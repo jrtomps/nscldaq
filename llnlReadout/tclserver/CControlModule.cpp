@@ -212,7 +212,7 @@ CControlModule::processMonitorList(void* pData, size_t remaining)
  *         driver dependent.
  */
 string 
-ControlModule::getMonitoredData()
+CControlModule::getMonitoredData()
 {
   return m_pHardware->getMonitoredData();
 

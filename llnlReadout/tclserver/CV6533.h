@@ -38,7 +38,7 @@
 
 class CControlModule;
 class CVMUSB;
-
+class CVMUSBReadoutList;
 /**
  *  Controls the CAEN V 6533 6 channel HV module.  Parameters are:
  *   - globalmaxv    - Board maximum voltage
@@ -74,7 +74,7 @@ private:
   // Canonical methods:
 
   CV6533(std::string name);
-  CV6533(const cv6533& rhs);
+  CV6533(const CV6533& rhs);
   virtual ~CV6533();
 
   CV6533& operator=(const CV6533& rhs);
@@ -103,11 +103,11 @@ private:
   // Local utilities: 
 
 private:
-  uint32_t* getBase();		// Get the base address of the module from config
+  uint32_t getBase();		// Get the base address of the module from config
 
   // Functions used to set the module parameters.
 
-  void turnOff(CVMUSBReadoutlist& list, unsigned int channel);
+  void turnOff(CVMUSBReadoutList& list, unsigned int channel);
   void setRequestVoltage(CVMUSBReadoutList& list, unsigned int channel, float value);
   void setRequestCurrent(CVMUSBReadoutList& list, unsigned int channel, float value);
   void setChannelOnOff(CVMUSBReadoutList& list, unsigned int channel, bool value);
@@ -115,7 +115,7 @@ private:
   void setMaxVoltage(CVMUSBReadoutList& list, unsigned int channel, float value);
   void setRampDownRate(CVMUSBReadoutList& list, unsigned int channel, float rate);
   void setRampUpRate(CVMUSBReadoutList& list, unsigned int channel, float rate);
-  void setPowerDownMode(CVMUSBReadoutList& list, unsigned channel, std:string mode);
+  void setPowerDownMode(CVMUSBReadoutList& list, unsigned channel, std::string mode);
 
   // functions used to read module parameters.
 
@@ -123,20 +123,21 @@ private:
   std::string getGlobalMaxI(CVMUSB& vme);
   std::string getChannelVoltages(CVMUSB& vme);
   std::string getChannelCurrents(CVMUSB& vme);
-  std::string getOnOffRequest(CVMUSB& vme);
+  std::string getOnOffRequests(CVMUSB& vme);
   std::string getActualVoltages(CVMUSB& vme);
-  std::string getAtualCurrents(CVMUSB& vme);
+  std::string getActualCurrents(CVMUSB& vme);
   std::string getChannelStatuses(CVMUSB& vme);
   std::string getTripTimes(CVMUSB& vme);
   std::string getSoftwareVmax(CVMUSB& vme);
   std::string getRampDownRates(CVMUSB& vme);
   std::string getRampUpRates(CVMUSB& vme);
+  std::string getPowerdownModes(CVMUSB& vme); /* TODO: implement */
   std::string getTemperatures(CVMUSB& vme);
   std::string getPolarities(CVMUSB& vme);
 
   bool strToBool(std::string value);
   std::string fToString(float value);
-  std::string scaledIToString(uint16* values, float scaleFactor);
+  std::string scaledIToString(uint16_t* values, float scaleFactor);
 
 
 };

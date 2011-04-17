@@ -8,10 +8,11 @@
 	     East Lansing, MI 48824-1321
 */
 #include <config.h>
-
+#include <CMonCommand.h>
 #include "TclServer.h"
 #include <TCLObject.h>
 #include <TCLInterpreter.h>
+#include <CControlModule.h>
 
 
 /**

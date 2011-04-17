@@ -44,14 +44,14 @@ using namespace std;
 
 // Board parameters (common to all channels):
 
-Const BoardVmax     0x50;
-Const BoardImax     0x54;
-Const BoardStatus   0x58;
-Const Firmware      0x5c;
+Const(BoardVmax)     0x50;
+Const(BoardImax)     0x54;
+Const(BoardStatus)   0x58;
+Const (Firmware)      0x5c;
 
 // Each Channels has a common format that is described later:
 
-Const(Channels[6])  = {
+Const(Channels[6])   {
   0x080, 0x100, 0x180, 0x200, 0x280, 0x300
 };
 
@@ -68,7 +68,7 @@ Const(VmeFirmware)    0x8120;
 Const(Vset)      0x00;
 Const(Iset)      0x04;
 Const(VMon)      0x08;
-Const(Imon)      0x0c;
+Const(IMon)      0x0c;
 Const(PW)        0x10;
 Const(ChStatus)  0x14;
 Const(TripTime)  0x18;
@@ -94,8 +94,8 @@ Const(MaxIUncal)     0x0400;
 // Individual channel status register bits.
 
 Const(On)           0x0001;
-Const(RampUp)       0x0002;
-Const(RampDown)     0x0004;
+Const(RampingUp)    0x0002;
+Const(RampingDown)  0x0004;
 Const(OverCurrent)  0x0008;
 Const(OverVoltage)  0x0010;
 Const(UnderVoltage) 0x0020;
@@ -131,7 +131,6 @@ CV6533::CV6533(string name) :
 CV6533::CV6533(const CV6533& rhs) :
   CControlHardware(rhs)
 {
-  *this = clone(rhs);
 }
 /**
  * Destruction is not really needed since we are not going to be
@@ -207,7 +206,7 @@ CV6533::Initialize(CVMUSB& vme)
 
 
   CVMUSBReadoutList list;	// List of configuration ops.
-  for (int i =0; i < 6; i++) {
+  for (unsigned int i =0; i < 6; i++) {
     turnOff(list, i);
     setRequestVoltage(list, i, 0.0);
   }
@@ -258,6 +257,7 @@ CV6533::Set(CVMUSB& vme, string parameter, string value)
 
   unsigned channelNumber;
   CVMUSBReadoutList list;
+ 
   try {
 
     if (sscanf(parameter.c_str(), "v%u", &channelNumber) == 1) {
@@ -294,7 +294,7 @@ CV6533::Set(CVMUSB& vme, string parameter, string value)
     if (list.size() > 0) {
       size_t buffer;
       int status= vme.executeList(list,
-				  buffer, sizeof(buffer),
+				  &buffer, sizeof(buffer),
 				  &buffer);
       if (status != 0) {
 	throw string("VME list execution failed");
@@ -354,7 +354,7 @@ CV6533::Get(CVMUSB& vme, string parameter)
       result = getChannelCurrents(vme);
     }
     else if (parameter == "on") {
-      result = getOnOffRequest(vme);
+      result = getOnOffRequests(vme);
     }
     else if (parameter == "vact") {
       result = getActualVoltages(vme);
@@ -378,7 +378,7 @@ CV6533::Get(CVMUSB& vme, string parameter)
       result = getRampUpRates(vme);
     }
     else if (parameter == "pdownmode") {
-      result = getPowerDownModes(vme);
+      result = getPowerdownModes(vme);
     }
     else if (parameter == "polarity") {
       result = getPolarities(vme);
@@ -404,9 +404,10 @@ CV6533::Get(CVMUSB& vme, string parameter)
  * @param rhs - the object to clone into *this
  */
 void
-CV6533::clone(const CControlHardware& rhs)
+CV6533::clone(const CControlHardware& righths)
 {
-  m_pConfiguration = new CControlHardware(rhs.m_pConfiguration); // Already has has config params registered.
+  const CV6533& rhs(reinterpret_cast<const CV6533&>(righths));
+  m_pConfiguration = new CControlModule(*(rhs.m_pConfiguration)); // Already has has config params registered.
   m_globalStatus   = rhs.m_globalStatus;
   memcpy(m_channelStatus, rhs.m_channelStatus, sizeof(m_channelStatus));
   memcpy(m_voltages,      rhs.m_voltages,      sizeof(m_voltages));
@@ -449,7 +450,7 @@ CV6533::addMonitorList(CVMUSBReadoutList& vmeList)
  * @return void*
  * @retval pointer to the next unused part of pData.
  */
-void
+void*
 CV6533::processMonitorList(void* pData, size_t remaining)
 {
   // For now don't bother with remaining... TODO: Figure out some sort of
@@ -515,7 +516,7 @@ CV6533::getMonitoredData()
 
   // Channel Currents:
 
-  objResult += scaledIToStrinng(m_currents, 0.05);
+  objResult += scaledIToString(m_currents, 0.05);
   
   // Temperatures:
 
@@ -524,7 +525,7 @@ CV6533::getMonitoredData()
   // Return as string:
 
   string result = static_cast<string>(objResult);
-  reeturn result;
+  return result;
 
 }
 
@@ -540,7 +541,7 @@ CV6533::getMonitoredData()
 bool
 CV6533::strToBool(string value)
 {
-  if (!CConfigurableObject::("null", value, NULL)) {
+  if (!CConfigurableObject::isBool("null", value, NULL)) {
     throw string(" Invalid booleanvalue");
   }
   return CConfigurableObject::strToBool(value);
@@ -666,7 +667,7 @@ CV6533::setChannelOnOff(CVMUSBReadoutList& list, unsigned int channel, bool valu
  *
  */
 void 
-CV6553::SetTripTime(CVMUSBReadoutList& list, unsigned int channel, float time)
+CV6533::setTripTime(CVMUSBReadoutList& list, unsigned int channel, float time)
 {
   uint16_t timeval = (uint16_t)(time/0.1); // register value.
   list.addWrite16(getBase() + Channels[channel] + TripTime,
@@ -681,7 +682,7 @@ CV6553::SetTripTime(CVMUSBReadoutList& list, unsigned int channel, float time)
  * @param voltage - Voltage limit (in volts).
  */
 void
-CVM6533::setMaxVoltage(CVMUSBReadoutList& list,
+CV6533::setMaxVoltage(CVMUSBReadoutList& list,
 		       unsigned int channel, float voltage)
 {
   uint16_t voltval = (uint16_t)(voltage/.1);
@@ -709,12 +710,13 @@ CV6533::setRampDownRate(CVMUSBReadoutList& list,
  * @param rate    - Ramp rate in Volts/sec.
  */
 void
-CV6533::setRampDownRate(CVMUSBReadoutList& list,
+CV6533::setRampUpRate(CVMUSBReadoutList& list,
 			unsigned int channel,
 			float rate)
 {
   uint16_t rateVal = (uint16_t)rate;
-  list.addWrite16(getBase() + Channels[channel] + RampUp);
+  list.addWrite16(getBase() + Channels[channel] + RampUp, amod,
+		  rateVal);
 }
 /**
  * Set the power down mode.
@@ -726,7 +728,7 @@ CV6533::setRampDownRate(CVMUSBReadoutList& list,
  */
 void
 CV6533::setPowerDownMode(CVMUSBReadoutList& list,
-			 unsigned int chanel, string mode)
+			 unsigned int channel, string mode)
 {
   uint16_t modeVal;
   if (mode == "kill") {
@@ -817,7 +819,7 @@ CV6533::getChannelVoltages(CVMUSB& vme)
 string
 CV6533::getChannelCurrents(CVMUSB& vme)
 {
-  int16_t requests[6];
+  uint16_t requests[6];
   int     status;
   size_t  nread;
 
@@ -842,18 +844,18 @@ CV6533::getChannelCurrents(CVMUSB& vme)
  *         1 means on is requested.
  */
 string
-CV6533::getChannelOnOffRequests(CVMUSB& vme)
+CV6533::getOnOffRequests(CVMUSB& vme)
 {
   uint16_t requests[6];
   size_t   nRead;
   int      status;
-  CVMUSBReaoutList list;
+  CVMUSBReadoutList list;
 
   for(int i=0; i < 6; i++) {
     list.addRead16(getBase() + Channels[i]  + PW,
 		   amod);
   }
-  status = vme.executeList(list, requests, sizeof(requests), &nread);
+  status = vme.executeList(list, requests, sizeof(requests), &nRead);
 
   if (status != 0) {
     throw string("Unable to read channel power on/off requests");
@@ -899,11 +901,11 @@ CV6533::getActualCurrents(CVMUSB& vme)
   CVMUSBReadoutList list;
 
   for (int i =0; i < 6; i++) {
-    list.addRead16(getBase() + Channels[i] + Imon, amod);
+    list.addRead16(getBase() + Channels[i] + IMon, amod);
   }
   status = vme.executeList(list, m_currents, sizeof(m_currents), &nRead);
   if (status != 0) {
-    throw stringt("Unable to read the channel output currents");
+    throw string("Unable to read the channel output currents");
   }
   return scaledIToString(m_currents, 0.1);
 }
@@ -968,7 +970,7 @@ CV6533::getTripTimes(CVMUSB& vme)
   if (status != 0) {
     throw string("Unable to read trip times");
   }
-  return scaledIToSTring(tripTimes, 0.1);
+  return scaledIToString(tripTimes, 0.1);
 }
 /**
  * Get the software VMax values from all the channels.
@@ -985,7 +987,7 @@ CV6533::getSoftwareVmax(CVMUSB& vme)
   size_t            nRead;
   int               status;
   CVMUSBReadoutList list;
-  uint6_t           sVmax[6];
+  uint16_t           sVmax[6];
   
   for (int i=0; i < 6; i++) {
     list.addRead16(getBase() +  Channels[i] + SVMax, amod);
@@ -1013,7 +1015,7 @@ CV6533::getRampDownRates(CVMUSB& vme)
   for (int i=0; i < 6; i++) {
     list.addRead16(getBase() + Channels[i] + RampDown, amod);
   }
-  status = executeList(list, rdRates, sizeof(rdRates), &nRead);
+  status = vme.executeList(list, rdRates, sizeof(rdRates), &nRead);
   if (status != 0) {
     throw string("Unable to read ramp down rates via list");
   } 
@@ -1035,13 +1037,44 @@ CV6533::getRampUpRates(CVMUSB& vme)
   uint16_t          rupRates[6];
 
   for (int i= 0; i < 6; i++) {
-    list.addRead16(getBase() + Channels[i] + rampDown, amod);
+    list.addRead16(getBase() + Channels[i] + RampUp, amod);
   }
   status = vme.executeList(list, rupRates, sizeof(rupRates), &nRead);
   if (status != 0) {
     throw string("Unable to read ramp up rates from list");
   }
   return scaledIToString(rupRates, 1.0);
+}
+/**
+ **  Get the power down modes
+ ** @param vme  -  VM-USB controller object.
+ ** @return string
+ ** @retval properly formatted list of rampdown modes for each channel.
+ **         the value for each channel is  either "ranmp" or "kill".
+ */
+string
+CV6533::getPowerdownModes(CVMUSB& vme)
+{
+  size_t            nRead;
+  int               status;
+  CVMUSBReadoutList list;
+  uint16_t          modes[6];
+  CTCLObject        objResult;
+  string            result;
+
+  for (int i=0; i < 6; i++) {
+    list.addRead16(getBase() + Channels[i] + PwDown, amod);
+  }
+  status = vme.executeList(list, modes, sizeof(modes), &nRead);
+  if (status != 0) {
+    throw string("Unable to read power down mode registers from list");
+  }
+  for(int i =0; i < 6; i++) {
+    objResult += string(modes[i] ? "ramp" : "kill");
+  }
+  result = static_cast<string>(objResult);
+
+  return result;
 }
 /**
  * Get the temperatures for each channel.  This will also update the
@@ -1055,7 +1088,7 @@ CV6533::getRampUpRates(CVMUSB& vme)
 string
 CV6533::getTemperatures(CVMUSB& vme)
 {
-  size_t             nRead
+  size_t             nRead;
   int                status;
   CVMUSBReadoutList  list;
   

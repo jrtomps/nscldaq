@@ -52,7 +52,7 @@ private:
   TclServer&   m_Server;	// Tcl server that is running us.
 public:
   CMonCommand(CTCLInterpreter&   interp,
-	      TclServer&         server,
+	      TclServer&         server);
   virtual ~CMonCommand();
 private:
   CMonCommand(const CMonCommand& rhs);

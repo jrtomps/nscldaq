@@ -24,6 +24,7 @@ using namespace std;
 #include "CSetCommand.h"
 #include "CGetCommand.h"
 #include "CUpdateCommand.h"
+#include "CMonCommand.h"
 
 
 #include <tcl.h>
@@ -217,7 +218,7 @@ TclServer::initInterpreter()
   new CUpdateCommand(*m_pInterpreter,
 		    *this,
 		    *m_pVme);
-
+  new CMonCommand(*m_pInterpreter, *this);
   
 }
 /*
