@@ -10,7 +10,7 @@ AC_CONFIG_MACRO_DIR([m4])
 
 #    Separate device libraries.
 
-AM_INIT_AUTOMAKE(llnlReadout, 3.5, fox@nscl.msu.edu)  
+AM_INIT_AUTOMAKE(llnlReadout, 3.6, fox@nscl.msu.edu)  
 LT_INIT
 
 #
