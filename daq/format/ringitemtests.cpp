@@ -1,5 +1,5 @@
 // Template for a test suite.
-
+#include <stdlib.h>
 #include <cppunit/extensions/HelperMacros.h>
 #include <cppunit/Asserter.h>
 #include "Asserts.h"
@@ -183,7 +183,7 @@ ritemtests::toring()
 
     RingItem* pItem = reinterpret_cast<RingItem*>(itemData);
     EQ((uint32_t)0x1234, pItem->s_header.s_type);
-    EQ(itemSize, pItem->s_header.s_size);
+    EQ(itemSize, (size_t)pItem->s_header.s_size);
     uint16_t* body = reinterpret_cast<uint16_t*>(pItem->s_body);
     for (uint16_t i =0; i < 16; i++) {
       EQ(i, body[i]);

@@ -223,7 +223,8 @@ C830::Initialize(CVMUSB& controller)
   uint32_t dummyLong;
 
   controller.executeList(initList,
-			 &dummyLong, sizeof(uint32_t), &dummyLong);
+			 &dummyLong, (size_t)sizeof(uint32_t), 
+			 (size_t*)&dummyLong);
 
 
 }
