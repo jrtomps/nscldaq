@@ -155,6 +155,7 @@ TclServer::operator()(int argc, char** argv)
     initInterpreter();		// Create interp and add commands.
     readConfigFile();		// Initialize the modules.
     initModules();              // Initialize the fully configured modules.
+    createMonitorList();	// Figure out the set of modules that need monitoring.
     startTcpServer();		// Set up the Tcp/Ip listener event.
     EventLoop();		// Run the Tcl event loop forever.
   }

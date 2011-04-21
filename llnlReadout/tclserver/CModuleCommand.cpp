@@ -132,7 +132,7 @@ CModuleCommand::create(CTCLInterpreter& interp,
     pModule = new CV6533(name);
   }
   else {
-    m_Server.setResult("module create: Invalid type, must be jtecgdg");
+    m_Server.setResult("module create: Invalid type, must be one of jtecgdg, caenv182, caenvg895, vmusb, v6533");
     return TCL_ERROR;
   }
   CControlModule*   pConfig = pModule->getConfiguration();
