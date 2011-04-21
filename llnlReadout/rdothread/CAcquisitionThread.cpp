@@ -103,9 +103,6 @@ void
 CAcquisitionThread::start(CVMUSB* usb,
 			  vector<CReadoutModule*> Stacks) 
 {
-  CRunState* pState = CRunState::getInstance();
-  pState->setState(CRunState::Active);
-
 
   CAcquisitionThread* pThread = getInstance();
   m_pVme = usb;
@@ -150,6 +147,10 @@ CAcquisitionThread::operator()(int argc, char** argv)
     
     
     startDaq();  		        // Setup and start data taking.
+    CRunState* pState = CRunState::getInstance();
+    pState->setState(CRunState::Active);
+
+
     beginRun();			// Emit begin run buffer.
     try {
       

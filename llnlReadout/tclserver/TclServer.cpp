@@ -287,9 +287,7 @@ TclServer::EventLoop()
   // Start the event loop:
 
   while(1) {
-    Tcl_WaitForEvent(NULL);
-    Tcl_SetServiceMode(TCL_SERVICE_ALL);
-    Tcl_ServiceAll();
+    Tcl_DoOneEvent(TCL_ALL_EVENTS);
   }
  std::cerr << "The Tcl Server event loop has exited. No Tcp ops can be done\n"; 
 }
