@@ -524,7 +524,8 @@ CV6533::getMonitoredData()
 
   // Return as string:
 
-  string result = static_cast<string>(objResult);
+  string result = "OK ";
+  result       += static_cast<string>(objResult);
   return result;
 
 }
