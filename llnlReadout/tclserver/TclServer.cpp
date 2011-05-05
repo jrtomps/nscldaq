@@ -25,7 +25,7 @@ using namespace std;
 #include "CGetCommand.h"
 #include "CUpdateCommand.h"
 #include "CMonCommand.h"
-
+#include <DataBuffer.h>
 
 #include <tcl.h>
 #include <TCLInterpreter.h>
@@ -39,7 +39,7 @@ using namespace std;
 
 static const int MonitorInterval(1); // Number of seconds between monitor interval.
 
-
+TclServer::TclServer* m_pInstance(0); // static->object context. ptr.
 /**
  ** This strruct is used to pass data between the readout thread and us:
  */
@@ -57,7 +57,9 @@ TclServer::TclServer() :
   m_pVme(0),
   m_pInterpreter(0),
   m_pMonitorList(0)
-{}
+{
+  m_pInstance = this;		// static->object context.
+}
 /*!
   These threads are built to live 'forever' so the destructor is also 
 uninteresting.
@@ -427,5 +429,24 @@ TclServer::processMonitorList(void* pData, size_t nBytes)
 int
 TclServer::receiveMonitorData(Tcl_Event* pEvent, int flags)
 {
+  // Get the data buffer out of the Tcl_Event payload
+
+  TclServerEvent* pMyEvent = reinterpret_cast<TclServerEvent*>(pEvent);
+  DataBuffer*     pBuffer = reinterpret_cast<DataBuffer*>(pMyEvent->pData);
+
+  // figure out how much data we have and pass it to
+  // process monitor list so that the monitored data
+  // will get updated:
+  void* pData;
+  size_t dataBytes;
+  pData = &(pBuffer->s_rawData[2]); // first event word.
+  dataBytes = pBuffer->s_rawData[1] & 0xfff;
+  dataBytes = dataBytes * sizeof(uint16_t);
+
+  m_pInstance->processMonitorList(pData, dataBytes);
+
+  // Return the buffer to the free pool:
+
+  gFreeBuffers.queue(pBuffer);
   return 1;			// Done with the event.
 }

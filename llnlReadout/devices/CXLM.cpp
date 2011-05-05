@@ -592,7 +592,7 @@ CXLM::loadSRAMA(CVMUSB& controller, void* image, uint32_t bytes) throw(std::stri
     bytes -= blockSize*sizeof(uint32_t);
     // Write the block:
 
-    uint32_t data;
+    size_t data;
     int status = controller.executeList(loadList,
 					&data,
 					sizeof(data), &data);
@@ -631,7 +631,7 @@ CXLM::loadSRAMA(CVMUSB& controller, void* image, uint32_t bytes) throw(std::stri
 
   uint32_t* compareData = new uint32_t[blockSize];
   uint32_t src         = sramA();
-  uint32_t   bytesRead;
+  size_t   bytesRead;
   size_t   bytesLeft   = nBytes;
 
   while(bytesLeft > blockSize * sizeof(uint32_t)) {

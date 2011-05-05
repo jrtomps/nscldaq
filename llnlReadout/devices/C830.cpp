@@ -260,10 +260,10 @@ C830::Initialize(CVMUSB& controller)
   // Fire off the list.. it's all writes so the buffer is just a dummy long.
   
 
-  uint32_t dummyLong;
+  size_t dummyLong;
 
   controller.executeList(initList,
-			 &dummyLong, sizeof(uint32_t), &dummyLong);
+			 &dummyLong, sizeof(size_t), &dummyLong);
 
 
 }

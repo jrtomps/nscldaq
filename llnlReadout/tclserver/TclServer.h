@@ -88,6 +88,7 @@ private:
   DAQThreadId                  m_tid;
   CVMUSBReadoutList*           m_pMonitorList; /* List to perform periodically. */
   Tcl_ThreadId                 m_threadId;
+  static TclServer*                   m_pInstance; 
 
 public:
   TclServer();
