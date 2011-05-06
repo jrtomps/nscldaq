@@ -53,6 +53,7 @@ using namespace std;
 class CVMUSB;
 class CControlModule;
 class CTCLInterpreter;
+struct DataBuffer;
 
 
 /*!
@@ -88,7 +89,7 @@ private:
   DAQThreadId                  m_tid;
   CVMUSBReadoutList*           m_pMonitorList; /* List to perform periodically. */
   Tcl_ThreadId                 m_threadId;
-  static TclServer*                   m_pInstance; 
+  static TclServer*            m_pInstance; 
 
 public:
   TclServer();
@@ -123,7 +124,8 @@ private:
   void createMonitorList();
   void EventLoop();
   static void MonitorDevices(ClientData pData); 
-  static int  receiveMonitorData(Tcl_Event* pEvent, int flags); /* Gets status buffers when run active */  
+  static int  receiveMonitorData(Tcl_Event* pEvent, int flags); /* Gets status buffers when run active */ 
+
 
 };
  

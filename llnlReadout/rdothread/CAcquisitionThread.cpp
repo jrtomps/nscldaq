@@ -142,6 +142,8 @@ int
 CAcquisitionThread::operator()(int argc, char** argv)
 {
   Globals::running = true;
+  CRunState* pState = CRunState::getInstance();
+  pState->setState(CRunState::Starting);
   try {
     m_Running = true;		// Thread is off and running now.
     
@@ -160,6 +162,7 @@ CAcquisitionThread::operator()(int argc, char** argv)
     }
     Globals::running = false;
     endRun();			// Emit end run buffer.
+    pState->setState(CRunState::Idle);
     
     m_Running = false;		// Exiting.
     return      0;		// Successful exit I suppose.
@@ -261,7 +264,8 @@ void
 CAcquisitionThread::processCommand(CControlQueues::opCode command)
 {
   CControlQueues* queues = CControlQueues::getInstance();
-
+  CRunState* pState = CRunState::getInstance();
+  pState->setState(CRunState::Stopping);
   if (command == CControlQueues::ACQUIRE) {
     stopDaq();
     queues->Acknowledge();
@@ -269,6 +273,7 @@ CAcquisitionThread::processCommand(CControlQueues::opCode command)
     assert(release == CControlQueues::RELEASE);
     queues->Acknowledge();
     VMusbToAutonomous();
+    pState->setState(CRunState::Active);
   }
   else if (command == CControlQueues::END) {
     stopDaq();
@@ -443,7 +448,7 @@ CAcquisitionThread::pauseDaq()
   CControlQueues* queues = CControlQueues::getInstance();
   stopDaq();
   CRunState* pState = CRunState::getInstance();
-  pState->setState(CRunState::Paused);
+  pState->setState(CRunState::Stopping); // No monitoring for now.
   queues->Acknowledge();
 
   while (1) {
@@ -461,19 +466,18 @@ CAcquisitionThread::pauseDaq()
     }
     else if (req == CControlQueues::END) {
       queues->Acknowledge();
-      pState->setState(CRunState::Idle);
       throw "Run Ending";
     }
     else if (req == CControlQueues::RESUME) {
       startDaq();
       queues->Acknowledge();
-      pState->setState(CRunState::Active);
       return;
     }
     else {
       assert(0);
     }
   }
+  pState->setState(CRunState::Active);
   
 }
 /*!

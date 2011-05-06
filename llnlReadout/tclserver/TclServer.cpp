@@ -39,7 +39,11 @@ using namespace std;
 
 static const int MonitorInterval(1); // Number of seconds between monitor interval.
 
-TclServer::TclServer* m_pInstance(0); // static->object context. ptr.
+/* Pointer to the single instance in order to support transition from
+** static functions to object context.
+*/
+TclServer* TclServer::m_pInstance(0); // static->object context. ptr.
+
 /**
  ** This strruct is used to pass data between the readout thread and us:
  */
@@ -47,6 +51,8 @@ struct TclServerEvent {
   struct Tcl_Event event;
   void*            pData;
 };
+
+
 
 /*!  Constructor is not very interesting 'cause all the action is in 
     start and operator()
@@ -57,6 +63,7 @@ TclServer::TclServer() :
   m_pVme(0),
   m_pInterpreter(0),
   m_pMonitorList(0)
+
 {
   m_pInstance = this;		// static->object context.
 }
@@ -373,14 +380,16 @@ TclServer::MonitorDevices(void* pData)
 
   // If the run is active  we just trigger list 7.
   // otherwise we execute the list immediate and ship the data around
-  // to the various devices.
+  // to the various devices... however if the run isin transition
+  // lay off the VM-USB until the run is completely live.
 
   CVMUSB* pController = pObject->m_pVme;
-  if (CRunState::getInstance()->getState() == CRunState::Active) {
+  CRunState::RunState state = CRunState::getInstance()->getState();
+  if (state  == CRunState::Active) {
     pController->writeActionRegister( CVMUSB::ActionRegister::triggerL7 | 
 				      CVMUSB::ActionRegister::startDAQ); // StartDAQ keeps acquisition alive.
   }
-  else {
+  else if ((state != CRunState::Starting) && (state != CRunState::Stopping)) {
     uint16_t readData[13*1024];	// Big data pot...ought to be big enough...one event buffer worth?
     size_t   dataRead(0);
     CVMUSBReadoutList* pList  = pObject->m_pMonitorList;
