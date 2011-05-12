@@ -54,7 +54,8 @@ snit::widget v6533Channel {
     constructor args {
 	label $win.label   -relief groove -borderwidth 2
 	entry $win.setpoint -validate focusout \
-	    -vcmd [mymethod onSetpointChanged]
+	    -vcmd [mymethod onSetpointChanged] \
+	    -justify right
 	label $win.actualv
 	label $win.actuali
 	button $win.button  -command [mymethod onButton]
@@ -184,6 +185,7 @@ snit::widget v6533Channel {
 	    return 0
 	}
 	set options(-setpoint) $value; # for cget.
+	set command $options(-setchanged)
 	if {$command ne ""} {
 	    regsub -all {%W} $command $win command
 	    regsub -all {%V} $command $value command

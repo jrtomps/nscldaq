@@ -79,7 +79,7 @@ grid [rowLabel .r$row] -row $row -column 0 -sticky n
 for {set i 0} {$i < 6} {incr i} {
     grid .c$i -row $row  -column $col
     incr col
-    if {$col > 2} {
+    if {$col > 3} {
 	set col 1
 	incr row
 	grid [rowLabel .r$row] -row $row -column 0 -sticky n
