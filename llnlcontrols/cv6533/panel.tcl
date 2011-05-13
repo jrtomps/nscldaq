@@ -58,6 +58,11 @@ if {[llength $argv] != 1} {
 }
 set name $argv
 
+#-------------------------------------------------
+
+# Gui layout.
+
+
 label .l -text "V6533 control for $argv"
 grid .l -columnspan 3
 
@@ -85,4 +90,29 @@ for {set i 0} {$i < 6} {incr i} {
 	grid [rowLabel .r$row] -row $row -column 0 -sticky n
 
     }
+}
+#------------------------------------------------
+
+# Setup communication.  Connect to 
+# localhost unless $env(DAQHOST) is defined and
+# port 27000 unless $env(CONTROLPORT) is defined.
+#
+
+set host localhost
+set port 27000
+
+if {[array names env DAQHOST] ne ""} {
+    set host $env(DAQHOST)
+}
+if {[array names env CONTROLPORT] ne ""} {
+    set port $env(CONTROLPORT)
+}
+
+#  Make the socket connection with the control server
+#  If the connection fails, readout is not running
+#  as specified:
+
+set failed [catch {set sock [socket $host $port]}]
+if {$failed} {
+    error "Failed to connect to control server@$host:$port"
 }
