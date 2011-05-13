@@ -147,7 +147,7 @@ proc onButton {widget chan} {
 #            for us.
 proc onNewSetpoint {wid val chan} {
     global device
-    puts "onNewSetpoint: [$device setpoint $chan $val]"
+    $device setpoint $chan $val
 }
 #
 #------------------------------------------------
@@ -188,7 +188,7 @@ grid [rowLabel .r$row] -row $row -column 0 -sticky n
 for {set i 0} {$i < 6} {incr i} {
     grid .c$i -row $row  -column $col
     incr col
-    if {$col > 3} {
+    if {($col > 3) && ($i < 5)} {
 	set col 1
 	incr row
 	grid [rowLabel .r$row] -row $row -column 0 -sticky n
