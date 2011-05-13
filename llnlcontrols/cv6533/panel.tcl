@@ -12,6 +12,7 @@ package require Tk
 
 set here [file dirname [info script]]
 source [file join $here channel.tcl]
+source [file join $here v6533.tcl]
 #
 #  Print the program usage:
 #
@@ -48,6 +49,57 @@ proc rowLabel wid {
     return $wid
 }
 
+#
+#  Update the channel state periodically:
+#  - Request the monitored data
+#  - Update each widget from that data.
+#  - Schedule the next run
+#
+# Parameters:
+#   device   - Device object (v5633 snit type.).
+#   widget   - The base widget name for the channels.
+#              To get each channel widget the channel
+#              number must be appended.
+#   resched  - Number of seconds between reschedules.
+#
+proc updateChannels {device widget resched} {
+
+    # Get most recent monitored data
+    #  - Report errors.
+    #  - break apart the lists into stuff we need.
+    #
+
+    set data [$device monitor];	
+    if {[lindex $data 0] ne "OK"} {
+	puts stderr "monitor failed: $data"
+    } else {
+	set channelStatuses [lindex $data 2]
+	set channelVoltages [lindex $data 3]
+	set channelCurrents [lindex $data 4]
+
+	for {set i 0} {$i < 5} {incr i} {
+	    set cw $widget$i
+	    $cw config -actualv [lindex $channelVoltages $i]
+	    $cw config -actuali [lindex $channelCurrents $i]
+	    
+	    #Status as color
+	    # - Off green
+	    # - On  amber
+	    # - Problem Red
+
+	    set stat [lindex $channelStatuses $i]
+	    if {[expr $stat & 1] != 0} {
+		$cw config -bg amber
+	    } elseif {[expr $stat & 0x1ff8] != 0} {
+		$cw config -bg red
+	    } else {
+		$cw config -bg gold
+	    }
+    }
+
+    after [expr {$resced * 1000}] \
+	"updateChannels $socket $widget $resched"
+}
 #------------------------------------------------
 
 #  If the parameter count is not right, error exit
@@ -116,3 +168,16 @@ set failed [catch {set sock [socket $host $port]}]
 if {$failed} {
     error "Failed to connect to control server@$host:$port"
 }
+
+# Create an object to communicate with the server
+# on behalf of this device:
+
+set device [v6533 %AUTO% -socket $socket  -name $name
+
+#
+#  Starts the update process.  The update process
+#  periodically requests the monitored data from the
+#  the device and updates the GUI using that data:
+#
+
+updateChannels $device .c 2;	
