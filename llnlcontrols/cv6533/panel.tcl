@@ -128,10 +128,9 @@ proc onButton {widget chan} {
 
     set state [$widget cget -blabel]
     if {$state == "On"} {
-	$device on $chan
-    }
-    else {
-	$device off $chan
+      set result [$device on $chan]
+    } else {
+	set result [$device off $chan]
     }
 }
 #------------------------------------------------
