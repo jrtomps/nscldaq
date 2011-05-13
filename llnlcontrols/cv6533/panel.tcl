@@ -60,7 +60,7 @@ proc loadSetpoints {device wid} {
     set setpoints [$device getSetpoints]
 
     for {set i 0} {$i < 6} {incr i} {
-	set setpt [lindex $setpoints 0]
+	set setpt [lindex $setpoints $i]
 	set widget $wid$i
 	$widget configure -setpoint $setpt
     }
