@@ -165,7 +165,7 @@ snit::widget v6533Channel {
     #  -command option specified and not null this is
     #  treated as a script and dispatched to.
     #  Substitutions supported:
-    #    %W%   - Widget identifier ($win)
+    #    %W   - Widget identifier ($win)
     #
     # note: The script is evaluated in the top level.
     #

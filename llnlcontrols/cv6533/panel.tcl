@@ -94,8 +94,10 @@ proc updateChannels {device widget resched} {
 		$cw configure -bg gold -blabel Off \
 		    -buttonstate normal
 	    } elseif {[expr $stat & 0x1ff8] != 0} {
+
 		$cw configure -bg red -blabel On \
 		    -buttonstate disabled
+
 	    } else {
 		$cw configure -bg green -blabel On \
 		    -buttonstate normal
@@ -105,6 +107,32 @@ proc updateChannels {device widget resched} {
 
     after [expr {$resched * 1000}] \
 	"updateChannels $device $widget $resched"
+}
+#
+#  Action proc that is called when a channel button
+#  is pushed action is as follows:
+#  If the label is "On", the channel is turned on.
+#  If the label is "Off" the channel is turned off.
+#  Actual widget appearance changes are handled when
+#  the periodic update notices the change in status.
+# Parameters:
+#   widget  - The channel widget.
+#   chan    - The channel number affected.
+# Implicit inputs:
+#   device - global variable that contains the
+#            object that is a proxy to the server's
+#            driver.
+#
+proc onButton {widget chan} {
+    global device
+
+    set state [$widget cget -blabel]
+    if {$state == "On"} {
+	$device on $chan
+    }
+    else {
+	$device off $chan
+    }
 }
 #------------------------------------------------
 
@@ -131,7 +159,8 @@ grid .l -columnspan 3
 
 for {set i 0} {$i < 6} {incr i} {
     v6533Channel .c$i -label "Ch $i" -blabel On -bg green \
-	-setpoint 0 -actualv 0 -actuali 0
+	-setpoint 0 -actualv 0 -actuali 0 \
+	-command [list onButton %W $i]
 
 }
 #  Each row has three widgets:
