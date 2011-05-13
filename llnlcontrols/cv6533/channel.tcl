@@ -24,6 +24,7 @@
 #   -properties - Command executed on a right click on the
 #                 widgets.
 #   -buttoncolor - Color of the button.
+#   -buttontstate - normal/disabled e.g.
 #
 #
 package require Tk
@@ -42,6 +43,7 @@ snit::widget v6533Channel {
     option -setchanged
     option -properties
     option -buttoncolor -configuremethod setButtonBg
+    option -buttonstate -configuremethod setButtonState
 
     #
     #  The constructor is going to follow
@@ -145,6 +147,13 @@ snit::widget v6533Channel {
     #
     method setButtonBg {name value} {
 	$win.button configure -bg $value
+	set options($name) $value
+    }
+    #
+    #   Called form the -buttonstate optionset:
+    #
+    method setButtonState  {name value} {
+	$win.button configure -state $value
 	set options($name) $value
     }
     #---------------------------------------------

@@ -69,30 +69,36 @@ proc updateChannels {device widget resched} {
     #  - break apart the lists into stuff we need.
     #
 
-    set data [$device monitor];	
+    set data [$device monitor]
     if {[lindex $data 0] ne "OK"} {
 	puts stderr "monitor failed: $data"
     } else {
 	set channelStatuses [lindex $data 2]
 	set channelVoltages [lindex $data 3]
 	set channelCurrents [lindex $data 4]
+	# Update each chaennel widget:
+
 	for {set i 0} {$i < 5} {incr i} {
 	    set cw $widget$i
 	    $cw configure -actualv [lindex $channelVoltages $i]
 	    $cw configure -actuali [lindex $channelCurrents $i]
 	    
 	    #Status as color
-	    # - Off green
-	    # - On  amber
-	    # - Problem Red
+	    # - Off green  Button label: On state normal
+	    # - On  amber  Button label: Off state normal
+	    # - Problem Red Button label On state disabled.
+
 
 	    set stat [lindex $channelStatuses $i]
 	    if {[expr $stat & 1] != 0} {
-		$cw configure -bg gold
+		$cw configure -bg gold -blabel Off \
+		    -buttonstate normal
 	    } elseif {[expr $stat & 0x1ff8] != 0} {
-		$cw configure -bg red
+		$cw configure -bg red -blabel On \
+		    -buttonstate disabled
 	    } else {
-		$cw configure -bg green
+		$cw configure -bg green -blabel On \
+		    -buttonstate normal
 	    }
     	}
     }
