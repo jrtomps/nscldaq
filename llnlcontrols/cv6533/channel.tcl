@@ -85,6 +85,7 @@ snit::widget v6533Channel {
 		[mymethod onProperties]
 	   
 	}
+	bind $win.setpoint <Return> [mymethod onSetpointChanged]
 	
     }
     #---------------------------------------------
