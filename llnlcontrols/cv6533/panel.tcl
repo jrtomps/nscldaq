@@ -76,11 +76,10 @@ proc updateChannels {device widget resched} {
 	set channelStatuses [lindex $data 2]
 	set channelVoltages [lindex $data 3]
 	set channelCurrents [lindex $data 4]
-
 	for {set i 0} {$i < 5} {incr i} {
 	    set cw $widget$i
-	    $cw config -actualv [lindex $channelVoltages $i]
-	    $cw config -actuali [lindex $channelCurrents $i]
+	    $cw configure -actualv [lindex $channelVoltages $i]
+	    $cw configure -actuali [lindex $channelCurrents $i]
 	    
 	    #Status as color
 	    # - Off green
@@ -89,11 +88,11 @@ proc updateChannels {device widget resched} {
 
 	    set stat [lindex $channelStatuses $i]
 	    if {[expr $stat & 1] != 0} {
-		$cw config -bg amber
+		$cw configure -bg gold
 	    } elseif {[expr $stat & 0x1ff8] != 0} {
-		$cw config -bg red
+		$cw configure -bg red
 	    } else {
-		$cw config -bg gold
+		$cw configure -bg green
 	    }
     	}
     }

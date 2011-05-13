@@ -325,7 +325,7 @@ snit::type v6533 {
     #
     method subName msg {
 	set name $options(-name)
-	regexp -all {%N} $msg $name msg
+	regsub -all {%N} $msg $name msg
 	return $msg
     }
 }
