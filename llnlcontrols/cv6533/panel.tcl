@@ -133,6 +133,23 @@ proc onButton {widget chan} {
 	set result [$device off $chan]
     }
 }
+#
+#  Action function called when the setpoint changes on a
+#  channel.  The new value will be taken care of by the
+#  widget. What is left for us to do is to set the
+#  new value in the device.
+# Parameters:
+#   wid  - Channel control widget.
+#   val  - New setpoint value.
+#   chan - Channel number
+# Implicit inputs:
+#   device - proxy object for the server's device driver
+#            for us.
+proc onNewSetpoint {wid val chan} {
+    global device
+    puts "onNewSetpoint: [$device setpoint $chan $val]"
+}
+#
 #------------------------------------------------
 
 #  If the parameter count is not right, error exit
@@ -159,7 +176,8 @@ grid .l -columnspan 3
 for {set i 0} {$i < 6} {incr i} {
     v6533Channel .c$i -label "Ch $i" -blabel On -bg green \
 	-setpoint 0 -actualv 0 -actuali 0 \
-	-command [list onButton %W $i]
+	-command [list onButton %W $i]   \
+	-setchanged [list onNewSetpoint %W %V $i]
 
 }
 #  Each row has three widgets:
