@@ -48,7 +48,23 @@ proc rowLabel wid {
 
     return $wid
 }
+#  Loads the setpoints from the devices
+#  into the channel widgets.  This allows
+#  the panel to be dropped and then picked up
+#  again with no loss of information.
+# Parameters:
+#   device - Proxy for the server device driver.
+#   wid    - base widget name. The actual channel i
+#            widget name is $wid$i
+proc loadSetpoints {device wid} {
+    set setpoints [$device getSetpoints]
 
+    for {set i 0} {$i < 6} {incr i} {
+	set setpt [lindex $setpoints 0]
+	set widget $wid$i
+	$widget configure -setpoint $setpt
+    }
+}
 #
 #  Update the channel state periodically:
 #  - Request the monitored data
@@ -227,10 +243,16 @@ fconfigure $sock -buffering line
 
 set device [v6533 %AUTO% -socket $sock  -name $name]
 
+#  Get the setpoints from the device and load them into
+#  the widgets.
+
+loadSetpoints  $device .c
+
 #
 #  Starts the update process.  The update process
 #  periodically requests the monitored data from the
 #  the device and updates the GUI using that data:
 #
+
 
 updateChannels $device .c 2;	
