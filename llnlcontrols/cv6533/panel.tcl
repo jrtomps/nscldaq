@@ -95,10 +95,11 @@ proc updateChannels {device widget resched} {
 	    } else {
 		$cw config -bg gold
 	    }
+    	}
     }
 
-    after [expr {$resced * 1000}] \
-	"updateChannels $socket $widget $resched"
+    after [expr {$resched * 1000}] \
+	"updateChannels $device $widget $resched"
 }
 #------------------------------------------------
 
@@ -168,11 +169,12 @@ set failed [catch {set sock [socket $host $port]}]
 if {$failed} {
     error "Failed to connect to control server@$host:$port"
 }
+fconfigure $sock -buffering line
 
 # Create an object to communicate with the server
 # on behalf of this device:
 
-set device [v6533 %AUTO% -socket $socket  -name $name
+set device [v6533 %AUTO% -socket $sock  -name $name]
 
 #
 #  Starts the update process.  The update process
