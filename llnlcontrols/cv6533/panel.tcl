@@ -208,7 +208,7 @@ proc onProperties {widget channel} {
     if {![winfo exists .properties] } {
 	
 	toplevel .properties
-	label         .propreties.title -text "Properties for channel $i"
+	label         .properties.title -text "Properties for channel $channel"
 
 	# Work area is a channel params widget
 
@@ -217,7 +217,7 @@ proc onProperties {widget channel} {
 	    -triptime   [lindex $Ttime  $channel] \
 	    -rampup     [lindex $RupRate $channel] \
 	-rampdown   [lindex $RdnRate $channel] \
-	    -offmode    [lindex $PoffModema $channel]
+	    -offmode    [lindex $PoffMode $channel]
 	
 	# Action area has ok apply cancel buttons:
 
@@ -226,7 +226,7 @@ proc onProperties {widget channel} {
 	    -command [list onOkProperties .properties $channel]
 	button $action.apply -text {Apply} \
 	    -command [list onApplyProperites .properties $channel]
-	button $action.cancel -test {Cancel} \
+	button $action.cancel -text {Cancel} \
 	    -command [list destroy .properties]
 	grid $action.ok $action.apply $action.cancel
 
@@ -248,8 +248,8 @@ proc onProperties {widget channel} {
 #   channel - which channel the properties dialog is operating on.
 #
 proc onOkProperties {widget channel} {
-    onApply $widget $channel;	# does the actual settings.
-    destroy $widge;		# Ok dismisses as well as applies.
+    onApplyProperties $widget $channel;	# does the actual settings.
+    destroy $widget;		# Ok dismisses as well as applies.
 }
 # Action proc to handle the Apply hit on the properties dialog
 # Parameters

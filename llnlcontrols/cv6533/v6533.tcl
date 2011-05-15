@@ -75,7 +75,7 @@ snit::type v6533 {
     # Returns:
     #   result from the server.
     #
-    method setilimit {channel value} {
+    method setIlimit {channel value} {
 	set msg [$self subName "Set %N i$channel $value"]
 	return [$self sendMessage $msg]
     }
@@ -166,7 +166,7 @@ snit::type v6533 {
     #
     method setOffMode {channel value} {
 	set msg [$self subName "Set %N pdownmode$channel $value"]
-	return [$self sendMessasge $msg]
+	return [$self sendMessage  $msg]
     }
     #
     #  Return the global maximum voltage for

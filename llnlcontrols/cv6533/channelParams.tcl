@@ -58,7 +58,7 @@ snit::widget channelParams {
 	$self configurelist $args
 	# Create the widget components.
 
-	label $win.ilimitl -text "V limit"
+	label $win.ilimitl -text "I limit"
 	label $win.ttimel  -text "Trip Time"
 	
 	entry $win.ilimit -textvariable [myvar options(-ilimit)]
