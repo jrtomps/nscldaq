@@ -450,6 +450,8 @@ TclServer::receiveMonitorData(Tcl_Event* pEvent, int flags)
 
   m_pInstance->m_waitingMonitor = false;
 
+  std::cerr << "Poof\n";	// debugging.
+
   // figure out how much data we have and pass it to
   // process monitor list so that the monitored data
   // will get updated:
