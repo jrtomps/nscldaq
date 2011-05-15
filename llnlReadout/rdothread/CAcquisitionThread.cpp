@@ -325,6 +325,7 @@ CAcquisitionThread::processBuffer(DataBuffer* pBuffer)
   // stack 1 completions are scalers and all others are events.
 
   if (((pBuffer->s_rawData[1] >> 13) & 0x7) == 7) {
+    std::cerr << "Got stack 7\n";
     ::Globals::pTclServer->QueueBuffer(pBuffer);
   } 
   else {
@@ -391,6 +392,9 @@ CAcquisitionThread::startDaq()
   TclServer*          pServer = ::Globals::pTclServer;
   CVMUSBReadoutList   list    = pServer->getMonitorList();
   if (list.size() != 0) {
+    std::cerr << "Loading monitor stack of size: " << list.size() << "To " << CStack::getOffset() << std::endl;
+    list.dump(std::cerr);
+    std::cerr << std::endl;
     size_t currentOffset = CStack::getOffset();
     m_pVme->loadList(7, list, currentOffset); // The tcl server will periodically trigger the list.
   }

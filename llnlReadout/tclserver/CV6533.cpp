@@ -1,4 +1,4 @@
-*
+/*
     This software is Copyright by the Board of Trustees of Michigan
     State University (c) Copyright 2005.
 
@@ -20,7 +20,7 @@
 
 #include <config.h>
 #include "CV6533.h"
-
+#include <string>
 #include "CControlModule.h"
 #include "CVMUSB.h"
 #include "CVMUSBReadoutList.h"	// for the AM codes.
@@ -191,7 +191,7 @@ CV6533::onAttach(CControlModule& configuration)
   m_pConfiguration = &configuration;
   configuration.addParameter("-base", \
 			     CConfigurableObject::isInteger,
-			     NULL, string("0"));
+			     NULL, std::string("0"));
 }
 /**
  * Called to initalize the module.  For us initialization is
@@ -396,7 +396,7 @@ CV6533::Get(CVMUSB& vme, string parameter)
     return error;
   }
   ok += result;
-  return result;
+  return ok;
 }
 /**
  * clone another CV6533 into this...this implements a virtual copy constructor.
@@ -1060,8 +1060,11 @@ CV6533::getPowerdownModes(CVMUSB& vme)
   int               status;
   CVMUSBReadoutList list;
   uint16_t          modes[6];
+  CTCLInterpreter   interp;
   CTCLObject        objResult;
   string            result;
+
+  objResult.Bind(interp);         // Needed for list handlnig.
 
   for (int i=0; i < 6; i++) {
     list.addRead16(getBase() + Channels[i] + PwDown, amod);

@@ -60,3 +60,6 @@ Nov 11, 2010 - Adding support for CAEN V965 multirange qdc.
 Dec 2, 2010 - Fixed block transfer base address. had been getting block aligned.
 December 10, 2010 - Added CHINP support (Wash-U Jon Elson).
                   - debugged remote VMUSB handling
+3.6-001
+	May 9, 2010 - Turn back on hinp command in daqconfig.
+	

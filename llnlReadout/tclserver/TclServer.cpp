@@ -379,6 +379,7 @@ TclServer::MonitorDevices(void* pData)
 {
   TclServer* pObject = reinterpret_cast<TclServer*>(pData);
 
+
   // If the run is active  we just trigger list 7.
   // otherwise we execute the list immediate and ship the data around
   // to the various devices... however if the run isin transition
@@ -388,9 +389,10 @@ TclServer::MonitorDevices(void* pData)
   CRunState::RunState state = CRunState::getInstance()->getState();
   if (state  == CRunState::Active) {
     if (!pObject->m_waitingMonitor) {
+     std::cerr << "Trigger\n";
       pController->writeActionRegister( CVMUSB::ActionRegister::triggerL7 | 
 					CVMUSB::ActionRegister::startDAQ); // StartDAQ keeps acquisition alive.
-      pObject->m_waitingMonitor = false;
+      pObject->m_waitingMonitor = true;
     }
   }
   else if ((state != CRunState::Starting) && (state != CRunState::Stopping)) {
