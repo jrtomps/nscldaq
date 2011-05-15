@@ -154,7 +154,6 @@ snit::type v6533 {
     #
     method setRdnRate {channel value} {
 	set msg [$self subName "Set %N rdown$channel $value"]
-	puts $msg
 	return [$self sendMessage $msg]
     }
     # Set the way in which a channel turns off.
@@ -167,7 +166,6 @@ snit::type v6533 {
     #
     method setOffMode {channel value} {
 	set msg [$self subName "Set %N pdownmode$channel $value"]
-	puts $msg
 	return [$self sendMessage  $msg]
     }
     #

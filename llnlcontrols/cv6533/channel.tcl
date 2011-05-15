@@ -25,6 +25,7 @@
 #                  widgets.
 #   -buttoncolor - Color of the button.
 #   -buttontstate - normal/disabled e.g.
+#   -statuscmd    - Script executed on status request.
 #
 #
 package require Tk
@@ -44,7 +45,7 @@ snit::widget v6533Channel {
     option -properties
     option -buttoncolor -configuremethod setButtonBg
     option -buttonstate -configuremethod setButtonState
-
+    option -statuscmd
     #
     #  The constructor is going to follow
     #  a sliggtly different pattern than
@@ -73,7 +74,8 @@ snit::widget v6533Channel {
 	#  Bindings:
 	#
 	#  b3 will invoke onProperties.
-	# 
+	#  dbl1 will invoke onStatus
+	#
 	foreach wid [list            \
 			 $win.label \
 			 $win.setpoint \
@@ -83,6 +85,8 @@ snit::widget v6533Channel {
 
 	   bind $wid <Button-3>       \
 		[mymethod onProperties]
+	   bind $wid <Double-Button-1> \
+	       [mymethod onStatus]
 	   
 	}
 	bind $win.setpoint <Return> [mymethod onSetpointChanged]
@@ -211,6 +215,19 @@ snit::widget v6533Channel {
     #
     method onProperties {} {
 	set command $options(-properties)
+	if {$command ne ""} {
+	    regsub -all {%W} $command $win command
+	    uplevel #0 $command
+	}
+    }
+    # Handles double clicks on the widget.
+    # This will invoke the -statuscmd option
+    # script if defined.
+    # Substitutions are:
+    #  %W  - Widget name.
+    #
+    method onStatus {} {
+	set command $options(-statuscmd)
 	if {$command ne ""} {
 	    regsub -all {%W} $command $win command
 	    uplevel #0 $command

@@ -80,6 +80,7 @@ proc loadSetpoints {device wid} {
 #   resched  - Number of seconds between reschedules.
 #
 proc updateChannels {device widget resched} {
+    global statusBits
 
     # Get most recent monitored data
     #  - Report errors.
@@ -93,7 +94,8 @@ proc updateChannels {device widget resched} {
 	set channelStatuses [lindex $data 2]
 	set channelVoltages [lindex $data 3]
 	set channelCurrents [lindex $data 4]
-	# Update each chaennel widget:
+
+	# Update each channel widget:
 
 	for {set i 0} {$i < 6} {incr i} {
 	    set cw $widget$i
@@ -119,6 +121,13 @@ proc updateChannels {device widget resched} {
 		$cw configure -bg green -blabel On \
 		    -buttonstate normal
 	    }
+	    # If there is a status widget for this
+	    # Channel update it:
+
+	    set topStatus .status$i
+	    if {[winfo exists $topStatus]} {
+		onStatusUpdate $topStatus $stat
+	    }
     	}
     }
 
@@ -143,6 +152,16 @@ proc getListValue {result} {
 	return  $retval
     } else {
 	return [lrange  $result 1 end]
+    }
+}
+#
+#  Report errors if any from a setting:
+#  Parameters:
+#    Result of a set operation on the device.
+#
+proc reportSetError msg {
+    if {[lindex $msg 0] eq "ERROR"} {
+	puts stderr $msg
     }
 }
 #
@@ -216,7 +235,7 @@ proc onProperties {widget channel} {
 	    -ilimit     [lindex $Ilimit $channel] \
 	    -triptime   [lindex $Ttime  $channel] \
 	    -rampup     [lindex $RupRate $channel] \
-	-rampdown   [lindex $RdnRate $channel] \
+	    -rampdown   [lindex $RdnRate $channel] \
 	    -offmode    [lindex $PoffMode $channel]
 	
 	# Action area has ok apply cancel buttons:
@@ -279,31 +298,118 @@ proc onApplyProperties {widget channel} {
 
     set reqIlimit [$work cget -ilimit]
     if {$reqIlimit != $ilimit} {
-	$device setIlimit $channel $reqIlimit
+	reportSetError [$device setIlimit $channel $reqIlimit]
 	lset Ilimit $channel $reqIlimit
     }
     
     set reqTime [$work cget -triptime]
     if {$reqTime != $ttime} {
-	$device setTripTime $channel $reqTime
+	reportSetError [$device setTripTime $channel $reqTime]
 	lset Ttime $channel $reqTime
     }
 
     set rupReq [$work cget -rampup]
     if {$rupReq != $ruprate} {
-	$device setRupRate $channel $rupReq
+	reportSetError [$device setRupRate $channel $rupReq]
 	lset RupRate $channel $rupReq
     }
 
     set rdnReq [$work cget -rampdown]
     if {$rdnReq != $rdnrate} {
+	reportSetError [$device setRdnRate $channel $rdnReq]
 	lset RdnRate $channel $rdnReq
     }
 
     set poffReq [$work cget -offmode]
     if {$poffReq != $poff} {
+	reportSetError [$device setOffMode $channel $poffReq]
 	lset PoffMode $channel $poffReq
     }
+}
+#
+#  Invoked if channel status was requested.
+#  Parameters:
+#    widget    - Widget whose status is being
+#                requested.
+#    channel   - Channel number requested.
+#  Implicit inputs:
+#
+# NOTE:
+#  We are just going to layout the widget.  The update
+#  proc will determine if each channel has a displayed
+#  status and update it accordingly.
+#  
+proc onStatus {widget channel} {
+    set topName .status$channel
+    
+    # Don't double instantiate.
+
+    if {![winfo exists $topName]} {
+	toplevel $topName
+	label $toplevel.title -text "Channel $channel status"
+	grid $toplevel.title -columnspan 2
+
+	# All other widgets are dynamic on update.
+    }
+}
+# Called to update a status widget.
+# - The existing status items are destroyed (except of
+#   course the title.
+# - New status items are computed..one for each
+#   important item.
+# Parameters
+#   top  - Top level widget containing status.
+#   stat - Detailed status as per 3.2.2.6 of the
+#          v6533 manual.
+#
+proc onStatusUpdate {top stat} {
+    set statusNames [list                              \
+		     Power Ramp Ramp "Over Current"    \
+		     "Over Voltage"  "Under Voltage"  \
+		     "Max Voltage"   "Max Current"     \
+		     "Trip" "Over Power"               \
+		     "Disabled" "Interlocked"]
+    set statusOn [list              \
+		      "On green" "up green"            \
+		      "down green" "Set red" "Set red" \
+		      "Set red" "Set red" "Set red"    \
+		      "tripped red" "Set red"          \
+		      "true gold" "true gold"]
+    set statusOff [list    \
+		       "Off green" "" "" "" "" "" "" "" \
+		       "" "" "" ""]
+
+    # Get rid of old status
+
+    foreach widget [winfo children $top] {
+	if {$widget ne $widget.title} {
+	    destroy $widget
+	}
+    }
+
+    # Create new status:
+
+    for {set i 0} {$i < [llength $statusNames]} {incr i} {
+	set bit [expr {$stat & (1 << $i)}]
+	if {$bit == 0} {
+	    set value [lindex $statusOff $i]
+	} else {
+	    set value [lindex $statusOn $i]
+	}
+	# only display stuff if value not empty
+	
+	if {$value ne ""} {
+	    set text [lindex $value 0]
+	    set color [lindex $value 1]
+	    set label [lindex $statusNames $i]
+
+	    label $toplevel.${i}l -text $label
+	    label $toplevel.$i    -text $text -color $color
+	    grid $toplvel.${i}l $top.$i
+	}
+	
+    }
+
 }
 
 #
@@ -335,7 +441,8 @@ for {set i 0} {$i < 6} {incr i} {
 	-setpoint 0 -actualv 0 -actuali 0 \
 	-command [list onButton %W $i]   \
 	-setchanged [list onNewSetpoint %W %V $i] \
-	-properties [list onProperties %W $i]
+	-properties [list onProperties %W $i] \
+	-statuscmd  [list onStatus  %w $i]
 
 }
 #  Each row has three widgets:
@@ -396,7 +503,6 @@ loadSetpoints  $device .c
 #  the device and updates the GUI using that data:
 #
 
-
 updateChannels $device .c 2;	
 
 #
@@ -417,3 +523,4 @@ set Ttime    [getListValue [$device getTripTimes]]
 set RupRate  [getListValue [$device getRupRate]]
 set RdnRate  [getListValue [$device getRdnRate]]
 set PoffMode [getListValue [$device getOffMode]]
+puts "$RdnRate"
