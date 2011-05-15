@@ -344,8 +344,8 @@ proc onStatus {widget channel} {
     
     # Don't double instantiate.
 
-    if {![winfo exists $topName]} {
-	toplevel $topName
+    if {![winfo exists $toplevel]} {
+	toplevel $toplevel
 	label $toplevel.title -text "Channel $channel status"
 	grid $toplevel.title -columnspan 2
 
@@ -382,7 +382,7 @@ proc onStatusUpdate {top stat} {
     # Get rid of old status
 
     foreach widget [winfo children $top] {
-	if {$widget ne $widget.title} {
+	if {$widget ne "$top.title"} {
 	    destroy $widget
 	}
     }
@@ -403,9 +403,9 @@ proc onStatusUpdate {top stat} {
 	    set color [lindex $value 1]
 	    set label [lindex $statusNames $i]
 
-	    label $toplevel.${i}l -text $label
-	    label $toplevel.$i    -text $text -color $color
-	    grid $toplvel.${i}l $top.$i
+	    label $top.${i}l -text $label
+	    label $top.$i    -text $text -fg $color
+	    grid $top.${i}l $top.$i
 	}
 	
     }
