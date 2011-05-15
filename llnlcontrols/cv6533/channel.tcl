@@ -22,7 +22,7 @@
 #   -setpoint - Set the value of the V setpoint
 #   -setchanged - Set the value of the setpoint changed command.
 #   -properties - Command executed on a right click on the
-#                 widgets.
+#                  widgets.
 #   -buttoncolor - Color of the button.
 #   -buttontstate - normal/disabled e.g.
 #

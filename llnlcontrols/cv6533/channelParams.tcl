@@ -14,7 +14,7 @@
 #  The shape of the GUI is:
 #
 #  +--------------------------+
-#  |  Vlimit        Trip Time |
+#  |  Ilimit        Trip Time |
 #  |  [     ]      [        ] |
 #  | Ramp up       Ramp Down  |
 #  | [     ]       [        ] |
@@ -27,7 +27,7 @@
 #   be provided by the client.
 #
 # Options:
-#   -vlimit     get/set the value of the voltage limit
+#   -ilimit     get/set the value of the current limit
 #   -triptime   get/set the value of the trip time
 #   -rampup     get/set the value of the ramp up rate.
 #   -rampdown   get/set the value of the ramp down rate.
@@ -46,7 +46,7 @@ package require snit
 
 
 snit::widget channelParams {
-    option -vlimit
+    option -ilimit
     option -triptime
     option -rampup
     option -rampdown
@@ -59,10 +59,10 @@ snit::widget channelParams {
 
 	# Create the widget components.
 
-	label $win.vlimitl -text "V limit"
+	label $win.ilimitl -text "V limit"
 	label $win.ttimel  -text "Trip Time"
 	
-	entry $win.vlimit -textvariable [myvar options(-vlimit)]
+	entry $win.ilimit -textvariable [myvar options(-ilimit)]
 	entry $win.ttime  -textvariable [myvar options(-triptime)]
 
 	label $win.rupl   -text "Ramp up"
@@ -77,8 +77,8 @@ snit::widget channelParams {
 
 	# Layout the components in $win
 
-	grid $win.vlimitl $win.ttimel
-	grid $win.vlimit  $win.ttime
+	grid $win.ilimitl $win.ttimel
+	grid $win.ilimit  $win.ttime
 
 	grid $win.rupl    $win.rdnl
 	grid $win.rup     $win.rdn

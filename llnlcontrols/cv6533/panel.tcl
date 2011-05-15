@@ -94,7 +94,7 @@ proc updateChannels {device widget resched} {
 	set channelCurrents [lindex $data 4]
 	# Update each chaennel widget:
 
-	for {set i 0} {$i < 5} {incr i} {
+	for {set i 0} {$i < 6} {incr i} {
 	    set cw $widget$i
 	    $cw configure -actualv [lindex $channelVoltages $i]
 	    $cw configure -actuali [lindex $channelCurrents $i]
@@ -123,6 +123,26 @@ proc updateChannels {device widget resched} {
 
     after [expr {$resched * 1000}] \
 	"updateChannels $device $widget $resched"
+}
+# Given the output of one of the simple get
+# commands from v6533 return an appropriate output list
+# The list will be either the values from the device
+# or, if there was an error, the reason is output
+# to stderr and the list is filled with 'undef'
+# Parameters:
+#   result  - The result of the get operation
+# Returns:
+#   a 6 element list.
+proc getListValue {result} {
+    if {[index $result 0] ne "OK"} {
+	puts stderr "Get request failed: $result"
+	for {set i 0} {$i < 6} {incr i} {
+	    lappend retval "undef"
+	}
+	return  $retval
+    } else {
+	return [lindex $result 2]
+    }
 }
 #
 #  Action proc that is called when a channel button
@@ -166,6 +186,33 @@ proc onNewSetpoint {wid val chan} {
     $device setpoint $chan $val
 }
 #
+#  Action function called when a properties request
+#  is made.  A properties non-modal dialog is raised
+#  for that channel
+# Parameters:
+#    widget   - The channel widget for which the dialog
+#               is requested.
+#    channel  - The channel for which the widget is
+#               requested
+#
+proc onProperties {widget channel} {
+    global Ilimit
+    global Ttime
+    global RupRate
+    global RdnRate
+    global PoffMode
+
+    toplevel .properties
+    channeParams .properties.controls \
+	-ilimit     [lindex $Ilimit $channel] \
+	-triptime   [lindex $Ttime  $channel] \
+	-rampup     [lindex $RupRate $channel] \
+	-rampdown   [lindex $RdnRate $channel] \
+	-offmode    [lindex $PoffMode $channel]
+
+    pack .properties.controls
+}
+#
 #------------------------------------------------
 
 #  If the parameter count is not right, error exit
@@ -193,7 +240,8 @@ for {set i 0} {$i < 6} {incr i} {
     v6533Channel .c$i -label "Ch $i" -blabel On -bg green \
 	-setpoint 0 -actualv 0 -actuali 0 \
 	-command [list onButton %W $i]   \
-	-setchanged [list onNewSetpoint %W %V $i]
+	-setchanged [list onNewSetpoint %W %V $i] \
+	-properties [list onProperties %W $i]
 
 }
 #  Each row has three widgets:
@@ -256,3 +304,24 @@ loadSetpoints  $device .c
 
 
 updateChannels $device .c 2;	
+
+#
+#  Retrieve the channel parameters that can be 
+#  adjusted by the pop up...we get them for all
+#  channels (lists indexed by channel number
+#  so that we don't need to interact with the server
+#  to populate the popup.
+#  Globals are:
+#   Ilimit  - channel current limits.
+#   Ttime   - channel tript times.
+#   RupRate - Channel ramp up rates.
+#   RdnRate - Channel Ramp down rates.
+#   PoffMode - Channel power off modes.
+
+for {set i 0} {$i < 6} {incr i} {
+    set Ilimit   [getListValue [$device getIlimit]]
+    set Ttime    [getListValue [$device getTripTimes]]
+    set RupRate  [getListValue [$device getRupRate]]
+    set RdnRate  [getListValue [$device getRdnRate]]
+    set PoffMode [getListValue [$device getOffMode]]
+}
