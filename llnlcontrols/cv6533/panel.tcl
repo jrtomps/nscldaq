@@ -13,6 +13,7 @@ package require Tk
 set here [file dirname [info script]]
 source [file join $here channel.tcl]
 source [file join $here v6533.tcl]
+source [file join $here channelParams.tcl]
 #
 #  Print the program usage:
 #
@@ -134,14 +135,14 @@ proc updateChannels {device widget resched} {
 # Returns:
 #   a 6 element list.
 proc getListValue {result} {
-    if {[index $result 0] ne "OK"} {
+    if {[lindex $result 0] ne "OK"} {
 	puts stderr "Get request failed: $result"
 	for {set i 0} {$i < 6} {incr i} {
 	    lappend retval "undef"
 	}
 	return  $retval
     } else {
-	return [lindex $result 2]
+	return [lrange  $result 1 end]
     }
 }
 #
@@ -203,7 +204,7 @@ proc onProperties {widget channel} {
     global PoffMode
 
     toplevel .properties
-    channeParams .properties.controls \
+    channelParams .properties.controls \
 	-ilimit     [lindex $Ilimit $channel] \
 	-triptime   [lindex $Ttime  $channel] \
 	-rampup     [lindex $RupRate $channel] \
@@ -318,10 +319,8 @@ updateChannels $device .c 2;
 #   RdnRate - Channel Ramp down rates.
 #   PoffMode - Channel power off modes.
 
-for {set i 0} {$i < 6} {incr i} {
-    set Ilimit   [getListValue [$device getIlimit]]
-    set Ttime    [getListValue [$device getTripTimes]]
-    set RupRate  [getListValue [$device getRupRate]]
-    set RdnRate  [getListValue [$device getRdnRate]]
-    set PoffMode [getListValue [$device getOffMode]]
-}
+set Ilimit   [getListValue [$device getIlimit]]
+set Ttime    [getListValue [$device getTripTimes]]
+set RupRate  [getListValue [$device getRupRate]]
+set RdnRate  [getListValue [$device getRdnRate]]
+set PoffMode [getListValue [$device getOffMode]]

@@ -33,7 +33,7 @@
 #   -rampdown   get/set the value of the ramp down rate.
 #   -offmode    get/set the value of the on/off mode
 #               This value must either be
-#               off      - V is abrubptly set to zero.
+#               kill      - V is abrubptly set to zero.
 #               ramp     - V ramps at rampdown rate to zero.
 #
 
@@ -56,7 +56,6 @@ snit::widget channelParams {
 
     constructor args {
 	$self configurelist $args
-
 	# Create the widget components.
 
 	label $win.ilimitl -text "V limit"
@@ -72,7 +71,7 @@ snit::widget channelParams {
 	entry $win.rdn    -textvariable [myvar options(-rampdown)]
 
 	label $win.pofl   -text "Power off mode"
-	radiobutton $win.poff -value "off" -variable [myvar options(-offmode)] -text off
+	radiobutton $win.poff -value "kill" -variable [myvar options(-offmode)] -text off
 	radiobutton $win.pramp -value "ramp" -variable [myvar options(-offmode)] -text ramp
 
 	# Layout the components in $win

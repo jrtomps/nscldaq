@@ -189,7 +189,6 @@ snit::widget v6533Channel {
     method onSetpointChanged {} {
 	set value [$win.setpoint get]
 	if {! [string is double $value]} {
-	    puts invalid
 	    $win.setpoint delete 0 end
 	    $win.setpoint insert end $options(-setpoint)
 	    return 0
@@ -211,7 +210,6 @@ snit::widget v6533Channel {
     #   %W - widget name.
     #
     method onProperties {} {
-	puts properties.
 	set command $options(-properties)
 	if {$command ne ""} {
 	    regsub -all {%W} $command $win command
