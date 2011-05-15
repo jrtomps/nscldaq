@@ -280,26 +280,31 @@ proc onApplyProperties {widget channel} {
     set reqIlimit [$work cget -ilimit]
     if {$reqIlimit != $ilimit} {
 	$device setIlimit $channel $reqIlimit
+	lset Ilimit $channel $reqIlimit
     }
     
     set reqTime [$work cget -triptime]
     if {$reqTime != $ttime} {
 	$device setTripTime $channel $reqTime
+	lset Ttime $channel $reqTime
     }
 
     set rupReq [$work cget -rampup]
     if {$rupReq != $ruprate} {
 	$device setRupRate $channel $rupReq
+	lset RupRate $channel $rupReq
     }
 
     set rdnReq [$work cget -rampdown]
     if {$rdnReq != $rdnrate] {
 	$device setRdnRate $channel $rdnReq
+	lset RdnRate $channel $rdnReq
     }
 
     set poffReq [$work cget -offmode]
     if {$poffReq != $poff} {
 	$device setOffMode $channel $poffReq
+	lset PoffMode $channel $poffReq
     }
 }
 
