@@ -203,16 +203,106 @@ proc onProperties {widget channel} {
     global RdnRate
     global PoffMode
 
-    toplevel .properties
-    channelParams .properties.controls \
-	-ilimit     [lindex $Ilimit $channel] \
-	-triptime   [lindex $Ttime  $channel] \
-	-rampup     [lindex $RupRate $channel] \
-	-rampdown   [lindex $RdnRate $channel] \
-	-offmode    [lindex $PoffMode $channel]
+    # Properties dialog if not yet up:
 
-    pack .properties.controls
+    if {![winfo exists .properties] } {
+	
+	toplevel .properties
+	label         .propreties.title -text "Properties for channel $i"
+
+	# Work area is a channel params widget
+
+	channelParams .properties.controls \
+	    -ilimit     [lindex $Ilimit $channel] \
+	    -triptime   [lindex $Ttime  $channel] \
+	    -rampup     [lindex $RupRate $channel] \
+	-rampdown   [lindex $RdnRate $channel] \
+	    -offmode    [lindex $PoffModema $channel]
+	
+	# Action area has ok apply cancel buttons:
+
+	set action [frame .properties.action]
+	button $action.ok -text {Ok} \
+	    -command [list onOkProperties .properties $channel]
+	button $action.apply -text {Apply} \
+	    -command [list onApplyProperites .properties $channel]
+	button $action.cancel -test {Cancel} \
+	    -command [list destroy .properties]
+	grid $action.ok $action.apply $action.cancel
+
+
+	grid .properties.title    -sticky ew
+	grid .properties.controls -sticky ew
+	grid $action              -sticky ew
+    } else {
+	tk_dialog .properties "Props up" \
+	    {Please dismiss the properties dialog that is already up first} \
+	    info 0 Ok
+    }
+ 
 }
+#
+#   Action proc to handle the Ok hit on the properties dialog
+# Parmaeters:
+#   widget - top level widget of the dialog.
+#   channel - which channel the properties dialog is operating on.
+#
+proc onOkProperties {widget channel} {
+    onApply $widget $channel;	# does the actual settings.
+    destroy $widge;		# Ok dismisses as well as applies.
+}
+# Action proc to handle the Apply hit on the properties dialog
+# Parameters
+#   widget    - Top level of the apply dialog.
+#   channel   - Which channel is affected:
+#
+proc onApplyProperties {widget channel} {
+    global Ilimit
+    global Ttime
+    global RupRate
+    global RdnRate
+    global PoffMode
+    global device
+
+    # Get the current values 
+
+    set ilimit  [lindex $Ilimit $channel]
+    set ttime   [lindex $Ttime  $channel]
+    set ruprate [lindex $RupRate $channel]
+    set rdnrate [lindex $RdnRate $channel]
+    set poff    [lindex $PoffMode $channel]
+
+    # for each of the requested values,
+    # if there is a change request it.
+
+    set work $widget.controls
+
+    set reqIlimit [$work cget -ilimit]
+    if {$reqIlimit != $ilimit} {
+	$device setIlimit $channel $reqIlimit
+    }
+    
+    set reqTime [$work cget -triptime]
+    if {$reqTime != $ttime} {
+	$device setTripTime $channel $reqTime
+    }
+
+    set rupReq [$work cget -rampup]
+    if {$rupReq != $ruprate} {
+	$device setRupRate $channel $rupReq
+    }
+
+    set rdnReq [$work cget -rampdown]
+    if {$rdnReq != $rdnrate] {
+	$device setRdnRate $channel $rdnReq
+    }
+
+    set poffReq [$work cget -offmode]
+    if {$poffReq != $poff} {
+	$device setOffMode $channel $poffReq
+    }
+}
+
 #
 #------------------------------------------------
 
