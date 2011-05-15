@@ -296,7 +296,7 @@ proc onApplyProperties {widget channel} {
     }
 
     set rdnReq [$work cget -rampdown]
-    if {$rdnReq != $rdnrate] {
+    if {$rdnReq != $rdnrate} {
 	$device setRdnRate $channel $rdnReq
 	lset RdnRate $channel $rdnReq
     }
