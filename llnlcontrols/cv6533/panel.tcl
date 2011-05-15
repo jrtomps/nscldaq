@@ -340,7 +340,7 @@ proc onApplyProperties {widget channel} {
 #  status and update it accordingly.
 #  
 proc onStatus {widget channel} {
-    set topName .status$channel
+    set toplevel .status$channel
     
     # Don't double instantiate.
 
@@ -523,4 +523,3 @@ set Ttime    [getListValue [$device getTripTimes]]
 set RupRate  [getListValue [$device getRupRate]]
 set RdnRate  [getListValue [$device getRdnRate]]
 set PoffMode [getListValue [$device getOffMode]]
-puts "$RdnRate"
