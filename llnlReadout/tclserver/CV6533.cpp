@@ -702,7 +702,7 @@ CV6533::setRampDownRate(CVMUSBReadoutList& list,
 {
   uint16_t rateVal = (uint16_t)rate;
   list.addWrite16(getBase() + Channels[channel] + RampDown,
-		  channel, rateVal);
+		  amod, rateVal);
 }
 /**
  * set the rate at which a channel ramps up in voltage.
