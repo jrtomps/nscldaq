@@ -297,15 +297,11 @@ proc onApplyProperties {widget channel} {
 
     set rdnReq [$work cget -rampdown]
     if {$rdnReq != $rdnrate} {
-	puts "Ramp down as $rdnReq"
-	puts [$device setRdnRate $channel $rdnReq]
 	lset RdnRate $channel $rdnReq
     }
 
     set poffReq [$work cget -offmode]
     if {$poffReq != $poff} {
-	puts "Off mode req $poffReq"
-	puts [$device setOffMode $channel $poffReq]
 	lset PoffMode $channel $poffReq
     }
 }
