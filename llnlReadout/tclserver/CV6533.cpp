@@ -1,4 +1,4 @@
-/*
+*
     This software is Copyright by the Board of Trustees of Michigan
     State University (c) Copyright 2005.
 
@@ -282,7 +282,7 @@ CV6533::Set(CVMUSB& vme, string parameter, string value)
     else if (sscanf(parameter.c_str(), "rup%u", &channelNumber) == 1) {
       setRampUpRate(list, channelNumber, atof(value.c_str()));
     }
-    else if (sscanf(parameter.c_str(), "pdownomode&u", &channelNumber) ==1 ) {
+    else if (sscanf(parameter.c_str(), "pdownmode&u", &channelNumber) ==1 ) {
       setPowerDownMode(list, channelNumber, value);
     }
     else {
