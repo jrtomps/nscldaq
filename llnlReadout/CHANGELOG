@@ -61,5 +61,8 @@ Dec 2, 2010 - Fixed block transfer base address. had been getting block aligned.
 December 10, 2010 - Added CHINP support (Wash-U Jon Elson).
                   - debugged remote VMUSB handling
 3.6-001
-	May 9, 2010 - Turn back on hinp command in daqconfig.
+	May 9, 2011  - Turn back on hinp command in daqconfig.
+3.7 
+   May 16, 2011 - Debugged support for slow controls monitor lists.
+
 	
