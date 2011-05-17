@@ -137,7 +137,7 @@ proc updateChannels {device widget resched} {
 	    # Channel update it:
 
 	    set topStatus .status$i
-	    if {[winfo exists $topStatus] && ($stat ne [lindex $lastStatus $i]} {
+	    if {[winfo exists $topStatus] && ($stat ne [lindex $lastStatus $i])} {
 		onStatusUpdate $topStatus $stat
 		lset lastStatus $i $stat
 	    }
