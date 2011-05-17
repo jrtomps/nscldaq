@@ -81,6 +81,7 @@ proc loadSetpoints {device wid} {
 #
 proc updateChannels {device widget resched} {
     global statusBits
+    global lastStatus
 
     # Get most recent monitored data
     #  - Report errors.
@@ -92,8 +93,19 @@ proc updateChannels {device widget resched} {
 	puts stderr "monitor failed: $data"
     } else {
 	set channelStatuses [lindex $data 2]
-	set channelVoltages [lindex $data 3]
-	set channelCurrents [lindex $data 4]
+
+	# Set the channel currents and voltages to have only 1 digit
+	# past the decimal.
+
+	set channelVoltages [list]
+	foreach voltage [lindex $data 3] {
+	    lappend channelVoltages [format %.1f $voltage]
+	}
+	set channelCurrents [list]
+	foreach current [lindex $data 4] {
+	    lappend channelCurrents [format %.1f $current]
+	}
+
 
 	# Update each channel widget:
 
@@ -125,8 +137,9 @@ proc updateChannels {device widget resched} {
 	    # Channel update it:
 
 	    set topStatus .status$i
-	    if {[winfo exists $topStatus]} {
+	    if {[winfo exists $topStatus] && ($stat ne [lindex $lastStatus $i]} {
 		onStatusUpdate $topStatus $stat
+		lset lastStatus $i $stat
 	    }
     	}
     }
@@ -232,10 +245,10 @@ proc onProperties {widget channel} {
 	# Work area is a channel params widget
 
 	channelParams .properties.controls \
-	    -ilimit     [lindex $Ilimit $channel] \
-	    -triptime   [lindex $Ttime  $channel] \
-	    -rampup     [lindex $RupRate $channel] \
-	    -rampdown   [lindex $RdnRate $channel] \
+	    -ilimit     [format %.1f [lindex $Ilimit $channel]] \
+	    -triptime   [format %.1f [lindex $Ttime  $channel]] \
+	    -rampup     [format %.1f [lindex $RupRate $channel]] \
+	    -rampdown   [format %.1f [lindex $RdnRate $channel]] \
 	    -offmode    [lindex $PoffMode $channel]
 	
 	# Action area has ok apply cancel buttons:
@@ -340,6 +353,8 @@ proc onApplyProperties {widget channel} {
 #  status and update it accordingly.
 #  
 proc onStatus {widget channel} {
+    global lastStatus
+
     set toplevel .status$channel
     
     # Don't double instantiate.
@@ -348,6 +363,7 @@ proc onStatus {widget channel} {
 	toplevel $toplevel
 	label $toplevel.title -text "Channel $channel status"
 	grid $toplevel.title -columnspan 2
+	lset lastStatus $channel ""; # force update.
 
 	# All other widgets are dynamic on update.
     }
@@ -363,6 +379,7 @@ proc onStatus {widget channel} {
 #          v6533 manual.
 #
 proc onStatusUpdate {top stat} {
+
     set statusNames [list                              \
 		     Power Ramp Ramp "Over Current"    \
 		     "Over Voltage"  "Under Voltage"  \
@@ -523,3 +540,4 @@ set Ttime    [getListValue [$device getTripTimes]]
 set RupRate  [getListValue [$device getRupRate]]
 set RdnRate  [getListValue [$device getRdnRate]]
 set PoffMode [getListValue [$device getOffMode]]
+set lastStatus [list "" "" "" "" "" ""]; # Ensure this is wrong
