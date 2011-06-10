@@ -192,6 +192,7 @@ EventLogMain::recordData()
 	exit(EXIT_FAILURE);
 	return;
       }
+      close(fd);
       return;
     }
 

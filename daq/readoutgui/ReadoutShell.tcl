@@ -59,6 +59,8 @@ package require DAQParameters
 package require InitializeConfiguration
 
 
+set textWidgetHeight 24
+
 
 proc Usage {} {
     puts "Usage:"
@@ -277,6 +279,7 @@ proc SourceExperimentFiles {} {
 #    the current configured values.
 #
 proc setupConfiguration arglist {
+    global textWidgetHeight
     foreach item $arglist {
 
 	#  If we're running in a tcl server, 
@@ -321,12 +324,16 @@ proc setupConfiguration arglist {
             -passwd {
                 DAQParameters::passwordIs $value
             }
+	    -textheight {
+		set textWidgetHeight $value
+	    }
             default {
                 Usage
                 exit -1
             }
         }
     }
+    puts "At the end of all this we have $textWidgetHeight"
 
 }
 # getPassword

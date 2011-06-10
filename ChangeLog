@@ -36,5 +36,7 @@ April 13, 2011 10.0-006
 	- Really get the elapsed run timer logic right ...with
 	interpolation from the scaler buffers.
 	
-
+June 10, 2011 10.0-007
+	- Add -textheight switch Readout shell to support running
+	  in on displays with limited heights.
 	
