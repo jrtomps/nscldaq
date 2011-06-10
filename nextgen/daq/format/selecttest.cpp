@@ -1,6 +1,7 @@
 // Template for a test suite.
 
 #include <config.h>
+#include <stdlib.h>
 
 #include <cppunit/extensions/HelperMacros.h>
 #include <cppunit/Asserter.h>

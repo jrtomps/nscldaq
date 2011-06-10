@@ -23,7 +23,7 @@ proc ReadougGUIPanel::ui {root args} {
     set base [expr {($root == ".") ? "" : $root}]
     variable ROOT $root
     variable BASE $base
-
+    global   textWidgetHeight
 
     # Widget Initialization
     labelframe $base._labelframe_1 \
@@ -107,9 +107,11 @@ proc ReadougGUIPanel::ui {root args} {
 	    -validatecommand [namespace code [list seconds_validatecommand]] \
 	    -width 2 \
 	    -xscrollcommand [namespace code [list seconds_xscrollcommand]]
+    puts "Height: $textWidgetHeight"
     text $base.output \
 	    -xscrollcommand [namespace code [list output_xscrollcommand]] \
-	    -yscrollcommand [list $base._scrollbar_4 set] -state disabled
+	    -yscrollcommand [list $base._scrollbar_4 set] -state disabled \
+	-height $textWidgetHeight
     scrollbar $base._scrollbar_4 \
 	    -command [list $base.output yview]
     label $base.elapsed \
@@ -197,7 +199,7 @@ proc ReadougGUIPanel::ui {root args} {
 	    -ipady 0 \
 	    -padx 0 \
 	    -pady 0 \
-	    -rowspan 6 \
+	    -rowspan 1 \
 	    -sticky news
     grid $base._labelframe_9 -in $root -row 4 -column 10 \
 	    -columnspan 2 \
@@ -368,17 +370,17 @@ proc ReadougGUIPanel::ui {root args} {
 #   grid x $base.monitor -in $root -column 3 -columnspan 8
 
     # Resize Behavior
-    grid rowconfigure $root 1 -weight 0 -minsize 2 -pad 0
-    grid rowconfigure $root 2 -weight 0 -minsize 40 -pad 0
-    grid rowconfigure $root 3 -weight 0 -minsize 2 -pad 0
-    grid rowconfigure $root 4 -weight 0 -minsize 40 -pad 0
-    grid rowconfigure $root 5 -weight 1 -minsize 40 -pad 0
-    grid rowconfigure $root 6 -weight 0 -minsize 40 -pad 0
-    grid rowconfigure $root 7 -weight 0 -minsize 40 -pad 0
-    grid rowconfigure $root 8 -weight 0 -minsize 40 -pad 0
-    grid rowconfigure $root 9 -weight 0 -minsize 40 -pad 0
-    grid rowconfigure $root 10 -weight 0 -minsize 97 -pad 0
-    grid rowconfigure $root 11 -weight 0 -minsize 40 -pad 0
+#    grid rowconfigure $root 1 -weight 0 -minsize 2 -pad 0
+#    grid rowconfigure $root 2 -weight 0 -minsize 40 -pad 0
+#    grid rowconfigure $root 3 -weight 0 -minsize 2 -pad 0
+#    grid rowconfigure $root 4 -weight 0 -minsize 40 -pad 0
+#    grid rowconfigure $root 5 -weight 1 -minsize 40 -pad 0
+#    grid rowconfigure $root 6 -weight 0 -minsize 40 -pad 0
+#    grid rowconfigure $root 7 -weight 0 -minsize 40 -pad 0
+#    grid rowconfigure $root 8 -weight 0 -minsize 40 -pad 0
+#    grid rowconfigure $root 9 -weight 0 -minsize 40 -pad 0
+#    grid rowconfigure $root 10 -weight 0 -minsize 97 -pad 0
+#    grid rowconfigure $root 11 -weight 0 -minsize 40 -pad 0
     grid columnconfigure $root 1 -weight 0 -minsize 26 -pad 0
     grid columnconfigure $root 2 -weight 0 -minsize 40 -pad 0
     grid columnconfigure $root 3 -weight 0 -minsize 30 -pad 0
@@ -404,9 +406,9 @@ proc ReadougGUIPanel::ui {root args} {
     grid columnconfigure $base._labelframe_6 3 -weight 0 -minsize 40 -pad 0
     grid columnconfigure $base._labelframe_6 4 -weight 0 -minsize 21 -pad 0
     grid columnconfigure $base._labelframe_6 5 -weight 0 -minsize 16 -pad 0
-    grid rowconfigure $base._labelframe_8 1 -weight 1 -minsize 40 -pad 0
-    grid columnconfigure $base._labelframe_8 1 -weight 0 -minsize 274 -pad 0
-    grid columnconfigure $base._labelframe_8 2 -weight 0 -minsize 2 -pad 0
+#    grid rowconfigure $base._labelframe_8 1 -weight 1 -minsize 40 -pad 0
+#    grid columnconfigure $base._labelframe_8 1 -weight 0 -minsize 274 -pad 0
+#    grid columnconfigure $base._labelframe_8 2 -weight 0 -minsize 2 -pad 0
     grid rowconfigure $base._labelframe_9 1 -weight 0 -minsize 40 -pad 0
     grid columnconfigure $base._labelframe_9 1 -weight 0 -minsize 40 -pad 0
     $root configure -menu $base.menu

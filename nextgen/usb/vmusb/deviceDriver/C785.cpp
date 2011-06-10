@@ -416,7 +416,7 @@ C785::Initialize(CVMUSB& controller)
     // Compute the register value (see 4.33 of the V775 manual).
     //
     float  nsRange = static_cast<float>(range);
-    float  rRange  = 36040.0/(rRange + 1.3333);
+    float  rRange  = 36040.0/(nsRange + 1.3333);
     controller.vmeWrite16(base+FSRange, initamod, static_cast<uint16_t>(rRange + 0.5));
   }
 
