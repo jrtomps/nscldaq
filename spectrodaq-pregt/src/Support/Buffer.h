@@ -1224,7 +1224,8 @@ class Buffer : public ALLOC, virtual public Printable, public Synchronizable {
         return(-DAQEXCPID(DAQOutOfBounds));
       }
 
-      if (rlen < aLen) {
+      // Be sure there's sufficient room in the buffer from aStart -> end.
+      if ((rlen - aStart) < aLen) {
         LOG_AND_THROW(daq_exception_factory.CreateException(DAQCSTR("Buffer::CopyIn() buffer is too short for copy in request"),DAQEXCPID(DAQOutOfBounds)));
         return(-DAQEXCPID(DAQOutOfBounds));
       }

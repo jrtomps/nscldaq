@@ -86,6 +86,14 @@ AC_CHECK_PROG(BININST,install,install -m 0755,cp -f)
 AC_CHECK_PROG(MKDIR,mkdir,mkdir -p,:)
 AC_CHECK_PROG(DOXYGEN,doxygen,doxygen,:)
 
+# Override CFLAGS and CXXFLAGS to be what _we_ want them to be:
+# Getting rid of the -O2 so that 
+# 1. debugging will actually work.
+# 2. the program doesn't crash with a segfault.
+#
+CFLAGS=-g -pthread
+CXXFLAGS=-g -pthread
+
 dnl If we didn't get the ar program then fail
 if test "x$AR" = "x:"; then 
   AC_MSG_ERROR([
@@ -342,6 +350,9 @@ else
   AC_SUBST(GTK_LIBS)
   AC_SUBST(GTK_CFLAGS)
 fi
+
+AC_SUBST(CFLAGS)
+AC_SUBST(CXXFLAGS)
 
 AC_OUTPUT(config.make xmloop/config.make scripts/spectrodaq-conf examples/Makefile doc/Doxyfile tests/test001 tests/test002 tests/test003 tests/test004 tests/test005 tests/test006 tests/test007 tests/test008 tests/test009 tests/test010 tests/test011)
 

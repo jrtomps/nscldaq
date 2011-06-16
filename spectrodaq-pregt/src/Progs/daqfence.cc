@@ -317,37 +317,37 @@ class DAQFence : public DAQROCNode {
     stf->printme();
     cerr << "stuff " << (void *)stf << endl;
     strp = daqnew DAQString("This is string 1");
-strp->SetType(DAQTYPEID(DAQString));
+    strp->SetType(DAQTYPEID(DAQString));
     cerr << "strp " << (void *)strp << endl;
-
-unsigned int *p = (unsigned int*)(teststr - sizeof(int));    
-fprintf(stderr,"UPPER=0x%x\n",*p);
-p = (unsigned int*)(teststr + 5);    
-fprintf(stderr,"LOWER=0x%x\n",*p);
-
-cerr << sizeof(DAQString) << endl;
-cerr << sizeof(*strp) << endl;
-cerr << "UTEST " << DAQTRACKMEM_TESTUFENCE(teststr,5) << endl;
-cerr << "LTEST " << DAQTRACKMEM_TESTLFENCE(teststr,5) << endl;
-
+    
+    unsigned int *p = (unsigned int*)(teststr - sizeof(int));    
+    fprintf(stderr,"UPPER=0x%x\n",*p);
+    p = (unsigned int*)(teststr + 5);    
+    fprintf(stderr,"LOWER=0x%x\n",*p);
+    
+    cerr << sizeof(DAQString) << endl;
+    cerr << sizeof(*strp) << endl;
+    cerr << "UTEST " << DAQTRACKMEM_TESTUFENCE(teststr,5) << endl;
+    cerr << "LTEST " << DAQTRACKMEM_TESTLFENCE(teststr,5) << endl;
+    
     teststr[0] = 'A'; testmalloc[0] = 'F'; testcalloc[0] = 'K'; 
     teststr[1] = 'B'; testmalloc[1] = 'G'; testcalloc[1] = 'L';
     teststr[2] = 'C'; testmalloc[2] = 'H'; testcalloc[2] = 'M';
     teststr[3] = 'D'; testmalloc[3] = 'I'; testcalloc[3] = 'N';
     teststr[4] = 'E'; testmalloc[4] = 'J'; testcalloc[4] = 'O';
     teststr[5] = 'Z'; testmalloc[5] = 'Z'; testcalloc[5] = 'Z';
-
-p = (unsigned int*)(teststr - sizeof(int));    
-fprintf(stderr,"UPPER=0x%x\n",*p);
-p = (unsigned int*)(teststr + 5);    
-fprintf(stderr,"LOWER=0x%x\n",*p);
-
-cerr << "UTEST " << DAQTRACKMEM_TESTUFENCE(teststr,5) << endl;
-cerr << "LTEST " << DAQTRACKMEM_TESTLFENCE(teststr,5) << endl;
-
+    
+    p = (unsigned int*)(teststr - sizeof(int));    
+    fprintf(stderr,"UPPER=0x%x\n",*p);
+    p = (unsigned int*)(teststr + 5);    
+    fprintf(stderr,"LOWER=0x%x\n",*p);
+    
+    cerr << "UTEST " << DAQTRACKMEM_TESTUFENCE(teststr,5) << endl;
+    cerr << "LTEST " << DAQTRACKMEM_TESTLFENCE(teststr,5) << endl;
+    
 #ifndef NO_DAQ_TRACKING
     DispTxt << daq_track_mem;
-
+    
     if (daq_track_mem.TestMemory()) {
       daq_track_mem.PrintMemoryErrors(cout);
       daq_track_mem.LogMemoryErrors();

@@ -339,7 +339,6 @@ DAQNodeId DAQNodeFactory::Create(DAQNode& node,int argc,char **argv)
   pid_t pid;
 
   node.nodeid.Reset();
-
   if ((pid = ::fork()) < 0) {
     node.nodeid.location.val.pid = pid;
     LOG_AND_THROW(os_exception_factory.CreateBaseSystemException(DAQCSTR("DAQNodeFactory::CreateNode() fork failure")));
@@ -359,5 +358,6 @@ DAQNodeId DAQNodeFactory::Create(DAQNode& node,int argc,char **argv)
 
   node.nodeid.location.val.pid = pid;
   return(node.GetId());
+
 }
 

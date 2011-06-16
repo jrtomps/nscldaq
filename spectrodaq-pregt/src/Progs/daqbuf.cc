@@ -313,109 +313,109 @@ class DAQBuff : public DAQROCNode {
     DAQURL sinkurl("TCP://localhost:2602/");
     struct timeval tv;
     long sinkid;
-
-for(;;) {
-    cerr << "TAG1 " << 2 << "," << (unsigned int)(2&0x00ffffff) << endl;
-    cerr << BUFFER_TAG_SYS_OK(2) << endl;
-    cerr << (((unsigned int)(2&0x00ffffff) == (unsigned int)2) ? true : false) << endl;
-    cerr << ((1 == 1) ? true : false) << endl;
-    cerr << (2&0x00ffffff) << endl;
-
-
-bbuf.Resize(BUFLEN,true);
-bbuf2.Resize(BUFLEN,true);
-wxbuf = new DAQWordBuffer(BUFLEN);
-cerr << "WXP " << (void *)&wxp << endl;
-cerr << "WXBUF NEW " << (void *)wxbuf << endl;
-cerr << "D1" << endl;
-wxbuf->DumpBag(oerr);
-    bbuf.SetTag(2);
-    bbuf2.SetTag(2);
-
-    sinkid = daq_link_mgr.AddSink(sinkurl,2);
-cerr << "D2" << endl;
-wxbuf->DumpBag(cerr);
-
-    cerr << "Added Sink Id " << sinkid << endl;
-
-    bp = &bbuf;
-cerr << "D3" << endl;
-wxbuf->DumpBag(oerr);
-wxp.Dump(oerr);
-wxp =  GetSomething(wxbuf);
-cerr << "D4" << endl;
-wxp.Dump(oerr);
-wxbuf->DumpBag(oerr);
-
-    cerr << DAQCSTR("BEGIN") << endl; 
-    cerr << bbuf.GetLen() << endl;
-    cerr << DAQCSTR("") << endl; 
-    cerr << wxbuf->GetLen() << endl;
-
-cerr << "D6" << endl;
-wxbuf->DumpBag(oerr);
-    cerr << DAQCSTR("") << endl; 
-    for (i = 0; i < bbuf.GetLen(); i++) bbuf[i] = (Byte)(i&0x00ff);
-    cerr << DAQCSTR("") << endl; 
-    for (i = 0; i < bbuf.GetLen(); i++) {
-      if ((*bp) != bbuf[i]) {
-        cerr << "Byte buffer and pointer don't agree at " << i << endl;
-        break;
+    
+    for(;;) {
+      cerr << "TAG1 " << 2 << "," << (unsigned int)(2&0x00ffffff) << endl;
+      cerr << BUFFER_TAG_SYS_OK(2) << endl;
+      cerr << (((unsigned int)(2&0x00ffffff) == (unsigned int)2) ? true : false) << endl;
+      cerr << ((1 == 1) ? true : false) << endl;
+      cerr << (2&0x00ffffff) << endl;
+      
+      
+      bbuf.Resize(BUFLEN,true);
+      bbuf2.Resize(BUFLEN,true);
+      wxbuf = new DAQWordBuffer(BUFLEN);
+      cerr << "WXP " << (void *)&wxp << endl;
+      cerr << "WXBUF NEW " << (void *)wxbuf << endl;
+      cerr << "D1" << endl;
+      wxbuf->DumpBag(oerr);
+      bbuf.SetTag(2);
+      bbuf2.SetTag(2);
+      
+      sinkid = daq_link_mgr.AddSink(sinkurl,2);
+      cerr << "D2" << endl;
+      wxbuf->DumpBag(cerr);
+      
+      cerr << "Added Sink Id " << sinkid << endl;
+      
+      bp = &bbuf;
+      cerr << "D3" << endl;
+      wxbuf->DumpBag(oerr);
+      wxp.Dump(oerr);
+      wxp =  GetSomething(wxbuf);
+      cerr << "D4" << endl;
+      wxp.Dump(oerr);
+      wxbuf->DumpBag(oerr);
+      
+      cerr << DAQCSTR("BEGIN") << endl; 
+      cerr << bbuf.GetLen() << endl;
+      cerr << DAQCSTR("") << endl; 
+      cerr << wxbuf->GetLen() << endl;
+      
+      cerr << "D6" << endl;
+      wxbuf->DumpBag(oerr);
+      cerr << DAQCSTR("") << endl; 
+      for (i = 0; i < bbuf.GetLen(); i++) bbuf[i] = (Byte)(i&0x00ff);
+      cerr << DAQCSTR("") << endl; 
+      for (i = 0; i < bbuf.GetLen(); i++) {
+	if ((*bp) != bbuf[i]) {
+	  cerr << "Byte buffer and pointer don't agree at " << i << endl;
+	  break;
+	}
+	bp++;
       }
-      bp++;
-    }
-
-cerr << "D8" << endl;
-wxbuf->DumpBag(oerr);
-    cerr << DAQCSTR("") << endl; 
-    for (i = 20; i < wxbuf->GetLen(); i++) (*wxbuf)[i] = i;
-    for (i = 20; i < wxbuf->GetLen(); i++) {
-      if ((*wxp) != (*wxbuf)[i]) {
-        cerr << "Word X buffer and pointer don't agree at " << i << endl;
-        break;
+      
+      cerr << "D8" << endl;
+      wxbuf->DumpBag(oerr);
+      cerr << DAQCSTR("") << endl; 
+      for (i = 20; i < wxbuf->GetLen(); i++) (*wxbuf)[i] = i;
+      for (i = 20; i < wxbuf->GetLen(); i++) {
+	if ((*wxp) != (*wxbuf)[i]) {
+	  cerr << "Word X buffer and pointer don't agree at " << i << endl;
+	  break;
+	}
+	wxp++;
       }
-      wxp++;
+      
+      cerr << "D10" << endl;
+      wxbuf->DumpBag(oerr);
+      
+      cerr << DAQCSTR("") << endl; 
+      bp = &bbuf; bp2 = bp + bbuf.GetLen() -1;
+      
+      cerr << "D11" << endl;
+      wxbuf->DumpBag(oerr);
+      cerr << DAQCSTR("") << endl; 
+      for (i = 0; i < BUFLEN/2; i++) {
+	byt = (*bp); (*bp) = (*bp2); (*bp2) = byt;
+	bp++; --bp2;
+      }
+      
+      cerr << DAQCSTR("") << endl; 
+      for (i = 0; i < 30; i++) {
+	cerr << (short)bbuf[i] << ",";
+      }
+      cerr << endl;
+      
+      cerr << DAQCSTR("END") << endl; 
+      //sleep(5);
+      
+      cerr << "D12" << endl;
+      wxbuf->DumpBag(oerr);
+      bbuf.Route();
+      
+      //sleep(10);
+      tv.tv_sec = 90;
+      tv.tv_usec = 0;
+      bbuf2.Accept(&tv);
+      
+      daq_link_mgr.DeleteSink(sinkid);
+      cerr << "D13" << endl;
+      wxbuf->DumpBag(oerr);
+      cerr << "WXBUF DEL " << (void *)wxbuf << endl;
+      if (wxbuf != NULL) delete wxbuf; 
+      wxbuf = NULL;
     }
-
-cerr << "D10" << endl;
-wxbuf->DumpBag(oerr);
-
-    cerr << DAQCSTR("") << endl; 
-    bp = &bbuf; bp2 = bp + bbuf.GetLen() -1;
-
-cerr << "D11" << endl;
-wxbuf->DumpBag(oerr);
-    cerr << DAQCSTR("") << endl; 
-    for (i = 0; i < BUFLEN/2; i++) {
-      byt = (*bp); (*bp) = (*bp2); (*bp2) = byt;
-      bp++; --bp2;
-    }
-
-    cerr << DAQCSTR("") << endl; 
-    for (i = 0; i < 30; i++) {
-      cerr << (short)bbuf[i] << ",";
-    }
-    cerr << endl;
-
-    cerr << DAQCSTR("END") << endl; 
-//sleep(5);
-
-cerr << "D12" << endl;
-wxbuf->DumpBag(oerr);
-    bbuf.Route();
-
-//sleep(10);
-    tv.tv_sec = 90;
-    tv.tv_usec = 0;
-    bbuf2.Accept(&tv);
-
-    daq_link_mgr.DeleteSink(sinkid);
-cerr << "D13" << endl;
-wxbuf->DumpBag(oerr);
-cerr << "WXBUF DEL " << (void *)wxbuf << endl;
-    if (wxbuf != NULL) delete wxbuf; 
-    wxbuf = NULL;
-}
   } 
 };
 

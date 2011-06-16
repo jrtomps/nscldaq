@@ -318,105 +318,105 @@ cerr << "GetSomething2" << endl;
     struct timeval tv;
 
     sinkid = daq_link_mgr.AddSink(sinkurl,2);
-
-for(;;) {
-wbuf.Resize(BUFLEN,true);
-wbuf2.Resize(BUFLEN,true);
-wxbuf = new DAQWordBuffer(BUFLEN);
-cerr << "NEW WXBUF " << (void *)wxbuf << endl;
-cerr << "1" << endl; wbuf.PrintHeadTail(cerr);
-cerr << "2" << endl; wbuf2.PrintHeadTail(cerr);
-cerr << "3" << endl; wxbuf->PrintHeadTail(cerr);
-//wxbuf->Resize(BUFLEN,true);
-    wbuf.SetTag(2);
-    wbuf2.SetTag(2);
-
-    sinkid = daq_link_mgr.AddSink(sinkurl,2);
-cerr << "1a" << endl; wbuf.PrintHeadTail(cerr);
-cerr << "2a" << endl; wbuf2.PrintHeadTail(cerr);
-cerr << "3a" << endl; wxbuf->PrintHeadTail(cerr);
-
-    cerr << "Added Sink Id " << sinkid << endl;
-
-    wp = &wbuf;
-cerr << "1aa" << endl; wbuf.PrintHeadTail(cerr);
-cerr << "2aa" << endl; wbuf2.PrintHeadTail(cerr);
-cerr << "3aa" << endl; wxbuf->PrintHeadTail(cerr);
-    wxp = 
+    
+    for(;;) {
+      wbuf.Resize(BUFLEN,true);
+      wbuf2.Resize(BUFLEN,true);
+      wxbuf = new DAQWordBuffer(BUFLEN);
+      cerr << "NEW WXBUF " << (void *)wxbuf << endl;
+      cerr << "1" << endl; wbuf.PrintHeadTail(cerr);
+      cerr << "2" << endl; wbuf2.PrintHeadTail(cerr);
+      cerr << "3" << endl; wxbuf->PrintHeadTail(cerr);
+      //wxbuf->Resize(BUFLEN,true);
+      wbuf.SetTag(2);
+      wbuf2.SetTag(2);
+      
+      sinkid = daq_link_mgr.AddSink(sinkurl,2);
+      cerr << "1a" << endl; wbuf.PrintHeadTail(cerr);
+      cerr << "2a" << endl; wbuf2.PrintHeadTail(cerr);
+      cerr << "3a" << endl; wxbuf->PrintHeadTail(cerr);
+      
+      cerr << "Added Sink Id " << sinkid << endl;
+      
+      wp = &wbuf;
+      cerr << "1aa" << endl; wbuf.PrintHeadTail(cerr);
+      cerr << "2aa" << endl; wbuf2.PrintHeadTail(cerr);
+      cerr << "3aa" << endl; wxbuf->PrintHeadTail(cerr);
+      wxp = 
         GetSomething(wxbuf);
-cerr << "BACK" << endl;
-
-    wp2 = &wbuf;
-    wp2 += 500;
-    cerr << DAQCSTR("Difference: ") << (wp2|wp) << endl;
-
-//    wbuf.Resize(8000,true);
-
-    cerr << DAQCSTR("") << endl; 
-    for (i = 0; i < wxbuf->GetLen(); i++) (*wxbuf)[i] = i;
-cerr << "1b" << endl; wbuf.PrintHeadTail(cerr);
-cerr << "2b" << endl; wbuf2.PrintHeadTail(cerr);
-cerr << "3b" << endl; wxbuf->PrintHeadTail(cerr);
-//    wxp++;
-cerr << "3by" << endl; wxbuf->PrintHeadTail(cerr);
-
-/*
-    for (i = 0; i < wxbuf->GetLen(); i++) {
-      if ((*wxp) != (*wxbuf)[i]) {
+      cerr << "BACK" << endl;
+      
+      wp2 = &wbuf;
+      wp2 += 500;
+      cerr << DAQCSTR("Difference: ") << (wp2|wp) << endl;
+      
+      //    wbuf.Resize(8000,true);
+      
+      cerr << DAQCSTR("") << endl; 
+      for (i = 0; i < wxbuf->GetLen(); i++) (*wxbuf)[i] = i;
+      cerr << "1b" << endl; wbuf.PrintHeadTail(cerr);
+      cerr << "2b" << endl; wbuf2.PrintHeadTail(cerr);
+      cerr << "3b" << endl; wxbuf->PrintHeadTail(cerr);
+      //    wxp++;
+      cerr << "3by" << endl; wxbuf->PrintHeadTail(cerr);
+      
+      /*
+	for (i = 0; i < wxbuf->GetLen(); i++) {
+	if ((*wxp) != (*wxbuf)[i]) {
         cerr << "Word X buffer and pointer don't agree at " << i << endl;
         break;
+	}
+	wxp++;
+	}
+      */
+      cerr << "1bx" << endl; wbuf.PrintHeadTail(cerr);
+      cerr << "2bx" << endl; wbuf2.PrintHeadTail(cerr);
+      cerr << "3bx" << endl; wxbuf->PrintHeadTail(cerr);
+      
+      cerr << DAQCSTR("") << endl; 
+      wbuf.Dump(oerr,30);
+      
+      cerr << DAQCSTR("") << endl; 
+      wp = &wbuf; wp2 = wp + wbuf.GetLen() -1;
+      
+      cerr << DAQCSTR("") << endl; 
+      for (i = 0; i < BUFLEN/2; i++) {
+	wrd = (*wp); (*wp) = (*wp2); (*wp2) = wrd;
+	++wp; wp2--;
       }
-      wxp++;
+      
+      cerr << DAQCSTR("") << endl; 
+      wbuf.DumpNative(oerr,30);
+      
+      cerr << DAQCSTR("") << endl; 
+      wbuf.Dump(oerr,30);
+      
+      cerr << DAQCSTR("END") << endl; 
+      
+      wbuf.Route();
+      cerr << "1bb" << endl; wbuf.PrintHeadTail(cerr);
+      cerr << "2bb" << endl; wbuf2.PrintHeadTail(cerr);
+      cerr << "3bb" << endl; wxbuf->PrintHeadTail(cerr);
+      
+      tv.tv_sec = 90;
+      tv.tv_usec = 0;
+      wbuf2.Accept(&tv);
+      cerr << "1bbb" << endl; wbuf.PrintHeadTail(cerr);
+      cerr << "2bbb" << endl; wbuf2.PrintHeadTail(cerr);
+      cerr << "3bbb" << endl; wxbuf->PrintHeadTail(cerr);
+      cerr << "LEN: " << wbuf2.GetLen() << endl;
+      wbuf2.Dump(oerr,30);
+      
+      daq_link_mgr.DeleteSink(sinkid);
+      cerr << "1c" << endl; wbuf.PrintHeadTail(cerr);
+      cerr << "2c" << endl; wbuf2.PrintHeadTail(cerr);
+      cerr << "3c" << endl; wxbuf->PrintHeadTail(cerr);
+      //wxp.Nullify();
+      cerr << DAQCSTR("XXX") << endl; 
+      cerr << "DELETE WXBUF " << (void *)wxbuf << endl;
+      if (wxbuf != NULL) delete wxbuf; 
+      wxbuf = NULL;
     }
-*/
-cerr << "1bx" << endl; wbuf.PrintHeadTail(cerr);
-cerr << "2bx" << endl; wbuf2.PrintHeadTail(cerr);
-cerr << "3bx" << endl; wxbuf->PrintHeadTail(cerr);
-
-    cerr << DAQCSTR("") << endl; 
-    wbuf.Dump(oerr,30);
-
-    cerr << DAQCSTR("") << endl; 
-    wp = &wbuf; wp2 = wp + wbuf.GetLen() -1;
-
-    cerr << DAQCSTR("") << endl; 
-    for (i = 0; i < BUFLEN/2; i++) {
-      wrd = (*wp); (*wp) = (*wp2); (*wp2) = wrd;
-      ++wp; wp2--;
-    }
-
-    cerr << DAQCSTR("") << endl; 
-    wbuf.DumpNative(oerr,30);
-
-    cerr << DAQCSTR("") << endl; 
-    wbuf.Dump(oerr,30);
-
-    cerr << DAQCSTR("END") << endl; 
-
-    wbuf.Route();
-cerr << "1bb" << endl; wbuf.PrintHeadTail(cerr);
-cerr << "2bb" << endl; wbuf2.PrintHeadTail(cerr);
-cerr << "3bb" << endl; wxbuf->PrintHeadTail(cerr);
-
-    tv.tv_sec = 90;
-    tv.tv_usec = 0;
-    wbuf2.Accept(&tv);
-cerr << "1bbb" << endl; wbuf.PrintHeadTail(cerr);
-cerr << "2bbb" << endl; wbuf2.PrintHeadTail(cerr);
-cerr << "3bbb" << endl; wxbuf->PrintHeadTail(cerr);
-    cerr << "LEN: " << wbuf2.GetLen() << endl;
-    wbuf2.Dump(oerr,30);
-
-    daq_link_mgr.DeleteSink(sinkid);
-cerr << "1c" << endl; wbuf.PrintHeadTail(cerr);
-cerr << "2c" << endl; wbuf2.PrintHeadTail(cerr);
-cerr << "3c" << endl; wxbuf->PrintHeadTail(cerr);
-//wxp.Nullify();
-    cerr << DAQCSTR("XXX") << endl; 
-cerr << "DELETE WXBUF " << (void *)wxbuf << endl;
-    if (wxbuf != NULL) delete wxbuf; 
-    wxbuf = NULL;
-}
   } 
 };
 

@@ -501,8 +501,10 @@ int DAQPeriodicEventMgr::operator()(int aArgc,char** aArgv)
     tcnt = threadqueue.Count();
     ecnt = eventqueue.Count();
 
-    namestr = "";
-    namestr.printf("DAQPeriodicEventMgr: (threads=%d,events=%d)",tcnt,ecnt);
+    // namestr = "";
+    // namestr.printf("DAQPeriodicEventMgr: (threads=%d,events=%d)",tcnt,ecnt);
+    char nameString[1000];
+    sprintf(nameString, "DAQPeriodicEventMgr: (threads=%d,events=%d)", tcnt, ecnt);
     SetThreadTitle(namestr);
 
     if (tcnt < 3) {

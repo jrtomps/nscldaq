@@ -282,10 +282,10 @@ DAMAGES.
 #define __DAQ_CONFIG_H 1
 
 /* Define the SpectroDAQ version */
-#define SPECTRODAQ_VERSION "1.68d-pregt"
+#define SPECTRODAQ_VERSION "1.68g-pregt"
 
 /* Define the SpectroDAQ client version */
-#define SPECTRODAQ_CLIENT_VERSION "1.68d-pregt"
+#define SPECTRODAQ_CLIENT_VERSION "1.68g-pregt"
 
 /* Define the SpectroDAQ default config */
 #define SPECTRODAQ_CONFIG "/usr/opt/spectrodaq/etc/spectrodaq.conf"

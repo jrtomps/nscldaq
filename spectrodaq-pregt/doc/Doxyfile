@@ -23,7 +23,7 @@ PROJECT_NAME           = "SpectroDAQ"
 # This could be handy for archiving the generated documentation or 
 # if some version control system is used.
 
-PROJECT_NUMBER         = 1.68d-pregt/1.68d-pregt
+PROJECT_NUMBER         = 1.68g-pregt/1.68g-pregt
 
 # The OUTPUT_DIRECTORY tag is used to specify the (relative or absolute) 
 # base path where the generated documentation will be put. 
