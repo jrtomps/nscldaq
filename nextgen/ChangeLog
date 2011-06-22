@@ -40,3 +40,8 @@ June 10, 2011 10.0-007
 	- Add -textheight switch Readout shell to support running
 	  in on displays with limited heights.
 	
+June 22, 2011 10.0-008
+	- Add --deleteonexit switch to stdintoring
+	- CRemoteAccess - modify to start stdintoring with --deleteonexit
+	  so that the proxy ring is deleted if the remote part of the
+	  hoisting pipeline dies.
