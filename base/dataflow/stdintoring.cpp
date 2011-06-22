@@ -1,4 +1,4 @@
-#include "ringtostdoutsw.h"
+#include "stdintoringsw.h"
 #include "CRingBuffer.h"
 #include "Exception.h"
 
@@ -92,7 +92,7 @@ integerize(const char* str)
  *                            with blocking off.                    *
  *******************************************************************/
 
-void
+int
 mainLoop(string ring, int timeout, int mindata)
 {
   // Attach to the ring:
@@ -104,21 +104,21 @@ mainLoop(string ring, int timeout, int mindata)
   catch (CException& error) {
     cerr << "stdintoring Failed to attach to " << ring << ":\n";
     cerr << error.ReasonText() << endl;
-    exit(EXIT_FAILURE);
+    return (EXIT_FAILURE);
   }
   catch (string msg) {
     cerr << "stdintoring Failed to attach to " << ring << ":\n";
     cerr << msg << endl;
-    exit(EXIT_FAILURE);
+    return (EXIT_FAILURE);
   }
   catch (const char* msg) {
     cerr << "stdintoring Failed to attach to " << ring << ":\n";
     cerr << msg <<endl;
-    exit(EXIT_FAILURE);
+    return (EXIT_FAILURE);
   }
   catch (...) {
     cerr << "stdintoring Failed to attach to " << ring << endl;
-    exit(EXIT_FAILURE);
+    return (EXIT_FAILURE);
   }
 
   CRingBuffer& source(*pSource);
@@ -135,7 +135,7 @@ mainLoop(string ring, int timeout, int mindata)
   int stat= fcntl(STDIN_FILENO, F_SETFL, flags);
   if (stat == -1) {
     perror("stdintoring Failed to set stin nonblocking");
-    exit(EXIT_FAILURE);
+    return (EXIT_FAILURE);
   }
   char* pBuffer = new char[mindata];
 
@@ -164,7 +164,7 @@ mainLoop(string ring, int timeout, int mindata)
       if (stat < 0) {
 	if (errno != EINTR) {
 	  perror("Select failed");
-	  exit(EXIT_FAILURE);
+	  return (EXIT_FAILURE);
 	}
       }
       else if (stat == 1) {
@@ -174,16 +174,16 @@ mainLoop(string ring, int timeout, int mindata)
 	}
 	if (nread < 0) {
 	  perror("read failed");
-	  exit(EXIT_FAILURE);
+	  return (EXIT_FAILURE);
 	}
 	if (nread == 0) {
 	  cerr << "Exiting due to eof\n";
-	  exit(EXIT_SUCCESS);	// eof on stdin.
+	  return (EXIT_SUCCESS);	// eof on stdin.
 	}
       }
       else {
 	cerr << "Exiting due to select fail " << errno << endl;
-	exit(EXIT_FAILURE);
+	return (EXIT_FAILURE);
       }
     } 
   }
@@ -201,7 +201,7 @@ int main(int argc, char** argv)
 
   int status = cmdline_parser(argc, argv, &parsed);
   if (status == EXIT_FAILURE) {
-    exit(status);
+    return (status);
   }
 
   // There should be exactly one parameter, that is not a switch,
@@ -209,7 +209,7 @@ int main(int argc, char** argv)
 
   if (parsed.inputs_num != 1) {
     cmdline_parser_print_help();
-    exit(EXIT_FAILURE);
+    exit (EXIT_FAILURE);
   }
   // extract the rin name, the timeout and the size from the 
   // parameters/defaults:
@@ -220,5 +220,12 @@ int main(int argc, char** argv)
   size_t mindata  = integerize(parsed.mindata_arg);
 
 
-  mainLoop(ringname, timeout, mindata);
+  int exitStatus = mainLoop(ringname, timeout, mindata);
+
+  // If requested, delete the ring on exit:
+
+  if (parsed.deleteonexit_given) {
+    CRingBuffer::remove(ringname);
+  }
+  exit(exitStatus);
 }
