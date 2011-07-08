@@ -45,3 +45,6 @@ June 22, 2011 10.0-008
 	- CRemoteAccess - modify to start stdintoring with --deleteonexit
 	  so that the proxy ring is deleted if the remote part of the
 	  hoisting pipeline dies.
+July 8, 2011 10.0-009
+	- Extend length of getpwbyuid buffer in CReadoutMain.cpp it was
+	only marginally good for some people with small gecos fields.

@@ -1,4 +1,3 @@
-
 /*
     This software is Copyright by the Board of Trustees of Michigan
     State University (c) Copyright 2005.
@@ -527,7 +526,7 @@ CRingBuffer::put(void* pBuffer, size_t nBytes, unsigned long timeout)
 
 /*!
    Get data from the ring buffer.  This object must have been opened 
-   in producer mode else a CStateException is thrown.
+   in consumer mode else a CStateException is thrown.
 
    \param pBuffer  - Pointer to the buffer in which the data from the ring will be put.
    \param maxBytes - Number of bytes the buffer can hold... or rather the maximum number 
@@ -626,7 +625,7 @@ CRingBuffer::peek(void*   pBuffer,
   off_t ringTop  = m_pRing->s_header.s_topOffset;
   char* pDataBase= reinterpret_cast<char*>(m_pRing) + ringBase;
   char* pGet     = reinterpret_cast<char*>(m_pRing) + 
-                   m_pClientInfo->s_offset;	// Put data starting here.
+                   m_pClientInfo->s_offset;	// get data starting here.
 
   // Decide if this can be transferred in one or two chunks:
 
@@ -1121,7 +1120,7 @@ CRingBuffer::Skip(size_t nBytes)
   }
 }
 /***************************************************************/
-/* Return the stringified mode                                 */
+/* Return the stringified mode                                 */ge
 /**************************************************************/
 string
 CRingBuffer::modeString() const

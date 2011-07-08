@@ -311,7 +311,7 @@ CReadoutMain::getRingName(struct gengetopt_args_info& args)
   uid_t uid = getuid();
   struct passwd Entry;
   struct passwd* pEntry;
-  char          stuff[100];
+  char          stuff[1024];
   
   if (getpwuid_r(uid, &Entry, stuff, sizeof(stuff), &pEntry)) {
     throw CErrnoException("Getting password entry for this user");
