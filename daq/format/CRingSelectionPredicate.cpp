@@ -177,7 +177,10 @@ CRingSelectionPredicate::operator()(CRingBuffer& ring)
 {
   // We need to have at least a header:
 
-  if (ring.availableData() < sizeof(RingItemHeader)) return true;
+  if (ring.availableData() < sizeof(RingItemHeader)) {
+    ring.pollblock();		// Give it a while for data to arrive.
+    return true;
+  }
 
   // Peek the header, decode the size and type (may need byteswapping).
 
@@ -189,7 +192,15 @@ CRingSelectionPredicate::operator()(CRingBuffer& ring)
     header.s_size = longswap(header.s_size);
     header.s_type = longswap(header.s_type);
   }
-  
+
+  // Now that we have a header don't allow us to progress further if we don't
+  // also have the full event:
+
+  if (ring.availableData() <= header.s_size) {
+    ring.pollblock();
+    return true;
+  }
+
   // Select this really is skip this.  If we should skip the item;
   // - First if the entire item has not yet made it into the ring,
   //   return true, sleep  a bit ant return true, as we'll get called
@@ -200,16 +211,13 @@ CRingSelectionPredicate::operator()(CRingBuffer& ring)
   //   * return again to get us called to look at the next item.
   // 
   if (selectThis(header.s_type)) {
-    if (ring.availableData() >= header.s_size) {
 
       // full item in ring.
 
-      ring.skip(header.s_size);
-      if (!ring.availableData()) {
-	ring.pollblock();
-      }
-    } else {
-      ring.pollblock(); // wait to allow full item to get in.
+    ring.skip(header.s_size);	// Skip the ring item.
+
+    if (!ring.availableData()) { // block for more data to come in.
+      ring.pollblock();
     }
     return true;
   }
@@ -249,13 +257,6 @@ CRingSelectionPredicate::operator()(CRingBuffer& ring)
       }
     } else {
 
-      // Not sampled but if the entire item is not in the ring, 
-      // we need to wait a bit and try again:
-
-      if (availableData < header.s_size) {
-	ring.pollblock();
-	return true;
-      }
       // Else return false so that the ultimate caller can fetch the data:
 
       return false;

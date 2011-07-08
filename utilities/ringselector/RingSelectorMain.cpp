@@ -262,8 +262,10 @@ RingSelectorMain::writeBlock(int fd, void* pData, size_t size)
 	  throw(CErrnoException("Writing data to output file"));
 	}
       }
-      p    += n;
-      size -= n;
+      else {
+	p    += n;
+	size -= n;
+      }
     }
   }
 }

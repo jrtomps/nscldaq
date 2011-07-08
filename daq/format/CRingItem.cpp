@@ -21,6 +21,8 @@
 #include <CRingBuffer.h>
 #include <CRingSelectionPredicate.h>
 #include <string.h>
+#include <iostream>
+
 
 ////////////////////////////////////////////////////////////////////////////////
 //
@@ -304,21 +306,17 @@ CRingItem::getFromRing(CRingBuffer& ring, CRingSelectionPredicate& predicate)
   uint32_t size = header.s_size;
   if ((header.s_type & 0xffff0000) != 0) {
     otherOrder = true;
-    union {
-      uint32_t  lword;
-      uint8_t   bytes[4];
-    } convert;
-    convert.lword = size;
-    size  = 0;
-    for (int i =0; i < 4; i++) {
-      size |= convert.bytes[i] << (3-i)*8;
-    }
+    size = swal(size);
   }
   // Create the item and fill it in:
 
   CRingItem* pItem = new CRingItem(header.s_type, size);
   blockUntilData(ring, size);	// Wait until all data in.
-  ring.get(pItem->m_pItem, size, size); // Read the item from the ring.
+  size_t gotSize = ring.get(pItem->m_pItem, size, size);// Read the item from the ring.
+  if(gotSize  != size) {  
+    std::cerr << "Mismatch in CRingItem::getItem required size: sb " << size << " was " << gotSize 
+	      << std::endl;
+  }
   pItem->m_pCursor += (size - sizeof(RingItemHeader));
   pItem->m_swapNeeded = otherOrder;
 
