@@ -1120,7 +1120,7 @@ CRingBuffer::Skip(size_t nBytes)
   }
 }
 /***************************************************************/
-/* Return the stringified mode                                 */ge
+/* Return the stringified mode                                 */
 /**************************************************************/
 string
 CRingBuffer::modeString() const
