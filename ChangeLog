@@ -48,3 +48,5 @@ June 22, 2011 10.0-008
 July 8, 2011 10.0-009
 	- Extend length of getpwbyuid buffer in CReadoutMain.cpp it was
 	only marginally good for some people with small gecos fields.
+August 5, 2011 10.0-010
+	- Remove extraneous -lpub from daqstart's Makefile.am.
