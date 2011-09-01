@@ -22,7 +22,8 @@
 #include "DataBuffer.h"
 #include <string>
 #include <Exception.h>
-
+#include <Globals.h>
+#include <TclServer.h>
 
 #include <assert.h>
 #include <buffer.h>
@@ -32,6 +33,8 @@
 #include <string.h>
 #include <time.h>
 #include <iostream>
+
+
 
 using namespace std;
 
@@ -100,7 +103,12 @@ mytimersub(timespec* minuend, timespec* subtrahend, timespec* difference)
 */
 COutputThread::COutputThread() : 
   m_sequence(0),
-  m_outputBufferSize(0)		// Don't know yet.
+  m_outputBufferSize(0),		// Don't know yet.
+  m_pBuffer(0),
+  m_pCursor(0),
+  m_pEventStart(0),
+  m_nWordsInBuffer(0),
+  m_nEventsInBuffer(0)
 {
   
 }
@@ -240,25 +248,8 @@ COutputThread::processBuffer(DataBuffer& buffer)
     endRun(buffer);
   }
   else {
-    formatBuffer(buffer);
+    processEvents(buffer);
   }
-}
-/*!
-   Format a buffer from the VM USB:
-*/
-void
-COutputThread::formatBuffer(DataBuffer& buffer)
-{
-  uint16_t header = buffer.s_rawData[0]; // VMUSB header.
-  uint16_t firstEvhdr = buffer.s_rawData[1]; // First event buffer.
-  uint16_t listId = (firstEvhdr >> 13) & 0x7;	// 
-  
-  if (listId == ScalerStack) {
-    scaler(buffer);
-  }
-  else {			// In this version any stack is fair game.
-    events(buffer);
-  } 
 }
 
 /*
@@ -266,7 +257,7 @@ COutputThread::formatBuffer(DataBuffer& buffer)
    there will not be any data from the VM_usb for this
    We must:
    - Update our concept of the run state.
-   - Set the m_outputBufferSize accordingly.
+   - Set the m_nOutputBufferSize accordingly.
    - Create an NSCL begin run buffer and
    - send it to spectrodaq.
    - Destroy the NSCL begin run buffer we created.
@@ -277,13 +268,17 @@ COutputThread::formatBuffer(DataBuffer& buffer)
 void
 COutputThread::startRun(DataBuffer& buffer)
 {
+  // Figure out the buffers size:
+
+  m_nOutputBufferSize = Globals::bufferMultiplier*26*1024 + 32;
+
   // Update our concept of run state, and buffer size:
 
   CRunState* pState = CRunState::getInstance();
   m_runNumber       = pState->getRunNumber();
   m_title           = pState->getTitle();
   m_sequence        = 0;
-  m_outputBufferSize= buffer.s_bufferSize + sizeof(BHEADER);
+
   m_startTimestamp       = buffer.s_timeStamp;
   m_lastStampedBuffer.tv_sec    = 0; 
   m_lastStampedBuffer.tv_nsec   = 0;
@@ -297,7 +292,7 @@ COutputThread::startRun(DataBuffer& buffer)
 
   // Submit the buffer to spectrodaq as tag 2 and free it.
 
-  bufferToSpectrodaq(p, 3, m_outputBufferSize/sizeof(uint16_t), 
+  bufferToSpectrodaq(p, 3, m_nOutputBufferSize/sizeof(uint16_t), 
 		     sizeof(BeginRunBuffer)/sizeof(uint16_t));
   free(p);
 }
@@ -317,6 +312,10 @@ COutputThread::startRun(DataBuffer& buffer)
 void
 COutputThread::endRun(DataBuffer& buffer)
 {
+  // Flush any existing output buffer:
+
+  flush();
+
   // Process the data buffer:
   
   
@@ -325,135 +324,281 @@ COutputThread::endRun(DataBuffer& buffer)
   
   // Submit to spectrodaq and free:
   
-  bufferToSpectrodaq(p, 3, m_outputBufferSize/sizeof(uint16_t),
+  bufferToSpectrodaq(p, 3, m_nOutputBufferSize/sizeof(uint16_t),
 		     sizeof(BeginRunBuffer)/sizeof(uint16_t));
   free(p);
 }
 
-/*
-  Format a scaler buffer.  Scaler buffers are contain a single event.
-  The VMUSB manual is not completely clear, but I think the event
-  consists of a normal event header followed, given the way I'm managing
-  scalers a list of 32 bit words that contain the scaler values.
-  For now we assume that there are no continuation cases...thsi is probably true as
-  we'd need more than 1000 scalers to exceed the eventlength field.
-*/
-void
-COutputThread::scaler(DataBuffer& buffer)
+/**
+ * Process events in a buffer creating output buffers as required.
+ *  - Figure out the used words in the buffer
+ *  - For each event in the buffer invoke either event or scaler depending on
+ *    the stack number.  Stack 1 is always a scaler event while any other stack
+ *    is considered a physics event.
+ *
+ * @param inBuffer  -  Reference to a raw input buffer.
+ */ 
+void 
+COutputThread::processEvents(DataBuffer& inBuffer)
 {
-  
-  // first put the scalers in place..
-  
-  
-  uint16_t length = buffer.s_rawData[1] & VMUSBEventLengthMask;
-  length   = length * sizeof(uint16_t)/sizeof(uint32_t); // Count of longs.
-  uint32_t* pScalers = (uint32_t*)(&(buffer.s_rawData[2]));
-  
-  uint16_t  finalWordCount = sizeof(ScalerBuffer)/sizeof(uint16_t) + 
-    length*sizeof(uint32_t)/sizeof(uint16_t) - 1;
-  
-  pScalerBuffer outbuf  = static_cast<pScalerBuffer>(malloc(sizeof(ScalerBuffer)+m_outputBufferSize));
-  memcpy(outbuf->s_body.scalers, pScalers, length*sizeof(uint32_t));
-  
-  // fill in the header.
-  
-  outbuf->s_header.nwds   = finalWordCount;
+  uint16_t* pContents = inBuffer.s_rawData;
+  size_t    nWords    = pContents[1];
+  pContents          += 2;	// Pointeing to the first event in the buffer.
+
+  while (nWords) {
+    uint16_t header     = *pContents;
+    size_t   eventLength = header & VMUSBEventLengthMask;
+    uint8_t  stackNum   = (header & VMUSBStackIdMask) >> VMUSBStackIdShift;
+
+    if (stackNum == ScalerStack) {
+      scaler(pContents);
+    }
+    else if (stackNum == 7) {
+      sendToTclServer(pContents);
+    }
+    else {
+      event(pContents);
+    }
+    // Adjust pointer to the next event and decrement the size:
+    
+    pContents += eventLength;
+    nWords    -= eventLength;
+
+  }
+}
+
+/**
+ * Process a scaler event:
+ * - If there is an existing started output buffer it is flushed.
+ * - A new buffer is allocated.
+ * - The header is populated with the usual stuff for scalers
+ * - The body is populated with the body of the event.
+ * @note We assume scaler events won't consist of more than 2048
+ *       scalers (e.g. the continuation bit is not set.
+ * @param pData - Pointer to scaler data.
+ */
+void
+COutputThread::scaler(void* pData)
+{
+  if (m_pBuffer) {
+    flush();
+  }
+  newOutputBuffer();			// Scaler events stand alone in their own buffer.
+
+  uint16_t* pHeader = reinterpret_cast<uint16_t*>(pData);
+  uint16_t  header  = *pHeader;
+  uint32_t* pBody   = reinterpret_cast<uint32_t*>(pHeader+1); // Poiner to the scalers.
+
+  if (header & VMUSBContinuation) {
+    cerr << "Warning - scaler events requiring multiple segments are not supported!\n";
+  }
+  size_t        nWords   =  header & VMUSBEventLengthMask;
+  size_t        nScalers =  nWords/(sizeof(uint32_t)/sizeof(uint16_t));
+  pScalerBuffer outbuf   = reinterpret_cast<pScalerBuffer>(m_pBuffer);
+
+  // Format the buffer header:
+
+  outbuf->s_header.nwds  = sizeof(ScalerBuffer)/sizeof(uint16_t) + nWords -1;
   outbuf->s_header.type   = 2;
   outbuf->s_header.cks    = 0;
   outbuf->s_header.run    = m_runNumber;
   outbuf->s_header.seq    = m_sequence;
-  outbuf->s_header.nevt   = length; // This is the number of scalers.
+  outbuf->s_header.nevt   = nScalers;
   outbuf->s_header.nlam   = 0;
   outbuf->s_header.nbit   = 0;
   outbuf->s_header.buffmt = BUFFER_REVISION;
   outbuf->s_header.ssignature = 0x0102;
   outbuf->s_header.lsignature = 0x01020304;
 
-  // Now the body that does not have scaler data:
+  // Format the body prior to the scalers:
 
   outbuf->s_body.btime    = m_lastStampedBuffer.tv_sec;
   if (m_lastStampedBuffer.tv_nsec > 500000000) {
     outbuf->s_body.btime++;
   }
-  mytimersub(&(buffer.s_timeStamp ), &m_startTimestamp, &m_lastStampedBuffer);
+  // ?? mytimersub(&(buffer.s_timeStamp ), &m_startTimestamp, &m_lastStampedBuffer);
   
   outbuf->s_body.etime    = m_lastStampedBuffer.tv_sec;
   if (m_lastStampedBuffer.tv_nsec > 500000000) {
     outbuf->s_body.etime++;
   }
-  
-  // Submit the buffer and free it:
+  // Copy the scaler data:
 
-  bufferToSpectrodaq(outbuf, 3, m_outputBufferSize/sizeof(uint16_t), finalWordCount);
-  free(outbuf);
-		     
+  memcpy(outbuf->s_body.scalers, pBody, nScalers*sizeof(uint32_t));
+
+  // scaler buffers always only have one scaler event:
+
+  m_nWordsInBuffer = outbuf->s_header.nwds;
+
+  flush();
 
 }
 
-
-/*
-   Format an event buffer. 
-   An event buffer's size is given by teh buffer's s_bufferSize field.
-   The body of the buffer is just copied to the body of the event buffer,
-   the event count however has to be determined by walking through the
-   events.  The VM-USB manual is unclear about whether or not the 
-   VMUSB is including the terminator words in the event count.
-   We'll assume it is for now and fix it if we detect later problems.
-   We know we've hit the end of a buffer when the first word of an event
-   is 0xffff since we don't use stack id 0xe (otherwise this is ambiguous
-   with a max length continuation field.
-
-  At present we can't deal with data that spans buffer boundaries
-... and most likely this is a startup issue with the dead time logic
-    for the setups we support..so if MB or CONT is set in the
-    buffer header.. throw the buffer away.
-
-*/
-void 
-COutputThread::events(DataBuffer& buffer)
+/**
+ * Flush an output buffer to spectrodaq
+ * This means invoking bufferToSpectrodaq, freeing the data buffer
+ * and resetting all the pointers.
+ * If there is no databuffer yet, this is a no-op.
+ */
+void
+COutputThread::flush()
 {
-  uint16_t header = buffer.s_rawData[0];
+  if(m_pBuffer) {
+    // Figureout the tag:
 
-  if (header & 0x3000) {
-    return;
+    BHEADER* pHead = reinterpret_cast<BHEADER*>(m_pBuffer);
+    int tag;
+    if(pHead->type == 1) {
+      tag = 2;
+    } 
+    else {
+      tag = 3;
+    }
+    bufferToSpectrodaq(m_pBuffer, tag, m_outputBufferSize, m_nWordsInBuffer);
+
+    free(m_pBuffer);
+    m_pBuffer = m_pCursor = m_pEventStart = 0;
+    m_nWordsInBuffer = m_nEventsInBuffer = 0;
+
   }
-
-  //  Create the output buffer first; and copy the
-  //  event data into it:
-
-  pEventBuffer p  = static_cast<pEventBuffer>(malloc(sizeof(EventBuffer)+m_outputBufferSize));
-  memcpy(p->s_body, &(buffer.s_rawData[1]), buffer.s_bufferSize  - sizeof(uint16_t));
-
-  //  Now the header except for nevt...
-
-  uint16_t finalLength = (sizeof(BHEADER) + buffer.s_bufferSize)/sizeof(uint16_t) - 1;
-  p->s_header.nwds   = finalLength;
-  p->s_header.type   = DATABF;
-  p->s_header.cks    = 0;
-  p->s_header.run    = m_runNumber;
-  p->s_header.seq    = m_sequence++;
-  p->s_header.nlam   = 0;
-  p->s_header.nbit   = 0;
-  p->s_header.buffmt = BUFFER_REVISION;
-  p->s_header.ssignature = 0x0102;
-  p->s_header.lsignature = 0x01020304;
-
-
-  // The event count
-
-  p->s_header.nevt   = eventCount(p, buffer.s_bufferSize);
-  if (p->s_header.nevt == 0) {
-    // most likely VM-USB crap
-
-    return;
-  }
-
-  // route the buffer and free it:
-
-  bufferToSpectrodaq(p, 2, m_outputBufferSize/sizeof(uint16_t), finalLength);
-  free(p);
-  lastBuffer = &buffer;  
 }
+
+/**
+ * Handle a buffer overflow.  Only event buffers can overflow therefore  
+ *  - Fill in the header of the buffer with the stuff needed to 
+ *    Make it an event buffer.
+ *  - Get a new buffer.
+ *  - If there is a partial event, copy it from the old buffer into the new buffer.
+ *  - flush the old buffer
+ *  - Set up all the book keeping values for the register to reflect whatever we've done
+ *    with respect to the partial event we may or may not have copied into the next buffer.
+ */
+void 
+COutputThread::overflowOutputBuffer()
+{
+  fillEventHeader();
+  uint8_t*  pNewBuffer = newOutputBuffer();
+  uint8_t* pNewCursor = (&pNewBuffer[sizeof(BHEADER)]); // buffer body.
+  uint8_t* pNewEventStart = pNewCursor;
+  size_t   newBufferWords = 0;
+  
+
+  // Send the output buffer to spectrodaq:
+
+  bufferToSpectrodaq(m_pBuffer,
+		     2,
+		     m_outputBufferSize,
+		     m_nWordsInBuffer + 16);
+
+
+  // Copy any partial event to the new buffer:
+  // and adjust the new stuff accordingly.
+  if (m_pCursor != m_pEventStart) {
+    uint32_t partialEventSize = m_pCursor - m_pEventStart;
+    memcpy(pNewCursor, m_pEventStart, partialEventSize);
+    newBufferWords = partialEventSize/sizeof(uint16_t);
+    pNewCursor    += partialEventSize;
+  }
+  free(m_pBuffer);
+
+  // Adjust the book keeping data:
+
+  m_pBuffer         = pNewBuffer;
+  m_pCursor         = pNewCursor;
+  m_pEventStart     = pNewEventStart;
+  m_nWordsInBuffer  = newBufferWords;
+  m_nEventsInBuffer = 0;
+
+
+}
+
+/**
+ * Create a new output buffer.
+ * for now this is trivial
+ * @return uint8_t*
+ * @retval Pointer to the output buffer.
+ */
+uint8_t* 
+COutputThread::newOutputBuffer()
+{
+  return reinterpret_cast<uint8_t*>(malloc(m_outputBufferSize));
+}
+/**
+ * Process a single event segment to the output buffer.
+ * If the continuation bit is set, the book keeping data is managed to reflect we have
+ * a partial event.  If, the segment would overflow the existing buffer, overflowOutputBuffer
+ * is invoked to send the complete events to the data distribution software and
+ * we load the data into the new buffer created by that function
+ * If this is not a continuation, we can book keep the completion of an event.
+ * @param pSource - Pointer to the event data segment.
+ */
+void 
+COutputThread::event(void* pData)
+{
+  uint16_t* pSegment = reinterpret_cast<uint16_t*>(pData);
+  uint16_t  header   = *pSegment;
+
+  // Figure out the header:
+ 
+  size_t segmentSize = header & VMUSBEventLengthMask;
+  bool   haveMore    = (header & VMUSBContinuation) != 0;
+  
+  // first question is whether or not this segment will fit in 
+  // the output buffer.  If not, overflow it  so we have a new buffer to work in:
+
+  if ((segmentSize + m_nWordsInBuffer) >= m_outputBufferSize) {
+    overflowOutputBuffer();
+  }
+  // Next we can copy our data to the output buffer and update the cursro
+  // remembering that the size is not self inclusive:
+  //
+  segmentSize += 1;
+  memcpy(m_pCursor, pData, segmentSize*sizeof(uint8_t));
+  m_nWordsInBuffer += segmentSize;
+
+  // Different handling of the cursor and event start/event count 
+  // depending on continuation or not.
+  // Event start is normally kept the same as the event cursor but
+  // not so if the event is segmented:
+
+  m_pCursor += segmentSize*sizeof(uint8_t); // advance the cursor
+    
+  if (!haveMore) {			    // Ending segment:
+
+    m_nEventsInBuffer++;
+    m_pEventStart = m_pCursor;
+
+  }
+  
+
+}
+
+
+
+
+/**
+ * Fill the contents of the event buffer header for a physics data buffer
+ * Space for this has already been reserved for at the start of m_pOutputBuffer.
+ */
+
+void
+COutputThread::fillEventHeader()
+{
+  BHEADER* pHeader = reinterpret_cast<BHEADER*>(m_pBuffer);
+  pHeader->nwds    = m_nWordsInBuffer;
+  pHeader->type    = DATABF;
+  pHeader->cks     = 0;
+  pHeader->run     = m_runNumber;
+  pHeader->seq     = m_sequence++;
+  pHeader->nlam    = 0;
+  pHeader->nbit    = 0;
+  pHeader->buffmt   = BUFFER_REVISION;
+  pHeader->ssignature = 0x0102;
+  pHeader->lsignature = 0x01020304;
+
+  
+}
+
 
 
 /*
@@ -512,40 +657,23 @@ COutputThread::formatControlBuffer(uint16_t type, void* buffer)
   p->s_body.tod.tenths= 0;	// Always 0 in unix.
 
 }
-/*
-   Compute the event count for a buffer of VMUSB data.
-   We step our way through the data counting cases where we have
-   event headers without the continuation bit set until we get
-   the 0xffff buffer terminator.
-   Parameters:
-   void* nsclBuffer   -  Pointer to an NSCL structured buffer whose body
-                         has vmusb data.
-*/
-
-uint16_t
-COutputThread::eventCount(void* nsclBuffer, size_t maxBytes)
+/**
+ * Sends a control monitoring event (one from stack 7) to the 
+ * control server. These events contain periodic monitoring data.
+ * It's up to the Tcl server to assemble them into a single 
+ * event (if they are split across a buffer boundary).
+ * 
+ * @param pEvent - Pointer to the event fragment.
+ */
+void
+COutputThread::sendToTclServer(uint16_t* pEvent)
 {
-  size_t maxWords = maxBytes/sizeof(uint16_t); // 16 bit word count.
-  pEventBuffer p = static_cast<pEventBuffer>(nsclBuffer);
-  uint16_t*    pb= p->s_body;
-  uint16_t events = 0;
-  size_t   words  = 0;
 
-  // Here we go:
 
-  while (*pb != 0xffff) {
-    uint16_t count = *pb & VMUSBEventLengthMask;
-    if (!(*pb & VMUSBContinuation)) {
-      events++;			// End of event.
-    }
-    pb += (count+1);		// The event length does not include evt header.
-    words += count+1;
-    if (words >= maxWords) {
-      cerr << "COutputThread::eventCount... running off end of buffer: " << words
-	   << endl;
-      break;
-    }
-  }
+  // Locate the Tcl Server and queue the event:
 
-  return events;
+  TclServer* pServer = Globals::pTclServer;
+  pServer->QueueBuffer(pEvent);
+
+  
 }

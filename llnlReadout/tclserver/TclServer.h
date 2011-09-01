@@ -79,7 +79,7 @@ struct DataBuffer;
 */
 class TclServer : public DAQThread
 {
-  // Member data:
+// Member data:
 private:
   int                          m_port;		// Port we are listening to for connections.
   std::string                  m_configFilename;
@@ -90,8 +90,21 @@ private:
   CVMUSBReadoutList*           m_pMonitorList; /* List to perform periodically. */
   Tcl_ThreadId                 m_threadId;
   bool                         m_waitingMonitor;
-  static TclServer*            m_pInstance; 
+  static TclServer*            m_pInstance;
+  uint16_t*                    m_pMonitorData;
+  size_t                       m_nMonitorDataSize;
 
+  // Public data structures:
+
+public:
+  // Structure of the event posted to us when we have data from the 
+  // monitor list.
+  //
+  typedef struct _TclServerEvent {
+    struct Tcl_Event event;
+    void*            pData;
+  } TclServerEvent;
+  
 public:
   TclServer();
   ~TclServer();			// This is a final class.

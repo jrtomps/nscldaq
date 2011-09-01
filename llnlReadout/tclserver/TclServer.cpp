@@ -36,6 +36,9 @@ using namespace std;
 #include <string>
 #include <iostream>
 #include <CRunState.h>
+#include <stdlib.h>
+#include <Globals.h>
+
 
 static const int MonitorInterval(1); // Number of seconds between monitor interval.
 
@@ -44,13 +47,6 @@ static const int MonitorInterval(1); // Number of seconds between monitor interv
 */
 TclServer* TclServer::m_pInstance(0); // static->object context. ptr.
 
-/**
- ** This strruct is used to pass data between the readout thread and us:
- */
-struct TclServerEvent {
-  struct Tcl_Event event;
-  void*            pData;
-};
 
 
 
@@ -63,7 +59,9 @@ TclServer::TclServer() :
   m_pVme(0),
   m_pInterpreter(0),
   m_pMonitorList(0),
-  m_waitingMonitor(false)
+  m_waitingMonitor(false),
+  m_pMonitorData(0),
+  m_nMonitorDataSize(0)
 
 {
   m_pInstance = this;		// static->object context.
@@ -73,7 +71,11 @@ TclServer::TclServer() :
 uninteresting.
 */
 TclServer::~TclServer()
-{}
+{
+  if(m_pMonitorData) {
+    free(m_pMonitorData);
+  }
+}
 
 /*!
   Start sets up the variables the entry point needs to initialize
@@ -347,21 +349,36 @@ TclServer::getMonitorList()
 /*
 ** This function queues an event to the tclserver thread.  It is intended to be
 ** called by other threads.  The event indicates the arrival of a monitor
-** buffer when the run is active.  The event handling function
+** event when the run is active.  The event handling function
 ** will have to funge stuff up to allow processMonitorData to be
 ** executed on the received data.
-** @param pBuffer - Actually a DataBufer* which contains the data gotten from
-**                  the vmusb.
+** @param pBuffer - Pointer to the raw event in the VM-USB buffer.
+**                  note that this might have a continuation flag.
+**                  in that case we get serveral events queued, one for each
+**                  chunk of the data buffer.
 */
 void
 TclServer::QueueBuffer(void* pBuffer)
 {
-  TclServerEvent* pEvent = reinterpret_cast<TclServerEvent*>(Tcl_Alloc(sizeof(TclServerEvent)));
-  pEvent->event.proc = receiveMonitorData;
-  pEvent->pData      = pBuffer;
+  uint16_t* pEvent = reinterpret_cast<uint16_t*>(pBuffer);
+
+  // Transfer the event to a dynamically allocated buffer:
+
+  uint16_t nWords = *pEvent & VMUSBEventLengthMask + 1; // Word length isn't self inclusive.
+  void*    pEventCopy = malloc(nWords);
+  if (!pEventCopy) {
+    throw std::string("Malloc for tcl server event failed in COutputThread");
+  }
+  memcpy(pEventCopy, pEvent, nWords*sizeof(uint16_t*));
+
+  // Create and fill in the event:
+
+  TclServerEvent* pTclEvent = reinterpret_cast<TclServerEvent*>(Tcl_Alloc(sizeof(TclServerEvent)));
+  pTclEvent->event.proc = receiveMonitorData;
+  pTclEvent->pData      = pEventCopy;
 
   Tcl_ThreadQueueEvent(m_threadId, 
-		       reinterpret_cast<Tcl_Event*>(pEvent), 
+		       reinterpret_cast<Tcl_Event*>(pTclEvent), 
 		       TCL_QUEUE_HEAD); // out of band processing.
 }
 
@@ -435,32 +452,50 @@ TclServer::processMonitorList(void* pData, size_t nBytes)
   }
 }
 /**
- ** When a buffer of monitor data arrives an event is queued to this thread.
- ** the event invokes this function.
+ **  Handle Tcl events that indicate the arrival of monitor data.
+ **  note that monitor data could be broken across several segments
+ **  as indicated by the continuation bit in the event header.
+ **  We do the following
+ **  - Extend the m_pMonitor data buffer to hold the new monitor data.
+ **  - Copy the data gotten to the end of the monitor data buffer (minus thhe
+ **    header word).
+ *   - If the continuation flag was not set, process the monitor data and delete the
+ **    m_pMonitorData buffer.
+ **  - Free the event buffer and return indicating the event was serviced.
  */
 int
 TclServer::receiveMonitorData(Tcl_Event* pEvent, int flags)
 {
-  // Get the data buffer out of the Tcl_Event payload
+  TclServer*      pServer = Globals::pTclServer;
 
-  TclServerEvent* pMyEvent = reinterpret_cast<TclServerEvent*>(pEvent);
-  DataBuffer*     pBuffer = reinterpret_cast<DataBuffer*>(pMyEvent->pData);
+  TclServerEvent* pTclEvent = reinterpret_cast<TclServerEvent*>(pEvent);
+  uint16_t*       pData     = reinterpret_cast<uint16_t*>(pTclEvent->pData);
+  uint16_t        nWords    = *pData & VMUSBEventLengthMask;
+
+  // Append the new data to the data we have already:
+
+  pServer->m_pMonitorData = reinterpret_cast<uint16_t*>(realloc(pServer->m_pMonitorData,
+								(nWords + pServer->m_nMonitorDataSize) * sizeof(uint16_t)));
+  if (!pServer->m_pMonitorData) {
+    throw string("Unable to extend monitor data buffer");
+  }
+  memcpy(&(pServer->m_pMonitorData)[pServer->m_nMonitorDataSize], &pData[1], nWords*sizeof(uint16_t));
+  pServer->m_nMonitorDataSize += nWords;
+
+  // If the continuation bit is not set we can process the data:
+
+  if ((*pData & VMUSBContinuation) != 0) {
+    pServer->processMonitorList(pServer->m_pMonitorData, pServer->m_nMonitorDataSize * sizeof(uint16_t));
+
+    free(pServer->m_pMonitorData);
+    pServer->m_nMonitorDataSize = 0;
+    pServer->m_pMonitorData     = 0;
+  }
+
+  // Free the input data and complete event processing:
+
+  free (pData);
+  return 1;
 
 
-
-  // figure out how much data we have and pass it to
-  // process monitor list so that the monitored data
-  // will get updated:
-  void* pData;
-  size_t dataBytes;
-  pData = &(pBuffer->s_rawData[2]); // first event word.
-  dataBytes = pBuffer->s_rawData[1] & 0xfff;
-  dataBytes = dataBytes * sizeof(uint16_t);
-
-  m_pInstance->processMonitorList(pData, dataBytes);
-
-  // Return the buffer to the free pool:
-
-  gFreeBuffers.queue(pBuffer);
-  return 1;			// Done with the event.
 }

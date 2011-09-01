@@ -63,7 +63,7 @@ CConfigurableObject::CConfigurableObject(string name) :
 */
 CConfigurableObject::~CConfigurableObject()
 {
-
+  deleteEnumCheckers();
 }
 
 /*!
@@ -74,6 +74,7 @@ CConfigurableObject::CConfigurableObject(const CConfigurableObject& rhs) :
   m_name(rhs.m_name),
   m_parameters(rhs.m_parameters)
 {
+  addEnumCheckers(rhs.m_EnumCheckers);
 
 }
 /*!
@@ -85,6 +86,8 @@ CConfigurableObject::operator=(const CConfigurableObject& rhs)
   if (this != &rhs) {
     m_name       = rhs.m_name;
     m_parameters = rhs.m_parameters; 
+    deleteEnumCheckers();
+    addEnumCheckers(rhs.m_EnumCheckers);
   }
   return *this;
 }
@@ -322,6 +325,31 @@ CConfigurableObject::addParameter(string      name,
   m_parameters[name] = data;	// This overwrites any prior.
 }
 
+/**
+ * Convenience function to add an enumerated parameter.
+ * @param name     The name of the new parameter.
+ * @param pValues  Null terminated list of strings that are the valid values for the
+ *                 enumerator.
+ * @param defaultValue default value of the parameter.  This parameter is optional and
+ *                  defaults to first valid value
+ * @note it is illegal; for pValues to contain an empty string but it's the responsibility of the
+ *       caller to ensure this.k
+ */
+void
+CConfigurableObject::addEnumParameter(string       name,
+				      const char** pValues,
+				      string       defaultValue)
+{
+  const char** p = pValues;
+  isEnumParameter* pNewItem = new isEnumParameter;
+  while(*p) {
+    pNewItem->insert(*p++);
+  }
+  m_EnumCheckers.push_back(pNewItem);
+  addParameter(name, isEnum, pNewItem,
+	       defaultValue == "" ?
+	       pValues[0] : defaultValue);
+}
 /*!
     Configure the value of a parameter.
     \param name : std::string
@@ -785,4 +813,23 @@ CConfigurableObject::addFalseValues(set<string>& values)
   values.insert("0");
   values.insert("off");
   values.insert("disabled");
+}
+
+// Destroy dynamically created enum parameter checkers:
+
+void
+CConfigurableObject::deleteEnumCheckers()
+{
+  for (int i = 0; i < m_EnumCheckers.size(); i++) {
+    delete m_EnumCheckers[i];
+  }
+  m_EnumCheckers.clear();
+}
+// Add a set of enum checkers to ours:
+void
+CConfigurableObject::addEnumCheckers(const EnumCheckers& rhs) 
+{
+  for (int i =0; i < rhs.size(); i++) {
+    m_EnumCheckers.push_back(new isEnumParameter(*(rhs[i])));
+  }
 }

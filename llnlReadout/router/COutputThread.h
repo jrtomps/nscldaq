@@ -90,6 +90,10 @@ struct DataBuffer;
   \note There is no need to start/stop thread each run.   Once a run is over,
         this thread will simply block on the buffer queue until the next run
         emits the begin run buffer.
+  \note The global variable bufferMultiplier determines the size of the output buffer size.
+        The output buffersize is bufferMultiplier*26*1024+32  
+        the 26*1024 represent the size of a single VM-USB buffer (note that we are assuming
+        mixed mode and event spanning on.
 */
 
 class COutputThread  : public DAQThread
@@ -104,9 +108,18 @@ private:
   // other data:
 private:
   uint32_t    m_sequence;	   // Buffer sequence number.
-  uint32_t    m_outputBufferSize;  // Bytes in output buffers.
+  size_t      m_outputBufferSize;  // Bytes in output buffers.
   timespec    m_startTimestamp;    //!< Run start time.
   timespec    m_lastStampedBuffer; //!< Seconds into run of last stamped buffer.
+  size_t      m_nOutputBufferSize;       //!< size of output buffer in bytes.
+                                   //!< determined at the start of a run.
+  uint8_t*    m_pBuffer;	   //!< Pointer to the current buffer.
+  uint8_t*    m_pCursor;           //!< Where next event goes in buffer.
+  uint8_t*    m_pEventStart;       //!< Pointer to start of current event in buffer.
+  size_t      m_nWordsInBuffer;    //!< Number of words already in the buffer.
+  size_t      m_nEventsInBuffer;   //!< Number of complete events in the buffer.
+
+
 
   // Constuctors and other canonicals.
 
@@ -120,7 +133,7 @@ private:
   int operator!=(const COutputThread& rhs) const;
 public:
 
-  // Thread operations are all non-public in fact.. don't want to call them
+  // Thread operations are all non-public in fact.. don't want to call them4
   // from outside this class.. only from within the thread.. This includes the
   // thread entry point.
 
@@ -131,20 +144,22 @@ private:
   void bufferToSpectrodaq(void* pBuffer, 
 			  unsigned int sdaqTag,
 			  size_t sdaqWords, 
-			  size_t copyInSize);
-  DataBuffer& getBuffer();
-  void freeBuffer(DataBuffer&  buffer);
-
-  void processBuffer(DataBuffer& buffer);
-  void formatBuffer(DataBuffer& buffer);
-  void startRun(DataBuffer& buffer);
-  void endRun(DataBuffer&   buffer);
-  void scaler(DataBuffer&   buffer);
-  void events(DataBuffer&   buffer);
-
-  void formatControlBuffer(uint16_t type, void* buffer);
-  uint16_t eventCount(void* nsclBuffer, size_t maxBytes);
-
+			  size_t copyInSize); // 
+  DataBuffer& getBuffer();		      // 
+  void freeBuffer(DataBuffer&  buffer);	      // 
+  void processBuffer(DataBuffer& buffer);     // 
+  void processEvents(DataBuffer& buffer);     //
+  void formatControlBuffer(uint16_t type, void* buffer); // 
+  void  overflowOutputBuffer();           //
+  uint8_t* newOutputBuffer();                //
+  void startRun(DataBuffer& buffer); // 
+  void endRun(DataBuffer& buffer);   // 
+  void flush();			     // 
+  void event(void* pData);      //
+  void scaler(void* pData);	//
+  void fillEventHeader();	// 
+  void sendToTclServer(uint16_t* pEvent);
 };
+
 
 #endif

@@ -17,7 +17,8 @@ libVMUSBDevices_la_SOURCES	= 	CConfigurableObject.cpp	\
 					CMASE.cpp		\
 					CMADCChain.cpp	\
 					CHINP.cpp \
-					CPSD.cpp
+					CPSD.cpp	\
+					CV1729.cpp
 
 
 INCLUDES	= 	-I$(top_builddir)/vmusb 	\
@@ -50,7 +51,9 @@ include_HEADERS			= 	CConfigurableObject.h	\
 					CMADCChain.h		\
 					MADC32Registers.h	\
 					CHINP.h \
-					CPSD.h
+					CPSD.h			\
+					CV1729.h
+
 
 TESTS=configtest.cpp c785test.cpp c3820test.cpp
 

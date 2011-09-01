@@ -118,6 +118,7 @@ public:
   //
   void addBlockRead32(uint32_t baseAddress, uint8_t amod, size_t transfers);
   void addFifoRead32(uint32_t  baseAddress, uint8_t amod, size_t transfers);
+  void addFifoRead16(uint32_t baseAddress, uint8_t amod, size_t transfers);
   void addBlockWrite32(uint32_t baseAddresss, uint8_t amod, void* data, 
 		       size_t transfers);
 
@@ -184,7 +185,8 @@ public:
 private:
   uint32_t dataStrobes(uint32_t address);
   void     addBlockRead(uint32_t base, size_t transfers,
-			uint32_t startingMode);
+			uint32_t startingMode,
+			size_t   width = sizeof(uint32_t));
   void     lastTransferIsNumberData(uint32_t mask);
 
 };

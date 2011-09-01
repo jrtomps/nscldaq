@@ -137,6 +137,7 @@ public:
   };
 
   typedef std::pair<flimit, flimit> FloatingLimits;
+  typedef std::vector<isEnumParameter*>         EnumCheckers;
 
 
   // Internal typedefs
@@ -145,10 +146,10 @@ private:
   typedef std::map<std::string, ConfigData>     Configuration;
   typedef Configuration::iterator               ConfigIterator;
 
-
 private:
   std::string     m_name;	//!< Name of this object.
   Configuration   m_parameters;	//!< Contains the configuration parameters.
+  EnumCheckers    m_EnumCheckers;
 
 public:
   // Canonicals..
@@ -183,6 +184,12 @@ public:
   void addParameter(std::string name, typeChecker checker, void* arg,
 		    std::string defaultValue = std::string(""));
 
+  // Convenience function for building enumerator parameters.
+
+  void addEnumParameter(std::string name,
+			const char** pValues,
+			std::string defaultValue = std::string(""));
+
   void clearConfiguration();
 
   // Manipulating and querying the configuration:
@@ -214,6 +221,8 @@ public:
 private:
   static void addTrueValues(std::set<std::string>& values);
   static void addFalseValues(std::set<std::string>& values);
+  void        deleteEnumCheckers();
+  void        addEnumCheckers(const EnumCheckers& rhs);
   
 };
 

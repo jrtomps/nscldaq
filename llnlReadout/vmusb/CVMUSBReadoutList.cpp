@@ -423,6 +423,15 @@ CVMUSBReadoutList::addFifoRead32(uint32_t address, uint8_t amod, size_t transfer
 	                                ((amod << modeAMShift) & modeAMMask) |
 	                                modeNW));
 }
+// 16 bit version:
+
+void
+CVMUSBReadoutList::addFifoRead16(uint32_t address, uint8_t amod, size_t transfers)
+{
+  addBlockRead(address,  transfers, static_cast<uint32_t>(modeNA | 
+	                                ((amod << modeAMShift) & modeAMMask) |
+							  modeNW), sizeof(uint16_t));
+}
 ///////////////////////////////////////////////////////////////////////////////////
 //
 // Private utility functions:
@@ -450,22 +459,26 @@ CVMUSBReadoutList::dataStrobes(uint32_t address)
 //
 void
 CVMUSBReadoutList::addBlockRead(uint32_t base, size_t transfers, 
-				uint32_t startingMode)
+				uint32_t startingMode,
+				size_t   width)
 {
+
+  bool notlong = sizeof(width) != sizeof(uint32_t); // need to set addrNotLong in addres
+
   // There are several nasty edge cases cases to deal with.
   // If the base address is not block aligned, a partial transfer
   // of size min(remaining_blocksize, transfers) must first be dnoe.
 
 
   if ((base & 0xff) != 0) {
-    size_t aligningTransfers = (base - (base & 0xff))/sizeof(uint32_t);
+    size_t aligningTransfers = (base - (base & 0xff))/width;
     if (transfers < aligningTransfers) aligningTransfers = transfers;
     uint32_t mode  = startingMode;
     mode          |= (aligningTransfers) << modeBLTShift;
     m_list.push_back(mode);
-    m_list.push_back(base);
+    m_list.push_back(base | (notlong ? addrNotLong : 0));
 
-    base      += aligningTransfers * sizeof(uint32_t); //  This should align the base.
+    base      += aligningTransfers * width; //  This should align the base.
     transfers -= aligningTransfers; 
 
   }
@@ -476,20 +489,20 @@ CVMUSBReadoutList::addBlockRead(uint32_t base, size_t transfers,
   // or transfers are le a block.
   // The first case requires an MB and possibly a single BLT transfer.
   // the secod just a BLT...
-  // The maximum number of transfers in a block is 256/sizeof(uint32_t)
+  // The maximum number of transfers in a block is 256/width
   // by now the transfer  base address 'base' is block justified.:
 
   // base &= 0xffffff00;
-  size_t  fullBlocks   = transfers/(256/sizeof(uint32_t));
-  size_t  partialBlock = transfers % (256/sizeof(uint32_t));
+  size_t  fullBlocks   = transfers/(256/width);
+  size_t  partialBlock = transfers % (256/width);
 
   if (fullBlocks) {		// Multiblock transfer...
     uint32_t mode = startingMode;
     mode         |= modeMB;	// Multiblock transfer.
-    mode         |= (256/sizeof(uint32_t)) << modeBLTShift; // Full block to xfer.
+    mode         |= (256/width) << modeBLTShift; // Full block to xfer.
     m_list.push_back(mode);
     m_list.push_back(fullBlocks);
-    m_list.push_back(base); 
+    m_list.push_back(base  | (notlong ? addrNotLong : 0)); 
   
     if ((startingMode & modeNA) == 0 ) {
       base += fullBlocks * 256;	// Adjust to end of MBLT if not FIFO read.
@@ -501,7 +514,7 @@ CVMUSBReadoutList::addBlockRead(uint32_t base, size_t transfers,
     uint32_t   mode = startingMode;
     mode           |= (partialBlock) << modeBLTShift;
     m_list.push_back(mode);
-    m_list.push_back(base);
+    m_list.push_back(base  | (notlong ? addrNotLong : 0));
   }
 
 }

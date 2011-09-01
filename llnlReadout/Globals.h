@@ -47,6 +47,7 @@ namespace Globals {
   extern CVMUSB*         pUSBController;
   extern bool            running;
   extern TclServer*      pTclServer;
+  extern size_t          bufferMultiplier; /* # of 26Kbyte buffers to chunk together on output. */
 };
 
 #endif
