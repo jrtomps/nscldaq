@@ -33,6 +33,7 @@
 #include "CMADCChainCommand.h"
 #include "CPSDCommand.h"
 #include "CHINPCommand.h"
+#include "CV1729Command.h"
 
 #include <CReadoutModule.h>
 #include <TCLInterpreter.h>
@@ -82,6 +83,7 @@ CConfiguration::CConfiguration() :
   m_Commands.push_back(new CMADCChainCommand(*m_pInterp, *this));
   m_Commands.push_back(new CPSDCommand(*m_pInterp, *this));
   m_Commands.push_back(new CHINPCommand(*m_pInterp, *this));
+  m_Commands.push_back(new CV1729Command(*m_pInterp, *this));
 
 }
 /*!

@@ -65,4 +65,8 @@ December 10, 2010 - Added CHINP support (Wash-U Jon Elson).
 3.7 
    May 16, 2011 - Debugged support for slow controls monitor lists.
 
-	
+3.4
+   -  Add support for continuous buffer mode from VM-USB into larger
+      nscldaq homgenous buffers.	
+   - Add readout support for the CAEN V1729 FADC module.
+
