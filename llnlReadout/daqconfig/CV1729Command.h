@@ -56,7 +56,7 @@ private:
 public:
   CV1729Command(CTCLInterpreter& interp,
 	      CConfiguration&  config,
-	      std::string      commandName = std::string("adc"));
+	      std::string      commandName = std::string("v1729"));
   virtual ~CV1729Command();
 private:
   CV1729Command(const CV1729Command& rhs);
