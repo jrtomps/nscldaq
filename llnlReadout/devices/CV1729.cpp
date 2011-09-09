@@ -364,6 +364,10 @@ CV1729::addReadoutList(CVMUSBReadoutList& list)
 
   list.addRead8(base + INTERRUPT, setupAmod);
 
+  // Read the trigger rec to get the column the trigger was in.
+
+  list.addRead8(base + TRIGGERREC, setupAmod);
+
   // Figure out the size of the block read
   // Each column is 20*(# of channels) words
   // in addition there is aheader of 6*nchan words of data.
