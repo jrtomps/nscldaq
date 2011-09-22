@@ -46,6 +46,8 @@ using namespace std;
 #define Const(name) static const int name = 
 
 // Register offsets:
+// In the 1792a the registers that were 0x8xxx in the 1729
+// became 0x00xx in the 1729a.
 
 Const(RESET)           0x0800;
 Const(LOADTHRESHOLD)   0x0900;
@@ -63,9 +65,9 @@ Const(NUMCOLS)         0x2200;
 Const(CHANMASKS)       0x2300;
 Const(POSTSTOPLATENCY) 0x3000;
 Const(POSTLATPRETRIG)  0x3100;
-Const(INTERRUPT)       0x8000;
-Const(SAMPLEFREQ)      0x8100;
-Const(IRQEN)           0x8300;
+Const(INTERRUPT)       0x0000;
+Const(SAMPLEFREQ)      0x0100;
+Const(MODE)            0x0300;
 
 // Bits in various registers:
 
@@ -77,11 +79,25 @@ Const(TRGT_BOTH)         0x03;
 Const(TRGT_FALLING)      0x04;
 Const(TRGT_ALLOWRANDOM)  0x08;
 Const(TRGT_NOMASK)       0x10;
+Const(TRGT_REQUIREVALID) 0x20;
+Const(TRGT_BUSY_EN_IGNOR) 0x40;
+Const(TRGT_BUSY_DISABLE) 0x80;
 
 // Sampling frequency:
 
 Const(SF_2GHZ)           1;
 Const(SF_1GHZ)           2;
+Const(SF_500MHZ)         4;
+Const(SF_400MHZ)         5;
+Const(SF_200MHz)        10;
+Const(SF_100MHZ)        20;
+Const(SF_50MHZ)         40;
+
+// Mode register bits.
+
+Const(MODE_EN_VME_IRQ)   1;
+Const(MODE_14BIT_MODE)   2;
+Const(MODE_AUTO_RESTART) 4;
 
 // Configuration constraints.
 
@@ -92,7 +108,6 @@ static CConfigurableObject::Limits ThreshLimits(ZERO, ThreshHi);
 
 static CConfigurableObject::limit TimeMax(0xffff);
 static CConfigurableObject::Limits TimeLimit(ZERO, TimeMax); // Pretrig/posttrig
-
 
 
 // For all enums, the first item will be the default:
@@ -121,11 +136,11 @@ static const unsigned triggerEdgeMap[2] = {
 };
 
 
-static const char* samplingFrequency[3] = {
-  "2ghz", "1ghz", 0
+static const char* samplingFrequency[] = {
+  "2ghz", "1ghz", "500mhz",  0
 };
-static const unsigned samplingMap[2] = {
-  SF_2GHZ, SF_1GHZ
+static const unsigned samplingMap[] = {
+  SF_2GHZ, SF_1GHZ, SF_500MHZ
 };
 
 
@@ -201,7 +216,7 @@ CV1729::onAttach(CReadoutModule& configuration)
   // Create and limit the configuraton parameters:
 
   m_pConfiguration->addParameter("-base",
-				 CConfigurableObject::isBool, NULL, "0");
+				 CConfigurableObject::isInteger, NULL, "0");
 
   m_pConfiguration->addParameter("-irqenable",
 				 CConfigurableObject::isBool, NULL, "false");
@@ -219,6 +234,9 @@ CV1729::onAttach(CReadoutModule& configuration)
   m_pConfiguration->addParameter("-triggermask",
 				 CConfigurableObject::isBool, NULL, "off");
 
+  m_pConfiguration->addParameter("-triggerchannels",
+				 CConfigurableObject::isInteger, &ChanMask, "0xf");
+
   m_pConfiguration->addParameter("-colsread", 
 				 CConfigurableObject::isInteger, &Columns, "128");
   m_pConfiguration->addParameter("-chanmask",
@@ -226,10 +244,10 @@ CV1729::onAttach(CReadoutModule& configuration)
 
   m_pConfiguration->addParameter("-poststoplatency",
 				       CConfigurableObject::isInteger, &PostStop, "4");
-  m_pConfiguration->addParameter("-postlaetencypretrig", 
+  m_pConfiguration->addParameter("-postlatencypretrig", 
 					CConfigurableObject::isInteger, &PostStop, "1");
 
-  m_pConfiguration->addEnumParameter("-samplingFrieq", samplingFrequency);
+  m_pConfiguration->addEnumParameter("-samplingfreq", samplingFrequency);
 
   m_pConfiguration->addParameter("-delay", 
 					CConfigurableObject::isInteger, NULL, "0");
@@ -249,73 +267,73 @@ CV1729::Initialize(CVMUSB& controller)
 {
   uint32_t base = m_pConfiguration->getUnsignedParameter("-base"); // module base address.
 
-  controller.vmeWrite8(base+RESET, setupAmod, 0); // Reset board.
+  controller.vmeWrite32(base+RESET, setupAmod, 0); // Reset board.
   usleep(500);					   // Wait a bit to ensure it complete.
 
   // After reset is done all of the parameters can be set by list operations:
 
   CVMUSBReadoutList setupList;
-  setupList.addWrite16(base + THRESHOLD, setupAmod,
+  setupList.addWrite32(base + THRESHOLD, setupAmod,
 		       m_pConfiguration->getIntegerParameter("-threshold"));
-  setupList.addWrite8(base + LOADTHRESHOLD, setupAmod, 0);
+  setupList.addWrite32(base + LOADTHRESHOLD, setupAmod, 0);
 
   // Pre and post trigger times are 2 separate 16b bit registers:
 
   uint32_t preTriggerTime  = m_pConfiguration->getIntegerParameter("-pretrigger");
   uint32_t postTriggerTime = m_pConfiguration->getIntegerParameter("-posttrigger");
 
-  setupList.addWrite8(base + PRETRIGLSB, setupAmod, preTriggerTime & 0xff);
-  setupList.addWrite8(base + PRETRIGMSB, setupAmod, (preTriggerTime >> 8) & 0xff);
+  setupList.addWrite32(base + PRETRIGLSB, setupAmod, preTriggerTime & 0xff);
+  setupList.addWrite32(base + PRETRIGMSB, setupAmod, (preTriggerTime >> 8) & 0xff);
 
-  setupList.addWrite8(base + POSTTRIGLSB, setupAmod, postTriggerTime & 0xff);
-  setupList.addWrite8(base + POSTTRIGMSB, setupAmod, (postTriggerTime >> 8) & 0xff);
+  setupList.addWrite32(base + POSTTRIGLSB, setupAmod, postTriggerTime & 0xff);
+  setupList.addWrite32(base + POSTTRIGMSB, setupAmod, (postTriggerTime >> 8) & 0xff);
   
   // Compute the value of the trigger type register:
 
   uint32_t triggerSourceReg = 0;
-  triggerSourceReg |= enumToValue(m_pConfiguration->cget("-triggerSource").c_str(),
+  triggerSourceReg |= enumToValue(m_pConfiguration->cget("-triggersource").c_str(),
 			       triggerSource, triggerSourceMap);
   triggerSourceReg |= enumToValue(m_pConfiguration->cget("-triggeredge").c_str(),
 			       triggerEdge, triggerEdgeMap);
   if (!m_pConfiguration->getBoolParameter("-triggermask")) {
     triggerSourceReg |= TRGT_NOMASK;
   }
-  setupList.addWrite8(base+TRIGGERTYPE, setupAmod, triggerSourceReg);
+  setupList.addWrite32(base+TRIGGERTYPE, setupAmod, triggerSourceReg);
 
   // Trigger source channel mask:
 
-  setupList.addWrite8(base+TRIGGERSRC, setupAmod, 
+  setupList.addWrite32(base+TRIGGERSRC, setupAmod, 
 		      m_pConfiguration->getIntegerParameter("-triggerchannels"));
 
   // Columns to read:
 
-  setupList.addWrite8(base+NUMCOLS, setupAmod,
+  setupList.addWrite32(base+NUMCOLS, setupAmod,
 		      m_pConfiguration->getIntegerParameter("-colsread"));
   // Channel mask (affects total read size).
 
-  setupList.addWrite8(base+CHANMASKS, setupAmod,
+  setupList.addWrite32(base+CHANMASKS, setupAmod,
 		      m_pConfiguration->getIntegerParameter("-chanmask"));
   // Post latency crap:
 
-  setupList.addWrite8(base+POSTSTOPLATENCY, setupAmod,
+  setupList.addWrite32(base+POSTSTOPLATENCY, setupAmod,
 		      m_pConfiguration->getIntegerParameter("-poststoplatency"));
   
-  setupList.addWrite8(base+POSTLATPRETRIG, setupAmod,
+  setupList.addWrite32(base+POSTLATPRETRIG, setupAmod,
 		      m_pConfiguration->getIntegerParameter("-postlatencypretrig"));
 
   // And of course the sampling frequency:
 
-  setupList.addWrite8(base + SAMPLEFREQ, setupAmod,
+  setupList.addWrite32(base + SAMPLEFREQ, setupAmod,
 		      enumToValue(m_pConfiguration->cget("-samplingfreq").c_str(), 
 				  samplingFrequency, samplingMap));
 
   // Set the interrupt enable bit if required:
 
   if (m_pConfiguration->getBoolParameter("-irqenable")) {
-    setupList.addWrite8(base + IRQEN, setupAmod, 1);
+    setupList.addWrite32(base + MODE, setupAmod, 1);
   }
   else {
-    setupList.addWrite8(base + IRQEN, setupAmod, 0);
+    setupList.addWrite32(base + MODE, setupAmod, 0);
   }
 
   // Do the setup:
@@ -333,7 +351,7 @@ CV1729::Initialize(CVMUSB& controller)
 
   // start data taking:
 
-  controller.vmeWrite8(base + STARTACQ, setupAmod, 0);
+  controller.vmeWrite32(base + STARTACQ, setupAmod, 0);
 }
 
 /**
@@ -349,24 +367,27 @@ CV1729::addReadoutList(CVMUSBReadoutList& list)
   uint32_t base     = m_pConfiguration->getUnsignedParameter("-base");
   int      chanmask = m_pConfiguration->getIntegerParameter("-chanmask"); // affects read size.
   int      cols     = m_pConfiguration->getIntegerParameter("-colsread");
-  int      delay    = m_pConfiguration->getIntegerParameter("-delay"); // Convert to 200ns units?
-
+  int      delay    = m_pConfiguration->getIntegerParameter("-delay"); 
+  delay = delay*5;						       // VM-USB wants it in 200ns units./
 
   // The delay count can only be 8 bits worth of counter:
 
   while(delay) {
-    int thisDelay = delay & 0xff;
+    int thisDelay = delay;
+    if (thisDelay > 0xff) {
+      thisDelay = 0xff;
+    }
     list.addDelay(thisDelay);
     delay -= thisDelay;
   }
 
   // Read the interrupt register (does that make a 16 bit data item?.
 
-  list.addRead8(base + INTERRUPT, setupAmod);
+  list.addRead32(base + INTERRUPT, setupAmod);
 
   // Read the trigger rec to get the column the trigger was in.
 
-  list.addRead8(base + TRIGGERREC, setupAmod);
+  list.addRead32(base + TRIGGERREC, setupAmod);
 
   // Figure out the size of the block read
   // Each column is 20*(# of channels) words
@@ -378,13 +399,18 @@ CV1729::addReadoutList(CVMUSBReadoutList& list)
       channels++;
     }
   }
-  int totalTransferCount = 20*channels*cols + 6*channels;
+  int totalTransferCount = (20*channels*cols + 3*channels)/2 + +2;
 
-  list.addFifoRead16(base + DATABUFFER, readAmod, totalTransferCount);
+  cout << "Channels: " << channels << " Columns: " << cols << endl;
+  cout << "Total transfer count is " << totalTransferCount << " longs\n";
+
+
+  list.addFifoRead32(base + DATABUFFER, readAmod, totalTransferCount);
 
   // reset the interrupt bit:
 
-  list.addWrite8(base + INTERRUPT, setupAmod, 0);
+  list.addWrite32(base + INTERRUPT, setupAmod, 0);
+  list.addWrite32(base + STARTACQ, setupAmod, 1);
 
   
 

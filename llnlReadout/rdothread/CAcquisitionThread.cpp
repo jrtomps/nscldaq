@@ -410,7 +410,9 @@ CAcquisitionThread::startDaq()
   //   Flush scalers on a single event.
   //
   m_pVme->writeGlobalMode((4 << CVMUSB::GlobalModeRegister::busReqLevelShift) | 
-			  CVMUSB::GlobalModeRegister::flushScalers            |
+			  //			  CVMUSB::GlobalModeRegister::flushScalers            |
+			  CVMUSB::GlobalModeRegister::mixedBuffers            |
+			  // CVMUSB::GlobalModeRegister::spanBuffers             |
 			  (CVMUSB::GlobalModeRegister::bufferLen13K << 
 			   CVMUSB::GlobalModeRegister::bufferLenShift));
 
@@ -569,7 +571,7 @@ void
 CAcquisitionThread::bootToTheHead()
 {
 	uint32_t junk;
-	cerr << "Desparate measures being employed to attempt final drain\n";
+	cerr << "Desperate measures being employed to attempt final drain\n";
 	m_pVme->writeActionRegister(CVMUSB::ActionRegister::sysReset);
 	m_pVme->writeActionRegister(0);
 	usleep(100);

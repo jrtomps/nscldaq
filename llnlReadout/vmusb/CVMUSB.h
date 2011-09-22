@@ -269,7 +269,7 @@ public:
 	static const uint16_t bufferLen128     = 7;
 	static const uint16_t bufferLen64      = 8;
 	static const uint16_t bufferLenSingle  = 9;
-
+	static const uint16_t spanBuffers      = 0x10;
 	static const uint16_t mixedBuffers     = 0x20;
 	static const uint16_t doubleSeparater  = 0x40;
 	static const uint16_t align32          = 0x80;

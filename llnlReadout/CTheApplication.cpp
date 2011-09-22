@@ -146,6 +146,7 @@ CTheApplication::startOutputThread()
 {
   COutputThread* router = new COutputThread;
   daq_dispatcher.Dispatch(*router);
+  usleep(500);
 
 }
 /* 
@@ -160,6 +161,7 @@ CTheApplication::startTclServer()
   pServer->start(tclServerPort, Globals::controlConfigFilename.c_str(),
 		   *Globals::pUSBController);
   Globals::pTclServer = pServer; // Save for readout.
+  usleep(500);
 }
 /*
     Start the Tcl interpreter, we use the static AppInit as a trampoline into the

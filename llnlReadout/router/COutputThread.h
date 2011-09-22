@@ -108,7 +108,6 @@ private:
   // other data:
 private:
   uint32_t    m_sequence;	   // Buffer sequence number.
-  size_t      m_outputBufferSize;  // Bytes in output buffers.
   timespec    m_startTimestamp;    //!< Run start time.
   timespec    m_lastStampedBuffer; //!< Seconds into run of last stamped buffer.
   size_t      m_nOutputBufferSize;       //!< size of output buffer in bytes.

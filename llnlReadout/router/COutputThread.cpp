@@ -1,5 +1,3 @@
-
-
 /*
     This software is Copyright by the Board of Trustees of Michigan
     State University (c) Copyright 2005.
@@ -103,7 +101,7 @@ mytimersub(timespec* minuend, timespec* subtrahend, timespec* difference)
 */
 COutputThread::COutputThread() : 
   m_sequence(0),
-  m_outputBufferSize(0),		// Don't know yet.
+  m_nOutputBufferSize(0),		// Don't know yet.
   m_pBuffer(0),
   m_pCursor(0),
   m_pEventStart(0),
@@ -268,6 +266,8 @@ COutputThread::processBuffer(DataBuffer& buffer)
 void
 COutputThread::startRun(DataBuffer& buffer)
 {
+  cerr << "Buffer multiplier (COutputThread) : " << Globals::bufferMultiplier << endl;
+
   // Figure out the buffers size:
 
   m_nOutputBufferSize = Globals::bufferMultiplier*26*1024 + 32;
@@ -337,15 +337,41 @@ COutputThread::endRun(DataBuffer& buffer)
  *    is considered a physics event.
  *
  * @param inBuffer  -  Reference to a raw input buffer.
- */ 
+ */
+static uint32_t  bufferNumber = 0; 
 void 
 COutputThread::processEvents(DataBuffer& inBuffer)
 {
   uint16_t* pContents = inBuffer.s_rawData;
-  size_t    nWords    = pContents[1];
-  pContents          += 2;	// Pointeing to the first event in the buffer.
+  int16_t  nEvents   = (*pContents) & VMUSBNEventMask;
+  bool     continuous = ((*pContents) & VMUSBContinuous) != 0;
+  bool     multibuffer = ((*pContents) & VMUSBMultiBuffer) != 0;
 
-  while (nWords) {
+  bufferNumber++;
+  if(continuous) {
+    cerr << "Buffer number " << bufferNumber << " is in continuous mode\n";
+  }
+  if (multibuffer) {
+    cerr << "Buffer number " << bufferNumber << "Spans buffer boundaries. \n";
+  }
+
+
+  pContents++;			// Point to first event.
+  ssize_t    nWords    = (inBuffer.s_bufferSize)/sizeof(uint16_t) - 1; // Remaining words read.
+
+
+  while (nWords > 0) {
+    if (nEvents <= 0) {
+      // Next long should be 0xffffffff buffer terminator:
+
+      uint32_t* pNextLong = reinterpret_cast<uint32_t*>(pContents);
+      if (*pNextLong != 0xffffffff) {
+	cerr << "Ran out of events but did not see buffer terminator\n";
+	cerr << nWords << " remaining unprocessed\n";
+      }
+
+      break;			// trusting event count vs word count(?).
+    }
     uint16_t header     = *pContents;
     size_t   eventLength = header & VMUSBEventLengthMask;
     uint8_t  stackNum   = (header & VMUSBStackIdMask) >> VMUSBStackIdShift;
@@ -361,9 +387,12 @@ COutputThread::processEvents(DataBuffer& inBuffer)
     }
     // Adjust pointer to the next event and decrement the size:
     
-    pContents += eventLength;
-    nWords    -= eventLength;
-
+    pContents += eventLength + 1; // Event count is not self inclusive.
+    nWords    -= (eventLength + 1);
+    nEvents--;
+  }
+  if (nWords < 0) {
+    cerr << "Warning used up more than the buffer  by " << (-nWords) << endl;
   }
 }
 
@@ -381,9 +410,10 @@ void
 COutputThread::scaler(void* pData)
 {
   if (m_pBuffer) {
+    fillEventHeader();
     flush();
   }
-  newOutputBuffer();			// Scaler events stand alone in their own buffer.
+  m_pBuffer = newOutputBuffer();			// Scaler events stand alone in their own buffer.
 
   uint16_t* pHeader = reinterpret_cast<uint16_t*>(pData);
   uint16_t  header  = *pHeader;
@@ -454,7 +484,8 @@ COutputThread::flush()
     else {
       tag = 3;
     }
-    bufferToSpectrodaq(m_pBuffer, tag, m_outputBufferSize, m_nWordsInBuffer);
+    bufferToSpectrodaq(m_pBuffer, tag, 
+		       m_nOutputBufferSize/sizeof(uint16_t), m_nWordsInBuffer);
 
     free(m_pBuffer);
     m_pBuffer = m_pCursor = m_pEventStart = 0;
@@ -480,15 +511,15 @@ COutputThread::overflowOutputBuffer()
   uint8_t*  pNewBuffer = newOutputBuffer();
   uint8_t* pNewCursor = (&pNewBuffer[sizeof(BHEADER)]); // buffer body.
   uint8_t* pNewEventStart = pNewCursor;
-  size_t   newBufferWords = 0;
+  size_t   newBufferWords = sizeof(BHEADER)/sizeof(int16_t);
   
 
   // Send the output buffer to spectrodaq:
 
   bufferToSpectrodaq(m_pBuffer,
 		     2,
-		     m_outputBufferSize,
-		     m_nWordsInBuffer + 16);
+		     m_nOutputBufferSize/sizeof(uint16_t),
+		     m_nWordsInBuffer);
 
 
   // Copy any partial event to the new buffer:
@@ -496,7 +527,7 @@ COutputThread::overflowOutputBuffer()
   if (m_pCursor != m_pEventStart) {
     uint32_t partialEventSize = m_pCursor - m_pEventStart;
     memcpy(pNewCursor, m_pEventStart, partialEventSize);
-    newBufferWords = partialEventSize/sizeof(uint16_t);
+    newBufferWords += partialEventSize/sizeof(uint16_t);
     pNewCursor    += partialEventSize;
   }
   free(m_pBuffer);
@@ -521,7 +552,7 @@ COutputThread::overflowOutputBuffer()
 uint8_t* 
 COutputThread::newOutputBuffer()
 {
-  return reinterpret_cast<uint8_t*>(malloc(m_outputBufferSize));
+  return reinterpret_cast<uint8_t*>(malloc(m_nOutputBufferSize));
 }
 /**
  * Process a single event segment to the output buffer.
@@ -535,6 +566,18 @@ COutputThread::newOutputBuffer()
 void 
 COutputThread::event(void* pData)
 {
+  // If necessary make an new output buffer
+
+  if (!m_pBuffer) {
+    m_pBuffer     = newOutputBuffer();
+    m_pEventStart = m_pBuffer + sizeof(BHEADER);
+    m_pCursor     = m_pEventStart;
+    m_nWordsInBuffer = sizeof(BHEADER)/sizeof(uint16_t);
+    m_nEventsInBuffer = 0;
+  }
+
+  // Initialize the pointers to event bits and pieces.
+
   uint16_t* pSegment = reinterpret_cast<uint16_t*>(pData);
   uint16_t  header   = *pSegment;
 
@@ -546,14 +589,14 @@ COutputThread::event(void* pData)
   // first question is whether or not this segment will fit in 
   // the output buffer.  If not, overflow it  so we have a new buffer to work in:
 
-  if ((segmentSize + m_nWordsInBuffer) >= m_outputBufferSize) {
+  if ((segmentSize + m_nWordsInBuffer) >= m_nOutputBufferSize/sizeof(uint16_t)) {
     overflowOutputBuffer();
   }
   // Next we can copy our data to the output buffer and update the cursro
   // remembering that the size is not self inclusive:
   //
   segmentSize += 1;
-  memcpy(m_pCursor, pData, segmentSize*sizeof(uint8_t));
+  memcpy(m_pCursor, pData, segmentSize*sizeof(uint16_t));
   m_nWordsInBuffer += segmentSize;
 
   // Different handling of the cursor and event start/event count 
@@ -561,7 +604,7 @@ COutputThread::event(void* pData)
   // Event start is normally kept the same as the event cursor but
   // not so if the event is segmented:
 
-  m_pCursor += segmentSize*sizeof(uint8_t); // advance the cursor
+  m_pCursor += segmentSize*sizeof(uint16_t); // advance the cursor
     
   if (!haveMore) {			    // Ending segment:
 
@@ -595,7 +638,7 @@ COutputThread::fillEventHeader()
   pHeader->buffmt   = BUFFER_REVISION;
   pHeader->ssignature = 0x0102;
   pHeader->lsignature = 0x01020304;
-
+  pHeader->nevt       = m_nEventsInBuffer;
   
 }
 

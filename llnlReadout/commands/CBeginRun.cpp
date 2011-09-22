@@ -122,6 +122,7 @@ CBeginRun::operator()(CTCLInterpreter& interp,
     return TCL_ERROR;
 		       
   }
+  cerr << "Buffer multiplier (CBegin) = " << Globals::bufferMultiplier << endl;
 
   CAcquisitionThread* pReadout = CAcquisitionThread::getInstance();
   pReadout->start(Globals::pUSBController,

@@ -52,7 +52,7 @@ class CVMUSBReadoutList;
 
 
 /**
- *  Support the CAEN V1729 flash adc module.  This is a waveform digitizer module:
+ *  Support the CAEN V1729A flash adc module.  This is a waveform digitizer module:
  *  4 channels with 2520 usable points per trigger.
  *  Sampling speeds can run up to 2Ghz into an analog memory but with the 5MHz adc
  *  and low onboard clock speeds the board has several issues to be concerned with:
@@ -63,6 +63,8 @@ class CVMUSBReadoutList;
  *    as the VM-USB can delay at most 256usec prior to readout a delay parameter allows further
  *    delay elements to be inserted in the readout list prior to executing the readout of the
  *    module
+ *  \note the 1729 has a completely different register set and cannot use this class.
+
  * 
  * Here are the configuration parameters supported by this module:
  *\verbatim
