@@ -237,10 +237,6 @@ CV1729::onAttach(CReadoutModule& configuration)
   m_pConfiguration->addParameter("-triggerchannels",
 				 CConfigurableObject::isInteger, &ChanMask, "0xf");
 
-  m_pConfiguration->addParameter("-colsread", 
-				 CConfigurableObject::isInteger, &Columns, "128");
-  m_pConfiguration->addParameter("-chanmask",
-					CConfigurableObject::isInteger, &ChanMask, "0xf");
 
   m_pConfiguration->addParameter("-poststoplatency",
 				       CConfigurableObject::isInteger, &PostStop, "4");
@@ -308,11 +304,10 @@ CV1729::Initialize(CVMUSB& controller)
   // Columns to read:
 
   setupList.addWrite32(base+NUMCOLS, setupAmod,
-		      m_pConfiguration->getIntegerParameter("-colsread"));
+		       128);
   // Channel mask (affects total read size).
 
-  setupList.addWrite32(base+CHANMASKS, setupAmod,
-		      m_pConfiguration->getIntegerParameter("-chanmask"));
+
   // Post latency crap:
 
   setupList.addWrite32(base+POSTSTOPLATENCY, setupAmod,
@@ -365,8 +360,7 @@ void
 CV1729::addReadoutList(CVMUSBReadoutList& list)
 {
   uint32_t base     = m_pConfiguration->getUnsignedParameter("-base");
-  int      chanmask = m_pConfiguration->getIntegerParameter("-chanmask"); // affects read size.
-  int      cols     = m_pConfiguration->getIntegerParameter("-colsread");
+  int      cols     = 128;;
   int      delay    = m_pConfiguration->getIntegerParameter("-delay"); 
   delay = delay*5;						       // VM-USB wants it in 200ns units./
 
@@ -391,15 +385,17 @@ CV1729::addReadoutList(CVMUSBReadoutList& list)
 
   // Figure out the size of the block read
   // Each column is 20*(# of channels) words
-  // in addition there is aheader of 6*nchan words of data.
+  // There's a header consisting of:
+  //  First sample for each channel,
+  //  Verniers for each channel.
+  // Reset baseline for each channel
+  // And a trailer consisting of:
+  // Trigger_rec
+  // Valp_cp
+  // Vali_cp
 
-  int channels = 0;		// Count the channels.
-  for (int i =0; i < 4; i++) {
-    if (chanmask & (1 << i)) {
-      channels++;
-    }
-  }
-  int totalTransferCount = (20*channels*cols + 3*channels)/2 + +2;
+  int channels = 4;		// Count the channels.
+  int totalTransferCount = (20*channels*cols + 3*channels)/2  + 2;
 
   cout << "Channels: " << channels << " Columns: " << cols << endl;
   cout << "Total transfer count is " << totalTransferCount << " longs\n";

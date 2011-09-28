@@ -81,10 +81,6 @@ class CVMUSBReadoutList;
  *                                     to fire.
  *   -triggerchannels 0xf              Only used if internal triggers are allowed.  Set one bit for each
  *                                     channel from which triggers are allowed.
- *  -colsread         128              Number of columns to read for each event.  The actual number of
- *                                     samples will be 20*(-colsread) as each MATACQ chip column is 
- *                                     20 elements.
- *  -chanmask         0xf              Set one bit for each channel for which you want data.
  *  -poststoplatency  4                Sets the post trigger latency register 
  *  -postlatencypretrig 1              Sets the value of the post latency pretrigger register.
  *  -samplingfreq     2ghz             Sampling frequency, can also be 1Ghz.
