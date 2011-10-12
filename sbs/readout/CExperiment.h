@@ -30,6 +30,12 @@
 #endif
 #endif
 
+#ifndef __CRT_TIME_H
+#include  <time.h>
+#ifndef __CRT_TIME_H
+#define __CRT_TIME_H
+#endif
+#endif
 
 #ifndef __TCL_H
 #include <tcl.h>
@@ -78,9 +84,10 @@ private:
 
   size_t                 m_nDataBufferSize; //!< current event buffer size.
 
-  uint32_t               m_nLastScalerTime; //
+  time_t                 m_nLastScalerTime; //
   uint64_t               m_nEventsEmitted;
-
+  time_t                 m_nRunStartStamp;
+  time_t                 m_nPausedSeconds;
 
   // Canonicals:
 

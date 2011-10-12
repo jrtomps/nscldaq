@@ -135,6 +135,8 @@ CExperiment::getBufferSize() const
 void
 CExperiment::Start(bool resume)
 {
+  time_t stamp = time(&stamp);
+
   // The run must be in the correct state:
 
   if (resume && (m_pRunState->m_state != RunState::paused)) {
@@ -152,17 +154,23 @@ CExperiment::Start(bool resume)
   // 
   //
   if (m_pRunState->m_state != RunState::paused) {
+    m_nRunStartStamp  = stamp;
     m_nEventsEmitted  = 0;
-    m_nLastScalerTime = 0;
+    m_nLastScalerTime = m_nRunStartStamp;
+    m_nPausedSeconds  = 0;
 
   }
-      
-  time_t  now;
-  time(&now);
+  if (resume) {
+    m_nPausedSeconds += (stamp - m_nLastScalerTime);
+    m_nLastScalerTime = stamp;
+  }
+  
+  uint32_t elapsedTime = stamp - m_nRunStartstamp - m_nPausedSeconds;
+
   CRingStateChangeItem item(resume ? PAUSE_RUN : BEGIN_RUN, 
 			    m_pRunState->m_runNumber,
-			    m_pRunState->m_timeOffset = (resume ? m_pRunState->m_timeOffset : 0),
-			    now,
+			    elapsedTime,
+			    stamp,
 			    std::string(m_pRunState->m_pTitle));
   item.commitToRing(*m_pRing);
   
@@ -450,6 +458,12 @@ void
 CExperiment::readScalers()
 {
   time_t           now     = time(&now);
+  uint32_t         startTime = 
+    m_nLastScalertime  - m_nRunStartStamp - m_nPausedSeconds;
+  uint32_t         endTime   =
+    now - m_nRunStartStamp - m_nPausedSeconds;
+
+  m_nLastScalerTime = now;
 
   // can only do scaler readout if we have a root scaler bank:
 
@@ -457,18 +471,17 @@ CExperiment::readScalers()
     vector<uint32_t> scalers = m_pScalers->read();
     m_pScalers->clear();	// Clear scalers after read.
 
-    CRingScalerItem  item(m_nLastScalerTime,
-			  m_pRunState->m_timeOffset,
+    CRingScalerItem  item(startTime,
+			  endTime,
 			  now,
 			  scalers);
     item.commitToRing(*m_pRing);
-    m_nLastScalerTime = m_pRunState->m_timeOffset;
 			  
   }
   // Regardless, let's emit a physics event count stamp:
 
   CRingPhysicsEventCountItem item(m_nEventsEmitted,
-				  m_pRunState->m_timeOffset,
+				  endTime,
 				  now);
   item.commitToRing(*m_pRing);
 }
