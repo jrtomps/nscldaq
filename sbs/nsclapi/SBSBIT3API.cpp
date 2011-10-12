@@ -467,14 +467,6 @@ CVMEInterface::Read(void* pDeviceHandle,
   bt_devdata_t oldAmod;
   oldAmod = setAmod(pHandle, BT_INFO_DMA_AMOD);
 
-  CSBSBit3VmeInterface::SetTraceMask( pHandle,
-				      BT_TRC_RD_WR |
-				      BT_TRC_DMA   |
-				      BT_TRC_PIO   |
-				      BT_TRC_RD_WR |
-				      BT_TRC_INFO |
-				      BT_TRC_DETAIL |
-				      BT_TRC_FUNC);
 
   // Buffer the read through a page aligned buffer:
 

@@ -68,3 +68,4 @@ October 12, 2011 10.0-011
 	* Work around issues with the documentation getting too big for 
 	  docbook2dvi (it segfaults)...by generating man pages and 
 	  htmldocs only.
+        - Turn off driver tracing in CVMEInterface::Read. oops
