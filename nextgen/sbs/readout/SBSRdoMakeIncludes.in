@@ -7,9 +7,14 @@ CXX=@CXX@
 CXXLD=@CXX@
 CCLD=@CC@
 
-CXXFLAGS=-g -I. -I@prefix@/include -I@prefix@/include/sbsreadout \
-	@TCL_FLAGS@ @THREADCXX_FLAGS@
-CCFLAGS=$(CXXFLAGS)
+COMMONFLAGS= -g -I. -I@prefix@/include -I@prefix@/include/sbsreadout \
+	     -DHAVE_VME_MAPPING -DHAVE_SBSVME_INTERFACE \
+	      @TCL_FLAGS@ @THREADCXX_FLAGS@
+
+CXXFLAG= $(COMMONFLAGS)  $(USERCXXFLAGS)
+
+CCFLAGS= $(COMMONFLAGS) $(USERCCFLAGS)
 
 LDFLAGS=-L@prefix@/lib -lSBSProductionReadout -lException -ldaqthreads -ltclPlus  \
+		       $(USERLDFLAGS) \
 		@TCL_LDFLAGS@ @THREADLD_FLAGS@ -Wl,"-rpath=@prefix@/lib"

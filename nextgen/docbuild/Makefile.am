@@ -4,12 +4,13 @@ EXTRA_DIST = alltsts.tcl docbuilder.tcl \
 
 
 
-install-exec-local: daq.pdf daq.mans
+install-exec-local: daq.html daq.mans
 	$(mkinstalldirs) $(prefix)/share
 	$(mkinstalldirs)  $(prefix)/share/man
+	$(mkinstalldirs) $(prefix)/share/html
 	for i in 1 2 3 4 5 6 7 8; do $(mkinstalldirs) $(prefix)/share/man/man$$i; done
 	- for i in 1 2 3 4 5 6 7 8; do for f in *.$$i*; do  $(INSTALL_DATA) $$f $(prefix)/share/man/man$$i; done; done
-	$(INSTALL_DATA) daq.pdf $(prefix)/share
+	$(INSTALL_DATA) html/* $(prefix)/share/html
 
 clean-local:
 	-rm -f *.pdf
@@ -20,8 +21,10 @@ clean-local:
 
 if PDFDOCS
 DOCBOOK2PDF = docbook2pdf
+DOCBOOK2HTML= docbook2html -o html
 else
 DOCBOOK2PDF = touch daq.pdf 
+DOCBOOK2HTML= touch daq.html
 endif
 
 
@@ -38,6 +41,12 @@ daq.pdf: daq.xml
 daq.mans: daq.xml
 	- $(DOCBOOK2MAN) daq.xml
 	touch daq.mans
+
+daq.html: daq.xml
+	- rm -rf html
+	mkdir html
+	- $(DOCBOOK2HTML) daq.xml
+	touch daq.html
 
 daq.xml:
 	$(TCLSH_CMD) docbuilder.tcl @top_srcdir@/docconfig "NSCL DAQ Software Documentation" @top_srcdir@ >daq.xml

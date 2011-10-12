@@ -61,3 +61,12 @@ CCAENV262Busy::GoReady()
   m_busy.PulseOutput(3);
   m_busy.PulseOutput(1);
 }
+
+/**
+ * Virtual function that indicatse we are going clear/ready:
+ */
+void
+CCAENV262Busy::GoClear()
+{
+  GoReady();
+}
