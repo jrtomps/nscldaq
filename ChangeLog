@@ -74,3 +74,4 @@ October 12, 2011 10.0-011
 	- Fix broken -p switch in tcl server.
 	- Clear scalers and readout hardware much later in the
  	  initialization game.
+	- Fix time handling for scaler reads.
