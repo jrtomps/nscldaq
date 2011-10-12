@@ -50,3 +50,21 @@ July 8, 2011 10.0-009
 	only marginally good for some people with small gecos fields.
 August 5, 2011 10.0-010
 	- Remove extraneous -lpub from daqstart's Makefile.am.
+October 12, 2011 10.0-011
+	Fixes for defects in readout framework found when getting CAESAR ready:
+	- SBS Makefile did not honor USERCXXFLAGS, USERCCFLAGS nor
+ 	  USERLDFLAGS support was added in a way that ensures that
+	  USERCCFLAGS and USERCXXFLAGS may differ but nonetheless
+	  factoring out the common flagsets.
+	- Add -D's  to the Makefiel includes so that users accessing VME
+	  classes get the fact that we have a mapped interface.
+	- Add missing #define __CREADOUTMAIN_H to CReadoutMain.h
+	- Fix error in CAENV262Busy - defined GoReady rather than GoClear
+	  so it became an abstract class.  Fixed while retaining the
+	  GoReady function because we know the workaround kludge/fix won't
+	  disappear.
+	- Call clear on main scaler bank in CExperiment after the readout
+	  so scaler don't continuously increment
+	* Work around issues with the documentation getting too big for 
+	  docbook2dvi (it segfaults)...by generating man pages and 
+	  htmldocs only.

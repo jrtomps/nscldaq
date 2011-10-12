@@ -452,7 +452,7 @@ CExperiment::readScalers()
 
   if (m_pScalers) {
     vector<uint32_t> scalers = m_pScalers->read();
-    
+    m_pScalers->clear();	// Clear scalers after read.
 
     CRingScalerItem  item(m_nLastScalerTime,
 			  m_pRunState->m_timeOffset,
