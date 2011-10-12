@@ -165,7 +165,7 @@ CExperiment::Start(bool resume)
     m_nLastScalerTime = stamp;
   }
   
-  uint32_t elapsedTime = stamp - m_nRunStartstamp - m_nPausedSeconds;
+  uint32_t elapsedTime = stamp - m_nRunStartStamp - m_nPausedSeconds;
 
   CRingStateChangeItem item(resume ? PAUSE_RUN : BEGIN_RUN, 
 			    m_pRunState->m_runNumber,
@@ -459,7 +459,7 @@ CExperiment::readScalers()
 {
   time_t           now     = time(&now);
   uint32_t         startTime = 
-    m_nLastScalertime  - m_nRunStartStamp - m_nPausedSeconds;
+    m_nLastScalerTime  - m_nRunStartStamp - m_nPausedSeconds;
   uint32_t         endTime   =
     now - m_nRunStartStamp - m_nPausedSeconds;
 
