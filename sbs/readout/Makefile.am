@@ -73,6 +73,7 @@ libSBSProductionReadout_la_LIBADD	=	@top_srcdir@/sbs/vmemodules/libSBSDeviceSupp
 						@top_srcdir@/base/tclplus/libtclPlus.la		\
 						@top_srcdir@/servers/portmanager/libPortManager.la \
 						@top_srcdir@/base/dataflow/libDataFlow.la	\
+						@top_srcdir@/sbs/
 						@top_srcdir@/sbs/driver/src/libbtp.la
 
 
@@ -148,6 +149,7 @@ tests_LDADD = 	CExperiment.lo	\
 		@top_srcdir@/base/dataflow/libDataFlow.la	\
 		@top_srcdir@/base/tclplus/libtclPlus.la		\
 		@top_srcdir@/base/exception/libException.la	\
+		@top_srcdir@/sbs/nsclapi/libSBSVmeAPI.la	\
 		@top_srcdir@/base/thread/libdaqthreads.la	\
 		$(CPPUNIT_LDFLAGS)  $(THREADLD_FLAGS)
 

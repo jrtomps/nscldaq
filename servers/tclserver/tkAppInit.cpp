@@ -129,7 +129,7 @@ static void GetServerPort(int argc, char** argv)
 
   // Otherwise needs to be a number:
   
-  if(sscanf(thePort.c_str(), "-p%d", &port) != 1) {
+  if(sscanf(thePort.c_str(), "%d", &port) != 1) {
     fprintf(stderr, 
 	    "Warning ignored improperly formatted port switch: '%s'\n",
 	    thePort.c_str());
