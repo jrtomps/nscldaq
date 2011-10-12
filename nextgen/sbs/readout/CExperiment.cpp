@@ -147,16 +147,7 @@ CExperiment::Start(bool resume)
 			  RunState::stateName(RunState::inactive).c_str(),
 			  "Starting data taking");
   }
-  // Initialize/clear the hardware:
 
-  if (m_pReadout) {
-    m_pReadout->initialize();
-    m_pReadout->clear();
-  }
-  if (m_pScalers) {
-    m_pScalers->initialize();
-    m_pScalers->clear();
-  }
   // Begin run zeroes the previous scaler time, and ring buffer item sequence.
   // 
   //
@@ -185,6 +176,7 @@ CExperiment::Start(bool resume)
     count.commitToRing(*m_pRing);
   }
 
+ 
   // Start the trigger loop:
 
   if (!m_pTriggerLoop) {
@@ -194,6 +186,17 @@ CExperiment::Start(bool resume)
   // Can only start it if the triggers have been established:
   
   if (m_pEventTrigger && m_pScalerTrigger) {
+    // Initialize/clear the hardware:
+    
+    if (m_pReadout) {
+      m_pReadout->initialize();
+      m_pReadout->clear();
+    }
+    if (m_pScalers) {
+      m_pScalers->initialize();
+      m_pScalers->clear();
+    }
+
     m_pTriggerLoop->start();
   }
 

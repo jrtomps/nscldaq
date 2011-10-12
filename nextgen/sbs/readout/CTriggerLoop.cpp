@@ -23,13 +23,15 @@
 #include <CInvalidArgumentException.h>
 #include <string>
 #include <stdlib.h>
-
+#include <CVMEInterface.h>
 
 #include <stdio.h>
 
 #include <iostream>
 
 using namespace std;
+
+static const unsigned DWELL_COUNT(100);
 
 /*!
   Construct the trigger loop object.  We have lazy binding to the
@@ -136,12 +138,22 @@ CTriggerLoop::mainLoop()
   if (pScaler) pScaler->setup();
 
   do {
-    if ((*pEvent)()) {
-      m_pExperiment->ReadEvent();
+    try {
+      CVMEInterface::Lock();
+      for (int i =0; i < DWELL_COUNT; i++) {
+	if ((*pEvent)()) {
+	  m_pExperiment->ReadEvent();
+	}
+	if ((*pScaler)()) {
+	  m_pExperiment->TriggerScalerReadout();
+	}
+      }
     }
-    if ((*pScaler)()) {
-      m_pExperiment->TriggerScalerReadout();
+    catch(...) {
+      CVMEInterface::Unlock();
+      throw;
     }
+    CVMEInterface::Unlock();
   }
   while(!m_stopping);
   // End of run scaler:

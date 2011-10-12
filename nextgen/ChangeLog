@@ -69,3 +69,8 @@ October 12, 2011 10.0-011
 	  docbook2dvi (it segfaults)...by generating man pages and 
 	  htmldocs only.
         - Turn off driver tracing in CVMEInterface::Read. oops
+	- Lock/unlock VME Interface in trigger main loop for some dwell
+	  time.
+	- Fix broken -p switch in tcl server.
+	- Clear scalers and readout hardware much later in the
+ 	  initialization game.
