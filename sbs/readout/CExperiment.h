@@ -84,10 +84,10 @@ private:
 
   size_t                 m_nDataBufferSize; //!< current event buffer size.
 
-  time_t                 m_nLastScalerTime; //
+  uint64_t               m_nLastScalerTime; // last scaler time in ms since epoch (usually).
   uint64_t               m_nEventsEmitted;
-  time_t                 m_nRunStartStamp;
-  time_t                 m_nPausedSeconds;
+  uint64_t               m_nRunStartStamp; /* Run start time in ms since epoch. */
+  uint64_t               m_nPausedmSeconds; /*Seconds paused in ms. */
 
   // Canonicals:
 
@@ -132,6 +132,7 @@ private:
   void readScalers();
   void syncEndRun(bool pause);
   static int HandleEndRunEvent(Tcl_Event* evPtr, int flags);
+  static uint64_t getTimeMs();
 
 };
 

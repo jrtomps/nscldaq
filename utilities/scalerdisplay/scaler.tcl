@@ -1,7 +1,7 @@
 #!/bin/sh
 #   NOTE:: tclserver must live in the path.
 #   start tclserver on us. \
-exec tclserver  -pManaged -a"Scaler Display"  -userauth ${0} ${@}
+exec tclserver  -pManaged -a"ScalerDisplay"  -userauth ${0} ${@}
 
 #    This software is Copyright by the Board of Trustees of Michigan
 #    State University (c) Copyright 2005.
@@ -43,6 +43,7 @@ exec tclserver  -pManaged -a"Scaler Display"  -userauth ${0} ${@}
 #                    - Alarming
 #                    - Strip charts.
 #                    - Final rate == average rate.
+#    Iteation 8:    Allow alarms to be disaled per Dirk's request.
 #
 #
 # Ensure that initially required variables exist:
@@ -100,6 +101,7 @@ set lowColor   green
 set hiColor    red
 set bothColor  orange
 set silentAlarms 0
+set alarmsEnabled 1;			# Alarms start out enabled.
 
 #  The global variables below configure the strip chart
 # recorder.
@@ -596,7 +598,7 @@ proc Update {} {
     }
     
     if {$State == "Active" } {
-       DoUpdate
+        DoUpdate
     } else {
         DoUpdate 1
     }
@@ -696,7 +698,7 @@ proc EndRun   {} {
 	if {$channel != $Fakename} {
 	    set   id $ScalerMap($channel)
 	    if {$ElapsedRunTime != 0} {
-		set   Average [expr $Scaler_Totals($id)/$ElapsedRunTime]
+		set   Average [expr (1.0*$Scaler_Totals($id))/$ElapsedRunTime]
 	    } else {
 		set Average 0
 	    }
@@ -866,6 +868,7 @@ proc UpdateSingle {widget line name page {average 0}} {
     global ScalerDeltaTime
     global ElapsedRunTime
     global pageAlarmState
+    global alarmsEnabled
 
     if {[catch "set i $ScalerMap($name)"] == 0} {
 	if {[catch "set totals $Scaler_Totals($i)"] == 0} {
@@ -886,10 +889,16 @@ proc UpdateSingle {widget line name page {average 0}} {
 
             # Check the alarms:
 
-            set alarms [checkAlarms $name $rate]
-            set pageAlarmState($page) [expr $pageAlarmState($page) | $alarms]
-            $widget cellconfigure $line,2 -background [alarmColor $alarms]
-            $widget cellconfigure $line,0 -background [alarmColor $alarms]
+	    if {$alarmsEnabled} {
+		set alarms [checkAlarms $name $rate]
+		set pageAlarmState($page) [expr $pageAlarmState($page) | $alarms]
+		$widget cellconfigure $line,2 -background [alarmColor $alarms]
+		$widget cellconfigure $line,0 -background [alarmColor $alarms]
+	    } else {
+		$widget cellconfigure $line,2 -background [alarmColor 0]
+		$widget cellconfigure $line,0 -background [alarmColor 0]
+		
+	    }
 	}
     }
 
@@ -913,6 +922,7 @@ proc UpdateRatio {widget line numerator denominator page {average 0}} {
     global ScalerDeltaTime
     global ElapsedRunTime
     global pageAlarmState
+    global alarmsEnabled
 
     if {[catch "set n $ScalerMap($numerator)"] == 0} {
 	if {[catch "set d $ScalerMap($denominator)"] == 0} {
@@ -947,20 +957,29 @@ proc UpdateRatio {widget line numerator denominator page {average 0}} {
 	    }
 	    $widget cellconfigure $line,2 -text  "$rn $rd"
 	    $widget cellconfigure $line,3 -text  "$tn $td"
-	    $widget cellconfigure $line,4 -text [format "%.2f %.2f" $qr $qt]
+	    $widget cellconfigure $line,4 -text [list $qr $qt]
 
             # Check the alarms:
 
-            set alarm1 [checkAlarms $numerator $rn]
-            set alarm2 [checkAlarms $denominator $rd]
-            set alarms [expr $alarm1 | $alarm2]
-
-            set pageAlarmState($page) [expr $pageAlarmState($page) | $alarms]
-            $widget cellconfigure $line,2 -background \
+	    if {$alarmsEnabled} {
+		
+		set alarm1 [checkAlarms $numerator $rn]
+		set alarm2 [checkAlarms $denominator $rd]
+		set alarms [expr $alarm1 | $alarm2]
+		
+		set pageAlarmState($page) [expr $pageAlarmState($page) | $alarms]
+		$widget cellconfigure $line,2 -background \
                     [alarmColor $alarms]
-            $widget cellconfigure $line,0 -background [alarmColor $alarm1]
-            $widget cellconfigure $line,1 -background [alarmColor $alarm2]
+		$widget cellconfigure $line,0 -background [alarmColor $alarm1]
+		$widget cellconfigure $line,1 -background [alarmColor $alarm2]
+		
+	    } else {
+		$widget cellconfigure $line,2 -background \
+                    [alarmColor 0]
+		$widget cellconfigure $line,0 -background [alarmColor 0]
+		$widget cellconfigure $line,1 -background [alarmColor 0]
 
+	    }
 	}
     }
 }
@@ -982,7 +1001,6 @@ proc UpdateTable {widget page {average 0}} {
     global ScalerDeltaTime
     global pageAlarmState
     global Notebook
-
 
     set pageAlarmState($page) 0
 
@@ -1014,6 +1032,8 @@ proc SetupGui {top} {
     global RunStateName
     global $RunStateName
     global HMStime ScalerDeltaTime
+    global alarmsEnabled
+
     set stat      [frame $top.status]
     set topstat   [frame $stat.top]
     set title     [frame $stat.title]
@@ -1079,7 +1099,10 @@ proc SetupGui {top} {
     set notebook [tabset $book.pages -tiers 3 -tearoff 0]
     pack $book.pages -side top -fill both -expand 1
     pack $book       -side top -fill both -expand 1
-
+    
+    checkbutton $top.alarms -text {Enable Alarms} -variable alarmsEnabled
+    pack $top.alarms -side top -fill both -expand 1 -anchor w
+    
 
     return $notebook
 
@@ -1270,6 +1293,7 @@ proc channel {args} {
         puts "command ignored"
         return
     }
+    puts "Setting scaler $name $id"
     set ScalerMap($name) $id
 }
 

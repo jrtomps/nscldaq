@@ -75,3 +75,18 @@ October 12, 2011 10.0-011
 	- Clear scalers and readout hardware much later in the
  	  initialization game.
 	- Fix time handling for scaler reads.
+October 17, 2011 10.0-012
+	- Move begin run emit to just prior to starting the 
+	  atual run itself...so we're not timing the hardware
+	  initialization.
+
+October 18, 2011 10.0-013	
+	- Stop using run state time for anything but keep computing each
+	from 'now' and start stamp.
+October 18, 2011 10.0-014
+	- Use ns resolutino realtime clock for all CExperiment timing
+	to try to get better synch with the scaler trigger clock.
+	- Fix error in CRingSelectionPredicate...would not allow the last
+	ring item to be fetched until more were in the ring.
+	
+	

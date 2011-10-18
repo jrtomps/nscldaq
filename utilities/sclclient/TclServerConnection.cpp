@@ -27,6 +27,7 @@ static const char* Copyright= "(C) Copyright Michigan State University 2002, All
 //////////////////////////.cpp file/////////////////////////////////////////////////////
 #include <config.h>
 #include "TclServerConnection.h"    				
+#include <iostream>
 
 static const char* pCopyrightNotice = 
 "(C) Copyright 1999 NSCL, All rights reserved .cpp \n";
@@ -43,6 +44,7 @@ using namespace std;
 //     
 int TclServerConnection::SendCommand(const string& rData)  
 {
+
   // Sends a command string terminated by a newline "\n".
   // The response is collected into m_response
   //

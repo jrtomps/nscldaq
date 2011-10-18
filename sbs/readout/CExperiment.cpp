@@ -135,7 +135,6 @@ CExperiment::getBufferSize() const
 void
 CExperiment::Start(bool resume)
 {
-  time_t stamp = time(&stamp);
 
   // The run must be in the correct state:
 
@@ -150,50 +149,19 @@ CExperiment::Start(bool resume)
 			  "Starting data taking");
   }
 
-  // Begin run zeroes the previous scaler time, and ring buffer item sequence.
-  // 
-  //
-  if (m_pRunState->m_state != RunState::paused) {
-    m_nRunStartStamp  = stamp;
-    m_nEventsEmitted  = 0;
-    m_nLastScalerTime = m_nRunStartStamp;
-    m_nPausedSeconds  = 0;
 
-  }
-  if (resume) {
-    m_nPausedSeconds += (stamp - m_nLastScalerTime);
-    m_nLastScalerTime = stamp;
-  }
-  
-  uint32_t elapsedTime = stamp - m_nRunStartStamp - m_nPausedSeconds;
 
-  CRingStateChangeItem item(resume ? PAUSE_RUN : BEGIN_RUN, 
-			    m_pRunState->m_runNumber,
-			    elapsedTime,
-			    stamp,
-			    std::string(m_pRunState->m_pTitle));
-  item.commitToRing(*m_pRing);
-  
-  DocumentPackets();		// output a documentation packet.
-
-  // emit a physics event count item that indicates no events have been sent yet
-  // if this is a start run:
-
-  if (!resume) {
-    CRingPhysicsEventCountItem count;
-    count.commitToRing(*m_pRing);
-  }
-
- 
-  // Start the trigger loop:
-
-  if (!m_pTriggerLoop) {
-    m_pTriggerLoop = new CTriggerLoop(*this);
-  }
 
   // Can only start it if the triggers have been established:
   
   if (m_pEventTrigger && m_pScalerTrigger) {
+
+ 
+    //create the trigger loop object
+
+    if (!m_pTriggerLoop) {
+      m_pTriggerLoop = new CTriggerLoop(*this);
+    }
     // Initialize/clear the hardware:
     
     if (m_pReadout) {
@@ -205,16 +173,55 @@ CExperiment::Start(bool resume)
       m_pScalers->clear();
     }
 
+    // Begin run zeroes the previous scaler time, and ring buffer item sequence.
+    // 
+    //
+    time_t stamp = time(&stamp);	// Absolute timestamp for this 'event'.
+    uint64_t msTime = getTimeMs();	// Current time in ms.
+    
+    if (m_pRunState->m_state != RunState::paused) {
+      m_nRunStartStamp  = msTime;
+      m_nEventsEmitted  = 0;
+      m_nLastScalerTime = msTime;
+      m_nPausedmSeconds  = 0;
+      
+    }
+    if (resume) {
+      m_nPausedmSeconds += (msTime - m_nLastScalerTime);
+      m_nLastScalerTime = msTime;
+    }
+    
+    uint32_t elapsedTime = (msTime - m_nRunStartStamp - m_nPausedmSeconds)/1000;
+    
+    CRingStateChangeItem item(resume ? PAUSE_RUN : BEGIN_RUN, 
+			      m_pRunState->m_runNumber,
+			      elapsedTime,
+			      stamp,
+			      std::string(m_pRunState->m_pTitle));
+    item.commitToRing(*m_pRing);
+    
+    DocumentPackets();		// output a documentation packet.
+    
+    // emit a physics event count item that indicates no events have been sent yet
+    // if this is a start run:
+    
+    if (!resume) {
+    CRingPhysicsEventCountItem count;
+    count.commitToRing(*m_pRing);
+    }
+    
+    
     m_pTriggerLoop->start();
+    if (m_pBusy) {
+      m_pBusy->GoClear();
+    }
+    
+    // The run is now active if looked at by the outside world:
+    
+    m_pRunState->m_state = RunState::active;
+    
   }
 
-  if (m_pBusy) {
-    m_pBusy->GoClear();
-  }
-
-  // The run is now active if looked at by the outside world:
-
-  m_pRunState->m_state = RunState::active;
 
 }
 /*!
@@ -284,6 +291,9 @@ CExperiment::syncEndRun(bool pause)
 
   time_t now;
   time(&now);
+  uint64_t msTime = getTimeMs();
+  uint32_t endOffset = (msTime - m_nRunStartStamp - m_nPausedmSeconds)/1000;
+
   uint16_t        itemType;
   RunState::State finalState;
   if (pause) {
@@ -297,7 +307,7 @@ CExperiment::syncEndRun(bool pause)
 
   CRingStateChangeItem item(itemType, 
 			    m_pRunState->m_runNumber,
-			    m_pRunState->m_timeOffset,
+			    endOffset,
 			    now,
 			    std::string(m_pRunState->m_pTitle));
   item.commitToRing(*m_pRing);
@@ -458,12 +468,13 @@ void
 CExperiment::readScalers()
 {
   time_t           now     = time(&now);
+  uint64_t         msTime  = getTimeMs();
   uint32_t         startTime = 
-    m_nLastScalerTime  - m_nRunStartStamp - m_nPausedSeconds;
+    (m_nLastScalerTime  - m_nRunStartStamp - m_nPausedmSeconds)/1000;
   uint32_t         endTime   =
-    now - m_nRunStartStamp - m_nPausedSeconds;
+    (msTime - m_nRunStartStamp - m_nPausedmSeconds)/1000;
 
-  m_nLastScalerTime = now;
+  m_nLastScalerTime = msTime;
 
   // can only do scaler readout if we have a root scaler bank:
 
@@ -522,8 +533,10 @@ CExperiment::DocumentPackets()
 
   if (packetDefs.size()) {
     time_t           now     = time(&now);
+    uint64_t         msTime  = getTimeMs();
+    uint32_t         offset = (msTime - m_nRunStartStamp - m_nPausedmSeconds)/1000;
     CRingTextItem item(PACKET_TYPES, packetDefs,
-		       m_pRunState->m_timeOffset,
+		       offset,
 		       now);
     item.commitToRing(*m_pRing);
   }
@@ -594,3 +607,22 @@ int CExperiment::HandleEndRunEvent(Tcl_Event* evPtr, int flags)
   return 1;
 }
 
+/**
+ * Return the current time of day in ms from the Realtime clock.
+ * @return uint64_t  
+ * @retval ms since the epoch.
+ */
+uint64_t 
+CExperiment::getTimeMs()
+{
+  timespec currentTime;
+  uint64_t msTime;
+  clock_gettime(CLOCK_REALTIME, &currentTime); // We can assume no errors (see the  manpage).
+
+  msTime = currentTime.tv_sec;
+  msTime = msTime * 1000;	// seconds ->ms.
+  msTime += currentTime.tv_nsec/(1000*1000); // ns-> ms.
+
+  return msTime;
+
+}

@@ -196,7 +196,7 @@ CRingSelectionPredicate::operator()(CRingBuffer& ring)
   // Now that we have a header don't allow us to progress further if we don't
   // also have the full event:
 
-  if (ring.availableData() <= header.s_size) {
+  if (ring.availableData() < header.s_size) {
     ring.pollblock();
     return true;
   }

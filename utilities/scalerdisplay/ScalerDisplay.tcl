@@ -32,6 +32,7 @@ if {[llength $argv] < 2} {
    exit -1
 }
 set file [lindex $argv 0]
+puts "Setup file: $file"
 
 #  And the file must be readable...
 #
@@ -53,7 +54,9 @@ set me [info script]
 set mydirectory [file dirname $me]
 set bindir     $mydirectory/../bin
 set scriptdir  $mydirectory/../TclLibs/ScalerDisplay
+puts "Runing $scriptdir/scaler.tcl"
 source $scriptdir/scaler.tcl
+puts running
 
 # Canonicalize the TclLibs directory subtree location and
 # if needed, prepend to auto_path.
