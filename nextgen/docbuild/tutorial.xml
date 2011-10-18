@@ -1,0 +1,449 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.3//EN"
+                      "file:///usr/share/xml/docbook/schema/dtd/4.3/docbookx.dtd
+"
+>
+<book>
+    <bookinfo>
+      <title>NSCL Ring buffer DAQ tutorial</title>
+      <author><firstname>Ron</firstname><surname>Fox</surname></author>
+      <revhistory>
+          <revision>
+             <revnumber>1.0</revnumber>
+             <date>October 16, 2011</date>
+             <authorinitials>RF</authorinitials>
+             <revremark>Original Release</revremark>
+          </revision>
+      </revhistory>
+    </bookinfo>
+    <chapter>
+        <title>Introduction</title>
+        <para>
+            This guide provides tutorial and introduction material for NSCL
+            researchers that needto convert their software from the NSCL
+            Spectrodaq data acquisition system to the Ringbuffer data acquisition
+            system.
+            While the ring buffer data acquisition system (RingDaq) attempts to
+            provide a high degree of source code compatibility with Spectrdaq
+            data acquisition (SDAQ), there are some unavoidable differences.
+        </para>
+        <para>
+            As with SDAQ, the RingDaq provides a data acquisition framework into
+            which experimenters must add a data source program (called Readout by
+            convention), and an online analysis event unpacker (SpecTcl event
+            processor(s)).  This guide shows you how to d create these components
+            from scratch as well as from existing SDAQ components you may
+            already have.
+            Each chapter of this guide is intended to be nearly standalone, with
+            supplemental material provided in the reference guide at
+            <ulink url="http://docs.nscl.msu/edu/daq/ringbuffer">
+                http://docs.nscl.msu/edu/daq/ringbuffer</ulink>.  This allows
+            you to skip to the chapter that has the material you need next to
+            get going:
+        </para>
+        <itemizedlist>
+            <listitem>
+                <para>
+                    First I'll describe how to create a readout program from
+                    scratch.
+                </para>
+            </listitem>
+            <listitem>
+                <para>
+                    Following that is material that describes how to convert an
+                    existing SDAQ production readout program to a RingDaq
+                    readout program.
+                </para>
+            </listitem>
+            <listitem>
+                <para>
+                    Next similar material is provided that describes how to
+                    create and adaptor that allows you to use code that
+                    you currently have to read data in SDAQ's readout classic
+                    framework.
+                </para>
+            </listitem>
+            <listitem>
+                <para>
+                    Finally analyzing data from RingDaq with SpecTcl is described
+                    along with the set of change you might have to make to
+                    convert existing code from SDAQ to RingDaq.
+                </para>
+            </listitem>
+        </itemizedlist>
+    </chapter>
+    <chapter>
+        <title>Creating a Readout program from scratch</title>
+        <para>
+            This section describes how to create a readout program for RingDaq
+            starting from scratch.  At present we will describe the process
+            only for the SBS Readout framework, as most people in the NSCL
+            will use this framework in the near future.
+            The SBS readout framework is quite simlar to the SDAQ Production
+            readout framework so you can use much of what you know
+            about that framework when building new software for
+            RingDaq's SBS Readout framework.
+        </para>
+        <para>
+            In general you will need to follow these
+            steps:
+        </para>
+        <itemizedlist>
+            <listitem>
+                <para>
+                    Obtain the readout skeleton from your RingDaq installation
+                    directory tree.
+                </para>
+            </listitem>
+            <listitem>
+                <para>
+                    Create event segments to manage the digitizers attached
+                    to your detectors.
+                </para>
+            </listitem>
+            <listitem>
+                <para>
+                    Create scaler banks and scaler module code to read any
+                    scaler devices you might have.
+                </para>
+            </listitem>
+            <listitem>
+                <para>
+                    Tie all of this together inthe framework skeleton;
+                    instantiating objects you will use and registering
+                    them with the framework.  At this stage you must also
+                    instantiate and register an appropriate trigger module
+                    so that the Readout will know when to process an event.
+                </para>
+            </listitem>
+            <listitem>
+                <para>
+                    Modify, as necessary, the <filename>Makefile</filename>
+                    that was distributed with the skeleton code and usse it to
+                    build an executable.
+                </para>
+            </listitem>
+        </itemizedlist>
+        <para>
+            Throughout this discussion I'm going proceed as if <literal>DAQHOME</literal>
+            is an environment variable that points to
+            the top level directory of the ring buffer DAQ installation. At
+            the NSCL this is typically <filename>/usr/opt/daq/10.0</filename>.
+            If you are not at the institution or if this document is old,
+            the value for <literal>DAQHOME</literal> may differ.
+        </para>
+        <section>
+            <title>Obtaining the readout skeleton</title>
+            <para>
+                The readout skeleton is a starting point for building a tailored
+                Readout program.  It is located in <filename>$DAQHOME/skeletons/sbs</filename>.
+                Normally you would start building a new readout program in an
+                empty directory as follows:
+            </para>
+            <example>
+                <title>Getting the skeleton</title>
+                <programlisting>
+mkdir myreadout
+cd    myreadout
+cp $DAQHOME/skeletons/dbs/* .
+                </programlisting>
+            </example>
+            <para>
+                This sequence of unix shell commands creates a new directory
+                named <filename>myreadout</filename>, makes that the current
+                default directory and copies the readout skeleton into that
+                directory.
+            </para>
+            <para>
+                The readout skeleton constists of the following files:
+            </para>
+            <variablelist>
+                <varlistentry>
+                    <term><filename>Makefile</filename></term>
+                    <listitem><para>Makefile that builds the skeleton</para></listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><filename>Seleton.cpp</filename></term>
+                    <listitem>
+                        <para>
+                            Source code for the registration code for the
+                            readout framework.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><filename>Skeleton.h</filename></term>
+                    <listitem>
+                        <para>Header defining the class implemented by
+                        <filename>Skeleton.cpp</filename>
+                        </para>
+                    </listitem>
+                </varlistentry>
+            </variablelist>
+            <para>
+                If you examine <filename>Skeleton.cpp</filename> you wont' find
+                a <literal>main</literal> function.  This is because the readout
+                framework is an application framework.  Application frameworks
+                consist of a main program that is written for you and specific
+                ways to register the presence of application specific code that
+                needs to be called at well defined points in the program's
+                execution.
+            </para>
+            <para>
+                Using an application framework frees you from having to worry about
+                how your code actually interfaces with the data acquisition system,
+                manager run-state transitions, trigger processing and so on.
+                In the next two chapters we will see how to create code that is
+                application specific and how to register it with the framework
+                so that it is called when we want it to be called.
+            </para>
+        </section>
+        <section>
+            <title>Creating an event segment</title>
+            <para>
+                Event segments are software components that manage the
+                dgitizers associated with a logical part of your experiment.
+                You can create an arbitrary number of event segments and control
+                the order in which they are read.  The abstraction of event
+                segments supports the fact that experiments may be composed of re-usable
+                detector subsystems and systems.
+            </para>
+            <para>
+                At the NSCL for example:
+                One might run an experiment using the SeGA gamma ray spectrometer
+                and the S800 spectrograph.  One way to do this is to have a
+                re-usable event segment for the S800, another for SeGA and
+                to register them both with the readout framework to build the
+                experiment.
+            </para>
+            <para>
+                Event segments are instances of classes (objects) that are
+                derived from the class <classname>CEventSegment</classname>.
+                This section will also describe the <classname>CEventPacket</classname>
+                base class which is an event segment that wraps an event segment
+                into an NSCL tagged packet.
+            </para>
+            <para>
+                The methods an event segment can implement are:
+            </para>
+            <variablelist>
+                <methodsynopsis>
+                    <type>void</type> <methodname>initialize</methodname><void />
+                </methodsynopsis>
+                <methodsynopsis>
+                    <type>void</type> <methodname>clear</methodname><void />
+                </methodsynopsis>
+                <methodsynopsis>
+                    <type>void</type> <methodname>disable</methodname> <void />
+                </methodsynopsis>
+                <methodsynopsis>
+                    <type>size_t</type> <methodname>read</methodname>
+                    <methodparam><type>void*</type> <parameter>pBuffer</parameter></methodparam>
+                    <methodparam><type>size_t</type> <parameter>maxWords</parameter></methodparam>
+                </methodsynopsis>
+                <methodsynopsis>
+                    <type>const bool</type> <methodname>isComposite</methodname>
+                </methodsynopsis>
+                <varlistentry>
+                    <term><methodname>initialize</methodname></term>
+                    <listitem>
+                        <para>
+                            Is called before data taking starts and is expected
+                            to initialize the data taking devices to prepare
+                            them and enable them to take data.  This method is
+                            optional.  If omitted the framework does nothing
+                            to initialize this event segment.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><methodname>clear</methodname></term>
+                    <listitem>
+                        <para>
+                            Is called to clear digitizers to prepare them
+                            to respond to the next trigger.  It is called
+                            just prior to waiting for a trigger (at the
+                            start of the run after <methodname>initialize</methodname>
+                            is called as well as after each event).  This
+                            method is optional and if not implemented
+                            the framework does nothing for this event segment
+                            at clear time.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><methodname>disable</methodname></term>
+                    <listitem>
+                        <para>
+                            This method is called as data taking is being
+                            shutdown. If your devices require any actions
+                            to disable them you can perform those actions in this
+                            method.  One place you might use this would be if you
+                            have programmed a user specific trigger based on
+                            VME interrupts.  You could use the method to disable
+                            the interrupts on your trigger device.
+                        </para>
+                        <para>
+                            This method is optional and the framework will do
+                            nothing if it is not implementerd.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><methodname>read</methodname></term>
+                    <listitem>
+                        <para>
+                            This method is called on each trigger it is expected
+                            to read the data from the devices managed by this
+                            event segment from the digitizer hardware.
+                            Parameters are as follows:
+                        </para>
+                        <segmentedlist>
+                            <segtitle>type</segtitle>
+                            <segtitle>parameter</segtitle>
+                            <segtitle>Purpose</segtitle>
+                            <seglistitem>
+                                <seg><type>void*</type></seg>
+                                <seg><parameter>pBuffer</parameter></seg>
+                                <seg>
+                                    Pointer to storage into which this event
+                                    segment should store its data. Usually
+                                    the first thing you will need to do is
+                                    re-cast this pointer to the appropriate
+                                    data type.
+                                </seg>
+                            </seglistitem>
+                            <seglistitem>
+                                <seg><type>size_t</type></seg>
+                                <seg><parameter>maxWords</parameter></seg>
+                                <seg>
+                                    The maximum number of <type>uint16_t</type>
+                                    units that can fit in the space pointed to by
+                                    <parameter>pBuffer</parameter>.
+                                    Very bad things will happen if you read
+                                    more than this number of words.
+                                </seg>
+                            </seglistitem>
+                        </segmentedlist>
+                        <para>
+                            The return value is expected to be the number of
+                            <type>uint16_t</type> units of data read by this
+                            segment.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                            
+            </variablelist>
+            <para>
+                Enough theory already.  Let's look at a sample implemetation
+                of an event segment.
+            </para>
+            <example>
+                <title>Simple Event Segment</title>
+                <programlisting>
+
+
+
+#include &lt;stdint.h&gt;   <co id="stdint.h" />
+#include &lt;CEventSegment.h&gt; <co id="CEventSegmentHeader" />
+class CAENcard;             <co id="CAENcardForwardClass" />
+
+
+/*!
+  This is a minimal support class that read a CAEN 792 module in the
+  simplest way possible as a test data source for nextgen NSCLDAQ
+
+
+*/
+class CCAENEventSegment : public CEventSegment  <co id="CEventSegmentDerivied" />
+{
+private:
+  CAENcard*              m_pCard;              <co id="m_pCardmember" />
+public:
+  CCAENEventSegment(uint32_t base, uint8_t id, int crate = 0); <co id="EVSConstructor" />
+  ~CCAENEventSegment();
+
+<co id="EVSPrototyptes" />
+  virtual void   initialize();                      
+  virtual void   clear();
+  virtual size_t read(void* pBuffer, size_t maxwords);
+private:
+  bool haveEvent();
+};
+
+                </programlisting>
+            </example>
+            <calloutlist>
+                <callout arearefs='stdint.h'>
+                    <para>
+                        The <filename>stdint.h</filename> header contains definitions
+                        of standard integer types with known bit widths
+                        (e.g. <type>uint16_t</type>).
+                    </para>
+                </callout>
+                <callout arearefs='CEventSegmentHeader'>
+                    <para>
+                        We need to include this header because our event segment
+                        will need to be derived from the <classname>CEventSegment</classname>
+                        class.
+                    </para>
+                </callout>
+                <callout arearefs="CAENcardForwardClass">
+                    <para>
+                        This is the preferred way to define a class in a header
+                        file when the class 'shape' does not need to be known.
+                        This <firstterm>forward class declaration</firstterm> says
+                        that <classname>CAENcard</classname> is a class that
+                        will be defined later.   Using forward class definitions
+                        reduces the chances of building circular dependencies
+                        between header files.
+                    </para>
+                </callout>
+                <callout arearefs='CEventSegmentDerivied'>
+                    <para>
+                        As promised the <classname>CCAENEventSegment</classname>
+                        derives from the <classname>CEventSegment</classname> class.
+                        Only <classname>CEventSegment</classname> derived
+                        classes can be registered as event segments with the
+                        framework.
+                    </para>
+                </callout>
+            </calloutlist>
+                        
+        </section>
+        <section>
+            <title>Creating scaler banks and scaler modules</title>
+            <para></para>
+        </section>
+        <section>
+            <title>Tying the pieces together</title>
+            <para>
+            </para>
+        </section>
+        <section>
+            <title>Editing and using the Makefile</title>
+            <para>
+            </para>
+        </section>
+    </chapter>
+    <chapter>
+        <title>Creating a Readout program from a spectrodaq production readout program</title>
+        <para></para>
+    </chapter>
+    <chapter>
+        <title>Creating a Readout program from a spectrdaq classic readout program</title>
+        <para></para>
+    </chapter>
+    <chapter>
+        <title>Analyzing ring buffer data with SpecTcl</title>
+        <para></para>
+    </chapter>
+    <appendix>
+        <title>Format of Ring bufffer DAQ event files</title>
+        <para></para>
+    </appendix>
+    <appendix>
+        <title>User written triggers</title>
+        <para></para>
+    </appendix>
+</book>

@@ -4,13 +4,16 @@ EXTRA_DIST = alltsts.tcl docbuilder.tcl \
 
 
 
-install-exec-local: daq.html daq.mans
+install-exec-local: daq.html daq.mans tutorial.pdf tutorial.html
 	$(mkinstalldirs) $(prefix)/share
 	$(mkinstalldirs)  $(prefix)/share/man
 	$(mkinstalldirs) $(prefix)/share/html
+	$(mkinstalldirs) $(prefix)/share/tuthtml
 	for i in 1 2 3 4 5 6 7 8; do $(mkinstalldirs) $(prefix)/share/man/man$$i; done
 	- for i in 1 2 3 4 5 6 7 8; do for f in *.$$i*; do  $(INSTALL_DATA) $$f $(prefix)/share/man/man$$i; done; done
 	$(INSTALL_DATA) html/* $(prefix)/share/html
+	$(INSTALL_DATA) tutorial.pdf $(prefix)/share
+	$(INSTALL_DATA) tuthtml/*   $(prefix)/share/tuthtml
 
 clean-local:
 	-rm -f *.pdf
@@ -21,7 +24,7 @@ clean-local:
 
 if PDFDOCS
 DOCBOOK2PDF = docbook2pdf
-DOCBOOK2HTML= docbook2html -o html
+DOCBOOK2HTML= docbook2html 
 else
 DOCBOOK2PDF = touch daq.pdf 
 DOCBOOK2HTML= touch daq.html
@@ -45,10 +48,19 @@ daq.mans: daq.xml
 daq.html: daq.xml
 	- rm -rf html
 	mkdir html
-	- $(DOCBOOK2HTML) daq.xml
+	- $(DOCBOOK2HTML) -o html daq.xml
 	touch daq.html
 
 daq.xml:
 	$(TCLSH_CMD) docbuilder.tcl @top_srcdir@/docconfig "NSCL DAQ Software Documentation" @top_srcdir@ >daq.xml
 
+
+tutorial.pdf: tutorial.xml
+	$(DOCBOOK2PDF) tutorial.xml
+
+tutorial.html: tutorial.xml
+	- rm -rf tuthtml
+	mkdir tuthtml
+	- $(DOCBOOK2HTML) -o tuthtml tutorial.xml
+	touch tutorial.html
 
