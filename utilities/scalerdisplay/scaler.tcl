@@ -698,7 +698,7 @@ proc EndRun   {} {
 	if {$channel != $Fakename} {
 	    set   id $ScalerMap($channel)
 	    if {$ElapsedRunTime != 0} {
-		set   Average [expr (1.0*$Scaler_Totals($id))/$ElapsedRunTime]
+		set   Average [expr $Scaler_Totals($id)/$ElapsedRunTime]
 	    } else {
 		set Average 0
 	    }

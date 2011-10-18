@@ -336,10 +336,10 @@ cp $DAQHOME/skeletons/dbs/* .
             </variablelist>
             <para>
                 Enough theory already.  Let's look at a sample implemetation
-                of an event segment.
+                of an event segment.  First the header:
             </para>
             <example>
-                <title>Simple Event Segment</title>
+                <title>Simple Event Segment Header</title>
                 <programlisting>
 
 
@@ -408,8 +408,46 @@ private:
                         framework.
                     </para>
                 </callout>
+                <callout arearefs="m_pCardmember">
+                    <para>
+                        This data element is why we needed the forward
+                        declaration of <classname>CAENcard</classname>.
+                        It is going to be a pointer to a <classname>CAENcard</classname>
+                        object we will create in our class constructor.  That
+                        object will be used to manipulate the CAEN digitizer.
+                    </para>
+                </callout>
+                <calllout arearefs="EVSConstructor">
+                    <para>
+                        Normally your event segments will want to implement
+                        a constructor.  In this case we provide the
+                        constructor with parameters that specify the module
+                        base address, virtual slot number (<parameter>id</parameter>).
+                        and VME crate number.
+                    </para>
+                </calllout>
             </calloutlist>
-                        
+            <para>
+                Lets look at the implementation (.cpp) file of the event
+                segment a chunk at a time:
+            </para>
+            <example>
+                <title>Event segment front matter</title>
+                <programlisting>
+#include &lt;config.h&gt;      <co id="config.hInclude" />
+#include "CCAENEventSegment.h" <co id="CCAENEventSegment.hInclude" />
+
+#include &lt;CAENcard.h&gt;    <co id="CAENCard.hInclude" />
+
+<co id="EventSegment_otherIncludes" />
+
+#include &lt;string&gt;
+#include &lt;stdlib.h&gt;
+#include &lt;iostream&gt;
+                  
+                </programlisting>
+            </example>
+            
         </section>
         <section>
             <title>Creating scaler banks and scaler modules</title>

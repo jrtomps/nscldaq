@@ -88,5 +88,8 @@ October 18, 2011 10.0-014
 	to try to get better synch with the scaler trigger clock.
 	- Fix error in CRingSelectionPredicate...would not allow the last
 	ring item to be fetched until more were in the ring.
+October 18, 2011 10.0-015
+	- Pull in up to date scaler display program from 8.2..which
+	diverged after this forked off.
 	
 	
