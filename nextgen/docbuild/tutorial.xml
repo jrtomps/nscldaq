@@ -349,12 +349,6 @@ cp $DAQHOME/skeletons/dbs/* .
 class CAENcard;             <co id="CAENcardForwardClass" />
 
 
-/*!
-  This is a minimal support class that read a CAEN 792 module in the
-  simplest way possible as a test data source for nextgen NSCLDAQ
-
-
-*/
 class CCAENEventSegment : public CEventSegment  <co id="CEventSegmentDerivied" />
 {
 private:
@@ -417,7 +411,7 @@ private:
                         object will be used to manipulate the CAEN digitizer.
                     </para>
                 </callout>
-                <calllout arearefs="EVSConstructor">
+                <callout arearefs="EVSConstructor">
                     <para>
                         Normally your event segments will want to implement
                         a constructor.  In this case we provide the
@@ -425,7 +419,7 @@ private:
                         base address, virtual slot number (<parameter>id</parameter>).
                         and VME crate number.
                     </para>
-                </calllout>
+                </callout>
             </calloutlist>
             <para>
                 Lets look at the implementation (.cpp) file of the event
@@ -447,34 +441,2982 @@ private:
                   
                 </programlisting>
             </example>
-            
+            <calloutlist>
+                <callout arearefs="config.hInclude">
+                    <para>
+                        All implementation code you write in RingDaq should
+                        include <filename>config.h</filename> as the first
+                        header.  This file provides definitions that other
+                        RingDaq headers may need.
+                    </para>
+                </callout>
+                <callout arearefs="config.hInclude">
+                    <para>
+                        Since this file will implement the
+                        <classname>CCAENEventSegment</classname> class it
+                        needs access to the header so that method prototypes
+                        and member data definitions are available to
+                        method implementations.
+                    </para>
+                </callout>
+                <callout arearefs="CAENCard.hInclude">
+                    <para>
+                        This satisfies the forward reference to the
+                        <classname>CAENcard </classname> class
+                        we made in the header.  Since <classname>CAENEventSegment</classname>
+                        is going to call <classname>CAENcard</classname> methods,
+                        we'll the compiler will need the actual class
+                        definition.
+                    </para>
+                </callout>
+                <callout arearefs="EventSegment_otherIncludes">
+                    <para>
+                        The headers below are standard C/C++ headeres
+                        that define funtions  and classes we will
+                        use in the implementation of this class.
+                    </para>
+                </callout>
+            </calloutlist>
+            <para>
+                The next code section we will look at contains the
+                constructor and destructor of the event segment.  The constructor
+                is invoked when the event segment is created (usually in the
+                <filename>Skeleton.cpp</filename> just prior to registration).
+                The destructor is usually never invoked.  However if you have
+                some overarching event segment that, at initialization time,
+                creates other event segments it contains, destructors may be
+                called.  In order to allow your code to be embedded in environments
+                you don't initially anticipate, you should write correct
+                constructors for all event segments.
+            </para>
+            <example>
+                <title>Event segment constructor and destructor</title>
+                <programlisting>
+CCAENEventSegment::CCAENEventSegment(uint32_t base, uint8_t id,
+                                     int packet, int crate) :
+  m_pCard(new CAENcard(id, 0, false, base))  <co id="newCAENcard" />
+{
+
+}
+
+CCAENEventSegment::~CCAENEventSegment()
+{
+  delete m_pCard;   <co id="deleteCAENcard" />
+}
+
+                </programlisting>
+            </example>
+            <calloutlist>
+                <callout arearefs="newCAENcard">
+                    <para>
+                        Initializes the <varname>m_pCare</varname> member data
+                        with a pointer to a <classname>CAENcard</classname>
+                        object that will manage the CAEN tdc we are
+                        operating with.
+                    </para>
+                    <para>
+                        At this time, no operations are perfomed on the
+                        device itself as we've not  yet been asked to
+                        initialize it.
+                    </para>
+                </callout>
+                <callout arearefs="deleteCAENcard">
+                    <para>
+                        If we are ever destroyed we must delete the
+                        <classname>CAENcard</classname> object the constructor
+                        created or memory and SBS mapping resources will
+                        be leaked for each construction/destruction cycle.
+                    </para>
+                </callout>
+            </calloutlist>
+            <para>
+                Next lets look at the initialization code. In a production
+                environment, this code might open a file and read some configuration
+                data, using that data to figure out how to initialize the
+                device.  In keeping with showing the simplest code possible,
+                we are going to hard code all configuration information.
+            </para>
+            <example>
+                <title>Event segment <methodname>initialize</methodname> implementation</title>
+                <programlisting>
+void
+CCAENEventSegment::initialize()
+{
+  m_pCard-&gt;reset();             <co id="CEVSReset" />
+  sleep(2);
+  for(int i =0; i &lt; 32; i++) {  <co id="CEVSThresholds" />
+    m_pCard-&gt;setThreshold(i, 0);
+  }
+  m_pCard-&gt;commonStart();       <co id="CEVSTDCConfig" />   
+  m_pCard-&gt;keepOverflowData();
+  m_pCard-&gt;keepUnderThresholdData();
+  m_pCard-&gt;setRange(0x1e);
+
+
+}
+                </programlisting>
+            </example>
+            <calloutlist>
+                <callout arearefs="CEVSReset">
+                    <para>
+                        Prior to doing anything to the TDC it is reaset.
+                        after being reset it is necessary to wait a bit for the
+                        TDC to become ready for programming. The
+                        <function>sleep</function> is probably somewhat longer
+                        than required.  A call to <function>usleep</function>
+                        for a few milliseconds is probably more appropriate.
+                    </para>
+                </callout>
+                <callout arearefs="CEVSThresholds">
+                    <para>
+                        Since we are going to accept overflow and underthreshold
+                        data, the thresholds are just set to zero. Normally you
+                        would process some configuration file at this point to
+                        determine actual threshold values to program.
+                    </para>
+                </callout>
+                <callout arearefs="CEVSTDCConfig">
+                    <para>
+                        This section of code programs the remainder of the
+                        TDC configuration.
+                    </para>
+                </callout>
+            </calloutlist>
+            <para>
+                The <methodname>clear</methodname> function is trivial:
+            </para>
+            <example>
+                <title>Event segment <methodname>clear</methodname> implementation</title>
+                <programlisting>
+CCAENEventSegment::clear()
+{
+  m_pCard-&gt;clearData();
+}
+                </programlisting>
+            </example>
+            <para>
+                The heart of the event segment is, of course, the code
+                that reads out the module:
+            </para>
+            <example>
+                <title>Event segment <methodname>read</methodname> method implementation</title>
+                <programlisting>
+size_t
+CCAENEventSegment::read(void* pBuffer, size_t maxwords)
+{
+  // Maximum number of words is 34*2:
+
+  if (maxwords &lt; 34*2 ) {          <co id="checkMaxWordsOk" />
+    throw
+      std::string(
+      "CCAENEventSegment - insufficient buffers space for worst case event");
+  }
+  
+  for (int i =0; i &lt; 30; i++) {
+    if(haveEvent()) break;            <co id="waitForData" />
+  }
+  int n = (m_pCard-&gt;readEvent(p))/sizeof(uint16_t); <co id="readData" />
+
+
+  return n; <co id="CEVSnReturn" />
+}
+bool
+CCAENEventSegment::haveEvent()     <co id="haveEventImpl" />
+{
+  return m_pCard-&gt;dataPresent();
+}
+
+                </programlisting>
+            </example>
+            <calloutlist>
+                <callout arearefs="checkMaxWordsOk">
+                    <para>
+                        When <methodname>read</methodname> is called it is
+                        given a pointer that describes where to put data
+                        that has been read; <parameter>pBuffer</parameter>
+                        and a <type>size_t</type> <parameter>maxwords</parameter>
+                        that describes the amount of space remaining in the
+                        buffer in words (<type>uint16_t</type> sized units).
+                        This code ensures that the maximum TDC event size
+                        will fit in the remaining buffer space, throwing
+                        an exception if it won't.
+                    </para>
+                    <para>
+                        The computation of the largest TDC event size comes
+                        from the fact that the TDC has 32 channels, that each event
+                        will have a header and trailer, and that each item will
+                        be a <type>uint32_t</type>, which uses two
+                        <type>uint16_t</type> units of storage.
+                    </para>
+                </callout>
+                <callout arearefs="waitForData">
+                    <para>
+                        It is possible the trigger latency will be shorter than
+                        the conversion time of the TDC.  In this loop
+                        we wait for the module to have an event's worth of data.
+                        If it never does after 30 tests (each test will be about
+                        2 &mu;secs), the loop exits anyway.
+                    </para>
+                </callout>
+                <callout arearefs="readData">
+                    <para>
+                        Reads an event worth of data from the module.
+                    </para>
+                </callout>
+                <callout arearefs="CEVSnReturn">
+                    <para>
+                        The read function returns the number of bytes of data
+                        read from the module.  Therefore,
+                        <varname>n</varname> is the number of
+                        <type>uint16_t</type> words read.  That value is returned.
+                    </para>
+                </callout>
+                <callout arearefs="haveEventImpl">
+                    <para>
+                        This is a convenience function to determine if the
+                        module has an event.
+                    </para>
+                </callout>
+            </calloutlist>
+            <para>
+                Before leaving the subject of event segments for the scaler
+                readout, I want to touch on two other important classes
+                you can use to help you organize your code:
+            </para>
+            <variablelist>
+                <varlistentry>
+                    <term><classname>CCompoundEventSegment</classname></term>
+                    <listitem>
+                        <para>
+                            The <classname>CCompoundEventSegment</classname>
+                            class is an event segment that consists of
+                            an ordered list of event segments (including
+                            other compound event segments).
+                        </para>
+                        <para>
+                            This can be used to organize a detector system
+                            that consists of many detector elements
+                            into a single event segment you can hand to your
+                            users
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><classname>CEventPacket</classname></term>
+                    <listitem>
+                        <para>
+                            NSCL events are often broken into packets.
+                            A packet consists of a header that has a
+                            size (note in RingDaq the size is a
+                            <type>uint32_t</type> while in SPDAQ,
+                            it is a <type>uint16_t</type>), a tag, and following
+                            the header, the payload of the packet.
+                        </para>
+                        <para>
+                            <classname>CEventPacket</classname>
+                            allows you to wrap an existing event
+                            segment (including a compound event segment),
+                            in a packet without the event segment knowing it's
+                            being wrapped.
+                        </para>
+                    </listitem>
+                </varlistentry>
+            </variablelist>
+            <para>
+                Let's look at a simple example of a compound event segment.
+                Earlier in this section, we've built a class;
+                <classname>CCAENEventSegment</classname> that encapsulated
+                a CAEN 32 channel TDC.   Suppose we had an experiment
+                that consisted of several of these TDCs (I know it's a bad
+                example but it prevents me from having to build additional
+                event segments and all I really want to show is the mechanics
+                of using compound event segments.)
+            </para>
+            <para>
+                We might have code the builds a Compound event segment as
+                follows:
+            </para>
+            <example>
+                <title>Using a compound event segment</title>
+                <programlisting>
+...
+    // Create a few CCAENEventSegment objects:
+    CCAENEventSegment tdc1(0x10000000, 1);
+    CCAENEventSegment tdc2(0x10010000, 2);
+    CCAENEventSegment tdc3(0x10020000, 3);
+    
+    // Create a compound event segment that reads out tdc1, tdc2, tdc3 in order:
+    
+    CCompoundEventSegment tdcs;
+    tdcs.AddEventSegment(&amp;tdc1);
+    tdcs.AddEventSegment(&amp;tdc2);
+    tdcs.AddEventSegment(&amp;tdc3);
+...
+                </programlisting>
+            </example>
+            <para>
+                The key to this example is that a <classname>CCompoundEventSegment</classname>
+                has a method named <methodname>AddEventSegment</methodname> whose
+                parameter is a pointer to an existing event segment.  This
+                creates an ordered list of event segments.
+            </para>
+            <para>
+                Since a <classname>CCompoundEventSegment</classname> is itself
+                an event segment it can be added to another
+                <classname>CCompoundEventSegment</classname> as well.
+                Continuing the example above:
+            </para>
+            <informalexample>
+                <programlisting>
+...
+      // Assume we've made more event segments named adcs and qdcs:
+      
+      CCompoundEventSegment myDetector;
+      myDetector.AddEventSegment(&amp;tdcs);
+      myDetector.AddEventSegment(&amp;adcs);
+      myDetector.AddEventSegment(&amp;qdcs);
+...
+                </programlisting>
+            </informalexample>
+            <para>
+                The event segment hierarchy you build up can be as deep as you
+                need to capture the needs of your detector system.
+            </para>
+            <para>
+                Suppose now that <varname>myDetector</varname> in the previous
+                example is a know NSCL detector that has been assigned a packet
+                id of 0x1234.  We can now create an event segment that
+                wraps our detector in that packet by using a
+                <classname>CEventPacket</classname> as follows:
+            </para>
+            <example>
+                <title>Using <classname>CEventPacket</classname></title>
+                <programlisting>
+...
+    CEventPacket myDetectorPacket(myDetector, 0x1234,
+                                    "My  Detector",
+                                    "Packet for the My Detector device"
+                                    "V1.0");
+                </programlisting>
+            </example>
+            <para>
+                It's pretty easy to understand what the first two parameters
+                are, a reference to an event packet and the tag.
+                The remaining information are bundled into a documentation
+                event emitted at the start of run that describe the set of
+                event packets that you can expect to see in the run.
+                Each documenation event contains a set of strings, one for
+                each packet you created.  Each string is a colon separated
+                set of fields consisting of the short name of the packet
+                (<literal>My Detector</literal> above),
+                The stringified packet id (<literal>0x1234</literal>) as a
+                hexadecimal,
+                a long name of the
+                packet (<literal>Packet for the My Detector device</literal>
+                above), and a packet version which should be changed whenever
+                the format of the packet changes (<literal>V1.0</literal>
+                in the example above), and the date and time the packet object
+                was constructed (e.g. <literal>Tue Oct 18 15:32:20 2011</literal>).
+            </para>
+            <para>
+                If you want to see what the description string looks like, you can
+                call the <methodname>Format</methodname> method of the
+                <classname>CEventPacket</classname> object.
+            </para>
         </section>
         <section>
             <title>Creating scaler banks and scaler modules</title>
-            <para></para>
+            <para>
+                The readout framework supports a hierachical organization of
+                scalers using two classes <classname>CScaler</classname> which
+                is intended to represent a single scaler module (but need not),
+                and <classname>CScalerBank</classname> a <classname>CScaler</classname>
+                into which <classname>CScaler</classname> objects including
+                <classname>CScalerBank</classname> objects can be put.
+            </para>
+            <para>
+                Thus a <classname>CScalerBank</classname> is to <classname>CScaler</classname>
+                as a <classname>CCompoundEventSegment</classname> is to
+                <classname>CEventSegment</classname> objects.
+            </para>
+            <para>
+                The interface of a <classname>CScaler</classname> is similar to that
+                of a <classname>CScaler</classname>:
+            </para>
+            <variablelist>
+                <methodsynopsis>
+                    <type>void</type> <methodname>initialize</methodname> <void />
+                </methodsynopsis>
+                <methodsynopsis>
+                    <type>void></type> <methodname>clear</methodname><void />
+                </methodsynopsis>
+                <methodsynopsis>
+                    <type>void</type> <methodname>disable</methodname> <void />
+                </methodsynopsis>
+                <methodsynopsis>
+                    <type>std::vector&lt;uint32_t&gt;</type> <methodname>read</methodname> <void />
+                </methodsynopsis>
+                <varlistentry>
+                    <term><methodname>read</methodname></term>
+                    <listitem>
+                        <para>
+                            All other methods are completely analagous
+                            to their counterparts in <methodname>CEventSegment</methodname>.
+                            <methodname>read</methodname> is as well, however
+                            it is supposed to return a vector of <type>uint32_t</type>
+                            values that are the scalers it reads.
+                        </para>
+                        <para>
+                            The framework will append this set of values to
+                            the final set of scalers it will report to the
+                            RingDaq.
+                        </para>
+                    </listitem>
+                </varlistentry>
+            </variablelist>
+            <para>
+                So lets look at a simple <classname>CScaler</classname>.  In
+                this case we will be building a <classname>CScaler</classname>
+                class that manages a single SIS 3820 scaler module.
+            </para>
+            <para>
+                First the header for the class:
+            </para>
+            <example>
+                <title><classname>CScaler</classname> header</title>
+                <programlisting>
+
+#include &lt;CScaler.h&gt;
+
+
+class CSIS3820;
+
+class CSIS3820Scaler : public CScaler   <co id="DerivedFromCScaler" />
+private:
+  CSIS3820*   m_pScaler;                <co id="CSIS3820-memberpointer" />
+
+public:
+  CSIS3820Scaler(unsigned long base, int crate = 0); <co id="CIS3820Scaler-ConstructorDecl" />
+  ~CSIS3820Scaler();
+
+
+  // The interface required by the CScaler class:
+
+public:                          <co id="CSIS3820Scaler-override-decls" />
+  virtual void initialize();
+  virtual void clear();
+  virtual std::vector&lt;uint32_t&gt; read();
+
+
+};
+
+                </programlisting>
+            </example>
+            <calloutlist>
+                <callout arearefs="DerivedFromCScaler">
+                    <para>
+                        Much of this code should look familiar from the'
+                        <classname>CEventSegment</classname> discussion.
+                        The <classname>CSIS3820Scaler</classname> class must
+                        be derived from the <classname>CScaler</classname> class
+                        in order to be registered to read scalers with the
+                        readout framework.
+                    </para>
+                </callout>
+                <callout arearefs="CSIS3820-memberpointer">
+                    <para>
+                        This member will be a pointer to a
+                        <classname>CSIS3820</classname> object that will
+                        be used to talk to the scaler module we are reading.
+                    </para>
+                </callout>
+                <callout arearefs="CIS3820Scaler-ConstructorDecl">
+                    <para>
+                        The constructor declaration provides the ability for
+                        us to specify the base address an the VME crate in which
+                        the scaler is installed.  Note that as for the
+                        <classname>CEventSegment</classname> since we are going
+                        to dynamically create the scaler module class, we need
+                        to declare a destructor to allow us to destroy it when
+                        our object is destroyed.
+                    </para>
+                </callout>
+                <callout arearefs="CSIS3820Scaler-override-decls">
+                    <para>
+                        We must declare the functions from the
+                        <classname>CScaler</classname> base class that will
+                        be implemented by <classname>CSIS3820Scaler</classname>.
+                        This must be at least the <methodname>read</methodname>
+                        method as that is abstract in <classname>CScaler</classname>.
+                    </para>
+                </callout>
+            </calloutlist>
+            <para>
+                As before, let's look at the implementation in logical pieces.
+                The front matterr is a few <literal>#include</literal> directives
+                to pull in the headers we need:
+            </para>
+            <example>
+                <title><classname>CSIS3820Scaler</classname> implementation includes section</title>
+                <programlisting>
+#include &lt;config.h&gt;
+#include "CSIS3820Scaler.h"
+#include &lt;CSIS3820.h&gt;
+#include &lt;iostream&gt;
+#include &lt;vector&gt;
+                </programlisting>
+            </example>
+            <para>
+                The constructor and destructor are pretty simple as well:
+            </para>
+            <example>
+                <title><classname>CSIS3820Scaler</classname> constructor/destructor</title>
+                <programlisting>
+CSIS3820Scaler::CSIS3820Scaler(unsigned long base, int crate) :
+     m_pScaler(new CSIS3820(base, crate))   <co id="newCSIS3820" />
+{
+
+
+}
+
+
+CSIS3820Scaler::~CSIS3820Scaler()
+{
+  delete m_pScaler;     <co id="deleteCSIS3820" />
+
+}
+                    
+                </programlisting>
+            </example>
+            <calloutlist>
+                <callout arearefs="newCSIS3820">
+                    <para>
+                        Initializes the <varname>m_pScaler</varname>
+                        attribute with a pointer to a dynamically created
+                        <classname>CSIS3820</classname> object.
+                    </para>
+                </callout>
+                <callout arearefs="deleteCSIS3820">
+                    <para>
+                        Since the constructor created an object dynamically,
+                        the destructor is responsible for <literal>delete</literal>ing
+                        it.
+                    </para>
+                </callout>
+            </calloutlist>
+            <para>
+                Next lets look at the <methodname>initialize</methodname> and
+                <methodname>clear</methodname> methods as they are relatively
+                short.
+            </para>
+            <example>
+                <title><classname>CSIS3820Scaler</classname> initialize/clear methods</title>
+                <programlisting>
+void CSIS3820Scaler::initialize()
+{
+  m_pScaler-&gt;setOperatingMode(CSIS3820::LatchingScaler);  <co id="CSIS3820Scaler-latchmode" />
+  m_pScaler-&gt;setLatchSource(CSIS3820::LatchVMEOnly);
+  m_pScaler-&gt;EnableClearOnLatch();                        <co id="CSIS3820Scaler-rdclear" />
+  m_pScaler-&gt;Enable();                                    <co id="CSIS3820Scaler-start" />
+  m_pScaler-&gt;Arm();
+
+}
+
+void CSIS3820Scaler::clear()
+{
+  m_pScaler-&gt;ClearChannels();                           <co id="CSIS3820Scaler-clear" />
+}
+
+                </programlisting>
+            </example>
+            <calloutlist>
+                <callout arearefs="CSIS3820Scaler-latchmode">
+                    <para>
+                        Sets the scaler to latch mode with the
+                        VME being the only source of the latch signal.  For latching
+                        scalers this is normally the appropriate way to read them.
+                        Latch mode allows all scaler values to be "simultaneously"
+                        recorded for readout at a single snapshot in time.
+                    </para>
+                </callout>
+                <callout arearefs="CSIS3820Scaler-rdclear">
+                    <para>
+                        This function sets the scaler to clear its external counters
+                        when they are latched to the internal module memory. See,
+                        however the discussion about clearing below.
+                    </para>
+                </callout>
+                <callout arearefs="CSIS3820Scaler-start">
+                    <para>
+                        Enabling and arming the scalers is what starts them
+                        counting input pulses.
+                    </para>
+                </callout>
+                <callout arearefs="CSIS3820Scaler-clear">
+                    <para>
+                        This clears all of the external counters of the module.
+                    </para>
+                </callout>
+            </calloutlist>
+            <note>
+                <title>Clears</title>
+                <para>
+                    The way in which this module is being cleared is not techincally
+                    correct.  The module supports a clear on latch.  As coded,
+                    the scalers will be cleared a read time and then a bit later
+                    when <methodname>clear</methodname> is called.  This
+                    can cause a few counts to be lost over the duration of the
+                    run.
+                </para>
+                <para>
+                    The correct way to handl this module is to clear it
+                    at initialization time and then not to provide a
+                    <methodname>clear</methodname> function.  The code
+                    was written this way in order to illustrate the use
+                    of a <methodname>clear</methodname> method rather than
+                    to be strictly speaking correct.
+                </para>
+            </note>
+            <para>
+                The <classname>std::vector</classname> class makes it pretty
+                easy to write the <methodname>read</methodname> method as well.
+            </para>
+            <example>
+                <title><classname>CSIS3820Scaler</classname> read</title>
+                <programlisting>
+std::vector&lt;uint32_t&gt;
+CSIS3820Scaler::read()
+{
+  std::vector&lt;uint32_t&gt; result;   <co id='CSIS3820Scaler_readResultVector' />
+  uint32_t              channels[32];   <co id="CSIS3820Scaler_readResultArray" />
+
+  m_pScaler-&gt;LatchAndRead(reinterpret_cast&lt;unsigned long*&gt;(channels)); <co id="CSIS3820_readout" />
+
+  result.insert(result.begin(), channels, channels + 32); <co id="CSIS3820_readToVector" />
+
+  return result;
+
+  
+}
+                    
+                </programlisting>
+            </example>
+            <calloutlist>
+                <callout arearefs='CSIS3820Scaler_readResultVector'>
+                    <para>
+                        The <methodname>read</methodname> method must return an
+                        <classname>std::vector</classname>.  This declares
+                        storage for that vector.
+                    </para>
+                </callout>
+                <callout arearefs="CSIS3820Scaler_readResultArray">
+                    <para>
+                        The <methodname>LatchAndRead</methodname> function
+                        we use below will read the 32 channels of the module into
+                        an ordinary storage array.  Therefore wwe need to declare
+                        one here to hold that output.
+                    </para>
+                </callout>
+                <callout arearefs="CSIS3820_readout">
+                    <para>
+                        Reads the data in to <varname>channels</varname>
+                    </para>
+                </callout>
+                <callout arearefs="CSIS3820_readToVector">
+                    <para>
+                        The <methodname>std::vector::insert</methodname>
+                        method is then used to put the scaler channel values
+                        into the result vector which is returned.
+                    </para>
+                </callout>
+            </calloutlist>
+            <para>
+                Before leaving this discussion of scalers lets take a short
+                tour of the <classname>CScalerBank</classname> class.
+                This class allows us to group several <classname>CScaler</classname> objects
+                into a single scaler-like object.
+            </para>
+            <para>
+                Suppose we have several SIS 3820 scaler modules.  In a detector
+                system.  The example below organizes them into a single
+                scaler bank which we can hand out as our detector system's scaler.
+            </para>
+            <example>
+                <title>Creating a scaler bank</title>
+                <programlisting>
+...
+    CSIS3820Scaler sc1(0x80000000);
+    CSIS3820Scaler sc2(0x80010000);
+    CSIS3820Scaler sc3(0x80020000);
+    
+    CScalerBank myDetectorScalers;
+    myDetectorScalers.AddScalerModule(&amp;sc1);
+    myDetectorScalers.AddScalerModule(&amp;sc2);
+    myDetectorScalers.AddScalerModule(&amp;sc3);
+...
+                </programlisting>
+            </example>
+            <para>
+                Naturally since, <classname>CScalerBank</classname> objects
+                are themselves derived from <classname>CScaler</classname> they
+                can be added, in turn, to other scaler banks.
+            </para>
         </section>
         <section>
             <title>Tying the pieces together</title>
             <para>
+                Now that we have an event segment and a scaler module,
+                we must tie this all together into a readout program by
+                registering the appropriate objects with the readout framework.
+                In this section we will:
             </para>
+            <itemizedlist>
+                <listitem>
+                    <para>
+                        Show how to select and specify the event trigger.
+                    </para>
+                </listitem>
+                <listitem>
+                    <para>
+                        Show how to create and register a documented packet
+                        from a few <classname>CCAENEventSegment</classname> objects
+                        to respond to the event trigger.
+                    </para>
+                </listitem>
+                <listitem>
+                    <para>
+                        Show how to create and register several
+                        <classname>CSIS3820Scaler</classname> objects, organize
+                        them as a scaler bank and register them to be read when
+                        the scaler trigger fires.  In the process we will also
+                        point out how to modify the scaler trigger.
+                    </para>
+                </listitem>
+            </itemizedlist>
+            <para>
+                All of these operations involve editing the
+                <filename>Skeleton.cpp</filename> file that was distributed
+                as part of the skeleton.
+            </para>
+            <section>
+                <title>Specifying the event trigger.</title>
+                <para>
+                    In this section we'll look at how to specify the
+                    event trigger for the readout framework.
+                    Really we need to specify two things.  How to
+                    know when an event should be read, and how to indicate
+                    to the electronics when the event readout is complete.
+                </para>
+                <para>
+                    Each readout must specify an object that is a
+                    <classname>CEventTrigger</classname> as the trigger object.
+                    This object is repeatedly asked if an event is ready to be read.
+                    Each readout may optionally specify an object that is a
+                    <classname>CBusy</classname> object. The readout framework
+                    interacts with that object (if specified) to determine
+                    how to indicate to the electronics that additional triggers
+                    can be responded to.
+                </para>
+                <para>
+                    While you can write your own event trigger and busy classes,
+                    the framework comes with support for the
+                    CAEN V262 and CAEN V977 as trigger/busy electronics in the form
+                    of Busy and trigger classes.  See the reference information
+                    for more about those. For now, we will set up our readout
+                    to trigger and report busy-ness via the CAEN V262 module.
+                </para>
+                <example>
+                    <title>Sepcifying the trigger/busy</title>
+                    <programlisting>
+#include &lt;config.h&gt;
+#include "Skeleton.h"
+#include &lt;CExperiment.h&gt;
+#include &lt;TCLInterpreter.h&gt;
+#include &lt;CTimedTrigger.h&gt;
+
+#include "CCAENEventSegment.h"
+
+
+#include "CSIS3820Scaler.h"
+
+#include &lt;CCAENV262Trigger.h&gt;  <co id="CV262_Includes" />
+#include &lt;CCAENV262Busy.h&gt;
+
+...
+void
+Skeleton::SetupReadout(CExperiment* pExperiment)
+{
+...
+  pExperiment->EstablishTrigger(new CCAENV262Trigger(0x444400, 0) ); <co id="CV262_trigger" />
+  pExperiment->EstablishBusy(new CCAENV262Busy(0x444400, 0));        <co id="CV262_busy" />
+  
+...
+}
+
+
+                    </programlisting>
+                </example>
+                <calloutlist>
+                    <callout arearefs="CV262_Includes">
+                        <para>
+                            This header and the next define the
+                            <classname>CV262Trigger</classname> and
+                            <classname>CV262Busy</classname> classes which we will
+                            be using as trigger and busy classes respectively.
+                        </para>
+                    </callout>
+                    <callout arearefs="CV262_trigger">
+                        <para>
+                            This line of code creates a new
+                            <classname>CV262Trigger</classname> object
+                            for a module with base address of <literal>0x444400</literal>
+                            in VME crate 0.  This is the traditional location of this
+                            module in the NSCL DAQ. The all to the
+                            <methodname>EstablishTrigger</methodname> method
+                            of the <classname>CExperiment</classname> object
+                            makes this trigger module the experiment event
+                            trigger.
+                        </para>
+                    </callout>
+                    <callout arearefs="CV262_busy">
+                        <para>
+                            Similarly, this line creates a
+                            <classname>CV262Busy</classname> object at the same
+                            VME base address and establishes it as the module
+                            that will handle and maintain the program's
+                            busy state.
+                        </para>
+                    </callout>  
+                </calloutlist>
+            </section>
+            <section>
+                <title>Specifying what is read out by an event trigger</title>
+                <para>
+                    The <methodname>Skeleton::SetupReadout</methodname> method of
+                    the skeleton is also where event segment should be registered.
+                    You can imagine the <classname>CExperiment</classname> as a
+                    <classname>CCompoundEventSegment</classname> in the sense that
+                    it implements the <methodname>AddEventSegment</methodname> method.
+                    This method allows you to specify the set of event segments
+                    you want to respond to the event trigger.
+                </para>
+                <para>
+                    <classname>CExperiment</classname> and
+                    <classname>CCompoundEventSegment</classname> invoke corresopnding
+                    methods of the event segments added to them in the order
+                    in which they were registered.  This allows you to control
+                    the exact sequence in which event segments put their data
+                    into the output event.
+                </para>
+                <para>
+                    The sample code fragments below:
+                    <orderedlist>
+                        <listitem>
+                            <para>
+                                Build a compound event segment from several
+                                <classname>CCAENEventSegment</classname> objects
+                            </para>
+                        </listitem>
+                        <listitem>
+                            <para>
+                                Wraps the compound event segment into a
+                                <classname>CEventPacket</classname> and
+                                adds it to the readout.
+                            </para>
+                        </listitem>
+                        <listitem>
+                            <para>
+                                Wraps a single <classname>CCAENEventSegment</classname>
+                                object in a <classname>CEventPacket</classname>
+                                and adds that to the readout as well.
+                            </para>
+                        </listitem>
+                    </orderedlist>
+                </para>
+                <example>
+                    <title>Adding event segments to the experiment</title>
+                    <programlisting>
+...
+#include "CCAENEventSegment.h"
+#include &lt;CCompoundEventSegment.h&gt;   <co id="EVSRegsiter_headers" />
+#include &lt;CEventPacket.h&gt;
+...
+void
+Skeleton::SetupReadout(CExperiment* pExperiment)
+{
+...
+   CCAENEventSegment* pTdc0 = new CCAENEventSegment(0x10000000, 0);
+   CCAENEventSegment* pTdc1 = new CCAENEventSegment(0x11000000, 1);
+   CCAENEventSegment* pTdc2 = new CCAENEventSegment(0x12000000, 2); <co id="EVSRegister_simplesegs" />
+   CCAENEventSegment* pTdc3 = new CCAENEventSegment(0x13000000, 3);
+   CCAENEventSegment* pTdc4 = new CCAENEventSegment(0x14000000, 4);
+   CCAENEventSegment* pTdc5 = new CCAENEventSegment(0x15000000, 5);
+   
+   CCompountEventSegment* pCompound = new CCompoundEventSegment;   <co id="EVSRegister_MakeCompound" />
+   pCompound-&gt;AddEventSegment(pTdc0);
+   pCompound-&gt;.AddEventSegment(pTdc1);
+   pCompound-&gt;AddEventSegment(pTdc2);
+   pCompound-&gt;AddEventSegment(pTdc3);
+   pCompound-&gt;AddEventSegment(pTdc4);
+   
+   pExperiment-&gt;AddEventSegment(new CEventPacket(*pCompound,    <co id="EVSRegister_Registercompound" />
+                                                  0xff01, "Compound",
+                                                  "Sample compound event segment",
+                                                  "V1.0"));
+   pExperiment-&gt;AddEventSegment(new CEventPacket(*pTdc5,        <co id="EVSRegister_RegisterSimple" />
+                                                0xff02, "Simple",
+                                                "Sample simple event segment",
+                                                "V1.0"));
+..
+}
+...
+                    </programlisting>
+                </example>
+                <calloutlist>
+                    <callout arearefs="EVSRegsiter_headers">
+                        <para>
+                            These headers must be included to get the class
+                            definitions we need for our readout definitions.
+                            The <filename>CCAENEventSegment.h</filename> header
+                            is assumed to hold the class definitions for the
+                            <classname>CCAENEventSegment</classname> we developed
+                            earlier in the chapter.
+                        </para>
+                    </callout>
+                    <callout arearefs="EVSRegister_simplesegs">
+                        <para>
+                            Creates the event segments that manage the individual
+                            TDC modules.  Each module is given a unique
+                            virtual slot number and base address.
+                        </para>
+                    </callout>
+                    <callout arearefs="EVSRegister_MakeCompound">
+                        <para>
+                            Creates a compound event segment that contains
+                            the first 5 TDC events egments (<varname>pTdc0</varname>
+                            through <varname>pTdc4</varname>).
+                        </para>
+                    </callout>
+                    <callout arearefs="EVSRegister_Registercompound">
+                        <para>
+                            Wraps the compound event segment in a packet whose
+                            id will be 0xff01 and whose short name is
+                            <literal>Compound</literal>. The event segment is
+                            added as the first segment to be read by the
+                            readout framework in response to a trigger.
+                        </para>
+                    </callout>
+                    <callout arearefs="EVSRegister_RegisterSimple">
+                        <para>
+                            Wraps <varname>pTdc5</varname> in a packet
+                            whose id will be <literal>0xff02</literal> and
+                            whose short name will be <literal>Simple</literal>.
+                            This event packet is added as the second segment to
+                            be read in response to a trigger.
+                        </para>
+                        </callout>
+                </calloutlist>
+                <para>
+                    To conclude this section, let's look at how the software
+                    responds to an event trigger.
+                </para>
+                <para>
+                    When the trigger fires,
+                    The Readout framework will first invoke the <methodname>read</methodname>
+                    method of <literal>Compound</literal> event packet.
+                    The event packet will save space for the packet size and
+                    insert the header.  It will then call the
+                    <methodname>read</methodname>
+                    method of its event segment, <varname>pCompound</varname>.
+                    <varname>pCompound</varname> in turn will invoke the
+                    <methodname>read</methodname> method of each of the event
+                    segments it wraps in the order in which they were added:
+                    <varname>pTdc0</varname>, <varname>pTdc1</varname>,...
+                    <varname>pTdc4</varname>.
+                    Once all events egments are read, the compound event segment
+                    will compute and fill in the size field of the header.
+                </para>
+                <para>
+                    The readout framework will next invoke the
+                    <methodname>read</methodname> method of the
+                    <literal>Simple</literal> event segment.
+                    This will perform in the same way as <literal>Compound</literal>
+                    except that it will directly call the <methodname>read</methodname>
+                    method of <varname>pTdc</varname>.
+                </para>
+                <para>
+                    Once the event has been read out, the same algorithm will be
+                    applied, however the <methodname>clear</methodname> method
+                    will be invoked.
+                </para>
+            </section>
+            <section>
+                <title>Specifying the scaler readout</title>
+                <para>
+                    Specifying the scaler readout is very similar to specifying
+                    the event trigger response.  This is done in the
+                    method <methodname>Skeleton::SetupScalers</methodname>.
+                </para>
+                <para>
+                    At present, this method sets up a timed trigger as the
+                    scaler readout trigger.   The default code sets the
+                    scaler readout trigger period to <literal>2</literal> seconds.
+                </para>
+                <para>
+                    You must add code to this method to define the response
+                    to the scaler trigger.  If you don't want a timed trigger,
+                    you can substitite some other trigger object if you have
+                    some special application need.
+                </para>
+                <para>
+                    In the example below, several SIS3820 scalers are
+                    combined to form a scaler bank.  That scaler bank is registered,
+                    and then a single SIS3820 module is registered.
+                </para>
+                <example>
+                    <title>Setting up scaler readout</title>
+                    <programlisting>
+...
+#include "CSIS3820Scaler.h>"      <co id="ScalerRegister_headers" />
+#include &lt;CScalerBank&gt;"
+...
+void
+Skeleton::SetupScalers(CExperiment* pExperiment) 
+{
+  CReadoutMain::SetupScalers(pExperiment); 
+
+ <co id="ScalerRegister_trigger" />
+
+  timespec t;
+  t.tv_sec  = 2;
+  t.tv_nsec = 0;
+  CTimedTrigger* pTrigger = new CTimedTrigger(t);
+  pExperiment-&gt;setScalerTrigger(pTrigger);
+
+
+    <co id="SclerRegister_individualModules" />
+    
+    CSIS3820Scaler* pScaler0 = new CSIS3820Scaler(0x80000000);
+    CSIS3820Scaler* pScaler1 = new CSIS3820Scaler(0x80010000);
+    CSIS3820Scaler* pScaler2 = new CSIS3820Scaler(0x80020000);
+    CSIS3820Scaler* pScaler3 = new CSIS3820Scaler(0x80030000);
+    CSIS3820Scaler* pScaler4 = new CSIS3820Scaler(0x80040000);
+    CSIS3820Scaler* pScaler5 = new CSIS3820Scaler(0x80050000);
+    
+    <co id="ScalerRegister_createbank" />
+    CScalerBank* pBank = new CScalerBank;
+    pBank-&gt;AddScalerModule(pScaler0);
+    pBank-&gt;AddScalerModule(pScaler1);
+    pBank-&gt;AddScalerModule(pScaler2);
+    pBank-&gt;AddScalerModule(pScaler3);
+    pBank-&gt;AddScalerModule(pScaler4);
+    
+    
+    <co id="ScalerRegister_Register" />
+    
+    pExperiment-&gt;AddScalerModule(pBank);
+    pExperiment-&gt;AddScalerModule(pScaler5);
+
+
+}
+...
+
+                    </programlisting>
+                </example>
+                <calloutlist>
+                    <callout arearefs="ScalerRegister_headers">
+                        <para>
+                            Includes the headers we will need in the code
+                            that follows.  The assumption is that the
+                            <classname>CSIS3820Scaler</classname> class header
+                            is named <filename>CSIS3820Scaler.h</filename>.
+                        </para>
+                    </callout>
+                    <callout arearefs="ScalerRegister_trigger">
+                        <para>
+                            This code sets up a timed trigger for scalers.
+                            The line that reads <literal>t.tv_sec  = 2;</literal>
+                            sets the readout period to <literal>2</literal> seconds.
+                            Since the scaler timestamp resolution is whole seconds,
+                            you shoule leave the <varname>tv_nsec</varname>
+                            field set to zero.
+                        </para>
+                    </callout>
+                    <callout arearefs="SclerRegister_individualModules">
+                        <para>
+                            This code creates 6 <classname>CSIS3820Scaler</classname>
+                            objects and assigns their addresses to
+                            <varname>pScaler0</varname> ... <varname>pScaler5</varname>.
+                        </para>
+                    </callout>
+                    <callout arearefs="ScalerRegister_createbank">
+                        <para>
+                            Adds the scalers <varname>pScaler0</varname> through
+                            <varname>pScaler4</varname> to the scaler bank.  The
+                            order in which they are added determines the order
+                            in which they will be read.
+                        </para>
+                    </callout>
+                    <callout arearefs="ScalerRegister_Register">
+                        <para>
+                            The scaler bank and remaining scaler module
+                            are added to the set of scalers the readout will
+                            read/clear when the scaler trigger fires.
+                            Once more these are read in the order in which they
+                            were registered.
+                        </para>
+                        </callout>
+                </calloutlist>
+            </section>
         </section>
         <section>
             <title>Editing and using the Makefile</title>
             <para>
+                Once you have completed your modifications, and written your code,
+                you need to be able to build it.  The <filename>Makefile</filename>
+                distributed with the skeleton is heavily commented.  Most of the
+                time you will simply have to tell the Makefile to build your
+                objects and incorporate them into the <filename>Readout</filename>
+                executable it builds.
             </para>
+            <para>
+                If we assume that we've written two <filename>.cpp</filename> files
+                and corresponding headers named: <filename>CCAENEventSegment.cpp</filename>
+                and <filename>CSIS3820Scaler.cpp</filename>,
+                We need to modify the <literal>OBJECTS</literal> definition to
+                read as follows:
+            </para>
+            <example>
+                <title>Makefile modifications</title>
+                <programlisting>
+                    ...
+OBJECTS=Skeleton.o CCAENEventSegment.o CSIS3820Scaler.o
+                    ...
+                </programlisting>
+            </example>
         </section>
     </chapter>
     <chapter>
         <title>Creating a Readout program from a spectrodaq production readout program</title>
-        <para></para>
+        <para>
+            This chapter describes how to create a RingDaq readout program given
+            a spectrodaq production readout program as a starting point.
+            The RingDaq readout program closely  mimics the SPDAQ production readout
+            framework.  Therefore the concepts should seem quite familiar.
+        </para>
+        <para>
+            In this chapter we'll see how to:
+        </para>
+        <itemizedlist>
+            <listitem>
+                <para>Obtain a copy of the RingDaq readout framework skeleton</para>
+            </listitem>
+            <listitem>
+                <para>Port an existing event segment to RingDaq</para>
+            </listitem>
+            <listitem>
+                <para>Modify the <filename>Skeleton.cpp</filename> to register
+                 our event segments.</para>
+            </listitem>
+            <listitem>
+                <para>
+                    Port existing scaler objects to RingDaq
+                    and instantiate/register them with <filename>skeleton.cpp</filename>
+                </para>
+            </listitem>
+        
+            <listitem>
+                <para>Modify the <filename>Makefile</filename> to add our
+                software to the final <filename>Readout</filename> program
+                produced by it.
+                </para>
+            </listitem>
+        </itemizedlist>
+        <section>
+            <title>Obtaining a copy of the RingDaq readout skeleton</title>
+            <para>
+                In this section we are going to operate as if an environment
+                variable named <literal>DAQROOT</literal> is defined and
+                points to the top level of the RingDaq distribution.
+                At the time this is being written, at the NSCL this would give
+                <literal>DAQROOT</literal> the value
+                <filename>/usr/opt/daq/10.0</filename>.  As time goes on,
+                this directory name may change as version numbers change.
+                If you are not at the NSCL you will  need to contact your
+                system administrators about where they installed this software.
+            </para>
+            <para>
+                The commands below show how to obtain a copy of the readout
+                skeleton for RingDaq:
+            </para>
+            <example>
+                <title>Getting the skeleton</title>
+                <programlisting>
+mkdir myreadout
+cd    myreadout
+cp $DAQHOME/skeletons/dbs/* .
+                </programlisting>
+            </example>
+            <para>
+                This sequence of unix shell commands creates a new directory
+                named <filename>myreadout</filename>, makes that the current
+                default directory and copies the readout skeleton into that
+                directory.
+            </para>
+            <para>
+                The readout skeleton constists of the following files:
+            </para>
+            <variablelist>
+                <varlistentry>
+                    <term><filename>Makefile</filename></term>
+                    <listitem><para>Makefile that builds the skeleton</para></listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><filename>Seleton.cpp</filename></term>
+                    <listitem>
+                        <para>
+                            Source code for the registration code for the
+                            readout framework.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><filename>Skeleton.h</filename></term>
+                    <listitem>
+                        <para>Header defining the class implemented by
+                        <filename>Skeleton.cpp</filename>
+                        </para>
+                    </listitem>
+                </varlistentry>
+            </variablelist>
+            <para>
+                If you examine <filename>Skeleton.cpp</filename> you wont' find
+                a <literal>main</literal> function.  This is because the readout
+                framework is an application framework.  Application frameworks
+                consist of a main program that is written for you and specific
+                ways to register the presence of application specific code that
+                needs to be called at well defined points in the program's
+                execution.
+            </para>
+            <para>
+                Using an application framework frees you from having to worry about
+                how your code actually interfaces with the data acquisition system,
+                manager run-state transitions, trigger processing and so on.
+                In the next two chapters we will see how to create code that is
+                application specific and how to register it with the framework
+                so that it is called when we want it to be called.
+            </para>
+        </section>
+        <section>
+            <title>Porting existing event segments to RingDaq</title>
+            <para>
+                In this section we will look at how to take an existing event
+                segment for the SPDAQ production readout framework and
+                port it to RingDaq.
+                Let's start by comparing the interfaces of the two types of
+                event segments
+            </para>
+            <para>
+                The <classname>CEventSegment</classname> class in
+                the SPDAQ system looks like this:
+            </para>
+            <variablelist>
+                <methodsynopsis>
+                    <type>void</type> <methodname>Initialize</methodname> <void />
+                </methodsynopsis>
+                <methodsynopsis>
+                    <type>DAQWordBufferPtr&amp;</type> <methodname>Read</methodname>
+                    <methodparam>
+                        <type>DAQWordBufferPtr&amp;</type> <parameter>rBuffer</parameter>
+                    </methodparam>
+                </methodsynopsis>
+                <methodsynopsis>
+                    <type>void</type> <methodname>Clear</methodname> <void />
+                </methodsynopsis>
+                <methodsynopsis>
+                    <type>unsigned int</type> <methodname>MaxSize</methodname> <void />
+                </methodsynopsis>
+                
+                <varlistentry>
+                    <term><methodname>Initialize</methodname></term>
+                    <listitem>
+                        <para>
+                            Provides initialization code that is called at the
+                            start of data taking.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><methodname>Read</methodname></term>
+                    <listitem>
+                        <para>
+                            Reads data in response to the trigger.
+                            <parameter>rBuffer</parameter> is a reference
+                            to the spectrodaq buffer pointer object that
+                            describes where to put the
+                            data to be read.  The return value is a spectrodaq
+                            buffer pointer objedt that has been advanced so that
+                            it points to the first word (<type>uint16_t</type>)
+                            following the data read by this event segment
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><methodname>Clear</methodname></term>
+                    <listitem>
+                        <para>
+                            Called prior to being able to accept a trigger
+                            (including the first trigger).  This method is supposed
+                            to do any cleanup to make the digitizers able to accept
+                            a new event.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><methodname>MaxSzie</methodname></term>
+                    <listitem>
+                        <para>
+                            This is supposed to returnt he maximum number of
+                            <type>uint16_t</type> data alements the
+                            event segment will read.
+                        </para>
+                    </listitem>
+                </varlistentry>
+            </variablelist>
+            <para>
+                By comparison, the RingDaq <classname>CEventSegment</classname>,
+                which has the same purpose has the following interface:
+            </para>
+            <variablelist>
+                <methodsynopsis>
+                    <type>void</type> <methodname>initialize</methodname><void />
+                </methodsynopsis>
+                <methodsynopsis>
+                    <type>void</type> <methodname>clear</methodname><void />
+                </methodsynopsis>
+                <methodsynopsis>
+                    <type>void</type> <methodname>disable</methodname> <void />
+                </methodsynopsis>
+                <methodsynopsis>
+                    <type>size_t</type> <methodname>read</methodname>
+                    <methodparam><type>void*</type> <parameter>pBuffer</parameter></methodparam>
+                    <methodparam><type>size_t</type> <parameter>maxWords</parameter></methodparam>
+                </methodsynopsis>
+                <methodsynopsis>
+                    <type>const bool</type> <methodname>isComposite</methodname>
+                </methodsynopsis>
+                <varlistentry>
+                    <term><methodname>initialize</methodname></term>
+                    <listitem>
+                        <para>
+                            Is called before data taking starts and is expected
+                            to initialize the data taking devices to prepare
+                            them and enable them to take data.  This method is
+                            optional.  If omitted the framework does nothing
+                            to initialize this event segment.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><methodname>clear</methodname></term>
+                    <listitem>
+                        <para>
+                            Is called to clear digitizers to prepare them
+                            to respond to the next trigger.  It is called
+                            just prior to waiting for a trigger (at the
+                            start of the run after <methodname>initialize</methodname>
+                            is called as well as after each event).  This
+                            method is optional and if not implemented
+                            the framework does nothing for this event segment
+                            at clear time.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><methodname>disable</methodname></term>
+                    <listitem>
+                        <para>
+                            This method is called as data taking is being
+                            shutdown. If your devices require any actions
+                            to disable them you can perform those actions in this
+                            method.  One place you might use this would be if you
+                            have programmed a user specific trigger based on
+                            VME interrupts.  You could use the method to disable
+                            the interrupts on your trigger device.
+                        </para>
+                        <para>
+                            This method is optional and the framework will do
+                            nothing if it is not implementerd.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><methodname>read</methodname></term>
+                    <listitem>
+                        <para>
+                            This method is called on each trigger it is expected
+                            to read the data from the devices managed by this
+                            event segment from the digitizer hardware.
+                            Parameters are as follows:
+                        </para>
+                        <segmentedlist>
+                            <segtitle>type</segtitle>
+                            <segtitle>parameter</segtitle>
+                            <segtitle>Purpose</segtitle>
+                            <seglistitem>
+                                <seg><type>void*</type></seg>
+                                <seg><parameter>pBuffer</parameter></seg>
+                                <seg>
+                                    Pointer to storage into which this event
+                                    segment should store its data. Usually
+                                    the first thing you will need to do is
+                                    re-cast this pointer to the appropriate
+                                    data type.
+                                </seg>
+                            </seglistitem>
+                            <seglistitem>
+                                <seg><type>size_t</type></seg>
+                                <seg><parameter>maxWords</parameter></seg>
+                                <seg>
+                                    The maximum number of <type>uint16_t</type>
+                                    units that can fit in the space pointed to by
+                                    <parameter>pBuffer</parameter>.
+                                    Very bad things will happen if you read
+                                    more than this number of words.
+                                </seg>
+                            </seglistitem>
+                        </segmentedlist>
+                        <para>
+                            The return value is expected to be the number of
+                            <type>uint16_t</type> units of data read by this
+                            segment.
+                        </para>
+                    </listitem>
+                </varlistentry>         
+            </variablelist>
+            <para>
+                The following are a few general remarks about how to port
+                from SPDAQ to RingDaq for each method in <classname>CEventSegment</classname>.
+                It is important to note that the header <filename>spectrodaq.h</filename>
+                does not exist in RingDaq and <literal>#include</literal> directives
+                for it should be removed:
+            </para>
+            <variablelist>
+                <varlistentry>
+                    <term><methodname>Initialize</methodname></term>
+                    <listitem>
+                        <para>
+                            Change the name of this function to
+                            <methodname>initialize</methodname>.  Typically
+                            no other changes will be needed.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><methodname>Clear</methodname></term>
+                    <listitem>
+                        <para>
+                            Change the name of this method to
+                            <methodname>clear</methodname>.  Typically no other
+                            changes are needd.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><methodname>MaxSize</methodname></term>
+                    <listitem>
+                        <para>
+                            This method has no counterpart in the RingDaq
+                            system.  Remove it from your event segment.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><methodname>Read</methodname></term>
+                    <listitem>
+                        <para>
+                            This method needs the most work:
+                        </para>
+                        <orderedlist>
+                            <listitem>
+                                <para>
+                                    Rename the method to <methodname>read</methodname>
+                                    changing the parameter signature to match
+                                    that of the RingDaq event segment (accepting
+                                    a <type>void*</type> and a <type>size_t</type>).
+                                </para>
+                            </listitem>
+                            <listitem>
+                                <para>
+                                    Usually you will need to cast the input pointer
+                                    to a <type>uint16_t*</type>.  Then replace all
+                                    arithmetic involving <methodname>DAQWordBufferPtr::GetIndex()</methodname>
+                                    with direct pointer arithmetic
+                                </para>
+                            </listitem>
+                            <listitem>
+                                <para>
+                                    Return the number of words read rather than
+                                    a pointer to the next location.
+                                </para>
+                            </listitem>
+                            <listitem>
+                                <para>
+                                    Peform a test at the top of the function to see
+                                    if your worst case event (or if you can
+                                    determine it your atual event size) is
+                                    less than or equal to the <parameter>maxWords</parameter>
+                                    parameter and throw an exception if not.
+                                </para>
+                            </listitem>
+                        </orderedlist>
+                    </listitem>
+                </varlistentry>
+            </variablelist>
+            <para>
+                Let's see how this works in practice. The following two examples
+                show a header and an implementation of an SPDAQ event segment that
+                manages a CAEN V775 TDC.
+            </para>
+            <example>
+                <title>SPDAQ Production readout event segment header</title>
+                <programlisting>
+#include &lt;CEventSegment.h&gt;
+#include &lt;stdint.h&gt;
+
+using namespace std;
+#include &lt;spectrodaq.h&gt;
+
+
+class CAENcard;
+
+class MyEventSegment :  public CEventSegment
+{
+ private:
+  CAENcard* m_pCard;
+ public:
+  MyEventSegment(uint32_t base,  uint8_t id, int crate= 0);
+  virtual ~MyEventSegment();
+
+  virtual void Initialize();
+  virtual DAQWordBufferPtr&amp; Read(DAQWordBufferPtr&amp; rBuffer);
+  virtual void Clear();
+  virtual unsigned int MaxSize();
+
+};
+
+                </programlisting>
+            </example>
+            <example>
+                <title>SPDAQ production readout event segment implementation</title>
+                <programlisting>
+#include &lt;config.h&gt;
+#include "MyEventSegment.h"
+#include &lt;CAENcard.h&gt;
+
+
+MyEventSegment::MyEventSegment(uint32_t base, uint8_t id, int crate) :
+  m_pCard(new CAENcard(id, 0, false, base))
+{}
+
+MyEventSegment::~MyEventSegment() 
+{
+  delete m_pCard;
+}
+
+void MyEventSegment::Initialize()
+{
+  m_pCard-&gt;reset();
+  sleep(2);
+  for(int i =0; i &lt; 32; i++) {
+    m_pCard-&gt;setThreshold(i, 0);
+  }
+  m_pCard-&gt;commonStart();
+  m_pCard-&gt;keepOverflowData();
+  m_pCard-&gt;keepUnderThresholdData();
+  m_pCard-&gt;setRange(0x1e);
+
+  m_pCard-&gt;clearData();
+}
+
+void MyEventSegment::Clear()
+{ 
+  m_pCard-&gt;clearData();
+
+}
+
+DAQWordBufferPtr&amp;
+MyEventSegment::Read(DAQWordBufferPtr&amp; rBuffer)
+{
+  for (int i =0; i &lt; 30; i++) {
+    if(m_pCard-&gt;dataPresent()) break;
+  }
+  rBuffer +=(m_pCard-&gt;readEvent(rBuffer))/sizeof(int16_t);
+
+  return rBuffer;
+}
+
+unsigned int
+MyEventSegment::MaxSize() 
+{
+  return 34*2;
+}
+
+                </programlisting>
+            </example>
+            <para>
+                After following the previous suggestions the
+                resulting header for the event segment looks like this:
+            </para>
+            <example>
+                <title>Porting the event segment to RingDaq</title>
+                <programlisting>
+#include &lt;CEventSegment.h&gt;
+#include &lt;stdint.h&gt;
+
+
+<co id="SPAQPtoRing_killspectrodaqheader" />
+
+using namespace std;
+
+
+class CAENcard;
+
+class MyEventSegment :  public CEventSegment
+{
+ private:
+  CAENcard* m_pCard;
+ public:
+  MyEventSegment(uint32_t base,  uint8_t id, int crate= 0);
+  virtual ~MyEventSegment();
+
+  virtual void initialize();  <co id="SPDAQPtoRing_renameinit" />
+  virtual size_t read(void* pBuffer, size_t maxWords); <co id="SPDAQPtoRing_resigREadout" />
+  virtual void clear();      <co id="SPDAQPtoRing_renameclear" />
+<co id="SPDAQPtoRing_removeMaxWords" />
+
+};
+
+                </programlisting>
+            </example>
+            <calloutlist>
+                <callout arearefs="SPAQPtoRing_killspectrodaqheader">
+                    <para>
+                        This note is for what is not there.  The
+                        <literal>#include</literal> for
+                        <filename>spectrodaq.h</filename> has been removed
+                        as there is no corresponding header in RingDaq.
+                    </para>
+                </callout>
+                <callout arearefs="SPDAQPtoRing_renameinit">
+                    <para>
+                        In RingDaq the name of this method is entirely lower
+                        case rather than starting with an upper case letter.
+                    </para>
+                </callout>
+                <callout arearefs="SPDAQPtoRing_resigREadout">
+                    <para>
+                        Note the change not only in name but in parameter
+                        types and number.
+                    </para>
+                </callout>
+                <callout arearefs="SPDAQPtoRing_renameclear">
+                    <para>
+                        The clear function has been renamed to be fully lower
+                        case.
+                    </para>
+                </callout>
+                <callout arearefs="SPDAQPtoRing_removeMaxWords">
+                    <para>
+                        The <methodname>MaxWords</methodname> method is not used
+                        by RingDaq and has therefore been removed.
+                    </para>
+                </callout>
+            </calloutlist>
+            <para>
+                Let's take the implementation file in two pieces.
+                First we'll look at all methods other than the <methodname>read</methodname>
+                method.  Then we'll look at the <methodname>read</methodname> method
+                by itself.
+            </para>
+            <example>
+                <title>Porting the Event segment to RingDaq II </title>
+                <programlisting>
+#include &lt;config.h&gt;
+#include "MyEventSegment.h"     <co id="SDAQtoRing_ImplIncludes" />
+#include &lt;CAENcard.h&gt;
+#include &lt;string&gt;
+
+
+MyEventSegment::MyEventSegment(uint32_t base, uint8_t id, int crate) :
+  m_pCard(new CAENcard(id, 0, false, base))  <co id="SDAQToRing_ConstructorNC" />
+{}
+
+MyEventSegment::~MyEventSegment()   <co id="SDAQToRing_DestructorNC" />
+{
+  delete m_pCard;
+}
+
+void MyEventSegment::initialize()   <co id="SDAQToRing_initializeMods" />
+{
+  m_pCard-&gt;reset();
+  sleep(2);
+  for(int i =0; i &lt; 32; i++) {
+    m_pCard-&gt;setThreshold(i, 0);
+  }
+  m_pCard-&gt;commonStart();
+  m_pCard-&gt;keepOverflowData();
+  m_pCard-&gt;keepUnderThresholdData();
+  m_pCard->setRange(0x1e);
+
+  m_pCard-&gt;clearData();
+}
+
+void MyEventSegment::clear()   <co id="SDAQToRing_clearMods" />
+{ 
+  m_pCard-&gt;clearData();
+
+}
+...
+                </programlisting>
+            </example>
+            <para>
+                As you can see not very many modifications were required for
+                this part of the code:
+            </para>
+            <calloutlist>
+                <callout arearefs="SDAQtoRing_ImplIncludes">
+                    <para>
+                        The &lt;string&gt; header was included so that
+                        the <methodname>read</methodname> method (see below)
+                        can throw a <classname>std::string</classname> exception.
+                    </para>
+                </callout>
+                <callout arearefs="SDAQToRing_ConstructorNC">
+                    <para>
+                        No changes required to the consturctor.
+                    </para>
+                </callout>
+                <callout arearefs="SDAQToRing_DestructorNC">
+                    <para>
+                        No changes were required to the destrutor.
+                    </para>
+                </callout>
+                <callout arearefs="SDAQToRing_initializeMods">
+                    <para>
+                        The only change required here was to change the
+                        first letter of the function name to lower case.
+                    </para>
+                </callout>
+                <callout arearefs="SDAQToRing_clearMods">
+                    <para>
+                        the only change required to this function was to
+                        change the first letter of the function name to
+                        lower case.
+                    </para>
+                </callout>
+            </calloutlist>
+            <para>
+                The bulk of the changes are due to the change in the parameter
+                signature of the <methodname>read</methodname> method:
+            </para>
+            <example>
+                <title>Porting the Event segment to RingDaq II</title>
+                <programlisting>
+...
+size_t
+MyEventSegment::read(void* pBuffer, size_t maxWords) <co id="SDAQToRing_ReadSigMod" />
+{
+
+  if (34*2 &gt; maxWords) {       <co id="SDAQToRing_checkMaxSize" />
+    throw std::string("Insuficient space remaining in buffer");
+  }
+
+  for (int i =0; i &lt; 30; i++) {
+    if(m_pCard-&gt;dataPresent()) break;  <co id="SDAQToRing_Waitstillsame" />
+  }
+  size_t n = (m_pCard-&gt;readEvent(pBuffer))/sizeof(int16_t); <co id="SDAQToRing_readDaata" />
+
+  return n;  <co id="SDAQToRing_returnsize" />
+}
+<co id="SDAQToRing_NoMaxSizeImpl" />
+                </programlisting>
+            </example>
+            <calloutlist>
+                <callout arearefs="SDAQToRing_ReadSigMod">
+                    <para>
+                        This line had to be changed.  The first character of the
+                        name of the method was changed to lower case and, instead
+                        of a <classname>DAQWordBufferPtr&amp;</classname> return
+                        value, a <type>size_t</type> is returned indicating the
+                        number of words read.  Furthermore, instead of a
+                        <classname>DAQWordBufferPtr&amp; </classname> parameter,
+                        the function now is passed a <type>void*</type> and
+                        a <type>size_t</type>.
+                    </para>
+                </callout>
+                <callout arearefs="SDAQToRing_checkMaxSize">
+                    <para>
+                        As recommended earlier, if the largest amount of data
+                        we will produce is larger than our remaining event
+                        storage space (<parameter>maxWords</parameter>), a
+                        <classname>std::string</classname> exception is thrown.
+                    </para>
+                </callout>
+                <callout arearefs="SDAQToRing_Waitstillsame">
+                    <para>
+                        This code is unchanged.
+                    </para>
+                </callout>
+                <callout arearefs="SDAQToRing_readDaata">
+                    <para>
+                        This code is only slightly changed.  Instead of computing
+                        the next buffer location, we just need to know how much
+                        data were read.
+                    </para>
+                </callout>
+                <callout arearefs="SDAQToRing_returnsize">
+                    <para>
+                        Return the numger of words read.
+                    </para>
+                </callout>
+            </calloutlist>
+            <para>
+                A few points need to be covered prior to leaving this section:
+            </para>    
+            <itemizedlist>
+                <listitem>
+                    <para>
+                        If your event segment is more complicated it is often
+                        necessary to cast the <type>void*</type> pointer to
+                        something else.  Suppose, for example in the
+                        code we've been working on we had two adc modules
+                        m_pCard1 and m_pCard2.  We need to know where to put
+                        the data for card 2.  This can be accomplished as follows:
+                    </para>
+                    <informalexample>
+                        <programlisting>
+uint8_t* pByteBuffer = reinterpret_cast&lt;uint8_t*&gt;(pBuffer);
+pByteBuffer += m_pCard1-&gt;readEvent(pByteBuffer);
+pByteBuffer += m_pCard2-&gt;readEvent(pByteBuffer);
+                        </programlisting>
+                    </informalexample>
+                </listitem>
+                <listitem>
+                    <para>
+                        Sometimes it can be easier to use pointer
+                        arithmetic to figure out the number of
+                        words read.  In the example in the previous
+                        point, we could do this as follows:
+                    </para>
+                    <informalexample>
+                        <programlisting>
+return reinterpret_cast&lt;uint16_t*&gt;(pByteBuffer)
+     - reinterpret_cast&lt;uint16_t*&gt;(pBuffer);
+                        </programlisting>
+                        <para>
+                            Subtracting the two <type>uint16_t*</type>
+                            pointers gives the number of words between them.
+                        </para>
+                    </informalexample>
+                </listitem>
+                                     
+            </itemizedlist>
+
+        </section>
+        <section>
+            <title>Registering event segments with <filename>Skeleton.cpp</filename>
+            </title>
+            <para>
+                You must do three things in <filename>Skeleton.cpp</filename>.
+                You need to select an event trigger, a dead time management
+                scheme (busy) and you need to register
+                your event segment(s).
+            </para>
+            <para>
+                In the production readout program,
+                the event trigger was built in and you had to do something
+                special to replace it with one that was not built in.
+                As people developed other ways to trigger their readouts this
+                became cumbersome.  Therefore the RingDaq readout software
+                requires you to explicitly select the trigger you want to use.
+            </para>
+            <para>
+                The RingDaq triggers supports two trigger modules directly:
+                <classname>CCAENV262Trigger</classname> and
+                <classname>CV977Trigger</classname> which support triggers
+                from the CAEN V262 and CAEN V977 input registers respectively.
+                In addition, the device support software provides a
+                class (<classname>CCAMACTrigger</classname>)
+                that can easily be wrapped into an event trigger that supports
+                the <literal>IT2</literal> input of the CES CBD8210 CAMAC
+                branch highway driver as a trigger.  The base class
+                <classname>CEventTrigger</classname> supports the creation of
+                custom event triggers.
+            </para>
+            <para>
+                The RingDaq readout framework also provides
+                <classname>CCAENV262Busy</classname> and
+                <classname>CCAENV977Busy</classname> classes  that allow those
+                two modules to do dead-time management. The base class
+                <classname>CBusy</classname> supports the creation of
+                custom dead-time management schemes.
+            </para>
+            <para>
+                In the example we are going to give, we will:
+            </para>
+            <itemizedlist>
+                <listitem>
+                    <para>
+                        Set up the CAEV V262 module to handle triggers
+                        and dead-time management.
+                    </para>
+                </listitem>
+                <listitem>
+                    <para>
+                        Create and register an instance of the
+                        <classname>MyEventSegment</classname> we ported in the
+                        example in the previous section of this tutorial.
+                    </para>
+                </listitem>
+            </itemizedlist>
+            <example>
+                <title>Setting up triggers and registering an event segment</title>
+                <programlisting>
+#include &lt;config.h&gt;
+#include &lt;Skeleton.h&gt;
+#include &lt;CExperiment.h&gt;
+#include &lt;TCLInterpreter.h&gt;
+#include &lt;CTimedTrigger.h&gt;
+
+#include &lt;MyEventSegment.h&gt;     <co id="SDAQToRing_skelincludes" />
+#include &lt;CCAENV262Trigger.h&gt;
+#include &lt;CCAENV262Busy.h&gt;
+
+...
+void
+Skeleton::SetupReadout(CExperiment* pExperiment)
+{
+  CReadoutMain::SetupReadout(pExperiment);
+
+  // Establish your trigger here by creating a trigger object
+  // and establishing it.
+
+  pExperiment-&gt;EstablishTrigger(new CCAENV262Trigger(0x444400)); <co id="SDAQToRing_TriggerBusy" />
+  pExperiment-&gt;EstablishBusy(new CCAENV262Busy(0x444400));
+
+  // Create and add your event segments here, by creating them and invoking CExperiment's 
+  // AddEventSegment
+
+  pExperiment-&gt;AddEventSegment(new MyEventSegment(0x10000000, 0xa5)); <co id="SDAQToRing_evsegment" />
+}
+
+
+                </programlisting>
+            </example>
+            <calloutlist>
+                <callout arearefs="SDAQToRing_skelincludes">
+                    <para>
+                        The three headers below are required for our modifications
+                        to the skeleton code.  We need <filename>MyEventSegment.h</filename>
+                        in order to register our event segment and
+                        the two <filename>CCAENV262....</filename> headers to
+                        specify the trigger and busy devices.
+                    </para>
+                </callout>
+                <callout arearefs="SDAQToRing_TriggerBusy">
+                    <para>
+                        These lines are our first additions to the
+                        <methodname>SetupReadout</methodname> method.
+                        They create and register the appropriate objects
+                        to use a CAEN V262 at base address <literal>0x444400</literal>
+                        in VME crate 0 the trigger and busy management module.
+                    </para>
+                </callout>
+                <callout arearefs="SDAQToRing_evsegment">
+                    <para>
+                        Creates and registers our
+                        event segment to respond to the event trigger.
+                    </para>
+                </callout>
+            </calloutlist>
+            <para>
+                To users of the production readout, this should be familiar
+                territory, with the exception of the need to explicitly register
+                trigger and busy management objects.
+            </para>
+        </section>
+        <section>
+            <title>Porting scaler readout to RingDaq</title>
+            <para>
+                Scaler readout classes area also supported by RingDaq.  This
+                section describes how to port an SPDAQ Production readout scaler
+                class to RingDaq and how to register it with the readout skeleton.
+            </para>
+            <para>
+                Let's start out with a scaler class that can read out a
+                SIS 3820 scaler module for the SPDAQ production readout framework.
+                The header for the starting point of our work is shown below:
+            </para>
+            <example>
+                <title>Production readout scaler class (header)</title>
+                <programlisting>
+#include &lt;CScaler.h&gt;
+#include &lt;stdint.h&gt;
+
+
+class CSIS3820;
+
+class MyScaler : public CScaler
+{
+private:
+  CSIS3820* m_pScaler;
+public:
+  MyScaler(uint32_t base, unsigned vmeCrate=0);
+  virtual ~MyScaler();
+
+  void Initialize();
+  void Read(std::vector&lt;unsigned long&gt;&amp; scalers);
+  void Clear();
+  unsigned int size();
+
+};
+                   
+                </programlisting>
+            </example>
+            <para>
+                The implementation of this event segment is shown below.
+            </para>
+            <example>
+                <title>Production readout scaler class (implementation)</title>
+                <programlisting>
+#include &lt;config.h&gt;
+#include "MyScaler.h"
+#include &lt;CSIS3820.h&gt;
+
+MyScaler:: MyScaler(uint32_t base, unsigned vmeCrate) :
+  m_pScaler(new CSIS3820(base, vmeCrate))
+{}
+
+MyScaler:: ~MyScaler()
+{
+  delete m_pScaler;
+}
+
+void
+MyScaler::Initialize()
+{
+  m_pScaler-&gt;setOperatingMode(CSIS3820::LatchingScaler);
+  m_pScaler-&gt;setLatchSource(CSIS3820::LatchVMEOnly);
+  m_pScaler-&gt;EnableClearOnLatch();
+  m_pScaler->&gt;nable();
+  m_pScaler-&gt;Arm();
+}
+
+void
+MyScaler::Clear()
+{
+  m_pScaler-&gt;ClearChannels();
+}
+
+unsigned int
+MyScaler::size() { return 32; }
+
+void
+MyScaler:: Read(std::vector&lt;unsigned long&gt;&amp; scalers)
+{
+  uint32_t              channels[32];
+
+  m_pScaler-&gt;LatchAndRead(reinterpret_cast&lt;unsigned long*&gt;(channels));
+  scalers.insert(scalers.end(), channels, channels + 32);
+}
+                </programlisting>
+            </example>
+            <para>
+                As we will see scaler classes in RingDaq are quite similar:
+            </para>
+            <orderedlist>
+                <listitem>
+                    <para>
+                        Function names are the same but begin in lower case
+                        rather than upper-case (e.g. <methodname>Initialize</methodname>
+                        should be changed to <methodname>initialize</methodname>).
+                    </para>
+                </listitem>
+                <listitem>
+                    <para>
+                        The <methodname>read</methodname> method simply
+                        returns an <classname>std::vector&lt;uint32_t&gt;</classname>
+                        rather than appendint to one passed in.
+                    </para>
+                </listitem>
+                <listitem>
+                    <para>
+                        There is no <methodname>size</methodname> method
+                    </para>
+                </listitem>
+            </orderedlist>
+            <para>
+                A straightforward applictation of these rules leads to a header
+                that looks like:
+            </para>
+            <example>
+                <title>SPDAQ Scaler to Ring Buffer (I) </title>
+                <programlisting>
+#include &lt;CScaler.h&gt;
+#include &lt;stdint.h&gt;
+
+
+class CSIS3820;
+
+class MyScaler : public CScaler
+{
+private:
+  CSIS3820* m_pScaler;
+public:
+  MyScaler(uint32_t base, unsigned vmeCrate=0);
+  virtual ~MyScaler();
+
+  void initialize();
+  std::vector&lt;uint32_t&gt; read();
+  void clear();
+
+};
+                    
+                </programlisting>
+            </example>
+            <para>
+                Not really much to point out here.  The
+                method names are all now lower case, the <methodname>size</methodname>
+                method has bee removed, and the signature of the
+                <methodname>read</methodname> method has been modified to
+                return a vector of the data read.
+            </para>
+            <para>
+                The implementation really only differs in the <methodname>read</methodname>
+                method and even there only trivially.  Confining ourselves to that
+                code fragment from the port to the RingDaq we see:
+            </para>
+            <example>
+                <title>SPDAQ Scaler to Ring Buffer (II)</title>
+                <programlisting>
+...
+std::vector&lt;uint32_t&gt;
+MyScaler:: read()              <co id="SPDAQtoRingDaq_scalerReadSignature" />
+{
+  uint32_t              channels[32];  
+  std::vector&lt;uint32_t&gt; scalers; <co id="SPDAQtoRingDaq_returnVector" />
+
+  m_pScaler-&gt;LatchAndRead(reinterpret_cast&lt;unsigned long*&gt;(channels));
+  scalers.insert(scalers.end(), channels, channels + 32);
+  
+  return scalers;   <co id="SPDAQtoRingDaq_returning" />
+}
+...
+                </programlisting>
+            </example>
+            <calloutlist>
+                <callout arearefs="SPDAQtoRingDaq_scalerReadSignature">
+                    <para>
+                        The <methodname>read</methodname> method now returns
+                        a vector rather than accepting a reference to one as a
+                        parameter.
+                    </para>
+                </callout>
+                <callout arearefs="SPDAQtoRingDaq_returnVector">
+                    <para>
+                        We have declared a local vector into which the
+                        data can be moved.  That vector will be returned.
+                        Doing this makes the remainder of the code almost
+                        identical to the previous code.
+                    </para>
+                </callout>
+                <callout arearefs="SPDAQtoRingDaq_returning">
+                    <para>
+                        Almost identical that is.  The vector we fill must be
+                        returned to the caller as the function result.
+                    </para>
+                </callout>
+            </calloutlist>
+            <para>
+                Once we have ported our scalers we need to register them
+                with the <filename>Skeleton.cpp</filename>.  This is done
+                in  a manner that is identical to the way it is done for production
+                readout code in SPDAQ:
+            </para>
+            <example>
+                <title>Registering scaler  objects with RingDaq</title>
+                <programlisting>
+...
+#include "MyScaler.h"  <co id='SDPAQtoRingDaq_skeletonMyScalerHeader' />
+...
+void
+Skeleton::SetupScalers(CExperiment* pExperiment) 
+{
+  CReadoutMain::SetupScalers(pExperiment);      // Establishes the default scaler trigger.
+
+  // Sample: Set up a timed trigger at 2 second intervals.
+
+  timespec t;
+  t.tv_sec  = 2;   <co id="SPDAQtoRingDaq_scalerPeriod" />
+  t.tv_nsec = 0;
+  CTimedTrigger* pTrigger = new CTimedTrigger(t);
+  pExperiment->setScalerTrigger(pTrigger);
+
+  // Create and add your scaler modules here.
+
+  pExperiment-&gt;AddScalerModule(new MyScaler(0x80000000)); <co id='SPDAQtoRingDaq_skeletonAddScaler' />
+
+}
+...
+                </programlisting>
+            </example>
+            <calloutlist>
+                <callout arearefs='SDPAQtoRingDaq_skeletonMyScalerHeader'>
+                    <para>
+                        Includes the <filename>MyScaler.h</filename> header so that
+                        the class can be instantiated into an object which
+                        will be registered as a scaler.
+                    </para>
+                </callout>
+                <callout arearefs="SPDAQtoRingDaq_scalerPeriod">
+                    <para>
+                        This is the number of seconds between scaler readouts.
+                    </para>
+                </callout>
+                <callout arearefs='SPDAQtoRingDaq_skeletonAddScaler'>
+                    <para>
+                        Adds the scaler to the ordered list of scalers that
+                        will be read out in response to the scaler trigger.
+                    </para>
+                </callout>
+            </calloutlist>
+        </section>
+        <section>
+            <title>Modifying the <filename>Makefile</filename></title>
+            <para>
+                Finally any code in addition to <filename>Skeleton.cpp</filename>
+                needs to be compiled and linked into the final Readout program.
+                This is done by modifying the <literal>OBJECTS</literal>
+                <filename>Makefile</filename> macro.  For our example, assuming we
+                have been porting files named <filename>MyEventSegment.{cpp,h}</filename>
+                and <filename>MyScaler.{cpp,h}</filename>, this means we'll have
+                a line that look like:
+            </para>
+            <informalexample>
+                <programlisting>
+OBJECTS=Skeleton.o MyEventSegment.o MyScaler.o
+                </programlisting>
+            </informalexample>
+        </section>
+        
     </chapter>
     <chapter>
-        <title>Creating a Readout program from a spectrdaq classic readout program</title>
-        <para></para>
+        <title>Creating a Readout program from a spectrodaq classic readout program</title>
+        <para>
+            There are still quite a few Readout programs that use the
+            so-called <firstterm>Readout Classic</firstterm> framework.
+            This chapter will show how to adapt these programs to use
+            the RingDaq readout framework.
+        </para>
+        <para>
+            Here are the things you will need to do:
+        </para>
+        <itemizedlist>
+            <listitem>
+                <para>
+                    Obtain the RingDaq Readout skeleton.
+                </para>
+            </listitem>
+            <listitem>
+                <para>
+                    Modify your <filename>skeleton.cpp</filename> and similar
+                    files to change <classname>DAQWordBufferPtr</classname> objects
+                    into <type>uint16_t*</type> objects and deal with the
+                    fallout that causes.
+                </para>
+            </listitem>
+            <listitem>
+                <para>
+                    Write an adaptor event segment that wraps your
+                    skeleton file into a RingDaq <classname>CEventSegment</classname>
+                </para>
+            </listitem>
+            <listitem>
+                <para>
+                    Write an adaptor scaler that wraps skeleton into a
+                    RingDaq <classname>CScaler</classname>
+                </para>
+            </listitem>
+            <listitem>
+                <para>
+                    Modify the <filename>Skeleton.cpp</filename> to select
+                    the event trigger, and register the event and scaler adaptors.
+                </para>
+            </listitem>
+            <listitem>
+                <para>
+                    Modify the <filename>Makefile</filename> to build the
+                    software you need in addtion to the <filename>Skeleton</filename>.
+                </para>
+            </listitem>
+        </itemizedlist>
+        <section>
+            <title>Obtaining the RingDaq skeleton.</title>
+            <para>
+                In this section we are going to operate as if an environment
+                variable named <literal>DAQROOT</literal> is defined and
+                points to the top level of the RingDaq distribution.
+                At the time this is being written, at the NSCL this would give
+                <literal>DAQROOT</literal> the value
+                <filename>/usr/opt/daq/10.0</filename>.  As time goes on,
+                this directory name may change as version numbers change.
+                If you are not at the NSCL you will  need to contact your
+                system administrators about where they installed this software.
+            </para>
+            <para>
+                The commands below show how to obtain a copy of the readout
+                skeleton for RingDaq:
+            </para>
+            <example>
+                <title>Getting the skeleton</title>
+                <programlisting>
+mkdir myreadout
+cd    myreadout
+cp $DAQHOME/skeletons/dbs/* .
+                </programlisting>
+            </example>
+            <para>
+                This sequence of unix shell commands creates a new directory
+                named <filename>myreadout</filename>, makes that the current
+                default directory and copies the readout skeleton into that
+                directory.
+            </para>
+            <para>
+                The readout skeleton constists of the following files:
+            </para>
+            <variablelist>
+                <varlistentry>
+                    <term><filename>Makefile</filename></term>
+                    <listitem><para>Makefile that builds the skeleton</para></listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><filename>Seleton.cpp</filename></term>
+                    <listitem>
+                        <para>
+                            Source code for the registration code for the
+                            readout framework.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><filename>Skeleton.h</filename></term>
+                    <listitem>
+                        <para>Header defining the class implemented by
+                        <filename>Skeleton.cpp</filename>
+                        </para>
+                    </listitem>
+                </varlistentry>
+            </variablelist>
+            <para>
+                If you examine <filename>Skeleton.cpp</filename> you wont' find
+                a <literal>main</literal> function.  This is because the readout
+                framework is an application framework.  Application frameworks
+                consist of a main program that is written for you and specific
+                ways to register the presence of application specific code that
+                needs to be called at well defined points in the program's
+                execution.
+            </para>
+            <para>
+                Using an application framework frees you from having to worry about
+                how your code actually interfaces with the data acquisition system,
+                manager run-state transitions, trigger processing and so on.
+                In the next two chapters we will see how to create code that is
+                application specific and how to register it with the framework
+                so that it is called when we want it to be called.
+            </para>
+            <para>
+                In this section we are going to operate as if an environment
+                variable named <literal>DAQROOT</literal> is defined and
+                points to the top level of the RingDaq distribution.
+                At the time this is being written, at the NSCL this would give
+                <literal>DAQROOT</literal> the value
+                <filename>/usr/opt/daq/10.0</filename>.  As time goes on,
+                this directory name may change as version numbers change.
+                If you are not at the NSCL you will  need to contact your
+                system administrators about where they installed this software.
+            </para>
+            <para>
+                The commands below show how to obtain a copy of the readout
+                skeleton for RingDaq:
+            </para>
+            <example>
+                <title>Getting the skeleton</title>
+                <programlisting>
+mkdir myreadout
+cd    myreadout
+cp $DAQHOME/skeletons/dbs/* .
+                </programlisting>
+            </example>
+            <para>
+                This sequence of unix shell commands creates a new directory
+                named <filename>myreadout</filename>, makes that the current
+                default directory and copies the readout skeleton into that
+                directory.
+            </para>
+            <para>
+                The readout skeleton constists of the following files:
+            </para>
+            <variablelist>
+                <varlistentry>
+                    <term><filename>Makefile</filename></term>
+                    <listitem><para>Makefile that builds the skeleton</para></listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><filename>Seleton.cpp</filename></term>
+                    <listitem>
+                        <para>
+                            Source code for the registration code for the
+                            readout framework.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><filename>Skeleton.h</filename></term>
+                    <listitem>
+                        <para>Header defining the class implemented by
+                        <filename>Skeleton.cpp</filename>
+                        </para>
+                    </listitem>
+                </varlistentry>
+            </variablelist>
+            <para>
+                If you examine <filename>Skeleton.cpp</filename> you wont' find
+                a <literal>main</literal> function.  This is because the readout
+                framework is an application framework.  Application frameworks
+                consist of a main program that is written for you and specific
+                ways to register the presence of application specific code that
+                needs to be called at well defined points in the program's
+                execution.
+            </para>
+            <para>
+                Using an application framework frees you from having to worry about
+                how your code actually interfaces with the data acquisition system,
+                manager run-state transitions, trigger processing and so on.
+                In the next two chapters we will see how to create code that is
+                application specific and how to register it with the framework
+                so that it is called when we want it to be called.
+            </para>
+        </section>
+        <section>
+            <title>Modifications to skeleton.cpp</title>
+            <para>
+                This section will provide a guide to the modifications you will
+                need to make to a <filename>skeleton.cpp</filename> and files
+                it depends on to be able to use it with the RingDaq readout
+                framework.
+            </para>
+            <para>
+                The primary modifications are needed in <function>readevt</function>
+                and the set of headers and stem from the fact that
+                <filename>spectrodaq.h</filename> no longer exists as RingDaq
+                by definition does not use spectrodaq, and the fact that therefore
+                <classname>DAQWordBufferPtr</classname> objects also no longer
+                exist.  <classname>DAQWordBufferPtr</classname> objects are
+                replaced by ordinary pointers to ordinary memory.
+            </para>
+            <para>
+                Since a <classname>DAQWordBufferPtr</classname> does a good job
+                of imitating an ordinary pointer, these modifications should have
+                minimal impact on your actual code.
+            </para>
+            <para>
+                I'm going to show two fairly empty <function>readevt</function>
+                functions and what you have to do to them.  The first is the
+                'standard' version, where data are taken into <classname>DAQWordBufferPtr</classname>
+                objects directly, while the second uses the
+                <methodname>DAQWordBufferPtr::CopyIn</methodname> function and a
+                local buffer to improve the SPDAQ performance.
+            </para>
+            <para>
+                Let's look at the relevant pieces of the first case.  Many of the
+                standard comments have been removed for the sake of brevity,
+                as is the standard body.
+            </para>
+            <example>
+                <title>A readout classic <function>readevt</function></title>
+                <programlisting>
+...
+#include &lt;spectrodaq.h&gt;  <co id="classic_spectrodaqheader" />
+...
+#include &lt;daqinterface.h&gt; <co id="classic_daqinterfaceheader" />
+...
+WORD
+#ifdef __unix__
+readevt (DAQWordBufferPtr&amp; bufpt)  <co id="classic_readevtSignature" />
+#else 
+readevt (WORD* bufpt)
+#endif
+{
+#ifdef __unix__
+    DAQWordBufferPtr _sbufpt = bufpt; <co id="classic_readevtSavePtr" />
+#else
+    WORD *_sbufpt = bufpt;
+#endif
+    LOGICAL reject;
+
+    reject   = FALSE;
+    {
+    // code here that invokes putbufw a bunch of times explicitly or
+    // implicitly.
+    ...
+    }
+    IF(reject) return 0;
+#ifdef __unix__
+    return bufpt.GetIndex() - _sbufpt.GetIndex();  <co id="classic_sizeComputation" />
+#else
+    return (bufpt - _sbufpt);
+#endif
+}
+
+
+                </programlisting>
+            </example>
+            <calloutlist>
+                <callout arearefs="classic_spectrodaqheader">
+                    <para>
+                        This line includes the <filename>spectrodaq.h</filename>
+                        header file. Among other things this defines
+                        <classname>DAQWordBufferPtr</classname>
+                    </para>
+                </callout>
+                <callout arearefs="classic_daqinterfaceheader">
+                    <para>
+                        The <filename>daqinterface.h</filename> provides
+                        a mini-api to the readout classic library.
+                        This also does not exist in RingDaq.
+                    </para>
+                </callout>
+                <callout arearefs="classic_readevtSignature">
+                    <para>
+                        In <literal>__unix__</literal> operating systems,
+                        <function>readevt</function> is passed a reference
+                        to a <classname>DAQWordBufferPtr</classname>.
+                        Data then get stored via that object.
+                    </para>
+                </callout>
+                <callout arearefs="classic_readevtSavePtr">
+                    <para>
+                        In order to be able to compute and return the
+                        event size, the 'pointer' object is saved.
+                    </para>
+                </callout>
+                <callout arearefs="classic_sizeComputation">
+                    <para>
+                        The <methodname>DAQWordBufferPtr::GetIndex</methodname>
+                        method returns the offset of the 'pointer' in the
+                        underlying buffer.  This line therefore determines
+                        how many words have been read by <function>readevt</function>
+                    </para>
+                </callout>
+            </calloutlist>
+            <para>
+                In fact the non <literal>__unix__ </literal> version of
+                <function>readevt</function> is actually almost correct
+                for the RingDaq.  Here's how this code fragment would be
+                modified:
+            </para>
+            <example>
+                <title>skeleton.cpp modified for RingDaq</title>
+                <programlisting>
+... <co id="classic_headersRemoved" />
+WORD
+readevt (WORD* bufpt)   <co id="classic_newSignature" />
+{
+
+    WORD *_sbufpt = bufpt;
+
+    LOGICAL reject;
+
+    reject   = FALSE;
+    {    
+     // readout code that uses putbufw etc.
+     ...
+    }
+
+    IF(reject) return 0;
+
+    return (bufpt - _sbufpt);  <co id="classic_newSizeComputation" />
+}
+
+                </programlisting>
+            </example>
+            <calloutlist>
+                <callout arearefs="classic_headersRemoved">
+                    <para>
+                        Both the <filename>spectrodaq.h</filename>
+                        and the <filename>daqinterface.h</filename> headers
+                        are no  longer included.
+                    </para>
+                </callout>
+                <callout arearefs="classic_newSignature">
+                    <para>
+                        The parameter signature of <function>readevt</function>
+                        has been modified to take a <type>WORD*</type> rather than
+                        a <classname>DAQWordPtr&amp;</classname> paramter.
+                        putbufl and its compatriots are pre-processor macros
+                        that only require that the <varname>bufpt</varname>
+                        variable be in scope and have pointer-like semantics.
+                    </para>
+                </callout>
+                <callout arearefs="classic_newSizeComputation">
+                    <para>
+                        Ordinary pointer subtraction can now be used to
+                        compute the number of words that were put in the buffer.
+                    </para>
+                </callout>
+            </calloutlist>
+            <para>
+                Now lets look at the case where <function>readevt</function>
+                reads data into a local buffer and then uses <methodname>DAQWordBuferPtr::CopyIn</methodname>
+                to transfer it to the spectrodaq buffer.  Typically
+                <function>readevt</function> functions have the following form:
+            </para>
+            <example>
+                <title>Classic readout using CopyIn</title>
+                <programlisting>
+                    
+static WORD localBuffer[8192];   <co id="classic_localBuffer" />                    
+...
+WORD
+#ifdef __unix__
+readevt (DAQWordBufferPtr&amp; bufpt)
+#else 
+readevt (WORD* bufpt)
+#endif
+{
+#ifdef __unix__
+    DAQWordBufferPtr _sbufpt = bufpt;
+#else
+    WORD *_sbufpt = bufpt;
+#endif
+    LOGICAL reject;
+
+    reject   = FALSE;
+    {
+        WORD* localbufpt = localbuffer;  <co id="classic_localBufferPtrmaker" />
+    // code here that invokes localputbufw a bunch of times explicitly or
+    // implicitly. putting data into localbuffer.
+    ...
+        int nWords = localbufpt - localBuffer;  <co id="classic_localBufferSize" />
+        bufpt.CopyIn(localBuffer, 0, nWords);   <co id="classic_localBufferCopyin" />
+        bufpt += nWords;                        <co id="classic_localBufferAdvance"/>
+    }
+
+    
+    IF(reject) return 0;
+#ifdef __unix__
+    return bufpt.GetIndex() - _sbufpt.GetIndex(); 
+#else
+    return (bufpt - _sbufpt);
+#endif
+}
+                </programlisting>
+            </example>
+            <para>
+                Key features of this scheme are:
+            </para>
+            <calloutlist>
+                <callout arearefs="classic_localBuffer">
+                    <para>
+                        <function>readevt</function> functions that follow
+                        this pattern declare a local buffer into which
+                        data are first read.
+                    </para>
+                </callout>
+                <callout arearefs="classic_localBufferPtrmaker">
+                    <para>
+                        A pointer is then created to that local buffer
+                        and replacements for <function>putbufw</function>
+                        usually named something like <function>localputbufw</function>
+                        are used to put data into this local buffer.
+                    </para>
+                </callout>
+                <callout arearefs="classic_localBufferSize">
+                    <para>
+                        Once readout has been completed, ordinary pointer
+                        arithmetic is used to determine how many words
+                        have been loaded into the buffer.
+                    </para>
+                </callout>
+                <callout arearefs="classic_localBufferCopyin">
+                    <para>
+                        The data read are then transfered to the spetrodaq
+                        buffer using the <methodname>DAQWordBufferPtr::CopyIn</methodname>
+                        method.
+                    </para>
+                </callout>
+                <callout arearefs="classic_localBufferAdvance">
+                    <para>
+                        Finally the <classname>DAQWordBufferPtr</classname> object
+                        is advanced so that the size calculation done by the
+                        framework code is done correctly (or in some cases
+                        <varname>nWords</varname> is simply returned at that point).
+                    </para>
+                </callout>
+            </calloutlist>
+            <para>
+                With RingDaq, since <function>readevt</function> is recdeiving
+                an ordinary pointer parameter, there are no efficiency gains to be
+                had by using a local buffer.  In order to avoid having to recast all
+                the readout code in terms of e.g. <function>putbufw</function> the
+                following trick can be used:
+            </para>
+            <example>
+                <title>Converting Classic readout with local buffers to RingDaq</title>
+                <programlisting>
+<co id="classic_localbufferGone" />
+...
+readevt (WORD* bufpt)
+    WORD *_sbufpt = bufpt;
+    LOGICAL reject;
+
+    reject   = FALSE;
+    {
+        WORD* localbufpt = bufpt;    <co id="classic_localBufferPtrTrick" />
+    // code here that invokes localputbufw a bunch of times explicitly or
+    // implicitly. putting data into localbuffer.
+    ...
+        bufpt = localbuffer;   <co id="classic_localBufferSetbufpt" />
+    }
+    
+    
+    
+    IF(reject) return 0;
+    return (bufpt - _sbufpt);
+}
+                </programlisting>
+            </example>
+            <calloutlist>
+                <callout arearefs="classic_localbufferGone" >
+                    <para>
+                        As discussed before the example, we don't need the
+                        local buffer any more.
+                    </para>
+                </callout>
+                <callout arearefs="classic_localBufferPtrTrick" >
+                    <para>
+                        The <varname>localbufpt</varname> is just initialized
+                        to point to the buffer passed in to <function>readevt</function>
+                        this allows macros like <function>localputbufw</function>
+                        to function properly without source code modification.
+                    </para>
+                </callout>
+                <callout arearefs="classic_localBufferSetbufpt">
+                    <para>
+                        Setting <varname>bufpt</varname> to the value of
+                        <varname>localbufpt</varname> is all that is then needed
+                        to make the size computation performed by the
+                        framework code function correctly.
+                    </para>
+                </callout>
+            </calloutlist>
+        </section>
+        <section>
+            <title>Writing the adaptors.</title>
+            <para>
+                Now that we have a <function>readevt</function> function that
+                is divorced from Spectrodaq we need to adapt this to the
+                RingDaq readout framework.  The RingDaq readout framework uses
+                a pair of base classes that separate event and scaler readout.
+                We will be writing derived classes that simply delegate their
+                functionality to the functions implemented in the <filename>skeleton.cpp</filename>
+                file.  If you are familiar with using the
+                <classname>CTraditionalReadoutSegment</classname> and
+                <classname>CTraditionalScalerSegment</classname> classes from
+                the SPDAQ production readout framework to adapt it to classical
+                readout code, you will already be familiar with this concept.
+            </para>
+            <section>
+                <title>Wrapping <filename>skeleton.cpp</filename> in a <classname>CEventSegment</classname></title>
+                <para>
+                    The RingDaq readout framework builds up its response to an event
+                    trigger in terms of event segments.  Event segments can be
+                    simple (<classname>CEventSegment</classname> derived objects),
+                    or they can be composed of other event segments
+                    (<classname>CCompoundEventSegment</classname>).  Our job in
+                    this section is going to be to build a <classname>CEventSegment</classname>
+                    that will wrap the event related functions in <filename>skeleton.cpp</filename>.
+                </para>
+                <para>
+                    Let's start by comparing the functions in <filename>skeleton.cpp</filename>
+                    and the related methods in <classname>CEventSegment</classname>.
+                </para>
+                <para>
+                    Our modified <filename>skeleton.cpp</filename> provides three functions
+                    that are involved in physics event processing:
+                </para>
+                <variablelist>
+                    <funcsynopsis>
+                        <funcprototype><funcdef>void <function>initevt</function></funcdef>
+                            <void />
+                        </funcprototype>
+                    </funcsynopsis>
+                    <funcsynopsis>
+                        <funcprototype><funcdef>void <function>clearevt</function></funcdef>
+                            <void />
+                        </funcprototype>
+                    </funcsynopsis>
+                    <funcsynopsis>
+                        <funcprototype><funcdef>void <function>readevt</function></funcdef>
+                            <paramdef>
+                                <parameter>WORD* bufpt</parameter>
+                            </paramdef>
+                        </funcprototype>
+                    </funcsynopsis>
+                    <simpara>
+                        Where these functions perform the following operations
+                    </simpara>
+                    <varlistentry>
+                        <term><function>initevt</function>  </term>
+                        <listitem>
+                            <para>
+                                Called to perform one-time initialization
+                                as data taking begins (both when the
+                                run begins and when it resumes).
+                            </para>
+                        </listitem>
+                    </varlistentry>
+                    <varlistentry>
+                        <term><function>clearevt</function></term>
+                        <listitem>
+                            <para>
+                                Clears digitizers so that they can accept
+                                additional triggers.  This is called just
+                                after <function>initevt</function> as well
+                                as after each event is read.
+                            </para>
+                        </listitem>
+                    </varlistentry>
+                    <varlistentry>
+                        <term><function>readevt</function></term>
+                        <listitem>
+                            <para>
+                                Called to read an event in response to an event
+                                trigger. The parameter <parameter>bufpt</parameter>
+                                is a pointer to storage into which the event
+                                data must be placed.
+                            </para>
+                        </listitem>
+                    </varlistentry>
+                </variablelist>
+                <para>
+                    By contrast, the <classname>CEventSegment</classname> provides
+                    the following methods:
+                </para>
+                <variablelist>
+                    <methodsynopsis>
+                        <type>void</type> <methodname>initialize</methodname>
+                        <void />
+                    </methodsynopsis>
+                    <methodsynopsis>
+                        <type>void</type> <methodname>clear</methodname>
+                        <void />
+                    </methodsynopsis>
+                    <methodsynopsis>
+                        <type>void</type> <methodname>disable</methodname>
+                        <void />
+                    </methodsynopsis>
+                    <methodsynopsis>
+                        <type>size_t</type> <methodname>read</methodname>
+                        <methodparam>
+                            <type>void* </type> <parameter>pBuffer</parameter>
+                        </methodparam>
+                        <methodparam>
+                            <type>size_t </type> <parameter>maxwords</parameter>
+                        </methodparam>
+                    </methodsynopsis>
+                    <para>
+                        Of these methods, only <methodname>read</methodname>
+                        must be implemented.  If not implemented the base class
+                        provides a method that does nothing.
+                        These methods are used by the RingDaq readout framework
+                        as follows:
+                    </para>
+                    <varlistentry>
+                        <term><methodname>initialize</methodname></term>
+                        <listitem>
+                            <para>
+                                Performs the same sort of initialization
+                                <function>initevt</function> performs, but
+                                only on the devices managed by this event
+                                segment.
+                            </para>
+                        </listitem>
+                    </varlistentry>
+                    <varlistentry>
+                        <term><methodname>clear</methodname></term>
+                        <listitem>
+                            <para>
+                                Similarly analagous to <function>clearevt</function>
+                            </para>
+                        </listitem>
+                    </varlistentry>
+                    <varlistentry>
+                        <term><methodname>disable</methodname></term>
+                        <listitem>
+                            <para>
+                                This method has no corresponding function
+                                in <filename>skeleton.cpp</filename>.
+                                It is called at the end of data taking
+                                and can be used to do any shutdown tasks
+                                that may be required to disable devices.
+                            </para>
+                        </listitem>
+                    </varlistentry>                                
+                </variablelist>
+                <para>
+                    The preceeding list implies that we should write an event
+                    segment in which <methodname>initialize</methodname> calls
+                    <function>initevt</function>, <methodname>clear</methodname>
+                    calls <function>clearevt</function>,
+                    <methodname>read</methodname> does some adaptation
+                    and calls <function>readevt</function> and
+                    <methodname>disable</methodname> is not implemented.
+                </para>
+                <para>
+                    The header for this sort of event segment looks like:
+                </para>
+                <example>
+                    <title>Header for event segment adapator to readout classic</title>
+                    <programlisting>
+                        
+                    </programlisting>
+                </example>
+            </section>
+            <section>
+                <title>Wrapping <filename>skeleton.cpp</filename> in a <classname>CScaler</classname></title>
+                <para>
+                </para>
+            </section>
+        </section>
+        <section>
+            <title>Modifications to <filename>Skeleton.cpp</filename></title>
+            <para>
+            </para>
+        </section>
+        <section>
+            <title>Modifying the Makefile</title>
+            <para>
+            </para>
+        </section>
+            
     </chapter>
     <chapter>
         <title>Analyzing ring buffer data with SpecTcl</title>
-        <para></para>
+        <para>
+            
+        </para>
     </chapter>
     <appendix>
         <title>Format of Ring bufffer DAQ event files</title>
