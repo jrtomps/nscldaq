@@ -45,7 +45,7 @@
  */
 
 
-extern bool daq_isJumboBuffer();
+
 
 /*
 ** Need to define getlong and putlong to support the 24 bit operations.
@@ -416,27 +416,18 @@ static inline void putlong(INT32 v,volatile void *a)
 
 		/* Fixed size sub event packet. */
 
-#define Packet(size, type) { if (daq_isJumboBuffer()) {                  \
-                                putbufl(size); putbufw(type);            \
-                             } else {                                    \
+#define Packet(size, type) {                                             \
                                 putbufw(size); putbufw(type);            \
-                             }
-
 
 #define EndPacket          }
 
 		/* Variable sized sub event packet */
 
 #define VPacket(type)     {                                            \
-                            UINT16 *_pktstart = bufpt; ++bufpt;         \
-                            if (daq_isJumboBuffer()) ++bufpt;           \
+                            WORD *_pktstart = bufpt; ++bufpt;         \
                             putbufw(type);
 
-#define EndVPacket           if (daq_isJumboBuffer()) {                      \
-                                *((UINT32*)_pktstart) = (bufpt - _pktstart); \
-                             } else {                                        \
-                                *_pktstart = (INT16)(bufpt - _pktstart);     \
-                             }                                               \
+#define EndVPacket            *_pktstart = (WORD)(bufpt - _pktstart);     \
                            }
 
 
