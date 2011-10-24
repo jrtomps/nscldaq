@@ -365,6 +365,7 @@ CRingBuffer::CRingBuffer(string name, CRingBuffer::ClientMode mode) :
       if (m_pRing->s_producer.s_pid == -1) {
 	m_pClientInfo         = &(m_pRing->s_producer);
 	m_pClientInfo->s_pid  = getpid(); // leave the offset where it was.
+	__sync_synchronize();		  // And flush to shm.
 
       }
       else {
@@ -519,7 +520,10 @@ CRingBuffer::put(void* pBuffer, size_t nBytes, unsigned long timeout)
   }
   Skip(nBytes);
 
-  // If we got this far success:
+  // If we got this far success... issue a memory barrier to ensure this all is
+  // written to the shm:
+
+  __sync_synchronize();
 
   return nBytes;
 }
@@ -586,6 +590,8 @@ CRingBuffer::get(void*        pBuffer,
 
   peek(pBuffer, transferSize);
   Skip(transferSize);
+
+
 
   return transferSize;
   
@@ -843,7 +849,7 @@ CRingBuffer::getSlot()
 int 
 CRingBuffer::blockWhile(CRingBuffer::CRingBufferPredicate& pred, unsigned long timeout)
 {
-  // Lower the latencey be special casing the timeout == 0:
+  // Lower the latencey by special casing the timeout == 0:
 
   if (timeout) {
     time_t start = time(NULL);
@@ -1072,6 +1078,7 @@ CRingBuffer::allocateConsumer()
       p->s_pid = getpid();
       p->s_offset = put->s_offset;
       m_pClientInfo = p;
+      __sync_synchronize();	// Flush to shm as well.
       return;
     }
 
@@ -1099,9 +1106,12 @@ CRingBuffer::difference(ClientInformation& producer, ClientInformation& consumer
   // +1.
   pRingHeader pHeader = &(m_pRing->s_header);
 
-  size_t topSize = pHeader->s_topOffset - consumer.s_offset;
+  // The + 1 below.. If my offset is right at the top,
+  // I have one byte..the byte I point to but the difference is 0.
+
+  size_t topSize = pHeader->s_topOffset - consumer.s_offset +1 ;
   size_t botSize = producer.s_offset   - pHeader->s_dataOffset;
-  return topSize + botSize+1;
+  return topSize + botSize;
 }
 
 /******************************************************************/
@@ -1118,6 +1128,9 @@ CRingBuffer::Skip(size_t nBytes)
     m_pClientInfo->s_offset = (m_pClientInfo->s_offset - pHeader->s_topOffset) +
                               pHeader->s_dataOffset - 1;
   }
+  // Issue a memory barrier to ensure this is flushed out to the shared memory?
+
+  __sync_synchronize();
 }
 /***************************************************************/
 /* Return the stringified mode                                 */
