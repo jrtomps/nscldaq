@@ -98,4 +98,8 @@ October 24, 2011 10.0-017
 	- Add memory barriers on shm operations that write to ensure
 	everthing is flushed to shm. - gcc specific code.
 	- Add a bit of a safety zone between get/put pointers.
+	- Go to a two phase client allocation: first set pid - 0
+	  which makes it ineligible for size computation, and claims it
+	  for use.  Then set the get pointer and finally set the PID to
+	  the actual value making it elligible for size computation.
 	

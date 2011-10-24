@@ -3537,7 +3537,259 @@ CTraditionalEventSegment::read(void* pBuffer, size_t maxwords)
             <section>
                 <title>Wrapping <filename>skeleton.cpp</filename> in a <classname>CScaler</classname></title>
                 <para>
+                    We must also write an adaptor taht wraps the scaler parts of
+                    <filename>skeleton.cpp</filename> in a <classname>CScaler</classname>.
+                    This too is relatively straightforward.  Let's once more
+                    start by comparing the two software interfaces:
                 </para>
+                <para>
+                    The functions the <filename>skeleton.cpp</filename> uses
+                    to manage the scaler readout are:
+                </para>
+                <variablelist>
+                    <title>Scaler interface to <filename>skeleton.cpp</filename></title>
+                    <funcsynopsis>
+                        <funcprototype>
+                            <funcdef>void<function>iniscl</function></funcdef>
+                            <void />
+                        </funcprototype>
+                    </funcsynopsis>
+                    <funcsynopsis>
+                        <funcprototype>
+                            <funcdef>void <function>clrscl</function></funcdef>
+                            <void />
+                        </funcprototype>
+                    </funcsynopsis>
+                    <funcsynopsis>
+                        <funcprototype>
+                            <funcdef>UIINT16 <function>readscl</function></funcdef>
+                            <paramdef>
+                                <parameter>UINT32* buffer</parameter>
+                            </paramdef>
+                            <paramdef>
+                                <parameter>int numscalers</parameter>
+                            </paramdef>
+                        </funcprototype>
+                    </funcsynopsis>
+                    <varlistentry>
+                        <term><function>iniscl</function></term>
+                        <listitem>
+                            <para>
+                                Called to perform run start initialization of the
+                                scalers being managed.
+                            </para>
+                        </listitem>
+                    </varlistentry>
+                    <varlistentry>
+                        <term><function>clrscl</function></term>
+                        <listitem>
+                            <para>
+                                Called prior to the start of run and after
+                                each scaler readout.  This function is
+                                supposed to clear all scaler counters.
+                            </para>
+                        </listitem>
+                    </varlistentry>
+                </variablelist>
+                <variablelist>
+                    <title><classname>CScaler</classname> methods</title>
+                    <methodsynopsis>
+                        <type>void</type> <methodname>initialize</methodname><void />
+                    </methodsynopsis>
+                    <methodsynopsis>
+                        <type>void</type> <methodname>clear</methodname><void />
+                    </methodsynopsis>
+                    <methodsynopsis>
+                        <type>void</type> <methodname>disable</methodname>
+                    </methodsynopsis>
+                    <methodsynopsis>
+                        <type>std::vector&lt;uint32_t&gt;</type> <methodname>read</methodname>
+                        <void />
+                    </methodsynopsis>
+                    <varlistentry>
+                        <term><methodname>initialize</methodname></term>
+                        <listitem>
+                            <para>
+                                This method is completely analagous to
+                                <function>iniscl</function>.
+                            </para>
+                        </listitem>
+                    </varlistentry>
+                    <varlistentry>
+                        <term><methodname>clear</methodname></term>
+                        <listitem>
+                            <para>
+                                This method is completely analaogous to
+                                <function>clrscl</function>
+                            </para>
+                        </listitem>
+                    </varlistentry>
+                    <varlistentry>
+                        <term><methodname>disable</methodname></term>
+                        <listitem>
+                            <para>
+                                This is called as data taking is shut-down.
+                                Any end-run clean up actions can be performed here.
+                                This method has no corresponding entry point in
+                                <filename>skeleton.cpp</filename> and therefore
+                                need not be implemented in wrapper.
+                            </para>
+                        </listitem>
+                    </varlistentry>
+                    <varlistentry>
+                        <term><methodname>read</methodname></term>
+                        <listitem>
+                            <para>
+                                This method is called to read the scalers
+                                managed by a <classname>CScaler</classname>
+                                object.  Unlike the <function>readsc</function>
+                                function <classname>CScaler</classname> objects
+                                are assumed to be managing some fixed set of
+                                scalers, and therefore know how many scalers
+                                they will read.  As we will see there are two
+                                strategies you can follow for adapting to
+                                this difference.
+                            </para>
+                            <para>
+                                The <methodname>read</methodname> method returns
+                                an <type>std::vector&lt;uint32_t&gt;</type> that
+                                contains the scaler data it has read.
+                            </para>
+                        </listitem>
+                    </varlistentry>
+                </variablelist>
+                <para>
+                    From this comparison we can see it's pretty trivial to
+                    wrap <function>iniscl</function> and <function>clrscl</function>.
+                    Here is a header and the first part of the implementation
+                    of a wrapper that shows how these functions get trivially
+                    wrapped:
+                </para>
+                <example>
+                    <title>Scaler adapter header</title>
+                    <programlisting>
+#include &lt;CScaler.h&gt;    <co id="classic_adaptScalerCScalerHeader" />
+
+class CTraditionalScaler : public CScaler <co id="classic_adaptScalerDerivation" />
+{
+public:                      <co id="classic_adaptScalerMethodDelcs" />
+  void initialize();            
+  void clear();
+  std::vector&lt;uint32_t&gt; read();
+};
+
+                    </programlisting>
+                </example>
+                <calloutlist>
+                    <callout arearefs="classic_adaptScalerCScalerHeader">
+                        <para>
+                            In order to derive <classname>CTraditionalScaler</classname>
+                            from <classname>CScaler</classname> we need to make
+                            the shape of <classname>CScaler</classname>
+                            known to the compiler.  This is done by including
+                            this header.
+                        </para>
+                    </callout>
+                    <callout arearefs="classic_adaptScalerDerivation">
+                        <para>
+                            Declares our class as derived from
+                            <classname>CScaler</classname> this deriviation
+                            allows <classname>CTraditionalScaler</classname>
+                            objects to be registered with the framework as
+                            <classname>CScaler</classname> objects.
+                        </para>
+                    </callout>
+                    <callout arearefs="classic_adaptScalerMethodDelcs">
+                        <para>
+                            As discussed above, these are the methods
+                            we need to implement.  The <methodname>disable</methodname>
+                            method need not be implemented as
+                            <classname>CScaler</classname> provides a default
+                            implementation that does nothing.
+                        </para>
+                    </callout>
+                </calloutlist>
+                <para>
+                    The implementation of the trivial wrappers is shown below along
+                    with the front matter of the implementation file.
+                </para>
+                <example>
+                    <title>Trival methods of the scaler adapter</title>
+                    <programlisting>
+#include &lt;config.h&gt;
+#include "CTraditionalScaler.h"
+
+
+typedef uint16_t UINT16;   <co id="rdoclassic_sclwrapperTypedefs" />
+typedef uint32_t UINT32;
+
+extern void iniscl();      <co id="rdoclassic_sclwrapperPrototypes" />
+extern void clrscl();
+extern UINT16 readscl(UINT32* buffer, int numscalers);
+
+void
+CTraditionalScaler::initialize() <co id="rdoclassic_sclwrapperInitialize" />
+{
+  ::iniscl();
+}
+
+void
+CTraditionalScaler::clear()     <co id="rdoclassic_sclwrapperClear" />
+{
+  ::clrscl();
+}
+
+                    </programlisting>
+                </example>
+                <calloutlist>
+                    <callout arearefs="rdoclassic_sclwrapperTypedefs" >
+                        <para>
+                            The simplest way to get these definitions
+                            without pulling in too much of the classic
+                            framwework is to make these <literal>typedef</literal>s.
+                            The first defines an unsigned 16 bit integer to be
+                            the meaning of <type>UINT16</type> while the second
+                            defines an unsigned 32 bit integer to be the meaning
+                            of <type>uint32_t</type>.  The <type>uintxx_t</type>
+                            types are defined in the header <filename>stdint.h</filename>
+                            which is part of the current C/C++ standard. Going
+                            forward those types should be used rather than the
+                            <type>UINTxx</type> types because the <filename>stdint.h</filename>
+                            types are required to be correct across all compilers.
+                        </para>
+                    </callout>
+                    <callout arearefs="rdoclassic_sclwrapperPrototypes">
+                        <para>
+                            This set of statements defines prototypes for the
+                            functions we are going to be calling in the
+                            <filename>skeleton.cpp</filename> file.
+                        </para>
+                    </callout>
+                    <callout arearefs="rdoclassic_sclwrapperInitialize">
+                        <para>
+                            <function>iniscl</function> is trivially wrapped
+                            by this method.
+                        </para>
+                    </callout>
+                    <callout arearefs="rdoclassic_sclwrapperClear">
+                        <para>
+                            The <function>clrscl</function> function is
+                            trivially wrapped by this method.
+                        </para>
+                    </callout>
+                </calloutlist>
+                <para>
+                    Wrapping the <function>readscl</function> function is a bit
+                    trickier.  Specifically we have to make some decisions about
+                    how to know the number of scalers that will be read by the
+                    <function>readscl</function> function.  We need to do this
+                    not only to be able to provide the value back to the function
+                    (its second parameter), but also to be able to allocate
+                    storage for the buffer into which <function>readscl</function>
+                    will read its data.
+                </para>
+                <para>
+                </para>   
             </section>
         </section>
         <section>

@@ -726,7 +726,7 @@ CRingBuffer::availablePutSpace()
 
   size_t minFree =  pHeader->s_dataBytes-1;
   for (int i = 0; i < consumers;  i++) {
-    if(pClients->s_pid != -1) {
+    if(pClients->s_pid > 0) {	// -1  - unused 0 - initializing > 0 fully  in use.
       size_t avail     = availableData(pClients);
       size_t freeBytes = pHeader->s_dataBytes - avail - 1; // 
       if (freeBytes < minFree) minFree = freeBytes;
@@ -1075,8 +1075,10 @@ CRingBuffer::allocateConsumer()
 
   for (int i =0; i < nConsumers; i++) {
     if (p->s_pid == -1) {
-      p->s_pid = getpid();
-      p->s_offset = put->s_offset;
+      p->s_pid = 0;		// Claim it as in use but not active.
+      __sync_synchronize();	// Flush to shm as well.
+      p->s_offset = put->s_offset; // set the offset.
+      p->s_pid = getpid();	   // now make it elligible for size computations.
       m_pClientInfo = p;
       __sync_synchronize();	// Flush to shm as well.
       return;
