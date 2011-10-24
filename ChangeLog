@@ -94,5 +94,8 @@ October 18, 2011 10.0-015
 October 21, 2011 10.0-016
 	- Fix Packet/Vpacket macros so that they generate compatibility
 	  (word size-field) packets not checking for jumbo-bufferness.
-	
+October 24, 2011 10.0-017
+	- Add memory barriers on shm operations that write to ensure
+	everthing is flushed to shm. - gcc specific code.
+	- Add a bit of a safety zone between get/put pointers.
 	

@@ -3390,10 +3390,150 @@ readevt (WORD* bufpt)
                 <example>
                     <title>Header for event segment adapator to readout classic</title>
                     <programlisting>
-                        
+#include &lt;config.h&gt;
+#include &lt;CEventSegment.h&gt;   <co id="class_wrapheader_eventsegmentincl" />
+
+class CTraditionalEventSegment : public CEventSegment <co id="class_wrapheader_base" />
+{
+public:
+  void initialize();
+  void clear();
+  size_t read(void* pBuffer, size_t maxwords);
+};
+                      
                     </programlisting>
                 </example>
+                <calloutlist>
+                    <callout arearefs="class_wrapheader_eventsegmentincl">
+                        <para>
+                            Includes the <classname>CEventSegment</classname> header
+                            which is needed to build a derived class.
+                        </para>
+                    </callout>
+                    <callout arearefs="class_wrapheader_base">
+                        <para>
+                            Our event segment is derived from the
+                            <classname>CEventSegment</classname> base class.
+                        </para>
+                    </callout>
+                </calloutlist>
+                <para>
+                    Now let's look at the implementation and discuss how that
+                    adapts to the functions in <filename>skeleton.cpp</filename>
+                    For the most part this is pretty simple as well:
+                </para>
+                <example>
+                    <title>Implementation for the event segment adaptor to readout classic</title>
+                    <programlisting>
+#include &lt;config.h&gt;
+#include "CTraditionalEventSegment.h"
+#include &lt;stdint.h&gt;              
+#include &lt;string&gt;
+
+
+typedef int16_t WORD;     <co id="rdoclassic_wrapperWordTypedef" />
+
+extern void initevt ();   <co id="rdoclassic_wrapperexterns" />
+extern void clearevt ();
+extern WORD readevt (WORD* bufpt);
+
+
+<co id="rdoclassic_wrapper_trivial" />
+
+void
+CTraditionalEventSegment::initialize()
+{
+  ::initevt();
+}
+void
+CTraditionalEventSegment::clear()
+{
+  ::clearevt();
+}
+
+size_t
+CTraditionalEventSegment::read(void* pBuffer, size_t maxwords)
+{
+  WORD* p = reinterpret_cast&lt;WORD*&gt;(pBuffer);  <co id="rdoclassic_wrapper_Wordptr" />
+
+  size_t nWords = ::readevt(p);                      <co id="rdoclassic_wrapper_delegate" />
+  if (nWords > maxwords) {
+    throw std::string("readevt read more than maxwords of data"); <co id="rdoclassic_wrapper_throwtoobig"/>
+  }
+  return nWords;                                    <co id="rdoclassic_wrapper_returnsize" />
+}
+
+                    </programlisting>
+                </example>
+                <para>
+                    For the most part this is very straightforward, and similar
+                    to the SPDAQ production readout wrapper class for
+                    classic event segments.
+                </para>
+                <calloutlist>
+                    <callout arearefs="rdoclassic_wrapperWordTypedef">
+                        <para>
+                            Without going through the trouble of defining a
+                            specific camac controller implementation, this is
+                            the simplest way to make the <type>WORD</type> data
+                            type known.  <type>WORD</type> is intended to be
+                            a 16 bit value.  <filename>stdint.h</filename> defines
+                            types like <type>uint16_t</type>.
+                        </para>
+                    </callout>
+                    <callout arearefs="rdoclassic_wrapperexterns">
+                        <para>
+                            Defines the functions in <filename>skeleton.cpp</filename>
+                            we will call as external.  It would also be possible
+                            to define a <filename>skeleton.h</filename> header
+                            and include that instead.
+                        </para>
+                    </callout>
+                    <callout arearefs="rdoclassic_wrapper_trivial">
+                        <para>
+                            <methodname>initialize</methodname> and
+                            <methodname>clear</methodname> are trivial delegations
+                            to the corresponding <filename>skeleton.cpp</filename>
+                            functions.
+                        </para>
+                    </callout>
+                    <callout arearefs="rdoclassic_wrapper_Wordptr">
+                        <para>
+                            <methodname>read</methodname> and <function>readevt</function>
+                            have a slight impedance match in their argument signatures
+                            that needs to be dealt with.  This line creates a
+                            pointer <varname>p</varname> of type <type>WORD*</type>
+                            so that we can pass the correct pointer type to
+                            <function>readevt</function>.
+                        </para>
+                    </callout>
+                    <callout arearefs="rdoclassic_wrapper_delegate">
+                        <para>
+                            This calls <function>readevt</function> funtion
+                            saving the number of words returned.
+                        </para>
+                    </callout>
+                    <callout arearefs="rdoclassic_wrapper_throwtoobig">
+                        <para>
+                            If the number of words returned is larger than
+                            can be accomodated by the buffer we throw an
+                            exception.  Exceptions of this sort are reported
+                            by the readout framework after which the program
+                            aborts.  In this case, the reported failure likely
+                            results in a buffer overrun, so that is the correct
+                            action.
+                        </para>
+                    </callout>
+                    <callout arearefs="rdoclassic_wrapper_returnsize">
+                        <para>
+                            If all goes well the number of words is returned
+                            to the caller.
+                        </para>
+                    </callout>
+                    
+                </calloutlist>
             </section>
+            
             <section>
                 <title>Wrapping <filename>skeleton.cpp</filename> in a <classname>CScaler</classname></title>
                 <para>

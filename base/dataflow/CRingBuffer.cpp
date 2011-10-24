@@ -728,7 +728,7 @@ CRingBuffer::availablePutSpace()
   for (int i = 0; i < consumers;  i++) {
     if(pClients->s_pid != -1) {
       size_t avail     = availableData(pClients);
-      size_t freeBytes = pHeader->s_dataBytes - avail - 1; // -1 ensures put never catches get.
+      size_t freeBytes = pHeader->s_dataBytes - avail - 1; // 
       if (freeBytes < minFree) minFree = freeBytes;
     }
 
