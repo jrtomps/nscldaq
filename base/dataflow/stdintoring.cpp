@@ -1,7 +1,7 @@
 #include "stdintoringsw.h"
 #include "CRingBuffer.h"
 #include "Exception.h"
-
+#include <stdint.h>
 #include <unistd.h>
 #include <stdlib.h>
 #include <string>
@@ -14,6 +14,12 @@
 
 using namespace std;
 
+// Item header:
+
+struct header {
+  uint32_t s_size;
+  uint32_t s_type;
+}; 
 
 /**************************************************************
  * integerize:                                                *
@@ -82,6 +88,89 @@ integerize(const char* str)
   return value;
 }
 
+/**
+ * Determine the size of an item in the possible presence of a difference
+ * in endianness.  This is done by knowing only the bottom 16 bits of type data
+ * are used.
+ * @param pHeader - pointer to the header.
+ * @return uint32_t
+ * @retval the size of the item converted to local format if needed.
+ */
+static uint32_t
+computeSize(struct header* pHeader)
+{
+  if ((pHeader->s_type & 0xffff) == 0) {
+    uint8_t swappedSize[4];
+    memcpy(swappedSize, &pHeader->s_size, 4);
+    uint32_t result = 0;
+    for (int i =0; i < 4; i++) {
+      uint32_t byte = swappedSize[i];
+      byte          = byte << (24 - 4*i);
+      result       |= byte;
+    }
+    return result;
+  }
+  else {
+    return pHeader->s_size;
+  }
+}
+
+/**
+ * Put data into the ring.
+ * Each data item is assumed to be preceded by a two longword header of the form:
+ * struct header {
+ *    uint32_t size;
+ *    uint32_t type
+ *  };
+ * 
+ * Futhermore, from the point of view of byte ordering, the type field only has
+ * nonzero bits in the lower order 16 bits.
+ *
+ * We're going to put each data item in the ring atomically.
+ * If there are left over data in the buffer, that will be shifted down
+ * to the beginning of the buffer and
+ * the remaining size will be returned:
+ * 
+ * @param ring    - reference to the target ring buffer.
+ * @param pBuffer - Pointer to the data buffer.
+ * @param nBytes  - Number of bytes in the data buffer.
+ *
+ * It is assumed that the total buffer size will be larger than
+ * needed to hold the largest item.   That's controld by the 
+ * --mindata switch in any event.
+ */
+static size_t 
+putData(CRingBuffer& ring, void* pBuffer, size_t nBytes)
+{
+
+  struct header *pHeader;
+
+  uint8_t* p = reinterpret_cast<uint8_t*>(pBuffer); // makes addr arithmetic easier.
+  while(nBytes) {
+    pHeader = reinterpret_cast<struct header*>(p);
+    uint32_t size = computeSize(pHeader);
+
+    if (size <= nBytes) {
+      // we can put a complete item
+      ring.put(p, size);
+      p += size;
+      nBytes -= size;
+    } 
+    else {
+      // We don't have a complete packet.
+      // Move the remainder of the buffer down to the start
+      // must use memmove because this could be an overlapping
+      // move
+
+      memmove(pBuffer, p, nBytes);
+      break;
+    }
+
+  }
+  return nBytes;		// Residual data.
+}
+
+
 /********************************************************************
  * mainLoop:                                                        *
  *     Main loop that takes data from stdin and puts it in the ring *
@@ -127,7 +216,7 @@ mainLoop(string ring, int timeout, int mindata)
     mindata = use.s_putSpace/2;
   }
   // In order to deal with timeouts reasonably well, we need to turn off
-  // blocking on stdout.
+  // blocking on stdin.
 
   // #define NONBLOCKING6
   long flags = fcntl(STDIN_FILENO, F_GETFL, &flags);
@@ -137,8 +226,10 @@ mainLoop(string ring, int timeout, int mindata)
     perror("stdintoring Failed to set stin nonblocking");
     return (EXIT_FAILURE);
   }
-  char* pBuffer = new char[mindata];
-
+  char* pBuffer   = new char[mindata];
+  size_t readSize   = mindata; 
+  size_t readOffset = 0; 
+  size_t leftOverData = 0;
   while (1) {
 
     // Wait for stdin to be readable:
@@ -168,9 +259,11 @@ mainLoop(string ring, int timeout, int mindata)
 	}
       }
       else if (stat == 1) {
-	int nread = read(STDIN_FILENO, pBuffer, mindata);
+	ssize_t nread = read(STDIN_FILENO, pBuffer + readOffset, readSize);
 	if (nread > 0) {
-	  source.put(pBuffer, nread);
+	  size_t leftoverData = putData(source, pBuffer, nread + leftoverData);
+	  readOffset = leftoverData;
+	  readSize   = mindata - leftoverData;
 	}
 	if (nread < 0) {
 	  perror("read failed");
