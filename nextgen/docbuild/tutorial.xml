@@ -3789,33 +3789,1267 @@ CTraditionalScaler::clear()     <co id="rdoclassic_sclwrapperClear" />
                     will read its data.
                 </para>
                 <para>
-                </para>   
+                    There are several strategies that come to mind:
+                </para>
+                <orderedlist>
+                    <listitem>
+                        <para>
+                            Hard code the number of scalers in
+                            <classname>CTraditionalScaler</classname>.
+                        </para>
+                    </listitem>
+                    <listitem>
+                        <para>
+                            Add a function to the <filename>skeleton.cpp</filename>
+                            code allowing it to report the number of scalers it will
+                            read.
+                        </para>
+                    </listitem>
+                    <listitem>
+                        <para>
+                            Make the scaler count a construtor parameter fo
+                            the <classname>CTraditionalScaler</classname> class.
+                        </para>
+                    </listitem>
+                    <listitem>
+                        <para>
+                            Provide some mechanism that allows both the
+                            <filename>skeleton.cpp</filename> and the
+                            <classname>CTraditionalScaler</classname> code
+                            to obtain the number of scalers from some external
+                            information (e.g. data file, Tcl Script or
+                            environment variable.
+                        </para>
+                    </listitem>
+                </orderedlist>
+                <para>
+                    In this example we will assume that a function named
+                    <function>numScalers</function> has been added to the
+                    <filename>skeleton.cpp</filename> file that reports the
+                    number of scaler channesl that will be read.  We leave it to
+                    you to determine how that function knows this number.
+                </para>
+                <example>
+                    <title>Adapting the scaler readout</title>
+                    <programlisting>
+...
+extern size_t numScalers();    <co id="rdoClassic_numScalers" />
+...
+std::vector&lt;uint32_t&gt;
+CTraditionalScaler::read()
+{
+  size_t nChannels = ::numScalers();  <co id="rdoClassic_implStorage" />
+  uint32_t scalerBuffer[nChannels];  
+  std::vector&lt;uint32_t&gt; result;
+
+  readscl(scalerBuffer, nChannels);    <co id="rdoClassic_implRead" />
+  for (int i =0; i &lt; nChannels; i++) {
+    result.push_back(scalerBuffer[i]);  <co id="rdoClassic_implToVector" />
+  }
+  return result;                         <co id="rdoClassic_implReturn" />
+}
+
+                    </programlisting>
+                </example>
+                <calloutlist>
+                    <callout arearefs="rdoClassic_numScalers">
+                        <para>
+                            We have assumed the existence of a function in
+                            the <filename>skeleton.cpp</filename> that can
+                            provide the  number of scaler channels.  This
+                            declares it so that the compiler will allow us to
+                            write a call to it.
+                        </para>
+                    </callout>
+                    <callout arearefs="rdoClassic_implStorage">
+                        <para>
+                            These three lines determine how many scaler channels
+                            will be read, allocate an ordinary buffer for them and
+                            an stl vector to hold our function result.
+                        </para>
+                    </callout>
+                    <callout arearefs="rdoClassic_implRead">
+                        <para>
+                            Next the scalers are read into the ordinary buffer.
+                        </para>
+                    </callout>
+                    <callout arearefs="rdoClassic_implToVector">
+                        <para>
+                            This loop transfers the scaler channel data into the
+                            vector.
+                        </para>
+                    </callout>
+                    <callout arearefs="rdoClassic_implReturn">
+                        <para>
+                            Returns the vector as promised by our method interface
+                        </para>
+                    </callout>
+                </calloutlist>
             </section>
         </section>
         <section>
             <title>Modifications to <filename>Skeleton.cpp</filename></title>
             <para>
+                Up until now we have built code to wrap the <filename>skeleton.cpp</filename>
+                in classes that are compatibile with the RingDaq readout framework.
+                The readout framework also requires that we:
             </para>
+            <orderedlist>
+                <listitem>
+                    <para>
+                        Select (or write and register) an event trigger.
+                    </para>
+                </listitem>
+                <listitem>
+                    <para>
+                        Register an instance of our <classname>CTraditionalEventSegment</classname>
+                        as an event segment so that it can respond to the
+                        event trigger.
+                    </para>
+                </listitem>
+                <listitem>
+                    <para>
+                        Register an instacne of our <classname>CTraditionalScaler</classname>
+                        as a scaler so that it can respond to scaler triggers.
+                    </para>
+                </listitem>
+            </orderedlist>
+            <para>
+                The actions above are all done by editing the <filename>Skeleton.cpp</filename>
+                (note the capital S).  
+            </para>
+            <para>
+                Lets first take up the event trigger.  In the classical readout
+                framework this is selected at compile time by defining a
+                preprocessor symbol, or by creating and registering a replacement
+                trigger.  For the RingDaq readout framework, you must select
+                a trigger in your software.  While this is a bit more burdensome,
+                it is more flexible.
+            </para>
+            <para>
+                Triggering in the RingDaq framework is divided into two
+                parts, the trigger itself, and dead-time management.
+                These are represented by a class descended from
+                <classname>CTrigger</classname> and another class
+                descended from <classname>CBusy</classname>.  Objects of these
+                classes can be mixed.  It is anticpated that there may be cases
+                where a specific bit of trigger hardware cannot also do deadtime
+                management.
+            </para>
+            <para>
+                The readout framework supplies trigger/busy classes for the
+                CAEN V262 I/O register and the CAEN V977 coincidence register/latch.
+                In addition it is pretty easy to create new trigger classes and
+                to use them to trigger your readout.
+                The example below selects the CAEN V262 as the trigger and busy
+                manager. The signals used are identical to those used by the
+                SPDAQ frameworks.
+            </para>
+            <example>
+                <title>Sepcifying the trigger/busy</title>
+                <programlisting>
+#include &lt;config.h&gt;
+#include "Skeleton.h"
+#include &lt;CExperiment.h&gt;
+#include &lt;TCLInterpreter.h&gt;
+#include &lt;CTimedTrigger.h&gt;
+
+#include "CCAENEventSegment.h"
+
+
+#include "CSIS3820Scaler.h"
+
+#include &lt;CCAENV262Trigger.h&gt;  <co id="CV262_Includes1" />
+#include &lt;CCAENV262Busy.h&gt;
+
+...
+void
+Skeleton::SetupReadout(CExperiment* pExperiment)
+{
+...
+  pExperiment->EstablishTrigger(new CCAENV262Trigger(0x444400, 0) ); <co id="CV262_trigger1" />
+  pExperiment->EstablishBusy(new CCAENV262Busy(0x444400, 0));        <co id="CV262_busy1" />
+  
+...
+}
+
+
+                </programlisting>
+            </example>
+            <calloutlist>
+                <callout arearefs="CV262_Includes1">
+                    <para>
+                        This header and the next define the
+                        <classname>CV262Trigger</classname> and
+                        <classname>CV262Busy</classname> classes which we will
+                        be using as trigger and busy classes respectively.
+                    </para>
+                </callout>
+                <callout arearefs="CV262_trigger1">
+                    <para>
+                        This line of code creates a new
+                        <classname>CV262Trigger</classname> object
+                        for a module with base address of <literal>0x444400</literal>
+                        in VME crate 0.  This is the traditional location of this
+                        module in the NSCL DAQ. The all to the
+                        <methodname>EstablishTrigger</methodname> method
+                        of the <classname>CExperiment</classname> object
+                        makes this trigger module the experiment event
+                        trigger.
+                    </para>
+                </callout>
+                <callout arearefs="CV262_busy1">
+                    <para>
+                        Similarly, this line creates a
+                        <classname>CV262Busy</classname> object at the same
+                        VME base address and establishes it as the module
+                        that will handle and maintain the program's
+                        busy state.
+                    </para>
+                </callout>  
+            </calloutlist>
+            <para>
+                Now lets register the a <classname>CTraditionalEventSegment</classname>
+                to respond to the trigger.  The Readout framework allows you to
+                register any number of event segments. The segments are processed
+                in the order in which you register them, much the same way
+                SpecTcl event processors work.
+            </para>
+            <example>
+                <title>Registering a <classname>CTraditionalEventSegment</classname></title>
+                <programlisting>
+...
+#include "CTraditionalEventSegment.h"  <co id="rdoclassic_EVSegReg_Header" />
+...
+void
+Skeleton::SetupReadout(CExperiment* pExperiment)
+{
+  CReadoutMain::SetupReadout(pExperiment);
+
+  // Establish your trigger here by creating a trigger object
+  // and establishing it.
+
+  pExperiment-&gt;EstablishTrigger(new CCAENV262Trigger(0x444400, 0));
+  pExperiment-&gt;EstablishBusy(new CCAENV262Busy(0x444400, 0));
+
+  // Create and add your event segments here, by creating them and invoking CExp
+eriment's
+  // AddEventSegment
+
+  pExperiment-&gt;AddEventSegment(new CTraditionalEventSegment); <co id="rdoclassic_EVSegReg_Reg" />
+
+}
+
+
+                </programlisting>
+            </example>
+            <calloutlist>
+                <callout arearefs="rdoclassic_EVSegReg_Header" >
+                    <para>
+                        Includes the header for the event segment we wrote to wrap
+                        <filename>skeleton.cpp</filename>.  This declares the class
+                        to the compiler and therefore makes references to it usable
+                        later.
+                    </para>
+                </callout>
+                <callout arearefs="rdoclassic_EVSegReg_Reg">
+                    <para>
+                        Registers the event segment by creating one dynamically
+                        and passing the pointer to it to
+                        <methodname>CExperiment::AddEventSegment</methodname>.
+                        Since <methodname>Skeleton::SetupReadout</methodname> only
+                        is called once for the lifetime of the program, it is not
+                        a memory leak to not provide a way to destroy the pointer.
+                    </para>
+                </callout>
+            </calloutlist>
+            <para>
+                The code to register the scaler wrapper is about the same,
+                however it is added to <methodname>Skeleton::SetupScalers</methodname>.
+            </para>
+            <example>
+                <title>Registering the scaler adapter with readout</title>
+                <programlisting>
+...
+#include "CTraditionalScaler.h"  <co id="rdoclassic_ScalerReg_Header" />
+...
+void
+Skeleton::SetupScalers(CExperiment* pExperiment)
+{
+  CReadoutMain::SetupScalers(pExperiment);      // Establishes the default scale
+r trigger.
+
+  // Sample: Set up a timed trigger at 2 second intervals.
+
+  timespec t;
+  t.tv_sec  = 2;                                  <co id="rdoclassic_ScalerReg_Trigger" />
+  t.tv_nsec = 0;
+  CTimedTrigger* pTrigger = new CTimedTrigger(t);
+  pExperiment-&gt;setScalerTrigger(pTrigger);
+
+  // Create and add your scaler modules here.
+
+  pExperiment-&gt;AddScalerModule(new CTraditionalScaler); <co id ="rdoclassic_ScalerReg_register" />
+
+}
+
+                </programlisting>
+            </example>
+            <calloutlist>
+                <callout arearefs="rdoclassic_ScalerReg_Header">
+                    <para>
+                        As before we must include the header for our
+                        wrapper so that we can refere to and use the
+                        <classname>CTraditionalScaler</classname> class
+                        later in the code.
+                    </para>
+                </callout>
+                <callout arearefs="rdoclassic_ScalerReg_Trigger">
+                    <para>
+                        This code comes pre-packaged with the <filename>Skeleton.cpp</filename>
+                        file.  It sets up a scaler readout trigger to fire every
+                        two seconds when the run is active.  Scaler triggers,
+                        like event triggers are completely replaceable.
+                        If you want a different scaler readout interval,
+                        change the <literal>2</literal> to the number of seconds
+                        between readouts.
+                    </para>
+                    <para>
+                        While the <classname>CTimedTrigger</classname> supports
+                        trigger intervals that are not whole seconds, the time
+                        resolution of the run time offset in the scaler event
+                        currently only supports whole seconds.  Therefore
+                        leave the <structfield>t.tv_nsec</structfield> (nanoseconds)
+                        field set to zero.
+                    </para>
+                </callout>
+                <callout arearefs="rdoclassic_ScalerReg_register">
+                    <para>
+                        Registers our scaler module with the readout.  As for
+                        event segments, any number of scaler modules can be registered.
+                        Scaler modules will be read out in the order in which
+                        they are registered.
+                    </para>
+                    <para>
+                        Once more, since the <methodname>CSkeleton::SetupScalers</methodname>
+                        is only called once in the lifetime of the program, no memory
+                        leak results from creating the <classname>CTraditionalScaler</classname>
+                        object in the way we have.
+                    </para>
+                </callout>
+            </calloutlist>
         </section>
         <section>
             <title>Modifying the Makefile</title>
             <para>
+                Now that our code is all written, we must ensure it will
+                be compiled into the final executable program. This is a matter
+                of adding the adaptor modules we wrote to the <literal>OBJECTS</literal>
+                makefile macro definition in <filename>Makefile</filename>.
+                The example below shows the resulting definitions assuming that
+                we have named our event readout adaptor <filename>CTraditionalEventSegment.cpp</filename>
+                and our scaler adaptor <filename>CTraditionalScaler.cpp</filename>:
             </para>
+            <informalexample>
+                <programlisting>
+OBJECTS=Skeleton.o skeleton.o CTraditionalEventSegment.o \
+        CTraditionalScaler.o
+                </programlisting>
+            </informalexample>
         </section>
             
     </chapter>
     <chapter>
         <title>Analyzing ring buffer data with SpecTcl</title>
         <para>
-            
+            This chapter describes how to analyze ring buffer data with SpecTcl.
+            As with the Readout, ring buffer data analysis is highly
+            source code compatible.  To analyze the data requires two sets of
+            modifications to your SpecTcl:
         </para>
+        <orderedlist>
+            <listitem>
+                <para>
+                    You must alter the scripts you use to connect SpecTcl
+                    to the online system to use the correct pipe data source,
+                    data source format and URL for RingDaq.
+                </para>
+            </listitem>
+            <listitem>
+                <para>
+                    You must make some simple changes to your analysis to handle
+                    the fact that the event length is now 32 bits and, if you are
+                    using documented packets, the packet size fields are 32 bits.
+                </para>
+            </listitem>
+        </orderedlist>
+        <para>
+            This section takes a simple example and shows how to perform these
+            modifications.  We use very generic SpecTcl analysis code that
+            has the actual analysis abstracted away. We also assume the
+            existence of an <function>attachOnline</function> Tcl
+            <command>proc</command> that both need to be modified.
+        </para>
+        <section>
+            <title>Event processor modifications</title>
+            <para>
+                Let's start by looking at the boilerplate of a typical
+                event processor for SPDAQ shown in the example below.
+            </para>
+            <example>
+                <title>SpecTcl event processor boilerplate</title>
+                <programlisting>
+#include &lt;config.h&gt;
+#include "MyEvProc.h"
+#include &lt;TranslatorPointer.h&gt;   <co id="spectcl_evproc_inclues" />
+#include &lt;BufferDecoder.h&gt;
+#include &lt;TCLAnalyzer.h&gt;
+
+
+Bool_t
+MyEvProc::operator()(const Address_t pEvent,
+                     CEvent&amp;         rEvent,
+                     CAnalyzer&amp;      rAnalyzer,
+                     CBufferDecoder&amp; rDecoder)
+{
+  
+  <co id="spectcl_xlator" />
+  TranslatorPointer&lt;UShort_t&gt; p(*(rDecoder.getBufferTranslator()), pEvent);
+  UShort_t  nWords = *p++;                                   <co id="spectcl_getwordcount" />
+  CTclAnalyzer&amp;      rAna((CTclAnalyzer&amp;)rAnalyzer); <co id="spetcl_ctclanalyzer" />
+  rAna.SetEventSize(nWords*sizeof(UShort_t)); // Set event size. <co id="spectcl_setwordcount" />
+
+  // Here we would have code that unpacked pEvent into rEvent.
+
+  //
+
+  return kfTRUE;   <co id="spectcl_returntrue" />
+}
+
+                </programlisting>
+            </example>
+            <calloutlist>
+                <callout arearefs="spectcl_evproc_inclues">
+                    <para>
+                        These includes are typically required by event processors.
+                        <filename>MyEvProc.h</filename> is the header for this
+                        event processor class. All of the other headers are
+                        standard SpecTcl class definitions.
+                    </para>
+                </callout>
+                <callout arearefs="spectcl_xlator">
+                    <para>
+                        SpecTcl supports transparent byte order conversions for
+                        integer data types in the event.  It does this via
+                        a pointer-like object called a <classname>TranslatorPointer</classname>.
+                        The next line creates a translator pointer to access the
+                        events as unsigned shorts (<type>Ushort_t</type>).
+                    </para>
+                </callout>
+                <callout arearefs="spectcl_getwordcount">
+                    <para>
+                        The SPDAQ data acquisition readout frameworks
+                        precede each event with a 16 bit word count (count of
+                        16 bit items in the event).  This line extract that word
+                        count from the event.
+                    </para>
+                </callout>
+                <callout arearefs="spetcl_ctclanalyzer">
+                    <para>
+                        At least one event processor in the event processing
+                        pipeline is required to inform SpecTcl of the number
+                        of bytes in the event.  This allows SpecTcl to locate the
+                        next event in the data stream.  
+                    </para>
+                    <para>
+                        Since
+                        <function>operator()</function> return value is
+                        already used to indicate success or failure of the
+                        event processing pipeline, this is done by
+                        calling a method in the <classname>CTCLAnalyzer</classname>
+                        which is an object that controls the overall flow of'
+                        analysis in SpecTcl.
+                        This line casts the generic <classname>CAnalyzer</classname>
+                        into the correclt type of analyzer.
+                    </para>
+                </callout>
+                <callout arearefs="spectcl_setwordcount">
+                    <para>
+                        Sets the event size for SpecTcl.
+                    </para>
+                </callout>
+                <callout arearefs="spectcl_returntrue">
+                    <para>
+                        Returnging <literal>kfTRUE</literal> tells the analyzer
+                        that called this event processor that analysis was
+                        successful and to procede to the next stage of the event
+                        pipeline or to pass the generated event to the
+                        histogramming part of SpecTcl.
+                    </para>
+                </callout>
+            </calloutlist>
+            <para>
+                To adapt this event processor to RingDaq requires that we
+                modify the boilerplate code slightly. The modification is required
+                because the event size in RingDaq has been widened to a 32
+                bit unsigned integer to allow for larger events (e.g.
+                waveform digitizers).
+            </para>
+            <para>
+                The example below shows the boiler plate modified to take into
+                account this change.  For the sake of brevity only the relevent
+                code fragment is shown:
+            </para>
+            <example>
+                <title>SpecTcl event processor boilerplate for RingDAQ</title>
+                <programlisting>
+ ...
+    <co id="spectcl_ringdaq_longxlator" />
+  TranslatorPointer&lt;ULong_t&gt; pwc(*(rDecoder.getBufferTranslator()), pEvent);
+  ULong_t  nWords = *pwc++;       <co id="spectcl_ringdaq_getwc" />
+  TranslatorPointer&lt;UShort_t&gt; p(pwc);  <co id="spectcl_ringdaq_wordpointer" />
+  CTclAnalyzer&amp;      rAna((CTclAnalyzer&amp;)rAnalyzer);
+  rAna.SetEventSize(nWords*sizeof(UShort_t)); // Set event size.
+... 
+                </programlisting>
+            </example>
+            <calloutlist>
+                <callout arearefs="spectcl_ringdaq_longxlator">
+                    <para>
+                        Obtains a translator pointer as before, but in this case
+                        a longword translator pointer is used so the widened
+                        RingDaq word count can be extracted.
+                    </para>
+                </callout>
+                <callout arearefs="spectcl_ringdaq_getwc">
+                    <para>
+                        Extracting the word count in this way leaves
+                        <varname>pwc</varname> pointing to the event body.
+                    </para>
+                </callout>
+                <callout arearefs="spectcl_ringdaq_wordpointer" >
+                    <para>
+                        Converts the longword translating pointer to a
+                        translator pointer to <type>UShort_t</type> as before.
+                        Choosing the target to be <varname>p</varname> should
+                        allow all the remaniing event processor code to run
+                        un-modified.
+                    </para>
+                </callout>
+            </calloutlist>
+            <para>
+                Before leaving this topic, let's look at one more issue; packets.
+                Depending on how you build packets you may need to modify the
+                code that gets the size of the packet from each packet.
+                If you create packets manually, or via the packet macros of
+                the classic readout framework, you don't need to make any
+                additional changes to your SpecTcl code.
+            </para>
+            <para>
+                If you use <classname>CDocumentedPacket</classname>s to create
+                your packets, you will need to modify your analysis of those
+                packets to handle the widened packet size fields of those
+                packets.  As with the event, <classname>CDocumentedPacket</classname>s
+                now use a 32 bit unsigned packet size.
+            </para>
+            <para>
+                Below is a code fragment that extracted the packet size from
+                a SPDAQ documented packets and pointed to the packet body:
+            </para>
+            <informalexample>
+                <programlisting>
+...
+  TranslatorPointer&lt;UShort_t&gt; p(*(rDecoder.getBufferTranslator()), pEvent);
+...
+   UShort_t packetSize = *p++;
+   
+                </programlisting>
+            </informalexample>
+            <para>
+                Code like this should be changhed to look like:
+            </para>
+            <informalexample>
+                <programlisting>
+...
+  TranslatorPointer&lt;ULong_t&gt; pwc(*(rDecoder.getBufferTranslator()), pEvent);
+  ULong_t  nWords = *pwc++;       
+  TranslatorPointer&lt;UShort_t&gt; p(pwc);
+...
+  pwc = p;
+  ULong_t packetSize = *pwc++;
+  p = pwc;
+  ...
+                </programlisting>
+            </informalexample>
+            <para>
+                The key is to use a TranslatorPointer&lt;ULong_t&gt; to fish
+                the size out of the event, and that assigning translator pointers
+                works as you expect it would.
+            </para>
+        </section>
+        <section>
+            <title>Attaching to a ring buffer data source</title>
+            <para>
+                This section provides guidance on how to attach SpecTcl to a
+                RingDaq ring buffer data source.  Each graphical user interface
+                written for SpecTcl has its own methods for attaching to data
+                sources.  This makes it a bit tough to talk in generalities.
+                What I will assume for this is the existence of a
+                <command>proc</command> named <function>attachOnline</function>
+                that receives as a parameter, the name of the host from which
+                data will be taken.
+            </para>
+            <para>
+                For RingDaq, this proc must:
+            </para>
+            <orderedlist>
+                <listitem>
+                    <para>
+                        Locate the <application>ringselector</application>
+                        executable.  <application>ringselector</application>
+                        selects data from a ring and send it to stdout.
+                        It is the preferred SpecTcl pipe data source for
+                        RingDaq.  See the comprehensive documentation
+                        <ulink url="http://docs.nscl.msu.edu/daq/ringbuffer">
+                            http://docs.nscl.msu.edu/daq/ringbuffer</ulink>
+                        for more information about this application.
+                    </para>
+                </listitem>
+                <listitem>
+                    <para>
+                        Construct the correct URL to use as a data source
+                        for the <application>ringselector</application> application
+                        and use it to construct the correct
+                        <application>ringselector</application> command.
+                    </para>
+                </listitem>
+                <listitem>
+                    <para>
+                        Issue the <command>attach</command> command for a pipe
+                        data source specifyig the <option>-format ring</option>
+                        option.
+                    </para>
+                </listitem>
+            </orderedlist>
+            <para>
+                In the code for <application>ringselector</application> we are
+                going to assume that the version for the ringbuffer data acquisition
+                system is 10.0 or greater.  To simplify the search we will assume
+                there are not versions higher than 19.9 and that the 'point' releases
+                are all single digits.
+            </para>
+            <para>
+                The following fragment of Tcl code locates the top level
+                directory of the highest DAQ version greater than 10.0
+                at the NSCL:
+            </para>
+            <informalexample>
+                <programlisting>
+set versions [glob /usr/opt/daq/1\[0-9\].\[0-9\]] <co id="version_glob" />
+set versions [lsort -decreasing $versions]        <co id="versions_sort" />
+set highestVersion [lindex $versions 0]           <co id="version_highest" />
+                </programlisting>
+            </informalexample>
+            <calloutlist>
+                <callout arearefs="version_glob">
+                    <para>
+                        <varname>versions</varname> is set to the list of
+                        matching top level daq directories.  The glob pattern
+                        requires backslash substitutions to allow the
+                        range patterns (<literal>[0-9]</literal>) to not be
+                        interpreted as command substitutions.
+                    </para>
+                </callout>
+                <callout arearefs="versions_sort">
+                    <para>
+                        The version directory names are then sorted in high
+                        to low order.
+                    </para>
+                </callout>
+                <callout arearefs="version_highest">
+                    <para>
+                        The highest version is then the first in the list.
+                    </para>
+                </callout>
+            </calloutlist>
+            <para>
+                Given a hostname, in the variable <varname>hostname</varname>
+                a URL has to be constructed of the form:
+                <literal>tcp://hostname/username</literal> in order to get
+                data from the correct ring.  The host <literal>localhost</literal>
+                will get data from the local ring without making a proxy ring.
+            </para>
+            <para>
+                The Tcl fragment below will create that url:
+            </para>
+            <informalexample>
+                <programlisting>
+global tcl_platform                   <co id="urlgen_tcl_platform" />
+set url [join [list tcp: "" $hostname $tcl_platform(user)] /]  <co id="urlgen_gen" />
+                </programlisting>
+            </informalexample>
+            <calloutlist>
+                <callout arearefs="urlgen_tcl_platform">
+                    <para>
+                        The built in global variable <varname>tcl_global</varname>
+                        is an array that contains among other things
+                        <varname>tcl_global(user)</varname> which is the
+                        logged in username.  Since we are building the body
+                        of a proc, we need to declare it <command>global</command>
+                        to use it.
+                    </para>
+                </callout>
+                <callout arearefs="urlgen_gen">
+                    <para>
+                        The <command>join</command> command createsa a single string
+                        by joining list elements together with the separator
+                        character provided (in this case <literal>/</literal>
+                        The empty list element
+                        <literal>""</literal> in the list is a way to get the
+                        pair of slashes needed between the protocol
+                        (<literal>tcp:</literal>) and the hierarchical part.
+                    </para>
+                </callout>
+            </calloutlist>
+            <para>
+                Putting this all together gives us this:
+            </para>
+            <example>
+                <title>
+                    Proc to connect SpecTcl to a ring buffer data source
+                </title>
+                <programlisting>
+ proc attachOnline hostname {
+    global tcl_platform
+
+    set versions [glob /usr/opt/daq/1\[0-9\].\[0-9\]]
+    set versions [lsort -decreasing $versions]
+    set highestVersion [lindex $versions 0]
+    set ringHelper [file join $highestVersion bin ringselector]  <co id="attonline_helper" />
+
+    set url [join [list tcp: "" $hostname $tcl_platform(user)] /]
+
+    attach -format ring -pipe \
+        $ringHelper --source=$url --sample=PHYSICS_EVENT    <co id="attonline_attach_command" />
+}                   
+                </programlisting>
+            </example>
+            <calloutlist>
+                <callout arearefs="attonline_helper">
+                    <para>
+                        The <command>file join</command> command creates the
+                        path to the <application>ringselector</application>
+                        program.  <application>ringselector</application> is the
+                        the <filename>bin</filename> subdirectory of the
+                        installation directory tree of the version of the
+                        RingDaq we found.
+                    </para>
+                </callout>
+                <callout arearefs="attonline_attach_command">
+                    <para>
+                        This command does the actual attach.  The
+                        <option>-format ring</option> option tells attach that the
+                        data will come in ringbuffer format.  You must also
+                        use this option when attaching to an event file produced
+                        by the RingDaq..
+                    </para>
+                    <para>
+                        The second line of the command is the
+                        <application>ringselector</application> command used to
+                        send data to SpecTcl through a pipe.  The
+                        <option>--source</option> option specifies where data
+                        comes from.  The <option>--sample</option> option
+                        specifies that data of type <literal>PHYSICS_EVENT</literal>
+                        can be sampled.  That is when <application>ringselector</application>
+                        is getting data from the ring it is allowed to
+                        skip physics events if SpecTcl is getting too far behind.
+                    </para>
+                </callout>
+            </calloutlist>
+            <section>
+                <title>RingDaq event files</title>
+                <para>
+                    In order to read data from event files that are written by
+                    RingDaq you need only add <option>-format pipe</option>
+                    to your <command>attach</command> command e.g.:
+                </para>
+                <informalexample>
+                    <programlisting>
+set filename [format run-%04d-00.evt $runNumber]
+attach -format -ring -file [file join ~ stagearea complete $filename]
+                    </programlisting>
+                </informalexample>
+                <para>
+                    Where the fragment above assumes you are opening segment 0
+                    of a run whose run number is in the Tcl variable
+                    <varname>runNumber</varname>
+                </para>
+            </section>
+        </section>
     </chapter>
     <appendix>
         <title>Format of Ring bufffer DAQ event files</title>
-        <para></para>
+        <para>
+            This information is provided for people who want to write
+            programs to analyze event files written by the RingDaq.
+            This appendix consists mostly of an annotated version of
+            <filename>DataFormat.h</filename> in the <filename>include</filename>
+            directory of a RingDaq installation.
+        </para>
+        <para>
+            RingDaq event files consist of a stream of <firstterm>items</firstterm>
+            Each item has a header that consists of a 32 bit byte count
+            (not word count), and a 32 bit type code for the item.
+            Immediately following the header is the item payload.
+            The type code must have the most significant 16 bits set to
+            <literal>0</literal> this allows you to determine the endian-ness
+            of the data by looking at which word of the type code is non-zero.
+        </para>
+        <para>
+            The count (which may have to be byte swapped if the type code
+            indicates the byte order of the generating system is different than
+            analyzing system), is self inclusive.  Items can therefore be easily
+            skipped.
+        </para>
+        <para>
+            32767 Types are reserved for use by the RingDaq software while
+            the remaining 32767 types can bge used by user applications with
+            special needs.
+        </para>
+        <para>
+            <filename>DataTypes.h</filename> defines the type fields as follows:
+        </para>
+        <example>
+            <title>Item type codes</title>
+            <programlisting>
+// state change item type codes:
+
+static const uint32_t BEGIN_RUN(1);
+static const uint32_t END_RUN(2);
+static const uint32_t PAUSE_RUN(3);
+static const uint32_t RESUME_RUN(4);
+
+// Documentation item type codes:
+
+static const uint32_t PACKET_TYPES(10);
+static const uint32_t MONITORED_VARIABLES(11);
+
+// Scaler data:
+
+static const uint32_t INCREMENTAL_SCALERS(20);
+
+// Physics events:
+
+static const uint32_t PHYSICS_EVENT(30);
+static const uint32_t PHYSICS_EVENT_COUNT(31);
+
+// User defined item codes
+
+static const uint32_t FIRST_USER_ITEM_CODE(32768); /* 0x8000 */
+            </programlisting>
+        </example>
+        <para>
+            The payload structure descriptions will provide further information
+            about the meaning of each of these type codes.
+        </para>
+        <para>
+            The structs below provide definitions used by RingDaq for both the
+            item headers and a generic item:
+        </para>
+        <programlisting>
+typedef struct _RingItemHeader {
+  uint32_t     s_size;
+  uint32_t     s_type;
+} RingItemHeader, *pRingItemHeader;
+
+
+typedef struct _RingItem {
+  RingItemHeader s_header;
+  uint8_t        s_body[1];
+} RingItem, *pRingItem;
+
+        </programlisting>
+        <variablelist>
+            <varlistentry>
+                <term><structfield>s_size</structfield></term>
+                <listitem><para>Is the size of the ring item in bytes</para></listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><structfield>s_type</structfield></term>
+                <listitem><para>Is the item type as described above.
+                </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><structfield>s_header</structfield></term>
+                <listitem><para>Is the header of the item</para></listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><structfield>s_body</structfield></term>
+                <listitem><para>Is a placeholder for the item payload.</para></listitem>
+            </varlistentry>
+        </variablelist>
+        <para>
+            Normally if you get a <type>RingItem</type> or <type>pRingItem</type>
+            you will cast it to one of the specific ring item types described
+            below.  Doing that will provide a detailed break out of the payload.
+        </para>
+        <para>
+              Run state changes are documented by inserting state change items that have the
+            structure shown below.  These have types that are one of
+            <literal>BEGIN_RUN</literal>, <literal>END_RUN</literal>,
+            <literal>PAUSE_RUN</literal> or <literal>RESUME_RUN</literal>.
+            If you receive a pointer to an item of this sort and cast it to a
+            <type>pStateChangeItem</type>, you'll be able to acces the payload fields.
+        </para>
+        <programlisting>
+typedef struct _StateChangeItem {
+  RingItemHeader  s_header;
+  uint32_t        s_runNumber;
+  uint32_t        s_timeOffset;
+  time_t          s_Timestamp;
+  char            s_title[TITLE_MAXSIZE+1];
+} StateChangeItem, *pStateChangeItem;
+        </programlisting>
+        <variablelist>
+            <varlistentry>
+                <term><structfield>s_runNumber</structfield></term>
+                <listitem><para>Is the run number of the run that is undergoing
+                    a state transition.
+                </para></listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><structfield>s_timeOffset</structfield></term>
+                <listitem><para>Is the number of seconds into the run the transition occured.
+                    For a begin run, this is by definition 0.
+                </para></listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><structfield>s_Timestamp</structfield></term>
+                <listitem><para>Is the absolute time at which the run started.
+                    This is expressed in the unix time format as the number of
+                    seconds since midnight January 1, 1970 GMT.
+                </para></listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><structfield>s_title</structfield></term>
+                <listitem><para>A null terminated string containing a run title.
+                   You should not assume this array has any specific values after
+                   the first null.
+                </para></listitem>
+            </varlistentry>
+        </variablelist>
+        <para>
+            RingDaq periodically reads scaler data.  These result in ring items
+            of type <literal>INCREMENTAL_SCALARS</literal>.  The shape of this
+            ring item is shown below:
+        </para>
+        <programlisting>
+typedef struct _ScalerItem {
+  RingItemHeader  s_header;
+  uint32_t        s_intervalStartOffset;
+  uint32_t        s_intervalEndOffset;
+  time_t          s_timestamp;
+  uint32_t        s_scalerCount;
+  uint32_t        s_scalers[1];
+} ScalerItem, *pScalerItem;
+        </programlisting>
+        <variablelist>
+            <varlistentry>
+                <term><structfield>s_intervalStartOffset</structfield></term>
+                <listitem><para>The number of seconds into the run at which the
+                    interval over which the scalers were accumulated started.
+                </para></listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><structfield>s_intervalEndOffset</structfield></term>
+                <listitem><para>The number of seconds into the run at which the
+                    scaler counting interval ended (when the scalers were
+                    read and cleared).
+                </para></listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><structfield>s_timestamp</structfield></term>
+                <listitem><para>The Unix timestamp at which the scalers
+                        were read.
+                    </para></listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><structfield>s_scalerCount</structfield></term>
+                <listitem><para>The number of scalers actually read.  Scalers
+                    are assumed to be <type>uint32_t</type> devices.
+                </para></listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><structfield>s_scalers</structfield></term>
+                <listitem><para>Placeholder for an array of <structfield>s_scalerCount</structfield>
+                    32 bit unsigned scaler values.
+                </para></listitem>
+            </varlistentry>
+        </variablelist>
+        <para>
+            Two item types have a payload which is just an array of null
+            terminated strings.  The contents of these strings depends
+            on the actual item type.  These ares stored in <structname>TextItem</structname>
+            items.  The meaning and contents of each string depends on the item type.
+        </para>
+        <variablelist>
+            <varlistentry>
+                <term><literal>PACKET_TYPES</literal></term>
+                <listitem><para>
+                    This item contains strings that describe the set of
+                    <classname>CDocumentedPackets</classname> that occur within a run.
+                    Each string is a colon separated set of fields containing in order
+                    the packet id, short packet name, packet description, packet
+                    version and the date/time at which the packet was instantiated.
+                    </para></listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><literal>MONITORED_VARIABLES</literal></term>
+                <listitem><para>
+                    This item contains monitored variable values.   A monitored
+                    variable is a Tcl variable whose value is periodically
+                    written to the event file.  The value of one of these variables
+                    might change either because the readout software changed it or,
+                    more commonly because the server component of the readout framework
+                    was enabled and a client poked a new value to the variable
+                    (e.g. as in EPICS monitoring).
+                </para>
+                <para>
+                    Each string consists of a Tcl script fragment that, if executed
+                    in an interpreter will set that specified variable to its
+                    value at the time the item was emitted.  For example
+                    <command>set something something-else</command>.
+                </para>
+                <para>
+                    Strings are null terminated.
+                </para></listitem>
+            </varlistentry>
+        </variablelist>
+        <para>
+            The complete format of the <structname>TextItem</structname>
+            ring item is:
+        </para>
+        <programlisting>
+typedef struct _TextItem {
+  RingItemHeader s_header;
+  uint32_t       s_timeOffset;
+  time_t         s_timestamp;
+  uint32_t       s_stringCount;
+  char           s_strings[1];
+} TextItem, *pTextItem;
+        </programlisting>
+        <variablelist>
+            <varlistentry>
+                <term><structfield>s_timeOffset</structfield></term>
+                <listitem><para>Number of seconds into the run at which this item was emitted
+                </para></listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><structfield>s_timestamp</structfield></term>
+                <listitem><para>
+                    Unix timestamp for the absolute time at which this item was
+                    emitted.
+                </para></listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><structfield>s_stringCount</structfield></term>
+                <listitem><para>
+                    The number of strings that are in the payload.
+                </para></listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><structfield>s_strings</structfield></term>
+                <listitem><para>
+                    Placeholder for the <structfield>s_stringCount</structfield>
+                    null terminated fields.
+                </para></listitem>
+            </varlistentry>
+        </variablelist>
+        <para>
+            Each trigger produces a <literal>PHYSICS_EVENT</literal> item.
+            The format of the event is assumed to be completely up to the
+            readout framework (it is envisioned that in the future there
+            will be other readout frameworks available).  The
+            <structname>PhysicsEventItem</structname>, therefore is identical
+            in shape to the <structname>RingItem</structname>:
+        </para>
+        <programlisting>
+typedef struct _PhysicsEventItem {
+  RingItemHeader s_header;
+  uint16_t       s_body[1];
+} PhysicsEventItem, *pPhysicsEventItem;
+        </programlisting>
+        <para>
+            From time to time a <structname>PhysicsEventCount</structname> item is
+            emitted.  This item allows the data rate to be easily computed
+            (accepted triggers/sec).  It also allows sampling consumers such as
+            SpecTcl to compute the fraction of the data they have analyzed.
+            These items are of type <literal>PHYSICS_EVENT_COUNT</literal> and
+            have the following shape:
+        </para>
+        <programlisting>
+typedef struct __PhysicsEventCountItem {
+  RingItemHeader s_header;
+  uint32_t       s_timeOffset;
+  time_t         s_timestamp;
+  uint64_t       s_eventCount;  /* Maybe 4Gevents is too small ;-) */
+} PhysicsEventCountItem, *pPhysicsEventCountItem;
+
+        </programlisting>
+        <variablelist>
+            <varlistentry>
+                <term><structfield>s_timeOffset</structfield></term>
+                <listitem><para>Seconds into the run at which this item was emitted.
+                </para></listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><structfield>s_timestamp</structfield></term>
+                <listitem><para>Unix timestamp for the absolute time at which this
+                    item was emitted.
+                </para></listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><structfield>s_eventCount</structfield></term>
+                <listitem><para>Number of triggers accepted so far in the run.
+                </para></listitem>
+            </varlistentry>
+        </variablelist> 
     </appendix>
     <appendix>
         <title>User written triggers</title>
-        <para></para>
+        <para>
+            The readout framework has explicity support for user written triggers.
+            This appendix will describe that support and provide a simple
+            example. 
+        </para>
+        <para>
+            A <firstterm>trigger</firstterm> is a class/object that is polled
+            to determine if a condition has occured.  Two triggers are registered
+            by the application programmer.  An event trigger, which determines when
+            the <methodname>read</methodname> method of the event segments are
+            invoked, and a scaler trigger, which determines when scalers get
+            read/cleared.
+        </para>
+        <para>
+            Closely associated with triggers are Busy objects which allow the
+            computer to report when it is not able to accept a new trigger.
+            Busy objects are only used with the event trigger.
+        </para>
+        <para>
+            All  triggers are required to extend the
+            <classname>CEventTrigger</classname> (event in this case means that
+            some external event occured not that a physics event of interest
+            has been detected).  The <classname>CEventTrigger</classname> provides
+            the following public interface to clients:
+        </para>
+        <variablelist>
+            <methodsynopsis>
+              <modifier>virtual</modifier>
+              <type>void</type>
+              <methodname>setup</methodname>
+              <void />
+            </methodsynopsis>
+            <methodsynopsis>
+              <modifier>virtual</modifier>
+              <type>void</type>
+              <methodname>teardown</methodname>
+            </methodsynopsis>
+            <methodsynopsis>
+              <modifier>virtual</modifier>
+              <type>bool</type>
+              <methodname>operator()</methodname>
+              <void />
+              <modifier> = 0</modifier>
+            </methodsynopsis>
+            <varlistentry>
+                <term><methodname>setup</methodname></term>
+                <listitem><para>
+                    Called as the run is starting.  This allows the trigger
+                    code to do any hardware setup required to initialize the
+                    trigger.  If not declared/implemented, the base class
+                    provides a no-op default implementation.
+                </para></listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><methodname>teardown</methodname></term>
+                <listitem><para>
+                    Called as a run is halting (pausing as well as ending).
+                    This allows for the trigger class to do any required
+                    shutdown of the trigger hardware.  If not declared/implemented,
+                    the base class provides a no-op default implementation.
+                </para></listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><methodname>operator()</methodname></term>
+                <listitem><para>
+                    This is called when the framework is able to accept a trigger.
+                    The method is expected to return <literal>true</literal> if
+                    a trigger is present, and <literal>false</literal> if not.
+                    The method should not poll. That is the function of the
+                    framework.  The method should determine, as quicly as possible
+                    the state of the trigger and return the appropriate value.
+                    This method is mandatory and is pure virtual in the base
+                    class.
+                </para></listitem>
+            </varlistentry>
+        </variablelist>
+        <para>
+            Without comment I supply a trigger class that can trigger the
+            DAQ when a CAEN V775/782/792/865 module shows data present.
+        </para>
+        <example>
+            <title>CAEN data ready trigger header</title>
+            <programlisting>
+#ifndef __CEVENTTRIGGER_H
+#include &lt;CEventTrigger.h&gt;
+#endif
+
+class CAENcard;        /* Forward class definition */
+
+/*!
+  This class is a trigger class that will indicate a trigger if a specific
+  CAEN32 module has data.
+*/
+
+class CCAENRdyTrigger : public CEventTrigger
+{
+private:
+  CAENcard*   m_pModule;
+
+public:
+  CCAENRdyTrigger(CAENcard* pSegment);
+
+  virtual bool operator()();    // Only method we need to implement.
+};
+            </programlisting>
+        </example>
+        <example>
+            <title>CAEN data ready trigger implementation</title>
+            <programlisting>
+#include &lt;config.h&gt;
+#include "CCAENRdyTrigger.h"
+#include &lt;CAENcard.h&gt;
+
+
+
+CCAENRdyTrigger::CCAENRdyTrigger(CCAENCard* pSegment) :
+  m_pModule(pSegment)
+{}
+
+bool
+CCAENRdyTrigger::operator()()
+{
+  return m_pModule->dataPresent();
+}                
+            </programlisting>
+        </example>
+        <para>
+            Note that by hooking the command bus for a set of these modules
+            together, you coudl use <methodname>gdataPresent</methodname> as the
+            trigger conditions and then the trigger would be true if any
+            of the modules had data.
+        </para>
+        
     </appendix>
 </book>

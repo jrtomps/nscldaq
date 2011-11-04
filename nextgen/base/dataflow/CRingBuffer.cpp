@@ -726,6 +726,17 @@ CRingBuffer::availablePutSpace()
 
   size_t minFree =  pHeader->s_dataBytes-1;
   for (int i = 0; i < consumers;  i++) {
+    // If the ring is in transition (a new consumer joining)... we need to 
+    // wait a bit and try again so that we are not looking at get pointers in flux.
+    //
+    if (pClients->s_pid == 0) {
+      usleep(100);		// Wait 100usec.
+      i = 0;			// and reset the loop.
+      minFree  = pHeader->s_dataBytes-1;
+      pClients = reinterpret_cast<pClientInformation>(reinterpret_cast<char*>(m_pRing) + 
+						      pHeader->s_firstConsumer);
+    }
+    
     if(pClients->s_pid > 0) {	// -1  - unused 0 - initializing > 0 fully  in use.
       size_t avail     = availableData(pClients);
       size_t freeBytes = pHeader->s_dataBytes - avail - 1; // 
@@ -1070,15 +1081,23 @@ CRingBuffer::allocateConsumer()
   size_t      nConsumers = pHeader->s_maxConsumer;
   pClientInformation p   = reinterpret_cast<pClientInformation>(reinterpret_cast<char*>(m_pRing) + 
 							   pHeader->s_firstConsumer);
-  pClientInformation put = reinterpret_cast<pClientInformation>(reinterpret_cast<char*>(m_pRing) +
+  pClientInformation put= reinterpret_cast<pClientInformation>(reinterpret_cast<char*>(m_pRing) +
 							   pHeader->s_producerInfo);
 
   for (int i =0; i < nConsumers; i++) {
     if (p->s_pid == -1) {
       p->s_pid = 0;		// Claim it as in use but not active.
       __sync_synchronize();	// Flush to shm as well.
-      p->s_offset = put->s_offset; // set the offset.
-      p->s_pid = getpid();	   // now make it elligible for size computations.
+
+      // The loop below deals with any cases where the put pointer moved
+      // While we were joining up.
+
+      while(p->s_offset != put->s_offset) {
+	p->s_offset = put->s_offset;
+	__sync_synchronize();
+      }
+
+      p->s_pid = getpid();	   // now unstall any free space computations
       m_pClientInfo = p;
       __sync_synchronize();	// Flush to shm as well.
       return;
