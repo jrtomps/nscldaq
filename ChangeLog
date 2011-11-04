@@ -102,4 +102,9 @@ October 24, 2011 10.0-017
 	  which makes it ineligible for size computation, and claims it
 	  for use.  Then set the get pointer and finally set the PID to
 	  the actual value making it elligible for size computation.
+Nobvember 4, 2011 10.0-018
+	- Deal a bit better with pointer skew that can happen as new
+	  consumers enter the fray.
+	- Play with the tkdumper help file...fix missing link.
+	- Provide migration tutorial.
 	
