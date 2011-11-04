@@ -108,3 +108,7 @@ Nobvember 4, 2011 10.0-018
 	- Play with the tkdumper help file...fix missing link.
 	- Provide migration tutorial.
 	
+November 4, 2011 10.0-019
+	- Make stdintoring understand that data are structured not a
+	stream.
+	
