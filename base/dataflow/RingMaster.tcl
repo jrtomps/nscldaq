@@ -205,9 +205,38 @@ proc RemoteHoist {socket client tail} {
 
 
 }
+#------------------------------------------------------------------------------
+# Kill clients of a specified ring.  This is done when a ring is being unregistered.
+#
+#  Parameters:
+#    ringName - Name of the ring on which to operate.
+#
+# NOTE: This is unix specific as it assumes the existence of a 'kill' command that
+#       can be execed.
+#
+
+proc killClients ringName {
+    set ringUsage [ringbuffer usage $ringName]
+    
+    # start with the producer:
+    
+    set producerPID [lindex $ringUsage 3]
+    if {$producerPID != -1} {
+	exec kill -9 $producerPID
+    }
+    # Now the consumers:
+
+    set consumerInfo [lindex $ringUsage 6]
+    foreach client $consumerInfo {
+	set pid [lindex $client 0]
+	if {$pid != -1} {;	# Should not need this but...
+	    exec kill -9 $pid
+	}
+    }
+}
 #-------------------------------------------------------------------------------
 #
-#  Unregister an existing ring.  If the ring is known, it is removed from the
+#  Unregisteran existing ring.  If the ring is known, it is removed from the
 #  ::knowRings list.  Otherwise an error messagse is returned to the client.
 #  this sort of error is not sufficient to disconnect the client.
 #
@@ -227,6 +256,8 @@ proc Unregister {socket client tail} {
     set ring  [lindex $tail 1]
     set which [lsearch -exact $::knownRings $ring]
     if {$which != -1} {
+	::log::log debug "Killing clients of $ring"
+	killClients $ring
 	::log::log debug "Removing $ring from $::knownRings"
 	set ::knownRings [lreplace $::knownRings $which $which]
 	puts $socket "OK"

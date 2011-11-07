@@ -115,3 +115,4 @@ November 7, 2011 10.0-020
 	- If a proxy ring has no producer then restart the pipeline if a
 	client attaches.  This provides a way to recover from remote
 	system reboot that's much saner.
+        - If a ring is deleted then kill its clients.

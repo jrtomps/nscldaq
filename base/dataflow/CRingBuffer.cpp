@@ -185,14 +185,22 @@ CRingBuffer::remove(string name)
     throw CErrnoException("CRingBuffer::remove - not a ring");
   }
 
+  // Tell the ringmaster to forget the ring and kill the clients
+
+
+  connectToRingMaster();
+  m_pMaster->notifyDestroy(name);
+
+
+  // At this point RM has acked so we can kill the ring itself:
+
   string fullName   = shmName(name);
   int    status     = shm_unlink(fullName.c_str());
 
   if (status == -1) {
     throw CErrnoException("CRingBuffer::remove - shm_unlink failed");
   }
-  connectToRingMaster();
-  m_pMaster->notifyDestroy(name);
+
 }
 
 
