@@ -553,8 +553,9 @@ void
 CExperiment::ScheduleRunVariableDump()
 {
   CVariableBuffers* pVars = CVariableBuffers::getInstance();
-  pVars->triggerRunVariableBuffer(m_pRing);
-  pVars->triggerStateVariableBuffer(m_pRing);
+  uint64_t timeOffset = m_nRunStartStamp + m_nPausedmSeconds;
+  pVars->triggerRunVariableBuffer(m_pRing, timeOffset);
+  pVars->triggerStateVariableBuffer(m_pRing, timeOffset);
 }
 
 

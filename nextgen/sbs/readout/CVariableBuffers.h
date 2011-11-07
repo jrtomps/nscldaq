@@ -76,10 +76,11 @@ private:
   typedef struct _TriggerEvent {
     Tcl_Event    s_RawEvent;
     CRingBuffer* s_pRing;
+    uint64_t     s_TimeOffset;
     
   } TriggerEvent, *pTriggerEvent;
 
-  typedef void Creator(CRingBuffer* pRing);
+  typedef void Creator(CRingBuffer* pRing, uint64_t toffset);
 
   // Member data.
 private:
@@ -109,24 +110,28 @@ private:
 
   // Trigger members:
 public:  
-  void triggerRunVariableBuffer(CRingBuffer* pRing);
-  void triggerStateVariableBuffer(CRingBuffer* pRing);
+  void triggerRunVariableBuffer(CRingBuffer* pRing,
+				uint64_t timeoffset);
+  void triggerStateVariableBuffer(CRingBuffer* pRing,
+				  uint64_t timeoffset);
 
 
 
  private:
   void triggerBuffer(CRingBuffer* pRing,
 		     Tcl_EventProc* handler,
-		     Creator* creator);
+		     Creator* creator,
+		     uint64_t timeoffset);
   
   // Event relays.. the targets of the event:
  private:
-  static  void createRunVariableEvent(CRingBuffer* pRing);
-  static  void createStateVariableEvent(CRingBuffer* pRing);
+  static  void createRunVariableEvent(CRingBuffer* pRing, uint64_t timeBase);
+  static  void createStateVariableEvent(CRingBuffer* pRing, uint64_t timeBase);
   
   static  void createDocEvent(CRingBuffer* pRing,
 			      uint16_t     eventType,
-			      CDocumentedVars::NameValuePairs& variables);
+			      CDocumentedVars::NameValuePairs& variables,
+			      uint64_t    tbase);
   
   static int HandleRunVarTrigger(Tcl_Event* evPtr,
 				 int        flags);

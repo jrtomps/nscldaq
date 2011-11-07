@@ -93,7 +93,7 @@ void VarBufs::strunvar() {
 
 
   CVariableBuffers* p = CVariableBuffers::getInstance();
-  p->triggerRunVariableBuffer(m_pProducer);
+  p->triggerRunVariableBuffer(m_pProducer, 0);
 
   // There should be an event in the ring buffer:
   
@@ -132,7 +132,7 @@ void VarBufs::ststatevar() {
 
 
   CVariableBuffers* p = CVariableBuffers::getInstance();
-  p->triggerStateVariableBuffer(m_pProducer);
+  p->triggerStateVariableBuffer(m_pProducer, 0);
 
   // There should be an event in the ring buffer:
   
@@ -175,7 +175,7 @@ public:
 
   virtual void run() {
     CVariableBuffers* p  = CVariableBuffers::getInstance();
-    p->triggerRunVariableBuffer(m_pRing);
+    p->triggerRunVariableBuffer(m_pRing, 0);
   }
 };
 
@@ -188,7 +188,7 @@ public:
     m_pRing(pR) {}
   virtual void run() {
     CVariableBuffers* p = CVariableBuffers::getInstance();
-    p->triggerStateVariableBuffer(m_pRing);
+    p->triggerStateVariableBuffer(m_pRing, 0);
   }
 };
 
