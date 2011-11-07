@@ -146,7 +146,7 @@ putData(CRingBuffer& ring, void* pBuffer, size_t nBytes)
   struct header *pHeader;
 
   uint8_t* p = reinterpret_cast<uint8_t*>(pBuffer); // makes addr arithmetic easier.
-  while(nBytes) {
+  while(nBytes > sizeof(struct header)) {
     pHeader = reinterpret_cast<struct header*>(p);
     uint32_t size = computeSize(pHeader);
 
