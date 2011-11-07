@@ -116,3 +116,9 @@ November 7, 2011 10.0-020
 	client attaches.  This provides a way to recover from remote
 	system reboot that's much saner.
         - If a ring is deleted then kill its clients.
+	- If a get/put/peek operations discoveres the client's PID has
+	been co-opted by some other process or released, throw a state
+	exception and refuse to perform the operation.  This deals with an
+	edge case that should not happen...however better safe than sorry
+	especially since the cost is negligible.
+	
