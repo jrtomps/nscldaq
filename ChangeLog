@@ -121,4 +121,8 @@ November 7, 2011 10.0-020
 	exception and refuse to perform the operation.  This deals with an
 	edge case that should not happen...however better safe than sorry
 	especially since the cost is negligible.
+	- Require stdintoring have at least a full header in putData
+	else the remainder is a residual.
+	- Use same run time offset algorithm as scalers for variable dump
+	bufs.
 	

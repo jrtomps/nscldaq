@@ -106,9 +106,11 @@ CVariableBuffers::getInstance()
      @param pRing - Pointer to the ring buffer into which the event is placed:
 */
 void
-CVariableBuffers::triggerRunVariableBuffer(CRingBuffer* pRing) 
+CVariableBuffers::triggerRunVariableBuffer(CRingBuffer* pRing,
+					   uint64_t timeOffset) 
 {
-  triggerBuffer(pRing, HandleRunVarTrigger, createRunVariableEvent);
+  triggerBuffer(pRing, HandleRunVarTrigger, createRunVariableEvent,
+		timeOffset);
 }
 
 /*!
@@ -120,9 +122,11 @@ CVariableBuffers::triggerRunVariableBuffer(CRingBuffer* pRing)
 
 */
 void
-CVariableBuffers::triggerStateVariableBuffer(CRingBuffer* pRing)
+CVariableBuffers::triggerStateVariableBuffer(CRingBuffer* pRing,
+					     uint64_t timeOffset)
 {
-  triggerBuffer(pRing, HandleStateVarTrigger, createStateVariableEvent);
+  triggerBuffer(pRing, HandleStateVarTrigger, createStateVariableEvent,
+		timeOffset);
 }
 
 
@@ -140,7 +144,8 @@ CVariableBuffers::triggerStateVariableBuffer(CRingBuffer* pRing)
 void
 CVariableBuffers::triggerBuffer(CRingBuffer* pRing,
 				Tcl_EventProc* handler,
-				CVariableBuffers::Creator* creator)
+				CVariableBuffers::Creator* creator,
+				uint64_t timeOffset)
 {
   // This whole thing is done holding the mutex so that we ensure
   // only one run variable buffer is in process at a time.. you might
@@ -152,12 +157,13 @@ CVariableBuffers::triggerBuffer(CRingBuffer* pRing,
   Tcl_ThreadId current = Tcl_GetCurrentThread();
   m_pTriggerGuard->lock();
   if (current == m_interpreterThread) {
-    (*creator)(pRing);
+    (*creator)(pRing, timeOffset);
   }
   else {
     pTriggerEvent pEvent = reinterpret_cast<pTriggerEvent>(Tcl_Alloc(sizeof(TriggerEvent)));
     pEvent->s_RawEvent.proc = handler;
     pEvent->s_pRing         = pRing;
+    pEvent->s_TimeOffset    = timeOffset;
     Tcl_ThreadQueueEvent(m_interpreterThread, 
 			 reinterpret_cast<Tcl_Event*>(pEvent), TCL_QUEUE_TAIL);
     m_pTriggerSynchronize->wait(*m_pTriggerGuard);	// Wait until done... or tearing down.
@@ -175,22 +181,22 @@ CVariableBuffers::triggerBuffer(CRingBuffer* pRing,
  *    CRingBuffer*  pRing  - Destination ringbuffer.
  */
 void
-CVariableBuffers::createRunVariableEvent(CRingBuffer* pRing)
+CVariableBuffers::createRunVariableEvent(CRingBuffer* pRing, uint64_t tbase)
 {
   CDocumentedVars::NameValuePairs info = m_pInstance->m_pVars->getRunVars();
   if (info.size() > 0) {
-    createDocEvent(pRing, MONITORED_VARIABLES, info);
+    createDocEvent(pRing, MONITORED_VARIABLES, info, tbase);
   }
 }
 /*
  * Similarly create a state variable event for the specified ring.
  */
 void
-CVariableBuffers::createStateVariableEvent(CRingBuffer* pRing)
+CVariableBuffers::createStateVariableEvent(CRingBuffer* pRing, uint64_t tbase)
 {
   CDocumentedVars::NameValuePairs info = m_pInstance->m_pVars->getStateVars();
   if (info.size() > 0) {
-    createDocEvent(pRing, MONITORED_VARIABLES, info);
+    createDocEvent(pRing, MONITORED_VARIABLES, info, tbase);
   }
 }
 /*
@@ -207,7 +213,8 @@ CVariableBuffers::createStateVariableEvent(CRingBuffer* pRing)
 void
 CVariableBuffers::createDocEvent(CRingBuffer* pRing,
 				 uint16_t     eventType,
-				 CDocumentedVars::NameValuePairs& variables)
+				 CDocumentedVars::NameValuePairs& variables,
+				 uint64_t     tbase)
 {
   vector<string> elements;
   CTCLInterpreter* pInterp = m_pInstance->m_pVars->getInterpreter();  
@@ -225,11 +232,17 @@ CVariableBuffers::createDocEvent(CRingBuffer* pRing,
     elements.push_back(string(command));
   }
   RunState* pState = RunState::getInstance();
-  time_t timestamp;
-  time(&timestamp);
+  time_t timestamp = time(NULL);
+
+  timespec currentTime;
+  uint64_t msTime;
+  clock_gettime(CLOCK_REALTIME, &currentTime);
+  msTime = currentTime.tv_sec;
+  msTime *= 1000;
+  msTime += currentTime.tv_nsec/(1000*1000);
 
   CRingTextItem item(eventType, elements,
-		     pState->m_timeOffset,
+		     (msTime - tbase)/1000,
 		     timestamp);
   item.commitToRing(*pRing);
 
@@ -246,9 +259,10 @@ CVariableBuffers::HandleRunVarTrigger(Tcl_Event* evPtr, int flags)
 {
   pTriggerEvent pEvent = reinterpret_cast<pTriggerEvent>(evPtr);
   CRingBuffer*  pRing  = pEvent->s_pRing;
+  uint64_t      tBase  = pEvent->s_TimeOffset;
 
   m_pInstance->m_pTriggerGuard->lock();
-  CVariableBuffers::createRunVariableEvent(pRing);
+  CVariableBuffers::createRunVariableEvent(pRing, tBase);
   m_pInstance->m_pTriggerSynchronize->signal();
   m_pInstance->m_pTriggerGuard->unlock();
 
@@ -264,9 +278,10 @@ CVariableBuffers::HandleStateVarTrigger(Tcl_Event* evPtr,
 {
   pTriggerEvent pEvent = reinterpret_cast<pTriggerEvent>(evPtr);
   CRingBuffer*  pRing  = pEvent->s_pRing;
+  uint64_t      tBase  = pEvent->s_TimeOffset;
 
   m_pInstance->m_pTriggerGuard->lock();
-  CVariableBuffers::createStateVariableEvent(pRing);
+  CVariableBuffers::createStateVariableEvent(pRing, tBase);
   m_pInstance->m_pTriggerSynchronize->signal();
   m_pInstance->m_pTriggerGuard->unlock();
 
