@@ -480,6 +480,10 @@ CRingBuffer::put(void* pBuffer, size_t nBytes, unsigned long timeout)
     throw CStateException(modeString().c_str(), "producer", 
 			  "CRingBuffer::put");
   }
+  if(m_myPid != m_pClientInfo->s_pid) {
+    throw CStateException("My PID", "Someone else's pid",
+			  "CRingBuffer::get");
+  }
 
   // Ensure the ring is big enough for the data:
 
@@ -571,9 +575,19 @@ CRingBuffer::get(void*        pBuffer,
   // Ensure we are a consumer:
 
   if (m_mode != consumer) {
-    throw CStateException(modeString().c_str(), "consuemer",
+    throw CStateException(modeString().c_str(), "consumer",
 			  "CRingBuffer::get");
   }
+  // Ensure our PID matches the consumer struct for us.
+  // note that the class variable m_myPid must be set to our PID because
+  // to connect to this ring we must have contacted the RingMaster and that's
+  // what sets that.
+
+  if(m_myPid != m_pClientInfo->s_pid) {
+    throw CStateException("My PID", "Someone else's pid",
+			  "CRingBuffer::get");
+  }
+
   // Ensure that we won't block forever:
 
   if (minBytes > m_pRing->s_header.s_dataBytes) {
@@ -624,6 +638,23 @@ size_t
 CRingBuffer::peek(void*   pBuffer,
 		  size_t  maxBytes)
 {
+  // Ensure we are a consumer:
+
+  if (m_mode != consumer) {
+    throw CStateException(modeString().c_str(), "consumer",
+			  "CRingBuffer::get");
+  }
+  // Ensure our PID matches the consumer struct for us.
+  // note that the class variable m_myPid must be set to our PID because
+  // to connect to this ring we must have contacted the RingMaster and that's
+  // what sets that.
+
+  if(m_myPid != m_pClientInfo->s_pid) {
+    throw CStateException("My PID", "Someone else's pid",
+			  "CRingBuffer::get");
+  }
+
+
   size_t transferSize = availableData();
   if (transferSize == 0) {
     return 0;			// no data.
