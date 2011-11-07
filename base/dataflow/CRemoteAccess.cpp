@@ -227,27 +227,25 @@ CRingAccess::daqConsumeFrom(string uri)
     return new CRingBuffer(ring, CRingBuffer::consumer);
   }
 
-  // If the proxy ring exists, we can just connect to it:
+  // If the proxy ring exists..and has a feeder... we can just connect to it:
 
   string proxyRingName(host);
   proxyRingName += ".";
   proxyRingName += ring;
   if (CRingBuffer::isRing(proxyRingName)) {
-    return new CRingBuffer(proxyRingName, CRingBuffer::consumer);
+    CRingBuffer* pRingBuffer =  new CRingBuffer(proxyRingName, CRingBuffer::consumer);
+    CRingBuffer::Usage usage = pRingBuffer->getUsage();
+    if (usage.s_producer != -1) {
+      return pRingBuffer;
+    }
+    else {
+      startPipeline(host, ring, proxyRingName);
+      return pRingBuffer;
+    }
   }
-  // The ring is remote.  We need help from the remote ringmaster:
 
-
-  int socket;
-  CRingMaster master(host);
-  socket = master.requestData(ring);
-
-  // We have a socket on which data will be sent.
-
-
-  startFeeder(proxyRingName, socket); // do this now so the feeder doesn't inherit the
-  close(socket);		// But don't shutdown.
-
+  CRingBuffer::create(proxyRingName, m_proxyRingSize, m_proxyMaxConsumers, true);
+  startPipeline(host, ring,  proxyRingName);
 
 
   // - create the proxy ring.
@@ -255,7 +253,6 @@ CRingAccess::daqConsumeFrom(string uri)
   // - close the socket.
   // - Return a consumer connection to the proxy ring.
 
-  CRingBuffer::create(proxyRingName, m_proxyRingSize, m_proxyMaxConsumers, true);
   CRingBuffer* proxy = new CRingBuffer(proxyRingName, CRingBuffer::consumer);
 
 
@@ -263,6 +260,30 @@ CRingAccess::daqConsumeFrom(string uri)
 }
 //////////////////////////////////////////////////////////////////////////////
 //  Utilities:
+
+/****************************************************************************/
+/* Contact a remote ring master and get a pipeline set up to a proxy ring.  */
+/* Parameters:                                                              */
+/*    hostName        - Name of host whose data we want.                    */
+/*    remoteRingname  - Name of ring in remote host.                        */
+/*    localRingname   - Name of local proxy ring.                           */
+/****************************************************************************/
+void
+CRingAccess::startPipeline(string hostName, string remoteRingname, string localRingname)
+{
+  // The ring is remote.  We need help from the remote ringmaster:
+
+  int socket;
+  CRingMaster master(hostName);
+  socket = master.requestData(remoteRingname);
+
+  // We have a socket on which data will be sent.
+
+
+  startFeeder(localRingname, socket); // do this now so the feeder doesn't inherit the
+  close(socket);		// But don't shutdown.
+
+}
 
 /****************************************************************************/
 /* Start the feeder process for the ringbuffer:                             */
