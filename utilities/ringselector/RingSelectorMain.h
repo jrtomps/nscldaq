@@ -46,7 +46,7 @@ private:
   CRingBuffer*              m_pRing;          // Data source.
   CRingSelectionPredicate*  m_pPredicate;     // Predicate used to select data.
   bool                      m_formatted;      // Format output.
-
+  bool                      m_exitOnEnd;      // If true exit when end run seen.
   // Constructors..
 public:
   RingSelectorMain();
