@@ -7,4 +7,5 @@ option "sample"  S "List item types for sampling" string optional
 option "exclude" e "List item types to exclude"   string optional
 option "accept"  a "List item types to accept"    string optional
 option "formatted" F "Format data" optional
+option "exitonend" 1 "Exit on end run" optional
 

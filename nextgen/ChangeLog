@@ -125,4 +125,5 @@ November 7, 2011 10.0-020
 	else the remainder is a residual.
 	- Use same run time offset algorithm as scalers for variable dump
 	bufs.
-	
+Nvoember 9, 2011 10.0-021
+	- Add --exitonend option to ringselector (WO W00957).

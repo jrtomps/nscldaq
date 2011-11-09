@@ -72,6 +72,7 @@ RingSelectorMain::operator()(int argc, char** argv)
   cmdline_parser(argc, argv, &parsedArgs);
 
   m_formatted  = parsedArgs.formatted_given;
+  m_exitOnEnd  = parsedArgs.exitonend_given;
   m_pPredicate = createPredicate(&parsedArgs);
 
   m_pRing      = selectRing(&parsedArgs);
@@ -207,7 +208,17 @@ RingSelectorMain::processData()
     size_t     size  = pItem->getBodySize() + sizeof(RingItemHeader);
     RingItem*  pData = pItem->getItemPointer();
     writeBlock(STDOUT_FILENO, pData, size);
+
+    // If exit on end is requested we'll need to know the type before
+    // deleting it.
+
+    uint32_t itemType= pItem->type();
+
     delete pItem;
+
+    if (m_exitOnEnd && (itemType == END_RUN)) {
+      exit(EXIT_SUCCESS);
+    }
   }
 }
 
