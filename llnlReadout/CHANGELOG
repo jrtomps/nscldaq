@@ -1,3 +1,4 @@
+
 February 10, 2008
  - Coded support for the SIS3804 scaler: funded by George Washington
    University.
@@ -69,4 +70,8 @@ December 10, 2010 - Added CHINP support (Wash-U Jon Elson).
    -  Add support for continuous buffer mode from VM-USB into larger
       nscldaq homgenous buffers.	
    - Add readout support for the CAEN V1729 FADC module.
+4.0-001
+   - Get scaler timing from the VM-USB promised timing (-period value) as in mixed buffer mode
+     we have no choice but to trust the VM-USB to be consistent.
+
 

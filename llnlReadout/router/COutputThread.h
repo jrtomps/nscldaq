@@ -107,6 +107,7 @@ private:
 
   // other data:
 private:
+  int         m_elapsedSeconds;	   /* Seconds into the run. */
   uint32_t    m_sequence;	   // Buffer sequence number.
   timespec    m_startTimestamp;    //!< Run start time.
   timespec    m_lastStampedBuffer; //!< Seconds into run of last stamped buffer.

@@ -68,6 +68,7 @@ CConfiguration::CConfiguration() :
 
   m_Commands.push_back(new CADCCommand(*m_pInterp, *this));
   m_Commands.push_back(new CADCCommand(*m_pInterp, *this, "caenv965"));
+  m_Commands.push_back(new CADCCommand(*m_pInterp, $this, "caenv792"));
   m_Commands.push_back(new CCAENChainCommand(*m_pInterp, *this));
   m_Commands.push_back(new CScalerCommand(*m_pInterp, *this));
   m_Commands.push_back(new CCAENV830Command(*m_pInterp, *this));

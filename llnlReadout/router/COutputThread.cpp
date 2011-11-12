@@ -279,9 +279,10 @@ COutputThread::startRun(DataBuffer& buffer)
   m_title           = pState->getTitle();
   m_sequence        = 0;
 
-  m_startTimestamp       = buffer.s_timeStamp;
-  m_lastStampedBuffer.tv_sec    = 0; 
-  m_lastStampedBuffer.tv_nsec   = 0;
+  clock_gettime(CLOCK_REALTIME, &m_startTimestamp);
+  m_lastStampedBuffer = m_startTimestamp;
+  m_elapsedSeconds = 0;
+
 
   // Allocate the Begin run buffer and fill it in.
 
@@ -442,16 +443,15 @@ COutputThread::scaler(void* pData)
 
   // Format the body prior to the scalers:
 
-  outbuf->s_body.btime    = m_lastStampedBuffer.tv_sec;
-  if (m_lastStampedBuffer.tv_nsec > 500000000) {
-    outbuf->s_body.btime++;
-  }
-  // ?? mytimersub(&(buffer.s_timeStamp ), &m_startTimestamp, &m_lastStampedBuffer);
-  
-  outbuf->s_body.etime    = m_lastStampedBuffer.tv_sec;
-  if (m_lastStampedBuffer.tv_nsec > 500000000) {
-    outbuf->s_body.etime++;
-  }
+  // We only have the VM-USB's word on how often scaler readout occurs
+  // because of mixed buffer mode:
+
+ 
+
+  outbuf->s_body.btime    = m_elapsedSeconds;
+  m_elapsedSeconds       += Globals::scalerPeriod;
+  outbuf->s_body.etime    = m_elapsedSeconds;
+
   // Copy the scaler data:
 
   memcpy(outbuf->s_body.scalers, pBody, nScalers*sizeof(uint32_t));
