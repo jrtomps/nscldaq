@@ -341,7 +341,8 @@ CStack::enableStack(CVMUSB& controller)
   // If 1 set up the scaler parameters:
 
   if (listNumber == 1) {
-    uint32_t scalerPeriod     = static_cast<uint32_t>(getIntegerParameter("-period")) *2;
+    Globals::scalerPeriod      = m_pConfiguration->getUnsignedParameter("-period");
+    uint32_t scalerPeriod     = m_pConfiguration->getUnsignedParameter("-period") *2;
     uint32_t daqSettings      = controller.readDAQSettings();
     scalerPeriod  = (scalerPeriod << CVMUSB::DAQSettingsRegister::scalerReadoutPeriodShift)   &
                      CVMUSB::DAQSettingsRegister::scalerReadoutPeriodMask;   // Position the bit field
