@@ -34,6 +34,7 @@
 #include "CPSDCommand.h"
 #include "CHINPCommand.h"
 #include "CV1729Command.h"
+#include "CV1495scCommand.h"
 
 #include <CReadoutModule.h>
 #include <TCLInterpreter.h>
@@ -68,7 +69,7 @@ CConfiguration::CConfiguration() :
 
   m_Commands.push_back(new CADCCommand(*m_pInterp, *this));
   m_Commands.push_back(new CADCCommand(*m_pInterp, *this, "caenv965"));
-  m_Commands.push_back(new CADCCommand(*m_pInterp, $this, "caenv792"));
+  m_Commands.push_back(new CADCCommand(*m_pInterp, *this, "caenv792"));
   m_Commands.push_back(new CCAENChainCommand(*m_pInterp, *this));
   m_Commands.push_back(new CScalerCommand(*m_pInterp, *this));
   m_Commands.push_back(new CCAENV830Command(*m_pInterp, *this));
@@ -85,6 +86,7 @@ CConfiguration::CConfiguration() :
   m_Commands.push_back(new CPSDCommand(*m_pInterp, *this));
   m_Commands.push_back(new CHINPCommand(*m_pInterp, *this));
   m_Commands.push_back(new CV1729Command(*m_pInterp, *this));
+  m_Commands.push_back(new CV1495scCommand(*m_pInterp, *this));
 
 }
 /*!

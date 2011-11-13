@@ -16,7 +16,8 @@ libConfig_la_SOURCES	= 	CADCCommand.cpp		\
 				CMADCChainCommand.cpp   \
 				CHINPCommand.cpp \
 				CPSDCommand.cpp \
-				CV1729Command.cpp
+				CV1729Command.cpp	\
+				CV1495scCommand.cpp
 
 
 include_HEADERS		=	CADCCommand.h  		\
@@ -36,7 +37,8 @@ include_HEADERS		=	CADCCommand.h  		\
 				CMADCChainCommand.h	\
 				CHINPCommand.h \
 				CPSDCommand.h		\
-				CV1729Command.h
+				CV1729Command.h		\
+				CV1495scCommand.h
 
 
 

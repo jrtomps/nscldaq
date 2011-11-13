@@ -73,5 +73,6 @@ December 10, 2010 - Added CHINP support (Wash-U Jon Elson).
 4.0-001
    - Get scaler timing from the VM-USB promised timing (-period value) as in mixed buffer mode
      we have no choice but to trust the VM-USB to be consistent.
-
+4.0-002 
+   - Add support for the V1495sc 128 channel scaler
 

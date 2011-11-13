@@ -49,7 +49,7 @@ class CConfiguration;
     adc create module-name base-address
     adc config module-name config_params...
     adc cget   module-name
-\verbatim
+\endverbatim
 
    The adc create form is used to creat a new adc module.  Unlike the 'standard
    scripted readout' all adcs are used for data acquisition \em module-name
