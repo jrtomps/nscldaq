@@ -193,6 +193,8 @@ CBufferConverter::outputItem(RingItemHeader* pItem) throw(std::string)
  * @param nBytes - Number of bytes to read.
  * @throw std::string - EOF prior to completing the read.
  * @throw std::string - I/O error on read completion.
+ * @throw std::string - EOF -if eof encountered at start of read.
+
  */
  
 void
@@ -207,7 +209,9 @@ CBufferConverter::readOrThrow(void* pData, size_t nBytes) throw(std::string)
     if (std::cin.gcount() != nBytes) {
       std::string("EOF on stdin without completing entire read");
     }
+    return;			// success
   }
+  throw std::string("EOF encountered"); // initial eof.
 
 }
 /**
