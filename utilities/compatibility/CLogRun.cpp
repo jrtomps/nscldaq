@@ -124,9 +124,10 @@ CLogRun::operator()()
 
 /**
  * Open a run file.
- * The run file name is of the form:  run%run%-%bsize-wds%.evt'
- * for segment 0 and 
- *    run%run%-%bsize-wds%_%segnum%.evt for all others.
+ * The run file name is of the form:  run-%04d-%02d.evt
+ *  where the first integer is the run number and the second the segment.
+ *  This name is not compatible with old style daq because we need it to be
+ *  compatible with the readout gui's file handling.
  * 
  * @param run - run number.
  * @param segment - Segment number.
@@ -138,14 +139,9 @@ std::ofstream*
 CLogRun::openRunFile(int runNumber, int runSegment)
 {
   char filename[100];
-  const char* pFormat;
-  if (runSegment == 0) {
-    pFormat = "run%d-%d.evt";
-  }
-  else {
-    pFormat = "run%d-%d_%d.evt";
-  }
-  sprintf(filename, pFormat, runNumber, m_nBufferSize/sizeof(uint16_t), runSegment);
+  const char* pFormat = "run-%04d-%02d.evt";
+
+  sprintf(filename, pFormat, runNumber, runSegment);
   return new std::ofstream(filename);
 }
 

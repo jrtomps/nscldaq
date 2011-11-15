@@ -17,16 +17,31 @@
 bindir=@prefix@/bin
 
 
-# Ensure we have a url then collect it:
+# Proces command line switches:
 
+url="tcp://localhost/`whoami`"
+path="`pwd`"
 
-if [ $# != 1 ] 
-then
-  echo Usage:  >&2  
-  echo "   " eventlog url >&2
-  exit -1
-fi
-url=$1
+for param in $*
+do
+    case "$param" in
+	--oneshot)
+	;;
+	--path=*)
+            path=`echo $param | cut - -d= -f2`
+	;;
+	--source=*)
+	    url=`echo $param | cut - -d= -f2`
+	;;
+	*)
+	    echo Usage:  >&2  
+	    echo "   " eventlog --oneshot --path=where-to-save-files --source=ringurl
+
+	    exit -1
+       ;;
+    esac
+done
+
 
 # Set the bsw variable either to "" or to 
 #
@@ -42,7 +57,7 @@ fi
 #
 #  Start the pipeline
 #
-$bindir/ringselector --exitonend --source=$url | $bindir/compatibilitybuffer $bsw | $bindir/compatibilitylogger $bsw
+(cd $path; $bindir/ringselector --exitonend --source=$url | $bindir/compatibilitybuffer $bsw | $bindir/compatibilitylogger $bsw)
 
 
 
