@@ -4,7 +4,7 @@ noinst_HEADERS = buffer.h buftypes.h CBufferConverter.h
 
 compatibilitybuffer_SOURCES = compatibilitybuffer.cpp CBufferConverter.cpp
 
-EXTRA_DIST=compatibilitybuffer.ggo compatibilitybuffer.xml
+EXTRA_DIST=compatibilitybuffer.ggo compatibilitybuffer.xml eventlog-compat.in
 
 compatibilitybuffer_LDADD = parser.o
 
@@ -13,6 +13,10 @@ INCLUDES = -I@top_srcdir@/daq/format -I@top_srcdir@/base/headers
 compatibilitylogger_SOURCES = compatibilitylogger.cpp CLogRun.cpp
 
 compatibilitylogger_LDADD = loggeroptions.o
+
+install-exec-local:
+	$(mkinstalldirs) $(bindir)
+	$(INSTALL_SCRIPT) eventlog-compat $(bindir)
 
 #----------------------------------------------------------------
 
