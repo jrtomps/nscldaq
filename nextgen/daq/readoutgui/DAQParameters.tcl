@@ -30,10 +30,16 @@
 #                                If supplied in the env var, PASSWD is assumed
 #                                to be cleartext and encrypted here.
 # BufferSize       BUFFERSIZE    Size of buffers on disk.
+# EventLogger      EVENTLOGGER   Path to the event log program.
+#                                Allows you to select between the default
+#                                which produces ring buffer event files and
+#                                the compatibility mode event logger.
+#
 #
 
 package provide DAQParameters 1.0
 package require Configuration
+package require InstallRoot
 package require des
 
 
@@ -49,6 +55,7 @@ proc DAQParameters::setDefaults {} {
     
     Configuration::Set SourceHost localhost
     Configuration::Set BufferSize  8192
+    Configuration::Set EventLogger [file join [InstallRoot::Where] bin eventlog]
 }
 # DAQParameters::environmentOverrides
 #   Overrides the defaults with information from the environment
@@ -63,6 +70,7 @@ proc DAQParameters::environmentOverrides {} {
     Configuration::readEnvironment ReadoutPath RDOFILE
     Configuration::readEnvironment FtpHost     EVTHOST
     Configuration::readEnvironment BufferSize  BUFFERSIZE
+    Configuration::readEnvironment EventLogger EVENTLOGGER
 
 
     #  Passwd is handled strangely since it must be encrypted.
@@ -207,3 +215,10 @@ proc DAQParameters::getBufferSize {} {
     return [Configuration::get BufferSize 8192]
 }
 
+#
+#  Return the event logger program name:
+#
+#
+proc DAQParameters::getEventLogger {}  {
+    return [Configuration::get EventLogger]
+}
