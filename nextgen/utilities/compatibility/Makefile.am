@@ -4,7 +4,8 @@ noinst_HEADERS = buffer.h buftypes.h CBufferConverter.h
 
 compatibilitybuffer_SOURCES = compatibilitybuffer.cpp CBufferConverter.cpp
 
-EXTRA_DIST=compatibilitybuffer.ggo compatibilitybuffer.xml eventlog-compat.in
+EXTRA_DIST=compatibilitybuffer.ggo compatibilitybuffer.xml eventlog-compat.in \
+	spectldaq.in
 
 compatibilitybuffer_LDADD = parser.o
 
@@ -17,6 +18,7 @@ compatibilitylogger_LDADD = loggeroptions.o
 install-exec-local:
 	$(mkinstalldirs) $(bindir)
 	$(INSTALL_SCRIPT) eventlog-compat $(bindir)
+	$(INSTALL_SCRIPT) spectcldaq $(bindir)
 
 #----------------------------------------------------------------
 
