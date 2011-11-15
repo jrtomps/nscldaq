@@ -5,7 +5,7 @@ noinst_HEADERS = buffer.h buftypes.h CBufferConverter.h
 compatibilitybuffer_SOURCES = compatibilitybuffer.cpp CBufferConverter.cpp
 
 EXTRA_DIST=compatibilitybuffer.ggo compatibilitybuffer.xml eventlog-compat.in \
-	spectcldaq.in spectcldaq.server.tcl
+	spectcldaq.in spectcldaq.server.tcl compatibility.xml
 
 compatibilitybuffer_LDADD = parser.o
 
