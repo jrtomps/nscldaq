@@ -1,0 +1,48 @@
+#!/bin/bash
+
+#
+# Pipeline to connect SpecTcl to the ring buffer system 
+# in a way that mimics data format from nscldaq-8.2
+#
+#
+#  Usage:
+#    eventlog url
+#
+#  Note that if the  BUFFERSIZE environment variable is set and is numeric it
+#  sets the blocking factor for the output file.
+#
+#  Event files are written to the cwd.
+
+#  Establish the location of the installed binaries.
+
+bindir=@prefix@/bin
+
+
+# Ensure we have a url then collect it:
+
+
+if [ $# != 1 ] 
+then
+  echo Usage:  >&2  
+  echo "   " spectcldaq  url >&2
+  exit -1
+fi
+url=$1
+
+# Set the bsw variable either to "" or to 
+#
+# --buffersize=$BUFFERSIZE if BUFFERSIZE is defined.
+#
+
+bsw=""
+if [ "NO$BUFFERSIZE" != "NO" ] 
+then
+    bsw=--buffersize=$BUFFERSIZE
+fi
+
+#
+#  Start the pipeline
+#
+$bindir/ringselector --sample=PHYSICS_EVENT --source=$url   | $bindir/compatibilitybuffer $bsw 
+
+
