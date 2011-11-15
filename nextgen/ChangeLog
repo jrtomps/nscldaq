@@ -136,5 +136,6 @@ Nvoember 9, 2011 10.0-021
    	  data source.
 	- Add spectcldaq.server - Tcp/IP script that provides 8.2
 	  compatible hoist of events out to a non daq system.
-	
+	- Support using the EVENTLOGGER env varible to select the event
+	  logging program.
 	
