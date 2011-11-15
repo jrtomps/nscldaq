@@ -86,7 +86,7 @@ if {[info proc ::fileutil::relative] eq ""} {
 }
 
 namespace eval  Experiment {
-    variable Logrecorder "[InstallRoot::Where]/bin/eventlog"
+    variable Logrecorder [DAQParameters::getEventLogger]
     variable EventlogPid 0
     variable fileWaitTimeout 45
 
@@ -347,6 +347,7 @@ proc Experiment::RunBeginning {} {
     set ::Diagnostics::isTk 1;   #Ugly but works... forces tk dialogs from warning
     set      nrun [ReadoutControl::GetRun]
     if {[ReadoutControl::isTapeOn]} {
+	set Logrecorder [DAQParameters::getEventLogger]
 	#
 	# Start the event logger.
 	#
