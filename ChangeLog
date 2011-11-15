@@ -127,3 +127,14 @@ November 7, 2011 10.0-020
 	bufs.
 Nvoember 9, 2011 10.0-021
 	- Add --exitonend option to ringselector (WO W00957).
+	- Add compatibilitybuffer - ring to daq8.2 buffer utility (W00957)
+	- Add compatibilitylogger - pipeline element to make daq8.2 event
+ 	  file (W00957)
+	- Add eventlog script that provides an 8.2 compatible event
+	  logger.
+	- Add spectcldaq script that provides an 8.2 compatible SpecTcl
+   	  data source.
+	- Add spectcldaq.server - Tcp/IP script that provides 8.2
+	  compatible hoist of events out to a non daq system.
+	
+	

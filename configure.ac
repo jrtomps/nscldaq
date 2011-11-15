@@ -439,6 +439,9 @@ AC_CONFIG_FILES([Makefile
 		 utilities/eventlog/Makefile
 		 utilities/sclclient/Makefile
 		 utilities/tkbufdump/Makefile
+		 utilities/compatibility/Makefile
+		 utilities/compatibility/eventlog-compat
+		 utilities/compatibility/spectcldaq
                  epics/chanlog/Makefile
                  epics/controlpush/Makefile
                  epics/epicsdisplay/Makefile
