@@ -49,7 +49,8 @@ EXTRA_DIST = $(TCLPACKAGES) $(TCLAPPS) $(TCLTESTS) \
 	RunReadout.sh \
 	scalerParameterDialog.ui \
 	selectReadout.ui \
-	warning.tcl InstallRoot.tcl.in
+	warning.tcl InstallRoot.tcl.in \
+	readoutgui.xml
 
 
 bin_PROGRAMS =  SecretTk

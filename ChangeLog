@@ -125,7 +125,7 @@ November 7, 2011 10.0-020
 	else the remainder is a residual.
 	- Use same run time offset algorithm as scalers for variable dump
 	bufs.
-Nvoember 9, 2011 10.0-021
+November 9-16, 2011 10.0-021
 	- Add --exitonend option to ringselector (WO W00957).
 	- Add compatibilitybuffer - ring to daq8.2 buffer utility (W00957)
 	- Add compatibilitylogger - pipeline element to make daq8.2 event
@@ -141,4 +141,8 @@ Nvoember 9, 2011 10.0-021
 	- Provide docs for the compatibility mode utilities in the
 	  utilities sections of the general docs and its own section of
 	  reference docs (1compatibility).
-  	- Add compatibility docs to the ring migration tutorial.	
+  	- Add compatibility docs to the ring migration tutorial.
+	
+November 16, 2011 10.0-022
+	- Explicitly use ssh not rsh in the rsh package of
+	  ReadoutShell.

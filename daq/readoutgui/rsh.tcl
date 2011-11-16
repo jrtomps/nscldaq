@@ -35,7 +35,7 @@ namespace eval  rsh {
     }
     proc rsh {host command} {
 	AllowMe
-	set stat [catch {set output [eval exec rsh $host $command]} error]
+	set stat [catch {set output [eval exec ssh $host $command]} error]
 	if {$stat != 0} {
 	    append output "\n"  $error
 	}
@@ -44,8 +44,8 @@ namespace eval  rsh {
     proc rshpipe {host command access} {
 	AllowMe
 	lappend command {"2>&1"}
-#	return [open "|rsh $host $command  " $access]
-	return [open "|rsh $host $command '2>&1'  " $access]
+#	return [open "|ssh $host $command  " $access]
+	return [open "|ssh $host $command '2>&1'  " $access]
     }
 
     #
@@ -67,7 +67,7 @@ namespace eval  rsh {
 	set rpipe [lindex $pipes 0]
 	set wpipe [lindex $pipes 1]
 #	puts "rshpid 'rsh $command'"
-	set pid [exec rsh $host $command >&@ $wpipe <@ $rpipe &]
+	set pid [exec ssh $host $command >&@ $wpipe <@ $rpipe &]
 
 	return "$pid $rpipe $wpipe"
     }
