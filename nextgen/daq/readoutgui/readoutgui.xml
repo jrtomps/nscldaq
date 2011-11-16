@@ -1,0 +1,106 @@
+<!-- chapter utilities -->
+
+<chapter>
+    <title>Readout GUI (ReadoutShell)</title>
+    <para>
+        The  Readout GUI (installed as $DAQROOT/bin/ReadoutShell)
+        is a graphical user interface that wraps around data source (Readout)
+        software.  It allows you to:
+    </para>
+    <itemizedlist>
+        <listitem>
+            <para>
+                Run a data source in a remote system.
+            </para>
+        </listitem>
+        <listitem>
+            <para>
+                Control your experiment runs via a simple graphical user
+                interface
+            </para>
+        </listitem>
+        <listitem>
+            <para>
+                Manage event files and ancillary data so that they remain
+                together in a single package while providing an event file
+                view.
+            </para>
+        </listitem>
+        <listitem>
+            <para>
+                Customize the operation of the GUI program by adding
+                Tcl scripted extensions that are called at specific times.
+            </para>
+        </listitem>
+    </itemizedlist>
+    <para>
+        For reference information see the
+        <xref linkend="manpage_readoutshell" endterm="manpage_readoutshell_title" />
+        man page in section 1daq.
+    </para>
+    <section>
+        <title>Running and using the ReadoutShell</title>
+        <para>
+        </para>
+    </section>
+    <section>
+        <title>
+            Event file organization
+        </title>
+        <para>
+        </para>
+    </section>
+    <section>
+        <title>Customzizating Readout Shell</title>
+        <para>
+        </para>
+        <section>
+            <title>ReadoutCallouts.tcl</title>
+            <para>
+            </para>
+        </section>
+        <section>
+            <title>Environment variables</title>
+            <para>
+            </para>
+        </section>
+    </section>
+</chapter>
+
+<!-- /chapter -->
+
+<!-- manpage 1daq -->
+      <refentry id="manpage_readoutshell">
+        <refmeta>
+           <refentrytitle id="manpage_readoutshell_title >Readout Gui</refentrytitle>
+           <manvolnum>1daq</manvolnum>
+        </refmeta>
+        <refnamediv>
+           <refname>ReadoutShell</refname>
+           <refpurpose>Encapsulate data sources in a graphical user interface</refpurpose>
+        </refnamediv>
+        
+        <refsynopsisdiv>
+          <cmdsynopsis>
+              <command>
+          </command>
+          </cmdsynopsis>
+
+        </refsynopsisdiv>
+        <refsect1>
+           <title>DESCRIPTION</title>
+           <para>
+           </para>
+        </refsect1>
+        <refsect1>
+           <title>
+              OPTIONS
+           </title>
+           <variablelist>
+!Option list elements!
+           </variablelist>
+        </refsect1>
+
+      </refentry>
+
+<!-- /manpage -->
