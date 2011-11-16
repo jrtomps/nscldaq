@@ -290,6 +290,18 @@ ringselector <replaceable>options</replaceable>
                 </listitem>
             </varlistentry>
             <varlistentry>
+                <term><option>--exitonend</option></term>
+                <listitem>
+                    <para>
+                        If this is supplied, the <application>ringselector</application>
+                        exits when it sees the first end run event.  This is meant
+                        to be used for pipelines that only need to process a single
+                        run.  An example of that is the compatibility event
+                        logging utility.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
                 <term><option>--version</option></term>
                 <listitem>
                     <para>

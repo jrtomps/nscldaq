@@ -138,4 +138,7 @@ Nvoember 9, 2011 10.0-021
 	  compatible hoist of events out to a non daq system.
 	- Support using the EVENTLOGGER env varible to select the event
 	  logging program.
+	- Provide docs for the compatibility mode utilities in the
+	  utilities sections of the general docs and its own section of
+	  reference docs (1compatibility).
 	
