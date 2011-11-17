@@ -41,28 +41,513 @@
     <section>
         <title>Running and using the ReadoutShell</title>
         <para>
+            The Readout GUI is installed as
+            <filename>$DAQROOT/bin/ReadoutShell</filename> where
+            <literal>$DAROOT</literal> is used as a placeholder for the top
+            level of the ring buffer data acquisition installation directory.
         </para>
+        <warning>
+            <title>WARNING!</title>
+            <para>
+                You cannot use the readout gui of nscldaq versions earlier
+                than 10.0 with the ring buffer data acquisition system.
+            </para>
+        </warning>
+        <para>
+            <command>ReadoutShell</command> accepts two command line options:
+        </para>
+        <variablelist>
+            <varlistentry>
+                <term><option>-host</option>=<replaceable>hostname</replaceable></term>
+                <listitem>
+                    <para>
+                        Specifies on which system Readout will be run.  You must
+                        be able to do an ssh login to that host by means
+                        of ssh key exchange (without a password).  You can
+                        find out how to set this up by googling for
+                        <literal>setting up ssh keys</literal>.
+                    </para>
+                    <para>
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><option>-path</option>=<replaceable>readout-path</replaceable></term>
+                <listitem>
+                    <para>
+                        Specifies the full path to the readout program
+                        ReadoutShell should run.  This path must be accessible
+                        on the system that runs ReadoutGui and the users's home
+                        directory must be shared between that system and the
+                        system designated by the <option>-host</option> option.
+                    </para>
+                </listitem>
+            </varlistentry>
+        </variablelist>
+        <para>
+            When the GUI starts it will attempt start the readout program specified
+            in the remote host specified.  All output from that program will
+            appear in the large output window on the GUI.  Below are a few
+            of the common controls you'll need to know how to use:
+        </para>
+        <variablelist>
+            <varlistentry>
+                <term><guibutton>Begin</guibutton></term>
+                <listitem>
+                    <para>
+                        Starts a new data taking run.  If the run is active,
+                        this button is a <guibutton>End</guibutton> button and
+                        ends the active run.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><guilabel>Title</guilabel></term>
+                <listitem>
+                    <para>
+                        This text entry is only enabled when the run is
+                        inactive (the <guibutton>Begin</guibutton> button
+                        is visible).  Type into this entry to provide a
+                        title that will be used for the next run.
+                        The title, truncated if necessary to 79 characters
+                        is inserted into some of the ring items the run
+                        produces.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><guilabel>Run Number</guilabel></term>
+                <listitem>
+                    <para>
+                        This entry is only enabled when the run is inactive.
+                        It is validated so that it must contain an integer
+                        at all times.  The number in this entry will be the run
+                        number of the next run.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><guibutton>Record</guibutton></term>
+                <listitem>
+                    <para>
+                        This check button is only enabled when the the run
+                        is inactive.  When checked, the next run will be
+                        recorded to disk.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><guimenu>File</guimenu>&#8594;<guimenuitem>New...</guimenuitem></term>
+                <listitem>
+                    <para>
+                        This menu item allows you to choose a new readout
+                        program and/or host.  Once this a new readout/host
+                        have been selected you can use either
+                        <guimenu>File</guimenu>&#8594;<guimenuitem>Restart...</guimenuitem>
+                        or <guimenu>File</guimenu>&#8594;<guimenuitem>Start</guimenuitem>
+                        to start it depending on whether or not a readout program
+                        is already running.
+                    </para>
+                </listitem>
+            </varlistentry>
+        </variablelist>
     </section>
     <section>
         <title>
             Event file organization
         </title>
         <para>
+            The Readout GUI works with the event logger to maintain
+            a directory structure of event files and associated data.
+            You can associate an arbitrary set of files and directory subtrees
+            with each run.  Through heavy use of symbolic links, the
+            Readout GUI provides you with two views of your data.
+        </para>
+        <formalpara>
+            <title>Events view</title>
+            <para>
+                The events view presents all of the event files in a single
+                directory.  This view allows you to sequentiall analyze
+                several runs without the need to move around in the directory
+                hierarchy.
+            </para>
+        </formalpara>
+        <formalpara>
+            <title>Runs view</title>
+            <para>
+                This view collects all of the data associated with each run
+                into a single directory.
+            </para>
+        </formalpara>
+        <para>
+            The top of the directory subtree that is managed by Readout Gui is
+            determined by a symbolic link; <filename>~/stagearea</filename>.
+            <footnote>
+                <para>
+                    Environment variables can override this link however and are
+                    useful in the event you are using a single account to do
+                    multiple tests for which you want to segregate the data.
+                </para>
+            </footnote>
+            This must be created by you when you set the account up for data taking.
+        </para>
+        <para>
+            When Readout GUI runs the first time it will create the directory
+            structure it need underneath the directory pointed to by
+            <filename>~/stagearea</filename>.
+        </para>
+        <para>
+            The directory tree created looks like this:
+        </para>
+        <figure>
+            <title>Readout GUI Directory tree</title>
+            <literallayout><![CDATA[
+stagearea +
+          +----> experiment+
+          |                +---> current
+          |                +---> run1
+          |                +---> run2
+          ...             ...
+          +----> complete
+          +----> current
+            ]]>
+            </literallayout>
+        </figure>
+        <para>
+            Let's start with the <filename>~/stagearea/current</filename> directory.
+            The Readout GUI arranges for the event file set currently being
+            accumulated to be written in this directory.  Event files have the name
+            <literal>run-nnnn-ss.evt</literal> where <literal>nnnn</literal> is a
+            zero filled run number (e.g. <literal>0001</literal>), and
+            <literal>ss</literal> is a zero filled event segment.
+        </para>
+        <para>
+            The event data from each run are segmented into files that are no
+            more than 2GBytes long.  The segments number from 00.
+        </para>
+        <para>
+            The <filename>~/stagearea/experiment</filename> subdirectory tree
+            provides the run view of the data.  Within that directory are
+            subdirectories for each recorded run.  At the end of a run,
+            the Readout GUI moves the event data files from the
+            <filename>~/stagearea/current</filename> directory into the
+            associated run directory.  The data in
+            <filename>~stagearea/experiment/current</filename> is copied into
+            the run directory as well.  Files or directories pointed to by
+            symoblic links in the <filename>experiment/current</filename> subtree
+            are copied rather than the links themselves.
+        </para>
+        <para>
+            Finally, the <filename>complete</filename> directory provides the
+            events view of the experiment.  At the end of a run, after the
+            event file segments copied to <filename>~stagearea/experiment/runn</filename>,
+            a symbolic link to each event file segment is created here.
         </para>
     </section>
     <section>
-        <title>Customzizating Readout Shell</title>
+        <title>Customizing Readout Shell</title>
         <para>
+            The readout gui is highly customizable.  You can provide Tcl
+            code that is called by the Readout Shell and specific times to
+            perform application specific operations. An API allows you to
+            interact with the Readout GUI through these script extensions.
+        </para>
+        <para>
+            Furthermore, a large number of environment variables allow you
+            to configure how the ReadoutGUI operates.
         </para>
         <section>
             <title>ReadoutCallouts.tcl</title>
             <para>
+                ReadoutCallouts is a script that you can supply.  When the Readout
+                Gui starts it sources all scripts by this name in the following
+                directories in order: <filename>~</filename>, <filename>~/experiment/current</filename>,
+                and <filename>.</filename>.  The script is sourced at the global
+                level.
+            </para>
+            <para>
+                In addition to performing any desired operations as the script
+                is initially sourced, if these script define any of the
+                following <command>proc</command>s they will be called
+                by the Readout GUI at the appropriate time.  Please note that
+                Tcl does not support overloading <command>proc</command>names.
+                If you want to chain to previously defined instances of those
+                procs you'll need to use the <command>rename</command> command
+                to rename the old ones and then manually chain to them from your
+                code.
+            </para>
+            <variablelist>
+                <varlistentry>
+                    <term><command>OnBegin</command> <parameter>runNumber</parameter></term>
+                    <listitem>
+                        <para>
+                            This proc is called by Readout GUI when the run has been
+                            started.  By the time this proc is called, the event logger
+                            has already started, however the Readout program itself
+                            has not yet been told to start the run.
+                            As implied by the header above,  the proc receives
+                            the current run number as a parameter.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><command>OnEnd</command> <parameter>runNumber</parameter></term>
+                    <listitem>
+                        <para>
+                            This proc is called just after a run has neded.  The
+                            Readout program has been asked to end the run,
+                            however due to the lack of closed loop control
+                            between the ReadoutGui and Readout, it is not yet known
+                            that the Readout program actually has finished ending
+                            the run and sent its end run item to the ring buffer.
+                            The proc is parameterized by the number of the run'
+                            that is ending.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><command>OnPause</command> <parameter>runNumber</parameter></term>
+                    <listitem>
+                        <para>
+                            This proc is called just after a run has paused.
+                            The timing for this call is essentially the same as that for
+                            <command>OnEnd</command>.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><command>OnResume</command> <parameter>runNumber</parameter></term>
+                    <listitem>
+                        <para>
+                            This proc is called just after a run has resumed.
+                            The timing for this is the same as that for
+                            <command>OnStart</command>
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><command>OnStart</command></term>
+                    <listitem>
+                        <para>
+                            This proc is called just after the readout program
+                            has been asked to start.  There is no gaurentee that
+                            by the time OnStart begins executing, the readout
+                            program is able to accept and act on commands. It
+                            may be appropriate to delay some appropriate time
+                            period to allow it to initialize.
+                            A common use of this callback is to define
+                            run and state variables in a readout framework
+                            so that it can log those to file.
+                        </para>
+                    </listitem>
+                </varlistentry>
+            </variablelist>
+            <para>
+                The toy extension below logs readout loads, and run state transitions
+                to a file <filename>~/readout.log</filename>  The  file
+                is opened and appended to for each log operation.
+            </para>
+            <example>
+                <title>ReadoutCallouts.tcl sample extension</title>
+                <programlisting>
+set filename [file join ~ readout.log]
+
+if {[info procs OnBegin] ne ""} {
+    rename OnBegin PreLogger_OnBegin 
+}
+
+proc logToFile message {
+   global filename
+   
+   set fd [open $filename "w+"]
+   set timestamp [clock format [clock seconds]]
+   puts $fd "$timestamp : $message"
+   close $fd
+}
+proc OnBegin run {
+   if {[info procs PreLogger_OnBegin] ne ""} {
+        PreLogger_OnBegin $run
+   }
+   logToFile "Run $run Begun"
+}
+proc OnEnd run {
+   logToFile "Run $run has ended"
+}
+proc OnPause run {
+   logToFile "Run $run has been paused"
+}
+proc OnResume run {
+   logToFile "Run $run has been resumed"
+}
+proc OnStart {} {
+   logToFile "Readout program has been started"
+}
+                    
+                </programlisting>
+            </example>
+            <para>
+                The code at the top of the file and the code in
+                <command>OnBegin</command> illustrate how to chain to a previously
+                defined OnBegin.  As the script starts up, any existing OnBegin
+                proc is renamed to <command>PreLogger_OnBegin</command>. If
+                OnBegin detects the existence of this proc it is called.
+                Obviously this can be extended to any and all of the callback
+                functions.
             </para>
         </section>
         <section>
-            <title>Environment variables</title>
+            <title>Environment and configuration variables</title>
             <para>
+                ReadoutGUI looks for a large number of environment variables.
+                Setting these overrides default values and symbolic links.
+                This section describes the set of environment variables that
+                are understood by Readout GUI.
             </para>
+            <para>
+                Readout GUI processes configuration files, then environment
+                variables and finally command line parameters where appropriate.
+                The cofiguration file is located in
+                <filename>~/stagerea/.readoutconfig</filename>.  This contains
+                static configuration as a set of Tcl Variables.
+                <filename>~/.daqconfig</filename> can contain additional
+                static configuration as can <filename>./.daqconfig</filename>.
+                In the tables below, the <literal>parameter</literal> column is
+                the global Tcl variable to set to modify this parameter in
+                a configuration file.
+            </para>
+            <table frame="all">
+                <title>Data Acquisition configuration parameters</title>
+                <tgroup cols="3" colsep='1' rowsep='1'>
+                    <thead>
+                        <row>
+                            <entry>Parameter</entry>
+                            <entry>Environment variable</entry>
+                            <entry>Meaning</entry>
+                        </row>
+                    </thead>
+                    <tbody>
+                        <row>
+                            <entry>SourceHost</entry>
+                            <entry>DAQHOST</entry>
+                            <entry>Name of the system that runs the Readout program.</entry>
+                        </row>
+                        <row>
+                            <entry>ReadoutPath</entry>
+                            <entry>RDOFILE</entry>
+                            <entry>File system path to the readout program</entry>
+                        </row>
+                        <row>
+                            <entry>EventLogger</entry>
+                            <entry>EVENTLOGGER</entry>
+                            <entry>Path to an event logger that substitutes
+                                for the standard event logger.
+                            </entry>
+                        </row>
+                    </tbody>
+                </tgroup>
+            </table>
+            <table>
+                <title>Directory root configuration parameters</title>
+                <tgroup cols="3" colsep="1" rowsep="1">
+                    <thead>
+                        <row>
+                           <entry>Parameter</entry>
+                            <entry>Environment variable</entry>
+                            <entry>Meaning</entry>
+                        </row>
+                    </thead>
+                    <tbody>
+                        <row>
+                            <entry>StageArea</entry>
+                            <entry>EVENTS</entry>
+                            <entry>Overrides the symbolic link <filename>~stagearea</filename>
+                            if set</entry>
+                        </row>
+                        <row>
+                            <entry>Experiment</entry>
+                            <entry>EXPDIRM</entry>
+                            <entry>Overrides the root directory where the
+                            experiment view is generated.  This defaults to
+                            <filename>~/experiment</filename> which if it does
+                            not initially exist is linked to an <filename>experiment</filename>
+                            directory in the stage area.
+                            </entry>
+                        </row>
+                    </tbody>
+                </tgroup>
+            </table>
+            <table>
+                <title>State Parameters</title>
+                <tgroup cols="3" colsep="1" rowsep="1">
+                    <thead>
+                        <row>
+                           <entry>Parameter</entry>
+                            <entry>Environment variable</entry>
+                            <entry>Meaning</entry>
+                        </row>
+                    </thead>
+                    <tbody>
+                        <row>
+                            <entry>RunTitle</entry>
+                            <entry>EXPTITLE</entry>
+                            <entry>The title of the run.  This is intended to allow
+                            you to provide an initial run title.  It is usually overidden
+                            by the value in <filename>.readoutconfig</filename> which
+                            is rewritten at the start and end of each run</entry>
+                        </row>
+                        <row>
+                            <entry>RunNumber</entry>
+                            <entry>--</entry>
+                            <entry>The current run number.  This is far too dynamic
+                            to merit an environment variable.
+                            </entry>
+                        </row>
+                        <row>
+                            <entry>ScalerCount</entry>
+                            <entry>SCALERS</entry>
+                            <entry>
+                                The value that will be used in the initial
+                                <command>set scalers</command> command at the
+                                start of the run. The intent of this variable
+                                (not much used nowadays). is to allow experiment
+                                specific code to bind to it and use its value
+                                to determine the number of scalers to read out.
+                            </entry>
+                        </row>
+                        <row>
+                            <entry>ScalerInterval</entry>
+                            <entry>SCALERINTERVAL</entry>
+                            <entry>Value in the <command>set frequency</command>
+                                command performed at the beginning of each run.
+                                The original intent of this was to allow
+                                users to bind to this value and use it to
+                                dynamically set the scaler trigger period.
+                            </entry>
+                        </row>
+                        <row>
+                            <entry>Recording</entry>
+                            <entry> --</entry>
+                            <entry>Non zero when the recording checkbox is lit.
+                            Like the run number this is too dynamic to merit an
+                            environment variable.
+                            </entry>
+                        </row>
+                        <row>
+                            <entry>Timed</entry>
+                            <entry> -- </entry>
+                            <entry>Reflects the state of the timed run checkbox</entry>
+                        </row>
+                        <row>
+                            <entry>TimedLength</entry>
+                            <entry> -- </entry>
+                            <entry>Number of seconds the time in the timed run
+                            length entries reflects.
+                            </entry>
+                        </row>
+                    </tbody>
+                </tgroup>
+            </table>
+    
         </section>
     </section>
 </chapter>
@@ -72,7 +557,7 @@
 <!-- manpage 1daq -->
       <refentry id="manpage_readoutshell">
         <refmeta>
-           <refentrytitle id="manpage_readoutshell_title >Readout Gui</refentrytitle>
+           <refentrytitle id="manpage_readoutshell_title">Readout Gui</refentrytitle>
            <manvolnum>1daq</manvolnum>
         </refmeta>
         <refnamediv>
@@ -97,7 +582,10 @@
               OPTIONS
            </title>
            <variablelist>
-!Option list elements!
+                <varlistentry>
+                    <term></term>
+                    <listitem><para></para></listitem>
+                </varlistentry>
            </variablelist>
         </refsect1>
 
