@@ -41,11 +41,22 @@
 <!-- /chapter  -->
 
 <!-- manpage 1tcl -->
+
     <refentry id="manpage.epicsdisplay">
     <beginpage />
     <refmeta>
-        <refentrytitle>epicsdisplay</refentrytitle>
+        <refentrytitle>epicsdisplay
+        <productname>NSCLRingDAQ</productname>
+        <productnumber>10.0+</productnumber>
+        <author>
+            <personname>
+                <firstname>Ron</firstname>
+                <surname>Fox</surname>
+            </personname>
+        </author>
+        </refentrytitle>
         <manvolnum>1tcl</manvolnum>
+        <refmiscinfo />
     </refmeta>
     <refnamediv>
         <refname>epicsdisplay</refname>
@@ -110,17 +121,19 @@ epicsdisplay channel file
                 <term><literal>nominal 35+5%-10%</literal></term>
                 <listitem>
                     <para>
-                        Defines the nominal interval 32.5 through 36.75.  Note that  for  asymâ[m
-                        metric  intervals  mixes  of  absolute  and  percentage  tolerances are
+                        Defines the nominal interval 32.5 through 36.75.
+                        Note that  for  asymmetric
+                        intervals  mixes  of  absolute  and  percentage  tolerances are
                         allowed.  Furthermore, the - and + are interchangeable.
                     </para>
                  </listitem>
              </varlistentry>
         </variablelist>
         <para>
-       When a channel transitions to the alarmed state, actions defined on  the  comâ[m
-       ment line for the channel are taken.  Actions are defined by the keyword alarâ[m
-       mactions followed by a comma separated list  of  actions.   Supported  actions
+       When a channel transitions to the alarmed state, actions defined on  the
+       comment
+       line for the channel are taken.  Actions are defined by the keyword
+       alarmmactions followed by a comma separated list  of  actions.   Supported  actions
        are:
        </para>
         <variablelist>
@@ -162,8 +175,8 @@ epicsdisplay channel file
         <refsect1>
             <title>OPERATING INSTRUCTIONS</title>
             <para>
-       The display is divided into three sections. The top section is the channel taâ[m
-       ble.  The middle section the chart recorder section and the bottom section the
+       The display is divided into three sections. The top section is the channel 
+       table.  The middle section the chart recorder section and the bottom section the
        chart control panel.
         </para>
         <para>
