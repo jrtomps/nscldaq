@@ -143,6 +143,8 @@ November 9-16, 2011 10.0-021
 	  reference docs (1compatibility).
   	- Add compatibility docs to the ring migration tutorial.
 	
-November 16, 2011 10.0-022
+November 16-18, 2011 10.0-022
 	- Explicitly use ssh not rsh in the rsh package of
 	  ReadoutShell.
+	- Add complete docs for the readout GUI.
+	
