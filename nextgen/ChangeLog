@@ -155,4 +155,6 @@ November 21-23 2011 10.0-023
 	- Fix copy problem in stdintoring -when residual was less than a
 	  header the residual was not being moved resulting in corrupted
 	  events, hangs and crashes.
+	- Remove misguided changes to Ring predicates that were supposed
+  	  to  improve sampling case...they actually killed sampling.
 	
