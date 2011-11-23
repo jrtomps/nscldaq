@@ -158,3 +158,7 @@ November 21-23 2011 10.0-023
 	- Remove misguided changes to Ring predicates that were supposed
   	  to  improve sampling case...they actually killed sampling.
 	
+10.0-024:
+November 24, 2011
+	- Completed introductory section of comprehensive docs.
+	
