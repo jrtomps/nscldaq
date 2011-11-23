@@ -50,7 +50,7 @@ proc accept {socket remoteaddr remoteport} {
 	[string is integer $env(BUFFERSIZE)]} {
 	set bsize "--buffersize=$env(BUFFERSIZE)"
     }
-    exec --  $selector --sample=PHYSICS_EVENT  | $formatter $bsize >@ $socket &
+    exec --  $selector --sample=PHYSICS_EVENT --source=$url | $formatter $bsize >@ $socket &
     
     # give the child process a chance to get going before closing the socket.
 

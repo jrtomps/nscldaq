@@ -94,7 +94,7 @@ writeData(int fd, void* pData, size_t size)
   char*   p         = reinterpret_cast<char*>(pData);
   size_t  residual  = size;
   while (residual) {
-    ssize_t n = write(fd, pData, size);
+    ssize_t n = write(fd, p, residual);
     if (n < 0) {
       if (errno != EINTR) {
 	perror("Write to output failed");
