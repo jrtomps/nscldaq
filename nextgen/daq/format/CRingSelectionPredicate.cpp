@@ -238,8 +238,7 @@ CRingSelectionPredicate::operator()(CRingBuffer& ring)
       return false;
     }
     if (p->second.s_sampled) {
-      if ((availableData > header.s_size) && 
-	  (freeSpace     >= m_highWaterMark)) {
+      if (freeSpace     >= m_highWaterMark) {
 	return false;		// full item is in ring, and below high water.
       } 
       else if (availableData < header.s_size) {
@@ -248,11 +247,9 @@ CRingSelectionPredicate::operator()(CRingBuffer& ring)
 	ring.pollblock();
 	return true;
       }
-      else {
+      else if (freeSpace < m_highWaterMark) {
 	ring.skip(header.s_size);
-	if (!ring.availableData()) {
-	  ring.pollblock();
-	}
+	ring.pollblock();
 	return true;
       }
     } else {

@@ -147,6 +147,12 @@ November 16-18, 2011 10.0-022
 	- Explicitly use ssh not rsh in the rsh package of
 	  ReadoutShell.
 	- Add complete docs for the readout GUI.
-November 21-xx 2011 10.0-023
-	- Introductory docs for the grand unified documentation.
+November 21-23 2011 10.0-023
+	- Introductory docs for the grand unified documentation begun.
+	- Fix 2 stupidities in ringtostdout when writes needed to be
+	  segmented, both the wrong pointer and wrong count were used in
+	  subsequent writes.
+	- Fix copy problem in stdintoring -when residual was less than a
+	  header the residual was not being moved resulting in corrupted
+	  events, hangs and crashes.
 	

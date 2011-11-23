@@ -115,6 +115,17 @@ computeSize(struct header* pHeader)
   }
 }
 
+void dumpWords(void* src, size_t nwords)
+{
+  uint16_t* s = reinterpret_cast<uint16_t*>(src);
+  std::cerr << std::hex;
+  for (int i=0; i < nwords; i++) {
+    if ((i % 8) == 0 ) std::cerr << std::endl;
+    std::cerr << *s++ << " ";
+  }
+  std::cerr << std::dec;
+}
+
 /**
  * Put data into the ring.
  * Each data item is assumed to be preceded by a two longword header of the form:
@@ -146,12 +157,16 @@ putData(CRingBuffer& ring, void* pBuffer, size_t nBytes)
   struct header *pHeader;
 
   uint8_t* p = reinterpret_cast<uint8_t*>(pBuffer); // makes addr arithmetic easier.
+  struct header *pLastItem;
+
   while(nBytes > sizeof(struct header)) {
     pHeader = reinterpret_cast<struct header*>(p);
     uint32_t size = computeSize(pHeader);
 
-    if (size <= nBytes) {
+
+    if (size < nBytes) {
       // we can put a complete item
+      pLastItem = pHeader;
       ring.put(p, size);
       p += size;
       nBytes -= size;
@@ -162,10 +177,13 @@ putData(CRingBuffer& ring, void* pBuffer, size_t nBytes)
       // must use memmove because this could be an overlapping
       // move
 
-      memmove(pBuffer, p, nBytes);
+      //   memmove(pBuffer, p, nBytes);
       break;
     }
 
+  }								
+  if (nBytes > 0) {
+    memmove(pBuffer, p, nBytes);
   }
   return nBytes;		// Residual data.
 }
@@ -264,6 +282,9 @@ mainLoop(string ring, int timeout, int mindata)
 	  size_t leftoverData = putData(source, pBuffer, nread + leftoverData);
 	  readOffset = leftoverData;
 	  readSize   = mindata - leftoverData;
+	  if (readSize == 0) {
+	    exit(EXIT_FAILURE);
+	  }
 	}
 	if (nread < 0) {
 	  perror("read failed");
@@ -312,8 +333,13 @@ int main(int argc, char** argv)
   int    timeout  = parsed.timeout_arg;
   size_t mindata  = integerize(parsed.mindata_arg);
 
-
-  int exitStatus = mainLoop(ringname, timeout, mindata);
+  int exitStatus;
+  try {
+    exitStatus = mainLoop(ringname, timeout, mindata);
+  }
+  catch (std::string msg) {
+    std::cerr << "string exception caught: " << msg << std::endl;
+  }
 
   // If requested, delete the ring on exit:
 
