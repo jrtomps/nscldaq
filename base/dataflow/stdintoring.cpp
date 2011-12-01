@@ -158,25 +158,27 @@ putData(CRingBuffer& ring, void* pBuffer, size_t nBytes)
 
   uint8_t* p = reinterpret_cast<uint8_t*>(pBuffer); // makes addr arithmetic easier.
   struct header *pLastItem;
+  int           lastSize = 0;
 
   while(nBytes > sizeof(struct header)) {
     pHeader = reinterpret_cast<struct header*>(p);
     uint32_t size = computeSize(pHeader);
 
 
-    if (size < nBytes) {
+    if (size <= nBytes) {
       // we can put a complete item
       pLastItem = pHeader;
+
       ring.put(p, size);
       p += size;
       nBytes -= size;
+      lastSize = size;
     } 
     else {
       // We don't have a complete packet.
       // Move the remainder of the buffer down to the start
       // must use memmove because this could be an overlapping
       // move
-
       //   memmove(pBuffer, p, nBytes);
       break;
     }
@@ -247,7 +249,8 @@ mainLoop(string ring, int timeout, int mindata)
   char* pBuffer   = new char[mindata];
   size_t readSize   = mindata; 
   size_t readOffset = 0; 
-  size_t leftOverData = 0;
+  size_t leftoverData = 0;
+
   while (1) {
 
     // Wait for stdin to be readable:
@@ -279,7 +282,7 @@ mainLoop(string ring, int timeout, int mindata)
       else if (stat == 1) {
 	ssize_t nread = read(STDIN_FILENO, pBuffer + readOffset, readSize);
 	if (nread > 0) {
-	  size_t leftoverData = putData(source, pBuffer, nread + leftoverData);
+	  leftoverData = putData(source, pBuffer, nread + leftoverData);
 	  readOffset = leftoverData;
 	  readSize   = mindata - leftoverData;
 	  if (readSize == 0) {
@@ -300,6 +303,7 @@ mainLoop(string ring, int timeout, int mindata)
 	return (EXIT_FAILURE);
       }
     } 
+
   }
   
 
