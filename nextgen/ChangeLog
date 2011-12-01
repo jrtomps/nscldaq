@@ -159,12 +159,14 @@ November 21-23 2011 10.0-023
   	  to  improve sampling case...they actually killed sampling.
 	
 10.0-024:
-November 24-Dec, 2011
+November 24-Dec 1, 2011
 	- Completed introductory section of comprehensive docs.
 	- Fixed error in stdintoring that would not flush the input buffer
 	  completely.
 	- Fixed error in stdintoring that re-declared the remainnig bytes
 	  value which had the bad effect of it never being initialized
 	  from the point of view of the code that needed it initalized.
+	- Incorporate Dirk's suggestions into the Ring buffer tutoria.
+	
 	
 	

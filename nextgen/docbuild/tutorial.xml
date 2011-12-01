@@ -2873,65 +2873,28 @@ cp $DAQHOME/skeletons/dbs/* .
                 system administrators about where they installed this software.
             </para>
             <para>
-                The commands below show how to obtain a copy of the readout
-                skeleton for RingDaq:
+                The commands above just copy the skeleton, most likely you will
+                want to also bring the source code for your existing readout into
+                this directory as well.  Suppose these are located in the
+                directory pointed to by the environment variable <literal>oldrdo</literal>:
             </para>
             <example>
-                <title>Getting the skeleton</title>
+                <title>Adding existing readout files:</title>
                 <programlisting>
-mkdir myreadout
-cd    myreadout
-cp $DAQHOME/skeletons/dbs/* .
+mv Makefile Makefile.ring
+(cd $oldro; tar czf - .) | tar xzf -
+mv Makefile Makefile.original
+mv Makefile.ring Makefile
                 </programlisting>
             </example>
             <para>
-                This sequence of unix shell commands creates a new directory
-                named <filename>myreadout</filename>, makes that the current
-                default directory and copies the readout skeleton into that
-                directory.
-            </para>
-            <para>
-                The readout skeleton constists of the following files:
-            </para>
-            <variablelist>
-                <varlistentry>
-                    <term><filename>Makefile</filename></term>
-                    <listitem><para>Makefile that builds the skeleton</para></listitem>
-                </varlistentry>
-                <varlistentry>
-                    <term><filename>Seleton.cpp</filename></term>
-                    <listitem>
-                        <para>
-                            Source code for the registration code for the
-                            readout framework.
-                        </para>
-                    </listitem>
-                </varlistentry>
-                <varlistentry>
-                    <term><filename>Skeleton.h</filename></term>
-                    <listitem>
-                        <para>Header defining the class implemented by
-                        <filename>Skeleton.cpp</filename>
-                        </para>
-                    </listitem>
-                </varlistentry>
-            </variablelist>
-            <para>
-                If you examine <filename>Skeleton.cpp</filename> you wont' find
-                a <literal>main</literal> function.  This is because the readout
-                framework is an application framework.  Application frameworks
-                consist of a main program that is written for you and specific
-                ways to register the presence of application specific code that
-                needs to be called at well defined points in the program's
-                execution.
-            </para>
-            <para>
-                Using an application framework frees you from having to worry about
-                how your code actually interfaces with the data acquisition system,
-                manager run-state transitions, trigger processing and so on.
-                In the next two chapters we will see how to create code that is
-                application specific and how to register it with the framework
-                so that it is called when we want it to be called.
+                These commands assume you may need to copy a directory tree.
+                First the ringdaq Makefile is saved to <filename>Makefile.ring</filename>.
+                Second the directory tree at <literal>oldrdo</literal> is copied
+                via a <application>tar</application> pipeline.  Third the Makefile
+                <emphasis>this</emphasis> copied in is saved as
+                <filename>Makefile.original</filename>. Finally the ringdaq Makefile
+                is restored from <filename>Makefile.ring</filename>
             </para>
         </section>
         <section>
@@ -3202,8 +3165,9 @@ readevt (WORD* bufpt)
                 <title>Converting Classic readout with local buffers to RingDaq</title>
                 <programlisting>
 <co id="classic_localbufferGone" />
+#include &lt;stdint.h&gt;     <co id="classic_localbufferStdint" />
 ...
-readevt (WORD* bufpt)
+readevt (uint16_t bufpt)
     WORD *_sbufpt = bufpt;
     LOGICAL reject;
 
@@ -3224,6 +3188,13 @@ readevt (WORD* bufpt)
                 </programlisting>
             </example>
             <calloutlist>
+                <callout arearefs="classic_localbufferStdint">
+                    <para>
+                        This header defines integers of known bit widths such
+                        as <type>uint16_t</type> an unsigned integer that is
+                        guaranteed to occupy exactly 16 bits of storage.
+                    </para>
+                </callout>
                 <callout arearefs="classic_localbufferGone" >
                     <para>
                         As discussed before the example, we don't need the
@@ -3296,7 +3267,7 @@ readevt (WORD* bufpt)
                     <funcsynopsis>
                         <funcprototype><funcdef>void <function>readevt</function></funcdef>
                             <paramdef>
-                                <parameter>WORD* bufpt</parameter>
+                                <parameter>uint16_t* bufpt</parameter>
                             </paramdef>
                         </funcprototype>
                     </funcsynopsis>
@@ -4098,6 +4069,7 @@ eriment's
                 <programlisting>
 ...
 #include "CTraditionalScaler.h"  <co id="rdoclassic_ScalerReg_Header" />
+using namespace std;             <co id="rdoclassic_ScalerReg_namespacestd" />
 ...
 void
 Skeleton::SetupScalers(CExperiment* pExperiment)
@@ -4128,6 +4100,19 @@ r trigger.
                         wrapper so that we can refere to and use the
                         <classname>CTraditionalScaler</classname> class
                         later in the code.
+                    </para>
+                </callout>
+                <callout arearefs="rdoclassic_ScalerReg_namespacestd">
+                    <para>
+                        If you are used to using classes and objects that are
+                        in the <literal>std</literal> namespace in C++ without
+                        prefixing them with <literal>std::</literal> you should
+                        inlude this line. It incorporates such classes/objects,
+                        like <classname>std::string</classname> or
+                        <classname>std::cerr</classname> etc, into the compilers
+                        unqualified name search path so that the explicit use of
+                        the <literal>std::</literal> prefix is not required to
+                        use those classes and objects.
                     </para>
                 </callout>
                 <callout arearefs="rdoclassic_ScalerReg_Trigger">
@@ -4182,6 +4167,13 @@ OBJECTS=Skeleton.o skeleton.o CTraditionalEventSegment.o \
         CTraditionalScaler.o
                 </programlisting>
             </informalexample>
+            <para>
+                Naturally you will also need to add any objects for source files
+                you need from your old Readout program to this definition.
+                Do <emphasis>not</emphasis> add <filename>ReadoutMain.o</filename>
+                to this list as the new framework is not compatibile with it
+                and does not need it.
+            </para>
         </section>
             
     </chapter>
@@ -4193,6 +4185,16 @@ OBJECTS=Skeleton.o skeleton.o CTraditionalEventSegment.o \
             source code compatible.  To analyze the data requires two sets of
             modifications to your SpecTcl:
         </para>
+        <warning>
+            <title>WARNING</title>
+            <para>
+                Your SpecTcl must have first been upgraded to version 3.3
+                before you can analyze ring buffer data in native mode.
+                See, however Appendix C for information about compatibility
+                mode utilities that might allow older SpecTcl versions to
+                analyze ring buffer data.
+            </para>
+        </warning>
         <orderedlist>
             <listitem>
                 <para>
@@ -4209,6 +4211,16 @@ OBJECTS=Skeleton.o skeleton.o CTraditionalEventSegment.o \
                 </para>
             </listitem>
         </orderedlist>
+        <note>
+            <title>NOTE</title>
+            <para>
+                You will not need to make any changes to your Makefile if you
+                are using SpecTcl version 3.3 or greater as this version of
+                SpecTcl already knows how to handle data buffers containing
+                ring items (via the <literal>-format ring</literal> switch
+                on the <command>attach</command> command).
+            </para>
+        </note>
         <para>
             This section takes a simple example and shows how to perform these
             modifications.  We use very generic SpecTcl analysis code that
