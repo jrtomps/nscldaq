@@ -167,6 +167,10 @@ November 24-Dec 1, 2011
 	  value which had the bad effect of it never being initialized
 	  from the point of view of the code that needed it initalized.
 	- Incorporate Dirk's suggestions into the Ring buffer tutoria.
-	
+
+10.0-25
+December 7, 2011
+	- In ring selection predicates don't block between skips as these
+	  can happen quickly.
 	
 	
