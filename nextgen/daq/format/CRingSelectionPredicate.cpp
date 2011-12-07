@@ -23,8 +23,7 @@
 
 using namespace std;
 
-static const size_t DEFAULT_HIGH_WATER(1*1024*1024); // Default high water mark.
-
+static const size_t DEFAULT_HIGH_WATER(2*1024*1024); // Default high water mark.
 
 //////////////////////////////////////////////////////////////////////
 // Constructors and other canonicals.
@@ -248,8 +247,7 @@ CRingSelectionPredicate::operator()(CRingBuffer& ring)
 	return true;
       }
       else if (freeSpace < m_highWaterMark) {
-	ring.skip(header.s_size);
-	ring.pollblock();
+	ring.skip(header.s_size); // no need to block here.
 	return true;
       }
     } else {
