@@ -335,7 +335,6 @@ CRingAccess::startFeeder(string proxyName, int socket)
   char* const argv[10]  = {const_cast<char*>(program.c_str()), 
 			   mindataSw, 
 			   timeoutSw, 
-			   const_cast<char*>("--deleteonexit"),
 			   const_cast<char*>(proxyName.c_str()), 
 			 NULL};
   char* const env[1]  = {NULL};
