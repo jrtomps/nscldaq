@@ -21,6 +21,7 @@ package require ExpFileSystem
 package require ReadoutState
 package require DAQParameters
 package require ScalerParameterGUI
+package require Experiment
 
 namespace eval ReadoutControl {
     variable State   NotLoaded
@@ -298,15 +299,14 @@ proc ::ReadoutControl::StartReadoutProgram {} {
 	# Assumptions:
 	#   ::TclServerPort  - The port we're listening on.
 	#   ::bindir         - the directory in which sclclient lives.
-	#   The correct url is tcp://$ReadoutHost:2602/
 	#
 
 	if {$::ReadoutControl::sclclientPid != 0} {
 	    catch {exec kill -9 $::ReadoutControl::sclclientPid};  # Kill and errors don't matter.
 	}
-	set whoami $::tcl_platform(user)
+	set sourceUrl [Experiment::spectrodaqURL $ReadoutHost]
 	set ::ReadoutControl::sclclientPid \
-	    [exec $::bindir/sclclient -p $::TclServerPort -s tcp://$ReadoutHost/$whoami &]
+	    [exec $::bindir/sclclient -p $::TclServerPort -s $sourceUrl &]
 	
     } else {
         close $fd

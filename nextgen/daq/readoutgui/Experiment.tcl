@@ -152,14 +152,22 @@ proc Experiment::runcompare {r1 r2} {
 #   system   - The ip address or dns of the system;.
 proc Experiment::spectrodaqURL {system} {
     global tcl_platform
+    global env
     #
     # URl is of the form:
-    #  tcp://host/username
+    #  tcp://host/ringname
+    #
+    # The ringname can be gotten from env(RINGNAME) but
+    # defaults to tcl_platform(user)
     #
 
-    set user $tcl_platform(user)
+    if {[array names env RINGNAME] ne ""} {
+	set ring $env(RINGNAME)
+    } else {
+	set ring $tcl_platform(user)
+    }
 
-    set url "tcp://$system/$user"
+    set url "tcp://$system/$ring"
 
     return $url
 }
