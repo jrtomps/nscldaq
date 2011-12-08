@@ -172,5 +172,14 @@ November 24-Dec 1, 2011
 December 7, 2011
 	- In ring selection predicates don't block between skips as these
 	  can happen quickly.
-	
+December 8, 2011
+	- Don't delete ring anymore when feeder exits as the code now
+	  alows it to be restarted (CRemoteAccess.cpp). 
+	- Support the RINGNAME environment variable to set the ring we use
+	  in the remote system for eventlog and sclclient.
+        - If the ring specified in a URL has a host that maps to the
+	  host' localname don't create a proxy ring but connect to the
+	  local ring. e.g. if I'm on charlie.nscl.msu.edu and 
+	  specify tcp://charlie/fox I'll connect to tcp://localhost/fox
+
 	
