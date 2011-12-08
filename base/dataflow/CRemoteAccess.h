@@ -89,6 +89,7 @@ private:
   static void startPipeline(std::string hostName, 
 			    std::string remoteRingname, 
 			    std::string localRingname);
+  static bool local(std::string host);
 };
 
 
