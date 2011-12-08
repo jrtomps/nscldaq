@@ -30,6 +30,12 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include <limits.h>
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netdb.h>
+
+
 using namespace std;
 
 ///////////////////////////////////////////////////////////////////////////////////////
@@ -223,7 +229,7 @@ CRingAccess::daqConsumeFrom(string uri)
 
   // If the hostname is localhost, then the ring is local and it's simple:
 
-  if (host == string("localhost")) {
+  if (local(host)) {
     return new CRingBuffer(ring, CRingBuffer::consumer);
   }
 
@@ -343,4 +349,58 @@ CRingAccess::startFeeder(string proxyName, int socket)
 
   exit(-1);			// should never happen!!
  
+}
+/**
+ * Determine if a host is local.  We do the following steps:
+ *   - If the host == localhost we are done and the domain is local.
+ *   - get the fqdn of the local host
+ *   - parse out the domain of the local host's fqdn.
+ *   - If the host has no periods, add the domain name creating an fdqdn.
+ *   - If the resulting FQDN for the host and locahost are the same
+ *     we are local, otherwise we are remote.
+ * @param host  - Host we are checking.
+ * @return bool
+ * @retaval true if the host is local, false otherwise.
+ */
+
+bool
+CRingAccess::local(std::string host)
+{
+  // Check for explicit localhost:
+
+  if (host == std::string("localhost")) return true;
+
+  // Create the fqdn of the local host:
+  // TODO: Error handling from gethostname and getaddrinfo
+  //
+  char hostname[HOST_NAME_MAX+1];
+  gethostname(hostname, sizeof(hostname));
+
+  struct addrinfo  hints = {AI_CANONNAME | AI_V4MAPPED | AI_ADDRCONFIG,
+			    AF_UNSPEC, 0, 0, 
+			    0, NULL, NULL, NULL};
+			    
+
+  struct addrinfo* hostInfo;
+  getaddrinfo(hostname, NULL, &hints, &hostInfo);
+
+  std::string fqhostname(hostInfo->ai_canonname);
+  freeaddrinfo(hostInfo);
+
+  // If the host has no periods append the domain name from
+  // fqhostname.
+
+  if (host.find(".") == std::string::npos) {
+    
+    // locate the start of the domain name in 
+    // fqhostname..and append the domain to the host:
+
+    size_t domainStartsAt = fqhostname.find(".");
+    host += fqhostname.substr(domainStartsAt);
+  }
+
+  return host == fqhostname;
+
+	      
+
 }
