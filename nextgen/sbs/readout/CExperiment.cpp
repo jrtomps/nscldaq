@@ -17,6 +17,7 @@
 #include <config.h>
 #include "CExperiment.h"
 #include <CRingBuffer.h>
+#include <DataFormat.h>
 #include <CRingStateChangeItem.h>
 #include <CRingScalerItem.h>
 #include <CRingItem.h>
@@ -197,7 +198,7 @@ CExperiment::Start(bool resume)
 			      m_pRunState->m_runNumber,
 			      elapsedTime,
 			      stamp,
-			      std::string(m_pRunState->m_pTitle));
+			      std::string(m_pRunState->m_pTitle).substr(0, TITLE_MAXSIZE));
     item.commitToRing(*m_pRing);
     
     DocumentPackets();		// output a documentation packet.
@@ -309,7 +310,7 @@ CExperiment::syncEndRun(bool pause)
 			    m_pRunState->m_runNumber,
 			    endOffset,
 			    now,
-			    std::string(m_pRunState->m_pTitle));
+			    std::string(m_pRunState->m_pTitle).substr(0, TITLE_MAXSIZE));
   item.commitToRing(*m_pRing);
 
 
