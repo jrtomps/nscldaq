@@ -913,16 +913,31 @@ proc ReadougGUIPanel::timed_command args {
 # ARGS:
 #    <NONE>
 #
-proc ReadougGUIPanel::title_invalidcommand args {}
+proc ReadougGUIPanel::title_invalidcommand args {
+    bell
+}
 
 # ReadougGUIPanel::title_validatecommand --
 #
 # Callback to handle title widget option -validatecommand
+# Require the data in the title string be 80 characters long at most.
+#
 #
 # ARGS:
 #    <NONE>
 #
-proc ReadougGUIPanel::title_validatecommand args {}
+proc ReadougGUIPanel::title_validatecommand args {
+    set widget [lindex $args 0]
+    set type [lindex $args 1]
+    if {$type == 1} {
+	set string [$widget get]
+	if {[string length $string] == 80} {
+	    return 0
+	}
+    
+    }
+    return 1
+}
 
 # ReadougGUIPanel::title_xscrollcommand --
 #

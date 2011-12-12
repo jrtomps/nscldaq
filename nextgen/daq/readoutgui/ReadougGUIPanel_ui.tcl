@@ -51,8 +51,9 @@ proc ReadougGUIPanel::ui {root args} {
 	    -width 60
     entry $base.title \
 	    -invalidcommand [namespace code [list title_invalidcommand]] \
-	    -validatecommand [namespace code [list title_validatecommand]] \
+	    -validatecommand [namespace code [list title_validatecommand %W %d]] \
 	    -width 80 \
+	    -validate key \
 	    -xscrollcommand [namespace code [list title_xscrollcommand]]
     checkbutton $base.recording \
 	    -command [namespace code [list recording_command]] \
