@@ -183,5 +183,8 @@ December 8, 2011
 	  specify tcp://charlie/fox I'll connect to tcp://localhost
 December 12, 2011
 	- Truncate long title strings in sbs/readout/CExperiment rather
-	than causing CRingStateChangeItem to throw a range exception.
+	  than causing CRingStateChangeItem to throw a range exception.
+	- Add title string validation so that users cannot actually enter
+	  strings longer than 80 characters..so they are not surprised
+ 	  that their strings get truncated.
 	
