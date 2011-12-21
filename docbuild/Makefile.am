@@ -1,7 +1,7 @@
 EXTRA_DIST = alltsts.tcl docbuilder.tcl \
 	fragmenttest.tcl mansectests.tcl \
 	metadirtest.tcl walkdirtest.tcl \
-	tutorial.xml
+	tutorial.xml images/* images/callouts/*
 
 
 
