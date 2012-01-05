@@ -19,7 +19,7 @@
 #include <TCLInterpreter.h>
 #include <TreeParameter.h>
 #include <TCLObject.h>
-
+#include <iostream>
 using namespace std;
 
 // Static member data:
