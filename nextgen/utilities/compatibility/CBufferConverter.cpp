@@ -22,6 +22,7 @@
 #include <iostream>
 #include <map>
 
+#include <stdlib.h>
 #include <string.h>
 #include <assert.h>
 
@@ -71,7 +72,7 @@ CBufferConverter::operator()()
   try {
     while(pHeader = getItem()) {
       outputItem(pHeader);
-      delete pHeader;		// It's a dynamically allocated thing.
+      free(pHeader);		// It's a dynamically allocated thing.
     }
     
   }
@@ -109,7 +110,7 @@ CBufferConverter::getItem() throw(std::string)
   // - Pointer to the item payload.
   // - remaining read size:
 
-  uint8_t* buffer = new uint8_t[size];
+  uint8_t* buffer = reinterpret_cast<uint8_t*>(malloc(size));
   memcpy(buffer, &header, sizeof(header));
   uint8_t* pPayload = buffer + sizeof(RingItemHeader);
   uint32_t payloadSize = size - sizeof(RingItemHeader);
@@ -370,6 +371,7 @@ CBufferConverter::outputStateChange(uint16_t itemType, RingItemHeader* pItem) th
 
   fillHeader(pHeader, itemType);
 
+
   // Need to create a bftime from the time_t timestamp in the buffer.
 
   // Here's the time_t === long === uint32_t assumption:
@@ -392,11 +394,13 @@ CBufferConverter::outputStateChange(uint16_t itemType, RingItemHeader* pItem) th
   memset(pBody->title, 0, 80);
   strncpy(pBody->title, pSc->s_title, 79); // ensure null termination.
 
+
   // And the nwds which is fixed for these buffers:
 
   pHeader->nwds = (sizeof(bheader) + sizeof(ctlbody))/sizeof(uint16_t);
 
   // Write the buffer out:
+
 
   writeOrThrow(buffer, m_nBufferSize);
 

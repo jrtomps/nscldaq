@@ -451,17 +451,6 @@ AC_CONFIG_FILES([Makefile
 		 daq/format/Makefile
 		 daq/readoutgui/Makefile
 		 daq/readoutgui/InstallRoot.tcl
-		 usb/Makefile
-		 usb/threadcom/Makefile
-		 usb/tclcommon/Makefile
-		 usb/tclserver/Makefile
-		 usb/output/Makefile
-		 usb/acqcommon/Makefile
-		 usb/app/Makefile
-		 usb/vmusb/Makefile
-		 usb/vmusb/deviceDriver/Makefile
-		 usb/vmusb/daqconfig/Makefile
-		 usb/vmusb/app/Makefile
 		 sbs/Makefile
 		 sbs/driver/Makefile
 		 sbs/driver/src/Makefile

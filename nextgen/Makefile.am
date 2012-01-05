@@ -10,7 +10,7 @@ endif
 endif
 
 SUBDIRS =	base/CopyrightTools base/exception base/tclplus servers base  \
-		daq utilities docbuild docconfig usb $(SBSDIRS) $(EPICSDIRS)
+		daq utilities docbuild docconfig $(SBSDIRS) $(EPICSDIRS)
 
 
 install-data-local:
