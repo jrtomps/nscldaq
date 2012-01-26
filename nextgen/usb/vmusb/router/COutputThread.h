@@ -32,9 +32,17 @@
 #endif
 #endif
 
+#ifndef __THREAD_H
+#include <Thread.h>
+#ifndef __THREAD_H
+#define __THREAD_H
+#endif
+#endif
+
 // Forward definitions:
 
 struct DataBuffer;
+class  CRingBuffer;
 
 /*!
     This class bridges the gap between the buffer format of the
@@ -88,7 +96,7 @@ struct DataBuffer;
         mixed mode and event spanning on.
 */
 
-class COutputThread  : public DAQThread
+class COutputThread  : public Thread
 {
   // Thread local data:
 private:
@@ -100,23 +108,22 @@ private:
   // other data:
 private:
   int         m_elapsedSeconds;	   /* Seconds into the run. */
-  uint32_t    m_sequence;	   // Buffer sequence number.
   timespec    m_startTimestamp;    //!< Run start time.
   timespec    m_lastStampedBuffer; //!< Seconds into run of last stamped buffer.
   size_t      m_nOutputBufferSize;       //!< size of output buffer in bytes.
                                    //!< determined at the start of a run.
   uint8_t*    m_pBuffer;	   //!< Pointer to the current buffer.
   uint8_t*    m_pCursor;           //!< Where next event goes in buffer.
-  uint8_t*    m_pEventStart;       //!< Pointer to start of current event in buffer.
   size_t      m_nWordsInBuffer;    //!< Number of words already in the buffer.
-  size_t      m_nEventsInBuffer;   //!< Number of complete events in the buffer.
-
+  std::string m_ringName;           //!< Name of destination ringbuffer.
+  CRingBuffer* m_pRing;		    //!< The actual ring in which we put data.
+  uint64_t    m_nEventsSeen;        //!< Events processed so far for the physics trigger item.
 
 
   // Constuctors and other canonicals.
 
 public:
-  COutputThread();
+  COutputThread(std::string ring);
   virtual ~COutputThread();
 private:
   COutputThread(const COutputThread& rhs);
@@ -125,32 +132,29 @@ private:
   int operator!=(const COutputThread& rhs) const;
 public:
 
+  virtual void run();		/* Adapt between nextgen and spectrodaq threading model. */
+
   // Thread operations are all non-public in fact.. don't want to call them4
   // from outside this class.. only from within the thread.. This includes the
   // thread entry point.
 
 protected:
 
-  virtual int operator()(int argc, char** argv); //!< Entry point.
+  virtual int operator()(); //!< Entry point.
 private:
-  void bufferToSpectrodaq(void* pBuffer, 
-			  unsigned int sdaqTag,
-			  size_t sdaqWords, 
-			  size_t copyInSize); // 
+
   DataBuffer& getBuffer();		      // 
   void freeBuffer(DataBuffer&  buffer);	      // 
   void processBuffer(DataBuffer& buffer);     // 
   void processEvents(DataBuffer& buffer);     //
-  void formatControlBuffer(uint16_t type, void* buffer); // 
-  void  overflowOutputBuffer();           //
   uint8_t* newOutputBuffer();                //
   void startRun(DataBuffer& buffer); // 
   void endRun(DataBuffer& buffer);   // 
-  void flush();			     // 
   void event(void* pData);      //
   void scaler(void* pData);	//
-  void fillEventHeader();	// 
   void sendToTclServer(uint16_t* pEvent);
+  void attachRing();
+  void outputTriggerCount(uint32_t runOffset);
 };
 
 

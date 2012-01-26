@@ -34,7 +34,8 @@ INCLUDES			= 	-I$(top_builddir)/vmusb		\
 					-I$(top_builddir)/threadcomm	\
 					-I$(top_builddir)/rdothread	\
 					-I$(top_builddir)/router	\
-					@TCL_FLAGS@ @NSCLDAQ_FLAGS@	\
+					-I$(top_srcdir)/base/tclplus    \
+					@TCL_FLAGS@ 	\
 					@SPECTRODAQ_FLAGS@
 
 libControlServer_la_LIBADD	= 	$(top_builddir)/vmusb/libVMUSB.la          \
@@ -42,6 +43,7 @@ libControlServer_la_LIBADD	= 	$(top_builddir)/vmusb/libVMUSB.la          \
 					$(top_builddir)/threadcomm/libThreadComm.la \
 					$(top_builddir)/rdothread/libRdoThread.la \
 					$(top_builddir)/router/libRouter.la	\
+					$(top_srcdir)/base/tclplus/libtclPlus.la \
 					@TCL_LDFLAGS@				\
-					@NSCLDAQ_LIB@ -lTclPlus -lException	\
+					 -lTclPlus -lException	\
 					@SPECTRODAQ_LDFLAGS@

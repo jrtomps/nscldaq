@@ -1,4 +1,5 @@
 ACLOCAL_AMFLAGS=-I m4
+
 if BUILD_SBS_DRIVER
   SBSDIRS=sbs
 endif
@@ -9,8 +10,13 @@ if EPICS
 endif
 endif
 
+if BUILD_USB
+   USBDIR=usb
+endif
+
+
 SUBDIRS =	base/CopyrightTools base/exception base/tclplus servers base  \
-		daq utilities docbuild docconfig $(SBSDIRS) $(EPICSDIRS)
+		daq utilities docbuild docconfig $(SBSDIRS) $(EPICSDIRS) $(USBDIR)
 
 
 install-data-local:
@@ -21,7 +27,7 @@ install-data-local:
 	$(INSTALL_SCRIPT) config.h @prefix@/include
 	$(MANDB) $(prefix)/share/man
 	echo "Version: " $(VERSION) built on `hostname` `date` > $(prefix)/VERSION
-	
+
 
 EXTRA_DIST=dotests
 

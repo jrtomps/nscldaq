@@ -295,9 +295,9 @@ static const char* Copyright= "(C) Copyright Michigan State University 2002, All
 #include <CTCPNoSuchHost.h>
 #include <netdb.h>
 
-#ifdef HAVE_STD_NAMESPACE
+
 using namespace std;
-#endif
+
 
 
 /*!

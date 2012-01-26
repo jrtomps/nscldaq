@@ -314,12 +314,12 @@ class CTCPNoSuchService : public CErrnoException
 {
   // Member data [private]
 private:
-  STD(string)         m_Service;	//!< cached value of service.
-  mutable STD(string) m_Reason;	//!< Where the reason text is built up.
+  std::string         m_Service;	//!< cached value of service.
+  mutable std::string m_Reason;	//!< Where the reason text is built up.
 
   // Constructors and related functions:
 public:
-  CTCPNoSuchService(const STD(string)& service, const STD(string)& Doing); 
+  CTCPNoSuchService(const std::string& service, const std::string& Doing); 
   CTCPNoSuchService(const CTCPNoSuchService& rhs); //!< Copy Constructor.
   virtual ~CTCPNoSuchService() {}                  //!< Destructor.
 
@@ -329,13 +329,13 @@ public:
   // Selectors:
 
 public:
-  STD(string) getService() const	//!< Return service name.
+  std::string getService() const	//!< Return service name.
   { return m_Service; }
 
   // Mutators:
 
 protected:
-  void setService(const STD(string)& newVal) 
+  void setService(const std::string& newVal) 
   { m_Service = newVal; }
 
   // Operations on the class:

@@ -292,9 +292,7 @@ static const char* Copyright=  Copyright= "(C) Copyright Michigan State Universi
 #include <config.h>
 #include <CTCPBadSocketState.h>
 
-#ifdef HAVE_STD_NAMESPACE
 using namespace std;
-#endif
 
 // Constructors and related methods.
 

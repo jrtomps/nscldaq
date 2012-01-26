@@ -43,6 +43,13 @@
 #endif
 #endif
 
+#ifndef __THREAD_H
+#include <Thread.h>
+#ifndef __THREAD_H
+#define __THREAD_H
+#endif
+#endif
+
 class CVMUSB;
 class CControlModule;
 class CTCLInterpreter;
@@ -70,7 +77,7 @@ struct DataBuffer;
    connections from localhost.
 
 */
-class TclServer : public DAQThread
+class TclServer : public Thread
 {
 // Member data:
 private:
@@ -79,7 +86,7 @@ private:
   CVMUSB*                      m_pVme;		// VME controller.
   std::vector<CControlModule*> m_Modules;       // Hardware we can access.
   CTCLInterpreter*             m_pInterpreter;
-  DAQThreadId                  m_tid;
+  unsigned long                m_tid;
   CVMUSBReadoutList*           m_pMonitorList; /* List to perform periodically. */
   Tcl_ThreadId                 m_threadId;
   bool                         m_waitingMonitor;
@@ -109,7 +116,7 @@ private:
 
 
 public:
-  DAQThreadId start(int port, const char* configFile, CVMUSB& vme);
+  void            start(int port, const char* configFile, CVMUSB& vme);
   CControlModule* findModule(std::string name);
   void            addModule(CControlModule* pNewModule);
   void            setResult(std::string resultText);
@@ -119,6 +126,10 @@ public:
   // selectors:
 
   CVMUSBReadoutList getMonitorList(); /* Allow rdothread to get a copy. */
+
+  // Adaptor to spectrodaq threading.
+
+  virtual void run();
 
 protected:
   int operator()(int argc, char** argv);

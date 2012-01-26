@@ -2,7 +2,7 @@
 # Process this file with autoconf to produce a configure script.
 
 AC_PREREQ(2.61)
-AC_INIT(nscldaq, 10.0-025, fox@nscl.msu.edu)
+AC_INIT(nscldaq, 10.1, fox@nscl.msu.edu)
 AC_CONFIG_SRCDIR([/utilities/StringsToIntegers.h])
 AC_CONFIG_HEADER([config.h])
 AC_CONFIG_MACRO_DIR([m4])
@@ -351,6 +351,8 @@ AC_ARG_ENABLE([sbs],
 	       KERNEL_SOURCE_DIR="$enableval"])
 
 
+
+
 if test "$BUILD_SBS" == "yes"
 then
   echo Building SBS software with kernel source at: $KERNEL_SOURCE_DIR
@@ -358,6 +360,80 @@ else
   echo SBS software support not selected!
 fi
 
+
+#
+#  If --enable-usb is turned on, we build the VM/CC-usb support directories
+#
+enableusb="no"
+AC_ARG_ENABLE([usb],
+	AS_HELP_STRING([--enable-usb], [Build support for CC/VM usb data taking]),
+	[enableusb="yes"])
+
+#  If building is turned on we need to locate the headers and the includes.
+
+
+if test "$enableusb" == "yes"
+then
+	headerdirs="/usr/include /usr/local/include"
+	libdirs="/lib /usr/lib /usr/local/lib"
+
+	usbheaderdir=""
+	usblibdir=""
+
+	AC_MSG_CHECKING([for libusb headers])
+	AC_ARG_WITH(usb-headerdir,
+		[   --with-usb-headerdir=Path to usb.h],
+		[usbheaderdir=$withval],[])
+
+	if test "$usbheaderdir" == ""
+	then
+	   	for dir in $headerdirs
+   		do
+			if test "$usbheaderdir" == ""
+      			then
+				AC_CHECK_FILE([$dir/usb.h],
+					[usbheaderdir=$dir])
+			fi
+   		done
+	fi
+
+	if test "$usbheaderdir" != ""
+	then
+		USBSWITCHES="-I${usbheaderdir}"
+		AC_MSG_RESULT([found in $usbheaderdir])
+	else
+		AC_MSG_ERROR([Can't find usb.h install libusb development or try using --with-usb-header-dir to help me find it])
+	fi
+
+	AC_MSG_CHECKING([for libusb library]) 
+	AC_ARG_WITH(usb-libdir,
+		[   --with-usb-libdir=Path to libusb.a],
+		[usblibdir=$withval],[])
+
+	if test "$usblibdir" == ""
+	then	
+   		for dir in $libdirs
+   		do	
+      			if test "$usblibdir" == ""
+      			then
+				AC_CHECK_FILE([$dir/libusb.a],
+					[usblibdir=$dir])
+      			fi
+   		done
+	fi
+
+	if test "$usblibdir" != "" 
+	then
+		USB_LIBS="-L${usblibdir} -lusb"
+  		 AC_MSG_RESULT([found in $usblibdir])
+	else
+		AC_MSG_ERROR([Can't find libusb.a install libusb or try using --with-usb-libdir to tell me where to find it])
+	fi 
+	#  If we got this far the symbos can be exported to the makefiles:
+
+	AC_SUBST(USBSWITCHES)
+	AC_SUBST(USB_LIBS)
+fi
 
 
 
@@ -388,6 +464,7 @@ AC_SUBST(CPPUNIT_LDFLAGS)
 
 AM_CONDITIONAL([PDFDOCS], [test x$HAVE_DOCBOOK2PDF = xtrue])
 AM_CONDITIONAL([XMLMANS], [test x$HAVE_XMLTO = xtrue])
+AM_CONDITIONAL([BUILD_USB], [test x$enableusb = xyes])
 
 #
 #  Threading is hard coded to -pthread now.
@@ -471,6 +548,12 @@ AC_CONFIG_FILES([Makefile
 		 sbs/slowcontrols/vhs/Makefile
 		 sbs/scripted/Makefile
 		 sbs/VmeDevice/Makefile
+		 usb/Makefile
+		 usb/vmusb/Makefile
+		 usb/vmusb/vmusb/Makefile usb/vmusb/devices/Makefile 
+		 usb/vmusb/threadcomm/Makefile usb/vmusb/router/Makefile
+		 usb/vmusb/rdothread/Makefile usb/vmusb/tclserver/Makefile 
+		 usb/vmusb/daqconfig/Makefile  usb/vmusb/commands/Makefile
 		 docbuild/Makefile
 		 docconfig/Makefile])
 

@@ -82,11 +82,11 @@ static const char* Copyright= "(C) Copyright Michigan State University 2002, All
 
 // STL includes.
 
-#include <vector>				
+#include <vector>
 
-#ifdef HAVE_STD_NAMESPACE
+
+
 using namespace std;
-#endif
 
 // Manifest constannts:
 

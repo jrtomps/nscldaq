@@ -22,13 +22,13 @@ libVMUSBDevices_la_SOURCES	= 	CConfigurableObject.cpp	\
 					CV1495sc.cpp
 
 
-INCLUDES	= 	-I$(top_builddir)/vmusb 	\
-			-I$(top_builddir)/daqconfig 	\
-			-I$(daqdir)/include		\
+INCLUDES	= 	-I$(top_builddir)/usb/vmusb/vmusb 	\
+			-I$(top_builddir)/usb/vmusb/daqconfig 	\
+			-I$(top_builddir)/usb/vmusb		\
 			@TCL_FLAGS@ $(SPECTRODAQ_FLAGS)
 
 
-libVMUSBDevices_la_LIBADD	= $(top_builddir)/vmusb/libVMUSB.la \
+libVMUSBDevices_la_LIBADD	= $(top_builddir)/usb/vmusb/vmusb/libVMUSB.la \
 				  @TCL_LDFLAGS@ $(SPECTRODAQ_LDFLAGS) \
 				-lm
 

@@ -24,11 +24,14 @@ include_HEADERS		= CVMUSB.h   \
 
 
 
-INCLUDES		= $(USBSWITCHES) @TCL_FLAGS@ @NSCLDAQ_FLAGS@
+INCLUDES		= $(USBSWITCHES) -I$(top_srcdir)/base/headers -I$(top_srcdir)/base/tclplus \
+			 -I$(top_srcdir)/base/exception @TCL_FLAGS@
 
 libVMUSB_la_LIBADD       = $(USB_LIBS)  
 
-libVMUSBRemote_la_LIBADD = @TCL_LDFLAGS@ @NSCLDAQ_LIB@ -lTclPlus -lException
+libVMUSBRemote_la_LIBADD = @TCL_LDFLAGS@ \
+	$(top_srcdir)/base/exception/libException.la \
+	$(top_srcdir)/base/tclplus/libtclPlus.la -lException
 
 #IVP tests:
 

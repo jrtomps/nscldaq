@@ -95,7 +95,7 @@ TclServer::~TclServer()
 
 */
 
-DAQThreadId
+void
 TclServer::start(int port, const char* configFile, CVMUSB& vme)
 {
   // Set up the member data needed to run the thread...
@@ -106,9 +106,17 @@ TclServer::start(int port, const char* configFile, CVMUSB& vme)
 
   // Schedule the thread for execution:
 
-  m_tid = daq_dispatcher.Dispatch(*this);
 
-  return m_tid;
+}
+
+/**
+ * Adapts from the nextgen to spectrodaq thread model.
+ */
+void
+TclServer::run()
+{
+  m_tid = getId();		// Incase we have references internally.
+  operator()();
 }
 
 /*!

@@ -37,6 +37,13 @@ using namespace std;
 #endif
 #endif
 
+#ifndef __PTHREAD_H
+#include <pthread.h>
+#ifndef __PTHREAD_H
+#define __PTHREAD_H
+#endif
+#endif
+
 /*!
    Implements a thread safe queue of arbitrary objects.
    in our application there are two uses:
@@ -52,7 +59,7 @@ class CBufferQueue : public CGaurdedObject
 {
 private:
   size_t          m_nWakeLevel;         // Wakeup high water mark.
-  DAQThreadCond   m_condition;          // To block on empty queue. 
+  pthread_cond_t  m_condition;          // To block on empty queue. 
   std::list<T>    m_queue;		// The queue queue -> push_back, dequeue->pop_front
 public:
   CBufferQueue(size_t wakeLevel = 0);

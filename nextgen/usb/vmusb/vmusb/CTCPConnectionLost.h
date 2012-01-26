@@ -312,10 +312,10 @@ class CTCPConnectionLost : public CErrnoException
 {
   // Private data members:
 
-  STD(string) m_Host;
-  STD(string) m_Port;
+  std::string m_Host;
+  std::string m_Port;
 
-  mutable STD(string) m_ReasonText;
+  mutable std::string m_ReasonText;
 
   // Constructors and related members:
 
@@ -331,18 +331,18 @@ public:
   
 
 public:
-  STD(string) getHost() const {
+  std::string getHost() const {
     return m_Host; }
-  STD(string) getPort() const {
+  std::string getPort() const {
     return m_Port; }
 
   // Mutators:
 
 protected:
-  void setHost(const STD(string)& rHost) {
+  void setHost(const std::string& rHost) {
     m_Host = rHost;
   }
-  void setPort(const STD(string)& rPort) {
+  void setPort(const std::string& rPort) {
     m_Port = rPort;
   }
 
