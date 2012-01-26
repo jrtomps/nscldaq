@@ -38,9 +38,13 @@
 */
 template<class T>
 CBufferQueue<T>::CBufferQueue(size_t wakeLevel) :
-  m_nWakeLevel(wakeLevel),
-  m_condition(PTHREAD_COND_INITIALIZER)
+  m_nWakeLevel(wakeLevel)
 {
+  
+  if(pthread_cond_init(&m_condition, NULL)) {
+    throw CErrnoException("CBufferQueue construction initializing condition variable");
+  }
+
 }
 /*!
    Destructor - it is the destroyer's responsibility to synchronize the destruction
@@ -51,6 +55,7 @@ CBufferQueue<T>::CBufferQueue(size_t wakeLevel) :
 template<class T>
 CBufferQueue<T>::~CBufferQueue<T>() 
 {
+  pthread_cond_destroy(&m_condition);
 }
 
 /*!
@@ -168,7 +173,7 @@ CBufferQueue<T>::wait()
   Enter();			// Blocking on the condition var requires this.
   int status = pthread_cond_wait(&m_condition, mutex());
   if (status) {
-    thow CErrnoException("Waiting on buffer queue");
+    throw CErrnoException("Waiting on buffer queue");
   }
   Leave();			// We return owning the semaphore.
 }
