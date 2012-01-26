@@ -49,8 +49,8 @@ public:
   // Forbid copying:
 
 private:
-  CGuaardedObject(const CGuardedObject&);
-  CGuardedObject& operator=(const CGaurdedObject&);
+  CGaurdedObject(const CGaurdedObject&);
+  CGaurdedObject& operator=(const CGaurdedObject&);
   
 public:
 

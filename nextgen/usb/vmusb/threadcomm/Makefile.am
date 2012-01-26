@@ -2,8 +2,8 @@ lib_LTLIBRARIES		= libThreadComm.la
 libThreadComm_la_SOURCES = CGaurdedObject.cpp CBufferQueue.cpp
 include_HEADERS		= CGaurdedObject.h CBufferQueue.h
 
-INCLUDES		= $(SPECTRODAQ_FLAGS)
-libThreadComm_la_LIBADD = $(SPECTRODAQ_LDFLAGS)
+INCLUDES		= -I$(top_builddir)/base/exception -I$(top_builddir)/base/headers
+libThreadComm_la_LIBADD =  $(top_builddir)/base/exception/libException.la
 
 
 install-data:

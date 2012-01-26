@@ -17,13 +17,23 @@
 #include <config.h>
 #include <CGaurdedObject.h>
 #include <ErrnoException.h>
+#include <pthread.h>
 
 /*!
   Create the object by initializing the mutex to be recursive.
 */
 CGaurdedObject::CGaurdedObject()
 {
-  m_mutex = new pthread_mutex(PTHREAD_RECURSIVE_INITIALIZER_NP);
+  m_mutex = new pthread_mutex_t;
+  pthread_mutexattr_t attrib;
+
+  pthread_mutexattr_init(&attrib);
+  pthread_mutexattr_settype(&attrib, PTHREAD_MUTEX_RECURSIVE_NP);
+
+  if (pthread_mutex_init(m_mutex, &attrib)) {
+    throw CErrnoException("CGaurdedObject construction creating mutex");
+  }
+			 
 }
 
 /*!
@@ -31,6 +41,7 @@ CGaurdedObject::CGaurdedObject()
 */
 CGaurdedObject::~CGaurdedObject()
 {
+  pthread_mutex_destroy(m_mutex);
   delete m_mutex;
 }
 
@@ -68,8 +79,8 @@ CGaurdedObject::Leave()
    @return pthread_mutex&
    @retval m_mutex
 */
-DAQThreadMutex& 
+pthread_mutex_t&
 CGaurdedObject::mutex()
 {
-  return m_Mutex;
+  return *m_mutex;
 }
