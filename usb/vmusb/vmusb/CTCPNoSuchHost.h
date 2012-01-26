@@ -322,13 +322,13 @@ class CTCPNoSuchHost : public CException
   // Member data (private):
 
   int     m_hErrno;		//!< Cached value of errno when instantiated.
-  STD(string)    m_Host;	//!< Host which doesn't exist.
-  mutable STD(string)  m_Reason;	//!< String for building up reason text.
+  std::string    m_Host;	//!< Host which doesn't exist.
+  mutable std::string  m_Reason;	//!< String for building up reason text.
 
 public:
   // Constructors and related functions:
 
-  CTCPNoSuchHost(const STD(string)& hostname, const STD(string)& Doing);
+  CTCPNoSuchHost(const std::string& hostname, const std::string& Doing);
   CTCPNoSuchHost(const CTCPNoSuchHost& rhs); //!< Copy constructor.
   virtual ~CTCPNoSuchHost() {}	             //!< Destructor.
 
@@ -340,7 +340,7 @@ public:
 public:
   int gethErrno() const		//!< Return h_errno at time of instantiation
   { return m_hErrno; }
-  STD(string) getHost() const	//!< Return name of failing host
+  std::string getHost() const	//!< Return name of failing host
   { return m_Host; }
  
   // Mutators:
@@ -348,7 +348,7 @@ public:
 protected:
   void sethErrno(int newVal)
   { m_hErrno = newVal; }
-  void setHost(const STD(string) newVal)
+  void setHost(const std::string newVal)
   { m_Host = newVal; }
 
   // Operations on the class:

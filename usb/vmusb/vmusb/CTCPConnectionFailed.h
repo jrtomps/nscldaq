@@ -309,15 +309,15 @@ class CTCPConnectionFailed : public CErrnoException
 {
   // Private member data:
 
-  STD(string) m_Host;		//!< Attempted peername.
-  STD(string) m_Service;		//!< Attempted connection point port. 
-  mutable STD(string) m_ReasonText;	//!< Reason text is built up here.
+  std::string m_Host;		//!< Attempted peername.
+  std::string m_Service;		//!< Attempted connection point port. 
+  mutable std::string m_ReasonText;	//!< Reason text is built up here.
 
   // Constructors and related functions.
 
 public:
-  CTCPConnectionFailed(const STD(string)& host,
-		       const STD(string)& service,
+  CTCPConnectionFailed(const std::string& host,
+		       const std::string& service,
 		       const char*   pDoing);
   CTCPConnectionFailed(const CTCPConnectionFailed& rhs);
   ~CTCPConnectionFailed() {}	//!< Destructor.
@@ -328,17 +328,17 @@ public:
   // Selectors:
 
 public:
-  STD(string) getHost() const
+  std::string getHost() const
   { return m_Host; }
-  STD(string) getService() const
+  std::string getService() const
   { return m_Service; }
  
   // Mutators:
 
 protected:
-  void setHost(const STD(string)& rHost) 
+  void setHost(const std::string& rHost) 
   { m_Host = rHost; }
-  void setService(const STD(string)& rService)
+  void setService(const std::string& rService)
   { m_Service = rService; }
 
   // Class functions:

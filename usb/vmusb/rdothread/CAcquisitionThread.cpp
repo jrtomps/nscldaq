@@ -57,7 +57,7 @@ CVMUSB*             CAcquisitionThread::m_pVme(0);
 CAcquisitionThread* CAcquisitionThread::m_pTheInstance(0);
 vector<CReadoutModule*> CAcquisitionThread::m_Stacks;
 
-DAQThreadId CAcquisitionThread::m_tid; // Thread id of the running thread.
+unsigned long CAcquisitionThread::m_tid; // Thread id of the running thread.
 
 
 /*!
@@ -113,8 +113,18 @@ CAcquisitionThread::start(CVMUSB* usb,
   // starting the thread will eventually get operator() called and that
   // will do all the rest of the work in thread context.
 
-  m_tid = daq_dispatcher.Dispatch(*pThread);
+  Thread::start();
+
   
+}
+/**
+ * Adaptor to between spectrodaq and nextgen threading models:
+ */
+void
+CAcquisitionThread::run()
+{
+  m_tid = getId();
+  operator()();
 }
 
 /*!
@@ -132,14 +142,14 @@ CAcquisitionThread::isRunning()
 void
 CAcquisitionThread::waitExit()
 {
-  DAQThreadId id = getInstance()->Join(m_tid);
+  join(m_tid);
 }
 
 /*!
    Entry point for the thread.
 */
 int
-CAcquisitionThread::operator()(int argc, char** argv)
+CAcquisitionThread::operator()()
 {
   Globals::running = true;
   CRunState* pState = CRunState::getInstance();

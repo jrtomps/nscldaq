@@ -70,17 +70,20 @@ protected:
   // Segments of operation.
 
 private:
-  void startOutputThread();
+  void startOutputThread(std::string ring);
   void startTclServer();
   void startInterpreter();
-  void createUsbController();
+  void createUsbController(const char* pSerialNo);
   void setConfigFiles();
   void initializeBufferPool();
+  void enumerateVMUSB();
 
   // static functions:
 
   static int AppInit(Tcl_Interp* interp);
-  std::string makeConfigFile(std::string baseName);
+  static std::string makeConfigFile(std::string baseName);
+  static std::string destinationRing(const char* pRingName);
+
 
 };
 #endif

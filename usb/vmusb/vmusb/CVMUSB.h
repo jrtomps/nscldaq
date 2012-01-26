@@ -25,6 +25,13 @@
 #endif
 #endif
 
+#ifndef __STL_STRING
+#include <string>
+#ifndef __STL_STRING
+#define __STL_STRING
+#endif
+#endif
+
 #ifndef __CRT_STDINT_H
 #include <stdint.h>
 #ifndef __CRT_STDINT_H
@@ -65,6 +72,7 @@ class CVMUSBReadoutList;
    that correspond to VM-USB's is gotten via a call to the static function
    CVMUSB::enumerate().
 */
+
 class CVMUSB 
 {
 
@@ -78,6 +86,7 @@ private:
     // Static functions.
 public:
     static std::vector<struct usb_device*> enumerate();
+    static std::string serialNo(usb_device* dev);
 
     // Constructors and other canonical functions.
     // Note that since destruction closes the handle and there's no

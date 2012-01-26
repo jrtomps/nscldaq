@@ -121,6 +121,45 @@ CVMUSB::enumerate()
   
   return devices;
 }
+
+/**
+ * Return the serial number of a usb device.  This involves:
+ * - Opening the device.
+ * - Doing a simple string fetch on the SerialString
+ * - closing the device.
+ * - Converting that to an std::string which is then returned to the caller.
+ *
+ * @param dev - The usb_device* from which we want the serial number string.
+ *
+ * @return std::string
+ * @retval The serial number string of the device.  For VM-USB's this is a
+ *         string of the form VMnnnn where nnnn is an integer.
+ *
+ * @throw std::string exception if any of the USB functions fails indicating
+ *        why.
+ */
+string
+CVMUSB::serialNo(struct usb_device* dev)
+{
+  usb_dev_handle* pDevice = usb_open(dev);
+
+  if (pDevice) {
+    char szSerialNo[256];	// actual string is only 6chars + null.
+    int nBytes = usb_get_string_simple(pDevice, dev->descriptor.iSerialNumber,
+				       szSerialNo, sizeof(szSerialNo));
+    usb_close(pDevice);
+
+    if (nBytes > 0) {
+      return std::string(szSerialNo);
+    } else {
+      throw std::string("usb_get_string_simple failed in CVMUSB::serialNo");
+    }
+				       
+  } else {
+    throw std::string("usb_open failed in CVMUSB::serialNo");
+  }
+
+}
 ////////////////////////////////////////////////////////////////////
 /*!
   Construct the CVMUSB object.  This involves storing the
@@ -148,7 +187,8 @@ CVMUSB::CVMUSB(struct usb_device* device) :
     // Now claim the interface.. again this could in theory fail.. but.
 
     usb_set_configuration(m_handle, 1);
-    int status = usb_claim_interface(m_handle, 0);
+    int status = usb_claim_interface(m_handle, 
+				     0);
     if (status == -EBUSY) {
 	throw "CVMUSB::CVMUSB - some other process has already claimed";
     }
@@ -163,7 +203,7 @@ CVMUSB::CVMUSB(struct usb_device* device) :
     
     // Now set the irq mask so that all bits are set..that:
     // - is the only way to ensure the m_irqMask value matche the register.
-    // - Nesures m_irqMask actually gets set:
+    // - ensures m_irqMask actually gets set:
 
     writeIrqMask(0xff);
 }

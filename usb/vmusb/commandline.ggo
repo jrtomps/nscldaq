@@ -1,0 +1,10 @@
+package "VMUSBReadout"
+version "5.0"
+purpose "Read data from VME crates via Wiener/JTec VM-USB"
+
+option "serialno"  s "Serial number of VM usb VMnnn" string typestr="SerialNo"  optional
+option "ring"      r "Ring buffer in which data are output" string typestr="Ring Name" optional
+option "daqconfig" d "Configuration file for data taking [~/config/daqconfig.tcl]" string optional 
+option "ctlconfig" c "Slow control configuration file [~/config/controconfig.tcl]" string optional
+option "port"      p "Port on which Tcl server should listen [27000]" long typestr="portnumber" optional
+option "enumerate" e "Enumerate VM-USB modules and exit" optional

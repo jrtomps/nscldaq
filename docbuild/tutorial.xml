@@ -171,7 +171,7 @@
                 <programlisting>
 mkdir myreadout
 cd    myreadout
-cp $DAQHOME/skeletons/dbs/* .
+cp $DAQHOME/skeletons/sbs/* .
                 </programlisting>
             </example>
             <para>
@@ -1680,7 +1680,7 @@ OBJECTS=Skeleton.o CCAENEventSegment.o CSIS3820Scaler.o
                 <programlisting>
 mkdir myreadout
 cd    myreadout
-cp $DAQHOME/skeletons/dbs/* .
+cp $DAQHOME/skeletons/sbs/* .
                 </programlisting>
             </example>
             <para>
@@ -2809,7 +2809,7 @@ OBJECTS=Skeleton.o MyEventSegment.o MyScaler.o
                 <programlisting>
 mkdir myreadout
 cd    myreadout
-cp $DAQHOME/skeletons/dbs/* .
+cp $DAQHOME/skeletons/sbs/* .
                 </programlisting>
             </example>
             <para>
@@ -5134,7 +5134,7 @@ CCAENRdyTrigger::operator()()
         <example>
             <title>Writing event data in SPDAQ format</title>
             <programlisting>
-export EVENTLOGGER=/usr/opt/daq/10.0/bin/eventlogger-compat
+export EVENTLOGGER=/usr/opt/daq/10.0/bin/eventlog-compat
             </programlisting>
         </example>
         <formalpara>

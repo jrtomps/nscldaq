@@ -16,6 +16,24 @@
 
 #include <config.h>
 #include <CGaurdedObject.h>
+#include <ErrnoException.h>
+
+/*!
+  Create the object by initializing the mutex to be recursive.
+*/
+CGaurdedObject::CGaurdedObject()
+{
+  m_mutex = new pthread_mutex(PTHREAD_RECURSIVE_INITIALIZER_NP);
+}
+
+/*!
+   Free the mutex on destruction
+*/
+CGaurdedObject::~CGaurdedObject()
+{
+  delete m_mutex;
+}
+
 
 /*!
    Enter a critical region. This is just locking the mutex.  Our thread
@@ -24,7 +42,10 @@
 void
 CGaurdedObject::Enter()
 {
-  m_Mutex.Lock();
+  int status = pthread_mutex_lock(m_mutex);
+  if (status) {
+    throw CErrnoException("Entering gaurded object");
+  }
 }
 /*!
    Leave a critical region.  THis is just unlocking the mutex.
@@ -34,12 +55,18 @@ CGaurdedObject::Enter()
 void
 CGaurdedObject::Leave()
 {
-  m_Mutex.UnLock();
+  int status = pthread_mutex_unlock(m_mutex);
+  if (status) {
+    throw CErrnoException("Leaving gaurded object");
+  }
 }
 /*!
    Returns a reference to the mutex.  This is required for objects that
    may also want to implement a condition variable on top of this.
    For example the CBufferQueue class.
+
+   @return pthread_mutex&
+   @retval m_mutex
 */
 DAQThreadMutex& 
 CGaurdedObject::mutex()

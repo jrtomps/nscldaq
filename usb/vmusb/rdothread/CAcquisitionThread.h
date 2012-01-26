@@ -36,6 +36,12 @@
 #include "CControlQueues.h"
 #endif
 
+#ifndef __THREAD_H
+#include <Thread.h>
+#ifndef __THREAD_H
+#define __THREAD_H
+#endif
+#endif
 
 // forward class definitions.
 
@@ -51,11 +57,11 @@ struct DataBuffer;
    it gets started at the beginning of a run and politely requested to stop at
    the end of a run.
 */
-class CAcquisitionThread : public DAQThread
+class CAcquisitionThread : public Thread
 {
 private:
   static bool                   m_Running;	//!< thread is running.
-  static DAQThreadId            m_tid;          //!< ID of thread when running.
+  static unsigned long          m_tid;          //!< ID of thread when running.
   static CVMUSB*                m_pVme;		//!< VME interface.
 
   static std::vector<CReadoutModule*>  m_Stacks;       //!< the stacks to run.
@@ -77,9 +83,10 @@ public:
 		    std::vector<CReadoutModule*> Stacks);
   static bool isRunning();
   static void waitExit();	/* Wait for this thread to exit (join). */
+  virtual void run();		/* Adapt between nextgen  spectrodaq thread model. */
 
 protected:
-  virtual int operator()(int argc, char** argv);
+  virtual int operator()();
 private:
   void mainLoop();
   void processCommand(CControlQueues::opCode command);

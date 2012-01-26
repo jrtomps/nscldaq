@@ -20,6 +20,7 @@
 #include "CBufferQueue.h"
 #endif
 
+#include <ErrnoException.h>
 
 /*!  Construct the base class. we just need to set the initial value of
   the high water mark for waiters.  Note that there are two ways that
@@ -37,7 +38,8 @@
 */
 template<class T>
 CBufferQueue<T>::CBufferQueue(size_t wakeLevel) :
-  m_nWakeLevel(wakeLevel)
+  m_nWakeLevel(wakeLevel),
+  m_condition(PTHREAD_COND_INITIALIZER)
 {
 }
 /*!
@@ -164,7 +166,10 @@ template<class T> void
 CBufferQueue<T>::wait()
 {
   Enter();			// Blocking on the condition var requires this.
-  m_condition.Wait(mutex());
+  int status = pthread_cond_wait(&m_condition, mutex());
+  if (status) {
+    thow CErrnoException("Waiting on buffer queue");
+  }
   Leave();			// We return owning the semaphore.
 }
 /*!
@@ -177,5 +182,8 @@ CBufferQueue<T>::wait()
 template<class T> void
 CBufferQueue<T>::wake()
 {
-  m_condition.Broadcast();
+  int status = pthread_cond_broadcast(&m_condition);
+  if (status) {
+    throw CErrnoException("Waking up buffer queue waiters");
+  }
 }
