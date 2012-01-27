@@ -168,7 +168,7 @@ TclServer::setResult(string msg)
    we need) and we never return.
 */
 int
-TclServer::operator()(int argc, char** argv)
+TclServer::operator()()
 {
   m_threadId = Tcl_GetCurrentThread(); // Save for later use.
   try {

@@ -37,9 +37,8 @@ static const char* Copyright= "(C) Copyright Michigan State University 2002, All
 #include <pwd.h>
 #include <iostream>
 
-#ifdef HAVE_STD_NAMESPACE
 using namespace std;
-#endif
+
 
 const char *eol = "\n";
 
