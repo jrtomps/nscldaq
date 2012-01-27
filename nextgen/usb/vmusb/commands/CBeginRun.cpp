@@ -24,9 +24,12 @@
 #include <CAcquisitionThread.h>
 #include <CRunState.h>
 #include <CConfiguration.h>
+#include <iostream>
 
 using std::vector;
 using std::string;
+using std::cerr;
+using std::endl;
 
 static const string usage(
 "Usage:\n\
