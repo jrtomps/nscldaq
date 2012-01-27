@@ -19,6 +19,14 @@
 #include <config.h>
 
 
+#ifndef __STL_STRING
+#include <string>
+#ifndef __STL_STRING
+#define __STL_STRING
+#endif
+#endif
+
+
 class CTCLInterpreter;
 struct Tcl_Interp;
 
@@ -64,7 +72,7 @@ private:
 public:
 
   // entry point:
-protected:
+
   virtual int operator()(int argc, char** argv);
 
   // Segments of operation.

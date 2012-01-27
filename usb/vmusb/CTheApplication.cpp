@@ -47,6 +47,11 @@ static const char* versionString = "V5.0";
 #include <string.h>
 
 #include "cmdline.h"
+#include <usb.h>
+
+
+#include <string>
+
 
 #ifndef NULL
 #define NULL ((void*)0)
@@ -111,7 +116,7 @@ int CTheApplication::operator()(int argc, char** argv)
 
   // Process them via gengetopt:
 
-  struct gengetop_args_info parsedArgs;
+  struct gengetopt_args_info parsedArgs;
   cmdline_parser(argc, argv, &parsedArgs);	// Actually fails if the commandline is incorrect.
 
   cerr << "VM-USB scriptable readout version " << versionString << endl;
@@ -137,7 +142,7 @@ int CTheApplication::operator()(int argc, char** argv)
       Globals::configurationFilename = std::string(parsedArgs.daqconfig_arg);
     }
     if (parsedArgs.ctlconfig_given) {
-      Globals::controlConfigFilename = std::string(parsedArgs.ctclconfig_arg);
+      Globals::controlConfigFilename = std::string(parsedArgs.ctlconfig_arg);
     }
     
     initializeBufferPool();
@@ -184,10 +189,10 @@ int CTheApplication::operator()(int argc, char** argv)
 
 */
 void
-CTheApplication::startOutputThread()
+CTheApplication::startOutputThread(std::string ring)
 {
   COutputThread* router = new COutputThread(ring);
-  router.start();
+  router->start();
   usleep(500);
 
 }
@@ -229,7 +234,7 @@ void
 CTheApplication::createUsbController(const char* pSerialNo)
 {
   vector<struct usb_device*> controllers = CVMUSB::enumerate();
-  usb_device*                pSelectedDevice(0);
+  struct usb_device*                pSelectedDevice(0);
   if (controllers.size() == 0) {
     cerr << "There appear to be no VMUSB controllers so I can't run\n";
     exit(EX_CONFIG);
@@ -250,7 +255,7 @@ CTheApplication::createUsbController(const char* pSerialNo)
   // Note that this can only happen if pSerialNo is not null:
 
   if (!pSelectedDevice) {
-    cerr << "USB enumeration does not show " pSerialNo << " as present/available\n";
+    cerr << "USB enumeration does not show " << pSerialNo << " as present/available\n";
     exit(EX_CONFIG);
   }
 
@@ -379,7 +384,7 @@ CTheApplication::destinationRing(const char* pRingName)
     if (getpwuid_r(uid, &Entry, dataStorage, sizeof(dataStorage), &pEntry)) {
       int errorCode = errno;
       std::string errorMessage = 
-	"Unable to determine the current username in CTheApplication::destinationRing: ");
+	"Unable to determine the current username in CTheApplication::destinationRing: ";
     errorMessage += strerror(errorCode);
     throw errorMessage;
 

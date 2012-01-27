@@ -20,6 +20,9 @@ libConfig_la_SOURCES	= 	CADCCommand.cpp		\
 				CV1495scCommand.cpp
 
 
+libConfig_la_CXXFLAGS=@THREADCXX_FLAGS@
+
+
 include_HEADERS		=	CADCCommand.h  		\
 				CConfiguration.h 	\
 				CScalerCommand.h	\
@@ -54,5 +57,5 @@ INCLUDES		= 	-I@top_srcdir@/usb/vmusb/devices	\
 libConfig_la_LIBADD	=	@top_srcdir@/usb/vmusb/devices/libVMUSBDevices.la \
 				@top_srcdir@/base/tclplus/libtclPlus.la		\
 				@top_srcdir@/base/exception/libException.la	\
-				$(TCL_LDFLAGS)
+				$(TCL_LDFLAGS) @THREADLD_FLAGS@
 
