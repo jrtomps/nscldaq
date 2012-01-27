@@ -196,6 +196,13 @@ CVMUSB::CVMUSB(struct usb_device* device) :
     if (status == -ENOMEM) {
 	throw "CVMUSB::CMVUSB - claim failed for lack of memory";
     }
+    // Errors we don't know about:
+
+    if (status < 0) {
+      std::string msg("Failed to claim the interface: ");
+      msg += strerror(-status);
+      throw msg;
+    }
     usb_clear_halt(m_handle, ENDPOINT_IN);
     usb_clear_halt(m_handle, ENDPOINT_OUT);
 

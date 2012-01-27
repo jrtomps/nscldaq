@@ -261,6 +261,8 @@ COutputThread::startRun(DataBuffer& buffer)
 
   time_t timestamp;
 
+  m_nOutputBufferSize = Globals::usbBufferSize * Globals::bufferMultiplier;
+
   if (time(&timestamp) == -1) {
     throw CErrnoException("Failed to get the time in COutputThread::startRun");
   }
@@ -301,6 +303,10 @@ COutputThread::startRun(DataBuffer& buffer)
 void
 COutputThread::endRun(DataBuffer& buffer)
 {
+
+  free(m_pBuffer);
+  m_pBuffer = 0;
+
   // Determine the absolute timestamp.
 
   time_t stamp;
@@ -526,7 +532,7 @@ COutputThread::event(void* pData)
 
   if (!m_pBuffer) {
     m_pBuffer        = newOutputBuffer();
-    m_pCursor        = m_pCursor; 
+    m_pCursor        = m_pBuffer;
     m_nWordsInBuffer = 0;	  
   }
 
@@ -542,6 +548,7 @@ COutputThread::event(void* pData)
   
   // Events must currently fit in the buffer...otherwise we throw an error.
 
+  segmentSize += 1;		// Size is not self inclusive
   if ((segmentSize + m_nWordsInBuffer) >= m_nOutputBufferSize/sizeof(uint16_t)) {
     std::string msg = 
       "An event would not fit in the output buffer, adjust bufferMultiplier in your config file";
@@ -551,7 +558,6 @@ COutputThread::event(void* pData)
   // Next we can copy our data to the output buffer and update the cursro
   // remembering that the size is not self inclusive:
   //
-  segmentSize += 1;
   memcpy(m_pCursor, pData, segmentSize*sizeof(uint16_t));
   m_nWordsInBuffer += segmentSize;
   m_pCursor += segmentSize*sizeof(uint16_t); // advance the cursor
@@ -566,7 +572,7 @@ COutputThread::event(void* pData)
     // Put the data in the event and figure out where the end pointer is.
 
     void* pDest = event.getBodyPointer();
-    memcpy(pDest, m_pBuffer, m_nWordsInBuffer);
+    memcpy(pDest, m_pBuffer, m_nWordsInBuffer*sizeof(uint16_t));
     uint8_t* pEnd = reinterpret_cast<uint8_t*>(pDest);
     pEnd += m_nWordsInBuffer*sizeof(uint16_t); // Where the new body cursor goes.
 
