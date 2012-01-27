@@ -43,6 +43,7 @@
 #include <Globals.h>
 
 #include <tcl.h>
+#include <iostream>
 #include <algorithm>
 
 using namespace std;

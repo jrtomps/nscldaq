@@ -43,10 +43,16 @@ include_HEADERS		=	CADCCommand.h  		\
 
 
 
-INCLUDES		= 	-I@top_srcdir@/devices	\
-				$(NSCLDAQ_FLAGS) $(TCL_FLAGS) \
-				$(SPECTRODAQ_FLAGS)
+INCLUDES		= 	-I@top_srcdir@/usb/vmusb/devices	\
+				-I@top_srcdir@/usb/vmusb		\
+				-I@top_srcdir@/base/tclplus		\
+				-I@top_srcdir@/base/headers		\
+				-I@top_srcdir@/base/exception		\
+				$(TCL_FLAGS) 
 
-libConfig_la_LIBADD	=	@top_srcdir@/devices/libVMUSBDevices.la 	\
-				$(TCL_LDFLAGS) $(SPECTRODAQ_LDFLAGS)
+
+libConfig_la_LIBADD	=	@top_srcdir@/usb/vmusb/devices/libVMUSBDevices.la \
+				@top_srcdir@/base/tclplus/libtclPlus.la		\
+				@top_srcdir@/base/exception/libException.la	\
+				$(TCL_LDFLAGS)
 

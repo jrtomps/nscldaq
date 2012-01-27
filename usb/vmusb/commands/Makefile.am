@@ -11,17 +11,23 @@ include_HEADERS		= 	CBeginRun.h	\
 				CResumeRun.h	\
 				tclUtil.h
 
-INCLUDES		= 	-I@top_srcdir@/threadcomm	\
-			  	-I@top_srcdir@/rdothread	\
-				-I@top_srcdir@/router		\
-				-I@top_srcdir@/daqconfig	\
-				$(TCL_FLAGS) $(NSCLDAQ_FLAGS)	\
-				$(SPECTRODAQ_FLAGS)
+INCLUDES		= 	-I@top_srcdir@/usb/vmusb/threadcomm	\
+			  	-I@top_srcdir@/usb/vmusb/rdothread	\
+				-I@top_srcdir@/usb/vmusb/router		\
+				-I@top_srcdir@/usb/vmusb/daqconfig	\
+				-I@top_srcdir@/usb/vmusb		\
+				-I@top_srcdir@/base/tclplus		\
+				-I@top_srcdir@/base/headers		\
+				-I@top_srcdir@/base/exception		\
+				-I@top_srcdir@/base/thread		\
+				$(TCL_FLAGS) 
 
-libCommands_la_LIBADD	= 	@top_srcdir@/rdothread/libRdoThread.la	\
-				@top_srcdir@/threadcomm/libThreadComm.la	\
-				@top_srcdir@/router/libRouter.la	\
-				@top_srcdir@/daqconfig/libConfig.la	\
-				$(NSCLDAQ_LIB) -lTclPlus -lException	\
-				$(SPECTRODAQ_LDFLAGS)			\
+
+libCommands_la_LIBADD	= 	@top_srcdir@/usb/vmusb/rdothread/libRdoThread.la	\
+				@top_srcdir@/usb/vmusb/threadcomm/libThreadComm.la	\
+				@top_srcdir@/usb/vmusb/router/libRouter.la	\
+				@top_srcdir@/usb/vmusb/daqconfig/libConfig.la	\
+				@top_srcdir@/base/tclplus/libtclPlus.la	\
+				@top_srcdir@/base/exception/libException.la	\
+				@top_srcdir@/base/thread/libdaqthreads.la	\
 				$(TCL_LDFLAGS)
