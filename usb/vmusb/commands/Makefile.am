@@ -5,7 +5,7 @@ libCommands_la_SOURCES	=	CBeginRun.cpp	\
 				CResumeRun.cpp	\
 				tclUtil.cpp	
 
-include_HEADERS		= 	CBeginRun.h	\
+noinst_HEADERS		= 	CBeginRun.h	\
 				CEndRun.h	\
 				CPauseRun.h	\
 				CResumeRun.h	\

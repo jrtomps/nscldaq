@@ -4,7 +4,7 @@ libRdoThread_la_SOURCES	= CAcquisitionThread.cpp 	\
 
 libRdoThread_CXXFLAGS = @THREADCXX_FLAGS@
 
-include_HEADERS		= CAcquisitionThread.h		\
+noinst_HEADERS		= CAcquisitionThread.h		\
 			CControlQueues.h
 
 # add -DREPORT_ERRORS to INCLUDES below for verbose
