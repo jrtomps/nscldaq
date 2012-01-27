@@ -113,7 +113,7 @@ CAcquisitionThread::start(CVMUSB* usb,
   // starting the thread will eventually get operator() called and that
   // will do all the rest of the work in thread context.
 
-  Thread::start();
+  pThread->Thread::start();
 
   
 }
@@ -142,7 +142,7 @@ CAcquisitionThread::isRunning()
 void
 CAcquisitionThread::waitExit()
 {
-  join(m_tid);
+  getInstance()->join();
 }
 
 /*!

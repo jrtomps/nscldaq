@@ -171,7 +171,7 @@ template<class T> void
 CBufferQueue<T>::wait()
 {
   Enter();			// Blocking on the condition var requires this.
-  int status = pthread_cond_wait(&m_condition, mutex());
+  int status = pthread_cond_wait(&m_condition, &mutex());
   if (status) {
     throw CErrnoException("Waiting on buffer queue");
   }
