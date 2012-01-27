@@ -7,14 +7,14 @@ SUBDIRS = 	vmusb 		\
 		daqconfig	\
 		 commands
 
-bin_PROGRAMS = Readout
+bin_PROGRAMS = VMUSBReadout
 
-Readout_CXXFLAGS=@THREADCXX_FLAGS@
-Readout_CCFLAGS=@THREADC_FLAGS@
+VMUSBReadout_CXXFLAGS=@THREADCXX_FLAGS@
+VMUSBReadout_CCFLAGS=@THREADC_FLAGS@
 
-Readout_SOURCES = CTheApplication.cpp Globals.cpp 
+VMUSBReadout_SOURCES = CTheApplication.cpp Globals.cpp 
 
-Readout_DEPENDENCIES = cmdline.o
+VMUSBReadout_DEPENDENCIES = cmdline.o
 
 BUILT_SOURCES = cmdline.h
 
@@ -27,7 +27,7 @@ INCLUDES = -I$(top_srcdir)/usb/vmusb/vmusb -I$(top_srcdir)/usb/vmusb/devices -I$
 	-I$(top_srcdir)/base/headers	\
 	$(TCL_FLAGS) $(USBSWITCHES)
 
-Readout_LDADD	= cmdline.o $(top_srcdir)/usb/vmusb/devices/libVMUSBDevices.la	\
+VMUSBReadout_LDADD	= cmdline.o $(top_srcdir)/usb/vmusb/devices/libVMUSBDevices.la	\
 		$(top_srcdir)/usb/vmusb/threadcomm/libThreadComm.la	\
 		$(top_srcdir)/usb/vmusb/router/libRouter.la	\
 		$(top_srcdir)/usb/vmusb/rdothread/libRdoThread.la	\
@@ -41,7 +41,7 @@ Readout_LDADD	= cmdline.o $(top_srcdir)/usb/vmusb/devices/libVMUSBDevices.la	\
 
 
 
-Readout_LDFLAGS=-Wl,"-rpath=$(libdir)"
+VMUSBReadout_LDFLAGS=-Wl,"-rpath=$(libdir)"
 
 cmdline.h: commandline.ggo
 	$(GENGETOPT) <commandline.ggo

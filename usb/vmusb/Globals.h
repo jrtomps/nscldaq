@@ -48,7 +48,8 @@ namespace Globals {
   extern bool            running;
   extern TclServer*      pTclServer;
   extern size_t          bufferMultiplier; /* # of 26Kbyte buffers to chunk together on output. */
-  extern unsigned        scalerPeriod;;
+  extern unsigned        scalerPeriod;
+  extern size_t          usbBufferSize;
 };
 
 #endif

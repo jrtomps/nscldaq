@@ -323,6 +323,7 @@ CTheApplication::AppInit(Tcl_Interp* interp)
 void
 CTheApplication::initializeBufferPool()
 {
+  Globals::usbBufferSize = bufferSize;
   for(uint i =0; i < bufferCount; i++) {
     DataBuffer* p = createDataBuffer(bufferSize);
     gFreeBuffers.queue(p);

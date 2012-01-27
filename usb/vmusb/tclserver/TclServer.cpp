@@ -106,6 +106,7 @@ TclServer::start(int port, const char* configFile, CVMUSB& vme)
 
   // Schedule the thread for execution:
 
+  this->Thread::start();
 
 }
 
@@ -372,12 +373,12 @@ TclServer::QueueBuffer(void* pBuffer)
 
   // Transfer the event to a dynamically allocated buffer:
 
-  uint16_t nWords = *pEvent & VMUSBEventLengthMask + 1; // Word length isn't self inclusive.
-  void*    pEventCopy = malloc(nWords);
+  uint16_t nWords = (*pEvent & VMUSBEventLengthMask) + 1; // Word length isn't self inclusive.
+  void*    pEventCopy = (void*)Tcl_Alloc(nWords*sizeof(uint16_t));
   if (!pEventCopy) {
     throw std::string("Malloc for tcl server event failed in COutputThread");
   }
-  memcpy(pEventCopy, pEvent, nWords*sizeof(uint16_t*));
+  memcpy(pEventCopy, pEvent, nWords*sizeof(uint16_t));
 
   // Create and fill in the event:
 
@@ -480,29 +481,34 @@ TclServer::receiveMonitorData(Tcl_Event* pEvent, int flags)
   uint16_t*       pData     = reinterpret_cast<uint16_t*>(pTclEvent->pData);
   uint16_t        nWords    = *pData & VMUSBEventLengthMask;
 
-  // Append the new data to the data we have already:
+  // Require there actually be data:
 
-  pServer->m_pMonitorData = reinterpret_cast<uint16_t*>(realloc(pServer->m_pMonitorData,
-								(nWords + pServer->m_nMonitorDataSize) * sizeof(uint16_t)));
-  if (!pServer->m_pMonitorData) {
-    throw string("Unable to extend monitor data buffer");
+  if(nWords) {
+    
+    // Append the new data to the data we have already:
+    
+    pServer->m_pMonitorData = 
+      reinterpret_cast<uint16_t*>(realloc(pServer->m_pMonitorData,
+					  (nWords + pServer->m_nMonitorDataSize) * sizeof(uint16_t)));
+    if (!pServer->m_pMonitorData) {
+      throw string("Unable to extend monitor data buffer");
+    }
+    memcpy(&(pServer->m_pMonitorData)[pServer->m_nMonitorDataSize], &pData[1], nWords*sizeof(uint16_t));
+    pServer->m_nMonitorDataSize += nWords;
+    
+    // If the continuation bit is not set we can process the data:
+    
+    if ((*pData & VMUSBContinuation) != 0) {
+      pServer->processMonitorList(pServer->m_pMonitorData, pServer->m_nMonitorDataSize * sizeof(uint16_t));
+      
+      free(pServer->m_pMonitorData);
+      pServer->m_nMonitorDataSize = 0;
+      pServer->m_pMonitorData     = 0;
+    }
   }
-  memcpy(&(pServer->m_pMonitorData)[pServer->m_nMonitorDataSize], &pData[1], nWords*sizeof(uint16_t));
-  pServer->m_nMonitorDataSize += nWords;
-
-  // If the continuation bit is not set we can process the data:
-
-  if ((*pData & VMUSBContinuation) != 0) {
-    pServer->processMonitorList(pServer->m_pMonitorData, pServer->m_nMonitorDataSize * sizeof(uint16_t));
-
-    free(pServer->m_pMonitorData);
-    pServer->m_nMonitorDataSize = 0;
-    pServer->m_pMonitorData     = 0;
-  }
-
   // Free the input data and complete event processing:
 
-  free (pData);
+  Tcl_Free((char*)pData);
   return 1;
 
 
