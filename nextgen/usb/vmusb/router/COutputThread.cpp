@@ -1,4 +1,4 @@
-*
+/*
     This software is Copyright by the Board of Trustees of Michigan
     State University (c) Copyright 2005.
 
@@ -34,7 +34,11 @@
 #include <iostream>
 #include <CRingBuffer.h>
 
-#include <CRingStateChange.h>
+#include <CRingStateChangeItem.h>
+#include <CRingPhysicsEventCountItem.h>
+#include <CRingScalerItem.h>
+
+#include <sys/time.h>
 
 
 
@@ -412,9 +416,9 @@ COutputThread::processEvents(DataBuffer& inBuffer)
  * @param runOffset - seconds intothe run at which this is being emitted.
  */
 void
-COutputThread::outputTriggerCount(runOffset)
+COutputThread::outputTriggerCount(uint32_t runOffset)
 {
-  CRingPhysicsEventCountItem item(m_nEventsSeen, runoffset);
+  CRingPhysicsEventCountItem item(m_nEventsSeen, runOffset);
   item.commitToRing(*m_pRing);
 }
 
@@ -478,7 +482,7 @@ COutputThread::scaler(void* pData)
 
   // Create the final scaler item and submit it to the ring.
 
-  CRingScalerItem scalers(nScalers, m_elapsedTime, endTime, timestamp, counterData);
+  CRingScalerItem scalers(m_elapsedSeconds, endTime, timestamp, counterData);
   scalers.commitToRing(*m_pRing);
 
 }
@@ -562,8 +566,8 @@ COutputThread::event(void* pData)
     // Put the data in the event and figure out where the end pointer is.
 
     void* pDest = event.getBodyPointer();
-    memcpy(pDest, m_pBuffer);
-    uint8_t* pEnd = reinterpret_cdast<uint8_t*>(pDest);
+    memcpy(pDest, m_pBuffer, m_nWordsInBuffer);
+    uint8_t* pEnd = reinterpret_cast<uint8_t*>(pDest);
     pEnd += m_nWordsInBuffer*sizeof(uint16_t); // Where the new body cursor goes.
 
     event.setBodyCursor(pEnd);
@@ -617,5 +621,5 @@ COutputThread::attachRing()
     CRingBuffer::create(m_ringName);
   }
 
-  m_pRing = new CRingBuffer(m_ringName CRingBuffer::producer);
+  m_pRing = new CRingBuffer(m_ringName, CRingBuffer::producer);
 }
