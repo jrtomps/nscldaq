@@ -25,11 +25,13 @@ libVMUSBDevices_la_SOURCES	= 	CConfigurableObject.cpp	\
 INCLUDES	= 	-I$(top_builddir)/usb/vmusb/vmusb 	\
 			-I$(top_builddir)/usb/vmusb/daqconfig 	\
 			-I$(top_builddir)/usb/vmusb		\
-			@TCL_FLAGS@ $(SPECTRODAQ_FLAGS)
+			-I$(top_builddir)/base/tclplus          \
+			@TCL_FLAGS@ 
 
 
 libVMUSBDevices_la_LIBADD	= $(top_builddir)/usb/vmusb/vmusb/libVMUSB.la \
-				  @TCL_LDFLAGS@ $(SPECTRODAQ_LDFLAGS) \
+				$(top_builddir)/base/tclplus/libtclPlus.la \
+				  @TCL_LDFLAGS@ \
 				-lm
 
 include_HEADERS			= 	CConfigurableObject.h	\
