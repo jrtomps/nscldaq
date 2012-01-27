@@ -18,7 +18,7 @@ VMUSBReadout_DEPENDENCIES = cmdline.o
 
 BUILT_SOURCES = cmdline.h
 
-include_HEADERS = CTheApplication.h Globals.h
+noinst_HEADERS = CTheApplication.h Globals.h
 
 INCLUDES = -I$(top_srcdir)/usb/vmusb/vmusb -I$(top_srcdir)/usb/vmusb/devices -I$(top_srcdir)/usb/vmusb/threadcomm -I$(top_srcdir)/usb/vmusb/router -I$(top_srcdir)/usb/vmusb/rdothreaed \
 	-I$(top_srcdir)/usb/vmusb/tclserver -I$(top_srcdir)/usb/vmusb/daqconfig -I$(top_srcdir)/usb/vmusb/commands  \
@@ -51,3 +51,5 @@ cmdline.h: commandline.ggo
 cmdline.o: commandline.ggo
 	$(GENGETOPT) <commandline.ggo
 	$(CC) -c -I. cmdline.c $(THREADCFLAGS)
+
+EXTRA_DIST=commandline.ggo

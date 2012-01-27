@@ -12,7 +12,7 @@ libVMUSBRemote_la_SOURCES = CVMUSBReadoutList.cpp \
 
 
 
-include_HEADERS		= CVMUSB.h   \
+noinst_HEADERS		= CVMUSB.h   \
 	CVMUSBReadoutList.h  \
 	CVMUSBRemote.h       \
 	CSocket.h		\

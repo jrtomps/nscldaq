@@ -36,7 +36,7 @@ libVMUSBDevices_la_LIBADD	= $(top_builddir)/usb/vmusb/vmusb/libVMUSB.la \
 				  @TCL_LDFLAGS@ \
 				-lm @THREADLD_FLAGS@
 
-include_HEADERS			= 	CConfigurableObject.h	\
+noinst_HEADERS			= 	CConfigurableObject.h	\
 					CReadoutModule.h 	\
 					CReadoutHardware.h 	\
 					C3820.h			\
@@ -58,7 +58,9 @@ include_HEADERS			= 	CConfigurableObject.h	\
 					CHINP.h \
 					CPSD.h			\
 					CV1729.h		\
-					CV1495sc.h
+					CV1495sc.h		\
+					CCAENV1x90Opcodes.h	\
+					CCAENV1x90Registers.h
 
 
 TESTS=configtest.cpp c785test.cpp c3820test.cpp

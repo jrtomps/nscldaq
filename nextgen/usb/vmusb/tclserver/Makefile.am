@@ -17,7 +17,7 @@ libControlServer_la_SOURCES	= 	CControlHardware.cpp	\
 					CMonCommand.cpp         \
 					Server.cpp
 
-include_HEADERS			=	CGDG.h			\
+noinst_HEADERS			=	CGDG.h			\
 					CV812.h			\
 					CV6533.h		\
 					CVMUSBModule.h		\

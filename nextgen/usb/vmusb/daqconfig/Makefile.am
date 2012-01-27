@@ -23,7 +23,7 @@ libConfig_la_SOURCES	= 	CADCCommand.cpp		\
 libConfig_la_CXXFLAGS=@THREADCXX_FLAGS@
 
 
-include_HEADERS		=	CADCCommand.h  		\
+noinst_HEADERS		=	CADCCommand.h  		\
 				CConfiguration.h 	\
 				CScalerCommand.h	\
 				CCAENChainCommand.h	\

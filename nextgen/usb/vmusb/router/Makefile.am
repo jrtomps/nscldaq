@@ -3,7 +3,7 @@ libRouter_la_SOURCES	= 	COutputThread.cpp	\
 				CRunState.cpp  		\
 				DataBuffer.cpp
 
-include_HEADERS		=	COutputThread.h		\
+noinst_HEADERS		=	COutputThread.h		\
 				CRunState.h  		\
 				DataBuffer.h
 
