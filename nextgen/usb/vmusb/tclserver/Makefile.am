@@ -29,21 +29,24 @@ include_HEADERS			=	CGDG.h			\
 					CMonCommand.h          \
 					TclServer.h
 
-INCLUDES			= 	-I$(top_builddir)/vmusb		\
-					-I$(top_builddir)/devices	\
-					-I$(top_builddir)/threadcomm	\
-					-I$(top_builddir)/rdothread	\
-					-I$(top_builddir)/router	\
+INCLUDES			= 	-I$(top_builddir)/usb/vmusb/vmusb		\
+					-I$(top_builddir)/usb/vmusb/devices	\
+					-I$(top_builddir)/usb/vmusb/threadcomm	\
+					-I$(top_builddir)/usb/vmusb/rdothread	\
+					-I$(top_builddir)/usb/vmusb/router	\
+					-I$(top_builddir)/usb/vmusb	\
 					-I$(top_srcdir)/base/tclplus    \
-					@TCL_FLAGS@ 	\
-					@SPECTRODAQ_FLAGS@
+					-I$(top_srcdir)/base/headers \
+					-I$(top_srcdir)/base/exception	\
+					-I$(top_srcdir)/base/thread	\
+					@TCL_FLAGS@
 
-libControlServer_la_LIBADD	= 	$(top_builddir)/vmusb/libVMUSB.la          \
-					$(top_builddir)/devices/libVMUSBDevices.la \
-					$(top_builddir)/threadcomm/libThreadComm.la \
-					$(top_builddir)/rdothread/libRdoThread.la \
-					$(top_builddir)/router/libRouter.la	\
+libControlServer_la_LIBADD	= 	$(top_builddir)/usb/vmusb/vmusb/libVMUSB.la          \
+					$(top_builddir)/usb/vmusb/devices/libVMUSBDevices.la \
+					$(top_builddir)/usb/vmusb/threadcomm/libThreadComm.la \
+					$(top_builddir)/usb/vmusb/rdothread/libRdoThread.la \
+					$(top_builddir)/usb/vmusb/router/libRouter.la	\
 					$(top_srcdir)/base/tclplus/libtclPlus.la \
-					@TCL_LDFLAGS@				\
-					 -lTclPlus -lException	\
-					@SPECTRODAQ_LDFLAGS@
+					$(top_srcdir)/base/exception/libException.la \
+					$(top_srcdir)/base/thread/libdaqthreads.la \
+					@TCL_LDFLAGS@

@@ -15,6 +15,9 @@
 #include <CControlModule.h>
 
 
+
+using namespace std;
+
 /**
  * Construct the command object.  This is
  * given the command name 'mon'.

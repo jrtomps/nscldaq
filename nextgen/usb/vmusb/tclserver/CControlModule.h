@@ -78,6 +78,8 @@ public:
   std::string Set(CVMUSB& vme, const char* what, const char* value);
   std::string Get(CVMUSB& vme, const char* what);
 
+  void onAttach() {}		/* No op required to derive from CConfigurableObject */
+
   // Monitor list handling methods:
 
   void addMonitorList(CVMUSBReadoutList& vmeList);

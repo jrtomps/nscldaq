@@ -132,7 +132,7 @@ public:
   virtual void run();
 
 protected:
-  int operator()(int argc, char** argv);
+  int operator()();
 
 private:
   void initInterpreter();
