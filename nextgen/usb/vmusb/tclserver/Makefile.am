@@ -1,4 +1,7 @@
 lib_LTLIBRARIES			= libControlServer.la
+
+libControlServer_la_CXXFLAGS	= @THREADCXX_FLAGS@
+
 libControlServer_la_SOURCES	= 	CControlHardware.cpp	\
 					CModuleCommand.cpp	\
 					TclServer.cpp		\
@@ -49,4 +52,4 @@ libControlServer_la_LIBADD	= 	$(top_builddir)/usb/vmusb/vmusb/libVMUSB.la       
 					$(top_srcdir)/base/tclplus/libtclPlus.la \
 					$(top_srcdir)/base/exception/libException.la \
 					$(top_srcdir)/base/thread/libdaqthreads.la \
-					@TCL_LDFLAGS@
+					@TCL_LDFLAGS@ @THREADLD_FLAGS@

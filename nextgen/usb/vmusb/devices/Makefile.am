@@ -28,11 +28,13 @@ INCLUDES	= 	-I$(top_builddir)/usb/vmusb/vmusb 	\
 			-I$(top_builddir)/base/tclplus          \
 			@TCL_FLAGS@ 
 
+libVMUSBDevices_la_CXXFLAGS=@THREADCXX_FLAGS@
+
 
 libVMUSBDevices_la_LIBADD	= $(top_builddir)/usb/vmusb/vmusb/libVMUSB.la \
 				$(top_builddir)/base/tclplus/libtclPlus.la \
 				  @TCL_LDFLAGS@ \
-				-lm
+				-lm @THREADLD_FLAGS@
 
 include_HEADERS			= 	CConfigurableObject.h	\
 					CReadoutModule.h 	\

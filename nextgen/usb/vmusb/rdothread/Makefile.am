@@ -2,6 +2,8 @@ lib_LTLIBRARIES		= libRdoThread.la
 libRdoThread_la_SOURCES	= CAcquisitionThread.cpp 	\
 			CControlQueues.cpp
 
+libRdoThread_CXXFLAGS = @THREADCXX_FLAGS@
+
 include_HEADERS		= CAcquisitionThread.h		\
 			CControlQueues.h
 
@@ -23,5 +25,5 @@ libRdoThread_la_LIBADD	= @top_srcdir@/usb/vmusb/threadcomm/libThreadComm.la	\
 			  @top_srcdir@/usb/vmusb/devices/libVMUSBDevices.la	\
 			  @top_srcdir@/usb/vmusb/vmusb/libVMUSB.la		\
 			@top_srcdir@/base/exception/libException.la             \
-			@top_srcdir@/base/thread/libdaqthreads.la
+			@top_srcdir@/base/thread/libdaqthreads.la @THREADLD_FLAGS@
 

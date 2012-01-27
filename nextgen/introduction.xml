@@ -435,7 +435,7 @@
             Manual pages aer installed at
             <literal>$DAQROOT/share/man</literal>, so that
             e.g. <command> man -M/usr/opt/daq/10.0/share/man spectcldaq</command>
-            will display the manpage for the <applicatino>spectcldaq</applicatino>
+            will display the manpage for the <application>spectcldaq</application>
             utility.
         </para>
         <section>
@@ -539,7 +539,7 @@
                             This section describes several pure Tcl applications.
                             There is some overlap between this section and
                             1daq.  For example, this section describes
-                            <applicatioon>ScalerDisplay</applicatioon> which,
+                            <application>ScalerDisplay</application> which,
                             while it is a pure Tcl application might just as
                             easily belong in the 1daq section.
                         </para>
@@ -575,7 +575,7 @@
                         </para>
                     </listitem>
                 </varlistentry>
-                <varlitentry>
+                <varlistentry>
                     <term>3daq</term>
                     <listitem>
                         <para>
@@ -583,7 +583,7 @@
                             for various stand alone APIs.
                         </para>
                     </listitem>
-                </varlitentry>
+                </varlistentry>
                 <varlistentry>
                     <term>3tcl</term>
                     <listitem><para>
