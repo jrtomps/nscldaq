@@ -17,12 +17,7 @@
 #ifndef __TCLSERVER_H
 #define __TCLSERVER_H
 using namespace std;
-#ifndef __SPECTRODAQ_H
-#include <spectrodaq.h>
-#ifndef __SPECTRODAQ_H
-#define __SPECTRODAQ_H
-#endif
-#endif
+
 
 #ifndef __STL_VECTOR
 #include <vector>
@@ -85,12 +80,14 @@ private:
 
 
 public:
-  DAQThreadId start(int port, const char* configFile, CCCUSB& vme);
+  void start(int port, const char* configFile, CCCUSB& vme);
   CControlModule* findModule(std::string name);
   void            addModule(CControlModule* pNewModule);
   void            setResult(std::string resultText);
+
+  virtual void    run();
 protected:
-  int operator()(int argc, char** argv);
+  int operator()();
 
 private:
   void initInterpreter();

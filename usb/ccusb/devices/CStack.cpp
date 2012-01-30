@@ -16,7 +16,7 @@
 
 #include <config.h>
 #include "CStack.h"
-
+#include <Globals.h>
 #include <CReadoutModule.h>
 #include <CCCUSB.h>
 #include <CCCUSBReadoutList.h>
@@ -255,6 +255,7 @@ CStack::enableStack(CCCUSB& controller)
   }
   else {
     int period = getIntegerParameter("-period");
+    Globals::scalerPeriod = period;
     period     = (period*2) << 16;	// position to register.
     controller.writeScalerControl(static_cast<uint32_t>(period));
   }

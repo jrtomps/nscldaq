@@ -18,12 +18,7 @@
 #define __COUTPUTTHREAD_H
 
 using namespace std;
-#ifndef __SPECTRODAQ_H
-#include <spectrodaq.h>
-#ifndef __SPECTRODAQ_H
-#define __SPECTRODAQ_H
-#endif
-#endif
+
 
 
 #ifndef __CRT_STDINT_H
@@ -43,6 +38,7 @@ using namespace std;
 // Forward definitions:
 
 struct DataBuffer;
+class CRingBuffer;
 
 /*!
     This class bridges the gap between the buffer format of the
@@ -103,15 +99,25 @@ private:
 
   // other data:
 private:
+  unsigned int m_elapsedSeconds;   // Seconds into the run.
   uint32_t    m_sequence;	   // Buffer sequence number.
   uint32_t    m_outputBufferSize;  // Bytes in output buffers.
   time_t      m_startTimestamp;    //!< Run start time.
   time_t      m_lastStampedBuffer; //!< Seconds into run of last stamped buffer.
+  std::string m_ringName;
+  CRingBuffer* m_pRingBuffer;
+  uint64_t    m_nEventsSeen;
+  
+  // Event assembly buffer:
 
+  uint8_t*     m_pBuffer;
+  uint8_t*     m_pCursor;
+  size_t       m_nWordsInBuffer;
+  
   // Constuctors and other canonicals.
 
 public:
-  COutputThread();
+  COutputThread(const char* pRing);
   virtual ~COutputThread();
 private:
   COutputThread(const COutputThread& rhs);
@@ -124,14 +130,13 @@ public:
   // from outside this class.. only from within the thread.. This includes the
   // thread entry point.
 
+public:
+  virtual void run();		// Entry point.
+
 protected:
 
-  virtual int operator()(int argc, char** argv); //!< Entry point.
+  virtual int operator()();	// Old style entry point.
 private:
-  void bufferToSpectrodaq(void* pBuffer, 
-			  unsigned int sdaqTag,
-			  size_t sdaqWords, 
-			  size_t copyInSize);
   DataBuffer& getBuffer();
   void freeBuffer(DataBuffer&  buffer);
 
@@ -139,11 +144,12 @@ private:
   void formatBuffer(DataBuffer& buffer);
   void startRun(DataBuffer& buffer);
   void endRun(DataBuffer&   buffer);
-  void scaler(DataBuffer&   buffer);
+  void scaler(void* pData);
   void events(DataBuffer&   buffer);
+  void event(void* pData);
 
-  void formatControlBuffer(uint16_t type, void* buffer);
-  uint16_t eventCount(void* nsclBuffer, size_t maxBytes);
+  void attachRing();
+  uint8_t* newOutputBuffer();
 
 };
 

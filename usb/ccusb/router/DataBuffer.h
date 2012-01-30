@@ -65,18 +65,18 @@ extern CBufferQueue<DataBuffer*>  gFreeBuffers;
 extern DataBuffer* createDataBuffer(uint32_t bodySize); //!< Create a new data buffer.
 extern void        destroyDataBuffer(DataBuffer* pBuffer); //!< Free data buffer.
 
-// The VMUSB header:
+// The CCUSB header:
 
-static const int VMUSBLastBuffer(0x8000);
-static const int VMUSBisScaler(0x4000);
-static const int VMUSBContinuous(0x2000);
-static const int VMUSBMultiBuffer(0x1000);
-static const int VMUSBNEventMask(0x0fff);
+static const int CCUSBLastBuffer(0x8000);
+static const int CCUSBisScaler(0x4000);
+static const int CCUSBContinuous(0x2000);
+static const int CCUSBMultiBuffer(0x1000);
+static const int CCUSBNEventMask(0x0fff);
 
-static const int VMUSBContinuation(0x1000);
-static const int VMUSBEventLengthMask(0xfff);
-static const int VMUSBStackIdMask(0xe000);
-static const int VMUSBStackIdShift(13);
+static const int CCUSBContinuation(0x1000);
+static const int CCUSBEventLengthMask(0xfff);
+static const int CCUSBStackIdMask(0x1000);
+static const int CCUSBStackIdShift(13);
 
 // Buffer types;
 

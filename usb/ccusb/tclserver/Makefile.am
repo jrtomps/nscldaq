@@ -30,8 +30,7 @@ INCLUDES			= 	-I$(top_builddir)/ccusb		\
 					-I$(top_builddir)/threadcomm	\
 					-I$(top_builddir)/rdothread	\
 					-I$(top_builddir)/router	\
-					@TCL_FLAGS@ @NSCLDAQ_FLAGS@	\
-					@SPECTRODAQ_FLAGS@
+					@TCL_FLAGS@
 
 libControlServer_la_LIBADD	= 	$(top_builddir)/ccusb/libCCUSB.la          \
 					$(top_builddir)/devices/libVMUSBDevices.la \
@@ -39,5 +38,4 @@ libControlServer_la_LIBADD	= 	$(top_builddir)/ccusb/libCCUSB.la          \
 					$(top_builddir)/rdothread/libRdoThread.la \
 					$(top_builddir)/router/libRouter.la	\
 					@TCL_LDFLAGS@				\
-					@NSCLDAQ_LIB@ -lTclPlus -lException	\
-					@SPECTRODAQ_LDFLAGS@
+					@NSCLDAQ_LIB@ -lTclPlus -lException

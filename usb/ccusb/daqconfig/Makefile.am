@@ -31,9 +31,8 @@ include_HEADERS		=	CConfiguration.h 	\
 
 
 INCLUDES		= 	-I@top_srcdir@/devices	\
-				$(NSCLDAQ_FLAGS) $(TCL_FLAGS) \
-				$(SPECTRODAQ_FLAGS)
+				$(TCL_FLAGS) \
 
 libConfig_la_LIBADD	=	@top_srcdir@/devices/libVMUSBDevices.la 	\
-				$(TCL_LDFLAGS) $(SPECTRODAQ_LDFLAGS)
+				$(TCL_LDFLAGS)
 

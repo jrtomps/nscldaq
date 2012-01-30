@@ -554,6 +554,11 @@ AC_CONFIG_FILES([Makefile
 		 usb/vmusb/threadcomm/Makefile usb/vmusb/router/Makefile
 		 usb/vmusb/rdothread/Makefile usb/vmusb/tclserver/Makefile 
 		 usb/vmusb/daqconfig/Makefile  usb/vmusb/commands/Makefile
+		 usb/ccusb/Makefile
+		 usb/ccusb/ccusb/Makefile usb/ccusb/devices/Makefile 
+		 usb/ccusb/threadcomm/Makefile usb/ccusb/router/Makefile
+		 usb/ccusb/rdothread/Makefile usb/ccusb/tclserver/Makefile 
+		 usb/ccusb/daqconfig/Makefile  usb/ccusb/commands/Makefile
 		 docbuild/Makefile
 		 docconfig/Makefile])
 

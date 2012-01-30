@@ -25,5 +25,7 @@ namespace Globals {
   string             configurationFilename;
   string             controlConfigFilename;
   CCCUSB*            pUSBController;
+  const uint32_t     bufferSize(4*1024*sizeof(uint16_t)); 
+  unsigned           scalerPeriod;
 
 };

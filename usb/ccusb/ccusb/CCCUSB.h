@@ -71,6 +71,7 @@ private:
     // Static functions.
 public:
     static std::vector<struct usb_device*> enumerate();
+    static std::string serialNo(struct usb_device* dev);
 
     // Constructors and other canonical functions.
     // Note that since destruction closes the handle and there's no

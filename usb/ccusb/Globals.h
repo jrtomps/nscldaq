@@ -44,6 +44,8 @@ namespace Globals {
   extern std::string     configurationFilename;
   extern std::string     controlConfigFilename;
   extern CCCUSB*         pUSBController;
+  extern const uint32_t  bufferSize;
+  extern const unsigned  scalerPeriod;
 };
 
 #endif

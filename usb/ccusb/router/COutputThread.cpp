@@ -22,7 +22,9 @@
 #include "DataBuffer.h"
 #include <string>
 #include <Exception.h>
-
+#include <ErrnoException.h>
+#include <CRingBuffer.h>
+#include <Globals.h>
 
 #include <assert.h>
 #include <buffer.h>
@@ -32,6 +34,12 @@
 #include <string.h>
 #include <time.h>
 #include <iostream>
+#include <CRingStateChangeItem.h>
+#include <CRingPhysicsEventCountItem.h>
+#include <CRingScalerItem.h>
+
+#include <sys/time.h>
+
 
 using namespace std;
 
@@ -58,6 +66,31 @@ typedef struct _EventBuffer {
   BHEADER      s_header;
   uint16_t     s_body[1];
 } EventBuffer, *pEventBuffer;
+
+////////////////////////////////////////////////////////////////////////
+//   mytimersub - since BSD timeval is not the same as POSIX timespec:
+////////////////////////////////////////////////////////////////////////
+static inline void 
+mytimersub(timespec* minuend, timespec* subtrahend, timespec* difference)
+{
+  // We'll cheat and map these to timevals, use timersub and convert back:
+  // this means we're only good to a microsecond not a nanosecond _sigh_
+  // if this is not good enough we'll do the subtraction manually later.
+
+  timeval m,s,d;
+  m.tv_sec   = minuend->tv_sec;
+  m.tv_usec  = minuend->tv_nsec/1000;
+
+  s.tv_sec   = subtrahend->tv_sec;
+  s.tv_usec  = subtrahend->tv_nsec/1000;
+
+  timersub(&m, &s, &d);
+
+  difference->tv_sec  = d.tv_sec;
+  difference->tv_nsec = d.tv_usec * 1000;
+}
+
+
 ////////////////////////////////////////////////////////////////////////
 ///////////////////// Construction and destruction /////////////////////
 ////////////////////////////////////////////////////////////////////////
@@ -69,14 +102,17 @@ typedef struct _EventBuffer {
    - Free buffer queue.
    - Run state.
 
-   In future applications this could be done to manage multiple VM-USB
-   controlled VME crates in 'singles mode'... or with a subsequent chunk of
-   software on the end of spectrodaq assembling data.
+   @param pRing - name of the ring buffer to which output will be sent.
 
 */
-COutputThread::COutputThread() : 
+COutputThread::COutputThread(const char* pRing) : 
   m_sequence(0),
-  m_outputBufferSize(0)		// Don't know yet.
+  m_outputBufferSize(0),		// Don't know yet.
+  m_ringName(pRing),
+  m_pRing(0),
+  m_pBuffer(0),
+  m_pCursor(0),
+  m_nEventsSeen(0)
 {
   
 }
@@ -85,22 +121,33 @@ COutputThread::COutputThread() :
 */
 COutputThread::~COutputThread()
 {
+  delete m_pRing;
 }
 
 ////////////////////////////////////////////////////////////////////////
 ////////////////////// Thread entry point... ///////////////////////////
 ////////////////////////////////////////////////////////////////////////
 
+/**
+ * Bridge between nscldaq 10 and spectrodaq threading:
+ */
+void
+COutputThread::run()
+{
+
+
+  (*this)();
+}
+
 /*
    Thread entry point.  This is just an infinite buffer processing loop.
 */
 int
-COutputThread::operator()(int argc, char** argv)
+COutputThread::operator()()
 {
   // Main loop is pretty simple.
-#ifdef LAST_CHANCE
   try {
-#endif
+    attachRing();		// Attach to the ring, creating it if needed.
     while(1) {
       
       DataBuffer& buffer(getBuffer());
@@ -108,7 +155,6 @@ COutputThread::operator()(int argc, char** argv)
       freeBuffer(buffer);
       
     }
-#ifdef LAST_CHANCE
   }
   catch (string msg) {
     cerr << "COutput thread caught a string exception: " << msg << endl;
@@ -127,7 +173,6 @@ COutputThread::operator()(int argc, char** argv)
     cerr << "COutput thread caught some other exception type.\n";
     throw;
   }
-#endif
 }
 
 /////////////////////////////////////////////////////////////////////////
@@ -135,38 +180,6 @@ COutputThread::operator()(int argc, char** argv)
 /////////////////////////////////////////////////////////////////////////
 
 
-/*
-   Send a formatted buffer to spectrodaq.
-   Parameters:
-     void*        pBuffer            - The formatted buffer.
-     unsigned int sdaqTag            - How to tag the buffer.
-     size_t       sdaqWords          - How big a Spectrodaq buffer to create.
-     size_t       copInSize          - words from pBuffer to copy to the spectrodaq
-                                       buffer.
-
-    Note that the spectrodaq buffer will be created, filled and routed
-    in this function.
-*/
-void
-COutputThread::bufferToSpectrodaq(void*          pBuffer,
-				  unsigned int   sdaqTag,
-				  size_t         sdaqWords,
-				  size_t         copyInSize)
-{
-  if (copyInSize > sdaqWords) {
-    cerr << "COutputThread::bufferToSpectrodaq - copy in size too big: "
-	 << "buffersize: " << sdaqWords << " copyInSize: " << copyInSize << endl;
-    copyInSize = sdaqWords;	// Truncate and try to keep going.
-
-  }
-  DAQWordBuffer sdaqBuffer(sdaqWords);
-  sdaqBuffer.SetTag(sdaqTag);
-  sdaqBuffer.CopyIn(pBuffer, 0, copyInSize);
-  sdaqBuffer.Route();
-
-  // This will finalize the buffer.
-
-}
 /*
    Get a buffer from the event queue.  A reference to the buffer will
    be returned.
@@ -220,17 +233,17 @@ COutputThread::processBuffer(DataBuffer& buffer)
   }
 }
 /*!
-   Format a buffer from the VM USB:
+   Format a buffer from the CC USB:
 */
 void
 COutputThread::formatBuffer(DataBuffer& buffer)
 {
-  uint16_t header = buffer.s_rawData[0]; // VMUSB header.
+  uint16_t header = buffer.s_rawData[0]; // CCUSB header.
   uint16_t firstEvhdr = buffer.s_rawData[1]; // First event buffer.
-  uint16_t listId = (firstEvhdr >> 13) & 0x7;	// 
+  uint16_t listId = ((firstEvhdr & CCUSBStackIdMask) >> CCUSBStackIdShift);	// 
   
   if (listId == ScalerStack) {
-    scaler(buffer);
+    scaler(&(buffer.s_rawData[1]));
   }
   else {			// In this version any stack is fair game.
     events(buffer);
@@ -239,7 +252,7 @@ COutputThread::formatBuffer(DataBuffer& buffer)
 
 /*
    Process a begin run pseudo buffer. I call this a psuedo buffer because
-   there will not be any data from the VM_usb for this
+   there will not be any data from the CC_usb for this
    We must:
    - Update our concept of the run state.
    - Set the m_outputBufferSize accordingly.
@@ -253,32 +266,40 @@ COutputThread::formatBuffer(DataBuffer& buffer)
 void
 COutputThread::startRun(DataBuffer& buffer)
 {
-  // Update our concept of run state, and buffer size:
+
+
+  time_t timestamp;
+
+  m_nOutputBufferSize = Globals::bufferSize;
+
+  if (time(&timestamp) == -1) {
+    throw CErrnoException("Failed to get the time in COutputThread::startRun");
+  }
+
+  // Update our concept of run state.
 
   CRunState* pState = CRunState::getInstance();
   m_runNumber       = pState->getRunNumber();
   m_title           = pState->getTitle();
-  m_sequence        = 0;
-  m_outputBufferSize= buffer.s_bufferSize + sizeof(BHEADER);
-  m_startTimestamp       = buffer.s_timeStamp;
-  m_lastStampedBuffer    = 0; 
 
-  // Allocate the Begin run buffer and fill it in.
-
-  pBeginRunBuffer p = static_cast<pBeginRunBuffer>(malloc(sizeof(BeginRunBuffer)));
-
-  formatControlBuffer(BEGRUNBF, p);
+  clock_gettime(CLOCK_REALTIME, &m_startTimestamp);
+  m_lastStampedBuffer = m_startTimestamp; // Last timestamped event...that is.
+  m_elapsedSeconds = 0;
   
+  m_nEventsSeen    = 0;
 
-  // Submit the buffer to spectrodaq as tag 2 and free it.
+  CRingStateChangeItem begin(BEGIN_RUN,
+			     m_runNumber,
+			     0,
+			     static_cast<uint32_t>(timestamp),
+			     m_title);
 
-  bufferToSpectrodaq(p, 3, m_outputBufferSize/sizeof(uint16_t), 
-		     sizeof(BeginRunBuffer)/sizeof(uint16_t));
-  free(p);
+  begin.commitToRing(*m_pRing);
+
 }
 /*
   Called when an end of run has occured.  The end of run
-  with a VMUSB is a data buffer.  We submit that data buffer.
+  with a CCUSB is a data buffer.  We submit that data buffer.
   by calling events, and then we generate an end of run buffer.
   for the DAQ system to use to note the change of run state.
   Parameters:
@@ -287,210 +308,274 @@ COutputThread::startRun(DataBuffer& buffer)
 void
 COutputThread::endRun(DataBuffer& buffer)
 {
-  // Process the data buffer:
-  
-  
-  pBeginRunBuffer p = static_cast<pBeginRunBuffer>(malloc(sizeof(BeginRunBuffer)));
-  formatControlBuffer(ENDRUNBF, p);
-  
-  // Submit to spectrodaq and free:
-  
-  bufferToSpectrodaq(p, 3, m_outputBufferSize/sizeof(uint16_t),
-		     sizeof(BeginRunBuffer)/sizeof(uint16_t));
-  free(p);
-}
+  free(m_pBuffer);
+  m_pBuffer = 0;
 
-/*
-  Format a scaler buffer.  Scaler buffers are contain a single event.
-  The VMUSB manual is not completely clear, but I think the event
-  consists of a normal event header followed, given the way I'm managing
-  scalers a list of 32 bit words that contain the scaler values.
-  For now we assume that there are no continuation cases...thsi is probably true as
-  we'd need more than 1000 scalers to exceed the eventlength field.
-*/
-void
-COutputThread::scaler(DataBuffer& buffer)
-{
-  
-  // first put the scalers in place..
-  
-  
-  uint16_t length = buffer.s_rawData[1] & VMUSBEventLengthMask;
-  length   = length * sizeof(uint16_t)/sizeof(uint32_t); // Count of longs.
-  uint32_t* pScalers = (uint32_t*)(&(buffer.s_rawData[2]));
-  
-  uint16_t  finalWordCount = sizeof(ScalerBuffer)/sizeof(uint16_t) + 
-    length*sizeof(uint32_t)/sizeof(uint16_t) - 1;
-  
-  pScalerBuffer outbuf  = static_cast<pScalerBuffer>(malloc(sizeof(ScalerBuffer)+m_outputBufferSize));
-  uint32_t* pDest = reinterpret_cast<uint32_t*>(outbuf->s_body.scalers);
-  for (int i = 0; i < length; i++) {
-    *pDest++ = *pScalers++ & 0xffffff;     // only 24 bits of data mean anything.
+  // Determine the absolute timestamp.
+
+  time_t stamp;
+  if (time(&stamp) == -1) {
+    throw CErrnoException("Failed  to get the timestamp in COutputThread::endRun");
   }
+ 
+  timespec microtime;
+  clock_gettime(CLOCK_REALTIME, &microtime);
+  timespec microdiff;
+  mytimersub(&microtime, &m_startTimestamp, &microdiff);
   
-  // fill in the header.
-  
-  outbuf->s_header.nwds   = finalWordCount;
-  outbuf->s_header.type   = 2;
-  outbuf->s_header.cks    = 0;
-  outbuf->s_header.run    = m_runNumber;
-  outbuf->s_header.seq    = m_sequence;
-  outbuf->s_header.nevt   = length; // This is the number of scalers.
-  outbuf->s_header.nlam   = 0;
-  outbuf->s_header.nbit   = 0;
-  outbuf->s_header.buffmt = BUFFER_REVISION;
-  outbuf->s_header.ssignature = 0x0102;
-  outbuf->s_header.lsignature = 0x01020304;
+  CRingStateChangeItem end(END_RUN,
+			   m_runNumber,
+			   microdiff.tv_sec,
+			   stamp,
+			   m_title);
 
-  // Now the body that does not have scaler data:
+  end.commitToRing(*m_pRing);
+			   
+}
 
-  outbuf->s_body.btime    = m_lastStampedBuffer;
-  m_lastStampedBuffer     = buffer.s_timeStamp - m_startTimestamp;
-  outbuf->s_body.etime    = m_lastStampedBuffer;
-  
-  // Submit the buffer and free it:
+/**
+ * Process a scaler event:
+ * - Figure out the time interval start/stop times, and the absolute time.
+ * - extract the vector of scalers from the CC-USB event.
+ * - Create and submit the CRingScalerItem to the ring.
+ *  
+ * @note We assume scaler events won't consist of more than 2048
+ *       scalers (e.g. the continuation bit is not set.
 
-  bufferToSpectrodaq(outbuf, 3, m_outputBufferSize/sizeof(uint16_t), finalWordCount);
-  free(outbuf);
-		     
+ * @param pData - Pointer to scaler data.
+ *
+ * @throw std::string - If a scaler buffer has a continuation segment.
+ * @throw CErrnoException - If we can't get the absolute timestamp.
+ * @throw std::string - From CRingBuffer if unable to commit the item to the ring.
+ */
+void
+COutputThread::scaler(void* pData)
+{
+
+
+  time_t timestamp;
+  if (time(&timestamp) == -1) {
+    throw CErrnoException("COutputThread::scaler unable to get the absolute timestamp");
+  }
+
+  // Figure out where the scalers are and fetch the event header.
+
+  uint16_t* pHeader = reinterpret_cast<uint16_t*>(pData);
+  uint16_t  header  = *pHeader;
+  uint32_t* pBody   = reinterpret_cast<uint32_t*>(pHeader+1); // Pointer to the scalers.
+
+  // See Issue #424 - for now throw an error  if there's a continuation segment:
+
+  if (header & CCUSBContinuation) {
+    throw std::string("Scaler continuation segments are not supported yet.");
+  }
+
+  // Figure out how many words/scalers there are:
+
+  size_t        nWords   =  header & CCUSBEventLengthMask;
+  size_t        nScalers =  nWords/(sizeof(uint32_t)/sizeof(uint16_t));
+
+  // Marshall the scalers into an std::vector:
+
+  std::vector<uint32_t> counterData;
+  for (int i = 0; i < nScalers; i++) {
+    counterData.push_back(*pBody++);
+  }
+
+  // The CCUSB does not timestamp scaler data for us at this time so we
+  // are going to rely on the scaler period to be correct:
+
+  uint32_t endTime = m_elapsedSeconds + Globals::scalerPeriod;
+
+  // Output a ring count item using this time:
+
+  outputTriggerCount(endTime);
+
+  // Create the final scaler item and submit it to the ring.
+
+  CRingScalerItem scalers(m_elapsedSeconds, endTime, timestamp, counterData);
+  scalers.commitToRing(*m_pRing);
 
 }
 
 
+
 /*
-   Format an event buffer. 
-   An event buffer's size is given by teh buffer's s_bufferSize field.
-   The body of the buffer is just copied to the body of the event buffer,
-   the event count however has to be determined by walking through the
-   events.  The VM-USB manual is unclear about whether or not the 
-   VMUSB is including the terminator words in the event count.
-   We'll assume it is for now and fix it if we detect later problems.
-   We know we've hit the end of a buffer when the first word of an event
-   is 0xffff since we don't use stack id 0xe (otherwise this is ambiguous
-   with a max length continuation field.
+  Process the events in an event buffer.  For each event segment, we're going to call
+  event to have it assemble and dispatch individual events.
+
+  @inBuffer - reference to the structure tht contains the buffer descriptor and buffer itself.
+
 */
 void 
-COutputThread::events(DataBuffer& buffer)
+COutputThread::events(DataBuffer& inBuffer)
 {
+  uint16_t* pContents = inBuffer.s_rawData;
+  int16_t  nEvents   = (*pContents) & CCUSBNEventMask;
+  bool     continuous = ((*pContents) & CCUSBContinuous) != 0;
+  bool     multibuffer = ((*pContents) & CCUSBMultiBuffer) != 0;
 
-
-  //  Create the output buffer first; and copy the
-  //  event data into it:
-
-  pEventBuffer p  = static_cast<pEventBuffer>(malloc(sizeof(EventBuffer)+m_outputBufferSize));
-  memcpy(p->s_body, &(buffer.s_rawData[1]), buffer.s_bufferSize  - sizeof(uint16_t));
-
-  //  Now the header except for nevt...
-
-  uint16_t finalLength = (sizeof(BHEADER) + buffer.s_bufferSize)/sizeof(uint16_t) - 1;
-  p->s_header.nwds   = finalLength;
-  p->s_header.type   = DATABF;
-  p->s_header.cks    = 0;
-  p->s_header.run    = m_runNumber;
-  p->s_header.seq    = m_sequence++;
-  p->s_header.nlam   = 0;
-  p->s_header.nbit   = 0;
-  p->s_header.buffmt = BUFFER_REVISION;
-  p->s_header.ssignature = 0x0102;
-  p->s_header.lsignature = 0x01020304;
-
-
-  // The event count
-
-  p->s_header.nevt   = eventCount(p, buffer.s_bufferSize);
-
-  // route the buffer and free it:
-
-  bufferToSpectrodaq(p, 2, m_outputBufferSize/sizeof(uint16_t), finalLength);
-  free(p);
-  lastBuffer = &buffer;  
-}
-
-
-/*
-   Format a control buffer.  A control buffer is a begin or end run buffer.
-   Parameters:
-     uint16_t   type     - Type of the buffer (e.g. BEGRUNBF).
-     void*      buffer   - Pointer to the buffer to forrmat.
-
-*/
-void
-COutputThread::formatControlBuffer(uint16_t type, void* buffer)
-{
-  pBeginRunBuffer p = static_cast<pBeginRunBuffer>(buffer);
-
-  // Header:
-  
-  p->s_header.nwds  = sizeof(BeginRunBuffer)/sizeof(uint16_t);
-  p->s_header.type  = type;
-  p->s_header.cks   = 0;	// Not using the checksum!!!
-  p->s_header.run   = m_runNumber;
-  p->s_header.seq   = m_sequence;
-  p->s_header.nevt  = 0;
-  p->s_header.nlam  = 0;
-  p->s_header.cpu   = 0;
-  p->s_header.nbit  = 0;
-  p->s_header.buffmt= BUFFER_REVISION;
-  p->s_header.ssignature = 0x0102;
-  p->s_header.lsignature = 0x01020304;
-
-
-  // Body:
-  
-  memset(p->s_body.title, 0, 80);
-  strncpy(p->s_body.title, m_title.c_str(), 79);
-
-  time_t t;
-  struct tm structuredtime;
-  time(&t);
-
-  p->s_body.sortim    = t - m_startTimestamp;
-
-
-  localtime_r(&t, &structuredtime);
-  p->s_body.tod.month = structuredtime.tm_mon;
-  p->s_body.tod.day   = structuredtime.tm_mday;
-  p->s_body.tod.year  = structuredtime.tm_year;
-  p->s_body.tod.hours = structuredtime.tm_hour;
-  p->s_body.tod.min   = structuredtime.tm_min;
-  p->s_body.tod.sec   = structuredtime.tm_sec;
-  p->s_body.tod.tenths= 0;	// Always 0 in unix.
-
-}
-/*
-   Compute the event count for a buffer of VMUSB data.
-   We step our way through the data counting cases where we have
-   event headers without the continuation bit set until we get
-   the 0xffff buffer terminator.
-   Parameters:
-   void* nsclBuffer   -  Pointer to an NSCL structured buffer whose body
-                         has vmusb data.
-*/
-
-uint16_t
-COutputThread::eventCount(void* nsclBuffer, size_t maxBytes)
-{
-  size_t maxWords = maxBytes/sizeof(uint16_t); // 16 bit word count.
-  pEventBuffer p = static_cast<pEventBuffer>(nsclBuffer);
-  uint16_t*    pb= p->s_body;
-  uint16_t events = 0;
-  size_t   words  = 0;
-
-  // Here we go:
-
-  while (*pb != 0xffff) {
-    uint16_t count = *pb & VMUSBEventLengthMask;
-    if (!(*pb & VMUSBContinuation)) {
-      events++;			// End of event.
-    }
-    pb += (count+1);		// The event length does not include evt header.
-    words += count+1;
-    if (words >= maxWords) {
-      cerr << "COutputThread::eventCount... running off end of buffer: " << words
-	   << endl;
-      break;
-    }
+  bufferNumber++;
+  if(continuous) {
+    cerr << "Buffer number " << bufferNumber << " is in continuous mode\n";
+  }
+  if (multibuffer) {
+    cerr << "Buffer number " << bufferNumber << "Spans buffer boundaries. \n";
   }
 
-  return events;
+
+  pContents++;			// Point to first event.
+  ssize_t    nWords    = (inBuffer.s_bufferSize)/sizeof(uint16_t) - 1; // Remaining words read.
+
+
+  while (nWords > 0) {
+    if (nEvents <= 0) {
+      // Next long should be 0xffffffff buffer terminator:
+      // I've seen this happen but it's not fatal...just go on to the next buffer.
+
+      uint32_t* pNextLong = reinterpret_cast<uint32_t*>(pContents);
+      if (*pNextLong != 0xffffffff) {
+	cerr << "Ran out of events but did not see buffer terminator\n";
+	cerr << nWords << " remaining unprocessed\n";
+      }
+
+      break;			// trusting event count vs word count(?).
+    }
+
+    // Pull the event length and stack number from the header:
+    // event length is not self inclusive and is in uint16_t units.
+
+    uint16_t header     = *pContents;
+    size_t   eventLength = header & CCUSBEventLengthMask;
+
+    event(pContents);
+
+    // Point at the next event and compute the remaining word and event counts.
+    
+    pContents += eventLength + 1; // Event count is not self inclusive.
+    nWords    -= (eventLength + 1);
+    nEvents--;
+  }
+
+  // I've seen the CCUSB hand me a bogus event count...but never a bogus
+  // buffer word count.  This is non fatal but reported.
+
+  if (nWords < 0) {
+    cerr << "Warning used up more than the buffer  by " << (-nWords) << endl;
+  }
+}
+/**
+ * Create a new output buffer.
+ * for now this is trivial
+ *
+ * @return uint8_t*
+ * @retval Pointer to the output buffer.
+ */
+uint8_t* 
+COutputThread::newOutputBuffer()
+{
+  return reinterpret_cast<uint8_t*>(malloc(m_nOutputBufferSize));
+  
+}
+/**
+/**
+ * Process a single event:
+ * - If necessary create the event assembly buffer and initialize its
+ *   cursor.
+ * - Put the segment in the event assembly buffer.
+ * - If there is a continuation segment we're done for now..as we'll get called again with the next
+ *   segment
+ * - If there is no continuation segment then we create and submit the output
+ *   event to the ring and reset the cursor.
+ *
+ * @param pData - pointer to a CCUSB event segment.
+ *
+ * @throws std::string - event overflows the output buffer.
+ * @throws std::string - Errors from the ring buffer classes.
+ *
+ * @note The data go in in native CCUSB format.  That's what the SpecTcl disassembler expects.
+ */
+void 
+COutputThread::event(void* pData)
+{
+  // If necessary make an new output buffer
+
+  if (!m_pBuffer) {
+    m_pBuffer        = newOutputBuffer();
+    m_pCursor        = m_pBuffer;
+    m_nWordsInBuffer = 0;	  
+  }
+
+  // Initialize the pointers to event bits and pieces.
+
+  uint16_t* pSegment = reinterpret_cast<uint16_t*>(pData);
+  uint16_t  header   = *pSegment;
+
+  // Figure out the header:
+ 
+  size_t segmentSize = header & CCUSBEventLengthMask;
+  bool   haveMore    = (header & CCUSBContinuation) != 0;
+  
+  // Events must currently fit in the buffer...otherwise we throw an error.
+
+  segmentSize += 1;		// Size is not self inclusive
+  if ((segmentSize + m_nWordsInBuffer) >= m_nOutputBufferSize/sizeof(uint16_t)) {
+    std::string msg = 
+      "An event would not fit in the output buffer, adjust bufferMultiplier in your config file";
+    throw 
+      std::string(msg);
+  }
+  // Next we can copy our data to the output buffer and update the cursro
+  // remembering that the size is not self inclusive:
+  //
+  memcpy(m_pCursor, pData, segmentSize*sizeof(uint16_t));
+  m_nWordsInBuffer += segmentSize;
+  m_pCursor += segmentSize*sizeof(uint16_t); // advance the cursor
+
+  
+
+  // If that was the last segment submit it and reset cursors and counters.
+
+  if (!haveMore) {			    // Ending segment:
+    CRingItem event(PHYSICS_EVENT, m_nWordsInBuffer*sizeof(uint16_t) + 100); // +100 really needed?
+
+    // Put the data in the event and figure out where the end pointer is.
+
+    void* pDest = event.getBodyPointer();
+    memcpy(pDest, m_pBuffer, m_nWordsInBuffer*sizeof(uint16_t));
+    uint8_t* pEnd = reinterpret_cast<uint8_t*>(pDest);
+    pEnd += m_nWordsInBuffer*sizeof(uint16_t); // Where the new body cursor goes.
+
+    event.setBodyCursor(pEnd);
+    event.updateSize();
+    event.commitToRing(*m_pRing);
+
+    // Reset the cursor and word count in the assembly buffer:
+
+    m_nWordsInBuffer = 0;
+    m_pCursor        = m_pBuffer;
+    
+    m_nEventsSeen++;
+  }
+
+}
+
+
+/**
+ * Attach to the ring buffer specified in m_ringName.  If that ring does not
+ * yet exist, it is created.  A pointer to the created CRingBuffer object is
+ * put in m_pRing
+ *
+ * @throws std::string if we can't attach to the ring or creation fails.
+ *                     The actual exceptions are tossed from the bowels of
+ *                     the CRingBuffer class.
+ */
+void
+COutputThread::attachRing()
+{
+  if (!CRingBuffer::isRing(m_ringName)) {
+    CRingBuffer::create(m_ringName);
+  }
+
+  m_pRing = new CRingBuffer(m_ringName, CRingBuffer::producer);
 }

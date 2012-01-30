@@ -18,7 +18,6 @@
 #define __CTHEAPPLICATION_H
 #include <config.h>
 using namespace std;
-#include <spectrodaq.h>
 
 
 class CTCLInterpreter;
@@ -35,18 +34,12 @@ struct Tcl_Interp;
    - Start the Tcl Server thread.
    - Pass control to the Tcl event loop.
 
-   Due to the way Spectrodaq clients work, we are not able to make a pure
-   singleton object with private constructors, because we will need to
-   make a static instantiation of the object.  However that static instance
-   provides us with the handles we need to get the tcl interpreter started and
-   extended.   There will be more comments about this in startTcl and
-   AppInit().
    
    Since the lifetime of this application is the lifetime of the program,
    storage management will be a bit sloppy.
 
 */
-class CTheApplication : DAQROCNode // Mandatory for spectrodaq init etc.
+class CTheApplication
 {
 private:
   static bool          m_Exists; //!< Enforce singletons via exceptions.
@@ -66,18 +59,20 @@ private:
 public:
 
   // entry point:
-protected:
+
   virtual int operator()(int argc, char** argv);
 
   // Segments of operation.
 
 private:
-  void startOutputThread();
-  void startTclServer();
+  void startOutputThread(const char* pRing);
+  void startTclServer(int port);
   void startInterpreter();
-  void createUsbController();
-  void setConfigFiles();
+  void createUsbController(const char* pSerialNo = NULL);
+  void setConfigFiles(const char* pDaqConfig, const char* pCtlConfig);
   void initializeBufferPool();
+  void enumerate();
+  std::string destinationRing(const char* pRingName);
 
   // static functions:
 

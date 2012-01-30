@@ -51,7 +51,7 @@ CCCUSB*             CAcquisitionThread::m_pCamac(0);
 CAcquisitionThread* CAcquisitionThread::m_pTheInstance(0);
 vector<CReadoutModule*> CAcquisitionThread::m_Stacks;
 
-DAQThreadId CAcquisitionThread::m_tid; // Thread id of the running thread.
+
 
 
 /*!
@@ -110,7 +110,7 @@ CAcquisitionThread::start(CCCUSB* usb,
   // starting the thread will eventually get operator() called and that
   // will do all the rest of the work in thread context.
 
-  m_tid = daq_dispatcher.Dispatch(*pThread);
+  this->Thread::start();
   
 }
 
@@ -129,14 +129,23 @@ CAcquisitionThread::isRunning()
 void
 CAcquisitionThread::waitExit()
 {
-  DAQThreadId id = getInstance()->Join(m_tid);
+  join();
+}
+
+/**
+ * Bridge between new and old threading model.
+ */
+void
+CAcquisitionThread::run()
+{
+  (*this)();
 }
 
 /*!
    Entry point for the thread.
 */
 int
-CAcquisitionThread::operator()(int argc, char** argv)
+CAcquisitionThread::operator()()
 {
   try {
     m_Running = true;		// Thread is off and running now.
@@ -288,7 +297,7 @@ CAcquisitionThread::processBuffer(DataBuffer* pBuffer)
   // In this version, all stack ids are good.  The output thread will ensure that
   // stack 1 completions are scalers and all others are events.
 
-  gFilledBuffers.queue(pBuffer);	// Send it on to be routed to spectrodaq in another thread.
+  gFilledBuffers.queue(pBuffer);	// Send it on to the output thread.
 }
 /*!
     startDaq start data acquisition from a standing stop. To do this we need to:

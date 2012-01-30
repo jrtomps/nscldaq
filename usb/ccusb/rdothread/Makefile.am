@@ -8,7 +8,7 @@ include_HEADERS		= CAcquisitionThread.h		\
 # add -DREPORT_ERRORS to INCLUDES below for verbose
 # error reporting info.
 
-INCLUDES		= $(SPECTRODAQ_FLAGS) $(NSCLDAQ_FLAGS) -I@top_srcdir@/threadcomm \
+INCLUDES		=  $(NSCLDAQ_FLAGS) -I@top_srcdir@/threadcomm \
 			-I@top_srcdir@/router				\
 			-I@top_srcdir@/devices				\
 			-I@top_srcdir@/ccusb
@@ -17,5 +17,5 @@ INCLUDES		= $(SPECTRODAQ_FLAGS) $(NSCLDAQ_FLAGS) -I@top_srcdir@/threadcomm \
 libRdoThread_la_LIBADD	= @top_srcdir@/threadcomm/libThreadComm.la	\
 			  @top_srcdir@/devices/libVMUSBDevices.la	\
 			  @top_srcdir@/ccusb/libCCUSB.la		\
-			$(SPECTRODAQ_LDFLAGS) $(NSCLDAQ_LIB) -lException
+			$(NSCLDAQ_LIB) -lException
 

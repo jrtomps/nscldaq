@@ -18,12 +18,7 @@
 #define __CACQUISITIONTHREAD_H
 
 using namespace std;		// required for spectrodaq includes.
-#ifndef __SPECTRODAQ_H
-#include <spectrodaq.h>
-#ifndef __SPECTRODAQ_H
-#define __SPECTRODAQ_H
-#endif
-#endif
+
 
 #ifndef __STL_VECTOR
 #include <vector>
@@ -43,6 +38,8 @@ using namespace std;		// required for spectrodaq includes.
 #include "CControlQueues.h"
 #endif
 
+#include <Thread.h>
+
 
 // forward class definitions.
 
@@ -58,11 +55,10 @@ struct DataBuffer;
    it gets started at the beginning of a run and politely requested to stop at
    the end of a run.
 */
-class CAcquisitionThread : public DAQThread
+class CAcquisitionThread : public Thread
 {
 private:
   static bool                   m_Running;	//!< thread is running.
-  static DAQThreadId            m_tid;          //!< ID of thread when running.
   static CCCUSB*                m_pCamac;		//!< VME interface.
 
   static std::vector<CReadoutModule*>  m_Stacks;       //!< the stacks to run.
@@ -85,8 +81,10 @@ public:
   static bool isRunning();
   static void waitExit();	/* Wait for this thread to exit (join). */
 
+  virtual void run();
+
 protected:
-  virtual int operator()(int argc, char** argv);
+  virtual int operator()();
 private:
   void mainLoop();
   void processCommand(CControlQueues::opCode command);

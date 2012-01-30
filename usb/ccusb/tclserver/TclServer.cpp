@@ -68,7 +68,7 @@ TclServer::~TclServer()
 
 */
 
-DAQThreadId
+void
 TclServer::start(int port, const char* configFile, CCCUSB& vme)
 {
   // Set up the member data needed to run the thread...
@@ -79,7 +79,7 @@ TclServer::start(int port, const char* configFile, CCCUSB& vme)
 
   // Schedule the thread for execution:
 
-  m_tid = daq_dispatcher.Dispatch(*this);
+  this->Thread::start();
 
   return m_tid;
 }
@@ -125,6 +125,14 @@ TclServer::setResult(string msg)
   
   
 }
+/**
+ * Bridges nscldaq-10 and spectrodaq threadingmodel.
+ */
+void
+TclServer::run()
+{
+  (*this)();
+}
 /*!
    Entry point for the thread.  This will be called when the thread is first
    scheduled after start was called.  We just need to call our
@@ -133,7 +141,7 @@ TclServer::setResult(string msg)
    we need) and we never return.
 */
 int
-TclServer::operator()(int argc, char** argv)
+TclServer::operator()()
 {
   try {
     initInterpreter();		// Create interp and add commands.

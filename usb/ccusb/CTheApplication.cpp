@@ -51,11 +51,10 @@ using namespace std;
 
 //   Configuration constants:
 
-static const int    tclServerPort(27000);
-static const string daqConfigBasename("daqconfig.tcl");
-static const string ctlConfigBasename("controlconfig.tcl");
+static const int    tclServerPort(27000); // Default Tcl server port.
+static  string daqConfigBasename("daqconfig.tcl");
+static  string ctlConfigBasename("controlconfig.tcl");
 static const uint32_t bufferCount(32); // Number of buffers that can be inflight.
-static const uint32_t bufferSize(4*1024*sizeof(uint16_t)); // 4kword buffers...+pad
 
 
 // Static member variables and initialization.
@@ -82,6 +81,7 @@ CTheApplication::~CTheApplication()
 {
 }
 
+
 /*!
    Thread entry point.  We don't care that much about our command line parameters.
    Note that the configuration files are as follows:
@@ -99,19 +99,35 @@ CTheApplication::~CTheApplication()
 */
 int CTheApplication::operator()(int argc, char** argv)
 {
+  struct gengetopt_args_info arg_struct; // parsed command line args.
+
   m_Argc   = argc;		// In case someone else wants them.
   m_Argv   = argv; 
 
 
+  // Parse the command line parameters.  This exits on failure:
+
+  cmdline_parser(argc, argv, &arg_struct);
+
+
+
   cerr << "CC-USB scriptable readout version " << versionString << endl;
+
+  // If we were just asked to enumerate the interfaces do so and exit:
+
+  if(arg_struct.enumerate_given) {
+    enumerate();
+    exit(EXIT_SUCCESS);
+  }
 
   try {				// Last chance exception catching...
     
-    createUsbController();
-    setConfigFiles();
+    createUsbController(arg_struct.serialno_given ? arg_struct.serialno_arg : NULL);
+    setConfigFiles(arg_struct.daqconfig_given ? arg_struct.daqconfig_arg : NULL,
+		   arg_struct.ctlconfig_given ? arg_struct.ctcconfig_arg : NULL);
     initializeBufferPool();
-    startOutputThread();
-    startTclServer();
+    startOutputThread(arg_struct.ring_given ? arg_struct.ring_arg : NULL);
+    startTclServer(arg_strut.port_given ? arg_struct.port_arg : tclServerPort);
     startInterpreter();
   }
   catch (string msg) {
@@ -138,14 +154,17 @@ int CTheApplication::operator()(int argc, char** argv)
 /*
    Start the output thread.  This thread is responsible for 
    reformatting and transferring buffers of data from the CC-USB to 
-   spectrodaq.  This thread is continuously running for the life of the program.
+   a ring.  This thread is continuously running for the life of the program.
    .. therefore we are sloppy with storage management.
+
+   @param ring - Name of the ring COutputThread will use as its output
+
 */
 void
-CTheApplication::startOutputThread()
+CTheApplication::startOutputThread(const char* pRing)
 {
-  COutputThread* router = new COutputThread;
-  daq_dispatcher.Dispatch(*router);
+  COutputThread* router = new COutputThread(pRing);
+  router->start();
 
 }
 
@@ -160,30 +179,73 @@ CTheApplication::startInterpreter()
   Tcl_Main(m_Argc, m_Argv, CTheApplication::AppInit);
 }
 
-/*
-   Create the USB controller.  The usb controller will be the first
-   one available (should be the only one).  It is a failable error for
-   there not to be any controllers.
+/*!
+   Create the USB controller.  
+   
+   @param  pSerialNo - If not null, the serial number of the CC-USB to
+                       use. Otherwise, the first one in the enumeration is used.
+
 */
 void
-CTheApplication::createUsbController()
+CTheApplication::createUsbController(const char* pSerialNo)
 {
   vector<struct usb_device*> controllers = CCCUSB::enumerate();
+  struct usb_device* pMyController(0);
+
   if (controllers.size() == 0) {
     cerr << "There appear to be no CC-USB controllers so I can't run\n";
     exit(EX_CONFIG);
   }
-  Globals::pUSBController = new CCCUSB(controllers[0]);
+  // If necessary locate the correct device:
 
+  if (pSerialNo) {
+    for (int i = 0; i < controllers.size(); i++) {
+      if (CCCUSB::serialNo(controllers[i]) == pSerialNo) {
+	pMyController = controllers[i];
+	break;
+      }
+    }
+  } else {
+    pMyController = controllers[0];
+  }
+  // This only fails if the serial number was provided
+
+  if (!pMyController) {
+    std::string msg = "Unable to find a CC-USB with the serial number: ";
+    msg += pSerialNo;
+    throw msg;
+  }
+
+  Globals::pUSBController = new CCCUSB(pMyController);
+
+}
+
+/**
+ * Enumerate the controller serial numbers to stdout:
+ */
+void 
+CTheApplication::enumerate()
+{
+  std::vector<struct usb_device*> ccusbs = CCCUSB::enumerate();
+  for (i = 0; i < ccusbs.size(); i++) {
+    std::cout << "[" << i << "] : " << CCCUSB::serialNo(ccusbs[i]) << std::endl;
+  }
 }
 /* 
   Set the configuration files to the global storage
+
+  @param pDaqConfig - if not null a pointer to the to the path to the daq configuration
+                      file.  If null a default is used.
+  @param pCtlConfig - if not null a pointer to the path to the contrl configuration.
+                      if null a default is used.
+
+
 */
 void
-CTheApplication::setConfigFiles()
+CTheApplication::setConfigFiles(const char* pDaqConfig, const char* pCtlConfig)
 {
-  Globals::configurationFilename = makeConfigFile(daqConfigBasename);
-  Globals::controlConfigFilename = makeConfigFile(ctlConfigBasename);
+  Globals::configurationFilename = pDaqConfig > pDaqConfig : makeConfigFile(daqConfigBasename);
+  Globals::controlConfigFilename = pCtlConfig ? pCtlConfig : makeConfigFile(ctlConfigBasename);
 
 }
 
@@ -265,14 +327,14 @@ int main(int argc, char** argv, char** env)
    Create the buffer pool.  The following are configurable parameters at the
    top of this file;
    - bufferCount  - Number of buffers to create.
-   - bufferSize   - Size (in bytes) of the buffer (payload).
+   - Globals::bufferSize   - Size (in bytes) of the buffer (payload).
 
 */
 void
 CTheApplication::initializeBufferPool()
 {
   for(uint i =0; i < bufferCount; i++) {
-    DataBuffer* p = createDataBuffer(bufferSize);
+    DataBuffer* p = createDataBuffer(Globals::bufferSize);
     gFreeBuffers.queue(p);
   }
 }
@@ -280,11 +342,67 @@ CTheApplication::initializeBufferPool()
    Start the Tcl server.  It will listen on port tclServerPort, seee above..
    Again, the tcl server runs the lifetime of the program so we are 
    sloppy about storage management.
+
+   @param port - the port on which the tcl server will listen.
 */
 void
-CTheApplication::startTclServer()
+CTheApplication::startTclServer(int port)
 {
   TclServer* pServer = new TclServer;
-  pServer->start(tclServerPort, Globals::controlConfigFilename.c_str(),
+  pServer->start(port, Globals::controlConfigFilename.c_str(),
 		   *Globals::pUSBController);
+}
+/**
+ * Determine the output ring.  If one is specified that one is used.
+ * if not, a ring named after the current logged in user is used instead.
+ * getpwuid_r is used because it is thread safe.
+ * 
+ * @param pRingName - If not null, this is the name of the ring and overrides the default ring.
+ *                    If null a default ring name is constructed and returned.
+ * 
+ * @return std::string
+ * @retval Name of ring to which we should connnect.
+ *
+ * @throws std::string - If the ring name is defaulted but  we can't figure out what it should be
+ *                       due to system call failures.
+ */
+std::string
+CTheApplication::destinationRing(const char* pRingName)
+{
+  if (pRingName) {
+    return std::string(pRingName);
+  } else {
+    uid_t uid = getuid();	// Currently running user.
+    struct passwd  Entry;
+    struct passwd* pEntry;
+    char   dataStorage[1024];	// Storage used by getpwuid_r(3).
+
+    if (getpwuid_r(uid, &Entry, dataStorage, sizeof(dataStorage), &pEntry)) {
+      int errorCode = errno;
+      std::string errorMessage = 
+	"Unable to determine the current username in CTheApplication::destinationRing: ";
+    errorMessage += strerror(errorCode);
+    throw errorMessage;
+
+    }
+    return string(Entry.pw_name);
+  }
+}
+
+
+/**
+ * Create the application object and transfer control to it.
+ *
+ * @param argc - number of command line words.
+ * @param argv - array of pointers to comandline words argv[0] points to the
+ *              name of the program as typed on the command line.
+ *
+ * @return int
+ *
+ */
+int 
+main(int argc, char** argv)
+{
+  CTheApplication app;
+  return app(argc, argv);
 }

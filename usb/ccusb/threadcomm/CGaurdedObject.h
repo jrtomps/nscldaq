@@ -18,12 +18,14 @@
 #define __CGAURDEDOBJECT_H
 using namespace std;		// Needed for spectrodaq includes.
 
-#ifndef __SPECTRODAQ_H
-#include <spectrodaq.h>
-#ifndef __SPECTRODAQ_H
-#define __SPECTRODAQ_H
+#ifndef __PTHREAD_H
+#include <pthread.h>
+#ifndef __PTHREAD_H
+#define __PTHREAD_H
 #endif
 #endif
+
+
 
 
 /*!
@@ -35,11 +37,26 @@ using namespace std;		// Needed for spectrodaq includes.
 class CGaurdedObject
 {
 private:
-  DAQThreadMutex  m_Mutex;	// The gaurd is a pthreads mutex.
+  pthread_mutex_t* m_mutex;
+
 public:
+
+  // Canonicals.
+
+  CGaurdedObject();
+  virtual ~CGaurdedObject();
+
+  // Forbid copying:
+
+private:
+  CGaurdedObject(const CGaurdedObject&);
+  CGaurdedObject& operator=(const CGaurdedObject&);
+  
+public:
+
   void Enter();			//!< Enter a critical region.
   void Leave();			//!< Leave a critical region.
-  DAQThreadMutex& mutex();	//!< Return the underlying mutex object.
+  pthread_mutex_t& mutex();	//!< Return the underlying mutex object.
 };
 
 

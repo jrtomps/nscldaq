@@ -16,11 +16,11 @@ libVMUSBDevices_la_SOURCES	= 	CConfigurableObject.cpp	\
 
 INCLUDES	= 	-I$(top_builddir)/ccusb \
 			-I$(top_builddir)/daqconfig \
-			@TCL_FLAGS@ $(SPECTRODAQ_FLAGS)
+			@TCL_FLAGS@ 
 
 
 libVMUSBDevices_la_LIBADD	= $(top_builddir)/ccusb/libCCUSB.la \
-				  @TCL_LDFLAGS@ $(SPECTRODAQ_LDFLAGS)
+				  @TCL_LDFLAGS@ 
 
 include_HEADERS			= 	CConfigurableObject.h	\
 					CReadoutModule.h 	\
