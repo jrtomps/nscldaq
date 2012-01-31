@@ -1085,10 +1085,6 @@ CCCUSB::loadList(uint8_t  listNumber, CCCUSBReadoutList& list)
   uint16_t* outPacket = listToOutPacket(ta, list, &packetSize);
 
 
-  uint32_t   inPacket;		// I don't think we get anything actually?
-
-
-
   int status = usb_bulk_write(m_handle, ENDPOINT_OUT,
 			      reinterpret_cast<char*>(outPacket),
 			      packetSize, m_timeout);
