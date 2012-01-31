@@ -1,5 +1,5 @@
-lib_LTLIBRARIES 		= libVMUSBDevices.la
-libVMUSBDevices_la_SOURCES	= 	CConfigurableObject.cpp	\
+lib_LTLIBRARIES 		= libCCUSBDevices.la
+libCCUSBDevices_la_SOURCES	= 	CConfigurableObject.cpp	\
 					CReadoutModule.cpp	\
 					CReadoutHardware.cpp	\
 					CPH7xx.cpp	\
@@ -14,15 +14,16 @@ libVMUSBDevices_la_SOURCES	= 	CConfigurableObject.cpp	\
 					CPH7132.cpp
 
 
-INCLUDES	= 	-I$(top_builddir)/ccusb \
-			-I$(top_builddir)/daqconfig \
+INCLUDES	= 	-I$(top_srcdir)/usb/ccusb/ccusb \
+			-I$(top_srcdir)/usb/ccusb/daqconfig \
+			-I$(top_srcdir)/usb/ccusb		\
 			@TCL_FLAGS@ 
 
 
-libVMUSBDevices_la_LIBADD	= $(top_builddir)/ccusb/libCCUSB.la \
+libCCUSBDevices_la_LIBADD	= $(top_builddir)/usb/ccusb/ccusb/libCCUSB.la \
 				  @TCL_LDFLAGS@ 
 
-include_HEADERS			= 	CConfigurableObject.h	\
+noinst_HEADERS			= 	CConfigurableObject.h	\
 					CReadoutModule.h 	\
 					CReadoutHardware.h 	\
 					CStack.h		\

@@ -42,6 +42,10 @@ static const char* versionString = "V2.0";
 #include <stdlib.h>
 #include <stdint.h>
 #include <unistd.h>
+#include <sys/types.h>
+#include <pwd.h>
+
+#include "cmdline.h"
 
 #ifndef NULL
 #define NULL ((void*)0)
@@ -124,10 +128,10 @@ int CTheApplication::operator()(int argc, char** argv)
     
     createUsbController(arg_struct.serialno_given ? arg_struct.serialno_arg : NULL);
     setConfigFiles(arg_struct.daqconfig_given ? arg_struct.daqconfig_arg : NULL,
-		   arg_struct.ctlconfig_given ? arg_struct.ctcconfig_arg : NULL);
+		   arg_struct.ctlconfig_given ? arg_struct.ctlconfig_arg : NULL);
     initializeBufferPool();
-    startOutputThread(arg_struct.ring_given ? arg_struct.ring_arg : NULL);
-    startTclServer(arg_strut.port_given ? arg_struct.port_arg : tclServerPort);
+    startOutputThread(destinationRing(arg_struct.ring_given ? arg_struct.ring_arg : NULL)); 
+    startTclServer(arg_struct.port_given ? arg_struct.port_arg : tclServerPort);
     startInterpreter();
   }
   catch (string msg) {
@@ -161,9 +165,9 @@ int CTheApplication::operator()(int argc, char** argv)
 
 */
 void
-CTheApplication::startOutputThread(const char* pRing)
+CTheApplication::startOutputThread(std::string ring)
 {
-  COutputThread* router = new COutputThread(pRing);
+  COutputThread* router = new COutputThread(ring.c_str());
   router->start();
 
 }
@@ -227,7 +231,7 @@ void
 CTheApplication::enumerate()
 {
   std::vector<struct usb_device*> ccusbs = CCCUSB::enumerate();
-  for (i = 0; i < ccusbs.size(); i++) {
+  for (int i = 0; i < ccusbs.size(); i++) {
     std::cout << "[" << i << "] : " << CCCUSB::serialNo(ccusbs[i]) << std::endl;
   }
 }
@@ -244,7 +248,7 @@ CTheApplication::enumerate()
 void
 CTheApplication::setConfigFiles(const char* pDaqConfig, const char* pCtlConfig)
 {
-  Globals::configurationFilename = pDaqConfig > pDaqConfig : makeConfigFile(daqConfigBasename);
+  Globals::configurationFilename = pDaqConfig ? pDaqConfig : makeConfigFile(daqConfigBasename);
   Globals::controlConfigFilename = pCtlConfig ? pCtlConfig : makeConfigFile(ctlConfigBasename);
 
 }
@@ -312,17 +316,10 @@ CTheApplication::makeConfigFile(string baseName)
 
 }
 
-// Create the application instance so that Spectrodaq can get us going.k
 
-static CTheApplication theApp;
+void* gpTCLApplication(0);	// Need this for tclplus.
 
 
-void* gpTCLApplication(0);
-
-int main(int argc, char** argv, char** env)
-{
-  return spectrodaq_main(argc, argv, env);
-}
 /*
    Create the buffer pool.  The following are configurable parameters at the
    top of this file;

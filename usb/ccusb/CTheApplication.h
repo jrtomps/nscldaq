@@ -17,7 +17,13 @@
 #ifndef __CTHEAPPLICATION_H
 #define __CTHEAPPLICATION_H
 #include <config.h>
-using namespace std;
+
+#ifndef __STL_STRING
+#include <string>
+#ifndef __STL_STRING
+#define __STL_STRING
+#endif
+#endif
 
 
 class CTCLInterpreter;
@@ -65,7 +71,7 @@ public:
   // Segments of operation.
 
 private:
-  void startOutputThread(const char* pRing);
+  void startOutputThread(std::string pRing);
   void startTclServer(int port);
   void startInterpreter();
   void createUsbController(const char* pSerialNo = NULL);

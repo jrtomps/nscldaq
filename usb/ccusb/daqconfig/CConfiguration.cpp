@@ -32,6 +32,7 @@
 #include <CCAEN257Command.h>
 #include <CPH7132Command.h>
 #include <CCCUSBCommand.h>
+#include <iostream>
 
 #include <tcl.h>
 #include <algorithm>

@@ -1087,9 +1087,19 @@ CCCUSB::loadList(uint8_t  listNumber, CCCUSBReadoutList& list)
 
   uint32_t   inPacket;		// I don't think we get anything actually?
 
-  int status = transaction(outPacket, packetSize, 
-			   &inPacket, sizeof(inPacket));
 
+
+  int status = usb_bulk_write(m_handle, ENDPOINT_OUT,
+			      reinterpret_cast<char*>(outPacket),
+			      packetSize, m_timeout);
+  if (status < 0) {
+    errno = -status;
+    status= -1;
+  }
+  /*
+ transaction(outPacket, packetSize, 
+			   &inPacket, sizeof(inPacket));
+  */
   delete []outPacket;
   return (status >= 0) ? 0 : status;
 

@@ -39,6 +39,13 @@
 #endif
 #endif
 
+#ifndef __STL_STRING
+#include <string>
+#ifndef __STL_STRING
+#define __STL_STRING
+#endif
+#endif
+
 //  The structures below are defined in <usb.h> which is included
 //  by the implementation and can be treated as opaque by any of our
 //  clients (they are in fact opaque in usb.h if memory servers.

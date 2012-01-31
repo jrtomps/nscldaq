@@ -27,6 +27,8 @@
 #include <set>
 #include <assert.h>
 #include <stdlib.h>
+#include <errno.h>
+#include <string.h>
 
 #include <iostream>
 using namespace std;
@@ -222,8 +224,23 @@ CStack::loadStack(CCCUSB& controller)
   // Load the list:... unless it has no elements!
 
   if (readoutList.size() > 0) {
-    controller.loadList(listNumber,
-			readoutList);
+    int status = controller.loadList(listNumber,
+				     readoutList);
+    if (status < 0) {
+      int e = errno;
+      std::string msg(strerror(errno));
+      std::string which;
+      if (status == -1) {
+	which = "usb_bulk_write";
+      } else if (status == -2) {
+	which = "usb_bulk_read";
+      } else {
+	which = "list  number decode";
+      }
+      msg += " during ";
+      msg += which;
+      throw msg;
+    }
   }
 }
 /*!

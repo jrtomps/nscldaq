@@ -81,7 +81,7 @@ TclServer::start(int port, const char* configFile, CCCUSB& vme)
 
   this->Thread::start();
 
-  return m_tid;
+
 }
 
 /*!

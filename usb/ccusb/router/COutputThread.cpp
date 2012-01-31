@@ -47,6 +47,7 @@ static DataBuffer* lastBuffer(0);
 static const unsigned ReadoutStack(0);
 static const unsigned ScalerStack(1);
 
+static uint64_t bufferNumber(0);
 
 ///////////////////////////////////////////////////////////////////////
 ///////////////////// Local data types ////////////////////////////////
@@ -379,7 +380,7 @@ COutputThread::scaler(void* pData)
 
   std::vector<uint32_t> counterData;
   for (int i = 0; i < nScalers; i++) {
-    counterData.push_back(*pBody++);
+    counterData.push_back((*pBody++) & 0xffffff); // 24 bits of data allows top bits are x/q e.g
   }
 
   // The CCUSB does not timestamp scaler data for us at this time so we
@@ -430,11 +431,11 @@ COutputThread::events(DataBuffer& inBuffer)
 
   while (nWords > 0) {
     if (nEvents <= 0) {
-      // Next long should be 0xffffffff buffer terminator:
+      // Next word should be 0xffff buffer terminator:
       // I've seen this happen but it's not fatal...just go on to the next buffer.
 
-      uint32_t* pNextLong = reinterpret_cast<uint32_t*>(pContents);
-      if (*pNextLong != 0xffffffff) {
+      uint16_t* pNextWord = reinterpret_cast<uint16_t*>(pContents);
+      if (*pNextWord != 0xffff) {
 	cerr << "Ran out of events but did not see buffer terminator\n";
 	cerr << nWords << " remaining unprocessed\n";
       }
@@ -578,4 +579,17 @@ COutputThread::attachRing()
   }
 
   m_pRing = new CRingBuffer(m_ringName, CRingBuffer::producer);
+}
+/**
+ * Output a physics trigger count event item.  These are used to monitor
+ * overall rates as well as to provide sampling statistics for sampling
+ * consumers.
+ *
+ * @param runOffset - seconds intothe run at which this is being emitted.
+ */
+void
+COutputThread::outputTriggerCount(uint32_t runOffset)
+{
+  CRingPhysicsEventCountItem item(m_nEventsSeen, runOffset);
+  item.commitToRing(*m_pRing);
 }

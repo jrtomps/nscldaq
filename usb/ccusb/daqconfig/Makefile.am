@@ -15,7 +15,7 @@ libConfig_la_SOURCES	= 	CConfiguration.cpp	\
 #				CScalerCommand.cpp
 
 
-include_HEADERS		=	CConfiguration.h 	\
+noinst_HEADERS		=	CConfiguration.h 	\
 				CScalerCommand.h	\
 				CStackCommand.h		\
 				CPH7xxCommand.h		\
@@ -30,9 +30,14 @@ include_HEADERS		=	CConfiguration.h 	\
 
 
 
-INCLUDES		= 	-I@top_srcdir@/devices	\
-				$(TCL_FLAGS) \
+INCLUDES		= 	-I@top_srcdir@/usb/ccusb/devices	\
+				-I@top_srcdir@/base/tclplus		\
+				-I@top_srcdir@/base/exception		\
+				-I@top_srcdir@/base/headers		\
+				$(TCL_FLAGS)
 
-libConfig_la_LIBADD	=	@top_srcdir@/devices/libVMUSBDevices.la 	\
+libConfig_la_LIBADD	=	@top_builddir@/usb/ccusb/devices/libCCUSBDevices.la 	\
+				@top_builddir@/base/tclplus/libtclPlus.la	\
+				@top_builddir@/base/exception/libException.la	\
 				$(TCL_LDFLAGS)
 

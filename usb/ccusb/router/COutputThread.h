@@ -19,7 +19,7 @@
 
 using namespace std;
 
-
+#include <Thread.h>
 
 #ifndef __CRT_STDINT_H
 #include <stdint.h>
@@ -88,7 +88,7 @@ class CRingBuffer;
         emits the begin run buffer.
 */
 
-class COutputThread  : public DAQThread
+class COutputThread  : public Thread
 {
   // Thread local data:
 private:
@@ -102,14 +102,15 @@ private:
   unsigned int m_elapsedSeconds;   // Seconds into the run.
   uint32_t    m_sequence;	   // Buffer sequence number.
   uint32_t    m_outputBufferSize;  // Bytes in output buffers.
-  time_t      m_startTimestamp;    //!< Run start time.
-  time_t      m_lastStampedBuffer; //!< Seconds into run of last stamped buffer.
+  timespec      m_startTimestamp;    //!< Run start time.
+  timespec      m_lastStampedBuffer; //!< Seconds into run of last stamped buffer.
   std::string m_ringName;
-  CRingBuffer* m_pRingBuffer;
+  CRingBuffer* m_pRing;
   uint64_t    m_nEventsSeen;
   
   // Event assembly buffer:
 
+  size_t       m_nOutputBufferSize;
   uint8_t*     m_pBuffer;
   uint8_t*     m_pCursor;
   size_t       m_nWordsInBuffer;
@@ -150,6 +151,7 @@ private:
 
   void attachRing();
   uint8_t* newOutputBuffer();
+  void outputTriggerCount(uint32_t runOffset);
 
 };
 

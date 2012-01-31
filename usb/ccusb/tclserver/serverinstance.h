@@ -46,7 +46,7 @@ public:
 
   void ClearCommand();		// Empty the command string.
   void AppendChunk(const char* pChunk);	// Add a substring.
-  void AppendChunk(const STD(string)& rChunk) { 
+  void AppendChunk(const std::string& rChunk) { 
     AppendChunk(rChunk.c_str());
   }
   void AppendChunk(const Tcl_DString& str) {

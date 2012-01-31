@@ -12,7 +12,7 @@ libControlServer_la_SOURCES	= 	CControlHardware.cpp	\
 					C894.cpp		\
 					CPH7106.cpp
 
-include_HEADERS			=	CSetCommand.h		\
+noinst_HEADERS			=	CSetCommand.h		\
 					server.h		\
 					CControlHardware.h	\
 					CGetCommand.h		\
@@ -25,17 +25,23 @@ include_HEADERS			=	CSetCommand.h		\
 					C894.h			\
 					CPH7106.h
 
-INCLUDES			= 	-I$(top_builddir)/ccusb		\
-					-I$(top_builddir)/devices	\
-					-I$(top_builddir)/threadcomm	\
-					-I$(top_builddir)/rdothread	\
-					-I$(top_builddir)/router	\
+INCLUDES			= 	-I@top_srcdir@/usb/ccusb/ccusb		\
+					-I@top_srcdir@/usb/ccusb/devices	\
+					-I@top_srcdir@/usb/ccusb/threadcomm	\
+					-I@top_srcdir@/usb/ccusb/rdothread	\
+					-I@top_srcdir@/usb/ccusb/router	\
+					-I@top_srcdir@/base/tclplus	\
+					-I@top_srcdir@/base/exception	\
+					-I@top_srcdir@/base/headers	\
+					-I@top_srcdir@/base/thread	\
 					@TCL_FLAGS@
 
-libControlServer_la_LIBADD	= 	$(top_builddir)/ccusb/libCCUSB.la          \
-					$(top_builddir)/devices/libVMUSBDevices.la \
-					$(top_builddir)/threadcomm/libThreadComm.la \
-					$(top_builddir)/rdothread/libRdoThread.la \
-					$(top_builddir)/router/libRouter.la	\
+libControlServer_la_LIBADD	= 	@top_builddir@/usb/ccusb/ccusb/libCCUSB.la          \
+					@top_builddir@/usb/ccusb/devices/libCCUSBDevices.la \
+					@top_builddir@/usb/ccusb/threadcomm/libThreadComm.la \
+					@top_builddir@/usb/ccusb/rdothread/libRdoThread.la \
+					@top_builddir@/usb/ccusb/router/libRouter.la	\
 					@TCL_LDFLAGS@				\
-					@NSCLDAQ_LIB@ -lTclPlus -lException
+					@top_builddir@/base/tclplus/libtclPlus.la \
+					@top_builddir@/base/thread/libdaqthreads.la	\
+					@top_builddir@/base/exception/libException.la 

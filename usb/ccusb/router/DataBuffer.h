@@ -75,7 +75,7 @@ static const int CCUSBNEventMask(0x0fff);
 
 static const int CCUSBContinuation(0x1000);
 static const int CCUSBEventLengthMask(0xfff);
-static const int CCUSBStackIdMask(0x1000);
+static const int CCUSBStackIdMask(0x2000);
 static const int CCUSBStackIdShift(13);
 
 // Buffer types;

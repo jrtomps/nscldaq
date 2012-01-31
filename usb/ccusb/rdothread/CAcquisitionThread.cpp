@@ -29,6 +29,8 @@
 #include <Exception.h>
 #include <iostream>
 
+#include <stdlib.h>
+
 #include <string.h>
 #include <errno.h>
 
@@ -110,7 +112,7 @@ CAcquisitionThread::start(CCCUSB* usb,
   // starting the thread will eventually get operator() called and that
   // will do all the rest of the work in thread context.
 
-  this->Thread::start();
+  getInstance()->Thread::start();
   
 }
 
@@ -129,7 +131,7 @@ CAcquisitionThread::isRunning()
 void
 CAcquisitionThread::waitExit()
 {
-  join();
+  getInstance()->join();
 }
 
 /**
@@ -390,8 +392,8 @@ CAcquisitionThread::startDaq()
 void
 CAcquisitionThread::stopDaq()
 {
-  // m_pCamac->writeActionRegister(CCCUSB::ActionRegister::scalerDump);
-  m_pCamac->writeActionRegister(0);
+  m_pCamac->writeActionRegister(CCCUSB::ActionRegister::scalerDump);
+  //m_pCamac->writeActionRegister(scalerDump);
   drainUsb();
 }
 /*!
@@ -468,7 +470,7 @@ CAcquisitionThread::drainUsb()
       pBuffer->s_bufferSize = bytesRead;
       pBuffer->s_bufferType   = TYPE_EVENTS;
       cerr << "Got a buffer, with type header: " << hex << pBuffer->s_rawData[0] << endl;
-      if (pBuffer->s_rawData[0] & VMUSBLastBuffer) {
+      if (pBuffer->s_rawData[0] & CCUSBLastBuffer) {
 	cerr << "Done\n";
 	done = true;
       }

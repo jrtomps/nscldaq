@@ -28,6 +28,8 @@
 class CConfiguration;
 class CCCUSB;
 
+#include <stdint.h>
+
 /*!
   This namespace defines global variables.  We've tried to keep this to minimum.
   Here's what we define/need
@@ -44,8 +46,8 @@ namespace Globals {
   extern std::string     configurationFilename;
   extern std::string     controlConfigFilename;
   extern CCCUSB*         pUSBController;
-  extern const uint32_t  bufferSize;
-  extern const unsigned  scalerPeriod;
+  extern uint32_t        bufferSize;
+  extern unsigned        scalerPeriod;
 };
 
 #endif

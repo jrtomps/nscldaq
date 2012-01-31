@@ -33,6 +33,8 @@ using namespace std;
 #endif
 #endif
 
+#include <Thread.h>
+
 class CCCUSB;
 class CControlModule;
 class CTCLInterpreter;
@@ -58,7 +60,7 @@ class CTCLInterpreter;
    connections from localhost.
 
 */
-class TclServer : public DAQThread
+class TclServer : public Thread
 {
   // Member data:
 private:
@@ -67,7 +69,7 @@ private:
   CCCUSB*                      m_pVme;		// VME controller.
   std::vector<CControlModule*> m_Modules;       // Hardware we can access.
   CTCLInterpreter*             m_pInterpreter;
-  DAQThreadId                  m_tid;
+
 
 public:
   TclServer();

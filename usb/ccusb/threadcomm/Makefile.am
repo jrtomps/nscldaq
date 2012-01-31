@@ -1,10 +1,7 @@
 lib_LTLIBRARIES		= libThreadComm.la
 libThreadComm_la_SOURCES = CGaurdedObject.cpp CBufferQueue.cpp
-include_HEADERS		= CGaurdedObject.h CBufferQueue.h
+noinst_HEADERS		= CGaurdedObject.h CBufferQueue.h
 
-INCLUDES		= 
-libThreadComm_la_LIBADD = 
+INCLUDES		= -I@top_srcdir@/base/exception -I@top_srcdir@/base/headers
+libThreadComm_la_LIBADD = @top_builddir@/base/exception/libException.la
 
-
-install-data:
-	$(INSTALL_DATA) @srcdir@CBufferQueue.cpp @prefix@/include

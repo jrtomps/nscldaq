@@ -14,6 +14,7 @@
 	     East Lansing, MI 48824-1321
 */
 #include <string>
+#include <stdint.h>
 
 using std::string;
 
@@ -25,7 +26,7 @@ namespace Globals {
   string             configurationFilename;
   string             controlConfigFilename;
   CCCUSB*            pUSBController;
-  const uint32_t     bufferSize(4*1024*sizeof(uint16_t)); 
+  uint32_t           bufferSize(4*1024*sizeof(uint16_t)); 
   unsigned           scalerPeriod;
 
 };

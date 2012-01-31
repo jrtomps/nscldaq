@@ -2,20 +2,24 @@ lib_LTLIBRARIES		= libRdoThread.la
 libRdoThread_la_SOURCES	= CAcquisitionThread.cpp 	\
 			CControlQueues.cpp
 
-include_HEADERS		= CAcquisitionThread.h		\
+noinst_HEADERS		= CAcquisitionThread.h		\
 			CControlQueues.h
 
 # add -DREPORT_ERRORS to INCLUDES below for verbose
 # error reporting info.
 
-INCLUDES		=  $(NSCLDAQ_FLAGS) -I@top_srcdir@/threadcomm \
-			-I@top_srcdir@/router				\
-			-I@top_srcdir@/devices				\
-			-I@top_srcdir@/ccusb
+INCLUDES		=  -I@top_srcdir@/usb/ccusb/threadcomm \
+			-I@top_srcdir@/usb/ccusb/router				\
+			-I@top_srcdir@/usb/ccusb/devices			\
+			-I@top_srcdir@/usb/ccusb/ccusb				\
+			-I@top_srcdir@/base/exception				\
+			-I@top_srcdir@/base/thread				\
+			-I@top_srcdir@/base/headers
 
 
-libRdoThread_la_LIBADD	= @top_srcdir@/threadcomm/libThreadComm.la	\
-			  @top_srcdir@/devices/libVMUSBDevices.la	\
-			  @top_srcdir@/ccusb/libCCUSB.la		\
-			$(NSCLDAQ_LIB) -lException
+libRdoThread_la_LIBADD	= @top_builddir@/usb/ccusb/threadcomm/libThreadComm.la	\
+			  @top_builddir@/usb/ccusb/devices/libCCUSBDevices.la	\
+			  @top_builddir@/usb/ccusb/ccusb/libCCUSB.la		\
+			@top_builddir@/base/thread/libdaqthreads.la		\
+			@top_builddir@/base/exception/libException.la
 
