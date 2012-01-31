@@ -1092,10 +1092,7 @@ CCCUSB::loadList(uint8_t  listNumber, CCCUSBReadoutList& list)
     errno = -status;
     status= -1;
   }
-  /*
- transaction(outPacket, packetSize, 
-			   &inPacket, sizeof(inPacket));
-  */
+
   delete []outPacket;
   return (status >= 0) ? 0 : status;
 
