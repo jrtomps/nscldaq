@@ -1,5 +1,5 @@
-lib_LTLIBRARIES		= libCommands.la
-libCommands_la_SOURCES	=	CBeginRun.cpp	\
+lib_LTLIBRARIES		= libVMUSBCommands.la
+libVMUSBCommands_la_SOURCES	=	CBeginRun.cpp	\
 				CEndRun.cpp	\
 				CPauseRun.cpp	\
 				CResumeRun.cpp	\
@@ -11,7 +11,7 @@ noinst_HEADERS		= 	CBeginRun.h	\
 				CResumeRun.h	\
 				tclUtil.h
 
-libCommands_la_CXXFLAGS=@THREADCXX_FLAGS@
+libVMUSBCommands_la_CXXFLAGS=@THREADCXX_FLAGS@
 
 
 INCLUDES		= 	-I@top_srcdir@/usb/vmusb/threadcomm	\
@@ -26,10 +26,10 @@ INCLUDES		= 	-I@top_srcdir@/usb/vmusb/threadcomm	\
 				$(TCL_FLAGS) 
 
 
-libCommands_la_LIBADD	= 	@top_srcdir@/usb/vmusb/rdothread/libRdoThread.la	\
-				@top_srcdir@/usb/vmusb/threadcomm/libThreadComm.la	\
-				@top_srcdir@/usb/vmusb/router/libRouter.la	\
-				@top_srcdir@/usb/vmusb/daqconfig/libConfig.la	\
+libVMUSBCommands_la_LIBADD	= 	@top_srcdir@/usb/vmusb/rdothread/libVMUSBRdoThread.la	\
+				@top_srcdir@/usb/vmusb/threadcomm/libVMUSBThreadComm.la	\
+				@top_srcdir@/usb/vmusb/router/libVMUSBRouter.la	\
+				@top_srcdir@/usb/vmusb/daqconfig/libVMUSBConfig.la	\
 				@top_srcdir@/base/tclplus/libtclPlus.la	\
 				@top_srcdir@/base/exception/libException.la	\
 				@top_srcdir@/base/thread/libdaqthreads.la	\

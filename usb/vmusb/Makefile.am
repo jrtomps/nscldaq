@@ -28,12 +28,12 @@ INCLUDES = -I$(top_srcdir)/usb/vmusb/vmusb -I$(top_srcdir)/usb/vmusb/devices -I$
 	$(TCL_FLAGS) $(USBSWITCHES)
 
 VMUSBReadout_LDADD	= cmdline.o $(top_srcdir)/usb/vmusb/devices/libVMUSBDevices.la	\
-		$(top_srcdir)/usb/vmusb/threadcomm/libThreadComm.la	\
-		$(top_srcdir)/usb/vmusb/router/libRouter.la	\
-		$(top_srcdir)/usb/vmusb/rdothread/libRdoThread.la	\
-		$(top_srcdir)/usb/vmusb/tclserver/libControlServer.la	\
-		$(top_srcdir)/usb/vmusb/daqconfig/libConfig.la	\
-		$(top_srcdir)/usb/vmusb/commands/libCommands.la	\
+		$(top_srcdir)/usb/vmusb/threadcomm/libVMUSBThreadComm.la	\
+		$(top_srcdir)/usb/vmusb/router/libVMUSBRouter.la	\
+		$(top_srcdir)/usb/vmusb/rdothread/libVMUSBRdoThread.la	\
+		$(top_srcdir)/usb/vmusb/tclserver/libVMUSBControlServer.la	\
+		$(top_srcdir)/usb/vmusb/daqconfig/libVMUSBConfig.la	\
+		$(top_srcdir)/usb/vmusb/commands/libVMUSBCommands.la	\
 		$(top_srcdir)/base/tclplus/libtclPlus.la \
 		$(top_srcdir)/base/exception/libException.la \
 		$(top_srcdir)/base/thread/libdaqthreads.la	\

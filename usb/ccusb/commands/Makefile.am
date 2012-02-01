@@ -1,5 +1,5 @@
-lib_LTLIBRARIES		= libCommands.la
-libCommands_la_SOURCES	=	CBeginRun.cpp	\
+lib_LTLIBRARIES		= libCCUSBCommands.la
+libCCUSBCommands_la_SOURCES	=	CBeginRun.cpp	\
 				CEndRun.cpp	\
 				CPauseRun.cpp	\
 				CResumeRun.cpp	\
@@ -22,10 +22,10 @@ INCLUDES		= 	-I@top_srcdir@/usb/ccusb/threadcomm	\
 				-I@top_srcdir@/base/thread		\
 				$(TCL_FLAGS)
 
-libCommands_la_LIBADD	= 	@top_builddir@/usb/ccusb/rdothread/libRdoThread.la	\
-				@top_builddir@/usb/ccusb/threadcomm/libThreadComm.la	\
-				@top_builddir@/usb/ccusb/router/libRouter.la	\
-				@top_builddir@/usb/ccusb/daqconfig/libConfig.la	\
+libCCUSBCommands_la_LIBADD	= 	@top_builddir@/usb/ccusb/rdothread/libCCUSBRdoThread.la	\
+				@top_builddir@/usb/ccusb/threadcomm/libCCUSBThreadComm.la	\
+				@top_builddir@/usb/ccusb/router/libCCUSBRouter.la	\
+				@top_builddir@/usb/ccusb/daqconfig/libCCUSBConfig.la	\
 				@top_builddir@/base/tclplus/libtclPlus.la 	\
 				@top_builddir@/base/thread/libdaqthreads.la	\
 			        @top_builddir@/base/exception/libException.la \

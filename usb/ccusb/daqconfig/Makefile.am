@@ -1,5 +1,5 @@
-lib_LTLIBRARIES		= libConfig.la
-libConfig_la_SOURCES	= 	CConfiguration.cpp	\
+lib_LTLIBRARIES		= libCCUSBConfig.la
+libCCUSBConfig_la_SOURCES	= 	CConfiguration.cpp	\
 				CStackCommand.cpp	\
 				CPH7xxCommand.cpp	\
 				CAD811Command.cpp	\
@@ -36,7 +36,7 @@ INCLUDES		= 	-I@top_srcdir@/usb/ccusb/devices	\
 				-I@top_srcdir@/base/headers		\
 				$(TCL_FLAGS)
 
-libConfig_la_LIBADD	=	@top_builddir@/usb/ccusb/devices/libCCUSBDevices.la 	\
+libCCUSBConfig_la_LIBADD	=	@top_builddir@/usb/ccusb/devices/libCCUSBDevices.la 	\
 				@top_builddir@/base/tclplus/libtclPlus.la	\
 				@top_builddir@/base/exception/libException.la	\
 				$(TCL_LDFLAGS)

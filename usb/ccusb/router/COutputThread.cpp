@@ -397,6 +397,8 @@ COutputThread::scaler(void* pData)
   CRingScalerItem scalers(m_elapsedSeconds, endTime, timestamp, counterData);
   scalers.commitToRing(*m_pRing);
 
+  m_elapsedSeconds = endTime;
+
 }
 
 

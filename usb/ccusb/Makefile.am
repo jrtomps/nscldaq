@@ -25,14 +25,14 @@ INCLUDES = -I@top_srcdir@/usb/ccusb/ccusb -I@top_srcdir@/usb/ccusb/devices \
 
 
 CCUSBReadout_LDADD	= cmdline.o @top_builddir@/usb/ccusb/devices/libCCUSBDevices.la	\
-	@top_builddir@/usb/ccusb/commands/libCommands.la	\
-	@top_builddir@/usb/ccusb/daqconfig/libConfig.la		\
-	@top_builddir@/usb/ccusb/rdothread/libRdoThread.la	\
-	@top_builddir@/usb/ccusb/commands/libCommands.la		\
-	@top_builddir@/usb/ccusb/router/libRouter.la		\
-	@top_builddir@/usb/ccusb/threadcomm/libThreadComm.la	\
+	@top_builddir@/usb/ccusb/commands/libCCUSBCommands.la	\
+	@top_builddir@/usb/ccusb/daqconfig/libCCUSBConfig.la		\
+	@top_builddir@/usb/ccusb/rdothread/libCCUSBRdoThread.la	\
+	@top_builddir@/usb/ccusb/commands/libCCUSBCommands.la		\
+	@top_builddir@/usb/ccusb/router/libCCUSBRouter.la		\
+	@top_builddir@/usb/ccusb/threadcomm/libCCUSBThreadComm.la	\
 	@top_builddir@/usb/ccusb/ccusb/libCCUSB.la		\
-	@top_builddir@/usb/ccusb/tclserver/libControlServer.la \
+	@top_builddir@/usb/ccusb/tclserver/libCCUSBControlServer.la \
 	@top_builddir@/base/tclplus/libtclPlus.la		\
 	@top_builddir@/base/thread/libdaqthreads.la		\
 	@top_builddir@/base/exception/libException.la		\

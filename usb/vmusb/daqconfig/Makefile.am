@@ -1,5 +1,5 @@
-lib_LTLIBRARIES		= libConfig.la
-libConfig_la_SOURCES	= 	CADCCommand.cpp		\
+lib_LTLIBRARIES		= libVMUSBConfig.la
+libVMUSBConfig_la_SOURCES	= 	CADCCommand.cpp		\
 				CConfiguration.cpp	\
 				CScalerCommand.cpp	\
 				CCAENChainCommand.cpp	\
@@ -20,7 +20,7 @@ libConfig_la_SOURCES	= 	CADCCommand.cpp		\
 				CV1495scCommand.cpp
 
 
-libConfig_la_CXXFLAGS=@THREADCXX_FLAGS@
+libVMUSBConfig_la_CXXFLAGS=@THREADCXX_FLAGS@
 
 
 noinst_HEADERS		=	CADCCommand.h  		\
@@ -54,7 +54,7 @@ INCLUDES		= 	-I@top_srcdir@/usb/vmusb/devices	\
 				$(TCL_FLAGS) 
 
 
-libConfig_la_LIBADD	=	@top_srcdir@/usb/vmusb/devices/libVMUSBDevices.la \
+libVMUSBConfig_la_LIBADD	=	@top_srcdir@/usb/vmusb/devices/libVMUSBDevices.la \
 				@top_srcdir@/base/tclplus/libtclPlus.la		\
 				@top_srcdir@/base/exception/libException.la	\
 				$(TCL_LDFLAGS) @THREADLD_FLAGS@

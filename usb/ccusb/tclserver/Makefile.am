@@ -1,5 +1,5 @@
-lib_LTLIBRARIES			= libControlServer.la
-libControlServer_la_SOURCES	= 	CControlHardware.cpp	\
+lib_LTLIBRARIES			= libCCUSBControlServer.la
+libCCUSBControlServer_la_SOURCES	= 	CControlHardware.cpp	\
 					CModuleCommand.cpp	\
 					TclServer.cpp		\
 					CControlModule.cpp	\
@@ -36,11 +36,11 @@ INCLUDES			= 	-I@top_srcdir@/usb/ccusb/ccusb		\
 					-I@top_srcdir@/base/thread	\
 					@TCL_FLAGS@
 
-libControlServer_la_LIBADD	= 	@top_builddir@/usb/ccusb/ccusb/libCCUSB.la          \
+libCCUSBControlServer_la_LIBADD	= 	@top_builddir@/usb/ccusb/ccusb/libCCUSB.la          \
 					@top_builddir@/usb/ccusb/devices/libCCUSBDevices.la \
-					@top_builddir@/usb/ccusb/threadcomm/libThreadComm.la \
-					@top_builddir@/usb/ccusb/rdothread/libRdoThread.la \
-					@top_builddir@/usb/ccusb/router/libRouter.la	\
+					@top_builddir@/usb/ccusb/threadcomm/libCCUSBThreadComm.la \
+					@top_builddir@/usb/ccusb/rdothread/libCCUSBRdoThread.la \
+					@top_builddir@/usb/ccusb/router/libCCUSBRouter.la	\
 					@TCL_LDFLAGS@				\
 					@top_builddir@/base/tclplus/libtclPlus.la \
 					@top_builddir@/base/thread/libdaqthreads.la	\

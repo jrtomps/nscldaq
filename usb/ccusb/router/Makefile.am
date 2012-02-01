@@ -1,5 +1,5 @@
-lib_LTLIBRARIES		= 	libRouter.la
-libRouter_la_SOURCES	= 	COutputThread.cpp	\
+lib_LTLIBRARIES		= 	libCCUSBRouter.la
+libCCUSBRouter_la_SOURCES	= 	COutputThread.cpp	\
 				CRunState.cpp  		\
 				DataBuffer.cpp
 
@@ -17,7 +17,7 @@ INCLUDES		= -I@top_srcdir@/usb/ccusb/threadcomm  \
 
 
 
-libRouter_la_LIBADD	= @top_srcdir@/usb/ccusb/threadcomm/libThreadComm.la \
+libCCUSBRouter_la_LIBADD	= @top_srcdir@/usb/ccusb/threadcomm/libCCUSBThreadComm.la \
 			@top_builddir@/base/exception/libException.la \
 			@top_builddir@/base/dataflow/libRingBuffer.la \
 			@top_builddir@/daq/format/libdataformat.la		\

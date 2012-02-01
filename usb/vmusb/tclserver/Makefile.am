@@ -1,8 +1,8 @@
-lib_LTLIBRARIES			= libControlServer.la
+lib_LTLIBRARIES			= libVMUSBControlServer.la
 
-libControlServer_la_CXXFLAGS	= @THREADCXX_FLAGS@
+libVMUSBControlServer_la_CXXFLAGS	= @THREADCXX_FLAGS@
 
-libControlServer_la_SOURCES	= 	CControlHardware.cpp	\
+libVMUSBControlServer_la_SOURCES	= 	CControlHardware.cpp	\
 					CModuleCommand.cpp	\
 					TclServer.cpp		\
 					CControlModule.cpp	\
@@ -44,11 +44,11 @@ INCLUDES			= 	-I$(top_builddir)/usb/vmusb/vmusb		\
 					-I$(top_srcdir)/base/thread	\
 					@TCL_FLAGS@
 
-libControlServer_la_LIBADD	= 	$(top_builddir)/usb/vmusb/vmusb/libVMUSB.la          \
+libVMUSBControlServer_la_LIBADD	= 	$(top_builddir)/usb/vmusb/vmusb/libVMUSB.la          \
 					$(top_builddir)/usb/vmusb/devices/libVMUSBDevices.la \
-					$(top_builddir)/usb/vmusb/threadcomm/libThreadComm.la \
-					$(top_builddir)/usb/vmusb/rdothread/libRdoThread.la \
-					$(top_builddir)/usb/vmusb/router/libRouter.la	\
+					$(top_builddir)/usb/vmusb/threadcomm/libVMUSBThreadComm.la \
+					$(top_builddir)/usb/vmusb/rdothread/libVMUSBRdoThread.la \
+					$(top_builddir)/usb/vmusb/router/libVMUSBRouter.la	\
 					$(top_srcdir)/base/tclplus/libtclPlus.la \
 					$(top_srcdir)/base/exception/libException.la \
 					$(top_srcdir)/base/thread/libdaqthreads.la \
