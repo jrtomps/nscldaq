@@ -971,12 +971,14 @@ CVMUSB::loadList(uint8_t  listNumber, CVMUSBReadoutList& list, off_t listOffset)
 
   size_t   packetSize;
   uint16_t* outPacket = listToOutPacket(ta, list, &packetSize, listOffset);
+  int status = usb_bulk_write(m_handle, ENDPOINT_OUT,
+			      reinterpret_cast<char*>(outPacket),
+			      packetSize, m_timeout);
+  if (status < 0) {
+    errno = -status;
+    status= -1;
+  }
 
-
-  uint32_t   inPacket;		// I don't think we get anything actually?
-
-  int status = transaction(outPacket, packetSize, 
-			   &inPacket, sizeof(inPacket));
 
   delete []outPacket;
   return (status >= 0) ? 0 : status;

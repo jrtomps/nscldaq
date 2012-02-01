@@ -1,8 +1,8 @@
-lib_LTLIBRARIES		= libRdoThread.la
-libRdoThread_la_SOURCES	= CAcquisitionThread.cpp 	\
+lib_LTLIBRARIES		= libVMUSBRdoThread.la
+libVMUSBRdoThread_la_SOURCES	= CAcquisitionThread.cpp 	\
 			CControlQueues.cpp
 
-libRdoThread_CXXFLAGS = @THREADCXX_FLAGS@
+libVMUSBRdoThread_CXXFLAGS = @THREADCXX_FLAGS@
 
 noinst_HEADERS		= CAcquisitionThread.h		\
 			CControlQueues.h
@@ -21,7 +21,7 @@ INCLUDES		= -I@top_srcdir@/usb/vmusb/threadcomm 	\
 			-I@top_srcdir@/usb/vmusb
 
 
-libRdoThread_la_LIBADD	= @top_srcdir@/usb/vmusb/threadcomm/libThreadComm.la	\
+libVMUSBRdoThread_la_LIBADD	= @top_srcdir@/usb/vmusb/threadcomm/libVMUSBThreadComm.la	\
 			  @top_srcdir@/usb/vmusb/devices/libVMUSBDevices.la	\
 			  @top_srcdir@/usb/vmusb/vmusb/libVMUSB.la		\
 			@top_srcdir@/base/exception/libException.la             \
