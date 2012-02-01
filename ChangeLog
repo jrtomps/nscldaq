@@ -188,3 +188,9 @@ December 12, 2011
 	  strings longer than 80 characters..so they are not surprised
  	  that their strings get truncated.
 	
+10.1
+January 26,2012
+	- Fold in VM-USB readout code from spectrodaq 
+10.1-001
+January 30-Feb 1,2012
+	- Fold in CC-USB readout code from spectrodaq

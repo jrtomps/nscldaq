@@ -1,1 +1,1 @@
-SUBDIRS=vmusb
+SUBDIRS=vmusb ccusb
