@@ -17,11 +17,16 @@ libCCUSBDevices_la_SOURCES	= 	CConfigurableObject.cpp	\
 INCLUDES	= 	-I$(top_srcdir)/usb/ccusb/ccusb \
 			-I$(top_srcdir)/usb/ccusb/daqconfig \
 			-I$(top_srcdir)/usb/ccusb		\
-			@TCL_FLAGS@ 
+			-I$(top_srcdir)/base/tclplus		\
+			-I$(top_srcdir)/base/exception		\
+			-I$(top_srcdir)/base/headers		\
+			@TCL_FLAGS@ @THREADCXX_FLAGS@
 
 
 libCCUSBDevices_la_LIBADD	= $(top_builddir)/usb/ccusb/ccusb/libCCUSB.la \
-				  @TCL_LDFLAGS@ 
+				$(top_builddir)/base/tclplus/libtclPlus.la	\
+				$(top_builddir)/base/exception/libException.la \
+				  @TCL_LDFLAGS@ @THREADLD_FLAGS@
 
 noinst_HEADERS			= 	CConfigurableObject.h	\
 					CReadoutModule.h 	\
@@ -38,3 +43,7 @@ noinst_HEADERS			= 	CConfigurableObject.h	\
 					CPH7132.h
 
 
+install-data-local:
+	$(mkinstalldirs) @prefix@/ccusbdriver
+	$(mkinstalldirs) @prefix@/ccusbdriver/includes
+	$(INSTALL_DATA)  *.h @prefix@/ccusbdriver/includes

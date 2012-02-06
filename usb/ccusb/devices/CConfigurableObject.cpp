@@ -20,9 +20,15 @@
 #include <stdlib.h>
 #include <errno.h>
 #include <tcl.h>
+#include <ErrnoException.h>
+#include <TCLInterpreter.h>
+#include <TCLObject.h>
+
+
+#include <stdlib.h>
+#include <sstream>
 
 using namespace std;
-
 ////////////////////////////////////////////////////////////////////////////
 //////////////////////////    Constants ///////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////
@@ -30,6 +36,19 @@ using namespace std;
 static const CConfigurableObject::ListSizeConstraint unconstrainedSize = 
   {CConfigurableObject::limit(0),
    CConfigurableObject::limit(0)};
+
+
+// Inline utilities:
+
+// Convert an integer to a string:
+
+inline std::string itos(int i)
+{
+  std::stringstream ss;
+  ss << i;
+  return ss.str();
+}
+
 
 ///////////////////////////////////////////////////////////////////////////
 //////////////////////// Canonical member functions ///////////////////////
@@ -47,19 +66,21 @@ CConfigurableObject::CConfigurableObject(string name) :
 
 /*!
   Destruction probably will result in some memory leaks since
-  it is possible that the typeChecker's will have parameters that
-  are dynamically allocated. In a future life we can provide
-  cleanup functions.. for now we just assume that destruction will
-  be infrequent, and leaks will be small enough to be tolerated.
-  
-  I think that destruction is not necessary since all the
-  pairs will copyconstruct/assign into the map.
-  This is a place holder for later code that can handle deletion of the
-  typechecker args.
+  it is possible that user typeChecker's may have parameters that
+  are dynamically allocated. 
+
+  If people use the convenience functions for building typed parameters,
+  we will manage that memory properly.  Each dynamic item gets added to the m_constraints
+  list from which it gets deleted via free.
 
 */
 CConfigurableObject::~CConfigurableObject()
 {
+  while (!m_constraints.empty()) {
+    DynamicConstraint Item = m_constraints.front();
+    (Item.s_Releaser)(Item.s_pObject); // Release the constraint.
+  }
+  // list storage is released by the std::list destructor.
 
 }
 
@@ -170,7 +191,7 @@ CConfigurableObject::cget()
   return result;
 }
 ///////////////////////////////////////////////////////////////////////////
-/////////////////////// Establishing he configuration /////////////////////
+/////////////////////// Establishing the configuration /////////////////////
 ///////////////////////////////////////////////////////////////////////////
 
 /*!
@@ -249,6 +270,359 @@ CConfigurableObject::clearConfiguration()
 {
   m_parameters.clear();
 }
+
+
+/////////////////////////////////////////////////////////////////////////////
+///////////////////// convenience functions /////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////
+
+// Convenience functions return the value of a parameter converted to one
+// a commonly used form.  The caller is responsible for ensuring that the
+// parameter is type checked to that form prior to using these functions,
+// as they do not report conversion errors...but instead return some
+// value that may or may not make sense.
+
+
+/*!
+    Return the value of an integer parameter.
+    \param name : std::string
+       Name of the value.
+
+    \return int
+    \retval the integer equivalent of the config paramter.
+
+*/
+int
+CConfigurableObject::getIntegerParameter(string name)
+{
+  string value = cget(name);
+
+  char* end;
+  int iValue = strtol(value.c_str(), &end, 0);
+  if (end == value.c_str()) {
+    string msg = "Expected an integer parameter value for config. parameter ";
+    msg += name;
+    msg += "got: ";
+    msg += value;
+    throw msg;
+  }
+  return iValue;
+}
+/*! 
+  Same as above but for an integer.  Needed because strtol for something
+  bigger than MAXINT returns MAXINT.
+*/
+unsigned int
+CConfigurableObject::getUnsignedParameter(string name)
+{
+  string value = cget(name);
+
+  char* end;
+  int iValue = strtoul(value.c_str(), &end, 0);
+  if (end == value.c_str()) {
+    string msg = "Expected an integer parameter value for config. parameter ";
+    msg += name;
+    msg += "got: ";
+    msg += value;
+    throw msg;
+  }
+  return iValue;
+}
+
+/*!
+  Return the value of a bool parameter.
+  This uses the same set of true values as the checker.. however
+  any other value is assumed to be false.
+
+  \param name : std::string
+     Name of the value.
+  
+  \return bool
+  \retval the boolean equivalent of the config param
+*/
+bool
+CConfigurableObject::getBoolParameter(string name)
+{
+  string value = cget(name);
+  return strToBool(value);
+
+
+}
+
+/*!
+   Return a parameter decoded as a double.
+
+   \param name : std::string
+     Name of the parameter
+
+   \return double
+
+*/
+double
+CConfigurableObject::getFloatParameter(string name)
+{
+  string value = cget(name);
+  return atof(value.c_str());
+}
+
+/*!
+  Return a parameter that is a list of integers.
+  \param name - name of the parameter.
+  \return vector<int>
+  \retval Vector containing the integers in the list.
+
+*/
+vector<int>
+CConfigurableObject::getIntegerList(string name)
+{
+  string value = cget(name);
+  int argc;
+  const char** argv;
+  vector<int> result;
+
+  Tcl_SplitList(NULL, value.c_str(), &argc, &argv);
+
+  for (int i =0; i < argc; i++) {
+    result.push_back(static_cast<int>(strtol(argv[i], NULL, 0)));
+  }
+  Tcl_Free((char*)argv);
+  return result;
+
+}
+
+/** 
+ * Add an integer parameter to the configuration that has no limits.
+ *
+ * @param name - Name of the configuration item (e.g. -someparam).
+ * @param defaultVal - Value given the configuration parameter if it is not explicitly configured.
+ */
+void
+CConfigurableObject::addIntegerParameter(std::string name, int defaultVal)
+{
+
+
+  // Use the normal creation function.
+
+  addParameter(name, CConfigurableObject::isInteger, NULL, itos(defaultVal));
+
+}
+/**
+ * Add an integer parameter to the configuration with supplied lower and
+ * upper limits.
+ *
+ * @param name - Name of the parameter (e.g. -someparam).
+ * @param low  - Low limit on the values accepted for the parameter.
+ * @param high - High limit on the values accepted for the parameter.
+ * @param defaultVal - Default value of not explicitly given.  This is 0 unless that's outside the
+ *                     low/high range in which case, low is used.
+ */
+void
+CConfigurableObject::addIntegerParameter(std::string name, int low, int high, int defaultVal)
+{
+  // Build the constraint object, and hook it into the autodelete mechanism.
+
+  Limits* pLimit = new Limits;
+  pLimit->first.s_checkMe  = true;
+  pLimit->first.s_value    = low;
+  pLimit->second.s_checkMe = true;
+  pLimit->second.s_value   = high;
+
+  DynamicConstraint c = {
+    releaseLimitsConstraint,
+    reinterpret_cast<void*>(pLimit)
+  };
+  m_constraints.push_back(c);
+
+  // Add the parameter:
+
+  addParameter(name, CConfigurableObject::isInteger, pLimit, itos(defaultVal));
+
+
+}
+/**
+ * Add a boolean parameter to the configuration.
+ *
+ * @param name - Name of the parameter e.g. -somebool
+ * @param defaultVal - Default value of the parameter
+ */
+void
+CConfigurableObject::addBooleanParameter(std::string name, bool defaultVal)
+{
+  addParameter(name, CConfigurableObject::isBool, NULL,
+	       std::string(defaultVal ? "true" : "false"));
+}
+/**
+ * Convenience function to add an enumerated parameter.
+ * @param name     The name of the new parameter.
+ * @param pValues  Null terminated list of strings that are the valid values for the
+ *                 enumerator.
+ * @param defaultValue default value of the parameter.  This parameter is optional and
+ *                  defaults to first valid value
+ * @note it is illegal; for pValues to contain an empty string but it's the responsibility of the
+ *       caller to ensure this.
+ */
+void
+CConfigurableObject::addEnumParameter(string       name,
+				      const char** pValues,
+				      string       defaultValue)
+{
+  const char** p = pValues;
+  isEnumParameter* pNewItem = new isEnumParameter;
+  while(*p) {
+    pNewItem->insert(*p++);
+  }
+  addParameter(name, isEnum, pNewItem,
+	       defaultValue == "" ?
+	       pValues[0] : defaultValue);
+
+  // Arrange for the constraint to be freed on construction:
+
+  DynamicConstraint cRelease = {
+    CConfigurableObject::releaseEnumConstraint, reinterpret_cast<void*>(pNewItem) 
+  };
+  m_constraints.push_back(cRelease);
+}
+
+/**
+ * Add a configuration parameter that is a list of booleans.  In this case the list
+ * has a fixed size (e.g. channel enables for a module).
+ *
+ * @param name - Name of the parameter e.g. -enables.
+ * @param size - Number of elements in the list.
+ * @param defaultVal - Default value.  This  is a single bool.  The resulting
+ *                     initial configuration value is a Tcl list of 'size' elements
+ *                     all of them defaultVal's value.
+ */
+void
+CConfigurableObject::addBoolListParameter(std::string name, unsigned size, bool defaultVal)
+{
+  // Map this into a call to the more generic overload:
+
+  addBoolListParameter(name, size, size, defaultVal, size);
+
+
+}
+
+/**
+ * Add a boolean list parameter with a few more constraints:
+ *
+ * @param name - Name of the parameter.
+ * @param minLength - Minimum allowed length of the list.
+ * @param maxLength - Maximum allowed length of the list.
+ * @param defaultVal - The default value given to each element of the list (see below).
+ * @param defaultLength - Number of elements in the default list.  If not supplied, minLength is 
+ *                        used.
+ */
+void 
+CConfigurableObject::addBoolListParameter(std::string name, unsigned minLength, unsigned maxLength, 
+					  bool defaultVal, int defaultSize)
+{
+
+  defaultSize = computeDefaultSize(minLength, maxLength, defaultSize);
+
+  // Make the default list.  Lists of bools are more easily made with string manipulation
+  // than with Tcl list operations:
+
+  std::string sDefault = 
+    defaultVal ? "true" : "false"; // trailing space is not a typo. but used to make Tcl lists.
+  std::string defaultList = simpleList(sDefault, defaultSize);
+
+  
+  // Build the constraint and arrange for it to get destroyed:
+
+  ListSizeConstraint* pConstraint = createListConstraint(minLength, maxLength);
+
+
+  // Add the parameter:
+
+  addParameter(name, CConfigurableObject::isBoolList, pConstraint, defaultList);
+  
+
+}
+/**
+ * Add an integer list parameter.  
+ *
+ * @param name - name of the config parameter.
+ * @param size - Number of elements in the list.
+ * @param defaultVal - Default value given to each element of the list.
+ */
+void
+CConfigurableObject::addIntListParameter(std::string name, unsigned size, int defaultVal)
+{
+  // This is just a special case of another overload:
+
+  addIntListParameter(name, size, size, defaultVal, size);
+}
+/**
+ * Add an integer list parameter where the size of the  list is constrained.
+ * 
+ * @param name      - name of the parameter.
+ * @param minLength - Minimum number of elements in the list.
+ * @param maxLength - Maximum number of elements inthe list.
+ * @param defaultVal - Default value given to each list element.
+ * @param defaultLength - Default list length (minLength if not given).
+ */
+void
+CConfigurableObject::addIntListParameter(std::string name, unsigned minLength, unsigned maxLength,
+					 int defaultVal, int defaultSize )
+{
+  // Figure out the actual list size and build the default list.
+  // string operations are much simpler than Tcl list ones since each element is an integer.
+
+
+  defaultSize = computeDefaultSize(minLength, maxLength, defaultSize);
+  std::string defaultList = simpleList(itos(defaultVal), defaultSize);
+
+  // Build the constraint struct and arrange for it to be freed when this object is
+  // destroyed:
+
+  ListSizeConstraint* pConstraint = createListConstraint(minLength, maxLength);
+  
+  // Add the parameter:
+
+  addParameter(name, CConfigurableObject::isIntList, pConstraint, defaultList);
+  
+}
+
+
+
+/**
+ * Add a string parameter whose value is a fixed length array of strings.
+ * 
+ * @param name - name of the parameter.
+ * @param size - number of items in the list.
+ * @param defaultVal - Default value for all the strings.  This is the empty string.
+ */
+void
+CConfigurableObject::addStringListParameter(std::string name, unsigned size, std::string defaultVal)
+{
+  addStringListParameter(name, size, size, defaultVal, size);
+}
+/**
+ * Add a string array parameter with constraints on size:
+ *
+ * @param name - name of the parameter.
+ * @param minLength - minimum number of items in the list.
+ * @param maxLength - Maximum number of items in the list.
+ * @param defaultVal - Default value for all the strings.  This is the empty string.
+ * @param defaultLength - default length of the list.
+ */
+void
+CConfigurableObject::addStringListParameter(std::string name, unsigned minLength, unsigned maxLength,
+			      std::string defaultVal, int defaultLength)
+{
+  defaultLength = computeDefaultSize(minLength, maxLength, defaultLength);
+  std::string dList = simpleList(defaultVal, defaultLength);
+
+  // build the constraint and  create the parameter
+
+  ListSizeConstraint* pConstraint = createListConstraint(minLength, maxLength);
+  addParameter(name, CConfigurableObject::isStringList, pConstraint, dList);
+}
+
+
+
+
 ////////////////////////////////////////////////////////////////////////////
 /////////////////////  Stock type checkers //////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////
@@ -541,4 +915,192 @@ CConfigurableObject::isStringList(string name, string value, void* validSizes)
   }
 
   return isList(name, value, &validator);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////
+// Other utilities
+
+/**
+ * Create a dynamically allocated ListSizeConstraint which is automatically
+ * deleted when we are destroyed.
+ *
+ * @param minLength - Minimum list length.
+ * @param maxLength - Maximum list length
+ *
+ * @return ListSizeConstraint*
+ * @retval Pointer to dynamically allocated list size constraint struct filled in as
+ *         directed by the parameters
+ *
+ * @throws CErrnoException if memory allocation fails.
+ */
+CConfigurableObject::ListSizeConstraint* 
+CConfigurableObject::createListConstraint(unsigned minLength, unsigned maxLength)
+{
+  ListSizeConstraint* pConstraint = 
+    reinterpret_cast<ListSizeConstraint*>(malloc(sizeof(ListSizeConstraint)));
+
+  if (!pConstraint) {
+    throw CErrnoException("Allocating a list size constraint struct");
+  }
+
+  pConstraint->s_atLeast.s_checkMe = true;
+  pConstraint->s_atLeast.s_value   = minLength;
+  pConstraint->s_atMost.s_checkMe  = true;
+  pConstraint->s_atMost.s_value    = maxLength;
+
+  DynamicConstraint c = {
+    free,
+    static_cast<void*>(pConstraint)
+  };
+  m_constraints.push_back(c);
+
+  return pConstraint;
+}
+
+/*!
+  Helper static member function to construct an isEnumParam set
+  from an array of char* pointers terminated in a NULL.
+
+   \param values - the values to put in the set:
+*/
+CConfigurableObject::isEnumParameter
+CConfigurableObject::makeEnumSet(const char** values)
+{
+  isEnumParameter result;
+  while (*values) {
+    result.insert(string(*values));
+    values++;
+  }
+  return result;
+}
+
+
+/**
+ * Convert a string to a bool...once the string has been validated.
+ * @param value - Value to convert.
+ * @return bool
+ * @retval true - if value is in the set of strings that represent true
+ * @retval false - if not.
+ */
+bool
+CConfigurableObject::strToBool(string value)
+{
+  set<string> trueValues;
+  addTrueValues(trueValues);
+
+  // Is enum does what we want if we pass it the set of true values...
+  // it'll give us a true if the value is in the set of legal trues and false otherwise:
+
+  return isEnum("null", value, &trueValues);
+}
+// Add the legal true value strings to a set of strings:
+
+void
+CConfigurableObject::addTrueValues(set<string>& values)
+{
+  values.insert("true");  // True values:
+  values.insert("yes");
+  values.insert("1");
+  values.insert("on");
+  values.insert("enabled");
+}
+// Add the legal false value strings to a set of strings.
+
+void
+CConfigurableObject::addFalseValues(set<string>& values)
+{
+  values.insert("false"); // False values.
+  values.insert("no");
+  values.insert("0");
+  values.insert("off");
+  values.insert("disabled");
+}
+
+// Destroy dynamically created enum parameter checkers:
+
+void
+CConfigurableObject::deleteEnumCheckers()
+{
+  for (int i = 0; i < m_EnumCheckers.size(); i++) {
+    delete m_EnumCheckers[i];
+  }
+  m_EnumCheckers.clear();
+}
+// Add a set of enum checkers to ours:
+void
+CConfigurableObject::addEnumCheckers(const EnumCheckers& rhs) 
+{
+  for (int i =0; i < rhs.size(); i++) {
+    m_EnumCheckers.push_back(new isEnumParameter(*(rhs[i])));
+  }
+}
+
+
+/**
+ * Given a default size and limits force the default size to live inside the limits.
+ */
+int
+CConfigurableObject::computeDefaultSize(unsigned minLength, unsigned maxLength, int defaultSize)
+{
+  if (defaultSize < minLength) return minLength;
+  if (defaultSize > maxLength) return maxLength;
+  return defaultSize;
+}
+
+
+/**
+ * Given a string, produce a well formed Tcl list that consists of n repetitions
+ * of the string.  This is used to create default lists for list parameters
+ * 
+ * @param value - String to repeat.
+ * @param nElements - Number of elements in the list.
+ * 
+ * @return std::string
+ * @retval string representation of the list.
+ */
+std::string
+CConfigurableObject::simpleList(std::string value, unsigned nElements)
+{
+  CTCLInterpreter Interp;	// Need an interpreter for list stuff.
+  CTCLObject      theList;      // Tcl_Obj that will build the list.
+  theList.Bind(Interp);
+
+  for (int i = 0; i < nElements; i++) {
+    theList += value;
+  }
+  std::string result = theList;	// Coerce back to string rep.
+  return result;
+
+}
+////////////////////////////////////////////////////////////////////////////////////////
+//  Destructors for elements of the m_constraints list.
+//
+
+/*
+ * Kill off an enum constraint
+ */
+void 
+CConfigurableObject::releaseEnumConstraint(void* pConstraint)
+{
+  isEnumParameter *pItem = static_cast<isEnumParameter*>(pConstraint);
+  if (pItem) {
+    delete pItem;
+  } else {
+    throw std::string("releaseEnumConstraint -- constraint does not cast to an isEnumParameter");
+  }
+}
+/*
+ *  Kill off a Limits constraint.
+ */
+void
+CConfigurableObject::releaseLimitsConstraint(void* pConstraint)
+{
+  Limits* pItem = static_cast<Limits*>(pConstraint);
+
+  if (pItem) {
+    delete pItem;
+  } else {
+    throw std::string("releaseLimitsConstraint -- constraint does not cast to a Limits object");
+  }
+
 }

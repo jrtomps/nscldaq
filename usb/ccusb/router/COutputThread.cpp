@@ -133,23 +133,23 @@ COutputThread::~COutputThread()
  * Bridge between nscldaq 10 and spectrodaq threading:
  */
 void
-COutputThread::run()
+COutputThread::init()
 {
 
+    attachRing();		// Attach to the ring, creating it if needed.
+ 
 
-  (*this)();
 }
 
 /*
    Thread entry point.  This is just an infinite buffer processing loop.
 */
-int
+void
 COutputThread::operator()()
 {
   // Main loop is pretty simple.
   try {
-    attachRing();		// Attach to the ring, creating it if needed.
-    while(1) {
+   while(1) {
       
       DataBuffer& buffer(getBuffer());
       processBuffer(buffer);

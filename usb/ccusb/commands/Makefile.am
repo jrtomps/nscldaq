@@ -20,7 +20,7 @@ INCLUDES		= 	-I@top_srcdir@/usb/ccusb/threadcomm	\
 				-I@top_srcdir@/base/exception		\
 				-I@top_srcdir@/base/headers		\
 				-I@top_srcdir@/base/thread		\
-				$(TCL_FLAGS)
+				$(TCL_FLAGS) @THREADCXX_FLAGS@
 
 libCCUSBCommands_la_LIBADD	= 	@top_builddir@/usb/ccusb/rdothread/libCCUSBRdoThread.la	\
 				@top_builddir@/usb/ccusb/threadcomm/libCCUSBThreadComm.la	\
@@ -30,3 +30,9 @@ libCCUSBCommands_la_LIBADD	= 	@top_builddir@/usb/ccusb/rdothread/libCCUSBRdoThre
 				@top_builddir@/base/thread/libdaqthreads.la	\
 			        @top_builddir@/base/exception/libException.la \
 				$(TCL_LDFLAGS)
+
+install-data-local:
+	$(mkinstalldirs) @prefix@/ccusbdriver
+	$(mkinstalldirs) @prefix@/ccusbdriver/includes
+	$(INSTALL_DATA)  *.h @prefix@/ccusbdriver/includes
+

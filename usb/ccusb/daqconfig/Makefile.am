@@ -9,7 +9,8 @@ libCCUSBConfig_la_SOURCES	= 	CConfiguration.cpp	\
 				CCAEN257Command.cpp	\
 				C1205Command.cpp	\
 				CCCUSBCommand.cpp	\
-				CPH7132Command.cpp
+				CPH7132Command.cpp	\
+				CUserCommand.cpp
 
 
 #				CScalerCommand.cpp
@@ -26,18 +27,25 @@ noinst_HEADERS		=	CConfiguration.h 	\
 				CCAEN257Command.h	\
 				C1205Command.h		\
 				CCCUSBCommand.h		\
-				CPH7132Command.h
+				CPH7132Command.h	\
+				CUserCommand.h
 
 
 
 INCLUDES		= 	-I@top_srcdir@/usb/ccusb/devices	\
+				-I@top_srcdir@/usb/ccusb		\
 				-I@top_srcdir@/base/tclplus		\
 				-I@top_srcdir@/base/exception		\
 				-I@top_srcdir@/base/headers		\
-				$(TCL_FLAGS)
+				$(TCL_FLAGS) @THREADCXX_FLAGS@
 
 libCCUSBConfig_la_LIBADD	=	@top_builddir@/usb/ccusb/devices/libCCUSBDevices.la 	\
 				@top_builddir@/base/tclplus/libtclPlus.la	\
 				@top_builddir@/base/exception/libException.la	\
-				$(TCL_LDFLAGS)
+				$(TCL_LDFLAGS) @THREADLD_FLAGS@
 
+
+install-data-local:
+	$(mkinstalldirs) @prefix@/ccusbdriver
+	$(mkinstalldirs) @prefix@/ccusbdriver/includes
+	$(INSTALL_DATA)  *.h @prefix@/ccusbdriver/includes

@@ -2,7 +2,7 @@
 # Process this file with autoconf to produce a configure script.
 
 AC_PREREQ(2.61)
-AC_INIT(nscldaq, 10.1-001, fox@nscl.msu.edu)
+AC_INIT(nscldaq, 10.1-002, fox@nscl.msu.edu)
 AC_CONFIG_SRCDIR([/utilities/StringsToIntegers.h])
 AC_CONFIG_HEADER([config.h])
 AC_CONFIG_MACRO_DIR([m4])
@@ -559,6 +559,9 @@ AC_CONFIG_FILES([Makefile
 		 usb/ccusb/threadcomm/Makefile usb/ccusb/router/Makefile
 		 usb/ccusb/rdothread/Makefile usb/ccusb/tclserver/Makefile 
 		 usb/ccusb/daqconfig/Makefile  usb/ccusb/commands/Makefile
+		 usb/ccusb/driverkit/Makefile
+		 usb/ccusb/driverkit/Makefile-template
+		 usb/ccusb/driverkit/CCUSBDriverIncludes
 		 docbuild/Makefile
 		 docconfig/Makefile])
 

@@ -5,7 +5,8 @@ SUBDIRS = 	ccusb 		\
 		rdothread	\
 		daqconfig	\
 		tclserver		\
-		commands
+		commands	\
+		driverkit
 
 
 bin_PROGRAMS = CCUSBReadout
@@ -21,7 +22,7 @@ INCLUDES = -I@top_srcdir@/usb/ccusb/ccusb -I@top_srcdir@/usb/ccusb/devices \
 	-I@top_srcdir@/usb/ccusb/tclserver  \
 	-I@top_srcdir@/base/headers -I@top_srcdir@/base/tclplus \
 	-I@top_srcdir@/base/thread -I@top_srcdir@/base/exception \
-	$(TCL_FLAGS)
+	$(TCL_FLAGS) @THREADCXX_FLAGS@
 
 
 CCUSBReadout_LDADD	= cmdline.o @top_builddir@/usb/ccusb/devices/libCCUSBDevices.la	\
@@ -36,7 +37,7 @@ CCUSBReadout_LDADD	= cmdline.o @top_builddir@/usb/ccusb/devices/libCCUSBDevices.
 	@top_builddir@/base/tclplus/libtclPlus.la		\
 	@top_builddir@/base/thread/libdaqthreads.la		\
 	@top_builddir@/base/exception/libException.la		\
-	@TCL_LDFLAGS@
+	@TCL_LDFLAGS@ @THREADLD_FLAGS@ 
 
 CCUSBReadout_LDFLAGS=-Wl,"-rpath=$(libdir)"
 
@@ -52,3 +53,8 @@ cmdline.o: commandline.ggo
 	$(CC) -c -I. cmdline.c $(THREADCFLAGS)
 
 EXTRA_DIST=commandline.ggo
+
+install-data-local:
+	$(mkinstalldirs) @prefix@/ccusbdriver
+	$(mkinstalldirs) @prefix@/ccusbdriver/includes
+	$(INSTALL_DATA)  *.h @prefix@/ccusbdriver/includes

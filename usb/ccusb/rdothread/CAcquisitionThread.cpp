@@ -138,54 +138,47 @@ CAcquisitionThread::waitExit()
  * Bridge between new and old threading model.
  */
 void
-CAcquisitionThread::run()
+CAcquisitionThread::init()
 {
-  (*this)();
+  try {
+    beginRun();			// Emit begin run buffer.
+    startDaq();  		// Setup and start data taking.
+    m_Running = true;		// Thread is off and running now.    
+  }
+  catch (string msg) {
+    cerr << "CAcquisition thread caught a string exception: " << msg << endl;
+  }
+  catch (char* msg) {
+    cerr << "CAcquisition thread caught a char* exception: " << msg << endl;
+  }
+  catch (CException& err) {
+    cerr << "CAcquisitino thread caught a daq exception: "
+	 << err.ReasonText() << " while " << err.WasDoing() << endl;
+  }
+  catch (...) {
+    cerr << "CAcquisition thread caught some other exception type.\n";
+  }
+
 }
 
 /*!
    Entry point for the thread.
 */
-int
+void
 CAcquisitionThread::operator()()
 {
   try {
-    m_Running = true;		// Thread is off and running now.
     
-    beginRun();			// Emit begin run buffer.
-    
-    startDaq();  		        // Setup and start data taking.
-    try {
-      
-      mainLoop();			// Enter the main processing loop.
-    }
-    catch (...) {			// exceptions are used to exit the main loop.?
-    }
-    
-    endRun();			// Emit end run buffer.
-    
-    m_Running = false;		// Exiting.
-    return      0;		// Successful exit I suppose.
+    mainLoop();			// Enter the main processing loop.
   }
-  catch (string msg) {
-    cerr << "CAcquisition thread caught a string exception: " << msg << endl;
-    throw;
+  catch (...) {			// exceptions are used to exit the main loop.?
   }
-  catch (char* msg) {
-    cerr << "CAcquisition thread caught a char* exception: " << msg << endl;
-    throw;
-  }
-  catch (CException& err) {
-    cerr << "CAcquisitino thread caught a daq exception: "
-	 << err.ReasonText() << " while " << err.WasDoing() << endl;
-    throw;
-  }
-  catch (...) {
-    cerr << "CAcquisition thread caught some other exception type.\n";
-    throw;
-  }
-  return -1;
+  
+  endRun();			// Emit end run buffer.
+  m_Running = false;		// Exiting.
+
 }
+
 
 /*!
   The main loop is simply one that loops:
@@ -201,24 +194,24 @@ CAcquisitionThread::mainLoop()
     while (true) {
       
       // Event data from the VM-usb.
-      
-      size_t bytesRead;
-      int status = m_pCamac->usbRead(pBuffer->s_rawData, pBuffer->s_storageSize,
-				   &bytesRead,
-				  USBTIMEOUT*1000 );
-      if (status == 0) {
-	pBuffer->s_bufferSize = bytesRead;
-	pBuffer->s_bufferType   = TYPE_EVENTS;
-	processBuffer(pBuffer);	// Submitted to output thread so...
-	pBuffer = gFreeBuffers.get(); // need a new one.
-      } 
-      else {
+      if (m_Running) {
+	size_t bytesRead;
+	int status = m_pCamac->usbRead(pBuffer->s_rawData, pBuffer->s_storageSize,
+				       &bytesRead,
+				       USBTIMEOUT*1000 );
+	if (status == 0) {
+	  pBuffer->s_bufferSize = bytesRead;
+	  pBuffer->s_bufferType   = TYPE_EVENTS;
+	  processBuffer(pBuffer);	// Submitted to output thread so...
+	  pBuffer = gFreeBuffers.get(); // need a new one.
+	} 
+	else {
 #ifdef REPORT_ERRORS
-	cerr << "Bad status from usbread: " << strerror(errno) << endl;
+	  cerr << "Bad status from usbread: " << strerror(errno) << endl;
 #endif
-      }
+	}
       // Commands from our command queue.
-      
+      }
       CControlQueues::opCode request;
       bool   gotOne = pCommands->testRequest(request);
       if (gotOne) {
@@ -254,7 +247,9 @@ CAcquisitionThread::processCommand(CControlQueues::opCode command)
     CCusbToAutonomous();
   }
   else if (command == CControlQueues::END) {
-    stopDaq();
+    if (m_Running) {
+      stopDaq();
+    }
     queues->Acknowledge();
     throw "Run ending";
   }

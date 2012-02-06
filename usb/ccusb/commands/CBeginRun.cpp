@@ -126,7 +126,6 @@ CBeginRun::operator()(CTCLInterpreter& interp,
   CAcquisitionThread* pReadout = CAcquisitionThread::getInstance();
   pReadout->start(Globals::pUSBController,
 		  Globals::pConfig->getStacks());
-
   tclUtil::setResult(interp, string("Begin - Run started"));
   return TCL_OK;
 }

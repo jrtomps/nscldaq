@@ -49,6 +49,14 @@
 #endif
 #endif
 
+#ifndef __STL_LIST
+#include <list>
+#ifndef __STL_LIST
+#define __STL_LIST
+#endif
+#endif
+
+
 // Typedefs for the parameter checker are in the global namespace:
 
 typedef bool (*typeChecker)(std::string name, std::string value, void* arg);
@@ -115,16 +123,38 @@ public:
     TypeCheckInfo      s_checker;
   } isListParameter;
 
+  typedef void(*ConstraintFreer)(void*); // Free function for dynamic constraint objects.
+  typedef struct _DynamicConstraint {	 // 
+    ConstraintFreer s_Releaser;
+    void*           s_pObject;
+  } DynamicConstraint, *pDynamicConstraint;
+
+  struct  flimit {
+    bool   s_checkMe;
+    float s_value;
+    flimit() :
+      s_checkMe(false) {}
+    flimit(float value) :
+      s_checkMe(true), 
+      s_value(value) {}
+  };
+
+  typedef std::pair<flimit, flimit> FloatingLimits;
+  typedef std::vector<isEnumParameter*>         EnumCheckers;
+
   // Internal typedefs
 private:
   typedef std::pair<std::string, TypeCheckInfo> ConfigData;
   typedef std::map<std::string, ConfigData>     Configuration;
   typedef Configuration::iterator               ConfigIterator;
 
+  typedef std::list<DynamicConstraint>         ConstraintReleaseList;
 
 private:
-  std::string     m_name;	//!< Name of this object.
-  Configuration   m_parameters;	//!< Contains the configuration parameters.
+  std::string               m_name;	        //!< Name of this object.
+  Configuration             m_parameters;	//!< Contains the configuration parameters.
+  ConstraintReleaseList     m_constraints;      //!< Dynamically created constraints.
+  EnumCheckers    m_EnumCheckers;
 
 public:
   // Canonicals..
@@ -142,7 +172,15 @@ public:
   std::string getName() const;
   std::string cget(std::string name) ;
   ConfigurationArray cget();
-  
+
+  // Convenience functions that get common conversions:
+
+  int              getIntegerParameter (std::string name);
+  unsigned int     getUnsignedParameter(std::string name);
+  bool             getBoolParameter    (std::string name);
+  double           getFloatParameter   (std::string name);
+  std::vector<int> getIntegerList      (std::string name);
+    
   // Operations:
 
 public:
@@ -158,6 +196,30 @@ public:
   void configure(std::string name, std::string value);
 
 
+  // Convenience methods for creating typical parameter typse:
+  
+  void addIntegerParameter(std::string name, int defaultVal = 0);
+  void addIntegerParameter(std::string name, int low, int high, int defaultVal = 0);
+
+  void addBooleanParameter(std::string name, bool defaultVal = true);
+
+  void addEnumParameter(std::string name,
+			const char** pValues,
+			std::string defaultValue = std::string(""));
+
+  void addBoolListParameter(std::string name, unsigned size, bool defaultVal = true);
+  void addBoolListParameter(std::string name, unsigned minLength, unsigned maxLength, 
+			    bool defaultVal = true, int defaultSize = -1);
+
+  void addIntListParameter(std::string name, unsigned size, int defaultVal = 0);
+  void addIntListParameter(std::string name, unsigned minlength, unsigned maxLength,
+			   int defaultVal = 0, int defaultSize = -1);
+ 
+
+  void addStringListParameter(std::string name, unsigned size, std::string defaultVal = "");
+  void addStringListParameter(std::string name, unsigned minLength, unsigned maxLength,
+			      std::string defaultVal =  "", int defaultLength = -1);
+
 
   // common type checkers:
 
@@ -168,7 +230,31 @@ public:
   static bool isBoolList(std::string name,std::string value, void* arg);
   static bool isIntList(std::string name, std::string value, void* arg);
   static bool isStringList(std::string name, std::string value, void* arg);
-  
+
+  // Utilities:
+
+  // Build enum set from a list of char*'s:
+
+  static isEnumParameter makeEnumSet(const char** values);
+
+  // Utility to convert a validated string to a bool:
+
+  static bool strToBool(std::string value);
+
+private:
+  ListSizeConstraint* createListConstraint(unsigned minLength, unsigned maxLength);
+  int                 computeDefaultSize(unsigned minLength, unsigned maxLength, int defaultSize);
+  std::string         simpleList(std::string value, unsigned nElements);
+  static void addTrueValues(std::set<std::string>& values);
+  static void addFalseValues(std::set<std::string>& values);
+  void        deleteEnumCheckers();
+  void        addEnumCheckers(const EnumCheckers& rhs);
+
+
+  // Constraint releasers.
+private:
+  static void releaseEnumConstraint(void* pConstraint);
+  static void releaseLimitsConstraint(void* pConstraint);
 };
 
 

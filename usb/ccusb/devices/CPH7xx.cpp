@@ -214,11 +214,21 @@ CPH7xx::Initialize(CCCUSB& controller)
   controller.inhibit();		// assume this works for now.
 
   try {
-    checkedControl(controller,
-		   slot, 0, 9, 
-		   "Failed to clear Ph7xx in slot %d"); // clear
-
-    // figure out the control register bits; and write it:
+    bool done = false;
+    int tries = 0;
+    while (!done) {
+      try {
+	checkedControl(controller,
+		       slot, 0, 9, 
+		       "Failed to clear Ph7xx in slot %d"); // clear
+	done = true;
+      }
+      catch (std::string msg) {
+	tries++;
+	if (tries > 10) throw;
+      }
+    }
+	// figure out the control register bits; and write it:
 
     bool usepeds  = getBoolParameter("-usepedestals");
     bool usellt   = getBoolParameter("-usellt");

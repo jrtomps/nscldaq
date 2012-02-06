@@ -19,7 +19,7 @@
 
 using namespace std;
 
-#include <Thread.h>
+#include <CSynchronizedThread.h>
 
 #ifndef __CRT_STDINT_H
 #include <stdint.h>
@@ -88,7 +88,7 @@ class CRingBuffer;
         emits the begin run buffer.
 */
 
-class COutputThread  : public Thread
+class COutputThread  : public CSynchronizedThread
 {
   // Thread local data:
 private:
@@ -132,11 +132,11 @@ public:
   // thread entry point.
 
 public:
-  virtual void run();		// Entry point.
+  virtual void init();		// Entry point.
 
 protected:
 
-  virtual int operator()();	// Old style entry point.
+  virtual void operator()();	// Old style entry point.
 private:
   DataBuffer& getBuffer();
   void freeBuffer(DataBuffer&  buffer);
