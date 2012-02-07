@@ -1,0 +1,1096 @@
+<!-- chapter utilities -->
+<chapter>
+    <title>CCUSB Readout framework</title>
+    <para>
+        The CCUSB Readout framework provides support for the Wiener-JTec
+        CC-USB CAMAC controller.  The CC-USB is a USB CAMAC controller that
+        uses a Xilinx gate array to implement a CAMAC list processor.
+        The CCUSB Readout framework provides:
+    </para>
+    <itemizedlist>
+        <listitem><para>
+            A high level approach to the problem of data taking with the CC-USB
+        </para></listitem>
+        <listitem><para>
+            Support for user written device support without any need to
+            understand the format of list operations supported by the CC-USB
+        </para></listitem>
+        <listitem>
+            <para>
+                Direct insertion of data taken to an arbitrary destination
+                ringbuffer.
+            </para>
+        </listitem>
+    </itemizedlist>
+    <para>
+        This Chapter provides overview information that describes
+    </para>
+    <itemizedlist>
+        <listitem>
+            <para>
+                The philosophy behind the CCUSB readout framework.
+            </para>
+        </listitem>
+        <listitem>
+            <para>
+                How to write configuration files for the CCUSB readout
+                framework.
+            </para>
+        </listitem>
+        <listitem>
+            <para>
+                How to write device support and incorpoprate it into the
+                CCUSB readout framework.
+            </para>
+        </listitem>
+        <listitem>
+            <para>
+                How the slow controls framework operates.
+            </para>
+        </listitem>
+    </itemizedlist>
+    <para>
+        Reference information is available in the <literal>3ccusb</literal>
+        section of the referencae material.
+    </para>
+    <section>
+        <title>How the CCUSB readout framework works</title>
+        <para>
+            The CCUSB readout framework provides a high level approach to
+            configuring devices supported by the system.  A plugin architecture
+            allows user written device support to be incorporated into
+            the framework at run-time.  
+        </para>
+        <para>
+            The framework supports both data taking devices and slow control
+            devices that may require a control panel.  Naturally you can
+            support relatively static slow control devices by using the
+            data taking device support as well.
+        </para>
+        <para>
+            The recurring concepts for both the data taking device support
+            and slow controls device support are:
+        </para>
+        <itemizedlist>
+            <listitem>
+                <para>
+                    A Tcl configuration file describes the devices used
+                    by the experiment.
+                </para>
+            </listitem>
+            <listitem>
+                <para>
+                    Each supported device class is represented in the
+                    configuration file by a Tcl command ensemble. The
+                    command ensemble provides subcommands that allow you to
+                    create, configure and query the configuration of
+                    physical devices (device instances).
+                </para>
+            </listitem>
+            <listitem>
+                <para>
+                    The device configuration is represented in the configuration
+                    file in manner analagous to the state of a Tk widget.
+                    That is, you never actually program the device directly,
+                    you simply specify the desired configuration. The actual
+                    programming is done by the device class's device support
+                    software.
+                </para>
+            </listitem>
+            <listitem>
+                <para>
+                    In accordance with the way the CC-USB operates, you can create
+                    two lists of <firstterm>stack</firstterm>s in CC-USB parlance.
+                    One stack is an event stack and is intended to be used
+                    to handle event triggers.  The second stack is a scaler stack
+                    and typically is set to readout periodicalyl.
+                </para>
+                <para>
+                    Each stack has, configuratino properties as well. One
+                    configuration property is the set of modules managed
+                    by that stack.  Modules managed by that stack are initialized
+                    by the software, in accordance with their configuration,
+                    and contribute to the readout list that executes in response
+                    to that stack's trigger.
+                </para>
+            </listitem>
+        </itemizedlist>
+
+    </section>
+    <section>
+        <title>Writing DAQ configuration files</title>
+        <para>
+            The DAQ configuration file is processed at the beginning of each run.
+            The configuratino file is processed in a fresh interpreter each time.
+            You therefore cannot maintain any state across runs via your configuration
+            file.
+        </para>
+        <para>
+            To illustrate module creation and configuration,
+            this let's look at a fragment from a configuration
+            file:
+        </para>
+        <example>
+            <title>Creating and configuring devices</title>
+            <programlisting>
+ph7xxx create tdc -slot 13 -id 0x7186 -sparse false
+ph7xxx config tdc -readhits true -usellt false -usehlt false
+            </programlisting>
+        </example>
+        <para>
+            The ph7xxx driver supports the Phillips 7xxx series
+            CAMAC 16 channel digitizers.  The <command>ph7xxx</command> command is the Tcl
+            command this driver recognizes.  The <command>create</command>
+            subcommand creates a new device instance and names it <literal>tdc</literal>.
+            When you create a module any addition command words following the
+            device name are interpreted as configuration options.
+            In this case, the module is configured to be in slot 13,
+            the driver is configured to emit a literal value (<option>-id</option>)
+            <literal>0x7186</literal> prior to data from the device.
+            The module is also configured to read all channels
+            (<option>-sparse</option> <literal>false</literal>).
+        </para>
+        <para>
+            The <command>config</command> subcommand allows you to further
+            configure the options of a device instance.  The second line
+            of the example continues specifying the configuration of the
+            device named <literal>tdc</literal>.  The configuration parameters
+            on that line request the driver to read the hit pattern register
+            (<option>-readhits</option> <literal>true</literal>), to not
+            enable  either the lower level threshold or the upler level threshold
+            (<option>-usellt</option> and <option>usehlt</option>).
+        </para>
+        <para>
+            The reference section <literal>3ccusb</literal> provides detailed
+            information that describes each supported device and the
+            configuration options it supports.
+        </para>
+        <para>
+            Configuration files must also specify at least one stack and, if
+            scaler modules are to be read periodically, a second scaler stack.
+            See the <xref linkend="ccusb3-stack" /> command
+            in the reference material for detailed information about how
+            to create and configure stacks.
+        </para>
+        <para>
+            To continue with the previous example:
+        </para>
+        <example>
+            <title>Configuring an event stack</title>
+            <programlisting>
+stack create events
+stack config events -modules [list tdc] -type event -delay 108
+            </programlisting>
+        </example>
+        <para>
+            Stacks are created and configured exactly like any other module.
+            In this configuration file fragment, a stack named
+            <literal>events</literal> is created.  It is configured to
+            manage the <literal>tdc</literal> module (<option>-modules</option>).
+            It is configured as the event stack (<option>-type</option>) which,
+            by default is triggered by a nim pulse in the <literal>IN1</literal>
+            input of the module. The <option>-delay </option> parameter
+            specifies a delay of 108usec between the trigger input and stack
+            execution.  This capability is provided to allow the digitizers
+            in the stack time to convert.
+        </para>
+        <para>
+            Finally here's a configuration file fragment that sets up an
+            LRS 2551 scaler and the scaler stack:
+        </para>
+        <example>
+            <title>Setting up a scaler stack</title>
+            <programlisting>
+stack create events
+stack config events -modules [list testing tdc] -type event -delay 108
+            </programlisting>
+        </example>
+    </section>
+    <section>
+        <title>Writing device support software</title>
+        <para>
+            This section describes how to write a device support module.
+            Device support modules are built into shared object libraries
+            that can be dynamically loaded into the readout software via
+            the <command>load</command> command.
+        </para>
+        <para>
+            The device support package is provided as a template driver
+            source file and a Makefile that builds the shared object.
+            If the DAQ software is installed in $DAQROOT, the following
+            commands copy the template driver and its makefile:
+        </para>
+        <example>
+            <title>Obtaining the ccusb driver development kit</title>
+            <programlisting>
+<command>cp $DAQROOT/ccusbdriver/drivertemplate.cpp .</command>
+<command>cp $DAQROOT/ccusbdriver/Makefile .</command>
+            </programlisting>
+        </example>
+        <para>
+            The example below shows how to load a user written driver
+            and use the driver that is created by an unmodified driver template:
+        </para>
+        <example>
+            <title>Using a user written CCUSB driver</title>
+            <programlisting>
+set here [file nativename [file dirname [info script]]]
+load [file join $here libtemplatedriver.so]
+changeme create testing -value 0x1234
+            </programlisting>
+        </example>
+        <para>
+            The example assumes that you have built the driver in the same
+            directory as your configuration file.  The first example line
+            computes the full file path to the configuration file's directory.
+            The second loads the driver, joining that path to the name of the
+            shared object created by the Makefile.  Note that you typically will
+            need to provide a full path to the driver shared object or the
+            <command>load</command> command will claim the file cannot be located.
+            The final command creates and configures a device instance
+            named <literal>testing</literal> using the <command>changeme</command>
+            command the unmodified driver creates.
+        </para>
+        <para>
+            Let's look at the template driver you copied.
+            The template consists of two main chunks.  The first chunk is a
+            class derived from <classname>CReadoutHardware</classname> that is
+            responsible for managing the driver itself. You will normally
+            need to modify the <methodname>onAttach</methodname>,
+            <methodname>Initialize</methodname> and <methodname>addReadoutList</methodname>
+            methods of this class, as well as changing the class name to something
+            more reasonable than <classname>CTemplateDriver</classname>.
+        </para>
+        <para>
+            The second chunk is a Tcl package initialization function that
+            must define the Tcl command that is associated twith the driver.
+        </para>
+        <para>
+            While the driver template is heavily commented, and modification
+            points are indicated, the next few sections are a guided tour
+            of the main sections you will need to modify.
+        </para>
+        <section>
+            <title>The driver onAttach method</title>
+            <para>
+                Each driver instance has a configuration database attached to it
+                when it is created.  The configuration database holds configuration
+                parameter definitions and their current values.  The framework
+                takes care of managing the values for you, however you must
+                define the set of configuration parameters supported by your
+                driver.
+            </para>
+            <para>
+                The template driver's code is (comments removed for brevity:
+            </para>
+            <informalexample>
+                <programlisting>
+void
+CTemplateDriver::onAttach(CReadoutModule&amp; configuration)
+{
+  m_pConfiguration = &amp;configuration;                    <co id='ccusb-dtemplate-saveconfig' />
+  m_pConfiguration->addIntegerParameter("-slot", 1, 23, 1); <co id='ccusb-dtemplate-slotparam' />
+
+  m_pConfiguration->addIntegerParameter("-value"); // default is 0. <co id='ccusb-dtemplate-valueparam' />
+}
+                </programlisting>
+            </informalexample>
+            <calloutlist>
+                <callout arearefs='ccusb-dtemplate-saveconfig'>
+                    <para>
+                        <methodname>onAttach</methodname> needs to be able
+                        to access its configuration in other methods.
+                        The <parameter>configuration</parameter> parameter is
+                        a reference to that configuration.  This line
+                        saves a pointer to that configuration in the
+                        <varname>m_pConfiguration</varname> member variable.
+                        Note that a <classname>CReadoutModule</classname>
+                        is derived from a <classname>CConfigurableObject</classname>
+                        and that base class holds the configuration.
+                    </para>
+                    <para>
+                        This code is provided by the driver template.
+                    </para>
+                </callout>
+                <callout arearefs='ccusb-dtemplate-slotparam'>
+                    <para>
+                        Virtually all of the device support you write will
+                        need to know which slot in the CAMAC crate contains
+                        your module.  This line creates an integer
+                        parameter constrained to lie in the range
+                        <literal>[1..23]</literal> named <literal>-slot</literal>.
+                        The default value (if the user does not configure
+                        this item) is <literal>1</literal> (the last parameter
+                        of the <methodname>addIntegerParamter</methodname> call).
+                    </para>
+                    <para>
+                        This code is provided by the driver template.
+                    </para>
+                </callout>
+                <callout arearefs='ccusb-dtemplate-valueparam'>
+                    <para>
+                        This sample line shows how to create an unconstrained
+                        integer parameter named <literal>-value</literal>.
+                        The configuration subsystem will ensure the value
+                        is a valid integer but will not contrain the range
+                        of that integer.
+                    </para>
+                    <para>
+                        This line is provided by the template driver but normally
+                        is removed as you edit the code to define the
+                        configuration options you actually need.
+                    </para>
+                </callout>
+            </calloutlist>
+            <para>
+                Normally the <methodname>onAttach</methodname> method is simply
+                defining the set of configuration parameters it needs to know
+                how to initialize and read the device it manages.  Configuration
+                parameters are named items (by convention the names start with the
+                dash character) and are strongly typed. Integer, real, string,
+                enumerated, and boolean simple parameters are supported.  In
+                addtion collection (Tcl lists) are supported.
+            </para>
+            <para>
+                Parameter values can have constraints placed on them (the
+                range of <option>-slot</option> parameter values e.g.) which
+                are checked by the configuration subsystem without any intervention
+                by you.  Several pre-defined constraint checkers are available,
+                as are convenience functions for defining configuration parameters.
+                You can also define custom constraint checkers and register them
+                with the configuration subsystem.
+            </para>
+            <para>
+                See <xref linkend='ccusb3-CConfigurableObjet' /> for
+                detailed information about how to define configuration
+                parameters.
+            </para>
+        </section>
+        <section>
+            <title>The driver Initialize method</title>
+            <para>
+                The <methodname>Initialize</methodname> method of each
+                device instance that has been put in a stack is called
+                after the configuration file is processed prior to loading
+                the stack and prior to turning on data taking mode in the
+                CC-USB.
+            </para>
+            <para>
+                Typically in <methodname>Initialize</methodname> you must:
+                <orderedlist>
+                    <listitem>
+                        <para>
+                            Fetch the configuration parameters you need
+                            to know how to initialize the device and prepare
+                            it for data taking.
+                        </para>
+                    </listitem>
+                    <listitem>
+                        <para>
+                            Issue method calls to the <parameter>controller</parameter>
+                            <classname>CCCUSB</classname> object passed in to the
+                            method.  Note that if your device requires a lot of
+                            initialization, you can speed up that process
+                            by creating <classname>CCCUSBReadoutList</classname>
+                            objects, which are lists of instructions, using
+                            its methods to create a list of operatinos and then
+                            asking the controller to execute that list.
+                        </para>
+                    </listitem>
+                </orderedlist>
+            </para>
+            <para>
+                For detailed information about the methods supported by
+                the <classname>CCCUSB</classname> and <classname>CCCUSBReadoutList</classname>,
+                see <xref linkend='ccusb3-CCCUSB' /> and <xref linkend='ccusb3-CCCUSBReadoutList' />
+            </para>
+            <para>
+                The template driver provides the following code (most
+                comments removed for brevity).
+            </para>
+            <informalexample>
+                <programlisting>
+void
+CTemplateDriver::Initialize(CCCUSB&amp; controller)
+{
+
+  int slot = m_pConfiguration->getIntegerParameter("-slot"); <co id='ccusb-dtemplate-init1' />
+
+  /* MODIFY ME HERE */
+                                                             <co id='ccusb-dtemplate-init2' />
+  /* END MODIFICATIONS */
+
+}
+
+
+                </programlisting>
+            </informalexample>
+            <calloutlist>
+                <callout arearefs='ccusb-dtemplate-init1'>
+                    <para>
+                        In most cases you need the slot number of the module
+                        to initialize it.  This call obtains the value of the
+                        <option>-slot</option> configuration parameter
+                        from the configuration database for this module.
+                    </para>
+                </callout>
+                <callout arearefs='ccusb-dtemplate-init2'>
+                    <para>
+                        You would add code here to fetch parameter values
+                        as well as method calls for the <parameter>controller</parameter>
+                        object to manipulate the CAMAC crate.  If initialization
+                        requires a large number of CAMAC operations you could
+                        also create a <classname>CCCUSBReadoutList</classname>,
+                        manipulate it to store a set of operatiuons and then
+                        use <parameter>controller.executeList(3ccusb)</parameter> to
+                        execute that list.
+                    </para>
+                </callout>
+            </calloutlist>
+        </section>
+        <section>
+            <title>The driver addReadoutList method</title>
+            <para>
+                <methodname>addReadoutList</methodname> is called as a run is
+                being intialized.  This method is expected to contribute items
+                to the <classname>CCCUSBRedoutList</classname> that will be
+                loaded into either a scaler or event stack.  Usuall this is done
+                by fetching the set of configuration parameters that are required
+                to know how to read the device and then invoking appropriate
+                methods on the <parameter>list</parameter> parameter to
+                add CAMAC operations to the stack.
+            </para>
+            <para>
+                The template driver implements a marker 'device'. The marker
+                device ignores its <option>-slot</option> configuration parameter
+                (a production quality marker driver would probably not define
+                a <option>-slot</option> parameter).  It adds an instrution
+                to the <parameter>list</parameter> that inserts a  literal
+                value into the event.  The value inserted is determined by
+                the <option>-value</option> parameter.
+            </para>
+            <para>
+                Here's the sample driver code for the <methodname>addReadoutList</methodname>
+                method:
+            </para>
+            <informalexample>
+                <programlisting>
+void
+CTemplateDriver::addReadoutList(CCCUSBReadoutList&amp; list)
+{
+  int slot = m_pConfiguration->getIntegerParameter("-slot");
+  
+  /* MODIFY ME HERE */
+  
+  int value = m_pConfiguration->getIntegerParameter("-value");  <co id='ccusb-dtemplate-read1' />
+  list.addMarker(value);        // This is a longword marker.   <co id='ccusb-dtemplate-read2' />
+
+  /* END MODIFICATIONS */
+}
+
+                </programlisting>
+            </informalexample>
+            <calloutlist>
+                <callout arearefs='ccusb-dtemplate-read1'>
+                    <para>
+                        This line fetches the <option>-value</option>
+                        cofiguration parameter.  This is the value
+                        that we are going to insert into the event buffer
+                    </para>
+                </callout>
+                <callout arearefs='ccusb-dtemplate-read2'>
+                    <para>
+                        The <methodname>addMarker</methodname> method adds
+                        the CCUSB instructions to insert a literal value in the
+                        output buffer to the list being built up. This
+                        therefore instructs the CCUSB that the readout of this
+                        'device' consists of inserting the value of the
+                        <option>-value</option> configuration parameter.
+                    </para>
+                    <para>
+                        Naturally a real device would add NAF instructions or
+                        Q-Stop/C-Scan operations to the list via other
+                        <classname>CCCUSBReadoutList</classname> methods.
+                    </para>
+                </callout>
+            </calloutlist>
+        </section>
+        <section>
+            <title>Initializing the driver with the framework.</title>
+            <para>
+                The Tcl <command>load</command> command searches the
+                shared object for a specific function entry point that
+                it will call to initialize the library.  The initialization function
+                must follow the correct naming conventions or Tcl will complain
+                about not being able to find the library's initialization function.
+            </para>
+            <para>
+                The initialization entry point must be the name of the
+                resulting library with the <literal>lib</literal> prefix stripped
+                off and the first letter capitalized suffixed by <literal>_Init</literal>.
+                Thus if you are building
+                <filename>libmydriver.so</filename>, the initialation function
+                must be called <function>Mydriver_Init</function>.
+            </para>
+            <para>
+                The template driver provides the following code:
+            </para>
+            <informalexample>
+                <programlisting>
+extern "C" {                                    <co id='ccusb-dtemplate-dinit1' />
+  int Templatedriver_Init(Tcl_Interp* pInterp)  <co id='ccusb-dtemplate-dinit2' />
+  {
+    Tcl_PkgProvide(pInterp, "Templatedriver", "1.0"); <co id='ccusb-dtemplate-dinit3' />
+ 
+    CUserCommand::addDriver("changeme", new CTemplateDriver); <co id='ccusb-dtemplate-dinit4' />
+
+    return TCL_OK;                               <co id='ccusb-dtemplate-dinit5' />
+
+  }
+}
+                </programlisting>
+            </informalexample>
+            <calloutlist>
+                <callout arearefs='ccusb-dtemplate-dinit1' >
+                    <para>
+                        Since C++ <firstterm>decorates</firstterm> function  names
+                        with an encoding of the call signature, to support function
+                        overloading, you must declare the initialization
+                        functino using C linkage conventions.  The
+                        <literal>extern "C" {}</literal> creates a block of
+                        code whose externally visible symbols will use C
+                        linkage conventions.
+                    </para>
+                </callout>
+                <callout arearefs='ccusb-dtemplate-dinit2'>
+                    <para>
+                        In general you will need to modify the name of this
+                        to work with the name of the library file you
+                        create.  The discussion prior to this example
+                        describes the naming conventions that are required.
+                    </para>
+                </callout>
+                <callout arearefs='ccusb-dtemplate-dinit3'>
+                    <para>
+                        In our examples we used the Tcl <command>load</command>
+                        command to load the driver.  This statement registers
+                        the library as providing a Tcl loadable package.
+                        You can use the Tcl command <command>pkg_mkIndex</command>
+                        to build an auto load index file for loadable packages
+                        including those in shared libraries.  This allows you
+                        to collect several drivers into a directory added to the
+                        auto load path, and use the <command>package require</command>
+                        command to load them by package name.  You must
+                        change the name of the package in this call
+                        to be something unique and descriptive of your driver.
+                    </para>
+                </callout>
+                <callout arearefs='ccusb-dtemplate-dinit4'>
+                    <para>
+                        The <classname>CUserCommand</classname>::<methodname>addDriver</methodname>
+                        function associates a template device driver object
+                        with its Tcl command ensemble name.  The template device driver
+                        object is cloned for each <command>create</command> subcommand
+                        issued for this driver in the configuration script.
+                        You should change both the name of the driver command
+                        from <literal>changeme</literal> and you should have
+                        previously changted the class name of the
+                        driver class from <classname>CTemplateDriverM</classname>
+                    </para>
+                </callout>
+                <callout arearefs='ccusb-dtemplate-dinit5'>
+                    <para>
+                        If the library initialization was successful it
+                        should return <literal>TCL_OK</literal> on failure
+                        it shouild return <literal>TCL_ERROR</literal>.
+                        In this case it is also customary to use
+                        e.g. Tcl_SetResult or a similar function to set the
+                        result of the load command to a descriptive error
+                        message.
+                    </para>
+                </callout>
+            </calloutlist>
+        </section>
+    </section>
+    <section>
+        <title>The slow controls subsystem</title>
+        <para>
+            There is nothing to stop you from creating device support that
+            does not do anything in its <methodname>addReadoutList</methodname>.
+            You could do this to implement static controls devices.  That is
+            non data taking devices whose configuration is set up at the start of
+            a run and cannot be dynamically modified.
+        </para>
+        <para>
+            There are cases, however when you'd like to have some control
+            panel associated with a device, that would provide a virtual knob
+            allowing you to dynamically modify settings in the device.
+            The slow controls subsystem supports this by offering a
+            TCP/IP server which can accept commands to set and query
+            devices.  
+        </para>
+        <para>
+            If the run is halted, the slow controls server can directly
+            manipulate the CCUSB to perform the desired device changes.
+            If, however the CCUSB is in data taking mode, the slow controls
+            server pauses the run, makes the setting and then resumes the run.
+            You should avoid working with control panels during production runs
+            for that reason.
+        </para>
+        <para>
+            The philosophy of the slow controls subsystem is similar to that
+            of the readout subsystem.  A controls configuration file defines
+            the control modules present in the system and their unchanging
+            configuration.  Note that the controls configuration file
+            is read only as CCUSBReadout starts, not once per run as
+            for the data acquisition configuration file.
+        </para>
+        <para>
+            The <command>Module</command> command is used to create configure
+            and query the configuration of slow controls devices known to the server.
+            The example below shows how to a Phillips PH7106 leading edge
+            discriminator:
+        </para>
+        <informalexample>
+            <programlisting>
+Module create ph7106  led
+Module config led -slot 3
+            </programlisting>
+        </informalexample>
+        <para>
+            The <literal>3ccusb</literal> reference section describes the Module types available,
+            the configuration options available, their control panels and
+            the network protocol used to communicate with the controls server.
+        </para>
+    </section>
+    <section>
+        <title>Running CCUSBReadout</title>
+        <para>
+            <application>CCUSBReadout</application> is installed as:
+            <filename>$DAQROOT/bin/CCUSBReadout</filename>.
+        </para>
+        <para>
+            Several command options control the way CCUSBReadout operates:
+        </para>
+        <variablelist>
+            <varlistentry>
+                <term><option>-serialno</option></term>
+                <listitem>
+                    <para>
+                        Specifies the serial number of the CCUSB the program
+                        will use.  See <option>--enumerate</option> below.
+                        If not provided, the first CCUSB located will be used.
+                        If you only have one CCUSB connected to your system,
+                        this is suitable.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><option>--ring</option></term>
+                <listitem>
+                    <para>
+                        Specifies the ring buffer in which event data will
+                        be put by the program.  By default this is the
+                        same as the username you are logged in on .
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><option>--daqconfig</option></term>
+                <listitem>
+                    <para>
+                        Specifies the filename that contains the data acquisition
+                        configuration script.  This defaults to
+                        <filename>~/config/daqconfig.tcl</filename>
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><option>--ctlconfig</option></term>
+                <listitem>
+                    <para>
+                        Specifies the filename that contains the slow controls
+                        configuration script.  This defaults to
+                        <filename>~/config/controlconfig.tcl</filename>. Note
+                        that this file is required even if it is just an empty file.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><option>--port</option></term>
+                <listitem>
+                    <para>
+                        Specifies the port on which the slow controls server
+                        listens for connections.  This default to
+                        <literal>27000</literal>.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><option>--enumerate</option></term>
+                <listitem>
+                    <para>
+                        Requests that the software list the serial numbers of
+                        the CCUSB devices currently attached to the system and
+                        exit.  Note that the serial 'numbers' are actually strings
+                        of the form <literal>CCnnnn</literal> where <replaceable>nnnn</replaceable>
+                        is a number.  One of these strings can be handed to the
+                        <option>--serialno </option> to select the CCUSB
+                        to use.
+                    </para>
+                    <para>
+                        Sample output:
+                    </para>
+                    <informalexample>
+                        <programlisting>
+/usr/opt/daq/10.1/bin/CCUSBReadout --enumerate
+CC-USB scriptable readout version V2.0
+[0] : CC0134
+
+                        </programlisting>
+                        <para>
+                            This output says the system is attached to a single
+                            CCUSB whose serial number string is
+                            <literal>CC0134</literal>
+                        </para>
+                    </informalexample>
+                </listitem>
+            </varlistentry>
+        </variablelist>
+    </section>
+</chapter>
+<!-- /chapter -->
+
+<!-- manpage 3ccusb -->
+	 <refentry id="ccusb3-ad811">
+	   <refmeta>
+	      <refentrytitle>ad811</refentrytitle>
+	      <manvolnum>3ccusb</manvolnum>
+	   </refmeta>
+	   <refnamediv>
+	      <refname>ad811</refname>
+	      <refpurpose>Support the Ortec AD811 ADC</refpurpose>
+	   </refnamediv>
+	   
+	   <refsynopsisdiv>
+	     <cmdsynopsis>
+	     <command>
+ad811 create <replaceable>module-name   ?option...?</replaceable>
+	     </command>
+	     </cmdsynopsis>
+	     <cmdsynopsis>
+	     <command>
+ad811 config <replaceable>module-name ?option...?</replaceable>
+	     </command>
+	     </cmdsynopsis>
+	     <cmdsynopsis>
+	     <command>
+ad811 cget <replaceable>module-name</replaceable>
+	     </command>
+	     </cmdsynopsis>
+	   </refsynopsisdiv>
+	   <refsect1>
+	      <title>DESCRIPTION</title>
+	      <para>
+	       This command ensemble provides support for the ORTEC AD811
+	       8 channel peak sensing ADC.  This module requires about 80
+	       microseconds to convert.  All channels convert unconditionally.
+	      </para>
+	      <para>
+		  <parameter>module-name</parameter> is either the name to be
+		  given to an ADC in the <command>create</command> subcommand
+		  or the name given to a previously created module in the
+		  <command>config</command> or <command>cget</command> commands.
+	      </para>
+	      <para>
+	       Both <command>create</command> and <command>config</command> take
+	       configuration options.   Each option is a keyword value pair where
+	       the keyword defines what the option is and the value is a value
+	       associated with that option.  See OPTIONS below for more information
+	       about the options supported by <command>ad811</command>.
+	      </para>
+	      <para>
+	       The <command>cget</command> option returns the configuration options
+	       for the named module as a Tcl list.  Each element of the list is
+	       a two element sublist.  The first element of each sublist is
+	       the configuration parameter name, and the second the value associated
+	       with that name.
+	      </para>
+	   </refsect1>
+	   <refsect1>
+	    <title>
+	       OPTIONS
+	    </title>
+	    <para>
+	       The <command>ad811</command> configuration options are:
+	    </para>
+	    <variablelist>
+	       <varlistentry>
+		  <term><option>-id</option> <replaceable>vsn</replaceable></term>
+		  <listitem>
+		     <para>
+			   Each module has an identifier which, for historical
+			   reasons is called a <firstterm>virtual slot number</firstterm>,
+			   or <firstterm>vsn</firstterm>.  To maximize the decode
+			   error detection the virtual slot numbers for each
+			   module should be unique.  This option allows you
+			   to set the virtual slot number for the module.
+		     </para>
+		     </listitem>
+	       </varlistentry>
+	       <varlistentry>
+		  <term><option>-slot</option> <replaceable>slotnum</replaceable></term>
+		  <listitem>
+		     <para>
+			The value of this parameter tells the readout software
+			which CAMAC crate slot houses the module.  Recall that
+			CAMAC is slot addressable.  Slots number from 1 on the
+			left, with an increasing slot number towards the right.
+			The right two slots are reserved for the CAMAC Crate
+			controller (in our case a CC-USB).
+		     </para>
+		  </listitem>
+	       </varlistentry>
+	    </variablelist>
+	   </refsect1>
+	   <refsect1>
+	      <title>EXAMPLE</title>
+	      <para>
+	       The example below creates and configures an AD811 that is in
+	       slot 2 of the CAMAC crate and, when read will have a virtual
+	       slot number of 2:
+	      </para>
+	      <example>
+		  <title>AD811 configuration file example</title>
+		  <programlisting>
+ad811  create adc -slot 2 -id 2
+		  </programlisting>
+	      </example>
+	   </refsect1>
+	 
+	 </refentry>
+         
+<refentry id="ccusb3-c1205">
+  <refmeta>
+     <refentrytitle>c1205</refentrytitle>
+     <manvolnum>3ccusb</manvolnum>
+  </refmeta>
+  <refnamediv>
+     <refname>c1205</refname>
+     <refpurpose>Manage CAEN C1205 QDC modules.</refpurpose>
+  </refnamediv>
+  
+  <refsynopsisdiv>
+    <cmdsynopsis>
+    <command>
+c1205 create <replaceable>module-name ?option...?</replaceable>
+    </command>
+    </cmdsynopsis>
+<cmdsynopsis>
+<command>
+c1205 config <replaceable>module-name ?option...?</replaceable>
+</command>
+</cmdsynopsis>
+<cmdsynopsis>
+<command>
+c1205 config <replaceable>module-name</replaceable>
+</command>
+</cmdsynopsis>
+  </refsynopsisdiv>
+  <refsect1>
+     <title>DESCRIPTION</title>
+	      <para>
+		  This command ensemble allows you to create and configure
+		  CAEN model C1205 QDC modules.  The C1205 is a sixteen
+		  channel charge integrating ADC.
+	      </para>
+	      <para>
+		  The <command>create</command> command
+		  allows you to create a new module and assign a
+		  <parameter>module-name</parameter> to it so that it can
+		  be referred to in subsequent configuration commands.
+		  You may optionally include configuration switch value pairs
+		  on the <command>create</command> command line.
+	      </para>
+	      <para>
+		  The <command>config</command> subcommand allows you to
+		  set the configuration parameters for an existing module.
+		  <parameter>module-name</parameter> is the name assigned to
+		  that module whe it was created.
+	      </para>
+	      <para>
+		  The <command>cget</command> command returns as its value
+		  the module configuration as a Tcl list where each list element
+		  is a sublist containing the name and value of a configuration
+		  parameter.
+	      </para>
+	      <para>
+		  Configuration options are name/value pairs.   The name
+		  of a configuration option is sometimes called a
+		  <firstterm>switch</firstterm> because it resembles the
+		  command line switches of command shell commands.
+		  For a full description of these options see OPTIONS below.
+	      </para>
+  </refsect1>
+  <refsect1>
+      <title>OPTIONS</title>
+      <para>
+	 The CAEN C1205 supports the following configuration option switches.
+	 The switches and values can be supplied to both the
+	 <command>create</command> and the <command>config</command>
+	 subcommands.
+      </para>
+      <variablelist>
+	 <varlistentry>
+	 <term><option>-slot</option> <replaceable>n</replaceable></term>
+	 <listitem>
+	    <para>
+	       Specifies the slot in which the module is installed
+	       to <literal>n</literal>.
+	       If this is not set correctly, the Readout program will
+	       not be able to communicate with the module and will emit
+	       a warning, if the slot <literal>n</literal> is empty.
+	       This parameter must be provided.
+	    </para>
+	 </listitem>
+	 </varlistentry>
+	 <varlistentry>
+	    <term><option>-id</option> <replaceable>n</replaceable></term>
+	    <listitem>
+	       <para>
+		  Sets the id of the module to <literal>n</literal>.
+		  The module id is placed as a marker word prior
+		  to the data from the module.  It is used by the
+		  unpacking software to unambiguously identify The
+		  data from each module.  For the C1205, the id
+		  value is also programmed into the lower 8 bits of the
+		  control status register and will therefore also
+		  appear in the bottom 8 bits of the header word
+		  read from the module.
+	       </para>
+	       <para>
+		  While the <option>-id</option> value defaults to
+		  0, and need not be unique, your data is most
+		  reliably decoded if each module in your system has
+		  a unique id value.
+	       </para>
+	    </listitem>
+	 </varlistentry>
+	 <varlistentry>
+	    <term><option>-usepedestals</option> <replaceable>true|false</replaceable></term>
+	    <listitem>
+	       <para>
+		  The value of this configuration parameter determines how
+		  bit 12 of the control status register is initialized.
+		  If <literal>true</literal> (default value), the bit is
+		  set to one which enables pedestal subtraction from the input
+		  signal.
+	       </para>
+	    </listitem>
+	 </varlistentry>
+	 <varlistentry>
+	    <term><option>-hires</option> <replaceable>true|false</replaceable></term>
+	    <listitem>
+	       <para>
+		  The value of this configuration parameter determins how
+		  bit 16 of the module control status register is
+		  initialized.  If <literal>true</literal> (default value)
+		  the bit is set to zero enabling high resolution mode.
+		  If set <literal>false</literal> low resolution mode
+		  is selected.
+		  High resolution
+		  mode provides 12 bits of data resolution while low
+		  resolution mode provides only 10 bits of data resolution.
+		  High resolution comes at a cost of an additional 1.5
+		  microseconds of conversion time (5.5 microseconds compared
+		  with 4 microseconds for low resolution).
+	       </para>
+	    </listitem>
+	 </varlistentry>
+	 <varlistentry>
+	    <term><option>-thresholds</option> <replaceable>threshold-list</replaceable></term>
+	    <listitem>
+	       <para>
+		  Provides the channel threshold registers.  This is a Tcl
+		  list of 16 integers in the range <literal>0-4095</literal>.
+		  Data is read from a module only if the data value for the
+		  module's low range is greater than the corresponding element
+		  of the list.  The thresholds default to a list of 16 zeroes.
+	       </para>
+	    </listitem>
+	 </varlistentry>
+	 <varlistentry>
+	    <term><option>-lopedestals</option> <replaceable>pedestal-list</replaceable></term>
+	    <listitem>
+	       <para>
+		  Provides a list of 16 integers (0-4095) which are subtracted
+		  from the data values to  produce the low range value.
+	       </para>
+	    </listitem>
+	 </varlistentry>
+	 <varlistentry>
+	    <term><option>-midpedestals</option> <replaceable>pedestal-list</replaceable></term>
+	    <listitem>
+	       <para>
+		  Same  as <option>-lopedestals</option> but the pedestals
+		  are applied to the mid level conversion.
+	       </para>
+	    </listitem>
+	 </varlistentry>
+	 <varlistentry>
+	    <term><option>-hipedestal</option> <replaceable>pedestal-list</replaceable></term>
+	    <listitem>
+	       <para>
+		  Same as <option>-lopedestals</option> but the pedestals
+		  are applied to the low level conversion.
+	       </para>
+	    </listitem>
+	 </varlistentry>
+	 <varlistentry>
+	    <term><option>-rangemode</option> <replaceable>mode</replaceable></term>
+	    <listitem>
+	       <para>
+		  Sets the module range mode.  The value for
+		  <replaceable>mode</replaceable> must be one of the following:
+		  <variablelist>
+		     <varlistentry>
+			<term><literal>all</literal></term>
+			<listitem>
+			   <para>
+			      Conversions from all ranges appear in each event.
+			      In this mode, some of the conversions will likely
+			      have negative values.
+			   </para>
+			</listitem>
+		     </varlistentry>
+		     <varlistentry>
+			<term><literal>auto</literal></term>
+			<listitem>
+			   <para>In this mode (default) only the  range
+			      the conversion falls in will appear in the
+			      data fromt he mdule.
+			   </para>
+			</listitem>
+		     </varlistentry>
+		     <varlistentry>
+			<term><literal>sparse</literal></term>
+			<listitem>
+			   <para>Same as auto, but only data from channels
+			      are above the channel thresholds set
+			      via the <option>-thresholds</option> option
+			      appear in the data from the module.
+			   </para>
+			</listitem>
+		     </varlistentry>
+			      
+		  </variablelist>
+	       </para>
+	    </listitem>
+	 </varlistentry>
+	 
+      </variablelist>
+  </refsect1>
+<!-- /manpage -->
+
+
+
