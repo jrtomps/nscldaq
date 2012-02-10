@@ -215,7 +215,7 @@ public:
   };
 
   //! Firmware register *Mask are in place masks, *Shift shift the field to low order justify it
-  class FirmwareRegiseter {
+  class FirmwareRegister {
   public:
     static const uint32_t  revisionMask  = 0xff;
     static const uint32_t  revisionShift = 0;
@@ -242,7 +242,6 @@ public:
     static const uint16_t bufferLenSingle  = 7;
     
     static const uint16_t mixedBuffers     = 0x20;
-    static const uint16_t doubleSeparater  = 0x40;
     
     static const uint16_t doubleHeader     = 0x100;
     
@@ -255,7 +254,7 @@ public:
     static const uint16_t triggerDelayMask = 0xff;
     static const uint16_t triggerDelayShift= 0;
     static const uint16_t lamTimeoutMask   = 0xff00;
-    static const uint16_t lamTimeoutShifg  = 8;
+    static const uint16_t lamTimeoutShift  = 8;
   };
 
   //!  The Scaler Control register determines when/how often scaler events are read:
@@ -352,21 +351,33 @@ public:
   public:
     // Scaler A source/control
 
-    static const uint32_t scalerADisabled       = 0x00000000;
-    static const uint32_t scalerI1              = 0x00000001; // count on NIM I1 etc...
-    static const uint32_t scalerI2              = 0x00000002;
-    static const uint32_t scalerAEvent          = 0x00000003;
-    static const uint32_t scalerAReset          = 0x00000010;
-    static const uint32_t scalerAEnable         = 0x00000020; // yup there's two disables ;-)
+    static const uint32_t scalerADisabled        = 0x00000000;
+    static const uint32_t scalerAI1              = 0x00000001; // count on NIM I1 etc...
+    static const uint32_t scalerAI2              = 0x00000002;
+    static const uint32_t scalerAI3              = 0x00000003;
+    static const uint32_t scalerAEvent           = 0x00000004;
+    static const uint32_t scalerACarryB          = 0x00000005;
+    static const uint32_t scalerADGGA            = 0x00000006;
+    static const uint32_t scalerADGGB            = 0x00000007;
+
+    static const uint32_t scalerAEnable          = 0x00000010;
+    static const uint32_t scalerAReset           = 0x00000020;
+    static const uint32_t scalerAFreezeReg       = 0x00000040;
     
     // Scaler B source/control
 
     static const uint32_t scalerBDisabled       = 0x00000000;
     static const uint32_t scalerBI1             = 0x00000100;
     static const uint32_t scalerBI2             = 0x00000200;
-    static const uint32_t scalerBEvent          = 0x00000300;
-    static const uint32_t scalerBReset          = 0x00001000;
-    static const uint32_t scalerBEnable         = 0x00002000;
+    static const uint32_t scalerBI3             = 0x00000300;
+    static const uint32_t scalerBEvent          = 0x00000400;
+    static const uint32_t scalerBCarryA         = 0x00000500;
+    static const uint32_t scalerBDGGA           = 0x00000600;
+    static const uint32_t scalerBDGGB           = 0x00000700;
+
+    static const uint32_t scalerBEnable         = 0x00001000;
+    static const uint32_t scalerBReset          = 0x00002000;
+    static const uint32_t scalerBFreezeReg      = 0x00004000;
 
     // Gate and delay generator A input source:
 
