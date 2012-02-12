@@ -2784,7 +2784,7 @@ Get <replaceable>name parameter</replaceable>
                 </methodparam>
                 <methodparam>
                     <type>int</type> <parameter>timeout</parameter>
-                    <modifier>= 2000</modifier>
+                    <initializer> 2000</initializer>
                 </methodparam>
             </methodsynopsis>
             <methodsynopsis>
@@ -3175,28 +3175,53 @@ Get <replaceable>name parameter</replaceable>
             </fieldsynopsis>
             <fieldsynopsis>
                 <modifier>static const</modifier> <type>uint32_t</type>
-                <varname>CCCUSB::DeviceSourceSelectorsRegister::scalerI1</varname>
+                <varname>CCCUSB::DeviceSourceSelectorsRegister::scalerAI1</varname>
                 <initializer>0x00000001</initializer>
             </fieldsynopsis>
             <fieldsynopsis>
                 <modifier>static const</modifier> <type>uint32_t</type>
-                <varname>CCCUSB::DeviceSourceSelectorsRegister::scalerI2</varname>
+                <varname>CCCUSB::DeviceSourceSelectorsRegister::scalerAI2</varname>
                 <initializer>0x00000002</initializer>
             </fieldsynopsis>
             <fieldsynopsis>
-                <modifier>static const</modifier> <type>uint32_t</type>
-                <varname>CCCUSB::DeviceSourceSelectorsRegister::scalerAEvent</varname>
+                <modifier>static const</modifier><type>uint32_t</type>
+                <varname>CCCUSB::DeviceSourceSelectorsRegister::scalerAI3</varname>
                 <initializer>0x00000003</initializer>
             </fieldsynopsis>
             <fieldsynopsis>
-                <modifier>static const</modifier>     <type>uint32_t</type>
-                <varname>CCCUSB::DeviceSourceSelectorsRegister::scalerAReset</varname>
-                <initializer>0x00000010</initializer>
+                <modifier>static const</modifier>   <type>uint32_t</type>
+                <varname>CCCUSB::DeviceSourceSelectorsRegister::scalerAEvent</varname>
+                <initializer>0x00000004</initializer>
+            </fieldsynopsis>
+            <fieldsynopsis>
+                <modifier>static const</modifier><type>uint32_t</type>
+                <varname>CCCUSB::DeviceSourceSelectorsRegister::scalerACarryB</varname>
+                <initializer>0x00000005</initializer>
             </fieldsynopsis>
             <fieldsynopsis>
                 <modifier>static const</modifier> <type>uint32_t</type>
+                <varname>CCCUSB::DeviceSourceSelectorsRegister::scalerADGGA</varname>
+                <initializer>0x00000006</initializer>
+            </fieldsynopsis>
+            <fieldsynopsis>
+                <modifier>static const</modifier> <type>uint32_t</type>
+                <varname>CCCUSB::DeviceSourceSelectorsRegister::scalerADGGB</varname>
+                <initializer>0x00000007</initializer>
+            </fieldsynopsis>
+            <fieldsynopsis>
+                <modifier>static const </modifier><type> uint32_t</type>
                 <varname>CCCUSB::DeviceSourceSelectorsRegister::scalerAEnable</varname>
+                <initializer>0x00000010</initializer>
+            </fieldsynopsis>
+            <fieldsynopsis>
+                <modifier>static const</modifier><type>uint32_t</type>
+                <varname>CCCUSB::DeviceSourceSelectorsRegister::scalerAScalerAReset</varname>
                 <initializer>0x00000020</initializer>
+            </fieldsynopsis> 
+            <fieldsynopsis>
+                <modifier>static const</modifier><type>uint32_t</type>
+                <varname>CCCUSB::DeviceSourceSelectorsRegister::scalerAFreezReg</varname>
+                <initializer>0x00000040</initializer>
             </fieldsynopsis>
             <fieldsynopsis>
                 <modifier>static const</modifier> <type>uint32_t</type>
@@ -3215,18 +3240,42 @@ Get <replaceable>name parameter</replaceable>
             </fieldsynopsis>
             <fieldsynopsis>
                 <modifier>static const</modifier> <type>uint32_t</type>
-                <varname>CCCUSB::DeviceSourceSelectorsRegister::scalerBEvent</varname>
+                <varname>CCCUSB::DeviceSourceSelectorsRegister::scalerBI3</varname>
                 <initializer>0x00000300</initializer>
             </fieldsynopsis>
             <fieldsynopsis>
-                <modifier>static const</modifier> <type>uint32_t</type>
-                <varname>CCCUSB::DeviceSourceSelectorsRegister::scalerBReset</varname>
-                <initializer>0x00001000</initializer>
+                <modifier>static const</modifier><type>uint32_t</type>
+                <varname>CCCUSB::DeviceSourceSelectorsRegister::scalerBEvent</varname>
+                <initializer>0x00000400</initializer>
             </fieldsynopsis>
             <fieldsynopsis>
-                <modifier>static const</modifier> <type>uint32_t</type>
+                <modifier>static const</modifier><type>uint32_t</type>
+                <varname>CCCUSB::DeviceSourceSelectorsRegister::scalerBCarryA</varname>
+                <initializer>0x00000500</initializer>
+            </fieldsynopsis>
+            <fieldsynopsis>
+                <modifier>static const</modifier><type>uint32_t</type>
+                <varname>CCCUSB::DeviceSourceSelectorsRegister::scalerBDGGA</varname>
+                <initializer>0x00000600</initializer>
+            </fieldsynopsis>
+            <fieldsynopsis>
+                <modifier>static const</modifier><type>uint32_t</type>
+                <varname>CCCUSB::DeviceSourceSelectorsRegister::scalerBDGGB</varname>
+                <initializer>0x00000700</initializer>
+            </fieldsynopsis>
+            <fieldsynopsis>
+                <modifier>static const</modifier><type>uint32_t</type>
                 <varname>CCCUSB::DeviceSourceSelectorsRegister::scalerBEnable</varname>
+                <initializer>0x00001000</initializer>
+                </fieldsynopsis>
+            <fieldsynopsis>
+                <modifier>static const</modifier><type>uint32_t</type>
+                <varname>CCCUSB::DeviceSourceSelectorsRegister::scalerBReset</varname>
                 <initializer>0x00002000</initializer>
+            </fieldsynopsis>
+            <fieldsynopsis>
+                <modifier>static const</modifier><type>uint32_t</type>
+                <varname>CCCUSB::DeviceSourceSelectorsRegister::scalerBFreezeReg</varname>
             </fieldsynopsis>
             <fieldsynopsis>
                 <modifier>static const</modifier> <type>uint32_t</type>
@@ -4172,7 +4221,7 @@ Get <replaceable>name parameter</replaceable>
                             </methodparam>
                             <methodparam>
                                 <type>int</type> <parameter>timeout</parameter>
-                                <modifier>= 2000</modifier>
+                                <initializer>2000</initializer>
                             </methodparam>
                         </methodsynopsis>
                     </term>
@@ -4602,6 +4651,7 @@ uint32_t revision = (d & CCCUSB::FirmwareRegister::revisionMask)
                 This register has fields for controlling the delay between the trigger
                 and stack execution as well as the LAM timeout interval.
                 Both fields are in units of microseconds.
+            </para>
             <variablelist>
                 <varlistentry>
                     <term>
@@ -5412,12 +5462,1744 @@ uint32_t revision = (d & CCCUSB::FirmwareRegister::revisionMask)
                 </varlistentry>
             </variablelist>
            </refsect2>
+           <refsect2>
+            <title>Device source register</title>
+            <para>
+                This register contains several fields that control the
+                input sources to the scalers and gate and delay generators
+                implemented in the CC-USB.  The register contains four fields
+                which are called <literal>scalerA</literal>, <literal>scalerB</literal>
+                <literal>dggA</literal>  and <literal>dggB</literal>. Typically
+                you will bitwise or a code from each of the fields.  In the case
+                of the scaler fields there are three bits, <literal>Enable</literal>,
+                <literal>Reset</literal>, and <literal>FreezeReg</literal>
+                that can also be ored into the codes.
+            </para>
+            <variablelist>
+                <varlistentry>
+                    <term>
+                        <fieldsynopsis>
+                            <modifier>static const</modifier> <type>uint32_t</type>
+                            <varname>CCCUSB::DeviceSourceSelectorsRegister::scalerADisabled</varname>
+                            <initializer>0x00000000</initializer>
+                        </fieldsynopsis>
+                    </term>
+                    <listitem>
+                        <para>
+                            Scale A has no input, effectively disabling it.
+                            Note that if code is not use you will need
+                            to set the enable bit as well to enable the scaler
+                            to count.
+                            </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>
+                        <fieldsynopsis>
+                            <modifier>static const</modifier> <type>uint32_t</type>
+                            <varname>CCCUSB::DeviceSourceSelectorsRegister::scalerAI1</varname>
+                            <initializer>0x00000001</initializer>
+                        </fieldsynopsis>
+                    </term>
+                    <listitem>
+                        <para>
+                            Selects I1 as the input to Scaler A
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>
+                        <fieldsynopsis>
+                            <modifier>static const</modifier> <type>uint32_t</type>
+                            <varname>CCCUSB::DeviceSourceSelectorsRegister::scalerAI2</varname>
+                            <initializer>0x00000002</initializer>
+                        </fieldsynopsis>
+                    </term>
+                    <listitem>
+                        <para>
+                            Selects I2 as the input to scaler A.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>
+                        <fieldsynopsis>
+                            <modifier>static const</modifier><type>uint32_t</type>
+                            <varname>CCCUSB::DeviceSourceSelectorsRegister::scalerAI3</varname>
+                            <initializer>0x00000003</initializer>
+                        </fieldsynopsis>
+                    </term>
+                    <listitem>
+                        <para>
+                            Selects I3 to be the input to scalerA.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>
+                        <fieldsynopsis>
+                            <modifier>static const</modifier>   <type>uint32_t</type>
+                            <varname>CCCUSB::DeviceSourceSelectorsRegister::scalerAEvent</varname>
+                            <initializer>0x00000004</initializer>
+                        </fieldsynopsis>
+                        </term>
+                    <listitem>
+                        <para>
+                            Selects the event trigger to be the source for
+                            Scaler A
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>
+                        <fieldsynopsis>
+                            <modifier>static const</modifier><type>uint32_t</type>
+                            <varname>CCCUSB::DeviceSourceSelectorsRegister::scalerACarryB</varname>
+                            <initializer>0x00000005</initializer>
+                        </fieldsynopsis>
+                    </term>
+                    <listitem>
+                        <para>
+                            Selects the carry out of scalerB to increment
+                            ScalerA  this allows you to gang ScalerB (LSBs)
+                            and Scaler A (MSBs) into a single 48 bit scaler.
+                        </para>
+                    </listitem>
+                    </varlistentry>
+                <varlistentry>
+                    <term>
+                        <fieldsynopsis>
+                            <modifier>static const</modifier> <type>uint32_t</type>
+                            <varname>CCCUSB::DeviceSourceSelectorsRegister::scalerADGGA</varname>
+                            <initializer>0x00000006</initializer>
+                        </fieldsynopsis>
+                    </term>
+                    <listitem>
+                        <para>
+                            Scaler A will count when DGGA snds an output pulse.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>
+                        <fieldsynopsis>
+                            <modifier>static const</modifier> <type>uint32_t</type>
+                            <varname>CCCUSB::DeviceSourceSelectorsRegister::scalerADGGB</varname>
+                            <initializer>0x00000007</initializer>
+                        </fieldsynopsis>
+                    </term>
+                    <listitem>
+                        <para>
+                            Counts scaler A when when DGGB sends an output pulse.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>
+                        <fieldsynopsis>
+                            <modifier>static const </modifier><type> uint32_t</type>
+                            <varname>CCCUSB::DeviceSourceSelectorsRegister::scalerAEnable</varname>
+                            <initializer>0x00000010</initializer>
+                        </fieldsynopsis>
+                    </term>
+                    <listitem>
+                        <para>
+                            Enables Scaler A to count.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>
+                        <fieldsynopsis>
+                            <modifier>static const</modifier><type>uint32_t</type>
+                            <varname>CCCUSB::DeviceSourceSelectorsRegister::scalerAScalerAReset</varname>
+                            <initializer>0x00000020</initializer>
+                        </fieldsynopsis>
+                    </term>
+                    <listitem>
+                        <para>
+                            Resets scaler A
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>
+                        <fieldsynopsis>
+                            <modifier>static const</modifier><type>uint32_t</type>
+                            <varname>CCCUSB::DeviceSourceSelectorsRegister::scalerAFreezReg</varname>
+                            <initializer>0x00000040</initializer>
+                        </fieldsynopsis>
+                    </term>
+                    <listitem>
+                        <para>
+                            Any operation that writes this register with this
+                            bit set will not modify the effective code for selecting
+                            the inputs for scaler A.  This allows you to enable/disable/clear
+                            scaler A without needing to know the actual
+                            scaler source.  Note that since there is no
+                            corresponding freeze bit for the dggA/B sources this
+                            capability is of limited utility.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>
+                        <fieldsynopsis>
+                            <modifier>static const</modifier> <type>uint32_t</type>
+                            <varname>CCCUSB::DeviceSourceSelectorsRegister::scalerBDisabled</varname>
+                            <initializer>0x00000000</initializer>
+                        </fieldsynopsis>
+                    </term>
+                    <listitem>
+                        <para>
+                            Directs to inputs to Scaler B.  Note that if another
+                            input is used it's still necessary to also set
+                            the <varname>CCCUSB::DeviceSourceSelectorsRegister::scalerBEnable</varname>
+                            bit to enable the scaler to count.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>
+                        <fieldsynopsis>
+                            <modifier>static const</modifier> <type>uint32_t</type>
+                            <varname>CCCUSB::DeviceSourceSelectorsRegister::scalerBI1</varname>
+                            <initializer>0x00000100</initializer>
+                        </fieldsynopsis>
+                    </term>
+                    <listitem>
+                        <para>
+                            I1 is the input to ScalerB.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>
+                        <fieldsynopsis>
+                            <modifier>static const</modifier> <type>uint32_t</type>
+                            <varname>CCCUSB::DeviceSourceSelectorsRegister::scalerBI2</varname>
+                            <initializer>0x00000200</initializer>
+                        </fieldsynopsis>
+                    </term>
+                    <listitem>
+                        <para>
+                            Selects I2 as the input for Scaler B.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>
+                        <fieldsynopsis>
+                            <modifier>static const</modifier> <type>uint32_t</type>
+                            <varname>CCCUSB::DeviceSourceSelectorsRegister::scalerBI3</varname>
+                            <initializer>0x00000300</initializer>
+                        </fieldsynopsis>
+                    </term>
+                    <listitem>
+                        <para>
+                            Selecst I3 as the input for Scaler B.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>
+                        <fieldsynopsis>
+                            <modifier>static const</modifier><type>uint32_t</type>
+                            <varname>CCCUSB::DeviceSourceSelectorsRegister::scalerBEvent</varname>
+                            <initializer>0x00000400</initializer>
+                        </fieldsynopsis>
+                    </term>
+                    <listitem>
+                        <para>
+                            Selects the event trigger as the input for
+                            scaler B.  Presumably using this allows the scaler
+                            to count the number of events acquired.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>
+                        <fieldsynopsis>
+                            <modifier>static const</modifier><type>uint32_t</type>
+                            <varname>CCCUSB::DeviceSourceSelectorsRegister::scalerBCarryA</varname>
+                            <initializer>0x00000500</initializer>
+                        </fieldsynopsis>
+                    </term>
+                    <listitem>
+                        <para>
+                            Selects the carry from Scaler A as the input to
+                            scalerB this enables the use of ScalerA/B as
+                            a 48 bit scaler with the LSBs in ScalerA
+                            and MSBs in ScalerB.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>
+                        <fieldsynopsis>
+                            <modifier>static const</modifier><type>uint32_t</type>
+                            <varname>CCCUSB::DeviceSourceSelectorsRegister::scalerBDGGA</varname>
+                            <initializer>0x00000600</initializer>
+                        </fieldsynopsis>
+                    </term>
+                    <listitem>
+                        <para>
+                            Enables the output of gate and delay generator A
+                            to be the input to scaler B.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>
+                        <fieldsynopsis>
+                            <modifier>static const</modifier><type>uint32_t</type>
+                            <varname>CCCUSB::DeviceSourceSelectorsRegister::scalerBDGGB</varname>
+                            <initializer>0x00000700</initializer>
+                        </fieldsynopsis>
+                    </term>
+                    <listitem>
+                        <para>
+                            Enables the output of gate and delay generator B
+                            to be the input of scaler B.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>
+                        <fieldsynopsis>
+                            <modifier>static const</modifier><type>uint32_t</type>
+                            <varname>CCCUSB::DeviceSourceSelectorsRegister::scalerBEnable</varname>
+                            <initializer>0x00001000</initializer>
+                            </fieldsynopsis>
+                    </term>
+                    <listitem>
+                        <para>
+                            This bit can be ored in with the selected Scaler B
+                            code values.  It enables scaler B to count.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>
+                        <fieldsynopsis>
+                            <modifier>static const</modifier><type>uint32_t</type>
+                            <varname>CCCUSB::DeviceSourceSelectorsRegister::scalerBReset</varname>
+                            <initializer>0x00002000</initializer>
+                        </fieldsynopsis>
+                    </term>
+                    <listitem>
+                        <para>
+                            Resets scaler B
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>
+                        <fieldsynopsis>
+                            <modifier>static const</modifier><type>uint32_t</type>
+                            <varname>CCCUSB::DeviceSourceSelectorsRegister::scalerBFreezeReg</varname>
+                        </fieldsynopsis>
+                    </term>
+                    <listitem>
+                        <para>
+                            Freezes the scaler B input selector field.  This
+                            allows one to write Reset and Enable bits without
+                            disturbing the event source.  Note that you still
+                            must regenerate the DGGA and DGGB source selectors.
+                        </para>
+                        </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>
+                        <fieldsynopsis>
+                            <modifier>static const</modifier> <type>uint32_t</type>
+                            <varname>CCCUSB::DeviceSourceSelectorsRegister::dggADisabled</varname>
+                            <initializer>0x00000000</initializer>
+                        </fieldsynopsis>
+                    </term>
+                    <listitem>
+                        <para>
+                            Provides no input signal to Gate and delay generator
+                            A
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>
+                        <fieldsynopsis>
+                            <modifier>static const</modifier> <type>uint32_t</type>
+                            <varname>CCCUSB::DeviceSourceSelectorsRegister::dggAI1</varname>
+                            <initializer>0x00010000</initializer>
+                        </fieldsynopsis>
+                    </term>
+                    <listitem>
+                        <para>
+                            Routes the I1 front panel input to the input of
+                            gate and delay generator A
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>
+                        <fieldsynopsis>
+                            <modifier>static const</modifier> <type>uint32_t</type>
+                            <varname>CCCUSB::DeviceSourceSelectorsRegister::dggAI2</varname>
+                            <initializer>0x00020000</initializer>
+                        </fieldsynopsis>
+                    </term>
+                    <listitem>
+                        <para>
+                            Routes the I2 front panel input to the input of
+                            gate and delay generator A
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>
+                        <fieldsynopsis>
+                            <modifier>static const</modifier> <type>uint32_t</type>
+                            <varname>CCCUSB::DeviceSourceSelectorsRegister::dggAI3</varname>
+                            <initializer>0x00030000</initializer>
+                        </fieldsynopsis>
+                    </term>
+                    <listitem>
+                        <para>
+                            Routes the I3 front panel input to the input of
+                            gate and delay generator A
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>
+                        <fieldsynopsis>
+                            <modifier>static const</modifier> <type>uint32_t</type>
+                            <varname>CCCUSB::DeviceSourceSelectorsRegister::dggAEvent</varname>
+                            <initializer>0x00040000</initializer>
+                        </fieldsynopsis>
+                    </term>
+                    <listitem>
+                        <para>
+                            Routes the event trigger to the input of
+                            gate and delay generator A
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>
+                        <fieldsynopsis>
+                            <modifier>static const</modifier> <type>uint32_t</type>
+                            <varname>CCCUSB::DeviceSourceSelectorsRegister::dggAEndOfEvent</varname>
+                            <initializer>0x00050000</initializer>
+                        </fieldsynopsis>
+                    </term>
+                    <listitem>
+                        <para>
+                            Pulses the inpt of gate and delay generator A when
+                            event readout has completed.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>
+                        <fieldsynopsis>
+                            <modifier>static const</modifier> <type>uint32_t</type>
+                            <varname>CCCUSB::DeviceSourceSelectorsRegister::dggAUSBTrigger</varname>
+                            <initializer>0x00060000</initializer>
+                        </fieldsynopsis>
+                    </term>
+                    <listitem>
+                        <para>
+                            Pulses the input of gate and delay generator A
+                            when a USB stack trigger is written to the
+                            action register.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>
+                        <fieldsynopsis>
+                            <modifier>static const</modifier> <type>uint32_t</type>
+                            <varname>CCCUSB::DeviceSourceSelectorsRegister::dggAPulser</varname>
+                            <initializer>0x00070000</initializer>
+                        </fieldsynopsis>
+                    </term>
+                    <listitem>
+                        <para>
+                            Pulses the input of gate and delay generator A
+                            from the output of the pulser.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>
+                        <fieldsynopsis>
+                            <modifier>static const</modifier><type>uint32_t</type>
+                            <varname>CCCUSB::DeviceSourceSelectorsRegister::dggBDisabled</varname>
+                            <initializer>0x00000000</initializer>
+                        </fieldsynopsis>
+                    </term>
+                    <listitem>
+                        <para>
+                            Provides no input to gate and delay generator B.
+                            </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>
+                        <fieldsynopsis>
+                            <modifier>static const</modifier> <type>uint32_t</type>
+                            <varname>CCCUSB::DeviceSourceSelectorsRegister::dggBI1</varname>
+                            <initializer>0x01000000</initializer>
+                        </fieldsynopsis>
+                    </term>
+                    <listitem>
+                        <para>
+                            Routes the I1 input signal to the input of
+                            Gate and delay generator B.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>
+                        <fieldsynopsis>
+                            <modifier>static const</modifier> <type>uint32_t</type>
+                            <varname>CCCUSB::DeviceSourceSelectorsRegister::dggBI2</varname>
+                            <initializer>0x02000000</initializer>
+                        </fieldsynopsis>
+                   </term>
+                    <listitem>
+                        <para>
+                            Routes the I2 input signal to the input of
+                            Gate and delay generator B.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>
+                        <fieldsynopsis>
+                            <modifier>static const</modifier> <type>uint32_t</type>
+                            <varname>CCCUSB::DeviceSourceSelectorsRegister::dggBI3</varname>
+                            <initializer>0x03000000</initializer>
+                        </fieldsynopsis>
+                   </term>
+                    <listitem>
+                        <para>
+                            Routes the I3 input signal to the input of
+                            Gate and delay generator B.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>
+                        <fieldsynopsis>
+                            <modifier>static const</modifier> <type>uint32_t</type>
+                            <varname>CCCUSB::DeviceSourceSelectorsRegister::dggBEvent</varname>
+                            <initializer>0x04000000</initializer>
+                        </fieldsynopsis>
+                    </term>
+                    <listitem>
+                        <para>
+                            Puses the input of gate and delay generator B
+                            when an event trigger is processed.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>
+                        <fieldsynopsis>
+                            <modifier>static const</modifier><type>uint32_t</type>
+                            <varname>CCCUSB::DeviceSourceSelectorsRegister::dggBEndOfTrigger</varname>
+                            <initializer>0x05000000</initializer>
+                        </fieldsynopsis>
+                    </term>
+                    <listitem>
+                        <para>
+                            Pulses the input of DGGB at the end of processing
+                            an event trigger.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>
+                        <fieldsynopsis>
+                            <modifier>static const</modifier> <type>uint32_t</type>
+                            <varname>CCCUSB::DeviceSourceSelectorsRegister::dggBUSBTrigger</varname>
+                            <initializer>0x06000000</initializer>
+                        </fieldsynopsis>
+                    </term>
+                    <listitem>
+                        <para>
+                            Pulses the input of gate and delay generator B
+                            when a USB trigger is written to the Actino regsiter.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>
+                        <fieldsynopsis>
+                            <modifier>static const</modifier> <type>uint32_t</type>
+                            <varname>CCCUSB::DeviceSourceSelectorsRegister::dggBPulser</varname>
+                            <initializer>0x07000000</initializer>
+                        </fieldsynopsis>
+                    </term>
+                    <listitem>
+                        <para>
+                            Connects the pulser output to the input of gate
+                            and delay generator B
+                        </para>
+                    </listitem>
+                </varlistentry>
+            </variablelist>
+           </refsect2>
+           <refsect2>
+            <title>Gate and delay generator and pulser set up registers.
+            </title>
+            <para>
+                Several registers are used to set the timing of gate and
+                delay registers.  The timing parameters for gate and delay
+                generator A also determine the timing for the pulser as showin
+                in section 3.3.7 of the CC-USB manual.
+            </para>
+            <para>
+                This section describes the bit fields in these registers.
+                Each field is descdribed as a mask and shift count.
+                The mask removes all extraneous bits from the register except
+                the desired field and the shift count, when used to shift the
+                result right right justifies the field data.
+            </para>
+            <variablelist>
+                <varlistentry>
+                    <term>
+                        <fieldsynopsis>
+                            <modifier>static const</modifier> <type>uint32_t</type>
+                            <varname>CCCUSB::DGGAndPulserRegister::dggFineDelayMask</varname>
+                            <initializer>0xffff</initializer>
+                        </fieldsynopsis>                            
+                        <fieldsynopsis>
+                            <modifier>static const</modifier> <type>uint32_t</type>
+                            <varname>CCCUSB::DGGAndPulserRegister::dggFineDelayShift</varname>
+                            <initializer>0</initializer>
+                        </fieldsynopsis>
+                    </term>
+                    <listitem>
+                        <para>
+                            Defines the fine delay field.  See the course delays
+                            below.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>
+                        <fieldsynopsis>
+                            <modifier>static const</modifier> <type>uint32_t</type>
+                            <varname>CCCUSB::DGGAndPulserRegister::dggGateWidthMask</varname>
+                            <initializer>0xffff0000</initializer>
+                        </fieldsynopsis>
+                        <fieldsynopsis>
+                            <modifier>static const</modifier> <type>uint32_t</type>
+                            <varname>CCCUSB::DGGAndPulserRegister::dggGateWidthShift</varname>
+                            <initializer>16</initializer>
+                        </fieldsynopsis>
+                    </term>
+                    <listitem>
+                        <para>
+                            Defines the gate width field.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>
+                        <fieldsynopsis>
+                            <modifier>static const</modifier> <type>uint32_t</type>
+                            <varname>CCCUSB::DGGCoarseRegister::ACoarseMask</varname>
+                            <initializer>xffff;</initializer>
+                        </fieldsynopsis>
+                        <fieldsynopsis>
+                            <modifier>static const</modifier><type>uint32_t</type>
+                            <varname>CCCUSB::DGGCoarseRegister::ACoarseShift</varname>
+                            <initializer>0</initializer>
+                        </fieldsynopsis>
+                    </term>
+                    <listitem>
+                        <para>
+                            Defines the course delay fields for the a pulser.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>
+                        <fieldsynopsis>
+                            <modifier>static const</modifier> <type>uint32_t</type>
+                            <varname>CCCUSB::DGGCoarseRegister::BCoarseMask</varname>
+                            <initializer>0xffff0000</initializer>
+                        </fieldsynopsis>
+                        <fieldsynopsis>
+                            <modifier>static const</modifier> <type>uint32_t</type>
+                            <varname>CCCUSB::DGGCoarseRegister::BCoarseShift</varname>
+                            <initializer>16</initializer>
+                        </fieldsynopsis>
+                    </term>
+                    <listitem>
+                        <para>
+                            Defines the B course delay field.
+                        </para>
+                    </listitem>
+                </varlistentry>
+            </variablelist>
+           </refsect2>
+           <refsect2>
+            <title>Transfer setup register</title>
+            <para>
+                This regiseter allows you to read several buffers from the
+                CC-USB in a single read, as well as setting a time bound
+                on how long before the CC-USB terminates a multibuffer read.
+            </para>
+            <variablelist>
+                <varlistentry>
+                    <term>
+                        <fieldsynopsis>
+                            <modifier>static const</modifier><type>uint32_t</type>
+                            <varname>CCCCUSB::TransferSetupRegister::multiBufferCountMask</varname>
+                            <initializer>0xff</initializer>
+                        </fieldsynopsis>
+                        <fieldsynopsis>
+                            <modifier>static const</modifier><type> uint32_t </type>
+                            <varname>CCCCUSB::TransferSetupRegister::multiBufferCountShift</varname>
+                            <initializer>0</initializer>
+                        </fieldsynopsis>
+                    </term>
+                    <listitem>
+                        <para>
+                            Defines the number of buffers that can be batched
+                            into a single usb_bulk_read request.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>
+                        <fieldsynopsis>
+                            <modifier>static const</modifier><type> uint32_t</type>
+                            <varname>CCCCUSB::TransferSetupRegister::timeoutMask</varname>
+                            <initializer>0xf00</initializer>
+                        </fieldsynopsis>
+                        <fieldsynopsis>
+                            <modifier>static const</modifier> <type>uint32_t</type>
+                            <varname>CCCCUSB::TransferSetupRegister::timeoutShift</varname>
+                            <initializer>8</initializer>
+                        </fieldsynopsis>
+                        </term>
+                    <listitem>
+                        <para>
+                            Determines the number of seconds after which
+                            the CC-USB will terminate a bulk transfer if not
+                            all of the buffers determined by themultiBuffer
+                            count have been transferred.
+                            </para>
+                    </listitem>
+                </varlistentry>
+            </variablelist>
+           </refsect2>
+           <refsect2>
+            <title>X and Q</title>
+            <para>
+                The <parameter>qx</parameter> parameter on the simple
+                CAMAC operations allow you access to the dataway
+                Q and X lines.  The bit encoding of that parameter is:
+            </para>
+            <variablelist>
+                <varlistentry>
+                    <term>
+                        <fieldsynopsis>
+                            <modifier>static const</modifier> <type>uint16_t</type>
+                            <varname>CCCUSB::Q</varname>
+                            <initializer>1</initializer>
+                        </fieldsynopsis>
+                    </term>
+                    <listitem>
+                        <para>
+                            If this bit was set in the <parameter>qx</parameter>
+                            parameter, the module asserted a Q on the dataway.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>
+                        <fieldsynopsis>
+                            <modifier>static const</modifier> <type>uint16_t</type>
+                            <varname>CCCUSB::X</varname>
+                            <initializer>2</initializer>
+                        </fieldsynopsis>
+                    </term>
+                    <listitem>
+                        <para>
+                            If this bit is set in the <parameter>qx</parameter>
+                            parameter, the module asserted an X on the dataway.
+                        </para>
+                    </listitem>
+                    </varlistentry>
+            </variablelist>
+           </refsect2>    
         </refsect1>
         <refsect1>
             <title>SEE ALSO</title>
             <para>
                 <xref linkend='ccusb3-CCCUSBReadoutList' />
             </para>
+        </refsect1>
+     </refentry>
+         
+	 <refentry id="ccusb3-CCCUSBReadoutList">
+       <refmeta>
+          <refentrytitle>CCCUSBReadoutList</refentrytitle>
+          <manvolnum>3ccusb</manvolnum>
+       </refmeta>
+       <refnamediv>
+          <refname>CCCUSBReadoutList</refname>
+          <refpurpose>Create lists of CAMAC commands for CC-USB controllers.</refpurpose>
+       </refnamediv>
+       
+       <refsynopsisdiv>
+        <synopsis>
+            class <ooclass><classname>CCCUSBReadoutList</classname></ooclass> {          
+           <constructorsynopsis>
+          <methodname>CCCUSBReadoutList</methodname>
+          <void />
+           </constructorsynopsis>
+           <constructorsynopsis>
+            <methodname>CCCUSBReadoutList</methodname>
+            <methodparam>
+                <modifier>const</modifier> <type>CCCUSBReadoutList&amp;</type>
+                <parameter>rhs</parameter>
+            </methodparam>
+           </constructorsynopsis>
+            <methodsynopsis>
+                <type>std::vector&lt;uint16_t&gt;</type>
+                <methodname>get</methodname>
+                <void /><modifier>const</modifier>
+            </methodsynopsis>
+            <methodsynopsis>
+                <type>size_t</type> <methodname>size</methodname>
+                <void /><modifier>const</modifier>
+            </methodsynopsis>
+            <methodsynopsis>
+                <type>void</type> <methodname>clear</methodname>
+                <void />
+            </methodsynopsis>
+            <methodsynopsis>
+                <type>void</type><methodname>addWrite16</methodname>
+                <methodparam>
+                    <type>int</type><parameter>n</parameter>
+                </methodparam>
+                <methodparam>
+                    <type>int</type> <parameter>a</parameter>
+                </methodparam>
+                <methodparam>
+                    <type>int</type> <parameter>f</parameter>
+                </methodparam>
+                <methodparam>
+                    <type>uint16_t</type> <parameter>data</parameter>
+                </methodparam>
+            </methodsynopsis>
+            <methodsynopsis>
+                <type>void</type> <methodname>addWrite24</methodname>
+                <methodparam>
+                    <type>int</type> <parameter>n</parameter>
+                </methodparam>
+                <methodparam>
+                    <type>int</type> <parameter>a</parameter>
+                </methodparam>
+                <methodparam>
+                    <type>int</type> <parameter>f</parameter>
+                </methodparam>
+                <methodparam>
+                    <type>uint32_t</type> <parameter>data</parameter>
+                </methodparam>
+            </methodsynopsis>
+            <methodsynopsis>
+                <type>void</type> <methodname>addRead16</methodname>
+                <methodparam>
+                    <type>int</type> <parameter>n</parameter>
+                </methodparam>
+                <methodparam>
+                    <type>int</type> <parameter>a</parameter>
+                </methodparam>
+                <methodparam>
+                    <type>int</type> <parameter>f</parameter>
+                </methodparam>
+                <methodparam>
+                    <type>bool</type><parameter>lamWait</parameter>
+                    <initializer>false</initializer>
+                </methodparam>
+            </methodsynopsis>           
+            <methodsynopsis>
+                <type>void</type> <methodname>addRead24</methodname>
+                <methodparam>
+                    <type>int</type> <parameter>n</parameter>
+                </methodparam>
+                <methodparam>
+                    <type>int</type> <parameter>a</parameter>
+                </methodparam>
+                <methodparam>
+                    <type>int</type> <parameter>f</parameter>
+                </methodparam>
+                <methodparam>
+                    <type>bool</type><parameter>lamWait</parameter>
+                    <initializer>false</initializer>
+                </methodparam>
+            </methodsynopsis>
+            <methodsynopsis>
+                <type>void</type> <methodname>addControl</methodname>
+                <methodparam>
+                    <type>int</type> <parameter>n</parameter>
+                </methodparam>
+                <methodparam>
+                    <type>int</type> <parameter>a</parameter>
+                </methodparam>
+                <methodparam>
+                    <type>int</type> <parameter>f</parameter>
+                </methodparam>
+            </methodsynopsis>
+            <methodsynopsis>
+                <type>void</type> <methodname>addQStop</methodname>
+                <methodparam>
+                    <type>int</type> <parameter>n</parameter>
+                </methodparam>
+                <methodparam>
+                    <type>int</type> <parameter>a</parameter>
+                </methodparam>
+                <methodparam>
+                    <type>int</type> <parameter>f</parameter>
+                </methodparam>
+                <methodparam>
+                    <type>uint16_t</type> <parameter>max</parameter>
+                </methodparam>
+                <methodparam>
+                    <type>bool</type><parameter>lamWait</parameter>
+                    <initializer>false</initializer>
+                </methodparam>
+            </methodsynopsis>
+            <methodsynopsis>
+                <type>void</type> <methodname>addQStop24</methodname>
+                <methodparam>
+                    <type>int</type> <parameter>n</parameter>
+                </methodparam>
+                <methodparam>
+                    <type>int</type> <parameter>a</parameter>
+                </methodparam>
+                <methodparam>
+                    <type>int</type> <parameter>f</parameter>
+                </methodparam>
+                <methodparam>
+                    <type>uint16_t</type> <parameter>max</parameter>
+                </methodparam>
+
+                <methodparam>
+                    <type>bool</type><parameter>lamWait</parameter>
+                    <initializer>false</initializer>
+                </methodparam>
+            </methodsynopsis>
+            <methodsynopsis>
+                <type>void</type> <methodname>addQScan</methodname>
+                <methodparam>
+                    <type>int</type> <parameter>n</parameter>
+                </methodparam>
+                <methodparam>
+                    <type>int</type> <parameter>a</parameter>
+                </methodparam>
+                <methodparam>
+                    <type>int</type> <parameter>f</parameter>
+                </methodparam>
+                <methodparam>
+                    <type>uint16_t</type> <parameter>max</parameter>
+                </methodparam>                
+                <methodparam>
+                    <type>bool</type><parameter>lamWait</parameter>
+                    <initializer>false</initializer>
+                </methodparam>
+            </methodsynopsis>
+            <methodsynopsis>
+                <type>void</type> <methodname>addRepeat</methodname>
+                <methodparam>
+                    <type>int</type> <parameter>n</parameter>
+                </methodparam>
+                <methodparam>
+                    <type>int</type> <parameter>a</parameter>
+                </methodparam>
+                <methodparam>
+                    <type>int</type> <parameter>f</parameter>
+                </methodparam>
+                <methodparam>
+                    <type>bool</type><parameter>lamWait</parameter>
+                    <initializer>false</initializer>
+                </methodparam>
+            </methodsynopsis>
+            <methodsynopsis>
+                <type>void</type> <methodname>addMarker</methodname>
+                <methodparam>
+                    <type>uint16_t</type> <parameter>value</parameter>
+                </methodparam>
+           </methodsynopsis>
+           };
+        </synopsis>
+       </refsynopsisdiv>
+       <refsect1>
+          <title>DESCRIPTION</title>
+          <para>
+            <classname>CCCUSBReadoutList</classname> provides a class whose instances can
+            build up lists (stacks) of CAMAC operations that can either be
+            submitted to a CC-USB for direct execution via <methodname>CCCUSB::executeList</methodname>,
+            or loaded as an event or scaler stack via <methodname>CCCUSB::loadStack</methodname>.
+          </para>
+       </refsect1>
+       <refsect1>
+          <title>METHODS</title>
+            <variablelist>
+                <varlistentry>
+                    <term>
+                        <constructorsynopsis>
+                       <methodname>CCCUSBReadoutList</methodname>
+                       <void />
+                        </constructorsynopsis>
+                    </term>
+                    <listitem>
+                        <para>
+                            Constructs a new readout list.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>
+                        <constructorsynopsis>
+                         <methodname>CCCUSBReadoutList</methodname>
+                         <methodparam>
+                             <modifier>const</modifier> <type>CCCUSBReadoutList&amp;</type>
+                             <parameter>rhs</parameter>
+                         </methodparam>
+                        </constructorsynopsis>
+                        </term>
+                    <listitem>
+                        <para>
+                            Constructs a readout list that will be a duplicate
+                            of the readout list in <parameter>rhs</parameter>
+                            (Copy construction).
+                        </para>
+                        </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>
+                         <methodsynopsis>
+                             <type>std::vector&lt;uint16_t&gt;</type>
+                             <methodname>get</methodname>
+                             <void /><modifier>const</modifier>
+                         </methodsynopsis>
+                    </term>
+                    <listitem>
+                        <para>
+                            Returns a <type>std::list&lt;uint16_t&gt;</type> where
+                            each element of the list is a stack line that has
+                            been built up so far.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>
+                         <methodsynopsis>
+                             <type>size_t</type> <methodname>size</methodname>
+                             <void /><modifier>const</modifier>
+                         </methodsynopsis>
+                    </term>
+                    <listitem>
+                        <para>
+                            Returns the number of <type>uint16_t</type>
+                            stack lines built so far.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>
+                         <methodsynopsis>
+                             <type>void</type> <methodname>clear</methodname>
+                             <void />
+                         </methodsynopsis>
+                    </term>
+                    <listitem>
+                        <para>
+                            Clears the stack.  Once this is performed, the object
+                            represents an empty stack.
+                            </para>
+                        </listitem>
+                </varlistentry>     
+                <varlistentry>
+                    <term>
+                         <methodsynopsis>
+                             <type>void</type><methodname>addWrite16</methodname>
+                             <methodparam>
+                                 <type>int</type><parameter>n</parameter>
+                             </methodparam>
+                             <methodparam>
+                                 <type>int</type> <parameter>a</parameter>
+                             </methodparam>
+                             <methodparam>
+                                 <type>int</type> <parameter>f</parameter>
+                             </methodparam>
+                             <methodparam>
+                                 <type>uint16_t</type> <parameter>data</parameter>
+                             </methodparam>
+                         </methodsynopsis>
+                    </term>
+                    <listitem>
+                        <para>
+                            Adds a 16 bit CAMAC write opearation to the list.
+                            <parameter>n,a,f</parameter> specify the
+                            slot, subaddress and function code respectively.
+                            The <parameter>data</parameter> parameter is transferred
+                            to the device when the command is executed.
+                            Note that this method does not perform any CAMAC operations.
+                            The specified operation is simply encoded as stack lines
+                            in the object.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>
+                         <methodsynopsis>
+                             <type>void</type> <methodname>addWrite24</methodname>
+                             <methodparam>
+                                 <type>int</type> <parameter>n</parameter>
+                             </methodparam>
+                             <methodparam>
+                                 <type>int</type> <parameter>a</parameter>
+                             </methodparam>
+                             <methodparam>
+                                 <type>int</type> <parameter>f</parameter>
+                             </methodparam>
+                             <methodparam>
+                                 <type>uint32_t</type> <parameter>data</parameter>
+                             </methodparam>
+                         </methodsynopsis>
+                    </term>
+                    <listitem>
+                        <para>
+                            Same as <methodname>addWrite16</methodname> however
+                            the least significant 24 bits of <parameter>data</parameter>
+                            will be written when this stack line is executed.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>
+                         <methodsynopsis>
+                             <type>void</type> <methodname>addRead16</methodname>
+                             <methodparam>
+                                 <type>int</type> <parameter>n</parameter>
+                             </methodparam>
+                             <methodparam>
+                                 <type>int</type> <parameter>a</parameter>
+                             </methodparam>
+                             <methodparam>
+                                 <type>int</type> <parameter>f</parameter>
+                             </methodparam>
+                             <methodparam>
+                                 <type>bool</type><parameter>lamWait</parameter>
+                                 <initializer>false</initializer>
+                             </methodparam>
+                         </methodsynopsis>
+                    </term>
+                    <listitem>
+                        <para>
+                            A 16 bit read operation whose slot, subaddress
+                            and function code are specified by <parameter>n,a,f</parameter>
+                            is encoded as a stack line and added to the list.
+                            If the stack line is executed in immediate mode
+                            (via <methodname>CCCUSB::executeList</methodname>),
+                            the data read will be put in the input buffer passed
+                            to that method.  IF the stack line loaded as a scaler
+                            or event stack asnd executed in response to the appropriate
+                            trigger condition, the data are put in the event buffer.
+                        </para>
+                        <para>
+                            If the <parameter>lamWait</parameter>  parameter is
+                            <literal>true</literal> the stack will stall until
+                            either the lam timeout period is reached or the
+                            slot the operation is directed to signals its LAM.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>
+                         <methodsynopsis>
+                             <type>void</type> <methodname>addRead24</methodname>
+                             <methodparam>
+                                 <type>int</type> <parameter>n</parameter>
+                             </methodparam>
+                             <methodparam>
+                                 <type>int</type> <parameter>a</parameter>
+                             </methodparam>
+                             <methodparam>
+                                 <type>int</type> <parameter>f</parameter>
+                             </methodparam>
+                             <methodparam>
+                                 <type>bool</type><parameter>lamWait</parameter>
+                                 <initializer>false</initializer>
+                             </methodparam>
+                         </methodsynopsis>
+                    </term>
+                    <listitem>
+                        <para>
+                            Same as <methodname>addRead16</methodname>, however a
+                            <type>uint32_t</type>
+                            is put in the buffer (event or buffer given to
+                            <methodname>CCCUSB::executeStack</methodname> depending
+                            on why the stack is being executed).  The format
+                            of the uint32_t is shown in the figure just at the
+                            end of chapter 4 of the CC-USB manual:
+                            The bottom 24 bits are the data transferred from the
+                            module.  Bit 24 is set if there was a Q response
+                            and bit 25 is set if there was an X response
+                            (bits are numbered from 0 least significant bit
+                            is bit 0).
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>
+                         <methodsynopsis>
+                             <type>void</type> <methodname>addControl</methodname>
+                             <methodparam>
+                                 <type>int</type> <parameter>n</parameter>
+                             </methodparam>
+                             <methodparam>
+                                 <type>int</type> <parameter>a</parameter>
+                             </methodparam>
+                             <methodparam>
+                                 <type>int</type> <parameter>f</parameter>
+                             </methodparam>
+                         </methodsynopsis>
+                    </term>
+                    <listitem>
+                        <para>
+                            Adds a non data transfer operation to the stack.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>
+                         <methodsynopsis>
+                             <type>void</type> <methodname>addQStop</methodname>
+                             <methodparam>
+                                 <type>int</type> <parameter>n</parameter>
+                             </methodparam>
+                             <methodparam>
+                                 <type>int</type> <parameter>a</parameter>
+                             </methodparam>
+                             <methodparam>
+                                 <type>int</type> <parameter>f</parameter>
+                             </methodparam>
+                            <methodparam>
+                                <type>uint16_t</type> <parameter>max</parameter>
+                            </methodparam>
+                             <methodparam>
+                                 <type>bool</type><parameter>lamWait</parameter>
+                                 <initializer>false</initializer>
+                             </methodparam>
+                         </methodsynopsis>
+                    </term>
+                    <listitem>
+                        <para>
+                            Adds a Q-stop block transfer to the stack.  Q-stop
+                            operations perform the same <parameter>n,a,f</parameter>
+                            read operation until either the module does not
+                            return a Q response or until the <parameter>max</parameter>
+                            number of transfers specified have been performed.
+                            The <parameter>lamWait</parameter> parameter allows
+                            you to wait for a LAM from the targe module before
+                            doing the transfer.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>
+                         <methodsynopsis>
+                             <type>void</type> <methodname>addQStop24</methodname>
+                             <methodparam>
+                                 <type>int</type> <parameter>n</parameter>
+                             </methodparam>
+                             <methodparam>
+                                 <type>int</type> <parameter>a</parameter>
+                             </methodparam>
+                             <methodparam>
+                                 <type>int</type> <parameter>f</parameter>
+                             </methodparam>
+                            <methodparam>
+                                <type>uint16_t</type> <parameter>max</parameter>
+                            </methodparam>
+                             <methodparam>
+                                 <type>bool</type><parameter>lamWait</parameter>
+                                 <initializer>false</initializer>
+                             </methodparam>
+                         </methodsynopsis>
+                    </term>
+                    <listitem>
+                        <para>
+                            Same as <methodname>addQStop</methodname> except
+                            that 24 bits of data are transferred on each
+                            operation.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>
+                         <methodsynopsis>
+                             <type>void</type> <methodname>addQScan</methodname>
+                             <methodparam>
+                                 <type>int</type> <parameter>n</parameter>
+                             </methodparam>
+                             <methodparam>
+                                 <type>int</type> <parameter>a</parameter>
+                             </methodparam>
+                             <methodparam>
+                                 <type>int</type> <parameter>f</parameter>
+                             </methodparam>
+                            <methodparam>
+                                <type>uint16_t</type> <parameter>max</parameter>
+                            </methodparam>
+                             <methodparam>
+                                 <type>bool</type><parameter>lamWait</parameter>
+                                 <initializer>false</initializer>
+                             </methodparam>
+                         </methodsynopsis>
+                    </term>
+                    <listitem>
+                        <para>
+                            Performs a Q-scan (sometimes called an address
+                            scan) operation.  <parameter>n,a,f</parameter>
+                            specify a starting slot, subaddress and function code.
+                            After each operation a is incremented.   The CC-USB
+                            documentation does not make it clear if this is a
+                            full Q-Scan (ACA) operation as defined by the ESONE
+                            block transfer specification.  If this operation is
+                            a full address scan, then after each operation, the
+                            subaddress is incremented.  If A was 15 or a Q=0
+                            response occured, the
+                            subaddress should be set to 0 and the slot incremented.
+                            This continues until either <parameter>max</parameter>
+                            transfers have occured or both Q and X are zero.
+                        </para>
+                        <para>
+                            The documentation only describes the subadress as
+                            being incremented so that may be all you can count on
+                            for this opertaion.  It also does not provide a statement
+                            about what happens when Q=0 or X=0.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>
+                         <methodsynopsis>
+                             <type>void</type> <methodname>addRepeat</methodname>
+                             <methodparam>
+                                 <type>int</type> <parameter>n</parameter>
+                             </methodparam>
+                             <methodparam>
+                                 <type>int</type> <parameter>a</parameter>
+                             </methodparam>
+                             <methodparam>
+                                 <type>int</type> <parameter>f</parameter>
+                             </methodparam>
+                            <methodparam>
+                                <type>uint16_t</type> <parameter>max</parameter>
+                            </methodparam>                             
+                             <methodparam>
+                                 <type>bool</type><parameter>lamWait</parameter>
+                                 <initializer>false</initializer>
+                             </methodparam>
+                         </methodsynopsis>
+                    </term>
+                    <listitem>
+                        <para>
+                            Performs a block repeat operation.  The specified
+                            CAMAC operation is performed <parameter>max</parameter>
+                            times regardless of the X/Q responses.
+                        </para>
+                    </listitem>
+                    </varlistentry>
+                <varlistentry>
+                    <term>
+                         <methodsynopsis>
+                             <type>void</type> <methodname>addMarker</methodname>
+                             <methodparam>
+                                 <type>uint16_t</type> <parameter>value</parameter>
+                             </methodparam>
+                        </methodsynopsis>
+                    </term>
+                    <listitem>
+                        <para>
+                            The literal word <parameter>value</parameter> is
+                            written to the output buffer.
+                        </para>
+                    </listitem>
+                </varlistentry>             
+
+            </variablelist>
+       </refsect1>
+        <refsect1>
+           <title>SEE ALSO</title>
+           <para>
+            <xref linkend='ccusb3-CCCUSB' />
+            </para>
+        </refsect1>
+    </refentry>
+         
+    <refentry id="ccusb3-CConfigurableObject">
+       <refmeta>
+          <refentrytitle>CConfigurableObject</refentrytitle>
+          <manvolnum>3ccusb</manvolnum>
+       </refmeta>
+       <refnamediv>
+          <refname>CConfigurableObject</refname>
+          <refpurpose>base class for devices that have a configuration</refpurpose>
+       </refnamediv>
+       
+       <refsynopsisdiv>
+        <synopsis>
+            class <ooclass><classname>CConfigurableObject</classname></ooclass> {
+           <constructorsynopsis>
+          <methodname>CConfigurableObject</methodname>
+          <methodparam>
+            <type>std::string</type> <parameter>name</parameter>    
+          </methodparam>
+        </constructorsynopsis>
+        <constructorsynopsis>
+            <methodname>CConfigurableObject</methodname>
+            <methodparam>
+                <modifier>const</modifier> <type>CConfigurableObject&amp;</type>
+                <parameter>rhs</parameter>
+            </methodparam>
+        </constructorsynopsis>
+        <methodsynopsis>
+            <type>std::string </type> <methodname>getName</methodname>
+            <void /><modifier> const</modifier>
+            </methodsynopsis>
+        <methodsynopsis>
+            <type>std::string</type> <methodname>cget</methodname>
+            <methodparam>
+                <type>std::string</type>  <parameter>name</parameter>
+            </methodparam>
+        </methodsynopsis>
+        <methodsynopsis>
+            <type>ConfigurationArray</type> <methodname>cget</methodname>
+            <void />
+        </methodsynopsis>
+        <methodsynopsis>
+            <type>int</type> <methodname>getIntegerParameter</methodname>
+            <methodparam>
+                <type>std::string</type><parameter>name</parameter>
+            </methodparam>
+        </methodsynopsis>
+        <methodsynopsis>
+            <type>unsigned int</type> <methodname> getUnsignedParameter</methodname>
+            <methodparam>
+                <type>std::string</type> <parameter>name</parameter>
+                </methodparam>
+        </methodsynopsis>
+        <methodsynposis>
+            <type>bool</type> <methodname>getBoolParameter</methodname>
+            <methodparam>
+                <type>std::string</type> <parameter>name</parameter>
+            </methodparam>
+        </methodsynposis>
+        <methodsynopsis>
+            <type>double</type> <methodname>getFloatParameter</methodname>
+            <methodparam>
+                <type>std::string</type> <parameter>name</parameter>
+            </methodparam>
+        </methodsynopsis>
+        <methodsynopsis>
+            <type>std::vector&lt;int&gt;</type><methodname>getIntegerList</methodname>
+            <methodparam>
+                <type>std::string</type> <parmeter>name</parmeter>
+            </methodparam>
+        </methodsynopsis>
+        <methodsynopsis>
+            <type>void</type> <methodname>addParameter</methodname>
+            <mwethodparam>
+                <type>std::string</type><parameter> name</parameter>
+            </mwethodparam>
+            <methodparam>
+                <type>typeChecker</type> <parameter>checker</parameter>
+            </methodparam>
+            <methodparam>
+                <type>void*</type> <parameter>arg</parameter>
+            </methodparam>
+            <methodparam>
+                <type>std::string</type> <parameter>defaultValue</parameter>
+                <initializer>std::string("")</initializer>
+            </methodparam>
+        </methodsynopsis>
+        <methodsynopsis>
+            <type>void</type> <methodname>clearConfiguration</methodname>
+            <void />
+        </methodsynopsis>
+        <methodsynopsis>
+            <type>void</type> <methodname>configure</methodname>
+            <methodparam>
+                <type>std::string name</type>
+            </methodparam>
+            <methodparam>
+                <type>std::string</type> <parameter>value</parameter>
+            </methodparam>
+        </methodsynopsis>
+        <methodsynopsis>
+            <type>void</type> <methodname>addIntegerParameter</methodname>
+            <methodparam>
+                <type>std::string</type> <parameter>name</parameter>
+            </methodparam>
+            <methodparam>
+                <type>int</type> <parameter>defaultVal</parameter>
+                <initializer>0</initializer>
+            </methodparam>
+        </methodsynopsis>
+        <methodsynopsis>
+            <type>void</type> <methodname>addIntegerParameter</methodname>
+            <methodparam>
+                <type>std::string</type>  <parameter>name</parameter>
+            </methodparam>
+            <methodparam>
+                <type>int</type> <parameter>low</parameter>
+            </methodparam>
+            <methodparam>
+                <type>int</type> <parameter>high</parameter>
+            </methodparam>
+            <methodparam>
+                <type>int</type> <parameter>defaultVal</parameter>
+                <initializer>0</initializer>
+                </methodparam>
+        </methodsynopsis>
+        <methodsynopsis>
+            <type>void</type> <methodname>addBooleanParameter</methodname>
+            <methodparam>
+                <type>std::string</type> <parameter>name</parameter>
+            </methodparam>
+            <methodparam>
+                <type>bool</type> <parameter>defaultVal</parameter>
+                <initializer> true</initializer>
+            </methodparam>
+        </methodsynopsis>
+        <methodsynopsis>
+            <type>void</type><methodname>addEnumParameter</methodname>
+            <methodparam>
+                <type>std::string</type> <parameter>name</parameter>
+            </methodparam>
+            <methodparam>
+                <modifier>const</modifier> <type>char**</type>
+                <parameter>pValues</parameter>
+            </methodparam>
+            <methodparam>
+                <type>std::string</type> <parameter>defaultValue</parameter>
+                <initializer>std::string("")</initializer>
+            </methodparam>
+        </methodsynopsis>
+        <methodsynopsis>
+            <type>void</type><methodname>addBoolListParameter</methodname>
+            <methodparam>
+                <type>std::string</type> <parameter>name</parameter>
+            </methodparam>
+            <methodparam>
+                <type>unsigned</type><parameter>size</parameter>
+            </methodparam>
+            <methodparam>
+                <type>bool</type>   <parameter> defaultVal</parameter>
+                <initializer>true</initializer>
+            </methodparam>
+            </methodsynopsis>
+        <methodsynopsis>
+            <type>void</type> <methodname>addBoolListParameter</methodname>
+            <methodparam>
+                <type>std::string</type> <parameter>name</parameter>
+            </methodparam>
+            <methodparam>
+                <type>unsigned</type> <parameter>minLength</parameter>
+            </methodparam>
+            <methodparam>
+                <type>unsigned</type> <parameter>maxLength</parameter>
+            </methodparam>
+            <methodparam>
+                <type>bool</type> <parameter>defaultVal</parameter>
+                <initializer>true</initializer>
+            </methodparam>
+            <methodparam>
+                <type>int</type> <parameter> defaultSize</parameter>
+                <initializer>-1</initializer>
+            </methodparam>
+        </methodsynopsis>
+        <methodsynopsis>
+            <type>void</type> <methodname>addIntListParameter</methodname>
+            <methodparam>
+                <type>std::string</type> <parameter>name</parameter>
+            </methodparam>
+            <methodparam>
+                <type>unsigned</type> <parameter>size</parameter>
+            </methodparam>
+            <methodparam>
+                <type>int</type> <parameter>defaultVal</parameter>
+                <initializer>0</initializer>
+            </methodparam>
+            </methodsynopsis>
+        <methodsynopsis>
+            <type>void</type> <methodname>addIntListParameter</methodname>
+            <methodparam>
+                <type>std::string</type>  <parameter>name</parameter>
+            </methodparam>
+            <methodparam>
+                <type>unsigned</type> <parameter>minlength</parameter>
+            </methodparam>
+            <methodparam>
+                <type>unsigned</type> <parameter>maxLength</parameter>
+            </methodparam>
+            <methodparam>
+                <type>int</type> <parameter>defaultVal</parameter>
+                <initializer>0</initializer>
+            </methodparam>
+            <methodparam>
+                <type>int</type> <parameter>defaultSize</parameter>
+                <initializer>-1</initializer>
+            </methodparam>
+            </methodsynopsis>
+        <methodsynopsis>
+            <type>void</type><methodname>addBooleanParameter</methodname>
+            <methodparam>
+                <type>std::string</type> <parameter>name</parameter>
+            </methodparam>
+            <methodparam>
+                <type>bool</type> <parameter>defaultVal</parameter>
+                <initializer>true</initializer>
+            </methodparam>
+        </methodsynopsis>
+        <methodsynopsis>
+            <type>void</type> <methodname>addEnumParameter</methodname>
+            <methodparam>
+                <type>std::string</type> <parameter>name</parameter>
+            </methodparam>
+            <methodparam>
+                <modifier>const</modifier> <type>char**</type>
+                <parameter>pValues</parameter>
+            </methodparam>
+            <methodparam>
+                <type>std::string</type> <parameter>defaultValue</parameter>
+                <initializer>std::string("")</initializer>
+            </methodparam>
+        </methodsynopsis>
+        <methodsynopsis>
+            <type>void</type> <methodname>addBoolListParameter</methodname>
+            <methodparam>
+                <type>std::string</type>  <parameter>name</parameter>
+            </methodparam>
+            <methodparam>
+                <type>unsigned</type> <parameter>size</parameter>
+            </methodparam>
+            <methodparam>
+                <type>bool</type> <parameter>defaultVal</parameter>
+                <initializer>true</initializer>
+            </methodparam>
+        </methodsynopsis>
+  void addBoolListParameter(std::string name, unsigned minLength, unsigned maxLength,
+                            bool defaultVal = true, int defaultSize = -1);
+
+  void addIntListParameter(std::string name, unsigned size, int defaultVal = 0);
+  void addIntListParameter(std::string name, unsigned minlength, unsigned maxLength,
+                           int defaultVal = 0, int defaultSize = -1);
+
+
+  void addStringListParameter(std::string name, unsigned size, std::string defaultVal = "");
+  void addStringListParameter(std::string name, unsigned minLength, unsigned maxLength,
+                              std::string defaultVal =  "", int defaultLength = -1);
+
+
+  // common type checkers:
+
+  static bool isInteger(std::string name, std::string value, void* arg);
+  static bool isBool(   std::string name, std::string value, void* arg);
+  static bool isEnum(   std::string name, std::string value, void* arg);
+  static bool isList(   std::string name, std::string value, void* arg);
+  static bool isBoolList(std::string name,std::string value, void* arg);
+  static bool isIntList(std::string name, std::string value, void* arg);
+  static bool isStringList(std::string name, std::string value, void* arg);
+
+  // Utilities:
+
+  // Build enum set from a list of char*'s:
+
+  static isEnumParameter makeEnumSet(const char** values);
+
+  // Utility to convert a validated string to a bool:
+
+  static bool strToBool(std::string value);
+
+  typedef std::pair<typeChecker, void*>         TypeCheckInfo;  // Type checker + arg.
+  typedef std::vector<std::pair<std::string, std::string> > ConfigurationArray;
+
+  // Arg types for the standard type checkers.
+
+  struct  limit {
+    bool   s_checkMe;
+    long    s_value;
+    limit() :
+      s_checkMe(false)
+    {}
+    limit(long value) :
+      s_checkMe(true),
+      s_value(value) {}
+  } ;
+  typedef std::pair<limit, limit>   Limits;
+  typedef std::set<std::string> isEnumParameter;
+  typedef struct _ListSizeConstraint {
+    limit s_atLeast;
+    limit s_atMost;
+  } ListSizeConstraint;
+
+  typedef struct _isListParameter {
+    ListSizeConstraint s_allowedSize;
+    TypeCheckInfo      s_checker;
+  } isListParameter;
+
+  typedef void(*ConstraintFreer)(void*); // Free function for dynamic constraint objects.
+  typedef struct _DynamicConstraint {    //
+    ConstraintFreer s_Releaser;
+    void*           s_pObject;
+  } DynamicConstraint, *pDynamicConstraint;
+
+  struct  flimit {
+    bool   s_checkMe;
+    float s_value;
+    flimit() :
+      s_checkMe(false) {}
+    flimit(float value) :
+      s_checkMe(true),
+      s_value(value) {}
+  };
+
+  typedef std::pair<flimit, flimit> FloatingLimits;
+  typedef std::vector<isEnumParameter*>         EnumCheckers;
+
+};
+        </synopsis>
+       </refsynopsisdiv>
+       <refsect1>
+          <title>DESCRIPTION</title>
+          <para>
+          </para>
+       </refsect1>
+       <refsect1>
+          <title>
+         METHODS
+          </title>
+          <variablelist>
+          </variablelist>
+       </refsect1>
+        <refsect1>
+           <title>PUBLIC VARIABLES, TYPES and CONSTANTS</title>
+           <variablelist>
+           </variablelist>
         </refsect1>
      </refentry>     
 <!-- /manpage -->
