@@ -7102,12 +7102,59 @@ uint32_t revision = (d & CCCUSB::FirmwareRegister::revisionMask)
                 <initializer>true</initializer>
             </methodparam>
         </methodsynopsis>
-  void addBoolListParameter(std::string name, unsigned minLength, unsigned maxLength,
-                            bool defaultVal = true, int defaultSize = -1);
-
-  void addIntListParameter(std::string name, unsigned size, int defaultVal = 0);
-  void addIntListParameter(std::string name, unsigned minlength, unsigned maxLength,
-                           int defaultVal = 0, int defaultSize = -1);
+        <methodsynopsis>
+         <type> void</type> <methodname>addBoolListParameter</methodname>
+         <methodparam>
+           <type>std::string</type> <parameter>name</parameter>
+         </methodparam>
+         <methodparam>
+           <type>unsigned</type> <parameter>minLength</parameter>
+         </methodparam>
+         <methodparam>
+           <type>unsigned</type> <parameter>maxLength</parameter>
+         </methodparam>
+         <methodparam>
+            <type>bool</type> <parameter>defaultVal</parameter> 
+            <initializer>true</initializer>
+         </methodparam>
+         <methodparam>
+            <type>int</type> <parameter>defaultSize</parameter>
+            <initializer>-1</initializer>
+         </methodparam>
+       </methodsynopsis>
+       <methodsynopsis>
+         <type>void</type> <methodname>addIntListParameter</methodname>
+         <methodparam>
+            <type>std::string</type> <parameter>name</parameter>
+         </methodparam>
+         <metdhoparam>
+            <type>unsigned</type> <parameter>size</parameter>
+         </methodparam>
+         <methodparam>
+            <type>int</type> <parameter>defaultVal</parameter>
+            <initializer>0</initializer>
+         </methodparam>
+      </methodsynopsis>
+      <methodsynopsis>
+         <type>void</type> <methodname>addIntListParameter</methodname>
+         <methodparam>
+            <type>std::string</type> <parameter>name</parameter>
+         </methodparam>
+         <methodparam>
+            <type>unsigned</type> <parameter>minlength</parameter>
+         </methodparam>
+         <methodparam>
+            <type>unsigned</type> <parameter>maxLength</parameter>
+         </methodparam>
+         <methodparam>
+            <type>int</type> <parameter>defaultVal</parameter>
+            <initializer>0</initializer>
+         </methodparam>
+         <methodparam>
+            <type>int</type> <parameter>defaultSize</parameter> 
+            <initializer>-1</initializer>
+         </methodparam>
+         
 
 
   void addStringListParameter(std::string name, unsigned size, std::string defaultVal = "");
