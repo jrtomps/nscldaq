@@ -249,6 +249,7 @@ private:
   static void addFalseValues(std::set<std::string>& values);
   void        deleteEnumCheckers();
   void        addEnumCheckers(const EnumCheckers& rhs);
+  void        releaseConstraintCheckers();
 
 
   // Constraint releasers.

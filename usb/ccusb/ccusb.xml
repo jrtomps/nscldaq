@@ -321,7 +321,7 @@ CTemplateDriver::onAttach(CReadoutModule&amp; configuration)
                         <literal>[1..23]</literal> named <literal>-slot</literal>.
                         The default value (if the user does not configure
                         this item) is <literal>1</literal> (the last parameter
-                        of the <methodname>addIntegerParamter</methodname> call).
+                        of the <methodname>addIntegerParameter</methodname> call).
                     </para>
                     <para>
                         This code is provided by the driver template.
@@ -2333,7 +2333,7 @@ Get <replaceable>name parameter</replaceable>
                     <listitem>
                         <para>
                             Returns the value of the parameter
-                            <replaceable>paramter-name</replaceable> from
+                            <replaceable>parameter-name</replaceable> from
                             the Module instance <replaceable>name</replaceable>.
                             If this is successful, the value of the parameter
                             will be returned to the client.  Otherwise a line
@@ -4377,7 +4377,7 @@ Get <replaceable>name parameter</replaceable>
                             the revisionfield by performing:
                             <informalexample>
                                 <programlisting>
-uint32_t revision = (d & CCCUSB::FirmwareRegister::revisionMask)
+uint32_t revision = (d &amp; CCCUSB::FirmwareRegister::revisionMask)
                     >> CCCUSB::FirmwareRegister::revisionShift;
                                 </programlisting>
                             </informalexample>
@@ -4774,7 +4774,7 @@ uint32_t revision = (d & CCCUSB::FirmwareRegister::revisionMask)
                 <title>Firmware changes</title>
                 <para>
                     It appears that these definitions are for firmware
-                    revisions < 1.01.  These definitions will be updated
+                    revisions &lt; 1.01.  These definitions will be updated
                     in the future to reflect the updated definitions.
                 </para>
             </note>
@@ -5192,10 +5192,10 @@ uint32_t revision = (d & CCCUSB::FirmwareRegister::revisionMask)
                 O1, O2, and O3.
             </para>
             <note>
-                <title>Firmware < 1.01</title>
+                <title>Firmware &lt; 1.01</title>
                 <para>
                     Thie definitions shwon here are only valid for firmware
-                    revisions < 1.01.  This section and the header files
+                    revisions &lt; 1.01.  This section and the header files
                     themselves must be updated to reflect the current
                     reduced set of output functionality.
                 </para>
@@ -6869,13 +6869,6 @@ uint32_t revision = (d & CCCUSB::FirmwareRegister::revisionMask)
             <type>std::string</type> <parameter>name</parameter>    
           </methodparam>
         </constructorsynopsis>
-        <constructorsynopsis>
-            <methodname>CConfigurableObject</methodname>
-            <methodparam>
-                <modifier>const</modifier> <type>CConfigurableObject&amp;</type>
-                <parameter>rhs</parameter>
-            </methodparam>
-        </constructorsynopsis>
         <methodsynopsis>
             <type>std::string </type> <methodname>getName</methodname>
             <void /><modifier> const</modifier>
@@ -6902,12 +6895,12 @@ uint32_t revision = (d & CCCUSB::FirmwareRegister::revisionMask)
                 <type>std::string</type> <parameter>name</parameter>
                 </methodparam>
         </methodsynopsis>
-        <methodsynposis>
+        <methodsynopsis>
             <type>bool</type> <methodname>getBoolParameter</methodname>
             <methodparam>
                 <type>std::string</type> <parameter>name</parameter>
             </methodparam>
-        </methodsynposis>
+        </methodsynopsis>
         <methodsynopsis>
             <type>double</type> <methodname>getFloatParameter</methodname>
             <methodparam>
@@ -6917,14 +6910,14 @@ uint32_t revision = (d & CCCUSB::FirmwareRegister::revisionMask)
         <methodsynopsis>
             <type>std::vector&lt;int&gt;</type><methodname>getIntegerList</methodname>
             <methodparam>
-                <type>std::string</type> <parmeter>name</parmeter>
+                <type>std::string</type> <parameter>name</parameter>
             </methodparam>
         </methodsynopsis>
         <methodsynopsis>
             <type>void</type> <methodname>addParameter</methodname>
-            <mwethodparam>
+            <methodparam>
                 <type>std::string</type><parameter> name</parameter>
-            </mwethodparam>
+            </methodparam>
             <methodparam>
                 <type>typeChecker</type> <parameter>checker</parameter>
             </methodparam>
@@ -6943,7 +6936,7 @@ uint32_t revision = (d & CCCUSB::FirmwareRegister::revisionMask)
         <methodsynopsis>
             <type>void</type> <methodname>configure</methodname>
             <methodparam>
-                <type>std::string name</type>
+                <type>std::string</type> <parameter>name</parameter>
             </methodparam>
             <methodparam>
                 <type>std::string</type> <parameter>value</parameter>
@@ -7127,7 +7120,7 @@ uint32_t revision = (d & CCCUSB::FirmwareRegister::revisionMask)
          <methodparam>
             <type>std::string</type> <parameter>name</parameter>
          </methodparam>
-         <metdhoparam>
+         <methodparam>
             <type>unsigned</type> <parameter>size</parameter>
          </methodparam>
          <methodparam>
@@ -7154,79 +7147,229 @@ uint32_t revision = (d & CCCUSB::FirmwareRegister::revisionMask)
             <type>int</type> <parameter>defaultSize</parameter> 
             <initializer>-1</initializer>
          </methodparam>
-         
+      </methodsynopsis>
+      <methodsynopsis>
+        <type>void</type> <methodname>addStringListParameter</methodname>
+        <methodparam>
+            <type>std::string</type> <parameter>name</parameter>
+        </methodparam>
+        <methodparam>
+            <type>unsigned</type> <parameter>size</parameter>
+        </methodparam>
+        <methodparam>
+            <type>std::string</type> <parameter>defaultVal</parameter>
+            <initializer>""</initializer>
+        </methodparam>
+      </methodsynopsis>
+      <methodsynopsis>
+        <type>void</type> <methodname>addStringListParameter</methodname>
+        <methodparam>
+            <type>std::string</type> <parameter>name</parameter>
+        </methodparam>
+        <methodparam>
+            <type>unsigned</type> <parameter>minLength</parameter>
+        </methodparam>
+        <methodparam>
+            <type>unsigned</type> <parameter>maxLength</parameter>
+        </methodparam>
+        <methodparam>
+            <type>std::string</type> <parameter>defaultVal</parameter>
+            <initializer>""</initializer>
+        </methodparam>
+        <methodparam>
+            <type>int</type> <parameter>defaultLength</parameter>
+            <initializer>-1</initializer>
+        </methodparam>
+      </methodsynopsis>
+      <methodsynopsis>
+        <modifier>static</modifier> <type>bool</type> <methodname>isInteger</methodname>
+        <methodparam>
+            <type>std::string</type> <parameter>name</parameter>
+        </methodparam>
+        <methodparam>
+            <type>std::string</type> <parameter>value</parameter>
+        </methodparam>
+        <methodparam>
+            <type>void*</type><parameter>arg</parameter>
+        </methodparam>
+      </methodsynopsis>
+      <methodsynopsis>
+        <modifier>static</modifier> <type>bool</type> <methodname>isBool</methodname>
+        <methodparam>
+            <type>std::string</type> <parameter>name</parameter>
+        </methodparam>
+        <methodparam>
+            <type>std::string</type> <parameter>value</parameter>
+        </methodparam>
+        <methodparam>
+            <type>void*</type> <parameter>arg</parameter>
+        </methodparam>
+      </methodsynopsis>
+      <methodsynopsis>
+        <modifier>static</modifier> <type>bool</type> <methodname>isEnum</methodname>
+        <methodparam>
+            <type>std::string</type> <parameter>name</parameter>
+        </methodparam>
+        <methodparam>
+            <type>std::string</type> <parameter>value</parameter>
+        </methodparam>
+        <methodparam>
+            <type>void*</type> <parameter>arg</parameter>
+        </methodparam>
+    </methodsynopsis>
+    <methodsynopsis>
+        <modifier>static</modifier> <type>bool</type> <methodname>isList</methodname>
+        <methodparam>
+            <type>std::string</type> <parameter>name</parameter>
+        </methodparam>
+        <methodparam>
+            <type>std::string</type> <parameter>value</parameter>
+        </methodparam>
+        <methodparam>
+            <type>void*</type> <parameter>arg</parameter>
+        </methodparam>
+    </methodsynopsis>
+    <methodsynopsis>
+        <modifier>static</modifier> <type>bool</type> <methodname>isBoolList</methodname>
+        <methodparam>
+            <type>std::string</type> <parameter>name</parameter>
+        </methodparam>
+        <methodparam>
+            <type>std::string</type> <parameter>value</parameter>
+        </methodparam>
+        <methodparam>
+            <type>void*</type> <parameter>arg</parameter>
+        </methodparam>
+    </methodsynopsis>
+    <methodsynopsis>
+        <modifier>static</modifier> <type>bool</type> <methodname>isIntList</methodname>
+        <methodparam>
+            <type>std::string</type> <parameter>name</parameter>
+        </methodparam>
+        <methodparam>
+            <type>std::string</type> <parameter>value</parameter>
+        </methodparam>
+        <methodparam>
+            <type>void*</type> <parameter>arg</parameter>
+        </methodparam>
+    </methodsynopsis>
+    <methodsynopsis>
+        <modifier>static</modifier> <type>bool</type> <methodname>isStringList</methodname>
+        <methodparam>
+            <type>std::string</type> <parameter>name</parameter>
+        </methodparam>
+        <methodparam>
+            <type>std::string</type> <parameter>value</parameter>
+        </methodparam>
+        <methodparam>
+            <type>void*</type> <parameter>arg</parameter>
+        </methodparam>
+    </methodsynopsis>
+    <methodsynopsis>
+        <modifier>static</modifier> <type>isEnumParameter</type>
+        <methodname>makeEnumSet</methodname>
+        <methodparam>
+            <modifier>const</modifier> <type>char**</type><parameter>values</parameter>
+        </methodparam>
+    </methodsynopsis>
+    <methodsynopsis>
+        <modifier>static</modifier> <type>bool</type> <methodname>strToBool</methodname>
+        <methodparam>
+            <type>std::string</type> <parameter>value</parameter>
+        </methodparam>
+    </methodsynopsis>
+    <fieldsynopsis>
+        <modifier>typedef</modifier> <type>std::pair&lt;typeChecker, void*&gt;</type>
+        <varname>TypeCheckInfo</varname>
+    </fieldsynopsis>
+    <fieldsynopsis>
+        <modifier>typedef</modifier>
+        <type>std::vector&lt;std::pair&lt;std::string, std::string&gt; &gt;</type>
+        <varname>ConfigurationArray</varname>
+    </fieldsynopsis>
+    
 
+      struct  <type>limit</type> {
+      <fieldsynopsis>
+          <type>bool</type>   <varname>s_checkMe</varname>
+      </fieldsynopsis>
+      <fieldsynopsis>
+          <type>long</type> <varname>s_value</varname>
+      </fieldsynopsis>
+      <constructorsynopsis>
+          <methodname>limit</methodname>
+          <void />
+      </constructorsynopsis>
+      <constructorsynopsis>
+          <methodname>limit</methodname>
+          <methodparam>
+              <type>long</type>    <parameter>value</parameter>
+          </methodparam>
+      </constructorsynopsis>
+    } ;
+    <fieldsynopsis>
+        <modifier>typedef</modifier>
+        <type>std::pair&lt;limit, limit&gt;</type><varname>Limits</varname>
+    </fieldsynopsis>
+    <fieldsynopsis>
+        <modifier>typedef</modifier>
+        <type>std::set&lt;std::string&gt;</type> <varname>isEnumParameter</varname>
+    </fieldsynopsis>
+    typedef struct <type>_ListSizeConstraint</type> {
+        <fieldsynopsis>
+            <type>limit</type> <varname>s_atLeast</varname>
+        </fieldsynopsis>
+        <fieldsynopsis>
+            <type>limit</type> <varname>s_atMost</varname>
+        </fieldsynopsis>
+    } <type>ListSizeConstraint</type>
+    typedef struct <type>_isListParameter</type> {
+      <fieldsynopsis>
+        <type>ListSizeConstraint</type> <varname>s_allowedSize</varname>
+      </fieldsynopsis>
+      <fieldsynopsis>
+        <type>TypeCheckInfo</type> <varname>s_checker</varname>
+      </fieldsynopsis>
+    } <type>isListParameter</type>;
+    <fieldsynopsis>
+        <modifier>typedef</modifier>
+            <type>void</type><varname>(*ConstraintFreer)(void*)</varname>
+    </fieldsynopsis>
 
-  void addStringListParameter(std::string name, unsigned size, std::string defaultVal = "");
-  void addStringListParameter(std::string name, unsigned minLength, unsigned maxLength,
-                              std::string defaultVal =  "", int defaultLength = -1);
-
-
-  // common type checkers:
-
-  static bool isInteger(std::string name, std::string value, void* arg);
-  static bool isBool(   std::string name, std::string value, void* arg);
-  static bool isEnum(   std::string name, std::string value, void* arg);
-  static bool isList(   std::string name, std::string value, void* arg);
-  static bool isBoolList(std::string name,std::string value, void* arg);
-  static bool isIntList(std::string name, std::string value, void* arg);
-  static bool isStringList(std::string name, std::string value, void* arg);
-
-  // Utilities:
-
-  // Build enum set from a list of char*'s:
-
-  static isEnumParameter makeEnumSet(const char** values);
-
-  // Utility to convert a validated string to a bool:
-
-  static bool strToBool(std::string value);
-
-  typedef std::pair<typeChecker, void*>         TypeCheckInfo;  // Type checker + arg.
-  typedef std::vector<std::pair<std::string, std::string> > ConfigurationArray;
-
-  // Arg types for the standard type checkers.
-
-  struct  limit {
-    bool   s_checkMe;
-    long    s_value;
-    limit() :
-      s_checkMe(false)
-    {}
-    limit(long value) :
-      s_checkMe(true),
-      s_value(value) {}
-  } ;
-  typedef std::pair<limit, limit>   Limits;
-  typedef std::set<std::string> isEnumParameter;
-  typedef struct _ListSizeConstraint {
-    limit s_atLeast;
-    limit s_atMost;
-  } ListSizeConstraint;
-
-  typedef struct _isListParameter {
-    ListSizeConstraint s_allowedSize;
-    TypeCheckInfo      s_checker;
-  } isListParameter;
-
-  typedef void(*ConstraintFreer)(void*); // Free function for dynamic constraint objects.
-  typedef struct _DynamicConstraint {    //
-    ConstraintFreer s_Releaser;
-    void*           s_pObject;
-  } DynamicConstraint, *pDynamicConstraint;
-
-  struct  flimit {
-    bool   s_checkMe;
-    float s_value;
-    flimit() :
-      s_checkMe(false) {}
-    flimit(float value) :
-      s_checkMe(true),
-      s_value(value) {}
-  };
-
-  typedef std::pair<flimit, flimit> FloatingLimits;
-  typedef std::vector<isEnumParameter*>         EnumCheckers;
+     typedef struct <type>_DynamicConstraint</type> { 
+      <fieldsynopsis>
+        <type>ConstraintFreer</type> <varname>s_Releaser</varname>
+      </fieldsynopsis>
+      <fieldsynopsis>
+        <type>void*</type> <varname>s_pObject</varname>
+      </fieldsynopsis>
+    } <type>DynamicConstraint</type>, <type>*pDynamicConstraint</type>;
+  
+    struct  <type>flimit</type> {
+      <fieldsynopsis>
+        <type>bool</type>   <varname>s_checkMe</varname>
+      </fieldsynopsis>
+      <fieldsynopsis>
+        <type>float</type> <varname>s_value</varname>
+      </fieldsynopsis>
+      <constructorsynopsis>
+        <methodname>flimit</methodname><void />
+      </constructorsynopsis>    
+      <constructorsynopsis>
+        <methodname>flimit</methodname>
+        <methodparam>
+            <type>float</type> <parameter>value</parameter>
+        </methodparam>
+      </constructorsynopsis>    
+    };
+    <fieldsynopsis>
+        <modifier>typedef</modifier> <type>std::pair&lt;flimit, flimit&gt;</type>
+        <varname>FloatingLimits</varname>
+    </fieldsynopsis>
+    <fieldsynopsis>
+        <modifier>typedef</modifier> <type>std::vector&lt;isEnumParameter*&gt;</type>
+        <varname>EnumCheckers</varname>
+    </fieldsynopsis>
 
 };
         </synopsis>
@@ -7234,19 +7377,1156 @@ uint32_t revision = (d & CCCUSB::FirmwareRegister::revisionMask)
        <refsect1>
           <title>DESCRIPTION</title>
           <para>
+            This class is the ultimate base class of the <classname>CReadoutModule</classname>
+            object passed to device driver <methodname>onAttach</methodname> methods.
+            It manages the configuration database of a configurable object.
+          </para>
+          <para>
+            The interaction of a configurable object or an object that embeds
+            configuration via delegation is:
+            <orderedlist>
+                <listitem>
+                    <para>
+                        The object defines a configuration that consists of
+                        a set of named parameters and initial values.  Each
+                        configuration value can have a constraint function
+                        attached to it that is called prior to allowing the
+                        value to assume a new value.
+                    </para>
+                    <para>
+                        Through these constraint functions parameter values can'
+                        be very strongly typed (e.g. not just parameter
+                        must be an integer but parameter must be an integer
+                        in this range).
+                    </para>
+                    <para>
+                        Pre packaged constraint functions and convenience functions
+                        make it easy to set up most types of constraints, however
+                        if something special is required client code can implement
+                        a special constraint.
+                    </para>
+                </listitem>
+                <listitem>
+                    <para>
+                        At some point in the lifetime of a configurable object,
+                        the object is configured.  This is usually done by creating
+                        (the CCUSB framework does this for you) a command or
+                        command ensemble that accepts configuration name/value
+                        pairs and passes them to the <methodname>configure</methodname>
+                        method.  This method will invoke the constraint checker
+                        and, if successful, modify the value of the configuration
+                        parameter.  If the new value fails the constraint, a
+                        <type>std::string</type> exception is thrown and should
+                        be caught and reported at some level by the caller.
+                    </para>
+                    <para>
+                        Again for CCUSB device drivers this is transparent.
+                    </para>
+                </listitem>
+                <listitem>
+                    <para>
+                        Configurable objects can query their configuration.
+                        The constraint checkers ensure that each value has
+                        the type and range constraints required of that parameter.
+                        Semantics, however must be enforced and applied
+                        by the object that
+                        uses the configuration.
+                    </para>
+                    <para>
+                        It is always possible to get a stringified value for
+                        each configuration item (in fact configuration items
+                        are stored as strings).  Convenience methods allow
+                        for clients to fetch conversions of those strings to
+                        a rich set of types.
+                    </para>
+                    <para>
+                        CCUSB device drivers normally fetch and process their
+                        configurations when their
+                        <methodname>Initialize</methodname>
+                        and <methodname>addReadoutList</methodname> methods
+                        are invoked.
+                    </para>
+                </listitem>
+            </orderedlist>
+          </para>
+          <para>
+            For the full set of methods see the METHODS section below.  The
+            pre-defined constraint checkers additionally make use of
+            several data types which are described in
+            PUBLIC VARIABLES, TYPES and CONSTANTS further below.
           </para>
        </refsect1>
        <refsect1>
           <title>
          METHODS
           </title>
-          <variablelist>
-          </variablelist>
+        <variablelist>
+            <varlistentry>
+                <term>
+                    <constructorsynopsis>
+                   <methodname>CConfigurableObject</methodname>
+                   <methodparam>
+                     <type>std::string</type> <parameter>name</parameter>    
+                   </methodparam>
+                 </constructorsynopsis>
+                </term>
+                <listitem>
+                    <para>
+                        Constructs a configurable object.  CCUSB device
+                        drivers have this construction performed for them.
+                        Configurable objects have names to allow them to be
+                        placed in some sort of configuration dictionary by the
+                        application. the <parameter>name</parameter>
+                        parameter supplies the configuration name.
+                    </para>
+                    <para>
+                        If names are used, it's likely a good thing to ensure
+                        that unique names are chose for each configuration
+                        namespace the application maintains.  This is not
+                        enforced by the constructor, however.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>
+                 <methodsynopsis>
+                     <type>std::string </type> <methodname>getName</methodname>
+                     <void /><modifier> const</modifier>
+                     </methodsynopsis>
+                </term>
+                <listitem>
+                    <para>
+                        Returns the name of the configuration. This is the
+                        value of the parameter passed to the constructor.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>
+                 <methodsynopsis>
+                     <type>std::string</type> <methodname>cget</methodname>
+                     <methodparam>
+                         <type>std::string</type>  <parameter>name</parameter>
+                     </methodparam>
+                 </methodsynopsis>
+                </term>
+                <listitem>
+                    <para>
+                        Returns the string value of the configuration parameter
+                        <parameter>name</parameter>.  If the parameter was
+                        not defined a string exception is thrown.
+                    </para>
+                    <para>
+                        In situations where you don't know the set of configuration
+                        parameters that have been defined, see the overloaded
+                        <methodname>cget</methodname> method described next.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>
+                 <methodsynopsis>
+                     <type>CConfigurableObject::ConfigurationArray</type>
+                     <methodname>cget</methodname>
+                     <void />
+                 </methodsynopsis>
+                 </term>
+                 <listitem>
+                    <para>
+                        Gets the entire configuration of the module as name
+                        value pairs.
+                        <type>CConfigurableObject::ConfigurationArray</type> is
+                        described fully in PUBLIC VARIABLES, TYPES and CONSTANTS
+                        below, however you can think iof it as a vector of
+                        <type>std::string</type> pairs of configuration
+                        parameter name and value.
+                    </para>
+                 </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>
+                 <methodsynopsis>
+                     <type>int</type> <methodname>getIntegerParameter</methodname>
+                     <methodparam>
+                         <type>std::string</type><parameter>name</parameter>
+                     </methodparam>
+                 </methodsynopsis>
+                </term>
+                <listitem>
+                    <para>
+                        Invokes <methodname>cget</methodname> on the
+                        <parameter>name</parameter> configuration parameter.
+                        The resulting string is converted to an integer and
+                        returned, if possible.  If the string is not a valid integer,
+                        a string exception is thrown.
+                    </para>
+                    <para>
+                        Note that this and other convenience methods for
+                        getting parameter values converted to specific data
+                        types pass any exceptions from <methodname>cget</methodname>
+                        on up to the caller.
+                    </para>
+                </listitem>
+                </varlistentry>
+            <varlistentry>
+                <term>
+                 <methodsynopsis>
+                     <type>unsigned int</type> <methodname> getUnsignedParameter</methodname>
+                     <methodparam>
+                         <type>std::string</type> <parameter>name</parameter>
+                         </methodparam>
+                 </methodsynopsis>
+                </term>
+                <listitem>
+                    <para>
+                        Same as <methodname>getIntegerParameter</methodname>,
+                        however the conversion to an unsigned value is attempted.
+                        This is recommended for e.g. base addresses.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>
+                 <methodsynopsis>
+                     <type>bool</type> <methodname>getBoolParameter</methodname>
+                     <methodparam>
+                         <type>std::string</type> <parameter>name</parameter>
+                     </methodparam>
+                 </methodsynopsis>
+                </term>
+                <listitem>
+                    <para>
+                        Invokes <methodname>cget</methodname> and attempts
+                        to convert the resulting string to a <type>bool</type>
+                        value which is returned if successful.   A rather
+                        rich set of values can be converted to bools.
+                    </para>
+                    <informaltable>
+                        <tgroup cols="2">
+                        <colspec colname='string' /> <colspec colname='value' />
+                        <thead>
+                            <row>
+                                <entry>String</entry>
+                                <entry>Bool Value</entry>
+                            </row>
+                        </thead>
+                        <tbody>
+                            <row>
+                                <entry>true</entry><entry>true</entry>
+                            </row>
+                            <row>
+                                <entry>yes</entry><entry>true</entry>
+                            </row>
+                            <row><entry>1</entry><entry>true</entry></row>
+                            <row><entry>on</entry><entry>true</entry></row>
+                            <row><entry>enabled</entry><entry>true</entry></row>
+                            <row><entry>false</entry><entry>false</entry></row>
+                            <row><entry>no</entry><entry>false</entry></row>
+                            <row><entry>0</entry><entry>false</entry></row>
+                            <row><entry>off</entry><entry>false</entry></row>
+                            <row><entry>disabled</entry><entry>false</entry></row>
+                        </tbody>
+                        </tgroup>
+                    </informaltable>
+                    <para>
+                        Failure to convert to a <type>bool</type> throws
+                        a string exception.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>
+                 <methodsynopsis>
+                     <type>double</type> <methodname>getFloatParameter</methodname>
+                     <methodparam>
+                         <type>std::string</type> <parameter>name</parameter>
+                     </methodparam>
+                 </methodsynopsis>
+                </term>
+                <listitem>
+                    <para>
+                        Uses <methodname>cget</methodname> to retrieve the
+                        value of the <parameter>name</parameter> configuration
+                        parameter.  The string is converted to a
+                        <type>float</type> and
+                        returned.  If the string is not a valid
+                        <type>float</type>, a string exception is thrown.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>
+                 <methodsynopsis>
+                     <type>std::vector&lt;int&gt;</type><methodname>getIntegerList</methodname>
+                     <methodparam>
+                         <type>std::string</type> <parameter>name</parameter>
+                     </methodparam>
+                 </methodsynopsis>
+                </term>
+                <listitem>
+                    <para>
+                        Uses the <methodname>cget</methodname> method to
+                        obtain the configuration parameter <parameter>name</parameter>.
+                        The string is treated as a Tcl list which is composed
+                        entirely of integers.  If this assumption is correct,
+                        a <type>std::vector</type> of the integers that made
+                        up the list is returned.  If the string is either
+                        an invalid list or not entirely composed of elements
+                        that can be converted to <type>int</type>,
+                        a string exception is thrown.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>
+                 <methodsynopsis>
+                     <type>void</type> <methodname>addParameter</methodname>
+                     <methodparam>
+                         <type>std::string</type><parameter> name</parameter>
+                     </methodparam>
+                     <methodparam>
+                         <type>typeChecker</type> <parameter>checker</parameter>
+                     </methodparam>
+                     <methodparam>
+                         <type>void*</type> <parameter>arg</parameter>
+                     </methodparam>
+                     <methodparam>
+                         <type>std::string</type> <parameter>defaultValue</parameter>
+                         <initializer>std::string("")</initializer>
+                     </methodparam>
+                 </methodsynopsis>
+                </term>
+                <listitem>
+                    <para>
+                        This is the base mechanism for defining a configuration
+                        parameter. See the convenience methods below before using
+                        this as they may be easier to use.
+                    </para>
+                    <para>
+                        <parameter>name</parameter>  is the name of the parameter
+                        being added.  By convention, this starts with the
+                        <literal>-</literal> character (like options in Tk).
+                        For example a module slot might be defined as a
+                        <literal>-slot</literal> configuration parameter.
+                    </para>
+                    <para>
+                        <parameter>checker</parameter> is a pointer to the
+                        constraint checking function.  If no constraint checking
+                        is required (e.g. the paramter is a pure string), pass
+                        <literal>NULL</literal> for this parameter.
+                    </para>
+                    <para>
+                        <parameter>arg</parameter>  is a parameter that is passed
+                        without interpretation to the constraint checker.
+                        See CONSTRAINT CHECKING below for more about how
+                        constraint checkers are defined and called.
+                        See also the descriptions of the built in constraint
+                        checkers that are static members of this class, documented
+                        later in this section.
+                    </para>
+                    <para>
+                        <parameter>defaultValue</parameter> is the initial
+                        value supplied to the parameter.  Note that this is
+                        <emphasis>not</emphasis> constraint checked.  This is
+                        intentional as it allows you to require a parameter
+                        setting by providing an invalid initial parameter
+                        value.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>
+                 <methodsynopsis>
+                     <type>void</type> <methodname>clearConfiguration</methodname>
+                     <void />
+                 </methodsynopsis>
+                </term>
+                <listitem>
+                    <para>
+                        Clear the configuration.  This removes any parameter
+                        definitions as well as their value from the configuration
+                        database.  In most cases this function is not necessary.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>
+                 <methodsynopsis>
+                     <type>void</type> <methodname>configure</methodname>
+                     <methodparam>
+                         <type>std::string</type> <parameter>name</parameter>
+                     </methodparam>
+                     <methodparam>
+                         <type>std::string</type> <parameter>value</parameter>
+                     </methodparam>
+                 </methodsynopsis>
+                </term>
+                <listitem>
+                    <para>
+                        Attempts to configure a parameter <parameter>name</parameter>
+                        should be a configuration parameter name that has been
+                        defined by <methodname>addParameter</methodname> or its
+                        convenience methods. <parameter>value</parameter>
+                        is the new proposed value of the parameter.
+                        The constraint checker, if any, is called for that parameter
+                        and if it fails a string exception is thrown.  Otherwise,
+                        the new parameter value replaces the old one.
+                        </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>
+                 <methodsynopsis>
+                     <type>void</type> <methodname>addIntegerParameter</methodname>
+                     <methodparam>
+                         <type>std::string</type> <parameter>name</parameter>
+                     </methodparam>
+                     <methodparam>
+                         <type>int</type> <parameter>defaultVal</parameter>
+                         <initializer>0</initializer>
+                     </methodparam>
+                 </methodsynopsis>
+                 </term>
+                <listitem>
+                    <para>
+                        Convenience method to add an parameter
+                        <parameter>name</parameter>  which is constrained
+                        to be an integer parameter that has no range
+                        requirements.  The initial value of this parameter
+                        will be <parameter>defaultVal</parameter>
+                        </para>
+                    </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>
+                 <methodsynopsis>
+                     <type>void</type> <methodname>addIntegerParameter</methodname>
+                     <methodparam>
+                         <type>std::string</type>  <parameter>name</parameter>
+                     </methodparam>
+                     <methodparam>
+                         <type>int</type> <parameter>low</parameter>
+                     </methodparam>
+                     <methodparam>
+                         <type>int</type> <parameter>high</parameter>
+                     </methodparam>
+                     <methodparam>
+                         <type>int</type> <parameter>defaultVal</parameter>
+                         <initializer>0</initializer>
+                         </methodparam>
+                 </methodsynopsis>
+                </term>
+                <listitem>
+                    <para>
+                        Convenience methos that creates a parameter
+                        (<parameter>name</parameter>) that is constrained
+                        to be an integer in the range
+                        [<parameter>low</parameter>..<parameter>high</parameter>].
+                    </para>
+                    <para>
+                        The initial value of the parameters is set to
+                        <parameter>defaultVal</parameter> which is not
+                        checked against the limits.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>
+                 <methodsynopsis>
+                     <type>void</type> <methodname>addBooleanParameter</methodname>
+                     <methodparam>
+                         <type>std::string</type> <parameter>name</parameter>
+                     </methodparam>
+                     <methodparam>
+                         <type>bool</type> <parameter>defaultVal</parameter>
+                         <initializer> true</initializer>
+                     </methodparam>
+                 </methodsynopsis>
+                </term>
+                <listitem>
+                    <para>
+                        Adds a parameter <parameter>name</parameter> to the
+                        configuration database which is contrained to be
+                        a string that converts to a <type>bool</type>.
+                        The initial value of the parameter will be
+                        <parameter>defaultVal</parameter>
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>
+                 <methodsynopsis>
+                     <type>void</type><methodname>addEnumParameter</methodname>
+                     <methodparam>
+                         <type>std::string</type> <parameter>name</parameter>
+                     </methodparam>
+                     <methodparam>
+                         <modifier>const</modifier> <type>char**</type>
+                         <parameter>pValues</parameter>
+                     </methodparam>
+                     <methodparam>
+                         <type>std::string</type> <parameter>defaultValue</parameter>
+                         <initializer>std::string("")</initializer>
+                     </methodparam>
+                 </methodsynopsis>
+                </term>
+                <listitem>
+                    <para>
+                        Adds a parameter <parameter>name</parameter>   that is
+                        constrained to be one of the values pointed to by the
+                        <parameter>pValues</parameter> array.
+                        The initial value is <parameter>defaultValue</parameter>
+                    </para>
+                    <para>
+                        The <parameter>pValues</parameter> parameter should
+                        be a pointer to a null terminated set of character pointers.
+                        This sounds much harder than it is:
+                        <informalexample>
+                            <programlisting>
+const char* enumValues[] = {"red", "green", "blue", NULL};
+                            </programlisting>
+                        </informalexample>
+                        In the code fragment above, <varname>enumValues</varname>
+                        can be passed in as the <parameter>pValues</parameter>
+                        argument and will constrain the values of the configuration
+                        parameter to be in the set
+                        {<literal>red</literal>, <literal>greeen</literal>, <literal>blue</literal>}.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>
+                 <methodsynopsis>
+                     <type>void</type><methodname>addBoolListParameter</methodname>
+                     <methodparam>
+                         <type>std::string</type> <parameter>name</parameter>
+                     </methodparam>
+                     <methodparam>
+                         <type>unsigned</type><parameter>size</parameter>
+                     </methodparam>
+                     <methodparam>
+                         <type>bool</type>   <parameter> defaultVal</parameter>
+                         <initializer>true</initializer>
+                     </methodparam>
+                     </methodsynopsis>
+                </term>
+                <listitem>
+                    <para>
+                        Adds a new configuration parameter
+                        <parameter>name</parameter> that is constrained to be
+                        a valid Tcl list of <type>bool</type> strings of
+                        exactly <parameter>size</parameter> elements long.
+                    </para>
+                    <para>
+                        The initial value will be set to <parameter>size</parameter>
+                        elements of <parameter>defaultVal</parameter>
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>
+                 <methodsynopsis>
+                     <type>void</type> <methodname>addBoolListParameter</methodname>
+                     <methodparam>
+                         <type>std::string</type> <parameter>name</parameter>
+                     </methodparam>
+                     <methodparam>
+                         <type>unsigned</type> <parameter>minLength</parameter>
+                     </methodparam>
+                     <methodparam>
+                         <type>unsigned</type> <parameter>maxLength</parameter>
+                     </methodparam>
+                     <methodparam>
+                         <type>bool</type> <parameter>defaultVal</parameter>
+                         <initializer>true</initializer>
+                     </methodparam>
+                     <methodparam>
+                         <type>int</type> <parameter> defaultSize</parameter>
+                         <initializer>-1</initializer>
+                     </methodparam>
+                 </methodsynopsis>
+                 </term>
+                <listitem>
+                    <para>
+                        Same as the previous method, however the
+                        list size is constrained to be at least
+                        <parameter>minLength</parameter> and at most
+                        <parameter>maxLength</parameter> elements long.
+                        The initial value is <parameter>defaultSize</parameter>
+                        elements of <parameter>defaultVal</parameter>
+                        If <parameter>defaultSize</parameter> is outside
+                        the length limits, it is forced to the closest limit.
+                    </para>
+                </listitem>
+                </varlistentry>
+            <varlistentry>
+                <term>
+                 <methodsynopsis>
+                     <type>void</type> <methodname>addIntListParameter</methodname>
+                     <methodparam>
+                         <type>std::string</type> <parameter>name</parameter>
+                     </methodparam>
+                     <methodparam>
+                         <type>unsigned</type> <parameter>size</parameter>
+                     </methodparam>
+                     <methodparam>
+                         <type>int</type> <parameter>defaultVal</parameter>
+                         <initializer>0</initializer>
+                     </methodparam>
+                     </methodsynopsis>
+                </term>
+                <listitem>
+                    <para>
+                        Adds a parameter that is constrained to be  a fixed
+                        length Tcl list of <parameter>size</parameter>
+                        integer values.
+                        The initial value of the list is <parameter>size</parameter>
+                        copies of <parameter>defaultValue</parameter>
+                        </para>
+                    <para>
+                        The range of values in the list is unconstrained.
+                        See the overloads below however.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>
+                 <methodsynopsis>
+                     <type>void</type> <methodname>addIntListParameter</methodname>
+                     <methodparam>
+                         <type>std::string</type>  <parameter>name</parameter>
+                     </methodparam>
+                     <methodparam>
+                         <type>unsigned</type> <parameter>minlength</parameter>
+                     </methodparam>
+                     <methodparam>
+                         <type>unsigned</type> <parameter>maxLength</parameter>
+                     </methodparam>
+                     <methodparam>
+                         <type>int</type> <parameter>defaultVal</parameter>
+                         <initializer>0</initializer>
+                     </methodparam>
+                     <methodparam>
+                         <type>int</type> <parameter>defaultSize</parameter>
+                         <initializer>-1</initializer>
+                     </methodparam>
+                     </methodsynopsis>
+                </term>
+                <listitem>
+                    <para>
+                        Same as the previous method however the list can
+                        have a size in the range
+                        [<parameter>minlength</parameter>..<parameter>maxLength</parameter>].
+                        the initial value of the list is <parameter>defaultSize</parameter>
+                        elements of <parameter>defaultVal</parameter>.
+                    </para>
+                    <para>
+                        As for <methodname>addBoolListParameter</methodname>,
+                        if the <parameter>defaultSize</parameter> parameter
+                        is outside the range of valid list length it is forced
+                        to the closest value.  Thus the default value really
+                        creates <parameter>minlength</parameter> elements.
+                        </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>
+                    <methodsynopsis>
+                      <modifier>static</modifier> <type>bool</type> <methodname>isInteger</methodname>
+                      <methodparam>
+                          <type>std::string</type> <parameter>name</parameter>
+                      </methodparam>
+                      <methodparam>
+                          <type>std::string</type> <parameter>value</parameter>
+                      </methodparam>
+                      <methodparam>
+                          <type>void*</type><parameter>arg</parameter>
+                      </methodparam>
+                    </methodsynopsis>
+                </term>
+                <listitem>
+                    <para>
+                        This is a static method that can be used as a constraint
+                        checker for integer parameters.  When it is used,
+                        the constraint parameter shoule be <literal>NULL</literal>
+                        if no range checking is desired or a pointer to a
+                        <type>Limits</type> struct as described in
+                        PUBLIC VARIABLES, TYPES and CONSTANTS to describe
+                        which limits are desired and their values.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>
+                    <methodsynopsis>
+                      <modifier>static</modifier> <type>bool</type> <methodname>isBool</methodname>
+                      <methodparam>
+                          <type>std::string</type> <parameter>name</parameter>
+                      </methodparam>
+                      <methodparam>
+                          <type>std::string</type> <parameter>value</parameter>
+                      </methodparam>
+                      <methodparam>
+                          <type>void*</type> <parameter>arg</parameter>
+                      </methodparam>
+                    </methodsynopsis>
+                </term>
+                <listitem>
+                    <para>
+                        This is a static method that can be used as a constraint
+                        checker for boolean parameters.  When used, the
+                        constraint parameter should be <literal>NULL</literal>.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>
+                    <methodsynopsis>
+                      <modifier>static</modifier> <type>bool</type> <methodname>isEnum</methodname>
+                      <methodparam>
+                          <type>std::string</type> <parameter>name</parameter>
+                      </methodparam>
+                      <methodparam>
+                          <type>std::string</type> <parameter>value</parameter>
+                      </methodparam>
+                      <methodparam>
+                          <type>void*</type> <parameter>arg</parameter>
+                      </methodparam>
+                  </methodsynopsis>
+                    </term>
+                <listitem>
+                    <para>
+                        Constriaint checker fora n enumerated type.
+                        When used, the constraint parameter should be
+                        a pointer to an <type>std::set&lt;string&gt;</type>
+                        which  has elements for each valid enumerator value.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>
+                  <methodsynopsis>
+                      <modifier>static</modifier> <type>bool</type> <methodname>isList</methodname>
+                      <methodparam>
+                          <type>std::string</type> <parameter>name</parameter>
+                      </methodparam>
+                      <methodparam>
+                          <type>std::string</type> <parameter>value</parameter>
+                      </methodparam>
+                      <methodparam>
+                          <type>void*</type> <parameter>arg</parameter>
+                      </methodparam>
+                  </methodsynopsis>
+                </term>
+                <listitem>
+                    <para>
+                        General constraint checker for a parameter that must
+                        look like a Tcl list.  The constraint parameter
+                        is a pointer to an <type>isListParameter</type>
+                        struct as defined in PUBLIC VARIABLES, TYPES and CONSTANTS
+                        This structure should be filled in to provide limits on
+                        the number of list elements the list can have.  A constraint
+                        checker that is applied to each list element can also be
+                        supplied.
+                        </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>
+                  <methodsynopsis>
+                      <modifier>static</modifier> <type>bool</type> <methodname>isBoolList</methodname>
+                      <methodparam>
+                          <type>std::string</type> <parameter>name</parameter>
+                      </methodparam>
+                      <methodparam>
+                          <type>std::string</type> <parameter>value</parameter>
+                      </methodparam>
+                      <methodparam>
+                          <type>void*</type> <parameter>arg</parameter>
+                      </methodparam>
+                  </methodsynopsis>
+                </term>
+                <listitem>
+                    <para>
+                        Constraint checker for a Tcl formatted list of
+                        booleans.  The constraint parameter shouild be a
+                        pointer to a <type>ListSizeConstraint</type>
+                        described in PUBLIC VARIABLES, TYPES and CONSTANTS.
+                        This should set limits on the size of the list.
+                        <methodname>isBoolList</methodname> will ensure
+                        that the elements of the list are booleans.
+                        </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>
+                  <methodsynopsis>
+                      <modifier>static</modifier> <type>bool</type> <methodname>isIntList</methodname>
+                      <methodparam>
+                          <type>std::string</type> <parameter>name</parameter>
+                      </methodparam>
+                      <methodparam>
+                          <type>std::string</type> <parameter>value</parameter>
+                      </methodparam>
+                      <methodparam>
+                          <type>void*</type> <parameter>arg</parameter>
+                      </methodparam>
+                  </methodsynopsis>
+                </term>
+                <listitem>
+                    <para>
+                        Constraint checker for a list of integers. The constraint
+                        parameter should be a <type>ListSizeConstraint</type>
+                        that describes the allowed list sizes.  The
+                        checker will ensure that the elements fo the list are
+                        all valid integers. At present, this checker does not
+                        support checking the values of the list elemeents against
+                        range limits.
+                    </para>
+                    <para>
+                        You could manually construct the <type>isListParameter</type>
+                        structure to do this and use <methodname>isList</methodname>
+                        if required.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>
+                  <methodsynopsis>
+                      <modifier>static</modifier> <type>bool</type> <methodname>isStringList</methodname>
+                      <methodparam>
+                          <type>std::string</type> <parameter>name</parameter>
+                      </methodparam>
+                      <methodparam>
+                          <type>std::string</type> <parameter>value</parameter>
+                      </methodparam>
+                      <methodparam>
+                          <type>void*</type> <parameter>arg</parameter>
+                      </methodparam>
+                  </methodsynopsis>
+                </term>
+                <listitem>
+                    <para>
+                        Constraint checker for lists of strings.   The
+                        constraint parametr is a <type>ListSizeConstraint</type>
+                        that defines the allowed sizes of the list.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>
+                  <methodsynopsis>
+                      <modifier>static</modifier> <type>isEnumParameter</type>
+                      <methodname>makeEnumSet</methodname>
+                      <methodparam>
+                          <modifier>const</modifier> <type>char**</type><parameter>values</parameter>
+                      </methodparam>
+                  </methodsynopsis>
+                  </term>
+                <listitem>
+                    <para>
+                        Helper function that converts a null terminated array
+                        of pointers to strings into a
+                        <type>isEnumParameter</type> constraint parameter.
+                    </para>
+                </listitem>
+                </varlistentry>
+            <varlistentry>
+                <term>
+                  <methodsynopsis>
+                      <modifier>static</modifier> <type>bool</type> <methodname>strToBool</methodname>
+                      <methodparam>
+                          <type>std::string</type> <parameter>value</parameter>
+                      </methodparam>
+                  </methodsynopsis>
+                </term>
+                <listitem>
+                    <para>
+                        Convenience function that converts a string to a boolean
+                        or throws an exception if the resulting string cannot
+                        be converted.
+                    </para>
+                </listitem>
+            </varlistentry>
+        </variablelist>
        </refsect1>
         <refsect1>
            <title>PUBLIC VARIABLES, TYPES and CONSTANTS</title>
-           <variablelist>
-           </variablelist>
+           <para>
+                The class definition in the SYNOPSIS section above shows a
+                large number of type definitions for this class.
+                Almost all of these types are structures used by the
+                built in constraint checkers.In most cases,
+                if you use the convenience functions to define your parameters
+                you won't need to know the details of these types.
+           </para>
+           <para>
+                The remainder of this section describes these types and the
+                constraint checkers they belong to.
+            </para>
+            <variablelist>
+                <varlistentry>    
+                    <term>
+                        <fieldsynopsis>
+                            <modifier>typedef</modifier>
+                            <type>std::vector&lt;std::pair&lt;std::string, std::string&gt; &gt;</type>
+                            <varname>ConfigurationArray</varname>
+                        </fieldsynopsis>
+                    </term>
+                    <listitem>
+                        <para>
+                            The <type>ConfigurationArray</type> is returned from
+                            one of the overloads of the <methodname>cget</methodname>
+                            method.  This type is a vector of pair.  The first element of each pair
+                            is the name of a parameter while the second element is it's current
+                            value.
+                        </para>
+                        <para>
+                            The following fragment of code shows how to use this
+                            to dump the current configuration of a configurable
+                            object pointed to by <varname>pConfig</varname>
+                        </para>
+                        <informalexample>
+                            <programlisting>
+ConfigurationArray config = pConfig-&gt;cget();
+for (int i = 0; i &lt; config.size(); i++) {
+   cout &lt;&lt; config[i].first &lt;&lt; " is set to " &lt;&lt; config[i].second &lt;&lt; endl;
+}
+                            </programlisting>
+                        </informalexample>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>
+                        struct  <type>limit</type> {
+                        <fieldsynopsis>
+                            <type>bool</type>   <varname>s_checkMe</varname>
+                        </fieldsynopsis>
+                        <fieldsynopsis>
+                            <type>long</type> <varname>s_value</varname>
+                        </fieldsynopsis>
+                        <constructorsynopsis>
+                            <methodname>limit</methodname>
+                            <void />
+                        </constructorsynopsis>
+                        <constructorsynopsis>
+                            <methodname>limit</methodname>
+                            <methodparam>
+                                <type>long</type>    <parameter>value</parameter>
+                            </methodparam>
+                        </constructorsynopsis>
+                      } ;
+                    </term>
+                    <term>
+                      <fieldsynopsis>
+                          <modifier>typedef</modifier>
+                          <type>std::pair&lt;limit, limit&gt;</type><varname>Limits</varname>
+                      </fieldsynopsis>
+                    </term>
+                    <listitem>
+                        <para>
+                            These data types are used with the
+                            <methodname>isInteger</methodname> constraint
+                            checker.  Each <type>limit</type> data type
+                            represents a range limit that may or may  not be
+                            checked according to the state of its
+                            <varname>s_checkMe</varname> flag.
+                        </para>
+                        <para>
+                            <type>Limits</type> is a pair of <type>limit</type>
+                            structs where the first one represents the lower
+                            limit and the second one the upper limit.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>                      
+                        <fieldsynopsis>
+                            <modifier>typedef</modifier>
+                            <type>std::set&lt;std::string&gt;</type>
+                            <varname>isEnumParameter</varname>
+                        </fieldsynopsis>
+                    </term>
+                    <listitem>
+                        <para>
+                            The <type>isEnumParameter</type> is used by the
+                            <methodname>isEnum</methodname> method
+                            to validate parameters that are enumerate parameter.
+                            The actual type is a set of the character strings
+                            that are allowed to be assigned to the parameter value.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>
+                        <fieldsynopsis>
+                            <modifier>typedef</modifier> <type>std::pair&lt;typeChecker, void*&gt;</type>
+                            <varname>TypeCheckInfo</varname>
+                        </fieldsynopsis>
+                    </term> 
+                    <term>
+                        typedef struct <type>_ListSizeConstraint</type> {
+                            <fieldsynopsis>
+                                <type>limit</type> <varname>s_atLeast</varname>
+                            </fieldsynopsis>
+                            <fieldsynopsis>
+                                <type>limit</type> <varname>s_atMost</varname>
+                            </fieldsynopsis>
+                        } <type>ListSizeConstraint</type>
+                    </term>
+                    <term>
+                        typedef struct <type>_isListParameter</type> {
+                          <fieldsynopsis>
+                            <type>ListSizeConstraint</type> <varname>s_allowedSize</varname>
+                          </fieldsynopsis>
+                          <fieldsynopsis>
+                            <type>TypeCheckInfo</type> <varname>s_checker</varname>
+                          </fieldsynopsis>
+                        } <type>isListParameter</type>;
+                    </term>
+                    <listitem>
+                        <para>
+                            This set of types are used to validate lists.
+                            The <type>isListParameter</type>
+                            is what is used to validate lists.  This consists
+                            of two chunks;
+                        </para>
+                        <para>
+                            <varname>s_allowedSize</varname> is used
+                            to validate the size of a list.  It is a
+                            <type>ListSizeConstraint</type> which allows you to
+                            specify minimum and maximum list sizes.  The list
+                            size limits are inclusive so you can specify a
+                            fixed size list by setting both
+                            <varname>s_atLeast</varname> and <varname>s_atMost</varname>
+                            to be the same.
+                        </para>
+                        <para>
+                            <varname>s_checker</varname> is a constraint
+                            checker and its parameter used to validate each
+                            item in the list.  This is applied after the
+                            string is determined to be a valid list and
+                            after the size of the list has been checked against
+                            the limits defined by <varname>s_allowedSize</varname>
+                            <varname>s_checker</varname>
+                            <type>TypeCheckInfo</type> which is a pair whose
+                            first element is a pointer to the actual constraint
+                            checking function and whose second is a pointer to data
+                            passed to the constraint checker without
+                            interpretation. For more information about how
+                            constratin checkers work see
+                            CONSTRAINT CHECKING below.
+                            </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>  
+                        struct  <type>flimit</type> {
+                          <fieldsynopsis>
+                            <type>bool</type>   <varname>s_checkMe</varname>
+                          </fieldsynopsis>
+                          <fieldsynopsis>
+                            <type>float</type> <varname>s_value</varname>
+                          </fieldsynopsis>
+                          <constructorsynopsis>
+                            <methodname>flimit</methodname><void />
+                          </constructorsynopsis>    
+                          <constructorsynopsis>
+                            <methodname>flimit</methodname>
+                            <methodparam>
+                                <type>float</type> <parameter>value</parameter>
+                            </methodparam>
+                          </constructorsynopsis>    
+                        };
+                    </term>
+                    <term>
+                        <fieldsynopsis>
+                            <modifier>typedef</modifier> <type>std::pair&lt;flimit, flimit&gt;</type>
+                            <varname>FloatingLimits</varname>
+                        </fieldsynopsis>
+                    </term>
+                    <listitem>
+                        <para>
+                            These types specify floating point limits in a
+                            mannger analgous to integer limits.
+                            </para>
+                    </listitem>
+                </varlistentry>
+                
+            </variablelist>           
+        </refsect1>
+        <refsect1>
+            <title>CONSTRAINT CHECKING</title>
+            <para>
+                Constraint checking is the <classname>CConfigurableObject</classname>
+                class's way to enforce type safety and other constraints on
+                the values of configuration parameters.
+                When a parameter is created with <methodname>addParameter</methodname>,
+                The caller has an option to provide a constraint checker and
+                a parameter that provides extra information to the constraint
+                checker that can parameterize the constraints it checks.
+            </para>
+            <para>
+                A constraint checker is just a function of the form:
+                <informalexample>
+                    <programlisting>
+bool myConstraintChecker(std::string name, std::string newValue,
+                        void* pClientData);
+                    </programlisting>
+                </informalexample>
+            </para>
+            <para>
+                When the <methodname>configure</methodname> method is called
+                for a parameter name that has a constraint checker
+                attached to it, that checker is called and passed the parameters
+                shown in the code fragment above:
+            </para>
+            <variablelist>
+                <varlistentry>
+                    <term>
+                        <parameter>name</parameter>
+                    </term>
+                    <listitem><para>
+                        Is the name of the parameter being configured.
+                        </para></listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>
+                        <parameter>newValue</parameter>
+                    </term>
+                    <listitem>
+                        <para>Is the proposed new value for the parameter.
+                        </para></listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>
+                        pClientData
+                    </term>
+                    <listitem>
+                        <para>
+                            Is the constraint parameter passed to
+                            <methodname>addParameter</methodname>
+                            passed without interpretation or modification.
+                        </para>
+                    </listitem>
+                </varlistentry>
+            </variablelist>
+            <para>
+                The constraint checker is expected to return
+                <literal>true</literal> if the proposed <parameter>newValue</parameter>
+                is acceptable by the constraint checker and <literal>false</literal>
+                if not.  If <literal>true</literal> is returned the parameter
+                value is modified to <parameter>newValue</parameter> otherwise
+                a string exception is thrown and the parameter value is not
+                modified.
+            </para>
+            <para>
+                The CCUSB framework catches string exceptions thrown by
+                <classname>CConfigurableObject</classname> and converts those
+                into configuration file processing error messages.  Any configuration
+                file processing error is reported and aborts the start of the
+                run that caused it.
+            </para>
         </refsect1>
      </refentry>     
 <!-- /manpage -->

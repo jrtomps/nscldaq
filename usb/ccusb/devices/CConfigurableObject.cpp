@@ -76,11 +76,8 @@ CConfigurableObject::CConfigurableObject(string name) :
 */
 CConfigurableObject::~CConfigurableObject()
 {
-  while (!m_constraints.empty()) {
-    DynamicConstraint Item = m_constraints.front();
-    (Item.s_Releaser)(Item.s_pObject); // Release the constraint.
-  }
-  // list storage is released by the std::list destructor.
+  releaseConstraintCheckers();
+
 
 }
 
@@ -269,6 +266,7 @@ void
 CConfigurableObject::clearConfiguration()
 {
   m_parameters.clear();
+  releaseConstraintCheckers();
 }
 
 
@@ -1103,4 +1101,16 @@ CConfigurableObject::releaseLimitsConstraint(void* pConstraint)
     throw std::string("releaseLimitsConstraint -- constraint does not cast to a Limits object");
   }
 
+}
+/**
+ * Release storage associated with dynamically created constraint checkers:
+ */
+void
+CConfigurableObject::releaseConstraintCheckers()
+{
+  while (!m_constraints.empty()) {
+    DynamicConstraint Item = m_constraints.front();
+    (Item.s_Releaser)(Item.s_pObject); // Release the constraint.
+  }
+  m_constraints.clear();
 }
