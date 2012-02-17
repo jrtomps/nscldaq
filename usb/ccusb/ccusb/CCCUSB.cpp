@@ -58,6 +58,12 @@ static const int DEFAULT_TIMEOUT(2000);	// ms.
 
 static bool usbInitialized(false);
 
+//
+// Top level statics (here for swig):
+//
+const uint16_t CCCUSB::Q(1);
+const uint16_t CCCUSB::X(2);
+
 /////////////////////////////////////////////////////////////////////
 /*!
   Enumerate the Wiener/JTec VM-USB devices.
