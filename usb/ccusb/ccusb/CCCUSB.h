@@ -333,10 +333,18 @@ public:
 		    size_t              readBufferSize,
 		    size_t*             bytesRead);
 
+    std::vector<uint16_t> executeList(CCCUSBReadoutList& list,
+				      int maxReadWords); /* swig */
 
 
     int loadList(uint8_t                listNumber,
 		 CCCUSBReadoutList&    list);
+    int loadList(int listNumber,
+		 CCCUSBReadoutList& list) {
+      loadList((uint8_t)listNumber, list);
+    }
+
+
 
     // Once the interface is in DAQ auntonomous mode, the application
     // should call the following function to read acquired data.
@@ -628,5 +636,12 @@ inline int getuint16(uint16_t value) {
   return value;
 }
 
+inline size_t uint16_vector_size(std::vector<uint16_t> vec)
+{
+  return vec.size();
+}
+inline int uint16_vector_get(std::vector<uint16_t>vec, int i) {
+  return vec[i];
+}
 
 #endif
