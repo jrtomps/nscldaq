@@ -8528,7 +8528,8 @@ bool myConstraintChecker(std::string name, std::string newValue,
                 run that caused it.
             </para>
         </refsect1>
-     </refentry>     
+     </refentry>
+ 
 <!-- /manpage -->
 
 
