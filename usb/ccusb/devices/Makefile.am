@@ -11,7 +11,8 @@ libCCUSBDevices_la_SOURCES	= 	CConfigurableObject.cpp	\
 					CCAEN257.cpp	\
 					CC1205.cpp	\
 					CCCUSBModule.cpp	\
-					CPH7132.cpp
+					CPH7132.cpp	\
+					CTclModule.cpp
 
 
 INCLUDES	= 	-I$(top_srcdir)/usb/ccusb/ccusb \
@@ -40,7 +41,8 @@ noinst_HEADERS			= 	CConfigurableObject.h	\
 					CCAEN257.h		\
 					CC1205.h		\
 					CCCUSBModule.h		\
-					CPH7132.h
+					CPH7132.h		\
+					CTclModule.h
 
 
 install-data-local:
