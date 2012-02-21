@@ -165,6 +165,14 @@ public:
       
     }
 
+    unsigned int simpleControl(int n, int a, int f)
+    {
+      uint16_t qx;
+      simpleControl(n,a,f,qx);
+      return qx;
+    }
+
+
 
 
     // Convenience function that access the CC-USB registers.
