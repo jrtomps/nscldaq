@@ -19,6 +19,8 @@
 #include <TCLInterpreter.h>
 #include <TCLInterpreterObject.h>
 #include <TCLVariable.h>
+#include <Exception.h>
+
 #include <Globals.h>
 #include "tclUtil.h"
 #include <CAcquisitionThread.h>
@@ -109,11 +111,29 @@ CBeginRun::operator()(CTCLInterpreter& interp,
   }
   pState->setTitle(string(titleString));
   
-  // Now we can start the run.
 
-  Globals::pConfig = new CConfiguration;
+  // Check that the configuration file processes correctly:
+
+  CConfiguration* pConfig = new CConfiguration;
+  Globals::pConfig = pConfig;
+  string errorMessage = "Begin - configuration file processing failed: ";
   try {
-    Globals::pConfig->processConfiguration(Globals::configurationFilename);
+    pConfig->processConfiguration(Globals::configurationFilename);
+  }
+  catch (string msg) {
+    errorMessage += msg;
+    tclUtil::setResult(interp, errorMessage);
+    return TCL_ERROR;
+  }
+  catch (const char* msg) {
+    errorMessage += msg;
+    tclUtil::setResult(interp, errorMessage);
+    return TCL_ERROR;
+  }
+  catch (CException& e) {
+    errorMessage += e.ReasonText();
+    tclUtil::setResult(interp, errorMessage);
+    return TCL_ERROR;
   }
   catch (...) {
     // Configuration file processing error of some sort...
@@ -122,10 +142,16 @@ CBeginRun::operator()(CTCLInterpreter& interp,
     return TCL_ERROR;
 		       
   }
+  // It did so we can kill it off and start the run.
+  // we kill it off because supporting Tcl drivers requires the configuration be processed a bit specially
+  // so that the interpreter is still around and the Tcl thread model isn't violated.
+  // 
+  // delete pConfig;
+  Globals::pConfig = 0;
 
   CAcquisitionThread* pReadout = CAcquisitionThread::getInstance();
-  pReadout->start(Globals::pUSBController,
-		  Globals::pConfig->getStacks());
+  pReadout->start(Globals::pUSBController);
+
   tclUtil::setResult(interp, string("Begin - Run started"));
   return TCL_OK;
 }

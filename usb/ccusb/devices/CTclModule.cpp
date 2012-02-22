@@ -17,6 +17,7 @@
 #include <config.h>
 #include "CTclModule.h"
 #include <TCLInterpreter.h>
+#include <arpa/inet.h>
 
 /**
  * Construction simply saves the nam of the command ensemble:
@@ -76,7 +77,7 @@ CTclModule::Initialize(CCCUSB& controller)
   command            += " Initialize ";
   command            += pointer;
 
-  m_pInterp->GlobalEval(command);
+  m_pInterp->GlobalEval(command.c_str());
 }
 /**
  * Similarly wrap the list in a swig pointer and execute the command's
@@ -92,7 +93,7 @@ CTclModule::addReadoutList(CCCUSBReadoutList& list)
   command            += " addReadoutList ";
   command            += pointer;
 
-  m_pInterp->GlobalEval(command);
+  m_pInterp->GlobalEval(command.c_str());
 }
 /**
  * Clone is just a virtual copy construction:
@@ -115,6 +116,6 @@ std::string
 CTclModule::swigPointer(void* p, std::string  type)
 {
   char pointerArray[1000];
-  sprintf(pointerArray, "_%x_p_%s", p, type.c_str());
+  sprintf(pointerArray, "_%x_p_%s", htonl((uint32_t)p), type.c_str());
   return std::string(pointerArray);
 }

@@ -61,7 +61,6 @@ private:
   static bool                   m_Running;	//!< thread is running.
   static CCCUSB*                m_pCamac;		//!< VME interface.
 
-  static std::vector<CReadoutModule*>  m_Stacks;       //!< the stacks to run.
 
   //Singleton pattern stuff:
 
@@ -76,8 +75,7 @@ public:
   // Thread functions:
 
 public:
-  static void start(CCCUSB* usb,
-		    std::vector<CReadoutModule*> Stacks);
+  static void start(CCCUSB* usb);
   static bool isRunning();
   static void waitExit();	/* Wait for this thread to exit (join). */
 

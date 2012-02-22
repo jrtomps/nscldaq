@@ -322,7 +322,7 @@ public:
       return v;
     }
     int writeUSBBulkTransferSetup(int value) { /* swig */
-      return writeUSBBulkTransferSetup(value);
+      return writeUSBBulkTransferSetup((uint32_t)value);
     }
 
 
