@@ -14,8 +14,12 @@
 	     East Lansing, MI 48824-1321
 */
 #ifdef SWIG
+#ifndef _FLATTEN_NESTED_CLASSES
+#define _FLATTEN_NESTED_CLASSES
+#endif
 %module CCCUSB
 %{
+#define _FLATTEN_NESTED_CLASSES
 #include "CCCUSB.h"
 %}
 
@@ -267,7 +271,7 @@ public:
       readDGGB(v);
       return v;
     }
-    unsigned  readDGGGExt() {		/* swig */
+    unsigned  readDGGExt() {		/* swig */
       uint32_t v;
       readDGGExt(v);
       return v;
@@ -303,7 +307,7 @@ public:
 
     int readLamTriggers(uint32_t& value);
     int writeLamTriggers(uint32_t value);
-    unsigned readLamTrigger() {	/* swig */
+    unsigned readLamTriggers() {	/* swig */
       uint32_t v;
       readLamTriggers(v);
       return v;
@@ -398,15 +402,18 @@ public:
 public:
 
   //!  Action register - all data members are individual bits.
+#ifndef FLATTEN_NESTED_CLASSES
   class ActionRegister {
+#endif
   public:
     static const uint16_t startDAQ   = 1;
     static const uint16_t usbTrigger = 2;
     static const uint16_t clear      = 4;
     static const uint16_t scalerDump = 0x10;
-    
+#ifndef FLATTEN_NESTED_CLASSES
   };
 
+#endif
   //! Firmware register *Mask are in place masks, *Shift shift the field to low order justify it
   class FirmwareRegister {
   public:
@@ -614,15 +621,18 @@ public:
     static const uint32_t BCoarseShift            = 16;
   };
   //! Multibuffer/timeout setup is in the TransferSetup Register.
+#ifndef FLATTEN_NESTED_CLASSES
   class TransferSetupRegister {
+#endif
   public:
     static const uint32_t multiBufferCountMask   = 0xff;
     static const uint32_t multiBufferCountShift  = 0;
     
     static const uint32_t timeoutMask            = 0xf00;
     static const uint32_t timeoutShift           = 8;
-    
+#ifndef FLATTEN_NESTED_CLASSES    
   };
+#endif
 };
 
 

@@ -13,7 +13,9 @@
         </para></listitem>
         <listitem><para>
             Support for user written device support without any need to
-            understand the format of list operations supported by the CC-USB
+            understand the format of list operations supported by the CC-USB.
+            Drivers can be written in either C++ or in object oriented extensions
+            to Tcl.
         </para></listitem>
         <listitem>
             <para>
@@ -39,8 +41,15 @@
         </listitem>
         <listitem>
             <para>
-                How to write device support and incorpoprate it into the
-                CCUSB readout framework.
+                How to write device support modules in in C++ and incorpoprate
+                those modules into the
+                CCUSB readout framework 
+            </para>
+        </listitem>
+        <listitem>
+            <para>
+                How to write device support moduels in Tcl and incorporate
+                those modules in the CCUSB readout framework.
             </para>
         </listitem>
         <listitem>
@@ -613,6 +622,722 @@ extern "C" {                                    <co id='ccusb-dtemplate-dinit1' 
         </section>
     </section>
     <section>
+        <title>Tcl device driver support</title>
+        <para>
+            This section describes how to provide support for device drivers
+            as Tcl modules.  The first subsection will describe in general
+            terms how to do this.  The second and third subsections will show
+            sample drivers written in the snit and Incr-Tcl object oriented
+            extensions of Tcl along with sample fragments of DAQ configuration
+            files that show how to use these drivers. Note that while snit and
+            Incr-Tcl drivers are shown any Tcl object oriented extension can
+            probably be used as could a carefully crafted set of
+            <command>namespace ensemble</command> commands.
+        </para>
+        <section>
+            <title>Conceptual background</title>
+            <para>
+                If you have not read the section on writing C++ device drivers
+                you should at least skim it.  Several of the concepts
+                are important.  Specifically:
+            </para>
+            <itemizedlist>
+                <listitem>
+                    <para>
+                        A device support module provides a command that
+                        generates device instances.
+                    </para>
+                </listitem>
+                <listitem>
+                    <para>
+                        Device instances have to provide an
+                        <methodname>Initialize</methodname> method that
+                        initializes the device according to some configuration
+                        of the instance.
+                    </para>
+                </listitem>
+                <listitem>
+                    <para>
+                        Device instances have to provide a
+                        <methodname>addReadoutList</methodname> method that
+                        adds elements to the list of CAMAC operations
+                        that are executed when the stack they live in
+                        is triggered.
+                    </para>
+                </listitem>
+            </itemizedlist>
+            <para>
+                All of this is a natural match to the way all of the object
+                oriented extensions to Tcl work.  Specifically you write a
+                class like thing.  Creating an instance of the class creates
+                a new Tcl command <firstterm>ensemble</firstterm>.  The
+                public methods of the instance become sub commands of the
+                new Tcl command.  
+            </para>
+            <para>
+                The CCUSB framework therefore provides a
+                mechanism, the <command>addtcldriver</command> command to
+                add an object instance command to the set of devices that
+                can be added to a stack. The <command>addtcldriver</command>
+                command registers the command name as a name of a  device
+                that can be put in a stack.  The command ensemble is also
+                wrapped in an actual driver that invokes
+                <methodname>Initialize</methodname>, and
+                <methodname>addReadoutList</methodname>
+                methods at the appropriate times.
+            </para>
+            <para>
+                The final piece of the puzzle is providing access to the
+                CCUSB and CCUSBReadout list capabilities to Tcl drivers.
+                This has been done by wrapping Tcl command ensembles around both
+                of those classes using SWIG
+                (see <ulink url='http://www.swig.org'>http://www.swig.org</ulink>).
+            </para>
+            <para>
+                As we will see when we work our way through sample drivers,
+                the C++ wrappers are not able to actually pass a SWIG wrapped
+                object to the driver methods.  The driver must take the
+                swig pointer like parameter and turn it into a SWIG object
+                before it can be used.  A Tcl fragment that shows how to
+                turn the CCCUSB pointer into a SWIG CCCUSB object is shon
+                below:
+            </para>
+            <informalexample>
+                <programlisting>
+...
+method Initialize ccusbPointer {
+    cccusb::CCCUSB c -this $ccusbPointer
+    ...
+}
+...
+                </programlisting>
+            </informalexample>
+            <para>
+                The example takes the <varname>ccusbPointer</varname> parameter
+                which must be a swig like pointer to  a CCCUSB object and
+                turns it in to a swig object named <literal>c</literal>
+                which is a SWIG object representing the underlying CCCUSB
+                passed in to the <methodname>Initialize</methodname> method.
+            </para>
+        </section>
+        <section>
+            <title>A sample snit Tcl CCUSB framework driver</title>
+            <para>
+                This section will go through a sample snit driver describing
+                how it works.  To see this driver incorporated in a DAQ
+                configuration file see
+                <xref linkend='ccusb-general-tcldriver-usage' />.
+            </para>
+            <para>
+                First a word or two about snit.  Snit is a pure Tcl object
+                oriented framework for Tcl written by Will Duquette from
+                the Jet Propulsion Laboratory in Pasadena.
+                <ulink url='http://wiki.tcl.tk/3963'>
+                    http://wiki.tcl.tk/3963</ulink>
+                provides access to documentation and examples of snit in action.
+            </para>
+            <para>
+                snit is part of the <literal>TclLib</literal> which is installed
+                on all systems at the NSCL.
+            </para>
+            <para>
+                Snit classes are created via the <command>snit::type</command>
+                command.  Snit classes feature <command>method</command>s
+                which are analagous to member functions in C++ classes.
+            </para>
+            <para>
+                snit also
+                provides all types with a <command>configure</command> and
+                <command>cget</command> command and a mechanism for declaring
+                options that can be manipulated by these commands. Using this
+                capability allows you to configure snit device driver instances
+                in a manner analagous to the C++ driver instances supported
+                by the CCUSB framework.
+            </para>
+            <para>
+                Below is a complete implementation of a snit driver that,
+                at initialization time turns on the yellow LED and adds
+                a marker to the readout list.  The marker value can be configured
+                via the instances built in configure subcommand.
+            </para>
+            <example>
+                <title>A snit CCUSB device driver module</title>
+                <programlisting>
+lappend auto_path /usr/opt/daq/10.1/lib  <co id='ccusb-snit-auto_path' />
+
+package require snit                    
+package require cccusb                  <co id='ccusb-snit-packages' />
+package require cccusbreadoutlist
+
+
+snit::type marker-snit {                <co id='ccusb-snit-type' />
+    option -value 0                     <co id='ccusb-snit-option' />
+
+    #
+    # Called when the run is being started.  
+    # 
+    # @param driverPtr - 'pointer' to the CCUSB object.
+    #
+    method Initialize driverPtr {      <co id='ccusb-snit-Initializemethod' />
+
+ 
+        cccusb::CCCUSB c -this $driverPtr; <co id='ccusb-snit-ccusbswigwrap' />
+
+        # Get the led programming now
+        # Yellow is the mask of FF0000
+        # Clear out those bits and set that field to be 110000 which is source I3 and
+        # inverted.
+
+        set leds [c readLedSelector]      <co id='ccusb-snit-readleds' />
+        set leds [expr {$leds &amp;  0xffff}]
+        set leds [expr {$leds | 0x110000}]
+        c writeLedSelector $leds         <co id='ccusb-snit-writeleds' />
+
+    }
+    # Called to contribute to the readout list
+    #   
+    # @param list - 'pointer' to the CCCUSBReadoutList which will be wrapped in a
+    #                swig wrapper.
+    #
+    method addReadoutList list {       <co id='ccusb-snit-addReadoutListmethod' />
+
+        #
+        # Wrap the list so we can use it:
+        #
+        cccusbreadoutlist::CCCUSBReadoutList l -this $list; <co id='ccusb-snit-ccusbreadoutlist-swigwrap' />
+
+        l addMarker $options(-value)                        <co id='ccusb-snit-addmarker' />
+
+    }
+}
+
+                </programlisting>
+            </example>
+            <para>
+                The numbers in the explanations below refer to the corresponding
+                numbers in the example text.
+            </para>
+            <calloutlist>
+                <callout arearefs='ccusb-snit-auto_path'>
+                    <para>
+                        The SWIG Tcl wrappers for the CCUSB and CCUSBReadoutList
+                        classes are installed in the <filename>lib</filename>
+                        subdirectory of the NSCLDAQ installation.  This
+                        adds that directory for the 10.1 verssion of nslcdaq
+                        to the package loads search path.  This allows those
+                        packages to be loaded via the <command>package require</command>
+                        package.
+                    </para>
+                </callout>
+                <callout arearefs='ccusb-snit-packages'>
+                    <para>
+                        Incorporates the following packages into the
+                        driver, if they have not been loaded elsewhere:
+                    </para>
+                    <variablelist>
+                        <varlistentry>
+                            <term>snit</term>
+                            <listitem><para>
+                                The snit package.  This implements the
+                                object oriented framework this example uses.
+                                </para></listitem>
+                        </varlistentry>
+                        <varlistentry>
+                            <term>cccusb</term>
+                            <listitem>
+                                <para>
+                                    The  swig wrapper for the
+                                    CCUSB C++ class.
+                                </para>
+                            </listitem>
+                        </varlistentry>
+                        <varlistentry>
+                            <term>cccusbreadoutlist</term>
+                            <listitem>
+                                <para>
+                                    The swig wrapper for the CCCUSBReadoutList
+                                    C++ class.
+                                </para>
+                            </listitem>
+                        </varlistentry>
+                    </variablelist>
+                </callout>
+                <callout arearefs='ccusb-snit-type'>
+                    <para>
+                        The <command>snit::type</command> command
+                        creates a new snit class like entity. The
+                        type is named <command>marker-snit</command> and
+                        the list of commands that follow define the
+                        body of the class.  This creates a new command
+                        <command>marker-snit</command> primarly used to
+                        construct instances of the type.
+                    </para>
+                </callout>
+                <callout arearefs='ccusb-snit-option'>
+                    <para>
+                        Snit objects all have a set of options that are
+                        modified via their built in
+                        <command>configure</command> sub command and accessed
+                        externally via their <command>cget</command>
+                        built in sub command.
+                    </para>
+                    <para>
+                        The <command>option</command> command within a snit
+                        type body defines a configurable option
+                        (<option>-value</option> in this case), and optionally
+                        provides an initial value.
+                    </para>
+                </callout>
+                <callout arearefs='ccusb-snit-Initializemethod'>
+                    <para>
+                        Instance subcommands are created via the
+                        snit <command>method</command> command.  This command
+                        looks exactly like the <command>pro</command> command
+                        except that methods generate subcommands.
+                    </para>
+                    <para>
+                        The <methodname>Initialize</methodname> method must
+                        be implemented by all device driver objecgt (do-nothing
+                        implementations are fine).  The parameter to this method
+                        is a pointer like entity which points to a
+                        <classname>CCCUSB</classname> object that communuicates
+                        with the selected CAMAC crate.
+                    </para>
+                    <para>
+                        The <methodname>Initialize</methodname> method is
+                        invoke for all object instances that are added to stacks.
+                        It is suposed to look at the configuration items and
+                        do what is necessary to program the module it supports
+                        to prepare to take data in the specified configuration.
+                    </para>
+                </callout>
+                <callout arearefs='ccusb-snit-ccusbswigwrap'>
+                    <para>
+                        Creates a swig wrapping of the <classname>CCCUSB</classname>
+                        class whose underlying class is the class 'pointed to'
+                        by the <parameter>driverPtr</parameter> parameter.
+                    </para>
+                    <para>
+                        The wrapping creats a command <command>c</command>
+                        Subcommands of that command are mapped to methods in the
+                        <classname>CCCUSB</classname> C++ class.
+                    </para>
+                    <para>
+                        You can also get Swig to name the new object after
+                        the pointer that was passed in:
+                        <informalexample>
+                            <programlisting>
+...
+cccusb::CCCUSB -this $driverPtr
+...
+                            </programlisting>
+                        </informalexample>
+                        Where $driverPtr can be used as the CCCUSB object
+                        command.
+                    </para>
+                </callout>
+                <callout arearefs='ccusb-snit-readleds'>
+                    <para>
+                        This is an example of invoking a CCCUSB method.
+                        The subcommand <methodname>readLedSelector</methodname>
+                        reads the CC-USB LED selector register. The subsequent
+                        code makes changes the fields that control the yellow
+                        LED so that it's input is the NIM IN3 inpout and is lit
+                        when there is no input (inverted state).  This should
+                        normally light the yellow LED.
+                    </para>
+                </callout>
+                <callout arearefs='ccusb-snit-writeleds'>
+                    <para>
+                        Invokes the CCCUSB <methodname>writeLedSelector</methodname>
+                        so that the new value of the LED selector register
+                        takes effect.
+                    </para>
+                </callout>
+                <callout arearefs='ccusb-snit-addReadoutListmethod'>
+                    <para>
+                        The <methodname>addReadoutList</methodname>
+                        is invoked for each driver instance that is in a stack
+                        as the run is started.  It is is expected to contribute
+                        elements to a <classname>CCCUSBReadoutList</classname>
+                        object that read the supported module in the manner
+                        defined by the object's configuration.
+                    </para>
+                    <para>
+                        The <parameter>list</parameter> parameter is a pointer
+                        like value to a <classname>CCCUSBReadoutList</classname>
+                        object.
+                    </para>
+                </callout>
+                <callout arearefs='ccusb-snit-ccusbreadoutlist-swigwrap'>
+                    <para>
+                        Wraps the pointer in a SWIG object analagous to what
+                        was done for the ccusb pointer passed to
+                        <methodname>Initialize</methodname>.
+                    </para>
+                </callout>
+                <callout arearefs='ccusb-snit-addmarker'>
+                    <para>
+                        Adds a marker to the list.
+                        The marker value will be value of the
+                        <option>-value</option> option. In snit, options
+                        are put in an array named <varname>options</varname>
+                        indexed by the option name.
+                    </para>
+                </callout>
+
+            </calloutlist>
+        </section>
+        <section>
+            <title>A sample Incr-Tcl Tcl CCUSB framework driver</title>
+            <para>
+                Incr Tcl is an object oriented extension for Tcl.  It is installed
+                on all NSCL systems.  It provides the ability to define
+                <firstterm>classes</firstterm>. As with snit, creating a class
+                 instance (object) creates a new command.  The public class
+                 methods are then subcommands for the object command.
+            </para>
+            <para>
+                As with snit, objects can have configurations that are manipulated
+                and queried via built in <command>config</command> and
+                <command>cget</command> object subcommands.  Unlike snit,
+                all public member variables are considered to be
+                configurable objects to Incr Tcl.
+            </para>
+            <para>
+                The properties above make Incr Tcl a viable option for
+                implementing driver support.
+            </para>
+            <para>
+                <ulink url='http://incrtcl.sourceforge.net/itcl/'>
+                    http://incrtcl.sourceforge.net/itcl/</ulink>
+                provides information about Incr Tcl.
+            </para>
+            <para>
+                The example below shows a marker driver identical in functionality
+                to the snit driver shown in the previous section, but written
+                with Incr Tcl.
+            </para>
+            <example>
+                <title>CCUSB device support example writtin in Incr Tcl</title>
+                <programlisting>
+lappend auto_path /usr/opt/daq/10.1/lib
+puts $auto_path
+package require Itcl                       <co id='ccusb-itcl-header' />
+package require cccusb
+package require cccusbreadoutlist
+
+itcl::class marker-itcl {                 <co id='ccusb-itcl-class' />
+    public variable value 0               <co id='ccusb-itcl-options' />
+
+    #
+    # Called when the run is being started.  
+    # 
+    # @param driverPtr - 'pointer' to the CCUSB object.
+    #
+    public method Initialize driverPtr {  <co id='ccusb-itcl-initialize' />
+
+        #  This turns the driver pointer into a CCUSB object which
+        #  can make use of the SWIG wrappers for the CCUSB code:
+
+        cccusb::CCCUSB c -this $driverPtr; # c is a CAMAC controller object.
+
+        # Get the led programming now
+        # Yellow is the mask of FF0000
+        # Clear out those bits and set that field to be 110000 which is source I3 and
+        # inverted.
+
+        set leds [c readLedSelector]
+        set leds [expr {$leds &amp;  0xffff}]
+        set leds [expr {$leds | 0x110000}]
+        c writeLedSelector $leds
+
+    }
+    # Called to contribute to the readout list
+    #   
+    # @param list - 'pointer' to the CCCUSBReadoutList which will be wrapped in a
+    #                swig wrapper.
+    #
+    public method addReadoutList list {               <co id='ccusb-itcl-addreadoutlist' />
+
+        #
+        # Wrap the list so we can use it:
+        #
+        cccusbreadoutlist::CCCUSBReadoutList l -this $list; # l is now a swig wrapper over the list.
+
+        l addMarker $value                          <co id='ccusb-itcl-addmarker' />
+
+    }
+
+                </programlisting>
+            </example>
+            <para>
+                 The numbers in the explanations below refer to the numbers
+                 in the example above.
+            </para>
+            <calloutlist>
+                <callout arearefs='ccusb-itcl-header'>
+                    <para>
+                        This heading is easily  understandable from the
+                        example in the previous section.  The only difference
+                        is that the Itcl package is loaded instead of snit.
+                    </para>
+                </callout>
+                <callout arearefs='ccusb-itcl-class'>
+                    <para>
+                        The <command>class</command> command creates an Incr
+                        Tcl class. The class name <command>marker-itcl</command>
+                        becomes the command name for creating class instances
+                        (objects).
+                    </para>
+                </callout>
+                <callout arearefs='ccusb-itcl-options'>
+                    <para>
+                        Unlike snit Incr Tcl does not have a separate facility
+                        for creating options.  Any instance variable that is
+                        declared <literal>public</literal> is treated as
+                        a configuration parameter.
+                    </para>
+                    <para>
+                        Therefore this line creates the
+                        <option>-value</option>.   Configuring
+                        <option>-value</option> will modify this variable.
+                        Cgetting <option>-value</option> will read this
+                        variable.
+                    </para>
+                </callout>
+                <callout arearefs='ccusb-itcl-initialize'>
+                    <para>
+                        The <methodname>Initialize</methodname> method
+                        has been described previously.  The body of this
+                        method is identical to the body of the
+                        correpondig <literal>snit::type</literal>.
+                        method.
+                    </para>
+                </callout>
+                <callout arearefs='ccusb-itcl-addreadoutlist'>
+                    <para>
+                        Creates a method to be called when the software
+                        is building readout lists.  With the exception
+                        shown below, this too is identical to the
+                        contents of the same method in the snit example.
+                    </para>
+                </callout>
+                <callout arearefs='ccusb-itcl-addmarker'>
+                    <para>
+                        In Incr Tcl, options are just member variables.
+                        Therefore when the marker is added ot the stack,
+                        <literal>$value</literal> substitutes the
+                        selected value.
+                    </para>
+                </callout>
+            </calloutlist>
+        </section>
+        <section id="ccusb-general-tcldriver-usage">
+            <title>Using Tcl drivers in the DAQ configuration file.</title>
+            <para>
+                Using a Tcl driver in the DAQ configuration file requires that you
+            </para>
+            <itemizedlist>
+                <listitem>
+                    <para>
+                        Incorporate the driver code into your DAQ configuration
+                        script.
+                    </para>
+                </listitem>
+                <listitem>
+                    <para>
+                        Create device instances for the hardware you want read
+                        out by your experiment.
+                    </para>
+                </listitem>
+                <listitem>
+                    <para>
+                        Register the device instances with the CCUSB frameowork
+                        so that they can be referred to in
+                        <command>stack</command> or other
+                        module containing commands.
+                    </para>
+                </listitem>
+                <listitem>
+                    <para>
+                        Add the instances to a stack
+                    </para>
+                </listitem>
+            </itemizedlist>
+            <formalpara>
+                <title>Incorporating driver code into the DAQ configuration file</title>
+                <para>
+                    Tcl provides two suitable mechanisms for incorporating
+                    device support code into your DAQ configuration script.  Note
+                    that these mechanisms are not restricted to device support
+                    code but could be used to incorporate any Tcl library code
+                    you might need.
+                </para>
+            </formalpara>
+            <para>
+                The <command>source</command> command allows you to include
+                a specific Tcl script file given a relative or absolute path
+                directly to that script.  Suppose our device support
+                file named <filename>mydriver.tcl</filename> is located
+                in the same directory as the configuration script.  The
+                code fragment below is an accepted way to source that file
+                that doesn ot assume the current working directory is where the
+                script is:
+            </para>
+            <informalexample>
+                <programlisting>
+set here [file dirname [info script]]
+source [file join $here mydriver.tcl]
+                </programlisting>
+            </informalexample>
+            <para>
+                The first command determines the directory that holds the
+                script while the second uses that to construct a path to the
+                <filename>mydriver.tcl</filename> file for the <command>source</command>
+                command.
+            </para>
+            <para>
+                If you develop a library of device support code, or are using
+                someone else's device support code, it is probably preferable
+                to use the Tcl <command>package</command> command,
+                <filename>pkgIndex.tcl</filename> and package search paths
+                to load the driver code.
+            </para>
+            <para>
+                The author of the driver code you are using must have cooperated
+                to the extent of having a <command>package provide</command>
+                command in their scripts, and creating a <filename>pkgIndex.tcl</filename>
+                (through e.g. Tcl's <command>pkg_mkIndex</command> command) in the
+                directories holding their packagtes.
+            </para>
+            <para>
+                Once this is done you can append the script package directories
+                to your <varname>auto_path</varname> variable and use
+                <command>package require</command> to pull in the required
+                files.
+            </para>
+            <para>
+                Suppose, for example, <filename>/projects/mydetector/drivers</filename>
+                is a directory that contains several device support scripts
+                given package names like <literal>device1</literal>
+                <literal>device2</literal>, suppose further that you are
+                running in conjunction with another system that has
+                <literal>device3</literal> in <filename>/projects/otherdetector/drivers</filename>.
+                The following script fragment uses the Tcl package facility to load
+                those drivers:
+            </para>
+            <informalexample>
+                <programlisting>
+lappend auto_path /projects/mydetector/drivers /projects/otherdetector/drivers
+package require device1
+package require device2
+package require device3
+                </programlisting>
+            </informalexample>
+            <para>
+                Furthermore, by using the <literal>TCLLIBPATH</literal>
+                rather than the <varname>auto_path</varname> variable you
+                can make it so that your script does not need to know
+                which directories have package files.
+            </para>
+            <formalpara>
+                <title>Creating device instances</title>
+                <para>
+                    How you create device instances depends on how you the
+                    driver was written.  In snit, for example you use the
+                    <command>snit::type</command> type name's create
+                    sub command.  For example for the previous example driver:
+                </para>
+            </formalpara>
+            <informalexample>
+                <programlisting>
+marker-snit create snitmarker
+                </programlisting>
+            </informalexample>
+            <para>
+                creates an instance of the driver named <literal>snitmarker</literal>.
+                The base name of the resulting command ensemble is also
+                <command>snitmarker</command>.
+                In the case of our Incr Tcl driver:
+            </para>
+            <informalexample>
+                <programlisting>
+marker-itcl itclmarker
+                </programlisting>
+            </informalexample>
+            <para>
+                Creates an instance whose name is <literal>itclmarker</literal>
+                and whose instance command is
+                <command>itclmarker</command>
+            </para>
+            <para>
+                Once created, how you configure the device depends on the
+                framework used to build the driver.  For both the
+                snit and Incr Tcl examples, the <command>configure</command>
+                command can be used to configure  the object instance:
+            </para>
+            <informalexample>
+                <programlisting>
+<replaceable>instance-command</replaceable> configure -value 0x1234
+                </programlisting>
+            </informalexample>
+            <formalpara>
+                <title>Registering device instances</title>
+                <para>
+                    Device instances must be registered.  Until they are,
+                    they have an existence completely independent of the CCUSB
+                    framework.  Registration makes their instance command
+                    the name of a device that can be added to <command>stack</command>
+                    <option>-module</option> lists.
+                </para>
+            </formalpara>
+            <para>
+                The <command>addtcldriver</command> command associated a Tcl
+                instance command with a module name:
+            </para>
+            <informalexample>
+                <programlisting>
+addtcldriver snitmarker
+                </programlisting>
+            </informalexample>
+            <para>
+                Creates a module name <literal>snitmarker</literal> that is
+                associated with the <command>snitmarker</command>
+                instance of the <classname>marker-snit</classname> driver.
+            </para>
+            <para>
+                Given this discussion, here is a fragment of a
+                daq cofiguration script:
+            </para>
+            <example>
+                <title>DAQ config script fragment with tcl drivers.</title>
+                <programlisting>
+...
+set here [file dirname [info script]]
+
+source [file join $here testdriver-snit.tcl]
+marker-snit create snitmarker
+snitmarker configure -value 0x5678
+addtcldriver snitmarker
+
+source [file join $here testdriver-itcl.tcl]
+marker-itcl itclmarker
+itclmarker configure -value 0xfafa
+addtcldriver itclmarker
+
+
+# testing and tdc were defined earlier by 'normal' commands.,
+
+stack create events
+stack config events -modules [list itclmarker snitmarker testing tdc] -type event -delay 108
+
+                </programlisting>
+            </example>
+        </section>
+            
+    </section>
+    <section>
         <title>The slow controls subsystem</title>
         <para>
             There is nothing to stop you from creating device support that
@@ -762,6 +1487,57 @@ CC-USB scriptable readout version V2.0
 <!-- /chapter -->
 
 <!-- manpage 3ccusb -->
+    <refentry id='ccusb3-addtcldriver'>
+        <refmeta>
+           <refentrytitle>addtcldriver</refentrytitle>
+           <manvolnum>3ccusb</manvolnum>
+        </refmeta>
+        <refnamediv>
+           <refname>addtcldriver</refname>
+           <refpurpose>Register Tcl command ensemble as a device module</refpurpose>
+        </refnamediv>
+        
+        <refsynopsisdiv>
+          <cmdsynopsis>
+            <command>
+addtcldriver <replaceable>tcl-command</replaceable>
+            </command>
+          </cmdsynopsis>
+
+        </refsynopsisdiv>
+        <refsect1>
+           <title>DESCRIPTION</title>
+           <para>
+            Registers the base of a Tcl command ensemble (e.g. an object
+            instance command) as a device module that can be used in
+            module lists such as the <option>-modules</option> option of a
+            <command>stack</command> command.
+           </para>
+           <para>
+                The <parameter>tcl-command</parameter> is the command
+                to regsiter.
+           </para>
+        </refsect1>
+        <refsect1>
+            <title>EXAMPLE</title>
+            <para>
+                The command below:
+            </para>
+            <informalexample>
+                <programlisting>
+addtclcommand sometclinstance
+                </programlisting>
+            </informalexample>
+            <para>
+                Registers the Tcl command <command>sometclinstance</command>
+                as a module.  The name of the module is the same as the
+                name of the command (<literal>sometclinstance</literal>).
+            </para>
+            </refsect1>
+
+      </refentry>
+
+
 	 <refentry id="ccusb3-ad811">
 	   <refmeta>
 	      <refentrytitle>ad811</refentrytitle>
@@ -1094,7 +1870,7 @@ c1205 config <replaceable>module-name</replaceable>
 
 <refentry id="ccusb3-c257">
   <refmeta>
-     <refentrytitle>Manage CAEN C257 scaler module.</refentrytitle>
+     <refentrytitle>c257</refentrytitle>
      <manvolnum>cccusb</manvolnum>
   </refmeta>
   <refnamediv>
@@ -1233,7 +2009,7 @@ c257 cget <replaceable>name</replaceable>
 
 	 <refentry id="lccusb3-rs2228">
 	   <refmeta>
-	      <refentrytitle>Manage LRS2228 LeCroy TDC</refentrytitle>
+	      <refentrytitle>lrs2228</refentrytitle>
 	      <manvolnum>3ccusb</manvolnum>
 	   </refmeta>
 	   <refnamediv>
@@ -1936,13 +2712,6 @@ stack cget <replaceable>name</replaceable>
                   determine the set of readout instructions that make up each
                   stack.  
                </para>
-               <note>
-                  <para>
-                     In this version of the U. Mass. Lowell software, no
-                     CAMAC scaler modules are supported, so the scaler stack
-                     is not very useful.
-                  </para>
-               </note>
                <para>
                   The <command>create</command> subcommand creates a new stack.
                   The name of the new stack is <replaceable>name</replaceable>.
@@ -2095,7 +2864,7 @@ stack cget <replaceable>name</replaceable>
                <title>EXAMPLES</title>
                <para>
                   The example below extends the example in the
-                  <link linkend="ccusb3-ph7xxx">ph7xxx</link> command reference
+                  <xref linkend="ccusb3-ph7xxx" /> command reference
                   reading the defined modules in an event stack:
                </para>
                <example>
@@ -6262,11 +7031,11 @@ uint32_t revision = (d &amp; CCCUSB::FirmwareRegister::revisionMask)
         <synopsis>
             class <ooclass><classname>CCCUSBReadoutList</classname></ooclass> {          
            <constructorsynopsis>
-          <methodname>CCCUSBReadoutList</methodname>
+          <methodname> CCCUSBReadoutList</methodname>
           <void />
            </constructorsynopsis>
            <constructorsynopsis>
-            <methodname>CCCUSBReadoutList</methodname>
+            <methodname> CCCUSBReadoutList</methodname>
             <methodparam>
                 <modifier>const</modifier> <type>CCCUSBReadoutList&amp;</type>
                 <parameter>rhs</parameter>
@@ -8500,7 +9269,7 @@ bool myConstraintChecker(std::string name, std::string newValue,
                 </varlistentry>
                 <varlistentry>
                     <term>
-                        pClientData
+                        <parameter>pClientData</parameter>
                     </term>
                     <listitem>
                         <para>
@@ -8529,6 +9298,1751 @@ bool myConstraintChecker(std::string name, std::string newValue,
             </para>
         </refsect1>
      </refentry>
+       <refentry id="ccusb3-cccusb">
+         <refmeta>
+            <refentrytitle>cccusb</refentrytitle>
+            <manvolnum>3ccusb</manvolnum>
+         </refmeta>
+         <refnamediv>
+            <refname>cccusb</refname>
+            <refpurpose>Swig wrapping of the CCCUSB C++ class.</refpurpose>
+         </refnamediv>
+         
+         <refsynopsisdiv>
+            <cmdsynopsis>
+                <command>
+cccusb::CCCUSB_enumerate
+                </command>
+            </cmdsynopsis>
+            <cmdsynopsis>
+                <command>
+cccusb::usb_device_vector_get  <replaceable>CCCUSB-enumeration  index</replaceable>
+                </command>
+            </cmdsynopsis>
+            <cmdsynopsis>
+                <command>
+cccusb::usb_device_vector_size <replaceable>CCUSB-enumeration</replaceable>
+                </command>
+            </cmdsynopsis>
+            <cmdsynopsis>
+                <command>
+::cccusb::CCCUSB <replaceable>name</replaceable> <replaceable>usb-device</replaceable>
+                </command>
+            </cmdsynopsis>
+            <cmdsynopsis>
+                <command>
+::cccusb::CCCUSB <replaceable>-args usb-device</replaceable>
+                </command>
+            </cmdsynopsis>
+            <cmdsynopsis>
+                <command>
+::cccusb::CCCUSB <replaceable>?name?</replaceable> -this <replaceable>ptrName</replaceable>
+                </command>
+            </cmdsynopsis>
+            <cmdsynopsis>
+                <command>
+<replaceable>object</replaceable> c
+                </command>
+            </cmdsynopsis>
+            <cmdsynopsis>
+                <command>
+<replaceable>object</replaceable> executeList <replaceable>readout-list maxread</replaceable>                
+                </command>
+            </cmdsynopsis>
+            <cmdsynopsis>
+                <command>
+<replaceable>object</replaceable> inhibit
+                </command>
+            </cmdsynopsis>
+            <cmdsynopsis>
+                <command>
+<replaceable>object</replaceable> loadList <replaceable>listNum readout-list</replaceable>
+                </command>
+            </cmdsynopsis>
+            <cmdsynopsis>
+                <command>
+<replaceable>object</replaceable> readDGGA
+                </command>
+            </cmdsynopsis>
+            <cmdsynopsis>
+                <command>
+<replaceable>object</replaceable> readDGGB
+                </command>
+            </cmdsynopsis>
+            <cmdsynopsis>
+                <command>
+<replaceable>object</replaceable> readDGGExt
+                </command>
+            </cmdsynopsis>
+            <cmdsynopsis>
+                <command>
+<replaceable>object</replaceable> readDelays
+                </command>
+            </cmdsynopsis>
+            <cmdsynopsis>
+                <command>
+<replaceable>object</replaceable> readDeviceSourceSelectors
+                </command>
+            </cmdsynopsis>
+            <cmdsynopsis>
+                <command>
+<replaceable>object</replaceable> readFirmware
+                </command>
+            </cmdsynopsis>
+            <cmdsynopsis>
+                <command>
+<replaceable>object</replaceable>readGlobalMode
+                </command>
+            </cmdsynopsis>
+            <cmdsynopsis>
+                <command>
+<replaceable>object</replaceable> readLamTriggers
+                </command>
+            </cmdsynopsis>
+            <cmdsynopsis>
+                <command>
+<replaceable>object</replaceable> readLedSelector
+                </command>
+            </cmdsynopsis>
+            <cmdsynopsis>
+                <command>
+<replaceable>object</replaceable> readOutputSelector
+                </command>
+            </cmdsynopsis>
+            <cmdsynopsis>
+                <command>
+<replaceable>object</replaceable> readScalerA
+                </command>
+            </cmdsynopsis>
+            <cmdsynopsis>
+                <command>
+<replaceable>object</replaceable> readScalerB
+                </command>
+            </cmdsynopsis>
+            <cmdsynopsis>
+                <command>
+<replaceable>object</replaceable> readScalerControl
+                </command>
+            </cmdsynopsis>
+            <cmdsynopsis>
+                <command>
+<replaceable>object</replaceable> readUSBBulkTransferSetup
+                </command>
+            </cmdsynopsis>
+            <cmdsynopsis>
+                <command>
+cccusb::CCCUSB_serialNo <replaceable>usb-device</replaceable>
+                </command>
+            </cmdsynopsis>
+            <cmdsynopsis>
+                <command>
+<replaceable>object</replaceable> setDefaultTimeout <replaceable>ms</replaceable>
+                </command>
+            </cmdsynopsis>
+            <cmdsynopsis>
+                <command>
+<replaceable>object</replaceable> simpleControl <replaceable>n a f</replaceable>
+                </command>
+            </cmdsynopsis>
+            <cmdsynopsis>
+                <command>
+<replaceable>object</replaceable> simpleRead16 <replaceable>n a f</replaceable>
+                </command>
+            </cmdsynopsis>
+            <cmdsynopsis>
+                <command>
+<replaceable>object</replaceable> simpleRead24 <replaceable>n a f</replaceable>
+                </command>
+            </cmdsynopsis>
+            <cmdsynopsis>
+                <command>
+<replaceable>object</replaceable> simpleWrite16 <replaceable>n a f d</replaceable>
+                </command>
+            </cmdsynopsis>
+            <cmdsynopsis>
+                <command>
+<replaceable>object</replaceable> simpleWrite24 <replaceable>n a f d</replaceable>
+                </command>
+            </cmdsynopsis>
+            <cmdsynopsis>
+                <command>
+<replaceable>object</replaceable> uninhibit
+                </command>
+            </cmdsynopsis>
+            <cmdsynopsis>
+                <command>
+<replaceable>object</replaceable> writeActionRegister <replaceable>value</replaceable>
+                </command>
+            </cmdsynopsis>
+            <cmdsynopsis>
+                <command>
+<replaceable>object</replaceable> writeDGGA <replaceable>value</replaceable>
+                </command>
+            </cmdsynopsis>
+            <cmdsynopsis>
+                <command>
+<replaceable>object</replaceable> writeDGGB <replaceable>value</replaceable>
+                </command>
+            </cmdsynopsis>
+
+            <cmdsynopsis>
+                <command>
+<replaceable>object</replaceable> writeDGGExt <replaceable>value</replaceable>
+                </command>
+            </cmdsynopsis>
+            <cmdsynopsis>
+                <command>
+<replaceable>object</replaceable> writeDelays <replaceable>value</replaceable>
+                </command>
+            </cmdsynopsis>
+            <cmdsynopsis>
+                <command>
+<replaceable>object</replaceable> writeDeviceSourceSelectors <replaceable>value</replaceable>
+                </command>
+            </cmdsynopsis>
+            <cmdsynopsis>
+                <command>
+<replaceable>object</replaceable> writeGlobalMode <replaceable>value</replaceable>
+                </command>
+            </cmdsynopsis>
+            <cmdsynopsis>
+                <command>
+<replaceable>object</replaceable> writeLamTriggers <replaceable>value</replaceable>
+                </command>
+            </cmdsynopsis>
+            <cmdsynopsis>
+                <command>
+<replaceable>object</replaceable> writeLedSelector <replaceable>value</replaceable>
+                </command>
+            </cmdsynopsis>
+            <cmdsynopsis>
+                <command>
+<replaceable>object</replaceable> writeOutputSelector <replaceable>value</replaceable>
+                </command>
+            </cmdsynopsis>
+            <cmdsynopsis>
+                <command>
+<replaceable>object</replaceable> writeScalerControl <replaceable>value</replaceable>
+                </command>
+            </cmdsynopsis>
+            <cmdsynopsis>
+                <command>
+<replaceable>object</replaceable> writeUSBBulkTransferSetup <replaceable>value</replaceable>
+                </command>
+            </cmdsynopsis>
+            <cmdsynopsis>
+                <command>
+<replaceable>object</replaceable> Z
+                </command>
+            </cmdsynopsis>
+            <cmdsynopsis>
+                <command>
+<replaceable>object</replaceable> -delete
+                </command>
+            </cmdsynopsis>
+            <cmdsynopsis>
+                <command>
+cccusb::string_to_char <replaceable>string-object</replaceable>
+                </command>
+            </cmdsynopsis>
+            <cmdsynopsis>
+                <command>
+::cccusb::uint16_vector_get <replaceable>vector-object index</replaceable>
+                </command>
+            </cmdsynopsis>
+            <cmdsynopsis>
+                <command>
+::cccusb::uint16_vector_size <replaceable>vector-object</replaceable>
+                </command>
+            </cmdsynopsis>
+         </refsynopsisdiv>
+         <refsect1>
+            <title>DESCRIPTION</title>
+            <para>
+                This set of commands is a Tcl wrapper around the
+                CCCUSB C++ class (see <xref linkend='ccusb3-CCCUSB' />.  The
+                interface consists of several static methods and object sub
+                commands.
+            </para>
+            <para>
+                The static methods include methods that support
+                device enumeration and construction.  Enumeration returns
+                data types that require additional static methods to
+                unpack.  See DEVICE ENUMERATION below.
+            </para>
+            <para>
+                Command lists (see <xref linkend='ccusb3-cccusbreadoutlist' />)
+                can be executed in immediate mode or loaded.  At present
+                the usb bulk read function is not supported so a pure Tcl
+                data taking system cannot yet be written.  If you want support
+                for that, request it as that can be added easily enough.
+            </para>
+            <para>
+                Immediate list execution also produces data types that require
+                additional static member functions to unpack.  See
+                LIST EXECUTION below for more information.
+            </para>
+         </refsect1>
+         <refsect1>
+            <title>COMMAND DETAILS</title>
+            <variablelist>
+                <varlistentry>
+                    <term><command>cccusb::CCCUSB_enumerate</command></term>
+                    <listitem>
+                        <para>
+                            Produces an enumeration of the powered up CC-USB
+                            devices attached to the host.  The result of this
+                            command is a wrapped std::vector&lt;usb_device*&gt;
+                            See DEVICE ENUMERATION for recipes for using
+                            this result.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><command>cccusb::usb_device_vector_get  <replaceable>CCCUSB-enumeration  index</replaceable></command>
+                    </term>
+                    <listitem>
+                        <para>
+                            Gets a specific element of the return value from
+                            <command>cccusb::CCCUSB_enumerate</command>.
+                            <parameter>CCCUSB-enumeration</parameter> is the
+                            value returned from that command.
+                            <parameter>index</parameter>
+                            is the index into the vector.
+                            Indices start from 0.  See DEVICE ENUMERATION
+                            below for some enumeration recipes.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><command>cccusb::usb_device_vector_size <replaceable>CCUSB-enumeration</replaceable></command></term>
+                    <listitem>
+                        <para>
+                            Returns the size of the enumeration vector
+                            <parameter>CCCUSB-enumeration</parameter>.
+                            This parameter is a value returned from
+                            <command>cccusb::CCCUSB_enumerate</command>
+                        </para>
+                        <para>
+                            See DEVICE ENUMERATION below for some device enumeration
+                            recipes.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><command>::cccusb::CCCUSB <replaceable>name</replaceable> <replaceable>usb-device</replaceable>
+                    </command></term>
+                    <listitem>
+                        <para>
+                            Constructs a CCCUSB object whose command will be
+                            <parameter>name</parameter>.
+                            <parameter>usb-device</parameter> is an element
+                            from a device enumeration that was gotten
+                            from <command>cccusb::CCCUSB_enumerate</command>.
+                        </para>
+                        <para>
+                            For recipes involving device enumeration and
+                            construction see DEVICE ENUMERATION below.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><command>::cccusb::CCCUSB <replaceable>-args usb-device</replaceable></command>
+                    </term>
+                    <listitem>
+                        <para>
+                            Constructs a CCCUSB object with a unique
+                            object instance command name chosen
+                            by the constructor.  <parameter>usb-device</parameter>
+                            is an element of an enumeration returned from
+                            <command>cccusb::CCCUSB_enumerate</command>.
+                        </para>
+                        <para>
+                            Normally this is used in constructs like e.g:
+                        </para>
+                        <informalexample>
+                            <programlisting>
+set controller [cccusb::CCCUSB -args $device]
+$controller c
+$controller z
+                            </programlisting>
+                        </informalexample>
+                        <para>
+                            For more enumeration and construction recipes
+                            see DEVICE ENUMERATION below.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><command>::cccusb::CCCUSB <replaceable>?name?</replaceable>
+                    -this <replaceable>ptrName</replaceable></command></term>
+                    <listitem>
+                        <para>
+                            Constructs  CCCUSB object from an object pointer
+                            <parameter>ptrName</parameter>.
+                            Object pointers are gotten either by requesting
+                            the <option>-this</option> from another object or,
+                            in the CCUSBReadout framework by being passed in
+                            from the framework to a Tcl driver.
+                        </para>
+                        <para>
+                            If the optional <parameter>name</parameter>
+                            is provided it will be the object instance command.
+                            If not the object instance command will be the
+                            value of <parameter>ptrName</parameter>
+                        </para>
+                        <para>
+                            For example.
+                        </para>
+                        <informalexample>
+                            <programlisting>
+proc example pointer {
+   cccusb::CCCUSB controller -this $pointer
+   controller c
+   
+   cccusb::CCCUSB -this $pointer
+   $pointer z
+}
+                            </programlisting>
+                        </informalexample>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><command><replaceable>object</replaceable> c </command></term>
+                    <listitem>
+                        <para>
+                            Performs a C cyle on the dataway connected to
+                            <parameter>object</parameter>.
+                            <parameter>object</parameter> is a CCCUSB object
+                            constructed by any of the methods described above.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><command><replaceable>object</replaceable> executeList
+                    <replaceable>readout-list maxread</replaceable></command></term>
+                    <listitem>
+                        <para>
+                            Executes a <classname>cccusbreadoutlist::CCCUSBReadoutList</classname>
+                            (see <xref linkend='ccusb3-cccusbreadoutlist' />).
+                            <parameter>readout-list</parameter> is the name
+                            of the list and <parameter>maxread</parameter>
+                            the maximum number of 16 bit words that can
+                            be read by this list (written data is inline in the
+                            list).  <parameter>object</parameter> is a CCCUSB object
+                            constructed by any of the methods described above.
+                        </para>
+                        <para>
+                            The return value is the name of an
+                            encapsulated std::vector&lt;uint16_t&gt;.
+                            See EXECUTING LISTS for recipes for executing lists
+                            and getting data from the result.
+                            See as well <command>cccusb::uint16_vector_get</command>,
+                            <command>cccusb::uint16_vector_size</command>.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><command><replaceable>object</replaceable> inhibit</command></term>
+                    <listitem>
+                        <para>
+                            Sets the inhibit line on the CAMAC crate controlled
+                            by <parameter>object</parameter>.
+                            <parameter>object</parameter> is a CCCUSB object
+                            constructed by any of the methods described above.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><command><replaceable>object</replaceable> loadList
+                    <replaceable>listNum readout-list</replaceable></command>
+                    </term>
+                    <listitem>
+                        <para>Loads a <classname>cccusbreadoutlist::CCCUSBReadoutList</classname>
+                        object for later execution in response to an event or
+                        scaler trigger.
+                        </para>
+                        <para>
+                            <parameter>object</parameter> is a CCCUSB object
+                            constructed by any of the methods described above.
+                            <parameter>listNum</parameter> is the number of the
+                            list to be loaded.  The list numbers is either
+                            <literal>0</literal> for the event list or
+                            <literal>1</literal> for the scaler list.
+                        </para>
+                        <para>
+                            <parameter>readout-list</parameter> is a
+                            <classname>cccusbreadoutlist::CCUSBReadoutList</classname>
+                            object instance name.  See
+                            <xref linkend='ccusb3-cccusbreadoutlist' /> for
+                            information about how to create these.
+                        </para>
+                        <para>
+                            The command returns
+                            <literal>0</literal> on successful completion,
+                            a negative number is returned on failure.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><command><replaceable>object</replaceable> readDGGA</command></term>
+                    <listitem>
+                        <para>
+                            Reads the DGGA register of the CC-USB module
+                            represented by <parameter>object</parameter>.
+                            <parameter>object</parameter> is a CCCUSB object
+                            constructed by any of the methods described above.
+                            The DGGA register controls the width and
+                            delay of one of the CC-USB's gate and delay generators.
+                            See section 3.3.7 of the CC-USB manual for
+                            more information about this register.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><command><replaceable>object</replaceable> readDGGB</command></term>
+                    <listitem>
+                        <para>
+                            Same as <command>readDGGA</command> but reads the
+                            B gate and delay register control register.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><command><replaceable>object</replaceable> readDGGExt</command></term>
+                    <listitem>
+                        <para>
+                            Reads the CC-USB Gate and delay generated extended
+                            range register.  See Section 3.3.7 of the CC-USB
+                            manual.
+                            <parameter>object</parameter> is a CCCUSB object
+                            constructed by any of the methods described above.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><command><replaceable>object</replaceable> readDelays</command></term>
+                    <listitem>
+                        <para>
+                            Reads the delays register of the CC-USB.  See
+                            Section 3.3.3 of the CC-USB manual for a
+                            description of this register.
+                            <parameter>object</parameter> is a CCCUSB object
+                            constructed by any of the methods described above.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><command><replaceable>object</replaceable> readDeviceSourceSelectors</command></term>
+                    <listitem>
+                        <para>
+                            Reads the CCUSB device source selectors register.
+                            This is described in section 3.3.6 of the CC-USB
+                            manual.
+                            <parameter>object</parameter> is a CCCUSB object
+                            constructed by any of the methods described above.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><command><replaceable>object</replaceable> readFirmware</command></term>
+                    <listitem>
+                        <para>
+                            Reads the CC-USB firmware id register.
+                            The bit fields of this register are described by
+                            section 3.3.1 of the CC-USB manual.
+                            <parameter>object</parameter> is a CCCUSB object
+                            constructed by any of the methods described above.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><command><replaceable>object</replaceable>readGlobalMode</command></term>
+                    <listitem>
+                        <para>
+                            Reads the CC-USB global mode register.  This register
+                            iis described in section 3.3.2 of the CC-USB
+                            manual.
+                            <parameter>object</parameter> is a CCCUSB object
+                            constructed by any of the methods described above.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><command><replaceable>object</replaceable> readLamTriggers</command>
+                    </term>
+                    <listitem>
+                        <para>
+                            Reads the LAM trigger register.  The CC-USB
+                            manual calls this register the LAM Mask register
+                            and describes it in section 3.3.9.
+                            <parameter>object</parameter> is a CCCUSB object
+                            constructed by any of the methods described above.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><command><replaceable>object</replaceable> readLedSelector</command>
+                    </term>
+                    <listitem>
+                        <para>
+                            Reads the LED Selector register.   This register is
+                            descsribed in section 3.3.5 of the CC-USB manual.
+                            <parameter>object</parameter> is a CCCUSB object
+                            constructed by any of the methods described above.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><command><replaceable>object</replaceable> readOutputSelector</command>
+                    </term>
+                    <listitem>
+                        <para>
+                            Reads the output selector register.   This register
+                            is described in section 3.3.5 of the CC-USB manual.
+                            <parameter>object</parameter> is a CCCUSB object
+                            constructed by any of the methods described above.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><command><replaceable>object</replaceable> readScalerA</command></term>
+                    <listitem>
+                        <para>
+                            Read the counts in Scaler A.  The scalers are
+                            described in Section 3.3.8 of the CC-USB manual
+                            with how to define what makes them count described
+                            in section 3.3.6.
+                            <parameter>object</parameter> is a CCCUSB object
+                            constructed by any of the methods described above.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><command><replaceable>object</replaceable> readScalerB
+                        </command>
+                    </term>
+                    <listitem>
+                        <para>
+                            Same as <command>readScalerA</command> however
+                            the B scaler is read.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><command><replaceable>object</replaceable> readScalerControl
+                        </command>
+                        </term>
+                    <listitem>
+                        <para>
+                            Read the Scaler readout control register.
+                            The CC-USB manual refers to this as the
+                            ACS (Auxiliary Camac Stack) register in some places
+                            and the Scaler Readout Control register in others.
+                            It is described in section 3.3.4 of the manual.
+                            <parameter>object</parameter> is a CCCUSB object
+                            constructed by any of the methods described above.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><command><replaceable>object</replaceable> readUSBBulkTransferSetup</command>
+                    </term>
+                    <listitem>
+                        <para>
+                            Reads the USB Bulk transfer setup register.  This
+                            is described in section 3.3.10 of the CC-USB
+                            manual.
+                            <parameter>object</parameter> is a CCCUSB object
+                            constructed by any of the methods described above.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><command>cccusb::CCCUSB_serialNo <replaceable>usb-device</replaceable></command></term>
+                    <listitem>
+                        <para>
+                            Reads the serial number of the device selected by
+                            <parameter>usb-device</parameter>.  <parameter>usb-device</parameter>
+                            is a usb device object that comes from one of the elements
+                            of the enumerator returned by
+                            <command>cccusb::CCCUSB_enumerate</command>.  The
+                            serial number is returned as a string object handle
+                            that must be converte via <command>cccusb::string_to_char</command>.
+                            For more information about device enumeration and serial
+                            number strings see DEVICE ENUMERATION below.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><command><replaceable>object</replaceable> setDefaultTimeout <replaceable>ms</replaceable></command>
+                    </term>
+                    <listitem>
+                        <para>
+                            Most CC-USB operations require a USB bulk transfer to
+                            the CC-USB and a transfder from the CC-USB.  These
+                            transfers are done with a timeout so that if
+                            the target does not respond, the request eventually
+                            does terminate. This sets the timeout for
+                            those requests to be <parameter>ms</parameter>
+                            milliseconds.
+                            <parameter>object</parameter> is a CCCUSB object
+                            constructed by any of the methods described above.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><command><replaceable>object</replaceable> simpleControl
+                        <replaceable>n a f</replaceable></command>
+                    </term>
+                    <listitem>
+                        <para>
+                            Performs a non-data transfer operation.
+                            <parameter>n</parameter> specifies the CAMAC slot
+                            that will be the target of this operation.
+                            <parameter>a</parameter> specifies the subaddress
+                            and <parameter>f</parameter> specifies the
+                            function code.  The function code must be in one
+                            of the ranges: <literal>[8..15] [24..31]</literal>.
+                            The command returns a mask of the Q and X
+                            responses from the dataway.  See VARIABLES below
+                            for the Q and X bits in this mask.
+                        </para>
+                        <para>
+                            <parameter>object</parameter> is a CCCUSB object
+                            constructed by any of the methods described above.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><command><replaceable>object</replaceable> simpleRead16
+                        <replaceable>n a f</replaceable> </command>
+                    </term>
+                    <listitem>
+                        <para>
+                            Performs a 16 bit read from the module and sub
+                            address specified by <parameter>n</parameter> and
+                            <parameter>a</parameter>.  The CAMAC function
+                            code <parameter>f</parameter> must be in the range
+                            <literal>[0..7]</literal>.
+                        </para>
+                        <para>
+                            The command returns the data in the lower 16 bits
+                            of the value and the Q/X resonse in the upper byte
+                            (bits 24 through 31).  Thus to extract the Q/X:    
+                            <informalexample>
+                                <programlisting>
+set data [c simpleRead16 1 0 0]
+set qx [expr {$data >> 24}]
+set data [expr {$data &amp; 0xffff}]
+                                </programlisting>
+                            </informalexample>
+                            See VARIABLES below for information about the
+                            how to extract the Q and X bits from the
+                            <varname>qx</varname> variable in the example
+                            above.
+                        </para>
+                        <para>
+                           <parameter>object</parameter> is a CCCUSB object
+                            constructed by any of the methods described above.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><command><replaceable>object</replaceable> simpleRead24
+                        <replaceable>n a f</replaceable></command>
+                    </term>
+                    <listitem>
+                        <para>
+                            Same as <command>simpleRead16</command> above,
+                            however the data transferred is 24 bits wide.
+                            The Q/X response is still in bits 24 through 31.
+                            The example below shows how to extract the data
+                            and the Q/X resopnse:
+                            <informalexample>
+                                <programlisting>
+set data [c simpleRead16 1 0 0]
+set qx [expr {$data >> 24}]
+set data [expr {$data &amp; 0xffffff}]
+                                </programlisting>
+                            </informalexample>
+                        </para>
+                        <para>
+                            <parameter>object</parameter> is a CCCUSB object
+                            constructed by any of the methods described above.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><command><replaceable>object</replaceable> simpleWrite16
+                        <replaceable>n a f d</replaceable></command>
+                    </term>
+                    <listitem>
+                        <para>
+                            Performs a write of the 16 bit data <parameter>d</parameter>
+                            to the module and subaddress specified by
+                            <parameter>n</parameter> and <parameter>a</parameter>
+                            via the CAMAC function code <parameter>f</parameter>.
+                            <parameter>f</parameter> must be in the range
+                            <literal>[16..23]</literal>.  The command returns
+                            the Q and X mask. See VARIABLES below for information
+                            about which bits are Q and which X.
+                        </para>
+                        <para>
+                            <parameter>object</parameter> is a CCCUSB object
+                            constructed by any of the methods described above.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><command><replaceable>object</replaceable> simpleWrite24
+                        <replaceable>n a f d</replaceable></command>
+                    </term>
+                    <listitem>
+                        <para>
+                            Same as <command>simpleWrite16</command> however
+                            the bottom 24 bits of <parameter>d</parameter>
+                            are transferred.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><command><replaceable>object</replaceable> uninhibit</command></term>
+                    <listitem>
+                        <para>
+                            Removes the dataway inhibit.
+                            <parameter>object</parameter> is a CCCUSB object
+                            constructed by any of the methods described above.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><command><replaceable>object</replaceable> writeActionRegister
+                        <replaceable>value</replaceable></command>
+                    </term>
+                    <listitem>
+                        <para>
+                            Writes the CC-USB action register.
+                            This register is described in section 3.2.1
+                            of the CC-USB manual.
+                            <parameter>object</parameter> is a CCCUSB object
+                            constructed by any of the methods described above.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><command><replaceable>object</replaceable> writeDGGA
+                        <replaceable>value</replaceable></command>
+                    </term>
+                    <listitem>
+                        <para>
+                            Writes <parameter>value</parameter>
+                            to the control register for Gate and Delay
+                            A.  This register is described in section
+                            3.3.7 of the CC-USB manual.
+                            <parameter>object</parameter> is a CCCUSB object
+                            constructed by any of the methods described above.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><command><replaceable>object</replaceable> writeDGGB
+                        <replaceable>value</replaceable></command>
+                    </term>
+                    <listitem>
+                        <para>
+                            Same as <command>writeDGGA</command> however the
+                            control register for gate and delay generator B
+                            is written.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><command><replaceable>object</replaceable> writeDGGExt
+                        <replaceable>value</replaceable></command></term>
+                    <listitem>
+                        <para>
+                            Writes <parameter>value</parameter> to
+                            the gate and delay extended delay register.
+                            See section 3.3.7 of the CC-USB manual for a description
+                            of this registers.
+                            <parameter>object</parameter> is a CCCUSB object
+                            constructed by any of the methods described above.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><command><replaceable>object</replaceable> writeDelays
+                    <replaceable>value</replaceable></command></term>
+                    <listitem>
+                        <para>
+                            Writes <parameter>value</parameter> to the delays
+                            register.  This register is described in section
+                            3.3.3 of the CC-USB manual.
+                            <parameter>object</parameter> is a CCCUSB object
+                            constructed by any of the methods described above.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><command><replaceable>object</replaceable>
+                        writeDeviceSourceSelectors <replaceable>value</replaceable>
+                        </command>
+                    </term>
+                    <listitem>
+                        <para>
+                            Writes <parameter>value</parameter> to the
+                            device source selector register.  This
+                            register is described in section 3.3.6 of the
+                            CC-USB manual.
+                            <parameter>object</parameter> is a CCCUSB object
+                            constructed by any of the methods described above.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><command><replaceable>object</replaceable>
+                        writeGlobalMode <replaceable>value</replaceable></command>
+                    </term>
+                    <listitem>
+                        <para>
+                            Writes <parameter>value</parameter> to the global
+                            mode register. See section 3.3.2 of the CC-USB
+                            manual for a description of this register.
+                            <parameter>object</parameter> is a CCCUSB object
+                            constructed by any of the methods described above.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><command><replaceable>object</replaceable>
+                        writeLamTriggers <replaceable>value</replaceable></command>
+                    </term>
+                    <listitem>
+                        <para>
+                            Writes <parameter>value</parameter> to the LAM
+                            triggers register.  The CC-USB manual refers
+                            to this register as the LAM Maks register
+                            and describes it in section 3.3.9
+                            <parameter>object</parameter> is a CCCUSB object
+                            constructed by any of the methods described above.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><command><replaceable>object</replaceable>
+                        writeLedSelector <replaceable>value</replaceable></command>
+                    </term>
+                    <listitem>
+                        <para>
+                            Writes <parameter>value</parameter> to
+                            the LED selector register. This register
+                            is described in section 3.3.5 of the CC-USB manual.
+                            <parameter>object</parameter> is a CCCUSB object
+                            constructed by any of the methods described above.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><command><replaceable>object</replaceable>
+                      writeOutputSelector <replaceable>value</replaceable></command>
+                    </term>
+                    <listitem>
+                        <para>
+                            Writes <parameter>value</parameter> to the
+                            output selectors register of the CC-USB.
+                            This register is described in section 3.3.5 of
+                            the CC-USB manual.
+                            <parameter>object</parameter> is a CCCUSB object
+                            constructed by any of the methods described above.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><command><replaceable>object</replaceable>
+                        writeScalerControl <replaceable>value</replaceable></command>
+                    </term>
+                    <listitem>
+                        <para>
+                            Writes <parameter>value</parameter> to
+                            the scaler control register/ACS Control
+                            register.  This register is described in section
+                            3.3.4 of the CC-USB manual.
+                            <parameter>object</parameter> is a CCCUSB object
+                            constructed by any of the methods described above.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><command><replaceable>object</replaceable>
+                        writeUSBBulkTransferSetup <replaceable>value</replaceable>
+                        </command>
+                    </term>
+                    <listitem>
+                        <para>
+                            Writes <parameter>value</parameter> to the USB
+                            bulk transfer setup register. Section 3.3.10 of
+                            the CC-USB manual describes this register.
+                            <parameter>object</parameter> is a CCCUSB object
+                            constructed by any of the methods described above.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><command><replaceable>object</replaceable>
+                        Z</command>
+                    </term>
+                    <listitem>
+                        <para>
+                            Performs a Z cycle on the camac dataway.
+                            <parameter>object</parameter> is a CCCUSB object
+                            constructed by any of the methods described above.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><command><replaceable>object</replaceable> -delete</command></term>
+                    <listitem>
+                        <para>
+                            Deletes a swig wrapper for a <classname>CCCUSB</classname>
+                            wrapper.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><command>cccusb::string_to_char <replaceable>string-object</replaceable>
+                        </command>
+                    </term>
+                    <listitem>
+                        <para>
+                            Returns a Tcl string equivalent of a
+                            std::string object identifier
+                            <parameter>string-objecdt</parameter>.
+                            std::string
+                            object identifiers are returned from the
+                            <command>serialNo</command> method. See
+                            DEVICE ENUMERATION below for more information.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><command>::cccusb::uint16_vector_get
+                        <replaceable>vector-object index</replaceable></command>
+                    </term>
+                    <listitem>
+                        <para>
+                            Returns  element
+                            <parameter>index</parameter>
+                            of <parameter>vector-object</parameter>
+                            where that is an object identifier for a
+                            <type>std::vector&lt;uint16_t&gt;</type>.
+                            This is required to fetch items out of the data
+                            that comes back from the <command>executeList</command>
+                            command.  For more information see EXECUTING LISTS
+                            below.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><command>::cccusb::uint16_vector_size
+                        <replaceable>vector-object</replaceable></command>
+                    </term>
+                    <listitem>
+                        <para>
+                            Returns the size of <parameter>vector-object</parameter>
+                            where <parameter>vector-object</parameter> is an
+                            object identifier for a
+                            <type>std::vector&lt;uint16_t&gt;</type>.  This
+                            is typically used when processing data from running
+                            a list.  See EXECUTING LISTS Below for more information.
+                        </para>
+                    </listitem>
+                </varlistentry>
+            </variablelist>
+         </refsect1>
+         <refsect1>
+            <title>DEVICE ENUMERATION</title>
+            <para>
+                The USB bus is a hotplug bus.  Device enumeration is the
+                process of determining the set of devices plugged into the USB
+                bus at a point in time.  The goal of device enumeration is normally
+                to access a specific device of the desired device type.
+                In our case we are interested in creating a CCCUSB object
+                connected to  CC-USB with a specific serial number.
+            </para>
+            <para>
+                If you are using the CCUSBReadout framework, you normally don't
+                need to do this.   The framework has already enumerated and
+                opened the device and is passes you the appropriate object id.
+                If you are writing a pure Tcl CC-USB application, you will need
+                to read and understand this section.
+            </para>
+            <para>
+                The starting point of device enumeration is the
+                <command>cccusb::CCCUSB_enumerate</command>  command.
+                This returns an object id for a
+                <type>std::vector&lt;usb_device*&gt;</type>. This is unfortunately
+                not directly accessible in Tcl.
+            </para>
+            <para>
+                the cccusb package provides two commands to tear apart the
+                return from a call to <command>cccusb::CCCUSB_enumerate</command>:
+            </para>
+            <variablelist>
+                <varlistentry>
+                    <term><command>cccusb::usb_device_vector_size</command></term>
+                    <listitem><para>
+                        which returns the size of the returned vector
+                        </para></listitem>
+                    </varlistentry>
+                <varlistentry>
+                    <term><command>cccusb::usb_device_vector_get</command></term>
+                    <listitem><para>Which fetches a specific
+                        <type>usb_device</type> pointer object id.
+                        </para>
+                    </listitem>
+                </varlistentry>
+            </variablelist>
+            <para>
+                Once you have a <type>usb_device</type> pointer object id
+                you can do two things with it.  You can obtain the serial
+                number string of the associated CC-USB controller or create
+                a CCCUSB object with which you can perform operations on the
+                controller and the CAMAC modules in its crate.
+            </para>
+            <para>
+                Normally you want to do both, you want to enumerate the
+                controllers and either match them against a desired serial
+                number or display them for the user to choose.
+                The example below enumerates the CC-USB's and displays
+                their serial numbers on stdout:
+            </para>
+            <example>
+                <title>Listing CC-USB Serial numbers (Tcl).</title>
+                <programlisting>
+lappend auto_path /usr/opt/daq/10.1/lib
+package require cccusb
+
+set e [cccusb::CCCUSB_enumerate]
+
+set ccount [cccusb::usb_device_vector_size $e]
+for {set i 0} {$i &lt; $ccount} {incr i} {
+    set usbdev [cccusb::usb_device_vector_get $e $i]
+    set serial [cccusb::string_to_char [cccusb::CCCUSB_serialNo $usbdev]]
+    puts $serial
+}
+                </programlisting>
+            </example>
+            <para>
+                Note how <command>cccusb::usb_device_vector_size</command>
+                and <command>cccusb::usb_device_vector_get</command> are used
+                to get <type>usb_device*</type> object ids.
+                Note as well how a specific object id is then passed to
+                <command>cccusb::CCCUBS_serialNo</command> and the output of
+                that converted to a Tcl string via
+                <command>cccusb::string_to_char</command>
+           </para>
+            <para>
+                The next example demonstrates a Tcl proc that returns
+                a CCCUSB object command name that is connected to a specific
+                CC-USB specified by serial number or generates an error
+                if that serial number does not exist.
+            </para>
+            <example>
+                <title>Creating a CCCUSB object by serial number (Tcl).</title>
+                <programlisting>
+lappend auto_path /usr/opt/daq/10.1/lib
+package require cccusb
+...
+proc openCamac serialNo {
+    set e [cccusb::CCCUSB_enumerate]
+    set ccount [cccusb::usb_device_vector_size $e]
+    for {set i 0} {$i &lt; $ccount} {incr i} {
+        set usbdev [cccusb::usb_device_vector_get $e $i]
+        set serial [cccusb::string_to_char [cccusb::CCCUSB_serialNo $usbdev]]
+        if {$serial eq $serialNo} {
+            return [cccusb::CCCUSB -args $usbdev]
+        }
+    }
+    error "No CC-USB with serial number $serialNo is available"
+ 
+}
+                </programlisting>
+            </example>
+            <para>
+                The pattern of this code follows the pattern of the previous
+                example.  The only difference is that when the serial number
+                matches the requested <varname>serialNo</varname> parameter,
+                a CCCUSB object is created.  SWIG is allowed to choose the
+                object command (the <option>-args</option> option does that),
+                which is returned to the caller.
+            </para>
+         </refsect1>
+         <refsect1>
+            <title>EXECUTING LISTS</title>
+            <para>
+                The CC-USB has the ability to execute list of camac instructions.
+                Immediate list execution is supported by the cccusb package
+                via the <command>executeList</command> command.  Lists can also
+                be downloaded to CC-USB memory for execution in data acquisition
+                mode in response to event and scaler triggers.  This is supported
+                via the <command>loadList</command> command.
+            </para>
+            <para>
+                This section describes how to use <command>executeList</command>
+                and how to access any data read by those lists (written data
+                is stored in the list itself).  Please refer to
+                <xref linkend='ccusb3-CCCUSBReadoutList'/> for reference
+                material on the Tcl package for constructing these lists.
+            </para>
+            <para>
+                In order to execute a list on an existing CCCUSB class/command
+                you must
+            </para>
+            <itemizedlist>
+                <listitem>
+                    <para>Construct the list of operations to perform</para>
+                </listitem>
+                <listitem>
+                    <para>
+                        Use <command>executeList</command> to perform the
+                        operations in the list, specifying a maximum number of
+                        16 bit words of data to be read by the list.
+                    </para>
+                </listitem>
+                <listitem>
+                    <para>
+                        The value of the <command>executeList</command>
+                        command is an object id for a
+                        <type>std::vector&lt;uint16_t&gt;</type>.
+                        Use the <command>cccusb::uint16_vector_size</command>
+                        command to determine how many words were actually read.
+                        Use the <command>cccusb::uint16_vector_get</command>
+                        command to fetch elements of that vector.
+                    </para>
+                </listitem>
+            </itemizedlist>
+            <para>
+                The code fragment below shows how to extract data from the
+                returned data.  In it, assume that the variable
+                <varname>c</varname> holds a
+                CCCUSB object command and the variable <varname>l</varname>
+                holds the object command of a CCCUSBReadoutList object.
+                The creates a hexadecimal dump of the returned words:
+            </para>
+            <informalexample>
+                <programlisting>
+set result [$c executeList $l 1000];   # No more than 1000 wds to read.
+set nRead [cccusb::uint16_vector_size $result]
+for {set i 0} {$i &lt; $nRead} {incr i} {
+     puts [format %x [cccusb::uint16_vector_get $result $i]]
+}
+                </programlisting>
+                
+            </informalexample>
+            <para>
+                Note that the <command>executeList</command> requires
+                a number which is the maximum number of <type>uint16_t</type>
+                values that will be read by the list.  This is used to allocate
+                the read buffer.  The actual count of the words read is then
+                used to fill the vector returned by that command.
+            </para>
+        </refsect1>
+        <refsect1>
+            <title>VARIABLES</title>
+            <para>
+                The cccusb package exports the following variables:
+            </para>
+            <variablelist>
+                <varlistentry>
+                    <term><varname>cccusb::CCCUSB_X</varname></term>
+                    <listitem>
+                        <para>
+                            Contains the mask of the X response in a
+                            Q/X word.   For the simple control and write
+                            operations,
+                            you can directly test these bits against the
+                            command return value.  For simple read operations,
+                            you need to take the return value and shift
+                            right 24 bits before checking for this bit.
+                            </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><varname>cccusb::CCCUSB_Q</varname></term>
+                    <listitem>
+                        <para>
+                            Contain the max of the Q response.  See above
+                            for how to use it to check for Q responses in operations.
+                        </para>
+                    </listitem>
+                </varlistentry>
+            </variablelist>
+        </refsect1>
+        <refsect1>
+            <title>SEE ALSO</title>
+            <para>
+                <xref linkend='ccusb3-CCCUSB' />
+                <xref linkend='ccusb3-cccusbreadoutlist' />
+                <xref linkend='ccusb3-CCCUSBReadoutList'/>
+            </para>
+        </refsect1>
+       </refentry>
+       <refentry id="ccusb3-cccusbreadoutlist">
+         <refmeta>
+            <refentrytitle>cccusbreadoutlist</refentrytitle>
+            <manvolnum>3ccusb</manvolnum>
+         </refmeta>
+         <refnamediv>
+            <refname>cccusbreadoutlist</refname>
+            <refpurpose>Tcl wrapping of <classname>CCCUSBReadoutList</classname></refpurpose>
+         </refnamediv>
+         
+         <refsynopsisdiv>
+            <cmdsynopsis>
+                <command>
+::cccusbreadoutlist::CCCUSBReadoutList <replaceable>name</replaceable>
+                </command>
+            </cmdsynopsis>
+            <cmdsynopsis>
+                <command>
+::cccusbreadoutlist::CCCUSBReadoutList -args
+                </command>
+            </cmdsynopsis>
+            <cmdsynopsis>
+                <command>
+::cccusbreadoutlist::CCCUSBReadoutList <replaceable>?name?</replaceable> -this <replaceable>ptr</replaceable>
+                </command>
+            </cmdsynopsis>
+            <cmdsynopsis>
+                <command>
+<replaceable>object</replaceable> -delete              
+                </command>
+            </cmdsynopsis>
+            <cmdsynopsis>
+                <command>
+<replaceable>object</replaceable> get
+                </command>
+            </cmdsynopsis>
+            <cmdsynopsis>
+                <command>
+<replaceable>object</replaceable>  size
+                </command>
+            </cmdsynopsis>
+            <cmdsynopsis>
+                <command>
+<replaceable>object</replaceable>  clear
+                </command>
+            </cmdsynopsis>
+            <cmdsynopsis>
+                <command>
+<replaceable>object</replaceable> addWrite16 <replaceable>n a f d </replaceable>
+                </command>
+            </cmdsynopsis>
+            <cmdsynopsis>
+                <command>
+<replaceable>object</replaceable>  addWrite24 <replaceable>n a f d </replaceable>
+                </command>
+            </cmdsynopsis>
+            <cmdsynopsis>
+                <command>
+<replaceable>object</replaceable> addRead16 <replaceable>n a f ?lamwait?</replaceable>
+                </command>
+            </cmdsynopsis>
+            <cmdsynopsis>
+                <command>
+<replaceable>object</replaceable>  addRead24 <replaceable>n a f ?lamwait</replaceable>
+                </command>
+            </cmdsynopsis>
+            <cmdsynopsis>
+                <command>
+<replaceable>object</replaceable> addControl <replaceable>n a f</replaceable>
+                </command>
+            </cmdsynopsis>
+            <cmdsynopsis>
+                <command>
+<replaceable>object</replaceable> addQStop <replaceable>n a f max ?lamwait?</replaceable>
+                </command>
+            </cmdsynopsis>
+            <cmdsynopsis>
+                <command>
+<replaceable>object</replaceable> addQStop24 <replaceable>n a f max ?lamwait? </replaceable>
+                </command>
+            </cmdsynopsis>
+            <cmdsynopsis>
+                <command>
+<replaceable>object</replaceable>  addQScan <replaceable>n a f max ?lamwait?</replaceable>
+                </command>
+            </cmdsynopsis>
+            <cmdsynopsis>
+                <command>
+<replaceable>object</replaceable> addRepeat <replaceable>n a f count ?lamwait?</replaceable>
+                </command>
+            </cmdsynopsis>
+            <cmdsynopsis>
+                <command>
+<replaceable>object</replaceable> addMarker <replaceable>value</replaceable>
+                </command>
+            </cmdsynopsis>
+
+         </refsynopsisdiv>
+         <refsect1>
+            <title>DESCRIPTION</title>
+            <para>
+                This Tcl package is a SWIG wrapper around the
+                <classname>CCCUSBReadoutList</classname> C++ package.
+                The purpose of this class is to construct list of CC-USB
+                operations which can either be executed immediately or
+                loaded for execution in response to an event or scaler trigger
+                in data taking mode.
+            </para>
+            <para>
+                This extension is an object oriented package.  Users construct
+                lists, they stock them with commands, execute or load them and
+                then destroy the list.
+            </para>
+         </refsect1>
+         <refsect1>
+            <title>
+               COMMAND DETAILS
+            </title>
+            <variablelist>
+                <varlistentry>
+                    <term><command>::cccusbreadoutlist::CCCUSBReadoutList
+                        <replaceable>name</replaceable></command>
+                    </term>
+                    <listitem>
+                        <para>
+                            Constructs a new readout list giving it the object
+                            name/id <parameter>name</parameter>. The command
+                            returns a wrapped pointer to the underlying
+                            <classname>CCCUSBReadoutList</classname> object.
+                        </para>
+                    </listitem>
+                </varlistentry>
+               <varlistentry>
+                    <term><command>::cccusbreadoutlist::CCCUSBReadoutList -args
+                        </command>
+                    </term>
+                    <listitem>
+                        <para>
+                            Creates a new readout list allowing SWIG to choose
+                            the name of the command bound to it.  The
+                            return value of the command is the object command e.g.:
+                        </para>
+                        <informalexample>
+                            <programlisting>
+...
+set l [cccusbreadoutlist::CCCUSBReadoutList -args]
+$l addWrite16 $n $a $f $d
+...
+                            </programlisting>
+                        </informalexample>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><command>::cccusbreadoutlist::CCCUSBReadoutList
+                        <replaceable>?name?</replaceable> -this <replaceable>ptr</replaceable>
+                        </command>
+                    </term>
+                    <listitem>
+                        <para>
+                            Wraps a SWIG object id for a readout list in a new
+                            object.  If the optional <parameter>name</parameter>
+                            parameter is supplied it specifies the object command
+                            name, otherwise the object pointer will be the
+                            name of the object command.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><command><replaceable>object</replaceable> -delete</command>
+                    </term>
+                    <listitem>
+                        <para>
+                            Destroys a CCCUSBReadoutList SWIG object.
+                            <parameter>object</parameter> is the command name of
+                            a SWIG CCCUSBReadoutList object that has been gotten
+                            from one of the forms of
+                            <command>cccusbreadoutlist::CCCUSBReadoutList</command>
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><command><replaceable>object</replaceable> get</command>
+                    </term>
+                    <listitem>
+                        <para>
+                            Returns an object id for a
+                            <type>std::vector&lt;uint16_t&gt;</type> that
+                            contains the values of the list.  The elements
+                            of this vector can gotten by using
+                            <command>ccccusb::uint16_vector get</command>
+                            See <xref linkend='ccusb3-cccusb' /> for more
+                            information about that command.
+                        </para>
+                        <para>
+                            <parameter>object</parameter> is the command name of
+                            a SWIG CCCUSBReadoutList object that has been gotten
+                            from one of the forms of
+                            <command>cccusbreadoutlist::CCCUSBReadoutList</command>
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><command><replaceable>object</replaceable> size</command>
+                    </term>
+                    <listitem>
+                        <para>
+                            Returns the number of 16 bit words currently in the list
+                            <parameter>object</parameter> is the command name of
+                            a SWIG CCCUSBReadoutList object that has been gotten
+                            from one of the forms of
+                            <command>cccusbreadoutlist::CCCUSBReadoutList</command>
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><command><replaceable>object</replaceable> clear</command></term>
+                    <listitem>
+                        <para>
+                            Clears the list making it emtpy.
+                            <parameter>object</parameter> is the command name of
+                            a SWIG CCCUSBReadoutList object that has been gotten
+                            from one of the forms of
+                            <command>cccusbreadoutlist::CCCUSBReadoutList</command>
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><command><replaceable>object</replaceable>
+                        addWrite16 <replaceable>n a f d </replaceable></command>
+                    </term>
+                    <listitem>
+                        <para>
+                            Adds a 16 bit CAMAC write of <parameter>d</parameter>
+                            to a list.
+                            <parameter>n</parameter> and <parameter>
+                            a</parameter> determine the module and subaddress
+                            targeted by this opertion.  <parameter>f</parameter>
+                            specifies the function code which must be in the range
+                            <literal>[16..23]</literal>
+                        </para>
+                        <para>
+                            <parameter>object</parameter> is the command name of
+                            a SWIG CCCUSBReadoutList object that has been gotten
+                            from one of the forms of
+                            <command>cccusbreadoutlist::CCCUSBReadoutList</command>
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><command><replaceable>object</replaceable>
+                        addWrite24 <replaceable>n a f d </replaceable></command>
+                    </term>
+                    <listitem>
+                        <para>
+                            Same as <command>addWrite16</command> but adds a
+                            16 bit write to the list.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><command><replaceable>object</replaceable>
+                        addRead16 <replaceable>n a f ?lamwait?</replaceable></command>
+                    </term>
+                    <listitem>
+                        <para>
+                            Adds a 16 bit read to the list.  The CAMAC read is
+                            specified by <parameter>n</parameter> (slot),
+                            <parameter>a</parameter> (subaddress) and
+                            <parameter>f</parameter> (function code). Valid read
+                            function codes must be in the range
+                            <literal>[0..7]</literal>.
+                            If the optional <parameter>lamwait</parameter>
+                            parameter is present and true (nonzero)
+                            it specifies that the CC-USB
+                            should stall until either the module's slot signals
+                            a LAM or the LAM times out.  This should not be true
+                            for lists that are executed in immediate mode, but only
+                            for lists that execute in data acquisition mode.
+                        </para>
+                        <para>
+                            <parameter>object</parameter> is the command name of
+                            a SWIG CCCUSBReadoutList object that has been gotten
+                            from one of the forms of
+                            <command>cccusbreadoutlist::CCCUSBReadoutList</command>
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><command><replaceable>object</replaceable>
+                        addRead24 <replaceable>n a f ?lamwait</replaceable>
+                        </command>
+                    </term>
+                    <listitem>
+                        <para>
+                            Same as <command>addRead16</command> above, however
+                            24 bits of data and the Q, X will be transferred as
+                            shown in section 4.6 of the CC-USB manual. Note that
+                            the CCUSB Readout Framework will remove those bits
+                            from data in the Scaler stack as it is assumed that
+                            all of those transfers are 24 bits and that the
+                            scaler stack will eventually be passed off to
+                            scaler display programs that won't know the
+                            Q/X bits are present.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><command><replaceable>object</replaceable>
+                        addControl <replaceable>n a f</replaceable>
+                        </command>
+                    </term>
+                    <listitem>
+                        <para>
+                            Adds a CAMAC non data transfer (control) operation
+                            to the list.  <parameter>n</parameter> and
+                            <parameter>a</parameter> identify the module
+                            slot and subaddress targeted by the operation and
+                            <parameter>f</parameter> is the CAMAC function
+                            code to be performed.  <parameter>f</parameter>
+                            by CAMAC standard must be in the ranges
+                            <literal>[8..15], [24..31]</literal>.
+                        </para>
+                        <para>
+                            <parameter>object</parameter> is the command name of
+                            a SWIG CCCUSBReadoutList object that has been gotten
+                            from one of the forms of
+                            <command>cccusbreadoutlist::CCCUSBReadoutList</command>
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><command><replaceable>object</replaceable>
+                        addQStop <replaceable>n a f max ?lamwait?</replaceable>
+                        </command>
+                    </term>
+                    <listitem>
+                        <para>
+                            Adds a Q-stop operation to the list.  Q-Stop operations
+                            are block transfers that perform the Same operation
+                            at the same target until a transfer count
+                            is exhausted or an operation does not result in a
+                            Q response from the module.
+                        </para>
+                        <para>
+                            <parameter>n</parameter>, and <parameter>a</parameter>
+                            identify the slot and subaddress to which the
+                            function code <parameter>f</parameter> is addressed.
+                            The assumption is that the operation is a
+                            read, that is <parameter>f</parameter> is in the
+                            range <literal>[0..7]</literal>.  <parameter>max</parameter>
+                            is the maximum number of transfers allowed.
+                            If the optional <parameter>lamwait</parameter> parameter
+                            is true (default is false), the CC-USB will wait for
+                            the module to signal a LAM (or LAM timeout) prior to
+                            performing the operation.
+                            <parameter>lamwait</parameter> should not be set to
+                            true on lists performed in via <command>executeList</command>.
+                        </para>
+                        <para>
+                            <parameter>object</parameter> is the command name of
+                            a SWIG CCCUSBReadoutList object that has been gotten
+                            from one of the forms of
+                            <command>cccusbreadoutlist::CCCUSBReadoutList</command>
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><command><replaceable>object</replaceable>
+                        addQStop24 <replaceable>n a f max ?lamwait? </replaceable>
+                        </command>
+                    </term>
+                    <listitem>
+                        <para>
+                            Same as <command>addQStop</command> above but the
+                            data transfers are 24 bits wide rather than 16 bits
+                            wide.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><command><replaceable>object</replaceable>
+                        addQScan <replaceable>n a f max ?lamwait?</replaceable>
+                        </command>
+                    </term>
+                    <listitem>
+                        <para>
+                            Same as <command>addQStop</command> however the
+                            operation is a Q-Scan.  In a Q-Scan, after each
+                            operation the subaddress is incremented.
+                            If the subaddress would be <literal>16</literal>
+                            the slot is incremented and the subaddress
+                            reset to zero.
+                        </para>
+                        <para>
+                            If there is no Q response, the sub address is
+                            reset to zero and the slot incremented.  The
+                            transfer terminates if either <parameter>max</parameter>
+                            operations have taken place or if a transfer
+                            results in a false X response (indicating the
+                            scan advanced to an empty slot).
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><command><replaceable>object</replaceable>
+                        addRepeat <replaceable>n a f count ?lamwait?</replaceable>
+                        </command>
+                    </term>
+                    <listitem>
+                        <para>
+                            This is the same as <command>addQStop</command>
+                            however <parameter>count</parameter> operations
+                            are unconditionally performed.
+                        </para>
+                        <para>
+                            <parameter>object</parameter> is the command name of
+                            a SWIG CCCUSBReadoutList object that has been gotten
+                            from one of the forms of
+                            <command>cccusbreadoutlist::CCCUSBReadoutList</command>
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><command><replaceable>object</replaceable>
+                        addMarker <replaceable>value</replaceable>
+                        </command>
+                    </term>
+                    <listitem>
+                        <para>
+                            Writes the 16 bit literal 
+                            <parameter>value</parameter> to the output
+                            buffer.  For immediate operations this is the
+                            buffer of data returned by the <command>executeList</command>
+                            operation.  For data acquisition lists, this is the
+                            event buffer.
+                        </para>
+                        <para>
+                            <parameter>object</parameter> is the command name of
+                            a SWIG CCCUSBReadoutList object that has been gotten
+                            from one of the forms of
+                            <command>cccusbreadoutlist::CCCUSBReadoutList</command>
+                        </para>
+                    </listitem>
+                </varlistentry>
+            </variablelist>
+         </refsect1>
+        <refsect1>
+            <title>SEE ALSO</title>
+            <para>
+                <xref linkend='ccusb3-cccusb' />
+                <xref linkend='ccusb3-CCCUSB' />
+                <xref linkend='ccusb3-CCCUSBReadoutList' />
+            </para>
+        </refsect1>
+       </refentry>
  
 <!-- /manpage -->
 
