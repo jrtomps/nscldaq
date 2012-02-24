@@ -58,6 +58,12 @@ static const int DEFAULT_TIMEOUT(2000);	// ms.
 
 static bool usbInitialized(false);
 
+//
+// Top level statics (here for swig):
+//
+const uint16_t CCCUSB::Q(1);
+const uint16_t CCCUSB::X(2);
+
 /////////////////////////////////////////////////////////////////////
 /*!
   Enumerate the Wiener/JTec VM-USB devices.
@@ -1032,6 +1038,36 @@ CCCUSB::executeList(CCCUSBReadoutList&     list,
     *bytesRead = 0;
   }
   return (status >= 0) ? 0 : status;
+  
+}
+/**
+ * This is a swig friendly version of execute list:
+ * 
+ * @param list - reference to the CCCUSBReadoutList to run.
+ * @param maxReadWords - maximum number of 16 bit words that could be read by this list.
+ *
+ * @return std::vector<uint16_t>
+ * @retval Vector of data read by the list.
+ */
+std::vector<uint16_t>
+CCCUSB::executeList(CCCUSBReadoutList& list, int maxReadWords)
+{
+  // Allocate the read buffer:
+
+  uint16_t* pReadBuffer = new uint16_t[maxReadWords];
+  size_t   actualBytes(0);
+
+  executeList(list, pReadBuffer, maxReadWords*sizeof(uint16_t),
+	      &actualBytes);
+
+  std::vector<uint16_t> result;
+  for (int i =0; i < actualBytes/sizeof(uint16_t); i++) {
+    result.push_back(pReadBuffer[i]);
+  }
+  delete []pReadBuffer;
+
+  return result;
+
   
 }
 

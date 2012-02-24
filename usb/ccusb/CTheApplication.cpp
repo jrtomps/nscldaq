@@ -128,10 +128,11 @@ int CTheApplication::operator()(int argc, char** argv)
     
     createUsbController(arg_struct.serialno_given ? arg_struct.serialno_arg : NULL);
     setConfigFiles(arg_struct.daqconfig_given ? arg_struct.daqconfig_arg : NULL,
-		   arg_struct.ctlconfig_given ? arg_struct.ctlconfig_arg : NULL);
+    		   arg_struct.ctlconfig_given ? arg_struct.ctlconfig_arg : NULL);
     initializeBufferPool();
     startOutputThread(destinationRing(arg_struct.ring_given ? arg_struct.ring_arg : NULL)); 
     startTclServer(arg_struct.port_given ? arg_struct.port_arg : tclServerPort);
+
     startInterpreter();
   }
   catch (string msg) {

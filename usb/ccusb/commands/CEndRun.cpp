@@ -81,7 +81,7 @@ CEndRun::operator()(CTCLInterpreter& interp,
 
 
   CAcquisitionThread::waitExit();
-
+  //  delete Globals::pConfig;	// Delete the old configuration database.
 
   pState->setState(CRunState::Idle);
 
