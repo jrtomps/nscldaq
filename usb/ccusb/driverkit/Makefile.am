@@ -3,3 +3,5 @@ install-data-local:
 	$(mkinstalldirs) @prefix@/ccusbdriver/includes
 	$(INSTALL_DATA) CCUSBDriverIncludes drivertemplate.cpp @prefix@/ccusbdriver
 	$(INSTALL_DATA) Makefile-template @prefix@/ccusbdriver/Makefile
+
+EXTRA_DIST=drivertemplate.cpp Makefile-template.in
