@@ -13,10 +13,21 @@
 	     Michigan State University
 	     East Lansing, MI 48824-1321
 */
+#ifdef SWIG
+#ifndef _FLATTEN_NESTED_CLASSES
+#define _FLATTEN_NESTED_CLASSES
+#endif
+%module CCCUSB
+%{
+#define _FLATTEN_NESTED_CLASSES
+#include "CCCUSB.h"
+%}
 
+#endif
 
 #ifndef __CCCUSB_H
 #define __CCCUSB_H
+
 
 #ifndef __STL_VECTOR
 #include <vector>
@@ -65,6 +76,13 @@ a module by invoking enumerate.  enumerate  returns a vector of
 usb_device*s.   One of those can be used to instantiate the CCCUSB 
 object which can the ben operated on.
 
+Note there are two sets of methods defined. Those with very precise
+parameter types and those with quite generic parameter types.
+The precise types are intended to be used with C++ clients.
+The generic types are intended to be used in SWIG wrappers since
+SWIG is not able to convert int -> uint16_t nor handle references
+without helper functions.
+
 */
 class CCCUSB 
 {
@@ -102,6 +120,9 @@ public:
     // Register I/O operations.
 public:
     void     writeActionRegister(uint16_t value);
+    void     writeActionRegister(int value) { /* Swig */
+      writeActionRegister((uint16_t)value);
+    }
 
 
     // The following execute single CAMAC operations.
@@ -114,42 +135,201 @@ public:
     int simpleRead24( int n, int a, int f, uint32_t& data, uint16_t& qx);
     int simpleControl(int n, int a, int f, uint16_t& qx);
 
+    // SWIG wrappers for simple I/O.
+
+    int simpleWrite16(int n, int a, int f, int data) {
+      uint16_t  qx16;
+      simpleWrite16(n,a,f, (uint16_t)data, qx16);
+      return qx16;
+    }
+
+
+    int simpleWrite24(int n, int a, int f, int data) {
+
+      uint16_t  qx16;
+      simpleWrite24(n,a,f, (uint16_t)data, qx16);
+      return qx16;
+    }
+
+    unsigned int simpleRead16(int n, int a, int f)
+    {
+      uint16_t data;
+      uint16_t qx;
+
+      simpleRead16(n,a,f,data,qx);
+      return (int)data | ((int)qx << 24);	/* qx in the top byte. */
+    }
+    unsigned int simpleRead24(int n, int a, int f)
+    {
+      uint32_t data;
+      uint16_t qx;
+      simpleRead24(n,a,f,data,qx);
+      
+      return data | ((int)qx << 24);
+      
+    }
+
+    unsigned int simpleControl(int n, int a, int f)
+    {
+      uint16_t qx;
+      simpleControl(n,a,f,qx);
+      return qx;
+    }
+
+
+
+
     // Convenience function that access the CC-USB registers.
+    // Each function or read/write pair of functions is
+    // followed by a swig wrapper:
+
 
     int readFirmware(uint32_t& value);
+    unsigned  readFirmware() {
+      uint32_t fw;
+      readFirmware(fw);
+      return fw;
+    }
 
     int readGlobalMode(uint16_t& value);
     int writeGlobalMode(uint16_t value);
+    unsigned readGlobalMode() {	/* swig */
+      uint16_t mode;
+      readGlobalMode(mode);
+      return mode;
+    }
+    int writeGlobalMode(int value) { /* swig */
+      return writeGlobalMode((uint16_t)value);
+    }
+
 
     int readDelays(uint16_t& value);
     int writeDelays(uint16_t value);
+    unsigned  readDelays() {		/* swig */
+      uint16_t d;
+      readDelays(d);
+      return d;
+    }
+    int writeDelays(int value) { /* swig */
+      return writeDelays((uint16_t)value);
+    }
 
     int readScalerControl(uint32_t& value);
     int writeScalerControl(uint32_t value);
+    unsigned  readScalerControl() {	/* swig */
+      uint32_t value;
+      readScalerControl(value);
+      return value;
+    }
+    int writeScalerControl(int value) { /* swig */
+      return writeScalerControl((uint32_t)value);
+    }
+
 
     int readLedSelector(uint32_t& value);
     int writeLedSelector(uint32_t value);
+    unsigned  readLedSelector() { /* swig */
+      uint32_t v;
+      readLedSelector(v);
+      return v;
+    }
+    int writeLedSelector(int value) {
+      return writeLedSelector((uint32_t)value);
+    }
+      
     int readOutputSelector(uint32_t& value);
     int writeOutputSelector(uint32_t value);
-
+    unsigned readOutputSelector() {	/* swig */
+      uint32_t v;
+      readOutputSelector(v);
+      return v;
+    }
+    int writeOutputSelector(int value) { /* swig */
+      return writeOutputSelector((uint32_t)value);
+    }
     int readDeviceSourceSelectors(uint32_t& value);
     int writeDeviceSourceSelectors(uint32_t value);
+    unsigned readDeviceSourceSelectors() { /* swig */
+      uint32_t s;
+      readDeviceSourceSelectors(s);
+      return s;
+    }
+    int writeDeviceSourceSelectors(int v) {
+      return writeDeviceSourceSelectors((uint32_t)v);
+    }
 
     int readDGGA(uint32_t& value);
     int readDGGB(uint32_t& value);
     int readDGGExt(uint32_t& value);
+    unsigned readDGGA() {		/* swig */
+      uint32_t v;
+      readDGGA(v);
+      return v;
+    }
+    unsigned  readDGGB() {		/* swig */
+      uint32_t v;
+      readDGGB(v);
+      return v;
+    }
+    unsigned  readDGGExt() {		/* swig */
+      uint32_t v;
+      readDGGExt(v);
+      return v;
+    }
+
     int writeDGGA(uint32_t value);
     int writeDGGB(uint32_t value);
     int writeDGGExt(uint32_t value);
+    int writeDGGA(int value) {	/* swig */
+      return writeDGGA((uint32_t)value);
+    }
+    int writeDGGB(int value) {	/* swig */
+      return writeDGGB((uint32_t)value);
+    }
+    int writeDGGExt(int value) { /* swig */
+      return writeDGGExt((uint32_t)value);
+    }
+    
 
     int readScalerA(uint32_t& value);
     int readScalerB(uint32_t& value);
+    unsigned  readScalerA() {	/* swig */
+      uint32_t v;
+      readScalerA(v);
+      return v;
+    }
+    unsigned  readScalerB() {	/* swig */
+      uint32_t v;
+      readScalerB(v);
+      return v;
+    }
+
 
     int readLamTriggers(uint32_t& value);
     int writeLamTriggers(uint32_t value);
+    unsigned readLamTriggers() {	/* swig */
+      uint32_t v;
+      readLamTriggers(v);
+      return v;
+    }
+    int writeLamTriggers(int value) { /* swig */
+      return writeLamTriggers((uint32_t)value);
+    }
+				    
+
 
     int readUSBBulkTransferSetup(uint32_t& value);
     int writeUSBBulkTransferSetup(uint32_t value);
+    unsigned readUSBBulkTransferSetup(){ /* swig */
+      uint32_t v;
+      readUSBBulkTransferSetup(v);
+      return v;
+    }
+    int writeUSBBulkTransferSetup(int value) { /* swig */
+      return writeUSBBulkTransferSetup((uint32_t)value);
+    }
+
+
     
     int c();
     int z();
@@ -165,8 +345,18 @@ public:
 		    size_t              readBufferSize,
 		    size_t*             bytesRead);
 
+    std::vector<uint16_t> executeList(CCCUSBReadoutList& list,
+				      int maxReadWords); /* swig */
+
+
     int loadList(uint8_t                listNumber,
 		 CCCUSBReadoutList&    list);
+    int loadList(int listNumber,
+		 CCCUSBReadoutList& list) {
+      loadList((uint8_t)listNumber, list);
+    }
+
+
 
     // Once the interface is in DAQ auntonomous mode, the application
     // should call the following function to read acquired data.
@@ -202,20 +392,30 @@ private:
 
   // The following are classes that define bits/fields in the registers of the CC-USB.
   // Each class is one register:
+  //! Bits in the Q/X response word for e.g. simple ops.
+  
+public:
+  static const uint16_t Q;
+  static const uint16_t X;
+
 
 public:
+
   //!  Action register - all data members are individual bits.
+#ifndef FLATTEN_NESTED_CLASSES
   class ActionRegister {
+#endif
   public:
     static const uint16_t startDAQ   = 1;
     static const uint16_t usbTrigger = 2;
     static const uint16_t clear      = 4;
     static const uint16_t scalerDump = 0x10;
-    
+#ifndef FLATTEN_NESTED_CLASSES
   };
 
+#endif
   //! Firmware register *Mask are in place masks, *Shift shift the field to low order justify it
-  class FirmwareRegiseter {
+  class FirmwareRegister {
   public:
     static const uint32_t  revisionMask  = 0xff;
     static const uint32_t  revisionShift = 0;
@@ -242,7 +442,6 @@ public:
     static const uint16_t bufferLenSingle  = 7;
     
     static const uint16_t mixedBuffers     = 0x20;
-    static const uint16_t doubleSeparater  = 0x40;
     
     static const uint16_t doubleHeader     = 0x100;
     
@@ -255,7 +454,7 @@ public:
     static const uint16_t triggerDelayMask = 0xff;
     static const uint16_t triggerDelayShift= 0;
     static const uint16_t lamTimeoutMask   = 0xff00;
-    static const uint16_t lamTimeoutShifg  = 8;
+    static const uint16_t lamTimeoutShift  = 8;
   };
 
   //!  The Scaler Control register determines when/how often scaler events are read:
@@ -352,21 +551,33 @@ public:
   public:
     // Scaler A source/control
 
-    static const uint32_t scalerADisabled       = 0x00000000;
-    static const uint32_t scalerI1              = 0x00000001; // count on NIM I1 etc...
-    static const uint32_t scalerI2              = 0x00000002;
-    static const uint32_t scalerAEvent          = 0x00000003;
-    static const uint32_t scalerAReset          = 0x00000010;
-    static const uint32_t scalerAEnable         = 0x00000020; // yup there's two disables ;-)
+    static const uint32_t scalerADisabled        = 0x00000000;
+    static const uint32_t scalerAI1              = 0x00000001; // count on NIM I1 etc...
+    static const uint32_t scalerAI2              = 0x00000002;
+    static const uint32_t scalerAI3              = 0x00000003;
+    static const uint32_t scalerAEvent           = 0x00000004;
+    static const uint32_t scalerACarryB          = 0x00000005;
+    static const uint32_t scalerADGGA            = 0x00000006;
+    static const uint32_t scalerADGGB            = 0x00000007;
+
+    static const uint32_t scalerAEnable          = 0x00000010;
+    static const uint32_t scalerAReset           = 0x00000020;
+    static const uint32_t scalerAFreezeReg       = 0x00000040;
     
     // Scaler B source/control
 
     static const uint32_t scalerBDisabled       = 0x00000000;
     static const uint32_t scalerBI1             = 0x00000100;
     static const uint32_t scalerBI2             = 0x00000200;
-    static const uint32_t scalerBEvent          = 0x00000300;
-    static const uint32_t scalerBReset          = 0x00001000;
-    static const uint32_t scalerBEnable         = 0x00002000;
+    static const uint32_t scalerBI3             = 0x00000300;
+    static const uint32_t scalerBEvent          = 0x00000400;
+    static const uint32_t scalerBCarryA         = 0x00000500;
+    static const uint32_t scalerBDGGA           = 0x00000600;
+    static const uint32_t scalerBDGGB           = 0x00000700;
+
+    static const uint32_t scalerBEnable         = 0x00001000;
+    static const uint32_t scalerBReset          = 0x00002000;
+    static const uint32_t scalerBFreezeReg      = 0x00004000;
 
     // Gate and delay generator A input source:
 
@@ -410,20 +621,45 @@ public:
     static const uint32_t BCoarseShift            = 16;
   };
   //! Multibuffer/timeout setup is in the TransferSetup Register.
+#ifndef FLATTEN_NESTED_CLASSES
   class TransferSetupRegister {
+#endif
   public:
     static const uint32_t multiBufferCountMask   = 0xff;
     static const uint32_t multiBufferCountShift  = 0;
     
     static const uint32_t timeoutMask            = 0xf00;
     static const uint32_t timeoutShift           = 8;
-    
+#ifndef FLATTEN_NESTED_CLASSES    
   };
-  //! Bits in the Q/X response word for e.g. simple ops.
-  
-  static const uint16_t Q = 1;
-  static const uint16_t X = 2;
+#endif
 };
 
+
+// These functions are needed for the Swig wrappers:
+
+
+inline size_t usb_device_vector_size(std::vector<struct usb_device*> devices) {
+  return devices.size();
+}
+
+inline usb_device* usb_device_vector_get(std::vector<struct usb_device*> devices, int index) {
+  return devices[index];
+}
+inline const char* string_to_char(std::string s) {
+  return s.c_str();
+}
+
+inline int getuint16(uint16_t value) {
+  return value;
+}
+
+inline size_t uint16_vector_size(std::vector<uint16_t> vec)
+{
+  return vec.size();
+}
+inline int uint16_vector_get(std::vector<uint16_t>vec, int i) {
+  return vec[i];
+}
 
 #endif

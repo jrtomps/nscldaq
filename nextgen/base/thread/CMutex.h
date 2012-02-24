@@ -18,8 +18,8 @@
 
 #ifndef __CRT_PTHREAD_H
 #include <pthread.h>
-#ifndef __CRT_PTHREAD_H
-#define __CRT_PTHREAD_H
+#ifndef __CMUTEX_H
+#define __CMUTEX_H
 #endif
 #endif
 

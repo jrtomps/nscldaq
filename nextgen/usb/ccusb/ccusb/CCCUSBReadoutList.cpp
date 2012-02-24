@@ -411,20 +411,6 @@ CCCUSBReadoutList::addMarker(uint16_t value)
   m_list.push_back(NAF(0,0,16));
   m_list.push_back(value);
 }
-/*!
-  Same as above but the makrer is 32(24?) bits wide.
-*/
-void 
-CCCUSBReadoutList::addMarker24(uint32_t value)
-{
-  m_list.push_back(NAF(0,0,16) | NAFIsLong);
-  uint16_t low = value & 0xffff;
-  uint16_t hi  = (value >> 16) & 0xffff;
-  m_list.push_back(low);
-  m_list.push_back(hi);
-
-
-}
 
 /****************************************************************************/
 /*                      Private utility functions.                          */

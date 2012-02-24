@@ -8,18 +8,29 @@ noinst_HEADERS		= CAcquisitionThread.h		\
 # add -DREPORT_ERRORS to INCLUDES below for verbose
 # error reporting info.
 
-INCLUDES		=  -I@top_srcdir@/usb/ccusb/threadcomm \
+INCLUDES		=  -I@top_srcdir@/usb/ccusb \
+			-I@top_srcdir@/usb/ccusb/threadcomm \
 			-I@top_srcdir@/usb/ccusb/router				\
 			-I@top_srcdir@/usb/ccusb/devices			\
 			-I@top_srcdir@/usb/ccusb/ccusb				\
+			-I@top_srcdir@/usb/ccusb/daqconfig			\
 			-I@top_srcdir@/base/exception				\
 			-I@top_srcdir@/base/thread				\
-			-I@top_srcdir@/base/headers
+			-I@top_srcdir@/base/headers @THREADCXX_FLAGS@
 
 
 libCCUSBRdoThread_la_LIBADD	= @top_builddir@/usb/ccusb/threadcomm/libCCUSBThreadComm.la	\
 			  @top_builddir@/usb/ccusb/devices/libCCUSBDevices.la	\
 			  @top_builddir@/usb/ccusb/ccusb/libCCUSB.la		\
 			@top_builddir@/base/thread/libdaqthreads.la		\
-			@top_builddir@/base/exception/libException.la
+			@top_builddir@/base/exception/libException.la @THREADLD_FLAGS@
+
+
+
+install-data-local:
+	$(mkinstalldirs) @prefix@/ccusbdriver
+	$(mkinstalldirs) @prefix@/ccusbdriver/includes
+	$(INSTALL_DATA)  *.h @prefix@/ccusbdriver/includes
+
+
 

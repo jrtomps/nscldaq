@@ -42,16 +42,16 @@ Thread::threadStarter(void *aThread) {
     thrd->run();
   } catch (std::runtime_error& re) {
     cerr << "*** Runtime error caught in thread: \"" << (re.what()) << "\"" << endl;
-    exit(-1);
   } catch (CException& oe) {
     cerr << "*** Exception caught in thread: \"" << (oe.ReasonText()) << "\"" << endl;
-    exit(-2);
   } catch (std::exception& se) {
     cerr << "*** Exception caught in thread: \"" << (se.what()) << "\"" << endl;
-    exit(-3);
+  } catch(std::string msg) {
+    cerr << "*** Exception caught in thread: \"" << msg << "\"" << endl;
+  } catch (const char* msg) {
+    cerr << "*** Exception caught in thread: \"" << msg << "\"" << endl;
   } catch (...) {
     cerr << "*** Unknown exception caught in thread" << endl;
-    exit(-errno);
   }
 
   thrd->living = false;

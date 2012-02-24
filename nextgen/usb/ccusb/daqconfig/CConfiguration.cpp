@@ -32,6 +32,7 @@
 #include <CCAEN257Command.h>
 #include <CPH7132Command.h>
 #include <CCCUSBCommand.h>
+#include <CAddTclDriver.h>
 #include <iostream>
 
 #include <tcl.h>
@@ -54,6 +55,7 @@ CConfiguration::CConfiguration() :
   m_pInterp(0)
 {
   Tcl_Interp* pInterp = Tcl_CreateInterp();
+  Tcl_Init(pInterp);		// init the library search paths.
   m_pInterp = new CTCLInterpreter(pInterp);
 
 
@@ -70,6 +72,7 @@ CConfiguration::CConfiguration() :
   m_Commands.push_back(new CCAEN257Command(*m_pInterp, *this));
   m_Commands.push_back(new CCCUSBCommand(*m_pInterp, *this));
   m_Commands.push_back(new CPH7132Command(*m_pInterp, *this));
+  m_Commands.push_back(new CAddTclDriver(*m_pInterp, *this));
 
 }
 /*!

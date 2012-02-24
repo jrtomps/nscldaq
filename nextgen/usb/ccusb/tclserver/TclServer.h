@@ -33,7 +33,7 @@ using namespace std;
 #endif
 #endif
 
-#include <Thread.h>
+#include <CSynchronizedThread.h>
 
 class CCCUSB;
 class CControlModule;
@@ -60,7 +60,7 @@ class CTCLInterpreter;
    connections from localhost.
 
 */
-class TclServer : public Thread
+class TclServer : public CSynchronizedThread
 {
   // Member data:
 private:
@@ -87,9 +87,9 @@ public:
   void            addModule(CControlModule* pNewModule);
   void            setResult(std::string resultText);
 
-  virtual void    run();
+  virtual void    init();
 protected:
-  int operator()();
+  void operator()();
 
 private:
   void initInterpreter();

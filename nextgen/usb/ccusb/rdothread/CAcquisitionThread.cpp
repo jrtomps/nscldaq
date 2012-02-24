@@ -27,6 +27,8 @@
 #include <time.h>
 #include <string>
 #include <Exception.h>
+#include <Globals.h>
+#include <CConfiguration.h>
 #include <iostream>
 
 #include <stdlib.h>
@@ -51,7 +53,7 @@ static const unsigned ScalerStackNum(1);
 bool                CAcquisitionThread::m_Running(false);
 CCCUSB*             CAcquisitionThread::m_pCamac(0);
 CAcquisitionThread* CAcquisitionThread::m_pTheInstance(0);
-vector<CReadoutModule*> CAcquisitionThread::m_Stacks;
+
 
 
 
@@ -86,18 +88,12 @@ CAcquisitionThread::getInstance()
    - Initiate the thread which gets the ball rolling.
    \param usb    :CCCUSB*
       Pointer to the vme interface object we use to deal with all this stuff.
-   \param adcs   : std::vector<CReadoutModule*> 
-      A vector consisting of the set of modules that will be read out in the
-      event mode.  This is expected to be hooked to interrupt 
-      80, IPL 6 and that will be used to fire off the list.
-   \param scalers : std::vector<CReadoutModule*>
-     A vector consisting of the set of scaler modules that will be read out
-     every scalerPeriod seconds.
+
 
 */
 void
-CAcquisitionThread::start(CCCUSB* usb,
-			  vector<CReadoutModule*> Stacks) 
+CAcquisitionThread::start(CCCUSB* usb)
+
 {
   CRunState* pState = CRunState::getInstance();
   pState->setState(CRunState::Active);
@@ -105,7 +101,6 @@ CAcquisitionThread::start(CCCUSB* usb,
 
   CAcquisitionThread* pThread = getInstance();
   m_pCamac = usb;
-  m_Stacks = Stacks;
 
 
 
@@ -138,54 +133,47 @@ CAcquisitionThread::waitExit()
  * Bridge between new and old threading model.
  */
 void
-CAcquisitionThread::run()
+CAcquisitionThread::init()
 {
-  (*this)();
+  try {
+    beginRun();			// Emit begin run buffer.
+    startDaq();  		// Setup and start data taking.
+    m_Running = true;		// Thread is off and running now.    
+  }
+  catch (string msg) {
+    cerr << "CAcquisition thread caught a string exception: " << msg << endl;
+  }
+  catch (char* msg) {
+    cerr << "CAcquisition thread caught a char* exception: " << msg << endl;
+  }
+  catch (CException& err) {
+    cerr << "CAcquisition thread caught a daq exception: "
+	 << err.ReasonText() << " while " << err.WasDoing() << endl;
+  }
+  catch (...) {
+    cerr << "CAcquisition thread caught some other exception type.\n";
+  }
+
 }
 
 /*!
    Entry point for the thread.
 */
-int
+void
 CAcquisitionThread::operator()()
 {
   try {
-    m_Running = true;		// Thread is off and running now.
     
-    beginRun();			// Emit begin run buffer.
-    
-    startDaq();  		        // Setup and start data taking.
-    try {
-      
-      mainLoop();			// Enter the main processing loop.
-    }
-    catch (...) {			// exceptions are used to exit the main loop.?
-    }
-    
-    endRun();			// Emit end run buffer.
-    
-    m_Running = false;		// Exiting.
-    return      0;		// Successful exit I suppose.
+    mainLoop();			// Enter the main processing loop.
   }
-  catch (string msg) {
-    cerr << "CAcquisition thread caught a string exception: " << msg << endl;
-    throw;
+  catch (...) {			// exceptions are used to exit the main loop.?
   }
-  catch (char* msg) {
-    cerr << "CAcquisition thread caught a char* exception: " << msg << endl;
-    throw;
-  }
-  catch (CException& err) {
-    cerr << "CAcquisitino thread caught a daq exception: "
-	 << err.ReasonText() << " while " << err.WasDoing() << endl;
-    throw;
-  }
-  catch (...) {
-    cerr << "CAcquisition thread caught some other exception type.\n";
-    throw;
-  }
-  return -1;
+  
+  endRun();			// Emit end run buffer.
+  m_Running = false;		// Exiting.
+
 }
+
 
 /*!
   The main loop is simply one that loops:
@@ -201,24 +189,24 @@ CAcquisitionThread::mainLoop()
     while (true) {
       
       // Event data from the VM-usb.
-      
-      size_t bytesRead;
-      int status = m_pCamac->usbRead(pBuffer->s_rawData, pBuffer->s_storageSize,
-				   &bytesRead,
-				  USBTIMEOUT*1000 );
-      if (status == 0) {
-	pBuffer->s_bufferSize = bytesRead;
-	pBuffer->s_bufferType   = TYPE_EVENTS;
-	processBuffer(pBuffer);	// Submitted to output thread so...
-	pBuffer = gFreeBuffers.get(); // need a new one.
-      } 
-      else {
+      if (m_Running) {
+	size_t bytesRead;
+	int status = m_pCamac->usbRead(pBuffer->s_rawData, pBuffer->s_storageSize,
+				       &bytesRead,
+				       USBTIMEOUT*1000 );
+	if (status == 0) {
+	  pBuffer->s_bufferSize = bytesRead;
+	  pBuffer->s_bufferType   = TYPE_EVENTS;
+	  processBuffer(pBuffer);	// Submitted to output thread so...
+	  pBuffer = gFreeBuffers.get(); // need a new one.
+	} 
+	else {
 #ifdef REPORT_ERRORS
-	cerr << "Bad status from usbread: " << strerror(errno) << endl;
+	  cerr << "Bad status from usbread: " << strerror(errno) << endl;
 #endif
-      }
+	}
       // Commands from our command queue.
-      
+      }
       CControlQueues::opCode request;
       bool   gotOne = pCommands->testRequest(request);
       if (gotOne) {
@@ -254,7 +242,9 @@ CAcquisitionThread::processCommand(CControlQueues::opCode command)
     CCusbToAutonomous();
   }
   else if (command == CControlQueues::END) {
-    stopDaq();
+    if (m_Running) {
+      stopDaq();
+    }
     queues->Acknowledge();
     throw "Run ending";
   }
@@ -330,6 +320,13 @@ CAcquisitionThread::startDaq()
 	 << " errno: " << errno <<endl;
     exit(status);
   }
+  // Process the configuration. This must be done in a way that preserves the
+  // Interpreter since loadStack and Initialize for each stack will need the
+  // interpreter for our support of tcl drivers.
+
+  Globals::pConfig = new CConfiguration;
+  Globals::pConfig->processConfiguration(Globals::configurationFilename);
+  std::vector<CReadoutModule*> Stacks = Globals::pConfig->getStacks();
 
   cerr << "CCUSB located firmware revision: " << hex << fware << dec << endl;
 
@@ -337,9 +334,9 @@ CAcquisitionThread::startDaq()
   // though the loop below makes you believe it might have an arbitrary number...
   // it still should work.
 
-  cerr << "Loading " << m_Stacks.size() << " Stacks to cc-usb\n";
-  for(int i =0; i < m_Stacks.size(); i++) {
-    CStack* pStack = dynamic_cast<CStack*>(m_Stacks[i]->getHardwarePointer());
+  cerr << "Loading " << Stacks.size() << " Stacks to cc-usb\n";
+  for(int i =0; i < Stacks.size(); i++) {
+    CStack* pStack = dynamic_cast<CStack*>(Stacks[i]->getHardwarePointer());
     assert(pStack);
     pStack->loadStack(*m_pCamac);     // Load into CC-USB .. The stack knows if it is event or scaler
     pStack->Initialize(*m_pCamac);    // INitialize daq hardware associated with the stack.
@@ -365,20 +362,11 @@ CAcquisitionThread::startDaq()
   //  NIM 02  - Acquire
   //  NIM 03  - end of busy.
 
-  //  m_pCamac->writeOutputSelector(CCCUSB::OutputSourceRegister::nimO1Busy |
-  //				CCCUSB::OutputSourceRegister::nimO2Acquire |
-  //				CCCUSB::OutputSourceRegister::nimO3EndOfBusy);
+    m_pCamac->writeOutputSelector(CCCUSB::OutputSourceRegister::nimO1Busy |
+  				CCCUSB::OutputSourceRegister::nimO2Acquire |
+  				CCCUSB::OutputSourceRegister::nimO3EndOfBusy);
 
-  // Set up the LEDS for some diagnostics:
-  // Red LED   : USB Out FIFO not empty.
-  // Green LED : Acquire mode.
-  // Yellow LED: Executing scaler stack.
-  //
-  m_pCamac->writeLedSelector(CCCUSB::LedSourceRegister::redUSBOutFifoNotEmpty ||
-			     CCCUSB::LedSourceRegister::greenAcquire          ||
-			     CCCUSB::LedSourceRegister::yellowScalerReadout);
-
-  // Start the VMUSB in data taking mode:
+ 
 
   CCusbToAutonomous();
 

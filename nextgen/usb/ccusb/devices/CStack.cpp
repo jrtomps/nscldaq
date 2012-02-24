@@ -15,12 +15,11 @@
 */
 
 #include <config.h>
+#include <CConfiguration.h>
 #include "CStack.h"
-#include <Globals.h>
 #include <CReadoutModule.h>
 #include <CCCUSB.h>
 #include <CCCUSBReadoutList.h>
-#include <CConfiguration.h>
 #include <assert.h>
 #include <tcl.h>
 #include <Globals.h>
@@ -29,6 +28,8 @@
 #include <stdlib.h>
 #include <errno.h>
 #include <string.h>
+#include <Globals.h>
+
 
 #include <iostream>
 using namespace std;

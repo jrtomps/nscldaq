@@ -38,7 +38,7 @@ using namespace std;		// required for spectrodaq includes.
 #include "CControlQueues.h"
 #endif
 
-#include <Thread.h>
+#include <CSynchronizedThread.h>
 
 
 // forward class definitions.
@@ -55,13 +55,12 @@ struct DataBuffer;
    it gets started at the beginning of a run and politely requested to stop at
    the end of a run.
 */
-class CAcquisitionThread : public Thread
+class CAcquisitionThread : public CSynchronizedThread
 {
 private:
   static bool                   m_Running;	//!< thread is running.
   static CCCUSB*                m_pCamac;		//!< VME interface.
 
-  static std::vector<CReadoutModule*>  m_Stacks;       //!< the stacks to run.
 
   //Singleton pattern stuff:
 
@@ -76,15 +75,14 @@ public:
   // Thread functions:
 
 public:
-  static void start(CCCUSB* usb,
-		    std::vector<CReadoutModule*> Stacks);
+  static void start(CCCUSB* usb);
   static bool isRunning();
   static void waitExit();	/* Wait for this thread to exit (join). */
 
-  virtual void run();
+  virtual void init();
 
 protected:
-  virtual int operator()();
+  virtual void operator()();
 private:
   void mainLoop();
   void processCommand(CControlQueues::opCode command);

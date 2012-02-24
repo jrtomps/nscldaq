@@ -79,7 +79,7 @@ TclServer::start(int port, const char* configFile, CCCUSB& vme)
 
   // Schedule the thread for execution:
 
-  this->Thread::start();
+  this->CSynchronizedThread::start();
 
 
 }
@@ -129,9 +129,12 @@ TclServer::setResult(string msg)
  * Bridges nscldaq-10 and spectrodaq threadingmodel.
  */
 void
-TclServer::run()
+TclServer::init()
 {
-  (*this)();
+    initInterpreter();		// Create interp and add commands.
+    readConfigFile();		// Initialize the modules.
+    initModules();              // Initialize the fully configured modules.
+    startTcpServer();		// Set up the Tcp/Ip listener event.
 }
 /*!
    Entry point for the thread.  This will be called when the thread is first
@@ -140,14 +143,10 @@ TclServer::run()
    Parameters are ignored (start stocked the member data with everything
    we need) and we never return.
 */
-int
+void
 TclServer::operator()()
 {
   try {
-    initInterpreter();		// Create interp and add commands.
-    readConfigFile();		// Initialize the modules.
-    initModules();              // Initialize the fully configured modules.
-    startTcpServer();		// Set up the Tcp/Ip listener event.
     EventLoop();			// Run the Tcl event loop forever.
   }
   catch (string msg) {
