@@ -195,10 +195,14 @@ January 26,2012
 January 30-Feb 1,2012
 	- Fold in CC-USB readout code from spectrodaq
 10.1-002
+Feb 1, 2012 - Feb 24, 2012
 	- Extend CC-USB readout code to support user written C++
           drivers as loadable objects.
 	- Wrap CCCUSB and CCCUSBReadoutList in SWIG for Tcl.
 	- Provide support for CCUSB drivers written in Tcl.
 	- Document all of this.
 	- Document the shape of ring items (daq/format/dataformat.xml)
+	
+10.1-003
+Feb 29, 2012 -
 	

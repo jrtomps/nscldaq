@@ -22,10 +22,12 @@ libVMUSBDevices_la_SOURCES	= 	CConfigurableObject.cpp	\
 					CV1495sc.cpp
 
 
-INCLUDES	= 	-I$(top_builddir)/usb/vmusb/vmusb 	\
-			-I$(top_builddir)/usb/vmusb/daqconfig 	\
-			-I$(top_builddir)/usb/vmusb		\
-			-I$(top_builddir)/base/tclplus          \
+INCLUDES	= 	-I$(top_srcdir)/usb/vmusb/vmusb 	\
+			-I$(top_srcdir)/usb/vmusb/daqconfig 	\
+			-I$(top_srcdir)/usb/vmusb		\
+			-I$(top_srcdir)/base/tclplus          \
+			-I$(top_srcdir)/base/exception	\
+			-I$(top_srcdir)/base/headers		\
 			@TCL_FLAGS@ 
 
 libVMUSBDevices_la_CXXFLAGS=@THREADCXX_FLAGS@
@@ -64,6 +66,12 @@ noinst_HEADERS			= 	CConfigurableObject.h	\
 
 
 TESTS=configtest.cpp c785test.cpp c3820test.cpp
+
+install-data-local:
+	$(mkinstalldirs) @prefix@/vmusbdriver
+	$(mkinstalldirs) @prefix@/vmusbdriver/includes
+	$(INSTALL_DATA)  *.h @prefix@/vmusbdriver/includes
+
 
 tests: TestRunner.cpp $(TESTS)
 	$(CXX) -g -o tests -I. -I$(prefix)/include $(CPPUNIT_INCLUDES) \

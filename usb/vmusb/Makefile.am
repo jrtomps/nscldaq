@@ -5,7 +5,8 @@ SUBDIRS = 	vmusb 		\
 		rdothread	\
 		tclserver	\
 		daqconfig	\
-		 commands
+		 commands	\
+		driverkit
 
 bin_PROGRAMS = VMUSBReadout
 

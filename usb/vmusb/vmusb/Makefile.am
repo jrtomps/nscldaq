@@ -23,6 +23,7 @@ noinst_HEADERS		= CVMUSB.h   \
 	CTCPNoSuchService.h
 
 
+
 libVMUSB_CXXFLAGS=@THREADCXX_FLAGS@
 
 INCLUDES		= $(USBSWITCHES) -I$(top_srcdir)/base/headers -I$(top_srcdir)/base/tclplus \
@@ -49,6 +50,11 @@ installcheck-local: tests
 	./tests
 
 
+
+install-data-local:
+	$(mkinstalldirs) @prefix@/vmusbdriver
+	$(mkinstalldirs) @prefix@/vmusbdriver/includes
+	$(INSTALL_DATA)  CVMUSB*.h @prefix@/vmusbdriver/includes
 
 #  Stuff that needs to go int the distro:
 

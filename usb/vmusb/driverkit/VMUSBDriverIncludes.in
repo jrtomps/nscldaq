@@ -1,0 +1,39 @@
+KITDIR   = @prefix@/vmusbdriver
+LIBDIR   = @prefix@/lib
+INCLUDES = @prefix@/vmusbdriver/includes
+MAININCLUDES = @prefix@/include
+TCL_FLAGS= @TCL_FLAGS@
+TCL_LDFLAGS=@TCL_LDFLAGS@
+
+
+# Compilation flags:
+
+CXXFLAGS = -g -I. -I$(MAININCLUDES) -I$(INCLUDES)   $(TCL_FLAGS) @THREADCXX_FLAGS@
+CCFLAGS=$(CXXFLAGS)
+
+LDFLAGS = -shared \
+	$(LIBDIR)/libVMUSBDevices.so	\
+	$(LIBDIR)/libVMUSBConfig.so	\
+	$(LIBDIR)/libVMUSB.so		\
+	$(TCL_LDFLAGS) @THREADLD_FLAGS@
+
+# Compilation rules:
+
+#  C++ compilations.  note that all the build rules should be identical
+#
+
+.cpp.o:
+	$(CXX) -g -c  $(CXXFLAGS) $(USERCXXFLAGS) $<
+
+.cxx.o:
+	$(CXX) -g -c  $(CXXFLAGS) $(USERCXXFLAGS) $<
+
+.cc.o:
+	$(CXX) -g -c  $(CXXFLAGS) $(USERCXXFLAGS) $<
+
+#
+#  C compilation(s) if more are aded the build rules should be identical.
+
+.c.o:
+	$(CC)  -g -c  $(CCFLAGS) $(USERCCFLAGS) $<
+

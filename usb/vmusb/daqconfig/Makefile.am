@@ -17,7 +17,8 @@ libVMUSBConfig_la_SOURCES	= 	CADCCommand.cpp		\
 				CHINPCommand.cpp \
 				CPSDCommand.cpp \
 				CV1729Command.cpp	\
-				CV1495scCommand.cpp
+				CV1495scCommand.cpp	\
+				CUserCommand.cpp
 
 
 libVMUSBConfig_la_CXXFLAGS=@THREADCXX_FLAGS@
@@ -41,7 +42,8 @@ noinst_HEADERS		=	CADCCommand.h  		\
 				CHINPCommand.h \
 				CPSDCommand.h		\
 				CV1729Command.h		\
-				CV1495scCommand.h
+				CV1495scCommand.h	\
+				CUserCommand.h
 
 
 
@@ -59,3 +61,7 @@ libVMUSBConfig_la_LIBADD	=	@top_srcdir@/usb/vmusb/devices/libVMUSBDevices.la \
 				@top_srcdir@/base/exception/libException.la	\
 				$(TCL_LDFLAGS) @THREADLD_FLAGS@
 
+install-data-local:
+	$(mkinstalldirs) @prefix@/vmusbdriver
+	$(mkinstalldirs) @prefix@/vmusbdriver/includes
+	$(INSTALL_DATA)  *.h @prefix@/vmusbdriver/includes
