@@ -3419,5 +3419,728 @@ item.commitToRing(aring);
         </para>
       </refsect1>
    </refentry>
+    	 <refentry id="ref-dataformat">
+           <refmeta>
+              <refentrytitle>DataFormat.h</refentrytitle>
+              <manvolnum>3daq</manvolnum>
+           </refmeta>
+           <refnamediv>
+              <refname>DataFormat.h</refname>
+              <refpurpose>Format of ring items.</refpurpose>
+           </refnamediv>
+           
+           <refsynopsisdiv>
+            <synopsis>
+
+
+#include &lt;DataFormat.h&gt;
+
+typedef struct <type>_RingItemHeader</type> {
+    <fieldsynopsis>
+        <type>uint32_t</type>  <varname>s_size</varname>
+    </fieldsynopsis>
+    <fieldsynopsis>
+        <type>uint32_t</type> <varname>s_type</varname>
+    </fieldsynopsis>
+} RingItemHeader pRingItemHeader;
+
+typedef struct <type>_StateChangeItem</type> {
+    <fieldsynopsis>
+        <type>RingItemHeader</type>  <varname>s_header</varname>
+    </fieldsynopsis>
+    <fieldsynopsis>
+        <type>uint32_t</type> <varname>s_runNumber</varname>
+    </fieldsynopsis>
+    <fieldsynopsis>
+        <type>uint32_t</type> <varname>s_timeOffset</varname>
+    </fieldsynopsis>
+    <fieldsynopsis>
+        <type>time_t</type> <varname>s_Timestamp</varname>
+    </fieldsynopsis>
+    <fieldsynopsis>
+        <type>char</type> <varname>s_title[TITLE_MAXSIZE+1]</varname>
+    </fieldsynopsis>
+} StateChangeItem, *pStateChangeItem;
+
+typedef struct <type>_ScalerItem</type> {
+    <fieldsynopsis>
+        <type>RingItemHeader</type> <varname>s_header</varname>
+    </fieldsynopsis>
+    <fieldsynopsis>
+        <type>uint32_t</type> <varname>s_intervalStartOffset</varname>
+    </fieldsynopsis>
+    <fieldsynopsis>
+        <type>uint32_t</type> <varname>s_intervalEndOffset</varname>
+    </fieldsynopsis>
+    <fieldsynopsis>
+        <type>time_t</type> <varname>s_timestamp</varname>
+    </fieldsynopsis>
+    <fieldsynopsis>
+        <type>uint32_t</type> <varname>s_scalerCount</varname>
+    </fieldsynopsis>
+    <fieldsynopsis>
+        <type>uint32_t</type> <varname>s_scalers[1]</varname>
+    </fieldsynopsis>
+} ScalerItem, *pScalerItem;
+    
+typedef struct <type>_TextItem</type> {
+    <fieldsynopsis>
+        <type>RingItemHeader</type> <varname>s_header</varname>
+    </fieldsynopsis>
+    <fieldsynopsis>
+        <type>uint32_t</type> <varname>s_timeOffset</varname>
+    </fieldsynopsis>
+    <fieldsynopsis>
+        <type>time_t</type> <varname>s_timestamp</varname>
+    </fieldsynopsis>
+        <fieldsynopsis>
+        <type>uint32_t</type> <varname>s_stringCount</varname>
+    </fieldsynopsis>
+    <fieldsynopsis>
+        <type>char</type> <varname>s_strings[1]</varname>
+    </fieldsynopsis>
+} TextItem, *pTextItem;
+
+typedef struct <type>_PhysicsEventItem</type> {
+    <fieldsynopsis>
+        <type>RingItemHeader</type> <varname>s_header</varname>
+    </fieldsynopsis>
+    <fieldsynopsis>
+        <type>uint16_t</type> <varname>s_body[1]</varname>
+    </fieldsynopsis>
+     
+} PhysicsEventItem, *pPhysicsEventItem;
+
+typedef struct <type>__PhysicsEventCountItem</type> {
+    <fieldsynopsis>
+        <type>RingItemHeader</type> <varname>s_header</varname>
+    </fieldsynopsis>
+    <fieldsynopsis>
+        <type>uint32_t</type> <varname>s_timeOffset</varname>
+    </fieldsynopsis>
+    <fieldsynopsis>
+        <type>time_t</type> <varname>s_timestamp</varname>
+    </fieldsynopsis>
+    <fieldsynopsis>
+        <type>uint64_t</type> <varname>s_eventCount</varname>
+    </fieldsynopsis>
+    
+} PhysicsEventCountItem, *pPhysicsEventCountItem;
+            </synopsis>
+           </refsynopsisdiv>
+           <refsect1>
+              <title>DESCRIPTION</title>
+              <para>
+                This header describes the format of data placed in NSCL ring
+                buffers.  Each item consists of an envelope and a payload.
+                The envelope, 
+                <type>RingItemHeader</type> contains a size:
+                <fieldsynopsis><type>uint32_t</type> <varname>s_size</varname></fieldsynopsis>
+                which is the total size of the item (inlcuding the header) in
+                bytes, and an item type
+                <fieldsynopsis><type>uint32_t</type> <varname>s_type</varname></fieldsynopsis>
+                which indicates what the item contains.  The payload immediately
+                follows the header and varies in structure depending on the
+                value in <varname>s_type</varname>.
+              </para>
+              <para>
+                Items are placed in rings in native machine byte ordering.
+                While the data type is 32 bits long, only the least significant
+                16 bits are nonzero.  This allows a determination of
+                the endianness of the system that generated the item.
+              </para>
+              <para>
+                STRUCTURES below describes each of the ring items defined
+                at this time.  CONSTANTS defines the set of values that
+                <varname>s_type</varname> can take (once converted to
+                the localh host's endian-ness).
+              </para>
+           </refsect1>
+           <refsect1>
+              <title>STRUCTURES</title>
+              <para>
+                The following ring items have been defined:
+              </para>
+              <variablelist>
+                <varlistentry>
+                    <term><type>StateChangeItem</type></term>
+                    <listitem>
+                        <para>
+                            This ring item carries information about state
+                            changes in data taking its header will have
+                            a type that is one of <literal>BEGIN_RUN</literal>,
+                            <literal>END_RUN</literal>, <literal>PAUSE_RUN</literal>
+                            or <literal>RESUME_RUN</literal> depending on the
+                            state change that is being documented.
+                        </para>
+                        <para>
+                            A state change has the following set of fields:
+                        </para>
+                        <variablelist>
+                            <varlistentry>
+                                <term>
+                                    <fieldsynopsis>
+                                        <type>RingItemHeader</type>  <varname>s_header</varname>
+                                    </fieldsynopsis>
+                                </term>
+                                <listitem>
+                                    <para>
+                                        This is the ring item's header. The
+                                        contents of this structure have been
+                                        described in DESCRIPTION above.
+                                    </para>
+                                </listitem>
+                            </varlistentry>
+                            <varlistentry>
+                                <term>
+                                    <fieldsynopsis>
+                                        <type>uint32_t</type> <varname>s_runNumber</varname>
+                                        
+                                    </fieldsynopsis>
+                                </term>
+                                <listitem>
+                                    <para>
+                                        Contains the run number of the current
+                                        run.  When data are being recorded
+                                        it is expected this will be a unique
+                                        number.
+                                    </para>
+                                </listitem>
+                            </varlistentry>
+                            <varlistentry>
+                                <term>
+                                    <fieldsynopsis>
+                                        <type>uint32_t</type> <varname>s_timeOffset</varname>
+                                    </fieldsynopsis>
+                                </term>
+                                <listitem>
+                                    <para>
+                                        Contains the number of seconds into the
+                                        run at which this transition occured.
+                                    </para>
+                                 </listitem>
+                           </varlistentry>
+                           <varlistentry>
+                               <term>
+                                  <fieldsynopsis>
+                                     <type>time_t</type> <varname>s_Timestamp</varname>
+                                  </fieldsynopsis>
+                               </term>
+                               <listitem>
+                                  <para>
+                                       Contains the absolute time at which the 
+                                       item was initially generated. This value
+                                       is the number of seconds since the Unix
+                                       epoch. The various functions normally
+                                       defined in &lt;time.h&gt; can be used to
+                                       manipulate this value once it is in
+                                       native byte ordering.
+                                  </para>
+                              </listitem>
+                           </varlistentry>
+                           <varlistentry>
+                              <term>
+                                 <fieldsynopsis>
+                                    <type>char</type> <varname>s_title[TITLE_MAXSIZE+1]</varname>
+                                 </fieldsynopsis>                                    
+                              </term>
+                              <listitem>
+                                 <para>
+                                     Null terminated string that contains the
+                                     run title.  The actual character part is
+                                     gauranteed to be at most
+                                     <literal>TiTlE_MAXSIZE</literal> bytes
+                                     ensuring that there is a terminating null
+                                     byte.  At this time multi-byte/wide
+                                     characters are not excluded but not
+                                     explicitly supported.
+                                 </para>
+                              </listitem>
+                          </varlistentry>
+                          </variablelist>
+                       </listitem>
+                  </varlistentry>
+                  <varlistentry>
+                      <term><type>ScalerItem</type></term>
+                      <listitem>
+                         <para>
+                             This item type contains incremental scaler data.
+                             NSCL scaler data by standard is incremental so
+                             that users don't have to be concerned with how
+                             scaler hardware handles overflows (assuming the
+                             scaler registers are wide enough to accomodate a
+                             single counting interval).   It is the Readout
+                             program's responsibility to ensure scaler values
+                             represent incremental values.
+                         </para>
+                         <para>
+                             <type>ScalerItem</type> ring items have the
+                             following fields:
+                         </para>
+                         <variablelist>
+                             <varlistentry>
+                                <term>
+                                   <fieldsynopsis>
+                                      <type>RingItemHeader</type> <varname>s_header</varname>
+                                   </fieldsynopsis>
+                                </term>
+                                <listitem>
+                                    <para>
+                                        The standard header.  The
+                                        <varname>s_type</varname> field will
+                                        contain the value
+                                        <literal>INCREMENTAL_SCALERS</literal>
+                                        (see CONSTANTS below).
+                                    </para>
+                                </listitem>
+                             </varlistentry>
+                             <varlistentry>
+                                <term>
+                                   <fieldsynopsis>
+                                      <type>uint32_t</type> <varname>s_intervalStartOffset</varname>
+                                   </fieldsynopsis>
+                                </term>
+                                <listitem>
+                                   <para>
+                                       The number of seconds into the run at
+                                       which this counting interval started.
+                                       If this is the first scaler item in a
+                                       run  this will be
+                                       <literal>0</literal>.  If not this will
+                                       be the
+                                       <varname>s_intervalEndOffset</varname>
+                                       of the previous scaler item in the run.
+                                   </para>
+                               </listitem>
+                            </varlistentry>
+                            <varlistentry>
+                               <term>
+                                  <fieldsynopsis>
+                                     <type>uint32_t</type> <varname>s_intervalEndOffset</varname>
+                                  </fieldsynopsis>
+                               </term>
+                               <listitem>
+                                  <para>
+                                     The number of seconds into the run at
+                                     which this counting interval ended.
+                                     Normally this wil be the
+                                     <varname>s_intervalStartOffset</varname>
+                                     of the next incremental scaler item.
+                                  </para>
+                               </listitem>
+                            </varlistentry>
+                            <varlistentry>
+                               <term>
+                                  <fieldsynopsis>
+                                     <type>time_t</type> <varname>s_timestamp</varname>
+                                  </fieldsynopsis>
+                               </term>
+                               <listitem>
+                                  <para>
+                                     The absolute time at which this scaler
+                                     item was produced.  This is a Unix
+                                     <type>time_t</type> which means it is the
+                                     number of seconds since the unix
+                                     <firstterm>epoch</firstterm> time and
+                                     date.  Once converted into local host byte
+                                     ordering, this value can be used in all
+                                     function in &lt;time.h&gt; that take a
+                                     <type>time_t</type> as a parameter.
+                                  </para>
+                               </listitem>
+                            </varlistentry>
+                            <varlistentry>
+                                <term>
+                                    <fieldsynopsis>
+                                        <type>uint32_t</type> <varname>s_scalerCount</varname>
+                                    </fieldsynopsis>
+                                </term>
+                                <listitem>
+                                    <para>
+                                        Contains the number of scalers that have
+                                        been read out.  This is assumed to be a
+                                        number of <type>uint32_t</type> values.
+                                    </para>
+                                </listitem>
+                            </varlistentry>
+                            <varlistentry>
+                                <term>
+                                    <fieldsynopsis>
+                                        <type>uint32_t</type> <varname>s_scalers[1]</varname>
+                                    </fieldsynopsis>
+                                </term>
+                                <listitem>
+                                    <para>
+                                        This is the first element of an array
+                                        of scalers.  The actual size of this array
+                                        will be determined by
+                                        <varname>s_scalerCount</varname>
+                                    </para>
+                                </listitem>
+                            </varlistentry>
+                         </variablelist>
+                      </listitem>
+                  </varlistentry>
+                  <varlistentry>
+                    <term><type>TextItem</type> </term>
+                    <listitem>
+                        <para>
+                            Several item types contain documentation data in
+                            the form of a list of null terminated strings.
+                            These are <type>TextItem</type> item types and the
+                            actual contents are differntiated by the
+                            <varname>s_type</varname> field of the item header.
+                        </para>
+                        <para>
+                            The <type>TextItem</type> contains the following
+                            fields:
+                        </para>
+                        <variablelist>
+                            <varlistentry>
+                                <term>
+                                    <fieldsynopsis>
+                                       <type>RingItemHeader</type> <varname>s_header</varname>
+                                    </fieldsynopsis>
+                                </term>
+                                <listitem>
+                                    <para>
+                                        The standard ring item header.  The
+                                        <varname>s_type</varname> field will be
+                                        either <literal>MONITORED_VARIABLES</literal>
+                                        or <literal>PACKET_TYPES</literal>.  The
+                                        string formats vary depending on which of
+                                        these is used.  See the <varname>s_strings</varname>
+                                        field description velow for more information.
+                                    </para>
+                                </listitem>
+                            </varlistentry>
+                            <varlistentry>
+                                <term>
+                                    <fieldsynopsis>
+                                       <type>uint32_t</type> <varname>s_timeOffset</varname>
+                                    </fieldsynopsis>
+                                </term>
+                                <listitem>
+                                    <para>
+                                        The time in seconds from the beginnning
+                                        of the run at which this item was
+                                        emitted.
+                                    </para>
+                                </listitem>
+                            </varlistentry>
+                            <varlistentry>
+                                <term>
+                                    <fieldsynopsis>
+                                       <type>time_t</type> <varname>s_timestamp</varname>
+                                    </fieldsynopsis>
+                                </term>
+                                <listitem>
+                                    <para>
+                                        A unix absolute timestamp.
+                                        This is a time in
+                                        seconds since the beginning of the
+                                        unix epoch.  Once converted to the
+                                        local host byte ordering, this is
+                                        a valid <type>time_t</type> which can
+                                        be used in any of the function in
+                                        &lt;time.h&gt;
+                                    </para>
+                                </listitem>
+                            </varlistentry>
+                            <varlistentry>
+                                <term>
+                                    <fieldsynopsis>
+                                       <type>uint32_t</type> <varname>s_stringCount</varname>
+                                    </fieldsynopsis>
+                                </term>
+                                <listitem>
+                                    <para>
+                                        The number of strings in the item.
+                                    </para>
+                                </listitem>
+                            </varlistentry>
+                            <varlistentry>
+                                <term>
+                                    <fieldsynopsis>
+                                       <type>char</type> <varname>s_strings[1]</varname>
+                                    </fieldsynopsis>                                   
+                                </term>
+                                <listitem>
+                                    <para>
+                                        The first byte of string storage.  The
+                                        actual size of the <varname>s_strings</varname>
+                                        array depends on the number and lengths
+                                        of the strings, but can be computed from
+                                        the <varname>s_size</varname> field of the
+                                        header.
+                                    </para>
+                                    <para>
+                                        The actual format of each string depends
+                                        on the <varname>s_type</varname> field
+                                        of the header.
+                                    </para>
+                                    <para>
+                                        <literal>MONITORED_VARIABLES</literal>
+                                        items contain the values of readout
+                                        variables that have been chosen for
+                                        monitoring.  One application is the
+                                        injection of EPICS process variable
+                                        data into Readout's Tcl interpreter.
+                                    </para>
+                                    <para>
+                                        A string for a <literal>MONITORED_VARIABLE</literal>
+                                        is a Tcl command that would recreate the
+                                        variable with that value (e.g. a
+                                        Tcl <command>set</command> command) like:
+                                    </para>
+                                    <informalexample>
+                                        <programlisting>
+set EPICS_DATA(Z1234) 1.234
+                                        </programlisting>
+                                    </informalexample>
+                                    <para>
+                                        <literal>PACKET_TYPES</literal> items
+                                        are created by the
+                                        <classname>CDocumentedPacket</classname>
+                                        in the SBS readout framework.  These strings
+                                        are a colon separated set of fields that
+                                        provide in order, for each packet type the
+                                        packet id, the packet description,
+                                        the packet version and the date at which
+                                        the <classname>CDocumentedPacket</classname>
+                                        object has been instantiated. For
+                                        example:
+                                    </para>
+                                    <informalexample>
+                                        <programlisting>
+0x1234:My special packet:3.1416:Wed Jun 30 21:49:08 1993
+                                        </programlisting>
+                                    </informalexample>
+                                </listitem>
+                            </varlistentry>
+                        </variablelist>
+                    </listitem>
+                  </varlistentry>
+                  <varlistentry>
+                      <term><type>PhysicsEventItem</type></term>
+                      <listitem>
+                          <para>
+                                This contains data from a physics trigger.
+                                The fields include the standard header
+                                <varname>s_header</varname> and a
+                                <fieldsynopsis>
+                                <type>uint16_t</type> <varname>s_body</varname>
+                                </fieldsynopsis>
+                                which is the first word of the body.
+                          </para>
+                          <para>
+                                The header's <varname>s_type</varname> field
+                                has the value <literal>PHYSICS_EVENT</literal>.
+                                The actual size of the body depends on how many
+                                words were read out for this event.  At this level
+                                of formatting ther is no specification describing
+                                the payload of this item.  It is customary, however
+                                to put some information about the size of the
+                                event read in the beginning of the event.
+                                The structure of this size may depend on the
+                                readout framework, however.
+                          </para>
+                      </listitem>
+                  </varlistentry>
+                  <varlistentry>
+                      <term><type>PhysicsEventCountItem</type></term>
+                      <listitem>
+                          <para>
+                                This item type is used to describe the number
+                                of triggers that have been recorded since the
+                                start of the run.  This can be used for
+                                several applications including a determination
+                                of data fraction for sampling consumers, and
+                                raw data rate approximation.
+                          </para>
+                          <para>
+                            This item has the following fields:
+                          </para>
+                          <variablelist>
+                            <varlistentry>
+                                <term>
+                                    <fieldsynopsis>
+                                        <type>RingItemHeader</type> <varname>s_header</varname>
+                                    </fieldsynopsis>
+
+                                </term>
+                                <listitem>
+                                    <para>
+                                        The standard ring item header.
+                                        The <varname>s_type</varname> field will
+                                        be <literal>PHYSICS_EVENT_COUNT</literal>.
+                                    </para>
+                                </listitem>
+                            </varlistentry>
+                            <varlistentry>
+                                <term>
+                                    <fieldsynopsis>
+                                        <type>uint32_t</type> <varname>s_timeOffset</varname>
+                                    </fieldsynopsis>
+                                </term>
+                                <listitem>
+                                    <para>
+                                        The run relative time in seconds
+                                        at which this item was emitted by the
+                                        readout framework(s).
+                                    </para>
+                                </listitem>
+                            </varlistentry>
+                            <varlistentry>
+                                <term>
+                                    <fieldsynopsis>
+                                        <type>time_t</type> <varname>s_timestamp</varname>
+                                    </fieldsynopsis>
+
+                                </term>
+                                <listitem>
+                                    <para>
+                                        Absolute timestamp describing when this
+                                        item was emitted.  When converted to
+                                        native byte ordering, This item can be
+                                        used in e.g. <function>ctime</function>
+                                        and other time functions described in
+                                        &lt;time.h&gt;
+                                    </para>
+                                </listitem>
+                            </varlistentry>
+                            <varlistentry>
+                                <term>
+                                    <fieldsynopsis>
+                                        <type>uint64_t</type> <varname>s_eventCount</varname>
+                                    </fieldsynopsis>                            
+
+                                </term>
+                                <listitem>
+                                    <para>
+                                        Number of events acquired so far this run.
+                                    </para>
+                                </listitem>
+                            </varlistentry>
+                          </variablelist>
+                      </listitem>
+                  </varlistentry>
+                  
+              </variablelist>
+           </refsect1>
+            <refsect1>
+               <title>CONSTANTS</title>
+               <para>
+                    <filename>DataFormat.h</filename> provides constant definitions
+                    for the possible item type values as well as other definitions:
+               </para>
+               <variablelist>
+                    <varlistentry>
+                        <term><literal>BEGIN_RUN</literal></term>
+                        <listitem>
+                            <para>
+                                Item type for a <type>StateChangeItem</type>
+                                that announces a new run is starting.
+                            </para>
+                        </listitem>
+                    </varlistentry>
+                    <varlistentry>
+                        <term><literal>END_RUN</literal></term>
+                        <listitem>
+                            <para>
+                                Item type for a <type>StateChangeItem</type>
+                                that announces a run is ending.
+                            </para>
+                        </listitem>
+                    </varlistentry>
+                    <varlistentry>
+                        <term><literal>PAUSE_RUN</literal></term>
+                        <listitem>
+                            <para>
+                                Item type for a <type>StateChangeItem</type>
+                                that announcdes a run is being paused.
+                            </para>
+                        </listitem>
+                    </varlistentry>
+                    <varlistentry>
+                        <term><literal>RESUME_RUN</literal></term>
+                        <listitem>
+                            <para>
+                                Item type for a <type>StateChangeItem</type>
+                                that announces a paused run is being resumed.
+                            </para>
+                        </listitem>
+                    </varlistentry>
+                    <varlistentry>
+                        <term><literal>PACKET_TYPES</literal></term>
+                        <listitem>
+                            <para>
+                                Item type for a <type>TextItem</type>
+                                that contains packet type definitions.
+                            </para>
+                        </listitem>
+                    </varlistentry>
+                    <varlistentry>
+                        <term><literal>MONITORED_VARIABLES</literal></term>
+                        <listitem>
+                            <para>
+                                Item type for a <type>TextItem</type>
+                                that contains values of variables monitored
+                                at run-time.
+                            </para>
+                        </listitem>
+                    </varlistentry>
+                    <varlistentry>
+                        <term><literal>INCREMENTAL_SCALERS</literal></term>
+                        <listitem>
+                            <para>
+                                Item type for a <type>ScalerItem</type>.  These
+                                contain incremental scaler readout values.
+                            </para>
+                        </listitem>
+                    </varlistentry>
+                    <varlistentry>
+                        <term><literal>PHYSICS_EVENT</literal></term>
+                        <listitem>
+                            <para>
+                                Item type for an item that contains physics
+                                data.
+                            </para>
+                        </listitem>
+                    </varlistentry>
+                    <varlistentry>
+                        <term><literal>PHYSICS_EVENT_COUNT</literal></term>
+                        <listitem>
+                            <para>
+                                Item type for a <type>PhysicsEventCountItem</type>
+                                which contains information about how many
+                                events have been put in the ring buffer this run.
+                            </para>
+                        </listitem>
+                    </varlistentry>
+                    <varlistentry>
+                        <term><literal>FIRST_USER_ITEM_CODE</literal></term>
+                        <listitem>
+                            <para>
+                                If users create application specific
+                                items the item type code should be at least
+                                this value.  The largest allowed item type
+                                code is <literal>0xffff</literal>.
+                            </para>
+                        </listitem>
+                    </varlistentry>
+                    <varlistentry>
+                        <term><literal>TITLE_MAXSIZE</literal></term>
+                        <listitem>
+                            <para>
+                                The maximum number of non null characters in
+                                a title string. 
+                            </para>
+                        </listitem>
+                    </varlistentry>
+                    
+               </variablelist>
+            </refsect1>
+         </refentry>     
 
 <!-- /manpage  -->
