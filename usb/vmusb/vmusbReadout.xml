@@ -1,0 +1,822 @@
+<!-- chapter utilities -->
+
+<chapter>
+    <title>VMUSB readout</title>
+    <para>
+        The VMUSB readout framework provides support for the Wiener-JTec
+        VM-USB VME controller. The VM-USB is a USB VME controller that uses
+        a Xilinx gate array to implement a VME list processor.  This allows
+        events to be readout autonomously by the VM-USB without intervention
+        by the host processor.
+        The VMUSB Readout framework provides:
+    </para>
+    <itemizedlist>
+        <listitem><para>
+            A high level approach to the problem of data taking with the VM-USB
+        </para></listitem>
+        <listitem><para>
+            Support for user written device support without any need to
+            understand the format of list operations supported by the VM-USB.
+            Drivers can be written in C++.
+        </para></listitem>
+        <listitem>
+            <para>
+                Direct insertion of data taken to an arbitrary destination
+                ringbuffer.
+            </para>
+        </listitem>
+    </itemizedlist>
+    <para>
+        This chapter provides:
+    </para>
+    <itemizedlist>
+        <listitem>
+            <para>
+                The philosophy behind the VMUSB readout framework.
+            </para>
+        </listitem>
+        <listitem>
+            <para>
+                How to write configuration files for the VMUSB readout
+                framework.
+            </para>
+        </listitem>
+        <listitem>
+            <para>
+                How to write device support modules in in C++ and incorpoprate
+                those modules into the
+                VMUSB readout framework.
+            </para>
+        </listitem>
+    </itemizedlist>
+    <para>
+        Reference information is available in the
+        <literal>3vmusb</literal> section of the reference material.
+    </para>
+    <section>
+        <title>How the VMUSB readout framework works</title>
+        <para>
+            The VM-USB readout framework taks a high level approach to
+            specifying and configuring a readout case.   Users write a
+            configuration file that specifies at a very high level which
+            devices are used, their configuration and which ones need to be
+            read under which circumstances (The VM-USB supports up to 8 lists
+            with differing trigger conditions).
+        </para>
+        <para>
+            The framework supports data taking (physics and scaler triggers), as
+            well as a mechanism for building and integrating control panels
+            for slow controls devices.  A plugin architecture supports the addition
+            of user support for devices that are not now supported by internal
+            drivers.
+        </para>
+        <para>
+            The recurring concepts for configuring data taking and slow controls
+            devices are:
+        </para>
+        <itemizedlist>
+            <listitem>
+                <para>
+                    A Tcl configuration file describes the devices used
+                    by the experiment.
+                </para>
+            </listitem>
+            <listitem>
+                <para>
+                    Each supported device class is represented in the
+                    configuration file by a Tcl command ensemble. The
+                    command ensemble provides subcommands that allow you to
+                    create, configure and query the configuration of
+                    physical devices (device instances).
+                </para>
+            </listitem>
+            <listitem>
+                <para>
+                    The device configuration is represented in the configuration
+                    file in manner analagous to the state of a Tk widget.
+                    That is, you never actually program the device directly,
+                    you simply specify the desired configuration. The actual
+                    programming is done by the device class's device support
+                    software.
+                </para>
+            </listitem>
+            <listitem>
+                <para>
+                    In accordance with the way the VM-USB operates, you can create
+                    8 lists or <firstterm>stack</firstterm>s in VM-USB parlance.
+                    Some of these stacks have special meaning to either the
+                    framework or to the VM-USB.  One stack is reserved by the
+                    VM-USB as the target of periodic triggers and is used to
+                    support scaler readout/display.  A second stack is reserved
+                    for a software periodic trigger and is used to support
+                    devices that require periodic monitoring (e.g. detector
+                    bias supplies which may trip during operation due to interlock
+                    conditions).   Of the remaining 6 stacks one can be triggered
+                    by a VM-USB front panel input and the remaining 5 can
+                    be triggered by VME backplane interrupts.
+                </para>
+                <para>
+                    Each stack has, configuration properties as well. One
+                    configuration property is the set of modules managed
+                    by that stack.  Modules managed by that stack are initialized
+                    by the software, in accordance with their configuration,
+                    and contribute to the readout list that executes in response
+                    to that stack's trigger.
+                </para>
+            </listitem>
+        </itemizedlist>
+    </section>
+    <section>
+        <title>Writing DAQ configuration files</title>
+        <para>
+            The DAQ configuration file is processed at the beginning of each run.
+            The configuration file is processed in a fresh interpreter each time.
+            You therefore cannot maintain any state across runs via your configuration
+            file.
+        </para>
+        <para>
+            To illustrate module creation and configuration,
+            this let's look at a fragment from a configuration
+            file:
+        </para>
+        <example>
+            <title>Creating and configuring devices</title>
+            <programlisting>
+adc create myadc 0x11000000
+adc config myadc -geo 15
+            </programlisting>
+        </example>
+        <para>
+            The <command>adc</command> command implements base support for the
+            CAEN 32 channel digitizer family (V775, V785, V792, V862).  The first
+            command creates an instance of one of those modules with a base address
+            <literal>0x11000000</literal>.  The instance is given the name
+            <literal>myadc</literal> to distinguish it from other digitizers
+            of that or other types.
+        </para>
+        <para>
+            The second line sets a configuration parameter, the geographical
+            address of the  module, for the instance created by the first line.
+            Each device type supports a set of configuration parameters much in the
+            same way Tk objects support configuration options.
+            The reference ssection <literal>3vmusb</literal> provides detailed
+            information about the configuration options supported by each
+            device class.
+        </para>
+        <para>
+            Configuration files must also specify at least one stack and, if
+            scaler modules are to be read periodically, a second scaler stack.
+            See the <xref linkend="ccusb3-stack" /> command
+            in the reference material for detailed information about how
+            to create and configure stacks.
+        </para>
+        <para>
+            To continue with the previous example:
+        </para>
+        <example>
+            <title>Configuring an event stack</title>
+            <programlisting>
+stack create events
+stack config event -trigger nim1 -modules [myadc]
+            </programlisting>
+        </example>
+        <para>
+            Stacks are created and configured exactly like any other module.
+            In this configuration file fragment, a stack named
+            <literal>events</literal> is created.  It is configured to
+            manage the <literal>myadc</literal> module (<option>-modules</option>).
+            It is configured to use the IN 1 input of the VM-USB
+            (<literal>-trigger nim1</literal>) to trigger the stack.
+        </para>
+        <para>
+            Finally here is a configuration file fragment that sets up an
+            SIS 3820 scaler and a scaler stack to read it every 2 seconds:
+        </para>
+        <example>
+            <title>Configuring a VM-USB scaler stack</title>
+            <programlisting>
+sis3820 create sisscaler 0x38000000
+
+stack create scaler 
+stack config scaler -modules [list sisscaler] -trigger scaler -period 2
+            </programlisting>
+        </example>
+        
+    </section>
+    
+    <section>
+        <title>Writing C++ device support software</title>
+        <para>
+            This section describes how to write C++ software support for new
+            data taking devices and how to integrate that support into the
+            system.  Device support modules are built into shared images.
+            Tcl provides the <command>load</command> command which loads
+            a shared object into an application and invokes an initialization
+            function.  This provicdes a plugin scheme that the framework
+            leverages to support externally written device drivers.
+        </para>
+        <para>
+            A device driver therefore consists of a C++ program that provides
+            a new device class and an initialization function that associates
+            this class with a Tcl command in the interpreter that reads the
+            configuration file.  Since each time the configuration file is read,
+            a new interpreter is used, this also means that the current version
+            of the device driver shared image is loaded at the start of each
+            run.
+        </para>
+        <para>
+            The device driver support package is supplied as a driver development
+            kit that consists of a template driver and a Makefile.  These are two
+            files in the <filename>vmusbdriver</filename> directory of the
+            NSCLDAQ installation.  The example below shows how to create
+            a new directory and prepare it for driver development.  In the example
+            we are assuming that the environment variable <literal>DAQROOT</literal>
+            points to the top level of the installation directory.
+        </para>
+        <example>
+            <title>Obtaning the VM-USB device driver development kit</title>
+            <programlisting>
+mkdir mydriver
+cd mydriver
+cp $DAQROOT/vmusbdriver/drivertemplate.cpp .
+cp $DAQROOT/vmusbdriver/Makefile .
+            </programlisting>
+        </example>
+        <para>
+            The template driver is a complete example that builds a
+            marker driver which inserts  constant word into the event.
+            You can do a <command>make</command> to build the driver if you like.
+            The template driver then defines a command <command>changeme</command>
+            for the configuration file interpreter and a configuration parameter
+            <option>-value</option> which allows you to set the value of the
+            markrer.
+        </para>
+        <para>
+            The script fragment below shows how to load the driver, create and
+            configure a module instance using it. The fragment assumes that the
+            driver shared object <filename>libtemplatedriver.so</filename>
+            is in the same directory as the DAQ configuration script but that
+            that directory my not be the current working directory when
+            the configuration script is sourced.
+        </para>
+        <example>
+            <title>Using a user ritten VMUSB driver</title>
+            <programlisting>
+set here [file nativename [file dirname [info script]]]
+load [file join $here libtemplatedriver.so]
+changeme cdreate testing -value -0x1234
+            </programlisting>
+        </example>
+        <para>
+            The work done by the <command>set here...</command> command builds
+            the full path to the directory the driver is in.  This is necessary
+            beause the <command>load</command> command normally only uses directories
+            that are in the dynamic loader search path to look for shared objects.
+            Note finally that once the driver is loaded, it registers the
+            <command>changeme</command> command with the interpreter and that
+            this command operates exactly like any other driver command.
+        </para>
+        <para>
+            The next sections will examine the driver elements in detail. Before
+            doing that, let's take a broad brush overview look at the driver
+            template.
+        </para>
+        <para>
+            The template consists of two sections.  The first section is the
+            definition and implementation of a class which derives from
+            <classname>CReadoutHardware</classname> the base class for
+            all DAQ device support.  The methods of this class define
+            configuration parameters, initialize the module as the run
+            is starting and provides the appropriate commands to the
+            VME list that is being generated for the stack this module
+            is an element of.  Finally virtual duplication
+            (<methodname>clone</methodname>) is also defined.
+        </para>
+        <para>
+            The second section  is an initialization
+            function that the Tcl <command>load</command> command automatically
+            locates and calls.  This function creates an instance of the
+            driver which is cloned for each device instance the user creates.
+            It also associates a Tcl command with the device driver so that
+            the DAQ configuration script can create and manipulate new instances.
+        </para>
+        <para>
+            While the driver template is heavily commmented, and modification
+            points indicated, the next few sectinos are a guided tour
+            of the driver in detail, pointing out what needs to be modified
+            to make the driver work with a specific device.
+        </para>
+        <section>
+            <title>The driver <methodname>onAttach</methodname> method</title>
+            <para>
+                Each driver instance has a configuration database attached to it
+                when it is created.  The configuration database holds configuration
+                parameter definitions and their current values.  The framework
+                takes care of managing the values for you, however you must
+                define the set of configuration parameters supported by your
+                driver.
+            </para>
+            <para>
+                The template driver's code is (comments removed for brevity:
+            </para>
+            <informalexample>
+                <programlisting>
+void
+CTemplateDriver::onAttach(CReadoutModule&amp; configuration)
+{
+  m_pConfiguration = &amp;configuration;     <co id='vmusb-dtemplate-saveconfig' />
+
+  m_pConfiguration->addIntegerParameter("-base");  <co id='vmusb-dtemplate-baseparam' />
+  m_pConfiguration->addIntegerParameter("-id", 0, 0xffff, 0); <co id='vmusb-dtemplate-idparam' />
+
+
+}
+                </programlisting>
+            </informalexample>
+            <para>
+                In the discussion below, the numbers refer to the same numbers
+                in the example above.
+            </para>
+            <calloutlist>
+                <callout arearefs='vmusb-dtemplate-saveconfig'>
+                
+                    <para>
+                        The method is passed a reference to its instance
+                        configuration database.  This will be used here,
+                        to establish configuration parameters, in the
+                        <methodname>Initialize</methodname> method to know
+                        how to set up the module and  in
+                        <methodname>addReadoutList</methodname> to know
+                        how to read the module.
+                    </para>
+                    <para>
+                        This line saves a pointer to the configuration
+                        database for this instance in member data where it
+                        can be accessed in those other methods.
+                    </para>
+                </callout>
+                <callout arearefs='vmusb-dtemplate-baseparam'>
+                    
+                    <para>
+                        Most if not all VME modules must be addressed relative
+                        to some base address that is set via jumpers or switches
+                        on the module itself.  Therefore the template driver
+                        provides a definition for a <option>-base</option>
+                        option to hold this value.  The specific version of
+                        <methodname>addIntegerParameter</methodname> used
+                        only requires that the value passed to <option>-base</option>
+                        be a valid integer.  No constraint on the range is
+                        imposed.
+                    </para>
+                    
+                </callout>
+                <callout arearefs='vmusb-dtemplate-idparam'>
+                    
+                    <para>
+                        Since the template driver inserts a marker
+                        the <option>id</option> parameter is defined
+                        to provide the value of the marker.  The VM-USB
+                        only supports 16 bit markers, therefore the
+                        version of <methodname>addIntegerParameter</methodname>
+                        constrains the range of values to be in the range
+                        <literal>[0..0xffff]</literal>.
+                    </para>
+                    <para>
+                        If a constraint is specified, and a daq configuration
+                        script violates it, the configuration file interpreter
+                        outputs an error message and refuses to start the run.
+                        Using constraints allows error checking to be done
+                        by the configuration subsystem without intervention
+                        by user code.
+                    </para>
+                    <para>
+                        Constraint checking comes from the
+                        <classname>CConfigurableObject</classname> class.
+                        See <xref linkend='vmusb3-CCONfigurableObject' />
+                        for pre-defined constraints.  That manpage also shows
+                        you how to create your own constraints if the pre-defined
+                        ones don't work for you.
+                    </para>
+                    
+                </callout>
+            </calloutlist>
+        </section>
+        <section>
+            <title>The driver <methodname>Initialize</methodname> method</title>
+            <para>
+                When a run is starting, each stack invokes the
+                <methodname>Initialize</methodname> method for each element in
+                its <option>-modules</option> list.  Each driver is supposed
+                to query its configuration and do any initialization demanded
+                by the configuration.  For example the <command>adc</command>
+                command queries the set of pedestal values and programs them
+                into its module (using the <option>-base</option> of course)
+                at this time.
+            </para>
+            <para>
+                The <methodname>Initialize</methodname> method is passed a
+                reference to a <classname>CVMUSB</classname> object.  Methods
+                on that object allow you to perform single or block VME
+                operations.  You can also create and stock a
+                <classname>CVMUSBReadoutList</classname> with several VME
+                operations and ask the controller to execute that list in
+                immediate mode.
+            </para>
+            <para>
+                See <xref linkend='vmusb3-CVMUSB' /> and
+                <xref linkend='vmusb3-CVMUSBReadoutList' /> for reference
+                information about those two classes.
+            </para>
+            <para>
+                The template driver is a marker and does not perform any
+                VME operations.  Since, however your driver will most likely
+                need the <option>-base</option> parameter value, it shows
+                how to obtain that from the configuration database:
+            </para>
+            <example>
+                <title>The template driver <methodname>Initialize</methodname> method</title>
+                <programlisting>
+void
+CTemplateDriver::Initialize(CVMUSB&amp; controller)
+{
+
+  uint32_t base = m_pConfiguration->getUnsignedParameter("-base");
+
+
+}
+                </programlisting>
+            </example>
+            <para>
+                The configuration database stores all parameter values as
+                strings after validating them however it also provides a rich
+                set of member function to convert the string to some other
+                format.  Since the <option>-base</option> parameter can take values
+                greater than <literal>0x80000000</literal> it must be converted
+                and treated as an unsigned integer.
+                <methodname>getUnsignedParameter</methodname> converts the
+                value of the configuration parameter given to an unsigned integer.
+            </para>
+        </section>
+        <section>
+            <title>The driver <methodname>addReadoutList</methodname> method</title>
+            <para>
+                The <methodname>addReadoutList</methodname> method is called
+                by stacks containing a driver instance when the stack is
+                building its list of VME operations to download into the VM-USB.
+                <methodname>addReadoutList</methodname> is passed a
+                <classname>CVMUSBReadoutList</classname> object and is expected
+                to add entries to that object.
+            </para>
+            <para>
+                The template ddriver fetches the <option>-base</option>
+                and <option>-id</option> option values and adds a marker
+                instruction to the stack with the value of the
+                <option>-id</option> option.
+            </para>
+            <example>
+                <title>Template Driver <methodname>addReadoutList</methodname> method</title>
+                <programlisting>
+void
+CTemplateDriver::addReadoutList(CVMUSBReadoutList&amp; list)
+{
+
+  uint32_t base  = m_pConfiguration->getUnsignedParameter("-base"); 
+  int      id    = m_pConfiguration->getIntegerParameter("-id"); <co id='vmusb-dtemplate-getid' />
+
+  list.addMarker(id);                                            <co id='vmusb-dtemplate-addmarker' />
+}
+
+                </programlisting>
+            </example>
+            <calloutlist>
+                <callout arearefs='vmusb-dtemplate-getid'>
+                
+                    <para>
+                        The <option>-id</option> option is an integer
+                        in the range <literal>[0 .. 0xffff]</literal>.
+                        This line
+                        fetches its current value from the configuration
+                        database.
+                    </para>
+                    
+                </callout>
+                <callout arearefs='vmusb-dtemplate-addmarker'>
+                    
+                    <para>
+                        This line adds a marker instruction to the
+                        stack.  The value of the marker to be
+                        inserted in the event is the value of the
+                        <option>-id</option> configuration parameter.
+                    </para>
+                    
+                </callout>
+            </calloutlist>
+        </section>
+        <section>
+            <title>Driver initialization <methodname>xxxx_init</methodname></title>
+            <para>
+                The driver will build to a shared object of the name
+                <filename>libxxxx.so</filename> where you will choose
+                <literal>xxxx</literal> when you edit the driver Makefile.
+                When the <command>load</command> command loads this library,
+                it will look for a function named
+                <methodname>Xxxx_Init</methodname> (note the capitalization).
+                and call it with a pointer to the running Tcl Interptreter.
+            </para>
+            <para>
+                You must make sure the initialization entry point name is
+                correct for the driver name.  For exmample:
+                <filename>libmyvmedriver.so</filename> requires an initialization
+                function entry point of
+                <methodname>Myvmedriver_Init</methodname>.
+            </para>
+            <para>
+                Let's pick apart the template driver's implementation of its
+                initialization function.
+            </para>
+            <example>
+                <title>
+                    The VMUSB driver <methodname>Xxxx_Init</methodname>
+                    function.
+                </title>
+                <programlisting>
+extern "C" {                                     <co id="vmusb-dtemplate-ccall" />
+  int Templatedriver_Init(Tcl_Interp* pInterp)   <co id="vmusb-dtemplate-initname" />
+  {
+
+    Tcl_PkgProvide(pInterp, "Templatedriver", "1.0"); <co id='vmusb-dtemplate-package' />
+
+    CUserCommand::addDriver("changeme", new CTemplateDriver); <co id='vmusb-dtemplate-adddriver' />
+
+    return TCL_OK;     <co id='vmusb-dtemplate-initsuccess' />
+    
+  }
+}                      <co id='vmusb-dtemplate-endccall' />
+                </programlisting>
+            </example>
+            <calloutlist>
+                <callout arearefs="vmusb-dtemplate-ccall">
+                    
+                    <para>
+                        The Tcl <command>load</command> command will be
+                        looking for a specific function name to call
+                        to initialize the library it just loaded.
+                        C++ <firstterm>decorates</firstterm> or
+                        <firstterm>mangles</firstterm> function names adding
+                        information about the return type and the
+                        type of parameters expected by the function.
+                        This is how it implements function/operator overloading.
+                    </para>
+                    <para>
+                        Using the <literal>extern "C"</literal> block shown
+                        tells the GNU C++ compiler to use <literal>C</literal>
+                        language call methods which disable this function
+                        name mangling.  Without this, the <command>load</command>
+                        command would not find the initialization function.
+                    </para>
+                
+                </callout>
+                <callout arearefs="vmusb-dtemplate-initname">
+                
+                    <para>
+                        As described above, the initialization function
+                        name must be precisely chosen to match both the
+                        library and the package name (see below).
+                        The function name used here must be modified to
+                        match your changes to the  Makefile.  The
+                        initialization function here is correct for
+                        the package <literal>TemplateDriver</literal>
+                        and the library file
+                        <filename>libtemplatedriver.so</filename>.
+                    </para>
+                
+                </callout>
+                <callout arearefs='vmusb-dtemplate-package'>
+                
+                    <para>
+                        This line also allows you to use the
+                        Tcl <command>package require</command> command to
+                        load the driver if you have created a
+                        <filename>pkgIndex.tcl</filename> file using e.g.
+                        <command>pkg_mkIndex</command> and added the diretory
+                        the driver lives in to the Tcl package load path
+                        (<varname>auto_path</varname>) or the
+                        <varname>TCLLIBPATH</varname> environment variable.
+                    </para>
+                    <para>
+                        The package name must match the part of the
+                        function name prior to <literal>_Init</literal>, as it
+                        is used to located the name of the package initialzation
+                        function by <command>package require</command>
+                    </para>
+                
+                </callout>
+                <callout arearefs='vmusb-dtemplate-adddriver'>
+                
+                    <para>
+                        This line associates the tcl command
+                        <command>changeme</command> with the
+                        driver by creating a <firstterm>prototype</firstterm>
+                        instance of the driver object that will be cloned
+                        to produce driver instances.  Normally you would change
+                        the name of the command to be a meaningful command
+                        name for your driver.
+                    </para>
+                    <para>
+                        This is part of an implementation of the
+                        <firstterm>prototype pattern</firstterm>. For more
+                        about the prototype pattern see e.g.
+                        <ulink url='http://en.wikipedia.org/wiki/Prototype_pattern'>
+                            http://en.wikipedia.org/wiki/Prototype_pattern
+                        </ulink>
+                    </para>
+                
+                </callout>
+                <callout arearefs='vmusb-dtemplate-initsuccess'>
+                
+                    <para>
+                        The <command>load</command> or
+                        <command>package require</command> command expects
+                        the initialization function to return
+                        <literal>TCL_OK</literal> on success or
+                        <literal>TCL_ERROR</literal> if  it is not able
+                        to successfully initialize. This line indicates
+                        a successful installation/initialization of the library.
+                    </para>
+               
+                </callout>
+                <callout arearefs='vmusb-dtemplate-endccall'>
+                    <para>
+                        Ends the <literal>extern "C" { </literal> block.
+                    </para>
+                </callout>}
+            </calloutlist>
+        </section>
+    </section>
+    <section>
+        <title> The slow controls subsystem</title>
+        <para>
+        </para>
+       <para>
+            There is nothing to stop you from creating device support that
+            does not do anything in its <methodname>addReadoutList</methodname>.
+            You could do this to implement static controls devices.  That is
+            non data taking devices whose configuration is set up at the start of
+            a run and cannot be dynamically modified.
+        </para>
+        <para>
+            There are cases, however when you'd like to have some control
+            panel associated with a device, that would provide a virtual knob
+            allowing you to dynamically modify settings in the device.
+            The slow controls subsystem supports this by offering a
+            TCP/IP server which can accept commands to set and query
+            devices.  
+        </para>
+        <para>
+            If the run is halted, the slow controls server can directly
+            manipulate the VMUSB to perform the desired device changes.
+            If, however the VMUSB is in data taking mode, the slow controls
+            server pauses the run, makes the setting and then resumes the run.
+            You should avoid working with control panels during production runs
+            for that reason.
+        </para>
+        <para>
+            The philosophy of the slow controls subsystem is similar to that
+            of the readout subsystem.  A controls configuration file defines
+            the control modules present in the system and their unchanging
+            configuration.  Note that the controls configuration file
+            is read only as VMUSBReadout starts, not once per run as
+            for the data acquisition configuration file.
+        </para>
+        <para>
+            The <command>Module</command> command is used to create configure
+            and query the configuration of slow controls devices known to the server.
+            The following fragment from a controls configuration file
+            creates and configurea a CAEN V812 CFD.
+        </para>
+        <informalexample>
+            <programlisting>
+Module create caenv812 cfd
+Module config cfd -base 0x1245000 \
+                  -file [file join [file dirname [info script]] cfd1.cofig]
+            </programlisting>
+        </informalexample>
+        <para>
+            Normally device drivers for slow controls modules also have
+            control panels associated with them.  For more information
+            about the slow controls subsystem and for the protocol control
+            panels use to communicate with the control server, see the
+            3vmusb reference section.
+        </para>
+        <section>
+            <title>Using Remote procedure call Immediate Lists.</title>
+            <para>
+                In addition to control panels the VM-USB supports the slow
+                controls system executing immediate lists via remote procedure
+                calls. This documentation will be fleshed out in a future
+                version.
+            </para>     
+        </section>
+    </section>
+    <section>
+        <title>Running VMUSBReadout</title>
+        <para>
+            <application>VMUSBReadout</application> is installed as:
+            <filename>$DAQROOT/bin/VMUSBReadout</filename>.
+        </para>
+        <para>
+            Several command options control the way VMUSBReadout operates:
+        </para>
+        <variablelist>
+            <varlistentry>
+                <term><option>-serialno</option></term>
+                <listitem>
+                    <para>
+                        Specifies the serial number of the VMUSB the program
+                        will use.  See <option>--enumerate</option> below.
+                        If not provided, the first VMUSB located will be used.
+                        If you only have one VMUSB connected to your system,
+                        this is suitable.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><option>--ring</option></term>
+                <listitem>
+                    <para>
+                        Specifies the ring buffer in which event data will
+                        be put by the program.  By default this is the
+                        same as the username you are logged in on.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><option>--daqconfig</option></term>
+                <listitem>
+                    <para>
+                        Specifies the filename that contains the data acquisition
+                        configuration script.  This defaults to
+                        <filename>~/config/daqconfig.tcl</filename>
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><option>--ctlconfig</option></term>
+                <listitem>
+                    <para>
+                        Specifies the filename that contains the slow controls
+                        configuration script.  This defaults to
+                        <filename>~/config/controlconfig.tcl</filename>. Note
+                        that this file is required even if it is just an empty file.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><option>--port</option></term>
+                <listitem>
+                    <para>
+                        Specifies the port on which the slow controls server
+                        listens for connections.  This default to
+                        <literal>27000</literal>.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><option>--enumerate</option></term>
+                <listitem>
+                    <para>
+                        Requests that the software list the serial numbers of
+                        the VMUSB devices currently attached to the system and
+                        exit.  Note that the serial 'numbers' are actually strings
+                        of the form <literal>VMnnnn</literal> where <replaceable>nnnn</replaceable>
+                        is a number.  One of these strings can be handed to the
+                        <option>--serialno </option> to select the VMUSB
+                        to use.
+                    </para>
+                    <para>
+                        Sample output:
+                    </para>
+                    <informalexample>
+                        <programlisting>
+/usr/opt/daq/10.1/bin/VMUSBReadout --enumerate
+VM-USB scriptable readout version V5.0
+[0] : VM0134
+
+                        </programlisting>
+                        <para>
+                            This output says the system is attached to a single
+                            VMUSB whose serial number string is
+                            <literal>VM0134</literal>
+                        </para>
+                    </informalexample>
+                </listitem>
+            </varlistentry>
+        </variablelist>
+    </section>
+</chapter>
+
+<!-- /chapter -->
+
+<!-- manpage 3usbreadout -->
+
+<!-- /manpage -->
