@@ -201,9 +201,12 @@ CAcquisitionThread::mainLoop()
 	  pBuffer = gFreeBuffers.get(); // need a new one.
 	} 
 	else {
-#ifdef REPORT_ERRORS
-	  cerr << "Bad status from usbread: " << strerror(errno) << endl;
-#endif
+	  if (errno != ETIMEDOUT) {
+	    cerr << "Bad status from usbread: " << strerror(errno) << endl;
+	    cerr << "Ending the run .. check CAMAC crate.  If it tripped off ";
+	    cerr << " you'll need to restart this program\n";
+	    throw 1;
+	  }
 	}
       // Commands from our command queue.
       }
