@@ -40,7 +40,7 @@ using namespace std;
 
 
 static const unsigned DRAINTIMEOUTS(5);	// # consecutive drain read timeouts before giving up.
-static const unsigned USBTIMEOUT(10);
+static const unsigned USBTIMEOUT(2);
 
 static const unsigned ReadoutStackNum(0);
 static const unsigned ScalerStackNum(1);
@@ -230,9 +230,12 @@ CAcquisitionThread::mainLoop()
 	pBuffer = gFreeBuffers.get(); // need a new one.
       } 
       else {
-#ifdef REPORT_ERRORS
-	cerr << "Bad status from usbread: " << strerror(errno) << endl;
-#endif
+	if (errno != ETIMEDOUT) {
+	  cerr << "Bad status from usbread: " << strerror(errno) << endl;
+	  cerr << "Ending the run... check the VME Crate.. If it power cycled restart this program\n";
+	  throw 1;
+	}
+
 	consecutiveTimeouts++;
 	// 
 	// The VM-USB can drop out of data taking mode.
