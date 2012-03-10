@@ -43,7 +43,7 @@
  *
  */
 
-int main(int argc, char* const* argv)
+int main(int argc, char** argv)
 {
   struct gengetopt_args_info options;
   

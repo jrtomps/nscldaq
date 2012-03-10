@@ -24,7 +24,7 @@
 
 
 int
-main (int argc, char* const*  argv)
+main (int argc, char**  argv)
 {
   /* Parse the command line parameters: */
   /* and extract the buffer size in bytes */

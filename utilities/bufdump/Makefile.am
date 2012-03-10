@@ -27,6 +27,7 @@ INCLUDES 		=	-I.. 					\
 			        -I@top_srcdir@/base/dataflow
 
 dumper_LDADD		=	dumperargs.o	\
+				@top_srcdir@/base/uri/liburl.la			\
 				@top_srcdir@/daq/format/libdataformat.la	\
 				@top_srcdir@/base/dataflow/libDataFlow.la	\
 				@top_srcdir@/base/exception/libException.la	\
