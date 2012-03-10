@@ -59,6 +59,7 @@ ringtostdoutsw.o: ringtostdoutsw.ggo
 	$(CC) -c ringtostdoutsw.c $(THREADC_FLAGS)
 
 ringtostdout_LDADD	= ringtostdoutsw.o libDataFlow.la \
+			@top_srcdir/base/exception/libExcepion.la \
 			$(THREADLD_FLAGS)
 
 ringtostdout_CXXFLAGS	=  $(AM_CXXFLAGS) $(THREADCXX_FLAGS)
@@ -71,6 +72,7 @@ stdintoringsw.o: stdintoringsw.ggo
 	$(CC) -c stdintoringsw.c $(THREADC_FLAGS)
 
 stdintoring_LDADD	= stdintoringsw.o libDataFlow.la	\
+			@top_srcdir@/base/exception/libException.la \
 			$(THREADLD_FLAGS)
 
 stdintoring_CXXFLAGS =	$(THREADCXX_FLAGS) $(AM_CXXFLAGS)

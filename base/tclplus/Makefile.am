@@ -64,7 +64,8 @@ evttclsh_SOURCES	= 	evttclsh.cpp
 evttclsh_DEPENDENCIES	= 	libtclPlus.la
 
 evttclsh_LDADD		= 	libtclPlus.la	\
-				@top_srcdir@/base/exception/libException.la
+				@top_srcdir@/base/exception/libException.la \
+				$(TCL_LDFLAGS)
 evttclsh_LDFLAGS	= 	-Wl,"-rpath-link=$(libdir)" $(TCL_LDFLAGS)
 
 
@@ -105,7 +106,9 @@ tcpservertest_SOURCES	= 	tcpservertest.cpp
 tcpservertest_DEPENDENCIES	= 	libtclPlus.la
 
 tcpservertest_LDADD		= 	libtclPlus.la	\
-				@top_srcdir@/base/exception/libException.la
+				@top_srcdir@/base/exception/libException.la \
+				$(TCL_LDFLAGS)
+
 tcpservertest_LDFLAGS	= 	-Wl,"-rpath-link=$(libdir)" $(TCL_LDFLAGS)
 
 
