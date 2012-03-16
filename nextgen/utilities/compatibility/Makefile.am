@@ -1,4 +1,4 @@
-bin_PROGRAMS = compatibilitybuffer compatibilitylogger
+bin_PROGRAMS = compatibilitybuffer compatibilitylogger BufferToRing
 
 noinst_HEADERS = buffer.h buftypes.h CBufferConverter.h CLogRun.h
 
@@ -15,11 +15,15 @@ compatibilitylogger_SOURCES = compatibilitylogger.cpp CLogRun.cpp
 
 compatibilitylogger_LDADD = loggeroptions.o
 
+BufferToRing_SOURCES = BufferToRing.cpp
+
 install-exec-local:
 	$(mkinstalldirs) $(bindir)
 	$(INSTALL_SCRIPT) eventlog-compat $(bindir)
 	$(INSTALL_SCRIPT) spectcldaq $(bindir)
 	$(INSTALL_SCRIPT) spectcldaq.server.tcl  $(bindir)/spectcldaq.server
+	$(INSTALL_SCRIPT) s800toring  $(bindir)
+
 
 #----------------------------------------------------------------
 
@@ -39,7 +43,7 @@ parser.o: compatibilitybuffer.ggo
 	$(CC) -c parser.c
 
 
-loggeroptions_DEPENDENCIESE = loggeroptions.o
+compatibilitylogger_DEPENDENCIES = loggeroptions.o
 
 loggeroptions.h: loggeroptions.ggo
 	$(GENGETOPT) <loggeroptions.ggo --file=loggeroptions
