@@ -201,4 +201,6 @@ January 30-Feb 1,2012
 	- Provide support for CCUSB drivers written in Tcl.
 	- Document all of this.
 	- Document the shape of ring items (daq/format/dataformat.xml)
+        - Add s800toring to utilties/compatibility
+	
 	

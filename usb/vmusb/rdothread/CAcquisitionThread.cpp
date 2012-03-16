@@ -230,9 +230,9 @@ CAcquisitionThread::mainLoop()
 	pBuffer = gFreeBuffers.get(); // need a new one.
       } 
       else {
-#ifdef REPORT_ERRORS
+
 	cerr << "Bad status from usbread: " << strerror(errno) << endl;
-#endif
+
 	consecutiveTimeouts++;
 	// 
 	// The VM-USB can drop out of data taking mode.

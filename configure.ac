@@ -519,6 +519,7 @@ AC_CONFIG_FILES([Makefile
 		 utilities/compatibility/Makefile
 		 utilities/compatibility/eventlog-compat
 		 utilities/compatibility/spectcldaq
+		 utilities/compatibility/s800toring
                  epics/chanlog/Makefile
                  epics/controlpush/Makefile
                  epics/epicsdisplay/Makefile
