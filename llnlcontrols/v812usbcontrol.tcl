@@ -270,6 +270,9 @@ set configFile $argv
 
 source $configFile
 
+
+wm title . $name
+
 if {[info var base] eq ""} {
     error "Config file does not define the base address"
 }
