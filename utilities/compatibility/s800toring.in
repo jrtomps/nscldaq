@@ -1,0 +1,48 @@
+#!/bin/bash
+
+
+SHMBASE=/dev/shm
+
+# Default DAQROOT to version 10.0 unless defined externally:
+
+if [ xx$DAQROOT = xx ]
+then
+  DAQROOT=@prefix@
+fi
+DAQBIN=$DAQROOT/bin
+
+#
+# Script to start a pipeline to put s800 data into an NSCLDAQ rint
+#
+# Usage:
+#   start host port ring
+#
+
+if [ $# != 3 ] 
+then
+  echo Usage:
+  echo "   "    start host port ring-name
+  exit -1
+fi
+
+
+host=$1
+port=$2
+ring=$3
+
+#
+#  If the ring dev special does not exist create it (Linux specific):
+#
+if [  -e  $SHMBASE/$ring ]
+then
+test 1
+else
+    $DAQBIN/ringbuffer create $ring
+fi
+
+
+netcat $host $port | $DAQBIN/BufferToRing | $DAQBIN/stdintoring $ring
+
+
+$DAQBIN/PopUp "S800 to ring pipeline exited"
+
