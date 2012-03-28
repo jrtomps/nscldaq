@@ -21,6 +21,7 @@
 #include <CVMUSBReadoutList.h>
 #include <stdint.h>
 
+#include <iostream>
 /**
  * Register definitions for the module:
  * Names uswed are from the table in section 3 of the CAEN V1495Scaler reference manual.
@@ -190,13 +191,13 @@ CV1495sc::Initialize(CVMUSB& controller)
   // reset:
 
   uint32_t base = m_pConfiguration->getUnsignedParameter("-base");
-  controller.vmeWrite32(base + COMMANDS, initAmod, COMMANDS_BDRESET);
+  controller.vmeWrite32(base + COMMANDS, initAmod, COMMANDS_BDRESET | COMMANDS_SWCLR | COMMANDS_SWCNTRES);
 
   // Get the rest of the parameters:
 
   bool exttrig = m_pConfiguration->getBoolParameter("-exttrig");
   bool inttrig = m_pConfiguration->getBoolParameter("-inttrig");
-  bool vmetrig = m_pConfiguration->getBoolParameter("vmetrigger");
+  bool vmetrig = m_pConfiguration->getBoolParameter("-vmetrigger");
 
   std::string inputLevelString = m_pConfiguration->cget("-inputlevel");
   uint32_t  inputLevelValue         = mapEnum(inputLevelString, inputLevels, inputLevelRegisterValues);
@@ -288,8 +289,12 @@ CV1495sc::addReadoutList(CVMUSBReadoutList& list)
   transfers += countBits(b3enables);
   transfers += countBits(b4enables);
 
+  std::cout << "Transfers: " << transfers << std::endl;
+
   // Now all of this has built up to the following anticlimax:
 
+  list.addWrite32(base + COMMANDS, initAmod, COMMANDS_SWTRG);
+  list.addDelay(100);
   list.addFifoRead32(base + MEB, rdoAmod, transfers);
 }
 
@@ -347,6 +352,9 @@ CV1495sc::countBits(uint32_t mask)
 {
   uint32_t v = mask - ((mask >> 1) & 0x55555555);       
   v = (v & 0x33333333) + ((v >> 2) & 0x33333333);  
-  return ((v + (v >> 4) & 0xF0F0F0F) * 0x1010101) >> 24; // count
-  
+  size_t result =  ((v + (v >> 4) & 0xF0F0F0F) * 0x1010101) >> 24; // count
+
+  std::cout << std::hex << "mask: " << mask << std::dec << " Bits set: " << result << std::endl;
+
+  return result;
 }
