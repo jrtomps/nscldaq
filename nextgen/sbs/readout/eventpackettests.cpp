@@ -102,5 +102,5 @@ EVPacketTest::encapsulation()
     EQ(i, e.body[i]);
   }
   EQ((uint16_t)0xaaaa, e.type);
-  EQ(nwords, e.size);
+  EQ(static_cast<uint32_t>(nwords), e.size);
 }

@@ -139,6 +139,8 @@ RemoteTests::urllocal()
   catch(...) {
     
     caught = true;
+  }
+  if(pConsumer) {
     delete pConsumer;
   }
 

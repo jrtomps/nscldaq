@@ -231,9 +231,14 @@ CTheApplication::createUsbController(const char* pSerialNo)
 void 
 CTheApplication::enumerate()
 {
-  std::vector<struct usb_device*> ccusbs = CCCUSB::enumerate();
-  for (int i = 0; i < ccusbs.size(); i++) {
-    std::cout << "[" << i << "] : " << CCCUSB::serialNo(ccusbs[i]) << std::endl;
+  try {
+    std::vector<struct usb_device*> ccusbs = CCCUSB::enumerate();
+    for (int i = 0; i < ccusbs.size(); i++) {
+      std::cout << "[" << i << "] : " << CCCUSB::serialNo(ccusbs[i]) << std::endl;
+    }
+  }
+  catch (string msg) {
+    std::cerr << "Unable to enumerate CC-USB modules: " << msg << std::endl;
   }
 }
 /* 

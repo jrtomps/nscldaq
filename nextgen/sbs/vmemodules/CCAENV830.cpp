@@ -23,7 +23,7 @@
 #include <string>
 #include <stdio.h>
 #include <string.h>
-
+#include <stdint.h>
 
 
 using namespace std;
@@ -33,8 +33,8 @@ using namespace std;
 // The 'macros' below are used to do structure like offsets
 // using the register structure through VmeModule:
 //
-#define SOffset(s,field) (((unsigned int)&(((s*)0)->field))/sizeof(short))
-#define LOffset(s,field) (((unsigned int)&(((s*)0)->field))/sizeof(long))
+#define SOffset(s,field) ((unsigned int)(((uint64_t)&(((s*)0)->field))/sizeof(short)))
+#define LOffset(s,field) ((unsigned int)(((uint64_t)&(((s*)0)->field))/sizeof(long)))
 #define GetShort(field) (m_pModule->peekw(SOffset(CAENV830Registers,field)))
 #define GetLong(field)  (m_pModule->peekl(LOffset(CAENV830Registers,field)))
 #define PutShort(field,value) (m_pModule->pokew((value),  \

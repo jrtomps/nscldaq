@@ -29,9 +29,10 @@ public:
     pProd = new CRingBuffer("pred", CRingBuffer::producer);
   }
   void tearDown() {
-    CRingBuffer::remove("pred");
     delete pCons;
-    delete pProd;
+    delete pProd;   
+    CRingBuffer::remove("pred");
+
   }
 protected:
   void notinlist();

@@ -216,12 +216,21 @@ proc RemoteHoist {socket client tail} {
 #
 
 proc killClients ringName {
-    set ringUsage [ringbuffer usage $ringName]
+    ::log::log debug "Killclients for $ringName"
+    set status [catch {ringbuffer usage $ringName} ringUsage]
     
+    # If status is 1 the ring probably doesn't actually exist any more so no way to
+    # get client info ...just return.
+
+    if {$status} {
+	    return
+    }
+
     # start with the producer:
     
     set producerPID [lindex $ringUsage 3]
     if {$producerPID != -1} {
+	::log::log debug "Killing producer: $producerPID"
 	exec kill -9 $producerPID
     }
     # Now the consumers:
@@ -230,6 +239,7 @@ proc killClients ringName {
     foreach client $consumerInfo {
 	set pid [lindex $client 0]
 	if {$pid != -1} {;	# Should not need this but...
+	    ::log::log debug "Killing consumer: $pid"
 	    exec kill -9 $pid
 	}
     }

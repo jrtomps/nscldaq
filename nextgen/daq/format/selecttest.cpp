@@ -64,6 +64,10 @@ public:
   void setUp() {
   }
   void tearDown() {
+    try {
+      CRingBuffer::remove("pred");
+    }
+    catch(...) {}
   }
 protected:
   void swap();

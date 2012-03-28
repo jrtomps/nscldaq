@@ -36,5 +36,5 @@ public:
   static CConfiguration* pConfig;
 };
 
-CConfiguration* Globals::pConfig(0);
+// CConfiguration* Globals::pConfig(0);
 void* gpTCLApplication(0);

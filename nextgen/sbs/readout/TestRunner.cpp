@@ -15,7 +15,7 @@ int main(int argc, char** argv)
 
   bool wasSucessful;
   try {
-    wasSucessful = runner.run("",false);
+    wasSucessful = runner.run("",true);
   } 
   catch(string& rFailure) {
     cerr << "Caught a string exception from test suites.: \n";

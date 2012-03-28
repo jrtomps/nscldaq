@@ -120,7 +120,9 @@ BT_FILE_NUMBER(TRACE_BTP_IOCTL_C);
 *****************************************************************************/
 
 int btp_ioctl(
+#if (LINUX_VERSION_CODE < KERNEL_VERSION(2,6,35))
     struct inode *inode_p,
+#endif
     struct file *file_p,
     unsigned int raw_cmd,
     unsigned long args

@@ -23,6 +23,8 @@ BUILT_SOURCES		= 	sclclientargs.o
 sclclient_LDADD		=	sclclientargs.o			\
 				@top_srcdir@/daq/format/libdataformat.la	\
 				@top_srcdir@/base/dataflow/libDataFlow.la	\
+				@top_builddir@/servers/portmanager/libPortManager.la \
+				@top_builddir@/base/uri/liburl.la			\
 				@top_srcdir@/base/exception/libException.la	\
 				$(THREADLD_FLAGS)
 

@@ -74,6 +74,13 @@
 #endif
 #endif
 
+#ifndef __STDINT_H
+#include <stdint.h>
+#ifndef __STDINT_H
+#define __STDINT_H
+#endif
+#endif
+
 template<class T>
 class CVMEptr
 {
@@ -680,7 +687,7 @@ template<class T>
 Address_t
 CVMEptr<T>::getgenptr(UInt_t nOffset)
 {
-  Address_t p = (Address_t)(nOffset*sizeof(T) + (UInt_t)m_pStart);
+  Address_t p = (Address_t)(nOffset*sizeof(T) + (uint64_t)m_pStart);
   if(p) return p;
   else return (Address_t)kpNULL;
 }

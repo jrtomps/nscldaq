@@ -61,6 +61,7 @@
 #include <iostream>
 #include <errno.h>
 #include <unistd.h>
+#include <stdint.h>
 
 #include <CopyrightNotice.h>
 #include <TCLResult.h>
@@ -255,9 +256,9 @@ CTCLPipe::operator()(CTCLInterpreter& rInterp,
 
   // Make tcl channels out of the fds.
 
-  Tcl_Channel readable = Tcl_MakeFileChannel((ClientData)fds[0], 
+  Tcl_Channel readable = Tcl_MakeFileChannel((ClientData)(uint64_t)fds[0], 
 					     TCL_READABLE);
-  Tcl_Channel writable = Tcl_MakeFileChannel((ClientData)fds[1], 
+  Tcl_Channel writable = Tcl_MakeFileChannel((ClientData)(uint64_t)fds[1], 
 					     TCL_WRITABLE);
 
   // Register the channels with Tcl so users can use them.

@@ -21,6 +21,8 @@
 #include <CRingPhysicsEventCountItem.h>
 #include <CRingScalerItem.h>
 #include <CRingTextItem.h>
+#include <stdlib.h>
+
 
 using namespace std;
 

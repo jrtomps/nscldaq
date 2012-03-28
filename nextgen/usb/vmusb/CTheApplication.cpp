@@ -273,12 +273,17 @@ CTheApplication::createUsbController(const char* pSerialNo)
 void
 CTheApplication::enumerateVMUSB()
 {
-  vector<struct usb_device*> controllers = CVMUSB::enumerate();
-  for (int i = 0; i < controllers.size(); i++) {
-    std::string serial = CVMUSB::serialNo(controllers[i]);
-    std::cout << "[" << i << "] : " << serial << std::endl;
+  try {
+    vector<struct usb_device*> controllers = CVMUSB::enumerate();
+    for (int i = 0; i < controllers.size(); i++) {
+      std::string serial = CVMUSB::serialNo(controllers[i]);
+      std::cout << "[" << i << "] : " << serial << std::endl;
+    }
+    cout.flush();
   }
-  cout.flush();
+  catch(std::string msg) {
+    std::cerr << "Unable to enumerate VM-USB modules: " << msg << std::endl;
+  }
 }
 /* 
   Set the configuration files to the global storage

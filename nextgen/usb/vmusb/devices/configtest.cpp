@@ -242,7 +242,7 @@ void configtest::listparam()
   CConfigurableObject::ListSizeConstraint constraint  = {none, none};
   CConfigurableObject::TypeCheckInfo      notype(NULL, NULL);
 
-  CConfigurableObject::isListParameter nochecks = {constraint, notype};
+  CConfigurableObject::isListParameter nochecks(constraint, notype);
 
   m_pObject->addParameter("list", CConfigurableObject::isList,
 			  &nochecks, "");
@@ -276,7 +276,7 @@ void configtest::listparam()
   CConfigurableObject::limit low(1);
   CConfigurableObject::limit high(5);
   CConfigurableObject::ListSizeConstraint constrained = {low, high};
-  CConfigurableObject::isListParameter sizeChecked = {constrained, notype};
+  CConfigurableObject::isListParameter sizeChecked(constrained, notype);
 
   m_pObject->addParameter("constrained", CConfigurableObject::isList,
 			  &sizeChecked, "two");

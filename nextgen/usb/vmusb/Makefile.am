@@ -34,6 +34,7 @@ VMUSBReadout_LDADD	= cmdline.o $(top_srcdir)/usb/vmusb/devices/libVMUSBDevices.l
 		$(top_srcdir)/usb/vmusb/tclserver/libVMUSBControlServer.la	\
 		$(top_srcdir)/usb/vmusb/daqconfig/libVMUSBConfig.la	\
 		$(top_srcdir)/usb/vmusb/commands/libVMUSBCommands.la	\
+		@top_srcdir@/usb/vmusb/vmusb/libVMUSB.la	\
 		$(top_srcdir)/base/tclplus/libtclPlus.la \
 		$(top_srcdir)/base/exception/libException.la \
 		$(top_srcdir)/base/thread/libdaqthreads.la	\
