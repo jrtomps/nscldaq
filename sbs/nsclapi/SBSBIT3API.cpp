@@ -113,7 +113,7 @@ _DevHandle::getBuffer(size_t nBytes)
     //   linux's memory compression which migh leave us with
     //   all our pointers pointing to the same page-frame.
     //
-    s_alignedBuffer = reinterpret_cast<uint8_t*>(reinterpret_cast<uint32_t>(s_rawBuffer + pageMask) 
+    s_alignedBuffer = reinterpret_cast<uint8_t*>(reinterpret_cast<uint64_t>(s_rawBuffer + pageMask) 
 						 & ~pageMask); // Start of next page unless we're already aligned.
     uint8_t* p     = s_rawBuffer;
     uint8_t* e     = s_rawBuffer + s_fullBufferSize;

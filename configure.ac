@@ -375,7 +375,7 @@ AC_ARG_ENABLE([usb],
 if test "$enableusb" == "yes"
 then
 	headerdirs="/usr/include /usr/local/include"
-	libdirs="/lib /usr/lib /usr/local/lib"
+	libdirs="/lib /usr/lib /usr/local/lib /usr/lib/x86_64-linux-gnu"
 
 	usbheaderdir=""
 	usblibdir=""

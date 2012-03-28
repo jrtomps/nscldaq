@@ -14,7 +14,7 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
-
+#include <iostream>
 
 using namespace std;
 
@@ -212,6 +212,8 @@ void rmasterTests::duplicatereg()
 void
 rmasterTests::getdata()
 {
+
+  try { CRingBuffer::remove("remote"); } catch (...) {}
   CRingBuffer::create("remote");
   CRingMaster master;
   

@@ -117,7 +117,7 @@ public:
 
 */
 void
-CRingBuffer:: create(std::string name, 
+CRingBuffer::create(std::string name, 
 		     size_t dataBytes,
 		     size_t maxConsumer,
 		     bool   tempMasterConnection)
@@ -425,8 +425,9 @@ CRingBuffer::~CRingBuffer()
     // Let the ringmaster know we're disconnecting.
     // the client pointer is still valid as is the map so the notification
     // can still find the 'slot number.
-
+    
     notifyDisconnection();
+
   }
 
   

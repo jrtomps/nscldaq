@@ -46,6 +46,7 @@ unittests_SOURCES	= TestRunner.cpp selecttest.cpp desiredtests.cpp	\
 
 unittests_LDADD		= -L$(libdir) $(CPPUNIT_LDFLAGS) 		\
 			@top_srcdir@/base/dataflow/libDataFlow.la 	\
+			@top_builddir@/base/exception/libException.la  \
 			@top_srcdir@/daq/format/libdataformat.la	
 
 

@@ -21,6 +21,8 @@
 #include <string>
 #include <string.h>
 #include <tcl.h>
+#include <unistd.h>
+
 
 using namespace std;
 
@@ -95,6 +97,8 @@ void VarBufs::strunvar() {
   CVariableBuffers* p = CVariableBuffers::getInstance();
   p->triggerRunVariableBuffer(m_pProducer, 0);
 
+  while (!Tcl_DoOneEvent(0)) {}
+
   // There should be an event in the ring buffer:
   
   CAllButPredicate all;
@@ -133,6 +137,7 @@ void VarBufs::ststatevar() {
 
   CVariableBuffers* p = CVariableBuffers::getInstance();
   p->triggerStateVariableBuffer(m_pProducer, 0);
+  while (!Tcl_DoOneEvent(0)) {}
 
   // There should be an event in the ring buffer:
   
@@ -176,6 +181,7 @@ public:
   virtual void run() {
     CVariableBuffers* p  = CVariableBuffers::getInstance();
     p->triggerRunVariableBuffer(m_pRing, 0);
+
   }
 };
 
@@ -203,13 +209,12 @@ void VarBufs::dtrunvar() {
 
 
   // Start up a thread to trigger the event and then enter the event loop
-  // so the event can be processed. when that's done, join the thread:
+  // so the event can be processed. when that's done
 
   CTriggerRunVar trigger(m_pProducer);
   trigger.start();
   while (!Tcl_DoOneEvent(0)) {}
 
-  trigger.join();
   // There should be an event in the ring buffer:
   
   CAllButPredicate all;
@@ -246,15 +251,14 @@ void VarBufs::dtstatevar() {
 
 
   // Start up a thread to trigger the event and then enter the event loop
-  // so the event can be processed. when that's done, join the thread:
+  // so the event can be processed. when that's done
 
   CTriggerStateVar trigger(m_pProducer);
   trigger.start();
   while (!Tcl_DoOneEvent(0)) {}
 
-  trigger.join();
   // There should be an event in the ring buffer:
-  
+ 
   CAllButPredicate all;
   CRingItem* pItem = CRingItem::getFromRing(*m_pConsumer, all);
   

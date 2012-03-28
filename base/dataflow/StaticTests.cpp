@@ -53,6 +53,9 @@ private:
 
 public:
   void setUp() {
+    string fullName = "/";
+    fullName += SHM_TESTFILE;
+    shm_unlink(fullName.c_str()); // Dangling stuff.
   }
   void tearDown() {
     // hopefully this gets called on failure too:
@@ -61,6 +64,10 @@ public:
       CRingBuffer::remove(SHM_TESTFILE);
     }
     catch (...) {
+      string fullName = "/";
+      fullName += SHM_TESTFILE;
+      shm_unlink(fullName.c_str()); // When it's not a ring and can't get removed.
+      
     }
   }
 protected:
@@ -97,6 +104,7 @@ void StaticRingTest::defaults()
 // test creation of a ring buffer.
 
 void StaticRingTest::create() {
+
   CRingBuffer::create(string(SHM_TESTFILE));
   
   string fullname = getFullName();
@@ -216,7 +224,7 @@ StaticRingTest::isring()
 
   string full = "/";
   full       += SHM_TESTFILE;
-  int fd = shm_open(full.c_str(), O_RDWR | O_CREAT, 0);
+  int fd = shm_open(full.c_str(), O_RDWR | O_CREAT, 0666);
   ASSERT(fd != -1);
   int stat = ftruncate(fd, 100);
   int e    = errno;

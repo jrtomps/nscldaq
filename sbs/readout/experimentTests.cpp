@@ -14,6 +14,7 @@
 #include <string.h>
 #include <string>
 #include <CNullTrigger.h>
+#include <tcl.h>
 
 // class under test gets its member data exposed for me:
 //
@@ -146,7 +147,6 @@ void experimentTests::start()
   // Changes to run state:
 
   EQ(RunState::active, m_pExperiment->m_pRunState->m_state);
-  EQ(static_cast<uint32_t>(0), m_pExperiment->m_pRunState->m_timeOffset);
 
   CRingItem* pItem = CRingItem::getFromRing(consumer, pred);
   CRingStateChangeItem* pState(0);
@@ -218,7 +218,13 @@ experimentTests::stop()
 
   m_pExperiment->Stop();	// This should now work.
 
-  EQ(RunState::inactive, m_pExperiment->m_pRunState->m_state);
+  // Need to run the event loop a bit:
+
+  Tcl_Interp* pInterp = Tcl_CreateInterp();
+  while (!Tcl_DoOneEvent(0)) {
+    usleep(500);
+  }
+
   CRingItem* pItem = CRingItem::getFromRing(consumer, pred);
   CRingStateChangeItem* pState(0);
   
@@ -234,9 +240,18 @@ experimentTests::stop()
 
   ASSERT(pState);
 
+
   //contents of the state change item:
 
   EQ(string(m_pExperiment->m_pRunState->m_pTitle), pState->getTitle());
   EQ(m_pExperiment->m_pRunState->m_runNumber,      pState->getRunNumber());
-  EQ(m_pExperiment->m_pRunState->m_timeOffset,     pState->getElapsedTime());
+
+
+  // by now run is stopped(?) ...may have to run the event loop
+
+  EQ(RunState::inactive, m_pExperiment->m_pRunState->m_state);
+
+  Tcl_DeleteInterp(pInterp);
+
 }
+

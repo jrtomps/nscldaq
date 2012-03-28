@@ -63,18 +63,18 @@ noinst_HEADERS			= 	CConfigurableObject.h	\
 					CCAENV1x90Registers.h
 
 
-TESTS=configtest.cpp c785test.cpp c3820test.cpp
+TESTS=configtests 
 
 tests: TestRunner.cpp $(TESTS)
 	$(CXX) -g -o tests -I. -I$(prefix)/include $(CPPUNIT_INCLUDES) \
-	TestRunner.cpp  $(TESTS) -L$(prefix)/lib -lVMUSBDevices -lVMUSB -lConfig \
+	TestRunner.cpp  ../Globals.cpp $(TESTS) -L$(prefix)/lib -lVMUSBDevices -lVMUSB -lVMUSBConfig \
 	$(NSCLDAQ_LIB) -ltclPlus -lException  $(TCL_LDFLAGS) \
 	-Wl,"-rpath=$(libdir)" -Wl,"-rpath=$(daqdir)/lib" \
 	$(CPPUNIT_LDFLAGS)
 
 configtests:	TestRunner.cpp configtest.cpp
 	$(CXX) -g -o configtests -I. -I$(prefix)/include $(CPPUNIT_INCLUDES) \
-	TestRunner.cpp  configtest.cpp -L$(prefix)/lib -lVMUSBDevices -lVMUSB -lConfig \
+	TestRunner.cpp  configtest.cpp ../Globals.cpp -L$(prefix)/lib -lVMUSBDevices -lVMUSB -lVMUSBConfig \
 	$(NSCLDAQ_LIB) -ltclPlus -lException  $(TCL_LDFLAGS) \
 	-Wl,"-rpath=$(libdir)" -Wl,"-rpath=$(daqdir)/lib" \
 	$(CPPUNIT_LDFLAGS)

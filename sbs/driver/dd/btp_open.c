@@ -23,7 +23,9 @@ static const char revcntrl[] = "@(#)"__FILE__"  $Revision: 2330 $" __DATE__;
 
 #include "btdd.h"
 #include <linux/module.h>
+#if (LINUX_VERSION_CODE < KERNEL_VERSION(3,0,0))
 #include <linux/smp_lock.h>
+#endif
 
 /*
 **  Function prototypes of external functions used within

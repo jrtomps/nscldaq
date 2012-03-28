@@ -27,6 +27,15 @@
 #endif
 #endif
 
+#ifndef __UNISTD_H
+#include <unistd.h>
+#ifndef __UNISTD_H
+#define __UNISTD_H
+#endif
+#endif
+
+
+
 /*!
   This class extends the object base class to support composite objects.
   A composite object is simply an object that contains other objects.

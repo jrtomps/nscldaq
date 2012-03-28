@@ -293,7 +293,7 @@ CV1495sc::addReadoutList(CVMUSBReadoutList& list)
   // Now all of this has built up to the following anticlimax:
 
   list.addWrite32(base + COMMANDS, initAmod, COMMANDS_SWTRG);
-  list.addDelay(100);
+  list.addDelay(200);
   list.addFifoRead32(base + MEB, rdoAmod, transfers);
 }
 

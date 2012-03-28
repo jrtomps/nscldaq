@@ -465,7 +465,7 @@ typedef enum param_valus {
 #define DMA_BLOCK               BT_INFO_BLOCK
 
     BT_INFO_PAUSE,        /* Set pause mode for DMA: TRUE/FALSE */
-#define DMA_PAUSE               BT_INFO_PAUSE
+    /* #define DMA_PAUSE               BT_INFO_PAUSE */ /* Conflicts with 3.x kernel defs */
 
     BT_INFO_DATAWIDTH,        /* Maximum access width allowed on a transfer */
 #define DATA_SIZE               BT_INFO_DATAWIDTH

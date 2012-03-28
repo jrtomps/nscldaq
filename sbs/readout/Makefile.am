@@ -151,6 +151,7 @@ tests_LDADD = 	CExperiment.lo	\
 		@top_srcdir@/base/exception/libException.la	\
 		@top_srcdir@/sbs/nsclapi/libSBSVmeAPI.la	\
 		@top_srcdir@/base/thread/libdaqthreads.la	\
+		$(TCL_LDFLAGS) 					\
 		$(CPPUNIT_LDFLAGS)  $(THREADLD_FLAGS)
 
 tests_LDFLAGS=-Wl,"-rpath-link=$(libdir)"
@@ -159,4 +160,4 @@ tests_LDFLAGS=-Wl,"-rpath-link=$(libdir)"
 
 
 
-TESTS=./tests ./triggertests
+# TESTS=./tests

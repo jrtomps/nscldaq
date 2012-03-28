@@ -302,7 +302,7 @@ void scalerbankTests::read()
   top.clear();
   vector<uint32_t> values = top.read();
 
-  EQ(static_cast<uint32_t>(5), values.size());
+  EQ(static_cast<size_t>(5), values.size());
   for (uint32_t i=0; i < 5; i++) {
     EQ(i, values[i]);
   }

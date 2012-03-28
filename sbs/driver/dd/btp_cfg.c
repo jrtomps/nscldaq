@@ -56,6 +56,10 @@ static const char driver_version[] = "$Name: 1003v3p1pC 1003v3p1pB $";
 
 #endif  /* 0 */
 
+#if (LINUX_VERSION_CODE >= KERNEL_VERSION(3,0,0))
+#define DMA_32BIT_MASK (DMA_BIT_MASK(32))
+#endif
+
 static int btp_suspend(struct pci_dev *dev, u32 state);
 
 static int btp_resume(struct pci_dev *dev);
@@ -145,7 +149,12 @@ struct file_operations btp_fops = {
    llseek:	btp_llseek,
    read:	btp_read,
    write:	btp_write,
+#if (LINUX_VERSION_CODE < KERNEL_VERSION(2,6,35))
    ioctl:	btp_ioctl,
+#else
+   unlocked_ioctl: btp_ioctl,
+   compat_ioctl:   btp_ioctl,
+#endif
    mmap:	btp_mmap,
    open:	btp_open,
    release:	btp_close,

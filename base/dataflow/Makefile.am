@@ -59,6 +59,7 @@ ringtostdoutsw.o: ringtostdoutsw.ggo
 	$(CC) -c ringtostdoutsw.c $(THREADC_FLAGS)
 
 ringtostdout_LDADD	= ringtostdoutsw.o libDataFlow.la \
+			$(top_builddir)/base/exception/libException.la \
 			$(THREADLD_FLAGS)
 
 ringtostdout_CXXFLAGS	=  $(AM_CXXFLAGS) $(THREADCXX_FLAGS)
@@ -71,6 +72,7 @@ stdintoringsw.o: stdintoringsw.ggo
 	$(CC) -c stdintoringsw.c $(THREADC_FLAGS)
 
 stdintoring_LDADD	= stdintoringsw.o libDataFlow.la	\
+			$(top_builddir)/base/exception/libException.la \
 			$(THREADLD_FLAGS)
 
 stdintoring_CXXFLAGS =	$(THREADCXX_FLAGS) $(AM_CXXFLAGS)
@@ -86,17 +88,19 @@ unittests_SOURCES = TestRunner.cpp StaticTests.cpp TransferTests.cpp testcommon.
 		DifferenceTests.cpp BlockingTests.cpp InfoTests.cpp \
 		ManageTest.cpp WhilePredTest.cpp crmastertests.cpp RemoteTests.cpp
 
-unittests_LDADD   = -L@prefix@/lib $(CPPUNIT_LDFLAGS) -lDataFlow 
+unittests_LDADD   = -L@prefix@/lib $(CPPUNIT_LDFLAGS) \
+			$(top_builddir)/base/exception/libException.la \
+			-lDataFlow 
 
 unittests_LDFLAGS = -Wl,"-rpath-link=$(libdir)"
 
 
 producer_SOURCES	=	producer.cpp
-producer_LDADD    = -L@prefix@/lib -lDataFlow
+producer_LDADD    = -L@prefix@/lib -lDataFlow $(top_builddir)/base/exception/libException.la 
 producer_LDFLAGS  = -Wl,"-rpath-link=$(libdir)"
 
 consumer_SOURCES	=	consumer.cpp
-consumer_LDADD    = -L@prefix@/lib -lDataFlow
+consumer_LDADD    = -L@prefix@/lib -lDataFlow $(top_builddir)/base/exception/libException.la
 consumer_LDFLAGS  = -Wl,"-rpath-link=$(libdir)"
 
 TESTS=./unittests

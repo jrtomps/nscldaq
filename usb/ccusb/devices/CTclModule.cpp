@@ -116,6 +116,6 @@ std::string
 CTclModule::swigPointer(void* p, std::string  type)
 {
   char pointerArray[1000];
-  sprintf(pointerArray, "_%x_p_%s", htonl((uint32_t)p), type.c_str());
+  sprintf(pointerArray, "_%x_p_%s", htonl((uint64_t)p), type.c_str());
   return std::string(pointerArray);
 }
