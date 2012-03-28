@@ -289,7 +289,6 @@ CV1495sc::addReadoutList(CVMUSBReadoutList& list)
   transfers += countBits(b3enables);
   transfers += countBits(b4enables);
 
-  std::cout << "Transfers: " << transfers << std::endl;
 
   // Now all of this has built up to the following anticlimax:
 
@@ -339,7 +338,8 @@ CV1495sc::mapEnum(std::string value,
 /**
  * Countbits:  Counts the bits that are set in a 32 bit word.  This uses
  * the method shown in the AMD optimization guide at 
- * http://suport.amd.com/us/Embedded_TechDocs/25112.PDF on pages following pg 179.
+ * http://suport.amd.com/us/Embedded_TechDocs/25112.PDF on pages
+ *  following pg 179.
  *
  * @param mask - 32 bit unsigned mask.
  *
@@ -353,8 +353,6 @@ CV1495sc::countBits(uint32_t mask)
   uint32_t v = mask - ((mask >> 1) & 0x55555555);       
   v = (v & 0x33333333) + ((v >> 2) & 0x33333333);  
   size_t result =  ((v + (v >> 4) & 0xF0F0F0F) * 0x1010101) >> 24; // count
-
-  std::cout << std::hex << "mask: " << mask << std::dec << " Bits set: " << result << std::endl;
 
   return result;
 }
