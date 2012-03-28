@@ -46,6 +46,14 @@
 #endif
 #endif
 
+#ifndef __USB_H
+#include <usb.h>
+#ifndef __USB_H
+#define __USB_H
+#endif
+#endif
+
+
 //  The structures below are defined in <usb.h> which is included
 //  by the implementation and can be treated as opaque by any of our
 //  clients (they are in fact opaque in usb.h if memory servers.
@@ -86,7 +94,7 @@ private:
     // Static functions.
 public:
     static std::vector<struct usb_device*> enumerate();
-    static std::string serialNo(usb_device* dev);
+    static std::string serialNo(struct usb_device* dev);
 
     // Constructors and other canonical functions.
     // Note that since destruction closes the handle and there's no

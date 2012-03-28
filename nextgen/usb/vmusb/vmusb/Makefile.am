@@ -53,3 +53,4 @@ installcheck-local: tests
 #  Stuff that needs to go int the distro:
 
 EXTRA_DIST = $(TEST_MODULES)
+

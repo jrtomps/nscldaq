@@ -21,7 +21,6 @@ class registerTests : public CppUnit::TestFixture {
   CPPUNIT_TEST(ledsrc);
   CPPUNIT_TEST(devsrc);
   CPPUNIT_TEST(dgg);
-  CPPUNIT_TEST(countmask);
   CPPUNIT_TEST(vectors);
   CPPUNIT_TEST(bulksetup);
   CPPUNIT_TEST_SUITE_END();
@@ -50,7 +49,6 @@ protected:
   void ledsrc();
   void devsrc();
   void dgg();
-  void countmask();
   void vectors();
   void bulksetup();
 };
@@ -82,7 +80,7 @@ void registerTests::globmode()
   uint32_t mode = m_pInterface->readGlobalMode();
   EQMSG("wrote 0", 0U, mode & validmask);
 
-  m_pInterface->writeGlobalMode(0xffffffff);
+  m_pInterface->writeGlobalMode(0xffff);
   mode   = m_pInterface->readGlobalMode();
   EQMSG("wrote 1s", validmask, (uint32_t)(validmask & mode));
 
@@ -123,9 +121,9 @@ void registerTests::ledsrc()
 
 void registerTests::devsrc()
 {
-  uint32_t usedBits =    0x77771f1f; // 7777 not 77ff since reset is momentary.
+  uint32_t usedBits =    0x77331f1f; // 7777 not 77ff since reset is momentary.
 
-  m_pInterface->writeDeviceSource(usedBits);
+  m_pInterface->writeDeviceSource(0xffffffff);
   uint32_t value = m_pInterface->readDeviceSource();
   EQMSG("ones", usedBits, (value & usedBits));
 
@@ -170,18 +168,8 @@ void registerTests::dgg()
   EQMSG("Extended 0's", (uint32_t)0, value);
   
 }
-// Count mask : all bits are legitimate.
 
-void registerTests::countmask()
-{
-  m_pInterface->writeCountExtractMask(0xffffffff);
-  uint32_t value = m_pInterface->readCountExtractMask();
-  EQMSG("ones",(uint32_t)0xffffffff, value);
 
-  m_pInterface->writeCountExtractMask(0);
-  value = m_pInterface->readCountExtractMask();
-  EQMSG("zeroes", (uint32_t)0, value);
-}
 // Vectors: only some bits are used.
 void registerTests::vectors()
 {
