@@ -1091,7 +1091,7 @@ CVMUSB::transaction(void* writePacket, size_t writeSize,
 void*
 CVMUSB::addToPacket16(void* packet, uint16_t datum)
 {
-    char* pPacket = static_cast<char*>(packet);
+    uint8_t* pPacket = static_cast<uint8_t*>(packet);
 
     *pPacket++ = (datum  & 0xff); // Low byte first...
     *pPacket++ = (datum >> 8) & 0xff; // then high byte.
@@ -1106,7 +1106,7 @@ CVMUSB::addToPacket16(void* packet, uint16_t datum)
 void*
 CVMUSB::addToPacket32(void* packet, uint32_t datum)
 {
-    char* pPacket = static_cast<char*>(packet);
+    uint8_t* pPacket = static_cast<uint8_t*>(packet);
 
     *pPacket++    = (datum & 0xff);
     *pPacket++    = (datum >> 8) & 0xff;
@@ -1123,7 +1123,7 @@ CVMUSB::addToPacket32(void* packet, uint32_t datum)
 void*
 CVMUSB::getFromPacket16(void* packet, uint16_t* datum)
 {
-    char* pPacket = static_cast<char*>(packet);
+    uint8_t* pPacket = static_cast<uint8_t*>(packet);
 
     uint16_t low = *pPacket++;
     uint16_t high= *pPacket++;
@@ -1139,7 +1139,7 @@ CVMUSB::getFromPacket16(void* packet, uint16_t* datum)
 void*
 CVMUSB::getFromPacket32(void* packet, uint32_t* datum)
 {
-    char* pPacket = static_cast<char*>(packet);
+    uint8_t* pPacket = static_cast<uint8_t*>(packet);
 
     uint32_t b0  = *pPacket++;
     uint32_t b1  = *pPacket++;

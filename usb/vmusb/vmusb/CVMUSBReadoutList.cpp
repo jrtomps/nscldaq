@@ -463,7 +463,7 @@ CVMUSBReadoutList::addBlockRead(uint32_t base, size_t transfers,
 				size_t   width)
 {
 
-  bool notlong = sizeof(width) != sizeof(uint32_t); // need to set addrNotLong in addres
+  bool notlong = width != sizeof(uint32_t); // need to set addrNotLong in addres
 
   // There are several nasty edge cases cases to deal with.
   // If the base address is not block aligned, a partial transfer

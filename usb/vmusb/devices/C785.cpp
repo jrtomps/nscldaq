@@ -362,7 +362,7 @@ C785::onAttach(CReadoutModule& configuration)
 void
 C785::Initialize(CVMUSB& controller)
 {
-  uint32_t base = getIntegerParameter("-base");	// Get the base address.
+  uint32_t base = m_pConfiguration->getUnsignedParameter("-base");	// Get the base address.
   int      type = getModuleType(controller, base);
 
   if ((type != 785)  && (type != 775) && (type != 792) &&
