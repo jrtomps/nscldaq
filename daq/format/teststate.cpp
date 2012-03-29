@@ -51,7 +51,7 @@ void teststate::basiccons() {
   EQ(END_RUN, item.type());
   EQ((uint32_t)0, item.m_pItem->s_runNumber);
   EQ((uint32_t)0, item.m_pItem->s_timeOffset);
-  EQ((time_t)time(NULL), item.m_pItem->s_Timestamp);
+  EQ((uint32_t)time(NULL), item.m_pItem->s_Timestamp);
   
 }
 //

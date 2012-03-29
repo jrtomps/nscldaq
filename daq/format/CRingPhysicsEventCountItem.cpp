@@ -31,7 +31,7 @@ CRingPhysicsEventCountItem::CRingPhysicsEventCountItem() :
 {
   init();
   m_pItem->s_timeOffset = 0;
-  time(&(m_pItem->s_timestamp));
+  m_pItem->s_timestamp = static_cast<uint32_t>(time(NULL));
   m_pItem->s_eventCount = 0;
 }
 /*!
@@ -48,7 +48,7 @@ CRingPhysicsEventCountItem::CRingPhysicsEventCountItem(uint64_t count,
 {
   init();
   m_pItem->s_timeOffset  = timeOffset;
-  time(&(m_pItem->s_timestamp));
+  m_pItem->s_timestamp = static_cast<uint32_t>(time(NULL));
   m_pItem->s_eventCount = count;
 }
 /*!
