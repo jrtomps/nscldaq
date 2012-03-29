@@ -37,7 +37,7 @@ CRingScalerItem::CRingScalerItem(size_t numScalers) :
   init(numScalers);
   m_pScalers->s_intervalStartOffset = 0;
   m_pScalers->s_intervalEndOffset   = 0;
-  time(&(m_pScalers->s_timestamp));
+  m_pScalers->s_timestamp = static_cast<uint32_t>(time(NULL));
   m_pScalers->s_scalerCount = numScalers;
   memset(m_pScalers->s_scalers, 0, numScalers*sizeof(uint32_t));
 }

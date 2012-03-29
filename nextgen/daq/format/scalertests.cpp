@@ -52,7 +52,7 @@ void scltests::simplecons() {
   uint32_t zero(0);
   EQ(zero, s.m_pScalers->s_intervalStartOffset);
   EQ(zero, s.m_pScalers->s_intervalEndOffset);
-  EQ(time(NULL), s.m_pScalers->s_timestamp);
+  EQ((uint32_t)time(NULL), s.m_pScalers->s_timestamp);
   EQ((uint32_t)32, s.m_pScalers->s_scalerCount);
 
 }
@@ -70,7 +70,7 @@ void scltests::fullcons()
   EQ(INCREMENTAL_SCALERS, s.type());
   EQ((uint32_t)10, s.m_pScalers->s_intervalStartOffset);
   EQ((uint32_t)12, s.m_pScalers->s_intervalEndOffset);
-  EQ(time(NULL),   s.m_pScalers->s_timestamp);
+  EQ((uint32_t)time(NULL),   s.m_pScalers->s_timestamp);
   EQ((uint32_t)32, s.m_pScalers->s_scalerCount);
   for (int i =0; i < 32; i++) {
     EQ(scalerValues[i], s.m_pScalers->s_scalers[i]);
@@ -87,7 +87,7 @@ void scltests::castcons()
 
   p->s_intervalStartOffset = 10;
   p->s_intervalEndOffset   = 15;
-  time(&(p->s_timestamp));
+  p->s_timestamp = static_cast<uint32_t>(time(NULL));
   p->s_scalerCount = 32;
   int i;
   for (i =0; i < 32; i++) {

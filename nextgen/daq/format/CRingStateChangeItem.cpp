@@ -44,7 +44,7 @@ CRingStateChangeItem::CRingStateChangeItem(uint16_t reason) :
 
   m_pItem->s_runNumber    = 0;
   m_pItem->s_timeOffset   = 0;
-  time(&(m_pItem->s_Timestamp));
+  m_pItem->s_Timestamp = static_cast<uint32_t>(time(NULL));
   memset(m_pItem->s_title, 0, TITLE_MAXSIZE+1);
 }
 /*!

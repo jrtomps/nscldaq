@@ -41,7 +41,7 @@ CRingTextItem::CRingTextItem(uint16_t type, vector<string> theStrings) :
   copyStrings(theStrings);
 
   m_pItem->s_timeOffset = 0;
-  time(&(m_pItem->s_timestamp));
+  m_pItem->s_timestamp = static_cast<uint32_t>(time(NULL));
 }
 /*!
   Construct a ring buffer, but this time provide actual values for the

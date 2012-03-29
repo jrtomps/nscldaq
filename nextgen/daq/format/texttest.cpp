@@ -101,7 +101,7 @@ void texttests::fullcons()
   
   EQ((uint32_t)1234, item.m_pItem->s_timeOffset);
   EQ((uint32_t)4, item.m_pItem->s_stringCount);
-  EQ((time_t)5678, item.m_pItem->s_timestamp);
+  EQ((uint32_t)5678, item.m_pItem->s_timestamp);
 
 
 
@@ -151,7 +151,7 @@ void texttests::castcons()
     CRingTextItem item(ritem);
     pText = reinterpret_cast<pTextItem>(item.getItemPointer());
     EQ((uint32_t)1234, pText->s_timeOffset);
-    EQ((time_t)4321, pText->s_timestamp);
+    EQ((uint32_t)4321, pText->s_timestamp);
     EQ((uint32_t)4,    pText->s_stringCount);
     
     // Check the contents:
