@@ -20,6 +20,9 @@
 #include "CVMUSB.h"
 #include "CVMUSBReadoutList.h"	// for the AM codes.
 
+#include <TCLInterpreter.h>
+#include <TCLObject.h>
+
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -154,4 +157,52 @@ ChicoTrigger::Update(CVMUSB& vme)
 string
 ChicoTrigger::Set(CVMUSB& vme, string parameter, string value)
 {
+  // Validate the parameter:
+
+  if (parameter != "all") {
+    return "ERROR - no such parameter";
+  }
+  // The value string is a tcl list so we can use those
+  // things to unravel them:
+
+
+  TCLInterpreter interp;
+  TCLObject      valueList;
+  valueList.Bind(interp);
+  valueList = value;
+
+  // Interpreting the string as a list could
+  // cause errors so wrap this in a try /catch block.
+
+  try {
+    if(valueList.llength() != 4) {
+      return "ERROR - Parameter list has wrong number of values";
+    }
+    // Use a list of VME operations to set the module:
+    
+    CVMUSBReadoutList l;
+    l.addWrite32(base() + ShortWidth, am,
+		 (int)valueList.lindex(0));
+    l.addWrite32(base() + Longwidth, am,
+		 (int)valueList.lindex(1));
+    l.addWrite32(base() + EnableMask, am,
+		 (int)valueList.lindex(2));
+    l.addWrite32(base() + Control, am,
+		 (int)valueList.lindex(3));
+
+    // execute the list:
+
+    size_t  buffer;
+    int status = vme.executeList(l, &buffer,
+				 sizeof(buffer);
+				 &buffer);
+    if (status != 0) {
+      return "ERROR - VME operation failed";
+    }
+    return "OK";
+  }
+  catch(...) {
+    return "ERROR - unable to process parameter as list";
+  }
+  
 }
