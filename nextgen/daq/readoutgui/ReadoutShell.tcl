@@ -280,7 +280,7 @@ proc SourceExperimentFiles {} {
 #
 proc setupConfiguration arglist {
     global textWidgetHeight
-    set nomonitor false
+    set ::nomonitor false
     foreach item $arglist {
 
 	#  If we're running in a tcl server, 
