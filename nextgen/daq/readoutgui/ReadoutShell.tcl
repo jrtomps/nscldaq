@@ -280,6 +280,7 @@ proc SourceExperimentFiles {} {
 #
 proc setupConfiguration arglist {
     global textWidgetHeight
+    set nomonitor false
     foreach item $arglist {
 
 	#  If we're running in a tcl server, 
@@ -315,6 +316,9 @@ proc setupConfiguration arglist {
 		}
 
             }
+	    -nomonitor {
+		set ::nomonitor true
+	    }
             -ftphost {
 		#
 		#  NOTE -ftp is obsolete!!!
