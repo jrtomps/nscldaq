@@ -234,6 +234,10 @@ proc ReadoutGui::ClearElapsedTime {} {
 #      or after a ClearElapsedTimer.
 #
 proc ReadoutGui::StartElapsedTimer {} {
+    puts "Starting timer"
+    if {$ReadoutGui::ElapsedTimer != 0} {
+	return 
+    }
     set ::ReadoutGui::RunStartedTime [clock seconds]
     set ::ReadoutGui::ElapsedTimer [after 100 ReadoutGui::SecondElapsed]
 }
@@ -249,6 +253,7 @@ proc ReadoutGui::StopElapsedTimer {} {
     puts "Cancelling elapsed timer"
     if {$::ReadoutGui::ElapsedTimer !=0} {
 	after cancel $::ReadoutGui::ElapsedTimer
+	set ::ReadoutGui::ElapsedTimer ""
 	set ::ReadoutGui::ElapsedTimer 0
     }
     incr ::ReadoutGui::TotalSegmentTime [expr {[clock seconds] - $::ReadoutGui::RunStartedTime}]
@@ -263,6 +268,7 @@ proc ReadoutGui::StopElapsedTimer {} {
 #
 #
 proc ReadoutGui::SecondElapsed {} {
+    puts tick
 
     # Figure out how long we've run.
 
@@ -570,7 +576,8 @@ proc ReadoutGui::Begin {} {
 	ReadougGUIPanel::notRecording
 	# set EventFileStatusLine ""
     }
-#    ::ReadoutGui::StartRunTimers
+    ReadoutGui::StartElapsedTimer
+
 
 }
 # ReadoutGui::Pause
@@ -623,7 +630,7 @@ proc ReadoutGui::End {} {
     ReadoutControl::ShowAll
     ReadoutGui::SaveSettings
     if {$::nomonitor} {
-	StopElapsedTimer
+	ReadoutGui::StopElapsedTimer
     }
 
 }
