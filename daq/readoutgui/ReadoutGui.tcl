@@ -622,6 +622,9 @@ proc ReadoutGui::End {} {
     ReadougGUIPanel::setStatusLine {Run Ended}
     ReadoutControl::ShowAll
     ReadoutGui::SaveSettings
+    if {$::nomonitor} {
+	Stop ElapsedTimer
+    }
 
 }
 #

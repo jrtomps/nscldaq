@@ -202,5 +202,7 @@ January 30-Feb 1,2012
 	- Document all of this.
 	- Document the shape of ring items (daq/format/dataformat.xml)
         - Add s800toring to utilties/compatibility
+        - Add -nomonitor switch to ReadoutShell - just stops run timer
+	  right away rather than waiting for end run indicator from rdo.
 	
 	
