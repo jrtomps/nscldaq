@@ -623,7 +623,7 @@ proc ReadoutGui::End {} {
     ReadoutControl::ShowAll
     ReadoutGui::SaveSettings
     if {$::nomonitor} {
-	Stop ElapsedTimer
+	StopElapsedTimer
     }
 
 }
