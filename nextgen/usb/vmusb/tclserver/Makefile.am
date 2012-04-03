@@ -15,7 +15,8 @@ libVMUSBControlServer_la_SOURCES	= 	CControlHardware.cpp	\
 					CUpdateCommand.cpp	\
 					CGetCommand.cpp		\
 					CMonCommand.cpp         \
-					Server.cpp
+					Server.cpp		\
+					ChicoTrigger.cpp
 
 noinst_HEADERS			=	CGDG.h			\
 					CV812.h			\
@@ -30,7 +31,8 @@ noinst_HEADERS			=	CGDG.h			\
 					CControlModule.h	\
 					CModuleCommand.h	\
 					CMonCommand.h          \
-					TclServer.h
+					TclServer.h		\
+					ChicoTrigger.h
 
 INCLUDES			= 	-I$(top_builddir)/usb/vmusb/vmusb		\
 					-I$(top_builddir)/usb/vmusb/devices	\

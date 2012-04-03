@@ -27,6 +27,7 @@ using namespace std;
 #include <CV812.h>
 #include <CV6533.h>
 #include <CVMUSBModule.h>
+#include <ChicoTrigger.h>
 
 /*!
    Construct the command. 
@@ -131,8 +132,11 @@ CModuleCommand::create(CTCLInterpreter& interp,
   else if (type == "v6533") {
     pModule = new CV6533(name);
   }
+  else if (type == "ChicoTrigger") {
+    pModule = new ChicoTrigger(name);
+  }
   else {
-    m_Server.setResult("module create: Invalid type, must be one of jtecgdg, caenv182, caenvg895, vmusb, v6533");
+    m_Server.setResult("module create: Invalid type, must be one of jtecgdg, caenv182, caenvg895, vmusb, v6533 ChicoTrigger");
     return TCL_ERROR;
   }
   CControlModule*   pConfig = pModule->getConfiguration();

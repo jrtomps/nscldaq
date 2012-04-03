@@ -32,14 +32,14 @@ using namespace std;
 
 // Trigger module registr definitions:
 
-#define CONST(name) static const uint32_t name = 
+#define Const(name) static const uint32_t name = 
 
 static const uint8_t  am (CVMUSBReadoutList::a32UserData); // Address modifier.
 
-CONST(ShortWidth) 0x1010;
-CONST(LongWidth)  0x1014;
-CONST(EnableMask) 0x1018;
-CONST(Control)    0x101c;
+Const(ShortWidth) 0x1010;
+Const(LongWidth)  0x1014;
+Const(EnableMask) 0x1018;
+Const(Control)    0x101c;
 
 /**
  * Construction pretty much does nothing
@@ -51,12 +51,12 @@ ChicoTrigger::ChicoTrigger(string name) :
 {
 }
 /**
- * Copy constructinojust copies and clones us;
+ * Copy construction just copies and clones us;
  */
 ChicoTrigger::ChicoTrigger(const ChicoTrigger& rhs) :
   CControlHardware(rhs)
 {
-  m_pConfiguration = rhs.m_pConfiguration;
+  clone(rhs);
 }
 /**
  * Destructor
@@ -76,7 +76,8 @@ ChicoTrigger&
 ChicoTrigger::operator=(const ChicoTrigger& rhs)
 {
   if (this != &rhs) {
-    m_pConfiguration = rhs.m_pConfiguration;
+    delete m_pConfiguration;
+    clone(rhs);
   }
   return *this;
 }
@@ -90,7 +91,7 @@ ChicoTrigger::operator=(const ChicoTrigger& rhs)
  * @retval 0 - inequality.
  */
 int
-ChicoTrigger::operator==(const ChicoTrigger& rhs)
+ChicoTrigger::operator==(const ChicoTrigger& rhs) const
 {
   return CControlHardware::operator==(rhs);
 }
@@ -104,7 +105,7 @@ ChicoTrigger::operator==(const ChicoTrigger& rhs)
  * @retval 0 - not unequal.
  */
 int
-ChicoTrigger::operator!=(const ChicoTrigger& rhs)
+ChicoTrigger::operator!=(const ChicoTrigger& rhs) const
 {
   return CControlHardware::operator!=(rhs);
 }
@@ -135,9 +136,10 @@ ChicoTrigger::Initialize(CVMUSB& vme)
 /**
  * Update is a no-op as well.
  */
-void
+string
 ChicoTrigger::Update(CVMUSB& vme)
 {
+  return "ERROR - Update is not implemented for ChicoTrigger";
 }
 /**
  * Set a parameter value. Since I'm lazy and since
@@ -166,8 +168,8 @@ ChicoTrigger::Set(CVMUSB& vme, string parameter, string value)
   // things to unravel them:
 
 
-  TCLInterpreter interp;
-  TCLObject      valueList;
+  CTCLInterpreter interp;
+  CTCLObject      valueList;
   valueList.Bind(interp);
   valueList = value;
 
@@ -183,7 +185,7 @@ ChicoTrigger::Set(CVMUSB& vme, string parameter, string value)
     CVMUSBReadoutList l;
     l.addWrite32(base() + ShortWidth, am,
 		 (int)valueList.lindex(0));
-    l.addWrite32(base() + Longwidth, am,
+    l.addWrite32(base() + LongWidth, am,
 		 (int)valueList.lindex(1));
     l.addWrite32(base() + EnableMask, am,
 		 (int)valueList.lindex(2));
@@ -194,7 +196,7 @@ ChicoTrigger::Set(CVMUSB& vme, string parameter, string value)
 
     size_t  buffer;
     int status = vme.executeList(l, &buffer,
-				 sizeof(buffer);
+				 sizeof(buffer),
 				 &buffer);
     if (status != 0) {
       return "ERROR - VME operation failed";
@@ -202,7 +204,83 @@ ChicoTrigger::Set(CVMUSB& vme, string parameter, string value)
     return "OK";
   }
   catch(...) {
-    return "ERROR - unable to process parameter as list";
+    return "ERROR - unable to process parameter value as list";
   }
   
+}
+/**
+ * Get a parametr value.  In this case, the only parameter is 'all'
+ * which returns a Tc llist that contains in order
+ * {short_width long_width mask control_register}}
+ *
+ * @param vme   VM-USB controller object.
+ * @param parameter - The parameter we are told to get, must be "all"
+ * 
+ * @return string
+ * @retval OK {short long mask control} if OK
+ * @retval ERROR - reasonfor the error if a problem.
+ *
+ */
+string
+ChicoTrigger::Get(CVMUSB& vme, string parameter)
+{
+  // Ensure the right paramter is being requested.
+
+  if (parameter != "all") {
+    return "ERROR - no such parameter";
+
+  }
+  // build up a VMUSB list to read the register values:
+  //
+
+  CVMUSBReadoutList l;
+  l.addRead32(base() + ShortWidth, am);
+  l.addRead32(base() + LongWidth, am);
+  l.addRead32(base() + EnableMask, am);
+  l.addRead32(base() + Control, am);
+
+  // Execute the list:
+
+  uint32_t buffer[4];		// Expecting to read 4 longs.
+  size_t   actuallyRead;
+
+  int status = vme.executeList(l, buffer, sizeof(buffer), &actuallyRead);
+
+  if (status != 0) {
+    return "ERROR - VME operation failed";
+  }
+
+  if (actuallyRead != sizeof(buffer)) {
+    return "ERROR - Expected read count incorrect";
+  }
+  // Build up ther reply.   The list is just simple integers so string concatenation
+  // is fine as a way to build it up.
+
+  string reply = "OK {";
+  for (int i =0; i < 4; i++) {
+    char value[100];
+    sprintf(value, "%d", buffer[i]);
+    reply += value;
+    reply += " ";
+  }
+  reply += "}";
+  return reply;
+}
+/**
+ * Create a new copy of the rhs into this.
+ */
+void
+ChicoTrigger::clone(const CControlHardware& rhs)
+{
+  CControlHardware::clone(rhs);
+  m_pConfiguration = new CControlModule(*(reinterpret_cast<const ChicoTrigger&>(rhs).m_pConfiguration ));
+  
+}
+/**
+ * Return the base address.
+ */
+uint32_t 
+ChicoTrigger::base()
+{
+  return m_pConfiguration->getUnsignedParameter("-base");
 }
