@@ -417,14 +417,15 @@ InitializeConfiguration::processEnv
 
 set CanWrite 1;				# By default events can be recorded.
 
-# Read the extensions and check the stage area.
+# Check the stage area.
 
-SourceExperimentFiles
 CheckStageArea
 
 # Process command language overrides.
 
 setupConfiguration $argv
+
+
 
 # If necessary get a password via a prompt.
 
@@ -444,6 +445,10 @@ if {$CanWrite} {
     ExpFileSystem::CreateHierarchy
     Experiment::CleanOrphans
 }
+
+# Source experiment scripts.
+
+SourceExperimentFiles
 
 
 
