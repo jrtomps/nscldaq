@@ -27,6 +27,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include <iostream>
 
 using namespace std;
 
@@ -282,5 +283,8 @@ ChicoTrigger::clone(const CControlHardware& rhs)
 uint32_t 
 ChicoTrigger::base()
 {
-  return m_pConfiguration->getUnsignedParameter("-base");
+
+  uint32_t b =  m_pConfiguration->getUnsignedParameter("-base");
+
+  return b;
 }
