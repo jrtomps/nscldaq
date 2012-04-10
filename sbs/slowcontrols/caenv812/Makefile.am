@@ -17,8 +17,8 @@ install-exec-local:
 	for f in $(APPS); do $(INSTALL_SCRIPT) $$f $(APPDIR)/`basename $$f .tcl`; done
 	$(INSTALL_SCRIPT) $(APPS)     $(APPDIR)
 	$(INSTALL_DATA)   $(HELPFILES) $(HELPDIR)
-	echo "pkg_mkIndex $(DRIVERDIR) *.tcl" > makeindex.tcl
-	$(TCLSH_CMD) <makeindex.tcl
+	echo "pkg_mkIndex $(DRIVERDIR) *.tcl" | $(TCLSH_CMD)
+
 
 EXTRA_DIST= $(PACKAGES) $(APPS)  $(HELPFILES) caenv812.xml
 

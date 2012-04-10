@@ -41,8 +41,8 @@ install-exec-local:
 	$(mkinstalldirs) $(prefix)/TclLibs/PortManager
 	$(INSTALL_SCRIPT) $(TCLPACKAGES) $(prefix)/TclLibs/PortManager
 	$(INSTALL_SCRIPT) $(TCLAPPS)     $(prefix)/bin/DaqPortManager
-	echo "pkg_mkIndex $(prefix)/TclLibs/PortManager *.tcl" > makeindex.tcl
-	$(TCLSH_CMD) <makeindex.tcl
+	echo "pkg_mkIndex $(prefix)/TclLibs/PortManager *.tcl" | $(TCLSH_CMD)
+
 
 #
 #  The distribution should contain the tcl files as well as their unit tests:
