@@ -41,7 +41,7 @@ else
 fi
 
 
-netcat $host $port | $DAQBIN/BufferToRing | $DAQBIN/stdintoring $ring
+netcat $host $port | $DAQBIN/BufferToRing $BUFFERSIZE | $DAQBIN/stdintoring $ring
 
 
 $DAQBIN/PopUp "S800 to ring pipeline exited"

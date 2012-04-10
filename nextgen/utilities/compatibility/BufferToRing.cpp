@@ -41,7 +41,7 @@
 
 
 
-static const size_t BUFFERSIZE(8192); // (in bytes).
+static size_t       BUFFERSIZE(8192); // (in bytes).
 static uint64_t     eventsInRun(0);   // For PhysicsEventcountItems.
 
 static std::set<int>                 okErrors;	// Acceptable errors in I/O operations.
@@ -531,7 +531,19 @@ bool bufferToRing (void* pBuffer)
 
 int main (int argc, char *argv[])
 {
-  std::string ringName;
+
+  // If there's an argument it must be a buffersize:
+
+  argc--; argv++;
+  if (argc) {
+    int newSize = atoi(*argv);
+    if (newSize < BUFFERSIZE) {
+      fprintf(stderr, "Buffer size specification %s must be an integer >= %d\n",
+	      *argv, BUFFERSIZE);
+      exit(EXIT_FAILURE);
+    }
+    BUFFERSIZE = newSize;
+  }
 
   uint16_t    dataBuffer[BUFFERSIZE/sizeof(uint16_t)];
 
