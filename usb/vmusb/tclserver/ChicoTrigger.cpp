@@ -273,7 +273,7 @@ ChicoTrigger::Get(CVMUSB& vme, string parameter)
 void
 ChicoTrigger::clone(const CControlHardware& rhs)
 {
-  CControlHardware::clone(rhs);
+
   m_pConfiguration = new CControlModule(*(reinterpret_cast<const ChicoTrigger&>(rhs).m_pConfiguration ));
   
 }
