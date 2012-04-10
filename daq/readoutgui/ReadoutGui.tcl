@@ -234,7 +234,6 @@ proc ReadoutGui::ClearElapsedTime {} {
 #      or after a ClearElapsedTimer.
 #
 proc ReadoutGui::StartElapsedTimer {} {
-    puts "Starting timer"
     if {$ReadoutGui::ElapsedTimer != 0} {
 	return 
     }
@@ -250,7 +249,6 @@ proc ReadoutGui::StartElapsedTimer {} {
 # time the timer was disabled.
 #
 proc ReadoutGui::StopElapsedTimer {} {
-    puts "Cancelling elapsed timer"
     if {$::ReadoutGui::ElapsedTimer !=0} {
 	after cancel $::ReadoutGui::ElapsedTimer
 	set ::ReadoutGui::ElapsedTimer ""
@@ -268,7 +266,7 @@ proc ReadoutGui::StopElapsedTimer {} {
 #
 #
 proc ReadoutGui::SecondElapsed {} {
-    puts tick
+
 
     # Figure out how long we've run.
 
