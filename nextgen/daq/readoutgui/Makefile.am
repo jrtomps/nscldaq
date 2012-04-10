@@ -6,8 +6,7 @@ install-exec-local:
 	for f in $(TCLAPPS); do $(INSTALL_SCRIPT) $$f  $(prefix)/bin/`basename $$f .tcl`; done
 	$(INSTALL_SCRIPT) ReadoutShell.tcl $(prefix)/bin
 	$(INSTALL_SCRIPT) RunReadout.sh  $(prefix)/TclLibs
-	echo "pkg_mkIndex -verbose $(prefix)/TclLibs/Stager *.tcl" > installpkg.tcl
-	$(TCLSH_CMD) <installpkg.tcl
+	echo "pkg_mkIndex -verbose $(prefix)/TclLibs/Stager *.tcl" | $(TCLSH_CMD)
 	echo Adjusting installation location of libWait.so compiled tcl extension.
 	mv $(prefix)/lib/libWait.* $(prefix)/TclLibs
 
