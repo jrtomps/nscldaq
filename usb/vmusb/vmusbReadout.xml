@@ -5345,34 +5345,105 @@ stack config scalers -trigger scaler -modules $scalers -period 2
                     </para>
                 </listitem>
             </varlistentry>
+            <varlistentry>
+                <term>
                     <methodsynopsis>
                         <type>void</type> <methodname>writeDGG_B</methodname>
                         <methodparam>
                             <type>uint32_t</type> <parameter>value</parameter>
                         </methodparam>
                     </methodsynopsis>
+                    </term>
+                    <listitem>
+                        <para>
+                            Writes <parameter>value</parameter> to the Delay and
+                            Gate Generator B control register. This register
+                            contains the length of the output gateas well as the
+                            low order bits of the delay.  The Delay and Gate register
+                            setup is described in section 3.4.6 of the VM-USB
+                            manual.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>
                     <methodsynopsis>
                         <type>uint32_t</type> <methodname>readDGG_B</methodname>
                         <void />
                     </methodsynopsis>
+                    </term>
+                    <listitem>
+                        <para>
+                            Returns the value of the DGG B control register.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>
                     <methodsynopsis>
                         <type>void</type> <methodname>writeDGG_Extended</methodname>
                         <methodparam>
                             <type>uint32_t</type> <parameter>value</parameter>
                         </methodparam>
                     </methodsynopsis>
+                    </term>
+                    <listitem>
+                        <para>
+                            Writes the DGG extended delay offset.  This register
+                            contains the top 16 bits of the delay for both
+                            A and B DGG's. It is describedin section 3.4.6
+                            of the VM-USB manual.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>
                     <methodsynopsis>
                         <type>uint32_t</type> <methodname>readDGG_Extended</methodname>
                         <void />
                     </methodsynopsis>
+                    </term>
+                    <listitem>
+                        <para>
+                            Reads the DGG extended delay register.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>
                     <methodsynopsis>
                         <type>uint32_t</type> <methodname>readScalerA</methodname>
                         <void />
                     </methodsynopsis>
+                    </term>
+                    <listitem>
+                        <para>
+                            The VM-USB contains two scalers (counters) that
+                            can be incremented as a result of several
+                            conditions.  These scalers are named A and B and
+                            are described in section 3.4.7 of the VM-USB manual.
+                        </para>
+                        <para>
+                            This method returns the value of scaler A.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>
                     <methodsynopsis>
                         <type>uint32_t</type> <methodname>readScalerB</methodname>
                         <void />
                     </methodsynopsis>
+                    </term>
+                    <listitem>
+                        <para>
+                            See <methodname>readScalerA</methodname> this method
+                            returns the value of scaler B.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>
                     <methodsynopsis>
                         <type>void</type> <methodname>writeVector</methodname>
                         <methodparam>
@@ -5382,32 +5453,146 @@ stack config scalers -trigger scaler -modules $scalers -period 2
                             <type>uint32_t</type> <parameter>value</parameter>
                         </methodparam>
                     </methodsynopsis>
+                    </term>
+                    <listitem>
+                        <para>
+                            The VM-USB allows stacks to be triggered as a result
+                            of VME interrupts.  4 interrupt registers are provided
+                            as described in section 3.4.8.  Each register
+                            describes the IPL and Status ID of two interrupts
+                            and associates each of those with a stack.
+                            This method allows you to program the value of one
+                            of those registers.
+                        </para>
+                        <para>
+                            The <parameter>which</parameter>   parameter selects
+                            which of the interrupt registers to write, numbered
+                            from 1 through 4.  The <parameter>value</parameter>
+                            parameter is written to the selected register.
+                        </para>
+                        <para>
+                            An error message is thrown as an <type>std::string</type>
+                            if <parameter>which</parameter> is illegal.
+                        </para>
+                        <para>
+                            As essentially all VME interrupters in existence
+                            use an 8 bit status ID for which the top
+                            bits must be set, according to the VME standard,
+                            These methods also write both Status/ID expansion
+                            registers to <literal>0xffffffff</literal>
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>
                     <methodsynopsis>
                         <type>uint32_t</type> <methodname>readVector</methodname>
                         <methodparam>
                             <type>int</type> <parameter>which</parameter>
                         </methodparam>
                     </methodsynopsis>
+                    </term>
+                    <listitem>
+                        <para>
+                            Returns the value of
+                            one of the interrupt registers described
+                            above.  <parameter>which</parameter> indicates
+                            which one to read.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>
                     <methodsynopsis>
                         <type>void</type> <methodname>writeIrqMask</methodname>
                         <methodparam>
                             <type>uint8_t</type> <parameter>mask</parameter>
                         </methodparam>
                     </methodsynopsis>
+                    </term>
+                    <listitem>
+                        <para>
+                            Writes the IRQ mask register described in section
+                            3.5 of the VM-USB manual.  The register is
+                            set to <parameter>mask</parameter>. Each bit in the
+                            mask represents a VME IPL.  <literal>0x01</literal>
+                            represents IPL1, <literal>0x40</literal> represents
+                            IPL 7.  If a bit is set to 1, interrupts at that IPL
+                            will be ignored by the VM-USB.
+                        </para>
+                        <para>
+                            This register only needs to be programmed when
+                            the VM-USB is used with other interrupt handling
+                            modules (e.g. CPU modules).
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>
                     <methodsynopsis>
                         <type>uint8_t</type> <methodname>readIrqMask</methodname>
                         <void />
                     </methodsynopsis>
+                    </term>
+                    <listitem>
+                        <para>
+                            Returns the value last written to the
+                            IRQ mask register.  The actual register is write-only.
+                            The <classname>CVMUSB</classname> class therefore
+                            remembers the most recently written value. This
+                            <firstterm>shadow register value</firstterm> is what
+                            is returned by this method.  Note as well that
+                            the IRQ mask register is set to <literal>0xff</literal>
+                            by the constructor so that it has a known intial
+                            value.  This initial value <emphasis>disables</emphasis>
+                            all
+                            interrupt handling by the VM-USB.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>
                     <methodsynopsis>
                         <type>void</type> <methodname>writeBulkXferSetup</methodname>
                         <methodparam>
                             <type>uint32_t</type> <parameter>value</parameter>
                         </methodparam>
                     </methodsynopsis>
+                    </term>
+                    <listitem>
+                        <para>
+                            Writes <parameter>value</parameter> to the Bulk
+                            Transfer setup register.  This register is described
+                            in section 3.4.10 of the VM-USB manual.  It controls
+                            several parameters that can optimize the bandwidth of
+                            the USB.  Specifically you can set the number of buffers
+                            that will be sent from the VM-USB to the host without
+                            generating a USB Packet end frame and the timeout
+                            after which the packet end frame will be sent
+                            regardless of how many bufers were sent.
+                        </para>
+                        <para>
+                            If the paragraph above is not meaningful to you,
+                            and you read 3.4.10 and its still not meaningful, you
+                            should probably not touch this register.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>
                     <methodsynopsis>
                         <type>uint32_t</type> <methodname>readBulkXferSetup</methodname>
                         <void />
                     </methodsynopsis>
+                    </term>
+                    <listitem>
+                        <para>
+                            Returns the value of the Bulk Transfer Setup register.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>
                     <methodsynopsis>
                         <type>int</type> <methodname>vmeWrite32</methodname>
                         <methodparam>
@@ -5420,6 +5605,29 @@ stack config scalers -trigger scaler -modules $scalers -period 2
                             <type>uint32_t</type> <parameter>data</parameter>
                         </methodparam>
                     </methodsynopsis>
+                    </term>
+                    <listitem>
+                        <para>
+                            Writes a 32 bit longword, <parameter>data</parameter>
+                            to a vme <parameter>address</parameter> using
+                            the VME Address modifier <parameter>aModifier</parameter>.
+                        </para>
+                        <para>
+                            The function returns <literal>0</literal> on
+                            success, <literal>-1</literal> if the USB write
+                            failed, <literal>-2</literal> if the USB read of the
+                            acknowledgement failed, and <literal>-3</literal>
+                            if the acknowledgement packet indicated the
+                            transfer failed due to a bus error.
+                        </para>
+                        <para>
+                            For USB write and read failures, the resason for
+                            the failure is available in <varname>errno</varname>
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>
                     <methodsynopsis>
                         <type>int</type> <methodname>vmeRead32</methodname>
                         <methodparam>
@@ -5432,6 +5640,30 @@ stack config scalers -trigger scaler -modules $scalers -period 2
                             <type>uint32_t*</type> <parameter>data</parameter>
                         </methodparam>
                     </methodsynopsis>
+                    </term>
+                    <listitem>
+                        <para>
+                            Performs a 32 bit longword read from
+                            <parameter>address</parameter> using the VME bus
+                            address modifier <parameter>aModifier</parameter>.
+                            If successful, the data are stored in <parameter>data</parameter>.
+                        </para>
+                        <para>
+                            The return value reflects a high level status of the
+                            operation.
+                            The function returns <literal>0</literal> on
+                            success, <literal>-1</literal> if the USB write
+                            failed, <literal>-2</literal> if the USB read of the
+                            acknowledgement failed.
+                        </para>
+                        <para>
+                            For USB write and read failures, the resason for
+                            the failure is available in <varname>errno</varname>
+                        </para>                            
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>
                     <methodsynopsis>
                         <type>int</type> <methodname>vmeWrite16</methodname>
                         <methodparam>
@@ -5444,6 +5676,17 @@ stack config scalers -trigger scaler -modules $scalers -period 2
                             <type>uint16_t</type> <parameter>data</parameter>
                         </methodparam>
                     </methodsynopsis>
+                    </term>
+                    <listitem>
+                        <para>
+                            Identical to <methodname>vmeWrite32</methodname>
+                            however the data transfered is only a 16 bit
+                            word wide.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>
                     <methodsynopsis>
                         <type>int</type> <methodname>vmeRead16</methodname>
                         <methodparam>
@@ -5456,6 +5699,16 @@ stack config scalers -trigger scaler -modules $scalers -period 2
                             <type>uint16_t*M</type> <parameter>data</parameter>
                         </methodparam>
                     </methodsynopsis>
+                    </term>
+                    <listitem>
+                        <para>
+                            Identical to <methodname>vmeRead32</methodname>
+                            however the data read are only a 16 bit word wide.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>
                     <methodsynopsis>
                         <type>int</type> <methodname>vmeWrite8</methodname>
                         <methodparam>
@@ -5468,6 +5721,16 @@ stack config scalers -trigger scaler -modules $scalers -period 2
                             <type>uint8_t</type> <parameter>data</parameter>
                         </methodparam>
                     </methodsynopsis>
+                    </term>
+                    <listitem>
+                        <para>
+                            Same as <methodname>vmeWrite32</methodname> however
+                            the data written are an 8 bit byte in width.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>
                     <methodsynopsis>
                         <type>int</type> <methodname>vmeRead8</methodname>
                         <methodparam>
@@ -5480,6 +5743,16 @@ stack config scalers -trigger scaler -modules $scalers -period 2
                             <type>uint8_t*</type> <parameter>data</parameter>
                         </methodparam>
                     </methodsynopsis>
+                    </term>
+                    <listitem>
+                        <para>
+                            Same as <methodname>vmeRead32</methodname> however
+                            the data read are an 8 bit byte in width.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>
                     <methodsynopsis>
                         <type>int</type> <methodname>vmeBlockRead</methodname>
                         <methodparam>
@@ -5498,6 +5771,47 @@ stack config scalers -trigger scaler -modules $scalers -period 2
                             <type>size_t*</type> <parameter>countTransferred</parameter>
                         </methodparam>
                     </methodsynopsis>
+                    </term>
+                    <listitem>
+                        <para>
+                            Performs a block read from the VME bus.  VME block
+                            reads the requestor to only send an initial VME
+                            base address followed by a new address every time
+                            the address crosses a 256 byte boundary.  Subsequent
+                            addresses are assumed  to represent a contiguous
+                            block of storage.  Not all devices support block
+                            transfers.  Block transfers also require specific
+                            block transfer address modifiers.  When used properly,
+                            block transfers allow higher throughput by
+                            reducing the number of address cycles.
+                        </para>
+                        <para>
+                            The base address of the block transfer is
+                            <parameter>baseAddress</parameter>.  The address
+                            modifier used is <parameter>aModifier</parameter>
+                            the caller is responsible for ensuring that
+                            <parameter>aModifier</parameter> is a valid
+                            block transfer address modifier. <parameter>data</parameter>
+                            is a buffer that will receive the data read.
+                            <parameter>transferCount</parameter> is the number
+                            of longwords (32 bit items) to transfer.  All transfers
+                            will be 32 bit wide transfers.  <parameter>countTransferred</parameter>
+                            will be the actual number of longwords transferred.
+                        </para>
+                        <para>
+                            For some devices it is possible to transfer fewer
+                            items thatn the number of items requested.  An example
+                            of this is the use of CAEN V785's in chained block
+                            mode.  In that case, the read will transfer data
+                            until the ADC's have no more data left at which time
+                            the modules will return a bus error on the next transfer
+                            and the VM-USB will insert a <literal>0xffffffff</literal>
+                            marker in the data stream when the bus error occured.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>
                     <methodsynopsis>
                         <type>int</type> <methodname>vmeFifoRead</methodname>
                         <methodparam>
@@ -5516,6 +5830,18 @@ stack config scalers -trigger scaler -modules $scalers -period 2
                             <type>size_t*</type> <parameter>countTransferred</parameter>
                         </methodparam>
                     </methodsynopsis>
+                    </term>
+                    <listitem>
+                        <para>
+                            This function is the same as <methodname>vmeBlockRead</methodname>
+                            except that all address cycles use the same <parameter>address</parameter>
+                            value.  This makes the function suitable to read FIFO
+                            registers in modules that support block reads.
+                        </para>
+                   </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>
                     <methodsynopsis>
                         <type>int</type> <methodname>vmeReadBlockCount8</methodname>
                         <methodparam>
@@ -5528,6 +5854,37 @@ stack config scalers -trigger scaler -modules $scalers -period 2
                             <type>uint8_t</type> <parameter>amod</parameter>
                         </methodparam>
                     </methodsynopsis>
+                    </term>
+                    <listitem>
+                        <para>
+                            The VM-USB supports variable sized block reads.
+                            These operate by first performing a
+                            read of the block count from some register and providing
+                            a mask that indicates what part of that data
+                            contains the transfer count.
+                            The block count read must at some point be
+                            folowed by a call to
+                            <methodname>vmeVariableBlockRead</methodname>
+                            to actually perform the block read.
+                        </para>
+                        <para>
+                            This method does an 8 bit transfer to read the
+                            block count for the next
+                            <methodname>vmeVariableBlockRead</methodname>
+                            call. <parameter>address</parameter> is the
+                            byte address of the location that contains the
+                            count field.  The addressed module must support
+                            byte addressing at this location.  <parameter>mask</parameter>
+                            is the mask that defines the bit field containing
+                            the count.
+                            <parameter>amod</parameter> is the address modifier
+                            for the transfer of the transfer count.
+                        </para>
+                        
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>
                     <methodsynopsis>
                         <type>int</type> <methodname>vmeReadBlockCount16</methodname>
                         <methodparam>
@@ -5540,6 +5897,16 @@ stack config scalers -trigger scaler -modules $scalers -period 2
                             <type>uint8_t</type> <parameter>amod</parameter>
                         </methodparam>
                     </methodsynopsis>
+                    </term>
+                    <listitem>
+                        <para>
+                            Same as <methodname>vmeReadBlockCount8</methodname>
+                            but the block count transfer is 16 bits wide.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>
                     <methodsynopsis>
                         <type>int</type> <methodname>vmeReadBlockCount32</methodname>
                         <methodparam>
@@ -5552,6 +5919,16 @@ stack config scalers -trigger scaler -modules $scalers -period 2
                             <type>uint8_t</type> <parameter>amod</parameter>
                         </methodparam>
                     </methodsynopsis>
+                    </term>
+                    <listitem>
+                        <para>
+                            Same as <methodname>vmeReadouBlockCount8</methodname>
+                            except the block count is read with a 32 bit transfer.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>
                     <methodsynopsis>
                         <type>int</type> <methodname>vmeVariableBlockRead</methodname>
                         <methodparam>
@@ -5570,6 +5947,49 @@ stack config scalers -trigger scaler -modules $scalers -period 2
                             <type>size_t*</type> <parameter>countTransferred</parameter>
                         </methodparam>
                     </methodsynopsis>
+                        </term>
+                        <listitem>
+                            <para>
+                                Do a variable length block transfer.  This
+                                transfer must have been
+                                set up by doing a call to one of the
+                                <methodname>vmeReadBlockCountxx</methodname> functions.
+                                furthermore, no other block transfer can have
+                                taken place since that
+                                operation.  It is <emphasis>strongly</emphasis>
+                                recommended that unless prohibited by the
+                                hardware, a vmeReadBlockCountxx be
+                                <emphasis>immediately</emphasis> followed by a
+                                variable block read or variable fifo read.
+                            </para>
+                            <para>
+                                <parameter>address</parameter> is the starting
+                                address of the block read.  <parameter>amod</parameter>
+                                is the VME address modifier.  <parameter>data</parameter>
+                                is a buffer into which data will be stored and
+                                <parameter>maxCount</parameter> the size of that buffer
+                                in 32bit longwords.  <parameter>countTransferred</parameter>
+                                will be filled in with the total number of longwords
+                                actually transferred.
+                            </para>
+                            <para>
+                                The total transfer count is the minimum of the
+                                variable block read gotten by the
+                                <methodname>vmeReadBlockCountxx</methodname>
+                                method, the value of the <parameter>maxCount</parameter>
+                                parameter to this call and the number of transfers
+                                actually performed prior to and including the
+                                transfer that caused a bus error if any.
+                            </para>
+                            <para>
+                                As usual, in the event the transfer terminated
+                                with a bus error, that operation inserts a
+                                <literal>0xffffffff</literal> in the buffer.
+                            </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>
                     <methodsynopsis>
                         <type>int</type> <methodname>vmeVariableFifoRead</methodname>
                         <methodparam>
@@ -5588,6 +6008,17 @@ stack config scalers -trigger scaler -modules $scalers -period 2
                             <type>size_t*</type> <parameter>countTransferred</parameter>
                         </methodparam>
                     </methodsynopsis>
+                    </term>
+                    <listitem>
+                        <para>
+                            Same as <methodname>vmeVariableBlockRead</methodname>
+                            but all addresses cycles
+                            provide <parameter>address</parameter> rather than
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>
                     <methodsynopsis>
                         <type>int</type> <methodname>executeList</methodname>
                         <methodparam>
@@ -5603,6 +6034,30 @@ stack config scalers -trigger scaler -modules $scalers -period 2
                             <type>size_t*</type> <parameter>bytesRead</parameter>
                         </methodparam>
                     </methodsynopsis>
+                        </term>
+                        <listitem>
+                            <para>
+                                This function executes a list of operations.
+                                The <parameter>list</parameter> parameter
+                                is an instance of a
+                                <classname>CVMUSBReadoutList</classname>
+                                class.  See the documentation for that
+                                class for a description of how to build up
+                                lists of VM-USB operations.
+                            </para>
+                            <para>
+                                <parameter>pReadBuffer</parameter> points to
+                                a buffer into which the results of all
+                                VME read operations will be put.
+                                The buffer must be <parameter>readBufferSize</parameter>
+                                8 bit bytes long.  <parameter>bytesRead</parameter>
+                                will be written with the number of bytes actually
+                                transferred to <parameter>pReadBuffer</parameter>
+                            </para>
+                        </listitem>
+                    </varlistentry>
+                    <varlistentry>
+                        <term>
                     <methodsynopsis>
                         <type>int</type> <methodname>loadList</methodname>
                         <methodparam>
@@ -5616,6 +6071,33 @@ stack config scalers -trigger scaler -modules $scalers -period 2
                             <initializer> 0</initializer>
                         </methodparam>
                     </methodsynopsis>
+                    </term>
+                    <listitem>
+                        <para>
+                            Loads a list for triggered execution in data taking
+                            mode.  <parameter>listNumber</parameter> is the
+                            number of the list to load (stack Number).  Tis
+                            is a value in the range <literal>[0..7]</literal>.
+                            <parameter>list</parameter> is a list of operations
+                            built up by instantiating a <classname>CVMUSBReadoutList</classname>
+                        </para>
+                        <para>
+                            <parameter>listOffset</parameter> is the starting
+                            offset in  VM-USB memory at which the list
+                            should be loaded.  When computing where to load
+                            multiple stacks you need to know that each
+                            stack requires:
+                            <informalexample>
+                                <programlisting>
+list.size() * sizeof(uint32_t)/sizeof(uint16_t) + 4
+                                </programlisting>
+                            </informalexample>
+                            locations.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                    <varlistentry>
+                        <term>
                     <methodsynopsis>
                         <type>int</type> <methodname>usbRead</methodname>
                         <methodparam>
@@ -5632,83 +6114,2983 @@ stack config scalers -trigger scaler -modules $scalers -period 2
                             <initializer>2000</initializer>
                         </methodparam>
                     </methodsynopsis>
+                    </term>
+                    <listitem>
+                        <para>
+                            Performs a bulk read on the VM-USB.
+                            <parameter>data</parameter> provides a buffer
+                            into which the data will be read.
+                            <parameter>bufferSize</parameter> is the number
+                            of bytes of space pointed to by <parameter>data</parameter>
+                            <parameter>transferCount</parameter>
+                            will be written with the
+                            number of transfers that actually were performed.
+                        </para>
+                        <para>
+                            The return value is <literal>0</literal> on success
+                            or <literal>-1</literal> on failure.  On failure,
+                            zero will be stored in the <parameter>transferCount</parameter>
+                            and <varname>errno</varname> will have the reason
+                            for the failure.
+                        </para>
+                        <para>
+                            If no data are available by <parameter>timeout</parameter>
+                            milliseconds, the read will fail with an
+                            <varname>errno</varname> value of
+                            <literal>ETIMEDOUT</literal>
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>
                     <methodsynopsis>
                         <type>void</type> <methodname>setDefaultTimeout</methodname>
                         <methodparam>
                             <type>int</type> <parameter>ms</parameter>
                         </methodparam>
                     </methodsynopsis>
-                    
-
+                    </term>
+                    <listitem>
+                        <para>
+                            Sets the timeout used for transactions that
+                            don't provide a timeout value.  <parameter>ms</parameter>
+                            is the number of milliseconds these methods will
+                            wait for a response from the VM-USB.
+                        </para>
+                        <para>
+                            Almost all actions with the VM-USB require the
+                            host to send a USB packet to the VM-USB and receive
+                            a packet in return.  This function sets the timeout
+                            that will be used for the <methodname>usbRead</methodname>
+                            call to get the return packets.
+                        </para>
+                    </listitem>
+                </varlistentry>        
           </variablelist>
        </refsect1>
         <refsect1>
            <title>CONSTANTS</title>
-           <para></para>
+           <para>
+                This class defines a large number of nested classes.  Each nested
+                class defines symbolic constants for a register.  The
+                SYNOPSIS section shows these definitions.  
+           </para>
+           <para>
+            For example, the <classname>CVMUSB::ActionRegister</classname>
+            provides bit definitions fro the Action register.
+           </para>
         </refsect1>
      </refentry>
          
 	 <refentry id="vmusb3-CVMUSBReadoutList">
        <refmeta>
-          <refentrytitle>classname</refentrytitle>
-          <manvolnum>3</manvolnum>
+          <refentrytitle>CVMUSBReadoutList</refentrytitle>
+          <manvolnum>3vmusb</manvolnum>
        </refmeta>
        <refnamediv>
-          <refname>Classname</refname>
-          <refpurpose>class description</refpurpose>
+          <refname>CVMUSBReadoutList</refname>
+          <refpurpose>Construct VM-USB stacks</refpurpose>
        </refnamediv>
        
        <refsynopsisdiv>
             <synopsis>
-            </synopsis>
+#include &lt;CVMUSBReadoutList.h&gt;
+
+class <ooclass><classname>CVMUSBReadoutList</classname></ooclass>
+    <constructorsynopsis>
+       <methodname>CVMUSBReadoutList</methodname>
+       <void />
+       
+    </constructorsynopsis>
+    <constructorsynopsis>
+       <methodname>CVMUSBReadoutList</methodname>
+       <methodparam>
+            <type>std::vector&lt;uint32_t&gt;&amp;</type> <parameter>list</parameter>
+       </methodparam>
+       
+    </constructorsynopsis>
+    <constructorsynopsis>
+       <methodname>CVMUSBReadoutList</methodname>
+       <methodparam>
+            <modifier>const</modifier> <type>CVMUSBReadoutList&amp;</type>
+            <parameter>rhs</parameter>
+       </methodparam>
+       
+    </constructorsynopsis>
+    <methodsynopsis>
+      <modifier></modifier>
+      <type>void</type>
+      <methodname>clear</methodname>
+      <void />
+      <modifier></modifier>
+    </methodsynopsis>
+    <methodsynopsis>
+      <modifier></modifier>
+      <type>size_t</type>
+      <methodname>size</methodname>
+      <void />
+      <modifier>const</modifier>
+    </methodsynopsis>
+    <methodsynopsis>
+      <modifier></modifier>
+      <type>std::vector&lt;uint32_t&gt;</type>
+      <methodname>get</methodname>
+      <void />
+      <modifier>const</modifier>
+    </methodsynopsis>                    
+    <methodsynopsis>
+      <modifier></modifier>
+      <type>void</type>
+      <methodname>addRegisterRead</methodname>
+      <methodparam>
+        <type>unsigned int</type> <parameter>address</parameter>
+      </methodparam>
+      <modifier></modifier>
+    </methodsynopsis>
+    <methodsynopsis>
+      <modifier></modifier>
+      <type>void</type>
+      <methodname>addRegisterWrite</methodname>
+      <methodparam>
+        <type>unsigned int</type> <parameter>address</parameter>
+      </methodparam>
+      <methodparam>
+        <type>uint32_t</type> <parameter>data</parameter>
+      </methodparam>
+    </methodsynopsis>
+    <methodsynopsis>
+      <modifier></modifier>
+      <type>void</type>
+      <methodname>addWrite32</methodname>
+      <methodparam>
+        <type>uint32_t</type> <parameter>address</parameter>
+      </methodparam>
+      <methodparam>
+        <type>uint8_t</type> <parameter>amod</parameter>
+      </methodparam>
+      <methodparam>
+        <type>uint32_t</type> <parameter>datum</parameter>    
+      </methodparam>
+      <modifier></modifier>
+    </methodsynopsis>
+    <methodsynopsis>
+      <modifier></modifier>
+      <type>void</type>
+      <methodname>addWrite16</methodname>
+      <methodparam>
+        <type>uint32_t</type> <parameter>address</parameter>
+      </methodparam>
+      <methodparam>
+        <type>uint8_t</type> <parameter>amod</parameter>
+      </methodparam>
+      <methodparam>
+        <type>uint16_t</type> <parameter>datum</parameter>
+      </methodparam>
+      <modifier></modifier>
+    </methodsynopsis>
+    <methodsynopsis>
+      <modifier></modifier>
+      <type>void</type>
+      <methodname>addWrite8</methodname>
+      <methodparam>
+        <type>uint32_t</type> <parameter>address</parameter>
+      </methodparam>
+      <methodparam>
+        <type>uint8_t</type> <parameter>amod</parameter>
+      </methodparam>
+      <methodparam>
+        <type>uint8_t</type> <parameter>datum</parameter>   
+      </methodparam>
+    </methodsynopsis>
+    <methodsynopsis>
+      <modifier></modifier>
+      <type>void</type>
+      <methodname>addRead32</methodname>
+      <methodparam>
+        <type>uint32_t</type> <parameter>address</parameter>
+      </methodparam>
+      <methodparam>
+        <type>uint8_t</type> <parameter>amod</parameter>
+      </methodparam>
+    </methodsynopsis>
+    <methodsynopsis>
+      <modifier></modifier>
+      <type>void</type>
+      <methodname>addRead16</methodname>
+      <methodparam>
+        <type>uint32_t</type> <parameter>address</parameter>
+      </methodparam>
+      <methodparam>
+        <type>uint8_t</type> <parameter>amod</parameter>
+      </methodparam>
+    </methodsynopsis>
+    <methodsynopsis>
+      <modifier></modifier>
+      <type>void</type>
+      <methodname>addRead8</methodname>
+      <methodparam>
+        <type>uint32_t</type> <parameter>address</parameter>
+      </methodparam>
+      <methodparam>
+        <type>uint8_t</type> <parameter>amod</parameter>
+      </methodparam>
+    </methodsynopsis>
+    <methodsynopsis>
+      <modifier></modifier>
+      <type>void</type>
+      <methodname>addBlockRead32</methodname>
+      <methodparam>
+        <type>uint32_t</type> <parameter>baseAddress</parameter>
+      </methodparam>
+      <methodparam>
+        <type>uint8_t</type><parameter>amod</parameter>
+      </methodparam>
+      <methodparam>
+        <type>size_t</type><parameter>transfers</parameter>
+      </methodparam>
+    </methodsynopsis>
+    <methodsynopsis>
+      <modifier></modifier>
+      <type>void</type>
+      <methodname>addFifoRead32</methodname>
+      <methodparam>
+        <type>uint32_t</type><parameter>baseAddress</parameter>
+      </methodparam>
+      <methodparam>
+        <type>uint8_t</type><parameter>amod</parameter>
+      </methodparam>
+      <methodparam>
+        <type>size_t</type><parameter>transfers</parameter>
+      </methodparam>    
+    </methodsynopsis>
+    <methodsynopsis>
+      <modifier></modifier>
+      <type>void</type>
+      <methodname>addFifoRead16</methodname>
+      <methodparam>
+        <type>uint32_t</type><parameter>baseAddress</parameter>
+      </methodparam>
+      <methodparam>
+        <type>uint8_t</type><parameter>amod</parameter>
+      </methodparam>
+      <methodparam>
+        <type>size_t</type><parameter>transfers</parameter>
+      </methodparam>    
+    </methodsynopsis>
+    <methodsynopsis>
+      <modifier></modifier>
+      <type>void</type>
+      <methodname>addBlockWrite32</methodname>
+      <methodparam>
+        <type>uint32_t</type><parameter>baseAddress</parameter>
+      </methodparam>
+      <methodparam>
+        <type>uint8_t</type><parameter>amod</parameter>
+      </methodparam>
+      <methodparam>
+        <type>void*</type><parameter>data</parameter>
+      </methodparam>
+      <methodparam>
+        <type>size_t</type><parameter>transfers</parameter>
+        </methodparam>
+    </methodsynopsis>
+    <methodsynopsis>
+      <modifier></modifier>
+      <type>void</type>
+      <methodname>addBlockCountRead8</methodname>
+      <methodparam>
+        <type>uint32_t</type><parameter>address</parameter>
+      </methodparam>
+      <methodparam>
+        <type>uint32_t</type><parameter>mask</parameter>
+      </methodparam>
+      <methodparam>
+        <type>uint8_t</type><parameter>amod</parameter>
+      </methodparam>
+    </methodsynopsis>
+    <methodsynopsis>
+      <modifier></modifier>
+      <type>void</type>
+      <methodname>addBlockCountRead16</methodname>
+      <methodparam>
+        <type>uint32_t</type><parameter>address</parameter>
+      </methodparam>
+      <methodparam>
+        <type>uint32_t</type><parameter>mask</parameter>
+      </methodparam>
+      <methodparam>
+        <type>uint8_t</type><parameter>amod</parameter>
+      </methodparam>
+    </methodsynopsis>
+    <methodsynopsis>
+      <modifier></modifier>
+      <type>void</type>
+      <methodname>addBlockCountRead32</methodname>
+      <methodparam>
+        <type>uint32_t</type><parameter>address</parameter>
+      </methodparam>
+      <methodparam>
+        <type>uint32_t</type><parameter>mask</parameter>
+      </methodparam>
+      <methodparam>
+        <type>uint8_t</type><parameter>amod</parameter>
+      </methodparam>
+    </methodsynopsis>
+    <methodsynopsis>
+        <modifier></modifier>
+        <type>void</type>
+        <methodname>addMaskedCountBlockRead32</methodname>
+        <methodparam>
+            <type>uint32_t</type><parameter>address</parameter>
+        </methodparam>
+        <methodparam>
+            <type>uint8_t</type><parameter>amod</parameter>
+        </methodparam>
+    </methodsynopsis>
+    <methodsynopsis>
+        <modifier></modifier>
+        <type>void</type>
+        <methodname>addMaskedCountFifoRead32</methodname>
+        <methodparam>
+            <type>uint32_t</type><parameter>address</parameter>
+        </methodparam>
+        <methodparam>
+            <type>uint8_t</type><parameter>amod</parameter>
+        </methodparam>
+    </methodsynopsis>
+    <methodsynopsis>    
+        <modifier></modifier>
+        <type>void</type>
+        <methodname>addDelay</methodname>
+        <methodparam>
+            <type>uint8_t</type><parameter>clocks</parameter>
+        </methodparam>
+    </methodsynopsis>  
+    <methodsynopsis>
+        <modifier></modifier>
+        <type>void</type>
+        <methodname>addMarker</methodname>
+        <methodparam>
+            <type>uint16_t</type><parameter>value</parameter>
+        </methodparam>
+    </methodsynopsis>
+    <fieldsynopsis>
+        <modifier>static const</modifier>
+        <type>uint8_t</type> <varname>a32UserData</varname>
+        <initializer>0x09</initializer>
+    </fieldsynopsis>
+    <fieldsynopsis>
+        <modifier>static const</modifier><type>uint8_t</type>
+        <varname>a32UserProgram</varname><initializer>0xa</initializer>
+    </fieldsynopsis>
+    <fieldsynopsis>
+        <modifier>static const</modifier>
+        <type>uint8_t</type><varname>a32UserBlock</varname>
+        <initializer>0x0b</initializer>
+    </fieldsynopsis>
+    <fieldsynopsis>
+        <modifier>static const</modifier> <type>uint8_t</type>
+        <varname>a32PrivData</varname><initializer>0x0d</initializer>
+    </fieldsynopsis>
+    <fieldsynopsis>
+        <modifier>static const</modifier>
+        <type>uint8_t</type><varname>a32PrivProgram</varname><initializer>0x0e</initializer>
+    </fieldsynopsis>
+    <fieldsynopsis>
+        <modifier>static const</modifier> <type>uint8_t</type>
+        <varname>a32PrivBlock</varname><initializer>0x0f</initializer>
+    </fieldsynopsis>
+    <fieldsynopsis>
+        <modifier>static const</modifier><type>uint8_t</type>
+        <varname>a16User</varname><initializer>0x29</initializer>
+    </fieldsynopsis>
+    <fieldsynopsis>
+        <modifier>static const</modifier><type>uint8_t</type>
+        <varname>a16Priv</varname><initializer>0x2d</initializer>
+    </fieldsynopsis>
+    <fieldsynopsis>
+        <modifier>static const</modifier><type>uint8_t</type>
+        <varname>a24UserData</varname><initializer>0x39</initializer>
+    </fieldsynopsis>
+    <fieldsynopsis>
+        <modifier>static const</modifier><type>uint8_t</type>
+        <varname>a24UserProgram</varname><initializer>0x3a</initializer>
+    </fieldsynopsis>
+    <fieldsynopsis>
+        <modifier>static const</modifier><type>uint8_t</type>
+        <varname>a24UserBlock</varname><initializer>0x3b</initializer>
+    </fieldsynopsis>
+    <fieldsynopsis>
+        <modifier>static const</modifier><type>uint8_t</type>
+        <varname>a24PrivData</varname><initializer>0x3d</initializer>
+    </fieldsynopsis>
+    <fieldsynopsis>
+        <modifier>static const</modifier><type>uint8_t</type>
+        <varname>a24PrivProgram</varname><initializer>0x3e</initializer>
+    </fieldsynopsis>
+    <fieldsynopsis>
+        <modifier>static const</modifier><type>uint8_t</type>
+        <varname>a24PrivBlock</varname><initializer>0x3f</initializer>
+    </fieldsynopsis>
+
+</synopsis>
+
        </refsynopsisdiv>
        <refsect1>
           <title>DESCRIPTION</title>
           <para>
+            This object is used to build up lists (stacks) of VME commands.
+            The normal procedure is to create an instance of a
+            <classname>CVMUSBReadoutList</classname> and invoke its member
+            functions to build up the list of operations desired.  The resulting
+            list is then passed either to
+            <classname>CVMUSB</classname>::<methodname>executeList</methodname>,
+            which executes the operations in the list immediately and returns
+            any data read.  Alternatively, if the list is being created for
+            use as a data acquisition mode stack, it is passed to
+            <classname>CVMUSB</classname>::<methodname>loadList</methodname>
+            to load it into the VM-USB stack memory.
           </para>
        </refsect1>
        <refsect1>
           <title>
          METHODS
           </title>
-          <para></para>
+          <para>
+            This section desribes the methods provide by the
+            <classname>CVMUSBReadoutList</classname> class and objects.  Several
+            parameters are common throughout and will only be explained here.
+          </para>
+          <para>
+            <type>uint8_t</type> <parameter>amod</parameter> is always a VME Bus
+            address modifier.  See CONSTANTS below for a list of the address
+            modifiers.
+          </para>
+          <para>
+            <type>uint32_t</type><parameter>address</parameter> is the VME
+            address that is the source or target of an operation.  
+          </para>
+          <para>
+            <type>uint32_t</type><parameter>baseAddress</parameter> is the
+            starting address of a block transfer operation.
+          </para>
+          <variablelist>
+        <varlistentry>
+            <term>
+    <constructorsynopsis>
+       <methodname>CVMUSBReadoutList</methodname>
+       <void />
+    </constructorsynopsis>
+            </term>
+            <listitem>
+                <para>
+                    This is the constructor you will normally use.  It produces
+                    an empty VM-USB stack which can be built up using
+                    the remaining methods described in this section.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+    <constructorsynopsis>
+       <methodname>CVMUSBReadoutList</methodname>
+       <methodparam>
+            <type>std::vector&lt;uint32_t&gt;&amp;</type> <parameter>list</parameter>
+       </methodparam>
+    </constructorsynopsis>
+            </term>
+            <listitem>
+                <para>
+                    This constructor builds a VM-USB list that is intially
+                    stocked with the stack contained in <parameter>list</parameter>.
+                    This list can be built either by hand or could have been
+                    gotten by a call to <methodname>get</methodname> on a
+                    previously existinglist.
+                    </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+    <constructorsynopsis>
+       <methodname>CVMUSBReadoutList</methodname>
+       <methodparam>
+            <modifier>const</modifier> <type>CVMUSBReadoutList&amp;</type>
+            <parameter>rhs</parameter>
+       </methodparam>
+       
+    </constructorsynopsis>
+            </term>
+            <listitem>
+                <para>
+                    Copy constructor.   The existence of this constructor
+                    also allows lists to be passed by value to other functions.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                <methodsynopsis>
+                  <modifier></modifier>
+                  <type>void</type>
+                  <methodname>clear</methodname>
+                  <void />
+                  <modifier></modifier>
+                </methodsynopsis>
+                </term>
+            <listitem>
+                <para>
+                    Clears the stack.  This allows a <classname>CVMUSBReadoutList</classname>
+                    to be re-used once it has been either loaded or executed.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+            <methodsynopsis>
+              <modifier></modifier>
+              <type>size_t</type>
+              <methodname>size</methodname>
+              <void />
+              <modifier>const</modifier>
+            </methodsynopsis>
+            </term>
+            <listitem>
+                <para>
+                    Returns the number of stack lines. The VM-USB manual
+                    defines a stack line as a 32 bit datum.  Most instructions
+                    require at least two lines.  Some are even longer.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+            <methodsynopsis>
+              <modifier></modifier>
+              <type>std::vector&lt;uint32_t&gt;</type>
+              <methodname>get</methodname>
+              <void />
+              <modifier>const</modifier>
+            </methodsynopsis>
+            </term>
+            <listitem>
+                <para>
+                    Returns the undelying std::list that is used to store
+                    the stack as it is being built.  The return value from
+                    this method is also usable in a constructor.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+            <methodsynopsis>
+              <modifier></modifier>
+              <type>void</type>
+              <methodname>addRegisterRead</methodname>
+              <methodparam>
+                <type>unsigned int</type> <parameter>address</parameter>
+              </methodparam>
+              <modifier></modifier>
+            </methodsynopsis>
+            </term>
+            <listitem>
+                <para>
+                    Adds an instruction to read a VM-USB internal register.
+                    In this case <parameter>address</parameter> is a VM-USB
+                    register rather than a VME address. The register addresses
+                    are listed in the table in section 3.4 of the VM-USB
+                    manual.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+            <methodsynopsis>
+              <modifier></modifier>
+              <type>void</type>
+              <methodname>addRegisterWrite</methodname>
+              <methodparam>
+                <type>unsigned int</type> <parameter>address</parameter>
+              </methodparam>
+              <methodparam>
+                <type>uint32_t</type> <parameter>data</parameter>
+              </methodparam>
+            </methodsynopsis>
+            </term>
+            <listitem>
+                <para>
+                    Adds an instruction to do a write to a VM-USB internal
+                    register.  <parameter>data</parameter> is the data to be
+                    written.  As with <methodname>addRegisterRead</methodname>,
+                    <parameter>address</parameter> is a register file address
+                    from the table in section 3.4 of the VM-USB manual.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+            <methodsynopsis>
+              <modifier></modifier>
+              <type>void</type>
+              <methodname>addWrite32</methodname>
+              <methodparam>
+                <type>uint32_t</type> <parameter>address</parameter>
+              </methodparam>
+              <methodparam>
+                <type>uint8_t</type> <parameter>amod</parameter>
+              </methodparam>
+              <methodparam>
+                <type>uint32_t</type> <parameter>datum</parameter>    
+              </methodparam>
+              <modifier></modifier>
+            </methodsynopsis>
+            </term>
+            <listitem>
+                <para>
+                    Adds a command to write a 32 bit <parameter>datum</parameter>
+                    to the VME bus.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+            <methodsynopsis>
+              <modifier></modifier>
+              <type>void</type>
+              <methodname>addWrite16</methodname>
+              <methodparam>
+                <type>uint32_t</type> <parameter>address</parameter>
+              </methodparam>
+              <methodparam>
+                <type>uint8_t</type> <parameter>amod</parameter>
+              </methodparam>
+              <methodparam>
+                <type>uint16_t</type> <parameter>datum</parameter>
+              </methodparam>
+              <modifier></modifier>
+            </methodsynopsis>
+            </term>
+            <listitem>
+                <para>
+                    Adds a command to write a 16 bit <parameter>datum</parameter>
+                    to the VME bus.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+            <methodsynopsis>
+              <modifier></modifier>
+              <type>void</type>
+              <methodname>addWrite8</methodname>
+              <methodparam>
+                <type>uint32_t</type> <parameter>address</parameter>
+              </methodparam>
+              <methodparam>
+                <type>uint8_t</type> <parameter>amod</parameter>
+              </methodparam>
+              <methodparam>
+                <type>uint8_t</type> <parameter>datum</parameter>   
+              </methodparam>
+            </methodsynopsis>
+              </term>
+              <listitem>
+                <para>
+                    Adds an instruction to perform an 8 bit write
+                    of <parameter>datum</parameter> to the VME-Bus.
+                </para>
+              </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+            <methodsynopsis>
+              <modifier></modifier>
+              <type>void</type>
+              <methodname>addRead32</methodname>
+              <methodparam>
+                <type>uint32_t</type> <parameter>address</parameter>
+              </methodparam>
+              <methodparam>
+                <type>uint8_t</type> <parameter>amod</parameter>
+              </methodparam>
+            </methodsynopsis>
+            </term>
+            <listitem>
+                <para>
+                    Adds an instruction to do a 32 bit read from the VME
+                    bus to the stack.  The data read are either placed in the
+                    buffer handed to
+                    <classname>CVMUSB</classname>::<methodname>executeList</methodname>
+                    or, if the stack is triggered in data taking mode, to the
+                    event read for the trigger.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+            <methodsynopsis>
+              <modifier></modifier>
+              <type>void</type>
+              <methodname>addRead16</methodname>
+              <methodparam>
+                <type>uint32_t</type> <parameter>address</parameter>
+              </methodparam>
+              <methodparam>
+                <type>uint8_t</type> <parameter>amod</parameter>
+              </methodparam>
+            </methodsynopsis>
+            </term>
+            <listitem>
+                <para>
+                    Adds an instruction to perform a 16 bit read from
+                    the VME bus to the stack.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+            <methodsynopsis>
+              <modifier></modifier>
+              <type>void</type>
+              <methodname>addRead8</methodname>
+              <methodparam>
+                <type>uint32_t</type> <parameter>address</parameter>
+              </methodparam>
+              <methodparam>
+                <type>uint8_t</type> <parameter>amod</parameter>
+              </methodparam>
+            </methodsynopsis>
+            </term>
+            <listitem>
+                <para>
+                    Adds an instruction to perform an 8 bit read from the VME
+                    bus to the stack.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+            <methodsynopsis>
+              <modifier></modifier>
+              <type>void</type>
+              <methodname>addBlockRead32</methodname>
+              <methodparam>
+                <type>uint32_t</type> <parameter>baseAddress</parameter>
+              </methodparam>
+              <methodparam>
+                <type>uint8_t</type><parameter>amod</parameter>
+              </methodparam>
+              <methodparam>
+                <type>size_t</type><parameter>transfers</parameter>
+              </methodparam>
+            </methodsynopsis>
+            </term>
+            <listitem>
+                <para>
+                    Adds a block read of 32 bit wide quantities to the stack.
+                    <parameter>transfers</parameter> is the maximum number of
+                    transfers that will be performed.   The transfer will also
+                    terminate if VME bus reports a bus error.  In that case,
+                    a 32 bit <literal>0xffffffff</literal> will be put in the
+                    buffer to mark termination.
+                </para>
+                <para>
+                    If the <parameter>amod</parameter> is a VME block transfer
+                    address modifier, the block transfer will only provde an
+                    address cycle at the beginning of the transfer and whenever
+                    the address crosses a 256 byte boundary as provided for
+                    in the VME bus specification for block transfers.  This can
+                    significantly improve performance.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+            <methodsynopsis>
+              <modifier></modifier>
+              <type>void</type>
+              <methodname>addFifoRead32</methodname>
+              <methodparam>
+                <type>uint32_t</type><parameter>baseAddress</parameter>
+              </methodparam>
+              <methodparam>
+                <type>uint8_t</type><parameter>amod</parameter>
+              </methodparam>
+              <methodparam>
+                <type>size_t</type><parameter>transfers</parameter>
+              </methodparam>    
+            </methodsynopsis>
+            </term>
+            <listitem>
+                <para>
+                    Same as <methodname>addBlockRead32</methodname>, however
+                    all address cycles will assert
+                    <parameter>baseAddress</parameter>.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+            <methodsynopsis>
+              <modifier></modifier>
+              <type>void</type>
+              <methodname>addFifoRead16</methodname>
+              <methodparam>
+                <type>uint32_t</type><parameter>baseAddress</parameter>
+              </methodparam>
+              <methodparam>
+                <type>uint8_t</type><parameter>amod</parameter>
+              </methodparam>
+              <methodparam>
+                <type>size_t</type><parameter>transfers</parameter>
+              </methodparam>    
+            </methodsynopsis>
+            </term>
+            <listitem>
+                <para>
+                    Same as <methodname>addFifoRead32</methodname>, however
+                    the transfers will be 16 bits wide.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+            <methodsynopsis>
+              <modifier></modifier>
+              <type>void</type>
+              <methodname>addBlockWrite32</methodname>
+              <methodparam>
+                <type>uint32_t</type><parameter>baseAddress</parameter>
+              </methodparam>
+              <methodparam>
+                <type>uint8_t</type><parameter>amod</parameter>
+              </methodparam>
+              <methodparam>
+                <type>void*</type><parameter>data</parameter>
+              </methodparam>
+              <methodparam>
+                <type>size_t</type><parameter>transfers</parameter>
+                </methodparam>
+            </methodsynopsis>
+            </term>
+            <listitem>
+                <para>
+                    Adds a block write to the list.  <parameter>data</parameter>
+                    is a buffer containing <parameter>transfers</parameter>
+                    worth of 32 bit data to transfer.  If a block transfer
+                    <parameter>amod</parameter> is used, the controller will
+                    only perform address cycles atthe start of the transfer
+                    and as the address crosses 256byte boundaries as provided
+                    for in the VME bus block transfer specification.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+            <methodsynopsis>
+              <modifier></modifier>
+              <type>void</type>
+              <methodname>addBlockCountRead8</methodname>
+              <methodparam>
+                <type>uint32_t</type><parameter>address</parameter>
+              </methodparam>
+              <methodparam>
+                <type>uint32_t</type><parameter>mask</parameter>
+              </methodparam>
+              <methodparam>
+                <type>uint8_t</type><parameter>amod</parameter>
+              </methodparam>
+            </methodsynopsis>
+            </term>
+            <listitem>
+                <para>
+                    The VM-USB provides a set of instructions that
+                    allow you to perform variable length block transfers.
+                    This is done in two steps.   The first step readss the
+                    length of the transfer from somewhere on the VME bus
+                    (usually this is a module register).  The second step is
+                    to actually perform the variable block transfer.
+                </para>
+                <para>
+                    This method adds a stack instruction to perform
+                    an 8 bit data transfer from the VME
+                    bus and place the result in the output buffer or event.
+                    The set of bits in that data defined by <parameter>mask</parameter>
+                    are used to set the transfer count for the next variable length
+                    block transfer.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+            <methodsynopsis>
+              <modifier></modifier>
+              <type>void</type>
+              <methodname>addBlockCountRead16</methodname>
+              <methodparam>
+                <type>uint32_t</type><parameter>address</parameter>
+              </methodparam>
+              <methodparam>
+                <type>uint32_t</type><parameter>mask</parameter>
+              </methodparam>
+              <methodparam>
+                <type>uint8_t</type><parameter>amod</parameter>
+              </methodparam>
+            </methodsynopsis>
+            </term>
+            <listitem>
+                <para>
+                    Same as <methodname>addBlockCountRead8</methodname> however
+                    the datum transferred from the VME bus is 16 bits wide rather
+                    than 8.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+            <methodsynopsis>
+              <modifier></modifier>
+              <type>void</type>
+              <methodname>addBlockCountRead32</methodname>
+              <methodparam>
+                <type>uint32_t</type><parameter>address</parameter>
+              </methodparam>
+              <methodparam>
+                <type>uint32_t</type><parameter>mask</parameter>
+              </methodparam>
+              <methodparam>
+                <type>uint8_t</type><parameter>amod</parameter>
+              </methodparam>
+            </methodsynopsis>
+            </term>
+            <listitem>
+                <para>
+                    Same as <methodname>addBlockCountRead16</methodname>, however
+                    the datum transferred from the VME bus is 32 bits wide
+                    rather than 16.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+            <methodsynopsis>
+                <modifier></modifier>
+                <type>void</type>
+                <methodname>addMaskedCountBlockRead32</methodname>
+                <methodparam>
+                    <type>uint32_t</type><parameter>baseAddress</parameter>
+                </methodparam>
+                <methodparam>
+                    <type>uint8_t</type><parameter>amod</parameter>
+                </methodparam>
+            </methodsynopsis>
+            </term>
+            <listitem>
+                <para>
+                    This method adds an instruction to use the transfer count
+                    register loaded by one of the <methodname>addBlockCountRead</methodname>xx
+                    methods as the transfer count for a block read that is 32 bits wide.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+            <methodsynopsis>
+                <modifier></modifier>
+                <type>void</type>
+                <methodname>addMaskedCountFifoRead32</methodname>
+                <methodparam>
+                    <type>uint32_t</type><parameter>address</parameter>
+                </methodparam>
+                <methodparam>
+                    <type>uint8_t</type><parameter>amod</parameter>
+                </methodparam>
+            </methodsynopsis>
+            </term>
+            <listitem>
+                <para>
+                    Same as <methodname>addMaskedCountBlockRead32</methodname>
+                    however all address cycles provide <parameter>address</parameter>
+                    on the bus.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+            <methodsynopsis>    
+                <modifier></modifier>
+                <type>void</type>
+                <methodname>addDelay</methodname>
+                <methodparam>
+                    <type>uint8_t</type><parameter>clocks</parameter>
+                </methodparam>
+            </methodsynopsis>
+            </term>
+            <listitem>
+                <para>
+                    Adds a delay of <parameter>clocks</parameter> FPGA cycles
+                    to the stack.  Each cyle is 12.5ns long.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+            <methodsynopsis>
+                <modifier></modifier>
+                <type>void</type>
+                <methodname>addMarker</methodname>
+                <methodparam>
+                    <type>uint16_t</type><parameter>value</parameter>
+                </methodparam>
+            </methodsynopsis>
+            </term>
+            <listitem>
+                <para>
+                    Adds an instruction to put the literal <parameter>value</parameter>
+                    into the output buffer.
+                </para>
+            </listitem>
+            </varlistentry>
+          </variablelist>
        </refsect1>
         <refsect1>
-           <title>PUBLIC VARIABLES, TYPES and CONSTANTS</title>
+           <title>CONSTANTS</title>
            <para>
+            The class defines a set of constants that are symbolic definitions of
+            the VME address modifiers.  Remember that since these constants
+            are defined within <classname>CVUSBReadoutList</classname> the
+            classname must be used to scope uses of those definitions.
+            For example <programlisting>CVMUSBReadoutList::a32UserData</programlisting>.
            </para>
+           <variablelist>
+            <varlistentry>
+                <term>
+                <fieldsynopsis>
+                    <modifier>static const</modifier>
+                    <type>uint8_t</type> <varname>a32UserData</varname>
+                    <initializer>0x09</initializer>
+                </fieldsynopsis>
+                </term>
+                <listitem>
+                    <para>
+                        In the VME bus standard this is referred to
+                        as <firstterm>Extended Non-privileged Data Access</firstterm>
+                        Extended means addresses use the full 32 bits of width.
+                        VME bus provides for privileged and non-privileged access
+                        modes as well as program and data access modes.
+                    </para>
+                    <para>
+                        Check the documentation of your target to see which
+                        address modifiers are accetpable.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>
+                <fieldsynopsis>
+                    <modifier>static const</modifier><type>uint8_t</type>
+                    <varname>a32UserProgram</varname><initializer>0xa</initializer>
+                </fieldsynopsis>
+                </term>
+                <listitem>
+                    <para>
+                        In the VME bus standard thisis referred to as
+                        <firstterm>Extended Non-privileged program access</firstterm>
+                        Extended means addresses use the full 32 bits of width.
+                        VME bus provides for privileged and non-privileged access
+                        modes as well as program and data access modes.
+                    </para>
+                    <para>
+                        Check the documentation of your target to see which
+                        address modifiers are accetpable.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>
+                <fieldsynopsis>
+                    <modifier>static const</modifier>
+                    <type>uint8_t</type><varname>a32UserBlock</varname>
+                    <initializer>0x0b</initializer>
+                </fieldsynopsis>
+                </term>
+                <listitem>
+                    <para>
+                        In the VME bus standard this is referred to as
+                        <firstterm>Extended Non-privileged Block Transfer</firstterm>
+                        Block transfer address modifiers only require address
+                        cycles on the first cycle, to establish the base address
+                        and whenver the address would cross a 256 byte boundary.
+                        Using block transfers where possible provides a measurable
+                        performance improvement.
+                    </para>
+                    <para>
+                        Extended means addresses use the full 32 bits of width.
+                        VME bus provides for privileged and non-privileged access
+                        modes as well as program and data access modes.
+                    </para>
+                    <para>
+                        Check the documentation of your target to see which
+                        address modifiers are accetpable.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>
+                <fieldsynopsis>
+                    <modifier>static const</modifier> <type>uint8_t</type>
+                    <varname>a32PrivData</varname><initializer>0x0d</initializer>
+                </fieldsynopsis>
+                </term>
+                <listitem>
+                    <para>
+                        The VME bus standard refers to this as
+                        <firstterm>Extended Supervisory Data</firstterm>.
+                        Supervisory data accesses are considered to be from
+                        a privileged state.
+                        Extended means addresses use the full 32 bits of width.
+                        VME bus provides for privileged and non-privileged access
+                        modes as well as program and data access modes.
+                    </para>
+                    <para>
+                        Check the documentation of your target to see which
+                        address modifiers are accetpable.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>
+                <fieldsynopsis>
+                    <modifier>static const</modifier>
+                    <type>uint8_t</type><varname>a32PrivProgram</varname><initializer>0x0e</initializer>
+                </fieldsynopsis>
+                </term>
+                <listitem>
+                    <para>
+                        The VME bus standard refers to this as
+                        <firstterm>Extended Supervisory Program access</firstterm>
+                        Extended means addresses use the full 32 bits of width.
+                        VME bus provides for privileged and non-privileged access
+                        modes as well as program and data access modes.
+                    </para>
+                    <para>
+                        Check the documentation of your target to see which
+                        address modifiers are accetpable.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>
+                <fieldsynopsis>
+                    <modifier>static const</modifier> <type>uint8_t</type>
+                    <varname>a32PrivBlock</varname><initializer>0x0f</initializer>
+                </fieldsynopsis>
+                </term>
+                <listitem>
+                    <para>
+                        The VME bus standard refers to this as
+                        <firstterm>Extended Supervisory Block Transfer</firstterm>.
+                        Transfers using block transfer modifiers are assumed to
+                        go over a contiguous address block.  The bus master only
+                        needs to perform an address cycle at the beginning of the
+                        transfer and again as the address crosses 256 byte
+                        boundaries.
+                    </para>
+                    <para>
+                        Extended means addresses use the full 32 bits of width.
+                        VME bus provides for privileged and non-privileged access
+                        modes as well as program and data access modes.
+                    </para>
+                    <para>
+                        Check the documentation of your target to see which
+                        address modifiers are accetpable.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>
+                <fieldsynopsis>
+                    <modifier>static const</modifier><type>uint8_t</type>
+                    <varname>a16User</varname><initializer>0x29</initializer>
+                </fieldsynopsis>
+                </term>
+                <listitem>
+                    <para>
+                        In the VME standard this is referred to as
+                        <firstterm>Short Non-privileged</firstterm>.
+                        Short addresses are those that only use 16 bits of
+                        address. The address space is assumed to be used for
+                        devices.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>
+                <fieldsynopsis>
+                    <modifier>static const</modifier><type>uint8_t</type>
+                    <varname>a16Priv</varname><initializer>0x2d</initializer>
+                </fieldsynopsis>
+                </term>
+                <listitem>
+                    <para>
+                        In the VME standard this is referred to as
+                        <firstterm>Short Supervisory</firstterm>.
+                      Short addresses are those that only use 16 bits of
+                        address. The address space is assumed to be used for
+                        devices.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>  
+                <fieldsynopsis>
+                    <modifier>static const</modifier><type>uint8_t</type>
+                    <varname>a24UserData</varname><initializer>0x39</initializer>
+                </fieldsynopsis>
+                </term>
+                <listitem>
+                    <para>
+                        In the VME standard, this is referred to as
+                        <firstterm>Standard Non-privileged Data</firstterm>.
+                        Standard address modifiers pay attention to 24 bits of'
+                        address.
+                    </para>
+                    <para>
+                        VME bus provides for privileged and non-privileged access
+                        modes as well as program and data access modes.
+                    </para>
+                    <para>
+                        Check the documentation of your target to see which
+                        address modifiers are accetpable.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>      
+                <fieldsynopsis>
+                    <modifier>static const</modifier><type>uint8_t</type>
+                    <varname>a24UserProgram</varname><initializer>0x3a</initializer>
+                </fieldsynopsis>
+                </term>
+                <listitem>
+                    <para>
+                        The VME standard refers to this a
+                        <firstterm>Standard Non-Privileged Program</firstterm>
+                        VME bus provides for privileged and non-privileged access
+                        modes as well as program and data access modes.
+                    </para>
+                    <para>
+                        Check the documentation of your target to see which
+                        address modifiers are accetpable.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>
+                <fieldsynopsis>
+                    <modifier>static const</modifier><type>uint8_t</type>
+                    <varname>a24UserBlock</varname><initializer>0x3b</initializer>
+                </fieldsynopsis>
+                </term>
+                <listitem>
+                    <para>
+                        The VME standad refers to this as
+                        <firstterm>Standard Non-privileged Block</firstterm>.
+                        Block transfer address modifiers allow the master to
+                        improve performance by only requiring an address cycle
+                        at the start of the first transfer and as the block
+                        transfer crosses 256 byte address boundaries.
+                    </para>
+                    <para>
+                        VME bus provides for privileged and non-privileged access
+                        modes as well as program and data access modes.
+                    </para>
+                    <para>
+                        Check the documentation of your target to see which
+                        address modifiers are accetpable.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>
+                <fieldsynopsis>
+                    <modifier>static const</modifier><type>uint8_t</type>
+                    <varname>a24PrivData</varname><initializer>0x3d</initializer>
+                </fieldsynopsis>
+                </term>
+                <listitem>
+                    <para>
+                        The VME standard refers to ths as
+                        <firstterm>Standard Supervisory Data</firstterm>
+                        VME bus provides for privileged and non-privileged access
+                        modes as well as program and data access modes.
+                    </para>
+                    <para>
+                        Check the documentation of your target to see which
+                        address modifiers are accetpable.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>
+                <fieldsynopsis>
+                    <modifier>static const</modifier><type>uint8_t</type>
+                    <varname>a24PrivProgram</varname><initializer>0x3e</initializer>
+                </fieldsynopsis>
+                </term>
+                <listitem>
+                    <para>
+                        The VME standard refers to this as
+                        <firstterm>Standard Supervisory Program</firstterm>
+                        VME bus provides for privileged and non-privileged access
+                        modes as well as program and data access modes.
+                    </para>
+                    <para>
+                        Check the documentation of your target to see which
+                        address modifiers are accetpable.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>
+                <fieldsynopsis>
+                    <modifier>static const</modifier><type>uint8_t</type>
+                    <varname>a24PrivBlock</varname><initializer>0x3f</initializer>
+                </fieldsynopsis>
+                </term>
+                <listitem>
+                    <para>
+                        The VME standard refers to this as
+                        <firstterm>Standard Supervisory Block</firstterm>.
+                        Block transfer address modifiers allow the master to
+                        improve performance by only requiring an address cycle
+                        at the start of the first transfer and as the block
+                        transfer crosses 256 byte address boundaries.
+                    </para>
+                    <para>
+                        VME bus provides for privileged and non-privileged access
+                        modes as well as program and data access modes.
+                    </para>
+                    <para>
+                        Check the documentation of your target to see which
+                        address modifiers are accetpable.
+                    </para>
+                </listitem>
+            </varlistentry>
+           </variablelist>
         </refsect1>
      </refentry>
         <refentry id="vmusb3-CConfigurableObject">
           <refmeta>
-             <refentrytitle>classname</refentrytitle>
-             <manvolnum>3</manvolnum>
+             <refentrytitle>CConfigurableObject</refentrytitle>
+             <manvolnum>3vmusb</manvolnum>
           </refmeta>
           <refnamediv>
-             <refname>Classname</refname>
-             <refpurpose>class description</refpurpose>
+             <refname>CConfigurableObject</refname>
+             <refpurpose>Configuration database</refpurpose>
           </refnamediv>
-          
           <refsynopsisdiv>
            <synopsis>
+#include &lt;CConfigurableObject.h&gt;
+class <ooclass><classname>CConfigurableObject</classname></ooclass>
+{
+    <constructorsynopsis>
+      <methodname>CConfigurableObject</methodname>
+      <methodparam>
+          <type>std::string</type> <parameter>name</parameter>
+      </methodparam>
+    </constructorsynopsis>
+    <constructorsynopsis>
+        <methodname>CConfigurableObject</methodname>
+        <methodparam>
+            <modifier>const</modifier> <type>CConfigurableObject&amp;</type>
+            <parameter>rhs</parameter>
+        </methodparam>
+    </constructorsynopsis>
+    <methodsynopsis>
+        <type>std::string</type><methodname>getName</methodname>
+        <void /><modifier>const</modifier>
+    </methodsynopsis>
+    <methodsynopsis>
+        <type>std::string</type> <methodname>cget</methodname>
+        <methodparam>
+            <type>std::string</type><parameter>name</parameter>
+        </methodparam>
+    </methodsynopsis>
+    <methodsynopsis>
+        <type>ConfigurationArray</type> <methodname>cget</methodname>
+        <void />
+    </methodsynopsis>
+    <methodsynopsis>
+        <type>int</type> <methodname>getIntegerParameter</methodname>
+        <methodparam>
+            <type>std::string</type><parameter>name</parameter>
+        </methodparam>
+    </methodsynopsis>
+    <methodsynopsis>
+        <type>unsigned int</type> <methodname>getUnsignedParameter</methodname>
+        <methodparam>
+            <type>std::string</type> <parameter>name</parameter>
+        </methodparam>
+    </methodsynopsis>
+    <methodsynopsis>
+        <type>bool</type> <methodname>getBoolParameter</methodname>
+        <methodparam>
+            <type>std::string</type> <parameter>name</parameter>
+        </methodparam>
+    </methodsynopsis>
+    <methodsynopsis>
+        <type>double</type> <methodname>getFloatParameter</methodname>
+        <methodparam>
+            <type>std::string</type> <parameter>name</parameter>
+        </methodparam>
+    </methodsynopsis>
+    <methodsynopsis>
+        <type>std::vector&lt;int&gt;</type> <methodname>getIntegerList</methodname>
+        <methodparam>
+            <type>std::string</type> <parameter>name</parameter>
+        </methodparam>
+    </methodsynopsis>
+    <methodsynopsis>
+        <type>void</type> <methodname>addParameter</methodname>
+        <methodparam>
+            <type>std::string</type> <parameter>name</parameter>
+        </methodparam>
+        <methodparam>
+            <type>typeChecker</type> <parameter>checker</parameter>
+        </methodparam>
+        <methodparam>
+            <type>void*</type> <parameter>arg</parameter>
+        </methodparam>
+        <methodparam>
+            <type>std::string</type> <parameter>defaultValue</parameter>
+            <initializer>std::string(""))</initializer>
+        </methodparam>
+    </methodsynopsis>
+    <methodsynopsis>
+        <type>void</type> <methodname>clearConfiguration</methodname>
+        <void />
+    </methodsynopsis>
+    <methodsynopsis>
+        <type>void</type> <methodname>configure</methodname>
+        <methodparam>
+            <type>std::string</type> <parameter>name</parameter>
+        </methodparam>
+        <methodparam>
+            <type>std::string</type> <parameter>value</parameter>
+        </methodparam>
+    </methodsynopsis>
+    <methodsynopsis>
+        <type>void</type> <methodname>addIntegerParameter</methodname>
+        <methodparam>
+            <type>std::string</type> <parameter>name</parameter>
+        </methodparam>
+        <methodparam>
+            <type>int</type> <parameter>defaultVal</parameter>
+        </methodparam>
+    </methodsynopsis>
+    <methodsynopsis>
+        <type>void</type>
+        <methodname>addIntegerParameter</methodname>
+        <methodparam>
+            <type>std::string</type> <parameter>name</parameter>
+        </methodparam>
+        <methodparam>
+            <type>int</type> <parameter>low</parameter>
+        </methodparam>
+        <methodparam>
+            <type>int </type> <parameter>high</parameter>
+        </methodparam>
+        <methodparam>
+            <type>int</type>    <parameter>defaultVal</parameter>
+            <initializer>0</initializer>
+        </methodparam>
+    </methodsynopsis>
+    <methodsynopsis>
+        <type>void</type><methodname> addBooleanParameter</methodname>
+        <methodparam>
+            <type>std::string</type> <parameter>name</parameter>
+        </methodparam>
+        <methodparam>
+            <type>bool</type> <parameter>defaultVal</parameter>
+            <initializer>true</initializer>
+        </methodparam>
+    </methodsynopsis>
+    <methodsynopsis>
+        <type>void</type><methodname> addEnumParameter</methodname>
+        <methodparam>
+            <type>std::string</type> <parameter>name</parameter>
+        </methodparam>
+        <methodparam>
+            <type>const char**</type> <parameter>pValues</parameter>
+        </methodparam>
+        <methodparam>
+            <type>std::string</type> <parameter>defaultValue</parameter>
+            <initializer>std::string(""))</initializer>
+        </methodparam>
+    </methodsynopsis>
+    <methodsynopsis>
+        <type>void</type> <methodname>addBoolListParameter</methodname>
+        <methodparam>
+            <type>std::string</type> <parameter>name</parameter>
+        </methodparam>
+        <methodparam>
+            <type>unsigned</type> <parameter>size</parameter>
+        </methodparam>
+        <methodparam>
+            <type>bool</type> <parameter>defaultVal</parameter>
+            <initializer>true</initializer>
+        </methodparam>
+    </methodsynopsis>  
+    <methodsynopsis>
+        <type>void</type> <methodname>addBoolListParameter</methodname>
+        <methodparam>
+            <type>std::string</type> <parameter>name</parameter>
+        </methodparam>
+        <methodparam>
+            <type>unsigned</type> <parameter>minLength</parameter>
+        </methodparam>
+        <methodparam>
+            <type>unsigned</type> <parameter>maxLength</parameter>
+        </methodparam>
+        <methodparam>
+            <type>bool</type> <parameter>defaultVal</parameter>
+            <initializer>true</initializer>
+        </methodparam>
+        <methodparam>
+            <type>int</type> <parameter>defaultSize</parameter>
+            <initializer>-1</initializer>
+        </methodparam>
+    </methodsynopsis>
+    <methodsynopsis>
+        <type>void</type> <methodname>addIntListParameter</methodname>
+        <methodparam>
+            <type>std::string</type> <parameter>name</parameter>
+        </methodparam>
+        <methodparam>
+            <type>unsigned</type> <parameter>size</parameter>
+        </methodparam>
+        <methodparam>
+            <type>int</type> <parameter>defaultVal</parameter>
+            <initializer>0</initializer>
+        </methodparam>
+    </methodsynopsis>
+    <methodsynopsis>
+        <type>void</type> <methodname>addIntListParameter</methodname>
+        <methodparam>
+            <type>std::string</type> <parameter>name</parameter>
+        </methodparam>
+        <methodparam>
+            <type>unsigned</type> <parameter>minlength</parameter>
+        </methodparam>
+        <methodparam>
+            <type>unsigned</type> <parameter>maxLength</parameter>
+        </methodparam>
+        <methodparam>
+            <type>int</type> <parameter>defaultVal</parameter>
+            <initializer>0</initializer>
+        </methodparam>
+        <methodparam>
+            <type>int</type> <parameter>defaultSize</parameter>
+            <initializer>-1</initializer>
+        </methodparam>
+    </methodsynopsis>
+    <methodsynopsis>
+        <type>void</type> <methodname>addStringListParameter</methodname>
+        <methodparam>
+            <type>std::string</type> <parameter>name</parameter>
+        </methodparam>
+        <methodparam>
+            <type>unsigned</type> <parameter>size</parameter>
+        </methodparam>
+        <methodparam>
+            <type>std::string</type><parameter>defaultVal</parameter>
+            <initializer>""</initializer>
+        </methodparam>
+    </methodsynopsis>
+    <methodsynopsis>
+        <type>void</type> <methodname>addStringListParameter</methodname>
+        <methodparam>
+            <type>std::string</type> <parameter>name</parameter>
+        </methodparam>
+        <methodparam>
+            <type>unsigned</type> <parameter>minLength</parameter>
+        </methodparam>
+        <methodparam>
+            <type>unsigned</type> <parameter>maxLength</parameter>
+        </methodparam>
+        <methodparam>
+            <type>std::string</type> <parameter>defaultVal</parameter>
+            <initializer>""</initializer>
+        </methodparam>
+        <methodparam>
+            <type>int</type> <parameter>defaultLength</parameter>
+            <initializer>-1</initializer>
+        </methodparam>
+    </methodsynopsis>
+    <methodsynopsis>
+        <modifier>static</modifier><type>bool</type> <methodname>isInteger</methodname>
+        <methodparam>
+            <type>std::string</type> <parameter>name</parameter>
+        </methodparam>
+        <methodparam>
+            <type>std::string</type> <parameter>value</parameter>
+        </methodparam>
+        <methodparam>
+            <type>void*</type> <parameter>arg</parameter>
+        </methodparam>
+    </methodsynopsis>
+    <methodsynopsis>
+        <modifier>static</modifier> <type>bool</type><methodname> isBool</methodname>
+        <methodparam>
+            <type>std::string</type> <parameter>name</parameter>
+        </methodparam>
+        <methodparam>
+            <type>std::string</type> <parameter>value</parameter>
+        </methodparam>
+        <methodparam>
+            <type>void*</type> <parameter>arg</parameter>
+        </methodparam>
+    </methodsynopsis>
+    <methodsynopsis>
+        <modifier>static</modifier> <type>bool</type><methodname> isEnum</methodname>
+        <methodparam>
+            <type>std::string</type><parameter>name</parameter>
+        </methodparam>
+        <methodparam>
+            <type>std::string</type><parameter>value</parameter>
+        </methodparam>
+        <methodparam>
+            <type>void*</type> <parameter>arg</parameter>
+        </methodparam>
+    </methodsynopsis>
+    <methodsynopsis>
+        <modifier>static</modifier> <type>bool</type><methodname> isFloat</methodname>
+        <methodparam>
+            <type>std::string</type> <parameter>name</parameter>
+        </methodparam>
+        <methodparam>
+            <type>std::string</type> <parameter>value</parameter>
+        </methodparam>
+        <methodparam>
+            <type>void*</type> <parameter>arg</parameter>
+        </methodparam>
+    </methodsynopsis>
+    <methodsynopsis>
+        <modifier>static</modifier><type>bool</type>
+        <methodname>isList</methodname>
+        <methodparam>
+            <type>std::string</type> <parameter>name</parameter>
+        </methodparam>
+        <methodparam>
+            <type>std::string</type><parameter> value</parameter>
+        </methodparam>
+        <methodparam>
+            <type>void*</type> <parameter>arg</parameter>
+        </methodparam>
+    </methodsynopsis>
+    <methodsynopsis>
+        <modifier>static</modifier> <type>bool</type> <methodname>isBoolList</methodname>
+        <methodparam>
+            <type>std::string</type> <parameter>name</parameter>
+        </methodparam>
+        <methodparam>
+            <type>std::string</type> <parameter>value</parameter>
+        </methodparam>
+        <methodparam>
+            <type>void*</type> <parameter>arg</parameter>
+        </methodparam>
+    </methodsynopsis>
+    <methodsynopsis>
+        <modifier>static</modifier> <type>bool</type> <methodname>isIntList</methodname>
+        <methodparam>
+            <type>std::string</type> <parameter>name</parameter>
+        </methodparam>
+        <methodparam>
+            <type>std::string</type> <parameter>value</parameter>
+        </methodparam>
+        <methodparam>
+            <type>void*</type> <parameter>arg</parameter>
+        </methodparam>
+    </methodsynopsis>
+    <methodsynopsis>
+        <modifier>static</modifier> <type>bool</type> <methodname>isStringList</methodname>
+        <methodparam>
+            <type>std::string</type> <parameter>name</parameter>
+        </methodparam>
+        <methodparam>
+            <type>std::string</type> <parameter>value</parameter>
+        </methodparam>
+        <methodparam>
+            <type>void*</type> <parameter>arg</parameter>
+        </methodparam>
+    </methodsynopsis>
+    <methodsynopsis>
+        <modifier>static</modifier> <type>isEnumParameter</type>
+        <methodname>makeEnumSet</methodname>
+        <methodparam>
+            <modifier>const</modifier> <type>char**</type> <parameter>values</parameter>
+        </methodparam>
+    </methodsynopsis>
+    <methodsynopsis>
+        <modifier>static</modifier> <type>bool</type> <methodname>>strToBool</methodname>
+        <methodparam>
+            <type>std::string</type> <parameter>value</parameter>
+        </methodparam>
+    </methodsynopsis>
+    
+    typedef <type>std::vector&lt;std::pair&lt;std::string, std::string&gt; &gt; ConfigurationArray</type>;
+    
+    struct  limit {
+    <fieldsynopsis>
+        <type>bool</type> <varname>s_checkMe</varname>
+    </fieldsynopsis>
+    <fieldsynopsis>
+        <type>long</type> <varname>s_value</varname>
+    </fieldsynopsis>
+    <constructorsynopsis>
+        <methodname>limit</methodname><void />
+    </constructorsynopsis>
+    <constructorsynopsis><methodname>limit</methodname>
+        <methodparam>
+            <type>long</type> <parameter>value</parameter>
+        </methodparam>
+    </constructorsynopsis>
+
+  typedef <type>std::pair&lt;limit, limit&gt;   LimitsM</type>
+  typedef <type>std::set&lt;std::string&gt; isEnumParameter</type>
+  
+  typedef struct _ListSizeConstraint {
+    <fieldsynopsis>
+        <type>limit</type> <varname>s_atLeast</varname>
+    </fieldsynopsis>
+    <fieldsynopsis>
+        <type>limit</type> <varname>s_atMost</varname>
+    </fieldsynopsis>    
+  } ListSizeConstraint;
+
+  struct isListParameter {
+  <fieldsynopsis>
+    <type>ListSizeConstraint</type> <varname>s_allowedSize</varname>
+  </fieldsynopsis>
+  <fieldsynopsis>
+    <type>TypeCheckInfo</type> <varname>s_checker</varname>
+  </fieldsynopsis>
+  <constructorsynopsis>
+    <methodname>isListParameter</methodname>
+    <methodparam>
+        <type>limit</type> <parameter>atLeast</parameter>
+    </methodparam>
+    <methodparam>
+        <type>limit</type> <parameter>atMost</parameter>
+    </methodparam>
+    <methodparam>
+        <type>TypeCheckInfo</type> <parameter>checker</parameter>
+    </methodparam>
+  </constructorsynopsis>
+  <constructorsynopsis>
+    <methodname>isListParameter</methodname>
+    <methodparam>
+        <type>ListSizeConstraint</type> <parameter>limits</parameter>
+    </methodparam>
+    <methodparam>
+        <type>TypeCheckInfo</type> <parameter>checker</parameter>
+    </methodparam>
+  </constructorsynopsis>
+  <constructorsynopsis>
+    <methodname>isListParameter</methodname>
+    <void />
+  </constructorsynopsis>
+  
+  };
+    
+  struct  flimit {
+  <fieldsynopsis>
+    <type>bool</type> <varname>s_checkMe</varname>
+  </fieldsynopsis>
+  <fieldsynopsis>
+    <type>float</type> <varname>s_value</varname>
+  </fieldsynopsis>
+  <constructorsynopsis>
+    <methodname>flimit</methodname><void />
+  </constructorsynopsis>
+  <constructorsynopsis>
+    <methodname>flimit</methodname>
+    <methodparam>
+        <type>float</type> <parameter>value</parameter>
+    </methodparam>
+  </constructorsynopsis>
+  };
+  
+  typedef <type>?std::pair&lt;flimit, flimit&gt;</type> <varname>FloatingLimits</varname>;
+  typedef <type>std::vector&lt;isEnumParameter*&gt;</type> <varname>EnumCheckers</varname>;
+
+}
+
            </synopsis>
           </refsynopsisdiv>
           <refsect1>
              <title>DESCRIPTION</title>
              <para>
+                Each VM-USB device driver object contains an instance of
+                a <classname>CConfigurableObject</classname>.  The driver
+                defines its configuration parameters within that object and
+                the object is transparently hooked into the driver command's
+                config and cget methods so that the driver code does not have
+                to worry about handling those commands.
              </para>
+             <para>
+                <classname>CConfigurableObject</classname> provides mechanisms
+                for not only defining and retrieving configuration parameters, but
+                for enforcing constraints on those parameters.  Constraint checking
+                can include not only checking the type of a parameter but
+                checking for completely arbitrary constraints on the values
+                of the confgiguration parameter.
+             </para>
+             <para>
+                Constraint checking is accomplished by associating a validity
+                checking function with each parameter.  A set of pre-defined
+                validity checking functions, implemented as static class methods
+                mean that for most cases you don't need to define your own
+                constraint checkers.
+             </para>
+             <para>
+                Another side enforcing strong parameter typing and constraints is
+                a set of parameter getters that transparently convert the
+                string representation of a parameter to a form that is meaningful
+                to the driver.
+            </para>
+            <para>
+                As a simple example, consider a threshold value that must be
+                an integer in the range of <literal>[0..4095]</literal>.
+                This can be easily defined as a configuration parameter that
+                uses the predefined <methodname>isInteger</methodname>
+                constraint checker passed an appropriate limit checking
+                structure.  When retrieving the paramter, since the <command>config</command>
+                subcommand has already perfromed type and range checking, the
+                driver can simply use <methodname>getIntegerParameter</methodname>
+                to retrieve the parameter value without worrying about
+                having any illegal values for the parameter.
+            </para>
           </refsect1>
           <refsect1>
              <title>
             METHODS
              </title>
              <para>
+                This section describes the bulk of the methods provided by
+                <classname>CConfigurableObject</classname>.  The sections
+                UTILITY METHODS and BUILT IN TYPE CHECKERS provide information
+                about utility methods provided to objects and the built in
+                constraint checking methods respetively.
              </para>
+             <variablelist>
+                <varlistentry>
+                    <term><constructorsynopsis>
+                    <methodname>CConfigurableObject</methodname>
+                    <methodparam>
+                        <type>std::string</type> <parameter>name</parameter>
+                    </methodparam>
+                  </constructorsynopsis>
+                    </term>
+                    <listitem>
+                        <para>
+                            Basic constructor for a configurable object.
+                            Each configuratino has a <parameter>name</parameter>
+                            under which it is registered with the device configuration
+                            database.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>
+                        <methodsynopsis>
+                            <type>std::string</type><methodname>getName</methodname>
+                            <void /><modifier>const</modifier>
+                        </methodsynopsis>
+                        </term>
+                        <listitem>
+                            <para>
+                                Returns the name of the configuable object.
+                                
+                            </para>
+                        </listitem>
+                    </varlistentry>
+                    <varlistentry>
+                        <term>
+                        <methodsynopsis>
+                            <type>std::string</type> <methodname>cget</methodname>
+                            <methodparam>
+                                <type>std::string</type><parameter>name</parameter>
+                            </methodparam>
+                        </methodsynopsis>
+                        </term>
+                        <listitem>
+                            <para>
+                                All configuration values are stored as strings.
+                                This method returns the configuration value of
+                                the configuration parameter named <parameter>name</parameter>.
+                            </para>
+                            <para>
+                                Note  that other methods exist that convert the
+                                string ot a more natural type given for
+                                parameters with specific semantics.
+                            </para>
+                        </listitem>
+                    </varlistentry>
+                    <varlistentry>
+                        <term>
+                        <methodsynopsis>
+                            <type>ConfigurationArray</type> <methodname>cget</methodname>
+                            <void />
+                        </methodsynopsis>
+                        </term>
+                        <listitem>
+                            <para>
+                                Returns a <classname>ConfigurationArray</classname>
+                                that contains the entire device configuration.
+                                For information about the shape of a
+                                <classname>CConfigurationArray</classname>  see
+                                the TYPES section below.
+                            </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>
+                        <methodsynopsis>
+                            <type>int</type> <methodname>getIntegerParameter</methodname>
+                            <methodparam>
+                                <type>std::string</type><parameter>name</parameter>
+                            </methodparam>
+                        </methodsynopsis>
+                        </term>
+                        <listitem>
+                            <para>
+                                Returns the value of the configuration parameter
+                                <parameter>name</parameter> converted to a
+                                signed integer.  Care should be taken when
+                                using this with a parameter that is not validated
+                                vai <methodname>isIntegerParameter</methodname>.
+                                If the underlying string is not a valid integer,
+                                this method will throw a <type>std::string</type>
+                                exception.
+                            </para>
+                        </listitem>
+                    </varlistentry>
+                    <varlistentry>
+                        <term>
+                        <methodsynopsis>
+                            <type>unsigned int</type> <methodname>getUnsignedParameter</methodname>
+                            <methodparam>
+                                <type>std::string</type> <parameter>name</parameter>
+                            </methodparam>
+                        </methodsynopsis>
+                        </term>
+                        <listitem>
+                            <para>
+                                Same as <methodname>getIntegerParameter</methodname>
+                                however the conversion is to an unsigned integer.
+                                If your driver requires a
+                                <option>-base</option> option, you should use
+                                this method to retrieve that rather than
+                                <methodname>getIntegerParameter</methodname>
+                                to avoid overflow.
+                            </para>
+                        </listitem>
+                    </varlistentry>
+                    <varlistentry>
+                        <term>
+                        <methodsynopsis>
+                            <type>bool</type> <methodname>getBoolParameter</methodname>
+                            <methodparam>
+                                <type>std::string</type> <parameter>name</parameter>
+                            </methodparam>
+                        </methodsynopsis>
+                        </term>
+                        <listitem>
+                            <para>
+                                Returns the value of <parameter>name</parameter>
+                                converted to a boolean.  Boolean parameters
+                                should use <methodname>isBool</methodname>
+                                as their constraint checkers.
+                            </para>
+                            <para>
+                                In order to make boolean parameters more natural.
+                                The following set of strings is acceepted as
+                                <literal>true</literal>
+                                <literal>{"true", "yes", "1", "on", "enabled"}</literal>
+                                and <literal>false</literal> strings are in the
+                                set:
+                                <literal>{"false", "no", "0", "off", "disabled"}</literal>.
+                            </para>
+                            <para>
+                                If the string value is not in one of those
+                                two sets, a <type>std::string</type>
+                                exception is thrown.
+                            </para>
+                        </listitem>
+                    </varlistentry>
+                    <varlistentry>
+                        <term>
+                        <methodsynopsis>
+                            <type>double</type> <methodname>getFloatParameter</methodname>
+                            <methodparam>
+                                <type>std::string</type> <parameter>name</parameter>
+                            </methodparam>
+                        </methodsynopsis>
+                        </term>
+                        <listitem>
+                            <para>
+                                Returns the parameter <parameter>name</parameter>
+                                converted to a floating point value.  <parameter>name</parameter>
+                                should be associated with the
+                                <methodname>isFloat</methodname> constraint checker.
+                                If, however it is not, an <type>std::string</type>
+                                exception is thrown if the value does not have
+                                a floating point representation.
+                            </para>
+                         </listitem>
+                    </varlistentry>
+                    <varlistentry>
+                        <term>
+                        <methodsynopsis>
+                            <type>std::vector&lt;int&gt;</type> <methodname>getIntegerList</methodname>
+                            <methodparam>
+                                <type>std::string</type> <parameter>name</parameter>
+                            </methodparam>
+                        </methodsynopsis>
+                        </term>
+                        <listitem>
+                            <para>
+                                This member function parses the value of
+                                parameter <parameter>name</parameter> as a Tcl
+                                list of integers and returns those integers
+                                as a <type>std::vector&lt;int&gt;</type>.
+                                This is most often used when a configuration
+                                parameter is used to represent per channel
+                                values for a digitizer.
+                            </para>
+                            <para>
+                                Normally you will use this to process values
+                                of parameters that use the <methodname>isList</methodname>
+                                constraint checker with <methodname>isInteger</methodname>
+                                specifies as a per element constraint chedker.
+                            </para>
+                            <para>
+                                As with all parameter value getting methods, if
+                                the value does not parse correctly (is not a
+                                Tcl list or a list element is not an integer),
+                                a <type>std::string</type> exception is thrown.
+                            </para>
+                        </listitem>
+                    </varlistentry>
+                    <varlistentry>
+                        <term>
+                        <methodsynopsis>
+                            <type>void</type> <methodname>addParameter</methodname>
+                            <methodparam>
+                                <type>std::string</type> <parameter>name</parameter>
+                            </methodparam>
+                            <methodparam>
+                                <type>typeChecker</type> <parameter>checker</parameter>
+                            </methodparam>
+                            <methodparam>
+                                <type>void*</type> <parameter>arg</parameter>
+                            </methodparam>
+                            <methodparam>
+                                <type>std::string</type> <parameter>defaultValue</parameter>
+                                <initializer>std::string(""))</initializer>
+                            </methodparam>
+                        </methodsynopsis>
+                        <methodsynopsis>
+                            <type>void</type> <methodname>clearConfiguration</methodname>
+                            <void />
+                        </methodsynopsis>
+                        </term>
+                        <listitem>
+                            <para>
+                                Adds a new parameter to the configurable object.
+                                This parameter will be reported in
+                                <command>cget</command> subcommands and
+                                can be modified in <command>config</command>
+                                subcomands.
+                            </para>
+                            <para>
+                                The <parameter>name</parameter> parameter is
+                                the name fo the new parameter. By convention,
+                                the first character of a configuration option
+                                is a hyphen (<literal>-</literal>), although
+                                the configurable object makes no such restriction.
+                            </para>
+                            <para>
+                                <parameter>defaultValue</parameter> specifies
+                                the initial value given to this variable.
+                                Careful thought about initial/default values
+                                allows users to minimize the number of
+                                configuration options they actually need to set.
+                            </para>
+                            <para>
+                                <parameter>checker</parameter> and
+                                <parameter>arg</parameter> specify the constraint
+                                checking that is performed on a parameter when
+                                the configuration script attempts to modify it.
+                                <parameter>checker</parameter> is a function that
+                                is expected to check the proposed new value for
+                                validity.  <parameter>arg</parameter> is a
+                                parameter that is passed, without interpretation,
+                                to the checker.  See TYPE CHECKERS below for
+                                more information about constraint checking.
+                            </para>
+                        </listitem>
+                    </varlistentry>
+                    <varlistentry>
+                        <term>
+                        <methodsynopsis>
+                            <type>void</type> <methodname>configure</methodname>
+                            <methodparam>
+                                <type>std::string</type> <parameter>name</parameter>
+                            </methodparam>
+                            <methodparam>
+                                <type>std::string</type> <parameter>value</parameter>
+                            </methodparam>
+                        </methodsynopsis>
+                        </term>
+                        <listitem>
+                            <para>
+                                Provides a new proposed <parameter>value</parameter>
+                                to the configuration parameter <parameter>name</parameter>.
+                                This method does not bypass constraint checks.
+                                If the constraint check on the parameter fails,
+                                a <type>std::string</type> error message exception
+                                is thrown.
+                            </para>
+                        </listitem>
+                    </varlistentry>
+                    <varlistentry>
+                        <term>
+                        <methodsynopsis>
+                            <type>void</type> <methodname>addIntegerParameter</methodname>
+                            <methodparam>
+                                <type>std::string</type> <parameter>name</parameter>
+                            </methodparam>
+                            <methodparam>
+                                <type>int</type> <parameter>defaultVal</parameter>
+                            </methodparam>
+                        </methodsynopsis>
+                        </term>
+                        <listitem>
+                            <para>
+                                This is a convenience method that adds a new
+                                parameter,
+                                <parameter>name</parameter>,
+                                to the configuration database.
+                                The <methodname>isInteger</methodname>
+                                constraint checker is associated with
+                                the parameter, however no range limits are
+                                specified.
+                            </para>
+                            <para>
+                                The <parameter>defaultVal</parameter> is
+                                used as the initial value of the parameter>
+                            </para>
+                        </listitem>    
+                    </varlistentry>
+                    <varlistentry>
+                        <term>
+                        <methodsynopsis>
+                            <type>void</type>
+                            <methodname>addIntegerParameter</methodname>
+                            <methodparam>
+                                <type>std::string</type> <parameter>name</parameter>
+                            </methodparam>
+                            <methodparam>
+                                <type>int</type> <parameter>low</parameter>
+                            </methodparam>
+                            <methodparam>
+                                <type>int </type> <parameter>high</parameter>
+                            </methodparam>
+                            <methodparam>
+                                <type>int</type>    <parameter>defaultVal</parameter>
+                                <initializer>0</initializer>
+                            </methodparam>
+                        </methodsynopsis>
+                        </term>
+                        <listitem>
+                            <para>
+                                Same as the previous method, however
+                                <parameter>low</parameter> and <parameter>high</parameter>
+                                constrain the range of the integer value.
+                                If you require an asymmetric range you have two choices.
+                                Use <methodname>addParameter</methodname> and
+                                fill in the parameter struct for <methodname>isInteger</methodname>
+                                appropriately, or use one of
+                                <literal>INT_MAX, INT_MIN, UINT_MAX</literal>
+                                for the appropriate limit.  These values
+                                are defined in <literal>&lt;limits.h&gt;</literal>.
+                            </para>
+                        </listitem>
+                    </varlistentry>
+                    <varlistentry>
+                        <term>
+                        <methodsynopsis>
+                            <type>void</type><methodname> addBooleanParameter</methodname>
+                            <methodparam>
+                                <type>std::string</type> <parameter>name</parameter>
+                            </methodparam>
+                            <methodparam>
+                                <type>bool</type> <parameter>defaultVal</parameter>
+                                <initializer>true</initializer>
+                            </methodparam>
+                        </methodsynopsis>
+                        </term>
+                        <listitem>
+                            <para>
+                                Adds a parameter <parameter>name</parameter>
+                                whose value checked via
+                                <methodname>isBool</methodname> to ensure
+                                it is always a boolean value.
+                                <parameter>defaultVal</parameter> is the
+                                initial value given to the parameter.
+                            </para>
+                        </listitem>
+                    </varlistentry>
+                    <varlistentry>
+                        <term>
+                        <methodsynopsis>
+                            <type>void</type><methodname> addEnumParameter</methodname>
+                            <methodparam>
+                                <type>std::string</type> <parameter>name</parameter>
+                            </methodparam>
+                            <methodparam>
+                                <type>const char**</type> <parameter>pValues</parameter>
+                            </methodparam>
+                            <methodparam>
+                                <type>std::string</type> <parameter>defaultValue</parameter>
+                                <initializer>std::string(""))</initializer>
+                            </methodparam>
+                        </methodsynopsis>
+                        </term>
+                        <listitem>
+                            <para>
+                                Adds a parameter <parameter>name</parameter>
+                                whose type checker ensures that valid values
+                                are constrained to be in the list of
+                                strings in <parameter>pValues</parameter>.
+                                The initial value of the parameter is
+                                <parameter>defautltValue</parameter>
+                            </para>
+                            <para>
+                                <parameter>pValues</parameter> is a null
+                                terminated array of pointers to the legal strings.
+                                These can be declared as shown below:
+                            </para>
+                            <informalexample>
+                                <programlisting>
+static const char* validEnums[] = {
+"one", "two", "three", NULL
+};
+                                </programlisting>
+                            </informalexample>
+                        </listitem>
+                    </varlistentry>
+                    <varlistentry>
+                        <term>
+                        <methodsynopsis>
+                            <type>void</type> <methodname>addBoolListParameter</methodname>
+                            <methodparam>
+                                <type>std::string</type> <parameter>name</parameter>
+                            </methodparam>
+                            <methodparam>
+                                <type>unsigned</type> <parameter>size</parameter>
+                            </methodparam>
+                            <methodparam>
+                                <type>bool</type> <parameter>defaultVal</parameter>
+                                <initializer>true</initializer>
+                            </methodparam>
+                        </methodsynopsis>
+                        </term>
+                        <listitem>
+                            <para>
+                                Adds a parameter <parameter>name</parameter> to
+                                the configuration whose legal values are
+                                lists of boolean parameters.  The list
+                                is a fixed <parameter>size</parameter>.
+                                The <parameter>defaultVal</parameter>
+                                is the value that each element of the list is
+                                initialized to.
+                            </para>
+                        </listitem>
+                    </varlistentry>
+                    <varlistentry>
+                        <term>
+                        <methodsynopsis>
+                            <type>void</type> <methodname>addBoolListParameter</methodname>
+                            <methodparam>
+                                <type>std::string</type> <parameter>name</parameter>
+                            </methodparam>
+                            <methodparam>
+                                <type>unsigned</type> <parameter>minLength</parameter>
+                            </methodparam>
+                            <methodparam>
+                                <type>unsigned</type> <parameter>maxLength</parameter>
+                            </methodparam>
+                            <methodparam>
+                                <type>bool</type> <parameter>defaultVal</parameter>
+                                <initializer>true</initializer>
+                            </methodparam>
+                            <methodparam>
+                                <type>int</type> <parameter>defaultSize</parameter>
+                                <initializer>-1</initializer>
+                            </methodparam>
+                        </methodsynopsis>
+                        </term>
+                        <listitem>
+                            <para>
+                                Same as the previous method, however
+                                the length of the list can vary between a
+                                minimum length (<parameter>minLength</parameter>)
+                                and a maximum length (<parameter>maxLength</parameter>).
+                            </para>
+                        </listitem>
+                    </varlistentry>
+                    <varlistentry>
+                        <term>
+                        <methodsynopsis>
+                            <type>void</type> <methodname>addIntListParameter</methodname>
+                            <methodparam>
+                                <type>std::string</type> <parameter>name</parameter>
+                            </methodparam>
+                            <methodparam>
+                                <type>unsigned</type> <parameter>size</parameter>
+                            </methodparam>
+                            <methodparam>
+                                <type>int</type> <parameter>defaultVal</parameter>
+                                <initializer>0</initializer>
+                            </methodparam>
+                        </methodsynopsis>
+                        </term>
+                        <listitem>
+                            <para>
+                                Adds a parameter <parameter>name</parameter>
+                                that is checked to ensure it consists of a
+                                list of integer values.  The size of the list
+                                is fixed at <parameter>size</parameter>.
+                                The initial value of all elements of the list
+                                is set to <parameter>defaultValue</parameter>.
+                            </para>
+                        </listitem>
+                    </varlistentry>
+                    <varlistentry>
+                        <term>
+                        <methodsynopsis>
+                            <type>void</type> <methodname>addIntListParameter</methodname>
+                            <methodparam>
+                                <type>std::string</type> <parameter>name</parameter>
+                            </methodparam>
+                            <methodparam>
+                                <type>unsigned</type> <parameter>minlength</parameter>
+                            </methodparam>
+                            <methodparam>
+                                <type>unsigned</type> <parameter>maxLength</parameter>
+                            </methodparam>
+                            <methodparam>
+                                <type>int</type> <parameter>defaultVal</parameter>
+                                <initializer>0</initializer>
+                            </methodparam>
+                            <methodparam>
+                                <type>int</type> <parameter>defaultSize</parameter>
+                                <initializer>-1</initializer>
+                            </methodparam>
+                        </methodsynopsis>
+                        </term>
+                        <listitem>
+                            <para>
+                                Same as the previous function however
+                                the length of the list can vary between
+                                <parameter>minlength</parameter> and
+                                <parameter>maxLength</parameter> and the
+                                list has an initial value of <parameter>defaultSize</parameter>
+                            </para>
+                        </listitem>
+                    </varlistentry>
+                    <varlistentry>
+                        <term>
+                        <methodsynopsis>
+                            <type>void</type> <methodname>addStringListParameter</methodname>
+                            <methodparam>
+                                <type>std::string</type> <parameter>name</parameter>
+                            </methodparam>
+                            <methodparam>
+                                <type>unsigned</type> <parameter>size</parameter>
+                            </methodparam>
+                            <methodparam>
+                                <type>std::string</type><parameter>defaultVal</parameter>
+                                <initializer>""</initializer>
+                            </methodparam>
+                        </methodsynopsis>
+                        </term>
+                        <listitem>
+                            <para>
+                                Adds a parameter <parameter>name</parameter> that
+                                is a list of <parameter>size</parameter>   strings. Initially
+                                each element of the list will have the value
+                                <parameter>defautlVal</parameter>
+                            </para>
+                        </listitem>
+                    </varlistentry>
+                    <varlistentry>
+                        <term>
+                        <methodsynopsis>
+                            <type>void</type> <methodname>addStringListParameter</methodname>
+                            <methodparam>
+                                <type>std::string</type> <parameter>name</parameter>
+                            </methodparam>
+                            <methodparam>
+                                <type>unsigned</type> <parameter>minLength</parameter>
+                            </methodparam>
+                            <methodparam>
+                                <type>unsigned</type> <parameter>maxLength</parameter>
+                            </methodparam>
+                            <methodparam>
+                                <type>std::string</type> <parameter>defaultVal</parameter>
+                                <initializer>""</initializer>
+                            </methodparam>
+                            <methodparam>
+                                <type>int</type> <parameter>defaultLength</parameter>
+                                <initializer>-1</initializer>
+                            </methodparam>
+                        </methodsynopsis>
+                        </term>
+                        <listitem>
+                            <para>
+                                Same as the previous method however the
+                                length of the list can provide to a
+                                <command>config</command> subcommand can be
+                                between <parameter>minLength</parameter>
+                                and <parameter>maxLength</parameter>. The initial
+                                length will be <parameter>defaultLength</parameter>  .
+                            </para>
+                        </listitem>
+                    </varlistentry>
+             </variablelist>
+        </refsect1>
+        <refsect1>
+          <title>
+              UTILITY METHODS
+          </title>
+          <para>
+              This section provides some simple
+              utility methods.
+          </para>
+          <variablelist>
+              <varlistentry>
+                  <term>
+                  <methodsynopsis>
+                      <modifier>static</modifier> <type>isEnumParameter</type>
+                      <methodname>makeEnumSet</methodname>
+                      <methodparam>
+                          <modifier>const</modifier>
+                          <type>char**</type>
+                          <parameter>values</parameter>
+                      </methodparam>
+                  </methodsynopsis>
+                  </term>
+                  <listitem>
+                      <para>
+                          Produces a data structure used
+                          by the enumerated parameter checker
+                          <methodname>isEnum</methodname>
+                          decribing the legal options.
+                          <parameter>values</parameter>
+                          is an array of pointers to
+                          acceptable strings.  The last pointer
+                          must be a NULL value.
+                      </para>
+                  </listitem>
+              </varlistentry>
+              <varlistentry>
+                  <term>
+                      <methodsynopsis>
+                          <modifier>static</modifier>
+                          <type>bool</type>
+                          <methodname>>strToBool</methodname>
+                          <methodparam>
+                              <type>std::string</type>
+                              <parameter>value</parameter>
+                          </methodparam>
+                      </methodsynopsis>
+                      </term>
+                      <listitem>
+                          <para>
+                              Converts a string to its
+                              boolean representation or
+                              throws a <type>std::string</type>
+                              exception if the string does
+                              not map to a bool.
+                          </para>
+                      </listitem>
+                  </varlistentry>
+          </variablelist>
+  
+          </refsect1>
+          <refsect1>
+            <title>
+                TYPE CHECKERS
+            </title>
+            <para>
+                A type checker is a function that can be passed to
+                <methodname>addParameter</methodname> to check constraints on
+                the value of a parameter. See below in BUILT IN TYPE CHECKERS
+                for information about the constraint checkers that are
+                available for drop in use.
+            </para>
+            <para>
+                A type checker <function>myTypeChecker</function>
+                function has the following signature:
+            </para>
+            <informalexample>
+                <programlisting>
+bool myTypeChecker(std::string name, std::string value, void* arg)
+                </programlisting>
+            </informalexample>
+            <para>
+                <parameter>name</parameter> is the name of the configuration
+                parameter that is being checked.
+            </para>
+            <para>
+                <parameter>value</parameter> is the proposed new string value
+                for the parameter.
+            </para>
+            <para>
+                <parameter>arg</parameter> is the
+                <parameter>arg</parameter> parameter in the
+                <methodname>addParameter</methodname> method.  While not always
+                the case, this parameter usually is a pointer to some struct
+                or object that further refines the constraint checking required.
+                For example, for the <methodname>isInteger</methodname> pre-packaged
+                checker, this parameter is a pointer to a struct that defines
+                whichi limits should be checked and what those limit values
+                are, where appropriate.
+            </para>
+            <para>
+                Type checkers are supposed to return <literal>true</literal>
+                if the constraints they are checking match,
+                <literal>false</literal> otherwise.
+            </para>
+        </refsect1>
+          <refsect1>
+            <title>
+                BUILT IN TYPE CHECKERS.
+            </title>
+            <para>
+                A built in set of type checkers allows you to define the vast
+                majority of parameters without any need to write your own
+                type checking function.
+            </para>
+            <para>
+                In the descriptions below, <parameter>arg</parameter>
+                always refers to the <parameter>arg</parameter> parameter
+                of the <methodname>addParameter</methodname> method. It will
+                be referred to as the <firstterm>additional data</firstterm>
+                parameter and described in the documentation for each
+                checker.
+            </para>
+            <para>
+                Note that all type checkers descdibed allow you to pass a
+                <literal>NULL</literal> for the <parameter>args</parameter>
+                parameter which means that the value of the
+                parameter does not undergo any of the processing that is
+                implied by the data normally pointed to by <parameter>arg</parameter>.
+            </para>
+            <variablelist>
+                <varlistentry>
+                    <term>
+                <methodsynopsis>
+                    <modifier>static</modifier><type>bool</type> <methodname>isInteger</methodname>
+                    <methodparam>
+                        <type>std::string</type> <parameter>name</parameter>
+                    </methodparam>
+                    <methodparam>
+                        <type>std::string</type> <parameter>value</parameter>
+                    </methodparam>
+                    <methodparam>
+                        <type>void*</type> <parameter>arg</parameter>
+                    </methodparam>
+                </methodsynopsis>
+                </term>
+                <listitem>
+                    <para>
+                        Checks that the proposed new value is a valid integer.
+                        Optionally, depending on the <parameter>arg</parameter>
+                        struct this function can also ensure that the
+                        converted integer value of the new value meets
+                        range constraints.
+                    </para>
+                    <para>
+                        <parameter>arg</parameter> actually points to a
+                        <type>Limits</type> which provides optional flags
+                        and values to determine if a lower and/or an upper limit
+                        should be checked and the limit values as well.
+                        <type>Limits</type> is described fully in TYPES
+                        below.
+                    </para>
+                </listitem>
+            </varlistentry>
+                <varlistentry>
+                    <term>
+                <methodsynopsis>
+                    <modifier>static</modifier> <type>bool</type><methodname> isBool</methodname>
+                    <methodparam>
+                        <type>std::string</type> <parameter>name</parameter>
+                    </methodparam>
+                    <methodparam>
+                        <type>std::string</type> <parameter>value</parameter>
+                    </methodparam>
+                    <methodparam>
+                        <type>void*</type> <parameter>arg</parameter>
+                    </methodparam>
+                </methodsynopsis>
+                </term>
+                <listitem>
+                    <para>
+                        Type checker that determines if the proposed new value
+                        has a valid conversion to a  <type>boolean</type>.
+                        The <parameter>args</parameter> parameter is not used by
+                        this checker.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>
+                <methodsynopsis>
+                    <modifier>static</modifier> <type>bool</type><methodname> isEnum</methodname>
+                    <methodparam>
+                        <type>std::string</type><parameter>name</parameter>
+                    </methodparam>
+                    <methodparam>
+                        <type>std::string</type><parameter>value</parameter>
+                    </methodparam>
+                    <methodparam>
+                        <type>void*</type> <parameter>arg</parameter>
+                    </methodparam>
+                </methodsynopsis>
+                </term>
+                <listitem>
+                    <para>
+                        Ensures that the proposed new <parameter>value</parameter>
+                        is an element of a set of allowed strings.  <parameter>args</parameter>
+                        is actually a pointer to a <type>std::set&lt;std::string&gt;</type>
+                        where the elements of that set are the allowed values of the
+                        parameter.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>
+                <methodsynopsis>
+                    <modifier>static</modifier> <type>bool</type><methodname> isFloat</methodname>
+                    <methodparam>
+                        <type>std::string</type> <parameter>name</parameter>
+                    </methodparam>
+                    <methodparam>
+                        <type>std::string</type> <parameter>value</parameter>
+                    </methodparam>
+                    <methodparam>
+                        <type>void*</type> <parameter>arg</parameter>
+                    </methodparam>
+                </methodsynopsis>
+                </term>
+                <listitem>
+                    <para>
+                        Requires that the proposed new parameter
+                        <parameter>value</parameter> is a valid floating point
+                        and optionally that it satisfies lower and/or upper
+                        limit constraints.  The <parameter>arg</parameter>
+                        parameter actually points to a
+                        <type>FloatingLimits</type> struct.
+                        See TYPES below for a description of that struct.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>
+                <methodsynopsis>
+                    <modifier>static</modifier><type>bool</type>
+                    <methodname>isList</methodname>
+                    <methodparam>
+                        <type>std::string</type> <parameter>name</parameter>
+                    </methodparam>
+                    <methodparam>
+                        <type>std::string</type><parameter> value</parameter>
+                    </methodparam>
+                    <methodparam>
+                        <type>void*</type> <parameter>arg</parameter>
+                    </methodparam>
+                </methodsynopsis>
+                </term>
+                <listitem>
+                    <para>
+                        This type checker requires that the proposed new
+                        <parameter>value</parameter> is a valid Tcl list.
+                        The <parameter>arg</parameter> parameter points to a
+                        <type>isListParameter</type>.  This is described in
+                        TYPES below.  The struct allows you to constrain the list
+                        size as well as to provide an additional type checker
+                        that is applied to each element of the list.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>
+                <methodsynopsis>
+                    <modifier>static</modifier> <type>bool</type> <methodname>isBoolList</methodname>
+                    <methodparam>
+                        <type>std::string</type> <parameter>name</parameter>
+                    </methodparam>
+                    <methodparam>
+                        <type>std::string</type> <parameter>value</parameter>
+                    </methodparam>
+                    <methodparam>
+                        <type>void*</type> <parameter>arg</parameter>
+                    </methodparam>
+                </methodsynopsis>
+                </term>
+                <listitem>
+                    <para>
+                        This is a simplified version of the previous function
+                        that ensures that each element of the list
+                        <parameter>value</parameter>is a
+                        valid boolean.  The <parameter>arg</parameter>
+                        parameter points to a <type>ListSizeConstraint</type>
+                        which, as described in TYPES below, allows you to
+                        place constraints on the length of the list.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>
+                <methodsynopsis>
+                    <modifier>static</modifier> <type>bool</type> <methodname>isIntList</methodname>
+                    <methodparam>
+                        <type>std::string</type> <parameter>name</parameter>
+                    </methodparam>
+                    <methodparam>
+                        <type>std::string</type> <parameter>value</parameter>
+                    </methodparam>
+                    <methodparam>
+                        <type>void*</type> <parameter>arg</parameter>
+                    </methodparam>
+                </methodsynopsis>
+                </term>
+                <listitem>
+                    <para>
+                        A specialized version of <methodname>isList</methodname>
+                        that checks that all elements of a list parameter
+                        are unbounded integers.  <parameter>arg</parameter>
+                        is actually a pointer to a <type>ListSizeConstraint</type>
+                        that allows you to place constraints of the size of the
+                        list.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>
+                <methodsynopsis>
+                    <modifier>static</modifier> <type>bool</type> <methodname>isStringList</methodname>
+                    <methodparam>
+                        <type>std::string</type> <parameter>name</parameter>
+                    </methodparam>
+                    <methodparam>
+                        <type>std::string</type> <parameter>value</parameter>
+                    </methodparam>
+                    <methodparam>
+                        <type>void*</type> <parameter>arg</parameter>
+                    </methodparam>
+                </methodsynopsis>
+                </term>
+                <listitem>
+                    <para>
+                        Checks only that a parameter is a valid Tcl List
+                        constrained by the sizes specified by the
+                        <type>ListSizeConstraint</type> pointed to by
+                        <parameter>arg</parameter>
+                    </para>
+                </listitem>
+            </varlistentry>
+            </variablelist>
           </refsect1>
            <refsect1>
-              <title>PUBLIC VARIABLES, TYPES and CONSTANTS</title>
+              <title>TYPES</title>
              <para>
+                This section describes the data types that are exported
+                 by the <classname>CConfigurableObject</classname>.
+                 To a large extent, these are parameters to
+                 constraint/type checkers described in the previous
+                 secition.
              </para>
+             <variablelist>
+                <varlistentry>
+                    <term>typedef <type>std::vector&lt;std::pair&lt;std::string, std::string&gt; &gt;
+                          ConfigurationArray</type>;
+                    </term>
+                    <listitem>
+                        <para>
+                          This type is returned from <methodname>getConfiguration</methodname>
+                          It consists of an <type>std::vector</type>.  Each element
+                          of the vector is a <type>std::pair</type>.   The
+                          first element of the pair is a configuration parameter
+                          name.  The second element of that pair is the
+                          parameter value.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term> struct<type>limit</type></term>
+                    <listitem>
+                        <para>
+                            Provides a struct that describes a single optional
+                            limit. <varname>s_checkMe</varname> is a boolean
+                            which is <literal>true</literal> if the
+                            limit should be checked and
+                            <varname>s_value</varname> is the limit value.
+                        </para>
+                        <para>
+                            The Constructor <methodname>limit</methodname>
+                            comes in two flavors.  Without a parameter it
+                            initializes the struct so that <varname>s_checkme</varname>
+                            is false.  With an integer parameter it initializes
+                            <varname>s_checkme</varname> to <literal>true</literal>
+                            and sets the limit value to the parameter value.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>typedef <type>std::pair&lt;limit, limit&gt;   Limits</type></term>
+                    <listitem>
+                        <para>
+                            Defines a set of integer limits.  The first item in
+                            the pair is the lower limit, the second item,
+                            the upper limit.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>typedef <type>std::set&lt;std::string&gt; isEnumParameter</type></term>
+                    <listitem>
+                        <para>
+                            A set of strings that constrain the legal values
+                            of an enumerated parameter.
+                            The <methodname>makeEnumSet</methodname> is a
+                            conveniencde method that builds one of these
+                            from a null terminated array of const char*
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>struct ListSizeConstraint</term>
+                    <listitem>
+                        <para>
+                            Defines a constraint on the size of a list
+                            parameter.  <varname>s_atLeast</varname>
+                            is the smallest length the list can have,
+                            <varname>s_atMost</varname> the longest length.
+                            These values are inclusive so if you specify
+                            <varname>s_atLeast</varname> = <varname>s_atMost</varname>,
+                            the list will have a fixed length.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>struct <type>isListParameter</type></term>
+                    <listitem>
+                        <para>
+                            Defines a fully constrained list.  The list size
+                            is constrained by the <varname>s_allowedSize</varname>
+                            field which is a <type>ListSizeConstraint</type>.
+                            The contents of the list are constrainded by the
+                            <varname>s_checker</varname> field which is
+                            a <type>TypeCheckinfo</type> data item.
+                        </para>
+                        <para>
+                            The <varname>s_checker</varname> is an
+                            <type>std::pair</type> whose first elemnent
+                            is a pointer to a typeChecker function and
+                            whose second element is the user parameter
+                            that is normally passed in to allow the type checker
+                            to further constrain values.
+                        </para>
+                        <para>
+                            Several constructors are supplied to help build
+                            this structure:
+                            <informalexample>
+                                <programlisting>
+  <constructorsynopsis>
+    <methodname>isListParameter</methodname>
+    <methodparam>
+        <type>limit</type> <parameter>atLeast</parameter>
+    </methodparam>
+    <methodparam>
+        <type>limit</type> <parameter>atMost</parameter>
+    </methodparam>
+    <methodparam>
+        <type>TypeCheckInfo</type> <parameter>checker</parameter>
+    </methodparam>
+  </constructorsynopsis>
+                                </programlisting>
+                            </informalexample>
+                            Allows you to specify the size limits and
+                            <type>TypeCheckInfo</type> pair used to
+                            initialize all of the fields.
+                        </para>
+                        <para>
+                            <informalexample>
+                                <programlisting>
+  <constructorsynopsis>
+    <methodname>isListParameter</methodname>
+    <methodparam>
+        <type>ListSizeConstraint</type> <parameter>limits</parameter>
+    </methodparam>
+    <methodparam>
+        <type>TypeCheckInfo</type> <parameter>checker</parameter>
+    </methodparam>
+  </constructorsynopsis>
+                                </programlisting>
+                            </informalexample>
+                            Provides a constructor you an use if  you already
+                            have built up a <type>ListSizeConstraint</type>
+                            that descsribes the constraints on the list size.
+                        </para>
+                        <para>
+                            A default constructor is also provided that doe
+                            <emphasis>no</emphasis> initialization of the
+                            struct.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>struct <type>flimit</type></term>
+                    <listitem>
+                        <para>
+                            This is analagous to the
+                            <type>limit</type> described above, however
+                            the <varname>s_value</varname> field is
+                            a <type>float</type> rather than an
+                            <type>int</type>
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>typedef <type>?std::pair&lt;flimit, flimit&gt;</type> <varname>FloatingLimits</varname>;
+                    </term>
+                    <listitem>
+                        <para>
+                            Defines a pair of floating point limits that constrain
+                            the value of a float parameter.
+                        </para>
+                    </listitem>
+                </varlistentry>
+             </variablelist>
+
            </refsect1>
+           
         </refentry>     
 <!-- /manpage -->
