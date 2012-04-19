@@ -22,8 +22,10 @@ testableSources = TCLInterpreter.cpp TCLProcessor.cpp  \
 	TCLCompatibilityProcessor.cpp TCLLiveEventLoop.cpp	\
 	CTCLChannelCommander.cpp CTCLStdioCommander.cpp	\
 	CTCLTcpServerInstance.cpp CTCLServer.cpp TCLObjectPackage.cpp \
-	TCLPackagedObjectProcessor.cpp  CItemConfiguration.cpp \
-	CConfigurableObject.cpp
+	TCLPackagedObjectProcessor.cpp  
+
+
+# CItemConfiguration.cpp \	CConfigurableObject.cpp
 
 testableObjects = TCLInterpreter.lo   TCLProcessor.lo    \
 	TCLVariable.lo   TCLString.lo    \
