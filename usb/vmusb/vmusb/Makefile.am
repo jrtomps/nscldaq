@@ -1,4 +1,4 @@
-lib_LTLIBRARIES		= libVMUSB.la libVMUSBRemote.la libCVMUSB.la
+lib_LTLIBRARIES		= libVMUSB.la libVMUSBRemote.la libCVMUSB.la libCVMUSBReadoutList.la
 
 libVMUSB_la_SOURCES 	= CVMUSB.cpp CVMUSBReadoutList.cpp
 
@@ -67,7 +67,14 @@ EXTRA_DIST = $(TEST_MODULES)
 libCVMUSB_la_SOURCES = CVMUSB_wrap.cxx
 libCVMUSB_la_LIBADD  = libVMUSB.la @THREADLD_FLAGS@
 
-BUILT_SOURCES=CVMUSB_wrap.cxx
+BUILT_SOURCES=CVMUSB_wrap.cxx CVMUSBReadoutList_wrap.cxx
 
 CVMUSB_wrap.cxx:	CVMUSB.h
 	swig -c++ -debug-classes -tcl -namespace -pkgversion 1.0 CVMUSB.h
+
+libCVMUSBReadoutList_la_SOURCES = CVMUSBReadoutList_wrap.cxx
+libCVMUSBReadoutList_la_LIBADD = libVMUSB.la @THREADLD_FLAGS@
+
+
+CVMUSBReadoutList_wrap.cxx: CVMUSBReadoutList.h
+	swig -c++ -debug-classes -tcl -namespace -pkgversion 1.0 CVMUSBReadoutList.h

@@ -44,8 +44,8 @@ using namespace std;
 // Address modifiers used to access the module:
 
 static const  uint8_t initamod(CVMUSBReadoutList::a32UserData);
-Const(readamod) CVMUSBReadoutList::a32PrivBlock;
-Const(cbltamod) CVMUSBReadoutList::a32PrivBlock;
+static const uint8_t readamod(CVMUSBReadoutList::a32PrivBlock);
+static const uint8_t cbltamod(CVMUSBReadoutList::a32PrivBlock);
 
 // Register map (offsets in bytes) for the V785
 //   Not an exhaustive list as the various test registers are omitted.
@@ -524,9 +524,9 @@ C785::addReadoutList(CVMUSBReadoutList& list)
     // Clear event buffers:
 
     list.addWrite16(base + BSet2,
-		    initamod, 4);
+		    initamod, (uint16_t)4);
     list.addWrite16(base + BClear2,
-		    initamod, 4);
+		    initamod, (uint16_t)4);
   }
 }
 

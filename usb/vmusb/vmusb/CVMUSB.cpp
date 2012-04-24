@@ -762,7 +762,7 @@ CVMUSB::vmeBlockRead(uint32_t baseAddress, uint8_t aModifier,
    entire block transfer.
 */
 int 
-CVMUSB::vmeFifoRead(uint32_t address, int8_t aModifier,
+CVMUSB::vmeFifoRead(uint32_t address, uint8_t aModifier,
 		    void*    data,    size_t transferCount, size_t* countTransferred)
 {
   CVMUSBReadoutList list;
@@ -936,6 +936,27 @@ CVMUSB::executeList(CVMUSBReadoutList&     list,
   return (status >= 0) ? 0 : status;
   
 }
+
+// SWIG version of the above:
+
+std::vector<uint8_t> 
+CVMUSB::executeList(CVMUSBReadoutList& list, int maxBytes)
+{
+  uint8_t data[maxBytes];
+  size_t     nRead;
+  std::vector<uint8_t> result;
+
+  int status = executeList(list, data, maxBytes, &nRead);
+
+  if (status == 0) {
+    for (int i = 0; i < nRead; i++) {
+      result.push_back(data[i]);
+    }
+  }
+
+  return result;
+}
+
 /*!
    Load a list into the VM-USB for later execution.
    It is the callers responsibility to:

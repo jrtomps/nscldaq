@@ -144,18 +144,18 @@ CHINP::addReadoutList(CVMUSBReadoutList& list)
 
   addBusAccess(list, CXLM::REQ_A | CXLM::REQ_B | CXLM::REQ_X,
 	       static_cast<uint8_t>(2));
-  list.addWrite32(fpga+FPGA_ABus*4, registerAmod, 0); // turn off glbl_enbl
+  list.addWrite32(fpga+FPGA_ABus*4, registerAmod, (uint32_t)0); // turn off glbl_enbl
   uint32_t srama = sramA();	// Base address of sram A
   uint32_t sramb = sramB();	// Base address of sram B
   //  read chip ID and channel address
-  list.addBlockCountRead32(srama, 0x00000fff, registerAmod); // Transfer count for data
+  list.addBlockCountRead32(srama, (uint32_t)0x00000fff, registerAmod); // Transfer count for data
   list.addMaskedCountBlockRead32(srama + sizeof(uint32_t), blockTransferAmod);
   // read ADC data
-  list.addBlockCountRead32(srama, 0x00000fff, registerAmod); // Transfer count for data
+  list.addBlockCountRead32(srama, (uint32_t)0x00000fff, registerAmod); // Transfer count for data
   list.addMaskedCountBlockRead32(sramb, blockTransferAmod);
-  list.addWrite32(fpga+FPGA_ABus*4, registerAmod, forcereset); // reset the chips
-  list.addWrite32(fpga+FPGA_enblA*4, registerAmod, 1); // turn on ext enbl
-  list.addWrite32(fpga+FPGA_ABus*4, registerAmod, glbl_enable); // turn on glbl_enbl
+  list.addWrite32(fpga+FPGA_ABus*4, registerAmod, (uint32_t)forcereset); // reset the chips
+  list.addWrite32(fpga+FPGA_enblA*4, registerAmod, (uint32_t)1); // turn on ext enbl
+  list.addWrite32(fpga+FPGA_ABus*4, registerAmod, (uint32_t)glbl_enable); // turn on glbl_enbl
   addBusAccess(list, 0, static_cast<uint8_t>(0)); // Release all busses and off we go.
 
 }

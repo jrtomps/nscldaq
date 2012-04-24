@@ -270,8 +270,8 @@ CV1729::Initialize(CVMUSB& controller)
 
   CVMUSBReadoutList setupList;
   setupList.addWrite32(base + THRESHOLD, setupAmod,
-		       m_pConfiguration->getIntegerParameter("-threshold"));
-  setupList.addWrite32(base + LOADTHRESHOLD, setupAmod, 0);
+		       (uint32_t)(m_pConfiguration->getIntegerParameter("-threshold")));
+  setupList.addWrite32(base + LOADTHRESHOLD, setupAmod, (uint32_t)0);
 
   // Pre and post trigger times are 2 separate 16b bit registers:
 
@@ -299,22 +299,22 @@ CV1729::Initialize(CVMUSB& controller)
   // Trigger source channel mask:
 
   setupList.addWrite32(base+TRIGGERSRC, setupAmod, 
-		      m_pConfiguration->getIntegerParameter("-triggerchannels"));
+		       (uint32_t)m_pConfiguration->getIntegerParameter("-triggerchannels"));
 
   // Columns to read:
 
   setupList.addWrite32(base+NUMCOLS, setupAmod,
-		       128);
+		       (uint32_t)128);
   // Channel mask (affects total read size).
 
 
   // Post latency crap:
 
   setupList.addWrite32(base+POSTSTOPLATENCY, setupAmod,
-		      m_pConfiguration->getIntegerParameter("-poststoplatency"));
+		       (uint32_t)m_pConfiguration->getIntegerParameter("-poststoplatency"));
   
   setupList.addWrite32(base+POSTLATPRETRIG, setupAmod,
-		      m_pConfiguration->getIntegerParameter("-postlatencypretrig"));
+		       (uint32_t)m_pConfiguration->getIntegerParameter("-postlatencypretrig"));
 
   // And of course the sampling frequency:
 
@@ -325,10 +325,10 @@ CV1729::Initialize(CVMUSB& controller)
   // Set the interrupt enable bit if required:
 
   if (m_pConfiguration->getBoolParameter("-irqenable")) {
-    setupList.addWrite32(base + MODE, setupAmod, 1);
+    setupList.addWrite32(base + MODE, setupAmod, (uint32_t)1);
   }
   else {
-    setupList.addWrite32(base + MODE, setupAmod, 0);
+    setupList.addWrite32(base + MODE, setupAmod, (uint32_t)0);
   }
 
   // Do the setup:
@@ -401,12 +401,12 @@ CV1729::addReadoutList(CVMUSBReadoutList& list)
   cout << "Total transfer count is " << totalTransferCount << " longs\n";
 
 
-  list.addFifoRead32(base + DATABUFFER, readAmod, totalTransferCount);
+  list.addFifoRead32(base + DATABUFFER, readAmod, (size_t)totalTransferCount);
 
   // reset the interrupt bit:
 
-  list.addWrite32(base + INTERRUPT, setupAmod, 0);
-  list.addWrite32(base + STARTACQ, setupAmod, 1);
+  list.addWrite32(base + INTERRUPT, setupAmod, (uint32_t)0);
+  list.addWrite32(base + STARTACQ, setupAmod, (uint32_t)1);
 
   
 

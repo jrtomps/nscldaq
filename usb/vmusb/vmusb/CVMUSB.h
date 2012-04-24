@@ -228,7 +228,7 @@ public:
     }
     int vmeBlockRead(uint32_t baseAddress, uint8_t aModifier,
 		     void* data,  size_t transferCount, size_t* countTransferred);
-    int vmeFifoRead(uint32_t address, int8_t aModifier,
+    int vmeFifoRead(uint32_t address, uint8_t aModifier,
          	    void* data, size_t transferCount, size_t* countTransferred);
   int vmeBlockRead(int base, int amod, int* data, int xfercount, int* xferred) { // SWIG
       return vmeBlockRead((uint32_t)base, (uint8_t)amod, (void*)data,
@@ -282,10 +282,16 @@ public:
 		    void*               pReadBuffer,
 		    size_t              readBufferSize,
 		    size_t*             bytesRead);
+    std::vector<uint8_t> executeList(CVMUSBReadoutList& list,
+				    int maxBytes); // SWIG
     
     int loadList(uint8_t                listNumber,
 		 CVMUSBReadoutList&    list,
 		 off_t                  listOffset = 0);
+    int loadList(int listNumber, CVMUSBReadoutList& list, int offset) { // SWIG
+      return loadList((uint8_t)listNumber, list, (off_t)offset);
+    }
+      
 
     // Once the interface is in DAQ auntonomous mode, the application
     // should call the following function to read acquired data.
@@ -324,9 +330,8 @@ public:
 #ifndef _FLATTEN_NESTED_CLASSES
     };
 #endif
-#ifndef _FLATTEN_NESTED_CLASSES
+
     class ActionRegister {   // e.g. CVMUSB::ActionRegister::startDAQ is a bit.
-#endif
     public:
 	static const uint16_t startDAQ   = 1;
 	static const uint16_t usbTrigger = 2;
@@ -341,12 +346,12 @@ public:
 	static const uint16_t triggerL5  = 0x2000;
 	static const uint16_t triggerL6  = 0x4000;
 	static const uint16_t triggerL7  = 0x8000;
-#ifndef _FLATTEN_NESTED_CLASSES    
 
     };
 
+
+
     class FirmwareRegister {
-#endif
     public:
 	static const uint32_t minorRevMask     = 0x000000ff;
 	static const uint32_t minorRevShift    = 0;
@@ -365,12 +370,8 @@ public:
        
 	static const uint32_t monthMask        = 0xf0000000;
 	static const uint32_t monthshift       = 27;
-#ifndef _FLATTEN_NESTED_CLASSES
     };
-#endif
-#ifndef _FLATTEN_NESTED_CLASSES
     class GlobalModeRegister {
-#endif
     public:
 	static const uint16_t bufferLenMask    = 0xf;
 	static const uint16_t bufferLenShift   = 0;
@@ -393,12 +394,8 @@ public:
 	static const uint16_t flushScalers     = 0x200;
 	static const uint16_t busReqLevelMask  = 0x7000;
 	static const uint16_t busReqLevelShift = 12;
-#ifndef _FLATTEN_NESTED_CLASSES
     };
-#endif
-#ifndef _FLATTEN_NESTED_CLASSES
     class DAQSettingsRegister {
-#endif
     public:
 	static const uint32_t readoutTriggerDelayMask     = 0xff;
 	static const uint32_t readoutTriggerDelayShift    = 0;
@@ -408,10 +405,8 @@ public:
 
 	static const uint32_t scalerReadoutFrequenyMask   = 0xffff0000;
 	static const uint32_t scalerReadoutFrequencyShift = 16;
-#ifndef _FLATTEN_NESTED_CLASSES
     };
     class LedSourceRegister {
-#endif
     public:
 	// Top yellow led:
 
@@ -464,10 +459,9 @@ public:
 	static const uint32_t bottomYellowBusGranted    = (7 << 24);
 	static const uint32_t bottomYellowInvert        = (8 << 24);
 	static const uint32_t bottomYellowLatch         = (0x10 << 24);
-#ifndef _FLATTEN_NESTED_CLASSES
     };
     class DeviceSourceRegister {
-#endif
+
     public:
 	static const uint32_t nimO1Busy                 = 0;
 	static const uint32_t nimO1Trigger              = 1;
@@ -521,34 +515,28 @@ public:
 	static const uint32_t dggBUsbTrigger            = (5   << 28);
 	static const uint32_t dggBPulser                = (6   << 28);
 
-#ifndef _FLATTEN_NESTED_CLASSES
     };
     
     class DGGAndPulserRegister {
-#endif
     public:
 	static const uint32_t dggFineDelayMask        = 0xffff;
 	static const uint32_t dggFineDelayShift       = 0;
 	
 	static const uint32_t dggGateWidthMask        = 0xffff0000;
 	static const uint32_t dggGateWidthShift       = 16;
-#ifndef _FLATTEN_NESTED_CLASSES
     };
 
     class DGGCoarseRegister {
-#endif
     public:
 	static const uint32_t ACoarseMask             = 0xffff;
 	static const uint32_t ACoarseShift            = 0;
 	
 	static const uint32_t BCoarseMask             = 0xffff0000;
 	static const uint32_t BCoarseShift            = 16;
-#ifndef _FLATTEN_NESTED_CLASSES
     };
     // There are two vectors per register called A/B in this set of 
 
     class ISVRegister {
-#endif
     public:
 	static const uint32_t AVectorMask             = 0xff;
 	static const uint32_t AVectorShift            = 0;
@@ -563,20 +551,16 @@ public:
 	static const uint32_t BIPLShift               = 24;
 	static const uint32_t BStackIDMask            = 0x70000000;
 	static const uint32_t BStackIDShift           = 28;
-#ifndef _FLATTEN_NESTED_CLASSES
     };
 
     class TransferSetupRegister {
-#endif
     public:
 	static const uint32_t multiBufferCountMask   = 0xff;
 	static const uint32_t multiBufferCountShift  = 0;
 
 	static const uint32_t timeoutMask            = 0xf00;
 	static const uint32_t timeoutShift           = 8;
-#ifndef _FLATTEN_NESTED_CLASSES
     };
-#endif
     // Local functions:
 private:
     int transaction(void* writePacket, size_t writeSize,
@@ -593,6 +577,33 @@ private:
     int   doVMERead(CVMUSBReadoutList&  list, uint32_t* datum);
     uint16_t* listToOutPacket(uint16_t ta, CVMUSBReadoutList& list, size_t* outSize,
 			      off_t offset = 0);
+
+  //  These functions are needed for the Swig wrappers:
+
+public:
+  static inline size_t usb_device_vector_size(std::vector<struct usb_device*> devices) {
+    return devices.size();
+  }
+  
+  static inline usb_device* usb_device_vector_get(std::vector<struct usb_device*> devices, int index) {
+    return devices[index];
+  }
+  static inline const char* string_to_char(std::string s) {
+    return s.c_str();
+  }
+  
+  static inline int getuint16(uint16_t value) {
+    return value;
+  }
+
+  static inline size_t uint8_vector_size(std::vector<uint8_t> vec)  {
+    return vec.size();
+  }
+  static inline int uint8_vector_get(std::vector<uint8_t> vec, int i) {
+    return vec[i];
+  }
+
+  
 };
 
 

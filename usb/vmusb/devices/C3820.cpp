@@ -173,8 +173,8 @@ C3820::Initialize(CVMUSB& controller)
   initList.addWrite32(base+AcqMode, CVMUSBReadoutList::a32UserData,
 		      acq32Bit    | acqLNEVME     | acqArmWithFP | acqSRAMMemory |
 		       acqInpLNEInh4s | acqOutModeled | acqModeLatch);
-  initList.addWrite32(base+KeyArm, CVMUSBReadoutList::a32UserData, 0);
-  initList.addWrite32(base+KeyEnable, CVMUSBReadoutList::a32UserData, 0);
+  initList.addWrite32(base+KeyArm, CVMUSBReadoutList::a32UserData, (uint32_t)0);
+  initList.addWrite32(base+KeyEnable, CVMUSBReadoutList::a32UserData, (uint32_t)0);
 
 
   uint32_t inBuffer[100];
@@ -196,9 +196,9 @@ void
 C3820::addReadoutList(CVMUSBReadoutList& list)
 {
   uint32_t base = getBase();
-  list.addWrite32(base+KeyLNE, CVMUSBReadoutList::a32UserData, 0);
+  list.addWrite32(base+KeyLNE, CVMUSBReadoutList::a32UserData, (uint32_t)0);
   list.addBlockRead32(base+ShadowCounters, CVMUSBReadoutList::a32UserBlock,
-		      32);
+		      (uint32_t)32);
 }
 
 /*!

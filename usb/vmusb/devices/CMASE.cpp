@@ -129,11 +129,11 @@ CMASE::addReadoutList(CVMUSBReadoutList& list)
   // Just for fun set a known pattern in the SRAM data part of the next event..
   // it should get overwritten...
 
-  list.addWrite32(sram, registerAmod, 0); // In case there's no data next event.
+  list.addWrite32(sram, registerAmod, (uint32_t)0); // In case there's no data next event.
 
   addBusAccess(list, CXLM::REQ_X,
 	       static_cast<uint8_t>(busDelayTicks)); //  Switch to xbus...while holding B bus??
-  list.addWrite32(FPGA(), registerAmod, 0);
+  list.addWrite32(FPGA(), registerAmod, (uint32_t)0);
   addBusAccess(list, 0, static_cast<uint8_t>(0)); // Release all busses and off we go.
 
 }

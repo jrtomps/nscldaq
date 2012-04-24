@@ -183,7 +183,7 @@ CMADCChain::addReadoutList(CVMUSBReadoutList& rdolist)
 
   // Broadcast readout_reswet:
 
-  rdolist.addWrite16(mcast + ReadoutReset, initamod, 1);
+  rdolist.addWrite16(mcast + ReadoutReset, initamod, (uint16_t)1);
 }
 /*!
  * Virtual copy constructor.

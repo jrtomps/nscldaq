@@ -342,13 +342,13 @@ CV1x90::Initialize(CVMUSB& controller)
   // ecl output control are from the configuration:
 
   registerWrites.addWrite16(base + CCAENV1x90Registers::WInterruptLevel , 
-			    initamod, ipl);
+			    initamod, (uint16_t)ipl);
   registerWrites.addWrite16(base + CCAENV1x90Registers::WInterruptVector, 
-			    initamod, ivector);
+			    initamod, (uint16_t)ivector);
   registerWrites.addWrite16(base + CCAENV1x90Registers::WVirtualSlot,     
-			    initamod, vsn);
+			    initamod, (uint16_t)vsn);
   registerWrites.addWrite16(base + CCAENV1x90Registers::WAlmostFullLevel, 
-			    initamod, highWater);
+			    initamod, (uint16_t)highWater);
 
   // figure out the correct settings for the OUT_PROG control register:
 
@@ -546,8 +546,8 @@ CV1x90::addReadoutList(CVMUSBReadoutList& list)
 {
   uint32_t base = m_pConfiguration->getUnsignedParameter("-base");
 
-  list.addBlockRead32(base, readamod, 1024);
-  list.addWrite16(base + CCAENV1x90Registers::WClear, initamod, 0);
+  list.addBlockRead32(base, readamod, (size_t)1024);
+  list.addWrite16(base + CCAENV1x90Registers::WClear, initamod, (uint16_t)0);
 }
 /*!
    Clone oursevles.. well this is really just a virtual copy constructor:

@@ -370,7 +370,7 @@ CNADC2530::addReadoutList(CVMUSBReadoutList& list)
 
   // Disarm for the durationof the read:
 
-  list.addWrite16(m_csr + REG_CSR, initamod, m_csrValue & (~CSR_ARM));
+  list.addWrite16(m_csr + REG_CSR, initamod, (uint16_t)(m_csrValue & (~CSR_ARM)));
 
 
   // insert the marker words, the id and the transfer count mask:
@@ -398,15 +398,15 @@ CNADC2530::addReadoutList(CVMUSBReadoutList& list)
   // We're going to zero the offset regiseter so the next set of events is also
   // at the bottom of the memory, and then reset the CSR with the m_csrValue:
 
-  list.addWrite16(m_csr + REG_LISTWL, initamod, 0);
-  list.addWrite16(m_csr + REG_LISTWH, initamod, 0);
+  list.addWrite16(m_csr + REG_LISTWL, initamod, (uint16_t)0);
+  list.addWrite16(m_csr + REG_LISTWH, initamod, (uint16_t)0);
 
   // if interruptiung: Zero the event count register so we don't just interrupt again:
 
   if (m_pConfiguration->getIntegerParameter("-ipl") > 0) {
 
-    list.addWrite16(m_csr + REG_EVENTSL, initamod, 0);
-    list.addWrite16(m_csr + REG_EVENTSH, initamod, 0);
+    list.addWrite16(m_csr + REG_EVENTSL, initamod, (uint16_t)0);
+    list.addWrite16(m_csr + REG_EVENTSH, initamod, (uint16_t)0);
   }
 
   // Rearm the module.
