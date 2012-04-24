@@ -279,10 +279,10 @@ CMADC32::Initialize(CVMUSB& controller)
  
 
   uint32_t base = m_pConfiguration->getUnsignedParameter("-base");
-  controller.vmeWrite16(base + Reset,    initamod, 1);
+  controller.vmeWrite16(base + Reset,    initamod, (uint16_t)1);
   sleep(1);
-  controller.vmeWrite16(base + StartAcq, initamod, 0);
-  controller.vmeWrite16(base + ReadoutReset, initamod, 1);
+  controller.vmeWrite16(base + StartAcq, initamod, (uint16_t)0);
+  controller.vmeWrite16(base + ReadoutReset, initamod, (uint16_t)1);
 
 
 
@@ -565,9 +565,9 @@ CMADC32::setChainAddresses(CVMUSB&                controller,
 
   // program the registers, note that the address registers take only the top 8 bits.
 
-  controller.vmeWrite16(base + CbltAddress, initamod, cbltBase >> 24);
-  controller.vmeWrite16(base + McstAddress, initamod, mcastBase >> 24);
-  controller.vmeWrite16(base + CbltMcstControl, initamod, controlRegister);
+  controller.vmeWrite16(base + CbltAddress, initamod, (uint16_t)(cbltBase >> 24));
+  controller.vmeWrite16(base + McstAddress, initamod, (uint16_t)(mcastBase >> 24));
+  controller.vmeWrite16(base + CbltMcstControl, initamod, (uint16_t)(controlRegister));
 
 }
 
@@ -599,8 +599,8 @@ CMADC32::initCBLTReadout(CVMUSB& controller, uint32_t mcast, int rdoSize)
   
   // Stop acquistiion
   // ..and clear buffer memory:
-  controller.vmeWrite16(mcast + StartAcq, initamod, 0);
-  controller.vmeWrite16(mcast + InitFifo, initamod, 0);
+  controller.vmeWrite16(mcast + StartAcq, initamod, (uint16_t)0);
+  controller.vmeWrite16(mcast + InitFifo, initamod, (uint16_t)0);
 
   // Set stamping
 
@@ -608,30 +608,30 @@ CMADC32::initCBLTReadout(CVMUSB& controller, uint32_t mcast, int rdoSize)
     // Oscillator sources are assumed to already be set.
     // Reset the timer:
 
-    controller.vmeWrite16(mcast + MarkType,       initamod, 1); // Show timestamp, not event count.
-    controller.vmeWrite16(mcast + TimestampReset, initamod, 3); // reset all counter.
+    controller.vmeWrite16(mcast + MarkType,       initamod, (uint16_t)1); // Show timestamp, not event count.
+    controller.vmeWrite16(mcast + TimestampReset, initamod, (uint16_t)3); // reset all counter.
   }
   else {
-    controller.vmeWrite16(mcast + MarkType,       initamod, 0); // Use Eventcounter.
-    controller.vmeWrite16(mcast + EventCounterReset, initamod, 0); // Reset al event counters.
+    controller.vmeWrite16(mcast + MarkType,       initamod, (uint16_t)0); // Use Eventcounter.
+    controller.vmeWrite16(mcast + EventCounterReset, initamod, (uint16_t)0); // Reset al event counters.
   }
   // Set multievent mode
   
-  controller.vmeWrite16(mcast + MultiEvent, initamod, 3);      // Multi event mode 3.
-  controller.vmeWrite16(mcast + IrqThreshold, initamod, irqThreshold);
-  controller.vmeWrite16(mcast + MaxTransfer, initamod,  rdoSize);
+  controller.vmeWrite16(mcast + MultiEvent, initamod, (uint16_t)3);      // Multi event mode 3.
+  controller.vmeWrite16(mcast + IrqThreshold, initamod, (uint16_t)irqThreshold);
+  controller.vmeWrite16(mcast + MaxTransfer, initamod,  (uint16_t)rdoSize);
 
   // Set the IRQ
 
-  controller.vmeWrite16(mcast + Vector, initamod, vector);
-  controller.vmeWrite16(mcast + Ipl,    initamod, ipl);
-  controller.vmeWrite16(mcast + IrqThreshold, initamod, irqThreshold);
+  controller.vmeWrite16(mcast + Vector, initamod, (uint16_t)vector);
+  controller.vmeWrite16(mcast + Ipl,    initamod, (uint16_t)ipl);
+  controller.vmeWrite16(mcast + IrqThreshold, initamod, (uint16_t)irqThreshold);
 
   // Init the buffer and start data taking.
 
-  controller.vmeWrite16(mcast + InitFifo, initamod, 0);
-  controller.vmeWrite16(mcast + ReadoutReset, initamod, 0);
-  controller.vmeWrite16(mcast + StartAcq , initamod, 1);
+  controller.vmeWrite16(mcast + InitFifo, initamod, (uint16_t)0);
+  controller.vmeWrite16(mcast + ReadoutReset, initamod, (uint16_t)0);
+  controller.vmeWrite16(mcast + StartAcq , initamod, (uint16_t)1);
 }
 
 

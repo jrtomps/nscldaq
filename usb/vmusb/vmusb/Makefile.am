@@ -1,5 +1,7 @@
-lib_LTLIBRARIES		= libVMUSB.la libVMUSBRemote.la
+lib_LTLIBRARIES		= libVMUSB.la libVMUSBRemote.la libCVMUSB.la
+
 libVMUSB_la_SOURCES 	= CVMUSB.cpp CVMUSBReadoutList.cpp
+
 
 libVMUSBRemote_la_SOURCES = CVMUSBReadoutList.cpp \
 	CVMUSBRemote.cpp \
@@ -59,3 +61,13 @@ install-data-local:
 #  Stuff that needs to go int the distro:
 
 EXTRA_DIST = $(TEST_MODULES)
+
+# Swig interface generation:
+
+libCVMUSB_la_SOURCES = CVMUSB_wrap.cxx
+libCVMUSB_la_LIBADD  = libVMUSB.la @THREADLD_FLAGS@
+
+BUILT_SOURCES=CVMUSB_wrap.cxx
+
+CVMUSB_wrap.cxx:	CVMUSB.h
+	swig -c++ -debug-classes -tcl -namespace -pkgversion 1.0 CVMUSB.h

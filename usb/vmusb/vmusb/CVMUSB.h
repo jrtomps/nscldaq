@@ -15,6 +15,17 @@
 */
 
 
+#ifdef SWIG
+#ifndef _FLATTEN_NESTED_CLASSES
+#define _FLATTEN_NESTED_CLASSES
+#endif
+%module CVMUSB
+%{
+#define _FLATTEN_NESTED_CLASSES
+#include <CVMUSB.h>
+%}
+#endif
+
 #ifndef __CVMUSB_H
 #define __CVMUSB_H
 
@@ -71,6 +82,12 @@ class CVMUSBReadoutList;
    The class is instantiated on a usb_device.  The list of usb_devices
    that correspond to VM-USB's is gotten via a call to the static function
    CVMUSB::enumerate().
+
+   Note some methods are added to make the SWIG wrappers usable for 
+   tcl.  These are needed because SWIG does not follow typedefs so uint32_t and int are different
+   even if they are the same.  These additional methods are marked with a SWIG comment...and are all
+   inline.
+
 */
 
 class CVMUSB 
@@ -110,20 +127,41 @@ public:
     // Register I/O operations.
 public:
     void     writeActionRegister(uint16_t value);
+    void     writeActionRegister(int value) { // SWIG
+      writeActionRegister((int16_t)value);
+    }
 
-    uint32_t readFirmwareID();
+    int readFirmwareID();
 
     void     writeGlobalMode(uint16_t value);
-    uint16_t readGlobalMode();
+    int  readGlobalMode();
+    void writeGlobalMode(int value) { // SWIG
+       writeGlobalMode((uint16_t) value);
+    }
+
+
+
+
 
     void     writeDAQSettings(uint32_t value);
     uint32_t readDAQSettings();
+    void writeDAQSettings(int value) { // SWIG
+      writeDAQSettings((uint32_t) value);
+    }
 
-    void     writeLEDSource(uint32_t value);
-    uint32_t readLEDSource();
+
+
+    void    writeLEDSource(uint32_t value);
+    int     readLEDSource();
+    void    writeLEDSource(int value) { // SWIG
+       writeLEDSource((uint32_t)value);
+    }
 
     void     writeDeviceSource(uint32_t value);
-    uint32_t readDeviceSource();
+    int      readDeviceSource();
+    void     writeDeviceSource(int value) { // SWIG
+      writeDeviceSource((uint32_t)value);
+    }
 
     void     writeDGG_A(uint32_t value);
     uint32_t readDGG_A();
@@ -139,14 +177,22 @@ public:
 
 
     void     writeVector(int which, uint32_t value);
-    uint32_t readVector(int which);
-
+    int      readVector(int which);
+    void     writeVector(int which, int value) { // SWIG
+      writeVector(which, (uint32_t)value);
+    }
 
     void     writeIrqMask(uint8_t mask);
-    uint8_t  readIrqMask();
+    int      readIrqMask();
+    void     writeIrqMask(int mask) { // SWIG
+      writeIrqMask((int)mask);
+    }
 
     void     writeBulkXferSetup(uint32_t value);
-    uint32_t readBulkXferSetup();
+    int      readBulkXferSetup();
+    void     writeBulkXferSetup(int value) { // SWIG
+      writeBulkXferSetup((uint32_t)value);
+    }
 
 
     
@@ -155,18 +201,44 @@ public:
 
     int vmeWrite32(uint32_t address, uint8_t aModifier, uint32_t data);
     int vmeRead32(uint32_t address, uint8_t aModifier, uint32_t* data);
+    int vmeWrite32(int address, int amodifier, int data) { // SWIG
+      return vmeWrite32((uint32_t)address, (uint8_t)amodifier, (uint32_t)data);
+    }
+    int vmeRead32(int address, int amodifier, int* data) { // SWIG
+      return vmeRead32((uint32_t)address, (uint8_t)amodifier, (uint32_t*)data);
+    }
+
 
     int vmeWrite16(uint32_t address, uint8_t aModifier, uint16_t data);
     int vmeRead16(uint32_t address, uint8_t aModifier, uint16_t* data);
+    int vmeWrite16(int address, int amodifier, int data) { // SWIG
+      return vmeWrite16((uint32_t)address, (uint8_t)amodifier, (uint16_t)data);
+    }
+    int vmeRead16(int address,int amodifier, int* data) { // SWIG
+      return vmeRead16((uint32_t)address, (uint8_t)amodifier, (uint16_t*)data);
+    }
 
     int vmeWrite8(uint32_t address, uint8_t aModifier, uint8_t data);
     int vmeRead8(uint32_t address, uint8_t aModifier, uint8_t* data);
-
-
+    int vmeWrite8(int address, int  amodifier, int data) { // SWIG
+      return vmeWrite8((uint32_t)address, (uint8_t)amodifier, (uint8_t)data);
+    }
+    int vmeRead8(int address, int amodifier, int* data) { // SWIG
+      return vmeRead8((uint32_t)address, (uint8_t)amodifier, (uint8_t*)data);
+    }
     int vmeBlockRead(uint32_t baseAddress, uint8_t aModifier,
 		     void* data,  size_t transferCount, size_t* countTransferred);
     int vmeFifoRead(uint32_t address, int8_t aModifier,
-		    void* data, size_t transferCount, size_t* countTransferred);
+         	    void* data, size_t transferCount, size_t* countTransferred);
+  int vmeBlockRead(int base, int amod, int* data, int xfercount, int* xferred) { // SWIG
+      return vmeBlockRead((uint32_t)base, (uint8_t)amod, (void*)data,
+			  (size_t)xfercount, (size_t*)xferred);
+    }
+  int vmeFifoRead(int base, int amod, int* data, int xfercount, int* xferred) { // SWIG
+      return vmeFifoRead((uint32_t)base, (uint8_t)amod, (void*)data,
+			  (size_t)xfercount, (size_t*)xferred);
+    }
+
 
     // Support for immediate counted VME variable block transfer operations:
     // See comments prior to CVMEReadoutList::addBlockCountMask
@@ -174,10 +246,34 @@ public:
     int vmeReadBlockCount8(uint32_t address,  uint32_t mask, uint8_t amod);
     int vmeReadBlockCount16(uint32_t address, uint32_t mask, uint8_t amod);
     int vmeReadBlockCount32(uint32_t address, uint32_t mask, uint8_t amod);
+    int vmeReadBlockCount8(int address, int mask, int amod) { // SWIG
+      return vmeReadBlockCount8((uint32_t)address, (uint32_t)mask, (uint8_t)amod);
+    }    
+    int vmeReadBlockCount16(int address, int mask, int amod) { // SWIG
+      return vmeReadBlockCount16((uint32_t)address, (uint32_t)mask, (uint8_t)amod);
+    }    
+    int vmeReadBlockCount32(int address, int mask, int amod) { // SWIG
+      return vmeReadBlockCount32((uint32_t)address, (uint32_t)mask, (uint8_t)amod);
+    }
+
     int vmeVariableBlockRead(uint32_t address, uint8_t amod, 
 			     void* data, size_t maxCount, size_t* countTransferred);
     int vmeVariableFifoRead(uint32_t address, uint8_t amod,  
 			    void* data, size_t maxCount,  size_t* countTransferred);
+    int vmeVariableBlockRead(
+	int address, int amod, int* data, int maxCount,  int* transferred
+    ) { // SWIG
+      return vmeVariableBlockRead((uint32_t)address, (uint8_t)amod, (void*)data,
+				   (size_t)maxCount, (size_t*)transferred);
+    }
+    int vmeVariableFifoRead(
+       int address, int amod, int* data, int maxcount, int* transferred
+    ) { // SWIG
+      return vmeVariableFifoRead(
+         (uint32_t)address, (uint8_t)amod, (void*)data, (size_t)maxcount, 
+	 (size_t*)transferred);
+    }
+
     
     // List operations.
 
@@ -204,7 +300,9 @@ public:
     // Register bit definintions.
 
 public: 
+#ifndef _FLATTEN_NESTED_CLASSES
     class RegisterOffsets {
+#endif
       static const unsigned int FIDRegister = (0);       // Firmware id.
       static const unsigned int GMODERegister = (4);     // Global mode register.
       static const unsigned int DAQSetRegister = (8);    // DAQ settings register.
@@ -223,10 +321,12 @@ public:
       static const unsigned int USBSetup = (0x3c);       // USB Bulk transfer setup. 
       static const unsigned int USBVHIGH1 = (0x40);      // High bits of ISV12/34.
       static const unsigned int USBVHIGH2 = (0x44);      // High bits of ISV56/78.
-
+#ifndef _FLATTEN_NESTED_CLASSES
     };
-
+#endif
+#ifndef _FLATTEN_NESTED_CLASSES
     class ActionRegister {   // e.g. CVMUSB::ActionRegister::startDAQ is a bit.
+#endif
     public:
 	static const uint16_t startDAQ   = 1;
 	static const uint16_t usbTrigger = 2;
@@ -241,9 +341,12 @@ public:
 	static const uint16_t triggerL5  = 0x2000;
 	static const uint16_t triggerL6  = 0x4000;
 	static const uint16_t triggerL7  = 0x8000;
+#ifndef _FLATTEN_NESTED_CLASSES    
+
     };
-    
+
     class FirmwareRegister {
+#endif
     public:
 	static const uint32_t minorRevMask     = 0x000000ff;
 	static const uint32_t minorRevShift    = 0;
@@ -262,9 +365,12 @@ public:
        
 	static const uint32_t monthMask        = 0xf0000000;
 	static const uint32_t monthshift       = 27;
+#ifndef _FLATTEN_NESTED_CLASSES
     };
-
+#endif
+#ifndef _FLATTEN_NESTED_CLASSES
     class GlobalModeRegister {
+#endif
     public:
 	static const uint16_t bufferLenMask    = 0xf;
 	static const uint16_t bufferLenShift   = 0;
@@ -287,8 +393,12 @@ public:
 	static const uint16_t flushScalers     = 0x200;
 	static const uint16_t busReqLevelMask  = 0x7000;
 	static const uint16_t busReqLevelShift = 12;
+#ifndef _FLATTEN_NESTED_CLASSES
     };
+#endif
+#ifndef _FLATTEN_NESTED_CLASSES
     class DAQSettingsRegister {
+#endif
     public:
 	static const uint32_t readoutTriggerDelayMask     = 0xff;
 	static const uint32_t readoutTriggerDelayShift    = 0;
@@ -298,8 +408,10 @@ public:
 
 	static const uint32_t scalerReadoutFrequenyMask   = 0xffff0000;
 	static const uint32_t scalerReadoutFrequencyShift = 16;
+#ifndef _FLATTEN_NESTED_CLASSES
     };
     class LedSourceRegister {
+#endif
     public:
 	// Top yellow led:
 
@@ -352,8 +464,10 @@ public:
 	static const uint32_t bottomYellowBusGranted    = (7 << 24);
 	static const uint32_t bottomYellowInvert        = (8 << 24);
 	static const uint32_t bottomYellowLatch         = (0x10 << 24);
+#ifndef _FLATTEN_NESTED_CLASSES
     };
     class DeviceSourceRegister {
+#endif
     public:
 	static const uint32_t nimO1Busy                 = 0;
 	static const uint32_t nimO1Trigger              = 1;
@@ -407,31 +521,34 @@ public:
 	static const uint32_t dggBUsbTrigger            = (5   << 28);
 	static const uint32_t dggBPulser                = (6   << 28);
 
-
+#ifndef _FLATTEN_NESTED_CLASSES
     };
     
     class DGGAndPulserRegister {
+#endif
     public:
 	static const uint32_t dggFineDelayMask        = 0xffff;
 	static const uint32_t dggFineDelayShift       = 0;
 	
 	static const uint32_t dggGateWidthMask        = 0xffff0000;
 	static const uint32_t dggGateWidthShift       = 16;
-
+#ifndef _FLATTEN_NESTED_CLASSES
     };
 
     class DGGCoarseRegister {
+#endif
     public:
 	static const uint32_t ACoarseMask             = 0xffff;
 	static const uint32_t ACoarseShift            = 0;
 	
 	static const uint32_t BCoarseMask             = 0xffff0000;
 	static const uint32_t BCoarseShift            = 16;
-
+#ifndef _FLATTEN_NESTED_CLASSES
     };
     // There are two vectors per register called A/B in this set of 
 
     class ISVRegister {
+#endif
     public:
 	static const uint32_t AVectorMask             = 0xff;
 	static const uint32_t AVectorShift            = 0;
@@ -446,17 +563,20 @@ public:
 	static const uint32_t BIPLShift               = 24;
 	static const uint32_t BStackIDMask            = 0x70000000;
 	static const uint32_t BStackIDShift           = 28;
+#ifndef _FLATTEN_NESTED_CLASSES
     };
 
     class TransferSetupRegister {
+#endif
     public:
 	static const uint32_t multiBufferCountMask   = 0xff;
 	static const uint32_t multiBufferCountShift  = 0;
 
 	static const uint32_t timeoutMask            = 0xf00;
 	static const uint32_t timeoutShift           = 8;
-
+#ifndef _FLATTEN_NESTED_CLASSES
     };
+#endif
     // Local functions:
 private:
     int transaction(void* writePacket, size_t writeSize,

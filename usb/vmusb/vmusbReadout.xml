@@ -272,7 +272,7 @@ cp $DAQROOT/vmusbdriver/Makefile .
             the configuration script is sourced.
         </para>
         <example>
-            <title>Using a user ritten VMUSB driver</title>
+            <title>Using a user written VMUSB driver</title>
             <programlisting>
 set here [file nativename [file dirname [info script]]]
 load [file join $here libtemplatedriver.so]

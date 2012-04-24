@@ -72,8 +72,8 @@ Const(CSR_RESET)    0x0001;       // Resets the csr.
 
 // Address modifiers we will use to access the module:
 
-Const(initamod)  CVMUSBReadoutList::a24UserData;
-Const(readamod)   CVMUSBReadoutList::a32UserBlock;
+static const uint8_t initamod(CVMUSBReadoutList::a24UserData);
+static const uint8_t readamod(CVMUSBReadoutList::a32UserBlock);
 
 // Parameter limits:
 
@@ -306,12 +306,12 @@ CNADC2530::Initialize(CVMUSB& controller)
 
   // Disable the module and set its counters to something reasonable.
 
-  controller.vmeWrite16(csr + REG_CSR, initamod, CSR_RESET | CSR_CLTS);
+  controller.vmeWrite16(csr + REG_CSR, initamod, (uint16_t)(CSR_RESET | CSR_CLTS));
   controller.vmeWrite16(csr + REG_MEM, initamod, listRegister);
-  controller.vmeWrite16(csr + REG_LISTWL, initamod, 0);	// offset where data will be put.
-  controller.vmeWrite16(csr + REG_LISTWH, initamod, 0);
-  controller.vmeWrite16(csr + REG_EVENTSL, initamod, 0); // Events acquired counter.
-  controller.vmeWrite16(csr + REG_EVENTSH, initamod, 0);
+  controller.vmeWrite16(csr + REG_LISTWL, initamod, (uint16_t)0);	// offset where data will be put.
+  controller.vmeWrite16(csr + REG_LISTWH, initamod, (uint16_t)0);
+  controller.vmeWrite16(csr + REG_EVENTSL, initamod, (uint16_t)0); // Events acquired counter.
+  controller.vmeWrite16(csr + REG_EVENTSH, initamod, (uint16_t)0);
 
 
 
@@ -323,11 +323,11 @@ CNADC2530::Initialize(CVMUSB& controller)
   double hld          = m_pConfiguration->getFloatParameter("-hld");
   bool   zerosuppress = m_pConfiguration->getBoolParameter("-zerosuppress");
 
-  controller.vmeWrite16(csr + REG_VECTOR, initamod, vector);
-  controller.vmeWrite16(csr + REG_EVENTSREQ, initamod, events - 1); // IRQ when > than this
+  controller.vmeWrite16(csr + REG_VECTOR, initamod, (uint16_t)vector);
+  controller.vmeWrite16(csr + REG_EVENTSREQ, initamod, (uint16_t)(events - 1)); // IRQ when > than this
   controller.vmeWrite16(csr + REG_LLD, initamod, lldToRegister(lld));
   controller.vmeWrite16(csr + REG_HLD, initamod, hldToRegister(hld));
-  controller.vmeWrite16(csr + REG_FULLNESS, initamod, 0);
+  controller.vmeWrite16(csr + REG_FULLNESS, initamod, (uint16_t)0);
 
 
   // Figure out the CSR value based on the IPL etc, and set it.. which enables the module.

@@ -48,8 +48,8 @@ using namespace std;
 #define Const(name) static const int name  = 
 
 
-Const(initamod) CVMUSBReadoutList::a32UserData;
-Const(readamod) CVMUSBReadoutList::a32UserBlock;
+static const uint8_t initamod(CVMUSBReadoutList::a32UserData);
+static const uint8_t readamod(CVMUSBReadoutList::a32UserBlock);
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 
@@ -289,7 +289,7 @@ CV1x90::Initialize(CVMUSB& controller)
 
   // Reset the module, 
 
-  controller.vmeWrite16(base + CCAENV1x90Registers::WReset, initamod, 0);
+  controller.vmeWrite16(base + CCAENV1x90Registers::WReset, initamod, (uint16_t)0);
   WaitMicro(controller, base);
   usleep(1000);			// Wait another msec just in case.
   WaitMicro(controller,base);	// ..and wait for the micro to be ready.
@@ -530,7 +530,7 @@ CV1x90::Initialize(CVMUSB& controller)
 	       CCAENV1x90Opcodes::SET_ADJUST_CH | channel,
 	       &value, 1);
   }
-  controller.vmeWrite16(base + CCAENV1x90Registers::WClear, initamod, 0); // Clear pending events.
+  controller.vmeWrite16(base + CCAENV1x90Registers::WClear, initamod, (uint16_t)0); // Clear pending events.
 
 }
 /*!

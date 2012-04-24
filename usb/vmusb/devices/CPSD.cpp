@@ -112,12 +112,12 @@ CPSD::Initialize(CVMUSB& controller)
   controller.vmeRead32(base+0x820048, registerAmod, &test2);
   printf("XLM serial number read from VME addr 0x%x\n",base+0x820048);
   printf("XLM serial number is 0x%x\n",test2);
-  controller.vmeWrite32(fpga+FPGA_ABus*4, registerAmod, 0); // turn off glbl_enbl
-  controller.vmeWrite32(fpga+FPGA_ABus*4, registerAmod, forcereset); // reset the chips
-  controller.vmeWrite32(fpga+FPGA_enblA*4, registerAmod, 1); // turn on ext enbl
-  controller.vmeWrite32(fpga+FPGA_ABus*4, registerAmod, glbl_enable); // turn on glbl_enbl
+  controller.vmeWrite32(fpga+FPGA_ABus*4, registerAmod, (uint32_t)0); // turn off glbl_enbl
+  controller.vmeWrite32(fpga+FPGA_ABus*4, registerAmod, (uint32_t)forcereset); // reset the chips
+  controller.vmeWrite32(fpga+FPGA_enblA*4, registerAmod, (uint32_t)1); // turn on ext enbl
+  controller.vmeWrite32(fpga+FPGA_ABus*4, registerAmod, (uint32_t)glbl_enable); // turn on glbl_enbl
   // now set XLM to Unified readout mode, without internal ADC
-  controller.vmeWrite32(fpga+ReadoutMode*4, registerAmod, 1); // ADC off, Unified On
+  controller.vmeWrite32(fpga+ReadoutMode*4, registerAmod, (uint32_t)1); // ADC off, Unified On
 
   CXLM::accessBus(controller, static_cast<uint32_t>(0)); // release bus
 

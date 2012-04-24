@@ -39,7 +39,7 @@ using namespace std;
 
 // address modifiers and offsets used:
 
-static const int amod(CVMUSBReadoutList::a32UserData);
+static const uint8_t amod(CVMUSBReadoutList::a32UserData);
 
 static const int daq_time_lo(0x60a0);
 static const int daq_time_hi(0x60a2);
@@ -110,7 +110,7 @@ CMADCScaler::Initialize(CVMUSB& controller)
 {
   uint32_t base = m_pConfiguration->getUnsignedParameter("-base");
 
-  controller.vmeWrite16(base + time_reset, amod, 2); // Reset the ctr b block.
+  controller.vmeWrite16(base + time_reset, amod, (uint16_t)2); // Reset the ctr b block.
 }
 /*!
   Add the instructions to the readout list that actually read the module.

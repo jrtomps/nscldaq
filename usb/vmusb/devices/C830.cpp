@@ -224,7 +224,7 @@ C830::Initialize(CVMUSB& controller)
 
   // Reset the module:
 
-  controller.vmeWrite16(baseAddress + RESET, configAmod, 0);
+  controller.vmeWrite16(baseAddress + RESET, configAmod, (uint16_t)0);
 
   // Create and build the list to initialize the module completely.
 

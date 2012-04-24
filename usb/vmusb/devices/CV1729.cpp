@@ -263,7 +263,7 @@ CV1729::Initialize(CVMUSB& controller)
 {
   uint32_t base = m_pConfiguration->getUnsignedParameter("-base"); // module base address.
 
-  controller.vmeWrite32(base+RESET, setupAmod, 0); // Reset board.
+  controller.vmeWrite32(base+RESET, setupAmod, (uint32_t)0); // Reset board.
   usleep(500);					   // Wait a bit to ensure it complete.
 
   // After reset is done all of the parameters can be set by list operations:
@@ -346,7 +346,7 @@ CV1729::Initialize(CVMUSB& controller)
 
   // start data taking:
 
-  controller.vmeWrite32(base + STARTACQ, setupAmod, 0);
+  controller.vmeWrite32(base + STARTACQ, setupAmod, (uint32_t)0);
 }
 
 /**
