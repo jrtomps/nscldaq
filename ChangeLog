@@ -204,5 +204,7 @@ January 30-Feb 1,2012
         - Add s800toring to utilties/compatibility
         - Add -nomonitor switch to ReadoutShell - just stops run timer
 	  right away rather than waiting for end run indicator from rdo.
+10.1-003 
+	- Added s800 readout callouts to daq/s800callouts
 	
 	
