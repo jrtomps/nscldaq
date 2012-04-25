@@ -19,7 +19,8 @@ libVMUSBDevices_la_SOURCES	= 	CConfigurableObject.cpp	\
 					CHINP.cpp \
 					CPSD.cpp	\
 					CV1729.cpp	\
-					CV1495sc.cpp
+					CV1495sc.cpp	\
+					CTclModule.cpp
 
 
 INCLUDES	= 	-I$(top_srcdir)/usb/vmusb/vmusb 	\
@@ -62,7 +63,8 @@ noinst_HEADERS			= 	CConfigurableObject.h	\
 					CV1729.h		\
 					CV1495sc.h		\
 					CCAENV1x90Opcodes.h	\
-					CCAENV1x90Registers.h
+					CCAENV1x90Registers.h	\
+					CTclModule.h
 
 
 TESTS=configtest.cpp c785test.cpp c3820test.cpp
