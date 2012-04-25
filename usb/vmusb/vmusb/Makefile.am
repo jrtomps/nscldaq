@@ -26,6 +26,7 @@ noinst_HEADERS		= CVMUSB.h   \
 
 
 
+
 libVMUSB_CXXFLAGS=@THREADCXX_FLAGS@
 
 INCLUDES		= $(USBSWITCHES) -I$(top_srcdir)/base/headers -I$(top_srcdir)/base/tclplus \
@@ -58,6 +59,8 @@ install-data-local:
 	$(mkinstalldirs) @prefix@/vmusbdriver/includes
 	$(INSTALL_DATA)  CVMUSB*.h @prefix@/vmusbdriver/includes
 
+
+
 #  Stuff that needs to go int the distro:
 
 EXTRA_DIST = $(TEST_MODULES)
@@ -78,3 +81,5 @@ libCVMUSBReadoutList_la_LIBADD = libVMUSB.la @THREADLD_FLAGS@
 
 CVMUSBReadoutList_wrap.cxx: CVMUSBReadoutList.h
 	swig -c++ -debug-classes -tcl -namespace -pkgversion 1.0 CVMUSBReadoutList.h
+
+

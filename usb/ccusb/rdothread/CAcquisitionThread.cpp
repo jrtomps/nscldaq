@@ -386,7 +386,6 @@ CAcquisitionThread::stopDaq()
   m_pCamac->writeActionRegister(CCCUSB::ActionRegister::scalerDump);
   //m_pCamac->writeActionRegister(scalerDump);
   drainUsb();
-  delete Globals::pConfig;
 }
 /*!
   Pause the daq. This means doing a stopDaq() and fielding 

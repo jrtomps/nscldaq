@@ -128,7 +128,7 @@ public:
 public:
     void     writeActionRegister(uint16_t value);
     void     writeActionRegister(int value) { // SWIG
-      writeActionRegister((int16_t)value);
+      writeActionRegister((uint16_t)value);
     }
 
     int readFirmwareID();
@@ -185,7 +185,7 @@ public:
     void     writeIrqMask(uint8_t mask);
     int      readIrqMask();
     void     writeIrqMask(int mask) { // SWIG
-      writeIrqMask((int)mask);
+      writeIrqMask((uint8_t)mask);
     }
 
     void     writeBulkXferSetup(uint32_t value);

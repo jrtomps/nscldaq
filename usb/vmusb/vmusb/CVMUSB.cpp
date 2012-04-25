@@ -209,7 +209,7 @@ CVMUSB::CVMUSB(struct usb_device* device) :
     usleep(100);
     
     // Now set the irq mask so that all bits are set..that:
-    // - is the only way to ensure the m_irqMask value matche the register.
+    // - is the only way to ensure the m_irqMask value matches the register.
     // - ensures m_irqMask actually gets set:
 
     writeIrqMask(0xff);

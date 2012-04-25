@@ -379,7 +379,7 @@ CAcquisitionThread::startDaq()
 
   Globals::pConfig = new CConfiguration;
   Globals::pConfig->processConfiguration(Globals::configurationFilename);
-  std::vector<CReadoutModule*> Stacks = Globals::pConfig->getStacks();
+  m_Stacks = Globals::pConfig->getStacks();
 
   //  Get all of the stacks.  load and enable them.  First we'll reset the
   // stack load offset.
@@ -451,7 +451,6 @@ CAcquisitionThread::stopDaq()
   m_pVme->writeActionRegister(CVMUSB::ActionRegister::scalerDump);
   m_pVme->writeActionRegister(0);
   drainUsb();
-  delete Globals::pConfig;
 }
 /*!
   Pause the daq. This means doing a stopDaq() and fielding 
