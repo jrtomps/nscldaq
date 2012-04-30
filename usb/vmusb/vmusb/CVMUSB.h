@@ -204,8 +204,10 @@ public:
     int vmeWrite32(int address, int amodifier, int data) { // SWIG
       return vmeWrite32((uint32_t)address, (uint8_t)amodifier, (uint32_t)data);
     }
-    int vmeRead32(int address, int amodifier, int* data) { // SWIG
-      return vmeRead32((uint32_t)address, (uint8_t)amodifier, (uint32_t*)data);
+    int vmeRead32(int address, int amodifier) { // SWIG
+      uint32_t d32 =0;
+      vmeRead32((uint32_t)address, (uint8_t)amodifier, &d32);
+      return (int)d32;
     }
 
 
@@ -214,8 +216,10 @@ public:
     int vmeWrite16(int address, int amodifier, int data) { // SWIG
       return vmeWrite16((uint32_t)address, (uint8_t)amodifier, (uint16_t)data);
     }
-    int vmeRead16(int address,int amodifier, int* data) { // SWIG
-      return vmeRead16((uint32_t)address, (uint8_t)amodifier, (uint16_t*)data);
+    int vmeRead16(int address,int amodifier) { // SWIG
+      uint16_t d16 = 0;
+      vmeRead16((uint32_t)address, (uint8_t)amodifier, &d16);
+      return d16;
     }
 
     int vmeWrite8(uint32_t address, uint8_t aModifier, uint8_t data);
@@ -223,20 +227,41 @@ public:
     int vmeWrite8(int address, int  amodifier, int data) { // SWIG
       return vmeWrite8((uint32_t)address, (uint8_t)amodifier, (uint8_t)data);
     }
-    int vmeRead8(int address, int amodifier, int* data) { // SWIG
-      return vmeRead8((uint32_t)address, (uint8_t)amodifier, (uint8_t*)data);
+    int vmeRead8(int address, int amodifier) { // SWIG
+      uint8_t d8;
+      vmeRead8((uint32_t)address, (uint8_t)amodifier, &d8);
+      return d8;
     }
     int vmeBlockRead(uint32_t baseAddress, uint8_t aModifier,
 		     void* data,  size_t transferCount, size_t* countTransferred);
     int vmeFifoRead(uint32_t address, uint8_t aModifier,
          	    void* data, size_t transferCount, size_t* countTransferred);
-  int vmeBlockRead(int base, int amod, int* data, int xfercount, int* xferred) { // SWIG
-      return vmeBlockRead((uint32_t)base, (uint8_t)amod, (void*)data,
-			  (size_t)xfercount, (size_t*)xferred);
+    std::vector<uint32_t> 
+    vmeBlockRead(int base, int amod,  int xfercount) { // SWIG
+      uint32_t data[xfercount];
+      size_t   xferred = 0;
+      std::vector<uint32_t> result;
+
+      vmeBlockRead((uint32_t)base, (uint8_t)amod, (void*)data,
+			  (size_t)xfercount, &xferred);
+      for (int i =0; i < xferred; i++) {
+	result.push_back(data[i]);
+      }
+      return result;
+
     }
-  int vmeFifoRead(int base, int amod, int* data, int xfercount, int* xferred) { // SWIG
-      return vmeFifoRead((uint32_t)base, (uint8_t)amod, (void*)data,
-			  (size_t)xfercount, (size_t*)xferred);
+    std::vector<uint32_t>
+      vmeFifoRead(int base, int amod, int xfercount) { // SWIG
+      uint32_t data[xfercount];
+      size_t xferred = 0;
+      std::vector<uint32_t> result;
+
+      vmeFifoRead((uint32_t)base, (uint8_t)amod, data,
+		  (size_t)xfercount, &xferred);
+      for (int i = 0; i < xferred; i++) {
+	result.push_back(data[i]);
+      }
+      return result;
     }
 
 
@@ -260,18 +285,32 @@ public:
 			     void* data, size_t maxCount, size_t* countTransferred);
     int vmeVariableFifoRead(uint32_t address, uint8_t amod,  
 			    void* data, size_t maxCount,  size_t* countTransferred);
-    int vmeVariableBlockRead(
-	int address, int amod, int* data, int maxCount,  int* transferred
-    ) { // SWIG
-      return vmeVariableBlockRead((uint32_t)address, (uint8_t)amod, (void*)data,
-				   (size_t)maxCount, (size_t*)transferred);
+    std::vector<uint32_t>
+      vmeVariableBlockRead(int address, int amod, int maxCount) { // SWIG
+      uint32_t data[maxCount];
+      size_t   transferred;
+      std::vector<uint32_t> result;
+
+      vmeVariableBlockRead((uint32_t)address, (uint8_t)amod, data,
+			   (size_t)maxCount, &transferred);
+      for (int i = 0; i < transferred; i++) {
+	result.push_back(data[i]);
+      }
+      return result;
     }
-    int vmeVariableFifoRead(
-       int address, int amod, int* data, int maxcount, int* transferred
-    ) { // SWIG
-      return vmeVariableFifoRead(
-         (uint32_t)address, (uint8_t)amod, (void*)data, (size_t)maxcount, 
-	 (size_t*)transferred);
+    std::vector<uint32_t>
+      vmeVariableFifoRead(int address, int amod, int maxcount) { // SWIG
+      uint32_t data[maxcount];
+      size_t   transferred;
+
+      std::vector<uint32_t> result;
+
+      vmeVariableFifoRead((uint32_t)address, (uint8_t)amod, data, (size_t)maxcount, 
+			  &transferred);
+      for (int i =0; i < transferred; i++) {
+	result.push_back(data[i]);
+      }
+      return result;
     }
 
     
@@ -600,6 +639,13 @@ public:
     return vec.size();
   }
   static inline int uint8_vector_get(std::vector<uint8_t> vec, int i) {
+    return vec[i];
+  }
+
+  static inline int uint32_vector_size(std::vector<uint32_t> vec) {
+    return vec.size();
+  }
+  static inline int uint32_vector_get(std::vector<uint32_t> vec, int i) {
     return vec[i];
   }
 

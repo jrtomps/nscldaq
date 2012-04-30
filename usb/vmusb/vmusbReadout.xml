@@ -48,6 +48,12 @@
                 VMUSB readout framework.
             </para>
         </listitem>
+        <listitem>
+            <para>
+                How to write device support modules in Tcl and incorporate
+                those modules into a VM-USB readout DAQ configuration file.
+            </para>
+        </listitem>
     </itemizedlist>
     <para>
         Reference information is available in the
@@ -665,6 +671,569 @@ extern "C" {                                     <co id="vmusb-dtemplate-ccall" 
             </calloutlist>
         </section>
     </section>
+    <section>
+        <title>Writing device support software in Tcl</title>
+        <para>
+            The <command>addtcldriver</command> command allows you to
+            add a Tcl command ensemble as a module which can then be
+            added to the <option>-modules</option> list of modules read out
+            by a stack.  In Tcl a <firstterm>command ensemble</firstterm> is
+            a command that has subcommands.  The <command>addtcldriver</command>
+            command registers  the base command of a command ensemble
+            as a module.  In turn, the command ensemble is required to provide
+            at least two subcommands; <command>Initialize</command> and
+            <command>addReadoutList</command> which perform functions
+            analagous to methods with the same name in a C++ driver.
+        </para>
+        <para>
+            Possibly the simplest way to build command ensembles that can be
+            re-used to support more than one module is to use a
+            Tcl object oriented extension.  When you do this, a driver
+            is a class and instances of those classes are modules.  Almost all
+            Tcl object oriented extensions make objects (class instances) command
+            ensembles where the base name is the object names and methods of the
+            class are  subcommands.
+        </para>
+        <para>
+            Driver modules will also need to access the VM-USB during
+            initialization and create lists of VME operations in their
+            <methodname>addReadoutList</methodname> method.  This
+            is accomplished by wrappgin the <classname>CVMUSB</classname>
+            and <classname>CVMUSBReadoutList</classname> classes using the
+            <firstterm>Simplified Wrapper and Interface Generator</firstterm> or
+            SWIG.  SWIG wrappers are provided as loadable Tcl modules in the
+            <filename>lib</filename> directory of the NSCLDAQ software
+            installation.
+        </para>
+        <para>
+            This chapter will look at two trivial drivers that put a
+            marker in the buffer and, at initialization time, turn on the
+            bottom yellow LED.  One of these drivers is written using
+            <firstterm>Incr-Tcl</firstterm> (itcl) the other using
+            <firstterm>Snit Is Not Incr Tcl</firstterm> (snit).
+            While trivial these examples illustrate most of the
+            key concepts you need to understand when writing device support
+            software in Tcl.
+        </para>
+        <para>
+            Finally, a configuration file fragment is shown that illustrates
+            loading and using these two drivers.
+        </para>
+        <section>
+            <title>An Incr-Tcl (itcl) driver</title>
+            <para>
+                The example below is a complete itcl driver class.  When the run
+                is initialized, it lights to bottom yellow LED of the VM-USB.
+                For each event it inserts a programmable marker (literal)
+                value in the event.
+            </para>
+            <example>
+                <title>Itcl VM-USB device driver</title>
+                <programlisting>
+lappend auto_path /usr/opt/daq/10.1/lib   <co id='vmusb-itcldrv-auto-path' />
+package require Itcl                      <co id='vmusb-itcldrv-itclpkg' />
+package require cvmusb                    <co id='vmusb-itcldrv-cvmusbpkg' />
+package require cvmusbreadoutlist         <co id='vmusb-itcldrv-cvmusbrlistpkg' />
+
+itcl::class marker-itcl {                 <co id='vmusb-itcldrv-class' />
+    public variable value 0               <co id='vmusb-itcldrv-option' />
+
+    constructor args {                    <co id='vmusb-itcldrv-constructor' />
+        eval configure $args
+    }
+
+    public method Initialize driverPtr { <co id='vmusb-itcldrv-initialize' />
+
+        cvmusb::CVMUSB c -this $driverPtr;  <co id='vmusb-itcldrv-wrapvmusb' />
+
+        set leds [c readLEDSource]          <co id='vmusb-itcldrv-vmusbreadled' />
+
+        set leds [expr {$leds &amp;  0xffff}]
+        set leds [expr {$leds | 0x110000}]
+
+        c writeLEDSource $leds             <co id='vmusb-itcldrv-vmusbwriteled' />
+
+    }
+    
+    public method addReadoutList list {   <co id='vmusb-itcldrv-addrdolist' />
+
+        cvmusbreadoutlist::CVMUSBReadoutList l -this $list; <co id='vmusb-itcldrv-wraplist' />
+
+        l addMarker $value                 <co id='vmusb-itcldrv-addmarker' />
+
+    }
+}
+                </programlisting>
+            </example>
+            <calloutlist>
+                <callout arearefs='vmusb-itcldrv-auto-path'>
+                    <para>
+                        In order to locate the SWIG wrappers of the
+                        <classname>CVMUSB</classname> and
+                        <classname>CVMUSBReadoutList</classname>, the Tcl
+                        variable <varname>auto_path</varname> must be extended
+                        to include the <filename>lib</filename> subdirectory
+                        of the NSCLDAQ installation directory.  In this case,
+                        NSCLDAQ is installed in <filename>/usr/opt/daq/10.1</filename>.
+                        You will need to check your installation and use
+                        the appropriate value here.
+                    </para>
+                </callout>
+                <callout arearefs='vmusb-itcldrv-itclpkg'>
+                    <para>
+                        This loads the Incr-Tcl extension.  Incr-Tcl provides
+                        object oriented constructs for Tcl.
+                    </para>
+                </callout>
+                <callout arearefs='vmusb-itcldrv-cvmusbpkg'>
+                    <para>
+                        The <literal>cvmusb</literal> package is the
+                        SWIG wrapping of the <classname>CVMUSB</classname>
+                        C++ class.
+                    </para>
+                </callout>
+                <callout arearefs='vmusb-itcldrv-cvmusbrlistpkg'>
+                    <para>
+                        The <literal>cvmusbreadoutlist</literal> package
+                        is the SWIG wrapping of the
+                        <classname>CVMUSBReadoutList</classname> C++ class.
+                    </para>
+                </callout>
+                <callout arearefs='vmusb-itcldrv-class'>
+                    <para>
+                        This command creates an Incr-Tcl class.  A class itself
+                        is a command ensemble whose main purpose is to create
+                        instances (objects) of the class, which are also command
+                        ensembles whose subcommands are the <firstterm>method</firstterm>s
+                        of the class.  The class name <classname>marker-itcl</classname>
+                        is used to generate instances of the class.
+                    </para>
+                    <para>
+                        As with all object oriented languages, classes wrap
+                        behavior and data into a single package.
+                    </para>
+                </callout>
+                <callout arearefs='vmusb-itcldrv-option'>
+                    <para>
+                        C++ device support modules provide a set of
+                        configuration options.  We want our driver to do that
+                        as well.  In Incr-Tcl, instance variables that are
+                        declared as <literal>public</literal> can be set
+                        both at object construction time, and via an object's
+                        built in <command>configure</command> method.
+                    </para>
+                    <para>
+                        This makes Incr-Tcl objects very much like Tk widgets.
+                        The example below shows how you can set the
+                        <varname>value</varname>
+                        variable at both construction and configuration time:
+                        <informalexample>
+                            <programlisting>
+marker-itcl obj -value 0x1234;  # Set value to 0x1234 at construction time.
+obj configure -value 0x4321;    # use <command>configure</command> to modify value.
+                            </programlisting>
+                        </informalexample>
+                    </para>
+                </callout>
+                <callout arearefs='vmusb-itcldrv-constructor'>
+                    <para>
+                        Constructor methods are analagous to C++ constructors.
+                        They are called when a class instance is created.
+                        the <command>eval configure $args</command> takes
+                        the arguments passed to the construtor and uses them
+                        to configure public variables.
+                    </para>
+                    <para>
+                        This constructor does nothing except allow the use
+                        of configuration option settings when an object
+                        is constructed.
+                    </para>
+                </callout>
+                <callout arearefs='vmusb-itcldrv-initialize'>
+                    <para>
+                        <methodname>Initialize</methodname> implements
+                        device initialization that is done at the start of the
+                        run.  The <parameter>driverPtr</parameter> is a SWIG
+                        <emphasis>pointer</emphasis> that represents the address
+                        of the <classname>CVMUSB</classname> object normally
+                        passed to C++ <methodname>Initialize</methodname>
+                        driver methods.
+                    </para>
+                </callout>
+                <callout arearefs='vmusb-itcldrv-wrapvmusb'>
+                    <para>
+                        This linexcomp contructs a SWIG wrapping of a
+                        <classname>CVMUSB</classname> object.  The
+                        <option>-this</option> option tells SWIG to build its
+                        wrapping around an existing SWIG pointer.  The
+                        end result of this line is that the object named
+                        <literal>c</literal> is created that talks to the
+                        same VM-USB as the object normally passed in to a
+                        C++ device support class/object.
+                    </para>
+                </callout>
+                <callout arearefs='vmusb-itcldrv-vmusbreadled'>
+                    <para>
+                        Invokes the <methodname>readLEDSource</methodname>
+                        method of the <classname>CVMUSB</classname> object.
+                        This reads the current value of the VM-USB LED source
+                        register.  The arithmetic that follows modifies the
+                        bottom Yellow LED selector to use the inverse of the
+                        <literal>Not Slot one</literal> state as the
+                        source of the LED.
+                    </para>
+                </callout>
+                <callout arearefs='vmusb-itcldrv-vmusbwriteled'>
+                    <para>
+                        Writes the new value back to the LED register.
+                        Using the inverse of the <literal>Not Slot one</literal>
+                        source ensures that as long as the VM-USB is being
+                        used as a slot 1 controller, it will have its
+                        bottom yellow LED lit.
+                    </para>
+                </callout>
+                <callout arearefs='vmusb-itcldrv-addrdolist'>
+                    <para>
+                        The <methodname>addReadoutList</methodname> method
+                        is intended to provide a list of VME operations that
+                        are executed in response to each event trigger.
+                        The <parameter>list</parameter> is a SWIG pointer to the
+                        <classname>CVMUSBReadoutList</classname> normally passed
+                        to a C++ driver's <methodname>addReadoutList</methodname>
+                        method.
+                    </para>
+                    <para>
+                        The first command in this method wraps the
+                        list in a SWIG object named <literal>l</literal>
+                        so that it can be used from within Tcl to manipulate
+                        the list.
+                    </para>
+                </callout>
+                <callout arearefs='vmusb-itcldrv-addmarker'>
+                    <para>
+                        Adds a marker to the list.  A marker is a literal value.
+                        The value of the marker comes from the
+                        <varname>value</varname> object instance variable.
+                        As previously discussed, since this is a public variable
+                        it is hooked to the <option>-value</option> configuration
+                        option for the object.
+                    </para>
+                </callout>
+            </calloutlist>
+            <para>
+                In general you will need to look at the reference information
+                on the SWIG wrappers for
+                <link linkend='vmusb3-cvmusb-swig'>CVMUSB</link>
+                <link linkend='vmusb3-cvmusbreadoutlist-swig'>CVMUSBReadoutList</link>
+            </para>
+        </section>
+        <section>
+            <title>A Snit Is Not Incr Tcl (snit) driver</title>
+            <para>
+                Snit is a pure Tcl object oriented extension to Tcl. In this
+                section we will look at an annotated sample Snit Tcl driver.
+                The sample driver will just turn on the VM-USB's bottom yellow
+                LED at initialization time and inserts a configurable marker into
+                each event in response to a trigger.
+            </para>
+            <para>
+                While this driver is realtively trivial, it illustrates many
+                of the key points you will need to understand to write Tcl
+                drivers in snit.  If you have looked at the Incr-Tcl driver
+                in the previous section there will be very little that is new
+                here other than Snit syntactical differences from Incr-Tcl.
+            </para>
+            <example>
+                <title>A Snit VM-USB driver.</title>
+                <programlisting>
+lappend auto_path /usr/opt/daq/10.1/lib   <co id='vmusb-snit-apath' />
+
+package require snit                      <co id='vmusb-snit-snitpkg' />
+
+package require cvmusb                   <co id='vmusb-snit-cvmusbpkg' />
+package require cvmusbreadoutlist        <co id='vmusb-snit-cvmusbreadoutlist' />
+
+snit::type marker-snit {                 <co id='vmusb-snit-type' />
+    option -value 0;                     <co id='vmusb-snit-option' />
+
+    constructor args {                   <co id='vmusb-snit-constructor' />
+        $self configurelist $args        
+    }
+
+    method Initialize driverPtr {       <co id='vmusb-snit-init' />
+
+        cvmusb::CVMUSB v -this $driverPtr; <co id='vmusb-snit-wrapcvmusb' />
+
+        set leds [v readLEDSource]     <co id='vmusb-snit-readleds' />
+        
+        set leds [expr {$leds &amp; 0xf0ffffff}]; 
+        set leds [expr {$leds | 0x08000000}]; 
+
+        v writeLEDSource $leds         <co id='vmusb-snit-writelds' />
+    }
+
+    method addReadoutList list {       <co id='vmusb-snit-addreadoutlist' />
+        cvmusbreadoutlist::CVMUSBReadoutList l  -this $list; <co id='vmusb-snit-wrapreadoutlist' />
+
+        l addMarker $options(-value)   <co  id='vmusb-snit-addmarker' />
+
+    }
+}
+                   
+                </programlisting>
+            </example>
+            <calloutlist>
+                <callout arearefs='vmusb-snit-apath'>
+                    <para>
+                        In order to load the packages that wrap the
+                        <classname>CVMUSB</classname> and
+                        <classname>CVMUSBReadoutList</classname> you must
+                        add the directory in which they are installed to the
+                        <varname>auto_path</varname> variable.  This is the
+                        <filename>lib</filename> directory below the top
+                        level of your NSCLDAQ installation.  You may need
+                        to change the directory in the example script to match
+                        your installation.
+                    </para>
+                </callout>
+                <callout arearefs='vmusb-snit-snitpkg'>
+                    <para>
+                        This line loads the
+                        <literal>snit</literal> package.  Snit provides definitions
+                        of the commands that make up the Snit is Not
+                        Incr Tcl package.
+                    </para>
+                </callout>
+                <callout arearefs='vmusb-snit-cvmusbpkg' >
+                    <para>
+                        Loads the <literal>cvmusb</literal> package.  This package
+                        provides the Tcl wrapping of the
+                        <classname>CVMUSB</classname> class.
+                    </para>
+                </callout>
+                <callout arearefs='vmusb-snit-cvmusbreadoutlist'>
+                    <para>
+                        Loads the <literal>cvmusbreadoutlist</literal> package.
+                        This package provides the Tcl wrapping of the
+                        <classname>CVMUSBReadoutList</classname>.
+                    </para>
+                </callout>
+                <callout arearefs='vmusb-snit-type'>
+                    <para>
+                        Snit allows you to create three types of
+                        'classes', types, widgets,and widgetadaptors.  The latter
+                        two have to do with creating widgets in snit's Tk
+                        megawidget framework.  The first, the type,
+                        is the most suited class type for a VMUSB driver.
+                    </para>
+                    <para>
+                        This line creates a new snit::type named
+                        <literal>marker-snit</literal>. Each instance of this
+                        class can be registered as a module allowing it to be
+                        included in a stack.
+                    </para>
+                </callout>
+                <callout arearefs='vmusb-snit-option'>
+                    <para>
+                        Snit objects all have a built in
+                        <command>configure</command>  sub-command much like the
+                        one that Tk objects have.  The snit
+                        <command>option</command> defines an option that is a
+                        target for the <command>configure</command> sub-command.
+                        Snit options are stord in an array accessible to all
+                        methods named <varname>options</varname> the indices
+                        of this array are the option names, the values of the
+                        array are the values of the options.
+                    </para>
+                    <para>
+                        The purpose of the <option>-value</option> option
+                        is to hold the value of the marker that will be inserted
+                        by this driver into each event.
+                    </para>
+                </callout>
+                <callout arearefs='vmusb-snit-constructor'>
+                    <para>
+                        <command>constructor</command> methods are called
+                        by snit when an object of a specified type is
+                        created.  The body of this constructor invokes the
+                        <command>configurelist</command> built in
+                        sub-command (<varname>self</varname> is like the
+                        C++ <varname>this</varname> pointer).
+                    </para>
+                    <para>
+                        The call to <command>configurelist</command> processes
+                        the parameters to the constructor as a set of option/value
+                        pairs.  This allows objects to be constructed and
+                        configured in a single step (again like
+                        Tk widgets).
+                    </para>
+                </callout>
+                <callout arearefs='vmusb-snit-init'>
+                    <para>
+                        The <methodname>Initialize</methodname> method
+                        of an object is called by the readout framework
+                        when a run is being started.  It is expected to
+                        interact with the hardware to initialize the
+                        device it manages in accordance with its configuration.
+                    </para>
+                    <para>
+                        The <parameter>driverPtr</parameter> is a
+                        <firstterm>SWIG Pointer</firstterm>.  Swig pointers
+                        are text strings that provide a strongly typed pointer
+                        to a C++ object.
+                    </para>
+                </callout>
+                <callout arearefs='vmusb-snit-wrapcvmusb' >
+                    <para>
+                        This line creates a new SWIG object that wraps the
+                        C++ object represented by <varname>driverPtr</varname>.
+                        The resulting object is called <varname>v</varname>
+                    </para>
+                </callout>
+                <callout arearefs='vmusb-snit-readleds'>
+                    <para>
+                        This invokes the <methodname>readLEDSource</methodname>
+                        method on the SWIG object <varname>v</varname>.
+                        That method reads the current value of the
+                        LED Source register, a register internal to the VM-USB
+                        that controls what makes the front panel LED's light.
+                    </para>
+                    <para>
+                        The arithmetic that follows sets the field responsible
+                        for controlling the bottom yellow LED such that it
+                        will light on the inverse of the case when the VM-USB
+                        is not a slot one controller.  This means that if the
+                        VM-USB is in slot one, it will have the bottom
+                        yellow LED lit.
+                    </para>
+                </callout>
+                <callout arearefs='vmusb-snit-writelds'>
+                    <para>
+                        Once the new value of the LED source register is
+                        computed this line writes then ew value back into the
+                        LED source register.
+                    </para>
+                </callout>
+                <callout arearefs='vmusb-snit-addreadoutlist' >
+                    <para>
+                        This method is normally called as a run is starting.
+                        <varname>list</varname> is a SWIG pointer to a
+                        <classname>CVMUSBReadoutList</classname>. The method is
+                        expected to add the entries to that list it needs to
+                        execute for each event trigger.
+                    </para>
+                </callout>
+                <callout arearefs='vmusb-snit-wrapreadoutlist'>
+                    <para>
+                        Wraps the <parameter>list</parameter> parameter in a
+                        SWIG object named <varname>l</varname> in a mannner
+                        analagous to what was done in <methodname>Initialize</methodname>
+                    </para>
+                </callout>
+                <callout arearefs='vmusb-snit-addmarker'>
+                    <para>
+                        Adds a markter to the list of VM-USB operations that
+                        will be performed in response to an event trigger.
+                        The value of the marker word (<literal>options(-value)</literal>)
+                        is the value of the <option>-value</option> configuration
+                        option.
+                    </para>
+                </callout>
+            </calloutlist>
+            <para>
+                In general you will need to look at the reference information
+                on the SWIG wrappers for
+                <link linkend='vmusb3-cvmusb-swig'>CVMUSB</link>
+                <link linkend='vmusb3-cvmusbreadoutlist-swig'>CVMUSBReadoutList</link>
+             </para>
+        </section>
+        <section>
+            <title>Using a Tcl driver in a DAQ configuration script</title>
+            <para>
+                This section assumes you are using a driver that has a
+                generator of driver instances.  The object oriented examples
+                meet those criteria.
+                To use a Tcl driver in a DAQ configuration file you must:
+            </para>
+            <orderedlist>
+                <listitem>
+                    <para>
+                        Incorporate the driver in the daqconfig file source code.
+                    </para>
+                </listitem>
+                <listitem>
+                    <para>
+                        Create and configure an instance of the driver for
+                        the device(s) it manages in your physical configuration
+                    </para>
+                </listitem>
+                <listitem>
+                    <para>
+                        Use the <command>addtcldriver</command> command to
+                        turn each driver instance into a module.
+                    </para>
+                </listitem>
+                <listitem>
+                    <para>
+                        As with any module, incorporate it into a
+                        stack's <option>-modules</option> list.
+                    </para>
+                </listitem>
+            </orderedlist>
+            <para>
+                Consider the drivers we described in the previous section.
+                Suppose the source code for those driver files,
+                <filename>tcldriver-itcl.tcl</filename> and
+                <filename>tcldriver-snit.tcl</filename> are located in the same
+                directory as the DAQ configuration file.  The following
+                configuration file fragment creates an instance of each
+                and adds them to a stack containing other natively coded
+                modules that is triggered on the NIM 1 input.
+            </para>
+            <example>
+                <title>USing a Tcl VM-USB driver.</title>
+                <programlisting>
+source tcldriver-snit.tcl;                   # load a snit tcl driver.
+marker-snit create snitmarker -value 0x5a5a; # Create an instance..
+addtcldriver snitmarker;                     # Add it to the list of known modules.
+
+
+source tcldriver-itcl.tcl;                   # load an incrtcl driver.
+marker-itcl itclmarker -value 0xa5a5         # crate/configure an instance.
+addtcldriver itclmarker                      # register it.
+
+...
+stack config event -modules [list test test2 test <emphasis>snitmarker itclmarker</emphasis>]
+
+                </programlisting>
+            </example>
+            <para>
+                In the exmample above, the Tcl modules are <emphasis>highlighted</emphasis>
+                in the <command>stack</command> configuration command.
+            </para>
+            <formalpara>
+                <title>Other approaches to packaging</title>
+                <para>
+                    If you rdriver is intended for re-use across several setups
+                    and even users, the method described above is not maintainable.
+                    In that case, it is better to stoere the driver sources in
+                    some central location, add <command>package provide</command>
+                    commands to each driver files and use
+                    <command>pkg_mkIndex</command> command to build a package
+                    index file.
+                </para>
+            </formalpara>
+            <para>
+                If this is done, and the directory added to the
+                Tcl search path, you could then use
+                <command>package require</command> to load the driver file.
+                Storing driver code centrally allows you to ensure that
+                experiments are using up-to-date versions of your software.
+            </para>
+
+        </section>
+    </section>
+            
     <section>
         <title> The slow controls subsystem</title>
         <para>
@@ -9092,5 +9661,2273 @@ bool myTypeChecker(std::string name, std::string value, void* arg)
 
            </refsect1>
            
-        </refentry>     
+        </refentry>
+        
+      <refentry id="vmusb3-cvmusb-swig">
+        <refmeta>
+           <refentrytitle>cvmusb</refentrytitle>
+           <manvolnum>3tcl</manvolnum>
+        </refmeta>
+        <refnamediv>
+           <refname>cvmusb</refname>
+           <refpurpose>SWIG Tcl wrapping of <classname>CVMUSB</classname></refpurpose>
+        </refnamediv>
+    
+        <refsynopsisdiv>
+            <cmdsynopsis>
+                <command>
+package require cvmusb
+                </command>
+            </cmdsynopsis>
+            <formalpara>
+                <title>Device enumeration and identification</title>
+                <para></para>
+            </formalpara>   
+          <cmdsynopsis>
+            <command>
+::cvmusb::CVMUSB_enumerate
+            </command>
+          </cmdsynopsis>
+          <cmdsynopsis>
+            <command>
+::cvmusb::CVMUSB_usb_device_vector_get <replaceable>enumeration i</replaceable>
+            </command>
+          </cmdsynopsis>
+        <cmdsynopsis>
+        <command>
+::cvmusb::CVMUSB_usb_device_vector_size <replaceable>enumeration</replaceable>
+            </command>
+        </cmdsynopsis>
+        <cmdsynopsis>
+        <command>
+::cvmusb::CVMUSB_serialNo  <replaceable>usbdevice</replaceable>
+            </command>
+        </cmdsynopsis>
+        
+        <formalpara>
+            <title>Construction</title>
+            <para></para>
+        </formalpara>
+        <cmdsynopsis>
+        <command>
+::cvmusb::CVMUSB <replaceable>name usbdevice</replaceable>
+            </command>
+        </cmdsynopsis>
+        <cmdsynopsis>
+        <command>
+::cvmusb::CVMUSB <replaceable>name</replaceable> -this <replaceable>usb-object-ptr</replaceable>
+            </command>
+        </cmdsynopsis>
+        <formalpara>
+            <title>VM-USB register operations</title>
+            <para></para>
+        </formalpara>
+        <cmdsynopsis>
+            <command>
+<replaceable>object</replaceable> readBulkXferSetup
+            </command>
+    </cmdsynopsis>
+    <cmdsynopsis>
+        <command>
+<replaceable>object</replaceable> readDAQSettings
+            </command>
+        </cmdsynopsis>
+        <cmdsynopsis>
+            <command>
+<replaceable>object</replaceable> readDGG_A
+            </command>
+        </cmdsynopsis>
+        <cmdsynopsis>
+            <command>
+<replaceable>object</replaceable> readDGG_B
+            </command>
+        </cmdsynopsis>
+        <cmdsynopsis>
+            <command>
+<replaceable>object</replaceable> readDGG_Extended
+            </command>
+        </cmdsynopsis>
+        <cmdsynopsis>
+            <command>
+<replaceable>object</replaceable> readDeviceSource
+            </command>
+        </cmdsynopsis>
+        <cmdsynopsis>
+            <command>
+<replaceable>object</replaceable> readFirmwareID
+            </command>
+        </cmdsynopsis>
+        <cmdsynopsis>
+            <command>
+<replaceable>object</replaceable> readGlobalMode
+            </command>
+        </cmdsynopsis>
+        <cmdsynopsis>
+            <command>
+<replaceable>object</replaceable> readIrqMask
+            </command>
+        </cmdsynopsis>
+        <cmdsynopsis>
+            <command>
+<replaceable>object</replaceable> readLEDSource
+            </command>
+        </cmdsynopsis>
+        <cmdsynopsis>
+            <command>
+<replaceable>object</replaceable> readScalerA
+            </command>
+        </cmdsynopsis>
+        <cmdsynopsis>
+            <command>
+<replaceable>object</replaceable> readScalerB
+            </command>
+        </cmdsynopsis>
+        <cmdsynopsis>
+            <command>
+<replaceable>object</replaceable> readVector
+            </command>
+        </cmdsynopsis>
+        <cmdsynopsis>
+            <command>
+<replaceable>object</replaceable> writeActionRegister <replaceable>value</replaceable>
+            </command>
+        </cmdsynopsis>
+        <cmdsynopsis>
+            <command>
+<replaceable>object</replaceable> writeBulkXferSetup <replaceable>value</replaceable>
+            </command>
+        </cmdsynopsis>
+        <cmdsynopsis>
+            <command>
+<replaceable>object</replaceable> writeDAQSettings <replaceable>value</replaceable>
+            </command>
+        </cmdsynopsis>
+        <cmdsynopsis>
+            <command>
+<replaceable>object</replaceable> writeDGG_A <replaceable>value</replaceable>
+            </command>
+        </cmdsynopsis>
+        <cmdsynopsis>
+            <command>
+<replaceable>object</replaceable> writeDGG_B <replaceable>value</replaceable>
+            </command>
+        </cmdsynopsis>
+        <cmdsynopsis>
+            <command>
+<replaceable>object</replaceable> writeDGG_Extended <replaceable>value</replaceable>
+            </command>
+        </cmdsynopsis>
+        <cmdsynopsis>
+            <command>
+<replaceable>object</replaceable> writeDeviceSource <replaceable>value</replaceable>
+            </command>
+        </cmdsynopsis>
+        <cmdsynopsis>
+            <command>
+<replaceable>object</replaceable> writeGlobalMode <replaceable>value</replaceable>
+            </command>
+        </cmdsynopsis>
+        <cmdsynopsis>
+            <command>
+<replaceable>object</replaceable> writeIrqMask <replaceable>value</replaceable>
+            </command>
+        </cmdsynopsis>
+        <cmdsynopsis>
+            <command>
+<replaceable>object</replaceable> writeLEDSource <replaceable>value</replaceable>
+            </command>
+        </cmdsynopsis>
+        <cmdsynopsis>
+            <command>
+<replaceable>object</replaceable> writeVector <replaceable>which value</replaceable>
+            </command>
+        </cmdsynopsis>
+        <formalpara>
+            <title>VME operations</title>
+            <para></para>
+        </formalpara>
+        <cmdsynopsis>
+            <command>
+<replaceable>object</replaceable> vmeBlockRead <replaceable>base amod xfers</replaceable>
+            </command>
+    </cmdsynopsis>
+    <cmdsynopsis>
+        <command>
+<replaceable>object</replaceable> vmeFifoRead <replaceable>base amod xfers</replaceable>
+            </command>
+        </cmdsynopsis>
+        <cmdsynopsis>
+            <command>
+<replaceable>object</replaceable> vmeRead16 <replaceable>address amod</replaceable>
+            </command>
+        </cmdsynopsis>
+        <cmdsynopsis>
+            <command>
+<replaceable>object</replaceable> vmeRead32 <replaceable>address amod</replaceable>
+            </command>
+        </cmdsynopsis>
+        <cmdsynopsis>
+            <command>
+<replaceable>object</replaceable> vmeRead8 <replaceable>address amod</replaceable>
+            </command>
+        </cmdsynopsis>
+        <cmdsynopsis>
+            <command>
+<replaceable>object</replaceable> vmeReadBlockCount16 <replaceable>address mask amod</replaceable>
+            </command>
+        </cmdsynopsis>
+        <cmdsynopsis>
+            <command>
+<replaceable>object</replaceable> vmeReadBlockCount32 <replaceable>address mask amod</replaceable>
+            </command>
+        </cmdsynopsis>
+        <cmdsynopsis>
+            <command>
+<replaceable>object</replaceable> vmeReadBlockCount8 <replaceable>address mask amod</replaceable>
+            </command>
+        </cmdsynopsis>
+        <cmdsynopsis>
+            <command>
+<replaceable>object</replaceable> vmeVariableBlockRead  <replaceable>address mask amod</replaceable>
+            </command>
+        </cmdsynopsis>
+        <cmdsynopsis>
+            <command>
+<replaceable>object</replaceable> vmeVariableFifoRead  <replaceable>address mask amod</replaceable>
+            </command>
+        </cmdsynopsis>
+        <cmdsynopsis>
+            <command>
+<replaceable>object</replaceable> vmeWrite16 <replaceable>address amod data</replaceable>
+            </command>
+        </cmdsynopsis>
+        <cmdsynopsis>
+            <command>
+<replaceable>object</replaceable> vmeWrite32 <replaceable>address amod data</replaceable>
+            </command>
+        </cmdsynopsis>
+        <cmdsynopsis>
+            <command>
+<replaceable>object</replaceable> vmeWrite8 <replaceable>address amod data</replaceable>
+            </command>
+        </cmdsynopsis>
+        <formalpara>
+            <title>List operations</title><para></para>
+        </formalpara>
+        <cmdsynopsis>
+            <command>
+<replaceable>object</replaceable> executeList <replaceable>list maxbytes</replaceable>
+            </command>
+        </cmdsynopsis>
+        <cmdsynopsis>
+            <command>
+<replaceable>object</replaceable> loadList    <replaceable>number list offset</replaceable>
+            </command>
+        </cmdsynopsis>
+        <formalpara>
+            <title>Miscellaneous operations.</title><para></para>
+        </formalpara>
+        <cmdsynopsis>
+            <command>
+<replaceable>object</replaceable> setDefaultTimeout <replaceable>ms</replaceable>
+            </command>
+        </cmdsynopsis>
+        <cmdsynopsis>
+            <command>
+::cvmusb::CVMUSB_getuint16 <replaceable>uint16</replaceable>
+            </command>
+        </cmdsynopsis>
+        <cmdsynopsis>
+            <command>
+::cvmusb::CVMUSB_string_to_char <replaceable>std_string</replaceable>
+            </command>
+        </cmdsynopsis>
+        <cmdsynopsis>
+            <command>
+::cvmusb::CVMUSB_uint32_vector_get <replaceable>std_uint32_vector i</replaceable>
+            </command>
+        </cmdsynopsis>
+        <cmdsynopsis>
+            <command>
+::cvmusb::CVMUSB_uint32_vector_size <replaceable>std_uint32_vector</replaceable>
+            </command>
+        </cmdsynopsis>
+        <cmdsynopsis>
+            <command>
+::cvmusb::CVMUSB_uint8_vector_get <replaceable>std_uint8_vector i</replaceable>
+            </command>
+        </cmdsynopsis>
+        <cmdsynopsis>
+            <command>
+::cvmusb::CVMUSB_uint8_vector_size <replaceable>std_uint8_vector</replaceable>
+            </command>
+        </cmdsynopsis>
+        
+        </refsynopsisdiv>
+        <refsect1>
+           <title>DESCRIPTION</title>
+           <para>
+                This package provides a tcl interface to the
+                <classname>CVMUSB</classname> class described in
+                <link linkend='vmusb3-CVMUSB' >CVMUSB(3)</link>.
+                See COMMANDS below for more information.
+           </para>
+        </refsect1>
+        <refsect1>
+           <title>
+              COMMANDS
+           </title>
+            <formalpara>
+                <title>Device enumeration and identification</title>
+                <para>
+                    The commands in this section are used to determine the
+                    set of VM-USB controllers attached to the host and
+                    identify them by serial number.
+                </para>
+            </formalpara>
+
+           <variablelist>
+            <varlistentry>
+                <term>
+          <cmdsynopsis>
+            <command>
+::cvmusb::CVMUSB_enumerate
+            </command>
+          </cmdsynopsis>
+          </term>
+                <listitem>
+                    <para>
+                        Enumerates the set of VM-USB devices that are
+                        attached to and powered up on the host.  The result
+                        of this command is <type>usb_device_vector</type>.
+                        You can think of this as a sort of an array with integer
+                        indices whose elements represent a single VM-USB device.
+                        See below for commands that can manipulate this vector.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>
+          <cmdsynopsis>
+            <command>
+::cvmusb::CVMUSB_usb_device_vector_get <replaceable>enumeration i</replaceable>
+        </command>
+          </cmdsynopsis>
+        </term>
+        <listitem>
+            <para>
+                Given the result of the <command>::cvmusb::CVMUSB_enumerate</command>
+                command <parameter>enumeration</parameter>   and an integer
+                index <parameter>i</parameter>, returns a single element
+                of the enumerated device set.  The return value is of type
+                <type>usb_device</type> and can be passed to the constructor,
+                to create a controller object that talks to this device or to
+                <command>cvmusb::CVMUSB_serialNo</command> to get the device's
+                serial number string.
+                </para>
+                </listitem>
+                </varlistentry>
+          <varlistentry>
+            <term>
+        <cmdsynopsis>
+        <command>
+::cvmusb::CVMUSB_usb_device_vector_size <replaceable>enumeration</replaceable>
+            </command>
+        </cmdsynopsis>
+        </term>
+        <listitem>
+            <para>
+                Given a <parameter>enumeration</parameter> gotten from
+                <command>::cvmusb::CVMUSB_enumerate</command>,
+                returns the number of elements in that array.  The array is
+                indexed from 0.
+                </para>
+                </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>
+        <cmdsynopsis>
+        <command>
+::cvmusb::CVMUSB_serialNo  <replaceable>usbdevice</replaceable>
+            </command>
+        </cmdsynopsis>
+        </term>
+        <listitem>
+            <para>
+                Given a <parameter>usbdevice</parameter> returned from
+                <command>::cvmusb::CVMUSB_usb_device_vector_get</command>
+                Returns the serial number string.  Note that this is not
+                immediately usable but must be converted to a Tcl string
+                via a call to
+                <command>::cvmsusb::CVMUSB_string_to_char</command>
+                described below.
+                </para>
+                </listitem>
+            </varlistentry>
+           </variablelist>
+        <formalpara>
+            <title>Construction</title>
+            <para>
+                This set of commands is used to construct CVMUSB objects.
+                The return value of these constructors is a command. The
+                command can be either explicitly named by the
+                <parameter>name</parameter> parameter in each of these
+                constructors or you can use the name <literal>%AUTO</literal>
+                to allow constructors to generate a unique object command
+                name.
+            </para>
+        </formalpara>
+        <variablelist>
+        <varlistentry>
+            <term>
+        <cmdsynopsis>
+        <command>
+::cvmusb::CVMUSB <replaceable>name usbdevice</replaceable>
+            </command>
+        </cmdsynopsis>
+        </term>
+        <listitem>
+            <para>
+                Creates a new CVMUSB object given a <parameter>usbdevice</parameter>
+                gotten from
+                <command>::cvmusb::CVMUSB_usb_device_vector_get</command>.
+                This results in a new command <parameter>name</parameter> unless
+                <parameter>name</parameter> is the special value
+                <literal>%AUTO</literal>, in which case a unique name will be
+                assigned the object.
+                </para>
+            <para>
+                Naturally if you use <literal>%AUTO</literal> as the name
+                 you must capture the actual name in a Tcl variable e.g.:
+            </para>
+            <informalexample>
+                <programlisting>
+set controller [::cvmusb::CVMUSB %AUTO $device]
+$controller <replaceable>some method</replaceable>
+                </programlisting>
+            </informalexample>
+                </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>
+    <cmdsynopsis>
+        <command>
+::cvmusb::CVMUSB <replaceable>name</replaceable> -this <replaceable>usb-object-ptr</replaceable>
+            </command>
+        </cmdsynopsis>
+            </term>
+            <listitem>
+                <para>
+                    Constructs a VMUSB object given a <replaceable>usb-object-ptr</replaceable>
+                    object pointer.  This is normally used to wrap a pointer to a C++
+                    underlying object passsed into a method from compiled code
+                    (e.g in the Tcl driver <methodname>Initialize</methodname> method).
+                    </para>
+                    </listitem>
+                    </varlistentry>
+        </variablelist>
+        <formalpara>
+            <title>VM-USB register operations</title>
+            <para>
+                These methods all require a constructed VM-USB object
+                <parameter>object</parameter> and write internal registers
+                of the VM-USB.  It is beyond the scope of this document to fully
+                describe these registers.  For each method, therefore, a high level
+                description will be given along with the VM-USB reference manual
+                section that does fully describe the register.
+            </para>
+        </formalpara>
+        <variablelist>
+        
+        <varlistentry>
+            <term>
+        <cmdsynopsis>
+            <command>
+<replaceable>object</replaceable> readBulkXferSetup
+            </command>
+    </cmdsynopsis>
+        </term>
+        <listitem>
+            <para>
+                Returns the current value of the USB Bulk transfer register.
+                This register is described in section 3.4.10.  It can be used
+                to tune performance of the USB interface by setting the number
+                of buffers that can be streamed without a packet end signal.
+                </para>
+                </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>
+    <cmdsynopsis>
+        <command>
+<replaceable>object</replaceable> readDAQSettings
+            </command>
+        </cmdsynopsis>
+    </term>
+    <listitem>
+        <para>
+            Returns the current value of the Data acquisition settings register.
+            This register is described in section 3.4.3 of the VM-USB manual.
+            It contains bit fields that control the way in which the scaler stack
+            is trigggered and the delay between a trigger and stack start.
+            Note that within the VM-USB readout framework, this register is
+            programmed by the framework at the start of each run.  You will
+            only need to program this register if you are building pure Tcl
+            applications with the VM-USB.
+            </para>
+            </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>
+        <cmdsynopsis>
+            <command>
+<replaceable>object</replaceable> readDGG_A
+            </command>
+        </cmdsynopsis>
+        </term>
+        <listitem>
+            <para>
+                Reads the contents of the VM-USB A gate and delay generator.
+                The VM-USB has two internal Gate and delay generators named
+                A and B.  Section 3.4.6 describes the registers that control
+                these resources. The
+                bit fields in this register control the gate width and delay of
+                the A gate and delay generator.
+                </para>
+                </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>
+        <cmdsynopsis>
+            <command>
+<replaceable>object</replaceable> readDGG_B
+            </command>
+        </cmdsynopsis>
+        </term>
+        <listitem>
+            <para>
+                Same as <command>readDGGG_A </command> but the register
+                for the B gate and delay register is read.
+                </para>
+                </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>
+        <cmdsynopsis>
+            <command>
+<replaceable>object</replaceable> readDGG_Extended
+            </command>
+        </cmdsynopsis>
+        </term>
+        <listitem>
+            <para>
+                Returns the value of the extended gate and delay generator
+                register.  This supplies high order bits for the delay values
+                for both the A and B DGG's.
+                </para>
+                </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>
+        <cmdsynopsis>
+            <command>
+<replaceable>object</replaceable> readDeviceSource
+            </command>
+        </cmdsynopsis>
+        </term>
+        <listitem>
+            <para>
+                Reads the device source register.  This register, described in
+                section 3.4.5 defines the sources for the the NIM outputs, the
+                internal scalers and the starts for the gate generators.
+                </para>
+                </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>
+        <cmdsynopsis>
+            <command>
+<replaceable>object</replaceable> readFirmwareID
+            </command>
+        </cmdsynopsis>
+        </term>
+        <listitem>
+            <para>
+                Returns the current firmware revision level of the controller.
+                The bit fields of this register are defined in section 3.4.1 of
+                the VM-USB manual.
+                </para>
+                </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>
+        <cmdsynopsis>
+            <command>
+<replaceable>object</replaceable> readGlobalMode
+            </command>
+        </cmdsynopsis>
+        </term>
+        <listitem>
+            <para>
+                Reads the module's global mode register
+                (see VM-USB manual secgtion 3.4.2).  This register sets the
+                VME bus request level, as well as several data acquisition
+                options.
+                </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>
+        <cmdsynopsis>
+            <command>
+<replaceable>object</replaceable> readIrqMask
+            </command>
+        </cmdsynopsis>
+        </term>
+        <listitem>
+            <para>
+ 
+                            This reads a shadow regiseter that remembers
+                            the last value written to the VM-USB's
+                            interrupt request mask register (see
+                            section 3.5 of the VM-USB manual).  This is
+                            a write only register.  Therefore, when you
+                            create a <classname>CVMUSB</classname> object,
+                            the value of the register is set to all ones which
+                            disables all interrupts.  Remember to set interrupt
+                            enable bits if you use interrupt triggered stacks.
+                
+                </para>
+                </listitem>
+                </varlistentry>
+             <varlistentry>
+                <term>
+        <cmdsynopsis>
+            <command>
+<replaceable>object</replaceable> readLEDSource
+            </command>
+        </cmdsynopsis>
+        </term>
+        <listitem>
+            <para>
+                Reads the LED source selectors register.  This is described in
+                section 3.4.4 of the VM-USB manual.  The registser allows you to
+                determine the cirumstances which light each of the four LED's on
+                the VM-USB front panel.
+                </para>
+                </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>
+        <cmdsynopsis>
+            <command>
+<replaceable>object</replaceable> readScalerA
+            </command>
+        </cmdsynopsis>
+        </term>
+        <listitem>
+            <para>
+                The VM-USB has a pair of 32 bit scalers, Scaler A and B.
+                These are descsribed in section 3.4.7 of the VM-USB manual.
+                This method returns the value of scaler A's counter.
+                </para>
+                </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>
+        <cmdsynopsis>
+            <command>
+<replaceable>object</replaceable> readScalerB
+            </command>
+        </cmdsynopsis>
+        </term>
+        <listitem>
+            <para>
+                The VM-USB has a pair of 32 bit scalers, Scaler A and B.
+                These are descsribed in section 3.4.7 of the VM-USB manual.
+                This method returns the value of scaler B's counter.
+                   </para>
+                </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>
+        <cmdsynopsis>
+            <command>
+<replaceable>object</replaceable> readVector <replaceable>which</replaceable>
+            </command>
+        </cmdsynopsis>
+        </term>
+        <listitem>
+            <para>
+                Reads the value of the interrupt vector register designated
+                by <parameter>which</parameter>
+                The vector registers are described in section 3.4.8 of the VM-USB
+                Manual.  The VM-USB supports triggering stacks as a result of
+                an interrupt on the VME bus.  To do this, an interrupt service vector
+                register must be programmed with the IPL, the vector and stack id.
+                The interrupt sevice vectors are in pairs numbered <literal>1-4</literal>.
+                This function returns one of those pairs.
+                </para>
+                </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>
+        <cmdsynopsis>
+            <command>
+<replaceable>object</replaceable> writeActionRegister <replaceable>value</replaceable>
+            </command>
+        </cmdsynopsis>
+        </term>
+        <listitem>
+            <para>
+                Writes the <parameter>value</parameter> to the action register.
+                This register is responsible for starting data acquisition
+                mode and can be used to trigger lists.  It is a write only register
+                that is described in section 3.1 of the VM-USB manual.
+                </para>
+                </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>
+        <cmdsynopsis>
+            <command>
+<replaceable>object</replaceable> writeBulkXferSetup <replaceable>value</replaceable>
+            </command>
+        </cmdsynopsis>
+        </term>
+        <listitem>
+            <para>
+                Writes <parameter>value</parameter> to the bulk transfer setup
+                register described in section 3.4.10 of the VM-USB manual.
+                This register allows sophisiticated users to optimize the
+                bandwidth of the USB during event data transfer.
+                </para>
+                </listitem>
+                </varlistentry>
+       
+            <varlistentry>
+                <term>
+                <cmdsynopsis>
+                   <command>
+               <replaceable>object</replaceable> writeDAQSettings <replaceable>value</replaceable>
+            </command>
+        </cmdsynopsis>
+ 
+            </term>
+            <listitem>
+                <para>
+                    Writes <parameter>value</parameter> to the data
+                    acquisition settings register described in sectino
+                    3.4.3 of the VM-USB manual.  TYhat register allows
+                    you to determine how the scaler stack is triggered as well
+                    as the delay betrweena stack trigger and the start of
+                    stack execution.
+                    </para>
+                    </listitem>
+                    </varlistentry>
+            <varlistentry>
+                <term>
+        <cmdsynopsis>
+            <command>
+<replaceable>object</replaceable> writeDGG_A <replaceable>value</replaceable>
+            </command>
+        </cmdsynopsis>
+        </term>
+        <listitem>
+            <para>
+                Writes <parameter>value</parameter> to the A delay and gate
+                generator.  The gate and delay generator registers are
+                described in section 3.4.6 of the VM-USB manual.
+                </para>
+                </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>
+        <cmdsynopsis>
+            <command>
+<replaceable>object</replaceable> writeDGG_B <replaceable>value</replaceable>
+            </command>
+        </cmdsynopsis>
+        </term>
+        <listitem>
+            <para>
+                Same as above but writes to the B delay and gate generator
+                register.
+                </para>
+                </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>
+        <cmdsynopsis>
+            <command>
+<replaceable>object</replaceable> writeDGG_Extended <replaceable>value</replaceable>
+            </command>
+        </cmdsynopsis>
+        </term>
+        <listitem>
+            <para>
+                Writes the gate and delay extended delay register. This is
+                provides the ability to run very long delays.
+                </para>
+                </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>
+        <cmdsynopsis>
+            <command>
+<replaceable>object</replaceable> writeDeviceSource <replaceable>value</replaceable>
+            </command>
+        </cmdsynopsis>
+        </term>
+        <listitem>
+            <para>
+                Writes <parameter>value</parameter> to the users device
+                sources selection register described in section 3.4.5 of the
+                VM-USB manual.  This determines what is gated to the
+                NIM 0/1 outputs, the Scaler inputs and the gate and delay
+                generator inputs.
+                </para>
+                </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>
+        <cmdsynopsis>
+            <command>
+<replaceable>object</replaceable> writeGlobalMode <replaceable>value</replaceable>
+            </command>
+        </cmdsynopsis>
+        </term>
+        <listitem>
+            <para>
+                Writes <parameter>value</parameter> to the global mode
+                register described in section 3.4.2 of the VM-USB manual.  This
+                sets a variety of data acquisition parameters as well as
+                the VM-USB bus request level.
+                </para>
+                </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>
+        <cmdsynopsis>
+            <command>
+<replaceable>object</replaceable> writeIrqMask <replaceable>value</replaceable>
+            </command>
+        </cmdsynopsis>
+        </term>
+        <listitem>
+            <para>
+                Writes the interrupt request mask register.  This register is
+                desacribed in section 3.5 and describes the set of interrupt
+                priority levels the VM-USB responds to.  See also
+                <methodname>writeVector</methodname>.
+                </para>
+                </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>
+        <cmdsynopsis>
+            <command>
+<replaceable>object</replaceable> writeLEDSource <replaceable>value</replaceable>
+            </command>
+        </cmdsynopsis>
+        </term>
+        <listitem>
+            <para>
+                Writes
+                <parameter>value</parameter>
+                the LED source register described in section 3.4.4 of the
+                VM-USB manual.  This register determines the conditions under
+                which the four programmable LEDS on the front panel of the
+                VM-USB light.
+                </para>
+                </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>
+        <cmdsynopsis>
+            <command>
+<replaceable>object</replaceable> writeVector <replaceable>which value</replaceable>
+            </command>
+        </cmdsynopsis>
+        </term>
+        <listitem>
+            <para>
+                Writes one of the four vector registers (numbered
+                <literal>[1-4]</literal>) described in section 3.4.8.  These
+                allow stacks to be triggered by specific VME interrupts.
+                Note that at present there is no support to write the
+                interrupt extension bits registers as virtually all VME
+                interrupters use 8-bit vectors.
+                </para>
+                </listitem>
+                </varlistentry>
+        </variablelist>
+        <formalpara>
+            <title>VME operations</title>
+            <para>
+                This section describes the methods that perform VME
+                actions.  Single shot read operations return the value
+                read, howver block reads return an std::vector which
+                requires further calls to obtain the actual number
+                of items read and to fish out individual items.
+            </para>
+        </formalpara>
+            <para>
+                VME operations target an address within an address space.
+                The address space is seleted by what in VME parlance is
+                called an <firstterm>address modifier</firstterm>.
+                A table of address modifiers is available on the Wikipedia
+                article describing the VME bus:
+                <ulink url='http://en.wikipedia.org/wiki/VMEbus'>
+                    http://en.wikipedia.org/wiki/VMEbus</ulink>.
+            </para>
+            <para>
+                The documentation that describes each module describes the
+                set of address modifiers it supports.  Modules occupy an
+                address space whose base is generally configured by switches,
+                jumpers or rotary switches.  The module documentation will describe
+                both the size and contents of its address space as well as
+                how the base address is determined.
+            </para>
+        <variablelist>
+        <varlistentry>
+        <term>
+        <cmdsynopsis>
+            <command>
+<replaceable>object</replaceable> vmeBlockRead <replaceable>base amod xfers</replaceable>
+            </command>
+    </cmdsynopsis>
+        </term>
+        <listitem>
+            <para>
+                Performs a block read from the the VME bus. The source is
+                determined by the <parameter>base</parameter> address and
+                the address  modifier (<parameter>amod</parameter>).
+                At most <parameter>xfers</parameter> transfers will be performed.
+                The block transfer may terminate prematurely if a bus error
+                occurs during the transfer.
+                </para>
+            <para>
+                The result of the block read is returned as an item that is
+                encapsulates a <type>std::vector&lt;uint32_t&gt;</type>.
+                See <methodname>::cvmusb::CVMUSB_uint32_vector_size</methodname>
+                which will return the actual number of transfers performed.
+                <methodname>::cvmusb::CVMUSB_uint32_vector_get</methodname>
+                allows you to extract individual values from the data
+                returned.
+            </para>
+            <para>
+                Suitable address modifiers force the VME bus to run in
+                <firstterm>block transfer mode</firstterm>. In that mode,
+                Addresses cycles are only performed infrequently with the
+                source device keeping track of the offset from the last address
+                cycle.  If the module providing the data supports block transfer
+                address modifiers, substantial peformance gains can be had
+                by using it.
+                </para>
+                </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>
+    <cmdsynopsis>
+        <command>
+<replaceable>object</replaceable> vmeFifoRead <replaceable>base amod xfers</replaceable>
+            </command>
+        </cmdsynopsis>
+    </term>
+    <listitem>
+        <para>
+            This method is the same as <methodname>vmeBlockRead</methodname>
+            however all address cycles assert the <parameter>base</parameter>
+            address. This makes the operation suitable for address blocks
+            that actually implement FIFO memories.
+        </para>
+        <para>
+            Consider, for example the
+            data buffer address block of a large group of CAEN 32 bit
+            digitizers run in multi-event mode read out via a chained block
+            transfer.  If a block read is used to read this module, it is possible
+            for the address to increment off the end of the window that is
+            recognized as the data buffer.  Using a FIFO read ensures this
+            cannot happen.
+            </para>
+            </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>
+        <cmdsynopsis>
+            <command>
+<replaceable>object</replaceable> vmeRead16 <replaceable>address amod</replaceable>
+            </command>
+        </cmdsynopsis>
+        </term>
+        <listitem>
+            <para>
+                Performs a single 16 bit transfer from <parameter>address</parameter>
+                in the address space selected by <parameter>amod</parameter>
+                The result of the command is word that was read.
+                </para>
+                </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>
+        <cmdsynopsis>
+            <command>
+<replaceable>object</replaceable> vmeRead32 <replaceable>address amod</replaceable>
+            </command>
+        </cmdsynopsis>
+        </term>
+        <listitem>
+            <para>
+                Same as <methodname>vmeRead16</methodname> however a 32
+                bit read is performed.
+                </para>
+                </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>
+        <cmdsynopsis>
+            <command>
+<replaceable>object</replaceable> vmeRead8 <replaceable>address amod</replaceable>
+            </command>
+        </cmdsynopsis>
+        </term>
+        <listitem>
+            <para>
+                Same as <methodname>vmeRead16</methodname> however a 16 bit
+                read is performed.
+                </para>
+                </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>
+        <cmdsynopsis>
+            <command>
+<replaceable>object</replaceable> vmeReadBlockCount16 <replaceable>address mask amod</replaceable>
+            </command>
+        </cmdsynopsis>
+        </term>
+        <listitem>
+            <para>
+                The VM-USB provides the ability to do a variable sized block read.
+                When using this facility you first perform a VME read operation
+                to obtain the number of transfers in the block read.
+                You then perform the block read itself
+                </para>
+            <para>
+                The block read count is a field in the data transferred from
+                the VME <parameter>address</parameter>/<parameter>amod</parameter>
+                specified by a <parameter>mask</parameter>.  This method performs
+                an 16 bit read from the VME bus and uses the
+                <parameter>mask</parameter> provided to determine which bits
+                constitute the transfer size.  The resulting block transfer
+                size is saved for the variable block transfer operation which
+                should immediately follow.
+                </para>
+                </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>
+        <cmdsynopsis>
+            <command>
+<replaceable>object</replaceable> vmeReadBlockCount32 <replaceable>address mask amod</replaceable>
+            </command>
+        </cmdsynopsis>
+        </term>
+        <listitem>
+            <para>
+                Same as <methodname>vmeReadBlockCount16</methodname> however
+                the read is 32 bits wide.
+                </para>
+                </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>
+        <cmdsynopsis>
+            <command>
+<replaceable>object</replaceable> vmeReadBlockCount8 <replaceable>address mask amod</replaceable>
+            </command>
+        </cmdsynopsis>
+        </term>
+        <listitem>
+            <para>
+                Same as <methodname>vmeReadBlockCount16</methodname> however
+                the data transfer is 8 bits wide.
+                </para>
+                </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>
+        <cmdsynopsis>
+            <command>
+<replaceable>object</replaceable> vmeVariableBlockRead  <replaceable>address mask maxcount</replaceable>
+            </command>
+        </cmdsynopsis>
+        </term>
+        <listitem>
+            <para>
+                Performs a variable block read whose transfer count was
+                determined by one of the previous three methods.
+                The transfer base address is specified by
+                <parameter>address</parameter>/<parameter>amod</parameter>.
+                <parameter>maxcount</parameter> is used to allocate aninternal
+                buffer fro the transfer and can further limit the number of
+                transfers.  The return value from this method is the same as
+                a return value from <methodname>vmeBlockRead</methodname>
+                </para>
+                </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>
+        <cmdsynopsis>
+            <command>
+<replaceable>object</replaceable> vmeVariableFifoRead  <replaceable>address mask amod</replaceable>
+            </command>
+        </cmdsynopsis>
+        </term>
+        <listitem>
+            <para>
+                Same as <methodname>vmeVariableBlockRead</methodname> however
+                all address cycles provide <parameter>address</parameter> as
+                the address making this suitable as a block read froma  FIFO.
+                The return value is the same as from
+                <methodname>vmeBlockRead</methodname>.
+                </para>
+                </listitem>
+                </varlistentry>
+             <varlistentry>
+                <term>
+        <cmdsynopsis>
+            <command>
+<replaceable>object</replaceable> vmeWrite16 <replaceable>address amod data</replaceable>
+            </command>
+        </cmdsynopsis>
+        </term>
+        <listitem>
+            <para>
+                Performs a single shot 16 bit write of <parameter>data</parameter>
+                to the VME target specified by
+                <parameter>address</parameter>/<parameter>amod</parameter>.
+                The least significant bits of <parameter>data</parameter>
+                are written.
+                </para>
+                </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>
+        <cmdsynopsis>
+            <command>
+<replaceable>object</replaceable> vmeWrite32 <replaceable>address amod data</replaceable>
+            </command>
+        </cmdsynopsis>
+        </term>
+        <listitem>
+            <para>
+                Same as <parameter>vmeWrite16</parameter> however 32bits of
+                <parameter>data</parameter> are written.
+                </para>
+                </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>
+        <cmdsynopsis>
+            <command>
+<replaceable>object</replaceable> vmeWrite8 <replaceable>address amod data</replaceable>
+            </command>
+        </cmdsynopsis>
+        </term>
+        <listitem>
+            <para>
+                Same as vmeWrite16, however only the least significant 8 bits
+                of <parameter>data</parameter> are written.
+                </para>
+                </listitem>
+                </varlistentry>
+        </variablelist>
+        <formalpara>
+            <title>List operations</title>
+            <para>
+                The VM-USB allows you to build and execute lists of VME
+                operations.  These are built up using
+                cvmusbreadoutlist.  Lists can also be downloaded for
+                execution in data acquisition mode when triggered.
+            </para>
+        </formalpara>
+        <variablelist>
+        <varlistentry>
+            <term>
+        <cmdsynopsis>
+            <command>
+<replaceable>object</replaceable> executeList <replaceable>list maxbytes</replaceable>
+            </command>
+        </cmdsynopsis>
+        </term>
+        <listitem>
+            <para>
+                Executes a list of instructions.  <parameter>list</parameter>
+                is a <classname>cvmusbreadoutlist</classname> object or pointer.
+                <parameter>mabytes</parameter> is the maximum number of
+                bytes of data that miight be returned from this list as a result
+                of the reado operations it contains.   This is used to size
+                an internal buffer into which that data are accepted.
+                </para>
+            <para>
+                The return value from this command is a
+                <type>std::vector&lt;uint8_t&gt;</type>.
+                See <methodname>cvmusb::CVMUSB_uint8_vector_size</methodname>
+                and <methodname>cvmusb::CVMUSB_uint8_vector_get</methodname>
+                for information about how to get data ouf of this object.
+            </para>
+                </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>
+        <cmdsynopsis>
+            <command>
+<replaceable>object</replaceable> loadList    <replaceable>number list offset</replaceable>
+            </command>
+        </cmdsynopsis>
+        </term>
+        <listitem>
+            <para>
+                Loads a list into the VM-USB for execution in response to a trigger
+                in data taking mode.
+                <parameter>list</parameter> is a <classname>cvmusbreadoutlist</classname>
+                object.  <parameter>number</parameter> is the stack number and
+                must be in the range <literal>[0..7]</literal>.
+                <parameter>offset</parameter> is the memory offset at which
+                the list should be loaded.  See
+                <classname>CVMUSB</classname>::<methodname>loadList</methodname>
+                for information about how to compute this.
+                </para>
+                </listitem>
+                </varlistentry>
+        </variablelist>
+        <formalpara>
+            <title>Miscellaneous operations.</title>
+            <para>
+                This section describes methods that don't fit into a convenient
+                category.  Many of these are static methods that provide
+                impedance matching between the data types in use in the
+                <classname>CVMUSB</classname> underlying class ansd Tcl data types.
+            </para>
+        </formalpara>
+        <variablelist>
+        <varlistentry>
+            <term>
+        <cmdsynopsis>
+            <command>
+<replaceable>object</replaceable> setDefaultTimeout <replaceable>ms</replaceable>
+            </command>
+        </cmdsynopsis>
+        </term>
+        <listitem>
+            <para>
+                Sets the default timeout of VM-USB operations as
+                <parameter>ms</parameter> milliseconds.  This timeout is
+                used to define how long most of the methods in this
+                section will wait for a response from the VM-USB before
+                giving up.
+                </para>
+                </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>
+        <cmdsynopsis>
+            <command>
+::cvmusb::CVMUSB_getuint16 <replaceable>uint16</replaceable>
+            </command>
+        </cmdsynopsis>
+        </term>
+        <listitem>
+            <para>
+                Given a <type>uint16_t</type>
+                Returns an integer that has the same value  This is needed
+                because SWIG thinks that <type>uint16_t</type> is some
+                fancy object type and will not allow it to be shimmered
+                to an int.
+                </para>
+                </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>
+        <cmdsynopsis>
+            <command>
+::cvmusb::CVMUSB_string_to_char <replaceable>std_string</replaceable>
+            </command>
+        </cmdsynopsis>
+        </term>
+        <listitem>
+            <para>
+                Given an <type>std::string</type>, returns a string that
+                Tcl can deal with.
+                </para>
+                </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>
+        <cmdsynopsis>
+            <command>
+::cvmusb::CVMUSB_uint32_vector_get <replaceable>std_uint32_vector i</replaceable>
+            </command>
+        </cmdsynopsis>
+        </term>
+        <listitem>
+            <para>
+                Given a <type>std::vector&lt;uint32_t&gt;</type>
+                (<parameter>std_uint32_vector</parameter>) returns
+                element <parameter>i</parameter>.
+                </para>
+                </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>
+        <cmdsynopsis>
+            <command>
+::cvmusb::CVMUSB_uint32_vector_size <replaceable>std_uint32_vector</replaceable>
+            </command>
+        </cmdsynopsis>
+        </term>
+        <listitem>
+            <para>
+                Given <parameter>std_uint32_vector</parameter> a
+                <type>std::vector&lt;uint32_t&gt;</type> returns
+                the number of elements it contains.  Elements
+                are indexed from zero.
+                </para>
+                </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>
+        <cmdsynopsis>
+            <command>
+::cvmusb::CVMUSB_uint8_vector_get <replaceable>std_uint8_vector i</replaceable>
+            </command>
+        </cmdsynopsis>
+        </term>
+        <listitem>
+            <para>
+                Same as
+                <methodname>::cvmusb::CVMUSB_uint32_vector_get</methodname> but
+                <parameter>std_uint8_vector</parameter> is a
+                <type>std::vector&lt;uint8_t&gt;</type>.
+                </para>
+                </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>
+        <cmdsynopsis>
+            <command>
+::cvmusb::CVMUSB_uint8_vector_size <replaceable>std_uint8_vector</replaceable>
+            </command>
+        </cmdsynopsis>
+        </term>
+        <listitem>
+            <para>
+                Same as <methodname>::cvmusb::CVMUSB_uint32_vector_size</methodname>
+                but <parameter>std_uint8_vector</parameter>
+                is a <type>std::vector&lt;uint8_t&gt;</type>
+                </para>
+                </listitem>
+                </varlistentry>
+        
+
+           </variablelist>
+        </refsect1>
+
+      </refentry>
+            <refentry id="vmusb3-cvmusbreadoutlist-swig">
+              <refmeta>
+                 <refentrytitle>cvmusbreadoutlist</refentrytitle>
+                 <manvolnum>3tcl</manvolnum>
+              </refmeta>
+              <refnamediv>
+                 <refname>cvmusbreadoutlist</refname>
+                 <refpurpose>SWIG wrappers for <classname>CVMUSBReadoutList</classname>
+                 </refpurpose>
+              </refnamediv>
+              
+              <refsynopsisdiv>
+
+                <formalpara>
+                    <title>Construction</title>
+                    <para></para>
+                </formalpara>
+                     <synopsis>
+                <cmdsynopsis>
+                    <command>
+::cvmusbreadoutlist::CVMUSBReadoutList <replaceable>name</replaceable>
+            </command>
+            </cmdsynopsis>
+                <cmdsynopsis>
+                    <command>
+::cvmusbreadoutlist::CVMUSBReadoutList <replaceable>name</replaceable> -this <replaceable>ptr</replaceable>
+            </command>
+            </cmdsynopsis>
+                     </synopsis>
+            <formalpara>
+                <title>Simple VME/register operations</title>
+                <para></para>
+            </formalpara>
+            <synopsis>
+            <cmdsynopsis>
+                <command>
+<replaceable>object</replaceable> addRead16 <replaceable>address amod</replaceable>
+            </command>
+        </cmdsynopsis>
+            <cmdsynopsis>
+                <command>
+<replaceable>object</replaceable> addRead32 <replaceable>address amod</replaceable>
+            </command>
+        </cmdsynopsis>
+            <cmdsynopsis>
+                <command>
+<replaceable>object</replaceable> addRead8 <replaceable>address amod</replaceable>
+            </command>
+        </cmdsynopsis>
+            <cmdsynopsis>
+                <command>
+<replaceable>object</replaceable> addRegisterRead <replaceable>address</replaceable>
+            </command>
+        </cmdsynopsis>
+            <cmdsynopsis>
+                <command>
+<replaceable>object</replaceable> addRegisterWrite <replaceable>address data</replaceable>
+            </command>
+        </cmdsynopsis>
+            <cmdsynopsis>
+                <command>
+<replaceable>object</replaceable> addWrite16 <replaceable>address amod data</replaceable>
+            </command>
+        </cmdsynopsis>
+            <cmdsynopsis>
+                <command>
+<replaceable>object</replaceable> addWrite32 <replaceable>address amod data</replaceable>
+            </command>
+        </cmdsynopsis>
+            <cmdsynopsis>
+                <command>
+<replaceable>object</replaceable> addWrite8 <replaceable>address amod data</replaceable>
+            </command>
+        </cmdsynopsis>
+            </synopsis>
+            <formalpara>
+                <title>Block transfer operations</title>
+                <para></para>
+            </formalpara>
+            <synopsis>
+            <cmdsynopsis>
+                <command>
+<replaceable>object</replaceable> addBlockRead32 <replaceable>base amod transfers</replaceable>
+            </command>
+        </cmdsynopsis>
+            <cmdsynopsis>
+                <command>
+<replaceable>object</replaceable> addFifoRead16 <replaceable>address amod transfers</replaceable>
+            </command>
+        </cmdsynopsis>
+            <cmdsynopsis>
+                <command>
+<replaceable>object</replaceable> addFifoRead32 <replaceable>address amod transfers</replaceable>
+            </command>
+        </cmdsynopsis>
+            <cmdsynopsis>
+                <command>
+<replaceable>object</replaceable> addMaskedCountBlockRead32 <replaceable>base amod</replaceable>
+            </command>
+        </cmdsynopsis>
+            <cmdsynopsis>
+                <command>
+<replaceable>object</replaceable> addMaskedCountFifoRead32 <replaceable>address mask amod</replaceable>
+            </command>
+        </cmdsynopsis>
+            <cmdsynopsis>
+                <command>
+<replaceable>object</replaceable> addBlockCountRead16 <replaceable>address mask amod</replaceable>
+            </command>
+        </cmdsynopsis>
+            <cmdsynopsis>
+                <command>
+<replaceable>object</replaceable> addBlockCountRead32 <replaceable>address mask amod</replaceable>
+            </command>
+        </cmdsynopsis>
+            <cmdsynopsis>
+                <command>
+<replaceable>object</replaceable> addBlockCountRead8 <replaceable>address mask amod</replaceable>
+            </command>
+        </cmdsynopsis>
+            </synopsis>
+        <formalpara>
+            <title>Miscellaneous methods</title>
+            <para></para>
+        </formalpara>
+        <synopsis>
+        <cmdsynopsis>
+            <command>
+<replaceable>object</replaceable> addMarker <replaceable>value</replaceable>
+            </command>
+    </cmdsynopsis>
+    <cmdsynopsis>
+        <command>
+<replaceable>object</replaceable> addDelay <replaceable>cycles</replaceable>
+            </command>
+        </cmdsynopsis>
+        <cmdsynopsis>
+            <command>
+<replaceable>object</replaceable> clear
+            </command>
+        </cmdsynopsis>
+        <cmdsynopsis>
+            <command>
+<replaceable>object</replaceable> get
+            </command>
+        </cmdsynopsis>
+        <cmdsynopsis>
+            <command>
+<replaceable>object</replaceable> size
+            </command>
+        </cmdsynopsis>
+        <cmdsynopsis>
+            <command>
+::cvmusbreadoutlist::CVMUSBReadoutList_uint32_vector_get <replaceable>v i</replaceable>
+            </command>
+        </cmdsynopsis>
+        <cmdsynopsis>
+            <command>
+::cvmusbreadoutlist::CVMUSBReadoutList_uint32_vector_size <replaceable>v</replaceable>
+            </command>
+        </cmdsynopsis>
+        </synopsis>
+        <formalpara>
+            <title>Variables</title>
+            <para></para>
+            </formalpara>
+    <synopsis>
+<varname>::cvmusbreadoutlist::CVMUSBReadoutList_a16Priv</varname>
+<varname>::cvmusbreadoutlist::CVMUSBReadoutList_a16User</varname>
+<varname>::cvmusbreadoutlist::CVMUSBReadoutList_a24PrivBlock</varname>
+<varname>::cvmusbreadoutlist::CVMUSBReadoutList_a24PrivData</varname>
+<varname>::cvmusbreadoutlist::CVMUSBReadoutList_a24PrivProgram</varname>
+<varname>::cvmusbreadoutlist::CVMUSBReadoutList_a24UserBlock</varname>
+<varname>::cvmusbreadoutlist::CVMUSBReadoutList_a24UserData</varname>
+<varname>::cvmusbreadoutlist::CVMUSBReadoutList_a24UserProgram</varname>
+<varname>::cvmusbreadoutlist::CVMUSBReadoutList_a32PrivBlock</varname>
+<varname>::cvmusbreadoutlist::CVMUSBReadoutList_a32PrivData</varname>
+<varname>::cvmusbreadoutlist::CVMUSBReadoutList_a32PrivProgram</varname>
+<varname>::cvmusbreadoutlist::CVMUSBReadoutList_a32UserBlock</varname>
+<varname>::cvmusbreadoutlist::CVMUSBReadoutList_a32UserData</varname>
+<varname>::cvmusbreadoutlist::CVMUSBReadoutList_a32UserProgram</varname>
+
+     </synopsis>
+              </refsynopsisdiv>
+              <refsect1>
+                 <title>DESCRIPTION</title>
+                 <para>
+                    This package encapsulates a <classname>CVMUSBReadoutList</classname>
+                    class/object.  The class allows you to create instances
+                    of VME operation lists.  Once created, you can add
+                    operations to that list that can either be executed
+                    immediately or stored fro execution in data taking mode
+                    in response to an appropriate trigger.
+                 </para>
+                 <para>
+                    For more information about this class and its methods,
+                    see METHODS below.  The class also defines a set of
+                    variables that contain the VME address modifier values.
+                    See VARIABLES for information about those.
+                 </para>
+              </refsect1>
+              <refsect1>
+                 <title>
+                    METHODS
+                 </title>
+                <formalpara>
+                    <title>Construction</title>
+                    <para>
+                        Two construction mechanisms are provided.  The first
+                        creates an empty list.  The second creates an object
+                        that wraps itself around a pointer to an existing list.
+                    </para>
+                </formalpara>
+                <para>
+                    Constructed objects appear like a command ensemble who's
+                    base command name is the <parameter>name</parameter> parameter
+                    to the constructor command.  If the special name
+                    <literal>%AUTO</literal> is specified, the constructor will
+                    assign a unique name.  In all cases the base name of the
+                    command ensemble (or object name) is returned by the constructor.
+                </para>
+                <variablelist>
+                <varlistentry>
+                    <term>
+                <cmdsynopsis>
+                    <command>
+::cvmusbreadoutlist::CVMUSBReadoutList <replaceable>name</replaceable>
+            </command>
+            </cmdsynopsis>
+                </term>
+                <listitem>
+                    <para>
+                        Constructs an empty list object named <parameter>name</parameter>
+                        (see the discussion above however).  The name of the object
+                        is returned by this command.
+                        </para>
+                        </listitem>
+                        </varlistentry>
+                        <varlistentry>
+                            <term>
+                <cmdsynopsis>
+                    <command>
+::cvmusbreadoutlist::CVMUSBReadoutList <replaceable>name</replaceable> -this <replaceable>ptr</replaceable>
+            </command>
+            </cmdsynopsis>
+                </term>
+                <listitem>
+                    <para>
+                        Constructs an object around an existing pointer to a
+                        list object.  The name of the object is
+                        <parameter>name</parameter> and <parameter>ptr</parameter>
+                        is a SWIG type safe pointer.  Type-safe pointers are
+                        just the address of a C++ object as a string that has
+                        been decorated with information about the type of the
+                        object.
+                        </para>
+                    <para>
+                        A type-safe pointer to a readout list is passed to a Tcl
+                        driver's <methodname>addReadoutList</methodname>
+                        sub-command.
+                    </para>
+                        </listitem>
+                        </varlistentry>
+                </variablelist>
+            <formalpara>
+                <title>Simple VME/register operations</title>
+                <para>
+                    This group of methods add single shot VME operations
+                    and register transfers to a list.  A VME operation is
+                    specified by both an address and an address modifier.
+                    The address modifier selects a specific address space.
+                    See
+                    <ulink url="http://en.wikipedia.org/wiki/VMEbus">
+                        http://en.wikipedia.org/wiki/VMEbus</ulink>
+                    for a table of address modifiers and their meaning.
+                </para>
+            </formalpara>
+            <para>
+                    <classname>cvmusbreadoutlist</classname> also defines
+                    some variables that contain these address modifiers.
+                    See VARIABLES below for a description of those
+                    variables.
+            </para>
+            <variablelist>
+            <varlistentry>
+                <term>
+            <cmdsynopsis>
+                <command>
+<replaceable>object</replaceable> addRead16 <replaceable>address amod</replaceable>
+            </command>
+        </cmdsynopsis>
+            </term>
+            <listitem>
+                <para>
+                    Adds a 16 bit read from the address and address modifier
+                    specified by <parameter>address</parameter> and
+                    <parameter>amod</parameter> respectively.  The data
+                    are put in either the output buffer if the read is performed
+                    by <methodname>cvmsub::executeList</methodname> or in the
+                    event buffer if the list is triggered in data acquisition
+                    mode.
+                    </para>
+                    </listitem>
+                    </varlistentry>
+            <varlistentry>
+                <term>
+            <cmdsynopsis>
+                <command>
+<replaceable>object</replaceable> addRead32 <replaceable>address amod</replaceable>
+            </command>
+        </cmdsynopsis>
+            </term>
+            <listitem>
+                <para>
+                    Same as <methodname>addRead16</methodname> however the
+                    data transfer width is 32 bits.  The list performs
+                    the operation in little endian order.   That is the
+                    low order part of the longword is placed in the
+                    output/event buffer prior to the upper order bits.
+                    </para>
+                    </listitem>
+                    </varlistentry>
+                    <varlistentry>
+                        <term>
+            <cmdsynopsis>
+                <command>
+<replaceable>object</replaceable> addRead8 <replaceable>address amod</replaceable>
+            </command>
+        </cmdsynopsis>
+            </term>
+            <listitem>
+                <para>
+                    Same as <methodname>addRead16</methodname> however only
+                    the data emitted consists of 8 bits of data in the low order
+                    8 bits of a 16 bit word.
+                    </para>
+                    </listitem>
+                    </varlistentry>
+                    <varlistentry>
+                        <term>
+            <cmdsynopsis>
+                <command>
+<replaceable>object</replaceable> addRegisterRead <replaceable>address</replaceable>
+            </command>
+        </cmdsynopsis>
+            </term>
+            <listitem>
+                <para>
+                    Adds a read of an internal register to the stack.
+                    The <parameter>address</parameter> parameter specifies
+                    which register to read.  This is a number that should be
+                    taken from the table in section 3.4 of the VM-USB
+                    manual.
+                    </para>
+                    </listitem>
+                    </varlistentry>
+                    <varlistentry>
+                        <term>
+            <cmdsynopsis>
+                <command>
+<replaceable>object</replaceable> addRegisterWrite <replaceable>address data</replaceable>
+            </command>
+        </cmdsynopsis>
+            </term>
+            <listitem>
+                <para>
+                    Adds a register write to the list.  <parameter>address</parameter>
+                    specifies the register address (taken from the table in
+                    section 3.4 of the VM-USB manual), <parameter>data</parameter>
+                    is the value to write.
+                    </para>
+                    </listitem>
+                    </varlistentry>
+             <varlistentry>
+                <term>
+            <cmdsynopsis>
+                <command>
+<replaceable>object</replaceable> addWrite16 <replaceable>address amod data</replaceable>
+            </command>
+        </cmdsynopsis>
+            </term>
+            <listitem>
+                <para>
+                    Writes the 16 bit <parameter>data</parameter> to the VME
+                    location specified by <parameter>address</parameter>
+                    and <parameter>amod</parameter>.  If there are bits set
+                    above the least significant 16 bits of <parameter>data</parameter>,
+                    they are ignored.
+                    </para>
+                    </listitem>
+                    </varlistentry>
+            <varlistentry>
+                <term>
+            <cmdsynopsis>
+                <command>
+<replaceable>object</replaceable> addWrite32 <replaceable>address amod data</replaceable>
+            </command>
+        </cmdsynopsis>
+            </term>
+            <listitem>
+                <para>
+                    Same as for <methodname>addWrite16</methodname> however 32 bits of
+                    <parameter>data</parameter> are written.
+                    </para>
+                    </listitem>
+                    </varlistentry>
+            <varlistentry>
+                <term>
+            <cmdsynopsis>
+                <command>
+<replaceable>object</replaceable> addWrite8 <replaceable>address amod data</replaceable>
+            </command>
+        </cmdsynopsis>
+            </term>
+            <listitem>
+                <para>
+                    Same as <methodname>addWrite16</methodname> however only the
+                    least significant 8 bits are written.
+                    </para>
+                    </listitem>
+                    </varlistentry>
+            </variablelist>
+            <formalpara>
+                <title>Block transfer operations</title>
+                <para>
+                    The VM-USB is capable of several types of block transfer
+                    operations.  If the address modifier is a block transfer
+                    address modifier, the VM-USB will take advantage of that
+                    mode of transfer.
+                </para>
+            </formalpara>
+                <para>
+                    VME block transfer operations allow a significant
+                    improvment in performance by reducing the number of address
+                    cycles asserted on the bus by the master.  Specifically,
+                    in steady state operation, an address is only cycled on the
+                    bus as the transfer address crosses a 256 byte address
+                    boundary.  In between these boundaries, slave boards that
+                    support block transfers are assumed to maintain counters
+                    that keep track of the transfer offset within the 256 byte
+                    page.
+                </para>
+                <para>
+                    In addition to block transfer operations as described above,
+                    the VM-USB also supports FIFO block transfers.   A FIFO
+                    block transfer is just a block transfer that always asserts
+                    the base address when an address cycle is required.
+                </para>
+                <para>
+                    Finaly the VM-USB also supports block transfers whose
+                    size depends on a bit field in a value read from the VME
+                    bus.
+                </para>
+            <variablelist>
+            <varlistentry>
+                <term>
+            <cmdsynopsis>
+                <command>
+<replaceable>object</replaceable> addBlockRead32 <replaceable>base amod transfers</replaceable>
+            </command>
+        </cmdsynopsis>
+            </term>
+            <listitem>
+                <para>
+                    Adds a block read that is 32 bits wide tyo the stack.
+                    The first transfer address is <parameter>base</parameter>,
+                    transfers are all done with <parameter>amod</parameter> as
+                    the address modifier.  <parameter>transfers</parameter>
+                    operations are performed (transers*sizeof(uint32_t) bytes), unless
+                    a transfer causes a bus error.
+                    </para>
+                <para>
+                    If a transfer triggered a bus error, a <literal>0xffffffff</literal>
+                    is placed in the output/event buffer and the transfer terminates.
+                    Note that if the last transfer was a bus error and the data
+                    in a successful transfer might have been a <literal>0xffffffff</literal>,
+                    there is some ambiguity about how the transfer actually terminated.
+                    If you expect that the tranfer might be terminated by a bus
+                    error "normally", ber sure to specify a transfer count very
+                    much in exceess of what you might reasonably expect to get.
+                </para>
+                    </listitem>
+                    </varlistentry>
+             <varlistentry>
+                <term>
+            <cmdsynopsis>
+                <command>
+<replaceable>object</replaceable> addFifoRead16 <replaceable>base amod transfers</replaceable>
+            </command>
+        </cmdsynopsis>
+            </term>
+            <listitem>
+                <para>
+                    Adds a 16 bit FIFO read to the list.  All transfers are
+                    performed from <parameter>base</parameter> with the
+                    <parameter>amod</parameter> address modifier.
+                    At most <parameter>transfers</parameter> transfers are performed.
+                    In the even to of a bus error, a marker value;
+                    <literal>0xffff</literal> will be inserted in the
+                    read/event buffer, and the transfer will terminate.
+                    </para>
+                    </listitem>
+                    </varlistentry>
+            <varlistentry>
+                <term>
+            <cmdsynopsis>
+                <command>
+<replaceable>object</replaceable> addFifoRead32 <replaceable>base amod transfers</replaceable>
+            </command>
+        </cmdsynopsis>
+            </term>
+            <listitem>
+                <para>
+                    Same as <methodname>addFifoRead16</methodname> however
+                    each read transfers 32 bits of data.
+                    </para>
+                    </listitem>
+                    </varlistentry>
+            <varlistentry>
+                <term>
+            <cmdsynopsis>
+                <command>
+<replaceable>object</replaceable> addBlockCountRead16 <replaceable>address mask amod</replaceable>
+            </command>
+        </cmdsynopsis>
+            </term>
+            <listitem>
+                <para>
+                    Adds a 16 bit read that extracts the transfer count for the
+                    next variable block read.   A 16 bit read is performed from
+                    the location specified by <parameter>address</parameter> and
+                    address modifier <parameter>amod</parameter>.  The
+                    bits that are set in <parameter>mask</parameter> determine the final
+                    actual value of the transfer count (bits set in
+                    <parameter>mask</parameter> matter unset bits don't).
+                    </para>
+                    </listitem>
+                    </varlistentry>
+            <varlistentry>
+                <term>
+            <cmdsynopsis>
+                <command>
+<replaceable>object</replaceable> addBlockCountRead32 <replaceable>address mask amod</replaceable>
+            </command>
+        </cmdsynopsis>
+            </term>
+            <listitem>
+                <para>
+                    Same as <methodname>addBlockCount16</methodname> however
+                    the tranfer is 32 bits wide.
+                    </para>
+                    </listitem>
+                    </varlistentry>
+        <varlistentry>
+                <term>
+            <cmdsynopsis>
+                <command>
+<replaceable>object</replaceable> addBlockCountRead8 <replaceable>address mask amod</replaceable>
+            </command>
+        </cmdsynopsis>
+            </term>
+            <listitem>
+                <para>
+                    Same as <methodname>addblockCountRead16</methodname> but the
+                    transfer is 8 bits.
+                    </para>
+                    </listitem>
+            </varlistentry>
+
+             <varlistentry>
+                <term>
+            <cmdsynopsis>
+                <command>
+<replaceable>object</replaceable> addMaskedCountBlockRead32 <replaceable>base amod</replaceable>
+            </command>
+        </cmdsynopsis>
+            </term>
+            <listitem>
+                <para>
+                    Adds a variable block read operation to the VME operation
+                    list.  The last block count read by one of the
+                    <methodname>addBlockCountReadxxx</methodname> methods'
+                    above is used as the transfer count.    The base address
+                    of the transfer is <parameter>base</parameter>
+                    and all transfers are done with the <parameter>amod</parameter>
+                    address modifier.
+                    </para>
+                <para>
+                    The normal rules for bus error termination of block transfers
+                    apply.
+                </para>
+                    </listitem>
+                    </varlistentry>
+            <varlistentry>
+                <term>
+            <cmdsynopsis>
+                <command>
+<replaceable>object</replaceable> addMaskedCountFifoRead32 <replaceable>base amod</replaceable>
+            </command>
+        </cmdsynopsis>
+            </term>
+            <listitem>
+                <para>
+                    Same as <methodname>addMaskedCountBlockRead32</methodname>,
+                    however any needed address cycles always place
+                    <parameter>base</parameter> on the address bus.  This
+                    makes this method usable to get data from a FIFO register.
+                    </para>
+                    </listitem>
+                    </varlistentry>
+        </variablelist>
+        <formalpara>
+            <title>Miscellaneous methods</title>
+            <para>
+                The methods in this section don't fit into any other category.
+                Where the method is not a subcommand of a <parameter>object</parameter>
+                it is a static method of the class.
+            </para>
+        </formalpara>
+        <variablelist>
+        <varlistentry>
+            <term>
+        <cmdsynopsis>
+            <command>
+<replaceable>object</replaceable> addMarker <replaceable>value</replaceable>
+            </command>
+    </cmdsynopsis>
+        </term>
+        <listitem>
+            <para>
+                Adds a command to put a literal marker for
+                <parameter>value</parameter> in to the buffer/event.
+                </para>
+                </listitem>
+                </varlistentry>
+    <varlistentry>
+        <term>
+    <cmdsynopsis>
+        <command>
+<replaceable>object</replaceable> addDelay <replaceable>cycles</replaceable>
+            </command>
+        </cmdsynopsis>
+    </term>
+    <listitem>
+        <para>
+            Adds a delay to the list.  When this instruction is executed,
+            stack execution stalls for <parameter>cycles</parameter> cycles where
+            one cycle is 200ns.    The maximum wait time is 255 cycles, however
+            you can insert more than one wait operation to get longer waits.
+            </para>
+            </listitem>
+            </varlistentry>
+        <varlistentry>
+            <term>
+        <cmdsynopsis>
+            <command>
+<replaceable>object</replaceable> clear
+            </command>
+        </cmdsynopsis>
+        </term>
+        <listitem>
+            <para>
+                Clears the list
+                </para>
+                </listitem>
+                </varlistentry>
+         <varlistentry>
+            <term>
+        <cmdsynopsis>
+            <command>
+<replaceable>object</replaceable> get
+            </command>
+        </cmdsynopsis>
+        </term>
+        <listitem>
+            <para>
+                Returns a vector to a uint32 where each vector element is one
+                32 bit stack line.  See below for static methods to get
+                information about/from this vector.
+                </para>
+                </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>
+        <cmdsynopsis>
+            <command>
+<replaceable>object</replaceable> size
+            </command>
+        </cmdsynopsis>
+        </term>
+        <listitem>
+            <para>
+                Returns the number of 32 bit stack lines in the object.
+                </para>
+                </listitem>
+                </varlistentry>
+         <varlistentry>
+            <term>
+        <cmdsynopsis>
+            <command>
+::cvmusbreadoutlist::CVMUSBReadoutList_uint32_vector_get <replaceable>v i</replaceable>
+            </command>
+        </cmdsynopsis>
+        </term>
+        <listitem>
+            <para>
+                Given a vector <parameter>v</parameter> retrived from
+                the <methodname>get</methodname> method tells you  how many
+                elements it contains.
+                </para>
+                </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>
+        <cmdsynopsis>
+            <command>
+::cvmusbreadoutlist::CVMUSBReadoutList_uint32_vector_size <replaceable>v</replaceable>
+            </command>
+        </cmdsynopsis>
+        </term>
+        <listitem>
+            <para>
+                Given a vector <parameter>v</parameter> gotten from
+                <methodname>get</methodname> returns the nmber of 32 bit entities
+                 in the vrctor.
+                </para>
+                </listitem>
+                </varlistentry>
+        </variablelist>
+              </refsect1>
+              <refsect1>
+                <title>VARIABLES</title>
+                <para>
+                    The <classname>cvmusbreadoutlist</classname> class provides
+                    several variables that define the various address modifiers
+                    symbolcally:
+                </para>
+                <variablelist>
+                    <varlistentry>
+                        <term>
+<varname>::cvmusbreadoutlist::CVMUSBReadoutList_a16Priv</varname></term>
+                        <listitem>
+                            <para>
+                                Defines the address modifier for 16 bit address
+                                widths privilege access.  16 bit address space
+                                is often refered to as shortio as  well.
+                            </para>
+                        </listitem>
+                        </varlistentry>
+                    <varlistentry>
+                        <term>
+<varname>::cvmusbreadoutlist::CVMUSBReadoutList_a16User</varname></term>
+                        <listitem>
+                            <para>
+                                Same as above, however accesses are in user
+                                mode rather than privileged transfer mode.
+                                </para>
+                        </listitem>
+                        </varlistentry>
+                        <varlistentry>
+                            <term>
+<varname>::cvmusbreadoutlist::CVMUSBReadoutList_a24PrivBlock</varname></term>
+                            <listitem>
+                                <para>
+                                    Defines the address modifier for A24
+                                    privileged block transfers.  Block transfers
+                                    are a mechanism the VME bus defines for
+                                    reducing the number of address cycles required
+                                    to transfer a contiguous block of data.
+                                    </para>
+                                <para>
+                                    A24 bit addressing mode is also called
+                                    standard addressing.
+                                </para>
+                            </listitem>
+                            </varlistentry>
+                            <varlistentry>
+                                <term>
+<varname>::cvmusbreadoutlist::CVMUSBReadoutList_a24PrivData</varname></term>
+                                <listitem>
+                                    <para>
+                                        Defines the address modifier for 24
+                                        bit wide addressing of privileged data.
+                                        A24 address modes are also called
+                                        standard addressing.
+                                        </para>
+                                </listitem>
+                                </varlistentry>
+                                <varlistentry>
+                                    <term>
+<varname>::cvmusbreadoutlist::CVMUSBReadoutList_a24PrivProgram</varname></term>
+                                    <listitem>
+                                        <para>
+                                            Same as above, however the
+                                            addressing is to privileged progfam space.
+                                            </para>
+                                    </listitem>
+                                    </varlistentry>
+                                    <varlistentry>
+                                        <term>
+<varname>::cvmusbreadoutlist::CVMUSBReadoutList_a24UserBlock</varname></term>
+                                        <listitem>
+                                            <para>
+                                                Defines the address modifier for
+                                                24 bit wide address block transfers.
+                                                </para>
+                                        </listitem>
+                                        </varlistentry>
+                    <varlistentry>
+                        <term>
+<varname>::cvmusbreadoutlist::CVMUSBReadoutList_a24UserData</varname></term>
+                        <listitem>
+                            <para>
+                                Defines the address modifier for 24 bit wide
+                                user data transfers.
+                                </para>
+                        </listitem>
+                        </varlistentry>
+                    <varlistentry>
+                        <term>
+<varname>::cvmusbreadoutlist::CVMUSBReadoutList_a24UserProgram</varname></term>
+                        <listitem>
+                            <para>
+                                Defines the address modifier for 24 bit wide
+                                user program space.
+                                </para>
+                        </listitem>
+                        </varlistentry>
+                <varlistentry>
+                    <term>
+<varname>::cvmusbreadoutlist::CVMUSBReadoutList_a32PrivBlock</varname></term>
+                    <listitem>
+                        <para>
+                            Defines the address modifier for 32 bit privileged
+                            block transfers.
+                            </para>
+                    </listitem>
+                    </varlistentry>
+                    <varlistentry>
+                        <term>
+<varname>::cvmusbreadoutlist::CVMUSBReadoutList_a32PrivData</varname></term>
+                        <listitem>
+                            <para>
+                                Defines the address modifier for 32 bit wide
+                                privileged data transfers.  32 bit addressing is
+                                sometimes called <firstterm>extended addressing</firstterm>.
+                                </para>
+                        </listitem>
+                        </varlistentry>
+                   <varlistentry>
+                    <term>
+<varname>::cvmusbreadoutlist::CVMUSBReadoutList_a32PrivProgram</varname></term>
+                    <listitem>
+                        <para>
+                            Defines the address modifier for 32 bit privileged
+                            program accesses.
+                            </para>
+                    </listitem>
+                    </varlistentry>
+                <varlistentry>
+                    <term>
+<varname>::cvmusbreadoutlist::CVMUSBReadoutList_a32UserBlock</varname></term>
+                    <listitem>
+                        <para>
+                            Defines the address modifier for 32 bit user
+                            block transfers.
+                            </para>
+                    </listitem>
+                    </varlistentry>
+                    <varlistentry>
+                        <term>
+<varname>::cvmusbreadoutlist::CVMUSBReadoutList_a32UserData</varname></term>
+                        <listitem>
+                            <para>
+                                Defines the address modifier for 32 bit user
+                                data transfers.
+                                </para>
+                        </listitem>
+                        </varlistentry>
+                        <varlistentry>
+                            <term>
+<varname>::cvmusbreadoutlist::CVMUSBReadoutList_a32UserProgram</varname></term>
+                            <listitem>
+                                <para>
+                                    Defines the address modifier for 32 bit user
+                                    program access.
+                                    </para>
+                            </listitem>
+                            </varlistentry>
+                </variablelist>
+              </refsect1>               
+      
+            </refentry>
+        
 <!-- /manpage -->
