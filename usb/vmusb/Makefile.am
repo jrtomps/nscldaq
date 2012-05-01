@@ -42,7 +42,6 @@ VMUSBReadout_LDADD	= cmdline.o $(top_srcdir)/usb/vmusb/devices/libVMUSBDevices.l
 		$(TCL_LDFLAGS) $(USB_LIBS) @THREADLD_FLAGS@
 
 
-3
 VMUSBReadout_LDFLAGS=-Wl,"-rpath=$(libdir)"
 
 cmdline.h: commandline.ggo
