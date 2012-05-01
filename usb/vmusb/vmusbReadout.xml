@@ -54,6 +54,11 @@
                 those modules into a VM-USB readout DAQ configuration file.
             </para>
         </listitem>
+        <listitem>
+            <para>
+                The slow controls protocol and its primitives.
+            </para>
+        </listitem>
     </itemizedlist>
     <para>
         Reference information is available in the
@@ -1283,12 +1288,32 @@ Module config cfd -base 0x1245000 \
             </programlisting>
         </informalexample>
         <para>
+            The slow controls network protocol allows clients to connect
+            to a Tcp/IP port and perform requests that are dispatched to
+            specific drivers.  The <option>--port</option> option
+            specifies the port number on which this Tcip/IP server is listening.
+        </para>
+        <para>
+            Drivers have entry points to get and set values as well as
+            to update their understanding of the state of the device.
+            In addition a mechanism exists that allows drivers to periodically
+            poll devices for status without pausing data taking.  This is done
+            by providing a monitor list which is programmatically triggered
+            on a periodic basis.
+        </para>
+        <para>
+            Future releases of this documentation will describe how to
+            write slow contrrols drivers and integrate them with the
+            VM-USB readout framework.
+        </para>
+        <para>
             Normally device drivers for slow controls modules also have
             control panels associated with them.  For more information
             about the slow controls subsystem and for the protocol control
             panels use to communicate with the control server, see the
             3vmusb reference section.
         </para>
+
         <section>
             <title>Using Remote procedure call Immediate Lists.</title>
             <para>
@@ -11929,5 +11954,616 @@ $controller <replaceable>some method</replaceable>
               </refsect1>               
       
             </refentry>
+      <refentry id="vmusb3-Module">
+        <refmeta>
+           <refentrytitle>Module</refentrytitle>
+           <manvolnum>3tcl</manvolnum>
+        </refmeta>
+        <refnamediv>
+           <refname>Module</refname>
+           <refpurpose>control config command: create/configure modules.</refpurpose>
+        </refnamediv>
+        
+        <refsynopsisdiv>
+          <synopsis>
+          <cmdsynopsis>
+          <command>
+Module create <replaceable>type name</replaceable>
+          </command>
+          </cmdsynopsis>
+            <cmdsynopsis>
+                <command>
+Module config <replaceable>name ?option value? ...</replaceable> 
+                </command>
+            </cmdsynopsis>
+            <cmdsynopsis>
+                <command>
+Module cget <replaceable>name</replaceable>
+                </command>
+            </cmdsynopsis>
+          </synopsis>
+        </refsynopsisdiv>
+        <refsect1>
+           <title>DESCRIPTION</title>
+           <para>
+            This command is processed by the Tcl slow controls server when it
+            processes the control configuration file.  It is used to create,
+            configure and query the configuration of slow controls
+            modules.
+           </para>
+           <para>
+                The <command>create</command> subcommand creates a new module
+                assigned the <parameter>name</parameter> by which it can be
+                referred to by remote control panels, and the remainder of
+                the cofiguration file.  The module will be of type
+                <parameter>type</parameter>.  See MODULE TYPES below for
+                information about the module types supported.
+           </para>
+           <para>
+            The <command>config</command> subcommand configures the
+            module <parameter>name</parameter>, setting the configuration
+            options provided on the command line to the specified values.
+            See MODULE TYPES below for information about the configuration
+            options accepted by each module.
+           </para>
+           <para>
+            The <command>cget</command> subcommand returns the configuration of
+            the <parameter>name</parameter>ed module.  The configuration is
+            returned as a list of pairs where each pair consists of the
+            configuration parameter name and value.
+           </para>  
+        </refsect1>
+        <refsect1>
+           <title>
+              MODULE TYPES
+           </title>
+            <para>
+                This section describes the module types that are supported
+                currently and the device specific configuration options and
+                settable/readable parameters
+                each supports.  Device support includes both the
+                driver and a control panel for the device.
+            </para>
+            <refsect2>
+                <title>jtecgdg</title>
+                <para>
+                    This module is actually a general purpose logic module.
+                    The only support for it at this time is as a multi-channel
+                    gate and delay generator.
+                </para>
+                <refsect3>
+                    <title>Options</title>
+                    <para>
+                        The only option supported by the <literal>jtecgdg</literal>
+                        is the <option>-base</option> option which sets the
+                        VME base address for the module (must match the
+                        rotary switch settings).
+                    </para>
+                </refsect3>
+                <refsect3>
+                    <title>Parameters</title>
+                    <variablelist>
+                        <varlistentry>
+                            <term>delay<emphasis>n</emphasis></term>
+                            <listitem>
+                                <para>
+                                    The delay register value for register n.
+                                    There are 8 registers numbered
+                                    <literal>[0..7]</literal>
+                                </para>
+                            </listitem>
+                        </varlistentry>
+                        <varlistentry>
+                            <term>width<emphasis>n</emphasis></term>
+                            <listitem>
+                                <para>
+                                    The width of channel <parameter>n</parameter>
+                                </para>
+                            </listitem>
+                        </varlistentry>
+                    </variablelist>
+                </refsect3>
+            </refsect2>
+            <refsect2>
+                <title>caenv812/canev895</title>
+                <para>
+                    The CAEN V812 is a VME 16 channel constant fraction
+                    disriminator while the V895 is a software compatible
+                    leading edge discriminator.
+                </para>
+                <refsect3>
+                    <title>Options</title>
+                    <variablelist>
+                        <varlistentry>
+                            <term><option>-base</option></term>
+                            <listitem>
+                                <para>
+                                    The value of this parameter is the base
+                                    address of the module as set by the
+                                    on-board rotary switches.
+                                    </para>
+                            </listitem>
+                        </varlistentry>
+                        <varlistentry>
+                            <term><option>-file</option></term>
+                            <listitem>
+                                <para>
+                                    The value of this parameter is the path to a
+                                    configuration file whose contents are used to
+                                    initialize the state of the device. Note
+                                    that these modules are write-only so writing
+                                    their initial state is the only way to put them
+                                    into a known state.
+                                </para>
+                                <para>
+                                    The contents of this file are described in
+                                    <link linkend='manpage.caenv812config'>
+                                        CAENV812Config(5)</link>
+                                </para>
+                            </listitem>
+                        </varlistentry>
+                    </variablelist>
+                </refsect3>
+                <refsect3>
+                    <title>Parameters</title>
+                    <variablelist>
+                        <varlistentry>
+                            <term><parameter>threshold</parameter>n</term>
+                            <listitem>
+                                <para>
+                                    The threshold register value for
+                                    channel <parameter>n</parameter>
+                                </para>
+                            </listitem>
+                        </varlistentry>
+                        <varlistentry>
+                            <term><parameter>width</parameter>i</term>
+                            <listitem>
+                                <para>
+                                    The width register value for bank
+                                    <parameter>i</parameter>.  The module
+                                    is divided into two banks of 8 modules.
+                                    the banks are numbered 0 and 1.
+                                </para>
+                            </listitem>
+                        </varlistentry>
+                        
+                    </variablelist>
+                </refsect3>
+            </refsect2>
+            <refsect2>
+                <title>vmusb</title>
+                <para>
+                    This slow control module supports remote execution of
+                    arbitrary VM-USB lists.  Full documentation of this facility
+                    will be produced in a later version of this document.
+                    The idea is, however that the module, which has no
+                    configuration options, has exactly one parameter,
+                    <literal>list</literal>
+                </para>
+                <para>
+                    <literal>list</literal> is a set only parameter.  It's
+                    value is a Tcl list.  The first element of thel ist specifies
+                    the maximum input buffer size required by the list.
+                    The second value of the list is a Tcl list containing
+                    the VM-USB stack.  The Set operation executes the stack
+                    and returns the text <literal>Ok - </literal> followed by a
+                    Tcl list  whose elements are the bytes of data put in the
+                    read buffer by the stack.
+                </para>
+            </refsect2>
+            <refsect2>
+                <title>v6553</title>
+                <para>
+                    This is a CAEN bias supply controller.  It makes use of the
+                    slow controls monitor facility to maintain an up-to-date
+                    module state without interrupting data acquisition.
+                </para>
+                <refsect3>
+                    <title>Options</title>
+                    <para>
+                        The module supports only the <option>-base</option>
+                        option which describes to the software the base address
+                        of the bias supply as encoded in the module rotary
+                        switches.
+                    </para>
+                </refsect3>
+                <refsect3>
+                    <title>Parameters</title>
+                    <para>
+                        The following parameters can be Set:
+                    </para>
+                    <variablelist>
+                        <varlistentry>
+                            <term><literal>>v</literal><emphasis>i</emphasis></term>
+                            <listitem>
+                                <para>
+                                    Sets the requested voltage on channel
+                                    <parameter>i</parameter> in floating point
+                                    volts.
+                                </para>
+                            </listitem>
+                        </varlistentry>
+                        <varlistentry>
+                            <term><literal>i</literal><emphasis>i</emphasis></term>
+                            <listitem>
+                                <para>
+                                    Sets the current limit on channel <parameter>i</parameter>
+                                    in floating point micro-amps.
+                                </para>
+                            </listitem>
+                        </varlistentry>
+                        <varlistentry>
+                            <term><literal>on</literal><emphasis>i</emphasis></term>
+                            <listitem>
+                                <para>
+                                    Turns channel on or off.  The value of this
+                                    parameter is a legal boolean value.
+                                </para>
+                            </listitem>
+                        </varlistentry>
+                        <varlistentry>
+                            <term><literal>ttrip</literal><emphasis>i</emphasis></term>
+                            <listitem>
+                                <para>
+                                    Sets the number of seconds (floating point)
+                                    for which channel <parameter>i</parameter>
+                                    is allowed to be out of specification before
+                                    it trips  off.
+                                </para>
+                            </listitem>
+                        </varlistentry>
+                        <varlistentry>
+                            <term><literal>svmax</literal><emphasis>i</emphasis></term>
+                            <listitem>
+                                <para>
+                                    Sets the maximum voltage allowed for
+                                    channel <parameter>i</parameter> in floating
+                                    point volts.  If a voltage setting is made
+                                    that is larger than this, the actual requested
+                                    voltage will be limited to this value.
+                                </para>
+                            </listitem>
+                        </varlistentry>
+                        <varlistentry>
+                            <term><literal>rdown</literal><emphasis>i</emphasis></term>
+                            <listitem>
+                                <para>
+                                    Sets the ramp down rate of channel
+                                    <parameter>i</parameter> in
+                                    floating point volts per second.
+                                </para>
+                            </listitem>
+                        </varlistentry>
+                        <varlistentry>
+                            <term><literal>rup</literal><emphasis>i</emphasis></term>
+                            <listitem>
+                                <para>
+                                    Sets the ramp up rate of channel
+                                    <parameter>i</parameter> in floating point
+                                    volts per second.
+                                </para>
+                            </listitem>
+                        </varlistentry>
+                        <varlistentry>
+                            <term><literal>pdownmode</literal><emphasis>i</emphasis></term>
+                            <listitem>
+                                <para>
+                                    Sets the power down mode of channel
+                                    <parameter>i</parameter>.  The value of this
+                                    parameter can be either <literal>kill</literal>
+                                    which abruptly drops the voltage to zero,
+                                    or <literal>ramp</literal> which ramps the
+                                    channels down at the ramp down rate.
+                                </para>
+                            </listitem>
+                        </varlistentry>
+                        
+                    </variablelist>
+                    <para>
+                        Note that if you want to monitor key components
+                        of this device periodically you should use the
+                        <command>Mon</command> command as that will retrieve
+                        data without temporarily halting data taking.
+                    </para>
+                    <para>
+                        The following parameters can be retrieved via Get:
+                    </para>
+                    <variablelist>
+                        <varlistentry>
+                            <term><literal>globalmaxv</literal></term>
+                            <listitem>
+                                <para>
+                                    Returns the global maximum voltage
+                                    for the module.
+                                </para>
+                            </listitem>
+                        </varlistentry>
+                        <varlistentry>
+                            <term><literal>globalmaxI</literal></term>
+                            <listitem>
+                                <para>
+                                    Returns the global maximum current for the
+                                    module.
+                                </para>
+                            </listitem>
+                        </varlistentry>
+                        <varlistentry>
+                            <term><literal>v</literal></term>
+                            <listitem>
+                                <para>
+                                    Returns a list of the requested voltages from all
+                                    channels.
+                                </para>
+                            </listitem>
+                        </varlistentry>
+                        <varlistentry>
+                            <term><literal>i</literal></term>
+                            <listitem>
+                                <para>
+                                    Returns  a list consisting of the requested
+                                    maximum currents
+                                    from all channels.
+                                </para>
+                            </listitem>
+                        </varlistentry>
+                        <varlistentry>
+                            <term><literal>on</literal></term>
+                            <listitem>
+                                <para>
+                                    Returns a list that contains the requested
+                                    channel states (on or off for each
+                                    channel).
+                                </para>
+                            </listitem>
+                        </varlistentry>
+                        <varlistentry>
+                            <term><literal>vact</literal></term>
+                            <listitem>
+                                <para>
+                                    Returns a list contaning the actual voltage
+                                    reading from each channel.
+                                </para>
+                            </listitem>
+                        </varlistentry>
+                        <varlistentry>
+                            <term><literal>iact</literal></term>
+                            <listitem>
+                                <para>
+                                    Returns a list containing the actual
+                                    current readings from each channel.
+                                </para>
+                            </listitem>
+                        </varlistentry>
+                        <varlistentry>
+                            <term><literal>status</literal></term>
+                            <listitem>
+                                <para>
+                                    Returns a list of status values for each
+                                    channel.  See sections 3.2.2.6 for a bit
+                                    b bit description of the valuesthat
+                                    can be set in each list element.
+                                </para>
+                            </listitem>
+                        </varlistentry>
+                        <varlistentry>
+                            <term><literal>ttrip</literal></term>
+                            <listitem>
+                                <para>
+                                    Returns the trip times for each channel.
+                                </para>
+                            </listitem>
+                        </varlistentry>
+                        <varlistentry>
+                            <term><literal>svmax</literal></term>
+                            <listitem>
+                                <para>
+                                    Returns the software maximum voltage for
+                                    each channel.
+                                </para>
+                            </listitem>
+                        </varlistentry>
+                        <varlistentry>
+                            <term><literal>rdown</literal></term>
+                            <listitem>
+                                <para>
+                                    Returns a list of ramp down rates for each
+                                    channel.
+                                </para>
+                            </listitem>
+                        </varlistentry>
+                        <varlistentry>
+                            <term><literal>rup</literal></term>
+                            <listitem>
+                                <para>
+                                    Returns a list of the ramp up rates for each
+                                    channel.
+                                </para>
+                            </listitem>
+                        </varlistentry>
+                        <varlistentry>
+                            <term><literal>pdownmode</literal></term>
+                            <listitem>
+                                <para>
+                                    Returns a list of the power down modes
+                                    for each channel.
+                                </para>
+                            </listitem>
+                        </varlistentry>
+                        <varlistentry>
+                            <term><literal>polarities</literal> </term>
+                            <listitem>
+                                <para>
+                                    Returns a list of the channel polarity values.
+                                    Each channel polarity is represented by a
+                                    <literal>+</literal> or a
+                                    <literal>-</literal>
+                                </para>
+                            </listitem>
+                        </varlistentry>
+                        <varlistentry>
+                            <term><literal>temp</literal></term>
+                            <listitem>
+                                <para>
+                                    Returns a list of the temperaturs  for each
+                                    channel.
+                                </para>
+                            </listitem>
+                        </varlistentry>
+                        
+                    </variablelist>
+                </refsect3>
+                <refsect3>
+                    <title>Monitored variables</title>
+                    <para>
+                        Bias supplies must normally be monitored periodically
+                        so that operators can be informed of trip and alarm
+                        conditions.  The VM-USB framework provides for each
+                        slow control device to contribut to a list that is
+                        triggered periodically via the action register.
+                        This allows this monitoring to be done without
+                        pausing data taking.
+                    </para>
+                    <para>
+                        The V5633 driver uses this capability and the
+                        <command>mon</command> command should be used to
+                        retrieve the most recent values of the monitored
+                        variables.
+                    </para>
+                    <para>
+                        The <command>mon</command> protocol command
+                        will return the the string
+                        <literal>OK </literal> followed by a Tcl list of lists.
+                        The first list will be the channel status values.
+                        The second list will be the channel actual voltages.
+                        The third list will be the actual channel currents.
+                        The fourth and last list will be the channel temperatures.
+                    </para>
+                </refsect3>
+            </refsect2>
+        </refsect1>
+
+      </refentry>
+    <refentry id="vmusb5-slowcontrols-protocol">
+      <refmeta>
+         <refentrytitle>VMUSB slow controls protocol</refentrytitle>
+         <manvolnum>5vmusb</manvolnum>
+      </refmeta>
+      <refnamediv>
+         <refname>VMUSB Slow controls protocol</refname>
+         <refpurpose>VMUSB Slow controls protocol</refpurpose>
+      </refnamediv>
+      
+      <refsynopsisdiv>
+        <cmdsynopsis>
+        <command>
+Set <replaceable>module-name parameter-name value</replaceable>
+        </command>
+        </cmdsynopsis>
+          <cmdsynopsis>
+              <command>
+Get <replaceable>module-name parameter-name</replaceable>
+              </command>
+          </cmdsynopsis>
+          <cmdsynopsis>
+              <command>
+mon <replaceable>module-name</replaceable>
+              </command>
+          </cmdsynopsis>
+
+      </refsynopsisdiv>
+      <refsect1>
+         <title>DESCRIPTION</title>
+         <para>
+          The slow controls protocol allows control panel software
+          to be built that communicates with slow controls drivers
+          in the VM-USB raadout framework.   This is intended to allow
+          the contruction of control panels for devices that have slow
+          controls drivers.  Note that the <classname>vmusb</classname>
+          controller allows drivers to be written for devices
+          that don't have slow controls drivers yet.
+         </para>
+         <para>
+          The slow controls server listens for connections on the port
+          specified by the Readout program's <option>--port</option>
+          option or <literal>27000</literal> if that option is not
+          specified.
+         </para>
+         <para>
+          Connected clients send commands to the server as lines
+          of text and get back singe line replies.  Replies are
+          expected to begin with <literal>OK</literal> if the request
+          was successful and <literal>ERROR</literal> otherwise.
+          The text that follows the header text depends on the
+          driver.
+         </para>
+      </refsect1>
+      <refsect1>
+          <title>
+             COMMANDS
+          </title>
+          <variablelist>
+              <varlistentry>
+                  <term><command>Set <replaceable>module-name module-parameter value</replaceable></command></term>
+                  <listitem>
+                      <para>
+                          Attempts to set a parameter
+                          <parameter>module-parameter</parameter>
+                          in a module <parameter>module-name</parameter>
+                          to a new <parameter>value</parameter>.
+                      </para>
+                      <para>
+                          <parameter>module-name</parameter> is the name
+                          of a module that has been defined by the
+                          control configuration file.
+                          <parameter>module-parameter</parameter>
+                          is a parameter that must be recognized by
+                          the driver that manage that module.
+                          <parameter>value</parameter> must be a valid
+                          new value for that parameter.
+                      </para>
+                  </listitem>
+              </varlistentry>
+              <varlistentry>
+                  <term><command>Get <replaceable>module-name module-parameter</replaceable></command></term>
+                  <listitem>
+                      <para>
+                          Retrives a parameter (<parameter>module-parameter</parameter>)
+                          from a module (<parameter>module-name</parameter>).   
+                      </para>
+                      <para>
+                          <parameter>module-name</parameter> is the name
+                          of a module that has been defined by the
+                          control configuration file.
+                          <parameter>module-parameter</parameter>
+                          is a parameter that must be recognized by
+                          the driver that manage that module.
+                          It is entirely up to the module driver to
+                          decide what is returned, however by
+                          convention, as described above, the string
+                          returned will begin either with
+                          <literal>OK</literal> or
+                          <literal>ERROR</literal>.
+                      </para>
+                  </listitem>
+              </varlistentry>
+              <varlistentry>
+                  <term><command>mon <replaceable>module-name</replaceable></command></term>
+                  <listitem>
+                      <para>
+                          Returns data that is monitored by the
+                          device.  Again it is up to the driver
+                          to decide exactly what should be returned.
+                      </para>
+                  </listitem>
+              </varlistentry>
+              
+          </variablelist>
+       </refsect1>
+
+    </refentry>
+
+
+        
         
 <!-- /manpage -->
