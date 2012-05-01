@@ -5,7 +5,8 @@ SUBDIRS = 	vmusb 		\
 		rdothread	\
 		tclserver	\
 		daqconfig	\
-		 commands
+		 commands	\
+		driverkit
 
 bin_PROGRAMS = VMUSBReadout
 
@@ -39,7 +40,6 @@ VMUSBReadout_LDADD	= cmdline.o $(top_srcdir)/usb/vmusb/devices/libVMUSBDevices.l
 		$(top_srcdir)/base/exception/libException.la \
 		$(top_srcdir)/base/thread/libdaqthreads.la	\
 		$(TCL_LDFLAGS) $(USB_LIBS) @THREADLD_FLAGS@
-
 
 
 VMUSBReadout_LDFLAGS=-Wl,"-rpath=$(libdir)"

@@ -19,6 +19,29 @@
 #include <iostream>
 using namespace std;
 
+// Class level statics:
+
+const uint8_t CVMUSBReadoutList::a32UserData = 0x09;
+const uint8_t CVMUSBReadoutList::a32UserProgram = 0xa;
+const uint8_t CVMUSBReadoutList::a32UserBlock = 0x0b;
+
+const uint8_t CVMUSBReadoutList::a24PrivData(0x3d);
+const uint8_t CVMUSBReadoutList::a24PrivProgram = 0x3e;
+const uint8_t CVMUSBReadoutList::a24PrivBlock = 0x3f;
+
+const uint8_t CVMUSBReadoutList::a16Priv(0x2d);
+const uint8_t CVMUSBReadoutList::a16User = 0x29;
+
+const uint8_t CVMUSBReadoutList::a32PrivData = 0x0d;
+const uint8_t CVMUSBReadoutList::a32PrivProgram = 0x0e;
+const uint8_t CVMUSBReadoutList::a32PrivBlock = 0x0f;
+
+const uint8_t CVMUSBReadoutList::a24UserData = 0x39;
+const uint8_t CVMUSBReadoutList::a24UserProgram = 0x3a;
+const uint8_t CVMUSBReadoutList::a24UserBlock = 0x3b;
+
+
+
 // The following are bits in the mode word that leads off each stack line.
 //
 
@@ -609,7 +632,7 @@ CVMUSBReadoutList::addBlockCountRead32(uint32_t address, uint32_t mask,  uint8_t
 void
 CVMUSBReadoutList::addMaskedCountBlockRead32(uint32_t address, uint8_t amod)
 {
-  addBlockRead32(address, amod, 1); // Actual count comes from ND and mask.
+  addBlockRead32(address, amod, (size_t)1); // Actual count comes from ND and mask.
                                     // nonzero is required to ensure stack words actually
                                     // get generated
 }
@@ -623,7 +646,7 @@ CVMUSBReadoutList::addMaskedCountBlockRead32(uint32_t address, uint8_t amod)
 void
 CVMUSBReadoutList::addMaskedCountFifoRead32(uint32_t address, uint8_t amod)
 {
-  addFifoRead32(address, amod, 1);  // Actual count comes from ND and mask.
+  addFifoRead32(address, amod, (size_t)1);  // Actual count comes from ND and mask.
                                     // nonzero is required to ensure stack words actually
                                     // get generated
 }

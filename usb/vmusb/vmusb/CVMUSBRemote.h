@@ -157,7 +157,7 @@ public:
 
     int vmeBlockRead(uint32_t baseAddress, uint8_t aModifier,
 		     void* data,  size_t transferCount, size_t* countTransferred);
-    int vmeFifoRead(uint32_t address, int8_t aModifier,
+    int vmeFifoRead(uint32_t address, uint8_t aModifier,
 		    void* data, size_t transferCount, size_t* countTransferred);
 
     // Support for immediate counted VME variable block transfer operations:

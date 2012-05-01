@@ -79,8 +79,7 @@ public:
   // Thread functions:
 
 public:
-  static void start(CVMUSB* usb,
-		    std::vector<CReadoutModule*> Stacks);
+  static void start(CVMUSB* usb);
   static bool isRunning();
   static void waitExit();	/* Wait for this thread to exit (join). */
   virtual void run();		/* Adapt between nextgen  spectrodaq thread model. */

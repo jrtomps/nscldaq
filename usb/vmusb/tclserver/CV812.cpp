@@ -229,7 +229,7 @@ CV812::Update(CVMUSB& vme)
   for (int i=0; i < 16; i++) {
     vme.vmeWrite16(baseAddress + Thresholds + (i*sizeof(uint16_t)),
 		   am,
-		   -m_thresholds[i]);
+		   (uint16_t)-m_thresholds[i]);
   }
   for (int i =0; i < 2; i++) {
     vme.vmeWrite16(baseAddress + Widths + (i*sizeof(uint16_t)),

@@ -224,7 +224,7 @@ C830::Initialize(CVMUSB& controller)
 
   // Reset the module:
 
-  controller.vmeWrite16(baseAddress + RESET, configAmod, 0);
+  controller.vmeWrite16(baseAddress + RESET, configAmod, (uint16_t)0);
 
   // Create and build the list to initialize the module completely.
 
@@ -302,7 +302,7 @@ C830::addReadoutList(CVMUSBReadoutList& list)
 
   if (getTriggerSource() == vme) {
     list.addDelay(50);		// Seems to need a settled bus?
-    list.addWrite16(baseAddress + TRIGGER, configAmod, 0);
+    list.addWrite16(baseAddress + TRIGGER, configAmod, (uint16_t)0);
     list.addDelay(75);		// 200ns units.
   }
   // Add the transfer from the MEB
@@ -313,7 +313,7 @@ C830::addReadoutList(CVMUSBReadoutList& list)
     list.addRead32(baseAddress + MEB + i*sizeof(long),
 		   configAmod);
   }
-  list.addWrite16(baseAddress + CLEAR, configAmod, 0);
+  list.addWrite16(baseAddress + CLEAR, configAmod, (uint16_t)0);
   
 }
 

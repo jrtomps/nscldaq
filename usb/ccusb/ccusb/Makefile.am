@@ -27,9 +27,6 @@ install-data-local:
 	$(mkinstalldirs) @prefix@/ccusbdriver/includes
 	$(INSTALL_DATA)  *.h @prefix@/ccusbdriver/includes
 
-install-exec-local:
-	(cd $(libdir); echo pkg_mkIndex . libCCCUSB.so libCCCUSBReadoutList.so | tclsh)
-
 clean-local:
 	$(RM) -f CCCUSB_wrap.cxx
 	$(RM) -f CCCUSBReadoutList_wrap.cxx

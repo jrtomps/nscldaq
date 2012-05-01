@@ -299,9 +299,9 @@ CXLM::loadFirmware(CVMUSB& controller, string path) throw(std::string)
       cerr << "Firmware loaded in SRAMA\n";
 
       CVMUSBReadoutList  finalize;
-      finalize.addWrite32(base + BusRequest, registerAmod, 0);	// Release bus request.
-      finalize.addWrite32(base + ForceOffBus, registerAmod, 0); // Remove force
-      finalize.addWrite32(base + Interrupt, registerAmod, 0);	// Release FPGA reset 
+      finalize.addWrite32(base + BusRequest, registerAmod, (uint32_t)0);	// Release bus request.
+      finalize.addWrite32(base + ForceOffBus, registerAmod, (uint32_t)0); // Remove force
+      finalize.addWrite32(base + Interrupt, registerAmod, (uint32_t)0);	// Release FPGA reset 
       status = controller.executeList(finalize,
 				       &dummy, sizeof(dummy), &dummy);
 				       

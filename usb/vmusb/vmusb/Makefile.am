@@ -1,5 +1,7 @@
-lib_LTLIBRARIES		= libVMUSB.la libVMUSBRemote.la
+lib_LTLIBRARIES		= libVMUSB.la libVMUSBRemote.la libCVMUSB.la libCVMUSBReadoutList.la
+
 libVMUSB_la_SOURCES 	= CVMUSB.cpp CVMUSBReadoutList.cpp
+
 
 libVMUSBRemote_la_SOURCES = CVMUSBReadoutList.cpp \
 	CVMUSBRemote.cpp \
@@ -21,6 +23,8 @@ noinst_HEADERS		= CVMUSB.h   \
 	CTCPConnectionLost.h	\
 	CTCPNoSuchHost.h	\
 	CTCPNoSuchService.h
+
+
 
 
 libVMUSB_CXXFLAGS=@THREADCXX_FLAGS@
@@ -50,7 +54,31 @@ installcheck-local: tests
 
 
 
+install-data-local:
+	$(mkinstalldirs) @prefix@/vmusbdriver
+	$(mkinstalldirs) @prefix@/vmusbdriver/includes
+	$(INSTALL_DATA)  CVMUSB*.h @prefix@/vmusbdriver/includes
+
+
+
 #  Stuff that needs to go int the distro:
+
 
 EXTRA_DIST = $(TEST_MODULES)
 
+# Swig interface generation:
+
+libCVMUSB_la_SOURCES = CVMUSB_wrap.cxx
+libCVMUSB_la_LIBADD  = libVMUSB.la @THREADLD_FLAGS@
+
+BUILT_SOURCES=CVMUSB_wrap.cxx CVMUSBReadoutList_wrap.cxx
+
+CVMUSB_wrap.cxx:	CVMUSB.h
+	swig -c++ -debug-classes -tcl -namespace -pkgversion 1.0 CVMUSB.h
+
+libCVMUSBReadoutList_la_SOURCES = CVMUSBReadoutList_wrap.cxx
+libCVMUSBReadoutList_la_LIBADD = libVMUSB.la @THREADLD_FLAGS@
+
+
+CVMUSBReadoutList_wrap.cxx: CVMUSBReadoutList.h
+	swig -c++ -debug-classes -tcl -namespace -pkgversion 1.0 CVMUSBReadoutList.h

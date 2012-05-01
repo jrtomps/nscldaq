@@ -35,6 +35,7 @@
 #include "CHINPCommand.h"
 #include "CV1729Command.h"
 #include "CV1495scCommand.h"
+#include "CAddTclDriver.h"
 
 #include <CReadoutModule.h>
 #include <TCLInterpreter.h>
@@ -63,6 +64,7 @@ CConfiguration::CConfiguration() :
   m_pInterp(0)
 {
   Tcl_Interp* pInterp = Tcl_CreateInterp();
+  Tcl_Init(pInterp);		// Initialize the pkg search paths.
   m_pInterp = new CTCLInterpreter(pInterp);
 
 
@@ -88,6 +90,7 @@ CConfiguration::CConfiguration() :
   m_Commands.push_back(new CHINPCommand(*m_pInterp, *this));
   m_Commands.push_back(new CV1729Command(*m_pInterp, *this));
   m_Commands.push_back(new CV1495scCommand(*m_pInterp, *this));
+  m_Commands.push_back(new CAddTclDriver(*m_pInterp, *this));
 
 }
 /*!

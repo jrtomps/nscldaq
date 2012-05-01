@@ -43,9 +43,9 @@ using namespace std;
 
 // Address modifiers used to access the module:
 
-Const(initamod) CVMUSBReadoutList::a32UserData;
-Const(readamod) CVMUSBReadoutList::a32PrivBlock;
-Const(cbltamod) CVMUSBReadoutList::a32PrivBlock;
+static const  uint8_t initamod(CVMUSBReadoutList::a32UserData);
+static const uint8_t readamod(CVMUSBReadoutList::a32PrivBlock);
+static const uint8_t cbltamod(CVMUSBReadoutList::a32PrivBlock);
 
 // Register map (offsets in bytes) for the V785
 //   Not an exhaustive list as the various test registers are omitted.
@@ -380,22 +380,22 @@ C785::Initialize(CVMUSB& controller)
   // flipping the the SOFT.RESET bit in the bit set 1 register.
   // sett fig 4.12 in the V785 manual.
 
-  controller.vmeWrite16(base+BSet1, initamod, 0x80);
-  controller.vmeWrite16(base+BClear1, initamod, 0x80);
+  controller.vmeWrite16(base+BSet1, initamod, (uint16_t)0x80);
+  controller.vmeWrite16(base+BClear1, initamod, (uint16_t)0x80);
 
   // turn off multicast and set the mcast address to zero...
   // this latter because that tries to ensure there's not a collision between
   // The mcast and rotary base addresses.
   //
-  controller.vmeWrite16(base+McastAddr, initamod, 0);
-  controller.vmeWrite16(base+McastCtl, initamod, 0);
+  controller.vmeWrite16(base+McastAddr, initamod, (uint16_t)0);
+  controller.vmeWrite16(base+McastCtl, initamod, (uint16_t)0);
 
   // Set the GEOgraphical address of the module.
 
   uint16_t geo = getIntegerParameter("-geo");
   controller.vmeWrite16(base+GEO, initamod, geo);
-  controller.vmeWrite16(base+BSet1, initamod, 0x80);
-  controller.vmeWrite16(base+BClear1, initamod, 0x80);
+  controller.vmeWrite16(base+BSet1, initamod, (uint16_t)0x80);
+  controller.vmeWrite16(base+BClear1, initamod, (uint16_t)0x80);
 
   // Set the thresholds for the module:
   // As well as the meaning of the thresholds.
@@ -408,10 +408,10 @@ C785::Initialize(CVMUSB& controller)
 			  threshold);
   }
   if (getBoolParameter("-smallthresholds")) {
-    controller.vmeWrite16(base+BSet2, initamod, 0x100);	// big thresholds.
+    controller.vmeWrite16(base+BSet2, initamod, (uint16_t)0x100);	// big thresholds.
   } 
   else {
-    controller.vmeWrite16(base+BClear2, initamod, 0x100); // small thresholds.
+    controller.vmeWrite16(base+BClear2, initamod, (uint16_t)0x100); // small thresholds.
   }
   
   // Set the interrupt characteristics of the module:
@@ -427,7 +427,7 @@ C785::Initialize(CVMUSB& controller)
   //
   //   controller.vmeWrite16(base+EventTrig, initamod, WhenIRQ);
   //
-  controller.vmeWrite16(base+EventTrig, initamod, 1);
+  controller.vmeWrite16(base+EventTrig, initamod, (uint16_t)1);
 
   // Set the fast clear window:
 
@@ -438,10 +438,10 @@ C785::Initialize(CVMUSB& controller)
 
   bool supressed = getBoolParameter("-supressrange");
   if (!supressed) {		// Set means disable checks.
-    controller.vmeWrite16(base+BSet2, initamod, 0x38);
+    controller.vmeWrite16(base+BSet2, initamod, (uint16_t)0x38);
   }
   else {
-    controller.vmeWrite16(base+BClear2, initamod, 0x38);
+    controller.vmeWrite16(base+BClear2, initamod, (uint16_t)0x38);
   }
 
   // If the user chooses to require data even if the module
@@ -449,10 +449,10 @@ C785::Initialize(CVMUSB& controller)
 
   bool requireData = getBoolParameter("-requiredata");
   if (requireData) {
-    controller.vmeWrite16(base+BSet2, initamod, 0x1000);
+    controller.vmeWrite16(base+BSet2, initamod, (uint16_t)0x1000);
   } 
   else {
-    controller.vmeWrite16(base+BClear2, initamod, 0x1000);
+    controller.vmeWrite16(base+BClear2, initamod, (uint16_t)0x1000);
   }
 
   // If the module is a 775 write the timerange register.
@@ -496,7 +496,7 @@ C785::Initialize(CVMUSB& controller)
   // All this makes the mask:
   //    0x24
   //
-  controller.vmeWrite16(base+Control1, initamod, 0x24);
+  controller.vmeWrite16(base+Control1, initamod, (uint16_t)0x24);
 
 
  
@@ -524,9 +524,9 @@ C785::addReadoutList(CVMUSBReadoutList& list)
     // Clear event buffers:
 
     list.addWrite16(base + BSet2,
-		    initamod, 4);
+		    initamod, (uint16_t)4);
     list.addWrite16(base + BClear2,
-		    initamod, 4);
+		    initamod, (uint16_t)4);
   }
 }
 

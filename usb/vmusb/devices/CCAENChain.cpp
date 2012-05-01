@@ -30,8 +30,8 @@ using namespace std;
 
 static const unsigned int LongwordsPerModule(36); // Maximum # longwords/module.
 
-static const int cbltamod(CVMUSBReadoutList::a32UserBlock);
-static const int mcstamod(CVMUSBReadoutList::a32UserData);
+static const uint8_t  cbltamod(CVMUSBReadoutList::a32UserBlock);
+static const uint8_t   mcstamod(CVMUSBReadoutList::a32UserData);
 
 static const uint32_t BSET2(0x1032); // Offset to the bit set 2 register.
 static const uint32_t BCLR2(0x1034); // Offset t the bit clear 2 register.

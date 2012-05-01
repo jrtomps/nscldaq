@@ -19,13 +19,16 @@ libVMUSBDevices_la_SOURCES	= 	CConfigurableObject.cpp	\
 					CHINP.cpp \
 					CPSD.cpp	\
 					CV1729.cpp	\
-					CV1495sc.cpp
+					CV1495sc.cpp	\
+					CTclModule.cpp
 
 
-INCLUDES	= 	-I$(top_builddir)/usb/vmusb/vmusb 	\
-			-I$(top_builddir)/usb/vmusb/daqconfig 	\
-			-I$(top_builddir)/usb/vmusb		\
-			-I$(top_builddir)/base/tclplus          \
+INCLUDES	= 	-I$(top_srcdir)/usb/vmusb/vmusb 	\
+			-I$(top_srcdir)/usb/vmusb/daqconfig 	\
+			-I$(top_srcdir)/usb/vmusb		\
+			-I$(top_srcdir)/base/tclplus          \
+			-I$(top_srcdir)/base/exception	\
+			-I$(top_srcdir)/base/headers		\
 			@TCL_FLAGS@ 
 
 libVMUSBDevices_la_CXXFLAGS=@THREADCXX_FLAGS@
@@ -60,9 +63,23 @@ noinst_HEADERS			= 	CConfigurableObject.h	\
 					CV1729.h		\
 					CV1495sc.h		\
 					CCAENV1x90Opcodes.h	\
-					CCAENV1x90Registers.h
+					CCAENV1x90Registers.h	\
+					CTclModule.h
 
 
+
+install-data-local:
+	$(mkinstalldirs) @prefix@/vmusbdriver
+	$(mkinstalldirs) @prefix@/vmusbdriver/includes
+	$(INSTALL_DATA)  *.h @prefix@/vmusbdriver/includes
+
+
+tests: TestRunner.cpp $(TESTS)
+	$(CXX) -g -o tests -I. -I$(prefix)/include $(CPPUNIT_INCLUDES) \
+	TestRunner.cpp  $(TESTS) -L$(prefix)/lib -lVMUSBDevices -lVMUSB -lConfig \
+	$(NSCLDAQ_LIB) -ltclPlus -lException  $(TCL_LDFLAGS) \
+	-Wl,"-rpath=$(libdir)" -Wl,"-rpath=$(daqdir)/lib" \
+	$(CPPUNIT_LDFLAGS)
 
 
 EXTRA_DIST=TestRunner.cpp $(TESTS)

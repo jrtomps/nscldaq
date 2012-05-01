@@ -26,6 +26,8 @@ testableSources = TCLInterpreter.cpp TCLProcessor.cpp  \
 
 # CItemConfiguration.cpp  CConfigurableObject.cpp
 
+
+
 testableObjects = TCLInterpreter.lo   TCLProcessor.lo    \
 	TCLVariable.lo   TCLString.lo    \
 	TCLResult.lo   TCLTimer.lo   TCLFileHandler.lo   \
@@ -65,7 +67,8 @@ evttclsh_SOURCES	= 	evttclsh.cpp
 evttclsh_DEPENDENCIES	= 	libtclPlus.la
 
 evttclsh_LDADD		= 	libtclPlus.la $(TCL_LDFLAGS)	\
-				@top_srcdir@/base/exception/libException.la
+				@top_srcdir@/base/exception/libException.la \
+				$(TCL_LDFLAGS)
 evttclsh_LDFLAGS	= 	-Wl,"-rpath-link=$(libdir)" $(TCL_LDFLAGS)
 
 
@@ -108,6 +111,7 @@ tcpservertest_DEPENDENCIES	= 	libtclPlus.la
 tcpservertest_LDADD		= 	libtclPlus.la	\
 				@top_srcdir@/base/exception/libException.la \
 			$(TCL_LDFLAGS)
+
 tcpservertest_LDFLAGS	= 	-Wl,"-rpath-link=$(libdir)" $(TCL_LDFLAGS)
 
 

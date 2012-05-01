@@ -354,12 +354,7 @@ COutputThread::processEvents(DataBuffer& inBuffer)
   bool     multibuffer = ((*pContents) & VMUSBMultiBuffer) != 0;
 
   bufferNumber++;
-  if(continuous) {
-    cerr << "Buffer number " << bufferNumber << " is in continuous mode\n";
-  }
-  if (multibuffer) {
-    cerr << "Buffer number " << bufferNumber << "Spans buffer boundaries. \n";
-  }
+
 
 
   pContents++;			// Point to first event.

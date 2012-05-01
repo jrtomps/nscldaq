@@ -185,13 +185,13 @@ ChicoTrigger::Set(CVMUSB& vme, string parameter, string value)
     
     CVMUSBReadoutList l;
     l.addWrite32(base() + ShortWidth, am,
-		 (int)valueList.lindex(0));
+		 (uint32_t)(int)valueList.lindex(0));
     l.addWrite32(base() + LongWidth, am,
-		 (int)valueList.lindex(1));
+		 (uint32_t)(int)valueList.lindex(1));
     l.addWrite32(base() + EnableMask, am,
-		 (int)valueList.lindex(2));
+		 (uint32_t)(int)valueList.lindex(2));
     l.addWrite32(base() + Control, am,
-		 (int)valueList.lindex(3));
+		 (uint32_t)(int)valueList.lindex(3));
 
     // execute the list:
 

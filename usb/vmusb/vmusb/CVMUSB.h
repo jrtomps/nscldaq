@@ -15,6 +15,17 @@
 */
 
 
+#ifdef SWIG
+#ifndef _FLATTEN_NESTED_CLASSES
+#define _FLATTEN_NESTED_CLASSES
+#endif
+%module CVMUSB
+%{
+#define _FLATTEN_NESTED_CLASSES
+#include <CVMUSB.h>
+%}
+#endif
+
 #ifndef __CVMUSB_H
 #define __CVMUSB_H
 
@@ -46,13 +57,6 @@
 #endif
 #endif
 
-#ifndef __USB_H
-#include <usb.h>
-#ifndef __USB_H
-#define __USB_H
-#endif
-#endif
-
 
 //  The structures below are defined in <usb.h> which is included
 //  by the implementation and can be treated as opaque by any of our
@@ -79,6 +83,12 @@ class CVMUSBReadoutList;
    The class is instantiated on a usb_device.  The list of usb_devices
    that correspond to VM-USB's is gotten via a call to the static function
    CVMUSB::enumerate().
+
+   Note some methods are added to make the SWIG wrappers usable for 
+   tcl.  These are needed because SWIG does not follow typedefs so uint32_t and int are different
+   even if they are the same.  These additional methods are marked with a SWIG comment...and are all
+   inline.
+
 */
 
 class CVMUSB 
@@ -118,20 +128,41 @@ public:
     // Register I/O operations.
 public:
     void     writeActionRegister(uint16_t value);
+    void     writeActionRegister(int value) { // SWIG
+      writeActionRegister((uint16_t)value);
+    }
 
-    uint32_t readFirmwareID();
+    int readFirmwareID();
 
     void     writeGlobalMode(uint16_t value);
-    uint16_t readGlobalMode();
+    int  readGlobalMode();
+    void writeGlobalMode(int value) { // SWIG
+       writeGlobalMode((uint16_t) value);
+    }
+
+
+
+
 
     void     writeDAQSettings(uint32_t value);
     uint32_t readDAQSettings();
+    void writeDAQSettings(int value) { // SWIG
+      writeDAQSettings((uint32_t) value);
+    }
 
-    void     writeLEDSource(uint32_t value);
-    uint32_t readLEDSource();
+
+
+    void    writeLEDSource(uint32_t value);
+    int     readLEDSource();
+    void    writeLEDSource(int value) { // SWIG
+       writeLEDSource((uint32_t)value);
+    }
 
     void     writeDeviceSource(uint32_t value);
-    uint32_t readDeviceSource();
+    int      readDeviceSource();
+    void     writeDeviceSource(int value) { // SWIG
+      writeDeviceSource((uint32_t)value);
+    }
 
     void     writeDGG_A(uint32_t value);
     uint32_t readDGG_A();
@@ -147,14 +178,22 @@ public:
 
 
     void     writeVector(int which, uint32_t value);
-    uint32_t readVector(int which);
-
+    int      readVector(int which);
+    void     writeVector(int which, int value) { // SWIG
+      writeVector(which, (uint32_t)value);
+    }
 
     void     writeIrqMask(uint8_t mask);
-    uint8_t  readIrqMask();
+    int      readIrqMask();
+    void     writeIrqMask(int mask) { // SWIG
+      writeIrqMask((uint8_t)mask);
+    }
 
     void     writeBulkXferSetup(uint32_t value);
-    uint32_t readBulkXferSetup();
+    int      readBulkXferSetup();
+    void     writeBulkXferSetup(int value) { // SWIG
+      writeBulkXferSetup((uint32_t)value);
+    }
 
 
     
@@ -163,18 +202,69 @@ public:
 
     int vmeWrite32(uint32_t address, uint8_t aModifier, uint32_t data);
     int vmeRead32(uint32_t address, uint8_t aModifier, uint32_t* data);
+    int vmeWrite32(int address, int amodifier, int data) { // SWIG
+      return vmeWrite32((uint32_t)address, (uint8_t)amodifier, (uint32_t)data);
+    }
+    int vmeRead32(int address, int amodifier) { // SWIG
+      uint32_t d32 =0;
+      vmeRead32((uint32_t)address, (uint8_t)amodifier, &d32);
+      return (int)d32;
+    }
+
 
     int vmeWrite16(uint32_t address, uint8_t aModifier, uint16_t data);
     int vmeRead16(uint32_t address, uint8_t aModifier, uint16_t* data);
+    int vmeWrite16(int address, int amodifier, int data) { // SWIG
+      return vmeWrite16((uint32_t)address, (uint8_t)amodifier, (uint16_t)data);
+    }
+    int vmeRead16(int address,int amodifier) { // SWIG
+      uint16_t d16 = 0;
+      vmeRead16((uint32_t)address, (uint8_t)amodifier, &d16);
+      return d16;
+    }
 
     int vmeWrite8(uint32_t address, uint8_t aModifier, uint8_t data);
     int vmeRead8(uint32_t address, uint8_t aModifier, uint8_t* data);
-
-
+    int vmeWrite8(int address, int  amodifier, int data) { // SWIG
+      return vmeWrite8((uint32_t)address, (uint8_t)amodifier, (uint8_t)data);
+    }
+    int vmeRead8(int address, int amodifier) { // SWIG
+      uint8_t d8;
+      vmeRead8((uint32_t)address, (uint8_t)amodifier, &d8);
+      return d8;
+    }
     int vmeBlockRead(uint32_t baseAddress, uint8_t aModifier,
 		     void* data,  size_t transferCount, size_t* countTransferred);
-    int vmeFifoRead(uint32_t address, int8_t aModifier,
-		    void* data, size_t transferCount, size_t* countTransferred);
+    int vmeFifoRead(uint32_t address, uint8_t aModifier,
+         	    void* data, size_t transferCount, size_t* countTransferred);
+    std::vector<uint32_t> 
+    vmeBlockRead(int base, int amod,  int xfercount) { // SWIG
+      uint32_t data[xfercount];
+      size_t   xferred = 0;
+      std::vector<uint32_t> result;
+
+      vmeBlockRead((uint32_t)base, (uint8_t)amod, (void*)data,
+			  (size_t)xfercount, &xferred);
+      for (int i =0; i < xferred; i++) {
+	result.push_back(data[i]);
+      }
+      return result;
+
+    }
+    std::vector<uint32_t>
+      vmeFifoRead(int base, int amod, int xfercount) { // SWIG
+      uint32_t data[xfercount];
+      size_t xferred = 0;
+      std::vector<uint32_t> result;
+
+      vmeFifoRead((uint32_t)base, (uint8_t)amod, data,
+		  (size_t)xfercount, &xferred);
+      for (int i = 0; i < xferred; i++) {
+	result.push_back(data[i]);
+      }
+      return result;
+    }
+
 
     // Support for immediate counted VME variable block transfer operations:
     // See comments prior to CVMEReadoutList::addBlockCountMask
@@ -182,10 +272,48 @@ public:
     int vmeReadBlockCount8(uint32_t address,  uint32_t mask, uint8_t amod);
     int vmeReadBlockCount16(uint32_t address, uint32_t mask, uint8_t amod);
     int vmeReadBlockCount32(uint32_t address, uint32_t mask, uint8_t amod);
+    int vmeReadBlockCount8(int address, int mask, int amod) { // SWIG
+      return vmeReadBlockCount8((uint32_t)address, (uint32_t)mask, (uint8_t)amod);
+    }    
+    int vmeReadBlockCount16(int address, int mask, int amod) { // SWIG
+      return vmeReadBlockCount16((uint32_t)address, (uint32_t)mask, (uint8_t)amod);
+    }    
+    int vmeReadBlockCount32(int address, int mask, int amod) { // SWIG
+      return vmeReadBlockCount32((uint32_t)address, (uint32_t)mask, (uint8_t)amod);
+    }
+
     int vmeVariableBlockRead(uint32_t address, uint8_t amod, 
 			     void* data, size_t maxCount, size_t* countTransferred);
     int vmeVariableFifoRead(uint32_t address, uint8_t amod,  
 			    void* data, size_t maxCount,  size_t* countTransferred);
+    std::vector<uint32_t>
+      vmeVariableBlockRead(int address, int amod, int maxCount) { // SWIG
+      uint32_t data[maxCount];
+      size_t   transferred;
+      std::vector<uint32_t> result;
+
+      vmeVariableBlockRead((uint32_t)address, (uint8_t)amod, data,
+			   (size_t)maxCount, &transferred);
+      for (int i = 0; i < transferred; i++) {
+	result.push_back(data[i]);
+      }
+      return result;
+    }
+    std::vector<uint32_t>
+      vmeVariableFifoRead(int address, int amod, int maxcount) { // SWIG
+      uint32_t data[maxcount];
+      size_t   transferred;
+
+      std::vector<uint32_t> result;
+
+      vmeVariableFifoRead((uint32_t)address, (uint8_t)amod, data, (size_t)maxcount, 
+			  &transferred);
+      for (int i =0; i < transferred; i++) {
+	result.push_back(data[i]);
+      }
+      return result;
+    }
+
     
     // List operations.
 
@@ -194,10 +322,16 @@ public:
 		    void*               pReadBuffer,
 		    size_t              readBufferSize,
 		    size_t*             bytesRead);
+    std::vector<uint8_t> executeList(CVMUSBReadoutList& list,
+				    int maxBytes); // SWIG
     
     int loadList(uint8_t                listNumber,
 		 CVMUSBReadoutList&    list,
 		 off_t                  listOffset = 0);
+    int loadList(int listNumber, CVMUSBReadoutList& list, int offset) { // SWIG
+      return loadList((uint8_t)listNumber, list, (off_t)offset);
+    }
+      
 
     // Once the interface is in DAQ auntonomous mode, the application
     // should call the following function to read acquired data.
@@ -212,7 +346,9 @@ public:
     // Register bit definintions.
 
 public: 
+#ifndef _FLATTEN_NESTED_CLASSES
     class RegisterOffsets {
+#endif
       static const unsigned int FIDRegister = (0);       // Firmware id.
       static const unsigned int GMODERegister = (4);     // Global mode register.
       static const unsigned int DAQSetRegister = (8);    // DAQ settings register.
@@ -231,8 +367,9 @@ public:
       static const unsigned int USBSetup = (0x3c);       // USB Bulk transfer setup. 
       static const unsigned int USBVHIGH1 = (0x40);      // High bits of ISV12/34.
       static const unsigned int USBVHIGH2 = (0x44);      // High bits of ISV56/78.
-
+#ifndef _FLATTEN_NESTED_CLASSES
     };
+#endif
 
     class ActionRegister {   // e.g. CVMUSB::ActionRegister::startDAQ is a bit.
     public:
@@ -249,8 +386,11 @@ public:
 	static const uint16_t triggerL5  = 0x2000;
 	static const uint16_t triggerL6  = 0x4000;
 	static const uint16_t triggerL7  = 0x8000;
+
     };
-    
+
+
+
     class FirmwareRegister {
     public:
 	static const uint32_t minorRevMask     = 0x000000ff;
@@ -271,7 +411,6 @@ public:
 	static const uint32_t monthMask        = 0xf0000000;
 	static const uint32_t monthshift       = 27;
     };
-
     class GlobalModeRegister {
     public:
 	static const uint16_t bufferLenMask    = 0xf;
@@ -288,7 +427,7 @@ public:
 	static const uint16_t bufferLenSingle  = 9;
 	static const uint16_t spanBuffers      = 0x10;
 	static const uint16_t mixedBuffers     = 0x20;
-	static const uint16_t doubleSeparater  = 0x40;
+	static const uint16_t doubleSeparator  = 0x40;
 	static const uint16_t align32          = 0x80;
 	
 	static const uint16_t doubleHeader     = 0x100;
@@ -362,6 +501,7 @@ public:
 	static const uint32_t bottomYellowLatch         = (0x10 << 24);
     };
     class DeviceSourceRegister {
+
     public:
 	static const uint32_t nimO1Busy                 = 0;
 	static const uint32_t nimO1Trigger              = 1;
@@ -415,7 +555,6 @@ public:
 	static const uint32_t dggBUsbTrigger            = (5   << 28);
 	static const uint32_t dggBPulser                = (6   << 28);
 
-
     };
     
     class DGGAndPulserRegister {
@@ -425,7 +564,6 @@ public:
 	
 	static const uint32_t dggGateWidthMask        = 0xffff0000;
 	static const uint32_t dggGateWidthShift       = 16;
-
     };
 
     class DGGCoarseRegister {
@@ -435,7 +573,6 @@ public:
 	
 	static const uint32_t BCoarseMask             = 0xffff0000;
 	static const uint32_t BCoarseShift            = 16;
-
     };
     // There are two vectors per register called A/B in this set of 
 
@@ -463,7 +600,6 @@ public:
 
 	static const uint32_t timeoutMask            = 0xf00;
 	static const uint32_t timeoutShift           = 8;
-
     };
     // Local functions:
 private:
@@ -481,8 +617,42 @@ private:
     int   doVMERead(CVMUSBReadoutList&  list, uint32_t* datum);
     uint16_t* listToOutPacket(uint16_t ta, CVMUSBReadoutList& list, size_t* outSize,
 			      off_t offset = 0);
+
+  //  These functions are needed for the Swig wrappers:
+
+
+
 };
 
+ inline size_t usb_device_vector_size(std::vector<struct usb_device*> devices) {
+  return devices.size();
+}
 
+ inline struct usb_device* usb_device_vector_get(std::vector<struct usb_device*> devices, int index) {
+  return devices[index];
+}
+ inline const char* string_to_char(std::string s) {
+  return s.c_str();
+}
+
+ inline int getuint16(uint16_t value) {
+  return value;
+}
+
+ inline size_t uint8_vector_size(std::vector<uint8_t> vec)  {
+  return vec.size();
+}
+ inline int uint8_vector_get(std::vector<uint8_t> vec, int i) {
+  return vec[i];
+}
+
+ inline int uint32_vector_size(std::vector<uint32_t> vec) {
+  return vec.size();
+}
+ inline int uint32_vector_get(std::vector<uint32_t> vec, int i) {
+  return vec[i];
+}
+
+  
 
 #endif
