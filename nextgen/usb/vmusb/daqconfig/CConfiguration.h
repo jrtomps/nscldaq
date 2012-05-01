@@ -69,6 +69,10 @@ public:
   CConfiguration();
   virtual ~CConfiguration();
 
+  // selectors:
+
+  CTCLInterpreter* getInterpreter() {return m_pInterp;}
+
   // lazy so:
 private:
   CConfiguration(const CConfiguration& rhs);

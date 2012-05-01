@@ -26,10 +26,11 @@ Const(MADCDELAY)  1;
 
 // The address modifiers that will be used to access the module:
 
-Const(initamod)  CVMUSBReadoutList::a32UserData;   //  setup using user data access.
-Const(readamod)  CVMUSBReadoutList::a32UserBlock;  //  Read in block mode.
-static const int cbltamod(CVMUSBReadoutList::a32UserBlock);
-static const int mcstamod(CVMUSBReadoutList::a32UserData);
+static const uint8_t initamod(CVMUSBReadoutList::a32UserData);   //  setup using user data access.
+static const uint8_t readamod(CVMUSBReadoutList::a32UserBlock);  //  Read in block mode.
+
+static const uint8_t cbltamod(CVMUSBReadoutList::a32UserBlock);
+static const uint8_t mcstamod(CVMUSBReadoutList::a32UserData);
 
 
 // Module address map; for the most part I'm only defining the registers

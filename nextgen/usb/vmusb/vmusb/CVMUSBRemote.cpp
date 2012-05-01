@@ -596,7 +596,7 @@ CVMUSBRemote::vmeBlockRead(uint32_t baseAddress, uint8_t aModifier,
    entire block transfer.
 */
 int 
-CVMUSBRemote::vmeFifoRead(uint32_t address, int8_t aModifier,
+CVMUSBRemote::vmeFifoRead(uint32_t address, uint8_t aModifier,
 		    void*    data,    size_t transferCount, size_t* countTransferred)
 {
   CVMUSBReadoutList list;

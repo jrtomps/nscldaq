@@ -115,21 +115,36 @@ CBeginRun::operator()(CTCLInterpreter& interp,
   // Now we can start the run.
 
   Globals::pConfig = new CConfiguration;
+  string errorMessage = "begin - Configuration fie processing failed: ";
   try {
     Globals::pConfig->processConfiguration(Globals::configurationFilename);
+  }
+  catch (string msg) {
+    errorMessage += msg;
+    tclUtil::setResult(interp,  errorMessage);
+    return TCL_ERROR;
+  }
+  catch (const char* msg) {
+    errorMessage += msg;
+    tclUtil::setResult(interp, errorMessage);
+    return TCL_ERROR;
+  }
+  catch (CException& e) {
+    errorMessage += e.ReasonText();
+    tclUtil::setResult(interp, errorMessage);
+    return TCL_ERROR;
   }
   catch (...) {
     // Configuration file processing error of some sort...
 
-    tclUtil::setResult(interp, string("Begin - configuration file processing failed"));
+    tclUtil::setResult(interp, errorMessage);
     return TCL_ERROR;
 		       
   }
   cerr << "Buffer multiplier (CBegin) = " << Globals::bufferMultiplier << endl;
 
   CAcquisitionThread* pReadout = CAcquisitionThread::getInstance();
-  pReadout->start(Globals::pUSBController,
-		  Globals::pConfig->getStacks());
+  pReadout->start(Globals::pUSBController);
 
   tclUtil::setResult(interp, string("Begin - Run started"));
   return TCL_OK;

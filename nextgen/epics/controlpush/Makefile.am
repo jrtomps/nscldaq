@@ -55,7 +55,7 @@ controlpush_CXXFLAGS = $(THREADCXX_FLAGS) $(AM_CXXFLAGS)
 cmdline.c: options.ggo
 	$(GENGETOPT) --unamed-opts <options.ggo
 
-EXTRA_DIST=options.ggo  Channels.dat  controlpush.xml
+EXTRA_DIST = options.ggo  Channels.dat  controlpush.xml
 
 
 noinst_PROGRAMS = unittests

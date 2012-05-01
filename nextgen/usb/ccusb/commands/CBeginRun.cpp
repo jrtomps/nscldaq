@@ -138,7 +138,7 @@ CBeginRun::operator()(CTCLInterpreter& interp,
   catch (...) {
     // Configuration file processing error of some sort...
 
-    tclUtil::setResult(interp, string("Begin - configuration file processing failed"));
+    tclUtil::setResult(interp, errorMessage);
     return TCL_ERROR;
 		       
   }

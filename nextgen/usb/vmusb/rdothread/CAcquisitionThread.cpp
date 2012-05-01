@@ -23,6 +23,7 @@
 #include <DataBuffer.h>
 #include <CControlQueues.h>
 #include "../router/CRunState.h" // else pick up the daq one by mistake.
+#include <CConfiguration.h>
 #include <Globals.h>		 // Need to maintain the running global. 
 #include <assert.h>
 #include <time.h>
@@ -40,7 +41,7 @@ using namespace std;
 
 
 static const unsigned DRAINTIMEOUTS(5);	// # consecutive drain read timeouts before giving up.
-static const unsigned USBTIMEOUT(10);
+static const unsigned USBTIMEOUT(2);
 
 static const unsigned ReadoutStackNum(0);
 static const unsigned ScalerStackNum(1);
@@ -90,23 +91,14 @@ CAcquisitionThread::getInstance()
    - Initiate the thread which gets the ball rolling.
    \param usb    :CVMUSB*
       Pointer to the vme interface object we use to deal with all this stuff.
-   \param adcs   : std::vector<CReadoutModule*> 
-      A vector consisting of the set of modules that will be read out in the
-      event mode.  This is expected to be hooked to interrupt 
-      80, IPL 6 and that will be used to fire off the list.
-   \param scalers : std::vector<CReadoutModule*>
-     A vector consisting of the set of scaler modules that will be read out
-     every scalerPeriod seconds.
 
 */
 void
-CAcquisitionThread::start(CVMUSB* usb,
-			  vector<CReadoutModule*> Stacks) 
+CAcquisitionThread::start(CVMUSB* usb)
 {
 
   CAcquisitionThread* pThread = getInstance();
   m_pVme = usb;
-  m_Stacks = Stacks;
 
 
 
@@ -230,8 +222,11 @@ CAcquisitionThread::mainLoop()
 	pBuffer = gFreeBuffers.get(); // need a new one.
       } 
       else {
-
-	cerr << "Bad status from usbread: " << strerror(errno) << endl;
+	if (errno != ETIMEDOUT) {
+	  cerr << "Bad status from usbread: " << strerror(errno) << endl;
+	  cerr << "Ending the run... check the VME Crate.. If it power cycled restart this program\n";
+	  throw 1;
+	}
 
 	consecutiveTimeouts++;
 	// 
@@ -378,6 +373,13 @@ CAcquisitionThread::startDaq()
   //  m_pVme->writeActionRegister(CVMUSB::ActionRegister::sysReset);
   m_pVme->writeActionRegister(0);
 
+  // Process the configuration. This must be done in a way that preserves the
+  // Interpreter since loadStack and Initialize for each stack will need the
+  // interpreter for our support of tcl drivers.
+
+  Globals::pConfig = new CConfiguration;
+  Globals::pConfig->processConfiguration(Globals::configurationFilename);
+  m_Stacks = Globals::pConfig->getStacks();
 
   //  Get all of the stacks.  load and enable them.  First we'll reset the
   // stack load offset.

@@ -612,7 +612,7 @@ CV6533::scaledIToString(uint16_t* values, float scaleFactor)
 void
 CV6533::turnOff(CVMUSBReadoutList& list, unsigned int channel)
 {
-  list.addWrite16(getBase() + Channels[channel] + PW , amod, 0);
+  list.addWrite16(getBase() + Channels[channel] + PW , amod, (uint16_t)0);
 }
 /**
  * Add a request to set the requested voltage for a channel to a VME operation list.
@@ -655,7 +655,7 @@ void
 CV6533::setChannelOnOff(CVMUSBReadoutList& list, unsigned int channel, bool value)
 {
   list.addWrite16(getBase() + Channels[channel] + PW, amod, 
-		  value ? 1 : 0); // Not going to assume anything about true/false representation.
+		  (uint16_t)(value ? 1 : 0)); // Not going to assume anything about true/false representation.
 }
 /**
  * Set the trip time.  Presumably this is the amount of time

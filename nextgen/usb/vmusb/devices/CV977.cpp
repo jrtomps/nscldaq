@@ -47,7 +47,7 @@ using namespace std;
 
 // Address modifiers:
 
-Const(amod)CVMUSBReadoutList::a32UserData; // for all accesses.
+static const uint8_t amod(CVMUSBReadoutList::a32UserData); // for all accesses.
 
 // Register map (relative to the base address:
 
@@ -213,7 +213,7 @@ CV977::Initialize(CVMUSB& controller)
   // the initialization list:
   
   uint32_t base  = m_pConfiguration->getIntegerParameter("-base");
-  controller.vmeWrite16(base + Reset, amod, 0xffff);
+  controller.vmeWrite16(base + Reset, amod, (uint16_t)0xffff);
 
   // Get the rest of the parameters:
 

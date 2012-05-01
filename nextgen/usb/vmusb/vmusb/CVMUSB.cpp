@@ -209,7 +209,7 @@ CVMUSB::CVMUSB(struct usb_device* device) :
     usleep(100);
     
     // Now set the irq mask so that all bits are set..that:
-    // - is the only way to ensure the m_irqMask value matche the register.
+    // - is the only way to ensure the m_irqMask value matches the register.
     // - ensures m_irqMask actually gets set:
 
     writeIrqMask(0xff);
@@ -278,7 +278,7 @@ CVMUSB::writeActionRegister(uint16_t value)
    \retval The value of the firmware Id register.
 
 */
-uint32_t 
+int
 CVMUSB::readFirmwareID()
 {
     return readRegister(FIDRegister);
@@ -302,7 +302,7 @@ CVMUSB::writeGlobalMode(uint16_t value)
     \return uint16_t  
     \retval the value of the register.
 */
-uint16_t 
+int
 CVMUSB::readGlobalMode()
 {
     return static_cast<uint16_t>(readRegister(GMODERegister));
@@ -355,7 +355,7 @@ CVMUSB::writeLEDSource(uint32_t value)
    \return uint32_t
    \retval The current value of the LED source register.
 */
-uint32_t
+int
 CVMUSB::readLEDSource()
 {
     return readRegister(LEDSrcRegister);
@@ -384,7 +384,7 @@ CVMUSB::writeDeviceSource(uint32_t value)
    \return uint32_t
    \retval current value of the register.
 */
-uint32_t
+int
 CVMUSB::readDeviceSource()
 {
     return readRegister(DEVSrcRegister);
@@ -514,7 +514,7 @@ CVMUSB::writeVector(int which, uint32_t value)
  
   \throw string  - if thwhich is illegal.
 */
-uint32_t 
+int
 CVMUSB::readVector(int which)
 {
     unsigned int regno = whichToISV(which);
@@ -555,7 +555,7 @@ CVMUSB::writeIrqMask(uint8_t mask)
    @return uint8_t
    @retval contents of the mask register.
 */;
-uint8_t
+int
 CVMUSB::readIrqMask()
 {
   // Since the interrupt mask register appears cleverly crafted so that you
@@ -582,7 +582,7 @@ CVMUSB::writeBulkXferSetup(uint32_t value)
 /*!
    Read the bulk transfer setup register.
 */
-uint32_t
+int
 CVMUSB::readBulkXferSetup()
 {
     return readRegister(USBSetup);
@@ -762,7 +762,7 @@ CVMUSB::vmeBlockRead(uint32_t baseAddress, uint8_t aModifier,
    entire block transfer.
 */
 int 
-CVMUSB::vmeFifoRead(uint32_t address, int8_t aModifier,
+CVMUSB::vmeFifoRead(uint32_t address, uint8_t aModifier,
 		    void*    data,    size_t transferCount, size_t* countTransferred)
 {
   CVMUSBReadoutList list;
@@ -936,6 +936,27 @@ CVMUSB::executeList(CVMUSBReadoutList&     list,
   return (status >= 0) ? 0 : status;
   
 }
+
+// SWIG version of the above:
+
+std::vector<uint8_t> 
+CVMUSB::executeList(CVMUSBReadoutList& list, int maxBytes)
+{
+  uint8_t data[maxBytes];
+  size_t     nRead;
+  std::vector<uint8_t> result;
+
+  int status = executeList(list, data, maxBytes, &nRead);
+
+  if (status == 0) {
+    for (int i = 0; i < nRead; i++) {
+      result.push_back(data[i]);
+    }
+  }
+
+  return result;
+}
+
 /*!
    Load a list into the VM-USB for later execution.
    It is the callers responsibility to:

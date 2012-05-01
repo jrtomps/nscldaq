@@ -279,10 +279,10 @@ CMADC32::Initialize(CVMUSB& controller)
  
 
   uint32_t base = m_pConfiguration->getUnsignedParameter("-base");
-  controller.vmeWrite16(base + Reset,    initamod, 1);
+  controller.vmeWrite16(base + Reset,    initamod, (uint16_t)1);
   sleep(1);
-  controller.vmeWrite16(base + StartAcq, initamod, 0);
-  controller.vmeWrite16(base + ReadoutReset, initamod, 1);
+  controller.vmeWrite16(base + StartAcq, initamod, (uint16_t)0);
+  controller.vmeWrite16(base + ReadoutReset, initamod, (uint16_t)1);
 
 
 
@@ -290,7 +290,7 @@ CMADC32::Initialize(CVMUSB& controller)
 
   // First disable the interrupts so that we can't get any spurious ones during init.
 
-  list.addWrite16(base + Ipl, initamod, 0);
+  list.addWrite16(base + Ipl, initamod, (uint16_t)0);
   list.addDelay(MADCDELAY);
   // Now retrieve the configuration parameters:
 
@@ -323,19 +323,19 @@ CMADC32::Initialize(CVMUSB& controller)
   // Write the thresholds.
 
   for (int i =0; i < 32; i++) {
-    list.addWrite16(base + Thresholds + i*sizeof(uint16_t), initamod, thresholds[i]);
+    list.addWrite16(base + Thresholds + i*sizeof(uint16_t), initamod, (uint16_t)thresholds[i]);
     list.addDelay(MADCDELAY);
   }
 
 
-  list.addWrite16(base + MarkType, initamod, timestamp ? 1 : 0); 
+  list.addWrite16(base + MarkType, initamod, (uint16_t)(timestamp ? 1 : 0)); 
   list.addDelay(MADCDELAY);
 
   if (gatemode == string("separate")) {
-    list.addWrite16(base + BankOperation, initamod, 1);
+    list.addWrite16(base + BankOperation, initamod, (uint16_t)1);
   }
   else {
-    list.addWrite16(base  + BankOperation, initamod, 0);
+    list.addWrite16(base  + BankOperation, initamod, (uint16_t)0);
   }									
   list.addDelay(MADCDELAY);
 
@@ -343,117 +343,117 @@ CMADC32::Initialize(CVMUSB& controller)
   // as well as enable it.
 
   if(gdg) {
-    list.addWrite16(base + HoldDelay0, initamod, holddelays[0]);
+    list.addWrite16(base + HoldDelay0, initamod, (uint16_t)holddelays[0]);
     list.addDelay(MADCDELAY);
-    list.addWrite16(base + HoldDelay1, initamod, holddelays[1]);
+    list.addWrite16(base + HoldDelay1, initamod, (uint16_t)holddelays[1]);
     list.addDelay(MADCDELAY);
 
-    list.addWrite16(base + HoldWidth0, initamod, holdwidths[0]);
+    list.addWrite16(base + HoldWidth0, initamod, (uint16_t)holdwidths[0]);
     list.addDelay(MADCDELAY);
-    list.addWrite16(base + HoldWidth1, initamod, holdwidths[1]);
+    list.addWrite16(base + HoldWidth1, initamod, (uint16_t)holdwidths[1]);
     list.addDelay(MADCDELAY);
     
-    list.addWrite16(base + EnableGDG, initamod, 1);
+    list.addWrite16(base + EnableGDG, initamod, (uint16_t)1);
     list.addDelay(MADCDELAY);
 
   } else {
-    list.addWrite16(base + EnableGDG, initamod, 0);
+    list.addWrite16(base + EnableGDG, initamod, (uint16_t)0);
     list.addDelay(MADCDELAY);
   }
   
   if (pulser) {
-    list.addWrite16(base+TestPulser, initamod, 2);
+    list.addWrite16(base+TestPulser, initamod, (uint16_t)2);
   }
   else {
-    list.addWrite16(base+TestPulser, initamod,0);
+    list.addWrite16(base+TestPulser, initamod,(uint16_t)0);
   }
   list.addDelay(MADCDELAY);
 
   // Set the input range:
 
   if (inputrange == string("4v")) {
-    list.addWrite16(base + InputRange, initamod, 0);
+    list.addWrite16(base + InputRange, initamod,(uint16_t) 0);
   }
   else if (inputrange == string("8v")) {
-    list.addWrite16(base + InputRange, initamod, 1);
+    list.addWrite16(base + InputRange, initamod, (uint16_t)1);
   }
   else {			// 10V
-    list.addWrite16(base + InputRange, initamod, 2);
+    list.addWrite16(base + InputRange, initamod, (uint16_t)2);
   }
   list.addDelay(MADCDELAY);
 
   // Set the timing divisor, and clear the timestamp:
 
 
-    list.addWrite16(base + TimingDivisor, initamod, timedivisor);
-    list.addDelay(MADCDELAY);
-    list.addWrite16(base + TimestampReset, initamod, 3); // Reset both counters.
-    list.addDelay(MADCDELAY);
+  list.addWrite16(base + TimingDivisor, initamod, (uint16_t)timedivisor);
+  list.addDelay(MADCDELAY);
+  list.addWrite16(base + TimestampReset, initamod, (uint16_t)3); // Reset both counters.
+  list.addDelay(MADCDELAY);
 
   // Turn on or off ECL termination.  In fact the module provides much more control
   // over this featuer.. but for now we're all or nothing.
 
   if(termination) {
-    list.addWrite16(base + ECLTermination, initamod, 0xf);
+    list.addWrite16(base + ECLTermination, initamod, (uint16_t)0xf);
   }
   else {
-    list.addWrite16(base + ECLTermination, initamod, 0);
+    list.addWrite16(base + ECLTermination, initamod, (uint16_t)0);
   }
   list.addDelay(MADCDELAY);
 
   // Control which external sources can provide the timebase for the timestamp:
 
   if (ecltimeinput) {
-    list.addWrite16(base + ECLGate1OrTiming, initamod, 1);
+    list.addWrite16(base + ECLGate1OrTiming, initamod, (uint16_t)1);
     list.addDelay(MADCDELAY);
-    list.addWrite16(base + ECLFCOrTimeReset, initamod, 1);
+    list.addWrite16(base + ECLFCOrTimeReset, initamod, (uint16_t)1);
     list.addDelay(MADCDELAY);
   }
   else {
-    list.addWrite16(base + ECLGate1OrTiming, initamod, 0);
+    list.addWrite16(base + ECLGate1OrTiming, initamod, (uint16_t)0);
     list.addDelay(MADCDELAY);
-    list.addWrite16(base + ECLFCOrTimeReset, initamod, 0);
+    list.addWrite16(base + ECLFCOrTimeReset, initamod, (uint16_t)0);
     list.addDelay(MADCDELAY);
   }
 
   if (nimtimeinput) {
-    list.addWrite16(base + NIMGate1OrTiming, initamod, 1);
+    list.addWrite16(base + NIMGate1OrTiming, initamod, (uint16_t)1);
     list.addDelay(MADCDELAY);
-    list.addWrite16(base + NIMFCOrTimeReset, initamod, 1);
+    list.addWrite16(base + NIMFCOrTimeReset, initamod, (uint16_t)1);
     list.addDelay(MADCDELAY);
   }
   else {
-    list.addWrite16(base + NIMGate1OrTiming, initamod, 0);
+    list.addWrite16(base + NIMGate1OrTiming, initamod, (uint16_t)0);
     list.addDelay(MADCDELAY);
-    list.addWrite16(base + NIMFCOrTimeReset, initamod, 0);
+    list.addWrite16(base + NIMFCOrTimeReset, initamod, (uint16_t)0);
     list.addDelay(MADCDELAY);
   }
 
   // Source of the timebase:
 
   if(timesource == string("vme") ) {
-    list.addWrite16(base + TimingSource, initamod, 0);
+    list.addWrite16(base + TimingSource, initamod, (uint16_t)0);
   }
   else {
-    list.addWrite16(base + TimingSource, initamod, 1);
+    list.addWrite16(base + TimingSource, initamod, (uint16_t)1);
   }
   list.addDelay(MADCDELAY);
   
   // Ensure that busy is on the busy connector:
 
-  list.addWrite16(base + NIMBusyFunction, initamod, 0);
+  list.addWrite16(base + NIMBusyFunction, initamod, (uint16_t)0);
   list.addDelay(MADCDELAY);
 
   // Process -resolution, -irqthreshold and -multievent
 
-  list.addWrite16(base + Resolution, initamod, resolutionValue(resolution));
+  list.addWrite16(base + Resolution, initamod, (uint16_t)resolutionValue(resolution));
   list.addDelay(MADCDELAY);
-  list.addWrite16(base + WithdrawIrqOnEmpty, initamod, 1);
+  list.addWrite16(base + WithdrawIrqOnEmpty, initamod, (uint16_t)1);
   if(multiEvent) {
-    list.addWrite16(base + MultiEvent, initamod, 7);
+    list.addWrite16(base + MultiEvent, initamod, (uint16_t)7);
   }
   else {
-    list.addWrite16(base + MultiEvent, initamod, 0);
+    list.addWrite16(base + MultiEvent, initamod, (uint16_t)0);
   }
   list.addDelay(MADCDELAY);
 
@@ -461,21 +461,21 @@ CMADC32::Initialize(CVMUSB& controller)
   // the IPL is non-zero, and does no harm if it is zero.
 
 
-  list.addWrite16(base + Vector,   initamod, ivector);
+  list.addWrite16(base + Vector,   initamod, (uint16_t)ivector);
   list.addDelay(MADCDELAY);
-  list.addWrite16(base + Ipl, initamod, ipl);
-  list.addWrite16(base + IrqThreshold, initamod, irqThreshold);
+  list.addWrite16(base + Ipl, initamod, (uint16_t)ipl);
+  list.addWrite16(base + IrqThreshold, initamod, (uint16_t)irqThreshold);
   list.addDelay(MADCDELAY);
 
 
   // Now reset again and start daq:
 
 
-  list.addWrite16(base + ReadoutReset, initamod, 1);
+  list.addWrite16(base + ReadoutReset, initamod, (uint16_t)1);
   list.addDelay(MADCDELAY);
-  list.addWrite16(base + InitFifo,     initamod, 0);
+  list.addWrite16(base + InitFifo,     initamod, (uint16_t)0);
   list.addDelay(MADCDELAY);
-  list.addWrite16(base + StartAcq, initamod, 1 );
+  list.addWrite16(base + StartAcq, initamod, (uint16_t)1 );
 
 
 
@@ -503,10 +503,10 @@ CMADC32::addReadoutList(CVMUSBReadoutList& list)
 {
   // Need the base:
 
-  int base = m_pConfiguration->getUnsignedParameter("-base");
+  uint32_t base = m_pConfiguration->getUnsignedParameter("-base");
 
-  list.addFifoRead32(base + eventBuffer, readamod, 45);
-  list.addWrite16(base + ReadoutReset, initamod, 1);
+  list.addFifoRead32(base + eventBuffer, readamod, (size_t)45);
+  list.addWrite16(base + ReadoutReset, initamod, (uint16_t)1);
   list.addDelay(5);
 }
 
@@ -565,9 +565,9 @@ CMADC32::setChainAddresses(CVMUSB&                controller,
 
   // program the registers, note that the address registers take only the top 8 bits.
 
-  controller.vmeWrite16(base + CbltAddress, initamod, cbltBase >> 24);
-  controller.vmeWrite16(base + McstAddress, initamod, mcastBase >> 24);
-  controller.vmeWrite16(base + CbltMcstControl, initamod, controlRegister);
+  controller.vmeWrite16(base + CbltAddress, initamod, (uint16_t)(cbltBase >> 24));
+  controller.vmeWrite16(base + McstAddress, initamod, (uint16_t)(mcastBase >> 24));
+  controller.vmeWrite16(base + CbltMcstControl, initamod, (uint16_t)(controlRegister));
 
 }
 
@@ -599,8 +599,8 @@ CMADC32::initCBLTReadout(CVMUSB& controller, uint32_t mcast, int rdoSize)
   
   // Stop acquistiion
   // ..and clear buffer memory:
-  controller.vmeWrite16(mcast + StartAcq, initamod, 0);
-  controller.vmeWrite16(mcast + InitFifo, initamod, 0);
+  controller.vmeWrite16(mcast + StartAcq, initamod, (uint16_t)0);
+  controller.vmeWrite16(mcast + InitFifo, initamod, (uint16_t)0);
 
   // Set stamping
 
@@ -608,30 +608,30 @@ CMADC32::initCBLTReadout(CVMUSB& controller, uint32_t mcast, int rdoSize)
     // Oscillator sources are assumed to already be set.
     // Reset the timer:
 
-    controller.vmeWrite16(mcast + MarkType,       initamod, 1); // Show timestamp, not event count.
-    controller.vmeWrite16(mcast + TimestampReset, initamod, 3); // reset all counter.
+    controller.vmeWrite16(mcast + MarkType,       initamod, (uint16_t)1); // Show timestamp, not event count.
+    controller.vmeWrite16(mcast + TimestampReset, initamod, (uint16_t)3); // reset all counter.
   }
   else {
-    controller.vmeWrite16(mcast + MarkType,       initamod, 0); // Use Eventcounter.
-    controller.vmeWrite16(mcast + EventCounterReset, initamod, 0); // Reset al event counters.
+    controller.vmeWrite16(mcast + MarkType,       initamod, (uint16_t)0); // Use Eventcounter.
+    controller.vmeWrite16(mcast + EventCounterReset, initamod, (uint16_t)0); // Reset al event counters.
   }
   // Set multievent mode
   
-  controller.vmeWrite16(mcast + MultiEvent, initamod, 3);      // Multi event mode 3.
-  controller.vmeWrite16(mcast + IrqThreshold, initamod, irqThreshold);
-  controller.vmeWrite16(mcast + MaxTransfer, initamod,  rdoSize);
+  controller.vmeWrite16(mcast + MultiEvent, initamod, (uint16_t)3);      // Multi event mode 3.
+  controller.vmeWrite16(mcast + IrqThreshold, initamod, (uint16_t)irqThreshold);
+  controller.vmeWrite16(mcast + MaxTransfer, initamod,  (uint16_t)rdoSize);
 
   // Set the IRQ
 
-  controller.vmeWrite16(mcast + Vector, initamod, vector);
-  controller.vmeWrite16(mcast + Ipl,    initamod, ipl);
-  controller.vmeWrite16(mcast + IrqThreshold, initamod, irqThreshold);
+  controller.vmeWrite16(mcast + Vector, initamod, (uint16_t)vector);
+  controller.vmeWrite16(mcast + Ipl,    initamod, (uint16_t)ipl);
+  controller.vmeWrite16(mcast + IrqThreshold, initamod, (uint16_t)irqThreshold);
 
   // Init the buffer and start data taking.
 
-  controller.vmeWrite16(mcast + InitFifo, initamod, 0);
-  controller.vmeWrite16(mcast + ReadoutReset, initamod, 0);
-  controller.vmeWrite16(mcast + StartAcq , initamod, 1);
+  controller.vmeWrite16(mcast + InitFifo, initamod, (uint16_t)0);
+  controller.vmeWrite16(mcast + ReadoutReset, initamod, (uint16_t)0);
+  controller.vmeWrite16(mcast + StartAcq , initamod, (uint16_t)1);
 }
 
 

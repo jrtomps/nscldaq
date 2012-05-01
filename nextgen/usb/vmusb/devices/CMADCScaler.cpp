@@ -39,7 +39,7 @@ using namespace std;
 
 // address modifiers and offsets used:
 
-static const int amod(CVMUSBReadoutList::a32UserData);
+static const uint8_t amod(CVMUSBReadoutList::a32UserData);
 
 static const int daq_time_lo(0x60a0);
 static const int daq_time_hi(0x60a2);
@@ -110,7 +110,7 @@ CMADCScaler::Initialize(CVMUSB& controller)
 {
   uint32_t base = m_pConfiguration->getUnsignedParameter("-base");
 
-  controller.vmeWrite16(base + time_reset, amod, 2); // Reset the ctr b block.
+  controller.vmeWrite16(base + time_reset, amod, (uint16_t)2); // Reset the ctr b block.
 }
 /*!
   Add the instructions to the readout list that actually read the module.
@@ -122,15 +122,15 @@ CMADCScaler::addReadoutList(CVMUSBReadoutList& list)
 {
   int base = m_pConfiguration->getUnsignedParameter("-base");
 
-  list.addRead16(base + daq_time_lo, amod);
-  list.addRead16(base + daq_time_hi, amod);
+  list.addRead16((uint32_t)(base + daq_time_lo), (uint8_t)amod);
+  list.addRead16((uint32_t)(base + daq_time_hi), (uint8_t)amod);
 
-  list.addRead16(base + time_0, amod);
-  list.addRead16(base + time_1, amod);
+  list.addRead16((uint32_t)(base + time_0), (uint8_t)amod);
+  list.addRead16((uint32_t)(base + time_1), (uint8_t)amod);
 
   // reset the time for incremental scalers....
   
-  list.addWrite16(base+time_reset, amod, 2);
+  list.addWrite16((uint32_t)(base+time_reset), (uint8_t)amod, (uint16_t)2);
 
 }
 

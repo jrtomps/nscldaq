@@ -109,13 +109,13 @@
             <listitem>
                 <para>
                     In accordance with the way the CC-USB operates, you can create
-                    two lists of <firstterm>stack</firstterm>s in CC-USB parlance.
+                    two lists or <firstterm>stack</firstterm>s in CC-USB parlance.
                     One stack is an event stack and is intended to be used
                     to handle event triggers.  The second stack is a scaler stack
-                    and typically is set to readout periodicalyl.
+                    and typically is set to readout periodically.
                 </para>
                 <para>
-                    Each stack has, configuratino properties as well. One
+                    Each stack has, configuration properties as well. One
                     configuration property is the set of modules managed
                     by that stack.  Modules managed by that stack are initialized
                     by the software, in accordance with their configuration,
@@ -130,7 +130,7 @@
         <title>Writing DAQ configuration files</title>
         <para>
             The DAQ configuration file is processed at the beginning of each run.
-            The configuratino file is processed in a fresh interpreter each time.
+            The configuration file is processed in a fresh interpreter each time.
             You therefore cannot maintain any state across runs via your configuration
             file.
         </para>
@@ -210,8 +210,11 @@ stack config events -modules [list tdc] -type event -delay 108
         <example>
             <title>Setting up a scaler stack</title>
             <programlisting>
-stack create events
-stack config events -modules [list testing tdc] -type event -delay 108
+
+lrs2551 create counters -slot 5
+stack create scaler
+stack config scaler -type scaler -period 2 -modules [list counters]
+
             </programlisting>
         </example>
     </section>

@@ -57,10 +57,11 @@
 #include <CReadoutHardware.h>
 #include <stdint.h>
 #include <CReadoutModule.h>
-#include <CCCUSB.h>
-#include <CCCUSBReadoutList.h>
+#include <CVMUSB.h>
+#include <CVMUSBReadoutList.h>
 #include <CUserCommand.h>
 #include <tcl.h>
+#include <iostream>
 
 /*
  * If you have any other headers to include,or  definitions to make add them here:
@@ -83,6 +84,8 @@
 class CTemplateDriver : public CReadoutHardware
 {
 private:
+  CReadoutModule* m_pConfiguration;
+
   /*  If your class needs any per instance data declare that here:
       MODIFY ME HERE */
 
@@ -101,8 +104,8 @@ private:
 
 public:
   virtual void onAttach(CReadoutModule& configuration);
-  virtual void Initialize(CCCUSB& controller);
-  virtual void addReadoutList(CCCUSBReadoutList& list);
+  virtual void Initialize(CVMUSB& controller);
+  virtual void addReadoutList(CVMUSBReadoutList& list);
   virtual CReadoutHardware* clone() const; 
 
 private:
@@ -180,8 +183,9 @@ CTemplateDriver::~CTemplateDriver()
  *
  *  You need to invoke methods from CConfigurableObject to create configuration parameters.
  *  by convention a configuration parameter starts with a -.  To illustrate this,
- *  template code will create a -slot configuration parameter that captures the
- *  CAMAC slot number of the device. The slot will be confined to valid CAMAC slot numbers.
+ *  template code will create a -base parameter that captures the base address of the module.
+ *  In addition we'll create an -id parameter which will be the value of a marker that will
+ *  be put in the event.  The marker value will be constrainted to be 16 bits wide.
  *
  * @parm configuration - Reference to the configuration object for this instance of the driver.
  */
@@ -190,15 +194,19 @@ CTemplateDriver::onAttach(CReadoutModule& configuration)
 {
   m_pConfiguration = &configuration; 
 
-  // Define the slot configuration parameter limited between 1 and 23 (non controller slots)
-  // current default is 1.
-  //
-  m_pConfiguration->addIntegerParameter("-slot", 1, 23, 1);
+  // Define  base address configuration parameter for the VME module associated
+  // with this device.  This is an unconstrained integer.
+
+  m_pConfiguration->addIntegerParameter("-base");
 
   /*
    * Add additional configuration parameters you might need here
    *
    * MODIFY ME HERE */
+
+  // The -id parameter is the value of the marker inserted in the event.
+
+  m_pConfiguration->addIntegerParameter("-id", 0, 0xffff, 0);
 
   /* END MODIFICATIONS */
 
@@ -207,26 +215,28 @@ CTemplateDriver::onAttach(CReadoutModule& configuration)
 /**
  * This method is called when a driver instance is being asked to initialize the hardware
  * associated with it. Usually this involves querying the configuration of the device
- * and using CCUSB controller functions and possibily building and executing
- * CCUSBReadoutList objects to initialize the device to the configuration requested.
+ * and using VMUSB controller functions and possibily building and executing
+ * CVMUSBReadoutList objects to initialize the device to the configuration requested.
  * 
  * @param controller - Refers to a CCUSB controller object connected to the CAMAC crate
  *                     being managed by this framework.
  *
  */
 void
-CTemplateDriver::Initialize(CCCUSB& controller)
+CTemplateDriver::Initialize(CVMUSB& controller)
 {
-  // We'll almost always need the slot so the line below pulls it out of the
+  // We'll almost always need the module base address.  This line gets it from the
   // configuration database for you:
 
-  int slot = m_pConfiguration->getIntegerParameter("-slot");
+  uint32_t base = m_pConfiguration->getUnsignedParameter("-base");
 
   /*
    * Add code below to query the remainder of your configuration and initialize
    * the module in accordance with it:
    *
    * MODIFY ME HERE */
+
+
 
   /* END MODIFICATIONS */
 
@@ -241,16 +251,19 @@ CTemplateDriver::Initialize(CCCUSB& controller)
  *               CCUSB.
  */
 void
-CTemplateDriver::addReadoutList(CCCUSBReadoutList& list)
+CTemplateDriver::addReadoutList(CVMUSBReadoutList& list)
 {
   // Functions are directed at the slot the module is in so:
 
-  int slot = m_pConfiguration->getIntegerParameter("-slot"); // Get the value of -slot.
+  uint32_t base  = m_pConfiguration->getUnsignedParameter("-base"); // Get the value of -slot.
+  int      id    = m_pConfiguration->getIntegerParameter("-id");
 
   /*
    * Add code here to add appropriate operations to the list
    *
    * MODIFY ME HERE */
+
+  list.addMarker(id);
 
   /* END MODIFICATIONS */
 }
@@ -300,6 +313,7 @@ extern "C" {
   int Templatedriver_Init(Tcl_Interp* pInterp)
   /* END MODIFICATIONS */
   {
+
     // Create a Tcl package so that pkg_mkIndex could find us:
 
     /* Change the name (Tempatedriver) to match the initialization function.
@@ -315,7 +329,6 @@ extern "C" {
     CUserCommand::addDriver("changeme", new CTemplateDriver);
 
     /* END MODIFICATIONS */
-    
     return TCL_OK;
     
   }
