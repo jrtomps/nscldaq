@@ -248,6 +248,7 @@ uint32_t mapStateChangeType (uint16_t bufferType)
 
 bool formatEvents (void* pBuffer)
 {
+  static    size_t buffers = 0;
   bheader* pHeader(reinterpret_cast<bheader*>(pBuffer));
   uint16_t* pBody(reinterpret_cast<uint16_t*>(pHeader+1));
   
@@ -298,12 +299,13 @@ bool formatEvents (void* pBuffer)
 
 
   if(wordsLeft) {
-    fprintf(stderr, "*** Bad buffer structure, %d words left but no more events according to count\n",
-	   wordsLeft);
+    fprintf(stderr, "*** Bad buffer structure, %d words left but no more events according to count (buffer %d)\n",
+	    wordsLeft, buffers);
     return false;
   }
 
   triggers += nEvents;		// Update trigger count seen so far.
+  buffers++;
   return true;
 }
 

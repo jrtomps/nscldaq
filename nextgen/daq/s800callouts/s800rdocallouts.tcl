@@ -113,7 +113,7 @@ proc s800::monitorState ms {
 
 	after $ms [list ::s800::monitorState $ms]
 
-    }] msg
+    } msg]
 
     # On failure, set state to unknown.
 
@@ -203,7 +203,7 @@ proc s800::OnBegin {} {
 
     } msg]} {
 	tk_messageBox -icon error -title "S800 readout GUI failed" \
-	    -message "Error communicating with the s800 readout - $msg - restart the s800 readout and this GUI"
+	    -message "BEGIN Error communicating with the s800 readout - $msg - restart the s800 readout and this GUI"
 	::s800::real_exit -1
     }
 } 
@@ -217,11 +217,11 @@ proc s800::OnEnd {} {
 
 	# cancel the variable trace.
 
-	trace remove ::s800::runState write ::s800::stateChange
+	trace remove variable ::s800::runState write ::s800::stateChange
 
     } msg]} {
 	tk_messageBox -icon error -title "S800 readout GUI failed" \
-	    -message "Error communicating with the s800 readout - $msg - restart the s800 readout and this GUI"
+	    -message "END Error communicating with the s800 readout - $msg - restart the s800 readout and this GUI"
 	::s800::real_exit -1
     }
     puts "Recording state [ReadoutState::getRecording]"
