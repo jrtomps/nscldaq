@@ -15,13 +15,13 @@ DAQBIN=$DAQROOT/bin
 # Script to start a pipeline to put s800 data into an NSCLDAQ rint
 #
 # Usage:
-#   start host port ring
+#   s800toring host port ring
 #
 
 if [ $# != 3 ] 
 then
   echo Usage:
-  echo "   "    start host port ring-name
+  echo "   "    s800toring host port ring-name
   exit -1
 fi
 

@@ -5,7 +5,8 @@ noinst_HEADERS = buffer.h buftypes.h CBufferConverter.h CLogRun.h
 compatibilitybuffer_SOURCES = compatibilitybuffer.cpp CBufferConverter.cpp
 
 EXTRA_DIST=compatibilitybuffer.ggo loggeroptions.ggo eventlog-compat.in \
-	spectcldaq.in spectcldaq.server.tcl compatibility.xml s800toring.in
+	spectcldaq.in spectcldaq.server.tcl compatibility.xml s800toring.in \
+	netcat.tcl
 
 
 compatibilitybuffer_LDADD = parser.o
@@ -24,6 +25,7 @@ install-exec-local:
 	$(INSTALL_SCRIPT) spectcldaq $(bindir)
 	$(INSTALL_SCRIPT) spectcldaq.server.tcl  $(bindir)/spectcldaq.server
 	$(INSTALL_SCRIPT) s800toring  $(bindir)
+	$(INSTALL_SCRIPT) netcat.tcl $(bindir)
 
 
 #----------------------------------------------------------------
