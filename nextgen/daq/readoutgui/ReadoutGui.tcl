@@ -549,33 +549,45 @@ proc ReadoutGui::Begin {} {
     ReadoutState::setScalerPeriod [lindex $scalerinfo 1]
 
     ReadoutControl::SetRun   [::ReadougGUIPanel::getRunNumber]
-    ReadougGUIPanel::runIsActive
-	timestampOutput "%s : Starting a new run"
     ReadoutControl::SetTitle [::ReadougGUIPanel::getTitle]
-    ReadoutControl::Begin
-    ReadoutControl::ShowAll
+    
+    timestampOutput "%s : Starting a new run"
 
-    # If a timed run, start the end run timer.
-    # Also  start the timers needed to show the status line and
-    # increment the elapsed run time.
+    # This actually tries to start the run. If there's a failure report it
+    # without flipping into the active state.
 
-    if {[ReadougGUIPanel::isTimed]} {
-	ReadoutState::TimedRun
-	ReadoutState::setTimedLength [ReadougGUIPanel::getRequestedRunTime]
+    set failureCheck [catch {
+	ReadoutControl::Begin
+	ReadoutControl::ShowAll
+	
+	# If a timed run, start the end run timer.
+	# Also  start the timers needed to show the status line and
+	# increment the elapsed run time.
+	
+	if {[ReadougGUIPanel::isTimed]} {
+	    ReadoutState::TimedRun
+	    ReadoutState::setTimedLength [ReadougGUIPanel::getRequestedRunTime]
+	} else {
+	    ReadoutState::notTimedRun
+	}
+	ReadoutGui::ClearElapsedTime;    # NO paused segments, new run.
+	if {[ReadoutControl::isTapeOn]} {
+	    ReadougGUIPanel::isRecording
+	    # $EventStatusLineWidget config -bg green
+	    # $OutputWidget config -bg green
+	} else {
+	    ReadougGUIPanel::notRecording
+	    # set EventFileStatusLine ""
+	}
+	ReadoutGui::StartElapsedTimer
+    } msg]
+    if {$failureCheck} {
+	tk_messageBox -icon error -title {Run start failed:} \
+	    -message $msg -type ok
     } else {
-	ReadoutState::notTimedRun
-    }
-    ReadoutGui::ClearElapsedTime;    # NO paused segments, new run.
-    if {[ReadoutControl::isTapeOn]} {
-	ReadougGUIPanel::isRecording
-	# $EventStatusLineWidget config -bg green
-	# $OutputWidget config -bg green
-    } else {
-	ReadougGUIPanel::notRecording
-	# set EventFileStatusLine ""
-    }
-    ReadoutGui::StartElapsedTimer
+	ReadougGUIPanel::runIsActive
 
+    }
 
 }
 # ReadoutGui::Pause
