@@ -30,10 +30,16 @@ package require  snit
 snit::type s800rctl {
     option -host "localhost";	# Host on which the s800 usb rdo runs.
     option -port 8000;		# Port on which the s800 usb rdo listens.
+    option -timeout 10000;	# ms to wait for the s800 to reply
 
     variable socket "";		# Socket connected to the s800 rctl server.
     variable ACK "OK"
     variable NAK "FAIL"
+
+    variable readDoneFlag;	# Incremented to indicate socket readable.
+    variable timedOut;   	# Incremented by timeout handler.
+    variable timeoutId;		# ID of the timeout [after].
+
 
     ##
     #  The constructro forms the connection to the -host, -port configured
@@ -240,20 +246,11 @@ snit::type s800rctl {
 	# in case of read failure, empty response + eof state
 	# null out socket and throw an error.
 
-	if {[catch {gets $socket response} msg]} {
-	    set socket ""
-	    error "Failed to receive a response from S800 run control $msg"
-	}
 
+
+	set response [$self ReadWithTimeout $options(-timeout)]
 	if {($response eq "") || [eof $socket]} {
-	    set socket ""
-	    $self Connect
-	    $self setSlave
-	    puts $socket $command
-	    gets $socket response
-	    if {($response eq "") || [eof $socket]} {
-		error "Permanent connection loss with s800"
-	    }
+	    error "No response from the s800 or EOF"
 	}
 
 	# Analyze the result:
@@ -261,6 +258,50 @@ snit::type s800rctl {
 	return [$self AnalyzeResponse $response]
 	
     }
+    ## 
+    # Read from the socket with a timeout.
+    # This is done by 
+    # - Establishing a filevent for readability on the socket
+    #   which just increments readDoneFlag
+    # - Establishing an after timer which increments the read done flag and sets timed out
+    # - vwaiting on readDoneFlag.
+    # - etc. etc.
+    #
+    # @param timeout  - ms to wait for a response.
+    #
+    # @return the data read on success.
+    #
+    # @throw - if timedout an error string of "Read timed out on s800"
+    # @throw - gets on socket failed.
+    #
+    method ReadWithTimeout timeout {
+	
+	# wait for the socket to be readable with a timeout:
+	
+	set timedOut 0
+	set timeoutId -1
+
+	fileevent $socket readable [list incr ${selfns}::readDoneFlag]
+	set timeoutId \
+	    [after    $timeout "set ${selfns}::timedOut 1; incr ${selfns}::readDoneFlag"]
+	vwait ${selfns}::readDoneFlag
+
+	# Reset the fileevent and if we did not time out cancel the timer:
+
+	fileevent $socket readable [list]
+	if {!$timedOut} {
+	    after cancel $timeoutId
+	}
+
+	#  Now figure out what happened:
+
+	if {$timedOut} {
+	    error "Read timed out on s800"
+	}
+	return [gets $socket]
+    }
+
+
     ##
     #  Analyze the response message and break it up into 
     #  the chunks described in Transaction above.
@@ -326,4 +367,6 @@ snit::type s800rctl {
         return $string
    }
 
+
+	
 }

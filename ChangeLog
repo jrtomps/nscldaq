@@ -211,3 +211,5 @@ Feb 1, 2012 - Feb 24, 2012
 	  * C++
 	  * Tcl
 	- Document VM-USB and driver support.
+        - Get the CAMAC window size right (tr 6639).
+	
