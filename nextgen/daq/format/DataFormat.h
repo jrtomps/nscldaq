@@ -63,28 +63,28 @@ be zero.
 
 // state change item type codes:
 
-static const uint32_t BEGIN_RUN(1);
-static const uint32_t END_RUN(2);
-static const uint32_t PAUSE_RUN(3);
-static const uint32_t RESUME_RUN(4);
+static const uint32_t BEGIN_RUN = 1;
+static const uint32_t END_RUN = 2;
+static const uint32_t PAUSE_RUN = 3;
+static const uint32_t RESUME_RUN = 4;
 
 // Documentation item type codes:
 
-static const uint32_t PACKET_TYPES(10);
-static const uint32_t MONITORED_VARIABLES(11);
+static const uint32_t PACKET_TYPES = 10;
+static const uint32_t MONITORED_VARIABLES = 11;
 
 // Scaler data:
 
-static const uint32_t INCREMENTAL_SCALERS(20);
+static const uint32_t INCREMENTAL_SCALERS = 20;
 
 // Physics events:
 
-static const uint32_t PHYSICS_EVENT(30);
-static const uint32_t PHYSICS_EVENT_COUNT(31);
+static const uint32_t PHYSICS_EVENT = 30;
+static const uint32_t PHYSICS_EVENT_COUNT = 31;
 
 // User defined item codes
 
-static const uint32_t FIRST_USER_ITEM_CODE(32768); /* 0x8000 */
+static const uint32_t FIRST_USER_ITEM_CODE = 32768; /* 0x8000 */
 
 
 // Longest allowed title:
@@ -173,5 +173,27 @@ typedef struct __PhysicsEventCountItem {
   uint64_t       s_eventCount;	/* Maybe 4Gevents is too small ;-) */
 } PhysicsEventCountItem, *pPhysicsEventCountItem;
 
+
+/**
+  Below are functions that are available to format ring types.
+  Note that all of these return a pointer that must be free(3)'d.
+*/
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+  pPhysicsEventItem  formatEventItem(size_t nWords, void* pPayload);
+  pPhysicsEventCountItem formatTriggerCountItem(uint32_t runTime, time_t stamp, uint64_t triggerCount);
+  pScalerItem         formatScalerItem(unsigned scalerCount, time_t timestamp, 
+				      uint32_t btime, uint32_t etime, void* pCounters);
+  pTextItem          formatTextItem(unsigned nStrings, time_t stamp, uint32_t runTime,
+				    const char** pStrings, int type);
+  pStateChangeItem   formatStateChange(time_t stamp, uint32_t offset, uint32_t runNumber,
+				       const char* pTitle, int type);
+
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif
