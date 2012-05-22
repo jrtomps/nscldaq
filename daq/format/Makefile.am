@@ -9,7 +9,8 @@ libdataformat_la_SOURCES = CRingSelectionPredicate.cpp	\
 			CRingStateChangeItem.cpp	\
 			CRingScalerItem.cpp		\
 			CRingTextItem.cpp		\
-			CRingPhysicsEventCountItem.cpp
+			CRingPhysicsEventCountItem.cpp \
+			ringitem.c
 
 
 include_HEADERS	= CRingSelectionPredicate.h	\
