@@ -35,6 +35,12 @@
                     this chapter.
                 </para>
             </listitem>
+            <listitem>
+                <para>
+                    A description of a simple library that allows you to
+                    create ring items that may not wind up being placed in a ring.
+                </para>
+            </listitem>
         </itemizedlist>
     </para>
     <para>
@@ -677,7 +683,78 @@ g++ -o myApplication src1.o src2.o ... -L$DAQROOT/lib \
             <classname>CRingItem</classname> base class.
         </para>
     </section>
-        
+    <section>
+        <title>Creating ring items</title>
+        <para>
+            There are some cases where the librarires provided to create
+            ring items are not well suited for the job. Specifically, sometimes
+            you'd like to create ring items to be emitted on <filename>stdout</filename>.
+        </para>
+        <para>
+            A simple set of functions that can be called by either C or C++
+            programs allows you to format ring items that can be dealt with
+            however you might wish.
+        </para>
+        <para>
+            The functions provided are prototyped in <filename>DataFormat.h</filename>.
+            The functions are also part of <filename>libdataformat.so</filename>.
+        </para>
+        <para>
+            The reference section provides full documentation.  All functions
+            return a pointer to storage allocated with <function>malloc(3)</function>
+            that contains the ring item.  It is the caller's responsibility
+            to invoke <function>free(3)</function> to release this storage.
+            The
+            function names you will need are:
+            <variablelist>
+                <varlistentry>
+                    <term><function>formatEventItem</function></term>
+                    <listitem>
+                        <para>
+                            Formats the data read from a physics trigger into a
+                            ring item.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><function>formatTriggerCountItem</function></term>
+                    <listitem>
+                        <para>
+                            Formats a trigger count item.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><function>formatScalerItem</function></term>
+                    <listitem>
+                        <para>
+                            Creates an incremental scaler ring item.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><function>formatTextItem</function></term>
+                    <listitem>
+                        <para>
+                            Formats a text string item.  Text string items are
+                            items whose payload contains, among other things,
+                            a set of null terminated strings.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><function>formatStateChange</function></term>
+                    <listitem>
+                        <para>
+                            Creates a state change ring item.  State change
+                            ring items indicate that the run state has changed.
+                        </para>
+                    </listitem>
+                </varlistentry>
+            </variablelist>
+    
+        </para>
+    </section>
 </chapter>
 
 <!-- /chapter -->
@@ -4141,6 +4218,336 @@ set EPICS_DATA(Z1234) 1.234
                     
                </variablelist>
             </refsect1>
-         </refentry>     
+         </refentry>
+        <refentry id="dataformat3-formatfunctions">
+          <refmeta>
+             <refentrytitle>format  Functions</refentrytitle>
+             <manvolnum>3dataformat</manvolnum>
+          </refmeta>
+          <refnamediv>
+             <refname>format Functions</refname>
+             <refpurpose>Functions to create ring items.</refpurpose>
+          </refnamediv>
+          
+          <refsynopsisdiv>
+           <synopsis>
+#include &lt;DataFormat.h&gt;
+           </synopsis>  
+            <funcsynopsis>
+            <funcprototype><funcdef><type>pPhysicsEventItem</type> <function>formatEventitem</function></funcdef>
+            <paramdef>
+              <parameter><type>size_t</type> nWords</parameter></paramdef>
+            <paramdef>
+                <parameter><type>void*</type> pPayload</parameter>
+            </paramdef>
+            </funcprototype>
+            </funcsynopsis>
+            <funcsynopsis>
+               <funcprototype><funcdef><type>pPhysicsEventCountItem</type> <function>formatTriggerCountItem </function></funcdef>
+               <paramdef>
+                  <parameter><type>uint32_t </type>runTime</parameter>
+               </paramdef>
+               <paramdef>
+                <parameter><type>time_t</type>timeStamp</parameter>
+               </paramdef>
+               <paramdef>
+                <parameter><type>uint64_t</type>triggerCount</parameter>
+               </paramdef>
+               </funcprototype>
+            </funcsynopsis>
+            <funcsynopsis>
+            	<funcprototype><funcdef><type>pScalerItem</type> <function>
+                    formatScalerItem
+                </function></funcdef>
+                <paramdef>
+                   <parameter><type>unsigned  </type>scalerCount </parameter>
+                </paramdef>
+                <paramdef>
+                    <parameter><type>time_t</type>timestamp</parameter>
+                </paramdef>
+                <paramdef>
+                    <parameter><type>uint32_t</type> btime</parameter>
+                </paramdef>
+                <paramdef>
+                    <parameter><type>uint32</type>etime</parameter>
+                </paramdef>
+                <paramdef>
+                    <parameter><type>void*</type> pCounters</parameter>
+                </paramdef>
+               </funcprototype>
+            </funcsynopsis>
+            <funcsynopsis>
+                <funcprototype><funcdef><type>pTextItem</type> <function>formatTextItem </function></funcdef>
+                <paramdef>
+                   <parameter><type>unsigned  </type>nStrings </parameter>
+                </paramdef>
+                <paramdef>
+                    <parameter><type>time_t</type> stamp</parameter>
+                </paramdef>
+                <paramdef>
+                    <parameter><type>uint32_t</type> runTime</parameter>
+                </paramdef>
+                <paramdef>
+                    <parameter><type>const char**</type> pStrings</parameter>
+                </paramdef>
+                <paramdef>
+                    <parameter><type>int</type> type</parameter>
+                </paramdef>
+               </funcprototype>
+            </funcsynopsis> 
+            <funcsynopsis>
+                <funcprototype><funcdef><type>pStateChangeItem</type>
+                <function>formatStateChange </function></funcdef>
+                <paramdef>
+                   <parameter><type>time_t  </type>stamp </parameter>
+                </paramdef>
+                <paramdef>
+                    <parameter><type>uint32_t</type> offset</parameter>
+                </paramdef>
+                <paramdef>
+                    <parameter><type>uint32_t </type> runNumber</parameter>
+                </paramdef>
+                <paramdef>
+                    <parameter><type>const char*</type> pTitle</parameter>
+                </paramdef>
+                <paramdef>
+                    <parameter><type>uin32_t</type> type</parameter>
+                </paramdef>
+                
+                </funcprototype>
+            </funcsynopsis>
+   
+                    
+   
+   
+
+          </refsynopsisdiv>
+          <refsect1>
+             <title>
+            DESCRIPTION
+             </title>
+             <para>
+                These functions produce dynamically allocated ring items
+                that reflect the paramters that have been passed to them.      
+             </para>
+             <variablelist>
+                <varlistentry>
+                    <term>
+                        <funcsynopsis>
+                        <funcprototype><funcdef><type>pPhysicsEventItem</type> <function>formatEventitem</function></funcdef>
+                        <paramdef>
+                          <parameter><type>size_t</type> nWords</parameter>
+                        </paramdef>
+                        <paramdef>
+                            <parameter><type>void*</type> pPayload</parameter>
+                        </paramdef>
+                        </funcprototype>
+                        </funcsynopsis>
+                    </term>
+                    <listitem>
+                        <para>
+                            Creates a <literal>PHYSICS_EVENT</literal> ring item.
+                            <parameter>nWords</parameter> is the number of
+                            <type>uint16_t</type> objects that are in the event
+                            data pointed to by <parameter>pPayload</parameter>.
+                            When the ring item is created, a <type>uint32_t</type>
+                            containing <literal>nWords + 2</literal> is inserted
+                            prior to the payload to conform to NSCL standards
+                            for the payload contents.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>
+                        <funcsynopsis>
+                           <funcprototype><funcdef><type>pPhysicsEventCountItem</type> <function>formatTriggerCountItem </function></funcdef>
+                           <paramdef>
+                              <parameter><type>uint32_t </type>runTime</parameter>
+                           </paramdef>
+                           <paramdef>
+                            <parameter><type>time_t</type>timeStamp</parameter>
+                           </paramdef>
+                           <paramdef>
+                            <parameter><type>uint64_t</type>triggerCount</parameter>
+                           </paramdef>
+                           </funcprototype>
+                        </funcsynopsis>
+                    </term>
+                    <listitem>
+                        <para>
+                            Creates a <literal>PHYSICS_EVENT_COUNT</literal> ring
+                            item.  <parameter>runTime</parameter> should be the
+                            number of seconds into the run the items is emitted.
+                            <parameter>timeStamp</parameter> should be the unix
+                            <function>time(2)</function> at which the event
+                            count is being submittted and <parameter>triggerCount</parameter>
+                            is the total number of event triggers that have been
+                            created by this point in the run.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>
+                        <funcsynopsis>
+                            <funcprototype><funcdef><type>pScalerItem</type> <function>
+                                formatScalerItem
+                            </function></funcdef>
+                            <paramdef>
+                               <parameter><type>unsigned  </type>scalerCount </parameter>
+                            </paramdef>
+                            <paramdef>
+                                <parameter><type>time_t</type>timestamp</parameter>
+                            </paramdef>
+                            <paramdef>
+                                <parameter><type>uint32_t</type> btime</parameter>
+                            </paramdef>
+                            <paramdef>
+                                <parameter><type>uint32</type>etime</parameter>
+                            </paramdef>
+                            <paramdef>
+                                <parameter><type>void*</type> pCounters</parameter>
+                            </paramdef>
+                           </funcprototype>
+                        </funcsynopsis>
+                    </term>
+                    <listitem>
+                        <para>
+                            Creates a scaler ring item (<literal>INCREMENTAL_SCALERS</literal>).
+                            <parameter>scalerCount</parameter> is the number of
+                            scalers read out and <parameter>pCounters</parameter>
+                            points to an array of <type>uint32_t</type> scalers.
+                            <parameter>btime</parameter> and <parameter>etime</parameter>
+                            are respectively the beginning and end run offsets
+                            over which the scalers counted.
+                        </para>
+                        <para>
+                            <parameter>timestamp</parameter> is the time at which the
+                            scaler data was read.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>
+                        <funcsynopsis>
+                        <funcprototype><funcdef><type>pTextItem</type> <function>formatTextItem </function></funcdef>
+                        <paramdef>
+                           <parameter><type>unsigned  </type>nStrings </parameter>
+                        </paramdef>
+                        <paramdef>
+                            <parameter><type>time_t</type> stamp</parameter>
+                        </paramdef>
+                        <paramdef>
+                            <parameter><type>uint32_t</type> runTime</parameter>
+                        </paramdef>
+                        <paramdef>
+                            <parameter><type>const char**</type> pStrings</parameter>
+                        </paramdef>
+                        <paramdef>
+                            <parameter><type>int</type> type</parameter>
+                        </paramdef>
+                       </funcprototype>
+                    </funcsynopsis>
+                    </term>
+                    <listitem>
+                        <para>
+                            Creates a text ring item.  The type of the
+                            ring items is provided by the <parameter>type</parameter>
+                            argument however this should be one of
+                            <literal>PACKET_TYPES</literal> or
+                            <literal>MONITORED_VARIABLES</literal>
+                            or a user type that is larger than
+                            <literal>FIRST_USER_ITEM_CODE</literal>.
+                        </para>
+                        <para>
+                            The number of strings put in the item are
+                            <parameter>nStrings</parameter> and
+                            <parameter>pStrings</parameter> is a pointer to an
+                            array of pointers to the null terminated strings that
+                            are put in the <varname>s_strings</varname> storage
+                            of the ring item.
+                        </para>
+                        <para>
+                            <parameter>stamp</parameter> is the unix
+                            <function>time(2)</function> at which the
+                            item was created and <parameter>runTime</parameter>
+                            the number of seconds into the run at which this time
+                            was created.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>
+                    <funcsynopsis>
+                        <funcprototype><funcdef><type>pStateChangeItem</type>
+                        <function>formatStateChange </function></funcdef>
+                        <paramdef>
+                           <parameter><type>time_t  </type>stamp </parameter>
+                        </paramdef>
+                        <paramdef>
+                            <parameter><type>uint32_t</type> offset</parameter>
+                        </paramdef>
+                        <paramdef>
+                            <parameter><type>uint32_t </type> runNumber</parameter>
+                        </paramdef>
+                        <paramdef>
+                            <parameter><type>const char*</type> pTitle</parameter>
+                        </paramdef>
+                        <paramdef>
+                            <parameter><type>uin32_t</type> type</parameter>
+                        </paramdef>
+                        
+                        </funcprototype>
+                    </funcsynopsis>
+                    </term>
+                    <listitem>
+                        <para>
+                            Formats and returns a state change item.
+                            State change items reflect a change in the run state.
+                            While the <parameter>type</parameter> parameter
+                            provides the item type, this should normally be one of
+                            <literal>BEGIN_RUN</literal>,
+                            <literal>END_RUN</literal>,
+                            <literal>PAUSE_RUN</literal> or
+                            <literal>RESUME_RUN</literal>.
+                        </para>
+                        <para>
+                            <parameter>runNumber</parameter> should be a
+                            unique run number for the run and
+                            <parameter>pTitle</parameter> should point to a
+                            null terminated title string.
+                        </para>
+                        <para>
+                            <parameter>offset</parameter> is the time into the
+                            run at which the state change took place in seconds.
+                            This will be <literal>0</literal> for
+                            <literal>BEGIN_RUN</literal> and the number of
+                            seconds the run was active for
+                            <literal>END_RUN</literal>
+                        </para>
+                        <para>
+                            Finally <parameter>stamp</parameter> is the unix
+                            absolute timestamp from <function>time(2)</function>
+                            at which the state change occured.
+                        </para>
+                    </listitem>
+                </varlistentry>
+               
+             </variablelist>
+          </refsect1>
+          <refsect1>
+            <title>RETURNS</title>
+            <para>
+                Pointers to dynamically allocated storage which has been
+                filled in with the requested ring item.
+                When the caller is done with the item it should pass it to 
+                <function>free(3)</function> to release the storage.
+            </para>
+            <para>
+                If storage could not be allocated for the ring  item
+                <literal>NULL</literal> is returned instead.
+            </para>
+          </refsect1>
+        </refentry>
+
 
 <!-- /manpage  -->
