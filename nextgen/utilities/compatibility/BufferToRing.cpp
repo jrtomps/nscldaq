@@ -263,28 +263,14 @@ bool formatEvents (void* pBuffer)
   // later on:
 
   for (int i = 0; i < nEvents; i++) {
-    uint16_t eventSize = *pBody;
+    uint16_t eventSize = *pBody++;
+    pPhysicsEventItem pItem = formatEventItem(eventSize - 1, pBody);
+    bool status = writeData(pItem, pItem->s_header.s_size);
+    free(pItem);
 
-    eventHeader.s_size = eventSize*sizeof(uint16_t) + sizeof(RingItemHeader) +sizeof(uint16_t);
-    eventHeader.s_type = PHYSICS_EVENT;
+    if (!status) return false;
 
-    uint32_t eventSizeL = eventSize +1;
-
-    if (!writeData(&eventHeader, sizeof(eventHeader))) {
-      return false;
-    }
-    if (!writeData(&eventSizeL, sizeof(uint32_t))) {
-      return false;
-    }
-    if (!writeData(pBody+1, (eventSize-1) * sizeof(uint16_t))) {
-      return false;
-    }
-
-    // Adjust wordsLeft, pBody etc... if wordsLeft < 0 that's an error
-    // worth reporting
-
-
-    pBody += eventSize;
+    pBody     += eventSize-1;	// Remember the pointer points to the event body.
     wordsLeft -= eventSize;
 
     if (wordsLeft < 0)
@@ -305,7 +291,6 @@ bool formatEvents (void* pBuffer)
   }
 
   triggers += nEvents;		// Update trigger count seen so far.
-  buffers++;
   return true;
 }
 
@@ -319,14 +304,10 @@ bool formatEvents (void* pBuffer)
  */
 bool formatTriggerCount(uint32_t runTime, time_t stamp)
 {
-  PhysicsEventCountItem item;
-  item.s_header.s_size = sizeof(PhysicsEventCountItem);
-  item.s_header.s_type = PHYSICS_EVENT_COUNT;
-  item.s_timeOffset    = runTime;
-  item.s_timestamp     = stamp;
-  item.s_eventCount    = triggers;
-
-  return writeData(&item, sizeof(PhysicsEventCountItem));
+  pPhysicsEventCountItem pItem = formatTriggerCountItem(runTime, stamp, triggers);
+  bool status = writeData(pItem, pItem->s_header.s_size);
+  free(pItem);
+  return status;
 }
 
 /**
@@ -346,7 +327,6 @@ bool formatScaler (void* pBuffer)
   sclbody*  pBody(reinterpret_cast<sclbody*>(pHeader+1));
   uint32_t nScalers = pHeader->nevt;
 
-  ScalerItem  header;		// We won't use the s_scalers field.
   uint32_t    scalers[nScalers];
  
   time_t      timestamp;
@@ -358,20 +338,12 @@ bool formatScaler (void* pBuffer)
     return false;
   }
 
-  header.s_header.s_size = sizeof(ScalerItem) + ((nScalers-1)*sizeof(uint32_t));
-  header.s_header.s_type = INCREMENTAL_SCALERS;
-  header.s_intervalStartOffset = pBody->btime;
-  header.s_intervalEndOffset   = pBody->etime;
-  header.s_scalerCount         = nScalers;
-  header.s_timestamp           = timestamp;
+  pScalerItem pItem = formatScalerItem(nScalers, timestamp, pBody->btime, pBody->etime,
+				       pBody->scalers);
+  bool status = writeData(pItem, pItem->s_header.s_size);
+  free(pItem);
+  return status;
 
-  memcpy(scalers, pBody->scalers, nScalers * sizeof(uint32_t));
-  bool ok = writeData(&header, sizeof(header) - sizeof(uint32_t));
-  if(!ok) {
-    fprintf(stderr, "Error writing the header of a scaler buffer\n");
-    return false;
-  }
-  return writeData(&scalers, nScalers * sizeof(uint32_t));
 }
 
 /**
@@ -402,40 +374,27 @@ bool formatStrings (void* pBuffer)
 
   TextItem header;
   size_t   nStringSize(0);
-  char*    pStrings(0);
-  
+
   time_t stamp;
   time(&stamp);
 
-  // Fill in as much of the header as we can at this time:
+  const char** pStrings = new const char *[nStrings]; // Will have ptrs to the strings.
+  for (int i =0; i < nStrings; i++) {
+    pStrings[i]  = pBody;
+    
+    // Length + null must always be even:
 
-  header.s_header.s_type = mapTextBufferType(pHeader->type);
-  header.s_timeOffset  = 0;	// Not avaialble in the data.
-  header.s_timestamp   = stamp;
-  header.s_stringCount = nStrings;
-
-  // Fill in the strings...counting the size as we go..we just keep reallocing
-  // pStrings to make space.  Since the source strings are blank filled to 
-  // make them even length, nothing special is needed there.
-
-  for (int i = 0; i < nStrings; i++) {
-    size_t s = strlen(pBody) + 1;	// size of one string + null terminator
-    pStrings = reinterpret_cast<char*>(realloc(pStrings, nStringSize + s));
-    memcpy(&(pStrings[nStringSize]), pBody, s);		// Copy in with null terminator.
-    nStringSize += s;
+    int length = strlen(pBody) + 1; // length + null.
+    if (length %2) length++;	    // Make it even if it's odd.
+    pBody += length;		    // next string.
+    
   }
-  // Compute the full item size:
-  
-  header.s_header.s_size = sizeof(header) - sizeof(char) + nStringSize;
+  pTextItem pItem = formatTextItem(nStrings, stamp, 0, pStrings, mapTextBufferType(pHeader->type));
+  bool status = writeData(pItem, pItem->s_header.s_size);
+  free(pItem);
+  delete [] pStrings;
+  return status;
 
-  bool ok = writeData(&header, sizeof(header)  - sizeof(char));
-  if (!ok) {
-    free(pStrings);
-    fprintf(stderr, "Write failed while writing text item header\n");
-  }
-  ok = writeData(pStrings, nStringSize);
-  free(pStrings);
-  return ok;
 }
 /**
  * Write a state change data buffer. Buffer Type mappings:
@@ -473,17 +432,11 @@ bool formatStateChange (void* pBuffer)
 	   "%Y-%m-%d %T", &bTime);
   time_t stamp = mktime(&bTime);
 
-  // Fill in the item:
-  
-  item.s_header.s_type = mapStateChangeType(pHeader->type);
-  item.s_header.s_size = sizeof(item);
-  item.s_runNumber     = pHeader->run;
-  item.s_timeOffset    = pBody->sortim;
-  item.s_Timestamp     = stamp;
-  strcpy(item.s_title, pBody->title);
-
-
-  return writeData(&item, sizeof(item));
+  pStateChangeItem pItem = formatStateChange(stamp, pBody->sortim, pHeader->run,
+					     pBody->title, mapStateChangeType(pHeader->type));
+  bool status = writeData(pItem, pItem->s_header.s_size);
+  free(pItem);
+  return status;
 
 }
 
