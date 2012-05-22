@@ -43,7 +43,8 @@ noinst_PROGRAMS = unittests
 
 unittests_SOURCES	= TestRunner.cpp selecttest.cpp desiredtests.cpp	\
 			  allbuttests.cpp ringitemtests.cpp teststate.cpp	\
-			scalertests.cpp texttest.cpp physcounttests.cpp	
+			scalertests.cpp texttest.cpp physcounttests.cpp		\
+			formatoutputtests.cpp
 
 unittests_LDADD		= -L$(libdir) $(CPPUNIT_LDFLAGS) 		\
 			@top_srcdir@/base/dataflow/libDataFlow.la 	\

@@ -57,9 +57,11 @@
    pItem->s_header.s_size = itemSize;
    pItem->s_header.s_type = PHYSICS_EVENT;
    
-   pBody = (uint32_t*)(&pItem[1]);
-   *pBody++ = nWords + sizeof(uint32_t);
-   memcpy(pBody, pPayload, nWords * sizeof(uint16_t));
+   pBody = (uint32_t*)(pItem->s_body);
+   *pBody++ = nWords + sizeof(uint32_t)/sizeof(uint16_t);
+   if (nWords) {
+     memcpy(pBody, pPayload, nWords * sizeof(uint16_t)); /* In case memcpy is ill defined for n = 0. */
+   }
 
    return pItem;
  }
@@ -193,7 +195,7 @@ formatStateChange(time_t stamp, uint32_t offset, uint32_t runNumber,
     pItem->s_runNumber = runNumber;
     pItem->s_timeOffset = offset;
     pItem->s_Timestamp  = stamp;
-    memset(pItem, 0, TITLE_MAXSIZE + 1);
+    memset(pItem->s_title, 0, TITLE_MAXSIZE + 1);
     memcpy(pItem->s_title,  pTitle, TITLE_MAXSIZE) ; 
   }
 
