@@ -212,4 +212,10 @@ Feb 1, 2012 - Feb 24, 2012
 	  * Tcl
 	- Document VM-USB and driver support.
         - Get the CAMAC window size right (tr 6639).
+	- Start s800toring in s800callouts - and monitor it.
+	- Provide a ring item generation library.
+	- Use ring item generation library in BufferToRing.
+	- Documment BufferToRing.
+	- Misc ReadoutGUI changes to better support aborting
+	  Begin run.
 	
