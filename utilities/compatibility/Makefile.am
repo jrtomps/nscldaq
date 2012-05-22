@@ -18,6 +18,7 @@ compatibilitylogger_SOURCES = compatibilitylogger.cpp CLogRun.cpp
 compatibilitylogger_LDADD = loggeroptions.o
 
 BufferToRing_SOURCES = BufferToRing.cpp
+BufferToRing_LDADD   = @top_srcdir@/daq/format/libdataformat.la
 
 install-exec-local:
 	$(mkinstalldirs) $(bindir)
