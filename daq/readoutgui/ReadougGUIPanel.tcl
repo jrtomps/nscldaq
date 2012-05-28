@@ -292,10 +292,37 @@ proc ::ReadougGUIPanel::getRunNumber {} {
 proc ReadougGUIPanel::setRun run {
     set base $::ReadougGUIPanel::ROOT
     append w $base . runnumber
+
+
+    set oldState [::ReadougGUIPanel::allowRunNumberEdit 1]
+
+
     $w configure -validate none
     $w delete 0 end
     $w insert end $run
     $w configure -validate key
+
+    ::ReadougGUIPanel::allowRunNumberEdit $oldState
+    return
+}
+#
+#  Disable/enable user modification of the run number widget
+#  
+#  @param flag - true for enable/false for disable.
+#
+#  @return boolean - prior value.
+#
+proc ReadougGUIPanel::allowRunNumberEdit flag {
+    set base $::ReadougGUIPanel::ROOT
+    append w $base . runnumber
+    set oldState  [$w cget -state]
+    set newState [expr {$flag ? "normal" :  "disabled"}]
+    $w configure -state $newState
+
+    set result [expr {$oldState eq "normal" ? 1 : 0}]
+    return $result
+
+
 }
 #  ReadougGUIPanel::incrRun
 #    Increments the run number.

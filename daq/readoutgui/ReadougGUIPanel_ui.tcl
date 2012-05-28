@@ -413,4 +413,6 @@ proc ReadougGUIPanel::ui {root args} {
     grid rowconfigure $base._labelframe_9 1 -weight 0 -minsize 40 -pad 0
     grid columnconfigure $base._labelframe_9 1 -weight 0 -minsize 40 -pad 0
     $root configure -menu $base.menu
+
+    puts "Base: '$base' size: [grid size .]"
 }

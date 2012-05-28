@@ -38,6 +38,7 @@ namespace eval s800 {
     variable s800Host      spdaq48;			 #  Default s800 spdaq
     variable s800Port      9002;			 # Default s800 port.
     variable s800Ring      s800;			 # Default s800 destination ring
+    variable feederFd     -1;				 # If open fd on pipe.
 }
 
 
@@ -62,6 +63,7 @@ proc s800::monitorState ms {
 	set s800State Unknonwn
 	tk_messageBox -title {S800 monitor failed} \
 	    -message "monitor state failed: $msg no longer monitoring s800 state."
+	return
     }
 
     # Set the s800 state only if it changed.  Sinc there may
@@ -106,7 +108,7 @@ proc s800::DestroyHandler {widget} {
 # is working then call the real exit
 #
 # @param status - the status of the real exit.
-proc s800::exit {{status 0}} {
+proc ::s800::Exit {{status 0}} {
     if {$::s800::s800 ne ""} {
 	if {[$::s800::s800 getState] eq "active"} { # end any active run
 	    $::s800::s800 end
@@ -116,6 +118,18 @@ proc s800::exit {{status 0}} {
 	set ::s800::s800 ""
 
     }
+    # Kill off the feeder if it's alive.  Note that this
+    # is unix specific because it execs 'kill.'
+    #
+
+    if {$::s800::pipelineRunning} {
+	catch {
+	    set pid [pid $::s800::feederFd]
+	    close $::s800::feederFd
+	    exec kill $pid
+	}
+    }
+
     after 100 [list ::s800::real_exit $status]
 }
 
@@ -166,6 +180,7 @@ proc s800::_startFeeder {} {
     fconfigure $fd -buffering line
     fileevent $fd readable [list ::s800::pipeReadable  $fd]
 
+    set ::s800::feederFd $fd
 }
 
 
@@ -197,12 +212,12 @@ proc s800::Initialize {{host localhost} {port 8000}} {
     if {$state eq "active"} {
 	tk_messageBox -title  {s800 run active} \
 	    -message {The S800 run is active and must be stopped first}
-	::exit -1
+	exit -1
     }
     $::s800::s800 setSlave; 
 } msg]} {
 	tk_messageBox -title {S800 protocol error} -message "Error communicating with S800@$host: $msg"
-	::exit -1
+	exit -1
     }
 
     # Remove the pause/resume button....once the GUI has time to start.
@@ -211,12 +226,13 @@ proc s800::Initialize {{host localhost} {port 8000}} {
     
     #  Set destroy handler:
     
+    wm protocol . WM_DELETE_WINDOW exit; # Ensure exits on delete window are clean.
     bind . <Destroy> [list s800::DestroyHandler %W]
     
     # Rename exit.
     
     rename ::exit ::s800::real_exit
-    rename ::s800::exit ::exit
+    rename ::s800::Exit ::exit
     
     toplevel .s800
     checkbutton .s800.record -text {Record Crate files} -variable ::s800::record \
@@ -228,10 +244,17 @@ proc s800::Initialize {{host localhost} {port 8000}} {
     label .s800statel -text {S800 state: }
     label .s800state  -textvariable ::s800::runState
 
-    grid .s800statel -row 12 -column 5 -columnspan 2
-    grid .s800state  -row 12 -column 7
 
-    s800::monitorState 2000;	# Monitor th s800 state every nms.
+    # Append the s800 information to the bottom of the GUI;
+
+    set gridDimensions [grid size .]
+    set rows           [lindex $gridDimensions 1]
+    incr rows
+
+    grid .s800statel -row $rows  -column 1 -columnspan 2
+    grid .s800state  -row $rows  -column 3
+
+    s800::monitorState 2000;	# Monitor the s800 state every nms.
     
     
 }
@@ -288,7 +311,7 @@ proc s800::OnEnd {} {
     } msg]} {
 	tk_messageBox -icon error -title "S800 readout GUI failed" \
 	    -message "END Error communicating with the s800 readout - $msg - restart the s800 readout and this GUI"
-	::s800::real_exit -1
+	exit -1
     }
     puts "Recording state [ReadoutState::getRecording]"
     if {[ReadoutState::getRecording] == 0} {
