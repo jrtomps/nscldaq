@@ -218,4 +218,8 @@ Feb 1, 2012 - Feb 24, 2012
 	- Documment BufferToRing.
 	- Misc ReadoutGUI changes to better support aborting
 	  Begin run.
-	
+	- Added ability to disable/enable user typing in the run number
+	  for integration with other systems that like to set the run number
+	  for us (e.g. Gretina).
+	- S800 rdocallouts - put the s800 status bar in the 'bottom line'
+	  of the GUI regardless of what that means.
