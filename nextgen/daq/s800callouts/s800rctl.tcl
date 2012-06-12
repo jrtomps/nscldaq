@@ -38,11 +38,11 @@ snit::type s800rctl {
 
     variable readDoneFlag;	# Incremented to indicate socket readable.
     variable timedOut;   	# Incremented by timeout handler.
-    variable timeoutId;		# ID of the timeout [after].
+    variable timeoutId  -1;	# ID of the timeout [after].
 
 
     ##
-    #  The constructro forms the connection to the -host, -port configured
+    #  The constructor forms the connection to the -host, -port configured
     #  into the system.
     # -host is pretty much mandatory as it's not likely the 
     #  the rdo is running on localhost.
@@ -187,6 +187,8 @@ snit::type s800rctl {
 	return $tail
     }
 
+
+
     #------------------------------------------------------------------
     #
     #  Private methods
@@ -220,7 +222,8 @@ snit::type s800rctl {
     #   If the socket is disconnected and could not be reconnected, an error
     #   is thrown.
     method Transaction {command} {
-	
+
+
 	#  If the socket is disconnected (empty $socket) try to reconnect:
 
 	if {$socket eq ""} {
@@ -277,9 +280,18 @@ snit::type s800rctl {
     method ReadWithTimeout timeout {
 	
 	# wait for the socket to be readable with a timeout:
-	
 	set timedOut 0
-	set timeoutId -1
+
+
+	##
+	# Grumble.... none of this works in the presence of I/O that's
+	# scheduled via an AFTER because the vwait below allows those to come
+	# crashing down on top of us messing everything up.  For now
+	# (and probably forever) I'm giving up the timeout in order to keep'
+	# the ability to status poll.
+
+	return [gets $socket]
+
 
 	fileevent $socket readable [list incr ${selfns}::readDoneFlag]
 	set timeoutId \
@@ -292,6 +304,7 @@ snit::type s800rctl {
 	if {!$timedOut} {
 	    after cancel $timeoutId
 	}
+	set timeoutId -1;	
 
 	#  Now figure out what happened:
 
