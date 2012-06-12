@@ -39,6 +39,7 @@ namespace eval s800 {
     variable s800Port      9002;			 # Default s800 port.
     variable s800Ring      s800;			 # Default s800 destination ring
     variable feederFd     -1;				 # If open fd on pipe.
+    variable pollId       -1
 }
 
 
@@ -53,7 +54,7 @@ proc s800::monitorState ms {
     set status [catch {
 	set s800State [$::s800::s800 getState]
 
-	after $ms [list ::s800::monitorState $ms]
+	set ::s800::pollId [after $ms [list ::s800::monitorState $ms]]
 
     } msg]
 
@@ -109,10 +110,16 @@ proc s800::DestroyHandler {widget} {
 #
 # @param status - the status of the real exit.
 proc ::s800::Exit {{status 0}} {
+    proc bgerror {msg} {
+	break;			# Disable background errors.
+    }
+    puts "S800 exit"
     if {$::s800::s800 ne ""} {
 	if {[$::s800::s800 getState] eq "active"} { # end any active run
+	    puts "ending active run"
 	    $::s800::s800 end
 	}
+	puts "Setting active"
 	$::s800::s800 setMaster
 	destroy $::s800::s800
 	set ::s800::s800 ""
@@ -124,13 +131,20 @@ proc ::s800::Exit {{status 0}} {
 
     if {$::s800::pipelineRunning} {
 	catch {
-	    set pid [pid $::s800::feederFd]
+	    puts "Killing pipeline"
+	    set pids [pid $::s800::feederFd]
+	    fileevent $::s800::feederFd readable ""
+	    foreach pid $pids {
+		puts "Killing $pids"
+		catch {exec kill -9 $pid} msg
+		puts "Kill $pid - $msg"
+	    }
 	    close $::s800::feederFd
-	    exec kill $pid
 	}
     }
-
-    after 100 [list ::s800::real_exit $status]
+    after cancel $::s800::pollId
+    catch {destroy .}
+    ::s800::real_exit $status
 }
 
 ## Get a value from its default and env name.
@@ -170,9 +184,24 @@ proc s800::_startFeeder {} {
     set port [::s800::getValue  $::s800::s800Port S800_PORT]
     set ring [::s800::getValue $::s800::s800Ring  S800_RING]
 
+
     set bindir [file join $::s800::here .. .. bin]
+    set netcat [file join $bindir netcat.tcl]
+    set btoring [file join $bindir BufferToRing]
+    set stdintoring [file join $bindir stdintoring]
+
+
+    set shmbase [file join /dev shm]
+    set shmname [file join $shmbase $ring]
+    if {![file exists $shmname]} {
+	exec $bindir/ringbuffer create $ring
+    }
+
+    set fd [open "| $netcat $host $port | $btoring | $stdintoring $ring " r]
+
+
     
-    set fd [open "| [file join $bindir s800toring] $host $port $ring 2>@1" r]
+#    set fd [open "| [file join $bindir s800toring] $host $port $ring 2>@1" r]
     set ::s800::pipelineRunning 1
 
     # Setup a filevent to catch output/errors and close:
@@ -200,7 +229,7 @@ proc s800::_startFeeder {} {
 proc s800::Initialize {{host localhost} {port 8000}} {
     if {[catch {
 
-    set s800::s800 [s800rctl %AUTO% -host $host -port $port]
+    set s800::s800 [s800rctl %AUTO% -host $host -port $port ]
     
 
     # Set the S800 in slave mode and, if it is running stop it to match
@@ -227,7 +256,6 @@ proc s800::Initialize {{host localhost} {port 8000}} {
     #  Set destroy handler:
     
     wm protocol . WM_DELETE_WINDOW exit; # Ensure exits on delete window are clean.
-    bind . <Destroy> [list s800::DestroyHandler %W]
     
     # Rename exit.
     
