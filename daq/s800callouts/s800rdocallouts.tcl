@@ -40,6 +40,7 @@ namespace eval s800 {
     variable s800Ring      s800;			 # Default s800 destination ring
     variable feederFd     -1;				 # If open fd on pipe.
     variable pollId       -1
+    variable disconnected 0;	# Disconnected message given...
 }
 
 
@@ -48,13 +49,13 @@ namespace eval s800 {
 # for now the entire body is in a catch loop and errors
 # result in the state being set to 'unknown'.
 #
-# @param ms - Millieseconds of periodicity.
+# @param ms - Milliseconds of periodicity.
 #
 proc s800::monitorState ms {
+    set ::s800::pollId [after $ms [list ::s800::monitorState $ms]]
     set status [catch {
 	set s800State [$::s800::s800 getState]
 
-	set ::s800::pollId [after $ms [list ::s800::monitorState $ms]]
 
     } msg]
 
@@ -62,9 +63,14 @@ proc s800::monitorState ms {
 
     if {$status} {
 	set s800State Unknonwn
-	tk_messageBox -title {S800 monitor failed} \
-	    -message "monitor state failed: $msg no longer monitoring s800 state."
-	return
+
+	if {!$::s800::disconnected} {
+	    tk_messageBox -title {S800 monitor failed} \
+		-message "monitor state failed: $msg will try to reconnect periodically."
+	    set ::s800::disconnected 1
+	}
+    } else {
+	set s800::disconnected 0; # Mark connected.
     }
 
     # Set the s800 state only if it changed.  Sinc there may
