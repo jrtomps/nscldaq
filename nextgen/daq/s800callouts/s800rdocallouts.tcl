@@ -63,17 +63,22 @@ proc s800::monitorState ms {
 
     if {$status} {
 	set s800State Unknonwn
-
+	
 	if {!$::s800::disconnected} {
+	    set ::s800::disconnected 1
 	    tk_messageBox -title {S800 monitor failed} \
 		-message "monitor state failed: $msg will try to reconnect periodically."
-	    set ::s800::disconnected 1
 	}
     } else {
+	# Re-assert slave mode:
+	# if necessasry
+	if {$s800::disconnected} {
+	    $::s800::s800 setSlave
+	}
 	set s800::disconnected 0; # Mark connected.
     }
 
-    # Set the s800 state only if it changed.  Sinc there may
+    # Set the s800 state only if it changed.  Since there may
     # be traces on it we only want to fire them if necessary:
 
     if {$s800State ne $::s800::runState} {
