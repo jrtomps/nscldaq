@@ -62,7 +62,7 @@ proc s800::monitorState ms {
     # On failure, set state to unknown.
 
     if {$status} {
-	set s800State Unknonwn
+	set s800State Unknown
 	
 	if {!$::s800::disconnected} {
 	    set ::s800::disconnected 1
