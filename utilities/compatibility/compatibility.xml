@@ -229,7 +229,17 @@ start
             is runnning <application>spectcldaq.server</application>
         </para>
     </section>
-
+    <section>
+        <title>BufferToRing</title>
+        <para>
+            Sometimes you will have to take emitters of NSCL Buffered data and
+            translate them into ring items.  BufferToRing is a filter that
+            takes NSCL event buffers on <filename>stdin</filename> and emits
+            ring items on <filename>stdout</filename>.  This allows you to pipe
+            old event files into a ring buffer SpecTcl.  With the assistance
+            of stdintoring you can also pipe old data into a ringbuffer.
+        </para>
+    </section>
 </chapter>
 <!-- /chapter -->
 
@@ -702,6 +712,44 @@ proc attnet {host port} {
                 </programlisting>
             </example>
         </refsect1>
+      </refentry>
+      <refentry id="compatibility_buffertoring">
+        <refmeta>
+           <refentrytitle>BufferToRing</refentrytitle>
+           <manvolnum>1compatibility</manvolnum>
+        </refmeta>
+        <refnamediv>
+           <refname>BufferToRing</refname>
+           <refpurpose>Convert old buffered data to ring buffer format.</refpurpose>
+        </refnamediv>
+        
+        <refsynopsisdiv>
+          <cmdsynopsis>
+              <command>
+$DAQROOT/bin/BufferToRing <optional>buffer-size</optional>
+          </command>
+          </cmdsynopsis>
+
+        </refsynopsisdiv>
+        <refsect1>
+           <title>DESCRIPTION</title>
+           <para>
+            Converts NSCLDAQ buffered data into ring items.  Input is always
+            taken from <filename>stdin</filename> and output ring items are
+            emitted on <filename>stdout</filename>.  This allows you, by constructing
+            appropriate pipelines or using I/O redirection to convert event files
+            from buffered to ring format.  Buffered data can be turned into a
+            SpecTcl piped data source and can, with the help of
+            stdintoring be placed in a ringbuffer.
+           </para>
+           <para>
+            The program takes an optional parameter; <parameter>buffer-size</parameter>
+            which is the size of the input buffer in bytes.  The default is
+            <literal>8192</literal> which covers most of the buffered event
+            files created by versions of nscldaq prior to 10..0.
+           </para>
+        </refsect1>
+
       </refentry>
 
     

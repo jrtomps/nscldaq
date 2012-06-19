@@ -1,0 +1,7 @@
+#!/bin/bash
+
+#
+#  Dummy readout program:
+
+cat >/dev/null
+

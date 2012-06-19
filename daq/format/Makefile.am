@@ -9,7 +9,8 @@ libdataformat_la_SOURCES = CRingSelectionPredicate.cpp	\
 			CRingStateChangeItem.cpp	\
 			CRingScalerItem.cpp		\
 			CRingTextItem.cpp		\
-			CRingPhysicsEventCountItem.cpp
+			CRingPhysicsEventCountItem.cpp \
+			ringitem.c
 
 
 include_HEADERS	= CRingSelectionPredicate.h	\
@@ -42,7 +43,8 @@ noinst_PROGRAMS = unittests
 
 unittests_SOURCES	= TestRunner.cpp selecttest.cpp desiredtests.cpp	\
 			  allbuttests.cpp ringitemtests.cpp teststate.cpp	\
-			scalertests.cpp texttest.cpp physcounttests.cpp	
+			scalertests.cpp texttest.cpp physcounttests.cpp		\
+			formatoutputtests.cpp
 
 unittests_LDADD		= -L$(libdir) $(CPPUNIT_LDFLAGS) 		\
 			@top_srcdir@/base/dataflow/libDataFlow.la 	\

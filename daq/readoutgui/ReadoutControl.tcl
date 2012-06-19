@@ -404,10 +404,8 @@ proc ReadoutControl::Begin {} {
 	::ReadoutControl::SetState
 	$::ReadoutControl::BeginCallback
 
-        catch {
-	    ::ReadoutControl::SendCommand "begin"
-    	flush $::ReadoutControl::PipeFd
-	}
+	::ReadoutControl::SendCommand "begin"
+	flush $::ReadoutControl::PipeFd
 	set ::ReadoutControl::State "Active"
     }
 }
