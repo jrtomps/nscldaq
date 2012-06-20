@@ -149,9 +149,12 @@ ScalerDisplay <replaceable>configfile</replaceable>
                 </para>
                 <programlisting>
                     <command>
-channel <optional>?-lowalarm <replaceable>value</replaceable>?</optional> <optional>?-hialarm <replaceable>value</replaceable>?</optional> <replaceable>name index</replaceable>
+channel <optional>?switches</optional> <replaceable>name index</replaceable>
                     </command>
                 </programlisting>
+                <para>
+                    Several options control how the channel is treated.
+                </para>
                 <para>
               The <option>-lowalarm</option> and <option>-hialarm</option> allow
               the user to set lower and  upper limits on the 'healthy count rates'.  If
@@ -167,6 +170,15 @@ channel <optional>?-lowalarm <replaceable>value</replaceable>?</optional> <optio
               in  high alarm state and the other is in low alarm state, the colors of
               the names reflects the individual channel alarm states while  the  rate
               values are shown using the 'both alarm color' which defaults to orange.
+                </para>
+                <para>
+                    Scalers that are not cleared after each read are also supported.
+                    to declare such a scaler you must add the <option>-incremental no</option>
+                    option/value pair.  For non incremental scalers, the scaler
+                    display program must know the full scale range of the scaler.
+                    This is provided using the <option>-width</option> option.
+                    The value of this option is the number of bits in the scaler.
+                    Omitting this is like specifying <option>-width 32</option>.
                 </para>
                 <para>              
               Pages are defined via the page command.  The format of this command is:
