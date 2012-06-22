@@ -497,14 +497,18 @@ CRingCommand::usage(CTCLInterpreter&    interp,
   }
   catch (CException& reason) {
     string result;
-    result += "Failed to get usage info:\n";
+    result += "Failed to get usage info:";
+    result += name;
+    result = " \n";
     result += string(reason.ReasonText());
     interp.setResult(result);
     return TCL_ERROR;
   }
   catch (string msg) {
     string result;
-    result += "Failed to get usage info:\n";
+    result += "Failed to get usage info: ";
+    result += name;
+    result = " \n";
     result += msg;
     result += '\n';
     interp.setResult(result);
@@ -512,7 +516,9 @@ CRingCommand::usage(CTCLInterpreter&    interp,
   }
   catch (const char* pmsg) {
     string result;
-    result += "Failed to get usage info\n";
+    result += "Failed to get usage info ";
+    result += name;
+    result = " \n";
     result += pmsg;
     result += '\n';
     interp.setResult(result);
@@ -520,7 +526,10 @@ CRingCommand::usage(CTCLInterpreter&    interp,
   }
   catch (...) {
     string result;
-    result += "Failed to to get usage info\n";
+    result += "Failed to to get usage info ";
+    result += name;
+    result = " \n";
+ 
     interp.setResult(result);
     return TCL_ERROR;
   }
