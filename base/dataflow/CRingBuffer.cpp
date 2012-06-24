@@ -37,6 +37,7 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
+#include <daqshm.h>
 
 
 
@@ -122,20 +123,6 @@ CRingBuffer::create(std::string name,
 		     size_t maxConsumer,
 		     bool   tempMasterConnection)
 {
-  string fullName = shmName(name);
-
-  mode_t old      = umask(0); // Don't mask bits off mods below.
-
-  int fd = shm_open(fullName.c_str(), O_RDWR | O_CREAT | O_TRUNC, 0666);
-
-
-  int olderr = errno;
-  umask(old);			// restore umask and errno from shm_open.=
-  errno = olderr;
-
-  if (fd < 0) {
-    throw CErrnoException("CRingBuffer::create shm_open failed");
-  }
 
   // Figure out the entire size of the shared memory region and truncate the file to that
   // size:
@@ -147,14 +134,16 @@ CRingBuffer::create(std::string name,
   size_t pages     = (rawSize + (pageSize-1))/pageSize;
   size_t shmSize   = pages*pageSize;
 
-  if (ftruncate(fd, shmSize) < 0) {
-    throw CErrnoException("CRingBufer::create ftruncate failed");
+  if(CDAQShm::create(shmName(name), shmSize, 
+		     CDAQShm::GroupRead | CDAQShm::GroupWrite | CDAQShm::OtherRead | CDAQShm::OtherWrite)) {
+    throw CErrnoException("Shared memory creation failed");
   }
 
-  // Close the shm special file and then call format to format the ring buffer:
 
-  close(fd);
   format(name, maxConsumer);
+
+  // Notify the ring master this has been created.
+
   CRingMaster* pOld = m_pMaster;
   m_pMaster = 0;
   connectToRingMaster();
@@ -191,16 +180,14 @@ CRingBuffer::remove(string name)
   connectToRingMaster();
   m_pMaster->notifyDestroy(name);
 
-
   // At this point RM has acked so we can kill the ring itself:
 
   string fullName   = shmName(name);
-  int    status     = shm_unlink(fullName.c_str());
 
-  if (status == -1) {
-    throw CErrnoException("CRingBuffer::remove - shm_unlink failed");
+  if (CDAQShm::remove(fullName)) {
+    throw CErrnoException("Shared memory deletion failed");
+
   }
-
 }
 
 
@@ -226,13 +213,11 @@ CRingBuffer::format(std::string name,
   // need the memory size for initialization.
 
   string fullName = shmName(name);
-  int fd         = openShared(name);
-  size_t memSize = sharedSize(fd);
+  size_t memSize = CDAQShm::size(fullName);
 
   // Now map the ring:
 
-  pRingBuffer      pRing      = reinterpret_cast<pRingBuffer>(mapShared(fd, memSize));
-  close(fd);
+  pRingBuffer      pRing      = reinterpret_cast<pRingBuffer>(CDAQShm::attach(fullName));
 
 
   // Map the ring:
@@ -265,6 +250,7 @@ CRingBuffer::format(std::string name,
     pClients->s_pid            = -1;
     pClients++;
   }
+  CDAQShm::detach(pRing, fullName, memSize);
 
 }
 /*!
@@ -277,14 +263,12 @@ CRingBuffer::format(std::string name,
 bool
 CRingBuffer::isRing(string name)
 {
+  std::string fullName = shmName(name);
   try {
-    string      fullName = shmName(name);
-    int         fd       = openShared(fullName);
-    size_t      size     = sharedSize(fd);
-    pRingBuffer p        = reinterpret_cast<pRingBuffer>(mapShared(fd, size));
+    pRingBuffer p        = reinterpret_cast<pRingBuffer>(CDAQShm::attach(fullName));
+    if (!p) return false;
     bool        result   = ringHeader(p);
-    unmap(p, size);
-    close(fd);
+    CDAQShm::detach(p, fullName, CDAQShm::size(fullName));
 
     return result;
   }
@@ -1021,76 +1005,13 @@ RingBuffer*
 CRingBuffer::mapRingBuffer(std::string fullName)
 {
 
-  int fd = openShared(fullName);
-
-  // Figure out how big it is... assume that it's a multiple of
-  // pagesize:
-
-  size_t size = sharedSize(fd);
-
-  //  Map it:
-
-  void* pMem = mapShared(fd, size);
-
-  // Close the file.
-
-  close(fd);
 
 
-  return reinterpret_cast<RingBuffer*>(pMem);
+  return reinterpret_cast<RingBuffer*>(CDAQShm::attach(fullName));
 
 }
-/******************************************************************/
-/* Open a shared memory file                                      */
-/******************************************************************/
-int 
-CRingBuffer::openShared(string fullName)
-{
-  // Open the shared mem special file.
 
-  int fd = shm_open(fullName.c_str(), O_RDWR, 0);
-  if (fd < 0) {
-    throw CErrnoException("CRingBuffer::openShared failed shm_open");
-  }
-  return fd;
-}
 
-/******************************************************************/
-/* Return the shared memory region size given its fd.             */
-/******************************************************************/
-size_t
-CRingBuffer::sharedSize(int fd)
-{
-  // Figure out how big it is... assume that it's a multiple of
-  // pagesize:
-
-  struct stat info;
-  if(fstat(fd, &info) < 0) {
-    throw CErrnoException("CRingBuffer::sharedSize failed fstat");
-  }
-  return info.st_size;
-}
-/******************************************************************/
-/*  Map a shared memory region                                    */
-/******************************************************************/
-void*
-CRingBuffer::mapShared(int fd, size_t size)
-{
-  void* pMem = mmap(0, size, PROT_READ | PROT_WRITE,  MAP_SHARED,
-		    fd, 0);
-  if (pMem == MAP_FAILED) {
-    throw CErrnoException("CRingBuffer::mapRingBuffer failed mmap");
-  }
-  return pMem;
-}
-/******************************************************************/
-/*  Unmap a region of memory                                      */
-/******************************************************************/
-void
-CRingBuffer::unmap(void* pMemory, size_t size)
-{
-  munmap(pMemory, size);
-}
 /******************************************************************/
 /* Unmap the ring buffer.                                         */
 /******************************************************************/
@@ -1098,13 +1019,8 @@ CRingBuffer::unmap(void* pMemory, size_t size)
 void
 CRingBuffer::unMapRing()
 {
-  // Compute the size of the region:
-
-  pRingHeader pHeader = &(m_pRing->s_header);
-
-  size_t ringSize = pHeader->s_dataBytes + sizeof(RingHeader) +
-                   (pHeader->s_maxConsumer+1)*sizeof(ClientInformation);
-  unmap(m_pRing, ringSize);
+  std::string fullName = shmName(m_ringName);
+  CDAQShm::detach(m_pRing, fullName, CDAQShm::size(fullName));
   
 }
 /******************************************************************/

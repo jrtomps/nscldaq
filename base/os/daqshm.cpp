@@ -92,7 +92,8 @@ CDAQShm::create(std::string name, size_t size, unsigned int flags)
 
   // Figure out the mode:
 
-  mode_t mode = S_IRWXU;	// Start up wide open to user.
+  mode_t mode = S_IRUSR | S_IWUSR;	// Start up wide open to user.
+  
 
   // or in appropriate group bits:
 
@@ -114,7 +115,11 @@ CDAQShm::create(std::string name, size_t size, unsigned int flags)
 
   // Create the special file:
 
+  mode_t old = umask(0);
   int fd = shm_open(name.c_str(), O_CREAT | O_EXCL |O_RDWR, mode);
+  int e = errno;		// We want shm_open's errno not umask's
+  umask(old);
+  errno = e;
   if (fd < 0) {
     if (errno == EEXIST) {
       m_nLastError = Exists;

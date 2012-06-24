@@ -168,10 +168,6 @@ private:
 
   static std::string shmName(std::string rawName);
   static RingBuffer* mapRingBuffer(std::string fullName);
-  static int         openShared(std::string fullName);
-  static size_t      sharedSize(int fd);
-  static void*       mapShared(int fd, size_t size);
-  static void        unmap(void* pMem, size_t size);
   static bool        ringHeader(RingBuffer* p);
 
   std::string        modeString() const;

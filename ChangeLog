@@ -238,4 +238,7 @@ Feb 1, 2012 - Feb 24, 2012
 	  --source cannot be parsed/opened.
         - Issue #914 - Provide docs for the proposed API (coding will be
           from that).
+	- Issue #914 - Complete testing of CRingBuffer with the API rather
+	  than direct shm_xxx calls.
+	
 	

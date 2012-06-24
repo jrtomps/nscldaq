@@ -266,7 +266,7 @@ class <classname>CDAQShm</classname>
             memory racilities.  The life cycle of a shared memory region
             is that it is created (which makes is persistent). Once created,
             processes can attach to the thread, and subsequently detach from
-            the region.  At some poin shared memory regions can be deleted.
+            the region.  At some point shared memory regions can be deleted.
           </para>
           <para>
             Shared memories are not gauranteed to survive across operating system
