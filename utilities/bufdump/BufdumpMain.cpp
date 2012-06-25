@@ -499,16 +499,7 @@ BufdumpMain::dumpUnknownItem(ostream& out, const CRingItem& item)
 string
 BufdumpMain::defaultSource() const
 {
-  string source = "tcp://localhost/";
-
-  // now figure out who I am:
-
-  uid_t id = getuid();
-  struct passwd* p = getpwuid(id);
-
-  source += p->pw_name;
-
-  return source;
+  return CRingBuffer::defaultRingUrl();
 			
 }
 

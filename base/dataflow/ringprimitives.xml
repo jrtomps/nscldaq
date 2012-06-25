@@ -442,6 +442,19 @@ int main(int argc, char** argv)
         <type>size_t</type> <methodname>getDefaultMaxConsumers</methodname>
                             <void />
       </methodsynopsis>
+      <methodsynopsis>
+        <modifier>static</modifier> <type>std::string</type>
+        <methodname>defaultRing</methodname><void />
+      </methodsynopsis>
+      <methodsynopsis>
+        <modifier>static</modifier> <type>std::string</type>
+        <methodname>defaultRing</methodname><void />
+      </methodsynopsis>
+      <methodsynopsis>
+        <modifier>static</modifier><type> std::string</type>
+        <methodname>defaultRingUrl</methodname><void />
+      </methodsynopsis>
+
       <constructorsynopsis>
         <methodname>CRingBuffer</methodname>
         <methodparam>
@@ -833,6 +846,24 @@ int main(int argc, char** argv)
       <para>
         Returns the default maximum number of consumers that will be supported
         by the creation of a new ring buffer.
+      </para>
+      <methodsynopsis>
+        <modifier>static</modifier> <type>std::string</type>
+        <methodname>defaultRing</methodname><void />
+      </methodsynopsis>
+      <para>
+        Returns the default name of the ring for most NSCLDAQ cases.  This will
+        be the name of the logged in user.
+      </para>
+      <methodsynopsis>
+        <modifier>static</modifier><type> std::string</type>
+        <methodname>defaultRingUrl</methodname><void />
+      </methodsynopsis>
+      <para>
+        Returns a URL for the default ring for most NSCLDAQ applications.
+        If <methodname>CRingBuffer::defaultRing</methodname> returns
+        <literal>user</literal>, this function would return:
+        <literal>tcp://localhost/user</literal>.
       </para>
       <constructorsynopsis>
         <methodname>CRingBuffer</methodname>

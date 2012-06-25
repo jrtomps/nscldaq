@@ -38,7 +38,7 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <daqshm.h>
-
+#include <pwd.h>
 
 
 using namespace std;
@@ -342,6 +342,47 @@ CRingBuffer::getDefaultMaxConsumers()
   return m_defaultMaxConsumers;
 }
 
+/**
+ * Return the name of the default ring.  This is the name of the logged in
+ * user.
+ * 
+ * @return std::string
+ * @retval the user associated with the current uid.
+ * 
+ * @throws std::string - if the uid could not be looked up for some reason.
+ */
+std::string
+CRingBuffer::defaultRing()
+{
+  struct passwd  Entry;
+  struct passwd* pEntry;
+  char   dataStorage[1024];	// Storage used by getpwuid_r(3).
+  uid_t  uid = getuid();
+
+  if (getpwuid_r(uid, &Entry, dataStorage, sizeof(dataStorage), &pEntry)) {
+    int errorCode = errno;
+    std::string errorMessage = 
+      "Unable to determine the current username in CTheApplication::destinationRing: ";
+    errorMessage += strerror(errorCode);
+    throw errorMessage;
+    
+  }
+  return string(Entry.pw_name);
+}
+
+
+/**
+ * Returna fully decorated URL for the default ring e.g.
+ * tcp://localhost/<user-name>
+ */
+std::string 
+CRingBuffer::defaultRingUrl()
+{
+  std::string url = "tcp://localhost/";
+  url += defaultRing();
+  return url;
+    
+}
 
 ///////////////////////////////////////////////////////////////////////////////////////
 // Constructors and canonicals.

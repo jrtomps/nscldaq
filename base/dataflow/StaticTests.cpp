@@ -44,6 +44,8 @@ class StaticRingTest : public CppUnit::TestFixture {
   CPPUNIT_TEST(format);
   CPPUNIT_TEST(remove);
   CPPUNIT_TEST(isring);
+  CPPUNIT_TEST(ringname);
+  CPPUNIT_TEST(ringUrl);
   CPPUNIT_TEST_SUITE_END();
 
 
@@ -76,6 +78,8 @@ protected:
   void format();
   void remove();
   void isring();
+  void ringname();
+  void ringUrl();
 };
 
 CPPUNIT_TEST_SUITE_REGISTRATION(StaticRingTest);
@@ -232,4 +236,21 @@ StaticRingTest::isring()
     
   ASSERT(!CRingBuffer::isRing(string(SHM_TESTFILE)));
  
+}
+
+void
+StaticRingTest::ringname()
+{
+  std::string username= getenv("LOGNAME");
+  std::string defaultName = CRingBuffer::defaultRing();
+  EQ(username, defaultName);
+}
+void
+StaticRingTest::ringUrl()
+{
+  std::string username = getenv("LOGNAME");
+  std::string url      = "tcp://localhost/";
+  url += username;
+  std::string defaultUrl = CRingBuffer::defaultRingUrl();
+  EQ(url, defaultUrl);
 }

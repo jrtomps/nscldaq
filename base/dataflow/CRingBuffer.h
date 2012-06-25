@@ -114,6 +114,8 @@ public:
   static size_t getDefaultRingSize();
   static void   setDefaultMaxConsumers(size_t numConsumers);
   static size_t getDefaultMaxConsumers();
+  static std::string defaultRing();
+  static std::string defaultRingUrl();
 
   // Constructors and other canonicals.
 

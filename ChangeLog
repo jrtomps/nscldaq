@@ -240,5 +240,8 @@ Feb 1, 2012 - Feb 24, 2012
           from that).
 	- Issue #914 - Complete testing of CRingBuffer with the API rather
 	  than direct shm_xxx calls.
-	- Issue # 421 - Centralize the code that creates a ring (if
+	- Issue #421 - Centralize the code that creates a ring (if
 	  needed) and attaches as a producer.
+        - Issue #419 - Factor out all the getDefaultRing/URL sorts of
+	  things.
+	
