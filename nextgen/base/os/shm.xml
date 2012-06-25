@@ -1,0 +1,560 @@
+<!-- chapter libraries -->
+<chapter>
+    <title>Shared memory</title>
+    <para>
+        The shared memory library, <filename>libshm</filename> provides
+        operating system independent access to shared memory objects.
+    </para>
+    <para>
+        This library is available for general use, however it's primary
+        use is to improve portability of the RingBuffer software within
+        the NSCL DAQ system.
+    </para>
+    <para>
+        To use the software, you must
+        <itemizedlist>
+            <listitem><para>Incorporate the library header into your source code</para></listitem>
+            <listitem><para>Link your program to the library run-time</para></listitem>
+        </itemizedlist>
+    </para>
+    <para>
+        Reference information is available in <link linkend='daqshm-manpage'>the reference section</link>
+    </para>
+    <section>
+        <title>Overview of the API, and using it from within your C++ software</title>
+        <para>
+            The API is implemented as a C++ class named
+            <classname>CDaqSHM</classname> with the following static methods:
+            <itemizedlist>
+                <listitem><para><methodname>create</methodname> creates a new region.</para></listitem>
+                <listitem><para><methodname>attach</methodname> attaches to an existing region.</para></listitem>
+                <listitem><para><methodname>detach</methodname> Detaches from a shared memory region.</para></listitem>
+                <listitem><para><methodname>remove</methodname> destroys and
+                existing shared memory </para></listitem>
+                <listitem><para><methodname>size</methodname> returns the size
+                of a shared memory region in bytes.</para></listitem>
+                <listitem><para><methodname>lastError</methodname> retrieves the last error status</para></listitem>
+                <listitem><para><methodname>errorMessage</methodname> looks up an error message</para></listitem>
+            </itemizedlist>
+        </para>
+        <para>
+            Note that the class is not threadsafe in that the error status information
+            is static and therefore shared between all threads without any interlocking.
+            
+        </para>
+        <para>
+            The sample program below creates a new shared memory region (if the
+            region does not yet exist), obtains a pointer to it, then some time
+            later detaches from it.  The create and attach calls also illustrate
+            error management.
+        </para>
+        <example>
+            <title>Shared memory library example</title>
+            <programlisting>
+#include &lt;daqshm.h&gt;                            <co id="shm_includes" />
+#include &lt;string&gt;
+...
+
+// Create the shared memory region.. report any error except
+// that the region already exists:
+
+bool status = CDAQShm::create("mymemory", 0x10000,    <co id="shm_create" />
+                            CDAQShm::GroupRead | CDAQShm::GroupWrite |
+                            CDAQShm::OtherRead | CDAQShm::OtherWrite);
+if (status &amp;&amp; (CDAQShm::lastError() != CDAQShm::Exists)) { <co id="shm_create_fail" />
+    std::string exception = "Failed to create new shared memory mymemory: ";
+    exception += CDAQShm::errorMessage(CDAQShm::lastError());
+    throw exception;
+}
+
+// Attach to the region:
+
+void* pMemory = CDAQShm::attach("mymemory");     <co id="shm_attach" />
+if (!pMemory) {
+    std::string exception = "Failed to attach to shared memory mymemory: ";
+    exception            += CDAQShm::errorMesszage(CDAQShm::lastError());
+    throw exception;
+}
+
+// At this  time pMemory can be used to read/write the shared memory region.
+
+....
+
+if (CDAQShm::detach(pMemory, "mymemory", 0x10000)) {   <co id="shm_detach" />
+    std::string exception = "Failed to detach mymemory: ";
+    exception += CDAQShm::errorMessage(CDAQShm::lastError());
+}
+
+
+            </programlisting>
+        </example>
+        <calloutlist>
+            <callout arearefs="shm_includes">
+                <para>
+                    Includes the header for the NSCLDAQ shared memory API.
+                    See <link linkend='shm_compile' endterm='shm_compilet' />
+                    for information that describes how to ensure this header
+                    will be found by the compiler.
+                </para>
+            </callout>
+            <callout arearefs="shm_create">
+                <para>
+                    Attempts to crate the shared memory. The return value of this
+                    method will be
+                    <literal>true</literal> on error.  The first parameter is the
+                    name of the shared memory regiuon.  The second its size in bytes.
+                    The last an or of masks that describe how users other than
+                    the creator can access the region.  The owner will always have
+                    read/write access.
+                </para>
+            </callout>
+            <callout arearefs="shm_create_fail">
+                <para>
+                    If the creation failed for any other reason than the region
+                    already existing (<literal>CDAQShm::Exists</literal>),
+                    an exception of type <classname>std::string</classname> is thrown.
+                    The contents of the string provide context for the exception
+                    as well as the reason the creation failed.
+                </para>
+            </callout>
+            <callout arearefs="shm_attach">
+                <para>
+                    Attaches to the shared memory region.  The return value a pointer
+                    to the shared memory if successful or a null pointer if not.
+                    In this example, once more a string exception describing the
+                    failure is constructed and thrown if the <methodname>attach</methodname>
+                    failed.
+                </para>
+                <para>
+                    Once the <methodname>attach</methodname> has been done,
+                    the shared memory can be accessed through the pointer.
+                </para>
+            </callout>
+            <callout arearefs="shm_detach" >
+                <para>
+                    Detaches from the memory.  After the
+                    <methodname>detach</methodname>, no gaurantees
+                    are made about the pointer returned from the
+                    <methodname>attach</methodname> call and it therefore
+                    should not be dereferences
+                </para>
+                <para>
+                    <literal>true</literal> is returned on error and
+                    once more the example code throws a descriptive string
+                    exception.
+                </para>
+            </callout>
+        </calloutlist>
+    </section>
+    <section id='shm_compile'>
+        <title id='shm_compilet'>Compiling/Linking your software with the shared memory API</title>
+        <para>
+            Compiling and linking a program that uses the <classname>CDAQShm</classname>
+            class requires that you supply the correct <literal>-I</literal>
+            switch so that the header file can be located.  It also
+            requires that at link time you supply appropriate
+            <literal>-L</literal> and <literal>-l</literal> switches to ensure
+            that the library can be located and linked into the executable.
+        </para>
+        <para>
+            We also strongly recommend the use of an <literal>-rpath</literal>
+            switch on the link line so that the shared library can be located
+            at run-time without further environment variables.
+        </para>
+        <para>
+            The examples below assume that <literal>DAQHOME</literal>
+            is an environment variable that points to the top of the
+            NSLCDAQ 10.x or later installation tree.
+        </para>
+        <example>
+            <title>Compiling a C++ source that includes <filename>daqshm.h</filename></title>
+            <programlisting>
+g++ -c  -I$DAQHOME/include mysource.cpp 
+            </programlisting>
+        </example>
+        <example>
+            <title>Linking C++ object files that use the
+            <filename>daqshm</filename> library</title>
+            <programlisting>
+g++ -o myprogram obj1.o obj2.o obj3.o -L$DAQHOME/lib -ldaqshm \
+    -Wl,"-rpath=$DAQHOME/lib"
+            </programlisting>
+        </example>
+    </section>
+</chapter>
+
+<!-- /chapter -->
+
+<!-- manpage 3daq -->
+	 <refentry id="daqshm-manpage">
+       <refmeta>
+          <refentrytitle>CDAQShm</refentrytitle>
+          <manvolnum>3</manvolnum>
+       </refmeta>
+       <refnamediv>
+          <refname>CDAQShm</refname>
+          <refpurpose>class description</refpurpose>
+       </refnamediv>
+       
+       <refsynopsisdiv>
+        <synopsis>
+#include &lt;daqshm.h&gt;
+        
+class <classname>CDAQShm</classname>
+{        
+    <methodsynopsis>
+     <modifier>static</modifier><type>bool</type>
+      <methodname>create</methodname>
+      <methodparam><type>std::string</type><parameter>name</parameter></methodparam>
+      <methodparam><type>size_t</type><parameter>size</parameter></methodparam>
+      <methodparam><type>unsigned int</type><parameter>flags</parameter></methodparam>
+    </methodsynopsis>
+    <methodsynopsis>
+     <modifier>static</modifier><type>void*</type>
+     <methodname>attach</methodname>
+     <methodparam><type>std::string</type><parameter>name</parameter></methodparam>
+    </methodsynopsis>
+    <methodsynopsis>
+     <modifier>static</modifier><type>bool</type>
+     <methodname>detach</methodname>
+     <methodparam><type>void*</type><parameter>pSharedMemory</parameter></methodparam>
+     <methodparam><type>std::string</type><parameter>name</parameter></methodparam>
+     <methodparam><type>size_t</type><parameter>size</parameter></methodparam>
+    </methodsynopsis>
+    <methodsynopsis>
+     <modifier>static</modifier><type>bool</type>
+     <methodname>remove</methodname>
+     <methodparam><type>std::string</type><parameter>name</parameter></methodparam>
+    </methodsynopsis>
+    <methodsynopsis>
+      <modifier>static</modifier><type>ssize_t</type>
+      <methodname>size</methodname>
+       <methodparam>
+         <type>std::string</type><parameter>name</parameter>
+       </methodparam>
+    </methodsynopsis>
+    <methodsynopsis>
+     <modifier>static</modifier><type>int</type>
+     <methodname>lastError</methodname><void />
+    </methodsynopsis>
+    <methodsynopsis>
+     <modifier>static</modifier><type>std::string</type>
+     <methodname>errorMessage</methodname>
+     <methodparam>
+         <type>int</type><parameter>errorCode</parameter>
+     </methodparam>
+    </methodsynopsis>
+
+   <fieldsynopsis><modifier>static const</modifier> <type>int</type> <varname>Success</varname></fieldsynopsis>
+   <fieldsynopsis><modifier>static const</modifier> <type>int</type> <varname>Exists</varname></fieldsynopsis>
+   <fieldsynopsis><modifier>static const</modifier> <type>int</type> <varname>NonExistent</varname></fieldsynopsis>
+   <fieldsynopsis><modifier>static const</modifier> <type>int</type> <varname>NoAccess</varname></fieldsynopsis>
+   <fieldsynopsis><modifier>static const</modifier> <type>int</type> <varname>NotAttached</varname></fieldsynopsis>
+   <fieldsynopsis><modifier>static const</modifier> <type>int</type> <varname>CheckOSError</varname></fieldsynopsis>
+   
+   <fieldsynopsis><modifier>static const</modifier> <type>int</type> <varname>GroupRead</varname></fieldsynopsis>
+   <fieldsynopsis><modifier>static const</modifier> <type>int</type> <varname>GroupWrite</varname></fieldsynopsis>
+   <fieldsynopsis><modifier>static const</modifier> <type>int</type> <varname>OtherRead</varname></fieldsynopsis>
+   <fieldsynopsis><modifier>static const</modifier> <type>int</type> <varname>OtherWrite</varname></fieldsynopsis>
+};
+            </synopsis>        
+       </refsynopsisdiv>
+       <refsect1>
+          <title>DESCRIPTION</title>
+          <para>
+            Provides operating system independent access to underlying shared
+            memory racilities.  The life cycle of a shared memory region
+            is that it is created (which makes is persistent). Once created,
+            processes can attach to the thread, and subsequently detach from
+            the region.  At some point shared memory regions can be deleted.
+          </para>
+          <para>
+            Shared memories are not gauranteed to survive across operating system
+            reboots.
+          </para>
+       </refsect1>
+       <refsect1>
+          <title>
+         METHODS
+          </title>
+          <variablelist>
+            <varlistentry>
+                <term>
+                    <methodsynopsis>
+                    <modifier>static</modifier><type>bool</type>
+                     <methodname>create</methodname>
+                     <methodparam><type>std::string</type><parameter>name</parameter></methodparam>
+                     <methodparam><type>size_t</type><parameter>size</parameter></methodparam>
+                     <methodparam><type>unsigned int</type><parameter>flags</parameter></methodparam>
+                   </methodsynopsis>
+                </term>
+                <listitem>
+                    <para>
+                        Creates a new shared memory section.
+                        <parameter>name</parameter> is the name of the
+                        new region. <parameter>size</parameter> is the minimum
+                        number of bytes of shared memory that will be created.
+                        It is possible the shared memory will be larger than
+                        <parameter>size</parameter> due to page alignment requirements.
+                        <parameter>flags</parameter>is a bitwised or list of flags that
+                        determine the access granted to other users.
+                    </para>
+                    <para>
+                        See <link linkend='daqshm-varsrefsect' endterm='daqshm-varsrefsectt' />
+                        for information about the bits in the flag parameter.
+                    </para>
+                    <para>
+                        <literal>false</literal> is returned on success
+                        and <literal>true</literal> on failure allowing for the
+                        normal C style idiom of
+                        <literal> if (CDAQShm::create(....)) { handle errors}</literal>
+                    </para>
+                </listitem>
+            </varlistentry>
+            
+            <varlistentry>
+                <term>
+                    <methodsynopsis>
+                     <modifier>static</modifier><type>void*</type>
+                     <methodname>attach</methodname>
+                     <methodparam><type>std::string</type><parameter>name</parameter></methodparam>
+                    </methodsynopsis>
+                </term>
+                <listitem>
+                    <para>
+                        Attaches the process to an existing shared memory region.
+                        The memory region is mapped into the process virtual
+                        address space and a pointer to the first byte of that
+                        virtual address space is returned.
+                    </para>
+                    <para>
+                        <parameter>name</parameter> is the name of the shared memory
+                        segment created via <methodname>create</methodname>.
+                    </para>
+                    <para>
+                        On error, this method returns <literal>null</literal>.
+                    </para>
+                </listitem>
+            </varlistentry>
+            
+            <varlistentry>
+                <term>    
+                    <methodsynopsis>
+                     <modifier>static</modifier><type>bool</type>
+                     <methodname>detach</methodname>
+                     <methodparam><type>void*</type><parameter>pSharedMemory</parameter></methodparam>
+                     <methodparam><type>std::string</type><parameter>name</parameter></methodparam>
+                     <methodparam><type>size_t</type><parameter>size</parameter></methodparam>
+                    </methodsynopsis>
+                </term>
+                <listitem>
+                    <para>
+                        Detaches from a shared memory region. <parameter>pSharedMemory</parameter>
+                        is the pointer that was returned from <methodname>attach</methodname>
+                        while <parameter>name</parameter> was the name of the shared
+                        memory passed in to <methodname>attach</methodname>.
+                        The size of the shared memory region is <parameter>size</parameter>
+                    </para>
+                    <para>
+                        <literal>true</literal> is returned on error.
+                    </para>
+                </listitem>
+            </varlistentry>
+            
+            
+            <varlistentry>
+                <term>
+                    <methodsynopsis>
+                     <modifier>static</modifier><type>bool</type>
+                     <methodname>remove</methodname>
+                     <methodparam><type>std::string</type><parameter>name</parameter></methodparam>
+                    </methodsynopsis>
+                </term>
+                <listitem>
+                    <para>
+                        Marks the shared memory region <parameter>name</parameter>
+                        for deletion by the operating system.  In most operating
+                        systems, the underlying system call will not actually
+                        delete the shared memory until all processes currently
+                        attached either exit or detach.
+                    </para>
+                    <para>
+                        The method returns <literal>true</literal> if
+                        a failure is detected.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+              <term>
+            <methodsynopsis>
+             <modifier>static</modifier><type>ssize_t</type>
+             <methodname>size</methodname>
+              <methodparam>
+                <type>std::string</type><parameter>name</parameter>
+              </methodparam>
+           </methodsynopsis>
+                </term>
+                <listitem>
+                   <para>
+                      Returns the number of bytes in a shared memory region.
+                   </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>
+                    <methodsynopsis>
+                     <modifier>static</modifier><type>int</type>
+                     <methodname>lastError</methodname><void />
+                    </methodsynopsis>
+                </term>
+                <listitem>
+                    <para>
+                        Returns the status of the most recent call.
+                        The set of values that might be returned is documented
+                        below in
+                        <link linkend='daqshm-varsrefsect' endterm='daqshm-varsrefsectt' />.
+                    </para>
+                </listitem>
+            </varlistentry>
+                        
+           <varlistentry>
+            <term>
+                <methodsynopsis>
+                 <modifier>static</modifier><type>std::string</type>
+                 <methodname>errorMessage</methodname>
+                 <methodparam>
+                     <type>int</type><parameter>errorCode</parameter>
+                 </methodparam>
+                </methodsynopsis>
+            </term>
+            <listitem>
+                <para>
+                    Returns a textual error message that corresponds to the
+                    <parameter>errorCode</parameter> gotten from a call
+                    to <methodname>lastError</methodname>
+                </para>
+            </listitem>
+           </varlistentry>
+          </variablelist>
+       </refsect1>
+        <refsect1 id="daqshm-varsrefsect">
+           <title id="daqshm-varsrefsectt">PUBLIC VARIABLES, TYPES and CONSTANTS</title>
+           <para>
+            This class exports two setsof constants. The first set has to do
+            with reporting detailed status information (failure causes actuall).
+            The second set describs the protections that are to be applied to a
+            shared memory section at creation time.
+           </para>
+           <formalpara>
+            <title>Status Codes:</title><para>
+            <variablelist>
+                <varlistentry>
+                    <term>
+                        <fieldsynopsis><modifier>static const</modifier> <type>int</type> <varname>Success</varname></fieldsynopsis>
+                    </term>
+                    <listitem>
+                        <para>Successful completion of the operation.</para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>
+                            <fieldsynopsis><modifier>static const</modifier> <type>int</type> <varname>Exists</varname></fieldsynopsis>
+                    </term>
+                    <listitem><para>Shared memory region already exists but is being <methodname>create</methodname>ed.</para></listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>
+                            <fieldsynopsis><modifier>static const</modifier> <type>int</type> <varname>NonExistent</varname></fieldsynopsis>
+                    </term>
+                    <listitem><para>Shared memory region does not exist for <methodname>attach</methodname> or
+                        <methodname>remove</methodname></para></listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>
+                            <fieldsynopsis><modifier>static const</modifier> <type>int</type> <varname>NoAccess</varname></fieldsynopsis>
+                    </term>
+                    <listitem><para> The desired access was not allowe by the shared memory protections</para></listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>
+                            <fieldsynopsis><modifier>static const</modifier> <type>int</type> <varname>NotAttached</varname></fieldsynopsis>
+                    </term>
+                    <listitem>
+                        <para>
+                            Shared memory section is not attached.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>
+                            <fieldsynopsis><modifier>static const</modifier> <type>int</type> <varname>CheckOSError</varname></fieldsynopsis>
+                    </term>
+                    <listitem>
+                        <para>
+                            Check the underlying operating system's error code.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                
+                </variablelist>
+            </para>
+           </formalpara>
+           <formalpara>
+            <title>Permissions bits.</title>
+            <para>
+                These bits provide unix like permissions.
+                <variablelist>
+                    <varlistentry>
+                        <term>
+                            <fieldsynopsis><modifier>static const</modifier> <type>int</type> <varname>GroupRead</varname></fieldsynopsis>
+                        </term>
+                        <listitem>
+                            <para>
+                                Allows members of the user's group to read the shared
+                                memory section.  Such users can attach but no
+                                write dereferencdes to the shared memory will work.
+                            </para>
+                        </listitem>
+                    </varlistentry>
+                    <varlistentry>
+                        <term>
+                            <fieldsynopsis><modifier>static const</modifier> <type>int</type> <varname>GroupWrite</varname></fieldsynopsis>
+                        </term>
+                        <listitem>
+                            <para>
+                                Allows members of the user's group to write the shared
+                                memory. Note that this does not imply read access
+                                unless or-ed with <varname>GroupRead</varname>.
+                            </para>
+                        </listitem>
+                    </varlistentry>
+                    <varlistentry>
+                        <term>
+                            <fieldsynopsis><modifier>static const</modifier> <type>int</type> <varname>OtherRead</varname></fieldsynopsis>
+                        </term>
+                        <listitem>
+                            <para>
+                                Allows people that are not in the user's group to
+                                read the segment.
+                            </para>
+                        </listitem>
+                    </varlistentry>
+                    <varlistentry>
+                        <term>
+                            <fieldsynopsis><modifier>static const</modifier> <type>int</type> <varname>OtherWrite</varname></fieldsynopsis>
+                        </term>
+                        <listitem>
+                            <para>
+                                Allows people that are not in the user's group
+                                to write to the segment.
+                            </para>
+                        </listitem>
+                    </varlistentry>
+                </variablelist>
+            </para>
+           </formalpara>
+           
+            
+        </refsect1>
+     </refentry>     
+<!-- /manpage -->
