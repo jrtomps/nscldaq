@@ -244,4 +244,7 @@ Feb 1, 2012 - Feb 24, 2012
 	  needed) and attaches as a producer.
         - Issue #419 - Factor out all the getDefaultRing/URL sorts of
 	  things.
+	- Issue #1119 - Honor env variables for stagearea and expdir when
+	                checking for a good stagearea link.
+	
 	
