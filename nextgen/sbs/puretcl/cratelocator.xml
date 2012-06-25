@@ -1,0 +1,82 @@
+<!-- chapter utilities -->
+
+<chapter>
+    <title>cratelocator</title>
+    <para>
+        Each system can support up to 8 SBS controllers, numbered
+        <literal>0-7</literal>.  Unfortunately, there are no distinguishing
+        marks on the controllers themselves to let you know which is which.
+        <command>cratelocator</command> is a Tcl/Tk script that helps you identify
+        the crate controllers.
+    </para>
+    <para>
+        The <command>cratelocator</command> utility presents you with a set of
+        radiobuttons.  Select one to choose a VME crate controller.
+        Click the <guibutton>Locate</guibutton> button.  <command>cratelocator</command>
+        rapidly issues VME operations on the crate which causes the selected controller's
+        <literal>Remote</literal> light to glow.  When you have identified the
+        controller either click the <guibutton>Stop</guibutton> button and
+        select repeat this process until all controllers have been identified, or
+        click <guibutton>Exit</guibutton> to exit.
+    </para>
+    <para>
+        Note that unless you add VME controllers to the system, or rearrange the
+        Fiber optic cabling, VME bus controller numbers will not change from
+        reboot to reboot.
+    </para>
+</chapter>
+<!-- /chapter -->
+<!-- manpage 1tcl -->
+      <refentry>
+        <refmeta>
+           <refentrytitle>cratelocator</refentrytitle>
+           <manvolnum>1tcl</manvolnum>
+        </refmeta>
+        <refnamediv>
+           <refname>cratelocator</refname>
+           <refpurpose>locate specific SBS VME crate controllers.</refpurpose>
+        </refnamediv>
+        
+        <refsynopsisdiv>
+          <synopsis>
+$DAQHOME/cratelocator
+              <command>
+          </command>
+          </synopsis>
+
+        </refsynopsisdiv>
+        <refsect1>
+           <title>DESCRIPTION</title>
+                <para>
+                    Each system can support up to 8 SBS controllers, numbered
+                    <literal>0-7</literal>.  Unfortunately, there are no distinguishing
+                    marks on the controllers themselves to let you know which is which.
+                    <command>cratelocator</command> is a Tcl/Tk script that helps you identify
+                    the crate controllers.
+                </para>
+                <para>
+                    The <command>cratelocator</command> utility presents you with a set of
+                    radiobuttons.  Select one to choose a VME crate controller.
+                    Click the <guibutton>Locate</guibutton> button.  <command>cratelocator</command>
+                    rapidly issues VME operations on the crate which causes the selected controller's
+                    <literal>Remote</literal> light to glow.  When you have identified the
+                    controller either click the <guibutton>Stop</guibutton> button and
+                    select repeat this process until all controllers have been identified, or
+                    click <guibutton>Exit</guibutton> to exit.
+                </para>
+                <para>
+                    Note that unless you add VME controllers to the system, or rearrange the
+                    Fiber optic cabling, VME bus controller numbers will not change from
+                    reboot to reboot.
+                </para>
+        </refsect1>
+        <refsect1>
+           <title>
+              OPTIONS
+           </title>
+           <para>
+            None
+           </para>
+        </refsect1>
+
+      </refentry>

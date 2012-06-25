@@ -43,7 +43,8 @@ exec tclserver  -pManaged -a"ScalerDisplay"  -userauth ${0} ${@}
 #                    - Alarming
 #                    - Strip charts.
 #                    - Final rate == average rate.
-#    Iteation 8:    Allow alarms to be disaled per Dirk's request.
+#    Iteration 8:    Allow alarms to be disabled per Dirk's request.
+#    Iteration 9:   Support non-incremental scalers. 
 #
 #
 # Ensure that initially required variables exist:
@@ -87,6 +88,11 @@ set pageSerial        0         ;# serial number used to name page frames.
 #                              low level for the alarm.
 #    hiAlarms(channel-name)    If this exists, it containst the
 #                              hi level for the alarm.
+#    incremental(channel-no)   True if this is an incremental scaler.
+#    bitsWide(channel-no)      Number of bits wide the channel is.
+#    priorIncrement(channel-no)    Prior value of Scaler_Increments (for non-incrementals).
+#    nonIncrementalTotal(channel-no) non-incremental totals.
+#
 #    pageAlarmState(pageName)  Contains the alarm mask for a page.
 #                              Bits are as follows:
 #                               1  - There is a channel in low alarm
@@ -95,6 +101,13 @@ set pageSerial        0         ;# serial number used to name page frames.
 #    hiColor                   Color when hi alarm condition is true
 #    bothColor                 Color when both alarm conditions are true.
 #    silentAlarms              If true, alarms are silent.
+
+array set lowAlarmas [list]
+array set hiAlarms   [list]
+array set incremental [list]
+array set bitsWide    [list]
+array set priorIncrement  [list]
+
 set lowAlarmBit   1
 set hiAlarmBit    2
 set lowColor   green
@@ -178,6 +191,40 @@ set IntervalCount 0
 
 
 package require Tablelist
+
+##
+#  Process a scaler increment.  If the increment is for a non-incremental
+#  scaler the actual increment must be calculated from the 
+#  current and prior values (and possibly the bit width of the scaler).
+#  
+# @param array - Name of array that has been changed (::Scaler_Increments)
+# @param index - Array index (channel number).
+# @param op    - operation (write) being performed.
+#
+# @note - traces are off for the duration of this proc so we can modify
+#         Scaler_Increments without worrying about what might happen.
+#
+proc processIncrement {array index op} {
+    #
+    # No action to take if the scaler is not incremental:
+
+    if {([array names ::incremental $index] ne "") && (!$::incremental($index))} {
+
+	set nextTotal $::Scaler_Increments($index)
+	
+	# Compute the increment...if it's negative assume a single roll-over.
+	# Update the nonIncrementalTotal as well.
+
+	set ::Scaler_Increments($index) [expr {$nextTotal - $::priorIncrement($index)}]
+	if {$::Scaler_Increments($index) < 0} {
+	    set ::Scaler_Increments($index) [expr {$::Scaler_Increments($index) + (1 << $::bitsWide($index))}]
+	}
+	set ::nonIncrementalTotal($index) \
+	    [expr {$::nonIncrementalTotal($index) + $::Scaler_Increments($index)}]
+	
+	set ::priorIncrement($index) $nextTotal; # New value is now the prior value.
+    }
+}
 
 # Compute a scaler rate.
 #
@@ -495,8 +542,12 @@ proc ClearStatistics {} {
 	global SumSquares
 	global IntervalCount
 
-	catch {unset SumSquares}
+    catch {unset SumSquares}
     set IntervalCount 0
+    foreach id [array names ::priorIncrement] {
+	set ::priorIncrement($id) 0; # Reset the prior values array.
+	set ::nonIncremntalTotal($id) 0; # reset the totals info.
+    }
 }
 
 #  Update the running statistics
@@ -504,13 +555,23 @@ proc ClearStatistics {} {
 #  squares  of the rates.
 #
 proc UpdateStatistics {} {
-	global SumSquares
-	global IntervalCount
-	global Scaler_Increments
-	global ScalerDeltaTime
-
+    global SumSquares
+    global IntervalCount
+    global Scaler_Increments
+    global Scaler_Totals
+    global ScalerDeltaTime
+    
     if {$ScalerDeltaTime == 0} {
 	return;				# End of run.
+    }
+
+    # For non-incremental scalers, copy their actual totals from
+    # nonIncrementalTotal(i) -> Scaler_Totals(i)
+
+    foreach element [array names ::incremental] {
+	if {!$::incremental($element) } {
+	    set Scaler_Totals($element) $::nonIncrementalTotal($element)
+	}
     }
 
     incr IntervalCount
@@ -690,7 +751,7 @@ proc EndRun   {} {
     puts $fd "                     Duration: $HMStime"
     puts $fd " Scaler Name        Scaler Total  Avg Rate     Std. Dev           "
     puts $fd "------------------------------------------------------------------"
-    set fmt  " %11s  %11d  %11.2f  %11.2f"
+    set fmt  " %11s  %11lld  %11.2f  %11.2f"
 
     # Get the alphabetized list of scaler channels and put them out.
     set channels [lsort [array names ScalerMap]]
@@ -698,7 +759,7 @@ proc EndRun   {} {
 	if {$channel != $Fakename} {
 	    set   id $ScalerMap($channel)
 	    if {$ElapsedRunTime != 0} {
-		set   Average [expr $Scaler_Totals($id)/$ElapsedRunTime]
+		set   Average [expr double($Scaler_Totals($id))/$ElapsedRunTime]
 	    } else {
 		set Average 0
 	    }
@@ -1190,6 +1251,9 @@ proc page {name title} {
 #                                omitted, no low alarm level is set for the channel.
 #            -hialarm value    - Sets the high alarm level for the channel  if
 #                                omitted, no alarm level is set for the channel.
+#            -width   value    - number of bits in scaler  (default 32)
+#            -incremental yes/no - True if scaler is incremental. (default yes)
+#
 #  For legal switch/value pairs, the value is put into the appropriate lowAlarms or
 #  hiAlarms array element.  Illegal switch/value pairs result in a descriptive
 #  error throw to the caller.
@@ -1197,26 +1261,42 @@ proc page {name title} {
 # Parameters:
 #   name       - Name of the channel whose switches are being processed.
 #   option     - The option (e.g. -lowalarm or -hialarm).
-#   value      - A floating point value for the alarm level.
+#   value      - option value.
 #
 proc processChannelSwitch {name option value}  {
     global lowAlarms
     global hiAlarms
-
+    
     #  Ensure the value is a legal floating point:
+    
 
-    if {[scan $value %f limit] == 0} {
-        error "Expected floating point for limit value got $value"
-    }
     # Process legal switches and error on illegal:
 
     switch -exact -- $option {
         -lowalarm {
-            set lowAlarms($name) $value
+	    if {![string is double -strict $value]} {
+		error "Expected floating point for limit got $value"
+	    }
+	    set lowAlarms($name) $value
         }
         -hialarm {
-            set hiAlarms($name) $value
+	    if {![string is double -strict $value]} {
+		error "Expected floating point for limit got $value"
+	    }
+	    set hiAlarms($name) $value
         }
+	-incremental {
+	    if {![string is boolean -strict $value]} {
+		error "Expected valid boolean got $value"
+	    }
+	    set ::incremental($::ScalerMap($name)) $value
+	}
+	-width {
+	    if {![string is integer -strict  $value]} {
+		error "Expected integer bits got $value"
+	    }
+	    set ::bitsWide($::ScalerMap($name)) $value
+	}
         default {
             error "Illegal option value: $option must be either -lowalarm or -hialarm"
         }
@@ -1226,11 +1306,16 @@ proc processChannelSwitch {name option value}  {
 
 #    channel command
 #      The form of the channel command is:
-#         channel ?-lowalarm value? ?-highalarm value? name number
+#         channel ?-lowalarm value? ?-highalarm value?
+#                  ?-incremental yes|no? ?-width no_bits?   name number
+#
 #            -lowalarm value   - Sets the low alarm level for the channel if
 #                                omitted, no low alarm level is set for the channel.
 #            -hialarm value    - Sets the high alarm level for the channel  if
 #                                omitted, no alarm level is set for the channel.
+#            -incremental yes|no - If yes scaler is incremental otherwise it is not cleared.
+#            -width    value   - Integer number of bits the scaler is wide.
+#
 #            name              - Is the name to be assigned to the scaler channel.
 #            number            - Is the scaler index.  Scaler indices number from 0.
 #  Parameters:
@@ -1242,59 +1327,48 @@ proc channel {args} {
     global ScalerMap
     global lowAlarms
     global hiAlarms
-
+    
     # We first need to pick off the name and channel, based on
     #  The name and channel are always the last two parameters.
-
+    
     set numParams [llength $args]
     if {$numParams < 2} {
-        puts "Too few parameters: channel $args"
-        return
+	puts "Too few parameters: channel $args"
+	return
     }
-
+    
     set id      [lindex $args end]
     set name    [lindex $args end-1]
-
+    
     # short stop any attempts to make a duplicate name:
-
+    
     if {[array names ScalerMap $name] == $name} {
 	puts "Attempt to make a duplicate scaler map of $name to $id ignored"
         return
     }
 
-
-    # The alarm stuff we can process depends on the number of command parameters:
-
-
-    incr numParams -2;                          # Remove the name/id from the list.
-
-    #  Legal values for numParams are now 2 and 4:
-
-    if {$numParams == 2} {
-        if {[catch {processChannelSwitch $name [lindex $args 0] [lindex $args 1]} msg]} {
-            puts "Failed to process command switches channel $args : $msg"
-            return
-        }
-    } elseif {$numParams ==4} {
-        if {[catch {processChannelSwitch $name [lindex $args 0] [lindex $args 1]} msg]} {
-            puts "Failed to process command switches channel $args : $msg"
-            return
-        }
-        if {[catch {processChannelSwitch $name [lindex $args 2] [lindex $args 3]} msg]} {
-            puts "Failed to process command switches channel $args : $msg"
-            catch {unset lowAlarms($name)}
-            catch {unset hiAlamrs($name)}
-            return
-        }
-    } elseif {$numParams == 0} {
-        # No switches nothing to do but perfectly legal.
-    } else {
-        puts "Invalid number of parameters for command: channel $args"
-        puts "command ignored"
-        return
-    }
-    puts "Setting scaler $name $id"
     set ScalerMap($name) $id
+    
+    
+    # The  switches we  can process depends on the number of command parameters:
+
+    set switches [lrange $args 0 end-2]
+    
+    # Set some default values:
+
+    set ::incremental($id) yes; #  By default all scalers are incremental [compatibility]
+    set ::bitsWide($id)    32;  #  By default all non-incremental scalers are 32 bits wide.
+    set ::priorIncrement($id)  0;	#  prior scaler value.
+    set ::nonIncrementalTotal($id) 0;	#  Total if not incremental.
+
+    foreach {option value} $switches {
+	if {[catch {processChannelSwitch $name $option $value} msg]} {
+	    puts "Failed to process switch/option $option $value: $msg"
+	    return
+	}
+    }
+    
+
 }
 
 #  Display a blank line on the page at the current position.
@@ -1518,4 +1592,11 @@ proc stripconfig {args} {
 
 set Notebook [SetupGui $scalerWin]
 
-
+##
+#  This trace is used to process scaler increments
+#  Specifically, for non-incremental scalers, the
+#  increments must be calculated fromt he prior increment value and the
+#  width of the scaler..furthermore, the totals will be summed into
+#  nonIncrementalTotal and on update pulled into Scaler_Totals.
+#
+trace add variable Scaler_Increments write processIncrement; 

@@ -31,7 +31,7 @@
 #include <CNullTrigger.h>
 #include <CVariableBuffers.h>
 #include <TCLInterpreter.h>
-
+#include <CRingBuffer.h>
 
 #include <netdb.h>
 #include <stdlib.h>
@@ -305,19 +305,7 @@ CReadoutMain::getRingName(struct gengetopt_args_info& args)
     return string(args.ring_arg);
   }
 
-  // Figure out our username by looking up our uid and our pwentry from the
-  // uid:
+  return CRingBuffer::defaultRing();
 
-  uid_t uid = getuid();
-  struct passwd Entry;
-  struct passwd* pEntry;
-  char          stuff[1024];
-  
-  if (getpwuid_r(uid, &Entry, stuff, sizeof(stuff), &pEntry)) {
-    throw CErrnoException("Getting password entry for this user");
-  }
-  else {
-    return string(Entry.pw_name);
-  }
 
 }

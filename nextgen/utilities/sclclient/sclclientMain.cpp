@@ -423,11 +423,8 @@ SclClientMain::ConnectionLostRelay(TcpClientConnection& connection, void* theObj
 string
 SclClientMain::defaultRing()
 {
-  string url = "tcp://localhost/";
+  return CRingBuffer::defaultRingUrl();
 
-
-  url += whoAmI();
-  return url;  
 }
 
 /*

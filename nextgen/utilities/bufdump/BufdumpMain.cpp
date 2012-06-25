@@ -95,6 +95,15 @@ BufdumpMain::operator()(int argc, char** argv)
   gengetopt_args_info parse;
   cmdline_parser(argc, argv, &parse);
 
+  // there should be no unnamed arguments. if there are,
+  // print the help text and exit:
+
+  if (parse.inputs_num > 0) {
+    std::cerr << "Only switches are allowed, not command line parameters\n";
+    cmdline_parser_print_help();
+    return EXIT_FAILURE;
+  }
+
   // figure out the sample/exclusion vectors:
 
   vector<uint16_t> sample;
@@ -138,22 +147,42 @@ BufdumpMain::operator()(int argc, char** argv)
     sourceName = parse.source_arg;
   }
 
-  m_pDataSource = new URL(sourceName);
   
   CDataSource* pSource;
-
-  if (m_pDataSource->getProto() == string("file")) {
-    pSource = new CFileDataSource(*m_pDataSource, exclude);
-    m_ringSource = false;
+  try {
+    m_pDataSource = new URL(sourceName);
+    if (m_pDataSource->getProto() == string("file")) {
+      pSource = new CFileDataSource(*m_pDataSource, exclude);
+      m_ringSource = false;
+    }
+    else if (m_pDataSource->getProto() == string("tcp")) {
+      pSource = new CRingDataSource(*m_pDataSource, sample, exclude);
+      m_ringSource = true;
+    }
+    else {
+      cerr << "--source url must be either tcp: (ringbuffer) or file: (event file) and was "
+	   << m_pDataSource->getProto() << endl;
+      return EXIT_FAILURE;
+    }
   }
-  else if (m_pDataSource->getProto() == string("tcp")) {
-    pSource = new CRingDataSource(*m_pDataSource, sample, exclude);
-    m_ringSource = true;
+  catch (CException& e) {
+    std::cerr << "Failed to open data source " << sourceName << std::endl;
+    std::cerr << e.ReasonText() << std::endl;
+    throw EXIT_FAILURE;
   }
-  else {
-    cerr << "--source url must be either tcp: (ringbuffer) or file: (event file) and was "
-	 << m_pDataSource->getProto() << endl;
-    return EXIT_FAILURE;
+  catch (std::string msg) {
+    std::cerr << "Failed to open data source " << sourceName << std::endl;
+    std::cerr << msg << std::endl;
+    throw EXIT_FAILURE;
+  }
+  catch (const char* msg) {
+    std::cerr << "Failed to open data source " << sourceName << std::endl;
+    std::cerr << msg << std::endl;
+    throw EXIT_FAILURE;
+  }
+  catch (...) {
+    std::cerr << "Unanticipated exception attempting to create data source: " << std::endl;
+    throw;
   }
 
   // Can't have sample and file data source:
@@ -470,16 +499,7 @@ BufdumpMain::dumpUnknownItem(ostream& out, const CRingItem& item)
 string
 BufdumpMain::defaultSource() const
 {
-  string source = "tcp://localhost/";
-
-  // now figure out who I am:
-
-  uid_t id = getuid();
-  struct passwd* p = getpwuid(id);
-
-  source += p->pw_name;
-
-  return source;
+  return CRingBuffer::defaultRingUrl();
 			
 }
 

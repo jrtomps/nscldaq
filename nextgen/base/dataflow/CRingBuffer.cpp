@@ -37,7 +37,8 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
-
+#include <daqshm.h>
+#include <pwd.h>
 
 
 using namespace std;
@@ -122,20 +123,6 @@ CRingBuffer::create(std::string name,
 		     size_t maxConsumer,
 		     bool   tempMasterConnection)
 {
-  string fullName = shmName(name);
-
-  mode_t old      = umask(0); // Don't mask bits off mods below.
-
-  int fd = shm_open(fullName.c_str(), O_RDWR | O_CREAT | O_TRUNC, 0666);
-
-
-  int olderr = errno;
-  umask(old);			// restore umask and errno from shm_open.=
-  errno = olderr;
-
-  if (fd < 0) {
-    throw CErrnoException("CRingBuffer::create shm_open failed");
-  }
 
   // Figure out the entire size of the shared memory region and truncate the file to that
   // size:
@@ -147,14 +134,16 @@ CRingBuffer::create(std::string name,
   size_t pages     = (rawSize + (pageSize-1))/pageSize;
   size_t shmSize   = pages*pageSize;
 
-  if (ftruncate(fd, shmSize) < 0) {
-    throw CErrnoException("CRingBufer::create ftruncate failed");
+  if(CDAQShm::create(shmName(name), shmSize, 
+		     CDAQShm::GroupRead | CDAQShm::GroupWrite | CDAQShm::OtherRead | CDAQShm::OtherWrite)) {
+    throw CErrnoException("Shared memory creation failed");
   }
 
-  // Close the shm special file and then call format to format the ring buffer:
 
-  close(fd);
   format(name, maxConsumer);
+
+  // Notify the ring master this has been created.
+
   CRingMaster* pOld = m_pMaster;
   m_pMaster = 0;
   connectToRingMaster();
@@ -166,6 +155,32 @@ CRingBuffer::create(std::string name,
   }
 }
 
+/**
+ * Utility function for ring producers.  If the specified ring does not exist, create it
+ * then attach as the producer.
+ *
+ * @param name      - Name of the ring.
+ * @param dataBytes - size of the ring data segment.
+ * @param maxConsumers - Maximum number of consumers.
+ * @param tempMasterConnection - If true a temporary connection to the ring master is formed
+ *                        then destroyed for the ring registration.
+ *
+ * @note The parameters other than name are only used when the ring needs to be created.
+ *
+ * @return CRingBuffer*
+ * @retval Pointer to the producer CRingBuffer object this is dynamically allocated
+ *         and must be delete'd by the caller at some point.
+ */
+CRingBuffer*
+CRingBuffer::createAndProduce(std::string name, size_t dataBytes, size_t maxConsumer,
+			      bool   tempMasterConnection)
+{
+  if (!isRing(name)) {
+    create(name, dataBytes, maxConsumer, tempMasterConnection);
+  }
+  return new CRingBuffer(name, producer);
+
+}
 /*!
    Destroy an existing ring buffer.  Note that the shared memory segment 
    actually continues to live until all processes that hold maps and fds open
@@ -191,16 +206,14 @@ CRingBuffer::remove(string name)
   connectToRingMaster();
   m_pMaster->notifyDestroy(name);
 
-
   // At this point RM has acked so we can kill the ring itself:
 
   string fullName   = shmName(name);
-  int    status     = shm_unlink(fullName.c_str());
 
-  if (status == -1) {
-    throw CErrnoException("CRingBuffer::remove - shm_unlink failed");
+  if (CDAQShm::remove(fullName)) {
+    throw CErrnoException("Shared memory deletion failed");
+
   }
-
 }
 
 
@@ -226,13 +239,11 @@ CRingBuffer::format(std::string name,
   // need the memory size for initialization.
 
   string fullName = shmName(name);
-  int fd         = openShared(name);
-  size_t memSize = sharedSize(fd);
+  size_t memSize = CDAQShm::size(fullName);
 
   // Now map the ring:
 
-  pRingBuffer      pRing      = reinterpret_cast<pRingBuffer>(mapShared(fd, memSize));
-  close(fd);
+  pRingBuffer      pRing      = reinterpret_cast<pRingBuffer>(CDAQShm::attach(fullName));
 
 
   // Map the ring:
@@ -265,6 +276,7 @@ CRingBuffer::format(std::string name,
     pClients->s_pid            = -1;
     pClients++;
   }
+  CDAQShm::detach(pRing, fullName, memSize);
 
 }
 /*!
@@ -277,14 +289,12 @@ CRingBuffer::format(std::string name,
 bool
 CRingBuffer::isRing(string name)
 {
+  std::string fullName = shmName(name);
   try {
-    string      fullName = shmName(name);
-    int         fd       = openShared(fullName);
-    size_t      size     = sharedSize(fd);
-    pRingBuffer p        = reinterpret_cast<pRingBuffer>(mapShared(fd, size));
+    pRingBuffer p        = reinterpret_cast<pRingBuffer>(CDAQShm::attach(fullName));
+    if (!p) return false;
     bool        result   = ringHeader(p);
-    unmap(p, size);
-    close(fd);
+    CDAQShm::detach(p, fullName, CDAQShm::size(fullName));
 
     return result;
   }
@@ -332,6 +342,47 @@ CRingBuffer::getDefaultMaxConsumers()
   return m_defaultMaxConsumers;
 }
 
+/**
+ * Return the name of the default ring.  This is the name of the logged in
+ * user.
+ * 
+ * @return std::string
+ * @retval the user associated with the current uid.
+ * 
+ * @throws std::string - if the uid could not be looked up for some reason.
+ */
+std::string
+CRingBuffer::defaultRing()
+{
+  struct passwd  Entry;
+  struct passwd* pEntry;
+  char   dataStorage[1024];	// Storage used by getpwuid_r(3).
+  uid_t  uid = getuid();
+
+  if (getpwuid_r(uid, &Entry, dataStorage, sizeof(dataStorage), &pEntry)) {
+    int errorCode = errno;
+    std::string errorMessage = 
+      "Unable to determine the current username in CTheApplication::destinationRing: ";
+    errorMessage += strerror(errorCode);
+    throw errorMessage;
+    
+  }
+  return string(Entry.pw_name);
+}
+
+
+/**
+ * Returna fully decorated URL for the default ring e.g.
+ * tcp://localhost/<user-name>
+ */
+std::string 
+CRingBuffer::defaultRingUrl()
+{
+  std::string url = "tcp://localhost/";
+  url += defaultRing();
+  return url;
+    
+}
 
 ///////////////////////////////////////////////////////////////////////////////////////
 // Constructors and canonicals.
@@ -1021,76 +1072,13 @@ RingBuffer*
 CRingBuffer::mapRingBuffer(std::string fullName)
 {
 
-  int fd = openShared(fullName);
-
-  // Figure out how big it is... assume that it's a multiple of
-  // pagesize:
-
-  size_t size = sharedSize(fd);
-
-  //  Map it:
-
-  void* pMem = mapShared(fd, size);
-
-  // Close the file.
-
-  close(fd);
 
 
-  return reinterpret_cast<RingBuffer*>(pMem);
+  return reinterpret_cast<RingBuffer*>(CDAQShm::attach(fullName));
 
 }
-/******************************************************************/
-/* Open a shared memory file                                      */
-/******************************************************************/
-int 
-CRingBuffer::openShared(string fullName)
-{
-  // Open the shared mem special file.
 
-  int fd = shm_open(fullName.c_str(), O_RDWR, 0);
-  if (fd < 0) {
-    throw CErrnoException("CRingBuffer::openShared failed shm_open");
-  }
-  return fd;
-}
 
-/******************************************************************/
-/* Return the shared memory region size given its fd.             */
-/******************************************************************/
-size_t
-CRingBuffer::sharedSize(int fd)
-{
-  // Figure out how big it is... assume that it's a multiple of
-  // pagesize:
-
-  struct stat info;
-  if(fstat(fd, &info) < 0) {
-    throw CErrnoException("CRingBuffer::sharedSize failed fstat");
-  }
-  return info.st_size;
-}
-/******************************************************************/
-/*  Map a shared memory region                                    */
-/******************************************************************/
-void*
-CRingBuffer::mapShared(int fd, size_t size)
-{
-  void* pMem = mmap(0, size, PROT_READ | PROT_WRITE,  MAP_SHARED,
-		    fd, 0);
-  if (pMem == MAP_FAILED) {
-    throw CErrnoException("CRingBuffer::mapRingBuffer failed mmap");
-  }
-  return pMem;
-}
-/******************************************************************/
-/*  Unmap a region of memory                                      */
-/******************************************************************/
-void
-CRingBuffer::unmap(void* pMemory, size_t size)
-{
-  munmap(pMemory, size);
-}
 /******************************************************************/
 /* Unmap the ring buffer.                                         */
 /******************************************************************/
@@ -1098,13 +1086,8 @@ CRingBuffer::unmap(void* pMemory, size_t size)
 void
 CRingBuffer::unMapRing()
 {
-  // Compute the size of the region:
-
-  pRingHeader pHeader = &(m_pRing->s_header);
-
-  size_t ringSize = pHeader->s_dataBytes + sizeof(RingHeader) +
-                   (pHeader->s_maxConsumer+1)*sizeof(ClientInformation);
-  unmap(m_pRing, ringSize);
+  std::string fullName = shmName(m_ringName);
+  CDAQShm::detach(m_pRing, fullName, CDAQShm::size(fullName));
   
 }
 /******************************************************************/

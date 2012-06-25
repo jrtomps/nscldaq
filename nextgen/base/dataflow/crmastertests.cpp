@@ -76,8 +76,11 @@ void rmasterTests::registration()
   catch(...) {
     thrown = true;
   }
-  localMaster.notifyDestroy("dummyring");
+  if (thrown) {
   ASSERT(!thrown);
+  } else {
+    localMaster.notifyDestroy("dummyring");
+  }
 
   // non local can't and throws an ENOTSUPP errno exception.
 

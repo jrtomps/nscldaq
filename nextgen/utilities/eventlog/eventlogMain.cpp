@@ -326,16 +326,7 @@ EventLogMain::parseArguments(int argc, char** argv)
 string
 EventLogMain::defaultRingUrl() const
 {
-  string url = "tcp://localhost/";
-
-  // Figure out who we are:
-
-  uid_t id = getuid();
-  struct passwd* pwd = getpwuid(id);
-  string user(pwd->pw_name);
-
-  url += user;
-  return url;
+  return CRingBuffer::defaultRingUrl();
   
 }
 

@@ -32,6 +32,7 @@ static const char* versionString = "V5.0";
 #include <Exception.h>
 #include <tcl.h>
 #include <DataBuffer.h>
+#include <CRingBuffer.h>
 
 #include <vector>
 
@@ -382,20 +383,7 @@ CTheApplication::destinationRing(const char* pRingName)
   if (pRingName) {
     return std::string(pRingName);
   } else {
-    uid_t uid = getuid();	// Currently running user.
-    struct passwd  Entry;
-    struct passwd* pEntry;
-    char   dataStorage[1024];	// Storage used by getpwuid_r(3).
-
-    if (getpwuid_r(uid, &Entry, dataStorage, sizeof(dataStorage), &pEntry)) {
-      int errorCode = errno;
-      std::string errorMessage = 
-	"Unable to determine the current username in CTheApplication::destinationRing: ";
-    errorMessage += strerror(errorCode);
-    throw errorMessage;
-
-    }
-    return string(Entry.pw_name);
+    return CRingBuffer::defaultRing();
   }
 }
 

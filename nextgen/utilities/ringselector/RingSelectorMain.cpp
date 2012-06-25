@@ -184,8 +184,7 @@ RingSelectorMain::selectRing(struct gengetopt_args_info* parse)
     url = parse->source_arg;
   }
   else {
-    url  = "tcp://localhost/";
-    url += whoami();
+    url = CRingBuffer::defaultRingUrl();
   }
   
   CRingBuffer* pRing = CRingAccess::daqConsumeFrom(url);

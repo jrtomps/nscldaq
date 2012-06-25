@@ -76,12 +76,7 @@ CExperiment::CExperiment(string ringName,
 
 
 {
-  if (!CRingBuffer::isRing(ringName)) {
-    CRingBuffer::create(ringName);
-  }
-
-  m_pRing = new CRingBuffer(ringName, CRingBuffer::producer);
-
+  m_pRing = CRingBuffer::createAndProduce(ringName);
   m_pRunState = RunState::getInstance();
 
 }

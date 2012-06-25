@@ -22,6 +22,7 @@ INCLUDES = -I@top_srcdir@/usb/ccusb/ccusb -I@top_srcdir@/usb/ccusb/devices \
 	-I@top_srcdir@/usb/ccusb/tclserver  \
 	-I@top_srcdir@/base/headers -I@top_srcdir@/base/tclplus \
 	-I@top_srcdir@/base/thread -I@top_srcdir@/base/exception \
+	-I@top_srcdir@/base/dataflow	                       \
 	$(TCL_FLAGS) @THREADCXX_FLAGS@
 
 

@@ -226,3 +226,25 @@ Feb 1, 2012 - Feb 24, 2012
 	- S800 rdocallouts documentation
 	- S800 Attempt to reconnect if status poll indicated dropped
 	  connection. 
+10.1-004
+	- Issue #1088 - added cratelocator.tcl and install in
+	  bin/cratelocator.
+        - Issue #1088 - Documented the cratelocator program.
+	- Issue #1121 - Support scalers that are not zeroed after each
+	  read.
+	- Move the CC/VMusb readout documentation chapters -> framworks
+	  from utilities.
+	- Issue #1019 - Improve error messages from the dumper when the
+	  --source cannot be parsed/opened.
+        - Issue #914 - Provide docs for the proposed API (coding will be
+          from that).
+	- Issue #914 - Complete testing of CRingBuffer with the API rather
+	  than direct shm_xxx calls.
+	- Issue #421 - Centralize the code that creates a ring (if
+	  needed) and attaches as a producer.
+        - Issue #419 - Factor out all the getDefaultRing/URL sorts of
+	  things.
+	- Issue #1119 - Honor env variables for stagearea and expdir when
+	                checking for a good stagearea link.
+	
+	
