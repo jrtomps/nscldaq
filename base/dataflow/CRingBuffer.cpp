@@ -155,6 +155,32 @@ CRingBuffer::create(std::string name,
   }
 }
 
+/**
+ * Utility function for ring producers.  If the specified ring does not exist, create it
+ * then attach as the producer.
+ *
+ * @param name      - Name of the ring.
+ * @param dataBytes - size of the ring data segment.
+ * @param maxConsumers - Maximum number of consumers.
+ * @param tempMasterConnection - If true a temporary connection to the ring master is formed
+ *                        then destroyed for the ring registration.
+ *
+ * @note The parameters other than name are only used when the ring needs to be created.
+ *
+ * @return CRingBuffer*
+ * @retval Pointer to the producer CRingBuffer object this is dynamically allocated
+ *         and must be delete'd by the caller at some point.
+ */
+CRingBuffer*
+CRingBuffer::createAndProduce(std::string name, size_t dataBytes, size_t maxConsumer,
+			      bool   tempMasterConnection)
+{
+  if (!isRing(name)) {
+    create(name, dataBytes, maxConsumer, tempMasterConnection);
+  }
+  return new CRingBuffer(name, producer);
+
+}
 /*!
    Destroy an existing ring buffer.  Note that the shared memory segment 
    actually continues to live until all processes that hold maps and fds open

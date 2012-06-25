@@ -576,11 +576,8 @@ COutputThread::event(void* pData)
 void
 COutputThread::attachRing()
 {
-  if (!CRingBuffer::isRing(m_ringName)) {
-    CRingBuffer::create(m_ringName);
-  }
+  m_pRing = CRingBuffer::createAndProduce(m_ringName);
 
-  m_pRing = new CRingBuffer(m_ringName, CRingBuffer::producer);
 }
 /**
  * Output a physics trigger count event item.  These are used to monitor

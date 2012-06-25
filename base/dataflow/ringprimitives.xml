@@ -359,9 +359,29 @@ int main(int argc, char** argv)
          </programlisting>
          <classsynopsis>
             <ooclass><classname>CRingBuffer</classname></ooclass>
+         </classsynopsis>
+         <synopsis>
       <methodsynopsis>
         <modifier>static</modifier>
         <type>void</type> <methodname>create</methodname>
+        <methodparam>
+            <type>std::string</type> <parameter>name</parameter>
+        </methodparam>
+        <methodparam>
+            <type>size_t</type> <parameter>dataBytes</parameter>
+                                <initializer>m_defaultDataSize</initializer>
+        </methodparam>
+        <methodparam>
+            <type>size_t</type> <parameter>maxConsumer</parameter> <initializer>m_defaultMaxConsumers</initializer>
+        </methodparam>
+	<methodparam>
+            <type>bool</type>
+         <parameter>tempConnection</parameter><initializer>false</initializer>
+	 </methodparam>
+      </methodsynopsis>
+      <methodsynopsis>
+        <modifier>static</modifier>
+        <type>CRingBuffer*</type> <methodname>createAndProduce</methodname>
         <methodparam>
             <type>std::string</type> <parameter>name</parameter>
         </methodparam>
@@ -533,7 +553,7 @@ int main(int argc, char** argv)
         </methodparam>
       </methodsynopsis>
 <!-- /new -->
-     </classsynopsis>
+     </synopsis>
       </refsynopsisdiv>
       <refsect1>
          <title>Description</title>
@@ -663,6 +683,38 @@ int main(int argc, char** argv)
         which is encapsulated in a POSIX shared memory file,
         has the permissions mode <literal>0666</literal>.
     </para>
+        <methodsynopsis>
+            <modifier>static</modifier>
+        <type>CRingBuffer*</type> <methodname>createAndProduce</methodname>
+        <methodparam>
+            <type>std::string</type> <parameter>name</parameter>
+        </methodparam>
+        <methodparam>
+            <type>size_t</type> <parameter>dataBytes</parameter>
+                                <initializer>m_defaultDataSize</initializer>
+        </methodparam>
+        <methodparam>
+            <type>size_t</type> <parameter>maxConsumer</parameter> <initializer>m_defaultMaxConsumers</initializer>
+        </methodparam>
+	<methodparam>
+            <type>bool</type>
+         <parameter>tempConnection</parameter><initializer>false</initializer>
+	 </methodparam>
+      </methodsynopsis>
+      <para>
+        If the ringbuffer <parameter>name</parameter> does not exist it is
+        created.  The caller is then attached to the ring as a producer
+        and the <classname>CRingBuffer</classname> object created is returned
+        to the caller.  The return is a pointer to a dynamically allocated
+        <classname>CRingBuffer</classname> which must be deleted by the
+        client.
+      </para>
+      <para>
+        Note that if the ring already exists, only the
+        <parameter>name</parameter> parameter matters.  The other parameters
+        are used for name creation and have the same meaning as for
+        <methodname>create</methodname>
+      </para>
       <methodsynopsis>
         <modifier>static</modifier>
         <type>void</type> <methodname>remove</methodname>

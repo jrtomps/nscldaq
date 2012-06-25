@@ -202,48 +202,48 @@ g++ -o myprogram obj1.o obj2.o obj3.o -L$DAQHOME/lib -ldaqshm \
         
 class <classname>CDAQShm</classname>
 {        
-           <methodsynopsis>
-            <modifier>static</modifier><type>bool</type>
-             <methodname>create</methodname>
-             <methodparam><type>std::string</type><parameter>name</parameter></methodparam>
-             <methodparam><type>size_t</type><parameter>size</parameter></methodparam>
-             <methodparam><type>unsigned int</type><parameter>flags</parameter></methodparam>
-           </methodsynopsis>
-           <methodsynopsis>
-            <modifier>static</modifier><type>void*</type>
-            <methodname>attach</methodname>
-            <methodparam><type>std::string</type><parameter>name</parameter></methodparam>
-           </methodsynopsis>
-           <methodsynopsis>
-            <modifier>static</modifier><type>bool</type>
-            <methodname>detach</methodname>
-            <methodparam><type>void*</type><parameter>pSharedMemory</parameter></methodparam>
-            <methodparam><type>std::string</type><parameter>name</parameter></methodparam>
-            <methodparam><type>size_t</type><parameter>size</parameter></methodparam>
-           </methodsynopsis>
-           <methodsynopsis>
-            <modifier>static</modifier><type>bool</type>
-            <methodname>remove</methodname>
-            <methodparam><type>std::string</type><parameter>name</parameter></methodparam>
-           </methodsynopsis>
-           <methodsynopsis>
-             <modifier>static</modifier><type>ssize_t</type>
-             <methodname>size</methodname>
-              <methodparam>
-                <type>std::string</type><parameter>name</parameter>
-              </methodparam>
-           </methodsynopsis>
-           <methodsynopsis>
-            <modifier>static</modifier><type>int</type>
-            <methodname>lastError</methodname><void />
-           </methodsynopsis>
-           <methodsynopsis>
-            <modifier>static</modifier><type>std::string</type>
-            <methodname>errorMessage</methodname>
-            <methodparam>
-                <type>int</type><parameter>errorCode</parameter>
-            </methodparam>
-           </methodsynopsis>
+    <methodsynopsis>
+     <modifier>static</modifier><type>bool</type>
+      <methodname>create</methodname>
+      <methodparam><type>std::string</type><parameter>name</parameter></methodparam>
+      <methodparam><type>size_t</type><parameter>size</parameter></methodparam>
+      <methodparam><type>unsigned int</type><parameter>flags</parameter></methodparam>
+    </methodsynopsis>
+    <methodsynopsis>
+     <modifier>static</modifier><type>void*</type>
+     <methodname>attach</methodname>
+     <methodparam><type>std::string</type><parameter>name</parameter></methodparam>
+    </methodsynopsis>
+    <methodsynopsis>
+     <modifier>static</modifier><type>bool</type>
+     <methodname>detach</methodname>
+     <methodparam><type>void*</type><parameter>pSharedMemory</parameter></methodparam>
+     <methodparam><type>std::string</type><parameter>name</parameter></methodparam>
+     <methodparam><type>size_t</type><parameter>size</parameter></methodparam>
+    </methodsynopsis>
+    <methodsynopsis>
+     <modifier>static</modifier><type>bool</type>
+     <methodname>remove</methodname>
+     <methodparam><type>std::string</type><parameter>name</parameter></methodparam>
+    </methodsynopsis>
+    <methodsynopsis>
+      <modifier>static</modifier><type>ssize_t</type>
+      <methodname>size</methodname>
+       <methodparam>
+         <type>std::string</type><parameter>name</parameter>
+       </methodparam>
+    </methodsynopsis>
+    <methodsynopsis>
+     <modifier>static</modifier><type>int</type>
+     <methodname>lastError</methodname><void />
+    </methodsynopsis>
+    <methodsynopsis>
+     <modifier>static</modifier><type>std::string</type>
+     <methodname>errorMessage</methodname>
+     <methodparam>
+         <type>int</type><parameter>errorCode</parameter>
+     </methodparam>
+    </methodsynopsis>
 
    <fieldsynopsis><modifier>static const</modifier> <type>int</type> <varname>Success</varname></fieldsynopsis>
    <fieldsynopsis><modifier>static const</modifier> <type>int</type> <varname>Exists</varname></fieldsynopsis>
@@ -353,7 +353,7 @@ class <classname>CDAQShm</classname>
                         is the pointer that was returned from <methodname>attach</methodname>
                         while <parameter>name</parameter> was the name of the shared
                         memory passed in to <methodname>attach</methodname>.
-                        The size of the shared memory region is <parameter>size</size>
+                        The size of the shared memory region is <parameter>size</parameter>
                     </para>
                     <para>
                         <literal>true</literal> is returned on error.
@@ -394,7 +394,7 @@ class <classname>CDAQShm</classname>
               </methodparam>
            </methodsynopsis>
                 </term>
-                <lisitem>
+                <listitem>
                    <para>
                       Returns the number of bytes in a shared memory region.
                    </para>
