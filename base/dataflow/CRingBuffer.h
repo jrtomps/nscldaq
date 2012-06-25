@@ -102,6 +102,10 @@ public:
 		     size_t dataBytes = m_defaultDataSize,
 		     size_t maxConsumer = m_defaultMaxConsumers,
 		     bool   tempMasterConnection = false);
+  static CRingBuffer* createAndProduce(std::string name,
+				       size_t dataBytes = m_defaultDataSize,
+				       size_t maxConsumer = m_defaultMaxConsumers,
+				       bool   tempMasterConnection = false);
   static void remove(std::string name);
   static void format(std::string name,
 		     size_t maxConsumer = m_defaultMaxConsumers);
@@ -110,6 +114,8 @@ public:
   static size_t getDefaultRingSize();
   static void   setDefaultMaxConsumers(size_t numConsumers);
   static size_t getDefaultMaxConsumers();
+  static std::string defaultRing();
+  static std::string defaultRingUrl();
 
   // Constructors and other canonicals.
 
@@ -168,10 +174,6 @@ private:
 
   static std::string shmName(std::string rawName);
   static RingBuffer* mapRingBuffer(std::string fullName);
-  static int         openShared(std::string fullName);
-  static size_t      sharedSize(int fd);
-  static void*       mapShared(int fd, size_t size);
-  static void        unmap(void* pMem, size_t size);
   static bool        ringHeader(RingBuffer* p);
 
   std::string        modeString() const;

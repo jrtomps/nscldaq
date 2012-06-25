@@ -26,6 +26,7 @@ INCLUDES = -I$(top_srcdir)/usb/vmusb/vmusb -I$(top_srcdir)/usb/vmusb/devices -I$
 	-I$(top_srcdir)/base/tclplus -I$(top_srcdir)/base/exception \
 	-I$(top_srcdir)/base/thread	\
 	-I$(top_srcdir)/base/headers	\
+	-I$(top_srcdir)/base/dataflow   \
 	$(TCL_FLAGS) $(USBSWITCHES)
 
 VMUSBReadout_LDADD	= cmdline.o $(top_srcdir)/usb/vmusb/devices/libVMUSBDevices.la	\

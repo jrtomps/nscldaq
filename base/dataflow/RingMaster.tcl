@@ -231,7 +231,7 @@ proc killClients ringName {
     set producerPID [lindex $ringUsage 3]
     if {$producerPID != -1} {
 	::log::log debug "Killing producer: $producerPID"
-	exec kill -9 $producerPID
+	catch {exec kill -9 $producerPID}
     }
     # Now the consumers:
 
@@ -240,7 +240,7 @@ proc killClients ringName {
 	set pid [lindex $client 0]
 	if {$pid != -1} {;	# Should not need this but...
 	    ::log::log debug "Killing consumer: $pid"
-	    exec kill -9 $pid
+	    catch {exec kill -9 $pid}
 	}
     }
 }

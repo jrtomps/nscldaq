@@ -16,7 +16,7 @@ noinst_HEADERS	=	CDataSource.h		\
 			BufdumpMain.h		\
 			../StringsToIntegers.h
 
-BUILT_SOURCES	=	dumperargs.h
+BUILT_SOURCES	=	dumperargs.h dumperargs.c
 
 
 INCLUDES 		=	-I.. 					\
@@ -34,15 +34,22 @@ dumper_LDADD		=	dumperargs.o	\
 				@top_srcdir@/base/exception/libException.la	\
 				$(THREADLD_FLAGS)
 
+clean-local:
+	rm -f dumperargs.h dumperargs.c dumperargs.o
+
 dumper_CXXFLAGS = $(THREADCXX_FLAGS) $(AM_CXXFLAGS)
 
 dumperargs.h: dumperargs.ggo
-	$(GENGETOPT) <dumperargs.ggo --file=dumperargs
-	$(CC) -c -I. dumperargs.c $(THREADCFLAGS)
 
 
-dumperargs.o: dumperargs.ggo
-	$(GENGETOPT) <dumperargs.ggo --file=dumperargs
+
+dumperargs.c:
+	$(GENGETOPT) <dumperargs.ggo --file=dumperargs --unamed-opts="OPTIONS"
+
+
+
+dumperargs.o: dumperargs.c dumperargs.h
+	$(GENGETOPT) <dumperargs.ggo --file=dumperargs --unamed-opts="OPTIONS"
 	$(CC) -c -I. dumperargs.c $(THREADCFLAGS)
 
 

@@ -57,7 +57,7 @@ package require ExpFileSystem
 package require Configuration
 package require DAQParameters
 package require InitializeConfiguration
-
+package require ExpFileSystemConfig
 
 set textWidgetHeight 24
 
@@ -185,7 +185,9 @@ proc NoStageAreaWriteAccess {} {
 #
 proc CheckStageArea {} {
     global CanWrite
-    set    salink "~/stagearea";	# Name of link file.
+
+    set salink [ExpFileSystemConfig::getStageArea]
+
 
     #  Need a stage area:
 

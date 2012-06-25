@@ -38,6 +38,10 @@ int main(int argc, char** argv)
     std::cerr << "dumper main caught an exception " << msg << std::endl;
     exit(EXIT_FAILURE);
   }
+  catch (int exitCode) {
+    std::cerr << "exiting\n";
+    exit(exitCode);
+  }
   catch (...) {
     std::cerr << "dumper main caught an unexpected exception type \n";
     exit(EXIT_FAILURE);

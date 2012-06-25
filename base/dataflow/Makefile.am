@@ -13,6 +13,7 @@ INCLUDES = -I@top_srcdir@/base/exception \
 	   -I@top_srcdir@/servers/portmanager \
 	   -I@top_srcdir@/base/tclplus	\
 	   -I@top_srcdir@/base/uri	\
+	   -I@top_srcdir@/base/os	\
 		$(TCL_FLAGS)		\
 	-DBINDIR='"@prefix@/bin"'
 
@@ -23,6 +24,7 @@ libDataFlow_la_LDFLAGS =  -version-info $(SOVERSION) \
 libDataFlow_la_LIBADD  = @top_srcdir@/base/exception/libException.la \
 			@top_srcdir@/servers/portmanager/libPortManager.la \
 			@top_srcdir@/base/uri/liburl.la 	\
+			@top_srcdir@/base/os/libdaqshm.la	\
 			$(THREADLD_FLAGS)
 
 libDataFlow_la_CXXFLAGS = $(THREADCXX_FLAGS) $(AM_CXXFLAGS)
