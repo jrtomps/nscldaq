@@ -246,5 +246,6 @@ Feb 1, 2012 - Feb 24, 2012
 	  things.
 	- Issue #1119 - Honor env variables for stagearea and expdir when
 	                checking for a good stagearea link.
-	
+	- Attempt to fix race condition between the s800 start and the
+	  polling of the s800 status.
 	
