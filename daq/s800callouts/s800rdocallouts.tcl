@@ -325,9 +325,15 @@ proc s800::OnBegin {} {
 	$::s800::s800 begin
 
 	# On successful begin establish a state handler for runState
-	# 
+	# Since there can be a bit of time before the s800 transitions to active
+	# and because of the way the event queue operates, the trace below gets scheduled
+	# for 1 second in the future by which time (hopefully) the s800 is active.
+	# if this does not work, then we'll have to do something a bit like the state machine
+	# in gretina...watch the state change first to active and then only care about changes
+	# from active -> inactive.
+	#
 
-	trace add variable ::s800::runState write ::s800::stateChange
+	after 1000 {trace add variable ::s800::runState write ::s800::stateChange}
 
     } msg]} {
 	tk_messageBox -icon error -title "S800 readout GUI failed" \
