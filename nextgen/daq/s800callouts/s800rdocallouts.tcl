@@ -82,6 +82,7 @@ proc s800::monitorState ms {
     # be traces on it we only want to fire them if necessary:
 
     if {$s800State ne $::s800::runState} {
+	puts "S800 state was $s800::runState -> $s800State"
 	set ::s800::runState $s800State
     }
 
@@ -277,6 +278,7 @@ proc s800::Initialize {{host localhost} {port 8000}} {
     checkbutton .s800.record -text {Record Crate files} -variable ::s800::record \
 	-onvalue 1 -offvalue 0
     pack .s800.record
+    set ::s800::record 1
 
     # Status data for the s800:
 
@@ -332,7 +334,7 @@ proc s800::OnBegin {} {
 	# in gretina...watch the state change first to active and then only care about changes
 	# from active -> inactive.
 	#
-
+	puts "Starting run"
 	after 1000 {trace add variable ::s800::runState write ::s800::stateChange}
 
     } msg]} {
