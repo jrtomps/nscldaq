@@ -91,7 +91,11 @@ proc StartClient {} {
     global spdaq
     global tcl_platform
 
-    set spdaqurl "tcp://$spdaq/$tcl_platform(user)";    # The ring url
+    set ringname $tcl_platform(user)
+    if {[array names ::env RINGNAME] ne ""} {
+	set ringname $::env(RINGNAME)
+    }
+    set spdaqurl "tcp://$spdaq/$ringname";    # The ring url
 
     set clientpid [exec $bindir/sclclient --source=$spdaqurl --host=localhost --port=$TclServerPort &]
     bind . <Destroy> "Cleanup %W $clientpid"
