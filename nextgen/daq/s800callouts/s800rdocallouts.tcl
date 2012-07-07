@@ -278,7 +278,7 @@ proc s800::Initialize {{host localhost} {port 8000}} {
     checkbutton .s800.record -text {Record Crate files} -variable ::s800::record \
 	-onvalue 1 -offvalue 0
     pack .s800.record
-    set ::s800::record 1
+#    set ::s800::record 1
 
     # Status data for the s800:
 
