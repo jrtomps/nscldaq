@@ -137,7 +137,7 @@ proc ::s800::Exit {{status 0}} {
 	    $::s800::s800 setMaster
 	    destroy $::s800::s800
 	    set ::s800::s800 ""
-	}] msg} {
+	} msg]} {
 	    puts "Failed to end s800 run: $msg"
 	}
     }
