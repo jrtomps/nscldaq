@@ -45,7 +45,7 @@ exec tclserver  -pManaged -a"ScalerDisplay"  -userauth ${0} ${@}
 #                    - Final rate == average rate.
 #    Iteration 8:    Allow alarms to be disabled per Dirk's request.
 #    Iteration 9:   Support non-incremental scalers. 
-#
+#    Iteration 10:  See Issue #1195 at https://swdev-redmine.nscl.msu.edu
 #
 # Ensure that initially required variables exist:
 
@@ -75,12 +75,14 @@ set ElapsedRunTime  0
 set ScalerDeltaTime 0
 set Fakename     >>><<<
 set HMStime        "0 00:00:00"
+set fakeElapsedTime 0
 set ScalerLogDir  "."		;# Default is to log in current directory.
 
 set InitialRunNumber unknown
 set StartTime        unknown
 
 set pageSerial        0         ;# serial number used to name page frames.
+set fakeElapsedTime   0
 
 
 #  The following globals are used for alarming:
@@ -241,6 +243,9 @@ proc scalerRate name {
     global Scaler_Increments
     global ScalerDeltaTime
     global ScalerMap
+    global DefaultScalerDT
+    global ElapsedRunTime
+
 
     # Not in map? return 0.
 
@@ -623,6 +628,7 @@ proc DoUpdate {{average 0}} {
     global ElapsedRunTime
     global HMStime
 
+
     set sec [expr round($ElapsedRunTime)]
     set min [expr $sec/60]
     set hours [expr $min/60]
@@ -650,8 +656,31 @@ proc Update {} {
     global RunStateName
     global $RunStateName
     global stripchartWidget
+    global DefaultScalerDT
 
     set State [set $RunStateName]
+
+    ## 
+    # Issue #1195
+    # The geniuses that wrote the S800 DAQ decided it was not important
+    # to send timing information along with scaler buffers...that is they
+    # broke the NSCLDAQ standard buffer format. In that case I'm allowing the
+    # poor user, who is really the one inconvenienced by that crap to
+    # specify a DefaultScalerDT which when set, and when 0 is scaler
+    # delta time is used for the scaler delta time instead.  
+    # this also drives the elapsed run time so tha things like strip
+    # charts can run.
+    #
+    # Note that incr is not used for elapsed run time because it is possible
+    # (and has happened) that the scaler readout rate could be 0.5 seconds e.g.
+    # since that's the granularity of the VM-USB.
+    #
+    if {($::ScalerDeltaTime == 0) && [info exists DefaultScalerDT]} {
+	set ::ScalerDeltaTime $::DefaultScalerDT
+	set ::fakeElapsedTime [expr $::fakeElapsedTime + $::ScalerDeltaTime]
+	set ::ElapsedRunTime $::fakeElapsedTime
+    }
+
 
     UpdateStatistics
     if {$stripchartWidget != ""} {
@@ -681,10 +710,14 @@ proc BeginRun {} {
     global StartTime
     global RunNumber
     global stripchartWidget
+    global ElapsedRunTime
 
     ClearStatistics
 
     set HMStime "0 00:00:00"
+    set ::fakeElapsedTime 0
+    set ElapsedRunTime 0
+
 
     set InitialRunNumber $RunNumber
     set StartTime [clock format [clock seconds]]

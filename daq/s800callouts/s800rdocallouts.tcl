@@ -123,19 +123,23 @@ proc s800::DestroyHandler {widget} {
 # @param status - the status of the real exit.
 proc ::s800::Exit {{status 0}} {
     proc bgerror {msg} {
-	break;			# Disable background errors.
+	puts "background error: $msg"
+	::s800::real_exit 0;			# Disable background errors.
     }
     puts "S800 exit"
     if {$::s800::s800 ne ""} {
-	if {[$::s800::s800 getState] eq "active"} { # end any active run
-	    puts "ending active run"
-	    $::s800::s800 end
+	if {[catch {
+	    if {[$::s800::s800 getState] eq "active"} { # end any active run
+		puts "ending active run"
+		$::s800::s800 end
+	    }
+	    puts "Setting active"
+	    $::s800::s800 setMaster
+	    destroy $::s800::s800
+	    set ::s800::s800 ""
+	}] msg} {
+	    puts "Failed to end s800 run: $msg"
 	}
-	puts "Setting active"
-	$::s800::s800 setMaster
-	destroy $::s800::s800
-	set ::s800::s800 ""
-
     }
     # Kill off the feeder if it's alive.  Note that this
     # is unix specific because it execs 'kill.'

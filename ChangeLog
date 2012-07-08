@@ -250,4 +250,13 @@ Feb 1, 2012 - Feb 24, 2012
 	  polling of the s800 status.
 	- Turn on s800 record crate files by default per request by
 	  Daniel B. and Scott W.
+	- Turn it back off due to the potential of users to have to
+	  respond to a dialog on the s800 control panel.
+	- In S800 exit handler deal with the fact that the S800 may have
+	  exited so socket transactions with/to it may fail....correct
+	  bgerror so that it exits rather than breaking...which causes an
+	  infinite break handling loop.
+	- Issue #1195 deal with S800 bozo-ness on scalers.
+
+	
 	
