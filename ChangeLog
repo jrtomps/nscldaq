@@ -257,6 +257,7 @@ Feb 1, 2012 - Feb 24, 2012
 	  bgerror so that it exits rather than breaking...which causes an
 	  infinite break handling loop.
 	- Issue #1195 deal with S800 bozo-ness on scalers.
+	- Ensure readoutGUI starts with correct colors.
 
 	
 	
