@@ -213,7 +213,7 @@ proc processIncrement {array index op} {
     if {([array names ::incremental $index] ne "") && (!$::incremental($index))} {
 
 	set nextTotal $::Scaler_Increments($index)
-	
+
 	# Compute the increment...if it's negative assume a single roll-over.
 	# Update the nonIncrementalTotal as well.
 
@@ -549,9 +549,9 @@ proc ClearStatistics {} {
 
     catch {unset SumSquares}
     set IntervalCount 0
-    foreach id [array names ::priorIncrement] {
-	set ::priorIncrement($id) 0; # Reset the prior values array.
-	set ::nonIncremntalTotal($id) 0; # reset the totals info.
+
+    foreach id [array names ::Scaler_Totals] {
+	set ::Scaler_Totals($id) 0
     }
 }
 
@@ -711,6 +711,7 @@ proc BeginRun {} {
     global RunNumber
     global stripchartWidget
     global ElapsedRunTime
+    
 
     ClearStatistics
 
@@ -802,6 +803,11 @@ proc EndRun   {} {
 	}
     }
     close $fd
+
+    foreach id [array names ::priorIncrement] {
+	set ::priorIncrement($id) 0; # Reset the prior values array.
+	set ::nonIncrementalTotal($id) 0; # reset the totals info.
+    }
 
     if {[info proc UserEndRun] != ""} {
 	UserEndRun
