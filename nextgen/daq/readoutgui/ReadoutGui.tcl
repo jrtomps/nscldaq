@@ -711,10 +711,13 @@ proc ReadoutGui::ReadoutController {topname} {
     ReadougGUIPanel::setHost    $host
     ReadougGUIPanel::setPath    $path
     ReadougGUIPanel::setScalers $scalers $period
+
+    if 0 {
     if {$recording} {
 	ReadougGUIPanel::recordOn
     } else {
 	ReadougGUIPanel::recordOff
+    }
     }
     ReadougGUIPanel::setTimed $timedrun
     if {$timedlen ne ""} {
@@ -728,6 +731,7 @@ proc ReadoutGui::ReadoutController {topname} {
 
 
     ::ReadoutGui::StartRunTimers
+    ::ReadougGUIPanel::normalColors
 
     # Establish callback handlers for input from the Readout Program:
     #
@@ -765,7 +769,6 @@ proc ReadoutGui::ReadoutController {topname} {
 	::ReadougGUIPanel::ghostBegin
 	::ReadougGUIPanel::readoutNotRunning
     }
-
 
    
 }
