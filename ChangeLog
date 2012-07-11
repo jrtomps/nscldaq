@@ -258,6 +258,9 @@ Feb 1, 2012 - Feb 24, 2012
 	  infinite break handling loop.
 	- Issue #1195 deal with S800 bozo-ness on scalers.
 	- Ensure readoutGUI starts with correct colors.
+	- Issue #1195 - Provide visual indication that runs are
+	  starting/stopping.
+	
 
 	
 	

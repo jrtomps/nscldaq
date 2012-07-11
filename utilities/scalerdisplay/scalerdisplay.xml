@@ -149,7 +149,7 @@ ScalerDisplay <replaceable>configfile</replaceable>
                 </para>
                 <programlisting>
                     <command>
-channel <optional>?switches</optional> <replaceable>name index</replaceable>
+channel <optional>?options?</optional> <replaceable>name index</replaceable>
                     </command>
                 </programlisting>
                 <para>
@@ -419,7 +419,7 @@ stripconfig <optional>?-log 0|1?</optional>  <optional>?-timeaxis seconds?</opti
   <refsect1>
     <title>GLOBAL VARIABLES</title>
     <para>
-       The following global variables are useful within user callouts.
+       The following global variables defined or can be defined.
     </para>
     <variablelist>
         <varlistentry>
@@ -462,6 +462,19 @@ stripconfig <optional>?-log 0|1?</optional>  <optional>?-timeaxis seconds?</opti
                 <para>
                  The number of seconds of counts represented by the Scaler_Increments
               array elements.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term><varname>DefaultScalerDT</varname></term>
+            <listitem>
+                <para>
+                    Can be defined if scaler events don't have interval timing
+                    information. Whenever the difference between the scaler
+                    readout start and stop times are zero,
+                    <varname>ScalerDeltaTime</varname> will be set to
+                    <varname>DefaultScalerDT</varname> instead so that
+                    rates can be meaningfully computed.
                 </para>
             </listitem>
         </varlistentry>
