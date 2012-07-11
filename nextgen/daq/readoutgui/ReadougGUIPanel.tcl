@@ -37,6 +37,9 @@ namespace eval ReadougGUIPanel {
     variable startCallback    {}
     variable exitCallback     {}
     variable sourceCallback   {}
+
+    variable buttonRelief     raised
+    variable buttonBorder     1
 }
 
 # Source the ui file, which must exist
@@ -400,6 +403,39 @@ proc ReadougGUIPanel::getScalers {} {
     return [list $::ReadougGUIPanel::ScalerChannels \
                  $::ReadougGUIPanel::ScalerPeriod]
 }
+##
+# ReadougGUIPanel::runIsStarting
+#
+#   Called ot indicate that a run is starting.
+#  - Begin/End button is set to text Starting
+#  - Border removed from the begin/end button to make it look
+#    much more like a label
+#  - Relief is set to flat as well.
+#  These are all restored by runIsActive
+#
+proc ReadougGUIPanel::runIsStarting {} {
+
+    set root $::ReadougGUIPanel::ROOT
+    append startstop $root . startstop
+    set ::ReadougGUIPanel::buttonRelief [$startstop cget -relief]
+    set ::ReadougGUIPanel::buttonBorder [$startstop cget -borderwidth]
+
+    $startstop configure -relief flat -borderwidth 0 -text {Starting..}
+
+}
+##
+# Similar to the above but indicates the run is ending.
+#
+proc ReadougGUIPanel::runIsEnding {} {
+    set root $::ReadougGUIPanel::ROOT
+    append startstop $root . startstop
+    set ::ReadougGUIPanel::buttonRelief [$startstop cget -relief]
+    set ::ReadougGUIPanel::buttonBorder [$startstop cget -borderwidth]
+
+    $startstop configure -relief flat -borderwidth 0 -text {Ending...}
+}
+#
+#
 # ReadougGUIPanel::runIsActive
 #    Called to indicate on the GUI that the run
 #    is now active. The following actions are taken:
@@ -413,8 +449,9 @@ proc ReadougGUIPanel::runIsActive {} {
     append startstop $root . startstop
     append pauseres  $root . pauseres
 
-    $startstop configure -text End
-    $pauseres  configure -text Pause -state normal
+    $startstop configure -text End -relief $::ReadougGUIPanel::buttonRelief \
+	-borderwidth $::ReadougGUIPanel::buttonBorder
+    $pauseres  configure -text Pause -state normal 
 
     ::ReadougGUIPanel::ghostWidgets
 
@@ -428,7 +465,8 @@ proc ReadougGUIPanel::runIsHalted {} {
     append startstop $root .startstop
     append pauseres   $root .pauseres
 
-    $startstop configure -text Begin
+    $startstop configure -text Begin -relief $::ReadougGUIPanel::buttonRelief \
+	-borderwidth $::ReadougGUIPanel::buttonBorder
     $pauseres  configure -text Pause -state disabled
 
     ::ReadougGUIPanel::unghostWidgets
