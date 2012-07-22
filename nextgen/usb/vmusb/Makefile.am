@@ -29,17 +29,18 @@ INCLUDES = -I$(top_srcdir)/usb/vmusb/vmusb -I$(top_srcdir)/usb/vmusb/devices -I$
 	-I$(top_srcdir)/base/dataflow   \
 	$(TCL_FLAGS) $(USBSWITCHES)
 
-VMUSBReadout_LDADD	= cmdline.o $(top_srcdir)/usb/vmusb/devices/libVMUSBDevices.la	\
-		$(top_srcdir)/usb/vmusb/threadcomm/libVMUSBThreadComm.la	\
-		$(top_srcdir)/usb/vmusb/router/libVMUSBRouter.la	\
-		$(top_srcdir)/usb/vmusb/rdothread/libVMUSBRdoThread.la	\
-		$(top_srcdir)/usb/vmusb/tclserver/libVMUSBControlServer.la	\
-		$(top_srcdir)/usb/vmusb/daqconfig/libVMUSBConfig.la	\
-		$(top_srcdir)/usb/vmusb/commands/libVMUSBCommands.la	\
-		@top_srcdir@/usb/vmusb/vmusb/libVMUSB.la	\
-		$(top_srcdir)/base/tclplus/libtclPlus.la \
-		$(top_srcdir)/base/exception/libException.la \
-		$(top_srcdir)/base/thread/libdaqthreads.la	\
+VMUSBReadout_LDADD	= cmdline.o $(top_builddir)/usb/vmusb/devices/libVMUSBDevices.la	\
+		$(top_builddir)/usb/vmusb/threadcomm/libVMUSBThreadComm.la	\
+		$(top_builddir)/usb/vmusb/router/libVMUSBRouter.la	\
+		$(top_builddir)/usb/vmusb/rdothread/libVMUSBRdoThread.la	\
+		$(top_builddir)/usb/vmusb/tclserver/libVMUSBControlServer.la	\
+		$(top_builddir)/usb/vmusb/daqconfig/libVMUSBConfig.la	\
+		$(top_builddir)/usb/vmusb/commands/libVMUSBCommands.la	\
+		$(top_builddir)/base/dataflow/libDataFlow.la \
+		@top_builddir@/usb/vmusb/vmusb/libVMUSB.la	\
+		$(top_builddir)/base/tclplus/libtclPlus.la \
+		$(top_builddir)/base/exception/libException.la \
+		$(top_builddir)/base/thread/libdaqthreads.la	\
 		$(TCL_LDFLAGS) $(USB_LIBS) @THREADLD_FLAGS@
 
 
