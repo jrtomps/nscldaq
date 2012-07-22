@@ -35,6 +35,7 @@ CCUSBReadout_LDADD	= cmdline.o @top_builddir@/usb/ccusb/devices/libCCUSBDevices.
 	@top_builddir@/usb/ccusb/threadcomm/libCCUSBThreadComm.la	\
 	@top_builddir@/usb/ccusb/ccusb/libCCUSB.la		\
 	@top_builddir@/usb/ccusb/tclserver/libCCUSBControlServer.la \
+	@top_builddir@/base/dataflow/libDataFLow.la \
 	@top_builddir@/base/tclplus/libtclPlus.la		\
 	@top_builddir@/base/thread/libdaqthreads.la		\
 	@top_builddir@/base/exception/libException.la		\
