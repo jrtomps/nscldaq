@@ -82,6 +82,7 @@ proc s800::monitorState ms {
     # be traces on it we only want to fire them if necessary:
 
     if {$s800State ne $::s800::runState} {
+	puts "S800 state was $s800::runState -> $s800State"
 	set ::s800::runState $s800State
     }
 
@@ -122,19 +123,23 @@ proc s800::DestroyHandler {widget} {
 # @param status - the status of the real exit.
 proc ::s800::Exit {{status 0}} {
     proc bgerror {msg} {
-	break;			# Disable background errors.
+	puts "background error: $msg"
+	::s800::real_exit 0;			# Disable background errors.
     }
     puts "S800 exit"
     if {$::s800::s800 ne ""} {
-	if {[$::s800::s800 getState] eq "active"} { # end any active run
-	    puts "ending active run"
-	    $::s800::s800 end
+	if {[catch {
+	    if {[$::s800::s800 getState] eq "active"} { # end any active run
+		puts "ending active run"
+		$::s800::s800 end
+	    }
+	    puts "Setting active"
+	    $::s800::s800 setMaster
+	    destroy $::s800::s800
+	    set ::s800::s800 ""
+	} msg]} {
+	    puts "Failed to end s800 run: $msg"
 	}
-	puts "Setting active"
-	$::s800::s800 setMaster
-	destroy $::s800::s800
-	set ::s800::s800 ""
-
     }
     # Kill off the feeder if it's alive.  Note that this
     # is unix specific because it execs 'kill.'
@@ -277,6 +282,7 @@ proc s800::Initialize {{host localhost} {port 8000}} {
     checkbutton .s800.record -text {Record Crate files} -variable ::s800::record \
 	-onvalue 1 -offvalue 0
     pack .s800.record
+#    set ::s800::record 1
 
     # Status data for the s800:
 
@@ -325,9 +331,15 @@ proc s800::OnBegin {} {
 	$::s800::s800 begin
 
 	# On successful begin establish a state handler for runState
-	# 
-
-	trace add variable ::s800::runState write ::s800::stateChange
+	# Since there can be a bit of time before the s800 transitions to active
+	# and because of the way the event queue operates, the trace below gets scheduled
+	# for 1 second in the future by which time (hopefully) the s800 is active.
+	# if this does not work, then we'll have to do something a bit like the state machine
+	# in gretina...watch the state change first to active and then only care about changes
+	# from active -> inactive.
+	#
+	puts "Starting run"
+	after 1000 {trace add variable ::s800::runState write ::s800::stateChange}
 
     } msg]} {
 	tk_messageBox -icon error -title "S800 readout GUI failed" \

@@ -229,7 +229,7 @@ $DAQHOME/bin/ReadoutShell -host=localhost -path=$DAQHOME/bin/dummyrdo -nomonitor
            </title>
            <variablelist>
             <varlistentry>
-                <term><command>s800::Initialize</command> <replaceable>?host? ?port?</term>
+                <term><command>s800::Initialize</command> <replaceable>?host? ?port?</replaceable></term>
                 <listitem>
                     <para>
                         Initializes the s800 package.  This involves setting

@@ -520,6 +520,8 @@ proc ReadoutGui::StartRunTimers {} {
 #
 proc ReadoutGui::Begin {} {
 
+    ReadougGUIPanel::runIsStarting
+
     #  If necessary, check to see what to do
     #  if the user is ovewriting:
     #
@@ -584,6 +586,7 @@ proc ReadoutGui::Begin {} {
     if {$failureCheck} {
 	tk_messageBox -icon error -title {Run start failed:} \
 	    -message $msg -type ok
+	ReadougGUIPanel::runIsHalted
     } else {
 	ReadougGUIPanel::runIsActive
 
@@ -626,8 +629,10 @@ proc ReadoutGui::StopRunTimers {} {
 #    being done.
 #
 proc ReadoutGui::End {} {
-#    ReadoutGui::StopRunTimers
-    ReadougGUIPanel::runIsHalted
+    ReadougGUIPanel::runIsEnding
+
+    set failed [catch {
+
 	timestampOutput "%s : Ending the run"
     ReadoutControl::End
     if {[ReadoutControl::isTapeOn]} {
@@ -642,6 +647,13 @@ proc ReadoutGui::End {} {
     if {$::nomonitor} {
 	ReadoutGui::StopElapsedTimer
     }
+    } msg]
+		
+    if {$failed} {
+	tk_messageBox -icon error -title {Run end failed:} \
+	    -message $msg -type ok
+    }
+    ReadougGUIPanel::runIsHalted
 
 }
 #
@@ -711,10 +723,13 @@ proc ReadoutGui::ReadoutController {topname} {
     ReadougGUIPanel::setHost    $host
     ReadougGUIPanel::setPath    $path
     ReadougGUIPanel::setScalers $scalers $period
+
+    if 0 {
     if {$recording} {
 	ReadougGUIPanel::recordOn
     } else {
 	ReadougGUIPanel::recordOff
+    }
     }
     ReadougGUIPanel::setTimed $timedrun
     if {$timedlen ne ""} {
@@ -728,6 +743,7 @@ proc ReadoutGui::ReadoutController {topname} {
 
 
     ::ReadoutGui::StartRunTimers
+    ::ReadougGUIPanel::normalColors
 
     # Establish callback handlers for input from the Readout Program:
     #
@@ -765,7 +781,6 @@ proc ReadoutGui::ReadoutController {topname} {
 	::ReadougGUIPanel::ghostBegin
 	::ReadougGUIPanel::readoutNotRunning
     }
-
 
    
 }
