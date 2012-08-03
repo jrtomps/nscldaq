@@ -1774,6 +1774,299 @@ caenchain config chain -base 0x10000000 -modules [list adc1 adc2 adc3]
 
    </refentry>
    
+   <!-- SIS 330x FADC driver -->
+   
+         <refentry id="vmusb3-sis330x">
+           <refmeta>
+              <refentrytitle>sis330x</refentrytitle>
+              <manvolnum>3vmusb</manvolnum>
+           </refmeta>
+           <refnamediv>
+              <refname>sis330x</refname>
+              <refpurpose>Driver for SIS3300/1 FADC</refpurpose>
+           </refnamediv>
+           
+           <refsynopsisdiv>
+            <cmdsynopsis>
+                <command>
+package require SIS330XDriver
+                </command>
+            </cmdsynopsis>
+             <cmdsynopsis>
+                 <command>
+sis3300 <replaceable>name ?options?</replaceable>   
+                </command>
+             </cmdsynopsis>
+             <cmdsynopsis>
+                <command>
+<replaceable>name</replaceable> configure <replaceable>options</replaceable>
+                </command>
+            </cmdsynopsis>
+             <cmdsynopsis>
+                <command>
+<replaceable>name</replaceable> cget <replaceable>option</replaceable>
+                </command>
+             </cmdsynopsis>
+             <cmdsynopsis>
+                <command>
+addtcldriver <replaceable>name</replaceable>
+                </command>
+             </cmdsynopsis>
+           </refsynopsisdiv>
+           <refsect1>
+              <title>DESCRIPTION</title>
+              <para>
+                Provides support for the SIS 3300/3301 flash adc module.
+                This is a Tcl driver, hence the need for a
+                <command>package require</command> command to load the driver
+                and a <command>addtcldriver</command> command to connect
+                a driver instance with the framework.
+              </para>
+              <para>
+                The driver support restricting the readout to a subset of the
+                channels. See  the <option>-groupsread</option> option for
+                more information in OPTIONS below.
+              </para>
+              <para>
+                The structure of data read from the SIS3300/3301 is shown
+                below (all elements are 32 bit integers unless otherwise
+                indicated):
+              </para>
+              <informalexample>
+                <programlisting>
++-------------------------------+
+|  Group Mask                   | (16 bits)  <co id="sis3300_data_gmask" />
++-------------------------------+
+|  Group size                   |            <co id="sis3300_data_gsize" />
++-------------------------------+
+| Group data                    |
+|          ...                  |            <co id="sis3300_data_group" />
++-------------------------------+
+                </programlisting>
+              </informalexample>
+            <calloutlist>
+                <callout arearefs="sis3300_data_gmask">
+                    <para>
+                        The low order four bits of this 16 bit data word
+                        describe which ADC groups are present.  If bit 0
+                        is set, group 1 is present, if bit 1 is set group 2
+                        and so on.
+                    </para>
+                    <para>
+                        Group data that follow are in order of low numbered
+                        group to high numbered group for each group whose bit
+                        is set in this group mask.
+                    </para>
+                </callout>
+                <callout arearefs="sis3300_data_gsize" >
+                    <para>
+                        The group mask is followed by group data for each bit
+                        set in the mask.  This field contains the number of
+                        longwords of group data that follows.  The size
+                        is not self-inclusive.
+                    </para>
+                </callout>
+                <callout arearefs="sis3300_data_group">
+                    <para>
+                        Group data is the raw ADC trace data from the data
+                        buffer.  The format of these longwords
+                        is shown in section 4.34 of the SIS manual.
+                    </para>
+                </callout>
+            </calloutlist>
+           </refsect1>
+           <refsect1>
+              <title>
+                 OPTIONS
+              </title>
+              <variablelist>
+                <varlistentry>
+                    <term><option>-base</option> <replaceable>base-address</replaceable></term>
+                    <listitem>
+                        <para>Module base address in VME.</para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><option>-clocksource</option> <replaceable>clocksource</replaceable></term>
+                    <listitem>
+                        <para>
+                            Module clock source.  This must be a value chosen
+                            from one of the following strings:
+                            <literal>100Mhz, 50Mhz, 25Mhz, 12.5Mhz, 6.25Mhz,
+                            3.125Mhz FrontPanel P2Connector</literal>.
+                            The clock source determines the sampling rate of the
+                            ADC (or when data are clocked in in the case of
+                            HiRA Mode.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><option>-startdelay</option> <replaceable>boolean</replaceable></term>
+                    <listitem>
+                        <para>
+                            If true the start delay is enabled and.  See
+                            <option>-startdelayticks</option> to see how this delay
+                            is controlled.  Note that the start delay determines when
+                            the first sample is saved relative to the start.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><option>-startdelayticks</option> <replaceable>integer</replaceable></term>
+                    <listitem>
+                        <para>Number of samples in the start delay.   If
+                            <option>-startdelay</option> is <literal>
+                            false</literal>, this parameter is not used.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><option>-stopdelay</option> <replaceable>boolean</replaceable></term>
+                    <listitem>
+                        <para>
+                             If true, the stop delay is enabled. See
+                             <option>-stopdelayticks</option> to set the actual
+                             stop delay.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><option>-stopdelayticks</option></term>
+                    <listitem>
+                        <para>
+                            This is the number of samples in the stop delay.
+                            If <option>-stopdelay</option> is <literal>true</literal>,
+                            when a stop occurs, data will be taken for this
+                            number of samples more.  Note that this value is
+                            completely ignored if <option>-stopdelay</option>
+                            is <literal>false</literal>.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><option>-stoptrigger</option> <replaceable>boolean</replaceable></term>
+                    <listitem>
+                        <para>
+                            If <literal>true</literal> the module stop is the trigger.
+                            This pretty much has to be used with
+                            <option>-stopdelay</option> and
+                            <option>-stopdelayticks</option>
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><option>-gatemode</option>  <replaceable>boolean</replaceable></term>
+                    <listitem>
+                        <para>
+                            Module is or is not in gate mode.  In gate mode
+                            the module is started from the falling edge of the
+                            gate input and stopped by the rising edge of that signal.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><option>-lemostartstop</option> <replaceable>boolean</replaceable></term>
+                    <listitem>
+                        <para>
+                            Start/Stop come from lemo inputs.  This is enabled by
+                            default.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><option>-p2startstop</option> <replaceable>boolean</replaceable></term>
+                    <listitem>
+                        <para>
+                                Backplane signals on the p2 connector
+                                provide start/stop.  Note that this and
+                                <option>lemostartstop</option> are not
+                                mutually exlusive.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><option>-hirarandomclock</option> <replaceable>boolean</replaceable></term>
+                    <listitem>
+                        <para>If true, HiRA random clock mode is enabled.
+                            HiRA Random clock is normally used with the
+                            Washington University Chip board readouts when
+                            the readout is done with an XLM other than the
+                            XLM-VV when the analog information is collected
+                            by an SIS 3301 board.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><option>-randomclock</option> <replaceable>boolean</replaceable></term>
+                    <listitem>
+                        <para>If true front panel provides a random clock with
+                             a symmetric pulse shape
+                             See section2.5.3 of the module documentation.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><option>-samplesize</option> <replaceable>enum value</replaceable></term>
+                    <listitem>
+                        <para>Size of sample buffers.  This is one of the
+                            following text strings:
+                            <literal>128K, 16K, 4K, 2K, 1K, 512, 256 128</literal>.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><option>-wrap</option> <replaceable>boolean</replaceable></term>
+                    <listitem>
+                        <para>Buffers are  in wrap mode (normally used if
+                            start/stop is longer than the samplesize.  Once
+                            sampling runs off the end of the buffer sampling
+                            continues writing at the low memory location
+                            (wraps).  Please note that at present, the
+                            readout method used does not support this.
+                            If you have a need to use this mode, please
+                            contact the NSCL software development group to
+                            arrange further development.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><option>-thresholdslt</option> <replaceable>boolean</replaceable></term>
+                    <listitem>
+                        <para>If true, channel thresholds represent a  level
+                            _below_ which the conversion must fall. This is normally
+                            used with negative going pulses since the data are
+                            represented as half-scale offset unsigned integers.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><option>-thresholds</option> <replaceable>8 element int list</replaceable></term>
+                    <listitem>
+                        <para>Threshold values for all 8 channels.  This parameter,
+                              if provided is an 8 element integer list of
+                              threshold values.  See as well
+                              <option>thresholdslt</option> which can modify
+                              how this value is interpreted.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><option>-groupsread</option> <replaceable>4 element bool list</replaceable></term>
+                    <listitem>
+                        <para>List of flags indicating which groups of ADCs will
+                            be read. The module is organized into 4 groups of 2 ADCs each).
+                            The manual refers to them as groups 1,2,3,4.  The first
+                            list element allows or disables the readout of group 1
+                            and so on.
+                        </para>
+                    </listitem>
+                </varlistentry>
+
+              </variablelist>
+           </refsect1>
+   
+         </refentry>
+   
    <!-- SIS 3820 scaler command  -->
             
       <refentry id="vmusb3-sis3820">
@@ -2795,6 +3088,224 @@ hytec config adc -lld 0.0 -hld 8.191 -events 1 -id 0xadc1 -zerosuppress on
 	       </listitem>
 	    </orderedlist>
 	</refsect1>
+      </refentry>
+      <refentry id="vmusb3-tcldriversupport">
+        <refmeta>
+           <refentrytitle>tcl driver support</refentrytitle>
+           <manvolnum>3vmusb</manvolnum>
+        </refmeta>
+        <refnamediv>
+           <refname>tcl driver support</refname>
+           <refpurpose>tcl driver support functions.</refpurpose>
+        </refnamediv>
+        
+        <refsynopsisdiv>
+          <cmdsynopsis>
+            <command>
+package require VMUSBDriverSupport
+            </command>
+          </cmdsynopsis>
+        <cmdsynopsis>
+            <command>
+::VMUSBDriverSupport::convertVmUSB <replaceable>name</replaceable>
+            </command>
+        </cmdsynopsis>
+        <cmdsynopsis>
+            <command>
+::VMUSBDriverSupport::convertVmUSBReadoutList <replaceable>name</replaceable>
+            </command>
+        </cmdsynopsis>
+            <cmdsynopsis>
+                <command>
+::VMUSBDriverSupport::validInt <replaceable>value ?low ?high??</replaceable>
+                </command>
+            </cmdsynopsis>
+            <cmdsynopsis>
+                <command>
+::VMUSBDriverSupport::validReal <replaceable>value ?low ?high??</replaceable>
+                </command>
+            </cmdsynopsis>
+            <cmdsynopsis>
+                <command>
+::VMUSBDriverSupport::valideEnum <replaceable>value set</replaceable>
+                </command>
+            </cmdsynopsis>
+            <cmdsynopsis>
+                <command>
+::VMUSBDriverSupport::validBool <replaceable>value</replaceable>
+                </command>
+            </cmdsynopsis>
+            <cmdsynopsis>
+                <command>
+::VMUSBDriverSupport::validList <replaceable>value ?fewest ?most ?checker ?args????</replaceable>
+                </command>
+            </cmdsynopsis>
+            <cmdsynopsis>
+                <command>
+::VMUSBDriverSupport::validIntList <replaceable>value ?fewest ?most ?low ?high????</replaceable>
+                </command>
+            </cmdsynopsis>
+            <cmdsynopsis>
+                <command>
+::VMUSBDriverSupport::validBoolList <replaceable>value ?fewest ?most???</replaceable>
+                </command>
+            </cmdsynopsis>
+
+        </refsynopsisdiv>
+        <refsect1>
+           <title>DESCRIPTION</title>
+           <para>
+            This package provides utiltities that are of use/interest to
+            Tcl device driver modules for the VM-USB readout framework.
+            The attempt is to centralize/factor common code out of driver
+            modules that is commonly used.  
+           </para>
+        </refsect1>
+        <refsect1>
+           <title>
+              COMMANDS
+           </title>
+           <variablelist>
+            <varlistentry>
+                <term><command>::VMUSBDriverSupport::convertVmUSB <replaceable>name</replaceable>
+                </command></term>
+                <listitem>
+                    <para>
+                        Converts a swig CVMUSB object identifier into a usable
+                        CVMUSB object.  Once converted the driver can invoke
+                        methods on that object.  <parameter>name</parameter>
+                        is the object passed in to the driver.  The return
+                        value will be the  name of the new object.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><command>::VMUSBDriverSupport::convertVmUSBReadoutList <replaceable>name</replaceable></command></term>
+                <listitem>
+                    <para>
+                        Converts a CVMUSBReadoutList swig object identifier into
+                        an object.  Once converted, the object methods can
+                        be directl invoked.
+                        <parameter>name</parameter> is the name passed in to the
+                        method by the framework.  the return value is the
+                        name of the object.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><command>::VMUSBDriverSupport::validInt <replaceable>value ?low ?high??</replaceable></command></term>
+                <listitem>
+                    <para>
+                        Provides type checking and optional range checking for
+                        integer data. This is most often called to validate
+                        an integer driver option.
+                    </para>
+                    <para>
+                        Throws an error if <parameter>value</parameter> is not
+                        a valid integer.  Additionally, if <parameter>low</parameter>
+                        is not empty, an error is thrown if
+                        <literal>$value &lt; $low</literal>.  Similarly if
+                        <parameter>high</parameter> is not empty an error
+                        is thrown if <literal>$value &gt; $high</literal>.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><command>::VMUSBDriverSupport::validReal <replaceable>value ?low ?high??</replaceable></command></term>
+                <listitem>
+                    <para>
+                        Provides type and optional range checking for
+                        real parameters.
+                    </para>
+                    <para>
+                        If <parameter>value</parameter> is not valid real number
+                        this proc throws an error.  Furthermore if <parameter>low</parameter>
+                        is not blank, an error is thrown if <literal>$value &lt; $low</literal>.
+                        Similarly if <parameter>high</parameter> is not blank,
+                        an error is thrown if <literal>$value &gt; $high</literal>.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><command>::VMUSBDriverSupport::valideEnum <replaceable>value set</replaceable></command></term>
+                <listitem>
+                    <para>
+                        Throw an error if <parameter>value</parameter> is not
+                        one of the strings  in the Tcl list <parameter>set</parameter>
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><command>::VMUSBDriverSupport::validBool <replaceable>value</replaceable></command></term>
+                <listitem>
+                    <para>
+                        Throws an error if <parameter>value</parameter> is not
+                        recognizable as a boolean by Tcl.
+                        <ulink url='http://www.tcl.tk/man/tcl8.5/TclLib/GetInt.htm'>
+                            http://www.tcl.tk/man/tcl8.5/TclLib/GetInt.htm</ulink>
+                        describes the set of <parameter>value</parameter>s that are
+                        recognized as valid booleans.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><command>::VMUSBDriverSupport::validList <replaceable>value ?fewest ?most ?checker ?args????</replaceable>
+                </command></term>
+                <listitem>
+                    <para>
+                        Throws an error if <parameter>value</parameter> is not
+                        a valid Tcl list.  Futhermore if <parameter>fewest</parameter>
+                        is not blank, an error is thrown if
+                        <literal>[llength $value] &lt; $fewest</literal>.
+                        Similarly, if <parameter>most</parameter> is not blank,
+                        an error is thrown if
+                        <literal>[llength $value] &gt; $most</literal>.
+                    </para>
+                    <para>
+                        <parameter>checker</parameter> is a script which if
+                        not blank is called for each element of
+                        <parameter>value</parameter>. <parameter>checker</parameter> is
+                        called as follows: <literal>$checker $element {*}$args</literal>
+                        where <parameter>element</parameter> is an element of the
+                        list.  The intent of this is to provide support for
+                        type/range checking each element of the list.
+                    </para>
+                    <para>
+                        One sample use of this proc is:
+                        <literal>::::VMUSBDriverSupport::validList $value 32 32 ::::VMUSBDriverSupport::validInt 0 4095</literal>
+                        which ensures that <parameter>value</parameter> is a valid
+                        list that contains exactly 32 integer elements in the range
+                        <literal>[0..4095]</literal>.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><command>::VMUSBDriverSupport::validIntList <replaceable>value ?fewest ?most ?low ?high????</replaceable>
+                </command></term>
+                <listitem>
+                    <para>
+                        This is a convenience procedure that uses <function>validList</function>
+                        and <function>validInt</function> to determine if
+                        <parameter>value</parameter> is a valid list of
+                        integer values with optional range constraints.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><command>::VMUSBDriverSupport::validBoolList <replaceable>value ?fewest ?most???</replaceable>
+                </command></term>
+                <listitem>
+                    <para>
+                        This is a convenience procedure that uses <function>validList</function>
+                        and <function>validBool</function> to determine if
+                        <parameter>value</parameter> is a valid list of
+                        boolean values.
+                    </para>
+                </listitem>
+            </varlistentry>
+           </variablelist>
+        </refsect1>
+
       </refentry>
 
       <refentry id="vmusb3-madc">
