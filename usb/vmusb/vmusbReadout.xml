@@ -2762,6 +2762,103 @@ sis3804 config scaler1 -refpulser true
         </refsect1>
       
       </refentry>
+      <refentry id="vmusb3-hira">
+        <refmeta>
+           <refentrytitle>hira</refentrytitle>
+           <manvolnum>3vmusb</manvolnum>
+        </refmeta>
+        <refnamediv>
+           <refname>hira</refname>
+           <refpurpose>Pair an XLM and FADC for HiRA</refpurpose>
+        </refnamediv>
+        
+        <refsynopsisdiv>
+          <cmdsynopsis>
+          <command>
+hira create <replaceable>name ?options?</replaceable>
+          </command>
+          </cmdsynopsis>
+            <cmdsynopsis>
+                <command>
+hira config <replaceable>name options</replaceable>
+                </command>
+            </cmdsynopsis>
+            <cmdsynopsis>
+                <command>
+hira cget <replaceable>name</replaceable>
+                </command>
+            </cmdsynopsis>
+
+
+        </refsynopsisdiv>
+        <refsect1>
+           <title>DESCRIPTION</title>
+           <para>
+            In situations where an XLM-XXV is not available, Wash-U chip boards
+            can be read out using an XLM and an SIS3300/SIS3301 FADC module.
+            This command allows you to combine these into a single module.
+            from the point of view of a stack.
+           </para>
+           <para>
+            The command produces the following data format:
+           </para>
+           <informalexample>
+            <programlisting>
++------------------------------------+
+|   id (16) bits                     |
++------------------------------------+
+| tag and timing data from the       |
+| xlm module                         |
++------------------------------------+
+| Data from the FADC module          |
++------------------------------------+
+            </programlisting>
+           </informalexample>
+        </refsect1>
+        <refsect1>
+           <title>
+              OPTIONS
+           </title>
+           <variablelist>
+            <varlistentry>
+                <term><option>-id</option> <replaceable>integer</replaceable></term>
+                <listitem>
+                    <para>
+                        Provides the id tag that precedes the data from the
+                        two actual modules.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><option>-xlm</option> <replaceable>module-name</replaceable></term>
+                <listitem>
+                    <para>
+                        This parameter is the name of the XLM module that reads
+                        out the tagging and timing information from the
+                        XLM.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><option>-fadc</option> <replaceable>module-name</replaceable></term>
+                <listitem>
+                    <para>
+                        This parameter is the name of the sis330x module that
+                        gets the analog data
+                    </para>
+                </listitem>
+            </varlistentry>
+           </variablelist>
+           <note>
+            <title>Note:</title>
+            <para>
+                The software does not check that the XLM is an XLM or that the
+                fadc is an SIS 330x module.
+            </para>
+           </note>
+        </refsect1>
+
+      </refentry>
 
       <refentry id="vmusb3-hytec">
         <refmeta>
