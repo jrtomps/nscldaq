@@ -61,6 +61,7 @@ struct DataBuffer {
  */
 typedef struct _StringsBuffer {
   uint32_t s_stringCount;      	// Number of strings in the buffer.
+  uint32_t s_ringType;		// Type of text item.
   char     s_strings[];		// The strings themselves, null terminated.
 } StringsBuffer, *pStringsBuffer;
 

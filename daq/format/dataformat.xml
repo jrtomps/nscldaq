@@ -393,7 +393,7 @@
                     </listitem>
                 </varlistentry>
                 <varlistentry>
-                    <term>char <structfield>s_scalers[]</structfield></term>
+                    <term>char <structfield>s_strings[]</structfield></term>
                     <listitem>
                         <para>
                             An array of characters large enough to hold all

@@ -37,6 +37,7 @@
 #include <CRingStateChangeItem.h>
 #include <CRingPhysicsEventCountItem.h>
 #include <CRingScalerItem.h>
+#include <CRingTextItem.h>
 
 #include <sys/time.h>
 
@@ -433,6 +434,28 @@ COutputThread::processEvents(DataBuffer& inBuffer)
 void
 COutputThread::processStrings(DataBuffer& buffer, StringsBuffer& strings)
 {
+
+  // Marshall the strings into a vector as expected by the CRingTextItem c-tor.
+
+  std::vector<std::string> stringVector; 
+  const char* pSrc = strings.s_strings;
+  
+  for (int i=0; i < strings.s_stringCount; i++) {
+    stringVector.push_back(pSrc);
+    pSrc += strlen(pSrc) + 1;	// +1 for the null terminator.
+  }
+  // Once we have a timestamp we're ready to go.
+
+  time_t now = time(NULL);
+
+  // Create and commit the item to the ring.
+
+  CRingTextItem texts(strings.s_ringType,
+		      stringVector,
+		      m_elapsedSeconds, // best we can do for now.
+		      now);
+  texts.commitToRing(*m_pRing);
+
 }
 
 

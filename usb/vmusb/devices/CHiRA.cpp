@@ -56,6 +56,20 @@ CHiRA::CHiRA() :
   m_pConfiguration(0)
 {}
 /**
+ * CHiRA():
+ *   Copy constructor.
+ *
+ * @param rhs - The object that will be cloned into *this.
+ */
+CHiRA::CHiRA(const CHiRA& rhs) :
+  m_pConfiguration(0)
+{
+  if (rhs.m_pConfiguration) {
+    m_pConfiguration = new CReadoutModule(*(rhs.m_pConfiguration));
+  }
+}
+
+/**
  * ~CHiRA():
  *    No-op and yes this does mean that memory can leak if the caller does not
  *    delete the configuration if it was dynamic.
@@ -169,6 +183,23 @@ CHiRA::addReadoutList(CVMUSBReadoutList& list)
   pFADC->addReadoutList(list);
  
 }
+/**
+ * clone():
+ *
+ * Virtual copy constructor 
+ *
+ * @param rhs - The object being cloned to creat a new object.
+ * 
+ * @return CReadoutHardware*
+ * @retval Pointer to a dynamically allocated (new) object that is identical
+ *         to rhs.
+ */
+CReadoutHardware*
+CHiRA::clone() const
+{
+  return new CHiRA(*this);
+}
+
 /*------------------------------------------------------------------------*
  * Utility methods (private)                                              *
  *-----------------------------------------------------------------------*/

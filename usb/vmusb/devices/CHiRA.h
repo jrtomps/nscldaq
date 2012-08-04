@@ -72,8 +72,9 @@ public:
 
   CHiRA();
   virtual ~CHiRA();
-private:
   CHiRA(const CHiRA&);
+
+private:
   CHiRA& operator=(const CHiRA&);
   int operator==(const CHiRA&) const;
   int operator!=(const CHiRA&) const;
