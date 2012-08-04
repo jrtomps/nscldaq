@@ -229,14 +229,26 @@ COutputThread::freeBuffer(DataBuffer& buffer)
 void
 COutputThread::processBuffer(DataBuffer& buffer)
 {
-  if (buffer.s_bufferType == 1) {
+  if (buffer.s_bufferType == TYPE_START) {
     startRun(buffer);
   }
-  else if (buffer.s_bufferType == 2) {
+  else if (buffer.s_bufferType == TYPE_STOP) {
     endRun(buffer);
   }
-  else {
+  
+  else if (buffer.s_bufferType == TYPE_EVENTS) {
     processEvents(buffer);
+  }
+  else if (buffer.s_bufferType == TYPE_STRINGS) {
+    pStringsBuffer pBody = reinterpret_cast<pStringsBuffer>(buffer.s_rawData);
+    processStrings(buffer, *pBody);
+  }
+  else {
+    // Unexpected buffer type is really bad throw:
+
+    char exceptionText[1000];
+    sprintf(exceptionText, "Unexpected buffer type %d encounterd", buffer.s_bufferType);
+    throw std::string(exceptionText);
   }
 }
 
@@ -409,6 +421,21 @@ COutputThread::processEvents(DataBuffer& inBuffer)
     cerr << "Warning used up more than the buffer  by " << (-nWords) << endl;
   }
 }
+/**
+ * stringBuffer:
+ *    Process a strings buffer.  Strings buffers contain a set of null terminated
+ *    strings.  They are used to carry e.g. Control data buffers.
+ *
+ * @param buffer - Reference to the full data buffer.
+ * @param strings The body of the data buffer already cst to a reference 
+ *                to a StringsBuffer.
+ */
+void
+COutputThread::processStrings(DataBuffer& buffer, StringsBuffer& strings)
+{
+}
+
+
 /**
  * Output a physics trigger count event item.  These are used to monitor
  * overall rates as well as to provide sampling statistics for sampling

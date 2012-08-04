@@ -42,6 +42,8 @@
 // Forward definitions:
 
 struct DataBuffer;
+typedef struct _StringsBuffer StringsBuffer;
+
 class  CRingBuffer;
 
 /*!
@@ -147,6 +149,8 @@ private:
   void freeBuffer(DataBuffer&  buffer);	      // 
   void processBuffer(DataBuffer& buffer);     // 
   void processEvents(DataBuffer& buffer);     //
+  void processStrings(DataBuffer& buffer, StringsBuffer& strings);
+
   uint8_t* newOutputBuffer();                //
   void startRun(DataBuffer& buffer); // 
   void endRun(DataBuffer& buffer);   // 
