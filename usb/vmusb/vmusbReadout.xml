@@ -59,6 +59,11 @@
                 The slow controls protocol and its primitives.
             </para>
         </listitem>
+        <listitem>
+            <para>
+                Variable monitoring.
+            </para>
+        </listitem>
     </itemizedlist>
     <para>
         Reference information is available in the
@@ -1322,6 +1327,96 @@ Module config cfd -base 0x1245000 \
                 calls. This documentation will be fleshed out in a future
                 version.
             </para>     
+        </section>
+    </section>
+    <section>
+        <title>Pushing external data into the event stream</title>
+        <para>
+            The slow controls port can also be used to send data that will
+            be periodically inserted in the data stream.  The mechanism
+            for this is intended to monitor slowly varying values (for example
+            magnet currents).  Here's a brief sketch about how this works:
+        </para>
+        <itemizedlist>
+            <listitem><para>
+                In your slow controls configuration file you specify Tcl
+                variables whose values will be watched.
+                </para></listitem>
+            <listitem><para>
+                A slow controls client sets those variables to value that
+                reflect the things to be monitored in the outside world
+                (e.g. <application>controlpush</application> can set
+                the arrays <varname>EPICS_DATA</varname>,
+                <varname>EPISC_UNITS</varname> and <varname>EPICS_UPDATED</varname>
+                to reflect changes in epics process variables).
+                </para></listitem>
+            <listitem><para>
+                When the run is active, every two seconds the current values of
+                any variables that were modified since the last update operation
+                are pushed to the ring buffer as <literal>MONITORED_VARIABLE</literal>
+                string list items.  Note that towards the beginning of the
+                run one or more ring items will be generated that have
+                all monitored variable values.
+                </para>
+            </listitem>
+        </itemizedlist>
+        <section>
+            <title>Specifying variables to be monitored.</title>
+            <para>
+                The key to monitoring variables is that the control server is
+                really a Tcl interpreter executing commands that are poked into
+                it by its client sockets.  The Tcl server supports a new
+                command <command>watch</command> which allows you to specify
+                which variables should be monitored.
+            </para>
+            <para>
+                The example below specifies that the arrays
+                <varname>EPICS_DATA</varname>, <varname>EPICS_UNITS</varname>,
+                <varname>EPICS_UPDATED</varname> and the scalar variable
+                <varname>monitored</varname> should be monitored.;
+            </para>
+            <example>
+                <title>Specifying VM-USB monitored variables</title>
+                <programlisting>
+array set EPICS_DATA    [list]
+array set EPICS_UNITS   [list]     <co id='watchexample-createarrays' />
+array set EPICS_UPDATED [list]
+
+watch EPICS_DATA
+watch EPICS_UNITS                  <co id='watchexample-monitorarrays' />
+watch EPICS_UPDATED
+
+watch monitored                   <co id='watchexample-monitorscalar' />
+                </programlisting>
+            </example>
+            <calloutlist>
+                <callout arearefs='watchexample-createarrays' >
+                    <para>
+                        In order to monitor an array, the array must first
+                        be created. Note that this is not the case
+                        for a scalar variable.
+                        </para>
+                </callout>
+                <callout arearefs='watchexample-monitorarrays'>
+                    <para>
+                        These commands specify that the three arrays
+                        we created with the <command>array set</command>
+                        command should be monitored.
+                    </para>
+                </callout>
+                <callout arearefs='watchexample-monitorscalar'>
+                    <para>
+                       Since <varname>monitored</varname> was not created as
+                       an array only the single scalar value
+                       will be monitored.
+                       </para>
+                </callout>
+            </calloutlist>
+            <para>
+                For more information about the <command>watch</command>
+                command see <link linkend="vmusb3-watch" endterm='vmusb3-watch-title' />
+                in the reference manual pages.
+            </para>
         </section>
     </section>
     <section>
@@ -13052,6 +13147,41 @@ Module cget <replaceable>name</replaceable>
         </refsect1>
 
       </refentry>
+      <refentry id="vmusb3-watch">
+        <refmeta>
+           <refentrytitle id='vmusb3-watch-title'>watch</refentrytitle>
+           <manvolnum>3vmusb</manvolnum>
+        </refmeta>
+        <refnamediv>
+           <refname>watch</refname>
+           <refpurpose>Watch variables (slow controls)</refpurpose>
+        </refnamediv>
+        
+        <refsynopsisdiv>
+          <cmdsynopsis>
+          <command>
+watch <replaceable>name</replaceable>   
+          </command>
+          </cmdsynopsis>
+
+        </refsynopsisdiv>
+        <refsect1>
+           <title>DESCRIPTION</title>
+           <para>
+            Informs the slow controls server that a variable or array
+            named <parameter>name</parameter> should be monitored.  The
+            watched variable are monitored for changes (which are initiated
+            by clients performing <command>set</command> commands). Periodically
+            the current values of changed variables are dumped to the event
+            stream as string items of type <literal>MONITORED_VARIABLES</literal>.
+           </para>
+           <para>
+            If <parameter>name</parameter> is an array, all elements
+            of that array are monitored.
+           </para>
+        </refsect1>
+      </refentry>
+
     <refentry id="vmusb5-slowcontrols-protocol">
       <refmeta>
          <refentrytitle>VMUSB slow controls protocol</refentrytitle>
