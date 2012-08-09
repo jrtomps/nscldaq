@@ -452,7 +452,8 @@ CTemplateDriver::onAttach(CReadoutModule&amp; configuration)
             </para>
             <para>
                 See <xref linkend='vmusb3-CVMUSB' /> and
-                <xref linkend='vmusb3-CVMUSBReadoutList' /> for reference
+                <xref linkend='vmusb3-CVMUSBReadoutList'
+                        endterm='vmusb3-CVMUSBReadoutList-title'/> for reference
                 information about those two classes.
             </para>
             <para>
@@ -1326,7 +1327,53 @@ Module config cfd -base 0x1245000 \
                 controls system executing immediate lists via remote procedure
                 calls. This documentation will be fleshed out in a future
                 version.
-            </para>     
+            </para>
+            <para>
+                This functionality must be enabled
+                by including a <command>Module vmusb</command> command
+                in your control configuration file.
+            </para>
+            <para>
+                Clients then use a pair of classes/objects
+                to perform VM-USB lists:
+            </para>
+            <variablelist>
+                <varlistentry>
+                    <term><classname>CVMUSBReadoutList</classname></term>
+                    <listitem>
+                        <para>
+                            Instances of this class represent lists of VME
+                            operations you want to perform via the server.
+                            See <link linkend='vmusb3-CVMUSBReadoutList'
+                                endterm='vmusb3-CVMUSBReadoutList-title' />
+                            for reference information.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                   <term><classname>CVMUSBRemote</classname></term>
+                   <listitem>
+                    <para>
+                        Instances of this class represent connections
+                        to VMUSBReadout slow controls servers.  Instances
+                        provide a mechanism for submitting a
+                        <classname>CVMUSBReaoutlist</classname>
+                        for remote execution and gathering the results
+                        back for client code.
+                    </para>
+                    <para>
+                        See <link linkend='vmusb3-CVMUSBRemote'
+                            endterm='vmusb3-CVMUSBRemote-title' />
+                        for reference information about this class.
+                    </para>
+                   </listitem>
+                </varlistentry>
+            </variablelist>
+            <para>
+                Programs using these classes must link to the
+                <filename>libVMUSBRemote</filename> library in the NSCLDAQ
+                <filename>lib</filename> subdirectory.
+            </para>
         </section>
     </section>
     <section>
@@ -5201,7 +5248,7 @@ stack config scalers -trigger scaler -modules $scalers -period 2
       
 	 <refentry id="vmusb3-CVMUSB">
        <refmeta>
-          <refentrytitle>CVMUSB</refentrytitle>
+          <refentrytitle id='vmusb3-CVMUSB-title'>CVMUSB</refentrytitle>
           <manvolnum>3vmusb</manvolnum>
        </refmeta>
        <refnamediv>
@@ -7481,7 +7528,7 @@ list.size() * sizeof(uint32_t)/sizeof(uint16_t) + 4
          
 	 <refentry id="vmusb3-CVMUSBReadoutList">
        <refmeta>
-          <refentrytitle>CVMUSBReadoutList</refentrytitle>
+          <refentrytitle id='vmusb3-CVMUSBReadoutList-title'>CVMUSBReadoutList</refentrytitle>
           <manvolnum>3vmusb</manvolnum>
        </refmeta>
        <refnamediv>
@@ -8776,6 +8823,1132 @@ class <ooclass><classname>CVMUSBReadoutList</classname></ooclass>
            </variablelist>
         </refsect1>
      </refentry>
+	 <refentry id="vmusb3-CVMUSBRemote">
+       <refmeta>
+          <refentrytitle id='vmusb3-CVMUSBRemote-title'>CVMUSBRemote</refentrytitle>
+          <manvolnum>3vmusb</manvolnum>
+       </refmeta>
+       <refnamediv>
+          <refname>CVMUSBRemote</refname>
+          <refpurpose>Execute lists remotely on VMUSBReadout</refpurpose>
+       </refnamediv>
+       
+       <refsynopsisdiv>
+        <synopsis>
+#include &lt;CVMUSBRemote.h&gt;
+
+class <ooclass><classname>CVMUSBRemote</classname></ooclass> {
+    <constructorsynopsis>
+        <methodname>CVMUSBRemote</methodname>
+        <methodparam>
+            <type>std::string</type> <parameter>deviceName</parameter>
+            <initializer>"vmusb"</initializer>
+        </methodparam>
+        <methodparam>
+            <type>std::string</type> <parameter>host</parameter>
+            <initializer>"localhost"</initializer>
+        </methodparam>
+        <methodparam>
+            <type>unsigned int</type> <parameter>port</parameter>
+            <initializer>27000</initializer>
+        </methodparam>
+    </constructorsynopsis>
+    <destructorsynopsis>
+        <modifier>virtual</modifier><methodname>~CVMUSBRemote</methodname><void />
+    </destructorsynopsis>
+    <methodsynopsis>
+        <type>uint32_t</type> <methodname>readFirmwareID</methodname><void />
+    </methodsynopsis>
+    <methodsynopsis>
+        <type>void</type><methodname>writeGlobalMode</methodname>
+        <methodparam>
+            <type>uint16_t</type><parameter>value)</parameter>
+        </methodparam>
+    </methodsynopsis>
+    <methodsynopsis>
+        <type>uint16_t</type><methodname>readGlobalMode</methodname><void />
+    </methodsynopsis>
+    <methodsynopsis>
+        <type>void</type><methodname>writeDAQSettings</methodname>
+        <methodparam>
+            <type>uint32_t</type> <parameter>value</parameter>
+        </methodparam>
+    </methodsynopsis>
+    <methodsynopsis>
+        <type>uint32_t</type> <methodname>readDAQSettings</methodname><void />
+    </methodsynopsis>
+    <methodsynopsis>
+        <type>void</type><methodname>writeLEDSource</methodname>
+        <methodparam>
+            <type>uint32_t</type> <parameter>value</parameter>
+        </methodparam>
+    </methodsynopsis>
+    <methodsynopsis>
+        <type>uint32_t</type> <methodname>readLEDSource</methodname>
+        <void />
+    </methodsynopsis>
+    <methodsynopsis>
+        <type>void</type><methodname>writeDeviceSource</methodname>
+        <methodparam>
+            <type>uint32_t</type> <parameter>value</parameter>
+        </methodparam>
+    </methodsynopsis>
+    <methodsynopsis>
+        <type>uint32_t</type> <methodname>readDeviceSource</methodname><void />
+    </methodsynopsis>
+    <methodsynopsis>
+        <type>void</type><methodname>writeDGG_A</methodname>
+        <methodparam>
+            <type>uint32_t</type> <parameter>value</parameter>
+        </methodparam>
+    </methodsynopsis>
+    <methodsynopsis>
+        <type>uint32_t</type><methodname>readDGG_A</methodname>
+        <void />
+    </methodsynopsis>
+    <methodsynopsis>
+        <type>void</type><methodname>writeDGG_B</methodname>
+        <methodparam>
+            <type>uint32_t</type><parameter>value</parameter>
+        </methodparam>
+    </methodsynopsis>
+    <methodsynopsis>
+        <type>uint32_t</type> <methodname>readDGG_B</methodname>
+        <void />
+    </methodsynopsis>
+    <methodsynopsis>
+        <type>void</type><methodname>writeDGG_Extended</methodname>
+        <methodparam>
+            <type>uint32_t</type> <parameter>value</parameter>
+        </methodparam>
+    </methodsynopsis>
+    <methodsynopsis>
+        <type>uint32_t</type> <methodname>readDGG_Extended</methodname>
+        <void />
+    </methodsynopsis>
+    <methodsynopsis>
+        <type>uint32_t</type><methodname>readScalerA</methodname>
+        <void />
+    </methodsynopsis>
+    <methodsynopsis>
+        <type>uint32_t</type><methodname>readScalerB</methodname>
+        <void />
+    </methodsynopsis>
+    <methodsynopsis>
+        <type>void</type><methodname>writeVector</methodname>
+        <methodparam>
+            <type>int</type> <parameter>which</parameter>
+            </methodparam>
+        <methodparam>
+            <type>uint32_t</type> <parameter>value</parameter>
+        </methodparam>
+    </methodsynopsis>
+    <methodsynopsis>
+        <type>uint32_t</type><methodname>readVector</methodname>
+        <methodparam>
+            <type>int</type> <parameter>which</parameter>
+        </methodparam>
+    </methodsynopsis>
+    <methodsynopsis>
+        <type>void</type><methodname>writeBulkXferSetup</methodname>
+        <methodparam>
+            <type>uint32_t</type><parameter>value</parameter>
+        </methodparam>
+    </methodsynopsis>
+    <methodsynopsis>
+        <type>uint32_t</type><methodname>readBulkXferSetup</methodname>
+        <void />
+    </methodsynopsis>
+    <methodsynopsis>
+        <type>int</type> <methodname>vmeWrite32</methodname>
+        <methodparam>
+            <type>uint32_t</type> <parameter>address</parameter>
+        </methodparam>
+        <methodparam>
+            <type>uint8_t</type><parameter>aModifier</parameter>
+        </methodparam>
+        <methodparam>
+            <type>uint32_t</type><parameter>data</parameter>
+        </methodparam>
+    </methodsynopsis>
+    <methodsynopsis>
+        <type>int</type><methodname>vmeRead32</methodname>
+        <methodparam>
+            <type>uint32_t</type> <parameter>address</parameter>
+        </methodparam>
+        <methodparam>
+            <type>uint8_t</type><parameter>aModifier</parameter>
+        </methodparam>
+        <methodparam>
+            <type>uint32_t*</type> <parameter>data</parameter>
+        </methodparam>
+    </methodsynopsis>
+    <methodsynopsis>
+        <type>int</type><methodname>vmeWrite16</methodname>
+        <methodparam>
+            <type>uint32_t</type><parameter>address</parameter>
+        </methodparam>
+        <methodparam>
+            <type>uint8_t</type><parameter>aModifier</parameter>
+        </methodparam>
+        <methodparam>
+            <type>uint16_t</type><parameter>data</parameter>
+        </methodparam>
+        </methodsynopsis>
+    <methodsynopsis>
+        <type>int</type><methodname>vmeRead16</methodname>
+        <methodparam>
+            <type>uint32_t</type><parameter>address</parameter>
+        </methodparam>
+        <methodparam>
+            <type>uint8_t</type> <parameter>aModifier</parameter>
+        </methodparam>
+        <methodparam>
+            <type>uint16_t*</type><parameter>data</parameter>
+        </methodparam>
+    </methodsynopsis>
+    <methodsynopsis>
+        <type>int</type> <methodname>vmeWrite8</methodname>
+        <methodparam>
+            <type>uint32_t</type> <parameter>address</parameter>
+        </methodparam>
+        <methodparam>
+            <type>uint8_t</type><parameter>aModifier</parameter>
+        </methodparam>
+        <methodparam>
+            <type>uint8_t</type><parameter>data</parameter>
+        </methodparam>
+        </methodsynopsis>
+    <methodsynopsis>
+        <type>int</type> <methodname>vmeRead8</methodname>
+        <methodparam>
+            <type>uint32_t</type><parameter>address</parameter>
+            </methodparam>
+        <methodparam>
+            <type>uint8_t</type><parameter>aModifier</parameter>
+        </methodparam>
+        <methodparam>
+            <type>uint8_t*</type> <parameter>data</parameter>
+        </methodparam>
+    </methodsynopsis>
+    <methodsynopsis>
+        <type>int</type><methodname>vmeBlockRead</methodname>
+        <methodparam>
+            <type>uint32_t</type><parameter>baseAddress</parameter>
+        </methodparam>
+        <methodparam>
+            <type>uint8_t</type><parameter>aModifier</parameter>
+            </methodparam>
+        <methodparam>
+            <type>void*</type><parameter>data</parameter>
+        </methodparam>
+        <methodparam>
+            <type>size_t</type><parameter>transferCount</parameter>
+        </methodparam>
+        <methodparam>
+            <type>size_t*</type><parameter>countTransferred</parameter>
+        </methodparam>
+        </methodsynopsis>
+    <methodsynopsis>
+        <type>int</type><methodname>vmeFifoRead</methodname>
+        <methodparam>
+            <type>uint32_t</type><parameter>address</parameter>
+        </methodparam>
+        <methodparam>
+            <type>uint8_t</type> <parameter>aModifier</parameter>
+        </methodparam>
+        <methodparam>
+            <type>void*</type><parameter>data</parameter>
+        </methodparam>
+        <methodparam>
+            <type>size_t</type><parameter>transferCount</parameter>
+        </methodparam>
+        <methodparam>
+            <type>size_t*</type><parameter>countTransferred</parameter>
+        </methodparam>
+    </methodsynopsis>
+    <methodsynopsis>
+        <type>int</type><methodname>vmeReadBlockCount8</methodname>
+        <methodparam>
+            <type>uint32_t</type><parameter>address</parameter>
+        </methodparam>
+        <methodparam>
+            <type>uint32_t</type> <parameter>mask</parameter>
+        </methodparam>
+        <methodparam>
+            <type>uint8_t</type><parameter>amod</parameter>
+        </methodparam>
+        </methodsynopsis>
+    <methodsynopsis>
+        <type>int</type><methodname>vmeReadBlockCount16</methodname>
+        <methodparam>
+            <type>uint32_t</type><parameter>address</parameter>
+        </methodparam>
+        <methodparam>
+            <type>uint32_t</type><parameter>mask</parameter>
+        </methodparam>
+        <methodparam>
+            <type>uint8_t</type><parameter>amod</parameter>
+        </methodparam>
+    </methodsynopsis>
+    <methodsynopsis>
+        <type>int</type> <methodname>vmeReadBlockCount32</methodname>
+        <methodparam>
+            <type>uint32_t</type><parameter>address</parameter>
+        </methodparam>
+        <methodparam>
+            <type>uint32_t</type><parameter>mask</parameter>
+        </methodparam>
+        <methodparam>
+            <type>uint8_t</type><parameter>amod</parameter>
+        </methodparam>
+        </methodsynopsis>
+    <methodsynopsis>
+        <type>int</type><methodname>vmeVariableBlockRead</methodname>
+        <methodparam>
+            <type>uint32_t</type><parameter>address</parameter>
+        </methodparam>
+        <methodparam>
+            <type>uint8_t</type><parameter>amod</parameter>
+        </methodparam>
+        <methodparam>
+            <type>void*</type><parameter>data</parameter>
+        </methodparam>
+        <methodparam>
+            <type>size_t</type><parameter>maxCount</parameter>
+        </methodparam>
+        <methodparam>
+            <type>size_t*</type><parameter>countTransferred</parameter>
+            </methodparam>
+        </methodsynopsis>
+    <methodsynopsis>
+        <type>int</type><methodname>vmeVariableFifoRead</methodname>
+        <methodparam>
+            <type>uint32_t</type><parameter>address</parameter>
+        </methodparam>
+        <methodparam>
+            <type>uint8_t</type><parameter>amod</parameter>
+        </methodparam>
+        <methodparam>
+            <type>void*</type><parameter>data</parameter>
+        </methodparam>
+        <methodparam>
+            <type>size_t</type><parameter>maxCount</parameter>
+            </methodparam>
+        <methodparam>
+            <type>size_t*</type><parameter>countTransferred</parameter>
+        </methodparam>
+    </methodsynopsis>
+    <methodsynopsis>
+        <type>int</type><methodname>executeList</methodname>
+        <methodparam>
+            <type>CVMUSBReadoutList&amp;</type><parameter>list</parameter>
+        </methodparam>
+        <methodparam>
+            <type>void*</type><parameter>pReadBuffer</parameter>
+        </methodparam>
+        <methodparam>
+            <type>size_t</type><parameter>readBufferSize</parameter>
+        </methodparam>
+        <methodparam>
+            <type>size_t*</type><parameter>bytesRead</parameter>
+        </methodparam>
+    </methodsynopsis>
+
+
+    // Register bit definintions.
+
+public:
+    class <ooclass><classname>RegisterOffsets</classname></ooclass> {
+    public:
+        <fieldsynopsis>
+            <modifier>static const</modifier><type>unsigned int</type>
+            <varname>FIDRegister</varname><initializer>0</initializer>
+            </fieldsynopsis>
+        <fieldsynopsis>
+            <modifier>static const</modifier><type>unsigned int</type>
+            <varname>GMODERegister</varname><initializer>4</initializer>
+            </fieldsynopsis>
+        <fieldsynopsis>
+            <modifier>static const</modifier><type>unsigned int</type>
+            <varname>DAQSetRegister</varname><initializer>8</initializer>
+        </fieldsynopsis>
+        <fieldsynopsis>
+            <modifier>static const</modifier><type>unsigned int</type>
+            <varname>LEDSrcRegister</varname><initializer>0xc</initializer>
+            </fieldsynopsis>
+        <fieldsynopsis>
+            <modifier>static const</modifier><type>unsigned int</type>
+            <varname>DEVSrcRegister</varname><initializer>0x10</initializer>
+        </fieldsynopsis>
+        <fieldsynopsis>
+            <modifier>static const</modifier><type>unsigned int</type>
+            <varname>DGGARegister</varname><initializer>0x14</initializer>
+        </fieldsynopsis>
+        <fieldsynopsis>
+            <modifier>static const</modifier><type>unsigned int</type>
+            <varname>DGGBRegister</varname><initializer>0x18</initializer>
+            </fieldsynopsis>
+        <fieldsynopsis>
+            <modifier>static const</modifier><type>unsigned int</type>
+            <varname>ScalerA</varname><initializer>0x1c</initializer>
+        </fieldsynopsis>
+        <fieldsynopsis>
+            <modifier>static const</modifier><type>unsigned int</type>
+            <varname>ScalerB</varname><initializer>0x20</initializer>
+        </fieldsynopsis>
+        <fieldsynopsis>
+            <modifier>static const</modifier><type>unsigned int</type>
+            <varname>ExtractMask</varname><initializer>0x24</initializer>
+            </fieldsynopsis>
+        <fieldsynopsis>
+            <modifier>static const</modifier><type>unsigned int</type>
+            <varname>ISV12</varname><initializer>0x28</initializer>
+        </fieldsynopsis>
+        <fieldsynopsis>
+            <modifier>static const</modifier><type>unsigned int</type>
+            <varname>ISV34</varname><initializer>0x2c</initializer>
+        </fieldsynopsis>
+        <fieldsynopsis>
+            <modifier>static const</modifier><type>unsigned int</type>
+            <varname>ISV56</varname><initializer>0x30</initializer>
+        </fieldsynopsis>
+        <fieldsynopsis>
+            <modifier>static const</modifier><type>unsigned int</type>
+            <varname>ISV78</varname><initializer>0x34</initializer>
+        </fieldsynopsis>
+        <fieldsynopsis>
+            <modifier>static const</modifier><type>unsigned int</type>
+            <varname>DGGExtended</varname><initializer>0x38</initializer>
+        </fieldsynopsis>
+        <fieldsynopsis>
+            <modifier>static const</modifier><type>unsigned int</type>
+            <varname>USBSetup</varname><initializer>0x3c</initializer>
+            </fieldsynopsis>
+        <fieldsynopsis>
+            <modifier>static const</modifier><type>unsigned int</type>
+            <varname>USBVHIGH1</varname><initializer>0x40</initializer>
+            </fieldsynopsis>
+        <fieldsynopsis>
+            <modifier>static const</modifier><type>unsigned int</type>
+            <varname>USBVHIGH2</varname><initializer>0x44</initializer>
+        </fieldsynopsis>
+    };
+
+    class <ooclass><classname>ActionRegister</classname></ooclass>
+    public:
+        <fieldsynopsis>        
+            <modifier>static const</modifier><type>uint16_t</type>
+            <varname>startDAQ</varname><initializer>1</initializer>
+            </fieldsynopsis>
+        <fieldsynopsis>
+            <modifier>static const</modifier><type>uint16_t</type>
+            <varname>usbTrigger</varname><initializer>2</initializer>
+        </fieldsynopsis>
+        <fieldsynopsis>
+            <modifier>static const</modifier><type>uint16_t</type>
+            <varname>clear</varname><initializer>4</initializer>
+        </fieldsynopsis>
+        <fieldsynopsis>
+            <modifier>static const</modifier><type>uint16_t</type>
+            <varname>sysReset</varname><initializer>8</initializer>
+        </fieldsynopsis>
+        <fieldsynopsis>
+            <modifier>static const</modifier><type>uint16_t</type>
+            <varname>scalerDump</varname><initializer>0x10</initializer>
+        </fieldsynopsis>
+    };
+   class <ooclass><classname>FirmwareRegister</classname></ooclass> {
+    public:
+    <fieldsynopsis>
+        <modifier>static const</modifier><type>uint32_t</type>
+        <varname>minorRevMask</varname><initializer>0x000000ff</initializer>
+    </fieldsynopsis>
+    <fieldsynopsis>
+        <modifier>static const</modifier><type>uint32_t</type>
+        <varname>minorRevShift</varname><initializer>0</initializer>
+    </fieldsynopsis>
+    <fieldsynopsis>
+        <modifier>static const</modifier><type>uint32_t</type>
+        <varname>majorRevMask</varname><initializer>0x0000ff00</initializer>
+    </fieldsynopsis>
+    <fieldsynopsis>
+        <modifier>static const</modifier><type>uint32_t</type>
+        <varname>majorRevShift</varname><initializer>8</initializer>
+    </fieldsynopsis>
+    <fieldsynopsis>
+        <modifier>static const</modifier><type>uint32_t</type>
+        <varname>betaVersionMask</varname><initializer>0x00ff0000</initializer>
+    </fieldsynopsis>
+    <fieldsynopsis>
+        <modifier>static const</modifier><type>uint32_t</type>
+        <varname>betaVersionShift</varname><initializer>16</initializer>
+    </fieldsynopsis>
+    <fieldsynopsis>
+        <modifier>static const</modifier><type>uint32_t</type>
+        <varname>yearMask</varname><initializer>0x0f000000</initializer>
+    </fieldsynopsis>
+    <fieldsynopsis>
+        <modifier>static const</modifier><type>uint32_t</type>
+        <varname>yearShift</varname><initializer>24</initializer>
+    </fieldsynopsis>
+    <fieldsynopsis>
+        <modifier>static const</modifier><type>uint32_t</type>
+        <varname>monthMask</varname><initializer>0xf0000000</initializer>
+    </fieldsynopsis>
+    <fieldsynopsis>
+        <modifier>static const</modifier><type>uint32_t</type>
+        <varname>monthshift</varname><initializer>27</initializer>
+    </fieldsynopsis>
+    };
+
+    class <ooclass><classname>GlobalModeRegister</classname></ooclass> {
+    public:
+    <fieldsynopsis>
+        <modifier>static const</modifier><type>uint16_t</type>
+        <varname>bufferLenMask</varname><initializer>0xf</initializer>
+    </fieldsynopsis>
+    <fieldsynopsis>
+        <modifier>static const</modifier><type>uint16_t</type>
+        <varname>bufferLenShift</varname><initializer>0</initializer>
+    </fieldsynopsis>
+    <fieldsynopsis>
+        <modifier>static const</modifier><type>uint16_t</type>
+        <varname>bufferLen13K</varname><initializer>0</initializer>
+    </fieldsynopsis>
+    <fieldsynopsis>
+        <modifier>static const</modifier><type>uint16_t</type>
+        <varname>bufferLen8K</varname><initializer>1</initializer>
+    </fieldsynopsis>
+    <fieldsynopsis>
+        <modifier>static const</modifier><type>uint16_t</type>
+        <varname>bufferLen4K</varname><initializer>2</initializer>
+        </fieldsynopsis>
+    <fieldsynopsis>
+        <modifier>static const</modifier><type>uint16_t</type>
+        <varname>bufferLen2K</varname><initializer>3</initializer>
+        </fieldsynopsis>
+    <fieldsynopsis>
+        <modifier>static const</modifier><type>uint16_t</type>
+        <varname>bufferLen1K</varname><initializer>4</initializer>
+    </fieldsynopsis>
+    <fieldsynopsis>
+        <modifier>static const</modifier><type>uint16_t</type>
+        <varname>bufferLen512</varname><initializer>5</initializer>
+    </fieldsynopsis>
+    <fieldsynopsis>
+        <modifier>static const</modifier><type>uint16_t</type>
+        <varname>bufferLen256</varname><initializer>6</initializer>
+    </fieldsynopsis>
+    <fieldsynopsis>
+        <modifier>static const</modifier><type>uint16_t</type>
+        <varname>bufferLen128</varname><initializer>7</initializer>
+    </fieldsynopsis>
+    <fieldsynopsis>
+        <modifier>static const</modifier><type>uint16_t</type>
+        <varname>bufferLen64</varname><initializer>8</initializer>
+    </fieldsynopsis>
+    <fieldsynopsis>
+        <modifier>static const</modifier><type>uint16_t</type>
+        <varname>bufferLenSingle</varname><initializer>9</initializer>
+    </fieldsynopsis>
+    <fieldsynopsis>
+        <modifier>static const</modifier><type>uint16_t</type>
+        <varname>mixedBuffers</varname><initializer>0x20</initializer>
+    </fieldsynopsis>
+    <fieldsynopsis>
+        <modifier>static const</modifier><type>uint16_t</type>
+        <varname>doubleSeparater</varname><initializer>0x40</initializer>
+    </fieldsynopsis>
+    <fieldsynopsis>
+        <modifier>static const</modifier><type>uint16_t</type>
+        <varname>align32</varname><initializer>0x80</initializer>
+    </fieldsynopsis>
+    <fieldsynopsis>
+        <modifier>static const</modifier><type>uint16_t</type>
+        <varname>doubleHeader</varname><initializer>0x100</initializer>
+    </fieldsynopsis>
+    <fieldsynopsis>
+        <modifier>static const</modifier><type>uint16_t</type>
+        <varname>flushScalers</varname><initializer>0x200</initializer>
+    </fieldsynopsis>
+    <fieldsynopsis>
+        <modifier>static const</modifier><type>uint16_t</type>
+        <varname>busReqLevelMask</varname><initializer>0x7000</initializer>
+    </fieldsynopsis>
+    <fieldsynopsis>
+        <modifier>static const</modifier><type>uint16_t</type>
+        <varname>busReqLevelShift</varname><initializer>12</initializer>
+    </fieldsynopsis>
+    };
+    class <ooclass><classname>DAQSettingsRegister</classname></ooclass> {
+    public:
+    <fieldsynopsis>
+        <modifier>static const</modifier><type>uint32_t</type>
+        <varname>readoutTriggerDelayMask</varname><initializer>0xff</initializer>
+    </fieldsynopsis>
+    <fieldsynopsis>
+        <modifier>static const</modifier><type>uint32_t</type>
+        <varname>readoutTriggerDelayShift</varname><initializer>0</initializer>
+    </fieldsynopsis>
+    <fieldsynopsis>
+        <modifier>static const</modifier><type>uint32_t</type>
+        <varname>scalerReadoutPeriodMask</varname><initializer>0xff00</initializer>
+    </fieldsynopsis>
+    <fieldsynopsis>
+        <modifier>static const</modifier><type>uint32_t</type>
+        <varname>scalerReadoutPeriodShift</varname><initializer>8</initializer>
+    </fieldsynopsis>
+    <fieldsynopsis>
+        <modifier>static const</modifier><type>uint32_t</type>
+        <varname>scalerReadoutFrequenyMask</varname><initializer>0xffff0000</initializer>
+    </fieldsynopsis>
+    <fieldsynopsis>
+        <modifier>static const</modifier><type>uint32_t</type>
+        <varname>scalerReadoutFrequencyShift</varname><initializer>16</initializer>
+    </fieldsynopsis>
+    };
+    class <ooclass><classname>LedSourceRegister</classname></ooclass> {
+    public:
+        // Top yellow led:
+    <fieldsynopsis>
+        <modifier>static const</modifier><type>uint32_t</type>
+        <varname>topYellowOutFifoNotEmpty</varname><initializer>0</initializer>
+    </fieldsynopsis>
+    <fieldsynopsis>
+        <modifier>static const</modifier><type>uint32_t</type>
+        <varname>topYellowInFifoNotEmpty</varname><initializer>1</initializer>
+    </fieldsynopsis>
+    <fieldsynopsis>
+        <modifier>static const</modifier><type>uint32_t</type>
+        <varname>topYellowScalerEvent</varname><initializer>2</initializer>
+    </fieldsynopsis>
+    <fieldsynopsis>
+        <modifier>static const</modifier><type>uint32_t</type>
+        <varname>topYellowInFifoFull</varname><initializer>3</initializer>
+    </fieldsynopsis>
+    <fieldsynopsis>
+        <modifier>static const</modifier><type>uint32_t</type>
+        <varname>topYellowDTACK</varname><initializer>4</initializer>
+    </fieldsynopsis>
+    <fieldsynopsis>
+        <modifier>static const</modifier><type>uint32_t</type>
+        <varname>topYellowBERR</varname><initializer>5</initializer>
+    </fieldsynopsis>
+    <fieldsynopsis>
+        <modifier>static const</modifier><type>uint32_t</type>
+        <varname>topYellowBusRequest</varname><initializer>6</initializer>
+    </fieldsynopsis>
+    <fieldsynopsis>
+        <modifier>static const</modifier><type>uint32_t</type>
+        <varname>topYellowBusGranted</varname><initializer>7</initializer>
+    </fieldsynopsis>
+    <fieldsynopsis>
+        <modifier>static const</modifier><type>uint32_t</type>
+        <varname>topYellowInvert</varname><initializer>0x8</initializer>
+    </fieldsynopsis>
+    <fieldsynopsis>
+        <modifier>static const</modifier><type>uint32_t</type>
+        <varname>topYellowLatch</varname><initializer>0x10</initializer>
+    </fieldsynopsis>
+
+        // Red LED:
+        
+    <fieldsynopsis>
+        <modifier>static const</modifier><type>uint32_t</type>
+        <varname>redEventTrigger</varname><initializer>(0 &lt;&lt; 8)</initializer>
+    </fieldsynopsis>
+    <fieldsynopsis>
+        <modifier>static const</modifier><type>uint32_t</type>
+        <varname>redNimInput1</varname><initializer>(1 &lt;&lt; 8)</initializer>
+    </fieldsynopsis>
+    <fieldsynopsis>
+        <modifier>static const</modifier><type>uint32_t</type>
+        <varname>redNimInput2</varname><initializer>(2 &lt;&lt; 8)</initializer>
+        </fieldsynopsis>
+    <fieldsynopsis>
+        <modifier>static const</modifier><type>uint32_t</type>
+        <varname>redBusy</varname><initializer>(3 &lt;&lt; 8)</initializer>
+    </fieldsynopsis>
+    <fieldsynopsis>
+        <modifier>static const</modifier><type>uint32_t</type>
+        <varname>redDTACK</varname><initializer>(4 &lt;&lt; 8)</initializer>
+    </fieldsynopsis>
+    <fieldsynopsis>
+        <modifier>static const</modifier><type>uint32_t</type>
+        <varname>redBERR</varname><initializer>(5 &lt;&lt; 8)</initializer>
+    </fieldsynopsis>
+    <fieldsynopsis>
+        <modifier>static const</modifier><type>uint32_t</type>
+        <varname>redBusRequest</varname><initializer>(6 &lt;&lt; 8)</initializer>
+    </fieldsynopsis>
+    <fieldsynopsis>
+        <modifier>static const</modifier><type>uint32_t</type>
+        <varname>redBusGranted</varname><initializer>(7 &lt;&lt; 8)</initializer>
+    </fieldsynopsis>
+    <fieldsynopsis>
+        <modifier>static const</modifier><type>uint32_t</type>
+        <varname>redInvert</varname><initializer>(8 &lt;&lt; 8)</initializer>
+    </fieldsynopsis>
+    <fieldsynopsis>
+        <modifier>static const</modifier><type>uint32_t</type>
+        <varname>redLatch</varname><initializer>(0x10 &lt;&lt; 8)</initializer>
+    </fieldsynopsis>
+
+        // Green led:
+
+    <fieldsynopsis>
+        <modifier>static const</modifier><type>uint32_t</type>
+        <varname>greenAcquire</varname><initializer>(0 &lt;&lt; 16)</initializer>
+    </fieldsynopsis>
+    <fieldsynopsis>
+        <modifier>static const</modifier><type>uint32_t</type>
+        <varname>greenStackNotEmpty</varname><initializer>(1 &lt;&lt; 16)</initializer>
+    </fieldsynopsis>
+    <fieldsynopsis>
+        <modifier>static const</modifier><type>uint32_t</type>
+        <varname>greenEventReady</varname><initializer>(2 &lt;&lt; 16)</initializer>
+    </fieldsynopsis>
+    <fieldsynopsis>
+        <modifier>static const</modifier><type>uint32_t</type>
+        <varname>greenEventTrigger</varname><initializer>(3 &lt;&lt; 16)</initializer>
+    </fieldsynopsis>
+    <fieldsynopsis>
+        <modifier>static const</modifier><type>uint32_t</type>
+        <varname>greenDTACK</varname><initializer>(4 &lt;&lt; 16)</initializer>
+    </fieldsynopsis>
+    <fieldsynopsis>
+        <modifier>static const</modifier><type>uint32_t</type>
+        <varname>greenBERR</varname><initializer>(5 &lt;&lt; 16)</initializer>
+    </fieldsynopsis>
+    <fieldsynopsis>
+        <modifier>static const</modifier><type>uint32_t</type>
+        <varname>greenBusRequest</varname><initializer>(6 &lt;&lt; 16)</initializer>
+    </fieldsynopsis>
+    <fieldsynopsis>
+        <modifier>static const</modifier><type>uint32_t</type>
+        <varname>greenBusGranted</varname><initializer>(7 &lt;&lt; 16)</initializer>
+    </fieldsynopsis>
+    <fieldsynopsis>
+        <modifier>static const</modifier><type>uint32_t</type>
+        <varname>greenInvert</varname><initializer>(8 &lt;&lt; 16)</initializer>
+    </fieldsynopsis>
+    <fieldsynopsis>
+        <modifier>static const</modifier><type>uint32_t</type>
+        <varname>greenLatch</varname><initializer>(0x10 &lt;&lt; 16)</initializer>
+    </fieldsynopsis>
+
+        // Bottom yellow LED
+
+    <fieldsynopsis>
+        <modifier>static const</modifier><type>uint32_t</type>
+        <varname>bottomYellowNotArbiter</varname><initializer>(0 &lt;&lt; 24)</initializer>
+    </fieldsynopsis>
+    <fieldsynopsis>
+        <modifier>static const</modifier><type>uint32_t</type>
+        <varname>bottomYellowUsbTrigger</varname><initializer>(1 &lt;&lt; 24)</initializer>
+    </fieldsynopsis>
+    <fieldsynopsis>
+        <modifier>static const</modifier><type>uint32_t</type>
+        <varname>bottomYellowUSBReset</varname><initializer>(2 &lt;&lt; 24)</initializer>
+    </fieldsynopsis>
+    <fieldsynopsis>
+        <modifier>static const</modifier><type>uint32_t</type>
+        <varname>bottomYellowBERR1</varname><initializer>(3 &lt;&lt; 24)</initializer>
+    </fieldsynopsis>
+    <fieldsynopsis>
+        <modifier>static const</modifier><type>uint32_t</type>
+        <varname>bottomYellowDTACK</varname><initializer>(4 &lt;&lt; 24)</initializer>
+    </fieldsynopsis>
+    <fieldsynopsis>
+        <modifier>static const</modifier><type>uint32_t</type>
+        <varname>bottomYellowBERR</varname><initializer>(5 &lt;&lt; 24)</initializer>
+    </fieldsynopsis>
+    <fieldsynopsis>
+        <modifier>static const</modifier><type>uint32_t</type>
+        <varname>bottomYellowBusRequest</varname><initializer>(6 &lt;&lt; 24)</initializer>
+    </fieldsynopsis>
+    <fieldsynopsis>
+        <modifier>static const</modifier><type>uint32_t</type>
+        <varname>bottomYellowBusGranted</varname><initializer>(7 &lt;&lt; 24)</initializer>
+    </fieldsynopsis>
+    <fieldsynopsis>
+        <modifier>static const</modifier><type>uint32_t</type>
+        <varname>bottomYellowInvert</varname><initializer>(8 &lt;&lt; 24)</initializer>
+    </fieldsynopsis>
+    <fieldsynopsis>
+        <modifier>static const</modifier><type>uint32_t</type>
+        <varname>bottomYellowLatch</varname><initializer>(0x10 &lt;&lt; 24)</initializer>
+    </fieldsynopsis>
+
+    };
+    class <ooclass><classname>CVMUSB::DeviceSourceRegister</classname></ooclass> {
+    <fieldsynopsis>
+        <modifier>static const</modifier> <type>uint32_t</type>
+        <varname>nimO1Busym</varname><initializer>0</initializer>
+    </fieldsynopsis>
+    <fieldsynopsis>
+        <modifier>static const</modifier> <type>uint32_t</type>
+        <varname>nimO1Trigger</varname><initializer>1</initializer>
+    </fieldsynopsis>
+    <fieldsynopsis>
+        <modifier>static const</modifier> <type>uint32_t</type>
+        <varname>nimO1BusRequest</varname><initializer>2</initializer>
+    </fieldsynopsis>
+    <fieldsynopsis>
+        <modifier>static const</modifier> <type>uint32_t</type>
+        <varname>nimO1EventToBuffer</varname><initializer>3</initializer>
+    </fieldsynopsis>
+    <fieldsynopsis>
+        <modifier>static const</modifier> <type>uint32_t</type>
+        <varname>nimO1DGGA</varname><initializer>4</initializer>
+    </fieldsynopsis>
+    <fieldsynopsis>
+        <modifier>static const</modifier> <type>uint32_t</type>
+        <varname>nimO1DGGB</varname><initializer>5</initializer>
+    </fieldsynopsis>
+    <fieldsynopsis>
+        <modifier>static const</modifier> <type>uint32_t</type>
+        <varname>nimO1EndOfEvent</varname><initializer>6</initializer>
+    </fieldsynopsis>
+    <fieldsynopsis>
+        <modifier>static const</modifier> <type>uint32_t</type>
+        <varname>nimO1UsbTrigger</varname><initializer>7</initializer>
+    </fieldsynopsis>
+    <fieldsynopsis>
+        <modifier>static const</modifier> <type>uint32_t</type>
+        <varname>nimO1Invert</varname><initializer>8M</initializer>
+    </fieldsynopsis>
+    <fieldsynopsis>
+        <modifier>static const</modifier> <type>uint32_t</type>
+        <varname>nimO1Latch</varname><initializer>0x10</initializer>
+    </fieldsynopsis>
+    <fieldsynopsis>
+        <modifier>static const</modifier> <type>uint32_t</type>
+        <varname>nimO2UsbTrigger1</varname><initializer>(0 &lt;&lt; 8)</initializer>
+    </fieldsynopsis>
+    <fieldsynopsis>
+        <modifier>static const</modifier> <type>uint32_t</type>
+        <varname>nimO2VMEExecuting</varname><initializer>(1 &lt;&lt; 8)</initializer>
+    </fieldsynopsis>
+    <fieldsynopsis>
+        <modifier>static const</modifier> <type>uint32_t</type>
+        <varname>nimO2VMEAS</varname><initializer>(2 &lt;&lt; 8)</initializer>
+    </fieldsynopsis>
+    <fieldsynopsis>
+        <modifier>static const</modifier> <type>uint32_t</type>
+        <varname>nimO2DataToUsbFIFO</varname><initializer>(3 &lt;&lt; 8)</initializer>
+    </fieldsynopsis>
+    <fieldsynopsis>
+        <modifier>static const</modifier> <type>uint32_t</type>
+        <varname>nimO2DGGA</varname><initializer>(4 &lt;&lt; 8)</initializer>
+    </fieldsynopsis>
+    <fieldsynopsis>
+        <modifier>static const</modifier> <type>uint32_t</type>
+        <varname>nimO2DGGB</varname><initializer>(5 &lt;&lt; 8)</initializer>
+    </fieldsynopsis>
+    <fieldsynopsis>
+        <modifier>static const</modifier> <type>uint32_t</type>
+        <varname>nimO2EndOfEvent</varname><initializer>(6 &lt;&lt; 8)</initializer>
+    </fieldsynopsis>
+    <fieldsynopsis>
+        <modifier>static const</modifier> <type>uint32_t</type>
+        <varname>nimO2UsbTrigger</varname><initializer>(7 &lt;&lt; 8)</initializer>
+    </fieldsynopsis>
+    <fieldsynopsis>
+        <modifier>static const</modifier> <type>uint32_t</type>
+        <varname>nimO2Invert</varname><initializer>(8 &lt;&lt; 8)</initializer>
+    </fieldsynopsis>
+    <fieldsynopsis>
+        <modifier>static const</modifier> <type>uint32_t</type>
+        <varname>nimO2Latch</varname><initializer>(0x10 &lt;&lt; 8)</initializer>
+    </fieldsynopsis>
+    <fieldsynopsis>
+        <modifier>static const</modifier> <type>uint32_t</type>
+        <varname>scalerADisabled</varname><initializer>(0   &lt;&lt; 16)</initializer>
+    </fieldsynopsis>
+    <fieldsynopsis>
+        <modifier>static const</modifier> <type>uint32_t</type>
+        <varname>scalerANIMI1</varname><initializer>(1   &lt;&lt; 16)</initializer>
+    </fieldsynopsis>
+    <fieldsynopsis>
+        <modifier>static const</modifier> <type>uint32_t</type>
+        <varname>scalerANIMI2</varname><initializer>(2   &lt;&lt; 16)</initializer>
+    </fieldsynopsis>
+    <fieldsynopsis>
+        <modifier>static const</modifier> <type>uint32_t</type>
+        <varname>scalerAEvent</varname><initializer>(2   &lt;&lt; 16)</initializer>
+    </fieldsynopsis>
+    <fieldsynopsis>
+        <modifier>static const</modifier> <type>uint32_t</type>
+        <varname>scalerAEnable</varname><initializer>(8   &lt;&lt; 16)</initializer>
+    </fieldsynopsis>
+    <fieldsynopsis>
+        <modifier>static const</modifier> <type>uint32_t</type>
+        <varname>scalerAReset</varname><initializer>(0x10 &lt;&lt; 16)</initializer>
+    </fieldsynopsis>
+    <fieldsynopsis>
+        <modifier>static const</modifier> <type>uint32_t</type>
+        <varname>scalerBDisabled</varname><initializer>(0   &lt;&lt; 20)</initializer>
+    </fieldsynopsis>
+    <fieldsynopsis>
+        <modifier>static const</modifier> <type>uint32_t</type>
+        <varname>scalerBNIMI1</varname><initializer>(1   &lt;&lt; 20)</initializer>
+    </fieldsynopsis>
+    <fieldsynopsis>
+        <modifier>static const</modifier> <type>uint32_t</type>
+        <varname>scalerBNIMI2</varname><initializer>(2   &lt;&lt; 20)</initializer>
+    </fieldsynopsis>
+    <fieldsynopsis>
+        <modifier>static const</modifier> <type>uint32_t</type>
+        <varname>scalerBEvent</varname><initializer>(2   &lt;&lt; 20)</initializer>
+    </fieldsynopsis>
+    <fieldsynopsis>
+        <modifier>static const</modifier> <type>uint32_t</type>
+        <varname>scalerBEnable</varname><initializer>(8   &lt;&lt; 20)</initializer>
+    </fieldsynopsis>
+    <fieldsynopsis>
+        <modifier>static const</modifier> <type>uint32_t</type>
+        <varname>scalerBReset</varname><initializer>(0x10 &lt;&lt; 20)</initializer>
+    </fieldsynopsis>
+    <fieldsynopsis>
+        <modifier>static const</modifier> <type>uint32_t</type>
+        <varname>dggADisabled</varname><initializer>(0   &lt;&lt; 24)</initializer>
+    </fieldsynopsis>
+    <fieldsynopsis>
+        <modifier>static const</modifier> <type>uint32_t</type>
+        <varname>dggANIMI1</varname><initializer>(1   &lt;&lt; 24)</initializer>
+    </fieldsynopsis>
+    <fieldsynopsis>
+        <modifier>static const</modifier> <type>uint32_t</type>
+        <varname>dggANIMI2</varname><initializer>(2   &lt;&lt; 24)</initializer>
+    </fieldsynopsis>
+    <fieldsynopsis>
+        <modifier>static const</modifier> <type>uint32_t</type>
+        <varname>dggAEventTrigger</varname><initializer>(3   &lt;&lt; 24)</initializer>
+    </fieldsynopsis>
+    <fieldsynopsis>
+        <modifier>static const</modifier> <type>uint32_t</type>
+        <varname>dggAEndOfEvent</varname><initializer>(4   &lt;&lt; 24)</initializer>
+    </fieldsynopsis>
+    <fieldsynopsis>
+        <modifier>static const</modifier> <type>uint32_t</type>
+        <varname>dggAUsbTrigger</varname><initializer>(5   &lt;&lt; 24)</initializer>
+    </fieldsynopsis>
+    <fieldsynopsis>
+        <modifier>static const</modifier> <type>uint32_t</type>
+        <varname>dggAPulser</varname><initializer>(6   &lt;&lt; 24)</initializer>
+    </fieldsynopsis>
+    <fieldsynopsis>
+        <modifier>static const</modifier> <type>uint32_t</type>
+        <varname>dggBDisabled</varname><initializer>(0   &lt;&lt; 28)</initializer>
+    </fieldsynopsis>
+    <fieldsynopsis>
+        <modifier>static const</modifier> <type>uint32_t</type>
+        <varname>dggBNIMI1</varname><initializer>(1   &lt;&lt; 28)</initializer>
+    </fieldsynopsis>
+    <fieldsynopsis>
+        <modifier>static const</modifier> <type>uint32_t</type>
+        <varname>dggBNIMI2</varname><initializer>(2   &lt;&lt; 28)</initializer>
+    </fieldsynopsis>
+    <fieldsynopsis>
+        <modifier>static const</modifier> <type>uint32_t</type>
+        <varname>dggBEventTrigger</varname><initializer>(3   &lt;&lt; 28)</initializer>
+    </fieldsynopsis>
+    <fieldsynopsis>
+        <modifier>static const</modifier> <type>uint32_t</type>
+        <varname>dggBEndOfEvent</varname><initializer>(4   &lt;&lt; 28)</initializer>
+    </fieldsynopsis>
+    <fieldsynopsis>
+        <modifier>static const</modifier> <type>uint32_t</type>
+        <varname>dggBUsbTrigger</varname><initializer>(5   &lt;&lt; 28)</initializer>
+    </fieldsynopsis>
+    <fieldsynopsis>
+        <modifier>static const</modifier> <type>uint32_t</type>
+        <varname>dggBPulser</varname><initializer>(6   &lt;&lt; 28)</initializer>
+    </fieldsynopsis>
+    };
+    class <ooclass><classname>CVMUSB::DGGAndPulserRegister</classname></ooclass> {
+        <fieldsynopsis>
+            <modifier>static const</modifier> <type>uint32_t</type>
+            <varname>dggFineDelayMask</varname><initializer>0xffff</initializer>
+        </fieldsynopsis>
+        <fieldsynopsis>
+            <modifier>static const</modifier> <type>uint32_t</type>
+            <varname>dggFineDelayShift</varname><initializer>0</initializer>
+        </fieldsynopsis>
+        <fieldsynopsis>
+            <modifier>static const</modifier> <type>uint32_t</type>
+            <varname>dggGateWidthMask</varname><initializer>0xffff0000</initializer>
+        </fieldsynopsis>
+        <fieldsynopsis>
+            <modifier>static const</modifier> <type>uint32_t</type>
+            <varname>dggGateWidthShift</varname><initializer>16</initializer>
+        </fieldsynopsis>
+    
+    };
+    class <ooclass><classname>CVMUSB::DGGCoarseRegister</classname></ooclass> {
+        <fieldsynopsis>
+            <modifier>static const</modifier> <type>uint32_t</type>
+            <varname>ACoarseMask</varname><initializer>0xffff</initializer>
+        </fieldsynopsis>
+        <fieldsynopsis>
+            <modifier>static const</modifier> <type>uint32_t</type>
+            <varname>ACoarseShift</varname><initializer>0</initializer>
+        </fieldsynopsis>
+        <fieldsynopsis>
+            <modifier>static const</modifier> <type>uint32_t</type>
+            <varname>BCoarseMask</varname><initializer>0xffff0000</initializer>
+        </fieldsynopsis>
+        <fieldsynopsis>
+            <modifier>static const</modifier> <type>uint32_t</type>
+            <varname>BCoarseShift</varname><initializer>16</initializer>
+        </fieldsynopsis>
+    
+    }; 
+    class <ooclass><classname>CVMUSB::ISVRegister</classname></ooclass> {
+        <fieldsynopsis>
+            <modifier>static const</modifier> <type>uint32_t</type>
+            <varname>AVectorMask</varname><initializer>= 0xff</initializer>
+        </fieldsynopsis>
+        <fieldsynopsis>
+            <modifier>static const</modifier> <type>uint32_t</type>
+            <varname>AVectorShift</varname><initializer>0</initializer>
+        </fieldsynopsis>
+        <fieldsynopsis>
+            <modifier>static const</modifier> <type>uint32_t</type>
+            <varname>AIPLMask</varname><initializer>0x700</initializer>
+        </fieldsynopsis>
+        <fieldsynopsis>
+            <modifier>static const</modifier> <type>uint32_t</type>
+            <varname>AIPLShift</varname><initializer>8</initializer>
+        </fieldsynopsis>
+        <fieldsynopsis>
+            <modifier>static const</modifier> <type>uint32_t</type>
+            <varname>AStackIDMask</varname><initializer>0x7000</initializer>
+        </fieldsynopsis>
+        <fieldsynopsis>
+            <modifier>static const</modifier> <type>uint32_t</type>
+            <varname>AStackIDShift</varname><initializer>12</initializer>
+        </fieldsynopsis>
+        <fieldsynopsis>
+            <modifier>static const</modifier> <type>uint32_t</type>
+            <varname>BVectorMask</varname><initializer>0xff0000</initializer>
+        </fieldsynopsis>
+        <fieldsynopsis>
+            <modifier>static const</modifier> <type>uint32_t</type>
+            <varname>BVectorShift</varname><initializer>16</initializer>
+        </fieldsynopsis>
+        <fieldsynopsis>
+            <modifier>static const</modifier> <type>uint32_t</type>
+            <varname>BIPLMask</varname><initializer>0x7000000</initializer>
+        </fieldsynopsis>
+        <fieldsynopsis>
+            <modifier>static const</modifier> <type>uint32_t</type>
+            <varname>BIPLShift</varname><initializer>24</initializer>
+        </fieldsynopsis>
+        <fieldsynopsis>
+            <modifier>static const</modifier> <type>uint32_t</type>
+            <varname>BStackIDMask</varname><initializer>0x70000000</initializer>
+        </fieldsynopsis>
+        <fieldsynopsis>
+            <modifier>static const</modifier> <type>uint32_t</type>
+            <varname>BStackIDShift</varname><initializer>28</initializer>
+        </fieldsynopsis>
+    };
+    class <ooclass><classname>CVMUSB::TransferSetupRegister</classname></ooclass> {
+        <fieldsynopsis>
+            <modifier>static const</modifier> <type>uint32_t</type>
+            <varname>multiBufferCountMask</varname><initializer>0xff</initializer>
+        </fieldsynopsis>
+        <fieldsynopsis>
+            <modifier>static const</modifier> <type>uint32_t</type>
+            <varname>multiBufferCountShift</varname><initializer>0</initializer>
+        </fieldsynopsis>
+        <fieldsynopsis>
+            <modifier>static const</modifier> <type>uint32_t</type>
+            <varname>timeoutMask</varname><initializer>0xf00</initializer>
+        </fieldsynopsis>
+        <fieldsynopsis>
+            <modifier>static const</modifier> <type>uint32_t</type>
+            <varname>timeoutShift</varname><initializer>8</initializer>
+        </fieldsynopsis>
+    };
+
+}; 
+ 
+        </synopsis>
+       </refsynopsisdiv>
+       <refsect1>
+          <title>DESCRIPTION</title>
+          <para>
+            Provides remote access to the VM-USB via the VMUSBReadout's
+            slow controls server.  This class is a proxy and transparently
+            performs network operations with the slow control server to
+            execute each method.
+          </para>
+       </refsect1>
+       <refsect1>
+          <title>
+         METHODS
+          </title>
+          <para>
+            With the exception of the constructor, please refer to
+            <link linkend='vmusb3-CVMUSB' endterm='vmusb3-CVMUSB-title' />
+            for per method documentation.
+            The constructor forms a connection with the VMUSBReadout's
+            control server or throws an exception if that is not possible.
+          </para>
+          <para>
+            The parameter constrcutors are:
+          </para>
+          <variablelist>
+            <varlistentry>
+                <term>
+                    <fieldsynopsis>
+                        <type>std::string</type> <varname>deviceName</varname>
+                        <initializer>"vmusb"</initializer>
+                    </fieldsynopsis>
+                    </term>
+                <listitem>
+                    <para>
+                        The n ame of the device driver to direct requests to.
+                        This is the name of the driver instance
+                        created by the <command>Module</command> command
+                        in the control configuration file.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>
+                    <fieldsynopsis>
+                        <type>std::string</type> <varname>host</varname>
+                        <initializer>"localhost"</initializer>
+                    </fieldsynopsis>
+                </term>
+                <listitem>
+                    <para>
+                        The host in which the readout software is running.
+                    </para>
+                    </listitem>
+                </varlistentry>
+            <varlistentry>
+                <term>
+                    <fieldsynopsis>
+                        <type>unsigned int</type> <varname>port</varname>
+                        <initializer>27000</initializer>
+                    </fieldsynopsis>
+                </term>
+                <listitem>
+                    <para>
+                        The port on which the control server is running.
+                    </para>
+                </listitem>
+            </varlistentry>
+          </variablelist>
+       </refsect1>
+     </refentry>     
+         
         <refentry id="vmusb3-CConfigurableObject">
           <refmeta>
              <refentrytitle>CConfigurableObject</refentrytitle>
