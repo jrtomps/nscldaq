@@ -33,6 +33,8 @@ protected:
 	int numWrites;
 	int numDelays;
 	CVMUSBRemote* pUSBController;
+	uint32_t XLM_Base;    // VME base address of XLM
+
  
 public:
 	// Constructors, destructors and other cannonical operations: 

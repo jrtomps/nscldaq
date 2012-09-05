@@ -228,7 +228,7 @@ stack config scaler -modules [list sisscaler] -trigger scaler -period 2
         </para>
         <para>
             For information about how to use those modules, contact
-            Lee Sobotka at Washington University directly.
+            Lee Sobotka or Jon Elson at Washington University directly.
         </para>
     </section>
     
@@ -2911,7 +2911,7 @@ sis3804 config scaler1 -refpulser true
         </refmeta>
         <refnamediv>
            <refname>hira</refname>
-           <refpurpose>Pair an XLM and FADC for HiRA</refpurpose>
+           <refpurpose>Pair up to 2 XLMs and FADC for HiRA</refpurpose>
         </refnamediv>
         
         <refsynopsisdiv>
@@ -2949,13 +2949,23 @@ hira cget <replaceable>name</replaceable>
 +------------------------------------+
 |   id (16) bits                     |
 +------------------------------------+
-| tag and timing data from the       |
-| xlm module                         |
+| tag data from the xlm  1 srama     |
+...
+| tag data from xlm1 sram b          |
+../
 +------------------------------------+
-| Data from the FADC module          |
+| Data from the FADC module group1   |
+...
+| Data from the FADC module group2   |
 +------------------------------------+
             </programlisting>
            </informalexample>
+           <para>
+            Note that the configuration parameters of the XLM's determine whether
+            or not both SRAM banks are read, the configuratino of the FADC determines
+            which FADC groups are read, and the <option>-xlm</option> option value
+            determines whether one or two XLM modules are associated witht this
+            HiRA module.
         </refsect1>
         <refsect1>
            <title>
@@ -2975,9 +2985,8 @@ hira cget <replaceable>name</replaceable>
                 <term><option>-xlm</option> <replaceable>module-name</replaceable></term>
                 <listitem>
                     <para>
-                        This parameter is the name of the XLM module that reads
-                        out the tagging and timing information from the
-                        XLM.
+                        This parameter is a list of one or two XLM modules assoiated
+                        with this HiRA.
                     </para>
                 </listitem>
             </varlistentry>

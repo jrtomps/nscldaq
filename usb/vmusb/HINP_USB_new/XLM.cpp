@@ -20,7 +20,6 @@ const static int BUSRETRYTIME(5); // usec delay between bus access retry.
 
 uint32_t ID;
 static CVMUSBReadoutList VMEList;
-static uint32_t XLM_Base;    // VME base address of XLM
 
 
 //////////////////////////////////////////////////////////////////////////////
@@ -930,7 +929,7 @@ XLM::loadSRAMA(CVMUSBRemote& controller, void* image, uint32_t bytes) throw(std:
   
 
   uint32_t*           p    = reinterpret_cast<uint32_t*>(image);
-  static uint32_t    dest = sramA();
+  uint32_t    dest = sramA();
 
   cerr << hex << "LOADSRAMA - SRAM A base addresss is " << dest << endl << dec;
 

@@ -24,6 +24,9 @@
 #include <CVMUSBReadoutList.h>
 #include <Globals.h>
 #include <CConfiguration.h>
+#include <TCLInterpreter.h>
+#include <TCLObject.h>
+
 
 #include <tcl.h>
 
@@ -101,13 +104,14 @@ CHiRA::onAttach(CReadoutModule& rConfig)
 
   m_pConfiguration->addIntegerParameter("-id", 0, 0xffff, 0x618a);
 
-  // Next we need both an -xlm and -fadc module which require the parameter be
+  // Next we need both an -fadc module and one or two xlm modules which require
+  // the parameter be
   // a defined module our static isModule checks that.
   // we're not going to do type checking here.. so this is really a 'module-pair' device.
   //
 
   m_pConfiguration->addParameter("-xlm", &CHiRA::isModule, NULL);
-  m_pConfiguration->addParameter("-fadc", &CHiRA::isModule, NULL);
+  m_pConfiguration->addParameter("-fadc", &CHiRA::checkXlms, NULL);
 
   
 
@@ -165,21 +169,27 @@ CHiRA::addReadoutList(CVMUSBReadoutList& list)
 
   // Fetch the configuration:
 
-  std::string xlm  = m_pConfiguration->cget("-xlm");
+  std::vector<std::string> xlms = m_pConfiguration->getList("-xlm");
   std::string fadc = m_pConfiguration->cget("-fadc");
   int         id   = m_pConfiguration->getIntegerParameter("-id");
 
-  // Get the modules:
+  // Locate the fadc.
 
   CConfiguration* pConfig = Globals::pConfig;
-  CReadoutModule* pXLM = pConfig->findAdc(xlm);
+  
   CReadoutModule* pFADC = pConfig->findAdc(fadc);
   
   // The list we generate is our id value,
-  // the XLM list and then the FADC list:
+  // the XLM list(s) and then the FADC list:
 
   list.addMarker(id);
-  pXLM->addReadoutList(list);
+  
+  for (int i = 0; i < xlms.size(); i++) {
+    CReadoutModule* pXlm = pConfig->findAdc(xlms[i]);
+    pXlm->addReadoutList(list);  
+  }
+  
+  
   pFADC->addReadoutList(list);
  
 }
@@ -221,4 +231,44 @@ CHiRA::isModule(std::string name, std::string value, void* pArg)
 
   return (pConfiguration->findAdc(name) != NULL);
 
+}
+/**
+ *  checkXlms
+ *  
+ * Check the -xlm list.  The name of this is a bit mis-leading. We really check
+ * only that:
+ * - The parmeter is a valid Tcl list.
+ * - The paramter has at least 1 and at most 2 elements.
+ * - The list elements are defined modules.
+ */
+bool
+CHiRA::checkXlms(std::string name, std::string value, void* pArg)
+{
+    CTCLInterpreter interp;
+    CTCLObject      list;
+    list.Bind(interp);
+    list = value;
+    
+    
+    try {
+        // get the list elements
+        
+        std::vector<CTCLObject> elements = list.getListElements();
+        if((elements.size() != 1) && (elements.size() != 2)) return false;
+        
+        // Check that each element is a module:
+        
+        for (int i =0; i < elements.size(); i++) {
+            elements[i].Bind(interp);
+            std::string moduleName = static_cast<std::string>(elements[i]);
+            if (!isModule(name, moduleName, pArg)) return false;
+        }
+        
+        // get/check the list element strings.
+    }
+    catch (...) {
+        return false;
+    }
+    return true;
+    
 }

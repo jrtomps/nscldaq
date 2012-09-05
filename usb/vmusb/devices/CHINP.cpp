@@ -88,6 +88,21 @@ CHINP::operator=(const CHINP& rhs)
 // CReadoutHardware interfac methods
 ///////////////////////////////////////////////////////////////////////////////////
 
+/**
+ *  onAttach
+ *    execute base configuration, define the -sramb switch ( on|off)
+ *
+ *    @param configuration
+ *      - Reference to the configuration database.
+ */
+void
+CHINP::onAttach(CReadoutModule& configuration)
+{
+    CXLM::onAttach(configuration);
+
+    m_pConfiguration->addBooleanParameter("-sramb", "off");
+}
+
 /*!
    At initialization time, we don't load the firmware file.
    @param CVMUSB& controller - Reference to a VM-USB controller object.
@@ -157,24 +172,28 @@ CHINP::addReadoutList(CVMUSBReadoutList& list)
 
   addBusAccess(list, CXLM::REQ_A | CXLM::REQ_B | CXLM::REQ_X,
 	       static_cast<uint8_t>(2));
-  //  list.addWrite32(fpga+FPGA_ABus*4, registerAmod, 0); // turn off glbl_enbl
+  
+  // Read SRAMA:
+  
+  
   uint32_t srama = sramA();	// Base address of sram A
   uint32_t sramb = sramB();	// Base address of sram B
   //  read chip ID and channel address
   list.addBlockCountRead32(srama, (uint32_t)0x00000ffe, registerAmod); // Transfer count for 32-bit word data
   list.addMaskedCountBlockRead32(srama + sizeof(uint32_t), blockTransferAmod);
-  // read ADC data (non-unified only)
-  //  list.addBlockCountRead32(srama, 0x00000fff, registerAmod); // Transfer count for data
-  //  list.addMaskedCountBlockRead32(sramb, blockTransferAmod);
-  //  list.addWrite32(fpga+FPGA_ABus*4, registerAmod, forcereset); // reset the chips
-  //  list.addWrite32(fpga+FPGA_enblA*4, registerAmod, 1); // turn on ext enbl
-  //  list.addDelay(50);              // allow things to quiet down before enabling discs
-  //  list.addWrite32(fpga+FPGA_ABus*4, registerAmod, glbl_enable); // turn on glbl_enbl
-  printf("clear_veto reg addr is %x\n",fpga+FPGA_clear_veto*4);
-  // zero the word count to prevent rereading this event
-  //  list.addWrite32(srama, registerAmod, 0);
+  
+  // Conditionally read SRAMB:
+  
+    if (m_pConfiguration->getBoolParameter("-sramb")) {
+        list.addBlockCountRead32(sramb, (uint32_t)0xffe, registerAmod);
+        list.addMaskedCountBlockRead32(sramb + sizeof(uint32_t), blockTransferAmod);
+    }
+  
+  
+  //  Clear and release busses.
+  
+  
   list.addWrite32(fpga+FPGA_clear_veto*4, registerAmod, (uint32_t)1); // clear veto_reset
-
   addBusAccess(list, 0, static_cast<uint8_t>(0)); // Release all busses and off we go.
 
 }

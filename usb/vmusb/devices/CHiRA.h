@@ -91,6 +91,8 @@ public:
 
 private:
   static bool isModule(std::string name, std::string value, void* pArg);
+  static bool checkXlms(std::string, std::string value, void* pArg);
+
 
 };
 
