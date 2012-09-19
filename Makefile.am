@@ -26,7 +26,7 @@ install-data-local:
 	$(TCLSH_CMD) <makeindex.tcl
 	$(INSTALL_SCRIPT) config.h @prefix@/include
 	$(MANDB) $(prefix)/share/man
-	echo "Version: " $(VERSION) built on `hostname` `date` > $(prefix)/VERSION
+	echo "Version: "NSCLDAQ-$(VERSION) built on `hostname` `date` > $(prefix)/VERSION
 
 
 EXTRA_DIST=dotests

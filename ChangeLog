@@ -269,3 +269,5 @@ Feb 1, 2012 - Feb 24, 2012
 	- Add support for client of VM-USB server to VMUSBReadout.
 	  the --host (-h) switch if supplied selects the host on which the
 	  VMUSB server is running.
+	- Issue #1322 - Include product (NSCLDAQ) in the VERSION file.
+	
