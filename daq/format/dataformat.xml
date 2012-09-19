@@ -270,7 +270,7 @@
                     </listitem>
                 </varlistentry>
                 <varlistentry>
-                    <term>time_t <structfield>s_Timestamp</structfield></term>
+                    <term>uint32_t <structfield>s_Timestamp</structfield></term>
                     <listitem>
                         <para>
                             Is the absolute time at which the transition
@@ -371,7 +371,7 @@
                     </listitem>
                 </varlistentry>
                 <varlistentry>
-                    <term>time_t <structfield>s_timestamp</structfield></term>
+                    <term>uint32_t<structfield>s_timestamp</structfield></term>
                     <listitem>
                         <para>
                             Is the absolute time at which the item was 
@@ -435,7 +435,7 @@
                     </listitem>
                 </varlistentry>
                 <varlistentry>
-                    <term>time_t   <structfield>s_timestamp</structfield></term>
+                    <term>uint32_t  <structfield>s_timestamp</structfield></term>
                     <listitem>
                         <para>
                             Is the absolute time of the end of the
@@ -492,7 +492,7 @@
                 These items are of type <structname>PhysicsEventCountItem</structname>.
                 <type>uint32_t</type> <structfield>s_timeOffset</structfield> is
                 the number of seconds into the active run the event occured.
-                <type>time_t</type> <structfield>s_timesamp</structfield>
+                <type>uint32_t</type> <structfield>s_timesamp</structfield>
                 is the absolute timestamp indicating when this item was created.
                 <type>uint64_t</type> <structfield>s_eventCount</structfield> is
                 the total number of events that have been contributed to this
@@ -3532,7 +3532,7 @@ typedef struct <type>_StateChangeItem</type> {
         <type>uint32_t</type> <varname>s_timeOffset</varname>
     </fieldsynopsis>
     <fieldsynopsis>
-        <type>time_t</type> <varname>s_Timestamp</varname>
+        <type>uint32_t</type> <varname>s_Timestamp</varname>
     </fieldsynopsis>
     <fieldsynopsis>
         <type>char</type> <varname>s_title[TITLE_MAXSIZE+1]</varname>
@@ -3550,7 +3550,7 @@ typedef struct <type>_ScalerItem</type> {
         <type>uint32_t</type> <varname>s_intervalEndOffset</varname>
     </fieldsynopsis>
     <fieldsynopsis>
-        <type>time_t</type> <varname>s_timestamp</varname>
+        <type>uint32_t</type> <varname>s_timestamp</varname>
     </fieldsynopsis>
     <fieldsynopsis>
         <type>uint32_t</type> <varname>s_scalerCount</varname>
@@ -3568,7 +3568,7 @@ typedef struct <type>_TextItem</type> {
         <type>uint32_t</type> <varname>s_timeOffset</varname>
     </fieldsynopsis>
     <fieldsynopsis>
-        <type>time_t</type> <varname>s_timestamp</varname>
+        <type>uint32_t</type> <varname>s_timestamp</varname>
     </fieldsynopsis>
         <fieldsynopsis>
         <type>uint32_t</type> <varname>s_stringCount</varname>
@@ -3596,7 +3596,7 @@ typedef struct <type>__PhysicsEventCountItem</type> {
         <type>uint32_t</type> <varname>s_timeOffset</varname>
     </fieldsynopsis>
     <fieldsynopsis>
-        <type>time_t</type> <varname>s_timestamp</varname>
+        <type>uint32_t</type> <varname>s_timestamp</varname>
     </fieldsynopsis>
     <fieldsynopsis>
         <type>uint64_t</type> <varname>s_eventCount</varname>
@@ -3700,7 +3700,7 @@ typedef struct <type>__PhysicsEventCountItem</type> {
                            <varlistentry>
                                <term>
                                   <fieldsynopsis>
-                                     <type>time_t</type> <varname>s_Timestamp</varname>
+                                     <type>uint32_t</type> <varname>s_Timestamp</varname>
                                   </fieldsynopsis>
                                </term>
                                <listitem>
@@ -3809,20 +3809,20 @@ typedef struct <type>__PhysicsEventCountItem</type> {
                             <varlistentry>
                                <term>
                                   <fieldsynopsis>
-                                     <type>time_t</type> <varname>s_timestamp</varname>
+                                     <type>uint32_t</type> <varname>s_timestamp</varname>
                                   </fieldsynopsis>
                                </term>
                                <listitem>
                                   <para>
                                      The absolute time at which this scaler
                                      item was produced.  This is a Unix
-                                     <type>time_t</type> which means it is the
+                                     <type>uint32_t</type> which means it is the
                                      number of seconds since the unix
                                      <firstterm>epoch</firstterm> time and
                                      date.  Once converted into local host byte
                                      ordering, this value can be used in all
                                      function in &lt;time.h&gt; that take a
-                                     <type>time_t</type> as a parameter.
+                                     <type>uint32_t</type> as a parameter.
                                   </para>
                                </listitem>
                             </varlistentry>
@@ -3908,7 +3908,7 @@ typedef struct <type>__PhysicsEventCountItem</type> {
                             <varlistentry>
                                 <term>
                                     <fieldsynopsis>
-                                       <type>time_t</type> <varname>s_timestamp</varname>
+                                       <type>uint32_t</type> <varname>s_timestamp</varname>
                                     </fieldsynopsis>
                                 </term>
                                 <listitem>
@@ -3918,7 +3918,7 @@ typedef struct <type>__PhysicsEventCountItem</type> {
                                         seconds since the beginning of the
                                         unix epoch.  Once converted to the
                                         local host byte ordering, this is
-                                        a valid <type>time_t</type> which can
+                                        a valid <type>uint32_t</type> which can
                                         be used in any of the function in
                                         &lt;time.h&gt;
                                     </para>
@@ -4071,7 +4071,7 @@ set EPICS_DATA(Z1234) 1.234
                             <varlistentry>
                                 <term>
                                     <fieldsynopsis>
-                                        <type>time_t</type> <varname>s_timestamp</varname>
+                                        <type>uint32_t</type> <varname>s_timestamp</varname>
                                     </fieldsynopsis>
 
                                 </term>
