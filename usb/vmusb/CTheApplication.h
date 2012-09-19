@@ -81,7 +81,7 @@ private:
   void startOutputThread(std::string ring);
   void startTclServer();
   void startInterpreter();
-  void createUsbController(const char* pSerialNo);
+
   void setConfigFiles();
   void initializeBufferPool();
   void enumerateVMUSB();

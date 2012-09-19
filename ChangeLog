@@ -262,8 +262,10 @@ Feb 1, 2012 - Feb 24, 2012
 	- Issue #1195 - Provide visual indication that runs are
 	  starting/stopping.
 	- Now that there is bandwidth and hopefully users are aware of the
-	  problems turn s80 record crate files _back_ on by default.
+	  problems turn s800 record crate files _back_ on by default.
 	  Seems like they really just need the damned settings most of the
 	  time but they are not capable of separating the two somehow.
 10.1-006
-	
+	- Add support for client of VM-USB server to VMUSBReadout.
+	  the --host (-h) switch if supplied selects the host on which the
+	  VMUSB server is running.

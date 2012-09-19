@@ -8,3 +8,4 @@ option "daqconfig" d "Configuration file for data taking [~/config/daqconfig.tcl
 option "ctlconfig" c "Slow control configuration file [~/config/controconfig.tcl]" string optional
 option "port"      p "Port on which Tcl server should listen [27000]" long typestr="portnumber" optional
 option "enumerate" e "Enumerate VM-USB modules and exit" optional
+option "host"      H "Host running VMUSB server" string optional

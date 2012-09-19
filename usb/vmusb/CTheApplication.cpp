@@ -22,7 +22,8 @@ static const char* versionString = "V5.0";
 
 #include <COutputThread.h>
 #include <TclServer.h>
-#include <CVMUSB.h>
+#include <CVMUSBusb.h>
+#include <CVMUSBFactory.h>
 
 #include <TCLInterpreter.h>
 #include <CBeginRun.h>
@@ -48,7 +49,6 @@ static const char* versionString = "V5.0";
 #include <string.h>
 
 #include "cmdline.h"
-#include <usb.h>
 
 
 #include <string>
@@ -132,8 +132,22 @@ int CTheApplication::operator()(int argc, char** argv)
 
   try {				// Last chance exception catching...
     
-    createUsbController(parsedArgs.serialno_given ? parsedArgs.serialno_arg : 
-			reinterpret_cast<const char*>(NULL));
+    // How the USB controller is created depends on the parameters.
+    // if host_given we need a remote server otherwise local with the serialno.
+    //
+
+    const char* connectionString;
+    CVMUSBFactory::ControllerType type;
+    if (parsedArgs.host_given) {
+      type             = CVMUSBFactory::remote;
+      connectionString = parsedArgs.host_arg;
+    } else {
+      type             = CVMUSBFactory::local;
+      connectionString = parsedArgs.serialno_given ? parsedArgs.serialno_arg :  0;
+    }
+
+    Globals::pUSBController  = CVMUSBFactory::createUSBController(type, connectionString);
+    
     
     // Set default configuration file names and then override with the ones supplied on
     // the command line (if any).
@@ -222,50 +236,7 @@ CTheApplication::startInterpreter()
   Tcl_Main(m_Argc, m_Argv, CTheApplication::AppInit);
 }
 
-/*!
-   Create the USB controller.  The usb controller will be the first
-   one available (should be the only one).  It is a failable error for
-   there not to be any controllers.
 
-   @param pSerialNo - Serial numberr of the controller we want to
-                      to use.  If this is NULL we just attach to the first
-		      controller enumerated.
-*/
-void
-CTheApplication::createUsbController(const char* pSerialNo)
-{
-  vector<struct usb_device*> controllers = CVMUSB::enumerate();
-  struct usb_device*                pSelectedDevice(0);
-  if (controllers.size() == 0) {
-    cerr << "There appear to be no VMUSB controllers so I can't run\n";
-    exit(EX_CONFIG);
-  }
-  if (pSerialNo) {
-    for (int i = 0; i < controllers.size(); i++) {
-      if (pSerialNo == CVMUSB::serialNo(controllers[i])) {
-	pSelectedDevice = controllers[i];
-	break;
-      }
-    }
-  } else {
-    pSelectedDevice = controllers[0];
-  }
-
-
-  // Exit if we don't have a matching device:
-  // Note that this can only happen if pSerialNo is not null:
-
-  if (!pSelectedDevice) {
-    cerr << "USB enumeration does not show " << pSerialNo << " as present/available\n";
-    exit(EX_CONFIG);
-  }
-
-  Globals::pUSBController = new CVMUSB(pSelectedDevice);
-
-  cerr << "Found a controller, firmware: " << hex << Globals::pUSBController->readFirmwareID()
-       << dec << endl;
-
-}
 /**
  * Enumerate the set of VM-USB serial numgers that are currently active in the system.
  * The enumeration goes to cout.;
@@ -275,9 +246,9 @@ void
 CTheApplication::enumerateVMUSB()
 {
   try {
-    vector<struct usb_device*> controllers = CVMUSB::enumerate();
+    vector<struct usb_device*> controllers = CVMUSBusb::enumerate();
     for (int i = 0; i < controllers.size(); i++) {
-      std::string serial = CVMUSB::serialNo(controllers[i]);
+      std::string serial = CVMUSBusb::serialNo(controllers[i]);
       std::cout << "[" << i << "] : " << serial << std::endl;
     }
     cout.flush();
