@@ -26,6 +26,7 @@ Driver for CAEN C894 - CAEN 16 Channel LED
 #include <stdio.h>
 #include <tcl.h>
 #include <string.h>
+#include <unistd.h>
 
 using namespace std;
 
