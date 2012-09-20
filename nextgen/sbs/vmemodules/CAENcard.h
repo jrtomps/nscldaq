@@ -28,6 +28,7 @@
 #include <unistd.h>
 #include <signal.h>
 #include <sys/ioctl.h>
+#include <stdint.h>
 
 #ifndef __CVMEINTERFACE_H
 #include <CVMEInterface.h>
@@ -183,7 +184,7 @@ private:
    void Bitclear1(short mask);  //!< Set a mask in the bit clear 1 register.
    void Bitset2(short mask);    //!< Set a mask i the bit set 2 register.
    void Bitclear2(short mask);  //!< set a mask in the bit clear 2 register.
-   void ReadBufferBlock(int* pDest, Int_t size); // Read block from data buf.
+   void ReadBufferBlock(uint32_t* pDest, Int_t size); // Read block from data buf.
 };
 
 #endif
