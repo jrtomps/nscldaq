@@ -270,4 +270,8 @@ Feb 1, 2012 - Feb 24, 2012
 	  the --host (-h) switch if supplied selects the host on which the
 	  VMUSB server is running.
 	- Issue #1322 - Include product (NSCLDAQ) in the VERSION file.
+        - More wheezy-64 work:
+	  * Get sbs driver working/tested.
+	  * Start SBS readout checkout:
+	    - Make CAENcard 64/32 bit clean.
 	
