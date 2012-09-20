@@ -15,7 +15,7 @@ if BUILD_USB
 endif
 
 
-SUBDIRS =	 base servers   \
+SUBDIRS =	 base/exception base/tclplus base/CopyrightTools servers base   \
 		daq utilities docbuild docconfig $(SBSDIRS) $(EPICSDIRS) $(USBDIR)
 
 
