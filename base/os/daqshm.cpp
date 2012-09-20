@@ -23,6 +23,7 @@
 #include "daqshm.h"
 #include <sys/mman.h>
 #include <sys/stat.h>
+#include <sys/types.h>
 #include <fcntl.h>
 #include <errno.h>
 

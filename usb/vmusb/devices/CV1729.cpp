@@ -30,6 +30,7 @@
 #include <assert.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <unistd.h>
 
 #include <string>
 #include <string.h>

@@ -38,6 +38,11 @@
 #endif
 #endif
 
+#ifndef __CRT_UNISTD_H
+#include <unistd.h>
+#ifndef __CRT_UNISTD_H
+#endif
+#endif
 
 
 /**

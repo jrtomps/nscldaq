@@ -93,8 +93,8 @@ static const uint32_t CR_DISABLEIRQ2   = 0x40000000;
 
 //  Access methods:
 
-static const uint32_t CONTROLAMOD    = CVMUSBReadoutList::a32UserData;
-static const uint32_t READAMOD       = CVMUSBReadoutList::a32UserBlock;
+static const uint8_t CONTROLAMOD    = CVMUSBReadoutList::a32UserData;
+static const uint8_t READAMOD       = CVMUSBReadoutList::a32UserBlock;
 
 /////////////////////////////////////////////////////////////////////////////////////
 
