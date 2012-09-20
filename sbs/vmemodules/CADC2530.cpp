@@ -20,6 +20,7 @@ static const char* Copyright= "(C) Copyright Michigan State University 2008, All
 #include <unistd.h>
 #include <string.h>
 #include <math.h>
+#include <stdint.h>
 
 #include <assert.h>
 
@@ -33,8 +34,8 @@ using namespace std;
 #define Offset(structname, field) ((unsigned int)&(((structname*)0x0)->field))
 
 // Short and Long noffset associated with a struct/field.
-#define ShortOffset(structname, field) (Offset(structname,field)/sizeof(short))
-#define LongOffset(structname, field)  (Offset(structname,field)/sizeof(long))
+#define ShortOffset(structname, field) (Offset(structname,field)/sizeof(uint16_5))
+#define LongOffset(structname, field)  (Offset(structname,field)/sizeof(uint32_t))
 
 // VME crate definitions
 #define VME_CRATE_SIZE      24	// Slots in a VME crate.
@@ -64,95 +65,95 @@ using namespace std;
 
 // Definition of the register and configuration memory.
 typedef struct ADCregisters_struct {
-  unsigned short  ManufacturerId;              // 0x00      (R)
-  unsigned short  DeviceType;	               // 0x02      (R)
-  unsigned short  CSR;                         // 0x04      (RW)
-  unsigned short  MemoryOffset;                // 0x06      (RW)
-  unsigned short  ListAddressLS;               // 0x08      (RW)
-  unsigned short  ListAddressMS;               // 0x0A      (RW)
-  unsigned short  InterruptVector;             // 0x0C      (RW)
-  unsigned short  CTR;    	               // 0x0E      (RW)
-  unsigned short  FullnessFlag;                // 0x10      (RW)
-  unsigned short  InterruptMask;               // 0x12      (RW)
-  unsigned short  LowerLevelDisc;              // 0x14      (RW)
-  unsigned short  UpperLevelDisc;              // 0x16      (RW)
-  unsigned short  EventCounterLS;              // 0x18      (RW)
-  unsigned short  EventCounterMS;              // 0x1A      (RW)
-  unsigned short  Conversion;                  // 0x1C      (R)
-  unsigned short  SlidingScaleTest;            // 0x1E      (RW)
-  unsigned short  NotUsed2[16]; 	       // 0x20-0x3F  
-  unsigned short  SerialNumber;                // 0x40      (R) 
-  unsigned short  DataInNonVolatileMem[63];    // 0x42-0xBF
+  uint16_t  ManufacturerId;              // 0x00      (R)
+  uint16_t  DeviceType;	               // 0x02      (R)
+  uint16_t  CSR;                         // 0x04      (RW)
+  uint16_t  MemoryOffset;                // 0x06      (RW)
+  uint16_t  ListAddressLS;               // 0x08      (RW)
+  uint16_t  ListAddressMS;               // 0x0A      (RW)
+  uint16_t  InterruptVector;             // 0x0C      (RW)
+  uint16_t  CTR;    	               // 0x0E      (RW)
+  uint16_t  FullnessFlag;                // 0x10      (RW)
+  uint16_t  InterruptMask;               // 0x12      (RW)
+  uint16_t  LowerLevelDisc;              // 0x14      (RW)
+  uint16_t  UpperLevelDisc;              // 0x16      (RW)
+  uint16_t  EventCounterLS;              // 0x18      (RW)
+  uint16_t  EventCounterMS;              // 0x1A      (RW)
+  uint16_t  Conversion;                  // 0x1C      (R)
+  uint16_t  SlidingScaleTest;            // 0x1E      (RW)
+  uint16_t  NotUsed2[16]; 	       // 0x20-0x3F  
+  uint16_t  SerialNumber;                // 0x40      (R) 
+  uint16_t  DataInNonVolatileMem[63];    // 0x42-0xBF
 } ADCregisters_t;
 
 // Bit definition for the control and status register (CSR)
 typedef union ADCcsr_union {
-  unsigned short csrval;
+  uint16_t csrval;
   struct bit_struct {
-    unsigned char RSTBSY : 1; // Read->Busy, Write->Reset (RW)
-    unsigned char SS     : 1; // Enable sliding scale (0 is ON) (RW)
-    unsigned char DR     : 1; // Data ready (R)
-    unsigned char SC     : 1; // Set calibration on (RW)
-    unsigned char FFCLR  : 1; // Force fast clear on all channesl (W)
-    unsigned char ACM    : 1; // Auto memory clear (RW) (not completed)
-    unsigned char IS     : 1; // Interrupt status (R)
-    unsigned char IE     : 1; // Interrupt enable (RW)
-    unsigned char ARM    : 1; // Start acquisition (RW)
-    unsigned char IPL    : 3; // Set interrupt priority level (RW)
-    unsigned char FHE    : 1; // Full/Half full or Event interrupt (RW)
-    unsigned char ZE     : 1; // Enable zero conversion (RW)
-    unsigned char GE     : 1; // Enable gate mode (RW)
-    unsigned char HE     : 1; // Enable histogram mode (RW)
+    uint8_t RSTBSY : 1; // Read->Busy, Write->Reset (RW)
+    uint8_t SS     : 1; // Enable sliding scale (0 is ON) (RW)
+    uint8_t DR     : 1; // Data ready (R)
+    uint8_t SC     : 1; // Set calibration on (RW)
+    uint8_t FFCLR  : 1; // Force fast clear on all channesl (W)
+    uint8_t ACM    : 1; // Auto memory clear (RW) (not completed)
+    uint8_t IS     : 1; // Interrupt status (R)
+    uint8_t IE     : 1; // Interrupt enable (RW)
+    uint8_t ARM    : 1; // Start acquisition (RW)
+    uint8_t IPL    : 3; // Set interrupt priority level (RW)
+    uint8_t FHE    : 1; // Full/Half full or Event interrupt (RW)
+    uint8_t ZE     : 1; // Enable zero conversion (RW)
+    uint8_t GE     : 1; // Enable gate mode (RW)
+    uint8_t HE     : 1; // Enable histogram mode (RW)
   } bits;
 } ADCcsr_t;
 
 // Bit definition for the calibration and test register (CTR)
 typedef union ADCctr_union {
-  unsigned short ctrval;
+  uint16_t ctrval;
   struct bit_struct {
-    unsigned char M012   : 3; // Channel select bits 0-2 (RW)
-    unsigned char MEN    : 1; // Enable the MUX switch (RW)
-    unsigned char D04    : 1; // Unused
-    unsigned char D05    : 1; // Unused
-    unsigned char D06    : 1; // Unused
-    unsigned char D07    : 1; // Unused
-    unsigned char DISC   : 1; // Disable compensation (0 -> comp. applied) (RW)
-    unsigned char D09    : 1; // Unused
-    unsigned char D10    : 1; // Unused
-    unsigned char D11    : 1; // Unused
-    unsigned char D12    : 1; // Unused
-    unsigned char D13    : 1; // Unused
-    unsigned char D14    : 1; // Unused
-    unsigned char DEAC   : 1; // Disable auto fast clear
+    uint8_t M012   : 3; // Channel select bits 0-2 (RW)
+    uint8_t MEN    : 1; // Enable the MUX switch (RW)
+    uint8_t D04    : 1; // Unused
+    uint8_t D05    : 1; // Unused
+    uint8_t D06    : 1; // Unused
+    uint8_t D07    : 1; // Unused
+    uint8_t DISC   : 1; // Disable compensation (0 -> comp. applied) (RW)
+    uint8_t D09    : 1; // Unused
+    uint8_t D10    : 1; // Unused
+    uint8_t D11    : 1; // Unused
+    uint8_t D12    : 1; // Unused
+    uint8_t D13    : 1; // Unused
+    uint8_t D14    : 1; // Unused
+    uint8_t DEAC   : 1; // Disable auto fast clear
   } bits;
 } ADCctr_t;
 
 // Bit definition for the fullness flag register
 typedef union ADCfullnessflag_union {
-  unsigned short flags;
+  uint16_t flags;
 
   struct byte_struct {
-    unsigned char HALFFULL : 8; // Half full flags
-    unsigned char FULL     : 8; // Full flags
+    uint8_t HALFFULL : 8; // Half full flags
+    uint8_t FULL     : 8; // Full flags
   } bytes;
 
   struct bit_struct {
-    unsigned char F1     : 1; 
-    unsigned char F2     : 1; 
-    unsigned char F3     : 1; 
-    unsigned char F4     : 1; 
-    unsigned char F5     : 1; 
-    unsigned char F6     : 1; 
-    unsigned char F7     : 1; 
-    unsigned char F8     : 1; 
-    unsigned char HF1    : 1; 
-    unsigned char HF2    : 1; 
-    unsigned char HF3    : 1; 
-    unsigned char HF4    : 1; 
-    unsigned char HF5    : 1; 
-    unsigned char HF6    : 1; 
-    unsigned char HF7    : 1; 
-    unsigned char HF8    : 1; 
+    uint8_t F1     : 1; 
+    uint8_t F2     : 1; 
+    uint8_t F3     : 1; 
+    uint8_t F4     : 1; 
+    uint8_t F5     : 1; 
+    uint8_t F6     : 1; 
+    uint8_t F7     : 1; 
+    uint8_t F8     : 1; 
+    uint8_t HF1    : 1; 
+    uint8_t HF2    : 1; 
+    uint8_t HF3    : 1; 
+    uint8_t HF4    : 1; 
+    uint8_t HF5    : 1; 
+    uint8_t HF6    : 1; 
+    uint8_t HF7    : 1; 
+    uint8_t HF8    : 1; 
   } bits;
 } ADCfullnessflag_t;
 
@@ -177,7 +178,7 @@ typedef union ADCfullnessflag_union {
 *
 * @return this
 */                                                             
-CADC2530::CADC2530(int crateNum,long nBase) :
+CADC2530::CADC2530(int crateNum,uint32_t nBase) :
   my_nCrate(crateNum),
   my_nBase(nBase),
   my_nMemOffset(nBase),
@@ -265,7 +266,7 @@ CADC2530::~CADC2530() {
 }
 
 /*==============================================================*/
-/** @fn CADC2530::checkCard(int nCrate,long nBase,unsigned short &rType,unsigned short &rManId)
+/** @fn CADC2530::checkCard(int nCrate,long nBase,uint16_t &rType,uint16_t &rManId)
 * @brief Static method to check if a card is a Hyted 2530 ADC.
 *
 * Static method to check if a card is a Hytec 2530 ADC.  Simply maps
@@ -283,7 +284,7 @@ CADC2530::~CADC2530() {
 * @param rManId The manufactuer id (output).
 * @return true If this card appears to be a ADC2530, else false.
 */                                                             
-bool CADC2530::checkCard(int nCrate,long nBase,unsigned short &rType, unsigned short &rManId) {
+bool CADC2530::checkCard(int nCrate,uint32_t nBase,uint16_t &rType, uint16_t &rManId) {
   // Ensure that the slot and crate specified stay within bounds.
   int crate = nCrate & 0xff;  // Not important enough to give an error,
                                 // just discard the extra.
@@ -295,7 +296,7 @@ bool CADC2530::checkCard(int nCrate,long nBase,unsigned short &rType, unsigned s
 
 
    fd = CVMEInterface::Open(CVMEInterface::A24,crate);
-   volatile unsigned short *adcmod = (volatile unsigned short*)CVMEInterface::Map(fd,nBase,CADC2530_REGSIZE);
+   volatile uint16_t *adcmod = (volatile uint16_t*)CVMEInterface::Map(fd,nBase,CADC2530_REGSIZE);
 
 
    rType = ((volatile ADCregisters_t*)adcmod)->DeviceType;
@@ -327,15 +328,15 @@ bool CADC2530::checkCard(int nCrate,long nBase,unsigned short &rType, unsigned s
 * @param volt The voltage to convert.
 * @return An LLD setting for the specified voltage.
 */                                                             
-unsigned short CADC2530::volt2lld(double volt) {
-  unsigned short sval = 0; 
+uint16_t CADC2530::volt2lld(double volt) {
+  uint16_t sval = 0; 
   if (volt < 0) {
     sval = 0x0;
   } else if (volt > 0.8191) {
     sval = 0x3FFC;
   } else {
     int val = (int)((volt/3.2764)/(0.25/4095));
-    sval = (unsigned short)((val << 2)&0x00003FFC);
+    sval = (uint16_t)((val << 2)&0x00003FFC);
   }
 
   return sval;
@@ -358,8 +359,8 @@ unsigned short CADC2530::volt2lld(double volt) {
 * @param volt The voltage to convert.
 * @return An ULD setting for the specified voltage.
 */                                                             
-unsigned short CADC2530::volt2uld(double volt) {
-  unsigned short sval = 0;
+uint16_t CADC2530::volt2uld(double volt) {
+  uint16_t sval = 0;
 
   if (volt < 0) {
     sval = 0x0;
@@ -367,7 +368,7 @@ unsigned short CADC2530::volt2uld(double volt) {
     sval = 0x3FFC;
   } else {
     int val = (unsigned int)trunc(((volt/3.2764)-2)/(0.5/4095));
-    sval = (unsigned short)((val << 2)&0x00003FFC);
+    sval = (uint16_t)((val << 2)&0x00003FFC);
   }
 
   return sval;
@@ -420,7 +421,7 @@ int CADC2530::readListEvent(void* buf,int lngsLeft) {
   if (lngsLeft < 2) return(0);
 
 
-  lptr[lngcnt] = ((volatile unsigned long*)my_pMemory)[my_cureventpos];
+  lptr[lngcnt] = ((volatile unsigned uint32_t*)my_pMemory)[my_cureventpos];
 
   int chans = GET_LIST_CHANCOUNT(lptr[0]);
 
@@ -433,7 +434,7 @@ int CADC2530::readListEvent(void* buf,int lngsLeft) {
 #ifdef ADC2530_LOOP_COPY
 
     for (int i = 0; i < (chans+1); i++) {
-      lptr[lngcnt] = ((volatile unsigned long*)my_pMemory)[my_cureventpos];
+      lptr[lngcnt] = ((volatile unsigned uint32_t*)my_pMemory)[my_cureventpos];
       my_cureventpos++;  
       lngcnt++; 
     } 
@@ -480,12 +481,12 @@ int CADC2530::readListEvents(void* buf,int& nEvents) {
     if (bytes <= 0) break;  // No more events
     eventsread++;
 
-    lptr += (bytes/sizeof(unsigned int));
-    lngcnt += (bytes/sizeof(unsigned int));
+    lptr += (bytes/sizeof(uint32_t));
+    lngcnt += (bytes/sizeof(uint32_t));
   } 
 
   nEvents = eventsread;
-  return lngcnt*sizeof(unsigned int);
+  return lngcnt*sizeof(uint32_t);
 }
 
 /*==============================================================*/
@@ -517,7 +518,7 @@ int CADC2530::readHistogramChannel(void* buf,int channum) {
 
 
   for (int i = 0; i < CADC2530_HISTOCHANSIZE; i++) {
-    lptr[i] = ((volatile unsigned long*)my_pMemory)[chstart+i];
+    lptr[i] = ((volatile uint32_t*)my_pMemory)[chstart+i];
   }
 
   return (CADC2530_HISTOCHANSIZE * sizeof(unsigned int));
@@ -550,9 +551,9 @@ void CADC2530::slotInit() {
 * the Hytec 2530 ADC as read from location base+0x02.
 *
 * @param None
-* @return The device type as an unsigned short.
+* @return The device type as an uint16_t.
 */                                                             
-unsigned short CADC2530::cardType() {
+uint16_t CADC2530::cardType() {
   if (!my_nCardType) {
     my_nCardType = ((volatile ADCregisters_t*)my_pModule)->DeviceType;
   }
@@ -567,9 +568,9 @@ unsigned short CADC2530::cardType() {
 * the Hytec 2530 ADC as read from location base+0x0.
 *
 * @param None
-* @return The manufacturer id as an unsigned short.
+* @return The manufacturer id as an uint16_t.
 */                                                             
-unsigned short CADC2530::manufacturerId() {
+uint16_t CADC2530::manufacturerId() {
   if (!my_nCardId) {
     my_nCardId = ((volatile ADCregisters_t*)my_pModule)->ManufacturerId;
   }
@@ -577,7 +578,7 @@ unsigned short CADC2530::manufacturerId() {
 }
 
 /*==============================================================*/
-/** @fn CADC2530::setMemoryOffset(unsigned long memoset))
+/** @fn CADC2530::setMemoryOffset(uint32_t memoset))
 * @brief Set the memory offset to the specified address.
 *
 * Set the memory offset to the specified A32 address.
@@ -588,9 +589,9 @@ unsigned short CADC2530::manufacturerId() {
 * @param memoset The A32 memory offset base.
 * @return The value read back from the register as an A32 address.
 */                                                             
-unsigned long CADC2530::setMemoryOffset(unsigned long memoset) {
-  unsigned long lval = (memoset >> 16);
-  unsigned short sval = (lval & 0xFFE0);  
+uint32_t CADC2530::setMemoryOffset(uint32_t memoset) {
+  uint32_t lval = (memoset >> 16);
+  uint16_t sval = (lval & 0xFFE0);  
 
   ((volatile ADCregisters_t*)my_pModule)->MemoryOffset = sval;
   lval = ((volatile ADCregisters_t*)my_pModule)->MemoryOffset;
@@ -599,7 +600,7 @@ unsigned long CADC2530::setMemoryOffset(unsigned long memoset) {
 }
 
 /*==============================================================*/
-/** @fn CADC2530::calcMemoryOffset(unsigned long base))
+/** @fn CADC2530::calcMemoryOffset(uint32_t base))
 * @brief Calculate the memory offset register setting.
 *
 * Calculate the memory offset register setting given
@@ -608,8 +609,8 @@ unsigned long CADC2530::setMemoryOffset(unsigned long memoset) {
 * @param base The base address for this card.
 * @return A computed memory offset A32 base value.
 */                                                             
-unsigned long CADC2530::calcMemoryOffset(unsigned long base) {
-  unsigned long regset = ((base >> 8) & 0xFFE0);
+uint32_t CADC2530::calcMemoryOffset(uint32_t base) {
+  uint32_t regset = ((base >> 8) & 0xFFE0);
   return (regset << 16); 
 }
 
@@ -643,7 +644,7 @@ void CADC2530::mapModule() {
    void *fd = NULL;
 
    fd = CVMEInterface::Open(CVMEInterface::A24, my_nCrate);
-   my_pModule = (volatile unsigned short*)CVMEInterface::Map(fd,my_nBase,
+   my_pModule = (volatile uint16_t*)CVMEInterface::Map(fd,my_nBase,
 						 CADC2530_REGSIZE);
 
    // Check if the module type is a 2530(dec) and that the manufacturer is
@@ -703,7 +704,7 @@ void CADC2530::mapMemory() {
    void *fd = NULL;
 
    // Now can map the list/histogram memory
-   unsigned long nmemoset = calcMemoryOffset(my_nBase); 
+   uint32_t nmemoset = calcMemoryOffset(my_nBase); 
    my_nMemOffset = setMemoryOffset(nmemoset);
 
    // If we did this correctly and the card is working correctly,
@@ -1208,8 +1209,8 @@ void CADC2530::modeGate() {
 * @return The number of events.
 */                                                             
 unsigned int CADC2530::getEventCounter() {
-  unsigned short ecls = ((volatile ADCregisters_t*)my_pModule)->EventCounterLS;
-  unsigned short ecms = ((volatile ADCregisters_t*)my_pModule)->EventCounterMS;
+  uint16_t ecls = ((volatile ADCregisters_t*)my_pModule)->EventCounterLS;
+  uint16_t ecms = ((volatile ADCregisters_t*)my_pModule)->EventCounterMS;
 
   unsigned int evtcnt = ((ecms&0x00FF)<<16)|(ecls&0x0000FFFF);
   return evtcnt;
@@ -1244,8 +1245,8 @@ void CADC2530::clearEventCounter() {
 * @return The list address counter.
 */                                                             
 unsigned int CADC2530::getListAddress() {
-  unsigned short lals = ((volatile ADCregisters_t*)my_pModule)->ListAddressLS;
-  unsigned short lams = ((volatile ADCregisters_t*)my_pModule)->ListAddressMS;
+  uint16_t lals = ((volatile ADCregisters_t*)my_pModule)->ListAddressLS;
+  uint16_t lams = ((volatile ADCregisters_t*)my_pModule)->ListAddressMS;
 
   unsigned int lstaddr = ((lams&0x0000FFFF)<<16)|(lals&0x0000FFFF);
   return lstaddr;
@@ -1309,15 +1310,15 @@ void CADC2530::clearFullnessFlags() {
 * @param None
 * @return The current fullness flags.
 */                                                             
-unsigned short CADC2530::getFullnessFlags() {
-  unsigned short flags = 0;
+uint16_t CADC2530::getFullnessFlags() {
+  uint16_t flags = 0;
   flags = ((volatile ADCregisters_t*)my_pModule)->FullnessFlag;
 
   return flags;
 }
 
 /*==============================================================*/
-/** @fn CADC2530::isChannelFull(unsigned short aChan)
+/** @fn CADC2530::isChannelFull(uint16_t aChan)
 * @brief Check if a histogram channel is full.
 *
 * Check if the specified histogram channel is full (overflow). Note, 
@@ -1329,7 +1330,7 @@ unsigned short CADC2530::getFullnessFlags() {
 * @param aChan The channel to check in the range [1-8].
 * @return If the fullness flag of the specified channel is set.
 */                                                             
-bool CADC2530::isChannelFull(unsigned short aChan) {
+bool CADC2530::isChannelFull(uint16_t aChan) {
   if ((aChan < 1)||(aChan > 8)) {
     char buffer[256];
     sprintf(buffer, "CADC2530::isChannelFull(): When checking channel fullness, the channel specified must be in the range [1-8] (channel == %d).\n",aChan);
@@ -1338,13 +1339,13 @@ bool CADC2530::isChannelFull(unsigned short aChan) {
 
   ADCfullnessflag_t fflags;
   fflags.flags = getFullnessFlags();
-  unsigned char mask = 0x1;
+  uint8_t mask = 0x1;
   mask = (mask << (aChan - 1));
   return ((fflags.bytes.FULL & mask) > 0);
 }
 
 /*==============================================================*/
-/** @fn CADC2530::channelHasData(unsigned short aChan)
+/** @fn CADC2530::channelHasData(uint16_t aChan)
 * @brief Check if a histogram channel has data.
 *
 * Check if the specified histogram channel has data. Note, 
@@ -1356,7 +1357,7 @@ bool CADC2530::isChannelFull(unsigned short aChan) {
 * @param aChan The channel to check in the range [1-8].
 * @return If the half-fullness flag of the specified channel is set.
 */                                                             
-bool CADC2530::channelHasData(unsigned short aChan) {
+bool CADC2530::channelHasData(uint16_t aChan) {
   if ((aChan < 1)||(aChan > 8)) {
     char buffer[256];
     sprintf(buffer, "CADC2530::channelHasData(): When checking channel fullness, the channel specified must be in the range [1-8] (channel == %d).\n",aChan);
@@ -1365,7 +1366,7 @@ bool CADC2530::channelHasData(unsigned short aChan) {
 
   ADCfullnessflag_t fflags;
   fflags.flags = getFullnessFlags();
-  unsigned char mask = 0x1;
+  uint8_t mask = 0x1;
   mask = (mask << (aChan - 1));
   return ((fflags.bytes.HALFFULL & mask) > 0);
 }
@@ -1385,7 +1386,7 @@ bool CADC2530::channelHasData(unsigned short aChan) {
 bool CADC2530::isListFull() { 
   ADCfullnessflag_t fflags;
   fflags.flags = getFullnessFlags();
-  unsigned char mask = 0x1;
+  uint8_t mask = 0x1;
   return ((fflags.bytes.FULL & mask) > 0);
 }
 
@@ -1404,12 +1405,12 @@ bool CADC2530::isListFull() {
 bool CADC2530::isListHalfFull() { 
   ADCfullnessflag_t fflags;
   fflags.flags = getFullnessFlags();
-  unsigned char mask = 0x1;
+  uint8_t mask = 0x1;
   return ((fflags.bytes.HALFFULL & mask) > 0);
 }
 
 /*==============================================================*/
-/** @fn CADC2530::setSSTR(unsigned short sstrval)
+/** @fn CADC2530::setSSTR(uint16_t sstrval)
 * @brief Set the sliding scale test register.
 *
 * Set the sliding scale test register.  The first and last
@@ -1425,8 +1426,8 @@ bool CADC2530::isListHalfFull() {
 * @param sstrval The new SSTR setting.
 * @return None
 */                                                             
-void CADC2530::setSSTR(unsigned short sstrval) {
-  unsigned short val = (sstrval&0x3FFC);
+void CADC2530::setSSTR(uint16_t sstrval) {
+  uint16_t val = (sstrval&0x3FFC);
   ((volatile ADCregisters_t*)my_pModule)->SlidingScaleTest= val;
 
 }
@@ -1445,8 +1446,8 @@ void CADC2530::setSSTR(unsigned short sstrval) {
 * @param None
 * @return The current SSTR setting.
 */                                                             
-unsigned short CADC2530::getSSTR() {
-  unsigned short sstrval = 0;
+uint16_t CADC2530::getSSTR() {
+  uint16_t sstrval = 0;
 
   sstrval = ((volatile ADCregisters_t*)my_pModule)->SlidingScaleTest;
 
@@ -1500,7 +1501,7 @@ void CADC2530::resetCSR() {
   csr.csrval = getCSR();
   csr.bits.RSTBSY = 1;
   setCSR(csr.csrval);
-  setCSR((unsigned short)0x0);
+  setCSR((uint16_t)0x0);
   my_eventmode = false;
 }
 
@@ -1514,7 +1515,7 @@ void CADC2530::resetCSR() {
 * @return None
 */                                                             
 void CADC2530::resetCTR() {
-  setCTR((unsigned short)0x0);
+  setCTR((uint16_t)0x0);
 }
 
 /*==============================================================*/
@@ -1534,7 +1535,7 @@ void CADC2530::fastClear() {
 }
 
 /*==============================================================*/
-/** @fn CADC2530::setIPL(unsigned short iplval)
+/** @fn CADC2530::setIPL(uint16_t iplval)
 * @brief Set the interrupt priority level.
 *
 * Set the interrupt priority level.  The value specified
@@ -1544,7 +1545,7 @@ void CADC2530::fastClear() {
 * @param iplval The new interrupt priority level.
 * @return None
 */                                                             
-void CADC2530::setIPL(unsigned short iplval) {
+void CADC2530::setIPL(uint16_t iplval) {
   ADCcsr_t csr;
   ADCcsr_t mask;
 
@@ -1566,15 +1567,15 @@ void CADC2530::setIPL(unsigned short iplval) {
 * @param None
 * @return The interrupt priority level from the CSR.
 */                                                             
-unsigned short CADC2530::getIPL() {
+uint16_t CADC2530::getIPL() {
   ADCcsr_t csr;
   csr.csrval = getCSR();
-  unsigned short iplval = csr.bits.IPL;
+  uint16_t iplval = csr.bits.IPL;
   return iplval;
 }
 
 /*==============================================================*/
-/** @fn CADC2530::setLLD(unsigned short lldval)
+/** @fn CADC2530::setLLD(uint16_t lldval)
 * @brief Set the lower level discriminator DAC value.
 *
 * Set the lower level discriminator (LLD) DAC value.  The value 
@@ -1587,7 +1588,7 @@ unsigned short CADC2530::getIPL() {
 * @param lldval The new LLD value.
 * @return None
 */                                                             
-void CADC2530::setLLD(unsigned short lldval) {
+void CADC2530::setLLD(uint16_t lldval) {
   ((volatile ADCregisters_t*)my_pModule)->LowerLevelDisc = lldval;
 
 }
@@ -1609,15 +1610,15 @@ void CADC2530::setLLD(unsigned short lldval) {
 * @param None
 * @return The interrupt priority level from the CSR.
 */                                                             
-unsigned short CADC2530::getLLD() {
-  unsigned short lldval = 0;
+uint16_t CADC2530::getLLD() {
+  uint16_t lldval = 0;
   lldval = ((volatile ADCregisters_t*)my_pModule)->LowerLevelDisc;
 
   return lldval;
 }
 
 /*==============================================================*/
-/** @fn CADC2530::setULD(unsigned short uldval)
+/** @fn CADC2530::setULD(uint16_t uldval)
 * @brief Set the upper level discriminator DAC value.
 *
 * Set the upper level discriminator (ULD) DAC value.  The value 
@@ -1630,7 +1631,7 @@ unsigned short CADC2530::getLLD() {
 * @param uldval The new ULD value.
 * @return None
 */                                                             
-void CADC2530::setULD(unsigned short uldval) {
+void CADC2530::setULD(uint16_t uldval) {
 
   ((volatile ADCregisters_t*)my_pModule)->UpperLevelDisc = uldval;
 
@@ -1653,8 +1654,8 @@ void CADC2530::setULD(unsigned short uldval) {
 * @param None
 * @return The interrupt priority level from the CSR.
 */                                                             
-unsigned short CADC2530::getULD() {
-  unsigned short uldval = 0;
+uint16_t CADC2530::getULD() {
+  uint16_t uldval = 0;
 
   uldval = ((volatile ADCregisters_t*)my_pModule)->UpperLevelDisc;
 
@@ -1662,7 +1663,7 @@ unsigned short CADC2530::getULD() {
 }
 
 /*==============================================================*/
-/** @fn CADC2530::setInterruptVector(unsigned short ivect)
+/** @fn CADC2530::setInterruptVector(uint16_t ivect)
 * @brief Set the interrupt vector.
 *
 * Set the interrupt vector to the specified value.  
@@ -1670,7 +1671,7 @@ unsigned short CADC2530::getULD() {
 * @param ivect The new interrupt vector setting.
 * @return None
 */                                                             
-void CADC2530::setInterruptVector(unsigned short ivect) {
+void CADC2530::setInterruptVector(uint16_t ivect) {
 
   ((volatile ADCregisters_t*)my_pModule)->InterruptVector = ivect;
 
@@ -1685,8 +1686,8 @@ void CADC2530::setInterruptVector(unsigned short ivect) {
 * @param None
 * @return The current interrupt vector setting.
 */                                                             
-unsigned short CADC2530::getInterruptVector() {
-  unsigned short ivect = 0;
+uint16_t CADC2530::getInterruptVector() {
+  uint16_t ivect = 0;
 
   ivect = ((volatile ADCregisters_t*)my_pModule)->InterruptVector;
 
@@ -1694,7 +1695,7 @@ unsigned short CADC2530::getInterruptVector() {
 }
 
 /*==============================================================*/
-/** @fn CADC2530::setInterruptMask(unsigned short imask)
+/** @fn CADC2530::setInterruptMask(uint16_t imask)
 * @brief Set the interrupt mask.
 *
 * Set the interrupt mask to the specified value.  
@@ -1702,7 +1703,7 @@ unsigned short CADC2530::getInterruptVector() {
 * @param imask The new interrupt mask setting.
 * @return None
 */                                                             
-void CADC2530::setInterruptMask(unsigned short imask) {
+void CADC2530::setInterruptMask(uint16_t imask) {
   ((volatile ADCregisters_t*)my_pModule)->InterruptMask = imask;
 
 }
@@ -1716,8 +1717,8 @@ void CADC2530::setInterruptMask(unsigned short imask) {
 * @param None
 * @return The current interrupt mask setting.
 */                                                             
-unsigned short CADC2530::getInterruptMask() {
-  unsigned short imask = 0;
+uint16_t CADC2530::getInterruptMask() {
+  uint16_t imask = 0;
 
   imask = ((volatile ADCregisters_t*)my_pModule)->InterruptMask;
 
@@ -1725,7 +1726,7 @@ unsigned short CADC2530::getInterruptMask() {
 }
 
 /*==============================================================*/
-/** @fn CADC2530::setCTRchannel(unsigned short chanval)
+/** @fn CADC2530::setCTRchannel(uint16_t chanval)
 * @brief Set the CTR channel.
 *
 * Set the test channel in the calibration and test register.
@@ -1736,7 +1737,7 @@ unsigned short CADC2530::getInterruptMask() {
 * @param chanval The new calibration channel.
 * @return None
 */                                                             
-void CADC2530::setCTRchannel(unsigned short chanval) {
+void CADC2530::setCTRchannel(uint16_t chanval) {
   if ((chanval < 1)||(chanval > 8)) {
     char buffer[256];
     sprintf(buffer, "CADC2530::setCTRchannel(): The specified channel value must be in the range [1-8]\n");
@@ -1766,10 +1767,10 @@ void CADC2530::setCTRchannel(unsigned short chanval) {
 * @param None
 * @return The calibration channel from the CTR.
 */                                                             
-unsigned short CADC2530::getCTRchannel() {
+uint16_t CADC2530::getCTRchannel() {
   ADCctr_t ctr;
   ctr.ctrval = getCTR();
-  unsigned short chanval = ctr.bits.M012;
+  uint16_t chanval = ctr.bits.M012;
   return (chanval+1);
 }
 
@@ -1889,8 +1890,8 @@ void CADC2530::disableMUXswitch() {
 * @param None
 * @return The current CSR setting.
 */                                                             
-unsigned short CADC2530::getCSR() {
-  unsigned short csrval = 0;
+uint16_t CADC2530::getCSR() {
+  uint16_t csrval = 0;
 
   csrval = ((volatile ADCregisters_t*)my_pModule)->CSR;
 
@@ -1898,7 +1899,7 @@ unsigned short CADC2530::getCSR() {
 }
 
 /*==============================================================*/
-/** @fn CADC2530::setCSR(unsigned short csrval))
+/** @fn CADC2530::setCSR(uint16_t csrval))
 * @brief Set the CSR to a specific value.
 *
 * Set the control and status register (CSR) to a specific value.
@@ -1908,7 +1909,7 @@ unsigned short CADC2530::getCSR() {
 * @param csrval The new CSR value.
 * @return None
 */                                                             
-void CADC2530::setCSR(unsigned short csrval) {
+void CADC2530::setCSR(uint16_t csrval) {
   ADCcsr_t csr;
   csr.csrval = csrval;
   if (csr.bits.DR) my_eventmode = true;
@@ -1920,7 +1921,7 @@ void CADC2530::setCSR(unsigned short csrval) {
 }
 
 /*==============================================================*/
-/** @fn CADC2530::setCSRbits(unsigned short nBits,unsigned short nMask)
+/** @fn CADC2530::setCSRbits(uint16_t nBits,uint16_t nMask)
 * @brief Set specified bits in the CSR.
 *
 * Set specified bits in the control status register (CSR).
@@ -1932,7 +1933,7 @@ void CADC2530::setCSR(unsigned short csrval) {
 * @param nMask Mask of the bit set affected (1-> bit affected).
 * @return None
 */                                                             
-void CADC2530::setCSRbits(unsigned short nBits,unsigned short nMask) {
+void CADC2530::setCSRbits(uint16_t nBits,uint16_t nMask) {
   ADCcsr_t csr;
   csr.csrval = getCSR();
   csr.csrval = (csr.csrval & CADC2530_CSRMASK);
@@ -1946,7 +1947,7 @@ void CADC2530::setCSRbits(unsigned short nBits,unsigned short nMask) {
 }
 
 /*==============================================================*/
-/** @fn CADC2530::resetCSRbits(unsigned short nBits))
+/** @fn CADC2530::resetCSRbits(uint16_t nBits))
 * @brief Reset specified bits in the CSR.
 *
 * Reset specified bits in the control status register (CSR).
@@ -1958,7 +1959,7 @@ void CADC2530::setCSRbits(unsigned short nBits,unsigned short nMask) {
 * @param nBits The CSR bits to reset.
 * @return None
 */                                                             
-void CADC2530::resetCSRbits(unsigned short nBits) {
+void CADC2530::resetCSRbits(uint16_t nBits) {
   ADCcsr_t csr;
   csr.csrval = getCSR();
   csr.csrval = (csr.csrval & CADC2530_CSRMASK);
@@ -1979,8 +1980,8 @@ void CADC2530::resetCSRbits(unsigned short nBits) {
 * @param None
 * @return The current CTR setting.
 */                                                             
-unsigned short CADC2530::getCTR() {
-  unsigned short ctrval = 0;
+uint16_t CADC2530::getCTR() {
+  uint16_t ctrval = 0;
 
   ctrval = ((volatile ADCregisters_t*)my_pModule)->CTR;
 
@@ -1988,7 +1989,7 @@ unsigned short CADC2530::getCTR() {
 }
 
 /*==============================================================*/
-/** @fn CADC2530::setCTR(unsigned short ctrval))
+/** @fn CADC2530::setCTR(uint16_t ctrval))
 * @brief Set the CTR to a specific value.
 *
 * Set the calibration and test register (CTR) to a specific value.
@@ -1996,14 +1997,14 @@ unsigned short CADC2530::getCTR() {
 * @param ctrval The new CTR value.
 * @return None
 */                                                             
-void CADC2530::setCTR(unsigned short ctrval) {
+void CADC2530::setCTR(uint16_t ctrval) {
 
   ((volatile ADCregisters_t*)my_pModule)->CTR = ctrval;
 
 }
 
 /*==============================================================*/
-/** @fn CADC2530::setCTRbits(unsigned short nBits,unsigned short nMask)
+/** @fn CADC2530::setCTRbits(uint16_t nBits,uint16_t nMask)
 * @brief Set specified bits in the CTR.
 *
 * Set specified bits in the calibration and test register (CTR).
@@ -2015,8 +2016,8 @@ void CADC2530::setCTR(unsigned short ctrval) {
 * @param nMask Mask of the bit set affected (1-> bit affected).
 * @return None
 */                                                             
-void CADC2530::setCTRbits(unsigned short nBits,unsigned short nMask) {
-  unsigned short ctrval = getCTR();
+void CADC2530::setCTRbits(uint16_t nBits,uint16_t nMask) {
+  uint16_t ctrval = getCTR();
   ctrval = (ctrval & CADC2530_CTRMASK);
   ctrval = (ctrval & (~nMask));
   ctrval = (ctrval | nBits);
@@ -2026,7 +2027,7 @@ void CADC2530::setCTRbits(unsigned short nBits,unsigned short nMask) {
 }
 
 /*==============================================================*/
-/** @fn CADC2530::resetCTRbits(unsigned short nBits))
+/** @fn CADC2530::resetCTRbits(uint16_t nBits))
 * @brief Reset specified bits in the CTR.
 *
 * Reset specified bits in the calibration and test register (CTR).
@@ -2036,8 +2037,8 @@ void CADC2530::setCTRbits(unsigned short nBits,unsigned short nMask) {
 * @param nBits The CTR bits to reset.
 * @return None
 */                                                             
-void CADC2530::resetCTRbits(unsigned short nBits) {
-  unsigned short ctrval = getCTR();
+void CADC2530::resetCTRbits(uint16_t nBits) {
+  uint16_t ctrval = getCTR();
   ctrval = (ctrval & CADC2530_CTRMASK);
   ctrval = (ctrval & (~nBits));
 

@@ -19,7 +19,7 @@
   \file CaenIO.h
 
   Encapsulates a CAEN mod. v262 multipurpose i/o register card. Caen262's
-  are mapped using a CVME<UShort_t> object. The module operates in the
+  are mapped using a CVME<uint16_t> object. The module operates in the
   a24d16 vme space at base address 0x4444. The card consists of 4 NIM
   level inputs, 4 NIM level outputs, 4 140ns NIM pulsed outputs, and 16
   ECL levels. The read/write functions receive the input/output value to
@@ -42,6 +42,7 @@
 #define __CCAENIO_H
 
 #include <config.h>
+#include <stdint.h>
 
 
 #ifndef __VMEMODULE_H
@@ -50,16 +51,16 @@
 
 class CCaenIO : public CVmeModule
 {
-  UInt_t m_nOutputMask;  /*! each bit in the mask corresponds to a level
+  uint32_t m_nOutputMask;  /*! each bit in the mask corresponds to a level
 			   output. A 1 indicates the output is set. */
   enum { LENGTH = 256 };
   
  public:
 
   // Default constructor
-  CCaenIO(UInt_t base, int nCrate = 0);
+  CCaenIO(uint32_t base, int nCrate = 0);
 
-  CCaenIO(CVME<UShort_t>& am_CVME);
+  CCaenIO(CVME<uint16_t>& am_CVME);
 
   // Copy constructor
   CCaenIO(const CCaenIO& aCCaenIO);
@@ -77,23 +78,23 @@ class CCaenIO : public CVmeModule
  public:
  
   // Read from inputs
-  UShort_t ReadInput(UInt_t input);
-  UShort_t ReadInputs();
+  uint16_t ReadInput(uint32_t input);
+  uint16_t ReadInputs();
   
   // Writing to NIM pulse and level outputs
-  void PulseOutput(UInt_t output);
-  void SetLevel(UInt_t output);
-  void ClearLevel(UInt_t output);
+  void PulseOutput(uint32_t output);
+  void SetLevel(uint32_t output);
+  void ClearLevel(uint32_t output);
   void ClearAll();
   
   // Writing to ECL outputs
-  void SetECL(UShort_t value);
+  void SetECL(uint16_t value);
   void ClearECL();
-
-  short* getInputPointer();
-  short* getPulsedOutputPointer();
-  short* getLatchedOutputPointer();
-  short* getECLOutputPointer();
+ 
+  uint16_t* getInputPointer();
+  uint16_t* getPulsedOutputPointer();
+  uint16_t* getLatchedOutputPointer();
+  uint16_t* getECLOutputPointer();
 
 };
 

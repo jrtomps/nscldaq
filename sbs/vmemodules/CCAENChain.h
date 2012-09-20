@@ -35,6 +35,9 @@
 #include <RangeError.h>
 #endif
 
+#include <stdint.h>
+
+
 // Forward class definitions:
 
 class CAENcard;
@@ -100,16 +103,16 @@ class CCAENChain {
   // Private data.
 private:
   std::vector<CAENcard*> m_vCards;	    //!< Card driver objects for the chain.
-  unsigned long     m_nCBLTAddress; //!< CBLT address assigned to the chain.
+  uint32_t     m_nCBLTAddress; //!< CBLT address assigned to the chain.
   int               m_nCrate;	    //!< VME crate containing the chain. 
   void*             m_pHandle;   //!< Handle to he VME crate for Read.
-  unsigned short    m_nMaxBytes;    //!< Calculated maximum transfer size.
+  uint16_t    m_nMaxBytes;    //!< Calculated maximum transfer size.
   void*             m_pBase;	//!< Ptr to base address.
 
   // Constructors and other canonical operations.
 public:
   CCAENChain(int nFirstSlot, int nLastSlot,
-	     std::vector<unsigned long>& vBases,
+	     std::vector<uint32_t>& vBases,
 	     int nCrate = 0, bool geo=true) throw (std::string);
   ~CCAENChain();
   
@@ -127,7 +130,7 @@ public:
   std::vector<CAENcard*> getCards() {      //!< Get std::vector with ptrs to all cards. 
     return m_vCards;
   }
-  unsigned long getCBLTAddress() const { //!< Get CBLT transfer address.
+  uint32_t getCBLTAddress() const { //!< Get CBLT transfer address.
     return m_nCBLTAddress;
   }
   int getCrate() const {		//!< Get crate # the chain lives in.
@@ -136,7 +139,7 @@ public:
   void* getVmeHandle() {	//!< Get handle to VME device open on cblt.
     return m_pHandle;
   }
-  unsigned short getMaxBytes() const { //!< Get max# of bytes this chain produces.
+  uint16_t getMaxBytes() const { //!< Get max# of bytes this chain produces.
     return m_nMaxBytes;
   }
 
@@ -148,7 +151,7 @@ protected:
   void setCards(const std::vector<CAENcard*> vCards) { //!< Set std::vector of card ptrs
     m_vCards = vCards;
   }
-  void setCBLTAddress(unsigned long nCBLTAddress) { //!< set new xfer address.
+  void setCBLTAddress(uint32_t nCBLTAddress) { //!< set new xfer address.
     m_nCBLTAddress = nCBLTAddress;
   }
   void setCrate(int nCrate) {	//!< Set the crate # the chain is in.
@@ -157,7 +160,7 @@ protected:
   void setHandle(void* pHandle) { //!< Set new vme handle.
     m_pHandle = pHandle;
   }
-  void setMaxBytes(unsigned short nBytes) { //!< Set new max bytes value.
+  void setMaxBytes(uint16_t nBytes) { //!< Set new max bytes value.
     m_nMaxBytes = nBytes;
   }
 

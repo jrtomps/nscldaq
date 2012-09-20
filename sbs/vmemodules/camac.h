@@ -19,6 +19,8 @@
 #include <daqdatatypes.h>
 #endif
 
+#include <stdint.h>
+
 /*----------------------------------------------------------------------
  *
  * At compile time, the base macros that access the camac system are
@@ -54,14 +56,14 @@
 */
 
 static inline long getlong(volatile void* a) {
-  UINT16* p = (UINT16*)a;
+  uint16_t* p = (uint16_t*)a;
   long    l = p[0];
   l   = l << 16;
   l  |= p[1];
   return l;
 }
 
-static inline void putlong(INT32 v,volatile void *a)
+static inline void putlong(int32_t v,volatile void *a)
 {                                      
   volatile short* p = (volatile short*)a;
   *p = (v >> 16) & 0xff;                 
@@ -70,15 +72,15 @@ static inline void putlong(INT32 v,volatile void *a)
 }
 
 
-#define putbufw(word)	        (*bufpt = (INT16)(word)); ++bufpt
+#define putbufw(word)	        (*bufpt = (int16_t)(word)); ++bufpt
 #define putbufl(l)		{					\
-                                  UINT32 tmp = (l);                         \
+                                  uint32_t tmp = (l);                         \
                                   putbufw((tmp&0xffff));                  \
                                   putbufw((tmp >> 16));                   \
 				}
 
-#define savebufpt(var)		var = (INT32)bufpt
-#define rstbufpt(var)		bufpt = ((INT16 *)var)
+#define savebufpt(var)		var = (int32_t)bufpt
+#define rstbufpt(var)		bufpt = ((int16_t *)var)
 
     /* Bitwise operators. */
 
@@ -118,9 +120,9 @@ static inline void putlong(INT32 v,volatile void *a)
 
     /* Declarations */
 
-#define LOGICAL	UINT32
-#define WORD	INT16
-#define INTEGER	INT32
+#define LOGICAL	uint32_t
+#define WORD	int16_t
+#define INTEGER	int32_t
 #define REAL	float
 
     /* code fragment generators: */
@@ -171,8 +173,8 @@ static inline void putlong(INT32 v,volatile void *a)
 			         (br), (cr), (sl));			  \
 			sleep(2);				  \
 			}
-#define INITFERA(b, c, n, cmd, ped)	{ INT16 _sub;	                     \
-					  INT32 *_p;			     \
+#define INITFERA(b, c, n, cmd, ped)	{ int16_t _sub;	                     \
+					  int32_t *_p;			     \
 					  do                                 \
                                           {                                  \
 					   camctl((b),(c),(n),0,9);          \
@@ -199,8 +201,8 @@ static inline void putlong(INT32 v,volatile void *a)
 /* Ganelec? 812F ADCS: */
 
 
-#define INIT812F(b,c,n, cmd, ped)   	{ INT16 _sub;	                     \
-					  INT32 *_p;			     \
+#define INIT812F(b,c,n, cmd, ped)   	{ int16_t _sub;	                     \
+					  int32_t *_p;			     \
 					  do                                 \
                                           {                                  \
 					   camctl((b),(c),(n),0,9);          \
@@ -233,8 +235,8 @@ static inline void putlong(INT32 v,volatile void *a)
 **			    upper level discriminator x8
 */
 #define INIT4418(b,c,n,cmd,thrsh) {				    \
-    INT16 i;							    \
-    INT32 *_p;							    \
+    int16_t i;							    \
+    int32_t *_p;							    \
     do{								    \
 	camctl(b,c,n,0,9);  /* clear */				    \
 	camwrite16(b,c,n,14,20,cmd); /* write status word */	    \
@@ -301,7 +303,7 @@ static inline void putlong(INT32 v,volatile void *a)
 #define CLRGSIS(b, c, n)	INITGSIS((b),(c),(n))
 
 
-#define READALLGSIS(b, c, n)	{ INT16 _a;			    \
+#define READALLGSIS(b, c, n)	{ int16_t _a;			    \
     	    	    	    	  INITGSIS((b),(c),(n));    	    \
 				  for(_a = 0; _a <=47; _a++) {	    \
 				      rdtobuf24((b),(c),(n),0,0);   \
@@ -316,7 +318,7 @@ static inline void putlong(INT32 v,volatile void *a)
 							     (a));         \
 				          rdtobuf24((b),(c),(n),0,0);
 
-#define READALL4434(b, c, n)	{ INT16 _a;				      \
+#define READALL4434(b, c, n)	{ int16_t _a;				      \
 				  camwrite16((b),(c),(n),0,16,                \
                                                              (ECLSCL_LD)  |  \
 						      (31 << ECLSCL_NPOS));   \
@@ -334,7 +336,7 @@ static inline void putlong(INT32 v,volatile void *a)
 #define READ2551(b, c, n, a)	putbufl(                                     \
 				camread24((b),(c),(n),(a),0))
 
-#define READALL2551(b, c, n)	{ INT16 _a;				      \
+#define READALL2551(b, c, n)	{ int16_t _a;				      \
 				  for(_a = 0; _a < 12; _a++)		      \
 				       putbufl(                               \
 					camread24((b),(c),(n),(_a), 0));	      \
@@ -349,8 +351,8 @@ static inline void putlong(INT32 v,volatile void *a)
 *              bits 9-16 are conversion delay
 *     ped      is the first of 16 integers for pedestals */
 #define INIT7164(b,c,n,cmd,ped) {                        \
-    INT16 i;                                         \
-    INT32 *_p;                                       \
+    int16_t i;                                         \
+    int32_t *_p;                                       \
     camctl(b,c,n,0,9);               /* clear */     \
     do{	                                         \
           camwrite16(b,c,n,0,19,cmd);                    \
@@ -365,8 +367,8 @@ static inline void putlong(INT32 v,volatile void *a)
         camctl(b,c,n,0,26);                              \
 }
 #define INIT7186(b,c,n,ip,ilow,iup,ped){                 \
-        INT16 i,ibit,icmd=0;                             \
-        INT32 *_p;                                       \
+        int16_t i,ibit,icmd=0;                             \
+        int32_t *_p;                                       \
         camctl(b,c,n,0,9);              /* clear */      \
         if(ip)icmd |= 1;     /* set pedestals */         \
         if(ilow)icmd |= 2;   /* set lower thresh */      \
