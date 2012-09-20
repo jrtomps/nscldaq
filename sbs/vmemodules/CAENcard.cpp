@@ -101,7 +101,7 @@ using namespace std;
 //
 
 struct Registers {
-  unsigned long   Buffer[0x1000/sizeof(long)]; // 0x0000
+  uint32_t   Buffer[0x1000/sizeof(uint32_t)]; // 0x0000
   unsigned short  FirmwareRev;                 // 0x1000
   unsigned short  GeoAddress;	               // 0x1002
   unsigned short  MCSTAddress;                 // 0x1004
@@ -205,7 +205,7 @@ struct ROM {
      \param nLongs  - Number of longs to read.
 */
 void
-CAENcard::ReadBufferBlock(int* pDest, Int_t nLongs)
+CAENcard::ReadBufferBlock(uint32_t* pDest, Int_t nLongs)
 {
 
   for(int i = 0; i < nLongs; i++) {
@@ -880,12 +880,12 @@ int
 CAENcard::readEvent(void* buf)
 {
 
-  int* pBuf((int*)buf);
+  uint32_t* pBuf((uint32_t*)buf);
   if(dataPresent())
   {
     int n = 1;			// Header at least is read.
     int  Header     = ReadBuffer;
-    int* pHeader    = pBuf;	// To fix channel count.
+    uint32_t* pHeader    = pBuf;	// To fix channel count.
     int  nRawChancnt= (Header >> 8) & 0x3f;
     *pBuf++         = swaplong(Header);
     if(0 && (getFirmware() >= 0x808) ) {	// Raw chancount reliable... NOT
@@ -894,7 +894,7 @@ CAENcard::readEvent(void* buf)
       return (nRawChancnt+2)*sizeof(long);
 
     } else {
-      int datum;
+      uint32_t datum;
       do {
 	datum   = ReadBuffer;
 	*pBuf++ = swaplong(datum);
@@ -912,7 +912,7 @@ CAENcard::readEvent(void* buf)
       Header |= ((n-2) << 8);	// this fixes it.
       *pHeader = swaplong(Header);
       m_nEvents++;		// Count an event taken.
-      return n * sizeof(long);			// Rely on the trailer!!
+      return n * sizeof(uint32_t);			// Rely on the trailer!!
     }
   }else {
     // cerr << "Readout called but no data present\n";
