@@ -272,6 +272,10 @@ Feb 1, 2012 - Feb 24, 2012
 	- Issue #1322 - Include product (NSCLDAQ) in the VERSION file.
         - More wheezy-64 work:
 	  * Get sbs driver working/tested.
-	  * Start SBS readout checkout:
+	  * Start SBS readout checkout (sbs/vmemodules/
 	    - Make CAENcard 64/32 bit clean.
-	
+	    - Draft code for CADC2530 (Hytec adc...can't test this 'cause we don't own the module).
+	    - Draft code for CAEN V767 multihit TDC which probably nobody will ever use again.
+	    - Draft code for CAEN 262 I/O register.
+	    - camac.h - replace the old style INT32 etc. with stdint stuff.
+	    - Draft code for CBLT CAEN 32 bit digitizer chains.

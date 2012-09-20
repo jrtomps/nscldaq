@@ -27,6 +27,7 @@
 #include <signal.h>
 #include <sys/ioctl.h>
 #include <VmeModule.h>
+#include <stdint.h>
 
 
 
@@ -56,7 +57,7 @@
 #define CAEN_767_FOOTER        0x00200000
 #define CAEN_767_INVALID       0x00600000
 
-//offsets (assuming short int units) for various registers
+//offsets (assuming 16 bit widths) for various registers
 #define CAEN_767_ADDR_GEO      0x0002
 #define CAEN_767_BIT_SET       0x0003
 #define CAEN_767_BIT_CLEAR     0x0004
@@ -121,7 +122,7 @@ public:
   // Constructors and other canonical operations.
   
   CAENcard_767(int slotNum, int crateNum = 0,
-	       bool fisGeo = true, unsigned long nBase=0);
+	       bool fisGeo = true, uint32_t nBase=0);
   CAENcard_767(const CAENcard_767& card);
   CAENcard_767& operator=(const CAENcard_767& card);
   ~CAENcard_767();
@@ -147,15 +148,15 @@ public:
   int getStartEdge();		//!< Get the edge of the start input.
   int getEdgeOdd();		//!< Get odd channel edge
   int getEdgeEven();		//!< Get even channel edge info.
-  unsigned short getSr2();
+  uint16_t getSr2();
   // Utilities:
 
 protected:
   int slotInit(int slotNum, int crateNum,
-	       bool fGeo, unsigned long base); //!< Initialize a slot.
-  int readEdgeConfiguration(unsigned short* values);
-  int readOpcode(unsigned short int *value, int maxRetry); //!< Opcode for seq read.
-  int writeOpcode(unsigned short int value, int maxRetry); //!< Opcode for seq write.
+	       bool fGeo, uint32_t base); //!< Initialize a slot.
+  int readEdgeConfiguration(uint16_t* values);
+  int readOpcode(uint16_t *value, int maxRetry); //!< Opcode for seq read.
+  int writeOpcode(uint16_t value, int maxRetry); //!< Opcode for seq write.
   int opcodeWait(int maxRetry);           //!< Wait for sequencer ready.
   void reset();		            //!< MOdule soft reset. 
 };

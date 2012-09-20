@@ -28,6 +28,8 @@
 #include <stdio.h>
 
 
+
+
 using namespace std;
 
 
@@ -58,7 +60,7 @@ static int fwMinor(int firmware)
       The last geographical address in the chain.  If the geo
       parameter is true, this represents a physical slot, otherwise
       a virtual slot that is programmed into the chain members.
-   \param vBases (vector<unsigned long>& in):
+   \param vBases (vector<uint32_t>& in):
       A set of base addresses for the modules in the chain.
       This is only important in the geo parameter is false.
       In that case, there must be nLastSlot - nFirstSlot + 1 entries
@@ -79,7 +81,7 @@ static int fwMinor(int firmware)
       point will be properly destroyed if an exception is thrown.
 */
 CCAENChain::CCAENChain(int nFirstSlot, int nLastSlot,
-		       vector<unsigned long>& vBases,
+		       vector<uint32_t>& vBases,
 		       int nCrate, bool geo) throw (string)
       : m_nCBLTAddress(0),
 	m_nCrate(nCrate),
@@ -121,7 +123,7 @@ CCAENChain::CCAENChain(int nFirstSlot, int nLastSlot,
   try {
     for (int slot = 0; slot < m_vCards.size(); slot++) {
       if (m_vCards[slot]->getFirmware() < QualifyingFirmware) {
-	unsigned long base    = m_vCards[slot]->getBase();
+	uint32_t base    = m_vCards[slot]->getBase();
 	int           fw      = m_vCards[slot]->getFirmware();
 	int           major   = fwMajor(fw);
 	int           minor   = fwMinor(fw);
@@ -158,10 +160,10 @@ CCAENChain::CCAENChain(int nFirstSlot, int nLastSlot,
   // Calculate the  number of bytes that can be read:
   // In cblt seems like a module returns
   //  header data trailer invalid 
-  //   Data can be 32 longs,
+  //   Data can be 32 x 32bit values.,
   //   header, trailer and invalid are both a single long.
 
-  m_nMaxBytes = (nModules * 35 + 1) * sizeof(long);
+  m_nMaxBytes = (nModules * 35 + 1) * sizeof(uint32_t);
 
   // The very last thing to do is open the VME crate on
   // CBLT addressing so that we can do a read(2) to read an event:
@@ -229,7 +231,7 @@ CCAENChain::operator[](int index) throw (CRangeError)
 
 	   CCAENChain  chain(...);
 	   ...
-	   long buffer[chain.getMaxBytes()/sizeof(long)];
+	   uint32_t buffer[chain.getMaxBytes()/sizeof(uint32_t)];
 	   ...
 	   ReadEvent(buffer);
 
@@ -239,7 +241,7 @@ CCAENChain::operator[](int index) throw (CRangeError)
 	   \verbatim
 
 	   ...
-	   long* pBuffer = new long[chain.getMaxByte()/sizeof(long)];
+	   uint32_t* pBuffer = new int32_t[chain.getMaxByte()/sizeof(uint32_t)];
 	   ...
 	   ReadEvent(pBuffer);
 
@@ -267,7 +269,7 @@ CCAENChain::ReadEvent(void* pBuffer)
     throw;			// But re-report the error.
   }
 
-  return nRead/sizeof(unsigned short);
+  return nRead/sizeof(uint16_t);
 }
 /*!
    Clear the data in all cards.

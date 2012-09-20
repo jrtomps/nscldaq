@@ -51,7 +51,7 @@ using namespace std;
       establihsed.  See the slotInit function for more info.
  */
 CAENcard_767::CAENcard_767(int slotNum, int crateNum,
-			   bool fisGeo, unsigned long nBase) :
+			   bool fisGeo, uint32_t nBase) :
   slot(0), 
   m_pSpace(0)
   
@@ -121,7 +121,7 @@ CAENcard_767::operator=(const CAENcard_767& card)
 
 */
 int CAENcard_767::slotInit(int slotNum, int crateNum, 
-			   bool fisGeo, unsigned long nBase)
+			   bool fisGeo, uint32_t nBase)
 {
 
   //ensure that the slot and crate specified stay within bounds
@@ -142,7 +142,7 @@ int CAENcard_767::slotInit(int slotNum, int crateNum,
   // modifier range, depending on the base parameter.
 
   CVmeModule::Space space;
-  unsigned long     base;
+  uint32_t     base;
   
   // Based on the geo flag, figure out which space, and what the base is.
 
@@ -168,7 +168,7 @@ int CAENcard_767::slotInit(int slotNum, int crateNum,
 
   if(  !( (0x0040e6 == mfgId())                   &&
 	  (767    == cardType())                  &&
-          (((short int)slot ==  (0x001F & m_pSpace->peekw(CAEN_767_ADDR_GEO))) ||
+          (((uint16_t)slot ==  (0x001F & m_pSpace->peekw(CAEN_767_ADDR_GEO))) ||
 	   !fisGeo))) {
 
       printf( "\n767 Card %d is not inserted or is of an incompatable type!\n", slotNum);
@@ -262,7 +262,7 @@ CAENcard_767::~CAENcard_767()
    \retval <0  - Failure:
 
 */
-int CAENcard_767::readOpcode(unsigned short int *value, int maxRetry)
+int CAENcard_767::readOpcode(uint16_t *value, int maxRetry)
 {
   int i;  
   for( i = 0; i < maxRetry; ++i ) {
@@ -296,7 +296,7 @@ int CAENcard_767::readOpcode(unsigned short int *value, int maxRetry)
    \retval <0    Failure.
  */
 int 
-CAENcard_767::writeOpcode(unsigned short int value, int maxRetry)
+CAENcard_767::writeOpcode(uint16_t value, int maxRetry)
 {
   int i = opcodeWait(maxRetry);
 
@@ -388,7 +388,7 @@ void CAENcard_767::reset()
 int CAENcard_767::dataPresent()
 {
 
-  unsigned short s1 = m_pSpace->peekw(CAEN_767_STATUS_1);
+  uint16_t s1 = m_pSpace->peekw(CAEN_767_STATUS_1);
   
   return ((s1 & 5) == 1 );
 
@@ -515,7 +515,7 @@ CAENcard_767::SetFallingEdgeAll()
 */
 int
 CAENcard_767::getStartEdge() {
-  unsigned short edges[3];
+  uint16_t edges[3];
   int stat = readEdgeConfiguration(edges);
   if (stat < 0) {
     return stat;
@@ -528,7 +528,7 @@ CAENcard_767::getStartEdge() {
 int
 CAENcard_767::getEdgeEven()
 {
-  unsigned short edges[3];
+  uint16_t edges[3];
   int stat = readEdgeConfiguration(edges);
   if (stat < 0) {
     return stat;
@@ -541,7 +541,7 @@ CAENcard_767::getEdgeEven()
 int 
 CAENcard_767::getEdgeOdd()
 {
-  unsigned short edges[3];
+  uint16_t edges[3];
   int stat = readEdgeConfiguration(edges);
   if (stat < 0) {
     return stat;
@@ -551,7 +551,7 @@ CAENcard_767::getEdgeOdd()
 /*!
    Return the value of status register 2.
 */
-unsigned short CAENcard_767::getSr2()
+uint16_t CAENcard_767::getSr2()
 {
   return m_pSpace->peekw(CAEN_767_STATUS_2);
 }
@@ -571,7 +571,7 @@ CAENcard_767::mfgId()
   Read the three words of edge information.
 */
 int
-CAENcard_767::readEdgeConfiguration(unsigned short* values)
+CAENcard_767::readEdgeConfiguration(uint16_t* values)
 {
   if (writeOpcode(0x6700, 10000) < 0) {
     return -1;

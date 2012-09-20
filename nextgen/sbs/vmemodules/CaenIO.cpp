@@ -24,7 +24,7 @@ using namespace std;
 
 
 /*!
-  \fn CCaenIO(UInt_t base)
+  \fn CCaenIO(uint32_t base)
 
   Purpose:
      Basic constructor for type CCaenIO. Definees a
@@ -32,10 +32,10 @@ using namespace std;
      and with length 'length'. Initializes the output
      mask to zero.
 
-  \param UInt_t base - offset into the VME module at which to begin mapping
+  \param uint32_t base - offset into the VME module at which to begin mapping
   \param int   nCrate - VME Crate number.
 */
-CCaenIO::CCaenIO(UInt_t base, int nCrate) :
+CCaenIO::CCaenIO(uint32_t base, int nCrate) :
   CVmeModule(CVmeModule::a24d16, base, LENGTH, nCrate),
   m_nOutputMask(0)
 {
@@ -95,7 +95,7 @@ CCaenIO::operator== (const CCaenIO& aCCaenIO)
 }
 
 /*!
-  \fn UShort_t CCaenIO::ReadInput(UInt_t input)
+  \fn uint16_t CCaenIO::ReadInput(uint32_t input)
 
   Purpose:
      Reads the value on the inputs of one of the
@@ -103,12 +103,12 @@ CCaenIO::operator== (const CCaenIO& aCCaenIO)
      specified by its parameter. Inputs must be
      between 1 and 4.
 
-  \param UInt_t input - the input (0-3) from which to read a value.
+  \param uint32_t input - the input (0-3) from which to read a value.
 
   \return The value of the input.
 */
-UShort_t
-CCaenIO::ReadInput(UInt_t input)
+uint16_t
+CCaenIO::ReadInput(uint32_t input)
 {
   if((input < 0) || (input > 3)) {
     throw string("\nInvalid input on read operation. Must be between 0 and 3.\n");
@@ -118,22 +118,22 @@ CCaenIO::ReadInput(UInt_t input)
 /*!
        Read all inputs and return them as a mask.
  */
-UShort_t
+uint16_t
 CCaenIO::ReadInputs() 
 {
   return peekw(5);
 }
 
 /*!
-  \fn void CCaenIO::PulseOutput(UInt_t output)
+  \fn void CCaenIO::PulseOutput(uint32_t output)
   
   Purpose:
      Pulse one of the pulse outputs.
 
-  \param UInt_t output - the output to pulse
+  \param uint32_t output - the output to pulse
 */
 void
-CCaenIO::PulseOutput(UInt_t output)
+CCaenIO::PulseOutput(uint32_t output)
 {
   if((output < 0) || (output > 3)) {
     cerr << "\nInvalid output on assert operation. Must be between 0 and 3.\n";
@@ -144,18 +144,18 @@ CCaenIO::PulseOutput(UInt_t output)
 }
 
 /*!
-  \fn void CCaenIO::SetLevel(UInt_t output)
+  \fn void CCaenIO::SetLevel(uint32_t output)
 
   Purpose:
      Set one of the level outputs. If the outputs is
      already set, then this function is a no-op.
   
 
-  \param UInt_t output - the output to assert.
+  \param uint32_t output - the output to assert.
   Must be in the range 0 - 3.
 */
 void
-CCaenIO::SetLevel(UInt_t output)
+CCaenIO::SetLevel(uint32_t output)
 {
   if((output < 0) || (output > 3)) {
     cerr << "\nInvalid output on assert operation. Must be between 0 and 3.\n";
@@ -167,36 +167,36 @@ CCaenIO::SetLevel(UInt_t output)
 }
 
 /*!
-  \fn void CCaenIO::ClearLevel(UInt_t output)
+  \fn void CCaenIO::ClearLevel(uint32_t output)
 
   Purpose:
      Clear one of the level outputs. If the output is already
      cleared, then this function is a no-op.
 
-  \param UInt_t output - the output to deassert
+  \param uint32_t output - the output to deassert
      Must be in the range of 0-3
 */
 void
-CCaenIO::ClearLevel(UInt_t output)
+CCaenIO::ClearLevel(uint32_t output)
 {
-  UInt_t clear_mask = ~(1 << output);
+  uint32_t clear_mask = ~(1 << output);
   m_nOutputMask = m_nOutputMask & clear_mask;
   pokew(m_nOutputMask, 3);
 }
 
 /*!
-  \fn void CCaenIO::SetECL(UInt_t output)
+  \fn void CCaenIO::SetECL(uint32_t output)
 
   Purpose:
      Set the ECL output
 
-  \param UShort_t value - the value to place in the ECL out register.
+  \param uint16_t value - the value to place in the ECL out register.
         The outputs of the ECL out connector will reflect the bit 
 	encoding of this parameter.
 
 */
 void
-CCaenIO::SetECL(UShort_t value)
+CCaenIO::SetECL(uint16_t value)
 {
   pokew(value, 2);
 }
@@ -234,11 +234,11 @@ Note that his is only available for VME
 controllers that support memory mapping.
 
 */
-short*
+uint16_t*
 CCaenIO::getInputPointer()
 {
-  CVME<UShort_t>& map(getCVME());
-  return ((short*)(map.getStart())+5);
+  CVME<uint16_t>& map(getCVME());
+  return ((uint16_t*)(map.getStart())+5);
 
 }
 /*!
@@ -246,22 +246,22 @@ CCaenIO::getInputPointer()
   This is only available for controllers that support
   memory mapping.
 */
-short* 
+uint16_t* 
 CCaenIO::getPulsedOutputPointer()
 {
-  CVME<UShort_t>& map(getCVME());
-  return ((short*)(map.getStart()) + 4);
+  CVME<uint16_t>& map(getCVME());
+  return ((uint16_t*)(map.getStart()) + 4);
 }
 /*!
    Get a pointer to the level output register:
    This is only available for controllers that support
    memory mapping.
 */
-short* 
+uint16_t* 
 CCaenIO::getLatchedOutputPointer() 
 {
-  CVME<UShort_t>& map(getCVME());
-  return ((short*)(map.getStart()) + 3);
+  CVME<uint16_t>& map(getCVME());
+  return ((uint16_t*)(map.getStart()) + 3);
 }
 /*!
   Get a pointer to the ECL output register:
@@ -269,11 +269,11 @@ CCaenIO::getLatchedOutputPointer()
   memory mapping.
 
 */
-short* 
+uint16_t* 
 CCaenIO::getECLOutputPointer() 
 {
-  CVME<UShort_t>& map(getCVME());
-  return ((short*)(map.getStart()) + 2);
+  CVME<uint16_t>& map(getCVME());
+  return ((uint16_t*)(map.getStart()) + 2);
 }
 
 
