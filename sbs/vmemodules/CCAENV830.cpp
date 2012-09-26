@@ -33,8 +33,8 @@ using namespace std;
 // The 'macros' below are used to do structure like offsets
 // using the register structure through VmeModule:
 //
-#define SOffset(s,field) ((unsigned int)(((uint64_t)&(((s*)0)->field))/sizeof(short)))
-#define LOffset(s,field) ((unsigned int)(((uint64_t)&(((s*)0)->field))/sizeof(long)))
+#define SOffset(s,field) ((unsigned int)(((uint64_t)&(((s*)0)->field))/sizeof(uint16_t)))
+#define LOffset(s,field) ((unsigned int)(((uint64_t)&(((s*)0)->field))/sizeof(uint32_t)))
 #define GetShort(field) (m_pModule->peekw(SOffset(CAENV830Registers,field)))
 #define GetLong(field)  (m_pModule->peekl(LOffset(CAENV830Registers,field)))
 #define PutShort(field,value) (m_pModule->pokew((value),  \
@@ -85,7 +85,7 @@ static inline void ThrowIfBadChannel(const char* pFunction,
 CCAENV830::CCAENV830(int slot,
 		     int crate,
 		     bool geo,
-		     unsigned long base) throw (string) :
+		     uint32_t base) throw (string) :
   m_nCrate(crate),
   m_nSlot(slot),
   m_nBase(base),
@@ -124,7 +124,7 @@ void
 CCAENV830::Enable(int nChannel) throw (string)
 {
   ThrowIfBadChannel("Enable", nChannel);
-  int nMask  = GetLong(Enables);
+  uint32_t nMask  = GetLong(Enables);
   nMask     |= 1 << nChannel;
   SetEnableMask(nMask);
 }
@@ -138,7 +138,7 @@ void
 CCAENV830::Disable(int nChannel) throw (string)
 {
   ThrowIfBadChannel("Disable", nChannel);
-  int nMask = GetLong(Enables);
+  uint32_t nMask = GetLong(Enables);
   nMask    &= ~(1 << nChannel); 
   SetEnableMask(nMask);
 }
@@ -150,7 +150,7 @@ CCAENV830::Disable(int nChannel) throw (string)
     Mask of channel enables.
 */
 void
-CCAENV830::SetEnableMask(int nMask)
+CCAENV830::SetEnableMask(uint32_t nMask)
 {
   PutLong(Enables, nMask);
   ComputeEventSize();		// Update the event size.
@@ -189,7 +189,7 @@ CCAENV830::SetDwellTime(int n400ns)
 void
 CCAENV830::SetTriggerMode(CCAENV830::TriggerMode mode) throw (string)
 {
-  short csr = GetShort(Csr);
+  uint16_t csr = GetShort(Csr);
   csr      &= ~CSRAcqMode;
   switch (mode) {
   case Disabled:
@@ -318,7 +318,7 @@ CCAENV830::DisableAutoReset()
 bool
 CCAENV830::isDataReady()
 {
-  short stat = GetShort(Status);
+  uint16_t stat = GetShort(Status);
   return ((stat & STATUSDready) != 0);
 }
 /*!
@@ -335,7 +335,7 @@ CCAENV830::isDataReady()
 bool
 CCAENV830::isAlmostFull()
 {
-  short stat = GetShort(Status);
+  uint16_t stat = GetShort(Status);
   return ((stat & STATUSAFull) != 0);
 }
 /*!
@@ -353,7 +353,7 @@ CCAENV830::isAlmostFull()
 bool
 CCAENV830::isFull()
 {
-  short stat = GetShort(Status);
+  uint16_t stat = GetShort(Status);
   return ((stat & STATUSFull) != 0);
 }
 /*!
@@ -370,7 +370,7 @@ CCAENV830::isFull()
 bool
 CCAENV830::isGlobalDready()
 {
-  short stat = GetShort(Status);
+  uint16_t stat = GetShort(Status);
   return ((stat & STATUSGDready) != 0);
 }
 /*!
@@ -387,7 +387,7 @@ CCAENV830::isGlobalDready()
 bool
 CCAENV830::isGlobalBusy()
 {
-  short stat = GetShort(Status);
+  uint16_t stat = GetShort(Status);
   return ((stat & STATUSGBusy) & 1);
 
 }
@@ -596,7 +596,7 @@ CCAENV830::ComputeEventSize()
   m_nEventLength = 0;
   if((GetShort(Csr) & CSRHeader) != 0) m_nEventLength++;
   
-  long nEnables = GetLong(Enables);
+  uint32_t nEnables = GetLong(Enables);
   for(int i =0; i < 32; i++) {
     if( ((1 << i) & nEnables) != 0) m_nEventLength++;
   }
@@ -623,7 +623,7 @@ CCAENV830::UnmapModule()
 
     \return int
     The number of words read from the module 
-    (m_nEventLenght * sizeof(long)/sizeof(short))
+    (m_nEventLenght * sizeof(uint32_t)/sizeof(uint16_t))
 
 
     \note
@@ -636,12 +636,12 @@ CCAENV830::ReadEvent(void * pBuffer)
 {
   if(isDataReady()) {
 
-    unsigned long* p((unsigned long*) pBuffer);
+    uint32_t* p(reinterpret_cast<uint32_t*>( pBuffer));
     for(int i = 0; i < m_nEventLength; i++) {
       *p++ = GetLong(MEB[i]);
     }
 
-    return m_nEventLength * sizeof(long)/sizeof(short);
+    return m_nEventLength * sizeof(uint32_t)/sizeof(uint16_t);
   }
   else {
     return 0;

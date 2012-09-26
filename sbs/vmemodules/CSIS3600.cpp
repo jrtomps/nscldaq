@@ -163,18 +163,18 @@ struct IdIrq {
 //
 union IdRegister {		// ID IRQ register...
   IdIrq         bits;
-  unsigned long l;
+  uint32_t l;
 };
 
 
 union StatReg {
   StatusRegister  bits;
-  unsigned long   l;
+  uint32_t   l;
 };
 
 union CtlReg {
   ControlRegister bits;
-  unsigned long   l;
+  uint32_t   l;
 };
 
 // The register unions above have a structure that is identical
@@ -186,24 +186,24 @@ union CtlReg {
 #define Long(reg)                 reg.l
 
 
-static const unsigned int ModuleLength(0x200); //!< size of the module.
+static const uint32_t ModuleLength(0x200); //!< size of the module.
 
 /*!
    Construct a module.  The module consists of a VME space definition
    that is held by m_Module.  Note that use of m_Module ensures
    portability between SBS Bit3 and Wiener bus bridge modules.
-   \param base (unsigned long [in]):
-      VME Base address of the module.
+   \param base (uint32_t [in]):
+      VME Base address of xthe module.
    \param crate (int [in default = 0])
       Selects the VME crate holding the module.
 */
-CSIS3600::CSIS3600(unsigned long base, int crate) throw (string) :
+CSIS3600::CSIS3600(uint32_t base, int crate) throw (string) :
   CModule32(base, ModuleLength, crate)
 {
   IdRegister id;
 
 
-  unsigned long csr = peek(CSR); // Sometimes needed for good->bad
+  uint32_t csr = peek(CSR); // Sometimes needed for good->bad
 				// module construction to shake up
 				// the bus bits a bit.
 
@@ -422,7 +422,7 @@ CSIS3600::SetFastClearWindow(int ns)
 {
   m_nFastClearWindow = ns;
   ns += 50;			// This ensures rounding.
-  unsigned int reg =ns;
+  uint32_t reg =ns;
   reg = (reg - 120)/100 -1;
   if(reg > 0xff) {
     ThrowString("CSIS3600::SetFastClearWidow",
@@ -533,14 +533,14 @@ CSIS3600::ClearData()  const
    fact is thrown as an exception.  To prevent this from happening,
    the caller needs to check for events via  DataReady().
 
-   \return unsigned long
+   \return uint32_t
       The longword latched by the least recently unread event.
 
    \throw string
       Exception describing what happened if the read was attempted
       without data ready.
 */
-unsigned long
+uint32_t
 CSIS3600::Read() const throw (string)
 {
   if(DataReady()) {
@@ -558,10 +558,10 @@ CSIS3600::Read() const throw (string)
    - The FIFO is empty.
    Thus, a typical usage might be:
    \code
-   unsigned long buffer[100];
+   uint32_t buffer[100];
    CSIS3600* pLatch = &(somexisting_latch);
    while(pLatch->DataReady()) {
-      unsigned int nread = pLatch->Read(buffer, 100);
+      uint32_t nread = pLatch->Read(buffer, 100);
       DoSomethingWithData(buffer, nread);
    }
    \endcode
@@ -573,17 +573,17 @@ CSIS3600::Read() const throw (string)
       by pBuffer must be at lest nLongs longwords of valid
       data space.
    \return
-      unsigned int
+      uint32_t
         Number of long words read.  This may be less than
 	nLongs or even 0 if the number of events in the FIFO
 	is fewer than nLongs (or the FIFO is empty e.g.).
 */
-unsigned int
+size_t
 CSIS3600::Read(void* pBuffer, 
-		     int nLongs) const
+	       int nLongs) const
 {
-  unsigned long* p = (unsigned long*)pBuffer;
-  unsigned int   n = 0;
+  uint32_t* p = (uint32_t*)pBuffer;
+  uint32_t   n = 0;
 
   // This code assumes that a throw/catch is relatively expensive.
 

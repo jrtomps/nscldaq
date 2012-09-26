@@ -36,38 +36,38 @@ using namespace DesignByContract;
 
 // The following are word offsets into the device:
 
-static const UInt_t INPUT_SET(0);
-static const UInt_t INPUT_MASK(1);
-static const UInt_t INPUT_READ(2);
-static const UInt_t SINGLEHIT_READ(3);
-static const UInt_t MULTIHIT_READ(4);
-static const UInt_t OUTPUT_SET(5);
-static const UInt_t OUTPUT_MASK(6);
-static const UInt_t INTERRUPT_MASK(7);
-static const UInt_t CLEAR_OUTPUT(8);
-static const UInt_t SINGLEHIT_RDCLEAR(11);
-static const UInt_t MULTIHIT_RDCLEAR(12);
-static const UInt_t TEST_CONTROL(13);
-static const UInt_t IPL(16);
-static const UInt_t INTERRUPT_ID(17);
-static const UInt_t SERIAL(18);
-static const UInt_t FIRMWARE_REV(19);
-static const UInt_t CONTROL_REGISTER(20);
-static const UInt_t DUMMY_REGISTER(21);
-static const UInt_t SOFTWARE_RESET(23);
+static const uint32_t INPUT_SET(0);
+static const uint32_t INPUT_MASK(1);
+static const uint32_t INPUT_READ(2);
+static const uint32_t SINGLEHIT_READ(3);
+static const uint32_t MULTIHIT_READ(4);
+static const uint32_t OUTPUT_SET(5);
+static const uint32_t OUTPUT_MASK(6);
+static const uint32_t INTERRUPT_MASK(7);
+static const uint32_t CLEAR_OUTPUT(8);
+static const uint32_t SINGLEHIT_RDCLEAR(11);
+static const uint32_t MULTIHIT_RDCLEAR(12);
+static const uint32_t TEST_CONTROL(13);
+static const uint32_t IPL(16);
+static const uint32_t INTERRUPT_ID(17);
+static const uint32_t SERIAL(18);
+static const uint32_t FIRMWARE_REV(19);
+static const uint32_t CONTROL_REGISTER(20);
+static const uint32_t DUMMY_REGISTER(21);
+static const uint32_t SOFTWARE_RESET(23);
 
 
 // Multi bit masks.
 
-static const UShort_t validTestBits =  (CCAENV977::test_Clear   |
+static const uint16_t validTestBits =  (CCAENV977::test_Clear   |
 					CCAENV977::test_Mask    |
 					CCAENV977::test_OrMask  |
 					CCAENV977::test_IrqMask |
 					CCAENV977::test_Read);
 
-  static const UShort_t validControlBits = (CCAENV977::control_Pattern  |
-					    CCAENV977::control_gateMask |
-					    CCAENV977::control_OrMask);
+static const uint16_t validControlBits = (CCAENV977::control_Pattern  |
+					  CCAENV977::control_gateMask |
+					  CCAENV977::control_OrMask);
 
 /*!
    Construct a CAENV977 I/O register.
@@ -76,7 +76,7 @@ static const UShort_t validTestBits =  (CCAENV977::test_Clear   |
    @param crate
         Crate in which the module is installed (defaults to 0).
 */
-CCAENV977::CCAENV977(ULong_t lBase, UShort_t nCrate) :
+CCAENV977::CCAENV977(uint32_t lBase, unsigned nCrate) :
   m_Module(*(new CVmeModule(CVmeModule::a32d32, lBase, 0x100, nCrate)))
 {
 
@@ -130,7 +130,7 @@ CCAENV977::operator!=(const CCAENV977& rhs) const
 /**
  * Read the input set register.
  */
-UShort_t 
+uint16_t 
 CCAENV977::inputSet()
 {
   return m_Module.peekw(INPUT_SET);
@@ -143,7 +143,7 @@ CCAENV977::inputSet()
  * 
  */
 void 
-CCAENV977::inputSet(UShort_t value)
+CCAENV977::inputSet(uint16_t value)
 {
   m_Module.pokew(value, INPUT_SET);
 }
@@ -152,7 +152,7 @@ CCAENV977::inputSet(UShort_t value)
 /**
  * Read the input mask register.
  */
-UShort_t 
+uint16_t 
 CCAENV977::inputMask()
 {
   return m_Module.peekw(INPUT_MASK);
@@ -165,7 +165,7 @@ CCAENV977::inputMask()
  * 
  */
 void 
-CCAENV977::inputMask(UShort_t mask)
+CCAENV977::inputMask(uint16_t mask)
 {
   m_Module.pokew(mask, INPUT_MASK);
 }
@@ -176,7 +176,7 @@ CCAENV977::inputMask(UShort_t mask)
  * inputs to the module).
  * 
  */
-UShort_t 
+uint16_t 
 CCAENV977::inputRead()
 {
   return m_Module.peekw(INPUT_READ);
@@ -186,7 +186,7 @@ CCAENV977::inputRead()
 /**
  * Read the single hit read register.  
  */
-UShort_t 
+uint16_t 
 CCAENV977::singleHitRead()
 {
   return m_Module.peekw(SINGLEHIT_READ);
@@ -196,7 +196,7 @@ CCAENV977::singleHitRead()
 /**
  * Read the multihit read register.
  */
-UShort_t 
+uint16_t 
 CCAENV977::multihitRead()
 {
   return m_Module.peekw(MULTIHIT_READ);
@@ -206,7 +206,7 @@ CCAENV977::multihitRead()
 /**
  * Read the output set register.
  */
-UShort_t 
+uint16_t 
 CCAENV977::outputSet()
 {
   return m_Module.peekw(OUTPUT_SET);
@@ -219,7 +219,7 @@ CCAENV977::outputSet()
  * 
  */
 void 
-CCAENV977::outputSet(UShort_t pattern)
+CCAENV977::outputSet(uint16_t pattern)
 {
   m_Module.pokew(pattern, OUTPUT_SET);
 }
@@ -228,7 +228,7 @@ CCAENV977::outputSet(UShort_t pattern)
 /**
  * Read the output mask register.
  */
-UShort_t 
+uint16_t 
 CCAENV977::outputMask()
 {
   return m_Module.peekw(OUTPUT_MASK);
@@ -241,7 +241,7 @@ CCAENV977::outputMask()
  * 
  */
 void 
-CCAENV977::outputMask(UShort_t mask)
+CCAENV977::outputMask(uint16_t mask)
 {
   m_Module.pokew(mask, OUTPUT_MASK);
 }
@@ -250,7 +250,7 @@ CCAENV977::outputMask(UShort_t mask)
 /**
  * Read the interrupt mask register.
  */
-UShort_t 
+uint16_t 
 CCAENV977::interruptMask()
 {
   return m_Module.peekw(INTERRUPT_MASK);
@@ -263,7 +263,7 @@ CCAENV977::interruptMask()
  * 
  */
 void 
-CCAENV977::interruptMask(UShort_t mask)
+CCAENV977::interruptMask(uint16_t mask)
 {
   m_Module.pokew(mask, INTERRUPT_MASK);
 }
@@ -282,7 +282,7 @@ CCAENV977::outputClear()
 /**
  * Read the single hit register and clear it.
  */
-UShort_t 
+uint16_t 
 CCAENV977::singleHitReadAndClear()
 {
   
@@ -293,7 +293,7 @@ CCAENV977::singleHitReadAndClear()
 /**
  * Read and clear the multi hit read register.
  */
-UShort_t 
+uint16_t 
 CCAENV977::multiHitReadAndClear()
 {
 
@@ -306,7 +306,7 @@ CCAENV977::multiHitReadAndClear()
  * Read the test control register.
  */
 
-UShort_t 
+uint16_t 
 CCAENV977::testControlRegister()
 {
 
@@ -321,7 +321,7 @@ CCAENV977::testControlRegister()
  * 
  */
 void 
-CCAENV977::testControlRegister(UShort_t mask)
+CCAENV977::testControlRegister(uint16_t mask)
 {
 
   REQUIRE(mask == (mask & validTestBits), "Invalid bits in test mask");
@@ -334,7 +334,7 @@ CCAENV977::testControlRegister(UShort_t mask)
 /**
  * Read the serial number register.
  */
-UShort_t 
+uint16_t 
 CCAENV977::serialNumber()
 {
 
@@ -346,7 +346,7 @@ CCAENV977::serialNumber()
 /**
  * Read the firmware revision level.
  */
-UShort_t 
+uint16_t 
 CCAENV977::firmwareLevel()
 {
 
@@ -362,7 +362,7 @@ CCAENV977::firmwareLevel()
  * 
  */
 void 
-CCAENV977::controlRegister(UShort_t mask)
+CCAENV977::controlRegister(uint16_t mask)
 {
 
   REQUIRE(string("Invalid bits in control Register mask"), (mask & validControlBits) == mask);
@@ -374,7 +374,7 @@ CCAENV977::controlRegister(UShort_t mask)
 /**
  * Read the control register.
  */
-UShort_t 
+uint16_t 
 CCAENV977::controlRegister()
 {
 

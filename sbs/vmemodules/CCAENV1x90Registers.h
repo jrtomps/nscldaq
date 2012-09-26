@@ -16,15 +16,25 @@
 
 */
 
+#ifndef __CRT_STDINT_H
+#include <stdint.h>
+#ifndef __CRT_STDINT_H
+#define __CRT_STDINT_H
+#endif
+#endif
+
 namespace CCAENV1x90Registers
 {
   // Can't use typedefs for these since you can't mix typedef with 
   // static, const etc.
 
-  #define Offset      static const int
-  #define Size        static const unsigned int
-  #define RegisterBit unsigned short
-  #define LongValue   static unsigned int
+
+  #define Offset static const int
+  #define Size static const unsigned int
+
+
+  typedef uint16_t    RegisterBit;
+  typedef uint32_t    LongValue;
 
   // Segment offsets from the module base address:
 

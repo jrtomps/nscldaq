@@ -39,6 +39,14 @@
 #ifndef _DAQTYPES_H
 #include <daqdatatypes.h>
 #endif
+
+#ifndef __CRT_STDINT_H
+#include <stdint.h>
+#ifndef __CRT_STDINT_H
+#define __CRT_STDINT_H
+#endif
+#endif
+
 
 
 /* CAMAC 'keywords'		 */
@@ -63,7 +71,7 @@
 				    /* Base address of CAMAC branches: */
 #ifdef __unix__
 extern void*  (pBranchBases[]);
-#define CAMBAS(b) ((long)pBranchBases[(b)])
+#define CAMBAS(b) ((uint32_t)pBranchBases[(b)])
 #else
 #define    CAMBAS(b)  ((int)(camac.busbase + (int)busbases[camac.localaccess]))
 #endif
@@ -97,12 +105,12 @@ extern void*  (pBranchBases[]);
     /*		can be used on the right hand side of #define directives */
     /*		or variable initializers for example:		     */
     /* #define READDE1 CBDPTR(0, 1, 1, 0, 0, CAM16)		     */
-    /* INT16   *readde1 = CBDPTR(0, 1, 1, 0, 0, CAM16);		     */
+    /* uint16_t   *readde1 = CBDPTR(0, 1, 1, 0, 0, CAM16);		     */
     /* produce a macro READDE1 which produces the same pointer that the	*/
     /* variable readde1 is initialized to point to.		     */
 
 #define CBDPTR(b, c, n, a, f, s) \
-    ((volatile INT16 *)((char*)CAMBAS(b) + (s) +  ( (c) << CAMC) + \
+    ((volatile uint16_t *)((uint8_t*)CAMBAS(b) + (s) +  ( (c) << CAMC) + \
               ( (n) << CAMN ) + ( (a) << CAMA) + ( (f) << CAMF )))
 
     /*				CAMCTL					 */
@@ -112,9 +120,9 @@ extern void*  (pBranchBases[]);
     /* CAM16 or else this will flop abysmally				 */
     /* use in a staement by itself, e.g.    CAMCTL(ADC1RST);		 */
 
-#define    CAMCTL(ptr)    { if(*((volatile INT16 *)(ptr))){} }
+#define    CAMCTL(ptr)    { if(*((volatile uint16_t *)(ptr))){} }
 #ifndef __unix__
-#define    CAMCTLP(ptr)   probew((INT16 *)(ptr))
+#define    CAMCTLP(ptr)   probew((uint16_t *)(ptr))
 #endif
     /*				CAMRD16					 */
     /* Do a 16 bit read from CAMAC via a pointer constructed with either */
@@ -124,9 +132,9 @@ extern void*  (pBranchBases[]);
     /* Sample usage:							 */
     /* result = (CAMRD16(DE1) * scale) / offset;			 */
 
-#define    CAMRD16(ptr)    (*(volatile INT16 *)(ptr))
+#define    CAMRD16(ptr)    (*(volatile uint16_t *)(ptr))
 #ifndef __unix__
-#define    CAMRD16P(ptr,dest) prbrdw(((INT16 *)(ptr)), ((INT16 *)(&dest)))
+#define    CAMRD16P(ptr,dest) prbrdw(((uint16_t *)(ptr)), ((uint16_t *)(&dest)))
 #endif
 
     /*				CAMRD24					 */
@@ -137,7 +145,7 @@ extern void*  (pBranchBases[]);
 #define    CAMRD24(ptr)    (getlong(ptr) & 0xffffff)
 #ifndef VME16
 #ifndef __unix__
-#define    CAMRD24P(ptr,dest) prbrdl(((INT32 *)(ptr)), ((INT32 *)(&dest)))
+#define    CAMRD24P(ptr,dest) prbrdl(((uint32_t *)(ptr)), ((uint32_t *)(&dest)))
 #endif
 #endif
     /*				CAMWR16					 */
@@ -148,19 +156,19 @@ extern void*  (pBranchBases[]);
     /*			   size must have been CAM16			 */
     /*		    value - Least significant 16 bits of this are written */
 
-#define    CAMWR16(ptr, val)    (*((volatile INT16 *)(ptr)) = (val))
+#define    CAMWR16(ptr, val)    (*((volatile uint16_t *)(ptr)) = (val))
 #ifndef __unix
-#define    CAMWR16P(ptr, val)  prbwtw(((volatile INT16 *)(ptr)), ((INT16)(val)))
+#define    CAMWR16P(ptr, val)  prbwtw(((volatile uint16_t *)(ptr)), ((uint16_t)(val)))
 #endif
     /*				CAMWR24					 */
     /* Just like CAMWR16, but the operation writes the lower 24 bits of	 */
     /* the data.  The pointer argument must have been constructed with	 */
     /* size CAM24							 */
 
-#define    CAMWR24(ptr, val)    (putlong( ((val) & 0xFFFFFF), ((volatile INT32 *)ptr)))
+#define    CAMWR24(ptr, val)    (putlong( ((val) & 0xFFFFFF), ((volatile uint32_t *)ptr)))
 #ifndef VME16
 #ifndef __unix__
-#define    CAMWR24P(ptr, val)  prbwtl(((INT32 *)(ptr)), ((INT32)(val)))
+#define    CAMWR24P(ptr, val)  prbwtl(((uint32_t *)(ptr)), ((uint32_t)(val)))
 #endif
 #endif
 

@@ -43,7 +43,7 @@ private:
   // Constructors and other canonicals:
 
 public:
-  CSIS3600(unsigned long base, int crate =0) throw (std::string);
+  CSIS3600(uint32_t base, int crate =0) throw (std::string);
   ~CSIS3600();
 
 private:
@@ -96,9 +96,9 @@ public:
 
   bool DataReady()  const;	//!< True if FIFO not empty
   void ClearData()  const;	//!< Clear the FIFO.
-  unsigned long Read() const throw (std::string); //!< Read a datum from FIFO.
-  unsigned int  Read(void* pBuffer, 
-		     int nLongs) const;	//!< Read block of events.
+  uint32_t Read() const throw (std::string); //!< Read a datum from FIFO.
+  size_t  Read(void* pBuffer, 
+	       int nLongs) const;	//!< Read block of events.
 
 
 public:

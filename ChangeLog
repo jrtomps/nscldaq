@@ -279,3 +279,12 @@ Feb 1, 2012 - Feb 24, 2012
 	    - Draft code for CAEN 262 I/O register.
 	    - camac.h - replace the old style INT32 etc. with stdint stuff.
 	    - Draft code for CBLT CAEN 32 bit digitizer chains.
+	    - Draft code for CAEN V1x90 multihit TDC family.
+	    - Draft code for CAEN V560 Scaler.
+	    - Draft code for CAEN V820/830 scaler.
+	    - Draft code for CAEN 977 I/O register.
+	    - Draft code for CAMAC (CES)
+	    - Draft code for 32 bit module.
+	    - Draft code CSIS3600 latch module.
+	  * Add libSBSDeviceSupport.la to the Readout executable build in sbs/readout/Makefile.am
+

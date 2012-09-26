@@ -39,87 +39,87 @@ using namespace CCAENV1x90Data;
 
 // Chip error bits:
 
-const unsigned short CCAENV1x90::ERR_VERNIER    (0x0001);
-const unsigned short CCAENV1x90::ERR_COARSE     (0x0002);
-const unsigned short CCAENV1x90::ERR_SELECT     (0x0004);
-const unsigned short CCAENV1x90::ERR_L1PARITY   (0x0008);
-const unsigned short CCAENV1x90::ERR_TFIFOPARITY(0x0010);
-const unsigned short CCAENV1x90::ERR_MATCHERROR (0x0020);
-const unsigned short CCAENV1x90::ERR_RFIFOPARITY(0x0040);
-const unsigned short CCAENV1x90::ERR_RDOSTATE   (0x0080);
-const unsigned short CCAENV1x90::ERR_SUPPARITY  (0x0100);
-const unsigned short CCAENV1x90::ERR_CTLPARITY  (0x0200);
-const unsigned short CCAENV1x90::ERR_JTAGPARITY (0x0400);
+const uint16_t CCAENV1x90::ERR_VERNIER    (0x0001);
+const uint16_t CCAENV1x90::ERR_COARSE     (0x0002);
+const uint16_t CCAENV1x90::ERR_SELECT     (0x0004);
+const uint16_t CCAENV1x90::ERR_L1PARITY   (0x0008);
+const uint16_t CCAENV1x90::ERR_TFIFOPARITY(0x0010);
+const uint16_t CCAENV1x90::ERR_MATCHERROR (0x0020);
+const uint16_t CCAENV1x90::ERR_RFIFOPARITY(0x0040);
+const uint16_t CCAENV1x90::ERR_RDOSTATE   (0x0080);
+const uint16_t CCAENV1x90::ERR_SUPPARITY  (0x0100);
+const uint16_t CCAENV1x90::ERR_CTLPARITY  (0x0200);
+const uint16_t CCAENV1x90::ERR_JTAGPARITY (0x0400);
 
 // Tap contact bits (used in calibrate delay line).
 // These bits are shifted into position appropriately
 // to control fine adjustments of the RC delay line.
 
-const unsigned short CCAENV1x90::TAP_CONTACT1(4);
-const unsigned short CCAENV1x90::TAP_CONTACT2(2);
-const unsigned short CCAENV1x90::TAP_CONTACT3(1);
+const uint16_t CCAENV1x90::TAP_CONTACT1(4);
+const uint16_t CCAENV1x90::TAP_CONTACT2(2);
+const uint16_t CCAENV1x90::TAP_CONTACT3(1);
 
 //  Below are constants that are not worth member status
 //  but also should not be used as 'magic numbers'.
 
-static const unsigned int MINMATCHWIDTH(1);
-static const unsigned int MAXMATCHWIDTH(0xfff);
-static const unsigned int MATCHMASK(0xfff);
+static const uint32_t MINMATCHWIDTH(1);
+static const uint32_t MAXMATCHWIDTH(0xfff);
+static const uint32_t MATCHMASK(0xfff);
 
 static const int          MINWINDOWOFFSET(-2048);
 static const int          MAXWINDOWOFFSET(40);
 static const int          WINDOWOFFSETMASK(0xfff);
 
-static const unsigned int MINEXTRAMARGIN(0);
-static const unsigned int MAXEXTRAMARGIN(2047);
-static const unsigned int EXTRAMARGINMASK(0xfff);
+static const uint32_t MINEXTRAMARGIN(0);
+static const uint32_t MAXEXTRAMARGIN(2047);
+static const uint32_t EXTRAMARGINMASK(0xfff);
 
-static const unsigned int MINREJECTMARGIN(0);
-static const unsigned int MAXREJECTMARGIN(2047);
-static const unsigned int REJECTMARGINMASK(0xfff);
+static const uint32_t MINREJECTMARGIN(0);
+static const uint32_t MAXREJECTMARGIN(2047);
+static const uint32_t REJECTMARGINMASK(0xfff);
 
-static const unsigned int EDGEDETECTIONMASK(3);
+static const uint32_t EDGEDETECTIONMASK(3);
 
-static const unsigned int EDGERESOLUTIONMASK(3);
-static const unsigned int LERESOLUTIONMASK(7);
+static const uint32_t EDGERESOLUTIONMASK(3);
+static const uint32_t LERESOLUTIONMASK(7);
 
-static const unsigned int PWRESOLUTIONRSHIFT(8);
-static const unsigned int PWRESOLUTIONMASK(0xff00);
+static const uint32_t PWRESOLUTIONRSHIFT(8);
+static const uint32_t PWRESOLUTIONMASK(0xff00);
 
-static const unsigned int TRUEBIT(1); // TRUE for bools from sequencer.
+static const uint32_t TRUEBIT(1); // TRUE for bools from sequencer.
 
-static const unsigned int COARSEMAX(0x7ff);
-static const unsigned int COARSEMASK(0x7ff);
+static const uint32_t COARSEMAX(0x7ff);
+static const uint32_t COARSEMASK(0x7ff);
 
-static const unsigned int VERNIERMAX(0x1f);
-static const unsigned int VERNIERMASK(0x1f);
+static const uint32_t VERNIERMAX(0x1f);
+static const uint32_t VERNIERMASK(0x1f);
 
-static const unsigned int CHANOFFSETMAX(0xff);
-static const unsigned int CHANOFFSETMASK(0xff);
+static const uint32_t CHANOFFSETMAX(0xff);
+static const uint32_t CHANOFFSETMASK(0xff);
 
-static const unsigned int TAPCONTACTMASK(0x7);
-static const unsigned int TAPCONTACTRSHIFT(3);
+static const uint32_t TAPCONTACTMASK(0x7);
+static const uint32_t TAPCONTACTRSHIFT(3);
 
-static const unsigned int  MAXTESTVALUE(0x7fffff);
+static const uint32_t  MAXTESTVALUE(0x7fffff);
 
-static const unsigned int MAXGEO(0x1f);
-static const unsigned int GEOMASK(0x1f);
+static const uint32_t MAXGEO(0x1f);
+static const uint32_t GEOMASK(0x1f);
 
-static const unsigned long RESET_DELAY(1000);
+static const uint32_t RESET_DELAY(1000);
 
 // Utility inline functions:
 
 //! Convert byte offset to word offset.
 
-static inline unsigned long OffsetW(unsigned long nByteOffset) 
+static inline uint32_t OffsetW(uint32_t nByteOffset) 
 {
-  return nByteOffset/sizeof(short);
+  return nByteOffset/sizeof(uint16_t);
 }
 //! Convert byte offset into long offset.
 
-static inline unsigned long OffsetL(unsigned long nByteOffset)
+static inline uint32_t OffsetL(uint32_t nByteOffset)
 {
-  return nByteOffset/sizeof(long);
+  return nByteOffset/sizeof(uint32_t);
 }
 
 //!  Convert a format string and a single number into an output 
@@ -139,18 +139,18 @@ static inline string FormatValue(const char* pFormatString, T value)
 
 //! Extract HI 1/2 of a longword:
 
-static unsigned short 
-inline HI(unsigned int nValue) 
+static uint16_t 
+inline HI(uint32_t nValue) 
 {
-  return static_cast<unsigned short>((nValue >> 16) & 0xffff);
+  return static_cast<uint16_t>((nValue >> 16) & 0xffff);
 }
 
 //! Extract Low 1/2 of a longword:
 
-static unsigned short
-inline LO(unsigned int nValue)
+static uint16_t
+inline LO(uint32_t nValue)
 {
-  return static_cast<unsigned short>(nValue & 0xffff);
+  return static_cast<uint16_t>(nValue & 0xffff);
 }
 
 
@@ -167,12 +167,12 @@ inline LO(unsigned int nValue)
   module's default power up configuration, and the module is reset.
 
 
- \param nSlot	(unsigned int	in)
+ \param nSlot	(uint32_t	in)
    The slot number of the board.  Used program the GEO register 
    of the board as this code does not support GEO addressing.
- \param nCrate	(unsigned int	in)	
+ \param nCrate	(uint32_t	in)	
    The number of the VME crate in which the module is inserted.
- \param nBase	(unsigned long	in)
+ \param nBase	(uint32_t	in)
    Base address of the module.  The module base is assumed to be
    in the A32 address space.
 
@@ -194,9 +194,9 @@ inline LO(unsigned int nValue)
    \post m_nModel is 1190 or 1290,
    \post m_cVersion is A, B, or N.
 */
-CCAENV1x90::CCAENV1x90(unsigned int nSlot,
-		       unsigned int nCrate,
-		       unsigned long nBase) :
+CCAENV1x90::CCAENV1x90(uint32_t nSlot,
+		       uint32_t nCrate,
+		       uint32_t nBase) :
   m_nBase(nBase),
   m_nCrate(nCrate),
   m_nSlot(nSlot),
@@ -259,7 +259,7 @@ CCAENV1x90::~CCAENV1x90()
 /*!
   Determine if a specific bit is set in the control register.
 
-  \param bit	(unsigned short	in)
+  \param bit	(uint16_t	in)
   number from of the bit to check
 
   \return bool
@@ -268,7 +268,7 @@ CCAENV1x90::~CCAENV1x90()
 
  */
 bool 
-CCAENV1x90::isSetCR(unsigned short bit)
+CCAENV1x90::isSetCR(uint16_t bit)
 {
   return ((ReadCR() & (1 << bit)) != 0);
 }
@@ -456,7 +456,7 @@ CCAENV1x90::isTerminated()
   that the user is asking about a chip that actually exists on 
   the board.
 
-    \param nChip	(unsigned int	in)
+    \param nChip	(uint32_t	in)
 	TDC Chip  number (must be an allowed chip number 
 	numbered from zero for the actual board).
 
@@ -469,7 +469,7 @@ CCAENV1x90::isTerminated()
 
  */
 bool
-CCAENV1x90::HadError(unsigned int nChip)
+CCAENV1x90::HadError(uint32_t nChip)
 {
   // Check preconditions.
 
@@ -488,7 +488,7 @@ CCAENV1x90::HadError(unsigned int nChip)
 				       (StatusRegister::CHIP2_ERROR) |
 				       (StatusRegister::CHIP3_ERROR)),
 	 "Chip error bits are not continguous in the register");
-  unsigned int nChipBit = 1 << (StatusRegister::NCHIP0_ERROR + nChip);
+  uint32_t nChipBit = 1 << (StatusRegister::NCHIP0_ERROR + nChip);
 
   // Return true if the associated error bit is set:
 
@@ -499,7 +499,7 @@ CCAENV1x90::HadError(unsigned int nChip)
   Reads the status register and decodes the resolution field.  
   The resolution field is returned in ps
 
-  \return unsigned int 
+  \return uint32_t 
   \retval 800   - Resolution is 800ps.
   \retval 200   - Resolution is 200ps.
   \retval 100   - Resolution is 100ps.
@@ -578,7 +578,7 @@ CCAENV1x90::WereTriggersLost()
   If the read back value does not match the written value a 
   string exception will be thrown to indicate this.
 
-   \param nId	(unsigned int	 in)
+   \param nId	(uint32_t	 in)
    The Desired GEO id for the board.
 
 
@@ -591,7 +591,7 @@ CCAENV1x90::WereTriggersLost()
 
  */
 void 
-CCAENV1x90::SetGeographicalID(unsigned short nSlot)
+CCAENV1x90::SetGeographicalID(uint16_t nSlot)
 {
   // Check preconditions:
 
@@ -616,13 +616,13 @@ CCAENV1x90::SetGeographicalID(unsigned short nSlot)
    slot number for the module when it does not support
    GEO addressing intrinsically.
    
-   \return unsigned short
+   \return uint16_t
    \retval  The current geo ID.
 */
-unsigned short
+uint16_t
 CCAENV1x90::GetGeographicalID()
 {
-  unsigned short g = m_pRegisters.peekw(OffsetW(WVirtualSlot));
+  uint16_t g = m_pRegisters.peekw(OffsetW(WVirtualSlot));
   g &= GEOMASK;
   return g;
 
@@ -690,11 +690,11 @@ CCAENV1x90::Trigger()
   the last Clear or Reset function. I think this is meaningless 
   unless the module is in trigger matching mode.
 
-  \return unsigned long
+  \return uint32_t
   \retval  The number of triggers received since last reset/clr.
 
 */
-unsigned long
+uint32_t
 CCAENV1x90::TriggerCount()
 {
   return m_pRegisters.peekl(OffsetL(LEventCounter));
@@ -704,10 +704,10 @@ CCAENV1x90::TriggerCount()
   Returns the number of events in the output buffer 
   (only meaningful in trigger matching mode).
 
-   \return unsigned short
+   \return uint16_t
    \retval number of complete events in the output buffer.
  */
-unsigned short
+uint16_t
 CCAENV1x90::EventCount()
 {
   return m_pRegisters.peekw(OffsetW(WEventStored));
@@ -719,7 +719,7 @@ CCAENV1x90::EventCount()
   the board will  indicate an almost full condition.  
   This condition can be detected via the AlmostFull function.
 
-  \param nWords	(unsigned int	in)	
+  \param nWords	(uint32_t	in)	
       New threshold value [1-32767]
 
   \pre nWords >= 1
@@ -728,7 +728,7 @@ CCAENV1x90::EventCount()
 
  */
 void
-CCAENV1x90::SetAlmostFullLevel(unsigned int nWords)
+CCAENV1x90::SetAlmostFullLevel(uint32_t nWords)
 {
   // Ensure preconditions are met:
 
@@ -737,7 +737,7 @@ CCAENV1x90::SetAlmostFullLevel(unsigned int nWords)
 
     // program the register.
 
-  m_pRegisters.pokew(static_cast<unsigned short>(nWords), 
+  m_pRegisters.pokew(static_cast<uint16_t>(nWords), 
 		     OffsetW(WAlmostFullLevel));
 
 }
@@ -748,11 +748,11 @@ CCAENV1x90::SetAlmostFullLevel(unsigned int nWords)
  Note that the power up value of this is 64 longs which is 
  quite small.
 
- \return unsigned short
+ \return uint16_t
  \retval the threshold above which the module declares itself
          almost full.
 */
-unsigned short
+uint16_t
 CCAENV1x90::GetAlmostFullLevel()
 {
   return m_pRegisters.peekw(OffsetW(WAlmostFullLevel));
@@ -794,7 +794,7 @@ CCAENV1x90::DefineECLOutput(CCAENV1x90::ECLOutputSelect Signal)
 
   // Convert our enum to register bits.
 
-  unsigned short value;
+  uint16_t value;
 
   switch (Signal) {
   case DATA_READY:
@@ -837,7 +837,7 @@ CCAENV1x90::DefineECLOutput(CCAENV1x90::ECLOutputSelect Signal)
 CCAENV1x90::ECLOutputSelect
 CCAENV1x90::GetECLOutputDefinition()
 {
-  unsigned short 
+  uint16_t 
     value = m_pRegisters.peekw(OffsetW(WOutputControl)) &
                                            OutputControl::MASK;
 
@@ -869,10 +869,10 @@ CCAENV1x90::GetECLOutputDefinition()
   when the module is in Trigger match mode to know how big a 
   read to issue for an event.
 
-  \return unsigned short
+  \return uint16_t
   \retval  The number of fifo entries in the FIFO.
  */
-unsigned short
+uint16_t
 CCAENV1x90::EventFIFOCount()
 {
   return m_pRegisters.peekw(OffsetW(WEventFIFOStored)) & 
@@ -883,16 +883,16 @@ CCAENV1x90::EventFIFOCount()
   event fifo and returns the sequence number of the event that 
   corresponds to it.
 
-\param fifoentry	(unsigned long	IN)
+\param fifoentry	(uint32_t	IN)
 	A longword read from the FIFO via ReadEventFIFO
 
-\return unsigned short
+\return uint16_t
 \retval Event number corresponding to the fifo entry.
 
 
  */
-unsigned short
-CCAENV1x90::FIFOEventNumber(unsigned long fifoentry)
+uint16_t
+CCAENV1x90::FIFOEventNumber(uint32_t fifoentry)
 {
   return (fifoentry & EventFIFO::EVENTCOUNT_MASK) >>
                       EventFIFO::EVENTCOUNT_RSHIFT;
@@ -904,16 +904,16 @@ CCAENV1x90::FIFOEventNumber(unsigned long fifoentry)
   corresponding event (note that in this case words are really 
   32 bit longwords).
 
-    \param fifoentry	(unsigned long	IN)
+    \param fifoentry	(uint32_t	IN)
     A longword read from the event FIFO via ReadEventFIFO
 
-    \return unsigned short
+    \return uint16_t
     \retval Size of event corresponding to the event fifo entry
             (in longs).
 
  */
-unsigned short
-CCAENV1x90::FIFOWordCount(unsigned long fifoentry)
+uint16_t
+CCAENV1x90::FIFOWordCount(uint32_t fifoentry)
 {
   return (fifoentry & EventFIFO::WORDCOUNT_MASK) >>
                       EventFIFO::WORDCOUNT_RSHIFT;
@@ -934,12 +934,12 @@ CCAENV1x90::FIFOWordCount(unsigned long fifoentry)
     The high order 16 bits contains the event number, and the 
     low order 16 bits the size of the event.
 
- \return unsigned long
+ \return uint32_t
 
  \pre The event fifo must have data (fifo ready).
 
  */
-unsigned long
+uint32_t
 CCAENV1x90::ReadEventFIFO()
 {
   // check preconditions.
@@ -1139,7 +1139,7 @@ offset.  See the hardware manual 2.4.1 for information about this.
 
  */
 void
-CCAENV1x90::SetWindowWidth(unsigned int nWidth)
+CCAENV1x90::SetWindowWidth(uint32_t nWidth)
 {
   REQUIRE(nWidth >= MINMATCHWIDTH, 
 	  FormatValue("Window width must be > %x",
@@ -1188,7 +1188,7 @@ user to specify a 'slop' on the end of the matching window to
 allow these his to be detected as well.  This member allows you to 
 adjust the width of this margin.
 
-    \param nMargin	(unsigned int	in)
+    \param nMargin	(uint32_t	in)
 	New margin  in 25ns units.
 
 
@@ -1196,7 +1196,7 @@ adjust the width of this margin.
 
  */
 void
-CCAENV1x90::SetExtraSearchMargin(unsigned int nMargin)
+CCAENV1x90::SetExtraSearchMargin(uint32_t nMargin)
 {
   REQUIRE(nMargin >= 0, 
 	  FormatValue(" nMargin must be >=%d",
@@ -1219,14 +1219,14 @@ be associated with times prior to the match window, and can be
 purged from the L1 buffer.  This function allows the user to 
 select the reject margin.
 
-   \param nMargin	(unsigned int	IN)
+   \param nMargin	(uint32_t	IN)
    reject margin in 25ns units.
 
 \pre Reject margin must be in the interval [0, 2047].
 
  */
 void
-CCAENV1x90::SetRejectMargin(unsigned int nMargin)
+CCAENV1x90::SetRejectMargin(uint32_t nMargin)
 {
   REQUIRE(nMargin >= 0, 
 	  FormatValue("nMargin must be >= %d",
@@ -1294,7 +1294,7 @@ CCAENV1x90::GetTriggerConfiguration()
   
   TriggerConfiguration config;
   MicroTransaction(CCAENV1x90Opcodes::READ_TRG_CONF,
-		   &config, sizeof(config)/sizeof(short));
+		   &config, sizeof(config)/sizeof(uint16_t));
   return config;
 }
 /*!
@@ -1305,12 +1305,12 @@ GetTriggerConfiguration function.
    \param Config	(const TriggerConfiguration	IN)
 	Trigger configuration returned from GetTriggerConfiguration
 
-   \return unsigned int 
+   \return uint32_t 
    \retval the trigger match window widthin 25ns units.
 
 
  */
-unsigned int
+uint32_t
 CCAENV1x90::GetMatchWindow(TriggerConfiguration Config)
 {
   return (Config.s_MatchWidth & MATCHMASK);
@@ -1323,7 +1323,7 @@ trigger configuration block returned from GetTriggerConfiguration.
   \param Config	(TriggerConfiguration 	IN)
   Trigger configuration returned from GetTriggerConfiguration
 
-  \return unsigned int 
+  \return uint32_t 
   \retval the trigger offset, a value in the range [-2048 - 40]*25ns
 
  */
@@ -1350,12 +1350,12 @@ GetTriggerInformation.
    \param Config	(TriggerConfiguration	IN)
 	Trigger configuration returned from GetTriggerConfiguration
 
-    \return unsigned int 
+    \return uint32_t 
     \retval the Extra search margin in theragne [0,2047]*25ns.
 
 
  */
-unsigned int
+uint32_t
 CCAENV1x90::GetExtraSearchMargin(TriggerConfiguration Config)
 {
   return Config.s_MatchExtra & EXTRAMARGINMASK;
@@ -1368,11 +1368,11 @@ CCAENV1x90::GetExtraSearchMargin(TriggerConfiguration Config)
    \param Config	(TriggerConfiguration	IN)
 	Trigger configuration returned from GetTriggerConfiguration
 
-    \return unsigned int 
+    \return uint32_t 
     \retval the Extra rejection time margin.
 
  */
-unsigned int
+uint32_t
 CCAENV1x90::GetRejectMargin(TriggerConfiguration Config)
 {
   return Config.s_RejectMargin & REJECTMARGINMASK;
@@ -1507,7 +1507,7 @@ CCAENV1x90::EdgeMode
 CCAENV1x90::GetEdgeDetectMode()
 {
   WriteMicro(CCAENV1x90Opcodes::READ_DETECTION);
-  unsigned short n = ReadMicro();
+  uint16_t n = ReadMicro();
   n   &= EDGEDETECTIONMASK;			//  Only the bottom two bits have meaning
   return static_cast<EdgeMode>(n);
 
@@ -1590,7 +1590,7 @@ CCAENV1x90::SetPairResolutions(LEResolution nLEResolution,
 
   // Construct the settings word.
 
-  unsigned short settings = nLEResolution | 
+  uint16_t settings = nLEResolution | 
                             (nPWResolution << PWRESOLUTIONRSHIFT);
 
 
@@ -1611,13 +1611,13 @@ CCAENV1x90::SetPairResolutions(LEResolution nLEResolution,
   - InterpretWidthResolution - Interprets the word as a width 
                             resolution for pair mode.
 
-  \return unsigned short
+  \return uint16_t
   \retval the resolution information that can be passed to 
           interpretation functions.
 
 
  */
-unsigned short
+uint16_t
 CCAENV1x90::GetResolution()
 {
   WriteMicro(CCAENV1x90Opcodes::READ_RES);
@@ -1629,7 +1629,7 @@ CCAENV1x90::GetResolution()
   triggering modes to call this function.
 
  
-   \param nResolution	(unsigned short	IN)
+   \param nResolution	(uint16_t	IN)
    The resolution word returned from GetResolution
 
    \return Resolution
@@ -1642,7 +1642,7 @@ CCAENV1x90::GetResolution()
 
 */
 CCAENV1x90::Resolution
-CCAENV1x90::InterpretEdgeResolution(unsigned short nResolution)
+CCAENV1x90::InterpretEdgeResolution(uint16_t nResolution)
 {
   // Check preconditions:
 
@@ -1651,7 +1651,7 @@ CCAENV1x90::InterpretEdgeResolution(unsigned short nResolution)
 
   //
   
-  unsigned short nMask = nResolution & 
+  uint16_t nMask = nResolution & 
                          EDGERESOLUTIONMASK; // Mask off resolution and
   return static_cast<Resolution>(nMask); // Return as resolution 
 }
@@ -1660,7 +1660,7 @@ CCAENV1x90::InterpretEdgeResolution(unsigned short nResolution)
   decoded when the module is in pair mode.  The module must still be 
   in pair mode to call this function.
 
-     \param nResolution	(unsigned short	IN)
+     \param nResolution	(uint16_t	IN)
      The resolution word returned from GetResolution
 
      \return LEResolution
@@ -1677,7 +1677,7 @@ CCAENV1x90::InterpretEdgeResolution(unsigned short nResolution)
 
  */
 CCAENV1x90::LEResolution
-CCAENV1x90::InterpretLEResolution(unsigned short nResolution)
+CCAENV1x90::InterpretLEResolution(uint16_t nResolution)
 {
   // Check preconditions:
 
@@ -1686,7 +1686,7 @@ CCAENV1x90::InterpretLEResolution(unsigned short nResolution)
 
   // 
 
-  unsigned short nMask = nResolution & LERESOLUTIONMASK;
+  uint16_t nMask = nResolution & LERESOLUTIONMASK;
   return static_cast<LEResolution>(nMask);
     
 }
@@ -1695,7 +1695,7 @@ CCAENV1x90::InterpretLEResolution(unsigned short nResolution)
   return the pulse width resolution encoded as a PWResolution value.   
   If the module is not in pair mode, the function throws an exception.
 
-    \param nResolution	(unsigned short	IN)
+    \param nResolution	(uint16_t	IN)
 	The resolution word returned from GetResolution
 
     \return PWResolution
@@ -1719,7 +1719,7 @@ CCAENV1x90::InterpretLEResolution(unsigned short nResolution)
 
  */
 CCAENV1x90::PWResolution
-CCAENV1x90::InterpretWidthResolution(unsigned short nResolution)
+CCAENV1x90::InterpretWidthResolution(uint16_t nResolution)
 {
   // Check the precondition:
 
@@ -1727,7 +1727,7 @@ CCAENV1x90::InterpretWidthResolution(unsigned short nResolution)
 	"PW resolution requested when not in pair mode");
 
   //
-  unsigned short nMask = (nResolution & PWRESOLUTIONMASK) >> 
+  uint16_t nMask = (nResolution & PWRESOLUTIONMASK) >> 
                           PWRESOLUTIONRSHIFT;
   return static_cast<PWResolution>(nMask);
 }
@@ -1777,7 +1777,7 @@ CCAENV1x90::DeadTime
 CCAENV1x90::GetDoubleHitResolution()
 {
   WriteMicro(CCAENV1x90Opcodes::READ_DEAD_TIME);
-  unsigned short nMask = ReadMicro();
+  uint16_t nMask = ReadMicro();
   nMask &= 3;
   return static_cast<DeadTime>(nMask);
 
@@ -1860,7 +1860,7 @@ CCAENV1x90::SetMaxHitsPerEvent(HitMax nHits)
   //  Set the device:
 
   WriteMicro(CCAENV1x90Opcodes::SET_EVENT_SIZE);
-  WriteMicro(static_cast<unsigned short>(nHits));
+  WriteMicro(static_cast<uint16_t>(nHits));
   WaitMicroWrite();
 }
 /*!
@@ -1883,7 +1883,7 @@ CCAENV1x90::HitMax
 CCAENV1x90::GetMaxHitsPerEvent()
 {
   WriteMicro(CCAENV1x90Opcodes::READ_EVENT_SIZE);
-  unsigned short nMask = ReadMicro();
+  uint16_t nMask = ReadMicro();
   return static_cast<HitMax>(nMask);
 }
 
@@ -1935,7 +1935,7 @@ CCAENV1x90::DisableBypassOnError()
   controlled, there's also the size error bit which cannot be 
   controlled, and indicates the TDC has more hits than allowed.
 
-   \param nErrors	(unsigned short	IN)	
+   \param nErrors	(uint16_t	IN)	
    A bitwise or of the conditions that you want to produce a global 
    error condition.  The legal bits are:
    -	CCAENV1x90::ERR_VERNIER - vernier error, DLL unlocked or excessive jitter 
@@ -1955,7 +1955,7 @@ CCAENV1x90::DisableBypassOnError()
 
  */
 void
-CCAENV1x90::SetErrorEnables(unsigned short nErrors)
+CCAENV1x90::SetErrorEnables(uint16_t nErrors)
 {
   // Check the preconditions..
 
@@ -1984,7 +1984,7 @@ Returns the mask of TDC error bits that are enabled..
 See CCAENV1x90::SetErrorEnables for more information about the
 valid bits that may be set in the mask.
  */
-unsigned short
+uint16_t
 CCAENV1x90::GetErrorEnables()
 {
   WriteMicro(CCAENV1x90Opcodes::READ_ERROR_TYPES);
@@ -2052,7 +2052,7 @@ CCAENV1x90::GetL1Size()
   will be thrown.
 
 
-      \param nChannel	(unsigned int	IN)
+      \param nChannel	(uint32_t	IN)
 	Number of the channel to enable.
 
       \pre nChannel >= 0
@@ -2062,7 +2062,7 @@ CCAENV1x90::GetL1Size()
 
  */
 void
-CCAENV1x90::EnableChannel(unsigned short nChannel)
+CCAENV1x90::EnableChannel(uint16_t nChannel)
 {
   REQUIRE(nChannel < m_nChannels, "Channel number out of range");
 
@@ -2076,7 +2076,7 @@ CCAENV1x90::EnableChannel(unsigned short nChannel)
   the model number of the device.  If an invalid chip or channel is 
   selected, an exception will be thrown.
 
-    \param nChannel	(unsigned int	IN)
+    \param nChannel	(uint32_t	IN)
     Number of the channel to enable.
 
     \pre  nChannel >= 0.
@@ -2084,7 +2084,7 @@ CCAENV1x90::EnableChannel(unsigned short nChannel)
 
  */
 void
-CCAENV1x90::DisableChannel(unsigned short nChannel)
+CCAENV1x90::DisableChannel(uint16_t nChannel)
 {
   REQUIRE(nChannel < m_nChannels, "Channel Number out of range");
 
@@ -2119,23 +2119,23 @@ CCAENV1x90::DisableAllChannels()
   model and variant.  
 
 
-      \param nMask	(vector<unsigned short>	IN)
+      \param nMask	(vector<uint16_t>	IN)
       The mask of channels to enable.
 
-   \pre nMask.size() == m_nChannels/(sizeof(short)* 8)
+   \pre nMask.size() == m_nChannels/(sizeof(uint16_t)* 8)
   
  */
 void
-CCAENV1x90::SetChannelEnables(vector<unsigned short> nMask)
+CCAENV1x90::SetChannelEnables(vector<uint16_t> nMask)
 {
   // Check the mask is the proper size:
 
-  REQUIRE(nMask.size() == m_nChannels/(sizeof(short)*8),
+  REQUIRE(nMask.size() == m_nChannels/(sizeof(uint16_t)*8),
 	"Enables mask is not the right size.");
 
   // Marshall the vector into an array so we can call WriteMicroBlock
 
-  unsigned short* pWords = new unsigned short[nMask.size() + 1];
+  uint16_t* pWords = new uint16_t[nMask.size() + 1];
 
   pWords[0] = CCAENV1x90Opcodes::WRITE_EN_PATTERN;
   for(int i =0; i < nMask.size(); i++) {
@@ -2154,7 +2154,7 @@ CCAENV1x90::SetChannelEnables(vector<unsigned short> nMask)
   the module type and variant.
 
 
-   \param nMask	(vector<unsigned short>& OUT)
+   \param nMask	(vector<uint16_t>& OUT)
    	Mask of enable bits.  Note that the bits are appended
         to the vector so it is best to be sure the vector is empty
 	before passing it into this function.  The vector is not
@@ -2164,11 +2164,11 @@ CCAENV1x90::SetChannelEnables(vector<unsigned short> nMask)
 
  */
 void
-CCAENV1x90::GetChannelEnables(vector<unsigned short>& masks)
+CCAENV1x90::GetChannelEnables(vector<uint16_t>& masks)
 {
-  unsigned int nMasks = m_nChannels/(sizeof(short)*8);
+  uint32_t nMasks = m_nChannels/(sizeof(uint16_t)*8);
 
-  unsigned short* localMasks = new unsigned short[nMasks];
+  uint16_t* localMasks = new uint16_t[nMasks];
 
   MicroTransaction(CCAENV1x90Opcodes::READ_EN_PATTERN,
 		   localMasks, nMasks);
@@ -2185,9 +2185,9 @@ CCAENV1x90::GetChannelEnables(vector<unsigned short>& masks)
   by the mask longword.  Each channel that has a corresponding 
   bit set is enabled, the others disabled. 
 
-   \param nChip	(unsigned int	IN)
+   \param nChip	(uint32_t	IN)
    Chip number.
-   \param nMasks (unsigned int 	IN)
+   \param nMasks (uint32_t 	IN)
    Mask of enable bits.
 
    \pre nChip must be < m_nChipCount (chips are numbered from 0).
@@ -2196,8 +2196,8 @@ CCAENV1x90::GetChannelEnables(vector<unsigned short>& masks)
  
 */
 void
-CCAENV1x90::SetChipEnables(unsigned short nChip,
-			   unsigned int nMask)
+CCAENV1x90::SetChipEnables(uint16_t nChip,
+			   uint32_t nMask)
 {
   // Check the preconditions:
 
@@ -2208,7 +2208,7 @@ CCAENV1x90::SetChipEnables(unsigned short nChip,
   //  apart into a low and high word that get written to the
   //  micro.
   
-  unsigned short wordMask;
+  uint16_t wordMask;
 
   WriteMicro(CCAENV1x90Opcodes::WRITE_EN_PATTERN32 | nChip);
 
@@ -2225,10 +2225,10 @@ CCAENV1x90::SetChipEnables(unsigned short nChip,
   Returns the channel enable mask for a TDC Chip. The mask will 
   have a bit set for each enabled channel.  
 
-   \param nChip	(unsigned int	IN)
+   \param nChip	(uint32_t	IN)
    Chip number.
 
-   \return unsigned int
+   \return uint32_t
    \retval The 32 bit mask of channel enables.  Channel 0 of the
    chip will be the LSBit. while channel 31 the MSBit.
 
@@ -2236,8 +2236,8 @@ CCAENV1x90::SetChipEnables(unsigned short nChip,
 
 
 */
-unsigned int
-CCAENV1x90::GetChipEnables(unsigned short nChip)
+uint32_t
+CCAENV1x90::GetChipEnables(uint16_t nChip)
 {
   // Check preconditions:
 
@@ -2248,12 +2248,12 @@ CCAENV1x90::GetChipEnables(unsigned short nChip)
   // Fetch the mask out in two chunks.  The first
   // word has the low order channels, the second, the high:
 
-  unsigned int mask;
+  uint32_t mask;
 
   WriteMicro(CCAENV1x90Opcodes::READ_EN_PATTERN32 | nChip);
 
-  mask = (static_cast<unsigned int>(ReadMicro())) & 0xffff;
-  unsigned int top = ReadMicro();
+  mask = (static_cast<uint32_t>(ReadMicro())) & 0xffff;
+  uint32_t top = ReadMicro();
   mask |= (top << 16);
 
 
@@ -2265,9 +2265,9 @@ CCAENV1x90::GetChipEnables(unsigned short nChip)
   counter values.  The coarse counter offset range is 0-2047, 
   while the fine offset is 0-31.
 
-   \param nCoarse  (unsigned short	IN)
+   \param nCoarse  (uint16_t	IN)
    Coarse offset.
-   \param nVernier (unsigned short	IN)
+   \param nVernier (uint16_t	IN)
 	Fine (vernier) offset
 
    \pre nCoarse  < 0x1000
@@ -2277,8 +2277,8 @@ CCAENV1x90::GetChipEnables(unsigned short nChip)
 
  */
 void
-CCAENV1x90::SetGlobalOffset(unsigned short nCoarse,
-			    unsigned short nVernier)
+CCAENV1x90::SetGlobalOffset(uint16_t nCoarse,
+			    uint16_t nVernier)
 {
   // Check the preconditions:
 
@@ -2303,16 +2303,16 @@ CCAENV1x90::SetGlobalOffset(unsigned short nCoarse,
   offsets are masked so that there will be no bits set other than 
   those set in the offset fields.
 
-   \param nCoarse (unsigned int&	OUT)
+   \param nCoarse (uint32_t&	OUT)
    The coarse offset read from the chip.
-   \param nVernier (unsigned int&	OUT)
+   \param nVernier (uint32_t&	OUT)
    The fine offset read from the chip.
 
 
 */
 void
-CCAENV1x90::ReadGlobalOffset(unsigned short& nCoarse,
-			     unsigned short& nVernier)
+CCAENV1x90::ReadGlobalOffset(uint16_t& nCoarse,
+			     uint16_t& nVernier)
 {
   WriteMicro(CCAENV1x90Opcodes::READ_GLOB_OFFS);
   nCoarse = (ReadMicro()  & COARSEMASK);
@@ -2324,9 +2324,9 @@ CCAENV1x90::ReadGlobalOffset(unsigned short& nCoarse,
   Each TDC channel can have an offset applied to it.  This 
   function sets the offset for an individual TDC channel.
 
-    \param nChannel (unsigned int	IN)
+    \param nChannel (uint32_t	IN)
     channel number
-    \param nOffset (unsigned short	IN)
+    \param nOffset (uint16_t	IN)
     Offset in the range [0-255].
 
     \pre nChannel is a legal channel number for this module type.
@@ -2336,8 +2336,8 @@ CCAENV1x90::ReadGlobalOffset(unsigned short& nCoarse,
 
  */
 void 
-CCAENV1x90::SetChannelOffset(unsigned short nChannel,
-			     unsigned short nOffset)
+CCAENV1x90::SetChannelOffset(uint16_t nChannel,
+			     uint16_t nOffset)
 {
   // Check the preconditions:
 
@@ -2357,18 +2357,18 @@ CCAENV1x90::SetChannelOffset(unsigned short nChannel,
   Returns the offset value that was set for a channel of the TDC 
   via SetChannelOffset.
 
-    \param nChannel (unsigned int	IN)
+    \param nChannel (uint32_t	IN)
     Channel Number.
 
-    \return unsigned short
+    \return uint16_t
     \retval The channel offset in the range [0,0xff].
 
     \pre nChannel < m_nChannels;
 
 
  */
-unsigned short
-CCAENV1x90::GetChannelOffset(unsigned int nChannel)
+uint16_t
+CCAENV1x90::GetChannelOffset(uint32_t nChannel)
 {
   // check the preconditions:
 
@@ -2389,20 +2389,20 @@ CCAENV1x90::GetChannelOffset(unsigned int nChannel)
   delay line taps) in the delay line.
 
 
-    \param nChip	(Unsigned Short	In)
+    \param nChip	(Uint16_T	In)
     TDC chip number.
-    \param Tap1Contact	(Unsigned short	IN)
+    \param Tap1Contact	(uint16_t	IN)
     Contact mask for tap 1.  For each bit in the contact mask, an 
     additional capacitance is added to the Tap1Contact RC delay.  
     Valid mask bits are:
     - CCAENV1x90::TAP_CONTACT1
     - CCAENV1x90::TAP_CONTACT2
     - CCAENV1x90::TAP_CONTACT3
-    \param Tap2Contact	Unsigned Short	IN	
+    \param Tap2Contact	Uint16_T	IN	
     Contact mask for tap2
-    \param Tap3Contact	Unsigned Short	IN	
+    \param Tap3Contact	Uint16_T	IN	
     Contact mask for tap 3
-    \param Tap4Contact	Unsigned Short	IN	
+    \param Tap4Contact	Uint16_T	IN	
     contact mask for tap 4.
 
     \pre Tap or contact mask only has the bits sest described
@@ -2413,11 +2413,11 @@ CCAENV1x90::GetChannelOffset(unsigned int nChannel)
 
  */
 void
-CCAENV1x90::CalibrateDelayLine(unsigned short nChip,
-			       unsigned short Tap1Contact,
-			       unsigned short Tap2Contact,
-			       unsigned short Tap3Contact,
-			       unsigned short Tap4Contact)
+CCAENV1x90::CalibrateDelayLine(uint16_t nChip,
+			       uint16_t Tap1Contact,
+			       uint16_t Tap2Contact,
+			       uint16_t Tap3Contact,
+			       uint16_t Tap4Contact)
 {
   // check the preconditions:
 
@@ -2435,7 +2435,7 @@ CCAENV1x90::CalibrateDelayLine(unsigned short nChip,
 
   // Set the delay line calibration.
   
-  unsigned short TapMask = (Tap1Contact) |
+  uint16_t TapMask = (Tap1Contact) |
                            (Tap2Contact << 3) |
                            (Tap3Contact << 6) |
                            (Tap4Contact << 9);
@@ -2449,16 +2449,16 @@ CCAENV1x90::CalibrateDelayLine(unsigned short nChip,
      Returns the contact masks for the delay line calibrations 
      for a single TDC on the board.
 
-   \param nChip	(unsigned short	IN)
+   \param nChip	(uint16_t	IN)
    The TDC chip number.
-   \param Tap1Contact	(unsigned short &	OUT)
+   \param Tap1Contact	(uint16_t &	OUT)
    Tap 1 contact mask See SetDelayLineCalibration for information 
    about the bits in this mask
-   \param Tap2Contact	(unsigned short &	OUT)
+   \param Tap2Contact	(uint16_t &	OUT)
    Tap 2 contact mask.
-   \param Tap3Contact	(unsigned short &	OUT)
+   \param Tap3Contact	(uint16_t &	OUT)
    Tap 3 contact mask
-   \param Tap4Contact	(unsigned short & 	OUT)
+   \param Tap4Contact	(uint16_t & 	OUT)
    Tap 4 contact mask.
 
    \pre nChip  < m_nChipCount
@@ -2466,14 +2466,14 @@ CCAENV1x90::CalibrateDelayLine(unsigned short nChip,
 
  */
 void
-CCAENV1x90::GetDelayLineCalibration(unsigned short  nChip,
-				    unsigned short& Tap1Contact,
-				    unsigned short& Tap2Contact,
-				    unsigned short& Tap3Contact,
-				    unsigned short& Tap4Contact)
+CCAENV1x90::GetDelayLineCalibration(uint16_t  nChip,
+				    uint16_t& Tap1Contact,
+				    uint16_t& Tap2Contact,
+				    uint16_t& Tap3Contact,
+				    uint16_t& Tap4Contact)
 {
   WriteMicro(CCAENV1x90Opcodes::READ_RC_ADJ | nChip);
-  unsigned short TapMask = ReadMicro();
+  uint16_t TapMask = ReadMicro();
 
   Tap1Contact = (TapMask & TAPCONTACTMASK);
   Tap2Contact = (TapMask >> TAPCONTACTRSHIFT) & TAPCONTACTMASK;
@@ -2501,18 +2501,18 @@ CCAENV1x90::SaveDelayLineCalibrations()
   encoded in any way I can understand.  The manual claims that 
   0xe is revision 1.3 (e = 14 so I don't get it).  
 
-    \param nChip	(unsigned short	IN)
+    \param nChip	(uint16_t	IN)
     Chip number.
 
-    \return unsigned int
+    \return uint32_t
     \retval the chip id. See the description.
 
     \pre nChip < m_nChipCount
 
 
 */
-unsigned int
-CCAENV1x90::GetChipId(unsigned short nChip)
+uint32_t
+CCAENV1x90::GetChipId(uint16_t nChip)
 {
   REQUIRE(nChip < m_nChipCount,
 	"Chip number invalid for this board");
@@ -2522,8 +2522,8 @@ CCAENV1x90::GetChipId(unsigned short nChip)
 
   // 16 Is not a magic number.. It's the number of bits in a word.
   
-  unsigned int nId = ReadMicro();
-  nId             |= (static_cast<unsigned int>(ReadMicro())) << 16;
+  uint32_t nId = ReadMicro();
+  nId             |= (static_cast<uint32_t>(ReadMicro())) << 16;
   return nId;
 }
 
@@ -2532,21 +2532,21 @@ CCAENV1x90::GetChipId(unsigned short nChip)
   Retrieves information about the firmware revision and when it 
   was comitted from the board.
 
-  \param nRevision (unsigned int&	OUT)
+  \param nRevision (uint32_t&	OUT)
   The firmware revision level
-  \param nDay	(unsigned int&	OUT)
+  \param nDay	(uint32_t&	OUT)
   Day of the month on which the firmware was comitted.
-  \param (nMonth	unsigned int&	OUT)
+  \param (nMonth	uint32_t&	OUT)
   Month of the year on which the firmware was comitted.
-  \param nYear	(unsigned int &	OUT)
+  \param nYear	(uint32_t &	OUT)
   Year on which the firmware was committed.
 
  */
 void
-CCAENV1x90::GetuCFirmwareInfo(unsigned short& nRevision,
-			      unsigned short& nDay,
-			      unsigned short& nMonth,
-			      unsigned short& nYear)
+CCAENV1x90::GetuCFirmwareInfo(uint16_t& nRevision,
+			      uint16_t& nDay,
+			      uint16_t& nMonth,
+			      uint16_t& nYear)
 {
   WriteMicro(CCAENV1x90Opcodes::REV_DATE_MICRO_FW);
   nRevision = ReadMicro();
@@ -2559,7 +2559,7 @@ CCAENV1x90::GetuCFirmwareInfo(unsigned short& nRevision,
   Returns the error mask from the specified TDC chip.
 
 
-   \param nChip	(unsigned int	IN)
+   \param nChip	(uint32_t	IN)
    The chip to read.
 
  
@@ -2567,15 +2567,15 @@ CCAENV1x90::GetuCFirmwareInfo(unsigned short& nRevision,
 
 
  */
-unsigned short
-CCAENV1x90::GetChipErrors(unsigned short nChip)
+uint16_t
+CCAENV1x90::GetChipErrors(uint16_t nChip)
 {
   REQUIRE(nChip < m_nChipCount,
 	"Chip number is out of range for this module");
 
   WriteMicro(CCAENV1x90Opcodes::READ_ERROR_STATUS | nChip);
 
-  unsigned short nErrors = ReadMicro();
+  uint16_t nErrors = ReadMicro();
 
   nErrors &= ~(ERR_VERNIER     |
 	       ERR_COARSE      |
@@ -2598,7 +2598,7 @@ CCAENV1x90::GetChipErrors(unsigned short nChip)
   maximum event size programmed for the tdc.  I'm not sure what 
   it'll do if that's set to unlimited :-).
 
-    \param nValue (unsigned int	IN)
+    \param nValue (uint32_t	IN)
     The 24 bits of data value to set for this TDC chip's data.
 
     \pre nValue & ~(0xffffff)  == 0 (Data word fits in 24 bits).
@@ -2606,7 +2606,7 @@ CCAENV1x90::GetChipErrors(unsigned short nChip)
  
 */
 void
-CCAENV1x90::EnableTestMode(unsigned int  nValue)
+CCAENV1x90::EnableTestMode(uint32_t  nValue)
 {
   // Validate preconditions:
 
@@ -2616,8 +2616,8 @@ CCAENV1x90::EnableTestMode(unsigned int  nValue)
   // Break up thed data longword into hi lo words:
   //  0xffff is just a word with all bits set., 16 the # bits in a word
 
-  unsigned short nLow   = LO(nValue);
-  unsigned short nHigh  = HI(nValue);
+  uint16_t nLow   = LO(nValue);
+  uint16_t nHigh  = HI(nValue);
 
   WriteMicro(CCAENV1x90Opcodes::ENABLE_TEST_MODE);
   WriteMicro(nLow);
@@ -2649,18 +2649,18 @@ CCAENV1x90::DisableTestMode()
 
     \param pBuffer	(void*	OUT)
     Where to put the data.
-    \param nMaxLongs	(unsigned int	IN)
+    \param nMaxLongs	(uint32_t	IN)
     Maximum number of Longs to read. The pBuffer parameter must point 
     to storage of at least nMaxLongs*sizeof(long)  bytes of data.
 
-    \return unsigned int 
+    \return uint32_t 
     \retval actual number of Longs
 
 
  */
-unsigned int
+uint32_t
 CCAENV1x90::ReadData(void* pBuffer,
-		     unsigned int nMaxLongs)
+		     uint32_t nMaxLongs)
 {
   if(m_fTriggerMatching) {
     return ReadPacket(pBuffer, nMaxLongs);
@@ -2687,19 +2687,19 @@ CCAENV1x90::ReadData(void* pBuffer,
 
    \param pBuffer    (void*	OUT)
    Pointer to the buffer into which the data are read.
-   \param nMaxLongs  (unsigned int	IN)
+   \param nMaxLongs  (uint32_t	IN)
    Maximum number of longs to read into the buffer.
 
    \return int 
    \retval Number of longs actually read. 
 
 */
-unsigned int
+uint32_t
 CCAENV1x90::ReadPacket(void* pBuffer,
-		       unsigned int nMaxLongs)
+		       uint32_t nMaxLongs)
 {
-  unsigned long* pPacket = (unsigned long*)pBuffer;
-  unsigned int   nRead   = 0;
+  uint32_t* pPacket = (uint32_t*)pBuffer;
+  uint32_t   nRead   = 0;
 
   // Loop over the read until we get a data word that has
   // either the TDC_TRAILER or FILLER_LONG type  mask value.
@@ -2708,7 +2708,7 @@ CCAENV1x90::ReadPacket(void* pBuffer,
 
   bool done(false);
   while(!done) {
-    unsigned long datum = m_pRegisters.peekl(OffsetL(OutputBuffer));
+    uint32_t datum = m_pRegisters.peekl(OffsetL(OutputBuffer));
     *pPacket            = datum;
     if(isGlobalTrailer(datum) || isFiller(datum)) {
       done = true;		// Last read.
@@ -2728,22 +2728,22 @@ CCAENV1x90::ReadPacket(void* pBuffer,
 
       \param pBuffer	(void*	OUT)
       Pointer to the buffer into which the TDC data will be read.
-      \param nMaxLongs	(unsigned int	IN)
+      \param nMaxLongs	(uint32_t	IN)
       Number of longwords in the buffer.
 
-      \return unsigned int 
+      \return uint32_t 
       \retval The number of longwords placed into the buffer.
 
  */
-unsigned int 
-CCAENV1x90::ReadValid(void* pBuffer, unsigned int nMaxLongs)
+uint32_t 
+CCAENV1x90::ReadValid(void* pBuffer, uint32_t nMaxLongs)
 {
-  unsigned long* pLongs = (unsigned long*)pBuffer;
-  unsigned int   nRead  = 0;
+  uint32_t* pLongs = (uint32_t*)pBuffer;
+  uint32_t   nRead  = 0;
   bool           done   = false;
 
   while(!done) {
-    unsigned long datum = m_pRegisters.peekl(OffsetL(OutputBuffer));
+    uint32_t datum = m_pRegisters.peekl(OffsetL(OutputBuffer));
     *pLongs++          = datum;
     nRead++;
 
@@ -2781,14 +2781,14 @@ CCAENV1x90::ValidBoard(CVmeModule& pRom)
 {
   // Check the manufacturer's code (OUI):
   
-  unsigned long oui = ReadPromLong(pRom, WOUI2); // Read oui from prom.
+  uint32_t oui = ReadPromLong(pRom, WOUI2); // Read oui from prom.
   if(oui != 0x0040e6) {
     return false;
   }
 
   // Check the board version:
 
-  unsigned long nModel = ReadPromLong(pRom, WModelNumber2);
+  uint32_t nModel = ReadPromLong(pRom, WModelNumber2);
   if((nModel != 1190) && (nModel != 1290)) {
     return false;
   }
@@ -2846,7 +2846,7 @@ CCAENV1x90::BoardProperties(CVmeModule& pROM)
 
   // Sub module gets encoded as a letter:
 
-  unsigned short ntype= 
+  uint16_t ntype= 
     pROM.peekw(OffsetW(WBoardVersion)) & 0xff;
   if(ntype == ModuleVersion::A) {
     m_cVersion = 'A';
@@ -2910,7 +2910,7 @@ CCAENV1x90::BoardProperties(CVmeModule& pROM)
   // resolution check for hires as the hi-res mode is not
   // an allowed resolution combination for the 1190:
   
-  unsigned short sr = SR();
+  uint16_t sr = SR();
   m_fTriggerMatching = (sr & StatusRegister::TRG_MATCH) == 
                                         StatusRegister::TRG_MATCH;
   m_fIsHiResMode      = (sr & StatusRegister::RESOLUTIONMASK) ==
@@ -2923,11 +2923,11 @@ CCAENV1x90::BoardProperties(CVmeModule& pROM)
   board's status register using the m_pRegisters pseudo pointer 
   and returns its value to the caller.
   
-  \return unsigned short
+  \return uint16_t
   \retval  The value of the status register.
 
  */
-unsigned short
+uint16_t
 CCAENV1x90::SR()
 {
   return m_pRegisters.peekw(OffsetW(WStatusRegister));
@@ -2940,7 +2940,7 @@ Checks the state of a bit in the status register.
 -	return isset != 0
 
 
-\param Bitnum	(unsigned short	IN)
+\param Bitnum	(uint16_t	IN)
    Number of a bit to check numbered from 0.
 
  \return bool
@@ -2952,7 +2952,7 @@ Checks the state of a bit in the status register.
 
  */
 bool
-CCAENV1x90::isSetSR(unsigned short bitnum)
+CCAENV1x90::isSetSR(uint16_t bitnum)
 {
   return (SR() & (1 << bitnum)) != 0;
 }
@@ -2963,12 +2963,12 @@ The control register is accessed via the m_pRegisters pseudo
 pointer.
 
 
-\param mask	(unsigned short	in)
+\param mask	(uint16_t	in)
 	New value to write.
 
  */
 void
-CCAENV1x90::WriteCR(unsigned short mask)
+CCAENV1x90::WriteCR(uint16_t mask)
 {
   m_pRegisters.pokew(mask, OffsetW(WControlRegister));
 }
@@ -2976,12 +2976,12 @@ CCAENV1x90::WriteCR(unsigned short mask)
 /*!
    Read the current value of the control register.
 
-   \return unsigned short
+   \return uint16_t
    \retval  The current contents of the control register.
 
 
  */
-unsigned short
+uint16_t
 CCAENV1x90::ReadCR()
 {
   return m_pRegisters.peekw(OffsetW(WControlRegister));
@@ -2989,16 +2989,16 @@ CCAENV1x90::ReadCR()
 /*!
   Sets a specific single bit in the module's control register.
 
-  \param bit	(unsigned short	in)
+  \param bit	(uint16_t	in)
        Number (from 0) of the bit to set.
 
    \return void
 
  */
 void 
-CCAENV1x90::BitSetCR(unsigned short bit)
+CCAENV1x90::BitSetCR(uint16_t bit)
 {
-  unsigned short cr = ReadCR();
+  uint16_t cr = ReadCR();
   cr |= (1 << bit);
   WriteCR(cr);
 }
@@ -3006,15 +3006,15 @@ CCAENV1x90::BitSetCR(unsigned short bit)
 /*!
   Clears a specific bit in the module's control register.
 
-  \param bit	(unsigned short	 in)
+  \param bit	(uint16_t	 in)
      Number (from 0) of the bit to clear.
 
 
  */
 void
-CCAENV1x90::BitClearCR(unsigned short bit)
+CCAENV1x90::BitClearCR(uint16_t bit)
 {
-  unsigned short cr = ReadCR();
+  uint16_t cr = ReadCR();
   cr &= ~(1 << bit);
   WriteCR(cr);
 }
@@ -3029,18 +3029,18 @@ CCAENV1x90::BitClearCR(unsigned short bit)
 
   \param prombase (CVmeModule& in) 
      reference to the module 'map'.
-  \param ByteOffset (unsigned long in )  
+  \param ByteOffset (uint32_t in )  
      Offset in bytes to the first word to read.
 
   \return long
   \retval the value of the longword.
 */
-unsigned long
+uint32_t
 CCAENV1x90::ReadPromLong(CVmeModule& prombase,
-			 unsigned long ByteOffset)
+			 uint32_t ByteOffset)
 {
-  unsigned long n;		// Result long.
-  unsigned long WordOffset = OffsetW(ByteOffset);
+  uint32_t n;		// Result long.
+  uint32_t WordOffset = OffsetW(ByteOffset);
 
   n  = (prombase.peekw(WordOffset)   & 0xff) << 16;
   n |= (prombase.peekw(WordOffset+2) & 0xff) <<  8;
@@ -3068,12 +3068,12 @@ CCAENV1x90::WaitMicroWrite()
   the member functions that must interact with the micro 
   controller.
 
-  \param int nWord	(unsigned short	In)
+  \param int nWord	(uint16_t	In)
     Word to write.
 
  */
 void 
-CCAENV1x90::WriteMicro(unsigned short nWord)
+CCAENV1x90::WriteMicro(uint16_t nWord)
 {
   // Wait for the micro to be writable...
 
@@ -3092,12 +3092,12 @@ CCAENV1x90::WriteMicro(unsigned short nWord)
   this function will spin endlessly waiting for the
   MicroHanshake::READ_OK bit.
 
-  \return unsigned short
+  \return uint16_t
   \retval the word returned from the micro-controller.
 
 
  */
-unsigned short
+uint16_t
 CCAENV1x90::ReadMicro()
 {
   // Wait for data to be presented:
@@ -3119,15 +3119,15 @@ CCAENV1x90::ReadMicro()
   \param pWords	(void*	in)
   Pointer to words to write.
  
-  \param nWords	(unsigned int	in)
+  \param nWords	(uint32_t	in)
   Number of words to write.
  
 */
 void 
 CCAENV1x90::WriteMicroBlock(void* pWords,
-			    unsigned int nWords)
+			    uint32_t nWords)
 {
-  unsigned short* pW = (unsigned short*) pWords;
+  uint16_t* pW = (uint16_t*) pWords;
 
   for(int i = 0; i < nWords; i++) {
     WriteMicro(*pW++);
@@ -3141,15 +3141,15 @@ CCAENV1x90::WriteMicroBlock(void* pWords,
 
   \param pWords	(void*	out)
 	Pointer to a buffer to hold the words.
-  \param nWords	(unsigned int	in)
+  \param nWords	(uint32_t	in)
          Number of words to read
 
  */
 void
 CCAENV1x90::ReadMicroBlock(void* pWords, 
-			   unsigned int nWords)
+			   uint32_t nWords)
 {
-  unsigned short* pW = (unsigned short*) pWords;
+  uint16_t* pW = (uint16_t*) pWords;
 
   for(int i =0; i < nWords; i++) {
     *pW++ = ReadMicro();
@@ -3162,18 +3162,18 @@ CCAENV1x90::ReadMicroBlock(void* pWords,
   microcontroller that requests and transfers data from the 
   micro controller.
 
-  \param opcode	(unsigned short	IN)
+  \param opcode	(uint16_t	IN)
   The operation code to write to the micro
-  \param pWords	(unsigned short	OUT)
+  \param pWords	(uint16_t	OUT)
 	Pointer to the buffer to hold the words retreived from the micro
-  \param nWords	(unsigned int	in)
+  \param nWords	(uint32_t	in)
 	Number of words to read from the micro
 
 */
 void 
-CCAENV1x90::MicroTransaction(unsigned short opcode,
+CCAENV1x90::MicroTransaction(uint16_t opcode,
 			     void*          pWords,
-			     unsigned int   nWords)
+			     uint32_t   nWords)
 {
   WriteMicro(opcode);
   ReadMicroBlock(pWords, nWords);

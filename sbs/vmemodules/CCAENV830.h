@@ -15,8 +15,9 @@
 */
 
 
-#ifndef __CCAENV820_H
-#define __CCAENV820_H
+#ifndef __CCAENV830_H
+#define __CCAENV830_H
+
 
 #ifndef __STL_STRING
 #include <string>
@@ -27,6 +28,14 @@
 #ifndef __VMEMODULE_H
 #include <VmeModule.h>
 #endif
+
+#ifndef __CRT_STDINT_H
+#include <stdint.h>
+#ifndef __CRT_STDINT_H
+#define __CRT_STDINT_H
+#endif
+#endif
+
 
 #ifndef CCAENV820
 #define CCAENV820 CCAENV830	// V820/V830 -- same class.
@@ -71,7 +80,7 @@ public:
   CCAENV830(int slot,
 	    int crate = 0,
 	    bool geo = true,
-	    unsigned long base = 0) throw (std::string);
+	    uint32_t base = 0) throw (std::string);
 
   ~CCAENV830();
 
@@ -126,7 +135,7 @@ public:
 public:
   void Enable(int nChannel) throw (std::string);
   void Disable(int nChannel) throw (std::string);
-  void SetEnableMask(int nMask);
+  void SetEnableMask(uint32_t nMask);
   void SetDwellTime(int n400ns);
   void SetTriggerMode(TriggerMode mode) throw (std::string);
   void SetWide();

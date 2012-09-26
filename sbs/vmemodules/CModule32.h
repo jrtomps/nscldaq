@@ -20,6 +20,13 @@
 #include "VmeModule.h"
 #endif
 
+#ifndef __CRT_STDINT_H
+#include <stdint.h>
+#ifndef __CRT_STDINT_H
+#define __CRT_STDINT_H
+#endif
+#endif
+
 
 /*!
    Base class for modules that have 32 bit wide register sets.
@@ -39,7 +46,7 @@ private:
 
   // Constructors and other canonicals
 public:
-  CModule32(unsigned long base, unsigned int size,int crate = 0);
+  CModule32(uint32_t base, size_t size,int crate = 0);
   ~CModule32();
 
   // Various copy operations are not now supported...although
@@ -62,16 +69,16 @@ public:
   // for the derived actual device classes.
 
 protected:
-  unsigned long peek(unsigned long byteoff) const {
+  uint32_t peek(uint32_t byteoff) const {
     return m_Module.peekl(Offset(byteoff));
   }
-  unsigned long poke(unsigned long data, 
-		     unsigned long byteoff) const {
+  uint32_t poke(uint32_t data, 
+		uint32_t byteoff) const {
     m_Module.pokel(data, Offset(byteoff));
   }
-  void Key(unsigned long offset) const; //!< write a key register.
+  void Key(uint32_t offset) const; //!< write a key register.
 
-  static unsigned long Offset(unsigned long off)  {
+  static uint32_t Offset(uint32_t off)  {
     return off/sizeof(long);
   }
   static void ThrowString(const char*  pLeader,
