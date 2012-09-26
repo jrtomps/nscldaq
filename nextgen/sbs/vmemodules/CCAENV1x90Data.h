@@ -8,83 +8,92 @@
 #ifndef __STL_STRING
 #include <string>
 #endif
+
+#ifndef __CRT_STDINT_H
+#include <stdint.h>
+#ifndef __CRT_STDINT_H
+#define __CRT_STDINT_H
+#endif
+#endif
+
+
 namespace CCAENV1x90Data {
 
   // Definitions of bits that appear in all data words:
 
-  static const unsigned long TYPE_MASK    (0xf8000000);	// Data type field
-  static const unsigned long GLOBAL_HEADER(0x40000000);	// GBL header type fld
-  static const unsigned long TDC_HEADER   (0x08000000); // TDC header
-  static const unsigned long TDC_TRAILER  (0x18000000); // TDC Trailer
-  static const unsigned long MEASUREMENT  (0x00000000); // TDC Measurement
-  static const unsigned long TDC_ERROR    (0x20000000); // TDC Error flag.
-  static const unsigned long TRIGGER_TIME (0x88000000); // Trigger time tag.
-  static const unsigned long GLOBAL_TRAILER(0x80000000);// Global trailer.
-  static const unsigned long FILLER_LONG   (0xc0000000); // Filler longs.
+  static const uint32_t TYPE_MASK    (0xf8000000);	// Data type field
+  static const uint32_t GLOBAL_HEADER(0x40000000);	// GBL header type fld
+  static const uint32_t TDC_HEADER   (0x08000000); // TDC header
+  static const uint32_t TDC_TRAILER  (0x18000000); // TDC Trailer
+  static const uint32_t MEASUREMENT  (0x00000000); // TDC Measurement
+  static const uint32_t TDC_ERROR    (0x20000000); // TDC Error flag.
+  static const uint32_t TRIGGER_TIME (0x88000000); // Trigger time tag.
+  static const uint32_t GLOBAL_TRAILER(0x80000000);// Global trailer.
+  static const uint32_t FILLER_LONG   (0xc0000000); // Filler longs.
 
   // Definitions in the global header only:
 
-  static const unsigned long EVENTCOUNT_MASK (0x07ffffe0);
-  static const unsigned int  EVENT_RSHIFT    (0x5);
-  static const unsigned int  GEO_MASK        (0x1f);
+  static const uint32_t EVENTCOUNT_MASK (0x07ffffe0);
+  static const uint32_t  EVENT_RSHIFT    (0x5);
+  static const uint32_t  GEO_MASK        (0x1f);
 
   // Definitions in the TDC header longword:
 
-  static const unsigned long TDC_MASK        (0x03000000);
-  static const unsigned int  TDC_RSHIFT      (24);
-  static const unsigned long EVENTID_MASK    (0x007ff800);
-  static const unsigned int  EVENTID_RSHIFT  (12);
-  static const unsigned int  BUNCHID_MASK    (0x000007ff);
-  static const unsigned int  TDCWORDCOUNT_MASK  (0x000007ff);
+  static const uint32_t TDC_MASK        (0x03000000);
+  static const uint32_t  TDC_RSHIFT      (24);
+  static const uint32_t EVENTID_MASK    (0x007ff800);
+  static const uint32_t  EVENTID_RSHIFT  (12);
+  static const uint32_t  BUNCHID_MASK    (0x000007ff);
+  static const uint32_t  TDCWORDCOUNT_MASK  (0x000007ff);
 
   // Definitions in the TDC measurement word:
 
-  static const unsigned int  TRAILING_BIT     (0x04000000);
-  static const unsigned long V1190CHANNEL_MASK(0x03f80000);
-  static const unsigned long V1290CHANNEL_MASK(0x03e00000);
-  static const unsigned int  V1190CHANNEL_RSHIFT(19);
-  static const unsigned int  V1290CHANNEL_RSHIFT(21);
-  static const unsigned long V1190DATA_MASK     (0x0007ffff);
-  static const unsigned long V1290DATA_MASK     (0x001fffff);
+  static const uint32_t  TRAILING_BIT     (0x04000000);
+  static const uint32_t V1190CHANNEL_MASK(0x03f80000);
+  static const uint32_t V1290CHANNEL_MASK(0x03e00000);
+  static const uint32_t  V1190CHANNEL_RSHIFT(19);
+  static const uint32_t  V1290CHANNEL_RSHIFT(21);
+  static const uint32_t V1190DATA_MASK     (0x0007ffff);
+  static const uint32_t V1290DATA_MASK     (0x001fffff);
 
   /*!
     Mask bits in the TDC Error word.  There are no functions
     to check individual errors. Call TDCErrorbits to extract
     the bits and then and against the masks below.
   */
-  static const unsigned long HITLOST_0_FIFO (0x0001); // hits lost group 0 FIFO overflow
-  static const unsigned long HITLOST_0_L1   (0x0002); // hits lost group 0 L1 overflow
-  static const unsigned long HITERROR_0     (0x0004); // hit error in group 0.'
-  static const unsigned long HITLOST_1_FIFO (0x0008); // hits lost group 1 FIFO overflow
-  static const unsigned long HITLOST_1_L1   (0x0010); // hits lost group 1 L1 overflow
-  static const unsigned long HITERROR_1     (0x0020); // hit error in group 1.
-  static const unsigned long HITLOST_2_FIFO (0x0040); // hits lost group 2 FIFO overflow
-  static const unsigned long HITLOST_2_L1   (0x0080); // hits lost group 2 L1 overflow
-  static const unsigned long HITERROR_2     (0x0100); // hit error in group 2.
-  static const unsigned long HITLOST_3_FIFO (0x0200); // hits lost group 3 FIFO overflow
-  static const unsigned long HITLOST_3_L1   (0x0400); // hits lost group 3 L1 overflow
-  static const unsigned long HITERROR_3     (0x0800); // hit error in group 3.
-  static const unsigned long HITS_EXCEEDED  (0x1000); // Hits lost, size limit exceeded.
-  static const unsigned long EVENTLOST_FIFO (0x2000); // Event lost due to trigger fifo overflow.
-  static const unsigned long FATALCHIP_ERROR(0x4000); // fatal chip error detected.
-  static const unsigned long ERROR_MASK     (0x7fff); // All bits.
+  static const uint32_t HITLOST_0_FIFO (0x0001); // hits lost group 0 FIFO overflow
+  static const uint32_t HITLOST_0_L1   (0x0002); // hits lost group 0 L1 overflow
+  static const uint32_t HITERROR_0     (0x0004); // hit error in group 0.'
+  static const uint32_t HITLOST_1_FIFO (0x0008); // hits lost group 1 FIFO overflow
+  static const uint32_t HITLOST_1_L1   (0x0010); // hits lost group 1 L1 overflow
+  static const uint32_t HITERROR_1     (0x0020); // hit error in group 1.
+  static const uint32_t HITLOST_2_FIFO (0x0040); // hits lost group 2 FIFO overflow
+  static const uint32_t HITLOST_2_L1   (0x0080); // hits lost group 2 L1 overflow
+  static const uint32_t HITERROR_2     (0x0100); // hit error in group 2.
+  static const uint32_t HITLOST_3_FIFO (0x0200); // hits lost group 3 FIFO overflow
+  static const uint32_t HITLOST_3_L1   (0x0400); // hits lost group 3 L1 overflow
+  static const uint32_t HITERROR_3     (0x0800); // hit error in group 3.
+  static const uint32_t HITS_EXCEEDED  (0x1000); // Hits lost, size limit exceeded.
+  static const uint32_t EVENTLOST_FIFO (0x2000); // Event lost due to trigger fifo overflow.
+  static const uint32_t FATALCHIP_ERROR(0x4000); // fatal chip error detected.
+  static const uint32_t ERROR_MASK     (0x7fff); // All bits.
 
   // Extended trigger time:
 
-  static const unsigned long TRIGGERTIME_MASK (0x07ffffff);
+  static const uint32_t TRIGGERTIME_MASK (0x07ffffff);
 
   // Global trailer:
 
-  static const unsigned long TRIGGERLOST_MASK (0x04000000);
-  static const unsigned long TDCERROR_MASK    (0x02000000);
-  static const unsigned long OVERFLOW_MASK    (0x01000000);
-  static const unsigned long WORDCOUNT_MASK   (0x001fffe0);
-  static const unsigned int  WORDCOUNT_RSHIFT (5);
+  static const uint32_t TRIGGERLOST_MASK (0x04000000);
+  static const uint32_t TDCERROR_MASK    (0x02000000);
+  static const uint32_t OVERFLOW_MASK    (0x01000000);
+  static const uint32_t WORDCOUNT_MASK   (0x001fffe0);
+  static const uint32_t  WORDCOUNT_RSHIFT (5);
 
   /*!
 	Determines if the parameter is a global event header.
 
-	\param Data	(unsigned long	In)
+	\param Data	(uint32_t	In)
 	The data word to test.
 
 	\return bool
@@ -93,7 +102,7 @@ namespace CCAENV1x90Data {
 
    */
   static inline bool 
-  isGlobalHeader(unsigned long Data) {
+  isGlobalHeader(uint32_t Data) {
     return ((Data & TYPE_MASK) == GLOBAL_HEADER);
   }
   /*!
@@ -101,7 +110,7 @@ namespace CCAENV1x90Data {
     Global trailers mark the end of an event taken when the 
     TDC is in trigger matching mode.
 
-    \param Datum (Unsigned long	In)
+    \param Datum (uint32_t	In)
     The datum to analyze.
 
     \return Bool
@@ -110,14 +119,14 @@ namespace CCAENV1x90Data {
 
    */
   static inline bool
-  isGlobalTrailer(unsigned long datum)
+  isGlobalTrailer(uint32_t datum)
   {
     return ((datum & TYPE_MASK) == GLOBAL_TRAILER);
   }
   /*!
 	Extracts the trigger number from a global header word.  The trigger 
 	number is the same as the event number.
-	\param Header	(unsigned long	In)
+	\param Header	(uint32_t	In)
 	Global header from which to extract the trigger number.
 
 	\return Unsigned The value of the global header's trigger number.
@@ -126,7 +135,7 @@ namespace CCAENV1x90Data {
 
   */
   static inline int
-  TriggerNumber(unsigned long Header) throw (std::string)
+  TriggerNumber(uint32_t Header) throw (std::string)
   {
     if(!isGlobalHeader(Header)) {
       throw std::string("CCAENV1x90Data::TriggerNumber - given non global header");
@@ -139,7 +148,7 @@ namespace CCAENV1x90Data {
 	Extract the board number from a global header or 
 	trailer word.  The board number is also known as the 
 	GEO field.
-	\param Header	(unsigned long	In)
+	\param Header	(uint32_t	In)
 	Global header or trailer from which to extract 
 	the GEO field.
 
@@ -149,8 +158,8 @@ namespace CCAENV1x90Data {
 	thrown.
 
    */
-  static inline unsigned int
-  BoardNumber(unsigned long Header) throw (std::string)
+  static inline uint32_t
+  BoardNumber(uint32_t Header) throw (std::string)
   {
     if((!isGlobalHeader(Header)) && (!isGlobalTrailer(Header))) {
       throw std::string("CCAENV1x90Data::BoardNumber - given non global header");
@@ -165,7 +174,7 @@ namespace CCAENV1x90Data {
     The TDC header words must be explicitly enabled in the 
     TDC, otherwise they will not appear in the event stream.
 
-    \param Header	(unsigned long	In)	
+    \param Header	(uint32_t	In)	
     The longword to check.
 
     \return bool
@@ -175,7 +184,7 @@ namespace CCAENV1x90Data {
         header word.
   */
   static inline bool
-  isTDCHeader(unsigned long Header) 
+  isTDCHeader(uint32_t Header) 
   {
     return ((Header & TYPE_MASK) == TDC_HEADER);
   }
@@ -185,7 +194,7 @@ namespace CCAENV1x90Data {
     The TDC header words must be explicitly enabled in the 
     TDC, otherwise they will not appear in the event stream.
 
-    \param Header	(unsigned long	In)	
+    \param Header	(uint32_t	In)	
     The longword to check.
 
     \return bool
@@ -195,7 +204,7 @@ namespace CCAENV1x90Data {
         header word.   
    */
   static inline bool
-  isTDCTrailer(unsigned long header)
+  isTDCTrailer(uint32_t header)
   {
     return ((header & TYPE_MASK) == TDC_TRAILER);
   }
@@ -203,7 +212,7 @@ namespace CCAENV1x90Data {
     Determine if a longword is a TDC error reporting word.  
     Note that you must explicitly enable the insertion of TDC
     error reporting longwords in the data stream at setup time.
-    \param Datum	(Unsigned long	In)	
+    \param Datum	(uint32_t	In)	
     The data longword to analyze
 
     \return Bool
@@ -212,7 +221,7 @@ namespace CCAENV1x90Data {
     
    */
   static inline bool
-  isTDCError(unsigned long Datum)
+  isTDCError(uint32_t Datum)
   {
     return ((Datum & TYPE_MASK) == TDC_ERROR);
   }
@@ -220,7 +229,7 @@ namespace CCAENV1x90Data {
   /*!
 	Returns the chip number of a TDC within the module from a
 	word that is a TDC header or trailer word.
-	\param Header	(unsigned long	In)
+	\param Header	(uint32_t	In)
 	The header longword from which the chip number will be 
 	extracted.
 
@@ -229,8 +238,8 @@ namespace CCAENV1x90Data {
 	\throw std::string - Message is thrown if the input Header is 
 	  not a TDC chip header or trailer longword.
   */
-  static inline unsigned int
-  TDCChip(unsigned long Header) throw (std::string)
+  static inline uint32_t
+  TDCChip(uint32_t Header) throw (std::string)
   {
     if(! isTDCHeader(Header) && 
        !isTDCTrailer(Header) &&
@@ -245,15 +254,15 @@ namespace CCAENV1x90Data {
 	Returns the Event id from a TDC header or trailer.  I'm 
 	not sure if this value will be the same as the event id in 
 	the global header.
-	\param Header	(unsigned long	In)
+	\param Header	(uint32_t	In)
 	The header longword to extract the event id from.
 
 	\return unsigned - the event id
 	\throw	String - a message is thrown in the event that 
 	this header does not represent a TDC Header or trailer.
   */
-  static inline unsigned int
-  EventId(unsigned long Header) throw (std::string)
+  static inline uint32_t
+  EventId(uint32_t Header) throw (std::string)
   {
     if (!isTDCHeader(Header)  && !isTDCTrailer(Header)) {
       throw std::string("CAENV1x90Data::EventId - not a tdc header");
@@ -270,7 +279,7 @@ namespace CCAENV1x90Data {
 	or software resets.  Perhaps it represents the event 
 	counter within a bunch on an accelerator system that is 
 	not CW.
-	\param Header	(Unsigned long	In)
+	\param Header	(uint32_t	In)
 	The TDC header longword.
 
 	\return	The bunch count extracted from the TDC Header.
@@ -278,8 +287,8 @@ namespace CCAENV1x90Data {
 	represent a TDC header
 
    */
-  static inline unsigned int
-  BunchId(unsigned long Header) throw (std::string)
+  static inline uint32_t
+  BunchId(uint32_t Header) throw (std::string)
   {
     if(!isTDCHeader(Header)) {
       throw std::string("CCAENV1x90Data::Bundhid - not a tdc header");
@@ -292,16 +301,16 @@ namespace CCAENV1x90Data {
   /*!
 
 	Returns the word count from a TDC trailer longword.
-	\param Header	(unsigned long	In)
+	\param Header	(uint32_t	In)
 	The TDC trailer to analyze.
 
-	\return unsigned short	The word count extracted from the 
+	\return unsigned uint16_t	The word count extracted from the 
 	bunch count word.
 	\throws	string if the header is not a TDC Trailer.
 
   */
-  static inline short
-  TDCWordCount(unsigned long Header) throw (std::string)
+  static inline uint16_t
+  TDCWordCount(uint32_t Header) throw (std::string)
   {
     if(!isTDCTrailer(Header)) {
       throw std::string("CCAENV1x90Data::TDCWordCount not a tdc trailer");
@@ -314,7 +323,7 @@ namespace CCAENV1x90Data {
   /*!
 
   Returns true if the input longword represents a TDC measurement.
-  \param data	(unsigned long	In)
+  \param data	(uint32_t	In)
   The data word to analyze.
 
   \return	Bool
@@ -324,7 +333,7 @@ namespace CCAENV1x90Data {
     
    */
   static inline bool
-  isMeasurement(unsigned long data)
+  isMeasurement(uint32_t data)
   {
     return ((data & TYPE_MASK) == MEASUREMENT);
   }
@@ -332,7 +341,7 @@ namespace CCAENV1x90Data {
 
   Determine if a measurement is a trailing edge time. 
 
-  \param Datum	(Unsigned long	In)
+  \param Datum	(uint32_t	In)
   The data word to analyze.
 
   \return Bool
@@ -343,7 +352,7 @@ namespace CCAENV1x90Data {
 
    */
   static inline bool
-  isTrailing(unsigned long datum)  throw (std::string)
+  isTrailing(uint32_t datum)  throw (std::string)
   {
     if(!isMeasurement(datum)) {
       throw std::string("CCAENV1x90Data::isTrailing not a measurement word");
@@ -355,7 +364,7 @@ namespace CCAENV1x90Data {
 
   Extracts the channel number from a tdc data word.
 
-  \param Datum	(Unsigned long	In)
+  \param Datum	(uint32_t	In)
   The datum to analyze.
   \param is1190	(bool	in)	
    - True if the data comes from an 1190. 
@@ -367,14 +376,14 @@ namespace CCAENV1x90Data {
    \throw std::string if datum is not a TDC measurement.
   */
   static inline int
-  ChannelNumber(unsigned long Datum, bool is1190 = true) throw (std::string)
+  ChannelNumber(uint32_t Datum, bool is1190 = true) throw (std::string)
   {
     if(!isMeasurement(Datum)) {
       throw std::string("CCAENV1x90Data::ChannelNumber  is not a measurement");
     } 
     else   {
-      unsigned long mask = V1190CHANNEL_MASK;
-      unsigned long shift= V1190CHANNEL_RSHIFT;
+      uint32_t mask = V1190CHANNEL_MASK;
+      uint32_t shift= V1190CHANNEL_RSHIFT;
       
       // If the module is actually a 1290, correct the
       // assumptions above.
@@ -389,7 +398,7 @@ namespace CCAENV1x90Data {
   }
   /*!
     Returns the digitized value of a channel.
-    \param Datum	(Unsigned long	In)
+    \param Datum	(uint32_t	In)
 	The data longword to analyze.
     \param is1190	(bool	in)
     - True if the data comes from an 1190. 
@@ -398,19 +407,19 @@ namespace CCAENV1x90Data {
     vs. the 1290. 
     Defaults to true (NSCL needs).
 
-    \return The unsigned long
+    \return The uint32_t
     value of the conversion represented by this data 
     word.
     \throw std::string if datum is not a measuremenet.
 
    */
   static inline long
-  ChannelValue(unsigned long datum, bool is1190=true) throw (std::string)
+  ChannelValue(uint32_t datum, bool is1190=true) throw (std::string)
   {
     if (!isMeasurement(datum)) {
       throw std::string("CCAENV1sx90Data::ChannelValue - is not a measurement");
     } else {
-      unsigned long mask = is1190 ? V1190DATA_MASK : 
+      uint32_t mask = is1190 ? V1190DATA_MASK : 
 	                            V1290DATA_MASK;
       return (datum & mask);
     }
@@ -418,7 +427,7 @@ namespace CCAENV1x90Data {
  /*!
     Extract the error bits from a TDC error reporting longword.
 
-    \param Datum   (Unsigned long  In)
+    \param Datum   (uint32_t  In)
     The data longword to analyze.
 
     \return Returns the error flag bit fields from TDCErrorBits. 
@@ -427,8 +436,8 @@ namespace CCAENV1x90Data {
     \throw std::string if datum is not a TDC error reporting longword.
     
    */
-  static inline unsigned long
-  TDCErrorBits(unsigned long datum) throw (std::string)
+  static inline uint32_t
+  TDCErrorBits(uint32_t datum) throw (std::string)
   {
     if(!isTDCError(datum)) {
       throw std::string("CCAENV1x90DATA:: not an error flag word");
@@ -445,7 +454,7 @@ namespace CCAENV1x90Data {
     explicitly enabled and only have a meaning when the TDC is in 
     Trigger Matching mode.
 
-    \param Datum       (Unsigned long	In)
+    \param Datum       (uint32_t	In)
     The data word to analyze.
 
     \return Boolean
@@ -455,7 +464,7 @@ namespace CCAENV1x90Data {
 
    */
   static  inline bool 
-  isTriggerTimeTag(unsigned long datum)
+  isTriggerTimeTag(uint32_t datum)
   {
     return ((datum & TYPE_MASK) == TRIGGER_TIME);
   }
@@ -463,16 +472,16 @@ namespace CCAENV1x90Data {
     Return the extended trigger time field from a trigger tag 
     longword.
 
-    \param Datum (Unsigned long	In)
+    \param Datum (uint32_t	In)
     The datum to anlyze.
 
-    \return unsigned long 
+    \return uint32_t 
     \retval The extended timestamp of the trigger tag longword.
     \throw std::string - if datum is not a trigger tag longword.
 
    */
-  static inline unsigned long 
-  ExtendedTriggerTime(unsigned long datum) throw (std::string)
+  static inline uint32_t 
+  ExtendedTriggerTime(uint32_t datum) throw (std::string)
   {
     if(!isTriggerTimeTag(datum)) {
       throw std::string("CCAENV1x90DATA::ExtendedTriggerTime not a trigger time word");
@@ -486,7 +495,7 @@ namespace CCAENV1x90Data {
     Determines if a global trailer longword has the overflow bit 
     set.
     
-    \param Datum	(Unsigned long	In)
+    \param Datum	(uint32_t	In)
     A global trailer longword.
 
     \return Bool 
@@ -497,7 +506,7 @@ namespace CCAENV1x90Data {
 
    */
   static inline bool
-  Overflow(unsigned long datum) throw (std::string)
+  Overflow(uint32_t datum) throw (std::string)
   {
     if(!isGlobalTrailer(datum)) {
       throw std::string("CCAENV1x90DATA::Overflow - not a global trailer");
@@ -514,7 +523,7 @@ namespace CCAENV1x90Data {
   error flag longs is enabled, this bit is only set when there is 
   at least one of these in the event.
 
-  \param dataum (unsigned long	In)
+  \param dataum (uint32_t	In)
   The global trailer longword.
 
   \return Bool
@@ -524,7 +533,7 @@ namespace CCAENV1x90Data {
   longword.
   */
   static inline bool 
-  Error(unsigned long datum) throw (std::string)
+  Error(uint32_t datum) throw (std::string)
   {
     if(!isGlobalTrailer(datum)) {
       throw std::string("CCAENV1x90DATA::Error - not a global trailer");
@@ -537,7 +546,7 @@ namespace CCAENV1x90Data {
     Determines if there were triggers that did not get digitized 
     due to pileup.
 
-    \param Datum	(Unsigned long	In)
+    \param Datum	(uint32_t	In)
 	The Global trailer longword to analyze.
 
     \return Bool
@@ -547,7 +556,7 @@ namespace CCAENV1x90Data {
 
    */
   static inline bool 
-  Lost(unsigned long datum) throw (std::string)
+  Lost(uint32_t datum) throw (std::string)
   {
     if(!isGlobalTrailer(datum)) {
       throw std::string("CAENV1x90DATA::Lost - not a trailer long");
@@ -559,16 +568,16 @@ namespace CCAENV1x90Data {
   /*!
     Extracts the size of an event from a global trailer longword
 
-    \param Datum	(Unsigned long	In)
+    \param Datum	(uint32_t	In)
 	A global trailer longword being analyzed
 
-    \return Unsigned long 
+    \return uint32_t 
     \retval The number of words in the events for which this is a trailer.
     \throw  String if datum is not a global trailer longword.
 
    */
-  static inline unsigned long
-  EventSize(unsigned long datum)
+  static inline uint32_t
+  EventSize(uint32_t datum)
   {
     if(!isGlobalTrailer(datum)) {
       throw std::string("CAENV1x90DATA::EventSize - not a trailer long");
@@ -584,7 +593,7 @@ namespace CCAENV1x90Data {
     as the bus interfaces don't do a good job of reporting bus 
     errors to the code in a synchronous manner.
 
-    \param Datum	(Unsigned long	In)
+    \param Datum	(uint32_t	In)
     The longword to analyze.
 
     \return Bool
@@ -592,7 +601,7 @@ namespace CCAENV1x90Data {
     \retval False if datum is not a filler.
 
    */
-  static inline bool isFiller(unsigned long datum)
+  static inline bool isFiller(uint32_t datum)
   {
     return ((datum & TYPE_MASK) == FILLER_LONG);
   }

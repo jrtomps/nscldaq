@@ -28,6 +28,12 @@
 #include <daqdatatypes.h>
 #endif
 
+#ifndef __CRT_STDINT_H
+#include <stdint.h>
+#ifndef __CRT_STDINT_H
+#define __CRT_STDINT_H
+#endif
+#endif
 
 // Forward definitions.
 
@@ -67,22 +73,22 @@ private:
 public:
     // bits in the test control register:
     
-    static const UShort_t  test_Clear   = 1;
-    static const UShort_t  test_Mask    = 2;
-    static const UShort_t  test_OrMask  = 4;
-    static const UShort_t  test_IrqMask = 8;
-    static const UShort_t  test_Read    = 0x10;
+    static const uint16_t  test_Clear   = 1;
+    static const uint16_t  test_Mask    = 2;
+    static const uint16_t  test_OrMask  = 4;
+    static const uint16_t  test_IrqMask = 8;
+    static const uint16_t  test_Read    = 0x10;
     
     // Bits in the module constrol register:
     
-    static const UShort_t control_Pattern  = 1;
-    static const UShort_t control_gateMask = 2;
-    static const UShort_t control_OrMask   = 4;
+    static const uint16_t control_Pattern  = 1;
+    static const uint16_t control_gateMask = 2;
+    static const uint16_t control_OrMask   = 4;
 
 public:
     // Constructors and other canonical operations:
     
-  CCAENV977(ULong_t lBase, UShort_t nCrate = 0);
+  CCAENV977(uint32_t lBase, unsigned nCrate = 0);
   virtual ~CCAENV977();
   CCAENV977(const CCAENV977& rhs);
   CCAENV977& operator=(const CCAENV977& rhs);
@@ -91,28 +97,28 @@ public:
   
   // Functions of the object itself:
   
-  UShort_t inputSet();
-  void     inputSet(UShort_t value);
-  UShort_t inputMask();
-  void     inputMask(UShort_t mask);
-  UShort_t inputRead();
-  UShort_t singleHitRead();
-  UShort_t multihitRead();
-  UShort_t outputSet();
-  void     outputSet(UShort_t pattern);
-  UShort_t outputMask();
-  void     outputMask(UShort_t mask);
-  UShort_t interruptMask();
-  void     interruptMask(UShort_t mask);
+  uint16_t inputSet();
+  void     inputSet(uint16_t value);
+  uint16_t inputMask();
+  void     inputMask(uint16_t mask);
+  uint16_t inputRead();
+  uint16_t singleHitRead();
+  uint16_t multihitRead();
+  uint16_t outputSet();
+  void     outputSet(uint16_t pattern);
+  uint16_t outputMask();
+  void     outputMask(uint16_t mask);
+  uint16_t interruptMask();
+  void     interruptMask(uint16_t mask);
   void     outputClear();
-  UShort_t singleHitReadAndClear();
-  UShort_t multiHitReadAndClear();
-  UShort_t testControlRegister();
-  void     testControlRegister(UShort_t mask);
-  UShort_t serialNumber();
-  UShort_t firmwareLevel();
-  void     controlRegister(UShort_t mask);
-  UShort_t controlRegister();
+  uint16_t singleHitReadAndClear();
+  uint16_t multiHitReadAndClear();
+  uint16_t testControlRegister();
+  void     testControlRegister(uint16_t mask);
+  uint16_t serialNumber();
+  uint16_t firmwareLevel();
+  void     controlRegister(uint16_t mask);
+  uint16_t controlRegister();
   void     Reset();
   
 

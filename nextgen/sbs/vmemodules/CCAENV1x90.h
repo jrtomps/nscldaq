@@ -81,6 +81,13 @@ software.
 #endif
 #endif
 
+#ifndef __CRT_STDINT_H
+#include <stdint.h>
+#ifndef __CRT_STDINT_H
+#define __CRT_STDINT_H 
+#endif
+#endif
+
 #ifndef VMEMODULE_H
 #include <VmeModule.h>
 #endif
@@ -187,37 +194,37 @@ public:
 public:
   // Error masks for Get/Set ErrorEnables:
   
-  static const unsigned short ERR_VERNIER;
-  static const unsigned short ERR_COARSE;
-  static const unsigned short ERR_SELECT;
-  static const unsigned short ERR_L1PARITY;
-  static const unsigned short ERR_TFIFOPARITY;
-  static const unsigned short ERR_MATCHERROR;
-  static const unsigned short ERR_RFIFOPARITY;
-  static const unsigned short ERR_RDOSTATE;
-  static const unsigned short ERR_SUPPARITY;
-  static const unsigned short ERR_CTLPARITY;
-  static const unsigned short ERR_JTAGPARITY;
+  static const uint16_t ERR_VERNIER;
+  static const uint16_t ERR_COARSE;
+  static const uint16_t ERR_SELECT;
+  static const uint16_t ERR_L1PARITY;
+  static const uint16_t ERR_TFIFOPARITY;
+  static const uint16_t ERR_MATCHERROR;
+  static const uint16_t ERR_RFIFOPARITY;
+  static const uint16_t ERR_RDOSTATE;
+  static const uint16_t ERR_SUPPARITY;
+  static const uint16_t ERR_CTLPARITY;
+  static const uint16_t ERR_JTAGPARITY;
 
   // Tap masks for calibrate delayline.
   
-  static const unsigned short TAP_CONTACT1;
-  static const unsigned short TAP_CONTACT2;
-  static const unsigned short TAP_CONTACT3;
+  static const uint16_t TAP_CONTACT1;
+  static const uint16_t TAP_CONTACT2;
+  static const uint16_t TAP_CONTACT3;
 
   
 private:
-  unsigned long m_nBase;	//!< VME base address of the module.
-  unsigned int  m_nCrate;	//!< VME crate stuffed in.
-  unsigned int  m_nSlot;	//!< Geo value.
+  uint32_t m_nBase;	//!< VME base address of the module.
+  uint32_t  m_nCrate;	//!< VME crate stuffed in.
+  uint32_t  m_nSlot;	//!< Geo value.
   CVmeModule
             m_pRegisters;	//!< Device register pseudo pointer.
-  unsigned int  m_nModel;	//!< Model, e.g. 1190 or 1290.
-  unsigned char m_cVersion;	//!< Sub-model e.g. A,B or N.
-  unsigned int  m_nSerialNumber; //!< Module serial number.
-  unsigned int  m_nChipCount;	//!< Number of chips in the board
-  unsigned int  m_nChannels;	//!< Number of channels on the board.
-  unsigned int  m_nBoardRevision; //!< Board hardware revision level.
+  uint32_t  m_nModel;	//!< Model, e.g. 1190 or 1290.
+  uint8_t m_cVersion;	//!< Sub-model e.g. A,B or N.
+  uint32_t  m_nSerialNumber; //!< Module serial number.
+  uint32_t  m_nChipCount;	//!< Number of chips in the board
+  uint32_t  m_nChannels;	//!< Number of channels on the board.
+  uint32_t  m_nBoardRevision; //!< Board hardware revision level.
   bool          m_fCanHiRes;	//!< True if high resolution capable.
   bool          m_fIsHiResMode; //!< True if module is in hi res.
   bool          m_fTriggerMatching; //!< true if module has got
@@ -226,8 +233,8 @@ private:
   // Constructors and canonical operations.
 
 public:
-  CCAENV1x90(unsigned int nSlot, unsigned int nCrate,
-	     unsigned long nBase); //!< geo not supported for these.
+  CCAENV1x90(uint32_t nSlot, uint32_t nCrate,
+	     uint32_t nBase); //!< geo not supported for these.
   ~CCAENV1x90();
 private:			// Copy etc. not allowed.
   CCAENV1x90(const CCAENV1x90& rhs);
@@ -242,30 +249,30 @@ public:
 
 public:
 
-  unsigned int getModel() const { //!< Return model number.
+  uint32_t getModel() const { //!< Return model number.
     return m_nModel;
   }
-  unsigned char getVersion() const { //!< Return type (e.g. 'N').
+  uint8_t getVersion() const { //!< Return type (e.g. 'N').
     return m_cVersion;
   }
-  unsigned int getSerialNumber() const { //!< Module serial #
+  uint32_t getSerialNumber() const { //!< Module serial #
     return m_nSerialNumber;
   }
-  unsigned int getChipCount() const { //!< # TDC Chips on board.
+  uint32_t getChipCount() const { //!< # TDC Chips on board.
     return m_nChipCount;
   }
-  unsigned int getChannelCount() const { //!< # Channels.
+  uint32_t getChannelCount() const { //!< # Channels.
     return m_nChannels;
   }
 
   // Class operations:
 
 public:
-  unsigned short SR();		//!< Return the value of the board
+  uint16_t SR();		//!< Return the value of the board
                                 //!< status register.
-  bool isSetSR(unsigned short bitnum); //!< true if sr has 1 << bitnum set.
-  unsigned short ReadCR();	//!< Return the value of the ctl reg.
-  bool isSetCR(unsigned short bitnum); //!< true if sr has 1<< bitnum set.
+  bool isSetSR(uint16_t bitnum); //!< true if sr has 1 << bitnum set.
+  uint16_t ReadCR();	//!< Return the value of the ctl reg.
+  bool isSetCR(uint16_t bitnum); //!< true if sr has 1<< bitnum set.
 
   // Functionality exposed by the control register:
 
@@ -283,13 +290,13 @@ public:
   bool isTriggerMatching();	//!< True if module says it's trigger matching.
   bool isHeaderEnabled();	//!< True if TDC Header enabled.
   bool isTerminated();		//!< True if terminated regardless of how.
-  bool HadError(unsigned int nChip);		//!< True if the TDC had an error since last reset.
+  bool HadError(uint32_t nChip);		//!< True if the TDC had an error since last reset.
   int  ReadResolution();	//!< Return resolution in ps/LSBit.
   bool isPairMode();		//!< True if the module is in pair mode.
   bool WereTriggersLost();	//!< True if triggers were lost.
 
-  void SetGeographicalID(unsigned short int); //!< Set virtual slot number.
-  unsigned short GetGeographicalID(); //!< Return the geographical id.
+  void SetGeographicalID(uint16_t); //!< Set virtual slot number.
+  uint16_t GetGeographicalID(); //!< Return the geographical id.
 
   // Key register access functions (sorry that's an SIS -ism).
   
@@ -300,14 +307,14 @@ public:
 
   // Access various register counters.
 
-  unsigned long TriggerCount();	//!< # Triggers since last clear.
-  unsigned short EventCount();	//!< # events in output buffer.
+  uint32_t TriggerCount();	//!< # Triggers since last clear.
+  uint16_t EventCount();	//!< # events in output buffer.
  
 
   // Full levels:
 
-  void SetAlmostFullLevel(unsigned int nWords);	//!< Set the almost full level.
-  unsigned short  GetAlmostFullLevel(); //!< Where is the almost full threshold.
+  void SetAlmostFullLevel(uint32_t nWords);	//!< Set the almost full level.
+  uint16_t  GetAlmostFullLevel(); //!< Where is the almost full threshold.
   
 
   // Define what the ECL output is set to be.
@@ -318,12 +325,12 @@ public:
   // State of the event fifo.  This is used to see what
   // an event in the buffer memory is going to look like:
 
-  unsigned short EventFIFOCount(); //!< Return the # events in the fifo.
-  unsigned long ReadEventFIFO(); //!< Return the next event description.
+  uint16_t EventFIFOCount(); //!< Return the # events in the fifo.
+  uint32_t ReadEventFIFO(); //!< Return the next event description.
   bool         isEventFIFOReady(); //!< Events in the fifo?
   bool         isEventFIFOFull(); //!< Event fifo full?
-  unsigned short FIFOEventNumber(unsigned long fifoentry); //!< Decode event # from Fifo.
-  unsigned short FIFOWordCount(unsigned long fifoentry); //!< Decode event size from FIFO.
+  uint16_t FIFOEventNumber(uint32_t fifoentry); //!< Decode event # from Fifo.
+  uint16_t FIFOWordCount(uint32_t fifoentry); //!< Decode event size from FIFO.
 
 
   // Here begin the whole series of operations that involve the
@@ -345,21 +352,21 @@ public:
 
   // 5.3 Trigger  opcodes.
 
-  void SetWindowWidth(unsigned int nWidth);
+  void SetWindowWidth(uint32_t nWidth);
 				//!< Set trigger matching window width (0x1000)
   void SetWindowOffset(int nOffset); //!< Set trigger matching window offset (0x1100)
-  void SetExtraSearchMargin(unsigned int nMargin); 
+  void SetExtraSearchMargin(uint32_t nMargin); 
                                 //!< Set trigger matching extra margin (0x1200)
-  void SetRejectMargin(unsigned int nMargin);
+  void SetRejectMargin(uint32_t nMargin);
 				//!< Set trigger matching window reject margin (0x1300)
   void EnableTriggerTimeSubtraction(); //!< Subtract trigger time from hits (0x1400)
   void DisableTriggerTimeSubtraction();	//!< Subtract trigger time from hits (0x1500)
   TriggerConfiguration
        GetTriggerConfiguration();	//!< Return current trigger config (0x1800)
-  unsigned int GetMatchWindow(TriggerConfiguration config);
+  uint32_t GetMatchWindow(TriggerConfiguration config);
            int GetWindowOffset(TriggerConfiguration config);
-  unsigned int GetExtraSearchMargin(TriggerConfiguration config);
-  unsigned int GetRejectMargin(TriggerConfiguration config);
+  uint32_t GetExtraSearchMargin(TriggerConfiguration config);
+  uint32_t GetRejectMargin(TriggerConfiguration config);
 
   bool         isTriggerTimeSubtracted(TriggerConfiguration config);
 
@@ -370,12 +377,12 @@ public:
   void     SetIndividualLSB(Resolution nResolution); //!< Set resolution of lsb. (0x2400)
   void     SetPairResolutions(LEResolution nLeadingEdge,
 			      PWResolution nPulseWidth); //!< Set pair resolution info (0x2500)
-  unsigned short GetResolution();                  //!< Read module resolution see below (0x2600)
-  Resolution InterpretEdgeResolution(unsigned short nResolution);
+  uint16_t GetResolution();                  //!< Read module resolution see below (0x2600)
+  Resolution InterpretEdgeResolution(uint16_t nResolution);
                                                    //!< Interpret resolution as individual edge.
-  LEResolution InterpretLEResolution(unsigned short nResolution);
+  LEResolution InterpretLEResolution(uint16_t nResolution);
 				//!< Interpret LE resolution in pair mode.
-  PWResolution InterpretWidthResolution(unsigned short nResolution);
+  PWResolution InterpretWidthResolution(uint16_t nResolution);
 				//!< Interpret Width resolution in pair mode.
   void SetDoubleHitResolution(DeadTime nDead); //!< Set dead time between hits. (0x28))
   DeadTime GetDoubleHitResolution(); //!< Read double hit dead time (0x2900)
@@ -391,69 +398,69 @@ public:
   void DisableErrorMark();	//!< Turn off error mark words(0x3600)
   void EnableBypassOnError();	//!< Turn on TDC bypass on error (0x3700)
   void DisableBypassOnError();	//!< Turn off TDC Bypasson error (0x3800)
-  void SetErrorEnables(unsigned short nErrors);	//!< selectively enable error types.
-  unsigned short GetErrorEnables(); //!< Get error enables.
+  void SetErrorEnables(uint16_t nErrors);	//!< selectively enable error types.
+  uint16_t GetErrorEnables(); //!< Get error enables.
   void SetL1Size(L1Size nL1Size); //!< Set level 1 fifo size.
   L1Size GetL1Size();		//!< Get the level 1 fifo size.
 
 
   // 5.6 Channel enable opcodes. nn below is a tdc chip number.
   
-  void EnableChannel(unsigned short nChannel); //!< Enbable 1 channel (0x40nn)
-  void DisableChannel(unsigned short nChannel);	//!< Disable a channel (0x41nn)
+  void EnableChannel(uint16_t nChannel); //!< Enbable 1 channel (0x40nn)
+  void DisableChannel(uint16_t nChannel);	//!< Disable a channel (0x41nn)
   void EnableAllChannels();	//!< Enable all tdc channels (0x4200)
   void DisableAllChannels();	//!< Disable all tdc channels (0x4300)
-  void SetChannelEnables(std::vector<unsigned short> masks); //!< Set enables mask for all chans (0x4400)
-  void GetChannelEnables(std::vector<unsigned short>& masks); //!< read enables mask. (0x4500)
-  void SetChipEnables(unsigned short nChip,
-		      unsigned int nMask); //!< Set the enables for a single chip. (0x460n)
-  unsigned int GetChipEnables(unsigned short nChip); //!< read enables for a chip. (0x470n)
+  void SetChannelEnables(std::vector<uint16_t> masks); //!< Set enables mask for all chans (0x4400)
+  void GetChannelEnables(std::vector<uint16_t>& masks); //!< read enables mask. (0x4500)
+  void SetChipEnables(uint16_t nChip,
+		      uint32_t nMask); //!< Set the enables for a single chip. (0x460n)
+  uint32_t GetChipEnables(uint16_t nChip); //!< read enables for a chip. (0x470n)
 
   // 5.7 Adjustment opcodes.
   
-  void SetGlobalOffset(unsigned short nCoarse,
-		       unsigned short nVernier); //!< Set global coarse/fine offsets (0x5000)
-  void ReadGlobalOffset(unsigned short& nCoarse,
-			unsigned short& nVernier); //!< Fetch the global offsets (0x5100).
-  void SetChannelOffset(unsigned short nChannel,
-			unsigned short nOffset); //!< Set a channel offset (0x52nn).
-  unsigned short GetChannelOffset(unsigned int nChannel); //!< Retrieve channel offset (0x53nn).
+  void SetGlobalOffset(uint16_t nCoarse,
+		       uint16_t nVernier); //!< Set global coarse/fine offsets (0x5000)
+  void ReadGlobalOffset(uint16_t& nCoarse,
+			uint16_t& nVernier); //!< Fetch the global offsets (0x5100).
+  void SetChannelOffset(uint16_t nChannel,
+			uint16_t nOffset); //!< Set a channel offset (0x52nn).
+  uint16_t GetChannelOffset(uint32_t nChannel); //!< Retrieve channel offset (0x53nn).
   // V1290 only:
 
-  void CalibrateDelayLine(unsigned short nChip,
-			  unsigned short Tap1Contact,
-			  unsigned short Tap2Contact,
-			  unsigned short Tap3Contact,
-			  unsigned short Tap4Contat); //!< Set delayline tap config (0x450n)
-  void GetDelayLineCalibration(unsigned short nChip,
-			       unsigned short& Tap1Contact,
-			       unsigned short& Tap2Contact,
-			       unsigned short& Tap3Contact,
-			       unsigned short& Tap4Contact); //!< Get delay line tap config (0x460n)
+  void CalibrateDelayLine(uint16_t nChip,
+			  uint16_t Tap1Contact,
+			  uint16_t Tap2Contact,
+			  uint16_t Tap3Contact,
+			  uint16_t Tap4Contat); //!< Set delayline tap config (0x450n)
+  void GetDelayLineCalibration(uint16_t nChip,
+			       uint16_t& Tap1Contact,
+			       uint16_t& Tap2Contact,
+			       uint16_t& Tap3Contact,
+			       uint16_t& Tap4Contact); //!< Get delay line tap config (0x460n)
   void SaveDelayLineCalibrations(); //!< Write calibrations -> eprom (0x5600)
   
   // 5.8 Miscellaneous 
 
-  unsigned int GetChipId(unsigned short nChip);	//!< Get chip id (0x600n)
-  void GetuCFirmwareInfo(unsigned short& nRevision,
-			 unsigned short& nDay,
-			 unsigned short& nMonth,
-			 unsigned short& nYear); //!< Firmware rev/date (0x6100).
-  unsigned short GetChipErrors(unsigned short nChip); //!< Read errors from 1 chip (0x740n).
+  uint32_t GetChipId(uint16_t nChip);	//!< Get chip id (0x600n)
+  void GetuCFirmwareInfo(uint16_t& nRevision,
+			 uint16_t& nDay,
+			 uint16_t& nMonth,
+			 uint16_t& nYear); //!< Firmware rev/date (0x6100).
+  uint16_t GetChipErrors(uint16_t nChip); //!< Read errors from 1 chip (0x740n).
 
   // 5.9 system testing.
 
-  void EnableTestMode(unsigned int nValue); //!< Chip->Test mode. (0xc500).
+  void EnableTestMode(uint32_t nValue); //!< Chip->Test mode. (0xc500).
   void DisableTestMode(); //!< Turn off chip test mode (0xc600).
 
   // Data acquisition functions (finally)
 
-  unsigned int ReadData(void* pBuffer,
-			unsigned int nMaxLongs);	//!< Read up to nMaxLongs.
-  unsigned int ReadPacket(void* pBuffer,
-			  unsigned int nMaxLongs); //!< Read trigger matched event up to nMaxLongs
-  unsigned int ReadValid(void* pBuffer,
-			 unsigned int nMaxLongs); //!< Read all valid words, up to nMaxLongs.
+  uint32_t ReadData(void* pBuffer,
+			uint32_t nMaxLongs);	//!< Read up to nMaxLongs.
+  uint32_t ReadPacket(void* pBuffer,
+			  uint32_t nMaxLongs); //!< Read trigger matched event up to nMaxLongs
+  uint32_t ReadValid(void* pBuffer,
+			 uint32_t nMaxLongs); //!< Read all valid words, up to nMaxLongs.
 
   
   void WaitMicroWrite();	//!< Wait for micro writable.
@@ -463,21 +470,21 @@ public:
 protected:
   bool ValidBoard(CVmeModule& pROM); //!< Is this a 1x90?
   void BoardProperties(CVmeModule& pROM);
-  void WriteCR(unsigned short mask); //!< Write mask to status register.
-  void BitSetCR(unsigned short bit); //!< set specified bit# in cr.
-  void BitClearCR(unsigned short bit); //!< clear specified bit# in cr.
+  void WriteCR(uint16_t mask); //!< Write mask to status register.
+  void BitSetCR(uint16_t bit); //!< set specified bit# in cr.
+  void BitClearCR(uint16_t bit); //!< clear specified bit# in cr.
 
-  void WriteMicro(unsigned short nWord); //!< Write word to the micro sequencer
-  unsigned short ReadMicro();	//!< read a word from the micro sequencer.
+  void WriteMicro(uint16_t nWord); //!< Write word to the micro sequencer
+  uint16_t ReadMicro();	//!< read a word from the micro sequencer.
   void WriteMicroBlock(void* pWords, 
-		       unsigned int nWords); //!< Write words to the micro seqeuncer.
+		       uint32_t nWords); //!< Write words to the micro seqeuncer.
   void ReadMicroBlock(void* pWords,
-		      unsigned int nWords); //!< Reads words from the micro sequencer.
-  void MicroTransaction(unsigned short opcode,
+		      uint32_t nWords); //!< Reads words from the micro sequencer.
+  void MicroTransaction(uint16_t opcode,
 			void* pWords,
-			unsigned int nWords); //!< Do an opcode and read a block.
-  unsigned long ReadPromLong(CVmeModule& prombase, 
-			     unsigned long ByteOffset);
+			uint32_t nWords); //!< Do an opcode and read a block.
+  uint32_t ReadPromLong(CVmeModule& prombase, 
+			     uint32_t ByteOffset);
 
 };
 #endif

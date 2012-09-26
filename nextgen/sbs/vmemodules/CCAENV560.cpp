@@ -30,8 +30,8 @@ using namespace std;
 // The 'macros' below are used to do structure like offsets
 // using the register structure through VmeModule:
 //
-#define SOffset(s,field) ((unsigned int)(((uint64_t)&(((s*)0)->field))/sizeof(short)))
-#define LOffset(s,field) ((unsigned int)(((uint64_t)&(((s*)0)->field))/sizeof(long)))
+#define SOffset(s,field) ((unsigned int)(((uint64_t)&(((s*)0)->field))/sizeof(uint16_t)))
+#define LOffset(s,field) ((unsigned int)(((uint64_t)&(((s*)0)->field))/sizeof(uint32_t)))
 #define GetShort(field) (m_pModule->peekw(SOffset(CAENV560Registers,field)))
 #define GetLong(field)  (m_pModule->peekl(LOffset(CAENV560Registers,field)))
 #define PutShort(field,value) (m_pModule->pokew((value),  \
@@ -40,9 +40,9 @@ using namespace std;
                                   LOffset(CAENV560Registers,field)))
 
 
-static const unsigned short Manufacturer(2);
-static const unsigned short ModelNumber(0x18);
-static const unsigned short FixedCode(0xfaf5);
+static const uint16_t Manufacturer(2);
+static const uint16_t ModelNumber(0x18);
+static const uint16_t FixedCode(0xfaf5);
 
 static inline void ThrowIntString(const char* formatstring, int value) 
   throw (string)
@@ -89,7 +89,7 @@ static inline void ThrowIfBadSection(const char* pFunction,
 	 and the base should not be optional.
 
 */
-CCAENV560::CCAENV560(unsigned long base, int crate) 
+CCAENV560::CCAENV560(uint32_t base, int crate) 
   throw (string) :
   m_nCrate(crate),
   m_nBase(base),
@@ -211,8 +211,8 @@ CCAENV560::MapModule() throw (string)
   // by requiring the fixed code and correct mfrmod register
   //
   m_nModuleType = MIModTyp(GetShort(Mfrmod));
-  unsigned short mfgr  = MIMfrNo(GetShort(Mfrmod));
-  unsigned short fCode = GetShort(FCode);
+  uint16_t mfgr  = MIMfrNo(GetShort(Mfrmod));
+  uint16_t fCode = GetShort(FCode);
 
   if ((m_nModuleType != ModelNumber)   ||
       (mfgr          != Manufacturer)  ||

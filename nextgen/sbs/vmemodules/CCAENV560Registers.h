@@ -17,29 +17,36 @@
 #ifndef __CCAENV560REGISTERS_H
 #define __CCAENV560REGISTERS_H
 
+#ifndef __CRT_STDINT_H
+#include <stdint.h>
+#ifndef __CRT_STDINT_H
+#define __CRT_STDINT_H
+#endif
+#endif
+
 /*
    This file defines the register layout and bits for the 
    CAENV560N 16 channel 100MHz scaler. It can be included in either
    C or C++.
 */
 typedef struct _CAENV560Registers {
-  unsigned short pad1[2];	/* Unused			0x0000 */
-  unsigned short Ivr;		/* Interrupt Vector register    0x0004 */
-  unsigned short Ilvr;		/* Interrupt Level & Veto reg.  0x0006 */
-  unsigned short EVMEI;      	/* Enable VME Interrupt         0x0008 */
-  unsigned short DVMEI;		/* Disable VME Interrupt	0x000A */
-  unsigned short CVMEI;		/* Clear VME Interrupt          0x000C */
-  unsigned short Reqr;		/* Request Register             0x000E */
-  unsigned long  Counters[16];	/* Live Counter registers       0x0010 */
-  unsigned short SClear;	/* Scale clear		        0x0050 */
-  unsigned short VMEVS;       	/* VME VETO set 	        0x0052 */
-  unsigned short VMEVR;		/* VME VETO reset	        0x0054 */
-  unsigned short SInc;		/* Scale Increase		0x0056 */
-  unsigned short SSsr;		/* Scale Status register        0x0058 */
-  unsigned short pad2[0x50];	/* Unused			0x005A */
-  unsigned short FCode;		/* Fixed code 			0x00FA */
-  unsigned short Mfrmod;	/* Manufacturer & Module Type   0x00FC */
-  unsigned short VerSN;		/* Version & Serial Number      0x00FE */
+   uint16_t pad1[2];	/* Unused			0x0000 */
+   uint16_t Ivr;		/* Interrupt Vector register    0x0004 */
+   uint16_t Ilvr;		/* Interrupt Level & Veto reg.  0x0006 */
+   uint16_t EVMEI;      	/* Enable VME Interrupt         0x0008 */
+   uint16_t DVMEI;		/* Disable VME Interrupt	0x000A */
+   uint16_t CVMEI;		/* Clear VME Interrupt          0x000C */
+   uint16_t Reqr;		/* Request Register             0x000E */
+   uint32_t Counters[16];	/* Live Counter registers       0x0010 */
+   uint16_t SClear;	/* Scale clear		        0x0050 */
+   uint16_t VMEVS;       	/* VME VETO set 	        0x0052 */
+   uint16_t VMEVR;		/* VME VETO reset	        0x0054 */
+   uint16_t SInc;		/* Scale Increase		0x0056 */
+   uint16_t SSsr;		/* Scale Status register        0x0058 */
+   uint16_t pad2[0x50];	/* Unused			0x005A */
+   uint16_t FCode;		/* Fixed code 			0x00FA */
+   uint16_t Mfrmod;	/* Manufacturer & Module Type   0x00FC */
+   uint16_t VerSN;		/* Version & Serial Number      0x00FE */
 
 } CAENV560Registers, *pCAENV560Registers;
 

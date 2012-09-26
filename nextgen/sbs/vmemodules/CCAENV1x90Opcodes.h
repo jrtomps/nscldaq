@@ -9,13 +9,21 @@
    naming coventions
 */
 
+
+#ifndef __CRT_STDINT_H
+#include <stdint.h>
+#ifndef __CRT_STDINT_H
+#define __CRT_STDINT_H
+#endif
+#endif
+
 namespace CCAENV1x90Opcodes 
 {
 
   // Can't use static or const in typedef.
 
-
-  #define Opcode static const unsigned short
+ 
+  #define Opcode static const uint16_t
 
 
   // Acquisition mode:

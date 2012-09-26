@@ -23,13 +23,13 @@ using namespace std;
 
 /*!
   Construct the object.
-   \param base (unsigned long [in])
+   \param base (uint32_t [in])
       base address of the module.
    \param crate (int [in] = 0):
       Crate in which the module lives.
 
 */
-CModule32::CModule32(unsigned long base, unsigned int size, int crate) :
+CModule32::CModule32(uint32_t base, size_t size, int crate) :
     m_Module(CVmeModule::a32d32, base, size, crate)
 {
 } 
@@ -42,11 +42,11 @@ CModule32::~CModule32() {
 
 /*!
    Write to a key register:
-   \param offset  (unsigned long [in]):
+   \param offset  (uint32_t [in]):
      The offset to the register.
 */
 void 
-CModule32::Key(unsigned long offset) const
+CModule32::Key(uint32_t offset) const
 {
   poke(0, offset);
 }

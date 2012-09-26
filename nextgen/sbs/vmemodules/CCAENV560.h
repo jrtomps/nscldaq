@@ -29,6 +29,13 @@
 #endif
 
 
+#ifndef __CRT_STDINT_H
+#include <stdint.h>
+#ifndef __CRT_STDINT_H
+#define __CRT_STDINT_H
+#endif
+#endif
+
 // Forward definitions:
 
 
@@ -71,7 +78,7 @@ class CCAENV560
   // Class data.
 private:
   int                m_nCrate;
-  int                m_nBase;	     // Module base address.  
+  uint32_t           m_nBase;	     // Module base address.  
   CVmeModule*        m_pModule;
   int                m_nModuleType;
   int                m_nSerialno;
@@ -80,7 +87,7 @@ private:
   // Constructors and other canonical operations:
 
 public:
-  CCAENV560(unsigned long base, int crate = 0) throw (std::string);
+  CCAENV560(uint32_t base, int crate = 0) throw (std::string);
 
   ~CCAENV560();
 
