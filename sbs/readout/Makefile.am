@@ -88,6 +88,7 @@ Readout_SOURCES = Skeleton.cpp
 
 Readout_DEPENDENCIES = libSBSProductionReadout.la
 Readout_LDADD	= libSBSProductionReadout.la	\
+		@top_builddir@/sbs/vmemodules/libSBSDeviceSupport.la \
 		  @top_srcdir@/base/exception/libException.la	\
 		  @top_srcdir@/base/thread/libdaqthreads.la \
 		  @top_srcdir@/base/tclplus/libtclPlus.la $(THREADLD_FLAGS)
