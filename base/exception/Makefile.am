@@ -19,7 +19,9 @@ libException_la_CXXFLAGS	= $(THREADCXX_FLAGS) 	\
 INCLUDES = -I@top_srcdir@/base/headers
 
 install-data-local:
+	$(mkinstalldirs) $(prefix)/include
 	rm -f $(prefix)/include/CErrnoException.h
+	$(INSTALL_HEADER) ErrnoException.h $(prefix)/include
 	$(LN_S) $(prefix)/include/ErrnoException.h \
 	        $(prefix)/include/CErrnoException.h
 

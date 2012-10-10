@@ -27,12 +27,12 @@ bt_tas.c
 
 
 
-libbtp_la_LDFLAGS = -version-info 1:0:0 
+libbtp_la_LDFLAGS = -version-info 1:0:0  $(THREADLD_FLAGS)
 INCLUDES = -I. -I../include \
 	-DBT1003 -DNDEBUG -DBT_INLINE \
 	-D_POSIX_C_SOURCE -D_POSIX_THREAD_SEMANTICS \
 	-D_XOPEN_SOURCE	\
-	-O2 -Wall -Wstrict-prototypes
+	-O2 -Wall -Wstrict-prototypes $(THREADCXX_FLAGS)
 
 include_HEADERS =  btpiflib.h
 
