@@ -20,13 +20,14 @@ libVMUSBRemote_la_SOURCES = CVMUSBReadoutList.cpp \
 	CTCPConnectionFailed.cpp \
 	CTCPConnectionLost.cpp \
 	CTCPNoSuchHost.cpp \
-	CTCPNoSuchService.cpp
+	CTCPNoSuchService.cpp \
+	CVMUSBEthernet.cpp
 
 
 
 noinst_HEADERS		= CVMUSB.h   \
 	CVMUSBReadoutList.h  \
-	CVMUSBusb.h
+	CVMUSBusb.h	\
 	CVMUSBEthernet.h \
 	CVMUSBRemote.h       \
 	CSocket.h		\

@@ -1284,4 +1284,4 @@ CVMUSBEthernet::marshallOutputData(void* pOutputBuffer, const char* reply, size_
 }
 
 
-void* gpTCLApplication(0);
+// void* gpTCLApplication(0);
