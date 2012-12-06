@@ -2962,7 +2962,7 @@ hira cget <replaceable>name</replaceable>
            </informalexample>
            <para>
             Note that the configuration parameters of the XLM's determine whether
-            or not both SRAM banks are read, the configuratino of the FADC determines
+            or not both SRAM banks are read, the configuration of the FADC determines
             which FADC groups are read, and the <option>-xlm</option> option value
             determines whether one or two XLM modules are associated witht this
             HiRA module.
@@ -5110,7 +5110,7 @@ stack cget <replaceable>name</replaceable>
             </listitem>
          </varlistentry>
          <varlistentry>
-            <term><option>-stack</option> <replaceable>seconds</replaceable></term>
+            <term><option>-stack</option> <replaceable>stacknum</replaceable></term>
             <listitem>
                <para>
                   Defines the stack number for <literal>interrupt</literal>

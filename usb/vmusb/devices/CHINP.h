@@ -50,11 +50,11 @@
 /* define bit masks for output from motherboard register */
 #define acqall       0x10000
 
-#define glbl_enable  (uint32_t)0x40000
+#define glbl_enable  0x40000
 #define serin        0x80000
 #define serclk       0x100000
 #define tokenin      0x200000            // active low, inverted in FPGA
-#define forcereset   (uint32_t)0x400000
+#define forcereset   0x400000
 #define dacstb       0x800000
 #define dacsign      0x1000000
 #define selextbus    0x2000000
@@ -93,7 +93,12 @@
 #define GD_DELAY         0x10        // GLOBAL DISABLE DELAY REGISTER
 #define FAST_SERA        0x11        // fast serial A (16 bits at a time)
 #define FAST_SERB        0x12        // fast serial B (16 bits at a time)
-#define ReadoutMode      0X18        // legacy or unified (XXV) readout.
+#define FPGA_FRC         0x13        // a free-running counter
+#define FPGA_TEST        0x15        // a read-write test register
+#define FPGA_ID          0x16        // FPGA version ID
+#define ReadoutMode      0x18        // select legacy or unified readout mode
+
+
 // Forward class definitions:
 
 class CReadoutModule;
@@ -137,7 +142,6 @@ private:
   // 
 
 public:
-  virtual void onAttach(CReadoutModule& configuration);
   virtual void Initialize(CVMUSB& controller);
   virtual void addReadoutList(CVMUSBReadoutList& list);
   virtual CReadoutHardware* clone() const;

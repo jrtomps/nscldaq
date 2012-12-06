@@ -17,7 +17,7 @@ lappend auto_path [file normalize [file join [file dirname [info script]] .. .. 
 package require snit
 package require VMUSBDriverSupport
 package require cvmusb
-package require cmusbreadoutlist
+package require cvmusbreadoutlist
 
 package provide SIS330XDriver 1.0
 
@@ -117,8 +117,8 @@ snit::type sis330xDriver {
     #  setupamod - A32D32 - supervisory data access.
     #  blockread - A32D32 BLT supervisorydata  mode.
 
-    variable setupAmod $::cvmusbreadoutlist::CVMUSBReadoutList_a32PrivData
-    variable blockXfer $::cvmusbreadoutlist::CVMUSBReadoutList_a32PrivBlock
+    variable setupAmod 0x0d
+    variable blockXfer 0x0f
 
     #-------------------------------------------------------------------------
     #
@@ -131,8 +131,8 @@ snit::type sis330xDriver {
 
     variable CR                                0x00; # Control register (JK Flipflops).
     variable Firmware                          0x04; # module Id/firmware.
-    variable InterruptConfig;		       0x08; # Interrupt configuration register.
-    variable InterruptControl;		       0x0c; # Interrupt contro register.
+    variable InterruptConfig		       0x08; # Interrupt configuration register.
+    variable InterruptControl		       0x0c; # Interrupt contro register.
     variable DAQControl                        0x10; # Data acquisition control register (JK)
     variable ExternStartDelay                  0x14; # External start delay register.
     variable ExternStopDelay                   0x18; # External stop delay register.
@@ -141,7 +141,7 @@ snit::type sis330xDriver {
     variable VMEStart                          0x30; # VME Start sampling.
     variable VMEStop                           0x34; # VME Stop sampling.
     variable StartAutoBankSwitch               0x40; # Start auto memory bank switch.
-    variable StopAutoBankSwitch;	       0x44; # Stop auto memory bank switch.
+    variable StopAutoBankSwitch   	       0x44; # Stop auto memory bank switch.
     variable ClearBank1Full                    0x48; # Clear bank 1 memory full
     variable ClearBank2Full                    0x4c; # Clear bank 2 memory full.
 
@@ -186,7 +186,7 @@ snit::type sis330xDriver {
     variable MaxEvents                        0x0000002c; # Max no of events register (all ADCS).
     
     variable EventDirectory1                  0x00001000; # Event directory bank 1.
-    variable EventDirectory2;		      0x00002000; # Event directory bank 2.
+    variable EventDirectory2		      0x00002000; # Event directory bank 2.
 
     # Event memory buffers.  Each event memory is 0x80000 bytes long:
 
@@ -223,7 +223,7 @@ snit::type sis330xDriver {
     variable SRUserOutputState              2
     variable SRTriggerOutputState           4 
     variable SRTriggerIsInverted     0x000010
-    variable SRTriggerCondition      0x000020 # 1: armed and started
+    variable SRTriggerCondition      0x000020; # 1: armed and started
     variable SRUserInputCondition    0x010000
     variable SRP2_TEST_IN            0x020000
     variable SRP2_RESET_IN           0x040000
@@ -310,28 +310,27 @@ snit::type sis330xDriver {
     #                a cvmusb object.
     #
     method Initialize vmusb  {
-	set controller [::VMUSBDriverSupport::convertVmUSB]
+	set controller [::VMUSBDriverSupport::convertVmUSB $vmusb]
 	set base       $options(-base)
 
 	# Reset as a single shot operation then 
 
-	$controller vmewrite32 [expr $base +  $Reset] $setupAmod 0
+	$controller vmeWrite32 [expr $base +  $Reset] $setupAmod 0
 
 	# Build a list of operations to complete the init:
 
 	set list       [::cvmusbreadoutlist::CVMUSBReadoutList]
 
-
 	# Figure out and set the  initial CSR.
 
 	set csrValue   [expr $CRLedOff | $CRUserOutputOff | \
-			    $CREnableTriggerOutput | $CRNormalTriggerOuput]
+			    $CREnableTriggerOutput | $CRNormalTriggerOutput]
 	if {$options(-stoptrigger)} {
-	    set csrValue [expr $csrValue | CRTriggerOnArmedAndStarted]
+	    set csrValue [expr $csrValue | $CRTriggerOnArmedAndStarted]
 	} else {
-	    set csrValue [expr $csrValue | CRTriggerOnArmed]
+	    set csrValue [expr $csrValue | $CRTriggerOnArmed]
 	}
-	$list addWrite32 [expr $base + $CR]
+	$list addWrite32 [expr $base + $CR] $setupAmod $csrValue
 
 	# Turn off all bits in the ACQ register:
 
@@ -367,11 +366,11 @@ snit::type sis330xDriver {
 	    set acqValue [expr $acqValue | $DAQEnableP2StartStop]
 	}
 	if {$options(-hirarandomclock)} {
-	    set acquValue [expr $acqValue | $DAQEnabvleHiRARCM]
+	    set acquValue [expr $acqValue | $DAQEnableHiRARCM]
 	}
-	set acqValue [expr $acqValue | ($clockSourceValues($options(-clocksource)) << $DAQSetShiftCount)]
+	set acqValue [expr $acqValue | ($clockSourceValues($options(-clocksource)) << $DAQClockSetShiftCount)]
 	
-	$list addWrite32 [$xpr $baser + $DAQControl] $setupAmod $acqValue
+	$list addWrite32 [expr $base + $DAQControl] $setupAmod $acqValue
 	
 
 	# Configure the global event configuration register.
@@ -388,7 +387,9 @@ snit::type sis330xDriver {
 	
 	# Channel thresholds:
 
-	for {set chan 0} {$chan < 8} {incr $chan 2} {
+	puts "Setting channel enables"
+
+	for {set chan 0} {$chan < 8} {incr chan 2} {
 	    set even [lindex $options(-thresholds) $chan]
 	    if {$options(-thresholdslt)} {
 		set even [expr $even | $THRLt]
@@ -401,7 +402,7 @@ snit::type sis330xDriver {
 		[expr $base + $CommonInfo + $EventBases([expr $chan/2]) + $TriggerThreshold] \
 		$setupAmod [expr ($odd << $THRChannelShift) | $even]
 	}
-
+	puts "Done setting channel thresholds"
 
 	# Sample only into bank 1 for now.
 
@@ -419,10 +420,13 @@ snit::type sis330xDriver {
 	}
 	
 	# Execute the list:
+	
+	puts "Executing list"
 
-	set inputData [$controller executeList $list 1000]
-	$inputData destroy
-	$list destroy
+	$controller executeList $list 1000
+#	$inputData destroy
+	$list -delete
+	puts "Returning from init"
   
     }
     ##
@@ -448,7 +452,8 @@ snit::type sis330xDriver {
     #
     #
     method addReadoutList list {
-	set list [VMUSBDriverSupport::convertVmUSBeadoutList $list]
+	set base $options(-base); # using this frequently so...
+	set list [VMUSBDriverSupport::convertVmUSBReadoutList $list]
 
 	# Prefix the output with a mask of the groups we'll read:
 
@@ -458,7 +463,7 @@ snit::type sis330xDriver {
 		set mask [expr $mask | $bit]
 	    }
 	}
-	list addMarker $mask
+	$list addMarker $mask
 
 	# Read each enabled group using the address register to provide a count.
 
@@ -468,7 +473,7 @@ snit::type sis330xDriver {
 		if {$enable} {
 		    $list addBlockCountRead32 [expr $base + $evInfoBase + $Bank1AddressCounter] \
 			[expr $sampleMaskValues($options(-samplesize))] $setupAmod; # read count...
-		    $list addMaskedCountRead32 [expr $base + $evBuffer] $blockXfer; # the read itself.
+		    $list addMaskedCountBlockRead32 [expr $base + $evBuffer] $blockXfer; # the read itself.
 		}
 	    }
     }

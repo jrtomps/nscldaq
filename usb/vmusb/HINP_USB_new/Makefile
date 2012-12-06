@@ -104,9 +104,9 @@ ECHO_C =
 ECHO_N = -n
 ECHO_T = 
 EGREP = /bin/grep -E
-EPICS_BIN = 
-EPICS_INCLUDES = 
-EPICS_LDFLAGS = 
+EPICS_BIN = -DEPICS_BIN="\"/opt/lucid/epics/current/bin/linux-x86\""
+EPICS_INCLUDES = -I/opt/lucid/epics/current/include -I/opt/lucid/epics/current/include/os/Linux
+EPICS_LDFLAGS = -L/opt/lucid/epics/current/lib/linux-x86 -lca -Wl,"-rpath=/opt/lucid/epics/current/lib/linux-x86"
 EXEEXT = 
 FGREP = /bin/grep -F
 GENGETOPT = gengetopt
@@ -119,7 +119,7 @@ INSTALL_DATA = ${INSTALL} -m 644
 INSTALL_PROGRAM = ${INSTALL}
 INSTALL_SCRIPT = ${INSTALL}
 INSTALL_STRIP_PROGRAM = $(install_sh) -c -s
-KERNEL_SOURCE_DIR = 
+KERNEL_SOURCE_DIR = /usr/src/linux-source-2.6.32
 LD = /usr/bin/ld
 LDFLAGS = 
 LIBOBJS = 
@@ -203,7 +203,7 @@ mandir = ${datarootdir}/man
 mkdir_p = /bin/mkdir -p
 oldincludedir = /usr/include
 pdfdir = ${docdir}
-prefix = /usr/opt/daq/10.1-hira
+prefix = /opt/lucid/daq/10.1-006
 program_transform_name = s,x,x,
 psdir = ${docdir}
 sbindir = ${exec_prefix}/sbin
@@ -214,9 +214,9 @@ target_alias =
 top_build_prefix = ../../../
 top_builddir = ../../..
 top_srcdir = ../../..
-TCLDEST = /usr/opt/daq/10.1-hira/TclLibs/CHIP
+TCLDEST = /opt/lucid/daq/10.1-006/TclLibs/CHIP
 DATADEST = ${prefix}/etc/CHIP
-AM_CXXFLAGS = -DCESCAMAC -DVME -DINSTDIR=\"/usr/opt/daq/10.1-hira\"
+AM_CXXFLAGS = -DCESCAMAC -DVME -DINSTDIR=\"/opt/lucid/daq/10.1-006\"
 CHIP_SOURCES = ReadoutMain.cpp TCLThread.cpp XLM.cpp AVmeModule.cpp chip_cont.cpp chip_cont_wrap.cxx 
 CHIP_LDADD = ../../../usb/vmusb/vmusb/libVMUSBRemote.la \
 	../../../base/tclplus/libtclPlus.la \

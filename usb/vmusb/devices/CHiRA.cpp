@@ -110,8 +110,8 @@ CHiRA::onAttach(CReadoutModule& rConfig)
   // we're not going to do type checking here.. so this is really a 'module-pair' device.
   //
 
-  m_pConfiguration->addParameter("-xlm", &CHiRA::isModule, NULL);
-  m_pConfiguration->addParameter("-fadc", &CHiRA::checkXlms, NULL);
+  m_pConfiguration->addParameter("-fadc", &CHiRA::isModule, NULL);
+  m_pConfiguration->addParameter("-xlm", &CHiRA::checkXlms, NULL);
 
   
 
@@ -229,7 +229,7 @@ CHiRA::isModule(std::string name, std::string value, void* pArg)
 {
   CConfiguration* pConfiguration = Globals::pConfig;
 
-  return (pConfiguration->findAdc(name) != NULL);
+  return (pConfiguration->findAdc(value) != NULL);
 
 }
 /**
@@ -261,7 +261,7 @@ CHiRA::checkXlms(std::string name, std::string value, void* pArg)
         for (int i =0; i < elements.size(); i++) {
             elements[i].Bind(interp);
             std::string moduleName = static_cast<std::string>(elements[i]);
-            if (!isModule(name, moduleName, pArg)) return false;
+            if (!isModule(moduleName, moduleName, pArg)) return false;
         }
         
         // get/check the list element strings.

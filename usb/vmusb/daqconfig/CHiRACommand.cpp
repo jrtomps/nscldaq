@@ -132,7 +132,7 @@ CHiRACommand::create(CTCLInterpreter& interp, vector<CTCLObject>& objv)
 {
   // Need to have exactly 4 elements, command 'create' name base.
 
-  if (objv.size() != 4) {
+  if (objv.size() != 3) {
     Usage("Not enough parameters for create subcommand", objv);
     return TCL_ERROR;
   }
@@ -140,14 +140,8 @@ CHiRACommand::create(CTCLInterpreter& interp, vector<CTCLObject>& objv)
   // Get the command elements and validate them:
 
   string name    = objv[2];
-  string sBase   = objv[3];
-
   errno = 0;
-  uint32_t base  = strtoul(sBase.c_str(), NULL, 0);
-  if ((base == 0) && (errno != 0)) {
-    Usage("Invalid value for base address", objv);
-    return TCL_ERROR;
-  }
+
   CReadoutModule* pModule = m_Config.findAdc(name);
   if (pModule) {
     Usage("Duplicate module creation attempted", objv);
@@ -157,7 +151,6 @@ CHiRACommand::create(CTCLInterpreter& interp, vector<CTCLObject>& objv)
 
   CHiRA* pAdc = new CHiRA;
   pModule    = new CReadoutModule(name, *pAdc);
-  pModule->configure("-base", sBase);
 
   m_Config.addAdc(pModule);
 

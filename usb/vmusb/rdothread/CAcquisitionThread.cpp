@@ -181,7 +181,7 @@ CAcquisitionThread::operator()()
   }
   catch (CException& err) {
     Globals::running = false;
-    cerr << "CAcquisitino thread caught a daq exception: "
+    cerr << "CAcquisition thread caught a daq exception: "
 	 << err.ReasonText() << " while " << err.WasDoing() << endl;
     throw;
   }
