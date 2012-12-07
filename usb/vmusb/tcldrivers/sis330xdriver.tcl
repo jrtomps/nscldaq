@@ -465,15 +465,17 @@ snit::type sis330xDriver {
 	}
 	$list addMarker $mask
 
+
 	# Read each enabled group using the address register to provide a count.
 
 	foreach enable $options(-groupsread) \
 	    evInfoBase [list $EventInfo1 $EventInfo2 $EventInfo3 $EventInfo4] \
 	    evBuffer [list $Bank1Group1 $Bank1Group2 $Bank1Group3 $Bank1Group4] {
 		if {$enable} {
-		    $list addBlockCountRead32 [expr $base + $evInfoBase + $Bank1AddressCounter] \
+		    $list addBlockCountRead32 [expr $base + $evInfoBase + $SampleCount] \
 			[expr $sampleMaskValues($options(-samplesize))] $setupAmod; # read count...
 		    $list addMaskedCountBlockRead32 [expr $base + $evBuffer] $blockXfer; # the read itself.
+###DEBUG	    $list addRead32 [expr $base +$evInfoBase + $Bank1AddressCounter] $setupAmod
 		}
 	    }
     }
