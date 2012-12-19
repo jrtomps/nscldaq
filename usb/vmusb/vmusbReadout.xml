@@ -2966,6 +2966,7 @@ hira cget <replaceable>name</replaceable>
             which FADC groups are read, and the <option>-xlm</option> option value
             determines whether one or two XLM modules are associated witht this
             HiRA module.
+          </para>
         </refsect1>
         <refsect1>
            <title>

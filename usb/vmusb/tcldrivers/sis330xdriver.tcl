@@ -339,6 +339,7 @@ snit::type sis330xDriver {
 	# Turn off all bits in the ACQ register:
 
 	$list addWrite32 [expr $base + $DAQControl] $setupAmod 0xffff0000
+	$list addDelay 20
 
 	# Figure out what needs turning on in the acquisition register (having
 	# first turned everything off) ( and program related parameters if necessary)
@@ -370,7 +371,7 @@ snit::type sis330xDriver {
 	    set acqValue [expr $acqValue | $DAQEnableP2StartStop]
 	}
 	if {$options(-hirarandomclock)} {
-	    set acquValue [expr $acqValue | $DAQEnableHiRARCM | $DAQEnableRandomClock]
+	    set acqValue [expr $acqValue | $DAQEnableHiRARCM | $DAQEnableRandomClock]
 	}
  
 	set acqValue [expr $acqValue | ($clockSourceValues($options(-clocksource)) << $DAQClockSetShiftCount)]

@@ -84,6 +84,21 @@ CHINP::operator=(const CHINP& rhs)
   return reinterpret_cast<CHINP&>(CXLM::operator=(rhs));
 }
 
+/**
+ * onAttach
+ * 
+ *  Defines configuration parameters for the device:
+ *
+ * @param configuration - reference to the configuration database for this object.
+ */
+void
+CHINP::onAttach(CReadoutModule& configuration)
+{
+  CXLM::onAttach(configuration); // base class stuff too.
+  configuration.addParameter("-readsramb", CConfigurableObject::isBool, 
+			     NULL, "false");
+}
+
 ///////////////////////////////////////////////////////////////////////////////////
 // CReadoutHardware interfac methods
 ///////////////////////////////////////////////////////////////////////////////////
@@ -161,9 +176,15 @@ CHINP::addReadoutList(CVMUSBReadoutList& list)
   uint32_t srama = sramA();	// Base address of sram A
   uint32_t sramb = sramB();	// Base address of sram B
   //  read chip ID and channel address
-  list.addMarker(static_cast<uint16_t>((fpga >> 27) & 0x07 | 0xfff0));           // add ID for XLM slot #
+  list.addMarker(static_cast<uint16_t>((fpga >> 27) & 0x07 | 0x1ff0));           // add ID for XLM slot #
   list.addBlockCountRead32(srama, static_cast<uint32_t>(0x00000ffe), registerAmod); // Transfer count for 32-bit word data
+  list.addMaskedCountBlockRead32(srama + sizeof(uint32_t), blockTransferAmod);  list.addBlockCountRead32(srama, static_cast<uint32_t>(0x00000ffe), registerAmod); // Transfer count for 32-bit word data
   list.addMaskedCountBlockRead32(srama + sizeof(uint32_t), blockTransferAmod);
+  if (m_pConfiguration->getBoolParameter("-readsramb")) {
+    list.addMarker(static_cast<uint16_t>((fpga >> 27) & 0x07 | 0x2ff0));           // add ID for XLM slot #
+    list.addBlockCountRead32(sramb, static_cast<uint32_t>(0x00000ffe), registerAmod); // Transfer count for 32-bit word data
+    list.addMaskedCountBlockRead32(sramb + sizeof(uint32_t), blockTransferAmod);
+  }
   // read ADC data (non-unified only)
   //  list.addBlockCountRead32(srama, 0x00000fff, registerAmod); // Transfer count for data
   //  list.addMaskedCountBlockRead32(sramb, blockTransferAmod);

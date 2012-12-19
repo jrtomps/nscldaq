@@ -142,6 +142,7 @@ private:
   // 
 
 public:
+  virtual void onAttach(CReadoutModule& configuration);
   virtual void Initialize(CVMUSB& controller);
   virtual void addReadoutList(CVMUSBReadoutList& list);
   virtual CReadoutHardware* clone() const;
