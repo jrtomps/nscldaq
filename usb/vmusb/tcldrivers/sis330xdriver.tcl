@@ -72,7 +72,7 @@ snit::type sis330xDriver {
     option -samplesize      -default 128K           -configuremethod configureSampleSize
     option -wrap            -default off            -configuremethod configureBool
     option -thresholdslt    -default false          -configuremethod configureBool
-    option -thresholds      -default [list 0 0 0 0 0 0 0 0] -configuremethod configureThresholds
+    option -thresholds      -default [list 0x3fff 0x3fff 0x3fff 0x3fff 0x3fff 0x3fff 0x3fff 0x3fff] -configuremethod configureThresholds
     option -groupsread      -default [list true true true true] -configuremethod configureGroupsRead
 
 
@@ -117,8 +117,8 @@ snit::type sis330xDriver {
     #  setupamod - A32D32 - supervisory data access.
     #  blockread - A32D32 BLT supervisorydata  mode.
 
-    variable setupAmod 0x0d
-    variable blockXfer 0x0f
+    variable setupAmod 0x09
+    variable blockXfer 0x0b
 
     #-------------------------------------------------------------------------
     #
@@ -160,7 +160,7 @@ snit::type sis330xDriver {
     #   In addition there's a common group:
     #
 
-    variable CommonInfo                       0x00200000; # Common group register base.
+    variable CommonInfo                       0x00100000; # Common group register base.
     variable EventInfo1                       0x00200000; # Event information for group 1.
     variable EventInfo2                       0x00280000; # Event information for group 2.
     variable EventInfo3                       0x00300000; # Event information for group 3
@@ -180,7 +180,7 @@ snit::type sis330xDriver {
     variable Bank2EventCounter                0x00000014; # Bank2 event count register
     variable SampleValue                      0x00000018; # Actual sample value.
     variable TriggerClearCounter              0x0000001c; # Trigger flag clear counter register.
-    variable ClockPredivider                  0x00000020; # Sampling clock predivider.
+    variable ClockPredivider                  0x00000020; # GRP 3 only Sampling clock predivider.
     variable SampleCount                      0x00000024; # Number of samples
     variable TriggerSetup                     0x00000028; # Trigger setup register (all ADCS)
     variable MaxEvents                        0x0000002c; # Max no of events register (all ADCS).
@@ -323,14 +323,18 @@ snit::type sis330xDriver {
 
 	# Figure out and set the  initial CSR.
 
-	set csrValue   [expr $CRLedOff | $CRUserOutputOff | \
-			    $CREnableTriggerOutput | $CRNormalTriggerOutput]
+	set csrValue   [expr $CRUserOutputOff | \
+			    $CRLedOff        | \
+			    $CREnableTriggerOutput | \
+			    $CRNormalTriggerOutput]
+
 	if {$options(-stoptrigger)} {
 	    set csrValue [expr $csrValue | $CRTriggerOnArmedAndStarted]
 	} else {
 	    set csrValue [expr $csrValue | $CRTriggerOnArmed]
 	}
 	$list addWrite32 [expr $base + $CR] $setupAmod $csrValue
+	puts "CR Value written as [format %08x $csrValue]"
 
 	# Turn off all bits in the ACQ register:
 
@@ -366,24 +370,27 @@ snit::type sis330xDriver {
 	    set acqValue [expr $acqValue | $DAQEnableP2StartStop]
 	}
 	if {$options(-hirarandomclock)} {
-	    set acquValue [expr $acqValue | $DAQEnableHiRARCM]
+	    set acquValue [expr $acqValue | $DAQEnableHiRARCM | $DAQEnableRandomClock]
 	}
+ 
 	set acqValue [expr $acqValue | ($clockSourceValues($options(-clocksource)) << $DAQClockSetShiftCount)]
 	
 	$list addWrite32 [expr $base + $DAQControl] $setupAmod $acqValue
+	puts "ACQ Value [format %04x $acqValue]"
 	
 
 	# Configure the global event configuration register.
 
-	set evtConfig [expr $sampleSizeValues($options(-samplesize)) << $THRChannelShift]
+	set evtConfig [expr $sampleSizeValues($options(-samplesize)) << $ECFGPageSizeShiftCount]
 	if {$options(-wrap)} {
 	    set evtConfig [expr $evtConfig | $ECFGWrapMask]
 	}
 	if {$options(-randomclock)} {
 	    set evtConfig [expr $evtConfig | $ECFGRandomClock]
 	}
+	puts "Evt config register [format %08x $evtConfig]" 
 	$list addWrite32 [expr $base + $CommonInfo + $EventConfiguration] $setupAmod $evtConfig
-	
+
 	
 	# Channel thresholds:
 
@@ -398,26 +405,21 @@ snit::type sis330xDriver {
 	    if {$options(-thresholdslt)} {
 		set odd [expr $odd | $THRLt]
 	    }
+	    set registerValue [expr ($odd << $THRChannelShift) | $even]
+	    puts "Writing threshold [format "%08x to %08x" $registerValue [expr $base +  $EventBases([expr $chan/2]) + $TriggerThreshold]]"
+
 	    $list addWrite32 \
-		[expr $base + $CommonInfo + $EventBases([expr $chan/2]) + $TriggerThreshold] \
-		$setupAmod [expr ($odd << $THRChannelShift) | $even]
+		[expr $base +  $EventBases([expr $chan/2]) + $TriggerThreshold] \
+		$setupAmod $registerValue
 	}
 	puts "Done setting channel thresholds"
 
-	# Sample only into bank 1 for now.
+	# Disarm both banks first:
 
-	$list addWrite32 [expr $base + $DAQControl] $setupAmod $DAQSampleBank1On
+	$list addWrite32 [expr $base + $DAQControl] $setupAmod \
+	    [expr $DAQSampleBank1Off | $DAQSampleBank2Off]
 
 
-	# Arm module for bank 1.
-
-	$list addWrite32 [expr $base + $DAQControl] $setupAmod $DAQSampleBank1On
-
-	# if in stop trigger mode, start sampling.
-
-	if {$options(-stoptrigger)} {
-	    $list addWrite32 [expr $base +$DAQControl] $setupAmod $DAQSampleBank1One
-	}
 	
 	# Execute the list:
 	
@@ -427,7 +429,32 @@ snit::type sis330xDriver {
 #	$inputData destroy
 	$list -delete
 	puts "Returning from init"
-  
+
+	# Dump the values of some key registers:
+
+	set cr [$vmusb vmeRead32 [expr $base + $CR] $setupAmod]
+	puts "Control register [format %08x $cr]"
+
+	set daqctl [$vmusb vmeRead32 [expr $base + $DAQControl] $setupAmod]
+	puts "DAQ control register  [format %08x $daqctl]"
+
+
+	set evconfig [$vmusb vmeRead32 [expr $base + $EventInfo1] $setupAmod]
+	puts "Event config: [format %08x $evconfig]"
+
+	# Do some one shot stuff at the end of the bulk initialization.
+	#  - Clear the data
+	#  - arm bank 1
+	#  - If the configuration justifies, start sampling.
+
+	$self _SetArm $controller 1 on
+
+	if {!$options(-gatemode)} {
+	    puts "Turning on sampling now!"
+	    $self _StartSampling $controller
+	}
+	set daqctl [$vmusb vmeRead32 [expr $base + $DAQControl] $setupAmod]
+	puts "DAQ control register(after arming)  [format %08x $daqctl]"	
     }
     ##
     # addReadoutList 
@@ -455,16 +482,22 @@ snit::type sis330xDriver {
 	set base $options(-base); # using this frequently so...
 	set list [VMUSBDriverSupport::convertVmUSBReadoutList $list]
 
+	# Stop the adc sample clock:
+
+	$list addWrite32 [expr $base + $VMEStop] $setupAmod 1
+	$list addWrite32 [expr $base + $DAQControl] $setupAmod $DAQSampleBank1Off
+
 	# Prefix the output with a mask of the groups we'll read:
 
 	set mask 0 
+	$list addMarker 0xfadc
 	foreach bit [list 1 2 4 8] enable $options(-groupsread) {
 	    if {$enable} {
 		set mask [expr $mask | $bit]
 	    }
 	}
 	$list addMarker $mask
-
+	$list addDelay  1
 
 	# Read each enabled group using the address register to provide a count.
 
@@ -472,13 +505,79 @@ snit::type sis330xDriver {
 	    evInfoBase [list $EventInfo1 $EventInfo2 $EventInfo3 $EventInfo4] \
 	    evBuffer [list $Bank1Group1 $Bank1Group2 $Bank1Group3 $Bank1Group4] {
 		if {$enable} {
-		    $list addBlockCountRead32 [expr $base + $evInfoBase + $SampleCount] \
-			[expr $sampleMaskValues($options(-samplesize))] $setupAmod; # read count...
+		    puts "Adding maske count read from \
+[format %08x [expr $base + $evInfoBase + $EventDirectory1]] mask : [format %08x $sampleMaskValues($options(-samplesize))]" 
+		    $list addBlockCountRead32 \
+			[expr $base + $evInfoBase + $EventDirectory1] \
+			[expr $sampleMaskValues($options(-samplesize))] $setupAmod; # read count..
+		    
 		    $list addMaskedCountBlockRead32 [expr $base + $evBuffer] $blockXfer; # the read itself.
-###DEBUG	    $list addRead32 [expr $base +$evInfoBase + $Bank1AddressCounter] $setupAmod
+		    $list addMarker 0xaaaa
+		    $list addDelay   1
 		}
 	    }
+
+	#  Clear daq, re-arm and start sampling.
+	#
+
+	$list addWrite32 [expr $base + $DAQControl] $setupAmod $DAQSampleBank1On
+	$list addWrite32 [expr $base + $VMEStart]   $setupAmod 1
+
+
     }
+    #-----------------------------------------------------------------------
+    #
+    # Private utilties:
+
+
+    ##
+    #  method _Clear controller
+    #
+    #  Clears the data in the module
+    #
+    # @param controller - VMUSB controller object.
+    #
+    method _Clear controller {
+	$controller vmeWrite32 [expr $options(-base) +$DAQControl] \
+	    $setupAmod $DAQSampleBank1On
+    }
+    ##
+    # method _SetArm controller which state
+    #
+    # Arms or disarms an adc bank:
+    #
+    # @param controller - VMUSB controller object.
+    # @param which      - Which bank to arm/disarm (1 or 2).
+    # @param state      - What to do: true - arm, false disarm
+    #
+    method _SetArm {controller which state} {
+	array set arms    [list 1 $DAQSampleBank1On  2 $DAQSampleBank2On]
+	array set disarms [list 1 $DAQSampleBank1Off 2 $DAQSampleBank2Off]
+
+	set addr [expr $options(-base) + $DAQControl]
+	if {$state} {
+	    set value $arms($which)
+	} else {
+	    set value $disarms($which)
+	}
+	puts "Arm/disarm: [format "%08x @ %08x" $value $addr]"
+	$controller vmeWrite32 $addr $setupAmod $value
+    }
+    #
+    # _StartSampling controller
+    #
+    # Start the ADC Sampling.
+    #
+    # @param controller - VM-USB controller object.
+    #
+    method _StartSampling {controller} {
+	$controller vmeWrite32 [expr $options(-base) + $VMEStart] \
+	    $setupAmod 1;	# Key register could write anything.
+    }
+
+
+    ##
+
     #-----------------------------------------------------------------------
     #
     # Configuration setters:
