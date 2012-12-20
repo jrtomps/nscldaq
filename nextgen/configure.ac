@@ -569,7 +569,6 @@ AC_CONFIG_FILES([Makefile
 		 usb/vmusb/driverkit/Makefile usb/vmusb/driverkit/Makefile-template
 		 usb/vmusb/tcldrivers/Makefile
 		 usb/vmusb/driverkit/VMUSBDriverIncludes
-		 usb/vmusb/HINP_USB_new/Makefile
 		 usb/ccusb/Makefile
 		 usb/ccusb/ccusb/Makefile usb/ccusb/devices/Makefile 
 		 usb/ccusb/threadcomm/Makefile usb/ccusb/router/Makefile
