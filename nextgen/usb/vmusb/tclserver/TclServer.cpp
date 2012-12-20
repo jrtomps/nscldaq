@@ -25,10 +25,14 @@ using namespace std;
 #include "CGetCommand.h"
 #include "CUpdateCommand.h"
 #include "CMonCommand.h"
+#include "CWatchCommand.h"
 #include <DataBuffer.h>
+#include <CBufferQueue.h>
+#include <DataFormat.h>
 
 #include <tcl.h>
 #include <TCLInterpreter.h>
+#include <TCLObject.h>
 #include <CVMUSB.h>
 #include <CVMUSBReadoutList.h>
 #include "CControlModule.h"
@@ -40,8 +44,11 @@ using namespace std;
 #include <Globals.h>
 
 
-static const int MonitorInterval(1); // Number of seconds between monitor interval.
 
+#include <vector>
+
+static const int MonitorInterval(1);   // Number of seconds between monitor interval.
+static const int VarUpdateInterval(1); // Number of seconds between variable update items
 /* Pointer to the single instance in order to support transition from
 ** static functions to object context.
 */
@@ -61,7 +68,8 @@ TclServer::TclServer() :
   m_pMonitorList(0),
   m_waitingMonitor(false),
   m_pMonitorData(0),
-  m_nMonitorDataSize(0)
+  m_nMonitorDataSize(0),
+  m_dumpAllVariables(true)
 
 {
   m_pInstance = this;		// static->object context.
@@ -241,6 +249,7 @@ TclServer::initInterpreter()
 		    *this,
 		    *m_pVme);
   new CMonCommand(*m_pInterpreter, *this);
+  new CWatchCommand(*m_pInterpreter, *this);
   
 }
 /*
@@ -305,6 +314,11 @@ TclServer::EventLoop()
   if (m_pMonitorList && m_pMonitorList->size()) {
     MonitorDevices(this);	// Allow it to locate us.
   }
+
+  // Start the timed send of monitored variable values.
+
+  updateVariables(this);
+
   // Start the event loop:
 
   while(1) {
@@ -511,5 +525,119 @@ TclServer::receiveMonitorData(Tcl_Event* pEvent, int flags)
   Tcl_Free((char*)pData);
   return 1;
 
+}
+/**
+ * updateVariables(ClientData pData)
+ *
+ * Handle and re-schedule watched variable updates.
+ *
+ * @param pData - Actually a pointer to a TclServer object.
+ *
+ */
+void 
+TclServer::updateVariables(ClientData pData)
+{
+  TclServer* pServer = reinterpret_cast<TclServer*>(pData);
 
+  pServer->sendWatchedVariables();
+
+  Tcl_CreateTimerHandler(VarUpdateInterval, TclServer::updateVariables, pData); // Schedule the next update.
+
+}
+
+/**
+ * sendWatchedVaraibles
+ *
+ * Handle watched variable updates.  
+ * - The run must be halted.
+ * - Get the set of variables that have been modified.
+ * - Get their values.
+ * - Create 'set' commands for them.
+ * - Build a set of buffers for the router and send them.
+ */
+void
+TclServer::sendWatchedVariables()
+{
+  CRunState::RunState state = CRunState::getInstance()->getState();
+  if (state == CRunState::Active) {
+    std::vector<CWatchCommand::TCLVariableName> modifications;
+
+    if (m_dumpAllVariables) {
+      modifications = CWatchCommand::getWatchedVariables(*m_pInterpreter);
+      m_dumpAllVariables = false;
+    } else {
+      modifications = CWatchCommand::getModifications();
+    }
+    Tcl_Interp* pInterp = m_pInterpreter->getInterpreter();
+    if (!modifications.empty()) {
+
+      DataBuffer*    pBuffer  = 0;
+      pStringsBuffer pStrings = 0;
+      char*          pDest    = 0;
+
+      // Create the commands:
+
+      for (int i = 0; i < modifications.size(); i++) {
+	
+	// If necessary get a buffer.
+	
+	if (!pBuffer) {
+	  pBuffer               = gFreeBuffers.get();
+	  pBuffer->s_bufferSize = sizeof(StringsBuffer) - sizeof(char);
+	  pBuffer->s_bufferType = TYPE_STRINGS;
+	  pStrings              = reinterpret_cast<pStringsBuffer>(pBuffer->s_rawData);
+	  pStrings->s_stringCount = 0;
+	  pStrings->s_ringType    = MONITORED_VARIABLES;
+	  pDest                 = pStrings->s_strings;
+	}
+	
+
+	// construct the variable name:
+	
+	std::string fullName = modifications[i].first;
+	if (modifications[i].second != "") {
+	  fullName += "(" + modifications[i].second + ")";
+	}
+	const char* pValue = Tcl_GetVar(pInterp, fullName.c_str(), TCL_GLOBAL_ONLY);
+	if (pValue) {		// Protect against an unset between modification and now:
+	  
+	  // Construct the command as a list so that stuff will be properly quoted:
+
+	  CTCLObject setCommandObj;
+	  setCommandObj.Bind(*m_pInterpreter);
+	  setCommandObj += "set";
+	  setCommandObj += fullName;
+	  setCommandObj += pValue;
+
+	  std::string setCommand = (std::string)(setCommandObj); // Now it's all properly quoted.
+
+	  /*
+	    If there's room, add to the buffer etc.  If not submit the buffer
+	    and get a new one. This code assumes the set command will fit in an empty buffer.
+	  */
+	  if ((setCommand.size() + pBuffer->s_bufferSize + 1) > pBuffer->s_storageSize) {
+	    gFilledBuffers.queue(pBuffer);
+	    
+	    pBuffer               = gFreeBuffers.get();
+	    pBuffer->s_bufferSize = sizeof(StringsBuffer) - sizeof(char);
+	    pBuffer->s_bufferType = TYPE_STRINGS;
+	    pStrings              = reinterpret_cast<pStringsBuffer>(pBuffer->s_rawData);
+	    pStrings->s_stringCount = 0;
+	    pStrings->s_ringType    = MONITORED_VARIABLES;
+	    pDest                 = pStrings->s_strings;
+	    
+	  }
+	  strcpy(pDest, setCommand.c_str());
+	  *pDest = 0;
+	  pStrings->s_stringCount++;
+	  pBuffer->s_bufferSize += setCommand.size() + 1;
+	}
+      }
+      // Submit any partial buffer:
+
+      gFilledBuffers.queue(pBuffer);
+    }
+  } else {
+    m_dumpAllVariables = true;	// When the run starts next dump everything!
+  }
 }

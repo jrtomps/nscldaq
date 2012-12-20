@@ -59,6 +59,11 @@
                 The slow controls protocol and its primitives.
             </para>
         </listitem>
+        <listitem>
+            <para>
+                Variable monitoring.
+            </para>
+        </listitem>
     </itemizedlist>
     <para>
         Reference information is available in the
@@ -223,7 +228,7 @@ stack config scaler -modules [list sisscaler] -trigger scaler -period 2
         </para>
         <para>
             For information about how to use those modules, contact
-            Lee Sobotka at Washington University directly.
+            Lee Sobotka or Jon Elson at Washington University directly.
         </para>
     </section>
     
@@ -447,7 +452,8 @@ CTemplateDriver::onAttach(CReadoutModule&amp; configuration)
             </para>
             <para>
                 See <xref linkend='vmusb3-CVMUSB' /> and
-                <xref linkend='vmusb3-CVMUSBReadoutList' /> for reference
+                <xref linkend='vmusb3-CVMUSBReadoutList'
+                        endterm='vmusb3-CVMUSBReadoutList-title'/> for reference
                 information about those two classes.
             </para>
             <para>
@@ -1321,7 +1327,143 @@ Module config cfd -base 0x1245000 \
                 controls system executing immediate lists via remote procedure
                 calls. This documentation will be fleshed out in a future
                 version.
-            </para>     
+            </para>
+            <para>
+                This functionality must be enabled
+                by including a <command>Module vmusb</command> command
+                in your control configuration file.
+            </para>
+            <para>
+                Clients then use a pair of classes/objects
+                to perform VM-USB lists:
+            </para>
+            <variablelist>
+                <varlistentry>
+                    <term><classname>CVMUSBReadoutList</classname></term>
+                    <listitem>
+                        <para>
+                            Instances of this class represent lists of VME
+                            operations you want to perform via the server.
+                            See <link linkend='vmusb3-CVMUSBReadoutList'
+                                endterm='vmusb3-CVMUSBReadoutList-title' />
+                            for reference information.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                   <term><classname>CVMUSBRemote</classname></term>
+                   <listitem>
+                    <para>
+                        Instances of this class represent connections
+                        to VMUSBReadout slow controls servers.  Instances
+                        provide a mechanism for submitting a
+                        <classname>CVMUSBReaoutlist</classname>
+                        for remote execution and gathering the results
+                        back for client code.
+                    </para>
+                    <para>
+                        See <link linkend='vmusb3-CVMUSBRemote'
+                            endterm='vmusb3-CVMUSBRemote-title' />
+                        for reference information about this class.
+                    </para>
+                   </listitem>
+                </varlistentry>
+            </variablelist>
+            <para>
+                Programs using these classes must link to the
+                <filename>libVMUSBRemote</filename> library in the NSCLDAQ
+                <filename>lib</filename> subdirectory.
+            </para>
+        </section>
+    </section>
+    <section>
+        <title>Pushing external data into the event stream</title>
+        <para>
+            The slow controls port can also be used to send data that will
+            be periodically inserted in the data stream.  The mechanism
+            for this is intended to monitor slowly varying values (for example
+            magnet currents).  Here's a brief sketch about how this works:
+        </para>
+        <itemizedlist>
+            <listitem><para>
+                In your slow controls configuration file you specify Tcl
+                variables whose values will be watched.
+                </para></listitem>
+            <listitem><para>
+                A slow controls client sets those variables to value that
+                reflect the things to be monitored in the outside world
+                (e.g. <application>controlpush</application> can set
+                the arrays <varname>EPICS_DATA</varname>,
+                <varname>EPISC_UNITS</varname> and <varname>EPICS_UPDATED</varname>
+                to reflect changes in epics process variables).
+                </para></listitem>
+            <listitem><para>
+                When the run is active, every two seconds the current values of
+                any variables that were modified since the last update operation
+                are pushed to the ring buffer as <literal>MONITORED_VARIABLE</literal>
+                string list items.  Note that towards the beginning of the
+                run one or more ring items will be generated that have
+                all monitored variable values.
+                </para>
+            </listitem>
+        </itemizedlist>
+        <section>
+            <title>Specifying variables to be monitored.</title>
+            <para>
+                The key to monitoring variables is that the control server is
+                really a Tcl interpreter executing commands that are poked into
+                it by its client sockets.  The Tcl server supports a new
+                command <command>watch</command> which allows you to specify
+                which variables should be monitored.
+            </para>
+            <para>
+                The example below specifies that the arrays
+                <varname>EPICS_DATA</varname>, <varname>EPICS_UNITS</varname>,
+                <varname>EPICS_UPDATED</varname> and the scalar variable
+                <varname>monitored</varname> should be monitored.;
+            </para>
+            <example>
+                <title>Specifying VM-USB monitored variables</title>
+                <programlisting>
+array set EPICS_DATA    [list]
+array set EPICS_UNITS   [list]     <co id='watchexample-createarrays' />
+array set EPICS_UPDATED [list]
+
+watch EPICS_DATA
+watch EPICS_UNITS                  <co id='watchexample-monitorarrays' />
+watch EPICS_UPDATED
+
+watch monitored                   <co id='watchexample-monitorscalar' />
+                </programlisting>
+            </example>
+            <calloutlist>
+                <callout arearefs='watchexample-createarrays' >
+                    <para>
+                        In order to monitor an array, the array must first
+                        be created. Note that this is not the case
+                        for a scalar variable.
+                        </para>
+                </callout>
+                <callout arearefs='watchexample-monitorarrays'>
+                    <para>
+                        These commands specify that the three arrays
+                        we created with the <command>array set</command>
+                        command should be monitored.
+                    </para>
+                </callout>
+                <callout arearefs='watchexample-monitorscalar'>
+                    <para>
+                       Since <varname>monitored</varname> was not created as
+                       an array only the single scalar value
+                       will be monitored.
+                       </para>
+                </callout>
+            </calloutlist>
+            <para>
+                For more information about the <command>watch</command>
+                command see <link linkend="vmusb3-watch" endterm='vmusb3-watch-title' />
+                in the reference manual pages.
+            </para>
         </section>
     </section>
     <section>
@@ -1785,6 +1927,299 @@ caenchain config chain -base 0x10000000 -modules [list adc1 adc2 adc3]
      </refsect1>
 
    </refentry>
+   
+   <!-- SIS 330x FADC driver -->
+   
+         <refentry id="vmusb3-sis330x">
+           <refmeta>
+              <refentrytitle>sis330x</refentrytitle>
+              <manvolnum>3vmusb</manvolnum>
+           </refmeta>
+           <refnamediv>
+              <refname>sis330x</refname>
+              <refpurpose>Driver for SIS3300/1 FADC</refpurpose>
+           </refnamediv>
+           
+           <refsynopsisdiv>
+            <cmdsynopsis>
+                <command>
+package require SIS330XDriver
+                </command>
+            </cmdsynopsis>
+             <cmdsynopsis>
+                 <command>
+sis3300 <replaceable>name ?options?</replaceable>   
+                </command>
+             </cmdsynopsis>
+             <cmdsynopsis>
+                <command>
+<replaceable>name</replaceable> configure <replaceable>options</replaceable>
+                </command>
+            </cmdsynopsis>
+             <cmdsynopsis>
+                <command>
+<replaceable>name</replaceable> cget <replaceable>option</replaceable>
+                </command>
+             </cmdsynopsis>
+             <cmdsynopsis>
+                <command>
+addtcldriver <replaceable>name</replaceable>
+                </command>
+             </cmdsynopsis>
+           </refsynopsisdiv>
+           <refsect1>
+              <title>DESCRIPTION</title>
+              <para>
+                Provides support for the SIS 3300/3301 flash adc module.
+                This is a Tcl driver, hence the need for a
+                <command>package require</command> command to load the driver
+                and a <command>addtcldriver</command> command to connect
+                a driver instance with the framework.
+              </para>
+              <para>
+                The driver support restricting the readout to a subset of the
+                channels. See  the <option>-groupsread</option> option for
+                more information in OPTIONS below.
+              </para>
+              <para>
+                The structure of data read from the SIS3300/3301 is shown
+                below (all elements are 32 bit integers unless otherwise
+                indicated):
+              </para>
+              <informalexample>
+                <programlisting>
++-------------------------------+
+|  Group Mask                   | (16 bits)  <co id="sis3300_data_gmask" />
++-------------------------------+
+|  Group size                   |            <co id="sis3300_data_gsize" />
++-------------------------------+
+| Group data                    |
+|          ...                  |            <co id="sis3300_data_group" />
++-------------------------------+
+                </programlisting>
+              </informalexample>
+            <calloutlist>
+                <callout arearefs="sis3300_data_gmask">
+                    <para>
+                        The low order four bits of this 16 bit data word
+                        describe which ADC groups are present.  If bit 0
+                        is set, group 1 is present, if bit 1 is set group 2
+                        and so on.
+                    </para>
+                    <para>
+                        Group data that follow are in order of low numbered
+                        group to high numbered group for each group whose bit
+                        is set in this group mask.
+                    </para>
+                </callout>
+                <callout arearefs="sis3300_data_gsize" >
+                    <para>
+                        The group mask is followed by group data for each bit
+                        set in the mask.  This field contains the number of
+                        longwords of group data that follows.  The size
+                        is not self-inclusive.
+                    </para>
+                </callout>
+                <callout arearefs="sis3300_data_group">
+                    <para>
+                        Group data is the raw ADC trace data from the data
+                        buffer.  The format of these longwords
+                        is shown in section 4.34 of the SIS manual.
+                    </para>
+                </callout>
+            </calloutlist>
+           </refsect1>
+           <refsect1>
+              <title>
+                 OPTIONS
+              </title>
+              <variablelist>
+                <varlistentry>
+                    <term><option>-base</option> <replaceable>base-address</replaceable></term>
+                    <listitem>
+                        <para>Module base address in VME.</para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><option>-clocksource</option> <replaceable>clocksource</replaceable></term>
+                    <listitem>
+                        <para>
+                            Module clock source.  This must be a value chosen
+                            from one of the following strings:
+                            <literal>100Mhz, 50Mhz, 25Mhz, 12.5Mhz, 6.25Mhz,
+                            3.125Mhz FrontPanel P2Connector</literal>.
+                            The clock source determines the sampling rate of the
+                            ADC (or when data are clocked in in the case of
+                            HiRA Mode.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><option>-startdelay</option> <replaceable>boolean</replaceable></term>
+                    <listitem>
+                        <para>
+                            If true the start delay is enabled and.  See
+                            <option>-startdelayticks</option> to see how this delay
+                            is controlled.  Note that the start delay determines when
+                            the first sample is saved relative to the start.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><option>-startdelayticks</option> <replaceable>integer</replaceable></term>
+                    <listitem>
+                        <para>Number of samples in the start delay.   If
+                            <option>-startdelay</option> is <literal>
+                            false</literal>, this parameter is not used.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><option>-stopdelay</option> <replaceable>boolean</replaceable></term>
+                    <listitem>
+                        <para>
+                             If true, the stop delay is enabled. See
+                             <option>-stopdelayticks</option> to set the actual
+                             stop delay.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><option>-stopdelayticks</option></term>
+                    <listitem>
+                        <para>
+                            This is the number of samples in the stop delay.
+                            If <option>-stopdelay</option> is <literal>true</literal>,
+                            when a stop occurs, data will be taken for this
+                            number of samples more.  Note that this value is
+                            completely ignored if <option>-stopdelay</option>
+                            is <literal>false</literal>.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><option>-stoptrigger</option> <replaceable>boolean</replaceable></term>
+                    <listitem>
+                        <para>
+                            If <literal>true</literal> the module stop is the trigger.
+                            This pretty much has to be used with
+                            <option>-stopdelay</option> and
+                            <option>-stopdelayticks</option>
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><option>-gatemode</option>  <replaceable>boolean</replaceable></term>
+                    <listitem>
+                        <para>
+                            Module is or is not in gate mode.  In gate mode
+                            the module is started from the falling edge of the
+                            gate input and stopped by the rising edge of that signal.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><option>-lemostartstop</option> <replaceable>boolean</replaceable></term>
+                    <listitem>
+                        <para>
+                            Start/Stop come from lemo inputs.  This is enabled by
+                            default.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><option>-p2startstop</option> <replaceable>boolean</replaceable></term>
+                    <listitem>
+                        <para>
+                                Backplane signals on the p2 connector
+                                provide start/stop.  Note that this and
+                                <option>lemostartstop</option> are not
+                                mutually exlusive.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><option>-hirarandomclock</option> <replaceable>boolean</replaceable></term>
+                    <listitem>
+                        <para>If true, HiRA random clock mode is enabled.
+                            HiRA Random clock is normally used with the
+                            Washington University Chip board readouts when
+                            the readout is done with an XLM other than the
+                            XLM-VV when the analog information is collected
+                            by an SIS 3301 board.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><option>-randomclock</option> <replaceable>boolean</replaceable></term>
+                    <listitem>
+                        <para>If true front panel provides a random clock with
+                             a symmetric pulse shape
+                             See section2.5.3 of the module documentation.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><option>-samplesize</option> <replaceable>enum value</replaceable></term>
+                    <listitem>
+                        <para>Size of sample buffers.  This is one of the
+                            following text strings:
+                            <literal>128K, 16K, 4K, 2K, 1K, 512, 256 128</literal>.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><option>-wrap</option> <replaceable>boolean</replaceable></term>
+                    <listitem>
+                        <para>Buffers are  in wrap mode (normally used if
+                            start/stop is longer than the samplesize.  Once
+                            sampling runs off the end of the buffer sampling
+                            continues writing at the low memory location
+                            (wraps).  Please note that at present, the
+                            readout method used does not support this.
+                            If you have a need to use this mode, please
+                            contact the NSCL software development group to
+                            arrange further development.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><option>-thresholdslt</option> <replaceable>boolean</replaceable></term>
+                    <listitem>
+                        <para>If true, channel thresholds represent a  level
+                            _below_ which the conversion must fall. This is normally
+                            used with negative going pulses since the data are
+                            represented as half-scale offset unsigned integers.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><option>-thresholds</option> <replaceable>8 element int list</replaceable></term>
+                    <listitem>
+                        <para>Threshold values for all 8 channels.  This parameter,
+                              if provided is an 8 element integer list of
+                              threshold values.  See as well
+                              <option>thresholdslt</option> which can modify
+                              how this value is interpreted.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><option>-groupsread</option> <replaceable>4 element bool list</replaceable></term>
+                    <listitem>
+                        <para>List of flags indicating which groups of ADCs will
+                            be read. The module is organized into 4 groups of 2 ADCs each).
+                            The manual refers to them as groups 1,2,3,4.  The first
+                            list element allows or disables the readout of group 1
+                            and so on.
+                        </para>
+                    </listitem>
+                </varlistentry>
+
+              </variablelist>
+           </refsect1>
+   
+         </refentry>
    
    <!-- SIS 3820 scaler command  -->
             
@@ -2481,6 +2916,113 @@ sis3804 config scaler1 -refpulser true
         </refsect1>
       
       </refentry>
+      <refentry id="vmusb3-hira">
+        <refmeta>
+           <refentrytitle>hira</refentrytitle>
+           <manvolnum>3vmusb</manvolnum>
+        </refmeta>
+        <refnamediv>
+           <refname>hira</refname>
+           <refpurpose>Pair up to 2 XLMs and FADC for HiRA</refpurpose>
+        </refnamediv>
+        
+        <refsynopsisdiv>
+          <cmdsynopsis>
+          <command>
+hira create <replaceable>name ?options?</replaceable>
+          </command>
+          </cmdsynopsis>
+            <cmdsynopsis>
+                <command>
+hira config <replaceable>name options</replaceable>
+                </command>
+            </cmdsynopsis>
+            <cmdsynopsis>
+                <command>
+hira cget <replaceable>name</replaceable>
+                </command>
+            </cmdsynopsis>
+
+
+        </refsynopsisdiv>
+        <refsect1>
+           <title>DESCRIPTION</title>
+           <para>
+            In situations where an XLM-XXV is not available, Wash-U chip boards
+            can be read out using an XLM and an SIS3300/SIS3301 FADC module.
+            This command allows you to combine these into a single module.
+            from the point of view of a stack.
+           </para>
+           <para>
+            The command produces the following data format:
+           </para>
+           <informalexample>
+            <programlisting>
++------------------------------------+
+|   id (16) bits                     |
++------------------------------------+
+| tag data from the xlm  1 srama     |
+...
+| tag data from xlm1 sram b          |
+../
++------------------------------------+
+| Data from the FADC module group1   |
+...
+| Data from the FADC module group2   |
++------------------------------------+
+            </programlisting>
+           </informalexample>
+           <para>
+            Note that the configuration parameters of the XLM's determine whether
+            or not both SRAM banks are read, the configuration of the FADC determines
+            which FADC groups are read, and the <option>-xlm</option> option value
+            determines whether one or two XLM modules are associated witht this
+            HiRA module.
+          </para>
+        </refsect1>
+        <refsect1>
+           <title>
+              OPTIONS
+           </title>
+           <variablelist>
+            <varlistentry>
+                <term><option>-id</option> <replaceable>integer</replaceable></term>
+                <listitem>
+                    <para>
+                        Provides the id tag that precedes the data from the
+                        two actual modules.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><option>-xlm</option> <replaceable>module-name</replaceable></term>
+                <listitem>
+                    <para>
+                        This parameter is a list of one or two XLM modules assoiated
+                        with this HiRA.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><option>-fadc</option> <replaceable>module-name</replaceable></term>
+                <listitem>
+                    <para>
+                        This parameter is the name of the sis330x module that
+                        gets the analog data
+                    </para>
+                </listitem>
+            </varlistentry>
+           </variablelist>
+           <note>
+            <title>Note:</title>
+            <para>
+                The software does not check that the XLM is an XLM or that the
+                fadc is an SIS 330x module.
+            </para>
+           </note>
+        </refsect1>
+
+      </refentry>
 
       <refentry id="vmusb3-hytec">
         <refmeta>
@@ -2807,6 +3349,224 @@ hytec config adc -lld 0.0 -hld 8.191 -events 1 -id 0xadc1 -zerosuppress on
 	       </listitem>
 	    </orderedlist>
 	</refsect1>
+      </refentry>
+      <refentry id="vmusb3-tcldriversupport">
+        <refmeta>
+           <refentrytitle>tcl driver support</refentrytitle>
+           <manvolnum>3vmusb</manvolnum>
+        </refmeta>
+        <refnamediv>
+           <refname>tcl driver support</refname>
+           <refpurpose>tcl driver support functions.</refpurpose>
+        </refnamediv>
+        
+        <refsynopsisdiv>
+          <cmdsynopsis>
+            <command>
+package require VMUSBDriverSupport
+            </command>
+          </cmdsynopsis>
+        <cmdsynopsis>
+            <command>
+::VMUSBDriverSupport::convertVmUSB <replaceable>name</replaceable>
+            </command>
+        </cmdsynopsis>
+        <cmdsynopsis>
+            <command>
+::VMUSBDriverSupport::convertVmUSBReadoutList <replaceable>name</replaceable>
+            </command>
+        </cmdsynopsis>
+            <cmdsynopsis>
+                <command>
+::VMUSBDriverSupport::validInt <replaceable>value ?low ?high??</replaceable>
+                </command>
+            </cmdsynopsis>
+            <cmdsynopsis>
+                <command>
+::VMUSBDriverSupport::validReal <replaceable>value ?low ?high??</replaceable>
+                </command>
+            </cmdsynopsis>
+            <cmdsynopsis>
+                <command>
+::VMUSBDriverSupport::valideEnum <replaceable>value set</replaceable>
+                </command>
+            </cmdsynopsis>
+            <cmdsynopsis>
+                <command>
+::VMUSBDriverSupport::validBool <replaceable>value</replaceable>
+                </command>
+            </cmdsynopsis>
+            <cmdsynopsis>
+                <command>
+::VMUSBDriverSupport::validList <replaceable>value ?fewest ?most ?checker ?args????</replaceable>
+                </command>
+            </cmdsynopsis>
+            <cmdsynopsis>
+                <command>
+::VMUSBDriverSupport::validIntList <replaceable>value ?fewest ?most ?low ?high????</replaceable>
+                </command>
+            </cmdsynopsis>
+            <cmdsynopsis>
+                <command>
+::VMUSBDriverSupport::validBoolList <replaceable>value ?fewest ?most???</replaceable>
+                </command>
+            </cmdsynopsis>
+
+        </refsynopsisdiv>
+        <refsect1>
+           <title>DESCRIPTION</title>
+           <para>
+            This package provides utiltities that are of use/interest to
+            Tcl device driver modules for the VM-USB readout framework.
+            The attempt is to centralize/factor common code out of driver
+            modules that is commonly used.  
+           </para>
+        </refsect1>
+        <refsect1>
+           <title>
+              COMMANDS
+           </title>
+           <variablelist>
+            <varlistentry>
+                <term><command>::VMUSBDriverSupport::convertVmUSB <replaceable>name</replaceable>
+                </command></term>
+                <listitem>
+                    <para>
+                        Converts a swig CVMUSB object identifier into a usable
+                        CVMUSB object.  Once converted the driver can invoke
+                        methods on that object.  <parameter>name</parameter>
+                        is the object passed in to the driver.  The return
+                        value will be the  name of the new object.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><command>::VMUSBDriverSupport::convertVmUSBReadoutList <replaceable>name</replaceable></command></term>
+                <listitem>
+                    <para>
+                        Converts a CVMUSBReadoutList swig object identifier into
+                        an object.  Once converted, the object methods can
+                        be directl invoked.
+                        <parameter>name</parameter> is the name passed in to the
+                        method by the framework.  the return value is the
+                        name of the object.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><command>::VMUSBDriverSupport::validInt <replaceable>value ?low ?high??</replaceable></command></term>
+                <listitem>
+                    <para>
+                        Provides type checking and optional range checking for
+                        integer data. This is most often called to validate
+                        an integer driver option.
+                    </para>
+                    <para>
+                        Throws an error if <parameter>value</parameter> is not
+                        a valid integer.  Additionally, if <parameter>low</parameter>
+                        is not empty, an error is thrown if
+                        <literal>$value &lt; $low</literal>.  Similarly if
+                        <parameter>high</parameter> is not empty an error
+                        is thrown if <literal>$value &gt; $high</literal>.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><command>::VMUSBDriverSupport::validReal <replaceable>value ?low ?high??</replaceable></command></term>
+                <listitem>
+                    <para>
+                        Provides type and optional range checking for
+                        real parameters.
+                    </para>
+                    <para>
+                        If <parameter>value</parameter> is not valid real number
+                        this proc throws an error.  Furthermore if <parameter>low</parameter>
+                        is not blank, an error is thrown if <literal>$value &lt; $low</literal>.
+                        Similarly if <parameter>high</parameter> is not blank,
+                        an error is thrown if <literal>$value &gt; $high</literal>.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><command>::VMUSBDriverSupport::valideEnum <replaceable>value set</replaceable></command></term>
+                <listitem>
+                    <para>
+                        Throw an error if <parameter>value</parameter> is not
+                        one of the strings  in the Tcl list <parameter>set</parameter>
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><command>::VMUSBDriverSupport::validBool <replaceable>value</replaceable></command></term>
+                <listitem>
+                    <para>
+                        Throws an error if <parameter>value</parameter> is not
+                        recognizable as a boolean by Tcl.
+                        <ulink url='http://www.tcl.tk/man/tcl8.5/TclLib/GetInt.htm'>
+                            http://www.tcl.tk/man/tcl8.5/TclLib/GetInt.htm</ulink>
+                        describes the set of <parameter>value</parameter>s that are
+                        recognized as valid booleans.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><command>::VMUSBDriverSupport::validList <replaceable>value ?fewest ?most ?checker ?args????</replaceable>
+                </command></term>
+                <listitem>
+                    <para>
+                        Throws an error if <parameter>value</parameter> is not
+                        a valid Tcl list.  Futhermore if <parameter>fewest</parameter>
+                        is not blank, an error is thrown if
+                        <literal>[llength $value] &lt; $fewest</literal>.
+                        Similarly, if <parameter>most</parameter> is not blank,
+                        an error is thrown if
+                        <literal>[llength $value] &gt; $most</literal>.
+                    </para>
+                    <para>
+                        <parameter>checker</parameter> is a script which if
+                        not blank is called for each element of
+                        <parameter>value</parameter>. <parameter>checker</parameter> is
+                        called as follows: <literal>$checker $element {*}$args</literal>
+                        where <parameter>element</parameter> is an element of the
+                        list.  The intent of this is to provide support for
+                        type/range checking each element of the list.
+                    </para>
+                    <para>
+                        One sample use of this proc is:
+                        <literal>::::VMUSBDriverSupport::validList $value 32 32 ::::VMUSBDriverSupport::validInt 0 4095</literal>
+                        which ensures that <parameter>value</parameter> is a valid
+                        list that contains exactly 32 integer elements in the range
+                        <literal>[0..4095]</literal>.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><command>::VMUSBDriverSupport::validIntList <replaceable>value ?fewest ?most ?low ?high????</replaceable>
+                </command></term>
+                <listitem>
+                    <para>
+                        This is a convenience procedure that uses <function>validList</function>
+                        and <function>validInt</function> to determine if
+                        <parameter>value</parameter> is a valid list of
+                        integer values with optional range constraints.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><command>::VMUSBDriverSupport::validBoolList <replaceable>value ?fewest ?most???</replaceable>
+                </command></term>
+                <listitem>
+                    <para>
+                        This is a convenience procedure that uses <function>validList</function>
+                        and <function>validBool</function> to determine if
+                        <parameter>value</parameter> is a valid list of
+                        boolean values.
+                    </para>
+                </listitem>
+            </varlistentry>
+           </variablelist>
+        </refsect1>
+
       </refentry>
 
       <refentry id="vmusb3-madc">
@@ -4363,7 +5123,7 @@ stack cget <replaceable>name</replaceable>
             </listitem>
          </varlistentry>
          <varlistentry>
-            <term><option>-stack</option> <replaceable>seconds</replaceable></term>
+            <term><option>-stack</option> <replaceable>stacknum</replaceable></term>
             <listitem>
                <para>
                   Defines the stack number for <literal>interrupt</literal>
@@ -4510,7 +5270,7 @@ stack config scalers -trigger scaler -modules $scalers -period 2
       
 	 <refentry id="vmusb3-CVMUSB">
        <refmeta>
-          <refentrytitle>CVMUSB</refentrytitle>
+          <refentrytitle id='vmusb3-CVMUSB-title'>CVMUSB</refentrytitle>
           <manvolnum>3vmusb</manvolnum>
        </refmeta>
        <refnamediv>
@@ -6790,7 +7550,7 @@ list.size() * sizeof(uint32_t)/sizeof(uint16_t) + 4
          
 	 <refentry id="vmusb3-CVMUSBReadoutList">
        <refmeta>
-          <refentrytitle>CVMUSBReadoutList</refentrytitle>
+          <refentrytitle id='vmusb3-CVMUSBReadoutList-title'>CVMUSBReadoutList</refentrytitle>
           <manvolnum>3vmusb</manvolnum>
        </refmeta>
        <refnamediv>
@@ -8085,6 +8845,1132 @@ class <ooclass><classname>CVMUSBReadoutList</classname></ooclass>
            </variablelist>
         </refsect1>
      </refentry>
+	 <refentry id="vmusb3-CVMUSBRemote">
+       <refmeta>
+          <refentrytitle id='vmusb3-CVMUSBRemote-title'>CVMUSBRemote</refentrytitle>
+          <manvolnum>3vmusb</manvolnum>
+       </refmeta>
+       <refnamediv>
+          <refname>CVMUSBRemote</refname>
+          <refpurpose>Execute lists remotely on VMUSBReadout</refpurpose>
+       </refnamediv>
+       
+       <refsynopsisdiv>
+        <synopsis>
+#include &lt;CVMUSBRemote.h&gt;
+
+class <ooclass><classname>CVMUSBRemote</classname></ooclass> {
+    <constructorsynopsis>
+        <methodname>CVMUSBRemote</methodname>
+        <methodparam>
+            <type>std::string</type> <parameter>deviceName</parameter>
+            <initializer>"vmusb"</initializer>
+        </methodparam>
+        <methodparam>
+            <type>std::string</type> <parameter>host</parameter>
+            <initializer>"localhost"</initializer>
+        </methodparam>
+        <methodparam>
+            <type>unsigned int</type> <parameter>port</parameter>
+            <initializer>27000</initializer>
+        </methodparam>
+    </constructorsynopsis>
+    <destructorsynopsis>
+        <modifier>virtual</modifier><methodname>~CVMUSBRemote</methodname><void />
+    </destructorsynopsis>
+    <methodsynopsis>
+        <type>uint32_t</type> <methodname>readFirmwareID</methodname><void />
+    </methodsynopsis>
+    <methodsynopsis>
+        <type>void</type><methodname>writeGlobalMode</methodname>
+        <methodparam>
+            <type>uint16_t</type><parameter>value)</parameter>
+        </methodparam>
+    </methodsynopsis>
+    <methodsynopsis>
+        <type>uint16_t</type><methodname>readGlobalMode</methodname><void />
+    </methodsynopsis>
+    <methodsynopsis>
+        <type>void</type><methodname>writeDAQSettings</methodname>
+        <methodparam>
+            <type>uint32_t</type> <parameter>value</parameter>
+        </methodparam>
+    </methodsynopsis>
+    <methodsynopsis>
+        <type>uint32_t</type> <methodname>readDAQSettings</methodname><void />
+    </methodsynopsis>
+    <methodsynopsis>
+        <type>void</type><methodname>writeLEDSource</methodname>
+        <methodparam>
+            <type>uint32_t</type> <parameter>value</parameter>
+        </methodparam>
+    </methodsynopsis>
+    <methodsynopsis>
+        <type>uint32_t</type> <methodname>readLEDSource</methodname>
+        <void />
+    </methodsynopsis>
+    <methodsynopsis>
+        <type>void</type><methodname>writeDeviceSource</methodname>
+        <methodparam>
+            <type>uint32_t</type> <parameter>value</parameter>
+        </methodparam>
+    </methodsynopsis>
+    <methodsynopsis>
+        <type>uint32_t</type> <methodname>readDeviceSource</methodname><void />
+    </methodsynopsis>
+    <methodsynopsis>
+        <type>void</type><methodname>writeDGG_A</methodname>
+        <methodparam>
+            <type>uint32_t</type> <parameter>value</parameter>
+        </methodparam>
+    </methodsynopsis>
+    <methodsynopsis>
+        <type>uint32_t</type><methodname>readDGG_A</methodname>
+        <void />
+    </methodsynopsis>
+    <methodsynopsis>
+        <type>void</type><methodname>writeDGG_B</methodname>
+        <methodparam>
+            <type>uint32_t</type><parameter>value</parameter>
+        </methodparam>
+    </methodsynopsis>
+    <methodsynopsis>
+        <type>uint32_t</type> <methodname>readDGG_B</methodname>
+        <void />
+    </methodsynopsis>
+    <methodsynopsis>
+        <type>void</type><methodname>writeDGG_Extended</methodname>
+        <methodparam>
+            <type>uint32_t</type> <parameter>value</parameter>
+        </methodparam>
+    </methodsynopsis>
+    <methodsynopsis>
+        <type>uint32_t</type> <methodname>readDGG_Extended</methodname>
+        <void />
+    </methodsynopsis>
+    <methodsynopsis>
+        <type>uint32_t</type><methodname>readScalerA</methodname>
+        <void />
+    </methodsynopsis>
+    <methodsynopsis>
+        <type>uint32_t</type><methodname>readScalerB</methodname>
+        <void />
+    </methodsynopsis>
+    <methodsynopsis>
+        <type>void</type><methodname>writeVector</methodname>
+        <methodparam>
+            <type>int</type> <parameter>which</parameter>
+            </methodparam>
+        <methodparam>
+            <type>uint32_t</type> <parameter>value</parameter>
+        </methodparam>
+    </methodsynopsis>
+    <methodsynopsis>
+        <type>uint32_t</type><methodname>readVector</methodname>
+        <methodparam>
+            <type>int</type> <parameter>which</parameter>
+        </methodparam>
+    </methodsynopsis>
+    <methodsynopsis>
+        <type>void</type><methodname>writeBulkXferSetup</methodname>
+        <methodparam>
+            <type>uint32_t</type><parameter>value</parameter>
+        </methodparam>
+    </methodsynopsis>
+    <methodsynopsis>
+        <type>uint32_t</type><methodname>readBulkXferSetup</methodname>
+        <void />
+    </methodsynopsis>
+    <methodsynopsis>
+        <type>int</type> <methodname>vmeWrite32</methodname>
+        <methodparam>
+            <type>uint32_t</type> <parameter>address</parameter>
+        </methodparam>
+        <methodparam>
+            <type>uint8_t</type><parameter>aModifier</parameter>
+        </methodparam>
+        <methodparam>
+            <type>uint32_t</type><parameter>data</parameter>
+        </methodparam>
+    </methodsynopsis>
+    <methodsynopsis>
+        <type>int</type><methodname>vmeRead32</methodname>
+        <methodparam>
+            <type>uint32_t</type> <parameter>address</parameter>
+        </methodparam>
+        <methodparam>
+            <type>uint8_t</type><parameter>aModifier</parameter>
+        </methodparam>
+        <methodparam>
+            <type>uint32_t*</type> <parameter>data</parameter>
+        </methodparam>
+    </methodsynopsis>
+    <methodsynopsis>
+        <type>int</type><methodname>vmeWrite16</methodname>
+        <methodparam>
+            <type>uint32_t</type><parameter>address</parameter>
+        </methodparam>
+        <methodparam>
+            <type>uint8_t</type><parameter>aModifier</parameter>
+        </methodparam>
+        <methodparam>
+            <type>uint16_t</type><parameter>data</parameter>
+        </methodparam>
+        </methodsynopsis>
+    <methodsynopsis>
+        <type>int</type><methodname>vmeRead16</methodname>
+        <methodparam>
+            <type>uint32_t</type><parameter>address</parameter>
+        </methodparam>
+        <methodparam>
+            <type>uint8_t</type> <parameter>aModifier</parameter>
+        </methodparam>
+        <methodparam>
+            <type>uint16_t*</type><parameter>data</parameter>
+        </methodparam>
+    </methodsynopsis>
+    <methodsynopsis>
+        <type>int</type> <methodname>vmeWrite8</methodname>
+        <methodparam>
+            <type>uint32_t</type> <parameter>address</parameter>
+        </methodparam>
+        <methodparam>
+            <type>uint8_t</type><parameter>aModifier</parameter>
+        </methodparam>
+        <methodparam>
+            <type>uint8_t</type><parameter>data</parameter>
+        </methodparam>
+        </methodsynopsis>
+    <methodsynopsis>
+        <type>int</type> <methodname>vmeRead8</methodname>
+        <methodparam>
+            <type>uint32_t</type><parameter>address</parameter>
+            </methodparam>
+        <methodparam>
+            <type>uint8_t</type><parameter>aModifier</parameter>
+        </methodparam>
+        <methodparam>
+            <type>uint8_t*</type> <parameter>data</parameter>
+        </methodparam>
+    </methodsynopsis>
+    <methodsynopsis>
+        <type>int</type><methodname>vmeBlockRead</methodname>
+        <methodparam>
+            <type>uint32_t</type><parameter>baseAddress</parameter>
+        </methodparam>
+        <methodparam>
+            <type>uint8_t</type><parameter>aModifier</parameter>
+            </methodparam>
+        <methodparam>
+            <type>void*</type><parameter>data</parameter>
+        </methodparam>
+        <methodparam>
+            <type>size_t</type><parameter>transferCount</parameter>
+        </methodparam>
+        <methodparam>
+            <type>size_t*</type><parameter>countTransferred</parameter>
+        </methodparam>
+        </methodsynopsis>
+    <methodsynopsis>
+        <type>int</type><methodname>vmeFifoRead</methodname>
+        <methodparam>
+            <type>uint32_t</type><parameter>address</parameter>
+        </methodparam>
+        <methodparam>
+            <type>uint8_t</type> <parameter>aModifier</parameter>
+        </methodparam>
+        <methodparam>
+            <type>void*</type><parameter>data</parameter>
+        </methodparam>
+        <methodparam>
+            <type>size_t</type><parameter>transferCount</parameter>
+        </methodparam>
+        <methodparam>
+            <type>size_t*</type><parameter>countTransferred</parameter>
+        </methodparam>
+    </methodsynopsis>
+    <methodsynopsis>
+        <type>int</type><methodname>vmeReadBlockCount8</methodname>
+        <methodparam>
+            <type>uint32_t</type><parameter>address</parameter>
+        </methodparam>
+        <methodparam>
+            <type>uint32_t</type> <parameter>mask</parameter>
+        </methodparam>
+        <methodparam>
+            <type>uint8_t</type><parameter>amod</parameter>
+        </methodparam>
+        </methodsynopsis>
+    <methodsynopsis>
+        <type>int</type><methodname>vmeReadBlockCount16</methodname>
+        <methodparam>
+            <type>uint32_t</type><parameter>address</parameter>
+        </methodparam>
+        <methodparam>
+            <type>uint32_t</type><parameter>mask</parameter>
+        </methodparam>
+        <methodparam>
+            <type>uint8_t</type><parameter>amod</parameter>
+        </methodparam>
+    </methodsynopsis>
+    <methodsynopsis>
+        <type>int</type> <methodname>vmeReadBlockCount32</methodname>
+        <methodparam>
+            <type>uint32_t</type><parameter>address</parameter>
+        </methodparam>
+        <methodparam>
+            <type>uint32_t</type><parameter>mask</parameter>
+        </methodparam>
+        <methodparam>
+            <type>uint8_t</type><parameter>amod</parameter>
+        </methodparam>
+        </methodsynopsis>
+    <methodsynopsis>
+        <type>int</type><methodname>vmeVariableBlockRead</methodname>
+        <methodparam>
+            <type>uint32_t</type><parameter>address</parameter>
+        </methodparam>
+        <methodparam>
+            <type>uint8_t</type><parameter>amod</parameter>
+        </methodparam>
+        <methodparam>
+            <type>void*</type><parameter>data</parameter>
+        </methodparam>
+        <methodparam>
+            <type>size_t</type><parameter>maxCount</parameter>
+        </methodparam>
+        <methodparam>
+            <type>size_t*</type><parameter>countTransferred</parameter>
+            </methodparam>
+        </methodsynopsis>
+    <methodsynopsis>
+        <type>int</type><methodname>vmeVariableFifoRead</methodname>
+        <methodparam>
+            <type>uint32_t</type><parameter>address</parameter>
+        </methodparam>
+        <methodparam>
+            <type>uint8_t</type><parameter>amod</parameter>
+        </methodparam>
+        <methodparam>
+            <type>void*</type><parameter>data</parameter>
+        </methodparam>
+        <methodparam>
+            <type>size_t</type><parameter>maxCount</parameter>
+            </methodparam>
+        <methodparam>
+            <type>size_t*</type><parameter>countTransferred</parameter>
+        </methodparam>
+    </methodsynopsis>
+    <methodsynopsis>
+        <type>int</type><methodname>executeList</methodname>
+        <methodparam>
+            <type>CVMUSBReadoutList&amp;</type><parameter>list</parameter>
+        </methodparam>
+        <methodparam>
+            <type>void*</type><parameter>pReadBuffer</parameter>
+        </methodparam>
+        <methodparam>
+            <type>size_t</type><parameter>readBufferSize</parameter>
+        </methodparam>
+        <methodparam>
+            <type>size_t*</type><parameter>bytesRead</parameter>
+        </methodparam>
+    </methodsynopsis>
+
+
+    // Register bit definintions.
+
+public:
+    class <ooclass><classname>RegisterOffsets</classname></ooclass> {
+    public:
+        <fieldsynopsis>
+            <modifier>static const</modifier><type>unsigned int</type>
+            <varname>FIDRegister</varname><initializer>0</initializer>
+            </fieldsynopsis>
+        <fieldsynopsis>
+            <modifier>static const</modifier><type>unsigned int</type>
+            <varname>GMODERegister</varname><initializer>4</initializer>
+            </fieldsynopsis>
+        <fieldsynopsis>
+            <modifier>static const</modifier><type>unsigned int</type>
+            <varname>DAQSetRegister</varname><initializer>8</initializer>
+        </fieldsynopsis>
+        <fieldsynopsis>
+            <modifier>static const</modifier><type>unsigned int</type>
+            <varname>LEDSrcRegister</varname><initializer>0xc</initializer>
+            </fieldsynopsis>
+        <fieldsynopsis>
+            <modifier>static const</modifier><type>unsigned int</type>
+            <varname>DEVSrcRegister</varname><initializer>0x10</initializer>
+        </fieldsynopsis>
+        <fieldsynopsis>
+            <modifier>static const</modifier><type>unsigned int</type>
+            <varname>DGGARegister</varname><initializer>0x14</initializer>
+        </fieldsynopsis>
+        <fieldsynopsis>
+            <modifier>static const</modifier><type>unsigned int</type>
+            <varname>DGGBRegister</varname><initializer>0x18</initializer>
+            </fieldsynopsis>
+        <fieldsynopsis>
+            <modifier>static const</modifier><type>unsigned int</type>
+            <varname>ScalerA</varname><initializer>0x1c</initializer>
+        </fieldsynopsis>
+        <fieldsynopsis>
+            <modifier>static const</modifier><type>unsigned int</type>
+            <varname>ScalerB</varname><initializer>0x20</initializer>
+        </fieldsynopsis>
+        <fieldsynopsis>
+            <modifier>static const</modifier><type>unsigned int</type>
+            <varname>ExtractMask</varname><initializer>0x24</initializer>
+            </fieldsynopsis>
+        <fieldsynopsis>
+            <modifier>static const</modifier><type>unsigned int</type>
+            <varname>ISV12</varname><initializer>0x28</initializer>
+        </fieldsynopsis>
+        <fieldsynopsis>
+            <modifier>static const</modifier><type>unsigned int</type>
+            <varname>ISV34</varname><initializer>0x2c</initializer>
+        </fieldsynopsis>
+        <fieldsynopsis>
+            <modifier>static const</modifier><type>unsigned int</type>
+            <varname>ISV56</varname><initializer>0x30</initializer>
+        </fieldsynopsis>
+        <fieldsynopsis>
+            <modifier>static const</modifier><type>unsigned int</type>
+            <varname>ISV78</varname><initializer>0x34</initializer>
+        </fieldsynopsis>
+        <fieldsynopsis>
+            <modifier>static const</modifier><type>unsigned int</type>
+            <varname>DGGExtended</varname><initializer>0x38</initializer>
+        </fieldsynopsis>
+        <fieldsynopsis>
+            <modifier>static const</modifier><type>unsigned int</type>
+            <varname>USBSetup</varname><initializer>0x3c</initializer>
+            </fieldsynopsis>
+        <fieldsynopsis>
+            <modifier>static const</modifier><type>unsigned int</type>
+            <varname>USBVHIGH1</varname><initializer>0x40</initializer>
+            </fieldsynopsis>
+        <fieldsynopsis>
+            <modifier>static const</modifier><type>unsigned int</type>
+            <varname>USBVHIGH2</varname><initializer>0x44</initializer>
+        </fieldsynopsis>
+    };
+
+    class <ooclass><classname>ActionRegister</classname></ooclass>
+    public:
+        <fieldsynopsis>        
+            <modifier>static const</modifier><type>uint16_t</type>
+            <varname>startDAQ</varname><initializer>1</initializer>
+            </fieldsynopsis>
+        <fieldsynopsis>
+            <modifier>static const</modifier><type>uint16_t</type>
+            <varname>usbTrigger</varname><initializer>2</initializer>
+        </fieldsynopsis>
+        <fieldsynopsis>
+            <modifier>static const</modifier><type>uint16_t</type>
+            <varname>clear</varname><initializer>4</initializer>
+        </fieldsynopsis>
+        <fieldsynopsis>
+            <modifier>static const</modifier><type>uint16_t</type>
+            <varname>sysReset</varname><initializer>8</initializer>
+        </fieldsynopsis>
+        <fieldsynopsis>
+            <modifier>static const</modifier><type>uint16_t</type>
+            <varname>scalerDump</varname><initializer>0x10</initializer>
+        </fieldsynopsis>
+    };
+   class <ooclass><classname>FirmwareRegister</classname></ooclass> {
+    public:
+    <fieldsynopsis>
+        <modifier>static const</modifier><type>uint32_t</type>
+        <varname>minorRevMask</varname><initializer>0x000000ff</initializer>
+    </fieldsynopsis>
+    <fieldsynopsis>
+        <modifier>static const</modifier><type>uint32_t</type>
+        <varname>minorRevShift</varname><initializer>0</initializer>
+    </fieldsynopsis>
+    <fieldsynopsis>
+        <modifier>static const</modifier><type>uint32_t</type>
+        <varname>majorRevMask</varname><initializer>0x0000ff00</initializer>
+    </fieldsynopsis>
+    <fieldsynopsis>
+        <modifier>static const</modifier><type>uint32_t</type>
+        <varname>majorRevShift</varname><initializer>8</initializer>
+    </fieldsynopsis>
+    <fieldsynopsis>
+        <modifier>static const</modifier><type>uint32_t</type>
+        <varname>betaVersionMask</varname><initializer>0x00ff0000</initializer>
+    </fieldsynopsis>
+    <fieldsynopsis>
+        <modifier>static const</modifier><type>uint32_t</type>
+        <varname>betaVersionShift</varname><initializer>16</initializer>
+    </fieldsynopsis>
+    <fieldsynopsis>
+        <modifier>static const</modifier><type>uint32_t</type>
+        <varname>yearMask</varname><initializer>0x0f000000</initializer>
+    </fieldsynopsis>
+    <fieldsynopsis>
+        <modifier>static const</modifier><type>uint32_t</type>
+        <varname>yearShift</varname><initializer>24</initializer>
+    </fieldsynopsis>
+    <fieldsynopsis>
+        <modifier>static const</modifier><type>uint32_t</type>
+        <varname>monthMask</varname><initializer>0xf0000000</initializer>
+    </fieldsynopsis>
+    <fieldsynopsis>
+        <modifier>static const</modifier><type>uint32_t</type>
+        <varname>monthshift</varname><initializer>27</initializer>
+    </fieldsynopsis>
+    };
+
+    class <ooclass><classname>GlobalModeRegister</classname></ooclass> {
+    public:
+    <fieldsynopsis>
+        <modifier>static const</modifier><type>uint16_t</type>
+        <varname>bufferLenMask</varname><initializer>0xf</initializer>
+    </fieldsynopsis>
+    <fieldsynopsis>
+        <modifier>static const</modifier><type>uint16_t</type>
+        <varname>bufferLenShift</varname><initializer>0</initializer>
+    </fieldsynopsis>
+    <fieldsynopsis>
+        <modifier>static const</modifier><type>uint16_t</type>
+        <varname>bufferLen13K</varname><initializer>0</initializer>
+    </fieldsynopsis>
+    <fieldsynopsis>
+        <modifier>static const</modifier><type>uint16_t</type>
+        <varname>bufferLen8K</varname><initializer>1</initializer>
+    </fieldsynopsis>
+    <fieldsynopsis>
+        <modifier>static const</modifier><type>uint16_t</type>
+        <varname>bufferLen4K</varname><initializer>2</initializer>
+        </fieldsynopsis>
+    <fieldsynopsis>
+        <modifier>static const</modifier><type>uint16_t</type>
+        <varname>bufferLen2K</varname><initializer>3</initializer>
+        </fieldsynopsis>
+    <fieldsynopsis>
+        <modifier>static const</modifier><type>uint16_t</type>
+        <varname>bufferLen1K</varname><initializer>4</initializer>
+    </fieldsynopsis>
+    <fieldsynopsis>
+        <modifier>static const</modifier><type>uint16_t</type>
+        <varname>bufferLen512</varname><initializer>5</initializer>
+    </fieldsynopsis>
+    <fieldsynopsis>
+        <modifier>static const</modifier><type>uint16_t</type>
+        <varname>bufferLen256</varname><initializer>6</initializer>
+    </fieldsynopsis>
+    <fieldsynopsis>
+        <modifier>static const</modifier><type>uint16_t</type>
+        <varname>bufferLen128</varname><initializer>7</initializer>
+    </fieldsynopsis>
+    <fieldsynopsis>
+        <modifier>static const</modifier><type>uint16_t</type>
+        <varname>bufferLen64</varname><initializer>8</initializer>
+    </fieldsynopsis>
+    <fieldsynopsis>
+        <modifier>static const</modifier><type>uint16_t</type>
+        <varname>bufferLenSingle</varname><initializer>9</initializer>
+    </fieldsynopsis>
+    <fieldsynopsis>
+        <modifier>static const</modifier><type>uint16_t</type>
+        <varname>mixedBuffers</varname><initializer>0x20</initializer>
+    </fieldsynopsis>
+    <fieldsynopsis>
+        <modifier>static const</modifier><type>uint16_t</type>
+        <varname>doubleSeparater</varname><initializer>0x40</initializer>
+    </fieldsynopsis>
+    <fieldsynopsis>
+        <modifier>static const</modifier><type>uint16_t</type>
+        <varname>align32</varname><initializer>0x80</initializer>
+    </fieldsynopsis>
+    <fieldsynopsis>
+        <modifier>static const</modifier><type>uint16_t</type>
+        <varname>doubleHeader</varname><initializer>0x100</initializer>
+    </fieldsynopsis>
+    <fieldsynopsis>
+        <modifier>static const</modifier><type>uint16_t</type>
+        <varname>flushScalers</varname><initializer>0x200</initializer>
+    </fieldsynopsis>
+    <fieldsynopsis>
+        <modifier>static const</modifier><type>uint16_t</type>
+        <varname>busReqLevelMask</varname><initializer>0x7000</initializer>
+    </fieldsynopsis>
+    <fieldsynopsis>
+        <modifier>static const</modifier><type>uint16_t</type>
+        <varname>busReqLevelShift</varname><initializer>12</initializer>
+    </fieldsynopsis>
+    };
+    class <ooclass><classname>DAQSettingsRegister</classname></ooclass> {
+    public:
+    <fieldsynopsis>
+        <modifier>static const</modifier><type>uint32_t</type>
+        <varname>readoutTriggerDelayMask</varname><initializer>0xff</initializer>
+    </fieldsynopsis>
+    <fieldsynopsis>
+        <modifier>static const</modifier><type>uint32_t</type>
+        <varname>readoutTriggerDelayShift</varname><initializer>0</initializer>
+    </fieldsynopsis>
+    <fieldsynopsis>
+        <modifier>static const</modifier><type>uint32_t</type>
+        <varname>scalerReadoutPeriodMask</varname><initializer>0xff00</initializer>
+    </fieldsynopsis>
+    <fieldsynopsis>
+        <modifier>static const</modifier><type>uint32_t</type>
+        <varname>scalerReadoutPeriodShift</varname><initializer>8</initializer>
+    </fieldsynopsis>
+    <fieldsynopsis>
+        <modifier>static const</modifier><type>uint32_t</type>
+        <varname>scalerReadoutFrequenyMask</varname><initializer>0xffff0000</initializer>
+    </fieldsynopsis>
+    <fieldsynopsis>
+        <modifier>static const</modifier><type>uint32_t</type>
+        <varname>scalerReadoutFrequencyShift</varname><initializer>16</initializer>
+    </fieldsynopsis>
+    };
+    class <ooclass><classname>LedSourceRegister</classname></ooclass> {
+    public:
+        // Top yellow led:
+    <fieldsynopsis>
+        <modifier>static const</modifier><type>uint32_t</type>
+        <varname>topYellowOutFifoNotEmpty</varname><initializer>0</initializer>
+    </fieldsynopsis>
+    <fieldsynopsis>
+        <modifier>static const</modifier><type>uint32_t</type>
+        <varname>topYellowInFifoNotEmpty</varname><initializer>1</initializer>
+    </fieldsynopsis>
+    <fieldsynopsis>
+        <modifier>static const</modifier><type>uint32_t</type>
+        <varname>topYellowScalerEvent</varname><initializer>2</initializer>
+    </fieldsynopsis>
+    <fieldsynopsis>
+        <modifier>static const</modifier><type>uint32_t</type>
+        <varname>topYellowInFifoFull</varname><initializer>3</initializer>
+    </fieldsynopsis>
+    <fieldsynopsis>
+        <modifier>static const</modifier><type>uint32_t</type>
+        <varname>topYellowDTACK</varname><initializer>4</initializer>
+    </fieldsynopsis>
+    <fieldsynopsis>
+        <modifier>static const</modifier><type>uint32_t</type>
+        <varname>topYellowBERR</varname><initializer>5</initializer>
+    </fieldsynopsis>
+    <fieldsynopsis>
+        <modifier>static const</modifier><type>uint32_t</type>
+        <varname>topYellowBusRequest</varname><initializer>6</initializer>
+    </fieldsynopsis>
+    <fieldsynopsis>
+        <modifier>static const</modifier><type>uint32_t</type>
+        <varname>topYellowBusGranted</varname><initializer>7</initializer>
+    </fieldsynopsis>
+    <fieldsynopsis>
+        <modifier>static const</modifier><type>uint32_t</type>
+        <varname>topYellowInvert</varname><initializer>0x8</initializer>
+    </fieldsynopsis>
+    <fieldsynopsis>
+        <modifier>static const</modifier><type>uint32_t</type>
+        <varname>topYellowLatch</varname><initializer>0x10</initializer>
+    </fieldsynopsis>
+
+        // Red LED:
+        
+    <fieldsynopsis>
+        <modifier>static const</modifier><type>uint32_t</type>
+        <varname>redEventTrigger</varname><initializer>(0 &lt;&lt; 8)</initializer>
+    </fieldsynopsis>
+    <fieldsynopsis>
+        <modifier>static const</modifier><type>uint32_t</type>
+        <varname>redNimInput1</varname><initializer>(1 &lt;&lt; 8)</initializer>
+    </fieldsynopsis>
+    <fieldsynopsis>
+        <modifier>static const</modifier><type>uint32_t</type>
+        <varname>redNimInput2</varname><initializer>(2 &lt;&lt; 8)</initializer>
+        </fieldsynopsis>
+    <fieldsynopsis>
+        <modifier>static const</modifier><type>uint32_t</type>
+        <varname>redBusy</varname><initializer>(3 &lt;&lt; 8)</initializer>
+    </fieldsynopsis>
+    <fieldsynopsis>
+        <modifier>static const</modifier><type>uint32_t</type>
+        <varname>redDTACK</varname><initializer>(4 &lt;&lt; 8)</initializer>
+    </fieldsynopsis>
+    <fieldsynopsis>
+        <modifier>static const</modifier><type>uint32_t</type>
+        <varname>redBERR</varname><initializer>(5 &lt;&lt; 8)</initializer>
+    </fieldsynopsis>
+    <fieldsynopsis>
+        <modifier>static const</modifier><type>uint32_t</type>
+        <varname>redBusRequest</varname><initializer>(6 &lt;&lt; 8)</initializer>
+    </fieldsynopsis>
+    <fieldsynopsis>
+        <modifier>static const</modifier><type>uint32_t</type>
+        <varname>redBusGranted</varname><initializer>(7 &lt;&lt; 8)</initializer>
+    </fieldsynopsis>
+    <fieldsynopsis>
+        <modifier>static const</modifier><type>uint32_t</type>
+        <varname>redInvert</varname><initializer>(8 &lt;&lt; 8)</initializer>
+    </fieldsynopsis>
+    <fieldsynopsis>
+        <modifier>static const</modifier><type>uint32_t</type>
+        <varname>redLatch</varname><initializer>(0x10 &lt;&lt; 8)</initializer>
+    </fieldsynopsis>
+
+        // Green led:
+
+    <fieldsynopsis>
+        <modifier>static const</modifier><type>uint32_t</type>
+        <varname>greenAcquire</varname><initializer>(0 &lt;&lt; 16)</initializer>
+    </fieldsynopsis>
+    <fieldsynopsis>
+        <modifier>static const</modifier><type>uint32_t</type>
+        <varname>greenStackNotEmpty</varname><initializer>(1 &lt;&lt; 16)</initializer>
+    </fieldsynopsis>
+    <fieldsynopsis>
+        <modifier>static const</modifier><type>uint32_t</type>
+        <varname>greenEventReady</varname><initializer>(2 &lt;&lt; 16)</initializer>
+    </fieldsynopsis>
+    <fieldsynopsis>
+        <modifier>static const</modifier><type>uint32_t</type>
+        <varname>greenEventTrigger</varname><initializer>(3 &lt;&lt; 16)</initializer>
+    </fieldsynopsis>
+    <fieldsynopsis>
+        <modifier>static const</modifier><type>uint32_t</type>
+        <varname>greenDTACK</varname><initializer>(4 &lt;&lt; 16)</initializer>
+    </fieldsynopsis>
+    <fieldsynopsis>
+        <modifier>static const</modifier><type>uint32_t</type>
+        <varname>greenBERR</varname><initializer>(5 &lt;&lt; 16)</initializer>
+    </fieldsynopsis>
+    <fieldsynopsis>
+        <modifier>static const</modifier><type>uint32_t</type>
+        <varname>greenBusRequest</varname><initializer>(6 &lt;&lt; 16)</initializer>
+    </fieldsynopsis>
+    <fieldsynopsis>
+        <modifier>static const</modifier><type>uint32_t</type>
+        <varname>greenBusGranted</varname><initializer>(7 &lt;&lt; 16)</initializer>
+    </fieldsynopsis>
+    <fieldsynopsis>
+        <modifier>static const</modifier><type>uint32_t</type>
+        <varname>greenInvert</varname><initializer>(8 &lt;&lt; 16)</initializer>
+    </fieldsynopsis>
+    <fieldsynopsis>
+        <modifier>static const</modifier><type>uint32_t</type>
+        <varname>greenLatch</varname><initializer>(0x10 &lt;&lt; 16)</initializer>
+    </fieldsynopsis>
+
+        // Bottom yellow LED
+
+    <fieldsynopsis>
+        <modifier>static const</modifier><type>uint32_t</type>
+        <varname>bottomYellowNotArbiter</varname><initializer>(0 &lt;&lt; 24)</initializer>
+    </fieldsynopsis>
+    <fieldsynopsis>
+        <modifier>static const</modifier><type>uint32_t</type>
+        <varname>bottomYellowUsbTrigger</varname><initializer>(1 &lt;&lt; 24)</initializer>
+    </fieldsynopsis>
+    <fieldsynopsis>
+        <modifier>static const</modifier><type>uint32_t</type>
+        <varname>bottomYellowUSBReset</varname><initializer>(2 &lt;&lt; 24)</initializer>
+    </fieldsynopsis>
+    <fieldsynopsis>
+        <modifier>static const</modifier><type>uint32_t</type>
+        <varname>bottomYellowBERR1</varname><initializer>(3 &lt;&lt; 24)</initializer>
+    </fieldsynopsis>
+    <fieldsynopsis>
+        <modifier>static const</modifier><type>uint32_t</type>
+        <varname>bottomYellowDTACK</varname><initializer>(4 &lt;&lt; 24)</initializer>
+    </fieldsynopsis>
+    <fieldsynopsis>
+        <modifier>static const</modifier><type>uint32_t</type>
+        <varname>bottomYellowBERR</varname><initializer>(5 &lt;&lt; 24)</initializer>
+    </fieldsynopsis>
+    <fieldsynopsis>
+        <modifier>static const</modifier><type>uint32_t</type>
+        <varname>bottomYellowBusRequest</varname><initializer>(6 &lt;&lt; 24)</initializer>
+    </fieldsynopsis>
+    <fieldsynopsis>
+        <modifier>static const</modifier><type>uint32_t</type>
+        <varname>bottomYellowBusGranted</varname><initializer>(7 &lt;&lt; 24)</initializer>
+    </fieldsynopsis>
+    <fieldsynopsis>
+        <modifier>static const</modifier><type>uint32_t</type>
+        <varname>bottomYellowInvert</varname><initializer>(8 &lt;&lt; 24)</initializer>
+    </fieldsynopsis>
+    <fieldsynopsis>
+        <modifier>static const</modifier><type>uint32_t</type>
+        <varname>bottomYellowLatch</varname><initializer>(0x10 &lt;&lt; 24)</initializer>
+    </fieldsynopsis>
+
+    };
+    class <ooclass><classname>CVMUSB::DeviceSourceRegister</classname></ooclass> {
+    <fieldsynopsis>
+        <modifier>static const</modifier> <type>uint32_t</type>
+        <varname>nimO1Busym</varname><initializer>0</initializer>
+    </fieldsynopsis>
+    <fieldsynopsis>
+        <modifier>static const</modifier> <type>uint32_t</type>
+        <varname>nimO1Trigger</varname><initializer>1</initializer>
+    </fieldsynopsis>
+    <fieldsynopsis>
+        <modifier>static const</modifier> <type>uint32_t</type>
+        <varname>nimO1BusRequest</varname><initializer>2</initializer>
+    </fieldsynopsis>
+    <fieldsynopsis>
+        <modifier>static const</modifier> <type>uint32_t</type>
+        <varname>nimO1EventToBuffer</varname><initializer>3</initializer>
+    </fieldsynopsis>
+    <fieldsynopsis>
+        <modifier>static const</modifier> <type>uint32_t</type>
+        <varname>nimO1DGGA</varname><initializer>4</initializer>
+    </fieldsynopsis>
+    <fieldsynopsis>
+        <modifier>static const</modifier> <type>uint32_t</type>
+        <varname>nimO1DGGB</varname><initializer>5</initializer>
+    </fieldsynopsis>
+    <fieldsynopsis>
+        <modifier>static const</modifier> <type>uint32_t</type>
+        <varname>nimO1EndOfEvent</varname><initializer>6</initializer>
+    </fieldsynopsis>
+    <fieldsynopsis>
+        <modifier>static const</modifier> <type>uint32_t</type>
+        <varname>nimO1UsbTrigger</varname><initializer>7</initializer>
+    </fieldsynopsis>
+    <fieldsynopsis>
+        <modifier>static const</modifier> <type>uint32_t</type>
+        <varname>nimO1Invert</varname><initializer>8M</initializer>
+    </fieldsynopsis>
+    <fieldsynopsis>
+        <modifier>static const</modifier> <type>uint32_t</type>
+        <varname>nimO1Latch</varname><initializer>0x10</initializer>
+    </fieldsynopsis>
+    <fieldsynopsis>
+        <modifier>static const</modifier> <type>uint32_t</type>
+        <varname>nimO2UsbTrigger1</varname><initializer>(0 &lt;&lt; 8)</initializer>
+    </fieldsynopsis>
+    <fieldsynopsis>
+        <modifier>static const</modifier> <type>uint32_t</type>
+        <varname>nimO2VMEExecuting</varname><initializer>(1 &lt;&lt; 8)</initializer>
+    </fieldsynopsis>
+    <fieldsynopsis>
+        <modifier>static const</modifier> <type>uint32_t</type>
+        <varname>nimO2VMEAS</varname><initializer>(2 &lt;&lt; 8)</initializer>
+    </fieldsynopsis>
+    <fieldsynopsis>
+        <modifier>static const</modifier> <type>uint32_t</type>
+        <varname>nimO2DataToUsbFIFO</varname><initializer>(3 &lt;&lt; 8)</initializer>
+    </fieldsynopsis>
+    <fieldsynopsis>
+        <modifier>static const</modifier> <type>uint32_t</type>
+        <varname>nimO2DGGA</varname><initializer>(4 &lt;&lt; 8)</initializer>
+    </fieldsynopsis>
+    <fieldsynopsis>
+        <modifier>static const</modifier> <type>uint32_t</type>
+        <varname>nimO2DGGB</varname><initializer>(5 &lt;&lt; 8)</initializer>
+    </fieldsynopsis>
+    <fieldsynopsis>
+        <modifier>static const</modifier> <type>uint32_t</type>
+        <varname>nimO2EndOfEvent</varname><initializer>(6 &lt;&lt; 8)</initializer>
+    </fieldsynopsis>
+    <fieldsynopsis>
+        <modifier>static const</modifier> <type>uint32_t</type>
+        <varname>nimO2UsbTrigger</varname><initializer>(7 &lt;&lt; 8)</initializer>
+    </fieldsynopsis>
+    <fieldsynopsis>
+        <modifier>static const</modifier> <type>uint32_t</type>
+        <varname>nimO2Invert</varname><initializer>(8 &lt;&lt; 8)</initializer>
+    </fieldsynopsis>
+    <fieldsynopsis>
+        <modifier>static const</modifier> <type>uint32_t</type>
+        <varname>nimO2Latch</varname><initializer>(0x10 &lt;&lt; 8)</initializer>
+    </fieldsynopsis>
+    <fieldsynopsis>
+        <modifier>static const</modifier> <type>uint32_t</type>
+        <varname>scalerADisabled</varname><initializer>(0   &lt;&lt; 16)</initializer>
+    </fieldsynopsis>
+    <fieldsynopsis>
+        <modifier>static const</modifier> <type>uint32_t</type>
+        <varname>scalerANIMI1</varname><initializer>(1   &lt;&lt; 16)</initializer>
+    </fieldsynopsis>
+    <fieldsynopsis>
+        <modifier>static const</modifier> <type>uint32_t</type>
+        <varname>scalerANIMI2</varname><initializer>(2   &lt;&lt; 16)</initializer>
+    </fieldsynopsis>
+    <fieldsynopsis>
+        <modifier>static const</modifier> <type>uint32_t</type>
+        <varname>scalerAEvent</varname><initializer>(2   &lt;&lt; 16)</initializer>
+    </fieldsynopsis>
+    <fieldsynopsis>
+        <modifier>static const</modifier> <type>uint32_t</type>
+        <varname>scalerAEnable</varname><initializer>(8   &lt;&lt; 16)</initializer>
+    </fieldsynopsis>
+    <fieldsynopsis>
+        <modifier>static const</modifier> <type>uint32_t</type>
+        <varname>scalerAReset</varname><initializer>(0x10 &lt;&lt; 16)</initializer>
+    </fieldsynopsis>
+    <fieldsynopsis>
+        <modifier>static const</modifier> <type>uint32_t</type>
+        <varname>scalerBDisabled</varname><initializer>(0   &lt;&lt; 20)</initializer>
+    </fieldsynopsis>
+    <fieldsynopsis>
+        <modifier>static const</modifier> <type>uint32_t</type>
+        <varname>scalerBNIMI1</varname><initializer>(1   &lt;&lt; 20)</initializer>
+    </fieldsynopsis>
+    <fieldsynopsis>
+        <modifier>static const</modifier> <type>uint32_t</type>
+        <varname>scalerBNIMI2</varname><initializer>(2   &lt;&lt; 20)</initializer>
+    </fieldsynopsis>
+    <fieldsynopsis>
+        <modifier>static const</modifier> <type>uint32_t</type>
+        <varname>scalerBEvent</varname><initializer>(2   &lt;&lt; 20)</initializer>
+    </fieldsynopsis>
+    <fieldsynopsis>
+        <modifier>static const</modifier> <type>uint32_t</type>
+        <varname>scalerBEnable</varname><initializer>(8   &lt;&lt; 20)</initializer>
+    </fieldsynopsis>
+    <fieldsynopsis>
+        <modifier>static const</modifier> <type>uint32_t</type>
+        <varname>scalerBReset</varname><initializer>(0x10 &lt;&lt; 20)</initializer>
+    </fieldsynopsis>
+    <fieldsynopsis>
+        <modifier>static const</modifier> <type>uint32_t</type>
+        <varname>dggADisabled</varname><initializer>(0   &lt;&lt; 24)</initializer>
+    </fieldsynopsis>
+    <fieldsynopsis>
+        <modifier>static const</modifier> <type>uint32_t</type>
+        <varname>dggANIMI1</varname><initializer>(1   &lt;&lt; 24)</initializer>
+    </fieldsynopsis>
+    <fieldsynopsis>
+        <modifier>static const</modifier> <type>uint32_t</type>
+        <varname>dggANIMI2</varname><initializer>(2   &lt;&lt; 24)</initializer>
+    </fieldsynopsis>
+    <fieldsynopsis>
+        <modifier>static const</modifier> <type>uint32_t</type>
+        <varname>dggAEventTrigger</varname><initializer>(3   &lt;&lt; 24)</initializer>
+    </fieldsynopsis>
+    <fieldsynopsis>
+        <modifier>static const</modifier> <type>uint32_t</type>
+        <varname>dggAEndOfEvent</varname><initializer>(4   &lt;&lt; 24)</initializer>
+    </fieldsynopsis>
+    <fieldsynopsis>
+        <modifier>static const</modifier> <type>uint32_t</type>
+        <varname>dggAUsbTrigger</varname><initializer>(5   &lt;&lt; 24)</initializer>
+    </fieldsynopsis>
+    <fieldsynopsis>
+        <modifier>static const</modifier> <type>uint32_t</type>
+        <varname>dggAPulser</varname><initializer>(6   &lt;&lt; 24)</initializer>
+    </fieldsynopsis>
+    <fieldsynopsis>
+        <modifier>static const</modifier> <type>uint32_t</type>
+        <varname>dggBDisabled</varname><initializer>(0   &lt;&lt; 28)</initializer>
+    </fieldsynopsis>
+    <fieldsynopsis>
+        <modifier>static const</modifier> <type>uint32_t</type>
+        <varname>dggBNIMI1</varname><initializer>(1   &lt;&lt; 28)</initializer>
+    </fieldsynopsis>
+    <fieldsynopsis>
+        <modifier>static const</modifier> <type>uint32_t</type>
+        <varname>dggBNIMI2</varname><initializer>(2   &lt;&lt; 28)</initializer>
+    </fieldsynopsis>
+    <fieldsynopsis>
+        <modifier>static const</modifier> <type>uint32_t</type>
+        <varname>dggBEventTrigger</varname><initializer>(3   &lt;&lt; 28)</initializer>
+    </fieldsynopsis>
+    <fieldsynopsis>
+        <modifier>static const</modifier> <type>uint32_t</type>
+        <varname>dggBEndOfEvent</varname><initializer>(4   &lt;&lt; 28)</initializer>
+    </fieldsynopsis>
+    <fieldsynopsis>
+        <modifier>static const</modifier> <type>uint32_t</type>
+        <varname>dggBUsbTrigger</varname><initializer>(5   &lt;&lt; 28)</initializer>
+    </fieldsynopsis>
+    <fieldsynopsis>
+        <modifier>static const</modifier> <type>uint32_t</type>
+        <varname>dggBPulser</varname><initializer>(6   &lt;&lt; 28)</initializer>
+    </fieldsynopsis>
+    };
+    class <ooclass><classname>CVMUSB::DGGAndPulserRegister</classname></ooclass> {
+        <fieldsynopsis>
+            <modifier>static const</modifier> <type>uint32_t</type>
+            <varname>dggFineDelayMask</varname><initializer>0xffff</initializer>
+        </fieldsynopsis>
+        <fieldsynopsis>
+            <modifier>static const</modifier> <type>uint32_t</type>
+            <varname>dggFineDelayShift</varname><initializer>0</initializer>
+        </fieldsynopsis>
+        <fieldsynopsis>
+            <modifier>static const</modifier> <type>uint32_t</type>
+            <varname>dggGateWidthMask</varname><initializer>0xffff0000</initializer>
+        </fieldsynopsis>
+        <fieldsynopsis>
+            <modifier>static const</modifier> <type>uint32_t</type>
+            <varname>dggGateWidthShift</varname><initializer>16</initializer>
+        </fieldsynopsis>
+    
+    };
+    class <ooclass><classname>CVMUSB::DGGCoarseRegister</classname></ooclass> {
+        <fieldsynopsis>
+            <modifier>static const</modifier> <type>uint32_t</type>
+            <varname>ACoarseMask</varname><initializer>0xffff</initializer>
+        </fieldsynopsis>
+        <fieldsynopsis>
+            <modifier>static const</modifier> <type>uint32_t</type>
+            <varname>ACoarseShift</varname><initializer>0</initializer>
+        </fieldsynopsis>
+        <fieldsynopsis>
+            <modifier>static const</modifier> <type>uint32_t</type>
+            <varname>BCoarseMask</varname><initializer>0xffff0000</initializer>
+        </fieldsynopsis>
+        <fieldsynopsis>
+            <modifier>static const</modifier> <type>uint32_t</type>
+            <varname>BCoarseShift</varname><initializer>16</initializer>
+        </fieldsynopsis>
+    
+    }; 
+    class <ooclass><classname>CVMUSB::ISVRegister</classname></ooclass> {
+        <fieldsynopsis>
+            <modifier>static const</modifier> <type>uint32_t</type>
+            <varname>AVectorMask</varname><initializer>= 0xff</initializer>
+        </fieldsynopsis>
+        <fieldsynopsis>
+            <modifier>static const</modifier> <type>uint32_t</type>
+            <varname>AVectorShift</varname><initializer>0</initializer>
+        </fieldsynopsis>
+        <fieldsynopsis>
+            <modifier>static const</modifier> <type>uint32_t</type>
+            <varname>AIPLMask</varname><initializer>0x700</initializer>
+        </fieldsynopsis>
+        <fieldsynopsis>
+            <modifier>static const</modifier> <type>uint32_t</type>
+            <varname>AIPLShift</varname><initializer>8</initializer>
+        </fieldsynopsis>
+        <fieldsynopsis>
+            <modifier>static const</modifier> <type>uint32_t</type>
+            <varname>AStackIDMask</varname><initializer>0x7000</initializer>
+        </fieldsynopsis>
+        <fieldsynopsis>
+            <modifier>static const</modifier> <type>uint32_t</type>
+            <varname>AStackIDShift</varname><initializer>12</initializer>
+        </fieldsynopsis>
+        <fieldsynopsis>
+            <modifier>static const</modifier> <type>uint32_t</type>
+            <varname>BVectorMask</varname><initializer>0xff0000</initializer>
+        </fieldsynopsis>
+        <fieldsynopsis>
+            <modifier>static const</modifier> <type>uint32_t</type>
+            <varname>BVectorShift</varname><initializer>16</initializer>
+        </fieldsynopsis>
+        <fieldsynopsis>
+            <modifier>static const</modifier> <type>uint32_t</type>
+            <varname>BIPLMask</varname><initializer>0x7000000</initializer>
+        </fieldsynopsis>
+        <fieldsynopsis>
+            <modifier>static const</modifier> <type>uint32_t</type>
+            <varname>BIPLShift</varname><initializer>24</initializer>
+        </fieldsynopsis>
+        <fieldsynopsis>
+            <modifier>static const</modifier> <type>uint32_t</type>
+            <varname>BStackIDMask</varname><initializer>0x70000000</initializer>
+        </fieldsynopsis>
+        <fieldsynopsis>
+            <modifier>static const</modifier> <type>uint32_t</type>
+            <varname>BStackIDShift</varname><initializer>28</initializer>
+        </fieldsynopsis>
+    };
+    class <ooclass><classname>CVMUSB::TransferSetupRegister</classname></ooclass> {
+        <fieldsynopsis>
+            <modifier>static const</modifier> <type>uint32_t</type>
+            <varname>multiBufferCountMask</varname><initializer>0xff</initializer>
+        </fieldsynopsis>
+        <fieldsynopsis>
+            <modifier>static const</modifier> <type>uint32_t</type>
+            <varname>multiBufferCountShift</varname><initializer>0</initializer>
+        </fieldsynopsis>
+        <fieldsynopsis>
+            <modifier>static const</modifier> <type>uint32_t</type>
+            <varname>timeoutMask</varname><initializer>0xf00</initializer>
+        </fieldsynopsis>
+        <fieldsynopsis>
+            <modifier>static const</modifier> <type>uint32_t</type>
+            <varname>timeoutShift</varname><initializer>8</initializer>
+        </fieldsynopsis>
+    };
+
+}; 
+ 
+        </synopsis>
+       </refsynopsisdiv>
+       <refsect1>
+          <title>DESCRIPTION</title>
+          <para>
+            Provides remote access to the VM-USB via the VMUSBReadout's
+            slow controls server.  This class is a proxy and transparently
+            performs network operations with the slow control server to
+            execute each method.
+          </para>
+       </refsect1>
+       <refsect1>
+          <title>
+         METHODS
+          </title>
+          <para>
+            With the exception of the constructor, please refer to
+            <link linkend='vmusb3-CVMUSB' endterm='vmusb3-CVMUSB-title' />
+            for per method documentation.
+            The constructor forms a connection with the VMUSBReadout's
+            control server or throws an exception if that is not possible.
+          </para>
+          <para>
+            The parameter constrcutors are:
+          </para>
+          <variablelist>
+            <varlistentry>
+                <term>
+                    <fieldsynopsis>
+                        <type>std::string</type> <varname>deviceName</varname>
+                        <initializer>"vmusb"</initializer>
+                    </fieldsynopsis>
+                    </term>
+                <listitem>
+                    <para>
+                        The n ame of the device driver to direct requests to.
+                        This is the name of the driver instance
+                        created by the <command>Module</command> command
+                        in the control configuration file.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>
+                    <fieldsynopsis>
+                        <type>std::string</type> <varname>host</varname>
+                        <initializer>"localhost"</initializer>
+                    </fieldsynopsis>
+                </term>
+                <listitem>
+                    <para>
+                        The host in which the readout software is running.
+                    </para>
+                    </listitem>
+                </varlistentry>
+            <varlistentry>
+                <term>
+                    <fieldsynopsis>
+                        <type>unsigned int</type> <varname>port</varname>
+                        <initializer>27000</initializer>
+                    </fieldsynopsis>
+                </term>
+                <listitem>
+                    <para>
+                        The port on which the control server is running.
+                    </para>
+                </listitem>
+            </varlistentry>
+          </variablelist>
+       </refsect1>
+     </refentry>     
+         
         <refentry id="vmusb3-CConfigurableObject">
           <refmeta>
              <refentrytitle>CConfigurableObject</refentrytitle>
@@ -12456,6 +14342,41 @@ Module cget <replaceable>name</replaceable>
         </refsect1>
 
       </refentry>
+      <refentry id="vmusb3-watch">
+        <refmeta>
+           <refentrytitle id='vmusb3-watch-title'>watch</refentrytitle>
+           <manvolnum>3vmusb</manvolnum>
+        </refmeta>
+        <refnamediv>
+           <refname>watch</refname>
+           <refpurpose>Watch variables (slow controls)</refpurpose>
+        </refnamediv>
+        
+        <refsynopsisdiv>
+          <cmdsynopsis>
+          <command>
+watch <replaceable>name</replaceable>   
+          </command>
+          </cmdsynopsis>
+
+        </refsynopsisdiv>
+        <refsect1>
+           <title>DESCRIPTION</title>
+           <para>
+            Informs the slow controls server that a variable or array
+            named <parameter>name</parameter> should be monitored.  The
+            watched variable are monitored for changes (which are initiated
+            by clients performing <command>set</command> commands). Periodically
+            the current values of changed variables are dumped to the event
+            stream as string items of type <literal>MONITORED_VARIABLES</literal>.
+           </para>
+           <para>
+            If <parameter>name</parameter> is an array, all elements
+            of that array are monitored.
+           </para>
+        </refsect1>
+      </refentry>
+
     <refentry id="vmusb5-slowcontrols-protocol">
       <refmeta>
          <refentrytitle>VMUSB slow controls protocol</refentrytitle>

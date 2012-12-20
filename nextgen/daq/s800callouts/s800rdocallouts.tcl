@@ -284,6 +284,7 @@ proc s800::Initialize {{host localhost} {port 8000}} {
     pack .s800.record
     set ::s800::record 1
 
+
     # Status data for the s800:
 
     label .s800statel -text {S800 state: }

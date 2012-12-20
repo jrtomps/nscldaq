@@ -1,0 +1,131 @@
+Routing_MB 1 Slot 1 is 0
+Routing_MB 1 Slot 2 is 0
+Routing_MB 1 Slot 3 is 0
+Routing_MB 1 Slot 4 is 0
+Routing_MB 1 Slot 5 is 0
+Routing_MB 1 Slot 6 is 0
+Routing_MB 1 Slot 7 is 0
+Routing_MB 1 Slot 8 is 1
+Routing_MB 1 Slot 9 is 0
+Routing_MB 1 Slot 10 is 0
+Routing_MB 1 Slot 11 is 0
+Routing_MB 1 Slot 12 is 0
+Routing_MB 1 Slot 13 is 0
+Routing_MB 1 Slot 14 is 0
+Routing_MB 1 Slot 15 is 0
+Routing_MB 1 Slot 16 is 0
+MB 1 SumOffA 44
+MB 1 SumOffB 44
+MB 1 SumOffC 44
+MB 1 SISDelay 3360
+MB 1 AcqDelay 120
+MB 1 PauseDelay 160
+MB 1 CycleTimeout 25520
+MB 1 GlobalTimeout 25520
+MB 1 TriggerDelay 2748
+MB 1 CoincidenceWindow 600
+MB 1 ForceTrackDelay 0
+MB 1 AcqAllDelay 0
+MB 1 GlobDisDelay 0
+Chip 1
+    Gain h
+    Polarity n
+    TVCRange l
+    Test1 n
+    Shaper i
+    DiscMode a
+    DiscMask 262160
+    CSARef 900
+    ResetCV 223
+    ARef 512
+    ZC2 512
+    DACRef 512
+    CFDRef 512
+    EOffset 675
+    TOffset 575
+    CFDCap 12
+    CSAOffset 345
+    ShapOffset 452
+    Threshold 0 16
+    Threshold 1 16
+    Threshold 2 16
+    Threshold 3 16
+    Threshold 4 16
+    Threshold 5 16
+    Threshold 6 16
+    Threshold 7 16
+    Threshold 8 16
+    Threshold 9 16
+    Threshold 10 16
+    Threshold 11 16
+    Threshold 12 16
+    Threshold 13 16
+    Threshold 14 16
+    Threshold 15 16
+    Threshold 16 16
+    Threshold 17 16
+    Threshold 18 16
+    Threshold 19 16
+    Threshold 20 16
+    Threshold 21 16
+    Threshold 22 16
+    Threshold 23 16
+    Threshold 24 16
+    Threshold 25 16
+    Threshold 26 16
+    Threshold 27 16
+    Threshold 28 16
+    Threshold 29 16
+    Threshold 30 16
+    Threshold 31 16
+Chip 2
+    Gain h
+    Polarity p
+    TVCRange l
+    Test1 n
+    Shaper i
+    DiscMode a
+    DiscMask 44
+    CSARef 900
+    ResetCV 256
+    ARef 512
+    ZC2 512
+    DACRef 512
+    CFDRef 512
+    EOffset 354
+    TOffset 646
+    CFDCap 12
+    CSAOffset 343
+    ShapOffset 452
+    Threshold 0 10
+    Threshold 1 8
+    Threshold 2 6
+    Threshold 3 7
+    Threshold 4 12
+    Threshold 5 11
+    Threshold 6 8
+    Threshold 7 10
+    Threshold 8 10
+    Threshold 9 11
+    Threshold 10 11
+    Threshold 11 9
+    Threshold 12 11
+    Threshold 13 11
+    Threshold 14 12
+    Threshold 15 8
+    Threshold 16 8
+    Threshold 17 3
+    Threshold 18 9
+    Threshold 19 10
+    Threshold 20 10
+    Threshold 21 6
+    Threshold 22 10
+    Threshold 23 11
+    Threshold 24 9
+    Threshold 25 11
+    Threshold 26 12
+    Threshold 27 7
+    Threshold 28 12
+    Threshold 29 7
+    Threshold 30 12
+    Threshold 31 7
