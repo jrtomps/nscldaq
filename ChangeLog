@@ -246,6 +246,7 @@ Feb 1, 2012 - Feb 24, 2012
 	  things.
 	- Issue #1119 - Honor env variables for stagearea and expdir when
 	                checking for a good stagearea link.
+<<<<<<< .working
 	- Attempt to fix race condition between the s800 start and the
 	  polling of the s800 status.
 	- Turn on s800 record crate files by default per request by
@@ -287,4 +288,21 @@ Feb 1, 2012 - Feb 24, 2012
 	    - Draft code for 32 bit module.
 	    - Draft code CSIS3600 latch module.
 	  * Add libSBSDeviceSupport.la to the Readout executable build in sbs/readout/Makefile.am
-
+	- Attempt to fix race condition between the s800 start and the
+	  polling of the s800 status.
+	- Turn on s800 record crate files by default per request by
+	  Daniel B. and Scott W.
+	- Turn it back off due to the potential of users to have to
+	  respond to a dialog on the s800 control panel.
+	- In S800 exit handler deal with the fact that the S800 may have
+	  exited so socket transactions with/to it may fail....correct
+	  bgerror so that it exits rather than breaking...which causes an
+	  infinite break handling loop.
+	- Issue #1195 deal with S800 bozo-ness on scalers.
+	- Ensure readoutGUI starts with correct colors.
+	- Issue #1215  Support for SIS FADC in VMUSB readout.
+	- Issue #1216  Provide XLM/SISFADC hira pseudo module that gangs
+	them together.
+	- Issue #701 Add variable injection/monitoring to VM-USB readout
+	to support EPICS monitoring.
+	- Issue #989 - document VM-USB list remote list executino.

@@ -388,6 +388,30 @@ CConfigurableObject::getIntegerList(string name)
 
 }
 
+/**
+ * Return a parameter that is a list as a vector of strings.
+ *
+ * @param name - name of configuration parameter.
+ *
+ * @return std::vector<std::string>
+ * @retval vector whose elements are the list elements.
+ */
+vector<string>
+CConfigurableObject::getList(string name)
+{
+    string value = cget(name);
+    int argc;
+    const char** argv;
+    vector<string> result;
+    Tcl_SplitList(NULL, value.c_str(), &argc, &argv);
+    
+    for (int i = 0; i < argc; i++) {
+        result.push_back(argv[i]);
+    }
+    Tcl_Free((char*)argv);
+    return result;
+}
+
 /** 
  * Add an integer parameter to the configuration that has no limits.
  *

@@ -74,6 +74,8 @@ install-data-local:
 	$(INSTALL_DATA)  CVMUSB*.h @prefix@/vmusbdriver/includes
 
 
+clean-local:
+	rm -f $(BUILT_SOURCES)
 
 #  Stuff that needs to go int the distro:
 

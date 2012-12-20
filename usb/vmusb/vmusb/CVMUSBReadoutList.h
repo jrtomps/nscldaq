@@ -188,13 +188,13 @@ public:
   void addMaskedCountBlockRead32(uint32_t address, uint8_t amod);
   void addMaskedCountFifoRead32(uint32_t address, uint8_t amod);
   void addBlockCountRead8(int a, int m, int am) { // SWIG
-    addBlockCountRead8((uint32_t)a, uint32_t(m), (uint8_t)a);
+    addBlockCountRead8((uint32_t)a, uint32_t(m), (uint8_t)am);
   }
   void addBlockCountRead16(int a, int m, int am) { // SWIG
-    addBlockCountRead16((uint32_t)a, uint32_t(m), (uint8_t)a);
+    addBlockCountRead16((uint32_t)a, uint32_t(m), (uint8_t)am);
   }
   void addBlockCountRead32(int a, int m, int am) { // SWIG
-    addBlockCountRead32((uint32_t)a, uint32_t(m), (uint8_t)a);
+    addBlockCountRead32((uint32_t)a, uint32_t(m), (uint8_t)am);
   }
   void addMaskedCountBlockRead32(int a, int am) { // SWIG
     addMaskedCountBlockRead32((uint32_t)a, (uint8_t)am);

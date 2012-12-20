@@ -6,7 +6,9 @@ SUBDIRS = 	vmusb 		\
 		tclserver	\
 		daqconfig	\
 		 commands	\
-		driverkit
+		driverkit	\
+		tcldrivers	\
+		HINP_USB_new
 
 bin_PROGRAMS = VMUSBReadout
 

@@ -84,6 +84,21 @@ CHINP::operator=(const CHINP& rhs)
   return reinterpret_cast<CHINP&>(CXLM::operator=(rhs));
 }
 
+/**
+ * onAttach
+ * 
+ *  Defines configuration parameters for the device:
+ *
+ * @param configuration - reference to the configuration database for this object.
+ */
+void
+CHINP::onAttach(CReadoutModule& configuration)
+{
+  CXLM::onAttach(configuration); // base class stuff too.
+  configuration.addParameter("-readsramb", CConfigurableObject::isBool, 
+			     NULL, "false");
+}
+
 ///////////////////////////////////////////////////////////////////////////////////
 // CReadoutHardware interfac methods
 ///////////////////////////////////////////////////////////////////////////////////
@@ -106,15 +121,28 @@ CHINP::Initialize(CVMUSB& controller)
   base = sramA();  // base addr of VME module
   CXLM::accessBus(controller, static_cast<uint32_t>(CXLM::REQ_X));
   controller.vmeRead32(base+BUSXOwner, registerAmod, &test2);
+  printf("CHINP 5/1/2012\n");
   printf("bus control X reads %x\n",test2);
   fpga = FPGA();           // establish base address of module's FPGA
   controller.vmeRead32(base+0x820048, registerAmod, &test2);
   printf("XLM serial number read from VME addr 0x%x\n",base+0x820048);
   printf("XLM serial number is 0x%x\n",test2);
-  controller.vmeWrite32(fpga+FPGA_ABus*4, registerAmod, (uint32_t)0); // turn off glbl_enbl
-  controller.vmeWrite32(fpga+FPGA_ABus*4, registerAmod, (uint32_t)forcereset); // reset the chips
-  controller.vmeWrite32(fpga+FPGA_enblA*4, registerAmod, (uint32_t)1); // turn on ext enbl
-  controller.vmeWrite32(fpga+FPGA_ABus*4, registerAmod, (uint32_t)glbl_enable); // turn on glbl_enbl
+  controller.vmeWrite32(fpga+FPGA_ABus*4, registerAmod, static_cast<uint32_t>(0)); // turn off glbl_enbl
+  controller.vmeWrite32(fpga+FPGA_ABus*4, registerAmod, static_cast<uint32_t>(forcereset)); // reset the chips
+  controller.vmeWrite32(fpga+FPGA_ABus*4, registerAmod, static_cast<uint32_t>(0)); // turn off reset
+  controller.vmeWrite32(fpga+FPGA_ABus*4, registerAmod, static_cast<uint32_t>(0)); // wait
+  controller.vmeWrite32(fpga+FPGA_ABus*4, registerAmod, static_cast<uint32_t>(0)); // wait
+  controller.vmeWrite32(fpga+FPGA_ABus*4, registerAmod, static_cast<uint32_t>(0)); // wait
+  controller.vmeWrite32(fpga+FPGA_ABus*4, registerAmod, static_cast<uint32_t>(0)); // wait
+  controller.vmeWrite32(fpga+FPGA_ABus*4, registerAmod, static_cast<uint32_t>(0)); // wait
+  controller.vmeWrite32(fpga+FPGA_ABus*4, registerAmod, static_cast<uint32_t>(0)); // wait
+  controller.vmeWrite32(fpga+FPGA_ABus*4, registerAmod, static_cast<uint32_t>(0)); // wait
+ // now set XLM to Unified readout mode, without internal ADC
+  controller.vmeWrite32(fpga+ReadoutMode*4, registerAmod, static_cast<uint32_t>(5)); // ADC on, Unified On
+  // prepare XLM to accept triggers
+  controller.vmeWrite32(fpga+FPGA_enblA*4, registerAmod, static_cast<uint32_t>(1)); // turn on ext enbl
+  controller.vmeWrite32(fpga+FPGA_ABus*4, registerAmod, static_cast<uint32_t>(glbl_enable)); // turn on glbl_enbl
+  controller.vmeWrite32(fpga+FPGA_clear_veto*4, registerAmod, static_cast<uint32_t>(1)); // clear veto_reset
   CXLM::accessBus(controller, static_cast<uint32_t>(0)); // release bus
 
 }
@@ -144,18 +172,31 @@ CHINP::addReadoutList(CVMUSBReadoutList& list)
 
   addBusAccess(list, CXLM::REQ_A | CXLM::REQ_B | CXLM::REQ_X,
 	       static_cast<uint8_t>(2));
-  list.addWrite32(fpga+FPGA_ABus*4, registerAmod, (uint32_t)0); // turn off glbl_enbl
+  //  list.addWrite32(fpga+FPGA_ABus*4, registerAmod, static_cast<uint32_t>(0)); // turn off glbl_enbl
   uint32_t srama = sramA();	// Base address of sram A
   uint32_t sramb = sramB();	// Base address of sram B
   //  read chip ID and channel address
-  list.addBlockCountRead32(srama, (uint32_t)0x00000fff, registerAmod); // Transfer count for data
+  list.addMarker(static_cast<uint16_t>((fpga >> 27) & 0x07 | 0x1ff0));           // add ID for XLM slot #
+  list.addBlockCountRead32(srama, static_cast<uint32_t>(0x00000ffe), registerAmod); // Transfer count for 32-bit word data
+  list.addMaskedCountBlockRead32(srama + sizeof(uint32_t), blockTransferAmod);  list.addBlockCountRead32(srama, static_cast<uint32_t>(0x00000ffe), registerAmod); // Transfer count for 32-bit word data
   list.addMaskedCountBlockRead32(srama + sizeof(uint32_t), blockTransferAmod);
-  // read ADC data
-  list.addBlockCountRead32(srama, (uint32_t)0x00000fff, registerAmod); // Transfer count for data
-  list.addMaskedCountBlockRead32(sramb, blockTransferAmod);
-  list.addWrite32(fpga+FPGA_ABus*4, registerAmod, (uint32_t)forcereset); // reset the chips
-  list.addWrite32(fpga+FPGA_enblA*4, registerAmod, (uint32_t)1); // turn on ext enbl
-  list.addWrite32(fpga+FPGA_ABus*4, registerAmod, (uint32_t)glbl_enable); // turn on glbl_enbl
+  if (m_pConfiguration->getBoolParameter("-readsramb")) {
+    list.addMarker(static_cast<uint16_t>((fpga >> 27) & 0x07 | 0x2ff0));           // add ID for XLM slot #
+    list.addBlockCountRead32(sramb, static_cast<uint32_t>(0x00000ffe), registerAmod); // Transfer count for 32-bit word data
+    list.addMaskedCountBlockRead32(sramb + sizeof(uint32_t), blockTransferAmod);
+  }
+  // read ADC data (non-unified only)
+  //  list.addBlockCountRead32(srama, 0x00000fff, registerAmod); // Transfer count for data
+  //  list.addMaskedCountBlockRead32(sramb, blockTransferAmod);
+  //  list.addWrite32(fpga+FPGA_ABus*4, registerAmod, forcereset); // reset the chips
+  //  list.addWrite32(fpga+FPGA_enblA*4, registerAmod, 1); // turn on ext enbl
+  //  list.addDelay(50);              // allow things to quiet down before enabling discs
+  //  list.addWrite32(fpga+FPGA_ABus*4, registerAmod, glbl_enable); // turn on glbl_enbl
+  printf("clear_veto reg addr is %x\n",fpga+FPGA_clear_veto*4);
+  // zero the word count to prevent rereading this event
+  //  list.addWrite32(srama, registerAmod, static_cast<uint32_t>(0));
+  list.addWrite32(fpga+FPGA_clear_veto*4, registerAmod, static_cast<uint32_t>(1)); // clear veto_reset
+
   addBusAccess(list, 0, static_cast<uint8_t>(0)); // Release all busses and off we go.
 
 }

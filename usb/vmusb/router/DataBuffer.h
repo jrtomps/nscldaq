@@ -56,6 +56,16 @@ struct DataBuffer {
 
 };
 
+/**
+ *  This is the structure of a string buffer's rawData storage:
+ */
+typedef struct _StringsBuffer {
+  uint32_t s_stringCount;      	// Number of strings in the buffer.
+  uint32_t s_ringType;		// Type of text item.
+  char     s_strings[];		// The strings themselves, null terminated.
+} StringsBuffer, *pStringsBuffer;
+
+
 
 extern CBufferQueue<DataBuffer*>  gFilledBuffers;
 extern CBufferQueue<DataBuffer*>  gFreeBuffers;
@@ -83,3 +93,4 @@ static const int VMUSBStackIdShift(13);
 static const int TYPE_START(1);
 static const int TYPE_STOP(2);
 static const int TYPE_EVENTS(3);
+static const int TYPE_STRINGS(4); 

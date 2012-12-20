@@ -190,6 +190,7 @@ public:
   bool             getBoolParameter    (std::string name);
   double           getFloatParameter   (std::string name);
   std::vector<int> getIntegerList      (std::string name);
+  std::vector<std::string> getList     (std::string name);
     
   // Operations:
 

@@ -93,6 +93,8 @@ private:
   static TclServer*            m_pInstance;
   uint16_t*                    m_pMonitorData;
   size_t                       m_nMonitorDataSize;
+  bool                         m_dumpAllVariables;
+
 
   // Public data structures:
 
@@ -135,6 +137,7 @@ protected:
   int operator()();
 
 private:
+  void sendWatchedVariables();
   void initInterpreter();
   void readConfigFile();
   void initModules();
@@ -142,7 +145,9 @@ private:
   void createMonitorList();
   void EventLoop();
   static void MonitorDevices(ClientData pData); 
-  static int  receiveMonitorData(Tcl_Event* pEvent, int flags); /* Gets status buffers when run active */ 
+  static int  receiveMonitorData(Tcl_Event* pEvent, int flags); /* Gets status buffers when run active */
+
+  static void updateVariables(ClientData pData);
 
 
 };

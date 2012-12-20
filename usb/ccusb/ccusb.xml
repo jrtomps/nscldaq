@@ -702,7 +702,7 @@ extern "C" {                                    <co id='ccusb-dtemplate-dinit1' 
                 object to the driver methods.  The driver must take the
                 swig pointer like parameter and turn it into a SWIG object
                 before it can be used.  A Tcl fragment that shows how to
-                turn the CCCUSB pointer into a SWIG CCCUSB object is shon
+                turn the CCCUSB pointer into a SWIG CCCUSB object is shown
                 below:
             </para>
             <informalexample>
