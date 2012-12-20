@@ -8,9 +8,8 @@ libVMUSB_la_SOURCES 	=  CVMUSBusb.cpp CVMUSBReadoutList.cpp CVMUSBEthernet.cpp \
 	CTCPConnectionLost.cpp \
 	CTCPNoSuchHost.cpp \
 	CTCPNoSuchService.cpp \
-	CVMUSBFactory.cpp
-
-
+	CVMUSBFactory.cpp \
+	CVMUSB.cpp
 
 
 libVMUSBRemote_la_SOURCES = CVMUSBReadoutList.cpp \
@@ -48,9 +47,10 @@ INCLUDES		= $(USBSWITCHES) -I$(top_srcdir)/base/headers -I$(top_srcdir)/base/tcl
 
 libVMUSB_la_LIBADD       = $(USB_LIBS)  
 
-libVMUSBRemote_la_LIBADD = @TCL_LDFLAGS@ \
-	$(top_srcdir)/base/exception/libException.la \
-	$(top_srcdir)/base/tclplus/libtclPlus.la -lException @THREADLD_FLAGS@
+libVMUSBRemote_la_LIBADD = @top_builddir@/usb/vmusb/vmusb/libVMUSB.la \
+	@TCL_LDFLAGS@ \
+	@top_builddir@/base/exception/libException.la \
+	@top_builddir@/base/tclplus/libtclPlus.la -lException @THREADLD_FLAGS@
 
 #IVP tests:
 
