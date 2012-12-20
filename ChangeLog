@@ -263,7 +263,13 @@ Feb 1, 2012 - Feb 24, 2012
 	  starting/stopping.
 	
 10.1-006 - HiRA Support software.
-
+	- Issue #1215  Support for SIS FADC in VMUSB readout.
+	- Issue #1216  Provide XLM/SISFADC hira pseudo module that gangs
+	them together.
+	- Issue #701 Add variable injection/monitoring to VM-USB readout
+	to support EPICS monitoring.
+	- Issue #989 - document VM-USB list remote list executino.
+	
 	
 	
 	
