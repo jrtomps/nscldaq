@@ -115,7 +115,25 @@ CTclModule::clone() const
 std::string
 CTclModule::swigPointer(void* p, std::string  type)
 {
-  char pointerArray[1000];
-  sprintf(pointerArray, "_%llx_p_%s", p, type.c_str());
-  return std::string(pointerArray);
+
+  char result [10000];
+  std::string hexified;		// Bigendian.
+
+  uint8_t* s = reinterpret_cast<uint8_t*>(&p);
+
+  // Note that doing the byte reversal this way should be
+  // 64 bit clean..and in fact should work for any sized ptr.
+
+
+  for (int i = 0; i < sizeof(void*); i++) {
+    char nybble[3];
+
+    sprintf(nybble, "%02x", *s++);
+    hexified += nybble;
+
+  }
+  sprintf(result, "_%s_p_%s", hexified.c_str(), type.c_str());
+
+  return std::string(result);
+
 }
