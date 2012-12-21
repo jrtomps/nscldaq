@@ -2953,6 +2953,14 @@ hira cget <replaceable>name</replaceable>
             This command allows you to combine these into a single module.
             from the point of view of a stack.
            </para>
+           <note>
+               <title>Note:</title>
+               <para>
+                  Normally the XLM modules used are either a hinp or psd
+                  module.  As the code for these is maintained by Washington
+                  Univ,  Those drivers are not documented here.
+               </para>
+           </note>
            <para>
             The command produces the following data format:
            </para>
@@ -2966,10 +2974,18 @@ hira cget <replaceable>name</replaceable>
 | tag data from xlm1 sram b          |
 ../
 +------------------------------------+
+| 0xfadc                             |
++------------------------------------+
+| Mask of read groups                |
++------------------------------------+
 | Data from the FADC module group1   |
++------------------------------------+
+| 0xaaa                              |
++------------------------------------+
 ...
 | Data from the FADC module group2   |
-+------------------------------------+
+...
++y------------------------------------+
             </programlisting>
            </informalexample>
            <para>
