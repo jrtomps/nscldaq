@@ -52,91 +52,91 @@ using namespace std;		// Needed here for spectrodaq
 
 
 const char* sDevice="/dev/vme32d32";
-const unsigned long nDeviceSize = 0x383000;
-const unsigned long K = 1024L;
+const uint32_t nDeviceSize = 0x383000;
+const uint32_t K = 1024L;
 
 // Bits in the control register: Each control has a set/unset bit (J/K flip
 // flop control).
 
-const unsigned long CRLedOn                    =        1;
-const unsigned long CRUserOutputOn             =        2;
-const unsigned long CREnableTriggerOutput      =        4;
-const unsigned long CRInvertTriggerOutput      = 0x000010;
-const unsigned long CRTriggerOnArmedAndStarted = 0x000020;
-const unsigned long CRLedOff                   = 0x010000;
-const unsigned long CRUserOutputOff            = 0x020000;
-const unsigned long CREnableUserOutput         = 0x040000;
-const unsigned long CRNormalTriggerOutput      = 0x100000;
-const unsigned long CRTriggerOnArmed           = 0x200000;
+const uint32_t CRLedOn                    =        1;
+const uint32_t CRUserOutputOn             =        2;
+const uint32_t CREnableTriggerOutput      =        4;
+const uint32_t CRInvertTriggerOutput      = 0x000010;
+const uint32_t CRTriggerOnArmedAndStarted = 0x000020;
+const uint32_t CRLedOff                   = 0x010000;
+const uint32_t CRUserOutputOff            = 0x020000;
+const uint32_t CREnableUserOutput         = 0x040000;
+const uint32_t CRNormalTriggerOutput      = 0x100000;
+const uint32_t CRTriggerOnArmed           = 0x200000;
 
 // Bits in the status register:
 
-const unsigned long SRLedStatus            =        1;
-const unsigned long SRUserOutputState      =        2;
-const unsigned long SRTriggerOutputState   =        4; 
-const unsigned long SRTriggerIsInverted    = 0x000010;
-const unsigned long SRTriggerCondition     = 0x000020; //1: armed and started
-const unsigned long SRUserInputCondition   = 0x010000;
-const unsigned long SRP2_TEST_IN           = 0x020000;
-const unsigned long SRP2_RESET_IN          = 0x040000;
-const unsigned long SRP2_SAMPLE_IN         = 0X080000;
+const uint32_t SRLedStatus            =        1;
+const uint32_t SRUserOutputState      =        2;
+const uint32_t SRTriggerOutputState   =        4; 
+const uint32_t SRTriggerIsInverted    = 0x000010;
+const uint32_t SRTriggerCondition     = 0x000020; //1: armed and started
+const uint32_t SRUserInputCondition   = 0x010000;
+const uint32_t SRP2_TEST_IN           = 0x020000;
+const uint32_t SRP2_RESET_IN          = 0x040000;
+const uint32_t SRP2_SAMPLE_IN         = 0X080000;
 
 
 // Bits in the data acquisition control register:
 //
-const unsigned long DAQSampleBank1On       = 0x00000001;
-const unsigned long DAQSampleBank2On       = 0x00000002;
-const unsigned long DAQEnableHiRARCM       = 0x00000008;
-const unsigned long DAQAutostartOn         = 0x00000010;
-const unsigned long DAQMultiEventOn        = 0x00000020;
-const unsigned long DAQStopDelayOn         = 0x00000080;
-const unsigned long DAQStartDelayOn        = 0x00000040;
-const unsigned long DAQEnableLemoStartStop = 0x00000100;
-const unsigned long DAQEnableP2StartStop   = 0x00000200;
-const unsigned long DAQEnableGateMode      = 0x00000400;
-const unsigned long DAQEnableRandomClock   = 0x00000800;
-const unsigned long DAQClockSetMask        = 0x00007000;
-const unsigned long DAQDisableHiRARCM      = 0x00080000;
-const unsigned long DAQClockSetShiftCount  = 12;
-const unsigned long DAQSampleBank1Off      = 0x00010000;
-const unsigned long DAQBusyStatus          = 0x00010000;
-const unsigned long DAQSampleBank2Off      = 0x00020000;
-const unsigned long DAQAutostartOff        = 0x00100000;
-const unsigned long DAQMultiEventOff       = 0x00200000;
-const unsigned long DAQStopDelayOff        = 0x00800000;
-const unsigned long DAQStartDelayOff       = 0x00400000;
-const unsigned long DAQDisableLemoStartStop= 0x01000000;
-const unsigned long DAQDisableP2StartStop  = 0x02000000;
-const unsigned long DAQDisableGateMode     = 0x04000000;
-const unsigned long DAQDisableRandomClock  = 0x08000000;
-const unsigned long DAQClockClearMask      = 0x70000000;
-const unsigned long DAQCLockClearShiftCount= 28;
+const uint32_t DAQSampleBank1On       = 0x00000001;
+const uint32_t DAQSampleBank2On       = 0x00000002;
+const uint32_t DAQEnableHiRARCM       = 0x00000008;
+const uint32_t DAQAutostartOn         = 0x00000010;
+const uint32_t DAQMultiEventOn        = 0x00000020;
+const uint32_t DAQStopDelayOn         = 0x00000080;
+const uint32_t DAQStartDelayOn        = 0x00000040;
+const uint32_t DAQEnableLemoStartStop = 0x00000100;
+const uint32_t DAQEnableP2StartStop   = 0x00000200;
+const uint32_t DAQEnableGateMode      = 0x00000400;
+const uint32_t DAQEnableRandomClock   = 0x00000800;
+const uint32_t DAQClockSetMask        = 0x00007000;
+const uint32_t DAQDisableHiRARCM      = 0x00080000;
+const uint32_t DAQClockSetShiftCount  = 12;
+const uint32_t DAQSampleBank1Off      = 0x00010000;
+const uint32_t DAQBusyStatus          = 0x00010000;
+const uint32_t DAQSampleBank2Off      = 0x00020000;
+const uint32_t DAQAutostartOff        = 0x00100000;
+const uint32_t DAQMultiEventOff       = 0x00200000;
+const uint32_t DAQStopDelayOff        = 0x00800000;
+const uint32_t DAQStartDelayOff       = 0x00400000;
+const uint32_t DAQDisableLemoStartStop= 0x01000000;
+const uint32_t DAQDisableP2StartStop  = 0x02000000;
+const uint32_t DAQDisableGateMode     = 0x04000000;
+const uint32_t DAQDisableRandomClock  = 0x08000000;
+const uint32_t DAQClockClearMask      = 0x70000000;
+const uint32_t DAQCLockClearShiftCount= 28;
 
 
 // Bits and fields in the event configuration register.
 //
 
-const unsigned long ECFGPageSizeMask      = 7;
-const unsigned long ECFGPageSizeShiftCount= 0;
-const unsigned long ECFGWrapMask          = 8;
-const unsigned long ECFGWrapShiftCount    = 3;
-const unsigned long ECFGRandomClock       = (1 << 11);
+const uint32_t ECFGPageSizeMask      = 7;
+const uint32_t ECFGPageSizeShiftCount= 0;
+const uint32_t ECFGWrapMask          = 8;
+const uint32_t ECFGWrapShiftCount    = 3;
+const uint32_t ECFGRandomClock       = (1 << 11);
 
 // Bits and fields in the threshold register.
-const unsigned long THRLt                 =0x8000;
-const unsigned long THRChannelShift    = 16;
+const uint32_t THRLt                 =0x8000;
+const uint32_t THRChannelShift    = 16;
 
 // Bits and fields in the event directory longs:
 //
 
-const unsigned long EDIREndEventMask(0x1ffff);
-const unsigned long EDIRWrapFlag(0x80000);
+const uint32_t EDIREndEventMask(0x1ffff);
+const uint32_t EDIRWrapFlag(0x80000);
 
 // HiRA firmware is a pre-requisite to using the HiRA
 // indpendent random clock mode.
 
-const unsigned long HIRAFWMAJOR = 0x13;
-const unsigned long HIRAFWMINOR = 0x05;
+const uint32_t HIRAFWMAJOR = 0x13;
+const uint32_t HIRAFWMINOR = 0x05;
 
 
 /*!
@@ -151,7 +151,7 @@ const unsigned long HIRAFWMINOR = 0x05;
 
   \param nBaseAddress - The VME base address of the module.
   */
-CSIS3300::CSIS3300(unsigned long nBaseAddress,
+CSIS3300::CSIS3300(uint32_t nBaseAddress,
 		   unsigned int           nCrate) :
   m_nBase(nBaseAddress),
   m_nFd(0),
@@ -217,7 +217,7 @@ CSIS3300::CSIS3300(unsigned long nBaseAddress,
 
   void *p = CVMEInterface::Open(CVMEInterface::A32, nCrate);
   m_nFd = p;
-  m_pCsrs  = (volatile unsigned long*)CVMEInterface::Map(p, m_nBase, 
+  m_pCsrs  = (volatile uint32_t*)CVMEInterface::Map(p, m_nBase, 
 							  0x3000);
 
   
@@ -231,14 +231,14 @@ CSIS3300::CSIS3300(unsigned long nBaseAddress,
   // If the module is not an SIS 3300 or 3301 according to the
   // module Id register throw a hissy fit:
 
-  unsigned long id    = *m_pModuleId;
-  unsigned long model = (id >> 16) & 0xffff;
+  uint32_t id    = *m_pModuleId;
+  uint32_t model = (id >> 16) & 0xffff;
   if ((model != 0x3300) && (model != 0x3301)) {
     CVMEInterface::Unmap(m_nFd, (void*)m_pCsrs, 0x3000);
     CVMEInterface::Close(m_nFd);
     char error[1024];
     sprintf(error, "CSIS3300: Module at %08lx is not a 3300 nor a 3301\n",
-	    m_nBase);
+	    (unsigned long)m_nBase);
     throw string(error);
   }
   
@@ -252,13 +252,13 @@ CSIS3300::CSIS3300(unsigned long nBaseAddress,
   m_pStopDelay   = m_pCsrs + (0x18/sizeof(long));
 
 
-  m_pEventConfig = (volatile unsigned long*)CVMEInterface::Map(m_nFd,
+  m_pEventConfig = (volatile uint32_t*)CVMEInterface::Map(m_nFd,
 						    m_nBase + 0x100000, 0x10);
 
 
   //
 
-  m_pEi1  = (volatile unsigned long*)CVMEInterface::Map(m_nFd, 
+  m_pEi1  = (volatile uint32_t*)CVMEInterface::Map(m_nFd, 
 							m_nBase + 0x200000, 
 							0x3000);
 
@@ -266,21 +266,21 @@ CSIS3300::CSIS3300(unsigned long nBaseAddress,
   m_pAddressReg1    = m_pEi1 + (8/sizeof(long));
   m_pEventDirectory1= m_pEi1 + (0x1000/sizeof(long));
 
-  m_pEi2 = (volatile unsigned long*)CVMEInterface::Map(m_nFd, 
+  m_pEi2 = (volatile uint32_t*)CVMEInterface::Map(m_nFd, 
 						       m_nBase + 0x280000, 
 						       0x3000);
   m_pThresholds[1] = m_pEi2 + (4/sizeof(long));
   m_pAddressReg2    = m_pEi2 + (8/sizeof(long));
   m_pEventDirectory2= m_pEi2 + (0x1000/sizeof(long));
 
-  m_pEi3 = (volatile unsigned long*)CVMEInterface::Map(m_nFd, 
+  m_pEi3 = (volatile uint32_t*)CVMEInterface::Map(m_nFd, 
 						       m_nBase + 0x300000, 
 						       0x3000);
   m_pThresholds[2] = m_pEi3 + (4/sizeof(long));
   m_pAddressReg3    = m_pEi3 + (8/sizeof(long));
   m_pEventDirectory3= m_pEi3 + (0x1000/sizeof(long));
  
-  m_pEi4 = (volatile unsigned long*)CVMEInterface::Map(m_nFd, 
+  m_pEi4 = (volatile uint32_t*)CVMEInterface::Map(m_nFd, 
 						       m_nBase + 0x380000, 
 						       0x3000);
   m_pThresholds[3] = m_pEi4 + (4/sizeof(long));
@@ -674,10 +674,10 @@ CSIS3300::InitDaq()
   
   int tchan = 0;
   for(int i =0; i < 4; i++) {
-    unsigned long eventhresh = m_nThresholds[tchan];
+    uint32_t eventhresh = m_nThresholds[tchan];
     if(m_fThresholdLt[tchan]) eventhresh |= THRLt;
     tchan++;
-    unsigned long oddthresh = m_nThresholds[tchan];
+    uint32_t oddthresh = m_nThresholds[tchan];
     if(m_fThresholdLt[tchan]) oddthresh |= THRLt;
     tchan++;
 
@@ -792,7 +792,7 @@ CSIS3300::WaitUntilDone(int timeout)
 
   if(i >= timeout) return false;
 
-  unsigned long  last = *m_pAddressReg1;
+  uint32_t  last = *m_pAddressReg1;
   while(last != *m_pAddressReg1) 
     last = *m_pAddressReg1;		// Wait for address reg. to stabilize.
 
@@ -805,10 +805,10 @@ CSIS3300::WaitUntilDone(int timeout)
   Returns the number digitized addresses (events) in a memory bank.
 */
 
-unsigned long
+uint32_t
 CSIS3300::EventNumber(int bank)
 {
-  unsigned long last;
+  uint32_t last;
   if(bank==1)last = *m_pAddressReg1;
   else if(bank==2)last = *m_pAddressReg2;
   else if(bank==3)last = *m_pAddressReg3;
@@ -902,20 +902,20 @@ CSIS3300::Arm2()
    */
 unsigned int 
 CSIS3300::ReadAGroup(void* pbuffer,
-			  volatile unsigned long* pAddressReg,
-			  unsigned long           nBase)
+			  volatile uint32_t* pAddressReg,
+			  uint32_t           nBase)
 {
 
-  unsigned long nPagesize(m_nPagesize);	// Max conversion count.
+  uint32_t nPagesize(m_nPagesize);	// Max conversion count.
 
   // Decode the event directory entry:
 
-  unsigned long    AddressRegister = *pAddressReg;
+  uint32_t    AddressRegister = *pAddressReg;
   bool           fWrapped      = (*pAddressReg & EDIRWrapFlag ) != 0;
-  unsigned long  nEventEnd     = (*pAddressReg & EDIREndEventMask);
+  uint32_t  nEventEnd     = (*pAddressReg & EDIREndEventMask);
   nEventEnd                   &= (nPagesize-1);	// Wrap the pointer to pagesize
-  unsigned long  nLongs(0);
-  unsigned long* Samples((unsigned long*)pbuffer);
+  uint32_t  nLongs(0);
+  uint32_t* Samples((uint32_t*)pbuffer);
 
   // The three cases above break into two cases: fWrapped true or not.
 
@@ -938,7 +938,7 @@ CSIS3300::ReadAGroup(void* pbuffer,
 
     // The second read, if necessary, is from 0 ->nEventEnd-1.
     
-    unsigned long nOffset =  nReadSize; // Offset into Samples where data goes.
+    uint32_t nOffset =  nReadSize; // Offset into Samples where data goes.
     nReadSize = nPagesize - nReadSize;  // Size of remaining read.
     if(nReadSize > 0) {
       CVMEInterface::Read((void*)m_nFd,
@@ -961,7 +961,7 @@ CSIS3300::ReadAGroup(void* pbuffer,
     }
   }
 
-  return nLongs*sizeof(unsigned long)/sizeof(unsigned short);
+  return nLongs*sizeof(uint32_t)/sizeof(unsigned short);
 
 }
 
@@ -1021,7 +1021,7 @@ CSIS3300::ReadAllGroups(void* pBuff)
 unsigned int
 CSIS3300::ReadGroup1(void* pBuffer)
 {
-  unsigned long endaddress = *m_pAddressReg1;
+  uint32_t endaddress = *m_pAddressReg1;
   return ReadAGroup(pBuffer, m_pEventDirectory1, m_nBase + 0x400000);
 }
 /*!
@@ -1038,7 +1038,7 @@ CSIS3300::ReadGroup1(void* pBuffer)
 unsigned int
 CSIS3300::ReadGroup2(void* pBuffer)
 {
-  unsigned long endaddress = *m_pAddressReg1;
+  uint32_t endaddress = *m_pAddressReg1;
   return ReadAGroup(pBuffer, m_pEventDirectory2, m_nBase+0x480000);
 
 }
@@ -1056,7 +1056,7 @@ CSIS3300::ReadGroup2(void* pBuffer)
 unsigned int 
 CSIS3300::ReadGroup3(void* pBuffer)
 {
-  unsigned long endaddress = *m_pAddressReg1; // For debugging.
+  uint32_t endaddress = *m_pAddressReg1; // For debugging.
   return ReadAGroup(pBuffer, m_pEventDirectory3, m_nBase + 0x500000);
 }
 
@@ -1074,7 +1074,7 @@ CSIS3300::ReadGroup3(void* pBuffer)
 unsigned int
 CSIS3300::ReadGroup4(void* pBuffer)
 {
-  unsigned long endaddress = *m_pAddressReg1; // For debugging.
+  uint32_t endaddress = *m_pAddressReg1; // For debugging.
   return ReadAGroup(pBuffer, m_pEventDirectory4, m_nBase + 0x580000 );
 }
 
