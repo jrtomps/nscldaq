@@ -38,12 +38,20 @@
 #include <VmeModule.h>
 #endif
 
+#ifndef __CRTL_STDINT_H
+#include <stdint.h>
+#ifndef __CRTL_STDINT_H
+#define __CRTL_STDINT_H
+#endif
+#endif
+
+
 class CNimout : public CVmeModule
 {
   enum { LENGTH = 64 };
-  UShort_t* m_pBase;
-  UShort_t* m_pStrobeRegister;
-  UShort_t* m_pControlRegister;
+  uint16_t* m_pBase;
+  uint16_t* m_pStrobeRegister;
+  uint16_t* m_pControlRegister;
 
   // These are the registers in the bira nimout board. Their place
   // in the enumeration also happens to correspond their offset in
@@ -58,7 +66,7 @@ class CNimout : public CVmeModule
 
   // Default constructor
   CNimout(UInt_t base);
-  CNimout(CVME<UShort_t>& am_CVME);
+  CNimout(CVME<uint16_t>& am_CVME);
   
   // Copy Constructor
   CNimout(const CNimout& aCNimout);
@@ -70,18 +78,20 @@ class CNimout : public CVmeModule
   CNimout& operator= (const CNimout& aCNimout);
 
   // Operator== Equality operator
-  Int_t operator== (const CNimout& aCNimout);
+
+  int operator== (const CNimout& aCNimout);
+  int operator!=(const CNimout& aCNimout) {return !operator==(aCNimout);}
 
   // Public member functions: Modify/read registers
  public:
 
   // Modify register bit patterns
   void ClearAll();
-  void WriteRegister(Register reg, UShort_t pattern);
+  void WriteRegister(Register reg, uint16_t pattern);
   Bool_t SetStrobeLength(DFloat_t time_in_ns);
   void StrobeAll();
-  void OrRegister(Register reg, UShort_t or_pattern);
-  void AndRegister(Register reg, UShort_t and_pattern);
+  void OrRegister(Register reg, uint16_t or_pattern);
+  void AndRegister(Register reg, uint16_t and_pattern);
 
   // Modify individual bits
   Bool_t SetBit(Register reg, UInt_t bit_num);
@@ -92,7 +102,7 @@ class CNimout : public CVmeModule
   void ClearTBit();
 
   // Read registers
-  UShort_t ReadRegister(Register reg);
+  uint16_t ReadRegister(Register reg);
   Bool_t ModuleReady();
   Bool_t TBitSet();
   void PrintAll();

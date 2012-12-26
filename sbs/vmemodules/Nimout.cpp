@@ -18,7 +18,7 @@ static const char* Copyright= "(C) Copyright Michigan State University 2002, All
   \file Nimout.cpp
 
   Implements a Nimout object. Nimout's are mapped to NIM modules
-  using a CVME<UShort_t> object. These objects are specific to NIM
+  using a CVME<uint16_t> object. These objects are specific to NIM
   modules which map to 16 bit address/16 bit data bus cards. Nimouts
   can be read from, and written to.
 
@@ -52,8 +52,8 @@ CNimout::CNimout(UInt_t base) :
   m_pStrobeRegister(0)
 {
 #ifdef HAVE_VME_MAPPING
-  CVME<UShort_t> space = getCVME();    // Get address space
-  m_pBase            = (UShort_t*)space.getgenptr(0);
+  CVME<uint16_t> space = getCVME();    // Get address space
+  m_pBase            = (uint16_t*)space.getgenptr(0);
   m_pStrobeRegister  = &(m_pBase[STROBE]);
   m_pControlRegister =  &(m_pBase[CONTROL]);
 #endif
@@ -100,7 +100,7 @@ CNimout::operator= (const CNimout& aCNimout)
   \return 1 if they are equal
           0 if they are not equal
 */
-Int_t
+int
 CNimout::operator== (const CNimout& aCNimout)
 {
   return (CVmeModule::operator== (aCNimout));
@@ -133,7 +133,7 @@ CNimout::ClearAll()
          UInt_t pattern - the bit pattern to write to the data register
 */
 void
-CNimout::WriteRegister(Register reg, UShort_t pattern)
+CNimout::WriteRegister(Register reg, uint16_t pattern)
 {
 
   m_pBase[reg] = pattern;
@@ -222,10 +222,10 @@ CNimout::StrobeAll()
                              contained in the register 'reg'
 */
 void
-CNimout::OrRegister(Register reg, UShort_t or_pattern)
+CNimout::OrRegister(Register reg, uint16_t or_pattern)
 {
   try {
-    UShort_t curr_pattern = peekw(reg);
+    uint16_t curr_pattern = peekw(reg);
     pokew((curr_pattern | or_pattern), reg);
   }
   catch(CRangeError& re) {
@@ -234,7 +234,7 @@ CNimout::OrRegister(Register reg, UShort_t or_pattern)
 }
 
 /*!
-  \fn void CNimout::AndRegister(Register reg, UShort_t and_pattern)
+  \fn void CNimout::AndRegister(Register reg, uint16_t and_pattern)
 
   Purpose: 
      Logically and's the bit pattern held by register 'reg'
@@ -242,14 +242,14 @@ CNimout::OrRegister(Register reg, UShort_t or_pattern)
      if there is a range error.
 
   \param Register reg - enumeration indicating which register to 'and'
-         UShort_t and_pattern - the bit pattern to and with the pattern
+         uint16_t and_pattern - the bit pattern to and with the pattern
 	                        contained in the register 'reg'.
 */
 void
-CNimout::AndRegister(Register reg, UShort_t and_pattern)
+CNimout::AndRegister(Register reg, uint16_t and_pattern)
 {
   try {
-    UShort_t curr_pattern = peekw(reg);
+    uint16_t curr_pattern = peekw(reg);
     pokew((curr_pattern & and_pattern), reg);
   }
   catch(CRangeError& re) {
@@ -258,7 +258,7 @@ CNimout::AndRegister(Register reg, UShort_t and_pattern)
 }
 
 /*!
-  \fn Bool_t CNimout::SetBit(Register reg, UShort_t bit_num)
+  \fn Bool_t CNimout::SetBit(Register reg, uint16_t bit_num)
 
   Purpose: 
      Asserts the bit bit_num of register reg. Returns 0 if
@@ -266,7 +266,7 @@ CNimout::AndRegister(Register reg, UShort_t and_pattern)
      Throws a CRangeError exception if there is a range error.
 
   \param Register reg - enumeration indicating which register to write to
-         UShort_t bit_num - bit number to assert
+         uint16_t bit_num - bit number to assert
 
   \return 1 if the operation was successful
           0 if the operation was unsuccessful
@@ -277,7 +277,7 @@ CNimout::SetBit(Register reg, UInt_t bit_num)
   if(bit_num > 15) return 0;
   
   try {
-    UShort_t curr_reg = peekw(reg);
+    uint16_t curr_reg = peekw(reg);
     curr_reg = (curr_reg | (1 << bit_num));
     pokew(curr_reg, reg);
   }
@@ -289,7 +289,7 @@ CNimout::SetBit(Register reg, UInt_t bit_num)
 }
 
 /*!
-  \fn Bool_t CNimout::ClearBit(Register reg, UShort_t bit_num)
+  \fn Bool_t CNimout::ClearBit(Register reg, uint16_t bit_num)
 
   Purpose: 
      Deasserts the bit bit_num of register reg. Returns 0 if
@@ -297,7 +297,7 @@ CNimout::SetBit(Register reg, UInt_t bit_num)
      Throws a CRangeError exception if there is a range error.
 
   \param Register reg - enumeration indicating which register to write to.
-         UShort_t bit_num - bit number to deassert.
+         uint16_t bit_num - bit number to deassert.
 */
 Bool_t
 CNimout::ClearBit(Register reg, UInt_t bit_num)
@@ -305,8 +305,8 @@ CNimout::ClearBit(Register reg, UInt_t bit_num)
   if(bit_num > 15) return 0;
 
   try {
-    UShort_t curr_reg = peekw(reg);
-    UShort_t mask     = ~(1 << bit_num);
+    uint16_t curr_reg = peekw(reg);
+    uint16_t mask     = ~(1 << bit_num);
     curr_reg        = (curr_reg & mask);
     pokew(curr_reg, reg);
   }
@@ -346,7 +346,7 @@ CNimout::TransferData()
 void
 CNimout::SetTBit()
 {
-  UShort_t curr_reg = peekw(CONTROL);
+  uint16_t curr_reg = peekw(CONTROL);
   pokew((curr_reg | 0x2), CONTROL);
 }
 
@@ -359,7 +359,7 @@ CNimout::SetTBit()
 void
 CNimout::ClearCBit()
 {
-  UShort_t curr_reg = peekw(CONTROL);
+  uint16_t curr_reg = peekw(CONTROL);
   pokew((curr_reg & 0xfffe), CONTROL);
 }
 
@@ -372,12 +372,12 @@ CNimout::ClearCBit()
 void
 CNimout::ClearTBit()
 {
-  UShort_t curr_reg = peekw(CONTROL);
+  uint16_t curr_reg = peekw(CONTROL);
   pokew((curr_reg & 0xfffd), CONTROL);
 }
 
 /*!
-  \fn UShort_t CNimout::ReadRegister(Register reg)
+  \fn uint16_t CNimout::ReadRegister(Register reg)
 
   Purpose:
      Reads the contents of register 'reg' from the Bira Nimout
@@ -389,7 +389,7 @@ CNimout::ClearTBit()
 
   \return The contents of the register
 */
-UShort_t
+uint16_t
 CNimout::ReadRegister(Register reg)
 {
   try {
