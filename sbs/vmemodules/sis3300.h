@@ -26,6 +26,13 @@
 #define __STL_STRING
 #endif
 
+#ifndef __CRTL_STDINT_H
+#include <stdint.h>
+#ifndef __CRTL_STDINT_H
+#define __CRTL_STDINT_H
+#endif
+#endif
+
 /*!
    Preliminary class to setup and read the SIS3300 flash adc.
    Supported functions are to:
@@ -73,33 +80,33 @@ public:
   } SampleSize; 
 
 private:
-  unsigned long           m_nBase;            //!< Module abs. VME base
+  uint32_t           m_nBase;            //!< Module abs. VME base
   // Register pointers:
-  volatile unsigned long* m_pCsrs;            //!< CSR bank 0 - 0x3000.
-  volatile unsigned long* m_pEi1;             //!< Event information for bank1.
-  volatile unsigned long* m_pEi2;              //!< Event info for bank 2.
-  volatile unsigned long* m_pEi3;             //!< Event info for bank 3.
-  volatile unsigned long* m_pEi4;             //!< Event info for bank 4.
+  volatile uint32_t* m_pCsrs;            //!< CSR bank 0 - 0x3000.
+  volatile uint32_t* m_pEi1;             //!< Event information for bank1.
+  volatile uint32_t* m_pEi2;              //!< Event info for bank 2.
+  volatile uint32_t* m_pEi3;             //!< Event info for bank 3.
+  volatile uint32_t* m_pEi4;             //!< Event info for bank 4.
 
-  volatile unsigned long* m_pModuleId;	      //!< Module ID register.
-  volatile unsigned long* m_pCsr;	      //!< Control status register.  
-  volatile unsigned long* m_pAcqReg;	     //!< Acquisition control register.
-  volatile unsigned long* m_pResetKey;	      //!< Module reset key register.
-  volatile unsigned long* m_pStart;	      //!< Start Key register.
-  volatile unsigned long* m_pStop;	      //!< Stop Key register.
-  volatile unsigned long* m_pEventConfig;    //!< Global Event config register.
-  volatile unsigned long* m_pStartDelay;	//!< Start delay register.
-  volatile unsigned long* m_pStopDelay;	      //!< Stop  delay register.
-  volatile unsigned long* m_pAddressReg1; //!< Address register 1 (detect eov) 
-  volatile unsigned long* m_pAddressReg2; //!< Address register 2 (detect eov) 
-  volatile unsigned long* m_pAddressReg3; //!< Address register 3 (detect eov) 
-  volatile unsigned long* m_pAddressReg4; //!< Address register 4 (detect eov) 
-  volatile unsigned long* m_pEventDirectory1;   //!< Ptr to the event directory.
-  volatile unsigned long* m_pEventDirectory2;   //!< Ptr to the event directory.
-  volatile unsigned long* m_pEventDirectory3;   //!< Ptr to the event directory.
-  volatile unsigned long* m_pEventDirectory4;   //!< Ptr to the event directory.
-  volatile unsigned long* m_pBank1Buffers[4];   //!< Bank data memory.
-  volatile unsigned long* m_pThresholds[4]; //!< threshold registers.
+  volatile uint32_t* m_pModuleId;	      //!< Module ID register.
+  volatile uint32_t* m_pCsr;	      //!< Control status register.  
+  volatile uint32_t* m_pAcqReg;	     //!< Acquisition control register.
+  volatile uint32_t* m_pResetKey;	      //!< Module reset key register.
+  volatile uint32_t* m_pStart;	      //!< Start Key register.
+  volatile uint32_t* m_pStop;	      //!< Stop Key register.
+  volatile uint32_t* m_pEventConfig;    //!< Global Event config register.
+  volatile uint32_t* m_pStartDelay;	//!< Start delay register.
+  volatile uint32_t* m_pStopDelay;	      //!< Stop  delay register.
+  volatile uint32_t* m_pAddressReg1; //!< Address register 1 (detect eov) 
+  volatile uint32_t* m_pAddressReg2; //!< Address register 2 (detect eov) 
+  volatile uint32_t* m_pAddressReg3; //!< Address register 3 (detect eov) 
+  volatile uint32_t* m_pAddressReg4; //!< Address register 4 (detect eov) 
+  volatile uint32_t* m_pEventDirectory1;   //!< Ptr to the event directory.
+  volatile uint32_t* m_pEventDirectory2;   //!< Ptr to the event directory.
+  volatile uint32_t* m_pEventDirectory3;   //!< Ptr to the event directory.
+  volatile uint32_t* m_pEventDirectory4;   //!< Ptr to the event directory.
+  volatile uint32_t* m_pBank1Buffers[4];   //!< Bank data memory.
+  volatile uint32_t* m_pThresholds[4]; //!< threshold registers.
 
   // State which determines how the module is set up:
  
@@ -130,7 +137,7 @@ private:
 public:
   // Constructors and other canonical member functions:
 
-  CSIS3300(unsigned long nBaseAddress,
+  CSIS3300(uint32_t nBaseAddress,
 	   unsigned int nCrate = 0);
 private:
   CSIS3300(const CSIS3300& rhs);
@@ -141,23 +148,23 @@ public:
 
   // Selectors:
 public:
-  unsigned long getBaseAddress() const {
+  uint32_t getBaseAddress() const {
     return m_nBase;
   }
-  unsigned long getPageSize() const {
+  uint32_t getPageSize() const {
     return m_nPagesize;
   }
 
-  volatile unsigned long* getAddressRegister1() {
+  volatile uint32_t* getAddressRegister1() {
     return m_pAddressReg1;
   }
-   volatile unsigned long* getAddressRegister2() {
+   volatile uint32_t* getAddressRegister2() {
     return m_pAddressReg2;
   }
-  volatile unsigned long* getAddressRegister3() {
+  volatile uint32_t* getAddressRegister3() {
     return m_pAddressReg3;
   }
-  volatile unsigned long* getAddressRegister4() {
+  volatile uint32_t* getAddressRegister4() {
     return m_pAddressReg4;
   }
   /*! This function is deprecated in favor 
@@ -166,7 +173,7 @@ public:
    compatibility with old code where the
    entire module was mapped:
   */
-  volatile unsigned long* getModuleBase() { 
+  volatile uint32_t* getModuleBase() { 
     return m_pCsrs;
   }
   /*! This function is deprecated in favor 
@@ -175,15 +182,15 @@ public:
    compatibility with old code where the
    entire module was mapped:
   */
-  volatile unsigned long* getCsr() {
+  volatile uint32_t* getCsr() {
     return m_pCsr;
   }
   //! Get value of status register.
-  unsigned long getStatusRegister() const {  
+  uint32_t getStatusRegister() const {  
     return *m_pCsrs;
   }
   //! Set the control register.
-  void setControlRegister(unsigned long value) {
+  void setControlRegister(uint32_t value) {
     *m_pCsrs = value;
   }
   /*!
@@ -192,7 +199,7 @@ public:
     - getFirmwareMajor() - get major rev level.
     - getFirmwareMinor() - get minor rev level.
   */
-  volatile const unsigned long* getModuleId() const{
+  volatile const uint32_t* getModuleId() const{
     return m_pModuleId;
   }
   //! Get the model number:
@@ -209,38 +216,38 @@ public:
   }
 
   //! Read access to the Acquisition register.
-  volatile const unsigned long* getAcquisitionRegister() const {
+  volatile const uint32_t* getAcquisitionRegister() const {
     return m_pAcqReg;
   }
   /*!  This function is deprecated in favor of the
        Reset function
    */
-  volatile unsigned long* getResetKeyRegister() {
+  volatile uint32_t* getResetKeyRegister() {
     return m_pResetKey;
   }
-  volatile unsigned long* getStartKeyRegister() {
+  volatile uint32_t* getStartKeyRegister() {
     return m_pStart;
   }
-  volatile unsigned long* getEventConfigRegister() {
+  volatile uint32_t* getEventConfigRegister() {
     return m_pEventConfig;
   }
-  volatile unsigned long* getStartDelayRegister() {
+  volatile uint32_t* getStartDelayRegister() {
     return m_pStartDelay;
   }
-  volatile unsigned long* getStopDelayRegister() {
+  volatile uint32_t* getStopDelayRegister() {
     return m_pStopDelay;
   }
-  volatile unsigned long* getEventDirectory1() {
+  volatile uint32_t* getEventDirectory1() {
     return m_pEventDirectory1;
   }
 
-  volatile unsigned long* getEventDirectory2() {
+  volatile uint32_t* getEventDirectory2() {
     return m_pEventDirectory2;
   }
-  volatile unsigned long* getEventDirectory3() {
+  volatile uint32_t* getEventDirectory3() {
     return m_pEventDirectory3;
   }
-  volatile unsigned long* getEventDirectory4() {
+  volatile uint32_t* getEventDirectory4() {
     return m_pEventDirectory4;
   }
   void* getFd() {
@@ -249,16 +256,16 @@ public:
   // These functions really only make sense inside the class body.
   // they return VME addresses not process virtual addresses.
 private:
-  volatile unsigned long getGroup1Address() {
+  volatile uint32_t getGroup1Address() {
     return getBaseAddress() + 0x400000;
   }
-  volatile unsigned long getGroup2Address() {
+  volatile uint32_t getGroup2Address() {
     return getBaseAddress() + 0x480000;
   }
-  volatile unsigned long getGroup3Address() {
+  volatile uint32_t getGroup3Address() {
     return getBaseAddress() + 0x500000;
   }
-  volatile unsigned long getGroup4Address() {
+  volatile uint32_t getGroup4Address() {
     return getBaseAddress()+0x580000;
   }
 public:
@@ -313,7 +320,7 @@ public:
   void DisableUserOut();
   void StrobeUserOut(int time);
   bool WaitUntilDone(int timeout);
-  unsigned long EventNumber(int bank);
+  uint32_t EventNumber(int bank);
 
   // New members to do I/O to ordinary buffers.
 
@@ -330,8 +337,8 @@ protected:
   /// For reading to normal memory buffers.
   //
   unsigned int ReadAGroup(void* pbuffer,
-			  volatile unsigned long* pAddressReg1,
-			  unsigned long           pBase);
+			  volatile uint32_t* pAddressReg1,
+			  uint32_t           pBase);
 };
 
 
