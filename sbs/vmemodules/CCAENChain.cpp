@@ -132,7 +132,7 @@ CCAENChain::CCAENChain(int nFirstSlot, int nLastSlot,
 	char errorMessage[1000];
 	sprintf(errorMessage,
 		"All modules in the chain must have firmware rev at least %d.%d, the module base address 0x%08lx (slot %d) has firmware rev %d.%d",
-		qmajor, qminor, base, m_vCards[slot]->getSlot(), major, minor);
+		qmajor, qminor, (unsigned long)base, m_vCards[slot]->getSlot(), major, minor);
 	throw(string(errorMessage));
 
       }
