@@ -17,6 +17,8 @@
 #include "CVC32CC32.h"
 #include <CVMEInterface.h>
 
+#include <stdint.h>
+
 uint8_t* CVC32CC32::m_pBranches[CVC32CC32::BRANCHES][CVC32CC32::VMECRATES];
 
 static const unsigned WIENER_SIZE   = (1UL << 16);
@@ -116,7 +118,7 @@ void
 CVC32CC32::mapBranch(unsigned branch, unsigned vmeCrate)
 {
   void * fd = CVMEInterface::Open(CVMEInterface::Standard, vmeCrate);
-  long base = 0x800000 + (branch << WIENER_SHIFT);
+  uint32_t base = 0x800000 + (branch << WIENER_SHIFT);
   
   try {
     m_pBranches[branch][vmeCrate] = 
