@@ -31,6 +31,13 @@
 #endif
 
 
+#ifndef __CRT_STDINT_H
+#include <stdint.h>
+#ifndef __CRT_STDINT_H
+#define __CRT_STDINT_H
+#endif
+#endif
+
 /*!
    Controls an SIS3820 module.  The SIS3820 is a 32 channel latching
    VME scaler module.
@@ -106,10 +113,10 @@ public:
   double getRevision() const;	//!< Get firmware revision.
   void   LightOn()     const;	//!< Turn on the user led.
   void   LightOff()    const;   //!< Turn off the user led.
-  unsigned int
+  uint32_t
          getCsr()      const;   //!< Return value of CSR
 
-  unsigned long getAcqMode()  const;   /*!< Return value of the ACQ
+  uint32_t getAcqMode()  const;   /*!< Return value of the ACQ
 				  mode register. */
 
   void   Reset()      const;   //!< Reset the module.
@@ -146,25 +153,25 @@ public:
 
   // Read functions:
 
-  unsigned long ReadChannel(unsigned int num) const; //!< read live channel.
-  void          ReadAllChannels(unsigned long* buffer) const; 
+  uint32_t      ReadChannel(unsigned int num) const; //!< read live channel.
+  void          ReadAllChannels(uint32_t* buffer) const; 
 
   void Latch() const;		                    //!< Latch scalers.
-  unsigned long ReadLatchedChannel(unsigned int num) const;
+  uint32_t      ReadLatchedChannel(unsigned int num) const;
   void          ReadAllLatchedChannels(unsigned long* buffer) const;
   void          LatchAndRead(unsigned long* buffer) const;
 
   // Utility functions:
 
 protected:
-  int getModuleInfo() const;
+  uint32_t  getModuleInfo() const;
   void setAcqMode(unsigned long data) const; //!< Set acq mode reg.
 
   void setCSR(unsigned int long data) const;
   static void ValidChannel(unsigned int chan, const char *pWhere)
            throw (std::string);
-  static unsigned long ChannelOffset(unsigned long base, 
-				     unsigned int  chan);
+  static uint32_t  ChannelOffset(uint32_t base, 
+				 uint32_t chan);
 };
 
 

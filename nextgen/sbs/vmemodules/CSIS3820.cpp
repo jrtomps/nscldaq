@@ -150,7 +150,7 @@ CSIS3820::getRevision() const
 /*!
    Return the module information (id and firmware) register:
 */
-int
+uint32_t
 CSIS3820::getModuleInfo() const
 {
   return peek(IdAndFirmware);
@@ -180,7 +180,7 @@ CSIS3820::LightOff() const
    but may be of interest to users as well. It's harmless since
    I'm only giving read access.
 */
-unsigned int
+uint32_t
 CSIS3820::getCsr() const 
 {
   return peek(CSR);
@@ -189,7 +189,7 @@ CSIS3820::getCsr() const
    Utility function to return the value of the Acquisition 
    mode register.
 */
-unsigned long
+uint32_t
 CSIS3820::getAcqMode() const
 {
   return peek(ACQMode);
@@ -611,7 +611,7 @@ CSIS3820::EnableClearOnLatch() const
      with ReadLatchedChannel e.g.
 
 */
-unsigned long
+uint32_t
 CSIS3820::ReadChannel(unsigned int num) const
 {
 
@@ -627,7 +627,7 @@ CSIS3820::ReadChannel(unsigned int num) const
       Pointer to a 32 long buffer to hold the scaler values.
 */
 void
-CSIS3820::ReadAllChannels(unsigned long* buffer) const
+CSIS3820::ReadAllChannels(uint32_t* buffer) const
 {
   for(unsigned int i =0; i < ChannelCount; i++) {
     *buffer++ = ReadChannel(i);
@@ -664,7 +664,7 @@ CSIS3820::Latch() const
      If the channel value is out of range.
 
 */
-unsigned long
+uint32_t
 CSIS3820:: ReadLatchedChannel(unsigned int num) const
 {
   ValidChannel( num, "CSIS3820::ReadLatchedChannel");
@@ -750,9 +750,9 @@ CSIS3820::ValidChannel(unsigned int chan,
    \return unsigned long
      The offset at which the channel can be read.
 */
-unsigned long
-CSIS3820:: ChannelOffset(unsigned long base, 
-				     unsigned int  chan)
+uint32_t
+CSIS3820:: ChannelOffset(uint32_t base, 
+			 uint32_t  chan)
 {
   return base + chan*sizeof(unsigned long);
 }
