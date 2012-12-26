@@ -93,7 +93,7 @@ CVMEScalerLRS1151::Initialize()
    \param data - STL Vector to which the data will be appended.
    */
 void
-CVMEScalerLRS1151::Read(vector<unsigned long>& rData)
+CVMEScalerLRS1151::Read(vector<uint32_t>& rData)
 {
 	unsigned int nOffset = ChannelL;
 	for(int i =0; i < nChannels; i++) {

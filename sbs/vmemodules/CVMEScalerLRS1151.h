@@ -61,7 +61,7 @@ protected:
   // Class operations:
 public:
   virtual   void Initialize ()  ;
-  virtual   void Read (std::vector<unsigned long>& Scalers) ;
+  virtual   void Read (std::vector<uint32_t>& Scalers) ;
   virtual   void Clear ()  ;
   virtual   unsigned int size ()  ;
   
