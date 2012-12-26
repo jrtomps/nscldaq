@@ -45,6 +45,14 @@
 #include <CVME.h>
 #endif
 
+#ifndef __CRTL_STDINT_H
+#include <stdint.h>
+#ifndef __CRTL_STDINT_H
+#define __CRTL_STDINT_H
+#endif
+#endif
+
+
 class CVmeModule
 {
  public:
@@ -59,8 +67,8 @@ class CVmeModule
 private:
 #if defined(HAVE_WIENERVME_INTERFACE) || defined(HAVE_WIENERUSBVME_INTERFACE)
    Space  m_nSpace;
-   UInt_t m_nBase;
-   UInt_t m_nLength;
+   uint32_t m_nBase;
+   uint32_t m_nLength;
    Int_t  m_nCrate;
    void*  m_pDriver;
 #endif
@@ -70,8 +78,8 @@ private:
 
  public:
   // Default constructors
-  CVmeModule(Space space, UInt_t base, UInt_t length, int nCrate = 0);
-  // CVmeModule(CVME<UShort_t>& am_CVME);
+  CVmeModule(Space space, uint32_t base, uint32_t length, int nCrate = 0);
+  // CVmeModule(CVME<uint16_t>& am_CVME);
   
   // Copy Constructor
   CVmeModule(const CVmeModule& aCVmeModule);
@@ -101,13 +109,13 @@ private:
 
 #ifdef HAVE_VME_MAPPING
  protected:
-  void setCVME(CVME<UShort_t> aCVME)
+  void setCVME(CVME<uint16_t> aCVME)
     {
       m_CVME = aCVME;
     }
 
 
-  CVME<UShort_t>& getCVME()
+  CVME<uint16_t>& getCVME()
     {
       return m_CVME;
     }
@@ -116,16 +124,16 @@ private:
 
   // Public member functions
 public:
-  UChar_t peekb(UInt_t offset=0);
-  UShort_t peekw(UInt_t offset=0);
-  ULong_t peekl(UInt_t offset=0);
-  void pokeb(UChar_t byte, UInt_t nOffset);
-  void pokew(UShort_t word, UInt_t nOffset);
-  void pokel(ULong_t lword, UInt_t nOffset);
+  uint8_t peekb(uint32_t offset=0);
+  uint16_t peekw(uint32_t offset=0);
+  ULong_t peekl(uint32_t offset=0);
+  void pokeb(uint8_t byte, uint32_t nOffset);
+  void pokew(uint16_t word, uint32_t nOffset);
+  void pokel(ULong_t lword, uint32_t nOffset);
   
-  UInt_t readl(void* pBuffer, UInt_t nOffset, size_t longs);
-  UInt_t readw(void* pBuffer, UInt_t nOffset, size_t words);
-  UInt_t readb(void* pBuffer, UInt_t nOffset, size_t bytes);
+  uint32_t readl(void* pBuffer, uint32_t nOffset, size_t longs);
+  uint32_t readw(void* pBuffer, uint32_t nOffset, size_t words);
+  uint32_t readb(void* pBuffer, uint32_t nOffset, size_t bytes);
   
  
  // Utility:

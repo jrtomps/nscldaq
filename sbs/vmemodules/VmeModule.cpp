@@ -317,7 +317,7 @@ using namespace std;
 
 /*
 
-   The array below maps from address space selectors to CVME<UShort_t 
+   The array below maps from address space selectors to CVME<uint16_t 
    selectors or, in the caes of WienerVME controllers, the address modifier.
    
 */
@@ -333,16 +333,16 @@ CVMEInterface::AddressMode AmodTable[] = {
 #endif
 
 #ifdef HAVE_SBSVME_INTERFACE
-CVME<UShort_t>::VmeSpace AmodTable[] = {
-   CVME<UShort_t>::a16d16,
-   CVME<UShort_t>::a24d16,
-   CVME<UShort_t>::a24d32,
-   CVME<UShort_t>::a32d32,
-   CVME<UShort_t>::geo
+CVME<uint16_t>::VmeSpace AmodTable[] = {
+   CVME<uint16_t>::a16d16,
+   CVME<uint16_t>::a24d16,
+   CVME<uint16_t>::a24d32,
+   CVME<uint16_t>::a32d32,
+   CVME<uint16_t>::geo
 };
 #endif
 /*
-  \fn CVmeModule::CVmeModule(Space space, UInt_t base, UInt_t length)
+  \fn CVmeModule::CVmeModule(Space space, uint32_t base, uint32_t length)
 
   Operation type:
      Basic constructor
@@ -351,12 +351,12 @@ CVME<UShort_t>::VmeSpace AmodTable[] = {
      Contructs an object of type CVmeModule
 
   \param Space space   - the vme device to which we are mapping
-  \param UInt_t base   - the base address of the device
-  \param UInt_t length - the length of the mapping (bytes)
+  \param uint32_t base   - the base address of the device
+  \param uint32_t length - the length of the mapping (bytes)
   \param int nCrate    - VME crate number.
 */
-CVmeModule::CVmeModule(CVmeModule::Space space, UInt_t base, 
-		       UInt_t length, int nCrate)
+CVmeModule::CVmeModule(CVmeModule::Space space, uint32_t base, 
+		       uint32_t length, int nCrate)
 #if defined(HAVE_WIENERVME_INTERFACE) || defined(HAVE_WIENERUSBVME_INTERFACE)
    :  m_nSpace(space),
       m_nBase(base),
@@ -371,19 +371,19 @@ CVmeModule::CVmeModule(CVmeModule::Space space, UInt_t base,
   try {
     switch(space) {
     case a16d16:
-      m_CVME = CVME<UShort_t>(CVME<UShort_t>::a16d16, base, length, nCrate);
+      m_CVME = CVME<uint16_t>(CVME<uint16_t>::a16d16, base, length, nCrate);
       break;
     case a24d16:
-      m_CVME = CVME<UShort_t>(CVME<UShort_t>::a24d16, base, length, nCrate);
+      m_CVME = CVME<uint16_t>(CVME<uint16_t>::a24d16, base, length, nCrate);
       break;
     case a24d32:
-      m_CVME = CVME<UShort_t>(CVME<UShort_t>::a24d32, base, length, nCrate);
+      m_CVME = CVME<uint16_t>(CVME<uint16_t>::a24d32, base, length, nCrate);
       break;
     case a32d32:
-      m_CVME = CVME<UShort_t>(CVME<UShort_t>::a32d32, base, length, nCrate);
+      m_CVME = CVME<uint16_t>(CVME<uint16_t>::a32d32, base, length, nCrate);
       break;
     case geo:
-      m_CVME =  CVME<UShort_t>(CVME<UShort_t>::geo, base, length);
+      m_CVME =  CVME<uint16_t>(CVME<uint16_t>::geo, base, length);
       break;
     default:
       throw 1;			// Force the catch below to complain.
@@ -459,7 +459,7 @@ CVmeModule::operator== (const CVmeModule& aCVmeModule)
 }
 
 /*
-  \fn UChar_t CVmeModule::peekb(UInt_t offset=0)
+  \fn uint8_t CVmeModule::peekb(uint32_t offset=0)
 
   Operation Type:
      Accessor
@@ -468,33 +468,33 @@ CVmeModule::operator== (const CVmeModule& aCVmeModule)
      Reads byte from m_CVME at current offset + offset, which is
      defaulted to 0. Throws an exception if the read is out of bounds.
 
-  \param UInt_t offset - the offset from which to read (or the current offset
+  \param uint32_t offset - the offset from which to read (or the current offset
                          if not specified.
 */
-UChar_t
-CVmeModule::peekb(UInt_t offset)
+uint8_t
+CVmeModule::peekb(uint32_t offset)
 {
 #ifdef HAVE_WIENERVME_INTERFACE
-   UChar_t byte;
+   uint8_t byte;
    WienerVMEInterface::ReadBytes(m_pDriver,
 			         m_nBase + offset,
 				 &byte, 1);
    return byte;
 #endif
 #ifdef  HAVE_WIENERUSBVME_INTERFACE
-   UChar_t byte;
+   uint8_t byte;
    WienerUSBVMEInterface::ReadBytes(m_pDriver,
 				   m_nBase + offset,
 				   &byte, 1);
    return byte;
 #endif
 #ifdef HAVE_VME_MAPPING
-   return (UChar_t)((m_CVME.asChar())[offset]);
+   return (uint8_t)((m_CVME.asChar())[offset]);
 #endif
 }
 
 /*
-  \fn UShort_t CVmeModule::peekw(UInt_t offset=0)
+  \fn uint16_t CVmeModule::peekw(uint32_t offset=0)
 
   Operation Type:
      Accessor
@@ -503,36 +503,36 @@ CVmeModule::peekb(UInt_t offset)
      Reads word from m_CVME at current offset + offset, which is
      defaulted to 0. Throws an exception if the read is out of bounds.
 
-  \param UInt_t offset - the offset from which to read (or current offset
+  \param uint32_t offset - the offset from which to read (or current offset
                          if unspecified.
 */
-UShort_t
-CVmeModule::peekw(UInt_t offset)
+uint16_t
+CVmeModule::peekw(uint32_t offset)
 {
 #ifdef HAVE_WIENERVME_INTERFACE
-   UShort_t word;
+   uint16_t word;
    WienerVMEInterface::ReadWords(m_pDriver, 
-				 m_nBase + offset * sizeof(UShort_t), 
+				 m_nBase + offset * sizeof(uint16_t), 
 				 &word, 1);
    return word;
 #endif
 
 #ifdef HAVE_WIENERUSBVME_INTERFACE
-   UShort_t word;
+   uint16_t word;
    WienerUSBVMEInterface::ReadWords(m_pDriver,
-				    m_nBase + offset * sizeof(UShort_t),
+				    m_nBase + offset * sizeof(uint16_t),
 				    &word, 1);
    return word;
 #endif
 
 #ifdef HAVE_VME_MAPPING
-   volatile UShort_t* c = (m_CVME.asShort());
-   return (UShort_t)(c[offset]);
+   volatile uint16_t* c = (m_CVME.asShort());
+   return (uint16_t)(c[offset]);
 #endif
 }
 
 /*
-  \fn ULong_t CVmeModule::peekl(UInt_t offset=0)
+  \fn ULong_t CVmeModule::peekl(uint32_t offset=0)
 
   Operation Type:
      Accessor
@@ -541,16 +541,16 @@ CVmeModule::peekw(UInt_t offset)
      Reads longword from m_CVME at current offset + offset, which is
      defaulted to 0. Throws an exception if the read is out of bounds.
 
-  \param UInt_t offset - the offset from which to read (reads from current
+  \param uint32_t offset - the offset from which to read (reads from current
                          offset if this is unspecified).
 */
 ULong_t
-CVmeModule::peekl(UInt_t offset)
+CVmeModule::peekl(uint32_t offset)
 {
 #ifdef HAVE_WIENERVME_INTERFACE
    ULong_t lword;
    WienerVMEInterface::ReadLongs(m_pDriver, 
-				 m_nBase + offset * sizeof(UInt_t),
+				 m_nBase + offset * sizeof(uint32_t),
 				 &lword, 1);
    return lword;
 #endif
@@ -558,7 +558,7 @@ CVmeModule::peekl(UInt_t offset)
 #ifdef HAVE_WIENERUSBVME_INTERFACE
    ULong_t lword;
    WienerUSBVMEInterface::ReadLongs(m_pDriver,
-				    m_nBase + offset * sizeof(UInt_t),
+				    m_nBase + offset * sizeof(uint32_t),
 				    &lword, 1);
    return lword;
 #endif
@@ -569,7 +569,7 @@ CVmeModule::peekl(UInt_t offset)
 }
 
 /*
-  \fn void CVmeModule::pokeb(UChar_t byte, UInt_t nOffset)
+  \fn void CVmeModule::pokeb(uint8_t byte, uint32_t nOffset)
 
   Operation Type:
      Mutator
@@ -578,11 +578,11 @@ CVmeModule::peekl(UInt_t offset)
      Writes the specified byte to the specified offset in the module.
      Throws an exception if the specified offset is out of range.
 
-  \param UChar_t byte  - the byte to write into the memory map
-         UInt_t offset - the offset at which to write the byte.
+  \param uint8_t byte  - the byte to write into the memory map
+         uint32_t offset - the offset at which to write the byte.
 */
 void
-CVmeModule::pokeb(UChar_t byte, UInt_t nOffset)
+CVmeModule::pokeb(uint8_t byte, uint32_t nOffset)
 {
 #ifdef HAVE_WIENERVME_INTERFACE
    WienerVMEInterface::WriteBytes(m_pDriver, m_nBase + nOffset,
@@ -600,7 +600,7 @@ CVmeModule::pokeb(UChar_t byte, UInt_t nOffset)
 }
 
 /*
-  \fn void CVmeModule::pokew(UShort_t word, UInt_t nOffset)
+  \fn void CVmeModule::pokew(uint16_t word, uint32_t nOffset)
 
   Operation Type:
      Mutator
@@ -609,21 +609,21 @@ CVmeModule::pokeb(UChar_t byte, UInt_t nOffset)
      Writes the specified word to the specified offset in the module.
      Throws an exception if the specified offset is out of range.
 
-  \param UChar_t word  - the word to write into the memory map
-         UInt_t offset - the offset at which to write the word.
+  \param uint8_t word  - the word to write into the memory map
+         uint32_t offset - the offset at which to write the word.
 */
 void
-CVmeModule::pokew(UShort_t word, UInt_t nOffset)
+CVmeModule::pokew(uint16_t word, uint32_t nOffset)
 {
 #ifdef HAVE_WIENERVME_INTERFACE
    WienerVMEInterface::WriteWords(m_pDriver, 
-				  m_nBase + nOffset*sizeof(UShort_t),
+				  m_nBase + nOffset*sizeof(uint16_t),
 				  &word, 1);
 #endif
 
 #ifdef HAVE_WIENERUSBVME_INTERFACE
    WienerUSBVMEInterface::WriteWords(m_pDriver,
-				     m_nBase + nOffset*sizeof(UShort_t),
+				     m_nBase + nOffset*sizeof(uint16_t),
 				     &word, 1);
 #endif
 
@@ -633,7 +633,7 @@ CVmeModule::pokew(UShort_t word, UInt_t nOffset)
 }
 
 /*
-  \fn void CVmeModule::pokel(UChar_t lword, UInt_t nOffset)
+  \fn void CVmeModule::pokel(uint8_t lword, uint32_t nOffset)
 
   Operation Type:
      Mutator
@@ -642,11 +642,11 @@ CVmeModule::pokew(UShort_t word, UInt_t nOffset)
      Writes the specified long word to the specified offset in the module.
      Throws an exception if the specified offset is out of range.
 
-  \param UChar_t long word  - the long word to write into the memory map
-         UInt_t offset - the offset at which to write the long word.
+  \param uint8_t long word  - the long word to write into the memory map
+         uint32_t offset - the offset at which to write the long word.
 */
 void
-CVmeModule::pokel(ULong_t lword, UInt_t nOffset)
+CVmeModule::pokel(ULong_t lword, uint32_t nOffset)
 {
 #ifdef HAVE_WIENERVME_INTERFACE
    WienerVMEInterface::WriteLongs(m_pDriver, 
@@ -700,17 +700,17 @@ CVmeModule::CopyToMe(const CVmeModule& rModule)
                  this class.
 \param longs   - The number of longwords to transfer.
 
-\return UInt_t
+\return uint32_t
 \retval number of longs transferred if everything worked or some device
         dependent result.
 */
-UInt_t
-CVmeModule::readl(void* pBuffer, UInt_t nOffset, size_t longs)
+uint32_t
+CVmeModule::readl(void* pBuffer, uint32_t nOffset, size_t longs)
 {
 #ifdef HAVE_VME_MAPPING
   ULong_t* pSource = (ULong_t*)m_CVME.asLong() + nOffset;
   ULong_t* pDest   = (ULong_t*)pBuffer;
-  for(UInt_t i =0; i < longs; i++) { // memcpy is not ensured to be long transfers.
+  for(uint32_t i =0; i < longs; i++) { // memcpy is not ensured to be long transfers.
     *pDest++ = *pSource++;
   }
   return longs;
@@ -742,34 +742,34 @@ CVmeModule::readl(void* pBuffer, UInt_t nOffset, size_t longs)
     the driver overhead will be amortized over the transfer count.
 
 \param pBuffer - The target of the transfer.  This buffer must be at least
-                 longs*sizeof(UShort_t) large.
+                 longs*sizeof(uint16_t) large.
 \param nOffset - The word offset into the region represented by
                  this class.
 \param words   - The number of words to transfer.
 
-\return UInt_t
+\return uint32_t
 \retval number of words transferred if everything worked or some device
         dependent result.
 */
-UInt_t
-CVmeModule::readw(void* pBuffer, UInt_t nOffset, size_t words)
+uint32_t
+CVmeModule::readw(void* pBuffer, uint32_t nOffset, size_t words)
 {
 #ifdef HAVE_VME_MAPPING
-  UShort_t* pSource = (UShort_t*)m_CVME.asShort() + nOffset;
-  UShort_t* pDest   = (UShort_t*)pBuffer;
-  for(UInt_t i =0; i < words; i++) { // memcpy is not ensured to be word transfers.
+  uint16_t* pSource = (uint16_t*)m_CVME.asShort() + nOffset;
+  uint16_t* pDest   = (uint16_t*)pBuffer;
+  for(uint32_t i =0; i < words; i++) { // memcpy is not ensured to be word transfers.
     *pDest++ = *pSource++;
   }
   return words;
 #endif
 #ifdef HAVE_WIENERVME_INTERFACE
   return WienerVMEInterface::ReadWords(m_pDriver,
-				       m_nBase + nOffset*sizeof(UShort_t),
+				       m_nBase + nOffset*sizeof(uint16_t),
 				       pBuffer, words);
 #endif
 #ifdef HAVE_WIENERUSBVME_INTERFACE
   return WienerUSBVMEInterface::ReadWords(m_pDriver,
-					  m_nBase + nOffset*sizeof(UShort_t),
+					  m_nBase + nOffset*sizeof(uint16_t),
 					  pBuffer, words);
 #endif
 }
@@ -791,17 +791,17 @@ CVmeModule::readw(void* pBuffer, UInt_t nOffset, size_t words)
                  this class.
 \param bytes   - The number of bytes to transfer.
 
-\return UInt_t
+\return uint32_t
 \retval number of bytes transferred if everything worked or some device
         dependent result.
 */
-UInt_t
-CVmeModule::readb(void* pBuffer, UInt_t nOffset, size_t bytes)
+uint32_t
+CVmeModule::readb(void* pBuffer, uint32_t nOffset, size_t bytes)
 {
 #ifdef HAVE_VME_MAPPING
-  UChar_t* pSource = (UChar_t*)m_CVME.asChar() + nOffset;
-  UChar_t* pDest   = (UChar_t*)pBuffer;
-  for(UInt_t i =0; i < bytes; i++) { // memcpy is not ensured to be long transfers.
+  uint8_t* pSource = (uint8_t*)m_CVME.asChar() + nOffset;
+  uint8_t* pDest   = (uint8_t*)pBuffer;
+  for(uint32_t i =0; i < bytes; i++) { // memcpy is not ensured to be long transfers.
     *pDest++ = *pSource++;
   }
   return bytes;
