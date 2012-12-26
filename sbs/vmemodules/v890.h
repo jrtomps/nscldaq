@@ -28,12 +28,18 @@
 #ifndef __V890_H
 #define __V890_H
 
+#ifndef __CRTL_STDINT_H
+#include <stdint.h>
+#ifndef __CRTL_STDINT_H
+#define __CRTL_STDINT_H
+#endif
+#endif
 
 class CAENV890 {
   int             m_nSlot;
   int             m_nCrate;
   bool            m_fGeographical;
-  unsigned long   m_lBase;
+  uint32_t   m_lBase;
   void* m_pModule;
   void*           m_pVmeDevice;
   unsigned        m_nModuleType;
@@ -41,7 +47,7 @@ public:
   static const int m_nTdcClock;	// ns per tdc clock.
   static const int m_nTdcMaxVal; // Maximum tdc value.
   typedef struct _TriggerInfo {	//!< Struct returned by ReadTriggerConfig
-    unsigned short Window;
+    uint16_t Window;
     short Offset;
     short ExtraSearchWindow;
     short RejectMargin;
@@ -78,7 +84,7 @@ public:
   CAENV890(int           nSlot, 
 	   int           nCrate = 0, 
 	   bool          fGeo   = true, 
-	   unsigned long lBase  = 0);
+	   uint32_t lBase  = 0);
   ~CAENV890();
   
   // Selectors:
@@ -93,7 +99,7 @@ public:
   bool getGeo() const {
     return m_fGeographical;
   }
-  unsigned long getBase() const {
+  uint32_t getBase() const {
     return m_lBase;
   }
   void* getRegisters() {
@@ -114,7 +120,7 @@ public:
   bool     EmptyEventOn();	    //!< Empty events allowed? 
   void     Reset();                 //!< Soft reset the module.
   void     Clear();                 //!< Soft clear the module.
-  void     TestMode(bool enable, unsigned long nPattern = 0);
+  void     TestMode(bool enable, uint32_t nPattern = 0);
   void     LoadDefaultConfig();
   bool     isTriggerMatching();
   void     ReadTriggerConfig(TriggerInfo* pTriggerInfo);
@@ -131,8 +137,8 @@ public:
   void DisableChannel(int nChan);
   void EnableAllChannels();
   void DisableAllChannels();
-  void SetChannelMask(unsigned short* pMask);
-  void ReadChannelEnables(unsigned short* pEnables);
+  void SetChannelMask(uint16_t* pMask);
+  void ReadChannelEnables(uint16_t* pEnables);
   void SetWindowWidth(int ns);
   int GetWindowWidth();
   void SetWindowOffset(int ns);
@@ -158,13 +164,13 @@ public:
 
 protected:
   void MapModule();
-  void* MapRegions(void* pfd, unsigned long base);
-  void WriteMicro(unsigned short opcode);
-  unsigned short ReadMicro();
-  void ReadMicroArray(unsigned short opcode,
-		      unsigned short nWords, void* pBuffer);
-  void WriteMicroArray(unsigned short opcode,
-		       unsigned short nWords, void* pBuffer);
+  void* MapRegions(void* pfd, uint32_t base);
+  void WriteMicro(uint16_t opcode);
+  uint16_t ReadMicro();
+  void ReadMicroArray(uint16_t opcode,
+		      uint16_t nWords, void* pBuffer);
+  void WriteMicroArray(uint16_t opcode,
+		       uint16_t nWords, void* pBuffer);
   static int ReadModuleType(void* prom);
   static int  TicksToNs(int ticks);
   static int  NsToTicks(int ns);

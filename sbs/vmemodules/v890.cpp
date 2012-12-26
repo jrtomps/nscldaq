@@ -39,25 +39,25 @@ typedef u_char byte;
 
 struct CAENProm {
   byte    m_pad0[0x26];		// 0x4000
-  u_short m_OUIMsb;		// 0x4026
-  u_short m_pad1;		// 0x4028
-  u_short m_OUI;		// 0x402a
-  u_short m_pad2;		// 0x402c
-  u_short m_OUILsb;		// 0x402e
-  u_short m_pad3;		// 0x4030
-  u_short m_Version;		// 0x4032
-  u_short m_pad4;		// 0x4034
-  u_short m_BoardTypeMSB;	// 0x4036
-  u_short m_pad5;		// 0x4038
-  u_short m_BoardType;		// 0x403a
-  u_short m_pad6;		// 0x403c
-  u_short m_BoardTypeLSB;	// 0x403e
+  uint16_t m_OUIMsb;		// 0x4026
+  uint16_t m_pad1;		// 0x4028
+  uint16_t m_OUI;		// 0x402a
+  uint16_t m_pad2;		// 0x402c
+  uint16_t m_OUILsb;		// 0x402e
+  uint16_t m_pad3;		// 0x4030
+  uint16_t m_Version;		// 0x4032
+  uint16_t m_pad4;		// 0x4034
+  uint16_t m_BoardTypeMSB;	// 0x4036
+  uint16_t m_pad5;		// 0x4038
+  uint16_t m_BoardType;		// 0x403a
+  uint16_t m_pad6;		// 0x403c
+  uint16_t m_BoardTypeLSB;	// 0x403e
   byte    m_pad7[0x0e];		// 0x4040
-  u_short m_Revision;		// 0x404e
+  uint16_t m_Revision;		// 0x404e
   byte    m_pad8[0xeb2];	// 0x4050
-  u_short m_SerialMsb;		// 0x4f02
-  u_short m_pad9;		// 0x4f04
-  u_short m_SerialLsb;		// 0x4f06
+  uint16_t m_SerialMsb;		// 0x4f02
+  uint16_t m_pad9;		// 0x4f04
+  uint16_t m_SerialLsb;		// 0x4f06
 };
 static const unsigned int CAENPROMSize(sizeof(CAENProm));
 
@@ -65,69 +65,69 @@ static const unsigned int CAENPROMSize(sizeof(CAENProm));
 // Module register map.
 
 struct CAENRegisters {
-  u_long  m_OutputBuffer[0x1000/sizeof(u_long)]; // 0x0000
-  u_short m_ControlRegister;	// 0x1000
-  u_short m_StatusRegister;	// 0x1002
-  u_short m_Ader32;		// 0x1004
-  u_short m_Ader24;		// 0x1006
-  u_short m_EnableAder;		// 0x1008
-  u_short m_IPL;		// 0x100a
-  u_short m_Vector;		// 0x100c
-  u_short m_Geo;		// 0x100e
-  u_short m_MCSTBase;		// 0x1010
-  u_short m_MCSTCtl;		// 0x1012
-  u_short m_Reset;		// 0x1014
-  u_short m_Pad;		// 0x1016
-  u_short m_Clear;		// 0x1018
-  u_short m_SWEventReset;	// 0x101a
-  u_short m_SWTrigger;		// 0x101c
-  u_short m_EventCounter;	// 0x101e
-  u_short m_EventStored;	// 0x1020
-  u_short m_AlmostFullLvl;	// 0x1022
-  u_short m_BLTEventNumber;	// 0x1024
-  u_short m_FWRevision;		// 0x1026
-  u_short m_TestLow;		// 0x1028
-  u_short m_TestHigh;		// 0x102a
-  u_short m_OutProgControl;	// 0x102c
-  volatile u_short m_Micro;	// 0x102e
-  volatile u_short m_MicroHandshake; // 0x1030
+  uint32_t  m_OutputBuffer[0x1000/sizeof(uint32_t)]; // 0x0000
+  uint16_t m_ControlRegister;	// 0x1000
+  uint16_t m_StatusRegister;	// 0x1002
+  uint16_t m_Ader32;		// 0x1004
+  uint16_t m_Ader24;		// 0x1006
+  uint16_t m_EnableAder;		// 0x1008
+  uint16_t m_IPL;		// 0x100a
+  uint16_t m_Vector;		// 0x100c
+  uint16_t m_Geo;		// 0x100e
+  uint16_t m_MCSTBase;		// 0x1010
+  uint16_t m_MCSTCtl;		// 0x1012
+  uint16_t m_Reset;		// 0x1014
+  uint16_t m_Pad;		// 0x1016
+  uint16_t m_Clear;		// 0x1018
+  uint16_t m_SWEventReset;	// 0x101a
+  uint16_t m_SWTrigger;		// 0x101c
+  uint16_t m_EventCounter;	// 0x101e
+  uint16_t m_EventStored;	// 0x1020
+  uint16_t m_AlmostFullLvl;	// 0x1022
+  uint16_t m_BLTEventNumber;	// 0x1024
+  uint16_t m_FWRevision;		// 0x1026
+  uint16_t m_TestLow;		// 0x1028
+  uint16_t m_TestHigh;		// 0x102a
+  uint16_t m_OutProgControl;	// 0x102c
+  volatile uint16_t m_Micro;	// 0x102e
+  volatile uint16_t m_MicroHandshake; // 0x1030
 
 };
 static const unsigned int CAENRegisterSize(sizeof(CAENRegisters));
 
 // Status Register bits:
 
-const u_short STAT_DATAREADY(1);
+const uint16_t STAT_DATAREADY(1);
 
 
 // Control register bits:
 
-const u_short CTL_BERREN(1);
-const u_short CTL_TERM(2);
-const u_short CTL_TERMSW(4);
-const u_short CTL_ENABLE_EMPTY(8);
-const u_short CTL_ALIGN_64(16);
-const u_short CTL_TEST(32);
+const uint16_t CTL_BERREN(1);
+const uint16_t CTL_TERM(2);
+const uint16_t CTL_TERMSW(4);
+const uint16_t CTL_ENABLE_EMPTY(8);
+const uint16_t CTL_ALIGN_64(16);
+const uint16_t CTL_TEST(32);
 
 // Micro handshake register:
 
 
-const u_short UH_WRITE_OK(1);
-const u_short UH_READ_OK(2);
+const uint16_t UH_WRITE_OK(1);
+const uint16_t UH_READ_OK(2);
 
 // Data format bits:
 
-const u_long DATA_GLOBALTYPE_MASK(0xc0000000);
-const u_long DATA_GLOBALTYPE_GBLHEADER(0x40000000);
-const u_long DATA_GLOBALTYPE_DATA(0x00000000);
-const u_long DATA_GLOBALTYPE_GBLEOB(0x80000000);
-const u_long DATA_GLOBALTYPE_FILLER(0xc0000000);
+const uint32_t DATA_GLOBALTYPE_MASK(0xc0000000);
+const uint32_t DATA_GLOBALTYPE_GBLHEADER(0x40000000);
+const uint32_t DATA_GLOBALTYPE_DATA(0x00000000);
+const uint32_t DATA_GLOBALTYPE_GBLEOB(0x80000000);
+const uint32_t DATA_GLOBALTYPE_FILLER(0xc0000000);
 
-const u_long DATA_TDCTYPE_MASK(0xf8000000);
-const u_long DATA_TDCTYPE_HEADER(0x08000000);
-const u_long DATA_TDCTYPE_CHANNEL(0x00000000);
-const u_long DATA_TDCTYPE_EOB(0x18000000);
-const u_long DATA_TDCTYPE_ERROR(0x20000000);
+const uint32_t DATA_TDCTYPE_MASK(0xf8000000);
+const uint32_t DATA_TDCTYPE_HEADER(0x08000000);
+const uint32_t DATA_TDCTYPE_CHANNEL(0x00000000);
+const uint32_t DATA_TDCTYPE_EOB(0x18000000);
+const uint32_t DATA_TDCTYPE_ERROR(0x20000000);
 
 
 /*!
@@ -154,14 +154,14 @@ const u_long DATA_TDCTYPE_ERROR(0x20000000);
       and then reprogrammed into A32 space according to its slot.
       If false, the module is accessed soley through the address
       in the base parameter.
-   \param lBase (unsigned long [in]):
+   \param lBase (uint32_t [in]):
       The base address to use to access the module if geo is false.
       This parameter is ignored if geo is true.
 */
 CAENV890::CAENV890(int           nSlot,
 		   int           nCrate,
 		   bool          fGeo,
-		   unsigned long lBase) :
+		   uint32_t lBase) :
   m_nSlot(nSlot),
   m_nCrate(nCrate),
   m_fGeographical(fGeo),
@@ -195,11 +195,11 @@ CAENV890::~CAENV890()
    \param pfd (void* [in]): 
       pointer to handle from CVMEInterface::Open
       (could be a geo or an A32 mapping).
-   \param base (unsigned long[in]):
+   \param base (uint32_t[in]):
       Base address of the module (registers).
 */
 void*
-CAENV890::MapRegions(void* pfd, unsigned long base)
+CAENV890::MapRegions(void* pfd, uint32_t base)
 {
   m_pModule = CVMEInterface::Map(pfd, base, CAENRegisterSize);
   return      CVMEInterface::Map(pfd, base + CAENPROMOffset,
@@ -225,7 +225,7 @@ CAENV890::MapModule()
 
   void* pDevice;
   CAENProm* pProm;
-  unsigned long mapbase;
+  uint32_t mapbase;
   try {
     if(m_fGeographical) {
       pDevice = CVMEInterface::Open(CVMEInterface::GEO, 
@@ -335,7 +335,7 @@ CAENV890::getSlotRegister() const
 void
 CAENV890::EmptyEvent(bool state)
 {
-  u_short control = ((volatile CAENRegisters*)m_pModule)->m_ControlRegister;
+  uint16_t control = ((volatile CAENRegisters*)m_pModule)->m_ControlRegister;
   control        &= ~CTL_ENABLE_EMPTY;	// Turn off the bit...
   if(state)  control |= CTL_ENABLE_EMPTY;	// Turn it back on.
   ((volatile CAENRegisters*)m_pModule)->m_ControlRegister = control;
@@ -347,7 +347,7 @@ CAENV890::EmptyEvent(bool state)
 bool
 CAENV890::EmptyEventOn()
 {
-  u_short control = ((volatile CAENRegisters*)m_pModule)->m_ControlRegister;
+  uint16_t control = ((volatile CAENRegisters*)m_pModule)->m_ControlRegister;
   return (control & CTL_ENABLE_EMPTY) != 0;
 }
 /*!
@@ -386,8 +386,8 @@ CAENV890::Clear()
 u_int
 CAENV890::Read(u_int nBufferSize, void* pBuffer)
 {
-  u_long* p = (u_long*)pBuffer;
-  u_long datum;
+  uint32_t* p = (uint32_t*)pBuffer;
+  uint32_t datum;
   u_int  nRead(0);
 
   volatile CAENRegisters* pModule = (CAENRegisters*)m_pModule;
@@ -408,12 +408,12 @@ CAENV890::Read(u_int nBufferSize, void* pBuffer)
    Set the module into or out of test mode with a pattern.
    \param enable (bool [in]):
       true to enable test mode.
-   \param nPattern (u_long [in] default = 0):
+   \param nPattern (uint32_t [in] default = 0):
       if enable = true, nPattern is written in to the test register.
       otherwise it's ignored.
 */
 void
-CAENV890::TestMode(bool enable, u_long nPattern)
+CAENV890::TestMode(bool enable, uint32_t nPattern)
 {
   volatile CAENRegisters* pModule=(volatile CAENRegisters*)m_pModule;
   
@@ -460,7 +460,7 @@ CAENV890::isTriggerMatching()
   WriteMicro(0x0200);
 
 
-  u_short data = ReadMicro();
+  uint16_t data = ReadMicro();
 
   return ((data & 1) != 0);
 
@@ -511,7 +511,7 @@ CAENV890::SetContinuousStorageMode()
 bool
 CAENV890::isTriggerMatchingMode()
 {
-  u_short mode;
+  uint16_t mode;
   ReadMicroArray(0x0200, 1, &mode);
   return ((mode & 1) == 1);
 }
@@ -533,7 +533,7 @@ CAENV890::EnableChannel(int nChan)
 	    nChan);
     throw string(message);
   }
-  u_short op = 0x4000 | nChan;
+  uint16_t op = 0x4000 | nChan;
   WriteMicro(op);
 }
 /*!
@@ -549,7 +549,7 @@ CAENV890::DisableChannel(int nChan)
     sprintf(message, "CAENV890::DisableChannel channel value %d out of range",
 	    nChan);
   }
-  u_short op = 0x4100 | nChan;
+  uint16_t op = 0x4100 | nChan;
   WriteMicro(op);
 }
 /*!
@@ -570,26 +570,26 @@ CAENV890::DisableAllChannels()
 }
 /*!
   Set the enables on all channels in a single operation.
-  \param pEnables (u_short* [in]):
+  \param pEnables (uint16_t* [in]):
       An array of 8 channel enable masks:
       - Word 0 has channels 0-15 (low to high bit order).
       - Word 1 has channels 16-31
       - ...
 */
 void
-CAENV890::SetChannelMask(u_short* pMask)
+CAENV890::SetChannelMask(uint16_t* pMask)
 {
   WriteMicroArray(0x4400, 8, pMask);
 
 }
 /*!
    Read the channel enables pattern from the TDC Micro controller.
-   \param pEnables (u_short* [out]):
+   \param pEnables (uint16_t* [out]):
       array into which the masks will be stored. Should be 8 elements.
       word 0 has 0-15, 1 0-16 etc. low bits -> high bit order.
 */
 void
-CAENV890::ReadChannelEnables(u_short* pTriggerInfo)
+CAENV890::ReadChannelEnables(uint16_t* pTriggerInfo)
 {
   ReadMicroArray(0x4500, 8, pTriggerInfo);
 }
@@ -821,11 +821,11 @@ CAENV890::GetMaxHits()
    - Wait an assinine and undocumented 12ms
    - write the data.
 
-   \param opcode (u_short [in]):
+   \param opcode (uint16_t [in]):
       The opcode to write.
 */
 void
-CAENV890::WriteMicro(u_short opcode)
+CAENV890::WriteMicro(uint16_t opcode)
 {
   volatile CAENRegisters* pModule = (volatile CAENRegisters*)m_pModule;
 
@@ -841,10 +841,10 @@ CAENV890::WriteMicro(u_short opcode)
    - Wait an assinine and undocumented 12ms
    - read the data.
 
-   \return  u_short
+   \return  uint16_t
       The data from the micro.
 */
-u_short
+uint16_t
 CAENV890::ReadMicro()
 {
   volatile CAENRegisters* pModule = (volatile CAENRegisters*)m_pModule;
@@ -856,17 +856,17 @@ CAENV890::ReadMicro()
 /*!
    Utility function to do a read operation on the micro sequencer that
    returns several data items.
-   \param opcode (u_short [in]): 
+   \param opcode (uint16_t [in]): 
       The read opcode to perform.
-   \param nWords (u_short [in]):
+   \param nWords (uint16_t [in]):
       The number of words to read after the opcode.
    \param pBuffer (void* [out]):
       pointer to the buffer to hold the results of the operation.
 */
 void
-CAENV890::ReadMicroArray(u_short opcode, u_short nWords, void* pBuffer)
+CAENV890::ReadMicroArray(uint16_t opcode, uint16_t nWords, void* pBuffer)
 {
-  u_short* p((u_short*)pBuffer);
+  uint16_t* p((uint16_t*)pBuffer);
   WriteMicro(opcode);
   for(int i=0; i < nWords; i++) {
     *p++ = ReadMicro();
@@ -874,18 +874,18 @@ CAENV890::ReadMicroArray(u_short opcode, u_short nWords, void* pBuffer)
 }
 /*!
    Utility function to write a set of words to the micro.
-   \param opcode (u_short [in]): 
+   \param opcode (uint16_t [in]): 
       The read opcode to perform.
-   \param nWords (u_short [in]):
+   \param nWords (uint16_t [in]):
       The number of words to write after the opcode.
    \param pBuffer (void* [out]):
       pointer to the buffer to of data words to write.
 
 */
 void
-CAENV890::WriteMicroArray(u_short opcode, u_short nWords, void* pBuffer)
+CAENV890::WriteMicroArray(uint16_t opcode, uint16_t nWords, void* pBuffer)
 {
-  u_short* p((u_short*)pBuffer);
+  uint16_t* p((uint16_t*)pBuffer);
   WriteMicro(opcode);
   for(int i =0; i < nWords; i++) {
     WriteMicro(*p++);
