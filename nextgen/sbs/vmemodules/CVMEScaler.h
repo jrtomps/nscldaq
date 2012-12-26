@@ -25,6 +25,13 @@
 #define __STL_VECTOR
 #endif                               
 
+#ifndef __STDC_STDINT_H
+#include <stdint.h>
+#ifndef __STDC_STDINT_H
+#define __STDC_STDINT_H
+#endif
+#endif
+
                                
 /*!
    ABC for scaler modules.
@@ -58,7 +65,7 @@ protected:
   // Class operations:
 public:
   virtual   void Initialize ()   = 0;
-  virtual   void Read (std::vector<unsigned long>& Scalers)   = 0;
+  virtual   void Read (std::vector<uint32_t>& Scalers)   = 0;
   virtual   void Clear ()   = 0;
   virtual   unsigned int size ()   = 0;
   
