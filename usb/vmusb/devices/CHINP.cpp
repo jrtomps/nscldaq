@@ -178,8 +178,8 @@ CHINP::addReadoutList(CVMUSBReadoutList& list)
   //  read chip ID and channel address
   list.addMarker(static_cast<uint16_t>((fpga >> 27) & 0x07 | 0x1ff0));           // add ID for XLM slot #
   list.addBlockCountRead32(srama, static_cast<uint32_t>(0x00000ffe), registerAmod); // Transfer count for 32-bit word data
-  list.addMaskedCountBlockRead32(srama + sizeof(uint32_t), blockTransferAmod);  list.addBlockCountRead32(srama, static_cast<uint32_t>(0x00000ffe), registerAmod); // Transfer count for 32-bit word data
-  list.addMaskedCountBlockRead32(srama + sizeof(uint32_t), blockTransferAmod);
+  list.addMaskedCountBlockRead32(srama + sizeof(uint32_t), blockTransferAmod); 
+
   if (m_pConfiguration->getBoolParameter("-readsramb")) {
     list.addMarker(static_cast<uint16_t>((fpga >> 27) & 0x07 | 0x2ff0));           // add ID for XLM slot #
     list.addBlockCountRead32(sramb, static_cast<uint32_t>(0x00000ffe), registerAmod); // Transfer count for 32-bit word data
