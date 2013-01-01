@@ -34,7 +34,7 @@ eventlogargs.o: eventlogargs.ggo
 
 # Extra files to distribute.
 
-EXTRA_DIST		=	eventlogargs.ggo
+EXTRA_DIST		=	eventlogargs.ggo eventlog.xml
 
 
 #-------------------------------------------------------------

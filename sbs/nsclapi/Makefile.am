@@ -23,3 +23,4 @@ AM_LDFLAGS = -lpthread
 
 
 
+EXTRA_DIST=sbsVmeApi.xml

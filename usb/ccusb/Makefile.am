@@ -54,7 +54,7 @@ cmdline.o: commandline.ggo
 	$(GENGETOPT) <commandline.ggo
 	$(CC) -c -I. cmdline.c $(THREADCFLAGS)
 
-EXTRA_DIST=commandline.ggo
+EXTRA_DIST=commandline.ggo ccusb.xml
 
 install-data-local:
 	$(mkinstalldirs) @prefix@/ccusbdriver

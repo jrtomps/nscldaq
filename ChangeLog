@@ -273,20 +273,7 @@ Feb 1, 2012 - Feb 24, 2012
 	- Issue #1322 - Include product (NSCLDAQ) in the VERSION file.
         - More wheezy-64 work:
 	  * Get sbs driver working/tested.
-	  * Start SBS readout checkout (sbs/vmemodules/
-	    - Make CAENcard 64/32 bit clean.
-	    - Draft code for CADC2530 (Hytec adc...can't test this 'cause we don't own the module).
-	    - Draft code for CAEN V767 multihit TDC which probably nobody will ever use again.
-	    - Draft code for CAEN 262 I/O register.
-	    - camac.h - replace the old style INT32 etc. with stdint stuff.
-	    - Draft code for CBLT CAEN 32 bit digitizer chains.
-	    - Draft code for CAEN V1x90 multihit TDC family.
-	    - Draft code for CAEN V560 Scaler.
-	    - Draft code for CAEN V820/830 scaler.
-	    - Draft code for CAEN 977 I/O register.
-	    - Draft code for CAMAC (CES)
-	    - Draft code for 32 bit module.
-	    - Draft code CSIS3600 latch module.
+	  * Ensure SBS device support is 64 bit clean.
 	  * Add libSBSDeviceSupport.la to the Readout executable build in sbs/readout/Makefile.am
 	- Attempt to fix race condition between the s800 start and the
 	  polling of the s800 status.
@@ -306,3 +293,10 @@ Feb 1, 2012 - Feb 24, 2012
 	- Issue #701 Add variable injection/monitoring to VM-USB readout
 	to support EPICS monitoring.
 	- Issue #989 - document VM-USB list remote list executino.
+10.1-007
+	- Issue #1215 - Suport for SISFADC in VMUSDB readout.
+	- Isssue #1216 - Add 'motherboard' type to VMUSB readout which
+	  supports pairing up to 2 XLM's and an SISFADC for HiRA readout.
+	- Issue #701 - Support variable injection into VM-USB Readout
+	- Issue #989 - Document the remote VMUSB readout list execution
+	  facility..as well as the various HiRA things.

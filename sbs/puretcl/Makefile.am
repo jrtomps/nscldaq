@@ -1,6 +1,7 @@
 EXTRA_DIST  = 	camac.tcl	\
 		wienercamac.tcl	\
-		caennet.tcl cratelocator.tcl
+		caennet.tcl cratelocator.tcl \
+		caennet.xml camac.xml cratelocator.xml wienercamac.xml
 
 
 PACKAGE	=	@prefix@/TclLibs/sbspuretcl
