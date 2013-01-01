@@ -76,3 +76,4 @@ libSBSDeviceSupport_la_LIBADD =	@top_srcdir@/base/exception/libException.la	\
 
 libSBSDeviceSupport_la_LDFLAGS=	-version-info	1:0:0
 
+EXTRA_DIST=DeviceSupport.xml
