@@ -1,7 +1,8 @@
 lib_LTLIBRARIES=libvmusbServer.la libvmusbclient.la 
 
 
-noinst_HEADERS = CDuplicateSingleton.h \
+noinst_HEADERS = daqdatatypes.h TCLVersionHacks.h CDuplicateSingleton.h \
+VariableTraceCallback.h \
 CInvalidArgumentException.h \
 CNoSuchObjectException.h \
 CSocket.h \
@@ -96,7 +97,7 @@ CVMUSBPackage.cpp
 libvmusbclient_la_SOURCES = CVMUSBRemote.cpp \
 	CVMUSBReadoutList.cpp CSocket.cpp
 
-libvmusbclient_la_HEADER = CVMUSBRemote.h \
+include_HEADERS = CVMUSBRemote.h \
 	CVMUSBReadoutList.h
 
 install-exec-local:
