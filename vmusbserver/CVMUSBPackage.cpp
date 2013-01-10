@@ -42,13 +42,13 @@
  * @retval TCL_ERROR - failure with message in result.
  */ 
 extern "C" {
-  int Vmusb_Init(Tcl_Interp* pInterp)
+  int Vmusbserver_Init(Tcl_Interp* pInterp)
   {
     int status;
 
     // Advertise the package.
 
-    if((status = Tcl_PkgProvide(pInterp, "vmusb", "1.0")) != TCL_OK)  {
+    if((status = Tcl_PkgProvide(pInterp, "vmusbservero", "1.0")) != TCL_OK)  {
       return status;
     }
 
@@ -94,6 +94,6 @@ extern "C" {
 extern "C" {
   int Vmusb_SafeInit(Tcl_Interp* pInterp) 
   {
-    return Vmusb_Init(pInterp);
+    return Vmusbserver_Init(pInterp);
   }
 }

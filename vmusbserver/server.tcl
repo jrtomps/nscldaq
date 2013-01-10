@@ -1,3 +1,8 @@
+#!/bin/sh
+
+# start tclsh: \
+exec tclsh ${0} ${@}
+
 #    This software is Copyright by the Board of Trustees of Michigan
 #    State University (c) Copyright 2009.
 #
@@ -35,8 +40,8 @@ set validRequests [list vmusb];	# Valid top level commands for the server.
 
 # Packages used:
 
-lappend auto_path [file dirname [info script]]
-package require vmusb
+lappend auto_path [file join [file dirname [info script]] .. lib]
+package require vmusbserver
 
 ##
 # perform
