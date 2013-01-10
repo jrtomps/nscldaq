@@ -53,6 +53,12 @@ static const uint32_t  BUSXOwner  (0x810008); // Shows who has bus X (FPGA).
 static const uint32_t  ForceOffBus(0x80000c); // Register to force FPGA/DSP off bus.
 // bits in XLM registers
 static const uint32_t ForceOffBusForce(0x00000001); // Force all but VME off bus.
+
+// FPGA mode bits:
+
+static const uint32_t MODE_UNIFIED(1);
+static const uint32_t MODE_HAVEFADC(4);
+
 ////////////////////////////////////////////////////////////////////////////////////////
 //  Canonical function implementations:
 ////////////////////////////////////////////////////////////////////////////////////////
@@ -97,6 +103,7 @@ CHINP::onAttach(CReadoutModule& configuration)
   CXLM::onAttach(configuration); // base class stuff too.
   configuration.addParameter("-readsramb", CConfigurableObject::isBool, 
 			     NULL, "false");
+  configuration.addParameter("-havefadc", CConfigurableObject::isBool, NULL, "true");
 }
 
 ///////////////////////////////////////////////////////////////////////////////////
@@ -117,6 +124,11 @@ CHINP::Initialize(CVMUSB& controller)
   uint16_t test1;
   uint32_t test2;
 
+  bool haveFadc = m_pConfiguration->getBoolParameter("-havefadc");
+
+  uint32_t fpgaMode = MODE_UNIFIED;
+  if (haveFadc) fpgaMode |=  MODE_HAVEFADC;
+
 
   base = sramA();  // base addr of VME module
   CXLM::accessBus(controller, static_cast<uint32_t>(CXLM::REQ_X));
@@ -130,6 +142,10 @@ CHINP::Initialize(CVMUSB& controller)
   controller.vmeWrite32(fpga+FPGA_ABus*4, registerAmod, static_cast<uint32_t>(0)); // turn off glbl_enbl
   controller.vmeWrite32(fpga+FPGA_ABus*4, registerAmod, static_cast<uint32_t>(forcereset)); // reset the chips
   controller.vmeWrite32(fpga+FPGA_ABus*4, registerAmod, static_cast<uint32_t>(0)); // turn off reset
+
+  // This could just be a usleep right(?).
+
+
   controller.vmeWrite32(fpga+FPGA_ABus*4, registerAmod, static_cast<uint32_t>(0)); // wait
   controller.vmeWrite32(fpga+FPGA_ABus*4, registerAmod, static_cast<uint32_t>(0)); // wait
   controller.vmeWrite32(fpga+FPGA_ABus*4, registerAmod, static_cast<uint32_t>(0)); // wait
@@ -138,10 +154,17 @@ CHINP::Initialize(CVMUSB& controller)
   controller.vmeWrite32(fpga+FPGA_ABus*4, registerAmod, static_cast<uint32_t>(0)); // wait
   controller.vmeWrite32(fpga+FPGA_ABus*4, registerAmod, static_cast<uint32_t>(0)); // wait
  // now set XLM to Unified readout mode, without internal ADC
-  controller.vmeWrite32(fpga+ReadoutMode*4, registerAmod, static_cast<uint32_t>(5)); // ADC on, Unified On
+  printf("Setting mode to %d 5 means you selected XLM-XXV 1 means you have an external FADC\n", fpgaMode);
+  controller.vmeWrite32(fpga+ReadoutMode*4, registerAmod, fpgaMode); // ADC on, Unified On
   // prepare XLM to accept triggers
   controller.vmeWrite32(fpga+FPGA_enblA*4, registerAmod, static_cast<uint32_t>(1)); // turn on ext enbl
   controller.vmeWrite32(fpga+FPGA_ABus*4, registerAmod, static_cast<uint32_t>(glbl_enable)); // turn on glbl_enbl
+
+  if(m_pConfiguration->getBoolParameter("-readsramb")) {
+    controller.vmeWrite32(fpga+FPGA_enblB*4, registerAmod, static_cast<uint32_t>(1)); // external enable for B.
+    controller.vmeWrite32(fpga+FPGA_Bbus*4, registerAmod, static_cast<uint32_t>(glbl_enable)); // Global enable for B.
+  }
+
   controller.vmeWrite32(fpga+FPGA_clear_veto*4, registerAmod, static_cast<uint32_t>(1)); // clear veto_reset
   CXLM::accessBus(controller, static_cast<uint32_t>(0)); // release bus
 
@@ -178,7 +201,7 @@ CHINP::addReadoutList(CVMUSBReadoutList& list)
   //  read chip ID and channel address
   list.addMarker(static_cast<uint16_t>((fpga >> 27) & 0x07 | 0x1ff0));           // add ID for XLM slot #
   list.addBlockCountRead32(srama, static_cast<uint32_t>(0x00000ffe), registerAmod); // Transfer count for 32-bit word data
-  list.addMaskedCountBlockRead32(srama + sizeof(uint32_t), blockTransferAmod); 
+  list.addMaskedCountBlockRead32(srama + sizeof(uint32_t), blockTransferAmod);  
 
   if (m_pConfiguration->getBoolParameter("-readsramb")) {
     list.addMarker(static_cast<uint16_t>((fpga >> 27) & 0x07 | 0x2ff0));           // add ID for XLM slot #

@@ -104,9 +104,9 @@ ECHO_C =
 ECHO_N = -n
 ECHO_T = 
 EGREP = /bin/grep -E
-EPICS_BIN = -DEPICS_BIN="\"/opt/lucid/epics/current/bin/linux-x86\""
-EPICS_INCLUDES = -I/opt/lucid/epics/current/include -I/opt/lucid/epics/current/include/os/Linux
-EPICS_LDFLAGS = -L/opt/lucid/epics/current/lib/linux-x86 -lca -Wl,"-rpath=/opt/lucid/epics/current/lib/linux-x86"
+EPICS_BIN = -DEPICS_BIN="\"/opt/lucid/epics/current//bin/linux-x86\""
+EPICS_INCLUDES = -I/opt/lucid/epics/current//include -I/opt/lucid/epics/current//include/os/Linux
+EPICS_LDFLAGS = -L/opt/lucid/epics/current//lib/linux-x86 -lca -Wl,"-rpath=/opt/lucid/epics/current//lib/linux-x86"
 EXEEXT = 
 FGREP = /bin/grep -F
 GENGETOPT = gengetopt
@@ -203,7 +203,7 @@ mandir = ${datarootdir}/man
 mkdir_p = /bin/mkdir -p
 oldincludedir = /usr/include
 pdfdir = ${docdir}
-prefix = /opt/lucid/daq/10.1-006
+prefix = /opt/lucid/daq/10.1-008
 program_transform_name = s,x,x,
 psdir = ${docdir}
 sbindir = ${exec_prefix}/sbin
@@ -214,9 +214,9 @@ target_alias =
 top_build_prefix = ../../../
 top_builddir = ../../..
 top_srcdir = ../../..
-TCLDEST = /opt/lucid/daq/10.1-006/TclLibs/CHIP
+TCLDEST = /opt/lucid/daq/10.1-008/TclLibs/CHIP
 DATADEST = ${prefix}/etc/CHIP
-AM_CXXFLAGS = -DCESCAMAC -DVME -DINSTDIR=\"/opt/lucid/daq/10.1-006\"
+AM_CXXFLAGS = -DCESCAMAC -DVME -DINSTDIR=\"/opt/lucid/daq/10.1-008\"
 CHIP_SOURCES = ReadoutMain.cpp TCLThread.cpp XLM.cpp AVmeModule.cpp chip_cont.cpp chip_cont_wrap.cxx 
 CHIP_LDADD = ../../../usb/vmusb/vmusb/libVMUSBRemote.la \
 	../../../base/tclplus/libtclPlus.la \

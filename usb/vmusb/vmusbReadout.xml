@@ -4320,28 +4320,28 @@ mase cget <replaceable>name</replaceable>
 
 <refentry id="vmusb3-tdcv1x90">
   <refmeta>
-     <refentrytitle>tdcv1x90</refentrytitle>
+     <refentrytitle>tdc1x90</refentrytitle>
      <manvolnum>3vmusb</manvolnum>
   </refmeta>
   <refnamediv>
-     <refname>tdcv1x90</refname>
+     <refname>tdc1x90</refname>
      <refpurpose>Provide support for the CAEN V1x90 TDC family.</refpurpose>
   </refnamediv>
   
   <refsynopsisdiv>
     <cmdsynopsis>
 	<command>
-tdcv1x90 create name ?options...?
+tdc1x90 create name ?options...?
 	</command>
     </cmdsynopsis>
     <cmdsynopsis>
     <command>
-tdcv1x90 config name ?options?
+tdc1x90 config name ?options?
     </command>
 </cmdsynopsis>
 <cmdsynopsis>
     <command>
-tdcv1x90 cget name
+tdc1x90 cget name
     </command>
 </cmdsynopsis>
 
