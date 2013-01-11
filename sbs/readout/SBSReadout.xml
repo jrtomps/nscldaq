@@ -747,7 +747,7 @@ make
                     <para>
                         If you want to add application specific commands to the
                         framework, add them here.  This is usually done by
-                        writing subclasses derived from <classname>CObjectProcessor</classname>,
+                        writing subclasses derived from <classname>CTCLObjectProcessor</classname>,
                         and creating an instance for each of these classes.
                         The comments prior to this method describe what you need
                         to do if you have existing procedural commands you want
@@ -2374,7 +2374,7 @@ MySegment::read(void* pBuffer, size_t maxlen)
          <programlisting>
 #include &lt;CExperiment&gt;
          </programlisting>
-         <classsynopsis>
+         <synopsis>
             <ooclass><classname>CExperiment</classname></ooclass>
             <constructorsynopsis>
                 <methodname>CExperiment</methodname>
@@ -2475,7 +2475,11 @@ MySegment::read(void* pBuffer, size_t maxlen)
                 <type>void</type> <methodname>ScheduleRunVariableDump</methodname>
                 <void />
                 </methodsynopsis>
-         </classsynopsis>
+            <methodsynosis>
+                <type>CRingBuffer*</type> <methodname>getRing</methodname>
+                <void />
+            </methodsynopsis>
+         </synopsis>
       </refsynopsisdiv>
       <refsect1>
          <title>Description</title>

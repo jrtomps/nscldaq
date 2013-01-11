@@ -127,6 +127,9 @@ public:
   void   DocumentPackets();
   void   ScheduleRunVariableDump();
   void   ScheduleEndRunBuffer(bool pause);
+  CRingBuffer* getRing() {
+    return m_pRing;
+  }
 
 private:
   void readScalers();
