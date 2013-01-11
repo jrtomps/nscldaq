@@ -124,15 +124,15 @@ CTclModule::swigPointer(void* p, std::string  type)
   // Note that doing the byte reversal this way should be
   // 64 bit clean..and in fact should work for any sized ptr.
 
-
-  for (int i = 0; i < sizeof(void*); i++) {
-    char byteString[3];
-
-    sprintf(byteString, "%02x", *s++);
-    hexified += byteString;
-
-
+  static const char hex[17] = "0123456789abcdef";
+  register const unsigned char *u = (unsigned char *) &p;
+  register const unsigned char *eu =  u + sizeof(void*);
+  for (; u != eu; ++u) {
+    register unsigned char uu = *u;
+    hexified += hex[(uu & 0xf0) >> 4];
+    hexified += hex[uu & 0xf];
   }
+
   sprintf(result, "_%s_p_%s", hexified.c_str(), type.c_str());
 
   return std::string(result);
