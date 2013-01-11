@@ -119,17 +119,18 @@ CTclModule::swigPointer(void* p, std::string  type)
   char result [10000];
   std::string hexified;		// Bigendian.
 
-  uint8_t* s = reinterpret_cast<uint8_t*>(&p);
+  uint8_t* s = reinterpret_cast<uint8_t*>(p);
 
   // Note that doing the byte reversal this way should be
   // 64 bit clean..and in fact should work for any sized ptr.
 
 
   for (int i = 0; i < sizeof(void*); i++) {
-    char nybble[3];
+    char byteString[3];
 
-    sprintf(nybble, "%02x", *s++);
-    hexified += nybble;
+    sprintf(byteString, "%02x", *s++);
+    hexified += byteString;
+
 
   }
   sprintf(result, "_%s_p_%s", hexified.c_str(), type.c_str());

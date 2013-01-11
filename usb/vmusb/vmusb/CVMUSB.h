@@ -72,7 +72,7 @@ class CVMUSBReadoutList;
 
 /*!
    This class is part of the support package for the Wiener/JTEC VM-USB 
-   USB to VME interface.  This class is intended to be used in conjunction
+   USB to VME interface. This class is intended to be used in conjunction
    with CVMUSBReadoutList.
    CVMUSB is used to directly manipulate the controller and to perform
    single shot VME operations.   CVMEReadoutList is intended to be used
@@ -325,8 +325,8 @@ public:
 		    void*               pReadBuffer,
 		    size_t              readBufferSize,
 		    size_t*             bytesRead);
-    std::vector<uint8_t> executeList(CVMUSBReadoutList& list,
-				    int maxBytes); // SWIG
+    virtual std::vector<uint8_t> executeList(CVMUSBReadoutList& list,
+				     int maxBytes); // SWIG
     
     virtual int loadList(uint8_t                listNumber,
 		 CVMUSBReadoutList&    list,
