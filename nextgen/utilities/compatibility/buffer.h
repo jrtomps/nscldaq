@@ -74,7 +74,7 @@ struct bheader				/* Data buffer header	*/
 	INT16	buffmt;			/* Data format revision level */
 	INT16   ssignature;		/* Short byte order signature */
 	INT32   lsignature;		/* Long byte order signature  */
-	INT16	unused[2];		/* Pad out to 16 words.	    */
+	UINT16	unused[2];		/* Pad out to 16 words.	    */
     };
 
 struct ctlbody				/* Body of control buffer   */
@@ -94,13 +94,13 @@ struct	usrbufbody			/* Declares user buffer body. */
 struct sclbody				/* body of scaler buffers   */
     {					/* taped and snapshot	    */
 	INT32	etime;			/* Start time since SOR in ticks */
-	INT16	unused1[3];		/* Unused words.	    */
+	UINT16	unused1[3];		/* Unused words.	    */
 	INT32	btime
 #ifdef __GNUC__
 	__attribute__((packed))
 #endif
 	;			/* end time since SOR in ticks	*/
-	INT16	unused2[3];		/* Unused words.	    */
+	UINT16	unused2[3];		/* Unused words.	    */
 	INT32	scalers[1]
 #ifdef __GNUC__
 	__attribute__((packed))
