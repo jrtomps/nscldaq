@@ -301,4 +301,10 @@ Feb 1, 2012 - Feb 24, 2012
 	- Issue #989 - Document the remote VMUSB readout list execution
 	  facility..as well as the various HiRA things.
 10.1-008
+
+10.1-100
+	- Add timestamped nonincr scaler item
+	- In BufferToRing emit both scaler and nonincr scaler items to the
+	s800 ring.  The concept there is that we can feed the timestamped
+	items to Gretina so that they get properly sorted.
 	

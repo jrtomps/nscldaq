@@ -125,6 +125,59 @@ formatScalerItem(unsigned scalerCount, time_t timestamp, uint32_t btime, uint32_
 }
 
 /**
+ * formatNonIncrTSScalerItem
+ *
+ *  Format a timestamped non incremental scaler item.  The timestamp in this case refers
+ *  to a timestamp synched to the event trigger timestamps (e.g. for event building ordering
+ *
+ * @param scalerCount - Number of 32 bit scaler items in the item.
+ * @param timestamp   - Absolute, unix, timestamp.
+ * @param btime       - Offset to beginning of interval from start of run.
+ * @param etime       - Offset to end of interval from start of run.
+ * @param eventTimestamp - Event timestamp.
+ * @param pCounters   - The counters.
+ * @param timebasDivisor - What to divide the btime/etime values by to get seconds.
+ *
+ * @return pNonIncrTSScaleritem Pointer to the scaler aitme we are going to return.  Must be passed to
+ *                     free(3) to release storage. 
+ */
+pNonIncrTimestampedScaler  
+formatNonIncrTSScalerItem(unsigned scalerCount, time_t timestamp, 
+			  uint32_t btime, uint32_t etime, 
+			  uint64_t eventTimestamp, void* pCounters,
+			  uint32_t timebaseDivisor)
+{
+
+  uint32_t itemSize = sizeof(NonIncrTimestampedScaler) + scalerCount*sizeof(uint32_t);
+
+  /* allocate the item and return NULL if the malloc failed. */
+
+  pNonIncrTimestampedScaler  pItem =  (pNonIncrTimestampedScaler)malloc(itemSize);
+  if (!pItem) {
+    return pItem;
+  }
+
+  /* Fill in the item fields except for the scalers which must be memcpy'd later. */
+
+  pItem->s_header.s_size = itemSize;
+  pItem->s_header.s_type = TIMESTAMPED_NONINCR_SCALERS;
+  pItem->s_eventTimestamp      = eventTimestamp;
+  pItem->s_intervalStartOffset = btime;
+  pItem->s_intervalEndOffset   = etime;
+  pItem->s_intervalDivisor     = timebaseDivisor;
+  pItem->s_clockTimestamp      = timestamp;
+  pItem->s_scalerCount         = scalerCount;
+
+  /* Copy in the scalers */
+
+  memcpy(pItem->s_scalers, pCounters, scalerCount * sizeof(uint32_t));
+
+  return pItem;
+
+}
+
+
+/**
  * Format a set of text strings into a Textitem.
  *
  * @param nStrings - number of strings to format.

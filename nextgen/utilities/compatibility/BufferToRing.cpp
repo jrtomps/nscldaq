@@ -33,6 +33,7 @@
 #include <time.h>
 #include <set>
 #include <map>
+#include <iostream>
 
 
 #include <buffer.h>
@@ -311,6 +312,55 @@ bool formatTriggerCount(uint32_t runTime, time_t stamp)
 }
 
 /**
+ * scalerTimestamp 
+ *
+ *  Extract the 64 bit timestamp from the first 4 unused of the scaler buffer body
+ *
+ * @param pBody - Pointer to the scaler body.
+ *
+ * @return uint64_t timestamp value.
+ */
+uint64_t
+scalerTimestamp(sclbody* pBody)
+{
+  uint64_t timestamp;
+
+
+  timestamp = (uint16_t)pBody->unused2[0]; // Highest order.
+
+  for (int i =0; i < 3; i++) {
+    timestamp = timestamp << 16;
+    timestamp |= (uint16_t)pBody->unused1[2-i];
+  }
+  // S800 kludge here:
+
+  timestamp = timestamp << 3;
+
+  // 
+
+  return timestamp;
+}
+/**
+ * scalerTimeDivisor
+ *
+ *  Returnthe time divisor for the scaler timebase.
+ *
+ * @param pBody - pointer to the scaler body.
+ *
+ * @return uint32_t divisor.
+ */
+uint32_t
+scalerTimeDivisor(sclbody* pBody)
+{
+  uint32_t result;
+  result = pBody->unused2[2];	// high order part.
+  result = result << 16;	// shift into position.
+  result |= pBody->unused2[1];	// or in low order part.
+
+  return result;
+}
+
+/**
  * Function to write scaler buffers to file. Note that NSCLBuffers have start of run
  * offsets but not timestamps, rings have timestamps.  At this time we choose to
  * fill in the current time as a timestamp.  In the future we could calculate
@@ -342,6 +392,19 @@ bool formatScaler (void* pBuffer)
 				       pBody->scalers);
   bool status = writeData(pItem, pItem->s_header.s_size);
   free(pItem);
+  if (!status) return status;
+
+  // We also need to create a timestamped item:
+
+  pNonIncrTimestampedScaler pTSItem = formatNonIncrTSScalerItem(nScalers, timestamp,
+								pBody->btime, pBody->etime,
+								scalerTimestamp(pBody),
+								pBody->scalers,
+								scalerTimeDivisor(pBody)							     
+								);
+  status = writeData(pTSItem, pTSItem->s_header.s_size);
+  free(pTSItem);
+
   return status;
 
 }

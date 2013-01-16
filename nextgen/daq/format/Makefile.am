@@ -10,6 +10,7 @@ libdataformat_la_SOURCES = CRingSelectionPredicate.cpp	\
 			CRingScalerItem.cpp		\
 			CRingTextItem.cpp		\
 			CRingPhysicsEventCountItem.cpp \
+			CRingTimestampedRunningScalerItem.cpp \
 			ringitem.c
 
 
@@ -21,6 +22,7 @@ include_HEADERS	= CRingSelectionPredicate.h	\
 			CRingScalerItem.h	\
 			CRingTextItem.h	\
 			CRingPhysicsEventCountItem.h	\
+			CRingTimestampedRunningScalerItem.h \
 			DataFormat.h
 
 INCLUDES	= -I@top_srcdir@/base/dataflow	\
