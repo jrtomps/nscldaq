@@ -26,6 +26,10 @@ install-data-local:
 	$(mkinstalldirs) @prefix@/ccusbdriver
 	$(mkinstalldirs) @prefix@/ccusbdriver/includes
 	$(INSTALL_DATA)  *.h @prefix@/ccusbdriver/includes
+	echo "package ifneeded cccusb 1.0 [list load [file join $dir libCCCUSB.so]]" >> @libdir@/pkgIndex.tcl
+	echo "package ifneeded cccusbreadoutlist 1.0 [list load [file join $dir libCCCUSBReadoutList.so]]" >> @libdir@/pkgIndex.tcl
+
+
 
 clean-local:
 	$(RM) -f CCCUSB_wrap.cxx

@@ -24,6 +24,7 @@ libVMUSBRemote_la_SOURCES = CVMUSBReadoutList.cpp \
 
 
 
+
 noinst_HEADERS		= CVMUSB.h   \
 	CVMUSBReadoutList.h  \
 	CVMUSBusb.h	\
@@ -36,6 +37,8 @@ noinst_HEADERS		= CVMUSB.h   \
 	CTCPNoSuchHost.h	\
 	CTCPNoSuchService.h	\
 	CVMUSBFactory.h
+
+
 
 
 
@@ -72,7 +75,9 @@ install-data-local:
 	$(mkinstalldirs) @prefix@/vmusbdriver
 	$(mkinstalldirs) @prefix@/vmusbdriver/includes
 	$(INSTALL_DATA)  CVMUSB*.h @prefix@/vmusbdriver/includes
-
+	echo "Registering swig packages with lib's pkgIndex.tcl"
+	echo "package ifneeded cvmusbreadoutlist 1.0 [list load [file join $dir libCVMUSBReadoutList.so]]" >> @libdir@/pkgIndex.tcl
+	echo "package ifneeded cvmusb 1.0 [list load [file join $dir libCVMUSB.so]]" >> @libdir@/pkgIndex.tcl
 
 clean-local:
 	rm -f $(BUILT_SOURCES)
