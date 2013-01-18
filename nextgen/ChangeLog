@@ -307,4 +307,8 @@ Feb 1, 2012 - Feb 24, 2012
 	- In BufferToRing emit both scaler and nonincr scaler items to the
 	s800 ring.  The concept there is that we can feed the timestamped
 	items to Gretina so that they get properly sorted.
+	- Debugged issues with the VMUSB Tcl stuff.
+	- Decided how to get pkgIndex to really work properly for lib.
+	 where some .so's may have dependencies based on the enclosing
+	app.
 	
