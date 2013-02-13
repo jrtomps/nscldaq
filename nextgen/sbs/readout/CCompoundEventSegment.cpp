@@ -109,6 +109,7 @@ CCompoundEventSegment::read(void* pBuffer, size_t maxwords)
   EventSegmentIterator p = begin();
   while (p != end()) {
     CEventSegment* pSeg = dynamic_cast<CEventSegment*>(*p);
+    pSeg->keep();
     size_t segSize      = pSeg->read(pD, remaining);
     if (segSize > remaining) {
       throw CRangeError(0, maxwords, nRead + segSize, 
@@ -117,6 +118,22 @@ CCompoundEventSegment::read(void* pBuffer, size_t maxwords)
     nRead     += segSize;
     remaining -= segSize;
     pD        += segSize;
+
+    CEventSegment::AcceptState acceptance = pSeg->getAcceptState();
+    
+    // If the segment wants to quit honor that and set that as our state.
+
+    if (acceptance == CEventSegment::RejectImmediately) {
+      rejectImmediately();
+      break;
+    }
+    
+    // If the segwments wants to reject but keep processing, just propogate
+    // that state.
+
+    if (acceptance == CEventSegment::Reject) {
+      reject();
+    }
 
     p++;
   }

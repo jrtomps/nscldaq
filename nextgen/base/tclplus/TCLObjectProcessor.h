@@ -93,6 +93,15 @@ protected:
 			 std::vector<CTCLObject>& objv) = 0;
   virtual void onUnregister();
 
+  // Useful methods for derived classes:
+
+protected:
+  void bindAll(CTCLInterpreter& interp, std::vector<CTCLObject>& objv);
+  void requireAtLeast(std::vector<CTCLObject>& objv, unsigned n, const char* msg=0) const;
+  void requireAtMost(std::vector<CTCLObject>& objv, unsigned n, const char* msg=0) const;
+  void requireExactly(std::vector<CTCLObject>& objv, unsigned n, const char* msg=0) const;
+
+
   // Static callback relays:
 
 private:

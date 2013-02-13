@@ -2009,6 +2009,347 @@ c257 cget <replaceable>name</replaceable>
   </refsect1>
 
 </refentry>
+      <refentry id="ccusb3_ccusb_command">
+        <refmeta>
+           <refentrytitle id='ccusb3_ccusb_command_title'>ccusb (command)</refentrytitle>
+           <manvolnum>3ccusb</manvolnum>
+        </refmeta>
+        <refnamediv>
+           <refname>ccusb (command)</refname>
+           <refpurpose>Configure and read scalers from CC-USB module</refpurpose>
+        </refnamediv>
+        
+        <refsynopsisdiv>
+          <cmdsynopsis>
+          <command>
+ccusb create name ?options?
+          </command>
+          </cmdsynopsis>
+          <cmdsynopsis>
+            <command>
+ccusb config name ?options?
+            </command>
+          </cmdsynopsis>
+          <cmdsynopsis>
+            <command>
+ccusb cget name
+            </command>
+            </cmdsynopsis>
+        </refsynopsisdiv>
+        <refsect1>
+           <title>DESCRIPTION</title>
+           <para>
+            <command>ccusb</command> provides a readout module that allows you
+            to configure many of the resources of the CCUSB as well as
+            providing the capability of rerading the module internal scalers.
+            Note that owing to the way the framework operates, you must include
+            CCUSB modules in either the event or scaler stack in order to
+            configure them, even if you don't intend to readout the scalers.
+           </para>
+           <para>
+            For the configuration options see <literal>OPTIONS</literal>
+            below.
+           </para>
+           <para>
+            The resources you can control are the module internal gate and delay
+            generators, the module internal scalers, the meaning of the
+            Module NIM outputs and inputs and the meaning of the front panel
+            LED displays.
+           </para>
+        </refsect1>
+            <refsect1>
+           <title>
+              OPTIONS
+           </title>
+           <variablelist>
+            <varlistentry>
+                <term><option>-gdgasource</option></term>
+                <listitem>
+                    <para>
+                        Defines the start of the module internal gate and delay
+                        generator A.  This can be one of:
+                        <literal>disabled, in1, in2, in3, event, eventend, usbtrigger, </literal>
+                        or <literal>pulser</literal>.   Sections 3.3.6 and 3.3.7
+                        of the CCUSB manual provide more information about the
+                        Gate and delay generators.
+                    </para>
+                    <para>This option defaults to <literal>disabled</literal></para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><option>-gdgbsource</option></term>
+                <listitem>
+                    <para>
+                        Same as <option>-gdgasource</option>, however the
+                        B gate and delay generator start is set.  The same set
+                        of values accepted for <option>-gdgasource</option>
+                        are accepted for this option.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><option>-gdgawidth</option></term>
+                <listitem>
+                    <para>
+                        Sets the output width of the A Gate and delay generator.
+                        This can be a value from <literal>0</literal> through
+                        <literal>0xffff</literal> and is in 10ns units.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><option>-gdgbwidth</option></term>
+                <listitem>
+                    <para>
+                        Sets the output width of the B gate and delay generator.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><option>-gdgadelay</option></term>
+                <listitem>
+                    <para>
+                        Sets the output delay on the A gdg output. This can be
+                        in the range <literal>0</literal> through
+                        <literal>0xffffffff</literal>.  It winds up setting both
+                        a field in the
+                        <literal>DGG_A</literal> register and the
+                        <literal>DGG_Ext</literal> register.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><option>-gdgbdelay</option></term>
+                <listitem>
+                    <para>
+                        Sets the output delay on the B gdg output.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><option>-red</option></term>
+                <listitem>
+                    <para>
+                        Sets the signal that is reflected on the red LED on the
+                        module front panel.  This is modified by the
+                        <option>-redinvert</option> and <option>-redlatch</option>
+                        options described below.
+                    </para>
+                    <para>
+                        Legal values are
+                        <literal>event, busy, usboutnotempty</literal> and
+                        <literal>usbinnotfull</literal>
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><option>-redinvert</option></term>
+                <listitem>
+                    <para>
+                        This boolean parameter, if <literal>true</literal>
+                        inverts the sense of the red front panel LED.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>-redlatch</term>
+                <listitem>
+                    <para>
+                        If true, this boolean parameter latches the red front panel
+                        LED on once the condition required to ligth it is met.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><option>-green</option></term>
+                <listitem>
+                    <para>
+                        This enumerated parmeter, together with
+                        <option>-greeninvert</option> and <option>-greenlatch</option>,
+                        determines when the green LED should be lit.  Valid values
+                        are:
+                        <literal>acquire, nimi1, nimi2, usbinnotemtpy</literal>
+                        and <literal>usbtrigger</literal>.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><option>-greeninvert</option></term>
+                <listitem>
+                    <para>
+                        Inverts the sense of the green front panel LED.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><option>-greenlatch</option></term>
+                <listitem>
+                    <para>
+                        Latches the green LED on when the condition to light it
+                        is met.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><option>-yellow</option></term>
+                <listitem>
+                    <para>
+                        Together with <option>-yellowinvert</option> and
+                        <option>-yellowlatch</option> when the yellow front
+                        panel LED is lit.  This can be one of the following values:
+                        <literal>nimi1, nimi3, busy</literal> or
+                        <literal>usbinfifionotempty</literal>.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><option>-scalara</option></term>
+                <listitem>
+                    <para>
+                        Defines what makes the A scaler count.  This can have
+                        any of the following values:
+                        <literal>disabled, nimi1, nimi2, nimi3, event, carryb, dgga</literal>
+                        or <literal>dggb</literal>.  The <literal>carryb</literal>
+                        increments the scaler when the B scale overflows.  This
+                        provides the ability to make the A scaler the most significant
+                        24 bits of a 48 bit scaler with the B scaler the least
+                        significant 24 bits.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><option>-scalerb</option></term>
+                <listitem>
+                    <para>
+                        Defines what makes scaler B count.  This can have any of
+                        the following values:
+                         <literal>disabled, nimi1, nimi2, nimi3, event, carrya, dgga</literal>
+                        or <literal>dggb</literal>. The <literal>carrya</literal>
+                        increments the scaler when the A scale overflows.  This
+                        provides the ability to make the B scaler the most significant
+                        24 bits of a 48 bit scaler with the A scaler the least
+                        significant 24 bits.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><option>-out1</option></term>
+                <listitem>
+                    <para>
+                        Together with <option>-out1invert</option>
+                        and <option>-out1latch</option> determines the condition
+                        that drives the O1 NIM output.  This can be one of the
+                        following values:
+                        <literal>busy, event, gdga</literal> or
+                        <literal>gdgb</literal>.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><option>-out1invert</option></term>
+                <listitem>
+                    <para>
+                        Inverts the sense of the O1 NIM output.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><option>-out1latch</option></term>
+                <listitem>
+                    <para>
+                        Latches the state of O1 once the condition needed to
+                        make it a logic true has been detected.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><option>-out2</option></term>
+                <listitem>
+                    <para>
+                        Together with <option>-out2invert</option> and
+                        <option>-out2latch</option> determines when the
+                        NIM O2 signal is asserted.  This can be one of the
+                        following values:
+                        <literal>acquire, event, gdga, </literal> or
+                        <literal>gdgb</literal>.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><option>-out2invert</option></term>
+                <listitem>
+                    <para>
+                        Inverts the sense of the O2 NIM output.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><option>-out2latch</option></term>
+                <listitem>
+                    <para>
+                        Latches the NIM O2 state when the condition to assert
+                        it has been met.  This condition is determined by
+                        both <option>-out2</option> and
+                        <option>-out2invert</option>.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><option>-out3</option></term>
+                <listitem>
+                    <para>
+                        Together with <option>-out3invert</option>
+                        and <option>-out3latch</option> determines the behavior
+                        of the NIM O3 output.  This can be any of the following
+                        values: <literal>busyend, busy, gdga, </literal> or
+                        <literal>gdgb</literal>.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><option>-o3invert</option></term>
+                <listitem>
+                    <para>
+                        Inverts the condition that asserts O3.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><option>-o3latch</option></term>
+                <listitem>
+                    <para>
+                        Latches O3 in the asserted state when the condition
+                        to assert it is met.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><option>-readscalers</option></term>
+                <listitem>
+                    <para>
+                        Boolean that when true enables the readout of the A and
+                        B scalers in the stack this module is in.  The A scaler
+                        is read first then the B scaler.  
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><option>-incremental</option></term>
+                <listitem>
+                    <para>
+                        This boolean parameters only matters when
+                        <option>-readscalers</option> is true.  It causes
+                        the scalers to be cleared once they have been read.
+                        Note that in general some counts may be lost as there
+                        is no way to atomically read and clear the scaler counters.
+                    </para>
+                </listitem>
+            </varlistentry>
+            
+           </variablelist>
+        </refsect1>
+
+      </refentry>
 
 	 <refentry id="lccusb3-rs2228">
 	   <refmeta>
@@ -3715,420 +4056,462 @@ Get <replaceable>name parameter</replaceable>
                 <varname>CCCUSB::ScalerControlRegister::timeIntervalShift</varname>
                 <initializer>16</initializer>
             </fieldsynopsis>
+            
+            <!--
+   // Red LED: -->
             <fieldsynopsis>
-                <modifier>static const</modifier>  <type> uint32_t</type>
-                <varname>CCCUSB::LedSourceRegister::redEventTrigger</varname>
+                <modifier>static const</modifier>
+                <type>uint32_t</type> <varname>CCCUSB::LedSourceRegister::redEventTrigger</varname>
                 <initializer>0</initializer>
             </fieldsynopsis>
             <fieldsynopsis>
-                <modifier>static const</modifier> <type>uint32_t</type>
+                <modifier>static const</modifier><type>uint32_t</type>
                 <varname>CCCUSB::LedSourceRegister::redBusy</varname>
                 <initializer>1</initializer>
             </fieldsynopsis>
             <fieldsynopsis>
-                <modifier>static const</modifier> <type>uint32_t</type>
-                <varname>CCCUSB::LedSourceRegister::redUSBTrigger</varname>
+                <modifier>static const</modifier><type>uint32_t</type>
+                <varname>CCCUSB::LedSourceRegister::redUSBOutFifoNotEmpty</varname>
                 <initializer>2</initializer>
             </fieldsynopsis>
             <fieldsynopsis>
-                <modifier>static const</modifier> <type>uint32_t</type>
-                <varname>CCCUSB::LedSourceRegister::redUSBOutFifoNotEmpty</varname>
+                <modifier>static const</modifier><type> uint32_t</type>
+                <varname>CCCUSB::LedSourceRegister::redUSBInFifoNotEmpty</varname>
                 <initializer>3</initializer>
             </fieldsynopsis>
             <fieldsynopsis>
-                <modifier>static const</modifier> <type>uint32_t</type>
-                <varname>CCCUSB::LedSourceRegister::redUSBInFifoNotFull</varname>
-                <initializer>4</initializer>
-            </fieldsynopsis>
-            <fieldsynopsis>
-                <modifier>static const</modifier> <type>uint32_t</type>
-                <varname>CCCUSB::LedSourceRegister::redAcquire</varname>
-                <initializer>6;</initializer>
-            </fieldsynopsis>
-            <fieldsynopsis>
-                <modifier>static const</modifier> <type>uint32_t</type>
-                <varname>CCCUSB::LedSourceRegister::redCAMACF2</varname>
-                <initializer>7</initializer>
-            </fieldsynopsis>
-            <fieldsynopsis>
-                <modifier>static const</modifier> <type>uint32_t</type>
+                <modifier>static const</modifier><type>uint32_t</type>
                 <varname>CCCUSB::LedSourceRegister::redInvert</varname>
                 <initializer>0x10</initializer>
             </fieldsynopsis>
             <fieldsynopsis>
-                <modifier>static const</modifier><type>uint32_t</type>
+                <modifier>static const</modifier><type> uint32_t</type>
                 <varname>CCCUSB::LedSourceRegister::redLatch</varname>
                 <initializer>0x20</initializer>
             </fieldsynopsis>
             <fieldsynopsis>
                 <modifier>static const</modifier> <type>uint32_t</type>
+                <varname>CCCUSB::LedSourceRegister::redShift</varname>
+                <initializer>0</initializer>
+            </fieldsynopsis>
+            <!--
+    // Green LED: -->
+            <fieldsynopsis>
+                <modifier>static const</modifier> <type>uint32_t</type>
+                <varname>CCCUSB::LedSourceRegister::greenShift</varname>
+                <initializer>8</initializer>
+            </fieldsynopsis>
+            <fieldsynopsis>
+                <modifier>static const</modifier><type>uint32_t</type>
                 <varname>CCCUSB::LedSourceRegister::greenAcquire</varname>
-                <initializer>0x000</initializer>
+                <initializer>(0 &lt;&lt; greenShift)</initializer>
             </fieldsynopsis>
             <fieldsynopsis>
-                <modifier>static const</modifier> <type>uint32_t</type>
-                <varname>CCCUSB::LedSourceRegister::greenCAMACF1</varname>
-                <initializer>0x100</initializer>
+                <modifier>static const</modifier><type>uint32_t</type>
+                <varname>CCCUSB::LedSourceRegister::greenNimI1</varname>
+                <initializer>(1 &lt;&lt; greenShift)</initializer>
             </fieldsynopsis>
             <fieldsynopsis>
-                <modifier>static const</modifier> <type>uint32_t</type>
-                <varname>CCCUSB::LedSourceRegister::greenEventTrigger</varname>
-                <initializer>0x300</initializer>
-            </fieldsynopsis>
-            <fieldsynopsis>
-                <modifier>static const</modifier> <type>uint32_t</type>
-                <varname> CCCUSB::LedSourceRegister::greenCAMACN</varname>
-                <initializer>0x400</initializer>
-            </fieldsynopsis>
-            <fieldsynopsis>
-                <modifier>static const</modifier> <type>uint32_t</type>
-                <varname>CCCUSB::LedSourceRegister::greenI1</varname>
-                <initializer>0x600</initializer>
-            </fieldsynopsis>
-            <fieldsynopsis>
-                <modifier>static const</modifier> <type>uint32_t</type>
+                <modifier>static const</modifier><type> uint32_t</type>
                 <varname>CCCUSB::LedSourceRegister::greenUSBInFifoNotEmpty</varname>
-                <initializer>0x700</initializer>
+                <initializer>(2 &lt;&lt; greenShift</initializer>
+            </fieldsynopsis>
+            <fieldsynopsis>
+                <modifier>static const</modifier><type> uint32_t</type>
+                <varname>CCCUSB::LedSourceRegister::greenUSBTrigger</varname>
+                <initializer>(3 &lt;&lt; greenShift)</initializer>
             </fieldsynopsis>
             <fieldsynopsis>
                 <modifier>static const</modifier> <type>uint32_t</type>
                 <varname>CCCUSB::LedSourceRegister::greenInvert</varname>
-                <initializer>0x1000</initializer>
+                <initializer>(0x10 &lt;&lt; greenShift)</initializer>
             </fieldsynopsis>
             <fieldsynopsis>
-                <modifier>static const</modifier> <type>uint32_t</type>
+                <modifier>static const</modifier><type> uint32_t</type>
                 <varname>CCCUSB::LedSourceRegister::greenLatch</varname>
-                <initializer>0x2000</initializer>
+                <initializer>(0x20 &lt;&lt; greenShift)</initializer>
             </fieldsynopsis>
+            <!--
+    // Red LED: -->
+        
             <fieldsynopsis>
-                <modifier>static const</modifier><type>uint32_t</type>
-                <varname>CCCUSB::LedSourceRegister::yellowI3</varname>
-                <initializer>0x00000</initializer>
+                <modifier>static const</modifier> <type>uint32_t</type>
+                <varname>CCCUSB::LedSourceRegister::yellowShift</varname>
+                <initializer>= 16</initializer>
             </fieldsynopsis>
             <fieldsynopsis>
                 <modifier>static const</modifier> <type>uint32_t</type>
+                <varname>CCCUSB::LedSourceRegister::yellowNimI2</varname>
+                <initializer>(0 &lt;&lt; yellowShift)</initializer>
+            </fieldsynopsis>
+            <fieldsynopsis>
+                <modifier>static const</modifier><type> uint32_t</type>
+                <varname>CCCUSB::LedSourceRegister::yellowNimI3</varname>
+                <initializer>(1 &lt;&lt; yellowShift)</initializer>
+            </fieldsynopsis>
+            <fieldsynopsis>
+                <modifier>static const</modifier><type> uint32_t</type>
                 <varname>CCCUSB::LedSourceRegister::yellowBusy</varname>
-                <initializer>0x10000</initializer>
+                <initializer>(2 &lt;&lt; yellowShift)</initializer>
             </fieldsynopsis>
             <fieldsynopsis>
-                <modifier>static const</modifier> <type>uint32_t</type>
-                <varname>CCCUSB::LedSourceRegister::yellowI2</varname>
-                <initializer>0x20000</initializer>
+                <modifier>static const</modifier><type> uint32_t</type>
+                <varname>CCCUSB::LedSourceRegister::yellowUsbInFifoNotEmpty</varname>
+                <initializer>(3 &lt;&lt; yellowShift)</initializer>
             </fieldsynopsis>
             <fieldsynopsis>
-                <modifier>static const</modifier> <type>uint32_t</type>
-                <varname>CCCUSB::LedSourceRegister::yellowCAMACS1</varname>
-                <initializer>0x30000</initializer>
-            </fieldsynopsis>
-            <fieldsynopsis>
-                <modifier>static const</modifier> <type>uint32_t</type>
-                <varname>CCCUSB::LedSourceRegister::yellowCAMACS2</varname>
-                <initializer>0x40000</initializer>
-            </fieldsynopsis>
-            <fieldsynopsis>
-                <modifier>static const</modifier> <type>uint32_t</type>
-                <varname>CCCUSB::LedSourceRegister::yellowUSBInFifoNotEmpty</varname>
-                <initializer>0x50000</initializer>
-            </fieldsynopsis>
-            <fieldsynopsis>
-                <modifier>static const</modifier> <type>uint32_t</type>
-                <varname>CCCUSB::LedSourceRegister::yellowScalerReadout</varname>
-                <initializer>0x60000</initializer>
-            </fieldsynopsis>
-            <fieldsynopsis>
-                <modifier>static const</modifier> <type>uint32_t</type>
-                <varname>CCCUSB::LedSourceRegister::yellowUSBTrigger</varname>
-                <initializer>0x70000</initializer>
-            </fieldsynopsis>
-            <fieldsynopsis>
-                <modifier>static const</modifier> <type>uint32_t</type>
+                <modifier>static const</modifier><type> uint32_t</type>
                 <varname>CCCUSB::LedSourceRegister::yellowInvert</varname>
-                <initializer>0x100000</initializer>
+                <initializer>(0x10 &lt;&lt; yellowShift)</initializer>
             </fieldsynopsis>
             <fieldsynopsis>
                 <modifier>static const</modifier> <type>uint32_t</type>
                 <varname>CCCUSB::LedSourceRegister::yellowLatch</varname>
-                <initializer>0x200000</initializer>
+                <initializer>(0x20 &lt;&lt; yellowShift)</initializer>
+            </fieldsynopsis>
+    
+            <!-- Output source selection register -->
+            
+
+<!--    // NIM O1 source: -->
+
+            <fieldsynopsis>
+                <modifier>static const</modifier><type> uint32_t</type>
+                <varname>CCCUSB::OutputSourceRegister::nimO1Shift</varname>
+                <initializer>0</initializer>
+            </fieldsynopsis>
+            <fieldsynopsis>
+                <modifier>static const</modifier><type> uint32_t</type>
+                <varname>CCCUSB::OutputSourceRegister::nimO1Busy</varname>
+                <initializer>(0 &lt;&lt; nimO1Shift)</initializer>
+            </fieldsynopsis>
+            <fieldsynopsis>
+                <modifier>static const</modifier><type> uint32_t</type>
+                <varname>CCCUSB::OutputSourceRegister::nimO1Event</varname>
+                <initializer>(1 &lt;&lt; nimO1Shift</initializer>
+            </fieldsynopsis>
+            <fieldsynopsis>
+                <modifier>static const</modifier><type> uint32_t</type>
+                <varname>CCCUSB::OutputSourceRegister::nimO1DGGA</varname>
+                <initializer>(2 &lt;&lt; nimO1Shift)</initializer>
             </fieldsynopsis>
             <fieldsynopsis>
                 <modifier>static const</modifier> <type>uint32_t</type>
-                <varname>CCCUSB::OutputSourceRegisternimO1Busy</varname>
-                <initializer>0x000000</initializer>
+                <varname>CCCUSB::OutputSourceRegister::nimO1DGGB</varname>
+                <initializer>(3 &lt;&lt; nimO1Shift)</initializer>
+            </fieldsynopsis>
+            <fieldsynopsis>
+                <modifier>static const</modifier><type> uint32_t</type>
+                <varname>CCCUSB::OutputSourceRegister::nimO1Invert</varname>
+                <initializer>(0x10 &lt;&lt; nimO1Shift)</initializer>
+            </fieldsynopsis>
+            <fieldsynopsis>
+                <modifier>static const</modifier><type> uint32_t</type>
+                <varname>CCCUSB::OutputSourceRegister::nimO1Latch</varname>
+                <initializer>(0x20 &lt;&lt; nimO1Shift)</initializer>
+            </fieldsynopsis>
+
+ <!--   // NIM O2 source:   -->
+ 
+            <fieldsynopsis>
+                <modifier>static const</modifier> <type>uint32_t</type>
+                <varname>CCCUSB::OutputSourceRegister::nimO2Shift</varname>
+                <initializer>8</initializer>
+            </fieldsynopsis>
+            <fieldsynopsis>
+                <modifier>static const</modifier><type> uint32_t</type>
+                <varname>CCCUSB::OutputSourceRegister::nimO2Acquire</varname>
+                <initializer>(0 &lt;&lt;nimO2Shift)</initializer>
+            </fieldsynopsis>
+            <fieldsynopsis>
+                <modifier>static const</modifier><type>uint32_t</type>
+                <varname>CCCUSB::OutputSourceRegister::nimO2Event</varname>
+                <initializer>(1 &lt;&lt; nimO2Shift)</initializer>
+            </fieldsynopsis>
+            <fieldsynopsis>
+                <modifier>static const</modifier><type> uint32_t</type>
+                <varname>CCCUSB::OutputSourceRegister::nimO2DGGA</varname>
+                <initializer>(2 &lt;&lt; nimO2Shift)</initializer>
+            </fieldsynopsis>
+            <fieldsynopsis>
+                <modifier>static const</modifier><type> uint32_t</type>
+                <varname>CCCUSB::OutputSourceRegister::nimO2DGGB</varname>
+                <initializer>3 &lt;&lt; nimO2Shift</initializer>
+            </fieldsynopsis>
+            <fieldsynopsis>
+                <modifier>static const</modifier><type> uint32_t</type>
+                <varname>CCCUSB::OutputSourceRegister::nimO2Invert</varname>
+                <initializer>(0x10 &lt;&lt; nimO2Shift)</initializer>
+            </fieldsynopsis>
+            <fieldsynopsis>
+                <modifier>static const</modifier><type>uint32_t</type>
+                <varname>CCCUSB::OutputSourceRegister::nimO2Latch</varname>
+                <initializer>(0x20 &lt;&lt; nimO2Shift)</initializer>
+            </fieldsynopsis>
+
+<!--    // NIM O3 source:  -->
+
+            <fieldsynopsis>
+                <modifier>static const</modifier> <type>uint32_t</type>
+                <varname>CCCUSB::OutputSourceRegister::nimO3Shift</varname>
+                <initializer>16</initializer>
+            </fieldsynopsis>
+            <fieldsynopsis>
+                <modifier>static const</modifier><type> uint32_t</type>
+                <varname>nimO3BusyEnd</varname>
+                <initializer>(0 &lt;&lt; nimO3Shift)</initializer>
+            </fieldsynopsis>
+            <fieldsynopsis>
+                <modifier>static const</modifier><type> uint32_t</type>
+                <varname>CCCUSB::OutputSourceRegister::nimO3Busy</varname>
+                <initializer>(1 &lt;&lt; nimO3Shift</initializer>
             </fieldsynopsis>
             <fieldsynopsis>
                 <modifier>static const</modifier> <type>uint32_t</type>
-                <varname>CCCUSB::OutputSourceRegisternimO1EventTrigger</varname>
-                <initializer>0x000001</initializer>
+                <varname>CCCUSB::OutputSourceRegister::nimO3DGGA</varname>
+                <initializer>(2 &lt;&lt; nimO3Shift)</initializer>
             </fieldsynopsis>
             <fieldsynopsis>
                 <modifier>static const</modifier> <type>uint32_t</type>
-                <varname>CCCUSB::OutputSourceRegisternimO1DGGA</varname>
-                <initializer>0x000002</initializer>
+                <varname>CCCUSB::OutputSourceRegister::nimO3DGGB</varname>
+                <initializer>(3 &lt;&lt; nimO3Shift</initializer>
             </fieldsynopsis>
             <fieldsynopsis>
                 <modifier>static const</modifier> <type>uint32_t</type>
-                <varname>CCCUSB::OutputSourceRegisternimO1DGGB</varname>
-                <initializer>0x000003</initializer>
+                <varname>CCCUSB::OutputSourceRegister::nimO3Invert</varname>
+                <initializer>(0x10 &lt;&lt; nimO3Shift)</initializer>
             </fieldsynopsis>
+            <fieldsynopsis>
+                <modifier>static const</modifier><type> uint32_t</type>
+                <varname>CCCUSB::OutputSourceRegister::nimO3Latch</varname>
+                <initializer>(0x20 &lt;&lt; nimO3Shift)</initializer>
+            </fieldsynopsis>         
+    <!-- DeviceSourceSelectorsRegister - -->
+    
+   <!-- // Scaler A source/control -->
+   
             <fieldsynopsis>
                 <modifier>static const</modifier> <type>uint32_t</type>
-                <varname>CCCUSB::OutputSourceRegisternimO1Latch</varname>
-                <initializer>0x000010M</initializer>
-            </fieldsynopsis>
-            <fieldsynopsis>
-                <modifier>static const</modifier>    <type>uint32_t</type>
-                <varname>CCCUSB::OutputSourceRegisternimO1Invert</varname>
-                <initializer>0x000020</initializer>
-            </fieldsynopsis>
-            <fieldsynopsis>
-                <modifier>static const</modifier> <type>uint32_t</type>
-                <varname>CCCUSB::OutputSourceRegisternimO2Acquire</varname>
-                <initializer>0x000000</initializer>
-            </fieldsynopsis>
-            <fieldsynopsis>
-                <modifier>static const</modifier>   <type>uint32_t</type>
-                <varname>CCCUSB::OutputSourceRegisternimO2Event</varname>
-                <initializer>0x000200</initializer>
-            </fieldsynopsis>
-            <fieldsynopsis>
-                <modifier>static const</modifier> <type>uint32_t</type>
-                <varname>CCCUSB::OutputSourceRegisternimO2DGGA</varname>
-                <initializer>0x000400</initializer>
-            </fieldsynopsis>
-            <fieldsynopsis>
-                <modifier>static const</modifier> <type>uint32_t</type>
-                <varname>CCCUSB::OutputSourceRegisternimO2DGGB</varname>
-                <initializer>0x000600</initializer>
-            </fieldsynopsis>
-            <fieldsynopsis>
-                <modifier>static const</modifier> <type>uint32_t</type>
-                <varname>CCCUSB::OutputSourceRegisternimO2Latch</varname>
-                <initializer>0x001000</initializer>
-            </fieldsynopsis>
-            <fieldsynopsis>
-                <modifier>static const</modifier> <type>uint32_t</type>
-                <varname>CCCUSB::OutputSourceRegisternimO2Invert</varname>
-                <initializer>0x002000</initializer>
-            </fieldsynopsis>
-            <fieldsynopsis>
-                <modifier>static const</modifier> <type>uint32_t</type>
-                <varname>CCCUSB::OutputSourceRegisternimO3EndOfBusy</varname>
-                <initializer>0x000000</initializer>
-            </fieldsynopsis>
-            <fieldsynopsis>
-                <modifier>static const</modifier> <type>uint32_t</type>
-                <varname>CCCUSB::OutputSourceRegisternimO3Busy</varname>
-                <initializer>0x020000</initializer>
-            </fieldsynopsis>
-            <fieldsynopsis>
-                <modifier>static const</modifier> <type>uint32_t</type>
-                <varname>CCCUSB::OutputSourceRegisternimO3DGGA</varname>
-                <initializer>0x040000</initializer>
-            </fieldsynopsis>
-            <fieldsynopsis>
-                <modifier>static const</modifier> <type>uint32_t</type>
-                <varname>CCCUSB::OutputSourceRegisternim03DGGB</varname>
-                <initializer>0x060000</initializer>
-            </fieldsynopsis>
-            <fieldsynopsis>
-                <modifier>static const</modifier> <type>uint32_t</type>
-                <varname>CCCUSB::OutputSourceRegisternimO3Latch</varname>
-                <initializer>0x100000</initializer>
-            </fieldsynopsis>
-            <fieldsynopsis>
-                <modifier>static const</modifier> <type>uint32_t</type>
-                <varname>CCCUSB::OutputSourceRegisternimO3Invert</varname>
-                <initializer>0x200000</initializer>
-            </fieldsynopsis>
+                <varname>CCCUSB::DeviceSourceSelectorsRegister::scalerAShift</varname>
+                <initializer>0</initializer>
+                </fieldsynopsis>
             <fieldsynopsis>
                 <modifier>static const</modifier> <type>uint32_t</type>
                 <varname>CCCUSB::DeviceSourceSelectorsRegister::scalerADisabled</varname>
-                <initializer>0x00000000</initializer>
+                <initializer>(0 &lt;&lt; scalerAShift)</initializer>
+            </fieldsynopsis>
+            <fieldsynopsis>
+                <modifier>static const</modifier><type> uint32_t</type>
+                <varname>CCCUSB::DeviceSourceSelectorsRegister::scalerANimI1</varname>
+                <initializer>(1 &lt;&lt; scalerAShift)</initializer>
+            </fieldsynopsis>
+            <fieldsynopsis>
+                <modifier>static const</modifier><type> uint32_t</type>
+                <varname>CCCUSB::DeviceSourceSelectorsRegister::scalerANimI2</varname>
+                <initializer>(2 &lt;&lt; scalerAShift)</initializer>
+            </fieldsynopsis>
+            <fieldsynopsis>
+                <modifier>static const</modifier><type> uint32_t</type>
+                <varname>CCCUSB::DeviceSourceSelectorsRegister::scalerANimI3</varname>
+                <initializer>(3 &lt;&lt; scalerAShift)</initializer>
             </fieldsynopsis>
             <fieldsynopsis>
                 <modifier>static const</modifier> <type>uint32_t</type>
-                <varname>CCCUSB::DeviceSourceSelectorsRegister::scalerAI1</varname>
-                <initializer>0x00000001</initializer>
-            </fieldsynopsis>
-            <fieldsynopsis>
-                <modifier>static const</modifier> <type>uint32_t</type>
-                <varname>CCCUSB::DeviceSourceSelectorsRegister::scalerAI2</varname>
-                <initializer>0x00000002</initializer>
-            </fieldsynopsis>
-            <fieldsynopsis>
-                <modifier>static const</modifier><type>uint32_t</type>
-                <varname>CCCUSB::DeviceSourceSelectorsRegister::scalerAI3</varname>
-                <initializer>0x00000003</initializer>
-            </fieldsynopsis>
-            <fieldsynopsis>
-                <modifier>static const</modifier>   <type>uint32_t</type>
                 <varname>CCCUSB::DeviceSourceSelectorsRegister::scalerAEvent</varname>
-                <initializer>0x00000004</initializer>
-            </fieldsynopsis>
-            <fieldsynopsis>
-                <modifier>static const</modifier><type>uint32_t</type>
-                <varname>CCCUSB::DeviceSourceSelectorsRegister::scalerACarryB</varname>
-                <initializer>0x00000005</initializer>
+                <initializer>(4 &lt;&lt; scalerAShift)</initializer>
             </fieldsynopsis>
             <fieldsynopsis>
                 <modifier>static const</modifier> <type>uint32_t</type>
+                <varname>CCCUSB::DeviceSourceSelectorsRegister::scalerAScalerBCarry</varname>
+                <initializer>(5 &lt;&lt; scalerAShift)</initializer>
+            </fieldsynopsis>
+            <fieldsynopsis>
+                <modifier>static const</modifier>
+                <type>uint32_t</type>
                 <varname>CCCUSB::DeviceSourceSelectorsRegister::scalerADGGA</varname>
-                <initializer>0x00000006</initializer>
+                <initializer>(6 &lt;&lt; scalerAShift)</initializer>
             </fieldsynopsis>
             <fieldsynopsis>
-                <modifier>static const</modifier> <type>uint32_t</type>
+                <modifier>static const</modifier><type> uint32_t</type>
                 <varname>CCCUSB::DeviceSourceSelectorsRegister::scalerADGGB</varname>
-                <initializer>0x00000007</initializer>
+                <initializer>(7 &lt;&lt; scalerAShift)</initializer>
             </fieldsynopsis>
             <fieldsynopsis>
-                <modifier>static const </modifier><type> uint32_t</type>
+                <modifier>static const</modifier><type> uint32_t</type>
                 <varname>CCCUSB::DeviceSourceSelectorsRegister::scalerAEnable</varname>
-                <initializer>0x00000010</initializer>
+                <initializer>(0x10 &lt;&lt; scalerAShift)</initializer>
             </fieldsynopsis>
             <fieldsynopsis>
                 <modifier>static const</modifier><type>uint32_t</type>
-                <varname>CCCUSB::DeviceSourceSelectorsRegister::scalerAScalerAReset</varname>
-                <initializer>0x00000020</initializer>
-            </fieldsynopsis> 
-            <fieldsynopsis>
-                <modifier>static const</modifier><type>uint32_t</type>
-                <varname>CCCUSB::DeviceSourceSelectorsRegister::scalerAFreezReg</varname>
-                <initializer>0x00000040</initializer>
+                <varname>CCCUSB::DeviceSourceSelectorsRegister::scalerAReset</varname>
+                <initializer>(0x20 &lt; scalerAShift)</initializer>
             </fieldsynopsis>
             <fieldsynopsis>
-                <modifier>static const</modifier> <type>uint32_t</type>
+                <modifier>static const</modifier><type> uint32_t</type>
+                <varname>CCCUSB::DeviceSourceSelectorsRegister::scalerAFreeze</varname>
+                <initializer>(0x40 &lt;&lt; scalerAShift)</initializer>
+            </fieldsynopsis>
+            
+            <!-- // Scaler B source/control -->
+            
+            <fieldsynopsis>
+                <modifier>static const</modifier><type> uint32_t</type>
+                <varname>scalerBShift</varname><initializer> 8</initializer>
+            </fieldsynopsis>
+            <fieldsynopsis>
+                <modifier>static const</modifier><type> uint32_t</type>
                 <varname>CCCUSB::DeviceSourceSelectorsRegister::scalerBDisabled</varname>
-                <initializer>0x00000000</initializer>
+                <initializer>(0 &lt;&lt; scalerBShift)</initializer>
             </fieldsynopsis>
             <fieldsynopsis>
-                <modifier>static const</modifier> <type>uint32_t</type>
-                <varname>CCCUSB::DeviceSourceSelectorsRegister::scalerBI1</varname>
-                <initializer>0x00000100</initializer>
+                <modifier>static const</modifier><type> uint32_t </type>
+                <varname>CCCUSB::DeviceSourceSelectorsRegister::scalerBNimI1</varname>
+                <initializer>(1 &lt;&lt; scalerBShift)</initializer>
             </fieldsynopsis>
             <fieldsynopsis>
-                <modifier>static const</modifier> <type>uint32_t</type>
-                <varname>CCCUSB::DeviceSourceSelectorsRegister::scalerBI2</varname>
-                <initializer>0x00000200</initializer>
+                <modifier>static const</modifier><type> uint32_t</type>
+                <varname>CCCUSB::DeviceSourceSelectorsRegister::scalerBNimI2</varname>
+                <initializer>(2 &lt;&lt; scalerBShift)</initializer>
             </fieldsynopsis>
             <fieldsynopsis>
-                <modifier>static const</modifier> <type>uint32_t</type>
-                <varname>CCCUSB::DeviceSourceSelectorsRegister::scalerBI3</varname>
-                <initializer>0x00000300</initializer>
+                <modifier>static const</modifier><type> uint32_t</type>
+                <varname>CCCUSB::DeviceSourceSelectorsRegister::scalerBNimI3</varname>
+                <initializer>(3 &lt;&lt; scalerBShift)</initializer>
             </fieldsynopsis>
             <fieldsynopsis>
-                <modifier>static const</modifier><type>uint32_t</type>
+                <modifier>static const</modifier><type> uint32_t</type>
                 <varname>CCCUSB::DeviceSourceSelectorsRegister::scalerBEvent</varname>
-                <initializer>0x00000400</initializer>
+                <initializer>(4 &lt;&lt; scalerBShift)</initializer>
             </fieldsynopsis>
             <fieldsynopsis>
-                <modifier>static const</modifier><type>uint32_t</type>
-                <varname>CCCUSB::DeviceSourceSelectorsRegister::scalerBCarryA</varname>
-                <initializer>0x00000500</initializer>
+                <modifier>static const</modifier><type>int32_t</type>
+                <varname>CCCUSB::DeviceSourceSelectorsRegister::scalerBScalerACarry</varname>
+                <initializer>(5 &lt;&lt; scalerBShift)</initializer>
             </fieldsynopsis>
             <fieldsynopsis>
                 <modifier>static const</modifier><type>uint32_t</type>
                 <varname>CCCUSB::DeviceSourceSelectorsRegister::scalerBDGGA</varname>
-                <initializer>0x00000600</initializer>
+                <initializer>(6 &lt;&lt; scalerBShift)</initializer>
             </fieldsynopsis>
             <fieldsynopsis>
-                <modifier>static const</modifier><type>uint32_t</type>
-                <varname>CCCUSB::DeviceSourceSelectorsRegister::scalerBDGGB</varname>
-                <initializer>0x00000700</initializer>
+                <modifier>static const</modifier><type> uint32_t</type>
+                <varname>CCCUSB::DeviceSourceSelectorsRegister::scalerBDGGB </varname>
+                <initializer>(7 &lt;&lt; scalerBShift)</initializer>
             </fieldsynopsis>
             <fieldsynopsis>
-                <modifier>static const</modifier><type>uint32_t</type>
+                <modifier>static const</modifier><type>uint32_t </type>
                 <varname>CCCUSB::DeviceSourceSelectorsRegister::scalerBEnable</varname>
-                <initializer>0x00001000</initializer>
+                <initializer>(0x10 &lt;&lt; scalerBShift)</initializer>
+            </fieldsynopsis>
+            <fieldsynopsis>
+                <modifier>static const</modifier><type> uint32_t</type>
+                <varname>CCCUSB::DeviceSourceSelectorsRegister::scalerBReset</varname>
+                <initializer>(0x20 &lt;&lt; scalerBShift)</initializer>
+            </fieldsynopsis>
+            <fieldsynopsis>
+                <modifier>static const</modifier><type> uint32_t</type>
+                <varname>CCCUSB::DeviceSourceSelectorsRegister::scalerBFreeze</varname>
+                <initializer>(0x40 &lt;&lt; scalerBShift)</initializer>
+            </fieldsynopsis>
+            
+            <!-- // DGGA source -->
+            
+            <fieldsynopsis>
+                <modifier>static const</modifier><type> uint32_t</type>
+                <varname>CCCUSB::DeviceSourceSelectorsRegister::DGGAShift</varname>
+                <initializer>16</initializer>
+            </fieldsynopsis>
+            <fieldsynopsis>
+                <modifier>static const</modifier><type> uint32_t</type>
+                <varname>CCCUSB::DeviceSourceSelectorsRegister::DGGADisabled</varname>
+                <initializer>(0 &lt;&lt; DGGAShift)</initializer>
+            </fieldsynopsis>
+            <fieldsynopsis>
+                <modifier>static const</modifier><type> uint32_t</type>
+                <varname>CCCUSB::DeviceSourceSelectorsRegister::DGGANimI1</varname>
+                <initializer>(1 &lt;&lt; DGGAShift)</initializer>
+            </fieldsynopsis>
+            <fieldsynopsis>
+                <modifier>static const</modifier><type> uint32_t</type>
+                <varname>CCCUSB::DeviceSourceSelectorsRegister::DGGANimI2</varname>
+                <initializer>(2 &lt;&lt; DGGAShift)</initializer>
+            </fieldsynopsis>
+            <fieldsynopsis>
+                <modifier>static const</modifier><type> uint32_t</type>
+                <varname>CCCUSB::DeviceSourceSelectorsRegister::DGGANimI3</varname>
+                <initializer>(3 &lt;&lt; DGGAShift)</initializer>
+            </fieldsynopsis>
+            <fieldsynopsis>
+                <modifier>static const</modifier><type> uint32_t</type>
+                <varname>CCCUSB::DeviceSourceSelectorsRegister::DGGAEvent</varname>
+                <initializer>(4 &lt;&lt; DGGAShift)</initializer>
+            </fieldsynopsis>
+            <fieldsynopsis>
+                <modifier>static const</modifier><type> uint32_t</type>
+                <varname>CCCUSB::DeviceSourceSelectorsRegister::DGGABusyEnd</varname>
+                <initializer>(5 &lt;&lt; DGGAShift)</initializer>
+            </fieldsynopsis>
+            <fieldsynopsis>
+                <modifier>static const</modifier><type> uint32_t</type>
+                <varname>CCCUSB::DeviceSourceSelectorsRegister::DGGAUSBTrigger</varname>
+                <initializer>(6 &lt;&lt; DGGAShift)</initializer>
+            </fieldsynopsis>
+            <fieldsynopsis>
+                <modifier>static const</modifier><type> uint32_t</type>
+                <varname>CCCUSB::DeviceSourceSelectorsRegister::DGGAPulser</varname>
+                <initializer>(7 &lt;&lt; DGGAShift)</initializer>
+            </fieldsynopsis>
+
+            <!--  // DGGB source -->
+            
+            <fieldsynopsis>
+                <modifier>static const</modifier><type> uint32_t</type>
+                <varname>CCCUSB::DeviceSourceSelectorsRegister::DGGBShift</varname>
+                <initializer>24</initializer>
                 </fieldsynopsis>
             <fieldsynopsis>
-                <modifier>static const</modifier><type>uint32_t</type>
-                <varname>CCCUSB::DeviceSourceSelectorsRegister::scalerBReset</varname>
-                <initializer>0x00002000</initializer>
+                <modifier>static const</modifier><type> uint32_t</type>
+                <varname>CCCUSB::DeviceSourceSelectorsRegister::DGGBDisabled </varname>
+                <initializer>(0 &lt;&lt; DGGBShift)</initializer>
             </fieldsynopsis>
             <fieldsynopsis>
-                <modifier>static const</modifier><type>uint32_t</type>
-                <varname>CCCUSB::DeviceSourceSelectorsRegister::scalerBFreezeReg</varname>
+                <modifier>static const</modifier><type> uint32_t</type>
+                <varname>CCCUSB::DeviceSourceSelectorsRegister::DGGBNimI1</varname>
+                <initializer>(1 &lt;&lt; DGGBShift)</initializer>
             </fieldsynopsis>
             <fieldsynopsis>
-                <modifier>static const</modifier> <type>uint32_t</type>
-                <varname>CCCUSB::DeviceSourceSelectorsRegister::dggADisabled</varname>
-                <initializer>0x00000000</initializer>
+                <modifier>static const</modifier><type> uint32_t</type>
+                <varname>CCCUSB::DeviceSourceSelectorsRegister::DGGBNimI2</varname>
+                <initializer>(2 &lt;&lt; DGGBShift)</initializer>
             </fieldsynopsis>
             <fieldsynopsis>
-                <modifier>static const</modifier> <type>uint32_t</type>
-                <varname>CCCUSB::DeviceSourceSelectorsRegister::dggAI1</varname>
-                <initializer>0x00010000</initializer>
+                <modifier>static const</modifier><type> uint32_t</type>
+                <varname>CCCUSB::DeviceSourceSelectorsRegister::DGGBNimI3</varname>
+                <initializer>(3 &lt;&lt; DGGBShift)</initializer>
             </fieldsynopsis>
             <fieldsynopsis>
-                <modifier>static const</modifier> <type>uint32_t</type>
-                <varname>CCCUSB::DeviceSourceSelectorsRegister::dggAI2</varname>
-                <initializer>0x00020000</initializer>
+                <modifier>static const</modifier><type> uint32_t</type>
+                <varname>CCCUSB::DeviceSourceSelectorsRegister::DGGBEvent</varname>
+                <initializer>(4 &lt;&lt; DGGBShift)</initializer>
             </fieldsynopsis>
             <fieldsynopsis>
-                <modifier>static const</modifier> <type>uint32_t</type>
-                <varname>CCCUSB::DeviceSourceSelectorsRegister::dggAI3</varname>
-                <initializer>0x00030000</initializer>
+                <modifier>static const</modifier><type> uint32_t</type>
+                <varname>CCCUSB::DeviceSourceSelectorsRegister::DGGBBusyEnd</varname>
+                <initializer>(5 &lt;&lt; DGGBShift)</initializer>
             </fieldsynopsis>
             <fieldsynopsis>
-                <modifier>static const</modifier> <type>uint32_t</type>
-                <varname>CCCUSB::DeviceSourceSelectorsRegister::dggAEvent</varname>
-                <initializer>0x00040000</initializer>
+                <modifier>static const</modifier><type> uint32_t</type>
+                <varname>CCCUSB::DeviceSourceSelectorsRegister::DGGBUSBTrigger</varname>
+                <initializer>(6 &lt;&lt; DGGBShift)</initializer>
             </fieldsynopsis>
             <fieldsynopsis>
-                <modifier>static const</modifier> <type>uint32_t</type>
-                <varname>CCCUSB::DeviceSourceSelectorsRegister::dggAEndOfEvent</varname>
-                <initializer>0x00050000</initializer>
-            </fieldsynopsis>
-            <fieldsynopsis>
-                <modifier>static const</modifier> <type>uint32_t</type>
-                <varname>CCCUSB::DeviceSourceSelectorsRegister::dggAUSBTrigger</varname>
-                <initializer>0x00060000</initializer>
-            </fieldsynopsis>
-            <fieldsynopsis>
-                <modifier>static const</modifier> <type>uint32_t</type>
-                <varname>CCCUSB::DeviceSourceSelectorsRegister::dggAPulser</varname>
-                <initializer>0x00070000</initializer>
-            </fieldsynopsis>
-            <fieldsynopsis>
-                <modifier>static const</modifier><type>uint32_t</type>
-                <varname>CCCUSB::DeviceSourceSelectorsRegister::dggBDisabled</varname>
-                <initializer>0x00000000</initializer>
-            </fieldsynopsis>
-            <fieldsynopsis>
-                <modifier>static const</modifier> <type>uint32_t</type>
-                <varname>CCCUSB::DeviceSourceSelectorsRegister::dggBI1</varname>
-                <initializer>0x01000000</initializer>
-            </fieldsynopsis>
-            <fieldsynopsis>
-                <modifier>static const</modifier> <type>uint32_t</type>
-                <varname>CCCUSB::DeviceSourceSelectorsRegister::dggBI2</varname>
-                <initializer>0x02000000</initializer>
-            </fieldsynopsis>
-            <fieldsynopsis>
-                <modifier>static const</modifier> <type>uint32_t</type>
-                <varname>CCCUSB::DeviceSourceSelectorsRegister::dggBI3</varname>
-                <initializer>0x03000000</initializer>
-            </fieldsynopsis>
-            <fieldsynopsis>
-                <modifier>static const</modifier> <type>uint32_t</type>
-                <varname>CCCUSB::DeviceSourceSelectorsRegister::dggBEvent</varname>
-                <initializer>0x04000000</initializer>
-            </fieldsynopsis>
-            <fieldsynopsis>
-                <modifier>static const</modifier><type>uint32_t</type>
-                <varname>CCCUSB::DeviceSourceSelectorsRegister::dggBEndOfTrigger</varname>
-                <initializer>0x05000000</initializer>
-            </fieldsynopsis>
-            <fieldsynopsis>
-                <modifier>static const</modifier> <type>uint32_t</type>
-                <varname>CCCUSB::DeviceSourceSelectorsRegister::dggBUSBTrigger</varname>
-                <initializer>0x06000000</initializer>
-            </fieldsynopsis>
-            <fieldsynopsis>
-                <modifier>static const</modifier> <type>uint32_t</type>
-                <varname>CCCUSB::DeviceSourceSelectorsRegister::dggBPulser</varname>
-                <initializer>0x07000000</initializer>
-            </fieldsynopsis>
+                <modifier>static const</modifier><type> uint32_t</type>
+                <varname>CCCUSB::DeviceSourceSelectorsRegister::DGGBPulser</varname>
+                <initializer>(7 &lt;&lt; DGGBShift)</initializer>
+            </fieldsynopsis>    
+
+
+
             <fieldsynopsis>
                 <modifier>static const</modifier> <type>uint32_t</type>
                 <varname>CCCUSB::DGGAndPulserRegister::dggFineDelayMask</varname>

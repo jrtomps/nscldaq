@@ -119,9 +119,11 @@ static void GetServerPort(int argc, char** argv)
     return;
   }
   // Port == Managed - use the port manager:
-
+  //        Use new since once destruction happens port manager
+  //        drops our port.
+  //
   if (thePort == string("Managed")) {
-    CPortManager manager("localhost");
+    CPortManager& manager = *(new CPortManager("localhost"));
     cerr << "Allocating a port for " << AppName << endl;
     serverport = manager.allocatePort(AppName);
     return;

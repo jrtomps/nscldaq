@@ -33,6 +33,7 @@ static const char* Copyright= "(C) Copyright Michigan State University 1936, All
 //
 //////////////////////////.cpp file/////////////////////////////////////////////////////
 #include <config.h>
+#include <os.h>
 #include "UnixUserCheck.h"    				
 #include <pwd.h>
 #include <crypt.h>

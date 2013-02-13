@@ -747,7 +747,7 @@ make
                     <para>
                         If you want to add application specific commands to the
                         framework, add them here.  This is usually done by
-                        writing subclasses derived from <classname>CObjectProcessor</classname>,
+                        writing subclasses derived from <classname>CTCLObjectProcessor</classname>,
                         and creating an instance for each of these classes.
                         The comments prior to this method describe what you need
                         to do if you have existing procedural commands you want
@@ -2172,8 +2172,8 @@ MySegment::read(void* pBuffer, size_t maxlen)
          <programlisting>
 #include &lt;CEventSegment.h&gt;
          </programlisting>
-         <classsynopsis>
-            <ooclass><classname>CEventSegment</classname></ooclass>
+         <synopsis>
+            class <ooclass><classname>CEventSegment</classname></ooclass> {
             <methodsynopsis>
                 <modifier>virtual</modifier>
                 <type>void</type> <methodname>initialize</methodname>
@@ -2205,10 +2205,28 @@ MySegment::read(void* pBuffer, size_t maxlen)
                 <type>bool</type> <methodname>isComposite</methodname>
                 <void /><modifier>const</modifier>
                 </methodsynopsis>
-         </classsynopsis>
+            <!-- SW triggers -->
+            <methodsynopsis>
+                <type>void</type><methodname>reject</methodname>
+                <void />
+            </methodsynopsis>
+            <methodsynopsis>
+                <type>void</type><methodname>rejectImmediately</methodname>
+                <void />
+            </methodsynopsis>
+            <methodsynopsis>
+                <type>void</type><methodname>keep</methodname>
+                <void />
+            </methodsynopsis>
+            <methodsynopsis>
+                <type>CEventSegment::AcceptState</type><methodname>getAcceptState</methodname>
+                <void /> <modifier>const</modifier>
+            </methodsynopsis>
+        };
+         </synopsis>
       </refsynopsisdiv>
       <refsect1>
-         <title>Description</title>
+         <title>DESCRIPTION</title>
          <para>
             Event segments are a logical unit of an experiment readout.
             <classname>CEventSegment</classname> is an abstract base class
@@ -2218,9 +2236,7 @@ MySegment::read(void* pBuffer, size_t maxlen)
          </para>
       </refsect1>
       <refsect1>
-         <title>
-            Public member functions
-         </title>
+         <title>PUBLIC MEMBER FUNCTIONS</title>
         <methodsynopsis>
             <modifier>virtual</modifier>
             <type>void</type> <methodname>initialize</methodname>
@@ -2280,8 +2296,95 @@ MySegment::read(void* pBuffer, size_t maxlen)
             <classname>CCompoundEventSegment</classname>, this should return
             <literal>true</literal> <literal>false</literal> if not.
             </para>
+        
+        <methodsynopsis>
+            <type>void</type><methodname>reject</methodname>
+            <void />
+        </methodsynopsis>
+        <para>
+            This can be called from <methodname>read</methodname> to indicate
+            the framework should not keep the event.  The remainder of the
+            event segments registered with the experiment are run unless a subsequent
+            one calls <methodname>rejectImmediately</methodname> (see below).
+        </para>
+        <methodsynopsis>
+            <type>void</type><methodname>rejectImmediately</methodname>
+            <void />
+        </methodsynopsis>
+        <para>
+            This can be called  from <methodname>read</methodname> to indicate
+            the framework should not keep the event.  Processing of event
+            segments stops with the return from <methodname>read</methodname>
+            if this is called.
+        </para>
+        <methodsynopsis>
+            <type>void</type><methodname>keep</methodname>
+            <void />
+        </methodsynopsis>
+        <para>
+            This is called by the framework to initalize the event segment
+            accept state.  It can also be called to change your mind about
+            rejecting an event.  If used in this manner, <methodname>keep</methodname>
+            must be called within the same event segment that invoked
+            <methodname>reject</methodname> or <methodname>rejectimmediately</methodname>.
+        </para>
+        <methodsynopsis>
+            <type>CEventSegment::AcceptState</type><methodname>getAcceptState</methodname>
+            <void /> <modifier>const</modifier>
+        </methodsynopsis>
+        <para>
+            Returns the value of the accept state as set by the methods
+            <methodname>keep</methodname>, <methodname>reject</methodname> and
+            <methodname>rejectImmdediately</methodname>.  See PUBLIC TYPES AND VARIABLES
+            below for possible return values.
+        </para>
+        <para>
+            Normally this only needs to be called by the framework.  Since each
+            event segement has its own acceptance state, this cannot be used
+            to determine if the event has been marked for rejection by another
+            event segment.
+        </para>
       </refsect1>
-
+      <refsect1>
+        <title>PUBLIC TYPES AND VARIABLES</title>
+        <para>
+            <type>CEventSegment::AcceptState</type> is an enum that describes how the event
+            should be disposed of after the segment returns from <methodname>read</methodname>.
+            This type can take the following values:
+        </para>
+        <variablelist>
+            <varlistentry>
+                <term><literal>CEventSegment::keep</literal></term>
+                <listitem>
+                    <para>
+                        Indicates the event segment wants the framework to keep the
+                        event.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><literal>CEventSegement::reject</literal></term>
+                <listitem>
+                    <para>
+                        Indicates that the event segment wants the framework to
+                        reject the event but that the remainder of the event
+                        segments should keep running.  This takes precedence
+                        over <literal>CEventSegment::keep</literal>
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><literal>CEventSegment::rejectImmediately</literal></term>
+                <listitem>
+                    <para>
+                        Same meaning as <literal>CExperiment::reject</literal>
+                        except that this requests that no more event segments
+                        be run.
+                    </para>
+                </listitem>
+            </varlistentry>
+        </variablelist>
+      </refsect1>
    </refentry>
 
     <refentry id="manpage.ceventtrigger">
@@ -2374,7 +2477,7 @@ MySegment::read(void* pBuffer, size_t maxlen)
          <programlisting>
 #include &lt;CExperiment&gt;
          </programlisting>
-         <classsynopsis>
+         <synopsis>
             <ooclass><classname>CExperiment</classname></ooclass>
             <constructorsynopsis>
                 <methodname>CExperiment</methodname>
@@ -2475,7 +2578,11 @@ MySegment::read(void* pBuffer, size_t maxlen)
                 <type>void</type> <methodname>ScheduleRunVariableDump</methodname>
                 <void />
                 </methodsynopsis>
-         </classsynopsis>
+            <methodsynosis>
+                <type>CRingBuffer*</type> <methodname>getRing</methodname>
+                <void />
+            </methodsynopsis>
+         </synopsis>
       </refsynopsisdiv>
       <refsect1>
          <title>Description</title>

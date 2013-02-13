@@ -28,6 +28,7 @@
 #include <iostream>
 #include <stdio.h>
 #include <time.h>
+#include <os.h>
 
 #include <vector>
 #include <string>
@@ -35,15 +36,6 @@
 using namespace std;
 
 
-static string whoami()
-{
-  uid_t id = getuid();
-  struct passwd* pwd = getpwuid(id);
-  string user(pwd->pw_name);
-
-  return user;
-  
-}
 
 static void usage()
 {
@@ -163,7 +155,7 @@ int main(int argc, char**argv)
   unsigned period = atoi(argv[3]);
   unsigned strings= atoi(argv[4]);
 
-  string ringname = whoami();
+  string ringname = Os::whoami();
 
   if(!CRingBuffer::isRing(ringname)) {
     CRingBuffer::create(ringname);

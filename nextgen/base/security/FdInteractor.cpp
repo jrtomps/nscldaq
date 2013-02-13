@@ -30,6 +30,7 @@ static const char* Copyright= "(C) Copyright Michigan State University 1936, All
 //
 //////////////////////////.cpp file/////////////////////////////////////////////////////
 #include <config.h>
+#include <io.h>
 #include "FdInteractor.h"    				
 
 using namespace std;
@@ -49,7 +50,7 @@ static const char* pCopyrightNotice =
 int CFdInteractor::Read(UInt_t nBytes, void* pBuffer)  
 {
   // Reads data from the fd (delegates to read(2)
-  return read(m_nFd, pBuffer, nBytes);
+  return io::readData(m_nFd, pBuffer, nBytes);
 }
 //////////////////////////////////////////////////////////////////////////////
 //
@@ -60,7 +61,8 @@ int CFdInteractor::Read(UInt_t nBytes, void* pBuffer)
 int CFdInteractor::Write(UInt_t nBytes, void* pData)  
 {
   // Writes data to the peer (delegates to write(2))
-  return write(m_nFd, pData, nBytes);
+  io::writeData(m_nFd, pData, nBytes);
+  return nBytes;		// By definition of writeData.
 }
 //////////////////////////////////////////////////////////////////////////////
 //

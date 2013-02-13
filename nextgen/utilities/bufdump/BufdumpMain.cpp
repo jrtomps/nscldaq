@@ -18,16 +18,12 @@
 
 
 #include <URL.h>
+#include <CRingItemFactory.h>
 #include <CRingItem.h>
-#include <CRingStateChangeItem.h>
-#include <CRingTextItem.h>
-#include <CRingScalerItem.h>
 #include <CRingBuffer.h>
 #include <StringsToIntegers.h>
-#include "CDataSource.h"
-#include "CRingDataSource.h"
-#include "CFileDataSource.h"
-#include "CRingPhysicsEventCountItem.h"
+#include <CDataSource.h>
+#include <CDataSourceFactory.h>
 #include "dumperargs.h"
 
 #include <iostream>
@@ -54,8 +50,8 @@ using namespace std;
    determined by parsing the command line arguments.
 */
 BufdumpMain::BufdumpMain() :
-  m_ringSource(true),
-  m_pDataSource(0),
+  //  m_ringSource(true),
+  //  m_pDataSource(0),
   m_skipCount(0),
   m_itemCount(0)
 {
@@ -66,7 +62,7 @@ BufdumpMain::BufdumpMain() :
 */
 BufdumpMain::~BufdumpMain()
 {
-  delete m_pDataSource;
+  //  delete m_pDataSource;
 
 }
 ///////////////////////////////////////////////////////////////////////////////
@@ -150,20 +146,8 @@ BufdumpMain::operator()(int argc, char** argv)
   
   CDataSource* pSource;
   try {
-    m_pDataSource = new URL(sourceName);
-    if (m_pDataSource->getProto() == string("file")) {
-      pSource = new CFileDataSource(*m_pDataSource, exclude);
-      m_ringSource = false;
-    }
-    else if (m_pDataSource->getProto() == string("tcp")) {
-      pSource = new CRingDataSource(*m_pDataSource, sample, exclude);
-      m_ringSource = true;
-    }
-    else {
-      cerr << "--source url must be either tcp: (ringbuffer) or file: (event file) and was "
-	   << m_pDataSource->getProto() << endl;
-      return EXIT_FAILURE;
-    }
+    pSource = CDataSourceFactory::makeSource(sourceName, sample, exclude);
+
   }
   catch (CException& e) {
     std::cerr << "Failed to open data source " << sourceName << std::endl;
@@ -185,12 +169,6 @@ BufdumpMain::operator()(int argc, char** argv)
     throw;
   }
 
-  // Can't have sample and file data source:
-
-  if (parse.sample_given && !m_ringSource) {
-    cerr << "--source is a file, and --sample is given which is not allowed\n";
-    return EXIT_FAILURE;
-  }
 
   // We can now actually get stuff from the ring..but first we need to set the
   // skip and item count:
@@ -260,234 +238,9 @@ BufdumpMain::processItem(const CRingItem& item)
 {
 
   cout << "-----------------------------------------------------------\n";
-  switch (item.type()) {
-  case BEGIN_RUN:
-  case END_RUN:
-  case PAUSE_RUN:
-  case RESUME_RUN:
-    // state change:
-    {
-      CRingStateChangeItem stateChange(item);
-      dumpStateChangeItem(cout, stateChange);
-    }
-    break;
-   
-  case PACKET_TYPES:
-  case MONITORED_VARIABLES:
-    {
-      CRingTextItem textItem(item);
-      dumpStringListItem(cout, textItem);
-    }
-    break;
-
-  case INCREMENTAL_SCALERS:
-    {
-      CRingScalerItem scaler(item);
-      dumpScalerItem(cout, scaler);
-    }
-    break;
-
-  case PHYSICS_EVENT:
-    {
-      dumpPhysicsItem(cout, item);
-      break;
-    }
-  case PHYSICS_EVENT_COUNT:
-    {
-      CRingPhysicsEventCountItem eventCount(item);
-      dumpEventCountItem(cout, eventCount);
-    }
-    break;
-  default:
-    {
-      dumpUnknownItem(cout, item);
-    }
-  }
-}
-/*
-** Dump a state change item.
-** 
-** Paramters:
-**   out      - stream to which the dump should go.
-**   item     - Ring state change item to dump.
-*/
-void
-BufdumpMain::dumpStateChangeItem(ostream& out, const CRingStateChangeItem& item)
-{
-  uint32_t run       = item.getRunNumber();
-  uint32_t elapsed   = item.getElapsedTime();
-  string   title     = item.getTitle();
-  string   timestamp = timeString(item.getTimestamp());
-
-
-
-  out <<  timestamp << " : Run State change : ";
-  switch (item.type()) {
-  case BEGIN_RUN:
-    out << " Begin Run ";
-    break;
-  case END_RUN:
-    out << "End Run ";
-    break;
-  case PAUSE_RUN:
-    out << "Pause Run ";
-    break;
-  case RESUME_RUN:
-    out << "Resume Run ";
-    break;
-  }
-  out << "  at " << elapsed << " seconds into the run \n";
-  out << "Title    : " << title << endl;
-  out << "RunNumber: " << run   << endl;
-}
-
-/*
-** Dump a string list item.
-** Parmeters:
-**   out    - Output stream to which the item will be dumped.
-**   item   - Reference to the item to dump.
-*/
-void
-BufdumpMain::dumpStringListItem(ostream& out, const CRingTextItem& item)
-{
-  uint32_t elapsed  = item.getTimeOffset();
-  string   time     = timeString(item.getTimestamp());
-  vector<string> strings = item.getStrings();
-
-  out << time << " : Documentation item ";
-  switch (item.type()) {
-   
-  case PACKET_TYPES:
-    out << " Packet types: ";
-    break;
-  case MONITORED_VARIABLES:
-    out << " Monitored Variables: ";
-    break;
-    
-  }
-  out << elapsed << " seconds in to the run\n";
-  for (int i = 0; i < strings.size(); i++) {
-    out << strings[i] << endl;
-  }
-
-}
-/*
-** Dump a scaler item.
-**
-** Parameters:
-**   out   - the file to which to dump.
-**   item  - reference to the item to dump.
-*/
-void
-BufdumpMain::dumpScalerItem(ostream& out, const CRingScalerItem& item)
-{
-  uint32_t end   = item.getEndTime();
-  uint32_t start = item.getStartTime();
-  string   time  = timeString(item.getTimestamp());
-  vector<uint32_t> scalers = item.getScalers();
-
-  float   duration = static_cast<float>(end - start);
-
-  out << time << " : Incremental scalers:\n";
-  out << "Interval start time: " << start << " end: " << end << " seconds in to the run\n\n";
-  
-
-  out << "Index         Counts                 Rate\n";
-  for (int i=0; i < scalers.size(); i++) {
-    char line[128];
-    double rate = (static_cast<double>(scalers[i])/duration);
-
-    sprintf(line, "%5d      %9d                 %.2f\n",
-	    i, scalers[i], rate);
-    out << line;
-  }
-
-}
-
-/*
-** Dump a physics item.  
-**
-** Parameters:
-**   out  - The output file on which to dump the item.
-**   item - The item to dump.
-**
-*/
-void
-BufdumpMain::dumpPhysicsItem(ostream& out, const CRingItem& item)
-{
-  uint32_t  bytes = item.getBodySize();
-  uint32_t  words = bytes/sizeof(uint16_t);
-  const uint16_t* body  = reinterpret_cast<const uint16_t*>(const_cast<CRingItem&>(item).getBodyPointer());
-
-  out << "Event " << bytes << " bytes long\n";
-
-  int  w = out.width();
-  char f = out.fill();
-
-  
-  for (int i =1; i <= words; i++) {
-    char number[32];
-    sprintf(number, "%04x ", *body++);
-    out << number;
-    if ( (i%8) == 0) {
-      out << endl;
-    }
-  }
-  out << endl;
-  
-  
-}
-/*
-** Dumps an item that describes the number of accepted triggers.
-**
-** Parameters:
-**   out  - Where to dump the item.
-**   item - The item itself.
-**
-*/
-void
-BufdumpMain::dumpEventCountItem(ostream& out, const CRingPhysicsEventCountItem& item)
-{
-  string   time   = timeString(item.getTimestamp());
-  uint32_t offset = item.getTimeOffset();
-  uint64_t events = item.getEventCount();
-
-
-  out << time << " : " << events << " Triggers accepted as of " 
-      << offset << " seconds into the run\n";
-  out << " Average accepted trigger rate: " 
-      <<  (static_cast<double>(events)/static_cast<double>(offset))
-      << " events/second \n";
-}
-/*
-**  Dump an item of some unknown type.  Just a byte-wise binary dump.
-**
-** Parameter:
-**   out   - stream to which to dump the item.
-**   item  - Item to dump.
-*/
-void
-BufdumpMain::dumpUnknownItem(ostream& out, const CRingItem& item)
-{
-  uint16_t type  = item.type();
-  uint32_t bytes = item.getBodySize();
-  uint8_t* p     = reinterpret_cast<uint8_t*>(const_cast<CRingItem&>(item).getBodyPointer());
-
-  out << "Unknown item type: " << type << endl;
-  out << "Body size        : " << bytes << endl;
-  out << "Body:\n";
-
-
-  for (int i =1; i <= bytes; i++) {
-    char item[16];
-    sprintf(item, "%02x ", *p++);
-    out << item;
-    if ((i%16) == 0) {
-      out << endl;
-    }
-  }
-  out << endl;
-
+  CRingItem* pActualItem = CRingItemFactory::createRingItem(item);
+  cout << pActualItem->toString();
+  delete pActualItem;
 
 }
 

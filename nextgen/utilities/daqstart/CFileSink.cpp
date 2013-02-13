@@ -18,6 +18,8 @@
 #include <fcntl.h>
 #include <string.h>
 #include <stdlib.h>
+#include <io.h>
+
 
 #include <ErrnoException.h>
 
@@ -140,11 +142,17 @@ bool
 CFileSink::Log(const std::string& Message)  
 {
   std::string line = FormatLine(Message);
-  ssize_t s = write(m_nFd, line.c_str(), line.size());
-  if(s != line.size()) {
-    int er = errno;
-    cerr << "Unable to completly log a file line: " << strerror(er) << endl;
-    exit(-1);
+ 
+  try {
+    io::writeData(m_nFd, line.c_str(), line.size());
+  }
+  catch (int er) {
+    if (er != 0) {
+      cerr << "Unable to completly log a file line: " << strerror(er) << endl;
+    } else {
+      cerr << "End file on output in log\n";
+    }
+    exit(EXIT_FAILURE);
   }
   
 }

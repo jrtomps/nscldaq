@@ -82,6 +82,7 @@ libSBSProductionReadout_la_LDFLAGS	=	-version-info	1:0:0	\
 
 EXTRA_DIST	=	options.ggo Skeleton.cpp UserMakefile.in SBSRdoMakeIncludes.in SBSReadout.xml
 
+
 noinst_PROGRAMS	= Readout tests
 
 Readout_SOURCES = Skeleton.cpp

@@ -135,23 +135,14 @@ static int ReadBlock(CSocket& sock, void* pData, size_t nBytes)
 CVMUSBEthernet::CVMUSBEthernet(string deviceName, string host, unsigned int port) :
   m_deviceName(deviceName),
   m_pSocket(0),
-  m_pInterp(0)
+  m_pInterp(0),
+  m_host(host),
+  m_port(port)
+
 {
-  try {
-    char portNumber[100];
-    sprintf(portNumber, "%d", port);
-    m_pSocket = new CSocket;
-    m_pSocket->Connect(host, string(portNumber));
-    m_pInterp = new CTCLInterpreter();
-  }
-  catch (...) {			// Exception catch prevents memory leaks and...
-    delete m_pSocket;
-    m_pSocket = 0;
-    delete m_pInterp;
-    m_pInterp = 0;
-    throw;			// lets the caller deal with the error.
-  }
+  openServer();
 }
+
 ////////////////////////////////////////////////////////////////
 /*!
     Destruction of the interface involves shutting down the socket 
@@ -165,6 +156,23 @@ CVMUSBEthernet::~CVMUSBEthernet()
     delete m_pSocket;
   }
   delete m_pInterp;
+}
+
+/**
+ * reconnect
+ *
+ * Teardown and rebuild the connection to the server.
+ */
+void
+CVMUSBEthernet::reconnect()
+{
+  m_pSocket->Shutdown();
+  delete m_pSocket;
+  delete m_pInterp;
+  m_pSocket = 0;
+  m_pInterp = 0;
+
+  openServer();
 }
 
 /**
@@ -1285,3 +1293,28 @@ CVMUSBEthernet::marshallOutputData(void* pOutputBuffer, const char* reply, size_
 
 
 // void* gpTCLApplication(0);
+/**
+ * openServer
+ *    Given that the host and port members are set,
+ *  open the server connection and 
+ *  create the local interpreter.
+ */
+void
+CVMUSBEthernet::openServer()
+{
+  try {
+    char portNumber[100];
+    sprintf(portNumber, "%d", m_port);
+    m_pSocket = new CSocket;
+    m_pSocket->Connect(m_host, string(portNumber));
+    m_pInterp = new CTCLInterpreter();
+  }
+  catch (...) {			// Exception catch prevents memory leaks and...
+    delete m_pSocket;
+    m_pSocket = 0;
+    delete m_pInterp;
+    m_pInterp = 0;
+    throw;			// lets the caller deal with the error.
+  }
+}
+

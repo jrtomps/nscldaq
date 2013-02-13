@@ -27,7 +27,6 @@ namespace Globals {
   CVMUSB*            pUSBController;
   bool               running;
   TclServer*         pTclServer;     
-  size_t             bufferMultiplier = 1;
   unsigned           scalerPeriod;
   size_t             usbBufferSize;
 };

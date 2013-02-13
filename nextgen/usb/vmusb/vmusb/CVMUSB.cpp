@@ -227,6 +227,13 @@ CVMUSB::~CVMUSB()
     usleep(5000); 
   }
 }
+/**
+ * Close and re-open the VM-USB interface:
+ * Onlly subclasses can implement this.
+ */
+void
+CVMUSB::reconnect()
+{}
 
 ////////////////////////////////////////////////////////////////////
 //////////////////////// Register operations ///////////////////////

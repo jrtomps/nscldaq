@@ -429,10 +429,7 @@ CAcquisitionThread::startDaq()
 			   CVMUSB::GlobalModeRegister::bufferLenShift));
 
 
-  // ensure that O1 is the Busy, and for the heck of it, let's make O2 AS.
 
-  m_pVme->writeDeviceSource(CVMUSB::DeviceSourceRegister::nimO1Busy |
-			    CVMUSB::DeviceSourceRegister::nimO2VMEAS);
 
   // Start the VMUSB in data taking mode:
 

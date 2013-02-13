@@ -11,14 +11,16 @@ EXTRA_DIST=compatibilitybuffer.ggo loggeroptions.ggo eventlog-compat.in \
 
 compatibilitybuffer_LDADD = parser.o
 
-INCLUDES = -I@top_srcdir@/daq/format -I@top_srcdir@/base/headers
+INCLUDES = -I@top_srcdir@/daq/format -I@top_srcdir@/base/headers \
+	-I@top_srcdir@/base/os
 
 compatibilitylogger_SOURCES = compatibilitylogger.cpp CLogRun.cpp
 
 compatibilitylogger_LDADD = loggeroptions.o
 
 BufferToRing_SOURCES = BufferToRing.cpp
-BufferToRing_LDADD   = @top_srcdir@/daq/format/libdataformat.la
+BufferToRing_LDADD   = @top_builddir@/daq/format/libdataformat.la \
+	@top_builddir@/base/os/libdaqshm.la
 
 install-exec-local:
 	$(mkinstalldirs) $(bindir)

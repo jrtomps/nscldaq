@@ -180,6 +180,7 @@ public:
   bool             getBoolParameter    (std::string name);
   double           getFloatParameter   (std::string name);
   std::vector<int> getIntegerList      (std::string name);
+  int              getEnumParameter    (std::string name, const char** pValues);
     
   // Operations:
 

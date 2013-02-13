@@ -412,6 +412,45 @@ CConfigurableObject::getList(string name)
     return result;
 }
 
+/**
+ * getEnumParameter
+ *
+ *  Given a parameter name and the null terminated list of
+ *  values it can take, returns the index into that list of
+ *  the value the parameter currently has, or throws if there
+ *  is no match
+ *
+ * @param name - Option name.
+ * @param pValues - Array of pointers to the values.  The final pointer is null
+ *
+ * @return int index of the matching enum value.
+ * @throw std::string - If there is no matching value in the
+ *    pValues array.yyy
+ */
+int
+CConfigurableObject::getEnumParameter(std::string name, const char** pValues) 
+{
+  std::string value = cget(name);
+  
+  int i = 0;
+  while(*pValues) {
+    if(value == std::string(*pValues)) {
+      return i;
+    }
+    i++;
+    pValues++;
+  }
+
+  std::string msg("Enum parameter ");
+  msg += name;
+  msg += " has the value ";
+  msg += value;
+  msg += " which is not one of the allowed values";
+
+  throw msg;
+  
+}
+
 /** 
  * Add an integer parameter to the configuration that has no limits.
  *

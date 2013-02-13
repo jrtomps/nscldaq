@@ -24,6 +24,9 @@
 #include <CRingItem.h>
 #include <DataFormat.h>
 #include <ErrnoException.h>
+#include <io.h>
+
+#include <os.h>
 
 #include <iostream>
 #include <stdlib.h>
@@ -225,21 +228,6 @@ RingSelectorMain::processData()
 //
 // Utilities
 
-/*
-** Return the name of the running user.
-*/
-std::string
-RingSelectorMain::whoami()
-{
-  uid_t id = getuid();
-
-  struct passwd* pwent =   getpwuid(id);
-  
-  if (pwent == (struct passwd*)NULL) {
-    throw std::string("Could not figure out my username!!");
-  }
-  return std::string(pwent->pw_name);
-}
 
 /*
 ** Write a chunk of data to an output file...looping as needed until either
@@ -253,29 +241,17 @@ RingSelectorMain::whoami()
 void
 RingSelectorMain::writeBlock(int fd, void* pData, size_t size)
 {
-  const char* p = reinterpret_cast<const char*>(pData);
 
-  if (m_formatted) {
-    // output the data in words one line for the item
-
-    uint16_t* p = reinterpret_cast<uint16_t*>(pData);
-    for (int i =0; i < size/sizeof(uint16_t); i++) {
-      std::cout << *p++ << ' ';
-    }
-    std::cout << std::endl;
+  try {
+    io::writeData(fd, pData, size);
   }
-  else {
-    while (size) {
-      ssize_t n = write(fd, p, size);
-      if (n < 0 ) {
-	if ((errno != EAGAIN) && (errno != EINTR)) {
-	  throw(CErrnoException("Writing data to output file"));
-	}
-      }
-      else {
-	p    += n;
-	size -= n;
-      }
+  catch(int e) {
+    if (e) {
+      errno = e;
+      throw CErrnoException("Writing data to output file");
+    } else {
+      throw std::string("Output file closed");
     }
   }
+
 }

@@ -15,6 +15,7 @@
 */
 #include <config.h>
 #include "CRingPhysicsEventCountItem.h"
+#include <sstream>
 
 using namespace std;
 
@@ -193,6 +194,48 @@ void
 CRingPhysicsEventCountItem::setEventCount(uint64_t count)
 {
   m_pItem->s_eventCount = count;
+}
+//////////////////////////////////////////////////////////
+//
+// Virtual method overrides.
+
+
+/**
+ * typeName
+ * 
+ *   Provides the type name for this ring item.
+ *
+ * @return std::string type name.
+ */
+std::string
+CRingPhysicsEventCountItem::typeName() const
+{
+  return std::string(" Trigger count: ");
+}
+/**
+ * toString
+ *
+ * Returns a stringified version of the item.
+ *
+ * @return item - the string.
+ */
+std::string
+CRingPhysicsEventCountItem::toString() const
+{
+  std::ostringstream out;
+
+  string   time   = timeString(getTimestamp());
+  uint32_t offset = getTimeOffset();
+  uint64_t events = getEventCount();
+
+
+  out << time << " : " << events << " Triggers accepted as of " 
+      << offset << " seconds into the run\n";
+  out << " Average accepted trigger rate: " 
+      <<  (static_cast<double>(events)/static_cast<double>(offset))
+      << " events/second \n";
+
+  return out.str();
 }
 
 /////////////////////////////////////////////////////////////////////////////////

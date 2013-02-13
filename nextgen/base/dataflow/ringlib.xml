@@ -751,7 +751,7 @@ CRingBuffer* pRing = CRingAccess::daqConsumeFrom("tcp://localhost/daqring");
 ...
 
 CRingBuffer* pRing =
-     CRingAccess::daqConsmeFrom("spdaq22.nscl.msu.edu//localhost/daqring");
+     CRingAccess::daqConsmeFrom("tcp://spdaq22.nscl.msu.edu/daqring");
 ...
             </programlisting>
          </example>

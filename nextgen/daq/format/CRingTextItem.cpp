@@ -18,7 +18,7 @@
 #include <config.h>
 #include "CRingTextItem.h"
 #include <string.h>
-
+#include <sstream>
 using namespace std;
 
 ///////////////////////////////////////////////////////////////////////////////////
@@ -206,6 +206,57 @@ time_t
 CRingTextItem::getTimestamp() const
 {
   return m_pItem->s_timestamp;
+}
+
+///////////////////////////////////////////////////////////
+//
+// Virtual method implementations.
+
+/**
+ * typeName
+ *
+ *  return the stringified item type name.
+ *
+ * @return std::string - name of item-type.
+ */
+std::string
+CRingTextItem::typeName() const
+{
+  if(type() == PACKET_TYPES) {
+    return std::string(" Packet types: ");
+  } else if (type() == MONITORED_VARIABLES) {
+    return std::string(" Monitored Variables: ");
+  } else {
+    throw std::string("CRingTextItem::typeName - Invalid type!");
+  }
+}
+/**
+ * toString
+ *
+ * Returns a stringified version of the item that can
+ * be read by humans.
+ *
+ * @return std::string - stringified output.
+ */
+std::string
+CRingTextItem::toString() const
+{
+  std::ostringstream out;
+
+  uint32_t elapsed  = getTimeOffset();
+  string   time     = timeString(getTimestamp());
+  vector<string> strings = getStrings();
+
+  out << time << " : Documentation item ";
+  out << typeName();
+
+  out << elapsed << " seconds in to the run\n";
+  for (int i = 0; i < strings.size(); i++) {
+    out << strings[i] << endl;
+  }
+
+
+  return out.str();
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////

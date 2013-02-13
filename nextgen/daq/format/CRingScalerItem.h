@@ -44,6 +44,12 @@
 #include <RangeError.h>
 #endif
 
+#ifndef __STL_STRING
+#include <string>
+#ifndef __STL_STRING
+#define __STL_STRING
+#endif
+#endif
 
 /*!
    This class derived from CRingItem and represents a set of scalers that have been 
@@ -90,6 +96,10 @@ public:
 
   uint32_t getScalerCount() const;
 
+  // Virtual methods overriddent:
+
+  virtual std::string typeName() const;
+  virtual std::string toString() const;
 
   // utility.
 

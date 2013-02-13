@@ -8,6 +8,7 @@
 #include <iostream>
 #include <errno.h>
 #include <string.h>
+#include <io.h>
 
 using namespace std;
 
@@ -91,19 +92,19 @@ integerize(const char* str)
 void
 writeData(int fd, void* pData, size_t size)
 {
-  char*   p         = reinterpret_cast<char*>(pData);
-  size_t  residual  = size;
-  while (residual) {
-    ssize_t n = write(fd, p, residual);
-    if (n < 0) {
-      if (errno != EINTR) {
-	perror("Write to output failed");
-	exit(EXIT_FAILURE);
-      }
-      n = 0;
+
+  try {
+    io::writeData(fd, pData, size);
+  }
+  catch (int err) {
+    std::string msg = "Write to output failed: ";
+    if (err) {
+      msg += strerror(err);
+    } else {
+      msg += ("End of file on output");
     }
-    residual -= n;
-    p        += n;
+    std::cerr << msg << std::endl;
+    exit(EXIT_FAILURE);
   }
 }
 

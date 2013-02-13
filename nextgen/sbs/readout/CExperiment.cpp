@@ -440,14 +440,17 @@ CExperiment::ReadEvent()
   // and put the resulting event in the ring buffer:
   //
   if (m_pReadout) {
+    m_pReadout->keep();
     CRingItem item(PHYSICS_EVENT, m_nDataBufferSize);
     uint16_t* pBuffer = reinterpret_cast<uint16_t*>(item.getBodyPointer());
     size_t nWords = m_pReadout->read(pBuffer +2 , m_nDataBufferSize);
-    *(reinterpret_cast<uint32_t*>(pBuffer)) = nWords +2;
+    if (m_pReadout->getAcceptState() == CEventSegment::Keep) {
+      *(reinterpret_cast<uint32_t*>(pBuffer)) = nWords +2;
+      item.setBodyCursor(pBuffer + nWords+2);
+      item.commitToRing(*m_pRing);
+      m_nEventsEmitted++;
+    }
     m_pReadout->clear();	// do any post event clears.
-    item.setBodyCursor(pBuffer + nWords+2);
-    item.commitToRing(*m_pRing);
-    m_nEventsEmitted++;
 
   }
   if (m_pBusy) {

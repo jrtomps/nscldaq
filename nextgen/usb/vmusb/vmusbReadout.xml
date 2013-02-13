@@ -1927,6 +1927,313 @@ caenchain config chain -base 0x10000000 -modules [list adc1 adc2 adc3]
      </refsect1>
 
    </refentry>
+   <!-- VM USB control and scaler readout -->
+   
+         <refentry id="vmusb3_vmusb">
+           <refmeta>
+              <refentrytitle id='vmusb3_vmusb_title'>vmusb</refentrytitle>
+              <manvolnum>3vmusb</manvolnum>
+           </refmeta>
+           <refnamediv>
+              <refname>vmusb</refname>
+              <refpurpose>Control VM-USB resources and read internal scalers</refpurpose>
+           </refnamediv>
+           
+           <refsynopsisdiv>
+             <cmdsynopsis>
+                <command>
+vmusb create name ?options?
+                </command>
+             </cmdsynopsis>
+            <cmdsynopsis>
+                <command>
+vmusb config name ?options?
+                </command>
+            </cmdsynopsis>
+            <cmdsynopsis>
+                <command>
+vmusb cget name
+                </command>
+            </cmdsynopsis>
+
+           </refsynopsisdiv>
+           <refsect1>
+              <title>DESCRIPTION</title>
+              <para>
+                The <command>vmusb</command> command can be used in the
+                <filename>daqconfig</filename> configuration file to control
+                the internal reasources of the VM-USB as well as to enable
+                the readout of its pair of scalers.  The VM-USB provides two outputs
+                named O1 and O2 as well as a pair of gate and delay generators
+                (DGGA and DGGB), and scalers A and B. Four LEDs round out the
+                resources controlled by this command.
+              </para>
+              <para>
+                In order to use a vmusb module to configure the controller, you
+                must include it in a stack, even if you are not using reading the
+                scalers in the VM-USB.  This is because it is the inclusion of
+                a module in a stack that causes its initialization methods to
+                be invoked, and it is there that teh vmusb module configures
+                its resources.
+              </para>
+              <para>
+                More information about the VM-USB and its resources can be found
+                in sections 3.4.4 through 3.4.8 and section 1 of the VM-USB manual.
+              </para>
+              <para>
+                The configuration options are described in the OPTIONS section
+                below.
+              </para>
+           </refsect1>
+           <refsect1>
+              <title>
+                 OPTIONS
+              </title>
+              <variablelist>
+                <!-- NIM output configuration  -->
+                <varlistentry>
+                    <term><option>-nimo1</option></term>
+                    <listitem>
+                        <para>
+                            Determines, along with the options
+                            <option>-inverto1</option> and
+                            <option>-latcho1</option> the behavior of NIM
+                            output O1.  This can be any of the following values:
+                            <literal>busy, trigger, busrequest, eventdatatobuvffer,
+                            dgga, endevent</literal> or <literal>usbtrigger</literal>.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><option>-inverto1</option></term>
+                    <listitem>
+                        <para>
+                            Inverts the sense of the O1 nim output.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><option>-latcho1</option></term>
+                    <listitem>
+                        <para>
+                            Latches the O1 asserted when the condition that asserts
+                            it is met.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><option>-nimo2</option></term>
+                    <listitem>
+                        <para>
+                            Along with the options
+                            <option>-inverto2</option> and
+                            <option>-latcho2</option>, controls when the NIM
+                            O2 output is asserted.  This can be any of:
+                            <literal>usbtrigger, vmecommand, vmeas,
+                            eventdataobuffer, dgga, dggb,</literal> or
+                            <literal>endevent</literal>.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><option>-inverto2</option></term>
+                    <listitem>
+                        <para>
+                            Inverts the sense of the NIM O2 output.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><option>-latcho2</option></term>
+                    <listitem>
+                        <para>
+                            Latches the state of the O2 NIM output when the
+                            condition that would assert it is met.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><option>-topyellow</option></term>
+                    <listitem>
+                        <para>
+                            Together with <option>-inverttopyellow</option>
+                            and <option>-latchtopyellow</option> determines
+                            when the top Yellow LED of the VM-USB is lit.
+                            This can be any of the following values:
+                            <literal>ofifonotempty, infifonotempy, scaler
+                            infifofull, berr, vmebr,</literal> or
+                            <literal>vmebg</literal>.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><option>-inverttopyellow</option></term>
+                    <listitem>
+                        <para>
+                            Inverts the sense of the top yellow LED.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><option>-latchtopyellow</option></term>
+                    <listitem>
+                        <para>
+                            Latches the top yellow LED in the on state when the
+                            condition is met that would light it.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><option>-red</option></term>
+                    <listitem>
+                        <para>
+                            Together with the <option>-invertred</option> and
+                            <option>-latchred</option> options controls the
+                            when the red LED on the VM-USB front panel is lit.
+                            This can be one of the following value:
+                            <literal>trigger, nimi1, nimi2, busy, dtack, berr, vmebr</literal>
+                            or <literal>vmebg</literal>.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><option>-invertred</option></term>
+                    <listitem>
+                        <para>
+                            Inverts the state of the red LED.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><option>-latchred</option></term>
+                    <listitem>
+                        <para>
+                            Latches the red led on when the condition to light
+                            it has been met.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><option>-green</option></term>
+                    <listitem>
+                        <para>
+                            Together with the <option>-invertgreen</option>
+                            and <option>-latchgreen</option>, determines when
+                            the green LED is lit.  This can be one of the following
+                            values:
+                            <literal>acquire, stacknotempty, eventready,
+                            trigger, dtack, berr, vmebr</literal> or
+                            <literal>vmebg</literal>.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><option>-invertgreen</option></term>
+                    <listitem>
+                        <para>
+                            Inverts the condition that lights the green LED.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><option>-latchgreen</option></term>
+                    <listitem>
+                        <para>
+                            If true, the green LED is latched in the on state
+                            once the condition that would light it is met.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><option>-bottomyellow</option></term>
+                    <listitem>
+                        <para>
+                            Together with <option>-invertbottomyellow</option>
+                            and <option>-latchbottomyellow</option> determines
+                            when the bottom yellow LED is lit.  The value of this
+                            option can be any of the following values:
+                            <literal>notslot1, usbtrigger, usbreset, berr, dtack, vmebr</literal>
+                            or <literal>vmebg</literal>.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><option>-invertbottomyellow</option></term>
+                    <listitem>
+                        <para>
+                            Inverts the condition that lights the bottom yellow
+                            LED.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><option>-latchbottomyellow</option></term>
+                    <listitem>
+                        <para>
+                            Latches the bottom yellow LED in the lit state
+                            once the condition is met to light it.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><option>-redscalers</option></term>
+                    <listitem>
+                        <para>
+                            If this is true the two scalers A and B will
+                            be read by the stack in which the vmusb is
+                            module is put.  The A scaler is read first followed
+                            by the B scaler.  See <option>-scalera</option>
+                            and <option>-scalerb</option> below which define
+                            when each scaler increments.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><option>-incremental</option></term>
+                    <listitem>
+                        <para>
+                            This option is ignored unless <option>-readscalers</option>
+                            is true.  If <option>-incremental</option> is true,
+                            scalers are cleared after they are read.
+                            Note that since the VM-USB has no mechanism to
+                            atomically read and clear scalers, counts can be lost
+                            between the read and clear.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><option>-scalera</option></term>
+                    <listitem>
+                        <para>
+                            Determines the condition that increments scaler A.
+                            This can be one of the following values:
+                            <literal>dgga, nimi1, nimi2</literal> or <literal>event</literal>.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><option>-scalerb</option></term>
+                    <listitem>
+                        <para>
+                            Determines the condition that increments scaler B.
+                            This can be one of the following values:
+                            <literal>carry,, nimi1, nimi2</literal> or
+                            <literal>event</literal>.
+                            The <literal>carry</literal> value means that
+                            scaler B is incremented when scaler A overflows.
+                            This allows both scalers to be combined into a single
+                            64 bit scaler that is incremented by the condition
+                            defined in the <option>-scalera</option> option.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                
+   
+              </variablelist>
+           </refsect1>
+   
+         </refentry>
+   
    
    <!-- SIS 330x FADC driver -->
    
@@ -4348,28 +4655,28 @@ mase cget <replaceable>name</replaceable>
 
 <refentry id="vmusb3-tdcv1x90">
   <refmeta>
-     <refentrytitle>tdcv1x90</refentrytitle>
+     <refentrytitle>tdc1x90</refentrytitle>
      <manvolnum>3vmusb</manvolnum>
   </refmeta>
   <refnamediv>
-     <refname>tdcv1x90</refname>
+     <refname>tdc1x90</refname>
      <refpurpose>Provide support for the CAEN V1x90 TDC family.</refpurpose>
   </refnamediv>
   
   <refsynopsisdiv>
     <cmdsynopsis>
 	<command>
-tdcv1x90 create name ?options...?
+tdc1x90 create name ?options...?
 	</command>
     </cmdsynopsis>
     <cmdsynopsis>
     <command>
-tdcv1x90 config name ?options?
+tdc1x90 config name ?options?
     </command>
 </cmdsynopsis>
 <cmdsynopsis>
     <command>
-tdcv1x90 cget name
+tdc1x90 cget name
     </command>
 </cmdsynopsis>
 
@@ -6196,9 +6503,12 @@ stack config scalers -trigger scaler -modules $scalers -period 2
         <modifier>static const</modifier> <type>uint32_t</type>
         <varname>nimO2Latch</varname><initializer>(0x10 &lt;&lt; 8)</initializer>
     </fieldsynopsis>
+    
+    <!-- Scaler A -->
+    
     <fieldsynopsis>
         <modifier>static const</modifier> <type>uint32_t</type>
-        <varname>scalerADisabled</varname><initializer>(0   &lt;&lt; 16)</initializer>
+        <varname>scalerADGGA</varname><initializer>(0   &lt;&lt; 16)</initializer>
     </fieldsynopsis>
     <fieldsynopsis>
         <modifier>static const</modifier> <type>uint32_t</type>
@@ -6210,7 +6520,7 @@ stack config scalers -trigger scaler -modules $scalers -period 2
     </fieldsynopsis>
     <fieldsynopsis>
         <modifier>static const</modifier> <type>uint32_t</type>
-        <varname>scalerAEvent</varname><initializer>(2   &lt;&lt; 16)</initializer>
+        <varname>scalerAEvent</varname><initializer>(3   &lt;&lt; 16)</initializer>
     </fieldsynopsis>
     <fieldsynopsis>
         <modifier>static const</modifier> <type>uint32_t</type>
@@ -6222,7 +6532,7 @@ stack config scalers -trigger scaler -modules $scalers -period 2
     </fieldsynopsis>
     <fieldsynopsis>
         <modifier>static const</modifier> <type>uint32_t</type>
-        <varname>scalerBDisabled</varname><initializer>(0   &lt;&lt; 20)</initializer>
+        <varname>scalerBCarryA</varname><initializer>(0   &lt;&lt; 20)</initializer>
     </fieldsynopsis>
     <fieldsynopsis>
         <modifier>static const</modifier> <type>uint32_t</type>
@@ -6234,7 +6544,7 @@ stack config scalers -trigger scaler -modules $scalers -period 2
     </fieldsynopsis>
     <fieldsynopsis>
         <modifier>static const</modifier> <type>uint32_t</type>
-        <varname>scalerBEvent</varname><initializer>(2   &lt;&lt; 20)</initializer>
+        <varname>scalerBEvent</varname><initializer>(3   &lt;&lt; 20)</initializer>
     </fieldsynopsis>
     <fieldsynopsis>
         <modifier>static const</modifier> <type>uint32_t</type>
@@ -6299,6 +6609,10 @@ stack config scalers -trigger scaler -modules $scalers -period 2
     <fieldsynopsis>
         <modifier>static const</modifier> <type>uint32_t</type>
         <varname>dggBPulser</varname><initializer>(6   &lt;&lt; 28)</initializer>
+    </fieldsynopsis>
+    <fieldsynopsis>
+        <modifier>static const</modifier><type>uint32_t</type>
+        <varname>freezeScalers</varname><initializer>0x80000000</initializer>
     </fieldsynopsis>
     };
     class <ooclass><classname>CVMUSB::DGGAndPulserRegister</classname></ooclass> {

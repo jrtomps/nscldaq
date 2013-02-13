@@ -246,7 +246,6 @@ Feb 1, 2012 - Feb 24, 2012
 	  things.
 	- Issue #1119 - Honor env variables for stagearea and expdir when
 	                checking for a good stagearea link.
-<<<<<<< .working
 	- Attempt to fix race condition between the s800 start and the
 	  polling of the s800 status.
 	- Turn on s800 record crate files by default per request by
@@ -311,4 +310,134 @@ Feb 1, 2012 - Feb 24, 2012
 	- Decided how to get pkgIndex to really work properly for lib.
 	 where some .so's may have dependencies based on the enclosing
 	app.
+=======
+	- Turn on s800 record crate files by default per request by
+	  Daniel B. and Scott W.
+	- Turn it back off due to the potential of users to have to
+	  respond to a dialog on the s800 control panel.
+	- In S800 exit handler deal with the fact that the S800 may have
+	  exited so socket transactions with/to it may fail....correct
+	  bgerror so that it exits rather than breaking...which causes an
+	  infinite break handling loop.
+	- Issue #1195 deal with S800 bozo-ness on scalers.
+	- Ensure readoutGUI starts with correct colors.
+10.1-005
+	- Issue #1195 - Provide visual indication that runs are
+	  starting/stopping.
+	- Now that there is bandwidth and hopefully users are aware of the
+	  problems turn s800 record crate files _back_ on by default.
+	  Seems like they really just need the damned settings most of the
+	  time but they are not capable of separating the two somehow.
+10.1-006
+	- Add support for client of VM-USB server to VMUSBReadout.
+	  the --host (-h) switch if supplied selects the host on which the
+	  VMUSB server is running.
+	- Issue #1322 - Include product (NSCLDAQ) in the VERSION file.
+        - More wheezy-64 work:
+	  * Get sbs driver working/tested.
+	  * Start SBS readout checkout (sbs/vmemodules/
+	    - Make CAENcard 64/32 bit clean.
+	    - Draft code for CADC2530 (Hytec adc...can't test this 'cause we don't own the module).
+	    - Draft code for CAEN V767 multihit TDC which probably nobody will ever use again.
+	    - Draft code for CAEN 262 I/O register.
+	    - camac.h - replace the old style INT32 etc. with stdint stuff.
+	    - Draft code for CBLT CAEN 32 bit digitizer chains.
+	    - Draft code for CAEN V1x90 multihit TDC family.
+	    - Draft code for CAEN V560 Scaler.
+	    - Draft code for CAEN V820/830 scaler.
+	    - Draft code for CAEN 977 I/O register.
+	    - Draft code for CAMAC (CES)
+	    - Draft code for 32 bit module.
+	    - Draft code CSIS3600 latch module.
+	  * Add libSBSDeviceSupport.la to the Readout executable build in sbs/readout/Makefile.am
+	- Attempt to fix race condition between the s800 start and the
+	  polling of the s800 status.
+	- Turn on s800 record crate files by default per request by
+	  Daniel B. and Scott W.
+	- Turn it back off due to the potential of users to have to
+	  respond to a dialog on the s800 control panel.
+	- In S800 exit handler deal with the fact that the S800 may have
+	  exited so socket transactions with/to it may fail....correct
+	  bgerror so that it exits rather than breaking...which causes an
+	  infinite break handling loop.
+	- Issue #1195 deal with S800 bozo-ness on scalers.
+	- Ensure readoutGUI starts with correct colors.
+
+10.2  
+	- Issue #1174 - Create development branch for nscldaq-10.2 with
+	the event builder (July 2, 2012).
+	- Issue #1193 - Factor the socket library used by epics and vmusb
+	  into a base library so it can be used by the event builder
+	  client libraries.
+	- Add timestamp based event builder to the software.
+        - Add stock fragment sources for ring buffers:
+	  * Generic source
+	  * S800 source
+	  * Gretina source.
+	- Factored out the various read/write loopy functions -> base/os
+	 (Issue #1417
+        - Add event builder client framework with mechanisms to get data
+	from rings and s800 -> EVB.
+	- Add glom to get data from event sorter -> events.
+	- Add teering so that event sorter can be monitored prior to
+	building.
+	- Issue #1521 - Provide mechanism to uniquify event orderer
+	instances and name them.
+	- Issue #1522 - Provide mechanism to contact named event orderer
+	and to specify the name of an orderer in the ring fragment data
+	source.
+	- Issue #1523 - ringFragmentSource secures its timestamp extractor
+	by actually mapping a temp copy.
+	-Provide CEventSegment in sbs/Readout with the following methods:
+	    reject -Rejects the event afer running all subsequent event
+	            segments.
+	    rejectImmediately - Rejects without running any more event
+	            segments.
+	    keep - Keep the event unless a subsequent event segment
+	           invokes one of the above.  Note that normally keep
+	           is called by the event segment's caller to user event 
+	           segments only need to invoke this if they've initially
+	           decided to reject(Immeditely) and then changed their
+	           mind e.g.:
+	            reject();
+	             ...
+	            if(ok) keep();
+	- Issue #1215  Support for SIS FADC in VMUSB readout.
+	- Issue #1216  Provide XLM/SISFADC hira pseudo module that gangs
+	them together.
+	- Issue #701 Add variable injection/monitoring to VM-USB readout
+	to support EPICS monitoring.
+	- Issue #989 - document VM-USB list remote list executino.
+        - Fix error in tclserver's managed port stuff which prematurely
+	  closed the connection to the port manager allowing double
+	  allocation.
+	- Add ReadoutCallouts for event builder/ReadoutGUI.
+	- Catch up on missing documentation for:
+	  *  teering
+	  *  glom
+	  *  readout callouts package for the event builder.
 	
+10.2-001
+	- Issue #1147 - Refactor various whoami's to os-specific code and
+	  replace locally defined methods and functions with calls to the
+	  centralized one.
+        - Issue #1219 - Refactor various uri based file/ring opens into  
+  	  a factory object.
+	- Issue #785 - Reconnect to VM-USB at the start of each run.
+	  this allows the controller to be powered off betwen runs.
+	- Issue #786 - Reconnect to CC-USB at the start of each run.
+	  Allows the controller to be powered off between runs.
+	- Issue #427 - Make VM-USB output buffer auto-resize on
+	  overflow...event size only limited by dynamic memory.
+	- Issue #1382 - Qualify s800 ring with username if defaulted.
+        - Issue #1326 - reconnect server's VM-USB controller when ethernet
+          controller is created by VMUSBReadout (this is done in the
+          controller factory creation method).
+          
+10.2-002 Support for HiRA VM-USB module:
+	- Issue #1215  Support for SIS FADC in VMUSB readout.
+	- Issue #1216  Provide XLM/SISFADC hira pseudo module that gangs
+	  them together.
+	- Issue #701 Add variable injection/monitoring to VM-USB readout
+	  to support EPICS monitoring.
+	- Issue #989 - document VM-USB list remote list executino.

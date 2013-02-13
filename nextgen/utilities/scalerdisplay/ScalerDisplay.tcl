@@ -92,8 +92,8 @@ proc StartClient {} {
     global tcl_platform
 
     set ringname $tcl_platform(user)
-    if {[array names ::env RINGNAME] ne ""} {
-	set ringname $::env(RINGNAME)
+    if {[array names ::env SCALER_RINGNAME] ne ""} {
+	set ringname $::env(SCALER_RINGNAME)
     }
     set spdaqurl "tcp://$spdaq/$ringname";    # The ring url
 

@@ -41,6 +41,14 @@
 #endif
 #endif
 
+#ifndef __STL_STRING
+#include <string>
+#ifndef __STL_STRING
+#define __STL_STRING
+#endif
+#endif
+
+
 /*!
    The physics event count item provides periodic informatino about how
    many events have been produced by the DAQ system.  This is provided
@@ -84,6 +92,13 @@ public:
 
   uint64_t getEventCount() const;
   void     setEventCount(uint64_t count);
+
+  // Virtual method overrides:
+
+
+  virtual std::string typeName() const;	// Textual type of item.
+  virtual std::string toString() const; // Provide string dump of the item.
+
 
 private:
   void init();

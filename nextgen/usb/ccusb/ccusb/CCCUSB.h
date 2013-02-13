@@ -92,6 +92,7 @@ private:
     struct usb_dev_handle*  m_handle;	// Handle open on the device.
     struct usb_device*      m_device;   // Device we are open on.
     int                     m_timeout; // Timeout used when user doesn't give one.
+    std::string             m_serial;  // Connected device serial number.
 
     // Static functions.
 public:
@@ -116,6 +117,7 @@ private:
     int operator==(const CCCUSB& rhs) const;
     int operator!=(const CCCUSB& rhs) const;
 public:
+    void reconnect();
 
     // Register I/O operations.
 public:
@@ -389,6 +391,8 @@ private:
     int write32(int n, int a, int f, uint32_t data, uint16_t& qx);
     int write16(int n, int a, int f, uint16_t data, uint16_t& qx); /*  just for register writes */
 
+    void openUsb();
+
 
   // The following are classes that define bits/fields in the registers of the CC-USB.
   // Each class is one register:
@@ -404,8 +408,8 @@ public:
   //!  Action register - all data members are individual bits.
 #ifndef FLATTEN_NESTED_CLASSES
   class ActionRegister {
-#endif
   public:
+#endif
     static const uint16_t startDAQ   = 1;
     static const uint16_t usbTrigger = 2;
     static const uint16_t clear      = 4;
@@ -476,74 +480,69 @@ public:
 
     static const uint32_t redEventTrigger       = 0;
     static const uint32_t redBusy               = 1;
-    static const uint32_t redUSBTrigger         = 2;
-    static const uint32_t redUSBOutFifoNotEmpty = 3;
-    static const uint32_t redUSBInFifoNotFull  = 4;
-    static const uint32_t redAcquire            = 6; // Yes 5 is skipped.
-    static const uint32_t redCAMACF2            = 7;
+    static const uint32_t redUSBOutFifoNotEmpty = 2;
+    static const uint32_t redUSBInFifoNotEmpty  = 3;
     static const uint32_t redInvert             = 0x10;
     static const uint32_t redLatch              = 0x20;
+    static const uint32_t redShift              = 0;
 
-    // Greeen LED:
+    // Green LED:
 
-    static const uint32_t greenAcquire          = 0x000;
-    static const uint32_t greenCAMACF1          = 0x100;
-    static const uint32_t greenEventTrigger     = 0x300;	// Yes there's a skip.
-    static const uint32_t greenCAMACN           = 0x400;
-    static const uint32_t greenI1               = 0x600;        // another skip.
-    static const uint32_t greenUSBInFifoNotEmpty= 0x700;
-    static const uint32_t greenInvert           = 0x1000;
-    static const uint32_t greenLatch            = 0x2000;
+    static const uint32_t greenShift              = 8;
+    static const uint32_t greenAcquire            = (0 << greenShift);
+    static const uint32_t greenNimI1              = (1 << greenShift);
+    static const uint32_t greenUSBInFifoNotEmpty  = (2 << greenShift);
+    static const uint32_t greenUSBTrigger         = (3 << greenShift);
+    static const uint32_t greenInvert             = (0x10 << greenShift);
+    static const uint32_t greenLatch              = (0x20 << greenShift);
 
-    // Yellow LED:
+    // Red LED:
 
-    static const uint32_t yellowI3                = 0x00000;
-    static const uint32_t yellowBusy              = 0x10000;
-    static const uint32_t yellowI2                = 0x20000;
-    static const uint32_t yellowCAMACS1           = 0x30000;
-    static const uint32_t yellowCAMACS2           = 0x40000;
-    static const uint32_t yellowUSBInFifoNotEmpty = 0x50000;
-    static const uint32_t yellowScalerReadout     = 0x60000;
-    static const uint32_t yellowUSBTrigger        = 0x70000;
-    static const uint32_t yellowInvert            = 0x100000;
-    static const uint32_t yellowLatch             = 0x200000;
+    static const uint32_t yellowShift             = 16;
+    static const uint32_t yellowNimI2             = (0 << yellowShift);
+    static const uint32_t yellowNimI3             = (1 << yellowShift);
+    static const uint32_t yellowBusy              = (2 << yellowShift);
+    static const uint32_t yellowUsbInFifoNotEmpty = (3 << yellowShift);
+    static const uint32_t yellowInvert            = (0x10 << yellowShift);
+    static const uint32_t yellowLatch             = (0x20 << yellowShift);
     
   };
   //! The Output selector register determines the meaning of the NIM Outputs.
 
   class OutputSourceRegister {
   public:
-    // NIM O1
+
+    // NIM O1 source:
+
+    static const uint32_t nimO1Shift              = 0;
+    static const uint32_t nimO1Busy               = (0 << nimO1Shift);
+    static const uint32_t nimO1Event              = (1 << nimO1Shift);
+    static const uint32_t nimO1DGGA               = (2 << nimO1Shift);
+    static const uint32_t nimO1DGGB               = (3 << nimO1Shift);
+    static const uint32_t nimO1Invert             = (0x10 << nimO1Shift);
+    static const uint32_t nimO1Latch              = (0x20 << nimO1Shift);
+
+    // NIM O2 source:
+
+    static const uint32_t nimO2Shift              = 8;
+    static const uint32_t nimO2Acquire            = (0 << nimO2Shift);
+    static const uint32_t nimO2Event              = (1 << nimO2Shift);
+    static const uint32_t nimO2DGGA               = (2 << nimO2Shift);
+    static const uint32_t nimO2DGGB               = (3 << nimO2Shift);
+    static const uint32_t nimO2Invert             = (0x10 << nimO2Shift);
+    static const uint32_t nimO2Latch              = (0x20 << nimO2Shift);
+
+
+    // NIM O3 source:
+
+    static const uint32_t nimO3Shift              = 16;
+    static const uint32_t nimO3BusyEnd            = (0 << nimO3Shift);
+    static const uint32_t nimO3Busy               = (1 << nimO3Shift);
+    static const uint32_t nimO3DGGA               = (2 << nimO3Shift);
+    static const uint32_t nimO3DGGB               = (3 << nimO3Shift);
+    static const uint32_t nimO3Invert             = (0x10 << nimO3Shift);
+    static const uint32_t nimO3Latch              = (0x20 << nimO3Shift);
     
-    static const uint32_t nimO1Busy              = 0x000000;
-    static const uint32_t nimO1EventTrigger      = 0x000001;
-    static const uint32_t nimO1DGGA              = 0x000002;
-    static const uint32_t nimO1DGGB              = 0x000003;
-    static const uint32_t nimO1Latch             = 0x000010;
-    static const uint32_t nimO1Invert            = 0x000020;
-
-
-    // NIM O2
-
-
-    static const uint32_t nimO2Acquire           = 0x000000;
-    static const uint32_t nimO2Event             = 0x000200;
-    static const uint32_t nimO2DGGA              = 0x000400;
-    static const uint32_t nimO2DGGB              = 0x000600;
-    static const uint32_t nimO2Latch             = 0x001000;
-    static const uint32_t nimO2Invert            = 0x002000;
-
-
-    // NIM O3
-
-    static const uint32_t nimO3EndOfBusy         = 0x000000;
-    static const uint32_t nimO3Busy              = 0x020000;
-    static const uint32_t nimO3DGGA              = 0x040000;
-    static const uint32_t nim03DGGB              = 0x060000;
-    
-    static const uint32_t nimO3Latch             = 0x100000;
-    static const uint32_t nimO3Invert            = 0x200000;
-
   };
   //! Device source selector sets up the inputs to the internal devices:
 
@@ -551,55 +550,61 @@ public:
   public:
     // Scaler A source/control
 
-    static const uint32_t scalerADisabled        = 0x00000000;
-    static const uint32_t scalerAI1              = 0x00000001; // count on NIM I1 etc...
-    static const uint32_t scalerAI2              = 0x00000002;
-    static const uint32_t scalerAI3              = 0x00000003;
-    static const uint32_t scalerAEvent           = 0x00000004;
-    static const uint32_t scalerACarryB          = 0x00000005;
-    static const uint32_t scalerADGGA            = 0x00000006;
-    static const uint32_t scalerADGGB            = 0x00000007;
+    static const uint32_t scalerAShift           = 0;
+    static const uint32_t scalerADisabled        = (0 << scalerAShift);
+    static const uint32_t scalerANimI1           = (1 << scalerAShift);
+    static const uint32_t scalerANimI2           = (2 << scalerAShift);
+    static const uint32_t scalerANimI3           = (3 << scalerAShift);
+    static const uint32_t scalerAEvent           = (4 << scalerAShift);
+    static const uint32_t scalerAScalerBCarry    = (5 << scalerAShift);
+    static const uint32_t scalerADGGA            = (6 << scalerAShift);
+    static const uint32_t scalerADGGB            = (7 << scalerAShift);
+    static const uint32_t scalerAEnable          = (0x10 << scalerAShift);
+    static const uint32_t scalerAReset           = (0x20 << scalerAShift);
+    static const uint32_t scalerAFreeze          = (0x40 << scalerAShift);
 
-    static const uint32_t scalerAEnable          = 0x00000010;
-    static const uint32_t scalerAReset           = 0x00000020;
-    static const uint32_t scalerAFreezeReg       = 0x00000040;
-    
     // Scaler B source/control
 
-    static const uint32_t scalerBDisabled       = 0x00000000;
-    static const uint32_t scalerBI1             = 0x00000100;
-    static const uint32_t scalerBI2             = 0x00000200;
-    static const uint32_t scalerBI3             = 0x00000300;
-    static const uint32_t scalerBEvent          = 0x00000400;
-    static const uint32_t scalerBCarryA         = 0x00000500;
-    static const uint32_t scalerBDGGA           = 0x00000600;
-    static const uint32_t scalerBDGGB           = 0x00000700;
+    static const uint32_t scalerBShift           = 8;
+    static const uint32_t scalerBDisabled        = (0 << scalerBShift);
+    static const uint32_t scalerBNimI1           = (1 << scalerBShift);
+    static const uint32_t scalerBNimI2           = (2 << scalerBShift);
+    static const uint32_t scalerBNimI3           = (3 << scalerBShift);
+    static const uint32_t scalerBEvent           = (4 << scalerBShift);
+    static const uint32_t scalerBScalerACarry    = (5 << scalerBShift);
+    static const uint32_t scalerBDGGA            = (6 << scalerBShift);
+    static const uint32_t scalerBDGGB            = (7 << scalerBShift);
+    static const uint32_t scalerBEnable          = (0x10 << scalerBShift);
+    static const uint32_t scalerBReset           = (0x20 << scalerBShift);
+    static const uint32_t scalerBFreeze          = (0x40 << scalerBShift);
 
-    static const uint32_t scalerBEnable         = 0x00001000;
-    static const uint32_t scalerBReset          = 0x00002000;
-    static const uint32_t scalerBFreezeReg      = 0x00004000;
+    // DGGA source
 
-    // Gate and delay generator A input source:
+    static const uint32_t DGGAShift              = 16;
+    static const uint32_t DGGADisabled           = (0 << DGGAShift);
+    static const uint32_t DGGANimI1              = (1 << DGGAShift);
+    static const uint32_t DGGANimI2              = (2 << DGGAShift);
+    static const uint32_t DGGANimI3              = (3 << DGGAShift);
+    static const uint32_t DGGAEvent              = (4 << DGGAShift);
+    static const uint32_t DGGABusyEnd            = (5 << DGGAShift);
+    static const uint32_t DGGAUSBTrigger         = (6 << DGGAShift);
+    static const uint32_t DGGAPulser             = (7 << DGGAShift);
 
-    static const uint32_t dggADisabled          = 0x00000000;
-    static const uint32_t dggAI1                = 0x00010000;
-    static const uint32_t dggAI2                = 0x00020000;
-    static const uint32_t dggAI3                = 0x00030000;
-    static const uint32_t dggAEvent             = 0x00040000;
-    static const uint32_t dggAEndOfEvent        = 0x00050000;
-    static const uint32_t dggAUSBTrigger        = 0x00060000;
-    static const uint32_t dggAPulser            = 0x00070000;
+    
 
-    // Gate and delay generator B input source:
+    // DGGB source
 
-    static const uint32_t dggBDisabled          = 0x00000000;
-    static const uint32_t dggBI1                = 0x01000000;
-    static const uint32_t dggBI2                = 0x02000000;
-    static const uint32_t dggBI3                = 0x03000000;
-    static const uint32_t dggBEvent             = 0x04000000;
-    static const uint32_t dggBEndOfTrigger      = 0x05000000;
-    static const uint32_t dggBUSBTrigger        = 0x06000000;
-    static const uint32_t dggBPulser            = 0x07000000;
+    static const uint32_t DGGBShift              = 24;
+    static const uint32_t DGGBDisabled           = (0 << DGGBShift);
+    static const uint32_t DGGBNimI1              = (1 << DGGBShift);
+    static const uint32_t DGGBNimI2              = (2 << DGGBShift);
+    static const uint32_t DGGBNimI3              = (3 << DGGBShift);
+    static const uint32_t DGGBEvent              = (4 << DGGBShift);
+    static const uint32_t DGGBBusyEnd            = (5 << DGGBShift);
+    static const uint32_t DGGBUSBTrigger         = (6 << DGGBShift);
+    static const uint32_t DGGBPulser             = (7 << DGGBShift);
+
+ 
   };
   //! Bit fields for the two DGG gate width/delay registers.
   class DGGAndPulserRegister {

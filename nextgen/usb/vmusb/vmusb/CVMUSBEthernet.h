@@ -72,7 +72,9 @@ private:
   CSocket*         m_pSocket;	/* Connection with remote system. */
   CTCLInterpreter* m_pInterp;	/* Having this makes TclList processing easier. */
   std::string      m_lastError;
-  uint16_t                m_irqMask; // interrupt mask shadow register.
+  uint16_t         m_irqMask; // interrupt mask shadow register.
+  std::string      m_host;
+  unsigned int     m_port;
 
 public:
 
@@ -96,6 +98,8 @@ private:
     int operator==(const CVMUSBEthernet& rhs) const;
     int operator!=(const CVMUSBEthernet& rhs) const;
 public:
+    void reconnect();
+
     std::string getLastError() {
       return m_lastError;
     }
@@ -196,6 +200,7 @@ private:
 
     std::string marshallList(CVMUSBReadoutList& list);
     size_t      marshallOutputData(void* pOutputBuffer, const char* reply, size_t maxOutputSize);
+    void openServer();
 
 
 };

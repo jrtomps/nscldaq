@@ -380,7 +380,7 @@ COutputThread::scaler(void* pData)
 
   std::vector<uint32_t> counterData;
   for (int i = 0; i < nScalers; i++) {
-    counterData.push_back((*pBody++) & 0xffffff); // 24 bits of data allows top bits are x/q e.g
+    counterData.push_back((*pBody++));; // & 0xffffff); // 24 bits of data allows top bits are x/q e.g
   }
 
   // The CCUSB does not timestamp scaler data for us at this time so we

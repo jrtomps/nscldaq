@@ -22,31 +22,28 @@ bin_PROGRAMS        = controlpush
 
 
 APPITEMS= cmdline.c CApplication.cpp CChannelList.cpp \
-			CSocket.cpp CStrings.cpp CTCPBadSocketState.cpp \
-			CTCPConnectionFailed.cpp CTCPConnectionLost.cpp \
-			CTCPNoSuchHost.cpp CTCPNoSuchService.cpp \
+			CStrings.cpp \
 			CLookupVisitor.cpp  CUnitChannel.cpp \
-			CApplicationSerializer.cpp CBuildChannelData.cpp \
+			CBuildChannelData.cpp \
 			CChannel.cpp
 controlpush_SOURCES = Main.cpp $(APPITEMS)
 
 
 noinst_HEADERS= cmdline.h CApplication.h CChannelList.h \
-			CChannelVisitor.h CSocket.h CStrings.h \
-			CTCPBadSocketState.h CTCPConnectionFailed.h \
-			CTCPConnectionLost.h CTCPNoSuchHost.h \
-			CTCPNoSuchService.h \
+			CChannelVisitor.h CStrings.h \
 			CLookupVisitor.h CChannel.h CUnitChannel.h \
-			CApplicationSerializer.h CBuildChannelData.h
+			CBuildChannelData.h
 
-controlpush_LDADD   =  -L@top_srcdir@/base/exception -lException \
-			-L@top_srcdir@/base/CopyrightTools -lLicense \
+controlpush_LDADD   =   @top_builddir@/base/tcpip/libTcp.la	\
+			@top_builddir@/base/exception/libException.la \
+			@top_builddir@/base/CopyrightTools/libLicense.la \
 			$(EPICS_LDFLAGS)  $(THREADLD_FLAGS)
 controlpush_LDFLAGS= -Wl,"-rpath=$(libdir)"
 
 INCLUDES            =	-I@top_srcdir@/base/exception		\
 			-I@top_srcdir@/base/CopyrightTools	\
 			-I@top_srcdir@/base/headers		\
+			-I@top_srcdir@/base/tcpip	\
 			$(EPICS_BIN) $(EPICS_INCLUDES) 
 
 controlpush_CXXFLAGS = $(THREADCXX_FLAGS) $(AM_CXXFLAGS)

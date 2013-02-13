@@ -32,7 +32,7 @@
 
 // forward class definitions:
 
-class CRingBuffer;
+class CDataSource;
 class CRingScalerItem;
 class CRingStateChangeItem;
 class TclServerConnection;
@@ -46,7 +46,7 @@ class SclClientMain {
   // Private per object data.
 
 private:
-  CRingBuffer*         m_pRing;
+  CDataSource*         m_pRing;
   std::string          m_Host;
   int                  m_Port;
   TclServerConnection* m_pServer;
@@ -79,7 +79,6 @@ private:
   void ConnectionLost();
   static void ConnectionLostRelay(TcpClientConnection& connection, void* theObject);
   std::string defaultRing();
-  std::string whoAmI();
 
   void setInteger(std::string name, int value, int index = -1);
   void setDouble(std::string name,  double value, int index = -1);

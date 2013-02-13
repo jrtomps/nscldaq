@@ -22,6 +22,7 @@
 #include <CRingScalerItem.h>
 #include <CRingTextItem.h>
 #include <stdlib.h>
+#include <os.h>
 
 
 using namespace std;
@@ -46,18 +47,6 @@ readItem(int fd, void* pBuffer)
 
 }
 
-static string
-whoami()
-{
-  uid_t id = getuid();
-
-  struct passwd* pwent =   getpwuid(id);
-  
-  if (pwent == (struct passwd*)NULL) {
-    throw std::string("Could not figure out my username!!");
-  }
-  return std::string(pwent->pw_name);
-}
 
 
 // Static utility program that will run a specified command
@@ -307,8 +296,8 @@ private:
 
 public:
   void setUp() {
-    if (!CRingBuffer::isRing(whoami())) {
-      CRingBuffer::create(whoami());
+    if (!CRingBuffer::isRing(Os::whoami())) {
+      CRingBuffer::create(Os::whoami());
     }
   }
   void tearDown() {
@@ -341,7 +330,7 @@ void rseltests::all()
   try {
     // attach to our ring as a producer.
     
-    CRingBuffer prod(whoami(), CRingBuffer::producer);
+    CRingBuffer prod(Os::whoami(), CRingBuffer::producer);
     
     // Make a begin_run item, commit it.
     
@@ -388,7 +377,7 @@ void rseltests::exclude()
 
   try {
     
-    CRingBuffer prod(whoami(), CRingBuffer::producer);
+    CRingBuffer prod(Os::whoami(), CRingBuffer::producer);
     
 
     beginRun(prod, fd, false);
@@ -414,7 +403,7 @@ void rseltests::only()
   int  fd            = spawn(programName.c_str());
   
   try {
-    CRingBuffer prod(whoami(), CRingBuffer::producer);
+    CRingBuffer prod(Os::whoami(), CRingBuffer::producer);
 
     beginRun(prod,fd);		// Should be fine.
     eventCount(prod, fd, 100, false);

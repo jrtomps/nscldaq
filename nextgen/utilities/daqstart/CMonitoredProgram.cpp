@@ -19,6 +19,7 @@
 #include <errno.h>
 #include <string.h>
 #include <stdlib.h>
+#include <io.h>
 
 using namespace std;
 
@@ -390,10 +391,15 @@ CMonitoredProgram::CopyIn(const CMonitoredProgram& rhs)
 void
 CMonitoredProgram::Log(int fd, CSink* pSink, string sLine)
 {
-  ssize_t n = write(fd, sLine.c_str(), sLine.size());
-  if (n != sLine.size()) {
-    int e = errno;
-    cerr << "Unable to write a log entry " << strerror(e) << endl;
+  try {
+    io::writeData(fd, sLine.c_str(), sLine.size());
+  }
+  catch (int e) {
+    if (e != 0) {
+      cerr << "Unable to write a log entry " << strerror(e) << endl;
+    } else {
+      cerr << "end of file on output\n";
+    }
   }
   if(pSink) {
     pSink->Log(sLine);

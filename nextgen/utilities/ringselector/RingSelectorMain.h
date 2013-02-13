@@ -74,7 +74,6 @@ public:
 
   // Utilities:
 
-  std::string whoami();
   void        writeBlock(int fd, void* pData, size_t size);
 };
 #endif

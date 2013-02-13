@@ -14,19 +14,21 @@ INCLUDES		=	-I@top_srcdir@/base/headers	\
 				-I@top_srcdir@/base/dataflow	\
 				-I@top_srcdir@/daq/format	\
 				-I@top_srcdir@/base/exception	\
-				-I@top_srcdir@/servers/portmanager
+				-I@top_srcdir@/servers/portmanager \
+				-I@top_srcdir@/base/os
 
 sclclient_DEPENDENCIES	=	sclclientargs.o
 
 BUILT_SOURCES		= 	sclclientargs.o
 
 sclclient_LDADD		=	sclclientargs.o			\
-				@top_srcdir@/servers/portmanager/libPortManager.la \
-				@top_srcdir@/daq/format/libdataformat.la	\
-				@top_srcdir@/base/dataflow/libDataFlow.la	\
+				@top_builddir@/servers/portmanager/libPortManager.la \
+				@top_builddir@/daq/format/libdataformat.la	\
+				@top_builddir@/base/dataflow/libDataFlow.la	\
 				@top_builddir@/servers/portmanager/libPortManager.la \
 				@top_builddir@/base/uri/liburl.la			\
-				@top_srcdir@/base/exception/libException.la	\
+				@top_builddir@/base/os/libdaqshm.la    \
+				@top_builddir@/base/exception/libException.la	\
 				$(THREADLD_FLAGS)
 
 sclclient_CXXFLAGS	=	$(THREADCXX_FLAGS) $(AM_CXXFLAGS)

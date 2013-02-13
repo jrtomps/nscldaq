@@ -39,6 +39,7 @@ static void initialize()
   textToInt["INCREMENTAL_SCALERS"] = INCREMENTAL_SCALERS;
   textToInt["PHYSICS_EVENT"]       = PHYSICS_EVENT;
   textToInt["PHYSICS_EVENT_COUNT"] = PHYSICS_EVENT_COUNT;
+  textToInt["EVB_FRAGMENT"]        = EVB_FRAGMENT;
 
 }
 

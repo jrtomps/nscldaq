@@ -550,6 +550,17 @@ checkbutton $scalerWin.silence -text {Silence Alarms} -command [silence]
     </variablelist>
   </refsect1>
   <refsect1>
+    <title>ENVIRONMENT</title>
+     <para>
+      The environment variable <literal>SCALER_RINGNAME</literal> can
+     select a specific ring while <literal>DAQHOST</literal> selects the host
+     on which that ring originates.  Specifically, the ring data source is:
+     <literal>tcp://$DAQHOST/$SCALER_RINGNAME</literal>.
+     If not defined <literal>DAQHOST</literal> defaults to localhost while 
+     <literal>SCALER_RINGNAME</literal> defaults to your username.
+     </para>
+  </refsect1>
+  <refsect1>
     <title>EXAMPLE(S)</title>
     <programlisting>
        #

@@ -183,6 +183,85 @@ CTCLObjectProcessor::getInfo() const
   }
   return info;
 }
+/*--------------------------------------------------------------------
+** Utilities for derived classes:
+*/
+
+/**
+ * bindAll 
+ *   Binds all the objects in a vector to an interpreter.
+ *
+ * @param interp - reference to the interpreter.
+ * @param objv   - reference to vector of objecgts.
+ */
+void
+CTCLObjectProcessor::bindAll(CTCLInterpreter& interp, std::vector<CTCLObject>& objv)
+{
+  for (int i = 0; i < objv.size(); i++) {
+    objv[i].Bind(interp);
+  }
+}
+/**
+ * requireAtLeast
+ *    Thrown std::string exception if the size of an objv is less than
+ *    the specified number of parameters.
+ *
+ * @param objv - command object vector.
+ * @param n   - Minimmum size required of objv
+ * @param msg - Pointer to the message string to use if the default is not
+ *              desired.
+ */
+void
+CTCLObjectProcessor::requireAtLeast(std::vector<CTCLObject>& objv,
+				    unsigned n, const char* msg) const
+{
+  const char* pMessage = "Insufficient number of parameters";
+  if (msg) pMessage = msg;
+
+  if (objv.size() < n) {
+    throw std::string(pMessage);
+  }
+}
+/**
+ * requireAtMost
+ *   Same as requireAtLeast but there can be no more than n parameters.
+ *
+ * @param objv - command object vector.
+ * @param n   - Maximum size required of objv
+ * @param msg - Pointer to the message string to use if the default is not
+ *              desired.
+ */ 
+void CTCLObjectProcessor::requireAtMost(std::vector<CTCLObject>& objv,
+				     unsigned n, const char* msg) const
+{
+  const char* pMessage = "Too many parameters";
+  if (msg) pMessage = msg;
+
+  if (objv.size() > n) {
+    throw std::string(pMessage);
+  }
+}
+/**
+ * requireExactly 
+ *    Same as above but there must be exactly the requested number of params.
+ *
+ * @param objv - command object vector.
+ * @param n   - exact size required of objv
+ * @param msg - Pointer to the message string to use if the default is not
+ *              desired.
+ */ 
+void CTCLObjectProcessor::requireExactly(std::vector<CTCLObject>& objv,
+				     unsigned n, const char* msg) const 
+{
+  const char* pMessage = "Too many parameters";
+  if (msg) pMessage = msg;
+
+  if (objv.size() != n) {
+    throw std::string(pMessage);
+  }
+}
+
+
 ////////////////////////////////////////////////////////////////////////
 /*!
    Called when the command is being unregistered.  This is overridable,

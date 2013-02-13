@@ -155,6 +155,7 @@ public:
    CTCLObject& operator= (const CTCLList& rList)    ;
    CTCLObject& operator= (double dSource)     ;
    CTCLObject&  operator=(Tcl_Obj* rhs);
+   CTCLObject& operator=(Tcl_WideInt rhs);
 
   // Implcit conversions which access the object's ports.
 
@@ -172,6 +173,7 @@ public:
   CTCLObject& operator+= (const std::string& rItem)    ;
   CTCLObject& operator+= (const char* pItem)    ;
   CTCLObject& operator+= (double  Item)    ;
+  CTCLObject& operator+= (Tcl_Obj* pObj);
 
   //  Return a true copy of the object using Tcl_DuplicateObj
 

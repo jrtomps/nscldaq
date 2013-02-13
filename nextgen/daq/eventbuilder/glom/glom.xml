@@ -1,0 +1,110 @@
+<!-- chapter utilities -->
+<chapter>
+    <title>glom</title>
+    <para>
+        The NSCL event builder is a pipeline.  At the front of the
+        pipeline is the fragment orderer. The fragment orderer
+        accepts fragments from an arbitrary number of sources, orders them by
+        timestamp and emits them in timestamp order.
+        If you want events actually built from these sorted fragments, your
+        event building pipeline will need an element to glue together fragments
+        whose timestamps are within a specified coincidence window, and
+        create ring items from them.
+    </para>
+    <para>
+        The program that does this is <application>glom</application>.
+        <footnote><para>The online urban dictionary at http://www.urbandictionary.com
+        gives as part of definition 3: "to collect or cluster together. "</para></footnote>
+    </para>
+    <para>
+        Glom accepts fragments on standard input and emits ring items on
+        standard output. These may be further processed in later stages of a pipeline
+        or they can be piped into <application>stdintoring</application> to
+        insert them in a ring buffer for further distribution.
+    </para>
+    <para>
+        For reference information on glom see:
+        <link linkend='daq1_glom' endterm='daq1_glom_title' />
+    </para>
+</chapter>
+<!-- /chapter -->
+
+<!-- manpage 1daq -->
+      <refentry id="daq1_glom">
+        <refmeta>
+           <refentrytitle id='daq1_glom_title'>glom</refentrytitle>
+           <manvolnum>1daq</manvolnum>
+        </refmeta>
+        <refnamediv>
+           <refname>glom</refname>
+           <refpurpose>Glue event fragments together into events</refpurpose>
+        </refnamediv>
+        
+        <refsynopsisdiv>
+          <cmdsynopsis>
+          <command>
+glom <replaceable>options</replaceable>
+          </command>
+          </cmdsynopsis>
+
+        </refsynopsisdiv>
+        <refsect1>
+           <title>DESCRIPTION</title>
+           <para>
+            Glom is a filter that accepts event ordered event fragments on stdin
+            and emits event ring items on standard output.  Event fragments that
+            represent non physics triggers are just passed through, with the
+            event fragment header stripped off so that they become their initial
+            ring items again.
+           </para>
+           <para>
+            Any errors glom wants to complain about are emitted to its standard
+            error.  It is therefore normally a bad idea to have glom's standard
+            output and standard error pointed to the same sink.
+            Glom's behavior is controlled by command line options that are
+            documented in <literal>OPTIONS</literal> below.
+           </para>
+        </refsect1>
+        <refsect1>
+           <title>
+              OPTIONS
+           </title>
+            <variablelist>
+                <varlistentry>
+                    <term><option>--nobuild</option></term>
+                    <listitem>
+                        <para>
+                            If this option is present, glom won't attempt to glue
+                            together event fragments, but will emit each event fragment
+                            as a single vent.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><option>--dt</option> <replaceable>ticks</replaceable></term>
+                    <listitem>
+                        <para>
+                            This mandatory parameter provides the number of
+                            timestamp ticks that define a coincidence interval
+                            when building events.  The value of <replaceable>ticks</replaceable>
+                            is ignored but currently necessary when <option>--nobuild</option>
+                            is speicified.
+                        </para>
+                    </listitem>
+                </varlistentry>
+            </variablelist>
+        </refsect1>
+        <refsect1>
+            <title>KNOWN ISSUES</title>
+            <orderedlist>
+                <listitem><para>
+                    <option>--dt</option> should probably not be necessary if
+                    <option>--nobuild</option> is present.
+                    </para></listitem>
+            </orderedlist>
+        </refsect1>
+                                
+                
+      </refentry>
+
+<!-- /manpage -->

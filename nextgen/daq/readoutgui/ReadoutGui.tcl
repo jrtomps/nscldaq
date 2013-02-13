@@ -676,10 +676,10 @@ proc ReadoutGui::ReadoutController {topname} {
     #
     if {$topname ne ""} {
 	toplevel $topname
-	bind $topname <Destroy> [list ::ReadoutGui::EmergencyExit %W $topname]
+	bind $topname <Destroy> +[list ::ReadoutGui::EmergencyExit %W $topname]
 	set topprefix $topname
     } else {
-	bind . <Destroy> [list ::ReadoutGui::EmergencyExit  %W .]
+	bind . <Destroy> +[list ::ReadoutGui::EmergencyExit  %W .]
 	set topprefix ""
 	set topname .
     }

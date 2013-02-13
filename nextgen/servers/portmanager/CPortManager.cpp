@@ -35,6 +35,7 @@
 #include <pwd.h>
 #include <regex.h>
 #include <stdlib.h>
+#include <os.h>
 
 #include <tcl.h>
 
@@ -93,6 +94,10 @@ CPortManager::CPortManager(string host) :
   */
 CPortManager::~CPortManager()
 {
+  if (m_fisConnected) {
+    shutdown(m_nSocket, SHUT_WR);
+    m_fisConnected = false;
+  }
 }
 
 /*!
@@ -542,19 +547,20 @@ CPortManager::GetPortInfo(string l)
 /*!  Get and return the name of the user that corresponds to the current
   effective userid.
   
-  \return string
-  \retval the name of the user running.
+  @return string
+  @retval the name of the user running.
+
+  @note -factored out as os::whoami...
 */
 string
 CPortManager::GetUsername()
 {
-  uid_t uid = geteuid();
-  passwd* p = getpwuid(uid);
-  
-  if(!p) {
-    return string("*unknown*");
+  try {
+    return Os::whoami();
+  } catch(...) {    
+    return string("*unknown*");	// Really should not happen.
   }
-  return string(p->pw_name);
+
 }
 /*!
   Return the Tcp protocol number.
