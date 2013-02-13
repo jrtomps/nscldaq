@@ -181,11 +181,9 @@ catch (CException&amp; error) {
         </refnamediv>
         
         <refsynopsisdiv>
-            <programlisting>
+          <synopsis>
 #include &lt;Exception.h&gt;
-            </programlisting>
-            <classsynopsis>
-                <ooclass><classname>CException</classname></ooclass>
+class         <ooclass><classname>CException</classname></ooclass> {
                 <constructorsynopsis><methodname>CException</methodname>
                     <methodparam><modifier>const</modifier><type>char*</type> <parameter>pszAction</parameter></methodparam>
                 </constructorsynopsis>
@@ -206,7 +204,8 @@ catch (CException&amp; error) {
                     <modifier>const</modifier><type>char*</type> <methodname>WasDoing</methodname>
                         <void /> <modifier>const</modifier>
                 </methodsynopsis>
-            </classsynopsis>
+};
+               </synopsis>
 
         </refsynopsisdiv>
         
@@ -281,11 +280,9 @@ catch (CException&amp; error) {
         </refnamediv>
         
         <refsynopsisdiv>
-            <programlisting>
+            <synopsis>
 #include &lt;ErrnoException.h&gt;
-            </programlisting>
-            <classsynopsis>
-                <ooclass><classname>CErrnoException</classname></ooclass>
+class           <ooclass><classname>CErrnoException</classname></ooclass> {
                 <constructorsynopsis>
                     <methodname>CErrnoException</methodname>
                     <methodparam><modifier>const</modifier> <parameter>pszAction</parameter></methodparam>
@@ -303,7 +300,8 @@ catch (CException&amp; error) {
                     <modifier>virtual</modifier>   <type>Int_t</type> <methodname>ReasonCode</methodname>
                                 <void /><modifier>const</modifier>
                 </methodsynopsis>
-            </classsynopsis>
+};
+               </synopsis>
                
 
         </refsynopsisdiv>
@@ -364,11 +362,9 @@ catch (CException&amp; error) {
         </refnamediv>
         
         <refsynopsisdiv>
-            <programlisting>
+          <synopsis>
 #include &lt;CRangeError.h&gt;
-            </programlisting>
-            <classsynopsis>
-                <ooclass><classname>CRangeError</classname></ooclass>
+class           <ooclass><classname>CRangeError</classname></ooclass> {
                 <constructorsynopsis>
                     <methodname>CRangeError</methodname>
                     <methodparam><type>Int_t</type> <parameter>nLow</parameter></methodparam>
@@ -392,7 +388,8 @@ catch (CException&amp; error) {
                         <methodname>ReasonCode</methodname>
                         <void /> <modifier>const</modifier>
                 </methodsynopsis>
-            </classsynopsis>
+};
+             </synopsis>
             
             
         </refsynopsisdiv>
@@ -508,11 +505,9 @@ catch (CException&amp; error) {
         </refnamediv>
         
         <refsynopsisdiv>
-            <programlisting>
+         <synopsis>
 #include &lt;CStateException.h&gt;
-            </programlisting>
-            <classsynopsis>
-                <ooclass><classname>CStateException</classname></ooclass>
+class          <ooclass><classname>CStateException</classname></ooclass> {
                 <constructorsynopsis>
                     <methodname>CStateException</methodname>
                     <methodparam><modifier>const</modifier> <type>char*</type> <parameter>state</parameter></methodparam>
@@ -527,7 +522,8 @@ catch (CException&amp; error) {
                     <modifier>virtual</modifier>  <type>Int_t</type> <methodname>ReasonCode</methodname>
                                         <void /><modifier>const</modifier>
                 </methodsynopsis>
-            </classsynopsis>
+};
+             </synopsis>
         </refsynopsisdiv>
         
         <refsect1>
@@ -625,11 +621,9 @@ catch (CException&amp; error) {
         </refnamediv>
         
         <refsynopsisdiv>
-            <programlisting>
+           <synopsis>
 #include &lt;CStreamIOError.h&gt;
-            </programlisting>
-            <classsynopsis>
-                <ooclass><classname>CStreamIOError</classname></ooclass>
+class        <ooclass><classname>CStreamIOError</classname></ooclass> {
                 <constructorsynopsis>
                     <methodname> CStreamIOError</methodname>
                     <methodparam><type>IoStreamConditions</type> <parameter>eReason</parameter></methodparam>
@@ -663,7 +657,8 @@ catch (CException&amp; error) {
                     <modifier>const</modifier> <type>char*</type>
                         <methodname>getErrorMessage</methodname> <modifier>const</modifier>
                 </methodsynopsis>
-            </classsynopsis>
+};
+               </synopsis>
         </refsynopsisdiv>
         
         <refsect1>
@@ -810,11 +805,9 @@ catch (CStreamIOError&amp; error) {
       </refnamediv>
       
       <refsynopsisdiv>
-         <programlisting>
+         <synopsis>
 #include &lt;uriFormatException.h&gt;
-         </programlisting>
-         <classsynopsis>
-            <ooclass><classname>CURIFormatException</classname></ooclass>
+class      <ooclass><classname>CURIFormatException</classname></ooclass> {
             <constructorsynopsis>
                 <methodname>CURIFormatException</methodname>
                 <methodparam>
@@ -897,7 +890,8 @@ catch (CStreamIOError&amp; error) {
                 <methodname>ReasonCode</methodname>
                 <void /><modifier>const</modifier>
             </methodsynopsis>
-         </classsynopsis>
+};
+           </synopsis>
       </refsynopsisdiv>
       <refsect1>
          <title>Description</title>

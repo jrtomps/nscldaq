@@ -65,9 +65,30 @@ const char* Out3Values[] = {
   "busyend", "busy", "gdga", "gdgb",
   NULL
 };
-static int outLookup[] = {
-  0, 1, 6, 7
+
+
+// Enumerator values for leds:
+
+static const char* redValues[] = {
+  "event", "busy", "usboutnotempty", "usbinnotfull", 0
 };
+static const char* greenValues[] = {
+  "acquire", "nimi1", "nimi2", "usbinnotempty", "usbtrigger", 0
+};
+static const char* yellowValues[] = {
+  "nimi2", "nimi3", "busy", "usbinfifonotempty", 0
+};
+
+// Enumerator values for scaler counts:
+
+static const char* scalerAInputs[] = {
+  "disabled", "nimi1", "nimi2", "nimi3", "event", "carryb", "dgga", "dggb", 0
+};
+static const char* scalerBInputs[] = {
+  "disabled", "nimi1", "nimi2", "nimi3", "event", "carrya", "dgga", "dggb", 0
+};
+
+
 
 // Range of gdg delays/widths
 
@@ -81,8 +102,8 @@ static CConfigurableObject::Limits WidthLimits(minwidth, maxwidth);
 // gdga delay:
 
 static CConfigurableObject::limit mindelay(0);
-static CConfigurableObject::limit maxdelaya(0x00ffffff);
-static CConfigurableObject::limit maxdelayb(0x00ffffff);
+static CConfigurableObject::limit maxdelaya(0x7fffffff);
+static CConfigurableObject::limit maxdelayb(0x7fffffff);
 static CConfigurableObject::Limits DelayA(mindelay, maxdelaya);
 static CConfigurableObject::Limits DelayB(mindelay, maxdelayb);
 
@@ -139,10 +160,6 @@ CCCUSBModule::~CCCUSBModule()
    are defined so that the configuration file can be processed.
    @param configuration - Reference to the module's configuration.
 */
-static set<string> gdgsources;
-static set<string> out1Values;
-static set<string> out2Values;
-static set<string> out3Values;
 
 void
 CCCUSBModule::onAttach(CReadoutModule& configuration)
@@ -151,17 +168,11 @@ CCCUSBModule::onAttach(CReadoutModule& configuration)
 
   // gdga/bsource:
 
-  if (gdgsources.empty() ) {
-    for (const char** pSrc = GdgSourceValues; *pSrc; pSrc++) {
-      gdgsources.insert(string(*pSrc));
-    }
-  }
-  configuration.addParameter("-gdgasource",
-			     CConfigurableObject::isEnum,
-			     &gdgsources, "disabled");
-  configuration.addParameter("-gdgbsource",
-			     CConfigurableObject::isEnum,
-			     &gdgsources, "disabled");
+
+
+  configuration.addEnumParameter("-gdgasource", GdgSourceValues);
+  configuration.addEnumParameter("-gdgbsource", GdgSourceValues);
+
   // The gate generator width/delay parameters:
 
   configuration.addParameter("-gdgawidth",
@@ -177,54 +188,44 @@ CCCUSBModule::onAttach(CReadoutModule& configuration)
 			     CConfigurableObject::isInteger,
 			     &DelayB, "0");
 
-  // Output 1:
+  // LED parameters:
 
-  if (out1Values.empty()) {
-    for (const char** pValues = Out1Values; *pValues; pValues++) {
-      out1Values.insert(string(*pValues));
-    }
-  }
-  configuration.addParameter("-out1", 
-			     CConfigurableObject::isEnum,
-			     &out1Values, "busy");
-  configuration.addParameter("-out1latch",
-			     CConfigurableObject::isBool, 0,
-			     "false");
-  configuration.addParameter("-out1invert",
-			     CConfigurableObject::isBool, 0, 
-			     "false");
+  configuration.addEnumParameter("-red", redValues, "event");
+  configuration.addBooleanParameter("-redlatch", false);
+  configuration.addBooleanParameter("-redinvert", false);
 
-  // Output 2:
- 
-  if (out2Values.empty()) {
-    for (const char** pValues = Out2Values; *pValues; pValues++) {
-      out2Values.insert(string(*pValues));
-    }
-  }
-  configuration.addParameter("-out2",
-			     CConfigurableObject::isEnum,
-			     &out2Values, "trigger");
-  configuration.addParameter("-out2latch",
-			     CConfigurableObject::isBool, 0, "false");
-  configuration.addParameter("-out2invert",
-			     CConfigurableObject::isBool, 0, "false");
+  configuration.addEnumParameter("-green", greenValues, "acquire");
+  configuration.addBooleanParameter("-greenlatch", false);
+  configuration.addBooleanParameter("-greeninvert", false);
 
-  // Output 3:
+  configuration.addEnumParameter("-yellow", yellowValues, "nimi2");
+  configuration.addBooleanParameter("-yellowlatch", false);
+  configuration.addBooleanParameter("-yellowinvert", false);
+
+  // scaler source parameters:
+
+  configuration.addEnumParameter("-scalera", scalerAInputs, "disabled");
+  configuration.addEnumParameter("-scalerb", scalerBInputs, "disabled");
+
+  // Outputs:
 
 
-  if (out3Values.empty()) {
-    for (const char** pValues = Out3Values; *pValues; pValues++) {
-      out3Values.insert(string(*pValues));
-    }
-  }
-  configuration.addParameter("-out3",
-			     CConfigurableObject::isEnum,
-			     &out3Values, "busyend");
-  configuration.addParameter("-out3latch",
-			     CConfigurableObject::isBool, 0, "false");
-  configuration.addParameter("-out3invert",
-			     CConfigurableObject::isBool, 0, "false");
-  //
+  configuration.addEnumParameter("-out1", Out1Values, "busy");
+  configuration.addBooleanParameter("-out1latch", false);
+  configuration.addBooleanParameter("-out1invert", false);
+
+  configuration.addEnumParameter("-out2", Out2Values, "event");
+  configuration.addBooleanParameter("-out2latch", false);
+  configuration.addBooleanParameter("-out2invert", false);
+
+  configuration.addEnumParameter("-out3", Out3Values, "busyend");
+  configuration.addBooleanParameter("-out3latch", false);
+  configuration.addBooleanParameter("-out3invert", false);
+
+  // Control the readout list:
+
+  configuration.addBooleanParameter("-readscalers", false);
+  configuration.addBooleanParameter("-incremental", false);
 
 }
 /*!
@@ -243,15 +244,46 @@ CCCUSBModule::Initialize(CCCUSB& controller)
   configureGdg2(controller);
   configureDevices(controller);
   configureOutput(controller);
-}
+  configureLED(controller);
 
+
+}
+ 
 /*!
-   The module  does not actually read anything out.
+  The module reads the scalers if -readscaler is set and clears them if -incremental is set.
+  Note that the scalers are disabled for the time the read and optional clear is performed 
+  so that there is no time skew in the counts between the scalers.   This is especially 
+  important if the scalers are ganged together.  A is read first then B.
+
    @param list - CVMUSBReadoutList to which we make no contributions:
 */
 void
 CCCUSBModule::addReadoutList(CCCUSBReadoutList& list)
 {
+
+  if (m_pConfiguration->getBoolParameter("-readscalers")) {
+    list.addWrite24(25, 6, 16, m_deviceSource & ~(
+		    (CCCUSB::DeviceSourceSelectorsRegister::scalerAEnable
+		     | CCCUSB::DeviceSourceSelectorsRegister::scalerBEnable)));
+
+   
+    // Read the scalers:
+
+    list.addRead24(25, 11, 0);	// scalerA
+    list.addRead24(25, 12, 0);	// scalerB
+
+    if (m_pConfiguration->getBoolParameter("-incremental")) {
+
+      list.addWrite24(25, 6, 16, m_deviceSource 
+		      | CCCUSB::DeviceSourceSelectorsRegister::scalerAReset
+		      | CCCUSB::DeviceSourceSelectorsRegister::scalerBReset);
+    }
+    list.addWrite24(25, 6, 16, m_deviceSource);
+
+
+  }
+
+
 }
 
 /*!
@@ -298,7 +330,8 @@ CCCUSBModule::configureOutput(CCCUSB& controller)
   uint32_t registerValue = 0;
   
   // O1
-  uint32_t o1Register = outLookup[enumIndex(Out1Values, m_pConfiguration->cget("-out1"))];
+  uint32_t o1Register = m_pConfiguration->getEnumParameter("-out1", Out1Values) <<
+    CCCUSB::OutputSourceRegister::nimO1Shift;
   if (getBoolParameter("-out1latch")) {
     o1Register |= CCCUSB::OutputSourceRegister::nimO1Latch;
   }
@@ -310,7 +343,8 @@ CCCUSBModule::configureOutput(CCCUSB& controller)
 
   // O2
 
-  uint32_t o2Register = outLookup[enumIndex(Out2Values, m_pConfiguration->cget("-out2"))] << 8;
+  uint32_t o2Register = m_pConfiguration->getEnumParameter("-out2", Out2Values)
+    << CCCUSB::OutputSourceRegister::nimO2Shift;
   if (getBoolParameter("-out2latch")) {
     o2Register |= CCCUSB::OutputSourceRegister::nimO2Latch;
   }
@@ -321,7 +355,8 @@ CCCUSBModule::configureOutput(CCCUSB& controller)
  
   // O3
 
-  uint32_t o3Register = outLookup[enumIndex(Out3Values, m_pConfiguration->cget("-out3"))] << 16;
+  uint32_t o3Register = m_pConfiguration->getEnumParameter("-out3", Out3Values) 
+    << CCCUSB::OutputSourceRegister::nimO3Shift;
   if (getBoolParameter("-out3latch")) {
     o3Register |= CCCUSB::OutputSourceRegister::nimO3Latch;
   }
@@ -333,8 +368,6 @@ CCCUSBModule::configureOutput(CCCUSB& controller)
 
   // write the register.
 
-  cerr << "Output selector: " << hex << registerValue 
-       << dec << endl;
   controller.writeOutputSelector(registerValue);
 }
 /**
@@ -350,6 +383,7 @@ CCCUSBModule::configureGdg1(CCCUSB& controller)
 
   uint32_t registerValue = (width << 16) | delay;
   controller.writeDGGA(registerValue);
+
 }
 /**
  * Configure the gate and delay for GDGB.. this resource has a 24 bit
@@ -364,29 +398,110 @@ CCCUSBModule::configureGdg2(CCCUSB& controller)
   uint32_t adelay= getIntegerParameter("-gdgadelay");
 
   uint32_t fineValue = (width << 16) | (delay & 0xffff);
-  uint32_t coarseValue    = (delay & 0xff0000) | ((delay >> 16) & 0xff);
+  uint32_t coarseValue    = (delay & 0xffff0000) | ((delay >> 16) & 0xffff);
 
-
-  cerr << "B fine value: " << hex << fineValue << endl;
-  cerr << "B Coarse value: " << coarseValue << dec << endl;
 
   controller.writeDGGB(fineValue);
   controller.writeDGGExt(coarseValue);
+
 }
 /**
  * Configure the sourcdes for the various devices.  At this point in time
- * This is restricted to the two gate and delay generators... reflected by the
- * GdgSourceValues enumerator.
+ *
  * @param controller - The CCCUSB controller object.
  */
 void
 CCCUSBModule::configureDevices(CCCUSB& controller)
 {
-  int gdgaSource = enumIndex(GdgSourceValues, m_pConfiguration->cget("-gdgasource"));
-  int gdgbSource = enumIndex(GdgSourceValues, m_pConfiguration->cget("-gdgbsource"));
+  uint32_t registerValue = 0;
 
-  uint32_t registerValue = (gdgaSource << 16) | (gdgbSource << 24);
+  // Scaler A:
 
-  cerr << hex << "Device source: " << registerValue << endl;
+  registerValue |= (m_pConfiguration->getEnumParameter("-scalera", scalerAInputs)
+    << CCCUSB::DeviceSourceSelectorsRegister::scalerAShift)
+    |  CCCUSB::DeviceSourceSelectorsRegister::scalerAEnable;
+
+  // Scaler B:
+
+  registerValue |= (m_pConfiguration->getEnumParameter("-scalerb", scalerBInputs)
+    << CCCUSB::DeviceSourceSelectorsRegister::scalerBShift)
+    |  CCCUSB::DeviceSourceSelectorsRegister::scalerBEnable;
+
+  // DGGA:
+  
+  registerValue |= m_pConfiguration->getEnumParameter("-gdgasource", GdgSourceValues)
+    << CCCUSB::DeviceSourceSelectorsRegister::DGGAShift;
+
+  // DGGB:
+
+  registerValue |= m_pConfiguration->getEnumParameter("-gdgbsource", GdgSourceValues)
+    << CCCUSB::DeviceSourceSelectorsRegister::DGGBShift;
+
+  // Clear the scalers first...
+
+
+  controller.writeDeviceSourceSelectors(CCCUSB::DeviceSourceSelectorsRegister::scalerAReset
+					|  CCCUSB::DeviceSourceSelectorsRegister::scalerAEnable
+					| CCCUSB::DeviceSourceSelectorsRegister::scalerBReset
+					| CCCUSB::DeviceSourceSelectorsRegister::scalerBEnable
+					);
+  controller.writeDeviceSourceSelectors(0);
+
+  uint16_t qx;
+  controller.simpleControl(25,12,15, qx);
   controller.writeDeviceSourceSelectors(registerValue);
+
+
+
+  m_deviceSource = registerValue;
+  
+  
+
+
 }
+/**
+ * configureLED
+ *
+ * Configure the value of the LED Source register.  This deterimens which LEDS light and when.
+ *
+ * @param controller - reference to the CC-USB  object that represents the CAMAC controller.
+ *
+ */
+void
+CCCUSBModule::configureLED(CCCUSB& controller)
+{
+  uint32_t registerValue = 0;
+
+  // red:
+
+  registerValue |= m_pConfiguration->getEnumParameter("-red", redValues) 
+    << CCCUSB::LedSourceRegister::redShift;
+  if (m_pConfiguration->getBoolParameter("-redinvert")) {
+    registerValue |= CCCUSB::LedSourceRegister::redInvert;
+  }
+  if (m_pConfiguration->getBoolParameter("-redlatch")) {
+    registerValue |= CCCUSB::LedSourceRegister::redLatch;
+  }
+  // green:
+
+  registerValue |= m_pConfiguration->getEnumParameter("-green", greenValues)
+    << CCCUSB::LedSourceRegister::greenShift;
+  if (m_pConfiguration->getBoolParameter("-greeninvert")) {
+    registerValue |= CCCUSB::LedSourceRegister::greenInvert;
+  }
+  if (m_pConfiguration->getBoolParameter("-greenlatch")) {
+    registerValue |= CCCUSB::LedSourceRegister::greenLatch;
+  }
+  // yellow:
+
+  registerValue |= m_pConfiguration->getEnumParameter("-yellow", yellowValues);
+  if (m_pConfiguration->getBoolParameter("-yellowinvert")) {
+    registerValue |= CCCUSB::LedSourceRegister::yellowInvert;
+  }
+  if (m_pConfiguration->getBoolParameter("-yellowlatch")) {
+    registerValue |= CCCUSB::LedSourceRegister::yellowLatch;
+  }
+
+  controller.writeLedSelector(registerValue);
+  
+} 

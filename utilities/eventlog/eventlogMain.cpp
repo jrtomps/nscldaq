@@ -26,6 +26,7 @@
 #include <CRemoteAccess.h>
 #include <DataFormat.h>
 #include <CAllButPredicate.h>
+#include <io.h>
 
 #include <iostream>
 #include <unistd.h>
@@ -237,12 +238,19 @@ EventLogMain::recordRun(const CRingStateChangeItem& item)
 
       fd = openEventSegment(runNumber, segment);
     }
-    ssize_t n = write(fd, pItem->getItemPointer(), size);
-    if (n != size) {
-      int err =errno;
-      cerr << "Unable to output a ringbuffer item : "  << strerror(err) << endl;
-      exit(-1);
+
+    try {
+      io::writeData(fd, pItem->getItemPointer(), size);
     }
+    catch(int err) {
+      if(err) {
+	cerr << "Unable to output a ringbuffer item : "  << strerror(err) << endl;
+      }  else {
+	cerr << "Output file closed out from underneath us\n";
+      }
+      exit(EXIT_FAILURE);
+    }
+
     bytesInSegment  += size;
 
     delete pItem;

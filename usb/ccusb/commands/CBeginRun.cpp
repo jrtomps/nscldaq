@@ -26,6 +26,7 @@
 #include <CAcquisitionThread.h>
 #include <CRunState.h>
 #include <CConfiguration.h>
+#include <CCCUSB.h>
 
 using std::vector;
 using std::string;
@@ -111,6 +112,9 @@ CBeginRun::operator()(CTCLInterpreter& interp,
   }
   pState->setTitle(string(titleString));
   
+  // Re-establish connection to the controller:
+
+  Globals::pUSBController->reconnect();
 
   // Check that the configuration file processes correctly:
 

@@ -11,12 +11,14 @@ BUILT_SOURCES		= 	eventlogargs.h
 INCLUDES 		=	-I@top_srcdir@/base/headers		\
 				-I@top_srcdir@/base/exception		\
 				-I@top_srcdir@/daq/format		\
-			        -I@top_srcdir@/base/dataflow
+			        -I@top_srcdir@/base/dataflow	\
+				-I@top_srcdir@/base/os
 
 eventlog_LDADD		=	eventlogargs.o	\
-				@top_srcdir@/daq/format/libdataformat.la	\
-				@top_srcdir@/base/dataflow/libDataFlow.la	\
-				@top_srcdir@/base/exception/libException.la	\
+				@top_builddir@/daq/format/libdataformat.la	\
+				@top_builddir@/base/dataflow/libDataFlow.la	\
+				@top_builddir@/base/exception/libException.la	\
+				@top_builddir@/base/os/libdaqshm.la		\
 				$(THREADLD_FLAGS)
 
 eventlog_CXXFLAGS	=	$(THREADCXX_FLAGS) $(AM_CXXFLAGS)
@@ -37,6 +39,7 @@ eventlogargs.o: eventlogargs.ggo
 EXTRA_DIST		=	eventlogargs.ggo eventlog.xml
 
 
+
 #-------------------------------------------------------------
 #
 # Test programs.
@@ -47,4 +50,5 @@ fakeruns_SOURCES	= 	fakeruns.cpp
 
 fakeruns_LDADD		=	@top_srcdir@/daq/format/libdataformat.la	\
 				@top_srcdir@/base/dataflow/libDataFlow.la	\
+				@top_builddir@/base/os/libdaqshm.la              \
 				@top_srcdir@/base/exception/libException.la

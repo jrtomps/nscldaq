@@ -8,8 +8,8 @@ libPortManager_la_SOURCES = CPortManagerException.cpp \
 include_HEADERS = CPortManagerException.h \
 		  CPortManager.h
 
-libPortManager_la_LDFLAGS = -L@top_srcdir@/base/exception \
-			-lException   \
+libPortManager_la_LDFLAGS = @top_builddir@/base/exception/libException.la \
+			@top_builddir@/base/os/libdaqshm.la   \
 			-version-info $(SOVERSION) \
 			-Wl,"-rpath=$(libdir)"	\
 			$(TCL_LDFLAGS)		\
@@ -20,6 +20,7 @@ libPortManager_la_CXXFLAGS = $(THREADCXX_FLAGS) 	\
 				$(AM_CXXFLAGS)
 
 INCLUDES = -I@top_srcdir@/base/headers -I@top_srcdir@/base/exception \
+	-I@top_srcdir@/base/os		\
 		-DHOME=\"$(prefix)\"
 
 TCLPACKAGES=ConnectionManager.tcl \

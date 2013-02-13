@@ -38,7 +38,8 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <daqshm.h>
-#include <pwd.h>
+#include <os.h>
+
 
 
 using namespace std;
@@ -354,20 +355,9 @@ CRingBuffer::getDefaultMaxConsumers()
 std::string
 CRingBuffer::defaultRing()
 {
-  struct passwd  Entry;
-  struct passwd* pEntry;
-  char   dataStorage[1024];	// Storage used by getpwuid_r(3).
-  uid_t  uid = getuid();
+  return Os::whoami();
 
-  if (getpwuid_r(uid, &Entry, dataStorage, sizeof(dataStorage), &pEntry)) {
-    int errorCode = errno;
-    std::string errorMessage = 
-      "Unable to determine the current username in CTheApplication::destinationRing: ";
-    errorMessage += strerror(errorCode);
-    throw errorMessage;
-    
-  }
-  return string(Entry.pw_name);
+
 }
 
 

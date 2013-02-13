@@ -191,6 +191,7 @@ public:
   double           getFloatParameter   (std::string name);
   std::vector<int> getIntegerList      (std::string name);
   std::vector<std::string> getList     (std::string name);
+  int              getEnumParameter(std::string name, const char**pValues);
     
   // Operations:
 

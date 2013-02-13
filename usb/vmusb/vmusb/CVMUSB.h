@@ -130,6 +130,8 @@ public:
 
     // Register I/O operations.
 public:
+    virtual void     reconnect(); /* Drop USB/open USb. */
+
     virtual void     writeActionRegister(uint16_t value);
     void     writeActionRegister(int value) { // SWIG
       writeActionRegister((uint16_t)value);
@@ -351,6 +353,7 @@ public:
 public: 
 #ifndef _FLATTEN_NESTED_CLASSES
     class RegisterOffsets {
+    public:
 #endif
       static const unsigned int FIDRegister = (0);       // Firmware id.
       static const unsigned int GMODERegister = (4);     // Global mode register.
@@ -463,6 +466,7 @@ public:
 	static const uint32_t topYellowBusGranted         = 7;
 	static const uint32_t topYellowInvert             = 0x8;
 	static const uint32_t topYellowLatch              = 0x10;
+	static const uint32_t topYellowShift              = 0;
 
 	// Red LED:
 
@@ -476,6 +480,7 @@ public:
 	static const uint32_t redBusGranted             = (7 << 8);
 	static const uint32_t redInvert                 = (8 << 8);
 	static const uint32_t redLatch                  = (0x10 << 8);
+	static const uint32_t redShift                  = 8;
 
 	// Green led:
 
@@ -489,6 +494,7 @@ public:
 	static const uint32_t greenBusGranted           = (7 << 16);
 	static const uint32_t greenInvert               = (8 << 16);
 	static const uint32_t greenLatch                = (0x10 << 16);
+	static const uint32_t greenShift                = 16;
 
 	// Bottom yellow LED
 
@@ -502,6 +508,7 @@ public:
 	static const uint32_t bottomYellowBusGranted    = (7 << 24);
 	static const uint32_t bottomYellowInvert        = (8 << 24);
 	static const uint32_t bottomYellowLatch         = (0x10 << 24);
+	static const uint32_t bottomYellowShift         = 24;
     };
     class DeviceSourceRegister {
 
@@ -516,6 +523,7 @@ public:
 	static const uint32_t nimO1UsbTrigger           = 7;
 	static const uint32_t nimO1Invert               = 8;
 	static const uint32_t nimO1Latch                = 0x10;
+	static const uint32_t nimO1Shift                = 0;
 
 	static const uint32_t nimO2UsbTrigger1          = (0 << 8);
 	static const uint32_t nimO2VMEExecuting         = (1 << 8);
@@ -527,20 +535,23 @@ public:
 	static const uint32_t nimO2UsbTrigger           = (7 << 8);
 	static const uint32_t nimO2Invert               = (8 << 8);
 	static const uint32_t nimO2Latch                = (0x10 << 8);
+	static const uint32_t nimO2Shift                = 8;
 
-	static const uint32_t scalerADisabled           = (0   << 16);
+	static const uint32_t scalerADGGA         = (0   << 16);
 	static const uint32_t scalerANIMI1              = (1   << 16);
 	static const uint32_t scalerANIMI2              = (2   << 16);
-	static const uint32_t scalerAEvent              = (2   << 16);
-	static const uint32_t scalerAEnable             = (8   << 16);
-	static const uint32_t scalerAReset              = (0x10 << 16);
+	static const uint32_t scalerAEvent              = (3   << 16);
+	static const uint32_t scalerAEnable             = (4   << 16);
+	static const uint32_t scalerAReset              = (8 << 16);
+	static const uint32_t scalerAShift              = 16;
 
-	static const uint32_t scalerBDisabled           = (0   << 20);
+	static const uint32_t scalerBCarryA           = (0   << 20);
 	static const uint32_t scalerBNIMI1              = (1   << 20);
 	static const uint32_t scalerBNIMI2              = (2   << 20);
-	static const uint32_t scalerBEvent              = (2   << 20);
-	static const uint32_t scalerBEnable             = (8   << 20);
-	static const uint32_t scalerBReset              = (0x10 << 20);
+	static const uint32_t scalerBEvent              = (3   << 20);
+	static const uint32_t scalerBEnable             = (4   << 20);
+	static const uint32_t scalerBReset              = (8 << 20);
+	static const uint32_t scalerBShift              = 20;
 
 	static const uint32_t dggADisabled              = (0   << 24);
 	static const uint32_t dggANIMI1                 = (1   << 24);
@@ -549,6 +560,7 @@ public:
 	static const uint32_t dggAEndOfEvent            = (4   << 24);
 	static const uint32_t dggAUsbTrigger            = (5   << 24);
 	static const uint32_t dggAPulser                = (6   << 24);
+	static const uint32_t dggAShift                 = 24;
 
 	static const uint32_t dggBDisabled              = (0   << 28);
 	static const uint32_t dggBNIMI1                 = (1   << 28);
@@ -557,6 +569,9 @@ public:
 	static const uint32_t dggBEndOfEvent            = (4   << 28);
 	static const uint32_t dggBUsbTrigger            = (5   << 28);
 	static const uint32_t dggBPulser                = (6   << 28);
+	static const uint32_t dggBShift                 = 28;
+
+	static const uint32_t freezeScalers             = 0x80000000;
 
     };
     

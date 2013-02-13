@@ -19,6 +19,7 @@ INCLUDES		= 	-I@top_srcdir@/usb/vmusb/threadcomm	\
 				-I@top_srcdir@/usb/vmusb/router		\
 				-I@top_srcdir@/usb/vmusb/daqconfig	\
 				-I@top_srcdir@/usb/vmusb		\
+				-I@top_srcdir@/usb/vmusb/vmusb		\
 				-I@top_srcdir@/base/tclplus		\
 				-I@top_srcdir@/base/headers		\
 				-I@top_srcdir@/base/exception		\

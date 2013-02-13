@@ -173,6 +173,21 @@ CTCLObject::operator=(Tcl_Obj* rhs)
   }
   return *this;
 }
+/**
+ * Assign  from a wide int.  Wide ints are at least uint64_t wide.
+ *
+ * @param rhs - source of assignment.
+ *
+ * @return CTCLObject& (*this).
+ */
+CTCLObject&
+CTCLObject::operator=(Tcl_WideInt rhs)
+{
+  NewIfMust();			// Prevent smash of our Tcl_Obj* if it's shared.
+  Tcl_SetWideIntObj(m_pObject, rhs);
+
+  return *this;
+}
 
 //////////////////////////////////////////////////////////////////////////////
 //
@@ -333,6 +348,25 @@ CTCLObject& CTCLObject::operator+=(double  Item)
   return *this;  
   
 }
+/**
+ * operator+=
+ *   This overload lappends an existing Tcl_Obj* to the list.
+ *
+ * @param pObj - Tcl_Obj* to append:
+ *
+ * @return CTCLobject& (*this).
+ */
+CTCLObject& 
+CTCLObject::operator+=(Tcl_Obj* item)
+{
+  DupIfMust();
+  CTCLInterpreter* pInterp = AssertIfNotBound();
+  Tcl_IncrRefCount(item);
+  Tcl_ListObjAppendElement(pInterp->getInterpreter(), m_pObject, item);
+
+  return *this;
+}
+
 //////////////////////////////////////////////////////////////////////////////
 //
 //  Function:       

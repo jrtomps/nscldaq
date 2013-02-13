@@ -279,6 +279,45 @@ $DAQHOME/bin/ReadoutShell -host=localhost -path=$DAQHOME/bin/dummyrdo -nomonitor
            </variablelist>
         </refsect1>
         <refsect1>
+           <title>ENVIRONMENT VARIABLES</title>
+           <para>
+              The following environment variables can modify where the s800
+              readout callouts looks for stuff:
+           </para>
+           <variablelist>
+              <varlistentry>
+                 <term><literal>S800_HOST</literal></term>
+                 <listitem><para>
+                     If defined overrides the default host in which the S800
+                     is running.  The default host is
+                     <literal>spdaq48</literal>.  You should only need to
+                     modify this value if the S800 spdaq system needs
+                     to be replaced in an emergency.
+                  </para></listitem>
+               </varlistentry>
+               <varlistentry>
+                    <term><literal>S800_PORT</literal></term>
+                    <listitem><para>
+                       Overrides the default port on which the S800 is
+                       listening for data connections.  The command port must
+                       and host must be provided when initializing the
+                       callouts package.  If not defined, this defaults to 
+                       <literal>9002</literal> which is the normal port.
+                    </para></listitem>
+                </varlistentry>
+                <varlistentry>
+                     <term><literal>S800_RING</literal></term>
+                     <listitem><para>
+                          The name of the ring into which the s800 data are
+                          put.  This defaults to
+                          <literal>s800_`whoami`</literal> where  
+                          <literal>`whoami`</literal> is your logged in 
+                          username.
+                     </para></listitem>
+                 </varlistentry>
+             </variablelist>
+        </refsect1>
+        <refsect1>
             <title>EXAMPLES</title>
             <para>
                 Here is a minimal ReadoutCallouts example.

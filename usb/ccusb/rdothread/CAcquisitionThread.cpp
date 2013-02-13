@@ -313,11 +313,14 @@ void
 CAcquisitionThread::startDaq()
 {
 
-  m_pCamac->writeActionRegister(0);
+  m_pCamac->writeActionRegister(CCCUSB::ActionRegister::clear);
 
 
   uint32_t fware;
-  int status = m_pCamac->readFirmware(fware);
+  int status;
+  while((status = m_pCamac->readFirmware(fware)) != 0) {
+    cerr << "Attempting firmware register read\n";
+  }
   if (status < 0) {
     cerr << "Could not even read the module firmware status: " << status 
 	 << " errno: " << errno <<endl;
@@ -333,6 +336,17 @@ CAcquisitionThread::startDaq()
 
   cerr << "CCUSB located firmware revision: " << hex << fware << dec << endl;
 
+  // Set up the default  ouptuts, 
+  //  NIM 01  - Busy.
+  //  NIM 02  - Acquire
+  //  NIM 03  - end of busy.
+
+
+    m_pCamac->writeOutputSelector(CCCUSB::OutputSourceRegister::nimO1Busy |
+  				CCCUSB::OutputSourceRegister::nimO2Acquire |
+  				CCCUSB::OutputSourceRegister::nimO3BusyEnd);
+
+
   // The CCUSB has two stacks to load; an event stack and a scaler stack.
   // though the loop below makes you believe it might have an arbitrary number...
   // it still should work.
@@ -341,8 +355,8 @@ CAcquisitionThread::startDaq()
   for(int i =0; i < Stacks.size(); i++) {
     CStack* pStack = dynamic_cast<CStack*>(Stacks[i]->getHardwarePointer());
     assert(pStack);
-    pStack->loadStack(*m_pCamac);     // Load into CC-USB .. The stack knows if it is event or scaler
     pStack->Initialize(*m_pCamac);    // INitialize daq hardware associated with the stack.
+    pStack->loadStack(*m_pCamac);     // Load into CC-USB .. The stack knows if it is event or scaler
     pStack->enableStack(*m_pCamac);   // Enable the trigger logic for the stack.
   }
  
@@ -360,15 +374,6 @@ CAcquisitionThread::startDaq()
   m_pCamac->writeGlobalMode((CCCUSB::GlobalModeRegister::bufferLen4K << CCCUSB::GlobalModeRegister::bufferLenShift));
 
 
-  // Set up the ouptuts, 
-  //  NIM 01  - Busy.
-  //  NIM 02  - Acquire
-  //  NIM 03  - end of busy.
-
-    m_pCamac->writeOutputSelector(CCCUSB::OutputSourceRegister::nimO1Busy |
-  				CCCUSB::OutputSourceRegister::nimO2Acquire |
-  				CCCUSB::OutputSourceRegister::nimO3EndOfBusy);
-
  
 
   CCusbToAutonomous();
@@ -384,7 +389,8 @@ void
 CAcquisitionThread::stopDaq()
 {
   m_pCamac->writeActionRegister(CCCUSB::ActionRegister::scalerDump);
-  //m_pCamac->writeActionRegister(scalerDump);
+
+
   drainUsb();
 }
 /*!

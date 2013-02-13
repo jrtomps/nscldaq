@@ -37,7 +37,7 @@ namespace eval s800 {
     variable here          [file dirname [info script]]; # Locate ourself.
     variable s800Host      spdaq48;			 #  Default s800 spdaq
     variable s800Port      9002;			 # Default s800 port.
-    variable s800Ring      s800;			 # Default s800 destination ring
+    variable s800Ring      "s800_$::tcl_platform(user)";			 # Default s800 destination ring
     variable feederFd     -1;				 # If open fd on pipe.
     variable pollId       -1
     variable disconnected 0;	# Disconnected message given...

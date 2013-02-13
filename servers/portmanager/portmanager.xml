@@ -298,8 +298,8 @@ tclsh DaqPortManager <replaceable>options...</replaceable>
 #include &lt;CPortManager.h&gt;
 #include &lt;CPortManagerException.h&gt;
          </programlisting>
-         <classsynopsis>
-            <ooclass><classname>CPortManager</classname></ooclass>
+         <synopsis>
+class <ooclass><classname>CPortManager</classname></ooclass> {
             <constructorsynopsis>
                 <methodname>CPortManager</methodname>
                 <methodparam>
@@ -328,7 +328,9 @@ tclsh DaqPortManager <replaceable>options...</replaceable>
                     <void />
             </methodsynopsis>
 
-         </classsynopsis>
+};
+         </synopsis>
+
       </refsynopsisdiv>
       <refsect1>
          <title>Description</title>
@@ -848,7 +850,7 @@ package require portAllocator
         The
         <command>portAllocator</command>
         package provides access to the NSCL TCP/IP port management
-       server.  It can be used by TCP/IP server applications t obtain a server listen
+       server.  It can be used by TCP/IP server applications to obtain a server listen
        port.   The package follows an object oriented model.  The application creates
        a
        <classname>portAllocator</classname>
@@ -867,7 +869,7 @@ package require portAllocator
   </refsect1>
   <refsect1>
      <title>
-	COMMANDS
+	SUB-COMMANDS
      </title>
      <variablelist>
         <varlistentry>
@@ -898,11 +900,11 @@ package require portAllocator
             <term><command><replaceable>::name</replaceable> listPorts</command></term>
             <listitem>
                 <para>
-              Returns a TCL formatted list that describes the  ports  that  are  cur?
-              rently  allocated  by  the server.  Each element of the list is a three
+              Returns a TCL formatted list that describes the  ports  that  are  
+              currently  allocated  by  the server.  Each element of the list is a three
               element sublist containing in order, the allocated port,  the  name  of
-              the application holding the port, and the name of the user that is run?
-              ning the application.
+              the application holding the port, and the name of the user that is
+              running the application.
                 </para>
             </listitem>
         </varlistentry>

@@ -38,6 +38,12 @@
 */
 class CEventSegment : public CObject
 {
+  // public types:
+
+public:
+  typedef enum _AcceptState {Keep, Reject, RejectImmediately} AcceptState;
+private:
+  AcceptState m_accept;
 public:
   virtual void   initialize();
   virtual void   clear();
@@ -45,6 +51,14 @@ public:
   virtual size_t read(void* pBuffer, size_t maxwords) = 0;
 
   virtual bool isComposite() const;
+  
+  // Base class methods
+public:
+  void reject();
+  void rejectImmediately();
+  void keep();
+  AcceptState getAcceptState() const;
+  
 };
 
 

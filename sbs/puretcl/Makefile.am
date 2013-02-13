@@ -4,6 +4,7 @@ EXTRA_DIST  = 	camac.tcl	\
 		caennet.xml camac.xml cratelocator.xml wienercamac.xml
 
 
+
 PACKAGE	=	@prefix@/TclLibs/sbspuretcl
 
 install-exec-local:

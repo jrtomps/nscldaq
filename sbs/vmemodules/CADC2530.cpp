@@ -388,8 +388,8 @@ uint16_t CADC2530::volt2uld(double volt) {
 const std::string& CADC2530::toString() {
   static string namstr;
   static char buffer[256];
-  sprintf(buffer,"ADC2530 in crate %d at base 0x%lx with memory offset 0x%lx",
-	  my_nCrate,(unsigned  long)my_nBase,(unsigned long)my_nMemOffset);
+  sprintf(buffer,"ADC2530 in crate %d at base 0x%lx with memory offset 0x%lx",my_nCrate,
+	  (long unsigned int)my_nBase, (long unsigned int)my_nMemOffset);
   namstr = buffer;
   return namstr;
 }
@@ -633,9 +633,8 @@ void CADC2530::mapModule() {
    // Donot map the register memory more than once.
    if (my_pModule != NULL) {
      char buffer[256];
-     sprintf(buffer, 
-	     "CADC2530::mapModule(): The Card in crate %d at base 0x%lx already has a register memory map.\n",
-	     my_nCrate,(unsigned long)my_nBase);
+     sprintf(buffer, "CADC2530::mapModule(): The Card in crate %d at base 0x%lx already has a register memory map.\n",
+	     my_nCrate, (long unsigned int)my_nBase);
      throw string(buffer);
    }
 
@@ -662,7 +661,7 @@ void CADC2530::mapModule() {
      my_pModule = NULL;
      char buffer[256];
      sprintf(buffer, "CADC2530::mapModule(): Card in crate %d at base 0x%lx is not a Hytec 2530 ADC or is missing type=%d id=0x%0x\n",
-	     my_nCrate, static_cast<unsigned long>(my_nBase), my_nCardType,
+	     my_nCrate, (long unsigned int)my_nBase ,my_nCardType,
 	     static_cast<unsigned int>(my_nCardId));
      throw string(buffer);
    }
@@ -688,9 +687,8 @@ void CADC2530::mapMemory() {
    // We must have a register memory map first.
    if (my_pModule == NULL) {
      char buffer[256];
-     sprintf(buffer, 
-	     "CADC2530::mapMemory(): Cannot map list/histogram memory without first mapping the ADC2530 registers for card in crate %d at base 0x%lx.\n",
-	     my_nCrate, (unsigned long)my_nBase);
+     sprintf(buffer, "CADC2530::mapMemory(): Cannot map list/histogram memory without first mapping the ADC2530 registers for card in crate %d at base 0x%lx.\n",
+	     my_nCrate, (long unsigned int)my_nBase);
      throw string(buffer);
    } 
 
@@ -698,7 +696,7 @@ void CADC2530::mapMemory() {
    if (my_pMemory != NULL) {
      char buffer[256];
      sprintf(buffer, "CADC2530::mapMemory(): The Card in crate %d at base 0x%lx already has a list/histogram memory map.\n",
-	     my_nCrate, (unsigned long)my_nBase);
+	     my_nCrate, (long unsigned int)my_nBase);
      throw string(buffer);
    }
 
@@ -718,7 +716,7 @@ void CADC2530::mapMemory() {
    if (nmemoset != my_nMemOffset) {
      char buffer[256];
      sprintf(buffer, "CADC2530::mapMemory(): Error setting list/histogram memory offset for ADC2530 card in crate %d at base 0x%lx (written=0x%lx, read=0x%lx)\n",my_nCrate,
-	     (unsigned long)my_nBase, (unsigned long)nmemoset, (unsigned long)my_nMemOffset);
+	     (long unsigned int)my_nBase, (unsigned long int)nmemoset, (unsigned long int)my_nMemOffset);
      throw string(buffer);
    } 
 
@@ -766,7 +764,7 @@ void CADC2530::clearMemory() {
   if (my_pMemory == NULL) {
     char buffer[256];
     sprintf(buffer, "CADC2530::clearMemory(): Cannot clear list/histogram memory without first having a memory map for card in crate %d at base 0x%lx.\n",my_nCrate,
-	    (unsigned long)my_nBase);
+	    (long unsigned int)my_nBase);
     throw string(buffer);
   } 
 
@@ -794,7 +792,7 @@ void CADC2530::clearHistogramMemory() {
   if (my_pMemory == NULL) {
     char buffer[256];
     sprintf(buffer, "CADC2530::clearHistogramMemory(): Cannot clear histogram memory without first having a memory map for card in crate %d at base 0x%lx.\n",
-	    my_nCrate, (unsigned long)my_nBase);
+	    my_nCrate, (long unsigned int)my_nBase);
     throw string(buffer);
   } 
 
@@ -822,7 +820,7 @@ void CADC2530::resetCard() {
   if (my_pModule == NULL) {
     char buffer[256];
     sprintf(buffer, "CADC2530::resetCard(): Cannot reset this card without first having a memory map for card in crate %d at base 0x%lx.\n",
-	    my_nCrate, (unsigned long)my_nBase);
+	    my_nCrate, (long unsigned int)my_nBase);
     throw string(buffer);
   } 
 

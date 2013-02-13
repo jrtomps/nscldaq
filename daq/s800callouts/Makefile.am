@@ -6,5 +6,7 @@ install-exec-local:
 	echo pkg_mkIndex $(prefix)/TclLibs/s800 "*.tcl" | tclsh
 
 
-EXTRA_DIST=s800rdocallouts.tcl s800rctl.tcl dummyrdo
+EXTRA_DIST=s800rdocallouts.tcl s800rctl.tcl dummyrdo s800docs.xml
+
+
 

@@ -2,7 +2,7 @@
 # Process this file with autoconf to produce a configure script.
 
 AC_PREREQ(2.61)
-AC_INIT(nscldaq, 10.1-100, fox@nscl.msu.edu)
+AC_INIT(nscldaq, 10.2-002, fox@nscl.msu.edu)
 
 AC_CONFIG_SRCDIR([/utilities/StringsToIntegers.h])
 AC_CONFIG_HEADER([config.h])
@@ -25,7 +25,6 @@ AC_CHECK_PROG(SWIG, [swig], [swig], [])
 AC_CHECK_LIB([X11], [XSetWindowBackground])
 AC_CHECK_LIB([Xt], [XtManage])
 AC_CHECK_LIB([cppunit], [_ZN7CppUnit12XmlOutputterD1Ev], [CPPUNIT_LDFLAGS=-lcppunit])
-AC_CHECK_LIB([pub], [xrealloc], [])
 
 
 
@@ -512,6 +511,7 @@ AC_CONFIG_FILES([Makefile
                  base/tclwidgets/Makefile
                  base/uri/Makefile
 		 base/dataflow/Makefile
+		 base/tcpip/Makefile
 		 servers/Makefile
 		 servers/tclserver/Makefile
                  servers/portmanager/Makefile
@@ -540,6 +540,12 @@ AC_CONFIG_FILES([Makefile
 		 daq/readoutgui/Makefile
 		 daq/readoutgui/InstallRoot.tcl
 		 daq/s800callouts/Makefile
+		 daq/eventbuilder/Makefile daq/eventbuilder/Makefile_Skeleton
+		 daq/eventbuilder/ringsource/Makefile
+		 daq/eventbuilder/teering/Makefile
+		 daq/eventbuilder/glom/Makefile
+		 daq/eventbuilder/unglom/Makefile
+		 daq/eventbuilder/startOrderer
 		 sbs/Makefile
 		 sbs/driver/Makefile
 		 sbs/driver/src/Makefile

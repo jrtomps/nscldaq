@@ -274,7 +274,7 @@ COutputThread::startRun(DataBuffer& buffer)
 
   time_t timestamp;
 
-  m_nOutputBufferSize = Globals::usbBufferSize * Globals::bufferMultiplier;
+  m_nOutputBufferSize = Globals::usbBufferSize;
 
   if (time(&timestamp) == -1) {
     throw CErrnoException("Failed to get the time in COutputThread::startRun");
@@ -595,12 +595,19 @@ COutputThread::event(void* pData)
 
   segmentSize += 1;		// Size is not self inclusive
   if ((segmentSize + m_nWordsInBuffer) >= m_nOutputBufferSize/sizeof(uint16_t)) {
-    std::string msg = 
-      "An event would not fit in the output buffer, adjust bufferMultiplier in your config file";
-    throw 
-      std::string(msg);
+    int newSize          = 2*segmentSize*sizeof(uint16_t);
+    uint8_t* pNewBuffer = reinterpret_cast<uint8_t*>(realloc(m_pBuffer, newSize));
+    if (pNewBuffer) {
+      m_pBuffer            = pNewBuffer;
+      m_pCursor            = m_pBuffer + m_nWordsInBuffer * sizeof(uint16_t);
+      m_nOutputBufferSize += newSize;
+    } else {
+      throw std::string("Failed to resize event buffer to fit an oversized segment");
+    }
+
+
   }
-  // Next we can copy our data to the output buffer and update the cursro
+  // Next we can copy our data to the output buffer and update the cursor
   // remembering that the size is not self inclusive:
   //
   memcpy(m_pCursor, pData, segmentSize*sizeof(uint16_t));

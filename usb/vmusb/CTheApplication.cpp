@@ -152,6 +152,7 @@ int CTheApplication::operator()(int argc, char** argv)
       Globals::pUSBController->readFirmwareID() << std::dec << std::endl;
 
     
+
     // Set default configuration file names and then override with the ones supplied on
     // the command line (if any).
     
@@ -340,7 +341,6 @@ CTheApplication::makeConfigFile(string baseName)
 /**
  * Determine the output ring.  If one is specified that one is used.
  * if not, a ring named after the current logged in user is used instead.
- * getpwuid_r is used because it is thread safe.
  * 
  * @param pRingName - If not null, this is the name of the ring and overrides the default ring.
  *                    If null a default ring name is constructed and returned.

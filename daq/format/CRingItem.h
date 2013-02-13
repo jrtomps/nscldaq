@@ -31,6 +31,13 @@
 #endif
 #endif
 
+#ifndef __STL_STRING
+#include <string>
+#ifndef __STL_STRING
+#define __STL_STRING
+#endif
+#endif
+
 struct _RingItem;
 class CRingBuffer;
 class CRingSelectionPredicate;
@@ -57,7 +64,7 @@ class CRingItem {
   // Private data:
 
 private:
-  _RingItem*     m_pItem;
+  _RingItem*    m_pItem;
   uint8_t*      m_pCursor;
   uint32_t      m_storageSize;
   bool          m_swapNeeded;
@@ -101,17 +108,25 @@ public:
 
   static CRingItem* getFromRing(CRingBuffer& ring, CRingSelectionPredicate& predicate);
 
-  // Utilities anyone might want:
+  // Virtual methods that all ring items must provide:
+
+  virtual std::string typeName() const;	// Textual type of item.
+  virtual std::string toString() const; // Provide string dump of the item.
+
+  // Utilities derived classes might want:
 
 protected:
   static uint32_t  swal(uint32_t datum); // Swap the bytes in a longword.
+  void deleteIfNecessary();
+  void newIfNecessary(size_t size);
+  static std::string timeString(time_t theTime);
 
-  // Utilities.
+
+  // Private Utilities.
 private:
   static void blockUntilData(CRingBuffer& ring, size_t nbytes);
   void copyIn(const CRingItem& rhs);
-  void deleteIfNecessary();
-  void newIfNecessary(size_t size);
+
   
 };
 #endif

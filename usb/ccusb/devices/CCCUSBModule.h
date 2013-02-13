@@ -58,10 +58,9 @@ Note: We can't use CCCUSB as the name for this class since that class already ex
 
 \verbatim
 
-\endverbatim
 Name             Type        Default         Meaning
 -gdgasource      enum        disabled        Source of gate and delay generator A start.. This can be:
-                                             in1, in2, in3, event, eventend, usbtrigger, or pulser
+                                             disabled, in1, in2, in3, event, eventend, usbtrigger, or pulser
 -gdbbsource      enum        disabled        Source of gate for GDG B start, can have any of the values
                                              as -gdgasource.
 -gdgawidth       integer     1               GDGA gate width in 10ns units. between (1 and 65535).
@@ -70,8 +69,6 @@ Name             Type        Default         Meaning
 -gdgbdelay       integer     0               GDGB delay in 10ns units between 0 and 2^24-1.
 -out1            enum        busy            Source of O1 signal one of:
                                              busy, event, gdga, gdgb
-				       
-                                             or f2
 -out1latch       bool        false           Output 1 is latched.
 -out1invert      bool        false           Output 1 is inverted.
 
@@ -84,13 +81,44 @@ Name             Type        Default         Meaning
 -out3latch       bool        false
 -out3invert      bool        false
 
+--- new ---
 
+-redled          enum        event          Source of the red led this is one of:
+                                            event, busy, usboutnotempty usbinnotfull
+-redinvert       bool        false          Invert the sense of the Red LED
+-redlatch        bool        false          Latch the state of the red led.
+
+-greenled        enum        acquire        Source of the green LED this is one of:
+                                            acquire, nimi1, usbinnotempty, usbtrigger
+-greeninvert      bool       false          If true, the green led state is inverted.
+-greenlatch       bool       false          If true the green led is latched.
+
+-yellowled        enum        nimi2         Source of the yellow led. One of:
+                                            nimi2, nimi3, busy, usbinfifonotempty
+-yellowinvert     bool        false         If true inverts the sense of the yellow led.
+-yellowlatch      bool        false         If true latches the yellow led when the condition hits.
+
+-scalera          enum       disabled       Enum that defines what makes scaler A count:
+                                            disabled, i1, i2, i3, event, carryb, dgga, dggb
+-scalerb          enum       disabled       Enum that defines what makes scaler B count:
+                                            disbabled, i1, i2, i3, event carrya, dgga, dggb
+
+-readscalers      bool       false          If true the module scalers are read (first A then B).
+-incremental      bool       true           If true, the scalers are cleared after the read.
+
+
+\endverbatim
 
 */
 class CCCUSBModule : public CReadoutHardware
 {
+private:
+  uint32_t m_deviceSource;
+
   // class canonicals:
   //    Implemented:
+
+
   
 public:
   CCCUSBModule();
@@ -119,6 +147,7 @@ private:
   void configureGdg1(CCCUSB& controller);
   void configureGdg2(CCCUSB& controller);
   void configureDevices(CCCUSB& controller);
+  void configureLED(CCCUSB& controller);
 };
 
 #endif

@@ -17,6 +17,8 @@
 #include "CRingScalerItem.h"
 #include <time.h>
 #include <string.h>
+#include <sstream>
+#include <stdio.h>
 
 using namespace std;
 
@@ -275,6 +277,66 @@ CRingScalerItem::init(size_t n)
   updateSize();
     
 }
+/*-------------------------------------------------------
+** Virtual method overrides
+*-------------------------------------------------------*/
+
+/**
+ * typeName
+ *
+ *  Returns the string associated with this type of
+ *  ring item ("Scaler").
+ *
+ * @return std::string - the item type name string.
+ */
+std::string
+CRingScalerItem::typeName() const
+{
+  return std::string(" Scaler: ");
+}
+/**
+ * toString
+ *
+ *  Return a textual human readable version of the data
+ *  in this item.
+ *
+ * @return std::string - the text string.
+ */
+
+std::string
+CRingScalerItem::toString() const
+{
+  std::ostringstream out;
+
+  uint32_t end   = getEndTime();
+  uint32_t start = getStartTime();
+  string   time  = timeString(getTimestamp());
+  vector<uint32_t> scalers = getScalers();
+
+  float   duration = static_cast<float>(end - start);
+
+  out << time << " : Incremental scalers:\n";
+  out << "Interval start time: " << start << " end: " << end << " seconds in to the run\n\n";
+  
+
+  out << "Index         Counts                 Rate\n";
+  for (int i=0; i < scalers.size(); i++) {
+    char line[128];
+    double rate = (static_cast<double>(scalers[i])/duration);
+
+    sprintf(line, "%5d      %9d                 %.2f\n",
+	    i, scalers[i], rate);
+    out << line;
+  }
+
+
+  return out.str();
+  
+}
+
+/*-------------------------------------------------------
+** Private utilities:
+*---------------------------------------------------------
 /*
  *  Given the number of scalers determine the size of the body.
  */

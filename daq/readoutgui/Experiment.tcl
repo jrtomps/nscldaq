@@ -366,7 +366,7 @@ proc Experiment::RunBeginning {} {
 	set SourceURL    [Experiment::spectrodaqURL $sourceHost]
 
 
-	set EventlogPid [exec $Logrecorder --oneshot --path=$Stagedir --source=$SourceURL &]
+	set Pid [exec $Logrecorder --oneshot --path=$Stagedir --source=$SourceURL &]
 	
 	
 	Experiment::makeEventLink $nrun

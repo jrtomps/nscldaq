@@ -22,7 +22,9 @@
 #include <CRingSelectionPredicate.h>
 #include <string.h>
 #include <iostream>
-
+#include <string>
+#include <sstream>
+#include <iomanip>
 
 ////////////////////////////////////////////////////////////////////////////////
 //
@@ -267,7 +269,65 @@ CRingItem::mustSwap() const
 {
   return m_swapNeeded;
 }
-   
+
+
+//////////////////////////////////////////////////////////////////////////////////////
+//
+// Default implementations of virtual methods:
+//
+
+/**
+ * typeName
+ *
+ *  Return an std::string that contains the name of the ring item type
+ *  (e.g. "Physics data").  The default produces:
+ *  "Unknown (0xnn) where 0xnn is the hexadecimal ring item type.
+ *
+ * @return std::string containing the type as described above.
+ */
+
+std::string
+CRingItem::typeName() const
+{
+  std::stringstream typeStr;
+  typeStr << "Unknown (" << std::hex << type() << ")"; 
+  return typeStr.str();
+}   
+/**
+ * toString
+ *
+ * Return an std::string that contains a formatted dump of the ring item
+ * body. Default implementation just produces a hex-dump of the data
+ * the dump has 8 elements per line with spaces between each element
+ * and the format of each element is %02x.
+ *
+ * @return std::string - the dump described above.
+ */
+std::string
+CRingItem::toString() const
+{
+  std::stringstream  dump;
+  const uint8_t*      p     = m_pItem->s_body;
+  size_t              n     = getBodySize(); 
+  int                 nPerLine(8);
+
+  dump << std::hex << std::setw(2) << std::setfill('0');
+
+  for (int i = 0; i < n; i++) {
+    dump << static_cast<unsigned int>(*p++) << " ";
+    if ((i > 0) && ((i % nPerLine) == 0)) {
+      dump << std::endl;
+    }
+  }
+  // If there's no trailing endl put one in.
+
+  if (n % nPerLine) {
+    dump << std::endl;
+  }
+  
+
+  return dump.str();
+}
 
 ///////////////////////////////////////////////////////////////////////////////////////
 //
@@ -419,4 +479,26 @@ CRingItem::blockUntilData(CRingBuffer& ring, size_t nbytes)
 {
   RingHasNoMoreThan p(nbytes);
   ring.blockWhile(p);
+}
+/**
+ * timeString
+ *
+ * Given a time_t time, returns a string that is the textual time (ctime()).
+ *
+ * @param theTime - time gotten from e.g. time(2).
+ * 
+ * @return std::string textified time
+ */
+std::string
+CRingItem::timeString(time_t theTime) 
+{
+
+  std::string result(ctime(&theTime));
+  
+  // For whatever reason, ctime appends a '\n' on the end.
+  // We need to remove that.
+
+  result.erase(result.size()-1);
+
+  return result;
 }

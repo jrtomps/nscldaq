@@ -76,3 +76,61 @@ CEventSegment::isComposite() const
 {
   return false;
 }
+/*----------------------------------------------------
+ * non virtual publics:
+ */
+
+
+/**
+ * reject
+ * 
+ * Called to indicate that after all event segments have been read
+ * the event should not be kept.
+ *
+ */
+void 
+CEventSegment::reject()
+{
+  m_accept = Reject;
+}
+/**
+ * rejectImmediately
+ *
+ *  Called to indicate that after _this_ event segment returns,
+ *  all event processing will end and the event will be rejected.
+ *
+ */
+void
+CEventSegment::rejectImmediately()
+{
+  m_accept = RejectImmediately;
+}
+/**
+ * keep
+ *
+ *  Called to indicate the event segment wants to keep the event
+ *  Normally you don't need to call this unless your event segment
+ *  has changed its mind about what to do because
+ *  CExperiment will call this prior to running your event segment.
+ */
+void
+CEventSegment::keep()
+{
+  m_accept = Keep;
+}
+/**
+ * getAcceptState
+ *
+ *   Returns the current value of the acceptance state.
+ *
+ * @return CEventSegment::AcceptState
+ * @retval keep - keep the event
+ * @retval reject - reject the event but process the rest of the event segments.
+ * @retval rejecteimmediatly - reject the event and don't process the rest of the
+ *                             event segments.
+ */
+CEventSegment::AcceptState
+CEventSegment::getAcceptState() const
+{
+  return m_accept;
+}

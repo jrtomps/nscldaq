@@ -18,6 +18,7 @@
 #include <config.h>
 #include "CRingStateChangeItem.h"
 #include <RangeError.h>
+#include <sstream>
 #include <string.h>
 
 
@@ -242,6 +243,57 @@ time_t
 CRingStateChangeItem::getTimestamp() const
 {
   return m_pItem->s_Timestamp;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+//
+// Virtual method overrides:
+
+/**
+ * typeName
+ *
+ *  Stringify the type of the item.
+ *
+ * @return std::string - the item type
+ */
+std::string
+CRingStateChangeItem::typeName() const
+{
+  switch (type()) {
+  case BEGIN_RUN:
+    return " Begin Run ";
+  case END_RUN:
+    return " End Run ";
+  case PAUSE_RUN:
+    return " Pause Run ";
+  case RESUME_RUN:
+    return " Resume Run ";
+  }
+}
+/**
+ * toString
+ *
+ * Returns a string that is the ascified body of the item.
+ *
+ * @return std::string - ascified version of the item.
+ */
+std::string
+CRingStateChangeItem::toString() const
+{
+  std::ostringstream out;		//  Build up via outputting to this psuedo stream.
+
+  uint32_t run       = getRunNumber();
+  uint32_t elapsed   = getElapsedTime();
+  string   title     = getTitle();
+  string   timestamp = timeString(getTimestamp());
+
+  out <<  timestamp << " : Run State change : " << typeName();
+  out << " at " << elapsed << " seconds into the run\n";
+  out << "Title     : " << title << std::endl;
+  out << "Run Number: " << run   << endl;
+
+
+  return out.str();
 }
     
 ///////////////////////////////////////////////////////////////////////////////

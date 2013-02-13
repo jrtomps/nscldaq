@@ -25,6 +25,7 @@
 #include <CRunState.h>
 #include <CConfiguration.h>
 #include <iostream>
+#include <CVMUSB.h>
 
 using std::vector;
 using std::string;
@@ -141,7 +142,10 @@ CBeginRun::operator()(CTCLInterpreter& interp,
     return TCL_ERROR;
 		       
   }
-  cerr << "Buffer multiplier (CBegin) = " << Globals::bufferMultiplier << endl;
+
+  // Reconnect the VM-USB:
+
+  Globals::pUSBController->reconnect();
 
   CAcquisitionThread* pReadout = CAcquisitionThread::getInstance();
   pReadout->start(Globals::pUSBController);

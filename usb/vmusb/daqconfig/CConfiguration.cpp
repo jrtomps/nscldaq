@@ -37,6 +37,7 @@
 #include "CV1495scCommand.h"
 #include "CAddTclDriver.h"
 #include "CHiRACommand.h"
+#include "CVMUSBCommand.h"
 
 #include <CReadoutModule.h>
 #include <TCLInterpreter.h>
@@ -93,6 +94,7 @@ CConfiguration::CConfiguration() :
   m_Commands.push_back(new CV1495scCommand(*m_pInterp, *this));
   m_Commands.push_back(new CAddTclDriver(*m_pInterp, *this));
   m_Commands.push_back(new CHiRACommand(*m_pInterp, *this));
+  m_Commands.push_back(new CVMUSBCommand(*m_pInterp, *this));
 
 }
 /*!
@@ -138,25 +140,6 @@ CConfiguration::processConfiguration(string configFile)
   try {
     m_pInterp->EvalFile(configFile);
     
-    // If the bufferMultiplier variable is set, and is an integer
-    // set the value of Globals::bufferMultiplier value to it.
-    // If the variable is not set the value defaults to 1.
-    // if the var is not parseable as an unsigned int, 
-    // we throw an exception.
-
-    CTCLVariable bmult(m_pInterp, "bufferMultiplier", kfFALSE);
-    const char* sValue = bmult.Get();
-    if (sValue) {
-      char* pEnd;
-      unsigned long newValue = strtoul(sValue, &pEnd, 0);
-      if(pEnd == sValue) {
-	throw string("The value for the bufferMultiplier variable must be an unsigned integer");
-      }
-      Globals::bufferMultiplier = newValue;
-    }
-    else {
-      Globals::bufferMultiplier = 1;
-    }
   }
   catch (string msg) {
     cerr << "CConfiguration::processConfiguration caught string exception: "
@@ -179,7 +162,6 @@ CConfiguration::processConfiguration(string configFile)
     throw;
   }
   cout << "Configuration file successfully processed. \n";
-  cout << "Output buffersize: " << Globals::bufferMultiplier*26*1024 + 32 << " bytes\n";
 }
 /*!
    Locate an adc module by name.  This is used e.g. by configuration commands

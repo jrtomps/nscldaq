@@ -53,7 +53,7 @@ CVMUSBFactory::createUSBController(CVMUSBFactory::ControllerType type, const cha
 }
 /**
  * createLocalController
-u *
+ *
  *  Connect with a local controller:
  *  - Enumerate the controllers.
  *  - If serialNumber is 0 instantiatee a CVMUSBusb on the first one enumerated.
@@ -114,5 +114,7 @@ CVMUSBFactory::createRemoteController(const char* pHost)
     pHost = "localhost";
   }
 
-  return new CVMUSBEthernet("vmusb", std::string(pHost));
+  CVMUSBEthernet* pController =  new CVMUSBEthernet("vmusb", std::string(pHost));
+  pController->reconnect();                // Force server to reconnect.
+  return pController;
 }

@@ -33,8 +33,7 @@
 #include <time.h>
 #include <set>
 #include <map>
-#include <iostream>
-
+#include <io.h>
 
 #include <buffer.h>
 #include <buftypes.h>
@@ -54,31 +53,6 @@ static std::map<uint16_t, uint32_t>  stateTypeMap; // Same as above but for stat
 static uint64_t triggers;
 
 
-/**
- * Return true if an I/O errno is not an allowed one.
- * 
- * @param error - the  errno to check.
- *
- * @return bool - True if the error is a bad one.
- *
- * @note okErrors is a set that will contain the 'allowed' errors.
- */
-bool badError(int error)
-{
-  // Stock the okErrors set if empty:
-
-  if (okErrors.empty())
-  {
-    okErrors.insert(EAGAIN);
-    okErrors.insert(EWOULDBLOCK);
-    okErrors.insert(EINTR);
-  }
-
-  // Not in the set -> true.
-
-  return (okErrors.count(error) == 0);
-}
-
 
 
 /**
@@ -96,42 +70,18 @@ bool badError(int error)
  */
 bool getBuffer (uint16_t* pBuffer,  size_t nBytes)
 {
-  uint8_t* pDest(reinterpret_cast<uint8_t*>(pBuffer));
-  size_t    residual(nBytes);
-  ssize_t   nRead;
-
-  // Read the buffer until :
-  //  error other than EAGAIN, EWOULDBLOCK  or EINTR
-  //  zero bytes read (end of file).
-  //  Regardless of how all this ends, we are going to emit a message on sterr.
-  //
-
-  while (residual) {
-    nRead = read(STDIN_FILENO, pDest, residual);
-    if (nRead == 0)		// EOF
-    {
-      fprintf(stderr, "End of file on stdin in the middle of a read.\n");
-      return false;
-    }
-    if ((nRead < 0) && badError(errno) )
-    {
-      perror("Error reading stdin in the middle of a read.\n");
-      return false;
-    }
-    // If we got here and nread < 0, we need to set it to zero.
-    
-    if (nRead < 0)
-    {
-      nRead = 0;
-    }
-
-    // Adjust all the pointers and counts for what we read:
-
-    residual -= nRead;
-    pDest  += nRead;
+  try {
+    size_t read = io::readData(STDIN_FILENO, pBuffer, nBytes);
   }
-  // If we get here the read worked:
-
+  catch(int e) {
+    if (e) {
+      fprintf(stderr, "%s : %s\n",
+	      "Error on read: ", strerror(e));
+    } else {
+      fprintf(stderr, "%s\n", "End of file on stdin in mid read");
+    }
+    return false;
+  }
   return true;
 }
 
@@ -151,34 +101,19 @@ bool getBuffer (uint16_t* pBuffer,  size_t nBytes)
 
 bool writeData (void* pData , size_t size)
 {
-  uint8_t* pSrc(reinterpret_cast<uint8_t*>(pData));
-  size_t   residual(size);
-  ssize_t  nWritten;
 
-  while (residual) {
-    nWritten = write(STDOUT_FILENO, pSrc, residual);
-    if (nWritten == 0) {
-      fprintf(stderr, "Pipe closed writing stdout in the middle of a write\n");
-      return false;
-    }
-    if ((nWritten == -1) && badError(errno)) {
-      perror("Error writing to stdout in the middle of a write");
-      return false;
-    }
-    // If an error now it must be a 'good' error... set the nWritten to 0 as no data was
-    // transferred:
-
-    if (nWritten < 0)
-    {
-      nWritten = 0;
-    }
-    // adjust the pointers, and residuals:
-
-
-    residual -= nWritten;
-    pSrc     += nWritten;
+  try {
+    io::writeData(STDOUT_FILENO, pData, size);
   }
-
+  catch(int e) {
+    if (e) {
+      fprintf(stderr, "%s : %s\n",
+	      "Error on write", strerror(e));
+    } else {
+      fprintf(stderr, "%s\n", "STDOUT closed on us");
+    }
+    return false;
+  }
   return true;
 }
 

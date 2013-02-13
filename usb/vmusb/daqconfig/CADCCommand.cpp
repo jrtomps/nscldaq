@@ -194,7 +194,6 @@ CADCCommand::config(CTCLInterpreter& interp, vector<CTCLObject>& objv)
     return TCL_ERROR;
   }
   /* Get the module name and use it to locate the module or report an error. */
-
   string name = objv[2];
   CReadoutModule* pModule = m_Config.findAdc(name);
   if (!pModule) {

@@ -36,6 +36,8 @@ static const char* Copyright= "(C) Copyright Michigan State University 2002, All
 #include <sys/types.h>
 #include <pwd.h>
 #include <iostream>
+#include <string>
+#include <os.h>
 
 using namespace std;
 
@@ -154,10 +156,10 @@ CServerInstance::OnCommand()
 
     int len = Tcl_DStringLength(&(Context.command)) - 1;
     Tcl_DStringTrunc(&(Context.command), len);
-    
-    uid_t uid = geteuid();		// In case this is run from setuid.
-    struct passwd* pwdentry = getpwuid(uid);
-    if (strcmp(Tcl_DStringValue(&(Context.command)), pwdentry->pw_name) == 0) {
+
+    std::string username = Os::whoami();
+
+    if (strcmp(Tcl_DStringValue(&(Context.command)), username.c_str()) == 0) {
       // Authenticated.
 
       m_authenticated = true;

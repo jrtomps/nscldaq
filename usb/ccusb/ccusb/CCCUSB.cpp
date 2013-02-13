@@ -25,6 +25,7 @@
 #include <unistd.h>
 #include <stdio.h>
 
+
 using namespace std;
 
 // Constants:
@@ -45,7 +46,7 @@ static const int ENDPOINT_IN(0x86);
 static const uint16_t TAVcsWrite(4);  // Operation writes.
 static const uint16_t TAVcsDATA(2);   // DAQ event Data stack.
 static const uint16_t TAVcsSCALER(3); // DAQ scaler data stack.
-static const uint16_t TAVcsCNAF(8);   // Immediate execution of a CNAF list.
+static const uint16_t TAVcsCNAF(0xc);   // Immediate execution of a CNAF list.
 static const uint16_t TAVcsIMMED(TAVcsCNAF);
 
 
@@ -164,25 +165,9 @@ CCCUSB::CCCUSB(struct usb_device* device) :
     m_device(device),
     m_timeout(DEFAULT_TIMEOUT)
 {
-    m_handle  = usb_open(m_device);
-    if (!m_handle) {
-	throw "CCCUSB::CCCUSB  - unable to open the device";
-    }
-    // Now claim the interface.. again this could in theory fail.. but.
+  m_serial = serialNo(m_device);
+  openUsb();
 
-    usb_set_configuration(m_handle, 1);
-    int status = usb_claim_interface(m_handle, 0);
-    if (status == -EBUSY) {
-	throw "CCCUSB::CCCUSB - some other process has already claimed";
-    }
-
-    if (status == -ENOMEM) {
-	throw "CCCUSB::CMVUSB - claim failed for lack of memory";
-    }
-    usb_clear_halt(m_handle, ENDPOINT_IN);
-    usb_clear_halt(m_handle, ENDPOINT_OUT);
-
-    usleep(100);
 }
 ////////////////////////////////////////////////////////////////
 /*!
@@ -194,6 +179,25 @@ CCCUSB::~CCCUSB()
     usb_release_interface(m_handle, 0);
     usb_close(m_handle);
     usleep(5000);
+}
+
+
+/**
+ * reconnect
+ *   
+ * Drop connection with the CC-USB and re-open.
+ * this can be called when you suspect the CC-USB might
+ * have been power cycled.
+I*
+*/
+void
+CCCUSB::reconnect()
+{
+  usb_release_interface(m_handle, 0);
+  usb_close(m_handle);
+  usleep(1000);
+
+  openUsb();
 }
 
 ////////////////////////////////////////////////////////////////////
@@ -452,7 +456,11 @@ CCCUSB::readFirmware(uint32_t& value)
 int
 CCCUSB::readGlobalMode(uint16_t& value)
 {
-  return read16(25, 1, 0, value);
+  uint32_t d;
+  // return read16(25, 1, 0, value);
+ int status = read32(25, 1, 0, d);
+ value = d;
+ return status;
 
 }
 /****************************************************************************/
@@ -1187,6 +1195,44 @@ CCCUSB::setDefaultTimeout(int ms)
 ////////////////////////////////////////////////////////////////////////
 /////////////////////////////// Utility methods ////////////////////////
 ////////////////////////////////////////////////////////////////////////
+
+// Debug methods:
+
+// #define TRACE			// Comment out if not tracing
+
+
+void dumpWords(void* pWords, size_t readSize)
+{
+  readSize = readSize / sizeof(uint16_t);
+  uint16_t* s = reinterpret_cast<uint16_t*>(pWords);
+
+ 
+  for (int i =0; i < readSize; i++) {
+    fprintf(stderr, "%04x ", *s++);
+    if (((i % 8) == 0) && (i != 0)) {
+      fprintf(stderr, "\n");
+    }
+  }
+  fprintf(stderr, "\n");
+}
+
+static void dumpRequest(void* pWrite, size_t writeSize, size_t readSize)
+{
+#ifdef TRACE
+  fprintf(stderr, "%d write, %d read\n", writeSize, readSize);
+  dumpWords(pWrite, writeSize);
+#endif
+}
+
+static void dumpResponse(void* pData, size_t readSize)
+{
+#ifdef TRACE
+  fprintf(stderr, "%d bytes in response\n", readSize);
+  dumpWords(pData, readSize);
+#endif
+}
+
+
 /*
    Utility function to perform a 'symmetric' transaction.
    Most operations on the VM-USB are 'symmetric' USB operations.
@@ -1217,16 +1263,24 @@ CCCUSB::transaction(void* writePacket, size_t writeSize,
     int status = usb_bulk_write(m_handle, ENDPOINT_OUT,
 				static_cast<char*>(writePacket), writeSize, 
 				m_timeout);
+    dumpRequest(writePacket, writeSize, readSize);
     if (status < 0) {
 	errno = -status;
 	return -1;		// Write failed!!
     }
     status    = usb_bulk_read(m_handle, ENDPOINT_IN,
-			      static_cast<char*>(readPacket), readSize, m_timeout);
+				static_cast<char*>(readPacket), readSize, m_timeout);
     if (status < 0) {
 	errno = -status;
 	return -2;
     }
+#ifdef TRACE
+    if (status == 0) {
+      fprintf(stderr, "usb_bulk_read returned 0\n");
+    } else {
+      dumpResponse(readPacket, status);
+    }
+#endif
     return status;
 }
 
@@ -1383,6 +1437,7 @@ CCCUSB::write32(int n, int a, int f, uint32_t data, uint16_t& qx)
   CCCUSBReadoutList l;
   size_t            nRead;
   
+
   l.addWrite24(n,a,f, data);
   int status  = executeList(l,
 			    &qx,
@@ -1400,6 +1455,9 @@ CCCUSB::write16(int n, int a, int f, uint16_t data, uint16_t& qx)
   CCCUSBReadoutList l;
   size_t nRead;
 
+  return write32(n, a, f, (uint32_t)data, qx);
+  
+
   l.addWrite16(n,a,f, data);
   return executeList(l,
 		     &qx,
@@ -1409,3 +1467,56 @@ CCCUSB::write16(int n, int a, int f, uint16_t data, uint16_t& qx)
 }
 
 
+/**
+ * openUsb
+ *
+ *  Does the common stuff required to open a connection
+ *  to a CCUSB given that the device has been filled in.
+ *
+ *  Since the point of this is that it can happen after a power cycle
+ *  on the CAMAC crate, we are only going to rely on m_serial being
+ *  right and re-enumerate.
+ *
+ *  @throw std::string - on errors.
+ */
+void
+CCCUSB::openUsb()
+{
+  // Re-enumerate and get the right value in m_device or throw
+  // if our serial number is no longer there:
+
+  std::vector<struct usb_device*> devices = enumerate();
+  m_device = 0;
+  for (int i = 0; i < devices.size(); i++) {
+    if (serialNo(devices[i]) == m_serial) {
+      m_device = devices[i];
+      break;
+    }
+  }
+  if (!m_device) {
+    std::string msg = "CC-USB with serial number ";
+    msg += m_serial;
+    msg += " cannot be located";
+    throw msg;
+  }
+
+    m_handle  = usb_open(m_device);
+    if (!m_handle) {
+	throw "CCCUSB::CCCUSB  - unable to open the device";
+    }
+    // Now claim the interface.. again this could in theory fail.. but.
+
+    usb_set_configuration(m_handle, 1);
+    int status = usb_claim_interface(m_handle, 0);
+    if (status == -EBUSY) {
+	throw "CCCUSB::CCCUSB - some other process has already claimed";
+    }
+
+    if (status == -ENOMEM) {
+	throw "CCCUSB::CMVUSB - claim failed for lack of memory";
+    }
+    usb_clear_halt(m_handle, ENDPOINT_IN);
+    usb_clear_halt(m_handle, ENDPOINT_OUT);
+   
+    usleep(100);
+}
