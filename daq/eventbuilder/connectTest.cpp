@@ -96,7 +96,7 @@ void connectTests::serverOk() {
      
      uint32_t stringSize;
      EQ((int)sizeof(uint32_t), pClient->Read(&stringSize, sizeof(uint32_t)));
-     EQ(strlen("CONNECT"), stringSize);
+     EQ(strlen("CONNECT"), (size_t)stringSize);
      char request[stringSize+1];
      memset(request, 0, stringSize+1);
      
@@ -106,7 +106,7 @@ void connectTests::serverOk() {
      // "test connecdtion" string
      
      EQ((int)sizeof(uint32_t), pClient->Read(&stringSize, sizeof(uint32_t)));
-     EQ(strlen("test connection"), stringSize);
+     EQ(strlen("test connection"), (size_t)stringSize);
      
      char body[stringSize+1];
      memset(body, 0, stringSize+1);

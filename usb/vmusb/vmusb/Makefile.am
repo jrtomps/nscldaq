@@ -63,8 +63,6 @@ install-data-local:
 	echo "package ifneeded cvmusbreadoutlist 1.0 [list load [file join $dir libCVMUSBReadoutList.so]]" >> @libdir@/pkgIndex.tcl
 	echo "package ifneeded cvmusb 1.0 [list load [file join $dir libCVMUSB.so]]" >> @libdir@/pkgIndex.tcl
 
-clean-local:
-	rm -f $(BUILT_SOURCES)
 
 clean-local:
 	rm -f $(BUILT_SOURCES)

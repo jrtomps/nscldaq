@@ -296,7 +296,7 @@ AC_ARG_ENABLE([epics-tools],
 if test "$BUILD_EPICS_TOOLS" == "yes"
 then
 
-epicstestdirs="/usr/local/epics /opt/epics /soft/intel/epics"
+epicstestdirs="/usr/local/epics /opt/epics /usr/lib/epics"
 haveepics="no"
 
 
@@ -310,6 +310,23 @@ AC_ARG_WITH(epics-rootdir,
 	 epicsroot="$withval"],
 	[haveepics="no"])
 
+#
+#  Figure out which architecture specific directory to use.
+#
+#   For now we're just going to support various types of linux:
+#   linux-x86_64 (64 bit linux) and linxu-x86 (32 bit linux).
+#   Later this can be expanded to other os's and archs.
+#
+bits=`arch`
+kernel=`uname |tr [A-Z] [a-z]`
+
+case $bits in
+   i686 | i386)
+   	bits=x86
+   ;;
+esac
+
+epicsarch=$kernel-$bits
 
 
 if test $haveepics == "no"
@@ -334,8 +351,8 @@ then
 
    epics=true
    EPICS_INCLUDES="-I$epicsroot/include -I$epicsroot/include/os/Linux"
-   EPICS_LDFLAGS="-L$epicsroot/lib/linux-x86 -lca -Wl,\"-rpath=$epicsroot/lib/linux-x86\""
-   EPICS_BIN="-DEPICS_BIN=\"\\\"$epicsroot/bin/linux-x86\\\"\""
+   EPICS_LDFLAGS="-L$epicsroot/lib/$epicsarch -lca -Wl,\"-rpath=$epicsroot/lib/$epicsarch\""
+   EPICS_BIN="-DEPICS_BIN=\"\\\"$epicsroot/bin/$epicsarch\\\"\""
 else
    epics=false
 fi

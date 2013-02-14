@@ -17,6 +17,9 @@
 #include <pwd.h>
 #include <errno.h>
 #include <string.h>
+#include <unistd.h>
+#include <sys/types.h>
+
 /**
  * Get name of current user.
  * @return std::string
