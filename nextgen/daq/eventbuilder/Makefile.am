@@ -113,6 +113,8 @@ unittests_SOURCES = TestRunner.cpp lookupTest.cpp  \
 
 unittests_LDADD = libEventBuilderClient.la \
 	$(libEventBuilder_la_LIBADD) \
+	@top_builddir@/servers/portmanager/libPortManager.la \
+	@top_builddir@/base/tcpip/libTcp.la 	\
 	@CPPUNIT_LDFLAGS@ @THREADLD_FLAGS@
 
 

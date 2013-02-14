@@ -2578,7 +2578,7 @@ MySegment::read(void* pBuffer, size_t maxlen)
                 <type>void</type> <methodname>ScheduleRunVariableDump</methodname>
                 <void />
                 </methodsynopsis>
-            <methodsynosis>
+            <methodsynopsis>
                 <type>CRingBuffer*</type> <methodname>getRing</methodname>
                 <void />
             </methodsynopsis>

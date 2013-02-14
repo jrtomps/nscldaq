@@ -62,6 +62,7 @@ ringtostdoutsw.o: ringtostdoutsw.ggo
 
 ringtostdout_LDADD	= ringtostdoutsw.o libDataFlow.la \
 			@top_builddir@/base/exception/libException.la \
+			@top_builddir@/base/os/libdaqshm.la	\
 			$(THREADLD_FLAGS)
 
 ringtostdout_CXXFLAGS	=  $(AM_CXXFLAGS) $(THREADCXX_FLAGS)
