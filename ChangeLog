@@ -443,3 +443,7 @@ Feb 1, 2012 - Feb 24, 2012
 	- Issue #989 - document VM-USB list remote list executino.
         - Final test build on Wheezy64
 	
+11.0 Better support for event builder (workoder W02101).
+	* Issue #1578 - Support runs with multiple end run marks in the
+	event logger.
+	

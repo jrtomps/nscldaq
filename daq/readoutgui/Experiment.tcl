@@ -86,9 +86,11 @@ if {[info proc ::fileutil::relative] eq ""} {
 }
 
 namespace eval  Experiment {
-    variable Logrecorder [DAQParameters::getEventLogger]
-    variable EventlogPid 0
+    variable Logrecorder      [DAQParameters::getEventLogger]
+    variable EventlogPid      0
     variable fileWaitTimeout 45
+    
+    variable sourceCount      1;    # Number of data sources.
 
 
     #  Define exports:
@@ -98,6 +100,8 @@ namespace eval  Experiment {
     namespace export EmergencyEnd
     namespace export CleanOrphans
     namespace export RunFileExists
+    namespace export getSourceCount
+    namespace export setSourceCount
 
 
 }
@@ -364,9 +368,12 @@ proc Experiment::RunBeginning {} {
 	set user         $::tcl_platform(user)
 	set sourceHost   [DAQParameters::getSourceHost]
 	set SourceURL    [Experiment::spectrodaqURL $sourceHost]
+        set sourceCount  $::Experiment::sourceCount
+        set nSourceOpt   "--number-of-sources=$sourceCount"
+        
 
-
-	set Pid [exec $Logrecorder --oneshot --path=$Stagedir --source=$SourceURL &]
+	set Pid [exec -- $Logrecorder $nSourceOpt --oneshot --path=$Stagedir \
+            --source=$SourceURL &]
 	
 	
 	Experiment::makeEventLink $nrun
@@ -531,4 +538,35 @@ proc Experiment::RunFileExists {run} {
     return [file exists $name]
 
 }
-
+##
+# Experiment::getSourceCount
+#
+# Returns the number of data sources the event logger expects to see end run
+# items from before it closes off the event file.
+#
+# @return int - number of sources.
+#
+proc Experiment::getSourceCount {} {
+    return $::Experiment::sourceCount
+}
+##
+# Experiment::setSourceCount
+#
+#  Sets the number of data sources the event logger expects to see end run
+#  items from before it closes off the event file.
+#
+# @param nSources - Number of sources.
+#
+# @return int - Prior number of sourcdes.
+#
+# @exception - The nSources parameter must be an integer > 0.
+#
+proc Experiment::setSourceCount nSources {
+    set oldCount $::Experiment::sourceCount
+    
+    if {![string is integer -strict $nSources] || ($nSources <= 0)} {
+        error "The number of sources ($nSources) must be an integer >= 0."
+    }
+    
+    set Experiment::sourceCount $nSources
+}

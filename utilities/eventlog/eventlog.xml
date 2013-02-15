@@ -128,6 +128,24 @@ eventlog <optional>options...</optional>
 	OPTIONS
      </title>
      <variablelist>
+        <varlistentry>
+            <term><option>--number-of-sources</option>=<replaceable>n</replaceable></term>
+            <listitem>
+                <para>
+                    Indicates to the logger the number of end of run items it should
+                    expect to see prior to closing the run.  Once the first end of
+                    run is seen, if there is ever a long time without getting any
+                    data from the ring source, the logger will complain about a
+                    timeout and close the run anyway.
+                </para>
+                <para>
+                    Once <parameter>n</parameter> end of run items are seen in a
+                    single run, the run file is closed.  As you might expect,
+                    <parameter>n</parameter> must be an integer with a value
+                    that is greater than zero.
+                </para>
+            </listitem>
+        </varlistentry>
 	<varlistentry>
 	    <term><option>--source</option>=<replaceable>ringuri</replaceable></term>
 	    <listitem>

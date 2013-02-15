@@ -55,6 +55,7 @@ class EventLogMain
   std::string       m_eventDirectory;
   uint64_t          m_segmentSize;
   bool              m_exitOnEndRun;
+  unsigned          m_nSourceCount;
   
   // Constructors and canonicals:
 
@@ -82,6 +83,7 @@ private:
   std::string defaultRingUrl() const;
   uint64_t    segmentSize(const char* pValue) const;
   bool  dirOk(std::string dirname) const;
+  bool  dataTimeout();
 };
 
 

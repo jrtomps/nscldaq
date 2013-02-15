@@ -951,6 +951,16 @@ $DAQROOT/bin/ReadoutShell <optional><option>-host</option>=<replaceable>readout-
                             </para>
                         </listitem>
                     </varlistentry>
+                    <varlistentry>
+                        <term>Experiment</term>
+                        <listitem>
+                            <para>
+                                Provides entries that allow you to interrogate
+                                and describe the number of data sources that
+                                are going into the event builder if any.
+                            </para>
+                        </listitem>
+                    </varlistentry>
                 </variablelist>
                 <refsect3>
                     <title>Programmatic interface</title>
@@ -1801,7 +1811,49 @@ ReadougGUIPanel::setPath $absolutePath
                         </varlistentry>
                     </variablelist>
                 </refsect3>
-                
+                <refsect3>
+                    <title>Programmatic interface</title>
+                    <subtitle>Experiment package</subtitle>
+                    <para>
+                        This package provides an interface to the experiment as
+                        a whole. At this time the main purpose is to allow you
+                        to communicate to the event logger the number of
+                        event sources that must indicate an end of run before
+                        the event log file is closed.
+                    </para>
+                    <para>
+                        If you are using the
+                        event builder, each end of run item is passed through
+                        as part of a barrier event.  There should therefore
+                        be one end of run item per event source and they all should
+                        be the last item in the run.
+                    </para>
+                    <variablelist>
+                        <varlistentry>
+                            <term><command>Experiment::getSourceCount</command></term>
+                            <listitem>
+                                <para>
+                                    Returns the number of event sources that
+                                    have been declared.  If never set, this defaults
+                                    to 1.
+                                </para>
+                            </listitem>
+                        </varlistentry>
+                        <varlistentry>
+                            <term><command>Experiment::setSourceCount</command> <parameter>n</parameter></term>
+                            <listitem>
+                                <para>
+                                    Sets the nnumber of event sources in the experiment.
+                                    If the run is being recorded, the event logger
+                                    will expect <parameter>n</parameter> end of
+                                    run items.  If not received within a fairly
+                                    long timeout, the event file is closed with
+                                    an error message.
+                                </para>
+                            </listitem>
+                        </varlistentry>
+                    </variablelist>
+                </refsect3>
             </refsect2>
         </refsect1>
         <refsect1>
@@ -1841,6 +1893,57 @@ proc OnStart {} {
 }
                 </programlisting>
             </example>
+            <example>
+                <title>Setting the number of event sources</title>
+                <para>
+                    The code fragment below informs the event logger there are
+                    three data sources from which end of run items must be
+                    received to end the run:
+                </para>
+                <programlisting>
+package require Experiment
+...
+proc OnStart {} {
+    Experiment::setSourceCount 3
+}
+                </programlisting>
+            </example>
+            <example>
+                <title>Altering the number of event sources</title>
+                <para>
+                    If you have segmented your ReadoutCallouts into a package
+                    for each data source you may need to have the code for each
+                    data source increment the data source count.  You might do
+                    this by having the overall OnStart code do something like this:
+                </para>
+                <programlisting>
+                    
+# ReadoutCallouts.tcl
+package require Experiment
+
+proc addSource {} {
+        set sources [Expermiment::getSourceCount]
+        incr sources 
+        Experiment::setSourceCount $sources
+}
+..
+proc OnStart {} {
+    foreach source [list Source1 Source2 Source3] {
+        package require $source
+        $source::OnStart
+        addSource;       # count one more source in the experiment.
+    }
+    
+    # The loop will over count sources since the source count starts at 1:
+    # and setSourceCount won't allow us to set the source count to 0.
+    
+    set sources [Experiment::getSourceCount]
+    incr sources -1
+    Experiment::setSourceCount $sources
+}
+                </programlisting>
+            </example>
+                
         </refsect1>
       </refentry>
 
