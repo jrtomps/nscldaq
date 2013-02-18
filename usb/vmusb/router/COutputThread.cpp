@@ -45,7 +45,6 @@
 
 using namespace std;
 
-static const int MONITOR_STACK(7);
 
 static DataBuffer* lastBuffer(0);
 static const unsigned ReadoutStack(0);
