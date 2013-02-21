@@ -1672,6 +1672,17 @@ caenv956 cget <replaceable>name</replaceable>
 	    </listitem>
 	 </varlistentry>
          <varlistentry>
+            <term><command>-commonstop</command> <replaceable>value</replaceabel></term>
+            <listitem>
+                <para>
+                    This is only usable with a V775.  <parameter>value</parameter>
+                    is a boolean value which, if true runs the module in common
+                    stop mode.  If false (the default), the module is run in common
+                    start mode.
+                </para>
+            </listitem>
+        </varlistentry>
+         <varlistentry>
             <term><command>-thresholds</command> <replaceable>values</replaceable></term>
             <listitem>
                <para>
