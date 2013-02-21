@@ -33,15 +33,19 @@ using namespace std;
   \param numScalers - Number of scalers that will be put in the item.
 */
 CRingScalerItem::CRingScalerItem(size_t numScalers) :
-  CRingItem(INCREMENTAL_SCALERS,
+  CRingItem(PERIODIC_SCALERS,
 	    bodySize(numScalers))
 {
   init(numScalers);
-  m_pScalers->s_intervalStartOffset = 0;
-  m_pScalers->s_intervalEndOffset   = 0;
-  m_pScalers->s_timestamp = static_cast<uint32_t>(time(NULL));
-  m_pScalers->s_scalerCount = numScalers;
-  memset(m_pScalers->s_scalers, 0, numScalers*sizeof(uint32_t));
+  pScalerItemBody pScalers = reinterpret_cast<pScalerItemBody>(getBodyPointer());
+  
+  pScalers->s_intervalStartOffset = 0;
+  pScalers->s_intervalEndOffset   = 0;
+  pScalers->s_timestamp = static_cast<uint32_t>(time(NULL));
+  pScalers->s_scalerCount = numScalers;
+  pScalers->s_isIncremental = 1;
+  pScalers->s_intervalDivisor = 1;
+  memset(pScalers->s_scalers, 0, numScalers*sizeof(uint32_t));
 }
 /*!
   Construct a scaler item with all the info specified.
@@ -55,17 +59,59 @@ CRingScalerItem::CRingScalerItem(uint32_t startTime,
 				 uint32_t stopTime,
 				 time_t   timestamp,
 				 std::vector<uint32_t> scalers) :
-  CRingItem(INCREMENTAL_SCALERS, bodySize(scalers.size()))
+  CRingItem(PERIODIC_SCALERS, bodySize(scalers.size()))
 {
   init(scalers.size());
 
-  m_pScalers->s_intervalStartOffset = startTime;
-  m_pScalers->s_intervalEndOffset   = stopTime;
-  m_pScalers->s_timestamp           = timestamp;
-  m_pScalers->s_scalerCount         = scalers.size();
+  pScalerItemBody pScalers = reinterpret_cast<pScalerItemBody>(getBodyPointer());
+    
+  pScalers->s_intervalStartOffset = startTime;
+  pScalers->s_intervalEndOffset   = stopTime;
+  pScalers->s_timestamp           = timestamp;
+  pScalers->s_scalerCount         = scalers.size();
+  pScalers->s_isIncremental = 1;
+  pScalers->s_intervalDivisor = 1;
+
   for (int i = 0; i  < scalers.size(); i++) {
-    m_pScalers->s_scalers[i] = scalers[i];
+    pScalers->s_scalers[i] = scalers[i];
   }
+  updateSize();
+}
+/**
+ * constructor - with body header.
+ *
+ * Construcs a scaler ring item that has a body header.
+ *
+ * @param eventTimestamp - The event timestamp for the body header.
+ * @param source         - id of the source that created this item.
+ * @param barrier        - barrier type or 0 if this was not a barrier.
+  \param startTime - incremental scaler interval start time.
+  \param endTime   - incremental scaler interval end time
+  \param timestamp - Absolute system time at which the item was created.
+  \param scalers   - Vector of scaler values.
+ */
+CRingScalerItem::CRingScalerItem(
+    uint64_t eventTimestamp, uint32_t source, uint32_t barrier, uint32_t startTime,
+    uint32_t stopTime, time_t   timestamp, std::vector<uint32_t> scalers) :
+    CRingItem(
+        PERIODIC_SCALERS, eventTimestamp,  source, barrier,
+        bodySize(scalers.size())
+    )
+{
+    init(scalers.size());
+    pScalerItemBody pScalers = reinterpret_cast<pScalerItemBody>(getBodyPointer());
+      
+    pScalers->s_intervalStartOffset = startTime;
+    pScalers->s_intervalEndOffset   = stopTime;
+    pScalers->s_timestamp           = timestamp;
+    pScalers->s_scalerCount         = scalers.size();
+    pScalers->s_isIncremental = 1;
+    pScalers->s_intervalDivisor = 1;
+
+    for (int i = 0; i  < scalers.size(); i++) {
+      pScalers->s_scalers[i] = scalers[i];
+    }    
+    updateSize();
 }
 
 /*!
@@ -76,12 +122,15 @@ CRingScalerItem::CRingScalerItem(uint32_t startTime,
 CRingScalerItem::CRingScalerItem(const CRingItem& rhs) throw(bad_cast) :
   CRingItem(rhs)
 {
-  if (type() != INCREMENTAL_SCALERS) {
+  if (type() != PERIODIC_SCALERS) {
     throw bad_cast();
   }
-  pScalerItem pItem = reinterpret_cast<pScalerItem>(const_cast<CRingItem&>(rhs).getItemPointer());
-  init(pItem->s_scalerCount);
+  pScalerItemBody pItem = reinterpret_cast<pScalerItemBody>(getBodyPointer());
   
+  init(pItem->s_scalerCount);
+  updateSize();
+  
+  // TODO: Missing actual copy!!
 }
 
 /*!
@@ -91,7 +140,7 @@ CRingScalerItem::CRingScalerItem(const CRingItem& rhs) throw(bad_cast) :
 CRingScalerItem::CRingScalerItem(const CRingScalerItem& rhs) :
   CRingItem(rhs)
 {
-  init(rhs.m_pScalers->s_scalerCount);
+    
 }
 
 /*!
@@ -112,7 +161,11 @@ CRingScalerItem::operator=(const CRingScalerItem& rhs)
 {
   if (this != &rhs) {
     CRingItem::operator=(rhs);
-    init(rhs.m_pScalers->s_scalerCount);
+    pScalerItemBody pScalers = reinterpret_cast<pScalerItemBody>(getBodyPointer());
+
+    init(pScalers->s_scalerCount);
+    
+    // TODO: do the copy in from rhs.
   }
   return *this;
 }
@@ -155,7 +208,9 @@ CRingScalerItem::operator!=(const CRingScalerItem& rhs) const
 void
 CRingScalerItem::setStartTime(uint32_t startTime)
 {
-  m_pScalers->s_intervalStartOffset = startTime;
+    pScalerItemBody pScalers = reinterpret_cast<pScalerItemBody>(getBodyPointer());
+    
+    pScalers->s_intervalStartOffset = startTime;
 }
 /*!
    \return uint32_t
@@ -164,7 +219,9 @@ CRingScalerItem::setStartTime(uint32_t startTime)
 uint32_t
 CRingScalerItem::getStartTime() const
 {
-  return m_pScalers->s_intervalStartOffset;
+    pScalerItemBody pScalers = reinterpret_cast<pScalerItemBody>(getBodyPointer());
+
+    return pScalers->s_intervalStartOffset;
 }
 
 /*!
@@ -174,7 +231,8 @@ CRingScalerItem::getStartTime() const
 void
 CRingScalerItem::setEndTime(uint32_t endTime) 
 {
-  m_pScalers->s_intervalEndOffset = endTime;
+    pScalerItemBody pScalers = reinterpret_cast<pScalerItemBody>(getBodyPointer());
+    pScalers->s_intervalEndOffset = endTime;
 }
 /*!
    \return uint32_t
@@ -183,7 +241,8 @@ CRingScalerItem::setEndTime(uint32_t endTime)
 uint32_t
 CRingScalerItem::getEndTime() const
 {
-  return m_pScalers->s_intervalEndOffset;
+    pScalerItemBody pScalers = reinterpret_cast<pScalerItemBody>(getBodyPointer());
+    return pScalers->s_intervalEndOffset;
 }
 
 
@@ -195,7 +254,8 @@ CRingScalerItem::getEndTime() const
 void
 CRingScalerItem::setTimestamp(time_t  stamp)
 {
-  m_pScalers->s_timestamp = stamp;
+    pScalerItemBody pScalers = reinterpret_cast<pScalerItemBody>(getBodyPointer());
+    pScalers->s_timestamp = stamp;
 }
 /*!
    \return time_t
@@ -204,7 +264,8 @@ CRingScalerItem::setTimestamp(time_t  stamp)
 time_t
 CRingScalerItem::getTimestamp() const
 {
-  return m_pScalers->s_timestamp;
+    pScalerItemBody pScalers = reinterpret_cast<pScalerItemBody>(getBodyPointer());
+    return pScalers->s_timestamp;
 }
 
 
@@ -217,8 +278,10 @@ CRingScalerItem::getTimestamp() const
 void
 CRingScalerItem::setScaler(uint32_t channel, uint32_t value) throw(CRangeError)
 {
-  throwIfInvalidChannel(channel, "Attempting to set a scaler value");
-  m_pScalers->s_scalers[channel] = value;
+    throwIfInvalidChannel(channel, "Attempting to set a scaler value");
+    pScalerItemBody pScalers = reinterpret_cast<pScalerItemBody>(getBodyPointer());
+
+    pScalers->s_scalers[channel] = value;
 }
 /*!
 
@@ -230,9 +293,10 @@ CRingScalerItem::setScaler(uint32_t channel, uint32_t value) throw(CRangeError)
 uint32_t
 CRingScalerItem::getScaler(uint32_t channel) const throw(CRangeError) 
 {
-  throwIfInvalidChannel(channel, "Attempting to get a scaler value");
+    throwIfInvalidChannel(channel, "Attempting to get a scaler value");
+    pScalerItemBody pScalers = reinterpret_cast<pScalerItemBody>(getBodyPointer());
   
-  return m_pScalers->s_scalers[channel];
+    return pScalers->s_scalers[channel];
 }
 /*!
     \return std::vector<uint32_t>
@@ -241,11 +305,13 @@ CRingScalerItem::getScaler(uint32_t channel) const throw(CRangeError)
 vector<uint32_t>
 CRingScalerItem::getScalers() const
 {
-  vector<uint32_t> result;
-  for (int i =0; i < m_pScalers->s_scalerCount; i++) {
-    result.push_back(m_pScalers->s_scalers[i]);
-  }
-  return result;
+    vector<uint32_t> result;
+    pScalerItemBody pScalers = reinterpret_cast<pScalerItemBody>(getBodyPointer());
+
+    for (int i =0; i < pScalers->s_scalerCount; i++) {
+      result.push_back(pScalers->s_scalers[i]);
+    }
+    return result;
 }
 
 /*!
@@ -255,7 +321,9 @@ CRingScalerItem::getScalers() const
 uint32_t
 CRingScalerItem::getScalerCount() const
 {
-  return m_pScalers->s_scalerCount;
+    pScalerItemBody pScalers = reinterpret_cast<pScalerItemBody>(getBodyPointer());
+
+    return pScalers->s_scalerCount;
 }
   
 /////////////////////////////////////////////////////////////////////////////////////
@@ -269,12 +337,12 @@ CRingScalerItem::getScalerCount() const
 void
 CRingScalerItem::init(size_t n)
 {
-  m_pScalers       = reinterpret_cast<pScalerItem>(getItemPointer());
-  size_t   size    = bodySize(n); 
-  uint8_t* pCursor = reinterpret_cast<uint8_t*>(getBodyPointer());
-  pCursor         += size;
-  setBodyCursor(pCursor);
-  updateSize();
+    pScalerItemBody pScalers = reinterpret_cast<pScalerItemBody>(getBodyPointer());
+    size_t   size    = bodySize(n); 
+    uint8_t* pCursor = reinterpret_cast<uint8_t*>(getBodyPointer());
+    pCursor         += size;
+    setBodyCursor(pCursor);
+    updateSize();
     
 }
 /*-------------------------------------------------------
@@ -317,7 +385,7 @@ CRingScalerItem::toString() const
 
   out << time << " : Incremental scalers:\n";
   out << "Interval start time: " << start << " end: " << end << " seconds in to the run\n\n";
-  
+  out << bodyHeaderToString();
 
   out << "Index         Counts                 Rate\n";
   for (int i=0; i < scalers.size(); i++) {
@@ -343,7 +411,7 @@ CRingScalerItem::toString() const
 size_t
 CRingScalerItem::bodySize(size_t n)
 {
-  size_t  size    = sizeof(ScalerItem) + (n-1)*sizeof(uint32_t) - sizeof(RingItemHeader);
+  size_t  size    = sizeof(ScalerItemBody) + (n-1)*sizeof(uint32_t);
   return  size;
 }
 /*
@@ -353,8 +421,10 @@ void
 CRingScalerItem::throwIfInvalidChannel(uint32_t channel,
 				       const char* message) const throw(CRangeError)
 {
-  if (channel >= m_pScalers->s_scalerCount) {
-    throw CRangeError(0, m_pScalers->s_scalerCount, channel,
-		      message);
-  }
+    pScalerItemBody pScalers = reinterpret_cast<pScalerItemBody>(getBodyPointer());
+
+    if (channel >= pScalers->s_scalerCount) {
+      throw CRangeError(0, pScalers->s_scalerCount, channel,
+                        message);
+    }
 }

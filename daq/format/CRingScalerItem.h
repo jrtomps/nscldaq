@@ -57,16 +57,17 @@
 */
 class CRingScalerItem : public CRingItem
 {
-  // private object data:
-
-private:
-  pScalerItem       m_pScalers;
 
   // Constructors and canonicals.:
 
 public:
   CRingScalerItem(size_t numScalers);
   CRingScalerItem(uint32_t startTime,
+		  uint32_t stopTime,
+		  time_t   timestamp,
+		  std::vector<uint32_t> scalers);
+  CRingScalerItem(uint64_t eventTimestamp, uint32_t source, uint32_t barrier,
+                  uint32_t startTime,
 		  uint32_t stopTime,
 		  time_t   timestamp,
 		  std::vector<uint32_t> scalers);

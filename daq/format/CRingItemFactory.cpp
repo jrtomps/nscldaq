@@ -24,6 +24,9 @@
 #include "CRingStateChangeItem.h"
 #include "CRingTextItem.h"
 #include "CPhysicsEventItem.h"
+#include "CDataFormatItem.h"
+#include "CUnknownFragment.h"
+#include "CGlomParameters.h"
 #include "DataFormat.h"
 
 #include <vector>
@@ -48,6 +51,7 @@ static std::set<uint32_t> knownItemTypes;
 CRingItem*
 CRingItemFactory::createRingItem(const CRingItem& item)
 {
+  CRingItem& Item (const_cast<CRingItem&>(item)); // We'll need this here&there
   switch (item.type()) {
     // State change:
 
@@ -56,12 +60,7 @@ CRingItemFactory::createRingItem(const CRingItem& item)
   case PAUSE_RUN:
   case RESUME_RUN:
     {
-      pStateChangeItem pSrcBody = 
-	reinterpret_cast<pStateChangeItem>(const_cast<CRingItem&>(item).getItemPointer());
-      return new CRingStateChangeItem(
-         item.type(), pSrcBody->s_runNumber, pSrcBody->s_timeOffset, pSrcBody->s_Timestamp,
-	 std::string(pSrcBody->s_title)
-      );
+      return new CRingStateChangeItem(item);
     }
 
     // String list.
@@ -69,39 +68,28 @@ CRingItemFactory::createRingItem(const CRingItem& item)
   case PACKET_TYPES:
   case MONITORED_VARIABLES:
     {
-      pTextItem pSrcBody = 
-	reinterpret_cast<pTextItem>(const_cast<CRingItem&>(item).getItemPointer());
-      std::vector<std::string> strings;
-      char* pString = pSrcBody->s_strings;
-      for (int i = 0; i < pSrcBody->s_stringCount; i++) {
-	strings.push_back(pString);
-	pString += strlen(pString) + 1; // +1 for the terminating null.
-      }
-      return new CRingTextItem(
-          item.type(), strings, pSrcBody->s_timeOffset, pSrcBody->s_timestamp
-      );
+      return new CRingTextItem(item);
     }
     // Scalers:
 
-  case INCREMENTAL_SCALERS:
+  case PERIODIC_SCALERS:
     {
-      pScalerItem pSrcBody = 
-	reinterpret_cast<pScalerItem>(const_cast<CRingItem&>(item).getItemPointer());
-      std::vector<uint32_t> scalers(
-          pSrcBody->s_scalers, pSrcBody->s_scalers + pSrcBody->s_scalerCount
-      );
-      return new CRingScalerItem(
-          pSrcBody->s_intervalStartOffset, pSrcBody->s_intervalEndOffset, 
-	  pSrcBody->s_timestamp, scalers
-      );
-      
+      return new CRingScalerItem(item); 
     }
 
     // Physics trigger:
 
   case PHYSICS_EVENT:
     {
-      CPhysicsEventItem* pItem = new CPhysicsEventItem(PHYSICS_EVENT, item.getStorageSize());
+      CPhysicsEventItem* pItem;
+      if(item.hasBodyHeader()) {
+        pItem = new CPhysicsEventItem(
+            item.getEventTimestamp(), item.getSourceId(), item.getBarrierType(),
+            item.getStorageSize()
+        );
+      } else {
+        pItem = new CPhysicsEventItem(item.getStorageSize());
+      }
       uint8_t* pDest = reinterpret_cast<uint8_t*>(pItem->getBodyCursor());
       memcpy(pDest, 
 	     const_cast<CRingItem&>(item).getBodyPointer(), item.getBodySize());
@@ -114,22 +102,23 @@ CRingItemFactory::createRingItem(const CRingItem& item)
 
   case PHYSICS_EVENT_COUNT:
     {
-      pPhysicsEventCountItem pItem = 
-	reinterpret_cast<pPhysicsEventCountItem>(const_cast<CRingItem&>(item).getItemPointer());
-      return new CRingPhysicsEventCountItem(pItem->s_eventCount, pItem->s_timeOffset, pItem->s_timestamp);
+      return new CRingPhysicsEventCountItem(item);
       break;
     }
   // /Event builder fragment.
   case EVB_FRAGMENT:
     {
-      pEventBuilderFragment pItem = 
-	reinterpret_cast<pEventBuilderFragment>(const_cast<CRingItem&>(item).getItemPointer());
-      return new CRingFragmentItem(
-          pItem->s_timestamp, pItem->s_sourceId, pItem->s_payloadSize, 
-          pItem->s_body, pItem->s_barrierType
-      );
+      return new CRingFragmentItem(item);
     }
+  // TODO: Not yet supported items.
+  case RING_FORMAT:
+    return new CDataFormatItem(item);
+  case EVB_UNKNOWN_PAYLOAD:
+    return new CUnknownFragment(item);
+  case EVB_GLOM_INFO:
+    return new CGlomParameters(item);
     break;
+    
    // Nothing we know about:
 
   default:
@@ -192,14 +181,17 @@ CRingItemFactory::isKnownItemType(const void* pItem)
     knownItemTypes.insert(END_RUN);
     knownItemTypes.insert(PAUSE_RUN);
     knownItemTypes.insert(RESUME_RUN);
+    knownItemTypes.insert(RING_FORMAT);
 
     knownItemTypes.insert(PACKET_TYPES);
     knownItemTypes.insert(MONITORED_VARIABLES);
 
-    knownItemTypes.insert(INCREMENTAL_SCALERS);
+    knownItemTypes.insert(PERIODIC_SCALERS);
     knownItemTypes.insert(PHYSICS_EVENT);
     knownItemTypes.insert(PHYSICS_EVENT_COUNT);
     knownItemTypes.insert(EVB_FRAGMENT);
+    knownItemTypes.insert(EVB_UNKNOWN_PAYLOAD);
+    knownItemTypes.insert(EVB_GLOM_INFO);
   }
 
   return knownItemTypes.count(p->s_type) > 0;

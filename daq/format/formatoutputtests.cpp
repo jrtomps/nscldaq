@@ -42,12 +42,12 @@ void PhysicsItemOutput::empty() {
   ASSERT(pItem);
 
   EQMSG("Size of empty event item",
-	static_cast<uint32_t>(sizeof(RingItemHeader) + sizeof(uint32_t)), pItem->s_header.s_size);
+	static_cast<uint32_t>(sizeof(RingItemHeader) + sizeof(uint32_t)*2), pItem->s_header.s_size);
   EQMSG("Type of empty event",
 	PHYSICS_EVENT, pItem->s_header.s_type);
 
-
-  uint32_t* pPayload = reinterpret_cast<uint32_t*>(pItem->s_body);
+  
+  uint32_t* pPayload = reinterpret_cast<uint32_t*>(pItem->s_body.u_noBodyHeader.s_body);
   EQMSG("Payload contents",
 	sizeof(uint32_t)/sizeof(uint16_t), static_cast<size_t>(*pPayload));
 
@@ -75,7 +75,7 @@ PhysicsItemOutput::counting()
   ASSERT(pItem);
   
   EQMSG("Counting item size",
-	static_cast<uint32_t>(sizeof(RingItemHeader) + sizeof(uint32_t) + 10*sizeof(uint16_t)),
+	static_cast<uint32_t>(sizeof(RingItemHeader) + sizeof(uint32_t)*2 + 10*sizeof(uint16_t)),
 	pItem->s_header.s_size);
 
 
@@ -83,7 +83,7 @@ PhysicsItemOutput::counting()
     uint32_t s_size;
     uint16_t s_body[10];
   };
-  PayloadShape* pBody = reinterpret_cast<PayloadShape*>(pItem->s_body);
+  PayloadShape* pBody = reinterpret_cast<PayloadShape*>(pItem->s_body.u_noBodyHeader.s_body);
 
 
   EQMSG("Size in payload",
@@ -127,13 +127,15 @@ PhysicsCountOutput::itemformat()
   pPhysicsEventCountItem pItem = formatTriggerCountItem(1234, 666, 0xaaaa);
 
   ASSERT(pItem);
+  uint32_t properSize =
+    sizeof(RingItemHeader) + sizeof(uint32_t) + sizeof(PhysicsEventCountItemBody);
   EQMSG("Physics count size",
-	static_cast<uint32_t>(sizeof(PhysicsEventCountItem)), pItem->s_header.s_size);
+	properSize, pItem->s_header.s_size);
   EQMSG("Physics count type",
 	PHYSICS_EVENT_COUNT, pItem->s_header.s_type);
-  EQMSG("Time offset",  static_cast<uint32_t>(1234), pItem->s_timeOffset);
-  EQMSG("Time stamp", static_cast<uint32_t>(666), pItem->s_timestamp);
-  EQMSG("Trigger count", static_cast<uint64_t>(0xaaaa), pItem->s_eventCount);
+  EQMSG("Time offset",  static_cast<uint32_t>(1234), pItem->s_body.u_noBodyHeader.s_body.s_timeOffset);
+  EQMSG("Time stamp", static_cast<uint32_t>(666), pItem->s_body.u_noBodyHeader.s_body.s_timestamp);
+  EQMSG("Trigger count", static_cast<uint64_t>(0xaaaa), pItem->s_body.u_noBodyHeader.s_body.s_eventCount);
 
 
   free(pItem);
@@ -167,13 +169,18 @@ ScalerOutput::empty()
   pScalerItem pItem = formatScalerItem(0, 0x1234, 0, 1, NULL);
 
   ASSERT(pItem);
-  EQMSG("Empty scaler size",
-	static_cast<uint32_t>(sizeof(ScalerItem) - sizeof(uint32_t)), pItem->s_header.s_size);
-  EQMSG("Scaler type: ", INCREMENTAL_SCALERS, pItem->s_header.s_type);
-  EQMSG("start time", static_cast<uint32_t>(0), pItem->s_intervalStartOffset);
-  EQMSG("stop time",  static_cast<uint32_t>(1), pItem->s_intervalEndOffset);
-  EQMSG("timestamp",  static_cast<uint32_t>(0x1234), pItem->s_timestamp);
-  EQMSG("Count",      static_cast<uint32_t>(0),      pItem->s_scalerCount);
+  uint32_t properSize =
+    sizeof(RingItemHeader) + sizeof(uint32_t) + sizeof(ScalerItemBody)
+    - sizeof(uint32_t);
+    
+  EQMSG("Empty scaler size", properSize, pItem->s_header.s_size);
+  EQMSG("Scaler type: ", PERIODIC_SCALERS, pItem->s_header.s_type);
+  EQMSG("start time", static_cast<uint32_t>(0), pItem->s_body.u_noBodyHeader.s_body.s_intervalStartOffset);
+  EQMSG("stop time",  static_cast<uint32_t>(1), pItem->s_body.u_noBodyHeader.s_body.s_intervalEndOffset);
+  EQMSG("timestamp",  static_cast<uint32_t>(0x1234), pItem->s_body.u_noBodyHeader.s_body.s_timestamp);
+  EQMSG("Count",      static_cast<uint32_t>(0),      pItem->s_body.u_noBodyHeader.s_body.s_scalerCount);
+  EQMSG("Incremental", static_cast<uint32_t>(1), pItem->s_body.u_noBodyHeader.s_body.s_isIncremental);
+  EQMSG("Time divisor", static_cast<uint32_t>(1), pItem->s_body.u_noBodyHeader.s_body.s_intervalDivisor);
 
   free(pItem);
 }
@@ -196,12 +203,15 @@ ScalerOutput::counting()
   // - Payload.
   //
   ASSERT(pItem);
-  EQMSG("Counting scaler size",
-	static_cast<uint32_t>(sizeof(ScalerItem) + 9*sizeof(uint32_t)), pItem->s_header.s_size);
-  EQMSG("No of scalers", static_cast<uint32_t>(10), pItem->s_scalerCount);
+  uint32_t properSize =
+    sizeof(RingItemHeader) + sizeof(uint32_t) + sizeof(ScalerItemBody)
+    + 9*sizeof(uint32_t);
+  EQMSG("Counting scaler size", properSize, pItem->s_header.s_size);
+  EQMSG("No of scalers", static_cast<uint32_t>(10),
+        pItem->s_body.u_noBodyHeader.s_body.s_scalerCount);
 
   for (uint32_t i = 0; i < 10; i++) {
-    EQMSG("Scaler payload",  i, pItem->s_scalers[i]);
+    EQMSG("Scaler payload",  i, pItem->s_body.u_noBodyHeader.s_body.s_scalers[i]);
   }
   
 
@@ -239,12 +249,13 @@ TextOutput::empty()
   pTextItem pItem = formatTextItem(0, 0xaaaa, 0xbbbb, NULL, MONITORED_VARIABLES);
 
   ASSERT(pItem);
-
-  EQMSG("Empty text item size", static_cast<uint32_t>(sizeof(TextItem) - sizeof(char)), pItem->s_header.s_size);
+  uint32_t properSize =
+    sizeof(RingItemHeader) + sizeof(uint32_t) + sizeof(TextItemBody) - sizeof(char);
+  EQMSG("Empty text item size", properSize, pItem->s_header.s_size);
   EQMSG("Type ", MONITORED_VARIABLES, pItem->s_header.s_type);
-  EQMSG(" time offset", static_cast<uint32_t>(0xbbbb), pItem->s_timeOffset);
-  EQMSG(" timestamp", static_cast<uint32_t>(0xaaaa), pItem->s_timestamp);
-  EQMSG(" string count", static_cast<uint32_t>(0),   pItem->s_stringCount);
+  EQMSG(" time offset", static_cast<uint32_t>(0xbbbb), pItem->s_body.u_noBodyHeader.s_body.s_timeOffset);
+  EQMSG(" timestamp", static_cast<uint32_t>(0xaaaa), pItem->s_body.u_noBodyHeader.s_body.s_timestamp);
+  EQMSG(" string count", static_cast<uint32_t>(0),   pItem->s_body.u_noBodyHeader.s_body.s_stringCount);
 
   free(pItem);
 }
@@ -269,10 +280,13 @@ TextOutput::someStrings()
   pTextItem pItem = formatTextItem(4, 0xaaaa, 0xbbbb, strings, MONITORED_VARIABLES);
 
   ASSERT(pItem);
-  EQMSG("Item size",    static_cast<uint32_t>(sizeof(TextItem) + stringSize - sizeof(char)), pItem->s_header.s_size);
-  EQMSG("String count", static_cast<uint32_t>(4), pItem->s_stringCount);
+  uint32_t properSize =
+    sizeof(RingItemHeader) + sizeof(uint32_t) + sizeof(TextItemBody)
+    + stringSize - sizeof(char);
+  EQMSG("Item size",    properSize, pItem->s_header.s_size);
+  EQMSG("String count", static_cast<uint32_t>(4), pItem->s_body.u_noBodyHeader.s_body.s_stringCount);
  
-  char* p = pItem->s_strings;
+  char* p = pItem->s_body.u_noBodyHeader.s_body.s_strings;
 
   for (int i = 0; i < 4; i++) {
     EQMSG("Contents", std::string(strings[i]), std::string(p));
@@ -310,10 +324,10 @@ StateChangeOutput::begin()
   ASSERT(pItem);
   EQMSG("State change item sizse", static_cast<uint32_t>(sizeof(StateChangeItem)), pItem->s_header.s_size);
   EQMSG("Item type", BEGIN_RUN, pItem->s_header.s_type);
-  EQMSG("Run Number", static_cast<uint32_t>(1234), pItem->s_runNumber);
-  EQMSG("Time offset", static_cast<uint32_t>(0), pItem->s_timeOffset);
-  EQMSG("Timestamp", static_cast<uint32_t>(0x66eb), pItem->s_Timestamp);
-  EQMSG("Title", std::string("This is a test title"), std::string(pItem->s_title));
+  EQMSG("Run Number", static_cast<uint32_t>(1234), pItem->s_body.u_noBodyHeader.s_body.s_runNumber);
+  EQMSG("Time offset", static_cast<uint32_t>(0), pItem->s_body.u_noBodyHeader.s_body.s_timeOffset);
+  EQMSG("Timestamp", static_cast<uint32_t>(0x66eb), pItem->s_body.u_noBodyHeader.s_body.s_Timestamp);
+  EQMSG("Title", std::string("This is a test title"), std::string(pItem->s_body.u_noBodyHeader.s_body.s_title));
 
   free(pItem);
 }

@@ -61,8 +61,6 @@
 */
 class CRingPhysicsEventCountItem : public CRingItem
 {
-private:
-  pPhysicsEventCountItem    m_pItem;
 
   // constructors and other canonicals:
 public:
@@ -72,6 +70,10 @@ public:
   CRingPhysicsEventCountItem(uint64_t count, 
 			     uint32_t timeoffset, 
 			     time_t stamp);
+  CRingPhysicsEventCountItem(
+    uint64_t timestamp, uint32_t source, uint32_t barrier,
+    uint64_t count, uint32_t timeoffset, time_t stamp);
+  
   CRingPhysicsEventCountItem(const CRingItem& rhs)  throw(std::bad_cast);
   CRingPhysicsEventCountItem(const CRingPhysicsEventCountItem& rhs);
 

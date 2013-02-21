@@ -55,7 +55,10 @@ struct _RingItem;
 class CPhysicsEventItem : public CRingItem
 {
 public:
-  CPhysicsEventItem(uint16_t type, size_t maxBody=8192);
+  CPhysicsEventItem(size_t maxBody=8192);
+  CPhysicsEventItem(uint64_t timestamp, uint32_t source, uint32_t barrier,
+                    size_t maxBody=8192);
+
   CPhysicsEventItem(const CPhysicsEventItem& rhs);
   virtual ~CPhysicsEventItem();
 

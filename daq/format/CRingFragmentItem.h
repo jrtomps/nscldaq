@@ -41,11 +41,6 @@ typedef struct _EventBuilderFragment *pEventBuilderFragment;
  */
 class CRingFragmentItem : public CRingItem
 {
-  // Private object data:
-
-private:
-  pEventBuilderFragment  m_pFragment;
-
   // Implemented canonical items:
 
 public:
@@ -68,8 +63,8 @@ public:
 public:
   uint64_t     timestamp() const;
   uint32_t     source() const;
-  size_t       payloadSize()   const;
-  const void*  payloadPointer() const;
+  size_t       payloadSize();
+  void*        payloadPointer();
   uint32_t     barrierType() const;
 
   // Virtual method overrides:
@@ -81,7 +76,7 @@ public:
 
 private:
   size_t bodySize(size_t payloadSize) const;
-  void   copyPayload(const void* pPayloadSource);
+  void   copyPayload(const void* pPayloadSource, size_t payloadSize);
   void   init(size_t size);
 };
 

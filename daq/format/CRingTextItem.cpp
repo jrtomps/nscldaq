@@ -35,13 +35,14 @@ using namespace std;
 
 */
 CRingTextItem::CRingTextItem(uint16_t type, vector<string> theStrings) :
-  CRingItem(type, bodySize(theStrings))
+  CRingItem(type, bodySize(theStrings) + sizeof(BodyHeader))
 {
-  init();			// Sets up m_pItem and cursor.
-  copyStrings(theStrings);
-
-  m_pItem->s_timeOffset = 0;
-  m_pItem->s_timestamp = static_cast<uint32_t>(time(NULL));
+    init();			
+    copyStrings(theStrings);
+  
+    pTextItemBody pItem = reinterpret_cast<pTextItemBody>(getBodyPointer());      
+    pItem->s_timeOffset = 0;
+    pItem->s_timestamp = static_cast<uint32_t>(time(NULL));
 }
 /*!
   Construct a ring buffer, but this time provide actual values for the
@@ -56,15 +57,43 @@ CRingTextItem::CRingTextItem(uint16_t       type,
 			     vector<string> strings,
 			     uint32_t       offsetTime,
 			     time_t         timestamp) :
-  CRingItem(type, bodySize(strings))
+  CRingItem(type, bodySize(strings) + sizeof(BodyHeader))
 {
   init();
   copyStrings(strings);
 
-  m_pItem->s_timeOffset = offsetTime;
-  m_pItem->s_timestamp  = timestamp;
+  pTextItemBody pItem = reinterpret_cast<pTextItemBody>(getBodyPointer()); 
+  pItem->s_timeOffset = offsetTime;
+  pItem->s_timestamp  = timestamp;
   
 }
+/**
+ * constructor
+ * 
+ * Construct a text item that has a body header as well as the strings and
+ * timestamp.
+ *
+ * @param type           - Type of ring item.
+ * @param eventTimestamp - Event clock time at which this occured.
+ * @param source         - Id of the data source.
+ * @param barrier        - Type of barrier (or 0 if not a barrier).;
+  \param strings - The strings to put in the buffer.
+  \param offsetTime - The time in to the run at which this is being inserted.
+  \param timestamp  - The absolute time when this is being created.
+ */
+CRingTextItem::CRingTextItem(
+    uint16_t type, uint64_t eventTimestamp, uint32_t source, uint32_t barrier,
+    std::vector<std::string> theStrings, uint32_t offsetTime, time_t timestamp) :
+    CRingItem(type, eventTimestamp, source, barrier,
+    bodySize(theStrings) + sizeof(BodyHeader))
+{
+    init();
+    copyStrings(theStrings);
+    pTextItemBody pItem = reinterpret_cast<pTextItemBody>(getBodyPointer()); 
+    pItem->s_timeOffset = offsetTime;
+    pItem->s_timestamp  = timestamp;      
+}
+
 /*!
    Construct from an undifferentiated ring item.
    If the ring item does not have a type that is consistent with
@@ -158,9 +187,11 @@ vector<string>
 CRingTextItem::getStrings() const
 {
   vector<string> result;
-  const char*     pNextString = m_pItem->s_strings;
+  pTextItemBody pItem = reinterpret_cast<pTextItemBody>(getBodyPointer());
+  
+  const char*     pNextString = pItem->s_strings;
 
-  for (int i = 0; i < m_pItem->s_stringCount; i++) {
+  for (int i = 0; i < pItem->s_stringCount; i++) {
     string aString = pNextString;
     pNextString   += aString.size() + 1;  // +1 for the trailing null.
 
@@ -178,7 +209,8 @@ CRingTextItem::getStrings() const
 void
 CRingTextItem::setTimeOffset(uint32_t offset)
 {
-  m_pItem->s_timeOffset = offset;
+  pTextItemBody pItem = reinterpret_cast<pTextItemBody>(getBodyPointer());    
+  pItem->s_timeOffset = offset;
 }
 /*!
    \return uint32_t
@@ -187,7 +219,8 @@ CRingTextItem::setTimeOffset(uint32_t offset)
 uint32_t
 CRingTextItem::getTimeOffset() const
 {
-  return m_pItem->s_timeOffset;
+  pTextItemBody pItem = reinterpret_cast<pTextItemBody>(getBodyPointer());
+  return pItem->s_timeOffset;
 }
 /*!
    Set a new value for the timestamp of the item.
@@ -195,7 +228,8 @@ CRingTextItem::getTimeOffset() const
 void
 CRingTextItem::setTimestamp(time_t stamp)
 {
-  m_pItem->s_timestamp = stamp;
+  pTextItemBody pItem = reinterpret_cast<pTextItemBody>(getBodyPointer());
+  pItem->s_timestamp = stamp;
 }
 /*!
    \return time_t
@@ -205,7 +239,8 @@ CRingTextItem::setTimestamp(time_t stamp)
 time_t
 CRingTextItem::getTimestamp() const
 {
-  return m_pItem->s_timestamp;
+  pTextItemBody pItem = reinterpret_cast<pTextItemBody>(getBodyPointer());
+  return pItem->s_timestamp;
 }
 
 ///////////////////////////////////////////////////////////
@@ -249,6 +284,7 @@ CRingTextItem::toString() const
 
   out << time << " : Documentation item ";
   out << typeName();
+  out << bodyHeaderToString();
 
   out << elapsed << " seconds in to the run\n";
   for (int i = 0; i < strings.size(); i++) {
@@ -273,7 +309,7 @@ CRingTextItem::toString() const
 size_t 
 CRingTextItem::bodySize(vector<string> strings) const
 {
-  size_t result = sizeof(TextItem) - sizeof(RingItemHeader) - sizeof(char);
+  size_t result = sizeof(TextItemBody) - sizeof(char);
   for (int i=0; i < strings.size(); i++) {
     result += strings[i].size() + 1;
   }
@@ -300,8 +336,9 @@ CRingTextItem::validType() const
 void
 CRingTextItem::copyStrings(vector<string> strings)
 {
-  m_pItem->s_stringCount = strings.size();
-  char* p                = m_pItem->s_strings;
+  pTextItemBody pItem = reinterpret_cast<pTextItemBody>(getBodyPointer());
+  pItem->s_stringCount = strings.size();
+  char* p                = pItem->s_strings;
   for (int i = 0; i < strings.size(); i++) {
     strcpy(p, strings[i].c_str());
     p += strings[i].size() + 1;
@@ -315,5 +352,5 @@ CRingTextItem::copyStrings(vector<string> strings)
 void
 CRingTextItem::init()
 {
-  m_pItem = reinterpret_cast<pTextItem>(getItemPointer());
+
 }

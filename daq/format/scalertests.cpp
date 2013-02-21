@@ -22,6 +22,8 @@ class scltests : public CppUnit::TestFixture {
   CPPUNIT_TEST(castcons);
   CPPUNIT_TEST(accessors);
   CPPUNIT_TEST(copycons);
+  CPPUNIT_TEST(tstampCons);
+  CPPUNIT_TEST(tstampCopyCons);
   CPPUNIT_TEST_SUITE_END();
 
 
@@ -38,6 +40,8 @@ protected:
   void castcons();
   void accessors();
   void copycons();
+  void tstampCons();
+  void tstampCopyCons();
 };
 
 CPPUNIT_TEST_SUITE_REGISTRATION(scltests);
@@ -48,12 +52,16 @@ CPPUNIT_TEST_SUITE_REGISTRATION(scltests);
 void scltests::simplecons() {
   CRingScalerItem s(32);
 
-  EQ(INCREMENTAL_SCALERS, s.type());
+  pScalerItem pItem = reinterpret_cast<pScalerItem>(s.getItemPointer());
+  
+  EQ(PERIODIC_SCALERS, s.type());
   uint32_t zero(0);
-  EQ(zero, s.m_pScalers->s_intervalStartOffset);
-  EQ(zero, s.m_pScalers->s_intervalEndOffset);
-  EQ((uint32_t)time(NULL), s.m_pScalers->s_timestamp);
-  EQ((uint32_t)32, s.m_pScalers->s_scalerCount);
+  EQ(zero, pItem->s_body.u_noBodyHeader.s_body.s_intervalStartOffset);
+  EQ(zero, pItem->s_body.u_noBodyHeader.s_body.s_intervalEndOffset);
+  EQ((uint32_t)time(NULL), pItem->s_body.u_noBodyHeader.s_body.s_timestamp);
+  EQ((uint32_t)32, pItem->s_body.u_noBodyHeader.s_body.s_scalerCount);
+  EQ((uint32_t)1, pItem->s_body.u_noBodyHeader.s_body.s_isIncremental);
+  EQ((uint32_t)1, pItem->s_body.u_noBodyHeader.s_body.s_intervalDivisor);
 
 }
 // Exercise the fully specifying constructor.
@@ -66,14 +74,15 @@ void scltests::fullcons()
     scalerValues.push_back(i);
   }
   CRingScalerItem s(10, 12, time(NULL), scalerValues);
+  pScalerItem pItem = reinterpret_cast<pScalerItem>(s.getItemPointer());
 
-  EQ(INCREMENTAL_SCALERS, s.type());
-  EQ((uint32_t)10, s.m_pScalers->s_intervalStartOffset);
-  EQ((uint32_t)12, s.m_pScalers->s_intervalEndOffset);
-  EQ((uint32_t)time(NULL),   s.m_pScalers->s_timestamp);
-  EQ((uint32_t)32, s.m_pScalers->s_scalerCount);
+  EQ(PERIODIC_SCALERS, s.type());
+  EQ((uint32_t)10, pItem->s_body.u_noBodyHeader.s_body.s_intervalStartOffset);
+  EQ((uint32_t)12, pItem->s_body.u_noBodyHeader.s_body.s_intervalEndOffset);
+  EQ((uint32_t)time(NULL),   pItem->s_body.u_noBodyHeader.s_body.s_timestamp);
+  EQ((uint32_t)32, pItem->s_body.u_noBodyHeader.s_body.s_scalerCount);
   for (int i =0; i < 32; i++) {
-    EQ(scalerValues[i], s.m_pScalers->s_scalers[i]);
+    EQ(scalerValues[i], pItem->s_body.u_noBodyHeader.s_body.s_scalers[i]);
   }
  
 }
@@ -81,19 +90,19 @@ void scltests::fullcons()
 //  This also exercises the getter accessors.
 void scltests::castcons()
 {
-  CRingItem s(INCREMENTAL_SCALERS,
+  CRingItem s(PERIODIC_SCALERS,
 	      sizeof(ScalerItem) + 31*sizeof(uint32_t) - sizeof(RingItemHeader));
   pScalerItem p = reinterpret_cast<pScalerItem>(s.getItemPointer());
 
-  p->s_intervalStartOffset = 10;
-  p->s_intervalEndOffset   = 15;
-  p->s_timestamp = static_cast<uint32_t>(time(NULL));
-  p->s_scalerCount = 32;
+  p->s_body.u_noBodyHeader.s_body.s_intervalStartOffset = 10;
+  p->s_body.u_noBodyHeader.s_body.s_intervalEndOffset   = 15;
+  p->s_body.u_noBodyHeader.s_body.s_timestamp = static_cast<uint32_t>(time(NULL));
+  p->s_body.u_noBodyHeader.s_body.s_scalerCount = 32;
   int i;
   for (i =0; i < 32; i++) {
-    p->s_scalers[i] = i;
+    p->s_body.u_noBodyHeader.s_body.s_scalers[i] = i;
   }
-  s.setBodyCursor(&(p->s_scalers[i]));
+  s.setBodyCursor(&(p->s_body.u_noBodyHeader.s_body.s_scalers[i]));
   s.updateSize();
 
 
@@ -180,4 +189,89 @@ void scltests::copycons()
     EQ(i, copy.getScaler(i));
   }
   
+}
+/*
+  Test construction of timestamped scaler items.
+*/
+void
+scltests::tstampCons()
+{
+    std::vector<uint32_t> scalers;
+    for(int i=0; i < 16; i++) {
+        scalers.push_back(i);
+    }
+    CRingScalerItem item(
+        0x1234567887654321ll, 1, 0,
+        10, 20, (time_t)1111, scalers
+    );
+    
+    // Ensure we can get the body header stuff:
+    
+    EQ(true, item.hasBodyHeader());
+    EQ(static_cast<uint64_t>(0x1234567887654321ll), item.getEventTimestamp());
+    EQ(static_cast<uint32_t>(1), item.getSourceId());
+    EQ(static_cast<uint32_t>(0), item.getBarrierType());
+    
+    // And that we can still get the stuff from the event body:
+    
+    EQ(static_cast<uint32_t>(10), item.getStartTime());
+    EQ(static_cast<uint32_t>(20), item.getEndTime());
+    EQ(static_cast<time_t>(1111), item.getTimestamp());
+    EQ(static_cast<uint32_t>(16), item.getScalerCount());
+    
+    for(int i = 0; i < 16; i++) {
+        EQ(static_cast<uint32_t>(i), item.getScaler(i));
+    }
+    
+    // Make sure that scaler value alterations work too:
+    
+    for(int i = 0; i < 16; i++) {
+        item.setScaler(i, 100-i);
+    }
+    for (int i = 0; i < 16; i++) {
+        EQ(static_cast<uint32_t>(100-i), item.getScaler(i));
+    }
+}
+/*
+  test copy construction with body headers:
+*/
+void
+scltests::tstampCopyCons()
+{
+    std::vector<uint32_t> scalers;
+    for(int i=0; i < 16; i++) {
+        scalers.push_back(i);
+    }
+    CRingScalerItem orig(
+        0x1234567887654321ll, 1, 0,
+        10, 20, (time_t)1111, scalers
+    );
+    CRingScalerItem item(orig);
+    
+    // Ensure we can get the body header stuff:
+    
+    EQ(true, item.hasBodyHeader());
+    EQ(static_cast<uint64_t>(0x1234567887654321ll), item.getEventTimestamp());
+    EQ(static_cast<uint32_t>(1), item.getSourceId());
+    EQ(static_cast<uint32_t>(0), item.getBarrierType());
+    
+    // And that we can still get the stuff from the event body:
+    
+    EQ(static_cast<uint32_t>(10), item.getStartTime());
+    EQ(static_cast<uint32_t>(20), item.getEndTime());
+    EQ(static_cast<time_t>(1111), item.getTimestamp());
+    EQ(static_cast<uint32_t>(16), item.getScalerCount());
+    
+    for(int i = 0; i < 16; i++) {
+        EQ(static_cast<uint32_t>(i), item.getScaler(i));
+    }
+    
+    // Make sure that scaler value alterations work too:
+    
+    for(int i = 0; i < 16; i++) {
+        item.setScaler(i, 100-i);
+    }
+    for (int i = 0; i < 16; i++) {
+        EQ(static_cast<uint32_t>(100-i), item.getScaler(i));
+    }
 }

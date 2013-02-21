@@ -40,7 +40,7 @@ public:
   void tearDown() {
   }
 protected:
-  void construct();
+  void construct();    // Non timestamped.
   void copyconstruct();
   void selectors();
   void cursor();
@@ -56,6 +56,7 @@ CPPUNIT_TEST_SUITE_REGISTRATION(ritemtests);
 // There are two cases for construction...
 // assuming the static ring buffer size is 8k.
 // 
+// 
 void ritemtests::construct() {
   CRingItem small(1);
   CRingItem big(1, CRingItemStaticBufferSize*2);
@@ -68,13 +69,13 @@ void ritemtests::construct() {
 
   // Let's look at the member data for small too:
 
-  EQ((void*)small.m_pItem->s_body, (void*)small.m_pCursor);
+  EQ((void*)small.m_pItem->s_body.u_noBodyHeader.s_body, (void*)small.m_pCursor);
   EQ(CRingItemStaticBufferSize, small.m_storageSize);
   EQ(false, small.m_swapNeeded);
 
   // Let's look at the member data for big:
   
-  EQ((uint8_t*)big.m_pItem->s_body, big.m_pCursor);
+  EQ((uint8_t*)big.m_pItem->s_body.u_noBodyHeader.s_body, big.m_pCursor);
   EQ(CRingItemStaticBufferSize*2, big.m_storageSize);
   EQ(false, big.m_swapNeeded);
 }
@@ -95,7 +96,7 @@ void ritemtests::copyconstruct()
 
   CRingItem copy(source);
 
-  EQ(source.getBodySize(), copy.getBodySize());
+   EQ(source.getBodySize(), copy.getBodySize());
   _RingItem* porig = source.getItemPointer();
   _RingItem* pcopy = copy.getItemPointer();
 
@@ -172,7 +173,8 @@ ritemtests::toring()
 
     item.commitToRing(prod);
 
-    const size_t itemSize = item.getBodySize() + sizeof(RingItemHeader);
+    const size_t itemSize = item.getBodySize() + sizeof(RingItemHeader)
+                            + sizeof(uint32_t);
     EQ(itemSize, cons.availableData());
     uint8_t itemData[itemSize];
     
@@ -184,7 +186,7 @@ ritemtests::toring()
     RingItem* pItem = reinterpret_cast<RingItem*>(itemData);
     EQ((uint32_t)0x1234, pItem->s_header.s_type);
     EQ(itemSize, (size_t)pItem->s_header.s_size);
-    uint16_t* body = reinterpret_cast<uint16_t*>(pItem->s_body);
+    uint16_t* body = reinterpret_cast<uint16_t*>(pItem->s_body.u_noBodyHeader.s_body);
     for (uint16_t i =0; i < 16; i++) {
       EQ(i, body[i]);
     }

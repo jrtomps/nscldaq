@@ -36,17 +36,19 @@ using namespace std;
    \param reason - Reason for the state change.  This defaults to BEGIN_RUN.
 */
 CRingStateChangeItem::CRingStateChangeItem(uint16_t reason) :
-  CRingItem(reason, sizeof(StateChangeItem)) ,
-  m_pItem(0)
+  CRingItem(reason, sizeof(StateChangeItem))
 {
   init();
 
   // Fill in the body:
 
-  m_pItem->s_runNumber    = 0;
-  m_pItem->s_timeOffset   = 0;
-  m_pItem->s_Timestamp = static_cast<uint32_t>(time(NULL));
-  memset(m_pItem->s_title, 0, TITLE_MAXSIZE+1);
+
+  pStateChangeItemBody pItem =
+    reinterpret_cast<pStateChangeItemBody>(getBodyPointer());
+  pItem->s_runNumber    = 0;
+  pItem->s_timeOffset   = 0;
+  pItem->s_Timestamp = static_cast<uint32_t>(time(NULL));
+  memset(pItem->s_title, 0, TITLE_MAXSIZE+1);
 }
 /*!
    Fully specified construction the initial values of the various
@@ -67,22 +69,59 @@ CRingStateChangeItem::CRingStateChangeItem(uint16_t reason,
 					   uint32_t timeOffset,
 					   time_t   timestamp,
 					   std::string title) throw(CRangeError) :
-  CRingItem(reason, sizeof(StateChangeItem)),
-  m_pItem(0)
+  CRingItem(reason, sizeof(StateChangeItem))
 
 {
   init();
 
   // Everything should work just fine now:
 
-  m_pItem->s_runNumber = runNumber;
-  m_pItem->s_timeOffset= timeOffset;
-  m_pItem->s_Timestamp = timestamp;
+  pStateChangeItemBody pItem =
+    reinterpret_cast<pStateChangeItemBody>(getBodyPointer());
+
+  pItem->s_runNumber = runNumber;
+  pItem->s_timeOffset= timeOffset;
+  pItem->s_Timestamp = timestamp;
   setTitle(title);		// takes care of the exception.
 
 
 }
+/**
+ * constructor - for timetamped item.
+ *
+ * @param eventTimestamp  - Event timestamp
+ * @param sourceId   - Source id of the event.
+ * @param barrierType - Type of barrier if barrier.
+   \param reason     - Why the state change buffer is being emitted (the item type).
+   \param runNumber  - Number of the run that is undegoing transitino.
+   \param timeOffset - Number of seconds into the run at which this is being emitted.
+   \param timestamp  - Absolute time to be recorded in the buffer.. tyically
+                       this should be time(NULL).
+   \param title      - Title string.  The length of this string must be at most
+                       TITLE_MAXSIZE.
 
+   \throw CRangeError - If the title string can't fit in s_title.
+ */
+CRingStateChangeItem::CRingStateChangeItem(
+    uint64_t eventTimestamp, uint32_t sourceId, uint32_t barrierType, uint16_t reason,
+    uint32_t runNumber, uint32_t timeOffset, time_t   timestamp,
+    std::string title) :
+    CRingItem(
+        reason, eventTimestamp, sourceId, barrierType, sizeof(StateChangeItem)
+    )
+{
+    init();
+    // Everything should work just fine now:
+  
+    pStateChangeItemBody pItem =
+        reinterpret_cast<pStateChangeItemBody>(getBodyPointer());
+
+    pItem->s_runNumber = runNumber;
+    pItem->s_timeOffset= timeOffset;
+    pItem->s_Timestamp = timestamp;
+    setTitle(title);		// takes care of the exception.
+    
+}
 /*!
    Constructor that copies/converts an existing ring item into a state change
    item. This is often used to wrap a state change object around a ring item just
@@ -131,7 +170,6 @@ CRingStateChangeItem::operator=(const CRingStateChangeItem& rhs)
 {
   if (this != &rhs) {
     CRingItem::operator=(rhs);
-    m_pItem = reinterpret_cast<pStateChangeItem>(getItemPointer());
   }
   return *this;
 }
@@ -170,7 +208,10 @@ CRingStateChangeItem::operator!=(const CRingStateChangeItem& rhs) const
 void
 CRingStateChangeItem::setRunNumber(uint32_t run)
 {
-  m_pItem->s_runNumber = run;
+    pStateChangeItemBody pItem =
+      reinterpret_cast<pStateChangeItemBody>(getBodyPointer());
+
+    pItem->s_runNumber = run;
 }
 /*!
   \return uint32_t
@@ -179,7 +220,10 @@ CRingStateChangeItem::setRunNumber(uint32_t run)
 uint32_t
 CRingStateChangeItem::getRunNumber() const
 {
-  return m_pItem->s_runNumber;
+    pStateChangeItemBody pItem =
+        reinterpret_cast<pStateChangeItemBody>(getBodyPointer());
+
+    return pItem->s_runNumber;
 }
 
 /*!
@@ -189,7 +233,10 @@ CRingStateChangeItem::getRunNumber() const
 void
 CRingStateChangeItem::setElapsedTime(uint32_t offset)
 {
-  m_pItem->s_timeOffset = offset;
+    pStateChangeItemBody pItem =
+        reinterpret_cast<pStateChangeItemBody>(getBodyPointer());
+
+    pItem->s_timeOffset = offset;
 }
 /*!
   \return uint32_t
@@ -198,7 +245,10 @@ CRingStateChangeItem::setElapsedTime(uint32_t offset)
 uint32_t
 CRingStateChangeItem::getElapsedTime() const
 {
-  return m_pItem->s_timeOffset;
+    pStateChangeItemBody pItem =
+        reinterpret_cast<pStateChangeItemBody>(getBodyPointer());
+
+    return pItem->s_timeOffset;
 }
 /*!
   Set the title string.
@@ -208,13 +258,16 @@ CRingStateChangeItem::getElapsedTime() const
 void
 CRingStateChangeItem::setTitle(string title)  throw(CRangeError)
 {
-  // Ensure the title is small enough.
+    // Ensure the title is small enough.
+  
+    if(title.size() > TITLE_MAXSIZE) {
+      throw CRangeError(0, TITLE_MAXSIZE, title.size(),
+                        "Checking size of title against TITLE_MAXSIZE");
+    }
+    pStateChangeItemBody pItem =
+        reinterpret_cast<pStateChangeItemBody>(getBodyPointer());
 
-  if(title.size() > TITLE_MAXSIZE) {
-    throw CRangeError(0, TITLE_MAXSIZE, title.size(),
-		      "Checking size of title against TITLE_MAXSIZE");
-  }
-  strcpy(m_pItem->s_title, title.c_str());
+      strcpy(pItem->s_title, title.c_str());
 }
 
 /*!
@@ -224,7 +277,10 @@ CRingStateChangeItem::setTitle(string title)  throw(CRangeError)
 string
 CRingStateChangeItem::getTitle() const
 {
-  return string(m_pItem->s_title);
+    pStateChangeItemBody pItem =
+        reinterpret_cast<pStateChangeItemBody>(getBodyPointer());
+
+    return string(pItem->s_title);
 }
 /*!
    Set the timestamp
@@ -233,7 +289,10 @@ CRingStateChangeItem::getTitle() const
 void
 CRingStateChangeItem::setTimestamp(time_t stamp)
 {
-  m_pItem->s_Timestamp  = stamp;
+    pStateChangeItemBody pItem =
+        reinterpret_cast<pStateChangeItemBody>(getBodyPointer());
+
+    pItem->s_Timestamp  = stamp;
 }
 /*!
     \return time_t
@@ -242,7 +301,10 @@ CRingStateChangeItem::setTimestamp(time_t stamp)
 time_t
 CRingStateChangeItem::getTimestamp() const
 {
-  return m_pItem->s_Timestamp;
+    pStateChangeItemBody pItem =
+        reinterpret_cast<pStateChangeItemBody>(getBodyPointer());
+
+    return pItem->s_Timestamp;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -289,6 +351,7 @@ CRingStateChangeItem::toString() const
 
   out <<  timestamp << " : Run State change : " << typeName();
   out << " at " << elapsed << " seconds into the run\n";
+  out << bodyHeaderToString();
   out << "Title     : " << title << std::endl;
   out << "Run Number: " << run   << endl;
 
@@ -305,9 +368,9 @@ CRingStateChangeItem::toString() const
 void 
 CRingStateChangeItem::init()
 {
-  m_pItem = reinterpret_cast<pStateChangeItem>(getItemPointer());
+
   uint8_t* pCursor = reinterpret_cast<uint8_t*>(getBodyPointer());
-  pCursor         += sizeof(StateChangeItem) - sizeof(RingItemHeader);
+  pCursor         += sizeof(StateChangeItemBody);
   setBodyCursor(pCursor);
   updateSize();
 

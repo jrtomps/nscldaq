@@ -49,7 +49,8 @@
 CRingItem::CRingItem(uint16_t type, size_t maxBody) :
   m_pItem(reinterpret_cast<RingItem*>(&m_staticBuffer)),
   m_storageSize(maxBody),
-  m_swapNeeded(false)
+  m_swapNeeded(false),
+  m_hasBodyHeader(false)
 {
 
   // If necessary, dynamically allocate (big max item).
@@ -57,6 +58,45 @@ CRingItem::CRingItem(uint16_t type, size_t maxBody) :
   newIfNecessary(maxBody);
   m_pItem->s_header.s_type = type;
   m_pItem->s_header.s_size = 0;
+  m_pItem->s_body.u_noBodyHeader.s_mbz = 0;
+  setBodyCursor(m_pItem->s_body.u_noBodyHeader.s_body);
+  updateSize();
+  
+}
+/**
+ * constructor with body header.
+ * This is basically the same as the prior constructor, however a body header
+ * is pre-created in the event body.  The size and cursor are updated to
+ * reflect the new body start location.
+ *
+ * @param type        - Ring Item type.
+ * @param timestamp   - Event timestamp for the body header.
+ * @param sourceid    - Id of the event source.
+ * @param barrierType - Type of barrier being created (0 if not a barrier)
+ * @param maxbody     - Maximum body size required.
+ */
+CRingItem::CRingItem(uint16_t type, uint64_t timestamp, uint32_t sourceId,
+                     uint32_t barrierType, size_t maxBody) :
+  m_pItem(reinterpret_cast<RingItem*>(&m_staticBuffer)),
+  m_storageSize(maxBody),
+  m_swapNeeded(false),
+  m_hasBodyHeader(true)
+{
+  // If necessary, dynamically allocate (big max item).
+
+  newIfNecessary(maxBody);
+  m_pItem->s_header.s_type = type;
+  m_pItem->s_header.s_size = 0;
+  
+  pBodyHeader pHeader = &(m_pItem->s_body.u_hasBodyHeader.s_bodyHeader);
+  pHeader->s_size      = sizeof(BodyHeader);
+  pHeader->s_timestamp = timestamp;
+  pHeader->s_sourceId  = sourceId;
+  pHeader->s_barrier   = barrierType;
+  
+  setBodyCursor(m_pItem->s_body.u_hasBodyHeader.s_body);
+  updateSize();
+  
 }
 /*!
   Copy construct.  This is actually the same as the construction above, 
@@ -156,12 +196,13 @@ CRingItem::getStorageSize() const
 /*!
    \return size_t
    \retval Amount of data in the body.  This is the difference between the 
-           cursor and the start of the body.
+           cursor and the start of the body.  This does not include the
+           body header if one exists.
 */
 size_t
 CRingItem::getBodySize() const
 {
-  return (m_pCursor - m_pItem->s_body);
+  return (m_pCursor - reinterpret_cast<uint8_t*>(getBodyPointer()));
 }
 /*!
   \return void*
@@ -169,9 +210,15 @@ CRingItem::getBodySize() const
           see getBodyCursor.
 */
 void*
-CRingItem::getBodyPointer() 
+CRingItem::getBodyPointer() const
 {
-  return m_pItem->s_body;
+    // The result depends on whether or not the item has a body header:
+    
+    if(m_hasBodyHeader) {
+        return (m_pItem->s_body.u_hasBodyHeader.s_body);
+    } else {
+        return (m_pItem->s_body.u_noBodyHeader.s_body);
+    }
 }
 /*!
    \return void*
@@ -207,6 +254,61 @@ CRingItem::type() const
   }
 }
 
+/**
+ * hasBodyHeader
+ *
+ * @return bool - true if the item has a body header, false otherwise.
+ */
+bool
+CRingItem::hasBodyHeader() const
+{
+    return m_hasBodyHeader;
+}
+/**
+ * getEventTimestamp
+ *
+ * @return uint64_t - returns the timestamp from the body header.
+ * @throws std::string - if the item has no body header.
+ */
+uint64_t
+CRingItem::getEventTimestamp() const
+{
+    throwIfNoBodyHeader(
+        "Attempted to get a timestamp from an event that does not have one"
+    );
+
+    return m_pItem->s_body.u_hasBodyHeader.s_bodyHeader.s_timestamp;
+}
+/**
+ * getSourceId
+ *
+ * @return uint32_t the id of the data source that contributed this event.
+ *
+ * @throw std::string - if this event does ot have a body header.
+ */
+uint32_t
+CRingItem::getSourceId() const
+{
+    throwIfNoBodyHeader(
+        "Attempted to get the source ID from an event that does not have one"
+    );
+    return m_pItem->s_body.u_hasBodyHeader.s_bodyHeader.s_sourceId;
+}
+/**
+ * getBarrierType
+ *
+ * @return uint32_t - Barrier type in the event.
+ * @throw std::string - If this event does not have an event header.
+ */
+uint32_t
+CRingItem::getBarrierType() const
+{
+    throwIfNoBodyHeader(
+        "Attempted to get the barrier type from an event that does not have one"
+    );
+    return m_pItem->s_body.u_hasBodyHeader.s_bodyHeader.s_barrier;
+}
+
 ///////////////////////////////////////////////////////////////////////////////////////
 //
 // Mutators.
@@ -228,8 +330,56 @@ CRingItem::setBodyCursor(void* pNewCursor)
 void
 CRingItem::updateSize()
 {
-  m_pItem->s_header.s_size = sizeof(RingItemHeader) + getBodySize();
+  size_t s = sizeof(RingItemHeader) + getBodySize();
+  
+  // That body size does not count the body header if it's there.
+  
+  if (hasBodyHeader()) {
+    s += sizeof(BodyHeader);
+  } else {
+    s += sizeof(uint32_t);
+  }
+
+  m_pItem->s_header.s_size = s;
 }
+
+/**
+ * setBodyHeader
+ *
+ * Sets a body header to the desired values.  If the event does not yet
+ * have a body header, space is created for by sliding the existing data
+ * down in the buffer. Clearly then, for large events, it is much quicker to
+ * construct the ring item with the wrong header and then call this to get the
+ * header right than it is to use this method to add a header to an event that
+ * has none
+ *
+ * @param timestamp   - The event timestamp
+ * @param sourceId    - Id of the source that contributed this item.
+ * @param barrierType - Type of the item.
+ */
+
+void
+CRingItem::setBodyHeader(uint64_t timestamp, uint32_t sourceId,
+    uint32_t barrierType)
+{
+    if (!hasBodyHeader()) {
+        // Make space for the body header.
+        
+        uint8_t* pBody = (m_pItem->s_body.u_noBodyHeader.s_body);
+        size_t moveSize = sizeof(BodyHeader) - sizeof(uint32_t);
+        memmove(pBody + moveSize, pBody, moveSize);
+        m_pCursor += moveSize;
+        updateSize();
+        m_hasBodyHeader = true;
+    }
+    pBodyHeader pHeader = &(m_pItem->s_body.u_hasBodyHeader.s_bodyHeader);
+    pHeader->s_size = sizeof(BodyHeader);
+    pHeader->s_timestamp = timestamp;
+    pHeader->s_sourceId  = sourceId;
+    pHeader->s_barrier   = barrierType;
+    
+}
+
 ///////////////////////////////////////////////////////////////////////////////////////
 //
 //   Object operations.
@@ -307,10 +457,12 @@ std::string
 CRingItem::toString() const
 {
   std::stringstream  dump;
-  const uint8_t*      p     = m_pItem->s_body;
+  const uint8_t*      p     = reinterpret_cast<uint8_t*>(getBodyPointer());
   size_t              n     = getBodySize(); 
   int                 nPerLine(8);
 
+  dump << bodyHeaderToString();
+  
   dump << std::hex << std::setw(2) << std::setfill('0');
 
   for (int i = 0; i < n; i++) {
@@ -377,7 +529,21 @@ CRingItem::getFromRing(CRingBuffer& ring, CRingSelectionPredicate& predicate)
     std::cerr << "Mismatch in CRingItem::getItem required size: sb " << size << " was " << gotSize 
 	      << std::endl;
   }
-  pItem->m_pCursor += (size - sizeof(RingItemHeader));
+  
+  // Figure out if there's a body header and set the cursor accordingly too.
+  
+  if (pItem->m_pItem->s_body.u_noBodyHeader.s_mbz) {
+    pItem->m_hasBodyHeader = true;    
+  }
+  /* The body header, if any, is included in size */
+  
+  if(pItem->hasBodyHeader()) {
+     pItem->m_pCursor += (size - sizeof(RingItemHeader) - sizeof(BodyHeader));
+  } else {
+    pItem->m_pCursor  +=  (size - sizeof(RingItemHeader) - sizeof(uint32_t));
+  }
+
+  
   pItem->m_swapNeeded = otherOrder;
 
   return pItem;
@@ -400,16 +566,23 @@ void
 CRingItem::copyIn(const CRingItem& rhs)
 {
   m_storageSize   = rhs.m_storageSize;
+  newIfNecessary(m_storageSize);
+  
   m_swapNeeded  = rhs.m_swapNeeded;
   memcpy(m_pItem, rhs.m_pItem, 
-	 rhs.m_pItem->s_header.s_size + sizeof(RingItemHeader)); ///   m_storageSize + sizeof(RingItemHeader));
+	 rhs.m_pItem->s_header.s_size); 
 
+  m_hasBodyHeader = rhs.m_hasBodyHeader;
+  
+  
   // where copyin is used, our cursor is already pointing at the body of the item.
   // therefore when updating it we need to allow for that in the arithmetic below.
 
-  m_pCursor    =  reinterpret_cast<uint8_t*>(getBodyPointer())
-                 +  m_pItem->s_header.s_size 
-                 - sizeof(RingItemHeader); // Add the size of the body to the cursor position.
+  m_pCursor    = reinterpret_cast<uint8_t*>(m_pItem);
+  m_pCursor   += m_pItem->s_header.s_size;
+                 
+  
+  updateSize();
 }
 
 
@@ -436,7 +609,7 @@ CRingItem::newIfNecessary(size_t size)
   else {
     m_pItem = reinterpret_cast<RingItem*>(m_staticBuffer);
   }
-  m_pCursor= m_pItem->s_body;
+  m_pCursor= reinterpret_cast<uint8_t*>(&(m_pItem->s_body));
 
 }
 /*
@@ -455,6 +628,32 @@ CRingItem::swal(uint32_t datum)
     (swapper.bytes[1] << 16) | (swapper.bytes[0] << 24);
 
 }
+/**
+ * bodyHeaderToString
+ *
+ * return a string representation of the body header.  If the body header
+ * does not exist in this ring item returnes "No body header\n"
+ *
+ * @return std::string
+ */
+std::string
+CRingItem::bodyHeaderToString() const
+{
+    std::stringstream result;
+    
+    if (m_hasBodyHeader) {
+        pBodyHeader pHeader = &(m_pItem->s_body.u_hasBodyHeader.s_bodyHeader);
+        result << "Body Header:\n";
+        result << "Timestamp:    " << pHeader->s_timestamp << std::endl;
+        result << "SourceID:     " << pHeader->s_sourceId  << std::endl;
+        result << "Barrier Type: " << pHeader->s_sourceId << std::endl;
+        
+    } else {
+        result << "No body header\n";
+    }
+    return result.str();
+}
+
 /*
  *  Blocks the caller until a ring has at least the minimum required
  * amound of data.. note the use of a local predicate
@@ -501,4 +700,18 @@ CRingItem::timeString(time_t theTime)
   result.erase(result.size()-1);
 
   return result;
+}
+/**
+ * throwIfNoBodyHeader
+ *
+ * Throw an exception if the event does not have a body header.
+ *
+ * @param msg - The message to throw.
+ */
+void
+CRingItem::throwIfNoBodyHeader(std::string msg) const
+{
+    if (m_pItem->s_body.u_noBodyHeader.s_mbz == 0) {
+        throw msg;
+    }
 }

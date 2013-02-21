@@ -21,8 +21,12 @@
 
 /*-----------------------------------------------------------------------------
  *  Static utilities:
- *-----------------------------------------------------------------------------
- 
+ *---------------------------------------------------------------------------*/
+ static void fillHeader(pRingItem pItem, uint32_t size, uint32_t type)
+ {
+    pItem->s_header.s_size = size;
+    pItem->s_header.s_type = type;
+ }
  
 /**
 * sizeStringArray
@@ -41,7 +45,7 @@ sizeStringArray(unsigned nStrings, const char** ppStrings)
     size_t result = 0;
     
     for (i = 0; i < nStrings; i++) {
-        result += sizeof(ppStrings[i]);
+        result += strlen(ppStrings[i]);
         result++;                  /* Count the null terminator too. */
     }
     return result;
@@ -198,7 +202,7 @@ fillTextItemBody(
     
     char* pDest = pBody->s_strings;
     for (i =0; i < nStrings; i++) {
-        size_t copySize = strlent(ppStrings[i]) + 1;
+        size_t copySize = strlen(ppStrings[i]) + 1;
         memcpy(pDest, ppStrings[i], copySize);
         pDest += copySize;
     }
@@ -266,9 +270,9 @@ bodyPointer(pRingItem pItem)
 
     
     if (pItem->s_body.u_noBodyHeader.s_mbz) {
-        pResult = (void*)pItem->s_body.u_noBodyHeader.s_body;
-    } else {
         pResult = (void*)pItem->s_body.u_hasBodyHeader.s_body;
+    } else {
+        pResult = (void*)pItem->s_body.u_noBodyHeader.s_body;
     }
     
     return pResult;
@@ -312,7 +316,6 @@ bodyPointer(pRingItem pItem)
    pBody = bodyPointer(pItem);
    
    fillPhysicsBody(pBody, nWords, pPayload);
-   
    return (pPhysicsEventItem)pItem;
  }
 
@@ -438,7 +441,6 @@ pTextItem
 formatTextItem(unsigned nStrings, time_t stamp, uint32_t runTime,  const char** pStrings, int type)
 {
     pRingItem pItem;
-    size_t    stringSizes = 0;
     char*     pDest;
     int       i;
     /* Figure out the string storage size required: */
@@ -449,7 +451,7 @@ formatTextItem(unsigned nStrings, time_t stamp, uint32_t runTime,  const char** 
        body pointer
     */
     size_t itemSize =
-        stringSizes + sizeof(RingItemHeader) + sizeof(TextItemBody)
+        stringSize + sizeof(RingItemHeader) + sizeof(TextItemBody)
         + sizeof(uint32_t) - sizeof(char);  
     pItem = (pRingItem)malloc(itemSize);
     
@@ -566,18 +568,44 @@ formatEVBFragment(uint64_t timestamp, uint32_t sourceId, uint32_t barrier,
     if (pItem) {
         fillHeader((pRingItem)pItem, itemSize, EVB_FRAGMENT);
         
-        pItem->s_mbz         = 0;
-        pItem->s_timestamp   = timestamp;
-        pItem->s_sourceId    = sourceId;
-        pItem->s_payloadSize = payloadSize;
-        pItem->s_barrierType = barrier;
+        pItem->s_bodyHeader.s_size        = sizeof(BodyHeader);
+        pItem->s_bodyHeader.s_timestamp   = timestamp;
+        pItem->s_bodyHeader.s_sourceId    = sourceId;
+        pItem->s_bodyHeader.s_barrier     = barrier;
         
         memcpy(pItem->s_body, pPayload, payloadSize);
     }
     /* Return the item or null if allocation failed. */
     return pItem;
 }
-
+/**
+ * formatEVBFragmentUnknown
+ *
+ * same as above but the item type is set to EVB_UNKNOWN_PAYLOAD
+ *
+ *
+ * @param timestamp - Timestamp associated with the fragment payload.
+ * @param sourceId  - Event fragment source that contributed the data.
+ * @param barrier   - Barrier id of the fragment.
+ * @param payloadSize - Number of _bytes_ in the payload.
+ * @param pPayload    - Pointer to the payload.
+ *
+ * @return pEventBuilderFragment - pointer to an event fragment ring item.
+ *  The ultimate caller must deallocate the storage associated with this item
+ *  via a call to free(3).
+ *  @retval null - if the item could not be allocated.
+ */
+pEventBuilderFragment
+formatEVBFragmentUnknown(uint64_t timestamp, uint32_t sourceId, uint32_t barrier,
+    uint32_t payloadSize, const void* pPayload)
+{
+    pEventBuilderFragment pFrag = formatEVBFragment(
+        timestamp, sourceId, barrier, payloadSize, pPayload
+    );
+    pFrag->s_header.s_type = EVB_UNKNOWN_PAYLOAD;
+    
+    return pFrag;
+}
 /**
  * formatTimestampedEventData
  *
@@ -617,7 +645,9 @@ formatTimestampedEventItem(
         fillBodyHeader(pItem, timestamp, sourceId, barrier);
         
         void* pBody = bodyPointer(pItem);
-        fillPhysicsBody(pBody, payloadSize, pPayload);
+        if (payloadSize) {
+            fillPhysicsBody(pBody, payloadSize, pPayload);
+        }
     }
     
     /* Return the item pointer or null if malloc failed: */
@@ -795,7 +825,7 @@ formatTimestampedStateChange(
     pRingItem pItem = (pRingItem)malloc(itemSize);
     
     if (pItem) {
-        fillRingItemHeader(pItem, itemSize, type);
+        fillHeader(pItem, itemSize, type);
         fillBodyHeader(pItem, timestamp, sourceId, barrier);
         fillStateChangeBody(
             pItem, runNumber, offset, offsetDivisor, stamp, pTitle

@@ -63,13 +63,15 @@ void texttests::simplecons() {
   strings.push_back(s4);
 
   CRingTextItem item(PACKET_TYPES, strings);
-
-  EQ((uint32_t)0, item.m_pItem->s_timeOffset);
-  EQ((uint32_t)4, item.m_pItem->s_stringCount);
+  
+  pTextItem pItem = reinterpret_cast<pTextItem>(item.getItemPointer());
+  
+  EQ((uint32_t)0, pItem->s_body.u_noBodyHeader.s_body.s_timeOffset);
+  EQ((uint32_t)4, pItem->s_body.u_noBodyHeader.s_body.s_stringCount);
 
   // Check the contents:
 
-  const char* p = item.m_pItem->s_strings;
+  const char* p = pItem->s_body.u_noBodyHeader.s_body.s_strings;
   EQ(s1, string(p));
   p  += strlen(p) + 1;
   EQ(s2, string(p));
@@ -99,15 +101,16 @@ void texttests::fullcons()
 		     1234,
 		     5678);
   
-  EQ((uint32_t)1234, item.m_pItem->s_timeOffset);
-  EQ((uint32_t)4, item.m_pItem->s_stringCount);
-  EQ((uint32_t)5678, item.m_pItem->s_timestamp);
+  pTextItem pItem = reinterpret_cast<pTextItem>(item.getItemPointer());
+  EQ((uint32_t)1234, pItem->s_body.u_noBodyHeader.s_body.s_timeOffset);
+  EQ((uint32_t)4, pItem->s_body.u_noBodyHeader.s_body.s_stringCount);
+  EQ((uint32_t)5678, pItem->s_body.u_noBodyHeader.s_body.s_timestamp);
 
 
 
    // Check the contents:
 
-  const char* p = item.m_pItem->s_strings;
+  const char* p = pItem->s_body.u_noBodyHeader.s_body.s_strings;
   EQ(s1, string(p));
   p  += strlen(p) + 1;
   EQ(s2, string(p));
@@ -125,10 +128,10 @@ void texttests::castcons()
   CRingItem ritem(PACKET_TYPES);
   
   pTextItem pText = reinterpret_cast<pTextItem>(ritem.getItemPointer());
-  pText->s_timeOffset = 1234;
-  pText->s_timestamp  = 4321;
-  pText->s_stringCount= 4;
-  char* p = pText->s_strings;
+  pText->s_body.u_noBodyHeader.s_body.s_timeOffset = 1234;
+  pText->s_body.u_noBodyHeader.s_body.s_timestamp  = 4321;
+  pText->s_body.u_noBodyHeader.s_body.s_stringCount= 4;
+  char* p = pText->s_body.u_noBodyHeader.s_body.s_strings;
   string s1("String 1");
   string s2("string 2");
   string s3("string 3");
@@ -150,13 +153,13 @@ void texttests::castcons()
   try {
     CRingTextItem item(ritem);
     pText = reinterpret_cast<pTextItem>(item.getItemPointer());
-    EQ((uint32_t)1234, pText->s_timeOffset);
-    EQ((uint32_t)4321, pText->s_timestamp);
-    EQ((uint32_t)4,    pText->s_stringCount);
+    EQ((uint32_t)1234, pText->s_body.u_noBodyHeader.s_body.s_timeOffset);
+    EQ((uint32_t)4321, pText->s_body.u_noBodyHeader.s_body.s_timestamp);
+    EQ((uint32_t)4,    pText->s_body.u_noBodyHeader.s_body.s_stringCount);
     
     // Check the contents:
     
-    char* p = item.m_pItem->s_strings;
+    char* p = pText->s_body.u_noBodyHeader.s_body.s_strings;
     EQ(s1, string(p));
     p  += strlen(p) + 1;
     EQ(s2, string(p));

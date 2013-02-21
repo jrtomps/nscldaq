@@ -10,9 +10,11 @@ libdataformat_la_SOURCES = CRingSelectionPredicate.cpp	\
 			CRingScalerItem.cpp		\
 			CRingTextItem.cpp		\
 			CRingPhysicsEventCountItem.cpp \
-			CRingTimestampedRunningScalerItem.cpp \
 			CRingFragmentItem.cpp       \
 			CPhysicsEventItem.cpp       \
+                        CDataFormatItem.cpp          \
+                        CGlomParameters.cpp              \
+                        CUnknownFragment.cpp            \
 			CRingItemFactory.cpp		\
 			ringitem.c			\
 			CDataSource.cpp CRingDataSource.cpp CFileDataSource.cpp  \
@@ -27,10 +29,12 @@ include_HEADERS	= CRingSelectionPredicate.h	\
 			CRingScalerItem.h	\
 			CRingTextItem.h	\
 			CRingPhysicsEventCountItem.h	\
-			CRingTimestampedRunningScalerItem.h \
 			CRingFragmentItem.h           \
 			CPhysicsEventItem.h	\
 			CRingItemFactory.h	\
+                        CDataFormatItem.h        \
+                        CGlomParameters.h       \
+                        CUnknownFragment.h      \
 			DataFormat.h	\
 			CDataSource.h CRingDataSource.h CFileDataSource.h \
 			CDataSourceFactory.h
@@ -66,7 +70,7 @@ unittests_SOURCES	= TestRunner.cpp selecttest.cpp desiredtests.cpp	\
 unittests_LDADD		= -L$(libdir) $(CPPUNIT_LDFLAGS) 		\
 			@top_builddir@/base/dataflow/libDataFlow.la 	\
 			@top_builddir@/daq/format/libdataformat.la	\
-			@top_builddir@/base/exception/libException.la
+			@top_builddir@/base/exception/libException.la -lefence
 
 
 

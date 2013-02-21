@@ -15,16 +15,30 @@
 */
 
 #include "CPhysicsEventItem.h"
+#include "DataFormat.h"
 #include <sstream>
 #include <stdio.h>
+
+/**
+ * @file CPhysicsEventItem.cpp
+ * @brief  wrapping of CRingItem - just needed to get the toString method.
+ * @author Ron Fox <fox@nscl.msu.edu>
+ */
 
 /*
  * All the canonical methods just delegate to the base class
  */
 
 
-CPhysicsEventItem::CPhysicsEventItem(uint16_t type, size_t maxBody) :
-  CRingItem(type, maxBody) {}
+CPhysicsEventItem::CPhysicsEventItem(size_t maxBody) :
+  CRingItem(PHYSICS_EVENT, maxBody) {}
+  
+CPhysicsEventItem::CPhysicsEventItem(
+    uint64_t timestamp, uint32_t source, uint32_t barrier, size_t maxBody) :
+    CRingItem(PHYSICS_EVENT, timestamp, source, barrier, maxBody)
+{
+    
+}
 
 CPhysicsEventItem::CPhysicsEventItem(const CPhysicsEventItem& rhs) :
   CRingItem(rhs) {}
@@ -83,6 +97,7 @@ CPhysicsEventItem::toString() const
   const uint16_t* body  = reinterpret_cast<const uint16_t*>((const_cast<CPhysicsEventItem*>(this))->getBodyPointer());
 
   out << "Event " << bytes << " bytes long\n";
+  out << bodyHeaderToString();
 
   int  w = out.width();
   char f = out.fill();

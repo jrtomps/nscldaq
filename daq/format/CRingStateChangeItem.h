@@ -62,9 +62,6 @@
 */
 class CRingStateChangeItem : public CRingItem
 {
-  // Private data.
-private:
-  pStateChangeItem   m_pItem;
 
   // construction and other canonicals
 public:
@@ -74,6 +71,13 @@ public:
 		       uint32_t timeOffset,
 		       time_t   timestamp,
 		       std::string title) throw(CRangeError);
+  CRingStateChangeItem(uint64_t eventTimestamp, uint32_t sourceId, uint32_t barrierType,
+                       uint16_t reason,
+		       uint32_t runNumber,
+		       uint32_t timeOffset,
+		       time_t   timestamp,
+		       std::string title);
+  
   CRingStateChangeItem(const CRingItem& item) throw(std::bad_cast);
   CRingStateChangeItem(const CRingStateChangeItem& rhs);
   virtual ~CRingStateChangeItem();
@@ -106,6 +110,6 @@ public:
 private:
   void init();
   bool isStateChange();
-
+  pStateChangeItemBody getStateChangeBody();
 };
 #endif

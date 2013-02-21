@@ -76,7 +76,7 @@ typdef union Body {
     } u_noHader;
     struct {
         BodyHeader s_bodyHeader;
-        uint8_t    s_body;
+        uint8_t    s_body[];
     } u_hasHeader;
 } Body;
 
@@ -128,6 +128,7 @@ static const uint32_t RING_FORMAT         = 12; /* Has format major/minor in it.
 
 static const uint32_t PERIODIC_SCALERS = 20;
 
+
 // Note timestamped nonincremental scalers absorbed into incremental scalers.
 
 // Physics events:
@@ -171,7 +172,7 @@ typedef struct _BodyHeader {
   uint32_t   s_size;		/* 0 or sizeof(DataSourceHeader) */
   uint64_t   s_timestamp;
   uint32_t   s_sourceId;
-  int32_t    s_barrier;   
+  uint32_t   s_barrier;   
 } BodyHeader, *pBodyHeader;
 
 
@@ -334,11 +335,7 @@ typedef struct _PhysicsEventCountItem {
  */
 typedef struct _EventBuilderFragment {
   RingItemHeader s_header;
-  uint32_t       s_mbz;
-  uint64_t       s_timestamp;
-  uint32_t       s_sourceId;
-  uint32_t       s_payloadSize;
-  uint32_t       s_barrierType;
+  BodyHeader     s_bodyHeader;
   uint32_t       s_body[1];	/* Really s_payload bytes of data.. */
 } EventBuilderFragment, *pEventBuilderFragment;
 
@@ -354,6 +351,16 @@ typedef struct _DataFormat {
     uint16_t       s_minorVersion;     /* FORMAT_MINOR */
 } DataFormat, *pDataFormat;
 
+/**
+ *  Information about glom parameters:
+ */
+typedef struct _GlomParameters  {
+    RingItemHeader s_header;
+    uint32_t       s_mbz;
+    uint64_t       s_coincidenceTicks;
+    uint16_t       s_isBuilding;
+    
+} GlomParameters, *pGlomParameters;
 /**
   Below are functions that are available to format ring types.
   Note that all of these return a pointer that must be free(3)'d.
@@ -379,6 +386,10 @@ extern "C" {
   
   pDataFormat           formatDataFormat();
   pEventBuilderFragment formatEVBFragment(
+    uint64_t timestamp, uint32_t sourceId, uint32_t barrier,
+    uint32_t payloadSize, const void* pPayload
+  );
+  pEventBuilderFragment formatEVBFragmentUnknown (
     uint64_t timestamp, uint32_t sourceId, uint32_t barrier,
     uint32_t payloadSize, const void* pPayload
   );

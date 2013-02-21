@@ -14,6 +14,7 @@
 #include <string.h>
 #include <time.h>
 
+
 using namespace std;
 
 class teststate : public CppUnit::TestFixture {
@@ -23,6 +24,8 @@ class teststate : public CppUnit::TestFixture {
   CPPUNIT_TEST(castcons);
   CPPUNIT_TEST(accessors);
   CPPUNIT_TEST(copycons);
+  CPPUNIT_TEST(tstampCons);
+  CPPUNIT_TEST(tstampCopyCons);
   CPPUNIT_TEST_SUITE_END();
 
 
@@ -34,11 +37,19 @@ public:
   void tearDown() {
   }
 protected:
+  // Tests for items without bodyheaders.
+  
   void basiccons();
   void fullcons();
   void castcons();
   void accessors();
   void copycons();
+ 
+  // Tests for items with a body header.
+  
+  void tstampCons();
+  void tstampCopyCons();
+  
 };
 
 CPPUNIT_TEST_SUITE_REGISTRATION(teststate);
@@ -48,12 +59,14 @@ CPPUNIT_TEST_SUITE_REGISTRATION(teststate);
 //
 void teststate::basiccons() {
   CRingStateChangeItem item(END_RUN);
+  pStateChangeItem pItem = reinterpret_cast<pStateChangeItem>(item.getItemPointer());
   EQ(END_RUN, item.type());
-  EQ((uint32_t)0, item.m_pItem->s_runNumber);
-  EQ((uint32_t)0, item.m_pItem->s_timeOffset);
-  EQ((uint32_t)time(NULL), item.m_pItem->s_Timestamp);
+  EQ((uint32_t)0, pItem->s_body.u_noBodyHeader.s_body.s_runNumber);
+  EQ((uint32_t)0, pItem->s_body.u_noBodyHeader.s_body.s_timeOffset);
+  EQ((uint32_t)time(NULL), pItem->s_body.u_noBodyHeader.s_body.s_Timestamp);
   
 }
+
 //
 // Do a full construction and test that out.
 //
@@ -101,13 +114,17 @@ teststate::castcons()
   // right type.
 
   bool threw(false);
-  CRingItem ok(BEGIN_RUN, sizeof(StateChangeItem) - sizeof(RingItemHeader));
+  CRingStateChangeItem original(BEGIN_RUN, 0, 0, 0, "Testing");
+  CRingItem ok(original);
+  size_t okSize = original.getItemPointer()->s_header.s_size;
+  
   CRingItem bad(PHYSICS_EVENT);
 
   try {
     CRingStateChangeItem state(ok);
-    size_t itemSize = state.getBodySize() + sizeof(RingItemHeader);
-    EQ(sizeof(StateChangeItem), itemSize);
+    size_t itemSize = state.getBodySize() + sizeof(RingItemHeader) + sizeof(uint32_t);
+    
+    EQ(okSize, itemSize);
   }
   catch (bad_cast c) {
     threw = true;
@@ -174,4 +191,64 @@ void teststate::copycons()
   EQ(original.getElapsedTime(), copy.getElapsedTime());
   EQ(original.getTitle(),         copy.getTitle());
   EQ(original.getTimestamp(),   copy.getTimestamp());
+}
+/*
+  Test constructors of items with timestamps:
+*/
+void teststate::tstampCons()
+{
+    CRingStateChangeItem item(
+        0x1234567890123456ll, 1, 0, BEGIN_RUN, 1234, 0, (time_t)666, "This is a test"
+    );
+    
+    // Ensure there's a body header and tht we can get the bits and pieces from it.
+    
+    EQ(true, item.hasBodyHeader());
+    EQ(static_cast<uint64_t>(0x1234567890123456ll), item.getEventTimestamp());
+    EQ(static_cast<uint32_t>(1), item.getSourceId());
+    EQ(static_cast<uint32_t>(0), item.getBarrierType());
+    
+    // Ensure we cfan still get the other goodies:
+    
+    EQ(BEGIN_RUN, item.type());
+    EQ(static_cast<uint32_t>(1234), item.getRunNumber());
+    EQ(static_cast<uint32_t>(0), item.getElapsedTime());
+    EQ(std::string("This is a test"), item.getTitle());
+    EQ(static_cast<time_t>(666), item.getTimestamp());
+    
+    // Check the legnth:
+    
+    uint32_t properLength = sizeof(RingItemHeader) + sizeof(BodyHeader) +
+        sizeof(StateChangeItemBody);
+}
+/*
+   Ensure copy constructors work for these items too:
+*/
+void
+teststate::tstampCopyCons()
+{
+    CRingStateChangeItem orig(
+        0x1234567890123456ll, 1, 0, BEGIN_RUN, 1234, 0, (time_t)666, "This is a test"
+    );
+    CRingStateChangeItem item(orig);
+    
+    // Ensure there's a body header and tht we can get the bits and pieces from it.
+    
+    EQ(true, item.hasBodyHeader());
+    EQ(static_cast<uint64_t>(0x1234567890123456ll), item.getEventTimestamp());
+    EQ(static_cast<uint32_t>(1), item.getSourceId());
+    EQ(static_cast<uint32_t>(0), item.getBarrierType());
+    
+    // Ensure we cfan still get the other goodies:
+    
+    EQ(BEGIN_RUN, item.type());
+    EQ(static_cast<uint32_t>(1234), item.getRunNumber());
+    EQ(static_cast<uint32_t>(0), item.getElapsedTime());
+    EQ(std::string("This is a test"), item.getTitle());
+    EQ(static_cast<time_t>(666), item.getTimestamp());
+    
+    // Check the legnth:
+    
+    uint32_t properLength = sizeof(RingItemHeader) + sizeof(BodyHeader) +
+        sizeof(StateChangeItemBody);
 }

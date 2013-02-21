@@ -31,9 +31,12 @@ CRingPhysicsEventCountItem::CRingPhysicsEventCountItem() :
   CRingItem(PHYSICS_EVENT_COUNT)
 {
   init();
-  m_pItem->s_timeOffset = 0;
-  m_pItem->s_timestamp = static_cast<uint32_t>(time(NULL));
-  m_pItem->s_eventCount = 0;
+  pPhysicsEventCountItemBody pItem =
+    reinterpret_cast<pPhysicsEventCountItemBody>(getBodyPointer());
+    
+  pItem->s_timeOffset = 0;
+  pItem->s_timestamp = static_cast<uint32_t>(time(NULL));
+  pItem->s_eventCount = 0;
 }
 /*!
    Creates an event count item timestamped to now with a specified
@@ -48,9 +51,12 @@ CRingPhysicsEventCountItem::CRingPhysicsEventCountItem(uint64_t count,
   CRingItem(PHYSICS_EVENT_COUNT)
 {
   init();
-  m_pItem->s_timeOffset  = timeOffset;
-  m_pItem->s_timestamp = static_cast<uint32_t>(time(NULL));
-  m_pItem->s_eventCount = count;
+  pPhysicsEventCountItemBody pItem =
+    reinterpret_cast<pPhysicsEventCountItemBody>(getBodyPointer());
+  
+  pItem->s_timeOffset  = timeOffset;
+  pItem->s_timestamp = static_cast<uint32_t>(time(NULL));
+  pItem->s_eventCount = count;
 }
 /*!
   Creates an event count item that is fully specified.
@@ -64,10 +70,18 @@ CRingPhysicsEventCountItem::CRingPhysicsEventCountItem(uint64_t count,
   CRingItem(PHYSICS_EVENT_COUNT)
 {
   init();
-  m_pItem->s_timeOffset  = timeOffset;
-  m_pItem->s_timestamp  = stamp;
-  m_pItem->s_eventCount = count;
+  pPhysicsEventCountItemBody pItem =
+    reinterpret_cast<pPhysicsEventCountItemBody>(getBodyPointer());
+
+  pItem->s_timeOffset  = timeOffset;
+  pItem->s_timestamp  = stamp;
+  pItem->s_eventCount = count;
 }
+/**
+ * construtor
+ *
+ * Construct an event count item that includes a body header.
+ * 
 /*!
   Construction from an existing ring item.
   \param rhs - an existing ring item.
@@ -148,7 +162,10 @@ CRingPhysicsEventCountItem::operator!=(const CRingPhysicsEventCountItem& rhs) co
 uint32_t
 CRingPhysicsEventCountItem::getTimeOffset() const
 {
-  return m_pItem->s_timeOffset;
+  pPhysicsEventCountItemBody pItem =
+    reinterpret_cast<pPhysicsEventCountItemBody>(getBodyPointer());
+
+  return pItem->s_timeOffset;
 }
 /*!
    set the time offset.
@@ -157,7 +174,10 @@ CRingPhysicsEventCountItem::getTimeOffset() const
 void
 CRingPhysicsEventCountItem::setTimeOffset(uint32_t offset)
 {
-  m_pItem->s_timeOffset = offset;
+  pPhysicsEventCountItemBody pItem =
+    reinterpret_cast<pPhysicsEventCountItemBody>(getBodyPointer());
+
+  pItem->s_timeOffset = offset;
 }
 
 /*!
@@ -167,7 +187,10 @@ CRingPhysicsEventCountItem::setTimeOffset(uint32_t offset)
 time_t
 CRingPhysicsEventCountItem::getTimestamp() const
 {
-  return m_pItem->s_timestamp;
+  pPhysicsEventCountItemBody pItem =
+    reinterpret_cast<pPhysicsEventCountItemBody>(getBodyPointer());
+
+  return pItem->s_timestamp;
 }
 /*!
   \param stamp - New value for the timestamp.
@@ -175,7 +198,10 @@ CRingPhysicsEventCountItem::getTimestamp() const
 void
 CRingPhysicsEventCountItem::setTimestamp(time_t stamp)
 {
-  m_pItem->s_timestamp = stamp;
+  pPhysicsEventCountItemBody pItem =
+    reinterpret_cast<pPhysicsEventCountItemBody>(getBodyPointer());
+
+  pItem->s_timestamp = stamp;
 }
 
 /*!
@@ -185,7 +211,10 @@ CRingPhysicsEventCountItem::setTimestamp(time_t stamp)
 uint64_t
 CRingPhysicsEventCountItem::getEventCount() const
 {
-  return m_pItem->s_eventCount;
+  pPhysicsEventCountItemBody pItem =
+    reinterpret_cast<pPhysicsEventCountItemBody>(getBodyPointer());
+
+  return pItem->s_eventCount;
 }
 /*!
   \param count - new value for number of events submitted.
@@ -193,7 +222,10 @@ CRingPhysicsEventCountItem::getEventCount() const
 void
 CRingPhysicsEventCountItem::setEventCount(uint64_t count)
 {
-  m_pItem->s_eventCount = count;
+  pPhysicsEventCountItemBody pItem =
+    reinterpret_cast<pPhysicsEventCountItemBody>(getBodyPointer());
+
+  pItem->s_eventCount = count;
 }
 //////////////////////////////////////////////////////////
 //
@@ -228,7 +260,7 @@ CRingPhysicsEventCountItem::toString() const
   uint32_t offset = getTimeOffset();
   uint64_t events = getEventCount();
 
-
+  out << bodyHeaderToString();
   out << time << " : " << events << " Triggers accepted as of " 
       << offset << " seconds into the run\n";
   out << " Average accepted trigger rate: " 
@@ -251,7 +283,6 @@ CRingPhysicsEventCountItem::toString() const
 void
 CRingPhysicsEventCountItem::init()
 {
-  m_pItem = reinterpret_cast<pPhysicsEventCountItem>(getItemPointer());
 
   uint8_t* pCursor = reinterpret_cast<uint8_t*>(getBodyPointer());
   pCursor         += sizeof(PhysicsEventCountItem) - sizeof(RingItemHeader);

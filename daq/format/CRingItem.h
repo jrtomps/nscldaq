@@ -69,11 +69,14 @@ private:
   uint32_t      m_storageSize;
   bool          m_swapNeeded;
   uint8_t       m_staticBuffer[CRingItemStaticBufferSize + 100];
+  bool          m_hasBodyHeader;
 
   // Constructors and canonicals.
 
 public:
   CRingItem(uint16_t type, size_t maxBody = 8192);
+  CRingItem(uint16_t type, uint64_t timestamp, uint32_t sourceId,
+            uint32_t barrierType = 0, size_t maxBody = 8192);
   CRingItem(const CRingItem& rhs);
   virtual ~CRingItem();
   
@@ -88,20 +91,26 @@ public:
 public:
   size_t getStorageSize() const;
   size_t getBodySize()    const;
-  void*  getBodyPointer();
+  void*  getBodyPointer() const;
   void*  getBodyCursor();
   _RingItem*  getItemPointer();
   uint32_t type() const;
+  bool mustSwap() const;
+  bool hasBodyHeader() const;
+  uint64_t getEventTimestamp() const;
+  uint32_t getSourceId() const;
+  uint32_t getBarrierType() const;
 
   // Mutators:
 
 public:
+  void setBodyHeader(uint64_t timestamp, uint32_t sourceId,
+                     uint32_t barrierType = 0);
   void setBodyCursor(void* pNewCursor);
 
   // Object actions:
 
   void commitToRing(CRingBuffer& ring);
-  bool mustSwap() const;
   void updateSize();		/* Set the header size given the cursor. */
 
   // class level methods:
@@ -120,12 +129,14 @@ protected:
   void deleteIfNecessary();
   void newIfNecessary(size_t size);
   static std::string timeString(time_t theTime);
+  std::string bodyHeaderToString() const;
 
 
   // Private Utilities.
 private:
   static void blockUntilData(CRingBuffer& ring, size_t nbytes);
   void copyIn(const CRingItem& rhs);
+  void throwIfNoBodyHeader(std::string msg) const;
 
   
 };
