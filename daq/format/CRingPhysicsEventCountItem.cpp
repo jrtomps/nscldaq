@@ -37,6 +37,9 @@ CRingPhysicsEventCountItem::CRingPhysicsEventCountItem() :
   pItem->s_timeOffset = 0;
   pItem->s_timestamp = static_cast<uint32_t>(time(NULL));
   pItem->s_eventCount = 0;
+  pItem->s_offsetDivisor = 1;
+  setBodyCursor(&(pItem[1]));
+  updateSize();
 }
 /*!
    Creates an event count item timestamped to now with a specified
@@ -50,13 +53,16 @@ CRingPhysicsEventCountItem::CRingPhysicsEventCountItem(uint64_t count,
 						       uint32_t timeOffset) :
   CRingItem(PHYSICS_EVENT_COUNT)
 {
-  init();
+
   pPhysicsEventCountItemBody pItem =
     reinterpret_cast<pPhysicsEventCountItemBody>(getBodyPointer());
   
   pItem->s_timeOffset  = timeOffset;
   pItem->s_timestamp = static_cast<uint32_t>(time(NULL));
   pItem->s_eventCount = count;
+  pItem->s_offsetDivisor = 1;
+  setBodyCursor(&(pItem[1]));
+  updateSize();
 }
 /*!
   Creates an event count item that is fully specified.
@@ -76,12 +82,42 @@ CRingPhysicsEventCountItem::CRingPhysicsEventCountItem(uint64_t count,
   pItem->s_timeOffset  = timeOffset;
   pItem->s_timestamp  = stamp;
   pItem->s_eventCount = count;
+  pItem->s_offsetDivisor = 1;
+  setBodyCursor(&(pItem[1]));
+  updateSize();
 }
+
 /**
  * construtor
  *
  * Construct an event count item that includes a body header.
- * 
+ *
+ * @param timestamp - Event timestamp value.
+ * @param source    - Id of the data source.
+ * @param barrier   - Barrier type or 0 if not a barrier.
+ * @param count     - Number of physics events.
+ * @param timeoffset  - How long into the run we are.
+ * @param stamp      - Unix timestamp.
+ * @param divisor    - timeoffset/divisor = seconds.
+ */
+CRingPhysicsEventCountItem::CRingPhysicsEventCountItem(
+    uint64_t timestamp, uint32_t source, uint32_t barrier,
+    uint64_t count, uint32_t timeoffset, time_t stamp,
+    int divisor) :
+  CRingItem(PHYSICS_EVENT_COUNT, timestamp, source, barrier)
+{
+  pPhysicsEventCountItemBody pBody =
+    reinterpret_cast<pPhysicsEventCountItemBody>(getBodyPointer());
+  pBody->s_timeOffset    = timeoffset;
+  pBody->s_offsetDivisor = divisor;
+  pBody->s_timestamp     = stamp;
+  pBody->s_eventCount    = count;
+
+  setBodyCursor(&(pBody[1]));
+  updateSize();
+}
+
+ 
 /*!
   Construction from an existing ring item.
   \param rhs - an existing ring item.
@@ -284,9 +320,5 @@ void
 CRingPhysicsEventCountItem::init()
 {
 
-  uint8_t* pCursor = reinterpret_cast<uint8_t*>(getBodyPointer());
-  pCursor         += sizeof(PhysicsEventCountItem) - sizeof(RingItemHeader);
-  setBodyCursor(pCursor);
-  updateSize();
 
 }

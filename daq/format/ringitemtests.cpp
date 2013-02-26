@@ -29,6 +29,7 @@ class ritemtests : public CppUnit::TestFixture {
   CPPUNIT_TEST(fromring);
   CPPUNIT_TEST(selection);
   CPPUNIT_TEST(copyconstruct);
+  CPPUNIT_TEST(tsconstruct);
   CPPUNIT_TEST_SUITE_END();
 
 
@@ -48,6 +49,7 @@ protected:
   void fromring();
   void selection();
   void sampling();
+  void tsconstruct();
 };
 
 CPPUNIT_TEST_SUITE_REGISTRATION(ritemtests);
@@ -70,12 +72,14 @@ void ritemtests::construct() {
   // Let's look at the member data for small too:
 
   EQ((void*)small.m_pItem->s_body.u_noBodyHeader.s_body, (void*)small.m_pCursor);
+  EQ((uint32_t)0, small.m_pItem->s_body.u_noBodyHeader.s_mbz);
   EQ(CRingItemStaticBufferSize, small.m_storageSize);
   EQ(false, small.m_swapNeeded);
 
   // Let's look at the member data for big:
   
   EQ((uint8_t*)big.m_pItem->s_body.u_noBodyHeader.s_body, big.m_pCursor);
+  EQ((uint32_t)0, big.m_pItem->s_body.u_noBodyHeader.s_mbz);
   EQ(CRingItemStaticBufferSize*2, big.m_storageSize);
   EQ(false, big.m_swapNeeded);
 }
@@ -323,3 +327,30 @@ ritemtests::sampling()
   CRingBuffer::remove("items");
 } 
 
+/**
+ * tsconstruct
+ *   Construction of timestamped item.
+ */
+void
+ritemtests::tsconstruct()
+{
+    CRingItem ts(
+        1, static_cast<uint64_t>(0x1122334455667788ll), 12, 34, 10
+    );
+    /* Check the body header is ok */
+    
+    pRingItem    pItem = ts.getItemPointer();
+    pBodyHeader  pB    = &(pItem->s_body.u_hasBodyHeader.s_bodyHeader);
+    void*        pBody = reinterpret_cast<void*>(
+        pItem->s_body.u_hasBodyHeader.s_body
+    );
+    
+    EQ(static_cast<uint32_t>(sizeof(BodyHeader)), pB->s_size);
+    EQ(static_cast<uint64_t>(0x1122334455667788ll), pB->s_timestamp);
+    EQ(static_cast<uint32_t>(12), pB->s_sourceId);
+    EQ(static_cast<uint32_t>(34), pB->s_barrier);
+    
+    /* Check that the body pointer is returned correctly */
+    
+    EQ(pBody, ts.getBodyPointer());
+}

@@ -640,14 +640,12 @@ formatTimestampedEventItem(
     if (pItem) {
         /* Fill in the headers: */
         
-        payloadSize += sizeof(uint32_t);         /* Count the size in the event. */
+       
         fillHeader(pItem, itemSize, PHYSICS_EVENT);
         fillBodyHeader(pItem, timestamp, sourceId, barrier);
         
         void* pBody = bodyPointer(pItem);
-        if (payloadSize) {
-            fillPhysicsBody(pBody, payloadSize, pPayload);
-        }
+        fillPhysicsBody(pBody, payloadSize, pPayload);
     }
     
     /* Return the item pointer or null if malloc failed: */
@@ -734,7 +732,7 @@ formatTimestampedScalerItem(
     
     size_t itemSize =
         sizeof(RingItemHeader) + sizeof(BodyHeader) + sizeof(ScalerItemBody)
-        - sizeof(uint32_t);
+        + (nScalers -1) * sizeof(uint32_t);
     pRingItem pItem = (pRingItem)malloc(itemSize);
     
     if (pItem) {    
@@ -833,4 +831,31 @@ formatTimestampedStateChange(
     }
     return (pStateChangeItem)pItem;
 }
-
+/**
+ * formatGlomParameters
+ *
+ * Format a EVB_GLOM_INFO ring item.  This items describes the parameters
+ * of the current GLOM event builder.
+ *
+ * @param interval - Ticks that define a coincidence interval if building.
+ * @param isBuilding - on zero if glom is building events.
+ *
+ * @return pGlomParameters - pointer to a malloc()'d GlomParameters ring item
+ *                           that was filled in by this function.
+ * @retval null is returned if the allocation of the ring item failed.
+ */
+pGlomParameters
+formatGlomParameters(uint64_t interval, int isBuilding)
+{
+    pGlomParameters pResult = (pGlomParameters)malloc(sizeof(GlomParameters));
+    if (pResult) {
+        pResult->s_header.s_size = sizeof(GlomParameters);
+        pResult->s_header.s_type = EVB_GLOM_INFO;
+        
+        pResult->s_mbz = 0;
+        pResult->s_coincidenceTicks = interval;
+        pResult->s_isBuilding = isBuilding;
+    }
+    
+    return pResult;
+}

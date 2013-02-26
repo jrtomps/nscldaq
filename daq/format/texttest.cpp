@@ -14,7 +14,7 @@
 
 #include <string>
 #include <vector>
-
+#include <time.h>
 #include <string.h>
 
 using namespace std;
@@ -26,6 +26,7 @@ class texttests : public CppUnit::TestFixture {
   CPPUNIT_TEST(castcons);
   CPPUNIT_TEST(accessors);
   CPPUNIT_TEST(copycons);
+  CPPUNIT_TEST(tscons);
   CPPUNIT_TEST_SUITE_END();
 
 
@@ -42,6 +43,7 @@ protected:
   void castcons();
   void accessors();
   void copycons();
+  void tscons();
 };
 
 CPPUNIT_TEST_SUITE_REGISTRATION(texttests);
@@ -256,4 +258,70 @@ void texttests::copycons()
     EQ (testStrings[i], copiedStrings[i]);
   }
   
+}
+// Test construction with timestamps:
+
+void
+texttests::tscons()
+{
+    string s1("String 1");
+    string s2("string 2");
+    string s3("string 3");
+    string s4("last string");
+  
+    vector<string> strings;
+    strings.push_back(s1);
+    strings.push_back(s2);
+    strings.push_back(s3);
+    strings.push_back(s4);
+
+    time_t stamp = time(NULL);  
+  
+    size_t stringSize = 0;
+    for (int i = 0; i < strings.size(); i++) {
+        stringSize += strlen(strings[i].c_str()) + 1;
+    }
+  
+    CRingTextItem item(
+      PACKET_TYPES, static_cast<uint64_t>(0x8877665544332211ll), 1, 2,
+      strings, 1234, stamp, 1
+    );
+    pTextItem pItem = reinterpret_cast<pTextItem>(item.getItemPointer());
+    
+    //Check out the header:
+    
+    EQ(PACKET_TYPES, pItem->s_header.s_type);
+    EQ(
+        static_cast<uint32_t>(
+            sizeof(RingItemHeader) + sizeof(BodyHeader) + sizeof(TextItemBody)
+            + stringSize 
+        ), pItem->s_header.s_size
+    );
+    // The body header:
+    
+    pBodyHeader pH = &(pItem->s_body.u_hasBodyHeader.s_bodyHeader);
+    EQ(static_cast<uint32_t>(sizeof(BodyHeader)), pH->s_size);
+    EQ(static_cast<uint64_t>(0x8877665544332211ll), pH->s_timestamp);
+    EQ(static_cast<uint32_t>(1), pH->s_sourceId);
+    EQ(static_cast<uint32_t>(2), pH->s_barrier);
+    
+    // Ensure the body pointers from pItem and from the class jibe:
+    
+    pTextItemBody pBody = reinterpret_cast<pTextItemBody>(item.getBodyPointer());
+    EQ(
+       pBody,
+       reinterpret_cast<pTextItemBody>(&(pItem->s_body.u_hasBodyHeader.s_body))
+    );
+    // Check the body contents against what was constructed:
+    
+    EQ(static_cast<uint32_t>(1234), pBody->s_timeOffset);
+    EQ(static_cast<uint32_t>(stamp), pBody->s_timestamp);
+    EQ(static_cast<uint32_t>(strings.size()), pBody->s_stringCount);
+    EQ(static_cast<uint32_t>(1), pBody->s_offsetDivisor);
+    
+    const char* pStrings = pBody->s_strings;
+    for (int i = 0; i < strings.size(); i++) {
+        EQ(strings[i], std::string(pStrings));
+        pStrings += strlen(pStrings) + 1;
+    }
 }

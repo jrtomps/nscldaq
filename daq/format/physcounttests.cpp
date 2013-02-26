@@ -9,7 +9,7 @@
 #include <CRingStateChangeItem.h>
 
 #include <string.h>
-
+#include <time.h>
 
 class physcounttests : public CppUnit::TestFixture {
   CPPUNIT_TEST_SUITE(physcounttests);
@@ -19,6 +19,7 @@ class physcounttests : public CppUnit::TestFixture {
   CPPUNIT_TEST(castcons);
   CPPUNIT_TEST(accessors);
   CPPUNIT_TEST(copycons);
+  CPPUNIT_TEST(tscons);
   CPPUNIT_TEST_SUITE_END();
 
 
@@ -36,6 +37,7 @@ protected:
   void castcons();
   void accessors();
   void copycons();
+  void tscons();
 };
 
 CPPUNIT_TEST_SUITE_REGISTRATION(physcounttests);
@@ -159,3 +161,47 @@ void physcounttests::copycons()
   EQ(original.getTimestamp(),     copy.getTimestamp());
   EQ(original.getEventCount(),    copy.getEventCount());
 }
+// test construction with timestamps>
+
+void
+physcounttests::tscons()
+{
+  time_t stamp = time(NULL);
+  CRingPhysicsEventCountItem item(
+      static_cast<uint64_t>(0x112233445567788ll), 1, 2, 
+      static_cast<uint64_t>(54321), 100, stamp, 1 
+  );
+
+  pPhysicsEventCountItem pItem = 
+    reinterpret_cast<pPhysicsEventCountItem>(item.getItemPointer());
+  pBodyHeader pB = &(pItem->s_body.u_hasBodyHeader.s_bodyHeader);
+  pPhysicsEventCountItemBody pBody = &(pItem->s_body.u_hasBodyHeader.s_body);
+
+  // Check the header
+
+  EQ(PHYSICS_EVENT_COUNT, pItem->s_header.s_type);
+  EQ(
+     static_cast<uint32_t>(
+	sizeof(RingItemHeader) +  sizeof(BodyHeader) + sizeof(PhysicsEventCountItemBody)
+     ), pItem->s_header.s_size
+  );
+
+  // check the body header.
+
+  EQ(static_cast<uint32_t>(sizeof(BodyHeader)), pB->s_size);
+  EQ(static_cast<uint64_t>(0x112233445567788ll), pB->s_timestamp);
+  EQ(static_cast<uint32_t>(1), pB->s_sourceId);
+  EQ(static_cast<uint32_t>(2), pB->s_barrier);
+
+  // make sure getBodyPointer is correct.
+
+  EQ(reinterpret_cast<void*>(pBody), item.getBodyPointer());
+
+  // Make sure the body contents are correct.
+
+  EQ(static_cast<uint32_t>(100), pBody->s_timeOffset);
+  EQ(static_cast<uint32_t>(1),     pBody->s_offsetDivisor);
+  EQ(static_cast<uint32_t>(stamp), pBody->s_timestamp);
+  EQ(static_cast<uint64_t>(54321), pBody->s_eventCount);
+}
+

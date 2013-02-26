@@ -80,18 +80,22 @@ CRingTextItem::CRingTextItem(uint16_t       type,
   \param strings - The strings to put in the buffer.
   \param offsetTime - The time in to the run at which this is being inserted.
   \param timestamp  - The absolute time when this is being created.
+  @param divisor    - offsetTime/divisor = seconds into the run (default: 1)
  */
 CRingTextItem::CRingTextItem(
     uint16_t type, uint64_t eventTimestamp, uint32_t source, uint32_t barrier,
-    std::vector<std::string> theStrings, uint32_t offsetTime, time_t timestamp) :
+    std::vector<std::string> theStrings, uint32_t offsetTime, time_t timestamp,
+    int divisor) :
     CRingItem(type, eventTimestamp, source, barrier,
     bodySize(theStrings) + sizeof(BodyHeader))
 {
     init();
-    copyStrings(theStrings);
     pTextItemBody pItem = reinterpret_cast<pTextItemBody>(getBodyPointer()); 
     pItem->s_timeOffset = offsetTime;
-    pItem->s_timestamp  = timestamp;      
+    pItem->s_timestamp  = timestamp;
+    pItem->s_offsetDivisor = divisor;
+    copyStrings(theStrings);
+
 }
 
 /*!
@@ -341,7 +345,7 @@ CRingTextItem::copyStrings(vector<string> strings)
   char* p                = pItem->s_strings;
   for (int i = 0; i < strings.size(); i++) {
     strcpy(p, strings[i].c_str());
-    p += strings[i].size() + 1;
+    p += strlen(strings[i].c_str()) + 1;
   }
   setBodyCursor(p);
   updateSize();

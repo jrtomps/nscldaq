@@ -266,7 +266,7 @@ typedef struct _TextItemBody {
   uint32_t       s_timestamp;
   uint32_t       s_stringCount;
   uint32_t       s_offsetDivisor;
-  char           s_strings[1];
+  char           s_strings[];
 } TextItemBody, *pTextItemBody;
 
 typedef struct _TextItem {
@@ -336,7 +336,7 @@ typedef struct _PhysicsEventCountItem {
 typedef struct _EventBuilderFragment {
   RingItemHeader s_header;
   BodyHeader     s_bodyHeader;
-  uint32_t       s_body[1];	/* Really s_payload bytes of data.. */
+  uint8_t       s_body[1];	/* Really s_payload bytes of data.. */
 } EventBuilderFragment, *pEventBuilderFragment;
 
 /**
@@ -385,6 +385,7 @@ extern "C" {
   /* Since 11.0 these functions were added: */
   
   pDataFormat           formatDataFormat();
+  pGlomParameters       formatGlomParameters(uint64_t coincidenceWindow, int isBuilding);
   pEventBuilderFragment formatEVBFragment(
     uint64_t timestamp, uint32_t sourceId, uint32_t barrier,
     uint32_t payloadSize, const void* pPayload

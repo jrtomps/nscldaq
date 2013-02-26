@@ -86,7 +86,8 @@ public:
 		time_t                   timestamp) ;
   CRingTextItem(
     uint16_t type, uint64_t eventTimestamp, uint32_t source, uint32_t barrier,
-    std::vector<std::string> theStrings, uint32_t offsetTime, time_t timestamp
+    std::vector<std::string> theStrings, uint32_t offsetTime, time_t timestamp,
+    int offsetDivisor = 1
   );
   CRingTextItem(const CRingItem& rhs) throw(std::bad_cast);
   CRingTextItem(const CRingTextItem& rhs);
