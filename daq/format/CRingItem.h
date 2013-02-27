@@ -69,7 +69,6 @@ private:
   uint32_t      m_storageSize;
   bool          m_swapNeeded;
   uint8_t       m_staticBuffer[CRingItemStaticBufferSize + 100];
-  bool          m_hasBodyHeader;
 
   // Constructors and canonicals.
 

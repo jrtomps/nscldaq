@@ -495,7 +495,7 @@ TextOutput::empty()
 
   ASSERT(pItem);
   uint32_t properSize =
-    sizeof(RingItemHeader) + sizeof(uint32_t) + sizeof(TextItemBody) - sizeof(char);
+    sizeof(RingItemHeader) + sizeof(uint32_t) + sizeof(TextItemBody);
   EQMSG("Empty text item size", properSize, pItem->s_header.s_size);
   EQMSG("Type ", MONITORED_VARIABLES, pItem->s_header.s_type);
   EQMSG(" time offset", static_cast<uint32_t>(0xbbbb), pItem->s_body.u_noBodyHeader.s_body.s_timeOffset);
@@ -519,7 +519,6 @@ TextOutput::emptyTimestamp()
     EQ(
         static_cast<uint32_t>(
             sizeof(RingItemHeader) + sizeof(BodyHeader) + sizeof(TextItemBody)
-            - sizeof(char)
         ), pItem->s_header.s_size
     );
     
@@ -565,7 +564,7 @@ TextOutput::someStrings()
   ASSERT(pItem);
   uint32_t properSize =
     sizeof(RingItemHeader) + sizeof(uint32_t) + sizeof(TextItemBody)
-    + stringSize - sizeof(char);
+    + stringSize;
   EQMSG("Item size",    properSize, pItem->s_header.s_size);
   EQMSG("String count", static_cast<uint32_t>(4), pItem->s_body.u_noBodyHeader.s_body.s_stringCount);
  
@@ -605,7 +604,7 @@ TextOutput::someStringsTimestamp()
     EQ(
         static_cast<uint32_t>(
             sizeof(RingItemHeader) + sizeof(BodyHeader) + sizeof(TextItemBody)
-            + stringSizes - sizeof(char)
+            + stringSizes
         ), pItem->s_header.s_size
     );
     

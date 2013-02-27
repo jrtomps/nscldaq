@@ -452,7 +452,7 @@ formatTextItem(unsigned nStrings, time_t stamp, uint32_t runTime,  const char** 
     */
     size_t itemSize =
         stringSize + sizeof(RingItemHeader) + sizeof(TextItemBody)
-        + sizeof(uint32_t) - sizeof(char);  
+        + sizeof(uint32_t);  
     pItem = (pRingItem)malloc(itemSize);
     
     if (!pItem) {
@@ -609,7 +609,7 @@ formatEVBFragmentUnknown(uint64_t timestamp, uint32_t sourceId, uint32_t barrier
     return pFrag;
 }
 /**
- * formatTimestampedEventData
+ * formatTimestampedEventItem
  *
  *   Format a Physics data item that has a timestamp/data source header.
  *
@@ -647,7 +647,7 @@ formatTimestampedEventItem(
         fillBodyHeader(pItem, timestamp, sourceId, barrier);
         
         void* pBody = bodyPointer(pItem);
-        fillPhysicsBody(pBody, payloadSize, pPayload);
+        fillPhysicsBody(pBody, payloadSize , pPayload);
     }
     
     /* Return the item pointer or null if malloc failed: */
@@ -778,7 +778,7 @@ formatTimestampedTextItem(
     /* Figuer out how big this item is: */
     
     size_t itemSize = sizeof(RingItemHeader) + sizeof(BodyHeader) + sizeof(TextItemBody) +
-        sizeStringArray(nStrings, ppStrings) - sizeof(char);
+        sizeStringArray(nStrings, ppStrings);
     pRingItem pItem = (pRingItem)malloc(itemSize);
     
     /* Fill in the stuff:  */

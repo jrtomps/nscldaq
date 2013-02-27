@@ -49,8 +49,7 @@
 CRingItem::CRingItem(uint16_t type, size_t maxBody) :
   m_pItem(reinterpret_cast<RingItem*>(&m_staticBuffer)),
   m_storageSize(maxBody),
-  m_swapNeeded(false),
-  m_hasBodyHeader(false)
+  m_swapNeeded(false)
 {
 
   // If necessary, dynamically allocate (big max item).
@@ -79,8 +78,7 @@ CRingItem::CRingItem(uint16_t type, uint64_t timestamp, uint32_t sourceId,
                      uint32_t barrierType, size_t maxBody) :
   m_pItem(reinterpret_cast<RingItem*>(&m_staticBuffer)),
   m_storageSize(maxBody),
-  m_swapNeeded(false),
-  m_hasBodyHeader(true)
+  m_swapNeeded(false)
 {
   // If necessary, dynamically allocate (big max item).
 
@@ -214,7 +212,7 @@ CRingItem::getBodyPointer() const
 {
     // The result depends on whether or not the item has a body header:
     
-    if(m_hasBodyHeader) {
+    if(hasBodyHeader()) {
         return (m_pItem->s_body.u_hasBodyHeader.s_body);
     } else {
         return (m_pItem->s_body.u_noBodyHeader.s_body);
@@ -262,7 +260,7 @@ CRingItem::type() const
 bool
 CRingItem::hasBodyHeader() const
 {
-    return m_hasBodyHeader;
+    return (m_pItem->s_body.u_noBodyHeader.s_mbz != 0);
 }
 /**
  * getEventTimestamp
@@ -370,7 +368,6 @@ CRingItem::setBodyHeader(uint64_t timestamp, uint32_t sourceId,
         memmove(pBody + moveSize, pBody, moveSize);
         m_pCursor += moveSize;
         updateSize();
-        m_hasBodyHeader = true;
     }
     pBodyHeader pHeader = &(m_pItem->s_body.u_hasBodyHeader.s_bodyHeader);
     pHeader->s_size = sizeof(BodyHeader);
@@ -532,10 +529,7 @@ CRingItem::getFromRing(CRingBuffer& ring, CRingSelectionPredicate& predicate)
   
   // Figure out if there's a body header and set the cursor accordingly too.
   
-  if (pItem->m_pItem->s_body.u_noBodyHeader.s_mbz) {
-    pItem->m_hasBodyHeader = true;    
-  }
-  /* The body header, if any, is included in size */
+    /* The body header, if any, is included in size */
   
   if(pItem->hasBodyHeader()) {
      pItem->m_pCursor += (size - sizeof(RingItemHeader) - sizeof(BodyHeader));
@@ -572,7 +566,6 @@ CRingItem::copyIn(const CRingItem& rhs)
   memcpy(m_pItem, rhs.m_pItem, 
 	 rhs.m_pItem->s_header.s_size); 
 
-  m_hasBodyHeader = rhs.m_hasBodyHeader;
   
   
   // where copyin is used, our cursor is already pointing at the body of the item.
@@ -641,7 +634,7 @@ CRingItem::bodyHeaderToString() const
 {
     std::stringstream result;
     
-    if (m_hasBodyHeader) {
+    if (hasBodyHeader()) {
         pBodyHeader pHeader = &(m_pItem->s_body.u_hasBodyHeader.s_bodyHeader);
         result << "Body Header:\n";
         result << "Timestamp:    " << pHeader->s_timestamp << std::endl;

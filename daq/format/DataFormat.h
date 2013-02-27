@@ -386,6 +386,7 @@ extern "C" {
   
   pDataFormat           formatDataFormat();
   pGlomParameters       formatGlomParameters(uint64_t coincidenceWindow, int isBuilding);
+  
   pEventBuilderFragment formatEVBFragment(
     uint64_t timestamp, uint32_t sourceId, uint32_t barrier,
     uint32_t payloadSize, const void* pPayload
