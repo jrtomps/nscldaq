@@ -38,6 +38,7 @@
 #include <CRingPhysicsEventCountItem.h>
 #include <CRingScalerItem.h>
 #include <CRingTextItem.h>
+#include <CDataFormatItem.h>
 
 #include <sys/time.h>
 
@@ -290,6 +291,9 @@ COutputThread::startRun(DataBuffer& buffer)
   m_elapsedSeconds = 0;
   
   m_nEventsSeen    = 0;
+
+  CDataFormatItem format;
+  format.commitToRing(*m_pRing);
 
   CRingStateChangeItem begin(BEGIN_RUN,
 			     m_runNumber,
