@@ -560,7 +560,7 @@ formatEVBFragment(uint64_t timestamp, uint32_t sourceId, uint32_t barrier,
     /* Figure out how big the item is going to be and allocate it. */
     
     size_t itemSize =
-        sizeof(EventBuilderFragment) + (payloadSize) - sizeof(uint32_t);
+        sizeof(EventBuilderFragment) + (payloadSize);
     pEventBuilderFragment pItem = (pEventBuilderFragment)malloc(itemSize);
     
     /* Only fill in the item if we could allocate it. */
@@ -573,7 +573,9 @@ formatEVBFragment(uint64_t timestamp, uint32_t sourceId, uint32_t barrier,
         pItem->s_bodyHeader.s_sourceId    = sourceId;
         pItem->s_bodyHeader.s_barrier     = barrier;
         
-        memcpy(pItem->s_body, pPayload, payloadSize);
+        if (payloadSize) {
+            memcpy(pItem->s_body, pPayload, payloadSize);
+        }
     }
     /* Return the item or null if allocation failed. */
     return pItem;

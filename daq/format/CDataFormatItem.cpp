@@ -195,7 +195,7 @@ CDataFormatItem::toString() const
 void
 CDataFormatItem::init()
 {
-    pDataFormat pBody = reinterpret_cast<pDataFormat>(getBodyCursor());
+    pDataFormat pBody = reinterpret_cast<pDataFormat>(getItemPointer());
     pBody->s_majorVersion = FORMAT_MAJOR;
     pBody->s_minorVersion = FORMAT_MINOR;
     

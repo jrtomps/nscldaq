@@ -39,19 +39,13 @@
 CUnknownFragment::CUnknownFragment(
     uint64_t timestamp, uint32_t sourceId, uint32_t barrier, size_t size,
     void* pPayload) :
-        CRingItem(
-            EVB_UNKNOWN_PAYLOAD, timestamp, sourceId, barrier, itemSize(size))
+       CRingFragmentItem(timestamp, sourceId, size, pPayload, barrier)
 {
-    // fill in the payload as the CRingItem constructor will have filled in
-    // the header:
+    // The only thing left to do is fill in the correct type
     
-    uint8_t* pDest = reinterpret_cast<uint8_t*>(getBodyCursor());
-    memcpy(pDest, pPayload, size);
-    
-    // Update the body cursor and set the item size:
-    
-    setBodyCursor(pDest + size);
-    updateSize();
+    pRingItem pItem  = reinterpret_cast<pRingItem>(getItemPointer());
+    pItem->s_header.s_type = EVB_UNKNOWN_PAYLOAD;
+        
 }
 /**
  * destructor
@@ -64,7 +58,7 @@ CUnknownFragment::~CUnknownFragment()  {}
  * @param rhs - The object item we are copying in construction.
  */
 CUnknownFragment::CUnknownFragment(const CUnknownFragment& rhs) :
-    CRingItem(rhs)
+    CRingFragmentItem(rhs)
 {
     
 }
@@ -75,7 +69,7 @@ CUnknownFragment::CUnknownFragment(const CUnknownFragment& rhs) :
  * @throw std::bad_cast if the rhs object is ot a EVB_UNKNOWN_PAYLOAD type.
  */
 CUnknownFragment::CUnknownFragment(const CRingItem& rhs) throw(std::bad_cast) :
-    CRingItem(rhs)
+    CRingFragmentItem(rhs)
 {
     if (type() != EVB_UNKNOWN_PAYLOAD) throw std::bad_cast();        
 }
@@ -111,35 +105,6 @@ CUnknownFragment::operator!=(const CUnknownFragment& rhs) const
 {
     return CRingItem::operator!=(rhs);
 }
-/*---------------------------------------------------------------------------
- *  Selectors
- *--------------------------------------------------------------------------*/
-
-/**
- * payloadSize
- *
- * Figure out how big the payload is.  This is just the size of the item
- * with the size of a ring item and a body header removed.
- *
- * @return size_t
- */
-size_t
-CUnknownFragment::payloadSize() const
-{
-    return getBodySize();
-}
-/**
- * payloadPointer
- *
- * Return a pointer to the first byte of the payload
- *
- * @return void*
- */
-const void*
-CUnknownFragment::payloadPointer() const
-{
-    return const_cast<const void*>(getBodyPointer());
-}
 /*----------------------------------------------------------------------------
  * Virtual method overrides;
  *--------------------------------------------------------------------------*/
@@ -153,29 +118,4 @@ std::string
 CUnknownFragment::typeName() const
 {
     return "Fragment with unknown payload";
-}
-/**
- * toString
- *
- * @return std::string - item converted to string.
- */
-std::string
-CUnknownFragment::toString() const
-{
-    return CRingItem::toString();
-}
-/*-------------------------------------------------------------------------
- * Private utilities
- *-----------------------------------------------------------------------*/
-
-/**
- * itemSize(size_t payloadSize)
- *
- * @param payloadSize - Size of the payload data.
- * @return size_t     - Number of bytes in full item.
- */
-size_t
-CUnknownFragment::itemSize(size_t payloadSize) const
-{
-    return payloadSize + sizeof(RingItemHeader) + sizeof(BodyHeader);
 }

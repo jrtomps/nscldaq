@@ -336,7 +336,7 @@ typedef struct _PhysicsEventCountItem {
 typedef struct _EventBuilderFragment {
   RingItemHeader s_header;
   BodyHeader     s_bodyHeader;
-  uint8_t       s_body[1];	/* Really s_payload bytes of data.. */
+  uint8_t       s_body[];	/* Really s_payload bytes of data.. */
 } EventBuilderFragment, *pEventBuilderFragment;
 
 /**

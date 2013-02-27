@@ -68,7 +68,7 @@ CRingFragmentItem::CRingFragmentItem(uint64_t timestamp, uint32_t source, uint32
 CRingFragmentItem::CRingFragmentItem(const CRingItem& rhs) throw(std::bad_cast) :
   CRingItem(rhs)
 {
-  if (type() != EVB_FRAGMENT) {
+  if ((type() != EVB_FRAGMENT) && (type() != EVB_UNKNOWN_PAYLOAD)) {
     throw std::bad_cast();
   }
   updateSize();
@@ -314,10 +314,11 @@ CRingFragmentItem::bodySize(size_t payloadSize) const
 void
 CRingFragmentItem::copyPayload(const void* pPayloadSource, size_t size)
 {
-  pEventBuilderFragment pFragment =
-    reinterpret_cast<pEventBuilderFragment>(getItemPointer());
-  memcpy(pFragment->s_body, pPayloadSource, size);
-
+    if (size) {        
+      pEventBuilderFragment pFragment =
+        reinterpret_cast<pEventBuilderFragment>(getItemPointer());
+      memcpy(pFragment->s_body, pPayloadSource, size);
+    }
 }
 /**
  * init
@@ -330,13 +331,12 @@ CRingFragmentItem::copyPayload(const void* pPayloadSource, size_t size)
 void
 CRingFragmentItem::init(size_t size)
 {
-  size_t n = bodySize(size);
 
   deleteIfNecessary();
   newIfNecessary(size);
 
   uint8_t* pCursor = reinterpret_cast<uint8_t*>(getBodyPointer());
-  pCursor         += n;
+  pCursor         += size;
   setBodyCursor(pCursor);
   updateSize();
 

@@ -17,8 +17,8 @@
  * @author Ron Fox <fox@nscl.msu.edu>
  */
 
-#ifndef __CRINGITEM_H
-#include "CRingItem.h"
+#ifndef __CRINGFRAGMENT_H
+#include "CRingFragmentItem.h"
 #endif
 
 #ifndef __CPPRTL_TYPEINFO
@@ -34,7 +34,7 @@
  * This class encapsulates ring items of type EVB_UNKNOWN_PAYLOAD. These are
  * event builder fragments where the payloads are pretty clearly not ring items.
  */
-class CUnknownFragment : public CRingItem
+class CUnknownFragment : public CRingFragmentItem
 {
     // Canonical methods:
     
@@ -51,16 +51,8 @@ public:
     
     // Selectors:
 public:
-    
-    size_t payloadSize() const;
-    const void* payloadPointer() const;
-    
-    // virtual method overrides:
-    
+
     std::string typeName() const;
-    std::string toString() const;
-private:
-    size_t itemSize(size_t payloadSize) const;
     
 };
 
