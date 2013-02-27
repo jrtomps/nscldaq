@@ -36,6 +36,21 @@ size_t          totalEventSize(0);
 bool            nobuild;
 
 /**
+ * outputGlomParameters
+ *
+ * Output a GlomParameters ring item that describes how we are operating.
+ *
+ * @param dt - Build time interval.
+ * @param building - True if building.
+ */
+static void
+outputGlomParameters(uint64_t dt, bool building)
+{
+    pGlomParameters p = formatGlomParameters(dt, building ? 1 : 0);
+    io::writeData(STDOUT_FILENO, p, p->s_header.s_size);
+}
+
+/**
  * flushEvent
  * 
  * Flush the physics event that has been accumulated
@@ -185,6 +200,8 @@ main(int argc, char* const* argv)
   cmdline_parser(argc, argv, &args);
   int dtInt = static_cast<uint64_t>(args.dt_arg);
   nobuild      = args.nobuild_given;
+
+  outputGlomParameters(dtInt, nobuild);
 
   std::cerr << (nobuild ? " glom: not building " : "glom: building") << std::endl;
 

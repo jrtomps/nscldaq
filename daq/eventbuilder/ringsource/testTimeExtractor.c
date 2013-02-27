@@ -28,6 +28,6 @@
 uint64_t
 timestamp(pPhysicsEventItem item)
 {
-  uint64_t* pStamp = (uint64_t*)(item->s_body);
+  uint64_t* pStamp = (uint64_t*)(item->s_body.u_noBodyHeader.s_body);
   return *pStamp;
 }

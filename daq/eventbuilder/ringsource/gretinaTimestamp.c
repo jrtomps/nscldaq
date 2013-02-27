@@ -74,7 +74,7 @@ timestamp(pPhysicsEventItem item)
   // Get the body, ensure the size is ok and then
   // create a pointer to the first fragment:
 
-  pBody = (uint32_t*)(item->s_body);
+  pBody = (uint32_t*)(item->s_body.u_noBodyHeader.s_body);
   uint32_t bodySize = *pBody++;
 
   assert((bodySize - sizeof(uint32_t)) >= sizeof(struct fragment));

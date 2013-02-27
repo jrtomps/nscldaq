@@ -24,7 +24,8 @@ libEventBuilderClient_la_SOURCES=CEventOrderClient.cpp fragment.c \
 
 frag2ring_SOURCES=frag2ring.cpp CFragReader.cpp CFragWriter.cpp
 
-frag2ring_LDADD = @top_builddir@/base/os/libdaqshm.la $(THREADLD_FLAGS)
+frag2ring_LDADD = @top_builddir@/daq/format/libdataformat.la \
+                    @top_builddir@/base/os/libdaqshm.la $(THREADLD_FLAGS)
 
 FRAMEWORK_SOURCEFILES =  GetOpt.cpp Main.cpp options.ggo
 

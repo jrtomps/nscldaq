@@ -52,29 +52,27 @@ CFragWriter::CFragWriter(int fd) :
 void
 CFragWriter::operator()(void* pFragment)
 {
-  // Cast the pointer to a fragment header and also locate the payload.
+    // Cast the pointer to a fragment header and also locate the payload.
+  
+    EVB::pFragmentHeader pHeader = reinterpret_cast<EVB::pFragmentHeader>(pFragment);
+    void*                pPayload = reinterpret_cast<void*>(pHeader+1); // payload after the fragment.
+  
+    /*
+      Create the ring item except for the data section
+      the - sizeof(uint8_t) removes the stub of a 1 byte payload that is part of the
+      struct (s_body).
+    */
+   
+    pEventBuilderFragment pItem = formatEVBFragment(
+        pHeader->s_timestamp, pHeader->s_sourceId, pHeader->s_barrier,
+        pHeader->s_size, pPayload
+    );
+  
+    // Write the header and the payload.
+  
+    Write(pItem->s_header.s_size, pItem);
 
-  EVB::pFragmentHeader pHeader = reinterpret_cast<EVB::pFragmentHeader>(pFragment);
-  void*                pPayload = reinterpret_cast<void*>(pHeader+1); // payload after the fragment.
-
-  /*
-    Create the ring item except for the data section
-    the - sizeof(uint8_t) removes the stub of a 1 byte payload that is part of the
-    struct (s_body).
-  */
- 
-  EventBuilderFragment itemHeader;
-  itemHeader.s_header.s_type = EVB_FRAGMENT;
-  itemHeader.s_header.s_size = sizeof (itemHeader) + pHeader->s_size - sizeof(uint8_t);
-  itemHeader.s_timestamp     = pHeader->s_timestamp;
-  itemHeader.s_sourceId      = pHeader->s_sourceId;
-  itemHeader.s_payloadSize   = pHeader->s_size;
-  itemHeader.s_barrierType   = pHeader->s_barrier;
-
-  // Write the header and the payload.
-
-  Write(sizeof(itemHeader) - sizeof(uint8_t), &itemHeader);
-  Write(itemHeader.s_payloadSize, pPayload);
+    free(pItem);  
 
 }
 

@@ -67,7 +67,7 @@ timestamp(pPhysicsEventItem item)
 
   /* Check that we have an s800 event and it matches the minimum version: */
 
-  pFullEvent = (pS800event)(item->s_body); 
+  pFullEvent = (pS800event)(item->s_body.u_noBodyHeader.s_body); 
   assert(pFullEvent->s_type == S800_PACKET);
   uint16_t versionWord = pFullEvent->s_version;
   versionWord = (versionWord & S800_OUTERVSNMASK) >> S800_OUTERVSNSHIFT;

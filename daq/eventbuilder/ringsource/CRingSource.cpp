@@ -234,33 +234,41 @@ CRingSource::getEvents()
     bytesPackaged   += pRingItem->s_header.s_size;
 
     // Now figure what to do based on the type...default is non-timestamped, non-barrier
-
-    switch (pRingItem->s_header.s_type) {
-    case BEGIN_RUN:
-    case END_RUN:
-    case PAUSE_RUN:
-    case RESUME_RUN:
-      frag.s_barrierType = pRingItem->s_header.s_type;
-    case INCREMENTAL_SCALERS:	// not a barrier but no timestamp either.
-      break;
-    case PHYSICS_EVENT:
-      // kludge for now - filter out null events:
-      if (pRingItem->s_header.s_size > (sizeof(RingItemHeader) + sizeof(uint32_t))) {
-	  frag.s_timestamp = (*m_timestamp)(reinterpret_cast<pPhysicsEventItem>(pRingItem));
-	  if (((frag.s_timestamp - lastTimestamp) > 0x100000000ll)  &&
-	      (lastTimestamp != NULL_TIMESTAMP)) {
-	    CRingItem* pSpecificItem = CRingItemFactory::createRingItem(*p);
-	    log << "Timestamp skip from "  << lastTimestamp << " to " << frag.s_timestamp << std::endl;
-	    log << "Ring item: " << pSpecificItem->toString() << std::endl;
-	    delete pSpecificItem;
-	  }
-	  lastTimestamp = frag.s_timestamp;
-	  break;
-	}
-    default:
-      // default is to leave things alone
-
-      break;
+    // If the ring item has a timesampe we can supply it right away:
+    
+    if (p->hasBodyHeader()) {
+        frag.s_timestamp = p->getEventTimestamp();
+        frag.s_sourceId  = p->getSourceId();
+        frag.s_barrierType = p->getBarrierType();
+    } else {
+    
+        switch (pRingItem->s_header.s_type) {
+        case BEGIN_RUN:
+        case END_RUN:
+        case PAUSE_RUN:
+        case RESUME_RUN:
+          frag.s_barrierType = pRingItem->s_header.s_type;
+        case PERIODIC_SCALERS:	// not a barrier but no timestamp either.
+          break;
+        case PHYSICS_EVENT:
+          // kludge for now - filter out null events:
+          if (pRingItem->s_header.s_size > (sizeof(RingItemHeader) + sizeof(uint32_t))) {
+              frag.s_timestamp = (*m_timestamp)(reinterpret_cast<pPhysicsEventItem>(pRingItem));
+              if (((frag.s_timestamp - lastTimestamp) > 0x100000000ll)  &&
+                  (lastTimestamp != NULL_TIMESTAMP)) {
+                CRingItem* pSpecificItem = CRingItemFactory::createRingItem(*p);
+                log << "Timestamp skip from "  << lastTimestamp << " to " << frag.s_timestamp << std::endl;
+                log << "Ring item: " << pSpecificItem->toString() << std::endl;
+                delete pSpecificItem;
+              }
+              lastTimestamp = frag.s_timestamp;
+              break;
+            }
+        default:
+          // default is to leave things alone
+    
+          break;
+        }
     }
     if (frag.s_timestamp == 0ll) {
       log << "Zero timestamp in source!?!\n";
