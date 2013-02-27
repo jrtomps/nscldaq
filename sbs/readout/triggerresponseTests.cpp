@@ -197,7 +197,7 @@ void triggerResponse::readscalers()
 
   CRingItem* item = CRingItem::getFromRing(Ring, pred);
   ASSERT(item);
-  EQ(INCREMENTAL_SCALERS, item->type());
+  EQ(PERIODIC_SCALERS, item->type());
   
   CRingScalerItem scalers(*item);
   delete item;

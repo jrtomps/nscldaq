@@ -23,6 +23,7 @@
 #include <CRingItem.h>
 #include <CRingTextItem.h>
 #include <CRingPhysicsEventCountItem.h>
+#include <CDataFormatItem.h>
 
 #include <RunState.h>
 #include <StateException.h>
@@ -169,6 +170,13 @@ CExperiment::Start(bool resume)
       m_pScalers->clear();
     }
 
+    // If not resuming we'll also output a ring format item so that the
+    // user knows the structure of the ring:
+    //
+    
+    CDataFormatItem format;
+    format.commitToRing(*m_pRing);
+    
     // Begin run zeroes the previous scaler time, and ring buffer item sequence.
     // 
     //
