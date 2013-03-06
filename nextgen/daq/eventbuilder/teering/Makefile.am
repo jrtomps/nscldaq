@@ -26,3 +26,5 @@ teering_LDADD = @top_builddir@/daq/eventbuilder/libEventBuilderClient.la \
 	@THREADLD_FLAGS@
 
 teering_LDFLAGS= -Wl,"-rpath=@libdir@"
+
+EXTRA_DIST=options.ggo teering.xml

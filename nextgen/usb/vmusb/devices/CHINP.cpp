@@ -104,6 +104,7 @@ CHINP::onAttach(CReadoutModule& configuration)
   configuration.addParameter("-readsramb", CConfigurableObject::isBool, 
 			     NULL, "false");
   configuration.addParameter("-havefadc", CConfigurableObject::isBool, NULL, "true");
+  configuration.addParameter("-clearveto", CConfigurableObject::isBool, NULL, "true");
 }
 
 ///////////////////////////////////////////////////////////////////////////////////
@@ -165,7 +166,9 @@ CHINP::Initialize(CVMUSB& controller)
     controller.vmeWrite32(fpga+FPGA_Bbus*4, registerAmod, static_cast<uint32_t>(glbl_enable)); // Global enable for B.
   }
 
-  controller.vmeWrite32(fpga+FPGA_clear_veto*4, registerAmod, static_cast<uint32_t>(1)); // clear veto_reset
+  if (m_pConfiguration->getBoolParameter("-clearveto")) {
+      controller.vmeWrite32(fpga+FPGA_clear_veto*4, registerAmod, static_cast<uint32_t>(1)); // clear veto_reset
+  }
   CXLM::accessBus(controller, static_cast<uint32_t>(0)); // release bus
 
 }
@@ -218,8 +221,9 @@ CHINP::addReadoutList(CVMUSBReadoutList& list)
   printf("clear_veto reg addr is %x\n",fpga+FPGA_clear_veto*4);
   // zero the word count to prevent rereading this event
   //  list.addWrite32(srama, registerAmod, static_cast<uint32_t>(0));
-  list.addWrite32(fpga+FPGA_clear_veto*4, registerAmod, static_cast<uint32_t>(1)); // clear veto_reset
-
+  if (m_pConfiguration->getBoolParameter("-clearveto")) {
+    list.addWrite32(fpga+FPGA_clear_veto*4, registerAmod, static_cast<uint32_t>(1)); // clear veto_reset
+  }
   addBusAccess(list, 0, static_cast<uint8_t>(0)); // Release all busses and off we go.
 
 }

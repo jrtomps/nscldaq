@@ -168,7 +168,7 @@ proc EVBC::start args {
     #  Ground the pipeline in the -destring 
     #
     set stdintoring "[file join $bindir stdintoring] [$options cget -destring]"
-    append pipecommand " | $stdintoring "
+    append pipecommand " | $stdintoring |& cat  "; # The cat captures stderr.
     
     #
     #  Create the pipeline:
@@ -190,6 +190,40 @@ proc EVBC::start args {
     ::flush $EVBC::pipefd
     close $infd
         
+
+    #
+    # Next wait for the event orderer service to become available:
+
+    set where [winfo geometry .]
+    toplevel .waiting
+    wm geometry .waiting $where
+    label    .waiting.for -text "Waiting for event builder to start up"
+    pack     .waiting.for
+    set ports [::portAllocator create %AUTO]
+    set me    $::tcl_platform(user)
+    set hunting "ORDERER:$me"
+    set found 0
+    for {set i 0} {$i < 100} {incr i} {
+	set allocations [$ports listPorts]
+	foreach allocation $allocations {
+	    set name [lindex $allocation 1]
+	    set owner [lindex $allocation 2]
+	    if {($name eq $hunting) && ($me eq $owner)} {
+		set found 1
+	    }
+	}
+	if {!$found} {
+	    update;update;update
+	    after 500
+	} else {
+	    set i 100
+	}
+    }
+    $ports destroy
+    destroy .waiting
+    if {!$found} {
+	error "Event builder failed to start within timeout"
+    }
 
 }
 
@@ -290,7 +324,7 @@ proc EVBC::startRingSource {sourceRingUrl timestampExtractorLib id info} {
     #
     set fd [open "| $ringSource |& cat" r]
     fconfigure $fd -buffering line
-    flieevent $fd readable [list EVBC::_HandleDataSourceInput $fd $info $id]
+    fileevent $fd readable [list EVBC::_HandleDataSourceInput $fd $info $id]
 }
 ##
 # @fn EVBC::startS800Source

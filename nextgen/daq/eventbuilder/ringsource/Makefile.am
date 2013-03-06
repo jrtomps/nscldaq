@@ -62,4 +62,4 @@ ringFragmentSource_LDADD=  		 \
 	GetOpt.lo \
 	$(THREAD_LDFLAGS) 
 
-EXTRA_DIST=ringsource.xml
+EXTRA_DIST=ringsource.xml ringtestoptions.ggo

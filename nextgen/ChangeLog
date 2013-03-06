@@ -442,4 +442,4 @@ Feb 1, 2012 - Feb 24, 2012
 	  to support EPICS monitoring.
 	- Issue #989 - document VM-USB list remote list executino.
         - Final test build on Wheezy64
-	
+	- Add -clearveto to CHINP.cpp
