@@ -54,6 +54,7 @@ CRingScalerItem::CRingScalerItem(size_t numScalers) :
   \param timestamp - Absolute system time at which the item was created.
   \param scalers   - Vector of scaler values.
 
+
 */
 CRingScalerItem::CRingScalerItem(uint32_t startTime,
 				 uint32_t stopTime,
@@ -89,10 +90,13 @@ CRingScalerItem::CRingScalerItem(uint32_t startTime,
   \param endTime   - incremental scaler interval end time
   \param timestamp - Absolute system time at which the item was created.
   \param scalers   - Vector of scaler values.
+  @param timeDivisor - The divisor for the start/end times that yields seconds.
+                       defaults to 1.
  */
 CRingScalerItem::CRingScalerItem(
     uint64_t eventTimestamp, uint32_t source, uint32_t barrier, uint32_t startTime,
-    uint32_t stopTime, time_t   timestamp, std::vector<uint32_t> scalers) :
+    uint32_t stopTime, time_t   timestamp, std::vector<uint32_t> scalers,
+    uint32_t timeDivisor) :
     CRingItem(
         PERIODIC_SCALERS, eventTimestamp,  source, barrier,
         bodySize(scalers.size())
@@ -106,7 +110,7 @@ CRingScalerItem::CRingScalerItem(
     pScalers->s_timestamp           = timestamp;
     pScalers->s_scalerCount         = scalers.size();
     pScalers->s_isIncremental = 1;
-    pScalers->s_intervalDivisor = 1;
+    pScalers->s_intervalDivisor = timeDivisor;
 
     for (int i = 0; i  < scalers.size(); i++) {
       pScalers->s_scalers[i] = scalers[i];
@@ -383,7 +387,7 @@ CRingScalerItem::toString() const
 
   float   duration = static_cast<float>(end - start);
 
-  out << time << " : Incremental scalers:\n";
+  out << time << " : Scalers:\n";
   out << "Interval start time: " << start << " end: " << end << " seconds in to the run\n\n";
   out << bodyHeaderToString();
 

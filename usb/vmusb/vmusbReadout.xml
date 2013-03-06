@@ -1672,7 +1672,7 @@ caenv956 cget <replaceable>name</replaceable>
 	    </listitem>
 	 </varlistentry>
          <varlistentry>
-            <term><command>-commonstop</command> <replaceable>value</replaceabel></term>
+            <term><command>-commonstop</command> <replaceable>value</replaceable></term>
             <listitem>
                 <para>
                     This is only usable with a V775.  <parameter>value</parameter>

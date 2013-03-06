@@ -49,6 +49,7 @@ CRingStateChangeItem::CRingStateChangeItem(uint16_t reason) :
   pItem->s_timeOffset   = 0;
   pItem->s_Timestamp = static_cast<uint32_t>(time(NULL));
   memset(pItem->s_title, 0, TITLE_MAXSIZE+1);
+  pItem->s_offsetDivisor = 1;
 }
 /*!
    Fully specified construction the initial values of the various
@@ -83,7 +84,7 @@ CRingStateChangeItem::CRingStateChangeItem(uint16_t reason,
   pItem->s_timeOffset= timeOffset;
   pItem->s_Timestamp = timestamp;
   setTitle(title);		// takes care of the exception.
-
+  pItem->s_offsetDivisor = 1;
 
 }
 /**
@@ -120,7 +121,7 @@ CRingStateChangeItem::CRingStateChangeItem(
     pItem->s_timeOffset= timeOffset;
     pItem->s_Timestamp = timestamp;
     setTitle(title);		// takes care of the exception.
-    
+    pItem->s_offsetDivisor = 1;    
 }
 /*!
    Constructor that copies/converts an existing ring item into a state change

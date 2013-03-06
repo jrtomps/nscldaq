@@ -446,4 +446,6 @@ Feb 1, 2012 - Feb 24, 2012
 11.0 Better support for event builder (workoder W02101).
 	* Issue #1578 - Support runs with multiple end run marks in the
 	event logger.
-	
+	* Issue #1577 - Add body headers to most ring items so that timestamp,
+        event source and barrier type information can be included with each ring
+        item.

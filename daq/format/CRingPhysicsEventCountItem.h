@@ -73,7 +73,7 @@ public:
   CRingPhysicsEventCountItem(
     uint64_t timestamp, uint32_t source, uint32_t barrier,
     uint64_t count, uint32_t timeoffset, time_t stamp,
-    int divisor);
+    int divisor=1);
   
   CRingPhysicsEventCountItem(const CRingItem& rhs)  throw(std::bad_cast);
   CRingPhysicsEventCountItem(const CRingPhysicsEventCountItem& rhs);

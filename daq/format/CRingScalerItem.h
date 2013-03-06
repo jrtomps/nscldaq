@@ -70,7 +70,8 @@ public:
                   uint32_t startTime,
 		  uint32_t stopTime,
 		  time_t   timestamp,
-		  std::vector<uint32_t> scalers);
+		  std::vector<uint32_t> scalers,
+                  uint32_t timeDivisor = 1);
   CRingScalerItem(const CRingItem& rhs) throw(std::bad_cast);
   CRingScalerItem(const CRingScalerItem& rhs);
   

@@ -238,7 +238,7 @@ typedef struct _ScalerItemBody {
   uint32_t        s_intervalDivisor;  /* 11.0 sub second time intervals */
   uint32_t        s_scalerCount;
   uint32_t        s_isIncremental;    /* 11.0 non-incremental scaler flag */
-  uint32_t        s_scalers[1];
+  uint32_t        s_scalers[];
 } ScalerItemBody, *pScalerItemBody;
 
 typedef struct _ScalerItem {
@@ -369,18 +369,20 @@ typedef struct _GlomParameters  {
 extern "C" {
 #endif
 
-  pPhysicsEventItem  formatEventItem(size_t nWords, void* pPayload);
-  pPhysicsEventCountItem formatTriggerCountItem(uint32_t runTime, time_t stamp, uint64_t triggerCount);
+  pPhysicsEventItem  formatEventItem(size_t nWords, void* pPayload);    //
+  pPhysicsEventCountItem formatTriggerCountItem(uint32_t runTime, time_t stamp,
+                                                uint64_t triggerCount); //
   pScalerItem         formatScalerItem(unsigned scalerCount, time_t timestamp, 
-				      uint32_t btime, uint32_t etime, void* pCounters);
+				      uint32_t btime, uint32_t etime,
+                                      void* pCounters);                 //
   pScalerItem         formatNonIncrTSScalerItem(unsigned scalerCount, time_t timestamp, 
 						       uint32_t btime, uint32_t etime, 
 						       uint64_t eventTimestamp, void* pCounters,
 						       uint32_t timebaseDivisor);
   pTextItem          formatTextItem(unsigned nStrings, time_t stamp, uint32_t runTime,
-				    const char** pStrings, int type);
+				    const char** pStrings, int type);    //
   pStateChangeItem   formatStateChange(time_t stamp, uint32_t offset, uint32_t runNumber,
-				       const char* pTitle, int type);
+				       const char* pTitle, int type);    //
   
   /* Since 11.0 these functions were added: */
   
