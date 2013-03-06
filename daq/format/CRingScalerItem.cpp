@@ -227,6 +227,22 @@ CRingScalerItem::getStartTime() const
 
     return pScalers->s_intervalStartOffset;
 }
+/**
+ * computeStartTime
+ *
+ * Determine the floating point start timein seconds using the btime and
+ * divisor values.
+ *
+ * @return float
+ */
+float
+CRingScalerItem::computeStartTime() const
+{
+     pScalerItemBody pScalers = reinterpret_cast<pScalerItemBody>(getBodyPointer());
+     float start   = pScalers->s_intervalStartOffset;
+     float divisor = pScalers->s_intervalDivisor;
+     return start/divisor;
+}
 
 /*!
    Set the interval ent time
@@ -247,6 +263,21 @@ CRingScalerItem::getEndTime() const
 {
     pScalerItemBody pScalers = reinterpret_cast<pScalerItemBody>(getBodyPointer());
     return pScalers->s_intervalEndOffset;
+}
+/**
+ * computeEndTime
+ *
+ * Compute the interval end time using both the etime and the divisor.
+ *
+ * @return float - time in seconds.
+ */
+float
+CRingScalerItem::computeEndTime() const
+{
+      pScalerItemBody pScalers = reinterpret_cast<pScalerItemBody>(getBodyPointer());
+     float end   = pScalers->s_intervalEndOffset;
+     float divisor = pScalers->s_intervalDivisor;
+     return end/divisor;   
 }
 
 
@@ -415,7 +446,7 @@ CRingScalerItem::toString() const
 size_t
 CRingScalerItem::bodySize(size_t n)
 {
-  size_t  size    = sizeof(ScalerItemBody) + (n-1)*sizeof(uint32_t);
+  size_t  size    = sizeof(ScalerItemBody) + n*sizeof(uint32_t);
   return  size;
 }
 /*

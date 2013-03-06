@@ -26,6 +26,7 @@ class teststate : public CppUnit::TestFixture {
   CPPUNIT_TEST(copycons);
   CPPUNIT_TEST(tstampCons);
   CPPUNIT_TEST(tstampCopyCons);
+  CPPUNIT_TEST(fractionalRunTime);
   CPPUNIT_TEST_SUITE_END();
 
 
@@ -49,6 +50,10 @@ protected:
   
   void tstampCons();
   void tstampCopyCons();
+  
+  // Tests for fractional seconds in run offsets.
+  
+  void fractionalRunTime();
   
 };
 
@@ -251,4 +256,17 @@ teststate::tstampCopyCons()
     
     uint32_t properLength = sizeof(RingItemHeader) + sizeof(BodyHeader) +
         sizeof(StateChangeItemBody);
+}
+/*
+  Ensure fractional run time offsets work.
+*/
+void
+teststate::fractionalRunTime()
+{
+        CRingStateChangeItem orig(
+        0x1234567890123456ll, 1, 0, END_RUN, 1234, 5, (time_t)666, "This is a test",
+        2
+    );
+    float offset = orig.computeElapsedTime();
+    EQ(static_cast<float>(5.0/2.0), offset);
 }

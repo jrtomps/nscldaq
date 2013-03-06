@@ -226,6 +226,23 @@ CRingTextItem::getTimeOffset() const
   pTextItemBody pItem = reinterpret_cast<pTextItemBody>(getBodyPointer());
   return pItem->s_timeOffset;
 }
+/**
+ * computeElapsedTime
+ *
+ * Determin the floating point seconds into the run using the
+ * time offset and the divisor.
+ *
+ * @return float
+ */
+float
+CRingTextItem::computeElapsedTime() const
+{
+    pTextItemBody pItem = reinterpret_cast<pTextItemBody>(getBodyPointer());
+    float time   = pItem->s_timeOffset;
+    float divisor= pItem->s_offsetDivisor;
+    
+    return time/divisor;
+}
 /*!
    Set a new value for the timestamp of the item.
 */

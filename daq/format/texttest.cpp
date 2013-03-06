@@ -27,6 +27,7 @@ class texttests : public CppUnit::TestFixture {
   CPPUNIT_TEST(accessors);
   CPPUNIT_TEST(copycons);
   CPPUNIT_TEST(tscons);
+  CPPUNIT_TEST(fractionalRunTime);
   CPPUNIT_TEST_SUITE_END();
 
 
@@ -44,6 +45,7 @@ protected:
   void accessors();
   void copycons();
   void tscons();
+  void fractionalRunTime();
 };
 
 CPPUNIT_TEST_SUITE_REGISTRATION(texttests);
@@ -324,4 +326,33 @@ texttests::tscons()
         EQ(strings[i], std::string(pStrings));
         pStrings += strlen(pStrings) + 1;
     }
+}
+// Test computeElapsedTime
+//
+void
+texttests::fractionalRunTime()
+{
+    string s1("String 1");
+    string s2("string 2");
+    string s3("string 3");
+    string s4("last string");
+  
+    vector<string> strings;
+    strings.push_back(s1);
+    strings.push_back(s2);
+    strings.push_back(s3);
+    strings.push_back(s4);
+
+    time_t stamp = time(NULL);  
+  
+    size_t stringSize = 0;
+    for (int i = 0; i < strings.size(); i++) {
+        stringSize += strlen(strings[i].c_str()) + 1;
+    }
+  
+    CRingTextItem item(
+      PACKET_TYPES, static_cast<uint64_t>(0x8877665544332211ll), 1, 2,
+      strings, 1234, stamp, 3
+    );
+    EQ(static_cast<float>(1234.0/3.0), item.computeElapsedTime());
 }

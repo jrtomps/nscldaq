@@ -24,6 +24,7 @@ class scltests : public CppUnit::TestFixture {
   CPPUNIT_TEST(copycons);
   CPPUNIT_TEST(tstampCons);
   CPPUNIT_TEST(tstampCopyCons);
+  CPPUNIT_TEST(fractionalRunTime);
   CPPUNIT_TEST_SUITE_END();
 
 
@@ -42,6 +43,7 @@ protected:
   void copycons();
   void tstampCons();
   void tstampCopyCons();
+  void fractionalRunTime();
 };
 
 CPPUNIT_TEST_SUITE_REGISTRATION(scltests);
@@ -274,4 +276,21 @@ scltests::tstampCopyCons()
     for (int i = 0; i < 16; i++) {
         EQ(static_cast<uint32_t>(100-i), item.getScaler(i));
     }
+}
+/*
+* tests for the compute*Time methods
+*/
+void
+scltests::fractionalRunTime()
+{
+    std::vector<uint32_t> scalers;
+    for(int i=0; i < 16; i++) {
+        scalers.push_back(i);
+    }
+    CRingScalerItem orig(
+        0x1234567887654321ll, 1, 0,
+        10, 20, (time_t)1111, scalers, 2
+    );
+    EQ(static_cast<float>(10.0/2.0), orig.computeStartTime());
+    EQ(static_cast<float>(20.0/2.0), orig.computeEndTime());
 }

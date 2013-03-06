@@ -20,6 +20,7 @@ class physcounttests : public CppUnit::TestFixture {
   CPPUNIT_TEST(accessors);
   CPPUNIT_TEST(copycons);
   CPPUNIT_TEST(tscons);
+  CPPUNIT_TEST(fractionalTime);
   CPPUNIT_TEST_SUITE_END();
 
 
@@ -38,6 +39,7 @@ protected:
   void accessors();
   void copycons();
   void tscons();
+  void fractionalTime();
 };
 
 CPPUNIT_TEST_SUITE_REGISTRATION(physcounttests);
@@ -205,3 +207,17 @@ physcounttests::tscons()
   EQ(static_cast<uint64_t>(54321), pBody->s_eventCount);
 }
 
+// fractionalTime
+//   Test of computeElapsedTime method.
+
+void
+physcounttests::fractionalTime()
+{
+  time_t stamp = time(NULL);
+  CRingPhysicsEventCountItem item(
+      static_cast<uint64_t>(0x112233445567788ll), 1, 2, 
+      static_cast<uint64_t>(54321), 100, stamp, 3
+  );
+  
+  EQ(static_cast<float>(100.0/3.0), item.computeElapsedTime());
+}

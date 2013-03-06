@@ -203,6 +203,25 @@ CRingPhysicsEventCountItem::getTimeOffset() const
 
   return pItem->s_timeOffset;
 }
+/**
+ * computeTimeOffset
+ *
+ * Get the floating point seconds into the run using the time offset and
+ * divisor fields:
+ *
+ * @return float
+ */
+float
+CRingPhysicsEventCountItem::computeElapsedTime() const
+{
+    pPhysicsEventCountItemBody pItem =
+    reinterpret_cast<pPhysicsEventCountItemBody>(getBodyPointer());
+    
+    float timeOffset = pItem->s_timeOffset;
+    float divisor    = pItem->s_offsetDivisor;
+    
+    return timeOffset/divisor;
+}
 /*!
    set the time offset.
    \param offset - new value of time offset.

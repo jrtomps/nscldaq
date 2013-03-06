@@ -372,7 +372,7 @@ formatScalerItem(
     */
     size_t itemSize =
         sizeof(RingItemHeader) + sizeof(ScalerItemBody) + sizeof(uint32_t)
-        + (scalerCount - 1)*sizeof(uint32_t);
+        + scalerCount*sizeof(uint32_t);
     pRingItem pItem = (pRingItem)malloc(itemSize);
     
   
@@ -734,7 +734,7 @@ formatTimestampedScalerItem(
     
     size_t itemSize =
         sizeof(RingItemHeader) + sizeof(BodyHeader) + sizeof(ScalerItemBody)
-        + (nScalers -1) * sizeof(uint32_t);
+        + nScalers * sizeof(uint32_t);
     pRingItem pItem = (pRingItem)malloc(itemSize);
     
     if (pItem) {    

@@ -104,6 +104,7 @@ public:
 
   void     setTimeOffset(uint32_t offset);
   uint32_t getTimeOffset() const;
+  float    computeElapsedTime() const;
 
   void     setTimestamp(time_t stamp);
   time_t   getTimestamp() const;

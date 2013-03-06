@@ -76,7 +76,8 @@ public:
 		       uint32_t runNumber,
 		       uint32_t timeOffset,
 		       time_t   timestamp,
-		       std::string title);
+		       std::string title,
+                       uint32_t offsetDivisor = 1);
   
   CRingStateChangeItem(const CRingItem& item) throw(std::bad_cast);
   CRingStateChangeItem(const CRingStateChangeItem& rhs);
@@ -93,6 +94,7 @@ public:
 
   void setElapsedTime(uint32_t offset);
   uint32_t getElapsedTime() const;
+  float    computeElapsedTime() const;
 
   void setTitle(std::string title) throw(CRangeError);
   std::string getTitle() const;

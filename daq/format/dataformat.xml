@@ -89,11 +89,11 @@
                 </funcprototype>
             </funcsynopsis>
             <funcsynopsis>
-                <funcprorotype>
+                <funcprototype>
                 <funcdef><type>pDataFormat</type><function>formatDataFormat</function>
                 </funcdef>
                 <void />
-                </funcprorotype>
+                </funcprototype>
             </funcsynopsis>
             <funcsynopsis>
                 <funcprototype>
@@ -154,10 +154,10 @@
                 </funcprototype>
             </funcsynopsis>
             <funcsynopsis>
-                <funprototype>
+                <funcprototype>
                     <funcdef>
                         <type>pPhysicsEventItem</type>
-                        <funtion>formatTimestampedEventItem</funtion>
+                        <function>formatTimestampedEventItem</function>
                     </funcdef>
                     <paramdef>
                         <parameter><type>uint64_t</type> timestamp</parameter>
@@ -174,7 +174,7 @@
                     <paramdef>
                         <parameter><type>const void*</type> pPayload</parameter>
                     </paramdef>
-                </funprototype>
+                </funcprototype>
             </funcsynopsis>
             <funcsynopsis>
                 <funcprototype>
@@ -4195,10 +4195,10 @@ item.commitToRing(aring);
       </refnamediv>
       
       <refsynopsisdiv>
-        <synopsis>
         <programlisting>
 #include &lt;CRingFragmentItem.h&gt;
         </programlisting>
+        <synopsis>
        <classsynopsis>
            <ooclass><classname>CRingFragmentItem</classname></ooclass>
        </classsynopsis> : public CRingItem {}
@@ -5107,11 +5107,11 @@ item.commitToRing(aring);
        </refnamediv>
        
        <refsynopsisdiv>
-        
-        <synopsis>
             <programlisting>
 #include &lt;CGlomParameters.h&gt;
             </programlisting>
+        
+        <synopsis>
             <ooclass><classname>CGlomParameters</classname></ooclass> : public CRingItem {
             <constructorsynopsis>
                 <methodname>CGlomParameters</methodname>
@@ -6293,7 +6293,7 @@ item.commitToRing(aring);
            </refnamediv>
            
            <refsynopsisdiv>
-            <synopsis>
+
 
 <programlisting>
     
@@ -6513,7 +6513,6 @@ typedef struct _GlomParameters  {
 
 </programlisting>
 
-            </synopsis>
            </refsynopsisdiv>
            <refsect1>
               <title>DESCRIPTION</title>
@@ -6540,9 +6539,10 @@ typedef struct _GlomParameters  {
                 Starting with NSCLDAQ 11.0, ring items may have an additional
                 <type>BodyHeader</type>.  The first field of this
                 is the size of the body header (allowing for future expansion).
-                If the body header size is <litereal>0</litereal> there is no
+                If the body header size is <literal>0</literal> there is no
                 body header.  The body header is intended to carry information
                 relevant to data that requires an event builder for assembly.
+              </para>
               <para>
                 STRUCTURES below describes each of the ring items defined
                 at this time.  CONSTANTS defines the set of values that
@@ -7061,7 +7061,7 @@ typedef struct _EventBuilderFragment {
                 </para>
                 <para>
                     It is also not unusual for the structure of the body to
-                    describe the size of the <strutfield>s_body</strutfield> independent
+                    describe the size of the <structfield>s_body</structfield> independent
                     of the rest of the item..
                 </para>
               </refsect2>
@@ -7318,10 +7318,12 @@ typedef struct _GlomParameters  {
                 </varlistentry>
                 <varlistentry>
                     <term>
-                        <modifier>static const</modifier>
-                        <type>uint32_t</type>
-                        <varname>EVB_FRAGMENT</varname>
-                        <initializer>40</initializer>
+                        <fieldsynopsis>
+                            <modifier>static const</modifier>
+                            <type>uint32_t</type>
+                            <varname>EVB_FRAGMENT</varname>
+                            <initializer>40</initializer>
+                        </fieldsynopsis>
                     </term>
                     <listitem>
                         <para>
@@ -7338,6 +7340,7 @@ typedef struct _GlomParameters  {
                             Items of this type are believed to have
                             payloads that look like ring items.
                         </para>
+                    </listitem>
                 </varlistentry>
                 <varlistentry>
                     <term>
@@ -7362,9 +7365,11 @@ typedef struct _GlomParameters  {
                 </varlistentry>
                 <varlistentry>
                     <term>
+                        <fieldsynopsis>
                         <modifier>static const</modifier><type>uint32_t</type>
                         <varname>EVB_GLOM_INFO</varname>
                         <initializer>42</initializer>
+                        </fieldsynopsis>
                     </term>
                     <listitem>
                         <para>
@@ -7379,9 +7384,11 @@ typedef struct _GlomParameters  {
                 </varlistentry>
                 <varlistentry>
                     <term>
+                        <fieldsynopsis>
                         <modifier>static const</modifier>
                         <type>uint32_t</type><varname>FIRST_USER_ITEM_CODE</varname>
                         <initializer>32768</initializer>
+                        </fieldsynopsis>
                     </term>
                     <listitem>
                         <para>
@@ -7420,11 +7427,9 @@ typedef struct _GlomParameters  {
           </refnamediv>
           
           <refsynopsisdiv>
-           <synopsis>
             <programlisting>
 #include &lt;DataFormat.h&gt;
             </programlisting>
-           </synopsis>  
             <funcsynopsis>
             <funcprototype><funcdef><type>pPhysicsEventItem</type> <function>formatEventitem</function></funcdef>
             <paramdef>
@@ -7537,11 +7542,11 @@ typedef struct _GlomParameters  {
                 </funcprototype>
             </funcsynopsis>
             <funcsynopsis>
-                <funcprorotype>
+                <funcprototype>
                 <funcdef><type>pDataFormat</type><function>formatDataFormat</function>
                 </funcdef>
                 <void />
-                </funcprorotype>
+                </funcprototype>
             </funcsynopsis>
             <funcsynopsis>
                 <funcprototype>
@@ -7602,10 +7607,10 @@ typedef struct _GlomParameters  {
                 </funcprototype>
             </funcsynopsis>
             <funcsynopsis>
-                <funprototype>
+                <funcprototype>
                     <funcdef>
                         <type>pPhysicsEventItem</type>
-                        <funtion>formatTimestampedEventItem</funtion>
+                        <function>formatTimestampedEventItem</function>
                     </funcdef>
                     <paramdef>
                         <parameter><type>uint64_t</type> timestamp</parameter>
@@ -7622,7 +7627,7 @@ typedef struct _GlomParameters  {
                     <paramdef>
                         <parameter><type>const void*</type> pPayload</parameter>
                     </paramdef>
-                </funprototype>
+                </funcprototype>
             </funcsynopsis>
             <funcsynopsis>
                 <funcprototype>
@@ -7783,7 +7788,11 @@ typedef struct _GlomParameters  {
              </title>
              <para>
                 These functions produce dynamically allocated ring items
-                that reflect the parameters that have been passed to them.      
+                that reflect the parameters that have been passed to them.
+                All functions that create ring items use
+                <literal>malloc(3)</literal> to allocate storage.  When you
+                no longer need an item you must <literal>free(3)</literal>
+                the item to prevent memory leaks.
              </para>
              <variablelist>
                 <varlistentry>
@@ -8062,7 +8071,7 @@ typedef struct _GlomParameters  {
                                 the run time is <literal>2.5</literal> seconds>
                             </para>
                             <para>
-                                Note that as with all of these funtions,
+                                Note that as with all of these functions,
                                 the resulting pointer is to dynamically allocated
                                 memor that must be released via a call to
                                 <literal>free(3)</literal>,
@@ -8072,11 +8081,11 @@ typedef struct _GlomParameters  {
                     <varlistentry>
                         <term>
                         <funcsynopsis>
-                            <funcprorotype>
+                            <funcprototype>
                             <funcdef><type>pDataFormat</type><function>formatDataFormat</function>
                             </funcdef>
                             <void />
-                            </funcprorotype>
+                            </funcprototype>
                         </funcsynopsis>
                         </term>
                         <listitem>
@@ -8084,7 +8093,7 @@ typedef struct _GlomParameters  {
                                 Formats a <type>DataFormat</type> ring item
                                 into dynamically allocated memory. A pointer
                                 to the resulting ring item is returned as the
-                                funtion value.  The caller must
+                                function value.  The caller must
                                 <literal>free(3)</literal>
                             </para>
                             <para>
@@ -8203,12 +8212,20 @@ typedef struct _GlomParameters  {
                         </term>
                         <listitem>
                             <para>
-                                
+                                This performs the same operation as
+                                <function>formatEVBFragment</function> however
+                                the ring item is given the type
+                                <literal>EVB_UNKNOWN_PAYLOAD</literal>
+                            </para>
+                        </listitem>
+                    </varlistentry>
+                    <varlistentry>
+                        <term>
                         <funcsynopsis>
-                            <funprototype>
+                            <funcprototype>
                                 <funcdef>
                                     <type>pPhysicsEventItem</type>
-                                    <funtion>formatTimestampedEventItem</funtion>
+                                    <function>formatTimestampedEventItem</function>
                                 </funcdef>
                                 <paramdef>
                                     <parameter><type>uint64_t</type> timestamp</parameter>
@@ -8225,8 +8242,24 @@ typedef struct _GlomParameters  {
                                 <paramdef>
                                     <parameter><type>const void*</type> pPayload</parameter>
                                 </paramdef>
-                            </funprototype>
+                            </funcprototype>
                         </funcsynopsis>
+                        </term>
+                        <listitem>
+                            <para>
+                                Creates an event ring item that has a full body
+                                header.  The body header contents are determined
+                                by the <parameter>timestamp</parameter>,
+                                <parameter>sourceId</parameter> and
+                                <parameter>barrier</parameter> parameters.
+                                The contents of the event are <parameter>payloadSize</parameter>
+                                words (16 bit words) long and are pointed to by
+                                <parameter>pPayload</parameter>
+                            </para>
+                        </listitem>
+                    </varlistentry>
+                    <varlistentry>
+                        <term>
                         <funcsynopsis>
                             <funcprototype>
                                 <funcdef>
@@ -8256,6 +8289,37 @@ typedef struct _GlomParameters  {
                                 </paramdef>
                             </funcprototype>
                         </funcsynopsis>
+                        </term>
+                        <listitem>
+                            <para>
+                                Creates a trigger count ring item that has a full
+                                body header.  The body header allows trigger counts
+                                to be accumulated from several event sources.
+                                The body header is filled in from
+                                <parameter>timestamp</parameter>,
+                                <parameter>sourceId</parameter> and
+                                <parameter>barrier</parameter>
+                            </para>
+                            <para>
+                                The <parameter>runTime</parameter> and
+                                <parameter>offsetDivisor</parameter> provide
+                                for sub-second timing information. The
+                                offset into the run in floating point seconds
+                                is given by the expression
+                                <literal>runTime/offsetDivisor</literal>
+                            </para>
+                            <para>
+                                <parameter>stamp</parameter> is the unix
+                                <type>time_t</type> that describes the absolute
+                                time at which this item was created.  The
+                                <parameter>triggerCount</parameter> item is the
+                                total number of triggers the <parameter>sourceId</parameter>
+                                has responded to since the beginnin of the run
+                            </para>
+                        </listitem>
+                    </varlistentry>
+                    <varlistentry>
+                        <term>
                         <funcsynopsis>
                             <funcprototype>
                                 <funcdef>
@@ -8294,6 +8358,46 @@ typedef struct _GlomParameters  {
                                 </paramdef>
                             </funcprototype>
                         </funcsynopsis>
+                        </term>
+                        <listitem>
+                            <para>
+                                Creates a scaler ring item with a full body header.
+                                Scaler readout can be incremental or not and
+                                the time offsets for the start and end times
+                                (<parameter>btime</parameter>> and <parameter>etime</parameter>)
+                                of the counting interval use
+                                <parameter>timeIntervalDivisor</parameter> to
+                                supply sub-second time resolution.
+                            </para>
+                            <para>
+                                The body header values are determined by
+                                <parameter>timestamp</parameter>,
+                                <parameter>sourceId</parameter> and
+                                <parameter>barrier</parameter>.
+                            </para>
+                            <para>
+                                If <parameter>isIncremental</parameter>
+                                is true (nonzero), the scaler values are incremental.
+                                Incremental scaler values represent the number
+                                of counts during the <parameter>btime</parameter>
+                                <parameter>etime</parameter> interval only.
+                            </para>
+                            <para>
+                                If <parameter>isIncremental</parameter>
+                                is false (zero), the scaler values are
+                                cumulative and represent the total number of
+                                counts since the start of the run. 
+                            </para>
+                            <para>
+                                The scalers themselves are pointed to by
+                                <parameter>pCounters</parameter> and
+                                <parameter>nScalers</parameter> tells you how
+                                many there are.
+                            </para>
+                        </listitem>
+                    </varlistentry>
+                    <varlistentry>
+                        <term>
                         <funcsynopsis>
                             <funcprototype>
                                 <funcdef>
@@ -8328,7 +8432,42 @@ typedef struct _GlomParameters  {
                                     <parameter><type>uint32_t</type> timeIntervalDivisor</parameter>
                                 </paramdef>
                             </funcprototype>
-                        </funcsynopsis> 
+                        </funcsynopsis>
+                        </term>
+                        <listitem>
+                            <para>
+                                Creates a text list item with a full body header.
+                                The type of the ring item is determined by
+                                <parameter>type</parameter>.  It should be one
+                                of <literal>PACKET_TYPES</literal>,
+                                <literal>MONITORED_VARIABLES</literal> or a
+                                user defined type.
+                            </para>
+                            <para>
+                                The body header contents are determined
+                                by
+                                <parameter>timestamp</parameter>,
+                                <parameter>sourceId</parameter> and
+                                <parameter>barrier</parameter>
+                            </para>
+                            <para>
+                                The time into the run at which this item
+                                was emitted in in floating point seconds is
+                                <parameter>runTime</parameter>/<parameter>timeIntervalDivisor</parameter>.
+                                The absolute time at which the item was created
+                                is <parameter>stamp</parameter> which is a
+                                Unix <type>time_t</type> value.
+                            </para>
+                            <para>
+                                The number of strings is <parameter>nStrings</parameter>.
+                                <parameter>pStrings</parameter> is an array
+                                of pointers to each string, which must be
+                                null terminated like all Unix strings.
+                            </para>
+                        </listitem>
+                    </varlistentry>
+                    <varlistentry>
+                        <term>
                         <funcsynopsis>
                             <funcprototype>
                                 <funcdef>
@@ -8364,6 +8503,43 @@ typedef struct _GlomParameters  {
                                 </paramdef>
                             </funcprototype>
                         </funcsynopsis>
+                        </term>
+                        <listitem>
+                            <para>
+                                Creates a state change item that has a complete
+                                body header.  The <parameter>type</parameter>
+                                parameter is the ring item type and should be
+                                any of <literal>BEGIN_RUN</literal>,
+                                <literal>END_RUN</literal>,
+                                <literal>PAUSE_RUN</literal> or
+                                <literal>RESUME_RUN</literal> or a user
+                                defined ring item type if appropriate.
+                            </para>
+                            <para>
+                                The body header is determine by
+                                <parameter>timestamp</parameter>,
+                                <parameter>sourceId</parameter> and
+                                <parameter>barrier</parameter>
+                            </para>
+                            <para>
+                                The Offset into the run at which this item
+                                was emitted in seconds is:
+                                <parameter>offset/offsetDivisor</parameter>.
+                                The <parameter>stamp</parameter> parameter
+                                is the Unix <type>time_t</type> that specifies
+                                the absolute time at which the item was emitted.
+                            </para>
+                            <para>
+                                Information about the run is also provided.
+                                <parameter>runNumber</parameter> is the number
+                                of the run and <parameter>pTitle</parameter>
+                                points to the null terminated title string.
+                            </para>
+                            
+                        </listitem>
+                    </varlistentry>
+                    <varlistentry>
+                        <term>
                         <funcsynopsis>
                             <funcprototype>
                                 <funcdef>
@@ -8374,7 +8550,17 @@ typedef struct _GlomParameters  {
                                 </paramdef>
                             </funcprototype>
                         </funcsynopsis>
-            
+                        </term>
+                        <listitem>
+                            <para>
+                                The pointer to the actual body of an item
+                                depends on whether or not a body header is present
+                                in the item.  This function will return a pointer
+                                to the body of a ring item <parameter>pItem</parameter>
+                                taking this into account.
+                            </para>
+                        </listitem>
+                    </varlistentry>
                         <!-- end of 11.0 additions -->
                               
                          </variablelist>
@@ -8404,10 +8590,10 @@ typedef struct _GlomParameters  {
        </refnamediv>
        
        <refsynopsisdiv>
-        <synopsis>
             <programlisting>
 #include &lt;CDataSource.h&gt;
             </programlisting>
+        <synopsis>
             <ooclass><classname>CDataSource</classname></ooclass>
            <constructorsynopsis>
           <methodname>CDataSource</methodname>
@@ -8476,10 +8662,10 @@ typedef struct _GlomParameters  {
        </refnamediv>
        
        <refsynopsisdiv>
-        <synopsis>
             <programlisting>
 #include &lt;CRingDataSource.h&gt;
             </programlisting>
+        <synopsis>
             <ooclass><classname>CRingDataSource</classname></ooclass>
            <constructorsynopsis>
           <methodname>CRingDataSource</methodname>
@@ -8678,10 +8864,10 @@ typedef struct _GlomParameters  {
           <refpurpose>Create data sources given a URI</refpurpose>
        </refnamediv>
        <refsynopsisdiv>
-        <synopsis>
             <programlisting>
 #include &lt;CDataSourceFactory&gt;
             </programlisting>
+        <synopsis>
             <ooclass><classname>CDataSourceFactory</classname></ooclass>
            <methodsynopsis>
             <modifier>static</modifier>
@@ -8774,10 +8960,10 @@ typedef struct _GlomParameters  {
        </refnamediv>
        
        <refsynopsisdiv>
-        <synopsis>
             <programlisting>
 #include &lt;CRingItemFactory.h&gt;
             </programlisting>
+        <synopsis>
             <ooclass><classname>CRingItemFactory</classname></ooclass>
            <methodsynopsis>
             <modifier>static</modifier>

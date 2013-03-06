@@ -85,9 +85,11 @@ public:
 
   void     setStartTime(uint32_t startTime);
   uint32_t getStartTime() const;
-
+  float    computeStartTime() const;
+  
   void     setEndTime(uint32_t endTime);
   uint32_t getEndTime() const;
+  float    computeEndTime() const;
 
   void     setTimestamp(time_t stamp);
   time_t   getTimestamp() const;

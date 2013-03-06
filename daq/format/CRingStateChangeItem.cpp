@@ -100,13 +100,14 @@ CRingStateChangeItem::CRingStateChangeItem(uint16_t reason,
                        this should be time(NULL).
    \param title      - Title string.  The length of this string must be at most
                        TITLE_MAXSIZE.
+   @param offsetDivisor - What timeOffset needs to be divided by to get seconds.
 
    \throw CRangeError - If the title string can't fit in s_title.
  */
 CRingStateChangeItem::CRingStateChangeItem(
     uint64_t eventTimestamp, uint32_t sourceId, uint32_t barrierType, uint16_t reason,
     uint32_t runNumber, uint32_t timeOffset, time_t   timestamp,
-    std::string title) :
+    std::string title, uint32_t offsetDivisor) :
     CRingItem(
         reason, eventTimestamp, sourceId, barrierType, sizeof(StateChangeItem)
     )
@@ -121,7 +122,7 @@ CRingStateChangeItem::CRingStateChangeItem(
     pItem->s_timeOffset= timeOffset;
     pItem->s_Timestamp = timestamp;
     setTitle(title);		// takes care of the exception.
-    pItem->s_offsetDivisor = 1;    
+    pItem->s_offsetDivisor = offsetDivisor;    
 }
 /*!
    Constructor that copies/converts an existing ring item into a state change
@@ -250,6 +251,21 @@ CRingStateChangeItem::getElapsedTime() const
         reinterpret_cast<pStateChangeItemBody>(getBodyPointer());
 
     return pItem->s_timeOffset;
+}
+/**
+ * getElapsedTime
+ *
+ * @return float - Elapsed time taking into account the divisor.
+ */
+float
+CRingStateChangeItem::computeElapsedTime() const
+{
+    pStateChangeItemBody pItem =
+        reinterpret_cast<pStateChangeItemBody>(getBodyPointer());
+    
+    float offset = pItem->s_timeOffset;
+    float divisor = pItem->s_offsetDivisor;
+    return offset/divisor;
 }
 /*!
   Set the title string.

@@ -315,8 +315,7 @@ ScalerOutput::empty()
 
   ASSERT(pItem);
   uint32_t properSize =
-    sizeof(RingItemHeader) + sizeof(uint32_t) + sizeof(ScalerItemBody)
-    - sizeof(uint32_t);
+    sizeof(RingItemHeader) + sizeof(uint32_t) + sizeof(ScalerItemBody);
     
   EQMSG("Empty scaler size", properSize, pItem->s_header.s_size);
   EQMSG("Scaler type: ", PERIODIC_SCALERS, pItem->s_header.s_type);
@@ -348,7 +347,6 @@ ScalerOutput::emptyTimestamped()
     EQ(
         static_cast<uint32_t>(
             sizeof(RingItemHeader) + sizeof(BodyHeader) + sizeof(ScalerItemBody)
-            - sizeof(uint32_t)
         ), pItem->s_header.s_size
     );
     EQ(PERIODIC_SCALERS, pItem->s_header.s_type);
@@ -395,7 +393,7 @@ ScalerOutput::counting()
   ASSERT(pItem);
   uint32_t properSize =
     sizeof(RingItemHeader) + sizeof(uint32_t) + sizeof(ScalerItemBody)
-    + 9*sizeof(uint32_t);
+    + 10*sizeof(uint32_t);
   EQMSG("Counting scaler size", properSize, pItem->s_header.s_size);
   EQMSG("No of scalers", static_cast<uint32_t>(10),
         pItem->s_body.u_noBodyHeader.s_body.s_scalerCount);
@@ -427,7 +425,7 @@ ScalerOutput::countingTimestamped()
     EQ(
         static_cast<uint32_t>(
             sizeof(RingItemHeader) + sizeof(BodyHeader) + sizeof(ScalerItemBody)
-            + 9*sizeof(uint32_t)                 // (one long in the body)
+            + 10*sizeof(uint32_t)                 // (one long in the body)
         ),
         pItem->s_header.s_size    
     );
