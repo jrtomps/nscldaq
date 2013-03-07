@@ -117,6 +117,8 @@ set hiColor    red
 set bothColor  orange
 set silentAlarms 0
 set alarmsEnabled 1;			# Alarms start out enabled.
+set Incremental  1
+
 
 #  The global variables below configure the strip chart
 # recorder.
@@ -210,8 +212,11 @@ proc processIncrement {array index op} {
     #
     # No action to take if the scaler is not incremental:
 
-    if {([array names ::incremental $index] ne "") && (!$::incremental($index))} {
-
+    if {!$::Incremental} {
+        if {[array names ::priorIncrement $index] eq ""} {
+            set ::priorIncrement($index) 0
+            set ::nonIncrementalTotal($index) 0
+        }
 	set nextTotal $::Scaler_Increments($index)
 
 	# Compute the increment...if it's negative assume a single roll-over.
@@ -573,10 +578,8 @@ proc UpdateStatistics {} {
     # For non-incremental scalers, copy their actual totals from
     # nonIncrementalTotal(i) -> Scaler_Totals(i)
 
-    foreach element [array names ::incremental] {
-	if {!$::incremental($element) } {
-	    set Scaler_Totals($element) $::nonIncrementalTotal($element)
-	}
+    foreach element [array names ::nonIncrementalTotals] {
+	set Scaler_Totals($element) $::nonIncrementalTotal($element)
     }
 
     incr IntervalCount
@@ -629,15 +632,17 @@ proc DoUpdate {{average 0}} {
     global HMStime
 
 
-    set sec [expr round($ElapsedRunTime)]
-    set min [expr $sec/60]
-    set hours [expr $min/60]
-    set days  [expr $hours/24]
-    set HMStime [format "%d %02d:%02d:%02d" \
+    set sec $ElapsedRunTime
+    set min [expr int($sec/60)]
+    set hours [expr int($min/60)]
+    set days  [expr int($hours/24)]
+    set fracsec [expr {int(($sec - int($sec))*100)}]
+    
+    set HMStime [format "%d %02d:%02d:%02d.%02d" \
 		     $days  \
 		     [expr $hours % 24] \
 		     [expr $min % 60] \
-		     [expr $sec % 60]]
+		     [expr int($sec) % 60] $fracsec]
     
     
     foreach page [array names Pages] {

@@ -25,6 +25,7 @@ class scltests : public CppUnit::TestFixture {
   CPPUNIT_TEST(tstampCons);
   CPPUNIT_TEST(tstampCopyCons);
   CPPUNIT_TEST(fractionalRunTime);
+  CPPUNIT_TEST(incremental);
   CPPUNIT_TEST_SUITE_END();
 
 
@@ -44,6 +45,7 @@ protected:
   void tstampCons();
   void tstampCopyCons();
   void fractionalRunTime();
+  void incremental();
 };
 
 CPPUNIT_TEST_SUITE_REGISTRATION(scltests);
@@ -293,4 +295,26 @@ scltests::fractionalRunTime()
     );
     EQ(static_cast<float>(10.0/2.0), orig.computeStartTime());
     EQ(static_cast<float>(20.0/2.0), orig.computeEndTime());
+}
+/**
+ * test isIncremental.
+ */
+void
+scltests::incremental()
+{
+    std::vector<uint32_t> scalers;
+    for(int i=0; i < 16; i++) {
+        scalers.push_back(i);
+    }
+    CRingScalerItem inc(
+        0x1234567887654321ll, 1, 0,
+        10, 20, (time_t)1111, scalers, 2
+    );
+    CRingScalerItem notinc(
+        0x1234567887654321ll, 1, 0,
+        10, 20, (time_t)1111, scalers, 2, false
+    );
+    ASSERT(inc.isIncremental());
+    ASSERT(!notinc.isIncremental());
+    
 }

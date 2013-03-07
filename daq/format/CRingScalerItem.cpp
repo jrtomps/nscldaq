@@ -92,11 +92,12 @@ CRingScalerItem::CRingScalerItem(uint32_t startTime,
   \param scalers   - Vector of scaler values.
   @param timeDivisor - The divisor for the start/end times that yields seconds.
                        defaults to 1.
+  @param incremental - True (default) if the scaler item is incremental.
  */
 CRingScalerItem::CRingScalerItem(
     uint64_t eventTimestamp, uint32_t source, uint32_t barrier, uint32_t startTime,
     uint32_t stopTime, time_t   timestamp, std::vector<uint32_t> scalers,
-    uint32_t timeDivisor) :
+    uint32_t timeDivisor, bool incremental) :
     CRingItem(
         PERIODIC_SCALERS, eventTimestamp,  source, barrier,
         bodySize(scalers.size())
@@ -109,7 +110,7 @@ CRingScalerItem::CRingScalerItem(
     pScalers->s_intervalEndOffset   = stopTime;
     pScalers->s_timestamp           = timestamp;
     pScalers->s_scalerCount         = scalers.size();
-    pScalers->s_isIncremental = 1;
+    pScalers->s_isIncremental = incremental ? 1 : 0;
     pScalers->s_intervalDivisor = timeDivisor;
 
     for (int i = 0; i  < scalers.size(); i++) {
@@ -274,12 +275,23 @@ CRingScalerItem::getEndTime() const
 float
 CRingScalerItem::computeEndTime() const
 {
-      pScalerItemBody pScalers = reinterpret_cast<pScalerItemBody>(getBodyPointer());
-     float end   = pScalers->s_intervalEndOffset;
-     float divisor = pScalers->s_intervalDivisor;
-     return end/divisor;   
+    pScalerItemBody pScalers = reinterpret_cast<pScalerItemBody>(getBodyPointer());
+    float end   = pScalers->s_intervalEndOffset;
+    float divisor = pScalers->s_intervalDivisor;
+    return end/divisor;   
 }
 
+/**
+ * isIncremental
+ *
+ * @return bool true if s_isIncremental is true etc.
+ */
+bool
+CRingScalerItem::isIncremental() const
+{
+    pScalerItemBody pScalers = reinterpret_cast<pScalerItemBody>(getBodyPointer());
+    return (pScalers->s_isIncremental != 0);
+}
 
 /*!
    set the absolute timestamp of the event.
@@ -411,12 +423,12 @@ CRingScalerItem::toString() const
 {
   std::ostringstream out;
 
-  uint32_t end   = getEndTime();
-  uint32_t start = getStartTime();
+  float end   = computeEndTime();
+  float start = computeStartTime();
   string   time  = timeString(getTimestamp());
   vector<uint32_t> scalers = getScalers();
 
-  float   duration = static_cast<float>(end - start);
+  float   duration = end - start;
 
   out << time << " : Scalers:\n";
   out << "Interval start time: " << start << " end: " << end << " seconds in to the run\n\n";

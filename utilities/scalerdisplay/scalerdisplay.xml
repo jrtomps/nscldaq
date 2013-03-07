@@ -34,6 +34,14 @@
                 </listitem>
             </varlistentry>
        </variablelist>
+       <para>
+        Note that as of NSCLDAQ-11.0, the scaler display and its helper
+        <application>sclclient</application> determine whether a scaler
+        update is for a non-incrmental or incremental scaler ring item.  Furthermore,
+        the offset divisor in those ring items is properly handled with respect
+        to rate calculations, update interval calculation and the display of the
+        elapsed run time (to 0.01 seconds).
+       </para>
 </chapter>
 
 <!-- /chapter -->

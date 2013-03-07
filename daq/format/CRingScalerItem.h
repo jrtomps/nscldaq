@@ -71,7 +71,7 @@ public:
 		  uint32_t stopTime,
 		  time_t   timestamp,
 		  std::vector<uint32_t> scalers,
-                  uint32_t timeDivisor = 1);
+                  uint32_t timeDivisor = 1, bool incremental=true);
   CRingScalerItem(const CRingItem& rhs) throw(std::bad_cast);
   CRingScalerItem(const CRingScalerItem& rhs);
   
@@ -93,6 +93,8 @@ public:
 
   void     setTimestamp(time_t stamp);
   time_t   getTimestamp() const;
+  
+  bool isIncremental() const;
 
   void     setScaler(uint32_t channel, uint32_t value) throw(CRangeError);
   uint32_t getScaler(uint32_t channel) const throw(CRangeError);

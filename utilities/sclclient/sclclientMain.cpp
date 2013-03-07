@@ -234,7 +234,7 @@ SclClientMain::processItems()
 	  processStateChange(item);
 	}
 	break;
-      case INCREMENTAL_SCALERS:
+      case PERIODIC_SCALERS:
 	{
 	  // If the begin run not seen.. call RunInProgres in the server
 
@@ -275,8 +275,8 @@ SclClientMain::processItems()
 void
 SclClientMain::processScalers(const CRingScalerItem& item)
 {
-  uint32_t startTime           = item.getStartTime();
-  uint32_t endTime             = item.getEndTime();
+  float startTime           = item.computeStartTime();
+  float endTime             = item.computeEndTime();
   vector<uint32_t> increments  = item.getScalers();
 
   // If the totals don't exist, zero them:
@@ -290,18 +290,23 @@ SclClientMain::processScalers(const CRingScalerItem& item)
   // Update the totals from the increments:
 
   for (int i=0; i < increments.size(); i++) {
-    m_Totals[i] += static_cast<double>(increments[i]);
+    if (item.isIncremental()) {
+        m_Totals[i] += static_cast<double>(increments[i]);
+    } else {
+        m_Totals[i] = static_cast<double>(increments[i]);
+    }
   }
 
   // Compute the elapsed and delta times:
 
-  uint32_t deltaTime   = endTime - startTime;
-  uint32_t elapsedTime = endTime;
+  float deltaTime   = endTime - startTime;
+  float elapsedTime = endTime;
 
   // Interact with the server:
 
-  setInteger("ScalerDeltaTime", deltaTime);
-  setInteger("ElapsedRunTime",  elapsedTime);
+  setDouble("ScalerDeltaTime", deltaTime);
+  setDouble("ElapsedRunTime",  elapsedTime);
+  setInteger("Incremental", item.isIncremental() ? 1 : 0);
   for (int i = 0; i < increments.size(); i++) {
     setInteger("Scaler_Increments", increments[i], i);
     setDouble("Scaler_Totals",  m_Totals[i], i);
@@ -328,11 +333,11 @@ SclClientMain::processStateChange(const CRingStateChangeItem& item)
 {
   uint16_t type    = item.type();
   uint32_t run     = item.getRunNumber();
-  uint32_t elapsed = item.getElapsedTime();
+  float    elapsed = item.computeElapsedTime();
   
 
   setInteger("RunNumber", run);
-  setInteger("ElapsedRunTime", elapsed);
+  setDouble("ElapsedRunTime", elapsed);
 
   string command = "set RunTitle {";
   command += item.getTitle();
