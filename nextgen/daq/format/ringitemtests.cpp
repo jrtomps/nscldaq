@@ -29,6 +29,7 @@ class ritemtests : public CppUnit::TestFixture {
   CPPUNIT_TEST(fromring);
   CPPUNIT_TEST(selection);
   CPPUNIT_TEST(copyconstruct);
+  CPPUNIT_TEST(bodysize);
   CPPUNIT_TEST_SUITE_END();
 
 
@@ -48,6 +49,7 @@ protected:
   void fromring();
   void selection();
   void sampling();
+  void bodysize();
 };
 
 CPPUNIT_TEST_SUITE_REGISTRATION(ritemtests);
@@ -321,3 +323,21 @@ ritemtests::sampling()
   CRingBuffer::remove("items");
 } 
 
+void 
+ritemtests::bodysize()
+{
+  CRingItem i(1);
+  i.updateSize();
+
+  EQ(static_cast<size_t>(0), i.getBodySize());
+
+  
+  uint8_t* pBody = reinterpret_cast<uint8_t*>(i.getBodyCursor());
+  i.setBodyCursor(pBody);
+  EQ(static_cast<size_t>(0), i.getBodySize());
+
+  *pBody++ = 1;
+  *pBody++ = 2;
+  i.setBodyCursor(pBody);
+  EQ(static_cast<size_t>(2), i.getBodySize());
+}

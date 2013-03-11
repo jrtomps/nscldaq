@@ -400,7 +400,7 @@ proc EVBC::initialize args {
  
             return "tcp://localhost/$EVBC::destRing"
         }
-    }
+    } 
 }
 #------------------------------------------------------------------------------
 ##
@@ -415,6 +415,9 @@ proc EVBC::initialize args {
 #   - If the UI exists, then disable it completely.
 #
 proc EVBC::onBegin {} {
+    if {$EVBC::applicationOptions eq ""} {
+        error "OnStart has not initialized the event builder package."
+    }
     if {[$EVBC::applicationOptions cget -restart] && ($EVBC::pipefd ne "")} {
         EVBC::stop
         vwait EVBC::pipefd;      # Will become empty on exit.
@@ -520,8 +523,8 @@ proc EVBC::_PipeInputReady {} {
 proc EVBC::_HandleDataSourceInput {fd info id} {
     set text "$info ($id) "
     if {[eof $fd]} {
-        close $fd
-        append text "exited"
+        catch {close $fd} msg
+        append text "exited: $msg"
     } else {
         append text [gets $fd]
     }

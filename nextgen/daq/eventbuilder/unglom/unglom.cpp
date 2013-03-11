@@ -241,6 +241,11 @@ writePhysicsItem(CRingItem* pItem)
   uint32_t residualSize = pItem->getBodySize();
   uint8_t* pBody        = reinterpret_cast<uint8_t*>(pItem->getBodyPointer());
 
+  // Skip the leading event size glom filled in.
+
+  pBody                += sizeof(uint32_t);
+  residualSize         -= sizeof(uint32_t);
+
   while (residualSize) {
     EVB::pFlatFragment pFrag = reinterpret_cast<EVB::pFlatFragment>(pBody);
     EVB::Fragment      frag;

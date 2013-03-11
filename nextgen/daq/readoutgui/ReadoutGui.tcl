@@ -585,7 +585,7 @@ proc ReadoutGui::Begin {} {
     } msg]
     if {$failureCheck} {
 	tk_messageBox -icon error -title {Run start failed:} \
-	    -message $msg -type ok
+	    -message "$msg $::errorInfo" -type ok
 	ReadougGUIPanel::runIsHalted
     } else {
 	ReadougGUIPanel::runIsActive

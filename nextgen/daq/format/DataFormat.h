@@ -183,7 +183,7 @@ typedef struct _TextItem {
 
 typedef struct _PhysicsEventItem {
   RingItemHeader s_header;
-  uint16_t       s_body[1];
+  uint16_t       s_body[];
 } PhysicsEventItem, *pPhysicsEventItem;
 
 /*!

@@ -158,9 +158,11 @@ CRingItemFactory::createRingItem(const void* pItem)
 
   const RingItem* pRitem = reinterpret_cast<const RingItem*>(pItem);
   CRingItem baseItem(pRitem->s_header.s_type, pRitem->s_header.s_size);
+  uint32_t bodySize = pRitem->s_header.s_size - sizeof(RingItemHeader);
+
   uint8_t*  pBody  = reinterpret_cast<uint8_t*>(baseItem.getBodyCursor());
-  memcpy(pBody, &(pRitem->s_body), pRitem->s_header.s_size);
-  pBody += pRitem->s_header.s_size;
+  memcpy(pBody, &(pRitem->s_body), bodySize);
+  pBody +=bodySize;
   baseItem.setBodyCursor(pBody);
   baseItem.updateSize();
 
