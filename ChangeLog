@@ -449,5 +449,8 @@ Feb 1, 2012 - Feb 24, 2012
 	* Issue #1577 - Add body headers to most ring items so that timestamp,
         event source and barrier type information can be included with each ring
         item.
-        * Issue #1576 - Make sclclient and ScalerDisplay aware of non-incremental
+        * Issue #1590 - Make sclclient and ScalerDisplay aware of non-incremental
         scalers and fractional interval increments.
+        * Issue #435 - Make CC/VMusb capable of using port manager to advertise
+        their slow controls services.
+        

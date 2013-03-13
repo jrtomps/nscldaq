@@ -218,6 +218,17 @@ sclclient <optional>options</optional>
                     </para>
                 </listitem>
             </varlistentry>
+            <varlistentry>
+                <term>
+                    Incremental</term>
+                <listitem>
+                    <para>
+                        Boolean that indicates whether or not the specified
+                        scaler updates are the result of an incremental or
+                        non-incremental scaler ring item.
+                    </para>
+                </listitem>
+            </varlistentry>
         </variablelist>
   </refsect1>
   <refsect1>
@@ -279,6 +290,17 @@ sclclient <optional>options</optional>
                     <para>
                         Called when the first data to come in is not a begin run.   This
               indicates that sclclient started while a run is in progress.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>UpdateRunTime <replaceable>source time</replaceable></term>
+                <listitem>
+                    <para>
+                        Called to update the run time when the ring item being
+                        processed has a body header.  The source id is the first
+                        parameter and the floating point number of seconds into the
+                        run that source is reporting is the second parameter.
                     </para>
                 </listitem>
             </varlistentry>

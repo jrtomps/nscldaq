@@ -23,6 +23,7 @@ INCLUDES = -I@top_srcdir@/usb/ccusb/ccusb -I@top_srcdir@/usb/ccusb/devices \
 	-I@top_srcdir@/base/headers -I@top_srcdir@/base/tclplus \
 	-I@top_srcdir@/base/thread -I@top_srcdir@/base/exception \
 	-I@top_srcdir@/base/dataflow	                       \
+        -I@top_srcdir@/servers/portmanager \
 	$(TCL_FLAGS) @THREADCXX_FLAGS@
 
 
@@ -35,6 +36,7 @@ CCUSBReadout_LDADD	= cmdline.o @top_builddir@/usb/ccusb/devices/libCCUSBDevices.
 	@top_builddir@/usb/ccusb/threadcomm/libCCUSBThreadComm.la	\
 	@top_builddir@/usb/ccusb/ccusb/libCCUSB.la		\
 	@top_builddir@/usb/ccusb/tclserver/libCCUSBControlServer.la \
+        @top_builddir@/servers/portmanager/libPortManager.la \
 	@top_builddir@/base/dataflow/libDataFlow.la \
 	@top_builddir@/base/tclplus/libtclPlus.la		\
 	@top_builddir@/base/thread/libdaqthreads.la		\

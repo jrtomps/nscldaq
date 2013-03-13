@@ -42,6 +42,11 @@
         to rate calculations, update interval calculation and the display of the
         elapsed run time (to 0.01 seconds).
        </para>
+       <para>
+        Furthermore, displaying scalers that come from several event sources
+        is not supported.  See the reference documentation at
+        <xref linkend="manpage.scalerdisplay" endterm='manpage.scalerdisplay.title' />.
+       </para>
 </chapter>
 
 <!-- /chapter -->
@@ -51,7 +56,7 @@
      
 <refentry id="manpage.scalerdisplay">
   <refmeta>
-     <refentrytitle>ScalerDisplay</refentrytitle>
+     <refentrytitle id='manpage.scalerdisplay.title'>ScalerDisplay</refentrytitle>
      <manvolnum>1tcl</manvolnum>
   </refmeta>
   <refnamediv>
@@ -113,8 +118,14 @@ ScalerDisplay <replaceable>configfile</replaceable>
             <listitem>
                 <para>
               A channel is a scaler channel.  It has a name and an index.   The  name
-              is used to refer to and label the channel. The index is the offset into
-              the set of scalers (numbered from 0) that contains that channel.
+              is used to refer to and label the channel. The index can have one of
+              tow forms:  The first form is an integer.  In that case the channel
+              is matched to the index of a scaler in a ring item that has no
+              source information (no body header).  The second form is a floating
+              point number of the form index.source, in that case the scaler channel
+              is matched to the index of a scaler in a ring item from the specified source
+              (e.g. scaler 5.2 is scaler at index 5 from scaler ring items with
+              body headers that specify a source id of 2).
                 </para>
             </listitem>
         </varlistentry>
@@ -157,9 +168,21 @@ ScalerDisplay <replaceable>configfile</replaceable>
                 </para>
                 <programlisting>
                     <command>
-channel <optional>?options?</optional> <replaceable>name index</replaceable>
+channel <optional>?options?</optional> <replaceable>name index</replaceable><optional>?.sourceid?</optional>
                     </command>
                 </programlisting>
+                <para>
+                    The parameter following the name specifies which scaler in
+                    which ring items represents this channel.  Scalers form an
+                    array of 32 bit unsigned integers in a ring item.  Indices
+                    to this array begin at <literal>0</literal>.  If no
+                    source id is specified, The index represents the index into
+                    scalers in ring items that don't specify a data source
+                    (have no body header).  If a source Id is specified, the
+                    channel  index part is assumed to specify the index into the
+                    scaler array for scaler ring items that have a body header that
+                    specifies a matching source id.
+                </para>
                 <para>
                     Several options control how the channel is treated.
                 </para>
@@ -187,6 +210,10 @@ channel <optional>?options?</optional> <replaceable>name index</replaceable>
                     This is provided using the <option>-width</option> option.
                     The value of this option is the number of bits in the scaler.
                     Omitting this is like specifying <option>-width 32</option>.
+                </para>
+                <para>
+                    Specifying <option>-width</option> is only required for
+                    scalers with fewer than 32 bits (e.g. CAMAC 24 bit scalers).
                 </para>
                 <para>              
               Pages are defined via the page command.  The format of this command is:
@@ -570,6 +597,8 @@ checkbutton $scalerWin.silence -text {Silence Alarms} -command [silence]
   </refsect1>
   <refsect1>
     <title>EXAMPLE(S)</title>
+    <example>
+        <title>A full scaler display configuration file</title>
     <programlisting>
        #
        #   Define the scaler channels:
@@ -657,6 +686,26 @@ checkbutton $scalerWin.silence -text {Silence Alarms} -command [silence]
        stripparam master.gated
        stripratio clock.gated clock.free
 </programlisting>
+    </example>
+    <para>
+        The example above specified scalers that whose data sources were not
+        specified.  The example below is a fragment from a scaler configuration file
+        that specifies three scalers. <literal>no source</literal> is scaler number
+        5 from scaler ring items that don't specify an event source.
+        <literal>source 1</literal> is scaler number 2 from ring items that specify
+        an event source id of 1.  Similarly, <literal>source 2</literal> represents
+        scaler number 42 from event source 2:
+    </para>
+    <example>
+        <title>Specifying channels from event sources</title>
+        <programlisting>
+            
+channel "no source" 5
+channel "source 1"  2.1
+channel "source 2"  42.2
+
+        </programlisting>
+    </example>
     </refsect1>
     <refsect1>
         <title>BUGS AND RESTRICTIONS</title>

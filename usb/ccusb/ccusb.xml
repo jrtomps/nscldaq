@@ -1449,8 +1449,19 @@ Module config led -slot 3
                 <listitem>
                     <para>
                         Specifies the port on which the slow controls server
-                        listens for connections.  This default to
-                        <literal>27000</literal>.
+                        listens for connections.  This defaults to
+                        <literal>27000</literal>.  The value of thie parameter
+                        can be either an intger port number or the special
+                        string <literal>managed</literal>.
+                    </para>
+                    <para>
+                        If the value is <literal>managed</literal> CCUSBReadout
+                        will work with the NSCL port manager to allocate and
+                        advertise itself on a managed port.  The port will
+                        be advertised as <literal>CCUSBReadout:</literal><replaceable>controller</replaceable>
+                        Where <replaceable>controller</replaceable> is the serial
+                        number of the controller or <literal>FirstController</literal>
+                        if no specific serial number was requested.
                     </para>
                 </listitem>
             </varlistentry>

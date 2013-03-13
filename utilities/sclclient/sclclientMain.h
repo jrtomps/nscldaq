@@ -30,6 +30,20 @@
 #endif
 #endif
 
+#ifndef __STL_MAP
+#include <map>
+#ifndef __STL_MAP
+#define __STL_MAP
+#endif
+#endif
+
+#ifndef __CRT_STDINT_H
+#include <stdint.h>
+#ifndef __CRT_STDINT_H
+#define __CRT_STDINT_H
+#endif
+#endif
+
 // forward class definitions:
 
 class CDataSource;
@@ -51,6 +65,7 @@ private:
   int                  m_Port;
   TclServerConnection* m_pServer;
   std::vector<double>  m_Totals;
+  std::map<uint32_t, std::vector<double> > m_sourcedTotals;
 
   // Constructors and canonicals.
 public:
@@ -73,6 +88,8 @@ private:
   int  getDisplayPort(std::string portArg);
   void processItems();
   void processScalers(const CRingScalerItem& item);
+  void processScalers(uint32_t sourceId, float start, float end,
+                      std::vector<uint32_t> values, bool incremental);
   void processStateChange(const CRingStateChangeItem& item);
   void initializeStateChange();
   void connectTclServer();

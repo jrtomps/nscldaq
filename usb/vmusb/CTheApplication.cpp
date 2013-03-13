@@ -35,6 +35,8 @@ static const char* versionString = "V5.0";
 #include <DataBuffer.h>
 #include <CRingBuffer.h>
 
+#include <CPortManager.h>
+
 #include <vector>
 
 #include <usb.h>
@@ -171,7 +173,29 @@ int CTheApplication::operator()(int argc, char** argv)
     // Replace the default server port if the user supplied one and start the Tcl server.
 
     if (parsedArgs.port_given) {
-      tclServerPort = parsedArgs.port_arg;
+      std::string portString = parsedArgs.port_arg;
+      if (portString == "managed") {      // Use port manager.
+         // We'll use VMUSBReadout:connectionstring as our app.
+         
+         std::string appName="VMUSBReadout:";
+         if (connectionString) {
+            appName += connectionString;
+         } else {
+            appName += "FirstController";
+         }
+         CPortManager* pManager = new  CPortManager();      // Hold connection for app lifetime.
+         tclServerPort = pManager->allocatePort(appName);
+      } else {
+        char* end;
+        long port = strtol(portString.c_str(), &end, 0);
+        if(end == portString.c_str()) {       // failed.
+            std::cerr << "--port string must be either a number or 'managed'\n";
+            cmdline_parser_print_help();
+            exit(EXIT_FAILURE);
+        } else {
+            tclServerPort = port;
+        }
+      }
     }
 
     startTclServer();

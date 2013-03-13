@@ -278,44 +278,127 @@ SclClientMain::processScalers(const CRingScalerItem& item)
   float startTime           = item.computeStartTime();
   float endTime             = item.computeEndTime();
   vector<uint32_t> increments  = item.getScalers();
-
-  // If the totals don't exist, zero them:
-
-  if (m_Totals.size() == 0) {
-    for (int i=0; i < increments.size(); i++) {
-      m_Totals.push_back(0.0);
-    }
-  }
   
-  // Update the totals from the increments:
-
-  for (int i=0; i < increments.size(); i++) {
-    if (item.isIncremental()) {
-        m_Totals[i] += static_cast<double>(increments[i]);
-    } else {
-        m_Totals[i] = static_cast<double>(increments[i]);
-    }
+  // What we do next depends on whether or not there's a body header:
+  
+  if (item.hasBodyHeader()) {
+        uint32_t source = item.getSourceId();
+        processScalers(
+            source, startTime, endTime, increments, item.isIncremental()
+        );
+    
+  } else {
+    
+      // If the totals don't exist, zero them:
+    
+      if (m_Totals.size() == 0) {
+        for (int i=0; i < increments.size(); i++) {
+          m_Totals.push_back(0.0);
+        }
+      }
+      
+      // Update the totals from the increments:
+    
+      for (int i=0; i < increments.size(); i++) {
+        if (item.isIncremental()) {
+            m_Totals[i] += static_cast<double>(increments[i]);
+        } else {
+            m_Totals[i] = static_cast<double>(increments[i]);
+        }
+      }
+    
+      // Compute the elapsed and delta times:
+    
+      float deltaTime   = endTime - startTime;
+      float elapsedTime = endTime;
+    
+      // Interact with the server:
+    
+      setDouble("ScalerDeltaTime", deltaTime);
+      setDouble("ElapsedRunTime",  elapsedTime);
+      setInteger("Incremental", item.isIncremental() ? 1 : 0);
+      for (int i = 0; i < increments.size(); i++) {
+        setInteger("Scaler_Increments", increments[i], i);
+        setDouble("Scaler_Totals",  m_Totals[i], i);
+      }
   }
-
-  // Compute the elapsed and delta times:
-
-  float deltaTime   = endTime - startTime;
-  float elapsedTime = endTime;
-
-  // Interact with the server:
-
-  setDouble("ScalerDeltaTime", deltaTime);
-  setDouble("ElapsedRunTime",  elapsedTime);
-  setInteger("Incremental", item.isIncremental() ? 1 : 0);
-  for (int i = 0; i < increments.size(); i++) {
-    setInteger("Scaler_Increments", increments[i], i);
-    setDouble("Scaler_Totals",  m_Totals[i], i);
-  }
-
   m_pServer->SendCommand("Update");
 
 
 
+}
+/**
+ * processScalers
+ *
+ * This overload of processScalers processes scalers when they have a defined
+ * data source associated with them.
+ *
+ * @param id            - Source id.
+ * @param startOffset   - Time offset (floating pt. seconds).
+ * @param endOffset     - Time offfset (floating pt. seconds).
+ * @param scalers       - Vector of scaler data fromt the ring item.
+ * @param incremental   - True if scalers are increental.
+ */
+void
+SclClientMain::processScalers(
+    uint32_t id, float startOffset, float endOffset, std::vector<uint32_t> scalers,
+    bool incremental
+)
+{
+    float deltaTime = endOffset - startOffset;
+    float elapsedTime = endOffset;
+    
+    // Figure out the totals.. if necessary creating them.
+    
+    if (m_sourcedTotals.find(id) == m_sourcedTotals.end()) {
+        std::vector<double> initialValues;
+        for (int i = 0; i < scalers.size(); i++) {
+            initialValues.push_back(0.0);
+        }
+        m_sourcedTotals[id] = initialValues;
+    }
+    // update the totals in a way that depends on whether or not we are
+    // incremental or not:
+    
+    std::vector<double> totals = m_sourcedTotals[id];
+    for (int i =0; i < scalers.size(); i++) {
+        if (incremental) {
+            totals[i] += scalers[i];
+        } else {
+            totals[i] = scalers[i];
+        }
+    }
+    m_sourcedTotals[id] = totals;
+    
+    /*
+      Now we're ready to interact with the server.  The main point is that
+      indices are of the form index.id.
+    */
+    setDouble("ScalerDeltaTime", deltaTime);
+
+    /* Elapsed run time needs to be done via the proc
+      SourceElapsedTime
+      Since the actual time should be the max time seen.
+    */
+    char updateRunTime[100];
+    sprintf(updateRunTime, "SourceElapsedTime %f", elapsedTime);
+    m_pServer->SendCommand(updateRunTime);
+    setInteger("Incremental", incremental ? 1 : 0);
+    setInteger("LastDataSource", id);
+    
+    for (int i = 0; i < scalers.size(); i++) {
+        
+        // Figure out the index string:
+        
+      char incrementString[100];
+      sprintf(incrementString, "Scaler_Increments(%d.%d)", i, id);
+      
+      char totalsString[100];
+      sprintf(totalsString, "Scaler_Totals(%d.%d)", i, id);
+        
+      setInteger(incrementString, scalers[i]);
+      setDouble(totalsString,  totals[i]);
+    }
 }
 /*
 ** Process state change items.
@@ -502,6 +585,7 @@ SclClientMain::clearTotals()
     setDouble("Scaler_Totals", 0.0, i);
     setInteger("Scaler_Increments", 0, i);
   }
+  m_sourcedTotals.clear();
   //
   // At the very beginning of the first run,
   // the scaler display program won't have any scaler array elements.

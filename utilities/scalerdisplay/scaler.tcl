@@ -197,6 +197,20 @@ set IntervalCount 0
 package require Tablelist
 
 ##
+# SourceElapsedTime
+#
+#  Takes a source's idea of the elapsed run time and uses it to decide
+#  if the ElapsedRunTime global should be modified.
+#
+# @param t - Elapsed run time from the source.
+#
+proc SourceElapsedTime t {
+    if {$t > $::ElapsedRunTime} {
+        set ::ElapsedRunTime $t
+    }
+}
+
+##
 #  Process a scaler increment.  If the increment is for a non-incremental
 #  scaler the actual increment must be calculated from the 
 #  current and prior values (and possibly the bit width of the scaler).
@@ -223,6 +237,9 @@ proc processIncrement {array index op} {
 	# Update the nonIncrementalTotal as well.
 
 	set ::Scaler_Increments($index) [expr {$nextTotal - $::priorIncrement($index)}]
+        if {[array names ::bitsWide $index] eq ""} {
+            set ::bitsWide($index) 32
+        }
 	if {$::Scaler_Increments($index) < 0} {
 	    set ::Scaler_Increments($index) [expr {$::Scaler_Increments($index) + (1 << $::bitsWide($index))}]
 	}
@@ -724,6 +741,19 @@ proc BeginRun {} {
     set ::fakeElapsedTime 0
     set ElapsedRunTime 0
 
+    foreach name [array names ::nonIncrementalTotal] {
+        set ::nonIncrementalTotal($name) 0
+    }
+    foreach name [array names ::priorIncrement] {
+        set ::priorIncrement($name) 0
+    }
+
+    foreach name [array names ::Scaler_Increments] {
+        set ::Scaler_Increments($name) 0
+    }
+    foreach name [array names ::Scaler_Totals] {
+        set ::Scaler_Totals($name) 0.0
+    }
 
     set InitialRunNumber $RunNumber
     set StartTime [clock format [clock seconds]]
@@ -735,6 +765,7 @@ proc BeginRun {} {
     if {[info proc UserBeginRun] != "" } {
 	UserBeginRun
     }
+
 }
 #
 #  Called when the run ends.
@@ -975,11 +1006,14 @@ proc UpdateSingle {widget line name page {average 0}} {
     global pageAlarmState
     global alarmsEnabled
 
-    if {[catch "set i $ScalerMap($name)"] == 0} {
-	if {[catch "set totals $Scaler_Totals($i)"] == 0} {
+
+    if {[array names ::ScalerMap $name] != ""} {
+        set i $::ScalerMap($name)
+	if {([array names ::Scaler_Totals $i] ne "") && ([array names ::Scaler_Increments $i] ne "")} {
 	    set totals $Scaler_Totals($i)
 	    set incr   $Scaler_Increments($i)
             set delta  $ScalerDeltaTime
+            
             if {$average} {
                 set incr $Scaler_Totals($i)
                 set delta $ElapsedRunTime
@@ -1031,60 +1065,65 @@ proc UpdateRatio {widget line numerator denominator page {average 0}} {
 
     if {[catch "set n $ScalerMap($numerator)"] == 0} {
 	if {[catch "set d $ScalerMap($denominator)"] == 0} {
-	    set tn $Scaler_Totals($n)
-	    set td $Scaler_Totals($d)
-
-	    set in $Scaler_Increments($n)
-	    set id $Scaler_Increments($d)
-            set delta $ScalerDeltaTime
-            if {$average} {
-                set in $Scaler_Totals($n)
-                set id $Scaler_Totals($d)
-                set delta $ElapsedRunTime
+            if {([array names ::Scaler_Totals $n] ne "")    && \
+                ([array names ::Scaler_Totals $d] ne "")    && \
+                ([array names ::Scaler_Increments $n] ne "") && \
+                ([array names ::Scaler_Increments $d] ne "")} {
+                set tn $Scaler_Totals($n)
+                set td $Scaler_Totals($d)
+    
+                set in $Scaler_Increments($n)
+                set id $Scaler_Increments($d)
+                set delta $ScalerDeltaTime
+                if {$average} {
+                    set in $Scaler_Totals($n)
+                    set id $Scaler_Totals($d)
+                    set delta $ElapsedRunTime
+                }
+    
+                if {$delta != 0} {
+                    set rn [expr 1.0*[format %u $in]/$delta]
+                    set rd [expr 1.0*[format %u $id]/$delta]
+                } else {
+                    set rn "0"
+                    set rd "0"
+                }
+                if {$td != 0} {
+                    set qt [expr ($tn*1.0)/$td]
+                } else {
+                    set qt "0"
+                }
+                if {($id != 0) && ($delta != 0)} {
+                    set qr [expr $rn*1.0/$rd]
+                } else {
+                    set qr "0"
+                }
+                $widget cellconfigure $line,2 -text  "$rn $rd"
+                $widget cellconfigure $line,3 -text  "$tn $td"
+                $widget cellconfigure $line,4 -text [list $qr $qt]
+    
+                # Check the alarms:
+    
+                if {$alarmsEnabled} {
+                    
+                    set alarm1 [checkAlarms $numerator $rn]
+                    set alarm2 [checkAlarms $denominator $rd]
+                    set alarms [expr $alarm1 | $alarm2]
+                    
+                    set pageAlarmState($page) [expr $pageAlarmState($page) | $alarms]
+                    $widget cellconfigure $line,2 -background \
+                        [alarmColor $alarms]
+                    $widget cellconfigure $line,0 -background [alarmColor $alarm1]
+                    $widget cellconfigure $line,1 -background [alarmColor $alarm2]
+                    
+                } else {
+                    $widget cellconfigure $line,2 -background \
+                        [alarmColor 0]
+                    $widget cellconfigure $line,0 -background [alarmColor 0]
+                    $widget cellconfigure $line,1 -background [alarmColor 0]
+    
+                }
             }
-
-	    if {$delta != 0} {
-		set rn [expr 1.0*[format %u $in]/$delta]
-		set rd [expr 1.0*[format %u $id]/$delta]
-	    } else {
-		set rn "0"
-		set rd "0"
-	    }
-	    if {$td != 0} {
-		set qt [expr ($tn*1.0)/$td]
-	    } else {
-		set qt "0"
-	    }
-	    if {($id != 0) && ($delta != 0)} {
-		set qr [expr $rn*1.0/$rd]
-	    } else {
-		set qr "0"
-	    }
-	    $widget cellconfigure $line,2 -text  "$rn $rd"
-	    $widget cellconfigure $line,3 -text  "$tn $td"
-	    $widget cellconfigure $line,4 -text [list $qr $qt]
-
-            # Check the alarms:
-
-	    if {$alarmsEnabled} {
-		
-		set alarm1 [checkAlarms $numerator $rn]
-		set alarm2 [checkAlarms $denominator $rd]
-		set alarms [expr $alarm1 | $alarm2]
-		
-		set pageAlarmState($page) [expr $pageAlarmState($page) | $alarms]
-		$widget cellconfigure $line,2 -background \
-                    [alarmColor $alarms]
-		$widget cellconfigure $line,0 -background [alarmColor $alarm1]
-		$widget cellconfigure $line,1 -background [alarmColor $alarm2]
-		
-	    } else {
-		$widget cellconfigure $line,2 -background \
-                    [alarmColor 0]
-		$widget cellconfigure $line,0 -background [alarmColor 0]
-		$widget cellconfigure $line,1 -background [alarmColor 0]
-
-	    }
 	}
     }
 }
@@ -1169,6 +1208,9 @@ proc SetupGui {top} {
 
     label $interval.dtl  -text "Scaler interval: "
     label $interval.dt   -textvariable ScalerDeltaTime
+    
+    label $interval.lastidl -text "Last Update from source: "
+    label $interval.lastid  -textvariable LastDataSource
 
 	# Set up the geometry of the top part of the display
  	#
@@ -1178,7 +1220,10 @@ proc SetupGui {top} {
  	pack $runnum.rl    $runnum.run     -side left -anchor w
  	pack $state.sl     $state.state    -side left -anchor w
  	pack $duration.atl $duration.atime -side left -anchor w
- 	pack $interval.dtl $interval.dt    -side left -anchor w
+        
+        grid $interval.dtl $interval.dt
+        grid $interval.lastidl $interval.lastid
+        
 
  	# Pack the subframes of the left frame:
 
@@ -1361,7 +1406,16 @@ proc processChannelSwitch {name option value}  {
 #            -width    value   - Integer number of bits the scaler is wide.
 #
 #            name              - Is the name to be assigned to the scaler channel.
-#            number            - Is the scaler index.  Scaler indices number from 0.
+#            number            - Is the scaler index.  The scaler index is
+#                                of the form channel?.source?  where
+#                                the lack of a source implies the channel comes
+#                                from ring items that don't have body headers.
+#                                the existence of a source implies there are
+#                                body headers and the src Id is used to
+#                                qualify the index.  Note that leading zeroes etc.
+#                                in the source id are not allowed e.g.:
+#                                channel abcd 5.6;   # OK
+#                                channel abcd 5.06;  # will never get data.
 #  Parameters:
 #     args       - The command line arguments.
 #
@@ -1383,6 +1437,7 @@ proc channel {args} {
     
     set id      [lindex $args end]
     set name    [lindex $args end-1]
+
     
     # short stop any attempts to make a duplicate name:
     
@@ -1404,6 +1459,9 @@ proc channel {args} {
     set ::bitsWide($id)    32;  #  By default all non-incremental scalers are 32 bits wide.
     set ::priorIncrement($id)  0;	#  prior scaler value.
     set ::nonIncrementalTotal($id) 0;	#  Total if not incremental.
+    
+    set ::Scaler_Totals($id) 0
+    set ::Scaler_Increments($id) 0
 
     foreach {option value} $switches {
 	if {[catch {processChannelSwitch $name $option $value} msg]} {
@@ -1643,4 +1701,4 @@ set Notebook [SetupGui $scalerWin]
 #  width of the scaler..furthermore, the totals will be summed into
 #  nonIncrementalTotal and on update pulled into Scaler_Totals.
 #
-trace add variable Scaler_Increments write processIncrement; 
+trace add variable Scaler_Increments write processIncrement;

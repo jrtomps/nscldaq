@@ -29,6 +29,7 @@ INCLUDES = -I$(top_srcdir)/usb/vmusb/vmusb -I$(top_srcdir)/usb/vmusb/devices -I$
 	-I$(top_srcdir)/base/thread	\
 	-I$(top_srcdir)/base/headers	\
 	-I$(top_srcdir)/base/dataflow   \
+        -I@top_srcdir@/servers/portmanager \
 	$(TCL_FLAGS) $(USBSWITCHES)
 
 VMUSBReadout_LDADD	= cmdline.o $(top_builddir)/usb/vmusb/devices/libVMUSBDevices.la	\
@@ -38,6 +39,7 @@ VMUSBReadout_LDADD	= cmdline.o $(top_builddir)/usb/vmusb/devices/libVMUSBDevices
 		$(top_builddir)/usb/vmusb/tclserver/libVMUSBControlServer.la	\
 		$(top_builddir)/usb/vmusb/daqconfig/libVMUSBConfig.la	\
 		$(top_builddir)/usb/vmusb/commands/libVMUSBCommands.la	\
+                @top_builddir@/servers/portmanager/libPortManager.la \
 		$(top_builddir)/base/dataflow/libDataFlow.la \
 		@top_builddir@/usb/vmusb/vmusb/libVMUSB.la	\
 		$(top_builddir)/base/tclplus/libtclPlus.la \

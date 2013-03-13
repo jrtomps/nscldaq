@@ -35,6 +35,8 @@ static const char* versionString = "V2.0";
 #include <TclServer.h>
 #include <CRingBuffer.h>
 
+#include <CPortManager.h>
+
 #include <vector>
 
 #include <usb.h>
@@ -56,7 +58,7 @@ using namespace std;
 
 //   Configuration constants:
 
-static const int    tclServerPort(27000); // Default Tcl server port.
+static int    tclServerPort(27000); // Default Tcl server port.
 static  string daqConfigBasename("daqconfig.tcl");
 static  string ctlConfigBasename("controlconfig.tcl");
 static const uint32_t bufferCount(32); // Number of buffers that can be inflight.
@@ -131,8 +133,38 @@ int CTheApplication::operator()(int argc, char** argv)
     setConfigFiles(arg_struct.daqconfig_given ? arg_struct.daqconfig_arg : NULL,
     		   arg_struct.ctlconfig_given ? arg_struct.ctlconfig_arg : NULL);
     initializeBufferPool();
-    startOutputThread(destinationRing(arg_struct.ring_given ? arg_struct.ring_arg : NULL)); 
-    startTclServer(arg_struct.port_given ? arg_struct.port_arg : tclServerPort);
+    startOutputThread(destinationRing(arg_struct.ring_given ? arg_struct.ring_arg : NULL));
+    
+    // Figure out which port to ask the tcl server to start on (see Issue #435).
+    
+    if (arg_struct.port_given) {
+      std::string portString = arg_struct.port_arg;
+      if (portString == "managed") {      // Use port manager.
+         // We'll use CCUSBReadout:connectionstring as our app.
+         
+         std::string appName="CCUSBReadout:";
+         if (arg_struct.serialno_given) {
+            appName += arg_struct.serialno_arg;
+         } else {
+            appName += "FirstController";
+         }
+         CPortManager* pManager = new  CPortManager();      // Hold connection for app lifetime.
+         tclServerPort = pManager->allocatePort(appName);
+      } else {
+        char* end;
+        long port = strtol(portString.c_str(), &end, 0);
+        if(end == portString.c_str()) {       // failed.
+            std::cerr << "--port string must be either a number or 'managed'\n";
+            cmdline_parser_print_help();
+            exit(EXIT_FAILURE);
+        } else {
+            tclServerPort = port;
+        }
+      }
+    }
+    // Start the tcl server.
+    
+    startTclServer( tclServerPort);
 
     startInterpreter();
   }

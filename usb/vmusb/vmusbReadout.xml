@@ -1536,8 +1536,25 @@ watch monitored                   <co id='watchexample-monitorscalar' />
                 <listitem>
                     <para>
                         Specifies the port on which the slow controls server
-                        listens for connections.  This default to
+                        listens for connections.  This defaults to
                         <literal>27000</literal>.
+                    </para>
+                    <para>
+                        The value of the <option>--port</option> options
+                        must either be an integer port number or the
+                        special string <literal>managed</literal>.
+                        If <literal>managed</literal> is used, the
+                        program interacts with the NSCL port manager server
+                        to allocate and advertise a port.  The port is advertised
+                        under the name <literal>VMUSBReadout:</literal><replaceable>connection</replaceable>.
+                        <replaceable>connection</replaceable> specifies the connection
+                        to the VM-USB.  If the VM-USB is attached directly either
+                        the Serial number string is used or, if the VM-USB serial number
+                        was not selected at program startup, the string
+                        <literal>FirstController</literal> is used.
+                        For remote (network served) VM-USBs the
+                        <replaceable>connection</replaceable> is value of the
+                        <option>--host</option> switch.
                     </para>
                 </listitem>
             </varlistentry>

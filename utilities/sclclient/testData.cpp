@@ -55,6 +55,7 @@ static int  runNumber(5);
 static const char* title = "Test scaler data";
 
 static int runOffset(0);
+static int scalerItems(0);
 
 #define SCALERCOUNT 16
 static uint32_t scalers[SCALERCOUNT] = {
@@ -88,7 +89,7 @@ static void
 emitStateChange(int type, CRingBuffer* pR)
 {
     time_t stamp = time(NULL);
-    CRingStateChangeItem item(0, 0, 0, type, runNumber, runOffset, stamp, title,
+    CRingStateChangeItem item(0, 2, 0, type, runNumber, runOffset, stamp, title,
                               divisor);
     item.commitToRing(*pR);
 }
@@ -102,6 +103,7 @@ emitStateChange(int type, CRingBuffer* pR)
 static void
 emitScaler(CRingBuffer* p)
 {
+    scalerItems++;
     time_t stamp = time(NULL);
     // Figure out new values for the scalers and end time
     
@@ -117,7 +119,7 @@ emitScaler(CRingBuffer* p)
     }
     // Create the ring item and submit it.
     
-    CRingScalerItem item(0, 0, 0, runOffset, endTime, stamp, s, divisor, incremental);
+    CRingScalerItem item(0, scalerItems % 2 + 1, 0, runOffset, endTime, stamp, s, divisor, incremental);
     item.commitToRing(*p);
     
     // Update the run offset:
