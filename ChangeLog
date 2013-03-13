@@ -453,4 +453,4 @@ Feb 1, 2012 - Feb 24, 2012
         scalers and fractional interval increments.
         * Issue #435 - Make CC/VMusb capable of using port manager to advertise
         their slow controls services.
-        
+        * Issue #458,424- Redo VM/CC-usb event counts so they work without scaler reads

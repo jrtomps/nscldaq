@@ -50,6 +50,9 @@ static const unsigned ScalerStack(1);
 
 static uint64_t bufferNumber(0);
 
+
+static unsigned BUFFERS_BETWEEN_STATS(64);
+
 ///////////////////////////////////////////////////////////////////////
 ///////////////////// Local data types ////////////////////////////////
 //////////////////////////////////////////////////////////////////////
@@ -249,6 +252,18 @@ COutputThread::formatBuffer(DataBuffer& buffer)
   }
   else {			// In this version any stack is fair game.
     events(buffer);
+    m_nBuffersBeforeCount--;
+    if(m_nBuffersBeforeCount == 0) {
+        // Figure out how far into the run we are in seconds using
+        // The difference between now and the start of the run.
+        // forget the fractional seconds now.
+        //
+        timespec now;
+        clock_gettime(CLOCK_REALTIME, &now);
+       
+        outputTriggerCount(now.tv_sec - m_startTimestamp.tv_sec);
+        m_nBuffersBeforeCount = BUFFERS_BETWEEN_STATS;
+    }
   } 
 }
 
@@ -301,6 +316,8 @@ COutputThread::startRun(DataBuffer& buffer)
 			     m_title);
 
   begin.commitToRing(*m_pRing);
+  
+  m_nBuffersBeforeCount = BUFFERS_BETWEEN_STATS;
 
 }
 /*
@@ -396,6 +413,7 @@ COutputThread::scaler(void* pData)
   // Output a ring count item using this time:
 
   outputTriggerCount(endTime);
+  m_nBuffersBeforeCount = BUFFERS_BETWEEN_STATS;
 
   // Create the final scaler item and submit it to the ring.
 

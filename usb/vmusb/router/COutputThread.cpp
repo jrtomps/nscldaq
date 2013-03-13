@@ -52,6 +52,8 @@ static const unsigned ReadoutStack(0);
 static const unsigned ScalerStack(1);
 static const unsigned MonitorStack(7);
 
+static const unsigned BUFFERS_BETWEEN_EVENTCOUNTS(64);  // max buffers before an event count item.
+
 
 ///////////////////////////////////////////////////////////////////////
 ///////////////////// Local data types ////////////////////////////////
@@ -302,6 +304,10 @@ COutputThread::startRun(DataBuffer& buffer)
 			     m_title);
 
   begin.commitToRing(*m_pRing);
+  
+  // Reset the number of buffers of events between event count items:
+  
+  m_nBuffersBeforeEventCount = BUFFERS_BETWEEN_EVENTCOUNTS;
 
 
 }
@@ -424,6 +430,18 @@ COutputThread::processEvents(DataBuffer& inBuffer)
   if (nWords < 0) {
     cerr << "Warning used up more than the buffer  by " << (-nWords) << endl;
   }
+  m_nBuffersBeforeEventCount--;
+  if (m_nBuffersBeforeEventCount == 0) {
+    
+    // No scaler buffers maybe so figure out the time in seconds we are
+    // into the run from the realtime clock...forget fractions.
+    
+    timespec now;
+    clock_gettime(CLOCK_REALTIME, &now);
+    
+    outputTriggerCount(now.tv_sec - m_startTimestamp.tv_sec);   // Figure out run offset.
+    m_nBuffersBeforeEventCount = BUFFERS_BETWEEN_EVENTCOUNTS;
+  }
 }
 /**
  * stringBuffer:
@@ -533,6 +551,7 @@ COutputThread::scaler(void* pData)
   // Output a ring count item using this time:
 
   outputTriggerCount(endTime);
+  m_nBuffersBeforeEventCount = BUFFERS_BETWEEN_EVENTCOUNTS;
 
   // Create the final scaler item and submit it to the ring.
 

@@ -120,6 +120,7 @@ private:
   std::string m_ringName;           //!< Name of destination ringbuffer.
   CRingBuffer* m_pRing;		    //!< The actual ring in which we put data.
   uint64_t    m_nEventsSeen;        //!< Events processed so far for the physics trigger item.
+  unsigned    m_nBuffersBeforeEventCount; //!< Buffers to go before an event count item.
 
 
   // Constuctors and other canonicals.

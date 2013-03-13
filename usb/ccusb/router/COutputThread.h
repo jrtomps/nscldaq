@@ -107,6 +107,7 @@ private:
   std::string m_ringName;
   CRingBuffer* m_pRing;
   uint64_t    m_nEventsSeen;
+  unsigned    m_nBuffersBeforeCount;
   
   // Event assembly buffer:
 
