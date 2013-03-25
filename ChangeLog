@@ -454,3 +454,5 @@ Feb 1, 2012 - Feb 24, 2012
         * Issue #435 - Make CC/VMusb capable of using port manager to advertise
         their slow controls services.
         * Issue #458,424- Redo VM/CC-usb event counts so they work without scaler reads
+        * Issue #571 Add VM-USB control panels to the distribution.
+        * Issue #702 Add variable injection/montioring to CCUSBReadout

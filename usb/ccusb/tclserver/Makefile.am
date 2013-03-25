@@ -10,7 +10,8 @@ libCCUSBControlServer_la_SOURCES	= 	CControlHardware.cpp	\
 					DriverTemplate.cpp	\
 					Server.cpp		\
 					C894.cpp		\
-					CPH7106.cpp
+					CPH7106.cpp		\
+					CWatchCommand.cpp
 
 noinst_HEADERS			=	CSetCommand.h		\
 					server.h		\
@@ -23,9 +24,12 @@ noinst_HEADERS			=	CSetCommand.h		\
 					DriverTemplate.h	\
 					TclServer.h		\
 					C894.h			\
-					CPH7106.h
+					CPH7106.h		\
+					CWatchCommand.h
 
-INCLUDES			= 	-I@top_srcdir@/usb/ccusb/ccusb		\
+INCLUDES			= 	-I@top_srcdir@/usb/ccusb		\
+					-I@top_srcdir@/daq/format		\
+					-I@top_srcdir@/usb/ccusb/ccusb		\
 					-I@top_srcdir@/usb/ccusb/devices	\
 					-I@top_srcdir@/usb/ccusb/threadcomm	\
 					-I@top_srcdir@/usb/ccusb/rdothread	\

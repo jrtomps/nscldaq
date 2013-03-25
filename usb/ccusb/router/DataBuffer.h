@@ -47,6 +47,18 @@
         gFreeBuffers is a queue of empty buffers available for
 	use by the readout thread.
 */
+
+/**
+ *  This is the structure of a string buffer's rawData storage:
+ */
+typedef struct _StringsBuffer {
+  uint32_t s_stringCount;      	// Number of strings in the buffer.
+  uint32_t s_ringType;		// Type of text item.
+  char     s_strings[];		// The strings themselves, null terminated.
+} StringsBuffer, *pStringsBuffer;
+
+// Structure of a buffer queue element.
+
 struct DataBuffer {
   uint32_t   s_bufferSize;	//!< Bytes used in the buffer.
   uint32_t   s_storageSize;     //!< bytes in s_rawData[].
@@ -83,3 +95,4 @@ static const int CCUSBStackIdShift(13);
 static const int TYPE_START(1);
 static const int TYPE_STOP(2);
 static const int TYPE_EVENTS(3);
+static const int TYPE_STRINGS(4);

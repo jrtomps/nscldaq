@@ -21,6 +21,7 @@
 #include "CRunState.h"
 #include "DataBuffer.h"
 #include <string>
+#include <vector>
 #include <Exception.h>
 #include <ErrnoException.h>
 #include <CRingBuffer.h>
@@ -38,6 +39,7 @@
 #include <CRingPhysicsEventCountItem.h>
 #include <CRingScalerItem.h>
 #include <CDataFormatItem.h>
+#include <CRingTextItem.h>
 
 #include <sys/time.h>
 
@@ -227,13 +229,17 @@ COutputThread::freeBuffer(DataBuffer& buffer)
 void
 COutputThread::processBuffer(DataBuffer& buffer)
 {
-  if (buffer.s_bufferType == 1) {
+  if (buffer.s_bufferType == TYPE_START) {
     startRun(buffer);
   }
-  else if (buffer.s_bufferType == 2) {
+  else if (buffer.s_bufferType == TYPE_STOP) {
     endRun(buffer);
   }
-  else {
+  else if (buffer.s_bufferType == TYPE_STRINGS) {
+        pStringsBuffer pBody = reinterpret_cast<pStringsBuffer>(buffer.s_rawData);
+        processStrings(buffer, *pBody);
+    
+  } else {
     formatBuffer(buffer);
   }
 }
@@ -615,3 +621,39 @@ COutputThread::outputTriggerCount(uint32_t runOffset)
   CRingPhysicsEventCountItem item(m_nEventsSeen, runOffset);
   item.commitToRing(*m_pRing);
 }
+/**
+ * stringBuffer:
+ *    Process a strings buffer.  Strings buffers contain a set of null terminated
+ *    strings.  They are used to carry e.g. Control data buffers.
+ *
+ * @param buffer - Reference to the full data buffer.
+ * @param strings The body of the data buffer already cst to a reference 
+ *                to a StringsBuffer.
+ */
+void
+COutputThread::processStrings(DataBuffer& buffer, StringsBuffer& strings)
+{
+
+  // Marshall the strings into a vector as expected by the CRingTextItem c-tor.
+
+  std::vector<std::string> stringVector; 
+  const char* pSrc = strings.s_strings;
+  
+  for (int i=0; i < strings.s_stringCount; i++) {
+    stringVector.push_back(pSrc);
+    pSrc += strlen(pSrc) + 1;	// +1 for the null terminator.
+  }
+  // Once we have a timestamp we're ready to go.
+
+  time_t now = time(NULL);
+
+  // Create and commit the item to the ring.
+
+  CRingTextItem texts(strings.s_ringType,
+		      stringVector,
+		      m_elapsedSeconds, // best we can do for now.
+		      now);
+  texts.commitToRing(*m_pRing);
+
+}
+

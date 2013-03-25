@@ -69,6 +69,7 @@ private:
   CCCUSB*                      m_pVme;		// VME controller.
   std::vector<CControlModule*> m_Modules;       // Hardware we can access.
   CTCLInterpreter*             m_pInterpreter;
+  bool                         m_dumpAllVariables;
 
 
 public:
@@ -97,7 +98,8 @@ private:
   void initModules();
   void startTcpServer();
   void EventLoop();
-
+  static void updateVariables(void* pThis);
+  void sendWatchedVariables();
 };
  
 

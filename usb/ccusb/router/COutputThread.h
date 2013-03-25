@@ -38,6 +38,7 @@ using namespace std;
 // Forward definitions:
 
 struct DataBuffer;
+typedef struct _StringsBuffer StringsBuffer;
 class CRingBuffer;
 
 /*!
@@ -148,6 +149,9 @@ private:
   void endRun(DataBuffer&   buffer);
   void scaler(void* pData);
   void events(DataBuffer&   buffer);
+  void processStrings(DataBuffer& buffer, StringsBuffer& strings);
+
+ 
   void event(void* pData);
 
   void attachRing();
