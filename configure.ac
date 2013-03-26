@@ -601,6 +601,7 @@ AC_CONFIG_FILES([Makefile
 		 usb/ccusb/driverkit/Makefile
 		 usb/ccusb/driverkit/Makefile-template
 		 usb/ccusb/driverkit/CCUSBDriverIncludes
+                 usb/ccusb/controlpanels/Makefile
 		 docbuild/Makefile
 		 docconfig/Makefile])
 

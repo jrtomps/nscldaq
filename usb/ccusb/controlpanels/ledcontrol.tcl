@@ -119,6 +119,10 @@ snit::widget ph7106Widget {
 	variable threshold
 	set result [$self transaction "Set [$self cget -name] threshold $threshold"]
     }
+    method setMaskValue mask {
+        set enables $mask
+        $self setMask
+    }
     method setMask {} {
 	variable enables
 
