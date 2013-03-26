@@ -6,7 +6,8 @@ SUBDIRS = 	ccusb 		\
 		daqconfig	\
 		tclserver		\
 		commands	\
-		driverkit
+		driverkit   \
+                controlpanels
 
 
 bin_PROGRAMS = CCUSBReadout
