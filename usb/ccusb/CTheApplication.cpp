@@ -14,7 +14,6 @@
 	     East Lansing, MI 48824-1321
 */
 
-static const char* versionString = "V2.0";
 
 #include <config.h>
 #include "CTheApplication.h"
@@ -57,6 +56,8 @@ static const char* versionString = "V2.0";
 using namespace std;
 
 //   Configuration constants:
+static const char* versionString = VERSION ;
+
 
 static int    tclServerPort(27000); // Default Tcl server port.
 static  string daqConfigBasename("daqconfig.tcl");

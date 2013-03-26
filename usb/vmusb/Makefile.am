@@ -30,7 +30,7 @@ INCLUDES = -I$(top_srcdir)/usb/vmusb/vmusb -I$(top_srcdir)/usb/vmusb/devices -I$
 	-I$(top_srcdir)/base/headers	\
 	-I$(top_srcdir)/base/dataflow   \
         -I@top_srcdir@/servers/portmanager \
-	$(TCL_FLAGS) $(USBSWITCHES)
+	$(TCL_FLAGS) $(USBSWITCHES) 
 
 VMUSBReadout_LDADD	= cmdline.o $(top_builddir)/usb/vmusb/devices/libVMUSBDevices.la	\
 		$(top_builddir)/usb/vmusb/threadcomm/libVMUSBThreadComm.la	\

@@ -14,7 +14,6 @@
 	     East Lansing, MI 48824-1321
 */
 
-static const char* versionString = "V5.0";
 
 #include <config.h>
 #include "CTheApplication.h"
@@ -63,6 +62,8 @@ static const char* versionString = "V5.0";
 using namespace std;
 
 //   Configuration constants:
+
+static const char* versionString = VERSION ; // NSCLDAQ-version.
 
 static const string   daqConfigBasename("daqconfig.tcl");
 static const string   ctlConfigBasename("controlconfig.tcl");
