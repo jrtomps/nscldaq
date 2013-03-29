@@ -19,9 +19,7 @@
 package provide blt::vector 1.0
 package require snit
 
-namespace eval blt {
-    
-}
+namespace eval blt {}
 
 ##
 # @class blt::vector
