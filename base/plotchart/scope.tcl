@@ -12,7 +12,7 @@
 #
 
 package require Tk
-package require Plotchart
+package require Plotchart 2.0.1
 
 set update 50;		#  Ms between updates.
 
@@ -79,19 +79,18 @@ proc sineWave {} {
 #  up to 600pts will be ploted.
 #
 set time 0
-proc updatePlot {period c args} {
 
-    $c delete all
+proc updatePlot {period  args} {
+    set plot $::plot
+   # $c delete all
 
-    if {$c ne ".c"} {
-	error "Canvas name changed to $c"
-    }
+    $plot deletedata
 
-    set plot [::Plotchart::createXYPlot $c [list 0 400 100] [list -2048 2048 1000]]
+    #set plot [::Plotchart::createXYPlot $c [list 0 400 100] [list -2048 2048 1000]]
     set offset [expr {int(600*rand())}]
     set last   [expr {$offset + 350}]
 
-    foreach wf $args {
+    foreach wf $args color [list black red] {
 	set name [lindex $wf 0];	# series name.
 	set pts  [lindex $wf 1]
 	set x    [lindex $pts 0]
@@ -99,9 +98,10 @@ proc updatePlot {period c args} {
 	
 	
 	$plot plotlist $name [lrange $x 0 400] [lrange $y $offset $last]
+        $plot dataconfig $name -color $color
     }
 
-    after $period [list updatePlot $period $c {*}$args]
+    after $period [list updatePlot $period  {*}$args]
 }
 
 
@@ -112,4 +112,5 @@ set sine   [sineWave]
 canvas .c -width 8i -height 4i
 pack .c
 
-updatePlot $update .c [list square $square] [list sine $sine]
+set plot [::Plotchart::createXYPlot .c [list 0 400 100] [list -2048 2048 1000]]
+updatePlot $update  [list square $square] [list sine $sine]

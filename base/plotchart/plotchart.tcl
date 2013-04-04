@@ -2630,4 +2630,4 @@ source [file join [file dirname [info script]] "plottable.tcl"]
 
 # Announce our presence
 #
-package provide Plotchart 2.0.0
+package provide Plotchart 2.0.1

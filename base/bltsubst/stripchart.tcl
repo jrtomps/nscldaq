@@ -1030,7 +1030,7 @@ snit::type blt::component::legend {
     option -anchor;                                # Unimplemented see -position
     option -background -default "" -validatemethod _Color -configuremethod _SetBackground
     option -borderwidth;                           # Unimplemented
-    option -font       -default " *-Helvetica-Bold-R-Normal-*-12-120-*" -configuremethod _SetFont
+    option -font       -default " *-Helvetica-Bold-R-Normal-*-10-100-*" -configuremethod _SetFont
     option -foreground;                            # Unimplemented
     option -hide  -default no -validatemethod _Boolean -configuremethod _SetHide    
     option -ipadx;                                 # Unimplemented
@@ -1097,9 +1097,9 @@ snit::type blt::component::legend {
         set plotId  [$options(-plot) getPlotId]
         
         foreach entry $entries {
-            if {[array names legendItems $entry]} {
+            if {[array names legendItems $entry] ne ""} {
                 if {!$options(-hide)} {
-                    $plotId removefromlegend $entry
+                    catch {$plotId removefromlegend $entry}; # Plotchart bug on last delete.
                 }
                 unset legendItems($entry)
             }
@@ -1146,7 +1146,7 @@ snit::type blt::component::legend {
         if {!$options(-hide)} {
             set plotId [$options(-plot) getPlotId]
             foreach name [array names legendItems] {
-                $plotId removefromlegend $name
+                catch  {$plotId removefromlegend $name}; # Plotchart bug on last remove
             }
         }
     }
@@ -1205,17 +1205,20 @@ snit::type blt::component::legend {
     #
     method _SetHide {option value} {
         set redraw [expr bool($options($option)) != bool($value)]
-        set options($option) [expr bool($value)]
         
         if {$redraw} {
-            if {!$options($option)} {
+            if {!$value} {
+                set options($option) [expr bool($value)]
                 $self recreate;           #Unhiding
             } else {
               
               # hiding
-                $self _kill              
+              
+                $self _kill
+                 set options($option) [expr bool($value)]
             }
         }
+        
     }
     ##
     # _SetPosition
