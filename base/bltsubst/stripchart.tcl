@@ -104,6 +104,21 @@ snit::type blt::option::validators {
             error "$option requires coordinates of the form @x,y got: '$value'"
         }
     }
+    ##
+    # isColor
+    #   validate that an option is being given a valid color.
+    # @param option - option being tested (probably -position)
+    # @param value  - proposed new value.
+    #
+    method isColor {option value} {
+        if {$value eq ""} {
+            return ;      #transparent.
+        }
+        if {[catch {winfo rgb . $value} msg] } {
+            error "$option requires a valid color : $msg"
+        }
+    }
+
         
 }
 
@@ -230,7 +245,6 @@ snit::type blt::component::axis {
         # Figure out the limits on the data:
         
         set range [$options(-plot) dataRange]
-        puts "$options(-which) $range"
         set low [lindex $range 0]
         set hi  [lindex $range 1]
         if {$options(-which) eq "xaxis"} {
@@ -240,7 +254,7 @@ snit::type blt::component::axis {
             set low [lindex $low 1]
             set hi  [lindex $hi 1]
         }
-        puts "$low $hi"
+
         #
         #  Now set min from auto... if it's 0.0 it becomes low.  regardless,
         #  max comes from hi:
@@ -548,7 +562,7 @@ snit::type blt::component::crosshairs {
         #  Only do stuff if the states don't match:
         
         if {$prior != $value} {
-            puts "New one: $prior $value"
+            
             set c $options(-canvas)
             if {!$value} {
                 #
@@ -870,7 +884,7 @@ snit::type blt::component::element {
         # Configure the series:
         
         foreach option [array names optionPlotMap] {
-            puts "dataconfig $optionPlotMap($option) $options($option)"
+           
             $plotId dataconfig $name $optionPlotMap($option) $options($option)
         }
         #  Configure the existing items:
@@ -878,7 +892,7 @@ snit::type blt::component::element {
         set tag data_$name
         set c [$plotId canvas]
         foreach option [array names optionCanvasMap] {
-            puts "itemconfig $tag: $optionCanvasMap($option) $options($option)"
+           
             $c itemconfigure $tag $optionCanvasMap($option) $options($option)  
         }
     }
@@ -895,7 +909,7 @@ snit::type blt::component::element {
     # @param value  - New value of the option.
     #
     method _Changed {option value} {
-        puts "Changed $option $value"
+        
         set options($option) $value
         $options(-chart) dataChanged $options(-name);    # Notify the plot.
     }
@@ -1005,27 +1019,241 @@ snit::type blt::component::grid {
 #   Legend component mappings.
 #
 snit::type blt::component::legend {
-    option -plot;                    # Plotchart id.
+    component validations
     
-    option -activebackground
-    option -activeborderwidth
-    option -activeforeground
-    option -activerelief
-    option -anchor
-    option -background
-    option -borderwidth
-    option -font
-    option -foreground
-    option -hide
-    option -ipadx
-    option -ipady
-    option -padx
-    option -pady
-    option -position
-    option -raised
-    option -relief
+    option -plot;                    # Graph object
+    
+    option -activebackground;                      # Unimplemented.
+    option -activeborderwidth;                     # Unimplemented.
+    option -activeforeground;                      # Unimplemented.
+    option -activerelief;                          # Unimplemented.
+    option -anchor;                                # Unimplemented see -position
+    option -background -default "" -validatemethod _Color -configuremethod _SetBackground
+    option -borderwidth;                           # Unimplemented
+    option -font       -default " *-Helvetica-Bold-R-Normal-*-12-120-*" -configuremethod _SetFont
+    option -foreground;                            # Unimplemented
+    option -hide  -default no -validatemethod _Boolean -configuremethod _SetHide    
+    option -ipadx;                                 # Unimplemented
+    option -ipady;                                 # Unimplemented.
+    option -padx;                                  # Unimplemented
+    option -pady;                                  # Unimplemented
+    option -position -default top-right -validatemethod _Position -configuremethod _SetPosition
+    option -raised;                                # Unimplemented
+    option -relief;                                # Unimplemented
+    
+    #  Delegate option check methods:
+    
+    delegate method _Color to validations as isColor
+    delegate method _Boolean to validations as isBoolean
+
+    
+    # Active entry items is an array to allow [array names] glob matching
+    # and O(1) manipulation of the contents.
+    
+    variable legendItems -array [list];            # Currently active legend items.
+    
+    #---------------------------------------------------------------------------
+    # Canonicals
+    
+    ##
+    # constructor - just set the options:
+    #
+    constructor args {
+        install validations using blt::option::validators %AUTO%
+        $self configurelist $args
+    }
     
     
+    #--------------------------------------------------------------------------
+    # Public methods:
+    #
+    
+    ##
+    # activate
+    #
+    #   Add items to the legend.
+    #
+    # @param pattern - glob pattern of the elements to add.
+    #
+    method activate pattern {
+
+        set entries [$options(-plot) matchingElements $pattern]
+        set plotId  [$options(-plot) getPlotId]
+        
+        foreach entry $entries {
+            if {!$options(-hide)} {
+                $plotId legend $entry $entry
+            }
+            set legendItems($entry) $entry  
+        }
+    }
+    ##
+    # deactivate
+    #
+    #  Remove a set of items from the legend.
+    #
+    method deactivate pattern {
+        set entries [$options(-plot) matchingElements $pattern]
+        set plotId  [$options(-plot) getPlotId]
+        
+        foreach entry $entries {
+            if {[array names legendItems $entry]} {
+                if {!$options(-hide)} {
+                    $plotId removefromlegend $entry
+                }
+                unset legendItems($entry)
+            }
+        }
+    }
+    ##
+    # get - unimplemented.
+    #
+    method get args {
+        error "legend::get is unimplemented"
+    }
+    
+    ##
+    # recreate
+    #   Called by the plot to recreated the legend on a total recreation:
+    #
+    method recreate {} {
+        if {!$options(-hide) && ([llength [array names legendItems]] > 0)} {
+            
+            set plotId [$options(-plot) getPlotId]
+            # Process the options:
+            
+            $plotId legendconfig \
+                -background $options(-background) -font $options(-font) \
+                -position $options(-position)
+           
+            # Put items in the legend
+            
+            foreach name [lsort [array names legendItems]] {
+                $plotId legend $name $name
+            }
+ 
+        }
+    }
+    #-------------------------------------------------------------------------
+    # Private methods:
+    #
+    
+    ##
+    # Kill off all elements in the legend.  This followed by recreate seems the
+    # only way to get options paid attention to.
+    #
+    method _kill {} {
+        if {!$options(-hide)} {
+            set plotId [$options(-plot) getPlotId]
+            foreach name [array names legendItems] {
+                $plotId removefromlegend $name
+            }
+        }
+    }
+    #--------------------------------------------------------------------------
+    #  Option configuration methods.
+    
+    ##
+    # _SetBackground
+    #
+    #  Process changes to the -background option.  If not hidden,
+    #  the legend is reconfigured.
+    #
+    # @param option -name of the option (-background)
+    # @param value  -new color (validated already).
+    #
+    method _SetBackground {option value} {
+        set options($option) $value
+        
+        if {!$options(-hide)} {
+            set plotId [$options(-plot) getPlotId]
+            $plotId legendconfig -background $value
+            
+            $self _kill
+            $self recreate
+        }
+    }
+    ##
+    # _SetFont
+    #
+    #   Process a change in the requested legend font.
+    #
+    # @param option -name of the option (-font)
+    # @param value  -new font.
+    #
+    method _SetFont {option value} {
+        set options($option) $value
+        
+        if {!$options(-hide)} {
+            set plotId [$options(-plot getPlotId]
+            $plotId legendconfig -font $value
+            $self _kill
+            $self recreate
+
+        }
+    }
+    ##
+    # _SetHide
+    #
+    #  Only takes action if something changed.
+    #  If -hide -> true, then remvoe all legend elements and hope that makes
+    #  the legend disappear.
+    #  If -hide -> false, then call recreate to recreate the legend.
+    #
+    # @param option -the option name (-hide)
+    # @param value  -The new option value, which has been validated as a boolean.
+    #
+    method _SetHide {option value} {
+        set redraw [expr bool($options($option)) != bool($value)]
+        set options($option) [expr bool($value)]
+        
+        if {$redraw} {
+            if {!$options($option)} {
+                $self recreate;           #Unhiding
+            } else {
+              
+              # hiding
+                $self _kill              
+            }
+        }
+    }
+    ##
+    # _SetPosition
+    #
+    #  Set the legend position on the plot.
+    #
+    # @param option - the option name (-position)
+    # @param value  - validated option value.
+    method _SetPosition {option value} {
+        set options($option) $value
+        
+        if {!$options(-hide)} {
+            set plotId [$options(-plot) getPlotId]
+            $plotId legendconfig -position $value
+            $self _kill
+            $self recreate
+
+        }
+    }
+    #-------------------------------------------------------------------------
+    # Option validators
+    #
+    
+    ##
+    # _Position
+    #   Ensures a value is a correct plotchart position... note that we don't
+    #   attempt to use blt legend positions...so this is an incompatiblity.
+    #
+    # @param option - option being configured (don't care).
+    # @param position - legend position.
+    #
+    method _Position {option position} {
+        
+        set validPositions [list top-left top-right bottom-left bottom-right]
+        if {$position ni $validPositions} {
+            error "$option requires a valid position ($validPositions) got '$position'"
+        }
+    }
 }
 ##
 # @class blt::component::pen
@@ -1168,6 +1396,19 @@ snit::widgetadaptor ::blt::stripchart {
     #
     # Component callbacks.
     #
+    
+    ##
+    # matchingElements
+    #   Names of the elements that match a glob pattern.
+    #
+    # @param pattern - the pattern to match
+    #
+    # @return a possibily empty list of element names.
+    #
+    method matchingElements pattern {
+        return [array names elements $pattern]    
+    }
+    
     ##
     # dataRange
     #   Return the range of x/y values.
@@ -1188,10 +1429,14 @@ snit::widgetadaptor ::blt::stripchart {
             # Series could be empty:
             
             if {[llength $x] > 0} {
-                set x [join $x ,]
-                set max [expr max($x)]
-                set min [expr min($x)]
-                
+                if {[llength $x] > 1} {
+                    set x [join $x ,]
+                    set max [expr max($x)]
+                    set min [expr min($x)]
+                } else {
+                    set max $x
+                    set min $x
+                }
                 if {$minx eq ""} {
                     set minx $min
                 } else {
@@ -1204,9 +1449,14 @@ snit::widgetadaptor ::blt::stripchart {
                 }
             }
             if {[llength y] > 0} {
-                set y [join $y ,]
-                set max [expr max($y)]
-                set min [expr min($y)]
+                if {[llength $y] > 1} {
+                    set y [join $y ,]
+                    set max [expr max($y)]
+                    set min [expr min($y)]
+                } else {
+                    set max $y
+                    set min $y
+                }
                 
                 if {$miny eq ""} {
                     set miny $min
@@ -1268,7 +1518,7 @@ snit::widgetadaptor ::blt::stripchart {
         }
         lappend yLimits $step
         
-        puts "$xLimits $yLimits"
+
         
         set plotId [Plotchart::createStripchart $stripchart $xLimits $yLimits]
         
@@ -1277,13 +1527,14 @@ snit::widgetadaptor ::blt::stripchart {
         foreach name [array names elements] {
             set element $elements($name)
             set points [$element getData]
-            puts "Points $name: $points"
+          
             foreach x [lindex $points 0] y [lindex $points 1] {
                 $plotId plot $name $x $y
             }
             $element configureSeries $plotId $name
             
         }
+        $legend recreate
         
     }
     
@@ -1348,13 +1599,11 @@ snit::widgetadaptor ::blt::stripchart {
     # @param args - Other args.
     #
     method element {op name args} {
-        puts $op
         
         if {$op eq "create"} {
             # We  auto name the element because names of objects must be
             # unique across all plots.
             #
-            puts $args
             set elements($name) \
                 [::blt::component::element create %AUTO% -name $name -chart $self {*}$args]
             $self dataChanged $name
