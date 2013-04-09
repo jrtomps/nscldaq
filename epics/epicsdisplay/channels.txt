@@ -1,31 +1,31 @@
-EXPNUMBER  ExperimentNumber ("01234") 
-EXPTITLE   Experiment Title ("Mg-99 Lifetime")
-EXPSPOKES  Spokesperson's Name 
-STRCHAN102 Name of Operator in charge
-PBEAMZ     Proton Number Z of Primary Beam
-PBEAMSTR   Chemical Symbol (e.g. "Au") of Primary Beam
-PBEAMA     Mass Number A of Primary Beam
-PBEAMMASS  Beam mass "A" as a floating-pt. variable [amu]
-ENERGYK5   K500 Final Energy [MeV/nuc]
-ENERGYK12  K1200 Final Energy [MeV/nuc]
-FLTCHAN51  K1200 Final Rigidity    [Tm]
-P#2:43411#BIN8    Cyclotron Freq [MHz/10^4 = centiHz?]
-A19OPTICS  Optics File Name (A1900) 
-INTCHAN58  Proton Number Z of Secondary Beam
-STRCHAN300 Chemical Symbol for Secondary Beam
-INTCHAN59  Mass Number A of Secondary Beam
-P#1:401530 Attenuator Position Number (1-14)
-STRCHAN27 Attenuator String (gen par)
-FLTCHAN67 A1900 Seg 0 BRho Line          
-FLTCHAN68 A1900 Seg 1 BRho Line
-FLTCHAN69 A1900 Seg 2 BRho Line
-FLTCHAN70 A1900 Seg 3 BRho Line
-FLTCHAN71 A1900 Seg 4 BRho Line
-FLTCHAN72 A1900 Seg 5 BRho Line
-FLTCHAN99 GenPar A1900 D1 Rho
-FLTCHAN100 GenPar A1900 D2 Rho
-FLTCHAN101 GenPar A1900 D3 Rho
-FLTCHAN102 GenPar A1900 D4 Rho
+#EXPNUMBER  ExperimentNumber ("01234") 
+#EXPTITLE   Experiment Title ("Mg-99 Lifetime")
+#EXPSPOKES  Spokesperson's Name 
+#STRCHAN102 Name of Operator in charge
+#PBEAMZ     Proton Number Z of Primary Beam
+#PBEAMSTR   Chemical Symbol (e.g. "Au") of Primary Beam
+#PBEAMA     Mass Number A of Primary Beam
+#PBEAMMASS  Beam mass "A" as a floating-pt. variable [amu]
+#ENERGYK5   K500 Final Energy [MeV/nuc]
+#ENERGYK12  K1200 Final Energy [MeV/nuc]
+#FLTCHAN51  K1200 Final Rigidity    [Tm]
+#P#2:43411#BIN8    Cyclotron Freq [MHz/10^4 = centiHz?]
+#A19OPTICS  Optics File Name (A1900) 
+#INTCHAN58  Proton Number Z of Secondary Beam
+#STRCHAN300 Chemical Symbol for Secondary Beam
+#INTCHAN59  Mass Number A of Secondary Beam
+#P#1:401530 Attenuator Position Number (1-14)
+#STRCHAN27 Attenuator String (gen par)
+#FLTCHAN67 A1900 Seg 0 BRho Line          
+#FLTCHAN68 A1900 Seg 1 BRho Line
+#FLTCHAN69 A1900 Seg 2 BRho Line
+#FLTCHAN70 A1900 Seg 3 BRho Line
+#FLTCHAN71 A1900 Seg 4 BRho Line
+#FLTCHAN72 A1900 Seg 5 BRho Line
+#FLTCHAN99 GenPar A1900 D1 Rho
+#FLTCHAN100 GenPar A1900 D2 Rho
+#FLTCHAN101 GenPar A1900 D3 Rho
+#FLTCHAN102 GenPar A1900 D4 Rho
 # -----
 # -----   K1200 -> A1900 Target
 Z001DV    chart
@@ -36,122 +36,3 @@ Z005QB
 Z008DS   chart
 Z011QA
 Z012QB
-# -----  A1900 Target -> Extended FocalPlane
-# ----- 
-STRCHAN80    Z014TL Target Ladder Status
-STRCHAN70    Z013TL Target Ladder Status
-STRCHAN40    Z015TL Target Ladder Status
-STRCHAN50    Z016TL Target Ladder Status
-Z017TA
-Z019TB     a different sort of chart
-Z021TC
-Z026DS
-Z030BC	D1-exit Beam Blocker
-Z031TA
-Z033TB
-Z035TC
-Z037L-R	Image 1 Left Blocker (mm from center)
-Z037R-R	Image 1 Right Blocker (mm from center)
-Z039TA
-Z041TB
-Z043TC
-Z048DS
-Z053TA
-Z055TB
-Z057TC
-STRCHAN66    Im2 PPAC Upstream Mask (=adjustable slit) 
-STRCHAN90  Z060MS Adjustable Momentum Slit Width ("Upstream Mask")
-STRCHAN95  Image 2 PPACs Status String ("out"; "10mg") 
-STRCHAN60    Z059TL Degrader Ladder Status
-STRCHAN67    Im2 PPAC Downstream Mask (=2% slit)   
-STRCHAN96  Image 2 ScintillatorStatusString ("out";"45mg")
-STRCHAN91  Z057MS VariableMomentumSlit("Downstream Mask")
-Z062TA
-Z064TB
-Z066TC
-Z071DS
-Z076TA
-Z078TB
-Z080TC
-STRCHAN97  Image 3 Degrader Status String ("out"; ... )
-Z082XC-R  Image 3 x-slit centroid (momentum cut)
-Z082XG-R  Image 3 x-slit width
-Z082YG-R  Image 3 y-slit width
-Z084TA
-Z086TB
-Z088TC
-Z093DS
-Z098TA
-Z100TB
-Z102TC
-Z108DS
-D110C-R Extended FocalPlane x-slit centroid (particle cut)
-D110G-R Extended FocalPlane x-slit width (particle cut)
-# -----
-# -----  Transfer Hall into N4 up to P222
-D116QA
-D118QB
-D119DV
-D125DV
-D126DV
-D130QA
-D132QB
-D140DS
-D145QA
-D147QB
-D148DH
-D150DV
-D159QA
-D161QB
-D165DS
-D169DH
-D171QA
-D173QB
-D179DV
-D181DH
-D183QA
-D185QB
-D197DS
-E201QA
-E203QB
-E206DV
-E208QA
-E210QB
-E214DS
-P218QA
-P220QB
-# -----  Glass Degrader Section
-# ----
-P222ER  degrader glass rotation (degrees) 
-P222ET  degrader glass translation (insertion)
-P222ET_TARGET  degrader position number (0-6)
-P#5:406353 P222-wedge position number 
-FLTCHAN73 A1900 Seg 6 BRho Line
-P224QA
-P226QB
-P#5:406355 P228-PIN ladder position number (7=>in)
-P#5:406357 P228-Viewer ladder position number (7=>in)
-# -----
-# -----  Gas Cell Section
-# -----
-P#3:42522#F  P222IG torr
-P#3:42508#F  torr in gasCell
-P#3:42534#F  torr(ionG) in gasCell
-P#3:42510#F  torr in cross-A
-P#3:42532#F  torr(ionG) in cross-A
-P#3:42520#F  torr(hi)Booster
-P#3:42516#F  torr(hi)BigRed
-P#3:42502#F  torr(lo)cross-B
-P#3:42512#F  torr(lo)cross-C
-P#7:401264#F NSCL bldg. water pressure (psi)
-P#3:403030#F  TMP water flow (gal/min)
-#------
-P232TM.TMP1 gasCell Temperature #1 -- beamline (deg C)
-P232TM.TMP2 gasCell Temperature #2 -- near window
-P232TM.TMP3 gasCell Temperature #3 -- near gc-turbo
-P232TM.TMP4 gasCell Temperature #4 -- on bigFlange
-P232TM.TMP5 gasCell Temperature #5 -- cross-A
-P232TM.TMP6 gasCell Temperature #6 -- cross-B
-#------
-D231DS  SweeperMagnet -- trouble if this is energized
-

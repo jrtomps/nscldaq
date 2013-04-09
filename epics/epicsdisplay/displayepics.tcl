@@ -26,15 +26,17 @@
 #   in a tktable.
 #
 
-
+set scriptDir [file dirname [info script]]
+set libdir    [file normalize [file join $scriptDir ..]]
+lappend auto_path $libdir
 
 package require Tktable
 package require BWidget
-package require BLT
+package require rbc
 package require Iwidgets
 package require snit
-namespace import ::blt::stripchart
-namespace import ::blt::vector
+namespace import ::rbc::stripchart
+namespace import ::rbc::vector
 
 set version 2.0
 
