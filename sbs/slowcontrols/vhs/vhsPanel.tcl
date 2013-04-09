@@ -1,3 +1,7 @@
+#!/bin/sh
+# the next line restarts using tclsh \
+exec tclsh "$0" "$@"
+
 #
 #    This software is Copyright by the Board of Trustees of Michigan
 #    State University (c) Copyright 2005.
@@ -38,13 +42,17 @@
 #  Append the script directory to the library search path:
 
 set here [file dirname [info script]]
-lappend auto_path $here
+set libdir [file normalize [file join $here .. TclLibs]]
+lappend auto_path $libdir
+
+puts "$here"
+puts $auto_path
 
 package require Tk
 package require iSegVhs
 package require VhsWidgets
 package require PollManager
-package require BLT
+package require blt::tabset
 package require snit
 
 #===========================Startup Initialization===========================
