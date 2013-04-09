@@ -20,6 +20,11 @@
 #
 #  These go to /usr/opt/daq/11.0/TclLibs/blt
 #
+# Note for graphics, we install the RBC toolkit.
+# So that we don't need the Tcl source tree to build this .so's are included
+# for linux 32/64 bit systems.  The sources are available an licensed under
+# the BSD license at: http://sourceforge.net/projects/rbctoolkit
+#
 
 pkgdatadir = $(datadir)/nscldaq
 pkgincludedir = $(includedir)/nscldaq

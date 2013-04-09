@@ -321,6 +321,7 @@ namespace eval ::Plotchart {
    set methodProc(stripchart,plaintextconfig)  ConfigPlainText
    set methodProc(stripchart,drawobject)       DrawObject
    set methodProc(stripchart,object)           DrawObject
+   set methodProc(stripchart,deletedata)       DeleteData
    set methodProc(stripchart,canvas)           GetCanvas
    set methodProc(isometric,title)             DrawTitle
    set methodProc(isometric,xtext)             DrawXtext

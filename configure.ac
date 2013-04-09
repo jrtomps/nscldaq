@@ -519,6 +519,7 @@ AC_CONFIG_FILES([Makefile
 		base/Makefile
 		base/os/Makefile
                  base/CopyrightTools/Makefile
+                 base/bltsubst/Makefile
                  base/cvt/Makefile
                  base/exception/Makefile
 		 base/thread/Makefile
@@ -528,6 +529,7 @@ AC_CONFIG_FILES([Makefile
                  base/tclwidgets/Makefile
                  base/uri/Makefile
 		 base/dataflow/Makefile
+                 base/plotchart/Makefile
 		 base/tcpip/Makefile
 		 servers/Makefile
 		 servers/tclserver/Makefile
