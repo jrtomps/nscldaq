@@ -21,7 +21,9 @@ package require Tk
 package require snit
 
 
-namespace eval blt {}
+namespace eval blt {
+namespace export tabset
+}
 
 snit::widgetadaptor blt::tabset {
     component notebook
@@ -248,12 +250,9 @@ snit::widgetadaptor blt::tabset {
             }
             
         } elseif {$match eq "-both"} {
-            puts "Both: '$string'"
             if {[array names tabNames $string] ne ""} {
-                puts "Name $tabNames($string)"
                 return $tabNames($string)
             }
-            puts "Index: [$self _findIndex $string]"
             return [$self _findIndex $string]
         } else {
             error "$notebook get flag must be -index | -name | -both was $match"
@@ -291,8 +290,7 @@ snit::widgetadaptor blt::tabset {
         if {$position >= [llength [$notebook tabs]]} {
             set position end
         }
-        puts "$notebook insert $position $window  {*}$opts"
-        $notebook insert $position $window  {*}$opts
+        $notebook insert $position $window  {*}$opts -text $name
         
         # Successful insertion...need to adjust following indices:
         
