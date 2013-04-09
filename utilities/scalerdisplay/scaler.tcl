@@ -49,10 +49,20 @@ exec tclserver  -pManaged -a"ScalerDisplay"  -userauth ${0} ${@}
 #
 # Ensure that initially required variables exist:
 
-package require BLT
+set scriptDir [file dirname [info script]]
+set libDir    [file normalize [file join $scriptDir ..]]
+
+lappend auto_path $libDir
+
+
+package require blt::tabset
+package require rbc
+
+puts [info commands ::blt::*]
+
 namespace import ::blt::tabset
-namespace import ::blt::vector
-namespace import ::blt::stripchart
+namespace import ::rbc::vector
+namespace import ::rbc::stripchart
 
 #   The run state variable depends on whether or not
 #   we're running inside of SpecTcl or as a 
@@ -1322,12 +1332,8 @@ proc page {name title} {
 	pack $newpage.title -side top -fill x
 
 
-#	grid      $table -row 0 -column 0 -sticky nws
-#	grid      $vsb -row 0 -column 1   -sticky nse
-#	grid      $hsb -row 1 -column 0 -sticky ews
 	pack  $table  -side left -fill both  -expand 1
 	pack  $vsb   -side right  -fill y -expand 1 -anchor w
-#	pack  $hsb   -side bottom -anchor s -fill x -expand 1
 	pack $newpage.lines -side top -fill both  -expand 1
 	incr pageSerial
 
