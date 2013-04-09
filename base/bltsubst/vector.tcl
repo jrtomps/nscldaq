@@ -27,19 +27,21 @@ namespace eval blt {}
 #   This snit object provides a subset of the capabilities of
 #   the blt::vector package.
 #
-#  OPTIONS:
-#  -tracewrite - Script to execute if the vector is modified.
-#                script is passed a single parameter, the vector object name.
-#                The following methods fire  traces:
-#                *   edelete
-#                *   append
-#                *   setelement
 # METHODS:
 #
 #   create   - Create a new vector
 #   delete  - Delete an element 
 #   append  - Append to a vector.
 #   length  - Get the length of a vector
+##  addtrace - provide an additional Script to execute if the vector is modified.
+#                script is passed a single parameter, the vector object name.
+#                The following methods fire  traces:
+#                *   edelete
+#                *   append
+#                *   setelement
+#  removetrace - Remove a trace script.
+#
+# @note trace scripts are called passing this object to them as a parameter.
 #
 # The following methods are used to compensate for syntactical sugar that
 # BLT can offer that pure Tcl can't at this time:
@@ -49,9 +51,9 @@ namespace eval blt {}
 #   range      - Return a range of elements as a Tcl list.
 #
 snit::type blt::vector {
-    option -tracewrite [list]
 
     variable contents [list];   #contains the vector contents tcl list format.
+    variable traces   [list]
 
     #--------------------------------------------------------------------------
     #
@@ -65,10 +67,12 @@ snit::type blt::vector {
     # @param args - Option/value pairs for initial configuration.
     #
     constructor args {
-        $self configurelist $args
         
+       
     }
-    
+    destructor {
+       
+    }
     ##
     # delete
     #
@@ -89,6 +93,21 @@ snit::type blt::vector {
         foreach index $indices {
             set contents [lreplace $contents $index $index]
         }
+        $self _trace
+    }
+    ##
+    #  delrange
+    #    Deletes a range of values
+    #
+    # @param - start  - First element to delete
+    # @param - count  - Count of elements to delete
+    #
+    method delrange {start count} {
+        if {$count > 0} {
+            set last [expr {$count + $start - 1}]
+            set contents [lreplace $contents $start $last]
+        }
+        
         $self _trace
     }
     ##
@@ -136,7 +155,6 @@ snit::type blt::vector {
     #
     method set {i value} {
         set contents [lreplace $contents $i $i $value]
-        $self _trace
     }
     ##
     # range
@@ -149,7 +167,31 @@ snit::type blt::vector {
     method range {{first 0} {last end}} {
         return [lrange $contents $first $last]
     }
+    ##
+    # addtrace
+    #
+    #  Add a write trace to the vector.
+    #
+    # @param script - script to call.
+    #
+    method addtrace script {
+        lappend traces $script
+        puts "Addtrace $script => $traces"
+    }
+    ##
+    # removetrace
+    #   Remove a trace script from the list of traces.
+    #
+    # @param script -script to remove.
+    #
+    method removetrace script {
 
+        set index [lsearch -exact $traces $script]
+        if {$index != -1} {
+            set traces [lreplace $traces $index $index]
+        }
+        puts "Remove $script -> $traces"
+    }
 
     #--------------------------------------------------------------------------
     #
@@ -166,9 +208,9 @@ snit::type blt::vector {
     #   global level passing our name to it.
     #
     method _trace {} {
-        set script $options(-tracewrite)
-
-        if {$script ne ""} {
+        puts "trace $contents"
+        foreach script $traces {
+            puts "Tracing $script $self"
             uplevel #0 $script $self
         }
         

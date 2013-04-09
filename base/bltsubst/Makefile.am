@@ -1,0 +1,21 @@
+#
+#  AutoMake input file for installing the BLT substitution widgets.
+#
+#  These go to @prefix@/TclLibs/blt
+#
+
+destdir=@prefix@/TclLibs/blt
+rbcdir=@prefix@/TclLibs/rbc
+
+packages= tabset.tcl 
+rbcfiles=graph.tcl pkgIndex.tcl rbcCanvEps.pro rbcGraph.pro
+
+
+install-exec-local:
+	$(mkinstalldirs) $(destdir)
+	$(INSTALL_SCRIPT) $(packages) $(destdir)
+	echo pkg_mkIndex $(destdir) "*.tcl" | @TCLSH_CMD@
+	$(mkinstalldirs) $(rbcdir)
+	if test `getconf LONG_BIT` = "32"; then $(INSTALL_PROGRAM) librbc0.1.so-32 $(rbcdir)/librbc0.1.so; else $(INSTALL_PROGRAM) librbc0.1.so-64 $(rbcdir)/librbc0.1.so; fi
+	$(INSTALL_SCRIPT) $(rbcfiles) $(rbcdir)
+

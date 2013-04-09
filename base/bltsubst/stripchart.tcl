@@ -961,13 +961,13 @@ snit::type blt::component::element {
         # get rid of the watch on the old vector
         #
         if {$options($option) ne ""} {
-            $options($option) configure -tracewrite [list]
+            $options($option) removetrace [mymethod _VectorChanged $option $varname]
         }
         #  Save the new vector in the option, set up a new trace and get the
         #  current set of values:
         
         set options($option) $value
-        $value configure -tracewrite [mymethod _VectorChanged $option $varname]
+        $value addtrace [mymethod _VectorChanged $option $varname]
         set $varname [$value range]
         
         #  Force the redraw
@@ -1325,10 +1325,10 @@ snit::widgetadaptor ::blt::stripchart {
    delegate option -background  to stripchart
    delegate option -borderwidth to stripchart
    delegate option -cursor      to stripchart
-   delegate option -height      to stripchart
+   delegate option -height      to hull
    delegate option -relief      to stripchart
    delegate option -takefocus   to stripchart
-   delegate option -width       to stripchart
+   delegate option -width       to hull
    
    
 
@@ -1387,7 +1387,7 @@ snit::widgetadaptor ::blt::stripchart {
         $self configurelist $args
         set plotId [::Plotchart::createStripchart $stripchart {0 1 .5} {0 1 .5}]
  
-        grid $stripchart -sticky nsew
+        pack $stripchart -fill both -expand 1
         
     }
     
@@ -1500,6 +1500,9 @@ snit::widgetadaptor ::blt::stripchart {
     #
     method dataChanged name {
         $stripchart delete all
+        puts "Dimensions:"
+        puts [$stripchart cget -height]
+        puts [$stripchart cget -width]
         
         set xAxis $axisComponents(x)
         set yAxis $axisComponents(y)
@@ -1508,33 +1511,55 @@ snit::widgetadaptor ::blt::stripchart {
     
 
         set xLimits [$xAxis limits]
+        set x1 [lindex $xLimits 0]
+        set x2 [lindex $xLimits 1]
+        if {$x1 == $x2} {
+            set x2 [expr $x1 + 1.0]
+        }
+        set xLimits [list $x1 $x2]
+        
         set step [$xAxis cget -stepsize]
         if {$step == 0} {
-            set step [lindex $xLimits 1]
+            set step [expr ceil([lindex $xLimits 1])]
+            if {$step == 0} {
+                set step 1
+            }
         }
         lappend xLimits $step
+        puts "xlimits $xLimits"
         
         set yLimits [$yAxis limits]
+        set y1 [lindex $yLimits 0]
+        set y2 [lindex $yLimits 1]
+        if {$y1 == $y2} {
+            set y2 [expr $y2 + 1]
+        }
+        set yLimits [list $y1 $y2]
         set step [$yAxis cget -stepsize]
         if {$step == 0} {
-            set step [lindex $yLimits 1]
+            set step [expr ceil([lindex $yLimits 1])]
+            if {$step == 0} {
+                set step 1
+            }
         }
         lappend yLimits $step
-        
+        puts "yLimits $yLimits"
 
+        $plotId deletedata
         
-        set plotId [Plotchart::createStripchart $stripchart $xLimits $yLimits]
         
         #  Now plot each series:
         
         foreach name [array names elements] {
             set element $elements($name)
             set points [$element getData]
-          
+            $element configureSeries $plotId $name
+            
             foreach x [lindex $points 0] y [lindex $points 1] {
+                puts "$name: ($x,$y)"
                 $plotId plot $name $x $y
             }
-            $element configureSeries $plotId $name
+            
             
         }
         $legend recreate

@@ -1,0 +1,13 @@
+#
+#  AutoMake input file for installing the BLT substitution widgets.
+#
+#  These go to @prefix@/TclLibs/blt
+#
+
+destdir=@prefix@/TclLibs/blt
+packages=stripchart.tcl tabset.tcl vector.tcl
+
+install-exec-local:
+	$(mkinstalldirs) $(destdir)
+	$(INSTALL_SCRIPT) $(packages) $(destdir)
+	echo pkg_mkIndex $(destdir) "*.tcl" | @TCLSH_CMD@
