@@ -86,9 +86,9 @@ ECHO_C =
 ECHO_N = -n
 ECHO_T = 
 EGREP = /bin/grep -E
-EPICS_BIN = -DEPICS_BIN="\"/opt/lucid/epics/current//bin/linux-x86\""
-EPICS_INCLUDES = -I/opt/lucid/epics/current//include -I/opt/lucid/epics/current//include/os/Linux
-EPICS_LDFLAGS = -L/opt/lucid/epics/current//lib/linux-x86 -lca -Wl,"-rpath=/opt/lucid/epics/current//lib/linux-x86"
+EPICS_BIN = -DEPICS_BIN="\"/opt/lucid/epics/current/bin/linux-x86\""
+EPICS_INCLUDES = -I/opt/lucid/epics/current/include -I/opt/lucid/epics/current/include/os/Linux
+EPICS_LDFLAGS = -L/opt/lucid/epics/current/lib/linux-x86 -lca -Wl,"-rpath=/opt/lucid/epics/current/lib/linux-x86"
 EXEEXT = 
 FGREP = /bin/grep -F
 GENGETOPT = gengetopt

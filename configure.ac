@@ -586,6 +586,7 @@ AC_CONFIG_FILES([Makefile
 		 sbs/scripted/Makefile
 		 sbs/VmeDevice/Makefile
 		 usb/Makefile
+                 usb/loaders/Makefile
 		 usb/vmusb/Makefile
 		 usb/vmusb/vmusb/Makefile usb/vmusb/devices/Makefile 
 		 usb/vmusb/threadcomm/Makefile usb/vmusb/router/Makefile
