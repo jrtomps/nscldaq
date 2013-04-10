@@ -1,6 +1,7 @@
-bin_PROGRAMS = compatibilitybuffer compatibilitylogger BufferToRing
+bin_PROGRAMS = compatibilitybuffer compatibilitylogger BufferToRing convert10to11
 
-noinst_HEADERS = buffer.h buftypes.h CBufferConverter.h CLogRun.h
+noinst_HEADERS = buffer.h buftypes.h CBufferConverter.h CLogRun.h \
+    OldDataFormat.h
 
 compatibilitybuffer_SOURCES = compatibilitybuffer.cpp CBufferConverter.cpp
 
@@ -9,7 +10,8 @@ EXTRA_DIST=compatibilitybuffer.ggo loggeroptions.ggo eventlog-compat.in \
 	netcat.tcl
 
 
-compatibilitybuffer_LDADD = parser.o
+compatibilitybuffer_LDADD = parser.o \
+	@top_builddir@/daq/format/libdataformat.la
 
 INCLUDES = -I@top_srcdir@/daq/format -I@top_srcdir@/base/headers \
 	-I@top_srcdir@/base/os
@@ -21,6 +23,11 @@ compatibilitylogger_LDADD = loggeroptions.o
 BufferToRing_SOURCES = BufferToRing.cpp
 BufferToRing_LDADD   = @top_builddir@/daq/format/libdataformat.la \
 	@top_builddir@/base/os/libdaqshm.la
+
+convert10to11_SOURCES = Convert10to11.cpp
+
+convert10to11_LDADD = @top_builddir@/daq/format/libdataformat.la \
+    @top_builddir@/base/os/libdaqshm.la
 
 install-exec-local:
 	$(mkinstalldirs) $(bindir)

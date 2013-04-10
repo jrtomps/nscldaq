@@ -67,7 +67,7 @@ int
 CBufferConverter::operator()()
 {
 
-  RingItemHeader*   pHeader;	// Really this will point to the entire item.
+  RingItem*   pHeader;	// Really this will point to the entire item.
 
   try {
     while(pHeader = getItem()) {
@@ -89,13 +89,13 @@ CBufferConverter::operator()()
 
 /**
  * Read an item from stdin and return a dynamically allcoated pointer to it.
- * @return RingItemHeader*
+ * @return RingItem*
  * @retval pointer to dynamic storage that contains the full item
  *         (not just the pointer).
  * @throw std::string - main thing that can happen to us is EOF or 
  *                      other read failures.
  */
-RingItemHeader* 
+RingItem* 
 CBufferConverter::getItem() throw(std::string)
 {
 
@@ -103,7 +103,7 @@ CBufferConverter::getItem() throw(std::string)
 
   RingItemHeader header;		
   readOrThrow(&header, sizeof(header));
-  uint32_t size = computeSize(header);
+  uint32_t size = computeSize(reinterpret_cast<RingItem&>(header));
 
   // Allocate the buffer for the entire item, move the header
   // in and figure out:
@@ -120,7 +120,7 @@ CBufferConverter::getItem() throw(std::string)
 
   readOrThrow(pPayload, payloadSize);
 
-  return reinterpret_cast<RingItemHeader*>(buffer);
+  return reinterpret_cast<RingItem*>(buffer);
 
 }
 /**
@@ -132,11 +132,11 @@ CBufferConverter::getItem() throw(std::string)
  * to figure out what our sequence numbers should look like so that we
  * get the right sampling efficiency if the data source is sampling events.
  * @param pItem - pointer to the entire ring item. Note that the type is given as
- *                RingItemHeader* so that we're able to get the chunks we need.
+ *                RingItem* so that we're able to get the chunks we need.
  *
  */
 void
-CBufferConverter::outputItem(RingItemHeader* pItem) throw(std::string)
+CBufferConverter::outputItem(RingItem* pItem) throw(std::string)
 {
   uint16_t type = mapType(getType(*pItem));
   switch(type) {
@@ -248,13 +248,13 @@ CBufferConverter::flush() throw(std::string)
 
 /**
  * Output a scaler buffer.
- * @param pItem - Pointer to the ring item.  This comes in as a RingItemHeader* but
+ * @param pItem - Pointer to the ring item.  This comes in as a RingItem* but
  *                is actually a pScalerItem.
  */
 void
-CBufferConverter::outputScaler(RingItemHeader* pItem) throw(std::string)
+CBufferConverter::outputScaler(RingItem* pItem) throw(std::string)
 {
-  pScalerItem pScaler = reinterpret_cast<pScalerItem>(pItem);
+  pScalerItemBody pScaler = reinterpret_cast<pScalerItemBody>(bodyPointer(pItem));
   uint16_t    buffer[m_nBufferSize/sizeof(uint16_t)];
 
   bheader*    pHeader = reinterpret_cast<bheader*>(buffer);
@@ -294,9 +294,9 @@ CBufferConverter::outputScaler(RingItemHeader* pItem) throw(std::string)
  *
  */
 void
-CBufferConverter::outputStringArray(uint16_t itemType, RingItemHeader* pItem) throw(std::string)
+CBufferConverter::outputStringArray(uint16_t itemType, RingItem* pItem) throw(std::string)
 {
-  pTextItem pStrings = reinterpret_cast<pTextItem>(pItem);
+  pTextItemBody pStrings = reinterpret_cast<pTextItemBody>(bodyPointer(pItem));
   uint16_t    buffer[m_nBufferSize/sizeof(uint16_t)];
   uint32_t    nstrings = isSwapped(*pItem) ? swal(pStrings->s_stringCount) : pStrings->s_stringCount;
 
@@ -355,9 +355,9 @@ CBufferConverter::outputStringArray(uint16_t itemType, RingItemHeader* pItem) th
  * @todo this code assumes time_t is a long.
  */
 void
-CBufferConverter::outputStateChange(uint16_t itemType, RingItemHeader* pItem) throw(std::string)
+CBufferConverter::outputStateChange(uint16_t itemType, RingItem* pItem) throw(std::string)
 {
-  pStateChangeItem pSc = reinterpret_cast<pStateChangeItem>(pItem);
+  pStateChangeItemBody pSc = reinterpret_cast<pStateChangeItemBody>(bodyPointer(pItem));
   uint16_t         buffer[m_nBufferSize/sizeof(uint16_t)];
 
   bheader* pHeader = reinterpret_cast<bheader*>(buffer);
@@ -420,11 +420,12 @@ CBufferConverter::outputStateChange(uint16_t itemType, RingItemHeader* pItem) th
  *   - nevt - Number of events that have been inserted into the bufer to date.
  */
 void 
-CBufferConverter::bufferEvent(RingItemHeader* pItem) throw(std::string)
+CBufferConverter::bufferEvent(RingItem* pItem) throw(std::string)
 {
   // 
 
   pPhysicsEventItem pEvent = reinterpret_cast<pPhysicsEventItem>(pItem);
+  uint16_t* pEventBody     = reinterpret_cast<uint16_t*>(bodyPointer(pItem));
 
 
   // If there is no buffer we need to create one:
@@ -436,7 +437,7 @@ CBufferConverter::bufferEvent(RingItemHeader* pItem) throw(std::string)
   // Note the number of words in the event is in the first word of the item payload
   // by NSCL convention:
   // 
-  uint16_t nEventSize = isSwapped(*pItem) ? swaw(pEvent->s_body[0]) : pEvent->s_body[0];
+  uint16_t nEventSize = isSwapped(*pItem) ? swaw(pEventBody[0]) : pEventBody[0];
   if( (nEventSize + pHeader->nwds)*sizeof(uint16_t) > m_nBufferSize) {
     flush();
     createBuffer();
@@ -454,7 +455,7 @@ CBufferConverter::bufferEvent(RingItemHeader* pItem) throw(std::string)
   // but 32 bits here:
 
   m_pPut[0] = nEventSize - 1;
-  memcpy(&m_pPut[1], &pEvent->s_body[2], (nEventSize-2)*sizeof(uint16_t));
+  memcpy(&m_pPut[1], &pEventBody[2], (nEventSize-2)*sizeof(uint16_t));
 
   // Keep the books on where the next event goes, how many words and events are in the
   // buffer and how many events we've seen so far in our life.
@@ -527,13 +528,13 @@ CBufferConverter::createBuffer()
  *         host's system representation.
  */
 uint32_t
-CBufferConverter::computeSize(RingItemHeader& header)
+CBufferConverter::computeSize(RingItem& header)
 {
   if(isSwapped(header)) {
-    return swal(header.s_size);
+    return swal(header.s_header.s_size);
   }
   else {
-    return header.s_size;
+    return header.s_header.s_size;
   }
 }
 
@@ -547,9 +548,9 @@ CBufferConverter::computeSize(RingItemHeader& header)
  * @retval false - if the header was not swapped.
  */
 bool
-CBufferConverter::isSwapped(RingItemHeader& header)
+CBufferConverter::isSwapped(RingItem& header)
 {
-  return ((header.s_type & 0xffff0000) != 0);
+  return ((header.s_header.s_type & 0xffff0000) != 0);
 }
 
 /** 
@@ -611,9 +612,9 @@ CBufferConverter::swaw(uint16_t aword)
  ** @return Ring item type.
  */
 uint32_t 
-CBufferConverter::getType(RingItemHeader& header)
+CBufferConverter::getType(RingItem& header)
 {
-  return isSwapped(header) ? swal(header.s_type) :  header.s_type;
+  return isSwapped(header) ? swal(header.s_header.s_type) :  header.s_header.s_type;
 }
 /**
  * Given a ring item type, return the corresponding NSCL DAQ buffer type.
@@ -651,7 +652,7 @@ CBufferConverter::stockConversionMap()
     typeConversionMap[RESUME_RUN]          = RESUMEBF;
     typeConversionMap[PACKET_TYPES]        = PKTDOCBF;
     typeConversionMap[MONITORED_VARIABLES] = RUNVARBF;
-    typeConversionMap[INCREMENTAL_SCALERS] = SCALERBF;
+    typeConversionMap[PERIODIC_SCALERS] = SCALERBF;
     typeConversionMap[PHYSICS_EVENT]       = DATABF;
     typeConversionMap[PHYSICS_EVENT_COUNT] = TRIGGERSTATS;
 
@@ -681,9 +682,9 @@ CBufferConverter::resetStatistics()
  *  @paeram pItem - pointer to a ring item.
  */
 void
-CBufferConverter::computeStatistics(RingItemHeader* pItem)
+CBufferConverter::computeStatistics(RingItem* pItem)
 {
-  pPhysicsEventCountItem pStats = reinterpret_cast<pPhysicsEventCountItem>(pItem);
+  pPhysicsEventCountItemBody pStats = reinterpret_cast<pPhysicsEventCountItemBody>(bodyPointer(pItem));
 
   m_nTriggers =  isSwapped(*pItem) ? swaq(pStats->s_eventCount) : pStats->s_eventCount;
 }

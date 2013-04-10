@@ -138,7 +138,7 @@ static void scaler(CRingBuffer& prod, int fd, bool check=true)
     readItem(fd, buffer);
 
     pScalerItem e = reinterpret_cast<pScalerItem>(buffer);
-    EQ(INCREMENTAL_SCALERS, e->s_header.s_type);
+    EQ(PERIODIC_SCALERS, e->s_header.s_type);
     EQ((uint32_t)0,         e->s_intervalStartOffset);
     EQ((uint32_t)10,        e->s_intervalEndOffset);
     EQ((uint32_t)32,        e->s_scalerCount);

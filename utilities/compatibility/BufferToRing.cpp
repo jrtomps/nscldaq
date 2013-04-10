@@ -331,7 +331,7 @@ bool formatScaler (void* pBuffer)
 
   // We also need to create a timestamped item:
 
-  pNonIncrTimestampedScaler pTSItem = formatNonIncrTSScalerItem(nScalers, timestamp,
+  pScalerItem pTSItem = formatNonIncrTSScalerItem(nScalers, timestamp,
 								pBody->btime, pBody->etime,
 								scalerTimestamp(pBody),
 								pBody->scalers,

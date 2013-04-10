@@ -33,7 +33,7 @@
 
 // Forward declarations:
 
-typedef struct _RingItemHeader  RingItemHeader;
+typedef struct _RingItem  RingItem;
 
 /**
  * Application class for the ring buffer stream to buffer filter.
@@ -68,8 +68,8 @@ public:
 
   // Utility functions:
 private:
-  RingItemHeader* getItem() throw(std::string);
-  void        outputItem(RingItemHeader* pItem) throw(std::string);
+  RingItem* getItem() throw(std::string);
+  void        outputItem(RingItem* pItem) throw(std::string);
 
   // I/O stuff.
 
@@ -79,22 +79,22 @@ private:
 
   // Buffer oriented stuff.
 
-  void        bufferEvent(RingItemHeader* pItem) throw(std::string);
-  void        outputScaler(RingItemHeader* pItem) throw(std::string);
-  void        outputStringArray(uint16_t itemType, RingItemHeader* pItem) throw(std::string);
-  void        outputStateChange(uint16_t itemType, RingItemHeader* pItem) throw(std::string);
-  void        outtputPayload(int16_t itemType, RingItemHeader* pItem) throw(std::string);
+  void        bufferEvent(RingItem* pItem) throw(std::string);
+  void        outputScaler(RingItem* pItem) throw(std::string);
+  void        outputStringArray(uint16_t itemType, RingItem* pItem) throw(std::string);
+  void        outputStateChange(uint16_t itemType, RingItem* pItem) throw(std::string);
+  void        outtputPayload(int16_t itemType, RingItem* pItem) throw(std::string);
 
   void        fillHeader(void* pDest, uint16_t type);
   void        createBuffer();
 
   // Byte order sensitive stuff.
 
-  uint32_t    computeSize(RingItemHeader& header);
-  uint32_t    getType(RingItemHeader& header);
+  uint32_t    computeSize(RingItem& header);
+  uint32_t    getType(RingItem& header);
   uint16_t    mapType(uint32_t ringType);
 
-  bool        isSwapped(RingItemHeader& header);
+  bool        isSwapped(RingItem& header);
   uint64_t    swaq(uint64_t aquad);
   uint32_t    swal(uint32_t along);
   uint16_t    swaw(uint16_t aword);
@@ -102,7 +102,7 @@ private:
   // Statistics stuff:
 
   void resetStatistics();
-  void computeStatistics(RingItemHeader* pHeader);
+  void computeStatistics(RingItem* pHeader);
   uint32_t getSequence();	
   // Other stuff:
   

@@ -60,6 +60,16 @@ CFileDataSource::CFileDataSource(URL& url, vector<uint16_t> exclusionList) :
   }
   openFile();			// May throw exceptions.
 }
+/**
+ * construtor from fd:
+ */
+CFileDataSource::CFileDataSource(int fd, vector<uint16_t> exclusionlist) :
+  m_fd(fd),  m_url(*(new URL("file://stdin/junk")))
+{
+  for (int i=0; i < exclusionlist.size(); i++) {
+    m_exclude.insert(exclusionlist[i]);
+  }
+}
 
 /*!
    The destructor must close the file (ignoring errors so that if it's open

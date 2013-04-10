@@ -69,6 +69,7 @@ private:
 
 public:
   CFileDataSource(URL& url,  std::vector<uint16_t> exclusionlist);
+  CFileDataSource(int fd, std::vector<uint16_t> exclusionlist);
   virtual ~CFileDataSource();
 
 private:

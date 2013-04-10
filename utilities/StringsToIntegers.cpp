@@ -36,7 +36,8 @@ static void initialize()
   textToInt["RESUME_RUN"]          = RESUME_RUN;
   textToInt["PACKET_TYPE"]         = PACKET_TYPES;
   textToInt["MONITORED_VARIABLES"] = MONITORED_VARIABLES;
-  textToInt["INCREMENTAL_SCALERS"] = INCREMENTAL_SCALERS;
+  textToInt["INCREMENTAL_SCALERS"] = PERIODIC_SCALERS;    // Compatibility.
+  textToInt["PERIODIC_SCALERS"]    = PERIODIC_SCALERS;
   textToInt["PHYSICS_EVENT"]       = PHYSICS_EVENT;
   textToInt["PHYSICS_EVENT_COUNT"] = PHYSICS_EVENT_COUNT;
   textToInt["EVB_FRAGMENT"]        = EVB_FRAGMENT;

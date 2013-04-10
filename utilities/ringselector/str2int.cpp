@@ -115,13 +115,13 @@ str2int::bad()
 void
 str2int::text()
 {
-  string s("BEGIN_RUN,2,3,INCREMENTAL_SCALERS,31");
+  string s("BEGIN_RUN,2,3,PERIODIC_SCALERS,31");
 
   vector<int> items = stringListToIntegers(s);
   ASSERT(items.size() == 5);
   EQ((int)BEGIN_RUN, items[0]);
   EQ(2, items[1]);
   EQ(3, items[2]);
-  EQ((int)INCREMENTAL_SCALERS, items[3]);
+  EQ((int)PERIODIC_SCALERS, items[3]);
   EQ(31, items[4]);
 }
