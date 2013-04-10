@@ -15,6 +15,7 @@
 #include <usb.h>
 #include <time.h>
 #include <libxxusb.h>
+#include "skipHeader.h"
 
 
 
@@ -77,7 +78,7 @@ int main(int argc, char *fname[])
 	printf("\n");
 	for (i=0; i < 512; i++)
 	{
-	 ret=xxusb_flashblock_program(udev,pconfig);
+	 ret=xxusb_flashblock_program(udev,(UCHAR*)skipHeader(pconfig));
 	 pconfig=pconfig+256;
 	 t1=(time_t)(.03*CLOCKS_PER_SEC);
 	 t1=clock()+(time_t)(.03*CLOCKS_PER_SEC);
