@@ -585,7 +585,7 @@ CRingItem::copyIn(const CRingItem& rhs)
 void 
 CRingItem::deleteIfNecessary()
 {
-  if (m_storageSize > CRingItemStaticBufferSize) {
+  if (m_pItem != (pRingItem)m_staticBuffer) {
     delete [](reinterpret_cast<uint8_t*>(m_pItem));
   }
 }

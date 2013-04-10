@@ -460,3 +460,5 @@ Feb 1, 2012 - Feb 24, 2012
         * Issue #1141 Remove dependency on BLT -  note RBC binaries are now
                     part of the distribution (BSD licensed with credit in
                     our LICENSE file)
+        * Issue #1653 Miscellaneous adjustments due to changes in data struct.
+        

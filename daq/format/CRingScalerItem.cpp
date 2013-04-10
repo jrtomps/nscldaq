@@ -135,7 +135,6 @@ CRingScalerItem::CRingScalerItem(const CRingItem& rhs) throw(bad_cast) :
   init(pItem->s_scalerCount);
   updateSize();
   
-  // TODO: Missing actual copy!!
 }
 
 /*!
@@ -170,7 +169,6 @@ CRingScalerItem::operator=(const CRingScalerItem& rhs)
 
     init(pScalers->s_scalerCount);
     
-    // TODO: do the copy in from rhs.
   }
   return *this;
 }

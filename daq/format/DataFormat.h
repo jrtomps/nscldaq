@@ -422,6 +422,9 @@ extern "C" {
     const char* pTitle, int type
   );
   void* bodyPointer(pRingItem pItem);
+  uint32_t itemSize(const RingItem* pItem);
+  uint16_t itemType(const RingItem* pItem);
+  int      mustSwap(const RingItem* pItem);
 
 #ifdef __cplusplus
 }

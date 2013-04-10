@@ -221,9 +221,6 @@ CRingFragmentItem::typeName() const
  * toString
  *
  *  Dumps the contents of a ring fragment.
- *  TODO:  Issue #1458 - use factory method if the body seems like a ring fragment
- *         to dump the body.
- * 
  * @return std::string - the stringified version of the fragment.
  */
 std::string
@@ -239,7 +236,6 @@ CRingFragmentItem::toString() const
   out << "Payload size      :    " << This->payloadSize() << std::endl;
   out << "Barrier type      :    " << barrierType() << std::endl;
 
-  // TODO: Issue #1458 -- see above.
 
   out << "- - - - - -  Payload - - - - - - -\n";
   if (CRingItemFactory::isKnownItemType(This->payloadPointer())) {

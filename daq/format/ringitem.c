@@ -22,6 +22,17 @@
 /*-----------------------------------------------------------------------------
  *  Static utilities:
  *---------------------------------------------------------------------------*/
+static uint32_t swal(uint32_t l)
+{
+    uint32_t result = 0;
+    int      i;
+    for (i = 0; i < 4; i++) {
+        result = (result << 8) | (l & 0xff);
+        l = l >> 8;
+    }
+    return result;
+}
+
  static void fillHeader(pRingItem pItem, uint32_t size, uint32_t type)
  {
     pItem->s_header.s_size = size;
@@ -860,4 +871,52 @@ formatGlomParameters(uint64_t interval, int isBuilding)
     }
     
     return pResult;
+}
+/**
+ * itemSize
+ *    Return the size of an item regardless of the byte swapping.
+ *
+ *  @param item - Pointer to the item.
+ *
+ *  @return uint32_t the ring item size.
+ */
+uint32_t
+itemSize(const RingItem* pItem)
+{
+    if (mustSwap(pItem)) {
+        return swal(pItem->s_header.s_size);
+    } else {
+        return pItem->s_header.s_size;
+    }
+}
+/**
+ * itemType
+ *   Return the type of the ring item regardless of the byte swappingh.
+ *
+ * @param pItem - Pointer to the item.
+ *
+ * @return uint16_t the ring item type
+ */
+uint16_t
+itemType(const RingItem* pItem)
+{
+    if (mustSwap(pItem)) {
+        return swal(pItem->s_header.s_type);
+    } else {
+        return pItem->s_header.s_type;
+    }
+}
+/**
+ * mustSwap
+ *    Returns true (nonzero) if the item is byteswapped relative to the
+ *    host.
+ *
+ * @param pItem Pointer to a ring item.
+ * @return int  - nonzero if the item is byte swapped relative to the
+ *                host.
+ */
+int
+mustSwap(const RingItem* pItem)
+{
+    return ((pItem->s_header.s_type & 0x0000ffff) == 0);
 }

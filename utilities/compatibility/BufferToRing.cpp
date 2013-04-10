@@ -323,13 +323,8 @@ bool formatScaler (void* pBuffer)
     return false;
   }
 
-  pScalerItem pItem = formatScalerItem(nScalers, timestamp, pBody->btime, pBody->etime,
-				       pBody->scalers);
-  bool status = writeData(pItem, pItem->s_header.s_size);
-  free(pItem);
-  if (!status) return status;
 
-  // We also need to create a timestamped item:
+  // For 11.x only make the timestamped item.
 
   pScalerItem pTSItem = formatNonIncrTSScalerItem(nScalers, timestamp,
 								pBody->btime, pBody->etime,
@@ -337,7 +332,7 @@ bool formatScaler (void* pBuffer)
 								pBody->scalers,
 								scalerTimeDivisor(pBody)							     
 								);
-  status = writeData(pTSItem, pTSItem->s_header.s_size);
+  int status = writeData(pTSItem, pTSItem->s_header.s_size);
   free(pTSItem);
 
   return status;

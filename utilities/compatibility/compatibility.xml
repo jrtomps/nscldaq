@@ -131,6 +131,35 @@ compatibilitybuffer &lt;~/stagerea/complete/run-0123-00.evt | compatibilitylogge
             <filename>OldEventFiles</filename>.
         </para>
     </section>
+    <!-- NSCLDAQ-11.0 adds convert10to11 -->
+    <section>
+        <title>Converting NSCLDAQ-V10.x data to NSCLDAQ-11.x data</title>
+        <para>
+            With the introduction of NSCLDAQ-11.0, additional fields were added
+            to ring items to better support time stamped event building and to
+            make the timebase for run time offsets more flexible.  Furthermore,
+            the scaler records were expanded to support nonincremental as well
+            as the previously supported incremental scaler readout.
+        </para>
+        <para>
+            A utility filter program has been provided to convert NSCLDAQ-10.x
+            data to NSCLDAQ-11.x data.  Filter program transform data read on
+            their standard input to data on their standard output.  As such the
+            can easily be used in pipelines of commands.
+        </para>
+        <para>
+            The simplest way to use this filter is shown in the example below where
+            run-0000-00.evt is assumed to be an NSCLDAQ10.0 event file which is
+            being converted to run-0000-00.evt-11 which is an NSCLDAQ11.0 file.
+        </para>
+        <example>
+            <title>convert10to11 - converting event files</title>
+            <cmdsynopsis>
+<command>convert10to11 &lt; run-0000-00.evt &gt; run0000-00.evt-11</command>
+            </cmdsynopsis>
+        </example>
+    </section>
+    
     <section>
         <title>Convenience scripts</title>
         <para>
@@ -317,6 +346,61 @@ compatibilitybuffer <optional>options</optional>
         </refsect1>
 
       </refentry>
+    <!-- NSCLDAQ-11 - convert10to11 -->
+      <refentry id="compatibility1_convert10to11">
+        <refmeta>
+           <refentrytitle id="compatibility1_convert10to11_title">convert10to11</refentrytitle>
+           <manvolnum>1compatibility</manvolnum>
+        </refmeta>
+        <refnamediv>
+           <refname>convert10to11</refname>
+           <refpurpose>Filter converting NSCLDAQ10.x to NSCLDAQ11.x data.</refpurpose>
+        </refnamediv>
+        
+        <refsynopsisdiv>
+          <cmdsynopsis>
+            <command>
+convert10to11
+          </command>
+          </cmdsynopsis>
+
+        </refsynopsisdiv>
+        <refsect1>
+           <title>DESCRIPTION</title>
+           <para>
+            <command>convert10to11</command> is a filter that takes data in
+            NSCLDAQ10.x format on stdin and emits data in NSCLDAQ11.x format
+            on stdout.  Using input and output rediretion it can be used  to
+            convert an event file in NSCLDAQ10.x format into one in NSCLDAQ11.x
+           </para>
+           <para>
+            <command>convert10to11</command> can also be used as an element in a
+            Unix pipelin to process NSCLDAQ10.x data directly.  For an extreme
+            example, see EXAMPLES below.
+           </para>
+        </refsect1>
+        <refsect1>
+           <title>
+              EXAMPLES
+           </title>
+           <para>
+            The shell script below can be used as a SpecTcl pipe data source.
+            It takes a single parameter that is a gzipped NSCLDAQ-10.x event file
+            and sends the resulting data in NSCLDAQ-11.x format to output.
+           </para>
+           <example>
+            
+            <title>Uncompressing NSCLDAQ-10.x data and converting it to NSCLDAQ-11 format</title>
+            <cmdsynopsis>
+<command>zcat $1 | convert10to11</command>
+            </cmdsynopsis>
+           </example>
+        </refsect1>
+
+      </refentry>
+
+    <!-- End of NSCLDAQ-11 additions -->
+  
       
       <refentry id="manpage_compatibilitylogger">
         <refmeta>

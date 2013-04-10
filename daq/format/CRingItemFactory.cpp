@@ -110,7 +110,6 @@ CRingItemFactory::createRingItem(const CRingItem& item)
     {
       return new CRingFragmentItem(item);
     }
-  // TODO: Not yet supported items.
   case RING_FORMAT:
     return new CDataFormatItem(item);
   case EVB_UNKNOWN_PAYLOAD:
@@ -167,10 +166,9 @@ CRingItemFactory::createRingItem(const void* pItem)
 bool
 CRingItemFactory::isKnownItemType(const void* pItem)
 {
-  // TODO:  Assuming native byte ordering here which is a bad assumption maybe?
 
-  const _RingItemHeader* p = reinterpret_cast<const _RingItemHeader*>(pItem);
-  if (p->s_size < sizeof(RingItemHeader)) {
+  const RingItem* p = reinterpret_cast<const RingItem*>(pItem);
+  if (itemSize(p) < sizeof(RingItemHeader)) {
     return false;
   }
 
@@ -194,6 +192,6 @@ CRingItemFactory::isKnownItemType(const void* pItem)
     knownItemTypes.insert(EVB_GLOM_INFO);
   }
 
-  return knownItemTypes.count(p->s_type) > 0;
+  return knownItemTypes.count(itemType(p)) > 0;
 
 }
