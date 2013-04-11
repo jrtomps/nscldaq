@@ -15,7 +15,7 @@
 */
 #include "CRingSource.h"
 #include "GetOpt.h"
-#include "cmdline.h"
+#include "rfcmdline.h"
 
 #include <CRingBuffer.h>
 #include <CRingItem.h>

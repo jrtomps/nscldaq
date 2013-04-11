@@ -9,30 +9,39 @@ libS800TimeExtractor_la_SOURCES = s800timestamp.c
 libGretinaTimeExtractor_la_SOURCES = gretinaTimestamp.c
 
 
-ringFragmentSource_SOURCES=cmdline.c CRingSource.cpp Main.cpp
+ringFragmentSource_SOURCES=rfcmdline.c CRingSource.cpp Main.cpp
 
 ringTestSource_SOURCES= ringTestSource.cpp ringtestoptions.c TestSource.cpp
 
-noinst_HEADERS=CRingSource.h s800.h
+noinst_HEADERS=CRingSource.h s800.h TestSource.h
 
 
-BUILT_SOURCES = cmdline.c GetOpt.cpp ringtestoptions.c
+BUILT_SOURCES = rfcmdline.c rfcmdline.h GetOpt.cpp ringtestoptions.c ringtestoptions.h
 
 #
 #  This is a bit funky.  We copy the options.ggo skeleton file and add to it
 #  options needed for the ring buffer...then generate cmdline.{h,c}
 
-cmdline.c: ../options.ggo
+rfcmdline.c: ../options.ggo
 	cp ../options.ggo .
 	echo option \"ring\" r \"URL of ring from which fragments come\" string required >> options.ggo
 	echo option \"timestampextractor\" t \"Shared library with timestamp extraction code\" string required >>options.ggo
-	$(GENGETOPT) --input=options.ggo 
+	$(GENGETOPT) --input=options.ggo -F rfcmdline
+
+rfcmdline.h: ../options.ggo
+	cp ../options.ggo .
+	echo option \"ring\" r \"URL of ring from which fragments come\" string required >> options.ggo
+	echo option \"timestampextractor\" t \"Shared library with timestamp extraction code\" string required >>options.ggo
+	$(GENGETOPT) --input=options.ggo -F rfcmdline
 
 GetOpt.cpp: ../GetOpt.cpp ../GetOpt.h
 	cp ../GetOpt.{cpp,h} .
 
 
 ringtestoptions.c: ringtestoptions.ggo
+	$(GENGETOPT) --input=ringtestoptions.ggo --file=ringtestoptions
+
+ringtestoptions.h: ringtestoptions.ggo
 	$(GENGETOPT) --input=ringtestoptions.ggo --file=ringtestoptions
 
 ringTestSource_LDADD = \
@@ -62,4 +71,4 @@ ringFragmentSource_LDADD=  		 \
 	GetOpt.lo \
 	$(THREAD_LDFLAGS) 
 
-EXTRA_DIST=ringsource.xml
+EXTRA_DIST=ringsource.xml ringtestoptions.ggo

@@ -7,3 +7,5 @@ install-exec-local:
 	echo pkg_mkIndex -verbose @prefix@/TclLibs/v6533 "*.tcl" | tclsh	
 	$(INSTALL_SCRIPT) $(PACKAGES) @prefix@/TclLibs/v6533
 	$(INSTALL_SCRIPT) $(APP) @bindir@
+
+EXTRA_DIST=$(APP) $(PACKAGES)

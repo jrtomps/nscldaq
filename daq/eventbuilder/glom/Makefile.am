@@ -18,3 +18,5 @@ glom.c:  glom.h
 
 glom.h: glom.ggo
 	@GENGETOPT@ --input=glom.ggo --file-name=glom
+
+EXTRA_DIST=glom.ggo

@@ -33,7 +33,7 @@ FRAMEWORK_SKELETON = Makefile_Skeleton $(FRAMEWORK_SOURCEFILES)
 
 
 include_HEADERS = CEventOrderClient.h fragment.h CEVBClientApp.h EVBFramework.h \
-	CEVBFrameworkApp.h  GetOpt.h
+	CEVBFrameworkApp.h  GetOpt.h fragio.h
 
 
 noinst_HEADERS = CFragmentHandlerCommand.h CFragmentHandler.h cmdline.h \
@@ -78,7 +78,7 @@ TCL_TEST_FILES=tclTests.tcl cbmanagerTests.test cmanagerCallbacks.test
 
 
 EXTRA_DIST=protocol.xml api.xml orderer.xml frag2ring.xml Asserts.h \
-	$(TCL_PACKAGE_FILE) \
+	$(TCL_PACKAGE_FILES) \
 	$(TCL_TEST_FILES) options.ggo \
         $(TCL_EVB_PACKAGE_FILES)       \
 	$(FRAMEWORK_SOURCEFILES) \

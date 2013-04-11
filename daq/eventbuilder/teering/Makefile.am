@@ -1,15 +1,15 @@
 bin_PROGRAMS = teering
 
-teering_SOURCES = teering.cpp cmdline.c ../fragment.c
+teering_SOURCES = teering.cpp tcmdline.c ../fragment.c
 
-BUILT_SOURCES=cmdline.c
+BUILT_SOURCES=tcmdline.c
 
-noinst_HEADERS=cmdline.h
+noinst_HEADERS=tcmdline.h
 
-cmdline.h: cmdline.c
+tcmdline.h: tcmdline.c
 
-cmdline.c: options.ggo
-	$(GENGETOPT) --input=options.ggo
+tcmdline.c: options.ggo
+	$(GENGETOPT) --input=options.ggo -F tcmdline
 
 INCLUDES = -I@top_srcdir@/daq/eventbuilder  \
 	-I@top_srcdir@/daq/format \
@@ -26,3 +26,5 @@ teering_LDADD = @top_builddir@/daq/eventbuilder/libEventBuilderClient.la \
 	@THREADLD_FLAGS@
 
 teering_LDFLAGS= -Wl,"-rpath=@libdir@"
+
+EXTRA_DIST=options.ggo

@@ -24,3 +24,5 @@ install-exec-local:
 	if test `getconf LONG_BIT` = "32"; then $(INSTALL_PROGRAM) librbc0.1.so-32 $(rbcdir)/librbc0.1.so; else $(INSTALL_PROGRAM) librbc0.1.so-64 $(rbcdir)/librbc0.1.so; fi
 	$(INSTALL_SCRIPT) $(rbcfiles) $(rbcdir)
 
+EXTRA_DIST=$(packages) $(rbcfiles) vector.test rbcCanvEps.pro \
+	rbcGraph.pro librbc0.1.so-32 librbc0.1.so-64

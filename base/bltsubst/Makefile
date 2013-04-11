@@ -200,6 +200,9 @@ destdir = /usr/opt/daq/11.0/TclLibs/blt
 rbcdir = /usr/opt/daq/11.0/TclLibs/rbc
 packages = tabset.tcl 
 rbcfiles = graph.tcl pkgIndex.tcl rbcCanvEps.pro rbcGraph.pro
+EXTRA_DIST = $(packages) $(rbcfiles) vector.test rbcCanvEps.pro \
+	rbcGraph.pro librbc0.1.so-32 librbc0.1.so-64
+
 all: all-am
 
 .SUFFIXES:
