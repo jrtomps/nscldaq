@@ -76,10 +76,11 @@ printf("\n**********************************************************************
 	 p++;
 	 ik=ik+1;
 	}
+        pconfig = (UCHAR*)skipHeader(pconfig);
 	printf("\n");
 	for (i=0; i < 830; i++)
 	{
-	 ret=xxusb_flashblock_program(udev,(UCHAR*)skipHeader(pconfig));
+	 ret=xxusb_flashblock_program(udev, pconfig);
 	 pconfig=pconfig+256;
 	 t1=(time_t)(.03*CLOCKS_PER_SEC);
 	 t1=clock()+(time_t)(.03*CLOCKS_PER_SEC);

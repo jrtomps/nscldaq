@@ -76,9 +76,10 @@ int main(int argc, char *fname[])
 	 ik=ik+1;
 	}
 	printf("\n");
+        pconfig = (UCHAR*)skipHeader(pconfig);
 	for (i=0; i < 512; i++)
 	{
-	 ret=xxusb_flashblock_program(udev,(UCHAR*)skipHeader(pconfig));
+	 ret=xxusb_flashblock_program(udev,pconfig);
 	 pconfig=pconfig+256;
 	 t1=(time_t)(.03*CLOCKS_PER_SEC);
 	 t1=clock()+(time_t)(.03*CLOCKS_PER_SEC);

@@ -19,9 +19,11 @@ noinst_PROGRAMS = unittests
 unittests_SOURCES = TestRunner.cpp skiptest.cpp skipHeader.cpp
 unittests_LDADD= $(CPPUNIT_LDFLAGS)
 
-# Test bit file.
+# NOTE: These .bit/.bin files don't purport to be the latest they are
+#       only here to support unit tests for skipHeader.
+#
 
-EXTRA_DIST=vmeusb_0A00_031713.bit
+EXTRA_DIST=vmeusb_0A00_031713.bit vmeusb_0A00_31913.bin ccusb_0600_072012.bit
 
 
 TESTS=./unittests

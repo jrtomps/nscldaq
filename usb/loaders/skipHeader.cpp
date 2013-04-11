@@ -17,6 +17,17 @@
 #include <stdint.h>
 #include <arpa/inet.h>
 
+static const uint32_t sync1(0xffffffff);
+static const uint32_t sync2(0xaa995566);
+
+/**
+ * return true if p points to the file's synch header.
+ */
+static bool checkSyncHeader(uint32_t* p)
+{
+   return ((p[0] == ntohl(sync1)) && (p[1] == ntohl(sync2))); 
+}
+
 /**
  * skipHeader
  *   Skips the header of a Xilinx load image
@@ -47,6 +58,14 @@
 void*
 skipHeader(void* pLoadImage)
 {
+    uint32_t* pSync;
+    
+    /*
+       If this is a .bin file the header synch header starts right away:
+    */
+    pSync = reinterpret_cast<uint32_t*>(pLoadImage);
+    if (checkSyncHeader(pSync)) return pLoadImage;
+    
     /*
       The headers are best dealt with both as uint16 and uint8's depending
       on what we're processing
@@ -88,17 +107,33 @@ skipHeader(void* pLoadImage)
         p8 += length;
         expected++;
     }
-    // Damned stupid Xilinx does not get the size of the last field right :-(
+
+    // See if we're at the sync header:
+
+    pSync = reinterpret_cast<uint32_t*>(p8);
+    if (checkSyncHeader(pSync)) {
+      return p8;
+    }
+
+    // Damned stupid Xilinx sometimes does not get the size of the last field right :-(
         
     p8--;
     
     // p8 should be pointing at the 0xffffffff, 0xaa995566 pattern.
     
-    uint32_t* pSync = reinterpret_cast<uint32_t*>(p8);
-    if ((pSync[0] != 0xffffffff) || (pSync[1] != ntohl(0xaa995566))) {
-        return 0;
-    } else {
+    pSync = reinterpret_cast<uint32_t*>(p8);
+    if (checkSyncHeader(pSync)) {
         return p8;
+    } else {
+      // Older files screw up the other way:
+
+      p8 += 2;
+      pSync = reinterpret_cast<uint32_t*>(p8);
+      if (checkSyncHeader(pSync)) {
+	return p8;
+      } else {
+        return 0;
+      }
     }
     
 }

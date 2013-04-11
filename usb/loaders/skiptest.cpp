@@ -35,15 +35,22 @@
 
 
 static const char* pBitFile = "vmeusb_0A00_031713.bit";
+static const char* pBinFile = "vmeusb_0A00_031913.bin";
+static const char* pOldBitFile = "ccusb_0600_072012.bit";
+
 static const size_t MEGABYTE(1024*1024);
 
 class SkipTests : public CppUnit::TestFixture {
     CPPUNIT_TEST_SUITE(SkipTests);
     CPPUNIT_TEST(skip);
+    CPPUNIT_TEST(skipbin);
+    CPPUNIT_TEST(skipold);
     CPPUNIT_TEST_SUITE_END();
     
 protected:
     void skip();
+    void skipbin();
+    void skipold();
 };
 CPPUNIT_TEST_SUITE_REGISTRATION(SkipTests);
 
@@ -71,4 +78,53 @@ void SkipTests::skip()
     EQ((uint32_t)ntohl(0xaa995566), pBody[1]);
     
     
+}
+// Check that skiptest works on a bin file
+
+void SkipTests::skipbin()
+{
+    
+    // Have to be able to open the test .bin file
+    
+    int fd = open(pBinFile, O_RDONLY);
+    ASSERT(fd >= 0);
+    
+    // A megabyte should be enough of a read:
+    
+    char configFile[MEGABYTE];
+    ssize_t nRead = read(fd, configFile, MEGABYTE);
+    ASSERT(nRead > 0);
+    
+    uint32_t* pBody = reinterpret_cast<uint32_t*>(skipHeader(configFile));
+    close(fd);
+    
+    ASSERT(pBody);
+    
+    EQ((uint32_t)0xffffffff,*pBody);
+    EQ((uint32_t)ntohl(0xaa995566), pBody[1]);
+}
+
+// Check that we can skip old files as well:
+
+void SkipTests::skipold()
+{
+    
+    // Have to be able to open the test .bin file
+    
+    int fd = open(pOldBitFile, O_RDONLY);
+    ASSERT(fd >= 0);
+    
+    // A megabyte should be enough of a read:
+    
+    char configFile[MEGABYTE];
+    ssize_t nRead = read(fd, configFile, MEGABYTE);
+    ASSERT(nRead > 0);
+    
+    uint32_t* pBody = reinterpret_cast<uint32_t*>(skipHeader(configFile));
+    close(fd);
+    
+    ASSERT(pBody);
+    
+    EQ((uint32_t)0xffffffff,*pBody);
+    EQ((uint32_t)ntohl(0xaa995566), pBody[1]);
 }
