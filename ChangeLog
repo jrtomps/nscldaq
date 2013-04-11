@@ -461,4 +461,7 @@ Feb 1, 2012 - Feb 24, 2012
                     part of the distribution (BSD licensed with credit in
                     our LICENSE file)
         * Issue #1653 Miscellaneous adjustments due to changes in data struct.
+        * Issue #1575 Import VM/CC-usb firmware updaters and make them work
+                 Thanks to W-IE-NE-R Plein & Baus for permission to redistribute
+                 this software.
         

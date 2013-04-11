@@ -62,7 +62,7 @@ AC_FUNC_STAT
 
 # Automake:
 
-AM_INIT_AUTOMAKE([])
+AM_INIT_AUTOMAKE([foreign])
 
 # Makefile exports:
 
