@@ -464,4 +464,7 @@ Feb 1, 2012 - Feb 24, 2012
         * Issue #1575 Import VM/CC-usb firmware updaters and make them work
                  Thanks to W-IE-NE-R Plein & Baus for permission to redistribute
                  this software.
+        * Fix up eventlog so that it can write the RING_FORMAT item that precedes
+          a ring item in nscldaq-11.  I >think< this utility will now work for
+          nscldaq-10.x (not recommended however) and nscldaq-11+.
         

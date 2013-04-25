@@ -16,7 +16,7 @@ ringTestSource_SOURCES= ringTestSource.cpp ringtestoptions.c TestSource.cpp
 noinst_HEADERS=CRingSource.h s800.h TestSource.h
 
 
-BUILT_SOURCES = rfcmdline.c rfcmdline.h GetOpt.cpp ringtestoptions.c ringtestoptions.h
+BUILT_SOURCES = rfcmdline.c rfcmdline.h  ringtestoptions.c ringtestoptions.h
 
 #
 #  This is a bit funky.  We copy the options.ggo skeleton file and add to it
@@ -34,8 +34,6 @@ rfcmdline.h: ../options.ggo
 	echo option \"timestampextractor\" t \"Shared library with timestamp extraction code\" string required >>options.ggo
 	$(GENGETOPT) --input=options.ggo -F rfcmdline
 
-GetOpt.cpp: ../GetOpt.cpp ../GetOpt.h
-	cp ../GetOpt.{cpp,h} .
 
 
 ringtestoptions.c: ringtestoptions.ggo
@@ -68,7 +66,6 @@ ringFragmentSource_LDADD=  		 \
 	@top_builddir@/base/dataflow/libDataFlow.la \
 	@top_builddir@/base/dataflow/libRingBuffer.la \
 	@top_builddir@/base/os/libdaqshm.la	\
-	GetOpt.lo \
 	$(THREAD_LDFLAGS) 
 
 EXTRA_DIST=ringsource.xml ringtestoptions.ggo

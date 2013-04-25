@@ -449,12 +449,20 @@ CExperiment::ReadEvent()
   //
   if (m_pReadout) {
     m_pReadout->keep();
+    m_needHeader = false;
+    m_nEventTimestamp = 0;
+    m_nSourceId  = 0;
+    
     CRingItem item(PHYSICS_EVENT, m_nDataBufferSize);
     uint16_t* pBuffer = reinterpret_cast<uint16_t*>(item.getBodyPointer());
     size_t nWords = m_pReadout->read(pBuffer +2 , m_nDataBufferSize);
     if (m_pReadout->getAcceptState() == CEventSegment::Keep) {
       *(reinterpret_cast<uint32_t*>(pBuffer)) = nWords +2;
       item.setBodyCursor(pBuffer + nWords+2);
+      item.updateSize();
+      if (m_needHeader) {
+        item.setBodyHeader(m_nEventTimestamp, m_nSourceId, 0);
+      }
       item.commitToRing(*m_pRing);
       m_nEventsEmitted++;
     }
@@ -633,4 +641,30 @@ CExperiment::getTimeMs()
 
   return msTime;
 
+}
+/**
+ * setTimestamp
+ *
+ * Set the timestamp for the current event and flag that it needs a bodyheader.
+ *
+ * @param stamp - the timestamp.
+ */
+void
+CExperiment::setTimestamp(uint64_t stamp)
+{
+    m_nEventTimestamp = stamp;
+    m_needHeader = true;
+}
+/**
+ * setSourceId
+ *
+ * Set the current event's source id and flag that it needs a body heder.
+ *
+ * @param id
+ */
+void
+CExperiment::setSourceId(uint32_t id)
+{
+    m_nSourceId  = id;
+    m_needHeader = true;
 }

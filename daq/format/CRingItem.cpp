@@ -365,15 +365,17 @@ CRingItem::setBodyHeader(uint64_t timestamp, uint32_t sourceId,
         
         uint8_t* pBody = (m_pItem->s_body.u_noBodyHeader.s_body);
         size_t moveSize = sizeof(BodyHeader) - sizeof(uint32_t);
-        memmove(pBody + moveSize, pBody, moveSize);
+        size_t moveCount= m_pItem->s_header.s_size - sizeof(RingItemHeader) - sizeof(uint32_t);
+        memmove(pBody + moveSize, pBody, moveCount);
         m_pCursor += moveSize;
-        updateSize();
+
     }
     pBodyHeader pHeader = &(m_pItem->s_body.u_hasBodyHeader.s_bodyHeader);
     pHeader->s_size = sizeof(BodyHeader);
     pHeader->s_timestamp = timestamp;
     pHeader->s_sourceId  = sourceId;
     pHeader->s_barrier   = barrierType;
+    updateSize();
     
 }
 
@@ -527,15 +529,12 @@ CRingItem::getFromRing(CRingBuffer& ring, CRingSelectionPredicate& predicate)
 	      << std::endl;
   }
   
-  // Figure out if there's a body header and set the cursor accordingly too.
+  // The ring item was constructed with the cursor pointing as if there's
+  // no body header...therefore the arithmetic below is correct whether there
+  // is or isn't a body header.
+  //
   
-    /* The body header, if any, is included in size */
-  
-  if(pItem->hasBodyHeader()) {
-     pItem->m_pCursor += (size - sizeof(RingItemHeader) - sizeof(BodyHeader));
-  } else {
-    pItem->m_pCursor  +=  (size - sizeof(RingItemHeader) - sizeof(uint32_t));
-  }
+  pItem->m_pCursor  +=  (size - sizeof(RingItemHeader) - sizeof(uint32_t));
 
   
   pItem->m_swapNeeded = otherOrder;
@@ -639,7 +638,7 @@ CRingItem::bodyHeaderToString() const
         result << "Body Header:\n";
         result << "Timestamp:    " << pHeader->s_timestamp << std::endl;
         result << "SourceID:     " << pHeader->s_sourceId  << std::endl;
-        result << "Barrier Type: " << pHeader->s_sourceId << std::endl;
+        result << "Barrier Type: " << pHeader->s_barrier << std::endl;
         
     } else {
         result << "No body header\n";

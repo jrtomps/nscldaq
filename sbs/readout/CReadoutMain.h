@@ -60,7 +60,7 @@ public:
   // Selectors:
 
   CTCLServer*  getTclServer();
-  CExperiment* getExperiment();
+  static CExperiment* getExperiment();
 
   // Entry point
 

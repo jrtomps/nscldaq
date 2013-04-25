@@ -30,6 +30,7 @@ class ritemtests : public CppUnit::TestFixture {
   CPPUNIT_TEST(selection);
   CPPUNIT_TEST(copyconstruct);
   CPPUNIT_TEST(tsconstruct);
+  CPPUNIT_TEST(addbodyheader);
   CPPUNIT_TEST_SUITE_END();
 
 
@@ -50,6 +51,7 @@ protected:
   void selection();
   void sampling();
   void tsconstruct();
+  void addbodyheader();
 };
 
 CPPUNIT_TEST_SUITE_REGISTRATION(ritemtests);
@@ -353,4 +355,36 @@ ritemtests::tsconstruct()
     /* Check that the body pointer is returned correctly */
     
     EQ(pBody, ts.getBodyPointer());
+}
+// test subsequent add of body header:
+
+void
+ritemtests::addbodyheader()
+{
+    CRingItem item(1, 8192);
+    uint16_t* p = reinterpret_cast<uint16_t*>(item.getBodyCursor());
+    for (int i = 0; i < 10; i++) {
+        *p++ = i;
+    }
+    item.setBodyCursor(p);
+    item.updateSize();
+
+    
+    // Add in a body header:
+    
+    item.setBodyHeader(123, 1, 2);
+    
+    // Check size:
+    
+    pRingItem pItem = item.getItemPointer();
+    EQ(sizeof(RingItemHeader) + sizeof(BodyHeader) + sizeof(uint16_t)*10, pItem->s_header.s_size);
+    EQ((uint64_t)123, item.getEventTimestamp());
+    EQ((uint32_t)1, item.getSourceId());
+    EQ((uint32_t)2, item.getBarrierType());
+    p = reinterpret_cast<uint16_t*>(item.getBodyPointer());
+    
+    for (uint16_t i = 0; i < 10; i++) {
+        EQ(i, *p++);
+    }
+    
 }

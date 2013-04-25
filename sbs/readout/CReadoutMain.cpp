@@ -32,6 +32,7 @@
 #include <CVariableBuffers.h>
 #include <TCLInterpreter.h>
 #include <CRingBuffer.h>
+#include <TCLApplication.h>
 
 #include <netdb.h>
 #include <stdlib.h>
@@ -42,6 +43,8 @@
 #include <iostream>
 
 using namespace std;
+
+extern CTCLApplication* gpTCLApplication;
 
 /*!
   Constructor just initializes member variables:
@@ -83,7 +86,8 @@ CReadoutMain::getTclServer()
 CExperiment*
 CReadoutMain::getExperiment()
 {
-  return m_pExperiment;
+  CReadoutMain* pApp = dynamic_cast<CReadoutMain*>(gpTCLApplication);
+  return pApp->m_pExperiment;
 }
 
 

@@ -44,6 +44,7 @@ CReadoutMain::CReadoutMain() :
 {
   m_pExperiment->EstablishTrigger(new CNullTrigger);
   m_pExperiment->setScalerTrigger(new CNullTrigger);
+  gpTCLApplication = this;
 }
 CReadoutMain::~CReadoutMain()
 {
@@ -52,7 +53,8 @@ CReadoutMain::~CReadoutMain()
 CExperiment*
 CReadoutMain::getExperiment()
 {
-  return m_pExperiment;
+  CReadoutMain* pMe = reinterpret_cast<CReadoutMain*>(gpTCLApplication);
+  return pMe->m_pExperiment;
 }
 
 // truly stubs:

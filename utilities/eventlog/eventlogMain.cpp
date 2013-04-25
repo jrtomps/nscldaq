@@ -173,6 +173,7 @@ class noData :  public CRingBuffer::CRingBufferPredicate
 
    bool warned = false;
    CRingItem* pItem;
+   CRingItem* pFormatItem(0);
    CAllButPredicate all;
 
    // Loop over all runs.
@@ -183,18 +184,35 @@ class noData :  public CRingBuffer::CRingBufferPredicate
 
      while (1) {
        pItem = CRingItem::getFromRing(*m_pRing, all);
-       if (pItem->type() == BEGIN_RUN) break;
+       
+       /*
+         As of NSCLDAQ-11 it is possible for the item just before a begin run
+         to be a Ring format item:
+       */
+       
+       if (pItem->type() == RING_FORMAT) {
+        pFormatItem = pItem;
+       } else if (pItem->type() == BEGIN_RUN) {
+         break;
+       } else {
+        // Ring format item must >exactly< precede BEGIN_RUN:
+        delete pFormatItem;
+        pFormatItem = 0;
+       }
 
-       if (!warned) {
+       if (!warned && !pFormatItem) {
 	 warned = true;
 	 cerr << "**Warning - first item received was not a begin run. Skipping until we get one\n";
        }
      }
-     // Now we have the begin run item:
+     // Now we have the begin run item; and potentially the ring format item
+     // too:
 
      CRingStateChangeItem item(*pItem);
-     recordRun(item);
-     delete pItem;    
+     recordRun(item, pFormatItem);
+     delete pFormatItem;    // delete 0 is a no-op.
+     delete pItem;
+     pFormatItem = 0;
 
      // Return/exit after making our .exited file if this is a one-shot.
 
@@ -226,9 +244,13 @@ class noData :  public CRingBuffer::CRingBufferPredicate
  **   opening new segments as needed until: 
  ** - The end run item is gotten at which point the run ends.
  **
+ ** @param item - The state change item.
+ ** @param pFormatitem - possibly null pointer, if not null this points to the
+ **                      ring format item that just precedes the begin run.
+ **                      
  */
  void
- EventLogMain::recordRun(const CRingStateChangeItem& item)
+ EventLogMain::recordRun(const CRingStateChangeItem& item, CRingItem* pFormatItem)
  {
    unsigned int segment        = 0;
    uint32_t     runNumber      = item.getRunNumber();
@@ -240,9 +262,16 @@ class noData :  public CRingBuffer::CRingBufferPredicate
    CRingItem*   pItem = new CRingStateChangeItem(item);
    uint16_t     itemType;
 
+    // If there is a format item, write it out to file:
+    
+    if (pFormatItem) {
+        bytesInSegment += itemSize(*pFormatItem);
+        writeItem(fd, *pFormatItem);
+    }
+
    while(1) {
 
-     size_t size    = pItem->getBodySize() + sizeof(RingItemHeader);
+     size_t size    = itemSize(*pItem);
      itemType       = pItem->type();
 
      // If necessary, close this segment and open a new one:
@@ -255,17 +284,7 @@ class noData :  public CRingBuffer::CRingBufferPredicate
        fd = openEventSegment(runNumber, segment);
      }
 
-     try {
-       io::writeData(fd, pItem->getItemPointer(), size);
-     }
-     catch(int err) {
-       if(err) {
-	 cerr << "Unable to output a ringbuffer item : "  << strerror(err) << endl;
-       }  else {
-	 cerr << "Output file closed out from underneath us\n";
-       }
-       exit(EXIT_FAILURE);
-     }
+     writeItem(fd, *pItem);
 
      bytesInSegment  += size;
 
@@ -460,3 +479,40 @@ class noData :  public CRingBuffer::CRingBufferPredicate
    m_pRing->blockWhile(predicate, RING_TIMEOUT);
    return (m_pRing->availableData() == 0);
  }
+/**
+ * writeItem
+ *   Write a ring item.
+ *
+ *   @param fd - File descriptor open on the output file.
+ *   @param item - Reference to the ring item.
+ *
+ * @throw  uses io::writeData which throws errs.
+ *         The errors are caught described and we exit :-(
+ */
+void
+EventLogMain::writeItem(int fd, CRingItem& item)
+{
+    try {
+        io::writeData(fd, item.getItemPointer(), itemSize(item));
+    }
+    catch(int err) {
+      if(err) {
+        cerr << "Unable to output a ringbuffer item : "  << strerror(err) << endl;
+      }  else {
+        cerr << "Output file closed out from underneath us\n";
+      }
+      exit(EXIT_FAILURE);
+    }    
+}
+/**
+* itemSize
+*    Return the number of bytes in a ring item.
+* @param item - reference to a ring item.
+*
+* @return size_t -size of the item.
+*/
+size_t
+EventLogMain::itemSize(CRingItem& item) const
+{
+    return ::itemSize(reinterpret_cast<pRingItem>(item.getItemPointer()));
+}

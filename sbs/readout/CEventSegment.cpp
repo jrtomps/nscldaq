@@ -15,6 +15,8 @@
 */
 #include <config.h>
 #include "CEventSegment.h"
+#include <CExperiment.h>
+#include <CReadoutMain.h>
 
 /*!
    Concrete classes are expected to override this
@@ -133,4 +135,30 @@ CEventSegment::AcceptState
 CEventSegment::getAcceptState() const
 {
   return m_accept;
+}
+/**
+ * setTimestamp
+ *
+ *   Set the event timestamp for the event.
+ *   If called multiple times, the last one rules.
+ *
+ *   @param stamp - the timestamp.
+ */
+void
+CEventSegment::setTimestamp(uint64_t stamp)
+{
+    CExperiment* p = CReadoutMain::getExperiment();
+    p->setTimestamp(stamp);
+}
+/**
+ * setSourceId
+ *
+ *  Sets the event source id.  If called multiple times, the last one rules.
+ *  @param id
+ */
+void
+CEventSegment::setSourceId(uint32_t id)
+{
+    CExperiment* p = CReadoutMain::getExperiment();
+    p->setSourceId(id);
 }

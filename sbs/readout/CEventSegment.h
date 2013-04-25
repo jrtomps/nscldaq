@@ -27,6 +27,13 @@
 #endif
 #endif
 
+#ifndef __CRT_STDINT_H
+#include <stdint.h>
+#ifndef __CRT_STDINT_H
+#define __CRT_STDINT_H
+#endif
+#endif
+
 /*!
 
    This is an abstract base class for event segments.  An event segment reads out a
@@ -52,13 +59,15 @@ public:
 
   virtual bool isComposite() const;
   
+  
   // Base class methods
 public:
   void reject();
   void rejectImmediately();
   void keep();
   AcceptState getAcceptState() const;
-  
+  void setTimestamp(uint64_t stamp);
+  void setSourceId(uint32_t id);
 };
 
 

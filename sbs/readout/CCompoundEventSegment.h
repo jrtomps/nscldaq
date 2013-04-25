@@ -71,6 +71,7 @@ public:
   virtual size_t read(void* pBuffer, size_t maxwords);
 
 
+
   // Type-safe adaptor to CComposite:
 
   void AddEventSegment(CEventSegment*    pSegment);

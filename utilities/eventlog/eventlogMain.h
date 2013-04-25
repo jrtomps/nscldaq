@@ -41,6 +41,7 @@ class CRingBuffer;
 class CRingItem;
 class CRingStateChangeItem;
 
+
 /*!
    Class that represents the event log application.
    separating this out in a separate class may make
@@ -78,12 +79,13 @@ private:
   void parseArguments(int argc, char** argv);
   int  openEventSegment(uint32_t runNumber, unsigned int segment);
   void recordData();
-  void recordRun(const CRingStateChangeItem& item);
-  void writeItem(int fd, const CRingItem&    item);
+  void recordRun(const CRingStateChangeItem& item, CRingItem* pFormatItem);
+  void writeItem(int fd, CRingItem&    item);
   std::string defaultRingUrl() const;
   uint64_t    segmentSize(const char* pValue) const;
   bool  dirOk(std::string dirname) const;
   bool  dataTimeout();
+  size_t itemSize(CRingItem& item) const;
 };
 
 

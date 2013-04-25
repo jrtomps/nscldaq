@@ -88,6 +88,10 @@ private:
   uint64_t               m_nEventsEmitted;
   uint64_t               m_nRunStartStamp; /* Run start time in ms since epoch. */
   uint64_t               m_nPausedmSeconds; /*Seconds paused in ms. */
+                                             
+  uint64_t                m_nEventTimestamp;
+  uint32_t                m_nSourceId;
+  bool                    m_needHeader;
 
   // Canonicals:
 
@@ -130,6 +134,8 @@ public:
   CRingBuffer* getRing() {
     return m_pRing;
   }
+  void setTimestamp(uint64_t stamp);
+  void setSourceId(uint32_t id);
 
 private:
   void readScalers();
