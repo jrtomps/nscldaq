@@ -41,6 +41,7 @@
 #include <CDataFormatItem.h>
 
 #include <sys/time.h>
+#include <dlfcn.h>
 
 
 
@@ -114,7 +115,8 @@ COutputThread::COutputThread(std::string ring) :
   m_pCursor(0),
   m_nWordsInBuffer(0),
   m_ringName(ring),
-  m_pRing(0)
+  m_pRing(0),
+  m_pTimestampExtractor(0)
 {
   
 }
@@ -137,7 +139,7 @@ COutputThread::~COutputThread()
 void
 COutputThread::run()
 {
-  
+  getTimestampExtractor();
   operator()();
 }
 
@@ -641,8 +643,23 @@ COutputThread::event(void* pData)
   // If that was the last segment submit it and reset cursors and counters.
 
   if (!haveMore) {			    // Ending segment:
-    CRingItem event(PHYSICS_EVENT, m_nWordsInBuffer*sizeof(uint16_t) + 100); // +100 really needed?
+    //
+    // IF we were given a timestamp extractor we create an event with full
+    // body header.
+    
+    CRingItem* pEvent;
+    if (m_pTimestampExtractor) {
+        pEvent = new CRingItem(
+            PHYSICS_EVENT, m_pTimestampExtractor(m_pBuffer), Globals::sourceId,
+            0, m_nWordsInBuffer*sizeof(uint16_t) + 100
+        );        
+    } else {
+        pEvent = new CRingItem(
+            PHYSICS_EVENT, m_nWordsInBuffer*sizeof(uint16_t) + 100
+        ); // +100 really needed?
+    }
 
+    CRingItem& event(*pEvent);
     // Put the data in the event and figure out where the end pointer is.
 
     void* pDest = event.getBodyPointer();
@@ -653,7 +670,7 @@ COutputThread::event(void* pData)
     event.setBodyCursor(pEnd);
     event.updateSize();
     event.commitToRing(*m_pRing);
-
+    delete pEvent;
     // Reset the cursor and word count in the assembly buffer:
 
     m_nWordsInBuffer = 0;
@@ -699,4 +716,46 @@ COutputThread::attachRing()
 {
   m_pRing = CRingBuffer::createAndProduce(m_ringName);
 
+}
+/**
+ * getTimestampExtractor
+ *    Fills in m_pTimestampExtractor if this should be non-null
+ *    - If the Globals::pTimestampExtractor is non-null
+ *      it is a path to a shared lib that is mapped.
+ *    - If successfully mapped, the entry point getTimestamp() is located
+ *    - If that's found the pointer to getTimestamp is filled in for
+ *      m_pTimestampExtractor.
+ *  Errors in mapping the shared lib and/or in getting the getTimestamp pointer
+ *  result in an error message and program exit with EXIT_FAILURE
+ */
+void
+COutputThread::getTimestampExtractor()
+{
+    if (Globals::pTimestampExtractor) {
+        void* pDllHandle = dlopen(
+            Globals::pTimestampExtractor, RTLD_NOW | RTLD_NODELETE
+        );
+        // Load the so/dll:
+        
+        if (!pDllHandle) {
+            std::cerr << "Failed to load timestamp extractor library: "
+                << Globals::pTimestampExtractor << " "  << dlerror() << std::endl;
+            exit(EXIT_FAILURE);
+        }
+        // Locate the function entry point:
+        
+        void* pFunction = dlsym(pDllHandle, "getTimestamp");
+        if (!pFunction) {
+            std::cerr << "Unable to locate getTimestamp  in "
+                << Globals::pTimestampExtractor << " "
+                << dlerror() << std::endl;
+            exit(EXIT_FAILURE);
+        }
+        // save the entry point and close the handle (RTLD_NODELETE) keeps
+        // the .so/.dll in  memory:
+        
+        m_pTimestampExtractor = reinterpret_cast<TimestampExtractor>(pFunction);
+        dlclose(pDllHandle);
+        
+    }
 }

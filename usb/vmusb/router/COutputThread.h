@@ -100,6 +100,10 @@ class  CRingBuffer;
 
 class COutputThread  : public Thread
 {
+   // Private data type:
+   
+   typedef uint64_t (*TimestampExtractor)(void*);
+   
   // Thread local data:
 private:
   // These are fetched from the CRun state at start of run.
@@ -121,6 +125,7 @@ private:
   CRingBuffer* m_pRing;		    //!< The actual ring in which we put data.
   uint64_t    m_nEventsSeen;        //!< Events processed so far for the physics trigger item.
   unsigned    m_nBuffersBeforeEventCount; //!< Buffers to go before an event count item.
+  TimestampExtractor m_pTimestampExtractor;
 
 
   // Constuctors and other canonicals.
@@ -160,6 +165,7 @@ private:
   void sendToTclServer(uint16_t* pEvent);
   void attachRing();
   void outputTriggerCount(uint32_t runOffset);
+  void getTimestampExtractor();
 };
 
 

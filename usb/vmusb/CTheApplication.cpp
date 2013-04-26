@@ -122,6 +122,23 @@ int CTheApplication::operator()(int argc, char** argv)
 
   struct gengetopt_args_info parsedArgs;
   cmdline_parser(argc, argv, &parsedArgs);	// Actually fails if the commandline is incorrect.
+  
+  // Save the data source id:
+  
+  Globals::sourceId = parsedArgs.sourceid_arg;
+  
+  // If a timstamp lib was given save that as well:
+  
+  
+  
+  Globals::pTimestampExtractor = 0;
+  if (parsedArgs.timestamplib_given) {
+    size_t libLen = strlen(parsedArgs.timestamplib_arg);
+    Globals::pTimestampExtractor = reinterpret_cast<char*>(malloc(libLen + 1));
+    strcpy(
+        Globals::pTimestampExtractor, parsedArgs.timestamplib_arg
+    );
+  }
 
   cerr << "VM-USB scriptable readout version " << versionString << endl;
 

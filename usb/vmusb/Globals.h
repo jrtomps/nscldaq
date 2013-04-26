@@ -49,6 +49,8 @@ namespace Globals {
   extern TclServer*      pTclServer;
   extern unsigned        scalerPeriod;
   extern size_t          usbBufferSize;
+  extern unsigned        sourceId;
+  extern char*           pTimestampExtractor;
 };
 
 #endif

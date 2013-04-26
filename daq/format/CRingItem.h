@@ -136,6 +136,7 @@ private:
   static void blockUntilData(CRingBuffer& ring, size_t nbytes);
   void copyIn(const CRingItem& rhs);
   void throwIfNoBodyHeader(std::string msg) const;
+  void getTimestampExtractor();
 
   
 };

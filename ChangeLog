@@ -474,4 +474,10 @@ Feb 1, 2012 - Feb 24, 2012
           that contains getTimestamp and the events get full body headers with
           timestamp returned by getTimestamp with source id specified by
           --sourceid.
+        * Provide --sourceid and --timestamplib command line options for
+          VMUSBReadout: if --timestamplib is supplied it is a shared library
+          that contains getTimestamp and the events get full body headers with
+          timestamp returned by getTimestamp with source id specified by
+          --sourceid.
+        
         
