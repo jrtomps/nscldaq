@@ -73,9 +73,8 @@ CExperiment::CExperiment(string ringName,
   m_pEventTrigger(0),
   m_pScalerTrigger(0),
   m_pTriggerLoop(0),
-  m_nDataBufferSize(eventBufferSize)
-
-
+  m_nDataBufferSize(eventBufferSize),
+  m_nDefaultSourceId(0)
 {
   m_pRing = CRingBuffer::createAndProduce(ringName);
   m_pRunState = RunState::getInstance();
@@ -100,6 +99,16 @@ CExperiment::~CExperiment()
 }
 /////////////////////////////////////////////////////////////////////////////////////////
 
+/**
+ * Set the default data source id.
+ *
+ * @param sourceId - new default.
+ */
+void
+CExperiment::setDefaultSourceId(unsigned sourceId)
+{
+    m_nDefaultSourceId = sourceId;
+}
 /*!
   Sets a new size for the event buffer.  This must be at least big enough to hold a
   single event.
@@ -451,7 +460,7 @@ CExperiment::ReadEvent()
     m_pReadout->keep();
     m_needHeader = false;
     m_nEventTimestamp = 0;
-    m_nSourceId  = 0;
+    m_nSourceId  = m_nDefaultSourceId;
     
     CRingItem item(PHYSICS_EVENT, m_nDataBufferSize);
     uint16_t* pBuffer = reinterpret_cast<uint16_t*>(item.getBodyPointer());

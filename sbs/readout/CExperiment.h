@@ -56,6 +56,8 @@ class CRingBuffer;
 class CEventSegment;
 class CScaler;
 
+struct gengetopt_args_info;
+
 /*!
   This class controls the experiment.  The experiment consists of two major
   components, scaler lists and events.  Both are organized as
@@ -92,6 +94,7 @@ private:
   uint64_t                m_nEventTimestamp;
   uint32_t                m_nSourceId;
   bool                    m_needHeader;
+  uint16_t                m_nDefaultSourceId;
 
   // Canonicals:
 
@@ -114,6 +117,7 @@ public:
   // Member functions:
 
 public:
+  void   setDefaultSourceId(unsigned sourceId);
   void   setBufferSize(size_t newSize);
   size_t getBufferSize() const;
   void   Start(bool resume=false);
