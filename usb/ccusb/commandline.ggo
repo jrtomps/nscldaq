@@ -8,3 +8,5 @@ option "daqconfig" d "Configuration file for data taking [~/config/daqconfig.tcl
 option "ctlconfig" c "Slow control configuration file [~/config/controconfig.tcl]" string optional
 option "port"      p "Port on which Tcl server should listen [27000]" string typestr="portnumber" optional
 option "enumerate" e "Enumerate CC-USB modules and exit" optional
+option "sourceid"  i "Data source Id for timestamped data" int optional default="0"
+option "timestamplib" t "Path to shared library that can extract timestamps from events" string optional

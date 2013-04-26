@@ -91,6 +91,10 @@ class CRingBuffer;
 
 class COutputThread  : public CSynchronizedThread
 {
+  // Class private types
+  
+  typedef uint64_t (*TimestampExtractor)(void*);
+  
   // Thread local data:
 private:
   // These are fetched from the CRun state at start of run.
@@ -116,6 +120,7 @@ private:
   uint8_t*     m_pBuffer;
   uint8_t*     m_pCursor;
   size_t       m_nWordsInBuffer;
+  TimestampExtractor m_pTimestampExtractor;
   
   // Constuctors and other canonicals.
 
@@ -150,6 +155,7 @@ private:
   void scaler(void* pData);
   void events(DataBuffer&   buffer);
   void processStrings(DataBuffer& buffer, StringsBuffer& strings);
+  void getTimestampExtractor();
 
  
   void event(void* pData);

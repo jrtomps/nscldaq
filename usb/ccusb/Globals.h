@@ -48,6 +48,8 @@ namespace Globals {
   extern CCCUSB*         pUSBController;
   extern uint32_t        bufferSize;
   extern unsigned        scalerPeriod;
+  extern unsigned        sourceId;
+  extern char*           pTimestampExtractor;
 };
 
 #endif

@@ -46,6 +46,7 @@
 #include <unistd.h>
 #include <sys/types.h>
 #include <pwd.h>
+#include <string.h>
 
 #include "cmdline.h"
 
@@ -117,6 +118,22 @@ int CTheApplication::operator()(int argc, char** argv)
 
   cmdline_parser(argc, argv, &arg_struct);
 
+  // Save the data source id:
+  
+  Globals::sourceId = arg_struct.sourceid_arg;
+  
+  // If a timstamp lib was given save that as well:
+  
+  
+  
+  Globals::pTimestampExtractor = 0;
+  if (arg_struct.timestamplib_given) {
+    size_t libLen = strlen(arg_struct.timestamplib_arg);
+    Globals::pTimestampExtractor = reinterpret_cast<char*>(malloc(libLen + 1));
+    strcpy(
+        Globals::pTimestampExtractor, arg_struct.timestamplib_arg
+    );
+  }
 
 
   cerr << "CC-USB scriptable readout version " << versionString << endl;
