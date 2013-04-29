@@ -23,6 +23,11 @@
                 ringbuffer.
             </para>
         </listitem>
+        <listitem>
+            <para>
+                Support for use as a data source with the NSCL event builder.
+            </para>
+        </listitem>
     </itemizedlist>
     <para>
         This Chapter provides overview information that describes
@@ -1493,6 +1498,38 @@ CC-USB scriptable readout version V2.0
                             <literal>CC0134</literal>
                         </para>
                     </informalexample>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><option>--sourceid</option></term>
+                <listitem>
+                    <para>
+                        If a <option>--timestamplib</option> option is present,
+                        events will have a full body header and the integer
+                        value of this switch determines the value of the source
+                        id.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><option>--timestamplib</option></term>
+                <listitem>
+                    <para>
+                        The value of this option is a path to a shared object
+                        library.  If present, the library must have a C
+                        compatible entry point named <function>getTimestamp</function>.
+                        If not supplied all events will have abbreviated body
+                        headers and no timestamps will be present.
+                    </para>
+                    <para>
+                        The library is dynamically loaded into the readout
+                        program and <function>getTimestamp</function> is called
+                        for each event.  <function>getTimestamp</function>
+                        receives a single null pointer parameter, which points
+                        to the event and is supposed to return a
+                        <type>uint64_t</type> value that is that event's
+                        timestamp.
+                    </para>
                 </listitem>
             </varlistentry>
         </variablelist>

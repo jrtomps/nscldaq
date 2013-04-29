@@ -157,6 +157,15 @@
                         available.  On return, the actual number of 16 bit words read
                         should be returned.
                         </para>
+                        <para>
+                            If your Readout is participating in distributed event
+                            building your <methodname>read</methodname> method
+                            must provide the event timestamp and, may optionally,
+                            provide the source id associated with the event.
+                            If not provided, the source id is taken from
+                            value of othe <option>--sourceid</option> command
+                            line option.
+                        </para>
                     </listitem>
                 </varlistentry>
             </variablelist>
@@ -2068,7 +2077,7 @@ MySegment::read(void* pBuffer, size_t maxlen)
                     <type>size_t</type> <parameter>maxwords</parameter>
                     </methodparam>
                 </methodsynopsis>
-
+          
 
          </classsynopsis>
       </refsynopsisdiv>
@@ -2174,6 +2183,8 @@ MySegment::read(void* pBuffer, size_t maxlen)
          </programlisting>
          <synopsis>
             class <ooclass><classname>CEventSegment</classname></ooclass> {
+         </synopsis>
+         <programlisting>
             <methodsynopsis>
                 <modifier>virtual</modifier>
                 <type>void</type> <methodname>initialize</methodname>
@@ -2222,8 +2233,21 @@ MySegment::read(void* pBuffer, size_t maxlen)
                 <type>CEventSegment::AcceptState</type><methodname>getAcceptState</methodname>
                 <void /> <modifier>const</modifier>
             </methodsynopsis>
+            <methodsynopsis>
+                <type>void</type><methodname>setTimestamp</methodname>
+                <methodparam>
+                    <type>uint64_t</type><parameter>stamp</parameter>
+                    </methodparam>
+            </methodsynopsis>
+            <methodsynopsis>
+                <type>void</type><methodname>setSourceId</methodname>
+                <methodparam>
+                    <type>uint32_tr</type><parameter>id</parameter>
+                </methodparam>
+            </methodsynopsis>
+                
         };
-         </synopsis>
+         </programlisting>
       </refsynopsisdiv>
       <refsect1>
          <title>DESCRIPTION</title>
@@ -2343,6 +2367,29 @@ MySegment::read(void* pBuffer, size_t maxlen)
             event segement has its own acceptance state, this cannot be used
             to determine if the event has been marked for rejection by another
             event segment.
+        </para>
+        <methodsynopsis>
+            <type>void</type><methodname>setTimestamp</methodname>
+            <methodparam>
+                <type>uint64_t</type><parameter>stamp</parameter>
+                </methodparam>
+        </methodsynopsis>
+        <para>
+            This should be called from the <methodname>read</methodname> method
+            of at least one event segmetn when Readout is a data source for
+            event building.  The method sets the event timestamp.  If called
+            more than once, the last call in the event readout specifies the time.
+            </para>
+        <methodsynopsis>
+            <type>void</type><methodname>setSourceId</methodname>
+            <methodparam>
+                <type>uint32_tr</type><parameter>id</parameter>
+            </methodparam>
+        </methodsynopsis>
+        <para>
+            Called by an event segment to set the source id.  Normally
+            this is set at the command line via the <option>--sourceid</option>
+            option.
         </para>
       </refsect1>
       <refsect1>
@@ -4118,10 +4165,22 @@ Readout <replaceable>options...</replaceable>
             </listitem>
         </varlistentry>
     <varlistentry>
+        <term><option>--sourceid</option>=<replaceable>value</replaceable></term>
+        <listitem>
+            <para>
+                Sets the default source id for events that have timestamps.
+                Events without timestamp have an abbreviated body header.
+                A call to <methodname>setSourceId</methodname> from within the
+                event processor overrides the value of this switch for this
+                event only.
+            </para>
+        </listitem>
+    </varlistentry>
+    <varlistentry>
         <term><option>--help</option></term>
         <listitem>
             <para>
-                Outputs a summary of the command lineo ptions and exits without
+                Outputs a summary of the command line options and exits without
                 doing anything else useful.
                 </para>
             </listitem>
