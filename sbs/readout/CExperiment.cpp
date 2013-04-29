@@ -194,7 +194,7 @@ CExperiment::Start(bool resume)
     //
     time_t stamp = time(&stamp);	// Absolute timestamp for this 'event'.
     uint64_t msTime = getTimeMs();	// Current time in ms.
-    
+  
     if (m_pRunState->m_state != RunState::paused) {
       m_nRunStartStamp  = msTime;
       m_nEventsEmitted  = 0;
@@ -497,9 +497,9 @@ CExperiment::readScalers()
   time_t           now     = time(&now);
   uint64_t         msTime  = getTimeMs();
   uint32_t         startTime = 
-    (m_nLastScalerTime  - m_nRunStartStamp - m_nPausedmSeconds)/1000;
+    (m_nLastScalerTime  - m_nRunStartStamp - m_nPausedmSeconds);
   uint32_t         endTime   =
-    (msTime - m_nRunStartStamp - m_nPausedmSeconds)/1000;
+    (msTime - m_nRunStartStamp - m_nPausedmSeconds);
 
   m_nLastScalerTime = msTime;
 
@@ -513,7 +513,8 @@ CExperiment::readScalers()
                           startTime,
 			  endTime,
 			  now,
-			  scalers);
+			  scalers,
+                          1000);  // ms time.
     item.commitToRing(*m_pRing);
 			  
   }
