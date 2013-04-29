@@ -14,7 +14,8 @@ INCLUDES		= -I@top_srcdir@/usb/vmusb/threadcomm -DLAST_CHANCE \
 			-I@top_srcdir@/base/headers  \
 			-I@top_srcdir@/usb/vmusb	\
 			-I@top_srcdir@/base/dataflow	\
-			-I@top_srcdir@/daq/format
+			-I@top_srcdir@/daq/format   \
+                        -I@top_srcdir@/daq/eventbuilder
 
 libVMUSBRouter_la_CXXFLAGS=@THREADCXX_FLAGS@
 

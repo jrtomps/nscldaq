@@ -30,10 +30,16 @@
 // File scoped  variables:
 
 static uint64_t firstTimestamp;
+static uint64_t lastTimestamp;
+static uint64_t timestampSum;
+static uint64_t fragmentCount;
+static uint32_t sourceId;
+
 static bool     firstEvent(true);
-uint8_t*        pAccumulatedEvent(0);
-size_t          totalEventSize(0);
-bool            nobuild;
+static uint8_t*        pAccumulatedEvent(0);
+static size_t          totalEventSize(0);
+static bool            nobuild;
+static enum enum_timestamp_policy timestampPolicy;
 
 /**
  * outputGlomParameters
@@ -63,12 +69,40 @@ static void
 flushEvent()
 {
   if (totalEventSize) {
+    
+    // Figure out which timestamp to use in the generated event:
+    
+    uint64_t eventTimestamp;
+    switch (timestampPolicy) {
+        case timestamp_policy_arg_earliest:
+            eventTimestamp = firstTimestamp;
+            break;
+        case timestamp_policy_arg_latest:
+            eventTimestamp = lastTimestamp;
+            break;
+        case timestamp_policy_arg_average:
+            eventTimestamp = (timestampSum/fragmentCount);
+            break;
+        default:
+            // Default to earliest...but should not occur:
+            eventTimestamp = firstTimestamp;
+            break;
+    }
+    
     RingItemHeader header;
-    header.s_size = totalEventSize + sizeof(header) + sizeof(uint32_t);
+    BodyHeader     bHeader;
+    bHeader.s_size      = sizeof(BodyHeader);
+    bHeader.s_timestamp = eventTimestamp;
+    bHeader.s_sourceId  = sourceId;
+    bHeader.s_barrier   = 0;
+    
+    
+    header.s_size = totalEventSize + sizeof(header) + sizeof(uint32_t) + sizeof(BodyHeader);
     header.s_type = PHYSICS_EVENT;
     uint32_t eventSize = totalEventSize + sizeof(uint32_t);
 
     io::writeData(STDOUT_FILENO, &header, sizeof(header));
+    io::writeData(STDOUT_FILENO, &bHeader, sizeof(BodyHeader));
     io::writeData(STDOUT_FILENO, &eventSize,  sizeof(uint32_t));
     io::writeData(STDOUT_FILENO, pAccumulatedEvent, 
 		  totalEventSize);
@@ -98,6 +132,10 @@ static void
 outputBarrier(EVB::pFragment p)
 {
   if(CRingItemFactory::isKnownItemType(p->s_pBody)) {
+    
+    // This is correct if there is or isn't a body header in the payload
+    // ring item.
+    
     pRingItemHeader pH = 
       reinterpret_cast<pRingItemHeader>(p->s_pBody);
     io::writeData(STDOUT_FILENO, pH, pH->s_size);
@@ -152,8 +190,13 @@ accumulateEvent(uint64_t dt, EVB::pFragment pFrag)
   if (firstEvent) {
     firstTimestamp = timestamp;
     firstEvent     = false;
+    fragmentCount  = 0;
+    timestampSum   = 0;
   }
-
+  lastTimestamp    = timestamp;
+  fragmentCount++;
+  timestampSum    += timestamp;
+  
   // Figure out how much we're going to add to the
   // event:
 
@@ -180,6 +223,18 @@ accumulateEvent(uint64_t dt, EVB::pFragment pFrag)
 
 }
 
+static void outputEventFormat()
+{
+    DataFormat format;
+    format.s_header.s_size = sizeof(DataFormat);
+    format.s_header.s_type = RING_FORMAT;
+    format.s_mbz         = 0;
+    format.s_majorVersion = FORMAT_MAJOR;
+    format.s_minorVersion = FORMAT_MINOR;
+    
+    io::writeData(STDOUT_FILENO, & format, sizeof(format));
+}
+
 /**
  * Main for the glommer
  * - Parse the arguments and extract the dt.
@@ -200,8 +255,11 @@ main(int argc, char* const* argv)
   cmdline_parser(argc, argv, &args);
   int dtInt = static_cast<uint64_t>(args.dt_arg);
   nobuild      = args.nobuild_given;
+  timestampPolicy = args.timestamp_policy_arg;
+  sourceId       = args.sourceid_arg;
 
-  outputGlomParameters(dtInt, nobuild);
+  outputEventFormat();
+  
 
   std::cerr << (nobuild ? " glom: not building " : "glom: building") << std::endl;
 
@@ -220,6 +278,7 @@ main(int argc, char* const* argv)
      outputBarrier   - for barriers.
   */
 
+  bool firstBarrier(true);
   try {
     while (1) {
       EVB::pFragment p = CFragIO::readFragment(STDIN_FILENO);
@@ -237,6 +296,13 @@ main(int argc, char* const* argv)
       if (p->s_header.s_barrier) {
 	flushEvent();
 	outputBarrier(p);
+        // First barrier is most likely the begin run...put the glom parameters
+        // right after that.
+        
+        if(firstBarrier) {
+            outputGlomParameters(dtInt, nobuild);
+            firstBarrier = false;
+        }
       } else {
 
 	// If we can determine this is a valid ring item other than

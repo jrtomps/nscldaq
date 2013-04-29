@@ -13,6 +13,7 @@ INCLUDES		= -I@top_srcdir@/usb/ccusb/threadcomm  \
 			-I@top_srcdir@/base/headers		\
 			-I@top_srcdir@/base/dataflow		\
 			-I@top_srcdir@/daq/format		\
+                        -I@top_srcdir@/daq/eventbuilder  \
 			-I@top_srcdir@/base/thread @THREADCXX_FLAGS@
 
 

@@ -479,5 +479,10 @@ Feb 1, 2012 - Feb 24, 2012
           that contains getTimestamp and the events get full body headers with
           timestamp returned by getTimestamp with source id specified by
           --sourceid.
+        * Teach glom to put a timestamp in assembled events according to the
+          timestamp policy of first, latest, or average.
+        * Ensure that all readouts make body headers for all item types
+          though many of them will have null timestamps.
+          
         
         

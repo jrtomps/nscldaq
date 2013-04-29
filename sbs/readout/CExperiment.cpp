@@ -15,6 +15,8 @@
 */
 
 #include <config.h>
+
+
 #include "CExperiment.h"
 #include <CRingBuffer.h>
 #include <DataFormat.h>
@@ -38,6 +40,7 @@
 #include <CBusy.h>
 #include <vector>
 #include <string>
+#include <fragment.h>
 
 using namespace std;
 
@@ -206,11 +209,10 @@ CExperiment::Start(bool resume)
     
     uint32_t elapsedTime = (msTime - m_nRunStartStamp - m_nPausedmSeconds)/1000;
     
-    CRingStateChangeItem item(resume ? PAUSE_RUN : BEGIN_RUN, 
-			      m_pRunState->m_runNumber,
-			      elapsedTime,
-			      stamp,
-			      std::string(m_pRunState->m_pTitle).substr(0, TITLE_MAXSIZE));
+    CRingStateChangeItem item(NULL_TIMESTAMP, m_nSourceId, BARRIER_START,
+        resume ? PAUSE_RUN : BEGIN_RUN,  m_pRunState->m_runNumber,
+	elapsedTime, stamp,
+        std::string(m_pRunState->m_pTitle).substr(0, TITLE_MAXSIZE));
     item.commitToRing(*m_pRing);
     
     DocumentPackets();		// output a documentation packet.
@@ -318,7 +320,8 @@ CExperiment::syncEndRun(bool pause)
     finalState = RunState::inactive;
   }
 
-  CRingStateChangeItem item(itemType, 
+  CRingStateChangeItem item(NULL_TIMESTAMP, m_nSourceId, BARRIER_END,
+                            itemType, 
 			    m_pRunState->m_runNumber,
 			    endOffset,
 			    now,
@@ -506,7 +509,8 @@ CExperiment::readScalers()
     vector<uint32_t> scalers = m_pScalers->read();
     m_pScalers->clear();	// Clear scalers after read.
 
-    CRingScalerItem  item(startTime,
+    CRingScalerItem  item(NULL_TIMESTAMP, m_nSourceId, BARRIER_NOTBARRIER,
+                          startTime,
 			  endTime,
 			  now,
 			  scalers);
@@ -559,7 +563,8 @@ CExperiment::DocumentPackets()
     time_t           now     = time(&now);
     uint64_t         msTime  = getTimeMs();
     uint32_t         offset = (msTime - m_nRunStartStamp - m_nPausedmSeconds)/1000;
-    CRingTextItem item(PACKET_TYPES, packetDefs,
+    CRingTextItem item(NULL_TIMESTAMP, m_nSourceId, BARRIER_NOTBARRIER,
+                       PACKET_TYPES, packetDefs,
 		       offset,
 		       now);
     item.commitToRing(*m_pRing);

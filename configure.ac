@@ -466,6 +466,9 @@ fi
 
 # Exports to the makefiles:
 
+AC_DEFINE(__STDC_LIMIT_MACROS, [], [Needed to define UINT64_C])
+AC_DEFINE(__STDC_CONSTANT_MACROS, [], [Needed to define UINT64_C])
+
 AC_SUBST(SOVERSION)
 AC_SUBST(MANDB)
 

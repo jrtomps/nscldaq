@@ -287,10 +287,6 @@ top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
 lib_LTLIBRARIES = libEventBuilder.la  libEventBuilderClient.la 
-
-#eventorderer_LDFLAGS= @TCL_LDFLAGS@ \
-#		-Wl,"-rpath=@libdir@" \
-#		@THREAD_LDFLAGS@
 libEventBuilder_la_SOURCES = OrdererPackage.cpp CFragmentHandlerCommand.cpp CFragmentHandler.cpp \
 	CInputStatsCommand.cpp COrdererOutput.cpp fragment.c \
 	COutputStatsObserver.cpp COutputStatsCommand.cpp CDataLateStatistics.cpp \

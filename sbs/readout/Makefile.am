@@ -63,6 +63,7 @@ INCLUDES	=	-I@top_srcdir@/sbs/vmemodules	\
 			-I@top_srcdir@/base/dataflow		\
 			-I@top_srcdir@/daq/format		\
 			-I@top_srcdir@/base/thread \
+                        -I@top_srcdir@/daq/eventbuilder         \
 			$(TCL_FLAGS) $(THREADCXX_FLAGS)	\
 			-DHAVE_VME_MAPPING -DHAVE_SBSVME_INTERFACE
 

@@ -42,6 +42,8 @@
 #include <CRingTextItem.h>
 #include <dlfcn.h>
 
+#include <fragment.h>
+
 #include <sys/time.h>
 
 
@@ -318,7 +320,8 @@ COutputThread::startRun(DataBuffer& buffer)
   CDataFormatItem format;
   format.commitToRing(*m_pRing);
 
-  CRingStateChangeItem begin(BEGIN_RUN,
+  CRingStateChangeItem begin(NULL_TIMESTAMP, Globals::sourceId, BARRIER_START,
+                             BEGIN_RUN,
 			     m_runNumber,
 			     0,
 			     static_cast<uint32_t>(timestamp),
@@ -355,7 +358,8 @@ COutputThread::endRun(DataBuffer& buffer)
   timespec microdiff;
   mytimersub(&microtime, &m_startTimestamp, &microdiff);
   
-  CRingStateChangeItem end(END_RUN,
+  CRingStateChangeItem end(NULL_TIMESTAMP, Globals::sourceId, BARRIER_END,
+                           END_RUN,
 			   m_runNumber,
 			   microdiff.tv_sec,
 			   stamp,
@@ -426,7 +430,8 @@ COutputThread::scaler(void* pData)
 
   // Create the final scaler item and submit it to the ring.
 
-  CRingScalerItem scalers(m_elapsedSeconds, endTime, timestamp, counterData);
+  CRingScalerItem scalers(NULL_TIMESTAMP, Globals::sourceId, BARRIER_NOTBARRIER,
+                          m_elapsedSeconds, endTime, timestamp, counterData);
   scalers.commitToRing(*m_pRing);
 
   m_elapsedSeconds = endTime;
@@ -671,7 +676,8 @@ COutputThread::processStrings(DataBuffer& buffer, StringsBuffer& strings)
 
   // Create and commit the item to the ring.
 
-  CRingTextItem texts(strings.s_ringType,
+  CRingTextItem texts(NULL_TIMESTAMP, Globals::sourceId, BARRIER_NOTBARRIER,
+                      strings.s_ringType,
 		      stringVector,
 		      m_elapsedSeconds, // best we can do for now.
 		      now);
