@@ -1,5 +1,5 @@
-bin_PROGRAMS=eventorderer
-bin_PROGRAMS=frag2ring
+bin_PROGRAMS= frag2ring
+
 
 lib_LTLIBRARIES=libEventBuilder.la  libEventBuilderClient.la 
 

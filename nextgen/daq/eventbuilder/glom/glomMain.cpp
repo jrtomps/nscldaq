@@ -177,7 +177,7 @@ accumulateEvent(uint64_t dt, EVB::pFragment pFrag)
  * @param argv - array of pointers to the parameters.
  */
 int
-main(int argc, char* const* argv)
+main(int argc, char**  argv)
 {
   // Parse the parameters;
 
