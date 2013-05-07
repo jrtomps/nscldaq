@@ -111,6 +111,7 @@ void
 CExperiment::setDefaultSourceId(unsigned sourceId)
 {
     m_nDefaultSourceId = sourceId;
+    m_nSourceId        = sourceId;
 }
 /*!
   Sets a new size for the event buffer.  This must be at least big enough to hold a

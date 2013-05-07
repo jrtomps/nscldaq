@@ -193,7 +193,7 @@ CReadoutMain::CreateExperiment(void* parsed)
   std::string ringname = getRingName(parsedArgs);
 
   CExperiment* pExperiment = new CExperiment(ringname);
-  pExperiment->setDefaultSourceId(parsedArgs.sourcid_arg);
+  pExperiment->setDefaultSourceId(parsedArgs.sourceid_arg);
   return pExperiment;
 
 

@@ -300,7 +300,7 @@ main(int argc, char* const* argv)
         // right after that.
         
         if(firstBarrier) {
-            outputGlomParameters(dtInt, nobuild);
+            outputGlomParameters(dtInt, !nobuild);
             firstBarrier = false;
         }
       } else {
