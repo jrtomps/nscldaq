@@ -9,7 +9,7 @@ libS800TimeExtractor_la_SOURCES = s800timestamp.c
 libGretinaTimeExtractor_la_SOURCES = gretinaTimestamp.c
 
 
-ringFragmentSource_SOURCES=rfcmdline.c CRingSource.cpp Main.cpp
+ringFragmentSource_SOURCES=rfcmdline.c CRingSource.cpp Main.cpp GetOpt.cpp
 
 ringTestSource_SOURCES= ringTestSource.cpp ringtestoptions.c TestSource.cpp
 
@@ -66,6 +66,6 @@ ringFragmentSource_LDADD=  		 \
 	@top_builddir@/base/dataflow/libDataFlow.la \
 	@top_builddir@/base/dataflow/libRingBuffer.la \
 	@top_builddir@/base/os/libdaqshm.la	\
-	$(THREAD_LDFLAGS) 
+	$(THREAD_LDFLAGS) -lefence
 
 EXTRA_DIST=ringsource.xml ringtestoptions.ggo
