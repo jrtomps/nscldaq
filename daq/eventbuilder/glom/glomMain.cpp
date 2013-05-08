@@ -52,7 +52,8 @@ static enum enum_timestamp_policy timestampPolicy;
 static void
 outputGlomParameters(uint64_t dt, bool building)
 {
-    pGlomParameters p = formatGlomParameters(dt, building ? 1 : 0);
+    pGlomParameters p = formatGlomParameters(dt, building ? 1 : 0,
+                                             timestampPolicy);
     io::writeData(STDOUT_FILENO, p, p->s_header.s_size);
 }
 

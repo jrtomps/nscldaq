@@ -23,6 +23,9 @@
 #include <CRingTextItem.h>
 #include <stdlib.h>
 #include <os.h>
+#include <assert.h>
+
+#include <DataFormat.h>
 
 
 using namespace std;
@@ -43,7 +46,8 @@ readItem(int fd, void* pBuffer)
   p += bytes;
   size_t remaining = h->s_size - sizeof(RingItemHeader);
   bytes = read(fd, p, remaining);
-  ASSERT(remaining == bytes);
+
+  EQ(remaining, bytes);
 
 }
 
@@ -86,7 +90,9 @@ static int spawn(const char* command)
     close(STDOUT_FILENO);
     dup2(writePipe, STDOUT_FILENO);
 
-    system(command);
+    int status = system(command);
+    assert(status != -1);
+    
     exit(0);
 
   }
@@ -107,11 +113,11 @@ static void textItem(CRingBuffer& prod, int fd, bool check = true)
     char buffer[2048];
     readItem(fd, buffer);
     pTextItem e = reinterpret_cast<pTextItem>(buffer);
-
+    pTextItemBody pb = &(e->s_body.u_noBodyHeader.s_body);
     EQ(PACKET_TYPES, e->s_header.s_type);
-    EQ((uint32_t)3,  e->s_stringCount);
+    EQ((uint32_t)3,  pb->s_stringCount);
 
-    char* p = e->s_strings;
+    char* p = pb->s_strings;
     string s1(p);
     p += s1.size() + 1;
     string s2(p);
@@ -138,12 +144,13 @@ static void scaler(CRingBuffer& prod, int fd, bool check=true)
     readItem(fd, buffer);
 
     pScalerItem e = reinterpret_cast<pScalerItem>(buffer);
+    pScalerItemBody pb = &(e->s_body.u_noBodyHeader.s_body);
     EQ(PERIODIC_SCALERS, e->s_header.s_type);
-    EQ((uint32_t)0,         e->s_intervalStartOffset);
-    EQ((uint32_t)10,        e->s_intervalEndOffset);
-    EQ((uint32_t)32,        e->s_scalerCount);
+    EQ((uint32_t)0,         pb->s_intervalStartOffset);
+    EQ((uint32_t)10,        pb->s_intervalEndOffset);
+    EQ((uint32_t)32,        pb->s_scalerCount);
     for (uint32_t i =0; i < 32; i++) {
-      EQ(i, e->s_scalers[i]);
+      EQ(i, pb->s_scalers[i]);
     }
   }
 
@@ -158,9 +165,10 @@ static void eventCount(CRingBuffer& prod, int fd, int count, bool check=true)
     char buffer[1024];
     readItem(fd, buffer);
     pPhysicsEventCountItem e = reinterpret_cast<pPhysicsEventCountItem>(buffer);
+    pPhysicsEventCountItemBody pb = &(e->s_body.u_noBodyHeader.s_body);
     EQ(PHYSICS_EVENT_COUNT, e->s_header.s_type);
-    EQ((uint32_t)12, e->s_timeOffset);
-    EQ((uint64_t)count, e->s_eventCount);
+    EQ((uint32_t)12, pb->s_timeOffset);
+    EQ((uint64_t)count, pb->s_eventCount);
   }
 }
 
@@ -180,10 +188,11 @@ static void event(CRingBuffer& prod, int fd, bool check=true)
     char buffer[1024];
     readItem(fd, buffer);
     pPhysicsEventItem e = reinterpret_cast<pPhysicsEventItem>(buffer);
+    uint16_t* pB   = (e->s_body.u_noBodyHeader.s_body);
     EQ(PHYSICS_EVENT, e->s_header.s_type);
-    EQ((uint16_t)11, e->s_body[0]);
+    EQ((uint16_t)11, pB[0]);
     for (int i = 0; i < 10; i++) {
-      EQ((uint16_t)i, e->s_body[i+1]);
+      EQ((uint16_t)i, pB[i+1]);
     }
   }
 
@@ -207,10 +216,11 @@ static void beginRun(CRingBuffer& prod, int fd,  bool check = true)
     
     readItem(fd, buffer);
     pStateChangeItem item = reinterpret_cast<pStateChangeItem>(buffer);
+    pStateChangeItemBody  pb = &(item->s_body.u_noBodyHeader.s_body);
     EQ(BEGIN_RUN, item->s_header.s_type);
-    EQ((uint32_t)1234,      item->s_runNumber);
-    EQ((uint32_t)0,         item->s_timeOffset);
-    EQ(string("This is a title"), string(item->s_title));
+    EQ((uint32_t)1234,      pb->s_runNumber);
+    EQ((uint32_t)0,         pb->s_timeOffset);
+    EQ(string("This is a title"), string(pb->s_title));
   }
 }
 
@@ -230,10 +240,11 @@ static void pauseRun(CRingBuffer& prod, int fd, bool check=true)
     
     readItem(fd, buffer);
     pStateChangeItem item = reinterpret_cast<pStateChangeItem>(buffer);
+    pStateChangeItemBody pb = &(item->s_body.u_noBodyHeader.s_body);
     EQ(PAUSE_RUN, item->s_header.s_type);
-    EQ((uint32_t)1234,      item->s_runNumber);
-    EQ((uint32_t)15,         item->s_timeOffset);
-    EQ(string("This is a title"), string(item->s_title));
+    EQ((uint32_t)1234,      pb->s_runNumber);
+    EQ((uint32_t)15,         pb->s_timeOffset);
+    EQ(string("This is a title"), string(pb->s_title));
   }
 }
 
@@ -253,10 +264,11 @@ static void resumeRun(CRingBuffer& prod, int fd, bool check = true)
     
     readItem(fd, buffer);
     pStateChangeItem item = reinterpret_cast<pStateChangeItem>(buffer);
+    pStateChangeItemBody pb = &(item->s_body.u_noBodyHeader.s_body);
     EQ(RESUME_RUN, item->s_header.s_type);
-    EQ((uint32_t)1234,      item->s_runNumber);
-    EQ((uint32_t)15,         item->s_timeOffset);
-    EQ(string("This is a title"), string(item->s_title));
+    EQ((uint32_t)1234,      pb->s_runNumber);
+    EQ((uint32_t)15,         pb->s_timeOffset);
+    EQ(string("This is a title"), string(pb->s_title));
   }
 }
 
@@ -277,10 +289,12 @@ static void endRun(CRingBuffer& prod, int fd, bool check = true)
     
     readItem(fd, buffer);
     pStateChangeItem item = reinterpret_cast<pStateChangeItem>(buffer);
+    pStateChangeItemBody pb = &(item->s_body.u_noBodyHeader.s_body);
+    
     EQ(END_RUN, item->s_header.s_type);
-    EQ((uint32_t)1234,       item->s_runNumber);
-    EQ((uint32_t)25,         item->s_timeOffset);
-    EQ(string("This is a title"), string(item->s_title));
+    EQ((uint32_t)1234,       pb->s_runNumber);
+    EQ((uint32_t)25,         pb->s_timeOffset);
+    EQ(string("This is a title"), string(pb->s_title));
   }
 }
 
@@ -381,6 +395,7 @@ void rseltests::exclude()
     
 
     beginRun(prod, fd, false);
+    pauseRun(prod, fd);
     endRun(prod,fd);		// Should be the first one back from the program.
   }
   catch (...) {

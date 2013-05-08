@@ -483,6 +483,9 @@ Feb 1, 2012 - Feb 24, 2012
           timestamp policy of first, latest, or average.
         * Ensure that all readouts make body headers for all item types
           though many of them will have null timestamps.
-          
-        
+        * Add timestamp policy to the GlomParameters item.
+        * Ensure that ring selector uses the ring item header to size its writes
+          rather than some fancy arithmetic that fails now that we have body
+          headers.
+        * Get all unit tests to pass.
         

@@ -43,7 +43,7 @@ noinst_HEADERS = CFragmentHandlerCommand.h CFragmentHandler.h cmdline.h \
 	CConfigure.h
 
 
-INCLUDES = -D__STDC_LIMIT_MACROS -D__STDC_CONSTANT_MACROS \
+INCLUDES =  \
 	-I@top_srcdir@/daq/format \
 	-I@top_srcdir@/base/tcpip \
 	-I@top_srcdir@/base/exception  \

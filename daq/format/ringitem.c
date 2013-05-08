@@ -852,13 +852,14 @@ formatTimestampedStateChange(
  *
  * @param interval - Ticks that define a coincidence interval if building.
  * @param isBuilding - on zero if glom is building events.
- *
+ * @param timestampPolicy - value to put in timestamp policy field.
+ * 
  * @return pGlomParameters - pointer to a malloc()'d GlomParameters ring item
- *                           that was filled in by this function.
+ *                           that was filled in by this function
  * @retval null is returned if the allocation of the ring item failed.
  */
 pGlomParameters
-formatGlomParameters(uint64_t interval, int isBuilding)
+formatGlomParameters(uint64_t interval, int isBuilding, int timestampPolicy)
 {
     pGlomParameters pResult = (pGlomParameters)malloc(sizeof(GlomParameters));
     if (pResult) {
@@ -868,6 +869,7 @@ formatGlomParameters(uint64_t interval, int isBuilding)
         pResult->s_mbz = 0;
         pResult->s_coincidenceTicks = interval;
         pResult->s_isBuilding = isBuilding;
+        pResult->s_timestampPolicy = timestampPolicy;
     }
     
     return pResult;

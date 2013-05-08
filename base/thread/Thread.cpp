@@ -22,12 +22,6 @@
 
 using namespace std;
 
-/** TODO:
-    Substitute NSCLDAQ Exceptions here.
-*/
-
-
-
 
 void*
 Thread::threadStarter(void *aThread) {

@@ -479,7 +479,7 @@ COutputThread::processStrings(DataBuffer& buffer, StringsBuffer& strings)
                       strings.s_ringType,
 		      stringVector,
 		      m_elapsedSeconds, // best we can do for now.
-		      now);
+		      static_cast<uint32_t>(now));
   texts.commitToRing(*m_pRing);
 
 }

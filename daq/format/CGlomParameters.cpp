@@ -20,6 +20,17 @@
 
 #include <sstream>
 
+
+/**
+ * @note the definition below requires that the order of array elements matches
+ *       the timestamp policy values
+ */
+
+static const char* policyNames[4] = {
+    "first", "last" , "average", "Error - undefined"
+};
+
+
 /*-------------------------------------------------------------------------
  * Canonical methods
  *-----------------------------------------------------------------------*/
@@ -33,8 +44,11 @@
  * @param interval   - Number of ticks in the event building coincidence window.
  * @param isBuilding - If true the output of glom is built rather than just
  *                     ordered/formatted events.
+ * @param policy     - The timestamp policy used by glom.
  */
-CGlomParameters::CGlomParameters(uint64_t interval, bool isBuilding) :
+CGlomParameters::CGlomParameters(
+    uint64_t interval, bool isBuilding, CGlomParameters::TimestampPolicy policy
+) :
     CRingItem(EVB_GLOM_INFO, sizeof(GlomParameters))
 {
     // Fill in the body of the item:
@@ -42,6 +56,7 @@ CGlomParameters::CGlomParameters(uint64_t interval, bool isBuilding) :
     pGlomParameters pItem = reinterpret_cast<pGlomParameters>(getItemPointer());
     pItem->s_coincidenceTicks = interval;
     pItem->s_isBuilding       = (isBuilding ? 0xffff : 0);
+    pItem->s_timestampPolicy  = policy;
     
     // Set the insertion cursor...and compute the final item size.
     
@@ -151,6 +166,21 @@ CGlomParameters::isBuilding() const
     
     return pItem->s_isBuilding;
 }
+/**
+ * timestampPolicy
+ *
+ * @return CGlomParameters::TimestampPolicy - the timestamp policy from
+ *         the ring item.
+ */
+CGlomParameters::TimestampPolicy
+CGlomParameters::timestampPolicy() const
+{
+    CGlomParameters* This = const_cast<CGlomParameters*>(this);
+    pGlomParameters pItem =
+        reinterpret_cast<pGlomParameters>(This->getItemPointer());
+        
+    return static_cast<TimestampPolicy>(pItem->s_timestampPolicy);
+}
 /*---------------------------------------------------------------------------
  * Object methods
  *-------------------------------------------------------------------------*/
@@ -183,6 +213,12 @@ CGlomParameters::toString() const
         out << "Event building coincidence window is: "
             << coincidenceTicks() << " timestamp ticks\n";
     }
-        
+    unsigned tsPolicy = static_cast<unsigned>(timestampPolicy());
+    if (tsPolicy >= sizeof(policyNames)/sizeof(char*)) {
+        tsPolicy = sizeof(policyNames)/sizeof(char*) - 1;
+    }
+    out << "TimestampPolicy : policyNames[tsPolicy]\n";
+    
+    
     return out.str();
 }

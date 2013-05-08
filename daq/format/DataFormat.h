@@ -43,7 +43,7 @@ be zero.
 \verbatim
 
 typedef struct _DataSourceHeader {
-  uint32_t   s_size;                 // sizeof(DataSourceHeader)
+  uint32_t   s_size;                 // sizeof(DataSourceHeader) 
   uint64_t   s_timestamp;
   uint32_t   s_sourceId;
   int32_t    s_barrier;
@@ -51,7 +51,7 @@ typedef struct _DataSourceHeader {
 
 typedef union _BodyHeader {
     uint32_t         s_mbz;             // Contains zero.
-    DataSourceHeader s_header;          // Has full header.
+    DataSourceHeader s_header;          // Has full header. 
 } BodyHeader;
 
 struct Body {
@@ -105,50 +105,58 @@ typdef union Body {
 #endif
 #endif
 
-// 11.0 and later define a format item that starts the run.
-// so that decoders know what format the ring is in.
+/*
+    11.0 and later define a format item that starts the run.
+    so that decoders know what format the ring is in.
+*/
 
 static const uint16_t FORMAT_MAJOR  = 11;  /* nscldaq-11. */
 static const uint16_t FORMAT_MINOR  =  0;  /* nscldaq-x.0 */
 
-// state change item type codes:
+/* state change item type codes: */
 
 static const uint32_t BEGIN_RUN  = 1;
 static const uint32_t END_RUN    = 2;
 static const uint32_t PAUSE_RUN  = 3;
 static const uint32_t RESUME_RUN = 4;
 
-// Documentation item type codes:
+/*  Documentation item type codes: */
 
 static const uint32_t PACKET_TYPES        = 10;
 static const uint32_t MONITORED_VARIABLES = 11;
 static const uint32_t RING_FORMAT         = 12; /* Has format major/minor in it. */
 
-// Scaler data:
+/* Scaler data: */
 
 static const uint32_t PERIODIC_SCALERS = 20;
 
 
-// Note timestamped nonincremental scalers absorbed into incremental scalers.
+/* Note timestamped nonincremental scalers absorbed into incremental scalers. */
 
-// Physics events:
+/* Physics events: */
 
 static const uint32_t PHYSICS_EVENT       = 30;
 static const uint32_t PHYSICS_EVENT_COUNT = 31;
 
 
-// Event builder related items:
+/* Event builder related items: */
 
 static const uint32_t EVB_FRAGMENT        = 40; /* Event builder fragment. */
 static const uint32_t EVB_UNKNOWN_PAYLOAD = 41; /* Evb fragment whose payload isn't a ring item */
 static const uint32_t EVB_GLOM_INFO       = 42; /* GLOM Parameters.                            */
 
-// User defined item codes
+/* User defined item codes */
 
 static const uint32_t FIRST_USER_ITEM_CODE = 32768; /* 0x8000 */
+                                                      
+/* Glom can assign the timestamp policy as follows: */
+
+static const uint16_t GLOM_TIMESTAMP_FIRST   =  0;
+static const uint16_t GLOM_TIMESTAMP_LAST    =  1;
+static const uint16_t GLOM_TIMESTAMP_AVERAGE = 2;
 
 
-// Longest allowed title:
+/* Longest allowed title: */
 
 #ifndef TITLE_MAXSIZE
 #define TITLE_MAXSIZE 80
@@ -359,6 +367,7 @@ typedef struct _GlomParameters  {
     uint32_t       s_mbz;
     uint64_t       s_coincidenceTicks;
     uint16_t       s_isBuilding;
+    uint16_t       s_timestampPolicy;   /* See GLOM_TIMESTAMP_* above */
     
 } GlomParameters, *pGlomParameters;
 /**
@@ -369,25 +378,26 @@ typedef struct _GlomParameters  {
 extern "C" {
 #endif
 
-  pPhysicsEventItem  formatEventItem(size_t nWords, void* pPayload);    //
+  pPhysicsEventItem  formatEventItem(size_t nWords, void* pPayload);    
   pPhysicsEventCountItem formatTriggerCountItem(uint32_t runTime, time_t stamp,
-                                                uint64_t triggerCount); //
+                                                uint64_t triggerCount); 
   pScalerItem         formatScalerItem(unsigned scalerCount, time_t timestamp, 
 				      uint32_t btime, uint32_t etime,
-                                      void* pCounters);                 //
+                                      void* pCounters);                 
   pScalerItem         formatNonIncrTSScalerItem(unsigned scalerCount, time_t timestamp, 
 						       uint32_t btime, uint32_t etime, 
 						       uint64_t eventTimestamp, void* pCounters,
 						       uint32_t timebaseDivisor);
   pTextItem          formatTextItem(unsigned nStrings, time_t stamp, uint32_t runTime,
-				    const char** pStrings, int type);    //
+				    const char** pStrings, int type);   
   pStateChangeItem   formatStateChange(time_t stamp, uint32_t offset, uint32_t runNumber,
-				       const char* pTitle, int type);    //
+				       const char* pTitle, int type);   
   
   /* Since 11.0 these functions were added: */
   
   pDataFormat           formatDataFormat();
-  pGlomParameters       formatGlomParameters(uint64_t coincidenceWindow, int isBuilding);
+  pGlomParameters       formatGlomParameters(uint64_t coincidenceWindow, int isBuilding,
+                                             int timestampPolicy);
   
   pEventBuilderFragment formatEVBFragment(
     uint64_t timestamp, uint32_t sourceId, uint32_t barrier,

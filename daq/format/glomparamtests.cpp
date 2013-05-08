@@ -37,10 +37,11 @@ CPPUNIT_TEST_SUITE_REGISTRATION(GlomItemTests);
 void
 GlomItemTests::notBuilding()
 {
-    CGlomParameters item(static_cast<uint64_t>(1234), false);
+    CGlomParameters item(static_cast<uint64_t>(1234), false, CGlomParameters::last);
     
     EQ(static_cast<uint64_t>(1234), item.coincidenceTicks());
     EQ(false, item.isBuilding());
+    EQ(CGlomParameters::last, item.timestampPolicy());
 }
 //
 // Test parametrs if building:
@@ -48,7 +49,7 @@ GlomItemTests::notBuilding()
 void
 GlomItemTests::isBuilding()
 {
-    CGlomParameters item(static_cast<uint64_t>(1234), true);
+    CGlomParameters item(static_cast<uint64_t>(1234), true, CGlomParameters::first);
     EQ(true, item.isBuilding());
 }
 
@@ -57,7 +58,7 @@ GlomItemTests::isBuilding()
 void
 GlomItemTests::structure()
 {
-    CGlomParameters item(static_cast<uint64_t>(1234), false);
+    CGlomParameters item(static_cast<uint64_t>(1234), false, CGlomParameters::average);
     
     pGlomParameters pItem =
         reinterpret_cast<pGlomParameters>(item.getItemPointer());
@@ -75,5 +76,6 @@ GlomItemTests::structure()
     
     EQ(static_cast<uint64_t>(1234), pItem->s_coincidenceTicks);
     ASSERT(!pItem->s_isBuilding);
+    EQ(GLOM_TIMESTAMP_AVERAGE, pItem->s_timestampPolicy);
     
 }

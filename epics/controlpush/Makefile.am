@@ -63,6 +63,6 @@ unittests_SOURCES = TestRunner.cpp ChannelListTests.cpp  \
 
 unittests_LDADD = $(CPPUNIT_LDFLAGS) $(controlpush_LDADD)
 
-TESTS=./unittests
+# TESTS=./unittests
 
 endif

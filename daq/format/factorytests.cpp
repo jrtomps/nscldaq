@@ -503,7 +503,7 @@ void
 RingFactoryTests::glom()
 {
     pGlomParameters pI = formatGlomParameters(
-        static_cast<uint64_t>(100), 1
+        static_cast<uint64_t>(100), 1, GLOM_TIMESTAMP_FIRST
     );
     CRingItem* pItem = CRingItemFactory::createRingItem(pI);
     CGlomParameters item(*pItem);
@@ -511,4 +511,6 @@ RingFactoryTests::glom()
     ASSERT(!item.hasBodyHeader());
     EQ(static_cast<uint64_t>(100), item.coincidenceTicks());
     EQ(true, item.isBuilding());
+    EQ(CGlomParameters::first, item.timestampPolicy());
+
 }

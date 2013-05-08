@@ -39,10 +39,17 @@
  */
 class CGlomParameters : public CRingItem
 {
+public:
+    // Note the enum values below _must_ match those in DataFormat.h:
+    
+    typedef enum _TimestampPolicy {
+        first = 0, last = 1, average = 2
+    } TimestampPolicy;
+    
     // Canonicals:
     
 public:
-    CGlomParameters(uint64_t interval, bool isBuilding);
+    CGlomParameters(uint64_t interval, bool isBuilding, TimestampPolicy policy);
     virtual ~CGlomParameters();
     CGlomParameters(const CGlomParameters& rhs);
     CGlomParameters(const CRingItem& rhs) throw(std::bad_cast);
@@ -55,6 +62,7 @@ public:
 public:
    uint64_t coincidenceTicks() const;
    bool     isBuilding() const;
+   TimestampPolicy timestampPolicy() const;
    
    // Object methods:
 public:

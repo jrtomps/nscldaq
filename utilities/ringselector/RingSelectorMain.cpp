@@ -207,8 +207,8 @@ RingSelectorMain::processData()
 {
   while(1) {
     CRingItem* pItem = CRingItem::getFromRing(*m_pRing, *m_pPredicate);
-    size_t     size  = pItem->getBodySize() + sizeof(RingItemHeader);
     RingItem*  pData = pItem->getItemPointer();
+    size_t     size  = pData->s_header.s_size;
     writeBlock(STDOUT_FILENO, pData, size);
 
     // If exit on end is requested we'll need to know the type before

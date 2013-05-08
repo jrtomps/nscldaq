@@ -486,8 +486,7 @@ CXLM::loadFile(std::string path, void* contents, uint32_t size) throw(std::strin
 
   // read can be partial... this can happen on signals or  just due to buffering;
   // therefore the loop below is the safe way to use read(2) to load a file.
-  // TODO:  We need to make a library of such 'simple little things'... as I'm sure I've used
-  //        loops like this in several places in my life.
+  // TODO:  use os::readdata instead.
   // 
   uint8_t* p = reinterpret_cast<uint8_t*>(contents); // qty read on each read(2) call are bytes.
   try {

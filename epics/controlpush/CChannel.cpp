@@ -1,6 +1,8 @@
 #include <config.h>
 #include "CChannel.h"
 #include <stdio.h>
+#include <iostream>
+#include <stdlib.h>
 
 
 using namespace std;
@@ -206,7 +208,9 @@ CChannel::StateHandler(connection_handler_args args)
     pChannel->m_pConverter = 0;
   }
   else {			// none of the above.
-    // TODO: Figure out appropriate error handling here.
+    std::cerr << "CChannel::StateHandler  - invalid state change: "
+        << op << std::endl;
+        exit(EXIT_FAILURE);
   }
 }
 /**
@@ -235,7 +239,9 @@ CChannel::UpdateHandler(event_handler_args args)
     }
   }
   else {
-    // TODO:  Figure out appropriate error action if any.
+    std::cerr << "Warning - CChannel::UpdateHandler - status not normal: "
+        << args.status <<  << " ignoring update " << std::endl;
+        
   }
 }
 

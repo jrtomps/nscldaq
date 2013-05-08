@@ -568,7 +568,7 @@ CExperiment::DocumentPackets()
     CRingTextItem item(NULL_TIMESTAMP, m_nSourceId, BARRIER_NOTBARRIER,
                        PACKET_TYPES, packetDefs,
 		       offset,
-		       now);
+		       static_cast<uint32_t>(now));
     item.commitToRing(*m_pRing);
   }
 }

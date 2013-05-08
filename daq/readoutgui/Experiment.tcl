@@ -419,8 +419,8 @@ proc Experiment::RunEnded {} {
         Experiment::waitFile $donefile 1000 $fileWaitTimeout
         if {![file exists $donefile]} {
             Diagnostics::Warning "eventlog may not have finished normally continuing with post run actions"
+            catch {exec kill -9 $eventlogPid};    # Try to manually kill eventlog.
         }
-        #  TODO:   Perhaps we should force event log to end if .done is not present yet?
 
         file delete -force  $donefile
 	set EventlogPid     0

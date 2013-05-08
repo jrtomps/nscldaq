@@ -933,7 +933,7 @@ void
 MiscFormat::glomParameters()
 {
     pGlomParameters pItem = formatGlomParameters(
-        static_cast<uint64_t>(100), 1
+        static_cast<uint64_t>(100), 1, GLOM_TIMESTAMP_AVERAGE
     );
     
     // Check header:
@@ -946,6 +946,7 @@ MiscFormat::glomParameters()
     EQ(static_cast<uint32_t>(0), pItem->s_mbz);
     EQ(static_cast<uint64_t>(100), pItem->s_coincidenceTicks);
     EQ(static_cast<uint16_t>(1), pItem->s_isBuilding);
+    EQ(static_cast<uint16_t>(GLOM_TIMESTAMP_AVERAGE), pItem->s_timestampPolicy);
     
     free(pItem);
 }

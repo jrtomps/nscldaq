@@ -6,8 +6,7 @@ INCLUDES=-I@top_srcdir@/daq/eventbuilder \
 	-I@top_srcdir@/daq/format       \
 	-I@top_srcdir@/base/exception   \
 	-I@top_srcdir@/base/os		\
-	-I@top_srcdir@/base/headers  \
-	-D__STDC_LIMIT_MACROS -D__STDC_CONSTANT_MACROS
+	-I@top_srcdir@/base/headers  
 
 unglom_LDADD = @top_builddir@/daq/format/libdataformat.la  \
 	@top_builddir@/daq/eventbuilder/libEventBuilder.la \

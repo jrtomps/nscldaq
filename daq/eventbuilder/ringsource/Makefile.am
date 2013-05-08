@@ -57,9 +57,8 @@ clean-local:
 INCLUDES=-I.. -I@top_srcdir@/base/dataflow \
 	-I@top_srcdir@/daq/format \
 	-I@top_srcdir@/base/exception -I@top_srcdir@/base/headers \
-	-I@top_srcdir@/base/os \
-	-D__STDC_LIMIT_MACROS -D__STDC_CONSTANT_MACROS
-
+	-I@top_srcdir@/base/os
+        
 ringFragmentSource_LDADD=  		 \
 	@top_builddir@/daq/eventbuilder/libEventBuilderClient.la \
 	@top_builddir@/daq/format/libdataformat.la \
