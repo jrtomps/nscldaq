@@ -488,4 +488,6 @@ Feb 1, 2012 - Feb 24, 2012
           rather than some fancy arithmetic that fails now that we have body
           headers.
         * Get all unit tests to pass.
+        * Add GUI element in event builder RDO Callouts to control the glom
+          --timestamp-policy switch.
         

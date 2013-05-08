@@ -50,6 +50,8 @@ namespace eval ::EVBC {
     set intermediateRing     ""
     set intermediateRingName ""
     set destRing             $::tcl_platform(user)
+    
+    set glomTsPolicy        earliest
 }
 #-------------------------------------------------------------------------------
 ##
@@ -64,13 +66,38 @@ namespace eval ::EVBC {
 #    * -glombuild - If true glom will build events.
 #    * -glomdt    - ticks in the coincidence interval used to build events.
 #                   required if -glombuild is true.
+#    * -glomtspolicy - Timestamp policy for glom.
 #    * -destring  - Final destination ring of glom's output.
 #                   defaults to the users's name.
 snit::type EVBC::StartOptions {
     option -teering
     option -glombuild false
-    option -glomdt
+    option -glomdt 1
+    option -glomtspolicy -configuremethod checkTsPolicy -default earliest
     option -destring $::tcl_platform(user)
+    
+    variable policyValues [list earliest latest average]
+    ##
+    # checkTsPolicy
+    #    must be one of earliest, latest, or average
+    #
+    # @param optname - name of option in which to save this.
+    # @param value   - Proposed new value.
+    #
+    method checkTsPolicy {optname value} {
+        if {$value ni $policyValues} {
+            error "--glomtspolicy was $value must be one of {[join $policyValues ", "]}"
+        }
+        set options($optname) $value
+    }
+    ##
+    # getGlomTsPolicies
+    #    Get a  list of the glom timestamp policies.
+    #
+    method getGlomTsPolicies {} {
+        return $policyValues
+    }
+    
 }
 
 
@@ -90,6 +117,7 @@ snit::type EVBC::AppOptions {
     option -gui     true
     option -restart true
     delegate option * to startOptions
+    delegate method * to startOptions
     
     ##
     # constructor
@@ -161,8 +189,9 @@ proc EVBC::start args {
     
     set glom "[file join $bindir glom] --dt=[$options cget -glomdt] "
     if {![$options cget -glombuild]} {
-        append glom --nobuild
+        append glom " --nobuild "
     }
+    append glom " --timestamp-policy=[$options cget -glomtspolicy] "
     append pipecommand " | $glom"
     #
     #  Ground the pipeline in the -destring 
@@ -406,6 +435,7 @@ proc EVBC::onBegin {} {
             -teering   $teering   \
             -glombuild [$EVBC::applicationOptions cget -glombuild] \
             -glomdt    [$EVBC::applicationOptions cget -glomdt]    \
+            -glomtspolicy [$EVBC::applicationOptions cget -glomtspolicy] \
             -destring  $destring
         
         if {$EVBC::guiFrame ne ""} {
@@ -553,6 +583,8 @@ proc EVBC::_StartGui {} {
     
     # The Glom control frame:
     
+    # Glom building or not and coincidence window.
+    
     
     set glom [ttk::labelframe  $window.glom -text {Event Building parameters}]
     set EVBC::buildEvents [$EVBC::applicationOptions cget -glombuild]
@@ -573,6 +605,22 @@ proc EVBC::_StartGui {} {
     _GlomEnableDisable $glom.build $glom.dt;     # Set initial enable/disable of spinbox.
     
     grid $glom.build $glom.dt $glom.dtlabel
+    
+    # Glom timestamp policy:
+    
+    set policies [$::EVBC::applicationOptions getGlomTsPolicies]
+    ttk::label $glom.plabel -text "Ts is: "
+    grid $glom.plabel -row 1 -column 0
+    set col 1
+    foreach policy $policies {
+        radiobutton $glom.$policy \
+            -variable ::EVBC::glomTsPolicy -value $policy -text $policy \
+            -command [list $EVBC::applicationOptions configure -glomtspolicy $policy]
+        grid $glom.$policy -row 1 -column $col
+        
+        incr col
+    }
+    
     grid $glom -row 0 -column 0
     
     #  Enable/disable intermediate ring and which ring it is:
