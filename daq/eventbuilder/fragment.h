@@ -17,6 +17,13 @@
 #ifndef __FRAGMENT_H
 #define __FRAGMENT_H
 
+#ifndef __CONFIG_H
+#include <config.h>
+#ifndef __CONFIG_H
+#define __CONFIG_H
+#endif
+#endif
+
 #ifndef __CRTL_STDINT_H
 #include <stdint.h>
 #ifndef __CRTL_STDINT_H

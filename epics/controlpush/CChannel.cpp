@@ -240,7 +240,7 @@ CChannel::UpdateHandler(event_handler_args args)
   }
   else {
     std::cerr << "Warning - CChannel::UpdateHandler - status not normal: "
-        << args.status <<  << " ignoring update " << std::endl;
+        << args.status   << " ignoring update " << std::endl;
         
   }
 }

@@ -16,6 +16,13 @@
 #ifndef __CFRAGMENTHANDLER_H
 #define __CFRAGMENTHANDLER_H
 
+#ifndef __CONFIG_H
+#include <config.h>
+#ifndef __CONFIG_H
+#define __CONFIG_H
+#endif
+#endif
+
 #ifndef __STL_STRING
 #include <string>
 #ifndef __STL_STRING
@@ -51,6 +58,8 @@
 #define __STL_LIST
 #endif
 #endif
+
+
 
 #ifndef __CRT_STDINT_H
 #include <stdint.h>
