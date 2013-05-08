@@ -490,4 +490,7 @@ Feb 1, 2012 - Feb 24, 2012
         * Get all unit tests to pass.
         * Add GUI element in event builder RDO Callouts to control the glom
           --timestamp-policy switch.
+        * Document new format of Glom parametesr ring item and methods/parameters
+          that set/get the timestamp policy.
+          
         

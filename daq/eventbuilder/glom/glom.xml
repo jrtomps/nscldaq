@@ -92,6 +92,29 @@ glom <replaceable>options</replaceable>
                         </para>
                     </listitem>
                 </varlistentry>
+                <varlistentry>
+                    <term><option>--timestamp-policy</option> <replaceable>policy</replaceable></term>
+                    <listitem>
+                        <para>
+                            When glom builds output events it builds them with
+                            full body headers.  This allows the output of glom to be
+                            used as an event source for a subsequent higher level
+                            event builder.
+                            This option determines what is used
+                            for the output timestamp in event body headers.
+                        </para>
+                        <para>
+                            <literal>earliest</literal> is the default and
+                            means the timestamp will be filled in with timestamp
+                            from the fragment with the smallest timestamp.
+                            <literal>latest</literal> means that the timestamp
+                            comes from the fragment that has the largest timestamp.
+                            <literal>average</literal> means the timestamp is an
+                            integerized average of the timstamps of all event
+                            fragments in the event.
+                        </para>
+                    </listitem>
+                </varlistentry>
             </variablelist>
         </refsect1>
         <refsect1>

@@ -106,6 +106,9 @@
                     <paramdef>
                         <parameter><type>int</type>isBuilding</parameter>
                     </paramdef>
+                    <paramdef>
+                        <parameter><type>int</type>timestampPolicy</parameter>
+                    </paramdef>
                 </funcprototype>
             </funcsynopsis>
             <funcsynopsis>
@@ -5121,6 +5124,9 @@ item.commitToRing(aring);
                 <methodparam>
                     <type>bool</type> <parameter>isBuilding</parameter>
                 </methodparam>
+                <methodparam>
+                    <type>uint32_t</type> <parameter>tsPolicy</parameter>
+                </methodparam>
             </constructorsynopsis>
             <destructorsynopsis>
                 <modifier>virtual</modifier>
@@ -5174,6 +5180,10 @@ item.commitToRing(aring);
                 <void /><modifier>const</modifier>
             </methodsynopsis>
             <methodsynopsis>
+                <type>TimestampPolicy</type><methodname>timestampPolicy</methodname>
+                <void /><modifier>const</modifier>
+            </methodsynopsis>
+            <methodsynopsis>
                 <modifier>virtual</modifier> <type>std::string</type>
                 <methodname>typeName</methodname> <void />
                 <modifier>const</modifier>
@@ -5218,6 +5228,11 @@ item.commitToRing(aring);
                         <methodparam>
                             <type>bool</type> <parameter>isBuilding</parameter>
                         </methodparam>
+                        <methodparam>
+                            <type>CGlomParameters::TimestampPolicy</type>
+                            <parameter>timestampPolicy</parameter> 
+                            <modifier>const</modifier>
+                        </methodparam>
                     </constructorsynopsis>
                 </term>
                 <listitem>
@@ -5237,6 +5252,13 @@ item.commitToRing(aring);
                         <application>glom</application> can also run in
                         non-building mode.  That mode means that each
                         fragment results in its own output event.
+                    </para>
+                    <para>
+                        The <parameter>timestampPolicy</parameter> argument sets the
+                        timestamp policy used by this version of glom and
+                        can be one of <literal>CGlomParameters::first</literal>,
+                        <literal>CGlomParametesr::last</literal> or
+                        <literal>CGlomParameters::average</literal>
                     </para>
                 </listitem>
             </varlistentry>
@@ -5383,6 +5405,22 @@ item.commitToRing(aring);
                     </para>
                 </listitem>
             </varlistentry>
+            <varlistentry>
+                <term><methodsynopsis>
+                    <type>CGlomParametrs::TimestampPolicy</type>
+                    <methodname>timestampPolicy</methodname>
+                    <void /><modifier>const</modifier>
+                    </methodsynopsis>
+                </term>
+                <listitem>
+                    <para>
+                        Returns the timestamp policy field.  This will
+                        See the documentation of the constructor for information
+                        about the possible values this can have.
+                    </para>
+                </listitem>
+            </varlistentry>
+            
             <varlistentry>
                 <term>
                     <methodsynopsis>
@@ -6458,6 +6496,7 @@ typedef struct _GlomParameters  {
     uint32_t       s_mbz;
     uint64_t       s_coincidenceTicks;
     uint16_t       s_isBuilding;
+    uint16_t       s_timestampPolicy;
     
 } GlomParameters, *pGlomParameters;
 
@@ -6475,7 +6514,8 @@ typedef struct _GlomParameters  {
 				       const char* pTitle, int type);
   
   pDataFormat           formatDataFormat();
-  pGlomParameters       formatGlomParameters(uint64_t coincidenceWindow, int isBuilding);
+  pGlomParameters       formatGlomParameters(uint64_t coincidenceWindow, int isBuilding,
+                            int timestampPolicy);
   
   pEventBuilderFragment formatEVBFragment(
     uint64_t timestamp, uint32_t sourceId, uint32_t barrier,
@@ -7084,6 +7124,7 @@ typedef struct _GlomParameters  {
     uint32_t       s_mbz;
     uint64_t       s_coincidenceTicks;
     uint16_t       s_isBuilding;
+    uint16_t       s_timestampPolicy;
     
 } GlomParameters, *pGlomParameters;
                 </programlisting>
@@ -7096,6 +7137,11 @@ typedef struct _GlomParameters  {
                     only meaningful if <structfield>s_isBuilding</structfield>
                     is nonzero.  It represents the timestamp interval that
                     glom considers defines a fragment coincidence window.
+                    Finally the <structfield>s_timestampPolicy</structfield>
+                    contains the timestamp policy that glom used to determine                    
+                    how timestamp fields in body headers of built events should
+                    be chosen.  This is one of <literal>GLOM_TIMESTAMP_FIRST</literal>,
+                    <literal>GLOM_TIMESTAMP_LAST</literal> or <literal>GLOM_TIMESTAMP_AVERAGE</literal>.
                 </para>
               </refsect2>
               
@@ -7405,6 +7451,58 @@ typedef struct _GlomParameters  {
                 </varlistentry>
                 <varlistentry>
                     <term>
+                        <fieldsynopsis>
+                            <modifier>static const</modifier>
+                            <type>uint16_t</type><varname>GLOM_TIMESTAMP_FIRST</varname>
+                            <initializer>0</initializer>
+                        </fieldsynopsis>
+                    </term>
+                    <listitem>
+                        <para>
+                            A possible value for the timestamp policy of the
+                            glom format ring item.  This value means the
+                            output event timestamps are filled  in from the
+                            fragment with the smallest timestamp value.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>
+                        <fieldsynopsis>
+                            <modifier>static const</modifier>
+                            <type>uint16_t</type><varname>GLOM_TIMESTAMP_LAST</varname>
+                            <initializer>0</initializer>
+                        </fieldsynopsis>
+                    </term>
+                    <listitem>
+                        <para>
+                            A possible value for the timestamp policy of the
+                            glom format ring item.  This value means the
+                            output event timestamps are filled  in from the
+                            fragment with the largest timestamp value.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>
+                        <fieldsynopsis>
+                            <modifier>static const</modifier>
+                            <type>uint16_t</type><varname>GLOM_TIMESTAMP_AVERAGE</varname>
+                            <initializer>0</initializer>
+                        </fieldsynopsis>
+                    </term>
+                    <listitem>
+                        <para>
+                            A possible value for the timestamp policy of the
+                            glom format ring item.  This value means the
+                            output event timestamps are filled  in from the
+                            average of all timestamps in fragments in the event.
+                        </para>
+                    </listitem>
+                </varlistentry>
+
+                <varlistentry>
+                    <term>
                         <literal>#define TITLE_MAXSIZE 80</literal></term>
                     <listitem>
                         <para>
@@ -7558,6 +7656,9 @@ typedef struct _GlomParameters  {
                     </paramdef>
                     <paramdef>
                         <parameter><type>int</type>isBuilding</parameter>
+                    </paramdef>
+                    <paramdef>
+                        <parameter><type>int</type>timestampPolicy</parameter>
                     </paramdef>
                 </funcprototype>
             </funcsynopsis>
@@ -8118,6 +8219,9 @@ typedef struct _GlomParameters  {
                                 <paramdef>
                                     <parameter><type>int</type>isBuilding</parameter>
                                 </paramdef>
+                                <paramdef>
+                                    <parameter><type>int</type> timestampPolicy</parameter>
+                                </paramdef>
                             </funcprototype>
                         </funcsynopsis>
                         </term>
@@ -8131,6 +8235,8 @@ typedef struct _GlomParameters  {
                                 and the <parameter>isBuilding</parameter>
                                 parameter determiens the value
                                 of the <varname>s_isBuilding</varname> field.
+                                <parameter>timestampPolicy</parameter> is used to
+                                fill in the <varname>s_timestampPolicy</varname> field.
                             </para>
                             <para>
                                 The item must be released by the caller
