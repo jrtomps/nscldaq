@@ -443,7 +443,7 @@ proc EVBC::onBegin {} {
         }
             
         if {[info commands startEVBSources] ne ""} {
-            startEVBSources
+            after 1000 startEVBSources
         }
     } else {
 	EVBC::reset
