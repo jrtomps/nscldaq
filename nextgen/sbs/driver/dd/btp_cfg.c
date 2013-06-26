@@ -64,6 +64,23 @@ static int btp_suspend(struct pci_dev *dev, u32 state);
 
 static int btp_resume(struct pci_dev *dev);
 
+#ifndef __devinit
+#define __devinit		/* 3.8 kernel */
+#endif
+
+#ifndef __devexit
+#define __devexit		/* 3.8 kernel. */
+#endif
+
+#ifndef __devinitdata
+#define __devinitdata
+#endif
+
+#ifndef __devexit_p
+#define __devexit_p(p) p
+#endif
+
+
 static int __devinit btp_init_one(struct pci_dev *curr_dev_p, const struct pci_device_id *id);
 
 static void __devexit btp_remove_one(struct pci_dev *dev_p);
