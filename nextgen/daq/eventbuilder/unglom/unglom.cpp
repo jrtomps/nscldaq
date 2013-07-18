@@ -46,6 +46,7 @@ static void writeEvent(void* pEvent);
 static void writeNonPhysicsItem(CRingItem* pItem);
 static void writePhysicsItem(CRingItem* pItem);
 
+static void* pLastItem=0;
 
 static uint32_t sourceId;	// Source id for non-event fragments.
 
@@ -125,7 +126,11 @@ readEvent()
 
   RingItemHeader hdr;
   try {
-    io::readData(STDIN_FILENO, &hdr, sizeof(RingItemHeader));
+    int nRead = io::readData(STDIN_FILENO, &hdr, sizeof(RingItemHeader));
+    if (nRead != sizeof(RingItemHeader)) {
+	throw std::string("EOF in middle of ring item header!");
+    }
+
   }
   catch (int err) {
     if (err == 0) {
@@ -149,8 +154,12 @@ readEvent()
   uint8_t* pBody = pData + sizeof(RingItemHeader);
   
   try {
-    io::readData(STDIN_FILENO, pBody, 
-		 hdr.s_size - sizeof(RingItemHeader));
+    size_t bodySize =  hdr.s_size - sizeof(RingItemHeader);
+    size_t nRead = io::readData(STDIN_FILENO, pBody, bodySize); 
+    if (bodySize != nRead) {
+      throw std::string("EOF in middle of a ring item");
+    }
+
   }
   catch (int e) {
     // free storage:
@@ -185,7 +194,16 @@ static void writeEvent(void* pEvent)
   
 
   CRingItem* pItem = CRingItemFactory::createRingItem(pEvent);
-  
+  //  Save the last item contents:
+  //
+  //  
+  pRingItem pRItem = pItem->getItemPointer();
+  pLastItem = realloc(pLastItem, pRItem->s_header.s_size);
+  if (pLastItem) {
+    memcpy(pLastItem, pRItem, pRItem->s_header.s_size);
+  } else {
+    throw std::string("Unable to allocate storage for prior item");
+  }
   if (pItem->type() != PHYSICS_EVENT) {
     writeNonPhysicsItem(pItem);
   } else {

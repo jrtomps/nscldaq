@@ -1,5 +1,5 @@
 #    This software is Copyright by the Board of Trustees of Michigan
-#    State University (c) Copyright 2005.
+#    State University (c) Copyright 2013.
 #
 #    You may use this software under the terms of the GNU public license
 #    (GPL).  The terms of this license are described at:

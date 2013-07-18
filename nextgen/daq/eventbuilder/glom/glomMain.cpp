@@ -33,7 +33,7 @@ static uint64_t firstTimestamp;
 static bool     firstEvent(true);
 uint8_t*        pAccumulatedEvent(0);
 size_t          totalEventSize(0);
-bool            nobuild;
+bool            nobuild(false);
 
 /**
  * flushEvent
