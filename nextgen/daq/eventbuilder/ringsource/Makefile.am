@@ -41,7 +41,7 @@ ringTestSource_LDADD = \
 	@top_builddir@/base/exception/libException.la \
 	-ldl 
 
-.PHONY: 
+.FIRST: 
 	rm -rf $(BUILT_SOURCES)
 
 clean-local:
