@@ -16,7 +16,7 @@ ringTestSource_SOURCES= ringTestSource.cpp ringtestoptions.c TestSource.cpp
 noinst_HEADERS=CRingSource.h s800.h TestSource.h
 
 
-BUILT_SOURCES = cmdline.c GetOpt.cpp ringtestoptions.c
+BUILT_SOURCES = cmdline.c GetOpt.cpp ringtestoptions.c ringtestoptions.h
 
 #
 #  This is a bit funky.  We copy the options.ggo skeleton file and add to it
@@ -32,7 +32,8 @@ GetOpt.cpp: ../GetOpt.cpp ../GetOpt.h
 	cp ../GetOpt.{cpp,h} .
 
 
-ringtestoptions.h: ringtestoptions.c
+ringtestoptions.h: ringtestoptions.ggo
+	$(GENGETOPT) --input=ringtestoptions.ggo --file=ringtestoptions
 
 ringtestoptions.c: ringtestoptions.ggo
 	$(GENGETOPT) --input=ringtestoptions.ggo --file=ringtestoptions
