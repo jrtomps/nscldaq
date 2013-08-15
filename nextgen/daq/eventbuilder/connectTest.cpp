@@ -94,7 +94,7 @@ void connectTests::serverOk() {
      
      // CONNECT string:
      
-     size_t_t stringSize;
+     size_t stringSize;
      EQ((int)sizeof(uint32_t), pClient->Read(&stringSize, sizeof(uint32_t)));
      EQ(strlen("CONNECT"), (size_t)stringSize);
      char request[stringSize+1];
