@@ -71,7 +71,11 @@
 				    /* Base address of CAMAC branches: */
 #ifdef __unix__
 extern void*  (pBranchBases[]);
+#ifdef ADDR64
+#define CAMBAS(b) ((uint64_t)pBranchBases[(b)])
+#else
 #define CAMBAS(b) ((uint32_t)pBranchBases[(b)])
+#endif
 #else
 #define    CAMBAS(b)  ((int)(camac.busbase + (int)busbases[camac.localaccess]))
 #endif

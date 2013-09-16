@@ -49,6 +49,13 @@ AC_TYPE_UINT16_T
 AC_TYPE_UINT32_T
 AC_TYPE_UINT8_T
 
+# check to find the size of address
+AC_CHECK_SIZEOF([char*])
+AS_IF([test "$ac_cv_sizeof_charp" -eq 8],
+    AC_DEFINE([ADDR64],1,[Specifies that memory addresses are 64-bits ]),
+     [])
+   
+
 # Checks for library functions.
 
 AC_FUNC_ERROR_AT_LINE
@@ -59,6 +66,7 @@ AC_CHECK_FUNCS([dup2 gethostbyaddr gethostbyname gettimeofday inet_ntoa memmove 
 AC_CHECK_FUNCS([ftruncate munmap])
 AC_FUNC_MMAP
 AC_FUNC_STAT
+
 
 # Automake:
 
