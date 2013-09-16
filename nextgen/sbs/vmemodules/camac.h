@@ -21,6 +21,8 @@
 
 #include <stdint.h>
 
+#include <config.h>
+
 /*----------------------------------------------------------------------
  *
  * At compile time, the base macros that access the camac system are
