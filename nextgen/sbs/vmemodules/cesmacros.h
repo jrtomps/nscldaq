@@ -52,7 +52,7 @@
 
 
 
-#define qtst(b)	(camread16((b),0,29,0,0) < 0)
+#define qtst(b)	((camread16((b),0,29,0,0) & 0X8000) != 0)
 #define xtst(b)	((camread16((b),0,29,0,0) & 0X4000) != 0)
 
 
