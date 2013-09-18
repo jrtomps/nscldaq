@@ -442,7 +442,8 @@ Feb 1, 2012 - Feb 24, 2012
 	  to support EPICS monitoring.
 	- Issue #989 - document VM-USB list remote list executino.
         - Final test build on Wheezy64
-	
+	- Add -clearveto to CHINP.cpp
+	- Fix 32/64 bit uncleanliness in camac.h (J.T.).
 11.0 Better support for event builder (workoder W02101).
 	* Issue #1578 - Support runs with multiple end run marks in the
 	event logger.
@@ -492,5 +493,4 @@ Feb 1, 2012 - Feb 24, 2012
           --timestamp-policy switch.
         * Document new format of Glom parametesr ring item and methods/parameters
           that set/get the timestamp policy.
-          
-        
+

@@ -780,7 +780,7 @@ StateChangeOutput::beginTimestamped()
     // Check body header
     
     pBodyHeader pH = &(pItem->s_body.u_hasBodyHeader.s_bodyHeader);
-    EQ(sizeof(BodyHeader), pH->s_size);
+    EQ(static_cast<uint32_t>(sizeof(BodyHeader)), pH->s_size);
     EQ(static_cast<uint64_t>(8877665544332211ll), pH->s_timestamp);
     EQ(static_cast<uint32_t>(12), pH->s_sourceId);
     EQ(static_cast<uint32_t>(34), pH->s_barrier);

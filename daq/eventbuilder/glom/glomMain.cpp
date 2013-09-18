@@ -38,7 +38,7 @@ static uint32_t sourceId;
 static bool     firstEvent(true);
 static uint8_t*        pAccumulatedEvent(0);
 static size_t          totalEventSize(0);
-static bool            nobuild;
+static bool            nobuild(false);
 static enum enum_timestamp_policy timestampPolicy;
 
 /**
@@ -248,7 +248,7 @@ static void outputEventFormat()
  * @param argv - array of pointers to the parameters.
  */
 int
-main(int argc, char* const* argv)
+main(int argc, char**  argv)
 {
   // Parse the parameters;
 

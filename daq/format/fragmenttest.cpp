@@ -77,7 +77,7 @@ FragmentTests::emptyCons()
     
     EQ(true, item.hasBodyHeader());
     EQ(EVB_FRAGMENT, item.type());
-    EQ(sizeof(EventBuilderFragment), pItem->s_header.s_size);
+    EQ(static_cast<uint32_t>(sizeof(EventBuilderFragment)), pItem->s_header.s_size);
     
     
 }
@@ -110,7 +110,7 @@ FragmentTests::copyCons()
     
     EQ(true, item.hasBodyHeader());
     EQ(EVB_FRAGMENT, item.type());
-    EQ(sizeof(EventBuilderFragment), pItem->s_header.s_size);
+    EQ(static_cast<uint32_t>(sizeof(EventBuilderFragment)), pItem->s_header.s_size);
     
     // item and original should be equal:
     
@@ -146,7 +146,7 @@ FragmentTests::unknownEmptyCons()
     
     EQ(true, item.hasBodyHeader());
     EQ(EVB_UNKNOWN_PAYLOAD, item.type());
-    EQ(sizeof(EventBuilderFragment), pItem->s_header.s_size);
+    EQ(static_cast<uint32_t>(sizeof(EventBuilderFragment)), pItem->s_header.s_size);
     
     
 }
@@ -181,7 +181,7 @@ FragmentTests::unknownCopyCons()
     
     EQ(true, item.hasBodyHeader());
     EQ(EVB_UNKNOWN_PAYLOAD, item.type());
-    EQ(sizeof(EventBuilderFragment), pItem->s_header.s_size);
+    EQ(static_cast<uint32_t>(sizeof(EventBuilderFragment)), pItem->s_header.s_size);
     
     ASSERT(item == originalItem);
 }
@@ -219,7 +219,7 @@ FragmentTests::payloadCons()
     
     EQ(true, item.hasBodyHeader());
     EQ(EVB_FRAGMENT, item.type());
-    EQ(sizeof(EventBuilderFragment) + sizeof(payload), pItem->s_header.s_size);
+    EQ(static_cast<uint32_t>(sizeof(EventBuilderFragment) + sizeof(payload)), pItem->s_header.s_size);
     
 }
 /**
@@ -256,7 +256,7 @@ FragmentTests::payloadCopy()
     
     EQ(true, item.hasBodyHeader());
     EQ(EVB_FRAGMENT, item.type());
-    EQ(sizeof(EventBuilderFragment) + sizeof(payload), pItem->s_header.s_size);
+    EQ(static_cast<uint32_t>(sizeof(EventBuilderFragment) + sizeof(payload)), pItem->s_header.s_size);
         
     ASSERT(item == originalItem);
 }

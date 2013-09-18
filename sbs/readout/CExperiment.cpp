@@ -626,6 +626,12 @@ CExperiment::ScheduleEndRunBuffer(bool pause)
 		       reinterpret_cast<Tcl_Event*>(pEvent),
 		       TCL_QUEUE_TAIL);
 
+   // TODO: This should really be a cond wait on the end run buffer being done
+   //       so that the thread and its thread local storage stays alive for the duration
+   //       of the event handling...for now kludge it up this way.
+
+  usleep(1000);
+
 }
 /*!
   Handle the end run event by getting object context and 

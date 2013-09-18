@@ -377,7 +377,8 @@ ritemtests::addbodyheader()
     // Check size:
     
     pRingItem pItem = item.getItemPointer();
-    EQ(sizeof(RingItemHeader) + sizeof(BodyHeader) + sizeof(uint16_t)*10, pItem->s_header.s_size);
+    EQ(static_cast<uint32_t>(sizeof(RingItemHeader) + sizeof(BodyHeader) + sizeof(uint16_t)*10), 
+       pItem->s_header.s_size);
     EQ((uint64_t)123, item.getEventTimestamp());
     EQ((uint32_t)1, item.getSourceId());
     EQ((uint32_t)2, item.getBarrierType());

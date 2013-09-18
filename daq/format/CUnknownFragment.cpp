@@ -37,7 +37,7 @@
  * @param pPayload  - Pointer to the payload.
  */
 CUnknownFragment::CUnknownFragment(
-    uint64_t timestamp, uint32_t sourceId, uint32_t barrier, size_t size,
+    uint64_t timestamp, uint32_t sourceId, uint32_t barrier, uint32_t size,
     void* pPayload) :
        CRingFragmentItem(timestamp, sourceId, size, pPayload, barrier)
 {

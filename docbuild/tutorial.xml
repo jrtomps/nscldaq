@@ -1680,7 +1680,7 @@ OBJECTS=Skeleton.o CCAENEventSegment.o CSIS3820Scaler.o
                 <programlisting>
 mkdir myreadout
 cd    myreadout
-cp $DAQHOME/skeletons/sbs/* .
+cp $DAQROOT/skeletons/sbs/* .
                 </programlisting>
             </example>
             <para>
@@ -2809,7 +2809,7 @@ OBJECTS=Skeleton.o MyEventSegment.o MyScaler.o
                 <programlisting>
 mkdir myreadout
 cd    myreadout
-cp $DAQHOME/skeletons/sbs/* .
+cp $DAQROOT/skeletons/sbs/* .
                 </programlisting>
             </example>
             <para>
