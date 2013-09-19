@@ -18,6 +18,7 @@ noinst_HEADERS=CRingSource.h s800.h TestSource.h
 
 BUILT_SOURCES = cmdline.c GetOpt.cpp ringtestoptions.c ringtestoptions.h
 
+
 #
 #  This is a bit funky.  We copy the options.ggo skeleton file and add to it
 #  options needed for the ring buffer...then generate cmdline.{h,c}
@@ -31,6 +32,8 @@ cmdline.c: ../options.ggo
 GetOpt.cpp: ../GetOpt.cpp ../GetOpt.h
 	cp ../GetOpt.{cpp,h} .
 
+ringtestoptions.h: ringtestoptions.ggo
+	$(GENGETOPT) --input=ringtestoptions.ggo --file=ringtestoptions
 
 ringtestoptions.h: ringtestoptions.ggo
 	$(GENGETOPT) --input=ringtestoptions.ggo --file=ringtestoptions

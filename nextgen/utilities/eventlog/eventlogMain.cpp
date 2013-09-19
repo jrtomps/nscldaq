@@ -174,6 +174,9 @@ EventLogMain::recordData()
 	warned = true;
 	cerr << "**Warning - first item received was not a begin run. Skipping until we get one\n";
       }
+      cerr << pItem->typeName() << "--------------\n";
+      cerr << pItem->toString() << endl;
+      delete pItem;
     }
     // Now we have the begin run item:
     

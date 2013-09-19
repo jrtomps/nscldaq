@@ -22,4 +22,4 @@ cmdline.c: cmdline.h
 cmdline.h: cmdline.ggo
 	@GENGETOPT@ --input=cmdline.ggo
 
-EXTRA_DIST=cmdline.ggo 
+EXTRA_DIST=cmdline.ggo

@@ -19,6 +19,7 @@ libdataformat_la_SOURCES = CRingSelectionPredicate.cpp	\
 			CDataSourceFactory.cpp
 
 
+
 include_HEADERS	= CRingSelectionPredicate.h	\
 			  CDesiredTypesPredicate.h	\
 			  CAllButPredicate.h	\

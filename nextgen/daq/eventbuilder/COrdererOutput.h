@@ -64,10 +64,7 @@ private:
 public:
   virtual void operator()(const std::vector<EVB::pFragment>& event);
 
-  // Utilities:
-private:
-
-  void ThrowErrnoString(const char* prefixMessage) const;
+ 
   
 };
 

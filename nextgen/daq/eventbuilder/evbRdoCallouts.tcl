@@ -21,12 +21,12 @@ package provide evbcallouts 1.0
 package require snit
 package require portAllocator
 package require ReadoutGUIPanel
-package require Experiment 2.0
+package require Experiment
 package require ring
 
 namespace eval ::EVBC {
     set initialized 0
-    set pipefd    "";            # Holds the fd to the pipe inot the evbpipeline
+    set pipefd    "";            # Holds the fd to the pipe into the evbpipeline
     
     # Figure out where we are and hence the root of the daq system:
     # We assume we are in one directory below TclLibs in computing this:
@@ -401,6 +401,11 @@ proc EVBC::initialize args {
             return "tcp://localhost/$EVBC::destRing"
         }
     } 
+    #
+    #  The timeout for waiting on the event logger needs to be longer than
+    #  normal due to the deeper buffering.
+
+    set Experiment::fileWaitTimeout 120; # 2 minutes for now.
 }
 #------------------------------------------------------------------------------
 ##
@@ -423,6 +428,7 @@ proc EVBC::onBegin {} {
         vwait EVBC::pipefd;      # Will become empty on exit.
     }
     catch [list ringbuffer create $EVBC::destRing] msg;  #ensure ring exists first.
+    puts "Note not being able to make ring buffer just means it's already there - don't panic"
     puts "Ringmsg $EVBC::destRing: $msg"
     
     # IF needed, create the destination and the intermediate ring:
@@ -439,6 +445,7 @@ proc EVBC::onBegin {} {
     #  If needed restart the EVB and disable the GUI...if it exists
     
     if {$EVBC::pipefd eq ""} {
+
         EVBC::start \
             -teering   $teering   \
             -glombuild [$EVBC::applicationOptions cget -glombuild] \
@@ -448,13 +455,20 @@ proc EVBC::onBegin {} {
         if {$EVBC::guiFrame ne ""} {
             EVBC::_DisableGUI 
         }
-            
+	set service ORDERER:$::tcl_platform(user)
+	EVBC::_WaitFor $service
         if {[info commands startEVBSources] ne ""} {
-            startEVBSources
+	    startEVBSources
         }
     } else {
 	EVBC::reset
     }
+    #  Sit here for a bit to ensure that everything has settled before letting 
+    #  data taking begin.  This is done because we see cases where event sources
+    #  are missing the begin run otherwise.
+    #
+
+    after 2000
 }
 #------------------------------------------------------------------------------
 ##
@@ -487,7 +501,7 @@ proc EVBC::onEnd {} {
 #
 proc EVBC::_CheckPipeline {msgPrefix} {
     if {$EVBC::pipefd eq ""} {
-        error "$msgPrefix the event buider pipleline is not running"
+        error "$msgPrefix the event buider pipeline is not running"
     }
 }
 #------------------------------------------------------------------------------
@@ -795,5 +809,26 @@ proc EVBC::_Exiting w {
     if {($w eq ".runnumber") && ($EVBC::pipefd ne "")} {
         EVBC::stop
 
+    }
+}
+# waitFor
+#
+#  Block until a specified service has registered with the
+#  port manager..then block a trifle longer to let the server.
+#  set up a listener on that service
+#
+# @param service - name of service to wait for.
+proc EVBC::_WaitFor service {
+    set pm [::portAllocator create %AUTO%]
+    while 1 {
+	set services [$pm listPorts]
+	foreach server $services {
+	    if {[lindex $server 1] eq $service} {
+		after 1000;	# Let the server establish
+		$pm destroy
+		return
+	    }
+	}
+	after 1000;		# Wait before trying again.
     }
 }

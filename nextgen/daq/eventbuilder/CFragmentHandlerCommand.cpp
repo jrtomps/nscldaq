@@ -30,6 +30,8 @@
 #include <string>
 #include <iostream>
 
+static const int TCL_CHUNKSIZE(128*1024); // Tcl_Read fails badly on multiMbyte reads!!
+
 /**
  * Construct the object:
  * @param interp - reference to an encpasulated interpreter.
@@ -102,10 +104,12 @@ CFragmentHandlerCommand::operator()(CTCLInterpreter& interp, std::vector<CTCLObj
 
 
     if (msgLength > 0) {
-      uint8_t msgBody[msgLength];
-      n    = Tcl_Read(pChannel, reinterpret_cast<char*>(msgBody), msgLength);
+      uint8_t* msgBody = new uint8_t[msgLength];
+      //n    = Tcl_Read(pChannel, reinterpret_cast<char*>(msgBody), msgLength);
+      n = tclRead(pChannel, reinterpret_cast<char*>(msgBody), msgLength);
       if(n != msgLength) {
 	interp.setResult("Message Body could not be completely read");
+	delete []msgBody;
 	return TCL_ERROR;
       }
       
@@ -113,6 +117,7 @@ CFragmentHandlerCommand::operator()(CTCLInterpreter& interp, std::vector<CTCLObj
       
       CFragmentHandler* pHandler = CFragmentHandler::getInstance();
       pHandler->addFragments(msgLength, reinterpret_cast<EVB::pFlatFragment>(msgBody));
+      delete []msgBody;
     }
     
 
@@ -153,4 +158,47 @@ CFragmentHandlerCommand::operator()(CTCLInterpreter& interp, std::vector<CTCLObj
 
   return status;
   
+}
+
+/**
+ * tclRead
+ *
+ *  Do a large read from a Tcl channel by breaking it up into reads no bigger
+ *  than TCL_CHUNKSIZE since multimbyte reads seem to make Tcl_Read segfault!
+ *
+ * @param pChannel - really a Tcl_Channel the channel to read from.
+ * @param pBuffer   - Pointer to the buffer into which to read data.
+ * @param bytes    - Number of bytes to read, pBuffer must be at least this big.
+ *
+ * @return size_t number of bytes read. On error could be less than the requested.
+ */
+size_t
+CFragmentHandlerCommand::tclRead(void* pChannel, char* pBuffer, size_t bytes)
+{
+  Tcl_Channel c = reinterpret_cast<Tcl_Channel>(pChannel);
+  size_t totalReadSize = 0;
+  while (bytes) {
+    int thisReadSize = bytes;
+    if (thisReadSize > TCL_CHUNKSIZE) thisReadSize = TCL_CHUNKSIZE;
+    int bytesRead = Tcl_Read(c, pBuffer, thisReadSize);
+    if (bytesRead != thisReadSize) {
+      // error of some sort:
+
+      if (bytesRead < 0) {
+	return totalReadSize;
+      } else {
+	totalReadSize += bytesRead;
+	return totalReadSize;
+      }
+    }
+    // Do the partial read book keeping, thisReadSize more read,
+    //  this ReadSize fewer to read, and next read is thisReadSize further into
+    // the bufer:
+
+    totalReadSize += thisReadSize;
+    pBuffer       += thisReadSize;
+    bytes         -= thisReadSize;
+  }
+  // Success
+  return totalReadSize;
 }

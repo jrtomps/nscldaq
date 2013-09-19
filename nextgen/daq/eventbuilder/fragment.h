@@ -73,7 +73,7 @@ namespace EVB {
    *  The typedef below defines a fragment header.
    */ 
   
-  typedef struct __attribute__((__packed__))_FragmentHeader {
+  typedef struct __attribute__((__packed__)) _FragmentHeader {
     uint64_t       s_timestamp;	//< Fragment time relative to globally synchronized clock.
     uint32_t       s_sourceId ;	//< Unique source identifier.
     uint32_t       s_size;	// Bytes in fragment payload.

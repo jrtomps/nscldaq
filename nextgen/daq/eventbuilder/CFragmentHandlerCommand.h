@@ -47,6 +47,10 @@ protected:
   virtual int operator()(CTCLInterpreter& interp,
 			 std::vector<CTCLObject>& objv);
 
+  // utiltities
+
+  size_t tclRead(void* pChannel, char* pBuffer, size_t bytes);
+
   
 
 };

@@ -42,6 +42,7 @@ public:
 };
 
 
+
 /* 
    Visitor that disables what it visits:
 */
@@ -50,6 +51,21 @@ class DisableVisitorE : public CCompoundEventSegment::CVisitor
 public:
   virtual void operator()(CEventSegment* pSegment) {
     pSegment->disable();
+  }
+};
+
+/*
+  Visitor for on end:
+*/
+class OnEndVisitorE : public CCompoundEventSegment::CVisitor
+{
+private:
+  CExperiment* m_pExperiment;
+public:
+  OnEndVisitorE(CExperiment* pExp) : m_pExperiment(pExp) {}
+
+  virtual void operator()(CEventSegment* pSegment) {
+    pSegment->onEnd(m_pExperiment);
   }
 };
 
@@ -140,7 +156,18 @@ CCompoundEventSegment::read(void* pBuffer, size_t maxwords)
   return nRead;
     
 }
-
+/**
+ * onEnd
+ *   Visit all children with an  OnEndVisitorE 
+ *
+ * @param pExperiment - Pointer to the experiment object.
+ */
+void
+CCompoundEventSegment::onEnd(CExperiment* pExperiment)
+{
+  OnEndVisitorE visitor(pExperiment);
+  visit(visitor);
+}
 
 // Type-safe adaptor to CComposite:
 

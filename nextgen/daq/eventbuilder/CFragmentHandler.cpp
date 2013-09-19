@@ -33,7 +33,7 @@
 
 CFragmentHandler* CFragmentHandler::m_pInstance(0);
 
-static const time_t DefaultBuildWindow(20); // default seconds to accumulate data before ordering.
+static const time_t DefaultBuildWindow(5); // default seconds to accumulate data before ordering.
 static const uint32_t IdlePollInterval(2);  // Seconds between idle polls.
 
 /*---------------------------------------------------------------------
@@ -655,9 +655,10 @@ CFragmentHandler::popOldest()
        pOLdest, and find the next value for m_nOldest
     */
 
+#ifdef DEBUG
     std::vector<uint32_t> sourceIds;
     std::vector<uint64_t> timestampValues;
-
+#endif
     int nonEmptyQs = 0;
     for(Sources::iterator p = m_FragmentQueues.begin();
         p != m_FragmentQueues.end(); p++) {
@@ -665,10 +666,10 @@ CFragmentHandler::popOldest()
 	nonEmptyQs++;
 
 	std::pair<time_t, ::EVB::pFragment> Frag = p->second.s_queue.front();
-
+#ifdef DEBUG
 	sourceIds.push_back(p->first);
 	timestampValues.push_back(Frag.second->s_header.s_timestamp);
-
+#endif
 	// Zero timestamps at the front of a queue shouild be pretty strange
 
 #ifdef DEBUG
@@ -724,8 +725,10 @@ CFragmentHandler::popOldest()
 	      
 	      received = Frag.first;
 	      stamp = Frag.second->s_header.s_timestamp;
+#ifdef DEBUG
 	      sourceIds.push_back(p->first);
 	      timestampValues.push_back(stamp);
+#endif
 	    
 	      /* If the current queue is empty, that means that
 		 the current fragment is 'the one' and it emptied
@@ -772,11 +775,12 @@ CFragmentHandler::popOldest()
 
 	std::cerr << "Oldest timestamp found was: " << pOldest->second->s_header.s_timestamp 
 		  << std::endl;
+#ifdef DEBUG
 	for (int i =0; i < sourceIds.size(); i++) {
 	  std::cerr << "Source ID: " << sourceIds[i] << " Timestamp: " << timestampValues[i] 
 		    << std::endl;
 	}
-
+#endif
 	std::cerr << std::dec;
       }
 #ifdef DEBUG
@@ -951,7 +955,7 @@ CFragmentHandler::addFragment(EVB::pFlatFragment pFragment)
 #endif
 	m_nOldest = timestamp;
     }
-    // Queue out of order fragmen?
+    // Queue out of order fragment?
     if (!destQueue.s_queue.empty()) {
       if (timestamp < destQueue.s_newestTimestamp) {
 	std::cerr << "Queue timestamp took a jump backwards from : "

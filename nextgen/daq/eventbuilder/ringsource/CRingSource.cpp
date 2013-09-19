@@ -41,12 +41,13 @@
 #include <fstream>
 
 
+
 static std::ofstream log;
 static uint64_t lastTimestamp(NULL_TIMESTAMP);
 
 
 
-static size_t max_event(1024*128); // initial Max bytes of events in a getData
+static size_t max_event(1024*1024*8); // initial Max bytes of events...typical ring size.
 
 /*----------------------------------------------------------------------
  * Canonicals
@@ -152,6 +153,9 @@ CRingSource::initialize()
     throw msg;
   }
   unlink(dlName.c_str());	// Marks this for destruction.
+
+  // Connect to the event builder:
+
   
 }
 /**

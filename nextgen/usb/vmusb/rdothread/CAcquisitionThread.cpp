@@ -41,7 +41,7 @@ using namespace std;
 
 
 static const unsigned DRAINTIMEOUTS(5);	// # consecutive drain read timeouts before giving up.
-static const unsigned USBTIMEOUT(2);
+static const unsigned USBTIMEOUT(4);
 
 static const unsigned ReadoutStackNum(0);
 static const unsigned ScalerStackNum(1);
@@ -410,7 +410,7 @@ CAcquisitionThread::startDaq()
 
   // Set up the buffer size and mode:
 
-  m_pVme->writeBulkXferSetup(0 << CVMUSB::TransferSetupRegister::timeoutShift); // don't want multibuffering...1sec timeout is fine.
+  m_pVme->writeBulkXferSetup(0 << CVMUSB::TransferSetupRegister::timeoutShift | 0); // 1 buffer 1 second timeout.
 
 
   // The global mode:
@@ -424,7 +424,7 @@ CAcquisitionThread::startDaq()
   m_pVme->writeGlobalMode((4 << CVMUSB::GlobalModeRegister::busReqLevelShift) | 
 			  //			  CVMUSB::GlobalModeRegister::flushScalers            |
 			  CVMUSB::GlobalModeRegister::mixedBuffers            |
-			  // CVMUSB::GlobalModeRegister::spanBuffers             |
+			  CVMUSB::GlobalModeRegister::spanBuffers             |
 			  (CVMUSB::GlobalModeRegister::bufferLen13K << 
 			   CVMUSB::GlobalModeRegister::bufferLenShift));
 

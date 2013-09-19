@@ -32,7 +32,8 @@ FRAMEWORK_SKELETON = Makefile_Skeleton $(FRAMEWORK_SOURCEFILES)
 
 
 include_HEADERS = CEventOrderClient.h fragment.h CEVBClientApp.h EVBFramework.h \
-	CEVBFrameworkApp.h  GetOpt.h
+	CEVBFrameworkApp.h  GetOpt.h fragio.h
+
 
 
 noinst_HEADERS = CFragmentHandlerCommand.h CFragmentHandler.h cmdline.h \
@@ -65,6 +66,9 @@ libEventBuilderClient_la_LIBADD = @top_builddir@/base/tcpip/libTcp.la \
 libEventBuilder_la_LIBADD = @top_builddir@/base/tclplus/libtclPlus.la \
 	@top_builddir@/base/exception/libException.la \
 	@top_builddir@/base/os/libdaqshm.la    \
+	@top_builddir@/servers/portmanager/libPortManager.la \
+	@top_builddir@/base/tcpip/libTcp.la \
+	@top_builddir@/base/os/libdaqshm.la \
 	@TCL_LDFLAGS@ @THREADLD_FLAGS@
 
 TCL_PACKAGE_FILES=ConnectionManager.tcl callbackManager.tcl eventOrderer.tcl \

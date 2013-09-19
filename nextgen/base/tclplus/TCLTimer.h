@@ -31,7 +31,7 @@
 
 #ifndef __TCLTIMER_H  //Required for current class
 #define __TCLTIMER_H
-                               //Required for base classes
+                               //Required for base clasRses
 #ifndef __TCLINTERPRETEROBJECT_H
 #include "TCLInterpreterObject.h"
 #endif    

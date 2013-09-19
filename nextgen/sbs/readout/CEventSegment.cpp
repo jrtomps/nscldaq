@@ -68,6 +68,23 @@ CEventSegment::read(void* pBuffer, size_t maxwords)
   return 0;
 }
 
+/**
+ * onEnd
+ *
+ *   Concrete subclasses may override this method to provide application specific
+ *   actions at the end of the run.  This is invoked:
+ *   -  After the trigger thread has exited.
+ *   -  In the Tcl main thread by the end of run event handler.
+ *   - Prior to generating the end of run record.
+ *
+ * @param pExperiment - Pointer to the experiment object.
+ */
+void
+CEventSegment::onEnd(CExperiment* pExperiment)
+{
+  // Stub to make this not pure virtual.
+}
+
 /*!
    Event segments are not composites:
 */

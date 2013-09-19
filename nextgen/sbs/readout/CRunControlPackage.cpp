@@ -129,9 +129,10 @@ CRunControlPackage::end()
 {
   RunState::State state = m_pTheState->m_state;
   if((state == RunState::active) || (state == RunState::paused)) {
+    m_pTimer = reinterpret_cast<RunTimer*>(0);
     m_pTheExperiment->Stop(false);	// Not a pause.
     delete m_pTimer;
-    m_pTimer = reinterpret_cast<RunTimer*>(0);
+
   }
   else {
     string validstates = RunState::stateName(RunState::active);

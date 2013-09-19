@@ -220,16 +220,13 @@ CEVBFrameworkApp::operator()(int argc, char** argv)
 
 
   /**
+   * Initialize the fragment sources and connect to the event builder:
    * Connect to the event builder:
    */
 
   const char* pContext;
 
   try {
-
-    pContext = "Connecting to the event builder";
-    EVBConnect(evbhost.c_str(), evbport.c_str(), description.c_str(), sourceIds, pName);
-
     /**
      * Initialize all of the fragment sources in m_sources
      */
@@ -239,7 +236,12 @@ CEVBFrameworkApp::operator()(int argc, char** argv)
 		  std::mem_fun(&CEVBClientApp::initialize) );
     
     
-    
+  
+
+    pContext = "Connecting to the event builder";
+    EVBConnect(evbhost.c_str(), evbport.c_str(), description.c_str(), sourceIds, pName);
+
+  
     // main loop let the sources contribute data.
     
 

@@ -78,21 +78,3 @@ COrdererOutput::operator()(const std::vector<EVB::pFragment>& event)
 
 }
 
-/*-----------------------------------------------------------------------------
-** Utiltity methods
-*/
-
-/**
- * Throw an error string given an error with errno:
- *.
- * @param prefixMessage - prefixes the error message.
- */
-void
-COrdererOutput::ThrowErrnoString(const char* prefixMessage) const
-{
-  int error = Tcl_GetErrno();
-  std::string msg(prefixMessage);
-  msg += Tcl_ErrnoMsg(error);
-  
-  throw msg;
-}

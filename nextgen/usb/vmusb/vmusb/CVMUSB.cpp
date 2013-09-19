@@ -948,6 +948,8 @@ CVMUSB::executeList(CVMUSBReadoutList&     list,
   
 }
 
+// SWIG wrappable version of execute list.
+
 std::vector<uint8_t> 
 CVMUSB::executeList(CVMUSBReadoutList& list, int maxBytes)
 {

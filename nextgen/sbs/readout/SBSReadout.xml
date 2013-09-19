@@ -2202,6 +2202,13 @@ MySegment::read(void* pBuffer, size_t maxlen)
                 </methodsynopsis>
             <methodsynopsis>
                 <modifier>virtual</modifier>
+                <type>void</type> <methodname>onEnd</methodname>
+                <methodparam>
+                    <type>CExperiment*</type> <parameter>pExperiment</parameter>
+                </methodparam>
+            </methodsynopsis>
+            <methodsynopsis>
+                <modifier>virtual</modifier>
                 <type>bool</type> <methodname>isComposite</methodname>
                 <void /><modifier>const</modifier>
                 </methodsynopsis>
@@ -2285,6 +2292,24 @@ MySegment::read(void* pBuffer, size_t maxlen)
             associated with the event segment and put it in <parameter>pBuffer</parameter>.
             At most <parameter>maxwords</parameter> words of data should be read.
             </para>
+            <methodsynopsis>
+                <modifier>virtual</modifier>
+                <type>void</type> <methodname>onEnd</methodname>
+                <methodparam>
+                    <type>CExperiment*</type> <parameter>pExperiment</parameter>
+                </methodparam>
+            </methodsynopsis>
+        <para>
+            This is called at the end of the run.  At this time the trigger
+            thread has exited and the end run event has not yet been emitted
+            by the readout framework.  One use of this method can be for deeply
+            buffered event sources where you need to flush either internal or
+            external buffers at the end of the run.  For example, if your custom
+            trigger just indicates there are data in buffers, you can invoke
+            pExperiment-&gt;ReadEvent to force the system to read events
+            until your trigger indicates there is no more data to ready (presumably
+            you use this method to disable your hardware triggers).
+        </para>
         <methodsynopsis>
             <modifier>virtual</modifier>
             <type>bool</type> <methodname>isComposite</methodname>

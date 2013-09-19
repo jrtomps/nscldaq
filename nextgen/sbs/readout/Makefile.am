@@ -78,7 +78,7 @@ libSBSProductionReadout_la_LIBADD	=	@top_srcdir@/sbs/vmemodules/libSBSDeviceSupp
 
 
 libSBSProductionReadout_la_LDFLAGS	=	-version-info	1:0:0	\
-						$(TCL_LDFLAGS) $(THREADLD_FLAGS)
+						$(TCL_LDFLAGS) $(THREADLD_FLAGS) -Wl,"-rpath=@libdir@"
 
 EXTRA_DIST	=	options.ggo Skeleton.cpp UserMakefile.in SBSRdoMakeIncludes.in SBSReadout.xml
 

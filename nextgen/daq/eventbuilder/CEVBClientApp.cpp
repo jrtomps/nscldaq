@@ -29,6 +29,7 @@
 CEVBClientApp::CEVBClientApp()
 {
   CEVBFrameworkApp::getInstance()->addSource(this);
+ 
 }
 /**
  * Destructor: Unregister this with the framwork.
@@ -40,11 +41,15 @@ CEVBClientApp::~CEVBClientApp()
 
 
 /**
- *  initialize: The base class method does nothing but allow the user who
- *              does not need one to not implement.
+ *  initialize: 
+ *    Connect to the event builder.  This is now done here to allow
+ *    the user's initialize to decide when to do this relative
+ *    to the other initialization stuff.
  */
 void
-CEVBClientApp::initialize() {}
+CEVBClientApp::initialize() {
+
+}
 
 /**
  * shutdown: As for initialize but the system is shutting down.

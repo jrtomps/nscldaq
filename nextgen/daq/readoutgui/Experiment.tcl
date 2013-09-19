@@ -87,6 +87,7 @@ if {[info proc ::fileutil::relative] eq ""} {
 
 namespace eval  Experiment {
     variable Logrecorder [DAQParameters::getEventLogger]
+    puts "Log recorder path is $Logrecorder"
     variable EventlogPid 0
     variable fileWaitTimeout 45
 

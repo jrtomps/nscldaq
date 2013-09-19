@@ -2,7 +2,7 @@
 # Process this file with autoconf to produce a configure script.
 
 AC_PREREQ(2.61)
-AC_INIT(nscldaq, 10.2-102, fox@nscl.msu.edu)
+AC_INIT(nscldaq, 10.2-103, fox@nscl.msu.edu)
 
 AC_CONFIG_SRCDIR([/utilities/StringsToIntegers.h])
 AC_CONFIG_HEADER([config.h])
@@ -50,8 +50,8 @@ AC_TYPE_UINT32_T
 AC_TYPE_UINT8_T
 
 # check to find the size of address
-AC_CHECK_SIZEOF([char*])
-AS_IF([test "$ac_cv_sizeof_charp" -eq 8],
+AC_CHECK_SIZEOF([void*])
+AS_IF([test "$ac_cv_sizeof_voidp" -eq 8],
     AC_DEFINE([ADDR64],1,[Specifies that memory addresses are 64-bits ]),
      [])
    
@@ -352,6 +352,16 @@ fi
 
 #  If we found epics we can build the software that needs it.
 #  otherwise it's optional.
+bits=`arch`
+kernel=`uname |tr [A-Z] [a-z]`
+
+case $bits in
+   i686 | i386)
+   	bits=x86
+   ;;
+esac
+
+epicsarch=$kernel-$bits
 
 if test $haveepics == "yes"
 then

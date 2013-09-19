@@ -27,6 +27,10 @@
 #endif
 #endif
 
+// Forward references:
+
+class CExperiment;
+
 /*!
 
    This is an abstract base class for event segments.  An event segment reads out a
@@ -49,6 +53,7 @@ public:
   virtual void   clear();
   virtual void   disable();
   virtual size_t read(void* pBuffer, size_t maxwords) = 0;
+  virtual void   onEnd(CExperiment* pExperiment);
 
   virtual bool isComposite() const;
   

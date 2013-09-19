@@ -20,7 +20,7 @@ INCLUDES = -I@top_srcdir@/daq/eventbuilder  \
 teering_LDADD = @top_builddir@/daq/eventbuilder/libEventBuilderClient.la \
 	@top_builddir@/daq/format/libdataformat.la \
 	@top_builddir@/base/dataflow/libRingBuffer.la     \
-	@top_builddir@/base/dataflow/libDataFlow.la	\
+	@top_builddir@/base/dataflow/libDataFlow.la     \
 	@top_builddir@/base/os/libdaqshm.la		 \
 	@top_builddir@/base/exception/libException.la \
 	@THREADLD_FLAGS@
@@ -28,3 +28,4 @@ teering_LDADD = @top_builddir@/daq/eventbuilder/libEventBuilderClient.la \
 teering_LDFLAGS= -Wl,"-rpath=@libdir@"
 
 EXTRA_DIST=options.ggo teering.xml
+

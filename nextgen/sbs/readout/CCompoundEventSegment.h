@@ -41,6 +41,8 @@
 #endif
 #endif
 
+class CExperiment;
+
 /*!
   CCompound event segment is a CEventSegment that is also a Composite.
   The composite class is inherited but re-exposed via a type-safe adaptor
@@ -69,6 +71,7 @@ public:
   virtual void   clear();
   virtual void   disable();
   virtual size_t read(void* pBuffer, size_t maxwords);
+  virtual void    onEnd(CExperiment* pExperiment);
 
 
   // Type-safe adaptor to CComposite:
