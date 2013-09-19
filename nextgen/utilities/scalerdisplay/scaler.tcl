@@ -459,7 +459,7 @@ proc configureStripChart {} {
         set log 1
         $logButton select
     }
-    $stripchartWidget axis configure y -logscale $log -title counts
+    $stripchartWidget axis configure y -logscale $log; # Dodge BLT Bug -title counts
 
 
 }
